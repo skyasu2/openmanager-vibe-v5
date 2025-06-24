@@ -1,8 +1,9 @@
 /**
- * 🚀 Supabase Vector RAG Engine v2.2 (성능 최적화)
+ * 🚀 Supabase Vector RAG Engine v3.0 (MCP 파일시스템 연동)
  * Supabase pgvector를 활용한 고성능 벡터 검색 시스템
  * + 향상된 한국어 NLP 처리
  * + 캐싱 및 성능 최적화
+ * + MCP 파일시스템 서버 연동으로 동적 컨텍스트 조회
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
@@ -31,7 +32,18 @@ interface RAGSearchResult {
   processingTime: number;
   totalResults: number;
   cached: boolean;
+  mcpContext?: any; // MCP에서 조회한 추가 컨텍스트
   error?: string;
+}
+
+interface MCPFileSystemContext {
+  files: Array<{
+    path: string;
+    content: string;
+    type: 'file' | 'directory';
+  }>;
+  systemContext: any;
+  relevantPaths: string[];
 }
 
 export class SupabaseRAGEngine {
@@ -49,10 +61,20 @@ export class SupabaseRAGEngine {
   private readonly cacheExpiry = 5 * 60 * 1000; // 5분 캐시
   private readonly maxCacheSize = 100;
 
+  // 🔗 MCP 파일시스템 연동 설정
+  private mcpEnabled = true;
+  private mcpServerUrl = 'https://openmanager-vibe-v5.onrender.com';
+  private mcpContextCache = new Map<
+    string,
+    { context: MCPFileSystemContext; timestamp: number }
+  >();
+
   // 성능 통계
   private stats = {
     totalQueries: 0,
     cacheHits: 0,
+    mcpQueries: 0,
+    mcpCacheHits: 0,
     averageResponseTime: 0,
     lastOptimized: Date.now(),
   };
@@ -63,7 +85,235 @@ export class SupabaseRAGEngine {
   }
 
   /**
-   * 🧹 캐시 정리 스케줄러
+   * 🔗 MCP 파일시스템 서버에서 컨텍스트 조회
+   */
+  private async queryMCPFileSystem(
+    query: string
+  ): Promise<MCPFileSystemContext | null> {
+    if (!this.mcpEnabled) {
+      return null;
+    }
+
+    try {
+      const cacheKey = `mcp:${query}`;
+      const cached = this.mcpContextCache.get(cacheKey);
+
+      if (cached && Date.now() - cached.timestamp < this.cacheExpiry) {
+        this.stats.mcpCacheHits++;
+        return cached.context;
+      }
+
+      this.stats.mcpQueries++;
+
+      // 1. 시스템 컨텍스트 조회
+      const systemContextResponse = await fetch(
+        `${this.mcpServerUrl}/api/mcp/tools`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            tool: 'get_system_context',
+            arguments: {
+              includeMetrics: true,
+              includeLogs: false,
+            },
+          }),
+        }
+      );
+
+      let systemContext = null;
+      if (systemContextResponse.ok) {
+        systemContext = await systemContextResponse.json();
+      }
+
+      // 2. 쿼리 관련 파일 검색
+      const relevantPaths = this.extractRelevantPaths(query);
+      const files: Array<{
+        path: string;
+        content: string;
+        type: 'file' | 'directory';
+      }> = [];
+
+      for (const filePath of relevantPaths) {
+        try {
+          // 파일 내용 읽기
+          const fileResponse = await fetch(
+            `${this.mcpServerUrl}/api/mcp/tools`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                tool: 'read_file',
+                arguments: {
+                  path: filePath,
+                },
+              }),
+            }
+          );
+
+          if (fileResponse.ok) {
+            const fileData = await fileResponse.json();
+            files.push({
+              path: filePath,
+              content: fileData.content || '',
+              type: 'file',
+            });
+          }
+        } catch (error) {
+          console.warn(`MCP 파일 읽기 실패: ${filePath}`, error);
+        }
+      }
+
+      // 3. 디렉토리 구조 조회 (필요시)
+      if (this.shouldQueryDirectoryStructure(query)) {
+        try {
+          const dirResponse = await fetch(
+            `${this.mcpServerUrl}/api/mcp/tools`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                tool: 'list_directory',
+                arguments: {
+                  path: './src',
+                },
+              }),
+            }
+          );
+
+          if (dirResponse.ok) {
+            const dirData = await dirResponse.json();
+            files.push({
+              path: './src',
+              content: JSON.stringify(dirData, null, 2),
+              type: 'directory',
+            });
+          }
+        } catch (error) {
+          console.warn('MCP 디렉토리 조회 실패:', error);
+        }
+      }
+
+      const mcpContext: MCPFileSystemContext = {
+        files,
+        systemContext,
+        relevantPaths,
+      };
+
+      // 캐시에 저장
+      this.mcpContextCache.set(cacheKey, {
+        context: mcpContext,
+        timestamp: Date.now(),
+      });
+
+      return mcpContext;
+    } catch (error) {
+      console.error('MCP 파일시스템 조회 실패:', error);
+      return null;
+    }
+  }
+
+  /**
+   * 🔍 쿼리에서 관련 파일 경로 추출
+   */
+  private extractRelevantPaths(query: string): string[] {
+    const paths: string[] = [];
+    const lowerQuery = query.toLowerCase();
+
+    // 파일 확장자 기반 추출
+    const fileExtensions = [
+      '.ts',
+      '.tsx',
+      '.js',
+      '.jsx',
+      '.json',
+      '.md',
+      '.env',
+    ];
+    for (const ext of fileExtensions) {
+      if (lowerQuery.includes(ext)) {
+        // 일반적인 프로젝트 파일들 추가
+        if (ext === '.env') paths.push('.env.local', '.env.example');
+        if (ext === '.json') paths.push('package.json', 'tsconfig.json');
+        if (ext === '.md') paths.push('README.md', 'CHANGELOG.md');
+      }
+    }
+
+    // 컴포넌트/서비스 관련 키워드
+    if (lowerQuery.includes('컴포넌트') || lowerQuery.includes('component')) {
+      paths.push('./src/components');
+    }
+    if (lowerQuery.includes('서비스') || lowerQuery.includes('service')) {
+      paths.push('./src/services');
+    }
+    if (lowerQuery.includes('api') || lowerQuery.includes('엔드포인트')) {
+      paths.push('./src/app/api');
+    }
+    if (lowerQuery.includes('설정') || lowerQuery.includes('config')) {
+      paths.push('./src/config', 'package.json');
+    }
+    if (lowerQuery.includes('타입') || lowerQuery.includes('type')) {
+      paths.push('./src/types');
+    }
+    if (lowerQuery.includes('유틸') || lowerQuery.includes('util')) {
+      paths.push('./src/utils');
+    }
+    if (lowerQuery.includes('스토어') || lowerQuery.includes('store')) {
+      paths.push('./src/stores');
+    }
+
+    // MCP 관련 키워드
+    if (lowerQuery.includes('mcp') || lowerQuery.includes('파일시스템')) {
+      paths.push('./mcp-server/server.js', './mcp-server/package.json');
+    }
+
+    // AI 관련 키워드
+    if (
+      lowerQuery.includes('ai') ||
+      lowerQuery.includes('인공지능') ||
+      lowerQuery.includes('rag')
+    ) {
+      paths.push('./src/lib/ml', './src/services/ai');
+    }
+
+    // 기본 프로젝트 파일들
+    if (paths.length === 0) {
+      paths.push('README.md', 'package.json', './src/app/layout.tsx');
+    }
+
+    return [...new Set(paths)]; // 중복 제거
+  }
+
+  /**
+   * 🗂️ 디렉토리 구조 조회 필요성 판단
+   */
+  private shouldQueryDirectoryStructure(query: string): boolean {
+    const structureKeywords = [
+      '구조',
+      '폴더',
+      '디렉토리',
+      '파일',
+      '프로젝트',
+      'structure',
+      'folder',
+      'directory',
+      'file',
+      'project',
+    ];
+
+    return structureKeywords.some(keyword =>
+      query.toLowerCase().includes(keyword)
+    );
+  }
+
+  /**
+   * 🧹 캐시 정리 스케줄러 (MCP 캐시 포함)
    */
   private startCacheCleanup(): void {
     setInterval(() => {
@@ -73,7 +323,7 @@ export class SupabaseRAGEngine {
   }
 
   /**
-   * 🗑️ 만료된 캐시 정리
+   * 🗑️ 만료된 캐시 정리 (MCP 캐시 포함)
    */
   private cleanupExpiredCache(): void {
     const now = Date.now();
@@ -82,6 +332,13 @@ export class SupabaseRAGEngine {
     for (const [key, value] of this.queryCache.entries()) {
       if (now - value.timestamp > this.cacheExpiry) {
         this.queryCache.delete(key);
+      }
+    }
+
+    // MCP 컨텍스트 캐시 정리
+    for (const [key, value] of this.mcpContextCache.entries()) {
+      if (now - value.timestamp > this.cacheExpiry) {
+        this.mcpContextCache.delete(key);
       }
     }
 
@@ -94,7 +351,7 @@ export class SupabaseRAGEngine {
   }
 
   /**
-   * ⚡ 성능 최적화
+   * ⚡ 성능 최적화 (MCP 통계 포함)
    */
   private optimizePerformance(): void {
     const now = Date.now();
@@ -105,11 +362,18 @@ export class SupabaseRAGEngine {
         ? (this.stats.cacheHits / this.stats.totalQueries) * 100
         : 0;
 
+    const mcpCacheHitRate =
+      this.stats.mcpQueries > 0
+        ? (this.stats.mcpCacheHits / this.stats.mcpQueries) * 100
+        : 0;
+
     console.log(`📊 RAG 엔진 성능 통계 (${new Date(now).toLocaleTimeString()}):
       - 총 쿼리: ${this.stats.totalQueries}
       - 캐시 히트율: ${cacheHitRate.toFixed(1)}%
+      - MCP 쿼리: ${this.stats.mcpQueries}
+      - MCP 캐시 히트율: ${mcpCacheHitRate.toFixed(1)}%
       - 평균 응답시간: ${this.stats.averageResponseTime}ms
-      - 캐시 크기: 쿼리 ${this.queryCache.size}, 임베딩 ${this.embeddingCache.size}`);
+      - 캐시 크기: 쿼리 ${this.queryCache.size}, MCP ${this.mcpContextCache.size}, 임베딩 ${this.embeddingCache.size}`);
 
     this.stats.lastOptimized = now;
   }
@@ -432,6 +696,7 @@ export class SupabaseRAGEngine {
       maxResults?: number;
       threshold?: number;
       category?: string;
+      enableMCP?: boolean; // MCP 파일시스템 연동 활성화
     } = {}
   ): Promise<RAGSearchResult> {
     const startTime = Date.now();
@@ -460,7 +725,17 @@ export class SupabaseRAGEngine {
         await this.initialize();
       }
 
-      const { maxResults = 5, threshold = 0.7, category } = options;
+      const {
+        maxResults = 5,
+        threshold = 0.7,
+        category,
+        enableMCP = true,
+      } = options;
+
+      // 🔗 MCP 파일시스템 컨텍스트 조회 (병렬 처리)
+      const mcpContextPromise = enableMCP
+        ? this.queryMCPFileSystem(query)
+        : Promise.resolve(null);
 
       console.log(`🔍 Supabase 벡터 검색 시작: "${query}"`);
 
@@ -507,6 +782,39 @@ export class SupabaseRAGEngine {
         );
       }
 
+      // 🔗 MCP 컨텍스트 결과 대기 및 병합
+      const mcpContext = await mcpContextPromise;
+
+      // MCP 컨텍스트 기반 결과 보강
+      if (mcpContext && mcpContext.files.length > 0) {
+        console.log(
+          `🔗 MCP 컨텍스트 조회 완료: ${mcpContext.files.length}개 파일, ${mcpContext.relevantPaths.length}개 경로`
+        );
+
+        // MCP에서 조회한 파일 내용을 검색 결과에 추가
+        for (const file of mcpContext.files) {
+          if (file.content && file.content.trim()) {
+            // 파일 내용을 가상 문서로 추가
+            const mcpDocument: VectorDocument = {
+              id: `mcp:${file.path}`,
+              content: file.content,
+              metadata: {
+                source: 'mcp-filesystem',
+                category: 'file-content',
+                tags: ['mcp', 'filesystem', file.type],
+                commands: [],
+                scenario: 'file_context',
+                safety_warnings: [],
+                priority: 'medium',
+              },
+              similarity: 0.9, // MCP 컨텍스트는 높은 관련성으로 설정
+            };
+
+            searchResults.unshift(mcpDocument); // 상위에 배치
+          }
+        }
+      }
+
       const processingTime = Date.now() - startTime;
 
       // 성능 통계 업데이트
@@ -517,11 +825,12 @@ export class SupabaseRAGEngine {
 
       const result: RAGSearchResult = {
         success: true,
-        results: searchResults,
+        results: searchResults.slice(0, maxResults), // 최대 결과 수 제한
         query,
         processingTime,
         totalResults: searchResults.length,
         cached: false,
+        mcpContext, // MCP 컨텍스트 포함
       };
 
       // 🚀 결과 캐싱

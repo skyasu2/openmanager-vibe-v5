@@ -8,11 +8,10 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import fs from 'fs/promises';
+import { FileSystemServer } from '@modelcontextprotocol/server-filesystem';
 import os from 'os';
-import path from 'path';
 
-// 시스템 컨텍스트 저장소
+// 시스템 컨텍스트 저장소 (Vercel 연동용)
 const systemContext = {
   startup: new Date().toISOString(),
   logs: [],
@@ -130,10 +129,13 @@ setInterval(() => {
   }
 }, 30000); // 30초마다 수집
 
-// MCP 서버 인스턴스 생성 (확장된 표준 구조)
+// 공식 MCP 파일시스템 서버 인스턴스 생성
+const fileSystemServer = new FileSystemServer();
+
+// 메인 MCP 서버 인스턴스 생성 (공식 파일시스템 서버 + Vercel 연동)
 const server = new Server(
   {
-    name: 'openmanager-vibe-mcp-server',
+    name: 'openmanager-vibe-filesystem-server',
     version: '1.0.0',
   },
   {
@@ -144,224 +146,78 @@ const server = new Server(
   }
 );
 
-// 도구 목록 제공 (확장된 표준 MCP 프로토콜)
+// 공식 파일시스템 서버의 도구들을 위임
 server.setRequestHandler(ListToolsRequestSchema, async () => {
+  const fsTools = await fileSystemServer.listTools();
+
+  // 추가 Vercel 연동 도구들
+  const customTools = [
+    {
+      name: 'sync_to_vercel',
+      description: 'Vercel로 데이터를 동기화합니다',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          endpoint: {
+            type: 'string',
+            description: 'Vercel API 엔드포인트',
+          },
+          data: {
+            type: 'object',
+            description: '전송할 데이터',
+          },
+        },
+        required: ['endpoint'],
+      },
+    },
+    {
+      name: 'get_system_context',
+      description: 'Render 환경의 시스템 컨텍스트를 조회합니다',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          includeMetrics: {
+            type: 'boolean',
+            description: '메트릭 포함 여부',
+            default: true,
+          },
+          includeLogs: {
+            type: 'boolean',
+            description: '로그 포함 여부',
+            default: true,
+          },
+        },
+      },
+    },
+  ];
+
   return {
-    tools: [
-      {
-        name: 'read_file',
-        description: '파일 내용을 읽습니다',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            path: {
-              type: 'string',
-              description: '읽을 파일의 경로',
-            },
-          },
-          required: ['path'],
-        },
-      },
-      {
-        name: 'list_directory',
-        description: '디렉토리 내용을 나열합니다',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            path: {
-              type: 'string',
-              description: '나열할 디렉토리 경로',
-            },
-          },
-          required: ['path'],
-        },
-      },
-      {
-        name: 'system_info',
-        description: '확장된 시스템 정보를 가져옵니다',
-        inputSchema: {
-          type: 'object',
-          properties: {},
-        },
-      },
-      {
-        name: 'health_check',
-        description: 'MCP 서버 상태를 확인합니다',
-        inputSchema: {
-          type: 'object',
-          properties: {},
-        },
-      },
-      {
-        name: 'sync_to_vercel',
-        description: 'Vercel로 데이터를 동기화합니다',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            endpoint: {
-              type: 'string',
-              description: 'Vercel API 엔드포인트',
-            },
-            data: {
-              type: 'object',
-              description: '전송할 데이터',
-            },
-          },
-          required: ['endpoint'],
-        },
-      },
-      {
-        name: 'get_logs',
-        description: '시스템 로그를 조회합니다',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            level: {
-              type: 'string',
-              enum: ['info', 'warn', 'error', 'debug'],
-              description: '로그 레벨 필터',
-            },
-            limit: {
-              type: 'number',
-              description: '조회할 로그 개수 (기본값: 20)',
-              default: 20,
-            },
-          },
-        },
-      },
-      {
-        name: 'collect_context',
-        description: 'Render 환경의 전체 컨텍스트를 수집합니다',
-        inputSchema: {
-          type: 'object',
-          properties: {},
-        },
-      },
-    ],
+    tools: [...fsTools.tools, ...customTools],
   };
 });
 
-// 도구 호출 처리 (확장된 표준 MCP 프로토콜)
+// 도구 호출 처리 (공식 파일시스템 + 커스텀 기능)
 server.setRequestHandler(CallToolRequestSchema, async request => {
   const { name, arguments: args } = request.params;
 
   try {
+    // 공식 파일시스템 서버 도구들 위임
+    if (
+      [
+        'read_file',
+        'write_file',
+        'create_directory',
+        'list_directory',
+        'move_file',
+        'search_files',
+      ].includes(name)
+    ) {
+      addLog('info', `파일시스템 도구 실행: ${name}`, { args });
+      return await fileSystemServer.callTool(request);
+    }
+
+    // 커스텀 Vercel 연동 도구들
     switch (name) {
-      case 'read_file': {
-        const { path: filePath } = args;
-
-        // 보안: 상대 경로 차단
-        if (filePath.includes('..')) {
-          throw new Error('상대 경로는 허용되지 않습니다');
-        }
-
-        const content = await fs.readFile(filePath, 'utf-8');
-        addLog('info', `파일 읽기: ${filePath}`);
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `파일: ${filePath}\n\n${content}`,
-            },
-          ],
-        };
-      }
-
-      case 'list_directory': {
-        const { path: dirPath } = args;
-
-        // 보안: 상대 경로 차단
-        if (dirPath.includes('..')) {
-          throw new Error('상대 경로는 허용되지 않습니다');
-        }
-
-        const entries = await fs.readdir(dirPath, { withFileTypes: true });
-        const fileList = entries.map(entry => ({
-          name: entry.name,
-          type: entry.isDirectory() ? 'directory' : 'file',
-          path: path.join(dirPath, entry.name),
-        }));
-
-        addLog('info', `디렉토리 조회: ${dirPath} (${fileList.length}개 항목)`);
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(
-                {
-                  directory: dirPath,
-                  entries: fileList,
-                  count: fileList.length,
-                },
-                null,
-                2
-              ),
-            },
-          ],
-        };
-      }
-
-      case 'system_info': {
-        collectMetrics(); // 최신 메트릭 수집
-
-        const systemInfo = {
-          ...systemContext.metrics,
-          context: {
-            startup: systemContext.startup,
-            vercelSync: systemContext.vercelSync,
-            logsCount: systemContext.logs.length,
-          },
-          environment: {
-            hostname: os.hostname(),
-            environment: process.env.NODE_ENV || 'development',
-            region: 'singapore',
-            render: {
-              deployment: process.env.RENDER_DEPLOYMENT_ID || 'local',
-              service: process.env.RENDER_SERVICE_NAME || 'mcp-server',
-            },
-          },
-        };
-
-        addLog('info', '시스템 정보 조회됨');
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(systemInfo, null, 2),
-            },
-          ],
-        };
-      }
-
-      case 'health_check': {
-        const healthData = {
-          status: 'healthy',
-          server: 'OpenManager Vibe v5 MCP Server',
-          version: '1.0.0',
-          timestamp: new Date().toISOString(),
-          uptime: Math.floor(process.uptime()),
-          protocol: 'MCP 1.0',
-          transport: 'stdio',
-          context: {
-            startup: systemContext.startup,
-            logsCount: systemContext.logs.length,
-            vercelSync: systemContext.vercelSync,
-          },
-        };
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(healthData, null, 2),
-            },
-          ],
-        };
-      }
-
       case 'sync_to_vercel': {
         const { endpoint, data = {} } = args;
 
@@ -386,45 +242,19 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         };
       }
 
-      case 'get_logs': {
-        const { level, limit = 20 } = args;
+      case 'get_system_context': {
+        const { includeMetrics = true, includeLogs = true } = args;
 
-        let filteredLogs = systemContext.logs;
-        if (level) {
-          filteredLogs = systemContext.logs.filter(log => log.level === level);
-        }
-
-        const logs = filteredLogs.slice(-limit);
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(
-                {
-                  logs,
-                  total: filteredLogs.length,
-                  filter: level || 'all',
-                  retrieved: logs.length,
-                },
-                null,
-                2
-              ),
-            },
-          ],
-        };
-      }
-
-      case 'collect_context': {
         collectMetrics(); // 최신 메트릭 수집
 
-        const fullContext = {
+        const context = {
           timestamp: new Date().toISOString(),
           server: {
-            name: 'OpenManager Vibe v5 MCP Server',
+            name: 'OpenManager Vibe v5 Filesystem Server',
             version: '1.0.0',
             startup: systemContext.startup,
             uptime: Math.floor(process.uptime()),
+            type: 'official-filesystem-server',
           },
           environment: {
             platform: process.platform,
@@ -433,24 +263,31 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
             region: 'singapore',
             render: {
               deployment: process.env.RENDER_DEPLOYMENT_ID || 'local',
-              service: process.env.RENDER_SERVICE_NAME || 'mcp-server',
+              service:
+                process.env.RENDER_SERVICE_NAME || 'mcp-filesystem-server',
             },
           },
-          metrics: systemContext.metrics,
-          logs: {
-            count: systemContext.logs.length,
-            recent: systemContext.logs.slice(-5),
-          },
+          ...(includeMetrics && { metrics: systemContext.metrics }),
+          ...(includeLogs && {
+            logs: {
+              count: systemContext.logs.length,
+              recent: systemContext.logs.slice(-5),
+              levels: systemContext.logs.reduce((acc, log) => {
+                acc[log.level] = (acc[log.level] || 0) + 1;
+                return acc;
+              }, {}),
+            },
+          }),
           vercelSync: systemContext.vercelSync,
         };
 
-        addLog('info', 'Render 컨텍스트 전체 수집 완료');
+        addLog('info', 'Render 시스템 컨텍스트 조회 완료');
 
         return {
           content: [
             {
               type: 'text',
-              text: JSON.stringify(fullContext, null, 2),
+              text: JSON.stringify(context, null, 2),
             },
           ],
         };
@@ -474,90 +311,41 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
   }
 });
 
-// 리소스 목록 제공 (확장된 표준 MCP 프로토콜)
+// 리소스 목록 제공 (공식 파일시스템 + 커스텀)
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  const fsResources = await fileSystemServer.listResources();
+
+  const customResources = [
+    {
+      uri: 'system://context',
+      name: 'Render 시스템 컨텍스트',
+      description: '전체 시스템 컨텍스트 및 메트릭',
+      mimeType: 'application/json',
+    },
+    {
+      uri: 'vercel://sync-status',
+      name: 'Vercel 동기화 상태',
+      description: 'Vercel과의 동기화 상태',
+      mimeType: 'application/json',
+    },
+  ];
+
   return {
-    resources: [
-      {
-        uri: 'system://status',
-        name: '시스템 상태',
-        description: '현재 시스템 상태 정보',
-        mimeType: 'application/json',
-      },
-      {
-        uri: 'system://logs',
-        name: '시스템 로그',
-        description: '최근 시스템 로그',
-        mimeType: 'text/plain',
-      },
-      {
-        uri: 'system://context',
-        name: 'Render 컨텍스트',
-        description: '전체 시스템 컨텍스트',
-        mimeType: 'application/json',
-      },
-      {
-        uri: 'vercel://sync-status',
-        name: 'Vercel 동기화 상태',
-        description: 'Vercel과의 동기화 상태',
-        mimeType: 'application/json',
-      },
-    ],
+    resources: [...fsResources.resources, ...customResources],
   };
 });
 
-// 리소스 읽기 처리 (확장된 표준 MCP 프로토콜)
+// 리소스 읽기 처리 (공식 파일시스템 + 커스텀)
 server.setRequestHandler(ReadResourceRequestSchema, async request => {
   const { uri } = request.params;
 
+  // 공식 파일시스템 서버 리소스들 위임
+  if (uri.startsWith('file://')) {
+    return await fileSystemServer.readResource(request);
+  }
+
+  // 커스텀 시스템 리소스들
   switch (uri) {
-    case 'system://status': {
-      collectMetrics(); // 최신 메트릭 수집
-
-      const status = {
-        server: 'OpenManager Vibe v5 MCP Server',
-        status: 'running',
-        uptime: Math.floor(process.uptime()),
-        memory: {
-          rss: `${Math.round(systemContext.metrics.memory.rss / 1024 / 1024)}MB`,
-          heapUsed: `${Math.round(systemContext.metrics.memory.heapUsed / 1024 / 1024)}MB`,
-          usage: `${systemContext.metrics.memory.usage}%`,
-        },
-        platform: process.platform,
-        nodeVersion: process.version,
-        timestamp: new Date().toISOString(),
-      };
-
-      return {
-        contents: [
-          {
-            uri,
-            mimeType: 'application/json',
-            text: JSON.stringify(status, null, 2),
-          },
-        ],
-      };
-    }
-
-    case 'system://logs': {
-      const logs = systemContext.logs
-        .slice(-20)
-        .map(
-          log => `[${log.timestamp}] ${log.level.toUpperCase()}: ${log.message}`
-        )
-        .join('\n');
-
-      return {
-        contents: [
-          {
-            uri,
-            mimeType: 'text/plain',
-            text: logs || '로그가 없습니다.',
-          },
-        ],
-      };
-    }
-
     case 'system://context': {
       collectMetrics(); // 최신 메트릭 수집
 
@@ -606,10 +394,12 @@ server.setRequestHandler(ReadResourceRequestSchema, async request => {
 
 // 서버 시작 함수
 async function main() {
-  addLog('info', 'OpenManager Vibe v5 MCP Server 시작 중...');
-  addLog('info', '7개 도구, 4개 리소스 등록됨');
-  addLog('info', 'MCP 프로토콜 1.0 (stdio 전송)');
-  addLog('info', 'Render 컨텍스트 수집 및 Vercel 연동 활성화');
+  addLog('info', 'OpenManager Vibe v5 공식 파일시스템 서버 시작 중...');
+  addLog('info', '공식 MCP 파일시스템 서버 + Vercel 연동 기능 활성화');
+
+  // 파일시스템 서버 초기화 (루트 디렉토리 설정)
+  const rootPath = process.env.MCP_FILESYSTEM_ROOT || process.cwd();
+  addLog('info', `파일시스템 루트 경로: ${rootPath}`);
 
   // 초기 메트릭 수집
   collectMetrics();
@@ -617,7 +407,8 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
-  addLog('info', 'MCP 서버 준비 완료');
+  addLog('info', 'MCP 파일시스템 서버 준비 완료');
+  addLog('info', '공식 파일시스템 도구 + Vercel 연동 도구 사용 가능');
 }
 
 // 오류 처리
@@ -633,17 +424,17 @@ process.on('unhandledRejection', err => {
 
 // 종료 처리
 process.on('SIGINT', () => {
-  addLog('info', 'MCP 서버 종료 중...');
+  addLog('info', 'MCP 파일시스템 서버 종료 중...');
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  addLog('info', 'MCP 서버 종료 중...');
+  addLog('info', 'MCP 파일시스템 서버 종료 중...');
   process.exit(0);
 });
 
 // 서버 시작
 main().catch(error => {
-  addLog('error', 'MCP 서버 시작 실패', { error: error.message });
+  addLog('error', 'MCP 파일시스템 서버 시작 실패', { error: error.message });
   process.exit(1);
 });
