@@ -10,10 +10,8 @@
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { EnhancedServerMetrics } from '../types/server';
-
-// 🔄 중복 제거: common.ts의 타입들 사용
 import type { ServerStatus } from '../types/common';
+import type { EnhancedServerMetrics } from '../types/server';
 
 // ✅ 클라이언트 전용 타입 정의 (UI 표시용)
 interface ClientServerMetrics {
@@ -122,54 +120,81 @@ const fetchServersFromProcessor = async (): Promise<
   EnhancedServerMetrics[]
 > => {
   try {
-    // 🚀 최적화된 API 엔드포인트 직접 사용
-    console.log('🚀 최적화된 API 엔드포인트 호출 시작...');
+    // 🎯 대시보드와 동일한 API 엔드포인트 사용 (일관성 보장)
+    console.log('🎯 대시보드 API 호출로 데이터 일관성 보장...');
 
-    const response = await fetch('/api/servers/all');
+    const response = await fetch('/api/dashboard');
     if (!response.ok) {
       throw new Error(`API 호출 실패: ${response.status}`);
     }
 
     const result = await response.json();
     console.log(
-      '✅ 최적화된 API 응답:',
-      result.count,
-      '개 서버, 최적화:',
-      result.optimized
+      '✅ 대시보드 API 응답:',
+      result.data?.servers?.length || 0,
+      '개 서버'
     );
 
-    if (!result.success || !result.data) {
+    if (!result.data || !result.data.servers) {
       throw new Error('API 응답 데이터가 유효하지 않습니다');
     }
 
-    // 🎯 Server[] → EnhancedServerMetrics[] 직접 변환 (단순화)
-    const servers = result.data;
+    // 🎯 대시보드 API 서버 데이터 → EnhancedServerMetrics[] 변환
+    const servers = result.data.servers;
     return servers.map(
       (server: any): EnhancedServerMetrics => ({
         id: server.id,
-        name: server.name,
-        hostname: server.hostname || server.name,
+        name: server.hostname || server.id,
+        hostname: server.hostname || server.id,
         environment: server.environment as any,
-        role: 'web' as any,
-        status: server.status as any,
-        cpu_usage: server.cpu,
-        memory_usage: server.memory,
-        disk_usage: server.disk,
-        network_in: server.network || 0,
-        network_out: server.network || 0,
-        response_time: server.responseTime || 0,
-        uptime: parseFloat(server.uptime?.replace(/[^\d.]/g, '') || '0'),
-        last_updated: new Date(server.lastUpdate).toISOString(),
-        alerts: server.alerts || [],
+        role: server.role as any,
+        status: normalizeStatus(server.status),
+        cpu_usage: server.cpu_usage || server.node_cpu_usage_percent || 0,
+        memory_usage:
+          server.memory_usage || server.node_memory_usage_percent || 0,
+        disk_usage: server.disk_usage || server.node_disk_usage_percent || 0,
+        network_in: server.node_network_receive_rate_mbps || 0,
+        network_out: server.node_network_transmit_rate_mbps || 0,
+        response_time:
+          server.response_time ||
+          server.http_request_duration_seconds * 1000 ||
+          0,
+        uptime: server.uptime || server.node_uptime_seconds / 3600 || 0,
+        last_updated: server.last_updated || new Date().toISOString(),
+        alerts: [], // 대시보드 API에서는 별도 처리
 
         // 🎯 EnhancedServerMetrics 확장 필드들
-        network_usage: server.network || 0,
-        timestamp: new Date(server.lastUpdate).toISOString(),
+        network_usage:
+          (server.node_network_receive_rate_mbps || 0) +
+          (server.node_network_transmit_rate_mbps || 0),
+        timestamp: server.last_updated || new Date().toISOString(),
       })
     );
   } catch (error) {
-    console.error('❌ 최적화된 서버 데이터 가져오기 실패:', error);
+    console.error('❌ 대시보드 API 서버 데이터 가져오기 실패:', error);
     throw error;
+  }
+};
+
+// 🔧 상태 정규화 함수
+const normalizeStatus = (status: string): ServerStatus => {
+  switch (status?.toLowerCase()) {
+    case 'running':
+    case 'online':
+      return 'healthy';
+    case 'warning':
+      return 'warning';
+    case 'error':
+    case 'offline':
+      return 'critical';
+    case 'healthy':
+      return 'healthy';
+    case 'critical':
+      return 'critical';
+    case 'maintenance':
+      return 'maintenance';
+    default:
+      return 'healthy';
   }
 };
 
