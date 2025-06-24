@@ -103,18 +103,18 @@ export class UnifiedAIEngineRouter {
     engineUsage: Record<string, number>;
     lastUpdated: string;
   } = {
-      totalRequests: 0,
-      successfulRequests: 0,
-      failedRequests: 0,
-      averageResponseTime: 0,
-      modeUsage: {
-        AUTO: 0,
-        LOCAL: 0,
-        GOOGLE_ONLY: 0,
-      },
-      engineUsage: {},
-      lastUpdated: new Date().toISOString(),
-    };
+    totalRequests: 0,
+    successfulRequests: 0,
+    failedRequests: 0,
+    averageResponseTime: 0,
+    modeUsage: {
+      AUTO: 0,
+      LOCAL: 0,
+      GOOGLE_ONLY: 0,
+    },
+    engineUsage: {},
+    lastUpdated: new Date().toISOString(),
+  };
 
   private constructor() {
     this.googleAI = GoogleAIService.getInstance();
@@ -210,10 +210,13 @@ export class UnifiedAIEngineRouter {
     const normalizedQuery = this.validateKoreanQueryContent(request.query);
     const normalizedRequest: AIRequest = {
       ...request,
-      query: normalizedQuery
+      query: normalizedQuery,
     };
 
-    utf8Logger.korean('🎯', `POST 쿼리 (${normalizedRequest.mode || 'AUTO'} 모드): "${normalizedQuery}"`);
+    utf8Logger.korean(
+      '🎯',
+      `POST 쿼리 (${normalizedRequest.mode || 'AUTO'} 모드): "${normalizedQuery}"`
+    );
 
     if (!this.initialized) {
       await this.initialize();
@@ -235,7 +238,10 @@ export class UnifiedAIEngineRouter {
           result = await this.processLocalMode(normalizedRequest, startTime);
           break;
         case 'GOOGLE_ONLY':
-          result = await this.processGoogleOnlyMode(normalizedRequest, startTime);
+          result = await this.processGoogleOnlyMode(
+            normalizedRequest,
+            startTime
+          );
           break;
         default:
           // 알 수 없는 모드는 AUTO로 처리
@@ -281,61 +287,57 @@ export class UnifiedAIEngineRouter {
   }
 
   /**
-   * 🔄 AUTO 모드: Supabase RAG + MCP 컨텍스트 도우미
+   * 🔄 AUTO 모드: Supabase RAG (80%) → Google AI (15%) → 하위AI (5%)
+   * 전용 폴백: 다른 모드 엔진 사용 금지
    */
   private async processAutoMode(
     request: AIRequest,
     startTime: number
   ): Promise<AIResponse> {
-    utf8Logger.korean('🔄', 'AUTO 모드: Supabase RAG + MCP 컨텍스트 도우미');
+    utf8Logger.korean('🔄', 'AUTO 모드: 전용 폴백 시스템');
     const enginePath: string[] = [];
     const supportEngines: string[] = [];
     let fallbacksUsed = 0;
 
-    // 1단계: MCP 컨텍스트 수집 (백그라운드)
+    // AUTO 모드 전용 MCP 컨텍스트 수집
     let mcpContext: any = null;
     try {
-      utf8Logger.korean('🔍', '백그라운드: MCP 컨텍스트 수집');
+      utf8Logger.korean('🔍', 'AUTO 모드: MCP 컨텍스트 수집');
       mcpContext = await this.collectMCPContext(request.query, request.context);
       if (mcpContext) {
-        supportEngines.push('mcp-context');
-        this.stats.engineUsage.mcpContexts++;
+        supportEngines.push('mcp-context-auto');
       }
     } catch (error) {
-      console.warn('⚠️ MCP 컨텍스트 수집 실패 (계속 진행):', error);
+      console.warn('⚠️ AUTO 모드 MCP 컨텍스트 실패:', error);
     }
 
-    // 2단계: Supabase RAG + MCP 컨텍스트 조합 (80% 가중치)
+    // 1단계: Supabase RAG + MCP 컨텍스트 (80% 가중치) - AUTO 모드 전용
     try {
-      utf8Logger.korean('🥇', '1단계: Supabase RAG + MCP 컨텍스트 조합');
+      utf8Logger.korean('🥇', 'AUTO 1단계: Supabase RAG + MCP (80%)');
 
-      // MCP 컨텍스트를 활용한 향상된 RAG 검색
       const enhancedQuery = mcpContext
-        ? `${request.query}\n\n[컨텍스트: ${mcpContext.summary || mcpContext.info || ''}]`
+        ? `${request.query}\n\n[AUTO 컨텍스트: ${mcpContext.summary || ''}]`
         : request.query;
 
       const ragResult = await this.supabaseRAG.searchSimilar(enhancedQuery, {
         maxResults: 5,
         threshold: 0.6,
-        category: request.category || mcpContext?.category,
+        category: request.category,
       });
 
       if (ragResult.success && ragResult.results.length > 0) {
-        enginePath.push('supabase-rag-with-mcp-context');
+        enginePath.push('auto-supabase-rag');
         this.stats.engineUsage.supabaseRAG++;
 
-        // 하위 AI 도구로 응답 향상
         let enhancedResponse = ragResult.results[0].content;
-
-        // MCP 컨텍스트를 응답에 통합
-        if (mcpContext && mcpContext.additionalInfo) {
-          enhancedResponse += `\n\n📋 시스템 컨텍스트: ${mcpContext.additionalInfo}`;
+        if (mcpContext?.additionalInfo) {
+          enhancedResponse += `\n\n📋 AUTO 컨텍스트: ${mcpContext.additionalInfo}`;
         }
 
-        enhancedResponse = await this.enhanceWithSubEngines(
+        // AUTO 모드 전용 하위 엔진 강화
+        enhancedResponse = await this.enhanceWithAutoModeEngines(
           enhancedResponse,
-          request.query,
-          supportEngines
+          request.query
         );
 
         return {
@@ -347,41 +349,41 @@ export class UnifiedAIEngineRouter {
           processingTime: Date.now() - startTime,
           fallbacksUsed,
           metadata: {
-            mainEngine: 'supabase-rag',
+            mainEngine: 'auto-supabase-rag',
             supportEngines,
             ragUsed: true,
             googleAIUsed: false,
             mcpContextUsed: !!mcpContext,
-            subEnginesUsed: supportEngines,
+            subEnginesUsed: ['korean-ai', 'transformers'],
           },
         };
       }
     } catch (error) {
-      console.warn('⚠️ Supabase RAG + MCP 컨텍스트 실패:', error);
+      console.warn('⚠️ AUTO 1단계 실패:', error);
       fallbacksUsed++;
     }
 
-    // 3단계: Google AI 폴백 (15% 가중치)
+    // 2단계: Google AI (15% 가중치) - AUTO 모드 전용
     try {
-      console.log('🥈 2단계: Google AI 폴백');
+      console.log('🥈 AUTO 2단계: Google AI (15%)');
       const googleResponse = await this.googleAI.generateResponse(
         request.query
       );
 
       if (googleResponse.success) {
-        enginePath.push('google-ai-fallback');
+        enginePath.push('auto-google-ai');
         this.stats.engineUsage.googleAI++;
 
         return {
           success: true,
-          response: googleResponse.content || '응답을 생성했습니다.',
-          confidence: googleResponse.confidence || 0.7,
+          response: googleResponse.content || 'AUTO 모드 Google AI 응답',
+          confidence: 0.7,
           mode: 'AUTO',
           enginePath,
           processingTime: Date.now() - startTime,
           fallbacksUsed,
           metadata: {
-            mainEngine: 'google-ai',
+            mainEngine: 'auto-google-ai',
             supportEngines: [],
             ragUsed: false,
             googleAIUsed: true,
@@ -391,38 +393,40 @@ export class UnifiedAIEngineRouter {
         };
       }
     } catch (error) {
-      console.warn('⚠️ Google AI 폴백 실패:', error);
+      console.warn('⚠️ AUTO 2단계 실패:', error);
       fallbacksUsed++;
     }
 
-    // 4단계: 하위 AI 도구들 최종 폴백 (5% 가중치)
+    // 3단계: AUTO 모드 전용 하위 AI (5% 가중치)
     try {
-      console.log('🥉 3단계: 하위 AI 도구들 최종 폴백');
-      const subEngineResponse = await this.processWithSubEnginesOnly(
-        request,
-        supportEngines
-      );
+      console.log('🥉 AUTO 3단계: 전용 하위 AI (5%)');
+      const autoSubResponse = await this.processAutoModeSubEngines(request);
 
-      if (subEngineResponse.success) {
-        enginePath.push('sub-engines-only');
+      if (autoSubResponse.success) {
+        enginePath.push('auto-sub-engines');
         return {
-          ...subEngineResponse,
+          ...autoSubResponse,
           mode: 'AUTO',
           enginePath,
           fallbacksUsed,
           metadata: {
-            ...subEngineResponse.metadata,
-            mainEngine: 'sub-engines',
+            ...autoSubResponse.metadata,
+            mainEngine: 'auto-sub-engines',
             mcpContextUsed: !!mcpContext,
           },
         };
       }
     } catch (error) {
-      console.warn('⚠️ 하위 AI 도구들 실패:', error);
+      console.warn('⚠️ AUTO 3단계 실패:', error);
       fallbacksUsed++;
     }
 
-    throw new Error('AUTO 모드 모든 폴백 실패');
+    // AUTO 모드 전용 응급 폴백
+    return this.createAutoModeEmergencyFallback(
+      request,
+      startTime,
+      fallbacksUsed
+    );
   }
 
   /**
@@ -460,175 +464,171 @@ export class UnifiedAIEngineRouter {
   }
 
   /**
-   * 🏠 LOCAL 모드: Supabase RAG + MCP 컨텍스트 (90%) → 하위AI (10%) → Google AI 제외
+   * 🏠 LOCAL 모드: Supabase RAG (90%) → 하위AI (10%) → Google AI 완전 제외
+   * 전용 폴백: Google AI 절대 사용 금지
    */
   private async processLocalMode(
     request: AIRequest,
     startTime: number
   ): Promise<AIResponse> {
-    console.log('🏠 LOCAL 모드: Supabase RAG + MCP 컨텍스트 (Google AI 제외)');
+    console.log('🏠 LOCAL 모드: 전용 폴백 시스템 (Google AI 제외)');
     const enginePath: string[] = [];
     const supportEngines: string[] = [];
     let fallbacksUsed = 0;
 
-    // 1단계: MCP 컨텍스트 수집 (백그라운드)
+    // LOCAL 모드 전용 MCP 컨텍스트
     let mcpContext: any = null;
     try {
-      console.log('🔍 백그라운드: MCP 컨텍스트 수집 (LOCAL 모드)');
+      console.log('🔍 LOCAL 모드: MCP 컨텍스트 수집');
       mcpContext = await this.collectMCPContext(request.query, request.context);
       if (mcpContext) {
-        supportEngines.push('mcp-context');
-        this.stats.engineUsage.mcpContexts++;
+        supportEngines.push('mcp-context-local');
       }
     } catch (error) {
-      console.warn('⚠️ MCP 컨텍스트 수집 실패 (계속 진행):', error);
+      console.warn('⚠️ LOCAL 모드 MCP 컨텍스트 실패:', error);
     }
 
-    // 2단계: Supabase RAG + MCP 컨텍스트 조합 (90% 가중치)
+    // 1단계: Supabase RAG + MCP (90% 가중치) - LOCAL 모드 전용
     try {
-      console.log('🥇 1단계: Supabase RAG + MCP 컨텍스트 조합 (LOCAL 모드)');
+      console.log('🥇 LOCAL 1단계: Supabase RAG + MCP (90%)');
 
-      // MCP 컨텍스트를 활용한 향상된 RAG 검색 (LOCAL 모드는 더 관대한 설정)
       const enhancedQuery = mcpContext
-        ? `${request.query}\n\n[로컬 컨텍스트: ${mcpContext.summary || mcpContext.info || ''}]`
+        ? `${request.query}\n\n[LOCAL 컨텍스트: ${mcpContext.summary || ''}]`
         : request.query;
 
       const ragResult = await this.supabaseRAG.searchSimilar(enhancedQuery, {
-        maxResults: 8, // LOCAL 모드에서는 더 많은 결과
-        threshold: 0.5, // LOCAL 모드에서는 더 관대한 임계값
-        category: request.category || mcpContext?.category,
+        maxResults: 8, // LOCAL은 더 많은 결과
+        threshold: 0.5, // LOCAL은 더 관대한 임계값
+        category: request.category,
       });
 
       if (ragResult.success && ragResult.results.length > 0) {
-        enginePath.push('supabase-rag-with-mcp-context-local');
+        enginePath.push('local-supabase-rag');
         this.stats.engineUsage.supabaseRAG++;
 
-        // 하위 AI 도구로 응답 향상
         let enhancedResponse = ragResult.results[0].content;
-
-        // MCP 컨텍스트를 응답에 통합 (LOCAL 모드 표시)
-        if (mcpContext && mcpContext.additionalInfo) {
-          enhancedResponse += `\n\n🏠 로컬 시스템 컨텍스트: ${mcpContext.additionalInfo}`;
+        if (mcpContext?.additionalInfo) {
+          enhancedResponse += `\n\n🏠 LOCAL 컨텍스트: ${mcpContext.additionalInfo}`;
         }
 
-        enhancedResponse = await this.enhanceWithSubEngines(
+        // LOCAL 모드 전용 하위 엔진 강화
+        enhancedResponse = await this.enhanceWithLocalModeEngines(
           enhancedResponse,
-          request.query,
-          supportEngines
+          request.query
         );
 
         return {
           success: true,
           response: enhancedResponse,
-          confidence: 0.9, // LOCAL 모드에서는 더 높은 신뢰도
+          confidence: 0.9,
           mode: 'LOCAL',
           enginePath,
           processingTime: Date.now() - startTime,
           fallbacksUsed,
           metadata: {
-            mainEngine: 'supabase-rag',
+            mainEngine: 'local-supabase-rag',
             supportEngines,
             ragUsed: true,
-            googleAIUsed: false,
+            googleAIUsed: false, // LOCAL 모드는 Google AI 사용 안 함
             mcpContextUsed: !!mcpContext,
-            subEnginesUsed: supportEngines,
+            subEnginesUsed: ['korean-ai', 'transformers', 'opensource'],
           },
         };
       }
     } catch (error) {
-      console.warn('⚠️ Supabase RAG + MCP 컨텍스트 실패 (LOCAL):', error);
+      console.warn('⚠️ LOCAL 1단계 실패:', error);
       fallbacksUsed++;
     }
 
-    // 3단계: 하위 AI 도구들 최종 폴백 (10% 가중치) - Google AI 제외
+    // 2단계: LOCAL 모드 전용 하위 AI (10% 가중치) - Google AI 제외
     try {
-      console.log('🥈 2단계: 하위 AI 도구들 최종 폴백 (LOCAL 모드)');
-      const subEngineResponse = await this.processWithSubEnginesOnly(
-        request,
-        supportEngines
-      );
+      console.log('🥈 LOCAL 2단계: 전용 하위 AI (10%)');
+      const localSubResponse = await this.processLocalModeSubEngines(request);
 
-      if (subEngineResponse.success) {
-        enginePath.push('sub-engines-only-local');
+      if (localSubResponse.success) {
+        enginePath.push('local-sub-engines');
         return {
-          ...subEngineResponse,
+          ...localSubResponse,
           mode: 'LOCAL',
           enginePath,
           fallbacksUsed,
           metadata: {
-            ...subEngineResponse.metadata,
-            mainEngine: 'sub-engines',
+            ...localSubResponse.metadata,
+            mainEngine: 'local-sub-engines',
+            googleAIUsed: false, // 명시적으로 Google AI 제외
             mcpContextUsed: !!mcpContext,
           },
         };
       }
     } catch (error) {
-      console.warn('⚠️ 하위 AI 도구들 실패 (LOCAL):', error);
+      console.warn('⚠️ LOCAL 2단계 실패:', error);
       fallbacksUsed++;
     }
 
-    throw new Error('LOCAL 모드 모든 폴백 실패 (Google AI 제외됨)');
+    // LOCAL 모드 전용 응급 폴백 (Google AI 절대 사용 안 함)
+    return this.createLocalModeEmergencyFallback(
+      request,
+      startTime,
+      fallbacksUsed
+    );
   }
 
   /**
-   * 🌍 GOOGLE_ONLY 모드: Google AI (70%) → Supabase RAG + MCP 컨텍스트 (25%) → 하위AI (5%)
+   * 🌍 GOOGLE_ONLY 모드: Google AI (70%) → Supabase RAG (25%) → 하위AI (5%)
+   * 전용 폴백: Google AI 우선, 다른 모드와 구분
    */
   private async processGoogleOnlyMode(
     request: AIRequest,
     startTime: number
   ): Promise<AIResponse> {
-    console.log('🌍 GOOGLE_ONLY 모드: Google AI 중심 + RAG 보조');
+    console.log('🌍 GOOGLE_ONLY 모드: 전용 폴백 시스템');
     const enginePath: string[] = [];
     const supportEngines: string[] = [];
     let fallbacksUsed = 0;
 
-    // 0단계: MCP 컨텍스트 수집 (백그라운드)
+    // GOOGLE_ONLY 모드 전용 MCP 컨텍스트
     let mcpContext: any = null;
     try {
-      console.log('🔍 백그라운드: MCP 컨텍스트 수집 (GOOGLE_ONLY 모드)');
+      console.log('🔍 GOOGLE_ONLY 모드: MCP 컨텍스트 수집');
       mcpContext = await this.collectMCPContext(request.query, request.context);
       if (mcpContext) {
-        supportEngines.push('mcp-context');
-        this.stats.engineUsage.mcpContexts++;
+        supportEngines.push('mcp-context-google');
       }
     } catch (error) {
-      console.warn('⚠️ MCP 컨텍스트 수집 실패 (계속 진행):', error);
+      console.warn('⚠️ GOOGLE_ONLY 모드 MCP 컨텍스트 실패:', error);
     }
 
-    // 1단계: Google AI 우선 (70% 가중치)
+    // 1단계: Google AI 우선 (70% 가중치) - GOOGLE_ONLY 모드 전용
     try {
-      console.log('🥇 1단계: Google AI 시도');
+      console.log('🥇 GOOGLE_ONLY 1단계: Google AI (70%)');
 
-      // MCP 컨텍스트가 있으면 Google AI 프롬프트에 포함
       let enhancedQuery = request.query;
-      if (mcpContext && mcpContext.summary) {
-        enhancedQuery = `${request.query}\n\n참고 컨텍스트: ${mcpContext.summary}`;
+      if (mcpContext?.summary) {
+        enhancedQuery = `${request.query}\n\n[GOOGLE 컨텍스트: ${mcpContext.summary}]`;
       }
 
       const googleResponse =
         await this.googleAI.generateResponse(enhancedQuery);
 
       if (googleResponse.success) {
-        enginePath.push('google-ai-primary');
+        enginePath.push('google-only-primary');
         this.stats.engineUsage.googleAI++;
 
-        let finalResponse = googleResponse.content || '응답을 생성했습니다.';
-
-        // MCP 컨텍스트 정보를 응답에 추가
-        if (mcpContext && mcpContext.additionalInfo) {
-          finalResponse += `\n\n🔍 시스템 정보: ${mcpContext.additionalInfo}`;
+        let finalResponse = googleResponse.content || 'GOOGLE_ONLY 모드 응답';
+        if (mcpContext?.additionalInfo) {
+          finalResponse += `\n\n🔍 GOOGLE 정보: ${mcpContext.additionalInfo}`;
         }
 
         return {
           success: true,
           response: finalResponse,
-          confidence: googleResponse.confidence || 0.85,
+          confidence: 0.85,
           mode: 'GOOGLE_ONLY',
           enginePath,
           processingTime: Date.now() - startTime,
           fallbacksUsed,
           metadata: {
-            mainEngine: 'google-ai',
+            mainEngine: 'google-only-primary',
             supportEngines,
             ragUsed: false,
             googleAIUsed: true,
@@ -638,33 +638,31 @@ export class UnifiedAIEngineRouter {
         };
       }
     } catch (error) {
-      console.warn('⚠️ Google AI 실패:', error);
+      console.warn('⚠️ GOOGLE_ONLY 1단계 실패:', error);
       fallbacksUsed++;
     }
 
-    // 2단계: Supabase RAG + MCP 컨텍스트 폴백 (25% 가중치)
+    // 2단계: GOOGLE_ONLY 모드 전용 Supabase RAG (25% 가중치)
     try {
-      console.log('🥈 2단계: Supabase RAG + MCP 컨텍스트 폴백');
+      console.log('🥈 GOOGLE_ONLY 2단계: 전용 Supabase RAG (25%)');
 
       const enhancedQuery = mcpContext
-        ? `${request.query}\n\n[폴백 컨텍스트: ${mcpContext.summary || mcpContext.info || ''}]`
+        ? `${request.query}\n\n[GOOGLE 폴백 컨텍스트: ${mcpContext.summary || ''}]`
         : request.query;
 
       const ragResult = await this.supabaseRAG.searchSimilar(enhancedQuery, {
-        maxResults: 3,
-        threshold: 0.7, // GOOGLE_ONLY에서는 높은 품질만
-        category: request.category || mcpContext?.category,
+        maxResults: 3, // GOOGLE_ONLY는 엄선된 결과
+        threshold: 0.7, // GOOGLE_ONLY는 높은 품질만
+        category: request.category,
       });
 
       if (ragResult.success && ragResult.results.length > 0) {
-        enginePath.push('supabase-rag-fallback');
+        enginePath.push('google-only-rag-fallback');
         this.stats.engineUsage.supabaseRAG++;
 
         let enhancedResponse = ragResult.results[0].content;
-
-        // MCP 컨텍스트를 응답에 통합
-        if (mcpContext && mcpContext.additionalInfo) {
-          enhancedResponse += `\n\n📋 시스템 컨텍스트: ${mcpContext.additionalInfo}`;
+        if (mcpContext?.additionalInfo) {
+          enhancedResponse += `\n\n🌍 GOOGLE 모드 RAG: ${mcpContext.additionalInfo}`;
         }
 
         return {
@@ -676,7 +674,7 @@ export class UnifiedAIEngineRouter {
           processingTime: Date.now() - startTime,
           fallbacksUsed,
           metadata: {
-            mainEngine: 'supabase-rag',
+            mainEngine: 'google-only-rag-fallback',
             supportEngines,
             ragUsed: true,
             googleAIUsed: false,
@@ -686,173 +684,293 @@ export class UnifiedAIEngineRouter {
         };
       }
     } catch (error) {
-      console.warn('⚠️ Supabase RAG 폴백 실패:', error);
+      console.warn('⚠️ GOOGLE_ONLY 2단계 실패:', error);
       fallbacksUsed++;
     }
 
-    // 3단계: 하위 AI 도구들 최종 폴백 (5% 가중치)
+    // 3단계: GOOGLE_ONLY 모드 전용 하위 AI (5% 가중치)
     try {
-      console.log('🥉 3단계: 하위 AI 도구들 최종 폴백');
-      const subEngineResponse = await this.processWithSubEnginesOnly(
-        request,
-        supportEngines
-      );
+      console.log('🥉 GOOGLE_ONLY 3단계: 전용 하위 AI (5%)');
+      const googleSubResponse =
+        await this.processGoogleOnlyModeSubEngines(request);
 
-      if (subEngineResponse.success) {
-        enginePath.push('sub-engines-fallback');
+      if (googleSubResponse.success) {
+        enginePath.push('google-only-sub-engines');
         return {
-          ...subEngineResponse,
+          ...googleSubResponse,
           mode: 'GOOGLE_ONLY',
           enginePath,
           fallbacksUsed,
           metadata: {
-            ...subEngineResponse.metadata,
-            mainEngine: 'sub-engines',
+            ...googleSubResponse.metadata,
+            mainEngine: 'google-only-sub-engines',
             mcpContextUsed: !!mcpContext,
           },
         };
       }
     } catch (error) {
-      console.warn('⚠️ 하위 AI 도구들 최종 폴백 실패:', error);
+      console.warn('⚠️ GOOGLE_ONLY 3단계 실패:', error);
       fallbacksUsed++;
     }
 
-    throw new Error('GOOGLE_ONLY 모드 모든 폴백 실패');
+    // GOOGLE_ONLY 모드 전용 응급 폴백
+    return this.createGoogleOnlyModeEmergencyFallback(
+      request,
+      startTime,
+      fallbacksUsed
+    );
   }
 
   /**
-   * 🛠️ 하위 AI 도구들만으로 처리
+   * 🔧 AUTO 모드 전용 하위 엔진 강화
    */
-  private async processWithSubEnginesOnly(
-    request: AIRequest,
-    supportEngines: string[]
-  ): Promise<AIResponse> {
-    const responses: string[] = [];
-
-    // 한국어 AI 엔진
+  private async enhanceWithAutoModeEngines(
+    baseResponse: string,
+    originalQuery: string
+  ): Promise<string> {
     try {
-      if (this.isKoreanQuery(request.query)) {
-        const koreanResult = await this.koreanEngine.processQuery(
-          request.query
-        );
-        if (koreanResult && koreanResult.success) {
-          responses.push(koreanResult.response);
-          supportEngines.push('korean');
-          this.stats.engineUsage.korean++;
-        }
+      // AUTO 모드는 Korean AI + Transformers 조합
+      const koreanResult = await this.koreanEngine.processQuery(originalQuery);
+      let enhancedResponse = baseResponse;
+
+      if (koreanResult?.success && koreanResult.additionalInfo) {
+        enhancedResponse += `\n\n💡 AUTO 제안: ${koreanResult.additionalInfo.tips?.join(', ') || '추가 정보'}`;
       }
-    } catch (error) {
-      console.warn('⚠️ Korean AI 엔진 실패:', error);
-    }
 
-    // Transformers.js 엔진
+      const transformersAnalysis =
+        await this.transformersEngine.analyzeText(originalQuery);
+
+      if (transformersAnalysis?.classification) {
+        enhancedResponse += `\n\n[AUTO 분석: ${transformersAnalysis.classification.label || '일반'}]`;
+      }
+
+      return enhancedResponse;
+    } catch (error) {
+      console.warn('⚠️ AUTO 모드 하위 엔진 강화 실패:', error);
+      return baseResponse;
+    }
+  }
+
+  /**
+   * 🏠 LOCAL 모드 전용 하위 엔진 강화
+   */
+  private async enhanceWithLocalModeEngines(
+    baseResponse: string,
+    originalQuery: string
+  ): Promise<string> {
     try {
-      const transformerResult = await this.transformersEngine.classifyText(
+      // LOCAL 모드는 Korean AI + OpenSource 조합
+      const koreanResult = await this.koreanEngine.processQuery(originalQuery);
+      let enhancedResponse = baseResponse;
+
+      if (koreanResult?.success && koreanResult.additionalInfo) {
+        enhancedResponse += `\n\n💡 LOCAL 제안: ${koreanResult.additionalInfo.tips?.join(', ') || '추가 정보'}`;
+      }
+
+      const openSourceAnalysis =
+        await this.openSourceEngines.advancedNLP(originalQuery);
+
+      if (openSourceAnalysis?.summary) {
+        enhancedResponse += `\n\n[LOCAL 분석: ${openSourceAnalysis.summary}]`;
+      }
+
+      return enhancedResponse;
+    } catch (error) {
+      console.warn('⚠️ LOCAL 모드 하위 엔진 강화 실패:', error);
+      return baseResponse;
+    }
+  }
+
+  /**
+   * 🔧 AUTO 모드 전용 하위 AI 처리
+   */
+  private async processAutoModeSubEngines(
+    request: AIRequest
+  ): Promise<AIResponse> {
+    try {
+      const koreanResponse = await this.koreanEngine.processQuery(
         request.query
       );
-      if (transformerResult && transformerResult.confidence > 0.5) {
-        responses.push(
-          `분류 결과: ${transformerResult.label} (신뢰도: ${transformerResult.confidence})`
-        );
-        supportEngines.push('transformers');
-        this.stats.engineUsage.transformers++;
-      }
-    } catch (error) {
-      console.warn('⚠️ Transformers 엔진 실패:', error);
-    }
 
-    // 오픈소스 엔진들
+      if (koreanResponse.success) {
+        return {
+          success: true,
+          response: `[AUTO 모드 하위 AI] ${koreanResponse.response}`,
+          confidence: 0.6,
+          mode: 'AUTO',
+          enginePath: ['auto-korean-ai'],
+          processingTime: 0,
+          fallbacksUsed: 0,
+          metadata: {
+            mainEngine: 'auto-korean-ai',
+            supportEngines: ['korean-ai'],
+            ragUsed: false,
+            googleAIUsed: false,
+            mcpContextUsed: false,
+            subEnginesUsed: ['korean-ai'],
+          },
+        };
+      }
+
+      throw new Error('AUTO 모드 하위 AI 실패');
+    } catch (error) {
+      throw new Error(`AUTO 모드 하위 AI 처리 실패: ${error}`);
+    }
+  }
+
+  /**
+   * 🏠 LOCAL 모드 전용 하위 AI 처리
+   */
+  private async processLocalModeSubEngines(
+    request: AIRequest
+  ): Promise<AIResponse> {
     try {
+      // LOCAL 모드는 OpenSource 엔진 사용
       const openSourceResult = await this.openSourceEngines.advancedNLP(
         request.query
       );
-      if (openSourceResult && openSourceResult.summary) {
-        responses.push(openSourceResult.summary);
-        supportEngines.push('opensources');
-        this.stats.engineUsage.openSource++;
+
+      if (openSourceResult?.summary) {
+        return {
+          success: true,
+          response: `[LOCAL 모드 하위 AI] ${openSourceResult.summary}`,
+          confidence: 0.7,
+          mode: 'LOCAL',
+          enginePath: ['local-opensource'],
+          processingTime: 0,
+          fallbacksUsed: 0,
+          metadata: {
+            mainEngine: 'local-opensource',
+            supportEngines: ['opensource'],
+            ragUsed: false,
+            googleAIUsed: false, // LOCAL 모드는 Google AI 사용 안 함
+            mcpContextUsed: false,
+            subEnginesUsed: ['opensource'],
+          },
+        };
       }
+
+      throw new Error('LOCAL 모드 하위 AI 실패');
     } catch (error) {
-      console.warn('⚠️ 오픈소스 엔진들 실패:', error);
+      throw new Error(`LOCAL 모드 하위 AI 처리 실패: ${error}`);
     }
-
-    // 커스텀 엔진들
-    try {
-      const customResult = await this.customEngines.mcpQuery(request.query);
-      if (customResult && customResult.answer) {
-        responses.push(customResult.answer);
-        supportEngines.push('custom');
-        this.stats.engineUsage.custom++;
-      }
-    } catch (error) {
-      console.warn('⚠️ 커스텀 엔진들 실패:', error);
-    }
-
-    if (responses.length > 0) {
-      const combinedResponse = this.combineResponses(responses);
-
-      return {
-        success: true,
-        response: combinedResponse,
-        confidence: 0.7,
-        mode: 'AUTO', // 호출한 모드에서 덮어씀
-        enginePath: ['sub-engines-only'],
-        processingTime: 0, // 호출한 곳에서 계산
-        fallbacksUsed: 0,
-        metadata: {
-          mainEngine: 'sub-engines',
-          supportEngines,
-          ragUsed: false,
-          googleAIUsed: false,
-          mcpContextUsed: false,
-          subEnginesUsed: supportEngines,
-        },
-      };
-    }
-
-    throw new Error('하위 AI 도구들 모두 실패');
   }
 
   /**
-   * ✨ 하위 AI 도구들로 응답 향상
+   * 🌍 GOOGLE_ONLY 모드 전용 하위 AI 처리
    */
-  private async enhanceWithSubEngines(
-    baseResponse: string,
-    originalQuery: string,
-    supportEngines: string[]
-  ): Promise<string> {
-    let enhancedResponse = baseResponse;
-
-    // 한국어 처리 향상
-    if (this.isKoreanQuery(originalQuery)) {
-      try {
-        const koreanResult =
-          await this.koreanEngine.processQuery(originalQuery);
-        if (
-          koreanResult &&
-          koreanResult.success &&
-          koreanResult.additionalInfo
-        ) {
-          enhancedResponse += `\n\n💡 추가 제안: ${koreanResult.additionalInfo.tips.join(', ')}`;
-          supportEngines.push('korean');
-        }
-      } catch (error) {
-        console.warn('⚠️ 한국어 향상 실패:', error);
-      }
-    }
-
-    // Transformers.js로 감정/의도 분석 추가
+  private async processGoogleOnlyModeSubEngines(
+    request: AIRequest
+  ): Promise<AIResponse> {
     try {
-      const classificationResult =
-        await this.transformersEngine.classifyText(originalQuery);
-      if (classificationResult && classificationResult.score > 0.7) {
-        enhancedResponse += `\n\n🎯 의도 분석: ${classificationResult.label} (${(classificationResult.score * 100).toFixed(1)}%)`;
-        supportEngines.push('transformers');
-      }
-    } catch (error) {
-      console.warn('⚠️ 감정 분석 향상 실패:', error);
-    }
+      // GOOGLE_ONLY 모드는 Custom 엔진 사용
+      const customResult = await this.customEngines.customNLP(request.query);
 
-    return enhancedResponse;
+      if (customResult?.response_template) {
+        return {
+          success: true,
+          response: `[GOOGLE_ONLY 모드 하위 AI] ${customResult.response_template}`,
+          confidence: 0.65,
+          mode: 'GOOGLE_ONLY',
+          enginePath: ['google-only-custom'],
+          processingTime: 0,
+          fallbacksUsed: 0,
+          metadata: {
+            mainEngine: 'google-only-custom',
+            supportEngines: ['custom'],
+            ragUsed: false,
+            googleAIUsed: false,
+            mcpContextUsed: false,
+            subEnginesUsed: ['custom'],
+          },
+        };
+      }
+
+      throw new Error('GOOGLE_ONLY 모드 하위 AI 실패');
+    } catch (error) {
+      throw new Error(`GOOGLE_ONLY 모드 하위 AI 처리 실패: ${error}`);
+    }
+  }
+
+  /**
+   * 🚨 AUTO 모드 전용 응급 폴백
+   */
+  private createAutoModeEmergencyFallback(
+    request: AIRequest,
+    startTime: number,
+    fallbacksUsed: number
+  ): AIResponse {
+    return {
+      success: true,
+      response: `[AUTO 모드 응급 폴백] "${request.query}"에 대한 기본 응답을 제공합니다. 시스템이 일시적으로 제한된 기능으로 동작 중입니다.`,
+      confidence: 0.3,
+      mode: 'AUTO',
+      enginePath: ['auto-emergency-fallback'],
+      processingTime: Date.now() - startTime,
+      fallbacksUsed: fallbacksUsed + 1,
+      metadata: {
+        mainEngine: 'auto-emergency-fallback',
+        supportEngines: [],
+        ragUsed: false,
+        googleAIUsed: false,
+        mcpContextUsed: false,
+        subEnginesUsed: [],
+      },
+    };
+  }
+
+  /**
+   * 🚨 LOCAL 모드 전용 응급 폴백 (Google AI 완전 제외)
+   */
+  private createLocalModeEmergencyFallback(
+    request: AIRequest,
+    startTime: number,
+    fallbacksUsed: number
+  ): AIResponse {
+    return {
+      success: true,
+      response: `[LOCAL 모드 응급 폴백] "${request.query}"에 대한 로컬 기본 응답입니다. 외부 서비스 없이 로컬 시스템으로만 처리되었습니다.`,
+      confidence: 0.4,
+      mode: 'LOCAL',
+      enginePath: ['local-emergency-fallback'],
+      processingTime: Date.now() - startTime,
+      fallbacksUsed: fallbacksUsed + 1,
+      metadata: {
+        mainEngine: 'local-emergency-fallback',
+        supportEngines: [],
+        ragUsed: false,
+        googleAIUsed: false, // LOCAL 모드는 Google AI 절대 사용 안 함
+        mcpContextUsed: false,
+        subEnginesUsed: [],
+      },
+    };
+  }
+
+  /**
+   * 🚨 GOOGLE_ONLY 모드 전용 응급 폴백
+   */
+  private createGoogleOnlyModeEmergencyFallback(
+    request: AIRequest,
+    startTime: number,
+    fallbacksUsed: number
+  ): AIResponse {
+    return {
+      success: true,
+      response: `[GOOGLE_ONLY 모드 응급 폴백] "${request.query}"에 대한 고급 분석 기본 응답입니다. Google AI 서비스가 일시적으로 제한된 상태입니다.`,
+      confidence: 0.35,
+      mode: 'GOOGLE_ONLY',
+      enginePath: ['google-only-emergency-fallback'],
+      processingTime: Date.now() - startTime,
+      fallbacksUsed: fallbacksUsed + 1,
+      metadata: {
+        mainEngine: 'google-only-emergency-fallback',
+        supportEngines: [],
+        ragUsed: false,
+        googleAIUsed: false,
+        mcpContextUsed: false,
+        subEnginesUsed: [],
+      },
+    };
   }
 
   /**
@@ -1032,8 +1150,8 @@ export class UnifiedAIEngineRouter {
   }
 
   /**
- * 🔤 UTF-8 인코딩 통일 및 한국어 처리 개선
- */
+   * 🔤 UTF-8 인코딩 통일 및 한국어 처리 개선
+   */
   private normalizeTextContent(text: string): string {
     try {
       // UTF-8 인코딩 확인 및 정규화
