@@ -35,6 +35,10 @@ const ALLOWED_DIRECTORIES = [
   path.join(process.cwd(), 'config'),
 ];
 
+// 헬스체크 캐싱 시스템 (과도한 헬스체크 방지)
+const healthCache = new Map();
+const HEALTH_CACHE_DURATION = 30000; // 30초 캐시
+
 // 로깅 함수 (최소한으로 유지)
 function log(level, message, data = {}) {
   const timestamp = new Date().toISOString();
@@ -496,7 +500,32 @@ function createHealthCheckServer() {
       return;
     }
 
+    // 경량 헬스체크 엔드포인트 (30초 캐시로 과도한 요청 방지)
     if (method === 'GET' && url === '/health') {
+      const cached = healthCache.get('health');
+      if (cached && Date.now() - cached.timestamp < HEALTH_CACHE_DURATION) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(cached.data));
+        return;
+      }
+
+      const healthData = {
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+      };
+
+      healthCache.set('health', {
+        data: healthData,
+        timestamp: Date.now(),
+      });
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(healthData));
+      return;
+    }
+
+    // 상세 헬스체크 엔드포인트 (필요시에만 사용)
+    if (method === 'GET' && url === '/health/detailed') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(
         JSON.stringify({

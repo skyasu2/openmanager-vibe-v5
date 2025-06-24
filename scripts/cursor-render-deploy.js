@@ -154,23 +154,32 @@ class CursorRenderDeployer {
   }
 
   /**
-   * 👀 배포 상태 모니터링 (최적화됨)
+   * 👀 스마트 배포 모니터링 (효율성 최적화)
    */
   async monitorDeploy() {
-    console.log('👀 5단계: 배포 상태 모니터링...');
-    console.log('   ⏳ 스마트 모니터링 시작 (최대 90초)...');
+    console.log('👀 5단계: 스마트 배포 모니터링...');
 
+    // 즉시 빠른 체크 (배포가 이미 완료되었을 수 있음)
+    console.log('   ⚡ 즉시 배포 상태 확인...');
+    const quickCheck = await this.quickHealthCheck();
+
+    if (quickCheck) {
+      console.log('   ✅ 배포 즉시 완료 감지! (0초 소요)');
+      return;
+    }
+
+    console.log('   ⏳ 상세 모니터링 시작 (최대 75초)...');
     const startTime = Date.now();
-    const maxWaitTime = 90000; // 90초로 단축
-    const checkInterval = 15000; // 15초마다 체크
+    const maxWaitTime = 75000; // 75초로 단축
+    const checkInterval = 12000; // 12초마다 체크
 
-    let checks = 0;
+    let checks = 1; // 이미 1번 체크했음
     while (Date.now() - startTime < maxWaitTime) {
       checks++;
 
       try {
-        // 헬스체크로 배포 완료 확인
-        const isHealthy = await this.checkHealth();
+        // 빠른 헬스체크 우선 시도
+        const isHealthy = await this.quickHealthCheck();
 
         if (isHealthy) {
           console.log(
@@ -193,23 +202,30 @@ class CursorRenderDeployer {
       }
     }
 
-    console.log('\n   ⚠️ 최대 대기 시간 도달 (90초) - 배포 진행 중일 수 있음');
+    console.log('\n   ⚠️ 최대 대기 시간 도달 (75초) - 배포 진행 중일 수 있음');
     console.log('   ✅ 배포 모니터링 완료\n');
   }
 
   /**
-   * ✅ 배포 완료 검증
+   * ✅ 배포 완료 검증 (효율적 헬스체크)
    */
   async verifyDeploy() {
     console.log('✅ 6단계: 배포 완료 검증...');
 
     try {
-      // 헬스체크 확인
-      const isHealthy = await this.checkHealth();
+      // 빠른 헬스체크 우선 시도
+      const isHealthy = await this.quickHealthCheck();
       if (isHealthy) {
-        console.log('   ✅ 헬스체크 통과');
+        console.log('   ✅ 빠른 헬스체크 통과');
       } else {
-        console.log('   ⚠️ 헬스체크 실패 (배포 진행 중일 수 있음)');
+        // 실패 시 상세 헬스체크 한 번만 시도
+        console.log('   🔄 상세 헬스체크 재시도...');
+        const detailedCheck = await this.checkHealth();
+        if (detailedCheck) {
+          console.log('   ✅ 상세 헬스체크 통과');
+        } else {
+          console.log('   ⚠️ 헬스체크 실패 (배포 진행 중일 수 있음)');
+        }
       }
     } catch (error) {
       console.log('   ⚠️ 배포 검증 중 오류:', error.message);
@@ -219,7 +235,24 @@ class CursorRenderDeployer {
   }
 
   /**
-   * 🏥 헬스체크
+   * 🏥 빠른 헬스체크 (3초 타임아웃)
+   */
+  async quickHealthCheck() {
+    return new Promise(resolve => {
+      const req = https.get(`${this.config.renderUrl}/health`, res => {
+        resolve(res.statusCode === 200);
+      });
+
+      req.on('error', () => resolve(false));
+      req.setTimeout(3000, () => {
+        req.destroy();
+        resolve(false);
+      });
+    });
+  }
+
+  /**
+   * 🏥 상세 헬스체크 (필요시에만)
    */
   async checkHealth() {
     return new Promise(resolve => {
@@ -237,7 +270,7 @@ class CursorRenderDeployer {
       });
 
       req.on('error', () => resolve(false));
-      req.setTimeout(10000, () => {
+      req.setTimeout(5000, () => {
         req.destroy();
         resolve(false);
       });
