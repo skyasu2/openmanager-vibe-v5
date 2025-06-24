@@ -1,5 +1,15 @@
 import crypto from 'crypto';
-import { ENCRYPTED_ENV_CONFIG } from '../../../config/encrypted-env-config';
+// 빌드 시 동적 import 사용
+let ENCRYPTED_ENV_CONFIG: any = null;
+
+// 빌드 환경에서 안전한 import
+try {
+  ENCRYPTED_ENV_CONFIG =
+    require('../../../config/encrypted-env-config').ENCRYPTED_ENV_CONFIG;
+} catch (error) {
+  console.warn('환경변수 자동 복호화 초기화 실패:', error);
+  ENCRYPTED_ENV_CONFIG = null;
+}
 
 // UTF-8 콘솔 활성화 (서버 사이드에서만)
 if (typeof window === 'undefined') {
@@ -48,6 +58,15 @@ class AutoDecryptEnv {
 
     try {
       console.log('🔐 자동 환경변수 복호화 시작...');
+
+      // ENCRYPTED_ENV_CONFIG가 없으면 건너뛰기
+      if (!ENCRYPTED_ENV_CONFIG) {
+        console.warn(
+          '⚠️ 암호화된 환경변수 설정을 찾을 수 없습니다. .env.local 파일을 사용합니다.'
+        );
+        this.isInitialized = true;
+        return;
+      }
 
       // 팀 비밀번호 검증
       const passwordHash = crypto
