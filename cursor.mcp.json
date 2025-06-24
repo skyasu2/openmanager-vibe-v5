@@ -18,7 +18,11 @@
     },
     "fetch-mcp": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-fetch"]
+      "args": ["-y", "@kazuph/mcp-fetch"]
+    },
+    "fetch-simple": {
+      "command": "npx",
+      "args": ["-y", "@odgrim/mcp-fetch"]
     },
     "openmanager-dev": {
       "command": "npx",
