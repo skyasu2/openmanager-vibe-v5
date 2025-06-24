@@ -19,6 +19,7 @@ import { OpenSourceEngines } from '@/services/ai/engines/OpenSourceEngines';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { KoreanAIEngine } from '@/services/ai/korean-ai-engine';
 import { TransformersEngine } from '@/services/ai/transformers-engine';
+import { utf8Logger } from '@/utils/utf8-logger';
 // 서버 사이드에서만 MCP 클라이언트 사용
 let RealMCPClient: any = null;
 if (typeof window === 'undefined') {
@@ -102,18 +103,18 @@ export class UnifiedAIEngineRouter {
     engineUsage: Record<string, number>;
     lastUpdated: string;
   } = {
-    totalRequests: 0,
-    successfulRequests: 0,
-    failedRequests: 0,
-    averageResponseTime: 0,
-    modeUsage: {
-      AUTO: 0,
-      LOCAL: 0,
-      GOOGLE_ONLY: 0,
-    },
-    engineUsage: {},
-    lastUpdated: new Date().toISOString(),
-  };
+      totalRequests: 0,
+      successfulRequests: 0,
+      failedRequests: 0,
+      averageResponseTime: 0,
+      modeUsage: {
+        AUTO: 0,
+        LOCAL: 0,
+        GOOGLE_ONLY: 0,
+      },
+      engineUsage: {},
+      lastUpdated: new Date().toISOString(),
+    };
 
   private constructor() {
     this.googleAI = GoogleAIService.getInstance();
@@ -200,10 +201,19 @@ export class UnifiedAIEngineRouter {
   }
 
   /**
-   * 🎯 통합 AI 쿼리 처리 (Simple fallback 사용)
+   * 🎯 통합 AI 쿼리 처리 (UTF-8 인코딩 통일)
    */
   public async processQuery(request: AIRequest): Promise<AIResponse> {
     const startTime = Date.now();
+
+    // UTF-8 인코딩 정규화
+    const normalizedQuery = this.validateKoreanQueryContent(request.query);
+    const normalizedRequest: AIRequest = {
+      ...request,
+      query: normalizedQuery
+    };
+
+    utf8Logger.korean('🎯', `POST 쿼리 (${normalizedRequest.mode || 'AUTO'} 모드): "${normalizedQuery}"`);
 
     if (!this.initialized) {
       await this.initialize();
@@ -211,25 +221,25 @@ export class UnifiedAIEngineRouter {
 
     // 요청 통계 업데이트
     this.stats.totalRequests++;
-    this.stats.modeUsage[request.mode || 'AUTO']++;
+    this.stats.modeUsage[normalizedRequest.mode || 'AUTO']++;
 
     try {
       let result: AIResponse;
 
       // 모드별 처리 (MONITORING 모드 제거)
-      switch (request.mode || 'AUTO') {
+      switch (normalizedRequest.mode || 'AUTO') {
         case 'AUTO':
-          result = await this.processAutoMode(request, startTime);
+          result = await this.processAutoMode(normalizedRequest, startTime);
           break;
         case 'LOCAL':
-          result = await this.processLocalMode(request, startTime);
+          result = await this.processLocalMode(normalizedRequest, startTime);
           break;
         case 'GOOGLE_ONLY':
-          result = await this.processGoogleOnlyMode(request, startTime);
+          result = await this.processGoogleOnlyMode(normalizedRequest, startTime);
           break;
         default:
           // 알 수 없는 모드는 AUTO로 처리
-          result = await this.processAutoMode(request, startTime);
+          result = await this.processAutoMode(normalizedRequest, startTime);
           break;
       }
 
@@ -242,8 +252,8 @@ export class UnifiedAIEngineRouter {
 
       // Simple fallback 처리
       return this.createEmergencyFallback(
-        request,
-        request.mode || 'AUTO',
+        normalizedRequest,
+        normalizedRequest.mode || 'AUTO',
         startTime
       );
     }
@@ -277,7 +287,7 @@ export class UnifiedAIEngineRouter {
     request: AIRequest,
     startTime: number
   ): Promise<AIResponse> {
-    console.log('🔄 AUTO 모드: Supabase RAG + MCP 컨텍스트 도우미');
+    utf8Logger.korean('🔄', 'AUTO 모드: Supabase RAG + MCP 컨텍스트 도우미');
     const enginePath: string[] = [];
     const supportEngines: string[] = [];
     let fallbacksUsed = 0;
@@ -285,7 +295,7 @@ export class UnifiedAIEngineRouter {
     // 1단계: MCP 컨텍스트 수집 (백그라운드)
     let mcpContext: any = null;
     try {
-      console.log('🔍 백그라운드: MCP 컨텍스트 수집');
+      utf8Logger.korean('🔍', '백그라운드: MCP 컨텍스트 수집');
       mcpContext = await this.collectMCPContext(request.query, request.context);
       if (mcpContext) {
         supportEngines.push('mcp-context');
@@ -297,7 +307,7 @@ export class UnifiedAIEngineRouter {
 
     // 2단계: Supabase RAG + MCP 컨텍스트 조합 (80% 가중치)
     try {
-      console.log('🥇 1단계: Supabase RAG + MCP 컨텍스트 조합');
+      utf8Logger.korean('🥇', '1단계: Supabase RAG + MCP 컨텍스트 조합');
 
       // MCP 컨텍스트를 활용한 향상된 RAG 검색
       const enhancedQuery = mcpContext
@@ -1019,6 +1029,42 @@ export class UnifiedAIEngineRouter {
    */
   public updateFallbackStrategy(mode: AIMode, strategy: any): void {
     // This method is no longer applicable as UnifiedFallbackManager is removed
+  }
+
+  /**
+ * 🔤 UTF-8 인코딩 통일 및 한국어 처리 개선
+ */
+  private normalizeTextContent(text: string): string {
+    try {
+      // UTF-8 인코딩 확인 및 정규화
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder('utf-8');
+
+      const encoded = encoder.encode(text);
+      const normalized = decoder.decode(encoded);
+
+      return normalized;
+    } catch (error) {
+      console.warn('텍스트 정규화 실패, 원본 사용:', error);
+      return text;
+    }
+  }
+
+  /**
+   * 한국어 쿼리 검증 및 정규화
+   */
+  private validateKoreanQueryContent(query: string): string {
+    const normalized = this.normalizeTextContent(query);
+
+    // 한국어 문자 범위 확인
+    const koreanRegex = /[\u3131-\u3163\uac00-\ud7a3]/;
+    const hasKorean = koreanRegex.test(normalized);
+
+    if (hasKorean) {
+      utf8Logger.korean('🇰🇷', '한국어 쿼리 감지 및 UTF-8 정규화 완료');
+    }
+
+    return normalized;
   }
 }
 

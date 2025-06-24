@@ -1,7 +1,6 @@
 // Next.js 환경변수 로딩 개선
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
-
 // .env.local 파일 수동 로딩 (Next.js가 로드하지 못하는 경우 대비)
 const envPath = resolve(process.cwd(), '.env.local');
 if (existsSync(envPath)) {
@@ -21,11 +20,17 @@ if (existsSync(envPath)) {
     console.log('🔧 .env.local 파일 수동 로딩 완료');
 }
 
-// 자동 환경변수 복호화 시스템 동기 로딩
+// 자동 환경변수 복호화 실행 (동적 import 사용)
 try {
-    console.log('🔐 Next.js 시작 시 환경변수 자동 복호화...');
-    require('./src/lib/environment/auto-decrypt-env.ts');
-    console.log('✅ 환경변수 자동 복호화 시스템 로드됨');
+    console.log('🔐 환경변수 자동 복호화 시도...');
+    // 빌드 시점에서는 환경변수 복호화 건너뛰기
+    if (process.env.NODE_ENV !== 'production') {
+        const { AutoDecryptEnv } = await import('./src/lib/environment/auto-decrypt-env.ts');
+        await AutoDecryptEnv.getInstance().initialize();
+        console.log('✅ 환경변수 자동 복호화 완료');
+    } else {
+        console.log('⚠️ 프로덕션 빌드 중 - 환경변수 복호화 건너뛰기');
+    }
 } catch (error) {
     console.warn('⚠️ 환경변수 자동 복호화 실패:', error.message);
 }
@@ -44,6 +49,7 @@ const nextConfig = {
         REDIS_URL: process.env.REDIS_URL,
         UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
         UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
+        FORCE_UTF8: 'true'
     },
 
     // 🎯 빌드 최적화 및 오류 방지
@@ -57,7 +63,9 @@ const nextConfig = {
     images: {
         unoptimized: true,
         loader: 'custom',
-        loaderFile: './src/utils/image-loader.js'
+        loaderFile: './src/utils/image-loader.js',
+        domains: ['localhost', 'openmanager-vibe-v5.vercel.app'],
+        formats: ['image/webp', 'image/avif'],
     },
 
     // 🔧 Webpack 설정 최적화
@@ -78,6 +86,12 @@ const nextConfig = {
             'node:path': false,
             'node:url': false,
             'node:util': false,
+            crypto: false,
+            stream: false,
+            zlib: false,
+            http: false,
+            https: false,
+            assert: false,
         };
 
         // 서버 사이드 전용 모듈들을 클라이언트에서 제외
@@ -109,6 +123,11 @@ const nextConfig = {
             ...config.resolve.alias,
             '@storybook/react': false,
         };
+
+        // UTF-8 인코딩 강제 설정
+        if (config.output) {
+            config.output.charset = true;
+        }
 
         return config;
     },

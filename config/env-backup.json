@@ -1,71 +1,92 @@
 {
   "version": "1.0.0",
-  "created": "2025-06-24T03:53:38.731Z",
-  "lastBackup": "2025-06-24T03:53:38.731Z",
+  "created": "2025-06-24T05:14:38.586Z",
+  "lastBackup": "2025-06-24T05:14:38.586Z",
   "entries": [
     {
       "key": "NEXT_PUBLIC_SUPABASE_URL",
       "value": "https://test.supabase.co",
       "encrypted": false,
       "priority": "critical",
-      "lastUpdated": "2025-06-24T03:53:38.730Z"
+      "lastUpdated": "2025-06-24T05:14:38.585Z"
     },
     {
       "key": "SUPABASE_URL",
       "value": "https://test.supabase.co",
       "encrypted": false,
       "priority": "critical",
-      "lastUpdated": "2025-06-24T03:53:38.730Z"
+      "lastUpdated": "2025-06-24T05:14:38.585Z"
     },
     {
       "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-      "value": "8ac2819e9affa0dc5deb7d8efc0685a1:408b6e44cbdc296378d5512ea7ef6ca1",
+      "value": "ca1d931f6d24e987753ededd279f0d9d:7a9dfc75fc33529bda7f8a4a7484a616",
       "encrypted": true,
       "priority": "critical",
-      "lastUpdated": "2025-06-24T03:53:38.731Z"
+      "lastUpdated": "2025-06-24T05:14:38.585Z"
     },
     {
       "key": "SUPABASE_SERVICE_ROLE_KEY",
-      "value": "c11273ad93157aa209e9345e8bd6b644:c99d4e9ef7af29d8477a1f77a5bdba57ea5c05aa3997d63de53b77781fe239db",
+      "value": "f718b635fbb43ec2b620d270038c5aa1:b381ffcb6313f8814159d2d4b0f93f29023e9836deedbbdd41f950831d35fdbe",
       "encrypted": true,
       "priority": "critical",
-      "lastUpdated": "2025-06-24T03:53:38.731Z"
+      "lastUpdated": "2025-06-24T05:14:38.585Z"
     },
     {
       "key": "NODE_ENV",
       "value": "production",
       "encrypted": false,
       "priority": "critical",
-      "lastUpdated": "2025-06-24T03:53:38.731Z"
+      "lastUpdated": "2025-06-24T05:14:38.585Z"
     },
     {
       "key": "REDIS_URL",
       "value": "redis://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA@charming-condor-46598.upstash.io:6379",
       "encrypted": false,
       "priority": "important",
-      "lastUpdated": "2025-06-24T03:53:38.731Z"
+      "lastUpdated": "2025-06-24T05:14:38.585Z"
+    },
+    {
+      "key": "UPSTASH_REDIS_REST_URL",
+      "value": "https://charming-condor-46598.upstash.io",
+      "encrypted": false,
+      "priority": "important",
+      "lastUpdated": "2025-06-24T05:14:38.585Z"
+    },
+    {
+      "key": "UPSTASH_REDIS_REST_TOKEN",
+      "value": "40b8e139afbfee1caea0884863ff4ae0:f6c4367b0f25787457cafa609cf9234c03e0f041e2513bdc6c49d06ab09b723b29b05f79e4a2b83d16093a93eb2de336c34b3bbc109dc0515dab2f8ce99ce24e",
+      "encrypted": true,
+      "priority": "important",
+      "lastUpdated": "2025-06-24T05:14:38.585Z"
     },
     {
       "key": "GOOGLE_AI_API_KEY",
-      "value": "c34fa02fcad80ae2da1e99964b027c94:41f0e0d11585fd6bf0e9d834e4c890bd7469a3e0ead778f39f2a7e4c2a086ba41147e9b6ab27c9ee7a883ec361b6a3e2",
+      "value": "f227e6faa8ec90676f978c19f4dc8250:e2de3076624701fcde2277f530b327fae25251c3c4380500560fea05b5ce7baa9e0c32f371dd406228b245deaed99af0",
       "encrypted": true,
       "priority": "important",
-      "lastUpdated": "2025-06-24T03:53:38.731Z"
+      "lastUpdated": "2025-06-24T05:14:38.586Z"
+    },
+    {
+      "key": "SLACK_WEBHOOK_URL",
+      "value": "3e7fb91ef768d0a63dbb02fc0c712c86:191a48e1f61859c4e3dd1617a4914067c52693e7f94c24dec4f81bb5884431c10734b272a70b7be401737d059f4c404f8138268da946f9660b75963ebba59d58ac220275902838f10f99c185d062f705ebca6faa22bdc4ca592b3956504faaf9",
+      "encrypted": true,
+      "priority": "optional",
+      "lastUpdated": "2025-06-24T05:14:38.586Z"
     },
     {
       "key": "GOOGLE_AI_DAILY_LIMIT",
       "value": "10000",
       "encrypted": false,
       "priority": "optional",
-      "lastUpdated": "2025-06-24T03:53:38.731Z"
+      "lastUpdated": "2025-06-24T05:14:38.586Z"
     },
     {
       "key": "GOOGLE_AI_RPM_LIMIT",
       "value": "100",
       "encrypted": false,
       "priority": "optional",
-      "lastUpdated": "2025-06-24T03:53:38.731Z"
+      "lastUpdated": "2025-06-24T05:14:38.586Z"
     }
   ],
-  "checksum": "25c0630c1d38f541dbe3926f505d3997"
+  "checksum": "a9bb521fc1917e6c6505e9f4548ae1b0"
 }

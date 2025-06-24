@@ -1,6 +1,17 @@
 import crypto from 'crypto';
 import { ENCRYPTED_ENV_CONFIG } from '../../../config/encrypted-env-config';
 
+// UTF-8 콘솔 활성화 (서버 사이드에서만)
+if (typeof window === 'undefined') {
+  try {
+    const { enableUTF8Console } = require('@/utils/utf8-logger');
+    enableUTF8Console();
+    console.log('🔤 UTF-8 콘솔 활성화 완료');
+  } catch (error) {
+    console.warn('⚠️ UTF-8 콘솔 활성화 실패:', error);
+  }
+}
+
 /**
  * 🔐 자동 환경변수 복호화 시스템
  *

@@ -6,6 +6,7 @@
  * + MCP 파일시스템 서버 연동으로 동적 컨텍스트 조회
  */
 
+import { utf8Logger } from '@/utils/utf8-logger';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import autoDecryptEnv from '../environment/auto-decrypt-env';
 import { koreanMorphologyAnalyzer } from './korean-morphology-analyzer';
@@ -768,9 +769,7 @@ export class SupabaseRAGEngine {
           semanticWeight *= 1.2;
         }
 
-        console.log(
-          `🇰🇷 한국어 NLP 처리: "${text}" → "${processedText}" (신뢰도: ${semanticWeight.toFixed(2)})`
-        );
+        utf8Logger.korean('🇰🇷', `한국어 NLP 처리: "${text}" → "${processedText}" (신뢰도: ${semanticWeight.toFixed(2)})`);
       } catch (error) {
         console.warn('⚠️ 한국어 형태소 분석 실패, 기본 처리 사용:', error);
       }
@@ -864,7 +863,7 @@ export class SupabaseRAGEngine {
       if (!queryEmbedding) {
         queryEmbedding = this.generateLocalEmbedding(query);
         this.embeddingCache.set(query, queryEmbedding);
-        console.log('✅ 로컬 임베딩 생성 및 캐싱 완료');
+        utf8Logger.aiStatus('로컬 임베딩', 'success', '생성 및 캐싱 완료');
       } else {
         console.log('⚡ 임베딩 캐시 히트');
       }
