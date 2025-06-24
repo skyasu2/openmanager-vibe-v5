@@ -16,8 +16,8 @@ export default defineConfig({
       'tests/integration/ai-router.test.ts',
       'tests/integration/korean-nlp.test.ts',
       'tests/integration/supabase-rag.test.ts',
-      'tests/integration/env-backup.test.ts',
-      'tests/e2e/**/*.test.ts'
+      'tests/integration/env-backup.test.ts'
+      // E2E 테스트는 Playwright로 실행하므로 Vitest 실행 대상에서 제외합니다.
     ],
 
     // 🚫 레거시 테스트 및 불필요한 파일 완전 제외
