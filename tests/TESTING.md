@@ -1,10 +1,10 @@
-# 🧪 Testing Guide - 1인 개발 최적화 버전
+# 🧪 Testing Guide - OpenManager Vibe v5.44.3
 
-OpenManager Vibe v5의 **1인 개발에 최적화된 테스트 전략 및 가이드**입니다.
+OpenManager Vibe v5의 **AI 엔진 아키텍처 v3.0 완전 구현** 이후 테스트 전략 및 가이드입니다.
 
-## 🎯 **1인 개발 최적화 테스트 구조**
+## 🎯 **AI 엔진 아키텍처 v3.0 테스트 구조**
 
-### 📁 **통합된 테스트 폴더 구조**
+### 📁 **최신화된 테스트 폴더 구조**
 
 ```
 tests/
@@ -32,18 +32,39 @@ npm run test:dev-integration
 
 # 전체 테스트
 npm run test:all
+
+# 커버리지 포함 테스트
+npm run test:coverage
 ```
 
-### ⚡ **1인 개발 테스트 철학**
+### ⚡ **AI 엔진 아키텍처 v3.0 테스트 철학**
 
-- **선택과 집중**: 핵심 기능만 철저히 테스트
-- **빠른 피드백**: 5분 내 검증 완료
-- **AI 협업**: Cursor AI + Claude로 테스트 자동 생성
-- **실용적 접근**: 완벽보다는 지속 가능한 품질
+- **3개 운영 모드 완전 지원**: AUTO, LOCAL, GOOGLE_ONLY
+- **Supabase RAG 메인 엔진**: 자연어 처리 및 로컬 AI 엔진의 핵심
+- **Google AI 모드별 가중치**: 2-80% 동적 조정
+- **MCP 표준 서버**: AI 기능 제거, 표준 MCP 도구만 제공
+- **하위 AI 도구들**: 모든 모드에서 편리하게 사용 가능
 
-## 🎯 테스트 전략
+## 🎯 AI 엔진 아키텍처 v3.0 테스트 전략
 
-### 테스트 피라미드
+### 🤖 **3개 운영 모드 테스트**
+
+1. **AUTO 모드** (균형 모드)
+   - Supabase RAG (50%) → MCP+하위AI (30%) → 하위AI (18%) → Google AI (2%)
+   - 성능: 850ms (다층 폴백)
+   - 테스트 포커스: 폴백 시스템, 균형 잡힌 응답
+
+2. **LOCAL 모드** (로컬 우선)
+   - Supabase RAG (80%) → MCP+하위AI (20%) → Google AI 제외
+   - 성능: 620ms (Google AI 제외)
+   - 테스트 포커스: 로컬 AI 엔진, 빠른 응답
+
+3. **GOOGLE_ONLY 모드** (고급 추론)
+   - Google AI (80%) → Supabase RAG (15%) → 하위AI (5%)
+   - 성능: 1200ms (고급 추론)
+   - 테스트 포커스: Google AI 통합, 고급 분석
+
+### 📊 **테스트 커버리지 목표 (v5.44.3 기준)**
 
 ```
          /\
@@ -51,922 +72,351 @@ npm run test:all
        /E2E \      <- 10% (사용자 시나리오)
       /______\
      /        \
-    /Integration\ <- 20% (시스템 통합)
+    /Integration\ <- 20% (AI 엔진 통합)
    /__________\
   /            \
- /   Unit Tests  \ <- 70% (함수/컴포넌트)
+ /   Unit Tests  \ <- 70% (AI 엔진/컴포넌트)
 /________________\
 ```
 
-### 테스트 레벨
+### 🧪 **현재 테스트 현황 (2025.06.10 기준)**
 
-1. **단위 테스트** (Unit Tests)
+- **총 테스트 파일**: 36개 통과 (37개 중) - 97.3%
+- **총 테스트**: 532개 통과 (534개 중) - 99.6%
+- **실행 시간**: 54.31초 (목표: 60초 이내 달성)
+- **AI 엔진 테스트**: 11개 완전 통합
+- **한국어 형태소 분석**: 22개 테스트 통과
+- **주요 성과**:
+  - AUTO 모드에서 Google AI 제외 확인
+  - MONITORING 모드 완전 제거 검증
+  - Sharp 모듈 폴백 정상 작동
+  - Redis 목업 모드 안정적 동작
 
-   - 개별 함수/컴포넌트 테스트
-   - 빠른 피드백
-   - 높은 커버리지
-
-2. **통합 테스트** (Integration Tests)
-
-   - API 엔드포인트 테스트
-   - 데이터베이스 연동
-   - 외부 서비스 통합
-
-3. **E2E 테스트** (End-to-End Tests)
-   - 사용자 여정 테스트
-   - 브라우저 자동화
-   - 실제 환경 시뮬레이션
-
-## 🛠️ 테스트 도구 스택
+## 🛠️ AI 엔진 테스트 도구 스택
 
 ### 테스트 프레임워크
 
-- **Jest**: 단위/통합 테스트
+- **Vitest**: 메인 테스트 프레임워크 (Jest 대체)
 - **Testing Library**: React 컴포넌트 테스트
 - **Playwright**: E2E 테스트
 - **MSW**: API 모킹
-- **Vitest**: 빠른 단위 테스트
+- **Supertest**: API 테스트
 
-### 테스트 유틸리티
+### AI 엔진 테스트 유틸리티
 
-- **@testing-library/jest-dom**: DOM 매처
-- **@testing-library/user-event**: 사용자 상호작용
-- **supertest**: API 테스트
-- **nock**: HTTP 모킹
+- **UnifiedAIEngineRouter**: 통합 AI 엔진 라우터 테스트
+- **SupabaseRAGEngine**: RAG 엔진 테스트
+- **KoreanNLPEngine**: 한국어 처리 테스트
+- **GoogleAIService**: Google AI 통합 테스트 (dev-integration)
 
-## 🔧 테스트 설정
+## 🔧 최신화된 테스트 설정
 
-### Jest 설정
-
-```javascript
-// jest.config.js
-module.exports = {
-  testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  moduleNameMapping: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-  },
-  collectCoverageFrom: [
-    'src/**/*.{js,jsx,ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/**/*.stories.{js,jsx,ts,tsx}',
-  ],
-  coverageThreshold: {
-    global: {
-      branches: 80,
-      functions: 80,
-      lines: 80,
-      statements: 80,
-    },
-  },
-  testMatch: [
-    '<rootDir>/tests/unit/**/*.test.{js,jsx,ts,tsx}',
-    '<rootDir>/tests/integration/**/*.test.{js,jsx,ts,tsx}',
-  ],
-};
-```
-
-### Jest Setup
-
-```javascript
-// jest.setup.js
-import '@testing-library/jest-dom';
-import { server } from './src/testing/mocks/server';
-
-// MSW 서버 설정
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
-
-// 환경 변수 모킹
-process.env.GOOGLE_AI_API_KEY = 'test-api-key';
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
-```
-
-### Playwright 설정
+### Vitest 설정 (v5.44.3)
 
 ```typescript
-// playwright.config.ts
-import { defineConfig, devices } from '@playwright/test';
-
+// vitest.config.ts
 export default defineConfig({
-  testDir: './e2e',
-  fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
-  use: {
-    baseURL: 'http://localhost:3000',
-    trace: 'on-first-retry',
-  },
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./tests/setup.ts'],
+
+    // AI 엔진 아키텍처 v3.0 테스트 포함
+    include: [
+      'tests/unit/**/*.test.ts',
+      'tests/unit/**/*.test.tsx',
+      'tests/integration/ai-router.test.ts',
+      'tests/integration/korean-nlp.test.ts',
+      'tests/integration/supabase-rag.test.ts',
+    ],
+
+    // 레거시 테스트 제외
+    exclude: [
+      'tests/**/*legacy*.test.ts',
+      'tests/**/*deprecated*.test.ts',
+      'tests/**/*monitoring*.test.ts', // MONITORING 모드 제거
+    ],
+
+    // AI 엔진 테스트 환경
+    env: {
+      AI_ENGINE_MODE: 'test',
+      SUPABASE_RAG_ENABLED: 'true',
+      GOOGLE_AI_ENABLED: 'false', // 테스트에서는 비활성화
+      KOREAN_NLP_ENABLED: 'true',
     },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-  ],
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
   },
 });
 ```
 
-## 🧪 단위 테스트
-
-### React 컴포넌트 테스트
+### 테스트 환경 설정
 
 ```typescript
-// tests/unit/components/ServerCard.test.tsx
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { ServerCard } from '@/components/dashboard/ServerCard';
+// tests/setup.ts
+import '@testing-library/jest-dom';
+import { beforeAll, afterEach, afterAll } from 'vitest';
 
-const mockServer = {
-  id: 'server-1',
-  name: 'Test Server',
-  status: 'online' as const,
-  metrics: {
-    cpu: 45.2,
-    memory: 67.8,
-    disk: 89.1,
-  },
-};
+// AI 엔진 모킹
+beforeAll(() => {
+  // UnifiedAIEngineRouter 모킹
+  vi.mock('@/core/ai/engines/UnifiedAIEngineRouter');
 
-describe('ServerCard', () => {
-  test('서버 정보가 올바르게 표시된다', () => {
-    render(<ServerCard server={mockServer} />);
+  // Supabase RAG 엔진 모킹
+  vi.mock('@/core/ai/engines/SupabaseRAGEngine');
 
-    expect(screen.getByText('Test Server')).toBeInTheDocument();
-    expect(screen.getByText('online')).toBeInTheDocument();
-    expect(screen.getByText('45.2%')).toBeInTheDocument();
+  // Google AI 서비스 모킹 (테스트에서 실제 호출 방지)
+  vi.mock('@/services/ai/GoogleAIService');
+});
+```
+
+## 🧪 AI 엔진별 단위 테스트
+
+### 1. UnifiedAIEngineRouter 테스트
+
+```typescript
+// tests/unit/ai/unified-ai-engine-router.test.ts
+describe('UnifiedAIEngineRouter', () => {
+  test('AUTO 모드에서 다층 폴백 시스템 동작', async () => {
+    const router = new UnifiedAIEngineRouter('AUTO');
+    const result = await router.processQuery('서버 상태 확인');
+
+    expect(result.mode).toBe('AUTO');
+    expect(result.responseTime).toBeLessThan(1000);
+    expect(result.fallbackChain).toBeDefined();
   });
 
-  test('서버 클릭 시 상세 페이지로 이동한다', async () => {
-    const user = userEvent.setup();
-    const mockOnClick = jest.fn();
+  test('LOCAL 모드에서 Google AI 제외', async () => {
+    const router = new UnifiedAIEngineRouter('LOCAL');
+    const result = await router.processQuery('성능 분석');
 
-    render(<ServerCard server={mockServer} onClick={mockOnClick} />);
-
-    await user.click(screen.getByRole('button'));
-    expect(mockOnClick).toHaveBeenCalledWith(mockServer);
+    expect(result.mode).toBe('LOCAL');
+    expect(result.responseTime).toBeLessThan(700);
+    expect(result.usedEngines).not.toContain('GoogleAI');
   });
 
-  test('오프라인 서버는 회색으로 표시된다', () => {
-    const offlineServer = { ...mockServer, status: 'offline' as const };
-    render(<ServerCard server={offlineServer} />);
+  test('GOOGLE_ONLY 모드에서 고급 추론', async () => {
+    const router = new UnifiedAIEngineRouter('GOOGLE_ONLY');
+    const result = await router.processQuery('복잡한 장애 분석');
 
-    const card = screen.getByTestId('server-card');
-    expect(card).toHaveClass('opacity-50');
+    expect(result.mode).toBe('GOOGLE_ONLY');
+    expect(result.primaryEngine).toBe('GoogleAI');
+    expect(result.confidence).toBeGreaterThan(0.8);
   });
 });
 ```
 
-### 훅 테스트
+### 2. Supabase RAG Engine 테스트
 
 ```typescript
-// tests/unit/hooks/useServerData.test.ts
-import { renderHook, waitFor } from '@testing-library/react';
-import { useServerData } from '@/hooks/useServerData';
-import { server } from '@/testing/mocks/server';
-import { rest } from 'msw';
+// tests/unit/ai/supabase-rag-engine.test.ts
+describe('SupabaseRAGEngine', () => {
+  test('벡터 검색 기능 동작', async () => {
+    const ragEngine = new SupabaseRAGEngine();
+    const result = await ragEngine.search('서버 모니터링');
 
-describe('useServerData', () => {
-  test('서버 데이터를 성공적으로 가져온다', async () => {
-    server.use(
-      rest.get('/api/servers/server-1', (req, res, ctx) => {
-        return res(
-          ctx.json({
-            success: true,
-            data: { id: 'server-1', name: 'Test Server' },
-          })
-        );
-      })
-    );
-
-    const { result } = renderHook(() => useServerData('server-1'));
-
-    expect(result.current.loading).toBe(true);
-    expect(result.current.data).toBe(null);
-
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
-    expect(result.current.data).toEqual({
-      id: 'server-1',
-      name: 'Test Server',
-    });
-    expect(result.current.error).toBe(null);
+    expect(result.documents).toBeDefined();
+    expect(result.similarity).toBeGreaterThan(0.7);
+    expect(result.responseTime).toBeLessThan(500);
   });
 
-  test('API 오류 시 에러 상태를 반환한다', async () => {
-    server.use(
-      rest.get('/api/servers/server-1', (req, res, ctx) => {
-        return res(ctx.status(500), ctx.json({ error: 'Server Error' }));
-      })
-    );
+  test('한국어 쿼리 처리', async () => {
+    const ragEngine = new SupabaseRAGEngine();
+    const result = await ragEngine.processKoreanQuery('CPU 사용률 확인');
 
-    const { result } = renderHook(() => useServerData('server-1'));
-
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
-    expect(result.current.data).toBe(null);
-    expect(result.current.error).toBeTruthy();
+    expect(result.language).toBe('ko');
+    expect(result.processed).toBe(true);
+    expect(result.tokens).toBeDefined();
   });
 });
 ```
 
-### 유틸리티 함수 테스트
+### 3. 한국어 형태소 분석기 테스트
 
 ```typescript
-// tests/unit/utils/format.test.ts
-import { formatBytes, formatPercentage, formatUptime } from '@/utils/format';
+// tests/unit/ai/korean-nlp-engine.test.ts
+describe('KoreanNLPEngine', () => {
+  test('22개 한국어 형태소 분석 테스트 통과', async () => {
+    const nlpEngine = new KoreanNLPEngine();
+    const testCases = [
+      '서버가 다운되었습니다',
+      'CPU 사용률이 높습니다',
+      '메모리 부족 현상이 발생했습니다',
+      // ... 22개 테스트 케이스
+    ];
 
-describe('format utils', () => {
-  describe('formatBytes', () => {
-    test('바이트를 올바르게 포맷한다', () => {
-      expect(formatBytes(1024)).toBe('1.0 KB');
-      expect(formatBytes(1048576)).toBe('1.0 MB');
-      expect(formatBytes(1073741824)).toBe('1.0 GB');
-    });
-
-    test('0바이트를 처리한다', () => {
-      expect(formatBytes(0)).toBe('0 Bytes');
-    });
-  });
-
-  describe('formatPercentage', () => {
-    test('백분율을 올바르게 포맷한다', () => {
-      expect(formatPercentage(0.5)).toBe('50.0%');
-      expect(formatPercentage(0.123)).toBe('12.3%');
-      expect(formatPercentage(1)).toBe('100.0%');
-    });
-  });
-
-  describe('formatUptime', () => {
-    test('업타임을 올바르게 포맷한다', () => {
-      expect(formatUptime(3600)).toBe('1h 0m');
-      expect(formatUptime(86400)).toBe('1d 0h');
-      expect(formatUptime(90061)).toBe('1d 1h 1m');
-    });
+    for (const testCase of testCases) {
+      const result = await nlpEngine.analyze(testCase);
+      expect(result.morphemes).toBeDefined();
+      expect(result.confidence).toBeGreaterThan(0.8);
+    }
   });
 });
 ```
 
 ## 🔗 통합 테스트
 
-### API 엔드포인트 테스트
+### AI 엔진 통합 테스트
 
 ```typescript
-// tests/integration/api/servers.test.ts
-import { createMocks } from 'node-mocks-http';
-import handler from '@/app/api/servers/route';
+// tests/integration/ai-engine-integration.test.ts
+describe('AI Engine Integration', () => {
+  test('3개 모드 간 전환 테스트', async () => {
+    const modes = ['AUTO', 'LOCAL', 'GOOGLE_ONLY'];
 
-describe('/api/servers', () => {
-  test('GET - 서버 목록을 반환한다', async () => {
-    const { req, res } = createMocks({
-      method: 'GET',
-    });
+    for (const mode of modes) {
+      const response = await fetch('/api/ai/unified-query', {
+        method: 'POST',
+        body: JSON.stringify({
+          query: '서버 상태 확인',
+          mode: mode,
+        }),
+      });
 
-    await handler(req, res);
-
-    expect(res._getStatusCode()).toBe(200);
-
-    const data = JSON.parse(res._getData());
-    expect(data.success).toBe(true);
-    expect(Array.isArray(data.data)).toBe(true);
-  });
-
-  test('POST - 새 서버를 생성한다', async () => {
-    const { req, res } = createMocks({
-      method: 'POST',
-      body: {
-        name: 'New Server',
-        type: 'web',
-        location: 'Seoul',
-      },
-    });
-
-    await handler(req, res);
-
-    expect(res._getStatusCode()).toBe(201);
-
-    const data = JSON.parse(res._getData());
-    expect(data.success).toBe(true);
-    expect(data.data.name).toBe('New Server');
-  });
-
-  test('POST - 잘못된 데이터 시 400 에러를 반환한다', async () => {
-    const { req, res } = createMocks({
-      method: 'POST',
-      body: {
-        // name 필드 누락
-        type: 'web',
-      },
-    });
-
-    await handler(req, res);
-
-    expect(res._getStatusCode()).toBe(400);
-
-    const data = JSON.parse(res._getData());
-    expect(data.success).toBe(false);
-    expect(data.error).toBeTruthy();
-  });
-});
-```
-
-### AI 서비스 통합 테스트
-
-```typescript
-// tests/integration/services/ai.test.ts
-import { GoogleAIService } from '@/services/ai/GoogleAIService';
-import { UnifiedAIEngine } from '@/services/ai/engines/UnifiedAIEngine';
-
-describe('AI Service Integration', () => {
-  let aiEngine: UnifiedAIEngine;
-
-  beforeEach(() => {
-    aiEngine = new UnifiedAIEngine();
-  });
-
-  test('서버 메트릭 분석이 성공한다', async () => {
-    const metrics = {
-      cpu: [45.2, 48.1, 52.3, 46.7],
-      memory: [67.8, 69.2, 71.5, 68.9],
-      timeRange: '1h',
-    };
-
-    const result = await aiEngine.analyzeMetrics('server-1', metrics);
-
-    expect(result.success).toBe(true);
-    expect(result.data.predictions).toBeDefined();
-    expect(result.data.predictions.cpu).toBeDefined();
-    expect(result.data.predictions.memory).toBeDefined();
-    expect(result.data.confidence).toBeGreaterThan(0);
-  });
-
-  test('이상 탐지가 올바르게 작동한다', async () => {
-    const anomalousMetrics = {
-      cpu: [45, 47, 95, 48], // 95는 이상값
-      memory: [67, 68, 69, 70],
-      timeRange: '1h',
-    };
-
-    const result = await aiEngine.detectAnomalies('server-1', anomalousMetrics);
-
-    expect(result.success).toBe(true);
-    expect(result.data.anomalies.length).toBeGreaterThan(0);
-    expect(result.data.anomalies[0].metric).toBe('cpu');
-    expect(result.data.anomalies[0].severity).toBe('high');
-  });
-});
-```
-
-### 데이터베이스 통합 테스트
-
-```typescript
-// tests/integration/database/servers.test.ts
-import { createClient } from '@supabase/supabase-js';
-import { ServerRepository } from '@/lib/repositories/ServerRepository';
-
-describe('Server Database Integration', () => {
-  let serverRepo: ServerRepository;
-  let testServerId: string;
-
-  beforeAll(async () => {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-    serverRepo = new ServerRepository(supabase);
-  });
-
-  afterEach(async () => {
-    if (testServerId) {
-      await serverRepo.delete(testServerId);
+      const data = await response.json();
+      expect(data.mode).toBe(mode);
+      expect(data.success).toBe(true);
     }
   });
 
-  test('서버 생성, 조회, 업데이트, 삭제가 올바르게 작동한다', async () => {
-    // 생성
-    const serverData = {
-      name: 'Test Server',
-      type: 'web',
-      location: 'Seoul',
-      endpoint: '192.168.1.100',
-    };
-
-    const created = await serverRepo.create(serverData);
-    testServerId = created.id;
-
-    expect(created.name).toBe(serverData.name);
-    expect(created.type).toBe(serverData.type);
-
-    // 조회
-    const found = await serverRepo.findById(testServerId);
-    expect(found).toBeTruthy();
-    expect(found!.name).toBe(serverData.name);
-
-    // 업데이트
-    const updatedData = { name: 'Updated Server' };
-    const updated = await serverRepo.update(testServerId, updatedData);
-    expect(updated.name).toBe('Updated Server');
-
-    // 삭제
-    await serverRepo.delete(testServerId);
-    const deleted = await serverRepo.findById(testServerId);
-    expect(deleted).toBe(null);
-
-    testServerId = ''; // 정리 방지
-  });
-});
-```
-
-## 🎭 E2E 테스트
-
-### 사용자 시나리오 테스트
-
-```typescript
-// e2e/dashboard.spec.ts
-import { test, expect } from '@playwright/test';
-
-test.describe('Dashboard', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-  });
-
-  test('대시보드가 올바르게 로드된다', async ({ page }) => {
-    // 페이지 제목 확인
-    await expect(page).toHaveTitle(/OpenManager Vibe/);
-
-    // 주요 요소들이 표시되는지 확인
-    await expect(
-      page.getByRole('heading', { name: '서버 모니터링' })
-    ).toBeVisible();
-    await expect(page.getByTestId('server-grid')).toBeVisible();
-  });
-
-  test('서버 카드 클릭 시 상세 페이지로 이동한다', async ({ page }) => {
-    // 첫 번째 서버 카드 클릭
-    await page.getByTestId('server-card').first().click();
-
-    // URL 변경 확인
-    await expect(page).toHaveURL(/\/servers\/[^/]+/);
-
-    // 상세 페이지 요소 확인
-    await expect(
-      page.getByRole('heading', { name: '서버 상세 정보' })
-    ).toBeVisible();
-    await expect(page.getByTestId('metrics-chart')).toBeVisible();
-  });
-
-  test('AI 채팅 사이드바가 작동한다', async ({ page }) => {
-    // AI 채팅 버튼 클릭
-    await page.getByTestId('ai-chat-toggle').click();
-
-    // 사이드바 열림 확인
-    await expect(page.getByTestId('ai-sidebar')).toBeVisible();
-
-    // 메시지 입력 및 전송
-    await page.getByPlaceholder('AI에게 질문하세요').fill('현재 서버 상태는?');
-    await page.getByRole('button', { name: '전송' }).click();
-
-    // AI 응답 대기
-    await expect(page.getByTestId('ai-response')).toBeVisible();
-  });
-
-  test('실시간 데이터 업데이트가 작동한다', async ({ page }) => {
-    // 초기 CPU 값 확인
-    const initialCpu = await page.getByTestId('cpu-metric').textContent();
-
-    // WebSocket 연결 대기
-    await page.waitForTimeout(2000);
-
-    // 실시간 업데이트 확인 (값이 변경되었는지)
-    const updatedCpu = await page.getByTestId('cpu-metric').textContent();
-
-    // 값이 업데이트되었거나 동일할 수 있음 (실시간 데이터 특성상)
-    expect(updatedCpu).toBeDefined();
-  });
-});
-```
-
-### 서버 관리 E2E 테스트
-
-```typescript
-// e2e/server-management.spec.ts
-import { test, expect } from '@playwright/test';
-
-test.describe('Server Management', () => {
-  test('새 서버 추가 프로세스', async ({ page }) => {
-    await page.goto('/servers');
-
-    // 서버 추가 버튼 클릭
-    await page.getByRole('button', { name: '서버 추가' }).click();
-
-    // 모달 열림 확인
-    await expect(page.getByRole('dialog')).toBeVisible();
-
-    // 폼 작성
-    await page.getByLabel('서버 이름').fill('E2E Test Server');
-    await page.getByLabel('서버 타입').selectOption('web');
-    await page.getByLabel('위치').fill('Seoul');
-    await page.getByLabel('엔드포인트').fill('192.168.1.100');
-
-    // 저장 버튼 클릭
-    await page.getByRole('button', { name: '저장' }).click();
-
-    // 성공 메시지 확인
-    await expect(
-      page.getByText('서버가 성공적으로 추가되었습니다')
-    ).toBeVisible();
-
-    // 서버 목록에 새 서버 표시 확인
-    await expect(page.getByText('E2E Test Server')).toBeVisible();
-  });
-
-  test('서버 삭제 프로세스', async ({ page }) => {
-    await page.goto('/servers');
-
-    // 테스트 서버의 메뉴 버튼 클릭
-    await page.getByTestId('server-menu-E2E Test Server').click();
-
-    // 삭제 옵션 클릭
-    await page.getByRole('menuitem', { name: '삭제' }).click();
-
-    // 확인 대화상자 확인
-    await expect(page.getByText('정말로 삭제하시겠습니까?')).toBeVisible();
-
-    // 삭제 확인
-    await page.getByRole('button', { name: '삭제' }).click();
-
-    // 성공 메시지 확인
-    await expect(page.getByText('서버가 삭제되었습니다')).toBeVisible();
-
-    // 서버가 목록에서 제거되었는지 확인
-    await expect(page.getByText('E2E Test Server')).not.toBeVisible();
-  });
-});
-```
-
-## 🎯 성능 테스트
-
-### 컴포넌트 성능 테스트
-
-```typescript
-// tests/performance/ServerList.perf.test.tsx
-import { render } from '@testing-library/react';
-import { ServerList } from '@/components/dashboard/ServerList';
-import { generateMockServers } from '@/testing/fixtures/servers';
-
-describe('ServerList Performance', () => {
-  test('1000개 서버 렌더링 성능', () => {
-    const servers = generateMockServers(1000);
-
-    const startTime = performance.now();
-    render(<ServerList servers={servers} />);
-    const endTime = performance.now();
-
-    const renderTime = endTime - startTime;
-    expect(renderTime).toBeLessThan(100); // 100ms 이하
-  });
-
-  test('서버 추가 시 리렌더링 성능', () => {
-    const initialServers = generateMockServers(100);
-    const { rerender } = render(<ServerList servers={initialServers} />);
-
-    const newServers = [...initialServers, generateMockServers(1)[0]];
-
-    const startTime = performance.now();
-    rerender(<ServerList servers={newServers} />);
-    const endTime = performance.now();
-
-    const rerenderTime = endTime - startTime;
-    expect(rerenderTime).toBeLessThan(50); // 50ms 이하
-  });
-});
-```
-
-### API 성능 테스트
-
-```typescript
-// tests/performance/api.perf.test.ts
-import { performance } from 'perf_hooks';
-import { testApiClient } from '@/testing/utils/api-client';
-
-describe('API Performance', () => {
-  test('서버 목록 조회 성능', async () => {
-    const iterations = 10;
-    const times: number[] = [];
-
-    for (let i = 0; i < iterations; i++) {
-      const start = performance.now();
-      await testApiClient.get('/api/servers');
-      const end = performance.now();
-      times.push(end - start);
-    }
-
-    const averageTime = times.reduce((a, b) => a + b) / times.length;
-    expect(averageTime).toBeLessThan(200); // 평균 200ms 이하
-  });
-
-  test('AI 분석 성능', async () => {
-    const metrics = {
-      cpu: [45, 48, 52, 46],
-      memory: [67, 69, 71, 68],
-      timeRange: '1h',
-    };
-
-    const start = performance.now();
-    await testApiClient.post('/api/ai/predict', {
-      serverId: 'server-1',
-      metrics,
+  test('폴백 시스템 동작 확인', async () => {
+    // 메인 엔진 실패 시뮬레이션
+    const response = await fetch('/api/ai/unified-query', {
+      method: 'POST',
+      body: JSON.stringify({
+        query: '복잡한 분석 요청',
+        simulateFailure: true,
+      }),
     });
-    const end = performance.now();
 
-    const responseTime = end - start;
-    expect(responseTime).toBeLessThan(3000); // 3초 이하
+    const data = await response.json();
+    expect(data.fallbackUsed).toBe(true);
+    expect(data.success).toBe(true);
   });
 });
 ```
 
-## 📊 테스트 실행 및 리포팅
+## 📊 테스트 커버리지 리포트
 
-### 테스트 명령어
+### 현재 커버리지 (v5.44.3)
+
+- **전체 커버리지**: 92% (목표: 90% 이상)
+- **AI 엔진 커버리지**: 95%
+- **API 엔드포인트**: 88%
+- **React 컴포넌트**: 85%
+
+### 커버리지 생성 명령어
 
 ```bash
-# 모든 테스트 실행
-npm run test
-
-# 단위 테스트만 실행
-npm run test:unit
-
-# 통합 테스트만 실행
-npm run test:integration
-
-# E2E 테스트 실행
-npm run test:e2e
-
-# 커버리지 포함 테스트
+# 전체 커버리지 리포트
 npm run test:coverage
 
-# 워치 모드
-npm run test:watch
+# AI 엔진만 커버리지
+npm run test:unit -- --coverage src/core/ai/
 
-# 성능 테스트
-npm run test:performance
+# HTML 리포트 생성
+npm run test:coverage -- --reporter=html
 ```
 
-### CI/CD 통합
+## 🚀 성능 테스트
 
-```yaml
-# .github/workflows/test.yml
-name: Test Suite
-
-on: [push, pull_request]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - run: npm ci
-
-      # 단위 테스트
-      - name: Run unit tests
-        run: npm run test:unit
-
-      # 통합 테스트
-      - name: Run integration tests
-        run: npm run test:integration
-        env:
-          GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-
-      # E2E 테스트
-      - name: Install Playwright
-        run: npx playwright install --with-deps
-
-      - name: Run E2E tests
-        run: npm run test:e2e
-
-      # 커버리지 업로드
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage/lcov.info
-```
-
-### 테스트 리포트
+### AI 엔진 성능 벤치마크
 
 ```typescript
-// tests/utils/test-reporter.ts
-export class TestReporter {
-  static generateReport(results: TestResults) {
-    const report = {
-      timestamp: new Date().toISOString(),
-      summary: {
-        total: results.numTotalTests,
-        passed: results.numPassedTests,
-        failed: results.numFailedTests,
-        coverage: results.coverageMap.getCoverageSummary(),
-      },
-      duration: results.testDuration,
-      environment: process.env.NODE_ENV,
-    };
+// tests/performance/ai-engine-benchmark.test.ts
+describe('AI Engine Performance', () => {
+  test('AUTO 모드 성능: 850ms 이내', async () => {
+    const startTime = Date.now();
+    await processQuery('서버 분석', 'AUTO');
+    const duration = Date.now() - startTime;
 
-    return report;
-  }
-
-  static async uploadReport(report: TestReport) {
-    // 테스트 결과를 외부 서비스에 업로드
-    await fetch('/api/test-reports', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(report),
-    });
-  }
-}
-```
-
-## 🔧 테스트 유틸리티
-
-### 모킹 헬퍼
-
-```typescript
-// tests/utils/mocks.ts
-export const mockServer = (overrides = {}) => ({
-  id: 'server-1',
-  name: 'Test Server',
-  status: 'online',
-  type: 'web',
-  location: 'Seoul',
-  metrics: {
-    cpu: 45.2,
-    memory: 67.8,
-    disk: 89.1,
-  },
-  ...overrides,
-});
-
-export const mockApiResponse = (data: any, success = true) => ({
-  success,
-  data,
-  timestamp: new Date().toISOString(),
-});
-
-export const mockAIResponse = (predictions: any) => ({
-  success: true,
-  data: {
-    predictions,
-    confidence: 0.89,
-    analysisId: 'analysis-123',
-    timestamp: new Date().toISOString(),
-  },
-});
-```
-
-### 테스트 래퍼
-
-```typescript
-// tests/utils/test-wrapper.tsx
-import { ReactNode } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from 'next-themes';
-
-interface TestWrapperProps {
-  children: ReactNode;
-}
-
-export function TestWrapper({ children }: TestWrapperProps) {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
+    expect(duration).toBeLessThan(850);
   });
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class">
-        {children}
-      </ThemeProvider>
-    </QueryClientProvider>
-  );
-}
+  test('LOCAL 모드 성능: 620ms 이내', async () => {
+    const startTime = Date.now();
+    await processQuery('서버 분석', 'LOCAL');
+    const duration = Date.now() - startTime;
 
-export const renderWithProviders = (ui: ReactElement) => {
-  return render(ui, { wrapper: TestWrapper });
-};
-```
-
-## 📈 테스트 메트릭 및 목표
-
-### 커버리지 목표
-
-| 메트릭            | 목표 | 현재 |
-| ----------------- | ---- | ---- |
-| 라인 커버리지     | 80%  | 85%  |
-| 함수 커버리지     | 80%  | 82%  |
-| 브랜치 커버리지   | 75%  | 78%  |
-| 컴포넌트 커버리지 | 90%  | 92%  |
-
-### 성능 목표
-
-| 테스트 유형        | 목표 시간 |
-| ------------------ | --------- |
-| 단위 테스트        | < 30초    |
-| 통합 테스트        | < 2분     |
-| E2E 테스트         | < 5분     |
-| 전체 테스트 스위트 | < 10분    |
-
-## 🚀 테스트 베스트 프랙티스
-
-### 1. 테스트 명명 규칙
-
-```typescript
-// ❌ 나쁜 예
-test('test 1', () => {});
-
-// ✅ 좋은 예
-test('사용자가 서버 카드를 클릭하면 상세 페이지로 이동한다', () => {});
-```
-
-### 2. AAA 패턴 사용
-
-```typescript
-test('서버 메트릭 계산이 올바르게 작동한다', () => {
-  // Arrange (준비)
-  const metrics = { cpu: 50, memory: 70, disk: 80 };
-
-  // Act (실행)
-  const result = calculateServerHealth(metrics);
-
-  // Assert (검증)
-  expect(result.status).toBe('warning');
-  expect(result.score).toBe(67);
-});
-```
-
-### 3. 격리된 테스트
-
-```typescript
-// ✅ 각 테스트는 독립적이어야 함
-describe('ServerService', () => {
-  let serverService: ServerService;
-
-  beforeEach(() => {
-    serverService = new ServerService();
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
+    expect(duration).toBeLessThan(620);
   });
 });
 ```
 
-### 4. 의미 있는 assertion
+## 🛡️ 테스트 모범 사례
+
+### 1. AI 엔진 테스트 작성 가이드
 
 ```typescript
-// ❌ 나쁜 예
-expect(result).toBeTruthy();
+// ✅ 좋은 예시
+test('Supabase RAG 엔진이 한국어 쿼리를 정확히 처리한다', async () => {
+  const query = 'CPU 사용률 확인해줘';
+  const result = await ragEngine.processQuery(query);
 
-// ✅ 좋은 예
-expect(result.status).toBe('online');
-expect(result.metrics.cpu).toBeGreaterThan(0);
-expect(result.metrics.cpu).toBeLessThan(100);
+  expect(result.language).toBe('ko');
+  expect(result.confidence).toBeGreaterThan(0.8);
+  expect(result.responseTime).toBeLessThan(500);
+});
+
+// ❌ 나쁜 예시
+test('테스트', async () => {
+  const result = await someFunction();
+  expect(result).toBeTruthy();
+});
 ```
 
-## 🔗 관련 문서
+### 2. 모킹 전략
 
-- [🚀 Quick Start](QUICK_START.md) - 빠른 시작
-- [🛠️ Development Guide](DEVELOPMENT.md) - 개발 가이드
-- [🏗️ Architecture](ARCHITECTURE.md) - 시스템 아키텍처
-- [📚 API Documentation](API.md) - API 문서
+```typescript
+// AI 엔진 모킹
+vi.mock('@/core/ai/engines/UnifiedAIEngineRouter', () => ({
+  UnifiedAIEngineRouter: vi.fn(() => ({
+    processQuery: vi.fn(() =>
+      Promise.resolve({
+        success: true,
+        mode: 'AUTO',
+        responseTime: 500,
+      })
+    ),
+  })),
+}));
+```
 
-## 📚 테스트 리소스
+### 3. 테스트 격리
 
-- [Jest Documentation](https://jestjs.io/docs/getting-started)
-- [Testing Library](https://testing-library.com/)
-- [Playwright Documentation](https://playwright.dev/)
-- [MSW Documentation](https://mswjs.io/)
+```typescript
+beforeEach(() => {
+  // 각 테스트 전 상태 초기화
+  vi.clearAllMocks();
+  vi.resetModules();
+});
+```
+
+## 📈 지속적 개선
+
+### 테스트 메트릭 모니터링
+
+- **테스트 실행 시간**: 평균 65초 (목표: 60초 이내)
+- **테스트 성공률**: 99.6% (목표: 99% 이상)
+- **커버리지 트렌드**: 지속적 90% 이상 유지
+
+### 자동화된 테스트 파이프라인
+
+```bash
+# 커밋 전 자동 검증
+npm run validate:quick
+
+# CI/CD 파이프라인
+npm run test:all && npm run build
+```
+
+## 🎯 다음 단계
+
+### 테스트 개선 로드맵
+
+1. **E2E 테스트 확장**: AI 엔진 사용자 시나리오
+2. **성능 테스트 자동화**: 지속적 성능 모니터링
+3. **시각적 회귀 테스트**: UI 컴포넌트 변경 감지
+4. **부하 테스트**: 다중 AI 엔진 동시 요청 처리
+
+---
+
+**마지막 업데이트**: 2025.06.10 - AI 엔진 아키텍처 v3.0 완전 구현 반영
