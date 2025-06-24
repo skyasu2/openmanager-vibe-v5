@@ -29,12 +29,11 @@ export class GoogleAIQuotaManager {
   private redis: Redis;
   private config: QuotaConfig;
   private readonly REDIS_PREFIX = 'google_ai_quota:';
+  private isMockMode: boolean = false;
 
   constructor() {
-    this.redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-    });
+    // 🔧 안전한 Redis 초기화
+    this.initializeRedis();
 
     this.config = {
       dailyLimit: parseInt(process.env.GOOGLE_AI_DAILY_LIMIT || '50'),
@@ -46,6 +45,78 @@ export class GoogleAIQuotaManager {
       circuitBreakerThreshold: parseInt(
         process.env.GOOGLE_AI_CIRCUIT_BREAKER_THRESHOLD || '3'
       ),
+    };
+  }
+
+  /**
+   * 🔧 안전한 Redis 초기화
+   */
+  private initializeRedis(): void {
+    try {
+      // 🚫 환경변수 검증
+      const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+      const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+      if (!redisUrl || !redisToken) {
+        console.log('⚠️ Redis 환경변수 누락 - Mock 모드로 전환');
+        this.isMockMode = true;
+        this.redis = this.createMockRedis();
+        return;
+      }
+
+      // URL 형식 검증
+      if (!redisUrl.startsWith('http')) {
+        console.log('⚠️ Redis URL 형식 오류 - Mock 모드로 전환');
+        this.isMockMode = true;
+        this.redis = this.createMockRedis();
+        return;
+      }
+
+      // 실제 Redis 클라이언트 생성
+      this.redis = new Redis({
+        url: redisUrl,
+        token: redisToken,
+      });
+
+      console.log('✅ Google AI Quota Manager - Redis 연결 초기화 완료');
+    } catch (error) {
+      console.error('❌ Redis 초기화 실패 - Mock 모드로 전환:', error);
+      this.isMockMode = true;
+      this.redis = this.createMockRedis();
+    }
+  }
+
+  /**
+   * 🎭 Mock Redis 클라이언트 생성
+   */
+  private createMockRedis(): any {
+    const mockData = new Map<string, string>();
+
+    return {
+      async get(key: string): Promise<string | null> {
+        return mockData.get(key) || null;
+      },
+      async set(
+        key: string,
+        value: string,
+        options?: { ex?: number }
+      ): Promise<'OK'> {
+        mockData.set(key, value);
+        if (options?.ex) {
+          setTimeout(() => mockData.delete(key), options.ex * 1000);
+        }
+        return 'OK';
+      },
+      async incr(key: string): Promise<number> {
+        const current = parseInt(mockData.get(key) || '0');
+        const newValue = current + 1;
+        mockData.set(key, newValue.toString());
+        return newValue;
+      },
+      async expire(key: string, seconds: number): Promise<number> {
+        setTimeout(() => mockData.delete(key), seconds * 1000);
+        return 1;
+      },
     };
   }
 

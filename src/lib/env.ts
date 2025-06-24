@@ -149,6 +149,27 @@ export function getSupabaseConfig() {
 }
 
 export function getRedisConfig() {
+  // 🔧 Vercel 환경에서 안전한 Redis 설정
+  const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+
+  if (isVercel) {
+    // Vercel 환경에서는 직접 환경변수 사용
+    return {
+      url:
+        process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '',
+      token:
+        process.env.UPSTASH_REDIS_REST_TOKEN ||
+        process.env.KV_REST_API_TOKEN ||
+        '',
+      isConfigured: !!(
+        (process.env.UPSTASH_REDIS_REST_URL &&
+          process.env.UPSTASH_REDIS_REST_TOKEN) ||
+        (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN)
+      ),
+    };
+  }
+
+  // 로컬 환경에서는 기존 로직 사용
   return {
     url: env.UPSTASH_REDIS_REST_URL || env.KV_REST_API_URL || '',
     token: env.UPSTASH_REDIS_REST_TOKEN || env.KV_REST_API_TOKEN || '',

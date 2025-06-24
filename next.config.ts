@@ -2,12 +2,14 @@ import type { NextConfig } from 'next';
 import path from 'path';
 
 // 번들 분석기 import - ESLint 규칙 준수
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let withBundleAnalyzer: any;
 try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   withBundleAnalyzer = require('@next/bundle-analyzer')({
     enabled: process.env.ANALYZE === 'true',
   });
-} catch (e) {
+} catch {
   // @next/bundle-analyzer가 없으면 기본 설정 함수 사용
   withBundleAnalyzer = (config: NextConfig) => config;
 }
@@ -17,18 +19,19 @@ const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
 const skipEnvValidation = process.env.SKIP_ENV_VALIDATION === 'true';
 
 const nextConfig: NextConfig = {
+  // 🚀 Next.js 15 App Router 전용 설정
   trailingSlash: false,
   reactStrictMode: true,
 
-  // 🚫 Vercel 빌드 시 ESLint 완전 비활성화 (더 강력한 설정)
+  // 🚫 Vercel 빌드 시 ESLint 완전 비활성화
   eslint: {
     ignoreDuringBuilds: true,
     dirs: [], // ESLint 검사 디렉토리 없음
   },
 
-  // TypeScript 빌드 오류 무시 (CI 환경)
+  // TypeScript 빌드 오류 무시
   typescript: {
-    ignoreBuildErrors: true, // 모든 환경에서 TypeScript 오류 무시
+    ignoreBuildErrors: true,
   },
 
   // ⚡ Next.js 15 최적화 설정
@@ -56,30 +59,14 @@ const nextConfig: NextConfig = {
     },
   },
 
-  // 🚀 Turbopack 설정 (experimental.turbo → turbopack)
-  turbopack: {
-    resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
-  },
-
-  // CI 환경에서는 더 관대한 설정
-  ...(isCI && {
-    experimental: {
-      optimizePackageImports: ['lucide-react', '@heroicons/react'],
-    },
-  }),
-
-  ...(process.env.NODE_ENV === 'development' && {
-    onDemandEntries: {
-      maxInactiveAge: 300 * 1000, // 5분으로 대폭 증가
-      pagesBufferLength: 20, // 더 많은 페이지 캐시
-    },
-  }),
-
-  // 환경변수 기본값 설정 (NODE_ENV 제거)
+  // 환경변수 기본값 설정
   env: {
     SKIP_ENV_VALIDATION: skipEnvValidation ? 'true' : 'false',
     BUILD_TIME: 'true', // 🔨 빌드 시 타이머 차단용
     VERCEL_BUILD_PHASE: process.env.VERCEL ? 'true' : 'false',
+    // 🔧 Redis 환경변수 안전 설정
+    FORCE_MOCK_REDIS: process.env.VERCEL ? 'false' : 'true',
+    REDIS_CONNECTION_DISABLED: 'false',
   },
 
   serverExternalPackages: [
@@ -92,9 +79,8 @@ const nextConfig: NextConfig = {
   ],
 
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', 'openmanager-vibe-v5.vercel.app'],
     formats: ['image/webp', 'image/avif'],
-    // 이미지 최적화 강화
     minimumCacheTTL: 31536000, // 1년
     dangerouslyAllowSVG: false,
   },
@@ -126,6 +112,7 @@ const nextConfig: NextConfig = {
   },
 
   webpack: (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     config: any,
     { dev, isServer }: { dev: boolean; isServer: boolean }
   ) => {
@@ -138,12 +125,11 @@ const nextConfig: NextConfig = {
       '@/utils': path.resolve(__dirname, './src/utils'),
       '@/stores': path.resolve(__dirname, './src/stores'),
       '@/hooks': path.resolve(__dirname, './src/hooks'),
-      '@/actions': path.resolve(__dirname, './src/actions'),
     };
 
     // Storybook 및 테스트 파일 제외 (프로덕션 환경)
     if (!dev) {
-      // webpack.IgnorePlugin 사용 (null-loader 대신)
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const webpack = require('webpack');
 
       config.plugins.push(
@@ -178,15 +164,6 @@ const nextConfig: NextConfig = {
       };
     }
 
-    if (dev) {
-      config.watchOptions = {
-        ignored: /node_modules/,
-        poll: false,
-        aggregateTimeout: 15000, // 15초로 대폭 증가!
-      };
-      config.parallelism = 1;
-    }
-
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -203,11 +180,8 @@ const nextConfig: NextConfig = {
         'node:util': false,
         'node:net': false,
         'node:dns': false,
-        // 🔧 natural 라이브러리 경고 해결
         'webworker-threads': false,
       };
-
-      // natural 라이브러리의 webworker-threads 모듈 제외 (externals로 처리)
 
       const externals = config.externals || [];
       config.externals = [
@@ -215,7 +189,7 @@ const nextConfig: NextConfig = {
         'ioredis',
         'redis',
         '@redis/client',
-        'webworker-threads', // Natural 패키지 경고 해결
+        'webworker-threads',
         'generic-pool',
         'cluster',
         'denque',
@@ -225,19 +199,9 @@ const nextConfig: NextConfig = {
     return config;
   },
 
-  // 청크 분할 최적화
-  async rewrites() {
-    return [
-      {
-        source: '/data/:path*',
-        destination: '/public/data/:path*',
-      },
-    ];
-  },
-
   // 정적 에러 페이지는 App Router의 global-error.tsx에서 처리
   generateBuildId: async () => {
-    return 'openmanager-vibe-v5';
+    return 'openmanager-vibe-v5-app-router';
   },
 };
 
