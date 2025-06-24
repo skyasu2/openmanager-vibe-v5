@@ -34,7 +34,7 @@ STARTUP_DURATION: 2분간
 ```typescript
 // 환경별 차등 적용
 VERCEL_PROD: 8분 캐시
-VERCEL_DEV: 5분 캐시  
+VERCEL_DEV: 5분 캐시
 LOCAL: 3분 캐시
 ```
 
@@ -70,7 +70,7 @@ LOCAL: 3분 캐시
 ```json
 {
   "adaptiveMonitoring": {
-    "phase": "stable_efficient", 
+    "phase": "stable_efficient",
     "reasoning": "시스템 안정화 완료 (5분 경과) - Vercel 프로덕션 효율 모드 (8분 간격)",
     "systemUptime": "300초",
     "nextCheckIn": "480초 후",
@@ -86,12 +86,12 @@ LOCAL: 3분 캐시
 
 ### Before vs After 비교
 
-| 구분 | 기존 | 적응형 모니터링 | 개선율 |
-|------|------|----------------|--------|
-| **초기 2분** | 10초 간격 | 30초 간격 | 67% 호출 감소 |
-| **안정화 후** | 10초 간격 | 8분 간격 | 98% 호출 감소 |
-| **장애 감지** | 10초 지연 | 30초 지연 (초기) | 실용적 수준 |
-| **API 비용** | 100% | 15% | 85% 절약 |
+| 구분          | 기존      | 적응형 모니터링  | 개선율        |
+| ------------- | --------- | ---------------- | ------------- |
+| **초기 2분**  | 10초 간격 | 30초 간격        | 67% 호출 감소 |
+| **안정화 후** | 10초 간격 | 8분 간격         | 98% 호출 감소 |
+| **장애 감지** | 10초 지연 | 30초 지연 (초기) | 실용적 수준   |
+| **API 비용**  | 100%      | 15%              | 85% 절약      |
 
 ### 실제 시나리오 분석
 
@@ -99,7 +99,7 @@ LOCAL: 3분 캐시
 
 ```
 0-30초: 즉시 감지 (30초 간격)
-30-60초: 30초 후 감지  
+30-60초: 30초 후 감지
 60-90초: 30초 후 감지
 90-120초: 30초 후 감지 (집중 모니터링 종료)
 ```
@@ -117,23 +117,27 @@ LOCAL: 3분 캐시
 ### 1. **동적 TTL 계산**
 
 ```typescript
-function getAdaptiveCacheTTL(): { ttl: number; phase: string; reasoning: string } {
+function getAdaptiveCacheTTL(): {
+  ttl: number;
+  phase: string;
+  reasoning: string;
+} {
   const uptime = Date.now() - SYSTEM_START_TIME;
-  
+
   // 집중 모니터링 단계
   if (uptime < STARTUP_DURATION) {
     return {
       ttl: 30 * 1000,
       phase: 'startup_intensive',
-      reasoning: `시스템 시작 후 ${uptime}초 - 집중 모니터링`
+      reasoning: `시스템 시작 후 ${uptime}초 - 집중 모니터링`,
     };
   }
-  
+
   // 효율 모니터링 단계
   return {
     ttl: environmentBasedTTL,
-    phase: 'stable_efficient', 
-    reasoning: `안정화 완료 - 효율 모니터링`
+    phase: 'stable_efficient',
+    reasoning: `안정화 완료 - 효율 모니터링`,
   };
 }
 ```
@@ -153,12 +157,12 @@ const uptime = Date.now() - SYSTEM_START_TIME;
 
 ```typescript
 const ADAPTIVE_CACHE_TTL = {
-  STARTUP_INTENSIVE: 30 * 1000,     // 30초 (집중)
-  STARTUP_DURATION: 2 * 60 * 1000,  // 2분간
-  
-  VERCEL_PROD: 8 * 60 * 1000,  // 8분 (프로덕션)
-  VERCEL_DEV: 5 * 60 * 1000,   // 5분 (개발)
-  LOCAL: 3 * 60 * 1000         // 3분 (로컬)
+  STARTUP_INTENSIVE: 30 * 1000, // 30초 (집중)
+  STARTUP_DURATION: 2 * 60 * 1000, // 2분간
+
+  VERCEL_PROD: 8 * 60 * 1000, // 8분 (프로덕션)
+  VERCEL_DEV: 5 * 60 * 1000, // 5분 (개발)
+  LOCAL: 3 * 60 * 1000, // 3분 (로컬)
 };
 ```
 
@@ -199,7 +203,7 @@ GET /api/mcp/health
 
 # 응답에서 확인할 정보
 - adaptiveMonitoring.phase
-- adaptiveMonitoring.reasoning  
+- adaptiveMonitoring.reasoning
 - adaptiveMonitoring.nextCheckIn
 ```
 
@@ -219,7 +223,7 @@ curl "https://domain.com/api/mcp/health?refresh=true"
 
 ```
 📊 [적응형 모니터링] 시스템 시작 후 45초 - 집중 모니터링 모드
-🎯 헬스체크 캐시 사용 (startup_intensive 모드) - API 호출 절약  
+🎯 헬스체크 캐시 사용 (startup_intensive 모드) - API 호출 절약
 ✅ [적응형 모니터링] 헬스체크 완료 - stable_efficient 모드
 ```
 
@@ -231,6 +235,6 @@ curl "https://domain.com/api/mcp/health?refresh=true"
 ✅ **98% API 호출 감소**: 서버리스 비용 대폭 절약  
 ✅ **실시간 투명성**: 현재 모니터링 상태 완전 가시화  
 ✅ **유연한 대응**: 긴급 시 즉시 갱신 가능  
-✅ **환경별 최적화**: Vercel/로컬 환경 맞춤 설정  
+✅ **환경별 최적화**: Vercel/로컬 환경 맞춤 설정
 
 이제 **서비스 안정성**과 **비용 효율성**을 모두 확보한 지능형 모니터링 시스템이 완성되었습니다! 🚀

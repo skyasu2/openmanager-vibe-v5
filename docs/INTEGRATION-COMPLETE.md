@@ -186,9 +186,9 @@ router.setMode('AUTO'); // 자동 균형 모드
 
 // 쿼리 처리
 const response = await router.processQuery({
-  query: "서버 상태를 확인해줘",
-  mode: "AUTO",
-  priority: "high"
+  query: '서버 상태를 확인해줘',
+  mode: 'AUTO',
+  priority: 'high',
 });
 ```
 
@@ -205,13 +205,13 @@ const monitor = PerformanceMonitor.getInstance();
 
 monitor.updateThresholds({
   responseTime: {
-    warning: 3000,  // 3초
-    critical: 8000  // 8초
+    warning: 3000, // 3초
+    critical: 8000, // 8초
   },
   errorRate: {
-    warning: 0.05,  // 5%
-    critical: 0.15  // 15%
-  }
+    warning: 0.05, // 5%
+    critical: 0.15, // 15%
+  },
 });
 ```
 
@@ -226,14 +226,14 @@ const logger = UnifiedLogger.getInstance();
 logger.updateConfig({
   enabledLevels: ['info', 'warn', 'error', 'critical'],
   enableDebugMode: false,
-  enablePerformanceLogging: true
+  enablePerformanceLogging: true,
 });
 
 // 개발 환경 설정
 logger.updateConfig({
   enabledLevels: ['debug', 'info', 'warn', 'error', 'critical'],
   enableDebugMode: true,
-  enableConsoleOutput: true
+  enableConsoleOutput: true,
 });
 ```
 
@@ -343,4 +343,4 @@ OpenManager Vibe v5의 통합 프로젝트가 성공적으로 완료되었습니
 
 ---
 
-*🚀 OpenManager Vibe v5 - 더 똑똑하고, 더 안정적인 AI 관리 시스템*
+_🚀 OpenManager Vibe v5 - 더 똑똑하고, 더 안정적인 AI 관리 시스템_

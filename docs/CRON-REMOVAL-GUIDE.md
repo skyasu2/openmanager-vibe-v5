@@ -49,16 +49,16 @@
 ```typescript
 // src/utils/systemStateChecker.ts
 export interface SystemStateInfo {
-    isSystemActive: boolean;
-    powerMode: 'sleep' | 'active' | 'monitoring' | 'emergency';
-    isDataCollecting: boolean;
-    reason: string;
-    shouldSkipOperation: boolean;
+  isSystemActive: boolean;
+  powerMode: 'sleep' | 'active' | 'monitoring' | 'emergency';
+  isDataCollecting: boolean;
+  reason: string;
+  shouldSkipOperation: boolean;
 }
 
-export async function checkSystemState(): Promise<SystemStateInfo>
-export async function validateSystemForOperation(operationName: string)
-export function getSystemControlEnvVars()
+export async function checkSystemState(): Promise<SystemStateInfo>;
+export async function validateSystemForOperation(operationName: string);
+export function getSystemControlEnvVars();
 ```
 
 ### 환경변수 기반 제어
@@ -85,11 +85,14 @@ DISABLE_DATA_GENERATION=true
 // 시스템 상태 확인 후 헬스체크 수행
 const systemState = await checkSystemState();
 if (systemState.shouldSkipOperation) {
-    return NextResponse.json({
-        status: 'system_off',
-        message: systemState.reason,
-        timestamp: new Date().toISOString()
-    }, { status: 503 });
+  return NextResponse.json(
+    {
+      status: 'system_off',
+      message: systemState.reason,
+      timestamp: new Date().toISOString(),
+    },
+    { status: 503 }
+  );
 }
 ```
 
@@ -99,11 +102,14 @@ if (systemState.shouldSkipOperation) {
 // 시스템 상태 확인 후 Keep-Alive 수행
 const validation = await validateSystemForOperation('Keep-Alive');
 if (!validation.canProceed) {
-    return NextResponse.json({
-        success: false,
-        message: `시스템이 비활성화되어 있어 Keep-Alive를 수행할 수 없습니다: ${validation.reason}`,
-        skipped: true
-    }, { status: 503 });
+  return NextResponse.json(
+    {
+      success: false,
+      message: `시스템이 비활성화되어 있어 Keep-Alive를 수행할 수 없습니다: ${validation.reason}`,
+      skipped: true,
+    },
+    { status: 503 }
+  );
 }
 ```
 
@@ -128,7 +134,7 @@ async startAutoGeneration() {
 ### 제거된 테스트들 (구성과 맞지 않음)
 
 - ❌ `tests/integration/health-api.test.ts` - 기존 헬스체크 테스트
-- ❌ `tests/integration/system-start-stop.test.ts` - 기존 시스템 시작/정지 테스트  
+- ❌ `tests/integration/system-start-stop.test.ts` - 기존 시스템 시작/정지 테스트
 - ❌ `tests/integration/data-generation-loop.test.ts` - 기존 데이터 생성 루프 테스트
 
 ### 새로 생성된 테스트들 (현재 구성에 맞음)
@@ -188,4 +194,5 @@ async startAutoGeneration() {
 사용자가 시스템을 ON하면 모든 서비스가 자동 시작되고, OFF하면 모든 백그라운드 작업이 중단되는 **완벽한 제어 시스템**입니다.
 
 ---
-*OpenManager Vibe v5 - 2025년 6월 10일 완성*
+
+_OpenManager Vibe v5 - 2025년 6월 10일 완성_

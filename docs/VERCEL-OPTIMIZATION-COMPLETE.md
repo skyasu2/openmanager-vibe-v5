@@ -41,7 +41,7 @@
 **제거된 중복 API들:**
 
 - `/api/ai/health` - 모킹 데이터만 제공
-- `/api/ai/integrated` - 기본 상태만 제공  
+- `/api/ai/integrated` - 기본 상태만 제공
 - `/api/system/mcp-status` - 이미 비활성화됨
 - `/api/ai/unified` - 중복 통합 API
 - `/api/ai/dual-core` - 중복 듀얼코어 API
