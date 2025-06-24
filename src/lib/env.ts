@@ -153,19 +153,28 @@ export function getRedisConfig() {
   const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
 
   if (isVercel) {
+    // 🔍 Vercel 환경변수 디버깅
+    const redisUrl =
+      process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+    const redisToken =
+      process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+
+    console.log('🔍 Vercel Redis 환경변수 상태:', {
+      hasUrl: !!redisUrl,
+      hasToken: !!redisToken,
+      urlPrefix: redisUrl ? redisUrl.substring(0, 20) + '...' : 'undefined',
+      tokenPrefix: redisToken
+        ? redisToken.substring(0, 10) + '...'
+        : 'undefined',
+      vercelEnv: process.env.VERCEL_ENV,
+      nodeEnv: process.env.NODE_ENV,
+    });
+
     // Vercel 환경에서는 직접 환경변수 사용
     return {
-      url:
-        process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '',
-      token:
-        process.env.UPSTASH_REDIS_REST_TOKEN ||
-        process.env.KV_REST_API_TOKEN ||
-        '',
-      isConfigured: !!(
-        (process.env.UPSTASH_REDIS_REST_URL &&
-          process.env.UPSTASH_REDIS_REST_TOKEN) ||
-        (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN)
-      ),
+      url: redisUrl || '',
+      token: redisToken || '',
+      isConfigured: !!(redisUrl && redisToken),
     };
   }
 

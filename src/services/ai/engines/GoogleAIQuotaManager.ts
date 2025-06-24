@@ -53,6 +53,18 @@ export class GoogleAIQuotaManager {
    */
   private initializeRedis(): void {
     try {
+      // 🔍 환경 감지
+      const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+      const isBuild = process.env.BUILD_TIME === 'true';
+
+      console.log('🔍 GoogleAIQuotaManager Redis 초기화:', {
+        isVercel,
+        isBuild,
+        hasRedisUrl: !!process.env.UPSTASH_REDIS_REST_URL,
+        hasRedisToken: !!process.env.UPSTASH_REDIS_REST_TOKEN,
+        nodeEnv: process.env.NODE_ENV,
+      });
+
       // 🚫 환경변수 검증
       const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
       const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
