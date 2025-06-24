@@ -127,6 +127,10 @@ const nextConfig = {
         serverActions: {
             bodySizeLimit: '50mb',
         },
+        // App Router에서 404 페이지 오류 방지
+        appDir: true,
+        // Pages Router 비활성화
+        pagesDir: false,
     },
 
 };

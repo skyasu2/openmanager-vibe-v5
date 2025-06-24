@@ -1,6 +1,6 @@
 import { createSafeError } from '@/lib/error-handler';
 import { LogEntry, TimeSeriesMetrics } from '@/types/ai-agent-input-schema';
-import { GoogleAIService } from './GoogleAIService';
+// Google AI 제거: 자연어 질의 전용
 
 export interface Anomaly {
   timestamp: Date;
@@ -26,10 +26,10 @@ interface AnomalyDetectionConfig {
 }
 
 export class AnomalyDetectionService {
-  private aiService: GoogleAIService;
+  // Google AI 제거: 로컬 분석만 사용
 
   constructor() {
-    this.aiService = GoogleAIService.getInstance();
+    // Google AI 제거: 로컬 처리만 사용
   }
 
   /**
@@ -164,17 +164,22 @@ export class AnomalyDetectionService {
   }
 
   /**
-   * AI를 사용하여 다수의 이상 징후를 요약합니다.
+   * 로컬 분석으로 다수의 이상 징후를 요약합니다. (Google AI 제거)
    */
   private async summarizeAnomalies(anomalies: Anomaly[]): Promise<string> {
-    const prompt = `
-      다음은 우리 시스템에서 동시에 감지된 이상 징후 목록입니다.
-      이 현상들의 가장 가능성 있는 핵심 원인(root cause)을 한 문장으로 요약해주세요.
+    // 로컬 분석 기반 요약 생성
+    const criticalCount = anomalies.filter(
+      a => a.severity === 'critical'
+    ).length;
+    const warningCount = anomalies.filter(a => a.severity === 'warning').length;
 
-      [이상 징후 목록]
-      ${anomalies.map(a => `- ${a.description}`).join('\n')}
-    `;
-    const result = await this.aiService.generateContent(prompt);
-    return result.content || '다수의 이상 징후가 동시 발생했습니다.';
+    const metricTypes = [...new Set(anomalies.map(a => a.metric))];
+    const mainMetric = metricTypes[0] || 'system';
+
+    if (criticalCount > 0) {
+      return `${criticalCount}개의 심각한 문제와 ${warningCount}개의 경고가 ${mainMetric} 영역에서 발생했습니다.`;
+    } else {
+      return `${warningCount}개의 경고 수준 이상 징후가 ${mainMetric} 관련하여 감지되었습니다.`;
+    }
   }
 }

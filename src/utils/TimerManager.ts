@@ -25,7 +25,7 @@ class TimerManager {
   private isRunning = false;
   private masterInterval: ReturnType<typeof setInterval> | null = null;
 
-  private constructor() { }
+  private constructor() {}
 
   static getInstance(): TimerManager {
     if (!TimerManager.instance) {
@@ -329,10 +329,15 @@ class TimerManager {
       config.errorCount = 0;
     } catch (error) {
       config.errorCount = (config.errorCount || 0) + 1;
-      console.error(`❌ Timer ${config.id} error (${config.errorCount}/3):`, error);
+      console.error(
+        `❌ Timer ${config.id} error (${config.errorCount}/3):`,
+        error
+      );
 
       if (config.errorCount >= 3) {
-        console.error(`🚫 Timer ${config.id} disabled due to repeated failures.`);
+        console.error(
+          `🚫 Timer ${config.id} disabled due to repeated failures.`
+        );
         this.toggle(config.id, false);
       }
     }
@@ -431,10 +436,10 @@ class TimerManager {
   }
 
   /**
-   * 기본 모니터링 모드 타이머 시작
+   * 기본 모니터링 모드 타이머 시작 (AUTO 모드로 통합)
    */
   startMonitoringMode(): void {
-    console.log('📊 Starting Basic Monitoring Mode timers...');
+    console.log('📊 Starting Basic Monitoring Mode timers (AUTO 모드)...');
 
     // 기본 서버 모니터링
     this.registerExclusive(

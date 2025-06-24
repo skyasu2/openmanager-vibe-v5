@@ -10,7 +10,7 @@
 
 import { PredictiveAnalysisEngine } from '../../engines/PredictiveAnalysisEngine';
 import { AnomalyDetection } from './AnomalyDetection';
-import { GoogleAIService } from './GoogleAIService';
+// Google AI 제거: 자연어 질의 전용으로 변경
 import { incidentReportService } from './IncidentReportService';
 import { koreanAIEngine } from './korean-ai-engine';
 import { aiLogger, LogCategory } from './logging/AILogger';
@@ -25,7 +25,7 @@ export interface IntelligentAnalysisRequest {
     end: Date;
   };
   analysisDepth: 'quick' | 'standard' | 'deep';
-  mode?: 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY' | 'MONITORING'; // 🎯 모드 추가
+  mode?: 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY'; // 🎯 모드 추가 (MONITORING 제거)
   includeSteps: {
     anomalyDetection: boolean;
     rootCauseAnalysis: boolean;
@@ -127,7 +127,7 @@ export class IntelligentMonitoringService {
   private anomalyDetection: AnomalyDetection;
   private predictiveEngine: PredictiveAnalysisEngine;
   private incidentService: typeof incidentReportService;
-  private googleAI: GoogleAIService;
+  // Google AI 제거: 자연어 질의 전용
   private koreanAI: typeof koreanAIEngine;
 
   // 🤖 ML 엔진 및 모니터링 시스템 (NEW!)
@@ -151,7 +151,7 @@ export class IntelligentMonitoringService {
     this.predictiveEngine = new PredictiveAnalysisEngine();
     this.incidentService = incidentReportService;
     // 🎯 Google AI 싱글톤 인스턴스 사용 (할당량 중앙 관리)
-    this.googleAI = GoogleAIService.getInstance();
+    // Google AI 제거: 자연어 질의 전용
     this.koreanAI = koreanAIEngine;
 
     // 🤖 ML 엔진 및 모니터링 시스템 초기화 (지연 로딩)

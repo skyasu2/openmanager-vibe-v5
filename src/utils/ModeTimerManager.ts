@@ -12,7 +12,7 @@ interface ModeTimerConfig {
 
 class ModeTimerManager {
   private timers: Map<string, NodeJS.Timeout> = new Map();
-  private currentMode: 'ai' | 'monitoring' | null = null;
+  private currentMode: 'ai' | 'monitoring' | 'auto' | null = null;
 
   // 모든 타이머 정지
   stopAll(): void {
@@ -130,10 +130,10 @@ class ModeTimerManager {
     });
   }
 
-  // 기본 모니터링 모드 시작
+  // 기본 모니터링 모드 시작 (AUTO 모드로 통합)
   startMonitoringMode(): void {
-    console.log('📊 Starting Basic Monitoring Mode timers...');
-    this.currentMode = 'monitoring';
+    console.log('📊 Starting Basic Monitoring Mode timers (AUTO 모드)...');
+    this.currentMode = 'auto'; // MONITORING → AUTO로 변경
 
     // 기본 서버 모니터링
     this.registerTimer({
@@ -193,7 +193,7 @@ class ModeTimerManager {
   }
 
   // 모드 전환
-  switchMode(mode: 'ai' | 'monitoring'): void {
+  switchMode(mode: 'ai' | 'monitoring' | 'auto'): void {
     console.log(
       `🔄 Switching from ${this.currentMode || 'none'} to ${mode} mode...`
     );
@@ -210,7 +210,7 @@ class ModeTimerManager {
   }
 
   // 현재 모드 반환
-  getCurrentMode(): 'ai' | 'monitoring' | null {
+  getCurrentMode(): 'ai' | 'monitoring' | 'auto' | null {
     return this.currentMode;
   }
 

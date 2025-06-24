@@ -213,6 +213,12 @@
             font-size: 0.9em;
             margin-top: 5px;
         }
+
+        .mode-description {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
     </style>
 </head>
 
@@ -226,11 +232,13 @@
         <div class="test-section">
             <h3>🎯 AI 모드 선택</h3>
             <div class="mode-selector">
-                <button class="mode-btn active" data-mode="auto">🤖 Auto (3-엔진 병렬)</button>
-                <button class="mode-btn" data-mode="google-only">🌐 Google AI 전용</button>
-                <button class="mode-btn" data-mode="local">🏠 로컬 엔진 (MCP+RAG)</button>
-                <button class="mode-btn" data-mode="offline">📴 오프라인 모드</button>
+                <button class="mode-btn active" data-mode="AUTO">🤖 AUTO (균형형)</button>
+                <button class="mode-btn" data-mode="GOOGLE_ONLY">🌐 Google AI 전용</button>
+                <button class="mode-btn" data-mode="LOCAL">🏠 로컬 엔진</button>
             </div>
+            <p class="mode-description">
+                🎯 Google AI는 자연어 질의에서만 사용됩니다. 모니터링과 자동장애 기능은 로컬 AI 엔진을 사용합니다.
+            </p>
         </div>
 
         <div class="test-section">
@@ -307,7 +315,7 @@
     </div>
 
     <script>
-        let currentMode = 'auto';
+        let currentMode = 'AUTO';
 
         // 모드 선택
         document.querySelectorAll('.mode-btn').forEach(btn => {
@@ -359,7 +367,7 @@
             const startTime = Date.now();
 
             try {
-                const result = await fetch('/api/ai/smart-fallback', {
+                const result = await fetch('/api/ai/unified-query', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
