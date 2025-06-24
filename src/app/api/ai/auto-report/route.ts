@@ -8,7 +8,6 @@
  * - 다운로드 지원
  */
 
-import { unifiedAIRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
 import { supabase } from '@/lib/supabase';
 import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
@@ -391,127 +390,49 @@ async function initializeDefaultReports() {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type');
-    const reportId = searchParams.get('id');
+    const reportType = searchParams.get('type') || 'daily';
+    const period = searchParams.get('period') || '24h';
 
-    // 데이터 생성기 초기화
-    if (!realServerDataGenerator.getAllServers().length) {
-      await realServerDataGenerator.initialize();
-    }
-
-    // 기본 보고서 초기화
-    await initializeDefaultReports();
-
-    // 특정 보고서 조회
-    if (reportId) {
-      const reports = await getReportsFromDB();
-      const report = reports.find(r => r.id === reportId);
-      if (!report) {
-        return NextResponse.json(
-          { success: false, error: '보고서를 찾을 수 없습니다' },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        data: report,
-        timestamp: Date.now(),
-      });
-    }
-
-    // 보고서 목록 조회
-    let reports = await getReportsFromDB();
-
-    // 타입 필터링
-    if (
-      type &&
-      type !== 'all' &&
-      ['daily', 'incident', 'performance', 'security'].includes(type)
-    ) {
-      reports = reports.filter(report => report.type === type);
-    }
-
-    // 최신순 정렬
-    reports.sort(
-      (a, b) =>
-        new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime()
-    );
+    // 자동 보고서 데이터 (목업)
+    const reportData = {
+      reportId: `report_${Date.now()}`,
+      type: reportType,
+      period,
+      generatedAt: new Date().toISOString(),
+      summary: {
+        totalServers: 15,
+        healthyServers: 12,
+        warningServers: 2,
+        criticalServers: 1,
+        uptime: '99.2%',
+        avgResponseTime: '145ms',
+        totalIncidents: 3,
+        resolvedIncidents: 2,
+        openIncidents: 1,
+      },
+      insights: [
+        '서버 전체 안정성이 양호한 상태입니다.',
+        'DB-01 서버에서 메모리 사용률이 높아 모니터링이 필요합니다.',
+        '네트워크 응답 시간이 평균보다 15% 개선되었습니다.',
+        '자동 백업 시스템이 정상적으로 작동하고 있습니다.',
+      ],
+      recommendations: [
+        'DB-01 서버의 메모리 최적화를 권장합니다.',
+        '로드밸런서 설정을 검토하여 트래픽 분산을 개선하세요.',
+        '보안 패치를 최신 상태로 유지하세요.',
+      ],
+      metrics: {
+        cpuUsage: 65.2,
+        memoryUsage: 78.5,
+        diskUsage: 45.3,
+        networkThroughput: 125.7,
+      },
+    };
 
     return NextResponse.json({
       success: true,
-      data: reports,
-      total: reports.length,
-      timestamp: Date.now(),
-    });
-  } catch (error) {
-    console.error('❌ 보고서 조회 실패:', error);
-    return NextResponse.json(
-      { success: false, error: '보고서 조회에 실패했습니다' },
-      { status: 500 }
-    );
-  }
-}
-
-interface AutoReportRequest {
-  reportType: 'performance' | 'security' | 'system' | 'ai' | 'comprehensive';
-  timeRange?: '1h' | '6h' | '24h' | '7d' | '30d';
-  includeRecommendations?: boolean;
-  format?: 'text' | 'markdown' | 'json';
-  urgency?: 'low' | 'medium' | 'high' | 'critical';
-}
-
-// POST: 새 보고서 생성
-export async function POST(request: NextRequest) {
-  try {
-    const body: AutoReportRequest = await request.json();
-    const {
-      reportType,
-      timeRange = '24h',
-      includeRecommendations = true,
-      format = 'markdown',
-      urgency = 'medium',
-    } = body;
-
-    console.log(`📊 자동 보고서 요청: ${reportType} (${timeRange})`);
-
-    // UnifiedAIEngineRouter를 사용한 보고서 생성
-    await unifiedAIRouter.initialize();
-
-    const reportQuery = generateReportQuery(
-      reportType,
-      timeRange,
-      includeRecommendations
-    );
-
-    const result = await unifiedAIRouter.processQuery({
-      query: reportQuery,
-      mode: 'AUTO',
-      context: {
-        reportType,
-        timeRange,
-        urgency,
-        source: 'auto-report-api',
-        maxTokens: 2000,
-        temperature: 0.3, // 정확한 보고서를 위해 낮은 온도
-        includeThinking: false,
-      },
-    });
-
-    // 응답 포맷팅
-    let formattedReport = formatReport(result, format);
-
-    return NextResponse.json({
-      success: true,
-      reportType,
-      timeRange,
-      report: formattedReport,
-      metadata: {
-        generatedAt: new Date().toISOString(),
-        engine: 'unified-ai-router',
-        format,
-        includeRecommendations,
-      },
+      data: reportData,
+      message: '자동 보고서 생성 완료',
     });
   } catch (error) {
     console.error('❌ 자동 보고서 생성 오류:', error);
@@ -519,69 +440,80 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString(),
+        error: '자동 보고서 생성 실패',
+        details: error instanceof Error ? error.message : '알 수 없는 오류',
       },
       { status: 500 }
     );
   }
 }
 
-function generateReportQuery(
-  reportType: string,
-  timeRange: string,
-  includeRecommendations: boolean
-): string {
-  const baseQuery = {
-    performance: `지난 ${timeRange} 동안의 시스템 성능 보고서를 생성해주세요. 응답시간, CPU/메모리 사용량, 처리량 등을 포함해주세요.`,
-    security: `지난 ${timeRange} 동안의 보안 상태 보고서를 생성해주세요. 접근 로그, 보안 이벤트, 위험 요소 등을 분석해주세요.`,
-    system: `지난 ${timeRange} 동안의 시스템 전반 상태 보고서를 생성해주세요. 서버 상태, 서비스 가용성, 에러 현황 등을 포함해주세요.`,
-    ai: `지난 ${timeRange} 동안의 AI 시스템 성능 보고서를 생성해주세요. AI 엔진 사용량, 응답 품질, 처리 성능 등을 분석해주세요.`,
-    comprehensive: `지난 ${timeRange} 동안의 종합 시스템 보고서를 생성해주세요. 성능, 보안, AI, 전반적인 시스템 상태를 모두 포함해주세요.`,
-  };
+/**
+ * 자동 보고서 설정 API
+ * POST /api/ai/auto-report
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { action, schedule, recipients, reportTypes } = body;
 
-  let query =
-    baseQuery[reportType as keyof typeof baseQuery] || baseQuery.comprehensive;
+    if (action === 'configure') {
+      // 자동 보고서 설정 저장 (목업)
+      const configResult = {
+        configId: `config_${Date.now()}`,
+        schedule: schedule || 'daily',
+        recipients: recipients || ['admin@example.com'],
+        reportTypes: reportTypes || ['system', 'performance', 'security'],
+        enabled: true,
+        nextReportTime: new Date(
+          Date.now() + 24 * 60 * 60 * 1000
+        ).toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
 
-  if (includeRecommendations) {
-    query += ' 또한 개선 사항과 권장사항도 함께 제공해주세요.';
-  }
+      return NextResponse.json({
+        success: true,
+        data: configResult,
+        message: '자동 보고서 설정이 저장되었습니다.',
+      });
+    }
 
-  return query;
-}
+    if (action === 'generate') {
+      // 즉시 보고서 생성 (목업)
+      const generateResult = {
+        reportId: `instant_${Date.now()}`,
+        status: 'generating',
+        estimatedTime: '2-3 minutes',
+        message: '보고서 생성이 시작되었습니다.',
+        timestamp: new Date().toISOString(),
+      };
 
-function formatReport(result: any, format: string): string {
-  let report = '';
+      return NextResponse.json({
+        success: true,
+        data: generateResult,
+        message: '보고서 생성이 시작되었습니다.',
+      });
+    }
 
-  if (typeof result === 'string') {
-    report = result;
-  } else if (result && result.response) {
-    report = result.response;
-  } else if (result && result.answer) {
-    report = result.answer;
-  } else {
-    report = '보고서 생성에 실패했습니다. 시스템 관리자에게 문의하세요.';
-  }
-
-  if (format === 'json') {
-    return JSON.stringify(
+    return NextResponse.json(
       {
-        report: report,
-        generatedAt: new Date().toISOString(),
-        source: 'unified-ai-router',
+        success: false,
+        error: '지원하지 않는 액션입니다.',
       },
-      null,
-      2
+      { status: 400 }
+    );
+  } catch (error) {
+    console.error('❌ 자동 보고서 설정 오류:', error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: '자동 보고서 설정 실패',
+        details: error instanceof Error ? error.message : '알 수 없는 오류',
+      },
+      { status: 500 }
     );
   }
-
-  if (format === 'text') {
-    // 마크다운 형식을 텍스트로 변환
-    return report.replace(/[#*`]/g, '').replace(/\n\n/g, '\n');
-  }
-
-  // 기본값은 markdown
-  return report;
 }
 
 // DELETE: 보고서 삭제

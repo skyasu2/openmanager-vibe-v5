@@ -31,7 +31,6 @@ import {
   FileText,
   Globe,
   HardDrive,
-  RotateCcw,
   Search,
   Send,
   Server,
@@ -251,6 +250,17 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   // 🔧 프리셋 질문 표시 상태 (항상 표시하도록 변경)
   const [showPresets, setShowPresets] = useState(true);
 
+  // 🧠 완료된 생각 과정 저장 (질문과 답변 사이에 표시)
+  const [completedThinkingSteps, setCompletedThinkingSteps] = useState<{
+    [messageId: string]: {
+      steps: ThinkingStep[];
+      isExpanded: boolean;
+      query: string;
+      engine: string;
+      processingTime: number;
+    };
+  }>({});
+
   // 🤖 자동장애보고서 연결 상태
   const [autoReportTrigger, setAutoReportTrigger] = useState<{
     shouldGenerate: boolean;
@@ -427,23 +437,56 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     if (thinkingPersistTimer) {
       clearTimeout(thinkingPersistTimer);
     }
-  }, [thinkingPersistTimer]);
+  }, [thinkingPersistTimer, simulateRealTimeThinking]);
 
-  const stopThinking = useCallback(() => {
-    setIsGenerating(false);
-    setRealThinking(prev => ({ ...prev, isActive: false }));
+  const stopThinking = useCallback(
+    (query?: string, engine?: string, processingTime?: number) => {
+      setIsGenerating(false);
+      setRealThinking(prev => ({ ...prev, isActive: false }));
 
-    // 3초 후에 생각중 표시 숨김 (사용자가 결과를 확인할 시간 제공)
-    const timer = setTimeout(() => {
-      setShowThinkingDisplay(false);
-      setCurrentThinkingSteps([]);
-    }, 3000);
+      // 완료된 생각 과정을 저장 (질문과 답변 사이에 표시하기 위해)
+      if (query && currentThinkingSteps.length > 0) {
+        const messageId = `thinking-${Date.now()}`;
+        setCompletedThinkingSteps(prev => ({
+          ...prev,
+          [messageId]: {
+            steps: [...currentThinkingSteps].map(step => ({
+              ...step,
+              status: 'completed' as const,
+            })),
+            isExpanded: false, // 기본적으로 접힌 상태
+            query,
+            engine: engine || 'unknown',
+            processingTime: processingTime || 0,
+          },
+        }));
+      }
 
-    setThinkingPersistTimer(timer);
+      // 실시간 표시는 1초 후 숨김
+      const timer = setTimeout(() => {
+        setShowThinkingDisplay(false);
+        setCurrentThinkingSteps([]);
+      }, 1000);
+
+      setThinkingPersistTimer(timer);
+    },
+    [currentThinkingSteps]
+  );
+
+  // 완료된 생각 과정 토글
+  const toggleCompletedThinking = useCallback((messageId: string) => {
+    setCompletedThinkingSteps(prev => ({
+      ...prev,
+      [messageId]: {
+        ...prev[messageId],
+        isExpanded: !prev[messageId]?.isExpanded,
+      },
+    }));
   }, []);
 
   // 🔧 실제 AI 쿼리 처리 함수 수정
   const processRealAIQuery = async (query: string, engine: AIMode = 'AUTO') => {
+    const startTime = Date.now();
     startThinking(); // 생각중 시작
 
     try {
@@ -462,15 +505,20 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       const data = await response.json();
 
       if (data.success) {
-        // 성공 시 3초 후 생각중 숨김
-        setTimeout(() => stopThinking(), 1000);
+        const processingTime = Date.now() - startTime;
+
+        // 성공 시 생각 과정을 저장하고 실시간 표시 중단
+        setTimeout(
+          () => stopThinking(query, data.engine || engine, processingTime),
+          500
+        );
 
         return {
           success: true,
           content: data.response,
           confidence: data.confidence,
           engine: data.engine || engine,
-          processingTime: data.processingTime,
+          processingTime,
           metadata: data.metadata,
         };
       } else {
@@ -486,7 +534,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         content: `죄송합니다. AI 응답 생성 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
         confidence: 0,
         engine: 'error',
-        processingTime: 0,
+        processingTime: Date.now() - startTime,
       };
     }
   };
@@ -820,277 +868,150 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           </div>
         )}
 
-        {chatMessages.map(message => (
-          <motion.div
-            key={message.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div
-              className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${
-                message.type === 'user'
-                  ? 'flex-row-reverse space-x-reverse'
-                  : ''
-              }`}
+        {chatMessages.map((message, messageIndex) => (
+          <React.Fragment key={message.id}>
+            {/* 사용자 메시지 또는 AI 메시지 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              {/* 아바타 */}
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${
                   message.type === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                    ? 'flex-row-reverse space-x-reverse'
+                    : ''
                 }`}
               >
-                {message.type === 'user' ? (
-                  <User className='w-3 h-3' />
-                ) : (
-                  <Bot className='w-3 h-3' />
-                )}
-              </div>
-
-              {/* 메시지 콘텐츠 */}
-              <div className='flex-1'>
-                {/* AI 사고 과정 (실시간 표시) */}
-                {message.type === 'ai' &&
-                  (realThinking.isActive || realThinking.steps.length > 0) && (
-                    <div className='mb-2'>
-                      <button
-                        onClick={() =>
-                          setExpandedThinking(
-                            expandedThinking === 'real-thinking'
-                              ? null
-                              : 'real-thinking'
-                          )
-                        }
-                        className='flex items-center space-x-1 text-xs text-gray-600 hover:text-gray-800 transition-colors'
-                      >
-                        <Brain
-                          className={`w-3 h-3 ${realThinking.isActive ? 'animate-pulse text-purple-600' : 'text-gray-600'}`}
-                        />
-                        <span>
-                          🤔 AI 생각 과정{' '}
-                          {realThinking.isActive ? '(진행 중)' : '(완료)'}
-                        </span>
-                        {expandedThinking === 'real-thinking' ? (
-                          <ChevronUp className='w-3 h-3' />
-                        ) : (
-                          <ChevronDown className='w-3 h-3' />
-                        )}
-                      </button>
-
-                      {/* 실제 생각하기 과정 표시 */}
-                      {expandedThinking === 'real-thinking' && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className='mt-2 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-3'
-                        >
-                          <div className='space-y-2'>
-                            {realThinking.steps.map((step, index) => (
-                              <div key={step.id} className='space-y-1'>
-                                <div className='flex items-center justify-between'>
-                                  <span className='text-xs font-medium text-gray-700'>
-                                    {step.title}
-                                  </span>
-                                  <div className='flex items-center space-x-1'>
-                                    {step.status === 'processing' && (
-                                      <div className='w-2 h-2 bg-blue-500 rounded-full animate-pulse' />
-                                    )}
-                                    {step.status === 'completed' && (
-                                      <div className='w-2 h-2 bg-green-500 rounded-full' />
-                                    )}
-                                    {step.duration && (
-                                      <span className='text-xs text-gray-500'>
-                                        {step.duration}ms
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                                <p className='text-xs text-gray-600'>
-                                  {step.description}
-                                </p>
-                                {step.status === 'processing' && (
-                                  <div className='w-full bg-gray-200 rounded-full h-1'>
-                                    <div className='bg-gradient-to-r from-blue-500 to-purple-500 h-1 rounded-full animate-pulse w-3/4' />
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </div>
+                {/* 아바타 */}
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    message.type === 'user'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                  }`}
+                >
+                  {message.type === 'user' ? (
+                    <User className='w-3 h-3' />
+                  ) : (
+                    <Bot className='w-3 h-3' />
                   )}
+                </div>
 
-                {/* AI 메시지의 사고 과정 표시 */}
-                {message.type === 'ai' &&
-                  message.thinking &&
-                  message.thinking.length > 0 && (
-                    <div className='mb-3'>
-                      <div className='flex items-center justify-between mb-2'>
-                        <div className='flex items-center space-x-2'>
-                          <Brain className='w-3 h-3 text-gray-500' />
-                          <span className='text-xs font-medium text-gray-600'>
-                            사고 과정
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => {
-                            // 메시지별 사고 과정 표시 토글 상태 관리
-                            const expandedKey = `thinking_${message.id}`;
-                            const isExpanded =
-                              localStorage.getItem(expandedKey) === 'true';
-                            localStorage.setItem(
-                              expandedKey,
-                              String(!isExpanded)
-                            );
-                            // 강제 리렌더링
-                            setIsThinkingExpanded(!isThinkingExpanded);
-                          }}
-                          className='p-1 hover:bg-gray-100 rounded transition-colors'
-                          title='사고 과정 토글'
-                        >
-                          {localStorage.getItem(`thinking_${message.id}`) !==
-                          'false' ? (
-                            <ChevronUp className='w-3 h-3 text-gray-500' />
-                          ) : (
-                            <ChevronDown className='w-3 h-3 text-gray-500' />
+                {/* 메시지 콘텐츠 */}
+                <div className='flex-1'>
+                  <div
+                    className={`rounded-lg p-3 ${
+                      message.type === 'user'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-white border border-gray-200'
+                    }`}
+                  >
+                    <div className='text-sm whitespace-pre-wrap break-words'>
+                      {message.content}
+                    </div>
+
+                    {/* AI 메시지 메타데이터 */}
+                    {message.type === 'ai' &&
+                      (message.engine || message.confidence) && (
+                        <div className='mt-2 pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500'>
+                          {message.engine && (
+                            <span className='flex items-center space-x-1'>
+                              <Zap className='w-3 h-3' />
+                              <span>{message.engine}</span>
+                            </span>
                           )}
-                        </button>
-                      </div>
+                          {message.confidence && (
+                            <span className='flex items-center space-x-1'>
+                              <span>
+                                신뢰도: {Math.round(message.confidence * 100)}%
+                              </span>
+                            </span>
+                          )}
+                        </div>
+                      )}
+                  </div>
 
-                      <AnimatePresence>
-                        {localStorage.getItem(`thinking_${message.id}`) !==
-                          'false' && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className='space-y-1'
+                  {/* 타임스탬프 */}
+                  <div
+                    className={`mt-1 ${message.type === 'user' ? 'text-right' : 'text-left'}`}
+                  >
+                    <p className='text-xs text-gray-500'>
+                      {typeof message.timestamp === 'string'
+                        ? new Date(message.timestamp).toLocaleTimeString()
+                        : message.timestamp.toLocaleTimeString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 완료된 생각 과정 표시 (질문과 답변 사이에) */}
+            {message.type === 'user' &&
+              messageIndex < chatMessages.length - 1 &&
+              chatMessages[messageIndex + 1]?.type === 'ai' &&
+              Object.keys(completedThinkingSteps).length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className='flex justify-center my-2'
+                >
+                  <div className='bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-3 max-w-[85%]'>
+                    {Object.entries(completedThinkingSteps)
+                      .slice(-1)
+                      .map(([thinkingId, thinkingData]) => (
+                        <div key={thinkingId}>
+                          <button
+                            onClick={() => toggleCompletedThinking(thinkingId)}
+                            className='flex items-center space-x-2 text-xs text-gray-600 hover:text-gray-800 transition-colors w-full'
                           >
-                            {message.thinking.map((step, index) => (
-                              <motion.div
-                                key={step.id}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: index * 0.05 }}
-                                className={`p-2 rounded border-l-2 ${
-                                  (step as any).status === 'completed'
-                                    ? 'bg-green-50 border-l-green-400'
-                                    : (step as any).status === 'processing'
-                                      ? 'bg-blue-50 border-l-blue-400'
-                                      : 'bg-gray-50 border-l-gray-300'
-                                }`}
-                              >
-                                <div className='flex items-center justify-between'>
-                                  <div className='flex items-center space-x-2'>
-                                    <div
-                                      className={`w-3 h-3 rounded-full flex items-center justify-center ${
-                                        (step as any).status === 'completed'
-                                          ? 'bg-green-400'
-                                          : (step as any).status ===
-                                              'processing'
-                                            ? 'bg-blue-400'
-                                            : 'bg-gray-300'
-                                      }`}
-                                    >
-                                      {(step as any).status === 'completed' ? (
-                                        <CheckCircle className='w-2 h-2 text-white' />
-                                      ) : (step as any).status ===
-                                        'processing' ? (
-                                        <div className='w-1.5 h-1.5 bg-white rounded-full animate-pulse' />
-                                      ) : (
-                                        <Clock className='w-2 h-2 text-white' />
-                                      )}
-                                    </div>
+                            <Brain className='w-3 h-3 text-purple-600' />
+                            <span>
+                              🤔 AI 생각 과정 ({thinkingData.steps.length}단계,{' '}
+                              {thinkingData.processingTime}ms)
+                            </span>
+                            {thinkingData.isExpanded ? (
+                              <ChevronUp className='w-3 h-3' />
+                            ) : (
+                              <ChevronDown className='w-3 h-3' />
+                            )}
+                          </button>
+
+                          {thinkingData.isExpanded && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className='mt-2 space-y-1'
+                            >
+                              {thinkingData.steps.map((step, index) => (
+                                <div
+                                  key={step.id}
+                                  className='p-2 bg-white/50 rounded border-l-2 border-l-purple-400'
+                                >
+                                  <div className='flex items-center justify-between'>
                                     <span className='text-xs font-medium text-gray-700'>
                                       {step.step}. {step.title}
                                     </span>
+                                    <div className='w-2 h-2 bg-green-500 rounded-full' />
                                   </div>
-                                  {step.duration && (
-                                    <span className='text-xs text-gray-500'>
-                                      {(step.duration / 1000).toFixed(1)}초
-                                    </span>
-                                  )}
+                                  <p className='text-xs text-gray-600 mt-1'>
+                                    {step.description}
+                                  </p>
                                 </div>
-                                <p className='text-xs text-gray-600 ml-5 mt-1'>
-                                  {step.description}
-                                </p>
-                              </motion.div>
-                            ))}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  )}
-
-                {/* 메시지 버블 */}
-                <div
-                  className={`p-3 rounded-lg ${
-                    message.type === 'user'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-white border border-gray-200 text-gray-800'
-                  }`}
-                >
-                  {/* 파일 첨부 (사용자 메시지만) */}
-                  {message.type === 'user' && message.files && (
-                    <div className='mb-2 space-y-1'>
-                      {message.files.map(file => (
-                        <div
-                          key={file.id}
-                          className='flex items-center space-x-1 text-xs bg-blue-400 bg-opacity-50 rounded px-2 py-1'
-                        >
-                          <FileText className='w-3 h-3' />
-                          <span>{file.name}</span>
+                              ))}
+                              <div className='text-xs text-gray-500 text-center pt-2 border-t border-gray-200'>
+                                엔진: {thinkingData.engine} | 처리시간:{' '}
+                                {thinkingData.processingTime}ms
+                              </div>
+                            </motion.div>
+                          )}
                         </div>
                       ))}
-                    </div>
-                  )}
-
-                  <p className='text-sm whitespace-pre-wrap'>
-                    {message.content}
-                  </p>
-
-                  {/* AI 메시지 메타데이터 */}
-                  {message.type === 'ai' && (
-                    <div className='flex items-center justify-between mt-2 pt-2 border-t border-gray-100'>
-                      <div className='flex items-center space-x-2 text-xs text-gray-500'>
-                        <span>엔진: {message.engine}</span>
-                        {message.confidence && (
-                          <span>
-                            신뢰도: {(message.confidence * 100).toFixed(0)}%
-                          </span>
-                        )}
-                      </div>
-                      <div className='flex items-center space-x-1'>
-                        <button
-                          onClick={() => regenerateResponse(message.id)}
-                          className='p-1 hover:bg-gray-100 rounded transition-colors'
-                          title='답변 재생성'
-                        >
-                          <RotateCcw className='w-3 h-3 text-gray-500' />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  <p
-                    className={`text-xs mt-1 ${
-                      message.type === 'user'
-                        ? 'text-blue-100'
-                        : 'text-gray-500'
-                    }`}
-                  >
-                    {typeof message.timestamp === 'string'
-                      ? new Date(message.timestamp).toLocaleTimeString()
-                      : message.timestamp.toLocaleTimeString()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+                  </div>
+                </motion.div>
+              )}
+          </React.Fragment>
         ))}
 
         {/* 생성 중 표시 - 사고 과정 시각화 (지속 시간 개선) */}

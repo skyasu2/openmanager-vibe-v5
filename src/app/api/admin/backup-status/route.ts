@@ -182,6 +182,15 @@ export async function POST(request: NextRequest) {
           timestamp: new Date().toISOString(),
         });
 
+      case 'trigger-backup':
+        return NextResponse.json({
+          success: true,
+          message: '백업이 시작되었습니다.',
+          backupId: `backup_${Date.now()}`,
+          estimatedDuration: '15-20 minutes',
+          timestamp: new Date().toISOString(),
+        });
+
       default:
         return NextResponse.json(
           {

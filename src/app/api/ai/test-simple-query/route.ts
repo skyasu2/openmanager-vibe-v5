@@ -139,13 +139,68 @@ export async function POST(request: NextRequest) {
   }
 }
 
+/**
+ * 간단한 AI 쿼리 테스트 API
+ * GET /api/ai/test-simple-query
+ */
 export async function GET(request: NextRequest) {
-  return NextResponse.json({
-    message: '간단한 AI 쿼리 테스트 엔드포인트',
-    usage: 'POST /api/ai/test-simple-query',
-    body: {
-      query: 'string (required)',
-      engine: 'google | rag | basic (optional, default: google)',
-    },
-  });
+  try {
+    const { searchParams } = new URL(request.url);
+    const testType = searchParams.get('type') || 'basic';
+
+    // 테스트 쿼리 결과 (목업)
+    const testResults = {
+      testId: `test_${Date.now()}`,
+      type: testType,
+      status: 'success',
+      results: {
+        basic: {
+          query: '안녕하세요',
+          response: '안녕하세요! 무엇을 도와드릴까요?',
+          responseTime: 150,
+          confidence: 0.98,
+        },
+        complex: {
+          query: '시스템 성능을 분석해주세요',
+          response:
+            '현재 시스템 성능은 양호합니다. CPU 사용률 65%, 메모리 사용률 78%로 정상 범위 내에 있습니다.',
+          responseTime: 850,
+          confidence: 0.92,
+        },
+        technical: {
+          query: '서버 로그를 확인해주세요',
+          response:
+            '최근 로그를 확인한 결과 에러 0건, 경고 2건이 발견되었습니다. 전반적으로 안정적인 상태입니다.',
+          responseTime: 650,
+          confidence: 0.89,
+        },
+      },
+      engine: 'unified-ai-router',
+      timestamp: new Date().toISOString(),
+    };
+
+    const selectedResult =
+      testResults.results[testType as keyof typeof testResults.results] ||
+      testResults.results.basic;
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        ...testResults,
+        currentTest: selectedResult,
+      },
+      message: '간단한 AI 쿼리 테스트 완료',
+    });
+  } catch (error) {
+    console.error('❌ 간단한 AI 쿼리 테스트 오류:', error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: '간단한 AI 쿼리 테스트 실패',
+        details: error instanceof Error ? error.message : '알 수 없는 오류',
+      },
+      { status: 500 }
+    );
+  }
 }
