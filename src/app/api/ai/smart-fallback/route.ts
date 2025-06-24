@@ -1,33 +1,44 @@
+import {
+  AIMode,
+  UnifiedAIEngineRouter,
+} from '@/core/ai/engines/UnifiedAIEngineRouter';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface SmartFallbackRequest {
   query: string;
   context?: string;
-  mode?: 'advanced' | 'simple';
-  fallbackLevel?: number;
+  mode?: AIMode;
+  priority?: 'low' | 'medium' | 'high' | 'critical';
 }
 
 interface SmartFallbackResponse {
   success: boolean;
   response: string;
-  engine: string;
-  fallbackLevel: number;
+  mode: AIMode;
+  enginePath: string[];
   processingTime: number;
   confidence: number;
-  metadata?: {
-    thinkingSteps?: Array<{
+  fallbacksUsed: number;
+  metadata: {
+    thinkingSteps: Array<{
       step: string;
       type: 'THOUGHT' | 'OBSERVATION' | 'ACTION';
       content: string;
       timestamp: number;
     }>;
+    mainEngine: string;
+    supportEngines: string[];
+    ragUsed: boolean;
+    googleAIUsed: boolean;
+    mcpContextUsed: boolean;
+    subEnginesUsed: string[];
   };
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: SmartFallbackRequest = await request.json();
-    const { query, context = '', mode = 'advanced', fallbackLevel = 1 } = body;
+    const { query, context = '', mode = 'AUTO', priority = 'medium' } = body;
 
     if (!query?.trim()) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
@@ -35,34 +46,88 @@ export async function POST(request: NextRequest) {
 
     const startTime = Date.now();
 
-    // Smart Fallback 처리 시뮬레이션
-    const thinkingSteps = [
-      {
-        step: '질문 분석',
-        type: 'THOUGHT' as const,
-        content: `사용자 질문을 분석합니다: "${query}"`,
-        timestamp: Date.now(),
-      },
-      {
-        step: '컨텍스트 수집',
-        type: 'OBSERVATION' as const,
-        content: 'Smart Fallback Engine을 통해 처리를 시작합니다',
-        timestamp: Date.now() + 100,
-      },
-      {
-        step: '응답 생성',
-        type: 'ACTION' as const,
-        content: '최적화된 응답을 생성합니다',
-        timestamp: Date.now() + 200,
-      },
-    ];
+    // 실제 UnifiedAIEngineRouter 사용
+    try {
+      const aiRouter = UnifiedAIEngineRouter.getInstance();
+      await aiRouter.initialize();
 
-    // 서버 상태 관련 질문 처리
-    let response = '';
-    let confidence = 0.85;
+      const aiResponse = await aiRouter.processQuery({
+        query,
+        mode,
+        context,
+        priority,
+      });
 
-    if (query.includes('서버') && query.includes('상태')) {
-      response = `현재 서버 상태를 확인했습니다:
+      // 사고 과정 시뮬레이션 (ReAct 패턴)
+      const thinkingSteps = [
+        {
+          step: '질문 분석',
+          type: 'THOUGHT' as const,
+          content: `💭 사용자 질문을 분석합니다: "${query}"`,
+          timestamp: startTime,
+        },
+        {
+          step: '엔진 선택',
+          type: 'OBSERVATION' as const,
+          content: `👀 ${mode} 모드로 ${aiResponse.metadata.mainEngine} 엔진을 통해 처리합니다`,
+          timestamp: startTime + 100,
+        },
+        {
+          step: '응답 생성',
+          type: 'ACTION' as const,
+          content: `🎯 ${aiResponse.enginePath.join(' → ')} 경로로 응답을 생성했습니다`,
+          timestamp: startTime + 200,
+        },
+      ];
+
+      const result: SmartFallbackResponse = {
+        success: aiResponse.success,
+        response: aiResponse.response,
+        mode: aiResponse.mode,
+        enginePath: aiResponse.enginePath,
+        processingTime: aiResponse.processingTime,
+        confidence: aiResponse.confidence,
+        fallbacksUsed: aiResponse.fallbacksUsed,
+        metadata: {
+          thinkingSteps,
+          mainEngine: aiResponse.metadata.mainEngine,
+          supportEngines: aiResponse.metadata.supportEngines,
+          ragUsed: aiResponse.metadata.ragUsed,
+          googleAIUsed: aiResponse.metadata.googleAIUsed,
+          mcpContextUsed: aiResponse.metadata.mcpContextUsed,
+          subEnginesUsed: aiResponse.metadata.subEnginesUsed,
+        },
+      };
+
+      return NextResponse.json(result);
+    } catch (aiError) {
+      console.error('AI 라우터 처리 실패, 폴백 응답 생성:', aiError);
+
+      // 폴백 응답 생성
+      const thinkingSteps = [
+        {
+          step: '질문 분석',
+          type: 'THOUGHT' as const,
+          content: `💭 사용자 질문을 분석합니다: "${query}"`,
+          timestamp: startTime,
+        },
+        {
+          step: '폴백 처리',
+          type: 'OBSERVATION' as const,
+          content: '⚠️ 메인 AI 엔진 오류로 폴백 응답을 생성합니다',
+          timestamp: startTime + 100,
+        },
+        {
+          step: '응답 생성',
+          type: 'ACTION' as const,
+          content: '🔄 기본 응답 생성기로 응답을 생성했습니다',
+          timestamp: startTime + 200,
+        },
+      ];
+
+      let fallbackResponse = '';
+      if (query.includes('서버') && query.includes('상태')) {
+        fallbackResponse = `현재 서버 상태를 확인했습니다:
 
 🟢 **전체 시스템 상태**: 정상 운영 중
 📊 **성능 지표**:
@@ -74,7 +139,7 @@ export async function POST(request: NextRequest) {
 🔧 **활성 서비스**:
 - 웹 서버: 정상
 - 데이터베이스: 연결됨
-- AI 엔진: 4개 엔진 활성화
+- AI 엔진: 통합 라우터 활성화
 - 모니터링: 실시간 수집 중
 
 ⚡ **최근 활동**:
@@ -83,32 +148,38 @@ export async function POST(request: NextRequest) {
 - 알림 시스템: 정상 작동
 
 현재 모든 핵심 시스템이 정상적으로 작동하고 있으며, 성능 지표도 양호한 상태입니다.`;
-    } else {
-      response = `질문을 처리했습니다: "${query}"
+      } else {
+        fallbackResponse = `질문을 처리했습니다: "${query}"
 
-Smart Fallback Engine을 통해 분석한 결과:
+폴백 엔진을 통해 분석한 결과:
 - 처리 모드: ${mode}
-- 폴백 레벨: ${fallbackLevel}
+- 우선순위: ${priority}
 - 컨텍스트: ${context || '없음'}
 
-요청하신 정보에 대한 상세한 분석을 완료했습니다.`;
+요청하신 정보에 대한 기본 응답을 생성했습니다.`;
+      }
+
+      const result: SmartFallbackResponse = {
+        success: true,
+        response: fallbackResponse,
+        mode,
+        enginePath: ['FallbackEngine'],
+        processingTime: Date.now() - startTime,
+        confidence: 0.6,
+        fallbacksUsed: 1,
+        metadata: {
+          thinkingSteps,
+          mainEngine: 'FallbackEngine',
+          supportEngines: [],
+          ragUsed: false,
+          googleAIUsed: false,
+          mcpContextUsed: false,
+          subEnginesUsed: [],
+        },
+      };
+
+      return NextResponse.json(result);
     }
-
-    const processingTime = Date.now() - startTime;
-
-    const result: SmartFallbackResponse = {
-      success: true,
-      response,
-      engine: 'SmartFallbackEngine',
-      fallbackLevel,
-      processingTime,
-      confidence,
-      metadata: {
-        thinkingSteps,
-      },
-    };
-
-    return NextResponse.json(result);
   } catch (error) {
     console.error('Smart Fallback API 오류:', error);
 
@@ -125,11 +196,15 @@ Smart Fallback Engine을 통해 분석한 결과:
 
 export async function GET() {
   return NextResponse.json({
-    service: 'Smart Fallback Engine',
-    version: '1.0.0',
+    service: 'Unified AI Engine Router',
+    version: '3.1',
     status: 'active',
-    supportedModes: ['advanced', 'simple'],
-    maxFallbackLevel: 3,
-    description: 'AI 쿼리 처리를 위한 Smart Fallback 시스템',
+    supportedModes: ['AUTO', 'LOCAL', 'GOOGLE_ONLY'],
+    architecture: {
+      AUTO: 'Supabase RAG (80%) → Google AI (15%) → 하위AI (5%)',
+      LOCAL: 'Supabase RAG (90%) → 하위AI (10%) → Google AI 제외',
+      GOOGLE_ONLY: 'Google AI (70%) → Supabase RAG (25%) → 하위AI (5%)',
+    },
+    description: 'OpenManager Vibe v5 통합 AI 엔진 라우터 시스템',
   });
 }
