@@ -4,14 +4,15 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
   CallToolRequestSchema,
+  ListResourcesRequestSchema,
   ListToolsRequestSchema,
+  ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { createServer } from 'http';
+import fs from 'fs/promises';
 import os from 'os';
+import path from 'path';
 
-const PORT = process.env.PORT || 3100;
-
-// MCP 서버 인스턴스 생성
+// MCP 서버 인스턴스 생성 (공식 표준 구조)
 const server = new Server(
   {
     name: 'openmanager-vibe-mcp-server',
@@ -20,41 +21,54 @@ const server = new Server(
   {
     capabilities: {
       tools: {},
+      resources: {},
     },
   }
 );
 
-// 도구 목록 제공
+// 도구 목록 제공 (표준 MCP 프로토콜)
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
+        name: 'read_file',
+        description: '파일 내용을 읽습니다',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            path: {
+              type: 'string',
+              description: '읽을 파일의 경로',
+            },
+          },
+          required: ['path'],
+        },
+      },
+      {
+        name: 'list_directory',
+        description: '디렉토리 내용을 나열합니다',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            path: {
+              type: 'string',
+              description: '나열할 디렉토리 경로',
+            },
+          },
+          required: ['path'],
+        },
+      },
+      {
+        name: 'system_info',
+        description: '시스템 정보를 가져옵니다',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
         name: 'health_check',
-        description: 'MCP 서버 헬스 체크',
-        inputSchema: {
-          type: 'object',
-          properties: {},
-        },
-      },
-      {
-        name: 'server_status',
-        description: '서버 상태 확인',
-        inputSchema: {
-          type: 'object',
-          properties: {},
-        },
-      },
-      {
-        name: 'render_info',
-        description: 'Render 환경 정보 확인',
-        inputSchema: {
-          type: 'object',
-          properties: {},
-        },
-      },
-      {
-        name: 'system_metrics',
-        description: '시스템 리소스 메트릭 조회',
+        description: 'MCP 서버 상태를 확인합니다',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -64,363 +78,248 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   };
 });
 
-// 도구 호출 처리
+// 도구 호출 처리 (표준 MCP 프로토콜)
 server.setRequestHandler(CallToolRequestSchema, async request => {
-  const { name } = request.params;
+  const { name, arguments: args } = request.params;
 
-  switch (name) {
-    case 'health_check':
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(
-              {
-                status: 'healthy',
-                timestamp: new Date().toISOString(),
-                port: PORT,
-                version: '1.0.0',
-              },
-              null,
-              2
-            ),
-          },
-        ],
-      };
+  try {
+    switch (name) {
+      case 'read_file': {
+        const { path: filePath } = args;
 
-    case 'server_status':
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(
-              {
-                mcp_server: 'running',
-                port: PORT,
-                uptime: Math.floor(process.uptime()),
-                memory: process.memoryUsage(),
-                timestamp: new Date().toISOString(),
-              },
-              null,
-              2
-            ),
-          },
-        ],
-      };
+        // 보안: 상대 경로 차단
+        if (filePath.includes('..')) {
+          throw new Error('상대 경로는 허용되지 않습니다');
+        }
 
-    case 'render_info':
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(
-              {
-                platform: 'render',
-                region: 'singapore',
-                environment: process.env.NODE_ENV || 'development',
-                deployment: {
-                  auto_deploy: true,
-                  branch: 'main',
-                  build_command: 'npm ci && npm run build',
-                  start_command: 'npm start',
-                },
-                features: ['http_endpoints', 'mcp_protocol', 'health_checks'],
-                endpoints: {
-                  base: `http://localhost:${PORT}`,
-                  health: '/health',
-                  status: '/status',
-                },
-                timestamp: new Date().toISOString(),
-              },
-              null,
-              2
-            ),
-          },
-        ],
-      };
-
-    case 'system_metrics':
-      const memUsage = process.memoryUsage();
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(
-              {
-                cpu: {
-                  uptime: Math.floor(process.uptime()),
-                  load_average:
-                    process.platform !== 'win32' ? os.loadavg() : [0, 0, 0],
-                },
-                memory: {
-                  rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
-                  heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`,
-                  heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
-                  external: `${Math.round(memUsage.external / 1024 / 1024)}MB`,
-                  usage_percent: Math.round(
-                    (memUsage.heapUsed / memUsage.heapTotal) * 100
-                  ),
-                },
-                process: {
-                  pid: process.pid,
-                  version: process.version,
-                  platform: process.platform,
-                  arch: process.arch,
-                },
-                timestamp: new Date().toISOString(),
-              },
-              null,
-              2
-            ),
-          },
-        ],
-      };
-
-    default:
-      throw new Error(`Unknown tool: ${name}`);
-  }
-});
-
-// HTTP 서버 생성 (헬스체크용)
-const httpServer = createServer((req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  // CORS preflight 처리
-  if (req.method === 'OPTIONS') {
-    res.writeHead(200);
-    res.end();
-    return;
-  }
-
-  if (req.url === '/health') {
-    res.writeHead(200);
-    res.end(
-      JSON.stringify({
-        status: 'healthy',
-        timestamp: new Date().toISOString(),
-        port: PORT,
-        version: '1.0.0',
-        uptime: Math.floor(process.uptime()),
-        environment: 'render',
-        region: 'singapore',
-        mcp_protocol: 'stdio',
-        endpoints: {
-          health: '/health',
-          status: '/status',
-        },
-      })
-    );
-  } else if (req.url === '/status') {
-    const memUsage = process.memoryUsage();
-    res.writeHead(200);
-    res.end(
-      JSON.stringify({
-        mcp_server: 'running',
-        port: PORT,
-        uptime: Math.floor(process.uptime()),
-        memory: {
-          rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
-          heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`,
-          heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
-          external: `${Math.round(memUsage.external / 1024 / 1024)}MB`,
-        },
-        environment: process.env.NODE_ENV || 'development',
-        platform: 'render',
-        nodeVersion: process.version,
-        timestamp: new Date().toISOString(),
-      })
-    );
-  } else if (req.url === '/mcp/tools') {
-    // MCP 도구 목록 제공
-    res.writeHead(200);
-    res.end(
-      JSON.stringify({
-        tools: [
-          {
-            name: 'health_check',
-            description: 'MCP 서버 헬스 체크',
-            inputSchema: {
-              type: 'object',
-              properties: {},
+        const content = await fs.readFile(filePath, 'utf-8');
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `파일: ${filePath}\n\n${content}`,
             },
-          },
-          {
-            name: 'server_status',
-            description: '서버 상태 확인',
-            inputSchema: {
-              type: 'object',
-              properties: {},
-            },
-          },
-          {
-            name: 'render_info',
-            description: 'Render 환경 정보 확인',
-            inputSchema: {
-              type: 'object',
-              properties: {},
-            },
-          },
-          {
-            name: 'system_metrics',
-            description: '시스템 리소스 메트릭 조회',
-            inputSchema: {
-              type: 'object',
-              properties: {},
-            },
-          },
-        ],
-      })
-    );
-  } else if (req.url === '/mcp/query' && req.method === 'POST') {
-    // MCP 쿼리 처리
-    let body = '';
-    req.on('data', chunk => {
-      body += chunk.toString();
-    });
+          ],
+        };
+      }
 
-    req.on('end', () => {
-      try {
-        const { query, sessionId } = JSON.parse(body);
+      case 'list_directory': {
+        const { path: dirPath } = args;
 
-        // 간단한 쿼리 처리 로직
-        let response = {
-          sessionId: sessionId || `session-${Date.now()}`,
-          query,
+        // 보안: 상대 경로 차단
+        if (dirPath.includes('..')) {
+          throw new Error('상대 경로는 허용되지 않습니다');
+        }
+
+        const entries = await fs.readdir(dirPath, { withFileTypes: true });
+        const fileList = entries.map(entry => ({
+          name: entry.name,
+          type: entry.isDirectory() ? 'directory' : 'file',
+          path: path.join(dirPath, entry.name),
+        }));
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                {
+                  directory: dirPath,
+                  entries: fileList,
+                  count: fileList.length,
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      }
+
+      case 'system_info': {
+        const memUsage = process.memoryUsage();
+        const systemInfo = {
+          platform: process.platform,
+          architecture: process.arch,
+          nodeVersion: process.version,
+          uptime: Math.floor(process.uptime()),
+          memory: {
+            rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
+            heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`,
+            heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
+            external: `${Math.round(memUsage.external / 1024 / 1024)}MB`,
+          },
+          cpu: {
+            loadAverage:
+              process.platform !== 'win32' ? os.loadavg() : [0, 0, 0],
+            cpuCount: os.cpus().length,
+          },
+          hostname: os.hostname(),
+          environment: process.env.NODE_ENV || 'development',
           timestamp: new Date().toISOString(),
         };
 
-        // 쿼리 유형별 응답
-        if (query.includes('상태') || query.includes('status')) {
-          response.result = {
-            type: 'status',
-            data: {
-              server: 'healthy',
-              uptime: Math.floor(process.uptime()),
-              memory: process.memoryUsage(),
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(systemInfo, null, 2),
             },
-          };
-        } else if (query.includes('메트릭') || query.includes('metrics')) {
-          const memUsage = process.memoryUsage();
-          response.result = {
-            type: 'metrics',
-            data: {
-              memory: {
-                rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
-                heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
-              },
-              cpu: {
-                uptime: Math.floor(process.uptime()),
-              },
-            },
-          };
-        } else {
-          response.result = {
-            type: 'general',
-            data: {
-              message: `쿼리 "${query}"를 처리했습니다`,
-              server: 'OpenManager Vibe v5 MCP Server',
-              capabilities: [
-                'health_check',
-                'server_status',
-                'render_info',
-                'system_metrics',
-              ],
-            },
-          };
-        }
-
-        res.writeHead(200);
-        res.end(JSON.stringify(response));
-      } catch (error) {
-        res.writeHead(400);
-        res.end(
-          JSON.stringify({
-            error: 'Invalid JSON payload',
-            message: error.message,
-          })
-        );
+          ],
+        };
       }
-    });
-  } else if (req.url === '/') {
-    res.writeHead(200);
-    res.end(
-      JSON.stringify({
-        name: 'OpenManager Vibe v5 MCP Server',
-        version: '1.0.0',
-        environment: 'render',
-        endpoints: {
-          health: '/health',
-          status: '/status',
-          tools: '/mcp/tools',
-          query: '/mcp/query',
+
+      case 'health_check': {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                {
+                  status: 'healthy',
+                  server: 'OpenManager Vibe v5 MCP Server',
+                  version: '1.0.0',
+                  timestamp: new Date().toISOString(),
+                  uptime: Math.floor(process.uptime()),
+                  protocol: 'MCP 1.0',
+                  transport: 'stdio',
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      }
+
+      default:
+        throw new Error(`알 수 없는 도구: ${name}`);
+    }
+  } catch (error) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `오류: ${error.message}`,
         },
-        documentation: 'https://github.com/skyasu2/openmanager-vibe-v5',
-      })
-    );
-  } else {
-    res.writeHead(404);
-    res.end(
-      JSON.stringify({
-        error: 'Not found',
-        available_endpoints: [
-          '/health',
-          '/status',
-          '/mcp/tools',
-          '/mcp/query',
-          '/',
-        ],
-      })
-    );
+      ],
+      isError: true,
+    };
   }
 });
 
-// 서버 시작
-async function main() {
-  // HTTP 서버 시작
-  httpServer.listen(PORT, () => {
-    console.log(`🚀 MCP HTTP Server running on port ${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health`);
-    console.log(`📈 Status check: http://localhost:${PORT}/status`);
-  });
+// 리소스 목록 제공 (표준 MCP 프로토콜)
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return {
+    resources: [
+      {
+        uri: 'system://status',
+        name: '시스템 상태',
+        description: '현재 시스템 상태 정보',
+        mimeType: 'application/json',
+      },
+      {
+        uri: 'system://logs',
+        name: '시스템 로그',
+        description: '최근 시스템 로그',
+        mimeType: 'text/plain',
+      },
+    ],
+  };
+});
 
-  // MCP 서버 실행 (stdio 모드)
+// 리소스 읽기 처리 (표준 MCP 프로토콜)
+server.setRequestHandler(ReadResourceRequestSchema, async request => {
+  const { uri } = request.params;
+
+  switch (uri) {
+    case 'system://status': {
+      const memUsage = process.memoryUsage();
+      const status = {
+        server: 'OpenManager Vibe v5 MCP Server',
+        status: 'running',
+        uptime: Math.floor(process.uptime()),
+        memory: {
+          rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
+          heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
+        },
+        platform: process.platform,
+        nodeVersion: process.version,
+        timestamp: new Date().toISOString(),
+      };
+
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: 'application/json',
+            text: JSON.stringify(status, null, 2),
+          },
+        ],
+      };
+    }
+
+    case 'system://logs': {
+      const logs = [
+        `[${new Date().toISOString()}] INFO: MCP 서버 시작됨`,
+        `[${new Date().toISOString()}] INFO: 프로토콜 버전: MCP 1.0`,
+        `[${new Date().toISOString()}] INFO: 전송 방식: stdio`,
+        `[${new Date().toISOString()}] INFO: 4개 도구 등록됨`,
+        `[${new Date().toISOString()}] INFO: 2개 리소스 등록됨`,
+      ].join('\n');
+
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: 'text/plain',
+            text: logs,
+          },
+        ],
+      };
+    }
+
+    default:
+      throw new Error(`알 수 없는 리소스: ${uri}`);
+  }
+});
+
+// 서버 시작 함수
+async function main() {
+  console.error('🚀 OpenManager Vibe v5 MCP Server 시작 중...');
+  console.error('📋 4개 도구, 2개 리소스 등록됨');
+  console.error('🔗 MCP 프로토콜 1.0 (stdio 전송)');
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.log('🔗 MCP Server connected via stdio');
+
+  console.error('✅ MCP 서버 준비 완료');
 }
-
-// 종료 처리
-process.on('SIGINT', () => {
-  console.log('\n🛑 MCP Server shutting down...');
-  httpServer.close(() => {
-    console.log('✅ MCP Server stopped');
-    process.exit(0);
-  });
-});
-
-process.on('SIGTERM', () => {
-  console.log('\n🛑 MCP Server shutting down...');
-  httpServer.close(() => {
-    console.log('✅ MCP Server stopped');
-    process.exit(0);
-  });
-});
 
 // 오류 처리
 process.on('uncaughtException', err => {
-  console.error('❌ Uncaught Exception:', err);
+  console.error('❌ 예상치 못한 오류:', err);
   process.exit(1);
 });
 
 process.on('unhandledRejection', err => {
-  console.error('❌ Unhandled Rejection:', err);
+  console.error('❌ 처리되지 않은 Promise 거부:', err);
   process.exit(1);
 });
 
+// 종료 처리
+process.on('SIGINT', () => {
+  console.error('\n🛑 MCP 서버 종료 중...');
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.error('\n🛑 MCP 서버 종료 중...');
+  process.exit(0);
+});
+
+// 서버 시작
 main().catch(error => {
-  console.error('❌ Failed to start MCP server:', error);
+  console.error('❌ MCP 서버 시작 실패:', error);
   process.exit(1);
 });
