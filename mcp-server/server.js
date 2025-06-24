@@ -4,14 +4,10 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
   CallToolRequestSchema,
-  ErrorCode,
   ListToolsRequestSchema,
-  McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import fs from 'fs';
-import path from 'path';
-import http from 'http';
 import { createServer } from 'http';
+import os from 'os';
 
 const PORT = process.env.PORT || 3100;
 
@@ -154,9 +150,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
                 cpu: {
                   uptime: Math.floor(process.uptime()),
                   load_average:
-                    process.platform !== 'win32'
-                      ? require('os').loadavg()
-                      : [0, 0, 0],
+                    process.platform !== 'win32' ? os.loadavg() : [0, 0, 0],
                 },
                 memory: {
                   rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
@@ -239,6 +233,117 @@ const httpServer = createServer((req, res) => {
         timestamp: new Date().toISOString(),
       })
     );
+  } else if (req.url === '/mcp/tools') {
+    // MCP 도구 목록 제공
+    res.writeHead(200);
+    res.end(
+      JSON.stringify({
+        tools: [
+          {
+            name: 'health_check',
+            description: 'MCP 서버 헬스 체크',
+            inputSchema: {
+              type: 'object',
+              properties: {},
+            },
+          },
+          {
+            name: 'server_status',
+            description: '서버 상태 확인',
+            inputSchema: {
+              type: 'object',
+              properties: {},
+            },
+          },
+          {
+            name: 'render_info',
+            description: 'Render 환경 정보 확인',
+            inputSchema: {
+              type: 'object',
+              properties: {},
+            },
+          },
+          {
+            name: 'system_metrics',
+            description: '시스템 리소스 메트릭 조회',
+            inputSchema: {
+              type: 'object',
+              properties: {},
+            },
+          },
+        ],
+      })
+    );
+  } else if (req.url === '/mcp/query' && req.method === 'POST') {
+    // MCP 쿼리 처리
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+
+    req.on('end', () => {
+      try {
+        const { query, sessionId } = JSON.parse(body);
+
+        // 간단한 쿼리 처리 로직
+        let response = {
+          sessionId: sessionId || `session-${Date.now()}`,
+          query,
+          timestamp: new Date().toISOString(),
+        };
+
+        // 쿼리 유형별 응답
+        if (query.includes('상태') || query.includes('status')) {
+          response.result = {
+            type: 'status',
+            data: {
+              server: 'healthy',
+              uptime: Math.floor(process.uptime()),
+              memory: process.memoryUsage(),
+            },
+          };
+        } else if (query.includes('메트릭') || query.includes('metrics')) {
+          const memUsage = process.memoryUsage();
+          response.result = {
+            type: 'metrics',
+            data: {
+              memory: {
+                rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
+                heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
+              },
+              cpu: {
+                uptime: Math.floor(process.uptime()),
+              },
+            },
+          };
+        } else {
+          response.result = {
+            type: 'general',
+            data: {
+              message: `쿼리 "${query}"를 처리했습니다`,
+              server: 'OpenManager Vibe v5 MCP Server',
+              capabilities: [
+                'health_check',
+                'server_status',
+                'render_info',
+                'system_metrics',
+              ],
+            },
+          };
+        }
+
+        res.writeHead(200);
+        res.end(JSON.stringify(response));
+      } catch (error) {
+        res.writeHead(400);
+        res.end(
+          JSON.stringify({
+            error: 'Invalid JSON payload',
+            message: error.message,
+          })
+        );
+      }
+    });
   } else if (req.url === '/') {
     res.writeHead(200);
     res.end(
@@ -249,6 +354,8 @@ const httpServer = createServer((req, res) => {
         endpoints: {
           health: '/health',
           status: '/status',
+          tools: '/mcp/tools',
+          query: '/mcp/query',
         },
         documentation: 'https://github.com/skyasu2/openmanager-vibe-v5',
       })
@@ -258,7 +365,13 @@ const httpServer = createServer((req, res) => {
     res.end(
       JSON.stringify({
         error: 'Not found',
-        available_endpoints: ['/health', '/status', '/'],
+        available_endpoints: [
+          '/health',
+          '/status',
+          '/mcp/tools',
+          '/mcp/query',
+          '/',
+        ],
       })
     );
   }
