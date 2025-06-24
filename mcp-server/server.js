@@ -12,7 +12,125 @@ import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
 
-// MCP 서버 인스턴스 생성 (공식 표준 구조)
+// 시스템 컨텍스트 저장소
+const systemContext = {
+  startup: new Date().toISOString(),
+  logs: [],
+  metrics: {},
+  vercelSync: {
+    lastSync: null,
+    status: 'ready',
+    errors: [],
+  },
+};
+
+// 로그 수집 함수
+function addLog(level, message, data = {}) {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    level,
+    message,
+    data,
+    uptime: Math.floor(process.uptime()),
+  };
+
+  systemContext.logs.push(logEntry);
+
+  // 최대 100개 로그 유지
+  if (systemContext.logs.length > 100) {
+    systemContext.logs = systemContext.logs.slice(-100);
+  }
+
+  console.error(`[${level.toUpperCase()}] ${message}`);
+}
+
+// Vercel API 호출 함수
+async function sendToVercel(endpoint, data) {
+  try {
+    const vercelUrl =
+      process.env.VERCEL_URL || 'https://openmanager-vibe-v5.vercel.app';
+    const response = await fetch(`${vercelUrl}/api/${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-MCP-Source': 'render-server',
+      },
+      body: JSON.stringify({
+        ...data,
+        renderContext: {
+          timestamp: new Date().toISOString(),
+          uptime: Math.floor(process.uptime()),
+          environment: 'render',
+          region: 'singapore',
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Vercel API 응답 오류: ${response.status}`);
+    }
+
+    const result = await response.json();
+    systemContext.vercelSync.lastSync = new Date().toISOString();
+    systemContext.vercelSync.status = 'success';
+
+    addLog('info', `Vercel 동기화 성공: ${endpoint}`, {
+      status: response.status,
+    });
+    return result;
+  } catch (error) {
+    systemContext.vercelSync.status = 'error';
+    systemContext.vercelSync.errors.push({
+      timestamp: new Date().toISOString(),
+      endpoint,
+      error: error.message,
+    });
+
+    addLog('error', `Vercel 동기화 실패: ${error.message}`, { endpoint });
+    throw error;
+  }
+}
+
+// 시스템 메트릭 수집
+function collectMetrics() {
+  const memUsage = process.memoryUsage();
+  const cpuUsage = process.cpuUsage();
+
+  systemContext.metrics = {
+    timestamp: new Date().toISOString(),
+    memory: {
+      rss: memUsage.rss,
+      heapTotal: memUsage.heapTotal,
+      heapUsed: memUsage.heapUsed,
+      external: memUsage.external,
+      usage: Math.round((memUsage.heapUsed / memUsage.heapTotal) * 100),
+    },
+    cpu: {
+      user: cpuUsage.user,
+      system: cpuUsage.system,
+      loadAverage: process.platform !== 'win32' ? os.loadavg() : [0, 0, 0],
+    },
+    uptime: Math.floor(process.uptime()),
+    platform: process.platform,
+    nodeVersion: process.version,
+  };
+}
+
+// 주기적 메트릭 수집 및 Vercel 동기화
+setInterval(() => {
+  collectMetrics();
+
+  // 5분마다 Vercel에 상태 동기화
+  if (Math.floor(process.uptime()) % 300 === 0) {
+    sendToVercel('mcp/sync', {
+      type: 'health_update',
+      metrics: systemContext.metrics,
+      logs: systemContext.logs.slice(-10), // 최근 10개 로그만
+    }).catch(() => {}); // 에러는 이미 로깅됨
+  }
+}, 30000); // 30초마다 수집
+
+// MCP 서버 인스턴스 생성 (확장된 표준 구조)
 const server = new Server(
   {
     name: 'openmanager-vibe-mcp-server',
@@ -26,7 +144,7 @@ const server = new Server(
   }
 );
 
-// 도구 목록 제공 (표준 MCP 프로토콜)
+// 도구 목록 제공 (확장된 표준 MCP 프로토콜)
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
@@ -60,7 +178,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'system_info',
-        description: '시스템 정보를 가져옵니다',
+        description: '확장된 시스템 정보를 가져옵니다',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -74,11 +192,56 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {},
         },
       },
+      {
+        name: 'sync_to_vercel',
+        description: 'Vercel로 데이터를 동기화합니다',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            endpoint: {
+              type: 'string',
+              description: 'Vercel API 엔드포인트',
+            },
+            data: {
+              type: 'object',
+              description: '전송할 데이터',
+            },
+          },
+          required: ['endpoint'],
+        },
+      },
+      {
+        name: 'get_logs',
+        description: '시스템 로그를 조회합니다',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            level: {
+              type: 'string',
+              enum: ['info', 'warn', 'error', 'debug'],
+              description: '로그 레벨 필터',
+            },
+            limit: {
+              type: 'number',
+              description: '조회할 로그 개수 (기본값: 20)',
+              default: 20,
+            },
+          },
+        },
+      },
+      {
+        name: 'collect_context',
+        description: 'Render 환경의 전체 컨텍스트를 수집합니다',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
     ],
   };
 });
 
-// 도구 호출 처리 (표준 MCP 프로토콜)
+// 도구 호출 처리 (확장된 표준 MCP 프로토콜)
 server.setRequestHandler(CallToolRequestSchema, async request => {
   const { name, arguments: args } = request.params;
 
@@ -93,6 +256,8 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         }
 
         const content = await fs.readFile(filePath, 'utf-8');
+        addLog('info', `파일 읽기: ${filePath}`);
+
         return {
           content: [
             {
@@ -118,6 +283,8 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
           path: path.join(dirPath, entry.name),
         }));
 
+        addLog('info', `디렉토리 조회: ${dirPath} (${fileList.length}개 항목)`);
+
         return {
           content: [
             {
@@ -137,27 +304,27 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
       }
 
       case 'system_info': {
-        const memUsage = process.memoryUsage();
+        collectMetrics(); // 최신 메트릭 수집
+
         const systemInfo = {
-          platform: process.platform,
-          architecture: process.arch,
-          nodeVersion: process.version,
-          uptime: Math.floor(process.uptime()),
-          memory: {
-            rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
-            heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`,
-            heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
-            external: `${Math.round(memUsage.external / 1024 / 1024)}MB`,
+          ...systemContext.metrics,
+          context: {
+            startup: systemContext.startup,
+            vercelSync: systemContext.vercelSync,
+            logsCount: systemContext.logs.length,
           },
-          cpu: {
-            loadAverage:
-              process.platform !== 'win32' ? os.loadavg() : [0, 0, 0],
-            cpuCount: os.cpus().length,
+          environment: {
+            hostname: os.hostname(),
+            environment: process.env.NODE_ENV || 'development',
+            region: 'singapore',
+            render: {
+              deployment: process.env.RENDER_DEPLOYMENT_ID || 'local',
+              service: process.env.RENDER_SERVICE_NAME || 'mcp-server',
+            },
           },
-          hostname: os.hostname(),
-          environment: process.env.NODE_ENV || 'development',
-          timestamp: new Date().toISOString(),
         };
+
+        addLog('info', '시스템 정보 조회됨');
 
         return {
           content: [
@@ -170,19 +337,46 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
       }
 
       case 'health_check': {
+        const healthData = {
+          status: 'healthy',
+          server: 'OpenManager Vibe v5 MCP Server',
+          version: '1.0.0',
+          timestamp: new Date().toISOString(),
+          uptime: Math.floor(process.uptime()),
+          protocol: 'MCP 1.0',
+          transport: 'stdio',
+          context: {
+            startup: systemContext.startup,
+            logsCount: systemContext.logs.length,
+            vercelSync: systemContext.vercelSync,
+          },
+        };
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(healthData, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'sync_to_vercel': {
+        const { endpoint, data = {} } = args;
+
+        const result = await sendToVercel(endpoint, data);
+
         return {
           content: [
             {
               type: 'text',
               text: JSON.stringify(
                 {
-                  status: 'healthy',
-                  server: 'OpenManager Vibe v5 MCP Server',
-                  version: '1.0.0',
+                  success: true,
+                  endpoint,
                   timestamp: new Date().toISOString(),
-                  uptime: Math.floor(process.uptime()),
-                  protocol: 'MCP 1.0',
-                  transport: 'stdio',
+                  result,
                 },
                 null,
                 2
@@ -192,10 +386,82 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         };
       }
 
+      case 'get_logs': {
+        const { level, limit = 20 } = args;
+
+        let filteredLogs = systemContext.logs;
+        if (level) {
+          filteredLogs = systemContext.logs.filter(log => log.level === level);
+        }
+
+        const logs = filteredLogs.slice(-limit);
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                {
+                  logs,
+                  total: filteredLogs.length,
+                  filter: level || 'all',
+                  retrieved: logs.length,
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      }
+
+      case 'collect_context': {
+        collectMetrics(); // 최신 메트릭 수집
+
+        const fullContext = {
+          timestamp: new Date().toISOString(),
+          server: {
+            name: 'OpenManager Vibe v5 MCP Server',
+            version: '1.0.0',
+            startup: systemContext.startup,
+            uptime: Math.floor(process.uptime()),
+          },
+          environment: {
+            platform: process.platform,
+            nodeVersion: process.version,
+            hostname: os.hostname(),
+            region: 'singapore',
+            render: {
+              deployment: process.env.RENDER_DEPLOYMENT_ID || 'local',
+              service: process.env.RENDER_SERVICE_NAME || 'mcp-server',
+            },
+          },
+          metrics: systemContext.metrics,
+          logs: {
+            count: systemContext.logs.length,
+            recent: systemContext.logs.slice(-5),
+          },
+          vercelSync: systemContext.vercelSync,
+        };
+
+        addLog('info', 'Render 컨텍스트 전체 수집 완료');
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(fullContext, null, 2),
+            },
+          ],
+        };
+      }
+
       default:
         throw new Error(`알 수 없는 도구: ${name}`);
     }
   } catch (error) {
+    addLog('error', `도구 실행 오류: ${name}`, { error: error.message });
+
     return {
       content: [
         {
@@ -208,7 +474,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
   }
 });
 
-// 리소스 목록 제공 (표준 MCP 프로토콜)
+// 리소스 목록 제공 (확장된 표준 MCP 프로토콜)
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
   return {
     resources: [
@@ -224,24 +490,38 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
         description: '최근 시스템 로그',
         mimeType: 'text/plain',
       },
+      {
+        uri: 'system://context',
+        name: 'Render 컨텍스트',
+        description: '전체 시스템 컨텍스트',
+        mimeType: 'application/json',
+      },
+      {
+        uri: 'vercel://sync-status',
+        name: 'Vercel 동기화 상태',
+        description: 'Vercel과의 동기화 상태',
+        mimeType: 'application/json',
+      },
     ],
   };
 });
 
-// 리소스 읽기 처리 (표준 MCP 프로토콜)
+// 리소스 읽기 처리 (확장된 표준 MCP 프로토콜)
 server.setRequestHandler(ReadResourceRequestSchema, async request => {
   const { uri } = request.params;
 
   switch (uri) {
     case 'system://status': {
-      const memUsage = process.memoryUsage();
+      collectMetrics(); // 최신 메트릭 수집
+
       const status = {
         server: 'OpenManager Vibe v5 MCP Server',
         status: 'running',
         uptime: Math.floor(process.uptime()),
         memory: {
-          rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
-          heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
+          rss: `${Math.round(systemContext.metrics.memory.rss / 1024 / 1024)}MB`,
+          heapUsed: `${Math.round(systemContext.metrics.memory.heapUsed / 1024 / 1024)}MB`,
+          usage: `${systemContext.metrics.memory.usage}%`,
         },
         platform: process.platform,
         nodeVersion: process.version,
@@ -260,20 +540,60 @@ server.setRequestHandler(ReadResourceRequestSchema, async request => {
     }
 
     case 'system://logs': {
-      const logs = [
-        `[${new Date().toISOString()}] INFO: MCP 서버 시작됨`,
-        `[${new Date().toISOString()}] INFO: 프로토콜 버전: MCP 1.0`,
-        `[${new Date().toISOString()}] INFO: 전송 방식: stdio`,
-        `[${new Date().toISOString()}] INFO: 4개 도구 등록됨`,
-        `[${new Date().toISOString()}] INFO: 2개 리소스 등록됨`,
-      ].join('\n');
+      const logs = systemContext.logs
+        .slice(-20)
+        .map(
+          log => `[${log.timestamp}] ${log.level.toUpperCase()}: ${log.message}`
+        )
+        .join('\n');
 
       return {
         contents: [
           {
             uri,
             mimeType: 'text/plain',
-            text: logs,
+            text: logs || '로그가 없습니다.',
+          },
+        ],
+      };
+    }
+
+    case 'system://context': {
+      collectMetrics(); // 최신 메트릭 수집
+
+      const context = {
+        timestamp: new Date().toISOString(),
+        startup: systemContext.startup,
+        uptime: Math.floor(process.uptime()),
+        metrics: systemContext.metrics,
+        logs: {
+          count: systemContext.logs.length,
+          levels: systemContext.logs.reduce((acc, log) => {
+            acc[log.level] = (acc[log.level] || 0) + 1;
+            return acc;
+          }, {}),
+        },
+        vercelSync: systemContext.vercelSync,
+      };
+
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: 'application/json',
+            text: JSON.stringify(context, null, 2),
+          },
+        ],
+      };
+    }
+
+    case 'vercel://sync-status': {
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: 'application/json',
+            text: JSON.stringify(systemContext.vercelSync, null, 2),
           },
         ],
       };
@@ -286,40 +606,44 @@ server.setRequestHandler(ReadResourceRequestSchema, async request => {
 
 // 서버 시작 함수
 async function main() {
-  console.error('🚀 OpenManager Vibe v5 MCP Server 시작 중...');
-  console.error('📋 4개 도구, 2개 리소스 등록됨');
-  console.error('🔗 MCP 프로토콜 1.0 (stdio 전송)');
+  addLog('info', 'OpenManager Vibe v5 MCP Server 시작 중...');
+  addLog('info', '7개 도구, 4개 리소스 등록됨');
+  addLog('info', 'MCP 프로토콜 1.0 (stdio 전송)');
+  addLog('info', 'Render 컨텍스트 수집 및 Vercel 연동 활성화');
+
+  // 초기 메트릭 수집
+  collectMetrics();
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
-  console.error('✅ MCP 서버 준비 완료');
+  addLog('info', 'MCP 서버 준비 완료');
 }
 
 // 오류 처리
 process.on('uncaughtException', err => {
-  console.error('❌ 예상치 못한 오류:', err);
+  addLog('error', '예상치 못한 오류', { error: err.message, stack: err.stack });
   process.exit(1);
 });
 
 process.on('unhandledRejection', err => {
-  console.error('❌ 처리되지 않은 Promise 거부:', err);
+  addLog('error', '처리되지 않은 Promise 거부', { error: err.message });
   process.exit(1);
 });
 
 // 종료 처리
 process.on('SIGINT', () => {
-  console.error('\n🛑 MCP 서버 종료 중...');
+  addLog('info', 'MCP 서버 종료 중...');
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  console.error('\n🛑 MCP 서버 종료 중...');
+  addLog('info', 'MCP 서버 종료 중...');
   process.exit(0);
 });
 
 // 서버 시작
 main().catch(error => {
-  console.error('❌ MCP 서버 시작 실패:', error);
+  addLog('error', 'MCP 서버 시작 실패', { error: error.message });
   process.exit(1);
 });
