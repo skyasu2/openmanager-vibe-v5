@@ -9,9 +9,9 @@
  * - 메모리 효율적 버퍼링
  */
 
-import winston from 'winston';
-import pino from 'pino';
 import chalk from 'chalk';
+import pino from 'pino';
+import winston from 'winston';
 
 export enum LogLevel {
   ERROR = 'error',
@@ -123,6 +123,20 @@ export class AILogger {
   }
 
   private initializeWinston(): void {
+    // 클라이언트 사이드에서는 Winston을 사용하지 않음
+    if (typeof window !== 'undefined') {
+      // Mock Winston logger for client-side
+      this.winstonLogger = {
+        error: () => {},
+        warn: () => {},
+        info: () => {},
+        debug: () => {},
+        verbose: () => {},
+        level: 'info',
+      } as any;
+      return;
+    }
+
     const transports: winston.transport[] = [];
 
     // 개발 환경: 컬러풀한 콘솔 출력
@@ -261,6 +275,11 @@ export class AILogger {
   }
 
   private startPerformanceMonitoring(): void {
+    // 클라이언트 사이드에서는 성능 모니터링을 하지 않음
+    if (typeof window !== 'undefined') {
+      return;
+    }
+
     // 5초마다 시스템 성능 메트릭 수집
     setInterval(() => {
       const memUsage = process.memoryUsage();
@@ -297,8 +316,10 @@ export class AILogger {
         data: entry.data,
         metadata: {
           ...entry.metadata,
-          memoryUsage: process.memoryUsage(),
-          cpuUsage: process.cpuUsage(),
+          memoryUsage:
+            typeof window === 'undefined' ? process.memoryUsage() : undefined,
+          cpuUsage:
+            typeof window === 'undefined' ? process.cpuUsage() : undefined,
         },
         thinking: entry.thinking,
         performance: entry.performance,
