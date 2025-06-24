@@ -16,7 +16,7 @@ export default defineConfig({
       'tests/integration/ai-router.test.ts',
       'tests/integration/korean-nlp.test.ts',
       'tests/integration/supabase-rag.test.ts',
-      'tests/integration/env-backup.test.ts'
+      'tests/integration/env-backup.test.ts',
       // E2E 테스트는 Playwright로 실행하므로 Vitest 실행 대상에서 제외합니다.
     ],
 
@@ -37,7 +37,7 @@ export default defineConfig({
       '**/*.stories.ts',
       '**/*.stories.tsx',
       '**/storybook-static/**',
-      '**/.storybook/**'
+      '**/.storybook/**',
     ],
 
     // 🔧 격리 환경 강화
@@ -48,19 +48,19 @@ export default defineConfig({
         singleThread: false,
         useAtomics: true,
         minThreads: 1,
-        maxThreads: 4
+        maxThreads: 4,
       },
     },
     // ⏱️ 타임아웃 최적화
-    testTimeout: 20000,  // 30초 → 20초 단축
-    hookTimeout: 15000,  // 30초 → 15초 단축
-    teardownTimeout: 5000,  // 10초 → 5초 단축
+    testTimeout: 20000, // 30초 → 20초 단축
+    hookTimeout: 15000, // 30초 → 15초 단축
+    teardownTimeout: 5000, // 10초 → 5초 단축
 
     // 🛡️ 테스트 격리 및 안정성
     isolate: true,
-    passWithNoTests: false,  // 빈 테스트 케이스 허용 안 함
-    bail: 5,  // 5개 실패 시 중단
-    retry: 2,  // 실패 시 2회 재시도
+    passWithNoTests: false, // 빈 테스트 케이스 허용 안 함
+    bail: 5, // 5개 실패 시 중단
+    retry: 2, // 실패 시 2회 재시도
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -96,8 +96,6 @@ export default defineConfig({
       SUPABASE_RAG_ENABLED: 'true',
       GOOGLE_AI_ENABLED: 'false',
       KOREAN_NLP_ENABLED: 'true',
-      // Sharp 모듈 비활성화
-      SHARP_DISABLED: 'true',
       // 테스트 격리 환경
       TEST_ISOLATION: 'true',
     },
@@ -108,14 +106,13 @@ export default defineConfig({
         // 현재 아키텍처에 필요한 모듈만
         '@/core/ai/engines/UnifiedAIEngineRouter',
         '@/core/ai/engines/SupabaseRAGEngine',
-        '@/core/ai/engines/KoreanNLPEngine'
+        '@/core/ai/engines/KoreanNLPEngine',
       ],
       external: [
         // 제외할 모듈들
-        'sharp',
         'puppeteer',
-        'onnxruntime-node'
-      ]
+        'onnxruntime-node',
+      ],
     },
   },
   resolve: {

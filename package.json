@@ -8,9 +8,7 @@
     "npm": ">=9.0.0"
   },
   "pnpm": {
-    "overrides": {
-      "sharp": "npm:@img/sharp-wasm32@0.33.5"
-    }
+    "overrides": {}
   },
   "keywords": [
     "ai-agent",
