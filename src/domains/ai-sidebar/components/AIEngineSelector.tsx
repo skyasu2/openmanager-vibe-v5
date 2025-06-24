@@ -11,7 +11,7 @@
 
 import { unifiedAIRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
 import type { AIMode } from '@/types/ai-types';
-import { Brain, Globe, Home, Zap } from 'lucide-react';
+import { Globe, Home, Zap } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 interface AIEngine {
@@ -36,7 +36,7 @@ interface AIEngineSelectorProps {
   onEngineChange: (engineId: AIMode) => void;
 }
 
-// 🎯 UnifiedAIEngineRouter와 일치하는 AI 엔진 목록
+// 🎯 UnifiedAIEngineRouter와 일치하는 AI 엔진 목록 (MONITORING 모드 제거)
 export const AI_ENGINES: AIEngine[] = [
   {
     id: 'AUTO',
@@ -71,16 +71,6 @@ export const AI_ENGINES: AIEngine[] = [
       limit: 300,
       resetTime: '24시간',
     },
-    status: 'ready',
-  },
-  {
-    id: 'MONITORING',
-    name: 'MONITORING 모드',
-    description: '지능형 모니터링 전용 (IntelligentMonitoringService)',
-    icon: Brain,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-    features: ['장애 감지', '근본 원인 분석', '예측 모니터링'],
     status: 'ready',
   },
 ];
@@ -125,7 +115,6 @@ export const AIEngineSelector: React.FC<AIEngineSelectorProps> = ({
 
       // 3. 모든 AI 서비스에 모드 변경 통지 (자동으로 처리됨)
       console.log('✅ 모든 AI 서비스 모드 동기화 완료');
-
     } catch (error) {
       console.error('AI 모드 변경 실패:', error);
     }
@@ -140,7 +129,9 @@ export const AIEngineSelector: React.FC<AIEngineSelectorProps> = ({
       <legend className='text-sm font-medium text-gray-700 px-2'>
         🎯 통합 AI 모드 선택
         {isInitialized && (
-          <span className="ml-2 text-xs text-green-600">(라우터: {routerMode})</span>
+          <span className='ml-2 text-xs text-green-600'>
+            (라우터: {routerMode})
+          </span>
         )}
       </legend>
 
@@ -209,10 +200,12 @@ export const AIEngineSelector: React.FC<AIEngineSelectorProps> = ({
 
       <div className='mt-2 space-y-1'>
         <p id='ai-engine-description' className='text-xs text-gray-500'>
-          🎯 이 설정은 모든 AI 기능(채팅, 장애보고서, 지능형모니터링)에 동시 적용됩니다.
+          🎯 이 설정은 모든 AI 기능(채팅, 장애보고서, 지능형모니터링)에 동시
+          적용됩니다.
         </p>
         <p className='text-xs text-blue-600'>
-          💡 AUTO: 균형잡힌 성능 | LOCAL: 빠르고 안전 | GOOGLE_ONLY: 고급 추론 | MONITORING: 전문 모니터링
+          💡 AUTO: 균형잡힌 성능 | LOCAL: 빠르고 안전 | GOOGLE_ONLY: 고급 추론 |
+          MONITORING: 전문 모니터링
         </p>
       </div>
     </fieldset>

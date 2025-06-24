@@ -101,11 +101,11 @@ export interface IntelligentAnalysisResult {
 export interface RootCause {
   id: string;
   category:
-  | 'system'
-  | 'application'
-  | 'network'
-  | 'infrastructure'
-  | 'external';
+    | 'system'
+    | 'application'
+    | 'network'
+    | 'infrastructure'
+    | 'external';
   description: string;
   probability: number;
   evidence: string[];
@@ -159,7 +159,9 @@ export class IntelligentMonitoringService {
     this.performanceMonitor = null;
     this.unifiedLogger = null;
 
-    console.log('✅ IntelligentMonitoringService: Google AI 싱글톤 + ML 엔진 연결됨');
+    console.log(
+      '✅ IntelligentMonitoringService: Google AI 싱글톤 + ML 엔진 연결됨'
+    );
   }
 
   /**
@@ -169,8 +171,12 @@ export class IntelligentMonitoringService {
     if (this.mlEngine) return; // 이미 초기화됨
 
     try {
-      const { LightweightMLEngine } = await import('@/lib/ml/LightweightMLEngine');
-      const { PerformanceMonitor } = await import('@/services/ai/PerformanceMonitor');
+      const { LightweightMLEngine } = await import(
+        '@/lib/ml/LightweightMLEngine'
+      );
+      const { PerformanceMonitor } = await import(
+        '@/services/ai/PerformanceMonitor'
+      );
       const { UnifiedLogger } = await import('@/services/ai/UnifiedLogger');
 
       this.mlEngine = new LightweightMLEngine();
@@ -187,7 +193,7 @@ export class IntelligentMonitoringService {
   }
 
   /**
-   * 🎯 모드별 AI 엔진 사용 전략 결정
+   * �� 모드별 AI 엔진 사용 전략 결정 (Google AI 제거)
    */
   private getAIEngineStrategy(mode?: string): {
     useLocal: boolean;
@@ -195,31 +201,13 @@ export class IntelligentMonitoringService {
     useKorean: boolean;
     priority: string[];
   } {
-    switch (mode) {
-      case 'LOCAL':
-        return {
-          useLocal: true,
-          useGoogle: false,
-          useKorean: true,
-          priority: ['korean', 'local'],
-        };
-      case 'GOOGLE_ONLY':
-        return {
-          useLocal: false,
-          useGoogle: true,
-          useKorean: false,
-          priority: ['google'],
-        };
-      case 'AUTO':
-      case 'MONITORING':
-      default:
-        return {
-          useLocal: true,
-          useGoogle: true,
-          useKorean: true,
-          priority: ['korean', 'google', 'local'],
-        };
-    }
+    // 모든 모드에서 Google AI 사용 안함 (자연어 질의 전용)
+    return {
+      useLocal: true,
+      useGoogle: false, // Google AI 사용 안함
+      useKorean: true,
+      priority: ['korean', 'local'], // Google AI 제거
+    };
   }
 
   static getInstance(): IntelligentMonitoringService {
@@ -439,25 +427,42 @@ export class IntelligentMonitoringService {
 
       // 🎯 모드별 AI 엔진 전략 결정
       const strategy = this.getAIEngineStrategy(request.mode);
-      console.log(`🧠 [IntelligentMonitoring] 모드: ${request.mode || 'AUTO'}, 전략:`, strategy);
+      console.log(
+        `🧠 [IntelligentMonitoring] 모드: ${request.mode || 'AUTO'}, 전략:`,
+        strategy
+      );
 
       // AI 엔진들을 모드별 우선순위로 시도
       const aiEngines = [
-        { name: 'KoreanAI', method: this.runKoreanAIAnalysis.bind(this), key: 'useKorean' },
-        { name: 'GoogleAI', method: this.runGoogleAIAnalysis.bind(this), key: 'useGoogle' },
-        { name: 'LocalAI', method: this.runLocalAIAnalysis.bind(this), key: 'useLocal' },
+        {
+          name: 'KoreanAI',
+          method: this.runKoreanAIAnalysis.bind(this),
+          key: 'useKorean',
+        },
+        {
+          name: 'LocalAI',
+          method: this.runLocalAIAnalysis.bind(this),
+          key: 'useLocal',
+        },
       ];
 
       // 우선순위에 따라 엔진 정렬
       const sortedEngines = aiEngines
         .filter(engine => strategy[engine.key as keyof typeof strategy])
         .sort((a, b) => {
-          const aIndex = strategy.priority.indexOf(a.name.toLowerCase().replace('ai', ''));
-          const bIndex = strategy.priority.indexOf(b.name.toLowerCase().replace('ai', ''));
+          const aIndex = strategy.priority.indexOf(
+            a.name.toLowerCase().replace('ai', '')
+          );
+          const bIndex = strategy.priority.indexOf(
+            b.name.toLowerCase().replace('ai', '')
+          );
           return aIndex - bIndex;
         });
 
-      console.log(`🚀 [IntelligentMonitoring] 실행 순서:`, sortedEngines.map(e => e.name));
+      console.log(
+        `🚀 [IntelligentMonitoring] 실행 순서:`,
+        sortedEngines.map(e => e.name)
+      );
 
       for (const engine of sortedEngines) {
         try {
@@ -466,9 +471,6 @@ export class IntelligentMonitoringService {
           console.log(`✅ ${engine.name} 분석 완료`);
 
           // 모드별 종료 조건
-          if (request.mode === 'GOOGLE_ONLY' && engine.name === 'GoogleAI') {
-            break; // Google Only 모드에서는 Google AI만 사용
-          }
           if (request.mode === 'LOCAL' && insights.length >= 2) {
             break; // Local 모드에서는 Korean + Local AI 충분
           }
@@ -479,13 +481,6 @@ export class IntelligentMonitoringService {
           console.warn(`${engine.name} 분석 실패, 다음 엔진으로 폴백:`, error);
 
           // 모드별 폴백 전략
-          if (request.mode === 'GOOGLE_ONLY' && engine.name === 'GoogleAI') {
-            // Google Only 모드에서 Google AI 실패시 기본 분석으로 폴백
-            console.log('🔄 Google Only 모드 폴백: 기본 분석 사용');
-            const localInsight = await this.runLocalAIAnalysis(anomalies, request);
-            insights.push(localInsight);
-            break;
-          }
           continue;
         }
       }
@@ -781,62 +776,15 @@ export class IntelligentMonitoringService {
     return { causes };
   }
 
-  private async runGoogleAIAnalysis(
-    anomalies: any[],
-    request: IntelligentAnalysisRequest
-  ): Promise<AIInsight> {
-    const prompt = `다음 시스템 이상 징후를 분석하여 근본 원인을 추정해주세요:
-${JSON.stringify(anomalies.slice(0, 3), null, 2)}
-
-분석 요청 정보:
-- 서버 ID: ${request.serverId || '전체 시스템'}
-- 분석 깊이: ${request.analysisDepth}
-
-근본 원인과 권장사항을 제공해주세요.`;
-
-    try {
-      // 🎯 싱글톤 서비스 상태 확인
-      if (!this.googleAI || !this.googleAI.isReady()) {
-        throw new Error('Google AI 싱글톤 서비스를 사용할 수 없습니다.');
-      }
-
-      const response = await this.googleAI.generateResponse(prompt);
-
-      if (!response.success || !response.content) {
-        throw new Error('Google AI 응답 생성 실패');
-      }
-
-      return {
-        engine: 'GoogleAI',
-        insight: response.content,
-        confidence: response.confidence || 0.85,
-        supportingData: { anomalies, request },
-      };
-    } catch (error: any) {
-      // Google AI 실패 시 에러를 다시 던져서 다음 엔진으로 폴백
-      console.warn(`🚨 Google AI 분석 실패 (싱글톤): ${error.message}`);
-      throw new Error(`Google AI 분석 실패: ${error.message}`);
-    }
-  }
-
-  private isGoogleAIAvailable(): boolean {
-    try {
-      // 🎯 싱글톤 서비스 상태 확인
-      return this.googleAI && this.googleAI.isReady();
-    } catch {
-      return false;
-    }
-  }
-
   private async runKoreanAIAnalysis(
     anomalies: any[],
     request: IntelligentAnalysisRequest
   ): Promise<AIInsight> {
     const query = `시스템에서 ${anomalies.length}개의 이상 징후가 발견되었습니다. 
 주요 문제: ${anomalies
-        .slice(0, 2)
-        .map(a => a.description)
-        .join(', ')}
+      .slice(0, 2)
+      .map(a => a.description)
+      .join(', ')}
 근본 원인을 분석하고 해결 방안을 제시해주세요.`;
 
     try {
@@ -1230,11 +1178,10 @@ ${JSON.stringify(anomalies.slice(0, 3), null, 2)}
 
       return result;
     } catch (error) {
-      aiLogger.info(
-        LogCategory.AI_ENGINE,
-        'ML 최적화 실행 실패',
-        { error: error.message, request }
-      );
+      aiLogger.info(LogCategory.AI_ENGINE, 'ML 최적화 실행 실패', {
+        error: error.message,
+        request,
+      });
 
       return {
         status: 'failed' as const,
@@ -1278,7 +1225,9 @@ ${JSON.stringify(anomalies.slice(0, 3), null, 2)}
 
     // 학습 결과 기반 추천
     if (learningResults.accuracyImprovement > 0.1) {
-      recommendations.push('ML 모델이 개선되었습니다. 예측 정확도가 향상됩니다');
+      recommendations.push(
+        'ML 모델이 개선되었습니다. 예측 정확도가 향상됩니다'
+      );
     }
 
     if (recommendations.length === 0) {
@@ -1302,7 +1251,10 @@ ${JSON.stringify(anomalies.slice(0, 3), null, 2)}
   /**
    * 🤖 ML 신뢰도 계산
    */
-  private calculateMLConfidence(predictions: any, learningResults: any): number {
+  private calculateMLConfidence(
+    predictions: any,
+    learningResults: any
+  ): number {
     let confidence = 0.5; // 기본 신뢰도
 
     // 예측 결과가 있으면 신뢰도 증가
