@@ -9,7 +9,7 @@
 
 import { PredictiveAnalysisEngine } from '@/engines/PredictiveAnalysisEngine';
 import { AnomalyDetection } from '@/services/ai/AnomalyDetection';
-import { GoogleAIService } from '@/services/ai/GoogleAIService';
+import { KoreanAIEngine } from '@/services/ai/korean-ai-engine';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface IntelligentAnalysisRequest {
@@ -41,6 +41,10 @@ export async function POST(request: NextRequest) {
     const startTime = Date.now();
 
     console.log(`🧠 지능형 모니터링 분석 시작: ${analysisId}`, analysisRequest);
+
+    // Korean AI 엔진 초기화
+    const koreanAI = new KoreanAIEngine();
+    await koreanAI.initialize();
 
     const result = {
       analysisId,
@@ -137,13 +141,9 @@ export async function POST(request: NextRequest) {
         const causes = [];
         const aiInsights = [];
 
-        // Google AI를 사용한 근본 원인 분석
+        // Korean AI 엔진을 사용한 근본 원인 분석
         try {
-          const googleAI = GoogleAIService.getInstance();
-          await googleAI.initialize();
-
-          if (googleAI.isAvailable()) {
-            const prompt = `시스템에서 ${result.anomalyDetection.anomalies.length}개의 이상 징후가 발견되었습니다. 근본 원인을 분석해주세요.
+          const prompt = `시스템에서 ${result.anomalyDetection.anomalies.length}개의 이상 징후가 발견되었습니다. 근본 원인을 분석해주세요.
             
 이상 징후: ${JSON.stringify(result.anomalyDetection.anomalies, null, 2)}
 
@@ -152,31 +152,30 @@ export async function POST(request: NextRequest) {
 2. 증거 및 근거
 3. 권장 조치사항`;
 
-            const response = await googleAI.generateContent(prompt);
+          const response = await koreanAI.processQuery(prompt);
 
-            if (response.success) {
-              aiInsights.push({
-                engine: 'GoogleAI',
-                insight: response.content,
-                confidence: response.confidence,
-                supportingData: {
-                  anomalies: result.anomalyDetection.anomalies,
-                },
-              });
+          if (response.success) {
+            aiInsights.push({
+              engine: 'KoreanAI',
+              insight: response.response,
+              confidence: response.confidence,
+              supportingData: {
+                anomalies: result.anomalyDetection.anomalies,
+              },
+            });
 
-              causes.push({
-                id: 'google_ai_cause_1',
-                category: 'system',
-                description: response.content.substring(0, 200) + '...',
-                probability: response.confidence,
-                evidence: [response.content],
-                aiEngine: 'GoogleAI',
-                recommendations: ['Google AI 권장사항 확인 필요'],
-              });
-            }
+            causes.push({
+              id: 'korean_ai_cause_1',
+              category: 'system',
+              description: response.response.substring(0, 200) + '...',
+              probability: response.confidence,
+              evidence: [response.response],
+              aiEngine: 'KoreanAI',
+              recommendations: ['Korean AI 권장사항 확인 필요'],
+            });
           }
         } catch (error) {
-          console.warn('Google AI 분석 실패:', error);
+          console.warn('Korean AI 분석 실패:', error);
         }
 
         // 기본 근본 원인 분석
@@ -275,9 +274,9 @@ export async function POST(request: NextRequest) {
         const avgRisk =
           predictions.length > 0
             ? predictions.reduce(
-              (sum, p) => sum + (p.failureProbability || 0),
-              0
-            ) / predictions.length
+                (sum, p) => sum + (p.failureProbability || 0),
+                0
+              ) / predictions.length
             : 0;
         const highRiskCount = predictions.filter(
           p => p.failureProbability > 70
