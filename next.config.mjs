@@ -40,6 +40,10 @@ const nextConfig = {
     // 🎯 빌드 최적화 및 오류 방지
     output: 'standalone',
 
+    // 🚫 404 페이지 프리렌더링 건너뛰기
+    trailingSlash: false,
+    skipTrailingSlashRedirect: true,
+
     // 🖼️ 이미지 최적화 비활성화
     images: {
         unoptimized: true,
@@ -127,10 +131,6 @@ const nextConfig = {
         serverActions: {
             bodySizeLimit: '50mb',
         },
-        // App Router에서 404 페이지 오류 방지
-        appDir: true,
-        // Pages Router 비활성화
-        pagesDir: false,
     },
 
 };

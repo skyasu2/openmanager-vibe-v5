@@ -243,6 +243,14 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     steps: [],
   });
 
+  // 🔧 생각중 표시 지속 시간 관리
+  const [showThinkingDisplay, setShowThinkingDisplay] = useState(false);
+  const [thinkingPersistTimer, setThinkingPersistTimer] =
+    useState<NodeJS.Timeout | null>(null);
+
+  // 🔧 프리셋 질문 표시 상태 (항상 표시하도록 변경)
+  const [showPresets, setShowPresets] = useState(true);
+
   // 🤖 자동장애보고서 연결 상태
   const [autoReportTrigger, setAutoReportTrigger] = useState<{
     shouldGenerate: boolean;
@@ -314,6 +322,15 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
+
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (thinkingPersistTimer) {
+        clearTimeout(thinkingPersistTimer);
+      }
+    };
+  }, [thinkingPersistTimer]);
 
   // 사고 과정 관련 상태 추가
   const [currentThinkingSteps, setCurrentThinkingSteps] = useState<
@@ -399,140 +416,78 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     }
   }, [isGenerating, simulateRealTimeThinking]);
 
-  // AI 응답 생성 (엔진별 차별화)
-  const generateAIResponse = (query: string, engine: string): string => {
-    const responses = {
-      AUTO: `[AUTO 모드] ${query}에 대한 종합 분석 결과입니다. 여러 AI 엔진을 조합하여 최적의 답변을 제공합니다.`,
-      'GOOGLE_ONLY': `[Google AI] ${query}에 대한 창의적이고 자연스러운 응답입니다. Gemini 모델의 고급 언어 이해 능력을 활용했습니다.`,
-      LOCAL: `[Local] ${query}에 대한 빠른 내부 분석 결과입니다. MCP, RAG, ML 엔진을 활용하여 프라이버시를 보장하며 응답했습니다.`,
-      MONITORING: `[Monitoring] ${query}에 대한 전문 모니터링 분석입니다. 지능형 장애 감지와 예측 분석을 수행했습니다.`,
-    };
-
-    return responses[engine as AIMode] || responses.AUTO;
-  };
-
-  // 🤖 실제 AI 자연어 질의 처리 (SimplifiedNaturalLanguageEngine 연동)
-  const processRealAIQuery = async (query: string, engine: AIMode = 'AUTO') => {
-    console.log(`🚀 AI 질의 처리 시작: "${query}" (모드: ${engine})`);
-
-    if (!query.trim()) return { success: false, message: 'Empty query' };
-
+  // 🔧 생각중 상태 관리 개선
+  const startThinking = useCallback(() => {
     setIsGenerating(true);
-    setThinkingStartTime(new Date());
-
-    // 실시간 사고 과정 시뮬레이션 시작
+    setShowThinkingDisplay(true);
+    setRealThinking(prev => ({ ...prev, isActive: true }));
     simulateRealTimeThinking();
 
+    // 기존 타이머 정리
+    if (thinkingPersistTimer) {
+      clearTimeout(thinkingPersistTimer);
+    }
+  }, [thinkingPersistTimer]);
+
+  const stopThinking = useCallback(() => {
+    setIsGenerating(false);
+    setRealThinking(prev => ({ ...prev, isActive: false }));
+
+    // 3초 후에 생각중 표시 숨김 (사용자가 결과를 확인할 시간 제공)
+    const timer = setTimeout(() => {
+      setShowThinkingDisplay(false);
+      setCurrentThinkingSteps([]);
+    }, 3000);
+
+    setThinkingPersistTimer(timer);
+  }, []);
+
+  // 🔧 실제 AI 쿼리 처리 함수 수정
+  const processRealAIQuery = async (query: string, engine: AIMode = 'AUTO') => {
+    startThinking(); // 생각중 시작
+
     try {
-      const response = await fetch('/api/ai/smart-fallback', {
+      console.log(`🤖 실제 AI 쿼리 처리 시작: ${query} (엔진: ${engine})`);
+
+      const response = await fetch('/api/ai/unified-query', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query,
           mode: engine,
-          options: {
-            enableThinking: true,
-            enableAutoReport: true,
-            fastMode: true,
-            timeout: 10000,
-          },
+          sessionId: currentSessionId,
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
       const data = await response.json();
-      console.log(
-        `✅ AI 응답 수신: 엔진=${data.engine}, 모드=${data.mode}, 성공=${data.success}`
-      );
 
       if (data.success) {
-        // 사고 과정 데이터 생성 (완료된 단계들)
-        const thinkingSteps: ThinkingStep[] = [
-          {
-            id: '1',
-            step: 1,
-            title: '질문 분석',
-            description: '사용자의 질문을 이해하고 의도를 파악했습니다.',
-            status: 'completed',
-            duration: 1200,
-          },
-          {
-            id: '2',
-            step: 2,
-            title: '데이터 수집',
-            description: '관련 정보를 수집하고 분석했습니다.',
-            status: 'completed',
-            duration: 800,
-          },
-          {
-            id: '3',
-            step: 3,
-            title: '분석 및 추론',
-            description: '수집된 데이터를 바탕으로 분석했습니다.',
-            status: 'completed',
-            duration: 1500,
-          },
-          {
-            id: '4',
-            step: 4,
-            title: '답변 생성',
-            description: '최적의 답변을 생성했습니다.',
-            status: 'completed',
-            duration: 600,
-          },
-        ];
+        // 성공 시 3초 후 생각중 숨김
+        setTimeout(() => stopThinking(), 1000);
 
-        // 채팅 메시지에 추가 (단순화된 방식)
-        await sendMessage(query);
-
-        addLog({
-          type: 'success',
-          message: `AI 응답 완료: ${data.engine} (신뢰도: ${(data.confidence * 100).toFixed(0)}%)`,
-          metadata: {
-            engine: data.engine,
-            confidence: data.confidence,
-            processingTime: data.metadata?.processingTime || 0,
-          },
-        });
-
-        // 자동 보고서 생성 트리거 (심각도 높은 경우)
-        if (
-          data.confidence < 0.7 ||
-          query.includes('오류') ||
-          query.includes('문제')
-        ) {
-          setAutoReportTrigger({
-            shouldGenerate: true,
-            lastQuery: query,
-            severity: data.confidence < 0.5 ? 'critical' : 'medium',
-          });
-        }
-
-        return { success: true, data };
+        return {
+          success: true,
+          content: data.response,
+          confidence: data.confidence,
+          engine: data.engine || engine,
+          processingTime: data.processingTime,
+          metadata: data.metadata,
+        };
       } else {
-        throw new Error(data.message || 'AI 응답 생성 실패');
+        stopThinking();
+        throw new Error(data.error || 'AI 응답 생성 실패');
       }
     } catch (error) {
-      console.error('❌ AI 질의 처리 실패:', error);
+      console.error('❌ 실제 AI 쿼리 실패:', error);
+      stopThinking();
 
-      await sendMessage(query);
-
-      addLog({
-        type: 'error',
-        message: `AI 질의 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-        metadata: { error: String(error) },
-      });
-
-      return { success: false, error: String(error) };
-    } finally {
-      setIsGenerating(false);
-      setThinkingStartTime(null);
-      setCurrentThinkingSteps([]);
+      return {
+        success: false,
+        content: `죄송합니다. AI 응답 생성 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+        confidence: 0,
+        engine: 'error',
+        processingTime: 0,
+      };
     }
   };
 
@@ -574,14 +529,49 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
   // 프리셋 질문 핸들러 (실제 AI API 연동)
   const handlePresetQuestion = async (question: string) => {
+    if (isGenerating) return; // 생성 중이면 무시
+
     setInputValue(question);
+
+    // 사용자 메시지 즉시 추가
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      type: 'user',
+      content: question,
+      timestamp: new Date(),
+    };
+
+    const newMessages = [...chatMessages, userMessage];
+    // 채팅 메시지 직접 업데이트 (useAIChat 대신)
 
     // 🤖 실제 AI 질의 처리
     const result = await processRealAIQuery(question, selectedEngine);
 
-    if (result.success) {
-      // useAIChat의 sendMessage 사용
-      await sendMessage(question);
+    // AI 응답 메시지 추가
+    const aiMessage: ChatMessage = {
+      id: `ai-${Date.now()}`,
+      type: 'ai',
+      content: result.content,
+      timestamp: new Date(),
+      engine: result.engine,
+      confidence: result.confidence,
+    };
+
+    // sendMessage 호출하여 메시지 추가
+    await sendMessage(question);
+
+    // 자동장애보고서 트리거 확인 (신뢰도가 낮거나 오류 관련 질문인 경우)
+    if (
+      result.confidence < 0.7 ||
+      question.includes('오류') ||
+      question.includes('문제') ||
+      question.includes('장애')
+    ) {
+      setAutoReportTrigger({
+        shouldGenerate: true,
+        lastQuery: question,
+        severity: result.confidence < 0.5 ? 'critical' : 'medium',
+      });
     }
   };
 
@@ -592,19 +582,47 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     const query = inputValue.trim();
     setInputValue('');
 
+    // 사용자 메시지 즉시 추가
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      type: 'user',
+      content: query,
+      timestamp: new Date(),
+    };
+
     // 🤖 실제 AI 질의 처리
     const result = await processRealAIQuery(query, selectedEngine);
 
-    if (result.success) {
-      // useAIChat의 sendMessage 사용
-      await sendMessage(query);
+    // AI 응답 메시지 추가
+    const aiMessage: ChatMessage = {
+      id: `ai-${Date.now()}`,
+      type: 'ai',
+      content: result.content,
+      timestamp: new Date(),
+      engine: result.engine,
+      confidence: result.confidence,
+    };
 
-      // 🤖 자동장애보고서 트리거 확인
-      if (autoReportTrigger.shouldGenerate) {
-        setTimeout(() => {
-          generateAutoReport();
-        }, 2000); // 2초 후 자동장애보고서 생성
-      }
+    // sendMessage 호출하여 메시지 추가
+    await sendMessage(query);
+
+    // 🤖 자동장애보고서 트리거 확인
+    if (
+      result.confidence < 0.7 ||
+      query.includes('오류') ||
+      query.includes('문제') ||
+      query.includes('장애')
+    ) {
+      setAutoReportTrigger({
+        shouldGenerate: true,
+        lastQuery: query,
+        severity: result.confidence < 0.5 ? 'critical' : 'medium',
+      });
+
+      // 자동장애보고서 생성 (2초 후)
+      setTimeout(() => {
+        generateAutoReport();
+      }, 2000);
     }
   };
 
@@ -696,8 +714,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                           setSelectedEngine(engine.id as AIMode);
                           setShowEngineInfo(false);
                         }}
-                        className={`w-full p-2 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${selectedEngine === engine.id ? 'bg-blue-50' : ''
-                          }`}
+                        className={`w-full p-2 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
+                          selectedEngine === engine.id ? 'bg-blue-50' : ''
+                        }`}
                       >
                         <div className='flex items-start space-x-2'>
                           <div
@@ -809,17 +828,19 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${message.type === 'user'
-                ? 'flex-row-reverse space-x-reverse'
-                : ''
-                }`}
+              className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${
+                message.type === 'user'
+                  ? 'flex-row-reverse space-x-reverse'
+                  : ''
+              }`}
             >
               {/* 아바타 */}
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${message.type === 'user'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                  }`}
+                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  message.type === 'user'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                }`}
               >
                 {message.type === 'user' ? (
                   <User className='w-3 h-3' />
@@ -932,7 +953,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                           title='사고 과정 토글'
                         >
                           {localStorage.getItem(`thinking_${message.id}`) !==
-                            'false' ? (
+                          'false' ? (
                             <ChevronUp className='w-3 h-3 text-gray-500' />
                           ) : (
                             <ChevronDown className='w-3 h-3 text-gray-500' />
@@ -943,72 +964,75 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                       <AnimatePresence>
                         {localStorage.getItem(`thinking_${message.id}`) !==
                           'false' && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className='space-y-1'
-                            >
-                              {message.thinking.map((step, index) => (
-                                <motion.div
-                                  key={step.id}
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: index * 0.05 }}
-                                  className={`p-2 rounded border-l-2 ${(step as any).status === 'completed'
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className='space-y-1'
+                          >
+                            {message.thinking.map((step, index) => (
+                              <motion.div
+                                key={step.id}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                className={`p-2 rounded border-l-2 ${
+                                  (step as any).status === 'completed'
                                     ? 'bg-green-50 border-l-green-400'
                                     : (step as any).status === 'processing'
                                       ? 'bg-blue-50 border-l-blue-400'
                                       : 'bg-gray-50 border-l-gray-300'
-                                    }`}
-                                >
-                                  <div className='flex items-center justify-between'>
-                                    <div className='flex items-center space-x-2'>
-                                      <div
-                                        className={`w-3 h-3 rounded-full flex items-center justify-center ${(step as any).status === 'completed'
+                                }`}
+                              >
+                                <div className='flex items-center justify-between'>
+                                  <div className='flex items-center space-x-2'>
+                                    <div
+                                      className={`w-3 h-3 rounded-full flex items-center justify-center ${
+                                        (step as any).status === 'completed'
                                           ? 'bg-green-400'
                                           : (step as any).status ===
-                                            'processing'
+                                              'processing'
                                             ? 'bg-blue-400'
                                             : 'bg-gray-300'
-                                          }`}
-                                      >
-                                        {(step as any).status === 'completed' ? (
-                                          <CheckCircle className='w-2 h-2 text-white' />
-                                        ) : (step as any).status ===
-                                          'processing' ? (
-                                          <div className='w-1.5 h-1.5 bg-white rounded-full animate-pulse' />
-                                        ) : (
-                                          <Clock className='w-2 h-2 text-white' />
-                                        )}
-                                      </div>
-                                      <span className='text-xs font-medium text-gray-700'>
-                                        {step.step}. {step.title}
-                                      </span>
+                                      }`}
+                                    >
+                                      {(step as any).status === 'completed' ? (
+                                        <CheckCircle className='w-2 h-2 text-white' />
+                                      ) : (step as any).status ===
+                                        'processing' ? (
+                                        <div className='w-1.5 h-1.5 bg-white rounded-full animate-pulse' />
+                                      ) : (
+                                        <Clock className='w-2 h-2 text-white' />
+                                      )}
                                     </div>
-                                    {step.duration && (
-                                      <span className='text-xs text-gray-500'>
-                                        {(step.duration / 1000).toFixed(1)}초
-                                      </span>
-                                    )}
+                                    <span className='text-xs font-medium text-gray-700'>
+                                      {step.step}. {step.title}
+                                    </span>
                                   </div>
-                                  <p className='text-xs text-gray-600 ml-5 mt-1'>
-                                    {step.description}
-                                  </p>
-                                </motion.div>
-                              ))}
-                            </motion.div>
-                          )}
+                                  {step.duration && (
+                                    <span className='text-xs text-gray-500'>
+                                      {(step.duration / 1000).toFixed(1)}초
+                                    </span>
+                                  )}
+                                </div>
+                                <p className='text-xs text-gray-600 ml-5 mt-1'>
+                                  {step.description}
+                                </p>
+                              </motion.div>
+                            ))}
+                          </motion.div>
+                        )}
                       </AnimatePresence>
                     </div>
                   )}
 
                 {/* 메시지 버블 */}
                 <div
-                  className={`p-3 rounded-lg ${message.type === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-white border border-gray-200 text-gray-800'
-                    }`}
+                  className={`p-3 rounded-lg ${
+                    message.type === 'user'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-white border border-gray-200 text-gray-800'
+                  }`}
                 >
                   {/* 파일 첨부 (사용자 메시지만) */}
                   {message.type === 'user' && message.files && (
@@ -1053,10 +1077,11 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                   )}
 
                   <p
-                    className={`text-xs mt-1 ${message.type === 'user'
-                      ? 'text-blue-100'
-                      : 'text-gray-500'
-                      }`}
+                    className={`text-xs mt-1 ${
+                      message.type === 'user'
+                        ? 'text-blue-100'
+                        : 'text-gray-500'
+                    }`}
                   >
                     {typeof message.timestamp === 'string'
                       ? new Date(message.timestamp).toLocaleTimeString()
@@ -1068,11 +1093,12 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           </motion.div>
         ))}
 
-        {/* 생성 중 표시 - 사고 과정 시각화 */}
-        {isGenerating && (
+        {/* 생성 중 표시 - 사고 과정 시각화 (지속 시간 개선) */}
+        {(isGenerating || showThinkingDisplay) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
             className='flex justify-start'
           >
             <div className='flex items-start space-x-2 max-w-[90%]'>
@@ -1085,14 +1111,22 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                 <div className='flex items-center justify-between mb-3'>
                   <div className='flex items-center space-x-2'>
                     <div className='flex space-x-1'>
-                      <div className='w-2 h-2 bg-purple-500 rounded-full animate-bounce'></div>
-                      <div className='w-2 h-2 bg-purple-500 rounded-full animate-bounce delay-100'></div>
-                      <div className='w-2 h-2 bg-purple-500 rounded-full animate-bounce delay-200'></div>
+                      <div
+                        className={`w-2 h-2 bg-purple-500 rounded-full ${isGenerating ? 'animate-bounce' : ''}`}
+                      ></div>
+                      <div
+                        className={`w-2 h-2 bg-purple-500 rounded-full ${isGenerating ? 'animate-bounce delay-100' : ''}`}
+                      ></div>
+                      <div
+                        className={`w-2 h-2 bg-purple-500 rounded-full ${isGenerating ? 'animate-bounce delay-200' : ''}`}
+                      ></div>
                     </div>
                     <span className='text-sm font-medium text-gray-700'>
-                      AI가 생각하고 있습니다...
+                      {isGenerating
+                        ? 'AI가 생각하고 있습니다...'
+                        : '✅ AI 분석 완료'}
                     </span>
-                    {thinkingStartTime && (
+                    {thinkingStartTime && isGenerating && (
                       <span className='text-xs text-gray-500'>
                         {Math.floor(
                           (Date.now() - thinkingStartTime.getTime()) / 1000
@@ -1118,13 +1152,15 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                         <ChevronDown className='w-3 h-3 text-gray-500' />
                       )}
                     </button>
-                    <button
-                      onClick={stopGeneration}
-                      className='p-1 hover:bg-gray-100 rounded transition-colors'
-                      title='생성 중단'
-                    >
-                      <X className='w-3 h-3 text-gray-500' />
-                    </button>
+                    {isGenerating && (
+                      <button
+                        onClick={stopGeneration}
+                        className='p-1 hover:bg-gray-100 rounded transition-colors'
+                        title='생성 중단'
+                      >
+                        <X className='w-3 h-3 text-gray-500' />
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1143,22 +1179,24 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.1 }}
-                          className={`p-2 rounded-lg border-l-3 ${step.status === 'completed'
-                            ? 'bg-green-50 border-l-green-500'
-                            : step.status === 'processing'
-                              ? 'bg-blue-50 border-l-blue-500'
-                              : 'bg-gray-50 border-l-gray-300'
-                            }`}
+                          className={`p-2 rounded-lg border-l-3 ${
+                            step.status === 'completed'
+                              ? 'bg-green-50 border-l-green-500'
+                              : step.status === 'processing'
+                                ? 'bg-blue-50 border-l-blue-500'
+                                : 'bg-gray-50 border-l-gray-300'
+                          }`}
                         >
                           <div className='flex items-center justify-between mb-1'>
                             <div className='flex items-center space-x-2'>
                               <div
-                                className={`w-4 h-4 rounded-full flex items-center justify-center ${step.status === 'completed'
-                                  ? 'bg-green-500'
-                                  : step.status === 'processing'
-                                    ? 'bg-blue-500'
-                                    : 'bg-gray-300'
-                                  }`}
+                                className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                                  step.status === 'completed'
+                                    ? 'bg-green-500'
+                                    : step.status === 'processing'
+                                      ? 'bg-blue-500'
+                                      : 'bg-gray-300'
+                                }`}
                               >
                                 {step.status === 'completed' ? (
                                   <CheckCircle className='w-2 h-2 text-white' />
@@ -1183,7 +1221,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                             {step.description}
                           </p>
 
-                          {step.status === 'processing' && (
+                          {step.status === 'processing' && isGenerating && (
                             <div className='w-full bg-gray-200 rounded-full h-1 mt-2 ml-6'>
                               <div className='bg-gradient-to-r from-blue-500 to-purple-500 h-1 rounded-full animate-pulse w-2/3' />
                             </div>
@@ -1206,9 +1244,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                       /{currentThinkingSteps.length} 단계 완료
                     </span>
                     <span>
-                      현재:{' '}
-                      {currentThinkingSteps.find(s => s.status === 'processing')
-                        ?.title || '대기 중'}
+                      {isGenerating
+                        ? `현재: ${currentThinkingSteps.find(s => s.status === 'processing')?.title || '대기 중'}`
+                        : '✅ 분석 완료'}
                     </span>
                   </div>
                 )}
@@ -1220,11 +1258,25 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 프리셋 질문 카드 (4개씩 표시 + 네비게이션) */}
-      {chatMessages.length === 0 && (
-        <div className='px-3 pb-3'>
-          <div className='flex items-center justify-between mb-2'>
+      {/* 프리셋 질문 카드 (항상 표시, 접기/펼치기 가능) */}
+      <div className='px-3 pb-3'>
+        <div className='flex items-center justify-between mb-2'>
+          <div className='flex items-center space-x-2'>
             <h4 className='text-xs font-medium text-gray-700'>빠른 질문</h4>
+            <button
+              onClick={() => setShowPresets(!showPresets)}
+              className='p-1 rounded hover:bg-gray-100 transition-colors'
+              title={showPresets ? '프리셋 접기' : '프리셋 펼치기'}
+            >
+              {showPresets ? (
+                <ChevronUp className='w-3 h-3 text-gray-500' />
+              ) : (
+                <ChevronDown className='w-3 h-3 text-gray-500' />
+              )}
+            </button>
+          </div>
+
+          {showPresets && (
             <div className='flex items-center space-x-1'>
               <button
                 onClick={goToPreviousPresets}
@@ -1247,36 +1299,47 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                 <ChevronRight className='w-3 h-3 text-gray-500' />
               </button>
             </div>
-          </div>
-          <div className='grid grid-cols-2 gap-2'>
-            {getCurrentPresets().map(question => (
-              <motion.button
-                key={question.id}
-                onClick={() => handlePresetQuestion(question.text)}
-                className='p-2 bg-white rounded border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all text-left'
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <div className='flex items-center space-x-1 mb-1'>
-                  <div
-                    className={`w-4 h-4 ${question.color} rounded flex items-center justify-center`}
-                  >
-                    {React.createElement(question.icon, {
-                      className: 'w-2 h-2 text-white',
-                    })}
-                  </div>
-                  <span className='text-xs text-gray-500'>
-                    {question.category}
-                  </span>
-                </div>
-                <p className='text-xs text-gray-800 line-clamp-2'>
-                  {question.text}
-                </p>
-              </motion.button>
-            ))}
-          </div>
+          )}
         </div>
-      )}
+
+        <AnimatePresence>
+          {showPresets && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className='grid grid-cols-2 gap-2'
+            >
+              {getCurrentPresets().map(question => (
+                <motion.button
+                  key={question.id}
+                  onClick={() => handlePresetQuestion(question.text)}
+                  disabled={isGenerating}
+                  className='p-2 bg-white rounded border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed'
+                  whileHover={{ scale: isGenerating ? 1 : 1.02 }}
+                  whileTap={{ scale: isGenerating ? 1 : 0.98 }}
+                >
+                  <div className='flex items-center space-x-1 mb-1'>
+                    <div
+                      className={`w-4 h-4 ${question.color} rounded flex items-center justify-center`}
+                    >
+                      {React.createElement(question.icon, {
+                        className: 'w-2 h-2 text-white',
+                      })}
+                    </div>
+                    <span className='text-xs text-gray-500'>
+                      {question.category}
+                    </span>
+                  </div>
+                  <p className='text-xs text-gray-800 line-clamp-2'>
+                    {question.text}
+                  </p>
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* 입력 영역 */}
       <div className='p-3 border-t border-gray-200 bg-white/80 backdrop-blur-sm'>
