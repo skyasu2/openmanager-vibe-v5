@@ -3,10 +3,7 @@
     "host": "localhost",
     "port": 3001,
     "cors": {
-      "origin": [
-        "http://localhost:3000",
-        "https://openmanager-vibe-v5.vercel.app"
-      ],
+      "origin": ["http://localhost:3000", "https://openmanager-vibe-v5.vercel.app"],
       "methods": ["GET", "POST", "OPTIONS"],
       "allowedHeaders": ["Content-Type", "Authorization"]
     }

@@ -111,3 +111,7 @@ test2-*
 debug-*
 copy-*
 storybook-static/
+
+# External MCP servers (cloned from GitHub)
+fetch-mcp/
+fetch-mcp-server/

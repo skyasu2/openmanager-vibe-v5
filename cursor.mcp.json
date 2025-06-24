@@ -29,11 +29,19 @@
         "@modelcontextprotocol/server-sequential-thinking"
       ]
     },
-    "fetch": {
+    "fetch-mcp": {
+      "command": "node",
+      "args": [
+        "fetch-mcp/dist/index.js"
+      ],
+      "cwd": "."
+    },
+    "openmanager-vibe": {
       "command": "npx",
       "args": [
         "-y",
-        "@modelcontextprotocol/server-fetch"
+        "@modelcontextprotocol/server-fetch",
+        "https://openmanager-vibe-v5.vercel.app/api/mcp"
       ]
     }
   }

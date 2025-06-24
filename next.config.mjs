@@ -106,6 +106,12 @@ const nextConfig = {
             use: 'ignore-loader'
         });
 
+        // fetch-mcp 디렉토리 빌드에서 제외
+        config.module.rules.push({
+            test: /fetch-mcp\/.*/,
+            use: 'ignore-loader'
+        });
+
         // TypeScript 설정에서 스토리북 파일 제외
         config.resolve.alias = {
             ...config.resolve.alias,
