@@ -16,6 +16,10 @@ services:
         value: production
       - key: RENDER
         value: 'true'
+      - key: ENABLE_HTTP
+        value: 'true'
+      - key: PORT
+        value: '10000'
       - key: AI_ENGINE_MODE
         value: 'true'
       - key: NODE_OPTIONS
