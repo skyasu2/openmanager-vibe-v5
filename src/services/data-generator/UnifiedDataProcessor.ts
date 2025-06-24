@@ -212,7 +212,41 @@ export class UnifiedDataProcessor {
 
   constructor() {
     this.dataGenerator = RealServerDataGenerator.getInstance();
-    this.systemAdapter = SystemIntegrationAdapter.getInstance();
+
+    // SystemIntegrationAdapter 기본 설정으로 초기화 (베르셀 호환)
+    const defaultConfig = {
+      database: {
+        type: 'sqlite' as const,
+        url: ':memory:',
+        maxConnections: 5,
+        timeout: 10000,
+      },
+      redis: {
+        enabled: false,
+        url: 'redis://localhost:6379',
+        ttl: 300,
+        maxRetries: 3,
+      },
+      monitoring: {
+        enableRealtime: false,
+        collectionInterval: 30000,
+        retentionDays: 7,
+        alertThresholds: {
+          cpu: 80,
+          memory: 85,
+          disk: 90,
+          responseTime: 1000,
+        },
+      },
+      aiAgent: {
+        enablePythonAnalysis: false,
+        enableMCP: false,
+        enableCaching: false,
+        maxConcurrentRequests: 5,
+      },
+    };
+
+    this.systemAdapter = SystemIntegrationAdapter.getInstance(defaultConfig);
     this.cacheManager = new SmartCacheManager();
   }
 
