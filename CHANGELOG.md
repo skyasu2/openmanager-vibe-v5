@@ -697,3 +697,37 @@ if (cpuChange > 5 || memoryChange > 5) {
 - **포트폴리오 가치**: 핵심 기능 중심 구성
 
 ---
+
+## [5.44.4] - 2024-12-24
+
+### 🎯 Google AI 자연어 전용 모드 적용
+
+#### Changed
+
+- **AI 모드 간소화**: MONITORING 모드 제거, AUTO/LOCAL/GOOGLE_ONLY 3개 모드만 유지
+- **Google AI 사용 정책 변경**: 자연어 질의에서만 Google AI 사용, 나머지 기능은 로컬 AI 전용
+- **모니터링 기능**: IntelligentMonitoringService에서 Google AI 제거, 한국어+로컬 AI만 사용
+- **자동장애 분석**: AutoReportService, AutoIncidentReportSystem에서 Google AI 제거
+- **이상 탐지**: AnomalyDetectionService에서 Google AI 제거, 로컬 분석 기반으로 변경
+
+#### Added
+
+- **환경변수**: `GOOGLE_AI_NATURAL_LANGUAGE_ONLY=true` 설정 추가
+- **성능 최적화**: Google AI 호출 감소로 응답 시간 단축 및 비용 절감
+- **오프라인 지원**: 모니터링 기능이 인터넷 연결 없이도 작동
+
+#### Removed
+
+- **MONITORING 모드**: AI 사이드바에서 제거, AUTO 모드로 통합
+- **Google AI 의존성**: 모니터링/자동장애 기능에서 완전 제거
+
+#### Technical Details
+
+- TypeScript 타입 정의에서 MONITORING 모드 제거
+- API 엔드포인트에서 MONITORING 모드 지원 중단
+- 테스트 파일 및 문서 업데이트
+- TimerManager에서 MONITORING → AUTO 모드 매핑
+
+---
+
+## [5.44.3] - 2024-12-24

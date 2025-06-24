@@ -317,6 +317,15 @@ MCP_ALLOWED_DIRECTORIES=src,docs,config,mcp-server
 # Render 환경
 NODE_ENV=production
 PORT=10000
+
+# MCP 서버 설정
+RENDER_MCP_SERVER_URL=https://openmanager-vibe-v5.onrender.com
+MCP_SERVER_TIMEOUT=30000
+
+# 🎯 Google AI 자연어 전용 모드 (NEW!)
+GOOGLE_AI_NATURAL_LANGUAGE_ONLY=true  # 모니터링/자동장애에서는 Google AI 사용 안함
+GOOGLE_AI_ENABLED=true
+GOOGLE_AI_API_KEY=your_google_ai_api_key_here
 ```
 
 ## 🔍 **사용 예시**
@@ -405,3 +414,19 @@ private stats = {
 **마지막 업데이트**: 2025-06-24  
 **작성자**: OpenManager Vibe v5 팀  
 **Anthropic 권장 방식 100% 준수**
+
+### 📊 AI 모드 설정 변경사항
+
+**v5.44.3부터 변경된 AI 모드:**
+
+| 이전 (v5.44.2)                       | 현재 (v5.44.3+)              | 설명                          |
+| ------------------------------------ | ---------------------------- | ----------------------------- |
+| AUTO, LOCAL, GOOGLE_ONLY, MONITORING | AUTO, LOCAL, GOOGLE_ONLY     | MONITORING 모드 제거          |
+| 모든 기능에서 Google AI 사용         | 자연어 질의만 Google AI 사용 | 모니터링/자동장애는 로컬 AI만 |
+
+**🎯 Google AI 사용 정책:**
+
+- ✅ **자연어 질의**: Google AI 사용 (기존과 동일)
+- ❌ **모니터링 기능**: 한국어 AI + 로컬 AI만 사용
+- ❌ **자동장애 분석**: 한국어 AI + 로컬 AI만 사용
+- ❌ **시스템 분석**: 로컬 분석 기반
