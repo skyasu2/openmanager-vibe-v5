@@ -1,4 +1,4 @@
-# 🧪 Testing Guide - OpenManager Vibe v5.44.3
+# 🧪 Testing Guide - OpenManager Vibe v5.44.0 (현행화)
 
 OpenManager Vibe v5의 **AI 엔진 아키텍처 v3.0 완전 구현** 이후 테스트 전략 및 가이드입니다.
 
@@ -18,7 +18,7 @@ tests/
 ### 🚀 **빠른 테스트 실행 명령어**
 
 ```bash
-# 핵심 검증 (커밋 전 필수)
+# 빠른 타입 체크 및 린트 실행 (커밋 전 권장)
 npm run validate:quick
 
 # 단위 테스트만
@@ -27,14 +27,17 @@ npm run test:unit
 # 시스템 통합 테스트
 npm run test:integration
 
-# 개발 관련 테스트 (Google AI, 환경 설정)
+# 개발 관련 통합 테스트 (Google AI, 환경 설정 등)
 npm run test:dev-integration
 
-# 전체 테스트
+# 전체 단위/E2E 테스트 실행
 npm run test:all
 
-# 커버리지 포함 테스트
+# 커버리지 포함 단위 테스트 실행
 npm run test:coverage
+
+# 전체 검증 (커밋 전, 빌드 포함)
+npm run validate:all
 ```
 
 ### ⚡ **AI 엔진 아키텍처 v3.0 테스트 철학**
@@ -64,7 +67,7 @@ npm run test:coverage
    - 성능: 1200ms (고급 추론)
    - 테스트 포커스: Google AI 통합, 고급 분석
 
-### 📊 **테스트 커버리지 목표 (v5.44.3 기준)**
+### 📊 **테스트 커버리지 목표 (v5.44.0 기준)**
 
 ```
          /\
@@ -79,17 +82,17 @@ npm run test:coverage
 /________________\
 ```
 
-### 🧪 **현재 테스트 현황 (2025.06.10 기준)**
+### 🧪 **현재 테스트 현황 (YYYY.MM.DD 기준 - 실제 실행 후 업데이트 필요)**
 
-- **총 테스트 파일**: 36개 통과 (37개 중) - 97.3%
-- **총 테스트**: 532개 통과 (534개 중) - 99.6%
-- **실행 시간**: 54.31초 (목표: 60초 이내 달성)
-- **AI 엔진 테스트**: 11개 완전 통합
-- **한국어 형태소 분석**: 22개 테스트 통과
+- **총 테스트 파일**: (실행 후 업데이트)
+- **총 테스트**: (실행 후 업데이트)
+- **실행 시간**: (실행 후 업데이트)
+- **AI 엔진 테스트**: (실행 후 업데이트)
+- **한국어 형태소 분석**: (실행 후 업데이트)
 - **주요 성과**:
   - AUTO 모드에서 Google AI 제외 확인
   - MONITORING 모드 완전 제거 검증
-  - Sharp 모듈 폴백 정상 작동
+  - Sharp 모듈 폴백 정상 작동 (vitest.config.ts에서 `SHARP_DISABLED: 'true'` 확인 필요)
   - Redis 목업 모드 안정적 동작
 
 ## 🛠️ AI 엔진 테스트 도구 스택
@@ -111,42 +114,70 @@ npm run test:coverage
 
 ## 🔧 최신화된 테스트 설정
 
-### Vitest 설정 (v5.44.3)
+### Vitest 설정 (v5.44.0 기준, vitest.config.ts 참조)
 
 ```typescript
-// vitest.config.ts
+// vitest.config.ts (요약)
 export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
 
-    // AI 엔진 아키텍처 v3.0 테스트 포함
+    // 현재 아키텍처에 맞는 테스트만 실행
     include: [
       'tests/unit/**/*.test.ts',
       'tests/unit/**/*.test.tsx',
       'tests/integration/ai-router.test.ts',
       'tests/integration/korean-nlp.test.ts',
       'tests/integration/supabase-rag.test.ts',
+      'tests/integration/env-backup.test.ts',
+      // 'tests/e2e/**/*.test.ts' // E2E는 Playwright로 실행, Vitest 설정에서는 제외하는 것을 검토.
+                                // 현재 vitest.config.ts에는 포함되어 있음.
     ],
 
-    // 레거시 테스트 제외
+    // 레거시 테스트 및 불필요한 파일 완전 제외
     exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.{idea,git,cache,output,temp}/**',
+      '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
+      // 레거시 AI 엔진 테스트 제외
       'tests/**/*legacy*.test.ts',
       'tests/**/*deprecated*.test.ts',
-      'tests/**/*monitoring*.test.ts', // MONITORING 모드 제거
+      'tests/**/*sharp*.test.ts',
+      'tests/**/*old*.test.ts',
+      'tests/**/*unified-ai-engine-v1*.test.ts',
+      'tests/**/*optimized-engine*.test.ts',
+      // 스토리북 관련 제외
+      '**/*.stories.ts',
+      '**/*.stories.tsx',
+      '**/storybook-static/**',
+      '**/.storybook/**',
     ],
 
     // AI 엔진 테스트 환경
     env: {
+      NODE_ENV: 'test',
+      VITEST: 'true',
       AI_ENGINE_MODE: 'test',
       SUPABASE_RAG_ENABLED: 'true',
       GOOGLE_AI_ENABLED: 'false', // 테스트에서는 비활성화
       KOREAN_NLP_ENABLED: 'true',
+      SHARP_DISABLED: 'true',     // Sharp 모듈 비활성화
+      TEST_ISOLATION: 'true',   // 테스트 격리 환경
     },
   },
 });
 ```
+
+### Playwright 설정 (playwright.config.ts 참조)
+E2E 테스트는 Playwright를 사용하며, `playwright.config.ts` 파일에 상세 설정이 정의되어 있습니다.
+- **테스트 디렉토리**: `./tests/e2e`
+- **리포터**: HTML, JSON, JUnit 등 다수 설정
+- **타임아웃**: 전역 60초, expect 15초, 액션 45초, 네비게이션 60초
+- **CI 최적화**: 재시도 횟수 증가, 워커 수 제한, 순차 실행 등
+- **웹 서버**: `npm run dev` (포트 3002) 사용, 타임아웃 3분
 
 ### 테스트 환경 설정
 
@@ -296,12 +327,12 @@ describe('AI Engine Integration', () => {
 
 ## 📊 테스트 커버리지 리포트
 
-### 현재 커버리지 (v5.44.3)
+### 현재 커버리지 (v5.44.0 기준 - 실제 실행 후 업데이트 필요)
 
-- **전체 커버리지**: 92% (목표: 90% 이상)
-- **AI 엔진 커버리지**: 95%
-- **API 엔드포인트**: 88%
-- **React 컴포넌트**: 85%
+- **전체 커버리지**: (실행 후 업데이트, 목표: 90% 이상)
+- **AI 엔진 커버리지**: (실행 후 업데이트, 목표: 95%)
+- **API 엔드포인트**: (실행 후 업데이트, 목표: 88%)
+- **React 컴포넌트**: (실행 후 업데이트, 목표: 85%)
 
 ### 커버리지 생성 명령어
 
@@ -394,17 +425,20 @@ beforeEach(() => {
 
 ### 테스트 메트릭 모니터링
 
-- **테스트 실행 시간**: 평균 65초 (목표: 60초 이내)
-- **테스트 성공률**: 99.6% (목표: 99% 이상)
+- **테스트 실행 시간**: (실행 후 업데이트, 목표: 60초 이내)
+- **테스트 성공률**: (실행 후 업데이트, 목표: 99% 이상)
 - **커버리지 트렌드**: 지속적 90% 이상 유지
 
 ### 자동화된 테스트 파이프라인
 
 ```bash
-# 커밋 전 자동 검증
+# 커밋 전 빠른 검증
 npm run validate:quick
 
-# CI/CD 파이프라인
+# 커밋 전 전체 검증 (빌드 포함)
+npm run validate:all
+
+# CI/CD 파이프라인 (예시)
 npm run test:all && npm run build
 ```
 
@@ -412,11 +446,11 @@ npm run test:all && npm run build
 
 ### 테스트 개선 로드맵
 
-1. **E2E 테스트 확장**: AI 엔진 사용자 시나리오
-2. **성능 테스트 자동화**: 지속적 성능 모니터링
-3. **시각적 회귀 테스트**: UI 컴포넌트 변경 감지
-4. **부하 테스트**: 다중 AI 엔진 동시 요청 처리
+1. **E2E 테스트 확장**: AI 엔진 사용자 시나리오 추가
+2. **성능 테스트 자동화**: CI 연동 및 지속적 성능 모니터링
+3. **시각적 회귀 테스트 도입 검토**: UI 컴포넌트 변경 감지
+4. **부하 테스트 환경 구축 및 실행**: 다중 AI 엔진 동시 요청 처리 능력 검증
 
 ---
 
-**마지막 업데이트**: 2025.06.10 - AI 엔진 아키텍처 v3.0 완전 구현 반영
+**마지막 업데이트**: YYYY.MM.DD (현행화 작업일) - AI 엔진 아키텍처 v3.0 완전 구현 반영 및 `vitest.config.ts`, `playwright.config.ts` 내용 반영.
