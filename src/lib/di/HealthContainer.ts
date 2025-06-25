@@ -1,9 +1,9 @@
 /**
  * ���️ 헬스체크 의존성 주입 컨테이너
- * 
+ *
  * Vercel 환경별 DI 사용 가능성:
  * ✅ Vercel Functions / Next.js API 라우트 - Node.js 런타임 지원
- * ✅ SSR, getServerSideProps - 전역/캐시 컨테이너 활용 
+ * ✅ SSR, getServerSideProps - 전역/캐시 컨테이너 활용
  * ❌ Edge Runtime / Middleware - reflect-metadata, Decorator 사용 불가
  */
 
@@ -13,9 +13,9 @@ const isEdgeRuntime = () => {
 };
 
 const isNodeRuntime = () => {
-  return typeof process !== 'undefined' &&
-    process.versions &&
-    process.versions.node;
+  return (
+    typeof process !== 'undefined' && process.versions && process.versions.node
+  );
 };
 
 // ��� 서비스 인터페이스 정의
@@ -108,21 +108,34 @@ class NodeHealthContainer {
     const [envResult, mcpResult, redisResult] = await Promise.allSettled([
       envService.checkEnvironmentVariables(),
       mcpService.checkMCPServers(),
-      redisService.checkRedisHealth()
+      redisService.checkRedisHealth(),
     ]);
 
     const results = {
-      environment: envResult.status === 'fulfilled' ? envResult.value : { status: 'degraded' },
-      mcp: mcpResult.status === 'fulfilled' ? mcpResult.value : { status: 'degraded' },
-      redis: redisResult.status === 'fulfilled' ? redisResult.value : { status: 'degraded' }
+      environment:
+        envResult.status === 'fulfilled'
+          ? envResult.value
+          : { status: 'degraded' },
+      mcp:
+        mcpResult.status === 'fulfilled'
+          ? mcpResult.value
+          : { status: 'degraded' },
+      redis:
+        redisResult.status === 'fulfilled'
+          ? redisResult.value
+          : { status: 'degraded' },
     };
 
-    const healthyServices = Object.values(results).filter(r =>
-      r.status === 'healthy' || r.status === 'operational'
+    const healthyServices = Object.values(results).filter(
+      r => r.status === 'healthy' || r.status === 'operational'
     ).length;
 
-    const overallStatus = healthyServices >= 2 ? 'healthy' :
-      healthyServices >= 1 ? 'degraded' : 'unhealthy';
+    const overallStatus =
+      healthyServices >= 2
+        ? 'healthy'
+        : healthyServices >= 1
+          ? 'degraded'
+          : 'unhealthy';
 
     return {
       status: overallStatus,
@@ -132,9 +145,11 @@ class NodeHealthContainer {
         summary: {
           healthy: healthyServices,
           total: Object.keys(results).length,
-          percentage: Math.round((healthyServices / Object.keys(results).length) * 100)
-        }
-      }
+          percentage: Math.round(
+            (healthyServices / Object.keys(results).length) * 100
+          ),
+        },
+      },
     };
   }
 }
@@ -145,7 +160,7 @@ class EdgeHealthService {
     // Edge Runtime에서는 간단한 함수형 패턴 사용
     const checks = await Promise.allSettled([
       EdgeHealthService.checkEnvironment(),
-      EdgeHealthService.checkBasicStatus()
+      EdgeHealthService.checkBasicStatus(),
     ]);
 
     const healthyChecks = checks.filter(c => c.status === 'fulfilled').length;
@@ -158,8 +173,8 @@ class EdgeHealthService {
         runtime: 'edge',
         diSupport: false,
         basicChecks: checks.length,
-        healthyChecks
-      }
+        healthyChecks,
+      },
     };
   }
 
@@ -167,7 +182,7 @@ class EdgeHealthService {
     return {
       status: 'healthy',
       runtime: 'edge',
-      environment: process.env.NODE_ENV || 'development'
+      environment: process.env.NODE_ENV || 'development',
     };
   }
 
@@ -175,7 +190,7 @@ class EdgeHealthService {
     return {
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      uptime: Date.now()
+      uptime: Date.now(),
     };
   }
 }
@@ -188,7 +203,7 @@ class NodeHealthCheckService implements IHealthCheckService {
     return {
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      details: { service: 'NodeHealthCheckService' }
+      details: { service: 'NodeHealthCheckService' },
     };
   }
 
@@ -203,7 +218,7 @@ class NodeHealthCheckService implements IHealthCheckService {
   setCachedHealth(key: string, result: HealthResult, ttl: number): void {
     this.cache.set(key, {
       result,
-      expires: Date.now() + ttl
+      expires: Date.now() + ttl,
     });
   }
 }
@@ -213,7 +228,7 @@ class NodeEnvironmentService implements IEnvironmentService {
     const requiredVars = [
       'NEXT_PUBLIC_SUPABASE_URL',
       'SUPABASE_URL',
-      'NEXT_PUBLIC_SUPABASE_ANON_KEY'
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     ];
 
     const missing = requiredVars.filter(varName => !process.env[varName]);
@@ -224,8 +239,8 @@ class NodeEnvironmentService implements IEnvironmentService {
       details: {
         required: requiredVars.length,
         present: requiredVars.length - missing.length,
-        missing: missing
-      }
+        missing: missing,
+      },
     };
   }
 
@@ -238,8 +253,8 @@ class NodeEnvironmentService implements IEnvironmentService {
     const isProd = process.env.NODE_ENV === 'production';
 
     if (isVercel && isProd) return 10 * 60 * 1000; // 10분
-    if (isVercel) return 5 * 60 * 1000;           // 5분
-    return 2 * 60 * 1000;                         // 2분
+    if (isVercel) return 5 * 60 * 1000; // 5분
+    return 2 * 60 * 1000; // 2분
   }
 }
 
@@ -249,31 +264,67 @@ class NodeMCPService implements IMCPService {
 
     if (isVercel) {
       try {
-        const response = await fetch(
-          'https://openmanager-vibe-v5.onrender.com/health',
-          {
-            method: 'HEAD',
-            signal: AbortSignal.timeout(5000)
-          }
-        );
+        // ✅ 새로 생성한 MCP status API 사용
+        const response = await fetch('/api/mcp/status', {
+          method: 'GET',
+          signal: AbortSignal.timeout(5000),
+          headers: {
+            Accept: 'application/json',
+          },
+        });
 
-        return {
-          status: response.ok ? 'operational' : 'degraded',
-          details: {
-            server: 'openmanager-vibe-v5',
-            responseCode: response.status,
-            optimization: 'vercel_minimal'
-          }
-        };
+        if (response.ok) {
+          const data = await response.json();
+          return {
+            status: data.success ? 'operational' : 'degraded',
+            details: {
+              server: 'openmanager-vibe-v5',
+              responseCode: response.status,
+              optimization: 'vercel_internal',
+              mcpData: data.data,
+            },
+          };
+        } else {
+          return {
+            status: 'degraded',
+            details: {
+              server: 'openmanager-vibe-v5',
+              responseCode: response.status,
+              optimization: 'vercel_minimal',
+              error: `HTTP ${response.status}`,
+            },
+          };
+        }
       } catch (error) {
-        return {
-          status: 'degraded',
-          details: {
-            server: 'openmanager-vibe-v5',
-            error: error instanceof Error ? error.message : 'Connection failed',
-            optimization: 'vercel_fallback'
-          }
-        };
+        // 폴백: Render 서버 체크
+        try {
+          const renderResponse = await fetch(
+            'https://openmanager-vibe-v5.onrender.com/health',
+            {
+              method: 'HEAD',
+              signal: AbortSignal.timeout(3000),
+            }
+          );
+
+          return {
+            status: renderResponse.ok ? 'operational' : 'degraded',
+            details: {
+              server: 'openmanager-vibe-v5-render',
+              responseCode: renderResponse.status,
+              optimization: 'vercel_fallback_render',
+            },
+          };
+        } catch (renderError) {
+          return {
+            status: 'degraded',
+            details: {
+              server: 'openmanager-vibe-v5',
+              error:
+                error instanceof Error ? error.message : 'Connection failed',
+              optimization: 'vercel_fallback_failed',
+            },
+          };
+        }
       }
     }
 
@@ -281,8 +332,8 @@ class NodeMCPService implements IMCPService {
       status: 'operational',
       details: {
         server: 'local-mcp',
-        optimization: 'local_standard'
-      }
+        optimization: 'local_standard',
+      },
     };
   }
 
@@ -294,7 +345,8 @@ class NodeMCPService implements IMCPService {
 class NodeRedisService implements IRedisService {
   async checkRedisHealth(): Promise<RedisResult> {
     // Redis 연결 테스트 (환경변수 기반)
-    const redisDisabled = process.env.REDIS_CONNECTION_DISABLED === 'true' ||
+    const redisDisabled =
+      process.env.REDIS_CONNECTION_DISABLED === 'true' ||
       process.env.UPSTASH_REDIS_DISABLED === 'true';
 
     if (redisDisabled) {
@@ -302,8 +354,8 @@ class NodeRedisService implements IRedisService {
         status: 'degraded',
         details: {
           disabled: true,
-          reason: 'Redis connection disabled by environment variable'
-        }
+          reason: 'Redis connection disabled by environment variable',
+        },
       };
     }
 
@@ -312,8 +364,8 @@ class NodeRedisService implements IRedisService {
       connectionTime: 35,
       details: {
         enabled: true,
-        mock: true // 실제 연결 대신 모킹
-      }
+        mock: true, // 실제 연결 대신 모킹
+      },
     };
   }
 
@@ -331,7 +383,7 @@ export function createHealthContainer() {
         return EdgeHealthService.performHealthCheck();
       },
       runtime: 'edge',
-      diSupported: false
+      diSupported: false,
     };
   }
 
@@ -344,7 +396,7 @@ export function createHealthContainer() {
       },
       container,
       runtime: 'node',
-      diSupported: true
+      diSupported: true,
     };
   }
 
@@ -355,10 +407,10 @@ export function createHealthContainer() {
       return {
         status: 'healthy',
         timestamp: new Date().toISOString(),
-        details: { fallback: true }
+        details: { fallback: true },
       };
     },
     runtime: 'unknown',
-    diSupported: false
+    diSupported: false,
   };
 }
