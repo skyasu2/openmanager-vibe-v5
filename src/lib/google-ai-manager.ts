@@ -34,16 +34,21 @@ class GoogleAIManager {
    * @returns API 키 또는 null (키가 없거나 잠김)
    */
   getAPIKey(): string | null {
-    // 0순위: 환경변수 강제 로딩 시도
-    try {
-      const { getGoogleAIKeyWithFallback } = require('@/lib/env-loader');
-      const fallbackKey = getGoogleAIKeyWithFallback();
-      if (fallbackKey && fallbackKey.trim() !== '') {
-        console.log('🔑 Google AI API 키 소스: 환경변수 (강제 로딩)');
-        return fallbackKey.trim();
+    // 0순위: 환경변수 강제 로딩 시도 (서버 사이드에서만)
+    if (typeof window === 'undefined') {
+      try {
+        const { getGoogleAIKeyWithFallback } = require('@/lib/env-loader');
+        const fallbackKey = getGoogleAIKeyWithFallback();
+        if (fallbackKey && fallbackKey.trim() !== '') {
+          console.log('🔑 Google AI API 키 소스: 환경변수 (강제 로딩)');
+          return fallbackKey.trim();
+        }
+      } catch (error) {
+        console.warn('⚠️ 환경변수 강제 로딩 실패:', error.message);
       }
-    } catch (error) {
-      console.warn('⚠️ 환경변수 강제 로딩 실패:', error.message);
+    } else {
+      // 클라이언트에서는 환경변수 강제 로딩 건너뜀
+      console.log('🌐 클라이언트 사이드 - 환경변수 강제 로딩 건너뜀');
     }
 
     // 1순위: 개인 환경변수
