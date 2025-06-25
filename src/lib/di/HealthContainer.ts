@@ -264,8 +264,12 @@ class NodeMCPService implements IMCPService {
 
     if (isVercel) {
       try {
-        // ✅ 새로 생성한 MCP status API 사용
-        const response = await fetch('/api/mcp/status', {
+        // ✅ 절대 URL로 자기 자신의 MCP status API 호출
+        const baseUrl = process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : 'https://openmanager-vibe-v5.vercel.app';
+
+        const response = await fetch(`${baseUrl}/api/mcp/status`, {
           method: 'GET',
           signal: AbortSignal.timeout(5000),
           headers: {
