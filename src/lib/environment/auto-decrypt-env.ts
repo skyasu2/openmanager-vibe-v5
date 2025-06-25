@@ -1,33 +1,44 @@
-import crypto from 'crypto';
-// 빌드 시 동적 import 사용
-let ENCRYPTED_ENV_CONFIG: any = null;
-
-// 빌드 환경에서 안전한 import
-try {
-  ENCRYPTED_ENV_CONFIG =
-    require('../../../config/encrypted-env-config').ENCRYPTED_ENV_CONFIG;
-} catch (error) {
-  console.warn('환경변수 자동 복호화 초기화 실패:', error);
-  ENCRYPTED_ENV_CONFIG = null;
-}
-
-// UTF-8 콘솔 활성화 (서버 사이드에서만)
-if (typeof window === 'undefined') {
-  try {
-    const { enableUTF8Console } = require('@/utils/utf8-logger');
-    enableUTF8Console();
-    console.log('🔤 UTF-8 콘솔 활성화 완료');
-  } catch (error) {
-    console.warn('⚠️ UTF-8 콘솔 활성화 실패:', error);
-  }
-}
-
 /**
- * 🔐 자동 환경변수 복호화 시스템
+ * 🔐 자동 환경변수 복호화 시스템 (서버 사이드 전용)
  *
  * 암호화된 환경변수를 자동으로 복호화하여 process.env에 설정합니다.
  * 환경변수가 누락되거나 사라져도 자동으로 복구됩니다.
  */
+
+// 🚨 클라이언트 사이드에서는 실행하지 않음
+if (typeof window !== 'undefined') {
+  console.log('🌐 클라이언트 사이드 - 환경변수 복호화 건너뜀');
+}
+
+// 서버 사이드에서만 모듈 import
+let crypto: any = null;
+let ENCRYPTED_ENV_CONFIG: any = null;
+
+// 서버 사이드에서만 초기화
+if (typeof window === 'undefined') {
+  try {
+    crypto = require('crypto');
+    // 빌드 시 동적 import 사용
+    try {
+      ENCRYPTED_ENV_CONFIG =
+        require('../../../config/encrypted-env-config').ENCRYPTED_ENV_CONFIG;
+    } catch (error) {
+      console.warn('환경변수 자동 복호화 초기화 실패:', error);
+      ENCRYPTED_ENV_CONFIG = null;
+    }
+
+    // UTF-8 콘솔 활성화 (서버 사이드에서만)
+    try {
+      const { enableUTF8Console } = require('@/utils/utf8-logger');
+      enableUTF8Console();
+      console.log('🔤 UTF-8 콘솔 활성화 완료');
+    } catch (error) {
+      console.warn('⚠️ UTF-8 콘솔 활성화 실패:', error);
+    }
+  } catch (error) {
+    console.warn('⚠️ 서버 사이드 모듈 로딩 실패:', error);
+  }
+}
 
 interface DecryptedEnvVars {
   [key: string]: string;
@@ -52,12 +63,25 @@ class AutoDecryptEnv {
    * 자동 초기화 및 환경변수 복호화
    */
   async initialize(): Promise<void> {
+    // 🚨 클라이언트 사이드에서는 실행하지 않음
+    if (typeof window !== 'undefined') {
+      console.log('🌐 클라이언트 사이드 - 환경변수 복호화 건너뜀');
+      return;
+    }
+
     if (this.isInitialized) {
       return;
     }
 
     try {
       console.log('🔐 자동 환경변수 복호화 시작...');
+
+      // crypto 모듈이 없으면 건너뛰기
+      if (!crypto) {
+        console.warn('⚠️ crypto 모듈을 로드할 수 없습니다.');
+        this.isInitialized = true;
+        return;
+      }
 
       // ENCRYPTED_ENV_CONFIG가 없으면 건너뛰기
       if (!ENCRYPTED_ENV_CONFIG) {
@@ -112,6 +136,11 @@ class AutoDecryptEnv {
    * 단일 변수 복호화
    */
   private decryptVariable(encryptedVar: any): string {
+    // 🚨 클라이언트 사이드에서는 실행하지 않음
+    if (typeof window !== 'undefined' || !crypto) {
+      return '';
+    }
+
     const { encrypted, salt, iv } = encryptedVar;
 
     // 키 생성 (PBKDF2)
@@ -139,6 +168,11 @@ class AutoDecryptEnv {
    * 환경변수 상태 주기적 점검 (5분마다)
    */
   private startPeriodicCheck(): void {
+    // 🚨 클라이언트 사이드에서는 실행하지 않음
+    if (typeof window !== 'undefined') {
+      return;
+    }
+
     setInterval(
       () => {
         this.checkAndRestoreEnvVars();
@@ -151,6 +185,11 @@ class AutoDecryptEnv {
    * 환경변수 누락 점검 및 복구
    */
   private checkAndRestoreEnvVars(): void {
+    // 🚨 클라이언트 사이드에서는 실행하지 않음
+    if (typeof window !== 'undefined') {
+      return;
+    }
+
     let restoredCount = 0;
 
     for (const [varName, value] of Object.entries(this.decryptedVars)) {
@@ -170,6 +209,11 @@ class AutoDecryptEnv {
    * 특정 환경변수 강제 복구
    */
   forceRestore(varName: string): boolean {
+    // 🚨 클라이언트 사이드에서는 실행하지 않음
+    if (typeof window !== 'undefined') {
+      return false;
+    }
+
     if (this.decryptedVars[varName]) {
       process.env[varName] = this.decryptedVars[varName];
       console.log(`🔄 ${varName}: 강제 복구 완료`);
@@ -182,6 +226,11 @@ class AutoDecryptEnv {
    * 모든 환경변수 강제 복구
    */
   forceRestoreAll(): number {
+    // 🚨 클라이언트 사이드에서는 실행하지 않음
+    if (typeof window !== 'undefined') {
+      return 0;
+    }
+
     let restoredCount = 0;
 
     for (const [varName, value] of Object.entries(this.decryptedVars)) {
@@ -202,10 +251,28 @@ class AutoDecryptEnv {
     missingVars: string[];
     healthStatus: 'healthy' | 'warning' | 'error';
   } {
-    const missingVars: string[] = [];
+    // 🚨 클라이언트 사이드에서는 기본값 반환
+    if (typeof window !== 'undefined') {
+      return {
+        initialized: false,
+        decryptedCount: 0,
+        missingVars: [],
+        healthStatus: 'healthy',
+      };
+    }
 
-    for (const varName of Object.keys(this.decryptedVars)) {
-      if (!process.env[varName]) {
+    const missingVars: string[] = [];
+    const expectedVars = [
+      'NEXT_PUBLIC_SUPABASE_URL',
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+      'SUPABASE_SERVICE_ROLE_KEY',
+      'UPSTASH_REDIS_REST_URL',
+      'UPSTASH_REDIS_REST_TOKEN',
+      'GOOGLE_AI_API_KEY',
+    ];
+
+    for (const varName of expectedVars) {
+      if (!process.env[varName] && !this.decryptedVars[varName]) {
         missingVars.push(varName);
       }
     }
@@ -224,15 +291,8 @@ class AutoDecryptEnv {
   }
 }
 
-// 싱글톤 인스턴스 내보내기
-export const autoDecryptEnv = AutoDecryptEnv.getInstance();
+// 싱글톤 인스턴스 생성
+const autoDecryptEnv = AutoDecryptEnv.getInstance();
 
-// 자동 초기화 (import 시 자동 실행)
-if (typeof window === 'undefined') {
-  // 서버사이드에서만 실행
-  autoDecryptEnv.initialize().catch(error => {
-    console.error('환경변수 자동 복호화 초기화 실패:', error);
-  });
-}
-
+export { AutoDecryptEnv };
 export default autoDecryptEnv;

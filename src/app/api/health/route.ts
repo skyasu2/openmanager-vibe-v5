@@ -6,12 +6,6 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-// import EnvBackupManager from '../../../lib/env-backup-manager';
-import { EnvBackupManager } from '@/lib/env-backup-manager';
-import { EnvironmentCryptoManager } from '@/lib/env-crypto-manager';
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
-import { validateSystemForOperation } from '@/utils/systemStateChecker';
-// import { AutoEnvRecoverySystem } from '@/services/system/env-auto-recovery';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -34,17 +28,21 @@ const SYSTEM_START_TIME = Date.now();
 // 🎯 적응형 캐시 TTL 설정
 const ADAPTIVE_CACHE_TTL = {
   // 시작 초반 2분간: 30초 캐시 (집중 모니터링)
-  STARTUP_INTENSIVE: 30 * 1000,     // 30초
-  STARTUP_DURATION: 2 * 60 * 1000,  // 2분간 집중 모니터링
+  STARTUP_INTENSIVE: 30 * 1000, // 30초
+  STARTUP_DURATION: 2 * 60 * 1000, // 2분간 집중 모니터링
 
   // 안정화 후: 환경별 차등 적용
-  VERCEL_PROD: 8 * 60 * 1000,  // 8분 캐시 (프로덕션)
-  VERCEL_DEV: 5 * 60 * 1000,   // 5분 캐시 (개발)
-  LOCAL: 3 * 60 * 1000         // 3분 캐시 (로컬)
+  VERCEL_PROD: 8 * 60 * 1000, // 8분 캐시 (프로덕션)
+  VERCEL_DEV: 5 * 60 * 1000, // 5분 캐시 (개발)
+  LOCAL: 3 * 60 * 1000, // 3분 캐시 (로컬)
 };
 
 // 🧠 동적 캐시 TTL 계산 (적응형 모니터링)
-function getAdaptiveCacheTTL(): { ttl: number; phase: string; reasoning: string } {
+function getAdaptiveCacheTTL(): {
+  ttl: number;
+  phase: string;
+  reasoning: string;
+} {
   const uptime = Date.now() - SYSTEM_START_TIME;
   const isVercel = !!process.env.VERCEL;
   const isProd = process.env.NODE_ENV === 'production';
@@ -54,7 +52,7 @@ function getAdaptiveCacheTTL(): { ttl: number; phase: string; reasoning: string 
     return {
       ttl: ADAPTIVE_CACHE_TTL.STARTUP_INTENSIVE,
       phase: 'startup_intensive',
-      reasoning: `시스템 시작 후 ${Math.round(uptime / 1000)}초 - 집중 모니터링 모드 (30초 간격)`
+      reasoning: `시스템 시작 후 ${Math.round(uptime / 1000)}초 - 집중 모니터링 모드 (30초 간격)`,
     };
   }
 
@@ -76,7 +74,7 @@ function getAdaptiveCacheTTL(): { ttl: number; phase: string; reasoning: string 
   return {
     ttl,
     phase: 'stable_efficient',
-    reasoning: `시스템 안정화 완료 (${Math.round(uptime / 60000)}분 경과) - ${environment} 효율 모드 (${ttl / 60000}분 간격)`
+    reasoning: `시스템 안정화 완료 (${Math.round(uptime / 60000)}분 경과) - ${environment} 효율 모드 (${ttl / 60000}분 간격)`,
   };
 }
 
@@ -99,15 +97,15 @@ function setCachedHealth(key: string, result: any, ttl: number): void {
   healthCache.set(key, {
     result,
     timestamp: Date.now(),
-    ttl
+    ttl,
   });
 }
 
 // 🔧 환경변수 자동 복구 시스템
 class AutoEnvRecoverySystem {
   private static instance: AutoEnvRecoverySystem;
-  private envBackupManager: EnvBackupManager;
-  private envCryptoManager: EnvironmentCryptoManager;
+  private envBackupManager: any;
+  private envCryptoManager: any;
   private lastRecoveryAttempt = 0;
   private readonly RECOVERY_COOLDOWN = 30000; // 30초 쿨다운
   private recoveryInProgress = false;
@@ -116,8 +114,9 @@ class AutoEnvRecoverySystem {
   private isHealthCheckMode = true; // 헬스체크 컨텍스트에서는 기본적으로 목업 모드
 
   private constructor() {
-    this.envBackupManager = EnvBackupManager.getInstance();
-    this.envCryptoManager = EnvironmentCryptoManager.getInstance();
+    // 동적 import로 모듈 로드는 GET 함수에서 처리
+    this.envBackupManager = null;
+    this.envCryptoManager = null;
   }
 
   static getInstance(): AutoEnvRecoverySystem {
@@ -437,23 +436,59 @@ class AutoEnvRecoverySystem {
  * 🏥 시스템 헬스 체크 (Vercel 최적화)
  */
 export async function GET(request: NextRequest) {
+  // 🚨 서버 사이드 전용 모듈들을 동적으로 로드
+  let EnvBackupManager: any = null;
+  let EnvironmentCryptoManager: any = null;
+  let RealServerDataGenerator: any = null;
+  let validateSystemForOperation: any = null;
+
+  try {
+    const envBackupModule = await import('@/lib/env-backup-manager');
+    EnvBackupManager = envBackupModule.EnvBackupManager;
+
+    const envCryptoModule = await import('@/lib/env-crypto-manager');
+    EnvironmentCryptoManager = envCryptoModule.EnvironmentCryptoManager;
+
+    const dataGenModule = await import(
+      '@/services/data-generator/RealServerDataGenerator'
+    );
+    RealServerDataGenerator = dataGenModule.RealServerDataGenerator;
+
+    const systemCheckerModule = await import('@/utils/systemStateChecker');
+    validateSystemForOperation = systemCheckerModule.validateSystemForOperation;
+  } catch (error) {
+    console.warn('⚠️ 서버 사이드 모듈 로딩 실패:', error);
+    return NextResponse.json(
+      {
+        status: 'error',
+        message: '서버 모듈 로딩 실패',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 503 }
+    );
+  }
+
   // 🛑 시스템 온오프 상태 확인 - "오프일 때는 무동작 원칙"
   const systemValidation = await validateSystemForOperation('Health Check');
 
   if (!systemValidation.canProceed) {
-    return NextResponse.json({
-      status: 'system_offline',
-      message: '시스템이 비활성화 상태입니다',
-      reason: systemValidation.reason,
-      systemState: systemValidation.systemState,
-      timestamp: new Date().toISOString(),
-      adaptiveMonitoring: {
-        phase: 'system_offline',
-        reasoning: '시스템 오프 상태 - 모든 모니터링 중단',
-        systemUptime: '0초',
-        nextCheckIn: '시스템 활성화 후'
-      }
-    }, { status: 503 });
+    return NextResponse.json(
+      {
+        status: 'system_offline',
+        message: '시스템이 비활성화 상태입니다',
+        reason: systemValidation.reason,
+        systemState: systemValidation.systemState,
+        timestamp: new Date().toISOString(),
+        adaptiveMonitoring: {
+          phase: 'system_offline',
+          reasoning: '시스템 오프 상태 - 모든 모니터링 중단',
+          systemUptime: '0초',
+          nextCheckIn: '시스템 활성화 후',
+        },
+      },
+      { status: 503 }
+    );
   }
 
   const { searchParams } = new URL(request.url);
@@ -474,12 +509,12 @@ export async function GET(request: NextRequest) {
           source: 'cache',
           ttl: adaptiveConfig.ttl,
           phase: adaptiveConfig.phase,
-          reasoning: adaptiveConfig.reasoning
+          reasoning: adaptiveConfig.reasoning,
         },
         systemState: {
           isActive: systemValidation.systemState.isSystemActive,
-          reason: systemValidation.reason
-        }
+          reason: systemValidation.reason,
+        },
       });
     }
   }
@@ -501,7 +536,9 @@ export async function GET(request: NextRequest) {
       const cached = getCachedHealth(cacheKey);
 
       if (cached) {
-        console.log(`🎯 헬스체크 캐시 사용 (${adaptiveInfo.phase} 모드) - API 호출 절약`);
+        console.log(
+          `🎯 헬스체크 캐시 사용 (${adaptiveInfo.phase} 모드) - API 호출 절약`
+        );
         return NextResponse.json({
           ...cached,
           cached: true,
@@ -510,14 +547,14 @@ export async function GET(request: NextRequest) {
             reasoning: adaptiveInfo.reasoning,
             systemUptime: `${Math.round(uptime / 1000)}초`,
             nextCheckIn: `${Math.round(adaptiveInfo.ttl / 1000)}초 후`,
-            cacheHit: true
+            cacheHit: true,
           },
           cacheInfo: {
             hit: true,
             ttl: adaptiveInfo.ttl,
             responseTime: `${Date.now() - start}ms`,
-            note: '캐시된 결과. ?refresh=true로 강제 갱신 가능'
-          }
+            note: '캐시된 결과. ?refresh=true로 강제 갱신 가능',
+          },
         });
       }
     } else {
@@ -539,8 +576,8 @@ export async function GET(request: NextRequest) {
       optimization: {
         vercel: !!process.env.VERCEL,
         caching: true,
-        cacheTTL: getAdaptiveCacheTTL().ttl
-      }
+        cacheTTL: getAdaptiveCacheTTL().ttl,
+      },
     };
 
     // 🔧 환경변수 검증 (캐싱 적용)
@@ -553,13 +590,17 @@ export async function GET(request: NextRequest) {
         'SUPABASE_URL',
         'NEXT_PUBLIC_SUPABASE_ANON_KEY',
       ]);
-      setCachedHealth(envCacheKey, envRecoveryResult, getAdaptiveCacheTTL().ttl);
+      setCachedHealth(
+        envCacheKey,
+        envRecoveryResult,
+        getAdaptiveCacheTTL().ttl
+      );
     }
 
     const envStatus = {
       status: envRecoveryResult.success ? 'healthy' : 'degraded',
       details: envRecoveryResult,
-      cached: envRecoveryResult !== getCachedHealth(envCacheKey)
+      cached: envRecoveryResult !== getCachedHealth(envCacheKey),
     };
 
     // 🔴 Redis 상태 확인 (캐싱 적용)
@@ -583,7 +624,7 @@ export async function GET(request: NextRequest) {
       envStatus.status,
       redisStatus.status,
       mcpStatus.status,
-      generatorStatus.isInitialized ? 'healthy' : 'degraded'
+      generatorStatus.isInitialized ? 'healthy' : 'degraded',
     ]);
 
     // 🎯 결과에 적응형 모니터링 정보 추가
@@ -603,8 +644,8 @@ export async function GET(request: NextRequest) {
         mcp: mcpStatus,
         dataGenerator: {
           status: generatorStatus.isInitialized ? 'healthy' : 'degraded',
-          details: generatorStatus
-        }
+          details: generatorStatus,
+        },
       },
 
       // 🚀 적응형 모니터링 정보
@@ -614,34 +655,38 @@ export async function GET(request: NextRequest) {
         systemUptime: `${Math.round(uptime / 1000)}초`,
         nextCheckIn: `${Math.round(adaptiveInfo.ttl / 1000)}초 후`,
         intensivePhase: uptime < ADAPTIVE_CACHE_TTL.STARTUP_DURATION,
-        cacheHit: false
+        cacheHit: false,
       },
 
       optimization: {
         cacheHits: Array.from(healthCache.keys()).length,
         cacheTTL: adaptiveInfo.ttl,
         vercelOptimized: !!process.env.VERCEL,
-        monitoringStrategy: adaptiveInfo.phase === 'startup_intensive' ?
-          '집중 모니터링 (30초 간격)' :
-          '효율 모니터링 (5-8분 간격)'
+        monitoringStrategy:
+          adaptiveInfo.phase === 'startup_intensive'
+            ? '집중 모니터링 (30초 간격)'
+            : '효율 모니터링 (5-8분 간격)',
       },
 
       // 요약 통계
       summary: {
-        healthy: [envStatus, redisStatus, mcpStatus].filter(s => s.status === 'healthy').length,
+        healthy: [envStatus, redisStatus, mcpStatus].filter(
+          s => s.status === 'healthy'
+        ).length,
         total: 4,
         uptime: `${Math.floor(process.uptime())}초`,
-        memoryUsage: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`
-      }
+        memoryUsage: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
+      },
     };
 
     // 🎯 적응형 TTL로 캐싱
     setCachedHealth('full_health_check', result, adaptiveInfo.ttl);
 
-    console.log(`✅ [적응형 모니터링] 헬스체크 완료 - ${adaptiveInfo.phase} 모드 (다음 체크: ${Math.round(adaptiveInfo.ttl / 1000)}초 후)`);
+    console.log(
+      `✅ [적응형 모니터링] 헬스체크 완료 - ${adaptiveInfo.phase} 모드 (다음 체크: ${Math.round(adaptiveInfo.ttl / 1000)}초 후)`
+    );
 
     return NextResponse.json(result);
-
   } catch (error: any) {
     const responseTime = Date.now() - start;
     const adaptiveInfo = getAdaptiveCacheTTL();
@@ -656,8 +701,8 @@ export async function GET(request: NextRequest) {
           phase: adaptiveInfo.phase,
           reasoning: adaptiveInfo.reasoning,
           systemUptime: `${Math.round((Date.now() - SYSTEM_START_TIME) / 1000)}초`,
-          errorDuringPhase: adaptiveInfo.phase
-        }
+          errorDuringPhase: adaptiveInfo.phase,
+        },
       },
       { status: 500 }
     );
@@ -683,7 +728,11 @@ export async function OPTIONS() {
 }
 
 // 🚀 최적화된 MCP 서버 헬스체크 (과도한 요청 방지)
-async function checkMCPServersHealth(): Promise<{ status: string; details: any; cached?: boolean }> {
+async function checkMCPServersHealth(): Promise<{
+  status: string;
+  details: any;
+  cached?: boolean;
+}> {
   const cacheKey = 'mcp_health';
   const cached = getCachedHealth(cacheKey);
 
@@ -709,14 +758,16 @@ async function checkMCPServersHealth(): Promise<{ status: string; details: any; 
       const result = {
         status: response.ok ? 'operational' : 'degraded',
         details: {
-          servers: [{
-            name: 'openmanager-vibe-v5',
-            status: response.ok ? 'healthy' : 'degraded',
-            responseCode: response.status,
-            note: 'Vercel 최적화: 단일 서버 체크'
-          }],
-          optimization: 'vercel_minimal_check'
-        }
+          servers: [
+            {
+              name: 'openmanager-vibe-v5',
+              status: response.ok ? 'healthy' : 'degraded',
+              responseCode: response.status,
+              note: 'Vercel 최적화: 단일 서버 체크',
+            },
+          ],
+          optimization: 'vercel_minimal_check',
+        },
       };
 
       // 결과 캐싱 (성공/실패 모두)
@@ -729,13 +780,12 @@ async function checkMCPServersHealth(): Promise<{ status: string; details: any; 
       status: 'operational',
       details: {
         servers: [{ name: 'local-mcp', status: 'healthy' }],
-        optimization: 'local_standard'
-      }
+        optimization: 'local_standard',
+      },
     };
 
     setCachedHealth(cacheKey, result, getAdaptiveCacheTTL().ttl);
     return result;
-
   } catch (error) {
     console.warn('⚠️ MCP 헬스체크 실패 (캐싱됨):', error);
 
@@ -744,8 +794,8 @@ async function checkMCPServersHealth(): Promise<{ status: string; details: any; 
       details: {
         servers: [],
         error: error instanceof Error ? error.message : 'Connection failed',
-        optimization: 'error_cached'
-      }
+        optimization: 'error_cached',
+      },
     };
 
     // 에러도 짧은 시간 캐싱 (재시도 방지)
@@ -765,19 +815,22 @@ function determineOverallStatus(statuses: string[]): string {
 }
 
 // 🧹 캐시 정리 함수 (5분마다 실행)
-setInterval(() => {
-  const now = Date.now();
-  const expired: string[] = [];
+setInterval(
+  () => {
+    const now = Date.now();
+    const expired: string[] = [];
 
-  healthCache.forEach((cached, key) => {
-    if (now > cached.timestamp + cached.ttl) {
-      expired.push(key);
+    healthCache.forEach((cached, key) => {
+      if (now > cached.timestamp + cached.ttl) {
+        expired.push(key);
+      }
+    });
+
+    expired.forEach(key => healthCache.delete(key));
+
+    if (expired.length > 0) {
+      console.log(`🧹 헬스체크 캐시 정리: ${expired.length}개 만료 항목 제거`);
     }
-  });
-
-  expired.forEach(key => healthCache.delete(key));
-
-  if (expired.length > 0) {
-    console.log(`🧹 헬스체크 캐시 정리: ${expired.length}개 만료 항목 제거`);
-  }
-}, 5 * 60 * 1000);
+  },
+  5 * 60 * 1000
+);
