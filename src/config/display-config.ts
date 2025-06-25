@@ -87,18 +87,18 @@ export const DEFAULT_SERVER_DISPLAY_CONFIG: ServerDisplayConfig = {
 
   // 🎨 UI 관련
   gridLayout: {
-    mobile: 2, // 2열
-    tablet: 4, // 4열
-    desktop: 6, // 6열
-    large: 8, // 8열 (최대 15개까지)
+    mobile: 1, // 1열
+    tablet: 2, // 2열
+    desktop: 3, // 3열
+    large: 4, // 4열 (최대 15개까지)
   },
 
   // 📱 반응형 세로 2줄 설정
   twoRowsLayout: {
-    mobile: { cols: 2, rows: 2 }, // 2x2 = 4개
-    tablet: { cols: 4, rows: 2 }, // 4x2 = 8개
-    desktop: { cols: 6, rows: 2 }, // 6x2 = 12개
-    large: { cols: 8, rows: 2 }, // 8x2 = 16개 (실제로는 15개)
+    mobile: { cols: 1, rows: 2 }, // 1x2 = 2개
+    tablet: { cols: 2, rows: 2 }, // 2x2 = 4개
+    desktop: { cols: 3, rows: 2 }, // 3x2 = 6개
+    large: { cols: 4, rows: 2 }, // 4x2 = 8개
   },
 
   // 🎛️ UI/UX 개선 옵션

@@ -353,8 +353,8 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
 
       return (
         <motion.div
-          className='flex flex-col bg-white/90 rounded-xl p-3 group hover:bg-white/95 transition-all duration-300 shadow-sm hover:shadow-md backdrop-blur-sm border border-white/20'
-          whileHover={{ scale: 1.02 }}
+          className='flex flex-col bg-white/95 rounded-xl p-4 group hover:bg-white transition-all duration-300 shadow-md hover:shadow-lg backdrop-blur-sm border border-white/30'
+          whileHover={{ scale: 1.03 }}
           transition={{ duration: 0.2 }}
         >
           {/* 라벨과 아이콘 */}
@@ -393,7 +393,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
 
           {/* 차트 */}
           <div
-            className={`${variantStyles.chartSize} relative bg-gradient-to-br from-white/60 to-gray-50/40 rounded-xl p-3 shadow-inner border border-gray-100/50`}
+            className={`${variantStyles.chartSize} relative bg-gradient-to-br from-white/80 to-gray-50/60 rounded-xl p-4 shadow-inner border border-gray-200/50`}
           >
             <svg
               className='w-full h-full'
@@ -548,31 +548,31 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         case 'compact':
           return {
             padding: 'p-4',
-            cardHeight: 'min-h-[200px]',
+            cardHeight: 'min-h-[180px] max-h-[200px]',
             titleSize: 'text-sm',
             subtitleSize: 'text-xs',
-            chartContainer: 'grid-cols-2 gap-3',
-            chartSize: 'w-18 h-10',
+            chartContainer: 'grid-cols-2 gap-2',
+            chartSize: 'w-20 h-12',
             showFullDetails: false,
           };
         case 'detailed':
           return {
-            padding: 'p-8',
-            cardHeight: 'min-h-[320px]',
-            titleSize: 'text-xl',
+            padding: 'p-6',
+            cardHeight: 'min-h-[280px] max-h-[320px]',
+            titleSize: 'text-lg',
             subtitleSize: 'text-sm',
             chartContainer: 'grid-cols-2 gap-4',
-            chartSize: 'w-28 h-20',
+            chartSize: 'w-32 h-24',
             showFullDetails: true,
           };
         default:
           return {
-            padding: 'p-6',
-            cardHeight: 'min-h-[240px]',
-            titleSize: 'text-lg',
+            padding: 'p-5',
+            cardHeight: 'min-h-[200px] max-h-[240px]',
+            titleSize: 'text-base',
             subtitleSize: 'text-sm',
             chartContainer: 'grid-cols-2 gap-3',
-            chartSize: 'w-22 h-16',
+            chartSize: 'w-28 h-20',
             showFullDetails: false,
           };
       }
@@ -702,7 +702,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         <div className='space-y-5'>
           {showMiniCharts && (
             <div
-              className={`grid ${variantStyles.chartContainer} bg-white/60 rounded-2xl ${variant === 'compact' ? 'p-3' : 'p-5'} backdrop-blur-sm border border-white/40 shadow-inner`}
+              className={`grid ${variantStyles.chartContainer} bg-white/80 rounded-2xl ${variant === 'compact' ? 'p-4' : 'p-6'} backdrop-blur-sm border border-white/50 shadow-lg`}
             >
               <MiniChart
                 data={realtimeData.cpu}

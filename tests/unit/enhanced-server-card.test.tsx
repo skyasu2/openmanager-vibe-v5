@@ -11,10 +11,8 @@ import EnhancedServerCard from '../../src/components/dashboard/EnhancedServerCar
 
 // Mock framer-motion to avoid animation issues in tests - 완전한 mock
 vi.mock('framer-motion', () => {
-  // eslint-disable-next-line react/display-name
-  const createMotionComponent =
-    (tag: string) =>
-    ({
+  const createMotionComponent = (tag: string) => {
+    const Component = ({
       children,
       className,
       onClick,
@@ -39,6 +37,10 @@ vi.mock('framer-motion', () => {
         },
         children
       );
+
+    Component.displayName = `Motion${tag.charAt(0).toUpperCase()}${tag.slice(1)}`;
+    return Component;
+  };
 
   return {
     motion: {
@@ -369,7 +371,7 @@ describe('EnhancedServerCard v5.0', () => {
   describe('스냅샷 테스트', () => {
     it('기본 상태의 구조가 올바르다', () => {
       const { container } = render(<EnhancedServerCard {...defaultProps} />);
-      expect(container.querySelector('.relative.p-6')).toBeInTheDocument();
+      expect(container.querySelector('.relative.p-5')).toBeInTheDocument();
       expect(container.querySelector('.grid.grid-cols-2')).toBeInTheDocument();
       expect(container.querySelectorAll('svg').length).toBeGreaterThan(0);
     });
@@ -379,7 +381,7 @@ describe('EnhancedServerCard v5.0', () => {
       const { container } = render(
         <EnhancedServerCard {...defaultProps} server={warningServer} />
       );
-      expect(container.querySelector('.relative.p-6')).toBeInTheDocument();
+      expect(container.querySelector('.relative.p-5')).toBeInTheDocument();
       expect(container.querySelector('.grid.grid-cols-2')).toBeInTheDocument();
       expect(screen.getByText('⚠️')).toBeInTheDocument();
     });
