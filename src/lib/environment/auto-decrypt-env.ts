@@ -18,14 +18,12 @@ let ENCRYPTED_ENV_CONFIG: any = null;
 if (typeof window === 'undefined') {
   try {
     crypto = require('crypto');
-    // 빌드 시 동적 import 사용
-    try {
-      ENCRYPTED_ENV_CONFIG =
-        require('../../../config/encrypted-env-config').ENCRYPTED_ENV_CONFIG;
-    } catch (error) {
-      console.warn('환경변수 자동 복호화 초기화 실패:', error);
-      ENCRYPTED_ENV_CONFIG = null;
-    }
+
+    // 🔧 암호화된 환경변수 설정은 사용하지 않음 (빌드 오류 방지)
+    // 대신 일반 환경변수만 사용
+    ENCRYPTED_ENV_CONFIG = null;
+
+    console.log('🔧 환경변수 자동 복호화: 일반 환경변수 모드');
 
     // UTF-8 콘솔 활성화 (서버 사이드에서만)
     try {
