@@ -250,8 +250,9 @@ export default function ServerDashboard({
       )}
 
       {selectedServer && (
-        <EnhancedServerModal
+        <ServerDetailModal
           server={selectedServer}
+          metricsHistory={selectedServerMetrics ? [selectedServerMetrics] : []}
           onClose={handleModalClose}
         />
       )}
