@@ -13,20 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: npm ci
 
       - name: Build application
-        run: pnpm build
+        run: npm run build
         env:
           # 🔧 빌드 환경변수 (안전한 기본값)
           NODE_ENV: production
@@ -40,7 +37,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-key' }}
 
           # ⚡ Redis 환경변수 (GitHub Secrets에서 설정 필요)
-          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL || 'https://placeholder.upstash.io' }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL || 'https://placeholder.redis.com' }}
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN || 'placeholder-token' }}
 
           # 🤖 AI 환경변수 (GitHub Secrets에서 설정 필요)
@@ -59,10 +56,10 @@ jobs:
           CRON_GEMINI_LEARNING: true
 
       - name: Lint check
-        run: pnpm lint || true # 린트 에러는 무시하고 계속 진행
+        run: npm run lint || true # 린트 에러는 무시하고 계속 진행
 
       - name: Type check
-        run: pnpm type-check || true # 타입 체크 에러도 무시하고 계속 진행
+        run: npm run type-check || true # 타입 체크 에러도 무시하고 계속 진행
 
 
     # Vercel이 자동으로 배포를 처리
