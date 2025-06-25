@@ -29,9 +29,11 @@ export default function ServerDashboard({
   const [activeTab, setActiveTab] = useState<DashboardTab>('servers');
   const {
     paginatedServers,
+    servers,
     currentPage,
     totalPages,
     setCurrentPage,
+    changePageSize,
     handleServerSelect,
     selectedServer,
     selectedServerMetrics,
@@ -88,6 +90,12 @@ export default function ServerDashboard({
     return alertsB - alertsA;
   });
 
+  // 페이지네이션 정보 계산
+  const pageSize = Math.ceil(servers.length / totalPages) || 8;
+  const startIndex = (currentPage - 1) * pageSize + 1;
+  const endIndex = Math.min(currentPage * pageSize, servers.length);
+  const totalServers = servers.length;
+
   return (
     <div>
       {/* <ServerDashboardTabs
@@ -99,6 +107,62 @@ export default function ServerDashboard({
       <div className='mt-6'>
         {activeTab === 'servers' && (
           <div className='space-y-4'>
+            {/* 📊 페이지네이션 정보 헤더 */}
+            {totalPages > 1 && (
+              <div className='bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6'>
+                <div className='flex items-center justify-between'>
+                  <div className='flex items-center gap-3'>
+                    <div className='text-blue-600'>
+                      <svg
+                        className='w-5 h-5'
+                        fill='none'
+                        stroke='currentColor'
+                        viewBox='0 0 24 24'
+                      >
+                        <path
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth={2}
+                          d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className='text-blue-900 font-medium'>
+                        전체 {totalServers}개 서버 중 {startIndex}-{endIndex}
+                        번째 표시
+                      </p>
+                      <p className='text-blue-700 text-sm'>
+                        {pageSize}개씩 페이지네이션 • {currentPage}/{totalPages}{' '}
+                        페이지
+                      </p>
+                    </div>
+                  </div>
+                  <div className='flex items-center gap-3'>
+                    {/* 페이지 크기 선택 */}
+                    <div className='flex items-center gap-2'>
+                      <span className='text-blue-700 text-sm'>표시 개수:</span>
+                      <select
+                        value={pageSize}
+                        onChange={e => changePageSize(Number(e.target.value))}
+                        className='text-blue-700 bg-blue-100 border border-blue-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                        aria-label='페이지당 표시할 서버 개수 선택'
+                      >
+                        <option value={4}>4개씩</option>
+                        <option value={6}>6개씩</option>
+                        <option value={8}>8개씩</option>
+                        <option value={12}>12개씩</option>
+                        <option value={15}>모두 보기</option>
+                      </select>
+                    </div>
+                    <div className='text-blue-600 text-sm font-mono bg-blue-100 px-3 py-1 rounded-full'>
+                      {startIndex}-{endIndex} / {totalServers}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* 🎯 15개 서버 최적화 그리드 레이아웃 */}
             <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'>
               {sortedServers.map((server, index) => (

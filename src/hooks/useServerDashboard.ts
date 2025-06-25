@@ -146,6 +146,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
   // 페이지네이션 상태 - 설정 기반으로 동적 조정
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8); // 🆕 동적 페이지 크기
 
   // 🎯 서버 설정에 따른 동적 페이지 크기 설정
   const ITEMS_PER_PAGE = useMemo(() => {
@@ -163,28 +164,26 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     console.log('🎯 서버 표시 설정:', {
       실제_서버_생성_개수: ACTUAL_SERVER_COUNT,
       화면_표시_옵션: DISPLAY_OPTIONS,
-      현재_선택: 'SHOW_ALL (모든 서버 표시)',
+      현재_선택: `${pageSize}개씩 페이지네이션`,
+      사용자_설정_페이지_크기: pageSize,
     });
 
-    // 🎛️ 사용자 선택 가능한 화면 표시 개수
-    // 원하는 표시 방식으로 변경 가능:
-    // - 4개씩 보기: return DISPLAY_OPTIONS.SHOW_QUARTER;
-    // - 8개씩 보기: return DISPLAY_OPTIONS.SHOW_HALF;
-    // - 5개씩 보기: return DISPLAY_OPTIONS.SHOW_THIRD;
-    // - 모든 서버 보기: return DISPLAY_OPTIONS.SHOW_ALL;
+    // 🎛️ 사용자가 선택한 페이지 크기 사용
+    return pageSize;
+  }, [pageSize]);
 
-    const SELECTED_DISPLAY_MODE = DISPLAY_OPTIONS.SHOW_ALL; // 🔧 현재: 모든 서버 표시
-
-    // 15개 이하면 선택된 표시 모드 사용, 그 이상이면 페이지네이션
-    if (ACTUAL_SERVER_COUNT <= 15) {
-      console.log('✅ 15개 이하 서버: 선택된 표시 모드 사용');
-      return SELECTED_DISPLAY_MODE;
-    }
-
-    // 15개 초과 시 설정된 페이지 크기 사용
-    console.log('📄 15개 초과 서버: 기본 페이지네이션 적용');
-    return ACTIVE_SERVER_CONFIG.pagination.defaultPageSize;
-  }, []);
+  // 🎛️ 페이지 크기 변경 함수
+  const changePageSize = useCallback(
+    (newSize: number) => {
+      setPageSize(newSize);
+      setCurrentPage(1); // 페이지 크기 변경 시 첫 페이지로 이동
+      console.log('📊 페이지 크기 변경:', {
+        이전_크기: pageSize,
+        새_크기: newSize,
+      });
+    },
+    [pageSize]
+  );
 
   // 선택된 서버 상태
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
@@ -358,6 +357,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     currentPage,
     totalPages,
     setCurrentPage,
+    changePageSize,
 
     // 서버 선택
     selectedServer,

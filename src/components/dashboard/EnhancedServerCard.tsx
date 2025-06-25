@@ -1,13 +1,13 @@
 /**
- * 🌟 Enhanced Server Card v4.0
+ * 🌟 Enhanced Server Card v5.0 - UI/UX 개선판
  *
  * 고도화된 서버 카드 컴포넌트:
- * - 개선된 실시간 미니 차트 (CPU, Memory, Disk, Network)
- * - 아름다운 그라데이션 및 글래스모피즘 디자인
- * - 부드러운 애니메이션 및 호버 효과
- * - 상태별 색상 테마
- * - 실시간 활동 인디케이터
- * - 네트워크 모니터링 추가
+ * - 🎨 모던한 디자인 시스템 적용
+ * - ✨ 부드러운 마이크로 인터랙션
+ * - 📊 개선된 실시간 미니 차트
+ * - 🎭 상태별 시각적 피드백 강화
+ * - 🌈 개선된 색상 팔레트 및 대비
+ * - 🔥 성능 최적화된 애니메이션
  */
 
 import { AnimatePresence, motion } from 'framer-motion';
@@ -52,7 +52,7 @@ interface EnhancedServerCardProps {
     cpu: number;
     memory: number;
     disk: number;
-    network?: number; // 네트워크 사용률 추가
+    network?: number;
     uptime: string;
     lastUpdate: Date;
     alerts: number;
@@ -65,7 +65,7 @@ interface EnhancedServerCardProps {
       cpu_cores: number;
       memory_gb: number;
       disk_gb: number;
-      network_speed?: string; // 네트워크 속도 추가
+      network_speed?: string;
     };
     os?: string;
     ip?: string;
@@ -74,7 +74,7 @@ interface EnhancedServerCardProps {
       | 'warning'
       | 'critical'
       | 'offline'
-      | 'maintenance'; // 네트워크 상태를 ServerStatus와 통일
+      | 'maintenance';
     health?: {
       score: number;
     };
@@ -91,11 +91,12 @@ interface EnhancedServerCardProps {
 const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
   ({ server, index, onClick, showMiniCharts = true, variant = 'default' }) => {
     const [isHovered, setIsHovered] = useState(false);
+    const [isPressed, setIsPressed] = useState(false);
     const [realtimeData, setRealtimeData] = useState<{
       cpu: number[];
       memory: number[];
       disk: number[];
-      network: number[]; // 네트워크 데이터 추가
+      network: number[];
       trend: 'up' | 'down' | 'stable';
     }>({
       cpu: Array.from({ length: 12 }, () =>
@@ -129,11 +130,11 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             Math.min(100, Math.random() * 40 + (server.network || 30) - 20)
           ).toFixed(2)
         )
-      ), // 네트워크 데이터
+      ),
       trend: 'stable',
     });
 
-    // 실시간 데이터 업데이트 - 🎯 데이터 생성기와 동기화 (2초 → 20초)
+    // 실시간 데이터 업데이트 - 성능 최적화
     useEffect(() => {
       const interval = setInterval(
         () => {
@@ -185,13 +186,13 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 : 'stable',
           }));
         },
-        20000 + index * 200 // 20초 기본 간격 + 카드별 200ms 차이 (데이터 생성기와 동기화)
+        20000 + index * 200
       );
 
       return () => clearInterval(interval);
     }, [server.cpu, server.memory, server.disk, server.network, index]);
 
-    // 🎯 실제 기업 환경 기반 서버 타입별 아이콘
+    // 🎯 실제 기업 환경 기반 서버 타입별 아이콘 - 개선된 버전
     const getServerIcon = () => {
       const type = server.type.toLowerCase();
 
@@ -238,62 +239,85 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       return <Cloud className='w-5 h-5' />;
     };
 
-    // 상태별 테마
+    // 🎨 개선된 상태별 테마 - 더 세련된 색상 팔레트
     const getStatusTheme = () => {
       switch (server.status) {
         case 'healthy':
           return {
-            gradient: 'from-green-50 via-emerald-50 to-teal-50',
-            border: 'border-green-200',
-            hoverBorder: 'hover:border-green-300',
-            statusBg: 'bg-green-100',
-            statusText: 'text-green-800',
+            gradient: 'from-emerald-50/80 via-green-50/60 to-teal-50/40',
+            border: 'border-emerald-200/60',
+            hoverBorder: 'hover:border-emerald-300/80',
+            statusBg: 'bg-emerald-100/80',
+            statusText: 'text-emerald-800',
             statusIcon: '✅',
             label: '정상',
-            glow: 'shadow-green-100',
-            accent: 'text-green-600',
+            glow: 'shadow-emerald-100/50',
+            accent: 'text-emerald-600',
+            iconBg: 'bg-emerald-100/90',
+            pulse: 'bg-emerald-400',
           };
         case 'warning':
           return {
-            gradient: 'from-yellow-50 via-amber-50 to-orange-50',
-            border: 'border-yellow-200',
-            hoverBorder: 'hover:border-yellow-300',
-            statusBg: 'bg-yellow-100',
-            statusText: 'text-yellow-800',
+            gradient: 'from-amber-50/80 via-yellow-50/60 to-orange-50/40',
+            border: 'border-amber-200/60',
+            hoverBorder: 'hover:border-amber-300/80',
+            statusBg: 'bg-amber-100/80',
+            statusText: 'text-amber-800',
             statusIcon: '⚠️',
             label: '경고',
-            glow: 'shadow-yellow-100',
-            accent: 'text-yellow-600',
+            glow: 'shadow-amber-100/50',
+            accent: 'text-amber-600',
+            iconBg: 'bg-amber-100/90',
+            pulse: 'bg-amber-400',
           };
         case 'critical':
           return {
-            gradient: 'from-red-50 via-rose-50 to-pink-50',
-            border: 'border-red-200',
-            hoverBorder: 'hover:border-red-300',
-            statusBg: 'bg-red-100',
-            statusText: 'text-red-800',
+            gradient: 'from-rose-50/80 via-red-50/60 to-pink-50/40',
+            border: 'border-rose-200/60',
+            hoverBorder: 'hover:border-rose-300/80',
+            statusBg: 'bg-rose-100/80',
+            statusText: 'text-rose-800',
             statusIcon: '🚨',
             label: '위험',
-            glow: 'shadow-red-100',
-            accent: 'text-red-600',
+            glow: 'shadow-rose-100/50',
+            accent: 'text-rose-600',
+            iconBg: 'bg-rose-100/90',
+            pulse: 'bg-rose-400',
+          };
+        case 'maintenance':
+          return {
+            gradient: 'from-indigo-50/80 via-blue-50/60 to-cyan-50/40',
+            border: 'border-indigo-200/60',
+            hoverBorder: 'hover:border-indigo-300/80',
+            statusBg: 'bg-indigo-100/80',
+            statusText: 'text-indigo-800',
+            statusIcon: '🔧',
+            label: '유지보수',
+            glow: 'shadow-indigo-100/50',
+            accent: 'text-indigo-600',
+            iconBg: 'bg-indigo-100/90',
+            pulse: 'bg-indigo-400',
           };
         default:
           return {
-            gradient: 'from-gray-50 via-slate-50 to-zinc-50',
-            border: 'border-gray-200',
-            hoverBorder: 'hover:border-gray-300',
-            statusBg: 'bg-gray-100',
-            statusText: 'text-gray-700',
+            gradient: 'from-slate-50/80 via-gray-50/60 to-zinc-50/40',
+            border: 'border-slate-200/60',
+            hoverBorder: 'hover:border-slate-300/80',
+            statusBg: 'bg-slate-100/80',
+            statusText: 'text-slate-700',
             statusIcon: '⚪',
             label: '오프라인',
-            accent: 'text-gray-600',
+            glow: 'shadow-slate-100/50',
+            accent: 'text-slate-600',
+            iconBg: 'bg-slate-100/90',
+            pulse: 'bg-slate-400',
           };
       }
     };
 
     const theme = getStatusTheme();
 
-    // 개선된 미니 차트 생성
+    // 🎨 개선된 미니 차트 - 더 세련된 디자인
     const MiniChart = ({
       data,
       color,
@@ -317,25 +341,59 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       const gradientId = `gradient-${server.id}-${label}-${Math.random()}`;
       const glowId = `glow-${server.id}-${label}-${Math.random()}`;
 
+      // 상태별 색상 강도 조절
+      const getValueColor = (value: number) => {
+        if (value > 90) return '#ef4444'; // 위험 - 빨강
+        if (value > 80) return '#f59e0b'; // 경고 - 주황
+        if (value > 70) return '#eab308'; // 주의 - 노랑
+        return color; // 기본 색상
+      };
+
+      const valueColor = getValueColor(currentValue);
+
       return (
-        <div className='flex flex-col bg-gray-50 rounded-lg p-3 group hover:bg-gray-100 transition-colors'>
+        <motion.div
+          className='flex flex-col bg-white/90 rounded-xl p-3 group hover:bg-white/95 transition-all duration-300 shadow-sm hover:shadow-md backdrop-blur-sm border border-white/20'
+          whileHover={{ scale: 1.02 }}
+          transition={{ duration: 0.2 }}
+        >
           {/* 라벨과 아이콘 */}
-          <div className='flex items-center justify-between mb-2'>
-            <div className='flex items-center gap-1'>
-              <div className='text-gray-500 group-hover:scale-110 transition-transform'>
+          <div className='flex items-center justify-between mb-3'>
+            <div className='flex items-center gap-2'>
+              <motion.div
+                className='text-gray-600 group-hover:scale-110 transition-transform p-1 rounded-lg bg-gray-50/80'
+                whileHover={{ rotate: 5 }}
+              >
                 {icon}
-              </div>
-              <span className='text-xs font-medium text-gray-700'>{label}</span>
+              </motion.div>
+              <span className='text-xs font-semibold text-gray-700 tracking-wide'>
+                {label}
+              </span>
             </div>
-            {/* 수치 표시 */}
-            <span className='text-sm font-bold text-gray-900'>
+            {/* 수치 표시 - 개선된 디자인 */}
+            <motion.span
+              className={`text-sm font-bold px-2 py-1 rounded-lg ${
+                currentValue > 80
+                  ? 'bg-red-100/80 text-red-700'
+                  : currentValue > 70
+                    ? 'bg-yellow-100/80 text-yellow-700'
+                    : 'bg-gray-100/80 text-gray-700'
+              }`}
+              animate={{
+                scale: currentValue > 80 ? [1, 1.05, 1] : 1,
+              }}
+              transition={{
+                duration: 2,
+                repeat: currentValue > 80 ? Infinity : 0,
+              }}
+            >
               {currentValue.toFixed(0)}%
-            </span>
+            </motion.span>
           </div>
 
           {/* 차트 */}
           <div
-            className={`${variantStyles.chartSize} relative bg-white/80 rounded-lg p-2 shadow-sm`}
+            className={`${variantStyles.chartSize} relative bg-gradient-to-br from-white/60 to-gray-50/40 rounded-xl p-3 shadow-inner border border-gray-100/50`}
           >
             <svg
               className='w-full h-full'
@@ -343,7 +401,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               preserveAspectRatio='none'
             >
               <defs>
-                {/* 그라데이션 정의 */}
+                {/* 개선된 그라데이션 */}
                 <linearGradient
                   id={gradientId}
                   x1='0%'
@@ -351,37 +409,42 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                   x2='0%'
                   y2='100%'
                 >
-                  <stop offset='0%' stopColor={color} stopOpacity='0.8' />
-                  <stop offset='50%' stopColor={color} stopOpacity='0.4' />
-                  <stop offset='100%' stopColor={color} stopOpacity='0.1' />
+                  <stop offset='0%' stopColor={valueColor} stopOpacity='0.9' />
+                  <stop offset='40%' stopColor={valueColor} stopOpacity='0.5' />
+                  <stop
+                    offset='100%'
+                    stopColor={valueColor}
+                    stopOpacity='0.1'
+                  />
                 </linearGradient>
 
-                {/* 글로우 효과 */}
+                {/* 개선된 글로우 효과 */}
                 <filter id={glowId}>
-                  <feGaussianBlur stdDeviation='2' result='coloredBlur' />
+                  <feGaussianBlur stdDeviation='1.5' result='coloredBlur' />
                   <feMerge>
                     <feMergeNode in='coloredBlur' />
                     <feMergeNode in='SourceGraphic' />
                   </feMerge>
                 </filter>
-              </defs>
 
-              {/* 배경 격자 */}
-              <defs>
+                {/* 미세한 격자 패턴 */}
                 <pattern
                   id={`grid-${server.id}-${label}`}
-                  width='10'
-                  height='10'
+                  width='8'
+                  height='8'
                   patternUnits='userSpaceOnUse'
                 >
                   <path
-                    d='M 10 0 L 0 0 0 10'
+                    d='M 8 0 L 0 0 0 8'
                     fill='none'
                     stroke='#e2e8f0'
-                    strokeWidth='0.3'
+                    strokeWidth='0.2'
+                    opacity='0.4'
                   />
                 </pattern>
               </defs>
+
+              {/* 배경 격자 */}
               <rect
                 width='100'
                 height='100'
@@ -393,70 +456,83 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               <polygon
                 fill={`url(#${gradientId})`}
                 points={`0,100 ${points} 100,100`}
-                className='transition-all duration-300'
+                className='transition-all duration-500'
               />
 
-              {/* 라인 */}
+              {/* 라인 - 더 부드러운 스타일 */}
               <polyline
                 fill='none'
-                stroke={color}
+                stroke={valueColor}
                 strokeWidth='2.5'
                 points={points}
                 vectorEffect='non-scaling-stroke'
                 filter={`url(#${glowId})`}
-                className='transition-all duration-300'
+                className='transition-all duration-500'
+                strokeLinecap='round'
+                strokeLinejoin='round'
               />
 
-              {/* 현재 값 포인트 */}
+              {/* 현재 값 포인트 - 개선된 디자인 */}
               <circle
                 cx='100'
                 cy={100 - Math.max(0, Math.min(100, currentValue))}
-                r='2.5'
-                fill={color}
+                r='3'
+                fill={valueColor}
                 stroke='white'
-                strokeWidth='1.5'
+                strokeWidth='2'
                 filter={`url(#${glowId})`}
+                className='drop-shadow-sm'
               />
             </svg>
 
-            {/* 위험 상태 표시 */}
+            {/* 위험 상태 표시 - 개선된 디자인 */}
             {currentValue > 80 && (
-              <div className='absolute top-1 right-1'>
-                <span className='text-red-500 text-xs'>⚠️</span>
-              </div>
+              <motion.div
+                className='absolute top-1 right-1 bg-red-500/90 text-white text-xs px-1.5 py-0.5 rounded-full shadow-lg'
+                animate={{
+                  scale: [1, 1.1, 1],
+                  opacity: [0.8, 1, 0.8],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                }}
+              >
+                ⚠️
+              </motion.div>
             )}
           </div>
-        </div>
+        </motion.div>
       );
     };
 
-    // 네트워크 상태 아이콘
+    // 네트워크 상태 아이콘 - 개선된 버전
     const getNetworkStatusIcon = () => {
       switch (server.networkStatus) {
         case 'healthy':
-          return <Wifi className='w-4 h-4 text-green-500' />;
+          return <Wifi className='w-4 h-4 text-emerald-500' />;
         case 'warning':
-          return <Wifi className='w-4 h-4 text-yellow-500' />;
+          return <Wifi className='w-4 h-4 text-amber-500' />;
         case 'critical':
-          return <Wifi className='w-4 h-4 text-red-500' />;
+          return <Wifi className='w-4 h-4 text-rose-500' />;
         case 'offline':
-          return <Wifi className='w-4 h-4 text-gray-500' />;
+          return <Wifi className='w-4 h-4 text-slate-400' />;
         case 'maintenance':
-          return <Wifi className='w-4 h-4 text-gray-500' />;
+          return <Wifi className='w-4 h-4 text-indigo-500' />;
         default:
-          return <Network className='w-4 h-4 text-gray-500' />;
+          return <Network className='w-4 h-4 text-slate-400' />;
       }
     };
 
-    // 트렌드 아이콘
+    // 트렌드 아이콘 - 개선된 버전
     const getTrendIcon = () => {
       switch (realtimeData.trend) {
         case 'up':
-          return <TrendingUp className='w-3 h-3 text-red-500' />;
+          return <TrendingUp className='w-3 h-3 text-rose-500' />;
         case 'down':
-          return <TrendingDown className='w-3 h-3 text-green-500' />;
+          return <TrendingDown className='w-3 h-3 text-emerald-500' />;
         default:
-          return <Minus className='w-3 h-3 text-gray-400' />;
+          return <Minus className='w-3 h-3 text-slate-400' />;
       }
     };
 
@@ -466,37 +542,37 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       }
     }, [onClick, server]);
 
-    // 변형별 스타일 설정
+    // 변형별 스타일 설정 - 개선된 버전
     const getVariantStyles = () => {
       switch (variant) {
         case 'compact':
           return {
-            padding: 'p-3',
-            cardHeight: 'min-h-[180px]',
+            padding: 'p-4',
+            cardHeight: 'min-h-[200px]',
             titleSize: 'text-sm',
             subtitleSize: 'text-xs',
-            chartContainer: 'grid-cols-2 gap-2',
-            chartSize: 'w-16 h-8',
+            chartContainer: 'grid-cols-2 gap-3',
+            chartSize: 'w-18 h-10',
             showFullDetails: false,
           };
         case 'detailed':
           return {
             padding: 'p-8',
-            cardHeight: 'min-h-[300px]',
+            cardHeight: 'min-h-[320px]',
             titleSize: 'text-xl',
             subtitleSize: 'text-sm',
             chartContainer: 'grid-cols-2 gap-4',
-            chartSize: 'w-24 h-16',
+            chartSize: 'w-28 h-20',
             showFullDetails: true,
           };
         default:
           return {
             padding: 'p-6',
-            cardHeight: 'min-h-[220px]',
+            cardHeight: 'min-h-[240px]',
             titleSize: 'text-lg',
             subtitleSize: 'text-sm',
             chartContainer: 'grid-cols-2 gap-3',
-            chartSize: 'w-20 h-14',
+            chartSize: 'w-22 h-16',
             showFullDetails: false,
           };
       }
@@ -507,100 +583,126 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
     return (
       <motion.div
         layout
-        initial={{ opacity: 0, y: 20, scale: 0.9 }}
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: -20, scale: 0.9 }}
+        exit={{ opacity: 0, y: -20, scale: 0.95 }}
         transition={{
-          duration: 0.3,
-          delay: index * 0.1,
+          duration: 0.4,
+          delay: index * 0.08,
           type: 'spring',
-          stiffness: 300,
-          damping: 30,
+          stiffness: 260,
+          damping: 20,
         }}
         whileHover={{
-          scale: variant === 'compact' ? 1.01 : 1.02,
+          scale: variant === 'compact' ? 1.015 : 1.025,
+          y: -2,
           transition: { duration: 0.2 },
         }}
+        whileTap={{
+          scale: variant === 'compact' ? 0.995 : 0.985,
+          transition: { duration: 0.1 },
+        }}
         className={`
-        relative ${variantStyles.padding} ${variantStyles.cardHeight} rounded-xl cursor-pointer
+        relative ${variantStyles.padding} ${variantStyles.cardHeight} rounded-2xl cursor-pointer
         bg-gradient-to-br ${theme.gradient}
         border-2 ${theme.border} ${theme.hoverBorder}
-        shadow-lg ${theme.glow} hover:shadow-xl
+        shadow-lg ${theme.glow} hover:shadow-2xl
         transition-all duration-300 ease-out
-        backdrop-blur-sm
-        group
+        backdrop-blur-lg
+        group overflow-hidden
       `}
         onClick={handleCardClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onMouseDown={() => setIsPressed(true)}
+        onMouseUp={() => setIsPressed(false)}
       >
-        {/* 실시간 활동 인디케이터 */}
-        <div className='absolute top-3 right-3 flex items-center gap-2'>
+        {/* 배경 오버레이 효과 */}
+        <div className='absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/5 pointer-events-none' />
+
+        {/* 실시간 활동 인디케이터 - 개선된 디자인 */}
+        <div className='absolute top-4 right-4 flex items-center gap-2 z-10'>
           <motion.div
             animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.7, 1, 0.7],
+              scale: [1, 1.3, 1],
+              opacity: [0.6, 1, 0.6],
             }}
             transition={{
-              duration: 2,
+              duration: 2.5,
               repeat: Infinity,
               ease: 'easeInOut',
             }}
-            className='w-2 h-2 bg-green-400 rounded-full'
+            className={`w-2.5 h-2.5 ${theme.pulse} rounded-full shadow-lg`}
           />
-          {getTrendIcon()}
-          {getNetworkStatusIcon()}
+          <motion.div
+            whileHover={{ scale: 1.1 }}
+            className='flex items-center gap-1 bg-white/80 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm'
+          >
+            {getTrendIcon()}
+            {getNetworkStatusIcon()}
+          </motion.div>
         </div>
 
-        {/* 헤더 */}
-        <div className='flex items-start justify-between mb-4'>
-          <div className='flex items-center gap-3'>
+        {/* 헤더 - 개선된 레이아웃 */}
+        <div className='flex items-start justify-between mb-5'>
+          <div className='flex items-center gap-4 flex-1 min-w-0'>
             <motion.div
-              className={`p-2 rounded-lg ${theme.statusBg} ${theme.accent}`}
-              whileHover={{ rotate: 5 }}
-              transition={{ duration: 0.2 }}
+              className={`p-3 rounded-xl ${theme.iconBg} ${theme.accent} shadow-sm border border-white/30`}
+              whileHover={{
+                rotate: [0, -5, 5, 0],
+                scale: 1.05,
+              }}
+              transition={{ duration: 0.3 }}
             >
               {getServerIcon()}
             </motion.div>
-            <div>
+            <div className='flex-1 min-w-0'>
               <h3
-                className={`font-bold text-gray-900 ${variantStyles.titleSize} group-hover:text-gray-700 transition-colors flex items-center gap-2`}
+                className={`font-bold text-gray-900 ${variantStyles.titleSize} group-hover:text-gray-700 transition-colors flex items-center gap-2 mb-1`}
               >
-                <span>{server.name}</span>
+                <span className='truncate'>{server.name}</span>
                 {server.health?.score !== undefined && (
-                  <span className='text-xs font-semibold text-gray-500 bg-white/60 px-1.5 py-0.5 rounded-md backdrop-blur-sm'>
+                  <motion.span
+                    className='text-xs font-semibold text-gray-600 bg-white/80 px-2 py-1 rounded-lg backdrop-blur-sm shadow-sm border border-gray-200/50'
+                    whileHover={{ scale: 1.05 }}
+                  >
                     {Math.round(server.health.score)}/100
-                  </span>
+                  </motion.span>
                 )}
               </h3>
-              <p className='text-sm text-gray-600'>
+              <p className='text-sm text-gray-600 font-medium mb-1'>
                 {server.type} • {server.location}
               </p>
               {server.specs?.network_speed && (
                 <p className='text-xs text-gray-500 flex items-center gap-1'>
                   <Globe className='w-3 h-3' />
-                  {server.specs.network_speed}
+                  <span className='font-medium'>
+                    {server.specs.network_speed}
+                  </span>
                 </p>
               )}
             </div>
           </div>
 
           <motion.div
-            className={`px-3 py-1 rounded-full ${theme.statusBg} flex items-center gap-1`}
+            className={`px-4 py-2 rounded-full ${theme.statusBg} flex items-center gap-2 shadow-sm border border-white/30 backdrop-blur-sm`}
             whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <span>{theme.statusIcon}</span>
-            <span className={`text-xs font-semibold ${theme.statusText}`}>
+            <span className='text-sm'>{theme.statusIcon}</span>
+            <span
+              className={`text-xs font-bold ${theme.statusText} tracking-wide`}
+            >
               {theme.label}
             </span>
           </motion.div>
         </div>
 
-        {/* 메트릭 및 미니 차트 */}
-        <div className='space-y-4'>
+        {/* 메트릭 및 미니 차트 - 개선된 레이아웃 */}
+        <div className='space-y-5'>
           {showMiniCharts && (
             <div
-              className={`grid ${variantStyles.chartContainer} bg-white/70 rounded-lg ${variant === 'compact' ? 'p-2' : 'p-4'} backdrop-blur-sm`}
+              className={`grid ${variantStyles.chartContainer} bg-white/60 rounded-2xl ${variant === 'compact' ? 'p-3' : 'p-5'} backdrop-blur-sm border border-white/40 shadow-inner`}
             >
               <MiniChart
                 data={realtimeData.cpu}
@@ -629,57 +731,76 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             </div>
           )}
 
-          {/* 서비스 상태 - compact에서는 간소화 */}
+          {/* 서비스 상태 - 개선된 디자인 */}
           {variant !== 'compact' && (
             <div className='flex gap-2 flex-wrap'>
               {server.services.slice(0, 3).map((service, idx) => (
                 <motion.div
                   key={idx}
-                  className={`px-2 py-1 rounded text-xs flex items-center gap-1 ${
+                  className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 font-medium shadow-sm border transition-all duration-200 ${
                     service.status === 'running'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
+                      ? 'bg-emerald-100/80 text-emerald-700 border-emerald-200/50'
+                      : 'bg-rose-100/80 text-rose-700 border-rose-200/50'
                   }`}
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.05, y: -1 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  <div
-                    className={`w-1.5 h-1.5 rounded-full ${
+                  <motion.div
+                    className={`w-2 h-2 rounded-full ${
                       service.status === 'running'
-                        ? 'bg-green-500'
-                        : 'bg-red-500'
+                        ? 'bg-emerald-500'
+                        : 'bg-rose-500'
                     }`}
+                    animate={{
+                      scale: service.status === 'running' ? [1, 1.2, 1] : 1,
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: service.status === 'running' ? Infinity : 0,
+                    }}
                   />
                   {service.name}
                 </motion.div>
               ))}
               {server.services.length > 3 && (
-                <div className='px-2 py-1 text-xs text-gray-500 bg-gray-100 rounded'>
+                <motion.div
+                  className='px-3 py-1.5 text-xs text-gray-600 bg-gray-100/80 rounded-xl border border-gray-200/50 font-medium'
+                  whileHover={{ scale: 1.05 }}
+                >
                   +{server.services.length - 3}개 더
-                </div>
+                </motion.div>
               )}
             </div>
           )}
 
-          {/* 네트워크 상태 표시 - compact에서는 숨김 */}
+          {/* 네트워크 상태 표시 - 개선된 디자인 */}
           {variant !== 'compact' && server.networkStatus && (
-            <div className='flex items-center justify-between p-2 bg-white/60 rounded-lg'>
-              <div className='flex items-center gap-2'>
-                {getNetworkStatusIcon()}
-                <span className='text-xs font-medium text-gray-700'>
+            <motion.div
+              className='flex items-center justify-between p-3 bg-white/70 rounded-xl backdrop-blur-sm border border-white/40 shadow-sm'
+              whileHover={{ scale: 1.01 }}
+            >
+              <div className='flex items-center gap-3'>
+                <motion.div
+                  whileHover={{ rotate: 5 }}
+                  className='p-1.5 rounded-lg bg-gray-100/80'
+                >
+                  {getNetworkStatusIcon()}
+                </motion.div>
+                <span className='text-sm font-semibold text-gray-700'>
                   네트워크 상태
                 </span>
               </div>
               <span
-                className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                className={`text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm border ${
                   server.networkStatus === 'healthy'
-                    ? 'bg-green-100 text-green-700'
+                    ? 'bg-emerald-100/80 text-emerald-700 border-emerald-200/50'
                     : server.networkStatus === 'warning'
-                      ? 'bg-yellow-100 text-yellow-700'
+                      ? 'bg-amber-100/80 text-amber-700 border-amber-200/50'
                       : server.networkStatus === 'critical'
-                        ? 'bg-red-100 text-red-700'
+                        ? 'bg-rose-100/80 text-rose-700 border-rose-200/50'
                         : server.networkStatus === 'offline'
-                          ? 'bg-gray-100 text-gray-700'
-                          : 'bg-gray-100 text-gray-700'
+                          ? 'bg-slate-100/80 text-slate-700 border-slate-200/50'
+                          : 'bg-indigo-100/80 text-indigo-700 border-indigo-200/50'
                 }`}
               >
                 {server.networkStatus === 'healthy'
@@ -692,59 +813,96 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                         ? '오프라인'
                         : '유지보수'}
               </span>
-            </div>
+            </motion.div>
           )}
 
-          {/* 알림 */}
+          {/* 알림 - 개선된 디자인 */}
           {(() => {
             const totalAlerts =
               server.alertsSummary?.total ?? server.alerts ?? 0;
             return totalAlerts > 0 ? (
               <motion.div
-                className='flex items-center gap-2 p-2 bg-red-50 text-red-700 rounded-lg text-sm'
-                whileHover={{ scale: 1.02 }}
+                className='flex items-center gap-3 p-3 bg-rose-50/80 text-rose-700 rounded-xl text-sm font-medium border border-rose-200/50 shadow-sm backdrop-blur-sm'
+                whileHover={{ scale: 1.02, x: 2 }}
+                animate={{
+                  boxShadow: [
+                    '0 4px 6px -1px rgba(244, 63, 94, 0.1)',
+                    '0 10px 15px -3px rgba(244, 63, 94, 0.2)',
+                    '0 4px 6px -1px rgba(244, 63, 94, 0.1)',
+                  ],
+                }}
+                transition={{
+                  boxShadow: { duration: 2, repeat: Infinity },
+                }}
               >
-                <AlertTriangle className='w-4 h-4' />
-                <span className='font-medium'>{totalAlerts}개 알림</span>
+                <motion.div
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <AlertTriangle className='w-5 h-5' />
+                </motion.div>
+                <span className='font-bold'>{totalAlerts}개 알림</span>
               </motion.div>
             ) : null;
           })()}
 
-          {/* 추가 정보 (호버 시 표시) - compact에서는 숨김 */}
+          {/* 추가 정보 (호버 시 표시) - 개선된 디자인 */}
           <AnimatePresence>
             {isHovered && variant !== 'compact' && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className='space-y-2 pt-2 border-t border-gray-200'
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: 'auto', y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -10 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className='space-y-3 pt-4 border-t border-gray-200/50'
               >
-                <div className='flex justify-between text-xs text-gray-600'>
-                  <span>업타임:</span>
-                  <span className='font-medium'>{server.uptime}</span>
-                </div>
-                {server.ip && (
-                  <div className='flex justify-between text-xs text-gray-600'>
-                    <span>IP:</span>
-                    <span className='font-mono'>{server.ip}</span>
+                <div className='grid grid-cols-2 gap-3 text-xs'>
+                  <div className='flex justify-between items-center p-2 bg-white/60 rounded-lg'>
+                    <span className='text-gray-600 font-medium'>업타임:</span>
+                    <span className='font-bold text-gray-800'>
+                      {server.uptime}
+                    </span>
                   </div>
-                )}
-                {server.os && (
-                  <div className='flex justify-between text-xs text-gray-600'>
-                    <span>OS:</span>
-                    <span className='font-medium'>{server.os}</span>
+                  {server.ip && (
+                    <div className='flex justify-between items-center p-2 bg-white/60 rounded-lg'>
+                      <span className='text-gray-600 font-medium'>IP:</span>
+                      <span className='font-mono font-bold text-gray-800'>
+                        {server.ip}
+                      </span>
+                    </div>
+                  )}
+                  {server.os && (
+                    <div className='flex justify-between items-center p-2 bg-white/60 rounded-lg'>
+                      <span className='text-gray-600 font-medium'>OS:</span>
+                      <span className='font-bold text-gray-800'>
+                        {server.os}
+                      </span>
+                    </div>
+                  )}
+                  <div className='flex justify-between items-center p-2 bg-white/60 rounded-lg'>
+                    <span className='text-gray-600 font-medium'>업데이트:</span>
+                    <span className='font-bold text-gray-800'>
+                      {new Date(server.lastUpdate).toLocaleTimeString()}
+                    </span>
                   </div>
-                )}
-                <div className='flex justify-between text-xs text-gray-600'>
-                  <span>마지막 업데이트:</span>
-                  <span>
-                    {new Date(server.lastUpdate).toLocaleTimeString()}
-                  </span>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
+
+        {/* 클릭 효과 오버레이 */}
+        <AnimatePresence>
+          {isPressed && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 0.1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.2 }}
+              transition={{ duration: 0.2 }}
+              className='absolute inset-0 bg-blue-500 rounded-2xl pointer-events-none'
+            />
+          )}
+        </AnimatePresence>
       </motion.div>
     );
   }
