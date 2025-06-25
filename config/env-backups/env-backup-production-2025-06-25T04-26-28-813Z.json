@@ -1,0 +1,32 @@
+{
+  "id": "env-backup-production-2025-06-25T04-26-28-813Z",
+  "timestamp": "2025-06-25T04:26:28.813Z",
+  "version": "5.44.0",
+  "encrypted": {
+    "GOOGLE_AI_API_KEY": {
+      "encrypted": "174661c8409f9e2f609da455d879c17610fdfb3ef0c9c1c59bd9bcb17395f9a273467697b1f492",
+      "iv": "abda5faaa6f7a18543fb0aaf55d54b30",
+      "authTag": "1693c41874aac2a93212bba7ccbfef8b",
+      "salt": "8dd8a7de11935cfddd0c2e98916a19da46f6f9f4db147ec014527784dd5a6325"
+    },
+    "SUPABASE_SERVICE_ROLE_KEY": {
+      "encrypted": "d7f51edc5233985b182c2fabc5d168a386847fb58e",
+      "iv": "c15362b10357055ba52f6c228d603e99",
+      "authTag": "c6cd586f468f810e022a596881e681b0",
+      "salt": "d2589930a49a3c89b001f1b770a57355bcfc109f29622a3912a98ad491fc3090"
+    },
+    "UPSTASH_REDIS_REST_TOKEN": {
+      "encrypted": "5aa635461d9c0488efca2aa48da32b1caea6b0c0092c5f4ed50bbd476c7a9c17a03e65bd81bba85ba549073e2f6922fa38b5110b92c47052ef1e",
+      "iv": "0caf00776ca591c86e5c1aa0f5b7ed3c",
+      "authTag": "2dac43b9ea5469c5929ebdb4c385a18b",
+      "salt": "60571f262a0a15c1a2ba08253e4790ccedd8733da12e34f146ef2a943a754de1"
+    },
+    "UPSTASH_REDIS_REST_URL": {
+      "encrypted": "b00103d381daeea17fb82854beb043fca907cd45f80ed0c3c9ccbbd1c97fa20ab52926e521a5101a",
+      "iv": "a96ce5234b0112f512f3074d77e60db8",
+      "authTag": "94e7263f5852bf43579ffe01461ffdcc",
+      "salt": "34bc89dd0324b8f9bd878a958d59d54e24bbcba36463bf276b0063da53efe8c6"
+    }
+  },
+  "checksum": "3775eed49a7136fa5bb79cee2aa03576494bbab863a9a92b59e30a49bdf783c6"
+}
