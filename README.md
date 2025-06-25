@@ -106,7 +106,7 @@ git clone https://github.com/your-org/openmanager-vibe-v5.git
 cd openmanager-vibe-v5
 
 # 의존성 설치
-pnpm install
+npm install
 
 # 환경 변수 설정
 cp .env.example .env.local
@@ -117,13 +117,13 @@ cp .env.example .env.local
 
 ```bash
 # 개발 서버 시작
-pnpm dev
+npm run dev
 
 # 테스트 실행
-pnpm test
+npm test
 
 # 빌드 테스트
-pnpm build
+npm run build
 ```
 
 ### 3. AI 모드 테스트
@@ -210,23 +210,23 @@ Content-Type: application/json
 
 ```bash
 # 전체 테스트 실행
-pnpm test
+npm test
 
 # 단위 테스트만
-pnpm test:unit
+npm run test:unit
 
 # 통합 테스트만
-pnpm test:integration
+npm run test:integration
 
 # 커버리지 포함
-pnpm test:coverage
+npm run test:coverage
 ```
 
 ### 빠른 검증
 
 ```bash
 # 커밋 전 필수 검증
-pnpm validate:quick
+npm run validate:quick
 
 # 타입 체크 → 린트 → 테스트 → 빌드
 ```
@@ -258,7 +258,7 @@ pnpm validate:quick
 
 ```bash
 # Vercel 배포
-pnpm deploy
+npm run deploy
 
 # 또는 직접 배포
 vercel --prod

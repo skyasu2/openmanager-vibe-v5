@@ -49,8 +49,8 @@ CREATE TABLE command_vectors (
 );
 
 -- 벡터 검색 인덱스 (코사인 유사도)
-CREATE INDEX ON command_vectors 
-USING ivfflat (embedding vector_cosine_ops) 
+CREATE INDEX ON command_vectors
+USING ivfflat (embedding vector_cosine_ops)
 WITH (lists = 100);
 
 -- 메타데이터 검색 인덱스
@@ -70,7 +70,7 @@ RETURNS TABLE (
 )
 LANGUAGE sql STABLE
 AS $$
-    SELECT 
+    SELECT
         command_vectors.id,
         command_vectors.content,
         command_vectors.metadata,
@@ -113,10 +113,10 @@ node scripts/setup-env-for-supabase-rag.js
 
 ```bash
 # 필수 패키지 (OpenAI 제거)
-pnpm add @supabase/supabase-js
+npm install @supabase/supabase-js
 
 # 개발 의존성
-pnpm add -D @types/node
+npm install -D @types/node
 ```
 
 ## 🔧 로컬 임베딩 시스템
@@ -130,7 +130,7 @@ pnpm add -D @types/node
  */
 private generateLocalEmbedding(text: string): number[] {
     const embedding = new Array(384);
-    
+
     // 텍스트 해시 기반 시드 생성
     let hash = 0;
     for (let i = 0; i < text.length; i++) {
@@ -138,17 +138,17 @@ private generateLocalEmbedding(text: string): number[] {
         hash = ((hash << 5) - hash) + char;
         hash = hash & hash; // 32비트 정수 변환
     }
-    
+
     // 시드 기반 의사 랜덤 벡터 생성
     const seed = Math.abs(hash);
     let rng = seed;
-    
+
     for (let i = 0; i < 384; i++) {
         // 선형 합동 생성기 (LCG)
         rng = (rng * 1664525 + 1013904223) % Math.pow(2, 32);
         embedding[i] = (rng / Math.pow(2, 32)) * 2 - 1; // -1 ~ 1 범위
     }
-    
+
     // 벡터 정규화 (단위 벡터로 변환)
     const norm = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
     return embedding.map(val => val / norm);
@@ -172,8 +172,8 @@ import { getSupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 const ragEngine = getSupabaseRAGEngine();
 
 const result = await ragEngine.searchSimilar('top 명령어', {
-    maxResults: 5,
-    threshold: 0.7
+  maxResults: 5,
+  threshold: 0.7,
 });
 
 console.log('검색 결과:', result.results);
@@ -206,10 +206,10 @@ curl -X POST http://localhost:3000/api/test-supabase-rag \
 
 ## 📊 성능 지표
 
-| 환경 | 임베딩 생성 | 검색 시간 | 정확도 | 특징 |
-|------|-------------|----------|--------|------|
-| 로컬 | 즉시 (0ms) | 50-100ms | 85-90% | 로컬 임베딩 |
-| Vercel | 즉시 (0ms) | 100-200ms | 85-90% | pgvector 검색 |
+| 환경   | 임베딩 생성 | 검색 시간 | 정확도 | 특징          |
+| ------ | ----------- | --------- | ------ | ------------- |
+| 로컬   | 즉시 (0ms)  | 50-100ms  | 85-90% | 로컬 임베딩   |
+| Vercel | 즉시 (0ms)  | 100-200ms | 85-90% | pgvector 검색 |
 
 ## 🔄 2회 환경변수 점검 시스템
 
@@ -224,10 +224,10 @@ let supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 ```typescript
 if (!supabaseUrl || !supabaseKey) {
-    console.log('⚠️ 1차 환경변수 점검 실패, 암호화된 설정 복원 중...');
-    
-    supabaseUrl = process.env.ENCRYPTED_SUPABASE_URL || 'fallback-url';
-    supabaseKey = process.env.ENCRYPTED_SUPABASE_KEY || 'fallback-key';
+  console.log('⚠️ 1차 환경변수 점검 실패, 암호화된 설정 복원 중...');
+
+  supabaseUrl = process.env.ENCRYPTED_SUPABASE_URL || 'fallback-url';
+  supabaseKey = process.env.ENCRYPTED_SUPABASE_KEY || 'fallback-key';
 }
 ```
 
