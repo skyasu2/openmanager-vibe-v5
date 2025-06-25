@@ -1,0 +1,68 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Cursor Auto Test",
+      "type": "shell",
+      "command": "node",
+      "args": ["scripts/cursor-auto-test.js"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new"
+      },
+      "problemMatcher": [],
+      "detail": "Run all automated tests in Cursor IDE"
+    },
+    {
+      "label": "Quick Unit Test",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "test:unit"],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Run unit tests only"
+    },
+    {
+      "label": "Storybook Build Test",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "build-storybook"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Test Storybook build"
+    },
+    {
+      "label": "TypeScript Check",
+      "type": "shell",
+      "command": "npx",
+      "args": ["tsc", "--noEmit", "--skipLibCheck"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": ["$tsc"],
+      "detail": "Run TypeScript type checking"
+    }
+  ]
+}

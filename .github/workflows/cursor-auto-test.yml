@@ -1,0 +1,133 @@
+name: Cursor Auto Test
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'stories/**'
+      - 'scripts/cursor-auto-test.js'
+      - 'scripts/validate-storybook.js'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'stories/**'
+  workflow_dispatch:
+
+jobs:
+  cursor-auto-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - name: 📋 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 🔧 Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: 📦 의존성 설치
+        run: |
+          npm ci
+          npx playwright install --with-deps
+
+      - name: 🎯 커서 자동 테스트 실행
+        run: npm run cursor:auto-test
+        env:
+          CI: true
+          NODE_ENV: test
+          FORCE_MOCK_REDIS: true
+          FORCE_MOCK_GOOGLE_AI: true
+          STORYBOOK: true
+          DISABLE_HEALTH_CHECK: true
+          HEALTH_CHECK_CONTEXT: false
+          REDIS_CONNECTION_DISABLED: true
+          UPSTASH_REDIS_DISABLED: true
+
+      - name: 📊 테스트 보고서 업로드
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cursor-test-reports
+          path: |
+            cursor-test-report.json
+            CURSOR_TEST_REPORT.md
+            eslint-report.json
+            storybook-validation-report.json
+          retention-days: 30
+
+      - name: 📋 테스트 결과 요약
+        if: always()
+        run: |
+          echo "## 🎯 커서 자동 테스트 결과" >> $GITHUB_STEP_SUMMARY
+          if [ -f "CURSOR_TEST_REPORT.md" ]; then
+            cat CURSOR_TEST_REPORT.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "테스트 보고서를 찾을 수 없습니다." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 💬 PR 코멘트 생성
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let comment = '## 🎯 커서 자동 테스트 결과\n\n';
+
+            try {
+              if (fs.existsSync('CURSOR_TEST_REPORT.md')) {
+                const report = fs.readFileSync('CURSOR_TEST_REPORT.md', 'utf8');
+                comment += report;
+              } else {
+                comment += '테스트 보고서를 찾을 수 없습니다.';
+              }
+            } catch (error) {
+              comment += `보고서 읽기 실패: ${error.message}`;
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  quick-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'push'
+
+    steps:
+      - name: 📋 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 🔧 Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: 📦 의존성 설치
+        run: npm ci
+
+      - name: ⚡ 빠른 검증
+        run: |
+          npm run cursor:validate
+          npm run test:unit
+        env:
+          CI: true
+          NODE_ENV: test
+          FORCE_MOCK_REDIS: true
+          FORCE_MOCK_GOOGLE_AI: true
+          DISABLE_HEALTH_CHECK: true

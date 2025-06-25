@@ -15,7 +15,11 @@
   },
   "files.associations": {
     "*.json": "jsonc",
-    "*.css": "tailwindcss"
+    "*.css": "tailwindcss",
+    "*.test.ts": "typescript",
+    "*.test.tsx": "typescriptreact",
+    "*.stories.ts": "typescript",
+    "*.stories.tsx": "typescriptreact"
   },
   "json.schemas": [
     {
@@ -43,7 +47,10 @@
     "**/build": true,
     "**/coverage": true,
     "**/storybook-static": true,
-    "**/test-results.json": true
+    "**/test-results.json": true,
+    "**/cursor-test-report.json": true,
+    "**/eslint-report.json": true,
+    "**/storybook-validation-report.json": true
   },
   "search.exclude": {
     "**/node_modules": true,
@@ -53,7 +60,10 @@
     "**/dist": true,
     "**/build": true,
     "**/coverage": true,
-    "**/storybook-static": true
+    "**/storybook-static": true,
+    "**/cursor-test-report.json": true,
+    "**/eslint-report.json": true,
+    "**/storybook-validation-report.json": true
   },
   "emmet.includeLanguages": {
     "typescript": "html",
@@ -66,12 +76,13 @@
   "prettier.trailingComma": "es5",
   "typescript.preferences.importModuleSpecifier": "relative",
   "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
   "tailwindCSS.includeLanguages": {
     "typescript": "javascript",
     "typescriptreact": "javascript"
   },
   "vitest.enable": true,
-  "vitest.commandLine": "npm run cursor:test:watch",
+  "vitest.commandLine": "npm run test:unit",
   "testing.automaticallyOpenPeekView": "never",
   "testing.followRunningTest": true,
   "testing.openTesting": "neverOpen",
@@ -88,9 +99,7 @@
   "terminal.integrated.profiles.windows": {
     "Git Bash": {
       "path": "C:\\Program Files\\Git\\bin\\bash.exe",
-      "args": ["--login", "-i"],
-      "icon": "terminal-bash",
-      "color": "terminal.ansiGreen"
+      "args": []
     },
     "Ubuntu (WSL)": {
       "path": "C:\\Windows\\System32\\wsl.exe",
@@ -138,5 +147,11 @@
     "**/dist/**": true,
     "**/build/**": true,
     "**/coverage/**": true
-  }
+  },
+  "files.autoSave": "onFocusChange",
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "jest.autoRun": "off",
+  "tasks.autoDetect": "on"
 }

@@ -1,0 +1,17 @@
+{
+  "timestamp": "2025-06-25T07:01:54.386Z",
+  "summary": {
+    "totalChecks": 4,
+    "passedChecks": 2,
+    "success": false
+  },
+  "details": {
+    "buildSuccess": true,
+    "serverRunning": false,
+    "storiesValid": true,
+    "totalStories": 3,
+    "validStories": 3,
+    "errors": ["프로세스 에러: spawn npm ENOENT"]
+  },
+  "recommendations": ["스토리북 서버 설정을 확인하세요"]
+}
