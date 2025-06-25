@@ -70,11 +70,11 @@ interface EnhancedServerCardProps {
     os?: string;
     ip?: string;
     networkStatus?:
-      | 'healthy'
-      | 'warning'
-      | 'critical'
-      | 'offline'
-      | 'maintenance';
+    | 'healthy'
+    | 'warning'
+    | 'critical'
+    | 'offline'
+    | 'maintenance';
     health?: {
       score: number;
     };
@@ -244,72 +244,72 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       switch (server.status) {
         case 'healthy':
           return {
-            gradient: 'from-emerald-50/80 via-green-50/60 to-teal-50/40',
-            border: 'border-emerald-200/60',
-            hoverBorder: 'hover:border-emerald-300/80',
-            statusBg: 'bg-emerald-100/80',
+            gradient: 'from-white to-emerald-50/30',
+            border: 'border-emerald-200',
+            hoverBorder: 'hover:border-emerald-300',
+            statusBg: 'bg-emerald-100',
             statusText: 'text-emerald-800',
             statusIcon: '✅',
             label: '정상',
-            glow: 'shadow-emerald-100/50',
+            glow: 'shadow-emerald-100/30',
             accent: 'text-emerald-600',
-            iconBg: 'bg-emerald-100/90',
+            iconBg: 'bg-emerald-100',
             pulse: 'bg-emerald-400',
           };
         case 'warning':
           return {
-            gradient: 'from-amber-50/80 via-yellow-50/60 to-orange-50/40',
-            border: 'border-amber-200/60',
-            hoverBorder: 'hover:border-amber-300/80',
-            statusBg: 'bg-amber-100/80',
+            gradient: 'from-white to-amber-50/30',
+            border: 'border-amber-200',
+            hoverBorder: 'hover:border-amber-300',
+            statusBg: 'bg-amber-100',
             statusText: 'text-amber-800',
             statusIcon: '⚠️',
             label: '경고',
-            glow: 'shadow-amber-100/50',
+            glow: 'shadow-amber-100/30',
             accent: 'text-amber-600',
-            iconBg: 'bg-amber-100/90',
+            iconBg: 'bg-amber-100',
             pulse: 'bg-amber-400',
           };
         case 'critical':
           return {
-            gradient: 'from-rose-50/80 via-red-50/60 to-pink-50/40',
-            border: 'border-rose-200/60',
-            hoverBorder: 'hover:border-rose-300/80',
-            statusBg: 'bg-rose-100/80',
+            gradient: 'from-white to-rose-50/30',
+            border: 'border-rose-200',
+            hoverBorder: 'hover:border-rose-300',
+            statusBg: 'bg-rose-100',
             statusText: 'text-rose-800',
             statusIcon: '🚨',
             label: '위험',
-            glow: 'shadow-rose-100/50',
+            glow: 'shadow-rose-100/30',
             accent: 'text-rose-600',
-            iconBg: 'bg-rose-100/90',
+            iconBg: 'bg-rose-100',
             pulse: 'bg-rose-400',
           };
         case 'maintenance':
           return {
-            gradient: 'from-indigo-50/80 via-blue-50/60 to-cyan-50/40',
-            border: 'border-indigo-200/60',
-            hoverBorder: 'hover:border-indigo-300/80',
-            statusBg: 'bg-indigo-100/80',
+            gradient: 'from-white to-indigo-50/30',
+            border: 'border-indigo-200',
+            hoverBorder: 'hover:border-indigo-300',
+            statusBg: 'bg-indigo-100',
             statusText: 'text-indigo-800',
             statusIcon: '🔧',
             label: '유지보수',
-            glow: 'shadow-indigo-100/50',
+            glow: 'shadow-indigo-100/30',
             accent: 'text-indigo-600',
-            iconBg: 'bg-indigo-100/90',
+            iconBg: 'bg-indigo-100',
             pulse: 'bg-indigo-400',
           };
         default:
           return {
-            gradient: 'from-slate-50/80 via-gray-50/60 to-zinc-50/40',
-            border: 'border-slate-200/60',
-            hoverBorder: 'hover:border-slate-300/80',
-            statusBg: 'bg-slate-100/80',
+            gradient: 'from-white to-slate-50/30',
+            border: 'border-slate-200',
+            hoverBorder: 'hover:border-slate-300',
+            statusBg: 'bg-slate-100',
             statusText: 'text-slate-700',
             statusIcon: '⚪',
             label: '오프라인',
-            glow: 'shadow-slate-100/50',
+            glow: 'shadow-slate-100/30',
             accent: 'text-slate-600',
-            iconBg: 'bg-slate-100/90',
+            iconBg: 'bg-slate-100',
             pulse: 'bg-slate-400',
           };
       }
@@ -353,8 +353,8 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
 
       return (
         <motion.div
-          className='flex flex-col bg-white/95 rounded-xl p-4 group hover:bg-white transition-all duration-300 shadow-md hover:shadow-lg backdrop-blur-sm border border-white/30'
-          whileHover={{ scale: 1.03 }}
+          className='flex flex-col bg-white rounded-xl p-4 group hover:bg-gray-50 transition-all duration-300 shadow-sm hover:shadow-md border border-gray-200'
+          whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.2 }}
         >
           {/* 라벨과 아이콘 */}
@@ -372,13 +372,12 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             </div>
             {/* 수치 표시 - 개선된 디자인 */}
             <motion.span
-              className={`text-sm font-bold px-2 py-1 rounded-lg ${
-                currentValue > 80
+              className={`text-sm font-bold px-2 py-1 rounded-lg ${currentValue > 80
                   ? 'bg-red-100/80 text-red-700'
                   : currentValue > 70
                     ? 'bg-yellow-100/80 text-yellow-700'
                     : 'bg-gray-100/80 text-gray-700'
-              }`}
+                }`}
               animate={{
                 scale: currentValue > 80 ? [1, 1.05, 1] : 1,
               }}
@@ -393,7 +392,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
 
           {/* 차트 */}
           <div
-            className={`${variantStyles.chartSize} relative bg-gradient-to-br from-white/80 to-gray-50/60 rounded-xl p-4 shadow-inner border border-gray-200/50`}
+            className={`${variantStyles.chartSize} relative bg-gray-50 rounded-xl p-4 border border-gray-200`}
           >
             <svg
               className='w-full h-full'
@@ -606,9 +605,8 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         relative ${variantStyles.padding} ${variantStyles.cardHeight} rounded-2xl cursor-pointer
         bg-gradient-to-br ${theme.gradient}
         border-2 ${theme.border} ${theme.hoverBorder}
-        shadow-lg ${theme.glow} hover:shadow-2xl
+        shadow-md ${theme.glow} hover:shadow-lg
         transition-all duration-300 ease-out
-        backdrop-blur-lg
         group overflow-hidden
       `}
         onClick={handleCardClick}
@@ -617,9 +615,6 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         onMouseDown={() => setIsPressed(true)}
         onMouseUp={() => setIsPressed(false)}
       >
-        {/* 배경 오버레이 효과 */}
-        <div className='absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/5 pointer-events-none' />
-
         {/* 실시간 활동 인디케이터 - 개선된 디자인 */}
         <div className='absolute top-4 right-4 flex items-center gap-2 z-10'>
           <motion.div
@@ -702,7 +697,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         <div className='space-y-5'>
           {showMiniCharts && (
             <div
-              className={`grid ${variantStyles.chartContainer} bg-white/80 rounded-2xl ${variant === 'compact' ? 'p-4' : 'p-6'} backdrop-blur-sm border border-white/50 shadow-lg`}
+              className={`grid ${variantStyles.chartContainer} bg-white rounded-2xl ${variant === 'compact' ? 'p-4' : 'p-6'} border border-gray-200 shadow-sm`}
             >
               <MiniChart
                 data={realtimeData.cpu}
@@ -737,20 +732,18 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               {server.services.slice(0, 3).map((service, idx) => (
                 <motion.div
                   key={idx}
-                  className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 font-medium shadow-sm border transition-all duration-200 ${
-                    service.status === 'running'
+                  className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 font-medium shadow-sm border transition-all duration-200 ${service.status === 'running'
                       ? 'bg-emerald-100/80 text-emerald-700 border-emerald-200/50'
                       : 'bg-rose-100/80 text-rose-700 border-rose-200/50'
-                  }`}
+                    }`}
                   whileHover={{ scale: 1.05, y: -1 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <motion.div
-                    className={`w-2 h-2 rounded-full ${
-                      service.status === 'running'
+                    className={`w-2 h-2 rounded-full ${service.status === 'running'
                         ? 'bg-emerald-500'
                         : 'bg-rose-500'
-                    }`}
+                      }`}
                     animate={{
                       scale: service.status === 'running' ? [1, 1.2, 1] : 1,
                     }}
@@ -791,8 +784,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 </span>
               </div>
               <span
-                className={`text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm border ${
-                  server.networkStatus === 'healthy'
+                className={`text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm border ${server.networkStatus === 'healthy'
                     ? 'bg-emerald-100/80 text-emerald-700 border-emerald-200/50'
                     : server.networkStatus === 'warning'
                       ? 'bg-amber-100/80 text-amber-700 border-amber-200/50'
@@ -801,7 +793,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                         : server.networkStatus === 'offline'
                           ? 'bg-slate-100/80 text-slate-700 border-slate-200/50'
                           : 'bg-indigo-100/80 text-indigo-700 border-indigo-200/50'
-                }`}
+                  }`}
               >
                 {server.networkStatus === 'healthy'
                   ? '정상'

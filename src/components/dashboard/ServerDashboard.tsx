@@ -164,7 +164,7 @@ export default function ServerDashboard({
             )}
 
             {/* 🎯 15개 서버 최적화 그리드 레이아웃 */}
-            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'>
+            <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
               {sortedServers.map((server, index) => (
                 <EnhancedServerCard
                   key={server.id}
@@ -250,9 +250,8 @@ export default function ServerDashboard({
       )}
 
       {selectedServer && (
-        <ServerDetailModal
+        <EnhancedServerModal
           server={selectedServer}
-          metricsHistory={selectedServerMetrics ? [selectedServerMetrics] : []}
           onClose={handleModalClose}
         />
       )}
