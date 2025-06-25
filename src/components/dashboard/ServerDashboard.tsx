@@ -1,7 +1,7 @@
 'use client';
 
-import EnhancedServerCard from '@/components/dashboard/EnhancedServerCard';
-import ServerDetailModal from '@/components/dashboard/ServerDetailModal';
+import EnhancedServerModal from '@/components/dashboard/EnhancedServerModal';
+import ImprovedServerCard from '@/components/dashboard/ServerCard/ImprovedServerCard';
 import {
   Pagination,
   PaginationContent,
@@ -163,41 +163,40 @@ export default function ServerDashboard({
               </div>
             )}
 
-            {/* 🎯 15개 서버 최적화 그리드 레이아웃 */}
+            {/* 🎯 15개 서버 최적화 그리드 레이아웃 - ImprovedServerCard 사용 */}
             <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
               {sortedServers.map((server, index) => (
-                <EnhancedServerCard
+                <ImprovedServerCard
                   key={server.id}
                   server={{
-                    ...server,
+                    id: server.id,
+                    name: server.name,
+                    status:
+                      server.status === 'online' ? 'online' : server.status,
                     cpu: (server as any).cpu || 0,
                     memory: (server as any).memory || 0,
                     disk: (server as any).disk || 0,
-                    lastUpdate: (server as any).lastUpdate || new Date(),
-                    services: (server as any).services || [],
-                    ...server,
-                    hostname: (server as any).hostname || server.name,
-                    type: (server as any).type || 'api',
-                    environment: (server as any).environment || 'prod',
-                    location: (server as any).location || 'unknown',
-                    provider: (server as any).provider || 'Unknown',
-                    status:
-                      server.status === 'online'
-                        ? 'healthy'
-                        : (server.status as any),
+                    network: (server as any).network || 25,
+                    location: server.location || 'unknown',
                     uptime:
                       typeof (server as any).uptime === 'string'
                         ? (server as any).uptime
                         : typeof (server as any).uptime === 'number'
                           ? `${Math.floor((server as any).uptime / 3600)}h ${Math.floor(((server as any).uptime % 3600) / 60)}m`
                           : '0h 0m',
+                    ip: (server as any).ip || '192.168.1.100',
+                    os: (server as any).os || 'Ubuntu 22.04',
                     alerts:
                       typeof (server as any).alerts === 'number'
                         ? (server as any).alerts
                         : Array.isArray((server as any).alerts)
                           ? (server as any).alerts.length
                           : 0,
+                    lastUpdate: (server as any).lastUpdate || new Date(),
+                    services: (server as any).services || [],
                   }}
+                  variant='compact'
+                  showRealTimeUpdates={true}
                   index={index}
                   onClick={() => handleServerSelect(server as any)}
                 />
@@ -249,10 +248,58 @@ export default function ServerDashboard({
         </div>
       )}
 
+      {/* 🎯 통합된 모달 - EnhancedServerModal 사용 */}
       {selectedServer && (
-        <ServerDetailModal
-          server={selectedServer}
-          metricsHistory={selectedServerMetrics ? [selectedServerMetrics] : []}
+        <EnhancedServerModal
+          server={{
+            id: selectedServer.id,
+            hostname: selectedServer.hostname || selectedServer.name,
+            name: selectedServer.name,
+            type: (selectedServer as any).type || 'api',
+            environment: (selectedServer as any).environment || 'prod',
+            location: selectedServer.location || 'unknown',
+            provider: (selectedServer as any).provider || 'Unknown',
+            status:
+              selectedServer.status === 'online'
+                ? 'healthy'
+                : (selectedServer.status as any),
+            cpu: (selectedServer as any).cpu || 0,
+            memory: (selectedServer as any).memory || 0,
+            disk: (selectedServer as any).disk || 0,
+            network: (selectedServer as any).network || 25,
+            uptime:
+              typeof (selectedServer as any).uptime === 'string'
+                ? (selectedServer as any).uptime
+                : typeof (selectedServer as any).uptime === 'number'
+                  ? `${Math.floor((selectedServer as any).uptime / 3600)}h ${Math.floor(((selectedServer as any).uptime % 3600) / 60)}m`
+                  : '0h 0m',
+            lastUpdate: (selectedServer as any).lastUpdate || new Date(),
+            alerts:
+              typeof (selectedServer as any).alerts === 'number'
+                ? (selectedServer as any).alerts
+                : Array.isArray((selectedServer as any).alerts)
+                  ? (selectedServer as any).alerts.length
+                  : 0,
+            services: (selectedServer as any).services || [],
+            specs: (selectedServer as any).specs || {
+              cpu_cores: 4,
+              memory_gb: 8,
+              disk_gb: 250,
+              network_speed: '1Gbps',
+            },
+            os: (selectedServer as any).os || 'Ubuntu 22.04',
+            ip: (selectedServer as any).ip || '192.168.1.100',
+            networkStatus: (selectedServer as any).networkStatus || 'good',
+            health: (selectedServer as any).health || {
+              score: 85,
+              trend: [80, 82, 85, 87, 85],
+            },
+            alertsSummary: (selectedServer as any).alertsSummary || {
+              total: (selectedServer as any).alerts || 0,
+              critical: 0,
+              warning: (selectedServer as any).alerts || 0,
+            },
+          }}
           onClose={handleModalClose}
         />
       )}
