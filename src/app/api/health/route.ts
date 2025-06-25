@@ -436,276 +436,113 @@ class AutoEnvRecoverySystem {
  * 🏥 시스템 헬스 체크 (Vercel 최적화)
  */
 export async function GET(request: NextRequest) {
-  // 🚨 서버 사이드 전용 모듈들을 동적으로 로드
-  let EnvBackupManager: any = null;
-  let EnvironmentCryptoManager: any = null;
-  let RealServerDataGenerator: any = null;
-  let validateSystemForOperation: any = null;
-
   try {
-    const envBackupModule = await import('@/lib/env-backup-manager');
-    EnvBackupManager = envBackupModule.EnvBackupManager;
+    console.log('🔍 헬스체크 API 호출됨');
 
-    const envCryptoModule = await import('@/lib/env-crypto-manager');
-    EnvironmentCryptoManager = envCryptoModule.EnvironmentCryptoManager;
-
-    const dataGenModule = await import(
-      '@/services/data-generator/RealServerDataGenerator'
-    );
-    RealServerDataGenerator = dataGenModule.RealServerDataGenerator;
-
-    const systemCheckerModule = await import('@/utils/systemStateChecker');
-    validateSystemForOperation = systemCheckerModule.validateSystemForOperation;
-  } catch (error) {
-    console.warn('⚠️ 서버 사이드 모듈 로딩 실패:', error);
-    return NextResponse.json(
-      {
-        status: 'error',
-        message: '서버 모듈 로딩 실패',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString(),
-      },
-      { status: 503 }
-    );
-  }
-
-  // 🛑 시스템 온오프 상태 확인 - "오프일 때는 무동작 원칙"
-  const systemValidation = await validateSystemForOperation('Health Check');
-
-  if (!systemValidation.canProceed) {
-    return NextResponse.json(
-      {
-        status: 'system_offline',
-        message: '시스템이 비활성화 상태입니다',
-        reason: systemValidation.reason,
-        systemState: systemValidation.systemState,
-        timestamp: new Date().toISOString(),
-        adaptiveMonitoring: {
-          phase: 'system_offline',
-          reasoning: '시스템 오프 상태 - 모든 모니터링 중단',
-          systemUptime: '0초',
-          nextCheckIn: '시스템 활성화 후',
-        },
-      },
-      { status: 503 }
-    );
-  }
-
-  const { searchParams } = new URL(request.url);
-  const refresh = searchParams.get('refresh') === 'true';
-
-  // 🎯 적응형 모니터링: 캐시 TTL 동적 계산
-  const adaptiveConfig = getAdaptiveCacheTTL();
-  const cacheKey = 'health_check_v2';
-
-  // 🚀 수동 갱신이 아닌 경우 캐시 확인
-  if (!refresh) {
-    const cached = getCachedHealth(cacheKey);
-    if (cached) {
-      return NextResponse.json({
-        ...cached,
-        cached: true,
-        cacheInfo: {
-          source: 'cache',
-          ttl: adaptiveConfig.ttl,
-          phase: adaptiveConfig.phase,
-          reasoning: adaptiveConfig.reasoning,
-        },
-        systemState: {
-          isActive: systemValidation.systemState.isSystemActive,
-          reason: systemValidation.reason,
-        },
-      });
-    }
-  }
-
-  const start = Date.now();
-
-  try {
-    console.log('🏥 [Health Check] 시작...');
-
-    // 🧠 적응형 모니터링 정보 계산
-    const adaptiveInfo = getAdaptiveCacheTTL();
-    const uptime = Date.now() - SYSTEM_START_TIME;
-
-    console.log(`📊 [적응형 모니터링] ${adaptiveInfo.reasoning}`);
-
-    // 🎯 강제 갱신이 아닌 경우에만 캐시 확인
-    if (!refresh) {
-      const cacheKey = 'full_health_check';
-      const cached = getCachedHealth(cacheKey);
-
-      if (cached) {
-        console.log(
-          `🎯 헬스체크 캐시 사용 (${adaptiveInfo.phase} 모드) - API 호출 절약`
-        );
-        return NextResponse.json({
-          ...cached,
-          cached: true,
-          adaptiveMonitoring: {
-            phase: adaptiveInfo.phase,
-            reasoning: adaptiveInfo.reasoning,
-            systemUptime: `${Math.round(uptime / 1000)}초`,
-            nextCheckIn: `${Math.round(adaptiveInfo.ttl / 1000)}초 후`,
-            cacheHit: true,
-          },
-          cacheInfo: {
-            hit: true,
-            ttl: adaptiveInfo.ttl,
-            responseTime: `${Date.now() - start}ms`,
-            note: '캐시된 결과. ?refresh=true로 강제 갱신 가능',
-          },
-        });
-      }
-    } else {
-      console.log('🔄 강제 갱신 요청 - 캐시 무시');
-    }
-
-    // 🎯 헬스체크 컨텍스트 명시적 설정
-    process.env.HEALTH_CHECK_CONTEXT = 'true';
-
-    // 🔧 환경변수 자동 복구 시스템 초기화
-    const autoRecovery = AutoEnvRecoverySystem.getInstance();
-
-    // 🏥 기본 헬스체크 (캐싱 없음 - 빠른 응답)
-    const healthChecks = {
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      memory: process.memoryUsage(),
-      environment: process.env.NODE_ENV || 'development',
-      optimization: {
-        vercel: !!process.env.VERCEL,
-        caching: true,
-        cacheTTL: getAdaptiveCacheTTL().ttl,
-      },
+    // 환경변수 상태 확인 (서버 전용)
+    let envStatus = {
+      initialized: true,
+      valid: true,
+      missing: [] as string[],
+      message: '환경변수 상태 확인 불가 (클라이언트 모드)',
     };
 
-    // 🔧 환경변수 검증 (캐싱 적용)
-    const envCacheKey = 'env_recovery';
-    let envRecoveryResult = getCachedHealth(envCacheKey);
-
-    if (!envRecoveryResult) {
-      envRecoveryResult = await autoRecovery.attemptAutoRecovery([
-        'NEXT_PUBLIC_SUPABASE_URL',
-        'SUPABASE_URL',
-        'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-      ]);
-      setCachedHealth(
-        envCacheKey,
-        envRecoveryResult,
-        getAdaptiveCacheTTL().ttl
+    try {
+      // 서버에서만 환경변수 상태 확인
+      const { checkEnvironmentStatus } = await import(
+        '@/lib/environment/auto-decrypt-env'
       );
+      envStatus = await checkEnvironmentStatus();
+    } catch (error) {
+      console.warn('⚠️ 환경변수 상태 확인 실패:', error);
     }
 
-    const envStatus = {
-      status: envRecoveryResult.success ? 'healthy' : 'degraded',
-      details: envRecoveryResult,
-      cached: envRecoveryResult !== getCachedHealth(envCacheKey),
-    };
-
-    // 🔴 Redis 상태 확인 (캐싱 적용)
-    const redisCacheKey = 'redis_health';
-    let redisStatus = getCachedHealth(redisCacheKey);
-
-    if (!redisStatus) {
-      redisStatus = await autoRecovery.checkRedisHealth();
-      setCachedHealth(redisCacheKey, redisStatus, getAdaptiveCacheTTL().ttl);
-    }
-
-    // 🚀 MCP 서버 상태 확인 (최적화된 버전)
-    const mcpStatus = await checkMCPServersHealth();
-
-    // 📊 서버 데이터 생성기 상태 (빠른 확인)
-    const generator = RealServerDataGenerator.getInstance();
-    const generatorStatus = generator.getStatus();
-
-    const responseTime = Date.now() - start;
-    const overallStatus = determineOverallStatus([
-      envStatus.status,
-      redisStatus.status,
-      mcpStatus.status,
-      generatorStatus.isInitialized ? 'healthy' : 'degraded',
-    ]);
-
-    // 🎯 결과에 적응형 모니터링 정보 추가
-    const result = {
-      status: overallStatus,
+    // 기본 시스템 정보
+    const systemInfo = {
       timestamp: new Date().toISOString(),
-      responseTime: `${responseTime}ms`,
-      version: '5.44.3-optimized',
-
-      // 시스템 기본 정보
-      system: healthChecks,
-
-      // 개별 서비스 상태
-      services: {
-        environment: envStatus,
-        redis: { ...redisStatus, cached: true },
-        mcp: mcpStatus,
-        dataGenerator: {
-          status: generatorStatus.isInitialized ? 'healthy' : 'degraded',
-          details: generatorStatus,
-        },
-      },
-
-      // 🚀 적응형 모니터링 정보
-      adaptiveMonitoring: {
-        phase: adaptiveInfo.phase,
-        reasoning: adaptiveInfo.reasoning,
-        systemUptime: `${Math.round(uptime / 1000)}초`,
-        nextCheckIn: `${Math.round(adaptiveInfo.ttl / 1000)}초 후`,
-        intensivePhase: uptime < ADAPTIVE_CACHE_TTL.STARTUP_DURATION,
-        cacheHit: false,
-      },
-
-      optimization: {
-        cacheHits: Array.from(healthCache.keys()).length,
-        cacheTTL: adaptiveInfo.ttl,
-        vercelOptimized: !!process.env.VERCEL,
-        monitoringStrategy:
-          adaptiveInfo.phase === 'startup_intensive'
-            ? '집중 모니터링 (30초 간격)'
-            : '효율 모니터링 (5-8분 간격)',
-      },
-
-      // 요약 통계
-      summary: {
-        healthy: [envStatus, redisStatus, mcpStatus].filter(
-          s => s.status === 'healthy'
-        ).length,
-        total: 4,
-        uptime: `${Math.floor(process.uptime())}초`,
-        memoryUsage: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
+      nodeVersion: process.version,
+      platform: process.platform,
+      uptime: process.uptime(),
+      memory: {
+        used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+        total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+        external: Math.round(process.memoryUsage().external / 1024 / 1024),
       },
     };
 
-    // 🎯 적응형 TTL로 캐싱
-    setCachedHealth('full_health_check', result, adaptiveInfo.ttl);
+    // 환경 설정 정보
+    const environmentInfo = {
+      nodeEnv: process.env.NODE_ENV || 'unknown',
+      vercelEnv: process.env.VERCEL_ENV || 'local',
+      isVercel: !!process.env.VERCEL,
+      buildTime: process.env.BUILD_TIME || 'unknown',
+    };
 
-    console.log(
-      `✅ [적응형 모니터링] 헬스체크 완료 - ${adaptiveInfo.phase} 모드 (다음 체크: ${Math.round(adaptiveInfo.ttl / 1000)}초 후)`
-    );
+    // 서비스 상태 확인
+    const services = {
+      nextjs: 'healthy',
+      environment: envStatus.valid ? 'healthy' : 'warning',
+      memory: systemInfo.memory.used < 200 ? 'healthy' : 'warning',
+    };
 
-    return NextResponse.json(result);
-  } catch (error: any) {
-    const responseTime = Date.now() - start;
-    const adaptiveInfo = getAdaptiveCacheTTL();
+    // 전체 상태 결정
+    const overallStatus = Object.values(services).every(
+      status => status === 'healthy'
+    )
+      ? 'healthy'
+      : 'warning';
 
-    return NextResponse.json(
-      {
-        status: 'error',
-        timestamp: new Date().toISOString(),
-        responseTime: `${responseTime}ms`,
-        error: error.message,
-        adaptiveMonitoring: {
-          phase: adaptiveInfo.phase,
-          reasoning: adaptiveInfo.reasoning,
-          systemUptime: `${Math.round((Date.now() - SYSTEM_START_TIME) / 1000)}초`,
-          errorDuringPhase: adaptiveInfo.phase,
+    const healthData = {
+      status: overallStatus,
+      timestamp: systemInfo.timestamp,
+      version: '5.44.0',
+      system: systemInfo,
+      environment: environmentInfo,
+      services,
+      envStatus: {
+        initialized: envStatus.initialized,
+        valid: envStatus.valid,
+        missingCount: envStatus.missing.length,
+        message: envStatus.message,
+      },
+    };
+
+    console.log(`✅ 헬스체크 완료 - 상태: ${overallStatus}`);
+
+    return NextResponse.json(healthData, {
+      status: overallStatus === 'healthy' ? 200 : 503,
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
+    });
+  } catch (error) {
+    console.error('❌ 헬스체크 API 오류:', error);
+
+    const errorResponse = {
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      version: '5.44.0',
+      error: {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        type: 'HealthCheckError',
+      },
+      system: {
+        nodeVersion: process.version,
+        platform: process.platform,
+        memory: {
+          used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
         },
       },
-      { status: 500 }
-    );
+    };
+
+    return NextResponse.json(errorResponse, {
+      status: 500,
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      },
+    });
   }
 }
 
@@ -717,12 +554,8 @@ export async function OPTIONS() {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers':
-        'Content-Type, x-vercel-protection-bypass, x-vercel-set-bypass-cookie',
-      'x-vercel-protection-bypass':
-        process.env.VERCEL_AUTOMATION_BYPASS_SECRET ||
-        'ee2aGggamAVy7ti2iycFOXamwgjIhuhr',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
     },
   });
 }

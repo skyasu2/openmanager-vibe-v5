@@ -7,8 +7,8 @@
  */
 
 import { utf8Logger } from '@/utils/utf8-logger';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import autoDecryptEnv from '../environment/auto-decrypt-env';
+import { createClient } from '@supabase/supabase-js';
+import { checkEnvironmentStatus } from '../environment/auto-decrypt-env';
 import { koreanMorphologyAnalyzer } from './korean-morphology-analyzer';
 
 interface VectorDocument {
@@ -49,7 +49,7 @@ interface MCPFileSystemContext {
 }
 
 export class SupabaseRAGEngine {
-  private supabase: SupabaseClient;
+  private supabase: any;
   private isInitialized = false;
   private vectorDimension = 384; // 효율적인 384차원으로 통일
   private initializationPromise: Promise<void> | null = null;
@@ -498,9 +498,17 @@ export class SupabaseRAGEngine {
   private createSupabaseClient() {
     // 자동 복호화 시스템을 통한 환경변수 복구 시도
     try {
-      autoDecryptEnv.forceRestoreAll();
+      checkEnvironmentStatus()
+        .then(envStatus => {
+          if (!envStatus.valid) {
+            console.warn('⚠️ 환경변수 검증 실패:', envStatus.message);
+          }
+        })
+        .catch(error => {
+          console.warn('⚠️ 환경변수 상태 확인 실패:', error);
+        });
     } catch (error) {
-      console.warn('⚠️ 자동 복호화 시스템 사용 실패:', error);
+      console.warn('⚠️ 환경변수 상태 확인 실패:', error);
     }
 
     // 1차 점검: 표준 환경변수

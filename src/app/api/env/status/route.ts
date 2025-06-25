@@ -1,56 +1,68 @@
-import autoDecryptEnv from '@/lib/environment/auto-decrypt-env';
+import { checkEnvironmentStatus } from '@/lib/environment/auto-decrypt-env';
+import { envManagerProxy } from '@/lib/environment/client-safe-env';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
-    // 자동 복호화 시스템 상태 확인
-    const status = autoDecryptEnv.getStatus();
+    console.log('🔍 환경변수 상태 API 호출됨');
 
-    // 현재 환경변수 상태 점검
-    const envVars = [
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-      'SUPABASE_SERVICE_ROLE_KEY',
-      'UPSTASH_REDIS_REST_URL',
-      'UPSTASH_REDIS_REST_TOKEN',
-      'GOOGLE_AI_API_KEY',
-      'RENDER_MCP_SERVER_URL',
-    ];
+    // 환경변수 상태 확인
+    const envStatus = await checkEnvironmentStatus();
 
-    const envStatus = envVars.map(varName => ({
-      name: varName,
-      exists: !!process.env[varName],
-      length: process.env[varName]?.length || 0,
-      preview: process.env[varName]
-        ? `${process.env[varName].substring(0, 10)}...`
-        : 'undefined',
-    }));
+    // 환경변수 백업 시도 (서버에서만)
+    let backupResult = null;
+    try {
+      backupResult = await envManagerProxy.backupEnvironment();
+    } catch (error) {
+      console.warn('⚠️ 환경변수 백업 실패:', error);
+    }
 
     const response = {
-      success: true,
       timestamp: new Date().toISOString(),
-      autoDecryptSystem: status,
-      environmentVariables: envStatus,
-      summary: {
-        totalVars: envVars.length,
-        availableVars: envStatus.filter(v => v.exists).length,
-        missingVars: envStatus.filter(v => !v.exists).length,
-        healthStatus: status.healthStatus,
+      environment: {
+        status: envStatus.valid ? 'healthy' : 'warning',
+        initialized: envStatus.initialized,
+        valid: envStatus.valid,
+        missingCount: envStatus.missing.length,
+        missingVariables: envStatus.missing,
+        message: envStatus.message,
       },
+      backup: backupResult
+        ? {
+            success: backupResult.success,
+            message: backupResult.message,
+            backupId: backupResult.backupId,
+          }
+        : null,
     };
 
-    return NextResponse.json(response);
+    console.log(
+      `✅ 환경변수 상태 확인 완료 - ${envStatus.valid ? '정상' : '경고'}`
+    );
+
+    return NextResponse.json(response, {
+      status: envStatus.valid ? 200 : 503,
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      },
+    });
   } catch (error) {
-    console.error('환경변수 상태 확인 오류:', error);
+    console.error('❌ 환경변수 상태 API 오류:', error);
 
     return NextResponse.json(
       {
-        success: false,
-        error: '환경변수 상태 확인 중 오류가 발생했습니다',
-        details: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
+        error: {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          type: 'EnvironmentStatusError',
+        },
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        },
+      }
     );
   }
 }
@@ -64,7 +76,10 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'forceRestore':
-        result = autoDecryptEnv.forceRestoreAll();
+        result = await envManagerProxy.autoRecovery([
+          'SUPABASE_ANON_KEY',
+          'GOOGLE_AI_API_KEY',
+        ]);
         break;
 
       case 'restoreSpecific':
@@ -72,7 +87,11 @@ export async function POST(request: NextRequest) {
         if (!varName) {
           throw new Error('varName이 필요합니다');
         }
-        result = autoDecryptEnv.forceRestore(varName);
+        result = await envManagerProxy.autoRecovery([varName]);
+        break;
+
+      case 'backup':
+        result = await envManagerProxy.backupEnvironment();
         break;
 
       default:
@@ -80,7 +99,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 복구 후 상태 재확인
-    const status = autoDecryptEnv.getStatus();
+    const status = await checkEnvironmentStatus();
 
     return NextResponse.json({
       success: true,
