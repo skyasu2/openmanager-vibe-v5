@@ -1,22 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { motion } from 'framer-motion';
 import {
-  Power,
-  Bot,
   BarChart3,
+  Bot,
   Loader2,
+  Play,
   StopCircle,
   X,
   Zap,
-  Play,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
-import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 // 토스트 알림과 인라인 피드백 시스템 제거됨
 
 const FeatureCardsGrid = dynamic(
@@ -86,9 +84,10 @@ export default function Home() {
   useEffect(() => {
     if (!isMounted) return;
 
-    if (!isSystemStarted && aiAgent.isEnabled) {
+    // 🚨 시스템이 시작된 후에만 상태 불일치 감지
+    if (isSystemStarted && !aiAgent.isEnabled) {
       console.warn(
-        '⚠️ 상태 불일치 감지: 시스템이 중지되었거나 AI 메타데이터가 누락 여부를 확인 설명'
+        '⚠️ 상태 불일치 감지: 시스템이 활성화되었지만 AI 에이전트가 비활성화됨'
       );
     }
   }, [isMounted, isSystemStarted, aiAgent.isEnabled]);
