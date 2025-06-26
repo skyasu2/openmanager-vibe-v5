@@ -185,3 +185,99 @@ POST /api/ai/unified-query
 **개발 완료**: AI 엔진 아키텍처 v3.0 완전 구현  
 **검증 완료**: 99.6% 테스트 통과  
 **배포 준비**: 프로덕션 환경 적용 가능
+
+---
+
+## 📚 통합 참고자료
+
+### ai-architecture-restructured-v3-complete 요약
+
+# 🤖 AI 아키텍처 재구조화 v3.0 완료 보고서
+
+> **작성일**: 2025년 6월 23일  
+> **프로젝트**: OpenManager Vibe v5.44.3  
+> **상태**: ✅ 완료 (레거시 엔진 정리 완료)
+
+## 📋 **재구조화 개요**
+
+### **목표 달성**
+
+- ✅ 레거시 AI 엔진 4개 완전 제거
+- ✅ UnifiedAIEngineRouter v3.0 단일 아키텍처 확립
+
+### AI를-이용한-AI-개선-과정-및-엔터프라이즈-로드맵 요약
+
+# 🤖 AI를 이용한 AI 개선 과정 및 엔터프라이즈 로드맵
+
+> **작성일**: 2025년 6월 22일  
+> **프로젝트**: OpenManager Vibe v5  
+> **목적**: 현재 포트폴리오 수준에서 엔터프라이즈급 AI 시스템까지의 체계적 개선 방법론
+
+---
+
+## 📊 현재 상태 분석 (2025.06.22 기준)
+
+### 🎯 **현재 AI 시스템 수준: 포트폴리오급 (40/100점)**
+
+#### ✅ **구현 완료된 기능들**
+
+### supabase-rag-integration 요약
+
+# 🚀 Supabase RAG Engine 통합 가이드 (OpenAI 제거)
+
+## 📋 개요
+
+OpenManager Vibe v5에서 Vercel 서버리스 환경을 위한 **Supabase 벡터 데이터베이스 기반 RAG 시스템**을 구현했습니다. **OpenAI API 의존성을 완전히 제거**하고 로컬 임베딩 생성 시스템을 적용했습니다.
+
+## 🎯 주요 특징
+
+- ✅ **OpenAI 의존성 완전 제거**: 외부 API 의존 없음
+- 🔧 **로컬 임베딩 생성**: 해시 기반 의미론적 벡터 생성
+- 🗄️ **Supabase pgvector**: 클라우드 벡터 데이터베이스 활용
+- 🔍 **코사인 유사도 검색**: 고정밀 벡터 검색
+
+### ai-시스템-통합 요약
+
+# 🧠 OpenManager Vibe v5 AI 시스템 통합 가이드
+
+> **AI 엔진 아키텍처 v3.0** - 4개 AI 엔진 완전 통합 및 한국어 특화 처리 시스템
+
+## 📋 **개요**
+
+OpenManager Vibe v5는 **4개의 AI 엔진**을 완전히 통합한 지능형 서버 모니터링 플랫폼입니다. Supabase RAG 엔진을 메인으로, Google AI, MCP, 하위 AI 도구들이 유기적으로 협업하여 자연어 질의응답과 서버 분석을 수행합니다.
+
+### ✨ **핵심 특징**
+
+- **4개 AI 엔진 완전 통합**: Supabase RAG, Google AI, MCP, 하위 AI 도구
+- **한국어 특화 처리**: 22개 테스트 통과한 형태소 분석기
+- **3가지 운영 모드**: AUTO, LOCAL, GOOGLE_ONLY
+
+### korean-nlp-enhancement-report 요약
+
+# 🇰🇷 한국어 NLP 엔진 개선사항 보고서
+
+> **작성일**: 2025년 6월 23일  
+> **프로젝트**: OpenManager Vibe v5.44.3  
+> **버전**: Enhanced Korean NLP v2.0
+
+## 📋 **개선 개요**
+
+### **목표**
+
+- 한국어 자연어 처리 정확도 대폭 향상
+- 형태소 분석 시스템 고도화
+
+### ai-engine-cleanup-completion-report 요약
+
+# 🎯 AI 엔진 통합 및 재구현 완료 보고서
+
+## 📋 최종 상태 요약
+
+### ✅ **재구현 완료된 API**
+
+#### 1. `/api/ai/unified` - ⭐ **핵심 API 재구현 완료**
+
+- **상태**: UnifiedAIEngineRouter 기반으로 완전 재구현 ✅
+- **기능**:
+  - `GET ?action=health`: 시스템 헬스체크
+  - `POST ?action=restart`: AI 엔진 재시작

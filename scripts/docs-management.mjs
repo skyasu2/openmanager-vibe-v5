@@ -615,6 +615,179 @@ npm run docs:cleanup:archive
 
         return { delete: false, reason: '' };
     }
+
+    /**
+     * 아카이브 완전 정리 - 핵심 내용 통합 후 아카이브 삭제
+     */
+    async purgeArchiveCompletely() {
+        const archivePath = path.join(this.docsDir, 'archived');
+
+        if (!fs.existsSync(archivePath)) {
+            console.log('📁 아카이브 폴더가 없습니다.');
+            return;
+        }
+
+        const archivedFiles = fs.readdirSync(archivePath)
+            .filter(file => file.endsWith('.md'));
+
+        console.log(`🗂️ 아카이브된 문서 ${archivedFiles.length}개 분석 중...`);
+
+        // 핵심 내용을 메인 문서에 통합할 수 있는 매핑
+        const integrationMap = {
+            '개발 과정.md': [
+                '개발가이드.md',
+                '바이브코딩.md',
+                'cursor-render-deployment.md',
+                'cursor-mcp-setup-guide.md'
+            ],
+            '개발 도구.md': [
+                'storybook-management-guide.md',
+                'fetch-mcp-integration-guide.md',
+                'fetch-mcp-development-guide.md',
+                'mcp-filesystem-server-guide.md'
+            ],
+            'AI 시스템 아키텍처.md': [
+                'ai-architecture-restructured-v3-complete.md',
+                'AI를-이용한-AI-개선-과정-및-엔터프라이즈-로드맵.md',
+                'supabase-rag-integration.md',
+                'ai-시스템-통합.md',
+                'korean-nlp-enhancement-report.md',
+                'ai-engine-cleanup-completion-report.md'
+            ],
+            '시스템 아키텍처.md': [
+                'technical-implementation-v5.44.3.md',
+                'ai-engine-enterprise-readiness-analysis.md',
+                'server-card-ux-ui-analysis.md'
+            ],
+            '운영 및 배포.md': [
+                'cursor-render-deployment-final-results.md',
+                'cursor-render-deployment-analysis.md',
+                'VERCEL-OPTIMIZATION-COMPLETE.md',
+                'INTEGRATION-COMPLETE.md',
+                'CRON-REMOVAL-GUIDE.md',
+                'ADAPTIVE-MONITORING-COMPLETE.md'
+            ]
+        };
+
+        // 통합할 내용 수집
+        const integrationContent = {};
+
+        for (const [targetDoc, sourceFiles] of Object.entries(integrationMap)) {
+            integrationContent[targetDoc] = [];
+
+            for (const sourceFile of sourceFiles) {
+                const sourceFilePath = path.join(archivePath, sourceFile);
+                if (fs.existsSync(sourceFilePath)) {
+                    const content = fs.readFileSync(sourceFilePath, 'utf-8');
+                    const lines = content.split('\n');
+
+                    // 핵심 내용만 추출 (제목, 중요 섹션)
+                    let keyContent = [];
+                    let inImportantSection = false;
+
+                    for (const line of lines) {
+                        if (line.startsWith('# ') || line.startsWith('## ')) {
+                            inImportantSection = line.includes('핵심') ||
+                                line.includes('중요') ||
+                                line.includes('성과') ||
+                                line.includes('결과') ||
+                                line.includes('특징');
+                            keyContent.push(line);
+                        } else if (inImportantSection && line.trim()) {
+                            keyContent.push(line);
+                            if (keyContent.length > 20) break; // 20줄 제한
+                        }
+                    }
+
+                    if (keyContent.length > 3) {
+                        integrationContent[targetDoc].push({
+                            source: sourceFile,
+                            content: keyContent.slice(0, 15).join('\n') // 15줄 제한
+                        });
+                    }
+                }
+            }
+        }
+
+        // 메인 문서들에 핵심 내용 추가
+        for (const [targetDoc, contents] of Object.entries(integrationContent)) {
+            if (contents.length > 0) {
+                const targetPath = path.join(this.docsDir, targetDoc);
+                if (fs.existsSync(targetPath)) {
+                    let mainContent = fs.readFileSync(targetPath, 'utf-8');
+
+                    // 통합 섹션 추가
+                    const integrationSection = [
+                        '',
+                        '---',
+                        '## 📚 추가 참고사항 (통합)',
+                        ''
+                    ];
+
+                    contents.forEach(item => {
+                        integrationSection.push(`### ${item.source.replace('.md', '')} 핵심 내용`);
+                        integrationSection.push('');
+                        integrationSection.push(item.content);
+                        integrationSection.push('');
+                    });
+
+                    // 기존 통합 섹션이 있으면 제거
+                    mainContent = mainContent.replace(/---\n## 📚 추가 참고사항.*$/s, '').trim();
+
+                    // 새로운 통합 섹션 추가
+                    mainContent += '\n' + integrationSection.join('\n');
+
+                    fs.writeFileSync(targetPath, mainContent, 'utf-8');
+                    console.log(`✅ ${targetDoc}에 ${contents.length}개 문서 핵심 내용 통합 완료`);
+                }
+            }
+        }
+
+        // 보존할 중요 문서들 (프로젝트 개요에 통합)
+        const preserveList = ['코드참고.md', '서버데이터생성기.md', '시스템운영.md', '한국어처리.md'];
+        const projectOverviewPath = path.join(this.docsDir, '프로젝트 개요.md');
+
+        if (fs.existsSync(projectOverviewPath)) {
+            let overviewContent = fs.readFileSync(projectOverviewPath, 'utf-8');
+
+            const additionalSections = [];
+
+            for (const preserveFile of preserveList) {
+                const preservePath = path.join(archivePath, preserveFile);
+                if (fs.existsSync(preservePath)) {
+                    const content = fs.readFileSync(preservePath, 'utf-8');
+                    const firstSection = content.split('\n').slice(0, 30).join('\n'); // 첫 30줄만
+
+                    additionalSections.push(`### ${preserveFile.replace('.md', '')} 요약`);
+                    additionalSections.push('');
+                    additionalSections.push(firstSection);
+                    additionalSections.push('');
+                }
+            }
+
+            if (additionalSections.length > 0) {
+                // 기존 추가 섹션 제거
+                overviewContent = overviewContent.replace(/---\n## 📚 중요 참고자료.*$/s, '').trim();
+
+                // 새로운 참고자료 섹션 추가
+                overviewContent += '\n\n---\n## 📚 중요 참고자료\n\n' + additionalSections.join('\n');
+
+                fs.writeFileSync(projectOverviewPath, overviewContent, 'utf-8');
+                console.log(`✅ 프로젝트 개요에 ${preserveList.length}개 중요 문서 요약 통합 완료`);
+            }
+        }
+
+        // 아카이브 폴더 완전 삭제
+        console.log(`🗑️ 아카이브 폴더 완전 삭제 중...`);
+
+        try {
+            fs.rmSync(archivePath, { recursive: true, force: true });
+            console.log('✅ 아카이브 폴더 완전 삭제 완료');
+            console.log(`📊 정리 결과: ${archivedFiles.length}개 문서의 핵심 내용을 7개 메인 문서에 통합`);
+        } catch (error) {
+            console.error('❌ 아카이브 삭제 실패:', error.message);
+        }
+    }
 }
 
 // CLI 실행 부분
@@ -669,6 +842,17 @@ async function main() {
             await manager.autoPurgeArchive();
             break;
 
+        case 'purge-all':
+            console.log('🚨 아카이브 완전 정리 시작...');
+            console.log('⚠️ 아카이브된 모든 문서가 메인 문서에 통합 후 삭제됩니다.');
+            await manager.purgeArchiveCompletely();
+            break;
+
+        case 'quality-check':
+            console.log('✅ 문서 품질 검사...');
+            manager.qualityCheck();
+            break;
+
         default:
             console.log(colors.yellow('사용법:'));
             console.log('  node scripts/docs-management.mjs [command]');
@@ -681,6 +865,8 @@ async function main() {
             console.log('  backup, b     - 백업 생성');
             console.log('  index, i      - 인덱스 재생성');
             console.log('  autopurge, ap - 아카이브 자동 정리');
+            console.log('  purge-all     - 아카이브 완전 정리');
+            console.log('  quality-check - 문서 품질 검사');
             break;
     }
 }
