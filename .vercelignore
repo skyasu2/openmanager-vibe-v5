@@ -65,6 +65,7 @@ node_modules/
 # 문서 및 스크립트 (배포에 불필요)
 docs/
 scripts/
+!scripts/conditional-mcp-setup.mjs
 .github/
 README.md
 .env.example
