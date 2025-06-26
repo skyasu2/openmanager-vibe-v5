@@ -242,80 +242,145 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
       onClick(server);
     }, [onClick, server]);
 
-    // 메트릭 컴포넌트
-    const MetricBar = ({
+    // 원형 차트 컴포넌트 (도넛 차트)
+    const CircularMetric = ({
       icon,
       label,
       value,
       type,
+      size = 60,
     }: {
       icon: React.ReactNode;
       label: string;
       value: number;
       type: 'cpu' | 'memory' | 'disk' | 'network';
+      size?: number;
     }) => {
       const color = getMetricColor(value, type);
+      const radius = (size - 8) / 2;
+      const circumference = 2 * Math.PI * radius;
+      const strokeDasharray = circumference;
+      const strokeDashoffset = circumference - (value / 100) * circumference;
 
       return (
-        <div className='space-y-2'>
-          <div className='flex justify-between items-center'>
-            <div className='flex items-center gap-2'>
-              <div className={`p-1 rounded ${color.border} bg-white`}>
-                {icon}
+        <div className='flex flex-col items-center space-y-2'>
+          <div className='relative'>
+            <svg width={size} height={size} className='transform -rotate-90'>
+              {/* 배경 원 */}
+              <circle
+                cx={size / 2}
+                cy={size / 2}
+                r={radius}
+                stroke='#e5e7eb'
+                strokeWidth='4'
+                fill='none'
+              />
+              {/* 진행률 원 */}
+              <motion.circle
+                cx={size / 2}
+                cy={size / 2}
+                r={radius}
+                stroke={`url(#gradient-${type})`}
+                strokeWidth='4'
+                fill='none'
+                strokeLinecap='round'
+                strokeDasharray={strokeDasharray}
+                initial={{ strokeDashoffset: circumference }}
+                animate={{ strokeDashoffset }}
+                transition={{ duration: 1, ease: 'easeOut' }}
+              />
+              {/* 그라데이션 정의 */}
+              <defs>
+                <linearGradient
+                  id={`gradient-${type}`}
+                  x1='0%'
+                  y1='0%'
+                  x2='100%'
+                  y2='100%'
+                >
+                  <stop
+                    offset='0%'
+                    stopColor={
+                      color.bg.includes('blue')
+                        ? '#3b82f6'
+                        : color.bg.includes('purple')
+                          ? '#8b5cf6'
+                          : color.bg.includes('indigo')
+                            ? '#6366f1'
+                            : color.bg.includes('emerald')
+                              ? '#10b981'
+                              : color.bg.includes('amber')
+                                ? '#f59e0b'
+                                : '#ef4444'
+                    }
+                  />
+                  <stop
+                    offset='100%'
+                    stopColor={
+                      color.bg.includes('blue')
+                        ? '#1d4ed8'
+                        : color.bg.includes('purple')
+                          ? '#7c3aed'
+                          : color.bg.includes('indigo')
+                            ? '#4f46e5'
+                            : color.bg.includes('emerald')
+                              ? '#059669'
+                              : color.bg.includes('amber')
+                                ? '#d97706'
+                                : '#dc2626'
+                    }
+                  />
+                </linearGradient>
+              </defs>
+            </svg>
+
+            {/* 중앙 아이콘과 값 */}
+            <div className='absolute inset-0 flex flex-col items-center justify-center'>
+              <div className='mb-0.5'>
+                <div
+                  className='w-4 h-4 flex items-center justify-center'
+                  style={{
+                    color: color.bg.includes('blue')
+                      ? '#3b82f6'
+                      : color.bg.includes('purple')
+                        ? '#8b5cf6'
+                        : color.bg.includes('indigo')
+                          ? '#6366f1'
+                          : color.bg.includes('emerald')
+                            ? '#10b981'
+                            : color.bg.includes('amber')
+                              ? '#f59e0b'
+                              : '#ef4444',
+                  }}
+                >
+                  {icon}
+                </div>
               </div>
-              <span
-                className={`${styles.metricSize} font-medium text-gray-700`}
-              >
-                {label}
-              </span>
-            </div>
-            <div className='flex items-center gap-1'>
-              <span className={`${styles.metricSize} font-bold ${color.text}`}>
+              <span className={`text-xs font-bold ${color.text}`}>
                 {value.toFixed(0)}%
               </span>
-              {showRealTimeUpdates && (
-                <motion.div
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    opacity: [0.5, 1, 0.5],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                  className={`w-1.5 h-1.5 rounded-full ${theme.pulse}`}
-                />
-              )}
             </div>
-          </div>
-          <div className='relative'>
-            <div
-              className={`w-full bg-gray-200 rounded-full ${styles.progressHeight} overflow-hidden`}
-            >
+
+            {/* 실시간 펄스 효과 */}
+            {showRealTimeUpdates && (
               <motion.div
-                className={`${styles.progressHeight} bg-gradient-to-r ${color.bg} rounded-full relative overflow-hidden`}
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(value, 100)}%` }}
-                transition={{ duration: 1, ease: 'easeOut' }}
-              >
-                {/* 광택 효과 */}
-                <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse' />
-              </motion.div>
-            </div>
-            {/* 임계값 표시선 */}
-            {variant !== 'compact' && (
-              <>
-                <div
-                  className='absolute top-0 w-px bg-amber-400 opacity-60'
-                  style={{ left: '70%', height: '100%' }}
-                />
-                <div
-                  className='absolute top-0 w-px bg-red-400 opacity-60'
-                  style={{ left: '85%', height: '100%' }}
-                />
-              </>
+                animate={{
+                  scale: [1, 1.1, 1],
+                  opacity: [0.3, 0.7, 0.3],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+                className={`absolute inset-0 rounded-full border-2 ${color.border} opacity-30`}
+              />
             )}
+          </div>
+
+          {/* 라벨 */}
+          <div className='text-center'>
+            <span className='text-xs font-medium text-gray-600'>{label}</span>
           </div>
         </div>
       );
@@ -404,25 +469,25 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
 
         {/* 메트릭 섹션 - 개선된 2x2 그리드 */}
         <div className={`grid grid-cols-2 gap-4 ${styles.spacing}`}>
-          <MetricBar
+          <CircularMetric
             icon={<Cpu className='w-4 h-4 text-blue-600' />}
             label='CPU'
             value={realtimeMetrics.cpu}
             type='cpu'
           />
-          <MetricBar
+          <CircularMetric
             icon={<Activity className='w-4 h-4 text-purple-600' />}
             label='메모리'
             value={realtimeMetrics.memory}
             type='memory'
           />
-          <MetricBar
+          <CircularMetric
             icon={<HardDrive className='w-4 h-4 text-indigo-600' />}
             label='디스크'
             value={realtimeMetrics.disk}
             type='disk'
           />
-          <MetricBar
+          <CircularMetric
             icon={<Wifi className='w-4 h-4 text-emerald-600' />}
             label='네트워크'
             value={realtimeMetrics.network}
