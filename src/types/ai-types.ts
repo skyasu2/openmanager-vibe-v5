@@ -11,11 +11,13 @@
 // ==============================================
 
 /**
- * 자연어 처리 AI 모드 (2가지 단순화)
+ * 자연어 처리 AI 모드 (확장 호환성)
  * - LOCAL: 로컬 AI 엔진들만 사용 (Google AI 비활성화)
  * - GOOGLE_AI: 로컬 AI + Google AI 효율적 조합
+ * - AUTO: 자동 모드 선택 (상황에 따라 최적 모드)
+ * - GOOGLE_ONLY: Google AI만 사용 (레거시 호환성)
  */
-export type AIMode = 'LOCAL' | 'GOOGLE_AI';
+export type AIMode = 'LOCAL' | 'GOOGLE_AI' | 'AUTO' | 'GOOGLE_ONLY';
 
 /**
  * AI 에이전트 모드 (응답 깊이)

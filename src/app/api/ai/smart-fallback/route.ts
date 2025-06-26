@@ -1,7 +1,5 @@
-import {
-  AIMode,
-  UnifiedAIEngineRouter,
-} from '@/core/ai/engines/UnifiedAIEngineRouter';
+import { UnifiedAIEngineRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
+import { AIMode } from '@/types/ai-types';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface SmartFallbackRequest {

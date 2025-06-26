@@ -10,81 +10,58 @@
 
 // Core Engine
 export { AIAgentEngine, aiAgentEngine } from './core/AIAgentEngine';
-export type { 
-  AIAgentConfig, 
-  AIAgentRequest, 
-  AIAgentResponse 
+export type {
+  AIAgentConfig,
+  AIAgentRequest,
+  AIAgentResponse
 } from './core/AIAgentEngine';
 
 // Smart Mode Detection System
-export { SmartModeDetector } from './core/SmartModeDetector';
-export type { AIAgentMode, QueryAnalysis } from './core/SmartModeDetector';
 export { EnhancedModeManager } from './core/EnhancedModeManager';
 export type { ModeConfig } from './core/EnhancedModeManager';
+export { SmartModeDetector } from './core/SmartModeDetector';
+export type { AIAgentMode, QueryAnalysis } from './core/SmartModeDetector';
 
 // Mode Prompts
 export { ModePrompts } from './prompts/ModePrompts';
 
 // Core Components
-export { ModeManager, createDefaultModeConfig } from './core/ModeManager';
-export type { PowerMode } from './core/ModeManager';
+export type { PowerMode } from '@/types/ai-types';
+export { createDefaultModeConfig, ModeManager } from './core/ModeManager';
 
 export { ThinkingProcessor } from './core/ThinkingProcessor';
-export type { ThinkingStep, ThinkingSession, ThinkingCallback } from './core/ThinkingProcessor';
+export type { ThinkingCallback, ThinkingSession, ThinkingStep } from './core/ThinkingProcessor';
 
 export { AdminLogger } from './core/AdminLogger';
-export type { 
-  AIInteractionLog,
-  ErrorLog,
-  AdminStats
-} from './core/AdminLogger';
+export type { AdminStats, AIInteractionLog, ErrorLog } from './core/AdminLogger';
 
 // Configuration System
 export {
-  createDefaultConfig,
-  environmentPresets,
-  validateConfig,
-  detectEnvironment,
   AIAgentConfigBuilder,
-  createConfig
+  createConfig, createDefaultConfig, detectEnvironment, environmentPresets,
+  validateConfig
 } from './config';
 export type {
-  AIAgentEnvironmentConfig,
-  AIAgentAdapterConfig
+  AIAgentAdapterConfig, AIAgentEnvironmentConfig
 } from './config';
 
 
 
 // Adapter System
 export {
-  AdapterFactory,
-  MemoryStorageAdapter,
-  LocalStorageAdapter,
-  ConsoleLoggingAdapter,
-  SilentLoggingAdapter,
-  FetchNetworkAdapter,
-  MockNetworkAdapter,
-  ConsoleMetricsAdapter,
-  NoOpMetricsAdapter
+  AdapterFactory, ConsoleLoggingAdapter, ConsoleMetricsAdapter, FetchNetworkAdapter, LocalStorageAdapter, MemoryStorageAdapter, MockNetworkAdapter, NoOpMetricsAdapter, SilentLoggingAdapter
 } from './adapters';
 export type {
-  StorageAdapter,
-  LoggingAdapter,
-  NetworkAdapter,
-  MetricsAdapter
+  LoggingAdapter, MetricsAdapter, NetworkAdapter, StorageAdapter
 } from './adapters';
 
 // Plugin System
 export {
-  PluginManager,
-  DebugPlugin,
-  MetricsPlugin,
-  CachePlugin
+  CachePlugin, DebugPlugin,
+  MetricsPlugin, PluginManager
 } from './plugins';
 export type {
-  Plugin,
-  PluginManifest,
-  PluginContext
+  Plugin, PluginContext, PluginManifest
 } from './plugins';
 
 // Version and Metadata
@@ -113,10 +90,10 @@ export const createAIAgent = async (options: any = {}) => {
   try {
     // 환경별 기본 설정 생성
     const { createDefaultConfig, detectEnvironment } = await import('./config');
-    const envConfig = options.environment 
+    const envConfig = options.environment
       ? createDefaultConfig(options)
       : detectEnvironment();
-    
+
     // AI 에이전트 엔진 설정 변환
     const agentConfig = {
       enableMCP: envConfig.engine.enableMCP,
@@ -128,14 +105,14 @@ export const createAIAgent = async (options: any = {}) => {
       enableThinking: true,
       enableAdminLogging: envConfig.runtime.enableLogging
     };
-    
+
     // AI 에이전트 엔진 인스턴스 생성
     const { AIAgentEngine } = await import('./core/AIAgentEngine');
     const aiAgent = AIAgentEngine.getInstance(agentConfig);
-    
+
     // 초기화
     await aiAgent.initialize();
-    
+
     return aiAgent;
   } catch (error) {
     console.error('Failed to create AI Agent:', error);
@@ -178,11 +155,11 @@ export const createProductionAIAgent = async (options: any = {}) => {
     enableAdminLogging: true,  // 완전한 로깅
     ...options
   };
-  
+
   const { AIAgentEngine } = await import('./core/AIAgentEngine');
   const aiAgent = AIAgentEngine.getInstance(productionConfig);
   await aiAgent.initialize();
-  
+
   return aiAgent;
 };
 
@@ -195,12 +172,12 @@ export const isAIAgentSupported = (): boolean => {
     if (typeof Promise === 'undefined') return false;
     if (typeof Map === 'undefined') return false;
     if (typeof Set === 'undefined') return false;
-    
+
     // 브라우저 환경에서 필요한 기능 확인
     if (typeof window !== 'undefined') {
       if (typeof localStorage === 'undefined') return false;
     }
-    
+
     return true;
   } catch {
     return false;

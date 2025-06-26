@@ -10,12 +10,12 @@
 
 import { ContextManager } from '@/core/ai/ContextManager';
 import { MCPProcessor } from '@/services/mcp';
+import { AIAgentMode } from '@/types/ai-types';
 import { ActionExecutor } from '../processors/ActionExecutor';
 import { IntentClassifier } from '../processors/IntentClassifier';
 import { ResponseGenerator } from '../processors/ResponseGenerator';
 import { AdminLogger } from './AdminLogger';
 import {
-  AIAgentMode,
   ModeManager,
   createDefaultModeConfig,
 } from './ModeManager';

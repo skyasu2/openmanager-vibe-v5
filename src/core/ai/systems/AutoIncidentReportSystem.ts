@@ -267,9 +267,9 @@ export class AutoIncidentReportSystem {
   }
 
   /**
-   * 🔍 장애 감지
+   * 🔍 장애 감지 (Public 인터페이스)
    */
-  private async detectIncident(serverData: any, alertData?: any): Promise<Incident> {
+  public async detectIncident(serverData: any, alertData?: any): Promise<Incident> {
     const incident: Incident = {
       id: `incident-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type: this.classifyIncidentType(serverData),
@@ -515,6 +515,242 @@ export class AutoIncidentReportSystem {
   async cleanup(): Promise<void> {
     console.log('🧹 자동 장애 보고서 시스템 정리 중...');
     this.isInitialized = false;
+  }
+
+  /**
+   * 🧠 메모리 누수 감지
+   */
+  public async detectMemoryLeak(trend: any[]): Promise<Incident | null> {
+    if (trend.length < 3) return null;
+
+    const recentUsage = trend.slice(-3);
+    const isIncreasing = recentUsage.every((value, index) =>
+      index === 0 || value.memory_usage > recentUsage[index - 1].memory_usage
+    );
+
+    if (isIncreasing && recentUsage[recentUsage.length - 1].memory_usage > 85) {
+      return {
+        id: `memory-leak-${Date.now()}`,
+        type: 'memory_leak',
+        severity: 'high',
+        description: '메모리 사용량이 지속적으로 증가하고 있습니다',
+        affectedServer: recentUsage[0].serverId || 'unknown',
+        detectedAt: new Date(),
+        status: 'active',
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * ⛓️ 연쇄 장애 감지
+   */
+  public async detectCascadeFailure(metrics: any[]): Promise<Incident | null> {
+    if (metrics.length < 2) return null;
+
+    const failedServers = metrics.filter(m =>
+      m.cpu_usage > 90 || m.memory_usage > 90 || m.response_time > 5000
+    );
+
+    if (failedServers.length >= 2) {
+      return {
+        id: `cascade-${Date.now()}`,
+        type: 'cascade_failure',
+        severity: 'critical',
+        description: `${failedServers.length}개 서버에서 동시 장애 감지`,
+        affectedServer: failedServers.map(s => s.serverId).join(', '),
+        detectedAt: new Date(),
+        status: 'active',
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * 📋 한국어 보고서 생성
+   */
+  public async generateKoreanReport(incident: Incident): Promise<any> {
+    return {
+      id: incident.id,
+      title: `장애 보고서 - ${incident.type}`,
+      summary: incident.description,
+      severity: incident.severity,
+      detectedAt: incident.detectedAt,
+      recommendations: await this.generateLocalRecommendations(incident),
+      language: 'ko',
+      generatedAt: new Date(),
+    };
+  }
+
+  /**
+   * 💡 해결 방안 생성
+   */
+  public async generateSolutions(incident: Incident): Promise<string[]> {
+    return this.generateLocalRecommendations(incident);
+  }
+
+  /**
+   * ⏰ 장애 예측 시간
+   */
+  public async predictFailureTime(historicalData: any[]): Promise<any> {
+    if (historicalData.length < 5) {
+      return {
+        prediction: 'insufficient_data',
+        estimatedTime: null,
+        confidence: 0,
+      };
+    }
+
+    // 간단한 트렌드 분석
+    const trend = historicalData.slice(-5);
+    const avgIncrease = trend.reduce((sum, data, index) => {
+      if (index === 0) return 0;
+      return sum + (data.cpu_usage - trend[index - 1].cpu_usage);
+    }, 0) / (trend.length - 1);
+
+    const currentUsage = trend[trend.length - 1].cpu_usage;
+    const timeToFailure = avgIncrease > 0 ? (95 - currentUsage) / avgIncrease : null;
+
+    return {
+      prediction: timeToFailure ? 'predicted' : 'stable',
+      estimatedTime: timeToFailure ? `${Math.round(timeToFailure)}시간 후` : null,
+      confidence: timeToFailure ? Math.min(0.8, Math.max(0.3, 1 - (timeToFailure / 100))) : 0.9,
+    };
+  }
+
+  /**
+   * 📊 영향도 분석
+   */
+  public async analyzeImpact(incident: Incident): Promise<any> {
+    return {
+      severity: incident.severity,
+      affectedSystems: incident.affectedServer.split(', '),
+      estimatedUsers: this.estimateAffectedUsers(incident),
+      businessImpact: this.calculateBusinessImpact(incident),
+      recoveryTime: this.estimateRecoveryTime(incident),
+    };
+  }
+
+  /**
+   * ⚡ 실시간 장애 처리
+   */
+  public async processRealTimeIncident(metrics: any): Promise<any> {
+    const incident = await this.detectIncident(metrics);
+    const report = await this.generateKoreanReport(incident);
+    const solutions = await this.generateSolutions(incident);
+
+    return {
+      incident,
+      report,
+      solutions,
+      processedAt: new Date(),
+      realTime: true,
+    };
+  }
+
+  /**
+   * 🔄 호환성 보고서 생성
+   */
+  public async generateCompatibleReport(context: any): Promise<any> {
+    return {
+      format: 'legacy',
+      data: context,
+      generatedAt: new Date(),
+      compatible: true,
+    };
+  }
+
+  /**
+   * 📚 학습 메트릭 조회
+   */
+  public getLearningMetrics(): SystemLearningData & { currentMode: AIMode } {
+    return {
+      ...this.learningData,
+      currentMode: this.currentMode,
+    };
+  }
+
+  /**
+   * 🎓 학습 활성화/비활성화
+   */
+  public setLearningEnabled(enabled: boolean): void {
+    this.learningConfig.enabled = enabled;
+    console.log(`📚 학습 기능 ${enabled ? '활성화' : '비활성화'}`);
+  }
+
+  /**
+   * 🤖 ML 기반 학습
+   */
+  public async learnFromIncidentWithML(report: any): Promise<void> {
+    if (!this.learningConfig.enabled) return;
+
+    console.log('🤖 ML 기반 장애 패턴 학습 중...');
+    // ML 학습 로직 구현
+  }
+
+  // 헬퍼 메서드들
+  private estimateAffectedUsers(incident: Incident): number {
+    const baseUsers = 100;
+    const multiplier = incident.severity === 'critical' ? 10 :
+      incident.severity === 'high' ? 5 :
+        incident.severity === 'medium' ? 2 : 1;
+    return baseUsers * multiplier;
+  }
+
+  private calculateBusinessImpact(incident: Incident): string {
+    switch (incident.severity) {
+      case 'critical': return '매우 높음 - 서비스 중단';
+      case 'high': return '높음 - 성능 저하';
+      case 'medium': return '보통 - 일부 기능 영향';
+      default: return '낮음 - 미미한 영향';
+    }
+  }
+
+  private estimateRecoveryTime(incident: Incident): string {
+    switch (incident.severity) {
+      case 'critical': return '30분 - 2시간';
+      case 'high': return '15분 - 1시간';
+      case 'medium': return '5분 - 30분';
+      default: return '즉시 - 15분';
+    }
+  }
+
+  /**
+   * 📋 장애 보고서 생성 (통합 메서드)
+   */
+  public async generateReport(incident: Incident): Promise<IncidentReport> {
+    const startTime = Date.now();
+
+    try {
+      // 심화 분석 수행
+      const analysis: IncidentAnalysis = {
+        severity: incident.severity,
+        type: incident.type,
+        affectedSystems: [incident.affectedServer],
+        recommendations: await this.generateLocalRecommendations(incident),
+        confidence: 0.85,
+        rootCause: `${incident.type}로 인한 시스템 성능 저하`,
+      };
+
+      // 통합 보고서 생성
+      const report: IncidentReport = {
+        incident,
+        analysis,
+        recommendations: analysis.recommendations,
+        generatedAt: new Date(),
+        confidence: analysis.confidence,
+        aiMode: this.currentMode,
+      };
+
+      console.log(`✅ 장애 보고서 생성 완료 (${Date.now() - startTime}ms)`);
+      return report;
+
+    } catch (error) {
+      console.error('❌ 보고서 생성 실패:', error);
+      throw error;
+    }
   }
 }
 

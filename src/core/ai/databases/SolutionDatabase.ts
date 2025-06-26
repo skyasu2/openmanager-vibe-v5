@@ -5,15 +5,52 @@
  * 장애 타입별 실행 가능한 해결방안과 명령어 제공
  */
 
-import {
-    ISolutionDatabase,
-    Solution,
-    IncidentType,
-    SolutionCategory,
-    RiskLevel,
-    SolutionStatistics,
-    IncidentReportError
-} from '@/types/auto-incident-report.types';
+// 중앙 타입 사용
+export interface Solution {
+    id: string;
+    action: string;
+    description: string;
+    category: 'immediate_action' | 'short_term_fix' | 'long_term_solution' | 'preventive_measure' | 'monitoring_enhancement';
+    priority: number;
+    estimatedTime: number;
+    riskLevel: 'low' | 'medium' | 'high' | 'critical';
+    commands?: string[];
+    prerequisites?: string[];
+    impact: string;
+    successRate: number;
+}
+
+export interface SolutionStatistics {
+    totalSolutions: number;
+    successRate: number;
+    averageResolutionTime: number;
+    mostUsedSolutions: Solution[];
+    categoryDistribution: Record<string, number>;
+}
+
+export interface ISolutionDatabase {
+    getSolutions(incidentType: string): Promise<Solution[]>;
+    addSolution(solution: Omit<Solution, 'id'>): Promise<string>;
+    updateSolution(id: string, solution: Partial<Solution>): Promise<boolean>;
+    searchSolutions(query: string): Promise<Solution[]>;
+    getStatistics(): Promise<SolutionStatistics>;
+}
+
+export type IncidentType = string;
+export type SolutionCategory = 'immediate_action' | 'short_term_fix' | 'long_term_solution' | 'preventive_measure' | 'monitoring_enhancement';
+export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
+
+export class IncidentReportError extends Error {
+    constructor(
+        message: string,
+        public code: string,
+        public incidentId?: string,
+        public details?: any
+    ) {
+        super(message);
+        this.name = 'IncidentReportError';
+    }
+}
 
 /**
  * 해결방안 데이터베이스

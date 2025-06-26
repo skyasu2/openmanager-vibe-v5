@@ -9,6 +9,7 @@
 import { SolutionDatabase } from '@/core/ai/databases/SolutionDatabase';
 import { IncidentDetectionEngine } from '@/core/ai/engines/IncidentDetectionEngine';
 import { AutoIncidentReportSystem } from '@/core/ai/systems/AutoIncidentReportSystem';
+import { AIMode } from '@/types/ai-types';
 import { NextRequest, NextResponse } from 'next/server';
 
 // 전역 인스턴스 (메모리 효율성)
@@ -17,7 +18,7 @@ let reportSystem: AutoIncidentReportSystem | null = null;
 /**
  * 자동 장애 보고서 시스템 초기화
  */
-function getReportSystem(mode: 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY' = 'AUTO'): AutoIncidentReportSystem {
+function getReportSystem(mode: AIMode = 'AUTO'): AutoIncidentReportSystem {
     if (!reportSystem) {
         const detectionEngine = new IncidentDetectionEngine();
         const solutionDB = new SolutionDatabase();
@@ -282,7 +283,7 @@ export async function GET(request: NextRequest) {
     try {
         const url = new URL(request.url);
         const action = url.searchParams.get('action');
-        const mode = url.searchParams.get('mode') as 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY' || 'AUTO'; // 🎯 모드 추가
+        const mode = url.searchParams.get('mode') as AIMode || 'AUTO'; // 🎯 모드 추가
 
         const system = getReportSystem(mode); // 🎯 모드 전달
 

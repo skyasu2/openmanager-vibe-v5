@@ -5,19 +5,80 @@
  * 기존 구현을 확장하여 실시간 장애 패턴 감지 및 예측 기능 제공
  */
 
-import {
-    IIncidentDetectionEngine,
-    Incident,
-    ServerMetrics,
-    PatternAnalysis,
-    IncidentClassification,
-    SeverityLevel,
-    IncidentType,
-    IncidentStatus,
-    DetectedPattern,
-    IncidentDetectionConfig,
-    IncidentReportError
-} from '@/types/auto-incident-report.types';
+// 중앙 타입 사용
+import { Incident } from '@/types/ai-types';
+
+// 로컬 타입 정의
+export interface ServerMetrics {
+    serverId: string;
+    cpu: number;
+    memory: number;
+    disk: number;
+    network?: number;
+    responseTime?: number;
+    errorRate?: number;
+    timestamp: number;
+    status?: string;
+}
+
+export interface PatternAnalysis {
+    patterns: DetectedPattern[];
+    confidence: number;
+    recommendations: string[];
+}
+
+export interface IncidentClassification {
+    type: string;
+    confidence: number;
+    alternativeTypes: Array<{
+        type: string;
+        confidence: number;
+    }>;
+}
+
+export interface DetectedPattern {
+    type: string;
+    description: string;
+    frequency: number;
+    lastOccurrence: number;
+}
+
+export interface IncidentDetectionConfig {
+    thresholds: {
+        cpu: number;
+        memory: number;
+        disk: number;
+        network: number;
+        responseTime: number;
+        errorRate: number;
+    };
+    sensitivity: 'low' | 'medium' | 'high';
+    enablePrediction: boolean;
+    historicalDataWindow: number;
+}
+
+export interface IIncidentDetectionEngine {
+    detectAnomalies(metrics: ServerMetrics[]): Promise<Incident[]>;
+    analyzePatterns(data: ServerMetrics[]): Promise<PatternAnalysis>;
+    classifyIncident(metrics: ServerMetrics): Promise<IncidentClassification>;
+    calculateSeverity(incident: Incident): Promise<string>;
+}
+
+export type IncidentType = string;
+export type IncidentStatus = 'detected' | 'investigating' | 'resolving' | 'resolved' | 'closed';
+export type SeverityLevel = 'low' | 'medium' | 'high' | 'critical';
+
+export class IncidentReportError extends Error {
+    constructor(
+        message: string,
+        public code: string,
+        public incidentId?: string,
+        public details?: any
+    ) {
+        super(message);
+        this.name = 'IncidentReportError';
+    }
+}
 
 /**
  * 장애 감지 엔진
@@ -193,9 +254,10 @@ export class IncidentDetectionEngine implements IIncidentDetectionEngine {
     /**
      * ⚠️ 심각도 계산 (기존 PatternMatcher 룰 활용)
      */
-    async calculateSeverity(incident: Incident): Promise<SeverityLevel> {
+    async calculateSeverity(incident: Incident): Promise<string> {
         try {
-            const metrics = incident.metrics;
+            // 중앙 타입에는 metrics 속성이 없으므로 description에서 정보 추출
+            const description = incident.description;
             let severityScore = 0;
 
             // 1. 메트릭 기반 점수 (기존 PatternMatcher 임계값 활용)

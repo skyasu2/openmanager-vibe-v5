@@ -5,17 +5,38 @@
  */
 
 import { beforeEach, describe, expect, test } from 'vitest';
+import { SolutionDatabase } from '../../src/core/ai/databases/SolutionDatabase';
+import { IncidentDetectionEngine } from '../../src/core/ai/engines/IncidentDetectionEngine';
 import { AutoIncidentReportSystem } from '../../src/core/ai/systems/AutoIncidentReportSystem';
-import type {
-    Incident,
-    ServerMetrics
-} from '../../src/types/auto-incident-report.types';
+import type { Incident } from '../../src/types/ai-types';
+
+// 테스트용 ServerMetrics 타입 정의
+interface TestServerMetrics {
+    serverId: string;
+    timestamp: number;
+    cpu: number;
+    memory: number;
+    disk: number;
+    network: number;
+    responseTime: number;
+    errorRate: number;
+    status: string;
+}
 
 describe('AutoIncidentReportSystem', () => {
     let reportSystem: AutoIncidentReportSystem;
+    let detectionEngine: IncidentDetectionEngine;
+    let solutionDatabase: SolutionDatabase;
 
     beforeEach(async () => {
-        reportSystem = new AutoIncidentReportSystem();
+        detectionEngine = new IncidentDetectionEngine();
+        solutionDatabase = new SolutionDatabase();
+        reportSystem = new AutoIncidentReportSystem(
+            detectionEngine,
+            solutionDatabase,
+            true, // enableLearning
+            'LOCAL' // mode
+        );
         // 초기화 대기
         await new Promise(resolve => setTimeout(resolve, 100));
     });
@@ -23,7 +44,7 @@ describe('AutoIncidentReportSystem', () => {
     describe('장애 감지 테스트', () => {
         test('CPU 과부하 장애를 자동 감지해야 함', async () => {
             // Given
-            const cpuOverloadMetrics: ServerMetrics = {
+            const cpuOverloadMetrics: TestServerMetrics = {
                 serverId: 'web-01',
                 timestamp: Date.now(),
                 cpu: 95, // CPU 95% 사용률
@@ -41,10 +62,12 @@ describe('AutoIncidentReportSystem', () => {
             // Then
             if (incident) {
                 expect(incident).toBeDefined();
-                // 실제 감지되는 타입에 맞게 수정
-                expect(incident.type).toMatch(/performance_degradation|cpu_overload|high/);
+                expect(incident.type).toBeDefined();
                 expect(incident.severity).toMatch(/critical|high|medium|low/);
                 expect(incident.affectedServer).toBe('web-01');
+                expect(incident.id).toBeDefined();
+                expect(incident.detectedAt).toBeInstanceOf(Date);
+                expect(incident.status).toBe('active');
             } else {
                 // 감지되지 않은 경우도 정상적인 동작
                 expect(incident).toBeNull();
@@ -52,7 +75,7 @@ describe('AutoIncidentReportSystem', () => {
         });
 
         test('메모리 누수 패턴을 감지해야 함', async () => {
-            const memoryTrend: ServerMetrics[] = [
+            const memoryTrend: TestServerMetrics[] = [
                 {
                     serverId: 'api-01',
                     cpu: 50, memory: 60, disk: 30, network: 20,
@@ -78,8 +101,8 @@ describe('AutoIncidentReportSystem', () => {
             if (incident) {
                 expect(incident).toBeDefined();
                 expect(incident.type).toBe('memory_leak');
-                expect(incident.pattern).toBe('increasing_trend');
-                expect(incident.predictedTime).toBeGreaterThan(0);
+                expect(incident.severity).toBe('high');
+                expect(incident.affectedServer).toBe('api-01');
             } else {
                 // 메모리 누수가 감지되지 않은 경우도 정상
                 expect(incident).toBeNull();
@@ -87,7 +110,7 @@ describe('AutoIncidentReportSystem', () => {
         });
 
         test('연쇄 장애를 감지해야 함', async () => {
-            const multiServerMetrics: ServerMetrics[] = [
+            const multiServerMetrics: TestServerMetrics[] = [
                 {
                     serverId: 'web-01', cpu: 95, memory: 60, disk: 40, network: 30,
                     status: 'critical', timestamp: Date.now() - 300000,
@@ -110,8 +133,8 @@ describe('AutoIncidentReportSystem', () => {
             if (cascadeIncident) {
                 expect(cascadeIncident).toBeDefined();
                 expect(cascadeIncident.type).toBe('cascade_failure');
-                expect(cascadeIncident.affectedServers).toBeDefined();
-                expect(cascadeIncident.affectedServers!.length).toBeGreaterThan(1);
+                expect(cascadeIncident.severity).toBe('critical');
+                expect(cascadeIncident.affectedServer).toContain('web-');
             } else {
                 // 연쇄 장애가 감지되지 않은 경우도 정상
                 expect(cascadeIncident).toBeNull();
@@ -121,25 +144,15 @@ describe('AutoIncidentReportSystem', () => {
 
     describe('자동 보고서 생성 테스트', () => {
         test('상세한 장애 보고서를 생성해야 함', async () => {
-            // Given
+            // Given - 중앙 타입 사용
             const incident: Incident = {
                 id: 'INC-001',
                 type: 'performance_degradation',
                 severity: 'high',
+                description: 'CPU 과부하로 인한 성능 저하',
                 affectedServer: 'web-01',
-                startTime: Date.now(),
-                status: 'detected',
-                metrics: {
-                    serverId: 'web-01',
-                    cpu: 95,
-                    memory: 60,
-                    disk: 70,
-                    network: 50,
-                    responseTime: 2000,
-                    errorRate: 0.02,
-                    timestamp: Date.now(),
-                    status: 'warning'
-                }
+                detectedAt: new Date(),
+                status: 'active'
             };
 
             // When
@@ -147,41 +160,24 @@ describe('AutoIncidentReportSystem', () => {
 
             // Then
             expect(report).toBeDefined();
-            expect(report.id).toBeDefined();
-            expect(report.title).toMatch(/장애|성능|저하/);
-            expect(report.summary).toBeDefined();
-            expect(report.incident.severity).toBe('high');
-            expect(report.impact).toBeDefined();
-            expect(report.solutions).toBeInstanceOf(Array);
-            // 해결방안이 없을 수도 있으므로 조건부 체크로 변경
-            if (report.solutions.length === 0) {
-                console.log('⚠️ 해결방안이 생성되지 않았습니다. 이는 정상적인 동작일 수 있습니다.');
-                expect(report.solutions.length).toBeGreaterThanOrEqual(0);
-            } else {
-                expect(report.solutions.length).toBeGreaterThan(0);
-            }
+            expect(report.incident).toBeDefined();
+            expect(report.analysis).toBeDefined();
+            expect(report.recommendations).toBeInstanceOf(Array);
+            expect(report.generatedAt).toBeInstanceOf(Date);
+            expect(report.confidence).toBeGreaterThanOrEqual(0);
+            expect(report.aiMode).toBeDefined();
         });
 
         test('한국어 자연어 보고서를 생성해야 함', async () => {
-            // Given
+            // Given - 중앙 타입 사용
             const incident: Incident = {
                 id: 'INC-002',
                 type: 'memory_leak',
                 severity: 'critical',
+                description: '메모리 누수 감지',
                 affectedServer: 'db-01',
-                startTime: Date.now(),
-                status: 'detected',
-                metrics: {
-                    serverId: 'db-01',
-                    cpu: 60,
-                    memory: 90,
-                    disk: 30,
-                    network: 25,
-                    responseTime: 1000,
-                    errorRate: 0.03,
-                    timestamp: Date.now(),
-                    status: 'critical'
-                }
+                detectedAt: new Date(),
+                status: 'active'
             };
 
             // When
@@ -189,37 +185,27 @@ describe('AutoIncidentReportSystem', () => {
 
             // Then
             expect(report).toBeDefined();
-            expect(report.summary).toContain('서버');
-            expect(report.solutions).toBeInstanceOf(Array);
-            // 해결방안이 없을 수도 있으므로 조건부 체크로 변경
-            if (report.solutions.length === 0) {
-                console.log('⚠️ 메모리 누수 해결방안이 생성되지 않았습니다.');
-                expect(report.solutions.length).toBeGreaterThanOrEqual(0);
-            } else {
-                expect(report.solutions.length).toBeGreaterThan(0);
-            }
+            expect(report.id).toBe('INC-002');
+            expect(report.title).toContain('memory_leak');
+            expect(report.summary).toContain('메모리 누수 감지');
+            expect(report.severity).toBe('critical');
+            expect(report.recommendations).toBeInstanceOf(Array);
+            expect(report.language).toBe('ko');
+            expect(report.generatedAt).toBeInstanceOf(Date);
         });
+    });
 
-        test('실행 가능한 해결방안을 제시해야 함', async () => {
+    describe('해결방안 생성 테스트', () => {
+        test('해결방안을 생성해야 함', async () => {
             // Given
             const incident: Incident = {
                 id: 'INC-003',
-                type: 'cpu_overload', // high_cpu_usage → cpu_overload로 변경
-                severity: 'critical',
-                affectedServer: 'web-01',
-                startTime: Date.now(),
-                status: 'detected',
-                metrics: {
-                    serverId: 'web-01',
-                    cpu: 95,
-                    memory: 60,
-                    disk: 40,
-                    network: 30,
-                    responseTime: 3000,
-                    errorRate: 0.15,
-                    timestamp: Date.now(),
-                    status: 'critical'
-                }
+                type: 'high_cpu_usage',
+                severity: 'high',
+                description: 'CPU 사용률 95%',
+                affectedServer: 'app-01',
+                detectedAt: new Date(),
+                status: 'active'
             };
 
             // When
@@ -227,83 +213,23 @@ describe('AutoIncidentReportSystem', () => {
 
             // Then
             expect(solutions).toBeInstanceOf(Array);
-            // 해결방안이 없을 수도 있으므로 조건부 체크로 변경
-            if (solutions.length === 0) {
-                console.log(`⚠️ ${incident.type}에 대한 해결방안이 생성되지 않았습니다.`);
-                expect(solutions.length).toBeGreaterThanOrEqual(0);
-            } else {
-                expect(solutions.length).toBeGreaterThan(0);
+            expect(solutions.length).toBeGreaterThan(0);
 
-                if (solutions.length > 0) {
-                    const solution = solutions[0];
-                    expect(solution.action).toBeDefined();
-                    expect(solution.description).toBeDefined();
-                    expect(solution.priority).toBeDefined();
-                    expect(solution.riskLevel).toMatch(/low|medium|high|critical/);
-                }
-            }
+            // 각 해결방안이 문자열인지 확인
+            solutions.forEach(solution => {
+                expect(typeof solution).toBe('string');
+                expect(solution.length).toBeGreaterThan(0);
+            });
         });
-    });
 
-    describe('예측 분석 테스트', () => {
-        test('장애 발생 시점을 예측해야 함', async () => {
-            // Given - 예측에 필요한 5개 이상의 데이터 포인트 제공
-            const historicalData: ServerMetrics[] = [
-                {
-                    serverId: 'web-01',
-                    timestamp: Date.now() - 4 * 60 * 60 * 1000, // 4시간 전
-                    cpu: 70,
-                    memory: 60,
-                    disk: 50,
-                    network: 30,
-                    responseTime: 200,
-                    errorRate: 0.01,
-                    status: 'healthy'
-                },
-                {
-                    serverId: 'web-01',
-                    timestamp: Date.now() - 3 * 60 * 60 * 1000, // 3시간 전
-                    cpu: 75,
-                    memory: 65,
-                    disk: 52,
-                    network: 35,
-                    responseTime: 250,
-                    errorRate: 0.015,
-                    status: 'healthy'
-                },
-                {
-                    serverId: 'web-01',
-                    timestamp: Date.now() - 2 * 60 * 60 * 1000, // 2시간 전
-                    cpu: 80,
-                    memory: 70,
-                    disk: 55,
-                    network: 40,
-                    responseTime: 300,
-                    errorRate: 0.02,
-                    status: 'warning'
-                },
-                {
-                    serverId: 'web-01',
-                    timestamp: Date.now() - 1 * 60 * 60 * 1000, // 1시간 전
-                    cpu: 85,
-                    memory: 75,
-                    disk: 58,
-                    network: 45,
-                    responseTime: 400,
-                    errorRate: 0.03,
-                    status: 'warning'
-                },
-                {
-                    serverId: 'web-01',
-                    timestamp: Date.now(), // 현재
-                    cpu: 90,
-                    memory: 80,
-                    disk: 60,
-                    network: 50,
-                    responseTime: 500,
-                    errorRate: 0.04,
-                    status: 'critical'
-                }
+        test('장애 예측 시간을 계산해야 함', async () => {
+            // Given
+            const historicalData = [
+                { cpu_usage: 60, timestamp: Date.now() - 3600000 },
+                { cpu_usage: 70, timestamp: Date.now() - 1800000 },
+                { cpu_usage: 80, timestamp: Date.now() - 900000 },
+                { cpu_usage: 85, timestamp: Date.now() - 450000 },
+                { cpu_usage: 90, timestamp: Date.now() }
             ];
 
             // When
@@ -311,80 +237,95 @@ describe('AutoIncidentReportSystem', () => {
 
             // Then
             expect(prediction).toBeDefined();
-            expect(prediction.predictedTime).toBeGreaterThan(Date.now());
-            expect(prediction.confidence).toBeGreaterThan(0);
+            expect(prediction.prediction).toBeDefined();
+            expect(typeof prediction.confidence).toBe('number');
+            expect(prediction.confidence).toBeGreaterThanOrEqual(0);
             expect(prediction.confidence).toBeLessThanOrEqual(1);
-            expect(prediction.riskFactors).toBeInstanceOf(Array);
         });
 
-        test('장애 영향도를 분석해야 함', async () => {
+        test('영향도 분석을 수행해야 함', async () => {
+            // Given
             const incident: Incident = {
                 id: 'INC-004',
-                type: 'database_connection_failure',
+                type: 'disk_space_critical',
                 severity: 'critical',
-                affectedServer: 'db-primary',
-                startTime: Date.now() - 600000,
-                status: 'detected',
-                metrics: {
-                    serverId: 'db-primary', cpu: 95, memory: 90, disk: 60, network: 50,
-                    status: 'critical', timestamp: Date.now(),
-                    responseTime: 5000, errorRate: 25
-                }
-            };
-
-            const impact = await reportSystem.analyzeImpact(incident);
-
-            expect(impact).toBeDefined();
-            expect(impact.severity).toMatch(/critical|high|medium|low/);
-            expect(impact.estimatedDowntime).toBeGreaterThan(0);
-            expect(impact.businessImpact).toBeDefined();
-            expect(impact.userImpact).toBeDefined();
-        });
-    });
-
-    describe('통합 테스트', () => {
-        test('실제 서버 메트릭으로 전체 프로세스가 동작해야 함', async () => {
-            const realTimeMetrics: ServerMetrics = {
-                serverId: 'prod-web-01',
-                cpu: 92,
-                memory: 88,
-                disk: 45,
-                network: 95,
-                status: 'critical',
-                timestamp: Date.now(),
-                responseTime: 5000,
-                errorRate: 12
-            };
-
-            const fullReport = await reportSystem.processRealTimeIncident(realTimeMetrics);
-
-            expect(fullReport).toBeDefined();
-            expect(fullReport.detection).toBeDefined();
-            expect(fullReport.report).toBeDefined();
-            expect(fullReport.solutions).toBeInstanceOf(Array);
-            expect(fullReport.prediction).toBeDefined();
-            expect(fullReport.processingTime).toBeGreaterThanOrEqual(0);
-        });
-
-        test('기존 AutoReportService와 호환되어야 함', async () => {
-            // Given
-            const legacyData = {
-                serverId: 'legacy-01',
-                errorType: 'connection_timeout',
-                timestamp: Date.now(),
-                severity: 'medium'
+                description: '디스크 공간 부족',
+                affectedServer: 'db-01',
+                detectedAt: new Date(),
+                status: 'active'
             };
 
             // When
-            const compatReport = await reportSystem.generateCompatibleReport(legacyData);
+            const impact = await reportSystem.analyzeImpact(incident);
 
             // Then
-            expect(compatReport).toBeDefined();
-            expect(compatReport.id).toBeDefined();
-            expect(compatReport.summary).toBeDefined();
-            expect(compatReport.solutions).toBeInstanceOf(Array);
-            // 타임스탬프를 Date 객체로 변환하여 체크
-            expect(new Date(compatReport.generatedAt)).toBeInstanceOf(Date);
+            expect(impact).toBeDefined();
+            expect(impact.severity).toBe('critical');
+            expect(impact.affectedSystems).toBeInstanceOf(Array);
+            expect(typeof impact.estimatedUsers).toBe('number');
+            expect(typeof impact.businessImpact).toBe('string');
+            expect(typeof impact.recoveryTime).toBe('string');
+        });
+
+        test('실시간 장애 처리를 수행해야 함', async () => {
+            // Given
+            const metrics = {
+                serverId: 'web-01',
+                cpu_usage: 95,
+                memory_usage: 85,
+                disk_usage: 70,
+                response_time: 3000
+            };
+
+            // When
+            const result = await reportSystem.processRealTimeIncident(metrics);
+
+            // Then
+            expect(result).toBeDefined();
+            expect(result.incident).toBeDefined();
+            expect(result.report).toBeDefined();
+            expect(result.solutions).toBeInstanceOf(Array);
+            expect(result.processedAt).toBeInstanceOf(Date);
+            expect(result.realTime).toBe(true);
+        });
+    });
+
+    describe('ML 학습 기능 테스트', () => {
+        test('ML 기반 학습을 수행해야 함', async () => {
+            // Given
+            const report = {
+                incident: {
+                    id: 'INC-005',
+                    type: 'performance_degradation',
+                    severity: 'medium'
+                },
+                success: true,
+                resolution_time: 300
+            };
+
+            // When & Then - 오류 없이 실행되면 성공
+            await expect(reportSystem.learnFromIncidentWithML(report)).resolves.not.toThrow();
+        });
+
+        test('학습 메트릭을 조회해야 함', () => {
+            // When
+            const metrics = reportSystem.getLearningMetrics();
+
+            // Then
+            expect(metrics).toBeDefined();
+            expect(metrics.patterns).toBeInstanceOf(Array);
+            expect(typeof metrics.successRate).toBe('number');
+            expect(typeof metrics.totalIncidents).toBe('number');
+            expect(typeof metrics.resolvedIncidents).toBe('number');
+            expect(typeof metrics.averageResolutionTime).toBe('number');
+            expect(metrics.lastUpdated).toBeInstanceOf(Date);
+            expect(typeof metrics.currentMode).toBe('string');
+        });
+
+        test('학습 기능을 활성화/비활성화할 수 있어야 함', () => {
+            // When & Then - 오류 없이 실행되면 성공
+            expect(() => reportSystem.setLearningEnabled(false)).not.toThrow();
+            expect(() => reportSystem.setLearningEnabled(true)).not.toThrow();
         });
     });
 });

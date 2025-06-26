@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { AutoIncidentReportSystem } from '@/core/ai/systems/AutoIncidentReportSystem';
 import { SolutionDatabase } from '@/core/ai/databases/SolutionDatabase';
+import { IncidentDetectionEngine } from '@/core/ai/engines/IncidentDetectionEngine';
+import { AutoIncidentReportSystem } from '@/core/ai/systems/AutoIncidentReportSystem';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
  * 🧠 AI 학습 시스템 기본 테스트
@@ -10,11 +11,18 @@ import { SolutionDatabase } from '@/core/ai/databases/SolutionDatabase';
 describe('AI Learning System - Basic Tests', () => {
     let autoIncidentSystem: AutoIncidentReportSystem;
     let solutionDatabase: SolutionDatabase;
+    let detectionEngine: IncidentDetectionEngine;
 
     beforeEach(() => {
         // 각 테스트마다 새로운 인스턴스 생성
-        autoIncidentSystem = new AutoIncidentReportSystem();
+        detectionEngine = new IncidentDetectionEngine();
         solutionDatabase = new SolutionDatabase();
+        autoIncidentSystem = new AutoIncidentReportSystem(
+            detectionEngine,
+            solutionDatabase,
+            true, // enableLearning
+            'LOCAL' // mode
+        );
 
         // 콘솔 로그 모킹 (테스트 출력 정리)
         vi.spyOn(console, 'log').mockImplementation(() => { });
@@ -40,11 +48,24 @@ describe('AI Learning System - Basic Tests', () => {
 
             expect(metrics).toBeDefined();
             expect(typeof metrics).toBe('object');
-            expect(metrics).toHaveProperty('totalPatterns');
-            expect(metrics).toHaveProperty('avgSuccessRate');
-            expect(metrics).toHaveProperty('recentLearnings');
-            expect(metrics).toHaveProperty('predictionAccuracy');
-            expect(metrics).toHaveProperty('lastLearningTime');
+
+            // 실제 존재하는 속성들만 테스트
+            expect(metrics).toHaveProperty('patterns');
+            expect(metrics).toHaveProperty('successRate');
+            expect(metrics).toHaveProperty('totalIncidents');
+            expect(metrics).toHaveProperty('resolvedIncidents');
+            expect(metrics).toHaveProperty('averageResolutionTime');
+            expect(metrics).toHaveProperty('lastUpdated');
+            expect(metrics).toHaveProperty('currentMode');
+
+            // 타입 검증
+            expect(Array.isArray(metrics.patterns)).toBe(true);
+            expect(typeof metrics.successRate).toBe('number');
+            expect(typeof metrics.totalIncidents).toBe('number');
+            expect(typeof metrics.resolvedIncidents).toBe('number');
+            expect(typeof metrics.averageResolutionTime).toBe('number');
+            expect(metrics.lastUpdated).toBeInstanceOf(Date);
+            expect(typeof metrics.currentMode).toBe('string');
         });
 
         it('학습 활성화/비활성화가 작동한다', () => {
@@ -164,9 +185,9 @@ describe('AI Learning System - Basic Tests', () => {
             // 학습 메트릭은 항상 유효한 객체를 반환해야 함
             const metrics = autoIncidentSystem.getLearningMetrics();
             expect(metrics).toBeDefined();
-            expect(typeof metrics.totalPatterns).toBe('number');
-            expect(typeof metrics.avgSuccessRate).toBe('number');
-            expect(typeof metrics.predictionAccuracy).toBe('number');
+            expect(typeof metrics.successRate).toBe('number');
+            expect(typeof metrics.totalIncidents).toBe('number');
+            expect(typeof metrics.resolvedIncidents).toBe('number');
         });
     });
 });

@@ -85,6 +85,8 @@ export class UnifiedAIEngineRouter {
       modeUsage: {
         LOCAL: 0,
         GOOGLE_AI: 0,
+        AUTO: 0,
+        GOOGLE_ONLY: 0,
       },
       engineUsage: {},
       lastUpdated: new Date().toISOString(),
@@ -925,7 +927,7 @@ export class UnifiedAIEngineRouter {
       successfulRequests: 0,
       failedRequests: 0,
       averageResponseTime: 0,
-      modeUsage: { LOCAL: 0, GOOGLE_AI: 0 },
+      modeUsage: { LOCAL: 0, GOOGLE_AI: 0, AUTO: 0, GOOGLE_ONLY: 0 },
       engineUsage: {},
       lastUpdated: new Date().toISOString(),
     };
