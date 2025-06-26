@@ -9,6 +9,7 @@
  * - 3가지 배리언트 지원: compact, standard, detailed
  */
 
+import { calculateOptimalCollectionInterval } from '@/config/serverConfig';
 import {
   AlertCircle,
   ArrowRight,
@@ -123,8 +124,8 @@ const ServerCardComparisonPage = () => {
   };
 
   useEffect(() => {
-    // 🎯 데이터 생성기와 동기화: 30초 간격
-    const interval = setInterval(refreshData, 30000);
+    // 🎯 데이터 수집 간격과 동기화
+    const interval = setInterval(refreshData, calculateOptimalCollectionInterval());
     return () => clearInterval(interval);
   }, []);
 

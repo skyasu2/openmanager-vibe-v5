@@ -1,5 +1,23 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    // 빌드 최적화 설정
+    output: 'standalone',
+
+    // 정적 생성 비활성화 (빌드 오류 방지)
+    trailingSlash: false,
+
+    // 정적 생성 및 빌드 오류 방지
+    typescript: {
+        ignoreBuildErrors: false,
+    },
+
+    eslint: {
+        ignoreDuringBuilds: false,
+    },
+
+    // 서버 외부 패키지 설정 (새로운 방식)
+    serverExternalPackages: ['@supabase/supabase-js'],
+
     // SWC 강제 사용으로 Babel 충돌 해결
     experimental: {
         forceSwcTransforms: true,

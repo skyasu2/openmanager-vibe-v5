@@ -1,78 +1,78 @@
 {
   "version": "1.0.0",
-  "created": "2025-06-26T08:35:57.122Z",
-  "lastBackup": "2025-06-26T08:35:57.122Z",
+  "created": "2025-06-26T13:33:11.304Z",
+  "lastBackup": "2025-06-26T13:33:11.304Z",
   "entries": [
     {
       "key": "NEXT_PUBLIC_SUPABASE_URL",
       "value": "https://test.supabase.co",
       "encrypted": false,
       "priority": "critical",
-      "lastUpdated": "2025-06-26T08:35:57.121Z"
+      "lastUpdated": "2025-06-26T13:33:11.303Z"
     },
     {
       "key": "SUPABASE_URL",
       "value": "https://test.supabase.co",
       "encrypted": false,
       "priority": "critical",
-      "lastUpdated": "2025-06-26T08:35:57.122Z"
+      "lastUpdated": "2025-06-26T13:33:11.303Z"
     },
     {
       "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-      "value": "94d52fa228ad36f76ca5a4779ab590c2:ab28864be6cc0b577366670a427b7adb",
+      "value": "4fe83e39a042c0b953b543c3151424ff:6af3182444fb9147b63dacfb3be401c5",
       "encrypted": true,
       "priority": "critical",
-      "lastUpdated": "2025-06-26T08:35:57.122Z"
+      "lastUpdated": "2025-06-26T13:33:11.303Z"
     },
     {
       "key": "SUPABASE_SERVICE_ROLE_KEY",
-      "value": "47fb9d8270a47594608a88f4d0538b12:4e6f9a6ef33b3d6e10259f15d84e4b4313334b4ca6c643c564d6d8310079ecb6",
+      "value": "d6dd94d11c1b61e9be1a747c8f5d37f6:1e16ae5925172a20414f24a089f62b10b33dec17f9f918d02a714d7624e083a7",
       "encrypted": true,
       "priority": "critical",
-      "lastUpdated": "2025-06-26T08:35:57.122Z"
+      "lastUpdated": "2025-06-26T13:33:11.303Z"
     },
     {
       "key": "NODE_ENV",
       "value": "production",
       "encrypted": false,
       "priority": "critical",
-      "lastUpdated": "2025-06-26T08:35:57.122Z"
+      "lastUpdated": "2025-06-26T13:33:11.303Z"
     },
     {
       "key": "UPSTASH_REDIS_REST_URL",
       "value": "https://charming-condor-46598.upstash.io",
       "encrypted": false,
       "priority": "important",
-      "lastUpdated": "2025-06-26T08:35:57.122Z"
+      "lastUpdated": "2025-06-26T13:33:11.304Z"
     },
     {
       "key": "UPSTASH_REDIS_REST_TOKEN",
-      "value": "7e08c13042d61c7d9dbea04528394437:99dd55e7dad27dd66590133086202bf24aa397eb595cbe51ba22697be89a74c63069b94d847b7e9b715c15fa57b1ddbe1ad785b897021c7f8f2377df5d781e4d",
+      "value": "68685a974c2c09a1feedb0caaa92dea3:5be5f4df08b97709e2e37b34c08549d1721d78e6a33bc1052671f2de40648724c381a16f330e77a7e5ec112a27de72b79fa85c02ae3fe9fd009de8783ec11b97",
       "encrypted": true,
       "priority": "important",
-      "lastUpdated": "2025-06-26T08:35:57.122Z"
+      "lastUpdated": "2025-06-26T13:33:11.304Z"
     },
     {
       "key": "GOOGLE_AI_API_KEY",
-      "value": "2d70ec2b258e8ae74886d5f21ab7556d:2dd50bdf0c8f99075aead4044553b698741e8ad046bfa539d2d79163aefa76e47699c5bc2364a13dc3a12b9643ad08e7",
+      "value": "9e5d40f7d60c9e229d37cd7bce413a21:365c886d1a05cf1e9b59539c1bd31e48c9f77caad875b97ea93d7e8aca4cf1c3e91e144795495f0bec9054ac93b45e9f",
       "encrypted": true,
       "priority": "important",
-      "lastUpdated": "2025-06-26T08:35:57.122Z"
+      "lastUpdated": "2025-06-26T13:33:11.304Z"
     },
     {
       "key": "GOOGLE_AI_DAILY_LIMIT",
       "value": "10000",
       "encrypted": false,
       "priority": "optional",
-      "lastUpdated": "2025-06-26T08:35:57.122Z"
+      "lastUpdated": "2025-06-26T13:33:11.304Z"
     },
     {
       "key": "GOOGLE_AI_RPM_LIMIT",
       "value": "100",
       "encrypted": false,
       "priority": "optional",
-      "lastUpdated": "2025-06-26T08:35:57.122Z"
+      "lastUpdated": "2025-06-26T13:33:11.304Z"
     }
   ],
-  "checksum": "a3fa3a164edf7219a8d6551fe9fd8f0e"
+  "checksum": "829cd47d0ed820aec9f359754c221859"
 }

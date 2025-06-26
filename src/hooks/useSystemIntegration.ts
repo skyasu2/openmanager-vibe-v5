@@ -26,6 +26,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 // import { useToast } from '@/components/ui/ToastNotification'; // 사용하지 않음
+import { calculateOptimalCollectionInterval } from '@/config/serverConfig';
 import {
   MetricDataPoint,
   predictiveAnalysisEngine,
@@ -518,8 +519,8 @@ export const useSystemIntegration = () => {
 
       // 상태 폴링 시작
       if (pollingInterval.current) clearInterval(pollingInterval.current);
-      // 🎯 데이터 생성기와 동기화: 30초 간격
-      pollingInterval.current = setInterval(pollSystemStatus, 30000);
+      // 🎯 데이터 수집 간격과 동기화
+      pollingInterval.current = setInterval(pollSystemStatus, calculateOptimalCollectionInterval());
       await pollSystemStatus();
 
       return true;

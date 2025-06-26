@@ -1,5 +1,6 @@
 'use client';
 
+import { calculateOptimalCollectionInterval } from '@/config/serverConfig';
 import { useEffect, useState } from 'react';
 
 // src/types/system.ts 또는 유사한 파일에 정의되어 있다고 가정
@@ -58,8 +59,8 @@ export function useSystemAlerts() {
   useEffect(() => {
     fetchAlerts(); // 초기 로드
 
-    // 🎯 데이터 생성기와 동기화: 30초 간격
-    const intervalId = setInterval(fetchAlerts, 30000);
+    // 🎯 데이터 수집 간격과 동기화
+    const intervalId = setInterval(fetchAlerts, calculateOptimalCollectionInterval());
 
     return () => clearInterval(intervalId); // 컴포넌트 언마운트 시 인터벌 정리
   }, []);
