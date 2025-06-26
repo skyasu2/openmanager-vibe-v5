@@ -69,7 +69,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
             lastUpdate: Date.now(),
           }));
         },
-        calculateOptimalCollectionInterval() + index * 1000 // 🎯 데이터 수집 간격과 동기화 (35-40초)
+        35000 + index * 1000 // 🎯 데이터 수집 간격과 동기화 (35-40초)
       );
 
       return () => clearInterval(interval);

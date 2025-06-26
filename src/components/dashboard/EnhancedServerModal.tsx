@@ -10,6 +10,7 @@
  * - AI 기반 인사이트
  */
 
+import { calculateOptimalCollectionInterval } from '@/config/serverConfig';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
@@ -217,9 +218,9 @@ export default function EnhancedServerModal({
     };
 
     generateRealtimeData();
-    // 🎯 데이터 생성기와 완전 동기화: 30초 간격으로 통일
+    // 🎯 데이터 수집 간격과 완전 동기화
     // 서버 카드, 실시간 훅과 모두 동기화하여 일관된 업데이트 제공
-    const interval = setInterval(generateRealtimeData, 30000);
+    const interval = setInterval(generateRealtimeData, calculateOptimalCollectionInterval());
 
     return () => clearInterval(interval);
   }, [safeServer, isRealtime]);
