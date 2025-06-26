@@ -2,7 +2,7 @@
  * 📊 에러 통계 관리
  */
 
-import { ServiceError, ErrorStatistics as ErrorStatsInterface, ErrorSeverity, getErrorSeverity } from '../types/ErrorTypes';
+import { ErrorSeverity, ErrorStatistics as ErrorStatsInterface, getErrorSeverity, ServiceError } from '../types/ErrorTypes';
 
 export class ErrorStatistics {
   private errorHistory: ServiceError[] = [];
@@ -17,7 +17,7 @@ export class ErrorStatistics {
    */
   addError(error: ServiceError): void {
     this.errorHistory.unshift(error);
-    
+
     // 히스토리 크기 제한
     if (this.errorHistory.length > this.maxHistorySize) {
       this.errorHistory = this.errorHistory.slice(0, this.maxHistorySize);
@@ -44,7 +44,7 @@ export class ErrorStatistics {
    */
   getStatistics(): ErrorStatsInterface {
     const total = this.errorHistory.length;
-    
+
     // 서비스별 에러 수
     const byService: Record<string, number> = {};
     this.errorHistory.forEach(error => {
@@ -61,13 +61,17 @@ export class ErrorStatistics {
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
     const recentCritical = this.errorHistory.filter(error => {
       const severity = getErrorSeverity(error);
-      return error.timestamp > oneHourAgo && 
-             (severity === ErrorSeverity.CRITICAL || severity === ErrorSeverity.HIGH);
+      const errorTimestamp = error.timestamp || new Date();
+      return errorTimestamp > oneHourAgo &&
+        (severity === ErrorSeverity.CRITICAL || severity === ErrorSeverity.HIGH);
     });
 
     // 에러율 계산 (최근 5분간)
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    const recentErrors = this.errorHistory.filter(error => error.timestamp > fiveMinutesAgo);
+    const recentErrors = this.errorHistory.filter(error => {
+      const errorTimestamp = error.timestamp || new Date();
+      return errorTimestamp > fiveMinutesAgo;
+    });
     const errorRate = (recentErrors.length / 300) * 100; // 5분 = 300초
 
     return {
@@ -89,11 +93,14 @@ export class ErrorStatistics {
     severity: Record<ErrorSeverity, number>;
   } {
     const serviceErrors = this.errorHistory.filter(error => error.service === service);
-    
+
     // 최근 1시간 에러
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    const recentErrors = serviceErrors.filter(error => error.timestamp > oneHourAgo);
-    
+    const recentErrors = serviceErrors.filter(error => {
+      const errorTimestamp = error.timestamp || new Date();
+      return errorTimestamp > oneHourAgo;
+    });
+
     // 에러 코드별 통계
     const codes: Record<string, number> = {};
     serviceErrors.forEach(error => {
@@ -138,15 +145,16 @@ export class ErrorStatistics {
       const hourStart = new Date(hour.getFullYear(), hour.getMonth(), hour.getDate(), hour.getHours());
       const hourEnd = new Date(hourStart.getTime() + 60 * 60 * 1000);
 
-      const hourErrors = this.errorHistory.filter(error => 
-        error.timestamp >= hourStart && error.timestamp < hourEnd
-      );
+      const hourErrors = this.errorHistory.filter(error => {
+        const errorTimestamp = error.timestamp || new Date();
+        return errorTimestamp >= hourStart && errorTimestamp < hourEnd;
+      });
 
-      const criticalCount = hourErrors.filter(error => 
+      const criticalCount = hourErrors.filter(error =>
         getErrorSeverity(error) === ErrorSeverity.CRITICAL
       ).length;
 
-      const highCount = hourErrors.filter(error => 
+      const highCount = hourErrors.filter(error =>
         getErrorSeverity(error) === ErrorSeverity.HIGH
       ).length;
 
@@ -182,18 +190,19 @@ export class ErrorStatistics {
     this.errorHistory.forEach(error => {
       const key = `${error.service}:${error.code}`;
       const existing = errorFrequency.get(key);
-      
+      const errorTimestamp = error.timestamp || new Date();
+
       if (existing) {
         existing.count++;
-        if (error.timestamp > existing.lastOccurrence) {
-          existing.lastOccurrence = error.timestamp;
+        if (errorTimestamp > existing.lastOccurrence) {
+          existing.lastOccurrence = errorTimestamp;
         }
       } else {
         errorFrequency.set(key, {
           code: error.code,
           service: error.service,
           count: 1,
-          lastOccurrence: error.timestamp,
+          lastOccurrence: errorTimestamp,
           severity: getErrorSeverity(error),
         });
       }
@@ -276,6 +285,9 @@ export class ErrorStatistics {
    */
   private getRecentErrors(minutes: number): ServiceError[] {
     const cutoff = new Date(Date.now() - minutes * 60 * 1000);
-    return this.errorHistory.filter(error => error.timestamp > cutoff);
+    return this.errorHistory.filter(error => {
+      const errorTimestamp = error.timestamp || new Date();
+      return errorTimestamp > cutoff;
+    });
   }
 } 

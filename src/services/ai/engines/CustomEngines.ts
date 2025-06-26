@@ -288,7 +288,7 @@ export class CustomEngines {
   }
 
   private generateRecommendations(query: string, context?: any): string[] {
-    const recommendations = [];
+    const recommendations: string[] = [];
 
     if (context?.servers) {
       recommendations.push('정기적인 서버 상태 모니터링');
@@ -365,7 +365,7 @@ export class CustomEngines {
   > {
     const testQueries = ['서버 상태 확인', '성능 지표 조회', '최근 알림 내역'];
 
-    const results = [];
+    const results: any[] = [];
 
     for (const query of testQueries) {
       const startTime = Date.now();
@@ -389,7 +389,7 @@ export class CustomEngines {
   }
 
   private testMCPCapabilities(): string[] {
-    const capabilities = [];
+    const capabilities: string[] = [];
 
     if (this.mcpConnected) {
       capabilities.push('query_processing');
@@ -526,7 +526,7 @@ export class CustomEngines {
     metricAnalysis: any,
     alertAnalysis: any
   ): string[] {
-    const actions = [];
+    const actions: string[] = [];
 
     if (serverAnalysis.health_ratio < 0.8) {
       actions.push('서버 상태 점검 필요');

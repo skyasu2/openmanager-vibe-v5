@@ -76,8 +76,8 @@ class MockEnvBackupManager {
   }
 
   validateEnvironment() {
-    const missing = [];
-    const invalid = [];
+    const missing: string[] = [];
+    const invalid: string[] = [];
 
     // Check for critical environment variables
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -112,7 +112,7 @@ class MockEnvBackupManager {
 
     try {
       const backupData = JSON.parse(vi.mocked(fs.readFileSync)('.env.backup', 'utf8') as string);
-      const restored = [];
+      const restored: string[] = [];
 
       if (level === 'critical') {
         // Restore critical variables

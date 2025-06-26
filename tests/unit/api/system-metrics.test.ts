@@ -136,7 +136,7 @@ describe('System Metrics Logic', () => {
         };
 
         const generateAlerts = (data: RawMetricData): string[] => {
-          const alerts = [];
+          const alerts: any[] = [];
           if (data.cpu > 80) alerts.push('high_cpu');
           if (data.memory > 85) alerts.push('high_memory');
           return alerts;

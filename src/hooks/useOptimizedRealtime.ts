@@ -8,8 +8,8 @@
  * - 자동 구독/구독해제
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
 import { realtimeDataManager } from '@/services/realtime/RealtimeDataManager';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useIntersectionObserver } from './useIntersectionObserver';
 
 type DataType = 'server' | 'network' | 'system' | 'metrics';
@@ -30,7 +30,7 @@ interface UseOptimizedRealtimeReturn<T = any> {
   error: string | null;
   lastUpdate: Date | null;
   forceUpdate: () => void;
-  elementRef: React.RefObject<HTMLElement>;
+  elementRef: React.RefObject<HTMLDivElement | null>;
   isVisible: boolean;
   stats: {
     updateCount: number;
@@ -51,7 +51,7 @@ export function useOptimizedRealtime<T = any>({
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [updateCount, setUpdateCount] = useState(0);
-  
+
   const subscriberIdRef = useRef<string>(
     customSubscriberId || `${dataType}-${Date.now()}-${Math.random()}`
   );
@@ -72,10 +72,10 @@ export function useOptimizedRealtime<T = any>({
       setUpdateCount(prev => prev + 1);
       setIsLoading(false);
       setError(null);
-      
+
       // 외부 콜백 호출
       onUpdate?.(newData);
-      
+
       console.log(`📊 데이터 업데이트: ${subscriberIdRef.current}`, newData);
     } catch (err) {
       console.error(`❌ 데이터 업데이트 실패: ${subscriberIdRef.current}`, err);
@@ -92,9 +92,9 @@ export function useOptimizedRealtime<T = any>({
   // 구독 설정
   useEffect(() => {
     const subscriberId = subscriberIdRef.current;
-    
+
     console.log(`📡 실시간 데이터 구독 시작: ${subscriberId}`);
-    
+
     try {
       // 데이터 관리자에 구독
       const unsubscribe = realtimeDataManager.subscribe(
@@ -103,9 +103,9 @@ export function useOptimizedRealtime<T = any>({
         dataType,
         frequency
       );
-      
+
       unsubscribeRef.current = unsubscribe;
-      
+
       console.log(`✅ 구독 완료: ${subscriberId} (${dataType}, ${frequency})`);
     } catch (err) {
       console.error(`❌ 구독 실패: ${subscriberId}`, err);
@@ -128,7 +128,7 @@ export function useOptimizedRealtime<T = any>({
     if (enableVisibilityOptimization) {
       const subscriberId = subscriberIdRef.current;
       realtimeDataManager.updateVisibility(subscriberId, isVisible);
-      
+
       console.log(`👁️ 가시성 업데이트: ${subscriberId} = ${isVisible}`);
     }
   }, [isVisible, enableVisibilityOptimization]);
@@ -158,7 +158,7 @@ export function useServerMetrics(options?: Omit<UseOptimizedRealtimeOptions, 'da
   // ✅ 서버별 고유 구독 ID 생성 (중복 구독 방지)
   const serverId = options?.serverId || 'default';
   const subscriberId = `server-metrics-${serverId}`;
-  
+
   return useOptimizedRealtime<{
     cpu: number;
     memory: number;

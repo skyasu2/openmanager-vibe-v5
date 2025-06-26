@@ -8,17 +8,16 @@
  * - 실시간 모니터링 및 분석 기능
  */
 
-import { 
-  langGraphProcessor, 
-  logStep, 
-  thought, 
-  observation, 
-  action, 
-  answer, 
-  reflection 
+import {
+  action,
+  answer,
+  langGraphProcessor,
+  logStep,
+  observation,
+  reflection,
+  thought
 } from '@/modules/ai-agent/core/LangGraphThinkingProcessor';
 import { simulationEngine } from '@/services/simulationEngine';
-import type { ServerMetrics } from '@/types/server';
 
 export interface MCPQuery {
   id: string;
@@ -60,7 +59,7 @@ export class MCPLangGraphAgent {
 
     await langGraphProcessor.initialize();
     this.isInitialized = true;
-    
+
     console.log(`🤖 MCP LangGraph Agent initialized (session: ${this.sessionId})`);
   }
 
@@ -69,39 +68,39 @@ export class MCPLangGraphAgent {
    */
   async processQuery(query: MCPQuery): Promise<MCPResponse> {
     const startTime = Date.now();
-    
+
     // 1. 사고 흐름 시작
     const queryId = langGraphProcessor.startThinking(this.sessionId, query.question, 'react');
-    
+
     try {
       // 2. 질문 분석 단계
       const intent = await this.analyzeQuery(query);
-      
+
       // 3. 컨텍스트 수집 단계
       const context = await this.gatherContext(query, intent);
-      
+
       // 4. 분석 및 추론 단계
       const analysis = await this.performAnalysis(context, intent);
-      
+
       // 5. 답변 생성 단계
       const response = await this.generateResponse(query, analysis);
-      
+
       // 6. 검증 및 최종화 단계
       const finalResponse = await this.validateAndFinalize(response);
-      
+
       // 7. 사고 과정 완료
       langGraphProcessor.completeThinking(finalResponse);
-      
+
       return {
         ...finalResponse,
         query_id: queryId,
         execution_time: Date.now() - startTime
       };
-      
+
     } catch (error) {
       console.error('MCP 질의 처리 실패:', error);
       langGraphProcessor.errorThinking(error instanceof Error ? error.message : '알 수 없는 오류');
-      
+
       throw error;
     }
   }
@@ -111,13 +110,13 @@ export class MCPLangGraphAgent {
    */
   private async analyzeQuery(query: MCPQuery): Promise<string> {
     const stepId = logStep("질문을 분석하고 있습니다...", `사용자 질문: "${query.question}"`, 'analysis');
-    
+
     thought(`사용자가 "${query.question}"에 대해 ${query.priority} 우선순위로 질문했습니다. 카테고리는 ${query.category}입니다.`);
-    
+
     // 질문 의도 분석
     const keywords = query.question.toLowerCase();
     let intent = 'general_inquiry';
-    
+
     if (keywords.includes('서버') || keywords.includes('server')) {
       if (keywords.includes('상태') || keywords.includes('status')) {
         intent = 'server_status_check';
@@ -131,10 +130,10 @@ export class MCPLangGraphAgent {
     } else if (keywords.includes('추천') || keywords.includes('recommend')) {
       intent = 'recommendation_request';
     }
-    
+
     observation(`질문 분석 완료: 의도=${intent}, 카테고리=${query.category}, 우선순위=${query.priority}`);
     langGraphProcessor.completeStep(stepId, { intent, category: query.category, priority: query.priority });
-    
+
     return intent;
   }
 
@@ -144,39 +143,39 @@ export class MCPLangGraphAgent {
   private async gatherContext(query: MCPQuery, intent: string): Promise<any> {
     const stepId = logStep("관련 데이터를 수집 중...", `의도: ${intent}`, 'query');
     langGraphProcessor.thought("분석에 필요한 컨텍스트 데이터를 수집해야 합니다.");
-    
+
     try {
       console.log('📡 서버 데이터 수집 시작...');
-      
+
       // 🔧 서버사이드에서는 시뮬레이션 엔진 직접 사용
       const servers = simulationEngine.getServers();
       console.log('✅ 시뮬레이션 엔진에서 직접 데이터 수신:', servers.length + '개 서버');
-      
+
       if (servers.length === 0) {
         console.warn('⚠️ 서버 데이터가 비어있습니다. 시뮬레이션 엔진 시작...');
         simulationEngine.start();
         await new Promise(resolve => setTimeout(resolve, 500));
         const retryServers = simulationEngine.getServers();
         console.log('🔄 재시도 후 서버 수:', retryServers.length);
-        
+
         if (retryServers.length === 0) {
           throw new Error('시뮬레이션 엔진에서 서버 데이터를 가져올 수 없습니다');
         }
-        
+
         return await this.processServerData(retryServers, intent);
       }
-      
+
       const context = await this.processServerData(servers, intent);
-      
+
       observation(`컨텍스트 수집 완료: ${servers.length}개 서버, 분석 대상 선정됨`);
       langGraphProcessor.completeStep(stepId, context);
-      
+
       return context;
-      
+
     } catch (error) {
       console.error('❌ 컨텍스트 수집 실패:', error);
       langGraphProcessor.errorStep(stepId, error instanceof Error ? error.message : '컨텍스트 수집 실패');
-      
+
       // 🔄 Fallback: 기본 컨텍스트 생성
       const fallbackContext = {
         servers: [],
@@ -185,10 +184,10 @@ export class MCPLangGraphAgent {
         source: 'fallback',
         error: error instanceof Error ? error.message : '데이터 수집 실패'
       };
-      
+
       observation(`Fallback 컨텍스트 사용: 오류로 인한 기본 데이터 생성`);
       langGraphProcessor.completeStep(stepId, fallbackContext);
-      
+
       return fallbackContext;
     }
   }
@@ -238,12 +237,12 @@ export class MCPLangGraphAgent {
    */
   private async performAnalysis(context: any, intent: string): Promise<any> {
     const stepId = logStep("데이터를 분석하고 패턴을 찾는 중...", `${intent} 기반 심층 분석 수행`, 'processing');
-    
+
     thought("수집된 데이터를 바탕으로 패턴을 분석하고 인사이트를 도출해야 합니다.");
     action(`${intent} 분석 알고리즘 실행`);
-    
+
     let analysis: any = {};
-    
+
     switch (intent) {
       case 'server_status_check':
         analysis = this.analyzeServerStatus(context);
@@ -260,10 +259,10 @@ export class MCPLangGraphAgent {
       default:
         analysis = this.generalAnalysis(context);
     }
-    
+
     observation(`분석 완료: ${Object.keys(analysis).length}개 분석 항목 도출`);
     langGraphProcessor.completeStep(stepId, analysis);
-    
+
     return analysis;
   }
 
@@ -272,15 +271,15 @@ export class MCPLangGraphAgent {
    */
   private async generateResponse(query: MCPQuery, analysis: any): Promise<Partial<MCPResponse>> {
     const stepId = logStep("답변을 구성하고 있습니다...", "분석 결과를 바탕으로 사용자 친화적인 답변 생성", 'summary');
-    
+
     thought("분석 결과를 종합하여 명확하고 실행 가능한 답변을 구성해야 합니다.");
     action("답변 템플릿 생성 및 개인화");
-    
+
     let responseText = '';
     let recommendations: string[] = [];
     let relatedServers: string[] = [];
     let confidence = 0.8; // 기본 신뢰도
-    
+
     // 분석 결과에 따른 답변 생성
     if (analysis.serverStatus) {
       responseText = this.formatServerStatusResponse(analysis.serverStatus);
@@ -300,7 +299,7 @@ export class MCPLangGraphAgent {
       recommendations = ['추가 정보가 필요합니다.', '더 구체적인 질문을 해주세요.'];
       confidence = 0.6; // 일반 분석은 낮은 신뢰도
     }
-    
+
     const response = {
       answer: responseText,
       confidence,
@@ -309,10 +308,10 @@ export class MCPLangGraphAgent {
       reasoning_steps: this.extractReasoningSteps(),
       sources: ['OpenManager Simulation Engine', 'Real-time Server Metrics']
     };
-    
+
     answer(responseText);
     langGraphProcessor.completeStep(stepId, response);
-    
+
     return response;
   }
 
@@ -321,10 +320,10 @@ export class MCPLangGraphAgent {
    */
   private async validateAndFinalize(response: Partial<MCPResponse>): Promise<MCPResponse> {
     const stepId = logStep("답변을 검증하고 최종화하는 중...", "품질 검사 및 최종 답변 준비", 'validation');
-    
+
     thought("생성된 답변의 정확성과 완성도를 검증해야 합니다.");
     action("답변 품질 검사 실행");
-    
+
     // 기본값 설정
     const finalResponse: MCPResponse = {
       query_id: '',
@@ -336,7 +335,7 @@ export class MCPLangGraphAgent {
       execution_time: 0,
       sources: response.sources || []
     };
-    
+
     // 신뢰도 조정
     if (finalResponse.answer.length < 50) {
       finalResponse.confidence *= 0.8; // 짧은 답변은 신뢰도 감소
@@ -344,18 +343,18 @@ export class MCPLangGraphAgent {
     if (finalResponse.recommendations.length === 0) {
       finalResponse.confidence *= 0.9; // 추천사항 없으면 신뢰도 감소
     }
-    
+
     // 최종 검증
     if (finalResponse.confidence < 0.3) {
       finalResponse.answer = "죄송합니다. 충분한 정보를 수집하지 못했습니다. 더 구체적인 질문을 해주시겠어요?";
       finalResponse.recommendations = ["질문을 더 구체적으로 작성해주세요", "시스템 상태를 확인해주세요"];
     }
-    
+
     observation(`답변 검증 완료: 신뢰도 ${Math.round(finalResponse.confidence * 100)}%, ${finalResponse.recommendations.length}개 추천사항`);
     langGraphProcessor.completeStep(stepId, finalResponse);
-    
+
     reflection(`총 분석 시간과 품질을 고려할 때, 이 답변은 사용자의 질문에 적절히 대응했다고 판단됩니다.`);
-    
+
     return finalResponse;
   }
 
@@ -364,7 +363,7 @@ export class MCPLangGraphAgent {
    */
   private analyzeServerStatus(context: any): any {
     const { servers, healthyServers, warningServers, errorServers } = context;
-    
+
     return {
       serverStatus: {
         total: servers.length,
@@ -383,7 +382,7 @@ export class MCPLangGraphAgent {
    */
   private analyzePerformance(context: any): any {
     const { servers, highCpuServers, highMemoryServers, slowResponseServers } = context;
-    
+
     return {
       performance: {
         totalServers: servers.length,
@@ -403,7 +402,7 @@ export class MCPLangGraphAgent {
    */
   private analyzeIncidents(context: any): any {
     const { servers, alertedServers, criticalAlerts } = context;
-    
+
     return {
       incidents: {
         totalServers: servers.length,
@@ -420,7 +419,7 @@ export class MCPLangGraphAgent {
    */
   private predictTrends(context: any): any {
     const { servers } = context;
-    
+
     return {
       predictions: {
         systemLoad: this.predictSystemLoad(servers),
@@ -435,7 +434,7 @@ export class MCPLangGraphAgent {
    */
   private generalAnalysis(context: any): any {
     const { servers, summary } = context;
-    
+
     return {
       general: {
         serverCount: servers.length,
@@ -494,39 +493,39 @@ ${status.error > 0 ? '⚠️ 즉시 조치가 필요한 서버가 있습니다.'
   }
 
   private generateServerStatusRecommendations(status: any): string[] {
-    const recommendations = [];
-    
+    const recommendations: string[] = [];
+
     if (status.error > 0) {
       recommendations.push("오류 상태 서버의 로그를 확인하고 즉시 조치하세요");
       recommendations.push("장애 서버의 백업 시스템 가동을 검토하세요");
     }
-    
+
     if (status.warning > 0) {
       recommendations.push("경고 상태 서버의 리소스 사용량을 모니터링하세요");
     }
-    
+
     if (status.healthPercentage < 80) {
       recommendations.push("전체 시스템 건강도가 낮습니다. 인프라 점검을 권장합니다");
     }
-    
+
     return recommendations;
   }
 
   private generatePerformanceRecommendations(perf: any): string[] {
-    const recommendations = [];
-    
+    const recommendations: string[] = [];
+
     if (perf.avgCpu > 80) {
       recommendations.push("CPU 사용률이 높습니다. 로드 밸런싱을 검토하세요");
     }
-    
+
     if (perf.avgMemory > 80) {
       recommendations.push("메모리 사용률이 높습니다. 메모리 증설을 고려하세요");
     }
-    
+
     if (perf.avgResponseTime > 300) {
       recommendations.push("응답시간이 느립니다. 캐시 설정을 확인하세요");
     }
-    
+
     return recommendations;
   }
 
@@ -542,7 +541,7 @@ ${status.error > 0 ? '⚠️ 즉시 조치가 필요한 서버가 있습니다.'
   private extractReasoningSteps(): string[] {
     const currentFlow = langGraphProcessor.getCurrentFlow();
     if (!currentFlow) return [];
-    
+
     return currentFlow.logic_steps.map(step => `${step.step}. ${step.title}`);
   }
 
@@ -560,34 +559,34 @@ ${status.error > 0 ? '⚠️ 즉시 조치가 필요한 서버가 있습니다.'
       types[alert.type] = (types[alert.type] || 0) + 1;
       return types;
     }, {} as Record<string, number>);
-    
+
     return Object.entries(issueTypes)
-      .sort(([,a], [,b]) => (b as number) - (a as number))
+      .sort(([, a], [, b]) => (b as number) - (a as number))
       .slice(0, 5)
       .map(([type]) => type);
   }
 
   private predictSystemLoad(servers: any[]): string {
     const avgLoad = servers.reduce((sum, s) => sum + s.cpu_usage, 0) / servers.length;
-    
+
     if (avgLoad > 80) return 'HIGH';
     if (avgLoad > 60) return 'MEDIUM';
     return 'LOW';
   }
 
   private identifyPotentialIssues(servers: any[]): string[] {
-    const issues = [];
-    
+    const issues: string[] = [];
+
     const highCpuServers = servers.filter(s => s.cpu_usage > 85);
     if (highCpuServers.length > 0) {
       issues.push(`${highCpuServers.length}개 서버에서 CPU 과부하 예상`);
     }
-    
+
     const highMemoryServers = servers.filter(s => s.memory_usage > 90);
     if (highMemoryServers.length > 0) {
       issues.push(`${highMemoryServers.length}개 서버에서 메모리 부족 예상`);
     }
-    
+
     return issues;
   }
 

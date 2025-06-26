@@ -980,7 +980,7 @@ export class RealMCPClient {
         ignore: ['node_modules/**', '.git/**', 'dist/**', 'build/**'],
       });
 
-      const results = [];
+      const results: any[] = [];
 
       for (const file of files.slice(0, 10)) {
         // 최대 10개 파일만

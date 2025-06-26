@@ -382,7 +382,7 @@ export class KoreanAIEngine {
   }
 
   private generateAdditionalInfo(nluResult: any, analysis: any): any {
-    const tips = [];
+    const tips: string[] = [];
 
     // 의도별 추가 팁
     switch (nluResult.intent) {

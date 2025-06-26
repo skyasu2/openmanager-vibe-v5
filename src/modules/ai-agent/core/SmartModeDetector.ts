@@ -291,7 +291,7 @@ export class SmartModeDetector {
     severity?: 'low' | 'medium' | 'high' | 'critical'
   ): string {
     if (mode === 'advanced') {
-      const reasons = [];
+      const reasons: string[] = [];
 
       if (triggers.some(t => t.startsWith('critical:'))) {
         const incidentInfo = incidentType ?

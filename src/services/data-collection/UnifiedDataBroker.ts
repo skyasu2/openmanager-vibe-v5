@@ -270,7 +270,7 @@ export class UnifiedDataBroker {
       }
 
       // 2. Redis 조회 (무료 티어 고려)
-      let redisData = null;
+      let redisData: any = null;
       if (
         config.environment.redisTier === 'free' &&
         this.metrics.redisCommands < config.limits.redisCommands

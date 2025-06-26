@@ -12,7 +12,7 @@ class MockIncidentDetectionEngine {
     }> = [];
 
     async detectIncidents(metrics: any) {
-        const incidents = [];
+        const incidents: any[] = [];
 
         // CPU 사용률 체크
         if (metrics.cpu > 90) {

@@ -166,7 +166,7 @@ export class RuleBasedMainEngine implements IRuleBasedMainEngine {
             }
 
             // 병렬 초기화로 성능 최적화
-            const initPromises = [];
+            const initPromises: Promise<void>[] = [];
 
             if (this.config.enabledEngines.intentClassifier) {
                 initPromises.push(this.initializeEngine('intentClassifier', () =>
@@ -255,7 +255,7 @@ export class RuleBasedMainEngine implements IRuleBasedMainEngine {
         const timeout = options?.timeout || this.config.performance.timeoutMs;
         const enabledEngines = options?.enabledEngines || Object.keys(ENGINE_NAMES);
 
-        const enginePromises = [];
+        const enginePromises: Promise<any>[] = [];
 
         // Phase 2: 서버 모니터링 패턴 매칭 (최우선 - 70% 비중)
         if (this.serverPatterns) {
@@ -373,7 +373,7 @@ export class RuleBasedMainEngine implements IRuleBasedMainEngine {
                 };
 
                 combinedIntent = (intentMapping[patternResult.category] || INTENT_CATEGORIES.GENERAL_INQUIRY) as typeof INTENT_CATEGORIES.GENERAL_INQUIRY;
-                combinedConfidence = patternResult.confidence * weights.serverPatterns;
+                combinedConfidence = patternResult.confidence * (weights.serverPatterns ?? 0);
                 contributingEngines.push('serverPatterns');
             }
         }
@@ -393,7 +393,7 @@ export class RuleBasedMainEngine implements IRuleBasedMainEngine {
                 };
 
                 const mappedIntent = intentMapping[nluResult.intent] || INTENT_CATEGORIES.GENERAL_INQUIRY;
-                const weightedConfidence = nluResult.confidence * weights.enhancedKoreanNLU;
+                const weightedConfidence = nluResult.confidence * (weights.enhancedKoreanNLU ?? 0);
 
                 if (weightedConfidence > combinedConfidence) {
                     combinedIntent = mappedIntent as typeof INTENT_CATEGORIES.GENERAL_INQUIRY;

@@ -125,7 +125,7 @@ export class MetricsCollector {
    * 메트릭 히스토리 생성 (시뮬레이션)
    */
   private generateMetricHistory(min: number, max: number, points: number = 50): number[] {
-    const history = [];
+    const history: number[] = [];
     for (let i = 0; i < points; i++) {
       const value = min + Math.random() * (max - min);
       history.push(Math.round(value * 100) / 100);

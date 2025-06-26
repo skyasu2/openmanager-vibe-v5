@@ -338,7 +338,7 @@ class IncidentReportService {
       c.description.includes('응답시간')
     );
 
-    let reasons = [];
+    let reasons: string[] = [];
 
     if (cpuSpikes.length > 0) {
       reasons.push('높은 CPU 사용률로 인한 시스템 부하');
@@ -395,7 +395,7 @@ class IncidentReportService {
    * 🛠️ 해결 방안 생성
    */
   private generateResolution(changes: ServerChange[]): string {
-    const resolutions = [];
+    const resolutions: string[] = [];
 
     const cpuIssues = changes.filter(c => c.description.includes('CPU'));
     const memoryIssues = changes.filter(c => c.description.includes('메모리'));
@@ -470,7 +470,7 @@ class IncidentReportService {
    * 🔍 패턴 감지
    */
   private detectPatterns(changes: ServerChange[]): string[] {
-    const patterns = [];
+    const patterns: string[] = [];
 
     // 동시 다발적 CPU 급증
     const cpuSpikes = changes.filter(c => c.description.includes('CPU'));
@@ -566,11 +566,11 @@ ${report.affectedServers.join(', ')}
 ===========================================
 
 ${report.timeline
-  .map(
-    event =>
-      `${new Date(event.timestamp).toLocaleTimeString('ko-KR')} [${event.severity.toUpperCase()}] ${event.event}: ${event.details}`
-  )
-  .join('\n')}
+        .map(
+          event =>
+            `${new Date(event.timestamp).toLocaleTimeString('ko-KR')} [${event.severity.toUpperCase()}] ${event.event}: ${event.details}`
+        )
+        .join('\n')}
 
 ===========================================
         보고서 정보

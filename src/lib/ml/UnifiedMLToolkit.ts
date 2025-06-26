@@ -113,7 +113,7 @@ export class UnifiedMLToolkit {
         confidence: number;
     }> {
         // 시뮬레이션된 이상 탐지
-        const anomalies = [];
+        const anomalies: Array<{ type: string; score: number; confidence: number }> = [];
 
         if (data && Math.random() > 0.7) {
             anomalies.push({
@@ -137,7 +137,7 @@ export class UnifiedMLToolkit {
         confidence: number;
     }> {
         // 시뮬레이션된 예측
-        const predictions = [];
+        const predictions: Array<{ value: number; timeframe: string; confidence: number }> = [];
 
         if (context) {
             predictions.push({
@@ -198,7 +198,7 @@ export class UnifiedMLToolkit {
         results: Array<{ type: string; description: string; confidence: number }>;
         confidence: number;
     }> {
-        const patterns = [];
+        const patterns: Array<{ type: string; description: string; confidence: number }> = [];
 
         if (context && Math.random() > 0.6) {
             patterns.push({

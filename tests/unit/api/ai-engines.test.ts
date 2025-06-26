@@ -249,7 +249,7 @@ describe('AI Engines Logic', () => {
         requests: any[],
         batchSize: number = 5
       ): any[][] => {
-        const batches = [];
+        const batches: any[] = [];
         for (let i = 0; i < requests.length; i += batchSize) {
           batches.push(requests.slice(i, i + batchSize));
         }

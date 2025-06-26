@@ -4,25 +4,25 @@
 
 'use client';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Brain,
-  CheckCircle,
-  AlertTriangle,
-  XCircle,
-  RefreshCw,
-  Activity,
-  Zap,
-  Clock,
-  BarChart3,
-  Key,
-  Settings,
-} from 'lucide-react';
 import {
   useGoogleAIStatus,
   useRefreshGoogleAIStatus,
 } from '@/hooks/api/useGoogleAIStatus';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Activity,
+  AlertTriangle,
+  BarChart3,
+  Brain,
+  CheckCircle,
+  Clock,
+  Key,
+  RefreshCw,
+  Settings,
+  XCircle,
+  Zap,
+} from 'lucide-react';
+import React, { useState } from 'react';
 
 interface GoogleAIStatusCardProps {
   className?: string;
@@ -381,7 +381,7 @@ export const GoogleAIStatusCard: React.FC<GoogleAIStatusCardProps> = ({
                 <div className='mt-3'>
                   <div className='text-sm text-gray-600 mb-2'>활성 기능:</div>
                   <div className='flex flex-wrap gap-1'>
-                    {Object.entries(status.features).map(
+                    {(Object.entries(status.features) as [string, boolean][]).map(
                       ([feature, enabled]) =>
                         enabled && (
                           <span

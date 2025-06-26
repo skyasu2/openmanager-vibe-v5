@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { MetricsHistory } from '../types/server';
 
 export interface MetricsStats {
@@ -100,13 +100,13 @@ export function useServerMetrics() {
         history.reduce((sum, m) => sum + m.disk, 0) / history.length
       );
       const responseTimeAvg = Math.round(
-        history.reduce((sum, m) => sum + m.responseTime, 0) / history.length
+        history.reduce((sum, m) => sum + (m.responseTime ?? 0), 0) / history.length
       );
 
       const cpuMax = Math.max(...history.map(m => m.cpu));
       const memoryMax = Math.max(...history.map(m => m.memory));
       const diskMax = Math.max(...history.map(m => m.disk));
-      const responseTimeMax = Math.max(...history.map(m => m.responseTime));
+      const responseTimeMax = Math.max(...history.map(m => m.responseTime ?? 0));
 
       return {
         cpuAvg,

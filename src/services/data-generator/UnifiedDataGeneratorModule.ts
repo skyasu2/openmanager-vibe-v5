@@ -81,10 +81,10 @@ export interface UnifiedGeneratorConfig {
   // Strategy별 설정
   realConfig?: {
     serverArchitecture:
-      | 'single'
-      | 'primary-replica'
-      | 'load-balanced'
-      | 'microservices';
+    | 'single'
+    | 'primary-replica'
+    | 'load-balanced'
+    | 'microservices';
   };
   optimizedConfig?: {
     usePregenerated: boolean;
@@ -96,11 +96,11 @@ export interface UnifiedGeneratorConfig {
   };
   realisticConfig?: {
     scenario:
-      | 'normal'
-      | 'spike'
-      | 'memory_leak'
-      | 'ddos'
-      | 'performance_degradation';
+    | 'normal'
+    | 'spike'
+    | 'memory_leak'
+    | 'ddos'
+    | 'performance_degradation';
   };
 }
 
@@ -347,10 +347,12 @@ class OptimizedDataStrategy implements DataGeneratorStrategy {
 
   getStatus(): any {
     const optimizedStatus = this.optimizedGenerator.getStatus();
+    // isRunning 중복 제거를 위해 optimizedStatus에서 제외
+    const { isRunning: _, ...statusWithoutIsRunning } = optimizedStatus;
     return {
       strategy: 'optimized',
       isRunning: this.isRunning,
-      ...optimizedStatus,
+      ...statusWithoutIsRunning,
       reuseExistingCode:
         '✅ 기존 OptimizedDataGenerator 완전 재사용 (중복 제거)',
     };

@@ -316,7 +316,7 @@ export class AutoIncidentReportSystem {
    * 📝 설명 생성
    */
   private generateDescription(serverData: any): string {
-    const issues = [];
+    const issues: string[] = [];
 
     if (serverData.cpu_usage > 80) issues.push(`CPU 사용률 ${serverData.cpu_usage}%`);
     if (serverData.memory_usage > 80) issues.push(`메모리 사용률 ${serverData.memory_usage}%`);
@@ -345,7 +345,8 @@ export class AutoIncidentReportSystem {
    * 💡 로컬 권장사항 생성
    */
   private generateLocalRecommendations(incident: Incident): string[] {
-    const recommendations = [];
+    const recommendations: string[] = [];
+    const issues: string[] = [];
 
     switch (incident.type) {
       case 'high_cpu_usage':

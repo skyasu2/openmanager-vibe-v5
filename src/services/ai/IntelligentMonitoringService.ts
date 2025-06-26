@@ -101,11 +101,11 @@ export interface IntelligentAnalysisResult {
 export interface RootCause {
   id: string;
   category:
-    | 'system'
-    | 'application'
-    | 'network'
-    | 'infrastructure'
-    | 'external';
+  | 'system'
+  | 'application'
+  | 'network'
+  | 'infrastructure'
+  | 'external';
   description: string;
   probability: number;
   evidence: string[];
@@ -564,7 +564,7 @@ export class IntelligentMonitoringService {
     patterns: any,
     request: IntelligentAnalysisRequest
   ): string {
-    const insights = [];
+    const insights: string[] = [];
 
     // CPU 관련 분석
     if (patterns.cpuSpikes > 0) {
@@ -782,9 +782,9 @@ export class IntelligentMonitoringService {
   ): Promise<AIInsight> {
     const query = `시스템에서 ${anomalies.length}개의 이상 징후가 발견되었습니다. 
 주요 문제: ${anomalies
-      .slice(0, 2)
-      .map(a => a.description)
-      .join(', ')}
+        .slice(0, 2)
+        .map(a => a.description)
+        .join(', ')}
 근본 원인을 분석하고 해결 방안을 제시해주세요.`;
 
     try {
@@ -914,7 +914,7 @@ export class IntelligentMonitoringService {
   private async runSystemWidePrediction(): Promise<any[]> {
     // 시스템 전체 예측 로직 (간단한 구현)
     const serverIds = ['web-server-01', 'web-server-02', 'db-server-01'];
-    const predictions = [];
+    const predictions: any[] = [];
 
     for (const serverId of serverIds) {
       try {
@@ -931,7 +931,7 @@ export class IntelligentMonitoringService {
   }
 
   private generateSystemRecommendations(predictions: any[]): string[] {
-    const recommendations = [];
+    const recommendations: string[] = [];
     const highRiskServers = predictions.filter(p => p.failureProbability > 70);
 
     if (highRiskServers.length > 0) {
@@ -1039,7 +1039,7 @@ export class IntelligentMonitoringService {
     result: IntelligentAnalysisResult,
     severity: string
   ): Promise<string> {
-    const parts = [];
+    const parts: string[] = [];
 
     if (result.anomalyDetection.status === 'completed') {
       parts.push(result.anomalyDetection.summary);

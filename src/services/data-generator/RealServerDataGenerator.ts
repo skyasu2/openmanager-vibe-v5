@@ -360,10 +360,10 @@ export interface GeneratorConfig {
   updateInterval?: number;
   enableRealtime?: boolean;
   serverArchitecture?:
-    | 'single'
-    | 'primary-replica'
-    | 'load-balanced'
-    | 'microservices';
+  | 'single'
+  | 'primary-replica'
+  | 'load-balanced'
+  | 'microservices';
   enableRedis?: boolean;
   /**
    * ⚙️ 시나리오 기반 상태 분포 설정
@@ -1218,7 +1218,8 @@ export class RealServerDataGenerator {
     let scenarioIntensity = 1.0; // 기본 강도
     let scenarioAffectedTypes: string[] = [];
 
-    if (currentScenario && this.scenarioManager.getStatus().isActive) {
+    const scenarioStatus = this.scenarioManager?.getStatus();
+    if (currentScenario && this.scenarioManager && scenarioStatus?.isActive) {
       // 시나리오 정보에서 강도와 영향받는 서버 타입 추출
       scenarioIntensity =
         currentScenario.phase === 'critical_state'
@@ -1230,7 +1231,7 @@ export class RealServerDataGenerator {
               : 1.0;
 
       // 시나리오 변경사항에서 영향받는 서버 타입 추출
-      if (currentScenario.changes?.serverTypes) {
+      if (currentScenario?.changes?.serverTypes) {
         scenarioAffectedTypes = currentScenario.changes.serverTypes;
       }
 
@@ -1257,7 +1258,7 @@ export class RealServerDataGenerator {
       // 🎭 장애 시나리오 기반 메트릭 변동 계산
       const isAffectedByScenario =
         scenarioAffectedTypes.includes(server.role) ||
-        currentScenario?.changes?.targetServers?.includes(server.id);
+        (currentScenario?.changes?.targetServers?.includes(server.id) ?? false);
       const effectiveIntensity = isAffectedByScenario ? scenarioIntensity : 1.0;
 
       const processedMetrics = {
@@ -1276,7 +1277,7 @@ export class RealServerDataGenerator {
             Math.min(
               100,
               rawMetrics.memory +
-                (Math.random() - 0.5) * 15 * effectiveIntensity
+              (Math.random() - 0.5) * 15 * effectiveIntensity
             )
           ).toFixed(2)
         ),
@@ -1293,12 +1294,12 @@ export class RealServerDataGenerator {
           in: Math.max(
             0,
             rawMetrics.network.in +
-              (Math.random() - 0.5) * 50 * effectiveIntensity
+            (Math.random() - 0.5) * 50 * effectiveIntensity
           ),
           out: Math.max(
             0,
             rawMetrics.network.out +
-              (Math.random() - 0.5) * 30 * effectiveIntensity
+            (Math.random() - 0.5) * 30 * effectiveIntensity
           ),
         },
       };
@@ -1367,10 +1368,11 @@ export class RealServerDataGenerator {
       }
 
       // 🎯 5단계: 서버 상태 업데이트 (메모리)
+      const updateInterval = this.config.updateInterval ?? 30000; // 기본값 30초
       server.metrics = {
         ...server.metrics,
         ...processedMetrics,
-        uptime: server.metrics.uptime + this.config.updateInterval / 1000,
+        uptime: server.metrics.uptime + updateInterval / 1000,
         requests: server.metrics.requests + Math.floor(Math.random() * 100),
         errors: server.metrics.errors + (Math.random() > 0.95 ? 1 : 0),
       };
@@ -1480,12 +1482,12 @@ export class RealServerDataGenerator {
         avgCpu:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
-              servers.length
+            servers.length
             : 0,
         avgMemory:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
-              servers.length
+            servers.length
             : 0,
       },
       clusters: {
@@ -1520,9 +1522,9 @@ export class RealServerDataGenerator {
         avgResponseTime:
           applications.length > 0
             ? applications.reduce(
-                (sum, a) => sum + a.performance.responseTime,
-                0
-              ) / applications.length
+              (sum, a) => sum + a.performance.responseTime,
+              0
+            ) / applications.length
             : 0,
       },
       timestamp: Date.now(),

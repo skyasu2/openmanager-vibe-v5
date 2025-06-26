@@ -11,12 +11,12 @@
 
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { AnimatePresence } from 'framer-motion';
+import { useCallback, useRef, useState } from 'react';
 import { UnifiedProfileComponentProps } from './unified-profile/types/ProfileTypes';
 import { UnifiedProfileButton } from './unified-profile/UnifiedProfileButton';
 import { UnifiedSettingsPanel } from './unified-profile/UnifiedSettingsPanel';
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 
 export default function UnifiedProfileComponent({
   userName = '사용자',
@@ -28,7 +28,7 @@ export default function UnifiedProfileComponent({
   const showSettingsPanel = ui.isSettingsPanelOpen;
 
   // 참조
-  const profileButtonRef = useRef<HTMLButtonElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement | null>(null);
 
   // 드롭다운 토글 핸들러 (단순화된 버전)
   const handleToggleDropdown = useCallback(
@@ -67,7 +67,7 @@ export default function UnifiedProfileComponent({
         userAvatar={userAvatar}
         isOpen={isOpen}
         onClick={handleToggleDropdown}
-        buttonRef={profileButtonRef}
+        buttonRef={profileButtonRef as React.RefObject<HTMLButtonElement>}
         onSettingsClick={handleSettingsClick}
       />
 
@@ -77,7 +77,7 @@ export default function UnifiedProfileComponent({
           <UnifiedSettingsPanel
             isOpen={showSettingsPanel}
             onClose={handleSettingsClose}
-            buttonRef={profileButtonRef}
+            buttonRef={profileButtonRef as React.RefObject<HTMLButtonElement>}
           />
         )}
       </AnimatePresence>

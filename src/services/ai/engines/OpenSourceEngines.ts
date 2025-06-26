@@ -120,7 +120,7 @@ export class OpenSourceEngines {
       const trend = this.calculateTrend(data);
       const seasonality = this.detectSeasonality(data);
 
-      const predictions = [];
+      const predictions: any[] = [];
       const lastValue = data[data.length - 1];
 
       for (let i = 1; i <= steps; i++) {

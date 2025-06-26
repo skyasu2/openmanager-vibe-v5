@@ -321,7 +321,7 @@ export class MonitoringService {
    * 🔍 헬스체크 실행
    */
   async performHealthCheck(): Promise<any> {
-    const healthChecks = [];
+    const healthChecks: any[] = [];
     
     // 🔧 Python 서비스 체크 - 실패해도 전체 시스템에 영향 없음
     try {

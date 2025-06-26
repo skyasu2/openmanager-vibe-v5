@@ -306,7 +306,7 @@ export class GeneralHandler implements IntentHandler {
 
   private async searchDocumentsByKeywords(keywords: string[]): Promise<any[]> {
     try {
-      const results = [];
+      const results: any[] = [];
       for (const keyword of keywords.slice(0, 3)) {
         const docs = await realMCPClient.searchDocuments(keyword);
         if (docs && Array.isArray(docs)) {

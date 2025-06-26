@@ -359,7 +359,7 @@ export class VercelPlanDetector {
    * 💡 플랜별 권장사항 생성
    */
   private generateRecommendations(plan: string, confidence: number): string[] {
-    const recommendations = [];
+    const recommendations: string[] = [];
 
     if (confidence < 0.7) {
       recommendations.push('플랜 감지 신뢰도가 낮습니다. 수동으로 플랜을 확인해주세요.');

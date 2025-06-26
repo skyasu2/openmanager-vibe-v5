@@ -209,7 +209,7 @@ export class MCPEngine {
         '최종 응답 생성',
       ],
       related_servers: contextAnalysis.related_servers || [],
-      recommendations: [],
+      recommendations: [] as string[],
       sources: ['MCP Engine', 'ML Toolkit', 'Context Manager'],
       context_used: !!contextAnalysis,
       ml_analysis: mlAnalysis,

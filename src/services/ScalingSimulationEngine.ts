@@ -215,7 +215,7 @@ export class ScalingSimulationEngine {
    * 🖥️ 운영 서버 목록 반환
    */
   getOperationalServers(): any[] {
-    const servers = [];
+    const servers: any[] = [];
     for (let i = 1; i <= this.currentInstances; i++) {
       servers.push({
         id: `scaling-server-${i}`,

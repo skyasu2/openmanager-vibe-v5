@@ -720,7 +720,7 @@ export class SupabaseRAGEngine {
    */
   private async vectorizeBatch(documents: VectorDocument[]): Promise<void> {
     try {
-      const vectorData = [];
+      const vectorData: any[] = [];
 
       for (const doc of documents) {
         // OpenAI 대신 로컬 임베딩 생성

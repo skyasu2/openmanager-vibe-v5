@@ -209,7 +209,7 @@ export class SimplifiedNaturalLanguageEngine {
       return {
         success: true,
         response: result.response,
-        mode: config.mode,
+        mode: config.mode || 'auto',
         engine: result.engine,
         responseTime: result.responseTime,
         confidence: result.confidence,

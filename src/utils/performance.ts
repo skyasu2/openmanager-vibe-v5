@@ -10,8 +10,8 @@
  * - 렌더링 성능 향상
  */
 
-import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import { debounce, throttle } from 'lodash';
+import { throttle } from 'lodash';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 // 🎯 성능 메트릭 인터페이스
 export interface PerformanceMetrics {
@@ -159,9 +159,9 @@ export function useThrottle<T extends (...args: any[]) => any>(
 // 📱 Intersection Observer 훅 (레이지 로딩)
 export function useIntersectionObserver(
   options: IntersectionObserverInit = {}
-): [React.RefObject<HTMLElement>, boolean] {
+): [React.RefObject<HTMLElement | null>, boolean] {
   const [isIntersecting, setIsIntersecting] = useState(false);
-  const targetRef = useRef<HTMLElement>(null);
+  const targetRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const target = targetRef.current;
@@ -214,7 +214,7 @@ export function useStableMemo<T>(
     }
   }
 
-  return ref.current.value;
+  return ref.current!.value;
 }
 
 // 🔧 리소스 프리로딩 유틸리티

@@ -14,6 +14,7 @@
 
 import { transformServerInstanceToServer } from '@/adapters/server-data-adapter';
 import {
+  IntegrationConfig,
   StandardServerMetrics,
   SystemIntegrationAdapter,
 } from '@/modules/ai-agent/adapters/SystemIntegrationAdapter';
@@ -211,32 +212,29 @@ export class UnifiedDataProcessor {
   };
 
   constructor() {
+    console.log('🔄 통합 데이터 처리기 초기화');
     this.dataGenerator = RealServerDataGenerator.getInstance();
 
-    // SystemIntegrationAdapter 기본 설정으로 초기화 (베르셀 호환)
-    const defaultConfig = {
+    // 베르셀 환경에 최적화된 기본 설정
+    const defaultConfig: IntegrationConfig = {
       database: {
-        type: 'sqlite' as const,
-        url: ':memory:',
+        type: 'supabase',
+        url: process.env.SUPABASE_URL || 'http://localhost:54321',
+        apiKey: process.env.SUPABASE_ANON_KEY,
         maxConnections: 5,
-        timeout: 10000,
+        timeout: 15000,
       },
       redis: {
-        enabled: false,
-        url: 'redis://localhost:6379',
+        enabled: false, // 베르셀에서는 기본 비활성화
+        url: process.env.REDIS_URL || 'redis://localhost:6379',
         ttl: 300,
-        maxRetries: 3,
+        maxRetries: 2,
       },
       monitoring: {
-        enableRealtime: false,
+        enableRealtime: true,
         collectionInterval: 30000,
-        retentionDays: 7,
-        alertThresholds: {
-          cpu: 80,
-          memory: 85,
-          disk: 90,
-          responseTime: 1000,
-        },
+        retentionPeriod: 86400000, // 24시간
+        enableAggregation: true,
       },
       aiAgent: {
         enablePythonAnalysis: false,
@@ -913,7 +911,29 @@ export class UnifiedDataProcessor {
           bytesSent: serverInstance.metrics.network.out * 1024 * 1024,
           packetsReceived: 1000,
           packetsSent: 800,
+          interface: 'eth0', // 기본 네트워크 인터페이스
+          errorsReceived: 0,
+          errorsSent: 0,
         },
+      },
+      services: [
+        {
+          name: 'nginx',
+          status: 'running',
+          port: 80,
+          pid: 1234,
+          uptime: 86400,
+          memoryUsage: 128 * 1024 * 1024, // 128MB
+          cpuUsage: 5.5,
+        },
+      ],
+      metadata: {
+        location: serverInstance.location || 'unknown',
+        environment: serverInstance.environment || 'production',
+        provider: 'onpremise',
+        cluster: undefined,
+        zone: undefined,
+        instanceType: serverInstance.type || undefined,
       },
     };
   }
@@ -976,48 +996,48 @@ export class UnifiedDataProcessor {
       monitoring:
         purpose === 'monitoring' || purpose === 'both'
           ? {
-              servers: [],
-              stats: {
-                total: 0,
-                healthy: 0,
-                warning: 0,
-                critical: 0,
-                offline: 0,
-                averageCpu: 0,
-                averageMemory: 0,
-                averageDisk: 0,
-                averageNetwork: 0,
-              },
-            }
+            servers: [],
+            stats: {
+              total: 0,
+              healthy: 0,
+              warning: 0,
+              critical: 0,
+              offline: 0,
+              averageCpu: 0,
+              averageMemory: 0,
+              averageDisk: 0,
+              averageNetwork: 0,
+            },
+          }
           : undefined,
       ai:
         purpose === 'ai' || purpose === 'both'
           ? {
-              metrics: [],
-              aggregatedStats: {
-                totalServers: 0,
-                avgNormalizedCpu: 0,
-                avgNormalizedMemory: 0,
-                avgNormalizedDisk: 0,
-                avgNormalizedNetwork: 0,
-                overallHealthScore: 0,
-                anomalyCount: 0,
-                riskDistribution: { low: 0, medium: 0, high: 0, critical: 0 },
-              },
-              trends: {
-                cpuTrend: 'stable',
-                memoryTrend: 'stable',
-                diskTrend: 'stable',
-                networkTrend: 'stable',
-                overallTrend: 'stable',
-              },
-              insights: {
-                criticalServers: [],
-                anomalousServers: [],
-                recommendations: [],
-                predictedIssues: [],
-              },
-            }
+            metrics: [],
+            aggregatedStats: {
+              totalServers: 0,
+              avgNormalizedCpu: 0,
+              avgNormalizedMemory: 0,
+              avgNormalizedDisk: 0,
+              avgNormalizedNetwork: 0,
+              overallHealthScore: 0,
+              anomalyCount: 0,
+              riskDistribution: { low: 0, medium: 0, high: 0, critical: 0 },
+            },
+            trends: {
+              cpuTrend: 'stable',
+              memoryTrend: 'stable',
+              diskTrend: 'stable',
+              networkTrend: 'stable',
+              overallTrend: 'stable',
+            },
+            insights: {
+              criticalServers: [],
+              anomalousServers: [],
+              recommendations: [],
+              predictedIssues: [],
+            },
+          }
           : undefined,
       metadata: {
         processingTime: 0,

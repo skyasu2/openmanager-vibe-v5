@@ -8,13 +8,13 @@
  * - 클러스터 및 애플리케이션 수준 분석
  */
 
-import {
-  type ServerInstance,
-  type ServerCluster,
-  type ApplicationMetrics,
-} from '@/types/data-generator';
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { smartRedis } from '@/lib/redis';
+import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import {
+  type ApplicationMetrics,
+  type ServerCluster,
+  type ServerInstance,
+} from '@/types/data-generator';
 
 // 분석 결과 인터페이스
 export interface EnhancedAnalysisResult {
@@ -335,7 +335,7 @@ export class EnhancedDataAnalyzer {
    * 🔗 상관관계 분석
    */
   private analyzeCorrelations(servers: ServerInstance[]) {
-    const correlations = [];
+    const correlations: any[] = [];
 
     if (servers.length > 1) {
       // CPU와 응답시간 상관관계
@@ -441,7 +441,7 @@ export class EnhancedDataAnalyzer {
     performance: any,
     reliability: any
   ): string[] {
-    const findings = [];
+    const findings: string[] = [];
 
     // 서버 상태
     const healthyCount = servers.filter(s => s.health.score > 80).length;
@@ -474,7 +474,7 @@ export class EnhancedDataAnalyzer {
     reliability: any,
     efficiency: any
   ) {
-    const recommendations = [];
+    const recommendations: Array<{ priority: 'low' | 'medium' | 'high'; action: string; impact: string; effort: string }> = [];
 
     // 성능 개선
     if (performance.score < 70) {
@@ -521,7 +521,7 @@ export class EnhancedDataAnalyzer {
   }
 
   private generateAlerts(servers: ServerInstance[], performance: any) {
-    const alerts = [];
+    const alerts: Array<{ level: 'critical' | 'warning' | 'info'; message: string; affectedComponents: string[] }> = [];
 
     // 임계 상태 서버
     const criticalServers = servers.filter(s => s.health.score < 30);
@@ -741,7 +741,7 @@ export class EnhancedDataAnalyzer {
    * 💡 제안사항 생성
    */
   private generateSuggestions(intent: string, data: any): string[] {
-    const suggestions = [];
+    const suggestions: string[] = [];
 
     switch (intent) {
       case 'status':

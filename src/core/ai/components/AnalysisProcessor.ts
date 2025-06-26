@@ -60,7 +60,7 @@ export class AnalysisProcessor {
     customEngines?: CustomEngines
   ): Promise<void> {
     this.googleAI = googleAI;
-    this.mcpClient = mcpClient;
+    this.mcpClient = mcpClient || null;
     this.openSourceEngines = openSourceEngines;
     this.customEngines = customEngines;
 

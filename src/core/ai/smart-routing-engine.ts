@@ -231,7 +231,7 @@ export class SmartRoutingEngine {
    * 🔄 Python API용 메트릭 형식 변환
    */
   private convertMetricsForPython(metrics: Record<string, number[]>): any[] {
-    const converted = [];
+    const converted: any[] = [];
     const maxLength = Math.max(...Object.values(metrics).map(arr => arr.length));
 
     for (let i = 0; i < maxLength; i++) {

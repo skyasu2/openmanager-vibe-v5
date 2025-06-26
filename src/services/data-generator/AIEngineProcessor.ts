@@ -311,7 +311,7 @@ export class AIEngineProcessor {
   ): Promise<void> {
     try {
       for (const metric of metrics) {
-        const anomalies = [];
+        const anomalies: any[] = [];
 
         if (metric.metrics.cpu.usage > 90) {
           anomalies.push({

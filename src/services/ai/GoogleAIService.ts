@@ -826,7 +826,7 @@ ${index + 1}. 서버: ${server.name}
   isAvailable(): boolean {
     // 🔐 실시간으로 API 키 가용성 확인
     const currentApiKey = getGoogleAIKey();
-    return (
+    return Boolean(
       this.config.enabled &&
       currentApiKey &&
       this.isInitialized &&
