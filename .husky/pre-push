@@ -2,6 +2,20 @@
 
 echo "🚀 Pre-push 빠른 검증 시작..."
 
+# 📚 문서 분석 및 정리
+echo "📚 문서 분석 및 정리..."
+npm run docs:analyze
+if [ $? -ne 0 ]; then
+  echo "❌ 문서 분석 실패!"
+  exit 1
+fi
+
+npm run docs:autopurge
+if [ $? -ne 0 ]; then
+  echo "❌ 문서 자동 정리 실패!"
+  exit 1
+fi
+
 # 빠른 검증만 실행 (타입 체크 + 린트)
 echo "🔍 빠른 품질 검사..."
 npm run validate:quick
