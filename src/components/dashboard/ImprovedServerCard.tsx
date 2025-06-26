@@ -79,7 +79,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
             lastUpdate: Date.now(),
           }));
         },
-        30000 + index * 1000 // 5초 → 30초로 업데이트 주기 대폭 증가
+        40000 + index * 1000 // 5초 → 40초로 업데이트 주기 대폭 증가
       );
 
       return () => clearInterval(interval);
