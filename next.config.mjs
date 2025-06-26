@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // 빌드 최적화 설정
-    output: 'standalone',
+    // 빌드 최적화 설정 (Vercel 배포용)
+    // output: 'standalone', // 정적 내보내기 오류 방지를 위해 주석 처리
 
     // 정적 생성 비활성화 (빌드 오류 방지)
     trailingSlash: false,

@@ -29,8 +29,7 @@ const ContentLoadingSkeleton = () => (
   </div>
 );
 
-// This is the original ErrorBoundary which might not support FallbackComponent prop.
-// It will be used as a last resort.
+// Error Boundary for Dashboard
 class DashboardErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean; error?: Error }
@@ -78,7 +77,7 @@ function DashboardPageContent() {
   const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [selectedServer, setSelectedServer] = useState<any>(null);
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
-  const isResizing = false; // Removed from store to prevent errors
+  const isResizing = false;
 
   // 🎯 실제 서버 데이터 생성기 데이터 사용
   const {
@@ -90,6 +89,8 @@ function DashboardPageContent() {
 
   useEffect(() => {
     setIsClient(true);
+    // 🚀 대시보드 직접 접속 시 시스템 자동 초기화
+    console.log('🎯 대시보드 직접 접속 - 시스템 자동 초기화');
   }, []);
 
   const toggleAgent = useCallback(() => {
@@ -109,7 +110,6 @@ function DashboardPageContent() {
           console.warn('⚠️ 유효하지 않은 서버 데이터');
           return;
         }
-        // 대시보드 훅의 서버 선택 함수 사용
         handleServerSelect(server);
         setSelectedServer(server);
         setIsServerModalOpen(true);
@@ -122,15 +122,21 @@ function DashboardPageContent() {
 
   // 🔒 서버 모달 닫기
   const handleServerModalClose = useCallback(() => {
-    dashboardModalClose(); // 대시보드 훅의 모달 닫기 함수 사용
+    dashboardModalClose();
     setSelectedServer(null);
     setIsServerModalOpen(false);
   }, [dashboardModalClose]);
 
+  // 🚀 클라이언트 사이드 렌더링만 허용 (SSR 방지)
   if (!isClient) {
     return (
-      <div className='w-full h-screen flex items-center justify-center'>
-        <div className='w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin'></div>
+      <div className='min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center'>
+        <div className='text-center'>
+          <div className='w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4'></div>
+          <p className='text-gray-600 dark:text-gray-400'>
+            대시보드 초기화 중...
+          </p>
+        </div>
       </div>
     );
   }
@@ -161,7 +167,7 @@ function DashboardPageContent() {
         <main className='flex-1 min-h-0 overflow-y-auto p-2 sm:p-4 lg:p-6 xl:p-8'>
           <DashboardContent
             showSequentialGeneration={false}
-            servers={realServers} // 🎯 실제 서버 데이터 생성기 데이터 사용
+            servers={realServers}
             status={{ type: 'idle' }}
             actions={{ start: () => {}, stop: () => {} }}
             selectedServer={selectedServer || dashboardSelectedServer}
@@ -201,6 +207,7 @@ function DashboardPageContent() {
   );
 }
 
+// 🎯 대시보드 페이지 - 직접 접속 가능
 export default function DashboardPage() {
   return (
     <DashboardErrorBoundary>
