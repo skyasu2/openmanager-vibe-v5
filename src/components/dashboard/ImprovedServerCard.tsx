@@ -49,41 +49,53 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
       lastUpdate: Date.now(),
     });
 
-    // 실시간 메트릭 업데이트 시뮬레이션
+    // 실시간 메트릭 업데이트 시뮬레이션 (안정화 버전)
     useEffect(() => {
       if (!showRealTimeUpdates) return;
 
       const interval = setInterval(
         () => {
           setRealtimeMetrics(prev => ({
+            // 더 안정적인 변화량으로 조정 (기존 10 → 3)
             cpu: Math.max(
               0,
-              Math.min(100, prev.cpu + (Math.random() - 0.5) * 10)
+              Math.min(100, prev.cpu + (Math.random() - 0.5) * 3)
             ),
+            // 메모리는 더 천천히 변화 (기존 5 → 2)
             memory: Math.max(
               0,
-              Math.min(100, prev.memory + (Math.random() - 0.5) * 5)
+              Math.min(100, prev.memory + (Math.random() - 0.5) * 2)
             ),
+            // 디스크는 거의 변화 없음 (기존 2 → 0.5)
             disk: Math.max(
               0,
-              Math.min(100, prev.disk + (Math.random() - 0.5) * 2)
+              Math.min(100, prev.disk + (Math.random() - 0.5) * 0.5)
             ),
+            // 네트워크는 중간 정도 변화 (기존 15 → 5)
             network: Math.max(
               0,
-              Math.min(100, prev.network + (Math.random() - 0.5) * 15)
+              Math.min(100, prev.network + (Math.random() - 0.5) * 5)
             ),
             lastUpdate: Date.now(),
           }));
         },
-        5000 + index * 500
-      ); // 서버별 다른 업데이트 주기
+        30000 + index * 1000 // 5초 → 30초로 업데이트 주기 대폭 증가
+      );
 
       return () => clearInterval(interval);
     }, [showRealTimeUpdates, index, server]);
 
-    // 서버 상태별 테마
+    // 서버 상태별 테마 (상태 매핑 포함)
     const getStatusTheme = () => {
-      switch (server.status) {
+      // 서버 상태를 표준 상태로 매핑 (Server 타입: 'online' | 'offline' | 'warning' | 'healthy' | 'critical')
+      const normalizedStatus =
+        server.status === 'healthy'
+          ? 'online'
+          : server.status === 'critical'
+            ? 'offline'
+            : server.status;
+
+      switch (normalizedStatus) {
         case 'online':
           return {
             cardBg: 'bg-gradient-to-br from-white to-green-50/50',
@@ -118,15 +130,16 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
             accent: 'text-red-600',
           };
         default:
+          // 기본값을 온라인 상태로 처리하여 회색 카드 문제 해결
           return {
-            cardBg: 'bg-gradient-to-br from-white to-gray-50/50',
-            border: 'border-gray-200',
-            hoverBorder: 'hover:border-gray-300',
-            statusColor: 'text-gray-700 bg-gray-100',
-            statusIcon: <Server className='w-4 h-4' />,
-            statusText: '알 수 없음',
-            pulse: 'bg-gray-400',
-            accent: 'text-gray-600',
+            cardBg: 'bg-gradient-to-br from-white to-green-50/50',
+            border: 'border-green-200',
+            hoverBorder: 'hover:border-green-300',
+            statusColor: 'text-green-700 bg-green-100',
+            statusIcon: <CheckCircle2 className='w-4 h-4' />,
+            statusText: '정상',
+            pulse: 'bg-green-400',
+            accent: 'text-green-600',
           };
       }
     };
