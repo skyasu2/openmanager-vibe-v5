@@ -90,6 +90,7 @@ export function calculateServerConfig(
 
 /**
  * 🧠 메모리 사용량 기반 최적 업데이트 간격 계산 (30-40초 범위)
+ * 🎯 생성과 수집 분리 전략: 생성 30-35초, 수집 35-40초
  */
 export function calculateOptimalUpdateInterval(): number {
   // 서버 사이드에서는 Node.js process.memoryUsage() 사용
@@ -97,10 +98,10 @@ export function calculateOptimalUpdateInterval(): number {
     const memoryUsage = process.memoryUsage();
     const usagePercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
 
-    // 메모리 사용률에 따른 업데이트 간격 조정 (30-40초 범위)
-    if (usagePercent > 80) return 40000; // 높은 사용률: 40초
-    if (usagePercent > 60) return 37000; // 중간 사용률: 37초
-    return 35000; // 낮은 사용률: 35초
+    // 🎯 데이터 생성 간격 (30-35초 범위)
+    if (usagePercent > 80) return 35000; // 높은 사용률: 35초
+    if (usagePercent > 60) return 33000; // 중간 사용률: 33초
+    return 30000; // 낮은 사용률: 30초
   }
 
   // 클라이언트 사이드에서는 performance.memory 사용
@@ -108,12 +109,22 @@ export function calculateOptimalUpdateInterval(): number {
     const memory = (performance as any).memory;
     const usagePercent = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
 
-    if (usagePercent > 80) return 40000; // 높은 사용률: 40초
-    if (usagePercent > 60) return 37000; // 중간 사용률: 37초
-    return 35000; // 낮은 사용률: 35초
+    if (usagePercent > 80) return 35000; // 높은 사용률: 35초
+    if (usagePercent > 60) return 33000; // 중간 사용률: 33초
+    return 30000; // 낮은 사용률: 30초
   }
 
-  return 35000; // 기본값: 35초 (30-40초 범위)
+  return 30000; // 기본값: 30초 (생성 간격)
+}
+
+/**
+ * 🎯 데이터 수집 최적 간격 계산 (35-40초 범위)
+ * 생성 간격보다 5초 늦게 시작하여 부담 분산
+ */
+export function calculateOptimalCollectionInterval(): number {
+  const generationInterval = calculateOptimalUpdateInterval();
+  // 생성 간격 + 5초 = 수집 간격
+  return generationInterval + 5000;
 }
 
 /**
