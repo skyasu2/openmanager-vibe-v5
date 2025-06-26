@@ -1,22 +1,21 @@
-import { describe, it, expect, vi } from 'vitest';
 import { NextRequest } from 'next/server';
+import { describe, expect, it } from 'vitest';
 import { GET } from '../../../src/app/api/status/route';
 
-// Mock NextRequest
-function createMockRequest(
-  url: string = 'http://localhost:3000/api/status'
-): NextRequest {
-  return {
-    url,
-    headers: new Headers(),
-  } as any;
-}
+// 베르셀 환경 호환 테스트
+const TEST_BASE_URL = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : 'http://localhost:3000';
 
-describe('GET /api/status', () => {
+describe('Status API', () => {
+  const mockRequest = (url: string = `${TEST_BASE_URL}/api/status`) => {
+    return new NextRequest(url);
+  };
+
   it('should return system status successfully', async () => {
-    const mockRequest = createMockRequest();
+    const request = mockRequest();
 
-    const response = await GET(mockRequest);
+    const response = await GET(request);
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -49,12 +48,10 @@ describe('GET /api/status', () => {
     expect(new Date(data.timestamp).toISOString()).toBe(data.timestamp);
   });
 
-  it('should handle different URL parameters', async () => {
-    const mockRequest = createMockRequest(
-      'http://localhost:3000/api/status?detail=true'
-    );
+  it('상세 정보와 함께 상태를 반환해야 함', async () => {
+    const request = mockRequest(`${TEST_BASE_URL}/api/status?detail=true`);
 
-    const response = await GET(mockRequest);
+    const response = await GET(request);
 
     expect(response.status).toBe(200);
     // URL 파라미터가 있어도 동일한 응답 구조

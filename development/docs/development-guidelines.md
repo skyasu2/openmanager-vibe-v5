@@ -163,6 +163,39 @@ npm run refactor:safe -- ComponentName
 4. **정기적인 중복 검사**
 5. **백업 후 정리**
 
+## 테스트 환경 통일 규칙
+
+### ✅ 사용할 도구
+
+- **테스트 러너**: Vitest (단일 도구 사용)
+- **설정 파일**: vitest.config.ts
+- **테스트 문법**: `import { describe, expect, it } from 'vitest'`
+
+### ❌ 금지 사항
+
+- Jest 명령어를 package.json에 추가하지 말 것
+- 테스트 파일에서 `@jest/globals` import 금지
+- 이중 테스트 환경 설정 금지
+
+### 🔧 새로운 테스트 추가 시
+
+```typescript
+// ✅ 올바른 방식
+import { describe, expect, it } from 'vitest';
+
+describe('새로운 기능', () => {
+  it('정상 작동해야 함', () => {
+    expect(true).toBe(true);
+  });
+});
+```
+
+### 🚨 문제 발생 시 체크리스트
+
+1. `npm run test:unit` 명령어가 vitest를 사용하는가?
+2. 테스트 파일에서 올바른 import를 사용하는가?
+3. vitest.config.ts 설정이 올바른가?
+
 ---
 
 > **📌 이 가이드라인을 따라 개발하면 중복 코드를 방지하고 유지보수성을 크게 향상시킬 수 있습니다.**

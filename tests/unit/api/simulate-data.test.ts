@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GET } from '../../../src/app/api/simulate/data/route';
 
 // Mock NextRequest
@@ -9,10 +9,15 @@ function createMockRequest(
   return {
     url,
     headers: new Headers(),
-  } as any;
+  } as NextRequest;
 }
 
-describe('GET /api/simulate/data', () => {
+// 베르셀 환경 호환 테스트
+const TEST_BASE_URL = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : 'http://localhost:3000';
+
+describe('Simulate Data API', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -46,7 +51,7 @@ describe('GET /api/simulate/data', () => {
   describe('상태 요청 (action=status)', () => {
     it('should return detailed status information', async () => {
       const mockRequest = createMockRequest(
-        'http://localhost:3000/api/simulate/data?action=status'
+        `${TEST_BASE_URL}/api/simulate/data?action=status`
       );
 
       const response = await GET(mockRequest);
@@ -84,7 +89,7 @@ describe('GET /api/simulate/data', () => {
   describe('단계별 진행 상태', () => {
     it('should have valid step progression', async () => {
       const mockRequest = createMockRequest(
-        'http://localhost:3000/api/simulate/data?action=status'
+        `${TEST_BASE_URL}/api/simulate/data?action=status`
       );
 
       const response = await GET(mockRequest);
@@ -105,7 +110,7 @@ describe('GET /api/simulate/data', () => {
 
     it('should handle completion state correctly', async () => {
       const mockRequest = createMockRequest(
-        'http://localhost:3000/api/simulate/data?action=status'
+        `${TEST_BASE_URL}/api/simulate/data?action=status`
       );
 
       const response = await GET(mockRequest);

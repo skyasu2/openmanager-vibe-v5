@@ -38,6 +38,10 @@ export default defineConfig({
       '**/*.stories.tsx',
       '**/storybook-static/**',
       '**/.storybook/**',
+      // 로컬 환경 의존적 테스트 제외
+      '**/babel.test.ts',
+      '**/webpack.test.ts',
+      '**/port-conflict.test.ts',
     ],
 
     // 🔧 격리 환경 강화
@@ -52,8 +56,8 @@ export default defineConfig({
       },
     },
     // ⏱️ 타임아웃 최적화
-    testTimeout: 20000, // 30초 → 20초 단축
-    hookTimeout: 15000, // 30초 → 15초 단축
+    testTimeout: 10000, // 베르셀 Cold Start 고려
+    hookTimeout: 10000,
     teardownTimeout: 5000, // 10초 → 5초 단축
 
     // 🛡️ 테스트 격리 및 안정성
@@ -107,6 +111,8 @@ export default defineConfig({
         '@/core/ai/engines/UnifiedAIEngineRouter',
         '@/core/ai/engines/SupabaseRAGEngine',
         '@/core/ai/engines/KoreanNLPEngine',
+        '@vercel/analytics',
+        '@vercel/speed-insights',
       ],
       external: [
         // 제외할 모듈들

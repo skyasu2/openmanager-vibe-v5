@@ -192,7 +192,7 @@
     "lighthouse": "lhci autorun",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:ui": "vitest --ui",
+    "test:ui": "vitest run tests/unit --testNamePattern='(Component|UI|Hook)'",
     "docs:validate": "node scripts/docs-management.mjs validate",
     "docs:cleanup": "node scripts/docs-management.mjs cleanup",
     "docs:backup": "node scripts/docs-management.mjs backup",
@@ -241,7 +241,16 @@
     "mcp:conflict:analyze": "node scripts/resolve-mcp-conflict.js",
     "mcp:conflict:resolve": "node scripts/resolve-mcp-conflict.js --option1",
     "mcp:setup:cross-platform": "node scripts/setup-cross-platform-mcp.mjs",
-    "postinstall": "npm run mcp:setup:cross-platform"
+    "postinstall": "npm run mcp:setup:cross-platform",
+    "test:core": "vitest run tests/unit --testNamePattern=\"(AI|Engine|Service|Component)\"",
+    "test:logic": "vitest run tests/unit --testNamePattern=\"(Service|Engine|Manager|Utils)\"",
+    "vercel:dev": "vercel dev",
+    "vercel:preview": "vercel --prod",
+    "vercel:status": "curl -s https://openmanager-vibe-v5.vercel.app/api/health",
+    "validate:core": "npm run type-check && npm run lint && npm run test:core",
+    "validate:vercel": "npm run vercel:status && echo 'Vercel deployment is healthy'",
+    "test:vercel-functions": "node scripts/vercel-function-test.mjs",
+    "test:production": "npm run test:vercel-functions"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",
