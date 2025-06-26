@@ -68,7 +68,8 @@ export default function AIHealthStatus() {
     fetchHealthStatus();
 
     // 90초마다 자동 업데이트 (30초 → 90초로 변경, 과도한 요청 방지)
-    const interval = setInterval(fetchHealthStatus, 90000);
+    // 🎯 데이터 생성기와 동기화: 30초 간격
+    const interval = setInterval(fetchHealthStatus, 30000);
     return () => clearInterval(interval);
   }, []);
 

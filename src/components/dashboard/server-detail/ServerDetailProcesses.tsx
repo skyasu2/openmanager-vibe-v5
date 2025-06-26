@@ -38,7 +38,8 @@ export function ServerDetailProcesses({
     fetchProcesses();
 
     // 120초마다 데이터 갱신
-    const intervalId = setInterval(fetchProcesses, 120000);
+    // 🎯 데이터 생성기와 동기화: 30초 간격
+    const intervalId = setInterval(fetchProcesses, 30000);
 
     // 컴포넌트 언마운트 시 인터벌 정리
     return () => clearInterval(intervalId);

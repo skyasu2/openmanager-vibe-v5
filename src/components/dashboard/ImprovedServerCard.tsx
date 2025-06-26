@@ -69,7 +69,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
             lastUpdate: Date.now(),
           }));
         },
-        40000 + index * 1000 // 5초 → 40초로 업데이트 주기 대폭 증가
+        30000 + index * 1000 // 🎯 데이터 생성기와 동기화: 30초 간격
       );
 
       return () => clearInterval(interval);
@@ -476,20 +476,18 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
                   .map((service, idx) => (
                     <motion.div
                       key={idx}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium shadow-sm border transition-colors ${
-                        service.status === 'running'
-                          ? 'bg-green-50 text-green-700 border-green-200'
-                          : 'bg-red-50 text-red-700 border-red-200'
-                      }`}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium shadow-sm border transition-colors ${service.status === 'running'
+                        ? 'bg-green-50 text-green-700 border-green-200'
+                        : 'bg-red-50 text-red-700 border-red-200'
+                        }`}
                       whileHover={{ scale: 1.05, y: -1 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       <motion.div
-                        className={`w-2 h-2 rounded-full ${
-                          service.status === 'running'
-                            ? 'bg-green-500'
-                            : 'bg-red-500'
-                        }`}
+                        className={`w-2 h-2 rounded-full ${service.status === 'running'
+                          ? 'bg-green-500'
+                          : 'bg-red-500'
+                          }`}
                         animate={{
                           scale: service.status === 'running' ? [1, 1.2, 1] : 1,
                         }}

@@ -58,7 +58,8 @@ export function useSystemAlerts() {
   useEffect(() => {
     fetchAlerts(); // 초기 로드
 
-    const intervalId = setInterval(fetchAlerts, 60000); // 10초 → 60초로 변경 (과도한 요청 방지)
+    // 🎯 데이터 생성기와 동기화: 30초 간격
+    const intervalId = setInterval(fetchAlerts, 30000);
 
     return () => clearInterval(intervalId); // 컴포넌트 언마운트 시 인터벌 정리
   }, []);

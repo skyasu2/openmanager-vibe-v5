@@ -196,7 +196,8 @@ export default function LogDashboard() {
         fetchLogData();
 
         if (autoRefresh) {
-            const interval = setInterval(fetchLogData, 15000); // 15초마다
+            // 🎯 데이터 생성기와 동기화: 30초 간격
+            const interval = setInterval(fetchLogData, 30000);
             return () => clearInterval(interval);
         }
     }, [autoRefresh, fetchLogData]);

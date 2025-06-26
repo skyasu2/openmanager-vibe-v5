@@ -123,7 +123,8 @@ const ServerCardComparisonPage = () => {
   };
 
   useEffect(() => {
-    const interval = setInterval(refreshData, 15000);
+    // 🎯 데이터 생성기와 동기화: 30초 간격
+    const interval = setInterval(refreshData, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -187,11 +188,10 @@ const ServerCardComparisonPage = () => {
                       <button
                         key={variant}
                         onClick={() => setSelectedVariant(variant)}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                          selectedVariant === variant
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-gray-600 hover:text-gray-900'
-                        }`}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${selectedVariant === variant
+                          ? 'bg-white text-blue-600 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                          }`}
                       >
                         {variant === 'compact'
                           ? '컴팩트'
@@ -208,9 +208,8 @@ const ServerCardComparisonPage = () => {
             <button
               onClick={refreshData}
               disabled={isRefreshing}
-              className={`flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${
-                isRefreshing ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
             >
               <RefreshCw
                 className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
@@ -260,13 +259,12 @@ const ServerCardComparisonPage = () => {
                     <div className='flex items-center gap-4 text-sm text-gray-600'>
                       <span className='flex items-center gap-1'>
                         <div
-                          className={`w-2 h-2 rounded-full ${
-                            server.status === 'online'
-                              ? 'bg-green-500'
-                              : server.status === 'warning'
-                                ? 'bg-amber-500'
-                                : 'bg-red-500'
-                          }`}
+                          className={`w-2 h-2 rounded-full ${server.status === 'online'
+                            ? 'bg-green-500'
+                            : server.status === 'warning'
+                              ? 'bg-amber-500'
+                              : 'bg-red-500'
+                            }`}
                         />
                         {server.status === 'online'
                           ? '정상'
@@ -308,7 +306,7 @@ const ServerCardComparisonPage = () => {
                     <div className='max-w-sm'>
                       <ImprovedServerCard
                         server={server}
-                        onClick={() => {}}
+                        onClick={() => { }}
                         variant={selectedVariant}
                         showRealTimeUpdates={true}
                         index={index}
@@ -349,7 +347,7 @@ const ServerCardComparisonPage = () => {
                     <div className='max-w-sm'>
                       <ImprovedServerCard
                         server={server}
-                        onClick={() => {}}
+                        onClick={() => { }}
                         variant={selectedVariant}
                         showRealTimeUpdates={true}
                         index={index}

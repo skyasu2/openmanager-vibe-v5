@@ -217,9 +217,9 @@ export default function EnhancedServerModal({
     };
 
     generateRealtimeData();
-    // 🎯 실시간 업데이트 주기 안정화: 2초 → 15초로 변경
-    // 서버 카드와 동기화하여 자연스러운 업데이트 제공
-    const interval = setInterval(generateRealtimeData, 15000);
+    // 🎯 데이터 생성기와 완전 동기화: 30초 간격으로 통일
+    // 서버 카드, 실시간 훅과 모두 동기화하여 일관된 업데이트 제공
+    const interval = setInterval(generateRealtimeData, 30000);
 
     return () => clearInterval(interval);
   }, [safeServer, isRealtime]);
@@ -506,7 +506,7 @@ export default function EnhancedServerModal({
                   ) : (
                     <Pause className='w-4 h-4' />
                   )}
-                  {isRealtime ? '실시간' : '정지됨'}
+                  {isRealtime ? '실시간 (15초)' : '정지됨'}
                 </motion.button>
 
                 <motion.button
