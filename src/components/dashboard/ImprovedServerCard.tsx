@@ -22,7 +22,7 @@ import {
   Wifi,
 } from 'lucide-react';
 import React, { memo, useCallback, useEffect, useState } from 'react';
-import { Server as ServerType } from '../../../types/server';
+import { Server as ServerType } from '../../types/server';
 
 interface ImprovedServerCardProps {
   server: ServerType;
@@ -309,20 +309,13 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
     };
 
     return (
-      <motion.div
-        layout
-        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: -20, scale: 0.95 }}
-        whileHover={{
-          scale: 1.02,
-          y: -4,
-          transition: { duration: 0.2, ease: 'easeOut' },
-        }}
-        whileTap={{ scale: 0.98 }}
+      <motion.button
+        type='button'
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
         transition={{
-          duration: 0.3,
-          delay: index * 0.05,
+          delay: index * 0.1,
           type: 'spring',
           stiffness: 260,
           damping: 20,
@@ -333,10 +326,12 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
           ${styles.container}
           hover:shadow-lg hover:shadow-black/5
           group overflow-hidden
+          text-left w-full
         `}
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        aria-label={`${server.name} 서버 - ${theme.statusText}`}
       >
         {/* 실시간 활동 인디케이터 */}
         {showRealTimeUpdates && (
@@ -516,7 +511,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
             />
           )}
         </AnimatePresence>
-      </motion.div>
+      </motion.button>
     );
   }
 );

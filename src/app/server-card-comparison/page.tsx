@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * 🔍 Server Card Comparison Page
+ * 🎯 ImprovedServerCard 전용 페이지
  *
- * 기존 ServerCard vs 개선된 ImprovedServerCard 비교 페이지
- * - 사이드 바이 사이드 비교
- * - 각 variant별 비교
- * - UX/UI 개선사항 시각적 확인
+ * 통합된 서버 카드 컴포넌트 전시 및 테스트
+ * - 기존 중복 컴포넌트들 정리 완료
+ * - ImprovedServerCard 단일 컴포넌트로 통합
+ * - 3가지 배리언트 지원: compact, standard, detailed
  */
 
 import {
@@ -17,8 +17,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import ImprovedServerCard from '../../components/dashboard/ServerCard/ImprovedServerCard';
-import ServerCard from '../../components/dashboard/ServerCard/ServerCard';
+import ImprovedServerCard from '../../components/dashboard/ImprovedServerCard';
 import { Server } from '../../types/server';
 
 const ServerCardComparisonPage = () => {
@@ -307,27 +306,13 @@ const ServerCardComparisonPage = () => {
                       </h3>
                     </div>
                     <div className='max-w-sm'>
-                      {selectedVariant === 'compact' && (
-                        <ServerCard
-                          server={server}
-                          onClick={() => {}}
-                          variant='compact'
-                        />
-                      )}
-                      {selectedVariant === 'standard' && (
-                        <ServerCard
-                          server={server}
-                          onClick={() => {}}
-                          variant='default'
-                        />
-                      )}
-                      {selectedVariant === 'detailed' && (
-                        <ServerCard
-                          server={server}
-                          onClick={() => {}}
-                          variant='detailed'
-                        />
-                      )}
+                      <ImprovedServerCard
+                        server={server}
+                        onClick={() => {}}
+                        variant={selectedVariant}
+                        showRealTimeUpdates={true}
+                        index={index}
+                      />
                     </div>
 
                     {/* 기존 카드 문제점 */}

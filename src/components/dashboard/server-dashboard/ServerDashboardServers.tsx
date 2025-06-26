@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { ViewMode } from '../../../hooks/useServerDashboard';
 import { Server } from '../../../types/server';
-import ServerCard from '../ServerCard';
+import ImprovedServerCard from '../ImprovedServerCard';
 
 interface ServerDashboardServersProps {
   servers: Server[];
@@ -341,7 +341,7 @@ export function ServerDashboardServers({
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <ServerCard
+                  <ImprovedServerCard
                     server={server}
                     onClick={() => onServerSelect(server)}
                     variant='compact'

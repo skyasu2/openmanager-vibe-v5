@@ -227,7 +227,9 @@
     "docs:update": "node scripts/update-docs.mjs",
     "docs:setup-hooks": "node scripts/setup-git-hooks.mjs",
     "docs:auto": "npm run docs:update && npm run docs:setup-hooks",
-    "storybook:validate": "node scripts/validate-stories.js && npm run storybook:build"
+    "storybook:validate": "node scripts/validate-stories.js && npm run storybook:build",
+    "duplicate:analyze": "node scripts/analyze-duplicate-components.mjs analyze",
+    "duplicate:cleanup": "node scripts/analyze-duplicate-components.mjs cleanup"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",

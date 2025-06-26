@@ -1,7 +1,7 @@
 'use client';
 
 import EnhancedServerModal from '@/components/dashboard/EnhancedServerModal';
-import ImprovedServerCard from '@/components/dashboard/ServerCard/ImprovedServerCard';
+import ImprovedServerCard from '@/components/dashboard/ImprovedServerCard';
 import {
   Pagination,
   PaginationContent,
