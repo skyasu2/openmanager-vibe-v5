@@ -47,6 +47,7 @@ const colors = {
 class DocumentManager {
     constructor() {
         this.docsDir = path.join(ROOT_DIR, 'docs');
+        this.archivedDir = path.join(this.docsDir, 'archived');
         this.stats = {
             coreDocuments: 0,
             backupDocuments: 0,
@@ -370,6 +371,250 @@ npm run docs:backup
             console.log(colors.red('문서 동기화 중 오류 발생:'), err);
         }
     }
+
+    // 아카이브 문서 분석 및 분류
+    async analyzeArchived() {
+        console.log(colors.yellow('\n📊 아카이브 문서 분석 중...'));
+
+        const categories = {
+            development: [],    // 개발 관련
+            deployment: [],     // 배포 관련  
+            ai: [],            // AI 시스템 관련
+            documentation: [],  // 문서화 관련
+            legacy: [],        // 레거시/완료 보고서
+            reference: []      // 참조용
+        };
+
+        try {
+            const files = await fs.readdir(this.archivedDir);
+
+            for (const file of files) {
+                if (!file.endsWith('.md')) continue;
+
+                const filePath = path.join(this.archivedDir, file);
+                const stat = await fs.stat(filePath);
+                const content = await fs.readFile(filePath, 'utf8');
+
+                const analysis = {
+                    name: file,
+                    size: stat.size,
+                    lines: content.split('\n').length,
+                    category: this.categorizeDocument(file, content),
+                    importance: this.assessImportance(file, content),
+                    action: 'keep' // default
+                };
+
+                categories[analysis.category].push(analysis);
+            }
+
+            // 분석 결과 출력
+            this.printArchiveAnalysis(categories);
+
+            // 관리 계획 생성
+            await this.generateArchiveManagementPlan(categories);
+
+        } catch (error) {
+            console.log(colors.red('아카이브 분석 중 오류:'), error.message);
+        }
+    }
+
+    categorizeDocument(filename, content) {
+        const name = filename.toLowerCase();
+        const text = content.toLowerCase();
+
+        if (name.includes('deploy') || name.includes('render') || name.includes('vercel')) {
+            return 'deployment';
+        } else if (name.includes('ai-') || name.includes('mcp') || name.includes('rag') || text.includes('ai 엔진')) {
+            return 'ai';
+        } else if (name.includes('개발') || name.includes('development') || name.includes('guide')) {
+            return 'development';
+        } else if (name.includes('complete') || name.includes('report') || name.includes('removal')) {
+            return 'legacy';
+        } else if (name.includes('코드참고') || name.includes('바이브코딩') || name.includes('storybook')) {
+            return 'reference';
+        } else {
+            return 'documentation';
+        }
+    }
+
+    assessImportance(filename, content) {
+        const lines = content.split('\n').length;
+        const hasCode = content.includes('```');
+        const hasRecent = content.includes('2025') || content.includes('v5.44');
+
+        if (lines > 500 && hasCode && hasRecent) return 'high';
+        if (lines > 200 && hasRecent) return 'medium';
+        return 'low';
+    }
+
+    printArchiveAnalysis(categories) {
+        console.log(colors.blue('\n📋 아카이브 문서 분석 결과'));
+        console.log(colors.gray('='.repeat(50)));
+
+        for (const [category, docs] of Object.entries(categories)) {
+            if (docs.length === 0) continue;
+
+            const categoryNames = {
+                development: '🛠️ 개발 관련',
+                deployment: '🚀 배포 관련',
+                ai: '🤖 AI 시스템',
+                documentation: '📚 문서화',
+                legacy: '📦 레거시/완료',
+                reference: '📖 참조용'
+            };
+
+            console.log(colors.yellow(`\n${categoryNames[category]} (${docs.length}개)`));
+
+            docs.forEach(doc => {
+                const sizeStr = this.formatBytes(doc.size);
+                const importanceIcon = doc.importance === 'high' ? '🔴' :
+                    doc.importance === 'medium' ? '🟡' : '🟢';
+                console.log(colors.gray(`  ${importanceIcon} ${doc.name} (${sizeStr}, ${doc.lines}줄)`));
+            });
+        }
+    }
+
+    async generateArchiveManagementPlan(categories) {
+        const planContent = `# 📦 아카이브 문서 관리 계획
+
+> 생성일: ${new Date().toLocaleDateString('ko-KR')}
+> 총 문서: ${Object.values(categories).flat().length}개
+
+## 🎯 관리 전략
+
+### 🔴 높은 우선순위 (재활용 검토)
+- 500줄 이상, 코드 포함, 최신 내용
+- 핵심 문서에 통합 고려
+
+### 🟡 중간 우선순위 (보관)
+- 200줄 이상, 최신 내용
+- 참조용으로 유지
+
+### 🟢 낮은 우선순위 (삭제 고려)
+- 구버전, 중복 내용
+- 6개월 후 삭제 검토
+
+## 📋 카테고리별 계획
+
+${Object.entries(categories).map(([category, docs]) => {
+            if (docs.length === 0) return '';
+
+            const categoryNames = {
+                development: '🛠️ 개발 관련',
+                deployment: '🚀 배포 관련',
+                ai: '🤖 AI 시스템',
+                documentation: '📚 문서화',
+                legacy: '📦 레거시/완료',
+                reference: '📖 참조용'
+            };
+
+            const actions = {
+                development: '→ 개발 도구.md에 유용한 내용 통합',
+                deployment: '→ 운영 및 배포.md에 배포 노하우 반영',
+                ai: '→ AI 시스템 아키텍처.md에 핵심 내용 통합',
+                documentation: '→ 문서 자동화 및 관리.md에 관리 방법 추가',
+                legacy: '→ 6개월 후 삭제 검토',
+                reference: '→ 필요시 참조용으로 유지'
+            };
+
+            return `### ${categoryNames[category]} (${docs.length}개)
+
+**처리 방안**: ${actions[category]}
+
+${docs.map(doc => {
+                const priority = doc.importance === 'high' ? '🔴 재활용' :
+                    doc.importance === 'medium' ? '🟡 보관' : '🟢 삭제검토';
+                return `- ${priority} ${doc.name} (${this.formatBytes(doc.size)})`;
+            }).join('\n')}
+
+`;
+        }).join('')}
+
+## 🔄 자동화 계획
+
+1. **월간 검토**: 매월 1일 아카이브 문서 검토
+2. **자동 분류**: 새로 추가되는 문서 자동 분류
+3. **통합 알림**: 재활용 가능한 내용 발견시 알림
+4. **정리 스케줄**: 6개월마다 불필요한 문서 정리
+
+## 📋 실행 명령어
+
+\`\`\`bash
+# 아카이브 분석
+npm run docs:analyze
+
+# 카테고리별 정리
+npm run docs:categorize
+
+# 통합 검토
+npm run docs:integrate
+
+# 정리 실행
+npm run docs:cleanup:archive
+\`\`\`
+
+---
+
+> 이 계획은 자동 생성되며, 정기적으로 업데이트됩니다.
+`;
+
+        const planPath = path.join(this.docsDir, 'ARCHIVE_MANAGEMENT_PLAN.md');
+        await fs.writeFile(planPath, planContent, 'utf8');
+        console.log(colors.green(`\n✓ 관리 계획 생성: docs/ARCHIVE_MANAGEMENT_PLAN.md`));
+    }
+
+    // 아카이브 자동 정리 (오래된 완료 보고서 삭제)
+    async autoPurgeArchive() {
+        console.log(colors.yellow('\n🗑️ 아카이브 자동 정리 중...'));
+
+        try {
+            const files = await fs.readdir(this.archivedDir);
+            let deletedCount = 0;
+
+            for (const file of files) {
+                if (!file.endsWith('.md')) continue;
+
+                const filePath = path.join(this.archivedDir, file);
+                const content = await fs.readFile(filePath, 'utf8');
+
+                // 삭제 대상: 완료 보고서, 구버전, 중복 문서
+                const shouldDelete = this.shouldDeleteFile(file, content);
+
+                if (shouldDelete.delete) {
+                    await fs.unlink(filePath);
+                    console.log(colors.red(`  🗑️ 삭제: ${file} (${shouldDelete.reason})`));
+                    deletedCount++;
+                }
+            }
+
+            console.log(colors.green(`\n✓ 자동 정리 완료: ${deletedCount}개 파일 삭제`));
+
+        } catch (error) {
+            console.log(colors.red('자동 정리 중 오류:'), error.message);
+        }
+    }
+
+    shouldDeleteFile(filename, content) {
+        const name = filename.toLowerCase();
+        const lines = content.split('\n').length;
+
+        // 완료 보고서들 (작은 크기)
+        if ((name.includes('complete') || name.includes('report')) && lines < 150) {
+            return { delete: true, reason: '소형 완료 보고서' };
+        }
+
+        // 정리 가이드들
+        if (name.includes('cleanup') && lines < 100) {
+            return { delete: true, reason: '소형 정리 가이드' };
+        }
+
+        // 중복 배포 문서들 (3개 이상일 때)
+        if (name.includes('cursor-render-deployment') && !name.includes('final-results')) {
+            return { delete: true, reason: '중복 배포 문서' };
+        }
+
+        return { delete: false, reason: '' };
+    }
 }
 
 // CLI 실행 부분
@@ -413,6 +658,17 @@ async function main() {
             await manager.init();
             break;
 
+        case 'analyze':
+        case 'a':
+            await manager.init();
+            await manager.analyzeArchived();
+            break;
+
+        case 'autopurge':
+        case 'ap':
+            await manager.autoPurgeArchive();
+            break;
+
         default:
             console.log(colors.yellow('사용법:'));
             console.log('  node scripts/docs-management.mjs [command]');
@@ -421,8 +677,10 @@ async function main() {
             console.log('  validate, v   - 문서 구조 검증 (기본값)');
             console.log('  cleanup, c    - 문서 정리');
             console.log('  sync, s       - 문서 동기화');
+            console.log('  analyze, a    - 아카이브 문서 분석');
             console.log('  backup, b     - 백업 생성');
             console.log('  index, i      - 인덱스 재생성');
+            console.log('  autopurge, ap - 아카이브 자동 정리');
             break;
     }
 }
@@ -446,3 +704,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 export { DocumentManager };
+
