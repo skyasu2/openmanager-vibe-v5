@@ -295,3 +295,54 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
 
 **OpenManager Vibe v5.44.3** - AI 엔진 아키텍처 v3.0 완전 구현 완료  
 🎯 **99.6% 테스트 통과** | 🚀 **3개 모드 지원** | �� **11개 AI 엔진 통합**
+
+## 🌍 다른 컴퓨터에서 Git 클론 후 자동 환경 구성
+
+### 🚀 **원클릭 자동 설정**
+
+```bash
+# 1. Git 클론
+git clone https://github.com/your-username/openmanager-vibe-v5.git
+cd openmanager-vibe-v5
+
+# 2. 의존성 설치 (자동으로 MCP 설정 실행됨)
+npm install
+
+# 또는 수동 실행
+npm run mcp:setup:cross-platform
+```
+
+### 🎯 **자동 설정 내용**
+
+- ✅ **플랫폼 자동 감지**: Windows, macOS, Linux 지원
+- ✅ **글로벌 Everything MCP 설정**: 모든 프로젝트에서 사용 가능
+- ✅ **충돌 방지**: 프로젝트별 설정 자동 제거
+- ✅ **안전 백업**: 기존 설정 자동 백업
+- ✅ **package.json 업데이트**: MCP 관리 스크립트 자동 추가
+
+### 🔧 **MCP 관리 명령어**
+
+```bash
+npm run mcp:setup:cross-platform  # MCP 환경 재설정
+npm run mcp:status                 # 상태 확인
+npm run mcp:health                 # 헬스체크
+npm run mcp:conflict:analyze       # 설정 충돌 분석
+```
+
+### 🌟 **Everything MCP 기능**
+
+- 📁 **filesystem**: 파일 시스템 접근
+- 🧠 **memory**: 지식 그래프 관리
+- 🔍 **search**: 웹 검색 (DuckDuckGo)
+- 🗄️ **database**: PostgreSQL, SQLite
+- 🐙 **github**: Git/GitHub 연동
+- 🌐 **fetch**: HTTP 요청
+- 🌐 **browser**: 브라우저 자동화
+- ⏰ **time**: 날짜/시간 처리
+
+### 🔄 **다음 단계**
+
+1. **Cursor IDE 재시작**
+2. **Cmd/Ctrl+Shift+P** → "MCP" 검색
+3. **"everything" 서버** 상태 확인
+4. **@everything** 명령어로 테스트

@@ -1,0 +1,78 @@
+{
+  "mcpServers": {
+    "everything": {
+      "name": "everything-mcp",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-everything"],
+      "env": {
+        "NODE_ENV": "development",
+        "EVERYTHING_ENABLE_ALL": "true",
+        "PROJECT_ROOT": "./",
+        "BROWSER_ENABLED": "true",
+        "DB_TEST_MODE": "true"
+      },
+      "enabled": true,
+      "description": "Everything MCP - 올인원 개발 도구 서버",
+      "features": [
+        "filesystem",
+        "memory",
+        "search",
+        "browser",
+        "database",
+        "github",
+        "fetch",
+        "time",
+        "postgres",
+        "sqlite",
+        "everythingElse"
+      ],
+      "performance": {
+        "timeout": 30000,
+        "memory": "1GB",
+        "concurrency": 5
+      }
+    },
+    "openmanager-local": {
+      "name": "openmanager-local",
+      "command": "node",
+      "args": ["./mcp-server/dev-server.js"],
+      "env": {
+        "NODE_ENV": "development",
+        "PORT": "3100"
+      },
+      "enabled": true,
+      "description": "OpenManager 로컬 서버 (프로젝트 전용)",
+      "purpose": "OpenManager 특화 기능",
+      "memory": "512MB"
+    }
+  },
+  "metadata": {
+    "version": "2.0",
+    "type": "everything-mcp-unified",
+    "created": "2025-01-14T00:00:00.000Z",
+    "description": "Everything MCP 기반 통합 개발 환경",
+    "migration": {
+      "from": "multi-server-setup",
+      "to": "everything-mcp",
+      "benefits": [
+        "설정 관리 단순화",
+        "테스트 및 디버깅 통합",
+        "Cursor 호환성 향상",
+        "메모리 사용량 최적화"
+      ]
+    }
+  },
+  "performance": {
+    "memoryLimit": "1.5GB",
+    "globalTimeout": 60000,
+    "maxConcurrentRequests": 8,
+    "retryAttempts": 2
+  },
+  "features": {
+    "everythingMcp": true,
+    "legacySupport": true,
+    "devMode": true,
+    "testingMode": true,
+    "debugMode": false
+  }
+}
