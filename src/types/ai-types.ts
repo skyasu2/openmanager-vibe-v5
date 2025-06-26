@@ -2,7 +2,7 @@
  * 🤖 AI 관련 공통 타입 정의
  */
 
-export type AIMode = 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY';
+export type AIMode = 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY' | 'VERCEL_FAST';
 
 export interface AIRequest {
   query: string;

@@ -36,6 +36,7 @@ import {
 
 import { SolutionDatabase } from '@/core/ai/databases/SolutionDatabase';
 import { IncidentDetectionEngine } from '@/core/ai/engines/IncidentDetectionEngine';
+import { AIMode } from '@/types/ai-types';
 
 // 🧠 AI 학습 관련 타입들 (NEW!)
 interface LearningPattern {
@@ -85,7 +86,7 @@ export class AutoIncidentReportSystem implements IAutoIncidentReportSystem {
   private autoReportService?: any; // 기존 AutoReportService 활용
 
   // 🎯 AI 모드 관련 추가
-  private currentMode: 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY' = 'AUTO';
+  private currentMode: AIMode = 'AUTO';
 
   // 🧠 AI 학습 시스템 (NEW!)
   private learningEnabled = false;
@@ -106,13 +107,13 @@ export class AutoIncidentReportSystem implements IAutoIncidentReportSystem {
   private readonly HEALTH_CHECK_CACHE_TTL = 24 * 60 * 60 * 1000; // 24시간 캐싱
 
   constructor(
-    detectionEngine?: IncidentDetectionEngine,
-    solutionDB?: SolutionDatabase,
+    detectionEngine: IncidentDetectionEngine,
+    solutionDB: SolutionDatabase,
     enableLearning = true,
-    mode: 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY' = 'AUTO' // 🎯 모드 매개변수 추가
+    mode: AIMode = 'AUTO' // 🎯 모드 매개변수 추가
   ) {
-    this.detectionEngine = detectionEngine || new IncidentDetectionEngine();
-    this.solutionDB = solutionDB || new SolutionDatabase();
+    this.detectionEngine = detectionEngine;
+    this.solutionDB = solutionDB;
     this.currentMode = mode; // 🎯 초기 모드 설정
 
     // 🧠 AI 학습 설정 초기화
@@ -138,7 +139,7 @@ export class AutoIncidentReportSystem implements IAutoIncidentReportSystem {
   /**
    * 🎯 AI 모드 설정
    */
-  setMode(mode: 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY'): void {
+  setMode(mode: AIMode): void {
     this.currentMode = mode;
     console.log(`🎯 AutoIncidentReportSystem 모드 변경: ${mode}`);
   }
@@ -146,12 +147,12 @@ export class AutoIncidentReportSystem implements IAutoIncidentReportSystem {
   /**
    * 🎯 현재 AI 모드 조회
    */
-  getCurrentMode(): 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY' {
+  getCurrentMode(): AIMode {
     return this.currentMode;
   }
 
   /**
-   * �� 모드별 AI 엔진 사용 전략 결정 (Google AI 제거)
+   * 🎯 모드별 AI 엔진 사용 전략 결정 (Google AI 제거)
    */
   private getAIEngineStrategy(): {
     useLocal: boolean;
