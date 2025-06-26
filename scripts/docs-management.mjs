@@ -351,6 +351,25 @@ npm run docs:backup
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
+
+    // 루트 및 서브디렉토리의 MD 파일을 docs로 이동
+    async syncRootMarkdown() {
+        console.log(colors.yellow('\n🔄 루트 및 서브디렉토리 MD 파일 이동 중...'));
+        try {
+            const items = await fs.readdir(ROOT_DIR);
+            for (const item of items) {
+                const fullPath = path.join(ROOT_DIR, item);
+                const stat = await fs.stat(fullPath);
+                if (stat.isFile() && item.endsWith('.md') && !['README.md', 'CHANGELOG.md'].includes(item)) {
+                    const destPath = path.join(this.docsDir, item);
+                    await fs.rename(fullPath, destPath);
+                    console.log(colors.green(`  ✓ ${item} -> docs/${item}`));
+                }
+            }
+        } catch (err) {
+            console.log(colors.red('문서 동기화 중 오류 발생:'), err);
+        }
+    }
 }
 
 // CLI 실행 부분
@@ -373,6 +392,16 @@ async function main() {
             manager.printStatistics();
             break;
 
+        // 문서 동기화: 루트의 MD 파일을 docs로 이동 후 정리 및 인덱스 갱신
+        case 'sync':
+        case 's':
+            await manager.init();
+            await manager.syncRootMarkdown();
+            await manager.cleanup();
+            await manager.generateIndex();
+            manager.printStatistics();
+            break;
+
         case 'backup':
         case 'b':
             await manager.init();
@@ -391,6 +420,7 @@ async function main() {
             console.log(colors.blue('명령어:'));
             console.log('  validate, v   - 문서 구조 검증 (기본값)');
             console.log('  cleanup, c    - 문서 정리');
+            console.log('  sync, s       - 문서 동기화');
             console.log('  backup, b     - 백업 생성');
             console.log('  index, i      - 인덱스 재생성');
             break;
@@ -415,4 +445,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     });
 }
 
-export { DocumentManager }; 
+export { DocumentManager };

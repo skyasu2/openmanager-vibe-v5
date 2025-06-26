@@ -192,6 +192,7 @@
     "docs:cleanup": "node scripts/docs-management.mjs cleanup",
     "docs:backup": "node scripts/docs-management.mjs backup",
     "docs:index": "node scripts/docs-management.mjs index",
+    "docs:sync": "node scripts/docs-management.mjs sync",
     "data:consistency": "node scripts/data-consistency-check.js",
     "cursor:deploy": "node scripts/cursor-render-deploy.js",
     "cursor:deploy:auto": "node scripts/cursor-render-deploy.js --auto-commit",

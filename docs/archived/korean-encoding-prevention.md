@@ -5,12 +5,10 @@
 ### 발견된 문제들
 
 1. **Windows Git Bash에서 UTF-8 처리 문제**
-
    - 터미널 출력에서 한글 깨짐 (`CPU 뷮` 등)
    - 환경변수 LANG, LC_ALL 미설정
 
 2. **Next.js API에서 한글 쿼리 파라미터 인코딩 이슈**
-
    - ArrayBuffer → UTF-8 변환 과정에서 깨짐
    - JSON 파싱 전 인코딩 처리 누락
 

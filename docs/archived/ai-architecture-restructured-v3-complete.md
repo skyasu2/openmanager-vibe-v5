@@ -9,7 +9,7 @@
 ### **목표 달성**
 
 - ✅ 레거시 AI 엔진 4개 완전 제거
-- ✅ UnifiedAIEngineRouter v3.0 단일 아키텍처 확립  
+- ✅ UnifiedAIEngineRouter v3.0 단일 아키텍처 확립
 - ✅ Sharp 모듈 의존성 완전 제거
 - ✅ Supabase RAG 메인 엔진 승격 완료
 - ✅ 3가지 운영 모드 구현 (AUTO/LOCAL/GOOGLE_ONLY)
@@ -30,7 +30,7 @@
 ```
 🎯 UnifiedAIEngineRouter (메인 라우터)
 ├── 🥇 Supabase RAG Engine (메인, 50-80%)
-├── 🤖 Google AI Service (모드별 2-80%)  
+├── 🤖 Google AI Service (모드별 2-80%)
 ├── 🔧 MCP Client (표준 서버 역할)
 └── 🛠️ 하위 AI 도구들 (편의 기능)
     ├── Korean AI Engine
@@ -77,12 +77,12 @@ Google AI (80%) → Supabase RAG (15%) → 하위AI (5%)
 
 ### **완전 제거 완료**
 
-| 엔진명 | 크기 | 상태 | 제거 사유 |
-|--------|------|------|-----------|
-| ~~UnifiedAIEngine.ts~~ | 1,259줄 | ❌ 제거됨 | 복잡성, 중복 기능 |
-| ~~OptimizedUnifiedAIEngine.ts~~ | 416줄 | ❌ 제거됨 | 기능 중복 |
-| ~~RefactoredAIEngineHub.ts~~ | 300줄 | ❌ 제거됨 | 실험적, 미사용 |
-| ~~AIEngineChain.ts~~ | 200줄 | ❌ 제거됨 | 구버전 체인 패턴 |
+| 엔진명                          | 크기    | 상태      | 제거 사유         |
+| ------------------------------- | ------- | --------- | ----------------- |
+| ~~UnifiedAIEngine.ts~~          | 1,259줄 | ❌ 제거됨 | 복잡성, 중복 기능 |
+| ~~OptimizedUnifiedAIEngine.ts~~ | 416줄   | ❌ 제거됨 | 기능 중복         |
+| ~~RefactoredAIEngineHub.ts~~    | 300줄   | ❌ 제거됨 | 실험적, 미사용    |
+| ~~AIEngineChain.ts~~            | 200줄   | ❌ 제거됨 | 구버전 체인 패턴  |
 
 ### **정리 효과**
 
@@ -117,7 +117,7 @@ export class SupabaseRAGMainEngine {
   private calculateCategoryBonus(results: SearchResult[]) {
     return results.map(result => ({
       ...result,
-      score: result.score + this.getCategoryBonus(result.category)
+      score: result.score + this.getCategoryBonus(result.category),
     }));
   }
 }
@@ -125,12 +125,12 @@ export class SupabaseRAGMainEngine {
 
 ### **성능 지표**
 
-| 지표 | 이전 | 현재 | 개선도 |
-|------|------|------|--------|
-| 검색 정확도 | 75% | 85% | +13% |
-| 한국어 처리 | 60% | 90% | +50% |
-| 응답 시간 | 1.2초 | 0.8초 | +33% |
-| 메모리 사용 | 200MB | 130MB | +35% |
+| 지표        | 이전  | 현재  | 개선도 |
+| ----------- | ----- | ----- | ------ |
+| 검색 정확도 | 75%   | 85%   | +13%   |
+| 한국어 처리 | 60%   | 90%   | +50%   |
+| 응답 시간   | 1.2초 | 0.8초 | +33%   |
+| 메모리 사용 | 200MB | 130MB | +35%   |
 
 ---
 
@@ -145,7 +145,7 @@ class GracefulDegradationManager {
       () => this.supabaseRAG.search(request),
       () => this.mcpWithSubEngines(request),
       () => this.subEnginesOnly(request),
-      () => this.googleAIFallback(request)
+      () => this.googleAIFallback(request),
     ];
 
     for (const [index, fallback] of fallbackChain.entries()) {
@@ -185,9 +185,9 @@ export class KoreanMorphemeAnalyzer {
     const patterns = [
       { pattern: /([가-힣]+)(이|가|은|는|을|를)/, type: 'SUBJECT' },
       { pattern: /([가-힣]+)(에서|으로|로)/, type: 'LOCATION' },
-      { pattern: /([가-힣]+)(하다|되다|이다)/, type: 'PREDICATE' }
+      { pattern: /([가-힣]+)(하다|되다|이다)/, type: 'PREDICATE' },
     ];
-    
+
     return this.extractMorphemes(text, patterns);
   }
 }
@@ -198,10 +198,10 @@ export class KoreanMorphemeAnalyzer {
 ```typescript
 export class IntentAnalyzer {
   private intentPatterns = {
-    SERVER_STATUS: ["서버", "상태", "확인", "체크"],
-    PERFORMANCE: ["성능", "느림", "빠름", "응답시간"],
-    ERROR_ANALYSIS: ["오류", "에러", "문제", "장애"],
-    MONITORING: ["모니터링", "감시", "알림", "경고"]
+    SERVER_STATUS: ['서버', '상태', '확인', '체크'],
+    PERFORMANCE: ['성능', '느림', '빠름', '응답시간'],
+    ERROR_ANALYSIS: ['오류', '에러', '문제', '장애'],
+    MONITORING: ['모니터링', '감시', '알림', '경고'],
   };
 
   analyzeIntent(morphemes: string[]): IntentResult {
@@ -230,15 +230,15 @@ export class RealMCPClient {
   async performComplexQuery(query: string, context?: any) {
     const mcpResponse = await this.sendToMCPServer({
       method: 'resources/read',
-      params: { uri: `query://${encodeURIComponent(query)}` }
+      params: { uri: `query://${encodeURIComponent(query)}` },
     });
 
     return {
       response: mcpResponse.content,
       metadata: {
         source: 'mcp-server',
-        processingTime: mcpResponse.processingTime
-      }
+        processingTime: mcpResponse.processingTime,
+      },
     };
   }
 }
@@ -256,27 +256,27 @@ export class RealMCPClient {
 
 ### **응답 시간 비교**
 
-| 모드 | 이전 | 현재 | 개선도 |
-|------|------|------|--------|
-| AUTO | 1.5초 | 0.85초 | +43% |
-| LOCAL | 1.0초 | 0.62초 | +38% |
-| GOOGLE_ONLY | 2.0초 | 1.2초 | +40% |
+| 모드        | 이전  | 현재   | 개선도 |
+| ----------- | ----- | ------ | ------ |
+| AUTO        | 1.5초 | 0.85초 | +43%   |
+| LOCAL       | 1.0초 | 0.62초 | +38%   |
+| GOOGLE_ONLY | 2.0초 | 1.2초  | +40%   |
 
 ### **메모리 사용량**
 
-| 컴포넌트 | 이전 | 현재 | 개선도 |
-|----------|------|------|--------|
-| 전체 시스템 | 350MB | 220MB | +37% |
-| AI 엔진 | 200MB | 130MB | +35% |
-| 캐시 시스템 | 80MB | 50MB | +38% |
+| 컴포넌트    | 이전  | 현재  | 개선도 |
+| ----------- | ----- | ----- | ------ |
+| 전체 시스템 | 350MB | 220MB | +37%   |
+| AI 엔진     | 200MB | 130MB | +35%   |
+| 캐시 시스템 | 80MB  | 50MB  | +38%   |
 
 ### **성공률 통계**
 
-| 엔진 | 단독 성공률 | 폴백 포함 |
-|------|-------------|-----------|
-| Supabase RAG | 85% | 99.2% |
-| Google AI | 78% | 98.5% |
-| MCP + 하위AI | 72% | 95.0% |
+| 엔진         | 단독 성공률 | 폴백 포함 |
+| ------------ | ----------- | --------- |
+| Supabase RAG | 85%         | 99.2%     |
+| Google AI    | 78%         | 98.5%     |
+| MCP + 하위AI | 72%         | 95.0%     |
 
 ---
 
@@ -330,7 +330,7 @@ private async enhanceWithSubEngines(
   ];
 
   const results = await Promise.allSettled(enhancementPromises);
-  
+
   // 성공한 향상만 적용
   results.forEach((result, index) => {
     if (result.status === 'fulfilled' && result.value) {
@@ -385,7 +385,7 @@ await router.initialize();
 const result = await router.processRequest({
   query,
   mode: 'AUTO',
-  context: { urgency: 'medium' }
+  context: { urgency: 'medium' },
 });
 ```
 
@@ -437,5 +437,5 @@ OpenManager Vibe v5는 이제 **차세대 AI 인프라**를 갖추게 되었습�
 
 ---
 
-*마지막 업데이트: 2025년 6월 23일*  
-*다음 리뷰: Phase 4 고급 기능 통합 시*
+_마지막 업데이트: 2025년 6월 23일_  
+_다음 리뷰: Phase 4 고급 기능 통합 시_

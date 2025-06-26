@@ -187,21 +187,17 @@ npm start
 ### CORS 설정
 
 ```javascript
-origins: [
-  "vscode-webview://*",
-  "https://*.cursor.sh", 
-  "http://localhost:*"
-]
-methods: ["GET", "POST", "PUT", "DELETE"]
-headers: ["Content-Type", "Authorization", "X-Cursor-Token"]
+origins: ['vscode-webview://*', 'https://*.cursor.sh', 'http://localhost:*'];
+methods: ['GET', 'POST', 'PUT', 'DELETE'];
+headers: ['Content-Type', 'Authorization', 'X-Cursor-Token'];
 ```
 
 ### API 보호
 
 ```javascript
-rate_limit: 100/minute
-ip_whitelist: ["0.0.0.0/0"] // 개발 단계
-env_encryption: AES-256-GCM
+rate_limit: 100 / minute;
+ip_whitelist: ['0.0.0.0/0']; // 개발 단계
+env_encryption: AES - 256 - GCM;
 ```
 
 ### 환경 변수 암호화
