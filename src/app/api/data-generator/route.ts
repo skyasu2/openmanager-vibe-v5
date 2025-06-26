@@ -132,7 +132,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 }
 
 function generateMetrics(count: number) {
-  const metrics = [];
+  const metrics: Array<{
+    timestamp: string;
+    cpu: number;
+    memory: number;
+    disk: number;
+    networkIn: number;
+    networkOut: number;
+    responseTime: number;
+  }> = [];
   const now = Date.now();
 
   for (let i = 0; i < count; i++) {
@@ -187,7 +195,13 @@ function generateServers(count: number) {
 }
 
 function generateLogs(count: number) {
-  const logs = [];
+  const logs: Array<{
+    timestamp: string;
+    level: string;
+    source: string;
+    message: string;
+    details: { userId: number } | null;
+  }> = [];
   const levels = ['INFO', 'WARN', 'ERROR', 'DEBUG'];
   const sources = [
     'web-server',
@@ -231,7 +245,13 @@ function generateLogs(count: number) {
 }
 
 function generateTraffic(count: number) {
-  const traffic = [];
+  const traffic: Array<{
+    timestamp: string;
+    requests: number;
+    bandwidth: number;
+    errors: number;
+    avgResponseTime: number;
+  }> = [];
   const now = Date.now();
 
   for (let i = 0; i < count; i++) {

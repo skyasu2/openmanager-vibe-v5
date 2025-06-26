@@ -33,7 +33,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ c
 async function handleRequest(request: NextRequest, params: { catchall: string[] }, method: string) {
   const requestedPath = `/api/${params.catchall.join('/')}`;
   const { searchParams } = new URL(request.url);
-  
+
   // 로깅
   console.warn(`🚫 존재하지 않는 API 요청: ${method} ${requestedPath}`, {
     userAgent: request.headers.get('user-agent'),
@@ -62,7 +62,7 @@ async function handleRequest(request: NextRequest, params: { catchall: string[] 
       'POST /api/ai/mcp',
       'GET /api/analyze'
     ]
-  }, { 
+  }, {
     status: 404,
     headers: {
       'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ function getSuggestions(requestedPath: string): string[] {
   ];
 
   const suggestions: string[] = [];
-  
+
   // 유사한 경로 찾기
   for (const endpoint of knownEndpoints) {
     if (calculateSimilarity(requestedPath, endpoint) > 0.5) {
@@ -96,7 +96,7 @@ function getSuggestions(requestedPath: string): string[] {
   for (const endpoint of knownEndpoints) {
     const endpointParts = endpoint.toLowerCase().split('/').filter(Boolean);
     const commonParts = pathParts.filter(part => endpointParts.includes(part));
-    
+
     if (commonParts.length > 0 && !suggestions.includes(endpoint)) {
       suggestions.push(endpoint);
     }
@@ -108,24 +108,24 @@ function getSuggestions(requestedPath: string): string[] {
 function calculateSimilarity(str1: string, str2: string): number {
   const longer = str1.length > str2.length ? str1 : str2;
   const shorter = str1.length > str2.length ? str2 : str1;
-  
+
   if (longer.length === 0) return 1.0;
-  
+
   const editDistance = levenshteinDistance(longer, shorter);
   return (longer.length - editDistance) / longer.length;
 }
 
 function levenshteinDistance(str1: string, str2: string): number {
-  const matrix = [];
-  
+  const matrix: number[][] = [];
+
   for (let i = 0; i <= str2.length; i++) {
     matrix[i] = [i];
   }
-  
+
   for (let j = 0; j <= str1.length; j++) {
     matrix[0][j] = j;
   }
-  
+
   for (let i = 1; i <= str2.length; i++) {
     for (let j = 1; j <= str1.length; j++) {
       if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
@@ -139,6 +139,6 @@ function levenshteinDistance(str1: string, str2: string): number {
       }
     }
   }
-  
+
   return matrix[str2.length][str1.length];
 } 

@@ -9,8 +9,10 @@
  * - 메모리 효율적 학습
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { SolutionDatabase } from '@/core/ai/databases/SolutionDatabase';
+import { IncidentDetectionEngine } from '@/core/ai/engines/IncidentDetectionEngine';
 import { AutoIncidentReportSystem } from '@/core/ai/systems/AutoIncidentReportSystem';
+import { NextRequest, NextResponse } from 'next/server';
 
 // 전역 인스턴스 (서버리스 최적화)
 let globalLearningSystem: AutoIncidentReportSystem | null = null;
@@ -20,7 +22,9 @@ let globalLearningSystem: AutoIncidentReportSystem | null = null;
  */
 function getLearningSystem(): AutoIncidentReportSystem {
     if (!globalLearningSystem) {
-        globalLearningSystem = new AutoIncidentReportSystem(undefined, undefined, true);
+        const detectionEngine = new IncidentDetectionEngine();
+        const solutionDB = new SolutionDatabase();
+        globalLearningSystem = new AutoIncidentReportSystem(detectionEngine, solutionDB, true);
     }
     return globalLearningSystem;
 }

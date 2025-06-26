@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
     const isVercel = !!process.env.VERCEL;
     const isProd = process.env.NODE_ENV === 'production';
 
-    let healthResults = [];
+    let healthResults: any[] = [];
 
     if (isVercel) {
       // 🎯 Vercel 환경: 단일 서버만 최소한의 체크

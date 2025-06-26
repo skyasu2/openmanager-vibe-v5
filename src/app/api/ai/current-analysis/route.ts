@@ -8,10 +8,10 @@
  * - 즉시 대응 권장사항
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import {
-  createSuccessResponse,
   createErrorResponse,
+  createSuccessResponse,
   withErrorHandler,
 } from '../../../../lib/api/errorHandler';
 import { cacheService } from '../../../../services/cacheService';
@@ -125,7 +125,7 @@ function analyzeCurrentState(servers: any[]) {
     servers.length;
 
   // 현재 문제점 식별
-  const currentIssues = [];
+  const currentIssues: string[] = [];
   if (avgCpu > 80) currentIssues.push('높은 CPU 사용률');
   if (avgMemory > 85) currentIssues.push('높은 메모리 사용률');
   if (avgDisk > 90) currentIssues.push('높은 디스크 사용률');

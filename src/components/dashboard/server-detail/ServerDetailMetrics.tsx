@@ -1,9 +1,8 @@
 'use client';
 
-import React from 'react';
-import { MetricsHistory } from '../../../types/server';
 import { MetricsStats } from '../../../hooks/useServerMetrics';
-import CircularGauge from './CircularGauge';
+import { MetricsHistory } from '../../../types/server';
+import { ServerModalGauge } from '../../shared/UnifiedCircularGauge';
 
 interface ServerDetailMetricsProps {
   metricsHistory: MetricsHistory[];
@@ -22,49 +21,52 @@ export function ServerDetailMetrics({
   onTimeRangeChange,
   generateChartPoints,
 }: ServerDetailMetricsProps) {
+  if (isLoadingHistory) {
+    return (
+      <div className='flex items-center justify-center h-64'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
+      </div>
+    );
+  }
+
   return (
     <div className='space-y-6'>
       {/* 시간 범위 선택 */}
-      <div className='flex items-center justify-between'>
+      <div className='flex justify-between items-center'>
         <h3 className='text-lg font-semibold text-gray-900'>성능 메트릭</h3>
-        <div className='flex bg-gray-100 rounded-lg p-1'>
-          {(['1h', '6h', '24h', '7d'] as const).map(range => (
-            <button
-              key={range}
-              onClick={() => onTimeRangeChange(range)}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                timeRange === range
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {range}
-            </button>
-          ))}
-        </div>
+        <select
+          value={timeRange}
+          onChange={e => onTimeRangeChange(e.target.value as any)}
+          className='px-3 py-2 border border-gray-300 rounded-lg bg-white'
+        >
+          <option value='1h'>최근 1시간</option>
+          <option value='6h'>최근 6시간</option>
+          <option value='24h'>최근 24시간</option>
+          <option value='7d'>최근 7일</option>
+        </select>
       </div>
 
-      {/* 메트릭 게이지들 */}
+      {/* 원형 게이지들 - 통합 컴포넌트 사용 */}
       <div className='grid grid-cols-2 lg:grid-cols-4 gap-6'>
-        <CircularGauge
+        <ServerModalGauge
           value={metricsHistory[metricsHistory.length - 1]?.cpu || 0}
           label='CPU'
-          color='#ef4444'
+          type='cpu'
           size={150}
         />
-        <CircularGauge
+        <ServerModalGauge
           value={metricsHistory[metricsHistory.length - 1]?.memory || 0}
           label='메모리'
-          color='#3b82f6'
+          type='memory'
           size={150}
         />
-        <CircularGauge
+        <ServerModalGauge
           value={metricsHistory[metricsHistory.length - 1]?.disk || 0}
           label='디스크'
-          color='#8b5cf6'
+          type='disk'
           size={150}
         />
-        <CircularGauge
+        <ServerModalGauge
           value={(() => {
             const lastMetric = metricsHistory[metricsHistory.length - 1];
             if (!lastMetric) return 0;
@@ -81,7 +83,7 @@ export function ServerDetailMetrics({
             return 0;
           })()}
           label='네트워크'
-          color='#22c55e'
+          type='network'
           size={150}
         />
       </div>
@@ -133,47 +135,37 @@ export function ServerDetailMetrics({
       )}
 
       {/* 차트 */}
-      <div className='bg-white rounded-xl p-6 border border-gray-200'>
+      <div className='bg-white rounded-lg border border-gray-200 p-6'>
         <h4 className='text-lg font-semibold text-gray-900 mb-4'>
-          시간별 추이
+          시간별 추이 ({timeRange})
         </h4>
 
-        {isLoadingHistory ? (
-          <div className='flex items-center justify-center h-64'>
-            <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
+        {metricsHistory.length === 0 ? (
+          <div className='flex items-center justify-center h-40 text-gray-500'>
+            데이터가 없습니다
           </div>
         ) : (
           <div className='relative'>
             {/* 범례 */}
-            <div className='flex flex-wrap gap-4 mb-4 text-sm'>
+            <div className='flex flex-wrap gap-4 mb-4'>
               <div className='flex items-center gap-2'>
-                <div className='w-3 h-3 bg-red-500 rounded-full'></div>
-                <span>CPU</span>
+                <div className='w-3 h-3 bg-red-500 rounded'></div>
+                <span className='text-sm text-gray-600'>CPU</span>
               </div>
               <div className='flex items-center gap-2'>
-                <div className='w-3 h-3 bg-blue-500 rounded-full'></div>
-                <span>메모리</span>
+                <div className='w-3 h-3 bg-blue-500 rounded'></div>
+                <span className='text-sm text-gray-600'>메모리</span>
               </div>
               <div className='flex items-center gap-2'>
-                <div className='w-3 h-3 bg-purple-500 rounded-full'></div>
-                <span>디스크</span>
+                <div className='w-3 h-3 bg-purple-500 rounded'></div>
+                <span className='text-sm text-gray-600'>디스크</span>
               </div>
               <div className='flex items-center gap-2'>
-                <div className='w-3 h-3 bg-green-500 rounded-full'></div>
-                <span>네트워크</span>
+                <div className='w-3 h-3 bg-green-500 rounded'></div>
+                <span className='text-sm text-gray-600'>네트워크</span>
               </div>
             </div>
 
-            {/* Y축 라벨 */}
-            <div className='absolute left-0 top-0 bottom-8 flex flex-col justify-between text-xs text-gray-500 w-8'>
-              <span>100%</span>
-              <span>75%</span>
-              <span>50%</span>
-              <span>25%</span>
-              <span>0%</span>
-            </div>
-
-            {/* 차트 영역 */}
             <div className='ml-8 relative'>
               {metricsHistory.length > 0 && (
                 <svg width='100%' height='160' className='overflow-visible'>
@@ -289,76 +281,42 @@ export function ServerDetailMetrics({
                   />
 
                   {/* 데이터 포인트 표시 */}
-                  {metricsHistory.slice(-1).map((metric, index) => {
-                    const x = 300;
-                    const cpuY = 140 - (metric.cpu / 100) * 140;
-                    const memoryY = 140 - (metric.memory / 100) * 140;
-                    const diskY = 140 - (metric.disk / 100) * 140;
-                    const network = metric.network;
-                    let networkValue = 0;
-                    if (typeof network === 'number') {
-                      networkValue = network;
-                    } else if (network && typeof network === 'object') {
-                      networkValue = Math.min(
-                        ((network.bytesReceived || 0) / 1000000) * 2,
-                        100
-                      );
-                    }
-                    const networkY = 140 - (networkValue / 100) * 140;
-
+                  {metricsHistory.map((_, index) => {
+                    const x = (index / Math.max(metricsHistory.length - 1, 1)) * 100;
                     return (
                       <g key={index}>
                         <circle
-                          cx={x}
-                          cy={cpuY}
-                          r='4'
+                          cx={`${x}%`}
+                          cy={140 - (metricsHistory[index].cpu / 100) * 140}
+                          r='2'
                           fill='#ef4444'
-                          stroke='white'
-                          strokeWidth='2'
                         />
                         <circle
-                          cx={x}
-                          cy={memoryY}
-                          r='4'
+                          cx={`${x}%`}
+                          cy={140 - (metricsHistory[index].memory / 100) * 140}
+                          r='2'
                           fill='#3b82f6'
-                          stroke='white'
-                          strokeWidth='2'
                         />
                         <circle
-                          cx={x}
-                          cy={diskY}
-                          r='4'
+                          cx={`${x}%`}
+                          cy={140 - (metricsHistory[index].disk / 100) * 140}
+                          r='2'
                           fill='#8b5cf6'
-                          stroke='white'
-                          strokeWidth='2'
-                        />
-                        <circle
-                          cx={x}
-                          cy={networkY}
-                          r='4'
-                          fill='#22c55e'
-                          stroke='white'
-                          strokeWidth='2'
                         />
                       </g>
                     );
                   })}
                 </svg>
               )}
-            </div>
 
-            {/* X축 라벨 */}
-            <div className='absolute bottom-0 left-8 right-0 flex justify-between text-xs text-gray-500 px-4 pb-2'>
-              <span>
-                {timeRange === '1h'
-                  ? '1시간 전'
-                  : timeRange === '6h'
-                    ? '6시간 전'
-                    : timeRange === '24h'
-                      ? '24시간 전'
-                      : '7일 전'}
-              </span>
-              <span>현재</span>
+              {/* Y축 라벨 */}
+              <div className='absolute left-0 top-0 h-40 flex flex-col justify-between text-xs text-gray-500 -ml-8'>
+                <span>100%</span>
+                <span>75%</span>
+                <span>50%</span>
+                <span>25%</span>
+                <span>0%</span>
+              </div>
             </div>
           </div>
         )}
@@ -366,3 +324,4 @@ export function ServerDetailMetrics({
     </div>
   );
 }
+

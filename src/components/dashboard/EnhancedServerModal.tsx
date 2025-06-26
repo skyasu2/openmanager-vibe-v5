@@ -25,6 +25,7 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { ServerModal3DGauge } from '../shared/UnifiedCircularGauge';
 
 interface EnhancedServerModalProps {
   server: {
@@ -105,33 +106,33 @@ export default function EnhancedServerModal({
   // 🛡️ 서버 데이터 안전성 검증 및 기본값 설정
   const safeServer = server
     ? {
-        id: server.id || 'unknown',
-        hostname: server.hostname || 'unknown.local',
-        name: server.name || 'Unknown Server',
-        type: server.type || 'unknown',
-        environment: server.environment || 'unknown',
-        location: server.location || 'Unknown Location',
-        provider: server.provider || 'Unknown Provider',
-        status: server.status || 'offline',
-        cpu: typeof server.cpu === 'number' ? server.cpu : 0,
-        memory: typeof server.memory === 'number' ? server.memory : 0,
-        disk: typeof server.disk === 'number' ? server.disk : 0,
-        network: typeof server.network === 'number' ? server.network : 0,
-        uptime: server.uptime || '0h 0m',
-        lastUpdate: server.lastUpdate || new Date(),
-        alerts: typeof server.alerts === 'number' ? server.alerts : 0,
-        services: Array.isArray(server.services) ? server.services : [],
-        specs: server.specs || { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
-        os: server.os || 'Unknown OS',
-        ip: server.ip || '0.0.0.0',
-        networkStatus: server.networkStatus || 'offline',
-        health: server.health || { score: 0, trend: [] },
-        alertsSummary: server.alertsSummary || {
-          total: 0,
-          critical: 0,
-          warning: 0,
-        },
-      }
+      id: server.id || 'unknown',
+      hostname: server.hostname || 'unknown.local',
+      name: server.name || 'Unknown Server',
+      type: server.type || 'unknown',
+      environment: server.environment || 'unknown',
+      location: server.location || 'Unknown Location',
+      provider: server.provider || 'Unknown Provider',
+      status: server.status || 'offline',
+      cpu: typeof server.cpu === 'number' ? server.cpu : 0,
+      memory: typeof server.memory === 'number' ? server.memory : 0,
+      disk: typeof server.disk === 'number' ? server.disk : 0,
+      network: typeof server.network === 'number' ? server.network : 0,
+      uptime: server.uptime || '0h 0m',
+      lastUpdate: server.lastUpdate || new Date(),
+      alerts: typeof server.alerts === 'number' ? server.alerts : 0,
+      services: Array.isArray(server.services) ? server.services : [],
+      specs: server.specs || { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
+      os: server.os || 'Unknown OS',
+      ip: server.ip || '0.0.0.0',
+      networkStatus: server.networkStatus || 'offline',
+      health: server.health || { score: 0, trend: [] },
+      alertsSummary: server.alertsSummary || {
+        total: 0,
+        critical: 0,
+        warning: 0,
+      },
+    }
     : null;
 
   // 실시간 데이터 생성
@@ -220,10 +221,7 @@ export default function EnhancedServerModal({
     generateRealtimeData();
     // 🎯 데이터 수집 간격과 완전 동기화
     // 서버 카드, 실시간 훅과 모두 동기화하여 일관된 업데이트 제공
-    const interval = setInterval(
-      generateRealtimeData,
-      calculateOptimalCollectionInterval()
-    );
+    const interval = setInterval(generateRealtimeData, calculateOptimalCollectionInterval());
 
     return () => clearInterval(interval);
   }, [safeServer, isRealtime]);
@@ -236,87 +234,6 @@ export default function EnhancedServerModal({
     { id: 'logs', label: '로그', icon: FileText },
     { id: 'network', label: '네트워크', icon: Network },
   ];
-
-  // 3D 게이지 컴포넌트
-  const CircularGauge3D = ({
-    value,
-    max = 100,
-    label,
-    color,
-    size = 120,
-  }: {
-    value: number;
-    max?: number;
-    label: string;
-    color: string;
-    size?: number;
-  }) => {
-    const percentage = Math.max(0, Math.min(100, (value / max) * 100));
-    const circumference = 2 * Math.PI * 45;
-    const strokeDasharray = circumference;
-    const strokeDashoffset = circumference - (percentage / 100) * circumference;
-
-    return (
-      <div className='flex flex-col items-center'>
-        <div className='relative' style={{ width: size, height: size }}>
-          <svg
-            className='transform -rotate-90 drop-shadow-lg'
-            width={size}
-            height={size}
-          >
-            {/* 배경 원 */}
-            <circle
-              cx={size / 2}
-              cy={size / 2}
-              r='45'
-              stroke='#e5e7eb'
-              strokeWidth='8'
-              fill='transparent'
-              className='drop-shadow-sm'
-            />
-            {/* 진행률 원 */}
-            <circle
-              cx={size / 2}
-              cy={size / 2}
-              r='45'
-              stroke={color}
-              strokeWidth='8'
-              fill='transparent'
-              strokeDasharray={strokeDasharray}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap='round'
-              className='transition-all duration-1000 ease-out drop-shadow-sm'
-              style={{
-                filter: `drop-shadow(0 0 8px ${color}40)`,
-              }}
-            />
-            {/* 내부 그라데이션 */}
-            <circle
-              cx={size / 2}
-              cy={size / 2}
-              r='35'
-              fill={`url(#gradient-${label})`}
-              className='opacity-20'
-            />
-            <defs>
-              <radialGradient id={`gradient-${label}`}>
-                <stop offset='0%' stopColor={color} stopOpacity='0.3' />
-                <stop offset='100%' stopColor={color} stopOpacity='0.1' />
-              </radialGradient>
-            </defs>
-          </svg>
-          <div className='absolute inset-0 flex items-center justify-center'>
-            <div className='text-center'>
-              <div className='text-2xl font-bold' style={{ color }}>
-                {value}%
-              </div>
-              <div className='text-xs text-gray-500 mt-1'>{label}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   // 실시간 차트 컴포넌트
   const RealtimeChart = ({
@@ -500,20 +417,17 @@ export default function EnhancedServerModal({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setIsRealtime(!isRealtime)}
-                  className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 ${
-                    isRealtime
-                      ? 'bg-green-500 shadow-lg'
-                      : 'bg-white/30 backdrop-blur-sm hover:bg-white/40'
-                  }`}
+                  className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 ${isRealtime
+                    ? 'bg-green-500 shadow-lg'
+                    : 'bg-white/30 backdrop-blur-sm hover:bg-white/40'
+                    }`}
                 >
                   {isRealtime ? (
                     <Play className='w-4 h-4' />
                   ) : (
                     <Pause className='w-4 h-4' />
                   )}
-                  {isRealtime
-                    ? `실시간 (${Math.round(calculateOptimalCollectionInterval() / 1000)}초)`
-                    : '정지됨'}
+                  {isRealtime ? `실시간 (${Math.round(calculateOptimalCollectionInterval() / 1000)}초)` : '정지됨'}
                 </motion.button>
 
                 <motion.button
@@ -537,11 +451,10 @@ export default function EnhancedServerModal({
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedTab(tab.id as any)}
-                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 ${
-                      selectedTab === tab.id
-                        ? 'bg-white text-blue-600 shadow-lg ring-1 ring-blue-200'
-                        : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30'
-                    }`}
+                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 ${selectedTab === tab.id
+                      ? 'bg-white text-blue-600 shadow-lg ring-1 ring-blue-200'
+                      : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30'
+                      }`}
                   >
                     <Icon className='w-4 h-4' />
                     {tab.label}
@@ -563,28 +476,28 @@ export default function EnhancedServerModal({
               >
                 {selectedTab === 'overview' && (
                   <div className='space-y-6'>
-                    {/* 3D 게이지들 */}
+                    {/* 3D 게이지들 - 통합 컴포넌트 사용 */}
                     <div>
                       <h3 className='text-xl font-bold text-gray-900 mb-4'>
                         실시간 리소스 모니터링
                       </h3>
                       <div className='grid grid-cols-1 md:grid-cols-3 gap-8 bg-white rounded-xl p-6 shadow-md border border-gray-200'>
-                        <CircularGauge3D
+                        <ServerModal3DGauge
                           value={safeServer.cpu}
                           label='CPU'
-                          color='#ef4444'
+                          type='cpu'
                           size={140}
                         />
-                        <CircularGauge3D
+                        <ServerModal3DGauge
                           value={safeServer.memory}
                           label='메모리'
-                          color='#3b82f6'
+                          type='memory'
                           size={140}
                         />
-                        <CircularGauge3D
+                        <ServerModal3DGauge
                           value={safeServer.disk}
                           label='디스크'
-                          color='#8b5cf6'
+                          type='disk'
                           size={140}
                         />
                       </div>
@@ -597,35 +510,21 @@ export default function EnhancedServerModal({
                           시스템 정보
                         </h4>
                         <div className='space-y-3'>
-                          <div className='flex justify-between'>
+                          <div className='flex justify-between items-center'>
                             <span className='text-gray-600'>운영체제</span>
-                            <span className='font-medium'>
-                              {safeServer.os || 'Ubuntu 20.04 LTS'}
-                            </span>
+                            <span className='font-medium'>{safeServer.os || 'Ubuntu 22.04'}</span>
                           </div>
-                          <div className='flex justify-between'>
+                          <div className='flex justify-between items-center'>
                             <span className='text-gray-600'>IP 주소</span>
-                            <span className='font-medium'>
-                              {safeServer.ip || '192.168.1.100'}
-                            </span>
+                            <span className='font-mono text-sm'>{safeServer.ip || '192.168.1.100'}</span>
                           </div>
-                          <div className='flex justify-between'>
+                          <div className='flex justify-between items-center'>
                             <span className='text-gray-600'>업타임</span>
-                            <span className='font-medium'>
-                              {safeServer.uptime}
-                            </span>
+                            <span className='font-medium'>{safeServer.uptime}</span>
                           </div>
-                          <div className='flex justify-between'>
-                            <span className='text-gray-600'>CPU 코어</span>
-                            <span className='font-medium'>
-                              {safeServer.specs?.cpu_cores || 8}개
-                            </span>
-                          </div>
-                          <div className='flex justify-between'>
-                            <span className='text-gray-600'>메모리</span>
-                            <span className='font-medium'>
-                              {safeServer.specs?.memory_gb || 16}GB
-                            </span>
+                          <div className='flex justify-between items-center'>
+                            <span className='text-gray-600'>마지막 업데이트</span>
+                            <span className='text-sm text-gray-500'>방금 전</span>
                           </div>
                         </div>
                       </div>
@@ -635,28 +534,38 @@ export default function EnhancedServerModal({
                           서비스 상태
                         </h4>
                         <div className='space-y-3'>
-                          {safeServer.services.map((service, idx) => (
-                            <div
-                              key={idx}
-                              className='flex items-center justify-between'
-                            >
-                              <div className='flex items-center gap-3'>
-                                <div
-                                  className={`w-3 h-3 rounded-full ${
-                                    service.status === 'running'
+                          {safeServer.services && safeServer.services.length > 0 ? (
+                            safeServer.services.map((service, index) => (
+                              <div key={index} className='flex items-center justify-between'>
+                                <div className='flex items-center gap-3'>
+                                  <div
+                                    className={`w-3 h-3 rounded-full ${service.status === 'running'
                                       ? 'bg-green-500'
-                                      : 'bg-red-500'
-                                  }`}
-                                />
-                                <span className='font-medium'>
-                                  {service.name}
+                                      : service.status === 'stopped'
+                                        ? 'bg-red-500'
+                                        : 'bg-amber-500'
+                                      }`}
+                                  />
+                                  <span className='font-medium'>{service.name}</span>
+                                </div>
+                                <span
+                                  className={`px-2 py-1 rounded-full text-xs font-medium ${service.status === 'running'
+                                    ? 'bg-green-100 text-green-700'
+                                    : service.status === 'stopped'
+                                      ? 'bg-red-100 text-red-700'
+                                      : 'bg-amber-100 text-amber-700'
+                                    }`}
+                                >
+                                  {service.status === 'running' ? '실행중' :
+                                    service.status === 'stopped' ? '중지됨' : '대기중'}
                                 </span>
                               </div>
-                              <span className='text-sm text-gray-600'>
-                                :{service.port}
-                              </span>
+                            ))
+                          ) : (
+                            <div className='text-gray-500 text-center py-4'>
+                              서비스 정보가 없습니다
                             </div>
-                          ))}
+                          )}
                         </div>
                       </div>
                     </div>
@@ -667,23 +576,20 @@ export default function EnhancedServerModal({
                   <div className='space-y-6'>
                     <div className='flex items-center justify-between'>
                       <h3 className='text-xl font-bold text-gray-900'>
-                        성능 메트릭
+                        실시간 메트릭
                       </h3>
-                      <select
-                        aria-label='time-range'
-                        value={timeRange}
-                        onChange={e => setTimeRange(e.target.value as any)}
-                        className='px-3 py-2 border border-gray-300 rounded-lg'
+                      <button
+                        onClick={() => setIsRealtime(!isRealtime)}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${isRealtime
+                          ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                          : 'bg-green-100 text-green-700 hover:bg-green-200'
+                          }`}
                       >
-                        <option value='5m'>5분</option>
-                        <option value='1h'>1시간</option>
-                        <option value='6h'>6시간</option>
-                        <option value='24h'>24시간</option>
-                        <option value='7d'>7일</option>
-                      </select>
+                        {isRealtime ? '일시정지' : '시작'}
+                      </button>
                     </div>
 
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                    <div className='grid grid-cols-2 gap-6'>
                       <RealtimeChart
                         data={realtimeData.cpu}
                         color='#ef4444'
@@ -700,9 +606,9 @@ export default function EnhancedServerModal({
                         label='디스크 사용률'
                       />
                       <RealtimeChart
-                        data={realtimeData.latency}
+                        data={realtimeData.network.map(n => typeof n === 'number' ? n : (n.in + n.out) / 2)}
                         color='#22c55e'
-                        label='응답 시간 (ms)'
+                        label='네트워크 사용률'
                       />
                     </div>
                   </div>
@@ -776,13 +682,12 @@ export default function EnhancedServerModal({
                           key={idx}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          className={`mb-2 ${
-                            log.level === 'error'
-                              ? 'text-red-400'
-                              : log.level === 'warn'
-                                ? 'text-yellow-400'
-                                : 'text-green-400'
-                          }`}
+                          className={`mb-2 ${log.level === 'error'
+                            ? 'text-red-400'
+                            : log.level === 'warn'
+                              ? 'text-yellow-400'
+                              : 'text-green-400'
+                            }`}
                         >
                           <span className='text-gray-500'>
                             {(() => {
@@ -822,31 +727,18 @@ export default function EnhancedServerModal({
                           네트워크 상태
                         </h4>
                         <div className='flex items-center gap-3'>
-                          <div
-                            className={`w-4 h-4 rounded-full ${
-                              safeServer.networkStatus === 'excellent'
-                                ? 'bg-green-500'
-                                : safeServer.networkStatus === 'good'
-                                  ? 'bg-blue-500'
-                                  : safeServer.networkStatus === 'poor'
-                                    ? 'bg-yellow-500'
-                                    : 'bg-red-500'
-                            }`}
-                          />
+                          <div className={`w-4 h-4 rounded-full ${safeServer.networkStatus === 'excellent' ? 'bg-green-500' :
+                            safeServer.networkStatus === 'good' ? 'bg-blue-500' :
+                              safeServer.networkStatus === 'poor' ? 'bg-yellow-500' : 'bg-red-500'
+                            }`} />
                           <span className='font-medium capitalize'>
-                            {safeServer.networkStatus === 'excellent'
-                              ? '우수'
-                              : safeServer.networkStatus === 'good'
-                                ? '양호'
-                                : safeServer.networkStatus === 'poor'
-                                  ? '보통'
-                                  : '오프라인'}
+                            {safeServer.networkStatus === 'excellent' ? '우수' :
+                              safeServer.networkStatus === 'good' ? '양호' :
+                                safeServer.networkStatus === 'poor' ? '보통' : '오프라인'}
                           </span>
                         </div>
                         <div className='mt-4'>
-                          <div className='text-sm text-gray-600'>
-                            네트워크 속도
-                          </div>
+                          <div className='text-sm text-gray-600'>네트워크 속도</div>
                           <div className='text-lg font-bold'>
                             {safeServer.specs?.network_speed || '1 Gbps'}
                           </div>
@@ -861,19 +753,13 @@ export default function EnhancedServerModal({
                           <div className='flex justify-between'>
                             <span className='text-gray-600'>인바운드</span>
                             <span className='font-medium text-green-600'>
-                              {realtimeData.network[
-                                realtimeData.network.length - 1
-                              ]?.in.toFixed(1) || '0'}{' '}
-                              MB/s
+                              {realtimeData.network[realtimeData.network.length - 1]?.in.toFixed(1) || '0'} MB/s
                             </span>
                           </div>
                           <div className='flex justify-between'>
                             <span className='text-gray-600'>아웃바운드</span>
                             <span className='font-medium text-blue-600'>
-                              {realtimeData.network[
-                                realtimeData.network.length - 1
-                              ]?.out.toFixed(1) || '0'}{' '}
-                              MB/s
+                              {realtimeData.network[realtimeData.network.length - 1]?.out.toFixed(1) || '0'} MB/s
                             </span>
                           </div>
                         </div>
@@ -884,10 +770,7 @@ export default function EnhancedServerModal({
                           지연시간
                         </h4>
                         <div className='text-3xl font-bold text-purple-600'>
-                          {realtimeData.latency[
-                            realtimeData.latency.length - 1
-                          ]?.toFixed(1) || '0'}{' '}
-                          ms
+                          {realtimeData.latency[realtimeData.latency.length - 1]?.toFixed(1) || '0'} ms
                         </div>
                         <div className='text-sm text-gray-600 mt-2'>
                           평균 응답시간
@@ -898,9 +781,7 @@ export default function EnhancedServerModal({
                     {/* 네트워크 트래픽 차트 */}
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                       <div className='bg-white rounded-lg p-4 shadow-sm border'>
-                        <h4 className='text-sm font-medium text-gray-700 mb-2'>
-                          네트워크 트래픽
-                        </h4>
+                        <h4 className='text-sm font-medium text-gray-700 mb-2'>네트워크 트래픽</h4>
                         <div className='relative h-32'>
                           <svg
                             className='w-full h-full'
@@ -908,55 +789,19 @@ export default function EnhancedServerModal({
                             preserveAspectRatio='none'
                           >
                             <defs>
-                              <linearGradient
-                                id='network-in-gradient'
-                                x1='0%'
-                                y1='0%'
-                                x2='0%'
-                                y2='100%'
-                              >
-                                <stop
-                                  offset='0%'
-                                  stopColor='#22c55e'
-                                  stopOpacity='0.3'
-                                />
-                                <stop
-                                  offset='100%'
-                                  stopColor='#22c55e'
-                                  stopOpacity='0.05'
-                                />
+                              <linearGradient id='network-in-gradient' x1='0%' y1='0%' x2='0%' y2='100%'>
+                                <stop offset='0%' stopColor='#22c55e' stopOpacity='0.3' />
+                                <stop offset='100%' stopColor='#22c55e' stopOpacity='0.05' />
                               </linearGradient>
-                              <linearGradient
-                                id='network-out-gradient'
-                                x1='0%'
-                                y1='0%'
-                                x2='0%'
-                                y2='100%'
-                              >
-                                <stop
-                                  offset='0%'
-                                  stopColor='#3b82f6'
-                                  stopOpacity='0.3'
-                                />
-                                <stop
-                                  offset='100%'
-                                  stopColor='#3b82f6'
-                                  stopOpacity='0.05'
-                                />
+                              <linearGradient id='network-out-gradient' x1='0%' y1='0%' x2='0%' y2='100%'>
+                                <stop offset='0%' stopColor='#3b82f6' stopOpacity='0.3' />
+                                <stop offset='100%' stopColor='#3b82f6' stopOpacity='0.05' />
                               </linearGradient>
                             </defs>
 
                             {/* 격자 */}
                             {[20, 40, 60, 80].map(y => (
-                              <line
-                                key={y}
-                                x1='0'
-                                y1={y}
-                                x2='100'
-                                y2={y}
-                                stroke='#f3f4f6'
-                                strokeWidth='0.5'
-                              />
+                              <line key={y} x1='0' y1={y} x2='100' y2={y} stroke='#f3f4f6' strokeWidth='0.5' />
                             ))}
 
                             {/* 인바운드 트래픽 */}
@@ -964,24 +809,11 @@ export default function EnhancedServerModal({
                               fill='none'
                               stroke='#22c55e'
                               strokeWidth='2'
-                              points={realtimeData.network
-                                .map((data, index) => {
-                                  const x =
-                                    (index /
-                                      Math.max(
-                                        realtimeData.network.length - 1,
-                                        1
-                                      )) *
-                                    100;
-                                  const y =
-                                    100 -
-                                    Math.max(
-                                      0,
-                                      Math.min(100, (data.in / 600) * 100)
-                                    );
-                                  return `${x},${y}`;
-                                })
-                                .join(' ')}
+                              points={realtimeData.network.map((data, index) => {
+                                const x = (index / Math.max(realtimeData.network.length - 1, 1)) * 100;
+                                const y = 100 - Math.max(0, Math.min(100, (data.in / 600) * 100));
+                                return `${x},${y}`;
+                              }).join(' ')}
                               vectorEffect='non-scaling-stroke'
                             />
 
@@ -990,24 +822,11 @@ export default function EnhancedServerModal({
                               fill='none'
                               stroke='#3b82f6'
                               strokeWidth='2'
-                              points={realtimeData.network
-                                .map((data, index) => {
-                                  const x =
-                                    (index /
-                                      Math.max(
-                                        realtimeData.network.length - 1,
-                                        1
-                                      )) *
-                                    100;
-                                  const y =
-                                    100 -
-                                    Math.max(
-                                      0,
-                                      Math.min(100, (data.out / 400) * 100)
-                                    );
-                                  return `${x},${y}`;
-                                })
-                                .join(' ')}
+                              points={realtimeData.network.map((data, index) => {
+                                const x = (index / Math.max(realtimeData.network.length - 1, 1)) * 100;
+                                const y = 100 - Math.max(0, Math.min(100, (data.out / 400) * 100));
+                                return `${x},${y}`;
+                              }).join(' ')}
                               vectorEffect='non-scaling-stroke'
                             />
                           </svg>
@@ -1046,35 +865,25 @@ export default function EnhancedServerModal({
                           </div>
                           <div className='flex justify-between'>
                             <span className='text-gray-600'>호스트명</span>
-                            <span className='font-medium'>
-                              {safeServer.hostname}
-                            </span>
+                            <span className='font-medium'>{safeServer.hostname}</span>
                           </div>
                           <div className='flex justify-between'>
                             <span className='text-gray-600'>위치</span>
-                            <span className='font-medium'>
-                              {safeServer.location}
-                            </span>
+                            <span className='font-medium'>{safeServer.location}</span>
                           </div>
                         </div>
                         <div className='space-y-3'>
                           <div className='flex justify-between'>
                             <span className='text-gray-600'>프로바이더</span>
-                            <span className='font-medium'>
-                              {safeServer.provider}
-                            </span>
+                            <span className='font-medium'>{safeServer.provider}</span>
                           </div>
                           <div className='flex justify-between'>
                             <span className='text-gray-600'>환경</span>
-                            <span className='font-medium'>
-                              {safeServer.environment}
-                            </span>
+                            <span className='font-medium'>{safeServer.environment}</span>
                           </div>
                           <div className='flex justify-between'>
                             <span className='text-gray-600'>서버 타입</span>
-                            <span className='font-medium'>
-                              {safeServer.type}
-                            </span>
+                            <span className='font-medium'>{safeServer.type}</span>
                           </div>
                         </div>
                       </div>

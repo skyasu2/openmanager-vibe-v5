@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const envStatus = await checkEnvironmentStatus();
 
     // 환경변수 백업 시도 (서버에서만)
-    let backupResult = null;
+    let backupResult: any = null;
     try {
       backupResult = await envManagerProxy.backupEnvironment();
     } catch (error) {
@@ -29,10 +29,10 @@ export async function GET(request: NextRequest) {
       },
       backup: backupResult
         ? {
-            success: backupResult.success,
-            message: backupResult.message,
-            backupId: backupResult.backupId,
-          }
+          success: backupResult.success,
+          message: backupResult.message,
+          backupId: backupResult.backupId,
+        }
         : null,
     };
 

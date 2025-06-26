@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // 목업 서버 데이터 생성
 const generateMockServers = () => {
-  const servers = [];
+  const servers: any[] = [];
   const locations = ['Seoul', 'Tokyo', 'Singapore', 'Frankfurt', 'Oregon'];
   const statuses = ['online', 'warning', 'offline'] as const;
   const services = [
@@ -80,15 +80,15 @@ export async function GET(request: NextRequest) {
       ).length,
       avgCpu: Math.round(
         servers.reduce((sum, s) => sum + (s.metrics?.cpu || 0), 0) /
-          servers.length
+        servers.length
       ),
       avgMemory: Math.round(
         servers.reduce((sum, s) => sum + (s.metrics?.memory || 0), 0) /
-          servers.length
+        servers.length
       ),
       avgDisk: Math.round(
         servers.reduce((sum, s) => sum + (s.metrics?.disk || 0), 0) /
-          servers.length
+        servers.length
       ),
     };
 

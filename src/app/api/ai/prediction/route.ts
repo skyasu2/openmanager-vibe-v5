@@ -8,11 +8,10 @@
  * - Supabase 예측 히스토리 저장
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
-import { redisTimeSeriesService } from '@/services/redisTimeSeriesService';
 import { predictServerLoad } from '@/lib/ml/lightweight-ml-engine';
 import { supabase } from '@/lib/supabase';
+import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -246,7 +245,12 @@ async function savePredictionToDatabase(
  * 📊 시계열 데이터 생성
  */
 function generateTimeSeriesData(server: any, hours: number): any[] {
-  const data = [];
+  const data: Array<{
+    timestamp: number;
+    cpu: number;
+    memory: number;
+    disk: number;
+  }> = [];
   const now = Date.now();
 
   for (let i = 0; i < hours; i++) {
@@ -395,7 +399,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 예측 실행 시뮬레이션
-    const predictions = [];
+    const predictions: PredictionPoint[] = [];
     const baseValue = Math.random() * 80 + 10;
 
     for (let i = 0; i < hoursAhead; i++) {

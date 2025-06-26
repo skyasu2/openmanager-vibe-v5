@@ -776,7 +776,7 @@ function generateTroubleshootingSteps(
 function extractMultipleIssues(
   query: string
 ): Array<{ type: string; severity: string; description: string }> {
-  const issues = [];
+  const issues: Array<{ type: string; severity: string; description: string }> = [];
 
   if (query.includes('nginx cpu 95%')) {
     issues.push({

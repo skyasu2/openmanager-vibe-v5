@@ -24,10 +24,8 @@ interface IntelligentAnalysisRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: IntelligentAnalysisRequest = await request.json();
-
-    // 기본값 설정
-    const analysisRequest = {
+    const body = await request.json();
+    const analysisRequest: IntelligentAnalysisRequest = {
       serverId: body.serverId,
       analysisDepth: body.analysisDepth || 'standard',
       includeSteps: {
@@ -37,10 +35,15 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    const analysisId = `IM_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const analysisId = `analysis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const startTime = Date.now();
 
-    console.log(`🧠 지능형 모니터링 분석 시작: ${analysisId}`, analysisRequest);
+    console.log('🧠 지능형 모니터링 분석 시작:', {
+      analysisId,
+      serverId: analysisRequest.serverId,
+      depth: analysisRequest.analysisDepth,
+      steps: analysisRequest.includeSteps,
+    });
 
     // Korean AI 엔진 초기화
     const koreanAI = new KoreanAIEngine();
@@ -52,23 +55,23 @@ export async function POST(request: NextRequest) {
       request: analysisRequest,
       anomalyDetection: {
         status: 'skipped' as 'completed' | 'failed' | 'skipped',
-        anomalies: [],
+        anomalies: [] as any[],
         summary: '',
         confidence: 0,
         processingTime: 0,
       },
       rootCauseAnalysis: {
         status: 'skipped' as 'completed' | 'failed' | 'skipped',
-        causes: [],
-        aiInsights: [],
+        causes: [] as any[],
+        aiInsights: [] as any[],
         summary: '',
         confidence: 0,
         processingTime: 0,
       },
       predictiveMonitoring: {
         status: 'skipped' as 'completed' | 'failed' | 'skipped',
-        predictions: [],
-        recommendations: [],
+        predictions: [] as any[],
+        recommendations: [] as any[],
         summary: '',
         confidence: 0,
         processingTime: 0,
@@ -76,7 +79,7 @@ export async function POST(request: NextRequest) {
       overallResult: {
         severity: 'low' as 'low' | 'medium' | 'high' | 'critical',
         actionRequired: false,
-        priorityActions: [],
+        priorityActions: [] as any[],
         summary: '',
         confidence: 0,
         totalProcessingTime: 0,
@@ -106,7 +109,7 @@ export async function POST(request: NextRequest) {
 
         // 이상 탐지 엔진 사용
         const anomalyDetection = AnomalyDetection.getInstance();
-        const anomalies = await anomalyDetection.detectAnomalies(serverMetrics);
+        const anomalies: any[] = await anomalyDetection.detectAnomalies(serverMetrics);
 
         result.anomalyDetection = {
           status: 'completed',
@@ -138,8 +141,13 @@ export async function POST(request: NextRequest) {
       try {
         console.log('🔍 근본 원인 분석 실행 중...');
 
-        const causes = [];
-        const aiInsights = [];
+        const causes: any[] = [];
+        const aiInsights: Array<{
+          engine: string;
+          insight: any;
+          confidence: any;
+          supportingData: any;
+        }> = [];
 
         // Korean AI 엔진을 사용한 근본 원인 분석
         try {
@@ -227,8 +235,8 @@ export async function POST(request: NextRequest) {
       try {
         console.log('🔮 예측적 모니터링 실행 중...');
 
-        const predictions = [];
-        const recommendations = [];
+        const predictions: any[] = [];
+        const recommendations: any[] = [];
 
         // 예측적 분석 엔진 사용
         const predictiveEngine = new PredictiveAnalysisEngine();
@@ -274,9 +282,9 @@ export async function POST(request: NextRequest) {
         const avgRisk =
           predictions.length > 0
             ? predictions.reduce(
-                (sum, p) => sum + (p.failureProbability || 0),
-                0
-              ) / predictions.length
+              (sum, p) => sum + (p.failureProbability || 0),
+              0
+            ) / predictions.length
             : 0;
         const highRiskCount = predictions.filter(
           p => p.failureProbability > 70
@@ -344,7 +352,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 통합 요약 생성
-    const summaryParts = [];
+    const summaryParts: string[] = [];
     if (result.anomalyDetection.status === 'completed') {
       summaryParts.push(result.anomalyDetection.summary);
     }

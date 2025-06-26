@@ -85,7 +85,12 @@ function generatePredictionAnalytics(timeRange: string): PredictionAnalytics {
   });
 
   // 시계열 분석
-  const timeSeriesAnalysis = [];
+  const timeSeriesAnalysis: Array<{
+    date: string;
+    predictions: number;
+    accuracy: number;
+    failures: number;
+  }> = [];
   for (let i = 0; i < days; i++) {
     const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
     const dailyPredictions =

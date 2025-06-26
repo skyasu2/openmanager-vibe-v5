@@ -192,7 +192,7 @@ export async function PUT(request: NextRequest) {
     const responseTime = Date.now() - startTime;
 
     // 조정 이유 분석
-    const adjustmentReasons = [];
+    const adjustmentReasons: string[] = [];
 
     if (performanceMetrics.memoryUsage > 80) {
       adjustmentReasons.push('높은 메모리 사용률로 인한 서버 수 감소');

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { detectAnomalies, MetricPoint } from '@/lib/ml/lightweight-ml-engine';
+import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -97,7 +97,13 @@ export async function GET(request: NextRequest) {
  * 🔍 이상징후 분석 함수
  */
 function analyzeAnomalies(servers: any[]) {
-  const anomalies = [];
+  const anomalies: Array<{
+    type: string;
+    severity: string;
+    count: number;
+    message: string;
+    servers: string[];
+  }> = [];
 
   // CPU 사용률 이상
   const highCpuServers = servers.filter(s => s.metrics?.cpu > 85);
@@ -154,7 +160,14 @@ function analyzeAnomalies(servers: any[]) {
  * 📢 최근 알림 생성 함수
  */
 function generateRecentNotifications(anomalies: any[]) {
-  const notifications = [];
+  const notifications: Array<{
+    id: string;
+    type: string;
+    severity: string;
+    message: string;
+    timestamp: string;
+    details: any;
+  }> = [];
 
   for (const anomaly of anomalies) {
     notifications.push({

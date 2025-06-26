@@ -62,10 +62,10 @@ export async function GET(request: NextRequest) {
     // 🔄 sinceTimestamp가 지정되면 변화된 서버만 필터링
     const servers: any[] = sinceTimestamp
       ? originalServers.filter(
-          s =>
-            new Date(s.health?.lastCheck || Date.now()).getTime() >
-            (sinceTimestamp as number)
-        )
+        s =>
+          new Date(s.health?.lastCheck || Date.now()).getTime() >
+          (sinceTimestamp as number)
+      )
       : originalServers;
 
     // 서버 데이터를 대시보드 API 형식으로 변환
@@ -178,20 +178,20 @@ export async function GET(request: NextRequest) {
 
       // 🎭 AI 분석용 장애 시나리오 정보
       scenario_analysis: {
-        is_active: scenarioStatus.isActive,
+        is_active: scenarioStatus?.isActive || false,
         current_scenario: currentScenario
           ? {
-              session_id: currentScenario.sessionInfo?.sessionId,
-              main_failure: currentScenario.sessionInfo?.mainFailure,
-              cascade_failures: currentScenario.sessionInfo?.cascadeFailures,
-              current_phase: currentScenario.phase,
-              phase_description: currentScenario.description,
-              korean_description: currentScenario.koreanDescription,
-              ai_analysis_points: currentScenario.aiAnalysisPoints,
-              time_range: currentScenario.timeRange,
-              affected_servers: currentScenario.changes?.targetServers || [],
-              affected_server_types: currentScenario.changes?.serverTypes || [],
-            }
+            session_id: currentScenario.sessionInfo?.sessionId,
+            main_failure: currentScenario.sessionInfo?.mainFailure,
+            cascade_failures: currentScenario.sessionInfo?.cascadeFailures,
+            current_phase: currentScenario.phase,
+            phase_description: currentScenario.description,
+            korean_description: currentScenario.koreanDescription,
+            ai_analysis_points: currentScenario.aiAnalysisPoints,
+            time_range: currentScenario.timeRange,
+            affected_servers: currentScenario.changes?.targetServers || [],
+            affected_server_types: currentScenario.changes?.serverTypes || [],
+          }
           : null,
       },
     };
@@ -415,7 +415,7 @@ function analyzeTrends(servers: any[]) {
 }
 
 function generateRecommendations(servers: any[], alertsSummary: any) {
-  const recommendations = [];
+  const recommendations: string[] = [];
 
   if (alertsSummary.critical_alerts > 0) {
     recommendations.push('Critical servers need immediate attention');

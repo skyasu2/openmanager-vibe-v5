@@ -14,6 +14,15 @@ import { IntelligentMonitoringService } from '@/services/ai/IntelligentMonitorin
 import { SimplifiedNaturalLanguageEngine } from '@/services/ai/SimplifiedNaturalLanguageEngine';
 import { NextRequest, NextResponse } from 'next/server';
 
+// 타입 정의
+interface IncidentDetectionEngine {
+    detectIncident(data: any): Promise<any>;
+}
+
+interface SolutionDatabase {
+    findSolutions(incident: any): Promise<string[]>;
+}
+
 /**
  * GET: 현재 통합 AI 모드 상태 조회
  */
@@ -168,9 +177,16 @@ export async function POST(request: NextRequest) {
 
         // 3️⃣ 자동 장애보고서 + ML 학습
         if (includeIncidentReporting) {
+            // 실제 클래스 인스턴스 생성
+            const { IncidentDetectionEngine } = await import('@/core/ai/engines/IncidentDetectionEngine');
+            const { SolutionDatabase } = await import('@/core/ai/databases/SolutionDatabase');
+
+            const detectionEngine = new IncidentDetectionEngine();
+            const solutionDB = new SolutionDatabase();
+
             const incidentSystem = new AutoIncidentReportSystem(
-                undefined,
-                undefined,
+                detectionEngine,
+                solutionDB,
                 enableMLOptimization,
                 mode
             );

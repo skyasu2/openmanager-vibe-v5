@@ -6,10 +6,10 @@
  * - GET: 사고 과정 상태 조회
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { ThinkingProcessor } from '@/modules/ai-agent/core/ThinkingProcessor';
 import { LangGraphThinkingProcessor } from '@/modules/ai-agent/core/LangGraphThinkingProcessor';
+import { ThinkingProcessor } from '@/modules/ai-agent/core/ThinkingProcessor';
 import { RealTimeAILogCollector } from '@/services/ai/logging/RealTimeAILogCollector';
+import { NextRequest, NextResponse } from 'next/server';
 
 const thinkingProcessor = new ThinkingProcessor();
 const langGraphProcessor = LangGraphThinkingProcessor.getInstance();
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     );
 
     // 고급 모드인 경우 LangGraph 프로세서도 시작
-    let langGraphQueryId = null;
+    let langGraphQueryId: string | null = null;
     if (useAdvanced) {
       langGraphQueryId = langGraphProcessor.startThinking(
         sessionId,

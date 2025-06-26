@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ 성능 메트릭 조회 오류:', error);
-    
+
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : '알 수 없는 오류',
@@ -55,7 +55,7 @@ async function collectPerformanceMetrics(timeRange: string, metric: string) {
   const dataPoints = getDataPointCount(timeRange);
   const interval = duration / dataPoints;
 
-  const metrics = [];
+  const metrics: any[] = [];
 
   for (let i = 0; i < dataPoints; i++) {
     const timestamp = startTime + (i * interval);

@@ -28,7 +28,8 @@
       ]
     },
     "tsBuildInfoFile": ".next/cache/tsbuildinfo",
-    "assumeChangesOnlyAffectDirectDependencies": true
+    "assumeChangesOnlyAffectDirectDependencies": true,
+    "strictNullChecks": true
   },
   "include": [
     "next-env.d.ts",

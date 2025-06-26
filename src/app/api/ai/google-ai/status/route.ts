@@ -103,15 +103,17 @@ export async function GET() {
     const healthCheckPermission = await quotaManager.canPerformHealthCheck();
 
     // 4. Google AI 서비스 초기화
-    let googleAI = null;
-    let initResult = null;
-    let serviceStatus = null;
+    let googleAI: any = null;
+    let initResult: any = null;
+    let serviceStatus: any = null;
 
     if (GoogleAIService && apiKey) {
       try {
         googleAI = new GoogleAIService();
-        initResult = await googleAI.initialize();
-        serviceStatus = googleAI.getStatus();
+        if (googleAI) {
+          initResult = await googleAI.initialize();
+          serviceStatus = googleAI.getStatus();
+        }
       } catch (serviceError) {
         console.error('❌ Google AI 서비스 초기화 중 오류:', serviceError);
         serviceStatus = {
@@ -131,7 +133,7 @@ export async function GET() {
     }
 
     // 5. 연결 테스트 (헬스체크 캐싱 적용)
-    let connectionTest = null;
+    let connectionTest: any = null;
 
     if (healthCheckPermission.cached) {
       // 캐시된 헬스체크 결과 사용

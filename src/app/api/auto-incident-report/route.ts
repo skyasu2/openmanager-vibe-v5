@@ -431,7 +431,7 @@ function extractSeverity(query: string): string {
 }
 
 function extractSystems(query: string): string[] {
-    const systems = [];
+    const systems: string[] = [];
     if (query.includes('데이터베이스') || query.includes('DB')) systems.push('database');
     if (query.includes('웹서버') || query.includes('web')) systems.push('web-server');
     if (query.includes('캐시') || query.includes('cache')) systems.push('cache');

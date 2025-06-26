@@ -90,7 +90,7 @@ export function ServerDashboardServers({
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
-    const pages = [];
+    const pages: number[] = [];
     const maxVisiblePages = 5;
     const startPage = Math.max(
       1,
@@ -129,11 +129,10 @@ export function ServerDashboardServers({
           <button
             key={page}
             onClick={() => onPageChange(page)}
-            className={`px-3 py-2 rounded-lg border ${
-              currentPage === page
+            className={`px-3 py-2 rounded-lg border ${currentPage === page
                 ? 'bg-blue-500 text-white border-blue-500'
                 : 'border-gray-300 hover:bg-gray-50'
-            }`}
+              }`}
           >
             {page}
           </button>
@@ -246,13 +245,13 @@ export function ServerDashboardServers({
           {(searchTerm ||
             statusFilter !== 'all' ||
             locationFilter !== 'all') && (
-            <button
-              onClick={onResetFilters}
-              className='px-4 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50'
-            >
-              필터 리셋
-            </button>
-          )}
+              <button
+                onClick={onResetFilters}
+                className='px-4 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50'
+              >
+                필터 리셋
+              </button>
+            )}
         </div>
 
         {/* 컨트롤 패널 */}
@@ -268,11 +267,10 @@ export function ServerDashboardServers({
                     onClick={() =>
                       onDisplayModeChange(option.value as ServerDisplayMode)
                     }
-                    className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs transition-colors ${
-                      displayMode === option.value
+                    className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs transition-colors ${displayMode === option.value
                         ? 'bg-white text-blue-600 shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
-                    }`}
+                      }`}
                     title={option.label}
                   >
                     <IconComponent size={14} />
@@ -287,22 +285,20 @@ export function ServerDashboardServers({
           <div className='flex items-center space-x-2 bg-gray-100 rounded-lg p-1'>
             <button
               onClick={() => onViewModeChange('grid')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'grid'
+              className={`p-2 rounded-md transition-colors ${viewMode === 'grid'
                   ? 'bg-white text-blue-600 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
               aria-label='그리드 뷰'
             >
               <LayoutGrid size={16} />
             </button>
             <button
               onClick={() => onViewModeChange('list')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'list'
+              className={`p-2 rounded-md transition-colors ${viewMode === 'list'
                   ? 'bg-white text-blue-600 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
               aria-label='리스트 뷰'
             >
               <List size={16} />
@@ -328,7 +324,7 @@ export function ServerDashboardServers({
               className={
                 viewMode === 'grid'
                   ? gridLayout?.className ||
-                    'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
+                  'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
                   : 'space-y-4'
               }
             >
