@@ -10,17 +10,7 @@
  */
 
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-  Activity,
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  Cpu,
-  HardDrive,
-  MapPin,
-  Server,
-  Wifi,
-} from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, MapPin, Server } from 'lucide-react';
 import React, { memo, useCallback, useEffect, useState } from 'react';
 import { Server as ServerType } from '../../types/server';
 
@@ -244,13 +234,11 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
 
     // 원형 차트 컴포넌트 (도넛 차트)
     const CircularMetric = ({
-      icon,
       label,
       value,
       type,
       size = 60,
     }: {
-      icon: React.ReactNode;
       label: string;
       value: number;
       type: 'cpu' | 'memory' | 'disk' | 'network';
@@ -271,89 +259,79 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
                 cx={size / 2}
                 cy={size / 2}
                 r={radius}
-                stroke='#e5e7eb'
+                stroke={color.bg}
                 strokeWidth='4'
                 fill='none'
+                opacity='0.2'
               />
               {/* 진행률 원 */}
-              <motion.circle
+              <circle
                 cx={size / 2}
                 cy={size / 2}
                 r={radius}
-                stroke={`url(#gradient-${type})`}
+                stroke={color.border.replace('border-', '')}
                 strokeWidth='4'
                 fill='none'
-                strokeLinecap='round'
                 strokeDasharray={strokeDasharray}
-                initial={{ strokeDashoffset: circumference }}
-                animate={{ strokeDashoffset }}
-                transition={{ duration: 1, ease: 'easeOut' }}
+                strokeDashoffset={strokeDashoffset}
+                strokeLinecap='round'
+                className='drop-shadow-sm transition-all duration-1000 ease-out'
+                style={{
+                  stroke: color.bg.includes('blue')
+                    ? '#3b82f6'
+                    : color.bg.includes('purple')
+                      ? '#8b5cf6'
+                      : color.bg.includes('indigo')
+                        ? '#6366f1'
+                        : color.bg.includes('emerald')
+                          ? '#10b981'
+                          : color.bg.includes('amber')
+                            ? '#f59e0b'
+                            : '#ef4444',
+                }}
               />
-              {/* 그라데이션 정의 */}
-              <defs>
-                <linearGradient
-                  id={`gradient-${type}`}
-                  x1='0%'
-                  y1='0%'
-                  x2='100%'
-                  y2='100%'
-                >
-                  <stop
-                    offset='0%'
-                    stopColor={
-                      color.bg.includes('blue')
-                        ? '#3b82f6'
-                        : color.bg.includes('purple')
-                          ? '#8b5cf6'
-                          : color.bg.includes('indigo')
-                            ? '#6366f1'
-                            : color.bg.includes('emerald')
-                              ? '#10b981'
-                              : color.bg.includes('amber')
-                                ? '#f59e0b'
-                                : '#ef4444'
-                    }
-                  />
-                  <stop
-                    offset='100%'
-                    stopColor={
-                      color.bg.includes('blue')
-                        ? '#1d4ed8'
-                        : color.bg.includes('purple')
-                          ? '#7c3aed'
-                          : color.bg.includes('indigo')
-                            ? '#4f46e5'
-                            : color.bg.includes('emerald')
-                              ? '#059669'
-                              : color.bg.includes('amber')
-                                ? '#d97706'
-                                : '#dc2626'
-                    }
-                  />
-                </linearGradient>
-              </defs>
             </svg>
 
             {/* 중앙 아이콘과 값 */}
             <div className='absolute inset-0 flex flex-col items-center justify-center'>
               <div className='mb-0.5'>
-                <div
-                  className='w-4 h-4 flex items-center justify-center'
-                  style={{
-                    color: color.bg.includes('blue')
-                      ? '#3b82f6'
-                      : color.bg.includes('purple')
-                        ? '#8b5cf6'
-                        : color.bg.includes('indigo')
-                          ? '#6366f1'
-                          : color.bg.includes('emerald')
-                            ? '#10b981'
-                            : color.bg.includes('amber')
-                              ? '#f59e0b'
-                              : '#ef4444',
-                  }}
-                >
-                  {icon}
+                <div className='w-4 h-4 flex items-center justify-center'>
+                  {type === 'cpu' && (
+                    <svg
+                      className='w-4 h-4'
+                      fill='currentColor'
+                      viewBox='0 0 20 20'
+                    >
+                      <path d='M3 4a1 1 0 011-1h12a1 1 0 011 1v1a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z' />
+                    </svg>
+                  )}
+                  {type === 'memory' && (
+                    <svg
+                      className='w-4 h-4'
+                      fill='currentColor'
+                      viewBox='0 0 20 20'
+                    >
+                      <path d='M3 4a1 1 0 011-1h12a1 1 0 011 1v1a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h12a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6z' />
+                    </svg>
+                  )}
+                  {type === 'disk' && (
+                    <svg
+                      className='w-4 h-4'
+                      fill='currentColor'
+                      viewBox='0 0 20 20'
+                    >
+                      <path d='M3 4a1 1 0 000 2v9a2 2 0 002 2h1a2 2 0 002-2V6a1 1 0 100-2H3zM3 4a1 1 0 011-1h1a1 1 0 011 1v1a1 1 0 01-1 1H4a1 1 0 01-1-1V4z' />
+                    </svg>
+                  )}
+                  {type === 'network' && (
+                    <svg
+                      className='w-4 h-4'
+                      fill='currentColor'
+                      viewBox='0 0 20 20'
+                    >
+                      <path d='M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z' />
+                    </svg>
+                  )}
                 </div>
               </div>
               <span className={`text-xs font-bold ${color.text}`}>
@@ -469,26 +447,18 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
 
         {/* 메트릭 섹션 - 개선된 2x2 그리드 */}
         <div className={`grid grid-cols-2 gap-4 ${styles.spacing}`}>
+          <CircularMetric label='CPU' value={realtimeMetrics.cpu} type='cpu' />
           <CircularMetric
-            icon={<Cpu className='w-4 h-4 text-blue-600' />}
-            label='CPU'
-            value={realtimeMetrics.cpu}
-            type='cpu'
-          />
-          <CircularMetric
-            icon={<Activity className='w-4 h-4 text-purple-600' />}
             label='메모리'
             value={realtimeMetrics.memory}
             type='memory'
           />
           <CircularMetric
-            icon={<HardDrive className='w-4 h-4 text-indigo-600' />}
             label='디스크'
             value={realtimeMetrics.disk}
             type='disk'
           />
           <CircularMetric
-            icon={<Wifi className='w-4 h-4 text-emerald-600' />}
             label='네트워크'
             value={realtimeMetrics.network}
             type='network'
