@@ -476,6 +476,44 @@ export class UnifiedAIEngineRouter {
     const supportEngines: string[] = [];
     let fallbacksUsed = 0;
 
+    // 한국어 쿼리인지 확인
+    const isKorean = this.isKoreanQuery(request.query);
+
+    // 한국어 쿼리일 때 한국어 AI 엔진 우선 처리
+    if (isKorean) {
+      try {
+        console.log('🇰🇷 LOCAL 모드: 한국어 AI 엔진 우선 처리');
+        const koreanResult = await this.koreanEngine.processQuery(
+          request.query,
+          request.context?.serverData
+        );
+
+        if (koreanResult?.success && koreanResult.response) {
+          enginePath.push('local-korean-ai-primary');
+          return {
+            success: true,
+            response: koreanResult.response,
+            confidence: koreanResult.confidence || 0.9,
+            mode: 'LOCAL',
+            enginePath,
+            processingTime: Date.now() - startTime,
+            fallbacksUsed,
+            metadata: {
+              mainEngine: 'local-korean-ai-primary',
+              supportEngines: ['korean'],
+              ragUsed: false,
+              googleAIUsed: false,
+              mcpContextUsed: false,
+              subEnginesUsed: ['korean'],
+            },
+          };
+        }
+      } catch (error) {
+        console.warn('⚠️ LOCAL 모드 한국어 AI 실패:', error);
+        fallbacksUsed++;
+      }
+    }
+
     // LOCAL 모드 전용 MCP 컨텍스트
     let mcpContext: any = null;
     try {
@@ -825,7 +863,38 @@ export class UnifiedAIEngineRouter {
     request: AIRequest
   ): Promise<AIResponse> {
     try {
-      // LOCAL 모드는 OpenSource 엔진 사용
+      // 한국어 쿼리인지 확인
+      const isKorean = this.isKoreanQuery(request.query);
+
+      if (isKorean) {
+        // 한국어 쿼리는 한국어 AI 엔진 사용
+        const koreanResult = await this.koreanEngine.processQuery(
+          request.query,
+          request.context?.serverData
+        );
+
+        if (koreanResult?.success && koreanResult.response) {
+          return {
+            success: true,
+            response: koreanResult.response,
+            confidence: koreanResult.confidence || 0.8,
+            mode: 'LOCAL',
+            enginePath: ['local-korean-ai'],
+            processingTime: 0,
+            fallbacksUsed: 0,
+            metadata: {
+              mainEngine: 'local-korean-ai',
+              supportEngines: ['korean'],
+              ragUsed: false,
+              googleAIUsed: false, // LOCAL 모드는 Google AI 사용 안 함
+              mcpContextUsed: false,
+              subEnginesUsed: ['korean'],
+            },
+          };
+        }
+      }
+
+      // 영어 쿼리는 OpenSource 엔진 사용
       const openSourceResult = await this.openSourceEngines.advancedNLP(
         request.query
       );
