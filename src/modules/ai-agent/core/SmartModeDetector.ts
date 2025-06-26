@@ -7,10 +7,12 @@
  * - 간단한 조회 → Basic 모드
  */
 
-export type AIAgentMode = 'basic' | 'advanced';
+import { AIAgentMode } from '@/types/ai-types';
+
+export type { AIAgentMode };
 
 // 장애 유형 분류
-export type IncidentType = 
+export type IncidentType =
   | 'service_down'      // 서비스 중단
   | 'performance'       // 성능 저하
   | 'connectivity'      // 연결 문제
@@ -44,7 +46,7 @@ export class SmartModeDetector {
       '디스크 오류', '메모리 누수', 'CPU 병목', 'I/O 병목', '인증 실패',
       '타임아웃', '크래시', '중단', '멈춤', '느림', '지연', '과부하'
     ],
-    
+
     // 📊 보고서/분석 관련
     reports: [
       '보고서', '리포트', 'report', '분석', 'analysis', '종합', '요약', 'summary',
@@ -55,7 +57,7 @@ export class SmartModeDetector {
       '트러블슈팅 보고서', '이슈 보고서', '진단 보고서', '모니터링 보고서',
       '성능 보고서', '로그 분석', '이벤트 분석', '알람 분석', '알림 분석'
     ],
-    
+
     // 🔮 예측/계획 관련
     prediction: [
       '예측', 'predict', '전망', 'forecast', '계획', 'plan', '향후', 'future',
@@ -64,7 +66,7 @@ export class SmartModeDetector {
       '성능 예측', '장애 예측', '선제적 대응', 'proactive', '사전 예방',
       '이상 감지', 'anomaly detection', '이상치 감지', '트렌드 분석'
     ],
-    
+
     // 🌐 복합/상관관계 분석
     correlation: [
       '상관관계', 'correlation', '연관', '관련', '영향', 'impact', '원인',
@@ -73,7 +75,7 @@ export class SmartModeDetector {
       '의존성', 'dependency', '연쇄 장애', '도미노 효과', '파급 효과',
       '다중 장애', '복합 장애', '장애 전파', '장애 확산', '분산 추적'
     ],
-    
+
     // ⚙️ 고급 기술 용어
     technical: [
       'latency', 'throughput', 'bottleneck', '병목', 'scalability', '확장성',
@@ -148,7 +150,7 @@ export class SmartModeDetector {
     // 간단한 조회
     '확인', 'check', '보기', 'show', '현재', 'current', '지금',
     '상태 확인', '간단히', '빠르게', 'quick', 'simple',
-    
+
     // 기본 질문
     '뭐', '어떻게', 'what', 'how', '어디', 'where', '언제', 'when'
   ];
@@ -160,13 +162,13 @@ export class SmartModeDetector {
     const normalizedQuery = query.toLowerCase();
     const triggers: string[] = [];
     let score = 0;
-    
+
     // Advanced 모드 트리거 점수 계산
     Object.entries(this.advancedTriggers).forEach(([category, keywords]) => {
       keywords.forEach(keyword => {
         if (normalizedQuery.includes(keyword.toLowerCase())) {
           triggers.push(`${category}:${keyword}`);
-          
+
           // 카테고리별 가중치 적용
           switch (category) {
             case 'critical': score += 10; break;  // 장애는 최고 우선순위
@@ -178,15 +180,15 @@ export class SmartModeDetector {
         }
       });
     });
-    
+
     // 질문 길이 고려 (긴 질문 = 복잡한 요청)
     if (query.length > 100) score += 2;
     if (query.length > 200) score += 3;
-    
+
     // 물음표 개수 (복합 질문)
     const questionMarks = (query.match(/\?/g) || []).length;
     if (questionMarks > 1) score += 2;
-    
+
     // Basic 모드 트리거 확인 (점수 감소)
     this.basicTriggers.forEach(keyword => {
       if (normalizedQuery.includes(keyword.toLowerCase())) {
@@ -197,19 +199,19 @@ export class SmartModeDetector {
     // 모드 결정
     const detectedMode: AIAgentMode = score >= 5 ? 'advanced' : 'basic';
     const confidence = Math.min(Math.abs(score) * 10, 100);
-    
+
     // 장애 관련 쿼리인지 확인
     const isIncidentRelated = triggers.some(t => t.startsWith('critical:'));
-    
+
     // 장애 관련이면 추가 분석 수행
     let incidentType: IncidentType | undefined;
     let incidentSeverity: 'low' | 'medium' | 'high' | 'critical' | undefined;
-    
+
     if (isIncidentRelated) {
       incidentType = this.detectIncidentType(normalizedQuery);
       incidentSeverity = this.detectIncidentSeverity(normalizedQuery);
     }
-    
+
     return {
       detectedMode,
       confidence,
@@ -226,27 +228,27 @@ export class SmartModeDetector {
    */
   private detectIncidentType(query: string): IncidentType {
     const types = Object.entries(this.incidentTypeKeywords);
-    
+
     // 각 유형별 키워드 일치 수 계산
     const scores: Record<IncidentType, number> = types.reduce((acc, [type, keywords]) => {
-      const typeScore = keywords.filter(keyword => 
+      const typeScore = keywords.filter(keyword =>
         query.toLowerCase().includes(keyword.toLowerCase())
       ).length;
-      
+
       return { ...acc, [type as IncidentType]: typeScore };
     }, {} as Record<IncidentType, number>);
-    
+
     // 최대 점수 유형 선택
     let maxScore = 0;
     let detectedType: IncidentType = 'unknown';
-    
+
     for (const [type, score] of Object.entries(scores)) {
       if (score > maxScore) {
         maxScore = score;
         detectedType = type as IncidentType;
       }
     }
-    
+
     return detectedType;
   }
 
@@ -255,50 +257,50 @@ export class SmartModeDetector {
    */
   private detectIncidentSeverity(query: string): 'low' | 'medium' | 'high' | 'critical' {
     const severities = Object.entries(this.severityKeywords);
-    
+
     // 각 심각도별 키워드 일치 수 계산
     const scores: Record<string, number> = severities.reduce((acc, [severity, keywords]) => {
-      const severityScore = keywords.filter(keyword => 
+      const severityScore = keywords.filter(keyword =>
         query.toLowerCase().includes(keyword.toLowerCase())
       ).length;
-      
+
       return { ...acc, [severity]: severityScore };
     }, {} as Record<string, number>);
-    
+
     // 최대 점수 심각도 선택
     let maxScore = 0;
     let detectedSeverity: 'low' | 'medium' | 'high' | 'critical' = 'medium';
-    
+
     for (const [severity, score] of Object.entries(scores)) {
       if (score > maxScore) {
         maxScore = score;
         detectedSeverity = severity as 'low' | 'medium' | 'high' | 'critical';
       }
     }
-    
+
     // 기본값은 medium
     return detectedSeverity;
   }
 
   private generateReasoning(
-    mode: AIAgentMode, 
-    score: number, 
-    triggers: string[], 
+    mode: AIAgentMode,
+    score: number,
+    triggers: string[],
     query: string,
     incidentType?: IncidentType,
     severity?: 'low' | 'medium' | 'high' | 'critical'
   ): string {
     if (mode === 'advanced') {
       const reasons = [];
-      
+
       if (triggers.some(t => t.startsWith('critical:'))) {
-        const incidentInfo = incidentType ? 
-          `${this.translateIncidentType(incidentType)} 유형의 ${severity || '중간'} 심각도 장애` : 
+        const incidentInfo = incidentType ?
+          `${this.translateIncidentType(incidentType)} 유형의 ${severity || '중간'} 심각도 장애` :
           '장애/문제 해결이 필요한 상황';
-        
+
         reasons.push(incidentInfo);
       }
-      
+
       if (triggers.some(t => t.startsWith('reports:'))) {
         reasons.push('상세한 분석 보고서가 요구됨');
       }
@@ -311,7 +313,7 @@ export class SmartModeDetector {
       if (query.length > 150) {
         reasons.push('복잡하고 상세한 질문');
       }
-      
+
       return `Advanced 모드 선택 이유: ${reasons.join(', ')} (점수: ${score})`;
     } else {
       return `Basic 모드 선택: 간단한 조회/확인 요청 (점수: ${score})`;
@@ -333,7 +335,7 @@ export class SmartModeDetector {
       'infrastructure': '인프라 문제',
       'unknown': '알 수 없음'
     };
-    
+
     return typeMap[type] || '알 수 없음';
   }
 
@@ -361,14 +363,14 @@ export class SmartModeDetector {
    */
   getIncidentInfo(query: string): { type: IncidentType; severity: string } | null {
     const analysis = this.analyzeQuery(query);
-    
+
     if (analysis.isIncidentRelated && analysis.incidentType) {
       return {
         type: analysis.incidentType,
         severity: analysis.incidentSeverity || 'medium'
       };
     }
-    
+
     return null;
   }
 } 

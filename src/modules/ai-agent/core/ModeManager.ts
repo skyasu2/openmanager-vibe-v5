@@ -7,40 +7,13 @@
  * - 성능 최적화 및 리소스 관리
  */
 
-export type AIAgentMode = 'basic' | 'advanced';
-export type PowerMode = 'active' | 'idle' | 'sleep';
+import {
+  AIAgentMode,
+  PowerMode,
+  ResponseDepth
+} from '@/types/ai-types';
 
-export interface ModeConfig {
-  // 응답 모드 설정
-  responseMode: AIAgentMode;
-  
-  // 베이직 모드 설정
-  basic: {
-    maxContextLength: number;
-    responseDepth: 'mini' | 'standard';
-    enableAdvancedAnalysis: boolean;
-    maxProcessingTime: number;
-  };
-  
-  // 고급 모드 설정
-  advanced: {
-    maxContextLength: number;
-    responseDepth: 'standard' | 'deep' | 'comprehensive';
-    enableAdvancedAnalysis: boolean;
-    enablePredictiveAnalysis: boolean;
-    enableMultiServerCorrelation: boolean;
-    maxProcessingTime: number;
-  };
-  
-  // 절전 모드 설정
-  powerManagement: {
-    idleTimeout: number; // 유휴 상태 진입 시간 (ms)
-    sleepTimeout: number; // 절전 모드 진입 시간 (ms)
-    wakeupTriggers: string[]; // 깨우기 트리거
-    enableAutoSleep: boolean;
-  };
-}
-
+// 로컬 ActivityMetrics 정의 (중앙 타입과 다른 구조)
 export interface ActivityMetrics {
   lastQueryTime: number;
   lastDataUpdate: number;
@@ -48,6 +21,37 @@ export interface ActivityMetrics {
   queryCount: number;
   dataUpdateCount: number;
   alertCount: number;
+}
+
+export interface ModeConfig {
+  // 응답 모드 설정
+  responseMode: AIAgentMode;
+
+  // 베이직 모드 설정
+  basic: {
+    maxContextLength: number;
+    responseDepth: ResponseDepth;
+    enableAdvancedAnalysis: boolean;
+    maxProcessingTime: number;
+  };
+
+  // 고급 모드 설정
+  advanced: {
+    maxContextLength: number;
+    responseDepth: ResponseDepth;
+    enableAdvancedAnalysis: boolean;
+    enablePredictiveAnalysis: boolean;
+    enableMultiServerCorrelation: boolean;
+    maxProcessingTime: number;
+  };
+
+  // 절전 모드 설정
+  powerManagement: {
+    idleTimeout: number; // 유휴 상태 진입 시간 (ms)
+    sleepTimeout: number; // 절전 모드 진입 시간 (ms)
+    wakeupTriggers: string[]; // 깨우기 트리거
+    enableAutoSleep: boolean;
+  };
 }
 
 export class ModeManager {
@@ -118,7 +122,7 @@ export class ModeManager {
    */
   recordActivity(type: 'query' | 'data_update' | 'alert' | 'mode_change'): void {
     const now = Date.now();
-    
+
     switch (type) {
       case 'query':
         this.activityMetrics.lastQueryTime = now;
@@ -182,7 +186,7 @@ export class ModeManager {
 
     this.powerMode = 'sleep';
     console.log('😴 AI Agent entering sleep mode');
-    
+
     // 절전 모드 이벤트 발생
     this.emitPowerModeChange('sleep');
   }
@@ -195,10 +199,10 @@ export class ModeManager {
 
     this.powerMode = 'idle';
     console.log('💤 AI Agent entering idle mode');
-    
+
     // 유휴 모드 이벤트 발생
     this.emitPowerModeChange('idle');
-    
+
     // 절전 모드 타이머 시작
     this.sleepTimer = setTimeout(() => {
       this.enterSleepMode();
@@ -213,15 +217,15 @@ export class ModeManager {
 
     const previousMode = this.powerMode;
     this.powerMode = 'active';
-    
+
     console.log(`🌟 AI Agent waking up from ${previousMode} mode`);
-    
+
     // 타이머 정리
     this.clearPowerTimers();
-    
+
     // 활성 모드 이벤트 발생
     this.emitPowerModeChange('active');
-    
+
     // 새로운 타이머 시작
     this.resetPowerTimers();
   }
@@ -238,7 +242,7 @@ export class ModeManager {
    */
   private resetPowerTimers(): void {
     this.clearPowerTimers();
-    
+
     // 유휴 모드 타이머
     this.idleTimer = setTimeout(() => {
       this.enterIdleMode();
@@ -253,7 +257,7 @@ export class ModeManager {
       clearTimeout(this.idleTimer);
       this.idleTimer = undefined;
     }
-    
+
     if (this.sleepTimer) {
       clearTimeout(this.sleepTimer);
       this.sleepTimer = undefined;
@@ -285,24 +289,24 @@ export class ModeManager {
   getOptimizationRecommendations(): string[] {
     const recommendations: string[] = [];
     const metrics = this.activityMetrics;
-    
+
     // 사용 패턴 분석
     if (metrics.queryCount > 100 && this.currentMode === 'basic') {
       recommendations.push('높은 사용량으로 인해 고급 모드 권장');
     }
-    
+
     if (metrics.queryCount < 10 && this.currentMode === 'advanced') {
       recommendations.push('낮은 사용량으로 인해 베이직 모드로 전환 권장');
     }
-    
+
     // 절전 모드 설정 추천
     const now = Date.now();
     const timeSinceLastQuery = now - metrics.lastQueryTime;
-    
+
     if (timeSinceLastQuery > 30 * 60 * 1000) { // 30분
       recommendations.push('장시간 비활성으로 절전 모드 설정 권장');
     }
-    
+
     return recommendations;
   }
 
@@ -320,14 +324,14 @@ export class ModeManager {
  */
 export const createDefaultModeConfig = (): ModeConfig => ({
   responseMode: 'basic',
-  
+
   basic: {
     maxContextLength: 2048,
     responseDepth: 'standard',
     enableAdvancedAnalysis: false,
     maxProcessingTime: 3000
   },
-  
+
   advanced: {
     maxContextLength: 8192,
     responseDepth: 'comprehensive',
@@ -336,7 +340,7 @@ export const createDefaultModeConfig = (): ModeConfig => ({
     enableMultiServerCorrelation: true,
     maxProcessingTime: 10000
   },
-  
+
   powerManagement: {
     idleTimeout: 5 * 60 * 1000, // 5분
     sleepTimeout: 15 * 60 * 1000, // 15분
@@ -361,7 +365,7 @@ export const ResponseStyles = {
       includeDetails: true
     }
   },
-  
+
   advanced: {
     standard: {
       maxLength: 500,
