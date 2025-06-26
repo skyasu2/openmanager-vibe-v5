@@ -256,24 +256,20 @@ export class IncidentDetectionEngine implements IIncidentDetectionEngine {
      */
     async calculateSeverity(incident: Incident): Promise<string> {
         try {
-            // 중앙 타입에는 metrics 속성이 없으므로 description에서 정보 추출
-            const description = incident.description;
             let severityScore = 0;
 
-            // 1. 메트릭 기반 점수 (기존 PatternMatcher 임계값 활용)
-            if (metrics.cpu > 95) severityScore += 40;
-            else if (metrics.cpu > 85) severityScore += 25;
-            else if (metrics.cpu > 75) severityScore += 10;
+            // 기본 심각도는 incident.severity에서 가져옴
+            switch (incident.severity) {
+                case 'critical': severityScore = 100; break;
+                case 'high': severityScore = 75; break;
+                case 'medium': severityScore = 50; break;
+                case 'low': severityScore = 25; break;
+                default: severityScore = 50;
+            }
 
-            if (metrics.memory > 95) severityScore += 35;
-            else if (metrics.memory > 85) severityScore += 20;
-            else if (metrics.memory > 75) severityScore += 8;
+            // 2. 설명 텍스트 기반 추가 가중치 (metrics 변수 제거됨)
 
-            if (metrics.disk > 98) severityScore += 30;
-            else if (metrics.disk > 90) severityScore += 15;
-            else if (metrics.disk > 80) severityScore += 5;
-
-            // 2. 장애 타입별 가중치
+            // 3. 장애 타입별 가중치
             const typeWeights: Record<IncidentType, number> = {
                 'cpu_overload': 1.2,
                 'memory_leak': 1.3,
@@ -289,12 +285,10 @@ export class IncidentDetectionEngine implements IIncidentDetectionEngine {
 
             severityScore *= (typeWeights[incident.type] || 1.0);
 
-            // 3. 영향 범위 고려
-            if (incident.affectedServers && incident.affectedServers.length > 1) {
-                severityScore *= (1 + incident.affectedServers.length * 0.2);
-            }
+            // 4. 영향 범위는 단일 서버로 처리
+            // incident.affectedServer는 string이므로 추가 가중치 없음
 
-            // 4. 심각도 결정
+            // 5. 심각도 결정
             if (severityScore >= 80) return 'critical';
             if (severityScore >= 60) return 'high';
             if (severityScore >= 30) return 'medium';
@@ -338,11 +332,10 @@ export class IncidentDetectionEngine implements IIncidentDetectionEngine {
             id: `INC-${Date.now()}-${metrics.serverId}`,
             type: incidentType,
             severity: 'high',
+            description: `임계값 위반: ${violations.join(', ')}`,
             affectedServer: metrics.serverId,
-            startTime: metrics.timestamp,
-            status: 'detected',
-            metrics,
-            rootCause: `임계값 위반: ${violations.join(', ')}`
+            detectedAt: new Date(metrics.timestamp),
+            status: 'active'
         };
     }
 
@@ -368,11 +361,10 @@ export class IncidentDetectionEngine implements IIncidentDetectionEngine {
                 id: `PAT-${Date.now()}-${metrics.serverId}`,
                 type: incidentType,
                 severity: 'medium',
+                description: `패턴 매칭: ${pattern}`,
                 affectedServer: metrics.serverId,
-                startTime: metrics.timestamp,
-                status: 'detected',
-                metrics,
-                rootCause: `패턴 매칭: ${pattern}`
+                detectedAt: new Date(metrics.timestamp),
+                status: 'active'
             });
         }
 
@@ -395,12 +387,10 @@ export class IncidentDetectionEngine implements IIncidentDetectionEngine {
                 id: `TREND-${Date.now()}-${metrics.serverId}`,
                 type: 'memory_leak',
                 severity: 'medium',
+                description: '메모리 사용량 지속적 증가 패턴 감지',
                 affectedServer: metrics.serverId,
-                startTime: metrics.timestamp,
-                status: 'detected',
-                metrics,
-                pattern: 'increasing_trend',
-                rootCause: '메모리 사용량 지속적 증가 패턴 감지'
+                detectedAt: new Date(metrics.timestamp),
+                status: 'active'
             };
         }
 
