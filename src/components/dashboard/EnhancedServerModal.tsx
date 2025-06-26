@@ -104,33 +104,33 @@ export default function EnhancedServerModal({
   // 🛡️ 서버 데이터 안전성 검증 및 기본값 설정
   const safeServer = server
     ? {
-        id: server.id || 'unknown',
-        hostname: server.hostname || 'unknown.local',
-        name: server.name || 'Unknown Server',
-        type: server.type || 'unknown',
-        environment: server.environment || 'unknown',
-        location: server.location || 'Unknown Location',
-        provider: server.provider || 'Unknown Provider',
-        status: server.status || 'offline',
-        cpu: typeof server.cpu === 'number' ? server.cpu : 0,
-        memory: typeof server.memory === 'number' ? server.memory : 0,
-        disk: typeof server.disk === 'number' ? server.disk : 0,
-        network: typeof server.network === 'number' ? server.network : 0,
-        uptime: server.uptime || '0h 0m',
-        lastUpdate: server.lastUpdate || new Date(),
-        alerts: typeof server.alerts === 'number' ? server.alerts : 0,
-        services: Array.isArray(server.services) ? server.services : [],
-        specs: server.specs || { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
-        os: server.os || 'Unknown OS',
-        ip: server.ip || '0.0.0.0',
-        networkStatus: server.networkStatus || 'offline',
-        health: server.health || { score: 0, trend: [] },
-        alertsSummary: server.alertsSummary || {
-          total: 0,
-          critical: 0,
-          warning: 0,
-        },
-      }
+      id: server.id || 'unknown',
+      hostname: server.hostname || 'unknown.local',
+      name: server.name || 'Unknown Server',
+      type: server.type || 'unknown',
+      environment: server.environment || 'unknown',
+      location: server.location || 'Unknown Location',
+      provider: server.provider || 'Unknown Provider',
+      status: server.status || 'offline',
+      cpu: typeof server.cpu === 'number' ? server.cpu : 0,
+      memory: typeof server.memory === 'number' ? server.memory : 0,
+      disk: typeof server.disk === 'number' ? server.disk : 0,
+      network: typeof server.network === 'number' ? server.network : 0,
+      uptime: server.uptime || '0h 0m',
+      lastUpdate: server.lastUpdate || new Date(),
+      alerts: typeof server.alerts === 'number' ? server.alerts : 0,
+      services: Array.isArray(server.services) ? server.services : [],
+      specs: server.specs || { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
+      os: server.os || 'Unknown OS',
+      ip: server.ip || '0.0.0.0',
+      networkStatus: server.networkStatus || 'offline',
+      health: server.health || { score: 0, trend: [] },
+      alertsSummary: server.alertsSummary || {
+        total: 0,
+        critical: 0,
+        warning: 0,
+      },
+    }
     : null;
 
   // 실시간 데이터 생성
@@ -143,31 +143,34 @@ export default function EnhancedServerModal({
         setRealtimeData(prev => ({
           cpu: [
             ...prev.cpu.slice(-29),
-            safeServer.cpu + (Math.random() - 0.5) * 10,
+            // 🎯 메트릭 변화량 안정화: 기존 ±10 → ±3
+            safeServer.cpu + (Math.random() - 0.5) * 3,
           ].slice(-30),
           memory: [
             ...prev.memory.slice(-29),
-            safeServer.memory + (Math.random() - 0.5) * 8,
+            // 🎯 메트릭 변화량 안정화: 기존 ±8 → ±2
+            safeServer.memory + (Math.random() - 0.5) * 2,
           ].slice(-30),
           disk: [
             ...prev.disk.slice(-29),
-            safeServer.disk + (Math.random() - 0.5) * 3,
+            // 🎯 메트릭 변화량 안정화: 기존 ±3 → ±1
+            safeServer.disk + (Math.random() - 0.5) * 1,
           ].slice(-30),
           network: [
             ...prev.network.slice(-29),
             {
-              in: Math.random() * 1000 + 500,
-              out: Math.random() * 800 + 300,
+              in: Math.random() * 200 + 400,
+              out: Math.random() * 150 + 250,
             },
           ].slice(-30),
-          latency: [...prev.latency.slice(-29), Math.random() * 100 + 50].slice(
+          latency: [...prev.latency.slice(-29), Math.random() * 20 + 45].slice(
             -30
           ),
           processes:
             safeServer.services?.map((service, i) => ({
               name: service.name || `service-${i}`,
-              cpu: parseFloat((Math.random() * 20).toFixed(2)),
-              memory: parseFloat((Math.random() * 15).toFixed(2)),
+              cpu: parseFloat((Math.random() * 8).toFixed(2)),
+              memory: parseFloat((Math.random() * 6).toFixed(2)),
               pid: 1000 + i,
             })) || [],
           logs: [
@@ -214,7 +217,9 @@ export default function EnhancedServerModal({
     };
 
     generateRealtimeData();
-    const interval = setInterval(generateRealtimeData, 2000);
+    // 🎯 실시간 업데이트 주기 안정화: 2초 → 15초로 변경
+    // 서버 카드와 동기화하여 자연스러운 업데이트 제공
+    const interval = setInterval(generateRealtimeData, 15000);
 
     return () => clearInterval(interval);
   }, [safeServer, isRealtime]);
@@ -491,11 +496,10 @@ export default function EnhancedServerModal({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setIsRealtime(!isRealtime)}
-                  className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 ${
-                    isRealtime
-                      ? 'bg-green-500 shadow-lg'
-                      : 'bg-white/30 backdrop-blur-sm hover:bg-white/40'
-                  }`}
+                  className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 ${isRealtime
+                    ? 'bg-green-500 shadow-lg'
+                    : 'bg-white/30 backdrop-blur-sm hover:bg-white/40'
+                    }`}
                 >
                   {isRealtime ? (
                     <Play className='w-4 h-4' />
@@ -526,11 +530,10 @@ export default function EnhancedServerModal({
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedTab(tab.id as any)}
-                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 ${
-                      selectedTab === tab.id
-                        ? 'bg-white text-blue-600 shadow-lg ring-1 ring-blue-200'
-                        : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30'
-                    }`}
+                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 ${selectedTab === tab.id
+                      ? 'bg-white text-blue-600 shadow-lg ring-1 ring-blue-200'
+                      : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30'
+                      }`}
                   >
                     <Icon className='w-4 h-4' />
                     {tab.label}
@@ -631,11 +634,10 @@ export default function EnhancedServerModal({
                             >
                               <div className='flex items-center gap-3'>
                                 <div
-                                  className={`w-3 h-3 rounded-full ${
-                                    service.status === 'running'
-                                      ? 'bg-green-500'
-                                      : 'bg-red-500'
-                                  }`}
+                                  className={`w-3 h-3 rounded-full ${service.status === 'running'
+                                    ? 'bg-green-500'
+                                    : 'bg-red-500'
+                                    }`}
                                 />
                                 <span className='font-medium'>
                                   {service.name}
@@ -765,13 +767,12 @@ export default function EnhancedServerModal({
                           key={idx}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          className={`mb-2 ${
-                            log.level === 'error'
-                              ? 'text-red-400'
-                              : log.level === 'warn'
-                                ? 'text-yellow-400'
-                                : 'text-green-400'
-                          }`}
+                          className={`mb-2 ${log.level === 'error'
+                            ? 'text-red-400'
+                            : log.level === 'warn'
+                              ? 'text-yellow-400'
+                              : 'text-green-400'
+                            }`}
                         >
                           <span className='text-gray-500'>
                             {(() => {
