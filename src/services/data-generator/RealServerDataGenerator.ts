@@ -360,10 +360,10 @@ export interface GeneratorConfig {
   updateInterval?: number;
   enableRealtime?: boolean;
   serverArchitecture?:
-  | 'single'
-  | 'primary-replica'
-  | 'load-balanced'
-  | 'microservices';
+    | 'single'
+    | 'primary-replica'
+    | 'load-balanced'
+    | 'microservices';
   enableRedis?: boolean;
   /**
    * ⚙️ 시나리오 기반 상태 분포 설정
@@ -509,14 +509,22 @@ export class RealServerDataGenerator {
    * 🔴 Redis 연결 초기화 (목업 모드 지원)
    */
   private async initializeRedis(): Promise<void> {
-    if (!this.config.enableRedis || this.shouldUseMockRedis()) {
-      console.log('🎭 목업 Redis 모드로 실행 - 실제 Redis 연결 건너뜀');
+    // 베르셀 환경에서는 항상 Mock 모드 사용 (클라이언트 사이드 빌드 오류 방지)
+    if (
+      process.env.VERCEL === '1' ||
+      typeof window !== 'undefined' ||
+      !this.config.enableRedis ||
+      this.shouldUseMockRedis()
+    ) {
+      console.log(
+        '🎭 목업 Redis 모드로 실행 - 실제 Redis 연결 건너뜀 (베르셀 환경)'
+      );
       this.isMockMode = true;
       return;
     }
 
     try {
-      // 동적 import로 Redis 클래스 로드
+      // 서버 환경에서만 Redis 동적 import
       const { default: Redis } = await import('ioredis');
 
       // 환경변수에서 Redis 설정 가져오기 (다중 소스 지원)
@@ -1148,7 +1156,9 @@ export class RealServerDataGenerator {
 
   private async validateAndStartGeneration(): Promise<void> {
     try {
-      const systemValidation = await validateSystemForOperation('Server Data Generation');
+      const systemValidation = await validateSystemForOperation(
+        'Server Data Generation'
+      );
 
       if (!systemValidation.canProceed) {
         console.log(`🛑 서버 데이터 생성 중단: ${systemValidation.reason}`);
@@ -1166,7 +1176,9 @@ export class RealServerDataGenerator {
       this.intervalId = setInterval(async () => {
         try {
           // 매번 시스템 상태 확인
-          const validation = await validateSystemForOperation('Server Data Generation');
+          const validation = await validateSystemForOperation(
+            'Server Data Generation'
+          );
           if (!validation.canProceed) {
             console.log(`🛑 서버 데이터 생성 중단됨: ${validation.reason}`);
             this.stopAutoGeneration();
@@ -1264,7 +1276,7 @@ export class RealServerDataGenerator {
             Math.min(
               100,
               rawMetrics.memory +
-              (Math.random() - 0.5) * 15 * effectiveIntensity
+                (Math.random() - 0.5) * 15 * effectiveIntensity
             )
           ).toFixed(2)
         ),
@@ -1281,12 +1293,12 @@ export class RealServerDataGenerator {
           in: Math.max(
             0,
             rawMetrics.network.in +
-            (Math.random() - 0.5) * 50 * effectiveIntensity
+              (Math.random() - 0.5) * 50 * effectiveIntensity
           ),
           out: Math.max(
             0,
             rawMetrics.network.out +
-            (Math.random() - 0.5) * 30 * effectiveIntensity
+              (Math.random() - 0.5) * 30 * effectiveIntensity
           ),
         },
       };
@@ -1468,12 +1480,12 @@ export class RealServerDataGenerator {
         avgCpu:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
-            servers.length
+              servers.length
             : 0,
         avgMemory:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
-            servers.length
+              servers.length
             : 0,
       },
       clusters: {
@@ -1508,9 +1520,9 @@ export class RealServerDataGenerator {
         avgResponseTime:
           applications.length > 0
             ? applications.reduce(
-              (sum, a) => sum + a.performance.responseTime,
-              0
-            ) / applications.length
+                (sum, a) => sum + a.performance.responseTime,
+                0
+              ) / applications.length
             : 0,
       },
       timestamp: Date.now(),
