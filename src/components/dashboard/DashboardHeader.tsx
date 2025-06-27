@@ -1,13 +1,13 @@
 'use client';
 
-import { memo, useState, useEffect } from 'react';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
 import { Bot, Clock, Settings } from 'lucide-react';
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { memo, useEffect, useState } from 'react';
 
 // 추가된 임포트
-import UnifiedProfileComponent from '../UnifiedProfileComponent';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
+import UnifiedProfileComponent from '../UnifiedProfileComponent';
 
 /**
  * 대시보드 헤더 컴포넌트 Props
@@ -63,36 +63,81 @@ const RealTimeDisplay = memo(function RealTimeDisplay() {
  * 환경 정보 표시 컴포넌트
  */
 const EnvironmentDisplay = memo(function EnvironmentDisplay() {
-  const [environment, setEnvironment] = useState('Vercel Free');
+  const [environment, setEnvironment] = useState('환경 확인 중...');
 
   useEffect(() => {
     // 환경 정보 로드
     const loadEnvironment = async () => {
       try {
-        const response = await fetch('/api/admin/generator-config');
+        // 헬스 API에서 정확한 플랜 정보 가져오기
+        const response = await fetch('/api/health');
         if (response.ok) {
           const data = await response.json();
-          const serverCount = data.serverCount || 8;
-          setEnvironment(
-            serverCount <= 8
-              ? 'Vercel Free'
-              : serverCount <= 20
-                ? 'Vercel Pro'
-                : 'Local Dev'
-          );
+
+          // API에서 제공하는 정확한 플랜 정보 사용
+          const vercelPlan = data.environment?.vercelPlan;
+          const isVercel = data.environment?.isVercel;
+
+          if (!isVercel) {
+            setEnvironment('Local Dev');
+            return;
+          }
+
+          // 플랜에 따른 표시
+          switch (vercelPlan) {
+            case 'enterprise':
+              setEnvironment('Vercel Enterprise');
+              break;
+            case 'pro':
+              setEnvironment('Vercel Pro');
+              break;
+            case 'hobby':
+              setEnvironment('Vercel Hobby');
+              break;
+            case 'local':
+              setEnvironment('Local Dev');
+              break;
+            default:
+              setEnvironment('Vercel');
+          }
+        } else {
+          // API 실패 시 URL 기반 감지
+          const isVercel =
+            typeof window !== 'undefined' &&
+            (window.location.hostname.includes('vercel.app') ||
+              window.location.hostname.includes('vercel.live'));
+
+          setEnvironment(isVercel ? 'Vercel' : 'Local Dev');
         }
       } catch (error) {
         console.log('환경 정보 로드 실패:', error);
+
+        // 에러 시 URL 기반으로 최소 감지
+        const isVercel =
+          typeof window !== 'undefined' &&
+          (window.location.hostname.includes('vercel.app') ||
+            window.location.hostname.includes('vercel.live'));
+
+        setEnvironment(isVercel ? 'Vercel' : 'Local Dev');
       }
     };
 
     loadEnvironment();
   }, []);
 
+  // 환경에 따른 색상 설정
+  const getEnvironmentColor = () => {
+    if (environment.includes('Enterprise')) return 'text-yellow-500';
+    if (environment.includes('Pro')) return 'text-purple-500';
+    if (environment.includes('Hobby')) return 'text-blue-500';
+    if (environment.includes('Local')) return 'text-green-500';
+    return 'text-gray-500';
+  };
+
   return (
     <div className='flex items-center gap-2 text-sm text-gray-600'>
-      <Settings className='w-4 h-4 text-green-500' />
-      <span>{environment}</span>
+      <Settings className={`w-4 h-4 ${getEnvironmentColor()}`} />
+      <span className={getEnvironmentColor()}>{environment}</span>
     </div>
   );
 });

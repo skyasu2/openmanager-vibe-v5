@@ -476,7 +476,49 @@ export async function GET(request: NextRequest) {
       vercelEnv: process.env.VERCEL_ENV || 'local',
       isVercel: !!process.env.VERCEL,
       buildTime: process.env.BUILD_TIME || 'unknown',
+      vercelPlan: detectVercelPlan(),
     };
+
+    // 🔍 Vercel 플랜 감지 함수
+    function detectVercelPlan(): string {
+      // 1. 명시적 환경변수 확인
+      const explicitPlan =
+        process.env.VERCEL_PLAN || process.env.NEXT_PUBLIC_VERCEL_PLAN;
+      if (explicitPlan) {
+        return explicitPlan;
+      }
+
+      // 2. Vercel 환경이 아니면 Local
+      if (!process.env.VERCEL) {
+        return 'local';
+      }
+
+      // 3. 함수 메모리 제한으로 플랜 추정
+      const memoryLimit = parseInt(
+        process.env.AWS_LAMBDA_FUNCTION_MEMORY_SIZE || '1024'
+      );
+
+      // 4. 환경변수 개수로 플랜 추정 (Pro는 더 많은 환경변수 설정 가능)
+      const envVarCount = Object.keys(process.env).filter(
+        key =>
+          key.startsWith('VERCEL_') ||
+          key.startsWith('NEXT_PUBLIC_') ||
+          key.startsWith('POSTGRES_') ||
+          key.startsWith('REDIS_') ||
+          key.startsWith('SUPABASE_')
+      ).length;
+
+      // 5. 플랜 결정 로직
+      if (memoryLimit >= 3008) {
+        return 'enterprise';
+      } else if (memoryLimit >= 1024 && envVarCount >= 15) {
+        return 'pro'; // 1GB 메모리 + 많은 환경변수 = Pro
+      } else if (process.env.VERCEL_ENV === 'production' && envVarCount >= 10) {
+        return 'pro'; // Production 환경 + 적당한 환경변수 = Pro
+      } else {
+        return 'hobby';
+      }
+    }
 
     // 서비스 상태 확인
     const services = {
