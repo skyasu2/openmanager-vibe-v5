@@ -2,7 +2,7 @@
 
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
-import { Bot, Clock, Settings } from 'lucide-react';
+import { Bot, Clock } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 
 // 추가된 임포트
@@ -60,96 +60,12 @@ const RealTimeDisplay = memo(function RealTimeDisplay() {
 });
 
 /**
- * 환경 정보 표시 컴포넌트
- */
-const EnvironmentDisplay = memo(function EnvironmentDisplay() {
-  const [environment, setEnvironment] = useState('환경 확인 중...');
-
-  useEffect(() => {
-    // 환경 정보 로드
-    const loadEnvironment = async () => {
-      try {
-        // 헬스 API에서 정확한 플랜 정보 가져오기
-        const response = await fetch('/api/health');
-        if (response.ok) {
-          const data = await response.json();
-
-          // API에서 제공하는 정확한 플랜 정보 사용
-          const vercelPlan = data.environment?.vercelPlan;
-          const isVercel = data.environment?.isVercel;
-
-          if (!isVercel) {
-            setEnvironment('Local Dev');
-            return;
-          }
-
-          // 플랜에 따른 표시
-          switch (vercelPlan) {
-            case 'enterprise':
-              setEnvironment('Vercel Enterprise');
-              break;
-            case 'pro':
-              setEnvironment('Vercel Pro');
-              break;
-            case 'hobby':
-              setEnvironment('Vercel Hobby');
-              break;
-            case 'local':
-              setEnvironment('Local Dev');
-              break;
-            default:
-              setEnvironment('Vercel');
-          }
-        } else {
-          // API 실패 시 URL 기반 감지
-          const isVercel =
-            typeof window !== 'undefined' &&
-            (window.location.hostname.includes('vercel.app') ||
-              window.location.hostname.includes('vercel.live'));
-
-          setEnvironment(isVercel ? 'Vercel' : 'Local Dev');
-        }
-      } catch (error) {
-        console.log('환경 정보 로드 실패:', error);
-
-        // 에러 시 URL 기반으로 최소 감지
-        const isVercel =
-          typeof window !== 'undefined' &&
-          (window.location.hostname.includes('vercel.app') ||
-            window.location.hostname.includes('vercel.live'));
-
-        setEnvironment(isVercel ? 'Vercel' : 'Local Dev');
-      }
-    };
-
-    loadEnvironment();
-  }, []);
-
-  // 환경에 따른 색상 설정
-  const getEnvironmentColor = () => {
-    if (environment.includes('Enterprise')) return 'text-yellow-500';
-    if (environment.includes('Pro')) return 'text-purple-500';
-    if (environment.includes('Hobby')) return 'text-blue-500';
-    if (environment.includes('Local')) return 'text-green-500';
-    return 'text-gray-500';
-  };
-
-  return (
-    <div className='flex items-center gap-2 text-sm text-gray-600'>
-      <Settings className={`w-4 h-4 ${getEnvironmentColor()}`} />
-      <span className={getEnvironmentColor()}>{environment}</span>
-    </div>
-  );
-});
-
-/**
  * 대시보드 메인 헤더 컴포넌트
  *
  * @description
  * - 브랜드 로고 및 네비게이션
  * - AI 어시스턴트 토글 버튼
  * - 실시간 시간 표시
- * - 환경 정보 표시
  * - 프로필 컴포넌트
  *
  * @example
@@ -207,7 +123,6 @@ const DashboardHeader = memo(function DashboardHeader({
         {/* 중앙: 실시간 정보 */}
         <div className='hidden md:flex items-center gap-6'>
           <RealTimeDisplay />
-          <EnvironmentDisplay />
         </div>
 
         {/* 오른쪽: AI 어시스턴트 & 프로필 */}
@@ -340,7 +255,6 @@ const DashboardHeader = memo(function DashboardHeader({
       <div className='md:hidden px-6 py-2 bg-gray-50 border-t border-gray-200'>
         <div className='flex items-center justify-center gap-6'>
           <RealTimeDisplay />
-          <EnvironmentDisplay />
         </div>
       </div>
     </header>
