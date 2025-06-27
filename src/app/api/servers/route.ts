@@ -2,7 +2,39 @@ import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
-// 목업 서버 데이터 생성
+// DataIntegrityValidator 동적 import (빌드 오류 방지)
+async function getDataValidator() {
+  try {
+    const { dataIntegrityValidator } = await import(
+      '@/lib/data-validation/DataIntegrityValidator'
+    );
+    return dataIntegrityValidator;
+  } catch (error) {
+    console.warn('DataIntegrityValidator 로드 실패, 기본 검증 사용:', error);
+    return null;
+  }
+}
+
+// 기본 경고 생성 함수 (폴백용)
+function createBasicFallbackWarning(dataSource: string, reason: string) {
+  return {
+    level: 'CRITICAL',
+    type: 'DATA_FALLBACK_WARNING',
+    message: '서버 데이터 생성기 실패 - 목업 데이터 사용 중',
+    dataSource,
+    fallbackReason: reason,
+    environment: process.env.NODE_ENV,
+    timestamp: new Date().toISOString(),
+    actionRequired: '실제 데이터 소스 연결 필요',
+    productionImpact:
+      process.env.NODE_ENV === 'production' ||
+      process.env.VERCEL_ENV === 'production'
+        ? 'CRITICAL'
+        : 'LOW',
+  };
+}
+
+// 🚨 경고: 목업 서버 데이터 생성 (프로덕션에서 사용 금지)
 const generateMockServers = () => {
   const servers: any[] = [];
   const locations = ['Seoul', 'Tokyo', 'Singapore', 'Frankfurt', 'Oregon'];
@@ -23,7 +55,7 @@ const generateMockServers = () => {
     servers.push({
       id: `server-${i}`,
       name: `Server-${i.toString().padStart(2, '0')}`,
-      hostname: `server-${i}.example.com`,
+      hostname: `server-${i}.example.com`, // 🚨 의심스러운 호스트네임
       status,
       location,
       cpu: Math.floor(Math.random() * 100),
@@ -33,6 +65,10 @@ const generateMockServers = () => {
       uptime: Math.floor(Math.random() * 86400 * 30),
       services: serviceSet,
       lastUpdate: new Date().toISOString(),
+      // 🏷️ 목업 데이터 명시적 표시
+      _isMockData: true,
+      _dataSource: 'fallback',
+      _warningLevel: 'CRITICAL',
     });
   }
 
@@ -51,10 +87,60 @@ export async function GET(request: NextRequest) {
     // 실제 서버 데이터 생성기 사용
     const generator = RealServerDataGenerator.getInstance();
     let servers = await generator.getAllServers();
+    let dataSource = 'RealServerDataGenerator';
 
-    // 폴백: 데이터가 없으면 목업 데이터 사용
+    // 🛡️ 데이터 무결성 검증 및 폴백 처리
     if (!servers || servers.length === 0) {
+      // 경고 생성
+      const warning = createBasicFallbackWarning(
+        'RealServerDataGenerator',
+        '서버 데이터가 존재하지 않음'
+      );
+
+      // 프로덕션 환경에서는 에러 발생
+      if (
+        process.env.NODE_ENV === 'production' ||
+        process.env.VERCEL_ENV === 'production'
+      ) {
+        console.error('💀 PRODUCTION_DATA_ERROR:', warning);
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'PRODUCTION_DATA_ERROR',
+            message: '프로덕션 환경에서 실제 서버 데이터 필수',
+            warning,
+            actionRequired: '실제 데이터 소스 연결 필요',
+          },
+          {
+            status: 500,
+            headers: {
+              'X-Data-Fallback-Warning': 'true',
+              'X-Production-Error': 'true',
+            },
+          }
+        );
+      }
+
+      // 개발 환경에서만 목업 데이터 사용
+      console.warn('⚠️ DATA_FALLBACK_WARNING:', warning);
       servers = generateMockServers();
+      dataSource = 'fallback';
+    }
+
+    // 데이터 검증 실행 (동적 로드)
+    try {
+      const validator = await getDataValidator();
+      if (validator) {
+        const validationResult = validator.validateServerData(
+          servers,
+          dataSource
+        );
+        if (!validationResult.isValid && validationResult.errors.length > 0) {
+          console.warn('⚠️ 데이터 검증 실패:', validationResult);
+        }
+      }
+    } catch (validationError) {
+      console.warn('데이터 검증 중 오류 발생:', validationError);
     }
 
     // 상태별 필터링
@@ -80,34 +166,56 @@ export async function GET(request: NextRequest) {
       ).length,
       avgCpu: Math.round(
         servers.reduce((sum, s) => sum + (s.metrics?.cpu || 0), 0) /
-        servers.length
+          servers.length
       ),
       avgMemory: Math.round(
         servers.reduce((sum, s) => sum + (s.metrics?.memory || 0), 0) /
-        servers.length
+          servers.length
       ),
       avgDisk: Math.round(
         servers.reduce((sum, s) => sum + (s.metrics?.disk || 0), 0) /
-        servers.length
+          servers.length
       ),
     };
 
-    return NextResponse.json({
-      success: true,
-      data: paginatedServers,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalItems,
-        itemsPerPage: limit,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
+    // 응답 헤더 설정 (목업 데이터 사용시 경고)
+    const responseHeaders: Record<string, string> = {};
+    if (dataSource === 'fallback') {
+      responseHeaders['X-Data-Fallback-Warning'] = 'true';
+      responseHeaders['X-Data-Source'] = 'mock';
+      responseHeaders['X-Warning-Level'] = 'CRITICAL';
+    } else {
+      responseHeaders['X-Data-Source'] = 'real';
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: paginatedServers,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalItems,
+          itemsPerPage: limit,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1,
+        },
+        summary: {
+          servers: stats,
+        },
+        // 🛡️ 데이터 무결성 정보 추가
+        dataIntegrity: {
+          dataSource,
+          isMockData: dataSource === 'fallback',
+          environment: process.env.NODE_ENV,
+          warningLevel: dataSource === 'fallback' ? 'CRITICAL' : 'NONE',
+        },
+        timestamp: Date.now(),
       },
-      summary: {
-        servers: stats,
-      },
-      timestamp: Date.now(),
-    });
+      {
+        headers: responseHeaders,
+      }
+    );
   } catch (error) {
     console.error('Error fetching servers:', error);
     return NextResponse.json(
