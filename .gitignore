@@ -64,6 +64,12 @@ ai-combined.log
 .env.test.local
 .env.production.local
 *.decrypted
+
+# 🔄 환경변수 자동 백업 파일들 (임시 백업 제외)
+config/env-backups/
+**/env-backup-*.json
+env-backup-production-*.json
+env-backup-development-*.json
 # Slack webhooks and sensitive URLs
 slack-webhook-url.txt
 webhook-urls.txt
