@@ -9,6 +9,10 @@
       "maxDuration": 45,
       "memory": 1024
     },
+    "src/app/api/ai/logging/stream/route.ts": {
+      "maxDuration": 35,
+      "memory": 512
+    },
     "src/app/api/data-generator/**/*.ts": {
       "maxDuration": 30,
       "memory": 512
@@ -25,6 +29,19 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=300, s-maxage=600"
+        }
+      ]
+    },
+    {
+      "source": "/api/ai/logging/stream",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "X-Accel-Buffering",
+          "value": "no"
         }
       ]
     }
@@ -47,9 +64,7 @@
       "destination": "/api/health"
     }
   ],
-  "regions": [
-    "icn1"
-  ],
+  "regions": ["icn1"],
   "cleanUrls": true,
   "trailingSlash": false,
   "buildCommand": "npm run build",
@@ -62,14 +77,16 @@
     "VERCEL_HEALTH_OPTIMIZATION": "true",
     "HEALTH_CHECK_CACHE_HOURS": "6",
     "DISABLE_EXCESSIVE_HEALTH_CHECKS": "true",
-    "DISABLE_CRON_JOBS": "true"
+    "DISABLE_CRON_JOBS": "true",
+    "AI_STREAM_TIMEOUT_PREVENTION": "true"
   },
   "build": {
     "env": {
       "NODE_ENV": "production",
       "DISABLE_LOCAL_RAG": "true",
       "VERCEL_HEALTH_OPTIMIZATION": "true",
-      "DISABLE_CRON_JOBS": "true"
+      "DISABLE_CRON_JOBS": "true",
+      "AI_STREAM_TIMEOUT_PREVENTION": "true"
     }
   }
 }
