@@ -10,32 +10,27 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useCallback, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { createPortal } from 'react-dom';
+import { useToast } from '@/components/ui/ToastNotification';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  User,
-  Bot,
-  Settings,
-  LogOut,
-  ChevronDown,
-  AlertTriangle,
-  Shield,
-  Play,
-  Square,
-  Lock,
-  Unlock,
   Activity,
+  AlertTriangle,
+  ChevronDown,
+  Lock,
+  LogOut,
+  Play,
   Server,
-  Zap,
-  Eye,
-  EyeOff,
+  Settings,
+  Square,
+  Unlock,
+  User,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { useToast } from '@/components/ui/ToastNotification';
-import { ProfileButtonProps, DropdownPosition } from './types/ProfileTypes';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { DropdownPosition, ProfileButtonProps } from './types/ProfileTypes';
 
 interface UnifiedProfileButtonProps extends ProfileButtonProps {
   onSettingsClick: () => void;
@@ -266,16 +261,16 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
 
   const getModeStatusColor = () => {
     if (adminMode.isAuthenticated) {
-      return 'text-orange-400';
+      return 'text-orange-600';
     }
-    return aiAgent.isEnabled ? 'text-purple-400' : 'text-cyan-400';
+    return aiAgent.isEnabled ? 'text-purple-600' : 'text-cyan-600';
   };
 
   const getSystemStatus = () => {
     if (isSystemStarted) {
       return {
         text: '시스템 동작 중',
-        color: 'text-green-400',
+        color: 'text-green-600',
         bgColor: 'bg-green-500/20',
         icon: Activity,
         details: '모든 서비스가 정상 동작 중입니다.',
@@ -283,7 +278,7 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
     } else {
       return {
         text: '시스템 대기 중',
-        color: 'text-gray-400',
+        color: 'text-gray-600',
         bgColor: 'bg-gray-500/20',
         icon: Server,
         details: '시스템이 대기 상태입니다.',
@@ -333,12 +328,12 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                 willChange: 'transform, opacity',
                 transform: 'translate3d(0, 0, 0)',
               }}
-              className='w-96 bg-gray-900/98 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl z-[10000]'
+              className='w-96 bg-white/95 backdrop-blur-xl border border-gray-300 rounded-xl shadow-2xl z-[10000]'
               role='menu'
               aria-orientation='vertical'
             >
               {/* 헤더 */}
-              <div className='p-4 border-b border-white/10'>
+              <div className='p-4 border-b border-gray-300'>
                 <div className='flex items-center gap-3 mb-3'>
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -364,7 +359,7 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                     )}
                   </div>
                   <div className='flex-1'>
-                    <div className='text-white font-medium'>{userName}</div>
+                    <div className='text-gray-900 font-medium'>{userName}</div>
                     <div className={`text-sm ${getModeStatusColor()}`}>
                       {getModeDisplayText()}
                     </div>
@@ -372,7 +367,7 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                 </div>
 
                 {/* 시스템 상태 */}
-                <div className='flex items-center justify-between p-3 rounded-lg bg-white/5 mb-3'>
+                <div className='flex items-center justify-between p-3 rounded-lg bg-gray-100 mb-3'>
                   <div className='flex items-center gap-3'>
                     <div className={`p-2 rounded-lg ${systemStatus.bgColor}`}>
                       <systemStatus.icon
@@ -380,7 +375,7 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                       />
                     </div>
                     <div>
-                      <div className='text-white text-sm font-medium'>
+                      <div className='text-gray-900 text-sm font-medium'>
                         {systemStatus.text}
                       </div>
                       <div className={`text-xs ${systemStatus.color}`}>
@@ -406,18 +401,18 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                       className={`p-2 rounded-lg ${adminMode.isAuthenticated ? 'bg-orange-500/20' : 'bg-gray-500/20'}`}
                     >
                       {adminMode.isAuthenticated ? (
-                        <Unlock className='w-4 h-4 text-orange-400' />
+                        <Unlock className='w-4 h-4 text-orange-600' />
                       ) : (
-                        <Lock className='w-4 h-4 text-gray-400' />
+                        <Lock className='w-4 h-4 text-gray-600' />
                       )}
                     </div>
                     <div className='flex-1'>
-                      <div className='text-white font-medium'>
+                      <div className='text-gray-900 font-medium'>
                         {adminMode.isAuthenticated
                           ? '관리자 모드 해제'
                           : '관리자 모드 활성화'}
                       </div>
-                      <div className='text-gray-400 text-xs'>
+                      <div className='text-gray-600 text-xs'>
                         {adminMode.isAuthenticated
                           ? 'AI 관리 권한을 해제합니다'
                           : 'AI 관리 권한을 활성화합니다'}
@@ -429,8 +424,8 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                   </motion.button>
                 ) : (
                   /* 비밀번호 입력 폼 */
-                  <div className='p-3 rounded-lg bg-white/5 mb-2'>
-                    <div className='text-white text-sm font-medium mb-2'>
+                  <div className='p-3 rounded-lg bg-gray-100 mb-2'>
+                    <div className='text-gray-900 text-sm font-medium mb-2'>
                       관리자 비밀번호 입력
                     </div>
                     <form onSubmit={handlePasswordSubmit} className='space-y-2'>
@@ -440,11 +435,11 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                         onChange={e => setPassword(e.target.value)}
                         placeholder='4자리 비밀번호'
                         maxLength={4}
-                        className='w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-center text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-orange-500'
+                        className='w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-center text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-orange-500'
                         autoFocus
                       />
                       {passwordError && (
-                        <div className='text-red-400 text-xs text-center'>
+                        <div className='text-red-600 text-xs text-center'>
                           {passwordError}
                         </div>
                       )}
@@ -458,7 +453,7 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                         <button
                           type='button'
                           onClick={handlePasswordCancel}
-                          className='flex-1 px-3 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors'
+                          className='flex-1 px-3 py-2 bg-gray-500 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors'
                         >
                           취소
                         </button>
@@ -483,16 +478,16 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                     className={`p-2 rounded-lg ${isSystemStarted ? 'bg-red-500/20' : 'bg-green-500/20'}`}
                   >
                     {isSystemStarted ? (
-                      <Square className='w-4 h-4 text-red-400' />
+                      <Square className='w-4 h-4 text-red-600' />
                     ) : (
-                      <Play className='w-4 h-4 text-green-400' />
+                      <Play className='w-4 h-4 text-green-600' />
                     )}
                   </div>
                   <div className='flex-1'>
-                    <div className='text-white font-medium'>
+                    <div className='text-gray-900 font-medium'>
                       {isSystemStarted ? '시스템 중단' : '시스템 시작'}
                     </div>
-                    <div className='text-gray-400 text-xs'>
+                    <div className='text-gray-600 text-xs'>
                       {isSystemStarted
                         ? '모니터링을 중단합니다'
                         : '모니터링을 시작합니다'}
@@ -516,13 +511,13 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                       role='menuitem'
                     >
                       <div className='p-2 rounded-lg bg-blue-500/20'>
-                        <Activity className='w-4 h-4 text-blue-400' />
+                        <Activity className='w-4 h-4 text-blue-600' />
                       </div>
                       <div>
-                        <div className='text-white font-medium'>
+                        <div className='text-gray-900 font-medium'>
                           대시보드 이동
                         </div>
-                        <div className='text-gray-400 text-xs'>
+                        <div className='text-gray-600 text-xs'>
                           실시간 모니터링 대시보드로 이동
                         </div>
                       </div>
@@ -533,18 +528,18 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                 {/* 일반 설정 버튼 */}
                 {!adminMode.isAuthenticated && (
                   <motion.button
-                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                    whileHover={{ backgroundColor: 'rgba(128, 90, 213, 0.1)' }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleSettingsClick}
                     className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 mb-2'
                     role='menuitem'
                   >
                     <div className='p-2 rounded-lg bg-purple-500/20'>
-                      <Settings className='w-4 h-4 text-purple-400' />
+                      <Settings className='w-4 h-4 text-purple-600' />
                     </div>
                     <div>
-                      <div className='text-white font-medium'>설정</div>
-                      <div className='text-gray-400 text-xs'>
+                      <div className='text-gray-900 font-medium'>설정</div>
+                      <div className='text-gray-600 text-xs'>
                         AI 모드, 데이터 생성기, 모니터링 제어
                       </div>
                     </div>
@@ -560,11 +555,11 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                   role='menuitem'
                 >
                   <div className='p-2 rounded-lg bg-red-500/20'>
-                    <LogOut className='w-4 h-4 text-red-400' />
+                    <LogOut className='w-4 h-4 text-red-600' />
                   </div>
                   <div>
-                    <div className='text-white font-medium'>로그아웃</div>
-                    <div className='text-gray-400 text-xs'>
+                    <div className='text-gray-900 font-medium'>로그아웃</div>
+                    <div className='text-gray-600 text-xs'>
                       현재 세션을 종료합니다
                     </div>
                   </div>
