@@ -443,37 +443,13 @@ export default function Home() {
                   모든 서비스가 중지되었습니다.
                   <br />
                   <strong>
-                    대시보드는 언제든지 접속 가능하며, 시스템 시작 버튼으로 전체
-                    서비스를 활성화할 수 있습니다.
+                    시스템 시작 버튼으로 전체 서비스를 활성화할 수 있습니다.
                   </strong>
                 </p>
               </div>
 
               {/* 메인 제어 버튼들 */}
               <div className='flex flex-col items-center mb-6 space-y-4'>
-                {/* 대시보드 바로가기 버튼 */}
-                <motion.button
-                  onClick={handleDashboardClick}
-                  className='w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-200 border shadow-xl bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white border-blue-400/50 hover:shadow-2xl'
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  animate={{
-                    boxShadow: [
-                      '0 0 0 0 rgba(59, 130, 246, 0.5)',
-                      '0 0 0 10px rgba(59, 130, 246, 0)',
-                      '0 0 0 0 rgba(59, 130, 246, 0)',
-                    ],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                >
-                  <BarChart3 className='w-6 h-6' />
-                  <span className='text-lg'>📊 대시보드 바로가기</span>
-                </motion.button>
-
                 {/* 시스템 시작 버튼 */}
                 <motion.button
                   onClick={handleSystemToggle}
@@ -549,7 +525,7 @@ export default function Home() {
                   >
                     {systemStartCountdown > 0
                       ? '시스템 시작 중... (취소하려면 버튼 클릭)'
-                      : '대시보드 바로가기 또는 시스템 시작을 선택하세요'}
+                      : '시스템을 시작하려면 버튼을 클릭하세요'}
                   </span>
                 </div>
               </div>
