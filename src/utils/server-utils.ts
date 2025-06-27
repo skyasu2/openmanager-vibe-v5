@@ -174,9 +174,14 @@ export const isSafeArray = <T>(arr: T[] | undefined | null): arr is T[] => {
 /**
  * 객체의 속성이 안전한지 확인하는 함수
  */
-export const hasSafeProperty = <T, K extends keyof T>(
+export const hasSafeProperty = <T>(
   obj: T | undefined | null,
-  prop: K
-): obj is T & Record<K, NonNullable<T[K]>> => {
-  return obj != null && obj[prop] != null;
+  prop: string
+): obj is NonNullable<T> => {
+  return (
+    obj != null &&
+    typeof obj === 'object' &&
+    prop in obj &&
+    (obj as any)[prop] != null
+  );
 };

@@ -64,6 +64,62 @@ vi.mock('lucide-react', () => {
   };
 });
 
+// Mock UnifiedCircularGauge components
+vi.mock('../../src/components/shared/UnifiedCircularGauge', () => ({
+  default: ({
+    value,
+    type,
+    ...props
+  }: {
+    value: number;
+    type: string;
+    [key: string]: unknown;
+  }) => (
+    <div data-testid={`mock-gauge-${type}`} data-value={value} {...props}>
+      {value}%
+    </div>
+  ),
+  ServerCardGauge: ({
+    value,
+    type,
+    ...props
+  }: {
+    value: number;
+    type: string;
+    [key: string]: unknown;
+  }) => (
+    <div data-testid={`mock-card-gauge-${type}`} data-value={value} {...props}>
+      {value}%
+    </div>
+  ),
+  ServerModalGauge: ({
+    value,
+    type,
+    ...props
+  }: {
+    value: number;
+    type: string;
+    [key: string]: unknown;
+  }) => (
+    <div data-testid={`mock-modal-gauge-${type}`} data-value={value} {...props}>
+      {value}%
+    </div>
+  ),
+  ServerModal3DGauge: ({
+    value,
+    type,
+    ...props
+  }: {
+    value: number;
+    type: string;
+    [key: string]: unknown;
+  }) => (
+    <div data-testid={`mock-3d-gauge-${type}`} data-value={value} {...props}>
+      {value}%
+    </div>
+  ),
+}));
+
 describe('ImprovedServerCard v3.0', () => {
   const mockServer = {
     id: 'test-server-001',

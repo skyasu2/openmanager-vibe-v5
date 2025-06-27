@@ -9,7 +9,7 @@ export interface Server {
   network?: number; // 네트워크 사용률 추가
   uptime: string | number;
   location: string;
-  alerts: number | any[];
+  alerts?: number | any[];
   ip?: string;
   os?: string;
   type?: string;

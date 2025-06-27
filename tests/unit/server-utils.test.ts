@@ -83,8 +83,9 @@ describe('server-utils', () => {
       });
 
       it('should handle undefined alerts', () => {
-        const serverWithoutAlerts = { ...mockServer, alerts: undefined };
-        expect(safeServerAccess.alerts(serverWithoutAlerts)).toBe(0);
+        const serverWithoutAlerts: Partial<Server> = { ...mockServer };
+        delete serverWithoutAlerts.alerts;
+        expect(safeServerAccess.alerts(serverWithoutAlerts as Server)).toBe(0);
       });
 
       it('should handle null alerts', () => {
