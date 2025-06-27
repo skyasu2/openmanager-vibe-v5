@@ -44,6 +44,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RealAISidebarService } from '../services/RealAISidebarService';
 
 // 분리된 컴포넌트들 import
+import { unifiedAIRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
 import { AI_ENGINES } from './AIEngineSelector';
 import { AISidebarHeader } from './AISidebarHeader';
 import { MCPServerStatusPanel } from './MCPServerStatusPanel';
@@ -196,8 +197,8 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   const [selectedFunction, setSelectedFunction] =
     useState<AIAgentFunction>('chat');
 
-  // Enhanced Chat 상태 (messages는 useAIChat에서 관리)
-  const [selectedEngine, setSelectedEngine] = useState<AIMode>('AUTO');
+  // Enhanced Chat 상태 (messages는 useAIChat에서 관리) - 디폴트 로컬 모드
+  const [selectedEngine, setSelectedEngine] = useState<AIMode>('LOCAL');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showEngineInfo, setShowEngineInfo] = useState(false);
   // const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]); // TODO: 향후 파일 업로드 기능
@@ -291,6 +292,24 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
   // 빠른 질문 가져오기 (실제 서비스에서)
   const quickQuestions = aiService.getQuickQuestions();
+
+  // UnifiedAIEngineRouter와 동기화
+  useEffect(() => {
+    const initializeRouter = async () => {
+      try {
+        await unifiedAIRouter.initialize();
+        const currentMode = unifiedAIRouter.getCurrentMode();
+        setSelectedEngine(currentMode);
+        console.log(`🎯 AI 사이드바 초기화 - 현재 모드: ${currentMode}`);
+      } catch (error) {
+        console.error('UnifiedAIEngineRouter 초기화 실패:', error);
+      }
+    };
+
+    if (isOpen) {
+      initializeRouter();
+    }
+  }, [isOpen]);
 
   // 프리셋 질문 네비게이션 함수
   const getCurrentPresets = () => {
@@ -485,45 +504,47 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   }, []);
 
   // 🔧 실제 AI 쿼리 처리 함수 수정
-  const processRealAIQuery = async (query: string, engine: AIMode = 'AUTO') => {
+  const processRealAIQuery = async (
+    query: string,
+    engine: AIMode = 'LOCAL'
+  ) => {
     const startTime = Date.now();
     startThinking(); // 생각중 시작
 
     try {
       console.log(`🤖 실제 AI 쿼리 처리 시작: ${query} (엔진: ${engine})`);
 
-      const response = await fetch('/api/ai/unified-query', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query,
-          mode: engine,
-          sessionId: currentSessionId,
-        }),
+      // UnifiedAIEngineRouter 직접 사용
+      const response = await unifiedAIRouter.processQuery({
+        query,
+        mode: engine,
       });
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.success) {
         const processingTime = Date.now() - startTime;
 
         // 성공 시 생각 과정을 저장하고 실시간 표시 중단
         setTimeout(
-          () => stopThinking(query, data.engine || engine, processingTime),
+          () =>
+            stopThinking(
+              query,
+              response.enginePath?.[0] || engine,
+              processingTime
+            ),
           500
         );
 
         return {
           success: true,
-          content: data.response,
-          confidence: data.confidence,
-          engine: data.engine || engine,
+          content: response.response,
+          confidence: response.confidence,
+          engine: response.enginePath?.[0] || engine,
           processingTime,
-          metadata: data.metadata,
+          metadata: response.metadata,
         };
       } else {
         stopThinking();
-        throw new Error(data.error || 'AI 응답 생성 실패');
+        throw new Error('AI 응답 생성 실패');
       }
     } catch (error) {
       console.error('❌ 실제 AI 쿼리 실패:', error);
@@ -760,6 +781,8 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                             `🔧 AI 모드 변경: ${selectedEngine} → ${engine.id}`
                           );
                           setSelectedEngine(engine.id as AIMode);
+                          // UnifiedAIEngineRouter 모드도 동기화
+                          unifiedAIRouter.setMode(engine.id as AIMode);
                           setShowEngineInfo(false);
                         }}
                         className={`w-full p-2 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${

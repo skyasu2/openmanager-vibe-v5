@@ -1,12 +1,12 @@
 'use client';
 
+import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
 import { Bot, Clock } from 'lucide-react';
-import { memo, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 // 추가된 임포트
-import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import UnifiedProfileComponent from '../UnifiedProfileComponent';
 
 /**
@@ -24,7 +24,7 @@ interface DashboardHeaderProps {
 /**
  * 실시간 시간 표시 컴포넌트
  */
-const RealTimeDisplay = memo(function RealTimeDisplay() {
+const RealTimeDisplay = React.memo(function RealTimeDisplay() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -75,7 +75,7 @@ const RealTimeDisplay = memo(function RealTimeDisplay() {
  * />
  * ```
  */
-const DashboardHeader = memo(function DashboardHeader({
+const DashboardHeader = React.memo(function DashboardHeader({
   onNavigateHome,
   onToggleAgent, // 기존 호환성을 위해 유지
   isAgentOpen = false, // 기존 호환성을 위해 유지

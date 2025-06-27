@@ -11,7 +11,7 @@
 
 import { unifiedAIRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
 import type { AIMode } from '@/types/ai-types';
-import { Globe, Home, Zap } from 'lucide-react';
+import { Home, Zap } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 interface AIEngine {
@@ -36,41 +36,26 @@ interface AIEngineSelectorProps {
   onEngineChange: (engineId: AIMode) => void;
 }
 
-// 🎯 UnifiedAIEngineRouter와 일치하는 AI 엔진 목록 (MONITORING 모드 제거)
+// 🎯 실제 사용 가능한 AI 엔진 목록 (2가지 모드로 단순화)
 export const AI_ENGINES: AIEngine[] = [
   {
     id: 'AUTO',
-    name: 'AUTO 모드',
-    description: 'Supabase RAG + MCP + 하위AI + Google AI 조합 (균형형)',
+    name: '🤖 스마트 AI 모드',
+    description: '모든 AI 엔진 활용 (RAG + MCP + 로컬 + Google AI)',
     icon: Zap,
     color: 'text-purple-600',
     bgColor: 'bg-purple-50',
-    features: ['지능형 라우팅', '최적 성능', 'Supabase RAG 중심'],
+    features: ['최고 성능', '지능형 라우팅', '모든 기능 활용'],
     status: 'ready',
   },
   {
     id: 'LOCAL',
-    name: 'LOCAL 모드',
-    description: 'Supabase RAG + MCP + 로컬 AI만 사용 (Google AI 제외)',
+    name: '⚡ 빠른 로컬 모드',
+    description: '로컬 AI만 사용 (빠른 응답, 프라이버시 보호)',
     icon: Home,
     color: 'text-blue-600',
     bgColor: 'bg-blue-50',
-    features: ['빠른 응답', '오프라인 지원', '프라이버시 보호'],
-    status: 'ready',
-  },
-  {
-    id: 'GOOGLE_ONLY',
-    name: 'GOOGLE_ONLY 모드',
-    description: 'Google AI Studio (Gemini) 우선 + 최소 폴백',
-    icon: Globe,
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-    features: ['자연어 전문', '창의적 응답', 'Google AI 중심'],
-    usage: {
-      used: 45,
-      limit: 300,
-      resetTime: '24시간',
-    },
+    features: ['빠른 응답', '오프라인 지원', '데이터 보안'],
     status: 'ready',
   },
 ];

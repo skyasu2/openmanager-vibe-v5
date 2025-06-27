@@ -6,9 +6,21 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
-import { Bot, Check, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { unifiedAIRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import type { AIMode } from '@/types/ai-types';
+import { motion } from 'framer-motion';
+import {
+  Bot,
+  Check,
+  Eye,
+  EyeOff,
+  Home,
+  Loader2,
+  Lock,
+  Zap,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { AuthenticationState } from '../types/ProfileTypes';
 
 interface AISettingsTabProps {
@@ -30,9 +42,149 @@ export function AISettingsTab({
 }: AISettingsTabProps) {
   const { adminMode } = useUnifiedAdminStore();
   const isAdminAuthenticated = adminMode.isAuthenticated;
+  const [currentMode, setCurrentMode] = useState<AIMode>('AUTO');
+  const [isChangingMode, setIsChangingMode] = useState(false);
+
+  // 현재 AI 모드 조회
+  useEffect(() => {
+    const getCurrentMode = async () => {
+      try {
+        await unifiedAIRouter.initialize();
+        const mode = unifiedAIRouter.getCurrentMode();
+        setCurrentMode(mode);
+      } catch (error) {
+        console.error('AI 모드 조회 실패:', error);
+      }
+    };
+    getCurrentMode();
+  }, []);
+
+  // AI 모드 변경 핸들러
+  const handleModeChange = async (newMode: AIMode) => {
+    if (isChangingMode) return;
+
+    setIsChangingMode(true);
+    try {
+      unifiedAIRouter.setMode(newMode);
+      setCurrentMode(newMode);
+      console.log(`🔧 AI 모드 변경: ${currentMode} → ${newMode}`);
+    } catch (error) {
+      console.error('AI 모드 변경 실패:', error);
+    } finally {
+      setIsChangingMode(false);
+    }
+  };
 
   return (
     <div className='space-y-6'>
+      {/* AI 모드 선택 */}
+      <div className='border border-white/10 rounded-lg p-4'>
+        <h3 className='text-lg font-semibold text-white mb-4 flex items-center gap-2'>
+          <Bot className='w-5 h-5 text-purple-400' />
+          AI 모드 선택
+        </h3>
+
+        <div className='space-y-3'>
+          <p className='text-sm text-gray-300 mb-4'>
+            현재 모드:{' '}
+            <span className='font-semibold text-purple-300'>
+              {currentMode === 'AUTO'
+                ? '🤖 스마트 AI 모드'
+                : '⚡ 빠른 로컬 모드'}
+            </span>
+          </p>
+
+          <div className='grid grid-cols-1 gap-3'>
+            {/* 스마트 AI 모드 */}
+            <motion.button
+              onClick={() => handleModeChange('AUTO')}
+              disabled={isChangingMode || currentMode === 'AUTO'}
+              className={`p-4 rounded-lg border transition-all ${
+                currentMode === 'AUTO'
+                  ? 'bg-purple-500/20 border-purple-500/50 text-purple-300'
+                  : 'bg-gray-800/50 border-gray-600/50 text-gray-300 hover:bg-purple-500/10 hover:border-purple-500/30'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              whileHover={{
+                scale: currentMode !== 'AUTO' && !isChangingMode ? 1.02 : 1,
+              }}
+              whileTap={{
+                scale: currentMode !== 'AUTO' && !isChangingMode ? 0.98 : 1,
+              }}
+            >
+              <div className='flex items-center gap-3'>
+                <div className='p-2 bg-purple-500/20 rounded-lg'>
+                  <Zap className='w-5 h-5 text-purple-400' />
+                </div>
+                <div className='text-left flex-1'>
+                  <h4 className='font-semibold'>🤖 스마트 AI 모드</h4>
+                  <p className='text-xs opacity-80'>
+                    모든 AI 엔진 활용 (최고 성능)
+                  </p>
+                  <div className='flex flex-wrap gap-1 mt-1'>
+                    <span className='text-xs px-2 py-0.5 bg-purple-500/20 rounded'>
+                      최고 성능
+                    </span>
+                    <span className='text-xs px-2 py-0.5 bg-purple-500/20 rounded'>
+                      지능형 라우팅
+                    </span>
+                  </div>
+                </div>
+                {currentMode === 'AUTO' && (
+                  <Check className='w-5 h-5 text-green-400' />
+                )}
+              </div>
+            </motion.button>
+
+            {/* 빠른 로컬 모드 */}
+            <motion.button
+              onClick={() => handleModeChange('LOCAL')}
+              disabled={isChangingMode || currentMode === 'LOCAL'}
+              className={`p-4 rounded-lg border transition-all ${
+                currentMode === 'LOCAL'
+                  ? 'bg-blue-500/20 border-blue-500/50 text-blue-300'
+                  : 'bg-gray-800/50 border-gray-600/50 text-gray-300 hover:bg-blue-500/10 hover:border-blue-500/30'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              whileHover={{
+                scale: currentMode !== 'LOCAL' && !isChangingMode ? 1.02 : 1,
+              }}
+              whileTap={{
+                scale: currentMode !== 'LOCAL' && !isChangingMode ? 0.98 : 1,
+              }}
+            >
+              <div className='flex items-center gap-3'>
+                <div className='p-2 bg-blue-500/20 rounded-lg'>
+                  <Home className='w-5 h-5 text-blue-400' />
+                </div>
+                <div className='text-left flex-1'>
+                  <h4 className='font-semibold'>⚡ 빠른 로컬 모드</h4>
+                  <p className='text-xs opacity-80'>
+                    로컬 AI만 사용 (빠른 응답)
+                  </p>
+                  <div className='flex flex-wrap gap-1 mt-1'>
+                    <span className='text-xs px-2 py-0.5 bg-blue-500/20 rounded'>
+                      빠른 응답
+                    </span>
+                    <span className='text-xs px-2 py-0.5 bg-blue-500/20 rounded'>
+                      데이터 보안
+                    </span>
+                  </div>
+                </div>
+                {currentMode === 'LOCAL' && (
+                  <Check className='w-5 h-5 text-green-400' />
+                )}
+              </div>
+            </motion.button>
+          </div>
+
+          {isChangingMode && (
+            <div className='flex items-center justify-center gap-2 text-sm text-gray-400'>
+              <Loader2 className='w-4 h-4 animate-spin' />
+              모드 변경 중...
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className='border border-white/10 rounded-lg p-4'>
         <h3 className='text-lg font-semibold text-white mb-4 flex items-center gap-2'>
           <Bot className='w-5 h-5 text-purple-400' />
