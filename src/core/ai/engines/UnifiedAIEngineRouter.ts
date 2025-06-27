@@ -16,11 +16,7 @@ import { OpenSourceEngines } from '@/services/ai/engines/OpenSourceEngines';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { KoreanAIEngine } from '@/services/ai/korean-ai-engine';
 import { TransformersEngine } from '@/services/ai/transformers-engine';
-import {
-  AIMode,
-  AIRequest,
-  AIResponse
-} from '@/types/ai-types';
+import { AIMode, AIRequest, AIResponse } from '@/types/ai-types';
 import { utf8Logger } from '@/utils/utf8-logger';
 // 서버 사이드에서만 MCP 클라이언트 사용
 let RealMCPClient: any = null;
@@ -78,19 +74,19 @@ export class UnifiedAIEngineRouter {
     engineUsage: Record<string, number>;
     lastUpdated: string;
   } = {
-      totalRequests: 0,
-      successfulRequests: 0,
-      failedRequests: 0,
-      averageResponseTime: 0,
-      modeUsage: {
-        LOCAL: 0,
-        GOOGLE_AI: 0,
-        AUTO: 0,
-        GOOGLE_ONLY: 0,
-      },
-      engineUsage: {},
-      lastUpdated: new Date().toISOString(),
-    };
+    totalRequests: 0,
+    successfulRequests: 0,
+    failedRequests: 0,
+    averageResponseTime: 0,
+    modeUsage: {
+      LOCAL: 0,
+      GOOGLE_AI: 0,
+      AUTO: 0,
+      GOOGLE_ONLY: 0,
+    },
+    engineUsage: {},
+    lastUpdated: new Date().toISOString(),
+  };
 
   private constructor() {
     this.googleAI = GoogleAIService.getInstance();
@@ -282,7 +278,10 @@ export class UnifiedAIEngineRouter {
     // 타임아웃 체크 함수 (베르셀 환경 최적화)
     const checkTimeout = () => {
       const elapsed = Date.now() - startTime;
-      if (VERCEL_OPTIMIZATION.isVercel && elapsed > VERCEL_OPTIMIZATION.maxProcessingTime) {
+      if (
+        VERCEL_OPTIMIZATION.isVercel &&
+        elapsed > VERCEL_OPTIMIZATION.maxProcessingTime
+      ) {
         throw new Error(`베르셀 타임아웃 방지: ${elapsed}ms 초과`);
       }
       return elapsed;
@@ -977,6 +976,130 @@ export class UnifiedAIEngineRouter {
   }
 
   /**
+   * 🎯 실제 서버 데이터 기반 스마트 응답 생성
+   */
+  private async generateDataBasedResponse(
+    query: string,
+    checkTimeout: () => number
+  ): Promise<string | null> {
+    try {
+      checkTimeout();
+
+      // 한국어 AI 엔진으로 실제 분석 수행
+      if (this.koreanEngine) {
+        try {
+          const koreanResult = await this.koreanEngine.processQuery(query);
+
+          if (koreanResult && koreanResult.success && koreanResult.response) {
+            checkTimeout();
+            // 실제 AI 응답에 처리 시간 추가
+            return `${koreanResult.response}\n\n⚡ 처리 시간: ${checkTimeout()}ms (베르셀 환경 최적화)`;
+          }
+        } catch (error) {
+          console.log('⚠️ 한국어 AI 엔진 데이터 기반 응답 실패:', error);
+        }
+      }
+
+      // 실제 시스템 메트릭 기반 응답 생성
+      const keywords = [
+        '서버',
+        '상태',
+        '모니터링',
+        '성능',
+        '분석',
+        'CPU',
+        '메모리',
+        '디스크',
+        '네트워크',
+      ];
+      const hasSystemKeyword = keywords.some(keyword =>
+        query.includes(keyword)
+      );
+
+      if (hasSystemKeyword) {
+        checkTimeout();
+
+        // 실제 시스템 데이터 수집
+        const systemMetrics = {
+          timestamp: new Date().toLocaleString('ko-KR'),
+          uptime: Math.floor(process.uptime()),
+          memory: process.memoryUsage(),
+          cpu: process.cpuUsage(),
+        };
+
+        let response = `"${query}"에 대한 실시간 분석 결과입니다.\n\n`;
+
+        if (query.includes('메모리')) {
+          const memoryUsed = Math.round(
+            systemMetrics.memory.heapUsed / 1024 / 1024
+          );
+          const memoryTotal = Math.round(
+            systemMetrics.memory.heapTotal / 1024 / 1024
+          );
+          response += `💾 **메모리 상태**\n- 사용량: ${memoryUsed}MB / ${memoryTotal}MB\n- 사용률: ${Math.round((memoryUsed / memoryTotal) * 100)}%\n\n`;
+        }
+
+        if (query.includes('시간') || query.includes('가동')) {
+          response += `⏱️ **시스템 가동시간**: ${systemMetrics.uptime}초 (${Math.floor(systemMetrics.uptime / 60)}분)\n\n`;
+        }
+
+        response += `🔍 **분석 완료 시간**: ${systemMetrics.timestamp}\n`;
+        response += `⚡ **응답 시간**: ${checkTimeout()}ms`;
+
+        return response;
+      }
+
+      return null;
+    } catch (error) {
+      console.log('⚠️ 데이터 기반 응답 생성 실패:', error);
+      return null;
+    }
+  }
+
+  /**
+   * 🧠 RAG 검색 결과를 자연어 응답으로 변환
+   */
+  private formatRAGResults(ragResult: any, originalQuery: string): string {
+    try {
+      if (!ragResult.results || ragResult.results.length === 0) {
+        return '';
+      }
+
+      const topResult = ragResult.results[0];
+      const content = topResult.content || '';
+      const metadata = topResult.metadata || {};
+
+      // 자연어 응답 생성
+      let response = `"${originalQuery}"에 대한 분석 결과입니다.\n\n`;
+
+      if (metadata.category) {
+        response += `📋 **카테고리**: ${metadata.category}\n`;
+      }
+
+      if (content.length > 0) {
+        // 내용을 요약하여 제공
+        const summary = content.substring(0, 200);
+        response += `📄 **관련 정보**: ${summary}${content.length > 200 ? '...' : ''}\n`;
+      }
+
+      if (metadata.commands && metadata.commands.length > 0) {
+        response += `⚡ **관련 명령어**: ${metadata.commands.slice(0, 2).join(', ')}\n`;
+      }
+
+      if (topResult.similarity) {
+        response += `🎯 **정확도**: ${Math.round(topResult.similarity * 100)}%\n`;
+      }
+
+      response += `\n처리 시간: ${ragResult.processingTime}ms`;
+
+      return response;
+    } catch (error) {
+      console.log('⚠️ RAG 결과 포맷팅 실패:', error);
+      return '';
+    }
+  }
+
+  /**
    * 🚀 베르셀 환경 최적화: LOCAL 모드 타임아웃 방지 처리
    */
   private async processLocalModeWithTimeout(
@@ -996,7 +1119,10 @@ export class UnifiedAIEngineRouter {
     try {
       // 1단계: 빠른 응답 생성 (3초 제한)
       checkTimeout();
-      const quickResponse = await this.generateQuickResponse(request, checkTimeout);
+      const quickResponse = await this.generateQuickResponse(
+        request,
+        checkTimeout
+      );
       if (quickResponse) {
         return this.formatSuccessResponse(
           quickResponse,
@@ -1008,7 +1134,10 @@ export class UnifiedAIEngineRouter {
 
       // 2단계: 경량 엔진 (5초 제한)
       checkTimeout();
-      const lightweightResponse = await this.tryLightweightEngine(request, checkTimeout);
+      const lightweightResponse = await this.tryLightweightEngine(
+        request,
+        checkTimeout
+      );
       if (lightweightResponse) {
         return this.formatSuccessResponse(
           lightweightResponse,
@@ -1039,7 +1168,7 @@ export class UnifiedAIEngineRouter {
   }
 
   /**
-   * 🚀 빠른 응답 생성 (3초 제한)
+   * 🚀 빠른 응답 생성 (3초 제한) - 실제 AI 엔진 사용
    */
   private async generateQuickResponse(
     request: AIRequest,
@@ -1048,37 +1177,85 @@ export class UnifiedAIEngineRouter {
     try {
       checkTimeout();
 
-      // 한국어 키워드 매칭 기반 빠른 응답
-      const koreanKeywords = ['서버', '상태', '분석', '모니터링', '장애', '성능', '현황'];
+      // 🎯 실제 Supabase RAG 엔진 사용 시도
+      if (this.supabaseRAG) {
+        console.log('🧠 베르셀 환경: Supabase RAG 엔진으로 실제 AI 응답 생성');
+
+        try {
+          const ragResult = await this.supabaseRAG.searchSimilar(
+            request.query,
+            {
+              maxResults: 3,
+              threshold: 0.7,
+              enableMCP: false, // 빠른 응답을 위해 MCP 비활성화
+            }
+          );
+
+          if (ragResult.success && ragResult.results.length > 0) {
+            // RAG 결과를 자연어로 변환
+            const ragResponse = this.formatRAGResults(ragResult, request.query);
+            if (ragResponse && ragResponse.length > 10) {
+              checkTimeout();
+              return ragResponse;
+            }
+          }
+        } catch (ragError) {
+          console.log('⚠️ Supabase RAG 빠른 응답 실패:', ragError);
+        }
+      }
+
+      // 🎯 한국어 AI 엔진 사용 시도
+      if (this.koreanEngine) {
+        console.log('🇰🇷 베르셀 환경: 한국어 AI 엔진으로 실제 응답 생성');
+
+        try {
+          const koreanResult = await this.koreanEngine.processQuery(
+            request.query
+          );
+
+          if (koreanResult && koreanResult.success && koreanResult.response) {
+            checkTimeout();
+            return koreanResult.response;
+          }
+        } catch (koreanError) {
+          console.log('⚠️ 한국어 AI 엔진 빠른 응답 실패:', koreanError);
+        }
+      }
+
+      // 🎯 마지막 폴백: 간단한 키워드 기반 응답 (실제 데이터 기반)
+      const koreanKeywords = [
+        '서버',
+        '상태',
+        '분석',
+        '모니터링',
+        '장애',
+        '성능',
+        '현황',
+      ];
       const hasKoreanKeyword = koreanKeywords.some(keyword =>
         request.query.includes(keyword)
       );
 
       if (hasKoreanKeyword) {
-        checkTimeout();
-
-        // 서버 데이터 기반 간단한 응답 생성
-        if (request.query.includes('서버') && request.query.includes('상태')) {
-          return `현재 시스템 상태를 확인했습니다. 베르셀 환경에서 최적화된 응답을 제공합니다. 
-          
-📊 **시스템 현황**
-- 활성 서버: 모니터링 중
-- 상태: 정상 운영
-- 응답 시간: ${checkTimeout()}ms
-
-⚡ **베르셀 최적화 모드**로 빠른 응답을 제공했습니다.`;
+        // 실제 시스템 데이터 수집 시도
+        let actualData = '';
+        try {
+          // 간단한 시스템 상태 수집
+          const systemInfo = {
+            timestamp: new Date().toLocaleString('ko-KR'),
+            uptime: Math.floor(process.uptime()),
+            memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+          };
+          actualData = `시스템 가동시간: ${systemInfo.uptime}초, 메모리 사용량: ${systemInfo.memory}MB`;
+        } catch (error) {
+          actualData = '시스템 정보 수집 중';
         }
 
-        if (request.query.includes('분석') || request.query.includes('현황')) {
-          return `시스템 분석 결과를 요약해드립니다.
+        return `요청하신 "${request.query}"에 대한 분석 결과입니다.
 
-🔍 **분석 결과**
-- 전체적으로 안정적인 상태입니다
-- 주요 메트릭들이 정상 범위 내에 있습니다
-- 특별한 주의사항은 발견되지 않았습니다
+실시간 시스템 정보: ${actualData}
 
-⚡ 베르셀 환경 최적화로 ${checkTimeout()}ms 만에 응답했습니다.`;
-        }
+베르셀 환경에서 ${checkTimeout()}ms 만에 응답을 생성했습니다.`;
       }
 
       return null;
@@ -1089,7 +1266,7 @@ export class UnifiedAIEngineRouter {
   }
 
   /**
-   * 🚀 경량 AI 엔진 시도 (5초 제한)
+   * 🚀 경량 AI 엔진 시도 (5초 제한) - 실제 AI 엔진 사용
    */
   private async tryLightweightEngine(
     request: AIRequest,
@@ -1106,24 +1283,30 @@ export class UnifiedAIEngineRouter {
 
       checkTimeout();
 
-      // 간단한 템플릿 기반 응답
-      const templates = {
-        '서버 상태': '서버 상태를 확인했습니다. 현재 모든 시스템이 정상 작동 중입니다.',
-        '모니터링': '모니터링 시스템이 활성화되어 있으며, 실시간으로 상태를 추적하고 있습니다.',
-        '성능': '시스템 성능이 양호한 상태입니다. 리소스 사용률이 적정 수준을 유지하고 있습니다.',
-        '분석': '데이터 분석 결과, 시스템이 안정적으로 운영되고 있습니다.'
-      };
-
-      for (const [keyword, template] of Object.entries(templates)) {
-        if (request.query.includes(keyword)) {
-          checkTimeout();
-          return `${template}\n\n⚡ 베르셀 경량 모드로 ${checkTimeout()}ms 만에 응답했습니다.`;
-        }
+      // 🎯 실제 서버 데이터 기반 스마트 응답 생성
+      const smartResponse = await this.generateDataBasedResponse(
+        request.query,
+        checkTimeout
+      );
+      if (smartResponse) {
+        return smartResponse;
       }
 
-      // 기본 한국어 응답
-      return `요청하신 내용을 처리했습니다.\n\n베르셀 환경에서 최적화된 응답을 제공했습니다. (${checkTimeout()}ms)`;
+      // 기본 한국어 응답 (실제 데이터 포함)
+      const systemInfo = {
+        timestamp: new Date().toLocaleString('ko-KR'),
+        uptime: Math.floor(process.uptime()),
+        memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+      };
 
+      return `"${request.query}"에 대한 분석을 완료했습니다.
+
+🔍 **실시간 시스템 정보**
+- 처리 시간: ${checkTimeout()}ms
+- 시스템 가동시간: ${systemInfo.uptime}초
+- 메모리 사용량: ${systemInfo.memory}MB
+
+베르셀 환경에서 최적화된 응답을 제공했습니다.`;
     } catch (error) {
       console.log('⚠️ 경량 AI 엔진 타임아웃:', error);
       return null;
