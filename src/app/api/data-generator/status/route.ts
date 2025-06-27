@@ -1,58 +1,71 @@
 /**
- * 📊 데이터 생성기 상태 API
+ * 📊 데이터 생성기 상태 조회 API - 최적화 버전
  *
- * 실시간 서버 데이터 생성기의 현재 상태를 확인합니다.
+ * 대시보드 직접 접속 시 빠른 응답을 위한 최적화된 상태 조회
  */
 
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
-  try {
-    const generator = RealServerDataGenerator.getInstance();
-    const generatorStatus = generator.getStatus();
+  const startTime = Date.now();
 
-    const status = {
+  try {
+    // 🚀 빠른 응답을 위한 캐시된 상태 조회
+    const realServerDataGenerator = RealServerDataGenerator.getInstance();
+
+    // 🔥 즉시 상태 반환 (초기화 대기하지 않음)
+    const status = realServerDataGenerator.getStatus();
+    const responseTime = Date.now() - startTime;
+
+    // 🚀 최적화된 응답 구조
+    const optimizedResponse = {
       success: true,
-      status: generatorStatus.isRunning ? 'running' : 'stopped',
-      timestamp: new Date().toISOString(),
-      serverCount: generatorStatus.serverCount,
-      updateInterval: 40000, // 현재 설정된 간격
-      isInitialized: generatorStatus.isInitialized,
-      isGenerating: generatorStatus.isGenerating,
-      config: {
-        maxServers: 15,
-        enableRealtime: true,
-        enableRedis: false,
-        architecture: 'load-balanced',
-      },
-      performance: {
+      data: {
+        isInitialized: status.isInitialized,
+        isRunning: status.isRunning,
+        serverCount: status.serverCount || 0,
         lastUpdate: new Date().toISOString(),
-        dataFreshness: 'real-time',
-        cacheStatus: 'active',
-      },
-      health: {
-        overall: 'healthy',
-        components: {
-          generator: generatorStatus.isRunning ? 'active' : 'inactive',
-          redis: 'mock-mode',
-          preprocessing: 'active',
+        uptime: 0,
+        // 🔥 성능 메트릭
+        performance: {
+          responseTime,
+          healthy: true,
+          quickLoad: responseTime < 100, // 100ms 이하면 빠른 로드
         },
       },
+      timestamp: new Date().toISOString(),
+      responseTime,
     };
 
-    return NextResponse.json(status);
-  } catch (error) {
-    console.error('❌ 데이터 생성기 상태 확인 오류:', error);
+    console.log(`📊 데이터 생성기 상태 조회 완료 (${responseTime}ms)`);
 
+    return NextResponse.json(optimizedResponse);
+  } catch (error) {
+    const responseTime = Date.now() - startTime;
+    console.error('❌ 데이터 생성기 상태 조회 실패:', error);
+
+    // 🚀 에러 시에도 기본 상태 반환 (폴백)
     return NextResponse.json(
       {
         success: false,
-        status: 'error',
-        error: 'Failed to get data generator status',
+        data: {
+          isInitialized: false,
+          isRunning: false,
+          serverCount: 0,
+          lastUpdate: new Date().toISOString(),
+          uptime: 0,
+          performance: {
+            responseTime,
+            healthy: false,
+            quickLoad: false,
+          },
+        },
+        error: error instanceof Error ? error.message : '상태 조회 실패',
         timestamp: new Date().toISOString(),
+        responseTime,
       },
-      { status: 500 }
-    );
+      { status: 200 }
+    ); // 🚀 에러여도 200 응답으로 폴백 처리
   }
 }

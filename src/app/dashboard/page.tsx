@@ -19,13 +19,43 @@ const DashboardContent = dynamic(
 const FloatingSystemControl = dynamic(
   () => import('../../components/system/FloatingSystemControl')
 );
-const EnhancedServerModal = dynamic(
-  () => import('../../components/dashboard/EnhancedServerModal')
+const EnhancedServerModalDynamic = dynamic(
+  () => import('../../components/dashboard/EnhancedServerModal'),
+  {
+    loading: () => (
+      <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
+        <div className='w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin'></div>
+      </div>
+    ),
+  }
 );
 
 const ContentLoadingSkeleton = () => (
-  <div className='p-6 space-y-4'>
-    <div className='w-full h-32 bg-gray-200 rounded-lg animate-pulse'></div>
+  <div className='min-h-screen bg-gray-100 dark:bg-gray-900 p-6'>
+    <div className='space-y-6'>
+      {/* 헤더 스켈레톤 */}
+      <div className='h-16 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse'></div>
+
+      {/* 통계 카드 스켈레톤 */}
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+        {[1, 2, 3, 4].map(i => (
+          <div
+            key={i}
+            className='h-24 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse'
+          ></div>
+        ))}
+      </div>
+
+      {/* 서버 카드 그리드 스켈레톤 */}
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
+        {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+          <div
+            key={i}
+            className='h-48 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse'
+          ></div>
+        ))}
+      </div>
+    </div>
   </div>
 );
 
@@ -73,24 +103,42 @@ class DashboardErrorBoundary extends React.Component<
 }
 
 function DashboardPageContent() {
-  const [isClient, setIsClient] = useState(false);
   const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [selectedServer, setSelectedServer] = useState<any>(null);
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
   const isResizing = false;
 
-  // 🎯 실제 서버 데이터 생성기 데이터 사용
+  // 🎯 실제 서버 데이터 생성기 데이터 사용 - 즉시 로드
   const {
     paginatedServers: realServers,
     handleServerSelect,
     selectedServer: dashboardSelectedServer,
     handleModalClose: dashboardModalClose,
+    isLoading: serverDataLoading,
   } = useServerDashboard({});
 
+  // 🚀 대시보드 직접 접속 시 최적화된 초기화
   useEffect(() => {
-    setIsClient(true);
-    // 🚀 대시보드 직접 접속 시 시스템 자동 초기화
-    console.log('🎯 대시보드 직접 접속 - 시스템 자동 초기화');
+    console.log('🎯 대시보드 직접 접속 - 최적화된 초기화');
+
+    // 🔥 즉시 실행 최적화
+    const initializeDashboard = async () => {
+      try {
+        // 필요한 경우에만 데이터 생성기 상태 확인
+        const response = await fetch('/api/data-generator/status');
+        const status = await response.json();
+
+        if (!status.success || !status.data.isRunning) {
+          console.log('📊 데이터 생성기 자동 시작');
+          await fetch('/api/data-generator/start', { method: 'POST' });
+        }
+      } catch (error) {
+        console.warn('⚠️ 데이터 생성기 초기화 실패 (폴백 데이터 사용):', error);
+      }
+    };
+
+    // 🚀 비동기로 초기화 (블로킹하지 않음)
+    initializeDashboard();
   }, []);
 
   const toggleAgent = useCallback(() => {
@@ -127,20 +175,7 @@ function DashboardPageContent() {
     setIsServerModalOpen(false);
   }, [dashboardModalClose]);
 
-  // 🚀 클라이언트 사이드 렌더링만 허용 (SSR 방지)
-  if (!isClient) {
-    return (
-      <div className='min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center'>
-        <div className='text-center'>
-          <div className='w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4'></div>
-          <p className='text-gray-600 dark:text-gray-400'>
-            대시보드 초기화 중...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
+  // 🚀 시스템 제어 더미 데이터 최적화
   const dummySystemControl = {
     systemState: { status: 'ok' },
     aiAgentState: { state: 'idle' },
@@ -165,19 +200,34 @@ function DashboardPageContent() {
           isAgentOpen={isAgentOpen}
         />
         <main className='flex-1 min-h-0 overflow-y-auto p-2 sm:p-4 lg:p-6 xl:p-8'>
-          <DashboardContent
-            showSequentialGeneration={false}
-            servers={realServers}
-            status={{ type: 'idle' }}
-            actions={{ start: () => {}, stop: () => {} }}
-            selectedServer={selectedServer || dashboardSelectedServer}
-            onServerClick={handleServerClick}
-            onServerModalClose={handleServerModalClose}
-            onStatsUpdate={() => {}}
-            onShowSequentialChange={() => {}}
-            mainContentVariants={{}}
-            isAgentOpen={isAgentOpen}
-          />
+          {/* 🚀 로딩 상태 최적화 - 서버 데이터 로딩 중일 때만 스켈레톤 표시 */}
+          {serverDataLoading && realServers.length === 0 ? (
+            <div className='space-y-6'>
+              {/* 간단한 로딩 인디케이터 */}
+              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                  <div
+                    key={i}
+                    className='h-48 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse'
+                  ></div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <DashboardContent
+              showSequentialGeneration={false}
+              servers={realServers}
+              status={{ type: 'idle' }}
+              actions={{ start: () => {}, stop: () => {} }}
+              selectedServer={selectedServer || dashboardSelectedServer}
+              onServerClick={handleServerClick}
+              onServerModalClose={handleServerModalClose}
+              onStatsUpdate={() => {}}
+              onShowSequentialChange={() => {}}
+              mainContentVariants={{}}
+              isAgentOpen={isAgentOpen}
+            />
+          )}
         </main>
       </div>
       <AnimatePresence>
@@ -196,9 +246,9 @@ function DashboardPageContent() {
       <FloatingSystemControl {...dummySystemControl} />
       <NotificationToast />
 
-      {/* 🎯 서버 상세 모달 */}
+      {/* 🎯 서버 상세 모달 - 동적 로딩 */}
       {isServerModalOpen && (selectedServer || dashboardSelectedServer) && (
-        <EnhancedServerModal
+        <EnhancedServerModalDynamic
           server={selectedServer || dashboardSelectedServer}
           onClose={handleServerModalClose}
         />
@@ -207,7 +257,7 @@ function DashboardPageContent() {
   );
 }
 
-// 🎯 대시보드 페이지 - 직접 접속 가능
+// 🎯 대시보드 페이지 - 직접 접속 최적화
 export default function DashboardPage() {
   return (
     <DashboardErrorBoundary>
