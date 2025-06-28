@@ -10,6 +10,7 @@
  * - GOOGLE_AI: Google AI (40%) → Supabase RAG + MCP 컨텍스트 (40%) → 로컬AI (20%)
  */
 
+import { AIResponseFormatter } from '@/core/ai/formatters/AIResponseFormatter';
 import { AIModeManager } from '@/core/ai/managers/AIModeManager';
 import { getSupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { CustomEngines } from '@/services/ai/engines/CustomEngines';
@@ -52,6 +53,9 @@ export class UnifiedAIEngineRouter {
 
   // 🎯 분리된 AI 모드 관리자 인스턴스
   private modeManager = AIModeManager.getInstance();
+
+  // 🎨 분리된 AI 응답 포맷터 인스턴스
+  private responseFormatter = AIResponseFormatter.getInstance();
 
   // 메인 엔진들
   private supabaseRAG = getSupabaseRAGEngine();
@@ -710,23 +714,11 @@ export class UnifiedAIEngineRouter {
     startTime: number,
     fallbacksUsed: number
   ): AIResponse {
-    return {
-      success: true,
-      response: `[LOCAL 모드 응급 폴백] "${request.query}"에 대한 로컬 기본 응답입니다. 외부 서비스 없이 로컬 시스템으로만 처리되었습니다.`,
-      confidence: 0.4,
-      mode: 'LOCAL',
-      enginePath: ['local-emergency-fallback'],
-      processingTime: Date.now() - startTime,
-      fallbacksUsed: fallbacksUsed + 1,
-      metadata: {
-        mainEngine: 'local-emergency-fallback',
-        supportEngines: [],
-        ragUsed: false,
-        googleAIUsed: false, // LOCAL 모드는 Google AI 절대 사용 안 함
-        mcpContextUsed: false,
-        subEnginesUsed: [],
-      },
-    };
+    return this.responseFormatter.createLocalModeEmergencyFallback(
+      request,
+      startTime,
+      fallbacksUsed
+    );
   }
 
   /**
@@ -737,23 +729,11 @@ export class UnifiedAIEngineRouter {
     startTime: number,
     fallbacksUsed: number
   ): AIResponse {
-    return {
-      success: true,
-      response: `[GOOGLE_AI 모드 응급 폴백] "${request.query}"에 대한 고급 분석 기본 응답입니다. Google AI 서비스가 일시적으로 제한된 상태입니다.`,
-      confidence: 0.35,
-      mode: 'GOOGLE_AI',
-      enginePath: ['google-ai-emergency-fallback'],
-      processingTime: Date.now() - startTime,
-      fallbacksUsed: fallbacksUsed + 1,
-      metadata: {
-        mainEngine: 'google-ai-emergency-fallback',
-        supportEngines: [],
-        ragUsed: false,
-        googleAIUsed: false,
-        mcpContextUsed: false,
-        subEnginesUsed: [],
-      },
-    };
+    return this.responseFormatter.createGoogleOnlyModeEmergencyFallback(
+      request,
+      startTime,
+      fallbacksUsed
+    );
   }
 
   /**
@@ -814,37 +794,11 @@ export class UnifiedAIEngineRouter {
     mode: AIMode,
     startTime: number
   ): AIResponse {
-    console.log(`🚨 ${mode} 모드 응급 폴백 생성`);
-
-    let fallbackMessage = '';
-    switch (mode) {
-      case 'LOCAL':
-        fallbackMessage = `[LOCAL 모드 응급 폴백] "${request.query}"에 대한 기본 응답을 제공합니다. 로컬 AI 엔진이 일시적으로 제한된 기능으로 동작 중입니다.`;
-        break;
-      case 'GOOGLE_AI':
-        fallbackMessage = `[GOOGLE_AI 모드 응급 폴백] "${request.query}"에 대한 고급 분석 기본 응답입니다. Google AI 서비스가 일시적으로 제한된 상태입니다.`;
-        break;
-      default:
-        fallbackMessage = `[시스템 응급 폴백] "${request.query}"에 대한 기본 응답을 제공합니다.`;
-    }
-
-    return {
-      success: true,
-      response: fallbackMessage,
-      confidence: 0.3,
+    return this.responseFormatter.createEmergencyFallback(
+      request,
       mode,
-      enginePath: [`${mode.toLowerCase()}-emergency-fallback`],
-      processingTime: Date.now() - startTime,
-      fallbacksUsed: 1,
-      metadata: {
-        mainEngine: `${mode.toLowerCase()}-emergency-fallback`,
-        supportEngines: [],
-        ragUsed: false,
-        googleAIUsed: mode === 'GOOGLE_AI',
-        mcpContextUsed: false,
-        subEnginesUsed: [],
-      },
-    };
+      startTime
+    );
   }
 
   private updateStats(response: AIResponse): void {
@@ -1440,67 +1394,21 @@ ${analysisResult.recommendations ? '💡 **권장사항**\n' + analysisResult.re
   }
 
   /**
-   * 🚀 폴백 응답 생성 (즉시)
+   * 🚀 폴백 응답 생성 (즉시) - responseFormatter로 이동됨
    */
   private generateFallbackResponse(request: AIRequest): string {
-    const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(request.query);
-
-    if (isKorean) {
-      return `안녕하세요! 베르셀 환경에서 최적화된 응답을 제공합니다.
-
-🚀 **베르셀 고속 모드**
-- 타임아웃 방지를 위한 경량화된 처리
-- 기본적인 시스템 정보 제공
-- 빠른 응답 시간 보장
-
-요청하신 내용에 대한 자세한 분석이 필요하시면, 로컬 환경에서 더 상세한 정보를 확인하실 수 있습니다.`;
-    }
-
-    return `Hello! This is an optimized response for Vercel environment.
-
-🚀 **Vercel Fast Mode**
-- Lightweight processing to prevent timeouts
-- Basic system information provided
-- Fast response time guaranteed
-
-For detailed analysis, please check in local environment.`;
+    return this.responseFormatter.generateFallbackResponse(request);
   }
 
   /**
-   * 🚀 오류 응답 생성
+   * 🚀 오류 응답 생성 - responseFormatter로 이동됨
    */
   private generateErrorResponse(request: AIRequest, error: Error): string {
-    const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(request.query);
-
-    if (isKorean) {
-      return `죄송합니다. 베르셀 환경에서 처리 중 문제가 발생했습니다.
-
-❌ **오류 정보**
-- 오류 유형: ${error.message}
-- 환경: 베르셀 서버리스
-- 권장사항: 로컬 환경에서 재시도
-
-🔧 **해결 방법**
-1. 쿼리를 단순화해서 다시 시도
-2. 로컬 환경에서 상세 분석 요청
-3. 영어로 질문 시도`;
-    }
-
-    return `Sorry, an error occurred while processing in Vercel environment.
-
-❌ **Error Information**
-- Error type: ${error.message}
-- Environment: Vercel Serverless
-- Recommendation: Retry in local environment
-
-🔧 **Solutions**
-1. Simplify query and retry
-2. Request detailed analysis in local environment
-3. Try asking in English`;
+    return this.responseFormatter.generateErrorResponse(request, error);
   }
 
   /**
-   * 🚀 성공 응답 포맷팅
+   * 🚀 성공 응답 포맷팅 - responseFormatter로 이동됨
    */
   private formatSuccessResponse(
     response: string,
@@ -1508,28 +1416,16 @@ For detailed analysis, please check in local environment.`;
     supportEngines: string[],
     startTime: number
   ): AIResponse {
-    return {
-      success: true,
+    return this.responseFormatter.formatSuccessResponse(
       response,
-      confidence: 0.85,
-      mode: 'LOCAL',
       enginePath,
-      processingTime: Date.now() - startTime,
-      fallbacksUsed: 0,
-      metadata: {
-        mainEngine: enginePath[0] || 'local-fast',
-        supportEngines,
-        ragUsed: false,
-        googleAIUsed: false,
-        mcpContextUsed: false,
-        subEnginesUsed: supportEngines,
-        cacheUsed: false,
-      },
-    };
+      supportEngines,
+      startTime
+    );
   }
 
   /**
-   * 🚀 오류 응답 포맷팅
+   * 🚀 오류 응답 포맷팅 - responseFormatter로 이동됨
    */
   private formatErrorResponse(
     response: string,
@@ -1537,23 +1433,12 @@ For detailed analysis, please check in local environment.`;
     supportEngines: string[],
     startTime: number
   ): AIResponse {
-    return {
-      success: false,
+    return this.responseFormatter.formatErrorResponse(
       response,
-      confidence: 0.3,
-      mode: 'LOCAL',
       enginePath,
-      processingTime: Date.now() - startTime,
-      fallbacksUsed: 1,
-      metadata: {
-        mainEngine: 'error-handler',
-        supportEngines,
-        ragUsed: false,
-        googleAIUsed: false,
-        mcpContextUsed: false,
-        subEnginesUsed: supportEngines,
-      },
-    };
+      supportEngines,
+      startTime
+    );
   }
 }
 
