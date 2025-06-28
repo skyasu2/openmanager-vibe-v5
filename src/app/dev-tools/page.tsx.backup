@@ -30,9 +30,7 @@ export default function DevToolsPage() {
               onClick={() => setAutoRefresh(!autoRefresh)}
               className='flex items-center gap-2'
             >
-              <RefreshCw
-                className={`w-4 h-4 ${autoRefresh ? 'animate-spin' : ''}`}
-              />
+              <RefreshCw className={`w-4 h-4 ${autoRefresh ? 'animate-spin' : ''}`} />
               자동 새로고침 {autoRefresh ? 'ON' : 'OFF'}
             </Button>
           </div>
