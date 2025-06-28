@@ -173,6 +173,18 @@ export class AILogger {
       );
     }
 
+    // ⚠️ 중요: transports가 빈 배열이면 기본 콘솔 transport 추가
+    if (transports.length === 0) {
+      transports.push(
+        new winston.transports.Console({
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.json()
+          ),
+        })
+      );
+    }
+
     this.winstonLogger = winston.createLogger({
       level: this.isProduction ? 'info' : 'debug',
       format: winston.format.combine(
