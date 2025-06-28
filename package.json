@@ -1,7 +1,7 @@
 {
   "name": "openmanager-vibe-v5",
   "version": "5.44.3",
-  "description": "🚀 OpenManager AI v5.21.0 - AI 분석과 오토스케일링 완전 분리로 추론 안정성과 운영 시뮬 유연성을 동시에 확보한 차세대 서버 모니터링 시스템. 고정된 8개 AI 분석 타겟으로 일관된 추론을 보장하고, 8-30대 동적 서버 풀로 현실적인 스케일링 시뮬레이션을 제공합니다.",
+  "description": "🚀 OpenManager AI v5.44.3 - AI 분석과 오토스케일링 완전 분리로 추론 안정성과 운영 시뮬 유연성을 동시에 확보한 차세대 서버 모니터링 시스템. 고정된 8개 AI 분석 타겟으로 일관된 추론을 보장하고, 8-30대 동적 서버 풀로 현실적인 스케일링 시뮬레이션을 제공합니다.",
   "private": true,
   "engines": {
     "node": "20.x",
@@ -200,8 +200,7 @@
     "docs:sync": "node scripts/docs-management.mjs",
     "docs:analyze": "node scripts/docs-management.mjs --analyze",
     "docs:autopurge": "node scripts/docs-management.mjs --autopurge",
-    "docs:purge-all": "node scripts/docs-management.mjs purge-all",
-    "docs:quality-check": "node scripts/docs-management.mjs quality-check",
+    "docs:quality-check": "node scripts/docs-management.mjs --quality-check",
     "data:consistency": "node scripts/data-consistency-check.js",
     "cursor:deploy": "node scripts/cursor-render-deploy.js",
     "cursor:deploy:auto": "node scripts/cursor-render-deploy.js --auto-commit",
@@ -252,7 +251,22 @@
     "validate:core": "npm run type-check && npm run lint && npm run test:core",
     "validate:vercel": "npm run vercel:status && echo 'Vercel deployment is healthy'",
     "test:vercel-functions": "node scripts/vercel-function-test.mjs",
-    "test:production": "npm run test:vercel-functions"
+    "test:production": "npm run test:vercel-functions",
+    "version:patch": "npm version patch && git push && git push --tags",
+    "version:minor": "npm version minor && git push && git push --tags",
+    "version:major": "npm version major && git push && git push --tags",
+    "version:prerelease": "npm version prerelease && git push && git push --tags",
+    "version:beta": "npm version prerelease --preid=beta && git push && git push --tags",
+    "version:alpha": "npm version prerelease --preid=alpha && git push && git push --tags",
+    "version:bump": "node scripts/version-manager.mjs",
+    "release:patch": "npm run validate:all && npm run version:patch",
+    "release:minor": "npm run validate:all && npm run version:minor",
+    "release:major": "npm run validate:all && npm run version:major",
+    "release:changelog": "node scripts/generate-changelog.js",
+    "release:notes": "node scripts/generate-release-notes.js",
+    "git:tag-current": "git tag -a v$(node -p \"require('./package.json').version\") -m \"Release v$(node -p \"require('./package.json').version\")\" && git push origin v$(node -p \"require('./package.json').version\")",
+    "git:list-tags": "git tag --sort=-version:refname | head -10",
+    "git:latest-tag": "git describe --tags --abbrev=0"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",
