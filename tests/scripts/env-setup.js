@@ -16,10 +16,8 @@ GOOGLE_AI_MODEL=gemini-1.5-flash
 GOOGLE_AI_BETA_MODE=true
 GEMINI_LEARNING_ENABLED=true
 
-# 📢 Slack 알림 설정
-SLACK_WEBHOOK_URL=
-SLACK_DEFAULT_CHANNEL=#server-alerts
-SLACK_ENABLED=true
+# 📢 알림 설정 (Slack 제거됨)
+# 브라우저 알림만 사용
 
 # 🗄️ Supabase 설정 (기존 환경변수 유지)
 NEXT_PUBLIC_SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co

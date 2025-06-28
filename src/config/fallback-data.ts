@@ -145,9 +145,7 @@ export const INFRASTRUCTURE_CONFIG = {
       fallbackKey: process.env.DEMO_API_KEY || 'demo-key-for-testing',
       model: process.env.GOOGLE_AI_MODEL || 'gemini-1.5-flash',
     },
-    slack: {
-      webhookUrl: process.env.SLACK_WEBHOOK_URL || '',
-    },
+    // slack 설정 제거됨
   },
   mcp: {
     serverUrl:
@@ -268,7 +266,7 @@ export function getInfrastructureUrl(
 /**
  * 🔑 API 키 헬퍼 함수
  */
-export function getApiKey(service: 'google' | 'slack'): string {
+export function getApiKey(service: 'google'): string {
   const isProduction = process.env.NODE_ENV === 'production';
 
   switch (service) {
@@ -279,11 +277,7 @@ export function getApiKey(service: 'google' | 'slack'): string {
         return INFRASTRUCTURE_CONFIG.api.googleAI.fallbackKey;
       }
       return googleKey || INFRASTRUCTURE_CONFIG.api.googleAI.fallbackKey;
-    case 'slack':
-      return (
-        process.env.SLACK_WEBHOOK_URL ||
-        INFRASTRUCTURE_CONFIG.api.slack.webhookUrl
-      );
+    // slack case 제거됨
     default:
       throw new Error(`지원하지 않는 API 서비스: ${service}`);
   }

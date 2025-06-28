@@ -61,23 +61,6 @@
       "file_size": "4.2KB",
       "last_verified": "2025-01-10"
     },
-    "slack-notifications": {
-      "path": "src/ai-context/integrations/slack-notifications.md",
-      "priority": 3,
-      "domain": "integrations",
-      "scenarios": ["notifications", "alerts", "communication"],
-      "keywords": [
-        "slack",
-        "notifications",
-        "alerts",
-        "webhook",
-        "integration"
-      ],
-      "confidence_level": 0.88,
-      "dependencies": ["system-fundamentals"],
-      "file_size": "3.1KB",
-      "last_verified": "2025-01-10"
-    },
     "production-environment": {
       "path": "src/ai-context/environments/production.md",
       "priority": 2,
@@ -116,7 +99,7 @@
     "core-system": 1,
     "emergency-response": 2,
     "server-monitoring": 1,
-    "integrations": 2,
+    "integrations": 1,
     "environment-specific": 1
   },
   "keyword_index": {
@@ -130,7 +113,6 @@
       "production-environment"
     ],
     "emergency": ["server-down-emergency", "memory-leak"],
-    "slack": ["slack-notifications"],
     "prometheus": ["prometheus-integration"],
     "production": ["production-environment"]
   },
@@ -144,7 +126,7 @@
     ],
     "emergency": ["server-down-emergency", "memory-leak"],
     "performance": ["metrics-interpretation", "memory-leak"],
-    "notifications": ["slack-notifications"],
-    "integrations": ["slack-notifications", "prometheus-integration"]
+    "notifications": [],
+    "integrations": ["prometheus-integration"]
   }
 }

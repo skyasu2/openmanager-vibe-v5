@@ -43,11 +43,7 @@ interface EnvironmentConfig {
     enabled: boolean;
   };
 
-  // Slack 설정
-  slack: {
-    webhookUrl?: string;
-    enabled: boolean;
-  };
+  // Slack 설정 제거됨
 
   // API 설정
   api: {
@@ -177,8 +173,7 @@ const createConfig = (): EnvironmentConfig => {
       // Redis 설정
       redis: parseRedisConfig(),
 
-      // Slack 설정
-      slack: parseSlackConfig(),
+      // Slack 설정 제거됨
 
       // API 설정
       api: {
@@ -224,7 +219,7 @@ const createConfig = (): EnvironmentConfig => {
         user: 'postgres.temp',
       },
       redis: { url: undefined, token: undefined, enabled: false },
-      slack: { webhookUrl: undefined, enabled: false },
+      // slack 설정 제거됨
       api: {
         timeout: 30000,
         maxRetries: 1,
@@ -268,7 +263,7 @@ export const validateEnvironment = (): {
     }
 
     // 선택적 환경변수 체크 (경고만) - Redis 다중 소스 지원
-    const optionalVars = ['SUPABASE_SERVICE_ROLE_KEY', 'SLACK_WEBHOOK_URL'];
+    const optionalVars = ['SUPABASE_SERVICE_ROLE_KEY'];
 
     // Redis 환경변수 체크 (다중 소스)
     const hasRedisConfig = !!(
@@ -321,7 +316,7 @@ export const printConfig = (config: EnvironmentConfig) => {
    └ Port: ${config.supabase.port}
    └ Mode: ${config.supabase.poolMode}
 🔴 Redis: ${config.redis.enabled ? '✅ 연결됨' : '❌ 비활성화'}
-💬 Slack: ${config.slack.enabled ? '✅ 연결됨' : '❌ 비활성화'}
+💬 알림: ✅ 브라우저 알림 활성화
 ⚙️ API 타임아웃: ${config.api.timeout}ms
 🔧 디버그 모드: ${config.development.debugMode ? '활성화' : '비활성화'}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -347,4 +342,4 @@ export const isDevelopment = () => config.isDevelopment;
 export const getApiTimeout = () => config.api.timeout;
 export const getSupabaseConfig = () => config.supabase;
 export const getRedisConfig = () => config.redis;
-export const getSlackConfig = () => config.slack;
+// getSlackConfig 제거됨
