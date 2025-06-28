@@ -10,6 +10,7 @@
  * - GOOGLE_AI: Google AI (40%) → Supabase RAG + MCP 컨텍스트 (40%) → 로컬AI (20%)
  */
 
+import { AIModeManager } from '@/core/ai/managers/AIModeManager';
 import { getSupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { CustomEngines } from '@/services/ai/engines/CustomEngines';
 import { OpenSourceEngines } from '@/services/ai/engines/OpenSourceEngines';
@@ -18,6 +19,9 @@ import { KoreanAIEngine } from '@/services/ai/korean-ai-engine';
 import { TransformersEngine } from '@/services/ai/transformers-engine';
 import { AIMode, AIRequest, AIResponse } from '@/types/ai-types';
 import { utf8Logger } from '@/utils/utf8-logger';
+
+// 🎯 분리된 AI 모드 관리자 import
+
 // 서버 사이드에서만 MCP 클라이언트 사용
 let RealMCPClient: any = null;
 if (typeof window === 'undefined') {
@@ -46,13 +50,15 @@ const VERCEL_OPTIMIZATION = {
 export class UnifiedAIEngineRouter {
   private static instance: UnifiedAIEngineRouter | null = null;
 
+  // 🎯 분리된 AI 모드 관리자 인스턴스
+  private modeManager = AIModeManager.getInstance();
+
   // 메인 엔진들
   private supabaseRAG = getSupabaseRAGEngine();
   private googleAI: GoogleAIService;
   private mcpClient: any; // 🎯 역할 변경: AI 엔진 → 컨텍스트 수집기
 
   // 🚀 통합된 고급 엔진들 (임시 비활성화)
-
   private intelligentMonitoring: any; // IntelligentMonitoringService;
   private autoIncidentReport: AutoIncidentReportSystem | null = null;
 
@@ -64,14 +70,12 @@ export class UnifiedAIEngineRouter {
 
   // 상태 관리
   private initialized = false;
-  private currentMode: AIMode = 'LOCAL'; // 🎯 기본 모드를 LOCAL로 변경
   private lastRequestContext: any = null; // 🔍 마지막 요청 컨텍스트 저장
   private stats: {
     totalRequests: number;
     successfulRequests: number;
     failedRequests: number;
     averageResponseTime: number;
-    modeUsage: Record<AIMode, number>;
     engineUsage: Record<string, number>;
     lastUpdated: string;
   } = {
@@ -79,12 +83,6 @@ export class UnifiedAIEngineRouter {
     successfulRequests: 0,
     failedRequests: 0,
     averageResponseTime: 0,
-    modeUsage: {
-      LOCAL: 0,
-      GOOGLE_AI: 0,
-      AUTO: 0,
-      GOOGLE_ONLY: 0,
-    },
     engineUsage: {},
     lastUpdated: new Date().toISOString(),
   };
@@ -139,7 +137,7 @@ export class UnifiedAIEngineRouter {
         const detectionEngine = new IncidentDetectionEngine();
         const solutionDB = new SolutionDatabase();
         // LOCAL 모드를 기본으로 설정
-        const reportMode = this.currentMode;
+        const reportMode = this.modeManager.getCurrentMode();
         this.autoIncidentReport = new AutoIncidentReportSystem(
           detectionEngine,
           solutionDB,
@@ -199,7 +197,7 @@ export class UnifiedAIEngineRouter {
 
     // 요청 통계 업데이트
     this.stats.totalRequests++;
-    this.stats.modeUsage[normalizedRequest.mode || 'LOCAL']++;
+    this.modeManager.recordModeUsage(normalizedRequest.mode || 'LOCAL');
 
     try {
       let result: AIResponse;
@@ -270,7 +268,8 @@ export class UnifiedAIEngineRouter {
     console.log('🏠 LOCAL 모드: 전용 폴백 시스템 (Google AI 제외)');
 
     // 🚀 베르셀 환경에서 타임아웃 방지
-    if (VERCEL_OPTIMIZATION.isVercel && VERCEL_OPTIMIZATION.enableFastMode) {
+    const vercelOpt = this.modeManager.getVercelOptimization();
+    if (vercelOpt.isVercel && vercelOpt.enableFastMode) {
       console.log('⚡ 베르셀 환경 감지: 경량화 처리 활성화');
       return this.processLocalModeWithTimeout(request, startTime);
     }
@@ -282,10 +281,7 @@ export class UnifiedAIEngineRouter {
     // 타임아웃 체크 함수 (베르셀 환경 최적화)
     const checkTimeout = () => {
       const elapsed = Date.now() - startTime;
-      if (
-        VERCEL_OPTIMIZATION.isVercel &&
-        elapsed > VERCEL_OPTIMIZATION.maxProcessingTime
-      ) {
+      if (vercelOpt.isVercel && elapsed > vercelOpt.maxProcessingTime) {
         throw new Error(`베르셀 타임아웃 방지: ${elapsed}ms 초과`);
       }
       return elapsed;
@@ -872,8 +868,8 @@ export class UnifiedAIEngineRouter {
    * 🎛️ 모드 설정 및 상태 조회
    */
   public setMode(mode: AIMode): void {
-    const oldMode = this.currentMode;
-    this.currentMode = mode;
+    const oldMode = this.modeManager.getCurrentMode();
+    this.modeManager.setMode(mode);
 
     // 🎯 AutoIncidentReportSystem 모드 동기화
     if (this.autoIncidentReport) {
@@ -886,7 +882,7 @@ export class UnifiedAIEngineRouter {
   }
 
   public getCurrentMode(): AIMode {
-    return this.currentMode;
+    return this.modeManager.getCurrentMode();
   }
 
   public getStats() {
@@ -896,7 +892,7 @@ export class UnifiedAIEngineRouter {
   public getEngineStatus() {
     return {
       initialized: this.initialized,
-      currentMode: this.currentMode,
+      currentMode: this.modeManager.getCurrentMode(),
       engines: {
         supabaseRAG: { ready: true, role: 'main' },
         googleAI: { ready: true, role: 'mode-dependent' },
@@ -930,7 +926,6 @@ export class UnifiedAIEngineRouter {
       successfulRequests: 0,
       failedRequests: 0,
       averageResponseTime: 0,
-      modeUsage: { LOCAL: 0, GOOGLE_AI: 0, AUTO: 0, GOOGLE_ONLY: 0 },
       engineUsage: {},
       lastUpdated: new Date().toISOString(),
     };
