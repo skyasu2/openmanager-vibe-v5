@@ -1,5 +1,5 @@
 /**
- * 🔍 OpenManager Vibe v5 - AI 엔진 로깅 시스템 고도화
+ * 🔍 OpenManager Vibe v5 - AI 엔진 로깅 시스템 고도화 (한국시간 기준)
  *
  * 고급 AI 로깅 시스템:
  * - Winston + Pino 하이브리드 로깅
@@ -7,11 +7,13 @@
  * - 성능 메트릭 수집
  * - 실시간 스트리밍
  * - 메모리 효율적 버퍼링
+ * - 한국시간(KST) 기준 타임스탬프
  */
 
 import chalk from 'chalk';
 import pino from 'pino';
 import winston from 'winston';
+import { KoreanTimeUtil } from '../../../utils/koreanTime';
 
 export enum LogLevel {
   ERROR = 'error',
@@ -320,7 +322,7 @@ export class AILogger {
     try {
       const logEntry: AILogEntry = {
         id: `ai-log-${++this.logCounter}-${Date.now()}`,
-        timestamp: new Date().toISOString(),
+        timestamp: KoreanTimeUtil.nowISO(),
         level: entry.level || LogLevel.INFO,
         category: entry.category || LogCategory.AI_ENGINE,
         engine: entry.engine || 'unknown',
@@ -433,7 +435,7 @@ export class AILogger {
       metadata: {
         ...metadata,
         operation,
-        timestamp: new Date().toISOString(),
+        timestamp: KoreanTimeUtil.nowISO(),
       },
       tags: ['performance', 'metrics', operation],
     });
@@ -461,7 +463,7 @@ export class AILogger {
         error: errorMessage,
         stack: errorStack,
         context,
-        timestamp: new Date().toISOString(),
+        timestamp: KoreanTimeUtil.nowISO(),
       },
       metadata: {
         errorType:
@@ -492,7 +494,7 @@ export class AILogger {
       data,
       metadata: {
         suggestions: suggestions || [],
-        timestamp: new Date().toISOString(),
+        timestamp: KoreanTimeUtil.nowISO(),
       },
       tags: ['warning', 'attention', category],
     });

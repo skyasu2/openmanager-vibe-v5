@@ -89,19 +89,29 @@ class VersionManager {
     }
 
     /**
-     * CHANGELOG.md 업데이트
-     */
+ * CHANGELOG.md 업데이트 (한국시간 기준)
+ */
     updateChangelog(version) {
-        const now = new Date().toISOString().split('T')[0];
+        // 한국시간(KST) 기준 날짜 생성
+        const kstDate = new Date().toLocaleDateString('sv-SE', {
+            timeZone: 'Asia/Seoul'
+        });
+        const kstTime = new Date().toLocaleString('ko-KR', {
+            timeZone: 'Asia/Seoul',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
         const changelogEntry = `
-## [${version}] - ${now}
+## [${version}] - ${kstDate} (KST)
 
 ### 🎉 새로운 기능
-- 버전 ${version} 릴리스
+- 버전 ${version} 릴리스 (${kstTime} KST)
 
 ### 🛠️ 개선사항
 - 자동 버전 관리 시스템 도입
 - Git 태그 자동 생성
+- 한국시간 기준 타임스탬프 적용
 
 ### 🐛 버그 수정
 - 버전 정보 동기화 개선
@@ -130,22 +140,27 @@ class VersionManager {
     }
 
     /**
-     * Git 태그 생성 및 푸시
-     */
+ * Git 태그 생성 및 푸시 (한국시간 기준)
+ */
     createGitTag(version) {
         try {
+            // 한국시간 타임스탬프 생성
+            const kstTimestamp = new Date().toLocaleString('sv-SE', {
+                timeZone: 'Asia/Seoul'
+            }).substring(0, 16) + ' KST';
+
             // 1. 변경사항 커밋
             execSync('git add -A', { stdio: 'inherit' });
-            execSync(`git commit -m "chore: 버전 ${version} 릴리스
+            execSync(`git commit -m "chore: 버전 ${version} 릴리스 (${kstTimestamp})
 
 📦 변경사항:
 - package.json 버전 업데이트: v${version}
 - description 버전 정보 동기화
-- CHANGELOG.md 자동 업데이트
+- CHANGELOG.md 자동 업데이트 (한국시간 기준)
 - 자동 버전 관리 시스템 적용"`, { stdio: 'inherit' });
 
             // 2. Git 태그 생성
-            execSync(`git tag -a v${version} -m "Release v${version}"`, { stdio: 'inherit' });
+            execSync(`git tag -a v${version} -m "Release v${version} (${kstTimestamp})"`, { stdio: 'inherit' });
 
             // 3. 원격 저장소에 푸시
             execSync('git push', { stdio: 'inherit' });
