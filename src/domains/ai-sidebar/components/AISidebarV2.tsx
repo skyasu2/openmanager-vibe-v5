@@ -17,7 +17,6 @@ import {
 } from '@/stores/useAISidebarStore';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  BarChart3,
   Bot,
   Brain,
   CheckCircle,
@@ -26,12 +25,8 @@ import {
   ChevronRight,
   ChevronUp,
   Clock,
-  Cpu,
-  Database,
   FileText,
   Globe,
-  HardDrive,
-  Search,
   Send,
   Server,
   Sparkles,
@@ -48,6 +43,9 @@ import { unifiedAIRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
 import { AI_ENGINES } from './AIEngineSelector';
 import { AISidebarHeader } from './AISidebarHeader';
 import { MCPServerStatusPanel } from './MCPServerStatusPanel';
+
+// 🎯 분리된 프리셋 질문 관리자 import
+import { PresetQuestionManager } from '../managers/PresetQuestionManager';
 
 // AI 기능 아이콘 패널 및 페이지 컴포넌트들
 import AIAgentIconPanel, {
@@ -87,14 +85,6 @@ interface AIEngine {
 // }
 // TODO: 향후 문서/로그 파일 업로드 분석 기능 개발 예정
 
-interface PresetQuestion {
-  id: string;
-  text: string;
-  category: string;
-  icon: React.ComponentType<any>;
-  color: string;
-}
-
 interface ChatMessage {
   id: string;
   type: 'user' | 'ai';
@@ -117,65 +107,7 @@ interface ThinkingStep {
 
 // AI_ENGINES는 이제 AIEngineSelector에서 import됨
 
-// 프리셋 질문 목록 (기존 유지)
-const PRESET_QUESTIONS: PresetQuestion[] = [
-  {
-    id: '1',
-    text: '현재 서버 상태는 어떤가요?',
-    category: '상태 확인',
-    icon: Cpu,
-    color: 'bg-blue-500',
-  },
-  {
-    id: '2',
-    text: 'CPU 사용률이 높은 서버를 찾아주세요',
-    category: '성능 분석',
-    icon: Zap,
-    color: 'bg-red-500',
-  },
-  {
-    id: '3',
-    text: '메모리 부족 경고가 있나요?',
-    category: '리소스 모니터링',
-    icon: Brain,
-    color: 'bg-yellow-500',
-  },
-  {
-    id: '4',
-    text: '네트워크 지연이 발생하고 있나요?',
-    category: '네트워크 진단',
-    icon: Globe,
-    color: 'bg-green-500',
-  },
-  {
-    id: '5',
-    text: '최근 에러 로그를 분석해주세요',
-    category: '로그 분석',
-    icon: FileText,
-    color: 'bg-purple-500',
-  },
-  {
-    id: '6',
-    text: '시스템 최적화 방안을 제안해주세요',
-    category: '최적화',
-    icon: Sparkles,
-    color: 'bg-pink-500',
-  },
-  {
-    id: '7',
-    text: '디스크 사용량이 임계치에 도달했나요?',
-    category: '스토리지',
-    icon: HardDrive,
-    color: 'bg-indigo-500',
-  },
-  {
-    id: '8',
-    text: '데이터베이스 연결 상태를 확인해주세요',
-    category: '데이터베이스',
-    icon: Database,
-    color: 'bg-teal-500',
-  },
-];
+// 프리셋 질문 목록은 PresetQuestionManager에서 관리됨
 
 interface AISidebarV2Props {
   isOpen: boolean;
@@ -191,6 +123,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   // 실제 AI 서비스 인스턴스
   const aiService = new RealAISidebarService();
 
+  // 🎯 분리된 프리셋 질문 관리자 인스턴스
+  const presetManager = PresetQuestionManager.getInstance();
+
   // UI 상태
   const [inputValue, setInputValue] = useState('');
   const [currentSessionId, setCurrentSessionId] = useState<string>('');
@@ -204,9 +139,10 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   // const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]); // TODO: 향후 파일 업로드 기능
   const [expandedThinking, setExpandedThinking] = useState<string | null>(null);
 
-  // 프리셋 질문 네비게이션 상태
-  const [currentPresetIndex, setCurrentPresetIndex] = useState(0);
-  const PRESETS_PER_PAGE = 4;
+  // 프리셋 질문 네비게이션 상태는 PresetQuestionManager에서 관리됨
+  const [presetNavigationState, setPresetNavigationState] = useState(
+    presetManager.getNavigationInfo()
+  );
 
   // 도메인 훅들 사용
   const { setOpen } = useAISidebarStore();
@@ -311,40 +247,29 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     }
   }, [isOpen]);
 
-  // 프리셋 질문 네비게이션 함수
+  // 프리셋 질문 네비게이션 함수들 - PresetQuestionManager 사용
   const getCurrentPresets = () => {
-    const startIndex = currentPresetIndex;
-    const endIndex = startIndex + PRESETS_PER_PAGE;
-    return PRESET_QUESTIONS.slice(startIndex, endIndex);
+    return presetManager.getCurrentPresets();
   };
 
   const goToPreviousPresets = () => {
-    setCurrentPresetIndex(prev =>
-      prev - PRESETS_PER_PAGE >= 0 ? prev - PRESETS_PER_PAGE : 0
-    );
+    if (presetManager.goToPreviousPresets()) {
+      setPresetNavigationState(presetManager.getNavigationInfo());
+    }
   };
 
   const goToNextPresets = () => {
-    setCurrentPresetIndex(prev =>
-      prev + PRESETS_PER_PAGE < PRESET_QUESTIONS.length
-        ? prev + PRESETS_PER_PAGE
-        : prev
-    );
+    if (presetManager.goToNextPresets()) {
+      setPresetNavigationState(presetManager.getNavigationInfo());
+    }
   };
 
-  const canGoPrevious = currentPresetIndex > 0;
-  const canGoNext =
-    currentPresetIndex + PRESETS_PER_PAGE < PRESET_QUESTIONS.length;
+  const canGoPrevious = presetManager.canGoPrevious();
+  const canGoNext = presetManager.canGoNext();
 
-  // 아이콘 매핑
+  // 아이콘 매핑 - PresetQuestionManager 사용
   const getIcon = (iconName: string) => {
-    const icons: Record<string, React.ComponentType<any>> = {
-      Server,
-      Search,
-      BarChart3,
-      Target,
-    };
-    return icons[iconName] || Server;
+    return presetManager.getIcon(iconName);
   };
 
   // 메시지 스크롤
@@ -1231,8 +1156,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                 <ChevronLeft className='w-3 h-3 text-gray-500' />
               </button>
               <span className='text-xs text-gray-500'>
-                {Math.floor(currentPresetIndex / PRESETS_PER_PAGE) + 1}/
-                {Math.ceil(PRESET_QUESTIONS.length / PRESETS_PER_PAGE)}
+                {presetManager.getCurrentPage()}/{presetManager.getTotalPages()}
               </span>
               <button
                 onClick={goToNextPresets}
