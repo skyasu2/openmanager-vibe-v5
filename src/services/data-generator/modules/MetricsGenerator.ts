@@ -40,16 +40,16 @@ export class MetricsGenerator {
   }
 
   /**
-   * 🏥 상태에 따른 메트릭 조정
+   * 🎯 상태별 메트릭 조정
    */
   private adjustMetricsByStatus(metrics: any, status: string): any {
     switch (status) {
       case 'error':
         return {
           ...metrics,
-          cpu: Math.min(95, metrics.cpu + 40),
-          memory: Math.min(98, metrics.memory + 30),
-          disk: Math.min(95, metrics.disk + 20),
+          cpu: Math.max(75, Math.min(95, metrics.cpu + 40)),
+          memory: Math.max(75, Math.min(98, metrics.memory + 30)),
+          disk: Math.max(65, Math.min(95, metrics.disk + 20)),
           responseTime: metrics.responseTime
             ? metrics.responseTime * 3
             : undefined,
@@ -58,16 +58,22 @@ export class MetricsGenerator {
       case 'warning':
         return {
           ...metrics,
-          cpu: Math.min(85, metrics.cpu + 20),
-          memory: Math.min(88, metrics.memory + 15),
-          disk: Math.min(85, metrics.disk + 10),
+          cpu: Math.max(35, Math.min(75, metrics.cpu + 20)),
+          memory: Math.max(40, Math.min(75, metrics.memory + 15)),
+          disk: Math.max(30, Math.min(65, metrics.disk + 10)),
           responseTime: metrics.responseTime
             ? metrics.responseTime * 1.5
             : undefined,
         };
 
       default:
-        return metrics;
+        // running 상태는 30% 미만으로 유지
+        return {
+          ...metrics,
+          cpu: Math.min(30, metrics.cpu),
+          memory: Math.min(35, metrics.memory),
+          disk: Math.min(25, metrics.disk),
+        };
     }
   }
 
