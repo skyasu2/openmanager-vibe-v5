@@ -16,354 +16,30 @@ import { DemoScenarioManager } from '@/services/DemoScenarioManager';
 // 시스템 상태 확인 유틸리티 import
 import { validateSystemForOperation } from '@/utils/systemStateChecker';
 
+// 🏗️ 분리된 서버 타입 레지스트리 import
+import {
+  RealWorldServerType,
+  ServerTypeRegistry,
+} from './registry/ServerTypeRegistry';
+
 // Redis 타입 정의 (동적 import용)
 type RedisType = any;
 
 // 중앙 서버 설정 import
 import { ACTIVE_SERVER_CONFIG, logServerConfig } from '@/config/serverConfig';
 
-// 🏗️ 실제 기업 환경 기반 서버 타입 정의
-interface RealWorldServerType {
-  id: string;
-  name: string;
-  category: 'web' | 'app' | 'database' | 'infrastructure';
-  os: string;
-  service: string;
-  port: number;
-  version?: string;
-  runtime?: string;
-}
-
-// 🎯 실제 기술 스택 기반 서버 타입들
-const REALISTIC_SERVER_TYPES: RealWorldServerType[] = [
-  // 웹서버 (25%)
-  {
-    id: 'nginx',
-    name: 'Nginx',
-    category: 'web',
-    os: 'ubuntu-22.04',
-    service: 'web-server',
-    port: 80,
-    version: '1.22.0',
-  },
-  {
-    id: 'apache',
-    name: 'Apache HTTP',
-    category: 'web',
-    os: 'centos-8',
-    service: 'web-server',
-    port: 80,
-    version: '2.4.54',
-  },
-  {
-    id: 'iis',
-    name: 'IIS',
-    category: 'web',
-    os: 'windows-2022',
-    service: 'web-server',
-    port: 80,
-    version: '10.0',
-  },
-
-  // 애플리케이션 서버 (30%)
-  {
-    id: 'nodejs',
-    name: 'Node.js',
-    category: 'app',
-    os: 'alpine-3.16',
-    service: 'app-server',
-    port: 3000,
-    runtime: 'node-18',
-  },
-  {
-    id: 'springboot',
-    name: 'Spring Boot',
-    category: 'app',
-    os: 'ubuntu-22.04',
-    service: 'app-server',
-    port: 8080,
-    runtime: 'openjdk-17',
-  },
-  {
-    id: 'django',
-    name: 'Django',
-    category: 'app',
-    os: 'ubuntu-20.04',
-    service: 'app-server',
-    port: 8000,
-    runtime: 'python-3.9',
-  },
-  {
-    id: 'dotnet',
-    name: '.NET Core',
-    category: 'app',
-    os: 'windows-2022',
-    service: 'app-server',
-    port: 5000,
-    runtime: 'dotnet-6',
-  },
-  {
-    id: 'php',
-    name: 'PHP-FPM',
-    category: 'app',
-    os: 'debian-11',
-    service: 'app-server',
-    port: 9000,
-    runtime: 'php-8.1',
-  },
-
-  // 데이터베이스 (20%)
-  {
-    id: 'mysql',
-    name: 'MySQL',
-    category: 'database',
-    os: 'ubuntu-20.04',
-    service: 'database',
-    port: 3306,
-    version: '8.0.30',
-  },
-  {
-    id: 'postgresql',
-    name: 'PostgreSQL',
-    category: 'database',
-    os: 'debian-11',
-    service: 'database',
-    port: 5432,
-    version: '14.5',
-  },
-  {
-    id: 'mongodb',
-    name: 'MongoDB',
-    category: 'database',
-    os: 'rhel-8',
-    service: 'database',
-    port: 27017,
-    version: '5.0.12',
-  },
-  {
-    id: 'oracle',
-    name: 'Oracle DB',
-    category: 'database',
-    os: 'oracle-linux-8',
-    service: 'database',
-    port: 1521,
-    version: '19c',
-  },
-  {
-    id: 'mssql',
-    name: 'SQL Server',
-    category: 'database',
-    os: 'windows-2019',
-    service: 'database',
-    port: 1433,
-    version: '2019',
-  },
-
-  // 인프라 서비스 (25%)
-  {
-    id: 'redis',
-    name: 'Redis',
-    category: 'infrastructure',
-    os: 'alpine-3.15',
-    service: 'cache',
-    port: 6379,
-    version: '7.0.5',
-  },
-  {
-    id: 'rabbitmq',
-    name: 'RabbitMQ',
-    category: 'infrastructure',
-    os: 'ubuntu-20.04',
-    service: 'message-queue',
-    port: 5672,
-    version: '3.10.7',
-  },
-  {
-    id: 'elasticsearch',
-    name: 'Elasticsearch',
-    category: 'infrastructure',
-    os: 'centos-7',
-    service: 'search',
-    port: 9200,
-    version: '8.4.3',
-  },
-  {
-    id: 'jenkins',
-    name: 'Jenkins',
-    category: 'infrastructure',
-    os: 'ubuntu-22.04',
-    service: 'ci-cd',
-    port: 8080,
-    version: '2.361.4',
-  },
-  {
-    id: 'prometheus',
-    name: 'Prometheus',
-    category: 'infrastructure',
-    os: 'ubuntu-22.04',
-    service: 'monitoring',
-    port: 9090,
-    version: '2.38.0',
-  },
-  {
-    id: 'kafka',
-    name: 'Apache Kafka',
-    category: 'infrastructure',
-    os: 'ubuntu-20.04',
-    service: 'message-queue',
-    port: 9092,
-    version: '3.2.3',
-  },
-];
-
-// 🎯 현실적인 서버 분포 비율 (기업 환경 기준)
-const SERVER_DISTRIBUTION = {
-  web: 0.25, // 웹서버 25%
-  app: 0.3, // 애플리케이션 30%
-  database: 0.2, // 데이터베이스 20%
-  infrastructure: 0.25, // 인프라 25%
-};
-
-// 🏷️ 호스트네임 생성 패턴: {service}-{tech}-{env}-{number}
-const HOSTNAME_PATTERNS = {
-  web: 'web',
-  app: 'app',
-  database: 'db',
-  infrastructure: 'infra',
-};
-
-// 🧮 동적 서버 분포 계산
-function calculateServerDistribution(
-  totalServers: number
-): Record<string, number> {
-  const distribution: Record<string, number> = {};
-  let allocated = 0;
-
-  // 각 카테고리별 서버 수 계산
-  for (const [category, percentage] of Object.entries(SERVER_DISTRIBUTION)) {
-    const count = Math.max(1, Math.round(totalServers * percentage));
-    distribution[category] = count;
-    allocated += count;
-  }
-
-  // 나머지는 웹서버에 할당 (반올림 오차 보정)
-  if (allocated !== totalServers) {
-    distribution.web += totalServers - allocated;
-  }
-
-  return distribution;
-}
-
-// 🎲 카테고리별 서버 타입 선택
-function getServerTypesForCategory(category: string): RealWorldServerType[] {
-  return REALISTIC_SERVER_TYPES.filter(type => type.category === category);
-}
-
-// 🏷️ 직관적인 호스트네임 생성
-function generateHostname(
-  serverType: RealWorldServerType,
-  environment: string,
-  index: number
-): string {
-  const servicePrefix = HOSTNAME_PATTERNS[serverType.category] || 'srv';
-  const envCode =
-    environment === 'production'
-      ? 'prod'
-      : environment === 'staging'
-        ? 'stg'
-        : environment === 'development'
-          ? 'dev'
-          : 'dev';
-  const paddedIndex = String(index).padStart(2, '0');
-
-  return `${servicePrefix}-${serverType.id}-${envCode}-${paddedIndex}`;
-}
-
-// 🎯 서버 타입별 특화 메트릭 생성
-function generateSpecializedMetrics(serverType: RealWorldServerType): any {
-  const baseMetrics = {
-    cpu: parseFloat((Math.random() * 80 + 10).toFixed(2)),
-    memory: parseFloat((Math.random() * 70 + 20).toFixed(2)),
-    disk: parseFloat((Math.random() * 60 + 30).toFixed(2)),
-    network: {
-      in: Math.random() * 100,
-      out: Math.random() * 100,
-    },
-    requests: Math.random() * 1000 + 100,
-    errors: Math.random() * 10,
-    uptime: Math.random() * 8760 * 3600, // 최대 1년
-    customMetrics: {},
-  };
-
-  // 서버 타입별 특화 메트릭 조정
-  switch (serverType.category) {
-    case 'database':
-      // 데이터베이스: 높은 메모리 사용률, 디스크 I/O 집약적
-      baseMetrics.memory = parseFloat((Math.random() * 30 + 60).toFixed(2)); // 60-90%
-      baseMetrics.disk = parseFloat((Math.random() * 40 + 50).toFixed(2)); // 50-90%
-      baseMetrics.customMetrics = {
-        connection_pool: Math.floor(Math.random() * 100 + 50),
-        query_time: parseFloat((Math.random() * 50 + 10).toFixed(2)),
-        active_connections: Math.floor(Math.random() * 200 + 50),
-      };
-      break;
-
-    case 'web':
-      // 웹서버: 높은 네트워크 I/O, 적은 메모리 사용
-      baseMetrics.network.in = Math.random() * 200 + 100; // 높은 네트워크 입력
-      baseMetrics.network.out = Math.random() * 150 + 75; // 높은 네트워크 출력
-      baseMetrics.memory = parseFloat((Math.random() * 40 + 20).toFixed(2)); // 20-60%
-      baseMetrics.requests = Math.random() * 2000 + 500; // 높은 요청 수
-      baseMetrics.customMetrics = {
-        concurrent_connections: Math.floor(Math.random() * 1000 + 200),
-        response_time: parseFloat((Math.random() * 100 + 50).toFixed(2)),
-        ssl_handshakes: Math.floor(Math.random() * 500 + 100),
-      };
-      break;
-
-    case 'app':
-      // 애플리케이션: 균형잡힌 CPU/메모리, 높은 처리량
-      baseMetrics.cpu = parseFloat((Math.random() * 50 + 40).toFixed(2)); // 40-90%
-      baseMetrics.memory = parseFloat((Math.random() * 50 + 35).toFixed(2)); // 35-85%
-      baseMetrics.requests = Math.random() * 1500 + 300;
-      baseMetrics.customMetrics = {
-        thread_pool: Math.floor(Math.random() * 50 + 10),
-        heap_usage: parseFloat((Math.random() * 60 + 30).toFixed(2)),
-        gc_time: parseFloat((Math.random() * 10 + 2).toFixed(2)),
-      };
-      break;
-
-    case 'infrastructure':
-      // 인프라: 특수 목적별 메트릭
-      if (serverType.id === 'redis') {
-        baseMetrics.memory = parseFloat((Math.random() * 40 + 50).toFixed(2)); // 캐시용 높은 메모리
-        baseMetrics.customMetrics = {
-          cache_hit_ratio: parseFloat((Math.random() * 20 + 80).toFixed(2)), // 80-100%
-          evicted_keys: Math.floor(Math.random() * 1000),
-          connected_clients: Math.floor(Math.random() * 100 + 20),
-        };
-      } else if (serverType.service === 'message-queue') {
-        baseMetrics.customMetrics = {
-          queue_depth: Math.floor(Math.random() * 10000 + 1000),
-          message_rate: Math.floor(Math.random() * 1000 + 100),
-          consumer_count: Math.floor(Math.random() * 20 + 5),
-        };
-      }
-      break;
-  }
-
-  return baseMetrics;
-}
+// 🏗️ 서버 타입 레지스트리 인스턴스 (분리된 모듈 사용)
+const serverTypeRegistry = ServerTypeRegistry.getInstance();
 
 export interface GeneratorConfig {
   maxServers?: number;
   updateInterval?: number;
   enableRealtime?: boolean;
   serverArchitecture?:
-  | 'single'
-  | 'primary-replica'
-  | 'load-balanced'
-  | 'microservices';
+    | 'single'
+    | 'primary-replica'
+    | 'load-balanced'
+    | 'microservices';
   enableRedis?: boolean;
   /**
    * ⚙️ 시나리오 기반 상태 분포 설정
@@ -783,8 +459,8 @@ export class RealServerDataGenerator {
 
     const totalServers = this.config.maxServers || 15;
 
-    // 🎯 동적 서버 분포 계산
-    const distribution = calculateServerDistribution(totalServers);
+    // 🎯 동적 서버 분포 계산 (분리된 모듈 사용)
+    const distribution = serverTypeRegistry.calculateDistribution(totalServers);
 
     let serverIndex = 1;
     let createdServers = 0;
@@ -792,7 +468,8 @@ export class RealServerDataGenerator {
     try {
       // 🏗️ 카테고리별 서버 생성
       for (const [category, count] of Object.entries(distribution)) {
-        const availableTypes = getServerTypesForCategory(category);
+        const availableTypes =
+          serverTypeRegistry.getServerTypesByCategory(category);
 
         for (let i = 0; i < count; i++) {
           try {
@@ -816,14 +493,15 @@ export class RealServerDataGenerator {
             const hostnameKey = `${serverType.id}-${environment}`;
             const currentCount = this.hostnameCounters.get(hostnameKey) || 0;
             this.hostnameCounters.set(hostnameKey, currentCount + 1);
-            const hostname = generateHostname(
+            const hostname = serverTypeRegistry.generateHostname(
               serverType,
               environment,
               currentCount + 1
             );
 
-            // 🎯 서버 타입별 특화 메트릭 생성
-            const specializedMetrics = generateSpecializedMetrics(serverType);
+            // 🎯 서버 타입별 특화 메트릭 생성 (분리된 모듈 사용)
+            const specializedMetrics =
+              serverTypeRegistry.generateSpecializedMetrics(serverType);
 
             // 🏗️ 서버 타입별 특화 사양 생성
             const specs = this.generateSpecializedSpecs(serverType);
@@ -1277,7 +955,7 @@ export class RealServerDataGenerator {
             Math.min(
               100,
               rawMetrics.memory +
-              (Math.random() - 0.5) * 15 * effectiveIntensity
+                (Math.random() - 0.5) * 15 * effectiveIntensity
             )
           ).toFixed(2)
         ),
@@ -1294,12 +972,12 @@ export class RealServerDataGenerator {
           in: Math.max(
             0,
             rawMetrics.network.in +
-            (Math.random() - 0.5) * 50 * effectiveIntensity
+              (Math.random() - 0.5) * 50 * effectiveIntensity
           ),
           out: Math.max(
             0,
             rawMetrics.network.out +
-            (Math.random() - 0.5) * 30 * effectiveIntensity
+              (Math.random() - 0.5) * 30 * effectiveIntensity
           ),
         },
       };
@@ -1482,12 +1160,12 @@ export class RealServerDataGenerator {
         avgCpu:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
-            servers.length
+              servers.length
             : 0,
         avgMemory:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
-            servers.length
+              servers.length
             : 0,
       },
       clusters: {
@@ -1522,9 +1200,9 @@ export class RealServerDataGenerator {
         avgResponseTime:
           applications.length > 0
             ? applications.reduce(
-              (sum, a) => sum + a.performance.responseTime,
-              0
-            ) / applications.length
+                (sum, a) => sum + a.performance.responseTime,
+                0
+              ) / applications.length
             : 0,
       },
       timestamp: Date.now(),
