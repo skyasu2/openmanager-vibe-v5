@@ -121,3 +121,26 @@ storybook-static/
 # External MCP servers (cloned from GitHub)
 fetch-mcp/
 fetch-mcp-server/
+
+# 📊 Report files and build artifacts (automatically generated)
+*-report.json
+*-results.json
+eslint-report.json
+cursor-test-report.json
+storybook-validation-report.json
+e2e-results.json
+test-report-*.json
+validation-report-*.json
+
+# 🏗️ Build and compilation artifacts
+/storybook-static/
+/build/
+/dist/
+*.tsbuildinfo
+*.buildinfo
+
+# 📋 Temporary documentation and test files
+test-*.html
+debug-*.html
+temp-*.html
+*-temp.html
