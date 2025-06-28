@@ -122,6 +122,15 @@ storybook-static/
 fetch-mcp/
 fetch-mcp-server/
 
+# 🚫 Fetch MCP 관련 파일들 (완전 제거됨 - 재생성 방지)
+*fetch-mcp*
+start-fetch-mcp*
+setup-fetch-mcp*
+fetch-mcp-client.*
+standalone-fetch-mcp.*
+cursor-mcp-config.*
+.cursor-mcp.*
+
 # 📊 Report files and build artifacts (automatically generated)
 *-report.json
 *-results.json
