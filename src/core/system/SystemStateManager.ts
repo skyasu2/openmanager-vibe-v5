@@ -1,7 +1,6 @@
-import { simulationEngine } from '../../services/simulationEngine';
-import { vercelStatusService } from '../../services/vercelStatusService';
-import { cacheService } from '../../services/cacheService';
 import { EventEmitter } from 'events';
+import { AdvancedSimulationEngine } from '../../services/AdvancedSimulationEngine';
+import { vercelStatusService } from '../../services/vercelStatusService';
 
 /**
  * 🔧 시스템 전체 상태 인터페이스
@@ -59,6 +58,7 @@ export class SystemStateManager extends EventEmitter {
   private currentStatus: SystemStatus | null = null;
   private updateTimer: NodeJS.Timeout | null = null;
   private readonly UPDATE_INTERVAL = 5000; // 5초마다 상태 업데이트
+  private simulationEngine: AdvancedSimulationEngine;
 
   // 성능 메트릭 추적
   private performanceMetrics = {
@@ -71,6 +71,7 @@ export class SystemStateManager extends EventEmitter {
 
   private constructor() {
     super();
+    this.simulationEngine = new AdvancedSimulationEngine();
     this.initializeStatusTracking();
   }
 
@@ -100,12 +101,11 @@ export class SystemStateManager extends EventEmitter {
    * 🔄 시뮬레이션 엔진 이벤트 리스너 설정
    */
   private setupSimulationEngineListeners(): void {
-    // 시뮬레이션 엔진은 EventEmitter를 상속받지 않으므로
-    // 주기적 폴링을 통해 상태 변화 감지
+    // 고급 시뮬레이션 엔진 상태 추적
     let lastRunningState = false;
 
     setInterval(() => {
-      const currentRunningState = simulationEngine.getIsRunning();
+      const currentRunningState = this.simulationEngine.getIsRunning();
 
       if (currentRunningState !== lastRunningState) {
         if (currentRunningState) {
@@ -127,9 +127,9 @@ export class SystemStateManager extends EventEmitter {
    */
   private async updateSystemStatus(): Promise<void> {
     try {
-      // 시뮬레이션 상태 수집
-      const simulationState = simulationEngine.getState();
-      const simulationSummary = simulationEngine.getSimulationSummary();
+      // 고급 시뮬레이션 엔진 상태 수집
+      const simulationStatus = this.simulationEngine.getStatus();
+      const isRunning = this.simulationEngine.getIsRunning();
 
       // Vercel 상태 수집
       const vercelStatus = vercelStatusService.getCurrentStatus();
@@ -160,7 +160,7 @@ export class SystemStateManager extends EventEmitter {
 
       // 헬스 상태 결정
       const health = this.determineHealthStatus(
-        simulationSummary,
+        simulationStatus,
         errorRate,
         averageResponseTime
       );
@@ -168,11 +168,11 @@ export class SystemStateManager extends EventEmitter {
       // 통합 상태 생성
       this.currentStatus = {
         simulation: {
-          isRunning: simulationState.isRunning,
+          isRunning: isRunning,
           startTime: null, // 기본값 사용
           runtime: 0, // 기본값 사용
-          dataCount: simulationSummary.totalServers || 0,
-          serverCount: simulationSummary.totalServers,
+          dataCount: simulationStatus.activeScenarios || 0,
+          serverCount: simulationStatus.activeScenarios || 15,
           updateInterval: scalingConfig.updateInterval,
         },
         environment: {
@@ -192,7 +192,7 @@ export class SystemStateManager extends EventEmitter {
         },
         health,
         services: {
-          simulation: simulationState.isRunning ? 'online' : 'offline',
+          simulation: isRunning ? 'online' : 'offline',
           cache: 'online', // 캐시는 항상 사용 가능
           prometheus: 'disabled', // 기본값 사용
           vercel: vercelStatus ? 'online' : 'unknown',
@@ -216,7 +216,7 @@ export class SystemStateManager extends EventEmitter {
    * 🏥 헬스 상태 결정
    */
   private determineHealthStatus(
-    simulationSummary: any,
+    simulationStatus: any,
     errorRate: number,
     averageResponseTime: number
   ): 'healthy' | 'warning' | 'critical' | 'degraded' {
@@ -229,7 +229,7 @@ export class SystemStateManager extends EventEmitter {
     if (
       errorRate > 5 ||
       averageResponseTime > 2000 ||
-      simulationSummary.activeFailures > simulationSummary.totalServers * 0.3
+      simulationStatus.activeFailures > simulationStatus.totalServers * 0.3
     ) {
       return 'warning';
     }
@@ -329,14 +329,14 @@ export class SystemStateManager extends EventEmitter {
     message: string;
   }> {
     try {
-      if (simulationEngine.getIsRunning()) {
+      if (this.simulationEngine.getIsRunning()) {
         return {
           success: false,
           message: '시뮬레이션이 이미 실행 중입니다.',
         };
       }
 
-      simulationEngine.start();
+      this.simulationEngine.start();
       await this.updateSystemStatus();
 
       return {
@@ -357,17 +357,17 @@ export class SystemStateManager extends EventEmitter {
     message: string;
   }> {
     try {
-      if (!simulationEngine.getIsRunning()) {
+      if (!this.simulationEngine.getIsRunning()) {
         return {
           success: false,
           message: '시뮬레이션이 실행 중이 아닙니다.',
         };
       }
 
-      const state = simulationEngine.getState();
+      const state = this.simulationEngine.getStatus();
       const runtime = 0; // 기본값 사용
 
-      simulationEngine.stop();
+      this.simulationEngine.stop();
       await this.updateSystemStatus();
 
       return {

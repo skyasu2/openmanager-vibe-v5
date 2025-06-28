@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { simulationEngine } from '../../../../services/simulationEngine';
+import { AdvancedSimulationEngine } from '../../../../services/AdvancedSimulationEngine';
 // import { prometheusFormatter } from '../../../../modules/data-generation/PrometheusMetricsFormatter'; // 🗑️ 프로메테우스 제거
 import type { EnhancedServerMetrics } from '../../../../types/server';
 
@@ -13,6 +13,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const startTime = Date.now();
+  const simulationEngine = new AdvancedSimulationEngine();
 
   try {
     const { id } = await params;
@@ -27,22 +28,21 @@ export async function GET(
       `📊 서버 [${id}] 정보 조회: history=${includeHistory}, range=${range}, format=${format}`
     );
 
-    // 1. 시뮬레이션 엔진 상태 확인
-    const currentState = simulationEngine.getState();
-    if (!currentState.isRunning) {
-      console.log('⚠️ 시뮬레이션 엔진이 실행되지 않음. 시작 시도...');
+    // 1. 고급 시뮬레이션 엔진 상태 확인
+    const isRunning = simulationEngine.getIsRunning();
+    if (!isRunning) {
+      console.log('⚠️ 고급 시뮬레이션 엔진이 실행되지 않음. 시작 시도...');
       simulationEngine.start();
       await new Promise(resolve => setTimeout(resolve, 100));
     }
 
-    // 2. 서버 찾기
-    let server: EnhancedServerMetrics | undefined =
-      simulationEngine.getServerById(id);
+    // 2. 메트릭 데이터 생성 및 특정 서버 찾기
+    const metrics = await simulationEngine.generateAdvancedMetrics();
+    let server = metrics.find(m => m.server_id === id);
 
     if (!server) {
       // hostname으로도 검색
-      const servers = simulationEngine.getServers();
-      server = servers.find(s => s.hostname === id);
+      server = metrics.find(m => m.server_id?.includes(id));
     }
 
     if (!server) {
@@ -51,18 +51,17 @@ export async function GET(
           success: false,
           error: 'Server not found',
           message: `서버 '${id}'를 찾을 수 없습니다`,
-          available_servers: simulationEngine
-            .getServers()
-            .map(s => ({ id: s.id, hostname: s.hostname })),
+          available_servers: metrics.map(m => ({
+            id: m.server_id,
+            hostname: m.server_id,
+          })),
           timestamp: new Date().toISOString(),
         },
         { status: 404 }
       );
     }
 
-    console.log(
-      `✅ 서버 [${id}] 발견: ${server.hostname} (${server.environment}/${server.role})`
-    );
+    console.log(`✅ 서버 [${id}] 발견: ${server.server_id} (메트릭 데이터)`);
 
     // 3. 응답 형식에 따른 처리
     if (format === 'prometheus') {
@@ -71,52 +70,46 @@ export async function GET(
         {
           error: 'Prometheus format is no longer supported',
           message: 'Please use JSON format instead',
-          server_id: server.id,
+          server_id: server.server_id,
         },
         { status: 410 } // Gone
       );
     } else if (format === 'legacy') {
       // 레거시 형식
       const legacyServer = {
-        id: server.id,
-        hostname: server.hostname,
-        name: `OpenManager-${server.id}`,
-        type: server.role,
-        environment: server.environment,
-        location: getLocationByEnvironment(server.environment),
-        provider: getProviderByEnvironment(server.environment),
+        id: server.server_id,
+        hostname: server.server_id,
+        name: `OpenManager-${server.server_id}`,
+        type: 'app',
+        environment: 'production',
+        location: 'Seoul-DC-1',
+        provider: 'AWS',
         status:
-          server.status === 'healthy'
-            ? 'online'
-            : server.status === 'warning'
-              ? 'warning'
-              : 'offline',
-        cpu: Math.round(server.cpu_usage),
-        memory: Math.round(server.memory_usage),
-        disk: Math.round(server.disk_usage),
-        uptime: formatUptime(server.uptime),
-        lastUpdate: new Date(
-          server.last_updated || server.timestamp || Date.now()
-        ),
-        alerts: server.alerts?.length || 0,
-        services: generateServices(server.role),
-        specs: generateSpecs(server.id),
-        os: generateSpecs(server.id).os,
-        ip: generateIP(server.id),
+          server.cpu > 80 ? 'warning' : server.cpu > 95 ? 'critical' : 'online',
+        cpu: Math.round(server.cpu),
+        memory: Math.round(server.memory),
+        disk: Math.round(server.disk),
+        uptime: formatUptime(Math.random() * 8760 * 3600),
+        lastUpdate: new Date(server.timestamp),
+        alerts: server.cpu > 80 ? 1 : 0,
+        services: generateServices('app'),
+        specs: generateSpecs(server.server_id || id),
+        os: generateSpecs(server.server_id || id).os,
+        ip: generateIP(server.server_id || id),
         metrics: {
-          cpu: Math.round(server.cpu_usage),
-          memory: Math.round(server.memory_usage),
-          disk: Math.round(server.disk_usage),
-          network_in: Math.round(server.network_in),
-          network_out: Math.round(server.network_out),
-          response_time: Math.round(server.response_time),
+          cpu: Math.round(server.cpu),
+          memory: Math.round(server.memory),
+          disk: Math.round(server.disk),
+          network_in: Math.round(server.network),
+          network_out: Math.round(server.network * 0.8),
+          response_time: Math.round(Math.random() * 500 + 100),
         },
       };
 
       // 히스토리 데이터 생성 (요청시)
       let history = null;
       if (includeHistory) {
-        history = generateServerHistory(server, range);
+        history = generateServerHistory(legacyServer as any, range);
       }
 
       return NextResponse.json({
@@ -136,51 +129,68 @@ export async function GET(
       const enhancedResponse = {
         // 기본 서버 정보
         server_info: {
-          id: server.id,
-          hostname: server.hostname,
-          environment: server.environment,
-          role: server.role,
-          status: server.status,
-          uptime: formatUptime(server.uptime),
-          last_updated: server.last_updated,
+          id: server.server_id,
+          hostname: server.server_id,
+          environment: 'production',
+          role: 'app',
+          status:
+            server.cpu > 80
+              ? 'warning'
+              : server.cpu > 95
+                ? 'critical'
+                : 'healthy',
+          uptime: formatUptime(Math.random() * 8760 * 3600),
+          last_updated: server.timestamp,
         },
 
         // 현재 메트릭
         current_metrics: {
-          cpu_usage: server.cpu_usage,
-          memory_usage: server.memory_usage,
-          disk_usage: server.disk_usage,
-          network_in: server.network_in,
-          network_out: server.network_out,
-          response_time: server.response_time,
+          cpu_usage: server.cpu,
+          memory_usage: server.memory,
+          disk_usage: server.disk,
+          network_in: server.network,
+          network_out: server.network * 0.8,
+          response_time: Math.random() * 500 + 100,
         },
 
         // 리소스 정보
-        resources: generateSpecs(server.id),
+        resources: generateSpecs(server.server_id || id),
         network: {
-          ip: generateIP(server.id),
-          hostname: server.hostname,
+          ip: generateIP(server.server_id || id),
+          hostname: server.server_id || id,
           interface: 'eth0',
         },
 
         // 알람 정보
-        alerts: server.alerts || [],
+        alerts:
+          server.cpu > 80
+            ? [
+                {
+                  id: 'cpu-high',
+                  severity: 'warning',
+                  message: 'High CPU usage detected',
+                  timestamp: server.timestamp,
+                },
+              ]
+            : [],
 
         // 서비스 정보
-        services: generateServices(server.role),
+        services: generateServices('app'),
       };
 
       // 패턴 정보 포함 (요청시)
-      if (includePatterns && server.pattern_info) {
-        (enhancedResponse as any).pattern_info = server.pattern_info;
-        (enhancedResponse as any).correlation_metrics =
-          server.correlation_metrics;
+      if (includePatterns && server.scenario) {
+        (enhancedResponse as any).pattern_info = server.scenario;
+        (enhancedResponse as any).correlation_metrics = {
+          confidence: server.confidence,
+          data_source: server.data_source,
+        };
       }
 
       // 히스토리 데이터 (요청시)
       if (includeHistory) {
         (enhancedResponse as any).history = generateServerHistory(
-          server,
+          enhancedResponse as any,
           range
         );
       }
@@ -198,16 +208,21 @@ export async function GET(
             processing_time_ms: Date.now() - startTime,
             timestamp: new Date().toISOString(),
           },
-          simulation_info: simulationEngine.getSimulationSummary(),
+          simulation_info: simulationEngine.getStatus(),
         },
         data: enhancedResponse,
       };
 
       return NextResponse.json(response, {
         headers: {
-          'X-Server-Id': server.id,
-          'X-Hostname': server.hostname,
-          'X-Server-Status': server.status,
+          'X-Server-Id': server.server_id || id,
+          'X-Hostname': server.server_id || id,
+          'X-Server-Status':
+            server.cpu > 80
+              ? 'warning'
+              : server.cpu > 95
+                ? 'critical'
+                : 'healthy',
           'X-Processing-Time-Ms': (Date.now() - startTime).toString(),
         },
       });

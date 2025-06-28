@@ -9,39 +9,32 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { OptimizedDataGenerator } from '../../../services/OptimizedDataGenerator';
+import { MetricsGenerator } from '../../../services/data-generator/modules/MetricsGenerator';
 
 /**
  * 🎯 표준 Prometheus /metrics 엔드포인트
  * 실제 Prometheus 서버와 100% 호환
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    // 목업 메트릭 데이터
-    const metrics = {
-      totalServers: 20,
-      onlineServers: 15,
-      warningServers: 3,
-      offlineServers: 2,
-      averageCpu: Math.floor(Math.random() * 60) + 20, // 20-80%
-      averageMemory: Math.floor(Math.random() * 50) + 30, // 30-80%
-      averageDisk: Math.floor(Math.random() * 40) + 15, // 15-55%
-      totalAlerts: Math.floor(Math.random() * 10) + 2, // 2-12
-      timestamp: new Date().toISOString(),
-    };
+    const { searchParams } = new URL(request.url);
+    const count = parseInt(searchParams.get('count') || '20');
 
-    return NextResponse.json(metrics, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30',
-      },
+    const metricsGenerator = new MetricsGenerator();
+    const metrics = await metricsGenerator.generateMetrics(count);
+
+    return NextResponse.json({
+      success: true,
+      metrics,
+      count: metrics.length,
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('❌ Failed to fetch metrics:', error);
-
+    console.error('메트릭 생성 실패:', error);
     return NextResponse.json(
       {
-        error: 'Failed to fetch metrics',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        success: false,
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
       { status: 500 }
     );
@@ -226,8 +219,8 @@ async function executePromQLQuery(
   query: string,
   time?: number
 ): Promise<any[]> {
-  const generator = OptimizedDataGenerator.getInstance();
-  const servers = await generator.generateRealTimeData();
+  const metricsGenerator = new MetricsGenerator();
+  const servers = await metricsGenerator.generateMetrics(20);
 
   // 간단한 PromQL 쿼리 파싱 (실제로는 더 복잡한 파서가 필요)
   if (query.includes('cpu_usage_percent')) {
