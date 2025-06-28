@@ -16,8 +16,7 @@ module.exports = function (api) {
       ['@babel/preset-react', { runtime: 'automatic' }],
     ],
     plugins: [
-      '@babel/plugin-transform-class-properties',
-      '@babel/plugin-transform-object-rest-spread',
+      // 최신 preset에 포함되어 별도 플러그인 불필요
     ],
   };
 };
