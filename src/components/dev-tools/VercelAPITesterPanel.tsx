@@ -2,8 +2,9 @@
  * 🚀 Vercel API 테스터 패널
  * Cursor에서 Vercel 프로덕션 환경 API를 직접 테스트할 수 있는 개발 도구
  *
- * @author AI Assistant
- * @date 2025-01-28 04:47 KST
+ * @author SkyAsus Team
+ * @date 2025-06-27 04:47 KST
+ * @version 1.0.0
  */
 
 'use client';

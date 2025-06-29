@@ -1,11 +1,10 @@
 /**
- * 🚀 베르셀 친화적 Redis 기반 시스템 스토어 v2.0
- *
- * 한국시간: 2025-01-28 02:20 KST
- * - Redis/Upstash 기반 다중 사용자 동기화
- * - 서버리스 환경 최적화
- * - 세션 기반 실시간 상태 관리
- * - 자동 폴백 및 에러 처리
+ * 🔄 베르셀 시스템 상태 관리 스토어 v2.0  
+ * 한국시간: 2025-06-26 02:20 KST
+ * 
+ * ✅ Redis/Upstash 기반 실시간 동기화
+ * ✅ 베르셀 친화적 아키텍처 
+ * ✅ 세션 기반 상태 관리
  */
 
 'use client';
@@ -292,31 +291,24 @@ export const useVercelSystemStore = create<VercelSystemStore>()(
         }
       },
 
-      // 폴링 시작
+      // 폴링 시작 - 통합 스토어로 대체됨
       startPolling: () => {
-        const store = get();
+        console.log('⚠️ 베르셀 시스템 개별 폴링이 통합 실시간 스토어로 대체되었습니다.');
 
+        const store = get();
         if (store.pollingInterval) {
           clearInterval(store.pollingInterval);
         }
 
-        // 즉시 한 번 실행
+        // 즉시 한 번만 실행하고 폴링은 중단
         store.fetchSystemState();
 
-        // 10초마다 폴링
-        const interval = setInterval(() => {
-          const currentStore = get();
-          if (currentStore.pollingEnabled) {
-            currentStore.fetchSystemState();
-          }
-        }, 10000);
-
         set({
-          pollingEnabled: true,
-          pollingInterval: interval,
+          pollingEnabled: false, // 개별 폴링 비활성화
+          pollingInterval: null,
         });
 
-        console.log('🔄 Redis 폴링 시작 (10초 간격)');
+        console.log('✅ 베르셀 시스템 상태 초기화 완료 - 통합 폴링 사용');
       },
 
       // 폴링 중지
@@ -332,7 +324,7 @@ export const useVercelSystemStore = create<VercelSystemStore>()(
           pollingInterval: null,
         });
 
-        console.log('⏹️ Redis 폴링 중지');
+        console.log('⏹️ 베르셀 시스템 폴링 중지');
       },
 
       // 상태 초기화

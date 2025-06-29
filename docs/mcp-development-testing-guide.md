@@ -1,6 +1,6 @@
 # 🚀 OpenManager Vibe v5 - MCP 개발/테스트 완전 가이드
 
-## 📅 작성일: 2025-01-28 15:30 KST
+## 📅 작성일: 2025-06-28 15:30 KST
 
 ## 🎯 **개요**
 
@@ -87,7 +87,7 @@ const response = await fetch('/api/mcp', {
 {
   "success": true,
   "data": {
-    "timestamp": "2025-01-28T06:30:00.000Z",
+    "timestamp": "2025-06-28T06:30:00.000Z",
     "uptime": 1286.0948061,
     "memory": {
       "rss": 232267776,
@@ -201,7 +201,7 @@ curl https://openmanager-vibe-v5-p64aybo8u-skyasus-projects.vercel.app/api/mcp
   "tool": "get_system_status",
   "success": true,
   "responseTime": 47,
-  "timestamp": "2025-01-28T06:30:00.000Z"
+  "timestamp": "2025-06-28T06:30:00.000Z"
 }
 ```
 

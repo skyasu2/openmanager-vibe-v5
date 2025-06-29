@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * 🔧 시스템 상태 확인 API v2.0 - 2025.01.27 KST
+ * 🔧 시스템 상태 확인 API v2.0 - 2025.06.27 KST
  * GET /api/system/status
  *
  * ✅ 관리자 대시보드 호환성 보장

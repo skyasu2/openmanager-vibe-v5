@@ -265,28 +265,23 @@ export const useServerDataStore = create<ServerDataState>()(
         await get().fetchServers();
       },
 
-      // 실시간 업데이트 시작
+      // 실시간 업데이트 시작 - 통합 스토어로 대체됨
       startRealTimeUpdates: () => {
+        console.log('⚠️ 개별 폴링이 통합 실시간 스토어로 대체되었습니다. globalRealtimeStore를 사용하세요.');
+
         // 기존 타이머가 있으면 정리
         const existingInterval = (get() as any)._updateInterval;
         if (existingInterval) {
           clearInterval(existingInterval);
           console.log('🔄 기존 폴링 타이머 정리됨');
+          delete (get() as any)._updateInterval;
         }
-
-        // ✅ 폴링 주기 최적화: 35초로 조정 (30-40초 갱신 주기에 맞춤)
-        const updateInterval = setInterval(() => {
-          console.log('🔄 서버 데이터 자동 업데이트 (35초 주기)');
-          get().fetchServers();
-        }, 35000); // 35초마다 업데이트
-
-        // 정리를 위해 interval ID 저장
-        (get() as any)._updateInterval = updateInterval;
-        console.log('✅ 실시간 업데이트 시작 (35초 주기)');
       },
 
-      // 실시간 업데이트 중지
+      // 실시간 업데이트 중지 - 통합 스토어로 대체됨
       stopRealTimeUpdates: () => {
+        console.log('⚠️ 개별 폴링이 통합 실시간 스토어로 대체되었습니다.');
+
         const interval = (get() as any)._updateInterval;
         if (interval) {
           clearInterval(interval);

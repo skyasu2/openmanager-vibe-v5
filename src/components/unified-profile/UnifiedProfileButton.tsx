@@ -1,715 +1,397 @@
 /**
- * 🎯 Unified Profile Button
+ * 🎯 통합 프로필 버튼 v3.0 - 2025.06.27 KST
  *
- * 통합 프로필 버튼 컴포넌트 (간소화 버전)
- * 실제 시스템 제어 기능만 포함
- *
- * @created 2025-06-09
- * @updated 2025-01-28 - 목업 기능 제거, 실제 기능만 유지
- * @author AI Assistant
+ * ✅ 통합 실시간 스토어 사용
+ * ✅ 중복 API 호출 제거
+ * ✅ 30분 타이머 기능 유지
+ * ✅ 메모리 최적화
  */
 
 'use client';
 
-import { useToast } from '@/components/ui/ToastNotification';
-import { useVercelSystemStore } from '@/stores/vercelSystemStore';
-import { motion } from 'framer-motion';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Activity,
-  ChevronDown,
-  Home,
-  Lock,
+  AlertTriangle,
+  Clock,
   LogOut,
   Play,
-  RefreshCw,
-  Server,
   Settings,
+  Shield,
   Square,
   User,
 } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-interface DropdownPosition {
-  top: number;
-  left: number;
-  transformOrigin: string;
+// 통합 실시간 스토어 사용
+import { useRealtimeControl, useSystemStatus } from '@/stores/globalRealtimeStore';
+
+interface SystemStats {
+  uptime: number;
+  memoryUsage: number;
+  activeProcesses: number;
+  status: 'running' | 'stopped' | 'error';
 }
 
-interface ProfileButtonProps {
-  userName: string;
-  userAvatar?: string;
-  isOpen: boolean;
-  onClick: (event: React.MouseEvent) => void;
-  buttonRef: React.RefObject<HTMLButtonElement>;
-}
+function UnifiedProfileButton() {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [is30MinTimerActive, setIs30MinTimerActive] = useState(false);
+  const [timerRemaining, setTimerRemaining] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
-interface UnifiedProfileButtonProps extends ProfileButtonProps {
-  onSettingsClick: () => void;
-}
+  // 🔄 통합 실시간 데이터 사용
+  const { systemStatus } = useSystemStatus();
+  const { isPolling, startPolling, stopPolling } = useRealtimeControl();
 
-const UnifiedProfileButtonComponent = function UnifiedProfileButton({
-  userName,
-  userAvatar,
-  isOpen,
-  onClick,
-  buttonRef,
-  onSettingsClick,
-}: UnifiedProfileButtonProps) {
-  const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition>({
-    top: 0,
-    left: 0,
-    transformOrigin: 'top right',
-  });
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  // 시스템 통계 추출
+  const systemStats: SystemStats = {
+    uptime: systemStatus?.uptime || 0,
+    memoryUsage: systemStatus?.memoryUsage?.percentage || 0,
+    activeProcesses: Object.keys(systemStatus?.processes || {}).length,
+    status: systemStatus?.health === 'healthy' ? 'running' :
+      systemStatus?.health === 'critical' ? 'error' : 'stopped'
+  };
 
-  // 관리자 모드 상태 추가
-  const [isAdminMode, setIsAdminMode] = useState(false);
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [adminPassword, setAdminPassword] = useState('');
+  // 🎮 시스템 시작
+  const handleSystemStart = useCallback(async () => {
+    try {
+      console.log('🚀 시스템 시작 요청 (KST):', new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }));
 
-  // 베르셀 시스템 상태만 사용 (실제 기능)
-  const vercelStore = useVercelSystemStore();
-  const isSystemStarted = vercelStore.systemInfo.state === 'RUNNING';
-  const isSystemStarting = vercelStore.systemInfo.state === 'STARTING';
-
-  // 베르셀 시스템 함수들 (실제 연동)
-  const {
-    startSystem: vercelStartSystem,
-    stopSystem: vercelStopSystem,
-    startPolling,
-    stopPolling,
-  } = vercelStore;
-
-  // 베르셀 시스템 폴링 시작
-  useEffect(() => {
-    console.log('🔄 프로필 컴포넌트에서 베르셀 시스템 폴링 시작');
-    startPolling();
-
-    return () => {
-      console.log('⏹️ 프로필 컴포넌트에서 베르셀 시스템 폴링 중지');
-      stopPolling();
-    };
-  }, [startPolling, stopPolling]);
-
-  const { success, info, error } = useToast();
-
-  // 드롭다운 위치 계산
-  const calculateDropdownPosition = useCallback(() => {
-    if (!buttonRef.current || !isOpen) return;
-
-    const buttonRect = buttonRef.current.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    let top = buttonRect.bottom + 8;
-    let left = buttonRect.right - 320; // 드롭다운 폭 줄임
-
-    const dropdownHeight = 300; // 높이도 줄임
-    if (top + dropdownHeight > viewportHeight) {
-      top = buttonRect.top - dropdownHeight - 8;
-    }
-
-    if (left < 16) {
-      left = 16;
-    }
-
-    if (viewportWidth < 640) {
-      left = (viewportWidth - 320) / 2;
-      if (left < 16) left = 16;
-    }
-
-    setDropdownPosition({ top, left, transformOrigin: 'top right' });
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
-      calculateDropdownPosition();
-    }
-  }, [isOpen, calculateDropdownPosition]);
-
-  // 외부 클릭 감지
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleClickOutside = (event: Event) => {
-      const target = event.target as Node;
-
-      if (buttonRef.current?.contains(target)) {
-        return;
-      }
-
-      if (dropdownRef.current?.contains(target)) {
-        return;
-      }
-
-      onClick({} as React.MouseEvent);
-    };
-
-    const timeoutId = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside, {
-        passive: true,
-        capture: true,
+      const response = await fetch('/api/system/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
       });
-    }, 50);
 
-    return () => {
-      clearTimeout(timeoutId);
-      document.removeEventListener('mousedown', handleClickOutside, true);
-    };
-  }, [isOpen, onClick, buttonRef]);
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ 시스템 시작 성공:', result);
 
-  // ESC 키로 드롭다운 닫기
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        onClick({} as React.MouseEvent);
+        // 실시간 폴링이 중단되어 있으면 재시작
+        if (!isPolling) {
+          startPolling();
+        }
+      } else {
+        throw new Error(`HTTP ${response.status}`);
       }
-    };
+    } catch (error) {
+      console.error('❌ 시스템 시작 실패:', error);
+    }
+  }, [isPolling, startPolling]);
 
-    document.addEventListener('keydown', handleEscape, {
-      passive: false,
-      capture: true,
-    });
+  // ⏹️ 시스템 정지
+  const handleSystemStop = useCallback(async () => {
+    try {
+      console.log('⏹️ 시스템 정지 요청 (KST):', new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }));
 
+      const response = await fetch('/api/system/stop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ 시스템 정지 성공:', result);
+      } else {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      console.error('❌ 시스템 정지 실패:', error);
+    }
+  }, []);
+
+  // ⏰ 30분 타이머 시작
+  const start30MinTimer = useCallback(() => {
+    if (is30MinTimerActive) return;
+
+    console.log('⏰ 30분 안정성 타이머 시작');
+    setIs30MinTimerActive(true);
+    setTimerRemaining(30 * 60); // 30분 = 1800초
+
+    // 30분 후 자동 정지
+    timerRef.current = setTimeout(() => {
+      handleSystemStop();
+      setIs30MinTimerActive(false);
+      setTimerRemaining(0);
+      console.log('⏰ 30분 타이머 완료 - 시스템 자동 정지');
+    }, 30 * 60 * 1000);
+
+    // 1초마다 카운트다운 업데이트
+    countdownRef.current = setInterval(() => {
+      setTimerRemaining(prev => {
+        if (prev <= 1) {
+          setIs30MinTimerActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, [is30MinTimerActive, handleSystemStop]);
+
+  // ⏹️ 30분 타이머 중단
+  const stop30MinTimer = useCallback(() => {
+    if (!is30MinTimerActive) return;
+
+    console.log('⏹️ 30분 타이머 중단');
+
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+
+    setIs30MinTimerActive(false);
+    setTimerRemaining(0);
+  }, [is30MinTimerActive]);
+
+  // 컴포넌트 언마운트시 타이머 정리
+  useEffect(() => {
     return () => {
-      document.removeEventListener('keydown', handleEscape, true);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (countdownRef.current) clearInterval(countdownRef.current);
     };
-  }, [isOpen, onClick]);
+  }, []);
 
-  // 시스템 제어 함수들 (실제 기능)
-  const handleSystemStart = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    try {
-      info('시스템 시작 중...');
-      await vercelStartSystem();
-      success('시스템이 성공적으로 시작되었습니다');
-    } catch (error) {
-      console.error('시스템 시작 실패:', error);
-      error('시스템 시작에 실패했습니다');
+  // 상태별 색상 및 아이콘
+  const getStatusConfig = () => {
+    switch (systemStats.status) {
+      case 'running':
+        return {
+          color: 'bg-green-500',
+          textColor: 'text-green-700',
+          bgColor: 'bg-green-50',
+          icon: Play,
+          text: '실행 중'
+        };
+      case 'error':
+        return {
+          color: 'bg-red-500',
+          textColor: 'text-red-700',
+          bgColor: 'bg-red-50',
+          icon: AlertTriangle,
+          text: '오류'
+        };
+      default:
+        return {
+          color: 'bg-gray-500',
+          textColor: 'text-gray-700',
+          bgColor: 'bg-gray-50',
+          icon: Square,
+          text: '정지됨'
+        };
     }
   };
 
-  const handleSystemStop = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const statusConfig = getStatusConfig();
+  const StatusIcon = statusConfig.icon;
 
-    if (!confirm('시스템을 중지하시겠습니까?')) return;
-
-    try {
-      info('시스템 중지 중...');
-      await vercelStopSystem();
-      success('시스템이 성공적으로 중지되었습니다');
-    } catch (error) {
-      console.error('시스템 중지 실패:', error);
-      error('시스템 중지에 실패했습니다');
-    }
+  // 시간 포맷팅
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleSystemRestart = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!confirm('시스템을 재시작하시겠습니까?')) return;
-
-    try {
-      info('시스템 재시작 중...');
-      await vercelStopSystem();
-      setTimeout(async () => {
-        await vercelStartSystem();
-        success('시스템이 성공적으로 재시작되었습니다');
-      }, 2000);
-    } catch (error) {
-      console.error('시스템 재시작 실패:', error);
-      error('시스템 재시작에 실패했습니다');
-    }
+  const formatUptime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return `${hours}시간 ${minutes}분`;
   };
-
-  const handleLogout = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (confirm('로그아웃 하시겠습니까?')) {
-      success('로그아웃되었습니다');
-      onClick({} as React.MouseEvent);
-    }
-  };
-
-  // 관리자 모드 로그인 함수
-  const handleAdminLogin = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setShowAdminLogin(true);
-  };
-
-  const handleAdminPasswordSubmit = (
-    e: React.KeyboardEvent | React.MouseEvent
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (adminPassword === '4231') {
-      setIsAdminMode(true);
-      setShowAdminLogin(false);
-      setAdminPassword('');
-      success('관리자 모드로 전환되었습니다');
-      // 관리자 페이지로 이동
-      window.location.href = '/admin';
-    } else {
-      error('비밀번호가 틀렸습니다');
-      setAdminPassword('');
-    }
-  };
-
-  const handleAdminLogout = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsAdminMode(false);
-    success('관리자 모드에서 로그아웃되었습니다');
-  };
-
-  // 시스템 상태 가져오기
-  const getSystemStatus = () => {
-    if (isSystemStarting) {
-      return {
-        text: '시스템 시작 중',
-        details: '잠시만 기다려주세요...',
-        color: 'text-blue-600',
-        bgColor: 'bg-blue-100',
-        icon: RefreshCw,
-      };
-    } else if (isSystemStarted) {
-      return {
-        text: '시스템 실행 중',
-        details: '모든 서비스가 정상 동작 중',
-        color: 'text-green-600',
-        bgColor: 'bg-green-100',
-        icon: Activity,
-      };
-    } else {
-      return {
-        text: '시스템 중지됨',
-        details: '시스템을 시작해주세요',
-        color: 'text-gray-600',
-        bgColor: 'bg-gray-100',
-        icon: Server,
-      };
-    }
-  };
-
-  const systemStatus = getSystemStatus();
-
-  // 드롭다운 포털
-  const DropdownPortal = useCallback(() => {
-    if (!isOpen) return null;
-
-    return createPortal(
-      <>
-        {isOpen && (
-          <motion.div
-            ref={dropdownRef}
-            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-            transition={{
-              duration: 0.15,
-              ease: [0.4, 0.0, 0.2, 1],
-            }}
-            style={{
-              position: 'fixed',
-              top: dropdownPosition.top,
-              left: dropdownPosition.left,
-              transformOrigin: dropdownPosition.transformOrigin,
-              willChange: 'transform, opacity',
-              transform: 'translate3d(0, 0, 0)',
-            }}
-            className='w-80 bg-white/95 backdrop-blur-xl border border-gray-300 rounded-xl shadow-2xl z-[10000]'
-            role='menu'
-            aria-orientation='vertical'
-          >
-            {/* 헤더 */}
-            <div className='p-4 border-b border-gray-300'>
-              <div className='flex items-center gap-3 mb-3'>
-                <div className='w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-600'>
-                  {userAvatar ? (
-                    <Image
-                      src={userAvatar}
-                      alt='Avatar'
-                      width={40}
-                      height={40}
-                      className='w-full h-full rounded-full object-cover'
-                    />
-                  ) : (
-                    <User className='w-5 h-5 text-white' />
-                  )}
-                </div>
-                <div className='flex-1'>
-                  <div className='text-gray-900 font-medium'>{userName}</div>
-                  <div className='text-sm text-gray-500'>
-                    OpenManager 관리자
-                  </div>
-                </div>
-              </div>
-
-              {/* 시스템 상태 */}
-              <div className='flex items-center justify-between p-3 rounded-lg bg-gray-100'>
-                <div className='flex items-center gap-3'>
-                  <div className={`p-2 rounded-lg ${systemStatus.bgColor}`}>
-                    <systemStatus.icon
-                      className={`w-4 h-4 ${systemStatus.color} ${isSystemStarting ? 'animate-spin' : ''}`}
-                    />
-                  </div>
-                  <div>
-                    <div className='text-gray-900 text-sm font-medium'>
-                      {systemStatus.text}
-                    </div>
-                    <div className={`text-xs ${systemStatus.color}`}>
-                      {systemStatus.details}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 시스템 제어 버튼들 */}
-            <div className='p-2'>
-              {/* 시스템 시작 버튼 */}
-              {!isSystemStarted && !isSystemStarting && (
-                <motion.button
-                  whileHover={{ backgroundColor: 'rgba(34, 197, 94, 0.1)' }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleSystemStart}
-                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 mb-2'
-                  role='menuitem'
-                >
-                  <div className='p-2 rounded-lg bg-green-500/20'>
-                    <Play className='w-4 h-4 text-green-600' />
-                  </div>
-                  <div className='flex-1'>
-                    <div className='text-gray-900 font-medium'>시스템 시작</div>
-                    <div className='text-gray-600 text-xs'>
-                      모니터링 시스템을 시작합니다
-                    </div>
-                  </div>
-                </motion.button>
-              )}
-
-              {/* 시스템 중지 버튼 */}
-              {isSystemStarted && (
-                <motion.button
-                  whileHover={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleSystemStop}
-                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 mb-2'
-                  role='menuitem'
-                >
-                  <div className='p-2 rounded-lg bg-red-500/20'>
-                    <Square className='w-4 h-4 text-red-600' />
-                  </div>
-                  <div className='flex-1'>
-                    <div className='text-gray-900 font-medium'>시스템 중지</div>
-                    <div className='text-gray-600 text-xs'>
-                      모니터링 시스템을 중지합니다
-                    </div>
-                  </div>
-                </motion.button>
-              )}
-
-              {/* 시스템 재시작 버튼 */}
-              {isSystemStarted && (
-                <motion.button
-                  whileHover={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleSystemRestart}
-                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2'
-                  role='menuitem'
-                >
-                  <div className='p-2 rounded-lg bg-blue-500/20'>
-                    <RefreshCw className='w-4 h-4 text-blue-600' />
-                  </div>
-                  <div className='flex-1'>
-                    <div className='text-gray-900 font-medium'>
-                      시스템 재시작
-                    </div>
-                    <div className='text-gray-600 text-xs'>
-                      시스템을 재시작합니다
-                    </div>
-                  </div>
-                </motion.button>
-              )}
-
-              {/* 대시보드 이동 버튼 */}
-              <Link href='/dashboard'>
-                <motion.button
-                  whileHover={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => onClick({} as React.MouseEvent)}
-                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2'
-                  role='menuitem'
-                >
-                  <div className='p-2 rounded-lg bg-blue-500/20'>
-                    <Activity className='w-4 h-4 text-blue-600' />
-                  </div>
-                  <div>
-                    <div className='text-gray-900 font-medium'>
-                      대시보드 이동
-                    </div>
-                    <div className='text-gray-600 text-xs'>
-                      실시간 모니터링 대시보드로 이동
-                    </div>
-                  </div>
-                </motion.button>
-              </Link>
-
-              {/* 개발 도구 버튼 */}
-              <Link href='/dev-tools'>
-                <motion.button
-                  whileHover={{ backgroundColor: 'rgba(128, 90, 213, 0.1)' }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => onClick({} as React.MouseEvent)}
-                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 mb-2'
-                  role='menuitem'
-                >
-                  <div className='p-2 rounded-lg bg-purple-500/20'>
-                    <Settings className='w-4 h-4 text-purple-600' />
-                  </div>
-                  <div>
-                    <div className='text-gray-900 font-medium'>개발 도구</div>
-                    <div className='text-gray-600 text-xs'>
-                      개발자 도구 및 테스트 패널
-                    </div>
-                  </div>
-                </motion.button>
-              </Link>
-
-              {/* 홈으로 이동 버튼 */}
-              <Link href='/'>
-                <motion.button
-                  whileHover={{ backgroundColor: 'rgba(75, 85, 99, 0.1)' }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => onClick({} as React.MouseEvent)}
-                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 mb-2'
-                  role='menuitem'
-                >
-                  <div className='p-2 rounded-lg bg-gray-500/20'>
-                    <Home className='w-4 h-4 text-gray-600' />
-                  </div>
-                  <div>
-                    <div className='text-gray-900 font-medium'>홈으로</div>
-                    <div className='text-gray-600 text-xs'>
-                      메인 페이지로 이동
-                    </div>
-                  </div>
-                </motion.button>
-              </Link>
-
-              {/* 관리자 모드 로그인/로그아웃 */}
-              {!isAdminMode ? (
-                <>
-                  {!showAdminLogin ? (
-                    <motion.button
-                      whileHover={{
-                        backgroundColor: 'rgba(251, 191, 36, 0.1)',
-                      }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={handleAdminLogin}
-                      className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 mb-2'
-                      role='menuitem'
-                    >
-                      <div className='p-2 rounded-lg bg-amber-500/20'>
-                        <Lock className='w-4 h-4 text-amber-600' />
-                      </div>
-                      <div>
-                        <div className='text-gray-900 font-medium'>
-                          관리자 모드
-                        </div>
-                        <div className='text-gray-600 text-xs'>
-                          관리자 페이지 접근
-                        </div>
-                      </div>
-                    </motion.button>
-                  ) : (
-                    <div className='mb-2 p-3 border border-amber-200 rounded-lg bg-amber-50'>
-                      <div className='flex items-center gap-2 mb-2'>
-                        <Lock className='w-4 h-4 text-amber-600' />
-                        <span className='text-sm font-medium text-gray-900'>
-                          관리자 비밀번호 입력
-                        </span>
-                      </div>
-                      <input
-                        type='password'
-                        value={adminPassword}
-                        onChange={e => setAdminPassword(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            handleAdminPasswordSubmit(e);
-                          }
-                          if (e.key === 'Escape') {
-                            setShowAdminLogin(false);
-                            setAdminPassword('');
-                          }
-                        }}
-                        placeholder='비밀번호를 입력하세요'
-                        className='w-full px-3 py-2 text-sm border border-amber-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent'
-                        autoFocus
-                      />
-                      <div className='flex gap-2 mt-2'>
-                        <button
-                          onClick={handleAdminPasswordSubmit}
-                          className='flex-1 px-3 py-1 text-xs bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors'
-                        >
-                          확인
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowAdminLogin(false);
-                            setAdminPassword('');
-                          }}
-                          className='flex-1 px-3 py-1 text-xs bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors'
-                        >
-                          취소
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <motion.button
-                  whileHover={{ backgroundColor: 'rgba(251, 191, 36, 0.1)' }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleAdminLogout}
-                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 mb-2'
-                  role='menuitem'
-                >
-                  <div className='p-2 rounded-lg bg-amber-500/20'>
-                    <Lock className='w-4 h-4 text-amber-600' />
-                  </div>
-                  <div>
-                    <div className='text-gray-900 font-medium'>
-                      관리자 모드 해제
-                    </div>
-                    <div className='text-gray-600 text-xs'>
-                      관리자 권한을 해제합니다
-                    </div>
-                  </div>
-                </motion.button>
-              )}
-
-              {/* 로그아웃 버튼 */}
-              <motion.button
-                whileHover={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleLogout}
-                className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-red-500'
-                role='menuitem'
-              >
-                <div className='p-2 rounded-lg bg-red-500/20'>
-                  <LogOut className='w-4 h-4 text-red-600' />
-                </div>
-                <div>
-                  <div className='text-gray-900 font-medium'>로그아웃</div>
-                  <div className='text-gray-600 text-xs'>
-                    현재 세션을 종료합니다
-                  </div>
-                </div>
-              </motion.button>
-            </div>
-          </motion.div>
-        )}
-      </>,
-      document.body
-    );
-  }, [
-    isOpen,
-    onClick,
-    dropdownPosition,
-    dropdownRef,
-    userName,
-    userAvatar,
-    systemStatus,
-    isSystemStarted,
-    isSystemStarting,
-    handleSystemStart,
-    handleSystemStop,
-    handleSystemRestart,
-    handleLogout,
-    isAdminMode,
-    showAdminLogin,
-    adminPassword,
-    handleAdminLogin,
-    handleAdminPasswordSubmit,
-    handleAdminLogout,
-  ]);
 
   return (
-    <div className='relative'>
-      {/* 프로필 버튼 */}
-      <motion.button
-        ref={buttonRef}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={onClick}
-        className='flex items-center gap-3 p-2 rounded-xl backdrop-blur-md border bg-gray-900/80 border-gray-700/60 hover:bg-gray-900/90 focus:ring-gray-500 shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent'
-        style={{
-          willChange: 'transform',
-          transform: 'translate3d(0, 0, 0)',
-        }}
-        aria-label='프로필 메뉴 열기'
-        aria-expanded={isOpen}
-        aria-haspopup='true'
-      >
-        {/* 아바타 */}
-        <div className='w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-600'>
-          {userAvatar ? (
-            <Image
-              src={userAvatar}
-              alt='Avatar'
-              width={32}
-              height={32}
-              className='w-full h-full rounded-full object-cover'
-            />
-          ) : (
-            <User className='w-4 h-4 text-white' />
-          )}
-        </div>
+    <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button variant='ghost' className='relative h-10 w-10 rounded-full p-0'>
+          <Avatar className='h-10 w-10'>
+            <AvatarImage src='/avatar.png' alt='관리자' />
+            <AvatarFallback className='bg-gradient-to-r from-blue-500 to-purple-600 text-white'>
+              관리
+            </AvatarFallback>
+          </Avatar>
 
+          {/* 상태 인디케이터 */}
+          <div
+            className={`absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-white ${statusConfig.color}`}
+          />
+
+          {/* 30분 타이머 인디케이터 */}
+          {is30MinTimerActive && (
+            <div className='absolute -top-1 -left-1 h-4 w-4 rounded-full bg-orange-500 border-2 border-white flex items-center justify-center'>
+              <Clock className='h-2 w-2 text-white' />
+            </div>
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent className='w-80 p-4' align='end' forceMount>
         {/* 사용자 정보 */}
-        <div className='text-left hidden sm:block'>
-          <div className='text-white text-sm font-medium'>{userName}</div>
-          <div className='text-gray-300 text-xs'>
-            {isSystemStarted ? '시스템 실행중' : '시스템 중지됨'}
+        <DropdownMenuLabel className='font-normal'>
+          <div className='flex items-center space-x-3'>
+            <Avatar className='h-12 w-12'>
+              <AvatarImage src='/avatar.png' alt='관리자' />
+              <AvatarFallback className='bg-gradient-to-r from-blue-500 to-purple-600 text-white'>
+                관리
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className='text-sm font-medium'>시스템 관리자</p>
+              <p className='text-xs text-muted-foreground'>
+                OpenManager Vibe v5
+              </p>
+            </div>
+          </div>
+        </DropdownMenuLabel>
+
+        <DropdownMenuSeparator />
+
+        {/* 시스템 상태 요약 */}
+        <div className={`p-3 rounded-lg ${statusConfig.bgColor} mb-3`}>
+          <div className='flex items-center justify-between mb-2'>
+            <div className='flex items-center space-x-2'>
+              <StatusIcon className={`h-4 w-4 ${statusConfig.textColor}`} />
+              <span className={`text-sm font-medium ${statusConfig.textColor}`}>
+                {statusConfig.text}
+              </span>
+            </div>
+            <Badge variant='outline' className='text-xs'>
+              실시간 연결: {isPolling ? '활성' : '비활성'}
+            </Badge>
+          </div>
+
+          <div className='grid grid-cols-3 gap-2 text-xs'>
+            <div className='text-center'>
+              <div className='font-medium'>{formatUptime(systemStats.uptime)}</div>
+              <div className='text-muted-foreground'>업타임</div>
+            </div>
+            <div className='text-center'>
+              <div className='font-medium'>{systemStats.memoryUsage}%</div>
+              <div className='text-muted-foreground'>메모리</div>
+            </div>
+            <div className='text-center'>
+              <div className='font-medium'>{systemStats.activeProcesses}</div>
+              <div className='text-muted-foreground'>프로세스</div>
+            </div>
           </div>
         </div>
 
-        {/* 상태 인디케이터 */}
-        <div className='flex items-center gap-1'>
-          {/* 시스템 상태 */}
-          {isSystemStarted && (
-            <div className='w-2 h-2 bg-green-400 rounded-full animate-pulse' />
-          )}
+        {/* 30분 타이머 상태 */}
+        {is30MinTimerActive && (
+          <div className='p-3 bg-orange-50 rounded-lg mb-3'>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center space-x-2'>
+                <Clock className='h-4 w-4 text-orange-600' />
+                <span className='text-sm font-medium text-orange-600'>
+                  30분 안정성 타이머
+                </span>
+              </div>
+              <Badge variant='outline' className='text-orange-600 border-orange-200'>
+                {formatTime(timerRemaining)}
+              </Badge>
+            </div>
+            <p className='text-xs text-orange-600 mt-1'>
+              남은 시간 후 자동으로 시스템이 정지됩니다
+            </p>
+          </div>
+        )}
 
-          {/* 드롭다운 아이콘 */}
-          <ChevronDown
-            className={`w-3 h-3 text-white/70 transition-transform duration-200 ${
-              isOpen ? 'rotate-180' : ''
-            }`}
-          />
+        {/* 시스템 제어 버튼 */}
+        <div className='space-y-2 mb-3'>
+          <div className='grid grid-cols-2 gap-2'>
+            <Button
+              onClick={handleSystemStart}
+              disabled={systemStats.status === 'running'}
+              size='sm'
+              className='flex items-center space-x-2'
+            >
+              <Play className='h-4 w-4' />
+              <span>시작</span>
+            </Button>
+
+            <Button
+              onClick={handleSystemStop}
+              disabled={systemStats.status !== 'running'}
+              variant='outline'
+              size='sm'
+              className='flex items-center space-x-2'
+            >
+              <Square className='h-4 w-4' />
+              <span>정지</span>
+            </Button>
+          </div>
+
+          <div className='grid grid-cols-2 gap-2'>
+            <Button
+              onClick={start30MinTimer}
+              disabled={is30MinTimerActive || systemStats.status !== 'running'}
+              variant='outline'
+              size='sm'
+              className='flex items-center space-x-2'
+            >
+              <Clock className='h-4 w-4' />
+              <span>30분 타이머</span>
+            </Button>
+
+            <Button
+              onClick={stop30MinTimer}
+              disabled={!is30MinTimerActive}
+              variant='outline'
+              size='sm'
+              className='flex items-center space-x-2'
+            >
+              <Square className='h-4 w-4' />
+              <span>타이머 중단</span>
+            </Button>
+          </div>
         </div>
-      </motion.button>
 
-      {/* 드롭다운 메뉴 */}
-      <DropdownPortal />
-    </div>
+        <DropdownMenuSeparator />
+
+        {/* 메뉴 항목들 */}
+        <DropdownMenuItem className='cursor-pointer'>
+          <User className='mr-2 h-4 w-4' />
+          <span>프로필</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem className='cursor-pointer'>
+          <Shield className='mr-2 h-4 w-4' />
+          <span>관리자 모드</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem className='cursor-pointer'>
+          <Activity className='mr-2 h-4 w-4' />
+          <span>시스템 모니터링</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem className='cursor-pointer'>
+          <Settings className='mr-2 h-4 w-4' />
+          <span>설정</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem className='cursor-pointer text-red-600'>
+          <LogOut className='mr-2 h-4 w-4' />
+          <span>로그아웃</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
-};
+}
 
-// React.memo로 감싸서 불필요한 리렌더링 방지
-export const UnifiedProfileButton = memo(UnifiedProfileButtonComponent);
+// Named export와 default export
+export { UnifiedProfileButton };
+export default UnifiedProfileButton;

@@ -1,7 +1,7 @@
-# 🚀 OpenManager Vibe v5 - Next.js 통합 서버 관리 시스템
+# 🚀 OpenManager Vibe v5 - AI 통합 서버 관리 시스템
 
 > **베르셀 친화적 엔터프라이즈 급 서버 관리 시스템**  
-> 버전: **v5.51.1** | 릴리스: 2025-01-28 03:15 KST
+> 버전: **v5.44.3** | 릴리스: 2025-06-29 18:22 KST | 개발기간: 35일
 
 [![Vercel Production](https://img.shields.io/badge/Vercel-Production-success)](https://openmanager-vibe-v5-fx740uc66-skyasus-projects.vercel.app)
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)](https://openmanager-vibe-v5-fx740uc66-skyasus-projects.vercel.app)

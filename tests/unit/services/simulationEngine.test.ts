@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdvancedSimulationEngine } from '../../../src/services/AdvancedSimulationEngine';
 
 // Mock dependencies
@@ -12,7 +12,7 @@ vi.mock('../../../src/lib/supabase', () => ({
             memory: 62,
             disk: 30,
             network: 15,
-            timestamp: '2025-01-01T00:00:00Z',
+            timestamp: '2025-06-01T00:00:00Z',
             server_id: 'server-1',
           },
         ],

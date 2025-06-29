@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 // 실제 성능 데이터 검증 함수들
 const validateMetricRange = (
@@ -44,7 +44,7 @@ const detectAnomalies = (metrics: any[], threshold: number = 2): any[] => {
 
 // Mock 성능 데이터
 const mockPerformanceData = {
-  timestamp: '2025-01-01T00:00:00Z',
+  timestamp: '2025-06-01T00:00:00Z',
   system: {
     cpu: { usage: 45.2, cores: 8, load: [1.2, 1.1, 0.9] },
     memory: { used: 6.2, total: 16, percentage: 38.8 },
@@ -172,10 +172,10 @@ describe('Performance Metrics Logic', () => {
   describe('이상 감지', () => {
     it('should detect performance anomalies', () => {
       const historicalData = [
-        { timestamp: '2025-01-01T00:00:00Z', cpu: 40, memory: 35 },
-        { timestamp: '2025-01-01T00:01:00Z', cpu: 45, memory: 38 },
-        { timestamp: '2025-01-01T00:02:00Z', cpu: 90, memory: 42 }, // CPU 스파이크
-        { timestamp: '2025-01-01T00:03:00Z', cpu: 50, memory: 85 }, // 메모리 스파이크
+        { timestamp: '2025-06-01T00:00:00Z', cpu: 40, memory: 35 },
+        { timestamp: '2025-06-01T00:01:00Z', cpu: 45, memory: 38 },
+        { timestamp: '2025-06-01T00:02:00Z', cpu: 90, memory: 42 }, // CPU 스파이크
+        { timestamp: '2025-06-01T00:03:00Z', cpu: 50, memory: 85 }, // 메모리 스파이크
       ];
 
       const anomalies = detectAnomalies(historicalData);
@@ -188,9 +188,9 @@ describe('Performance Metrics Logic', () => {
 
     it('should not detect anomalies in stable metrics', () => {
       const stableData = [
-        { timestamp: '2025-01-01T00:00:00Z', cpu: 40, memory: 35 },
-        { timestamp: '2025-01-01T00:01:00Z', cpu: 42, memory: 36 },
-        { timestamp: '2025-01-01T00:02:00Z', cpu: 41, memory: 37 },
+        { timestamp: '2025-06-01T00:00:00Z', cpu: 40, memory: 35 },
+        { timestamp: '2025-06-01T00:01:00Z', cpu: 42, memory: 36 },
+        { timestamp: '2025-06-01T00:02:00Z', cpu: 41, memory: 37 },
       ];
 
       const anomalies = detectAnomalies(stableData);
@@ -255,19 +255,19 @@ describe('Performance Metrics Logic', () => {
     it('should calculate performance trends', () => {
       const historicalData = [
         {
-          timestamp: '2025-01-01T00:00:00Z',
+          timestamp: '2025-06-01T00:00:00Z',
           cpu: 40,
           memory: 35,
           responseTime: 80,
         },
         {
-          timestamp: '2025-01-01T00:01:00Z',
+          timestamp: '2025-06-01T00:01:00Z',
           cpu: 45,
           memory: 38,
           responseTime: 85,
         },
         {
-          timestamp: '2025-01-01T00:02:00Z',
+          timestamp: '2025-06-01T00:02:00Z',
           cpu: 50,
           memory: 42,
           responseTime: 90,

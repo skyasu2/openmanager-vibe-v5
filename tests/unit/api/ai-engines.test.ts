@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 // AI 엔진 상태 검증 로직
 describe('AI Engines Logic', () => {
@@ -145,7 +145,7 @@ describe('AI Engines Logic', () => {
       const validResponse = {
         content: '분석 결과입니다.',
         confidence: 0.85,
-        timestamp: '2025-01-01T00:00:00Z',
+        timestamp: '2025-06-01T00:00:00Z',
       };
 
       const invalidResponse1 = { content: '결과' }; // confidence 누락

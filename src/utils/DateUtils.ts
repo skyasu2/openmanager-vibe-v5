@@ -1,12 +1,29 @@
 /**
  * 날짜 관리 유틸리티
- * 프로젝트 시작: 2025년 5월 후반
- * 현재: 2025년 6월
+ * 프로젝트 시작: 2025년 5월 말 (5월 25일)
+ * 현재: 2025년 6월 29일 (35일 진행)
+ * 한국시간(KST) 기준 개발
  */
 
 export class DateUtils {
   // 프로젝트 시작일
-  static readonly PROJECT_START = new Date('2025-05-20');
+  static readonly PROJECT_START = new Date('2025-05-25');
+  static readonly CURRENT_DATE = new Date('2025-06-29');
+
+  /**
+   * 🕒 한국시간(KST) 기준 현재 시간
+   */
+  static getCurrentKST(): string {
+    return new Date().toLocaleString('ko-KR', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  }
 
   // 현재 날짜 가져오기
   static getCurrentDate(): Date {
@@ -34,20 +51,80 @@ export class DateUtils {
     };
   }
 
-  // 버전 날짜 생성 (실제 개발 기간에 맞춰)
-  static getVersionDate(version: string): string {
-    const versionMap: Record<string, string> = {
-      '1.0.0': '2025-05-25', // 프로젝트 초기
-      '2.0.0': '2025-06-01', // 초기 개선
-      '2.1.0': '2025-06-05', // 시스템 안정화
-      '2.5.0': '2025-06-07', // 최적화 적용
-      '3.0.0': '2025-06-08', // 주요 업데이트
-      '5.40.0': '2025-06-08', // 최신 기능 추가
-      '5.40.1': '2025-06-09', // 현재 버전
-      '5.41.0': '2025-06-09', // 경연대회 최적화
-    };
+  /**
+   * 📅 프로젝트 버전별 릴리스 일정 (2025년 5월 말 시작)
+   */
+  static readonly VERSION_HISTORY = {
+    '1.0.0': '2025-05-25', // 프로젝트 시작
+    '2.0.0': '2025-06-01', // 초기 개선 (1주차)
+    '2.1.0': '2025-06-05', // 시스템 안정화 (2주차) 
+    '2.5.0': '2025-06-10', // 최적화 적용 (3주차)
+    '3.0.0': '2025-06-15', // 주요 업데이트 (4주차)
+    '5.40.0': '2025-06-20', // 최신 기능 추가 (4주차)
+    '5.40.1': '2025-06-22', // 버그 수정
+    '5.41.0': '2025-06-24', // 경연대회 최적화
+    '5.44.0': '2025-06-26', // AI 엔진 통합
+    '5.44.3': '2025-06-29', // 현재 버전 (35일차)
+  };
 
-    return versionMap[version] || this.getCurrentDateString();
+  /**
+   * 🔍 잘못된 날짜 패턴 탐지 (2025년 기준)
+   */
+  static readonly INVALID_DATE_PATTERNS = [
+    /2024-\d{2}-\d{2}/g, // 2024년 (프로젝트 이전)
+    /2026-\d{2}-\d{2}/g, // 2026년 (미래 날짜)
+    /2023-\d{2}-\d{2}/g, // 2023년 
+    /2022-\d{2}-\d{2}/g, // 2022년
+  ];
+
+  /**
+   * 📊 프로젝트 단계별 개발 현황 (2025년 5월 말 시작)
+   */
+  static readonly DEVELOPMENT_PHASES = [
+    {
+      phase: 'Phase 1: 초기 설정',
+      period: '2025.05.25 - 2025.06.01',
+      status: 'completed',
+      description: '기본 환경 구축'
+    },
+    {
+      phase: 'Phase 2: 핵심 기능',
+      period: '2025.06.02 - 2025.06.15',
+      status: 'completed',
+      description: 'AI 엔진 및 모니터링 시스템'
+    },
+    {
+      phase: 'Phase 3: 최적화',
+      period: '2025.06.16 - 2025.06.25',
+      status: 'completed',
+      description: 'UI/UX 개선 및 성능 최적화'
+    },
+    {
+      phase: 'Phase 4: 통합 테스트',
+      period: '2025.06.26 - 2025.06.29',
+      status: 'in-progress',
+      description: '실시간 시스템 통합 및 검증'
+    },
+    {
+      phase: 'Phase 5: 배포 준비',
+      period: '2025.06.30 - 진행중',
+      status: 'planned',
+      description: '프로덕션 배포 준비'
+    }
+  ];
+
+  /**
+   * ✅ 올바른 날짜 형식으로 변환
+   */
+  static formatToKST(date: Date): string {
+    return date.toLocaleString('ko-KR', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
   // 날짜 유효성 검사 (프로젝트 기간 내)

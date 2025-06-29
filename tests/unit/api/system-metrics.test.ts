@@ -191,9 +191,9 @@ describe('System Metrics Logic', () => {
       };
 
       const mockData: RawMetricData[] = [
-        { cpu: 30, memory: 40, disk: 50, timestamp: '2025-01-01T00:00:00Z' },
-        { cpu: 35, memory: 45, disk: 55, timestamp: '2025-01-01T00:01:00Z' },
-        { cpu: 40, memory: 50, disk: 60, timestamp: '2025-01-01T00:02:00Z' },
+        { cpu: 30, memory: 40, disk: 50, timestamp: '2025-06-01T00:00:00Z' },
+        { cpu: 35, memory: 45, disk: 55, timestamp: '2025-06-01T00:01:00Z' },
+        { cpu: 40, memory: 50, disk: 60, timestamp: '2025-06-01T00:02:00Z' },
       ];
 
       const result = processRealtimeMetrics(mockData);
