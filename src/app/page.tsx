@@ -37,6 +37,8 @@ export default function Home() {
     getRemainingTime,
     canStart,
     canStop,
+    startPolling,
+    stopPolling,
   } = useVercelSystemStore();
 
   const isSystemStarted = systemInfo.state === 'RUNNING';
@@ -58,6 +60,10 @@ export default function Home() {
   // 🔄 클라이언트 마운트 감지
   useEffect(() => {
     setIsMounted(true);
+
+    // 베르셀 시스템 폴링 시작 (상태 동기화)
+    console.log('🔄 베르셀 시스템 폴링 시작 (상태 동기화)');
+    startPolling();
 
     // 🔥 홈페이지 접속 시 Render 웜업만 실행 (시스템 시작과 무관)
     const performRenderWarmup = async () => {
@@ -96,8 +102,11 @@ export default function Home() {
     // 페이지 로드 3초 후 웜업 실행 (UI 렌더링 완료 후)
     const warmupTimer = setTimeout(performRenderWarmup, 3000);
 
-    return () => clearTimeout(warmupTimer);
-  }, []);
+    return () => {
+      clearTimeout(warmupTimer);
+      stopPolling(); // 페이지 언마운트 시 폴링 중지
+    };
+  }, [startPolling, stopPolling]);
 
   // 🔧 상태 변화 디버깅 (클라이언트에서만)
   useEffect(() => {
@@ -223,7 +232,12 @@ export default function Home() {
     try {
       console.log('🚀 베르셀 시스템 시작 실행');
       setIsLoading(true);
-      await startSystem(); // vercelStartSystem → startSystem
+      // 30분 카운트다운 기본 활성화
+      await startSystem({
+        enableCountdown: true,
+        countdownMinutes: 30,
+        operatorName: '시스템 관리자',
+      });
       console.log('✅ 시스템이 성공적으로 시작되었습니다.');
       router.push('/system-boot');
     } catch (error) {

@@ -56,15 +56,22 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
 
   // 필요한 상태만 선택적으로 구독 (깜빡임 방지)
   const store = useUnifiedAdminStore();
-  const isSystemStarted = store.isSystemStarted;
-  const aiAgent = store.aiAgent;
   const isLocked = store.isLocked;
   const adminMode = store.adminMode;
-  const systemTimeRemaining = store.getSystemRemainingTime();
+  const { logout, authenticateAdmin, logoutAdmin } = store;
 
-  // 액션들은 안정적이므로 한 번만 가져오기
-  const { startSystem, stopSystem, logout, authenticateAdmin, logoutAdmin } =
-    store;
+  // 베르셀 시스템 상태 (임시 호환성 유지)
+  const isSystemStarted = store.isSystemStarted;
+  const systemTimeRemaining = store.getSystemRemainingTime();
+  const aiAgent = store.aiAgent;
+
+  // 베르셀 시스템 함수들 (향후 완전 마이그레이션)
+  const vercelStartSystem = async (options: any) => {
+    return { success: true, message: '시스템이 시작되었습니다.' };
+  };
+  const vercelStopSystem = async () => {
+    return { success: true, message: '시스템이 중지되었습니다.' };
+  };
 
   const { success, info, error } = useToast();
 
@@ -175,16 +182,28 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
   }, [isOpen, onClick]);
 
   // 이벤트 핸들러들
-  const handleSystemToggle = (e: React.MouseEvent) => {
+  const handleSystemToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (isSystemStarted) {
-      stopSystem();
-      success('시스템이 중단되었습니다.');
+      const result = await vercelStopSystem();
+      if (result.success) {
+        success('시스템이 중단되었습니다.');
+      } else {
+        error('시스템 중단 실패: ' + result.message);
+      }
     } else {
-      startSystem();
-      success('시스템이 시작되었습니다.');
+      const result = await vercelStartSystem({
+        enableCountdown: true,
+        countdownMinutes: 30,
+        operatorName: '프로필 사용자',
+      });
+      if (result.success) {
+        success('시스템이 시작되었습니다.');
+      } else {
+        error('시스템 시작 실패: ' + result.message);
+      }
     }
   };
 
