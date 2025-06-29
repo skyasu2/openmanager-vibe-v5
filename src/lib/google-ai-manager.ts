@@ -19,12 +19,12 @@ class GoogleAIManager {
   private readonly DEMO_API_KEY =
     process.env.NODE_ENV === 'development' ? '' : null;
 
-  // 🔐 암호화된 Google AI API 키 백업 (Git 안전)
+  // 🔐 암호화된 Google AI API 키 백업 (Git 안전) - 2025-01-25 최종 업데이트
   private static readonly ENCRYPTED_BACKUP = {
     encryptedKey:
-      'waHQ/XUFlL8UB98tzvet0ylNjszQNjycJKXGT8vNOtC5leMnGAN8Za6iW9s8fTgG',
-    salt: '834ce4c4cbc37fd67e0893612f460fcb',
-    iv: '8d63f626197208e9ecb562f92d642ed3',
+      '0feYhTUnwSWPocp/fqBrTBwSpdhbJgl1UZhZ97WCl7t41xeRKvfhL+BtxvSS26ET',
+    salt: '62f139856d0498bdbcd95a6f8baa6765',
+    iv: 'decc181edda791f278e252eddb5e3ad5',
     teamPasswordHash:
       '7e346817b5382d72b3860a1aa9d6abc0263e2ddcea9e78c18724dfa2c1f575f5',
   };
@@ -73,7 +73,7 @@ class GoogleAIManager {
       const { encryptedKey, salt, iv } = GoogleAIManager.ENCRYPTED_BACKUP;
 
       const key = CryptoJS.PBKDF2(teamPassword, salt, {
-        keySize: 256 / 32,
+        keySize: 32, // 256비트 = 32바이트 (수정됨: 2025-01-25)
         iterations: 10000,
       });
 
