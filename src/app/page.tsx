@@ -233,13 +233,22 @@ export default function Home() {
     }
   };
 
-  // 🛑 시스템 중지 함수 (베르셀 시스템용)
+  // 🚀 시스템 시작 토글 함수 (베르셀 시스템용)
   const handleSystemToggle = async () => {
+    // 시스템 완전 중지 상태에서만 시작 가능
+    if (systemStartCountdown === 0 && !isSystemStarted) {
+      console.log('🚀 시스템 시작 카운트다운 시작!');
+      startSystemCountdown();
+    }
+  };
+
+  // 🛑 시스템 중지 함수 (베르셀 시스템용)
+  const handleSystemStop = async () => {
     if (!canStop()) return;
 
     try {
       console.log('🛑 베르셀 시스템 중지 요청');
-      await stopSystem(); // vercelStopSystem → stopSystem
+      await stopSystem();
       console.log('✅ 시스템이 성공적으로 중지되었습니다.');
     } catch (error) {
       console.error('❌ 시스템 중지 실패:', error);
