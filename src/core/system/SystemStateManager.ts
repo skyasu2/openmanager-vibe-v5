@@ -294,6 +294,72 @@ export class SystemStateManager extends EventEmitter {
   }
 
   /**
+   * 🎯 현재 시스템 상태 조회 (간단한 형태)
+   */
+  getCurrentState(): { state: string; message?: string } {
+    const status = this.getSystemStatus();
+
+    // 시뮬레이션 상태에 따라 시스템 상태 결정
+    if (status.simulation.isRunning) {
+      return { state: 'RUNNING', message: '시스템이 정상 실행 중입니다.' };
+    } else if (status.services.simulation === 'starting') {
+      return { state: 'STARTING', message: '시스템이 시작 중입니다.' };
+    } else if (status.services.simulation === 'stopping') {
+      return { state: 'STOPPING', message: '시스템이 중지 중입니다.' };
+    } else if (status.health === 'critical') {
+      return { state: 'ERROR', message: '시스템에 오류가 발생했습니다.' };
+    } else {
+      return { state: 'STOPPED', message: '시스템이 중지되어 있습니다.' };
+    }
+  }
+
+  /**
+   * 🎯 시스템 상태 설정
+   */
+  setState(state: string, message?: string): void {
+    if (!this.currentStatus) {
+      this.currentStatus = this.createFallbackStatus();
+    }
+
+    // 상태에 따라 시스템 상태 업데이트
+    switch (state) {
+      case 'STARTING':
+        this.currentStatus.services.simulation = 'starting';
+        break;
+      case 'RUNNING':
+        this.currentStatus.simulation.isRunning = true;
+        this.currentStatus.services.simulation = 'online';
+        if (!this.currentStatus.simulation.startTime) {
+          this.currentStatus.simulation.startTime = Date.now();
+        }
+        break;
+      case 'STOPPING':
+        this.currentStatus.services.simulation = 'stopping';
+        break;
+      case 'STOPPED':
+        this.currentStatus.simulation.isRunning = false;
+        this.currentStatus.services.simulation = 'offline';
+        this.currentStatus.simulation.startTime = null;
+        this.currentStatus.simulation.runtime = 0;
+        break;
+      case 'ERROR':
+        this.currentStatus.health = 'critical';
+        this.currentStatus.services.simulation = 'offline';
+        break;
+    }
+
+    this.currentStatus.lastUpdated = new Date().toISOString();
+
+    // 상태 변화 이벤트 발생
+    this.emit('status:updated', this.currentStatus);
+    this.emit('state:changed', { state, message });
+
+    console.log(
+      `🎯 시스템 상태 변경: ${state}${message ? ` - ${message}` : ''}`
+    );
+  }
+
+  /**
    * 📈 API 호출 추적
    */
   trackApiCall(responseTime: number, isError: boolean = false): void {

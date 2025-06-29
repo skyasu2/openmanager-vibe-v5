@@ -25,6 +25,13 @@ export class DateUtils {
     });
   }
 
+  /**
+   * 🕒 한국시간(KST) 기준 현재 시간 (API용)
+   */
+  static getKoreanTime(): string {
+    return this.getCurrentKST();
+  }
+
   // 현재 날짜 가져오기
   static getCurrentDate(): Date {
     return new Date();
@@ -241,5 +248,8 @@ export class DateUtils {
       .replace(/[^\d]/g, '');
   }
 }
+
+// 별도 export (API 호환성)
+export const getKoreanTime = (): string => DateUtils.getKoreanTime();
 
 export default DateUtils;
