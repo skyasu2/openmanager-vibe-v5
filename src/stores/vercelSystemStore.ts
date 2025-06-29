@@ -362,13 +362,25 @@ export const useVercelSystemStore = create<VercelSystemStore>()(
       };
     },
     {
-      name: 'vercel-system-storage',
+      name: 'vercel-system-storage-v2',
       partialize: state => ({
         systemInfo: {
           ...state.systemInfo,
           lastHeartbeat: Date.now(),
         },
       }),
+      // 베르셀 환경에서 하트비트 기반 상태 검증
+      onRehydrateStorage: () => state => {
+        if (state?.systemInfo) {
+          const timeSinceLastHeartbeat =
+            Date.now() - state.systemInfo.lastHeartbeat;
+          // 5분 이상 비활성 상태면 강제 STOPPED
+          if (timeSinceLastHeartbeat > 5 * 60 * 1000) {
+            console.log('🔄 비활성 상태 감지 - 시스템 상태 초기화');
+            state.systemInfo = createInitialState();
+          }
+        }
+      },
     }
   )
 );
