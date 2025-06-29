@@ -39,6 +39,20 @@ export class ServerDataScheduler {
 
   private constructor() {
     this.generator = RealServerDataGenerator.getInstance();
+    // 🚀 서버 초기화 (필수)
+    this.initializeGenerator();
+  }
+
+  /**
+   * 🚀 데이터 생성기 초기화
+   */
+  private async initializeGenerator(): Promise<void> {
+    try {
+      await this.generator.initialize();
+      console.log('🚀 서버 데이터 생성기 초기화 완료');
+    } catch (error) {
+      console.error('❌ 서버 데이터 생성기 초기화 실패:', error);
+    }
   }
 
   public static getInstance(): ServerDataScheduler {
