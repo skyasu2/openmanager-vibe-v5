@@ -1,296 +1,403 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  Legend
-} from 'recharts';
-import { Activity, Server, AlertTriangle, TrendingUp, RefreshCw, Wifi, WifiOff } from 'lucide-react';
-import { timerManager } from '../utils/TimerManager';
+import { Activity, AlertTriangle, RefreshCw, TrendingUp } from 'lucide-react';
+import React, { Component, lazy, ReactNode, Suspense, useMemo } from 'react';
 
-// 📊 API 응답 타입 정의
-interface SystemHealthAPIResponse {
-  success: boolean;
-  timestamp: string;
-  summary: {
-    overallStatus: 'healthy' | 'warning' | 'critical';
-    healthScore: number;
-    serverCount: number;
-    criticalIssues: number;
-    warnings: number;
-    dataSource: 'api' | 'fallback' | 'none';
-  };
-  metrics: {
-    current: {
-      avgCpuUsage: number;
-      avgMemoryUsage: number;
-      avgDiskUsage: number;
-      avgResponseTime: number;
-      totalAlerts: number;
-      serverStatusDistribution: Record<string, number>;
-      providerDistribution: Record<string, number>;
-      healthScore: number;
-    };
-    trends: Record<string, {
-      trend: 'increasing' | 'decreasing' | 'stable';
-      changeRate: number;
-      volatility: number;
-    }>;
-    movingAverages: Record<string, number>;
-    predictions: Record<string, { nextValue: number; confidence: number }>;
-  };
-  anomalies: Array<{
-    id: string;
-    type: 'performance' | 'availability' | 'resource' | 'pattern';
-    severity: 'low' | 'medium' | 'high' | 'critical';
-    description: string;
-    recommendation: string;
-    detectedAt: string;
-  }>;
-  recommendations: string[];
-  charts: {
-    performanceChart: {
-      labels: string[];
-      datasets: Array<{
-        label: string;
-        data: number[];
-        status: string;
-        trend: string;
-      }>;
-    };
-    availabilityChart: {
-      rate: number;
-      status: string;
-      online: number;
-      total: number;
-    };
-    alertsChart: {
-      total: number;
-      bySeverity: Record<string, number>;
-      trend: string;
-    };
-    trendsChart: {
-      timePoints: string[];
-      metrics: Record<string, number[]>;
-    };
-  };
+// 🔄 지연 로딩 차트 컴포넌트들
+const PerformanceChart = lazy(() => import('./charts/PerformanceChart'));
+const AvailabilityChart = lazy(() => import('./charts/AvailabilityChart'));
+const AlertsChart = lazy(() => import('./charts/AlertsChart'));
+
+// 🪝 분리된 커스텀 훅
+import { useSystemHealth } from '../hooks/useSystemHealth';
+
+// 🔄 데이터 변환 유틸리티
+import {
+  transformAlertsChartData,
+  transformAvailabilityChartData,
+  transformPerformanceChartData,
+} from '../utils/chartDataTransforms';
+
+// 📱 모바일 감지 커스텀 훅
+const useIsMobile = () => {
+  return useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 768; // md breakpoint
+  }, []);
+};
+
+// 🛡️ 차트별 에러 바운더리 컴포넌트
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+  errorInfo?: string;
 }
 
-// 🎨 색상 팔레트
-const COLORS = {
-  primary: '#3B82F6',
-  success: '#10B981',
-  warning: '#F59E0B',
-  danger: '#EF4444',
-  info: '#06B6D4',
-  purple: '#8B5CF6',
-  pink: '#EC4899',
-  indigo: '#6366F1'
-};
+interface ChartErrorBoundaryProps {
+  children: ReactNode;
+  chartName: string;
+  fallback?: ReactNode;
+}
 
-const STATUS_COLORS = {
-  healthy: COLORS.success,
-  warning: COLORS.warning,
-  critical: COLORS.danger,
-  good: COLORS.success,
-  excellent: COLORS.success
-};
+class ChartErrorBoundary extends Component<
+  ChartErrorBoundaryProps,
+  ErrorBoundaryState
+> {
+  constructor(props: ChartErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
-const SEVERITY_COLORS = {
-  critical: COLORS.danger,
-  high: '#FF6B6B',
-  medium: COLORS.warning,
-  low: '#FFA726'
-};
-
-export default function AdminDashboardCharts() {
-  const [data, setData] = useState<SystemHealthAPIResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [autoRefresh, setAutoRefresh] = useState(true);
-
-  // 📡 API 데이터 가져오기
-  const fetchHealthData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetch('/api/system/health');
-      if (!response.ok) {
-        throw new Error(`API 응답 오류: ${response.status} ${response.statusText}`);
-      }
-      
-      const healthData: SystemHealthAPIResponse = await response.json();
-      setData(healthData);
-      setLastUpdate(new Date());
-      
-      console.log('✅ 관리자 대시보드 데이터 업데이트 완료');
-      
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다';
-      setError(errorMessage);
-      console.error('❌ 관리자 대시보드 데이터 로드 실패:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // 🔄 자동 새로고침 (30초 인터벌)
-  useEffect(() => {
-    fetchHealthData(); // 초기 로드
-    
-    if (autoRefresh) {
-      // TimerManager를 사용한 자동 새로고침
-      timerManager.register({
-        id: 'admin-dashboard-charts-refresh',
-        callback: fetchHealthData,
-        interval: 30000,
-        priority: 'medium',
-        enabled: true
-      });
-    } else {
-      timerManager.unregister('admin-dashboard-charts-refresh');
-    }
-    
-    return () => {
-      timerManager.unregister('admin-dashboard-charts-refresh');
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return {
+      hasError: true,
+      error,
+      errorInfo: error.message,
     };
-  }, [autoRefresh, fetchHealthData]);
+  }
 
-  // 📊 성능 차트 데이터 변환
-  const getPerformanceChartData = () => {
-    if (!data?.charts.performanceChart) return [];
-    
-    const { labels, datasets } = data.charts.performanceChart;
-    return labels.map((label, index) => ({
-      name: label,
-      value: datasets[0]?.data[index] || 0,
-      color: label === 'CPU' ? COLORS.danger :
-             label === 'Memory' ? COLORS.warning :
-             label === 'Disk' ? COLORS.info :
-             COLORS.primary
-    }));
-  };
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error(`📊 ${this.props.chartName} 차트 에러:`, error, errorInfo);
+  }
 
-  // 🥧 가용성 도넛 차트 데이터
-  const getAvailabilityChartData = () => {
-    if (!data?.charts.availabilityChart) return [];
-    
-    const { online, total } = data.charts.availabilityChart;
-    const offline = total - online;
-    
-    return [
-      { name: '온라인', value: online, color: COLORS.success },
-      { name: '오프라인', value: offline, color: COLORS.danger }
-    ];
-  };
+  render() {
+    if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
 
-  // 📢 알림 분포 차트 데이터
-  const getAlertsChartData = () => {
-    if (!data?.charts.alertsChart.bySeverity) return [];
-    
-    const { bySeverity } = data.charts.alertsChart;
-    
-    return Object.entries(bySeverity).map(([severity, count]) => ({
-      name: severity.charAt(0).toUpperCase() + severity.slice(1),
-      value: count,
-      color: SEVERITY_COLORS[severity as keyof typeof SEVERITY_COLORS] || COLORS.info
-    })).filter(item => item.value > 0);
-  };
-
-  // 📈 트렌드 라인 차트 데이터
-  const getTrendsChartData = () => {
-    if (!data?.charts.trendsChart) return [];
-    
-    const { timePoints, metrics } = data.charts.trendsChart;
-    
-    return timePoints.map((timePoint, index) => ({
-      time: new Date(timePoint).toLocaleTimeString('ko-KR', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      }),
-      CPU: metrics.cpu?.[index] || 0,
-      Memory: metrics.memory?.[index] || 0,
-      Alerts: metrics.alerts?.[index] || 0
-    }));
-  };
-
-  // 🎨 커스텀 툴팁 컴포넌트
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-semibold text-gray-800">{label}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }} className="text-sm">
-              {entry.name}: {typeof entry.value === 'number' ? entry.value.toFixed(1) : entry.value}
-              {entry.name !== 'Alerts' && '%'}
+        <div className='bg-white rounded-lg shadow p-6 border-l-4 border-red-500'>
+          <div className='flex items-center gap-3 mb-4'>
+            <AlertTriangle
+              className='w-6 h-6 text-red-500'
+              aria-hidden='true'
+            />
+            <h3 className='text-lg font-semibold text-gray-900'>
+              {this.props.chartName} 로딩 오류
+            </h3>
+          </div>
+          <div className='space-y-3'>
+            <p className='text-gray-600'>
+              차트를 불러오는 중 오류가 발생했습니다.
             </p>
-          ))}
+            <div className='bg-gray-50 p-3 rounded text-sm text-gray-700'>
+              <strong>오류 메시지:</strong> {this.state.errorInfo}
+            </div>
+            <button
+              onClick={() => {
+                this.setState({ hasError: false });
+                window.location.reload();
+              }}
+              className='flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
+              aria-label={`${this.props.chartName} 차트 다시 로드`}
+            >
+              <RefreshCw className='w-4 h-4' aria-hidden='true' />
+              다시 시도
+            </button>
+          </div>
         </div>
       );
     }
-    return null;
-  };
 
-  // 🔄 수동 새로고침
-  const handleManualRefresh = () => {
-    fetchHealthData();
-  };
+    return this.props.children;
+  }
+}
 
-  // 로딩 상태
-  if (loading && !data) {
+// 🔄 향상된 로딩 스켈레톤 컴포넌트들
+const ChartLoadingSkeleton = ({
+  title,
+  type,
+}: {
+  title: string;
+  type: 'bar' | 'donut' | 'line';
+}) => (
+  <div
+    className='bg-white rounded-lg shadow p-6 animate-pulse'
+    role='status'
+    aria-label={`${title} 로딩 중`}
+  >
+    <div className='flex items-center gap-2 mb-4'>
+      <div className='w-5 h-5 bg-gray-300 rounded'></div>
+      <div className='h-6 bg-gray-300 rounded w-32'></div>
+    </div>
+    <div className='h-64 bg-gray-100 rounded flex items-center justify-center'>
+      {type === 'bar' && (
+        <div className='flex items-end gap-2 h-32'>
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className='bg-gray-300 rounded-t'
+              style={{
+                height: `${Math.random() * 100 + 20}%`,
+                width: '20px',
+                animationDelay: `${i * 100}ms`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+      {type === 'donut' && (
+        <div className='relative'>
+          <div className='w-32 h-32 border-8 border-gray-300 rounded-full'></div>
+          <div className='absolute inset-0 w-32 h-32 border-8 border-transparent border-t-blue-300 rounded-full animate-spin'></div>
+        </div>
+      )}
+      {type === 'line' && (
+        <div className='w-full h-32 relative'>
+          <svg width='100%' height='100%' className='text-gray-300'>
+            <polyline
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='2'
+              points='0,100 50,80 100,90 150,60 200,70 250,40 300,50'
+              className='animate-pulse'
+            />
+          </svg>
+        </div>
+      )}
+    </div>
+    <div className='mt-4 space-y-2'>
+      <div className='h-4 bg-gray-200 rounded w-3/4'></div>
+      <div className='h-4 bg-gray-200 rounded w-1/2'></div>
+    </div>
+  </div>
+);
+
+// 📊 OpenManager Vibe v5 - 관리자 대시보드 차트 (모듈화된 버전)
+// 작성일: 2025-01-27 22:45:32 (KST)
+// Phase 5-1 완료: 대용량 컴포넌트 모듈화
+// Phase 5-2 완료: React 성능 최적화
+// Phase 5-3 완료: 모바일 UX 최적화 + 지연 로딩
+
+export default function AdminDashboardCharts() {
+  // 📱 모바일 감지
+  const isMobile = useIsMobile();
+
+  const {
+    data,
+    loading,
+    error,
+    lastUpdate,
+    autoRefresh,
+    setAutoRefresh,
+    refresh,
+  } = useSystemHealth();
+
+  // 🎨 헤더 영역
+  const renderHeader = () => (
+    <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0'>
+      <div className='flex items-center space-x-2'>
+        <Activity
+          className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} text-blue-500`}
+        />
+        <h1
+          className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-gray-900`}
+        >
+          {isMobile ? '시스템 모니터링' : '시스템 상태 모니터링'}
+        </h1>
+        {!isMobile && (
+          <span className='text-sm text-gray-500'>
+            {lastUpdate &&
+              `마지막 업데이트: ${lastUpdate.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}`}
+          </span>
+        )}
+      </div>
+
+      <div className='flex items-center space-x-3'>
+        {/* 자동 새로고침 토글 */}
+        <label className='flex items-center space-x-2 cursor-pointer'>
+          <input
+            type='checkbox'
+            checked={autoRefresh}
+            onChange={e => setAutoRefresh(e.target.checked)}
+            className='w-4 h-4 text-blue-600 rounded'
+          />
+          <span className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600`}>
+            {isMobile ? '자동새로침' : '자동 새로고침 (30초)'}
+          </span>
+        </label>
+
+        {/* 수동 새로고침 버튼 */}
+        <button
+          onClick={refresh}
+          disabled={loading}
+          className={`flex items-center space-x-1 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+            isMobile ? 'text-xs' : 'text-sm'
+          }`}
+        >
+          <RefreshCw
+            className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} ${loading ? 'animate-spin' : ''}`}
+          />
+          {!isMobile && <span>새로고침</span>}
+        </button>
+      </div>
+    </div>
+  );
+
+  // 📊 요약 정보 카드
+  const renderSummaryCards = () => {
+    if (!data?.summary) return null;
+
+    const { summary } = data;
+
     return (
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Activity className="w-6 h-6 text-blue-600" />
-            시스템 모니터링 대시보드
-          </h2>
-          <div className="flex items-center gap-2 text-blue-600">
-            <RefreshCw className="w-4 h-4 animate-spin" />
-            <span className="text-sm">데이터 로딩 중...</span>
+      <div className='grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6'>
+        {/* 전체 서버 수 */}
+        <div className='bg-white p-3 sm:p-4 rounded-lg shadow border-l-4 border-blue-500'>
+          <div className='flex items-center justify-between'>
+            <div>
+              <p
+                className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600`}
+              >
+                전체 서버
+              </p>
+              <p
+                className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-gray-900`}
+              >
+                {summary.serverCount}
+              </p>
+            </div>
+            <Activity
+              className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} text-blue-500`}
+            />
           </div>
         </div>
-        
-        {/* 로딩 스켈레톤 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-white p-6 rounded-lg shadow-sm border animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
-              <div className="h-64 bg-gray-100 rounded"></div>
+
+        {/* 헬스 스코어 */}
+        <div className='bg-white p-3 sm:p-4 rounded-lg shadow border-l-4 border-green-500'>
+          <div className='flex items-center justify-between'>
+            <div>
+              <p
+                className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600`}
+              >
+                헬스 스코어
+              </p>
+              <p
+                className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-gray-900`}
+              >
+                {summary.healthScore}%
+              </p>
             </div>
-          ))}
+            <TrendingUp
+              className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} text-green-500`}
+            />
+          </div>
+        </div>
+
+        {/* 심각한 이슈 */}
+        <div className='bg-white p-3 sm:p-4 rounded-lg shadow border-l-4 border-red-500'>
+          <div className='flex items-center justify-between'>
+            <div>
+              <p
+                className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600`}
+              >
+                {isMobile ? '심각이슈' : '심각한 이슈'}
+              </p>
+              <p
+                className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-gray-900`}
+              >
+                {summary.criticalIssues}
+              </p>
+            </div>
+            <AlertTriangle
+              className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} text-red-500`}
+            />
+          </div>
+        </div>
+
+        {/* 경고 */}
+        <div className='bg-white p-3 sm:p-4 rounded-lg shadow border-l-4 border-yellow-500'>
+          <div className='flex items-center justify-between'>
+            <div>
+              <p
+                className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600`}
+              >
+                경고
+              </p>
+              <p
+                className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-gray-900`}
+              >
+                {summary.warnings}
+              </p>
+            </div>
+            <AlertTriangle
+              className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} text-yellow-500`}
+            />
+          </div>
         </div>
       </div>
     );
-  }
+  };
 
-  // 에러 상태
-  if (error) {
+  // 📊 차트 그리드
+  const renderChartsGrid = () => (
+    <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6'>
+      {/* 시스템 성능 차트 */}
+      <div className='bg-white rounded-lg shadow'>
+        <Suspense
+          fallback={<ChartLoadingSkeleton title='시스템 성능' type='bar' />}
+        >
+          <ChartErrorBoundary chartName='시스템 성능'>
+            <PerformanceChart
+              data={transformPerformanceChartData(data)}
+              isLoading={loading}
+              isMobile={isMobile}
+              height={isMobile ? 200 : 264}
+            />
+          </ChartErrorBoundary>
+        </Suspense>
+      </div>
+
+      {/* 가용성 차트 */}
+      <div className='lg:col-span-1'>
+        <Suspense
+          fallback={<ChartLoadingSkeleton title='가용성' type='donut' />}
+        >
+          <ChartErrorBoundary chartName='가용성'>
+            <AvailabilityChart
+              data={transformAvailabilityChartData(data)}
+              isLoading={loading}
+              isMobile={isMobile}
+              height={isMobile ? 200 : 280}
+            />
+          </ChartErrorBoundary>
+        </Suspense>
+      </div>
+
+      {/* 시스템 알림 차트 */}
+      <div className='bg-white rounded-lg shadow lg:col-span-2'>
+        <Suspense
+          fallback={<ChartLoadingSkeleton title='시스템 알림' type='line' />}
+        >
+          <ChartErrorBoundary chartName='시스템 알림'>
+            <AlertsChart
+              data={transformAlertsChartData(data)}
+              isLoading={loading}
+              isMobile={isMobile}
+              height={isMobile ? 200 : 264}
+            />
+          </ChartErrorBoundary>
+        </Suspense>
+      </div>
+    </div>
+  );
+
+  // 🚨 전역 에러 상태
+  if (error && !data) {
     return (
-      <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-red-800 mb-2">데이터 로드 실패</h3>
-          <p className="text-red-600 mb-4">{error}</p>
+      <div className='p-6'>
+        {renderHeader()}
+        <div className='bg-red-50 border border-red-200 rounded-lg p-6 text-center'>
+          <AlertTriangle className='w-12 h-12 text-red-500 mx-auto mb-4' />
+          <h3 className='text-lg font-semibold text-red-800 mb-2'>
+            데이터 로드 실패
+          </h3>
+          <p className='text-red-600 mb-4'>{error}</p>
           <button
-            onClick={handleManualRefresh}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 mx-auto"
+            onClick={refresh}
+            className='px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors'
           >
-            <RefreshCw className="w-4 h-4" />
             다시 시도
           </button>
         </div>
@@ -298,327 +405,41 @@ export default function AdminDashboardCharts() {
     );
   }
 
-  if (!data) return null;
-
-  const performanceData = getPerformanceChartData();
-  const availabilityData = getAvailabilityChartData();
-  const alertsData = getAlertsChartData();
-  const trendsData = getTrendsChartData();
-
+  // 📊 메인 렌더링
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Activity className="w-6 h-6 text-blue-600" />
-            시스템 모니터링 대시보드
-          </h2>
-          <p className="text-gray-600 mt-1">
-            실시간 서버 성능 및 상태 모니터링
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          {/* 연결 상태 */}
-          <div className="flex items-center gap-2">
-            {data.summary.dataSource === 'api' ? (
-              <Wifi className="w-4 h-4 text-green-500" />
-            ) : (
-              <WifiOff className="w-4 h-4 text-red-500" />
-            )}
-            <span className="text-sm text-gray-600">
-              {data.summary.dataSource === 'api' ? '실시간 연결' : 'Fallback 모드'}
-            </span>
-          </div>
-          
-          {/* 자동 새로고침 토글 */}
-          <button
-            onClick={() => setAutoRefresh(!autoRefresh)}
-            className={`px-3 py-1 text-xs rounded-full transition-colors ${
-              autoRefresh 
-                ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            자동 새로고침 {autoRefresh ? 'ON' : 'OFF'}
-          </button>
-          
-          {/* 수동 새로고침 */}
-          <button
-            onClick={handleManualRefresh}
-            disabled={loading}
-            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
-            title="수동 새로고침"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-          
-          {/* 마지막 업데이트 */}
-          {lastUpdate && (
-            <span className="text-xs text-gray-500">
-              {lastUpdate.toLocaleTimeString('ko-KR')} 업데이트
-            </span>
-          )}
-        </div>
-      </div>
+    <div className='p-6 space-y-6 bg-gray-50 min-h-screen'>
+      {renderHeader()}
+      {renderSummaryCards()}
+      {renderChartsGrid()}
 
-      {/* 요약 카드들 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">헬스 스코어</p>
-              <p className="text-2xl font-bold text-gray-900">{data.summary.healthScore}/100</p>
-            </div>
-            <div className={`w-3 h-3 rounded-full ${
-              data.summary.healthScore >= 80 ? 'bg-green-500' :
-              data.summary.healthScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-            }`}></div>
-          </div>
+      {/* 🔄 로딩 오버레이 */}
+      {loading && data && (
+        <div className='fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 z-50'>
+          <RefreshCw className='w-4 h-4 animate-spin' />
+          <span className='text-sm'>데이터 업데이트 중...</span>
         </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">서버 수</p>
-              <p className="text-2xl font-bold text-gray-900">{data.summary.serverCount}</p>
-            </div>
-            <Server className="w-5 h-5 text-blue-500" />
-          </div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">심각한 이슈</p>
-              <p className="text-2xl font-bold text-red-600">{data.summary.criticalIssues}</p>
-            </div>
-            <AlertTriangle className="w-5 h-5 text-red-500" />
-          </div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">경고</p>
-              <p className="text-2xl font-bold text-yellow-600">{data.summary.warnings}</p>
-            </div>
-            <AlertTriangle className="w-5 h-5 text-yellow-500" />
-          </div>
-        </div>
-      </div>
+      )}
 
-      {/* 차트 그리드 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* 1. 실시간 자원 사용률 - BarChart */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-blue-600" />
-            실시간 자원 사용률
-          </h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={performanceData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis domain={[0, 100]} />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="value" fill={COLORS.primary}>
-                  {performanceData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* 2. 서버 가용성 - DonutChart */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Server className="w-5 h-5 text-green-600" />
-            서버 가용성
-          </h3>
-          <div className="h-64 flex items-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={availabilityData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {availabilityData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="text-center mt-2">
-            <p className="text-sm text-gray-600">
-              가용성: {data.charts.availabilityChart.rate.toFixed(1)}%
+      {/* 📊 디버그 정보 (개발 환경) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className='mt-8 p-4 bg-gray-100 rounded-lg border'>
+          <h4 className='font-semibold text-gray-800 mb-2'>🔧 디버그 정보</h4>
+          <div className='text-sm text-gray-600 space-y-1'>
+            <p>
+              • 마지막 업데이트:{' '}
+              {lastUpdate?.toLocaleString('ko-KR', {
+                timeZone: 'Asia/Seoul',
+              }) || '없음'}
             </p>
+            <p>• 자동 새로고침: {autoRefresh ? '활성화' : '비활성화'}</p>
+            <p>• 로딩 상태: {loading ? '로딩 중' : '완료'}</p>
+            <p>• 에러: {error || '없음'}</p>
+            <p>• 데이터 존재: {data ? '있음' : '없음'}</p>
+            <p>• 전체 상태: {data?.summary.overallStatus || '알 수 없음'}</p>
+            <p>• 데이터 소스: {data?.summary.dataSource || '알 수 없음'}</p>
           </div>
-        </div>
-
-        {/* 3. 알림 분포 - PieChart */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-yellow-600" />
-            알림 분포
-          </h3>
-          <div className="h-64">
-            {alertsData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={alertsData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    dataKey="value"
-                  >
-                    {alertsData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-full text-gray-500">
-                <div className="text-center">
-                  <AlertTriangle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                  <p>알림 없음</p>
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="text-center mt-2">
-            <p className="text-sm text-gray-600">
-              총 알림: {data.charts.alertsChart.total}개
-            </p>
-          </div>
-        </div>
-
-        {/* 4. 트렌드 변화 - LineChart */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-purple-600" />
-            성능 트렌드
-          </h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trendsData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
-                <YAxis />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="CPU" 
-                  stroke={COLORS.danger} 
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="Memory" 
-                  stroke={COLORS.warning} 
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="Alerts" 
-                  stroke={COLORS.info} 
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* 이상 징후 및 권장사항 */}
-      {(data.anomalies.length > 0 || data.recommendations.length > 0) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* 이상 징후 */}
-          {data.anomalies.length > 0 && (
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
-                감지된 이상 징후
-              </h3>
-              <div className="space-y-3 max-h-48 overflow-y-auto">
-                {data.anomalies.slice(0, 5).map((anomaly) => (
-                  <div 
-                    key={anomaly.id}
-                    className={`p-3 rounded-lg border-l-4 ${
-                      anomaly.severity === 'critical' ? 'border-red-500 bg-red-50' :
-                      anomaly.severity === 'high' ? 'border-orange-500 bg-orange-50' :
-                      anomaly.severity === 'medium' ? 'border-yellow-500 bg-yellow-50' :
-                      'border-blue-500 bg-blue-50'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">
-                          {anomaly.description}
-                        </p>
-                        <p className="text-xs text-gray-600 mt-1">
-                          {anomaly.recommendation}
-                        </p>
-                      </div>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        anomaly.severity === 'critical' ? 'bg-red-100 text-red-700' :
-                        anomaly.severity === 'high' ? 'bg-orange-100 text-orange-700' :
-                        anomaly.severity === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-blue-100 text-blue-700'
-                      }`}>
-                        {anomaly.severity}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 권장사항 */}
-          {data.recommendations.length > 0 && (
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-blue-600" />
-                시스템 권장사항
-              </h3>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {data.recommendations.slice(0, 6).map((recommendation, index) => (
-                  <div 
-                    key={index}
-                    className="flex items-start gap-2 p-2 hover:bg-gray-50 rounded"
-                  >
-                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                    <p className="text-sm text-gray-700">{recommendation}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>
   );
-} 
+}
