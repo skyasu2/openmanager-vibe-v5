@@ -1,15 +1,22 @@
+import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import UnifiedProfileComponent from './UnifiedProfileComponent';
 
-// Zustand store 목업
+// 🎯 Store 목업 - 안전한 방식으로 설정
+const mockStore = {
+  ui: {
+    isSettingsPanelOpen: false,
+  },
+  setSettingsPanelOpen: vi.fn(),
+  adminMode: {
+    isAuthenticated: false,
+  },
+  logoutAdmin: vi.fn(),
+};
+
 vi.mock('@/stores/useUnifiedAdminStore', () => ({
-  useUnifiedAdminStore: vi.fn(() => ({
-    ui: {
-      isSettingsPanelOpen: false,
-    },
-    setSettingsPanelOpen: vi.fn(),
-  })),
+  useUnifiedAdminStore: vi.fn(() => mockStore),
 }));
 
 // Framer Motion 목업
@@ -48,15 +55,11 @@ vi.mock('./unified-profile/UnifiedSettingsPanel', () => ({
 }));
 
 describe('UnifiedProfileComponent', () => {
-  const mockStore = {
-    ui: { isSettingsPanelOpen: false },
-    setSettingsPanelOpen: vi.fn(),
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
-    const { useUnifiedAdminStore } = require('@/stores/useUnifiedAdminStore');
-    useUnifiedAdminStore.mockReturnValue(mockStore);
+    // Mock 함수들을 명시적으로 초기화
+    mockStore.setSettingsPanelOpen.mockClear();
+    mockStore.logoutAdmin.mockClear();
   });
 
   it('기본 props로 렌더링된다', () => {

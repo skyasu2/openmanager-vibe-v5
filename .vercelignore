@@ -33,6 +33,18 @@ tests/
 test-results/
 playwright-report/
 coverage/
+html/
+
+# 개발 및 빌드 도구 파일들
+vitest.config.ts
+jest.config.js
+playwright.config.ts
+.lighthouserc.json
+babel.config.js.backup
+postcss.config.mjs
+.cursorrules
+.nvmrc
+.prettierrc
 
 # 환경 변수 및 로그
 .env.local
@@ -46,6 +58,7 @@ yarn-error.log*
 .DS_Store
 .vscode/
 .idea/
+.cursor/
 
 # 테스트 관련
 .nyc_output
@@ -62,12 +75,34 @@ node_modules/
 .cache/
 .parcel-cache/
 
-# 문서 및 스크립트 (배포에 불필요)
+# 개발용 폴더들 (배포에 불필요)
 docs/
 scripts/
 !scripts/conditional-mcp-setup.mjs
+development/
+backup/
+config/
+infra/
 .github/
+.husky/
+.githooks/
+mcp-server/
+logs/
+database/
+
+# 문서 파일들
 README.md
+CHANGELOG.md
+CHANGELOG-v1.md
+*.md
+!README.md
 .env.example
 .env.template
-tsconfig.tsbuildinfo 
+tsconfig.tsbuildinfo
+
+# 임시 파일들
+temp-*.md
+*~
+*.tmp
+*.temp
+e2e-results.json 
