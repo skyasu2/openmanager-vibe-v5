@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  calculateOneRowLayout,
   calculateTwoRowsLayout,
   generateDisplayInfo,
   getDisplayModeConfig,
@@ -392,11 +393,11 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   };
 }
 
-// 🆕 새로운 Enhanced 서버 대시보드 훅 (세로 2줄 + UI/UX 개선)
+// 🆕 새로운 Enhanced 서버 대시보드 훅 (가로 한 줄 + UI/UX 개선)
 export function useEnhancedServerDashboard({
   servers,
   initialViewMode = 'grid',
-  initialDisplayMode = 'SHOW_TWO_ROWS', // 🆕 기본값: 세로 2줄
+  initialDisplayMode = 'SHOW_ONE_ROW', // 🆕 기본값: 가로 한 줄
 }: UseEnhancedServerDashboardProps): UseEnhancedServerDashboardReturn {
   // 🎨 뷰 상태
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
@@ -434,9 +435,16 @@ export function useEnhancedServerDashboard({
     return getDisplayModeConfig(displayMode, screenWidth);
   }, [displayMode, screenWidth]);
 
-  // 🎛️ 그리드 레이아웃 계산 (세로 2줄)
+  // 🎛️ 그리드 레이아웃 계산 (가로 한 줄 + 세로 2줄)
   const gridLayout = useMemo(() => {
-    if (displayMode === 'SHOW_TWO_ROWS') {
+    if (displayMode === 'SHOW_ONE_ROW') {
+      const layout = calculateOneRowLayout(screenWidth);
+      return {
+        className: `grid gap-4 grid-cols-${layout.cols}`,
+        cols: layout.cols,
+        rows: layout.rows,
+      };
+    } else if (displayMode === 'SHOW_TWO_ROWS') {
       const layout = calculateTwoRowsLayout(screenWidth);
       return {
         className: `grid gap-4 grid-cols-${layout.cols} grid-rows-2`,

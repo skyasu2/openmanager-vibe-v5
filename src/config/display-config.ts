@@ -14,6 +14,7 @@ export type ServerDisplayMode =
   | 'SHOW_HALF' // 절반씩 표시 (8개)
   | 'SHOW_QUARTER' // 1/4씩 표시 (4개)
   | 'SHOW_THIRD' // 1/3씩 표시 (5개)
+  | 'SHOW_ONE_ROW' // 🆕 가로 한 줄 표시 (화면 크기별 동적)
   | 'SHOW_TWO_ROWS' // 세로 2줄 표시 (화면 크기별 동적)
   | 'SHOW_CUSTOM'; // 사용자 정의
 
@@ -33,11 +34,19 @@ export interface ServerDisplayConfig {
   gridLayout: {
     mobile: number; // 모바일 열 수
     tablet: number; // 태블릿 열 수
-    desktop: number; // 데스크톱 열 수
+    desktop: number; // 데스크탑 열 수
     large: number; // 대형 화면 열 수
   };
 
-  // 📱 반응형 세로 2줄 설정
+  // 📱 반응형 가로 한 줄 설정 (🆕 추가)
+  oneRowLayout: {
+    mobile: { cols: number; rows: number }; // 모바일: 1~2개
+    tablet: { cols: number; rows: number }; // 태블릿: 3~4개
+    desktop: { cols: number; rows: number }; // 데스크탑: 5~6개
+    large: { cols: number; rows: number }; // 대형: 7~8개
+  };
+
+  // 📱 반응형 세로 2줄 설정 (기존 유지)
   twoRowsLayout: {
     mobile: { cols: number; rows: number }; // 모바일: 2x4 = 8개
     tablet: { cols: number; rows: number }; // 태블릿: 4x2 = 8개
@@ -55,7 +64,32 @@ export interface ServerDisplayConfig {
 }
 
 /**
- * 🎯 화면 크기별 세로 2줄 계산
+ * 🆕 화면 크기별 가로 한 줄 계산
+ */
+export const calculateOneRowLayout = (screenWidth: number) => {
+  if (screenWidth < 640) {
+    // 모바일 (매우 작은 화면): 1열 x 1줄 = 1개
+    return { cols: 1, rows: 1, total: 1 };
+  } else if (screenWidth < 768) {
+    // 모바일: 2열 x 1줄 = 2개
+    return { cols: 2, rows: 1, total: 2 };
+  } else if (screenWidth < 1024) {
+    // 태블릿: 4열 x 1줄 = 4개
+    return { cols: 4, rows: 1, total: 4 };
+  } else if (screenWidth < 1280) {
+    // 데스크탑: 6열 x 1줄 = 6개
+    return { cols: 6, rows: 1, total: 6 };
+  } else if (screenWidth < 1536) {
+    // 대형 화면: 8열 x 1줄 = 8개
+    return { cols: 8, rows: 1, total: 8 };
+  } else {
+    // 초대형 화면: 10열 x 1줄 = 10개
+    return { cols: 10, rows: 1, total: 10 };
+  }
+};
+
+/**
+ * 🎯 화면 크기별 세로 2줄 계산 (기존 유지)
  */
 export const calculateTwoRowsLayout = (screenWidth: number) => {
   if (screenWidth < 768) {
@@ -81,7 +115,7 @@ export const DEFAULT_SERVER_DISPLAY_CONFIG: ServerDisplayConfig = {
   actualServerCount: ACTIVE_SERVER_CONFIG.maxServers, // 15개
 
   // 🖥️ 화면 표시 관련
-  displayMode: 'SHOW_TWO_ROWS', // 🆕 세로 2줄 모드
+  displayMode: 'SHOW_ONE_ROW', // 🆕 가로 한 줄 모드 (화면 크기별 동적)
   cardsPerPage: 15, // 동적으로 계산됨
   enablePagination: true,
 
@@ -89,11 +123,19 @@ export const DEFAULT_SERVER_DISPLAY_CONFIG: ServerDisplayConfig = {
   gridLayout: {
     mobile: 1, // 1열
     tablet: 2, // 2열
-    desktop: 3, // 3열
-    large: 4, // 4열 (최대 15개까지)
+    desktop: 6, // 6열 (가로 한 줄 최적화)
+    large: 8, // 8열 (가로 한 줄 최적화)
   },
 
-  // 📱 반응형 세로 2줄 설정
+  // 📱 반응형 가로 한 줄 설정 (🆕 기본 모드)
+  oneRowLayout: {
+    mobile: { cols: 1, rows: 1 }, // 1x1 = 1개
+    tablet: { cols: 2, rows: 1 }, // 2x1 = 2개
+    desktop: { cols: 6, rows: 1 }, // 6x1 = 6개
+    large: { cols: 8, rows: 1 }, // 8x1 = 8개
+  },
+
+  // 📱 반응형 세로 2줄 설정 (선택적 사용)
   twoRowsLayout: {
     mobile: { cols: 1, rows: 2 }, // 1x2 = 2개
     tablet: { cols: 2, rows: 2 }, // 2x2 = 4개
@@ -103,8 +145,8 @@ export const DEFAULT_SERVER_DISPLAY_CONFIG: ServerDisplayConfig = {
 
   // 🎛️ UI/UX 개선 옵션
   uxEnhancements: {
-    showServerCounter: true, // "15개 중 8개 표시"
-    showPaginationInfo: true, // "1/2 페이지"
+    showServerCounter: true, // "15개 중 6개 표시" (가로 한 줄)
+    showPaginationInfo: true, // "1/3 페이지" (6개씩 표시 시)
     enableViewModeToggle: true, // 그리드/리스트 토글
     showLoadingProgress: true, // 로딩 진행률
   },
@@ -146,6 +188,16 @@ export const getDisplayModeConfig = (
         cardsPerPage: Math.ceil(actualCount / 3), // 5개
         enablePagination: true,
         description: '1/3씩 표시',
+      };
+
+    case 'SHOW_ONE_ROW':
+      const oneRowLayout = calculateOneRowLayout(screenWidth);
+      return {
+        cardsPerPage: Math.min(oneRowLayout.total, actualCount),
+        enablePagination: oneRowLayout.total < actualCount,
+        description: `${oneRowLayout.cols}열 x ${oneRowLayout.rows}줄 표시`,
+        gridCols: oneRowLayout.cols,
+        gridRows: oneRowLayout.rows,
       };
 
     case 'SHOW_TWO_ROWS':
