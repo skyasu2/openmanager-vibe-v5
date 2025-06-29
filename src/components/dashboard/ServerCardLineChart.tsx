@@ -90,19 +90,19 @@ export default function ServerCardLineChart({
   showRealTimeUpdates = true,
   className = '',
 }: ServerCardLineChartProps) {
-  // 최근 20개 데이터 포인트를 저장 (라인차트용)
+  // 최근 20개 데이터 포인트를 저장 (라인차트용) - 🎯 20초 간격 통일
   const [dataPoints, setDataPoints] = useState<
     Array<{ timestamp: string; value: number }>
   >(() =>
     Array.from({ length: 20 }, (_, i) => ({
-      timestamp: new Date(Date.now() - (19 - i) * 2000).toISOString(), // 2초 간격
+      timestamp: new Date(Date.now() - (19 - i) * 20000).toISOString(), // 🎯 2초 → 20초 간격
       value: Math.max(0, value + (Math.random() - 0.5) * 10),
     }))
   );
 
   const config = getMetricConfig(value, type);
 
-  // 실시간 데이터 시뮬레이션 (3초마다 업데이트)
+  // 🎯 실시간 데이터 시뮬레이션 (20초 간격 - 시스템 통일)
   useEffect(() => {
     if (!showRealTimeUpdates) return;
 
@@ -116,7 +116,7 @@ export default function ServerCardLineChart({
         // 최신 20개만 유지
         return [...prev.slice(1), newPoint];
       });
-    }, 3000);
+    }, 20000); // 🎯 3초 → 20초로 변경 (데이터 생성기와 동기화)
 
     return () => clearInterval(interval);
   }, [showRealTimeUpdates, value]);

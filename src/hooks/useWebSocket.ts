@@ -8,7 +8,7 @@
  * - TypeScript 지원
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 // 🎯 타입 정의
@@ -114,9 +114,25 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
         socket.emit('request-current-status');
       });
 
-      // 연결 실패
+      // 연결 실패 (404 에러 포함)
       socket.on('connect_error', error => {
         console.error('❌ WebSocket 연결 실패:', error);
+
+        // 🛡️ 404 에러 (WebSocket 서버 없음) 처리
+        if (
+          error.message.includes('404') ||
+          error.message.includes('Not Found')
+        ) {
+          console.warn('⚠️ WebSocket 서버가 구현되지 않음 - 폴백 모드로 전환');
+          setConnectionState(prev => ({
+            ...prev,
+            isConnected: false,
+            isConnecting: false,
+            error: null, // 에러 상태 초기화 (폴백 모드는 정상 상태)
+          }));
+          return;
+        }
+
         setConnectionState(prev => ({
           ...prev,
           isConnected: false,

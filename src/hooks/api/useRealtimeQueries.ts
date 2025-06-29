@@ -8,11 +8,11 @@
  * - Optimistic Updates 지원
  */
 
-import { useEffect, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
-import { serverKeys } from './useServerQueries';
 import { predictionKeys } from './usePredictionQueries';
+import { serverKeys } from './useServerQueries';
 import { systemKeys } from './useSystemQueries';
 
 // 🌐 WebSocket 연결 상태
@@ -50,19 +50,19 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
     autoConnect = true,
   } = config;
 
-  // 📡 WebSocket 연결
+  // 🔄 SSE 연결 (WebSocket 대체)
   const connect = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
+    if (wsRef.current && (wsRef.current as any).readyState === EventSource.OPEN) {
       return;
     }
 
     try {
-      // WebSocket URL 구성 (개발/프로덕션 환경 대응)
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.host;
-      const wsUrl = `${protocol}//${host}${url}`;
+      // SSE URL 구성 (Vercel 호환)
+      const sseUrl = '/api/sse/servers';
+      console.log('🔄 서버 SSE 연결 시작:', sseUrl);
 
-      wsRef.current = new WebSocket(wsUrl);
+      const eventSource = new EventSource(sseUrl);
+      wsRef.current = eventSource as any; // EventSource를 WebSocket 타입으로 캐스팅
 
       wsRef.current.onopen = () => {
         console.log('🔗 서버 WebSocket 연결됨');
@@ -140,17 +140,30 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
 
       wsRef.current.onerror = error => {
         console.error('❌ WebSocket 오류:', error);
+        // 🛡️ 404 에러 등 연결 실패 시 사용자에게 알림하지 않음 (폴백 모드)
       };
 
-      wsRef.current.onclose = () => {
-        console.log('📡 서버 WebSocket 연결 종료');
+      wsRef.current.onclose = event => {
+        console.log('📡 서버 WebSocket 연결 종료', {
+          code: event.code,
+          reason: event.reason,
+        });
 
         if (heartbeatRef.current) {
           clearInterval(heartbeatRef.current);
           heartbeatRef.current = null;
         }
 
-        // 자동 재연결
+        // 🛡️ 404 에러 (WebSocket 엔드포인트 없음) 처리
+        if (event.code === 1002 || event.code === 1006) {
+          console.warn(
+            '⚠️ WebSocket 엔드포인트가 구현되지 않음 - 폴백 모드로 전환'
+          );
+          // 폴백 모드: React Query만 사용하여 정기적 API 호출
+          return;
+        }
+
+        // 자동 재연결 (404가 아닌 경우만)
         if (reconnectAttemptsRef.current < maxReconnectAttempts) {
           reconnectAttemptsRef.current++;
           console.log(
@@ -161,7 +174,10 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
             connect();
           }, reconnectInterval * reconnectAttemptsRef.current);
         } else {
-          toast.error('서버 연결이 끊어졌습니다. 페이지를 새로고침해주세요.');
+          console.warn(
+            '⚠️ WebSocket 연결 실패 - 폴백 모드로 전환 (React Query 전용)'
+          );
+          // 오류 알림 제거: 폴백 모드가 정상적으로 작동하므로 사용자에게 알릴 필요 없음
         }
       };
     } catch (error) {
@@ -284,6 +300,20 @@ export const useRealtimePredictions = () => {
 
     wsRef.current.onerror = error => {
       console.error('❌ 예측 WebSocket 오류:', error);
+      // 🛡️ 예측 WebSocket 404 에러 시 폴백 모드 (예측 API 직접 호출)
+    };
+
+    wsRef.current.onclose = event => {
+      console.log('📡 예측 WebSocket 연결 종료', {
+        code: event.code,
+        reason: event.reason,
+      });
+
+      // 🛡️ 404 에러 시 폴백 모드로 전환
+      if (event.code === 1002 || event.code === 1006) {
+        console.warn('⚠️ 예측 WebSocket 엔드포인트 없음 - REST API 폴백 모드');
+        return;
+      }
     };
 
     return () => {
