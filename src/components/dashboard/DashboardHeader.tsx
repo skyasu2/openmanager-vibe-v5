@@ -1,9 +1,11 @@
 'use client';
 
+import { cn } from '@/lib/utils';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
-import { Bot, Clock } from 'lucide-react';
+import { Bot, Clock, Home, Settings } from 'lucide-react';
+import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 
 // 추가된 임포트
@@ -256,6 +258,38 @@ const DashboardHeader = React.memo(function DashboardHeader({
         <div className='flex items-center justify-center gap-6'>
           <RealTimeDisplay />
         </div>
+      </div>
+
+      {/* 네비게이션 링크들 */}
+      <div className='flex items-center gap-2'>
+        <Link
+          href='/dev-tools'
+          className='px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2'
+        >
+          <Settings className='w-4 h-4' />
+          개발 도구
+        </Link>
+
+        <button
+          onClick={onNavigateHome}
+          className='px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2'
+        >
+          <Home className='w-4 h-4' />
+          홈으로
+        </button>
+
+        <button
+          onClick={onToggleAgent}
+          className={cn(
+            'px-3 py-2 text-sm rounded-lg transition-colors flex items-center gap-2',
+            isAgentOpen
+              ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+          )}
+        >
+          <Bot className='w-4 h-4' />
+          AI 어시스턴트
+        </button>
       </div>
     </header>
   );

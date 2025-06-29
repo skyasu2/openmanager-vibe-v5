@@ -266,7 +266,11 @@
     "git:list-tags": "git tag --sort=-version:refname | head -10",
     "git:latest-tag": "git describe --tags --abbrev=0",
     "kst:time": "node -e \"const now = new Date(); console.log('🕒 현재 한국시간:', now.toLocaleString('ko-KR', {timeZone: 'Asia/Seoul'}) + ' (KST)')\"",
-    "kst:commit": "node -e \"const now = new Date(); console.log('커밋용 시간:', '(' + now.toLocaleString('sv-SE', {timeZone: 'Asia/Seoul'}).substring(0, 16) + ' KST)')\""
+    "kst:commit": "node -e \"const now = new Date(); console.log('커밋용 시간:', '(' + now.toLocaleString('sv-SE', {timeZone: 'Asia/Seoul'}).substring(0, 16) + ' KST)')\"",
+    "system:start": "node scripts/system-control.mjs start",
+    "system:stop": "node scripts/system-control.mjs stop",
+    "system:restart": "node scripts/system-control.mjs restart",
+    "system:status": "node scripts/system-control.mjs status"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",
