@@ -9,25 +9,25 @@
 
 'use client';
 
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
-  MessageSquare,
+  PRESET_QUESTIONS,
+  useAIChat,
+  useAIThinking,
+} from '@/stores/useAISidebarStore';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Bot,
+  Clock,
   Lightbulb,
+  MessageSquare,
   Send,
   Trash2,
   User,
-  Bot,
-  Clock,
   Zap,
 } from 'lucide-react';
+import React from 'react';
 import BasePanelLayout from './shared/BasePanelLayout';
 import ThinkingView from './ThinkingView';
-import {
-  useAIChat,
-  useAIThinking,
-  PRESET_QUESTIONS,
-} from '@/stores/useAISidebarStore';
 
 // 패널용 프리셋 질문 (5개 선별)
 const PANEL_PRESET_QUESTIONS = [
@@ -141,18 +141,30 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
       setConversations(prev => [...prev, userMessage]);
 
       try {
-        // 실제 AI API 사용 시도
-        let aiResponseContent: string;
-        let confidence: number;
+        // 🚀 실제 AI 응답 API 호출
+        const response = await fetch('/api/ai/adaptive-query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: question,
+            mode: 'LOCAL',
+            context: 'qa-panel'
+          }),
+        });
 
-        try {
-          const aiResponse = await callRealAI(question);
-          aiResponseContent = aiResponse.answer;
-          confidence = aiResponse.confidence;
+        if (!response.ok) {
+          throw new Error(`AI 응답 API 오류: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.response) {
+          const aiResponseContent = data.response;
+          const confidence = data.confidence || 0.7;
 
           // 실제 API의 thinking logs가 있으면 사용
-          if (aiResponse.thinkingLogs && aiResponse.thinkingLogs.length > 0) {
-            for (const log of aiResponse.thinkingLogs) {
+          if (data.thinkingLogs && data.thinkingLogs.length > 0) {
+            for (const log of data.thinkingLogs) {
               (addLog as any)({
                 message: log.content,
                 type: log.type,
@@ -168,98 +180,26 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
             // API에서 thinking logs가 없으면 시뮬레이션 사용
             await simulateThinkingProcess(question);
           }
-        } catch (apiError) {
-          console.log('MCP API 실패, RAG 폴백 시도:', apiError);
 
-          // RAG 폴백 시도
-          try {
-            const ragResponse = await fetch('/api/ai/hybrid', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                query: question,
-                mode: 'rag-only',
-              }),
-            });
-
-            if (ragResponse.ok) {
-              const ragData = await ragResponse.json();
-              aiResponseContent =
-                ragData.response ||
-                `로컬 RAG 엔진을 통해 "${question}"에 대한 분석을 완료했습니다.`;
-              confidence = ragData.confidence || 0.7;
-
-              // RAG 성공 시 thinking 과정 시뮬레이션
-              await simulateThinkingProcess(question);
-
-              const aiMessage: ChatMessage = {
-                id: `ai_${Date.now()}`,
-                type: 'ai',
-                content: aiResponseContent,
-                confidence: confidence,
-                timestamp: new Date(),
-              };
-
-              setConversations(prev => [...prev, aiMessage]);
-
-              (addResponse as any)({
-                response: aiResponseContent,
-                confidence: confidence,
-                engine: 'rag',
-                responseTime: '0ms',
-                mode: 'rag-only',
-              });
-
-              setThinking(false);
-              return;
-            }
-          } catch (ragError) {
-            console.log('RAG 폴백도 실패, 시뮬레이션으로 전환:', ragError);
-          }
-
-          // 모든 AI 엔진 실패 시에만 시뮬레이션 사용
-          await simulateThinkingProcess(question);
-
-          // Mock 응답 사용
-          const mockResponses = {
-            '현재 시스템의 전반적인 성능 상태는 어떤가요?':
-              '현재 시스템은 전반적으로 안정적입니다. 16개 서버 중 14개가 정상 상태이며, 2개 서버에서 경미한 성능 이슈가 감지되었습니다. CPU 평균 사용률 68%, 메모리 72% 수준으로 양호합니다.',
-            'CPU 사용률이 높은 서버들을 분석해주세요':
-              'Server-03, Server-07, Server-12에서 CPU 사용률이 85% 이상입니다. 주요 원인은 백그라운드 프로세스 증가와 트래픽 집중으로 분석됩니다. 즉시 조치가 필요합니다.',
-            '메모리 사용량 트렌드를 분석해주세요':
-              '최근 24시간 메모리 사용량이 점진적으로 증가하는 추세입니다. Server-07에서 메모리 누수 패턴이 의심되며, 재시작 또는 프로세스 점검을 권장합니다.',
-            '응답 시간이 느린 서버를 찾아주세요':
-              'Server-05와 Server-11에서 평균 응답시간이 300ms를 초과합니다. 네트워크 지연과 데이터베이스 쿼리 최적화가 필요합니다.',
-            '보안상 위험한 서버나 패턴이 있나요?':
-              '특정 IP에서 반복적인 로그인 실패가 감지되었습니다. 현재 차단 조치 중이며, 추가 보안 강화를 권장합니다. 전체적으로 보안 상태는 양호합니다.',
-            '전체 인프라의 상태를 종합적으로 분석해주세요':
-              '전체 인프라는 안정적으로 운영되고 있습니다. 주요 지표: 가용성 99.2%, 평균 응답시간 180ms, 처리량 초당 1,250 요청. 일부 최적화 권장사항이 있으나 긴급하지 않습니다.',
+          const aiMessage: ChatMessage = {
+            id: `ai_${Date.now()}`,
+            type: 'ai',
+            content: aiResponseContent,
+            confidence: confidence,
+            timestamp: new Date(),
           };
 
-          const defaultResponse =
-            '질문을 분석한 결과, 시스템 상태를 종합적으로 검토하여 정확한 답변을 제공했습니다. 추가 궁금한 사항이 있으시면 언제든 문의해주세요.';
-          aiResponseContent =
-            mockResponses[question as keyof typeof mockResponses] ||
-            defaultResponse;
-          confidence = Math.random() * 0.15 + 0.85; // 85-100% 신뢰도
+          setConversations(prev => [...prev, aiMessage]);
+
+          // 전역 상태에도 추가
+          (addResponse as any)({
+            query: currentQuestion || '질문 없음',
+            response: aiResponseContent,
+            confidence: confidence,
+          });
+        } else {
+          throw new Error(data.error || 'AI 응답 생성 실패');
         }
-
-        const aiMessage: ChatMessage = {
-          id: `ai_${Date.now()}`,
-          type: 'ai',
-          content: aiResponseContent,
-          confidence: confidence,
-          timestamp: new Date(),
-        };
-
-        setConversations(prev => [...prev, aiMessage]);
-
-        // 전역 상태에도 추가
-        (addResponse as any)({
-          query: currentQuestion || '질문 없음',
-          response: aiResponseContent,
-          confidence: confidence,
-        });
       } catch (error) {
         console.error('AI 응답 생성 오류:', error);
 
@@ -289,7 +229,6 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
       setCurrentQuestion,
       addLog,
       clearLogs,
-      callRealAI,
     ]
   );
 
@@ -453,11 +392,10 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
                     >
                       {/* 아바타 */}
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          message.type === 'user'
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${message.type === 'user'
                             ? 'bg-blue-500/20 border border-blue-500/30'
                             : 'bg-green-500/20 border border-green-500/30'
-                        }`}
+                          }`}
                       >
                         {message.type === 'user' ? (
                           <User className='w-4 h-4 text-blue-400' />
@@ -468,11 +406,10 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
 
                       {/* 메시지 내용 */}
                       <div
-                        className={`p-3 rounded-lg ${
-                          message.type === 'user'
+                        className={`p-3 rounded-lg ${message.type === 'user'
                             ? 'bg-blue-500/20 border border-blue-500/30 text-blue-200'
                             : 'bg-gray-800/50 border border-gray-600/30 text-gray-200'
-                        }`}
+                          }`}
                       >
                         <p className='text-sm leading-relaxed'>
                           {message.content}

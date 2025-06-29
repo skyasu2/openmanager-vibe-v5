@@ -118,9 +118,9 @@ vi.mock('redis-errors', () => ({
       this.name = 'RedisError';
     }
   },
-  RedisError: class RedisError extends Error {},
-  ParserError: class ParserError extends Error {},
-  ReplyError: class ReplyError extends Error {},
+  RedisError: class RedisError extends Error { },
+  ParserError: class ParserError extends Error { },
+  ReplyError: class ReplyError extends Error { },
 }));
 
 // 🛡️ 헬스체크 차단 방지 - 테스트 컨텍스트 명시적 설정
@@ -193,41 +193,47 @@ export const createTestQueryClient = () => {
   });
 };
 
-// 최적화된 Mock 서버 데이터 (2개만 유지)
-export const mockServerData = {
-  success: true,
-  data: {
-    servers: [
-      {
-        id: 'test-web-01',
-        hostname: 'test-web-01',
-        name: 'test-web-01',
-        status: 'healthy',
-        environment: 'test',
-        role: 'web',
-        cpu_usage: 45,
-        memory_usage: 67,
-        disk_usage: 23,
-        response_time: 120,
-        uptime: 86400000,
-        last_updated: new Date().toISOString(),
+// 최적화된 Mock 서버 데이터 제거 (실제 API 테스트로 대체)
+// export const mockServerData = { ... };
+
+// 테스트용 실제 API 호출 헬퍼
+export const createTestApiCall = async (endpoint: string, method: 'GET' | 'POST' = 'GET', body?: any) => {
+  try {
+    const response = await fetch(`http://localhost:3002${endpoint}`, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
       },
-      {
-        id: 'test-api-01',
-        hostname: 'test-api-01',
-        name: 'test-api-01',
-        status: 'warning',
-        environment: 'test',
-        role: 'api',
-        cpu_usage: 78,
-        memory_usage: 82,
-        disk_usage: 45,
-        response_time: 250,
-        uptime: 86400000 * 2,
-        last_updated: new Date().toISOString(),
-      },
-    ],
-  },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: `API 호출 실패: ${response.status}`,
+        data: null,
+      };
+    }
+
+    const data = await response.json();
+    return {
+      success: true,
+      data,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `네트워크 오류: ${error}`,
+      data: null,
+    };
+  }
+};
+
+// 테스트용 서버 상태 검증
+export const validateTestServerHealth = async () => {
+  const healthCheck = await createTestApiCall('/api/health');
+  return healthCheck.success;
 };
 
 export const mockSystemStatus = {

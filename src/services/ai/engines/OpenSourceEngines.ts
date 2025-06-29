@@ -10,6 +10,8 @@
  * - integrated → compromise + natural (고급 NLP)
  */
 
+import { utf8Logger } from '@/utils/utf8-logger';
+
 export interface AnomalyDetectionResult {
   isAnomaly: boolean;
   score: number;
@@ -451,12 +453,44 @@ export class OpenSourceEngines {
   }
 
   private generateSummary(text: string): string {
-    // 텍스트 요약 시뮬레이션
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    if (sentences.length <= 2) return text;
+    try {
+      // 한국어 UTF-8 안전 처리
+      let safeText = text;
 
-    // 첫 번째와 마지막 문장 조합
-    return `${sentences[0].trim()}. ${sentences[sentences.length - 1].trim()}.`;
+      // Windows 환경에서 한국어 깨짐 방지
+      if (process.platform === 'win32' && /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(text)) {
+        try {
+          const buffer = Buffer.from(text, 'utf8');
+          safeText = buffer.toString('utf8');
+
+          // 깨진 문자 패턴 제거
+          safeText = safeText.replace(/[]/g, '');
+
+          utf8Logger.korean('🔧', `한국어 텍스트 안전 처리: "${text}" → "${safeText}"`);
+        } catch (error) {
+          utf8Logger.warn('한국어 텍스트 처리 실패:', error);
+          safeText = text;
+        }
+      }
+
+      // 텍스트 요약 시뮬레이션
+      const sentences = safeText.split(/[.!?]+/).filter(s => s.trim().length > 0);
+      if (sentences.length <= 2) return safeText;
+
+      // 첫 번째와 마지막 문장 조합
+      const summary = `${sentences[0].trim()}. ${sentences[sentences.length - 1].trim()}.`;
+
+      // 한국어 응답인 경우 안전 처리된 응답 반환
+      if (/[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(safeText)) {
+        utf8Logger.korean('📝', `한국어 요약 생성: "${summary}"`);
+        return summary;
+      }
+
+      return summary;
+    } catch (error) {
+      utf8Logger.error('텍스트 요약 실패:', error);
+      return text.substring(0, 100) + '...';
+    }
   }
 
   /**

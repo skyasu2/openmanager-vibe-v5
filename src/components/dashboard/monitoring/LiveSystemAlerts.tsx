@@ -1,22 +1,19 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  AlertTriangle,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Activity,
-  Wifi,
-  Database,
-  AlertOctagon,
-  TrendingDown,
-  Server,
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import CollapsibleCard from '@/components/shared/CollapsibleCard';
-import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
 import { SystemAlert } from '@/domains/ai-sidebar/types';
+import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Activity,
+  AlertOctagon,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Database,
+  XCircle
+} from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface SystemEvent {
   id: string;
@@ -26,8 +23,12 @@ interface SystemEvent {
   icon: React.ReactNode;
 }
 
-// 📦 모의 알림 (SSE 실패 시 폴백)
-const generateMockAlerts = (): SystemAlert[] => [];
+interface LiveSystemAlertsProps {
+  className?: string;
+}
+
+// 📦 모의 알림 제거 (실제 API 호출로 대체)
+// const generateMockAlerts = (): SystemAlert[] => [];
 
 const getAlertColor = (type: SystemAlert['type']) => {
   switch (type) {
@@ -69,13 +70,16 @@ const formatTimeAgo = (date: Date): string => {
   return `${Math.floor(hours / 24)}일 전`;
 };
 
-export default function LiveSystemAlerts() {
+export default function LiveSystemAlerts({
+  className = ''
+}: LiveSystemAlertsProps) {
   const { sections, toggleSection } = useDashboardToggleStore();
   const [alerts, setAlerts] = useState<SystemAlert[]>([]);
   const [currentAlertIndex, setCurrentAlertIndex] = useState(0);
   const rotationRef = useRef<NodeJS.Timeout | null>(null);
-  const esRef = useRef<EventSource | null>(null);
+  const [eventSourceRef, setEventSourceRef] = useState<EventSource | null>(null);
   const visibilityTimeout = useRef<NodeJS.Timeout | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   // SystemEvent 상태 추가
   const [events, setEvents] = useState<SystemEvent[]>([
@@ -110,34 +114,58 @@ export default function LiveSystemAlerts() {
   ]);
 
   useEffect(() => {
-    const openSSE = () => {
-      if (esRef.current) return;
-      esRef.current = new EventSource('/api/alerts/stream');
+    // 🚀 실제 시스템 알림 SSE 연결
+    const connectToAlertsStream = () => {
+      if (typeof window === 'undefined' || eventSourceRef) return eventSourceRef;
 
-      esRef.current.onmessage = e => {
+      const eventSource = new EventSource('/api/alerts/stream');
+      setEventSourceRef(eventSource);
+
+      eventSource.onmessage = (event) => {
         try {
-          const parsed: SystemAlert = JSON.parse(e.data);
-          setAlerts(prev => [...prev, parsed].slice(-20));
-        } catch (err) {
-          console.warn('🚨 알림 파싱 실패:', err);
+          const alertData = JSON.parse(event.data);
+          if (alertData.type === 'alert') {
+            setAlerts(prev => [alertData.data, ...prev.slice(0, 49)]);
+            setLastUpdate(new Date());
+          }
+        } catch (error) {
+          console.error('알림 스트림 파싱 오류:', error);
         }
       };
 
-      esRef.current.onerror = () => {
-        console.warn('🚨 SSE 연결 오류');
-        esRef.current?.close();
-        esRef.current = null;
+      eventSource.onerror = (error) => {
+        console.error('알림 스트림 연결 오류:', error);
+        eventSource.close();
+        setEventSourceRef(null);
+
+        // 📊 실제 알림 API 호출로 폴백
+        fetch('/api/alerts?limit=20')
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.alerts) {
+              setAlerts(data.alerts);
+              setLastUpdate(new Date());
+            }
+          })
+          .catch(err => {
+            console.error('알림 API 호출 실패:', err);
+            setAlerts([]); // 빈 배열로 설정
+          });
       };
+
+      return eventSource;
     };
 
-    openSSE();
+    const eventSource = connectToAlertsStream();
 
     const handleVisibility = () => {
       if (document.visibilityState === 'hidden') {
         // 30초 이상 백그라운드 → SSE 닫기
         visibilityTimeout.current = setTimeout(() => {
-          esRef.current?.close();
-          esRef.current = null;
+          if (eventSourceRef) {
+            eventSourceRef.close();
+            setEventSourceRef(null);
+          }
         }, 30000);
       } else {
         if (visibilityTimeout.current) {
@@ -145,17 +173,22 @@ export default function LiveSystemAlerts() {
           visibilityTimeout.current = null;
         }
         // 보이는 상태이고 SSE 닫혀 있으면 재연결
-        if (!esRef.current) openSSE();
+        if (!eventSourceRef) {
+          connectToAlertsStream();
+        }
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
-      esRef.current?.close();
+      if (eventSourceRef) {
+        eventSourceRef.close();
+        setEventSourceRef(null);
+      }
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, []);
+  }, [eventSourceRef]);
 
   // 5초마다 알림 로테이션
   useEffect(() => {

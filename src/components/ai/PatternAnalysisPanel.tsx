@@ -41,60 +41,8 @@ interface PatternAnalysisPanelProps {
   className?: string;
 }
 
-// Mock 데이터 생성 함수
-const generateMockPatterns = (): PatternData[] => [
-  {
-    id: 'pattern_1',
-    title: 'CPU 사용량 증가 패턴',
-    type: 'performance',
-    severity: 'medium',
-    trend: 'increasing',
-    confidence: 0.87,
-    description:
-      '최근 3일간 오후 2-4시에 CPU 사용량이 지속적으로 증가하는 패턴이 감지되었습니다.',
-    lastDetected: new Date(Date.now() - 1800000), // 30분 전
-    affectedServers: 5,
-    predictedNext: '내일 오후 2시경',
-  },
-  {
-    id: 'pattern_2',
-    title: '주기적 메모리 누수',
-    type: 'failure',
-    severity: 'high',
-    trend: 'stable',
-    confidence: 0.92,
-    description:
-      'Server-07에서 24시간 주기로 메모리 사용량이 점진적으로 증가하다 갑자기 감소하는 패턴이 반복됩니다.',
-    lastDetected: new Date(Date.now() - 3600000), // 1시간 전
-    affectedServers: 1,
-    predictedNext: '내일 오전 9시경',
-  },
-  {
-    id: 'pattern_3',
-    title: '비정상 로그인 시도 증가',
-    type: 'security',
-    severity: 'medium',
-    trend: 'increasing',
-    confidence: 0.78,
-    description: '특정 IP 대역에서 반복적인 로그인 실패가 증가하고 있습니다.',
-    lastDetected: new Date(Date.now() - 900000), // 15분 전
-    affectedServers: 8,
-    predictedNext: '현재 진행 중',
-  },
-  {
-    id: 'pattern_4',
-    title: '디스크 I/O 병목 패턴',
-    type: 'performance',
-    severity: 'low',
-    trend: 'decreasing',
-    confidence: 0.65,
-    description:
-      '오전 시간대 디스크 I/O 대기시간이 높아지는 패턴이 감소하는 추세입니다.',
-    lastDetected: new Date(Date.now() - 7200000), // 2시간 전
-    affectedServers: 3,
-    predictedNext: '패턴 약화 중',
-  },
-];
+// Mock 데이터 생성 함수 제거 (실제 API 호출로 대체)
+// const generateMockPatterns = (): PatternData[] => [...];
 
 const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
   className = '',
@@ -153,8 +101,8 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
     return selectedType === 'all'
       ? patterns
       : patterns.filter(
-          (pattern: PatternData) => pattern.type === selectedType
-        );
+        (pattern: PatternData) => pattern.type === selectedType
+      );
   }, [patterns, selectedType]);
 
   // 유틸리티 함수들
@@ -370,34 +318,33 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
                   {/* 심각도가 medium 이상일 때만 자동 보고서 버튼 표시 */}
                   {(pattern.severity === 'high' ||
                     pattern.severity === 'medium') && (
-                    <button
-                      onClick={() => generateAutoReportFromPattern(pattern)}
-                      disabled={
-                        autoReportStatus.isGenerating &&
-                        autoReportStatus.lastPatternId === pattern.id
-                      }
-                      className={`px-3 py-1 text-xs rounded-lg border transition-colors ${
-                        autoReportStatus.isGenerating &&
-                        autoReportStatus.lastPatternId === pattern.id
+                      <button
+                        onClick={() => generateAutoReportFromPattern(pattern)}
+                        disabled={
+                          autoReportStatus.isGenerating &&
+                          autoReportStatus.lastPatternId === pattern.id
+                        }
+                        className={`px-3 py-1 text-xs rounded-lg border transition-colors ${autoReportStatus.isGenerating &&
+                          autoReportStatus.lastPatternId === pattern.id
                           ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
                           : 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100'
-                      }`}
-                      title='이 패턴을 기반으로 자동 장애 보고서 생성'
-                    >
-                      {autoReportStatus.isGenerating &&
-                      autoReportStatus.lastPatternId === pattern.id ? (
-                        <div className='flex items-center gap-1'>
-                          <div className='w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin' />
-                          <span>생성중...</span>
-                        </div>
-                      ) : (
-                        <div className='flex items-center gap-1'>
-                          <FileText className='w-3 h-3' />
-                          <span>보고서 생성</span>
-                        </div>
-                      )}
-                    </button>
-                  )}
+                          }`}
+                        title='이 패턴을 기반으로 자동 장애 보고서 생성'
+                      >
+                        {autoReportStatus.isGenerating &&
+                          autoReportStatus.lastPatternId === pattern.id ? (
+                          <div className='flex items-center gap-1'>
+                            <div className='w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin' />
+                            <span>생성중...</span>
+                          </div>
+                        ) : (
+                          <div className='flex items-center gap-1'>
+                            <FileText className='w-3 h-3' />
+                            <span>보고서 생성</span>
+                          </div>
+                        )}
+                      </button>
+                    )}
 
                   {/* 패턴 상세 보기 버튼 */}
                   <button

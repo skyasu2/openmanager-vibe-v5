@@ -343,10 +343,10 @@ export class SystemIntegrationAdapter {
       }
 
       // 4. 모든 방법 실패 시 기본 메트릭 생성
-      return this.generateMockMetrics(serverId);
+      return this.fetchRealSystemMetrics(serverId);
     } catch (error) {
       console.error(`❌ 서버 메트릭 조회 실패 (${serverId}):`, error);
-      return this.generateMockMetrics(serverId);
+      return this.fetchRealSystemMetrics(serverId);
     }
   }
 
@@ -544,57 +544,54 @@ export class SystemIntegrationAdapter {
   }
 
   /**
-   * 📊 모크 메트릭 생성
+   * 📊 모크 메트릭 생성 → 실제 시스템 메트릭 API 호출로 대체
    */
-  private generateMockMetrics(serverId: string): StandardServerMetrics {
-    return {
-      serverId,
-      hostname: `server-${serverId}`,
-      timestamp: new Date(),
-      status: 'online',
-      metrics: {
-        cpu: {
-          usage: Math.random() * 50 + 10, // 10-60%
-          loadAverage: [
-            Math.random() * 2,
-            Math.random() * 2,
-            Math.random() * 2,
-          ],
-          cores: 4,
-        },
-        memory: {
-          total: 8589934592,
-          used: Math.floor(8589934592 * 0.6),
-          available: Math.floor(8589934592 * 0.4),
-          usage: Math.random() * 40 + 30, // 30-70%
-        },
-        disk: {
-          total: 107374182400,
-          used: Math.floor(107374182400 * 0.5),
-          available: Math.floor(107374182400 * 0.5),
-          usage: Math.random() * 30 + 20, // 20-50%
-          iops: {
-            read: Math.floor(Math.random() * 1000),
-            write: Math.floor(Math.random() * 1000),
+  private async fetchRealSystemMetrics(serverId: string): Promise<StandardServerMetrics> {
+    try {
+      const response = await fetch(`/api/servers/${serverId}/metrics`);
+
+      if (!response.ok) {
+        throw new Error(`서버 메트릭 API 오류: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.metrics) {
+        return this.transformServerDataToStandardMetrics(data.metrics);
+      } else {
+        throw new Error('서버 메트릭 데이터 없음');
+      }
+    } catch (error) {
+      console.error(`서버 ${serverId} 메트릭 조회 실패:`, error);
+
+      // 에러 시 기본 오프라인 상태 반환
+      return {
+        serverId,
+        hostname: `server-${serverId}`,
+        timestamp: new Date(),
+        status: 'offline',
+        metrics: {
+          cpu: { usage: 0, loadAverage: [0, 0, 0], cores: 0 },
+          memory: { total: 0, used: 0, available: 0, usage: 0 },
+          disk: { total: 0, used: 0, available: 0, usage: 0, iops: { read: 0, write: 0 } },
+          network: {
+            interface: 'unknown',
+            bytesReceived: 0,
+            bytesSent: 0,
+            packetsReceived: 0,
+            packetsSent: 0,
+            errorsReceived: 0,
+            errorsSent: 0,
           },
         },
-        network: {
-          interface: 'eth0',
-          bytesReceived: Math.floor(Math.random() * 1000000),
-          bytesSent: Math.floor(Math.random() * 1000000),
-          packetsReceived: Math.floor(Math.random() * 10000),
-          packetsSent: Math.floor(Math.random() * 10000),
-          errorsReceived: 0,
-          errorsSent: 0,
+        services: [],
+        metadata: {
+          location: 'Unknown',
+          environment: 'unknown',
+          provider: 'unknown',
         },
-      },
-      services: [],
-      metadata: {
-        location: 'Mock Location',
-        environment: 'production',
-        provider: 'onpremise',
-      },
-    };
+      };
+    }
   }
 
   /**

@@ -200,16 +200,41 @@ const REALISTIC_SERVER_TYPES: RealWorldServerType[] = [
   },
 ];
 
-// 서버 분포 계산 함수
+// 서버 분포 계산 함수 (나머지 분배 로직 포함)
 function calculateServerDistribution(
   totalServers: number
 ): Record<string, number> {
-  return {
+  // 🎯 기본 비율로 서버 수 계산
+  const baseDistribution = {
     web: Math.floor(totalServers * 0.25), // 25%
     app: Math.floor(totalServers * 0.3), // 30%
     database: Math.floor(totalServers * 0.2), // 20%
     infrastructure: Math.floor(totalServers * 0.25), // 25%
   };
+
+  // 📊 실제 할당된 서버 수 계산
+  const actualTotal = Object.values(baseDistribution).reduce((sum, count) => sum + count, 0);
+
+  // 🔄 부족한 서버 수 계산 및 분배
+  const shortage = totalServers - actualTotal;
+
+  if (shortage > 0) {
+    // 우선순위: app > web > infrastructure > database 순으로 분배
+    const distributionOrder = ['app', 'web', 'infrastructure', 'database'];
+
+    for (let i = 0; i < shortage; i++) {
+      const categoryToAdd = distributionOrder[i % distributionOrder.length];
+      baseDistribution[categoryToAdd as keyof typeof baseDistribution]++;
+    }
+  }
+
+  console.log(`🎯 서버 분포 계산: 총 ${totalServers}개 → 실제 ${Object.values(baseDistribution).reduce((sum, count) => sum + count, 0)}개`);
+  console.log(`   - 웹서버: ${baseDistribution.web}개`);
+  console.log(`   - 앱서버: ${baseDistribution.app}개`);
+  console.log(`   - 데이터베이스: ${baseDistribution.database}개`);
+  console.log(`   - 인프라: ${baseDistribution.infrastructure}개`);
+
+  return baseDistribution;
 }
 
 /**

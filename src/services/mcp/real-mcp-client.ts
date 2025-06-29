@@ -13,6 +13,7 @@ import {
   detectEnvironment,
   getMCPConfig,
 } from '@/config/environment';
+import { utf8Logger } from '@/utils/utf8-logger';
 import { ChildProcess, spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -1123,7 +1124,7 @@ export class RealMCPClient {
     await this.initialize();
 
     try {
-      console.log('📚 MCP 문서 검색:', query);
+      utf8Logger.korean('📚', `MCP 문서 검색: ${query}`);
 
       // 파일시스템에서 문서 검색
       const searchResult = await this.callTool('filesystem', 'search_files', {
@@ -1138,7 +1139,7 @@ export class RealMCPClient {
         tools_used: ['filesystem.search_files'],
       };
     } catch (error: any) {
-      console.error('MCP 문서 검색 실패:', error);
+      utf8Logger.error('MCP 문서 검색 실패:', error);
 
       // 폴백: 로컬 검색
       return {
@@ -1163,7 +1164,7 @@ export class RealMCPClient {
     }
 
     try {
-      console.log('🌐 MCP 웹 검색:', query);
+      utf8Logger.korean('🌐', `MCP 웹 검색: ${query}`);
 
       const searchResult = await this.callTool(
         'web-search',
@@ -1181,7 +1182,7 @@ export class RealMCPClient {
         tools_used: ['web-search.brave_web_search'],
       };
     } catch (error: any) {
-      console.error('MCP 웹 검색 실패:', error);
+      utf8Logger.error('MCP 웹 검색 실패:', error);
       return {
         success: false,
         results: [],
