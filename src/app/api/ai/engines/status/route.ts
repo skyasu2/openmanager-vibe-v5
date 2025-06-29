@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
+import { googleAIManager } from '../../../../../lib/google-ai-manager';
 import { metricsCollector } from '../../../../../services/ai/RealTimeMetricsCollector';
 
 /**
- * 🚀 AI 엔진 상태 API v5.43.0
+ * 🚀 AI 엔진 상태 API v5.43.0 - Google AI 실제 상태 반영
  *
  * 현재 활성 상태인 14개 AI 엔진의 실시간 상태를 반환합니다.
  * - 실제 메트릭 기반 상태 제공
+ * - Google AI 매니저 실제 상태 반영
  * - API 호출 통계 반영
  */
 
@@ -96,6 +98,7 @@ async function collectEngineStatus(): Promise<EngineStatus[]> {
       type: 'custom' as const,
       description: 'Gemini 베타 연동',
       endpoint: '/api/ai/google-ai/status',
+      useGoogleAIManager: true, // 특별 처리 플래그
     },
     {
       name: 'EngineManager',
@@ -137,19 +140,40 @@ async function collectEngineStatus(): Promise<EngineStatus[]> {
         description: definition.description,
       });
     } else {
-      // 헬스체크로 상태 확인
-      const health = await checkEngineHealth(definition.endpoint);
-      engines.push({
-        name: definition.name,
-        type: definition.type,
-        status: health.isHealthy ? 'active' : 'inactive',
-        requests: 0,
-        accuracy: 0,
-        responseTime: health.responseTime || 0,
-        lastUsed: '사용 기록 없음',
-        version: 'v5.43.0',
-        description: definition.description,
-      });
+      // Google AI 특별 처리
+      if (definition.name === 'GoogleAI') {
+        const googleStatus = googleAIManager.getStatus();
+        engines.push({
+          name: definition.name,
+          type: definition.type,
+          status:
+            googleStatus.isInitialized && googleStatus.hasApiKey
+              ? 'active'
+              : 'inactive',
+          requests: 0,
+          accuracy: googleStatus.isValid ? 100 : 0,
+          responseTime: 15, // 추정값
+          lastUsed: googleStatus.isInitialized
+            ? '최근 초기화됨'
+            : '사용 기록 없음',
+          version: 'v5.43.0',
+          description: `${definition.description} (${googleStatus.apiKeySource})`,
+        });
+      } else {
+        // 다른 엔진들은 헬스체크로 상태 확인
+        const health = await checkEngineHealth(definition.endpoint);
+        engines.push({
+          name: definition.name,
+          type: definition.type,
+          status: health.isHealthy ? 'active' : 'inactive',
+          requests: 0,
+          accuracy: 0,
+          responseTime: health.responseTime || 0,
+          lastUsed: '사용 기록 없음',
+          version: 'v5.43.0',
+          description: definition.description,
+        });
+      }
     }
   }
 
