@@ -3,6 +3,7 @@
 import AITestPanel from '@/components/dev-tools/AITestPanel';
 import KeyManagerPanel from '@/components/dev-tools/KeyManagerPanel';
 import ServiceStatusPanel from '@/components/dev-tools/ServiceStatusPanel';
+import { VercelAPITesterPanel } from '@/components/dev-tools/VercelAPITesterPanel';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { useState } from 'react';
@@ -20,7 +21,8 @@ export default function DevToolsPage() {
               🛠️ 개발자 도구
             </h1>
             <p className='text-slate-600 dark:text-slate-400 mt-2'>
-              OpenManager Vibe v5 - 외부 서비스 실시간 상태 모니터링
+              OpenManager Vibe v5 - 외부 서비스 실시간 상태 모니터링 &
+              Cursor-Vercel 연동
             </p>
           </div>
 
@@ -37,6 +39,9 @@ export default function DevToolsPage() {
             </Button>
           </div>
         </div>
+
+        {/* Vercel API 테스터 패널 (최상단에 배치) */}
+        <VercelAPITesterPanel />
 
         {/* 서비스 상태 패널 */}
         <ServiceStatusPanel autoRefresh={autoRefresh} />
