@@ -81,7 +81,6 @@ scripts/
 !scripts/conditional-mcp-setup.mjs
 development/
 backup/
-config/
 infra/
 .github/
 .husky/
