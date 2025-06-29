@@ -1,0 +1,85 @@
+{
+  "version": "1.0.0",
+  "created": "2025-06-29T22:10:41.229Z",
+  "lastBackup": "2025-06-29T22:10:41.229Z",
+  "entries": [
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "value": "https://test.supabase.co",
+      "encrypted": false,
+      "priority": "critical",
+      "lastUpdated": "2025-06-29T22:10:41.229Z"
+    },
+    {
+      "key": "SUPABASE_URL",
+      "value": "https://test.supabase.co",
+      "encrypted": false,
+      "priority": "critical",
+      "lastUpdated": "2025-06-29T22:10:41.229Z"
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "value": "657c81a395cce7badbd0c2c30b13bdc8:8f2a07e6942e531d861103390e61505b",
+      "encrypted": true,
+      "priority": "critical",
+      "lastUpdated": "2025-06-29T22:10:41.229Z"
+    },
+    {
+      "key": "SUPABASE_SERVICE_ROLE_KEY",
+      "value": "6e95b4a7ef38c212e0c3c854808d0d36:dcc87f55e94b279b4d6a3e858e660a6c7774ab37150a58692ce7d8e8e7166e61",
+      "encrypted": true,
+      "priority": "critical",
+      "lastUpdated": "2025-06-29T22:10:41.229Z"
+    },
+    {
+      "key": "NODE_ENV",
+      "value": "test",
+      "encrypted": false,
+      "priority": "critical",
+      "lastUpdated": "2025-06-29T22:10:41.229Z"
+    },
+    {
+      "key": "REDIS_URL",
+      "value": "redis://localhost:6379",
+      "encrypted": false,
+      "priority": "important",
+      "lastUpdated": "2025-06-29T22:10:41.229Z"
+    },
+    {
+      "key": "REDIS_TOKEN",
+      "value": "0c7d82fb42f95edd133fb70ba7067ea0:3216c2d1d88b55f4856331155305bd63f3d6ba82955787781119f4e6bf77be3b",
+      "encrypted": true,
+      "priority": "important",
+      "lastUpdated": "2025-06-29T22:10:41.229Z"
+    },
+    {
+      "key": "UPSTASH_REDIS_REST_URL",
+      "value": "https://test.upstash.io",
+      "encrypted": false,
+      "priority": "important",
+      "lastUpdated": "2025-06-29T22:10:41.229Z"
+    },
+    {
+      "key": "UPSTASH_REDIS_REST_TOKEN",
+      "value": "c6553533ade3e7b71070f2cb5632a735:36b99d758f0b4cfb8dc32fb2b86b1444eaaf1255d0c525dd5f990a3381b28184",
+      "encrypted": true,
+      "priority": "important",
+      "lastUpdated": "2025-06-29T22:10:41.229Z"
+    },
+    {
+      "key": "GOOGLE_AI_API_KEY",
+      "value": "d97280287ada4cb2baa1881e37fc9f54:ab071c5065f4670c6d266c8eb24ab3749a980ddc0484a751e30d40d53d8af6b7",
+      "encrypted": true,
+      "priority": "important",
+      "lastUpdated": "2025-06-29T22:10:41.229Z"
+    },
+    {
+      "key": "POSTGRES_URL",
+      "value": "postgres://test:test@localhost:5432/test",
+      "encrypted": false,
+      "priority": "important",
+      "lastUpdated": "2025-06-29T22:10:41.229Z"
+    }
+  ],
+  "checksum": "746f7dd2354b1fbc0916ed5b1037f0b0"
+}

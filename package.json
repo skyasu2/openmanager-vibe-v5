@@ -57,7 +57,7 @@
     "storybook:full": "npm run storybook:generate && npm run storybook:build && npm run storybook:serve",
     "cursor:test": "vitest run --reporter=verbose --bail=1",
     "cursor:test:watch": "vitest --reporter=verbose",
-    "cursor:test:unit": "vitest run tests/unit",
+    "cursor:test:unit": "vitest run --config vitest.config.ts",
     "cursor:test:integration": "vitest run tests/integration",
     "cursor:test:dev": "vitest run tests/dev-integration --reporter=verbose",
     "cursor:test:all": "npm run cursor:test:unit && npm run cursor:test:integration",
