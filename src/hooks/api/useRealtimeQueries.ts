@@ -52,7 +52,10 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
 
   // 🔄 SSE 연결 (WebSocket 대체)
   const connect = useCallback(() => {
-    if (wsRef.current && (wsRef.current as any).readyState === EventSource.OPEN) {
+    if (
+      wsRef.current &&
+      (wsRef.current as any).readyState === EventSource.OPEN
+    ) {
       return;
     }
 
@@ -77,105 +80,107 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
         console.log('📡 실시간 서버 모니터링 활성화 (SSE)');
       };
 
-      wsRef.current.onmessage = event => {
-        try {
-          const message: RealtimeMessage = JSON.parse(event.data);
+      if (wsRef.current) {
+        wsRef.current.onmessage = event => {
+          try {
+            const message: RealtimeMessage = JSON.parse(event.data);
 
-          switch (message.type) {
-            case 'server_update':
-              // 서버 상태 업데이트
-              queryClient.setQueryData(serverKeys.lists(), (old: any[]) => {
-                if (!old) return old;
-                return old.map(server =>
-                  server.id === message.data.id
-                    ? { ...server, ...message.data }
-                    : server
-                );
-              });
+            switch (message.type) {
+              case 'server_update':
+                // 서버 상태 업데이트
+                queryClient.setQueryData(serverKeys.lists(), (old: any[]) => {
+                  if (!old) return old;
+                  return old.map(server =>
+                    server.id === message.data.id
+                      ? { ...server, ...message.data }
+                      : server
+                  );
+                });
 
-              // 특정 서버 상세 정보도 업데이트
-              if (message.data.id) {
-                queryClient.setQueryData(
-                  serverKeys.detail(message.data.id),
-                  (old: any) => (old ? { ...old, ...message.data } : old)
-                );
-              }
-              break;
+                // 특정 서버 상세 정보도 업데이트
+                if (message.data.id) {
+                  queryClient.setQueryData(
+                    serverKeys.detail(message.data.id),
+                    (old: any) => (old ? { ...old, ...message.data } : old)
+                  );
+                }
+                break;
 
-            case 'system_update':
-              // 시스템 상태 업데이트
-              queryClient.setQueryData(systemKeys.health(), (old: any) => {
-                return old ? { ...old, ...message.data } : message.data;
-              });
-              break;
+              case 'system_update':
+                // 시스템 상태 업데이트
+                queryClient.setQueryData(systemKeys.health(), (old: any) => {
+                  return old ? { ...old, ...message.data } : message.data;
+                });
+                break;
 
-            case 'alert':
-              // 실시간 알림
-              const { level, title, message: alertMessage } = message.data;
-              const toastOptions = {
-                duration: level === 'critical' ? 10000 : 5000,
-              };
+              case 'alert':
+                // 실시간 알림
+                const { level, title, message: alertMessage } = message.data;
+                const toastOptions = {
+                  duration: level === 'critical' ? 10000 : 5000,
+                };
 
-              switch (level) {
-                case 'critical':
-                  toast.error(`🚨 ${title}: ${alertMessage}`, toastOptions);
-                  break;
-                case 'warning':
-                  toast.error(`⚠️ ${title}: ${alertMessage}`, toastOptions);
-                  break;
-                case 'info':
-                  toast.success(`ℹ️ ${title}: ${alertMessage}`, toastOptions);
-                  break;
-              }
-              break;
+                switch (level) {
+                  case 'critical':
+                    toast.error(`🚨 ${title}: ${alertMessage}`, toastOptions);
+                    break;
+                  case 'warning':
+                    toast.error(`⚠️ ${title}: ${alertMessage}`, toastOptions);
+                    break;
+                  case 'info':
+                    toast.success(`ℹ️ ${title}: ${alertMessage}`, toastOptions);
+                    break;
+                }
+                break;
+            }
+          } catch (error) {
+            console.error('❌ WebSocket 메시지 파싱 오류:', error);
           }
-        } catch (error) {
-          console.error('❌ WebSocket 메시지 파싱 오류:', error);
-        }
-      };
+        };
 
-      wsRef.current.onerror = error => {
-        console.error('❌ WebSocket 오류:', error);
-        // 🛡️ 404 에러 등 연결 실패 시 사용자에게 알림하지 않음 (폴백 모드)
-      };
+        wsRef.current.onerror = error => {
+          console.error('❌ WebSocket 오류:', error);
+          // 🛡️ 404 에러 등 연결 실패 시 사용자에게 알림하지 않음 (폴백 모드)
+        };
 
-      wsRef.current.onclose = event => {
-        console.log('📡 서버 WebSocket 연결 종료', {
-          code: event.code,
-          reason: event.reason,
-        });
+        wsRef.current.onclose = event => {
+          console.log('📡 서버 WebSocket 연결 종료', {
+            code: event.code,
+            reason: event.reason,
+          });
 
-        if (heartbeatRef.current) {
-          clearInterval(heartbeatRef.current);
-          heartbeatRef.current = null;
-        }
+          if (heartbeatRef.current) {
+            clearInterval(heartbeatRef.current);
+            heartbeatRef.current = null;
+          }
 
-        // 🛡️ 404 에러 (WebSocket 엔드포인트 없음) 처리
-        if (event.code === 1002 || event.code === 1006) {
-          console.warn(
-            '⚠️ WebSocket 엔드포인트가 구현되지 않음 - 폴백 모드로 전환'
-          );
-          // 폴백 모드: React Query만 사용하여 정기적 API 호출
-          return;
-        }
+          // 🛡️ 404 에러 (WebSocket 엔드포인트 없음) 처리
+          if (event.code === 1002 || event.code === 1006) {
+            console.warn(
+              '⚠️ WebSocket 엔드포인트가 구현되지 않음 - 폴백 모드로 전환'
+            );
+            // 폴백 모드: React Query만 사용하여 정기적 API 호출
+            return;
+          }
 
-        // 자동 재연결 (404가 아닌 경우만)
-        if (reconnectAttemptsRef.current < maxReconnectAttempts) {
-          reconnectAttemptsRef.current++;
-          console.log(
-            `🔄 재연결 시도 ${reconnectAttemptsRef.current}/${maxReconnectAttempts}`
-          );
+          // 자동 재연결 (404가 아닌 경우만)
+          if (reconnectAttemptsRef.current < maxReconnectAttempts) {
+            reconnectAttemptsRef.current++;
+            console.log(
+              `🔄 재연결 시도 ${reconnectAttemptsRef.current}/${maxReconnectAttempts}`
+            );
 
-          setTimeout(() => {
-            connect();
-          }, reconnectInterval * reconnectAttemptsRef.current);
-        } else {
-          console.warn(
-            '⚠️ WebSocket 연결 실패 - 폴백 모드로 전환 (React Query 전용)'
-          );
-          // 오류 알림 제거: 폴백 모드가 정상적으로 작동하므로 사용자에게 알릴 필요 없음
-        }
-      };
+            setTimeout(() => {
+              connect();
+            }, reconnectInterval * reconnectAttemptsRef.current);
+          } else {
+            console.warn(
+              '⚠️ WebSocket 연결 실패 - 폴백 모드로 전환 (React Query 전용)'
+            );
+            // 오류 알림 제거: 폴백 모드가 정상적으로 작동하므로 사용자에게 알릴 필요 없음
+          }
+        };
+      }
     } catch (error) {
       console.error('❌ WebSocket 연결 실패:', error);
     }
