@@ -3,15 +3,7 @@
 import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
-import {
-  BarChart3,
-  Bot,
-  Loader2,
-  Play,
-  StopCircle,
-  X,
-  Zap,
-} from 'lucide-react';
+import { Bot, Loader2, Play, Zap } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -274,8 +266,8 @@ export default function Home() {
 
   // 📊 대시보드 이동 함수 (항상 접속 가능)
   const handleDashboardClick = () => {
-    console.log('📊 대시보드로 바로 이동');
-    router.push('/dashboard');
+    console.log('📊 로딩 페이지를 거쳐 대시보드로 이동');
+    router.push('/system-boot');
   };
 
   // 🔄 클라이언트 마운트 전에는 기본 상태로 렌더링 (hydration 문제 방지)
@@ -428,8 +420,8 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          {!isSystemStarted ? (
-            /* 시스템 중지 상태 - 대시보드 버튼 중심으로 변경 */
+          {systemStartCountdown === 0 && !isSystemStarted ? (
+            /* 시스템 완전 중지 상태 - 첫 번째 사용자용 시스템 시작 버튼 */
             <div className='max-w-2xl mx-auto text-center'>
               {/* 시스템 종료 상태 안내 */}
               <div className='mb-6 p-4 rounded-xl border bg-red-500/20 border-red-400/30'>
@@ -457,48 +449,25 @@ export default function Home() {
                   className={`w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-200 border shadow-xl ${
                     isLoading
                       ? 'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed'
-                      : systemStartCountdown > 0
-                        ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-400/50 shadow-lg shadow-orange-500/50'
-                        : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50 hover:shadow-2xl'
+                      : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50 hover:shadow-2xl'
                   }`}
                   whileHover={!isLoading ? { scale: 1.05, y: -2 } : {}}
                   whileTap={!isLoading ? { scale: 0.98 } : {}}
-                  animate={
-                    systemStartCountdown > 0
-                      ? {
-                          scale: [1, 1.08, 1],
-                          boxShadow: [
-                            '0 0 0 0 rgba(255, 165, 0, 0.8)',
-                            '0 0 0 15px rgba(255, 165, 0, 0)',
-                            '0 0 0 0 rgba(255, 165, 0, 0)',
-                          ],
-                        }
-                      : {
-                          boxShadow: [
-                            '0 0 0 0 rgba(34, 197, 94, 0.5)',
-                            '0 0 0 10px rgba(34, 197, 94, 0)',
-                            '0 0 0 0 rgba(34, 197, 94, 0)',
-                          ],
-                        }
-                  }
+                  animate={{
+                    boxShadow: [
+                      '0 0 0 0 rgba(34, 197, 94, 0.5)',
+                      '0 0 0 10px rgba(34, 197, 94, 0)',
+                      '0 0 0 0 rgba(34, 197, 94, 0)',
+                    ],
+                  }}
                   transition={{
-                    duration: systemStartCountdown > 0 ? 1 : 2,
+                    duration: 2,
                     repeat: Infinity,
                     ease: 'easeInOut',
                   }}
                 >
                   {isLoading ? (
                     <Loader2 className='w-6 h-6 animate-spin' />
-                  ) : systemStartCountdown > 0 ? (
-                    <div className='flex items-center gap-2'>
-                      <X className='w-6 h-6' />
-                      <span>🛑 시작 취소</span>
-                      <div className='bg-white/20 rounded-full w-8 h-8 flex items-center justify-center'>
-                        <span className='text-lg font-bold text-yellow-300'>
-                          {systemStartCountdown}
-                        </span>
-                      </div>
-                    </div>
                   ) : (
                     <>
                       <Play className='w-6 h-6' />
@@ -509,23 +478,13 @@ export default function Home() {
 
                 {/* 상태 안내 */}
                 <div className='mt-3 flex justify-center'>
-                  <span
-                    className={`text-2xl ${systemStartCountdown > 0 ? 'animate-bounce text-orange-400' : 'animate-wiggle text-yellow-400'}`}
-                  >
-                    {systemStartCountdown > 0 ? '⏰' : '👆'}
+                  <span className='text-2xl animate-wiggle text-yellow-400'>
+                    👆
                   </span>
                 </div>
                 <div className='mt-2 flex justify-center'>
-                  <span
-                    className={`text-sm font-medium opacity-80 ${
-                      systemStartCountdown > 0
-                        ? 'text-orange-300 animate-pulse'
-                        : 'animate-point-bounce text-white'
-                    }`}
-                  >
-                    {systemStartCountdown > 0
-                      ? '시스템 시작 중... (취소하려면 버튼 클릭)'
-                      : '시스템을 시작하려면 버튼을 클릭하세요'}
+                  <span className='text-sm font-medium opacity-80 animate-point-bounce text-white'>
+                    시스템을 시작하려면 버튼을 클릭하세요
                   </span>
                 </div>
               </div>
@@ -553,40 +512,78 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            /* 시스템 활성 상태 */
+            /* 시스템 시작 중 또는 활성 상태 - 대시보드 접근 가능 */
             <motion.div
               className='max-w-4xl mx-auto text-center'
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
             >
-              {/* 시스템 활성 상태 안내 */}
-              <div className='mb-6 p-4 rounded-xl border bg-green-500/20 border-green-400/30'>
+              {/* 시스템 상태 안내 */}
+              <div
+                className={`mb-6 p-4 rounded-xl border ${
+                  systemStartCountdown > 0
+                    ? 'bg-orange-500/20 border-orange-400/30'
+                    : 'bg-green-500/20 border-green-400/30'
+                }`}
+              >
                 <div className='flex items-center justify-center gap-2 mb-2'>
-                  <div className='w-3 h-3 bg-green-500 rounded-full animate-pulse'></div>
-                  <span className='font-semibold text-green-200'>
-                    시스템 활성 - 남은 시간: {formatTime(systemTimeRemaining)}
+                  <div
+                    className={`w-3 h-3 rounded-full animate-pulse ${
+                      systemStartCountdown > 0
+                        ? 'bg-orange-500'
+                        : 'bg-green-500'
+                    }`}
+                  ></div>
+                  <span
+                    className={`font-semibold ${
+                      systemStartCountdown > 0
+                        ? 'text-orange-200'
+                        : 'text-green-200'
+                    }`}
+                  >
+                    {systemStartCountdown > 0
+                      ? `시스템 시작 중... (${systemStartCountdown}초 남음)`
+                      : `시스템 활성 - 남은 시간: ${formatTime(systemTimeRemaining)}`}
                   </span>
                 </div>
-                <p className='text-sm text-green-100'>
-                  모든 서비스가 정상 동작 중입니다. 대시보드에서 상세 정보를
-                  확인하세요.
+                <p
+                  className={`text-sm ${
+                    systemStartCountdown > 0
+                      ? 'text-orange-100'
+                      : 'text-green-100'
+                  }`}
+                >
+                  {systemStartCountdown > 0
+                    ? '시스템이 준비 중입니다. 대시보드에서 진행 상황을 확인하세요.'
+                    : '모든 서비스가 정상 동작 중입니다. 대시보드에서 상세 정보를 확인하세요.'}
                 </p>
               </div>
 
-              {/* 제어 버튼들 - 3개를 가로로 배치 */}
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-6'>
+              {/* 제어 버튼들 - 2개를 가로로 배치 */}
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-8 mb-6 max-w-3xl mx-auto'>
                 {/* AI 엔진 상태 표시 */}
                 <div className='flex flex-col items-center'>
                   <motion.div
-                    className='w-52 h-14 flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold border border-green-400/50 shadow-lg shadow-green-500/30'
+                    className={`w-60 h-16 flex items-center justify-center gap-3 text-white rounded-xl font-semibold border shadow-lg ${
+                      systemStartCountdown > 0
+                        ? 'bg-gradient-to-r from-orange-500 to-amber-500 border-orange-400/50 shadow-orange-500/30'
+                        : 'bg-gradient-to-r from-green-500 to-emerald-500 border-green-400/50 shadow-green-500/30'
+                    }`}
                     animate={{
                       scale: [1, 1.02, 1],
-                      boxShadow: [
-                        '0 0 0 0 rgba(34, 197, 94, 0.6)',
-                        '0 0 0 8px rgba(34, 197, 94, 0)',
-                        '0 0 0 0 rgba(34, 197, 94, 0)',
-                      ],
+                      boxShadow:
+                        systemStartCountdown > 0
+                          ? [
+                              '0 0 0 0 rgba(251, 146, 60, 0.6)',
+                              '0 0 0 8px rgba(251, 146, 60, 0)',
+                              '0 0 0 0 rgba(251, 146, 60, 0)',
+                            ]
+                          : [
+                              '0 0 0 0 rgba(34, 197, 94, 0.6)',
+                              '0 0 0 8px rgba(34, 197, 94, 0)',
+                              '0 0 0 0 rgba(34, 197, 94, 0)',
+                            ],
                     }}
                     transition={{
                       duration: 2,
@@ -595,81 +592,91 @@ export default function Home() {
                     }}
                   >
                     <motion.div
-                      animate={{ rotate: 360 }}
+                      animate={{
+                        rotate: systemStartCountdown > 0 ? [0, 360] : 360,
+                      }}
                       transition={{
-                        duration: 3,
+                        duration: systemStartCountdown > 0 ? 1 : 3,
                         repeat: Infinity,
                         ease: 'linear',
                       }}
                     >
-                      <Bot className='w-5 h-5' />
+                      <Bot className='w-6 h-6' />
                     </motion.div>
-                    <span className='text-white font-bold drop-shadow-lg'>
-                      🧠 AI 엔진 활성
+                    <span className='text-white font-bold drop-shadow-lg text-lg'>
+                      {systemStartCountdown > 0
+                        ? '🔄 시스템 준비 중'
+                        : '🧠 AI 엔진 활성'}
                     </span>
                   </motion.div>
 
                   {/* 상태 표시 */}
-                  <div className='mt-2 flex justify-center'>
-                    <span className='text-green-400 text-xl animate-pulse'>
-                      ✅
+                  <div className='mt-3 flex justify-center'>
+                    <span
+                      className={`text-xl animate-pulse ${
+                        systemStartCountdown > 0
+                          ? 'text-orange-400'
+                          : 'text-green-400'
+                      }`}
+                    >
+                      {systemStartCountdown > 0 ? '⏳' : '✅'}
                     </span>
                   </div>
                   <div className='mt-1 flex justify-center'>
-                    <span className='text-green-300 text-xs opacity-70'>
-                      시스템 준비 완료
+                    <span
+                      className={`text-sm opacity-70 ${
+                        systemStartCountdown > 0
+                          ? 'text-orange-300'
+                          : 'text-green-300'
+                      }`}
+                    >
+                      {systemStartCountdown > 0
+                        ? '시스템 초기화 중'
+                        : '시스템 준비 완료'}
                     </span>
                   </div>
                 </div>
 
-                {/* 대시보드 버튼 */}
+                {/* 대시보드 버튼 (아이콘 제거, 텍스트만) */}
                 <div className='flex flex-col items-center'>
                   <motion.button
                     onClick={handleDashboardClick}
-                    className='w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500/50'
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    className='w-60 h-16 flex items-center justify-center rounded-xl font-bold text-lg transition-all duration-200 border bg-blue-600 hover:bg-blue-700 text-white border-blue-500/50 shadow-lg hover:shadow-xl'
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    animate={{
+                      boxShadow: [
+                        '0 0 0 0 rgba(59, 130, 246, 0.5)',
+                        '0 0 0 8px rgba(59, 130, 246, 0)',
+                        '0 0 0 0 rgba(59, 130, 246, 0)',
+                      ],
+                    }}
+                    transition={{
+                      duration: 2.5,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
                   >
-                    <BarChart3 className='w-5 h-5' />
-                    <span>📊 대시보드 열기</span>
+                    <span className='text-white font-bold drop-shadow-lg'>
+                      📊 대시보드 이동
+                    </span>
                   </motion.button>
 
-                  {/* 안내 아이콘 */}
-                  <div className='mt-2 flex justify-center'>
-                    <span className='text-xl animate-wiggle text-yellow-400'>
-                      👆
+                  {/* 상태 표시 */}
+                  <div className='mt-3 flex justify-center'>
+                    <span className='text-blue-400 text-xl animate-pulse'>
+                      🚀
                     </span>
                   </div>
                   <div className='mt-1 flex justify-center'>
-                    <span className='text-xs opacity-70 text-white animate-point-bounce'>
-                      클릭하세요
+                    <span className='text-blue-300 text-sm opacity-70'>
+                      {systemStartCountdown > 0
+                        ? '로딩 페이지로 이동'
+                        : '바로 접속 가능'}
                     </span>
                   </div>
                 </div>
-
-                {/* 시스템 중지 버튼 */}
-                <div className='flex flex-col items-center'>
-                  <motion.button
-                    onClick={handleSystemToggle}
-                    disabled={isLoading}
-                    className='w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border disabled:opacity-75 bg-red-600 hover:bg-red-700 text-white border-red-500/50'
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {isLoading ? (
-                      <Loader2 className='w-5 h-5 animate-spin' />
-                    ) : (
-                      <StopCircle className='w-5 h-5' />
-                    )}
-                    <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
-                  </motion.button>
-                </div>
               </div>
-
-              <p className='text-white/60 text-xs mt-4 text-center'>
-                시스템이 활성화되어 있습니다. 대시보드에서 상세 모니터링을
-                확인하세요.
-              </p>
             </motion.div>
           )}
         </motion.div>

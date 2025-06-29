@@ -498,6 +498,68 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                   )}
                 </motion.button>
 
+                {/* 30분 타이머 UI (시스템 동작 중일 때만) */}
+                {isSystemStarted && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className='bg-blue-50 rounded-lg p-3 mb-2 border border-blue-200'
+                  >
+                    <div className='flex items-center justify-between mb-2'>
+                      <div className='flex items-center gap-2'>
+                        <div className='w-2 h-2 bg-blue-500 rounded-full animate-pulse' />
+                        <span className='text-blue-900 font-medium text-sm'>
+                          세션 타이머
+                        </span>
+                      </div>
+                      <span className='text-blue-700 text-sm font-mono'>
+                        {Math.floor((systemTimeRemaining || 0) / 60000)}:
+                        {Math.floor(((systemTimeRemaining || 0) % 60000) / 1000)
+                          .toString()
+                          .padStart(2, '0')}
+                      </span>
+                    </div>
+
+                    {/* 진행률 바 */}
+                    <div className='w-full bg-blue-200 rounded-full h-2'>
+                      <motion.div
+                        className='bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full'
+                        style={{
+                          width: `${Math.max(0, Math.min(100, ((systemTimeRemaining || 0) / (30 * 60 * 1000)) * 100))}%`,
+                        }}
+                        animate={{
+                          opacity: [0.8, 1, 0.8],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: 'easeInOut',
+                        }}
+                      />
+                    </div>
+
+                    <div className='flex justify-between items-center mt-1'>
+                      <span className='text-blue-600 text-xs'>남은 시간</span>
+                      <span className='text-blue-600 text-xs'>
+                        {Math.round(
+                          ((systemTimeRemaining || 0) / (30 * 60 * 1000)) * 100
+                        )}
+                        %
+                      </span>
+                    </div>
+
+                    {/* 타이머 만료 경고 (5분 이하일 때) */}
+                    {(systemTimeRemaining || 0) < 5 * 60 * 1000 &&
+                      (systemTimeRemaining || 0) > 0 && (
+                        <div className='mt-2 p-2 bg-orange-100 border border-orange-200 rounded text-orange-800 text-xs'>
+                          ⚠️ 세션이 곧 만료됩니다
+                        </div>
+                      )}
+                  </motion.div>
+                )}
+
                 {/* 대시보드 이동 버튼 (시스템 동작 중일 때만) */}
                 {isSystemStarted && (
                   <Link href='/dashboard'>
