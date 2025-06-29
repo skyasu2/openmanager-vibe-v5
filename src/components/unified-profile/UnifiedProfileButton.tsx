@@ -18,6 +18,7 @@ import {
   Activity,
   ChevronDown,
   Home,
+  Lock,
   LogOut,
   Play,
   RefreshCw,
@@ -63,6 +64,11 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
     transformOrigin: 'top right',
   });
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // 관리자 모드 상태 추가
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
 
   // 베르셀 시스템 상태만 사용 (실제 기능)
   const vercelStore = useVercelSystemStore();
@@ -235,6 +241,39 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
       success('로그아웃되었습니다');
       onClick({} as React.MouseEvent);
     }
+  };
+
+  // 관리자 모드 로그인 함수
+  const handleAdminLogin = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowAdminLogin(true);
+  };
+
+  const handleAdminPasswordSubmit = (
+    e: React.KeyboardEvent | React.MouseEvent
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (adminPassword === '4231') {
+      setIsAdminMode(true);
+      setShowAdminLogin(false);
+      setAdminPassword('');
+      success('관리자 모드로 전환되었습니다');
+      // 관리자 페이지로 이동
+      window.location.href = '/admin';
+    } else {
+      error('비밀번호가 틀렸습니다');
+      setAdminPassword('');
+    }
+  };
+
+  const handleAdminLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsAdminMode(false);
+    success('관리자 모드에서 로그아웃되었습니다');
   };
 
   // 시스템 상태 가져오기
@@ -472,6 +511,98 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                 </motion.button>
               </Link>
 
+              {/* 관리자 모드 로그인/로그아웃 */}
+              {!isAdminMode ? (
+                <>
+                  {!showAdminLogin ? (
+                    <motion.button
+                      whileHover={{
+                        backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleAdminLogin}
+                      className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 mb-2'
+                      role='menuitem'
+                    >
+                      <div className='p-2 rounded-lg bg-amber-500/20'>
+                        <Lock className='w-4 h-4 text-amber-600' />
+                      </div>
+                      <div>
+                        <div className='text-gray-900 font-medium'>
+                          관리자 모드
+                        </div>
+                        <div className='text-gray-600 text-xs'>
+                          관리자 페이지 접근
+                        </div>
+                      </div>
+                    </motion.button>
+                  ) : (
+                    <div className='mb-2 p-3 border border-amber-200 rounded-lg bg-amber-50'>
+                      <div className='flex items-center gap-2 mb-2'>
+                        <Lock className='w-4 h-4 text-amber-600' />
+                        <span className='text-sm font-medium text-gray-900'>
+                          관리자 비밀번호 입력
+                        </span>
+                      </div>
+                      <input
+                        type='password'
+                        value={adminPassword}
+                        onChange={e => setAdminPassword(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            handleAdminPasswordSubmit(e);
+                          }
+                          if (e.key === 'Escape') {
+                            setShowAdminLogin(false);
+                            setAdminPassword('');
+                          }
+                        }}
+                        placeholder='비밀번호를 입력하세요'
+                        className='w-full px-3 py-2 text-sm border border-amber-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent'
+                        autoFocus
+                      />
+                      <div className='flex gap-2 mt-2'>
+                        <button
+                          onClick={handleAdminPasswordSubmit}
+                          className='flex-1 px-3 py-1 text-xs bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors'
+                        >
+                          확인
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowAdminLogin(false);
+                            setAdminPassword('');
+                          }}
+                          className='flex-1 px-3 py-1 text-xs bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors'
+                        >
+                          취소
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <motion.button
+                  whileHover={{ backgroundColor: 'rgba(251, 191, 36, 0.1)' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleAdminLogout}
+                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 mb-2'
+                  role='menuitem'
+                >
+                  <div className='p-2 rounded-lg bg-amber-500/20'>
+                    <Lock className='w-4 h-4 text-amber-600' />
+                  </div>
+                  <div>
+                    <div className='text-gray-900 font-medium'>
+                      관리자 모드 해제
+                    </div>
+                    <div className='text-gray-600 text-xs'>
+                      관리자 권한을 해제합니다
+                    </div>
+                  </div>
+                </motion.button>
+              )}
+
               {/* 로그아웃 버튼 */}
               <motion.button
                 whileHover={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
@@ -510,6 +641,12 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
     handleSystemStop,
     handleSystemRestart,
     handleLogout,
+    isAdminMode,
+    showAdminLogin,
+    adminPassword,
+    handleAdminLogin,
+    handleAdminPasswordSubmit,
+    handleAdminLogout,
   ]);
 
   return (
