@@ -21,7 +21,7 @@ export class DateUtils {
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit'
+      second: '2-digit',
     });
   }
 
@@ -57,14 +57,14 @@ export class DateUtils {
   static readonly VERSION_HISTORY = {
     '1.0.0': '2025-05-25', // 프로젝트 시작
     '2.0.0': '2025-06-01', // 초기 개선 (1주차)
-    '2.1.0': '2025-06-05', // 시스템 안정화 (2주차) 
+    '2.1.0': '2025-06-05', // 시스템 안정화 (2주차)
     '2.5.0': '2025-06-10', // 최적화 적용 (3주차)
     '3.0.0': '2025-06-15', // 주요 업데이트 (4주차)
-    '5.40.0': '2025-06-20', // 최신 기능 추가 (4주차)
-    '5.40.1': '2025-06-22', // 버그 수정
-    '5.41.0': '2025-06-24', // 경연대회 최적화
-    '5.44.0': '2025-06-26', // AI 엔진 통합
-    '5.44.3': '2025-06-29', // 현재 버전 (35일차)
+    '4.0.0': '2025-06-20', // AI 엔진 통합 (5주차)
+    '5.0.0': '2025-06-25', // 실시간 시스템 완성 (6주차)
+    '5.43.0': '2025-06-27', // 성능 최적화
+    '5.44.0': '2025-06-29', // 현재 버전
+    '5.44.3': '2025-06-29', // 시간 통일 완료
   };
 
   /**
@@ -73,7 +73,7 @@ export class DateUtils {
   static readonly INVALID_DATE_PATTERNS = [
     /2024-\d{2}-\d{2}/g, // 2024년 (프로젝트 이전)
     /2026-\d{2}-\d{2}/g, // 2026년 (미래 날짜)
-    /2023-\d{2}-\d{2}/g, // 2023년 
+    /2023-\d{2}-\d{2}/g, // 2023년
     /2022-\d{2}-\d{2}/g, // 2022년
   ];
 
@@ -85,32 +85,32 @@ export class DateUtils {
       phase: 'Phase 1: 초기 설정',
       period: '2025.05.25 - 2025.06.01',
       status: 'completed',
-      description: '기본 환경 구축'
+      description: '기본 환경 구축',
     },
     {
       phase: 'Phase 2: 핵심 기능',
       period: '2025.06.02 - 2025.06.15',
       status: 'completed',
-      description: 'AI 엔진 및 모니터링 시스템'
+      description: 'AI 엔진 및 모니터링 시스템',
     },
     {
       phase: 'Phase 3: 최적화',
       period: '2025.06.16 - 2025.06.25',
       status: 'completed',
-      description: 'UI/UX 개선 및 성능 최적화'
+      description: 'UI/UX 개선 및 성능 최적화',
     },
     {
       phase: 'Phase 4: 통합 테스트',
       period: '2025.06.26 - 2025.06.29',
       status: 'in-progress',
-      description: '실시간 시스템 통합 및 검증'
+      description: '실시간 시스템 통합 및 검증',
     },
     {
       phase: 'Phase 5: 배포 준비',
       period: '2025.06.30 - 진행중',
       status: 'planned',
-      description: '프로덕션 배포 준비'
-    }
+      description: '프로덕션 배포 준비',
+    },
   ];
 
   /**
@@ -123,7 +123,7 @@ export class DateUtils {
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   }
 
@@ -189,6 +189,56 @@ export class DateUtils {
         description: 'UI/UX 혁신, 버전 관리 시스템, Vibe Coding 완성',
       },
     ];
+  }
+
+  /**
+   * 📅 버전별 릴리스 날짜 가져오기
+   */
+  static getVersionDate(version: string): string {
+    return (
+      this.VERSION_HISTORY[version as keyof typeof this.VERSION_HISTORY] ||
+      '2025-06-29'
+    );
+  }
+
+  /**
+   * 🎯 프로젝트 진행 일수 계산
+   */
+  static getProjectDays(): number {
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - this.PROJECT_START.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  /**
+   * 📊 현재 버전 정보
+   */
+  static getCurrentVersionInfo(): {
+    version: string;
+    releaseDate: string;
+    projectDays: number;
+  } {
+    return {
+      version: '5.44.3',
+      releaseDate: '2025-06-29',
+      projectDays: this.getProjectDays(),
+    };
+  }
+
+  /**
+   * 🌟 포맷된 KST 시간 (파일명용)
+   */
+  static getKSTForFilename(): string {
+    return new Date()
+      .toLocaleString('ko-KR', {
+        timeZone: 'Asia/Seoul',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+      .replace(/[^\d]/g, '');
   }
 }
 

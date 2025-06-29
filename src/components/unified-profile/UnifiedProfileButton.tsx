@@ -31,10 +31,20 @@ import {
   Square,
   User,
 } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  MouseEvent,
+  RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 // 통합 실시간 스토어 사용
-import { useRealtimeControl, useSystemStatus } from '@/stores/globalRealtimeStore';
+import {
+  useRealtimeControl,
+  useSystemStatus,
+} from '@/stores/globalRealtimeStore';
 
 interface SystemStats {
   uptime: number;
@@ -43,7 +53,24 @@ interface SystemStats {
   status: 'running' | 'stopped' | 'error';
 }
 
-function UnifiedProfileButton() {
+// Props 인터페이스
+interface UnifiedProfileButtonProps {
+  userName?: string;
+  userAvatar?: string;
+  isOpen?: boolean;
+  onClick?: (e: MouseEvent) => void;
+  buttonRef?: RefObject<HTMLButtonElement>;
+  onSettingsClick?: () => void;
+}
+
+function UnifiedProfileButton({
+  userName,
+  userAvatar,
+  isOpen,
+  onClick,
+  buttonRef,
+  onSettingsClick,
+}: UnifiedProfileButtonProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [is30MinTimerActive, setIs30MinTimerActive] = useState(false);
   const [timerRemaining, setTimerRemaining] = useState(0);
@@ -59,14 +86,21 @@ function UnifiedProfileButton() {
     uptime: systemStatus?.uptime || 0,
     memoryUsage: systemStatus?.memoryUsage?.percentage || 0,
     activeProcesses: Object.keys(systemStatus?.processes || {}).length,
-    status: systemStatus?.health === 'healthy' ? 'running' :
-      systemStatus?.health === 'critical' ? 'error' : 'stopped'
+    status:
+      systemStatus?.health === 'healthy'
+        ? 'running'
+        : systemStatus?.health === 'critical'
+          ? 'error'
+          : 'stopped',
   };
 
   // 🎮 시스템 시작
   const handleSystemStart = useCallback(async () => {
     try {
-      console.log('🚀 시스템 시작 요청 (KST):', new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }));
+      console.log(
+        '🚀 시스템 시작 요청 (KST):',
+        new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
+      );
 
       const response = await fetch('/api/system/start', {
         method: 'POST',
@@ -92,7 +126,10 @@ function UnifiedProfileButton() {
   // ⏹️ 시스템 정지
   const handleSystemStop = useCallback(async () => {
     try {
-      console.log('⏹️ 시스템 정지 요청 (KST):', new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }));
+      console.log(
+        '⏹️ 시스템 정지 요청 (KST):',
+        new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
+      );
 
       const response = await fetch('/api/system/stop', {
         method: 'POST',
@@ -119,12 +156,15 @@ function UnifiedProfileButton() {
     setTimerRemaining(30 * 60); // 30분 = 1800초
 
     // 30분 후 자동 정지
-    timerRef.current = setTimeout(() => {
-      handleSystemStop();
-      setIs30MinTimerActive(false);
-      setTimerRemaining(0);
-      console.log('⏰ 30분 타이머 완료 - 시스템 자동 정지');
-    }, 30 * 60 * 1000);
+    timerRef.current = setTimeout(
+      () => {
+        handleSystemStop();
+        setIs30MinTimerActive(false);
+        setTimerRemaining(0);
+        console.log('⏰ 30분 타이머 완료 - 시스템 자동 정지');
+      },
+      30 * 60 * 1000
+    );
 
     // 1초마다 카운트다운 업데이트
     countdownRef.current = setInterval(() => {
@@ -175,7 +215,7 @@ function UnifiedProfileButton() {
           textColor: 'text-green-700',
           bgColor: 'bg-green-50',
           icon: Play,
-          text: '실행 중'
+          text: '실행 중',
         };
       case 'error':
         return {
@@ -183,7 +223,7 @@ function UnifiedProfileButton() {
           textColor: 'text-red-700',
           bgColor: 'bg-red-50',
           icon: AlertTriangle,
-          text: '오류'
+          text: '오류',
         };
       default:
         return {
@@ -191,7 +231,7 @@ function UnifiedProfileButton() {
           textColor: 'text-gray-700',
           bgColor: 'bg-gray-50',
           icon: Square,
-          text: '정지됨'
+          text: '정지됨',
         };
     }
   };
@@ -274,7 +314,9 @@ function UnifiedProfileButton() {
 
           <div className='grid grid-cols-3 gap-2 text-xs'>
             <div className='text-center'>
-              <div className='font-medium'>{formatUptime(systemStats.uptime)}</div>
+              <div className='font-medium'>
+                {formatUptime(systemStats.uptime)}
+              </div>
               <div className='text-muted-foreground'>업타임</div>
             </div>
             <div className='text-center'>
@@ -298,7 +340,10 @@ function UnifiedProfileButton() {
                   30분 안정성 타이머
                 </span>
               </div>
-              <Badge variant='outline' className='text-orange-600 border-orange-200'>
+              <Badge
+                variant='outline'
+                className='text-orange-600 border-orange-200'
+              >
                 {formatTime(timerRemaining)}
               </Badge>
             </div>
@@ -392,6 +437,9 @@ function UnifiedProfileButton() {
   );
 }
 
-// Named export와 default export
-export { UnifiedProfileButton };
-export default UnifiedProfileButton;
+// 메모이제이션으로 불필요한 리렌더링 방지
+const MemoizedUnifiedProfileButton = React.memo(UnifiedProfileButton);
+
+// Named export와 default export 둘 다 제공
+export { MemoizedUnifiedProfileButton as UnifiedProfileButton };
+export default MemoizedUnifiedProfileButton;

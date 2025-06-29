@@ -1,6 +1,6 @@
 /**
  * 🔄 실시간 서버 상황 표시 컴포넌트
- * 
+ *
  * AI 사이드바 상단에 서버 상황을 실시간으로 보여주는 컴포넌트
  * - 15초마다 서버 상태 업데이트
  * - 간단한 한 줄 요약 형태
@@ -11,25 +11,34 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { useEffect, useState } from 'react';
-import { ServerStatus } from '../types/ai-sidebar.types';
 
 // 통합 실시간 스토어 사용
 import { useServerList } from '@/stores/globalRealtimeStore';
 
+// 타입 정의 (AI 사이드바용 서버 상태)
+interface ServerStatusSummary {
+  totalServers: number;
+  healthyServers: number;
+  warningServers: number;
+  errorServers: number;
+  criticalAlerts: number;
+  lastUpdate: string;
+}
+
 interface RealtimeServerStatusProps {
-  isProcessing?: boolean;
+  className?: string;
 }
 
 const RealtimeServerStatusComponent: React.FC<RealtimeServerStatusProps> = ({
-  isProcessing = false
+  className,
 }) => {
-  const [status, setStatus] = useState<ServerStatus>({
+  const [status, setStatus] = useState<ServerStatusSummary>({
     totalServers: 0,
     healthyServers: 0,
     warningServers: 0,
     errorServers: 0,
     criticalAlerts: 0,
-    lastUpdate: Date.now()
+    lastUpdate: Date.now().toString(),
   });
 
   // 🔄 통합 실시간 데이터 사용
@@ -38,17 +47,17 @@ const RealtimeServerStatusComponent: React.FC<RealtimeServerStatusProps> = ({
   // 서버 데이터를 상태로 변환
   useEffect(() => {
     if (servers && servers.length > 0) {
-      const newStatus: ServerStatus = {
+      const newStatus: ServerStatusSummary = {
         totalServers: servers.length,
         healthyServers: servers.filter(s => s.status === 'healthy').length,
         warningServers: servers.filter(s => s.status === 'warning').length,
         errorServers: servers.filter(s => s.status === 'error').length,
         criticalAlerts: servers.reduce((count, s) => {
           // 심각한 알림은 CPU/메모리 90% 이상으로 추정
-          const criticalCount = (s.cpu >= 90 || s.memory >= 90) ? 1 : 0;
+          const criticalCount = s.cpu >= 90 || s.memory >= 90 ? 1 : 0;
           return count + criticalCount;
         }, 0),
-        lastUpdate: Date.now()
+        lastUpdate: Date.now().toString(),
       };
 
       setStatus(newStatus);
@@ -81,20 +90,18 @@ const RealtimeServerStatusComponent: React.FC<RealtimeServerStatusProps> = ({
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="px-4 py-2 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+      className={`px-4 py-2 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-800 ${className || ''}`}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <motion.div
-            className={`w-2 h-2 rounded-full ${getStatusColor()}`}
-          />
-          <AnimatePresence mode="wait">
+      <div className='flex items-center justify-between'>
+        <div className='flex items-center space-x-2'>
+          <motion.div className={`w-2 h-2 rounded-full ${getStatusColor()}`} />
+          <AnimatePresence mode='wait'>
             <motion.span
               key={status.lastUpdate}
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              className='text-sm font-medium text-gray-700 dark:text-gray-300'
             >
               {getStatusText()}
             </motion.span>
@@ -103,37 +110,37 @@ const RealtimeServerStatusComponent: React.FC<RealtimeServerStatusProps> = ({
       </div>
 
       {/* 간단한 통계 바 */}
-      <div className="mt-1 flex space-x-1 h-1">
+      <div className='mt-1 flex space-x-1 h-1'>
         <motion.div
-          className="bg-green-400 rounded-full"
+          className='bg-green-400 rounded-full'
           style={{
-            width: `${(status.healthyServers / status.totalServers) * 100}%`
+            width: `${(status.healthyServers / status.totalServers) * 100}%`,
           }}
           initial={{ width: 0 }}
           animate={{
-            width: `${(status.healthyServers / status.totalServers) * 100}%`
+            width: `${(status.healthyServers / status.totalServers) * 100}%`,
           }}
           transition={{ duration: 0.5 }}
         />
         <motion.div
-          className="bg-yellow-400 rounded-full"
+          className='bg-yellow-400 rounded-full'
           style={{
-            width: `${(status.warningServers / status.totalServers) * 100}%`
+            width: `${(status.warningServers / status.totalServers) * 100}%`,
           }}
           initial={{ width: 0 }}
           animate={{
-            width: `${(status.warningServers / status.totalServers) * 100}%`
+            width: `${(status.warningServers / status.totalServers) * 100}%`,
           }}
           transition={{ duration: 0.5, delay: 0.1 }}
         />
         <motion.div
-          className="bg-red-400 rounded-full"
+          className='bg-red-400 rounded-full'
           style={{
-            width: `${(status.errorServers / status.totalServers) * 100}%`
+            width: `${(status.errorServers / status.totalServers) * 100}%`,
           }}
           initial={{ width: 0 }}
           animate={{
-            width: `${(status.errorServers / status.totalServers) * 100}%`
+            width: `${(status.errorServers / status.totalServers) * 100}%`,
           }}
           transition={{ duration: 0.5, delay: 0.2 }}
         />
@@ -145,4 +152,3 @@ const RealtimeServerStatusComponent: React.FC<RealtimeServerStatusProps> = ({
 // 메모이제이션으로 불필요한 리렌더링 방지
 const MemoizedRealtimeServerStatus = React.memo(RealtimeServerStatusComponent);
 export { MemoizedRealtimeServerStatus as RealtimeServerStatus };
-

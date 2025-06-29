@@ -62,14 +62,7 @@ export default function UnifiedProfileComponent({
   return (
     <>
       {/* 프로필 버튼 (드롭다운 포함) */}
-      <UnifiedProfileButton
-        userName={userName}
-        userAvatar={userAvatar}
-        isOpen={isOpen}
-        onClick={handleToggleDropdown}
-        buttonRef={profileButtonRef as React.RefObject<HTMLButtonElement>}
-        onSettingsClick={handleSettingsClick}
-      />
+      <UnifiedProfileButton />
 
       {/* 통합 설정 패널 */}
       <AnimatePresence>
