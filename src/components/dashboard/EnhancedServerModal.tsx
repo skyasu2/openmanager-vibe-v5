@@ -10,6 +10,7 @@
  * - AI 기반 인사이트
  */
 
+import { calculateOptimalCollectionInterval } from '@/config/serverConfig';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
@@ -24,6 +25,7 @@ import {
   X,
 } from 'lucide-react';
 import { ServerModal3DGauge } from '../shared/UnifiedCircularGauge';
+import { ServerModalChart } from './components/ServerModalChart';
 import { useServerModalData } from './hooks/ServerModalDataManager';
 import {
   EnhancedServerModalProps,
@@ -92,100 +94,6 @@ export default function EnhancedServerModal({
       </AnimatePresence>
     );
   }
-
-  // 실시간 차트 컴포넌트
-  const RealtimeChart = ({
-    data,
-    color,
-    label,
-    height = 100,
-  }: {
-    data: number[];
-    color: string;
-    label: string;
-    height?: number;
-  }) => {
-    const points = data
-      .map((value, index) => {
-        const x = (index / Math.max(data.length - 1, 1)) * 100;
-        const y = 100 - Math.max(0, Math.min(100, value));
-        return `${x},${y}`;
-      })
-      .join(' ');
-
-    return (
-      <div className='bg-white rounded-lg p-4 shadow-sm border'>
-        <h4 className='text-sm font-medium text-gray-700 mb-2'>{label}</h4>
-        <div className='relative' style={{ height }}>
-          <svg
-            className='w-full h-full'
-            viewBox='0 0 100 100'
-            preserveAspectRatio='none'
-          >
-            <defs>
-              <linearGradient
-                id={`area-gradient-${label}`}
-                x1='0%'
-                y1='0%'
-                x2='0%'
-                y2='100%'
-              >
-                <stop offset='0%' stopColor={color} stopOpacity='0.3' />
-                <stop offset='100%' stopColor={color} stopOpacity='0.05' />
-              </linearGradient>
-            </defs>
-            {/* 격자 */}
-            {[20, 40, 60, 80].map(y => (
-              <line
-                key={y}
-                x1='0'
-                y1={y}
-                x2='100'
-                y2={y}
-                stroke='#f3f4f6'
-                strokeWidth='0.5'
-              />
-            ))}
-            {/* 영역 */}
-            <polygon
-              fill={`url(#area-gradient-${label})`}
-              points={`0,100 ${points} 100,100`}
-            />
-            {/* 라인 */}
-            <polyline
-              fill='none'
-              stroke={color}
-              strokeWidth='2'
-              points={points}
-              vectorEffect='non-scaling-stroke'
-              className='drop-shadow-sm'
-            />
-            {/* 최신 값 포인트 */}
-            {data.length > 0 && (
-              <circle
-                cx={((data.length - 1) / Math.max(data.length - 1, 1)) * 100}
-                cy={100 - Math.max(0, Math.min(100, data[data.length - 1]))}
-                r='2'
-                fill={color}
-                className='drop-shadow-sm'
-              />
-            )}
-          </svg>
-          {/* Y축 라벨 */}
-          <div className='absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-400 pr-2'>
-            <span>100</span>
-            <span>50</span>
-            <span>0</span>
-          </div>
-        </div>
-        <div className='text-right mt-1'>
-          <span className='text-sm font-bold' style={{ color }}>
-            {data[data.length - 1]?.toFixed(1) || '0'}%
-          </span>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <AnimatePresence>
@@ -436,22 +344,22 @@ export default function EnhancedServerModal({
                     </div>
 
                     <div className='grid grid-cols-2 gap-6'>
-                      <RealtimeChart
+                      <ServerModalChart
                         data={realtimeData.cpu}
                         color='#ef4444'
                         label='CPU 사용률'
                       />
-                      <RealtimeChart
+                      <ServerModalChart
                         data={realtimeData.memory}
                         color='#3b82f6'
                         label='메모리 사용률'
                       />
-                      <RealtimeChart
+                      <ServerModalChart
                         data={realtimeData.disk}
                         color='#8b5cf6'
                         label='디스크 사용률'
                       />
-                      <RealtimeChart
+                      <ServerModalChart
                         data={realtimeData.network.map(n =>
                           typeof n === 'number' ? n : (n.in + n.out) / 2
                         )}
@@ -780,7 +688,7 @@ export default function EnhancedServerModal({
                         </div>
                       </div>
 
-                      <RealtimeChart
+                      <ServerModalChart
                         data={realtimeData.latency}
                         color='#8b5cf6'
                         label='네트워크 지연시간 (ms)'
