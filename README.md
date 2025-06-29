@@ -1,22 +1,37 @@
 # 🚀 OpenManager Vibe v5 - Next.js 통합 서버 관리 시스템
 
-> **베르셀 친화적 엔터프라이즈 급 서버 모니터링 솔루션**  
-> 버전: **v5.44.7** | 릴리스: 2025-01-28 02:55 KST
+> **베르셀 친화적 엔터프라이즈 급 서버 관리 시스템**  
+> 버전: **v5.51.1** | 릴리스: 2025-01-28 03:15 KST
 
-[![Vercel Production](https://img.shields.io/badge/Vercel-Production-success)](https://openmanager-vibe-v5-iy4h24nmi-skyasus-projects.vercel.app)
-[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)](https://openmanager-vibe-v5-iy4h24nmi-skyasus-projects.vercel.app)
+[![Vercel Production](https://img.shields.io/badge/Vercel-Production-success)](https://openmanager-vibe-v5-fx740uc66-skyasus-projects.vercel.app)
+[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)](https://openmanager-vibe-v5-fx740uc66-skyasus-projects.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-15.3.4-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)](https://www.typescriptlang.org/)
 [![Tests](https://img.shields.io/badge/Tests-539%20Passing-green)](https://github.com/skyasus/openmanager-vibe-v5)
 [![Redis/Upstash](https://img.shields.io/badge/Redis-Upstash%20Integration-red)](https://upstash.com/)
-[![MCP](https://img.shields.io/badge/MCP-Render%20Integration-orange)](https://openmanager-vibe-v5.onrender.com)
+[![MCP](https://img.shields.io/badge/MCP-Render%20Integration-orange)](https://render.com/)
 
 [![테스트 통과율](https://img.shields.io/badge/테스트-100%25-brightgreen)](tests/TESTING.md)
 [![AI 엔진](https://img.shields.io/badge/AI%20엔진-11개%20통합-blue)](#ai-엔진-아키텍처)
 [![모드](https://img.shields.io/badge/모드-3개-orange)](#운영-모드)
 [![응답시간](https://img.shields.io/badge/응답시간-620ms~1200ms-yellow)](#성능)
 
-## 🆕 **최신 업데이트 (v5.44.7)**
+## 🆕 **최신 업데이트 (v5.51.1)**
+
+### 🤖 **AI 어시스턴트 서버 모니터링 시스템 완성**
+
+- **한국어 자연어 처리**: KoreanServerNLU, KoreanAIEngine 완성
+- **실시간 서버 메트릭 분석**: 15개 환경별 서버 실시간 모니터링
+- **다층 AI 엔진 시스템**: UnifiedAIRouter, Google AI, MCP 통합
+- **8개 전문 API 엔드포인트**: 통합 AI 상태, 스마트 질의, 전원 관리
+
+### 🚀 **베르셀 친화적 Redis 시스템 완성**
+
+- **Redis/Upstash 기반 상태 관리**: 다중 사용자 실시간 동기화
+- **서버리스 환경 최적화**: 베르셀 배포 100% 호환
+- **세션 기반 실시간 동기화**: 브라우저 간 상태 공유
+- **자동 세션 정리**: 비활성 세션 자동 초기화
+- **30분 강제 종료 제거**: 수동 제어 기반 안정적 운영
 
 ### 📝 **코드 포맷팅 개선 및 베르셀 친화적 최적화**
 
@@ -24,14 +39,6 @@
 - **조건부 클래스명 포맷팅**: 복잡한 조건부 렌더링 가독성 개선
 - **TypeScript 안전성**: 0개 타입 오류, 완벽한 타입 안전성
 - **ESLint 완료**: 0개 경고, 코드 품질 최적화
-
-### 🚀 **베르셀 친화적 Redis 기반 시스템**
-
-- **Redis/Upstash 기반 상태 관리**: 다중 사용자 실시간 동기화
-- **서버리스 환경 최적화**: 베르셀 배포 100% 호환
-- **세션 기반 실시간 동기화**: 브라우저 간 상태 공유
-- **자동 세션 정리**: 비활성 세션 자동 초기화
-- **30분 강제 종료 제거**: 수동 제어 기반 안정적 운영
 
 ### 🏗️ **Phase 4-5 대규모 리팩토링 완료**
 
@@ -74,7 +81,7 @@
 
 ### 🌐 **프로덕션 환경**
 
-- **메인 URL**: <https://openmanager-vibe-v5-iy4h24nmi-skyasus-projects.vercel.app>
+- **메인 URL**: <https://openmanager-vibe-v5-fx740uc66-skyasus-projects.vercel.app>
 - **베르셀 대시보드**: <https://vercel.com/skyasus-projects/openmanager-vibe-v5>
 - **MCP 서버**: <https://openmanager-vibe-v5.onrender.com>
 - **Redis 상태**: Upstash 기반 실시간 동기화
