@@ -330,17 +330,17 @@ export class DemoScenarioManager {
   }
 
   /**
-   * ⏰ 30분 연속 장애 타임라인 생성 - 🎭 실시간 데이터 전용
+   * ⏰ 현실적 운영 환경: 사용자는 초기 5분 내 판단 완료
    */
   private generateRandomTimeline(): ScenarioTimeline {
-    // 🔥 30분 실시간 데이터 기간 동안 계속 장애 유지
+    // 🚨 현실적 운영 환경: 사용자는 초기 5분 내 판단 완료
     return {
       normalPeriod: 0, // 🔥 정상 기간 없음 - 즉시 장애 시작
       failureStart: 0, // 🔥 시작 즉시 장애 발생
-      cascadeDelay: 3 + Math.random() * 5, // 🔥 3-8분 연쇄 장애
-      peakCrisis: 8 + Math.random() * 12, // 🔥 8-20분 최고 위기
-      recoveryStart: 25, // 🔥 25분부터 약간의 회복 조짐 (하지만 완전 복구 안됨)
-      stabilization: 35, // 🔥 30분 넘어서 안정화 (실제로는 도달 안함)
+      cascadeDelay: 1.5 + Math.random() * 2.5, // 🚨 1.5-4분 연쇄 장애 (5분 내 발생)
+      peakCrisis: 3 + Math.random() * 4, // 🚨 3-7분 최고 위기 (초기 판단 시점)
+      recoveryStart: 8 + Math.random() * 5, // 🔄 8-13분 복구 시작 (사용자 판단 이후)
+      stabilization: 15 + Math.random() * 10, // 🔄 15-25분 안정화
     };
   }
 
@@ -413,7 +413,7 @@ export class DemoScenarioManager {
     const { mainFailure, intensity, cascadeFailures, recoveryType, timeline } =
       this.currentSession;
 
-    console.log('🎭 24시간 연결 시나리오 세션 (30분 연속 장애):');
+    console.log('🎭 실제 운영 환경 시나리오 (초기 5분 골든타임):');
     console.log(
       `   🧩 사전 패턴: ${this.getPrePatternDescription(this.currentSession.preScenarioPattern)}`
     );
@@ -426,21 +426,25 @@ export class DemoScenarioManager {
     console.log(
       `   🏥 복구 방식: ${this.getRecoveryDescription(recoveryType)}`
     );
-    console.log(`   📊 영향 서버: ${intensity.affectedServers}대 (30분 지속)`);
+    console.log(`   📊 영향 서버: ${intensity.affectedServers}대 (즉시 영향)`);
     console.log(
-      `   ⏱️ 지속 시간: ${intensity.duration.toFixed(1)}분 (연속 장애)`
+      `   ⏱️ 지속 시간: ${intensity.duration.toFixed(1)}분 (전체 장애)`
     );
     console.log(
       `   📈 사전 트렌드: ${this.currentSession.preDataConnection.trendStart.toFixed(2)} (24시간 누적)`
     );
-    console.log('   🔥 30분 연속 장애 타임라인:');
+    console.log('   🚨 현실적 운영 타임라인 (5분 골든타임):');
     console.log(`     0분: 즉시 장애 시작 (사전 징후 실현)`);
-    console.log(`     ${timeline.cascadeDelay.toFixed(1)}분: 연쇄 장애 확산`);
-    console.log(`     ${timeline.peakCrisis.toFixed(1)}분: 최고 위기 상황`);
     console.log(
-      `     ${timeline.recoveryStart.toFixed(1)}분: 약간의 회복 조짐 (불완전)`
+      `     ${timeline.cascadeDelay.toFixed(1)}분: 연쇄 장애 확산 ⚠️ 사용자 판단 시점`
     );
-    console.log(`     30분: 자동 종료 (장애 지속 상태)`);
+    console.log(
+      `     ${timeline.peakCrisis.toFixed(1)}분: 최고 위기 상황 🚨 판단 마감`
+    );
+    console.log(
+      `     ${timeline.recoveryStart.toFixed(1)}분: 복구 시작 (사용자 판단 완료 후)`
+    );
+    console.log(`     ${timeline.stabilization.toFixed(1)}분: 시스템 안정화`);
   }
 
   /**
@@ -496,7 +500,7 @@ export class DemoScenarioManager {
   }
 
   /**
-   * ⏰ 현재 시나리오 단계 확인 - 🔥 30분 연속 장애 모드
+   * ⏰ 현재 시나리오 단계 확인 - 🚨 현실적 운영 환경 (5분 골든타임)
    */
   getCurrentScenario() {
     if (!this.isActive) return null;
