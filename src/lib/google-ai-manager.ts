@@ -51,11 +51,15 @@ class GoogleAIManager {
       console.log('🌐 클라이언트 사이드 - 환경변수 강제 로딩 건너뜀');
     }
 
-    // 1순위: 개인 환경변수
+    // 1순위: 개인 환경변수 (베르셀 호환성 개선)
     const envKey = process.env.GOOGLE_AI_API_KEY;
     if (envKey && envKey.trim() !== '') {
-      console.log('🔑 Google AI API 키 소스: 환경변수');
-      return envKey.trim();
+      // 베르셀 환경변수에서 발생할 수 있는 \r\n 문자 제거
+      const cleanKey = envKey.replace(/[\r\n]/g, '').trim();
+      if (cleanKey && cleanKey.length > 10) {
+        console.log('🔑 Google AI API 키 소스: 환경변수 (베르셀 호환)');
+        return cleanKey;
+      }
     }
 
     // 2순위: 팀 설정 (복호화된 키)
@@ -92,11 +96,15 @@ class GoogleAIManager {
     const envKey = process.env.GOOGLE_AI_API_KEY;
 
     if (envKey && envKey.trim() !== '') {
-      return {
-        source: 'env',
-        isAvailable: true,
-        needsUnlock: false,
-      };
+      // 베르셀 환경변수 호환성 개선
+      const cleanKey = envKey.replace(/[\r\n]/g, '').trim();
+      if (cleanKey && cleanKey.length > 10) {
+        return {
+          source: 'env',
+          isAvailable: true,
+          needsUnlock: false,
+        };
+      }
     }
 
     if (this.isTeamKeyUnlocked && this.decryptedTeamKey) {
@@ -237,7 +245,19 @@ export const googleAIManager = GoogleAIManager.getInstance();
 
 // 편의 함수들
 export const getGoogleAIKey = () => googleAIManager.getAPIKey();
-export const isGoogleAIAvailable = () => googleAIManager.isAPIKeyAvailable();
+export const isGoogleAIAvailable = (): boolean => {
+  const status = googleAIManager.getKeyStatus();
+  const enabledEnv = process.env.GOOGLE_AI_ENABLED;
+
+  // 환경변수 정리 (베르셀 호환성)
+  const cleanEnabled = enabledEnv
+    ?.replace(/[\r\n]/g, '')
+    .trim()
+    .toLowerCase();
+  const isEnabledByEnv = cleanEnabled === 'true';
+
+  return status.isAvailable && isEnabledByEnv;
+};
 export const getGoogleAIStatus = () => googleAIManager.getKeyStatus();
 
 export default GoogleAIManager;

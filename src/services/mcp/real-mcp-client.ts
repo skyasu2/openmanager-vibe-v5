@@ -747,7 +747,7 @@ export class RealMCPClient {
   /**
    * 🎭 Mock 도구 호출 처리
    */
-  private handleMockToolCall(params: any, serverName: string): any {
+  private handleMockToolCall = (params: any, serverName: string): any => {
     const toolName = params.name;
     const args = params.arguments || {};
 
@@ -841,12 +841,12 @@ export class RealMCPClient {
           usingMock: true,
         };
     }
-  }
+  };
 
   /**
    * 🎭 Mock 리소스 읽기 처리
    */
-  private handleMockResourceRead(params: any, serverName: string): any {
+  private handleMockResourceRead = (params: any, serverName: string): any => {
     const uri = params.uri;
     console.log(`🎭 Mock 리소스 읽기: ${uri} (${serverName})`);
 
@@ -894,7 +894,7 @@ export class RealMCPClient {
         usingMock: true,
       };
     }
-  }
+  };
 
   /**
    * 🛠️ 실제 사용 가능한 도구 목록 반환
