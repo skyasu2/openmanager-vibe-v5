@@ -20,7 +20,10 @@ import { KoreanAIEngine } from '@/services/ai/korean-ai-engine';
 import { TransformersEngine } from '@/services/ai/transformers-engine';
 import { AIMode, AIRequest, AIResponse } from '@/types/ai-types';
 import { utf8Logger } from '@/utils/utf8-logger';
-import { initializeWindowsUTF8System, safeKoreanQuery } from '@/utils/windows-utf8-fix';
+import {
+  initializeWindowsUTF8System,
+  safeKoreanQuery,
+} from '@/utils/windows-utf8-fix';
 
 // 🎯 분리된 AI 모드 관리자 import
 
@@ -84,13 +87,13 @@ export class UnifiedAIEngineRouter {
     engineUsage: Record<string, number>;
     lastUpdated: string;
   } = {
-      totalRequests: 0,
-      successfulRequests: 0,
-      failedRequests: 0,
-      averageResponseTime: 0,
-      engineUsage: {},
-      lastUpdated: new Date().toISOString(),
-    };
+    totalRequests: 0,
+    successfulRequests: 0,
+    failedRequests: 0,
+    averageResponseTime: 0,
+    engineUsage: {},
+    lastUpdated: new Date().toISOString(),
+  };
 
   private constructor() {
     this.googleAI = GoogleAIService.getInstance();
@@ -276,10 +279,14 @@ export class UnifiedAIEngineRouter {
     console.log('🏠 LOCAL 모드: 직접 처리 (폴백 없음)');
 
     // 베르셀 요금제별 설정 적용
-    const { detectVercelTier, createErrorResponse } = await import('@/config/vercel-tier-config');
+    const { detectVercelTier, createErrorResponse } = await import(
+      '@/config/vercel-tier-config'
+    );
     const tierConfig = detectVercelTier();
 
-    console.log(`🎯 베르셀 ${tierConfig.tier.toUpperCase()} 요금제: ${tierConfig.safeExecutionTime}ms 제한`);
+    console.log(
+      `🎯 베르셀 ${tierConfig.tier.toUpperCase()} 요금제: ${tierConfig.safeExecutionTime}ms 제한`
+    );
 
     const enginePath: string[] = [];
     const supportEngines: string[] = [];
@@ -288,7 +295,9 @@ export class UnifiedAIEngineRouter {
     const checkTimeout = () => {
       const elapsed = Date.now() - startTime;
       if (elapsed > tierConfig.safeExecutionTime) {
-        throw new Error(`[${tierConfig.tier.toUpperCase()}] 처리 시간 초과: ${elapsed}ms > ${tierConfig.safeExecutionTime}ms`);
+        throw new Error(
+          `[${tierConfig.tier.toUpperCase()}] 처리 시간 초과: ${elapsed}ms > ${tierConfig.safeExecutionTime}ms`
+        );
       }
       return elapsed;
     };
@@ -305,16 +314,26 @@ export class UnifiedAIEngineRouter {
       }
     } catch (error) {
       console.error('❌ MCP 컨텍스트 수집 실패:', error);
-      const errorResponse = createErrorResponse(error as Error, 'MCP 컨텍스트 수집', tierConfig);
+      const errorResponse = createErrorResponse(
+        error as Error,
+        'MCP 컨텍스트 수집',
+        tierConfig
+      );
       return {
-        ...errorResponse,
+        success: false,
+        response: errorResponse.response,
+        confidence: errorResponse.confidence,
         mode: 'LOCAL',
         enginePath: ['mcp-context-error'],
         processingTime: Date.now() - startTime,
+        fallbacksUsed: 1,
         metadata: {
           mainEngine: 'mcp-context-error',
-          supportEngines: [],
-          error: errorResponse.error
+          supportEngines,
+          ragUsed: false,
+          googleAIUsed: false,
+          mcpContextUsed: false,
+          subEnginesUsed: [],
         },
       };
     }
@@ -359,6 +378,7 @@ export class UnifiedAIEngineRouter {
         mode: 'LOCAL',
         enginePath,
         processingTime: Date.now() - startTime,
+        fallbacksUsed: 0,
         metadata: {
           mainEngine: 'local-supabase-rag',
           supportEngines,
@@ -370,16 +390,26 @@ export class UnifiedAIEngineRouter {
       };
     } catch (error) {
       console.error('❌ Supabase RAG 처리 실패:', error);
-      const errorResponse = createErrorResponse(error as Error, 'Supabase RAG 처리', tierConfig);
+      const errorResponse = createErrorResponse(
+        error as Error,
+        'Supabase RAG 처리',
+        tierConfig
+      );
       return {
-        ...errorResponse,
+        success: false,
+        response: errorResponse.response,
+        confidence: errorResponse.confidence,
         mode: 'LOCAL',
         enginePath: ['supabase-rag-error'],
         processingTime: Date.now() - startTime,
+        fallbacksUsed: 1,
         metadata: {
           mainEngine: 'supabase-rag-error',
           supportEngines,
-          error: errorResponse.error
+          ragUsed: false,
+          googleAIUsed: false,
+          mcpContextUsed: false,
+          subEnginesUsed: [],
         },
       };
     }
@@ -430,14 +460,17 @@ export class UnifiedAIEngineRouter {
       let safeQuery = request.query;
 
       // Windows 환경에서 한국어 깨짐 방지
-      if (process.platform === 'win32' && /[ㄱ-ㅎㅏ-ㅣ가-힣]/u.test(request.query)) {
+      if (
+        process.platform === 'win32' &&
+        /[ㄱ-ㅎㅏ-ㅣ가-힣]/u.test(request.query)
+      ) {
         try {
           const buffer = Buffer.from(request.query, 'utf8');
           safeQuery = buffer.toString('utf8');
 
           // 깨진 문자 패턴 감지 (실제 깨진 문자만 감지)
-          const hasBrokenChars = safeQuery.includes('\ufffd') ||
-            /[]/u.test(safeQuery);
+          const hasBrokenChars =
+            safeQuery.includes('\ufffd') || /[]/u.test(safeQuery);
 
           if (hasBrokenChars) {
             utf8Logger.warn(`한국어 쿼리 깨짐 감지: "${request.query}"`);
@@ -445,7 +478,8 @@ export class UnifiedAIEngineRouter {
             // 폴백: 기본 한국어 응답
             return {
               success: true,
-              response: '[LOCAL 모드 하위 AI] 한국어 쿼리 처리 중 인코딩 문제가 발생했습니다. 쿼리를 다시 시도해주세요.',
+              response:
+                '[LOCAL 모드 하위 AI] 한국어 쿼리 처리 중 인코딩 문제가 발생했습니다. 쿼리를 다시 시도해주세요.',
               confidence: 0.5,
               mode: 'LOCAL',
               enginePath: ['local-korean-fallback'],
@@ -504,9 +538,8 @@ export class UnifiedAIEngineRouter {
       }
 
       // 영어 쿼리는 OpenSource 엔진 사용 (안전 처리된 쿼리 사용)
-      const openSourceResult = await this.openSourceEngines.advancedNLP(
-        safeQuery
-      );
+      const openSourceResult =
+        await this.openSourceEngines.advancedNLP(safeQuery);
 
       if (openSourceResult?.summary) {
         return {
@@ -683,7 +716,7 @@ export class UnifiedAIEngineRouter {
   }
 
   /**
-   * 🔧 LOCAL 모드 전용 하위 엔진 강화
+   * 🔧 LOCAL 모드 전용 하위 AI 처리
    */
   private async enhanceWithLocalModeEngines(
     baseResponse: string,
@@ -1184,7 +1217,9 @@ export class UnifiedAIEngineRouter {
 
       // 🎯 실제 Supabase RAG 엔진 사용 시도 (향상된 설정)
       if (this.supabaseRAG) {
-        console.log('🧠 베르셀 환경: Supabase RAG 엔진으로 고품질 AI 응답 생성');
+        console.log(
+          '🧠 베르셀 환경: Supabase RAG 엔진으로 고품질 AI 응답 생성'
+        );
 
         try {
           const ragResult = await this.supabaseRAG.searchSimilar(
@@ -1198,7 +1233,11 @@ export class UnifiedAIEngineRouter {
 
           if (ragResult.success && ragResult.results.length > 0) {
             // RAG 결과를 자연어로 변환 (UTF-8 안전 처리)
-            const ragResponse = this.formatEnhancedRAGResults(ragResult, request.query, queryComplexity);
+            const ragResponse = this.formatEnhancedRAGResults(
+              ragResult,
+              request.query,
+              queryComplexity
+            );
             if (ragResponse && ragResponse.length > 10) {
               checkTimeout();
               // UTF-8 인코딩 정규화 적용
@@ -1486,6 +1525,24 @@ ${analysisResult.recommendations ? '💡 **권장사항**\n' + analysisResult.re
       supportEngines,
       startTime
     );
+  }
+
+  // 누락된 메서드 추가
+  private analyzeQueryComplexity(
+    query: string
+  ): 'simple' | 'medium' | 'complex' {
+    const wordCount = query.split(' ').length;
+    if (wordCount <= 5) return 'simple';
+    if (wordCount <= 15) return 'medium';
+    return 'complex';
+  }
+
+  private formatEnhancedRAGResults(
+    ragResult: any,
+    originalQuery: string,
+    complexity: string
+  ): string {
+    return this.formatRAGResults(ragResult, originalQuery);
   }
 }
 

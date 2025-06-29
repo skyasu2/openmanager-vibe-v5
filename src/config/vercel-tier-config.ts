@@ -1,6 +1,6 @@
 /**
  * Vercel Tier Configuration and Timeout Management
- * 
+ *
  * Free vs Pro tier differentiated services:
  * - Free: 10s limit → 8s safe processing
  * - Pro: 60s limit → 55s maximum utilization
@@ -29,8 +29,8 @@ export const VERCEL_TIERS: Record<string, VercelTierConfig> = {
       streamingEnabled: false,
       complexAnalysis: false,
       multiStepProcessing: false,
-      realTimeData: true
-    }
+      realTimeData: true,
+    },
   },
   pro: {
     tier: 'pro',
@@ -41,9 +41,9 @@ export const VERCEL_TIERS: Record<string, VercelTierConfig> = {
       streamingEnabled: true,
       complexAnalysis: true,
       multiStepProcessing: true,
-      realTimeData: true
-    }
-  }
+      realTimeData: true,
+    },
+  },
 };
 
 /**
@@ -66,14 +66,20 @@ export async function detectVercelTierWithTest(): Promise<VercelTierConfig> {
       const testResult = await perform10SecondTest();
 
       if (testResult.success && testResult.duration >= 10000) {
-        console.log(`🎯 베르셀 Pro 요금제 감지됨 (${testResult.duration}ms 실행 성공)`);
+        console.log(
+          `🎯 베르셀 Pro 요금제 감지됨 (${testResult.duration}ms 실행 성공)`
+        );
         return VERCEL_TIERS.pro;
       } else if (testResult.timedOut) {
-        console.log(`🆓 베르셀 Free 요금제 감지됨 (${testResult.duration}ms에서 타임아웃)`);
+        console.log(
+          `🆓 베르셀 Free 요금제 감지됨 (${testResult.duration}ms에서 타임아웃)`
+        );
         return VERCEL_TIERS.free;
       } else {
         // 10초 미만에서 완료된 경우
-        console.log(`🆓 베르셀 Free 요금제 추정됨 (${testResult.duration}ms에서 완료)`);
+        console.log(
+          `🆓 베르셀 Free 요금제 추정됨 (${testResult.duration}ms에서 완료)`
+        );
         return VERCEL_TIERS.free;
       }
     } catch (error) {
@@ -81,8 +87,7 @@ export async function detectVercelTierWithTest(): Promise<VercelTierConfig> {
 
       // 폴백: 환경변수 기반 감지
       const hasProFeatures =
-        process.env.VERCEL_ENV === 'production' &&
-        process.env.VERCEL_REGION;
+        process.env.VERCEL_ENV === 'production' && process.env.VERCEL_REGION;
 
       return hasProFeatures ? VERCEL_TIERS.pro : VERCEL_TIERS.free;
     }
@@ -125,7 +130,7 @@ async function perform10SecondTest(): Promise<{
     return {
       success: true,
       duration,
-      timedOut: false
+      timedOut: false,
     };
   } catch (error) {
     const duration = Date.now() - startTime;
@@ -133,7 +138,7 @@ async function perform10SecondTest(): Promise<{
     return {
       success: false,
       duration,
-      timedOut: true
+      timedOut: true,
     };
   }
 }
@@ -149,8 +154,7 @@ export function detectVercelTier(): VercelTierConfig {
 
   if (process.env.VERCEL === '1') {
     const hasProFeatures =
-      process.env.VERCEL_ENV === 'production' &&
-      process.env.VERCEL_REGION;
+      process.env.VERCEL_ENV === 'production' && process.env.VERCEL_REGION;
 
     return hasProFeatures ? VERCEL_TIERS.pro : VERCEL_TIERS.free;
   }
@@ -166,9 +170,10 @@ export function createErrorResponse(
   let suggestion = '';
 
   if (error.message.includes('timeout')) {
-    suggestion = config.tier === 'free'
-      ? 'Consider upgrading to Pro tier for complex analysis.'
-      : 'Simplify request or split into multiple steps.';
+    suggestion =
+      config.tier === 'free'
+        ? 'Consider upgrading to Pro tier for complex analysis.'
+        : 'Simplify request or split into multiple steps.';
   } else if (error.message.includes('Invalid API key')) {
     suggestion = 'Check API key configuration in environment variables.';
   } else if (error.message.includes('spawn EINVAL')) {
@@ -179,9 +184,11 @@ export function createErrorResponse(
 
   return {
     success: false,
+    response: `❌ ${context} failed: ${error.message}\n\n💡 Suggestion: ${suggestion}`,
+    confidence: 0.1,
     error: `${context} failed: ${error.message}`,
     details: error.stack?.split('\n')[0] || 'No details available',
     suggestion,
-    tier: config.tier
+    tier: config.tier,
   };
 }

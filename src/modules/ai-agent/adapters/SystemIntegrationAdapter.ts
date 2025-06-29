@@ -534,8 +534,8 @@ export class SystemIntegrationAdapter {
       services: serverData.services || [],
       metadata: {
         location: serverData.location || 'Unknown',
-        environment: serverData.environment || 'production',
-        provider: serverData.provider || 'unknown',
+        environment: serverData.environment || 'development',
+        provider: serverData.provider || 'kubernetes',
         cluster: serverData.cluster,
         zone: serverData.zone,
         instanceType: serverData.instanceType,
@@ -546,7 +546,9 @@ export class SystemIntegrationAdapter {
   /**
    * 📊 모크 메트릭 생성 → 실제 시스템 메트릭 API 호출로 대체
    */
-  private async fetchRealSystemMetrics(serverId: string): Promise<StandardServerMetrics> {
+  private async fetchRealSystemMetrics(
+    serverId: string
+  ): Promise<StandardServerMetrics> {
     try {
       const response = await fetch(`/api/servers/${serverId}/metrics`);
 
@@ -573,7 +575,13 @@ export class SystemIntegrationAdapter {
         metrics: {
           cpu: { usage: 0, loadAverage: [0, 0, 0], cores: 0 },
           memory: { total: 0, used: 0, available: 0, usage: 0 },
-          disk: { total: 0, used: 0, available: 0, usage: 0, iops: { read: 0, write: 0 } },
+          disk: {
+            total: 0,
+            used: 0,
+            available: 0,
+            usage: 0,
+            iops: { read: 0, write: 0 },
+          },
           network: {
             interface: 'unknown',
             bytesReceived: 0,
@@ -587,8 +595,8 @@ export class SystemIntegrationAdapter {
         services: [],
         metadata: {
           location: 'Unknown',
-          environment: 'unknown',
-          provider: 'unknown',
+          environment: 'development',
+          provider: 'kubernetes',
         },
       };
     }

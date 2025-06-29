@@ -44,6 +44,9 @@ interface PatternAnalysisPanelProps {
 // Mock 데이터 생성 함수 제거 (실제 API 호출로 대체)
 // const generateMockPatterns = (): PatternData[] => [...];
 
+// 목업 데이터 생성 함수 제거하고 실제 API 호출로 대체
+const generateEmptyPatterns = (): PatternData[] => [];
+
 const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
   className = '',
 }) => {
@@ -68,7 +71,7 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
         const response = await fetch('/api/ai/pattern-analysis');
         if (response.ok) {
           const data = await response.json();
-          return data.patterns || generateMockPatterns();
+          return data.patterns || generateEmptyPatterns();
         }
       } catch (error) {
         console.warn('패턴 분석 API 실패, Mock 데이터 사용:', error);
@@ -76,7 +79,7 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
 
       // API 실패 시에만 Mock 사용
       await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5초 로딩 지연
-      return generateMockPatterns();
+      return generateEmptyPatterns();
     },
     refreshInterval: 60000, // 1분마다 새로고침
   });
@@ -101,8 +104,8 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
     return selectedType === 'all'
       ? patterns
       : patterns.filter(
-        (pattern: PatternData) => pattern.type === selectedType
-      );
+          (pattern: PatternData) => pattern.type === selectedType
+        );
   }, [patterns, selectedType]);
 
   // 유틸리티 함수들
@@ -318,33 +321,34 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
                   {/* 심각도가 medium 이상일 때만 자동 보고서 버튼 표시 */}
                   {(pattern.severity === 'high' ||
                     pattern.severity === 'medium') && (
-                      <button
-                        onClick={() => generateAutoReportFromPattern(pattern)}
-                        disabled={
-                          autoReportStatus.isGenerating &&
-                          autoReportStatus.lastPatternId === pattern.id
-                        }
-                        className={`px-3 py-1 text-xs rounded-lg border transition-colors ${autoReportStatus.isGenerating &&
-                          autoReportStatus.lastPatternId === pattern.id
+                    <button
+                      onClick={() => generateAutoReportFromPattern(pattern)}
+                      disabled={
+                        autoReportStatus.isGenerating &&
+                        autoReportStatus.lastPatternId === pattern.id
+                      }
+                      className={`px-3 py-1 text-xs rounded-lg border transition-colors ${
+                        autoReportStatus.isGenerating &&
+                        autoReportStatus.lastPatternId === pattern.id
                           ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
                           : 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100'
-                          }`}
-                        title='이 패턴을 기반으로 자동 장애 보고서 생성'
-                      >
-                        {autoReportStatus.isGenerating &&
-                          autoReportStatus.lastPatternId === pattern.id ? (
-                          <div className='flex items-center gap-1'>
-                            <div className='w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin' />
-                            <span>생성중...</span>
-                          </div>
-                        ) : (
-                          <div className='flex items-center gap-1'>
-                            <FileText className='w-3 h-3' />
-                            <span>보고서 생성</span>
-                          </div>
-                        )}
-                      </button>
-                    )}
+                      }`}
+                      title='이 패턴을 기반으로 자동 장애 보고서 생성'
+                    >
+                      {autoReportStatus.isGenerating &&
+                      autoReportStatus.lastPatternId === pattern.id ? (
+                        <div className='flex items-center gap-1'>
+                          <div className='w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin' />
+                          <span>생성중...</span>
+                        </div>
+                      ) : (
+                        <div className='flex items-center gap-1'>
+                          <FileText className='w-3 h-3' />
+                          <span>보고서 생성</span>
+                        </div>
+                      )}
+                    </button>
+                  )}
 
                   {/* 패턴 상세 보기 버튼 */}
                   <button
