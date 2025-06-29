@@ -1,7 +1,7 @@
 'use client';
 
 import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { useVercelSystemStore } from '@/stores/vercelSystemStore';
 import { motion } from 'framer-motion';
 import { Bot, Loader2, Play, Zap } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -27,27 +27,33 @@ const FeatureCardsGrid = dynamic(
 
 export default function Home() {
   const router = useRouter();
+
+  // 베르셀 친화적 시스템 상태 관리
   const {
-    isSystemStarted,
-    aiAgent,
-    adminMode,
+    systemInfo,
     startSystem,
     stopSystem,
-    logout,
-    getSystemRemainingTime,
-  } = useUnifiedAdminStore();
+    toggleCountdown,
+    getRemainingTime,
+    canStart,
+    canStop,
+  } = useVercelSystemStore();
+
+  const isSystemStarted = systemInfo.state === 'RUNNING';
+  const isSystemStarting = systemInfo.state === 'STARTING';
+
   // 토스트 알림 기능 제거됨
   const [isLoading, setIsLoading] = useState(false);
   const [systemTimeRemaining, setSystemTimeRemaining] = useState(0);
 
-  // 🚀 시스템 시작 카운트다운 상태
+  // 🔄 클라이언트 마운트 상태 (hydration 문제 방지)
+  const [isMounted, setIsMounted] = useState(false);
+
+  // 🕐 카운트다운 상태 (점진적 수정용)
   const [systemStartCountdown, setSystemStartCountdown] = useState(0);
   const [countdownTimer, setCountdownTimer] = useState<NodeJS.Timeout | null>(
     null
   );
-
-  // 🔄 클라이언트 마운트 상태 (hydration 문제 방지)
-  const [isMounted, setIsMounted] = useState(false);
 
   // 🔄 클라이언트 마운트 감지
   useEffect(() => {
@@ -98,64 +104,55 @@ export default function Home() {
     if (!isMounted) return;
 
     console.log('🔍 Home - 시스템 상태 변화:', {
+      systemState: systemInfo.state,
       isSystemStarted,
-      aiAgentEnabled: aiAgent.isEnabled,
-      aiAgentState: aiAgent.state,
-      timeRemaining: systemTimeRemaining,
+      remainingTime: getRemainingTime(),
     });
-  }, [
-    isMounted,
-    isSystemStarted,
-    aiAgent.isEnabled,
-    aiAgent.state,
-    systemTimeRemaining,
-  ]);
+  }, [isMounted, systemInfo.state, isSystemStarted]);
 
   // 🛡️ 상태 불일치 방지 - AI 에이전트가 시스템 중지 시 비활성화되는지 확인 (클라이언트에서만)
   useEffect(() => {
     if (!isMounted) return;
 
     // 🚨 시스템이 시작된 후에만 상태 불일치 감지
-    if (isSystemStarted && !aiAgent.isEnabled) {
-      console.warn(
-        '⚠️ 상태 불일치 감지: 시스템이 활성화되었지만 AI 에이전트가 비활성화됨'
-      );
-    }
-  }, [isMounted, isSystemStarted, aiAgent.isEnabled]);
+    // 베르셀 시스템에서는 AI 에이전트 체크 불필요
+  }, [isMounted, isSystemStarted]);
 
-  // 시스템 타이머 업데이트 (클라이언트에서만)
+  // 🛡️ 시스템 상태 일관성 확인 (베르셀 시스템용)
+  useEffect(() => {
+    if (!isMounted) return;
+
+    // 시스템 상태 로깅 (aiAgent 관련 코드 제거)
+    console.log('🔍 시스템 상태:', {
+      state: systemInfo.state,
+      started: isSystemStarted,
+      starting: isSystemStarting,
+    });
+  }, [isMounted, systemInfo.state, isSystemStarted, isSystemStarting]);
+
+  // 시스템 타이머 업데이트 (베르셀 시스템용)
   useEffect(() => {
     if (!isMounted) return;
 
     if (isSystemStarted) {
       const updateTimer = () => {
-        const remaining = getSystemRemainingTime();
+        const remaining = getRemainingTime();
         setSystemTimeRemaining(remaining);
       };
 
-      updateTimer(); // 즉시 실행
+      updateTimer();
       const interval = setInterval(updateTimer, 1000);
-
       return () => clearInterval(interval);
     } else {
       setSystemTimeRemaining(0);
     }
-  }, [isMounted, isSystemStarted, getSystemRemainingTime]);
+  }, [isMounted, isSystemStarted, getRemainingTime]);
 
-  // 컴포넌트 언마운트 시 카운트다운 정리
-  useEffect(() => {
-    return () => {
-      if (countdownTimer) {
-        clearInterval(countdownTimer);
-      }
-    };
-  }, [countdownTimer]);
-
-  // 시간 포맷 함수
-  const formatTime = (ms: number) => {
-    const minutes = Math.floor(ms / (1000 * 60));
-    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  // 시간 포맷 함수 (초 단위를 분:초로 변환)
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   // AI 단어에 그라데이션 애니메이션 적용하는 함수
@@ -221,46 +218,31 @@ export default function Home() {
     console.log('⏹️ 시스템 시작이 취소되었습니다.');
   };
 
-  // 🚀 통합 시스템 시작 함수
+  // 🚀 통합 시스템 시작 함수 (베르셀 시스템용)
   const handleSystemStart = async () => {
     try {
-      console.log('🚀 시스템 시작 실행');
+      console.log('🚀 베르셀 시스템 시작 실행');
       setIsLoading(true);
-      await startSystem();
+      await startSystem(); // vercelStartSystem → startSystem
       console.log('✅ 시스템이 성공적으로 시작되었습니다.');
-      // 로딩 페이지로 이동
       router.push('/system-boot');
     } catch (error) {
       console.error('❌ 시스템 시작 실패:', error);
-      console.error('❌ 시스템 시작에 실패했습니다.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 🚀 시스템 토글 함수 (카운트다운 포함)
+  // 🛑 시스템 중지 함수 (베르셀 시스템용)
   const handleSystemToggle = async () => {
-    if (isLoading) return;
+    if (!canStop()) return;
 
-    if (isSystemStarted) {
-      // 시스템이 실행 중이면 즉시 중지
-      setIsLoading(true);
-      try {
-        console.log('🛑 시스템 중지 요청');
-        await stopSystem();
-        console.log('✅ 시스템이 성공적으로 중지되었습니다.');
-      } catch (error) {
-        console.error('❌ 시스템 중지 실패:', error);
-        console.error('❌ 시스템 중지에 실패했습니다.');
-      } finally {
-        setIsLoading(false);
-      }
-    } else if (systemStartCountdown > 0) {
-      // 카운트다운 중이면 카운트다운 중지
-      stopSystemCountdown();
-    } else {
-      // 시스템이 중지 상태면 3초 카운트다운 시작
-      startSystemCountdown();
+    try {
+      console.log('🛑 베르셀 시스템 중지 요청');
+      await stopSystem(); // vercelStopSystem → stopSystem
+      console.log('✅ 시스템이 성공적으로 중지되었습니다.');
+    } catch (error) {
+      console.error('❌ 시스템 중지 실패:', error);
     }
   };
 
@@ -296,7 +278,7 @@ export default function Home() {
           <motion.div
             className='w-10 h-10 rounded-lg flex items-center justify-center relative shadow-lg'
             animate={
-              aiAgent.isEnabled
+              isSystemStarted
                 ? {
                     background: [
                       'linear-gradient(135deg, #a855f7, #ec4899)',
@@ -312,7 +294,7 @@ export default function Home() {
                       '0 6px 20px rgba(168, 85, 247, 0.4)',
                     ],
                   }
-                : isSystemStarted
+                : isSystemStarting
                   ? {
                       background: [
                         'linear-gradient(135deg, #10b981, #059669)',
@@ -333,7 +315,7 @@ export default function Home() {
                     }
             }
             transition={{
-              duration: aiAgent.isEnabled ? 2 : 3,
+              duration: isSystemStarted ? 2 : 3,
               repeat: Infinity,
               ease: 'easeInOut',
             }}
@@ -342,8 +324,8 @@ export default function Home() {
               transition: { duration: 0.3 },
             }}
           >
-            {/* AI 활성화 시 회전 아이콘 */}
-            {aiAgent.isEnabled ? (
+            {/* 시스템 활성화 시 회전 아이콘 */}
+            {isSystemStarted ? (
               <motion.i
                 className='fas fa-server text-white text-lg'
                 animate={{
@@ -372,13 +354,11 @@ export default function Home() {
           <div>
             <h1 className='text-xl font-bold text-white'>OpenManager</h1>
             <p className='text-xs text-white/70'>
-              {aiAgent.isEnabled && !isSystemStarted
-                ? 'AI 독립 모드'
-                : aiAgent.isEnabled && isSystemStarted
-                  ? 'AI + 시스템 통합 모드'
-                  : isSystemStarted
-                    ? '기본 모니터링'
-                    : '시스템 정지'}
+              {isSystemStarted
+                ? 'AI + 시스템 통합 모드 (베르셀 친화적)'
+                : isSystemStarting
+                  ? '시스템 초기화 중...'
+                  : '시스템 완전 중지'}
             </p>
           </div>
         </div>

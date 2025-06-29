@@ -60,6 +60,7 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
   const aiAgent = store.aiAgent;
   const isLocked = store.isLocked;
   const adminMode = store.adminMode;
+  const systemTimeRemaining = store.getSystemRemainingTime();
 
   // 액션들은 안정적이므로 한 번만 가져오기
   const { startSystem, stopSystem, logout, authenticateAdmin, logoutAdmin } =
