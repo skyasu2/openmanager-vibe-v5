@@ -1,134 +1,93 @@
+/// <reference types="vitest" />
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [react()],
+
   test: {
+    // 기본 설정
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./tests/setup.ts'],
+    setupFiles: ['./src/test/setup.ts'],
 
-    // 🎯 현재 아키텍처에 맞는 테스트만 실행
-    include: [
-      'tests/unit/**/*.test.ts',
-      'tests/unit/**/*.test.tsx',
-      'tests/integration/ai-router.test.ts',
-      'tests/integration/korean-nlp.test.ts',
-      'tests/integration/supabase-rag.test.ts',
-      'tests/integration/env-backup.test.ts',
-      // E2E 테스트는 Playwright로 실행하므로 Vitest 실행 대상에서 제외합니다.
-    ],
-
-    // 🚫 레거시 테스트 및 불필요한 파일 완전 제외
+    // 테스트 파일 포함/제외
+    include: ['src/**/*.{test,spec}.{js,ts,jsx,tsx}'],
     exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/.{idea,git,cache,output,temp}/**',
-      '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
-      // 레거시 AI 엔진 테스트 제외
-      'tests/**/*legacy*.test.ts',
-      'tests/**/*deprecated*.test.ts',
-      'tests/**/*sharp*.test.ts',
-      'tests/**/*old*.test.ts',
-      'tests/**/*unified-ai-engine-v1*.test.ts',
-      'tests/**/*optimized-engine*.test.ts',
-      // 스토리북 관련 제외
-      '**/*.stories.ts',
-      '**/*.stories.tsx',
-      '**/storybook-static/**',
-      '**/.storybook/**',
-      // 로컬 환경 의존적 테스트 제외
-      '**/babel.test.ts',
-      '**/webpack.test.ts',
-      '**/port-conflict.test.ts',
+      'node_modules/**',
+      'dist/**',
+      '.next/**',
+      'coverage/**',
+      '.storybook/**',
+      'src/test/setup.ts',
     ],
 
-    // 🔧 격리 환경 강화
-    pool: 'threads',
-    poolOptions: {
-      threads: {
-        isolate: true,
-        singleThread: false,
-        useAtomics: true,
-        minThreads: 1,
-        maxThreads: 4,
-      },
-    },
-    // ⏱️ 타임아웃 최적화
-    testTimeout: 10000, // 베르셀 Cold Start 고려
-    hookTimeout: 10000,
-    teardownTimeout: 5000, // 10초 → 5초 단축
-
-    // 🛡️ 테스트 격리 및 안정성
-    isolate: true,
-    passWithNoTests: false, // 빈 테스트 케이스 허용 안 함
-    bail: 5, // 5개 실패 시 중단
-    retry: 2, // 실패 시 2회 재시도
+    // 커버리지 설정
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'json', 'html', 'lcov'],
+      include: ['src/**/*.{js,ts,jsx,tsx}'],
       exclude: [
-        'coverage/**',
-        'dist/**',
-        'packages/*/test{,s}/**',
-        '**/*.d.ts',
-        'cypress/**',
-        'test{,s}/**',
-        'test{,-*}.{js,cjs,mjs,ts,tsx,jsx}',
-        '**/*{.,-}test.{js,cjs,mjs,ts,tsx,jsx}',
-        '**/*{.,-}spec.{js,cjs,mjs,ts,tsx,jsx}',
-        '**/__tests__/**',
-        '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
-        '**/.{eslint,mocha,prettier}rc.{js,cjs,yml}',
-        '**/storybook-static/**',
-        '**/.storybook/**',
-        '**/stories/**',
+        'src/**/*.d.ts',
+        'src/**/*.stories.{js,ts,jsx,tsx}',
+        'src/**/*.test.{js,ts,jsx,tsx}',
+        'src/**/*.spec.{js,ts,jsx,tsx}',
+        'src/test/**',
+        'src/lib/environment/**',
+        'src/app/layout.tsx',
+        'src/app/page.tsx',
+        'src/app/globals.css',
       ],
-    },
-    reporters: ['default', 'json', 'html'],
-    outputFile: {
-      json: './test-results/results.json',
-      html: './test-results/index.html',
-    },
-    // 🌍 테스트 환경 변수 최적화
-    env: {
-      NODE_ENV: 'test',
-      VITEST: 'true',
-      // AI 엔진 테스트 모드
-      AI_ENGINE_MODE: 'test',
-      SUPABASE_RAG_ENABLED: 'true',
-      GOOGLE_AI_ENABLED: 'false',
-      KOREAN_NLP_ENABLED: 'true',
-      // 테스트 격리 환경
-      TEST_ISOLATION: 'true',
+      thresholds: {
+        global: {
+          branches: 80,
+          functions: 80,
+          lines: 80,
+          statements: 80,
+        },
+      },
+      all: true,
+      clean: true,
+      cleanOnRerun: true,
     },
 
-    // 📦 의존성 최적화
-    deps: {
-      inline: [
-        // 현재 아키텍처에 필요한 모듈만
-        '@/core/ai/engines/UnifiedAIEngineRouter',
-        '@/core/ai/engines/SupabaseRAGEngine',
-        '@/core/ai/engines/KoreanNLPEngine',
-        '@vercel/analytics',
-        '@vercel/speed-insights',
-      ],
-      external: [
-        // 제외할 모듈들
-        'puppeteer',
-        'onnxruntime-node',
-      ],
+    // 리포터 및 출력 설정
+    reporters: ['default', 'html'],
+
+    // 성능 및 타임아웃 설정
+    testTimeout: 10000,
+    hookTimeout: 10000,
+    teardownTimeout: 5000,
+    retry: 2,
+
+    // 테스트 환경 변수
+    env: {
+      NODE_ENV: 'test',
+      NEXT_PUBLIC_STORYBOOK_MODE: 'false',
+      VITEST_ENVIRONMENT: 'jsdom',
+      // OpenManager 테스트 환경 변수
+      DISABLE_CRON_JOBS: 'true',
+      FORCE_MOCK_REDIS: 'true',
+      FORCE_MOCK_GOOGLE_AI: 'true',
+      REDIS_CONNECTION_DISABLED: 'true',
+      DISABLE_HEALTH_CHECK: 'true',
+      HEALTH_CHECK_CONTEXT: 'false',
+      DISABLE_AUTO_ENV_INIT: 'true',
+      DISABLE_AUTO_BACKUP: 'true',
     },
+
+    // 목킹 설정
+    mockReset: true,
+    clearMocks: true,
+    restoreMocks: true,
   },
+
+  // Vite 설정
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '~': path.resolve(__dirname, './'),
+      '#': path.resolve(__dirname, './'),
     },
-  },
-  define: {
-    'process.env.NODE_ENV': '"test"',
-    'process.env.VITEST': '"true"',
   },
 });

@@ -1,0 +1,39 @@
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Storybook build outputs
+html/
+storybook-static/
+
+# Next.js build outputs
+.next/
+
+# Coverage reports
+coverage/
+
+# Environment files
+.env*
+
+# Log files
+*.log
+
+# Cache directories
+.cache/
+.parcel-cache/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp 

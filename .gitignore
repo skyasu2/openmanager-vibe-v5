@@ -33,6 +33,7 @@ npm-debug.log*
 
 # storybook
 /storybook-static
+/html
 
 # misc
 .DS_Store

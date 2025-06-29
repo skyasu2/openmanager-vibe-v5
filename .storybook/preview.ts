@@ -1,5 +1,5 @@
 import type { Preview } from '@storybook/react';
-import '../src/styles/globals.css';
+import '../src/app/globals.css';
 
 // 🎭 스토리북용 목업 환경 설정
 const mockEnvironment = () => {
@@ -26,7 +26,12 @@ mockEnvironment();
 
 const preview: Preview = {
   parameters: {
-    actions: { argTypesRegex: '^on[A-Z].*' },
+    // Storybook 9.0 향상된 액션 설정
+    actions: {
+      argTypesRegex: '^on[A-Z].*',
+    },
+
+    // Storybook 9.0 새로운 controls 설정
     controls: {
       matchers: {
         color: /(background|color)$/i,
@@ -34,52 +39,81 @@ const preview: Preview = {
       },
       expanded: true,
     },
-    docs: {
-      toc: true,
+
+    // Storybook 9.0 접근성 기본 설정
+    a11y: {
+      element: '#storybook-root',
+      config: {},
+      options: {},
+      manual: true,
     },
+
+    // Storybook 9.0 향상된 뷰포트 설정
     viewport: {
       viewports: {
-        mobile: {
-          name: 'Mobile',
+        mobile1: {
+          name: 'Mobile (320px)',
+          styles: { width: '320px', height: '568px' },
+          type: 'mobile',
+        },
+        mobile2: {
+          name: 'Mobile (375px)',
           styles: { width: '375px', height: '667px' },
+          type: 'mobile',
         },
         tablet: {
           name: 'Tablet',
           styles: { width: '768px', height: '1024px' },
+          type: 'tablet',
         },
         desktop: {
           name: 'Desktop',
-          styles: { width: '1440px', height: '900px' },
+          styles: { width: '1024px', height: '768px' },
+          type: 'desktop',
         },
       },
-      defaultViewport: 'desktop',
     },
+
+    // Storybook 9.0 배경 설정
     backgrounds: {
       default: 'light',
       values: [
         { name: 'light', value: '#ffffff' },
         { name: 'dark', value: '#1a1a1a' },
-        { name: 'gray', value: '#f3f4f6' },
+        { name: 'gray', value: '#f5f5f5' },
       ],
     },
+
+    // Storybook 9.0 문서 설정
+    docs: {
+      source: {
+        state: 'open',
+      },
+    },
+
+    // Storybook 9.0 레이아웃 설정
     layout: 'centered',
   },
 
+  // Storybook 9.0 새로운 전역 설정
   globalTypes: {
-    systemState: {
-      description: '시스템 상태',
-      defaultValue: 'active',
+    theme: {
+      description: 'Global theme for components',
+      defaultValue: 'light',
       toolbar: {
-        title: 'System',
-        icon: 'circlehollow',
+        title: 'Theme',
+        icon: 'paintbrush',
         items: [
-          { value: 'active', title: '🟢 Active' },
-          { value: 'inactive', title: '🔴 Inactive' },
-          { value: 'maintenance', title: '🟡 Maintenance' },
+          { value: 'light', title: 'Light', icon: 'sun' },
+          { value: 'dark', title: 'Dark', icon: 'moon' },
         ],
+        dynamicTitle: true,
       },
     },
   },
+
+  // Storybook 9.0 tags 설정
+  tags: ['autodocs'],
 
   decorators: [
     (Story, context) => {

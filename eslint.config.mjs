@@ -25,6 +25,12 @@ const eslintConfig = [...compat.extends("next/core-web-vitals", "next/typescript
     "docs/**/*",
     "config/**/*",
     "mcp-server/**/*",
+    "html/**/*",
+    "storybook-static/**/*",
+    "dist/**/*",
+    "build/**/*",
+    "coverage/**/*",
+    "node_modules/**/*",
     "*.config.*",
     "*.test.*",
     "*.spec.*"
