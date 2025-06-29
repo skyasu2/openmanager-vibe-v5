@@ -10,15 +10,6 @@
 import { unifiedMetricsManager } from '@/services/UnifiedMetricsManager';
 import { NextRequest, NextResponse } from 'next/server';
 
-// 안전한 import 처리
-let OptimizedDataGenerator: any = null;
-try {
-  const optimizedModule = require('@/services/OptimizedDataGenerator');
-  OptimizedDataGenerator = optimizedModule.OptimizedDataGenerator;
-} catch (error) {
-  console.warn('OptimizedDataGenerator import 실패:', error.message);
-}
-
 /**
  * 📊 Prometheus 메트릭 조회 (GET)
  */

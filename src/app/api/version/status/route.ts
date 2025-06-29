@@ -14,7 +14,7 @@ let AI_ENGINE_VERSIONS: any = null;
 let DATA_GENERATOR_VERSIONS: any = null;
 let VersionManager: any = null;
 let masterAIEngine: any = null;
-let OptimizedDataGenerator: any = null;
+let RealServerDataGenerator: any = null;
 
 try {
   const versionsModule = require('@/config/versions');
@@ -33,10 +33,11 @@ try {
 }
 
 try {
-  const optimizedDataGeneratorModule = require('@/services/OptimizedDataGenerator');
-  OptimizedDataGenerator = optimizedDataGeneratorModule.OptimizedDataGenerator;
+  const realServerDataGeneratorModule = require('@/services/data-generator/RealServerDataGenerator');
+  RealServerDataGenerator =
+    realServerDataGeneratorModule.RealServerDataGenerator;
 } catch (error) {
-  console.warn('OptimizedDataGenerator import 실패:', error.message);
+  console.warn('RealServerDataGenerator import 실패:', error.message);
 }
 
 export async function GET(request: NextRequest) {
@@ -48,21 +49,25 @@ export async function GET(request: NextRequest) {
       master: '5.44.0',
       opensource: { GoogleAI: '5.44.0', LocalRAG: '5.44.0' },
       custom: { HybridAI: '5.44.0' },
-      support: { MCPIntegration: '5.44.0' }
+      support: { MCPIntegration: '5.44.0' },
     };
 
     const defaultDataVersions = {
       optimized: '6.0.0',
       simulation: '5.0.0',
       real: '4.0.0',
-      modules: { baseline: '2.0.0', patterns: '3.0.0' }
+      modules: { baseline: '2.0.0', patterns: '3.0.0' },
     };
 
     // AI 엔진 정보 (안전한 방식)
     let aiSystemInfo: any = {
       master_engine: { initialized: false, total_engines: 0 },
-      performance: { total_memory: '0MB', bundle_size: '0MB', cache_hit_rate: 0 },
-      capabilities: ['fallback_mode']
+      performance: {
+        total_memory: '0MB',
+        bundle_size: '0MB',
+        cache_hit_rate: 0,
+      },
+      capabilities: ['fallback_mode'],
     };
     let aiEngineStatuses: any[] = [];
 
@@ -73,14 +78,42 @@ export async function GET(request: NextRequest) {
       } catch (error) {
         console.warn('AI 엔진 정보 조회 실패:', error.message);
         aiEngineStatuses = [
-          { name: 'GoogleAI', status: 'fallback', avg_response_time: 0, success_rate: 0, memory_usage: '0MB', last_used: new Date().toISOString() },
-          { name: 'LocalRAG', status: 'fallback', avg_response_time: 0, success_rate: 0, memory_usage: '0MB', last_used: new Date().toISOString() }
+          {
+            name: 'GoogleAI',
+            status: 'fallback',
+            avg_response_time: 0,
+            success_rate: 0,
+            memory_usage: '0MB',
+            last_used: new Date().toISOString(),
+          },
+          {
+            name: 'LocalRAG',
+            status: 'fallback',
+            avg_response_time: 0,
+            success_rate: 0,
+            memory_usage: '0MB',
+            last_used: new Date().toISOString(),
+          },
         ];
       }
     } else {
       aiEngineStatuses = [
-        { name: 'GoogleAI', status: 'unavailable', avg_response_time: 0, success_rate: 0, memory_usage: '0MB', last_used: new Date().toISOString() },
-        { name: 'LocalRAG', status: 'unavailable', avg_response_time: 0, success_rate: 0, memory_usage: '0MB', last_used: new Date().toISOString() }
+        {
+          name: 'GoogleAI',
+          status: 'unavailable',
+          avg_response_time: 0,
+          success_rate: 0,
+          memory_usage: '0MB',
+          last_used: new Date().toISOString(),
+        },
+        {
+          name: 'LocalRAG',
+          status: 'unavailable',
+          avg_response_time: 0,
+          success_rate: 0,
+          memory_usage: '0MB',
+          last_used: new Date().toISOString(),
+        },
       ];
     }
 
@@ -91,12 +124,12 @@ export async function GET(request: NextRequest) {
       serversCount: 0,
       updateCounter: 0,
       lastPatternUpdate: new Date().toISOString(),
-      config: { fallback: true }
+      config: { fallback: true },
     };
 
-    if (OptimizedDataGenerator) {
+    if (RealServerDataGenerator) {
       try {
-        const dataGenerator = OptimizedDataGenerator.getInstance();
+        const dataGenerator = RealServerDataGenerator.getInstance();
         dataGeneratorStatus = dataGenerator.getStatus();
       } catch (error) {
         console.warn('데이터 생성기 정보 조회 실패:', error.message);
@@ -104,8 +137,16 @@ export async function GET(request: NextRequest) {
     }
 
     // 버전 호환성 검사 (안전한 방식)
-    let aiCompatibility = { isSupported: true, isDeprecated: false, message: 'Fallback mode' };
-    let dataCompatibility = { isSupported: true, isDeprecated: false, message: 'Fallback mode' };
+    let aiCompatibility = {
+      isSupported: true,
+      isDeprecated: false,
+      message: 'Fallback mode',
+    };
+    let dataCompatibility = {
+      isSupported: true,
+      isDeprecated: false,
+      message: 'Fallback mode',
+    };
     let changeLog: any[] = [];
 
     if (VersionManager) {
@@ -143,14 +184,16 @@ export async function GET(request: NextRequest) {
           memory_usage: aiSystemInfo.performance.total_memory,
           bundle_size: aiSystemInfo.performance.bundle_size,
           cache_hit_rate: `${(aiSystemInfo.performance.cache_hit_rate * 100).toFixed(1)}%`,
-          avg_response_time: aiEngineStatuses.length > 0
-            ? `${aiEngineStatuses.reduce((sum, e) => sum + e.avg_response_time, 0) / aiEngineStatuses.length}ms`
-            : '0ms',
+          avg_response_time:
+            aiEngineStatuses.length > 0
+              ? `${aiEngineStatuses.reduce((sum, e) => sum + e.avg_response_time, 0) / aiEngineStatuses.length}ms`
+              : '0ms',
         },
 
         engine_statuses: aiEngineStatuses.map(engine => ({
           name: engine.name,
-          version: AI_ENGINE_VERSIONS?.opensource?.[engine.name] ||
+          version:
+            AI_ENGINE_VERSIONS?.opensource?.[engine.name] ||
             AI_ENGINE_VERSIONS?.custom?.[engine.name] ||
             AI_ENGINE_VERSIONS?.support?.[engine.name] ||
             defaultVersions.master,
@@ -163,7 +206,8 @@ export async function GET(request: NextRequest) {
 
       // 📊 데이터 생성기 버전 정보
       data_generators: {
-        optimized_version: DATA_GENERATOR_VERSIONS?.optimized || defaultDataVersions.optimized,
+        optimized_version:
+          DATA_GENERATOR_VERSIONS?.optimized || defaultDataVersions.optimized,
         status: dataGeneratorStatus.isRunning ? 'active' : 'stopped',
 
         versions: DATA_GENERATOR_VERSIONS || defaultDataVersions,
@@ -199,32 +243,43 @@ export async function GET(request: NextRequest) {
         // 업그레이드 권장사항
         recommendations: [
           ...(!aiCompatibility.isSupported ? ['AI 엔진 업그레이드 필요'] : []),
-          ...(!dataCompatibility.isSupported ? ['데이터 생성기 업그레이드 필요'] : []),
+          ...(!dataCompatibility.isSupported
+            ? ['데이터 생성기 업그레이드 필요']
+            : []),
           ...(aiCompatibility.isDeprecated ? ['AI 엔진 지원 중단 예정'] : []),
-          ...(dataCompatibility.isDeprecated ? ['데이터 생성기 지원 중단 예정'] : []),
+          ...(dataCompatibility.isDeprecated
+            ? ['데이터 생성기 지원 중단 예정']
+            : []),
           ...(!VersionManager ? ['버전 관리자 모듈 로드 실패'] : []),
         ],
 
         next_versions: {
-          ai_engine: VersionManager?.suggestNextVersion?.(
-            AI_ENGINE_VERSIONS?.master || defaultVersions.master,
-            'minor'
-          ) || '5.45.0',
-          data_generator: VersionManager?.suggestNextVersion?.(
-            DATA_GENERATOR_VERSIONS?.optimized || defaultDataVersions.optimized,
-            'minor'
-          ) || '6.1.0',
+          ai_engine:
+            VersionManager?.suggestNextVersion?.(
+              AI_ENGINE_VERSIONS?.master || defaultVersions.master,
+              'minor'
+            ) || '5.45.0',
+          data_generator:
+            VersionManager?.suggestNextVersion?.(
+              DATA_GENERATOR_VERSIONS?.optimized ||
+                defaultDataVersions.optimized,
+              'minor'
+            ) || '6.1.0',
         },
       },
 
       // 📈 전체 시스템 상태
       system_health: {
-        overall_status: aiSystemInfo.master_engine.initialized && dataGeneratorStatus.isRunning
-          ? 'healthy'
-          : 'warning',
+        overall_status:
+          aiSystemInfo.master_engine.initialized &&
+          dataGeneratorStatus.isRunning
+            ? 'healthy'
+            : 'warning',
 
         components: {
-          ai_engine: aiSystemInfo.master_engine.initialized ? 'healthy' : 'fallback',
+          ai_engine: aiSystemInfo.master_engine.initialized
+            ? 'healthy'
+            : 'fallback',
           data_generator: dataGeneratorStatus.isRunning ? 'healthy' : 'stopped',
           version_manager: VersionManager ? 'healthy' : 'unavailable',
         },
@@ -251,7 +306,9 @@ export async function GET(request: NextRequest) {
       metrics_summary: {
         ai_engines: {
           total: aiSystemInfo.master_engine.total_engines,
-          active: aiEngineStatuses.filter(e => e.status === 'ready' || e.status === 'active').length,
+          active: aiEngineStatuses.filter(
+            e => e.status === 'ready' || e.status === 'active'
+          ).length,
           memory_usage: aiSystemInfo.performance.total_memory,
           performance_gain: '50% 응답시간 단축, 50% 메모리 최적화',
         },
@@ -264,9 +321,13 @@ export async function GET(request: NextRequest) {
         },
 
         version_stability: {
-          breaking_changes: changeLog.filter(log => log.changeType === 'major').length,
+          breaking_changes: changeLog.filter(log => log.changeType === 'major')
+            .length,
           total_updates: changeLog.length,
-          compatibility_score: aiCompatibility.isSupported && dataCompatibility.isSupported ? '100%' : '75%',
+          compatibility_score:
+            aiCompatibility.isSupported && dataCompatibility.isSupported
+              ? '100%'
+              : '75%',
         },
       },
 
@@ -276,7 +337,7 @@ export async function GET(request: NextRequest) {
           versions: !!AI_ENGINE_VERSIONS,
           version_manager: !!VersionManager,
           ai_engine: !!masterAIEngine,
-          data_generator: !!OptimizedDataGenerator,
+          data_generator: !!RealServerDataGenerator,
         },
         message: '일부 모듈이 로드되지 않았지만 기본 정보를 제공합니다.',
       },
