@@ -12,6 +12,7 @@
 
 import { useToast } from '@/components/ui/ToastNotification';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { useVercelSystemStore } from '@/stores/vercelSystemStore';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
@@ -60,18 +61,32 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
   const adminMode = store.adminMode;
   const { logout, authenticateAdmin, logoutAdmin } = store;
 
-  // 베르셀 시스템 상태 (임시 호환성 유지)
-  const isSystemStarted = store.isSystemStarted;
-  const systemTimeRemaining = store.getSystemRemainingTime();
+  // 베르셀 시스템 상태 (완전 통합)
+  const vercelStore = useVercelSystemStore();
+  const isSystemStarted = vercelStore.systemInfo.state === 'RUNNING';
+  const systemTimeRemaining = Math.floor(vercelStore.getRemainingTime());
+
+  // AI 에이전트 상태 (호환성 유지)
   const aiAgent = store.aiAgent;
 
-  // 베르셀 시스템 함수들 (향후 완전 마이그레이션)
-  const vercelStartSystem = async (options: any) => {
-    return { success: true, message: '시스템이 시작되었습니다.' };
-  };
-  const vercelStopSystem = async () => {
-    return { success: true, message: '시스템이 중지되었습니다.' };
-  };
+  // 베르셀 시스템 함수들 (실제 연동)
+  const {
+    startSystem: vercelStartSystem,
+    stopSystem: vercelStopSystem,
+    startPolling,
+    stopPolling,
+  } = vercelStore;
+
+  // 베르셀 시스템 폴링 시작 (프로필 드롭다운 마운트 시)
+  useEffect(() => {
+    console.log('🔄 프로필 컴포넌트에서 베르셀 시스템 폴링 시작');
+    startPolling();
+
+    return () => {
+      console.log('⏹️ 프로필 컴포넌트에서 베르셀 시스템 폴링 중지');
+      stopPolling();
+    };
+  }, [startPolling, stopPolling]);
 
   const { success, info, error } = useToast();
 
