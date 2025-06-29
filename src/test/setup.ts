@@ -123,6 +123,15 @@ vi.mock('react-hot-toast', () => ({
 vi.mock('@/lib/environment/auto-decrypt-env', () => ({
   initializeEnvironment: vi.fn().mockResolvedValue(undefined),
   ensureInitialized: vi.fn().mockResolvedValue(undefined),
+  checkEnvironmentStatus: vi.fn().mockImplementation(() => {
+    console.log('🧪 Mock checkEnvironmentStatus 호출됨 - valid: true 반환');
+    return Promise.resolve({
+      initialized: true,
+      valid: true,
+      missing: [],
+      message: '환경변수 상태 정상 (테스트 모드)',
+    });
+  }),
 }));
 
 vi.mock('@/lib/environment/server-only-env', () => ({

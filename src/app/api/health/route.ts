@@ -457,6 +457,33 @@ export async function GET(request: NextRequest) {
       console.warn('⚠️ 환경변수 상태 확인 실패:', error);
     }
 
+    // 유지보수 모드 체크 (최우선 처리)
+    if (process.env.SYSTEM_MAINTENANCE === 'true') {
+      const maintenanceResponse = {
+        status: 'maintenance',
+        timestamp: new Date().toISOString(),
+        version: '5.44.5',
+        message: '시스템이 유지보수 모드입니다. 잠시 후 다시 이용해 주세요.',
+        maintenance: {
+          enabled: true,
+          reason: '정기 유지보수',
+          estimatedDuration: '30분',
+        },
+      };
+
+      console.log('🔧 유지보수 모드 활성화됨');
+
+      return NextResponse.json(maintenanceResponse, {
+        status: 503,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+          'Retry-After': '1800', // 30분 후 재시도 권장
+        },
+      });
+    }
+
     // 기본 시스템 정보
     const systemInfo = {
       timestamp: new Date().toISOString(),
@@ -481,7 +508,7 @@ export async function GET(request: NextRequest) {
     // 서비스 상태 확인
     const services = {
       nextjs: 'healthy',
-      environment: envStatus.valid ? 'healthy' : 'warning',
+      environment: envStatus?.valid ? 'healthy' : 'warning',
       memory: systemInfo.memory.used < 200 ? 'healthy' : 'warning',
     };
 
@@ -495,15 +522,15 @@ export async function GET(request: NextRequest) {
     const healthData = {
       status: overallStatus,
       timestamp: systemInfo.timestamp,
-      version: '5.44.0',
+      version: '5.44.5',
       system: systemInfo,
       environment: environmentInfo,
       services,
       envStatus: {
-        initialized: envStatus.initialized,
-        valid: envStatus.valid,
-        missingCount: envStatus.missing.length,
-        message: envStatus.message,
+        initialized: envStatus?.initialized ?? false,
+        valid: envStatus?.valid ?? false,
+        missingCount: envStatus?.missing?.length ?? 0,
+        message: envStatus?.message ?? '환경변수 상태 확인 불가',
       },
     };
 

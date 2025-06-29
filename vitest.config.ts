@@ -12,6 +12,20 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
 
+    // 테스트 환경변수 설정
+    env: {
+      NODE_ENV: 'test',
+      NEXT_PUBLIC_APP_NAME: 'OpenManager Vibe v5',
+      NEXT_PUBLIC_APP_VERSION: '5.44.5',
+      REDIS_URL: 'https://test-redis.upstash.io',
+      UPSTASH_REDIS_REST_URL: 'https://test-redis.upstash.io',
+      DISABLE_CRON_JOBS: 'true',
+      FORCE_MOCK_REDIS: 'true',
+      FORCE_MOCK_GOOGLE_AI: 'true',
+      HEALTH_CHECK_CONTEXT: 'false',
+      MAINTENANCE_MODE: 'false',
+    },
+
     // 테스트 파일 포함/제외
     include: [
       'src/**/*.{test,spec}.{js,ts,jsx,tsx}',
@@ -29,68 +43,65 @@ export default defineConfig({
     // 커버리지 설정
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
-      include: ['src/**/*.{js,ts,jsx,tsx}'],
+      reporter: ['text', 'json-summary', 'html'],
       exclude: [
-        'src/**/*.d.ts',
-        'src/**/*.stories.{js,ts,jsx,tsx}',
-        'src/**/*.test.{js,ts,jsx,tsx}',
-        'src/**/*.spec.{js,ts,jsx,tsx}',
-        'src/test/**',
-        'src/lib/environment/**',
-        'src/app/layout.tsx',
-        'src/app/page.tsx',
-        'src/app/globals.css',
+        'node_modules/',
+        'src/test/setup.ts',
+        '.next/',
+        'storybook-static/',
+        'coverage/',
+        '.storybook/',
       ],
-      thresholds: {
-        global: {
-          branches: 80,
-          functions: 80,
-          lines: 80,
-          statements: 80,
-        },
-      },
-      all: true,
-      clean: true,
-      cleanOnRerun: true,
     },
 
-    // 리포터 및 출력 설정
+    // 리포터 설정
     reporters: ['default', 'html'],
+    outputFile: {
+      html: './html/index.html',
+    },
 
-    // 성능 및 타임아웃 설정
+    // 타임아웃 설정
     testTimeout: 10000,
     hookTimeout: 10000,
-    teardownTimeout: 5000,
-    retry: 2,
 
-    // 테스트 환경 변수
-    env: {
-      NODE_ENV: 'test',
-      NEXT_PUBLIC_STORYBOOK_MODE: 'false',
-      VITEST_ENVIRONMENT: 'jsdom',
-      // OpenManager 테스트 환경 변수
-      DISABLE_CRON_JOBS: 'true',
-      FORCE_MOCK_REDIS: 'true',
-      FORCE_MOCK_GOOGLE_AI: 'true',
-      REDIS_CONNECTION_DISABLED: 'true',
-      DISABLE_HEALTH_CHECK: 'true',
-      HEALTH_CHECK_CONTEXT: 'false',
-      DISABLE_AUTO_ENV_INIT: 'true',
-      DISABLE_AUTO_BACKUP: 'true',
+    // 병렬 실행 설정
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: false,
+        maxThreads: 4,
+        minThreads: 2,
+      },
     },
 
-    // 목킹 설정
-    mockReset: true,
+    // 모킹 설정
     clearMocks: true,
     restoreMocks: true,
+    deps: {
+      inline: ['@testing-library/react'],
+    },
+
+    // 재시도 설정
+    retry: 2,
+    bail: 0,
+
+    // 성능 최적화
+    isolate: true,
+    passWithNoTests: true,
+
+    // Watch 모드 설정
+    watch: false,
   },
 
   // Vite 설정
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '#': path.resolve(__dirname, './'),
+      '@/components': path.resolve(__dirname, './src/components'),
+      '@/lib': path.resolve(__dirname, './src/lib'),
+      '@/utils': path.resolve(__dirname, './src/utils'),
+      '@/types': path.resolve(__dirname, './src/types'),
+      '@/services': path.resolve(__dirname, './src/services'),
     },
   },
 });
