@@ -1,4 +1,10 @@
-# 📋 OpenManager Vibe v5 - 변경 로그
+# 📋 OpenManager Vibe v5 - 변경 로그 (아카이브 v1)
+
+> **아카이브 범위**: v5.44.3 - v5.51.0 (2025-01-27 이전 전체 히스토리)  
+> **총 라인수**: 2,386줄  
+> **메인 CHANGELOG**: [CHANGELOG.md](CHANGELOG.md)
+
+---
 
 ## 🎉 v5.51.0 (2025-01-27 23:05 KST) - Phase 4-5: 대용량 파일 분리 완료
 

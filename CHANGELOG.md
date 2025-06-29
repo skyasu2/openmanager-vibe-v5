@@ -1,6 +1,7 @@
 # 📋 OpenManager Vibe v5 - 변경 로그
 
-> **관리 방침**: 최근 주요 변경사항만 기록. 상세한 히스토리는 [`docs/changelog-archive/`](docs/changelog-archive/)에서 확인 가능
+> **관리 방침**: 최근 주요 변경사항만 기록. 1000줄 초과 시 넘버링하여 루트에 보관  
+> **아카이브**: [CHANGELOG-v1.md](CHANGELOG-v1.md) (2,386줄)
 
 ---
 
