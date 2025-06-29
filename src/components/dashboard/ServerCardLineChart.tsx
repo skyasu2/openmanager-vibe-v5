@@ -1,6 +1,5 @@
 'use client';
 
-import { useWebSocket } from '@/hooks/useWebSocket';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
@@ -91,90 +90,36 @@ export default function ServerCardLineChart({
   showRealTimeUpdates = true,
   className = '',
 }: ServerCardLineChartProps) {
-  // 🔄 실시간 WebSocket 연결 - 기존 시스템 원칙 준수
-  const { connectionState, serverMetrics, latestMetric, connect, subscribe } =
-    useWebSocket({
-      autoConnect: true,
-      debug: false,
-    });
-
-  // 최근 20개 데이터 포인트를 저장 (라인차트용) - RealServerDataGenerator 패턴 따름
+  // 최근 20개 데이터 포인트를 저장 (라인차트용)
   const [dataPoints, setDataPoints] = useState<
     Array<{ timestamp: string; value: number }>
   >(() =>
     Array.from({ length: 20 }, (_, i) => ({
-      timestamp: new Date(Date.now() - (19 - i) * 20000).toISOString(), // 20초 간격
+      timestamp: new Date(Date.now() - (19 - i) * 2000).toISOString(), // 2초 간격
       value: Math.max(0, value + (Math.random() - 0.5) * 10),
     }))
   );
 
   const config = getMetricConfig(value, type);
 
-  // 🚀 WebSocket 연결 및 구독 - 20초 간격 실시간 업데이트
+  // 실시간 데이터 시뮬레이션 (3초마다 업데이트)
   useEffect(() => {
-    if (showRealTimeUpdates) {
-      connect();
+    if (!showRealTimeUpdates) return;
 
-      // 서버 메트릭 스트림 구독
-      const timer = setTimeout(() => {
-        subscribe('server-metrics');
-      }, 1000);
+    const interval = setInterval(() => {
+      setDataPoints(prev => {
+        const newPoint = {
+          timestamp: new Date().toISOString(),
+          value: Math.max(0, Math.min(100, value + (Math.random() - 0.5) * 5)),
+        };
 
-      return () => clearTimeout(timer);
-    }
-  }, [showRealTimeUpdates, connect, subscribe]);
+        // 최신 20개만 유지
+        return [...prev.slice(1), newPoint];
+      });
+    }, 3000);
 
-  // 🔄 실시간 메트릭 데이터 처리 - UnifiedDataProcessor 원칙 따름
-  useEffect(() => {
-    if (!latestMetric || !showRealTimeUpdates) return;
-
-    // 특정 서버 ID가 지정된 경우 필터링
-    if (serverId && latestMetric.serverId !== serverId) return;
-
-    // 메트릭 타입에 맞는 값 추출
-    let newValue = value; // 기본값으로 prop 사용
-
-    if (latestMetric.data) {
-      switch (type) {
-        case 'cpu':
-          newValue =
-            latestMetric.data.cpu || latestMetric.data.serverName?.cpu || value;
-          break;
-        case 'memory':
-          newValue =
-            latestMetric.data.memory ||
-            latestMetric.data.serverName?.memory ||
-            value;
-          break;
-        case 'disk':
-          newValue =
-            latestMetric.data.disk ||
-            latestMetric.data.serverName?.disk ||
-            value;
-          break;
-        case 'network':
-          // 네트워크는 in/out 평균값 사용
-          const networkData = latestMetric.data.network;
-          if (networkData && networkData.bytesIn && networkData.bytesOut) {
-            newValue =
-              (networkData.bytesIn + networkData.bytesOut) / 2 / 1024 / 1024; // MB 단위
-          }
-          break;
-      }
-    }
-
-    // 🎯 20초 간격 데이터 포인트 업데이트 - RealServerDataGenerator 동기화
-    setDataPoints(prev => {
-      const newPoint = {
-        timestamp: latestMetric.timestamp,
-        value: Math.round(newValue * 100) / 100, // 소수점 2자리
-      };
-
-      // 최신 20개만 유지
-      const updatedPoints = [...prev.slice(1), newPoint];
-      return updatedPoints;
-    });
-  }, [latestMetric, type, serverId, showRealTimeUpdates, value]);
+    return () => clearInterval(interval);
+  }, [showRealTimeUpdates, value]);
 
   // SVG 라인 차트 포인트 생성 - 기존 차트 생성 원칙 유지
   const generateChartPoints = (
@@ -208,12 +153,8 @@ export default function ServerCardLineChart({
         ? 'down'
         : 'stable';
 
-  // 🔗 연결 상태 표시
-  const connectionStatus = connectionState.isConnected
-    ? '🟢'
-    : connectionState.isConnecting
-      ? '🟡'
-      : '🔴';
+  // 🔗 연결 상태 시뮬레이션
+  const connectionStatus = showRealTimeUpdates ? '🟢' : '🔴';
 
   return (
     <div
@@ -226,7 +167,7 @@ export default function ServerCardLineChart({
           {showRealTimeUpdates && (
             <span
               className='text-xs'
-              title={connectionState.isConnected ? '실시간 연결됨' : '연결 중'}
+              title={showRealTimeUpdates ? '실시간 연결됨' : '연결 끊김'}
             >
               {connectionStatus}
             </span>

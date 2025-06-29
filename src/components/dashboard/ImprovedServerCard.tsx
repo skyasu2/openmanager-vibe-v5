@@ -13,7 +13,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { AlertCircle, CheckCircle2, Clock, MapPin, Server } from 'lucide-react';
 import React, { memo, useCallback, useEffect, useState } from 'react';
 import { Server as ServerType } from '../../types/server';
-import ServerCardLineChart from './ServerCardLineChart';
+import UnifiedCircularGauge from '../shared/UnifiedCircularGauge';
 
 interface ImprovedServerCardProps {
   server: ServerType;
@@ -315,34 +315,38 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
           </motion.div>
         </div>
 
-        {/* 메트릭 섹션 - 라인차트 컴포넌트 사용 */}
+        {/* 메트릭 섹션 */}
         <div className={`grid grid-cols-2 gap-4 ${getVariantStyles().spacing}`}>
-          <ServerCardLineChart
+          <UnifiedCircularGauge
             label='CPU'
             value={realtimeMetrics.cpu}
             type='cpu'
-            serverId={server.id}
+            size={variant === 'compact' ? 50 : 60}
+            variant='card'
             showRealTimeUpdates={showRealTimeUpdates}
           />
-          <ServerCardLineChart
+          <UnifiedCircularGauge
             label='메모리'
             value={realtimeMetrics.memory}
             type='memory'
-            serverId={server.id}
+            size={variant === 'compact' ? 50 : 60}
+            variant='card'
             showRealTimeUpdates={showRealTimeUpdates}
           />
-          <ServerCardLineChart
+          <UnifiedCircularGauge
             label='디스크'
             value={realtimeMetrics.disk}
             type='disk'
-            serverId={server.id}
+            size={variant === 'compact' ? 50 : 60}
+            variant='card'
             showRealTimeUpdates={showRealTimeUpdates}
           />
-          <ServerCardLineChart
+          <UnifiedCircularGauge
             label='네트워크'
             value={realtimeMetrics.network}
             type='network'
-            serverId={server.id}
+            size={variant === 'compact' ? 50 : 60}
+            variant='card'
             showRealTimeUpdates={showRealTimeUpdates}
           />
         </div>
