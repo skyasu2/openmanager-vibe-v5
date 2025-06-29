@@ -46,12 +46,18 @@ export function calculateServerConfig(
   serverCount: number = DEFAULT_SERVER_COUNT
 ): ServerGenerationConfig {
   // 🎯 사용자 요구사항에 따른 서버 상태 분포 (15개 기준)
-  const criticalPercent = 0.07; // 7% 심각 상태 (15개 중 1개)
-  const warningPercent = 0.13; // 13% 경고 상태 (15개 중 2개)
-  const tolerancePercent = 0.05; // 5% 변동값 (±5%)
+  // 장애(Critical) 서버: 2~3대 (13% ~ 20%)
+  // 경고(Warning) 서버: 3~5대 (20% ~ 33%)
 
-  // 심각 상태 서버 수 계산 (최소 1개)
+  // 🚨 심각 상태 서버 수 계산 (13% ~ 20% 범위에서 랜덤)
+  const criticalPercent = Math.random() * 0.07 + 0.13; // 13% ~ 20%
   const criticalCount = Math.max(1, Math.floor(serverCount * criticalPercent));
+
+  // ⚠️ 경고 상태 서버 비율 (20% ~ 33% 범위에서 랜덤)
+  const warningPercent = Math.random() * 0.13 + 0.2; // 20% ~ 33%
+
+  // 🎯 오차 허용 범위 (±5%)
+  const tolerancePercent = 0.05;
 
   // 페이지네이션 설정 (서버 개수에 따라 조정)
   const defaultPageSize =
