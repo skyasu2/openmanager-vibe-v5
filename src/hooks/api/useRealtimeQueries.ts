@@ -64,21 +64,17 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
       const eventSource = new EventSource(sseUrl);
       wsRef.current = eventSource as any; // EventSource를 WebSocket 타입으로 캐스팅
 
-      wsRef.current.onopen = () => {
-        console.log('🔗 서버 WebSocket 연결됨');
+      eventSource.onopen = () => {
+        console.log('✅ 서버 SSE 연결 성공');
         reconnectAttemptsRef.current = 0;
 
-        // 하트비트 시작
+        // 하트비트는 SSE에서 자동으로 처리되므로 제거
         if (heartbeatRef.current) {
           clearInterval(heartbeatRef.current);
+          heartbeatRef.current = null;
         }
-        heartbeatRef.current = setInterval(() => {
-          if (wsRef.current?.readyState === WebSocket.OPEN) {
-            wsRef.current.send(JSON.stringify({ type: 'ping' }));
-          }
-        }, heartbeatInterval);
 
-        toast.success('실시간 서버 모니터링 활성화');
+        console.log('📡 실시간 서버 모니터링 활성화 (SSE)');
       };
 
       wsRef.current.onmessage = event => {
