@@ -55,12 +55,19 @@ export async function initializeEnvironment(): Promise<void> {
       console.log('✅ 모든 환경변수가 정상적으로 설정되었습니다.');
     }
 
-    // 환경변수 자동 백업 (운영 환경에서만)
-    if (process.env.NODE_ENV === 'production') {
+    // 환경변수 자동 백업 (운영 환경에서만) - 빈도 제한 추가
+    if (
+      process.env.NODE_ENV === 'production' &&
+      !process.env.DISABLE_AUTO_BACKUP && // 수동 비활성화 옵션
+      process.env.VERCEL === '1' // Vercel 배포에서만
+    ) {
+      console.log('🔄 운영 환경 감지 - 환경변수 백업 진행');
       const backup = await envManagerProxy.backupEnvironment('production');
       if (backup.success) {
         console.log('📦 환경변수 자동 백업 완료:', backup.message);
       }
+    } else {
+      console.log('🚫 환경변수 백업 건너뜀 (조건 미충족)');
     }
 
     console.log('🎉 환경변수 자동 초기화 완료');
@@ -148,10 +155,25 @@ export async function manualEnvironmentRecovery(backupId?: string): Promise<{
   }
 }
 
-// 🚀 자동 초기화 (서버 사이드에서만)
-if (typeof window === 'undefined' && process.env.NODE_ENV !== 'test') {
-  // 모듈 로드 시 자동 초기화 (비동기)
-  initializeEnvironment().catch(error => {
+// 🚀 자동 초기화 (서버 사이드에서만) - 중복 실행 방지 추가
+let initializationPromise: Promise<void> | null = null;
+
+export async function ensureInitialized(): Promise<void> {
+  if (!initializationPromise) {
+    initializationPromise = initializeEnvironment();
+  }
+  return initializationPromise;
+}
+
+// 🛑 무한 백업 생성 방지: 조건을 더욱 엄격하게 설정
+if (
+  typeof window === 'undefined' &&
+  process.env.NODE_ENV !== 'test' &&
+  !process.env.DISABLE_AUTO_ENV_INIT && // 수동 비활성화 옵션
+  process.env.NODE_ENV === 'production' // 운영 환경에서만 자동 실행
+) {
+  // 한 번만 실행되도록 보장
+  ensureInitialized().catch(error => {
     console.warn('⚠️ 환경변수 자동 초기화 중 오류 발생:', error);
   });
 }
