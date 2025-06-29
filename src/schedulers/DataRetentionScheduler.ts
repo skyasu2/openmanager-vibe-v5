@@ -1,6 +1,6 @@
 /**
  * 🗂️ DataRetentionScheduler v1.0
- * 
+ *
  * OpenManager v5.21.0 - 데이터 보존 스케줄러
  * - 메모리 기반 데이터 정리 (무설정 배포)
  * - 자동화된 데이터 생명주기 관리
@@ -47,9 +47,9 @@ class DataRetentionScheduler {
     lastCleanupTime: 0,
     averageCleanupTime: 0,
     activePolicies: 0,
-    memoryUsageMB: 0
+    memoryUsageMB: 0,
   };
-  
+
   private cleanupInterval: NodeJS.Timeout | null = null;
   private readonly CLEANUP_INTERVAL = 5 * 60 * 1000; // 5분마다 정리
   private readonly MAX_CLEANUP_HISTORY = 100;
@@ -71,7 +71,7 @@ class DataRetentionScheduler {
         maxAge: 2 * 60 * 60 * 1000, // 2시간
         maxItems: 1000,
         enabled: true,
-        priority: 8
+        priority: 8,
       },
       {
         name: '패턴 알림 정리',
@@ -79,7 +79,7 @@ class DataRetentionScheduler {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7일
         maxItems: 500,
         enabled: true,
-        priority: 6
+        priority: 6,
       },
       {
         name: '비활성 연결 정리',
@@ -87,7 +87,7 @@ class DataRetentionScheduler {
         maxAge: 30 * 60 * 1000, // 30분
         maxItems: 100,
         enabled: true,
-        priority: 9
+        priority: 9,
       },
       {
         name: '시스템 로그 정리',
@@ -95,7 +95,7 @@ class DataRetentionScheduler {
         maxAge: 24 * 60 * 60 * 1000, // 24시간
         maxItems: 2000,
         enabled: true,
-        priority: 5
+        priority: 5,
       },
       {
         name: '캐시 데이터 정리',
@@ -103,8 +103,8 @@ class DataRetentionScheduler {
         maxAge: 60 * 60 * 1000, // 1시간
         maxItems: 200,
         enabled: true,
-        priority: 7
-      }
+        priority: 7,
+      },
     ];
 
     defaultPolicies.forEach(policy => this.addPolicy(policy));
@@ -116,7 +116,7 @@ class DataRetentionScheduler {
   addPolicy(policyData: Omit<RetentionPolicy, 'id'>): string {
     const policy: RetentionPolicy = {
       ...policyData,
-      id: `policy_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      id: `policy_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     };
 
     this.policies.set(policy.id, policy);
@@ -165,7 +165,9 @@ class DataRetentionScheduler {
       });
     }, this.CLEANUP_INTERVAL);
 
-    console.log(`🔄 데이터 정리 스케줄러 시작 (${this.CLEANUP_INTERVAL / 1000}초 간격)`);
+    console.log(
+      `🔄 데이터 정리 스케줄러 시작 (${this.CLEANUP_INTERVAL / 1000}초 간격)`
+    );
   }
 
   /**
@@ -174,7 +176,7 @@ class DataRetentionScheduler {
   async runCleanup(): Promise<CleanupResult[]> {
     const startTime = Date.now();
     const results: CleanupResult[] = [];
-    
+
     console.log('🧹 데이터 정리 작업 시작...');
 
     // 우선순위 순으로 정책 정렬
@@ -193,7 +195,7 @@ class DataRetentionScheduler {
           sizeFreed: 0,
           timeTaken: 0,
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         };
         results.push(errorResult);
         console.error(`❌ 정책 실행 실패: ${policy.name}`, error);
@@ -205,14 +207,18 @@ class DataRetentionScheduler {
     this.updateStats(results, totalTime);
     this.addToCleanupHistory(results);
 
-    console.log(`🧹 데이터 정리 완료: ${results.length}개 정책 실행, ${totalTime}ms 소요`);
+    console.log(
+      `🧹 데이터 정리 완료: ${results.length}개 정책 실행, ${totalTime}ms 소요`
+    );
     return results;
   }
 
   /**
    * 🎯 정책별 정리 실행
    */
-  private async cleanupByPolicy(policy: RetentionPolicy): Promise<CleanupResult> {
+  private async cleanupByPolicy(
+    policy: RetentionPolicy
+  ): Promise<CleanupResult> {
     const startTime = Date.now();
     let itemsRemoved = 0;
     let sizeFreed = 0;
@@ -258,9 +264,8 @@ class DataRetentionScheduler {
         itemsRemoved,
         sizeFreed,
         timeTaken: Date.now() - startTime,
-        success: true
+        success: true,
       };
-
     } catch (error) {
       throw error;
     }
@@ -269,31 +274,42 @@ class DataRetentionScheduler {
   /**
    * 📊 메트릭 데이터 정리
    */
-  private async cleanupMetrics(policy: RetentionPolicy): Promise<{itemsRemoved: number, sizeFreed: number}> {
+  private async cleanupMetrics(
+    policy: RetentionPolicy
+  ): Promise<{ itemsRemoved: number; sizeFreed: number }> {
     let itemsRemoved = 0;
     let sizeFreed = 0;
 
     try {
       // PatternMatcherEngine에서 메트릭 히스토리 정리
-      const { getPatternMatcherEngine } = await import('../engines/PatternMatcherEngine');
+      const { getPatternMatcherEngine } = await import(
+        '../engines/PatternMatcherEngine'
+      );
       const engine = getPatternMatcherEngine();
-      
+
       const now = Date.now();
       const cutoffTime = now - policy.maxAge;
 
       // 각 서버의 메트릭 히스토리를 정리
-      const metricsHistory = (engine as any).metricsHistory as Map<string, any[]>;
-      
+      const metricsHistory = (engine as any).metricsHistory as Map<
+        string,
+        any[]
+      >;
+
       for (const [serverId, history] of metricsHistory.entries()) {
         const originalLength = history.length;
-        
+
         // 시간 기준 정리
-        const timeFiltered = history.filter((metric: any) => metric.timestamp > cutoffTime);
-        
+        const timeFiltered = history.filter(
+          (metric: any) => metric.timestamp > cutoffTime
+        );
+
         // 개수 기준 정리
-        const finalFiltered = timeFiltered.length > policy.maxItems ? 
-          timeFiltered.slice(-policy.maxItems) : timeFiltered;
-        
+        const finalFiltered =
+          timeFiltered.length > policy.maxItems
+            ? timeFiltered.slice(-policy.maxItems)
+            : timeFiltered;
+
         const removed = originalLength - finalFiltered.length;
         if (removed > 0) {
           metricsHistory.set(serverId, finalFiltered);
@@ -301,7 +317,6 @@ class DataRetentionScheduler {
           sizeFreed += removed * 200; // 메트릭 하나당 약 200바이트로 추정
         }
       }
-
     } catch (error) {
       console.warn('⚠️ 메트릭 정리 중 오류 (무시):', error);
     }
@@ -312,32 +327,39 @@ class DataRetentionScheduler {
   /**
    * 🚨 알림 데이터 정리
    */
-  private async cleanupAlerts(policy: RetentionPolicy): Promise<{itemsRemoved: number, sizeFreed: number}> {
+  private async cleanupAlerts(
+    policy: RetentionPolicy
+  ): Promise<{ itemsRemoved: number; sizeFreed: number }> {
     let itemsRemoved = 0;
     let sizeFreed = 0;
 
     try {
-      const { getPatternMatcherEngine } = await import('../engines/PatternMatcherEngine');
+      const { getPatternMatcherEngine } = await import(
+        '../engines/PatternMatcherEngine'
+      );
       const engine = getPatternMatcherEngine();
-      
+
       const alerts = (engine as any).alerts as any[];
       const originalLength = alerts.length;
       const now = Date.now();
       const cutoffTime = now - policy.maxAge;
 
       // 시간 기준 정리
-      const timeFiltered = alerts.filter((alert: any) => alert.timestamp > cutoffTime);
-      
+      const timeFiltered = alerts.filter(
+        (alert: any) => alert.timestamp > cutoffTime
+      );
+
       // 개수 기준 정리
-      const finalFiltered = timeFiltered.length > policy.maxItems ? 
-        timeFiltered.slice(-policy.maxItems) : timeFiltered;
+      const finalFiltered =
+        timeFiltered.length > policy.maxItems
+          ? timeFiltered.slice(-policy.maxItems)
+          : timeFiltered;
 
       if (finalFiltered.length < originalLength) {
         (engine as any).alerts = finalFiltered;
         itemsRemoved = originalLength - finalFiltered.length;
         sizeFreed = itemsRemoved * 300; // 알림 하나당 약 300바이트로 추정
       }
-
     } catch (error) {
       console.warn('⚠️ 알림 정리 중 오류 (무시):', error);
     }
@@ -348,21 +370,23 @@ class DataRetentionScheduler {
   /**
    * 🔗 연결 데이터 정리
    */
-  private async cleanupConnections(policy: RetentionPolicy): Promise<{itemsRemoved: number, sizeFreed: number}> {
+  private async cleanupConnections(
+    policy: RetentionPolicy
+  ): Promise<{ itemsRemoved: number; sizeFreed: number }> {
     let itemsRemoved = 0;
     let sizeFreed = 0;
 
     try {
       const { getRealTimeHub } = await import('../core/realtime/RealTimeHub');
       const hub = getRealTimeHub();
-      
+
       const connections = (hub as any).connections as Map<string, any>;
       const now = Date.now();
       const cutoffTime = now - policy.maxAge;
 
       // 비활성 연결 찾기
       const toRemove: string[] = [];
-      
+
       for (const [connectionId, connection] of connections.entries()) {
         if (connection.lastActivity < cutoffTime) {
           toRemove.push(connectionId);
@@ -375,7 +399,6 @@ class DataRetentionScheduler {
         itemsRemoved++;
         sizeFreed += 150; // 연결 하나당 약 150바이트로 추정
       });
-
     } catch (error) {
       console.warn('⚠️ 연결 정리 중 오류 (무시):', error);
     }
@@ -386,32 +409,37 @@ class DataRetentionScheduler {
   /**
    * 📝 로그 데이터 정리
    */
-  private async cleanupLogs(policy: RetentionPolicy): Promise<{itemsRemoved: number, sizeFreed: number}> {
+  private async cleanupLogs(
+    policy: RetentionPolicy
+  ): Promise<{ itemsRemoved: number; sizeFreed: number }> {
     let itemsRemoved = 0;
     let sizeFreed = 0;
 
     try {
       const { getRealTimeHub } = await import('../core/realtime/RealTimeHub');
       const hub = getRealTimeHub();
-      
+
       const messageHistory = (hub as any).messageHistory as any[];
       const originalLength = messageHistory.length;
       const now = Date.now();
       const cutoffTime = now - policy.maxAge;
 
       // 시간 기준 정리
-      const timeFiltered = messageHistory.filter((message: any) => message.timestamp > cutoffTime);
-      
+      const timeFiltered = messageHistory.filter(
+        (message: any) => message.timestamp > cutoffTime
+      );
+
       // 개수 기준 정리
-      const finalFiltered = timeFiltered.length > policy.maxItems ? 
-        timeFiltered.slice(-policy.maxItems) : timeFiltered;
+      const finalFiltered =
+        timeFiltered.length > policy.maxItems
+          ? timeFiltered.slice(-policy.maxItems)
+          : timeFiltered;
 
       if (finalFiltered.length < originalLength) {
         (hub as any).messageHistory = finalFiltered;
         itemsRemoved = originalLength - finalFiltered.length;
         sizeFreed = itemsRemoved * 250; // 메시지 하나당 약 250바이트로 추정
       }
-
     } catch (error) {
       console.warn('⚠️ 로그 정리 중 오류 (무시):', error);
     }
@@ -422,7 +450,9 @@ class DataRetentionScheduler {
   /**
    * 🗄️ 캐시 데이터 정리
    */
-  private async cleanupCache(policy: RetentionPolicy): Promise<{itemsRemoved: number, sizeFreed: number}> {
+  private async cleanupCache(
+    policy: RetentionPolicy
+  ): Promise<{ itemsRemoved: number; sizeFreed: number }> {
     let itemsRemoved = 0;
     let sizeFreed = 0;
 
@@ -430,7 +460,7 @@ class DataRetentionScheduler {
       // Redis 캐시 정리
       const { getRedisClient } = await import('../lib/redis');
       const redis = await getRedisClient();
-      
+
       // DummyRedisClient인 경우 캐시 정리
       if ((redis as any).cache instanceof Map) {
         const cache = (redis as any).cache as Map<string, any>;
@@ -449,7 +479,6 @@ class DataRetentionScheduler {
           sizeFreed += 100; // 캐시 항목 하나당 약 100바이트로 추정
         });
       }
-
     } catch (error) {
       console.warn('⚠️ 캐시 정리 중 오류 (무시):', error);
     }
@@ -463,17 +492,24 @@ class DataRetentionScheduler {
   private updateStats(results: CleanupResult[], totalTime: number): void {
     this.stats.totalCleanupRuns++;
     this.stats.lastCleanupTime = Date.now();
-    
+
     const successfulResults = results.filter(r => r.success);
-    const totalItemsRemoved = successfulResults.reduce((sum, r) => sum + r.itemsRemoved, 0);
-    const totalSizeFreed = successfulResults.reduce((sum, r) => sum + r.sizeFreed, 0);
-    
+    const totalItemsRemoved = successfulResults.reduce(
+      (sum, r) => sum + r.itemsRemoved,
+      0
+    );
+    const totalSizeFreed = successfulResults.reduce(
+      (sum, r) => sum + r.sizeFreed,
+      0
+    );
+
     this.stats.totalItemsRemoved += totalItemsRemoved;
     this.stats.totalSizeFreed += totalSizeFreed;
-    
+
     // 평균 정리 시간 계산
-    this.stats.averageCleanupTime = 
-      (this.stats.averageCleanupTime * (this.stats.totalCleanupRuns - 1) + totalTime) / 
+    this.stats.averageCleanupTime =
+      (this.stats.averageCleanupTime * (this.stats.totalCleanupRuns - 1) +
+        totalTime) /
       this.stats.totalCleanupRuns;
 
     // 메모리 사용량 업데이트
@@ -499,10 +535,12 @@ class DataRetentionScheduler {
    */
   private addToCleanupHistory(results: CleanupResult[]): void {
     this.cleanupHistory.push(...results);
-    
+
     // 히스토리 크기 제한
     if (this.cleanupHistory.length > this.MAX_CLEANUP_HISTORY) {
-      this.cleanupHistory = this.cleanupHistory.slice(-this.MAX_CLEANUP_HISTORY);
+      this.cleanupHistory = this.cleanupHistory.slice(
+        -this.MAX_CLEANUP_HISTORY
+      );
     }
   }
 
@@ -510,20 +548,23 @@ class DataRetentionScheduler {
    * 📊 활성 정책 수 업데이트
    */
   private updateActivePolicies(): void {
-    this.stats.activePolicies = Array.from(this.policies.values())
-      .filter(p => p.enabled).length;
+    this.stats.activePolicies = Array.from(this.policies.values()).filter(
+      p => p.enabled
+    ).length;
   }
 
   /**
    * 🔍 수동 정리 실행 (특정 데이터 타입)
    */
   async manualCleanup(dataType?: string): Promise<CleanupResult[]> {
-    const policies = dataType ? 
-      Array.from(this.policies.values()).filter(p => p.enabled && p.dataType === dataType) :
-      Array.from(this.policies.values()).filter(p => p.enabled);
+    const policies = dataType
+      ? Array.from(this.policies.values()).filter(
+          p => p.enabled && p.dataType === dataType
+        )
+      : Array.from(this.policies.values()).filter(p => p.enabled);
 
     const results: CleanupResult[] = [];
-    
+
     for (const policy of policies) {
       try {
         const result = await this.cleanupByPolicy(policy);
@@ -535,7 +576,7 @@ class DataRetentionScheduler {
           sizeFreed: 0,
           timeTaken: 0,
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         };
         results.push(errorResult);
       }
@@ -596,4 +637,4 @@ export function resetDataRetentionScheduler(): void {
   }
 }
 
-export default DataRetentionScheduler; 
+export default DataRetentionScheduler;

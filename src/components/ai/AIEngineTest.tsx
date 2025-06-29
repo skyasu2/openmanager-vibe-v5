@@ -18,13 +18,13 @@ const makeAIRequest = async (query: string, config: any) => {
   return {
     success: true,
     response: `테스트 응답: ${query}`,
-    confidence: 0.5
+    confidence: 0.5,
   };
 };
 
 const getDefaultConfig = () => ({
   engine: 'test',
-  timeout: 5000
+  timeout: 5000,
 });
 
 export const AIEngineTest: React.FC = () => {
@@ -92,10 +92,7 @@ export const AIEngineTest: React.FC = () => {
     // 4. 폴백 시스템 테스트
     await runTest(3, async () => {
       try {
-        const result = await makeAIRequest(
-          'test fallback system',
-          {}
-        );
+        const result = await makeAIRequest('test fallback system', {});
         return { success: true, result };
       } catch (error) {
         // 폴백이 작동하는지 확인
@@ -154,11 +151,11 @@ export const AIEngineTest: React.FC = () => {
         prev.map((result, i) =>
           i === index
             ? {
-              ...result,
-              status: 'error',
-              error: error instanceof Error ? error.message : 'Unknown error',
-              duration,
-            }
+                ...result,
+                status: 'error',
+                error: error instanceof Error ? error.message : 'Unknown error',
+                duration,
+              }
             : result
         )
       );

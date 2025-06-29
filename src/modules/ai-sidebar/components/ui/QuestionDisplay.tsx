@@ -1,6 +1,6 @@
 /**
  * ❓ 질문 표시 컴포넌트
- * 
+ *
  * Component Composition: 질문 표시 기능을 독립적인 컴포넌트로 분리
  * Single Responsibility: 질문 렌더링만 담당
  */
@@ -29,4 +29,4 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
       </div>
     </div>
   );
-}; 
+};

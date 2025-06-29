@@ -1,6 +1,6 @@
 /**
  * 🔥 Redis 연결 설정 v2.0
- * 
+ *
  * OpenManager AI v5.12.0 - Redis 통합 설정
  * - 환경별 연결 설정
  * - 연결 풀 관리
@@ -37,9 +37,9 @@ export const redisConfigs = {
     keepAlive: 30000,
     family: 4 as const,
     keyPrefix: 'openmanager:dev:',
-    connectionName: 'openmanager-dev'
+    connectionName: 'openmanager-dev',
   },
-  
+
   production: {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379'),
@@ -55,7 +55,7 @@ export const redisConfigs = {
     // 프로덕션 전용 설정
     connectTimeout: 10000,
     commandTimeout: 5000,
-    enableOfflineQueue: false
+    enableOfflineQueue: false,
   },
 
   test: {
@@ -69,8 +69,8 @@ export const redisConfigs = {
     keepAlive: 10000,
     family: 4 as const,
     keyPrefix: 'openmanager:test:',
-    connectionName: 'openmanager-test'
-  }
+    connectionName: 'openmanager-test',
+  },
 } as const;
 
 /**
@@ -78,8 +78,9 @@ export const redisConfigs = {
  */
 export function getRedisConfig(): RedisConfig {
   const env = process.env.NODE_ENV || 'development';
-  const config = redisConfigs[env as keyof typeof redisConfigs] || redisConfigs.development;
-  
+  const config =
+    redisConfigs[env as keyof typeof redisConfigs] || redisConfigs.development;
+
   console.log(`🔧 Redis 설정 로드: ${env} 환경`);
   return config;
 }
@@ -92,7 +93,7 @@ export function getRedisUrl(): string {
   if (process.env.REDIS_URL) {
     return process.env.REDIS_URL;
   }
-  
+
   const config = getRedisConfig();
   const auth = config.password ? `:${config.password}@` : '';
   return `redis://${auth}${config.host}:${config.port}/${config.db}`;
@@ -101,24 +102,27 @@ export function getRedisUrl(): string {
 /**
  * 🔍 Redis 연결 상태 체크
  */
-export function validateRedisConfig(config: RedisConfig): { valid: boolean; errors: string[] } {
+export function validateRedisConfig(config: RedisConfig): {
+  valid: boolean;
+  errors: string[];
+} {
   const errors: string[] = [];
-  
+
   if (!config.host) {
     errors.push('Redis 호스트가 설정되지 않았습니다');
   }
-  
+
   if (!config.port || config.port < 1 || config.port > 65535) {
     errors.push('올바르지 않은 Redis 포트입니다');
   }
-  
+
   if (config.db < 0 || config.db > 15) {
     errors.push('Redis DB 번호는 0-15 사이여야 합니다');
   }
-  
+
   return {
     valid: errors.length === 0,
-    errors
+    errors,
   };
 }
 
@@ -141,16 +145,16 @@ export interface RedisClusterConfig {
 
 export function getRedisClusterConfig(): RedisClusterConfig | null {
   const clusterNodes = process.env.REDIS_CLUSTER_NODES;
-  
+
   if (!clusterNodes) {
     return null; // 클러스터 모드 아님
   }
-  
+
   const nodes = clusterNodes.split(',').map(node => {
     const [host, port] = node.trim().split(':');
     return { host, port: parseInt(port) };
   });
-  
+
   return {
     nodes,
     options: {
@@ -160,9 +164,9 @@ export function getRedisClusterConfig(): RedisClusterConfig | null {
       enableOfflineQueue: false,
       redisOptions: {
         password: process.env.REDIS_PASSWORD,
-        db: parseInt(process.env.REDIS_DB || '0')
-      }
-    }
+        db: parseInt(process.env.REDIS_DB || '0'),
+      },
+    },
   };
 }
 
@@ -171,7 +175,7 @@ export function getRedisClusterConfig(): RedisClusterConfig | null {
  */
 export function getHighPerformanceRedisConfig(): RedisConfig {
   const baseConfig = getRedisConfig();
-  
+
   return {
     ...baseConfig,
     maxRetriesPerRequest: 1, // 빠른 장애 감지
@@ -181,6 +185,6 @@ export function getHighPerformanceRedisConfig(): RedisConfig {
     lazyConnect: false, // 즉시 연결
     keepAlive: 120000, // 2분
     enableOfflineQueue: false, // 오프라인 큐 비활성화
-    maxmemoryPolicy: 'allkeys-lru' // LRU 정책
+    maxmemoryPolicy: 'allkeys-lru', // LRU 정책
   } as RedisConfig & { enableOfflineQueue: boolean; maxmemoryPolicy: string };
-} 
+}

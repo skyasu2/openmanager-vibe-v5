@@ -267,7 +267,9 @@ export const useServerDataStore = create<ServerDataState>()(
 
       // 실시간 업데이트 시작 - 통합 스토어로 대체됨
       startRealTimeUpdates: () => {
-        console.log('⚠️ 개별 폴링이 통합 실시간 스토어로 대체되었습니다. globalRealtimeStore를 사용하세요.');
+        console.log(
+          '⚠️ 개별 폴링이 통합 실시간 스토어로 대체되었습니다. globalRealtimeStore를 사용하세요.'
+        );
 
         // 기존 타이머가 있으면 정리
         const existingInterval = (get() as any)._updateInterval;

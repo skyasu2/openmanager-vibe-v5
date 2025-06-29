@@ -1,6 +1,6 @@
 /**
  * Authentication & Authorization System
- * 
+ *
  * 🔐 관리자 페이지 인증 및 권한 관리
  * - 다단계 인증 시스템
  * - 세션 관리 및 만료 처리
@@ -34,7 +34,7 @@ export class AuthManager {
   private sessions: Map<string, AuthSession> = new Map();
   private authAttempts: AuthAttempt[] = [];
   private blockedIPs: Map<string, number> = new Map(); // IP -> 차단 해제 시간
-  
+
   private readonly MAX_FAILED_ATTEMPTS = 5;
   private readonly BLOCK_DURATION = 15 * 60 * 1000; // 15분
   private readonly SESSION_DURATION = 60 * 60 * 1000; // 1시간
@@ -56,22 +56,25 @@ export class AuthManager {
         ipAddress,
         userAgent,
         success: false,
-        failureReason: 'IP_BLOCKED'
+        failureReason: 'IP_BLOCKED',
       });
-      
+
       return {
         success: false,
-        error: 'IP가 일시적으로 차단되었습니다. 15분 후 다시 시도해주세요.'
+        error: 'IP가 일시적으로 차단되었습니다. 15분 후 다시 시도해주세요.',
       };
     }
 
     // 기본 자격 증명 확인
-    const isValidCredentials = await this.validateAdminCredentials(username, password);
+    const isValidCredentials = await this.validateAdminCredentials(
+      username,
+      password
+    );
     if (!isValidCredentials) {
       this.handleFailedAuth(ipAddress, userAgent, 'INVALID_CREDENTIALS');
       return {
         success: false,
-        error: '잘못된 사용자명 또는 비밀번호입니다.'
+        error: '잘못된 사용자명 또는 비밀번호입니다.',
       };
     }
 
@@ -80,7 +83,7 @@ export class AuthManager {
       this.handleFailedAuth(ipAddress, userAgent, 'INVALID_TOTP');
       return {
         success: false,
-        error: '2단계 인증 코드가 올바르지 않습니다.'
+        error: '2단계 인증 코드가 올바르지 않습니다.',
       };
     }
 
@@ -97,22 +100,22 @@ export class AuthManager {
         'logs:read',
         'logs:export',
         'users:manage',
-        'system:admin'
+        'system:admin',
       ],
       createdAt: Date.now(),
       expiresAt: Date.now() + this.ADMIN_SESSION_DURATION,
       lastActivity: Date.now(),
       ipAddress,
-      userAgent
+      userAgent,
     };
 
     this.sessions.set(sessionId, session);
-    
+
     this.logAuthAttempt({
       ipAddress,
       userAgent,
       success: true,
-      userId: username
+      userId: username,
     });
 
     console.log(`🔐 Admin authenticated: ${username} (${sessionId})`);
@@ -122,16 +125,17 @@ export class AuthManager {
   /**
    * 데모 사용자 인증 (간소화된 인증)
    */
-  async authenticateDemo(
-    clientInfo: { ipAddress?: string; userAgent?: string }
-  ): Promise<{ success: boolean; sessionId?: string; error?: string }> {
+  async authenticateDemo(clientInfo: {
+    ipAddress?: string;
+    userAgent?: string;
+  }): Promise<{ success: boolean; sessionId?: string; error?: string }> {
     const { ipAddress, userAgent } = clientInfo;
 
     // IP 차단 확인
     if (this.isIPBlocked(ipAddress)) {
       return {
         success: false,
-        error: 'IP가 일시적으로 차단되었습니다.'
+        error: 'IP가 일시적으로 차단되었습니다.',
       };
     }
 
@@ -141,20 +145,16 @@ export class AuthManager {
       sessionId,
       userId: `demo_${Date.now()}`,
       userRole: 'demo',
-      permissions: [
-        'ai_agent:read',
-        'dashboard:view',
-        'demo:access'
-      ],
+      permissions: ['ai_agent:read', 'dashboard:view', 'demo:access'],
       createdAt: Date.now(),
       expiresAt: Date.now() + this.SESSION_DURATION,
       lastActivity: Date.now(),
       ipAddress,
-      userAgent
+      userAgent,
     };
 
     this.sessions.set(sessionId, session);
-    
+
     console.log(`🎮 Demo user authenticated: ${session.userId} (${sessionId})`);
     return { success: true, sessionId };
   }
@@ -185,8 +185,10 @@ export class AuthManager {
     const session = this.validateSession(sessionId);
     if (!session) return false;
 
-    return session.permissions.includes(permission) || 
-           session.permissions.includes('system:admin');
+    return (
+      session.permissions.includes(permission) ||
+      session.permissions.includes('system:admin')
+    );
   }
 
   /**
@@ -206,15 +208,17 @@ export class AuthManager {
    */
   invalidateAllSessions(userId?: string): number {
     let count = 0;
-    
+
     for (const [sessionId, session] of this.sessions.entries()) {
       if (!userId || session.userId === userId) {
         this.sessions.delete(sessionId);
         count++;
       }
     }
-    
-    console.log(`🚨 Invalidated ${count} sessions${userId ? ` for user: ${userId}` : ''}`);
+
+    console.log(
+      `🚨 Invalidated ${count} sessions${userId ? ` for user: ${userId}` : ''}`
+    );
     return count;
   }
 
@@ -224,7 +228,7 @@ export class AuthManager {
   getActiveSessions(): AuthSession[] {
     const now = Date.now();
     const activeSessions: AuthSession[] = [];
-    
+
     for (const [sessionId, session] of this.sessions.entries()) {
       if (session.expiresAt > now) {
         activeSessions.push(session);
@@ -232,7 +236,7 @@ export class AuthManager {
         this.sessions.delete(sessionId);
       }
     }
-    
+
     return activeSessions;
   }
 
@@ -241,35 +245,40 @@ export class AuthManager {
    */
   getAuthStats() {
     const now = Date.now();
-    const last24h = now - (24 * 60 * 60 * 1000);
-    
-    const recent24hAttempts = this.authAttempts.filter(a => a.timestamp >= last24h);
+    const last24h = now - 24 * 60 * 60 * 1000;
+
+    const recent24hAttempts = this.authAttempts.filter(
+      a => a.timestamp >= last24h
+    );
     const successfulAttempts = recent24hAttempts.filter(a => a.success);
     const failedAttempts = recent24hAttempts.filter(a => !a.success);
-    
+
     const activeSessions = this.getActiveSessions();
-    
+
     return {
       activeSessions: activeSessions.length,
       adminSessions: activeSessions.filter(s => s.userRole === 'admin').length,
       demoSessions: activeSessions.filter(s => s.userRole === 'demo').length,
-      
+
       last24h: {
         totalAttempts: recent24hAttempts.length,
         successfulAttempts: successfulAttempts.length,
         failedAttempts: failedAttempts.length,
-        successRate: recent24hAttempts.length > 0 
-          ? (successfulAttempts.length / recent24hAttempts.length) * 100 
-          : 0
+        successRate:
+          recent24hAttempts.length > 0
+            ? (successfulAttempts.length / recent24hAttempts.length) * 100
+            : 0,
       },
-      
-      blockedIPs: Array.from(this.blockedIPs.entries()).map(([ip, unblockTime]) => ({
-        ip,
-        unblockTime,
-        remainingTime: Math.max(0, unblockTime - now)
-      })),
-      
-      recentFailures: failedAttempts.slice(-10)
+
+      blockedIPs: Array.from(this.blockedIPs.entries()).map(
+        ([ip, unblockTime]) => ({
+          ip,
+          unblockTime,
+          remainingTime: Math.max(0, unblockTime - now),
+        })
+      ),
+
+      recentFailures: failedAttempts.slice(-10),
     };
   }
 
@@ -285,7 +294,7 @@ export class AuthManager {
       userId: session.userId,
       role: session.userRole,
       expiresAt: session.expiresAt,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     return btoa(JSON.stringify(tokenData));
@@ -306,60 +315,67 @@ export class AuthManager {
   /**
    * 헬퍼 메서드들
    */
-  private async validateAdminCredentials(username: string, password: string): Promise<boolean> {
+  private async validateAdminCredentials(
+    username: string,
+    password: string
+  ): Promise<boolean> {
     // 실제 환경에서는 해시된 비밀번호와 비교
     const adminCredentials = {
-      'admin': 'admin123!@#',
-      'manager': 'manager456!@#'
+      admin: 'admin123!@#',
+      manager: 'manager456!@#',
     };
-    
-    return adminCredentials[username as keyof typeof adminCredentials] === password;
+
+    return (
+      adminCredentials[username as keyof typeof adminCredentials] === password
+    );
   }
 
   private validateTOTP(username: string, code: string): boolean {
     // 실제 환경에서는 TOTP 라이브러리 사용
     // 데모용으로 간단한 시간 기반 코드 생성
     const now = Math.floor(Date.now() / 30000); // 30초 윈도우
-    const expectedCode = ((now + username.length) % 1000000).toString().padStart(6, '0');
-    
+    const expectedCode = ((now + username.length) % 1000000)
+      .toString()
+      .padStart(6, '0');
+
     return code === expectedCode || code === '123456'; // 데모용 고정 코드
   }
 
   private isIPBlocked(ipAddress?: string): boolean {
     if (!ipAddress) return false;
-    
+
     const blockUntil = this.blockedIPs.get(ipAddress);
     if (!blockUntil) return false;
-    
+
     if (Date.now() > blockUntil) {
       this.blockedIPs.delete(ipAddress);
       return false;
     }
-    
+
     return true;
   }
 
   private handleFailedAuth(
-    ipAddress?: string, 
-    userAgent?: string, 
+    ipAddress?: string,
+    userAgent?: string,
     reason?: string
   ): void {
     this.logAuthAttempt({
       ipAddress,
       userAgent,
       success: false,
-      failureReason: reason
+      failureReason: reason,
     });
 
     if (!ipAddress) return;
 
     // 실패 횟수 계산
-    const recentFailures = this.authAttempts
-      .filter(a => 
-        a.ipAddress === ipAddress && 
-        !a.success && 
-        a.timestamp > Date.now() - (15 * 60 * 1000)
-      ).length;
+    const recentFailures = this.authAttempts.filter(
+      a =>
+        a.ipAddress === ipAddress &&
+        !a.success &&
+        a.timestamp > Date.now() - 15 * 60 * 1000
+    ).length;
 
     if (recentFailures >= this.MAX_FAILED_ATTEMPTS) {
       this.blockedIPs.set(ipAddress, Date.now() + this.BLOCK_DURATION);
@@ -371,7 +387,7 @@ export class AuthManager {
     const authAttempt: AuthAttempt = {
       id: this.generateId(),
       timestamp: Date.now(),
-      ...attempt
+      ...attempt,
     };
 
     this.authAttempts.push(authAttempt);
@@ -397,7 +413,7 @@ export class AuthManager {
     // 만료된 세션 정리
     const now = Date.now();
     let cleanedSessions = 0;
-    
+
     for (const [sessionId, session] of this.sessions.entries()) {
       if (session.expiresAt < now) {
         this.sessions.delete(sessionId);
@@ -415,13 +431,15 @@ export class AuthManager {
     }
 
     // 오래된 인증 시도 기록 정리 (7일 이상)
-    const cutoff = now - (7 * 24 * 60 * 60 * 1000);
+    const cutoff = now - 7 * 24 * 60 * 60 * 1000;
     const originalLength = this.authAttempts.length;
     this.authAttempts = this.authAttempts.filter(a => a.timestamp >= cutoff);
     const cleanedAttempts = originalLength - this.authAttempts.length;
 
     if (cleanedSessions > 0 || cleanedBlocks > 0 || cleanedAttempts > 0) {
-      console.log(`🧹 Auth cleanup: ${cleanedSessions} sessions, ${cleanedBlocks} IP blocks, ${cleanedAttempts} auth attempts`);
+      console.log(
+        `🧹 Auth cleanup: ${cleanedSessions} sessions, ${cleanedBlocks} IP blocks, ${cleanedAttempts} auth attempts`
+      );
     }
   }
 }
@@ -436,11 +454,11 @@ export function requireAuth(requiredPermission?: string) {
   return (sessionId: string): boolean => {
     const session = authManager.validateSession(sessionId);
     if (!session) return false;
-    
+
     if (requiredPermission) {
       return authManager.hasPermission(sessionId, requiredPermission);
     }
-    
+
     return true;
   };
 }
@@ -451,4 +469,4 @@ export function requireAdminAuth() {
 
 export function requireAIAgentAccess() {
   return requireAuth('ai_agent:read');
-} 
+}

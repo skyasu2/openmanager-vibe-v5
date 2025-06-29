@@ -1,6 +1,6 @@
 /**
  * 📋 로그 뷰어 컴포넌트
- * 
+ *
  * Component Composition: 로그 표시 기능을 독립적인 컴포넌트로 분리
  * Single Responsibility: 로그 표시와 검증 기능만 담당
  */
@@ -169,22 +169,28 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                               {log.details}
                             </p>
                           )}
-                          {log.metadata && Object.keys(log.metadata).length > 0 && (
-                            <div className='mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs'>
-                              <div className='grid grid-cols-2 gap-1'>
-                                {Object.entries(log.metadata).map(([key, value]) => (
-                                  <div key={key} className='flex justify-between'>
-                                    <span className='text-gray-600 dark:text-gray-400'>
-                                      {key}:
-                                    </span>
-                                    <span className='text-gray-900 dark:text-white font-mono'>
-                                      {String(value)}
-                                    </span>
-                                  </div>
-                                ))}
+                          {log.metadata &&
+                            Object.keys(log.metadata).length > 0 && (
+                              <div className='mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs'>
+                                <div className='grid grid-cols-2 gap-1'>
+                                  {Object.entries(log.metadata).map(
+                                    ([key, value]) => (
+                                      <div
+                                        key={key}
+                                        className='flex justify-between'
+                                      >
+                                        <span className='text-gray-600 dark:text-gray-400'>
+                                          {key}:
+                                        </span>
+                                        <span className='text-gray-900 dark:text-white font-mono'>
+                                          {String(value)}
+                                        </span>
+                                      </div>
+                                    )
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
                         </div>
                         <button
                           onClick={() => onVerifyLog(log)}
@@ -204,4 +210,4 @@ export const LogViewer: React.FC<LogViewerProps> = ({
       </AnimatePresence>
     </div>
   );
-}; 
+};

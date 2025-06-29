@@ -1,9 +1,9 @@
 /**
- * 🔄 베르셀 시스템 상태 관리 스토어 v2.0  
+ * 🔄 베르셀 시스템 상태 관리 스토어 v2.0
  * 한국시간: 2025-06-26 02:20 KST
- * 
+ *
  * ✅ Redis/Upstash 기반 실시간 동기화
- * ✅ 베르셀 친화적 아키텍처 
+ * ✅ 베르셀 친화적 아키텍처
  * ✅ 세션 기반 상태 관리
  */
 
@@ -293,7 +293,9 @@ export const useVercelSystemStore = create<VercelSystemStore>()(
 
       // 폴링 시작 - 통합 스토어로 대체됨
       startPolling: () => {
-        console.log('⚠️ 베르셀 시스템 개별 폴링이 통합 실시간 스토어로 대체되었습니다.');
+        console.log(
+          '⚠️ 베르셀 시스템 개별 폴링이 통합 실시간 스토어로 대체되었습니다.'
+        );
 
         const store = get();
         if (store.pollingInterval) {

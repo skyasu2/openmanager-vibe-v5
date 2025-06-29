@@ -1,6 +1,6 @@
 /**
  * AI Agent Thinking Processor
- * 
+ *
  * 🧠 AI 사고 과정 표시 시스템
  * - 실시간 사고 과정 스트리밍
  * - 단계별 분석 과정 표시
@@ -11,7 +11,12 @@
 export interface ThinkingStep {
   id: string;
   step: number;
-  type: 'analysis' | 'classification' | 'processing' | 'generation' | 'validation';
+  type:
+    | 'analysis'
+    | 'classification'
+    | 'processing'
+    | 'generation'
+    | 'validation';
   title: string;
   description: string;
   status: 'pending' | 'processing' | 'completed' | 'error';
@@ -36,7 +41,10 @@ export interface ThinkingSession {
   error?: string;
 }
 
-export type ThinkingCallback = (session: ThinkingSession, step?: ThinkingStep) => void;
+export type ThinkingCallback = (
+  session: ThinkingSession,
+  step?: ThinkingStep
+) => void;
 
 export class ThinkingProcessor {
   private sessions: Map<string, ThinkingSession> = new Map();
@@ -45,7 +53,7 @@ export class ThinkingProcessor {
 
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
-    
+
     this.isInitialized = true;
     console.log('🧠 Thinking Processor initialized');
   }
@@ -53,9 +61,13 @@ export class ThinkingProcessor {
   /**
    * 새로운 사고 세션 시작
    */
-  startThinking(queryId: string, query: string, mode: 'basic' | 'enterprise' | 'advanced'): string {
+  startThinking(
+    queryId: string,
+    query: string,
+    mode: 'basic' | 'enterprise' | 'advanced'
+  ): string {
     const sessionId = this.generateSessionId();
-    
+
     const session: ThinkingSession = {
       sessionId,
       queryId,
@@ -63,12 +75,12 @@ export class ThinkingProcessor {
       mode,
       startTime: Date.now(),
       steps: [],
-      status: 'thinking'
+      status: 'thinking',
     };
 
     this.sessions.set(sessionId, session);
     this.notifyCallbacks(session);
-    
+
     console.log(`🧠 Started thinking session: ${sessionId}`);
     return sessionId;
   }
@@ -77,9 +89,9 @@ export class ThinkingProcessor {
    * 사고 단계 추가
    */
   addThinkingStep(
-    sessionId: string, 
-    type: ThinkingStep['type'], 
-    title: string, 
+    sessionId: string,
+    type: ThinkingStep['type'],
+    title: string,
     description: string,
     details?: any
   ): string {
@@ -98,12 +110,12 @@ export class ThinkingProcessor {
       status: 'processing',
       startTime: Date.now(),
       details,
-      progress: 0
+      progress: 0,
     };
 
     session.steps.push(step);
     this.notifyCallbacks(session, step);
-    
+
     return stepId;
   }
 
@@ -111,9 +123,11 @@ export class ThinkingProcessor {
    * 사고 단계 업데이트
    */
   updateThinkingStep(
-    sessionId: string, 
-    stepId: string, 
-    updates: Partial<Pick<ThinkingStep, 'status' | 'progress' | 'description' | 'details'>>
+    sessionId: string,
+    stepId: string,
+    updates: Partial<
+      Pick<ThinkingStep, 'status' | 'progress' | 'description' | 'details'>
+    >
   ): void {
     const session = this.sessions.get(sessionId);
     if (!session) return;
@@ -122,7 +136,7 @@ export class ThinkingProcessor {
     if (!step) return;
 
     Object.assign(step, updates);
-    
+
     if (updates.status === 'completed' || updates.status === 'error') {
       step.endTime = Date.now();
       step.duration = step.endTime - step.startTime;
@@ -154,8 +168,10 @@ export class ThinkingProcessor {
     });
 
     this.notifyCallbacks(session);
-    
-    console.log(`🧠 Completed thinking session: ${sessionId} (${session.totalDuration}ms)`);
+
+    console.log(
+      `🧠 Completed thinking session: ${sessionId} (${session.totalDuration}ms)`
+    );
   }
 
   /**
@@ -163,7 +179,7 @@ export class ThinkingProcessor {
    */
   onThinking(callback: ThinkingCallback): () => void {
     this.callbacks.add(callback);
-    
+
     // 구독 해제 함수 반환
     return () => {
       this.callbacks.delete(callback);
@@ -181,7 +197,9 @@ export class ThinkingProcessor {
    * 활성 사고 세션 목록
    */
   getActiveThinkingSessions(): ThinkingSession[] {
-    return Array.from(this.sessions.values()).filter(s => s.status === 'thinking');
+    return Array.from(this.sessions.values()).filter(
+      s => s.status === 'thinking'
+    );
   }
 
   /**
@@ -198,14 +216,17 @@ export class ThinkingProcessor {
     const sessions = Array.from(this.sessions.values());
     const completed = sessions.filter(s => s.status === 'completed');
     const errors = sessions.filter(s => s.status === 'error');
-    
-    const avgDuration = completed.length > 0 
-      ? completed.reduce((sum, s) => sum + (s.totalDuration || 0), 0) / completed.length 
-      : 0;
-      
-    const avgSteps = sessions.length > 0
-      ? sessions.reduce((sum, s) => sum + s.steps.length, 0) / sessions.length
-      : 0;
+
+    const avgDuration =
+      completed.length > 0
+        ? completed.reduce((sum, s) => sum + (s.totalDuration || 0), 0) /
+          completed.length
+        : 0;
+
+    const avgSteps =
+      sessions.length > 0
+        ? sessions.reduce((sum, s) => sum + s.steps.length, 0) / sessions.length
+        : 0;
 
     return {
       totalSessions: sessions.length,
@@ -213,27 +234,30 @@ export class ThinkingProcessor {
       completedSessions: completed.length,
       errorSessions: errors.length,
       averageDuration: Math.round(avgDuration),
-      averageSteps: Math.round(avgSteps * 10) / 10
+      averageSteps: Math.round(avgSteps * 10) / 10,
     };
   }
 
   /**
    * 모드별 사고 과정 템플릿
    */
-  getThinkingTemplate(mode: 'basic' | 'enterprise' | 'advanced', intentType: string): ThinkingStep[] {
+  getThinkingTemplate(
+    mode: 'basic' | 'enterprise' | 'advanced',
+    intentType: string
+  ): ThinkingStep[] {
     const baseSteps: Omit<ThinkingStep, 'id' | 'startTime' | 'step'>[] = [
       {
         type: 'analysis',
         title: '질문 분석',
         description: '사용자 질문을 분석하고 있습니다...',
-        status: 'pending'
+        status: 'pending',
       },
       {
         type: 'classification',
         title: '의도 분류',
         description: '질문의 의도를 분류하고 있습니다...',
-        status: 'pending'
-      }
+        status: 'pending',
+      },
     ];
 
     if (mode === 'advanced') {
@@ -242,19 +266,19 @@ export class ThinkingProcessor {
           type: 'processing',
           title: '고급 분석',
           description: '서버 데이터를 심층 분석하고 있습니다...',
-          status: 'pending'
+          status: 'pending',
         },
         {
           type: 'processing',
           title: '상관관계 분석',
           description: '다중 서버 간 상관관계를 분석하고 있습니다...',
-          status: 'pending'
+          status: 'pending',
         },
         {
           type: 'processing',
           title: '예측 분석',
           description: '향후 트렌드를 예측하고 있습니다...',
-          status: 'pending'
+          status: 'pending',
         }
       );
     }
@@ -264,13 +288,13 @@ export class ThinkingProcessor {
         type: 'generation',
         title: '응답 생성',
         description: '최적의 응답을 생성하고 있습니다...',
-        status: 'pending'
+        status: 'pending',
       },
       {
         type: 'validation',
         title: '응답 검증',
         description: '생성된 응답을 검증하고 있습니다...',
-        status: 'pending'
+        status: 'pending',
       }
     );
 
@@ -278,7 +302,7 @@ export class ThinkingProcessor {
       ...step,
       id: this.generateStepId(),
       step: index + 1,
-      startTime: Date.now()
+      startTime: Date.now(),
     }));
   }
 
@@ -286,30 +310,30 @@ export class ThinkingProcessor {
    * 사고 과정 시뮬레이션 (데모용)
    */
   async simulateThinking(
-    sessionId: string, 
-    steps: ThinkingStep[], 
+    sessionId: string,
+    steps: ThinkingStep[],
     onProgress?: (step: ThinkingStep) => void
   ): Promise<void> {
     for (const step of steps) {
       // 단계 시작
-      this.updateThinkingStep(sessionId, step.id, { 
+      this.updateThinkingStep(sessionId, step.id, {
         status: 'processing',
-        progress: 0 
+        progress: 0,
       });
 
       // 진행률 시뮬레이션
       for (let progress = 0; progress <= 100; progress += 20) {
         this.updateThinkingStep(sessionId, step.id, { progress });
         onProgress?.(step);
-        
+
         // 실제 처리 시간 시뮬레이션
         await this.delay(100 + Math.random() * 200);
       }
 
       // 단계 완료
-      this.updateThinkingStep(sessionId, step.id, { 
+      this.updateThinkingStep(sessionId, step.id, {
         status: 'completed',
-        progress: 100 
+        progress: 100,
       });
 
       // 단계 간 간격
@@ -326,7 +350,7 @@ export class ThinkingProcessor {
 
     // 여기에 사용자 권한 검증 로직 추가
     // 예: 세션 소유자 확인, 관리자 권한 확인 등
-    
+
     return true;
   }
 
@@ -356,9 +380,9 @@ export class ThinkingProcessor {
         startTime: step.startTime,
         endTime: step.endTime,
         progress: step.progress,
-        duration: step.duration
+        duration: step.duration,
         // details는 제외 (민감한 정보 포함 가능)
-      }))
+      })),
     };
   }
 
@@ -415,4 +439,4 @@ export class ThinkingProcessor {
     this.callbacks.clear();
     console.log('🧹 Thinking Processor cleanup completed');
   }
-} 
+}

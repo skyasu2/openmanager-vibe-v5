@@ -1,6 +1,6 @@
 /**
  * 🔄 Realtime Connection API v1.0
- * 
+ *
  * OpenManager v5.21.0 - 실시간 연결 관리
  * GET: 연결 상태 조회
  * POST: 새 연결 등록
@@ -34,8 +34,8 @@ export async function GET(request: NextRequest) {
         data: {
           type: 'stats',
           stats: statistics,
-          timestamp: Date.now()
-        }
+          timestamp: Date.now(),
+        },
       });
     }
 
@@ -43,10 +43,13 @@ export async function GET(request: NextRequest) {
     if (connectionId) {
       const connection = hub.getConnection(connectionId);
       if (!connection) {
-        return NextResponse.json({
-          success: false,
-          error: '연결을 찾을 수 없습니다'
-        }, { status: 404 });
+        return NextResponse.json(
+          {
+            success: false,
+            error: '연결을 찾을 수 없습니다',
+          },
+          { status: 404 }
+        );
       }
 
       return NextResponse.json({
@@ -56,9 +59,9 @@ export async function GET(request: NextRequest) {
           connection: {
             ...connection,
             groups: Array.from(connection.groups),
-            socket: connection.socket ? 'connected' : 'disconnected'
-          }
-        }
+            socket: connection.socket ? 'connected' : 'disconnected',
+          },
+        },
       });
     }
 
@@ -71,8 +74,8 @@ export async function GET(request: NextRequest) {
           type: 'group',
           groupName,
           connections,
-          count: connections.length
-        }
+          count: connections.length,
+        },
       });
     }
 
@@ -83,16 +86,18 @@ export async function GET(request: NextRequest) {
       data: {
         type: 'overview',
         stats: hubStats,
-        timestamp: Date.now()
-      }
+        timestamp: Date.now(),
+      },
     });
-
   } catch (error) {
     console.error('❌ 실시간 연결 조회 오류:', error);
-    return NextResponse.json({
-      success: false,
-      error: '연결 상태 조회 중 오류가 발생했습니다'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '연결 상태 조회 중 오류가 발생했습니다',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -105,21 +110,26 @@ export async function POST(request: NextRequest) {
     const { connectionId, userId, groups = ['default'], metadata = {} } = body;
 
     if (!connectionId) {
-      return NextResponse.json({
-        success: false,
-        error: 'connectionId가 필요합니다'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'connectionId가 필요합니다',
+        },
+        { status: 400 }
+      );
     }
 
     const hub = getRealTimeHub();
-    
+
     // 연결 등록
     const connection = hub.registerConnection(connectionId, null, {
       ...metadata,
       userId,
       registeredAt: Date.now(),
       userAgent: request.headers.get('user-agent'),
-      ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip')
+      ip:
+        request.headers.get('x-forwarded-for') ||
+        request.headers.get('x-real-ip'),
     });
 
     // 그룹에 추가
@@ -136,9 +146,9 @@ export async function POST(request: NextRequest) {
         event: 'connection_registered',
         connectionId,
         userId,
-        groups: Array.from(connection.groups)
+        groups: Array.from(connection.groups),
       },
-      target: ['admin']
+      target: ['admin'],
     });
 
     return NextResponse.json({
@@ -148,18 +158,20 @@ export async function POST(request: NextRequest) {
         connection: {
           ...connection,
           groups: Array.from(connection.groups),
-          socket: 'registered'
+          socket: 'registered',
         },
-        message: '연결이 성공적으로 등록되었습니다'
-      }
+        message: '연결이 성공적으로 등록되었습니다',
+      },
     });
-
   } catch (error) {
     console.error('❌ 실시간 연결 등록 오류:', error);
-    return NextResponse.json({
-      success: false,
-      error: '연결 등록 중 오류가 발생했습니다'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '연결 등록 중 오류가 발생했습니다',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -172,20 +184,26 @@ export async function PUT(request: NextRequest) {
     const { connectionId, action, groupName } = body;
 
     if (!connectionId || !action || !groupName) {
-      return NextResponse.json({
-        success: false,
-        error: 'connectionId, action, groupName이 필요합니다'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'connectionId, action, groupName이 필요합니다',
+        },
+        { status: 400 }
+      );
     }
 
     const hub = getRealTimeHub();
     const connection = hub.getConnection(connectionId);
-    
+
     if (!connection) {
-      return NextResponse.json({
-        success: false,
-        error: '연결을 찾을 수 없습니다'
-      }, { status: 404 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: '연결을 찾을 수 없습니다',
+        },
+        { status: 404 }
+      );
     }
 
     let result = false;
@@ -194,19 +212,26 @@ export async function PUT(request: NextRequest) {
     switch (action) {
       case 'join':
         result = hub.addToGroup(groupName, connectionId);
-        message = result ? `그룹 '${groupName}'에 참가했습니다` : '그룹 참가에 실패했습니다';
+        message = result
+          ? `그룹 '${groupName}'에 참가했습니다`
+          : '그룹 참가에 실패했습니다';
         break;
 
       case 'leave':
         result = hub.removeFromGroup(groupName, connectionId);
-        message = result ? `그룹 '${groupName}'에서 나갔습니다` : '그룹 탈퇴에 실패했습니다';
+        message = result
+          ? `그룹 '${groupName}'에서 나갔습니다`
+          : '그룹 탈퇴에 실패했습니다';
         break;
 
       default:
-        return NextResponse.json({
-          success: false,
-          error: '유효하지 않은 액션입니다 (join, leave 가능)'
-        }, { status: 400 });
+        return NextResponse.json(
+          {
+            success: false,
+            error: '유효하지 않은 액션입니다 (join, leave 가능)',
+          },
+          { status: 400 }
+        );
     }
 
     if (result) {
@@ -218,9 +243,9 @@ export async function PUT(request: NextRequest) {
           connectionId,
           action,
           groupName,
-          currentGroups: Array.from(connection.groups)
+          currentGroups: Array.from(connection.groups),
         },
-        target: [groupName, 'admin']
+        target: [groupName, 'admin'],
       });
     }
 
@@ -231,16 +256,18 @@ export async function PUT(request: NextRequest) {
         action,
         groupName,
         currentGroups: Array.from(connection.groups),
-        message
-      }
+        message,
+      },
     });
-
   } catch (error) {
     console.error('❌ 그룹 관리 오류:', error);
-    return NextResponse.json({
-      success: false,
-      error: '그룹 관리 중 오류가 발생했습니다'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '그룹 관리 중 오류가 발생했습니다',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -253,20 +280,26 @@ export async function DELETE(request: NextRequest) {
     const connectionId = searchParams.get('connectionId');
 
     if (!connectionId) {
-      return NextResponse.json({
-        success: false,
-        error: 'connectionId가 필요합니다'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'connectionId가 필요합니다',
+        },
+        { status: 400 }
+      );
     }
 
     const hub = getRealTimeHub();
     const connection = hub.getConnection(connectionId);
-    
+
     if (!connection) {
-      return NextResponse.json({
-        success: false,
-        error: '연결을 찾을 수 없습니다'
-      }, { status: 404 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: '연결을 찾을 수 없습니다',
+        },
+        { status: 404 }
+      );
     }
 
     const groups = Array.from(connection.groups);
@@ -279,9 +312,9 @@ export async function DELETE(request: NextRequest) {
         data: {
           event: 'connection_disconnected',
           connectionId,
-          previousGroups: groups
+          previousGroups: groups,
         },
-        target: ['admin']
+        target: ['admin'],
       });
     }
 
@@ -289,15 +322,19 @@ export async function DELETE(request: NextRequest) {
       success: result,
       data: {
         connectionId,
-        message: result ? '연결이 성공적으로 해제되었습니다' : '연결 해제에 실패했습니다'
-      }
+        message: result
+          ? '연결이 성공적으로 해제되었습니다'
+          : '연결 해제에 실패했습니다',
+      },
     });
-
   } catch (error) {
     console.error('❌ 연결 해제 오류:', error);
-    return NextResponse.json({
-      success: false,
-      error: '연결 해제 중 오류가 발생했습니다'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '연결 해제 중 오류가 발생했습니다',
+      },
+      { status: 500 }
+    );
   }
-} 
+}

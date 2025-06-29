@@ -81,11 +81,11 @@ export interface ProcessingStep {
 
 export interface QueryIntent {
   category:
-  | 'status'
-  | 'troubleshooting'
-  | 'configuration'
-  | 'analysis'
-  | 'general';
+    | 'status'
+    | 'troubleshooting'
+    | 'configuration'
+    | 'analysis'
+    | 'general';
   keywords: string[];
   urgency: 'low' | 'medium' | 'high';
   requiresAction: boolean;

@@ -14,20 +14,20 @@ export function safeFormatUptime(uptime: any): string {
     if (uptime === null || uptime === undefined) {
       return 'N/A';
     }
-    
+
     // 이미 문자열인 경우
     if (typeof uptime === 'string') {
       return uptime.trim() || 'N/A';
     }
-    
+
     // 숫자인 경우 (초 단위로 가정)
     if (typeof uptime === 'number') {
       if (uptime <= 0) return '0일';
-      
+
       const days = Math.floor(uptime / 86400);
       const hours = Math.floor((uptime % 86400) / 3600);
       const minutes = Math.floor((uptime % 3600) / 60);
-      
+
       if (days > 0) {
         return `${days}일 ${hours}시간`;
       } else if (hours > 0) {
@@ -36,11 +36,10 @@ export function safeFormatUptime(uptime: any): string {
         return `${minutes}분`;
       }
     }
-    
+
     // 기타 타입인 경우 문자열로 변환 시도
     const stringValue = String(uptime);
     return stringValue || 'N/A';
-    
   } catch (error) {
     console.warn('⚠️ [safeFormatUptime] 업타임 포맷팅 실패:', error);
     return 'N/A';
@@ -61,19 +60,19 @@ export function extractDaysFromUptime(uptime: any): number {
       if (dayMatch) {
         return parseInt(dayMatch[1]) || 0;
       }
-      
+
       // 순수 숫자 문자열인 경우
       const numericValue = parseFloat(uptime);
       if (!isNaN(numericValue)) {
         return Math.floor(numericValue / 86400); // 초를 일로 변환
       }
     }
-    
+
     // 숫자인 경우 (초 단위로 가정)
     if (typeof uptime === 'number') {
       return Math.floor(uptime / 86400);
     }
-    
+
     return 0;
   } catch (error) {
     console.warn('⚠️ [extractDaysFromUptime] 일 수 추출 실패:', error);
@@ -139,17 +138,17 @@ export function safePropertyAccess<T>(obj: any, path: string, fallback: T): T {
     if (!obj || typeof obj !== 'object') {
       return fallback;
     }
-    
+
     const keys = path.split('.');
     let current = obj;
-    
+
     for (const key of keys) {
       if (current == null || typeof current !== 'object' || !(key in current)) {
         return fallback;
       }
       current = current[key];
     }
-    
+
     return current ?? fallback;
   } catch (error) {
     console.warn('⚠️ [safePropertyAccess] 안전한 속성 접근 실패:', error);
@@ -186,14 +185,14 @@ export function safeNumber(value: any, fallback: number = 0): number {
     if (typeof value === 'number' && !isNaN(value)) {
       return value;
     }
-    
+
     if (typeof value === 'string') {
       const parsed = parseFloat(value);
       if (!isNaN(parsed)) {
         return parsed;
       }
     }
-    
+
     return fallback;
   } catch (error) {
     console.warn('⚠️ [safeNumber] 숫자 변환 실패:', error);
@@ -216,4 +215,4 @@ export function safePercentage(value: any, asDecimal: boolean = false): string {
     console.warn('⚠️ [safePercentage] 퍼센트 포맷팅 실패:', error);
     return '0%';
   }
-} 
+}

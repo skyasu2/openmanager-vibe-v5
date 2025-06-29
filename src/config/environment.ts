@@ -249,7 +249,11 @@ export function getDataGeneratorConfig() {
   // 🚀 모든 환경에서 동일한 설정 사용
   const maxServers = centralConfig.maxServers; // 15개로 통일
   const minServers = Math.max(5, Math.floor(maxServers * 0.4)); // 최소값: 최대값의 40% (최소 5개)
-  const serverArchitecture: 'single' | 'master-slave' | 'load-balanced' | 'microservices' = 'load-balanced';
+  const serverArchitecture:
+    | 'single'
+    | 'master-slave'
+    | 'load-balanced'
+    | 'microservices' = 'load-balanced';
 
   console.log(
     `🎯 통합 환경 설정: ${minServers}-${maxServers}개 서버 (중앙설정: ${centralConfig.maxServers}개, 간격: ${centralConfig.cache.updateInterval}ms)`

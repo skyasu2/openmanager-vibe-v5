@@ -1,7 +1,7 @@
 /**
  * 🧠 시스템 메모리 최적화 API
  * POST /api/system/optimize
- * 
+ *
  * 메모리 사용률 최적화 및 성능 개선:
  * - 즉시 메모리 정리 실행
  * - 캐시 최적화
@@ -10,7 +10,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createSuccessResponse, createErrorResponse, withErrorHandler } from '../../../../lib/api/errorHandler';
+import {
+  createSuccessResponse,
+  createErrorResponse,
+  withErrorHandler,
+} from '../../../../lib/api/errorHandler';
 import { memoryOptimizer } from '../../../../utils/MemoryOptimizer';
 
 /**
@@ -18,7 +22,7 @@ import { memoryOptimizer } from '../../../../utils/MemoryOptimizer';
  */
 async function optimizeMemoryHandler(request: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
     console.log('🧠 메모리 최적화 API 호출');
 
@@ -28,13 +32,16 @@ async function optimizeMemoryHandler(request: NextRequest) {
 
     // 현재 메모리 상태 확인
     const beforeStats = memoryOptimizer.getCurrentMemoryStats();
-    console.log(`📊 최적화 전: ${beforeStats.usagePercent}% (${beforeStats.heapUsed}MB/${beforeStats.heapTotal}MB)`);
+    console.log(
+      `📊 최적화 전: ${beforeStats.usagePercent}% (${beforeStats.heapUsed}MB/${beforeStats.heapTotal}MB)`
+    );
 
     // 최적화 레벨에 따른 실행
     let optimizationResult;
     if (level === 'aggressive' || beforeStats.usagePercent > 80) {
       console.log('🚀 극한 최적화 모드 실행');
-      optimizationResult = await memoryOptimizer.performAggressiveOptimization();
+      optimizationResult =
+        await memoryOptimizer.performAggressiveOptimization();
     } else {
       console.log('🧠 일반 최적화 모드 실행');
       optimizationResult = await memoryOptimizer.optimizeMemoryNow();
@@ -42,7 +49,7 @@ async function optimizeMemoryHandler(request: NextRequest) {
 
     // 최적화 후 메모리 상태
     const afterStats = memoryOptimizer.getCurrentMemoryStats();
-    
+
     // API 응답 시간 계산
     const apiResponseTime = Date.now() - startTime;
 
@@ -50,66 +57,76 @@ async function optimizeMemoryHandler(request: NextRequest) {
     const targetAchieved = afterStats.usagePercent <= 75;
     const optimalAchieved = afterStats.usagePercent <= 65;
 
-    return createSuccessResponse({
-      optimization: {
-        success: true,
-        level: level === 'aggressive' ? '극한 최적화' : '일반 최적화',
-        duration: optimizationResult.duration,
-        actions: optimizationResult.optimizationActions,
-        targetAchieved,
-        optimalAchieved,
-        memory: {
-          before: {
-            usagePercent: optimizationResult.before.usagePercent,
-            heapUsed: optimizationResult.before.heapUsed,
-            heapTotal: optimizationResult.before.heapTotal,
-            rss: optimizationResult.before.rss
+    return createSuccessResponse(
+      {
+        optimization: {
+          success: true,
+          level: level === 'aggressive' ? '극한 최적화' : '일반 최적화',
+          duration: optimizationResult.duration,
+          actions: optimizationResult.optimizationActions,
+          targetAchieved,
+          optimalAchieved,
+          memory: {
+            before: {
+              usagePercent: optimizationResult.before.usagePercent,
+              heapUsed: optimizationResult.before.heapUsed,
+              heapTotal: optimizationResult.before.heapTotal,
+              rss: optimizationResult.before.rss,
+            },
+            after: {
+              usagePercent: optimizationResult.after.usagePercent,
+              heapUsed: optimizationResult.after.heapUsed,
+              heapTotal: optimizationResult.after.heapTotal,
+              rss: optimizationResult.after.rss,
+            },
+            improvement: {
+              freedMB: optimizationResult.freedMB,
+              percentageReduction: Math.round(
+                ((optimizationResult.before.usagePercent -
+                  optimizationResult.after.usagePercent) *
+                  100) /
+                  100
+              ),
+              status:
+                afterStats.usagePercent < 65
+                  ? 'optimal'
+                  : afterStats.usagePercent < 75
+                    ? 'good'
+                    : afterStats.usagePercent < 85
+                      ? 'acceptable'
+                      : 'critical',
+            },
           },
-          after: {
-            usagePercent: optimizationResult.after.usagePercent,
-            heapUsed: optimizationResult.after.heapUsed,
-            heapTotal: optimizationResult.after.heapTotal,
-            rss: optimizationResult.after.rss
+        },
+        monitoring: {
+          enabled: true,
+          interval: '30초',
+          threshold: {
+            target: '65%',
+            warning: '75%',
+            critical: '90%',
           },
-          improvement: {
-            freedMB: optimizationResult.freedMB,
-            percentageReduction: Math.round(
-              ((optimizationResult.before.usagePercent - optimizationResult.after.usagePercent) * 100) / 100
-            ),
-            status: afterStats.usagePercent < 65 ? 'optimal' :
-                   afterStats.usagePercent < 75 ? 'good' : 
-                   afterStats.usagePercent < 85 ? 'acceptable' : 'critical'
-          }
-        }
+        },
+        recommendations: generateMemoryRecommendations(afterStats),
+        apiMetrics: {
+          responseTime: apiResponseTime,
+          timestamp: new Date().toISOString(),
+        },
       },
-      monitoring: {
-        enabled: true,
-        interval: '30초',
-        threshold: {
-          target: '65%',
-          warning: '75%',
-          critical: '90%'
-        }
-      },
-      recommendations: generateMemoryRecommendations(afterStats),
-      apiMetrics: {
-        responseTime: apiResponseTime,
-        timestamp: new Date().toISOString()
-      }
-    }, `메모리 최적화 완료 - ${afterStats.usagePercent}% (${targetAchieved ? '목표 달성' : '추가 최적화 필요'})`);
-
+      `메모리 최적화 완료 - ${afterStats.usagePercent}% (${targetAchieved ? '목표 달성' : '추가 최적화 필요'})`
+    );
   } catch (error) {
     console.error('❌ 메모리 최적화 실패:', error);
-    
+
     // 에러 시에도 현재 메모리 상태 포함
     const currentStats = memoryOptimizer.getCurrentMemoryStats();
-    
+
     return createErrorResponse(
       `메모리 최적화 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
       'INTERNAL_SERVER_ERROR',
       {
         error: `현재 메모리 상태: ${currentStats.usagePercent}% (${currentStats.heapUsed}MB) - 상태: ${currentStats.usagePercent >= 90 ? 'critical' : 'warning'}`,
-        code: 'MEMORY_OPTIMIZATION_FAILED'
+        code: 'MEMORY_OPTIMIZATION_FAILED',
       }
     );
   }
@@ -124,31 +141,33 @@ async function getMemoryStatusHandler(request: NextRequest) {
 
     // 메모리 상태 요약
     const memorySummary = memoryOptimizer.getMemorySummary();
-    
+
     // 최적화 히스토리
     const optimizationHistory = memoryOptimizer.getOptimizationHistory();
 
-    return createSuccessResponse({
-      status: memorySummary.status,
-      current: memorySummary.current,
-      monitoring: {
-        enabled: true,
-        lastOptimization: memorySummary.lastOptimization,
-        totalOptimizations: memorySummary.totalOptimizations
-      },
-      history: optimizationHistory.map(result => ({
-        timestamp: new Date(result.before.timestamp).toISOString(),
-        improvement: {
-          before: `${result.before.usagePercent}%`,
-          after: `${result.after.usagePercent}%`,
-          freedMB: result.freedMB
+    return createSuccessResponse(
+      {
+        status: memorySummary.status,
+        current: memorySummary.current,
+        monitoring: {
+          enabled: true,
+          lastOptimization: memorySummary.lastOptimization,
+          totalOptimizations: memorySummary.totalOptimizations,
         },
-        duration: result.duration,
-        actions: result.optimizationActions
-      })),
-      recommendations: generateMemoryRecommendations(memorySummary)
-    }, '메모리 상태 조회 완료');
-
+        history: optimizationHistory.map(result => ({
+          timestamp: new Date(result.before.timestamp).toISOString(),
+          improvement: {
+            before: `${result.before.usagePercent}%`,
+            after: `${result.after.usagePercent}%`,
+            freedMB: result.freedMB,
+          },
+          duration: result.duration,
+          actions: result.optimizationActions,
+        })),
+        recommendations: generateMemoryRecommendations(memorySummary),
+      },
+      '메모리 상태 조회 완료'
+    );
   } catch (error) {
     console.error('❌ 메모리 상태 조회 실패:', error);
     return createErrorResponse(
@@ -194,4 +213,4 @@ function generateMemoryRecommendations(memorySummary: any): string[] {
 
 // 에러 핸들러로 래핑
 export const POST = withErrorHandler(optimizeMemoryHandler);
-export const GET = withErrorHandler(getMemoryStatusHandler); 
+export const GET = withErrorHandler(getMemoryStatusHandler);

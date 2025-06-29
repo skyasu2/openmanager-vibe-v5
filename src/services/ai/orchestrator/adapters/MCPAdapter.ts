@@ -55,4 +55,4 @@ export class MCPAdapter implements EngineAdapter {
       };
     }
   }
-} 
+}

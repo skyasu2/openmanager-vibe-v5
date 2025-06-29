@@ -1,6 +1,6 @@
 /**
  * 🤖 AI 엔진 타입 정의
- * 
+ *
  * Single Responsibility: 모든 AI 관련 인터페이스와 타입을 통합 관리
  */
 
@@ -78,9 +78,9 @@ export interface ProcessingContext {
 
 export type RenderStatus = 'active' | 'sleeping' | 'error';
 
-export type AIIntent = 
+export type AIIntent =
   | 'troubleshooting'
-  | 'emergency' 
+  | 'emergency'
   | 'prediction'
   | 'analysis'
   | 'monitoring'

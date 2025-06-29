@@ -188,8 +188,8 @@ export class ServiceRegistry {
           },
           getChecks: () => Array.from(checks.keys()),
           isHealthy: async () => true,
-          startPeriodicCheck: () => { },
-          stopPeriodicCheck: () => { },
+          startPeriodicCheck: () => {},
+          stopPeriodicCheck: () => {},
         };
       },
       'singleton'
@@ -233,8 +233,8 @@ export class ServiceRegistry {
             alerts: [],
           }),
           collectBatch: async () => [],
-          startCollection: () => { },
-          stopCollection: () => { },
+          startCollection: () => {},
+          stopCollection: () => {},
           isCollecting: () => false,
         };
       },
@@ -246,11 +246,11 @@ export class ServiceRegistry {
       SERVICE_TOKENS.METRICS_BRIDGE,
       () => {
         return {
-          sendMetrics: async () => { },
+          sendMetrics: async () => {},
           getMetrics: async () => [],
           isConnected: () => false,
-          connect: async () => { },
-          disconnect: () => { },
+          connect: async () => {},
+          disconnect: () => {},
         };
       },
       'singleton'

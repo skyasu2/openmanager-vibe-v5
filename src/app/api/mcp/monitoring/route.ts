@@ -47,8 +47,8 @@ export async function GET(request: NextRequest) {
             requestCount: 247,
             errorRate: 0.8,
             averageResponseTime: 45,
-            memoryUsage: 32.5
-          }
+            memoryUsage: 32.5,
+          },
         },
         {
           id: 'github',
@@ -60,8 +60,8 @@ export async function GET(request: NextRequest) {
             requestCount: 156,
             errorRate: 1.2,
             averageResponseTime: 78,
-            memoryUsage: 28.3
-          }
+            memoryUsage: 28.3,
+          },
         },
         {
           id: 'openmanager-docs',
@@ -73,9 +73,9 @@ export async function GET(request: NextRequest) {
             requestCount: 89,
             errorRate: 0.5,
             averageResponseTime: 32,
-            memoryUsage: 19.7
-          }
-        }
+            memoryUsage: 19.7,
+          },
+        },
       ],
       summary: {
         totalServers: 3,
@@ -83,14 +83,14 @@ export async function GET(request: NextRequest) {
         healthyServers: 3,
         totalRequests: 492,
         averageErrorRate: 0.83,
-        systemLoad: 'low'
+        systemLoad: 'low',
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return NextResponse.json({
       success: true,
-      data: monitoringData
+      data: monitoringData,
     });
   } catch (error) {
     console.error('MCP 모니터링 조회 오류:', error);
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         error: 'MCP 모니터링 조회 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
           server: server || 'all',
           status: 'success',
           message: `${server || 'All'} 서버가 재시작되었습니다`,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
         break;
 
@@ -133,9 +133,9 @@ export async function POST(request: NextRequest) {
             connectivity: true,
             memory: true,
             performance: true,
-            errors: false
+            errors: false,
           },
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
         break;
 
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
           status: 'success',
           config: config || {},
           message: '구성이 업데이트되었습니다',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
         break;
 
@@ -156,13 +156,13 @@ export async function POST(request: NextRequest) {
           status: 'error',
           message: '지원하지 않는 액션입니다',
           supportedActions: ['restart', 'healthcheck', 'configure'],
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
     }
 
     return NextResponse.json({
       success: result.status !== 'error',
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('MCP 모니터링 액션 오류:', error);
@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         error: 'MCP 모니터링 액션 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

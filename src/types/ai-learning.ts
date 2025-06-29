@@ -127,18 +127,18 @@ export interface LearningMetrics {
 export interface QueryLogForAI {
   id: string;
   timestamp: string;
-  query: string;              // 요약 질문 (100자 내외)
-  response: string;           // 요약 응답 (200자 내외)
+  query: string; // 요약 질문 (100자 내외)
+  response: string; // 요약 응답 (200자 내외)
   intent: string;
   confidence: number;
   responseTime: number;
   feedback: 'helpful' | 'not_helpful' | 'incorrect' | null;
-  contextSummary?: string;    // 컨텍스트 요약 (50자 내외)
-  errorType?: string;         // 오류 유형 (있는 경우)
-  fullQuery?: string;         // 원본 질문 전문 (AI 분석 시 필요한 경우)
-  fullResponse?: string;      // 원본 응답 전문 (AI 분석 시 필요한 경우)
-  priorityScore?: number;     // 개선 우선순위 점수 (자동 계산)
-  groupId?: string;           // 유사 질의 그룹 ID
+  contextSummary?: string; // 컨텍스트 요약 (50자 내외)
+  errorType?: string; // 오류 유형 (있는 경우)
+  fullQuery?: string; // 원본 질문 전문 (AI 분석 시 필요한 경우)
+  fullResponse?: string; // 원본 응답 전문 (AI 분석 시 필요한 경우)
+  priorityScore?: number; // 개선 우선순위 점수 (자동 계산)
+  groupId?: string; // 유사 질의 그룹 ID
 }
 
 /**
@@ -193,14 +193,22 @@ export interface ImprovementHistory {
  * AI 분석 요청 구조
  */
 export interface AIAnalysisRequest {
-  analysisType: 'pattern_discovery' | 'failure_analysis' | 'improvement_suggestion' | 'intent_classification';
+  analysisType:
+    | 'pattern_discovery'
+    | 'failure_analysis'
+    | 'improvement_suggestion'
+    | 'intent_classification';
   logs: QueryLogForAI[];
   timeRange: {
     start: string;
     end: string;
   };
-  focusArea?: 'low_confidence' | 'negative_feedback' | 'slow_response' | 'unclassified';
-  maxTokens?: number;         // 토큰 제한
+  focusArea?:
+    | 'low_confidence'
+    | 'negative_feedback'
+    | 'slow_response'
+    | 'unclassified';
+  maxTokens?: number; // 토큰 제한
   model?: 'gpt-4' | 'claude-3' | 'internal';
 }
 
@@ -250,4 +258,4 @@ export interface AdminAnalysisSession {
   approvedSuggestions: string[];
   rejectedSuggestions: string[];
   status: 'pending' | 'ai_analyzed' | 'admin_reviewed' | 'implemented';
-} 
+}

@@ -55,10 +55,10 @@ interface AdvancedAnalysisRequest {
   serverMetrics?: ServerMetrics[];
   context?: any;
   analysisType:
-  | 'monitoring'
-  | 'prediction'
-  | 'troubleshooting'
-  | 'optimization';
+    | 'monitoring'
+    | 'prediction'
+    | 'troubleshooting'
+    | 'optimization';
   priority: 'low' | 'medium' | 'high' | 'critical';
 }
 
@@ -100,7 +100,11 @@ export class GoogleAIService {
     // 🚀 대화용 Google AI 활성화 (학습은 하루 1회 제한)
     const isKeyAvailable = isGoogleAIAvailable();
 
-    if (this.config.apiKey && this.config.apiKey.trim() !== '' && isKeyAvailable) {
+    if (
+      this.config.apiKey &&
+      this.config.apiKey.trim() !== '' &&
+      isKeyAvailable
+    ) {
       this.config.enabled = true;
       console.log('🚀 Google AI 대화용 활성화 - 학습은 하루 1회 제한');
     } else {
@@ -130,7 +134,9 @@ export class GoogleAIService {
    * @deprecated getInstance()를 사용하세요
    */
   public static create(): GoogleAIService {
-    console.warn('⚠️ GoogleAIService.create()는 deprecated입니다. getInstance()를 사용하세요.');
+    console.warn(
+      '⚠️ GoogleAIService.create()는 deprecated입니다. getInstance()를 사용하세요.'
+    );
     return GoogleAIService.getInstance();
   }
 
@@ -460,8 +466,8 @@ export class GoogleAIService {
 서버 모니터링 데이터를 분석해주세요:
 
 ${metrics
-        .map(
-          server => `
+  .map(
+    server => `
 서버: ${server.name}
 CPU: ${server.cpu_usage}%
 메모리: ${server.memory_usage}%
@@ -469,8 +475,8 @@ CPU: ${server.cpu_usage}%
 응답시간: ${server.response_time}ms
 상태: ${server.status}
 `
-        )
-        .join('\n')}
+  )
+  .join('\n')}
 
 다음 관점에서 분석해주세요:
 1. 현재 시스템 상태 요약
@@ -828,9 +834,9 @@ ${index + 1}. 서버: ${server.name}
     const currentApiKey = getGoogleAIKey();
     return Boolean(
       this.config.enabled &&
-      currentApiKey &&
-      this.isInitialized &&
-      isGoogleAIAvailable()
+        currentApiKey &&
+        this.isInitialized &&
+        isGoogleAIAvailable()
     );
   }
 

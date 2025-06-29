@@ -566,11 +566,11 @@ ${report.affectedServers.join(', ')}
 ===========================================
 
 ${report.timeline
-        .map(
-          event =>
-            `${new Date(event.timestamp).toLocaleTimeString('ko-KR')} [${event.severity.toUpperCase()}] ${event.event}: ${event.details}`
-        )
-        .join('\n')}
+  .map(
+    event =>
+      `${new Date(event.timestamp).toLocaleTimeString('ko-KR')} [${event.severity.toUpperCase()}] ${event.event}: ${event.details}`
+  )
+  .join('\n')}
 
 ===========================================
         보고서 정보

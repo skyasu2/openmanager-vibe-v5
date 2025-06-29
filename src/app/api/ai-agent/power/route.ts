@@ -1,6 +1,6 @@
 /**
  * AI Agent Power Management API
- * 
+ *
  * 🔋 AI 에이전트 전원 관리 시스템
  * - 이식성을 해치지 않는 모듈화된 설계
  * - 시스템 활성화/비활성화와 연동
@@ -42,12 +42,17 @@ class AIAgentPowerManager {
     // 새로운 절전 타이머 시작
     this.startPowerTimers();
 
-    console.log('🤖 AI Agent activated - isActive:', this.isActive, 'powerMode:', this.powerMode);
+    console.log(
+      '🤖 AI Agent activated - isActive:',
+      this.isActive,
+      'powerMode:',
+      this.powerMode
+    );
 
     return {
       success: true,
       message: 'AI 에이전트가 활성화되었습니다.',
-      powerMode: this.powerMode
+      powerMode: this.powerMode,
     };
   }
 
@@ -66,7 +71,7 @@ class AIAgentPowerManager {
     return {
       success: true,
       message: 'AI 에이전트가 비활성화되었습니다.',
-      powerMode: this.powerMode
+      powerMode: this.powerMode,
     };
   }
 
@@ -91,7 +96,12 @@ class AIAgentPowerManager {
       this.startPowerTimers();
     }
 
-    console.log('📝 AI Agent activity recorded - isActive:', this.isActive, 'powerMode:', this.powerMode);
+    console.log(
+      '📝 AI Agent activity recorded - isActive:',
+      this.isActive,
+      'powerMode:',
+      this.powerMode
+    );
   }
 
   /**
@@ -107,7 +117,7 @@ class AIAgentPowerManager {
       isActive: this.isActive,
       powerMode: this.powerMode,
       lastActivity: this.lastActivity,
-      timeSinceLastActivity: Date.now() - this.lastActivity
+      timeSinceLastActivity: Date.now() - this.lastActivity,
     };
   }
 
@@ -174,7 +184,7 @@ class AIAgentPowerManager {
    * 모든 타이머 정리
    */
   private clearAllTimers(): void {
-    this.powerTimers.forEach((timer) => {
+    this.powerTimers.forEach(timer => {
       clearTimeout(timer);
     });
     this.powerTimers.clear();
@@ -191,7 +201,10 @@ export async function POST(request: NextRequest) {
 
     if (!action || !['activate', 'deactivate', 'activity'].includes(action)) {
       return NextResponse.json(
-        { error: '유효하지 않은 액션입니다. (activate, deactivate, activity 중 선택)' },
+        {
+          error:
+            '유효하지 않은 액션입니다. (activate, deactivate, activity 중 선택)',
+        },
         { status: 400 }
       );
     }
@@ -200,25 +213,35 @@ export async function POST(request: NextRequest) {
     if (action === 'activate') {
       try {
         // useUnifiedAdminStore에서 인증 상태 확인
-        const { useUnifiedAdminStore } = await import('../../../../stores/useUnifiedAdminStore');
+        const { useUnifiedAdminStore } = await import(
+          '../../../../stores/useUnifiedAdminStore'
+        );
         const adminStore = useUnifiedAdminStore.getState();
 
         // 관리자 인증 상태 확인
         if (!adminStore.adminMode.isAuthenticated) {
-          console.warn('🚫 [Security] AI 에이전트 Power API 접근 차단 - 관리자 인증 필요');
-          return NextResponse.json({
-            success: false,
-            error: 'AI 관리자 기능 사용을 위해서는 관리자 인증이 필요합니다.',
-            code: 'ADMIN_AUTHENTICATION_REQUIRED'
-          }, { status: 401 });
+          console.warn(
+            '🚫 [Security] AI 에이전트 Power API 접근 차단 - 관리자 인증 필요'
+          );
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'AI 관리자 기능 사용을 위해서는 관리자 인증이 필요합니다.',
+              code: 'ADMIN_AUTHENTICATION_REQUIRED',
+            },
+            { status: 401 }
+          );
         }
       } catch (error) {
         console.error('❌ 인증 상태 확인 중 오류:', error);
-        return NextResponse.json({
-          success: false,
-          error: '인증 확인 중 오류가 발생했습니다.',
-          code: 'AUTH_CHECK_FAILED'
-        }, { status: 500 });
+        return NextResponse.json(
+          {
+            success: false,
+            error: '인증 확인 중 오류가 발생했습니다.',
+            code: 'AUTH_CHECK_FAILED',
+          },
+          { status: 500 }
+        );
       }
     }
 
@@ -231,7 +254,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           data: activateResult,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
       case 'deactivate':
@@ -239,7 +262,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           data: deactivateResult,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
       case 'activity':
@@ -248,7 +271,7 @@ export async function POST(request: NextRequest) {
           success: true,
           message: '활동이 기록되었습니다.',
           data: aiPowerManager.getStatus(),
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
       default:
@@ -257,15 +280,17 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
     }
-
   } catch (error) {
     console.error('❌ AI Agent power management failed:', error);
 
-    return NextResponse.json({
-      success: false,
-      error: 'AI 에이전트 전원 관리에 실패했습니다.',
-      message: error instanceof Error ? error.message : '알 수 없는 오류'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'AI 에이전트 전원 관리에 실패했습니다.',
+        message: error instanceof Error ? error.message : '알 수 없는 오류',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -278,19 +303,21 @@ export async function GET() {
       data: {
         ...status,
         description: getStatusDescription(status.powerMode),
-        features: getPowerModeFeatures(status.powerMode)
+        features: getPowerModeFeatures(status.powerMode),
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
     console.error('❌ AI Agent status check failed:', error);
 
-    return NextResponse.json({
-      success: false,
-      error: 'AI 에이전트 상태 확인에 실패했습니다.',
-      message: error instanceof Error ? error.message : '알 수 없는 오류'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'AI 에이전트 상태 확인에 실패했습니다.',
+        message: error instanceof Error ? error.message : '알 수 없는 오류',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -320,21 +347,13 @@ function getPowerModeFeatures(powerMode: string): string[] {
         '실시간 질의 응답',
         '고급 분석 기능',
         '자동 보고서 생성',
-        '실시간 모니터링'
+        '실시간 모니터링',
       ];
     case 'idle':
-      return [
-        '기본 질의 응답',
-        '절전 모드 준비',
-        '활동 감지 대기'
-      ];
+      return ['기본 질의 응답', '절전 모드 준비', '활동 감지 대기'];
     case 'sleep':
-      return [
-        '모든 기능 정지',
-        '수동 활성화 대기',
-        '최소 리소스 사용'
-      ];
+      return ['모든 기능 정지', '수동 활성화 대기', '최소 리소스 사용'];
     default:
       return [];
   }
-} 
+}

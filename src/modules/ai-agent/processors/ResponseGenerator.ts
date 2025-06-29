@@ -1,14 +1,14 @@
 /**
  * 💬 AI 에이전트 프로세서용 응답 생성기 (래퍼)
- * 
+ *
  * 통합 응답 생성 시스템의 래퍼 클래스
  * 기존 API 호환성 유지하면서 UnifiedResponseGenerator 사용
  */
 
 import { Intent } from './IntentClassifier';
-import { 
-  unifiedResponseGenerator, 
-  UnifiedResponseRequest 
+import {
+  unifiedResponseGenerator,
+  UnifiedResponseRequest,
 } from '../../../services/ai/response/UnifiedResponseGenerator';
 
 export interface ResponseRequest {
@@ -39,7 +39,9 @@ export class ResponseGenerator {
     await unifiedResponseGenerator.initialize();
 
     this.isInitialized = true;
-    console.log('💬 [ResponseGenerator] AI 에이전트 프로세서용 응답 생성기가 초기화되었습니다 (통합 시스템 사용)');
+    console.log(
+      '💬 [ResponseGenerator] AI 에이전트 프로세서용 응답 생성기가 초기화되었습니다 (통합 시스템 사용)'
+    );
   }
 
   /**
@@ -58,11 +60,12 @@ export class ResponseGenerator {
       serverData: request.serverData,
       mcpResponse: request.mcpResponse,
       language: 'ko',
-      responseType: 'intent'
+      responseType: 'intent',
     };
 
     // 통합 응답 생성기로 응답 생성
-    const unifiedResult = await unifiedResponseGenerator.generateResponse(unifiedRequest);
+    const unifiedResult =
+      await unifiedResponseGenerator.generateResponse(unifiedRequest);
 
     // 기존 인터페이스로 변환하여 반환
     return {
@@ -91,7 +94,7 @@ export class ResponseGenerator {
     return {
       isInitialized: this.isInitialized,
       unifiedGeneratorStats: unifiedResponseGenerator.getStats(),
-      wrapperType: 'IntentBasedResponseGenerator'
+      wrapperType: 'IntentBasedResponseGenerator',
     };
   }
 }

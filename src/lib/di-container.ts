@@ -1,6 +1,6 @@
 /**
  * 🔧 Dependency Injection Container
- * 
+ *
  * 싱글톤 패턴을 대체하는 의존성 주입 시스템
  * - 타입 안전한 서비스 등록 및 해결
  * - 라이프사이클 관리 (Singleton, Transient, Scoped)
@@ -26,7 +26,10 @@ export interface ServiceFactory<T = any> {
 
 export class DIContainer {
   private static instance: DIContainer;
-  private services = new Map<string | symbol, ServiceDescriptor | ServiceFactory>();
+  private services = new Map<
+    string | symbol,
+    ServiceDescriptor | ServiceFactory
+  >();
   private singletonInstances = new Map<string | symbol, any>();
   private scopedInstances = new Map<string, Map<string | symbol, any>>();
   private resolutionStack: (string | symbol)[] = [];
@@ -65,7 +68,7 @@ export class DIContainer {
       token: interfaceToken,
       implementation,
       lifetime,
-      dependencies
+      dependencies,
     });
   }
 
@@ -75,7 +78,9 @@ export class DIContainer {
   resolve<T>(token: string | symbol, scopeId?: string): T {
     // 순환 의존성 감지
     if (this.resolutionStack.includes(token)) {
-      throw new Error(`Circular dependency detected: ${this.resolutionStack.join(' -> ')} -> ${String(token)}`);
+      throw new Error(
+        `Circular dependency detected: ${this.resolutionStack.join(' -> ')} -> ${String(token)}`
+      );
     }
 
     const service = this.services.get(token);
@@ -104,7 +109,9 @@ export class DIContainer {
   /**
    * 싱글톤 인스턴스 해결
    */
-  private resolveSingleton<T>(service: ServiceDescriptor<T> | ServiceFactory<T>): T {
+  private resolveSingleton<T>(
+    service: ServiceDescriptor<T> | ServiceFactory<T>
+  ): T {
     if (this.singletonInstances.has(service.token)) {
       return this.singletonInstances.get(service.token);
     }
@@ -117,14 +124,19 @@ export class DIContainer {
   /**
    * 일시적 인스턴스 해결
    */
-  private resolveTransient<T>(service: ServiceDescriptor<T> | ServiceFactory<T>): T {
+  private resolveTransient<T>(
+    service: ServiceDescriptor<T> | ServiceFactory<T>
+  ): T {
     return this.createInstance(service);
   }
 
   /**
    * 스코프 인스턴스 해결
    */
-  private resolveScoped<T>(service: ServiceDescriptor<T> | ServiceFactory<T>, scopeId: string): T {
+  private resolveScoped<T>(
+    service: ServiceDescriptor<T> | ServiceFactory<T>,
+    scopeId: string
+  ): T {
     if (!this.scopedInstances.has(scopeId)) {
       this.scopedInstances.set(scopeId, new Map());
     }
@@ -142,7 +154,9 @@ export class DIContainer {
   /**
    * 인스턴스 생성
    */
-  private createInstance<T>(service: ServiceDescriptor<T> | ServiceFactory<T>): T {
+  private createInstance<T>(
+    service: ServiceDescriptor<T> | ServiceFactory<T>
+  ): T {
     const dependencies = service.dependencies || [];
     const resolvedDependencies = dependencies.map(dep => this.resolve(dep));
 
@@ -197,31 +211,31 @@ export const SERVICE_TOKENS = {
   // AI 서비스
   AI_ANALYSIS_SERVICE: Symbol('AIAnalysisService'),
   AI_AGENT_ENGINE: Symbol('AIAgentEngine'),
-  
+
   // 로깅 서비스
   LOGGER: Symbol('Logger'),
-  
+
   // 에러 처리 서비스
   ERROR_HANDLER: Symbol('ErrorHandler'),
-  
+
   // 설정 서비스
   CONFIG_LOADER: Symbol('ConfigLoader'),
-  
+
   // 메트릭 서비스
   METRICS_COLLECTOR: Symbol('MetricsCollector'),
   METRICS_BRIDGE: Symbol('MetricsBridge'),
-  
+
   // 스토리지 서비스
   STORAGE_SERVICE: Symbol('StorageService'),
-  
+
   // 캐시 서비스
   CACHE_SERVICE: Symbol('CacheService'),
-  
+
   // 헬스체크 서비스
   HEALTH_CHECK_SERVICE: Symbol('HealthCheckService'),
-  
+
   // 테스트 프레임워크
-  TEST_FRAMEWORK: Symbol('TestFramework')
+  TEST_FRAMEWORK: Symbol('TestFramework'),
 } as const;
 
 // 편의 함수들
@@ -254,7 +268,10 @@ export function clearScope(scopeId: string): void {
 }
 
 // 데코레이터 (선택적)
-export function Injectable(token?: string | symbol, lifetime: ServiceLifetime = 'singleton') {
+export function Injectable(
+  token?: string | symbol,
+  lifetime: ServiceLifetime = 'singleton'
+) {
   return function <T extends new (...args: any[]) => any>(constructor: T) {
     const serviceToken = token || constructor.name;
     registerService(serviceToken, constructor, lifetime);
@@ -264,11 +281,15 @@ export function Injectable(token?: string | symbol, lifetime: ServiceLifetime = 
 
 // 간단한 의존성 주입 데코레이터 (메타데이터 없이)
 export function Inject(token: string | symbol) {
-  return function (target: any, propertyKey: string | symbol | undefined, parameterIndex: number) {
+  return function (
+    target: any,
+    propertyKey: string | symbol | undefined,
+    parameterIndex: number
+  ) {
     // 간단한 의존성 추적 (실제 프로젝트에서는 reflect-metadata 사용 권장)
     if (!target.__dependencies) {
       target.__dependencies = [];
     }
     target.__dependencies[parameterIndex] = token;
   };
-} 
+}

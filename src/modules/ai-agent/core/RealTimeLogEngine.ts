@@ -1,9 +1,9 @@
 /**
  * 🚀 실시간 AI 로그 엔진 v1.0
- * 
+ *
  * 실제 AI 에이전트의 로그를 실시간으로 수집, 파싱, 스트리밍
  * - 동적 로그 파서 (AI 엔진 변경에 대응)
- * - 실시간 로그 스트리밍 
+ * - 실시간 로그 스트리밍
  * - 로그 저장 및 관리
  * - WebSocket을 통한 실시간 전송
  */
@@ -15,7 +15,14 @@ import { WebSocketManager } from '../../../services/websocket/WebSocketManager';
 export interface RealTimeLogEntry {
   id: string;
   timestamp: string;
-  level: 'INFO' | 'DEBUG' | 'PROCESSING' | 'SUCCESS' | 'ERROR' | 'WARNING' | 'ANALYSIS';
+  level:
+    | 'INFO'
+    | 'DEBUG'
+    | 'PROCESSING'
+    | 'SUCCESS'
+    | 'ERROR'
+    | 'WARNING'
+    | 'ANALYSIS';
   module: string;
   message: string;
   details?: string;
@@ -78,10 +85,10 @@ export class RealTimeLogEngine extends EventEmitter {
 
     await this.adminLogger.initialize();
     this.webSocketManager = webSocketManager || null;
-    
+
     // 이벤트 리스너 설정
     this.setupEventListeners();
-    
+
     this.isInitialized = true;
     console.log('🚀 실시간 AI 로그 엔진 초기화 완료');
   }
@@ -94,85 +101,86 @@ export class RealTimeLogEngine extends EventEmitter {
       // NodeJS/Express 패턴
       {
         id: 'nodejs_init',
-        pattern: /\[(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\] \[(\w+)\] \[(\w+)\] (.+)/,
-        extractor: (match) => ({
+        pattern:
+          /\[(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\] \[(\w+)\] \[(\w+)\] (.+)/,
+        extractor: match => ({
           timestamp: match[1],
           level: match[2] as any,
           module: match[3],
-          message: match[4]
+          message: match[4],
         }),
-        priority: 1
+        priority: 1,
       },
-      
+
       // Redis 연결 패턴
       {
         id: 'redis_connection',
         pattern: /Redis (\w+):? (.+)(?:Latency: (\d+)ms)?/,
-        extractor: (match) => ({
+        extractor: match => ({
           level: 'DEBUG',
           module: 'RedisConnector',
           message: `Redis ${match[1]}: ${match[2]}`,
           details: match[3] ? `Latency: ${match[3]}ms` : undefined,
-          metadata: { 
+          metadata: {
             apiCall: true,
-            latency: match[3] ? parseInt(match[3]) : undefined
-          }
+            latency: match[3] ? parseInt(match[3]) : undefined,
+          },
         }),
-        priority: 2
+        priority: 2,
       },
 
       // API 호출 패턴
       {
         id: 'api_call',
         pattern: /API (\w+) (\/[\w\/\-]+)(?:\s+(\d+)ms)?/,
-        extractor: (match) => ({
+        extractor: match => ({
           level: 'PROCESSING',
           module: 'APIManager',
           message: `API ${match[1]} ${match[2]}`,
           details: match[3] ? `Response time: ${match[3]}ms` : undefined,
-          metadata: { 
+          metadata: {
             apiCall: true,
             endpoint: match[2],
-            responseTime: match[3] ? parseInt(match[3]) : undefined
-          }
+            responseTime: match[3] ? parseInt(match[3]) : undefined,
+          },
         }),
-        priority: 2
+        priority: 2,
       },
 
       // NLP 처리 패턴
       {
         id: 'nlp_processing',
         pattern: /NLP (.+) Keywords: \[([^\]]+)\] Confidence: (0\.\d+)/,
-        extractor: (match) => ({
+        extractor: match => ({
           level: 'ANALYSIS',
           module: 'NLPProcessor',
           message: `NLP ${match[1]}`,
           details: `Keywords: [${match[2]}], Confidence: ${match[3]}`,
-          metadata: { 
+          metadata: {
             algorithm: 'compromise.js',
             keywords: match[2].split(', '),
-            confidence: parseFloat(match[3])
-          }
+            confidence: parseFloat(match[3]),
+          },
         }),
-        priority: 3
+        priority: 3,
       },
 
       // ML 알고리즘 패턴
       {
         id: 'ml_processing',
         pattern: /(\w+) algorithm (\w+)(?:\s+Score: (0\.\d+))?/,
-        extractor: (match) => ({
+        extractor: match => ({
           level: 'PROCESSING',
           module: 'MLEngine',
           message: `${match[1]} algorithm ${match[2]}`,
           details: match[3] ? `Score: ${match[3]}` : undefined,
-          metadata: { 
+          metadata: {
             algorithm: `${match[1]}_${match[2]}`,
-            score: match[3] ? parseFloat(match[3]) : undefined
-          }
+            score: match[3] ? parseFloat(match[3]) : undefined,
+          },
         }),
-        priority: 3
-      }
+        priority: 3,
+      },
     ];
 
     console.log(`📋 ${this.logPatterns.length}개 로그 패턴 로드됨`);
@@ -181,9 +189,13 @@ export class RealTimeLogEngine extends EventEmitter {
   /**
    * 새 처리 세션 시작
    */
-  startSession(questionId: string, question: string, metadata: any = {}): string {
+  startSession(
+    questionId: string,
+    question: string,
+    metadata: any = {}
+  ): string {
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const session: ProcessingSession = {
       sessionId,
       questionId,
@@ -191,18 +203,18 @@ export class RealTimeLogEngine extends EventEmitter {
       startTime: Date.now(),
       logs: [],
       status: 'active',
-      metadata
+      metadata,
     };
 
     this.activeSessions.set(sessionId, session);
-    
+
     // 시작 로그 추가
     this.addLog(sessionId, {
       level: 'INFO',
       module: 'SessionManager',
       message: 'AI processing session started',
       details: `Question: "${question.length > 50 ? question.substring(0, 50) + '...' : question}"`,
-      metadata: { ...metadata, sessionStart: true }
+      metadata: { ...metadata, sessionStart: true },
     });
 
     console.log(`🎬 새 세션 시작: ${sessionId}`);
@@ -212,7 +224,10 @@ export class RealTimeLogEngine extends EventEmitter {
   /**
    * 실시간 로그 추가 (동적 파싱)
    */
-  addLog(sessionId: string, logData: Partial<RealTimeLogEntry> & { message: string }): void {
+  addLog(
+    sessionId: string,
+    logData: Partial<RealTimeLogEntry> & { message: string }
+  ): void {
     const session = this.activeSessions.get(sessionId);
     if (!session) {
       console.warn(`⚠️ 세션을 찾을 수 없음: ${sessionId}`);
@@ -230,13 +245,13 @@ export class RealTimeLogEngine extends EventEmitter {
       sessionId: sessionId,
       metadata: {
         processingTime: Date.now() - session.startTime,
-        ...logData.metadata
-      }
+        ...logData.metadata,
+      },
     };
 
     // 동적 로그 파싱 적용
     const enrichedLog = this.applyLogPatterns(logEntry);
-    
+
     // 세션에 로그 추가
     session.logs.push(enrichedLog);
 
@@ -249,7 +264,9 @@ export class RealTimeLogEngine extends EventEmitter {
     // 이벤트 발생
     this.emit('logAdded', { sessionId, log: enrichedLog });
 
-    console.log(`📝 로그 추가: [${enrichedLog.level}] ${enrichedLog.module} - ${enrichedLog.message}`);
+    console.log(
+      `📝 로그 추가: [${enrichedLog.level}] ${enrichedLog.module} - ${enrichedLog.message}`
+    );
   }
 
   /**
@@ -257,15 +274,17 @@ export class RealTimeLogEngine extends EventEmitter {
    */
   private applyLogPatterns(log: RealTimeLogEntry): RealTimeLogEntry {
     const combinedText = `${log.message} ${log.details || ''}`;
-    
+
     // 우선순위 순으로 패턴 적용
-    const sortedPatterns = [...this.logPatterns].sort((a, b) => b.priority - a.priority);
-    
+    const sortedPatterns = [...this.logPatterns].sort(
+      (a, b) => b.priority - a.priority
+    );
+
     for (const pattern of sortedPatterns) {
       const match = combinedText.match(pattern.pattern);
       if (match) {
         const extracted = pattern.extractor(match);
-        
+
         // 추출된 데이터로 로그 엔리치
         return {
           ...log,
@@ -273,8 +292,8 @@ export class RealTimeLogEngine extends EventEmitter {
           metadata: {
             ...log.metadata,
             ...extracted.metadata,
-            patternMatch: pattern.id
-          }
+            patternMatch: pattern.id,
+          },
         };
       }
     }
@@ -285,52 +304,56 @@ export class RealTimeLogEngine extends EventEmitter {
   /**
    * 실제 API 호출 로그 (검증 가능)
    */
-  async addApiCallLog(sessionId: string, endpoint: string, method: string = 'GET'): Promise<boolean> {
+  async addApiCallLog(
+    sessionId: string,
+    endpoint: string,
+    method: string = 'GET'
+  ): Promise<boolean> {
     const startTime = Date.now();
-    
+
     this.addLog(sessionId, {
       level: 'PROCESSING',
       module: 'APIManager',
       message: `Making ${method} request to ${endpoint}`,
-      metadata: { apiCall: true, endpoint, method }
+      metadata: { apiCall: true, endpoint, method },
     });
 
     try {
       // 실제 API 호출
       const response = await fetch(endpoint, { method });
       const responseTime = Date.now() - startTime;
-      
+
       this.addLog(sessionId, {
         level: response.ok ? 'SUCCESS' : 'ERROR',
         module: 'APIManager',
         message: `${method} ${endpoint} completed`,
         details: `Status: ${response.status}, Response time: ${responseTime}ms`,
-        metadata: { 
-          apiCall: true, 
-          endpoint, 
+        metadata: {
+          apiCall: true,
+          endpoint,
           method,
           statusCode: response.status,
           responseTime,
-          success: response.ok
-        }
+          success: response.ok,
+        },
       });
 
       return response.ok;
     } catch (error) {
       const responseTime = Date.now() - startTime;
-      
+
       this.addLog(sessionId, {
         level: 'ERROR',
         module: 'APIManager',
         message: `${method} ${endpoint} failed`,
         details: `Error: ${error instanceof Error ? error.message : 'Unknown error'}, Time: ${responseTime}ms`,
-        metadata: { 
-          apiCall: true, 
-          endpoint, 
+        metadata: {
+          apiCall: true,
+          endpoint,
           method,
           responseTime,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        }
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
       });
 
       return false;
@@ -340,7 +363,11 @@ export class RealTimeLogEngine extends EventEmitter {
   /**
    * 세션 완료
    */
-  completeSession(sessionId: string, result: 'success' | 'failed', answer?: string): void {
+  completeSession(
+    sessionId: string,
+    result: 'success' | 'failed',
+    answer?: string
+  ): void {
     const session = this.activeSessions.get(sessionId);
     if (!session) {
       console.warn(`⚠️ 세션을 찾을 수 없음: ${sessionId}`);
@@ -355,12 +382,12 @@ export class RealTimeLogEngine extends EventEmitter {
       module: 'SessionManager',
       message: `AI processing session ${result}`,
       details: `Total time: ${totalTime}ms, Logs: ${session.logs.length}`,
-      metadata: { 
-        sessionEnd: true, 
-        totalTime, 
+      metadata: {
+        sessionEnd: true,
+        totalTime,
         totalLogs: session.logs.length,
-        answer: answer?.substring(0, 100) 
-      }
+        answer: answer?.substring(0, 100),
+      },
     });
 
     // AdminLogger에 전체 상호작용 기록
@@ -372,16 +399,24 @@ export class RealTimeLogEngine extends EventEmitter {
   /**
    * AdminLogger에 기록
    */
-  private recordToAdminLogger(session: ProcessingSession, log: RealTimeLogEntry): void {
+  private recordToAdminLogger(
+    session: ProcessingSession,
+    log: RealTimeLogEntry
+  ): void {
     // AdminLogger 형식에 맞게 변환하여 기록하는 로직 추가 가능
   }
 
   /**
    * 전체 상호작용을 AdminLogger에 기록
    */
-  private recordInteractionToAdminLogger(session: ProcessingSession, result: string, answer?: string): void {
-    const mode: 'basic' | 'advanced' = (session.metadata.mode === 'advanced') ? 'advanced' : 'basic';
-    
+  private recordInteractionToAdminLogger(
+    session: ProcessingSession,
+    result: string,
+    answer?: string
+  ): void {
+    const mode: 'basic' | 'advanced' =
+      session.metadata.mode === 'advanced' ? 'advanced' : 'basic';
+
     const interactionLog: Omit<AIInteractionLog, 'id' | 'timestamp'> = {
       sessionId: session.sessionId,
       userId: session.metadata.userId,
@@ -395,7 +430,7 @@ export class RealTimeLogEngine extends EventEmitter {
       intent: {
         name: session.metadata.category || 'general',
         confidence: 0.8,
-        entities: {}
+        entities: {},
       },
       thinkingSessionId: session.sessionId,
       thinkingSteps: session.logs.length,
@@ -403,8 +438,8 @@ export class RealTimeLogEngine extends EventEmitter {
       metadata: {
         contextLength: session.question.length,
         cacheHit: session.logs.some(log => log.metadata.cacheHit),
-        pluginsUsed: Array.from(new Set(session.logs.map(log => log.module)))
-      }
+        pluginsUsed: Array.from(new Set(session.logs.map(log => log.module))),
+      },
     };
 
     this.adminLogger.logInteraction(interactionLog);
@@ -420,7 +455,7 @@ export class RealTimeLogEngine extends EventEmitter {
         this.webSocketManager.broadcast('ai-logs', {
           type: 'ai-log',
           data: log,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
       } catch (error) {
         console.warn('WebSocket 브로드캐스트 실패:', error);
@@ -436,34 +471,41 @@ export class RealTimeLogEngine extends EventEmitter {
    */
   private setupEventListeners(): void {
     // 세션 정리 (완료된 세션은 1시간 후 제거) - 동시성 안전
-    setInterval(() => {
-      this.cleanupExpiredSessions();
-    }, 10 * 60 * 1000); // 10분마다 정리
+    setInterval(
+      () => {
+        this.cleanupExpiredSessions();
+      },
+      10 * 60 * 1000
+    ); // 10분마다 정리
   }
 
   /**
    * 만료된 세션 안전하게 정리
    */
   private cleanupExpiredSessions(): void {
-    const oneHourAgo = Date.now() - (60 * 60 * 1000);
+    const oneHourAgo = Date.now() - 60 * 60 * 1000;
     const sessionsToDelete: string[] = [];
-    
+
     // 먼저 삭제할 세션 ID 수집 (읽기 전용)
     for (const [sessionId, session] of this.activeSessions.entries()) {
       if (session.status !== 'active' && session.startTime < oneHourAgo) {
         sessionsToDelete.push(sessionId);
       }
     }
-    
+
     // 수집된 세션들을 안전하게 삭제
     for (const sessionId of sessionsToDelete) {
       const session = this.activeSessions.get(sessionId);
-      if (session && session.status !== 'active' && session.startTime < oneHourAgo) {
+      if (
+        session &&
+        session.status !== 'active' &&
+        session.startTime < oneHourAgo
+      ) {
         this.activeSessions.delete(sessionId);
         console.log(`🗑️ 세션 정리: ${sessionId}`);
       }
     }
-    
+
     if (sessionsToDelete.length > 0) {
       console.log(`🧹 만료된 세션 ${sessionsToDelete.length}개 정리 완료`);
     }
@@ -516,4 +558,4 @@ export class RealTimeLogEngine extends EventEmitter {
   }
 }
 
-export default RealTimeLogEngine.getInstance(); 
+export default RealTimeLogEngine.getInstance();

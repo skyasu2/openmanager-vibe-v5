@@ -54,7 +54,10 @@ export const useDashboardLogic = () => {
     if (typeof window === 'undefined') return false;
 
     const searchParams = new URLSearchParams(window.location.search);
-    return searchParams.get('instant') === 'true' || searchParams.get('skip') === 'true';
+    return (
+      searchParams.get('instant') === 'true' ||
+      searchParams.get('skip') === 'true'
+    );
   }, [isClient]);
 
   // 완료 처리 함수
@@ -186,7 +189,13 @@ export const useDashboardLogic = () => {
         simulateError: (msg: string) => handleError(msg),
       };
     }
-  }, [dashboardState, loadingState, skipLoading, handleLoadingComplete, handleError]);
+  }, [
+    dashboardState,
+    loadingState,
+    skipLoading,
+    handleLoadingComplete,
+    handleError,
+  ]);
 
   return {
     // 기본 상태
@@ -204,7 +213,7 @@ export const useDashboardLogic = () => {
 
     // Actions
     setSelectedServer,
-    setShowSequentialGeneration: () => { },
+    setShowSequentialGeneration: () => {},
 
     // Handlers
     handleServerClick,

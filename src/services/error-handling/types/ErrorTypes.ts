@@ -1,6 +1,6 @@
 /**
  * 🎯 Error Handling Types
- * 
+ *
  * 에러 처리 시스템의 모든 타입 정의
  * - ServiceError 인터페이스
  * - 에러 핸들러 타입들
@@ -115,11 +115,26 @@ export interface GracefulDegradationConfig {
   pollInterval: number;
 }
 
-export type ErrorType = 'NETWORK_ERROR' | 'DATABASE_ERROR' | 'AUTH_ERROR' | 'PERMISSION_ERROR' |
-  'VALIDATION_ERROR' | 'CONFIG_ERROR' | 'TIMEOUT_ERROR' | 'AI_AGENT_ERROR' |
-  'MEMORY_EXHAUSTED' | 'DISK_FULL' | 'REDIS_CONNECTION_ERROR' | 'PROMETHEUS_ERROR' |
-  'SYSTEM_OVERLOAD' | 'EXTERNAL_API_ERROR' | 'WEBSOCKET_ERROR' | 'FILESYSTEM_ERROR' |
-  'SECURITY_BREACH' | 'RATE_LIMIT_ERROR' | 'SERVICE_DEPENDENCY_ERROR';
+export type ErrorType =
+  | 'NETWORK_ERROR'
+  | 'DATABASE_ERROR'
+  | 'AUTH_ERROR'
+  | 'PERMISSION_ERROR'
+  | 'VALIDATION_ERROR'
+  | 'CONFIG_ERROR'
+  | 'TIMEOUT_ERROR'
+  | 'AI_AGENT_ERROR'
+  | 'MEMORY_EXHAUSTED'
+  | 'DISK_FULL'
+  | 'REDIS_CONNECTION_ERROR'
+  | 'PROMETHEUS_ERROR'
+  | 'SYSTEM_OVERLOAD'
+  | 'EXTERNAL_API_ERROR'
+  | 'WEBSOCKET_ERROR'
+  | 'FILESYSTEM_ERROR'
+  | 'SECURITY_BREACH'
+  | 'RATE_LIMIT_ERROR'
+  | 'SERVICE_DEPENDENCY_ERROR';
 
 export interface ErrorHandlingConfig {
   maxHistorySize: number;
@@ -335,4 +350,4 @@ export function getErrorSeverity(error: ServiceError): ErrorSeverity {
   }
 
   return ErrorSeverity.LOW;
-} 
+}

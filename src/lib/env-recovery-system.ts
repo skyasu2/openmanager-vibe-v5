@@ -32,7 +32,9 @@ export class IntegratedEnvRecoverySystem {
     return IntegratedEnvRecoverySystem.instance;
   }
 
-  async recoverEnvironmentVariables(missingVars: string[]): Promise<EnvRecoveryResult> {
+  async recoverEnvironmentVariables(
+    missingVars: string[]
+  ): Promise<EnvRecoveryResult> {
     const result: EnvRecoveryResult = {
       success: false,
       recovered: [],
@@ -46,13 +48,17 @@ export class IntegratedEnvRecoverySystem {
       // 1단계: 암호화된 백업에서 복구 시도
       const encryptedResult = await this.tryEncryptedRecovery(missingVars);
       result.recovered.push(...encryptedResult.recovered);
-      result.failed = result.failed.filter(v => !encryptedResult.recovered.includes(v));
+      result.failed = result.failed.filter(
+        v => !encryptedResult.recovered.includes(v)
+      );
 
       // 2단계: 로컬 백업에서 복구 시도
       if (result.failed.length > 0) {
         const backupResult = await this.tryBackupRecovery(result.failed);
         result.recovered.push(...backupResult.recovered);
-        result.failed = result.failed.filter(v => !backupResult.recovered.includes(v));
+        result.failed = result.failed.filter(
+          v => !backupResult.recovered.includes(v)
+        );
       }
 
       result.success = result.recovered.length > 0;
@@ -60,7 +66,8 @@ export class IntegratedEnvRecoverySystem {
 
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      const errorMessage =
+        error instanceof Error ? error.message : '알 수 없는 오류';
       return {
         ...result,
         success: false,
@@ -69,7 +76,9 @@ export class IntegratedEnvRecoverySystem {
     }
   }
 
-  private async tryEncryptedRecovery(missingVars: string[]): Promise<{ recovered: string[] }> {
+  private async tryEncryptedRecovery(
+    missingVars: string[]
+  ): Promise<{ recovered: string[] }> {
     const recovered: string[] = [];
     const defaultPasswords = [
       'openmanager-vibe-v5-2025',
@@ -79,7 +88,8 @@ export class IntegratedEnvRecoverySystem {
 
     for (const password of defaultPasswords) {
       try {
-        const unlockResult = await this.envCryptoManager.unlockEnvironmentVars(password);
+        const unlockResult =
+          await this.envCryptoManager.unlockEnvironmentVars(password);
         if (unlockResult.success) {
           for (const varName of missingVars) {
             const value = this.envCryptoManager.getEnvironmentVar(varName);
@@ -98,9 +108,12 @@ export class IntegratedEnvRecoverySystem {
     return { recovered };
   }
 
-  private async tryBackupRecovery(missingVars: string[]): Promise<{ recovered: string[] }> {
+  private async tryBackupRecovery(
+    missingVars: string[]
+  ): Promise<{ recovered: string[] }> {
     try {
-      const backupResult = await this.envBackupManager.emergencyRestore('critical');
+      const backupResult =
+        await this.envBackupManager.emergencyRestore('critical');
       const recovered = missingVars.filter(varName =>
         backupResult.restored.includes(varName)
       );
@@ -117,8 +130,8 @@ export class IntegratedEnvRecoverySystem {
       'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     ];
 
-    const missingVars = criticalVars.filter(varName =>
-      !process.env[varName] || process.env[varName]?.trim() === ''
+    const missingVars = criticalVars.filter(
+      varName => !process.env[varName] || process.env[varName]?.trim() === ''
     );
 
     if (missingVars.length === 0) {

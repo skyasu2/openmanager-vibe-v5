@@ -33,10 +33,15 @@ export class ContextChangelogManager {
     }>
   ): Promise<ImprovementHistory> {
     try {
-      console.log(`📝 [ContextChangelogManager] 개선 이력 기록 시작: ${sessionId}`);
+      console.log(
+        `📝 [ContextChangelogManager] 개선 이력 기록 시작: ${sessionId}`
+      );
 
       const version = this.generateVersion();
-      const changelogEntry = this.generateChangelogEntry(approvedSuggestions, version);
+      const changelogEntry = this.generateChangelogEntry(
+        approvedSuggestions,
+        version
+      );
 
       const history: ImprovementHistory = {
         id: this.generateHistoryId(),
@@ -46,7 +51,7 @@ export class ContextChangelogManager {
         approvedSuggestions,
         changelogEntry,
         version,
-        status: 'pending'
+        status: 'pending',
       };
 
       this.improvementHistory.set(history.id, history);
@@ -58,9 +63,10 @@ export class ContextChangelogManager {
       history.status = 'applied';
       this.improvementHistory.set(history.id, history);
 
-      console.log(`✅ [ContextChangelogManager] 개선 이력 기록 완료: ${history.id}`);
+      console.log(
+        `✅ [ContextChangelogManager] 개선 이력 기록 완료: ${history.id}`
+      );
       return history;
-
     } catch (error) {
       console.error('❌ [ContextChangelogManager] 개선 이력 기록 실패:', error);
       throw error;
@@ -83,17 +89,24 @@ export class ContextChangelogManager {
         history = history.filter(h => h.adminId === filters.adminId);
       }
       if (filters.startDate) {
-        history = history.filter(h => new Date(h.timestamp) >= filters.startDate!);
+        history = history.filter(
+          h => new Date(h.timestamp) >= filters.startDate!
+        );
       }
       if (filters.endDate) {
-        history = history.filter(h => new Date(h.timestamp) <= filters.endDate!);
+        history = history.filter(
+          h => new Date(h.timestamp) <= filters.endDate!
+        );
       }
       if (filters.status) {
         history = history.filter(h => h.status === filters.status);
       }
     }
 
-    return history.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    return history.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
   }
 
   /**
@@ -101,17 +114,17 @@ export class ContextChangelogManager {
    */
   generateFullChangelog(): string {
     const history = this.getImprovementHistory({ status: 'applied' });
-    
+
     let changelog = `# 🧠 AI 에이전트 컨텍스트 변경 이력\n\n`;
     changelog += `> 이 파일은 AI 에이전트의 컨텍스트 개선 사항을 자동으로 기록합니다.\n\n`;
     changelog += `**마지막 업데이트**: ${new Date().toLocaleString('ko-KR')}\n\n`;
 
     // 버전별로 그룹핑
     const versionGroups = this.groupByVersion(history);
-    
+
     for (const [version, entries] of versionGroups) {
       changelog += `## 📋 버전 ${version}\n\n`;
-      
+
       for (const entry of entries) {
         changelog += entry.changelogEntry + '\n\n';
       }
@@ -135,7 +148,7 @@ export class ContextChangelogManager {
     const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
     const recentEntries = this.getImprovementHistory({
       startDate: cutoffDate,
-      status: 'applied'
+      status: 'applied',
     });
 
     const byType: Record<string, number> = {};
@@ -152,7 +165,7 @@ export class ContextChangelogManager {
       totalChanges: recentEntries.length,
       byType,
       totalImpact,
-      recentEntries
+      recentEntries,
     };
   }
 
@@ -170,7 +183,7 @@ export class ContextChangelogManager {
     }>;
   } {
     const history = this.getImprovementHistory({ status: 'applied' });
-    
+
     let totalImpact = 0;
     let totalSuggestions = 0;
     const typeCount: Record<string, number> = {};
@@ -178,7 +191,7 @@ export class ContextChangelogManager {
 
     history.forEach(entry => {
       const month = new Date(entry.timestamp).toISOString().substring(0, 7);
-      
+
       if (!monthlyData[month]) {
         monthlyData[month] = { count: 0, impact: 0 };
       }
@@ -192,8 +205,8 @@ export class ContextChangelogManager {
       });
     });
 
-    const mostCommonType = Object.entries(typeCount)
-      .sort(([,a], [,b]) => b - a)[0]?.[0] || 'none';
+    const mostCommonType =
+      Object.entries(typeCount).sort(([, a], [, b]) => b - a)[0]?.[0] || 'none';
 
     const improvementTrend = Object.entries(monthlyData)
       .map(([month, data]) => ({ month, ...data }))
@@ -203,7 +216,7 @@ export class ContextChangelogManager {
       totalImprovements: history.length,
       averageImpact: totalSuggestions > 0 ? totalImpact / totalSuggestions : 0,
       mostCommonType,
-      improvementTrend
+      improvementTrend,
     };
   }
 
@@ -215,7 +228,7 @@ export class ContextChangelogManager {
     const day = String(now.getDate()).padStart(2, '0');
     const hour = String(now.getHours()).padStart(2, '0');
     const minute = String(now.getMinutes()).padStart(2, '0');
-    
+
     return `${year}.${month}.${day}.${hour}${minute}`;
   }
 
@@ -224,16 +237,16 @@ export class ContextChangelogManager {
     version: string
   ): string {
     const timestamp = new Date().toLocaleString('ko-KR');
-    
+
     let entry = `### 🔄 ${timestamp} (v${version})\n\n`;
-    
+
     // 타입별로 그룹핑
     const byType = this.groupSuggestionsByType(suggestions);
-    
+
     for (const [type, items] of Object.entries(byType)) {
       const typeIcon = this.getTypeIcon(type);
       entry += `#### ${typeIcon} ${this.getTypeLabel(type)}\n\n`;
-      
+
       items.forEach((item, index) => {
         entry += `${index + 1}. **${item.description}**\n`;
         if (item.beforeValue) {
@@ -247,16 +260,18 @@ export class ContextChangelogManager {
     return entry;
   }
 
-  private groupSuggestionsByType(suggestions: ImprovementHistory['approvedSuggestions']) {
+  private groupSuggestionsByType(
+    suggestions: ImprovementHistory['approvedSuggestions']
+  ) {
     const grouped: Record<string, typeof suggestions> = {};
-    
+
     suggestions.forEach(suggestion => {
       if (!grouped[suggestion.type]) {
         grouped[suggestion.type] = [];
       }
       grouped[suggestion.type].push(suggestion);
     });
-    
+
     return grouped;
   }
 
@@ -265,7 +280,7 @@ export class ContextChangelogManager {
       pattern: '🔍',
       intent: '🎯',
       response: '💬',
-      context: '📋'
+      context: '📋',
     };
     return icons[type as keyof typeof icons] || '📝';
   }
@@ -275,49 +290,63 @@ export class ContextChangelogManager {
       pattern: '패턴 매칭 개선',
       intent: '인텐트 분류 개선',
       response: '응답 템플릿 개선',
-      context: '컨텍스트 구조 개선'
+      context: '컨텍스트 구조 개선',
     };
     return labels[type as keyof typeof labels] || '기타 개선';
   }
 
-  private async updateChangelogFile(history: ImprovementHistory): Promise<void> {
+  private async updateChangelogFile(
+    history: ImprovementHistory
+  ): Promise<void> {
     try {
       // 실제 파일 시스템 작업은 브라우저 환경에서 제한적
       // 여기서는 로컬 스토리지에 저장하고, 서버 환경에서는 실제 파일 작성
       if (typeof window !== 'undefined') {
-        const existingChangelog = localStorage.getItem('ai-context-changelog') || '';
+        const existingChangelog =
+          localStorage.getItem('ai-context-changelog') || '';
         const newEntry = history.changelogEntry;
-        const updatedChangelog = this.insertChangelogEntry(existingChangelog, newEntry);
+        const updatedChangelog = this.insertChangelogEntry(
+          existingChangelog,
+          newEntry
+        );
         localStorage.setItem('ai-context-changelog', updatedChangelog);
       }
-      
+
       console.log(`📄 [ContextChangelogManager] Changelog 업데이트 완료`);
     } catch (error) {
-      console.error('❌ [ContextChangelogManager] Changelog 파일 업데이트 실패:', error);
+      console.error(
+        '❌ [ContextChangelogManager] Changelog 파일 업데이트 실패:',
+        error
+      );
       throw error;
     }
   }
 
-  private insertChangelogEntry(existingChangelog: string, newEntry: string): string {
+  private insertChangelogEntry(
+    existingChangelog: string,
+    newEntry: string
+  ): string {
     if (!existingChangelog) {
       return `# 🧠 AI 에이전트 컨텍스트 변경 이력\n\n${newEntry}`;
     }
-    
+
     // 첫 번째 ## 섹션 앞에 새 엔트리 삽입
     const lines = existingChangelog.split('\n');
     const insertIndex = lines.findIndex(line => line.startsWith('## '));
-    
+
     if (insertIndex === -1) {
       return existingChangelog + '\n\n' + newEntry;
     }
-    
+
     lines.splice(insertIndex, 0, newEntry, '');
     return lines.join('\n');
   }
 
-  private groupByVersion(history: ImprovementHistory[]): Map<string, ImprovementHistory[]> {
+  private groupByVersion(
+    history: ImprovementHistory[]
+  ): Map<string, ImprovementHistory[]> {
     const groups = new Map<string, ImprovementHistory[]>();
-    
+
     history.forEach(entry => {
       const version = entry.version;
       if (!groups.has(version)) {
@@ -325,30 +354,32 @@ export class ContextChangelogManager {
       }
       groups.get(version)!.push(entry);
     });
-    
+
     // 버전 순으로 정렬 (최신 버전 먼저)
-    return new Map([...groups.entries()].sort(([a], [b]) => b.localeCompare(a)));
+    return new Map(
+      [...groups.entries()].sort(([a], [b]) => b.localeCompare(a))
+    );
   }
 
   private generateStatistics(history: ImprovementHistory[]): string {
     const stats = this.analyzeImprovementEffects();
-    
+
     let statsSection = `## 📊 개선 통계\n\n`;
     statsSection += `- **총 개선 횟수**: ${stats.totalImprovements}회\n`;
     statsSection += `- **평균 예상 효과**: ${stats.averageImpact.toFixed(1)}%\n`;
     statsSection += `- **가장 많은 개선 유형**: ${this.getTypeLabel(stats.mostCommonType)}\n\n`;
-    
+
     if (stats.improvementTrend.length > 0) {
       statsSection += `### 📈 월별 개선 추이\n\n`;
       stats.improvementTrend.forEach(trend => {
         statsSection += `- **${trend.month}**: ${trend.count}회 (총 효과: ${trend.impact}%)\n`;
       });
     }
-    
+
     return statsSection;
   }
 
   private generateHistoryId(): string {
     return `history_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
   }
-} 
+}

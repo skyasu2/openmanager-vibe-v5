@@ -1,6 +1,6 @@
 /**
  * 🔄 실시간 데이터 통합: WebSocket + React Query
- * 
+ *
  * Phase 7.3: 실시간 데이터 통합
  * - WebSocket 실시간 업데이트
  * - React Query 캐시와 동기화
@@ -41,7 +41,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   const {
     url = '/api/websocket/servers',
     reconnectInterval = 3000,
@@ -61,13 +61,13 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const host = window.location.host;
       const wsUrl = `${protocol}//${host}${url}`;
-      
+
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
         console.log('🔗 서버 WebSocket 연결됨');
         reconnectAttemptsRef.current = 0;
-        
+
         // 하트비트 시작
         if (heartbeatRef.current) {
           clearInterval(heartbeatRef.current);
@@ -81,25 +81,27 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
         toast.success('실시간 서버 모니터링 활성화');
       };
 
-      wsRef.current.onmessage = (event) => {
+      wsRef.current.onmessage = event => {
         try {
           const message: RealtimeMessage = JSON.parse(event.data);
-          
+
           switch (message.type) {
             case 'server_update':
               // 서버 상태 업데이트
               queryClient.setQueryData(serverKeys.lists(), (old: any[]) => {
                 if (!old) return old;
-                return old.map(server => 
-                  server.id === message.data.id ? { ...server, ...message.data } : server
+                return old.map(server =>
+                  server.id === message.data.id
+                    ? { ...server, ...message.data }
+                    : server
                 );
               });
-              
+
               // 특정 서버 상세 정보도 업데이트
               if (message.data.id) {
                 queryClient.setQueryData(
                   serverKeys.detail(message.data.id),
-                  (old: any) => old ? { ...old, ...message.data } : old
+                  (old: any) => (old ? { ...old, ...message.data } : old)
                 );
               }
               break;
@@ -114,8 +116,10 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
             case 'alert':
               // 실시간 알림
               const { level, title, message: alertMessage } = message.data;
-              const toastOptions = { duration: level === 'critical' ? 10000 : 5000 };
-              
+              const toastOptions = {
+                duration: level === 'critical' ? 10000 : 5000,
+              };
+
               switch (level) {
                 case 'critical':
                   toast.error(`🚨 ${title}: ${alertMessage}`, toastOptions);
@@ -134,13 +138,13 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
         }
       };
 
-      wsRef.current.onerror = (error) => {
+      wsRef.current.onerror = error => {
         console.error('❌ WebSocket 오류:', error);
       };
 
       wsRef.current.onclose = () => {
         console.log('📡 서버 WebSocket 연결 종료');
-        
+
         if (heartbeatRef.current) {
           clearInterval(heartbeatRef.current);
           heartbeatRef.current = null;
@@ -149,8 +153,10 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
         // 자동 재연결
         if (reconnectAttemptsRef.current < maxReconnectAttempts) {
           reconnectAttemptsRef.current++;
-          console.log(`🔄 재연결 시도 ${reconnectAttemptsRef.current}/${maxReconnectAttempts}`);
-          
+          console.log(
+            `🔄 재연결 시도 ${reconnectAttemptsRef.current}/${maxReconnectAttempts}`
+          );
+
           setTimeout(() => {
             connect();
           }, reconnectInterval * reconnectAttemptsRef.current);
@@ -158,11 +164,16 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
           toast.error('서버 연결이 끊어졌습니다. 페이지를 새로고침해주세요.');
         }
       };
-
     } catch (error) {
       console.error('❌ WebSocket 연결 실패:', error);
     }
-  }, [url, reconnectInterval, maxReconnectAttempts, heartbeatInterval, queryClient]);
+  }, [
+    url,
+    reconnectInterval,
+    maxReconnectAttempts,
+    heartbeatInterval,
+    queryClient,
+  ]);
 
   // 🔌 연결 해제
   const disconnect = useCallback(() => {
@@ -170,7 +181,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
       clearInterval(heartbeatRef.current);
       heartbeatRef.current = null;
     }
-    
+
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
@@ -207,7 +218,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
   // 📊 연결 상태
   const getConnectionStatus = useCallback((): ConnectionStatus => {
     if (!wsRef.current) return 'disconnected';
-    
+
     switch (wsRef.current.readyState) {
       case WebSocket.CONNECTING:
         return 'connecting';
@@ -249,19 +260,16 @@ export const useRealtimePredictions = () => {
       console.log('🔮 AI 예측 WebSocket 연결됨');
     };
 
-    wsRef.current.onmessage = (event) => {
+    wsRef.current.onmessage = event => {
       try {
         const message: RealtimeMessage = JSON.parse(event.data);
-        
+
         if (message.type === 'prediction_update') {
           // 새로운 예측 결과를 캐시에 추가
-          queryClient.setQueryData(
-            predictionKeys.list('{}'),
-            (old: any[]) => {
-              if (!old) return [message.data];
-              return [message.data, ...old.slice(0, 49)]; // 최신 50개만 유지
-            }
-          );
+          queryClient.setQueryData(predictionKeys.list('{}'), (old: any[]) => {
+            if (!old) return [message.data];
+            return [message.data, ...old.slice(0, 49)]; // 최신 50개만 유지
+          });
 
           // 실시간 예측 알림
           toast.success(
@@ -274,7 +282,7 @@ export const useRealtimePredictions = () => {
       }
     };
 
-    wsRef.current.onerror = (error) => {
+    wsRef.current.onerror = error => {
       console.error('❌ 예측 WebSocket 오류:', error);
     };
 
@@ -286,16 +294,21 @@ export const useRealtimePredictions = () => {
   }, [queryClient]);
 
   // 📤 예측 요청 전송
-  const requestPrediction = useCallback((metric: string, horizon: number = 30) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        type: 'request_prediction',
-        data: { metric, horizon, timestamp: new Date().toISOString() }
-      }));
-      return true;
-    }
-    return false;
-  }, []);
+  const requestPrediction = useCallback(
+    (metric: string, horizon: number = 30) => {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(
+          JSON.stringify({
+            type: 'request_prediction',
+            data: { metric, horizon, timestamp: new Date().toISOString() },
+          })
+        );
+        return true;
+      }
+      return false;
+    },
+    []
+  );
 
   return {
     requestPrediction,
@@ -304,20 +317,23 @@ export const useRealtimePredictions = () => {
 };
 
 // 🎯 통합 실시간 훅
-export const useRealtimeData = (options: {
-  servers?: boolean;
-  predictions?: boolean;
-  alerts?: boolean;
-} = {}) => {
+export const useRealtimeData = (
+  options: {
+    servers?: boolean;
+    predictions?: boolean;
+    alerts?: boolean;
+  } = {}
+) => {
   const { servers = true, predictions = true, alerts = true } = options;
-  
+
   const serverConnection = useRealtimeServers({ autoConnect: servers });
   const predictionConnection = useRealtimePredictions();
 
   // 📊 전체 연결 상태
-  const overallStatus = serverConnection.isConnected && predictionConnection.isConnected 
-    ? 'connected' 
-    : serverConnection.connectionStatus;
+  const overallStatus =
+    serverConnection.isConnected && predictionConnection.isConnected
+      ? 'connected'
+      : serverConnection.connectionStatus;
 
   // 🔄 전체 재연결
   const reconnectAll = useCallback(() => {
@@ -332,6 +348,7 @@ export const useRealtimeData = (options: {
     predictions: predictionConnection,
     overallStatus,
     reconnectAll,
-    isFullyConnected: serverConnection.isConnected && predictionConnection.isConnected,
+    isFullyConnected:
+      serverConnection.isConnected && predictionConnection.isConnected,
   };
-}; 
+};

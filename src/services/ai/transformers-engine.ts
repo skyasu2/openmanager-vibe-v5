@@ -103,7 +103,10 @@ export class TransformersEngine {
   private async checkTransformersAvailability(): Promise<any> {
     try {
       const transformersModule = await import('@xenova/transformers');
-      if (transformersModule && typeof transformersModule.pipeline === 'function') {
+      if (
+        transformersModule &&
+        typeof transformersModule.pipeline === 'function'
+      ) {
         return transformersModule;
       }
       return null;

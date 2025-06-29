@@ -996,48 +996,48 @@ export class UnifiedDataProcessor {
       monitoring:
         purpose === 'monitoring' || purpose === 'both'
           ? {
-            servers: [],
-            stats: {
-              total: 0,
-              healthy: 0,
-              warning: 0,
-              critical: 0,
-              offline: 0,
-              averageCpu: 0,
-              averageMemory: 0,
-              averageDisk: 0,
-              averageNetwork: 0,
-            },
-          }
+              servers: [],
+              stats: {
+                total: 0,
+                healthy: 0,
+                warning: 0,
+                critical: 0,
+                offline: 0,
+                averageCpu: 0,
+                averageMemory: 0,
+                averageDisk: 0,
+                averageNetwork: 0,
+              },
+            }
           : undefined,
       ai:
         purpose === 'ai' || purpose === 'both'
           ? {
-            metrics: [],
-            aggregatedStats: {
-              totalServers: 0,
-              avgNormalizedCpu: 0,
-              avgNormalizedMemory: 0,
-              avgNormalizedDisk: 0,
-              avgNormalizedNetwork: 0,
-              overallHealthScore: 0,
-              anomalyCount: 0,
-              riskDistribution: { low: 0, medium: 0, high: 0, critical: 0 },
-            },
-            trends: {
-              cpuTrend: 'stable',
-              memoryTrend: 'stable',
-              diskTrend: 'stable',
-              networkTrend: 'stable',
-              overallTrend: 'stable',
-            },
-            insights: {
-              criticalServers: [],
-              anomalousServers: [],
-              recommendations: [],
-              predictedIssues: [],
-            },
-          }
+              metrics: [],
+              aggregatedStats: {
+                totalServers: 0,
+                avgNormalizedCpu: 0,
+                avgNormalizedMemory: 0,
+                avgNormalizedDisk: 0,
+                avgNormalizedNetwork: 0,
+                overallHealthScore: 0,
+                anomalyCount: 0,
+                riskDistribution: { low: 0, medium: 0, high: 0, critical: 0 },
+              },
+              trends: {
+                cpuTrend: 'stable',
+                memoryTrend: 'stable',
+                diskTrend: 'stable',
+                networkTrend: 'stable',
+                overallTrend: 'stable',
+              },
+              insights: {
+                criticalServers: [],
+                anomalousServers: [],
+                recommendations: [],
+                predictedIssues: [],
+              },
+            }
           : undefined,
       metadata: {
         processingTime: 0,

@@ -1,6 +1,6 @@
 /**
  * Mode Prompts
- * 
+ *
  * 💬 모드별 프롬프트 생성 시스템
  * - Basic 모드: 간결하고 명확한 답변
  * - Advanced 모드: 전문가 수준 종합 분석
@@ -39,24 +39,31 @@ export class ModePrompts {
   }
 
   /**
-   * Advanced 모드 프롬프트 
+   * Advanced 모드 프롬프트
    */
-  static getAdvancedPrompt(query: string, context: any, analysis: QueryAnalysis): string {
-    const specialInstructions = analysis.triggers.map(trigger => {
-      if (trigger.startsWith('critical:')) {
-        return '- 🚨 장애 해결에 집중하여 단계별 해결 방안 제시';
-      }
-      if (trigger.startsWith('reports:')) {
-        return '- 📊 상세한 데이터 분석과 시각적 표현 포함';
-      }
-      if (trigger.startsWith('prediction:')) {
-        return '- 🔮 향후 트렌드 예측 및 시나리오 분석 포함';  
-      }
-      if (trigger.startsWith('correlation:')) {
-        return '- 🌐 시스템 간 상관관계 및 영향도 분석';
-      }
-      return '';
-    }).filter(Boolean).join('\n');
+  static getAdvancedPrompt(
+    query: string,
+    context: any,
+    analysis: QueryAnalysis
+  ): string {
+    const specialInstructions = analysis.triggers
+      .map(trigger => {
+        if (trigger.startsWith('critical:')) {
+          return '- 🚨 장애 해결에 집중하여 단계별 해결 방안 제시';
+        }
+        if (trigger.startsWith('reports:')) {
+          return '- 📊 상세한 데이터 분석과 시각적 표현 포함';
+        }
+        if (trigger.startsWith('prediction:')) {
+          return '- 🔮 향후 트렌드 예측 및 시나리오 분석 포함';
+        }
+        if (trigger.startsWith('correlation:')) {
+          return '- 🌐 시스템 간 상관관계 및 영향도 분석';
+        }
+        return '';
+      })
+      .filter(Boolean)
+      .join('\n');
 
     // 장애 관련 컨텍스트가 있으면 추가 지침 제공
     let incidentContext = '';
@@ -176,7 +183,10 @@ ${analysisError}
   /**
    * 장애 유형별 프롬프트 생성
    */
-  static getIncidentTypePrompt(incidentType: IncidentType, serverData: any): string {
+  static getIncidentTypePrompt(
+    incidentType: IncidentType,
+    serverData: any
+  ): string {
     const typePromptsMap: Record<IncidentType, string> = {
       service_down: `
 # 서비스 중단 분석 프롬프트
@@ -500,7 +510,7 @@ ${JSON.stringify(serverData, null, 2)}
 
 ### 모니터링 강화
 [조기 감지를 위한 모니터링 개선점]
-      `
+      `,
     };
 
     return typePromptsMap[incidentType] || typePromptsMap.unknown;
@@ -630,14 +640,14 @@ ${JSON.stringify(capacityData, null, 2)}
    * 종합 장애 분석 프롬프트
    */
   static getComprehensiveIncidentAnalysisPrompt(
-    query: string, 
+    query: string,
     incidentType: IncidentType,
     severity: 'low' | 'medium' | 'high' | 'critical',
     serverData: any
   ): string {
     // 유형별 프롬프트 가져오기
     const typePrompt = this.getIncidentTypePrompt(incidentType, serverData);
-    
+
     // 심각도별 추가 지침
     const severityInstructions: Record<string, string> = {
       critical: `
@@ -666,7 +676,7 @@ ${JSON.stringify(capacityData, null, 2)}
 - 계획된 유지보수 기간 내 해결 방안
 - 사용자 경험에 미치는 영향 최소화 방안
 - 유사 이슈 통합 해결 가능성 검토
-      `
+      `,
     };
 
     // 종합 프롬프트 생성
@@ -690,4 +700,4 @@ ${typePrompt}
 - 장애 감지 및 대응 프로세스 개선점 제안
 `;
   }
-} 
+}

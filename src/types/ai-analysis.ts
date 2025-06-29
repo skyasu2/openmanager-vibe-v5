@@ -63,5 +63,10 @@ export interface SystemMetrics {
 export interface AnalysisOptions {
   includeRecommendations?: boolean;
   confidenceThreshold?: number;
-  analysisType?: 'general' | 'cpu_performance' | 'memory_optimization' | 'disk_performance' | 'network_analysis';
-} 
+  analysisType?:
+    | 'general'
+    | 'cpu_performance'
+    | 'memory_optimization'
+    | 'disk_performance'
+    | 'network_analysis';
+}

@@ -25,7 +25,7 @@ import {
   TrendingUp,
   Wifi,
   WifiOff,
-  Zap
+  Zap,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Badge } from '../ui/badge';
@@ -38,7 +38,7 @@ import {
   usePerformanceData,
   useRealtimeControl,
   useServerList,
-  useSystemStatus
+  useSystemStatus,
 } from '@/stores/globalRealtimeStore';
 
 // 실제 컴포넌트 Import
@@ -50,10 +50,23 @@ export default function UnifiedAdminDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // 🔄 통합 실시간 데이터 사용
-  const { systemStatus, lastUpdate: systemLastUpdate, error: systemError } = useSystemStatus();
-  const { performanceData, lastUpdate: performanceLastUpdate, error: performanceError } = usePerformanceData();
-  const { servers, lastUpdate: serverLastUpdate, error: serverError } = useServerList();
-  const { isPolling, startPolling, stopPolling, clearError } = useRealtimeControl();
+  const {
+    systemStatus,
+    lastUpdate: systemLastUpdate,
+    error: systemError,
+  } = useSystemStatus();
+  const {
+    performanceData,
+    lastUpdate: performanceLastUpdate,
+    error: performanceError,
+  } = usePerformanceData();
+  const {
+    servers,
+    lastUpdate: serverLastUpdate,
+    error: serverError,
+  } = useServerList();
+  const { isPolling, startPolling, stopPolling, clearError } =
+    useRealtimeControl();
 
   // 🎬 컴포넌트 마운트시 실시간 폴링 시작
   useEffect(() => {
@@ -111,7 +124,11 @@ export default function UnifiedAdminDashboard() {
 
   // 전체 에러 상태
   const hasError = systemError || performanceError || serverError;
-  const latestUpdate = [systemLastUpdate, performanceLastUpdate, serverLastUpdate]
+  const latestUpdate = [
+    systemLastUpdate,
+    performanceLastUpdate,
+    serverLastUpdate,
+  ]
     .filter(Boolean)
     .sort((a, b) => (b?.getTime() || 0) - (a?.getTime() || 0))[0];
 
@@ -212,18 +229,31 @@ export default function UnifiedAdminDashboard() {
 
       {/* 📊 메인 콘텐츠 */}
       <div className='max-w-7xl mx-auto px-6 py-6'>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className='space-y-6'
+        >
           {/* 탭 네비게이션 */}
           <TabsList className='grid w-full grid-cols-5 bg-white border border-gray-200 rounded-lg p-1'>
-            <TabsTrigger value='overview' className='flex items-center space-x-2'>
+            <TabsTrigger
+              value='overview'
+              className='flex items-center space-x-2'
+            >
               <TrendingUp className='w-4 h-4' />
               <span>개요</span>
             </TabsTrigger>
-            <TabsTrigger value='services' className='flex items-center space-x-2'>
+            <TabsTrigger
+              value='services'
+              className='flex items-center space-x-2'
+            >
               <Server className='w-4 h-4' />
               <span>서비스</span>
             </TabsTrigger>
-            <TabsTrigger value='performance' className='flex items-center space-x-2'>
+            <TabsTrigger
+              value='performance'
+              className='flex items-center space-x-2'
+            >
               <BarChart3 className='w-4 h-4' />
               <span>성능</span>
             </TabsTrigger>
@@ -243,7 +273,9 @@ export default function UnifiedAdminDashboard() {
               {/* 시스템 상태 카드 */}
               <Card>
                 <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>시스템 상태</CardTitle>
+                  <CardTitle className='text-sm font-medium'>
+                    시스템 상태
+                  </CardTitle>
                   {getStatusIcon(systemStatus?.health || 'offline')}
                 </CardHeader>
                 <CardContent>
@@ -251,7 +283,10 @@ export default function UnifiedAdminDashboard() {
                     {systemStatus?.health?.toUpperCase() || 'OFFLINE'}
                   </div>
                   <p className='text-xs text-muted-foreground'>
-                    업타임: {systemStatus?.uptime ? `${Math.floor(systemStatus.uptime / 3600)}시간` : '0시간'}
+                    업타임:{' '}
+                    {systemStatus?.uptime
+                      ? `${Math.floor(systemStatus.uptime / 3600)}시간`
+                      : '0시간'}
                   </p>
                 </CardContent>
               </Card>
@@ -259,7 +294,9 @@ export default function UnifiedAdminDashboard() {
               {/* 메모리 사용률 카드 */}
               <Card>
                 <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>메모리 사용률</CardTitle>
+                  <CardTitle className='text-sm font-medium'>
+                    메모리 사용률
+                  </CardTitle>
                   <Database className='w-4 h-4 text-muted-foreground' />
                 </CardHeader>
                 <CardContent>
@@ -267,7 +304,8 @@ export default function UnifiedAdminDashboard() {
                     {systemStatus?.memoryUsage?.percentage || 0}%
                   </div>
                   <p className='text-xs text-muted-foreground'>
-                    {systemStatus?.memoryUsage?.used || 0}MB / {systemStatus?.memoryUsage?.total || 0}MB
+                    {systemStatus?.memoryUsage?.used || 0}MB /{' '}
+                    {systemStatus?.memoryUsage?.total || 0}MB
                   </p>
                 </CardContent>
               </Card>
@@ -275,7 +313,9 @@ export default function UnifiedAdminDashboard() {
               {/* 성능 점수 카드 */}
               <Card>
                 <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>성능 점수</CardTitle>
+                  <CardTitle className='text-sm font-medium'>
+                    성능 점수
+                  </CardTitle>
                   <Zap className='w-4 h-4 text-muted-foreground' />
                 </CardHeader>
                 <CardContent>
@@ -291,12 +331,15 @@ export default function UnifiedAdminDashboard() {
               {/* 서버 현황 카드 */}
               <Card>
                 <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                  <CardTitle className='text-sm font-medium'>서버 현황</CardTitle>
+                  <CardTitle className='text-sm font-medium'>
+                    서버 현황
+                  </CardTitle>
                   <Activity className='w-4 h-4 text-muted-foreground' />
                 </CardHeader>
                 <CardContent>
                   <div className='text-2xl font-bold'>
-                    {servers.filter(s => s.status === 'healthy').length}/{servers.length}
+                    {servers.filter(s => s.status === 'healthy').length}/
+                    {servers.length}
                   </div>
                   <p className='text-xs text-muted-foreground'>
                     정상 서버 / 전체 서버
@@ -312,8 +355,11 @@ export default function UnifiedAdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className='space-y-3'>
-                  {servers.slice(0, 8).map((server) => (
-                    <div key={server.id} className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+                  {servers.slice(0, 8).map(server => (
+                    <div
+                      key={server.id}
+                      className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'
+                    >
                       <div className='flex items-center space-x-3'>
                         {getStatusIcon(server.status)}
                         <div>
@@ -324,7 +370,11 @@ export default function UnifiedAdminDashboard() {
                         </div>
                       </div>
                       <Badge
-                        variant={server.status === 'healthy' ? 'secondary' : 'destructive'}
+                        variant={
+                          server.status === 'healthy'
+                            ? 'secondary'
+                            : 'destructive'
+                        }
                       >
                         {server.status}
                       </Badge>
@@ -343,20 +393,22 @@ export default function UnifiedAdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                  {Object.entries(systemStatus?.processes || {}).map(([name, process]) => (
-                    <div key={name} className='p-4 border rounded-lg'>
-                      <div className='flex items-center justify-between mb-2'>
-                        <h3 className='font-medium'>{name}</h3>
-                        {getStatusIcon((process as any)?.status || 'offline')}
+                  {Object.entries(systemStatus?.processes || {}).map(
+                    ([name, process]) => (
+                      <div key={name} className='p-4 border rounded-lg'>
+                        <div className='flex items-center justify-between mb-2'>
+                          <h3 className='font-medium'>{name}</h3>
+                          {getStatusIcon((process as any)?.status || 'offline')}
+                        </div>
+                        <p className='text-sm text-gray-600'>
+                          PID: {(process as any)?.pid || 'N/A'}
+                        </p>
+                        <p className='text-sm text-gray-600'>
+                          상태: {(process as any)?.status || 'offline'}
+                        </p>
                       </div>
-                      <p className='text-sm text-gray-600'>
-                        PID: {(process as any)?.pid || 'N/A'}
-                      </p>
-                      <p className='text-sm text-gray-600'>
-                        상태: {(process as any)?.status || 'offline'}
-                      </p>
-                    </div>
-                  ))}
+                    )
+                  )}
                 </div>
               </CardContent>
             </Card>

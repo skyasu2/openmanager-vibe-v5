@@ -1,6 +1,6 @@
 /**
  * 🗄️ Supabase Database Adapter
- * 
+ *
  * Supabase를 위한 데이터베이스 어댑터 구현
  * - 서버 메트릭 저장/조회
  * - 자동 스키마 검증
@@ -8,7 +8,10 @@
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { DatabaseAdapter, StandardServerMetrics } from './SystemIntegrationAdapter';
+import {
+  DatabaseAdapter,
+  StandardServerMetrics,
+} from './SystemIntegrationAdapter';
 
 export interface SupabaseConfig {
   url: string;
@@ -30,22 +33,27 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
     try {
       this.client = createClient(this.config.url, this.config.apiKey, {
         auth: {
-          persistSession: false
+          persistSession: false,
         },
         db: {
-          schema: 'public'
-        }
+          schema: 'public',
+        },
       });
 
       // 연결 테스트
-      const { error } = await this.client.from('server_metrics').select('count').limit(1);
-      if (error && !error.message.includes('relation "server_metrics" does not exist')) {
+      const { error } = await this.client
+        .from('server_metrics')
+        .select('count')
+        .limit(1);
+      if (
+        error &&
+        !error.message.includes('relation "server_metrics" does not exist')
+      ) {
         throw error;
       }
 
       this.isConnected = true;
       console.log('✅ Supabase 데이터베이스 연결 완료');
-
     } catch (error) {
       console.error('❌ Supabase 연결 실패:', error);
       throw error;
@@ -68,7 +76,7 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
 
     try {
       const dbRecord = this.transformToDbRecord(metrics);
-      
+
       const { error } = await this.client
         .from('server_metrics')
         .insert(dbRecord);
@@ -76,14 +84,15 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
       if (error) {
         throw error;
       }
-
     } catch (error) {
       console.error(`❌ 메트릭 저장 실패 (${metrics.serverId}):`, error);
       throw error;
     }
   }
 
-  async getLatestMetrics(serverId: string): Promise<StandardServerMetrics | null> {
+  async getLatestMetrics(
+    serverId: string
+  ): Promise<StandardServerMetrics | null> {
     if (!this.client || !this.isConnected) {
       throw new Error('Supabase 클라이언트가 연결되지 않았습니다');
     }
@@ -106,7 +115,6 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
       }
 
       return this.transformFromDbRecord(data);
-
     } catch (error) {
       console.error(`❌ 최신 메트릭 조회 실패 (${serverId}):`, error);
       return null;
@@ -122,7 +130,10 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
       const { data, error } = await this.client
         .from('server_metrics')
         .select('server_id')
-        .gte('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .gte(
+          'timestamp',
+          new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+        )
         .order('timestamp', { ascending: false });
 
       if (error) {
@@ -132,7 +143,6 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
       // 중복 제거
       const uniqueServers = [...new Set(data?.map(row => row.server_id) || [])];
       return uniqueServers;
-
     } catch (error) {
       console.error('❌ 서버 목록 조회 실패:', error);
       return [];
@@ -140,7 +150,7 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
   }
 
   async getMetricsHistory(
-    serverId: string, 
+    serverId: string,
     timeRange: { start: Date; end: Date }
   ): Promise<StandardServerMetrics[]> {
     if (!this.client || !this.isConnected) {
@@ -161,7 +171,6 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
       }
 
       return data?.map(record => this.transformFromDbRecord(record)) || [];
-
     } catch (error) {
       console.error(`❌ 메트릭 히스토리 조회 실패 (${serverId}):`, error);
       return [];
@@ -187,7 +196,6 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
       const deletedCount = data?.length || 0;
       console.log(`🧹 Supabase 정리 완료: ${deletedCount}개 레코드 삭제`);
       return deletedCount;
-
     } catch (error) {
       console.error('❌ Supabase 정리 실패:', error);
       return 0;
@@ -202,47 +210,47 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
       server_id: metrics.serverId,
       hostname: metrics.hostname,
       timestamp: metrics.timestamp.toISOString(),
-      
+
       // CPU 메트릭
       cpu_usage: metrics.metrics.cpu.usage,
       cpu_load_avg: metrics.metrics.cpu.loadAverage,
       cpu_cores: metrics.metrics.cpu.cores,
-      
+
       // 메모리 메트릭
       memory_total: metrics.metrics.memory.total,
       memory_used: metrics.metrics.memory.used,
       memory_usage: metrics.metrics.memory.usage,
-      
+
       // 디스크 메트릭
       disk_total: metrics.metrics.disk.total,
       disk_used: metrics.metrics.disk.used,
       disk_usage: metrics.metrics.disk.usage,
-      
+
       // 네트워크 메트릭
       network_interface: metrics.metrics.network.interface,
       network_bytes_received: metrics.metrics.network.bytesReceived,
       network_bytes_sent: metrics.metrics.network.bytesSent,
       network_errors_received: metrics.metrics.network.errorsReceived,
       network_errors_sent: metrics.metrics.network.errorsSent,
-      
+
       // 시스템 정보
       os: 'linux', // 기본값
       uptime: Math.floor((Date.now() - metrics.timestamp.getTime()) / 1000),
       processes_total: 100, // 기본값
       processes_zombie: 0,
-      
+
       // 서비스 상태 (JSON)
       services: JSON.stringify(metrics.services),
-      
+
       // 메타데이터
       location: metrics.metadata.location,
       environment: metrics.metadata.environment,
       provider: metrics.metadata.provider,
-      
+
       // 원시 데이터
       raw_data: JSON.stringify(metrics),
-      
-      created_at: new Date().toISOString()
+
+      created_at: new Date().toISOString(),
     };
   }
 
@@ -259,13 +267,13 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
         cpu: {
           usage: record.cpu_usage,
           loadAverage: record.cpu_load_avg || [0, 0, 0],
-          cores: record.cpu_cores
+          cores: record.cpu_cores,
         },
         memory: {
           total: record.memory_total,
           used: record.memory_used,
           available: record.memory_total - record.memory_used,
-          usage: record.memory_usage
+          usage: record.memory_usage,
         },
         disk: {
           total: record.disk_total,
@@ -274,8 +282,8 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
           usage: record.disk_usage,
           iops: {
             read: 0, // 기본값
-            write: 0
-          }
+            write: 0,
+          },
         },
         network: {
           interface: record.network_interface,
@@ -284,8 +292,8 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
           packetsReceived: 0, // 기본값
           packetsSent: 0,
           errorsReceived: record.network_errors_received,
-          errorsSent: record.network_errors_sent
-        }
+          errorsSent: record.network_errors_sent,
+        },
       },
       services: JSON.parse(record.services || '[]'),
       metadata: {
@@ -294,19 +302,21 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
         provider: record.provider,
         cluster: record.cluster,
         zone: record.zone,
-        instanceType: record.instance_type
-      }
+        instanceType: record.instance_type,
+      },
     };
   }
 
   /**
    * 메트릭 기반 서버 상태 결정
    */
-  private determineStatus(record: any): 'online' | 'warning' | 'critical' | 'offline' {
+  private determineStatus(
+    record: any
+  ): 'online' | 'warning' | 'critical' | 'offline' {
     const cpu = record.cpu_usage;
     const memory = record.memory_usage;
     const disk = record.disk_usage;
-    
+
     // 임계값 기반 상태 결정
     if (cpu > 90 || memory > 95 || disk > 95) {
       return 'critical';
@@ -326,8 +336,10 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
     }
 
     try {
-      const dbRecords = metricsList.map(metrics => this.transformToDbRecord(metrics));
-      
+      const dbRecords = metricsList.map(metrics =>
+        this.transformToDbRecord(metrics)
+      );
+
       const { error } = await this.client
         .from('server_metrics')
         .insert(dbRecords);
@@ -337,7 +349,6 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
       }
 
       console.log(`✅ 배치 저장 완료: ${metricsList.length}개 메트릭`);
-
     } catch (error) {
       console.error('❌ 배치 저장 실패:', error);
       throw error;
@@ -350,4 +361,4 @@ export class SupabaseDatabaseAdapter implements DatabaseAdapter {
   isConnectedToDatabase(): boolean {
     return this.isConnected && this.client !== null;
   }
-} 
+}

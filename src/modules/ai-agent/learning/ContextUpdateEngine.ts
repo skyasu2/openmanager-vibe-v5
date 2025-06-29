@@ -4,13 +4,21 @@ import { PatternSuggestion } from '@/types/ai-learning';
 
 export interface ContextUpdate {
   id: string;
-  type: 'pattern_addition' | 'response_template' | 'knowledge_base' | 'intent_mapping';
+  type:
+    | 'pattern_addition'
+    | 'response_template'
+    | 'knowledge_base'
+    | 'intent_mapping';
   content: string;
   confidence: number;
   source: 'learning' | 'manual' | 'feedback';
   timestamp: Date;
   appliedAt?: Date;
-  status: 'pending_admin_approval' | 'admin_approved' | 'admin_rejected' | 'applied_to_bundle';
+  status:
+    | 'pending_admin_approval'
+    | 'admin_approved'
+    | 'admin_rejected'
+    | 'applied_to_bundle';
   metadata?: Record<string, any>;
   adminNotes?: string; // 관리자 검토 노트
   bundleTarget?: 'base' | 'advanced' | 'custom'; // 적용 대상 번들
@@ -51,7 +59,7 @@ export class ContextUpdateEngine {
       enableSuggestionGeneration: true, // 제안 생성만 허용
       backupBeforeUpdate: true,
       requireAdminApproval: true, // 항상 관리자 승인 필요
-      ...config
+      ...config,
     };
 
     this.patternAnalysisService = PatternAnalysisService.getInstance();
@@ -59,7 +67,9 @@ export class ContextUpdateEngine {
     this.currentContext = this.initializeContext();
   }
 
-  public static getInstance(config?: Partial<ContextUpdateConfig>): ContextUpdateEngine {
+  public static getInstance(
+    config?: Partial<ContextUpdateConfig>
+  ): ContextUpdateEngine {
     if (!ContextUpdateEngine.instance) {
       ContextUpdateEngine.instance = new ContextUpdateEngine(config);
     }
@@ -71,14 +81,19 @@ export class ContextUpdateEngine {
    */
   async generateUpdateSuggestions(): Promise<ContextUpdate[]> {
     if (!this.config.enableSuggestionGeneration) {
-      console.log('🔒 [ContextUpdateEngine] 제안 생성이 비활성화되어 있습니다.');
+      console.log(
+        '🔒 [ContextUpdateEngine] 제안 생성이 비활성화되어 있습니다.'
+      );
       return [];
     }
 
     try {
-      console.log('📋 [ContextUpdateEngine] 컨텍스트 업데이트 제안서 생성 시작...');
+      console.log(
+        '📋 [ContextUpdateEngine] 컨텍스트 업데이트 제안서 생성 시작...'
+      );
 
-      const analysisReport = await this.patternAnalysisService.getLatestAnalysisReport();
+      const analysisReport =
+        await this.patternAnalysisService.getLatestAnalysisReport();
       if (!analysisReport) {
         console.log('📊 [ContextUpdateEngine] 분석 보고서가 없습니다.');
         return [];
@@ -87,11 +102,13 @@ export class ContextUpdateEngine {
       const suggestions: ContextUpdate[] = [];
 
       // 1. 패턴 제안 (자동 적용 아님)
-      const patternSuggestions = await this.createPatternSuggestions(analysisReport);
+      const patternSuggestions =
+        await this.createPatternSuggestions(analysisReport);
       suggestions.push(...patternSuggestions);
 
       // 2. 응답 템플릿 제안
-      const templateSuggestions = await this.generateTemplateSuggestions(analysisReport);
+      const templateSuggestions =
+        await this.generateTemplateSuggestions(analysisReport);
       suggestions.push(...templateSuggestions);
 
       // 3. 지식 베이스 제안
@@ -108,11 +125,15 @@ export class ContextUpdateEngine {
         this.pendingUpdates.set(suggestion.id, suggestion);
       }
 
-      console.log(`✅ [ContextUpdateEngine] ${suggestions.length}개의 컨텍스트 업데이트 제안서 생성 완료`);
+      console.log(
+        `✅ [ContextUpdateEngine] ${suggestions.length}개의 컨텍스트 업데이트 제안서 생성 완료`
+      );
       return suggestions;
-
     } catch (error) {
-      console.error('❌ [ContextUpdateEngine] 컨텍스트 업데이트 제안서 생성 실패:', error);
+      console.error(
+        '❌ [ContextUpdateEngine] 컨텍스트 업데이트 제안서 생성 실패:',
+        error
+      );
       return [];
     }
   }
@@ -122,22 +143,32 @@ export class ContextUpdateEngine {
    * @deprecated 운영 환경에서는 사용 금지. 관리자 수동 승인만 허용
    */
   async executeAutoUpdates(): Promise<number> {
-    console.warn('🚫 [ContextUpdateEngine] 자동 업데이트는 폐쇄망 환경에서 금지됩니다. 관리자 승인을 통해 수동으로 적용하세요.');
+    console.warn(
+      '🚫 [ContextUpdateEngine] 자동 업데이트는 폐쇄망 환경에서 금지됩니다. 관리자 승인을 통해 수동으로 적용하세요.'
+    );
     return 0;
   }
 
   /**
    * 관리자 승인 처리
    */
-  async adminApproveUpdate(updateId: string, adminNotes?: string, bundleTarget: 'base' | 'advanced' | 'custom' = 'advanced'): Promise<boolean> {
+  async adminApproveUpdate(
+    updateId: string,
+    adminNotes?: string,
+    bundleTarget: 'base' | 'advanced' | 'custom' = 'advanced'
+  ): Promise<boolean> {
     const update = this.pendingUpdates.get(updateId);
     if (!update) {
-      console.error(`❌ [ContextUpdateEngine] 업데이트를 찾을 수 없습니다: ${updateId}`);
+      console.error(
+        `❌ [ContextUpdateEngine] 업데이트를 찾을 수 없습니다: ${updateId}`
+      );
       return false;
     }
 
     if (update.status !== 'pending_admin_approval') {
-      console.error(`❌ [ContextUpdateEngine] 승인 대기 상태가 아닙니다: ${updateId}`);
+      console.error(
+        `❌ [ContextUpdateEngine] 승인 대기 상태가 아닙니다: ${updateId}`
+      );
       return false;
     }
 
@@ -151,10 +182,15 @@ export class ContextUpdateEngine {
       this.pendingUpdates.delete(updateId);
       this.appliedUpdates.push(update);
 
-      console.log(`✅ [ContextUpdateEngine] 관리자 승인 완료: ${updateId} → ${bundleTarget} 번들 대상`);
+      console.log(
+        `✅ [ContextUpdateEngine] 관리자 승인 완료: ${updateId} → ${bundleTarget} 번들 대상`
+      );
       return true;
     } catch (error) {
-      console.error(`❌ [ContextUpdateEngine] 관리자 승인 실패: ${updateId}`, error);
+      console.error(
+        `❌ [ContextUpdateEngine] 관리자 승인 실패: ${updateId}`,
+        error
+      );
       return false;
     }
   }
@@ -165,7 +201,9 @@ export class ContextUpdateEngine {
   async adminRejectUpdate(updateId: string, reason: string): Promise<boolean> {
     const update = this.pendingUpdates.get(updateId);
     if (!update) {
-      console.error(`❌ [ContextUpdateEngine] 업데이트를 찾을 수 없습니다: ${updateId}`);
+      console.error(
+        `❌ [ContextUpdateEngine] 업데이트를 찾을 수 없습니다: ${updateId}`
+      );
       return false;
     }
 
@@ -180,7 +218,10 @@ export class ContextUpdateEngine {
   /**
    * 승인된 업데이트를 .ctxbundle 형태로 내보내기
    */
-  async exportApprovedUpdatesToBundle(bundleType: 'base' | 'advanced' | 'custom', clientId?: string): Promise<{
+  async exportApprovedUpdatesToBundle(
+    bundleType: 'base' | 'advanced' | 'custom',
+    clientId?: string
+  ): Promise<{
     patterns: any[];
     templates: Record<string, string>;
     knowledgeBase: Record<string, any>;
@@ -194,7 +235,8 @@ export class ContextUpdateEngine {
     };
   }> {
     const approvedUpdates = this.appliedUpdates.filter(
-      update => update.status === 'admin_approved' && update.bundleTarget === bundleType
+      update =>
+        update.status === 'admin_approved' && update.bundleTarget === bundleType
     );
 
     const bundle = {
@@ -207,8 +249,8 @@ export class ContextUpdateEngine {
         timestamp: new Date(),
         bundleType,
         clientId,
-        approvedUpdates: approvedUpdates.map(u => u.id)
-      }
+        approvedUpdates: approvedUpdates.map(u => u.id),
+      },
     };
 
     // 승인된 업데이트를 번들에 포함
@@ -231,14 +273,18 @@ export class ContextUpdateEngine {
       }
     }
 
-    console.log(`📦 [ContextUpdateEngine] ${bundleType} 번들 생성 완료: ${approvedUpdates.length}개 업데이트 포함`);
+    console.log(
+      `📦 [ContextUpdateEngine] ${bundleType} 번들 생성 완료: ${approvedUpdates.length}개 업데이트 포함`
+    );
     return bundle;
   }
 
   /**
    * 패턴 제안 생성 (자동 적용 아님)
    */
-  private async createPatternSuggestions(analysisReport: any): Promise<ContextUpdate[]> {
+  private async createPatternSuggestions(
+    analysisReport: any
+  ): Promise<ContextUpdate[]> {
     const suggestions: ContextUpdate[] = [];
 
     // 분석 보고서에서 패턴 제안 추출
@@ -253,7 +299,7 @@ export class ContextUpdateEngine {
           description: `학습 기반 패턴 제안 (제안 ID: ${suggestion.id})`,
           category: 'learning_suggested',
           confidence: suggestion.confidenceScore,
-          basedOnInteractions: suggestion.basedOnInteractions
+          basedOnInteractions: suggestion.basedOnInteractions,
         }),
         confidence: suggestion.confidenceScore,
         source: 'learning',
@@ -263,8 +309,8 @@ export class ContextUpdateEngine {
           suggestionId: suggestion.id,
           basedOnInteractions: suggestion.basedOnInteractions,
           estimatedImprovement: suggestion.estimatedImprovement,
-          analysisReportId: analysisReport.id
-        }
+          analysisReportId: analysisReport.id,
+        },
       });
     }
 
@@ -274,21 +320,24 @@ export class ContextUpdateEngine {
   /**
    * 템플릿 제안 생성
    */
-  private async generateTemplateSuggestions(analysisReport: any): Promise<ContextUpdate[]> {
+  private async generateTemplateSuggestions(
+    analysisReport: any
+  ): Promise<ContextUpdate[]> {
     const suggestions: ContextUpdate[] = [];
 
     // 자주 실패하는 질문 유형에 대한 새로운 템플릿 제안
     const failurePatterns = analysisReport.analysisResult?.patterns || [];
 
     for (const pattern of failurePatterns) {
-      if (pattern.frequency > 5) { // 5회 이상 실패한 패턴
+      if (pattern.frequency > 5) {
+        // 5회 이상 실패한 패턴
         suggestions.push({
           id: this.generateUpdateId(),
           type: 'response_template',
           content: JSON.stringify({
             key: `template_${pattern.category}`,
             value: this.generateResponseTemplate(pattern),
-            description: `실패 패턴 기반 템플릿 제안`
+            description: `실패 패턴 기반 템플릿 제안`,
           }),
           confidence: 0.7,
           source: 'learning',
@@ -297,8 +346,8 @@ export class ContextUpdateEngine {
           metadata: {
             patternId: pattern.id,
             failureCount: pattern.frequency,
-            category: pattern.category
-          }
+            category: pattern.category,
+          },
         });
       }
     }
@@ -314,15 +363,17 @@ export class ContextUpdateEngine {
 
     // 최근 성공적인 상호작용에서 지식 패턴 추출
     const recentInteractions = await this.interactionLogger.getInteractions({
-      startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 최근 7일
+      startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 최근 7일
     });
 
-    const successfulInteractions = recentInteractions.filter((i: any) =>
-      i.userFeedback === 'helpful' && i.confidence > 0.8
+    const successfulInteractions = recentInteractions.filter(
+      (i: any) => i.userFeedback === 'helpful' && i.confidence > 0.8
     );
 
     // 성공적인 응답에서 지식 패턴 추출
-    const knowledgePatterns = this.extractKnowledgePatterns(successfulInteractions);
+    const knowledgePatterns = this.extractKnowledgePatterns(
+      successfulInteractions
+    );
 
     for (const pattern of knowledgePatterns) {
       suggestions.push({
@@ -332,7 +383,7 @@ export class ContextUpdateEngine {
           key: pattern.key,
           value: pattern.value,
           context: pattern.context,
-          description: '성공적인 상호작용 기반 지식 제안'
+          description: '성공적인 상호작용 기반 지식 제안',
         }),
         confidence: pattern.confidence,
         source: 'learning',
@@ -340,8 +391,8 @@ export class ContextUpdateEngine {
         status: 'pending_admin_approval',
         metadata: {
           sourceInteractions: pattern.sourceInteractions,
-          successRate: pattern.successRate
-        }
+          successRate: pattern.successRate,
+        },
       });
     }
 
@@ -368,7 +419,7 @@ export class ContextUpdateEngine {
             pattern: query.pattern,
             intent: suggestedIntent.intent,
             examples: query.examples,
-            description: '미분류 질문 기반 인텐트 매핑 제안'
+            description: '미분류 질문 기반 인텐트 매핑 제안',
           }),
           confidence: suggestedIntent.confidence,
           source: 'learning',
@@ -377,8 +428,8 @@ export class ContextUpdateEngine {
           metadata: {
             queryCount: query.count,
             examples: query.examples,
-            unclassifiedRate: query.unclassifiedRate
-          }
+            unclassifiedRate: query.unclassifiedRate,
+          },
         });
       }
     }
@@ -397,7 +448,7 @@ export class ContextUpdateEngine {
       templates: { ...this.currentContext.templates },
       knowledgeBase: { ...this.currentContext.knowledgeBase },
       intentMappings: { ...this.currentContext.intentMappings },
-      version: this.generateVersion()
+      version: this.generateVersion(),
     };
 
     this.contextSnapshots.push(snapshot);
@@ -407,7 +458,9 @@ export class ContextUpdateEngine {
       this.contextSnapshots.shift();
     }
 
-    console.log(`📸 [ContextUpdateEngine] 컨텍스트 스냅샷 생성: ${snapshot.id}`);
+    console.log(
+      `📸 [ContextUpdateEngine] 컨텍스트 스냅샷 생성: ${snapshot.id}`
+    );
     return snapshot;
   }
 
@@ -417,7 +470,9 @@ export class ContextUpdateEngine {
   async rollbackToSnapshot(snapshotId: string): Promise<boolean> {
     const snapshot = this.contextSnapshots.find(s => s.id === snapshotId);
     if (!snapshot) {
-      console.error(`❌ [ContextUpdateEngine] 스냅샷을 찾을 수 없습니다: ${snapshotId}`);
+      console.error(
+        `❌ [ContextUpdateEngine] 스냅샷을 찾을 수 없습니다: ${snapshotId}`
+      );
       return false;
     }
 
@@ -463,7 +518,7 @@ export class ContextUpdateEngine {
       templates: {},
       knowledgeBase: {},
       intentMappings: {},
-      version: '1.0.0'
+      version: '1.0.0',
     };
   }
 
@@ -499,4 +554,4 @@ export class ContextUpdateEngine {
     const now = new Date();
     return `${now.getFullYear()}.${now.getMonth() + 1}.${now.getDate()}.${now.getHours()}${now.getMinutes()}`;
   }
-} 
+}

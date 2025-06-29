@@ -1,6 +1,6 @@
 /**
  * 🎯 Render Tracker v1.0
- * 
+ *
  * 성능 추적 및 모니터링 시스템
  * - 컴포넌트 렌더링 횟수 추적
  * - 갱신 주기 모니터링
@@ -85,12 +85,16 @@ class RenderTracker {
     // 과도한 렌더링 경고
     const metric = this.metrics.get(componentName)!;
     if (metric.renderCount > 100 && metric.renderCount % 50 === 0) {
-      console.warn(`⚠️ ${componentName}: 과도한 렌더링 감지 (${metric.renderCount}회)`);
+      console.warn(
+        `⚠️ ${componentName}: 과도한 렌더링 감지 (${metric.renderCount}회)`
+      );
     }
 
     // 빠른 갱신 경고
     if (metric.updateFrequency > 0 && metric.updateFrequency < 1000) {
-      console.warn(`⚠️ ${componentName}: 너무 빠른 갱신 (${metric.updateFrequency}ms)`);
+      console.warn(
+        `⚠️ ${componentName}: 너무 빠른 갱신 (${metric.updateFrequency}ms)`
+      );
     }
   }
 
@@ -100,8 +104,12 @@ class RenderTracker {
   public getStats(): PerformanceStats {
     const metrics = Array.from(this.metrics.values());
     const totalRenders = metrics.reduce((sum, m) => sum + m.renderCount, 0);
-    const totalRenderTime = metrics.reduce((sum, m) => sum + m.totalRenderTime, 0);
-    const averageUpdateFreq = metrics.reduce((sum, m) => sum + m.updateFrequency, 0) / metrics.length;
+    const totalRenderTime = metrics.reduce(
+      (sum, m) => sum + m.totalRenderTime,
+      0
+    );
+    const averageUpdateFreq =
+      metrics.reduce((sum, m) => sum + m.updateFrequency, 0) / metrics.length;
 
     return {
       totalComponents: this.metrics.size,
@@ -121,7 +129,9 @@ class RenderTracker {
       const metric = this.metrics.get(componentName);
       return metric ? [metric] : [];
     }
-    return Array.from(this.metrics.values()).sort((a, b) => b.renderCount - a.renderCount);
+    return Array.from(this.metrics.values()).sort(
+      (a, b) => b.renderCount - a.renderCount
+    );
   }
 
   /**
@@ -157,7 +167,11 @@ class RenderTracker {
    * 메모리 사용량 측정
    */
   private getMemoryUsage(): number {
-    if (typeof window !== 'undefined' && 'performance' in window && 'memory' in (window.performance as any)) {
+    if (
+      typeof window !== 'undefined' &&
+      'performance' in window &&
+      'memory' in (window.performance as any)
+    ) {
       const memory = (window.performance as any).memory;
       return memory.usedJSHeapSize / 1024 / 1024; // MB 단위
     }
@@ -176,7 +190,8 @@ class RenderTracker {
     // 메모리 사용량 모니터링
     setInterval(() => {
       const memoryUsage = this.getMemoryUsage();
-      if (memoryUsage > 100) { // 100MB 초과 시 경고
+      if (memoryUsage > 100) {
+        // 100MB 초과 시 경고
         console.warn(`⚠️ 높은 메모리 사용량: ${memoryUsage.toFixed(2)}MB`);
       }
     }, 60000);
@@ -210,19 +225,27 @@ class RenderTracker {
     // 과도한 렌더링 컴포넌트 찾기
     const highRenderComponents = metrics.filter(m => m.renderCount > 50);
     if (highRenderComponents.length > 0) {
-      suggestions.push(`🔄 과도한 렌더링: ${highRenderComponents.map(m => m.componentName).join(', ')} - React.memo 사용 고려`);
+      suggestions.push(
+        `🔄 과도한 렌더링: ${highRenderComponents.map(m => m.componentName).join(', ')} - React.memo 사용 고려`
+      );
     }
 
     // 빠른 갱신 컴포넌트 찾기
-    const fastUpdateComponents = metrics.filter(m => m.updateFrequency > 0 && m.updateFrequency < 5000);
+    const fastUpdateComponents = metrics.filter(
+      m => m.updateFrequency > 0 && m.updateFrequency < 5000
+    );
     if (fastUpdateComponents.length > 0) {
-      suggestions.push(`⚡ 빠른 갱신: ${fastUpdateComponents.map(m => m.componentName).join(', ')} - 갱신 주기 조정 필요`);
+      suggestions.push(
+        `⚡ 빠른 갱신: ${fastUpdateComponents.map(m => m.componentName).join(', ')} - 갱신 주기 조정 필요`
+      );
     }
 
     // 메모리 사용량 체크
     const memoryUsage = this.getMemoryUsage();
     if (memoryUsage > 50) {
-      suggestions.push(`💾 높은 메모리 사용량: ${memoryUsage.toFixed(2)}MB - 메모리 누수 확인 필요`);
+      suggestions.push(
+        `💾 높은 메모리 사용량: ${memoryUsage.toFixed(2)}MB - 메모리 누수 확인 필요`
+      );
     }
 
     return suggestions;
@@ -237,7 +260,7 @@ import React from 'react';
 
 export function useRenderTracker(componentName: string) {
   const startTime = Date.now();
-  
+
   // 컴포넌트 언마운트 시 렌더링 시간 기록
   React.useEffect(() => {
     return () => {
@@ -253,4 +276,4 @@ export function useRenderTracker(componentName: string) {
   };
 }
 
-export default RenderTracker; 
+export default RenderTracker;

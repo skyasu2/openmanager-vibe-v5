@@ -1,6 +1,6 @@
 /**
  * 📝 Logging Service
- * 
+ *
  * 표준화된 로깅 시스템
  * - 레벨별 로그 관리
  * - 구조화된 로그 포맷
@@ -20,7 +20,7 @@ export class LoggingService implements ILogger {
     debug: 0,
     info: 1,
     warn: 2,
-    error: 3
+    error: 3,
   };
 
   constructor() {
@@ -87,7 +87,12 @@ export class LoggingService implements ILogger {
   /**
    * 내부 로그 처리
    */
-  private log(level: 'debug' | 'info' | 'warn' | 'error', message: string, data?: Record<string, any>, error?: Error): void {
+  private log(
+    level: 'debug' | 'info' | 'warn' | 'error',
+    message: string,
+    data?: Record<string, any>,
+    error?: Error
+  ): void {
     // 레벨 필터링
     if (this.levelPriority[level] < this.levelPriority[this.level]) {
       return;
@@ -99,12 +104,12 @@ export class LoggingService implements ILogger {
       timestamp: new Date().toISOString(),
       module: this.getCallerModule(),
       data,
-      error
+      error,
     };
 
     // 메모리에 저장
     this.logs.push(logEntry);
-    
+
     // 최대 로그 수 제한
     if (this.logs.length > this.maxLogs) {
       this.logs.shift();
@@ -153,9 +158,9 @@ export class LoggingService implements ILogger {
   private outputToConsole(entry: LogEntry): void {
     const timestamp = new Date(entry.timestamp).toLocaleTimeString();
     const prefix = `[${timestamp}] [${entry.level.toUpperCase()}] [${entry.module}]`;
-    
+
     let output = `${prefix} ${entry.message}`;
-    
+
     if (entry.data) {
       output += `\n  Data: ${JSON.stringify(entry.data, null, 2)}`;
     }
@@ -193,14 +198,14 @@ export class LoggingService implements ILogger {
       const fileKey = `logs_${new Date().toISOString().split('T')[0]}`;
       const existingLogs = localStorage.getItem(fileKey);
       const logs = existingLogs ? JSON.parse(existingLogs) : [];
-      
+
       logs.push(entry);
-      
+
       // 파일 크기 제한 (시뮬레이션)
       if (logs.length > 500) {
         logs.splice(0, logs.length - 500);
       }
-      
+
       localStorage.setItem(fileKey, JSON.stringify(logs));
     } catch (error) {
       console.error('Failed to write log to file:', error);
@@ -220,7 +225,7 @@ export class LoggingService implements ILogger {
       total: this.logs.length,
       byLevel: { debug: 0, info: 0, warn: 0, error: 0 },
       byModule: {} as Record<string, number>,
-      recentErrors: this.logs.filter(log => log.level === 'error').slice(-10)
+      recentErrors: this.logs.filter(log => log.level === 'error').slice(-10),
     };
 
     this.logs.forEach(log => {
@@ -244,12 +249,16 @@ export class LoggingService implements ILogger {
     return this.logs.filter(log => {
       if (query.level && log.level !== query.level) return false;
       if (query.module && log.module !== query.module) return false;
-      if (query.message && !log.message.toLowerCase().includes(query.message.toLowerCase())) return false;
-      
+      if (
+        query.message &&
+        !log.message.toLowerCase().includes(query.message.toLowerCase())
+      )
+        return false;
+
       const logTime = new Date(log.timestamp);
       if (query.startTime && logTime < query.startTime) return false;
       if (query.endTime && logTime > query.endTime) return false;
-      
+
       return true;
     });
   }
@@ -259,19 +268,26 @@ export class LoggingService implements ILogger {
    */
   exportLogs(format: 'json' | 'csv' = 'json'): string {
     if (format === 'csv') {
-      const headers = ['timestamp', 'level', 'module', 'message', 'data', 'error'];
+      const headers = [
+        'timestamp',
+        'level',
+        'module',
+        'message',
+        'data',
+        'error',
+      ];
       const rows = this.logs.map(log => [
         log.timestamp,
         log.level,
         log.module,
         log.message,
         log.data ? JSON.stringify(log.data) : '',
-        log.error ? log.error.message : ''
+        log.error ? log.error.message : '',
       ]);
-      
+
       return [headers, ...rows].map(row => row.join(',')).join('\n');
     }
-    
+
     return JSON.stringify(this.logs, null, 2);
   }
 
@@ -301,7 +317,7 @@ export class LoggingService implements ILogger {
       action: event.action,
       resource: event.resource,
       user_id: event.userId,
-      ...event.metadata
+      ...event.metadata,
     });
   }
 
@@ -316,7 +332,8 @@ export class LoggingService implements ILogger {
     userId?: string;
     userAgent?: string;
   }): void {
-    const level = request.statusCode && request.statusCode >= 400 ? 'warn' : 'info';
+    const level =
+      request.statusCode && request.statusCode >= 400 ? 'warn' : 'info';
     this.log(level, `API ${request.method} ${request.url}`, {
       type: 'api_request',
       method: request.method,
@@ -324,7 +341,7 @@ export class LoggingService implements ILogger {
       status_code: request.statusCode,
       duration_ms: request.duration,
       user_id: request.userId,
-      user_agent: request.userAgent
+      user_agent: request.userAgent,
     });
   }
 
@@ -339,12 +356,17 @@ export class LoggingService implements ILogger {
     error?: Error;
   }): void {
     const level = query.error ? 'error' : 'debug';
-    this.log(level, `DB ${query.operation}${query.table ? ` on ${query.table}` : ''}`, {
-      type: 'db_query',
-      operation: query.operation,
-      table: query.table,
-      duration_ms: query.duration,
-      row_count: query.rowCount
-    }, query.error);
+    this.log(
+      level,
+      `DB ${query.operation}${query.table ? ` on ${query.table}` : ''}`,
+      {
+        type: 'db_query',
+        operation: query.operation,
+        table: query.table,
+        duration_ms: query.duration,
+        row_count: query.rowCount,
+      },
+      query.error
+    );
   }
-} 
+}

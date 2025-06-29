@@ -1,6 +1,6 @@
 /**
  * 🎯 Official MCP Client - RealMCPClient 래퍼 (중복 제거)
- * 
+ *
  * ⚠️ 기존 OfficialMCPClient는 RealMCPClient 싱글톤의 래퍼로 변경됨
  * ✅ 하위 호환성 유지
  * ✅ Render MCP 서버 전용
@@ -91,7 +91,11 @@ export class OfficialMCPClient {
     }
 
     try {
-      const result = await this.realClient.callTool(serverName, toolName, arguments_);
+      const result = await this.realClient.callTool(
+        serverName,
+        toolName,
+        arguments_
+      );
 
       console.log(`✅ 도구 실행 성공: ${serverName}/${toolName}`);
 
@@ -100,14 +104,17 @@ export class OfficialMCPClient {
         content: [
           {
             type: 'text',
-            text: typeof result === 'string' ? result : JSON.stringify(result, null, 2)
-          }
+            text:
+              typeof result === 'string'
+                ? result
+                : JSON.stringify(result, null, 2),
+          },
         ],
         isError: false,
         metadata: {
           toolsUsed: [`${serverName}/${toolName}`],
-          success: true
-        }
+          success: true,
+        },
       };
     } catch (error) {
       console.error(`❌ 도구 실행 실패: ${serverName}/${toolName}`, error);
@@ -116,14 +123,14 @@ export class OfficialMCPClient {
         content: [
           {
             type: 'text',
-            text: `❌ ${serverName}/${toolName} 실행 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
-          }
+            text: `❌ ${serverName}/${toolName} 실행 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+          },
         ],
         isError: true,
         metadata: {
           toolsUsed: [`${serverName}/${toolName}`],
-          success: false
-        }
+          success: false,
+        },
       };
     }
   }
@@ -136,7 +143,9 @@ export class OfficialMCPClient {
     const status: Record<string, boolean> = {};
 
     if (connectionInfo.servers) {
-      for (const [serverName, serverInfo] of Object.entries(connectionInfo.servers)) {
+      for (const [serverName, serverInfo] of Object.entries(
+        connectionInfo.servers
+      )) {
         status[serverName] = (serverInfo as any).connected || false;
       }
     }

@@ -203,7 +203,8 @@ export class AnalysisProcessor {
       // RAG 엔진 폴백 (기본 응답으로 대체)
       return {
         success: true,
-        content: '분석이 완료되었습니다. 시스템 상태가 정상적으로 모니터링되고 있습니다.',
+        content:
+          '분석이 완료되었습니다. 시스템 상태가 정상적으로 모니터링되고 있습니다.',
         confidence: 0.75,
         sources: ['fallback', 'enhanced-mode'],
         metadata: { tier: 'enhanced', engine: 'fallback' },

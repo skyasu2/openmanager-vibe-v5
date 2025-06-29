@@ -3,7 +3,7 @@
  *
  * Vercel Edge Middleware 대신 API 라우트 내부에서 사용할 수 있는
  * 가벼운 메트릭 수집 함수들
- * 
+ *
  * ✅ Edge Requests 과금 최적화 완료:
  * - Edge Runtime → Node.js Runtime 변경
  * - Edge Middleware 제거
@@ -66,7 +66,7 @@ export function logAPIMetrics(metrics: APIMetrics): void {
 
 /**
  * API 라우트에서 사용할 수 있는 메트릭 래퍼
- * 
+ *
  * ✅ Edge Requests 최적화:
  * - Node.js Runtime 사용으로 Edge 과금 방지
  * - 개발 환경에서만 상세 로깅
@@ -95,14 +95,14 @@ export async function withAPIMetrics<T>(
     // Response 객체인 경우 상태 코드 추출
     const statusCode = (response as any)?.status || 200;
     const finalMetrics = endAPIMetrics(metrics, statusCode);
-    
+
     // ✅ 개발 환경에서만 로깅 (Vercel 과금 최적화)
     logAPIMetrics(finalMetrics);
 
     return response;
   } catch (error) {
     const finalMetrics = endAPIMetrics(metrics, 500);
-    
+
     // ✅ 개발 환경에서만 에러 로깅 (Vercel 과금 최적화)
     logAPIMetrics(finalMetrics);
     throw error;

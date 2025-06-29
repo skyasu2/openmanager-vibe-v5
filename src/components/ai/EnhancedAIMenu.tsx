@@ -1,6 +1,6 @@
 /**
  * 🎨 Enhanced AI Menu Component
- * 
+ *
  * 사용성 개선된 AI 사이드바 메뉴
  * - 지능형 툴팁 위치 조정
  * - 접근성 향상 (키보드 네비게이션)
@@ -27,9 +27,15 @@ import {
   Star,
 } from 'lucide-react';
 
-export type AIFunction = 
-  | 'chat' | 'thinking' | 'prediction' | 'pattern-analysis' 
-  | 'log-analysis' | 'optimization' | 'auto-report' | 'advanced-management';
+export type AIFunction =
+  | 'chat'
+  | 'thinking'
+  | 'prediction'
+  | 'pattern-analysis'
+  | 'log-analysis'
+  | 'optimization'
+  | 'auto-report'
+  | 'advanced-management';
 
 interface AIMenuItem {
   id: AIFunction;
@@ -85,7 +91,7 @@ const AI_MENU_ITEMS: AIMenuItem[] = [
     category: 'analysis',
     popularity: 8,
   },
-  
+
   // 분석 기능
   {
     id: 'pattern-analysis',
@@ -121,7 +127,7 @@ const AI_MENU_ITEMS: AIMenuItem[] = [
     popularity: 5,
     isPro: true,
   },
-  
+
   // 관리 기능
   {
     id: 'auto-report',
@@ -168,7 +174,9 @@ export default function EnhancedAIMenu({
   const menuRef = useRef<HTMLDivElement>(null);
 
   // 사용 빈도 기반 정렬
-  const sortedItems = [...AI_MENU_ITEMS].sort((a, b) => b.popularity - a.popularity);
+  const sortedItems = [...AI_MENU_ITEMS].sort(
+    (a, b) => b.popularity - a.popularity
+  );
 
   // 키보드 네비게이션
   useEffect(() => {
@@ -178,13 +186,13 @@ export default function EnhancedAIMenu({
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          setFocusedIndex(prev => 
+          setFocusedIndex(prev =>
             prev < sortedItems.length - 1 ? prev + 1 : 0
           );
           break;
         case 'ArrowUp':
           e.preventDefault();
-          setFocusedIndex(prev => 
+          setFocusedIndex(prev =>
             prev > 0 ? prev - 1 : sortedItems.length - 1
           );
           break;
@@ -213,23 +221,23 @@ export default function EnhancedAIMenu({
       {/* 최소화된 상태 */}
       {isMinimized && (
         <motion.div
-          className="minimized-menu"
+          className='minimized-menu'
           initial={{ width: 0 }}
           animate={{ width: 60 }}
           transition={{ duration: 0.3 }}
         >
           <button
             onClick={onToggleMinimize}
-            className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-white mb-2"
+            className='w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-white mb-2'
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className='w-5 h-5' />
           </button>
-          
+
           {/* 인기 기능 3개만 표시 */}
           {sortedItems.slice(0, 3).map((item, index) => {
             const Icon = item.icon;
             const isSelected = selectedFunction === item.id;
-            
+
             return (
               <motion.button
                 key={item.id}
@@ -237,19 +245,20 @@ export default function EnhancedAIMenu({
                 className={`
                   w-12 h-12 rounded-xl mb-1 flex items-center justify-center
                   transition-all duration-200 group relative
-                  ${isSelected 
-                    ? `bg-gradient-to-r ${item.gradient} text-white shadow-lg` 
-                    : `${item.bgColor} ${item.color}`
+                  ${
+                    isSelected
+                      ? `bg-gradient-to-r ${item.gradient} text-white shadow-lg`
+                      : `${item.bgColor} ${item.color}`
                   }
                 `}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Icon className="w-4 h-4" />
-                
+                <Icon className='w-4 h-4' />
+
                 {/* 최소화 상태 툴팁 */}
-                <div className="ai-menu-tooltip">
-                  <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg">
+                <div className='ai-menu-tooltip'>
+                  <div className='bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg'>
                     {item.label}
                   </div>
                 </div>
@@ -262,39 +271,41 @@ export default function EnhancedAIMenu({
       {/* 전체 메뉴 */}
       {!isMinimized && (
         <motion.div
-          className="full-menu flex flex-col space-y-1 p-3 bg-white/95 backdrop-blur-sm border-l border-gray-200 shadow-lg"
+          className='full-menu flex flex-col space-y-1 p-3 bg-white/95 backdrop-blur-sm border-l border-gray-200 shadow-lg'
           initial={{ width: 0, opacity: 0 }}
           animate={{ width: 280, opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
           {/* 헤더 */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                <Brain className="w-4 h-4 text-white" />
+          <div className='flex items-center justify-between mb-4'>
+            <div className='flex items-center space-x-2'>
+              <div className='w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center'>
+                <Brain className='w-4 h-4 text-white' />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-gray-800">AI 어시스턴트</h3>
-                <p className="text-xs text-gray-500">8개 기능 사용 가능</p>
+                <h3 className='text-sm font-bold text-gray-800'>
+                  AI 어시스턴트
+                </h3>
+                <p className='text-xs text-gray-500'>8개 기능 사용 가능</p>
               </div>
             </div>
-            
-            <div className="flex items-center space-x-1">
+
+            <div className='flex items-center space-x-1'>
               <button
                 onClick={() => setShowHelp(!showHelp)}
-                className="p-1 hover:bg-gray-100 rounded"
-                title="도움말 (Shift+?)"
+                className='p-1 hover:bg-gray-100 rounded'
+                title='도움말 (Shift+?)'
               >
-                <HelpCircle className="w-4 h-4 text-gray-400" />
+                <HelpCircle className='w-4 h-4 text-gray-400' />
               </button>
-              
+
               {onToggleMinimize && (
                 <button
                   onClick={onToggleMinimize}
-                  className="p-1 hover:bg-gray-100 rounded"
-                  title="최소화"
+                  className='p-1 hover:bg-gray-100 rounded'
+                  title='최소화'
                 >
-                  <ChevronLeft className="w-4 h-4 text-gray-400" />
+                  <ChevronLeft className='w-4 h-4 text-gray-400' />
                 </button>
               )}
             </div>
@@ -307,10 +318,10 @@ export default function EnhancedAIMenu({
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className="bg-blue-50 rounded-lg p-3 mb-4 text-xs text-blue-800"
+                className='bg-blue-50 rounded-lg p-3 mb-4 text-xs text-blue-800'
               >
-                <div className="font-semibold mb-2">키보드 단축키</div>
-                <div className="space-y-1">
+                <div className='font-semibold mb-2'>키보드 단축키</div>
+                <div className='space-y-1'>
                   <div>↑/↓ 화살표: 메뉴 탐색</div>
                   <div>Enter: 선택</div>
                   <div>Ctrl+K: AI 채팅</div>
@@ -321,12 +332,12 @@ export default function EnhancedAIMenu({
           </AnimatePresence>
 
           {/* 메뉴 아이템들 */}
-          <div className="space-y-1">
+          <div className='space-y-1'>
             {sortedItems.map((item, index) => {
               const Icon = item.icon;
               const isSelected = selectedFunction === item.id;
               const isFocused = focusedIndex === index;
-              
+
               return (
                 <motion.button
                   key={item.id}
@@ -337,11 +348,12 @@ export default function EnhancedAIMenu({
                     ai-menu-item w-full flex items-center space-x-3 p-3 rounded-xl
                     transition-all duration-200 text-left group relative
                     ${isSelected ? 'ai-menu-item-selected' : ''}
-                    ${isSelected 
-                      ? `bg-gradient-to-r ${item.gradient} text-white shadow-lg transform scale-[1.02]` 
-                      : isFocused
-                        ? 'bg-gray-100 shadow-md transform scale-[1.01]'
-                        : `${item.bgColor} ${item.color} hover:shadow-md hover:transform hover:scale-[1.01]`
+                    ${
+                      isSelected
+                        ? `bg-gradient-to-r ${item.gradient} text-white shadow-lg transform scale-[1.02]`
+                        : isFocused
+                          ? 'bg-gray-100 shadow-md transform scale-[1.01]'
+                          : `${item.bgColor} ${item.color} hover:shadow-md hover:transform hover:scale-[1.01]`
                     }
                   `}
                   whileHover={{ x: -2 }}
@@ -350,47 +362,57 @@ export default function EnhancedAIMenu({
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <div className="flex-shrink-0 relative">
-                    <Icon className="w-5 h-5" />
-                    
+                  <div className='flex-shrink-0 relative'>
+                    <Icon className='w-5 h-5' />
+
                     {/* 새 기능 표시 */}
                     {item.isNew && (
-                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
+                      <div className='absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full'></div>
                     )}
-                    
+
                     {/* Pro 기능 표시 */}
                     {item.isPro && (
-                      <Star className="absolute -top-1 -right-1 w-3 h-3 text-yellow-500 fill-current" />
+                      <Star className='absolute -top-1 -right-1 w-3 h-3 text-yellow-500 fill-current' />
                     )}
                   </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-sm truncate">{item.label}</span>
+
+                  <div className='flex-1 min-w-0'>
+                    <div className='flex items-center justify-between'>
+                      <span className='font-medium text-sm truncate'>
+                        {item.label}
+                      </span>
                       {item.shortcut && (
-                        <span className={`text-xs px-1.5 py-0.5 rounded ${
-                          isSelected ? 'bg-white/20' : 'bg-gray-200 text-gray-500'
-                        }`}>
+                        <span
+                          className={`text-xs px-1.5 py-0.5 rounded ${
+                            isSelected
+                              ? 'bg-white/20'
+                              : 'bg-gray-200 text-gray-500'
+                          }`}
+                        >
                           {item.shortcut}
                         </span>
                       )}
                     </div>
-                    <p className={`text-xs mt-1 ${
-                      isSelected ? 'text-white/80' : 'text-gray-500'
-                    }`}>
+                    <p
+                      className={`text-xs mt-1 ${
+                        isSelected ? 'text-white/80' : 'text-gray-500'
+                      }`}
+                    >
                       {item.description}
                     </p>
                   </div>
 
                   {/* 인기도 표시 */}
-                  <div className="flex-shrink-0">
-                    <div className="flex space-x-0.5">
+                  <div className='flex-shrink-0'>
+                    <div className='flex space-x-0.5'>
                       {Array.from({ length: 3 }, (_, i) => (
                         <div
                           key={i}
                           className={`w-1 h-1 rounded-full ${
                             i < Math.floor(item.popularity / 3.5)
-                              ? isSelected ? 'bg-white' : 'bg-gray-400'
+                              ? isSelected
+                                ? 'bg-white'
+                                : 'bg-gray-400'
                               : 'bg-gray-200'
                           }`}
                         />
@@ -403,8 +425,8 @@ export default function EnhancedAIMenu({
           </div>
 
           {/* 하단 정보 */}
-          <div className="mt-4 pt-3 border-t border-gray-200">
-            <div className="flex items-center justify-between text-xs text-gray-500">
+          <div className='mt-4 pt-3 border-t border-gray-200'>
+            <div className='flex items-center justify-between text-xs text-gray-500'>
               <span>총 {sortedItems.length}개 기능</span>
               <span>인기순 정렬</span>
             </div>
@@ -413,4 +435,4 @@ export default function EnhancedAIMenu({
       )}
     </div>
   );
-} 
+}

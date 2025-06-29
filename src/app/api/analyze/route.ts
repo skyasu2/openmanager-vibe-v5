@@ -1,4 +1,7 @@
-import { SupabaseRAGEngine, getSupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
+import {
+  SupabaseRAGEngine,
+  getSupabaseRAGEngine,
+} from '@/lib/ml/supabase-rag-engine';
 import { AILogger, LogCategory } from '@/services/ai/logging/AILogger';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -44,7 +47,7 @@ async function performIntelligentAnalysis(
         lowerQuery: lowerQuery,
         queryLength: query.length,
         hasKorean: /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(query),
-        ragEngine: isSupabaseRAG ? 'Supabase Vector DB' : 'Local File System'
+        ragEngine: isSupabaseRAG ? 'Supabase Vector DB' : 'Local File System',
       },
     });
 
@@ -190,14 +193,16 @@ async function performIntelligentAnalysis(
         results: [],
         totalResults: 0,
         processingTime: 0,
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       };
     }
 
     const ragAnalysis = {
       success: ragResponse.success,
       resultsCount: ragResponse.results.length,
-      topResult: ragResponse.results[0]?.content || ragResponse.results[0]?.document?.metadata?.category,
+      topResult:
+        ragResponse.results[0]?.content ||
+        ragResponse.results[0]?.document?.metadata?.category,
       topScore: ragResponse.results[0]?.score,
       allResults: ragResponse.results.map((r: any) => ({
         id: r.id || r.document?.id,
@@ -205,7 +210,7 @@ async function performIntelligentAnalysis(
         category: r.category || r.document?.metadata?.category,
       })),
       engine: 'Supabase RAG',
-      processingTime: ragResponse.processingTime || 0
+      processingTime: ragResponse.processingTime || 0,
     };
 
     thinkingSteps.push({
@@ -776,7 +781,8 @@ function generateTroubleshootingSteps(
 function extractMultipleIssues(
   query: string
 ): Array<{ type: string; severity: string; description: string }> {
-  const issues: Array<{ type: string; severity: string; description: string }> = [];
+  const issues: Array<{ type: string; severity: string; description: string }> =
+    [];
 
   if (query.includes('nginx cpu 95%')) {
     issues.push({
@@ -856,7 +862,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       analysis: `분석 요청을 받았습니다: "${query}". 현재 간단한 분석 모드로 동작 중입니다.`,
-      confidence: 0.5
+      confidence: 0.5,
     });
   } catch (error) {
     return NextResponse.json(

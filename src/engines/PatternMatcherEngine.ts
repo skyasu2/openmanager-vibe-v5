@@ -1,6 +1,6 @@
 /**
  * 🔍 PatternMatcherEngine v1.0
- * 
+ *
  * OpenManager v5.21.0 - 패턴 매칭 엔진
  * - 메모리 기반 이상 탐지 (무설정 배포)
  * - 실시간 메트릭 패턴 분석
@@ -64,7 +64,7 @@ class PatternMatcherEngine {
   private metricsHistory = new Map<string, MetricData[]>();
   private baselineStats = new Map<string, any>();
   private lastTriggers = new Map<string, number>();
-  
+
   private readonly MAX_ALERTS = 1000;
   private readonly MAX_METRICS_HISTORY = 100;
   private readonly LEARNING_WINDOW = 7 * 24 * 60 * 60 * 1000; // 7일
@@ -79,7 +79,10 @@ class PatternMatcherEngine {
    * 🎯 기본 패턴 룰 초기화
    */
   private initializeDefaultRules(): void {
-    const defaultRules: Omit<PatternRule, 'id' | 'createdAt' | 'triggerCount'>[] = [
+    const defaultRules: Omit<
+      PatternRule,
+      'id' | 'createdAt' | 'triggerCount'
+    >[] = [
       {
         name: 'High CPU Usage',
         description: 'CPU 사용률이 85% 이상일 때',
@@ -88,7 +91,7 @@ class PatternMatcherEngine {
         enabled: true,
         cooldown: this.DEFAULT_COOLDOWN,
         adaptiveThreshold: true,
-        learned: false
+        learned: false,
       },
       {
         name: 'Critical CPU Usage',
@@ -98,7 +101,7 @@ class PatternMatcherEngine {
         enabled: true,
         cooldown: this.DEFAULT_COOLDOWN / 2,
         adaptiveThreshold: false,
-        learned: false
+        learned: false,
       },
       {
         name: 'High Memory Usage',
@@ -108,7 +111,7 @@ class PatternMatcherEngine {
         enabled: true,
         cooldown: this.DEFAULT_COOLDOWN,
         adaptiveThreshold: true,
-        learned: false
+        learned: false,
       },
       {
         name: 'Slow Response Time',
@@ -118,7 +121,7 @@ class PatternMatcherEngine {
         enabled: true,
         cooldown: this.DEFAULT_COOLDOWN,
         adaptiveThreshold: true,
-        learned: false
+        learned: false,
       },
       {
         name: 'High Error Rate',
@@ -128,7 +131,7 @@ class PatternMatcherEngine {
         enabled: true,
         cooldown: this.DEFAULT_COOLDOWN,
         adaptiveThreshold: true,
-        learned: false
+        learned: false,
       },
       {
         name: 'System Stress',
@@ -138,8 +141,8 @@ class PatternMatcherEngine {
         enabled: true,
         cooldown: this.DEFAULT_COOLDOWN,
         adaptiveThreshold: false,
-        learned: false
-      }
+        learned: false,
+      },
     ];
 
     defaultRules.forEach(rule => this.addRule(rule));
@@ -148,12 +151,14 @@ class PatternMatcherEngine {
   /**
    * 📋 새 패턴 룰 추가
    */
-  addRule(ruleData: Omit<PatternRule, 'id' | 'createdAt' | 'triggerCount'>): string {
+  addRule(
+    ruleData: Omit<PatternRule, 'id' | 'createdAt' | 'triggerCount'>
+  ): string {
     const rule: PatternRule = {
       ...ruleData,
       id: `rule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       createdAt: Date.now(),
-      triggerCount: 0
+      triggerCount: 0,
     };
 
     this.rules.set(rule.id, rule);
@@ -190,10 +195,10 @@ class PatternMatcherEngine {
    */
   analyzeMetrics(metrics: MetricData): PatternAlert[] {
     const alerts: PatternAlert[] = [];
-    
+
     // 메트릭 히스토리 저장
     this.storeMetricsHistory(metrics);
-    
+
     // 베이스라인 업데이트
     this.updateBaseline(metrics);
 
@@ -202,23 +207,24 @@ class PatternMatcherEngine {
       if (!rule.enabled) return;
 
       // 쿨다운 체크
-      const lastTrigger = this.lastTriggers.get(`${rule.id}_${metrics.serverId}`) || 0;
+      const lastTrigger =
+        this.lastTriggers.get(`${rule.id}_${metrics.serverId}`) || 0;
       if (Date.now() - lastTrigger < rule.cooldown) {
         return;
       }
 
       // 적응형 임계값 적용
       const adjustedRule = this.applyAdaptiveThreshold(rule, metrics.serverId);
-      
+
       // 조건 평가
       if (this.evaluateCondition(adjustedRule.condition, metrics)) {
         const alert = this.createAlert(rule, metrics);
         alerts.push(alert);
-        
+
         // 알림 저장 및 전송
         this.storeAlert(alert);
         this.sendRealTimeAlert(alert);
-        
+
         // 트리거 기록
         rule.triggerCount++;
         rule.lastTriggered = Date.now();
@@ -256,16 +262,31 @@ class PatternMatcherEngine {
     if (!baseline) {
       baseline = {
         cpu: { avg: metrics.cpu, min: metrics.cpu, max: metrics.cpu, count: 1 },
-        memory: { avg: metrics.memory, min: metrics.memory, max: metrics.memory, count: 1 },
-        responseTime: { avg: metrics.responseTime, min: metrics.responseTime, max: metrics.responseTime, count: 1 },
-        errorRate: { avg: metrics.errorRate, min: metrics.errorRate, max: metrics.errorRate, count: 1 }
+        memory: {
+          avg: metrics.memory,
+          min: metrics.memory,
+          max: metrics.memory,
+          count: 1,
+        },
+        responseTime: {
+          avg: metrics.responseTime,
+          min: metrics.responseTime,
+          max: metrics.responseTime,
+          count: 1,
+        },
+        errorRate: {
+          avg: metrics.errorRate,
+          min: metrics.errorRate,
+          max: metrics.errorRate,
+          count: 1,
+        },
       };
     } else {
       // 이동 평균 업데이트
       ['cpu', 'memory', 'responseTime', 'errorRate'].forEach(metric => {
         const value = metrics[metric as keyof MetricData] as number;
         const stat = baseline[metric];
-        
+
         stat.avg = (stat.avg * stat.count + value) / (stat.count + 1);
         stat.min = Math.min(stat.min, value);
         stat.max = Math.max(stat.max, value);
@@ -279,7 +300,10 @@ class PatternMatcherEngine {
   /**
    * 🎯 적응형 임계값 적용
    */
-  private applyAdaptiveThreshold(rule: PatternRule, serverId: string): PatternRule {
+  private applyAdaptiveThreshold(
+    rule: PatternRule,
+    serverId: string
+  ): PatternRule {
     if (!rule.adaptiveThreshold) return rule;
 
     const baseline = this.baselineStats.get(serverId);
@@ -292,19 +316,28 @@ class PatternMatcherEngine {
     // CPU 임계값 조정
     if (condition.includes('cpu >')) {
       const dynamicThreshold = Math.min(95, baseline.cpu.avg + 20); // 최대 95%
-      condition = condition.replace(/cpu\s*>\s*\d+/g, `cpu > ${dynamicThreshold.toFixed(1)}`);
+      condition = condition.replace(
+        /cpu\s*>\s*\d+/g,
+        `cpu > ${dynamicThreshold.toFixed(1)}`
+      );
     }
 
     // 메모리 임계값 조정
     if (condition.includes('memory >')) {
       const dynamicThreshold = Math.min(95, baseline.memory.avg + 15); // 최대 95%
-      condition = condition.replace(/memory\s*>\s*\d+/g, `memory > ${dynamicThreshold.toFixed(1)}`);
+      condition = condition.replace(
+        /memory\s*>\s*\d+/g,
+        `memory > ${dynamicThreshold.toFixed(1)}`
+      );
     }
 
     // 응답시간 임계값 조정
     if (condition.includes('responseTime >')) {
       const dynamicThreshold = baseline.responseTime.avg * 2; // 평균의 2배
-      condition = condition.replace(/responseTime\s*>\s*\d+/g, `responseTime > ${dynamicThreshold.toFixed(0)}`);
+      condition = condition.replace(
+        /responseTime\s*>\s*\d+/g,
+        `responseTime > ${dynamicThreshold.toFixed(0)}`
+      );
     }
 
     adjustedRule.condition = condition;
@@ -318,7 +351,7 @@ class PatternMatcherEngine {
     try {
       // 안전한 조건 평가를 위한 변수 바인딩
       const { cpu, memory, network, disk, responseTime, errorRate } = metrics;
-      
+
       // 조건 문자열을 JavaScript 표현식으로 변환
       const expression = condition
         .replace(/\band\b/gi, '&&')
@@ -326,11 +359,17 @@ class PatternMatcherEngine {
         .replace(/\bnot\b/gi, '!');
 
       // eval 대신 Function 생성자 사용 (더 안전)
-      const evalFunction = new Function('cpu', 'memory', 'network', 'disk', 'responseTime', 'errorRate', 
-        `return ${expression}`);
-      
+      const evalFunction = new Function(
+        'cpu',
+        'memory',
+        'network',
+        'disk',
+        'responseTime',
+        'errorRate',
+        `return ${expression}`
+      );
+
       return evalFunction(cpu, memory, network, disk, responseTime, errorRate);
-      
     } catch (error) {
       console.error(`❌ 조건 평가 오류: ${condition}`, error);
       return false;
@@ -350,7 +389,7 @@ class PatternMatcherEngine {
       message: `${rule.description} (서버: ${metrics.serverId})`,
       metrics,
       timestamp: Date.now(),
-      acknowledged: false
+      acknowledged: false,
     };
   }
 
@@ -371,7 +410,7 @@ class PatternMatcherEngine {
    */
   private sendRealTimeAlert(alert: PatternAlert): void {
     const hub = getRealTimeHub();
-    
+
     const message: Omit<RealTimeMessage, 'timestamp'> = {
       type: 'pattern_alert',
       data: {
@@ -380,14 +419,16 @@ class PatternMatcherEngine {
           severity: alert.severity,
           server: alert.serverId,
           rule: alert.ruleName,
-          message: alert.message
-        }
+          message: alert.message,
+        },
       },
-      target: ['admin', 'monitoring'] // 관리자 및 모니터링 그룹에 전송
+      target: ['admin', 'monitoring'], // 관리자 및 모니터링 그룹에 전송
     };
 
     hub.broadcast(message);
-    console.log(`📡 실시간 알림 전송: ${alert.severity.toUpperCase()} - ${alert.ruleName}`);
+    console.log(
+      `📡 실시간 알림 전송: ${alert.severity.toUpperCase()} - ${alert.ruleName}`
+    );
   }
 
   /**
@@ -408,26 +449,34 @@ class PatternMatcherEngine {
   getStats(): PatternStats {
     const now = Date.now();
     const oneHour = 60 * 60 * 1000;
-    
-    const recentAlerts = this.alerts.filter(a => now - a.timestamp < oneHour).length;
-    const alertsByServerity = this.alerts.reduce((acc, alert) => {
-      acc[alert.severity] = (acc[alert.severity] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+
+    const recentAlerts = this.alerts.filter(
+      a => now - a.timestamp < oneHour
+    ).length;
+    const alertsByServerity = this.alerts.reduce(
+      (acc, alert) => {
+        acc[alert.severity] = (acc[alert.severity] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     // 학습 진행률 계산 (베이스라인 데이터 개수 기반)
-    const totalBaselines = Array.from(this.baselineStats.values())
-      .reduce((sum, baseline) => sum + baseline.cpu.count, 0);
+    const totalBaselines = Array.from(this.baselineStats.values()).reduce(
+      (sum, baseline) => sum + baseline.cpu.count,
+      0
+    );
     const learningProgress = Math.min(100, (totalBaselines / 1000) * 100); // 1000개 샘플을 100%로 간주
 
     return {
       totalRules: this.rules.size,
-      activeRules: Array.from(this.rules.values()).filter(r => r.enabled).length,
+      activeRules: Array.from(this.rules.values()).filter(r => r.enabled)
+        .length,
       totalAlerts: this.alerts.length,
       alertsByServerity,
       recentAlerts,
       averageResponseTime: this.calculateAverageResponseTime(),
-      learningProgress
+      learningProgress,
     };
   }
 
@@ -492,4 +541,4 @@ export function resetPatternMatcherEngine(): void {
   engineInstance = null;
 }
 
-export default PatternMatcherEngine; 
+export default PatternMatcherEngine;

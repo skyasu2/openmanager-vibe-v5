@@ -30,9 +30,9 @@ interface IncidentReport {
   };
   generatedAt: string;
   triggeredBy:
-  | 'natural_language_query'
-  | 'automatic_detection'
-  | 'manual_trigger';
+    | 'natural_language_query'
+    | 'automatic_detection'
+    | 'manual_trigger';
   queryContext?: string;
 }
 
@@ -265,11 +265,11 @@ ${report.symptoms.map(symptom => `• ${symptom}`).join('\n')}
 📋 장애 타임라인
 -----------------------------------------------------------------
 ${report.timeline
-      .map(
-        event =>
-          `[${event.timestamp}] ${event.severity.toUpperCase()} - ${event.event} (출처: ${event.source})`
-      )
-      .join('\n')}
+  .map(
+    event =>
+      `[${event.timestamp}] ${event.severity.toUpperCase()} - ${event.event} (출처: ${event.source})`
+  )
+  .join('\n')}
 
 ✅ 해결 방안
 -----------------------------------------------------------------
@@ -281,13 +281,14 @@ ${report.preventionMeasures.map(measure => `• ${measure}`).join('\n')}
 
 📊 의존성 분석 정보
 -----------------------------------------------------------------
-${report.triggeredBy === 'natural_language_query'
-      ? `이 보고서는 자연어 질의("${report.queryContext}")를 기반으로 생성되었습니다.
+${
+  report.triggeredBy === 'natural_language_query'
+    ? `이 보고서는 자연어 질의("${report.queryContext}")를 기반으로 생성되었습니다.
 • 자연어 의존도: 70% (트리거 및 컨텍스트 제공)
 • 독립적 기능: 30% (데이터 수집 및 분석)`
-      : `이 보고서는 시스템 자동 감지를 통해 생성되었습니다.
+    : `이 보고서는 시스템 자동 감지를 통해 생성되었습니다.
 • 완전 독립적 기능: 100% (자체 데이터 수집 및 분석)`
-    }
+}
 
 =================================================================
 생성 시스템: OpenManager Vibe v5 자동 장애 보고서 시스템

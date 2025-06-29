@@ -1,6 +1,6 @@
 /**
  * 💬 AI 엔진용 응답 생성기 (래퍼)
- * 
+ *
  * 통합 응답 생성 시스템의 래퍼 클래스
  * NLP 분석 기반 응답 생성을 위한 기존 API 호환성 유지
  */
@@ -9,22 +9,24 @@ import {
   AIQueryResponse,
   NLPAnalysisResult,
   AIQueryRequest,
-  ResponseGeneratorConfig
+  ResponseGeneratorConfig,
 } from '../ai-types/AITypes';
 import { autoReportGenerator } from '../../report-generator';
 import {
   unifiedResponseGenerator,
-  UnifiedResponseRequest
+  UnifiedResponseRequest,
 } from '../../response/UnifiedResponseGenerator';
 
 export class ResponseGenerator {
   private config: ResponseGeneratorConfig;
 
-  constructor(config: ResponseGeneratorConfig = {
-    defaultLanguage: 'ko',
-    includeDebugInfo: false,
-    maxResponseLength: 2000
-  }) {
+  constructor(
+    config: ResponseGeneratorConfig = {
+      defaultLanguage: 'ko',
+      includeDebugInfo: false,
+      maxResponseLength: 2000,
+    }
+  ) {
     this.config = config;
 
     // 통합 응답 생성기 설정 동기화
@@ -33,7 +35,7 @@ export class ResponseGenerator {
       includeDebugInfo: config.includeDebugInfo,
       maxResponseLength: config.maxResponseLength,
       enableFallback: true,
-      qualityThreshold: 0.6
+      qualityThreshold: 0.6,
     });
   }
 
@@ -54,11 +56,12 @@ export class ResponseGenerator {
       serverData: (response as any).server_data,
       mcpResponse: response.mcp_results,
       language: request.context?.language || this.config.defaultLanguage,
-      responseType: 'nlp'
+      responseType: 'nlp',
     };
 
     // 통합 응답 생성기로 응답 생성
-    const unifiedResult = await unifiedResponseGenerator.generateResponse(unifiedRequest);
+    const unifiedResult =
+      await unifiedResponseGenerator.generateResponse(unifiedRequest);
 
     // 기존 응답 객체에 결과 설정
     response.answer = unifiedResult.text;
@@ -68,18 +71,23 @@ export class ResponseGenerator {
     if (!response.metadata) {
       response.metadata = {
         timestamp: new Date().toISOString(),
-        language: this.config.defaultLanguage
+        language: this.config.defaultLanguage,
       };
     }
-    (response.metadata as any).generatorUsed = unifiedResult.metadata.generatorUsed;
-    (response.metadata as any).processingTime = unifiedResult.metadata.processingTime;
+    (response.metadata as any).generatorUsed =
+      unifiedResult.metadata.generatorUsed;
+    (response.metadata as any).processingTime =
+      unifiedResult.metadata.processingTime;
     (response.metadata as any).reasoning = unifiedResult.metadata.reasoning;
   }
 
   /**
    * 권장사항 생성 (통합 시스템 위임)
    */
-  generateRecommendations(nlpResult: NLPAnalysisResult, response: AIQueryResponse): void {
+  generateRecommendations(
+    nlpResult: NLPAnalysisResult,
+    response: AIQueryResponse
+  ): void {
     // 통합 시스템에서 이미 권장사항이 생성되므로 여기서는 기본 권장사항만 추가
     if (!response.recommendations) {
       response.recommendations = [];
@@ -107,22 +115,33 @@ export class ResponseGenerator {
   /**
    * 보고서 생성 여부 결정
    */
-  shouldGenerateReport(nlpResult: NLPAnalysisResult, request: AIQueryRequest): boolean {
-    const reportIntents = ['analysis', 'reporting', 'performance', 'troubleshooting'];
+  shouldGenerateReport(
+    nlpResult: NLPAnalysisResult,
+    request: AIQueryRequest
+  ): boolean {
+    const reportIntents = [
+      'analysis',
+      'reporting',
+      'performance',
+      'troubleshooting',
+    ];
     return reportIntents.includes(nlpResult.intent);
   }
 
   /**
    * 보고서 생성 (기존 로직 유지)
    */
-  async generateReport(response: AIQueryResponse, request: AIQueryRequest): Promise<void> {
+  async generateReport(
+    response: AIQueryResponse,
+    request: AIQueryRequest
+  ): Promise<void> {
     try {
       const reportData = {
         timestamp: new Date().toISOString(),
         query: request.query,
         analysis: response.analysis_results,
         serverData: (response as any).server_data,
-        recommendations: response.recommendations
+        recommendations: response.recommendations,
       };
 
       // autoReportGenerator에 generateReport 메서드가 없으므로 기본 보고서 생성
@@ -141,7 +160,7 @@ export class ResponseGenerator {
     return {
       config: this.config,
       unifiedGeneratorStats: unifiedResponseGenerator.getStats(),
-      wrapperType: 'NLPResponseGenerator'
+      wrapperType: 'NLPResponseGenerator',
     };
   }
 }

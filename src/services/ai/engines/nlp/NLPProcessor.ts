@@ -1,6 +1,6 @@
 /**
  * 🧠 자연어 처리 프로세서
- * 
+ *
  * Single Responsibility: 자연어 분석, 의도 감지, 키워드 추출
  * Strategy Pattern: 다양한 NLP 전략을 교체 가능하게 구현
  */
@@ -9,9 +9,46 @@ import { NLPAnalysisResult, AIIntent } from '../ai-types/AITypes';
 
 export class NLPProcessor {
   private commonWords = new Set([
-    '의', '가', '이', '을', '를', '은', '는', '에', '에서', '와', '과', '도', '만', '부터', '까지',
-    'the', 'is', 'at', 'which', 'on', 'a', 'an', 'and', 'or', 'but', 'in', 'with', 'to', 'for',
-    'of', 'as', 'by', 'from', 'up', 'into', 'over', 'after', 'beneath', 'under', 'above'
+    '의',
+    '가',
+    '이',
+    '을',
+    '를',
+    '은',
+    '는',
+    '에',
+    '에서',
+    '와',
+    '과',
+    '도',
+    '만',
+    '부터',
+    '까지',
+    'the',
+    'is',
+    'at',
+    'which',
+    'on',
+    'a',
+    'an',
+    'and',
+    'or',
+    'but',
+    'in',
+    'with',
+    'to',
+    'for',
+    'of',
+    'as',
+    'by',
+    'from',
+    'up',
+    'into',
+    'over',
+    'after',
+    'beneath',
+    'under',
+    'above',
   ]);
 
   /**
@@ -44,25 +81,92 @@ export class NLPProcessor {
   private detectIntent(query: string): AIIntent {
     const lowerQuery = query.toLowerCase();
 
-    if (this.matchesPatterns(lowerQuery, ['오류', '에러', '문제', '장애', '문제가', '안됨', '실패', 'error', 'issue', 'problem', 'fail'])) {
+    if (
+      this.matchesPatterns(lowerQuery, [
+        '오류',
+        '에러',
+        '문제',
+        '장애',
+        '문제가',
+        '안됨',
+        '실패',
+        'error',
+        'issue',
+        'problem',
+        'fail',
+      ])
+    ) {
       return 'troubleshooting';
     }
-    if (this.matchesPatterns(lowerQuery, ['긴급', '응급', '위험', 'critical', 'urgent', 'emergency'])) {
+    if (
+      this.matchesPatterns(lowerQuery, [
+        '긴급',
+        '응급',
+        '위험',
+        'critical',
+        'urgent',
+        'emergency',
+      ])
+    ) {
       return 'emergency';
     }
-    if (this.matchesPatterns(lowerQuery, ['예측', '미래', '전망', 'predict', 'forecast', 'future'])) {
+    if (
+      this.matchesPatterns(lowerQuery, [
+        '예측',
+        '미래',
+        '전망',
+        'predict',
+        'forecast',
+        'future',
+      ])
+    ) {
       return 'prediction';
     }
-    if (this.matchesPatterns(lowerQuery, ['분석', '통계', '데이터', 'analyze', 'analysis', 'statistics'])) {
+    if (
+      this.matchesPatterns(lowerQuery, [
+        '분석',
+        '통계',
+        '데이터',
+        'analyze',
+        'analysis',
+        'statistics',
+      ])
+    ) {
       return 'analysis';
     }
-    if (this.matchesPatterns(lowerQuery, ['모니터링', '감시', '상태', 'monitor', 'status', 'health'])) {
+    if (
+      this.matchesPatterns(lowerQuery, [
+        '모니터링',
+        '감시',
+        '상태',
+        'monitor',
+        'status',
+        'health',
+      ])
+    ) {
       return 'monitoring';
     }
-    if (this.matchesPatterns(lowerQuery, ['보고서', '리포트', '요약', 'report', 'summary'])) {
+    if (
+      this.matchesPatterns(lowerQuery, [
+        '보고서',
+        '리포트',
+        '요약',
+        'report',
+        'summary',
+      ])
+    ) {
       return 'reporting';
     }
-    if (this.matchesPatterns(lowerQuery, ['성능', '속도', '최적화', 'performance', 'speed', 'optimization'])) {
+    if (
+      this.matchesPatterns(lowerQuery, [
+        '성능',
+        '속도',
+        '최적화',
+        'performance',
+        'speed',
+        'optimization',
+      ])
+    ) {
       return 'performance';
     }
 
@@ -82,15 +186,28 @@ export class NLPProcessor {
   private classifyQueryType(query: string): string {
     const lowerQuery = query.toLowerCase();
 
-    if (query.includes('?') || lowerQuery.includes('what') || lowerQuery.includes('how') || 
-        lowerQuery.includes('무엇') || lowerQuery.includes('어떻게')) {
+    if (
+      query.includes('?') ||
+      lowerQuery.includes('what') ||
+      lowerQuery.includes('how') ||
+      lowerQuery.includes('무엇') ||
+      lowerQuery.includes('어떻게')
+    ) {
       return 'question';
     }
-    if (lowerQuery.includes('show') || lowerQuery.includes('list') || 
-        lowerQuery.includes('보여') || lowerQuery.includes('목록')) {
+    if (
+      lowerQuery.includes('show') ||
+      lowerQuery.includes('list') ||
+      lowerQuery.includes('보여') ||
+      lowerQuery.includes('목록')
+    ) {
       return 'command';
     }
-    if (lowerQuery.includes('help') || lowerQuery.includes('도움') || lowerQuery.includes('가이드')) {
+    if (
+      lowerQuery.includes('help') ||
+      lowerQuery.includes('도움') ||
+      lowerQuery.includes('가이드')
+    ) {
       return 'help';
     }
 
@@ -103,7 +220,7 @@ export class NLPProcessor {
   extractQueryKeywords(query: string): string[] {
     // 기본 토큰화
     const tokens = this.simpleTokenize(query.toLowerCase());
-    
+
     // 불용어 제거 및 필터링
     const keywords = tokens
       .filter(token => token.length > 1)
@@ -152,4 +269,4 @@ export class NLPProcessor {
       query_type: 'general',
     };
   }
-} 
+}

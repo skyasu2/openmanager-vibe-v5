@@ -95,11 +95,12 @@ class UsageMonitor {
   // 카운터 리셋 체크
   private resetCountersIfNeeded(): void {
     const now = new Date();
-    
+
     // Supabase: 월별 리셋
-    const monthDiff = (now.getFullYear() - this.usage.supabase.lastReset.getFullYear()) * 12 
-      + (now.getMonth() - this.usage.supabase.lastReset.getMonth());
-    
+    const monthDiff =
+      (now.getFullYear() - this.usage.supabase.lastReset.getFullYear()) * 12 +
+      (now.getMonth() - this.usage.supabase.lastReset.getMonth());
+
     if (monthDiff >= 1) {
       this.usage.supabase = {
         transferMB: 0,
@@ -110,8 +111,11 @@ class UsageMonitor {
     }
 
     // Redis: 일별 리셋
-    const dayDiff = Math.floor((now.getTime() - this.usage.redis.lastReset.getTime()) / (1000 * 60 * 60 * 24));
-    
+    const dayDiff = Math.floor(
+      (now.getTime() - this.usage.redis.lastReset.getTime()) /
+        (1000 * 60 * 60 * 24)
+    );
+
     if (dayDiff >= 1) {
       this.usage.redis = {
         commands: 0,
@@ -126,14 +130,14 @@ class UsageMonitor {
   // 사용량 저장
   private saveUsageToStorage(): void {
     if (typeof window === 'undefined') return;
-    
+
     localStorage.setItem('openmanager-usage', JSON.stringify(this.usage));
   }
 
   // Supabase 사용 체크
   canUseSupabase(): boolean {
     this.resetCountersIfNeeded();
-    
+
     if (!this.isSupabaseEnabled) {
       console.warn('🚫 Supabase disabled: Free tier limit exceeded');
       return false;
@@ -142,7 +146,10 @@ class UsageMonitor {
     const limits = FREE_TIER_LIMITS.supabase;
     const usage = this.usage.supabase;
 
-    if (usage.transferMB >= limits.monthlyTransferMB || usage.requests >= limits.requests) {
+    if (
+      usage.transferMB >= limits.monthlyTransferMB ||
+      usage.requests >= limits.requests
+    ) {
       this.isSupabaseEnabled = false;
       console.warn('🚫 Supabase disabled: Monthly limit reached');
       return false;
@@ -154,7 +161,7 @@ class UsageMonitor {
   // Redis 사용 체크
   canUseRedis(): boolean {
     this.resetCountersIfNeeded();
-    
+
     if (!this.isRedisEnabled) {
       console.warn('🚫 Redis disabled: Free tier limit exceeded');
       return false;
@@ -183,11 +190,11 @@ class UsageMonitor {
     // 임계점 경고
     const limits = FREE_TIER_LIMITS.supabase;
     const usage = this.usage.supabase;
-    
+
     if (usage.transferMB > limits.monthlyTransferMB * 0.8) {
       console.warn('⚠️ Supabase: 80% of monthly transfer limit used');
     }
-    
+
     if (usage.requests > limits.requests * 0.8) {
       console.warn('⚠️ Supabase: 80% of monthly requests used');
     }
@@ -203,7 +210,7 @@ class UsageMonitor {
     // 임계점 경고
     const limits = FREE_TIER_LIMITS.redis;
     const usage = this.usage.redis;
-    
+
     if (usage.commands > limits.dailyCommands * 0.8) {
       console.warn('⚠️ Redis: 80% of daily commands used');
     }
@@ -217,8 +224,14 @@ class UsageMonitor {
         usage: this.usage.supabase,
         limits: FREE_TIER_LIMITS.supabase,
         percentage: {
-          transfer: (this.usage.supabase.transferMB / FREE_TIER_LIMITS.supabase.monthlyTransferMB) * 100,
-          requests: (this.usage.supabase.requests / FREE_TIER_LIMITS.supabase.requests) * 100,
+          transfer:
+            (this.usage.supabase.transferMB /
+              FREE_TIER_LIMITS.supabase.monthlyTransferMB) *
+            100,
+          requests:
+            (this.usage.supabase.requests /
+              FREE_TIER_LIMITS.supabase.requests) *
+            100,
         },
       },
       redis: {
@@ -226,7 +239,9 @@ class UsageMonitor {
         usage: this.usage.redis,
         limits: FREE_TIER_LIMITS.redis,
         percentage: {
-          commands: (this.usage.redis.commands / FREE_TIER_LIMITS.redis.dailyCommands) * 100,
+          commands:
+            (this.usage.redis.commands / FREE_TIER_LIMITS.redis.dailyCommands) *
+            100,
         },
       },
     };
@@ -263,14 +278,13 @@ export function useUsageMonitor() {
   return {
     canUseSupabase: () => usageMonitor.canUseSupabase(),
     canUseRedis: () => usageMonitor.canUseRedis(),
-    recordSupabaseUsage: (transferMB?: number, requests?: number) => 
+    recordSupabaseUsage: (transferMB?: number, requests?: number) =>
       usageMonitor.recordSupabaseUsage(transferMB, requests),
-    recordRedisUsage: (commands?: number) => 
+    recordRedisUsage: (commands?: number) =>
       usageMonitor.recordRedisUsage(commands),
     getUsageStatus: () => usageMonitor.getUsageStatus(),
-    forceEnable: (service: 'supabase' | 'redis') => 
+    forceEnable: (service: 'supabase' | 'redis') =>
       usageMonitor.forceEnable(service),
-    disable: (service: 'supabase' | 'redis') => 
-      usageMonitor.disable(service),
+    disable: (service: 'supabase' | 'redis') => usageMonitor.disable(service),
   };
-} 
+}

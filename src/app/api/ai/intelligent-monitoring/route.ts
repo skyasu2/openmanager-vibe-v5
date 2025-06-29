@@ -109,7 +109,8 @@ export async function POST(request: NextRequest) {
 
         // 이상 탐지 엔진 사용
         const anomalyDetection = AnomalyDetection.getInstance();
-        const anomalies: any[] = await anomalyDetection.detectAnomalies(serverMetrics);
+        const anomalies: any[] =
+          await anomalyDetection.detectAnomalies(serverMetrics);
 
         result.anomalyDetection = {
           status: 'completed',
@@ -282,9 +283,9 @@ export async function POST(request: NextRequest) {
         const avgRisk =
           predictions.length > 0
             ? predictions.reduce(
-              (sum, p) => sum + (p.failureProbability || 0),
-              0
-            ) / predictions.length
+                (sum, p) => sum + (p.failureProbability || 0),
+                0
+              ) / predictions.length
             : 0;
         const highRiskCount = predictions.filter(
           p => p.failureProbability > 70

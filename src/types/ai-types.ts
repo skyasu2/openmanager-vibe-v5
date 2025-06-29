@@ -1,6 +1,6 @@
 /**
  * 🤖 AI 관련 공통 타입 정의 v2.0
- * 
+ *
  * ✅ 중앙 집중화된 타입 시스템
  * ✅ 모드 타입 통합 관리
  * ✅ 유지보수성 향상
@@ -187,11 +187,14 @@ export interface AIEngineStats {
   averageResponseTime: number;
   successRate: number;
   fallbackRate: number;
-  enginePerformance: Record<string, {
-    queries: number;
-    successRate: number;
-    averageTime: number;
-  }>;
+  enginePerformance: Record<
+    string,
+    {
+      queries: number;
+      successRate: number;
+      averageTime: number;
+    }
+  >;
 }
 
 // ==============================================

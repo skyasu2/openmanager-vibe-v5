@@ -1,6 +1,6 @@
 /**
  * 🎯 Realtime Data Manager v1.0
- * 
+ *
  * 중앙화된 실시간 데이터 관리 시스템
  * - 모든 컴포넌트의 갱신을 하나의 타이머로 통합
  * - 구독/구독해제 시스템으로 메모리 누수 방지
@@ -25,9 +25,9 @@ interface Subscriber {
 }
 
 interface UpdateConfig {
-  high: number;    // 30초 - 중요한 메트릭
-  medium: number;  // 60초 - 일반 데이터
-  low: number;     // 120초 - 정적 정보
+  high: number; // 30초 - 중요한 메트릭
+  medium: number; // 60초 - 일반 데이터
+  low: number; // 120초 - 정적 정보
 }
 
 class RealtimeDataManager {
@@ -36,12 +36,12 @@ class RealtimeDataManager {
   private timers: Map<UpdateFrequency, NodeJS.Timeout> = new Map();
   private isRunning = false;
   private updateCount = 0;
-  
+
   // 환경별 갱신 주기 설정
   private config: UpdateConfig = {
-    high: process.env.NODE_ENV === 'development' ? 30000 : 60000,   // 30초/60초
+    high: process.env.NODE_ENV === 'development' ? 30000 : 60000, // 30초/60초
     medium: process.env.NODE_ENV === 'development' ? 60000 : 120000, // 60초/120초
-    low: process.env.NODE_ENV === 'development' ? 120000 : 300000,   // 120초/300초
+    low: process.env.NODE_ENV === 'development' ? 120000 : 300000, // 120초/300초
   };
 
   private constructor() {
@@ -74,7 +74,7 @@ class RealtimeDataManager {
     };
 
     this.subscribers.set(id, subscriber);
-    
+
     console.log(`📡 구독자 등록: ${id} (${dataType}, ${frequency})`);
     console.log(`📊 총 구독자 수: ${this.subscribers.size}`);
 
@@ -125,7 +125,7 @@ class RealtimeDataManager {
       const timer = setInterval(() => {
         this.updateByFrequency(frequency as UpdateFrequency);
       }, interval);
-      
+
       this.timers.set(frequency as UpdateFrequency, timer);
       console.log(`⏰ ${frequency} 타이머 설정: ${interval}ms`);
     });
@@ -144,7 +144,7 @@ class RealtimeDataManager {
       clearInterval(timer);
       console.log(`⏰ ${frequency} 타이머 정지`);
     });
-    
+
     this.timers.clear();
   }
 
@@ -155,7 +155,7 @@ class RealtimeDataManager {
     const now = Date.now();
     let updatedCount = 0;
 
-    this.subscribers.forEach((subscriber) => {
+    this.subscribers.forEach(subscriber => {
       if (subscriber.frequency === frequency && subscriber.isVisible) {
         this.updateSubscriber(subscriber);
         subscriber.lastUpdate = now;
@@ -164,7 +164,9 @@ class RealtimeDataManager {
     });
 
     this.updateCount++;
-    console.log(`🔄 ${frequency} 업데이트 완료: ${updatedCount}개 구독자 (총 ${this.updateCount}회)`);
+    console.log(
+      `🔄 ${frequency} 업데이트 완료: ${updatedCount}개 구독자 (총 ${this.updateCount}회)`
+    );
   }
 
   /**
@@ -188,19 +190,43 @@ class RealtimeDataManager {
     switch (dataType) {
       case 'server':
         return {
-          cpu: Math.max(0, Math.min(100, 45 + (Math.random() - 0.5) * 20 * baseVariation)),
-          memory: Math.max(0, Math.min(100, 60 + (Math.random() - 0.5) * 15 * baseVariation)),
-          disk: Math.max(0, Math.min(100, 35 + (Math.random() - 0.5) * 10 * baseVariation)),
-          network: Math.max(0, Math.min(100, 25 + (Math.random() - 0.5) * 15 * baseVariation)),
+          cpu: Math.max(
+            0,
+            Math.min(100, 45 + (Math.random() - 0.5) * 20 * baseVariation)
+          ),
+          memory: Math.max(
+            0,
+            Math.min(100, 60 + (Math.random() - 0.5) * 15 * baseVariation)
+          ),
+          disk: Math.max(
+            0,
+            Math.min(100, 35 + (Math.random() - 0.5) * 10 * baseVariation)
+          ),
+          network: Math.max(
+            0,
+            Math.min(100, 25 + (Math.random() - 0.5) * 15 * baseVariation)
+          ),
           timestamp: Date.now(),
         };
 
       case 'network':
         return {
-          bandwidth: Math.max(0, Math.min(100, 70 + (Math.random() - 0.5) * 20 * baseVariation)),
-          latency: Math.max(0, Math.min(500, 45 + (Math.random() - 0.5) * 30 * baseVariation)),
-          downloadSpeed: Math.max(0, Math.min(1000, 150 + (Math.random() - 0.5) * 50 * baseVariation)),
-          uploadSpeed: Math.max(0, Math.min(1000, 80 + (Math.random() - 0.5) * 30 * baseVariation)),
+          bandwidth: Math.max(
+            0,
+            Math.min(100, 70 + (Math.random() - 0.5) * 20 * baseVariation)
+          ),
+          latency: Math.max(
+            0,
+            Math.min(500, 45 + (Math.random() - 0.5) * 30 * baseVariation)
+          ),
+          downloadSpeed: Math.max(
+            0,
+            Math.min(1000, 150 + (Math.random() - 0.5) * 50 * baseVariation)
+          ),
+          uploadSpeed: Math.max(
+            0,
+            Math.min(1000, 80 + (Math.random() - 0.5) * 30 * baseVariation)
+          ),
           // IP 주소는 고정 (실제로는 자주 바뀌지 않음)
           ip: '192.168.1.100',
           timestamp: Date.now(),
@@ -209,16 +235,29 @@ class RealtimeDataManager {
       case 'system':
         return {
           uptime: '99.9%',
-          processes: Math.floor(120 + (Math.random() - 0.5) * 10 * baseVariation),
-          connections: Math.floor(45 + (Math.random() - 0.5) * 15 * baseVariation),
+          processes: Math.floor(
+            120 + (Math.random() - 0.5) * 10 * baseVariation
+          ),
+          connections: Math.floor(
+            45 + (Math.random() - 0.5) * 15 * baseVariation
+          ),
           timestamp: Date.now(),
         };
 
       case 'metrics':
         return {
-          responseTime: Math.max(0, 120 + (Math.random() - 0.5) * 40 * baseVariation),
-          throughput: Math.max(0, 850 + (Math.random() - 0.5) * 100 * baseVariation),
-          errorRate: Math.max(0, Math.min(5, 0.5 + (Math.random() - 0.5) * 1 * baseVariation)),
+          responseTime: Math.max(
+            0,
+            120 + (Math.random() - 0.5) * 40 * baseVariation
+          ),
+          throughput: Math.max(
+            0,
+            850 + (Math.random() - 0.5) * 100 * baseVariation
+          ),
+          errorRate: Math.max(
+            0,
+            Math.min(5, 0.5 + (Math.random() - 0.5) * 1 * baseVariation)
+          ),
           timestamp: Date.now(),
         };
 
@@ -249,8 +288,8 @@ class RealtimeDataManager {
    */
   public forceUpdate(dataType?: DataType): void {
     console.log(`🔄 강제 업데이트 실행: ${dataType || 'all'}`);
-    
-    this.subscribers.forEach((subscriber) => {
+
+    this.subscribers.forEach(subscriber => {
       if (!dataType || subscriber.dataType === dataType) {
         this.updateSubscriber(subscriber);
       }
@@ -270,4 +309,4 @@ class RealtimeDataManager {
 
 // 싱글톤 인스턴스 내보내기
 export const realtimeDataManager = RealtimeDataManager.getInstance();
-export default RealtimeDataManager; 
+export default RealtimeDataManager;

@@ -1,6 +1,6 @@
 /**
  * Action Executor
- * 
+ *
  * ⚡ AI 액션 실행 시스템
  * - 의도 기반 액션 추출
  * - 우선순위 기반 액션 정렬
@@ -21,7 +21,7 @@ export interface Action {
   estimatedDuration?: number; // 초 단위
 }
 
-export type ActionType = 
+export type ActionType =
   | 'server_restart'
   | 'service_restart'
   | 'log_download'
@@ -61,7 +61,10 @@ export class ActionExecutor {
   /**
    * 의도와 응답에서 액션 추출
    */
-  async extractActions(intent: Intent, response: ResponseResult): Promise<string[]> {
+  async extractActions(
+    intent: Intent,
+    response: ResponseResult
+  ): Promise<string[]> {
     if (!this.isInitialized) {
       await this.initialize();
     }
@@ -92,7 +95,10 @@ export class ActionExecutor {
   /**
    * 액션 실행 (시뮬레이션)
    */
-  async executeAction(actionName: string, parameters?: Record<string, any>): Promise<ActionResult> {
+  async executeAction(
+    actionName: string,
+    parameters?: Record<string, any>
+  ): Promise<ActionResult> {
     const startTime = Date.now();
     const actionId = this.generateActionId();
 
@@ -109,32 +115,31 @@ export class ActionExecutor {
 
       // 액션 실행 시뮬레이션
       const result = await this.simulateActionExecution(action, parameters);
-      
+
       const executionTime = Date.now() - startTime;
-      
+
       const actionResult: ActionResult = {
         actionId,
         success: true,
         message: result.message,
         data: result.data,
         executionTime,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       // 실행 히스토리에 추가
       this.executionHistory.push(actionResult);
 
       return actionResult;
-
     } catch (error) {
       const executionTime = Date.now() - startTime;
-      
+
       const actionResult: ActionResult = {
         actionId,
         success: false,
         message: error instanceof Error ? error.message : '알 수 없는 오류',
         executionTime,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       this.executionHistory.push(actionResult);
@@ -156,7 +161,7 @@ export class ActionExecutor {
         parameters: { serverId: 'string' },
         priority: 'medium',
         executable: true,
-        estimatedDuration: 5
+        estimatedDuration: 5,
       },
       {
         id: 'health_check',
@@ -166,8 +171,8 @@ export class ActionExecutor {
         parameters: {},
         priority: 'high',
         executable: true,
-        estimatedDuration: 10
-      }
+        estimatedDuration: 10,
+      },
     ]);
 
     // 성능 분석 관련 액션
@@ -180,7 +185,7 @@ export class ActionExecutor {
         parameters: { serverId: 'string', optimizationType: 'string' },
         priority: 'high',
         executable: true,
-        estimatedDuration: 30
+        estimatedDuration: 30,
       },
       {
         id: 'resource_monitor',
@@ -190,8 +195,8 @@ export class ActionExecutor {
         parameters: { thresholds: 'object' },
         priority: 'medium',
         executable: true,
-        estimatedDuration: 15
-      }
+        estimatedDuration: 15,
+      },
     ]);
 
     // 로그 분석 관련 액션
@@ -201,10 +206,14 @@ export class ActionExecutor {
         type: 'log_download',
         name: '로그 다운로드',
         description: '서버 로그 파일을 다운로드합니다',
-        parameters: { serverId: 'string', logType: 'string', timeRange: 'string' },
+        parameters: {
+          serverId: 'string',
+          logType: 'string',
+          timeRange: 'string',
+        },
         priority: 'medium',
         executable: true,
-        estimatedDuration: 20
+        estimatedDuration: 20,
       },
       {
         id: 'error_analysis',
@@ -214,8 +223,8 @@ export class ActionExecutor {
         parameters: { timeRange: 'string' },
         priority: 'high',
         executable: true,
-        estimatedDuration: 45
-      }
+        estimatedDuration: 45,
+      },
     ]);
 
     // 알림 관리 관련 액션
@@ -228,7 +237,7 @@ export class ActionExecutor {
         parameters: { rules: 'object' },
         priority: 'medium',
         executable: true,
-        estimatedDuration: 10
+        estimatedDuration: 10,
       },
       {
         id: 'notification_test',
@@ -238,8 +247,8 @@ export class ActionExecutor {
         parameters: { channels: 'array' },
         priority: 'low',
         executable: true,
-        estimatedDuration: 5
-      }
+        estimatedDuration: 5,
+      },
     ]);
 
     // 특정 서버 분석 관련 액션
@@ -252,7 +261,7 @@ export class ActionExecutor {
         parameters: { serverId: 'string', graceful: 'boolean' },
         priority: 'critical',
         executable: false, // 시연용으로 비활성화
-        estimatedDuration: 120
+        estimatedDuration: 120,
       },
       {
         id: 'service_restart',
@@ -262,8 +271,8 @@ export class ActionExecutor {
         parameters: { serverId: 'string', serviceName: 'string' },
         priority: 'high',
         executable: true,
-        estimatedDuration: 30
-      }
+        estimatedDuration: 30,
+      },
     ]);
 
     // 용량 계획 관련 액션
@@ -273,10 +282,14 @@ export class ActionExecutor {
         type: 'capacity_scale',
         name: '용량 확장',
         description: '서버 리소스를 확장합니다',
-        parameters: { serverId: 'string', scaleType: 'string', amount: 'number' },
+        parameters: {
+          serverId: 'string',
+          scaleType: 'string',
+          amount: 'number',
+        },
         priority: 'high',
         executable: false, // 시연용으로 비활성화
-        estimatedDuration: 300
+        estimatedDuration: 300,
       },
       {
         id: 'capacity_report',
@@ -286,8 +299,8 @@ export class ActionExecutor {
         parameters: { timeRange: 'string' },
         priority: 'medium',
         executable: true,
-        estimatedDuration: 60
-      }
+        estimatedDuration: 60,
+      },
     ]);
   }
 
@@ -314,7 +327,7 @@ export class ActionExecutor {
         parameters: { serverId: entities.server_id },
         priority: 'high',
         executable: true,
-        estimatedDuration: 15
+        estimatedDuration: 15,
       });
     }
 
@@ -328,7 +341,7 @@ export class ActionExecutor {
         parameters: { metricType: entities.metric_type },
         priority: 'medium',
         executable: true,
-        estimatedDuration: 20
+        estimatedDuration: 20,
       });
     }
 
@@ -351,10 +364,10 @@ export class ActionExecutor {
           parameters: {},
           priority: 'critical',
           executable: true,
-          estimatedDuration: 10
+          estimatedDuration: 10,
         });
         break;
-      
+
       case 'actionable':
         actions.push({
           id: 'action_plan',
@@ -364,7 +377,7 @@ export class ActionExecutor {
           parameters: {},
           priority: 'medium',
           executable: true,
-          estimatedDuration: 15
+          estimatedDuration: 15,
         });
         break;
     }
@@ -375,7 +388,10 @@ export class ActionExecutor {
   /**
    * 컨텍스트 기반 액션 필터링
    */
-  private filterActionsByContext(actions: Action[], context: string[]): Action[] {
+  private filterActionsByContext(
+    actions: Action[],
+    context: string[]
+  ): Action[] {
     if (!context || context.length === 0) return actions;
 
     return actions.filter(action => {
@@ -397,8 +413,8 @@ export class ActionExecutor {
    * 우선순위별 액션 정렬
    */
   private sortActionsByPriority(actions: Action[]): Action[] {
-    const priorityOrder = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
-    
+    const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+
     return actions.sort((a, b) => {
       return priorityOrder[b.priority] - priorityOrder[a.priority];
     });
@@ -418,7 +434,10 @@ export class ActionExecutor {
   /**
    * 액션 실행 시뮬레이션
    */
-  private async simulateActionExecution(action: Action, parameters?: Record<string, any>): Promise<{ message: string; data?: any }> {
+  private async simulateActionExecution(
+    action: Action,
+    parameters?: Record<string, any>
+  ): Promise<{ message: string; data?: any }> {
     // 실행 시간 시뮬레이션
     const delay = Math.min(action.estimatedDuration || 5, 10) * 100; // 최대 1초
     await new Promise(resolve => setTimeout(resolve, delay));
@@ -427,37 +446,44 @@ export class ActionExecutor {
       case 'system_check':
         return {
           message: `${action.name} 완료: 시스템 상태가 정상입니다.`,
-          data: { status: 'healthy', checkedAt: new Date().toISOString() }
+          data: { status: 'healthy', checkedAt: new Date().toISOString() },
         };
 
       case 'log_download':
         return {
           message: `로그 다운로드 완료: ${parameters?.logType || 'system'} 로그를 다운로드했습니다.`,
-          data: { fileName: `${parameters?.serverId || 'system'}_${Date.now()}.log`, size: '2.3MB' }
+          data: {
+            fileName: `${parameters?.serverId || 'system'}_${Date.now()}.log`,
+            size: '2.3MB',
+          },
         };
 
       case 'alert_configure':
         return {
           message: '알림 규칙이 성공적으로 설정되었습니다.',
-          data: { rulesCount: 3, activeAlerts: 1 }
+          data: { rulesCount: 3, activeAlerts: 1 },
         };
 
       case 'performance_optimize':
         return {
-          message: '성능 최적화가 완료되었습니다. CPU 사용률이 15% 개선되었습니다.',
-          data: { improvementPercent: 15, optimizedServices: ['nginx', 'mysql'] }
+          message:
+            '성능 최적화가 완료되었습니다. CPU 사용률이 15% 개선되었습니다.',
+          data: {
+            improvementPercent: 15,
+            optimizedServices: ['nginx', 'mysql'],
+          },
         };
 
       case 'report_generate':
         return {
           message: `${action.name} 리포트가 생성되었습니다.`,
-          data: { reportId: `RPT_${Date.now()}`, pages: 12, format: 'PDF' }
+          data: { reportId: `RPT_${Date.now()}`, pages: 12, format: 'PDF' },
         };
 
       default:
         return {
           message: `${action.name}이(가) 성공적으로 실행되었습니다.`,
-          data: { executedAt: new Date().toISOString() }
+          data: { executedAt: new Date().toISOString() },
         };
     }
   }
@@ -483,4 +509,4 @@ export class ActionExecutor {
     this.executionHistory = [];
     console.log('🧹 Action Executor cleanup completed');
   }
-} 
+}

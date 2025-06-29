@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
@@ -6,20 +6,21 @@ export async function GET() {
       status: 'ok',
       message: 'pong',
       timestamp: new Date().toISOString(),
-      uptime: typeof process !== 'undefined' && typeof process.uptime === 'function'
-        ? process.uptime()
-        : 0,
-      version: '5.44.0'
-    })
+      uptime:
+        typeof process !== 'undefined' && typeof process.uptime === 'function'
+          ? process.uptime()
+          : 0,
+      version: '5.44.0',
+    });
   } catch (error) {
     return NextResponse.json(
       {
         status: 'error',
         message: 'ping failed',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -30,7 +31,7 @@ export async function OPTIONS() {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    }
-  })
-} 
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
+}

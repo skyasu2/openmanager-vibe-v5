@@ -25,4 +25,4 @@ export function combineResponses(results: EngineResult[]): {
     engine: top.engine,
     sources: top.sources,
   };
-} 
+}

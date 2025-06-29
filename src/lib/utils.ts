@@ -19,8 +19,6 @@ export function formatPercentage(value: number | null | undefined): string {
   return `${num.toFixed(2)}%`;
 }
 
-
-
 /**
  * 고유한 ID를 생성합니다.
  * @param prefix - ID 접두사 (선택사항)
@@ -38,8 +36,8 @@ export function generateId(prefix?: string): string {
  */
 export function generateUUID(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }
@@ -65,7 +63,11 @@ export function slugify(str: string): string {
  * @param suffix - 끝에 추가할 문자열 (기본값: '...')
  * @returns 잘린 문자열
  */
-export function truncate(str: string, length: number, suffix: string = '...'): string {
+export function truncate(
+  str: string,
+  length: number,
+  suffix: string = '...'
+): string {
   if (str.length <= length) return str;
   return str.substring(0, length - suffix.length) + suffix;
 }

@@ -1,6 +1,6 @@
 /**
  * 📊 컨텍스트 관리 시스템
- * 
+ *
  * MCP 엔진의 상태 정보 및 학습된 패턴 관리
  * - 단기/장기 메모리 관리
  * - 세션 컨텍스트 추적
@@ -166,20 +166,20 @@ export class ContextManager {
           disk: 0,
           network: { in: 0, out: 0 },
           responseTime: 0,
-          errorRate: 0
+          errorRate: 0,
         },
         historical_trends: {
           timeRange: '1hour',
           direction: 'stable',
           confidence: 0.5,
-          slope: 0
+          slope: 0,
         },
-        known_issues: []
+        known_issues: [],
       },
       patterns: {
         daily_patterns: [],
         weekly_patterns: [],
-        anomaly_patterns: []
+        anomaly_patterns: [],
       },
       session: {
         query_history: [],
@@ -187,8 +187,8 @@ export class ContextManager {
         user_preferences: {
           sensitivity: 'medium',
           detailedAnalysis: false,
-          notificationLevel: 'normal'
-        }
+          notificationLevel: 'normal',
+        },
       },
       domain: {
         thresholds: {
@@ -199,7 +199,7 @@ export class ContextManager {
           response_time_warning: 500,
           response_time_critical: 1000,
           error_rate_warning: 5,
-          error_rate_critical: 10
+          error_rate_critical: 10,
         },
         rules: [
           {
@@ -208,11 +208,11 @@ export class ContextManager {
             condition: 'cpu > 80',
             action: 'trigger_alert',
             priority: 1,
-            active: true
-          }
+            active: true,
+          },
         ],
-        correlations: []
-      }
+        correlations: [],
+      },
     };
   }
 
@@ -225,7 +225,7 @@ export class ContextManager {
       queries: [],
       results: [],
       startTime: new Date().toISOString(),
-      lastActivity: new Date().toISOString()
+      lastActivity: new Date().toISOString(),
     };
   }
 
@@ -240,7 +240,7 @@ export class ContextManager {
       if (updateData.user_preferences) {
         this.currentContext.session.user_preferences = {
           ...this.currentContext.session.user_preferences,
-          ...updateData.user_preferences
+          ...updateData.user_preferences,
         };
       }
 
@@ -257,9 +257,8 @@ export class ContextManager {
       // 단기 메모리에 저장
       this.shortTermMemory.set('last_update', {
         timestamp: new Date().toISOString(),
-        data: updateData
+        data: updateData,
       });
-
     } catch (error) {
       console.error('❌ 컨텍스트 업데이트 오류:', error);
     }
@@ -276,10 +275,10 @@ export class ContextManager {
       disk: metrics.disk || 0,
       network: {
         in: metrics.networkIn || 0,
-        out: metrics.networkOut || 0
+        out: metrics.networkOut || 0,
       },
       responseTime: metrics.responseTime || 0,
-      errorRate: metrics.errorRate || 0
+      errorRate: metrics.errorRate || 0,
     };
 
     // 트렌드 계산
@@ -310,7 +309,7 @@ export class ContextManager {
         timeRange: '10minutes',
         direction: cpuTrend.direction,
         confidence: cpuTrend.confidence,
-        slope: cpuTrend.slope
+        slope: cpuTrend.slope,
       };
     }
   }
@@ -318,7 +317,11 @@ export class ContextManager {
   /**
    * 📊 트렌드 계산
    */
-  private calculateTrend(values: number[]): { direction: 'increasing' | 'decreasing' | 'stable', confidence: number, slope: number } {
+  private calculateTrend(values: number[]): {
+    direction: 'increasing' | 'decreasing' | 'stable';
+    confidence: number;
+    slope: number;
+  } {
     if (values.length < 2) {
       return { direction: 'stable', confidence: 0.5, slope: 0 };
     }
@@ -368,7 +371,7 @@ export class ContextManager {
       metrics: relevantMetrics,
       time_range: timeContext,
       rules: applicableRules,
-      session_context: previousQueries
+      session_context: previousQueries,
     };
   }
 
@@ -400,7 +403,14 @@ export class ContextManager {
 
     // 기본값으로 모든 메트릭 포함
     if (metrics.length === 0) {
-      metrics.push('cpu', 'memory', 'disk', 'network', 'responseTime', 'errorRate');
+      metrics.push(
+        'cpu',
+        'memory',
+        'disk',
+        'network',
+        'responseTime',
+        'errorRate'
+      );
     }
 
     return metrics;
@@ -432,8 +442,9 @@ export class ContextManager {
    * 📋 적용 가능한 규칙 찾기
    */
   private findApplicableRules(query: string): BusinessRule[] {
-    return this.currentContext.domain.rules.filter(rule =>
-      rule.active && query.toLowerCase().includes(rule.name.toLowerCase())
+    return this.currentContext.domain.rules.filter(
+      rule =>
+        rule.active && query.toLowerCase().includes(rule.name.toLowerCase())
     );
   }
 
@@ -461,7 +472,6 @@ export class ContextManager {
         // 최대 패턴 수 제한
         this.limitPatternStorage();
       }
-
     } catch (error) {
       console.error('❌ 패턴 학습 오류:', error);
     }
@@ -478,7 +488,7 @@ export class ContextManager {
       confidence: Math.random() * 0.3 + 0.7, // 0.7-1.0
       parameters: data,
       learnedAt: new Date().toISOString(),
-      significance: Math.random() * 0.5 + 0.5 // 0.5-1.0
+      significance: Math.random() * 0.5 + 0.5, // 0.5-1.0
     };
   }
 
@@ -516,7 +526,7 @@ export class ContextManager {
         toolsUsed: result.tools_used || [],
         result: result,
         confidence: result.confidence || 0.8,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       this.sessionContext.results.push(analysisResult);
@@ -533,7 +543,6 @@ export class ContextManager {
 
       // 단기 메모리에도 저장
       this.shortTermMemory.set('last_result', analysisResult);
-
     } catch (error) {
       console.error('❌ 결과 저장 오류:', error);
     }
@@ -562,7 +571,7 @@ export class ContextManager {
       text: query,
       timestamp: new Date().toISOString(),
       intent,
-      confidence
+      confidence,
     };
 
     this.sessionContext.queries.push(queryObj);
@@ -590,11 +599,11 @@ export class ContextManager {
       patternCount: {
         daily: this.currentContext.patterns.daily_patterns.length,
         weekly: this.currentContext.patterns.weekly_patterns.length,
-        anomaly: this.currentContext.patterns.anomaly_patterns.length
+        anomaly: this.currentContext.patterns.anomaly_patterns.length,
       },
       shortTermMemorySize: this.shortTermMemory.size,
       lastActivity: this.sessionContext.lastActivity,
-      uptime: Date.now() - new Date(this.sessionContext.startTime).getTime()
+      uptime: Date.now() - new Date(this.sessionContext.startTime).getTime(),
     };
   }
 
@@ -606,11 +615,16 @@ export class ContextManager {
     const fortyFiveMinutesAgo = Date.now() - 2700000; // 45분
 
     for (const [key, value] of this.shortTermMemory.entries()) {
-      if (value.timestamp && new Date(value.timestamp).getTime() < fortyFiveMinutesAgo) {
+      if (
+        value.timestamp &&
+        new Date(value.timestamp).getTime() < fortyFiveMinutesAgo
+      ) {
         this.shortTermMemory.delete(key);
       }
     }
 
-    console.log(`🧹 컨텍스트 메모리 정리 완료 (무료 티어 최적화): ${this.shortTermMemory.size}개 항목 유지`);
+    console.log(
+      `🧹 컨텍스트 메모리 정리 완료 (무료 티어 최적화): ${this.shortTermMemory.size}개 항목 유지`
+    );
   }
-} 
+}

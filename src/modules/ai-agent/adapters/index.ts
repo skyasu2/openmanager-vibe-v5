@@ -1,6 +1,6 @@
 /**
  * 🔌 AI Agent Adapters
- * 
+ *
  * 통합 어댑터 모듈 내보내기
  */
 
@@ -10,7 +10,7 @@ export * from './RedisCacheAdapter';
 
 /**
  * AI Agent Adapters
- * 
+ *
  * 🔌 환경별 어댑터 시스템
  * - 스토리지 어댑터 (메모리, localStorage, IndexedDB, 파일)
  * - 로깅 어댑터 (콘솔, 파일, 원격)
@@ -33,12 +33,12 @@ export class MemoryStorageAdapter implements StorageAdapter {
   async get(key: string): Promise<any> {
     const item = this.storage.get(key);
     if (!item) return null;
-    
+
     if (item.expires && Date.now() > item.expires) {
       this.storage.delete(key);
       return null;
     }
-    
+
     return item.value;
   }
 
@@ -69,17 +69,17 @@ export class LocalStorageAdapter implements StorageAdapter {
 
   async get(key: string): Promise<any> {
     if (typeof window === 'undefined') return null;
-    
+
     try {
       const item = localStorage.getItem(`${this.prefix}:${key}`);
       if (!item) return null;
-      
+
       const parsed = JSON.parse(item);
       if (parsed.expires && Date.now() > parsed.expires) {
         localStorage.removeItem(`${this.prefix}:${key}`);
         return null;
       }
-      
+
       return parsed.value;
     } catch {
       return null;
@@ -88,7 +88,7 @@ export class LocalStorageAdapter implements StorageAdapter {
 
   async set(key: string, value: any, ttl?: number): Promise<void> {
     if (typeof window === 'undefined') return;
-    
+
     const expires = ttl ? Date.now() + ttl : undefined;
     const item = { value, expires };
     localStorage.setItem(`${this.prefix}:${key}`, JSON.stringify(item));
@@ -101,7 +101,7 @@ export class LocalStorageAdapter implements StorageAdapter {
 
   async clear(): Promise<void> {
     if (typeof window === 'undefined') return;
-    
+
     const keys = Object.keys(localStorage);
     for (const key of keys) {
       if (key.startsWith(`${this.prefix}:`)) {
@@ -112,7 +112,7 @@ export class LocalStorageAdapter implements StorageAdapter {
 
   async keys(): Promise<string[]> {
     if (typeof window === 'undefined') return [];
-    
+
     const keys = Object.keys(localStorage);
     return keys
       .filter(key => key.startsWith(`${this.prefix}:`))
@@ -202,17 +202,22 @@ export class FetchNetworkAdapter implements NetworkAdapter {
     return this.request('DELETE', url, undefined, options);
   }
 
-  private async request(method: string, url: string, data?: any, options: any = {}): Promise<any> {
+  private async request(
+    method: string,
+    url: string,
+    data?: any,
+    options: any = {}
+  ): Promise<any> {
     const fullURL = url.startsWith('http') ? url : `${this.baseURL}${url}`;
-    
+
     const config: RequestInit = {
       method,
       headers: {
         'Content-Type': 'application/json',
         ...this.defaultHeaders,
-        ...options.headers
+        ...options.headers,
       },
-      ...options
+      ...options,
     };
 
     if (data) {
@@ -220,7 +225,7 @@ export class FetchNetworkAdapter implements NetworkAdapter {
     }
 
     const response = await fetch(fullURL, config);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
@@ -257,19 +262,23 @@ export class MockNetworkAdapter implements NetworkAdapter {
     if (response) {
       return typeof response === 'function' ? response(data) : response;
     }
-    
+
     // 기본 모의 응답
     return {
       success: true,
       data: { message: `Mock response for ${url}` },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 }
 
 // Metrics Adapters
 export interface MetricsAdapter {
-  increment(metric: string, value?: number, tags?: Record<string, string>): void;
+  increment(
+    metric: string,
+    value?: number,
+    tags?: Record<string, string>
+  ): void;
   gauge(metric: string, value: number, tags?: Record<string, string>): void;
   histogram(metric: string, value: number, tags?: Record<string, string>): void;
   timing(metric: string, duration: number, tags?: Record<string, string>): void;
@@ -284,11 +293,19 @@ export class ConsoleMetricsAdapter implements MetricsAdapter {
     console.log(`📊 [Metrics] ${metric} = ${value}`, tags);
   }
 
-  histogram(metric: string, value: number, tags?: Record<string, string>): void {
+  histogram(
+    metric: string,
+    value: number,
+    tags?: Record<string, string>
+  ): void {
     console.log(`📊 [Metrics] ${metric} histogram: ${value}`, tags);
   }
 
-  timing(metric: string, duration: number, tags?: Record<string, string>): void {
+  timing(
+    metric: string,
+    duration: number,
+    tags?: Record<string, string>
+  ): void {
     console.log(`📊 [Metrics] ${metric} timing: ${duration}ms`, tags);
   }
 }
@@ -351,4 +368,4 @@ export class AdapterFactory {
         return new NoOpMetricsAdapter();
     }
   }
-} 
+}

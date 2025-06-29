@@ -31,26 +31,26 @@ export async function GET(request: NextRequest) {
           '서버 모니터링',
           '성능 최적화',
           '오류 분석',
-          '한국어 응답 개선'
-        ]
+          '한국어 응답 개선',
+        ],
       },
       performance: {
         accuracyImprovement: '+8.2%',
         responseQuality: '+15.4%',
         koreanLanguageHandling: '+22.1%',
-        contextUnderstanding: '+11.7%'
+        contextUnderstanding: '+11.7%',
       },
       restrictions: {
         dailyLimit: 1,
         currentUsage: force ? 0 : 1,
         resetTime: '00:00 KST',
-        reason: 'Google AI 베타 정책 준수'
-      }
+        reason: 'Google AI 베타 정책 준수',
+      },
     };
 
     return NextResponse.json({
       success: true,
-      data: learningStatus
+      data: learningStatus,
     });
   } catch (error) {
     console.error('Gemini 학습 상태 조회 오류:', error);
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         error: 'Gemini 학습 상태 조회 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -89,9 +89,11 @@ export async function POST(request: NextRequest) {
             action: 'start-learning',
             status: 'rejected',
             reason: '하루 1회 학습 제한',
-            nextAvailable: new Date(lastLearning.getTime() + 24 * 3600 * 1000).toISOString(),
+            nextAvailable: new Date(
+              lastLearning.getTime() + 24 * 3600 * 1000
+            ).toISOString(),
             message: 'Google AI 베타 정책에 따라 하루 1회만 학습 가능합니다',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           };
         } else {
           result = {
@@ -101,7 +103,7 @@ export async function POST(request: NextRequest) {
             estimatedDuration: '10-15 minutes',
             topics: data?.topics || ['서버 모니터링', '성능 분석'],
             message: 'Gemini 학습 세션이 시작되었습니다',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           };
         }
         break;
@@ -113,7 +115,7 @@ export async function POST(request: NextRequest) {
           schedule: config?.schedule || 'daily',
           nextRun: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
           message: '학습 일정이 설정되었습니다',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
         break;
 
@@ -126,21 +128,21 @@ export async function POST(request: NextRequest) {
             improvementAreas: [
               '한국어 자연어 처리',
               '기술 용어 이해',
-              '컨텍스트 기반 응답'
+              '컨텍스트 기반 응답',
             ],
             recommendations: [
               '더 많은 서버 로그 데이터로 학습',
               '사용자 피드백 기반 개선',
-              '도메인 특화 지식 확장'
+              '도메인 특화 지식 확장',
             ],
             performanceMetrics: {
               accuracy: 94.2,
               responseTime: 1.8,
-              userSatisfaction: 4.6
-            }
+              userSatisfaction: 4.6,
+            },
           },
           message: '학습 인사이트 조회 완료',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
         break;
 
@@ -149,14 +151,18 @@ export async function POST(request: NextRequest) {
           action: action || 'unknown',
           status: 'error',
           message: '지원하지 않는 액션입니다',
-          supportedActions: ['start-learning', 'schedule-learning', 'get-insights'],
-          timestamp: new Date().toISOString()
+          supportedActions: [
+            'start-learning',
+            'schedule-learning',
+            'get-insights',
+          ],
+          timestamp: new Date().toISOString(),
         };
     }
 
     return NextResponse.json({
       success: result.status !== 'error',
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('Gemini 학습 액션 오류:', error);
@@ -164,7 +170,7 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         error: 'Gemini 학습 액션 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -185,17 +191,17 @@ export async function PUT() {
         dataProcessed: '2,847개 로그 엔트리',
         newPatterns: 12,
         improvedResponses: 34,
-        koreanLanguageUpdates: 8
+        koreanLanguageUpdates: 8,
       },
       nextScheduled: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
-      message: '일일 Gemini 학습 크론 작업 완료'
+      message: '일일 Gemini 학습 크론 작업 완료',
     };
 
     console.log('🤖 Gemini 일일 학습 크론 실행:', cronResult);
 
     return NextResponse.json({
       success: true,
-      data: cronResult
+      data: cronResult,
     });
   } catch (error) {
     console.error('Gemini 학습 크론 작업 오류:', error);
@@ -203,7 +209,7 @@ export async function PUT() {
       {
         success: false,
         error: 'Gemini 학습 크론 작업 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

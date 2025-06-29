@@ -1,6 +1,6 @@
 /**
  * Shared Module
- * 
+ *
  * 🔧 모든 모듈에서 공통으로 사용하는 유틸리티
  * - 공통 타입 정의
  * - 유틸리티 함수
@@ -8,12 +8,7 @@
  */
 
 // Types
-export type {
-  BaseConfig,
-  ModuleInfo,
-  APIResponse,
-  ErrorInfo
-} from './types';
+export type { BaseConfig, ModuleInfo, APIResponse, ErrorInfo } from './types';
 
 // Utils
 export {
@@ -22,7 +17,7 @@ export {
   debounce,
   throttle,
   deepMerge,
-  validateConfig
+  validateConfig,
 } from './utils';
 
 // Constants
@@ -30,7 +25,7 @@ export {
   MODULE_VERSIONS,
   API_ENDPOINTS,
   ERROR_CODES,
-  DEFAULT_TIMEOUTS
+  DEFAULT_TIMEOUTS,
 } from './constants';
 
 // Module info
@@ -46,6 +41,6 @@ export const checkModuleCompatibility = (
 ): boolean => {
   const [reqMajor, reqMinor] = requiredVersion.split('.').map(Number);
   const [curMajor, curMinor] = currentVersion.split('.').map(Number);
-  
+
   return curMajor >= reqMajor && curMinor >= reqMinor;
-}; 
+};

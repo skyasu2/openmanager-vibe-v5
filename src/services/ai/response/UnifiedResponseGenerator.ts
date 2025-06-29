@@ -1,11 +1,11 @@
 /**
  * 🎯 통합 응답 생성 시스템 v1.0
- * 
+ *
  * 3개의 특화된 응답 생성기를 통합 관리:
  * - AI 에이전트 프로세서용 응답 생성 (IntentBasedResponseGenerator)
- * - AI 엔진용 응답 생성 (NLPResponseGenerator)  
+ * - AI 엔진용 응답 생성 (NLPResponseGenerator)
  * - 하이브리드 AI용 응답 생성 (HybridResponseGenerator)
- * 
+ *
  * 통합 아키텍처:
  * - 단일 진입점 제공
  * - 각 생성기의 특화 기능 유지
@@ -75,11 +75,13 @@ export class UnifiedResponseGenerator {
       maxResponseLength: 2000,
       enableFallback: true,
       qualityThreshold: 0.6,
-      ...config
+      ...config,
     };
   }
 
-  public static getInstance(config?: Partial<ResponseGeneratorConfig>): UnifiedResponseGenerator {
+  public static getInstance(
+    config?: Partial<ResponseGeneratorConfig>
+  ): UnifiedResponseGenerator {
     if (!UnifiedResponseGenerator.instance) {
       UnifiedResponseGenerator.instance = new UnifiedResponseGenerator(config);
     }
@@ -97,13 +99,17 @@ export class UnifiedResponseGenerator {
     this.initializeActionTemplates();
 
     this.isInitialized = true;
-    console.log('💬 [UnifiedResponseGenerator] 통합 응답 생성기가 초기화되었습니다.');
+    console.log(
+      '💬 [UnifiedResponseGenerator] 통합 응답 생성기가 초기화되었습니다.'
+    );
   }
 
   /**
    * 📝 통합 응답 생성 (메인 진입점)
    */
-  public async generateResponse(request: UnifiedResponseRequest): Promise<UnifiedResponseResult> {
+  public async generateResponse(
+    request: UnifiedResponseRequest
+  ): Promise<UnifiedResponseResult> {
     if (!this.isInitialized) {
       await this.initialize();
     }
@@ -113,7 +119,8 @@ export class UnifiedResponseGenerator {
 
     try {
       // 응답 타입 자동 결정
-      const responseType = request.responseType || this.determineResponseType(request);
+      const responseType =
+        request.responseType || this.determineResponseType(request);
 
       // 타입별 응답 생성
       switch (responseType) {
@@ -137,7 +144,6 @@ export class UnifiedResponseGenerator {
       result = await this.enhanceResponseQuality(result, request);
 
       return result;
-
     } catch (error) {
       console.error('❌ [UnifiedResponseGenerator] 응답 생성 실패:', error);
       return this.generateErrorResponse(error);
@@ -147,7 +153,9 @@ export class UnifiedResponseGenerator {
   /**
    * 🎯 의도 기반 응답 생성
    */
-  private async generateIntentBasedResponse(request: UnifiedResponseRequest): Promise<UnifiedResponseResult> {
+  private async generateIntentBasedResponse(
+    request: UnifiedResponseRequest
+  ): Promise<UnifiedResponseResult> {
     const intent = request.intent;
     if (!intent) {
       throw new Error('Intent 정보가 필요합니다.');
@@ -157,13 +165,22 @@ export class UnifiedResponseGenerator {
     const baseResponse = this.selectBaseResponse(intent);
 
     // 서버 데이터 기반 응답 보강
-    const enrichedResponse = this.enrichWithServerData(baseResponse, request.serverData);
+    const enrichedResponse = this.enrichWithServerData(
+      baseResponse,
+      request.serverData
+    );
 
     // 컨텍스트 기반 응답 조정
-    const contextualResponse = this.applyContextualModifiers(enrichedResponse, request.context);
+    const contextualResponse = this.applyContextualModifiers(
+      enrichedResponse,
+      request.context
+    );
 
     // MCP 응답 통합
-    const finalResponse = this.integrateMCPResponse(contextualResponse, request.mcpResponse);
+    const finalResponse = this.integrateMCPResponse(
+      contextualResponse,
+      request.mcpResponse
+    );
 
     // 제안 액션 생성
     const suggestions = this.generateSuggestedActions(intent);
@@ -177,7 +194,11 @@ export class UnifiedResponseGenerator {
         hasServerData: !!request.serverData,
         hasMCPResponse: !!request.mcpResponse,
         documentCount: 0,
-        reasoning: ['의도 기반 템플릿 응답 생성', '서버 데이터 통합', '컨텍스트 조정'],
+        reasoning: [
+          '의도 기반 템플릿 응답 생성',
+          '서버 데이터 통합',
+          '컨텍스트 조정',
+        ],
       },
       suggestions,
     };
@@ -186,7 +207,9 @@ export class UnifiedResponseGenerator {
   /**
    * 🧠 NLP 기반 응답 생성
    */
-  private async generateNLPResponse(request: UnifiedResponseRequest): Promise<UnifiedResponseResult> {
+  private async generateNLPResponse(
+    request: UnifiedResponseRequest
+  ): Promise<UnifiedResponseResult> {
     const nlpResult = request.nlpResult;
     if (!nlpResult) {
       throw new Error('NLP 분석 결과가 필요합니다.');
@@ -231,7 +254,8 @@ export class UnifiedResponseGenerator {
 
     // 응답 길이 제한
     if (responseText.length > this.config.maxResponseLength) {
-      responseText = responseText.substring(0, this.config.maxResponseLength) + '...';
+      responseText =
+        responseText.substring(0, this.config.maxResponseLength) + '...';
       reasoning.push('응답 길이 제한 적용');
     }
 
@@ -256,10 +280,12 @@ export class UnifiedResponseGenerator {
   /**
    * 🔄 하이브리드 응답 생성
    */
-  private async generateHybridResponse(request: UnifiedResponseRequest): Promise<UnifiedResponseResult> {
+  private async generateHybridResponse(
+    request: UnifiedResponseRequest
+  ): Promise<UnifiedResponseResult> {
     const analysisResults = request.analysisResults || {};
     const documents = request.documents || [];
-    
+
     let confidence = 0.5;
     const reasoning: string[] = [];
     let responseText = '';
@@ -274,15 +300,23 @@ export class UnifiedResponseGenerator {
 
     // 2. Transformers 분석 결과 통합
     if (analysisResults.transformers) {
-      const transformersResponse = this.processTransformersResponse(analysisResults.transformers);
-      responseText = this.mergeResponses(responseText, transformersResponse.text);
+      const transformersResponse = this.processTransformersResponse(
+        analysisResults.transformers
+      );
+      responseText = this.mergeResponses(
+        responseText,
+        transformersResponse.text
+      );
       confidence = Math.max(confidence, transformersResponse.confidence);
       reasoning.push(...transformersResponse.reasoning);
     }
 
     // 3. 문서 기반 응답 생성
     if (documents.length > 0) {
-      const documentResponse = this.processDocumentResponse(documents, request.query);
+      const documentResponse = this.processDocumentResponse(
+        documents,
+        request.query
+      );
       responseText = this.mergeResponses(responseText, documentResponse.text);
       confidence = Math.max(confidence, documentResponse.confidence);
       reasoning.push(...documentResponse.reasoning);
@@ -290,7 +324,9 @@ export class UnifiedResponseGenerator {
 
     // 4. TensorFlow 예측 결과 통합
     if (analysisResults.tensorflow) {
-      const tensorflowResponse = this.processTensorFlowResponse(analysisResults.tensorflow);
+      const tensorflowResponse = this.processTensorFlowResponse(
+        analysisResults.tensorflow
+      );
       responseText = this.mergeResponses(responseText, tensorflowResponse.text);
       confidence = Math.max(confidence, tensorflowResponse.confidence);
       reasoning.push(...tensorflowResponse.reasoning);
@@ -331,7 +367,9 @@ export class UnifiedResponseGenerator {
   /**
    * 🤖 자동 응답 생성 (최적 방식 선택)
    */
-  private async generateAutoResponse(request: UnifiedResponseRequest): Promise<UnifiedResponseResult> {
+  private async generateAutoResponse(
+    request: UnifiedResponseRequest
+  ): Promise<UnifiedResponseResult> {
     // 가용한 데이터에 따라 최적 생성기 선택
     if (request.intent && request.serverData) {
       return this.generateIntentBasedResponse(request);
@@ -359,7 +397,9 @@ export class UnifiedResponseGenerator {
   /**
    * 🔧 응답 타입 결정
    */
-  private determineResponseType(request: UnifiedResponseRequest): 'intent' | 'nlp' | 'hybrid' | 'auto' {
+  private determineResponseType(
+    request: UnifiedResponseRequest
+  ): 'intent' | 'nlp' | 'hybrid' | 'auto' {
     if (request.intent && request.serverData) return 'intent';
     if (request.nlpResult) return 'nlp';
     if (request.analysisResults || request.documents) return 'hybrid';
@@ -370,22 +410,30 @@ export class UnifiedResponseGenerator {
    * ✨ 응답 품질 향상
    */
   private async enhanceResponseQuality(
-    result: UnifiedResponseResult, 
+    result: UnifiedResponseResult,
     request: UnifiedResponseRequest
   ): Promise<UnifiedResponseResult> {
     // 신뢰도가 임계값 미만인 경우 개선 시도
-    if (result.confidence < this.config.qualityThreshold && this.config.enableFallback) {
+    if (
+      result.confidence < this.config.qualityThreshold &&
+      this.config.enableFallback
+    ) {
       const fallbackResult = await this.generateFallbackResponse(request);
       if (fallbackResult.confidence > result.confidence) {
         result.text = this.mergeResponses(result.text, fallbackResult.text);
-        result.confidence = Math.max(result.confidence, fallbackResult.confidence);
+        result.confidence = Math.max(
+          result.confidence,
+          fallbackResult.confidence
+        );
         result.metadata.reasoning.push('품질 개선을 위한 폴백 응답 통합');
       }
     }
 
     // 디버그 정보 추가
     if (this.config.includeDebugInfo) {
-      result.metadata.reasoning.push(`최종 신뢰도: ${(result.confidence * 100).toFixed(1)}%`);
+      result.metadata.reasoning.push(
+        `최종 신뢰도: ${(result.confidence * 100).toFixed(1)}%`
+      );
     }
 
     return result;
@@ -458,46 +506,46 @@ export class UnifiedResponseGenerator {
         suggestions: [
           '상세한 메트릭 확인을 위해 대시보드를 확인하세요.',
           '추가 분석이 필요한 경우 AI 에이전트에게 문의하세요.',
-          '정기적인 모니터링으로 시스템 상태를 추적하세요.'
-        ]
+          '정기적인 모니터링으로 시스템 상태를 추적하세요.',
+        ],
       },
       search: {
         prefix: '🔍 검색 결과:',
         suggestions: [
           '더 구체적인 키워드로 재검색해보세요.',
           '관련 문서를 참조하여 추가 정보를 확인하세요.',
-          '문서가 최신 상태인지 확인하세요.'
-        ]
+          '문서가 최신 상태인지 확인하세요.',
+        ],
       },
       prediction: {
         prefix: '🔮 예측 결과:',
         suggestions: [
           '예측 결과는 참고용이며 실제 상황은 다를 수 있습니다.',
           '더 정확한 예측을 위해 데이터를 업데이트하세요.',
-          '예측 모델의 신뢰도를 정기적으로 검증하세요.'
-        ]
+          '예측 모델의 신뢰도를 정기적으로 검증하세요.',
+        ],
       },
       optimization: {
         prefix: '⚡ 최적화 제안:',
         suggestions: [
           '제안된 최적화를 단계적으로 적용하세요.',
           '변경 전 백업을 생성하세요.',
-          '최적화 효과를 모니터링하세요.'
-        ]
+          '최적화 효과를 모니터링하세요.',
+        ],
       },
       troubleshooting: {
         prefix: '🔧 문제 해결:',
         suggestions: [
           '문제가 지속되면 로그를 확인하세요.',
           '시스템 재시작을 고려해보세요.',
-          '전문가의 도움이 필요할 수 있습니다.'
-        ]
-      }
+          '전문가의 도움이 필요할 수 있습니다.',
+        ],
+      },
     };
   }
 
   // 헬퍼 메서드들 (기존 로직 통합)
-  
+
   private selectBaseResponse(intent: any): string {
     const templates = this.responseTemplates.get(intent.name) ||
       this.responseTemplates.get('general') || [
@@ -510,19 +558,26 @@ export class UnifiedResponseGenerator {
 
   private enrichWithServerData(response: string, serverData?: any): string {
     if (!serverData) {
-      return response.replace(/{[^}]+}/g, '실시간 데이터를 수집하고 있습니다...');
+      return response.replace(
+        /{[^}]+}/g,
+        '실시간 데이터를 수집하고 있습니다...'
+      );
     }
 
     // 서버 데이터 기반 응답 보강 로직
-    return response.replace(/{server_summary}/g, this.generateServerSummary(serverData))
-                  .replace(/{performance_summary}/g, this.generatePerformanceSummary(serverData));
+    return response
+      .replace(/{server_summary}/g, this.generateServerSummary(serverData))
+      .replace(
+        /{performance_summary}/g,
+        this.generatePerformanceSummary(serverData)
+      );
   }
 
   private applyContextualModifiers(response: string, context: any): string {
     if (!context) return response;
 
     let modifiedResponse = response;
-    
+
     if (context.urgent) {
       const modifiers = this.contextualModifiers.get('urgent') || [];
       modifiedResponse = modifiers[0] + modifiedResponse;
@@ -534,58 +589,82 @@ export class UnifiedResponseGenerator {
   private integrateMCPResponse(response: string, mcpResponse?: any): string {
     if (!mcpResponse) return response;
 
-    return response + '\n\n📚 **관련 문서 정보**\n' + 
-           (mcpResponse.summary || '관련 문서를 찾았습니다.');
+    return (
+      response +
+      '\n\n📚 **관련 문서 정보**\n' +
+      (mcpResponse.summary || '관련 문서를 찾았습니다.')
+    );
   }
 
   private generateSuggestedActions(intent: any): string[] {
     const intentName = intent.name || 'general';
-    const template = this.actionTemplates[intentName] || this.actionTemplates.analysis;
+    const template =
+      this.actionTemplates[intentName] || this.actionTemplates.analysis;
     return template.suggestions || [];
   }
 
-  private generateTroubleshootingAnswer(request: UnifiedResponseRequest, lang: string): string {
+  private generateTroubleshootingAnswer(
+    request: UnifiedResponseRequest,
+    lang: string
+  ): string {
     const hasAnomalies = request.analysisResults?.anomaly_detection?.length > 0;
     const hasAlerts = request.analysisResults?.active_alerts?.length > 0;
 
     if (lang === 'ko') {
       let answer = '🔧 시스템 문제 분석 결과:\n\n';
-      if (hasAnomalies) answer += `⚠️ 감지된 이상징후: ${request.analysisResults.anomaly_detection.length}건\n`;
-      if (hasAlerts) answer += `🚨 활성 알림: ${request.analysisResults.active_alerts.length}건\n`;
+      if (hasAnomalies)
+        answer += `⚠️ 감지된 이상징후: ${request.analysisResults.anomaly_detection.length}건\n`;
+      if (hasAlerts)
+        answer += `🚨 활성 알림: ${request.analysisResults.active_alerts.length}건\n`;
       answer += '\n권장 조치사항은 아래 권장사항을 참조해 주세요.';
       return answer;
     } else {
       let answer = '🔧 System Troubleshooting Analysis:\n\n';
-      if (hasAnomalies) answer += `⚠️ Anomalies detected: ${request.analysisResults.anomaly_detection.length}\n`;
-      if (hasAlerts) answer += `🚨 Active alerts: ${request.analysisResults.active_alerts.length}\n`;
-      answer += '\nPlease refer to recommendations below for suggested actions.';
+      if (hasAnomalies)
+        answer += `⚠️ Anomalies detected: ${request.analysisResults.anomaly_detection.length}\n`;
+      if (hasAlerts)
+        answer += `🚨 Active alerts: ${request.analysisResults.active_alerts.length}\n`;
+      answer +=
+        '\nPlease refer to recommendations below for suggested actions.';
       return answer;
     }
   }
 
-  private generatePredictionAnswer(request: UnifiedResponseRequest, lang: string): string {
-    return lang === 'ko' 
+  private generatePredictionAnswer(
+    request: UnifiedResponseRequest,
+    lang: string
+  ): string {
+    return lang === 'ko'
       ? '🔮 AI 예측 분석 결과:\n\n📊 장애 예측 모델이 실행되었습니다.\n📈 트렌드 분석이 완료되었습니다.\n\n상세한 예측 결과는 분석 데이터를 참조해 주세요.'
       : '🔮 AI Prediction Analysis:\n\n📊 Failure prediction model executed.\n📈 Trend analysis completed.\n\nPlease refer to analysis data for detailed predictions.';
   }
 
-  private generateAnalysisAnswer(request: UnifiedResponseRequest, lang: string): string {
-    return lang === 'ko' 
+  private generateAnalysisAnswer(
+    request: UnifiedResponseRequest,
+    lang: string
+  ): string {
+    return lang === 'ko'
       ? '📊 시스템 분석이 완료되었습니다. 상세 결과는 분석 데이터를 확인해 주세요.'
       : '📊 System analysis completed. Please check analysis data for detailed results.';
   }
 
-  private generateMonitoringAnswer(request: UnifiedResponseRequest, lang: string): string {
+  private generateMonitoringAnswer(
+    request: UnifiedResponseRequest,
+    lang: string
+  ): string {
     return lang === 'ko'
       ? '👁️ 시스템 모니터링 상태를 확인했습니다. 현재 활성 알림과 메트릭을 검토해 주세요.'
       : '👁️ System monitoring status checked. Please review current active alerts and metrics.';
   }
 
-  private generateReportingAnswer(request: UnifiedResponseRequest, lang: string): string {
+  private generateReportingAnswer(
+    request: UnifiedResponseRequest,
+    lang: string
+  ): string {
     const hasReport = request.analysisResults?.generated_report;
-    
+
     if (lang === 'ko') {
-      return hasReport 
+      return hasReport
         ? '📄 시스템 보고서가 생성되었습니다. 상세 내용은 생성된 보고서를 확인해 주세요.'
         : '📄 보고서 생성을 위한 데이터를 수집했습니다.';
     } else {
@@ -595,15 +674,22 @@ export class UnifiedResponseGenerator {
     }
   }
 
-  private generatePerformanceAnswer(request: UnifiedResponseRequest, lang: string): string {
+  private generatePerformanceAnswer(
+    request: UnifiedResponseRequest,
+    lang: string
+  ): string {
     return lang === 'ko'
       ? '⚡ 시스템 성능 분석이 완료되었습니다. 성능 메트릭과 최적화 권장사항을 확인해 주세요.'
       : '⚡ System performance analysis completed. Please check performance metrics and optimization recommendations.';
   }
 
-  private generateGeneralAnswer(request: UnifiedResponseRequest, lang: string): string {
-    const hasMCPResults = request.mcpResponse && Object.keys(request.mcpResponse).length > 0;
-    
+  private generateGeneralAnswer(
+    request: UnifiedResponseRequest,
+    lang: string
+  ): string {
+    const hasMCPResults =
+      request.mcpResponse && Object.keys(request.mcpResponse).length > 0;
+
     if (lang === 'ko') {
       return hasMCPResults
         ? '💡 질문과 관련된 정보를 찾았습니다. MCP 검색 결과를 확인해 주세요.'
@@ -615,9 +701,12 @@ export class UnifiedResponseGenerator {
     }
   }
 
-  private generateRecommendations(nlpResult: any, request: UnifiedResponseRequest): string[] {
+  private generateRecommendations(
+    nlpResult: any,
+    request: UnifiedResponseRequest
+  ): string[] {
     const recommendations: string[] = [];
-    
+
     if (nlpResult.intent === 'troubleshooting') {
       recommendations.push('시스템 로그를 확인하세요');
       recommendations.push('관련 서비스를 재시작해보세요');
@@ -629,18 +718,26 @@ export class UnifiedResponseGenerator {
     return recommendations;
   }
 
-  private processKoreanResponse(koreanResult: any): { text: string; confidence: number; reasoning: string[] } {
+  private processKoreanResponse(koreanResult: any): {
+    text: string;
+    confidence: number;
+    reasoning: string[];
+  } {
     const text = koreanResult.answer || koreanResult.response || '';
     const confidence = koreanResult.confidence || 0.6;
 
     return {
       text,
       confidence,
-      reasoning: ['한국어 NLU 엔진 분석 결과 반영']
+      reasoning: ['한국어 NLU 엔진 분석 결과 반영'],
     };
   }
 
-  private processTransformersResponse(transformersResult: any): { text: string; confidence: number; reasoning: string[] } {
+  private processTransformersResponse(transformersResult: any): {
+    text: string;
+    confidence: number;
+    reasoning: string[];
+  } {
     let text = '';
     let confidence = 0.5;
     const reasoning: string[] = [];
@@ -652,29 +749,39 @@ export class UnifiedResponseGenerator {
     }
 
     if (transformersResult.sentiment) {
-      confidence = Math.max(confidence, transformersResult.sentiment.confidence || 0.5);
+      confidence = Math.max(
+        confidence,
+        transformersResult.sentiment.confidence || 0.5
+      );
       reasoning.push('Transformers.js 고정밀 분석 결과 반영');
     }
 
     return { text, confidence, reasoning };
   }
 
-  private processDocumentResponse(documents: any[], query: string): { text: string; confidence: number; reasoning: string[] } {
+  private processDocumentResponse(
+    documents: any[],
+    query: string
+  ): { text: string; confidence: number; reasoning: string[] } {
     if (documents.length === 0) {
       return { text: '', confidence: 0, reasoning: [] };
     }
 
     const summary = `📚 ${documents.length}개의 관련 문서에서 정보를 찾았습니다.`;
-    const confidence = Math.min(0.7 + (documents.length * 0.05), 0.9);
+    const confidence = Math.min(0.7 + documents.length * 0.05, 0.9);
 
     return {
       text: summary,
       confidence,
-      reasoning: [`${documents.length}개 문서에서 관련 정보 추출`]
+      reasoning: [`${documents.length}개 문서에서 관련 정보 추출`],
     };
   }
 
-  private processTensorFlowResponse(tensorflowResult: any): { text: string; confidence: number; reasoning: string[] } {
+  private processTensorFlowResponse(tensorflowResult: any): {
+    text: string;
+    confidence: number;
+    reasoning: string[];
+  } {
     let text = '';
     const confidence = 0.8;
     const reasoning = ['TensorFlow.js 머신러닝 예측 결과 포함'];
@@ -690,22 +797,28 @@ export class UnifiedResponseGenerator {
     return { text, confidence, reasoning };
   }
 
-  private generateFallbackResponse(request: UnifiedResponseRequest): { text: string; confidence: number; reasoning: string[] } {
+  private generateFallbackResponse(request: UnifiedResponseRequest): {
+    text: string;
+    confidence: number;
+    reasoning: string[];
+  } {
     const lang = request.language || this.config.defaultLanguage;
-    
-    const text = lang === 'ko' 
-      ? '요청하신 정보를 처리하고 있습니다. 더 구체적인 질문을 해주시면 더 정확한 답변을 드릴 수 있습니다.'
-      : 'Processing your request. Please provide more specific questions for more accurate answers.';
+
+    const text =
+      lang === 'ko'
+        ? '요청하신 정보를 처리하고 있습니다. 더 구체적인 질문을 해주시면 더 정확한 답변을 드릴 수 있습니다.'
+        : 'Processing your request. Please provide more specific questions for more accurate answers.';
 
     return {
       text,
       confidence: 0.4,
-      reasoning: ['폴백 응답 생성']
+      reasoning: ['폴백 응답 생성'],
     };
   }
 
   private generateActionAdvice(intent: string, analysisResults: any): string {
-    const template = this.actionTemplates[intent] || this.actionTemplates.analysis;
+    const template =
+      this.actionTemplates[intent] || this.actionTemplates.analysis;
     return template.suggestions[0] || '';
   }
 
@@ -720,7 +833,11 @@ export class UnifiedResponseGenerator {
     return text.trim();
   }
 
-  private adjustConfidence(baseConfidence: number, request: UnifiedResponseRequest, documentCount: number): number {
+  private adjustConfidence(
+    baseConfidence: number,
+    request: UnifiedResponseRequest,
+    documentCount: number
+  ): number {
     let adjustedConfidence = baseConfidence;
 
     // 문서 개수에 따른 신뢰도 조정
@@ -738,10 +855,12 @@ export class UnifiedResponseGenerator {
 
   private extractIntentFromQuery(query: string): string {
     // 간단한 의도 추출 로직
-    if (query.includes('문제') || query.includes('오류')) return 'troubleshooting';
+    if (query.includes('문제') || query.includes('오류'))
+      return 'troubleshooting';
     if (query.includes('예측') || query.includes('전망')) return 'prediction';
     if (query.includes('분석') || query.includes('상태')) return 'analysis';
-    if (query.includes('성능') || query.includes('최적화')) return 'optimization';
+    if (query.includes('성능') || query.includes('최적화'))
+      return 'optimization';
     return 'general';
   }
 

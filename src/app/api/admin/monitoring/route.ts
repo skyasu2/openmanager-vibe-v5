@@ -17,20 +17,20 @@ async function handleGET(request: NextRequest) {
       case 'metrics':
         return NextResponse.json({
           success: true,
-          data: monitoringService.getAllMetrics()
+          data: monitoringService.getAllMetrics(),
         });
 
       case 'realtime':
         return NextResponse.json({
           success: true,
-          data: monitoringService.getRealTimeStats()
+          data: monitoringService.getRealTimeStats(),
         });
 
       case 'health':
         const healthCheck = await monitoringService.performHealthCheck();
         return NextResponse.json({
           success: true,
-          data: healthCheck
+          data: healthCheck,
         });
 
       case 'warmup':
@@ -40,8 +40,8 @@ async function handleGET(request: NextRequest) {
           data: {
             warmup: allMetrics.warmup,
             pythonStatus: allMetrics.health.pythonServiceStatus,
-            warmupHealth: allMetrics.health.warmupHealth
-          }
+            warmupHealth: allMetrics.health.warmupHealth,
+          },
         });
 
       case 'performance':
@@ -50,8 +50,8 @@ async function handleGET(request: NextRequest) {
           success: true,
           data: {
             performance: perfMetrics.performance,
-            summary: perfMetrics.summary
-          }
+            summary: perfMetrics.summary,
+          },
         });
 
       case 'errors':
@@ -60,24 +60,26 @@ async function handleGET(request: NextRequest) {
           success: true,
           data: {
             errors: errorMetrics.errors,
-            systemStatus: errorMetrics.health.status
-          }
+            systemStatus: errorMetrics.health.status,
+          },
         });
 
       default: // 'all'
         return NextResponse.json({
           success: true,
-          data: monitoringService.getAllMetrics()
+          data: monitoringService.getAllMetrics(),
         });
     }
-
   } catch (error: any) {
     console.error('모니터링 API 오류:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch monitoring data',
-      message: error.message
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to fetch monitoring data',
+        message: error.message,
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -91,43 +93,47 @@ export const POST = withRateLimit(rateLimiters.monitoring, handlePOST);
 async function handlePOST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    
+
     if (body.action === 'healthcheck') {
       const healthCheck = await monitoringService.performHealthCheck();
-      
+
       return NextResponse.json({
         success: true,
         data: healthCheck,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
-    
+
     if (body.action === 'reset-metrics') {
       // 메트릭 리셋 (개발/테스트용)
-      const newMonitoringService = await import('@/services/ai/MonitoringService');
-      
+      const newMonitoringService = await import(
+        '@/services/ai/MonitoringService'
+      );
+
       return NextResponse.json({
         success: true,
         message: '모니터링 메트릭이 리셋되었습니다',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
 
     // 기본적으로 헬스체크 실행
     const healthCheck = await monitoringService.performHealthCheck();
-    
+
     return NextResponse.json({
       success: true,
       data: healthCheck,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-
   } catch (error: any) {
     console.error('모니터링 헬스체크 오류:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Health check failed',
-      message: error.message
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Health check failed',
+        message: error.message,
+      },
+      { status: 500 }
+    );
   }
-} 
+}

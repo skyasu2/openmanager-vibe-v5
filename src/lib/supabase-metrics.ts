@@ -1,6 +1,6 @@
 /**
  * 🗄️ Supabase Metrics Client
- * 
+ *
  * 서버 메트릭 데이터를 위한 Supabase 클라이언트
  */
 
@@ -54,10 +54,8 @@ export const createSupabaseClient = () => {
 // 메트릭 데이터 삽입 함수
 export const insertMetrics = async (metrics: DailyMetric[]) => {
   const supabase = createSupabaseClient();
-  
-  const { data, error } = await supabase
-    .from('daily_metrics')
-    .insert(metrics);
+
+  const { data, error } = await supabase.from('daily_metrics').insert(metrics);
 
   if (error) {
     throw new Error(`Failed to insert metrics: ${error.message}`);
@@ -74,7 +72,7 @@ export const getMetrics = async (
   limit?: number
 ) => {
   const supabase = createSupabaseClient();
-  
+
   let query = supabase
     .from('daily_metrics')
     .select('*')
@@ -108,15 +106,12 @@ export const getMetrics = async (
 // 메트릭 데이터 삭제 함수 (개발용)
 export const clearMetrics = async () => {
   const supabase = createSupabaseClient();
-  
-  const { error } = await supabase
-    .from('daily_metrics')
-    .delete()
-    .neq('id', 0); // 모든 레코드 삭제
+
+  const { error } = await supabase.from('daily_metrics').delete().neq('id', 0); // 모든 레코드 삭제
 
   if (error) {
     throw new Error(`Failed to clear metrics: ${error.message}`);
   }
 
   console.log('✅ All metrics data cleared');
-}; 
+};

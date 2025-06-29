@@ -13,7 +13,7 @@ export class SmartQueryAdapter implements EngineAdapter {
     try {
       // 실제 SmartQuery 처리 로직
       const analysis = await this.performSmartQuery(question);
-      
+
       return {
         success: true,
         answer: analysis.answer,
@@ -46,16 +46,16 @@ export class SmartQueryAdapter implements EngineAdapter {
     urgency: 'low' | 'medium' | 'high';
   }> {
     const questionLower = question.toLowerCase();
-    
+
     // 의도 분석
     const intent = this.analyzeIntent(questionLower);
     const keywords = this.extractKeywords(questionLower);
     const urgency = this.assessUrgency(questionLower);
-    
+
     // 의도별 응답 생성
     let answer: string;
     let confidence: number;
-    
+
     switch (intent) {
       case 'status_inquiry':
         answer = this.generateStatusResponse(keywords);
@@ -77,21 +77,33 @@ export class SmartQueryAdapter implements EngineAdapter {
         answer = this.generateGeneralResponse(question, keywords);
         confidence = 0.65;
     }
-    
+
     return { answer, confidence, intent, keywords, urgency };
   }
 
   private analyzeIntent(question: string): string {
-    if (this.matchesPatterns(question, ['상태', '현재', '어떻게', 'status', 'how'])) {
+    if (
+      this.matchesPatterns(question, [
+        '상태',
+        '현재',
+        '어떻게',
+        'status',
+        'how',
+      ])
+    ) {
       return 'status_inquiry';
     }
-    if (this.matchesPatterns(question, ['문제', '오류', 'error', '해결', '고장'])) {
+    if (
+      this.matchesPatterns(question, ['문제', '오류', 'error', '해결', '고장'])
+    ) {
       return 'troubleshooting';
     }
     if (this.matchesPatterns(question, ['설정', '구성', 'config', '변경'])) {
       return 'configuration';
     }
-    if (this.matchesPatterns(question, ['모니터링', '감시', 'monitor', '추적'])) {
+    if (
+      this.matchesPatterns(question, ['모니터링', '감시', 'monitor', '추적'])
+    ) {
       return 'monitoring';
     }
     return 'general';
@@ -99,21 +111,38 @@ export class SmartQueryAdapter implements EngineAdapter {
 
   private extractKeywords(question: string): string[] {
     const keywords: string[] = [];
-    const techTerms = ['서버', 'cpu', '메모리', '디스크', '네트워크', 'db', '데이터베이스', 'api', '로그'];
-    
+    const techTerms = [
+      '서버',
+      'cpu',
+      '메모리',
+      '디스크',
+      '네트워크',
+      'db',
+      '데이터베이스',
+      'api',
+      '로그',
+    ];
+
     techTerms.forEach(term => {
       if (question.includes(term)) {
         keywords.push(term);
       }
     });
-    
+
     return keywords;
   }
 
   private assessUrgency(question: string): 'low' | 'medium' | 'high' {
-    const highUrgencyWords = ['긴급', '장애', '다운', '중단', 'critical', 'urgent'];
+    const highUrgencyWords = [
+      '긴급',
+      '장애',
+      '다운',
+      '중단',
+      'critical',
+      'urgent',
+    ];
     const mediumUrgencyWords = ['문제', '오류', '느림', 'error', 'slow'];
-    
+
     if (this.matchesPatterns(question, highUrgencyWords)) {
       return 'high';
     }
@@ -128,7 +157,8 @@ export class SmartQueryAdapter implements EngineAdapter {
   }
 
   private generateStatusResponse(keywords: string[]): string {
-    const keywordStr = keywords.length > 0 ? keywords.join(', ') : '전체 시스템';
+    const keywordStr =
+      keywords.length > 0 ? keywords.join(', ') : '전체 시스템';
     return `SmartQuery 상태 분석: ${keywordStr}에 대한 실시간 상태를 확인했습니다. 현재 모든 주요 서비스가 정상 운영 중이며, 응답 시간은 평균 200ms 이내로 양호한 상태입니다. 최근 1시간 동안 특별한 이상 징후는 발견되지 않았습니다.`;
   }
 
@@ -143,11 +173,15 @@ export class SmartQueryAdapter implements EngineAdapter {
   }
 
   private generateMonitoringResponse(keywords: string[]): string {
-    const keywordStr = keywords.length > 0 ? keywords.join(', ') : '전체 시스템';
+    const keywordStr =
+      keywords.length > 0 ? keywords.join(', ') : '전체 시스템';
     return `SmartQuery 모니터링 분석: ${keywordStr}에 대한 실시간 모니터링 데이터를 분석했습니다. 현재 모든 핵심 지표가 정상 범위 내에 있으며, 알림 임계값 설정도 적절합니다. 모니터링 커버리지: 95%, 데이터 수집 주기: 30초, 알림 응답 시간: 평균 15초.`;
   }
 
-  private generateGeneralResponse(question: string, keywords: string[]): string {
+  private generateGeneralResponse(
+    question: string,
+    keywords: string[]
+  ): string {
     return `SmartQuery 일반 분석: "${question}" 질문을 분석했습니다. 추출된 핵심 키워드: ${keywords.join(', ') || '없음'}. 질문의 의도를 파악하여 관련 시스템 정보를 수집했습니다. 더 구체적인 답변을 위해서는 질문을 좀 더 세부적으로 작성해 주시기 바랍니다.`;
   }
-} 
+}

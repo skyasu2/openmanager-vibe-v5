@@ -42,7 +42,7 @@ class HybridFailoverEngine {
   private stats = {
     lastProcessingTime: 0,
     successRate: 1,
-    totalQueries: 0
+    totalQueries: 0,
   };
 
   setMode(mode: 'mcp' | 'rag' | 'auto') {
@@ -55,7 +55,7 @@ class HybridFailoverEngine {
       mcpHealth: { healthy: true },
       lastProcessingTime: this.stats.lastProcessingTime,
       successRate: this.stats.successRate,
-      totalQueries: this.stats.totalQueries
+      totalQueries: this.stats.totalQueries,
     };
   }
 }
@@ -103,9 +103,9 @@ type AIAgentAction =
   | { type: 'CLEAR_THINKING_STEPS' }
   | { type: 'SET_THINKING_SESSION_ID'; payload: string | null }
   | {
-    type: 'UPDATE_STATS';
-    payload: { responseTime: number; success: boolean };
-  }
+      type: 'UPDATE_STATS';
+      payload: { responseTime: number; success: boolean };
+    }
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'RESET_STATE' };
 
@@ -487,7 +487,7 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
     (callback: (step: ThinkingStep) => void) => {
       if (!state.thinkingSessionId) {
         console.warn('No thinking session available');
-        return () => { };
+        return () => {};
       }
 
       dispatch({ type: 'SET_THINKING', payload: true });

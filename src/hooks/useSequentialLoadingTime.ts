@@ -118,7 +118,7 @@ export const useSequentialLoadingTime = ({
 
         const elapsed = Date.now() - startTime;
         const stageProgress = Math.min(elapsed / stage.duration, 1);
-        const totalProgress = baseProgress + (stageProgress * stageProgressRange);
+        const totalProgress = baseProgress + stageProgress * stageProgressRange;
 
         setProgress(Math.round(totalProgress));
 
@@ -168,7 +168,8 @@ export const useSequentialLoadingTime = ({
     isLoading,
     progress,
     currentStage: currentStage < stages.length ? stages[currentStage] : null,
-    stageDescription: currentStage < stages.length ? stages[currentStage].description : '완료',
+    stageDescription:
+      currentStage < stages.length ? stages[currentStage].description : '완료',
     totalStages: stages.length,
     currentStageIndex: currentStage,
   };

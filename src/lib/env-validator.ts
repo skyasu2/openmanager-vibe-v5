@@ -122,12 +122,13 @@ export function validateRuntimeEnvironment(): {
   // 서비스별 사용 가능성 체크
   const canUseSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() &&
-    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() &&
+      process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
   );
 
   const canUseRedis = Boolean(
-    process.env.UPSTASH_REDIS_REST_URL?.trim() && process.env.UPSTASH_REDIS_REST_TOKEN?.trim()
+    process.env.UPSTASH_REDIS_REST_URL?.trim() &&
+      process.env.UPSTASH_REDIS_REST_TOKEN?.trim()
   );
 
   return {

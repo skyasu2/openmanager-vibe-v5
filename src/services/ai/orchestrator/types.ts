@@ -23,4 +23,4 @@ export interface CombinedResponse {
   internalResults: EngineResult[];
   externalResult?: EngineResult;
   processingTime: number;
-} 
+}

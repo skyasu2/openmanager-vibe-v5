@@ -1,6 +1,6 @@
 /**
  * OpenManager AI Agent Module
- * 
+ *
  * 🧠 완전히 이식 가능한 AI 에이전트 엔진
  * - 어떤 환경에서든 독립적으로 동작
  * - 플러그인 기반 확장성
@@ -13,7 +13,7 @@ export { AIAgentEngine, aiAgentEngine } from './core/AIAgentEngine';
 export type {
   AIAgentConfig,
   AIAgentRequest,
-  AIAgentResponse
+  AIAgentResponse,
 } from './core/AIAgentEngine';
 
 // Smart Mode Detection System
@@ -30,39 +30,57 @@ export type { PowerMode } from '@/types/ai-types';
 export { createDefaultModeConfig, ModeManager } from './core/ModeManager';
 
 export { ThinkingProcessor } from './core/ThinkingProcessor';
-export type { ThinkingCallback, ThinkingSession, ThinkingStep } from './core/ThinkingProcessor';
+export type {
+  ThinkingCallback,
+  ThinkingSession,
+  ThinkingStep,
+} from './core/ThinkingProcessor';
 
 export { AdminLogger } from './core/AdminLogger';
-export type { AdminStats, AIInteractionLog, ErrorLog } from './core/AdminLogger';
+export type {
+  AdminStats,
+  AIInteractionLog,
+  ErrorLog,
+} from './core/AdminLogger';
 
 // Configuration System
 export {
   AIAgentConfigBuilder,
-  createConfig, createDefaultConfig, detectEnvironment, environmentPresets,
-  validateConfig
+  createConfig,
+  createDefaultConfig,
+  detectEnvironment,
+  environmentPresets,
+  validateConfig,
 } from './config';
-export type {
-  AIAgentAdapterConfig, AIAgentEnvironmentConfig
-} from './config';
-
-
+export type { AIAgentAdapterConfig, AIAgentEnvironmentConfig } from './config';
 
 // Adapter System
 export {
-  AdapterFactory, ConsoleLoggingAdapter, ConsoleMetricsAdapter, FetchNetworkAdapter, LocalStorageAdapter, MemoryStorageAdapter, MockNetworkAdapter, NoOpMetricsAdapter, SilentLoggingAdapter
+  AdapterFactory,
+  ConsoleLoggingAdapter,
+  ConsoleMetricsAdapter,
+  FetchNetworkAdapter,
+  LocalStorageAdapter,
+  MemoryStorageAdapter,
+  MockNetworkAdapter,
+  NoOpMetricsAdapter,
+  SilentLoggingAdapter,
 } from './adapters';
 export type {
-  LoggingAdapter, MetricsAdapter, NetworkAdapter, StorageAdapter
+  LoggingAdapter,
+  MetricsAdapter,
+  NetworkAdapter,
+  StorageAdapter,
 } from './adapters';
 
 // Plugin System
 export {
-  CachePlugin, DebugPlugin,
-  MetricsPlugin, PluginManager
+  CachePlugin,
+  DebugPlugin,
+  MetricsPlugin,
+  PluginManager,
 } from './plugins';
-export type {
-  Plugin, PluginContext, PluginManifest
-} from './plugins';
+export type { Plugin, PluginContext, PluginManifest } from './plugins';
 
 // Version and Metadata
 export const AI_AGENT_VERSION = '1.0.0';
@@ -70,17 +88,17 @@ export const AI_AGENT_NAME = '@openmanager/ai-agent';
 
 /**
  * 빠른 설정 함수
- * 
+ *
  * @example
  * ```typescript
  * import { createAIAgent } from '@openmanager/ai-agent';
- * 
+ *
  * const aiAgent = await createAIAgent({
  *   environment: 'browser',
  *   enableLogging: true,
  *   plugins: ['debug', 'metrics']
  * });
- * 
+ *
  * const response = await aiAgent.processQuery({
  *   query: '서버 상태를 확인해주세요'
  * });
@@ -103,7 +121,7 @@ export const createAIAgent = async (options: any = {}) => {
       debugMode: envConfig.runtime.logLevel === 'debug',
       mode: 'basic' as const,
       enableThinking: true,
-      enableAdminLogging: envConfig.runtime.enableLogging
+      enableAdminLogging: envConfig.runtime.enableLogging,
     };
 
     // AI 에이전트 엔진 인스턴스 생성
@@ -136,7 +154,11 @@ export const createEdgeAIAgent = async (options: any = {}) => {
 };
 
 export const createMobileAIAgent = async (options: any = {}) => {
-  return createAIAgent({ environment: 'browser', platform: 'mobile', ...options });
+  return createAIAgent({
+    environment: 'browser',
+    platform: 'mobile',
+    ...options,
+  });
 };
 
 /**
@@ -145,15 +167,15 @@ export const createMobileAIAgent = async (options: any = {}) => {
  */
 export const createProductionAIAgent = async (options: any = {}) => {
   const productionConfig = {
-    enableMCP: true,           // 완전한 MCP 프로토콜 지원
-    enableInference: true,           // NPU 시뮬레이션 활성화
-    maxContextLength: 4096,    // 충분한 컨텍스트 길이
-    responseTimeout: 10000,    // 안정적인 타임아웃
-    debugMode: false,          // 프로덕션 모드
-    mode: 'advanced' as const,          // 고급 모드
-    enableThinking: true,      // 완전한 사고 과정
-    enableAdminLogging: true,  // 완전한 로깅
-    ...options
+    enableMCP: true, // 완전한 MCP 프로토콜 지원
+    enableInference: true, // NPU 시뮬레이션 활성화
+    maxContextLength: 4096, // 충분한 컨텍스트 길이
+    responseTimeout: 10000, // 안정적인 타임아웃
+    debugMode: false, // 프로덕션 모드
+    mode: 'advanced' as const, // 고급 모드
+    enableThinking: true, // 완전한 사고 과정
+    enableAdminLogging: true, // 완전한 로깅
+    ...options,
   };
 
   const { AIAgentEngine } = await import('./core/AIAgentEngine');
@@ -194,28 +216,28 @@ export const getAIAgentInfo = () => ({
     mcp: true,
     plugins: true,
     adapters: true,
-    offline: true
-  }
+    offline: true,
+  },
 });
 
 /**
  * 스마트 모드 감지 시스템 사용 예제
- * 
+ *
  * ```typescript
  * import { SmartModeDetector, EnhancedModeManager } from '@/modules/ai-agent';
- * 
+ *
  * const detector = new SmartModeDetector();
  * const manager = new EnhancedModeManager();
- * 
+ *
  * // 질문 분석 및 자동 모드 선택
  * const analysis = manager.analyzeAndSetMode("서버 장애 원인을 분석해서 보고서 작성해줘");
  * console.log(analysis.detectedMode); // 'advanced'
  * console.log(analysis.confidence); // 95
  * console.log(analysis.reasoning); // 'Advanced 모드 선택 이유: 장애/문제 해결이 필요한 상황, 상세한 분석 보고서가 요구됨'
- * 
+ *
  * // 모드별 설정 조회
  * const config = manager.getModeConfig();
  * console.log(config.maxProcessingTime); // 10000 (Advanced 모드)
  * console.log(config.enablePredictiveAnalysis); // true
  * ```
- */ 
+ */

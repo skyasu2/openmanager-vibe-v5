@@ -29,10 +29,10 @@ export async function GET(request: NextRequest) {
       },
       backup: backupResult
         ? {
-          success: backupResult.success,
-          message: backupResult.message,
-          backupId: backupResult.backupId,
-        }
+            success: backupResult.success,
+            message: backupResult.message,
+            backupId: backupResult.backupId,
+          }
         : null,
     };
 

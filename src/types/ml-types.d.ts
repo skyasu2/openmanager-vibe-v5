@@ -5,7 +5,10 @@ declare module 'ml-regression' {
     slope: number;
     intercept: number;
     predict(x: number): number;
-    score(x: number[], y: number[]): {
+    score(
+      x: number[],
+      y: number[]
+    ): {
       r: number;
       r2: number;
       chi2: number;
@@ -22,23 +25,23 @@ declare module 'ml-matrix' {
     static eye(rows: number, cols?: number): Matrix;
     static zeros(rows: number, cols: number): Matrix;
     static ones(rows: number, cols: number): Matrix;
-    
+
     // 기본 행렬 연산
     mmul(other: Matrix): Matrix;
     transpose(): Matrix;
     inverse(): Matrix;
     det(): number;
-    
+
     // 접근자
     get(row: number, col: number): number;
     set(row: number, col: number, value: number): Matrix;
-    
+
     // 차원
     rows: number;
     columns: number;
-    
+
     // 배열 변환
     to1DArray(): number[];
     to2DArray(): number[][];
   }
-} 
+}

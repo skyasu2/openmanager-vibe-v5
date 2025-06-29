@@ -1,6 +1,6 @@
 /**
  * 🔌 Service Interfaces
- * 
+ *
  * 서비스 레이어의 인터페이스 정의
  * - 의존성 추상화
  * - 테스트 가능성 향상
@@ -100,12 +100,15 @@ export interface IStorageService {
 
 export interface HealthCheckResult {
   status: 'healthy' | 'unhealthy' | 'degraded';
-  checks: Record<string, {
-    status: 'pass' | 'fail' | 'warn';
-    message?: string;
-    duration?: number;
-    timestamp: Date;
-  }>;
+  checks: Record<
+    string,
+    {
+      status: 'pass' | 'fail' | 'warn';
+      message?: string;
+      duration?: number;
+      timestamp: Date;
+    }
+  >;
   timestamp: Date;
   uptime: number;
   version: string;
@@ -227,4 +230,4 @@ export interface ICacheService {
     size: number;
     maxSize: number;
   }>;
-} 
+}

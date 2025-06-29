@@ -38,21 +38,25 @@ export class VersionSwitcher {
     backupVersion?: string;
   }> {
     try {
-      console.log(`🔄 [VersionSwitcher] 버전 전환 시작: ${type} → v${targetVersion}`);
+      console.log(
+        `🔄 [VersionSwitcher] 버전 전환 시작: ${type} → v${targetVersion}`
+      );
 
-      const currentDir = clientId && type === 'custom'
-        ? path.join(this.documentsPath, type, clientId)
-        : path.join(this.documentsPath, type);
+      const currentDir =
+        clientId && type === 'custom'
+          ? path.join(this.documentsPath, type, clientId)
+          : path.join(this.documentsPath, type);
 
-      const targetDir = clientId && type === 'custom'
-        ? path.join(this.documentsPath, type, `${clientId}-v${targetVersion}`)
-        : path.join(this.documentsPath, `${type}-v${targetVersion}`);
+      const targetDir =
+        clientId && type === 'custom'
+          ? path.join(this.documentsPath, type, `${clientId}-v${targetVersion}`)
+          : path.join(this.documentsPath, `${type}-v${targetVersion}`);
 
       // 1. 대상 버전 디렉토리 존재 확인
       if (!fs.existsSync(targetDir)) {
         return {
           success: false,
-          message: `대상 버전 디렉토리가 존재하지 않습니다: ${targetDir}`
+          message: `대상 버전 디렉토리가 존재하지 않습니다: ${targetDir}`,
         };
       }
 
@@ -61,9 +65,14 @@ export class VersionSwitcher {
       // 2. 현재 버전 백업 (선택적)
       if (createBackup && fs.existsSync(currentDir)) {
         backupVersion = `backup-${Date.now()}`;
-        const backupDir = clientId && type === 'custom'
-          ? path.join(this.documentsPath, type, `${clientId}-${backupVersion}`)
-          : path.join(this.documentsPath, `${type}-${backupVersion}`);
+        const backupDir =
+          clientId && type === 'custom'
+            ? path.join(
+                this.documentsPath,
+                type,
+                `${clientId}-${backupVersion}`
+              )
+            : path.join(this.documentsPath, `${type}-${backupVersion}`);
 
         await this.copyDirectory(currentDir, backupDir);
         console.log(`💾 [VersionSwitcher] 현재 버전 백업: ${backupDir}`);
@@ -77,19 +86,20 @@ export class VersionSwitcher {
       // 4. 대상 버전을 현재 디렉토리로 복사
       await this.copyDirectory(targetDir, currentDir);
 
-      console.log(`✅ [VersionSwitcher] 버전 전환 완료: ${type} v${targetVersion}`);
+      console.log(
+        `✅ [VersionSwitcher] 버전 전환 완료: ${type} v${targetVersion}`
+      );
 
       return {
         success: true,
         message: `${type} 버전이 v${targetVersion}으로 전환되었습니다.`,
-        backupVersion
+        backupVersion,
       };
-
     } catch (error) {
       console.error('❌ [VersionSwitcher] 버전 전환 실패:', error);
       return {
         success: false,
-        message: `버전 전환 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+        message: `버전 전환 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
       };
     }
   }
@@ -108,19 +118,21 @@ export class VersionSwitcher {
     try {
       console.log(`⏪ [VersionSwitcher] 롤백 시작: ${type} ← ${backupVersion}`);
 
-      const currentDir = clientId && type === 'custom'
-        ? path.join(this.documentsPath, type, clientId)
-        : path.join(this.documentsPath, type);
+      const currentDir =
+        clientId && type === 'custom'
+          ? path.join(this.documentsPath, type, clientId)
+          : path.join(this.documentsPath, type);
 
-      const backupDir = clientId && type === 'custom'
-        ? path.join(this.documentsPath, type, `${clientId}-${backupVersion}`)
-        : path.join(this.documentsPath, `${type}-${backupVersion}`);
+      const backupDir =
+        clientId && type === 'custom'
+          ? path.join(this.documentsPath, type, `${clientId}-${backupVersion}`)
+          : path.join(this.documentsPath, `${type}-${backupVersion}`);
 
       // 백업 디렉토리 존재 확인
       if (!fs.existsSync(backupDir)) {
         return {
           success: false,
-          message: `백업 버전이 존재하지 않습니다: ${backupDir}`
+          message: `백업 버전이 존재하지 않습니다: ${backupDir}`,
         };
       }
 
@@ -136,14 +148,13 @@ export class VersionSwitcher {
 
       return {
         success: true,
-        message: `${type}이 ${backupVersion} 버전으로 롤백되었습니다.`
+        message: `${type}이 ${backupVersion} 버전으로 롤백되었습니다.`,
       };
-
     } catch (error) {
       console.error('❌ [VersionSwitcher] 롤백 실패:', error);
       return {
         success: false,
-        message: `롤백 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+        message: `롤백 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
       };
     }
   }
@@ -166,10 +177,12 @@ export class VersionSwitcher {
   }> {
     try {
       const parentDir = this.documentsPath;
-      const prefix = clientId && type === 'custom' ? `${clientId}-` : `${type}-`;
-      const currentDir = clientId && type === 'custom'
-        ? path.join(parentDir, type, clientId)
-        : path.join(parentDir, type);
+      const prefix =
+        clientId && type === 'custom' ? `${clientId}-` : `${type}-`;
+      const currentDir =
+        clientId && type === 'custom'
+          ? path.join(parentDir, type, clientId)
+          : path.join(parentDir, type);
 
       const versions: Array<{
         version: string;
@@ -188,23 +201,24 @@ export class VersionSwitcher {
       // 버전 디렉토리들 스캔
       if (fs.existsSync(parentDir)) {
         const items = fs.readdirSync(parentDir);
-        
+
         for (const item of items) {
           const itemPath = path.join(parentDir, item);
-          
+
           if (fs.statSync(itemPath).isDirectory() && item.startsWith(prefix)) {
             const version = item.replace(prefix, '');
             const stats = fs.statSync(itemPath);
-            
+
             // 파일 수 및 크기 계산
-            const { fileCount, totalSize } = await this.getDirectoryStats(itemPath);
-            
+            const { fileCount, totalSize } =
+              await this.getDirectoryStats(itemPath);
+
             versions.push({
               version,
               type: version.startsWith('backup-') ? 'backup' : 'release',
               createdAt: stats.mtime,
               fileCount,
-              size: this.formatSize(totalSize)
+              size: this.formatSize(totalSize),
             });
           }
         }
@@ -214,23 +228,29 @@ export class VersionSwitcher {
           const customDir = path.join(parentDir, 'custom');
           if (fs.existsSync(customDir)) {
             const customItems = fs.readdirSync(customDir);
-            
+
             for (const item of customItems) {
               const itemPath = path.join(customDir, item);
-              
-              if (fs.statSync(itemPath).isDirectory() && 
-                  (clientId ? item.startsWith(`${clientId}-`) : !item.includes('-'))) {
-                
-                const version = clientId ? item.replace(`${clientId}-`, '') : item;
+
+              if (
+                fs.statSync(itemPath).isDirectory() &&
+                (clientId
+                  ? item.startsWith(`${clientId}-`)
+                  : !item.includes('-'))
+              ) {
+                const version = clientId
+                  ? item.replace(`${clientId}-`, '')
+                  : item;
                 const stats = fs.statSync(itemPath);
-                const { fileCount, totalSize } = await this.getDirectoryStats(itemPath);
-                
+                const { fileCount, totalSize } =
+                  await this.getDirectoryStats(itemPath);
+
                 versions.push({
                   version,
                   type: version.startsWith('backup-') ? 'backup' : 'release',
                   createdAt: stats.mtime,
                   fileCount,
-                  size: this.formatSize(totalSize)
+                  size: this.formatSize(totalSize),
                 });
               }
             }
@@ -242,7 +262,6 @@ export class VersionSwitcher {
       versions.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
       return { current, versions };
-
     } catch (error) {
       console.error('❌ [VersionSwitcher] 버전 목록 조회 실패:', error);
       return { current: null, versions: [] };
@@ -265,19 +284,21 @@ export class VersionSwitcher {
     try {
       console.log(`📦 [VersionSwitcher] 릴리스 버전 생성: ${type} v${version}`);
 
-      const currentDir = clientId && type === 'custom'
-        ? path.join(this.documentsPath, type, clientId)
-        : path.join(this.documentsPath, type);
+      const currentDir =
+        clientId && type === 'custom'
+          ? path.join(this.documentsPath, type, clientId)
+          : path.join(this.documentsPath, type);
 
-      const versionDir = clientId && type === 'custom'
-        ? path.join(this.documentsPath, type, `${clientId}-v${version}`)
-        : path.join(this.documentsPath, `${type}-v${version}`);
+      const versionDir =
+        clientId && type === 'custom'
+          ? path.join(this.documentsPath, type, `${clientId}-v${version}`)
+          : path.join(this.documentsPath, `${type}-v${version}`);
 
       // 현재 디렉토리 존재 확인
       if (!fs.existsSync(currentDir)) {
         return {
           success: false,
-          message: `현재 버전 디렉토리가 존재하지 않습니다: ${currentDir}`
+          message: `현재 버전 디렉토리가 존재하지 않습니다: ${currentDir}`,
         };
       }
 
@@ -285,7 +306,7 @@ export class VersionSwitcher {
       if (fs.existsSync(versionDir)) {
         return {
           success: false,
-          message: `버전 v${version}이 이미 존재합니다: ${versionDir}`
+          message: `버전 v${version}이 이미 존재합니다: ${versionDir}`,
         };
       }
 
@@ -300,24 +321,27 @@ export class VersionSwitcher {
         createdAt: new Date().toISOString(),
         description: description || `Release version ${version}`,
         sourceType: type,
-        clientId: clientId || null
+        clientId: clientId || null,
       };
 
-      fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2), 'utf-8');
+      fs.writeFileSync(
+        metadataPath,
+        JSON.stringify(metadata, null, 2),
+        'utf-8'
+      );
 
       console.log(`✅ [VersionSwitcher] 릴리스 버전 생성 완료: ${versionDir}`);
 
       return {
         success: true,
         message: `릴리스 버전 v${version}이 생성되었습니다.`,
-        versionPath: versionDir
+        versionPath: versionDir,
       };
-
     } catch (error) {
       console.error('❌ [VersionSwitcher] 릴리스 버전 생성 실패:', error);
       return {
         success: false,
-        message: `릴리스 버전 생성 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+        message: `릴리스 버전 생성 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
       };
     }
   }
@@ -336,27 +360,29 @@ export class VersionSwitcher {
     try {
       console.log(`🗑️ [VersionSwitcher] 버전 삭제: ${type} v${version}`);
 
-      const versionDir = clientId && type === 'custom'
-        ? path.join(this.documentsPath, type, `${clientId}-${version}`)
-        : path.join(this.documentsPath, `${type}-${version}`);
+      const versionDir =
+        clientId && type === 'custom'
+          ? path.join(this.documentsPath, type, `${clientId}-${version}`)
+          : path.join(this.documentsPath, `${type}-${version}`);
 
       // 버전 디렉토리 존재 확인
       if (!fs.existsSync(versionDir)) {
         return {
           success: false,
-          message: `버전이 존재하지 않습니다: ${versionDir}`
+          message: `버전이 존재하지 않습니다: ${versionDir}`,
         };
       }
 
       // 현재 사용 중인 버전인지 확인 (안전장치)
-      const currentDir = clientId && type === 'custom'
-        ? path.join(this.documentsPath, type, clientId)
-        : path.join(this.documentsPath, type);
+      const currentDir =
+        clientId && type === 'custom'
+          ? path.join(this.documentsPath, type, clientId)
+          : path.join(this.documentsPath, type);
 
       if (path.resolve(versionDir) === path.resolve(currentDir)) {
         return {
           success: false,
-          message: '현재 사용 중인 버전은 삭제할 수 없습니다.'
+          message: '현재 사용 중인 버전은 삭제할 수 없습니다.',
         };
       }
 
@@ -367,14 +393,13 @@ export class VersionSwitcher {
 
       return {
         success: true,
-        message: `버전 ${version}이 삭제되었습니다.`
+        message: `버전 ${version}이 삭제되었습니다.`,
       };
-
     } catch (error) {
       console.error('❌ [VersionSwitcher] 버전 삭제 실패:', error);
       return {
         success: false,
-        message: `버전 삭제 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+        message: `버전 삭제 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
       };
     }
   }
@@ -390,8 +415,8 @@ export class VersionSwitcher {
   ): Promise<{
     success: boolean;
     comparison?: {
-      version1: { path: string; files: string[]; };
-      version2: { path: string; files: string[]; };
+      version1: { path: string; files: string[] };
+      version2: { path: string; files: string[] };
       differences: {
         added: string[];
         removed: string[];
@@ -421,7 +446,7 @@ export class VersionSwitcher {
       if (!fs.existsSync(path1) || !fs.existsSync(path2)) {
         return {
           success: false,
-          message: '비교할 버전 중 하나 이상이 존재하지 않습니다.'
+          message: '비교할 버전 중 하나 이상이 존재하지 않습니다.',
         };
       }
 
@@ -433,12 +458,12 @@ export class VersionSwitcher {
       const added = files2.filter(file => !files1.includes(file));
       const removed = files1.filter(file => !files2.includes(file));
       const common = files1.filter(file => files2.includes(file));
-      
+
       const modified: string[] = [];
       for (const file of common) {
         const content1 = fs.readFileSync(path.join(path1, file), 'utf-8');
         const content2 = fs.readFileSync(path.join(path2, file), 'utf-8');
-        
+
         if (content1 !== content2) {
           modified.push(file);
         }
@@ -449,16 +474,15 @@ export class VersionSwitcher {
         comparison: {
           version1: { path: path1, files: files1 },
           version2: { path: path2, files: files2 },
-          differences: { added, removed, modified }
+          differences: { added, removed, modified },
         },
-        message: `버전 비교 완료: ${added.length}개 추가, ${removed.length}개 제거, ${modified.length}개 수정`
+        message: `버전 비교 완료: ${added.length}개 추가, ${removed.length}개 제거, ${modified.length}개 수정`,
       };
-
     } catch (error) {
       console.error('❌ [VersionSwitcher] 버전 비교 실패:', error);
       return {
         success: false,
-        message: `버전 비교 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+        message: `버전 비교 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
       };
     }
   }
@@ -488,14 +512,14 @@ export class VersionSwitcher {
     const items = fs.readdirSync(dirPath);
     for (const item of items) {
       const itemPath = path.join(dirPath, item);
-      
+
       if (fs.statSync(itemPath).isDirectory()) {
         await this.removeDirectory(itemPath);
       } else {
         fs.unlinkSync(itemPath);
       }
     }
-    
+
     fs.rmdirSync(dirPath);
   }
 
@@ -508,11 +532,11 @@ export class VersionSwitcher {
 
     const processDirectory = (currentPath: string) => {
       const items = fs.readdirSync(currentPath);
-      
+
       for (const item of items) {
         const itemPath = path.join(currentPath, item);
         const stats = fs.statSync(itemPath);
-        
+
         if (stats.isDirectory()) {
           processDirectory(itemPath);
         } else {
@@ -538,13 +562,16 @@ export class VersionSwitcher {
   private async getFileList(dirPath: string): Promise<string[]> {
     const files: string[] = [];
 
-    const processDirectory = (currentPath: string, relativePath: string = '') => {
+    const processDirectory = (
+      currentPath: string,
+      relativePath: string = ''
+    ) => {
       const items = fs.readdirSync(currentPath);
-      
+
       for (const item of items) {
         const itemPath = path.join(currentPath, item);
         const relativeItemPath = path.join(relativePath, item);
-        
+
         if (fs.statSync(itemPath).isDirectory()) {
           processDirectory(itemPath, relativeItemPath);
         } else {
@@ -559,4 +586,4 @@ export class VersionSwitcher {
 
     return files.sort();
   }
-} 
+}

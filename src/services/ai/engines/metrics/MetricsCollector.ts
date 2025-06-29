@@ -1,6 +1,6 @@
 /**
  * 📊 메트릭 수집기
- * 
+ *
  * Single Responsibility: 시스템 메트릭 수집과 관리
  * Service Layer Pattern: 메트릭 관련 서비스 로직 캡슐화
  */
@@ -14,9 +14,11 @@ export class MetricsCollector {
   /**
    * 시스템 메트릭 수집
    */
-  async collectSystemMetrics(options: MetricsCollectionOptions = {}): Promise<SystemMetrics> {
+  async collectSystemMetrics(
+    options: MetricsCollectionOptions = {}
+  ): Promise<SystemMetrics> {
     const cacheKey = this.generateCacheKey(options);
-    
+
     // 캐시 확인
     const cached = this.cache.get(cacheKey);
     if (cached && this.isCacheValid(cached)) {
@@ -26,18 +28,22 @@ export class MetricsCollector {
 
     try {
       console.log('📊 실시간 시스템 메트릭 수집 중...');
-      
+
       const metrics: SystemMetrics = {
         servers: await this.collectServerMetrics(options.serverIds),
-        global_stats: options.includeGlobalStats ? await this.collectGlobalStats() : {},
+        global_stats: options.includeGlobalStats
+          ? await this.collectGlobalStats()
+          : {},
         alerts: options.includeAlerts ? await this.collectActiveAlerts() : [],
         timestamp: new Date().toISOString(),
       };
 
       // 캐시 저장
       this.cache.set(cacheKey, metrics);
-      
-      console.log(`✅ 메트릭 수집 완료: 서버 ${Object.keys(metrics.servers).length}개`);
+
+      console.log(
+        `✅ 메트릭 수집 완료: 서버 ${Object.keys(metrics.servers).length}개`
+      );
       return metrics;
     } catch (error: any) {
       console.warn('⚠️ 메트릭 수집 실패:', error);
@@ -48,13 +54,15 @@ export class MetricsCollector {
   /**
    * 서버별 메트릭 수집
    */
-  private async collectServerMetrics(serverIds?: string[]): Promise<Record<string, Record<string, number[]>>> {
+  private async collectServerMetrics(
+    serverIds?: string[]
+  ): Promise<Record<string, Record<string, number[]>>> {
     try {
       // 실제 메트릭 API 호출 시뮬레이션
       const servers: Record<string, Record<string, number[]>> = {};
-      
+
       const targetServers = serverIds || ['server-1', 'server-2', 'server-3'];
-      
+
       for (const serverId of targetServers) {
         servers[serverId] = {
           cpu_usage: this.generateMetricHistory(20, 80),
@@ -124,7 +132,11 @@ export class MetricsCollector {
   /**
    * 메트릭 히스토리 생성 (시뮬레이션)
    */
-  private generateMetricHistory(min: number, max: number, points: number = 50): number[] {
+  private generateMetricHistory(
+    min: number,
+    max: number,
+    points: number = 50
+  ): number[] {
     const history: number[] = [];
     for (let i = 0; i < points; i++) {
       const value = min + Math.random() * (max - min);
@@ -140,7 +152,7 @@ export class MetricsCollector {
     const serverIds = options.serverIds?.sort().join(',') || 'all';
     const includeGlobal = options.includeGlobalStats ? 'global' : 'no-global';
     const includeAlerts = options.includeAlerts ? 'alerts' : 'no-alerts';
-    
+
     return `metrics_${serverIds}_${includeGlobal}_${includeAlerts}`;
   }
 
@@ -150,7 +162,7 @@ export class MetricsCollector {
   private isCacheValid(metrics: SystemMetrics): boolean {
     const now = new Date().getTime();
     const metricsTime = new Date(metrics.timestamp).getTime();
-    return (now - metricsTime) < this.cacheExpiry;
+    return now - metricsTime < this.cacheExpiry;
   }
 
   /**
@@ -182,4 +194,4 @@ export class MetricsCollector {
       entries: Array.from(this.cache.keys()),
     };
   }
-} 
+}

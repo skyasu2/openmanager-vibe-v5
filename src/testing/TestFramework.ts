@@ -1,6 +1,6 @@
 /**
  * 🧪 Integrated Test Framework
- * 
+ *
  * 통합 테스트 프레임워크
  * - 서비스 단위 테스트
  * - 통합 테스트
@@ -84,7 +84,12 @@ export interface TestCaseResult {
   timestamp: Date;
 }
 
-export type TestCategory = 'unit' | 'integration' | 'performance' | 'e2e' | 'security';
+export type TestCategory =
+  | 'unit'
+  | 'integration'
+  | 'performance'
+  | 'e2e'
+  | 'security';
 export type TestPriority = 'low' | 'medium' | 'high' | 'critical';
 
 export class TestFramework {
@@ -107,7 +112,7 @@ export class TestFramework {
     this.suites.set(suite.id, suite);
     this.logger.debug(`Test suite registered: ${suite.name}`, {
       id: suite.id,
-      testsCount: suite.tests.length
+      testsCount: suite.tests.length,
     });
   }
 
@@ -124,7 +129,7 @@ export class TestFramework {
     this.logger.debug(`Test case registered: ${testCase.name}`, {
       suiteId,
       testId: testCase.id,
-      category: testCase.category
+      category: testCase.category,
     });
   }
 
@@ -141,7 +146,7 @@ export class TestFramework {
 
     this.logger.info('Starting comprehensive test execution', {
       suitesCount: this.suites.size,
-      totalTests: this.getTotalTestCount()
+      totalTests: this.getTotalTestCount(),
     });
 
     try {
@@ -154,16 +159,16 @@ export class TestFramework {
           passed: 0,
           failed: 0,
           skipped: 0,
-          successRate: 0
+          successRate: 0,
         },
         suites: [],
         performance: {
           averageResponseTime: 0,
           totalMemoryUsage: 0,
           peakMemoryUsage: 0,
-          errorRate: 0
+          errorRate: 0,
         },
-        recommendations: []
+        recommendations: [],
       };
 
       this.currentReport = report;
@@ -183,11 +188,10 @@ export class TestFramework {
       this.results.set(report.id, report);
       this.logger.info('Test execution completed', {
         duration: report.duration,
-        successRate: report.summary.successRate
+        successRate: report.summary.successRate,
       });
 
       return report;
-
     } finally {
       this.isRunning = false;
       this.currentReport = undefined;
@@ -202,7 +206,7 @@ export class TestFramework {
     const results: TestCaseResult[] = [];
 
     this.logger.info(`Running test suite: ${suite.name}`, {
-      testsCount: suite.tests.length
+      testsCount: suite.tests.length,
     });
 
     try {
@@ -217,7 +221,7 @@ export class TestFramework {
         results.push({
           testCase,
           result,
-          timestamp: new Date()
+          timestamp: new Date(),
         });
       }
 
@@ -233,18 +237,18 @@ export class TestFramework {
         duration,
         success,
         passed: results.filter(r => r.result.success).length,
-        failed: results.filter(r => !r.result.success).length
+        failed: results.filter(r => !r.result.success).length,
       });
 
       return {
         suite,
         results,
         duration,
-        success
+        success,
       };
-
     } catch (error) {
-      const errorObj = error instanceof Error ? error : new Error(String(error));
+      const errorObj =
+        error instanceof Error ? error : new Error(String(error));
       this.logger.error(`Test suite failed: ${suite.name}`, errorObj);
       throw error;
     }
@@ -255,7 +259,7 @@ export class TestFramework {
    */
   async runTestCase(testCase: TestCase): Promise<TestResult> {
     const startTime = Date.now();
-    
+
     this.logger.debug(`Running test: ${testCase.name}`);
 
     try {
@@ -270,7 +274,7 @@ export class TestFramework {
       // 타임아웃과 함께 테스트 실행
       const result = await Promise.race([
         testCase.test(),
-        this.createTimeoutPromise(testCase.timeout)
+        this.createTimeoutPromise(testCase.timeout),
       ]);
 
       // 메트릭 수집
@@ -282,7 +286,7 @@ export class TestFramework {
         memoryUsage: finalMemory - initialMemory,
         responseTime: duration,
         throughput: 1000 / duration, // requests per second
-        errorRate: result.success ? 0 : 1
+        errorRate: result.success ? 0 : 1,
       };
 
       // 테스트 정리
@@ -292,13 +296,13 @@ export class TestFramework {
 
       this.logger.debug(`Test completed: ${testCase.name}`, {
         success: result.success,
-        duration: result.duration
+        duration: result.duration,
       });
 
       return result;
-
     } catch (error) {
-      const errorObj = error instanceof Error ? error : new Error(String(error));
+      const errorObj =
+        error instanceof Error ? error : new Error(String(error));
       const duration = Date.now() - startTime;
 
       this.logger.error(`Test failed: ${testCase.name}`, errorObj);
@@ -307,7 +311,7 @@ export class TestFramework {
         success: false,
         duration,
         error: errorObj,
-        message: errorObj.message
+        message: errorObj.message,
       };
     }
   }
@@ -335,13 +339,14 @@ export class TestFramework {
               logger.info('Test log message');
               return { success: true, duration: 0 };
             } catch (error) {
-              return { 
-                success: false, 
-                duration: 0, 
-                error: error instanceof Error ? error : new Error(String(error))
+              return {
+                success: false,
+                duration: 0,
+                error:
+                  error instanceof Error ? error : new Error(String(error)),
               };
             }
-          }
+          },
         },
         {
           id: 'logging-levels',
@@ -359,15 +364,16 @@ export class TestFramework {
               logger.error('Error message', new Error('Test error'));
               return { success: true, duration: 0 };
             } catch (error) {
-              return { 
-                success: false, 
-                duration: 0, 
-                error: error instanceof Error ? error : new Error(String(error))
+              return {
+                success: false,
+                duration: 0,
+                error:
+                  error instanceof Error ? error : new Error(String(error)),
               };
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     // 2. 에러 처리 서비스 테스트
@@ -385,19 +391,26 @@ export class TestFramework {
           timeout: 5000,
           test: async () => {
             try {
-              const errorHandler = getService<IErrorHandler>(SERVICE_TOKENS.ERROR_HANDLER);
+              const errorHandler = getService<IErrorHandler>(
+                SERVICE_TOKENS.ERROR_HANDLER
+              );
               // 간단한 테스트만 수행
-              return { success: true, duration: 0, message: 'Error handler service available' };
+              return {
+                success: true,
+                duration: 0,
+                message: 'Error handler service available',
+              };
             } catch (error) {
-              return { 
-                success: false, 
-                duration: 0, 
-                error: error instanceof Error ? error : new Error(String(error))
+              return {
+                success: false,
+                duration: 0,
+                error:
+                  error instanceof Error ? error : new Error(String(error)),
               };
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     // 4. 캐시 서비스 테스트
@@ -416,29 +429,30 @@ export class TestFramework {
           test: async () => {
             try {
               const cache = getService<any>(SERVICE_TOKENS.CACHE_SERVICE);
-              
+
               // 설정
               await cache.set('test-key', 'test-value');
-              
+
               // 조회
               const value = await cache.get('test-key');
-              
+
               // 삭제
               await cache.delete('test-key');
-              
+
               return {
                 success: value === 'test-value',
                 duration: 0,
-                data: { value }
+                data: { value },
               };
             } catch (error) {
-              return { 
-                success: false, 
-                duration: 0, 
-                error: error instanceof Error ? error : new Error(String(error))
+              return {
+                success: false,
+                duration: 0,
+                error:
+                  error instanceof Error ? error : new Error(String(error)),
               };
             }
-          }
+          },
         },
         {
           id: 'cache-performance',
@@ -451,22 +465,23 @@ export class TestFramework {
             try {
               const cache = getService<any>(SERVICE_TOKENS.CACHE_SERVICE);
               const stats = await cache.stats();
-              
+
               return {
                 success: stats.hitRate >= 0,
                 duration: 0,
-                data: stats
+                data: stats,
               };
             } catch (error) {
-              return { 
-                success: false, 
-                duration: 0, 
-                error: error instanceof Error ? error : new Error(String(error))
+              return {
+                success: false,
+                duration: 0,
+                error:
+                  error instanceof Error ? error : new Error(String(error)),
               };
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
   }
 
@@ -494,7 +509,7 @@ export class TestFramework {
       passed,
       failed,
       skipped: 0,
-      successRate: total > 0 ? (passed / total) * 100 : 0
+      successRate: total > 0 ? (passed / total) * 100 : 0,
     };
   }
 
@@ -509,12 +524,14 @@ export class TestFramework {
       .filter(m => m > 0);
 
     report.performance = {
-      averageResponseTime: responseTimes.length > 0 
-        ? responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length 
-        : 0,
+      averageResponseTime:
+        responseTimes.length > 0
+          ? responseTimes.reduce((sum, time) => sum + time, 0) /
+            responseTimes.length
+          : 0,
       totalMemoryUsage: memoryUsages.reduce((sum, mem) => sum + mem, 0),
       peakMemoryUsage: Math.max(...memoryUsages, 0),
-      errorRate: (report.summary.failed / report.summary.total) * 100
+      errorRate: (report.summary.failed / report.summary.total) * 100,
     };
   }
 
@@ -525,19 +542,28 @@ export class TestFramework {
     const recommendations: string[] = [];
 
     if (report.summary.successRate < 90) {
-      recommendations.push('테스트 성공률이 90% 미만입니다. 실패한 테스트를 검토하세요.');
+      recommendations.push(
+        '테스트 성공률이 90% 미만입니다. 실패한 테스트를 검토하세요.'
+      );
     }
 
     if (report.performance.averageResponseTime > 1000) {
-      recommendations.push('평균 응답시간이 1초를 초과합니다. 성능 최적화를 고려하세요.');
+      recommendations.push(
+        '평균 응답시간이 1초를 초과합니다. 성능 최적화를 고려하세요.'
+      );
     }
 
     if (report.performance.errorRate > 5) {
-      recommendations.push('에러율이 5%를 초과합니다. 에러 처리 로직을 검토하세요.');
+      recommendations.push(
+        '에러율이 5%를 초과합니다. 에러 처리 로직을 검토하세요.'
+      );
     }
 
-    if (report.performance.peakMemoryUsage > 100 * 1024 * 1024) { // 100MB
-      recommendations.push('메모리 사용량이 높습니다. 메모리 누수를 확인하세요.');
+    if (report.performance.peakMemoryUsage > 100 * 1024 * 1024) {
+      // 100MB
+      recommendations.push(
+        '메모리 사용량이 높습니다. 메모리 누수를 확인하세요.'
+      );
     }
 
     report.recommendations = recommendations;
@@ -547,8 +573,10 @@ export class TestFramework {
    * 유틸리티 메서드들
    */
   private getTotalTestCount(): number {
-    return Array.from(this.suites.values())
-      .reduce((total, suite) => total + suite.tests.length, 0);
+    return Array.from(this.suites.values()).reduce(
+      (total, suite) => total + suite.tests.length,
+      0
+    );
   }
 
   private getMemoryUsage(): number {
@@ -578,15 +606,18 @@ export class TestFramework {
    */
   getLatestTestReport(): TestReport | undefined {
     const reports = Array.from(this.results.values());
-    return reports.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())[0];
+    return reports.sort(
+      (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
+    )[0];
   }
 
   /**
    * 모든 테스트 리포트 조회
    */
   getAllTestReports(): TestReport[] {
-    return Array.from(this.results.values())
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    return Array.from(this.results.values()).sort(
+      (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
+    );
   }
 
   /**
@@ -602,7 +633,7 @@ export class TestFramework {
       isRunning: this.isRunning,
       currentReport: this.currentReport?.id,
       totalSuites: this.suites.size,
-      totalTests: this.getTotalTestCount()
+      totalTests: this.getTotalTestCount(),
     };
   }
-} 
+}

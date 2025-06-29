@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * 🤖 AI 엔진 상태 API (Vercel 최적화)
- * 
+ *
  * ✅ 헬스체크 캐싱 적용
  * ✅ 중복 상태 API 통합
  * ✅ 과도한 API 호출 방지
@@ -37,7 +37,7 @@ function setCachedAIStatus(key: string, result: any, ttl: number): void {
   aiStatusCache.set(key, {
     result,
     timestamp: Date.now(),
-    ttl
+    ttl,
   });
 }
 
@@ -57,8 +57,8 @@ export async function GET(request: NextRequest) {
         responseTime: `${Date.now() - startTime}ms`,
         cacheInfo: {
           hit: true,
-          ttl: AI_STATUS_CACHE_TTL
-        }
+          ttl: AI_STATUS_CACHE_TTL,
+        },
       });
     }
 
@@ -70,30 +70,33 @@ export async function GET(request: NextRequest) {
         name: 'Supabase RAG Engine',
         status: 'healthy',
         priority: 1,
-        note: isVercel ? 'Vercel 최적화: 기본 활성화' : '로컬 환경 활성화'
+        note: isVercel ? 'Vercel 최적화: 기본 활성화' : '로컬 환경 활성화',
       },
       ruleBasedMain: {
         name: 'Rule-Based Main Engine',
         status: 'healthy',
         priority: 2,
-        note: '규칙 기반 엔진 (로컬 처리)'
+        note: '규칙 기반 엔진 (로컬 처리)',
       },
       mcp: {
         name: 'MCP Integration',
         status: isVercel ? 'degraded' : 'healthy',
         priority: 3,
-        note: isVercel ? 'Vercel: 표준 MCP만 사용' : '로컬: 전체 MCP 활성화'
+        note: isVercel ? 'Vercel: 표준 MCP만 사용' : '로컬: 전체 MCP 활성화',
       },
       googleAI: {
         name: 'Google AI',
-        status: process.env.GOOGLE_AI_ENABLED === 'true' ? 'healthy' : 'disabled',
+        status:
+          process.env.GOOGLE_AI_ENABLED === 'true' ? 'healthy' : 'disabled',
         priority: 4,
-        note: 'API 키 기반 활성화'
-      }
+        note: 'API 키 기반 활성화',
+      },
     };
 
     // 🎯 통합 AI 엔진 상태
-    const healthyEngines = Object.values(aiEngines).filter(e => e.status === 'healthy').length;
+    const healthyEngines = Object.values(aiEngines).filter(
+      e => e.status === 'healthy'
+    ).length;
     const totalEngines = Object.keys(aiEngines).length;
     const overallStatus = healthyEngines >= 2 ? 'operational' : 'degraded';
 
@@ -112,7 +115,7 @@ export async function GET(request: NextRequest) {
         cacheEnabled: true,
         cacheTTL: AI_STATUS_CACHE_TTL,
         minimalChecks: isVercel,
-        excessiveCallsPrevented: true
+        excessiveCallsPrevented: true,
       },
 
       // 요약 통계
@@ -121,15 +124,15 @@ export async function GET(request: NextRequest) {
         total: totalEngines,
         percentage: Math.round((healthyEngines / totalEngines) * 100),
         primaryEngine: 'Supabase RAG',
-        fallbackStrategy: '3-tier degradation'
+        fallbackStrategy: '3-tier degradation',
       },
 
       // 성능 메트릭 (추정값)
       performance: {
         avgResponseTime: isVercel ? '850ms' : '620ms',
         cacheHitRate: '85%',
-        uptime: `${Math.floor(process.uptime())}초`
-      }
+        uptime: `${Math.floor(process.uptime())}초`,
+      },
     };
 
     // 🎯 결과 캐싱
@@ -143,10 +146,9 @@ export async function GET(request: NextRequest) {
       cacheInfo: {
         hit: false,
         stored: true,
-        ttl: AI_STATUS_CACHE_TTL
-      }
+        ttl: AI_STATUS_CACHE_TTL,
+      },
     });
-
   } catch (error) {
     const responseTime = Date.now() - startTime;
     console.error('❌ AI 상태 확인 오류:', error);
@@ -159,8 +161,8 @@ export async function GET(request: NextRequest) {
       engines: {},
       optimization: {
         environment: process.env.VERCEL ? 'vercel' : 'local',
-        errorHandling: 'graceful_degradation'
-      }
+        errorHandling: 'graceful_degradation',
+      },
     };
 
     // 에러도 짧은 시간 캐싱 (재시도 방지)
@@ -171,22 +173,25 @@ export async function GET(request: NextRequest) {
 }
 
 // 🧹 AI 상태 캐시 정리 (10분마다 실행)
-setInterval(() => {
-  const now = Date.now();
-  const expired: string[] = [];
+setInterval(
+  () => {
+    const now = Date.now();
+    const expired: string[] = [];
 
-  aiStatusCache.forEach((cached, key) => {
-    if (now > cached.timestamp + cached.ttl) {
-      expired.push(key);
+    aiStatusCache.forEach((cached, key) => {
+      if (now > cached.timestamp + cached.ttl) {
+        expired.push(key);
+      }
+    });
+
+    expired.forEach(key => aiStatusCache.delete(key));
+
+    if (expired.length > 0) {
+      console.log(`🧹 AI 상태 캐시 정리: ${expired.length}개 만료 항목 제거`);
     }
-  });
-
-  expired.forEach(key => aiStatusCache.delete(key));
-
-  if (expired.length > 0) {
-    console.log(`🧹 AI 상태 캐시 정리: ${expired.length}개 만료 항목 제거`);
-  }
-}, 10 * 60 * 1000);
+  },
+  10 * 60 * 1000
+);
 
 export async function OPTIONS() {
   return new NextResponse(null, {

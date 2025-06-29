@@ -5,7 +5,8 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     // 🛑 시스템 온오프 상태 확인 - "오프일 때는 무동작 원칙"
-    const systemValidation = await validateSystemForOperation('Keep-alive Check');
+    const systemValidation =
+      await validateSystemForOperation('Keep-alive Check');
 
     if (!systemValidation.canProceed) {
       return NextResponse.json({
@@ -16,16 +17,16 @@ export async function GET() {
           status: {
             isActive: false,
             services: {},
-            lastPing: null
+            lastPing: null,
           },
           danger: {
             hasIssues: false,
             issues: [],
-            summary: '시스템 오프 상태'
-          }
+            summary: '시스템 오프 상태',
+          },
         },
         systemState: systemValidation.systemState,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
 
@@ -40,52 +41,65 @@ export async function GET() {
       },
       systemState: {
         isActive: true,
-        reason: systemValidation.reason
+        reason: systemValidation.reason,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error('Keep-alive status error:', error);
 
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to get keep-alive status',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to get keep-alive status',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(request: Request) {
   try {
     // 🛑 시스템 온오프 상태 확인 - "오프일 때는 무동작 원칙"
-    const systemValidation = await validateSystemForOperation('Keep-alive Control');
+    const systemValidation =
+      await validateSystemForOperation('Keep-alive Control');
 
     if (!systemValidation.canProceed) {
-      return NextResponse.json({
-        success: false,
-        message: '시스템이 비활성화 상태로 Keep-alive 제어가 불가능합니다',
-        reason: systemValidation.reason,
-        systemState: systemValidation.systemState
-      }, { status: 503 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: '시스템이 비활성화 상태로 Keep-alive 제어가 불가능합니다',
+          reason: systemValidation.reason,
+          systemState: systemValidation.systemState,
+        },
+        { status: 503 }
+      );
     }
 
     const body = await request.json();
     const { action, service } = body;
 
     if (!action) {
-      return NextResponse.json({
-        success: false,
-        error: 'Missing required field: action'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Missing required field: action',
+        },
+        { status: 400 }
+      );
     }
 
     switch (action) {
       case 'ping':
         if (!service || !['supabase', 'redis'].includes(service)) {
-          return NextResponse.json({
-            success: false,
-            error: 'Invalid service for ping. Must be "supabase" or "redis"'
-          }, { status: 400 });
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'Invalid service for ping. Must be "supabase" or "redis"',
+            },
+            { status: 400 }
+          );
         }
 
         const pingSuccess = await keepAliveScheduler.manualPing(service);
@@ -98,8 +112,8 @@ export async function POST(request: Request) {
           data: keepAliveScheduler.getStatus(),
           systemState: {
             isActive: true,
-            reason: systemValidation.reason
-          }
+            reason: systemValidation.reason,
+          },
         });
 
       case 'start':
@@ -110,8 +124,8 @@ export async function POST(request: Request) {
           data: keepAliveScheduler.getStatus(),
           systemState: {
             isActive: true,
-            reason: systemValidation.reason
-          }
+            reason: systemValidation.reason,
+          },
         });
 
       case 'stop':
@@ -122,8 +136,8 @@ export async function POST(request: Request) {
           data: keepAliveScheduler.getStatus(),
           systemState: {
             isActive: true,
-            reason: systemValidation.reason
-          }
+            reason: systemValidation.reason,
+          },
         });
 
       case 'status':
@@ -138,23 +152,30 @@ export async function POST(request: Request) {
           },
           systemState: {
             isActive: true,
-            reason: systemValidation.reason
-          }
+            reason: systemValidation.reason,
+          },
         });
 
       default:
-        return NextResponse.json({
-          success: false,
-          error: 'Invalid action. Must be "ping", "start", "stop", or "status"'
-        }, { status: 400 });
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              'Invalid action. Must be "ping", "start", "stop", or "status"',
+          },
+          { status: 400 }
+        );
     }
   } catch (error) {
     console.error('Keep-alive control error:', error);
 
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to control keep-alive',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to control keep-alive',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }

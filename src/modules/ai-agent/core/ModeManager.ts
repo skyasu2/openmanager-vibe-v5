@@ -1,17 +1,13 @@
 /**
  * AI Agent Mode Manager
- * 
+ *
  * 🎛️ AI 에이전트 모드 관리 시스템
  * - 베이직/엔터프라이즈 모드 전환
  * - 절전 모드 자동 관리
  * - 성능 최적화 및 리소스 관리
  */
 
-import {
-  AIAgentMode,
-  PowerMode,
-  ResponseDepth
-} from '@/types/ai-types';
+import { AIAgentMode, PowerMode, ResponseDepth } from '@/types/ai-types';
 
 // 로컬 ActivityMetrics 정의 (중앙 타입과 다른 구조)
 export interface ActivityMetrics {
@@ -71,7 +67,7 @@ export class ModeManager {
       lastAlertTime: 0,
       queryCount: 0,
       dataUpdateCount: 0,
-      alertCount: 0
+      alertCount: 0,
     };
   }
 
@@ -114,13 +110,17 @@ export class ModeManager {
    * 모드별 설정 조회
    */
   getModeConfig(): ModeConfig[AIAgentMode] {
-    return this.currentMode === 'basic' ? this.config.basic : this.config.advanced;
+    return this.currentMode === 'basic'
+      ? this.config.basic
+      : this.config.advanced;
   }
 
   /**
    * 활동 기록
    */
-  recordActivity(type: 'query' | 'data_update' | 'alert' | 'mode_change'): void {
+  recordActivity(
+    type: 'query' | 'data_update' | 'alert' | 'mode_change'
+  ): void {
     const now = Date.now();
 
     switch (type) {
@@ -160,7 +160,7 @@ export class ModeManager {
       this.activityMetrics.lastAlertTime
     );
 
-    return (now - lastActivity) > this.config.powerManagement.sleepTimeout;
+    return now - lastActivity > this.config.powerManagement.sleepTimeout;
   }
 
   /**
@@ -175,7 +175,7 @@ export class ModeManager {
       this.activityMetrics.lastDataUpdate
     );
 
-    return (now - lastActivity) > this.config.powerManagement.idleTimeout;
+    return now - lastActivity > this.config.powerManagement.idleTimeout;
   }
 
   /**
@@ -275,11 +275,14 @@ export class ModeManager {
   /**
    * 활동 통계 조회
    */
-  getActivityMetrics(): ActivityMetrics & { powerMode: PowerMode; responseMode: AIAgentMode } {
+  getActivityMetrics(): ActivityMetrics & {
+    powerMode: PowerMode;
+    responseMode: AIAgentMode;
+  } {
     return {
       ...this.activityMetrics,
       powerMode: this.powerMode,
-      responseMode: this.currentMode
+      responseMode: this.currentMode,
     };
   }
 
@@ -303,7 +306,8 @@ export class ModeManager {
     const now = Date.now();
     const timeSinceLastQuery = now - metrics.lastQueryTime;
 
-    if (timeSinceLastQuery > 30 * 60 * 1000) { // 30분
+    if (timeSinceLastQuery > 30 * 60 * 1000) {
+      // 30분
       recommendations.push('장시간 비활성으로 절전 모드 설정 권장');
     }
 
@@ -329,7 +333,7 @@ export const createDefaultModeConfig = (): ModeConfig => ({
     maxContextLength: 2048,
     responseDepth: 'standard',
     enableAdvancedAnalysis: false,
-    maxProcessingTime: 3000
+    maxProcessingTime: 3000,
   },
 
   advanced: {
@@ -338,15 +342,15 @@ export const createDefaultModeConfig = (): ModeConfig => ({
     enableAdvancedAnalysis: true,
     enablePredictiveAnalysis: true,
     enableMultiServerCorrelation: true,
-    maxProcessingTime: 10000
+    maxProcessingTime: 10000,
   },
 
   powerManagement: {
     idleTimeout: 5 * 60 * 1000, // 5분
     sleepTimeout: 15 * 60 * 1000, // 15분
     wakeupTriggers: ['query', 'alert', 'data_update'],
-    enableAutoSleep: true
-  }
+    enableAutoSleep: true,
+  },
 });
 
 /**
@@ -357,13 +361,13 @@ export const ResponseStyles = {
     mini: {
       maxLength: 100,
       format: 'concise',
-      includeDetails: false
+      includeDetails: false,
     },
     standard: {
       maxLength: 300,
       format: 'structured',
-      includeDetails: true
-    }
+      includeDetails: true,
+    },
   },
 
   advanced: {
@@ -371,14 +375,14 @@ export const ResponseStyles = {
       maxLength: 500,
       format: 'detailed',
       includeDetails: true,
-      includeAnalysis: true
+      includeAnalysis: true,
     },
     deep: {
       maxLength: 1000,
       format: 'comprehensive',
       includeDetails: true,
       includeAnalysis: true,
-      includePredictions: true
+      includePredictions: true,
     },
     comprehensive: {
       maxLength: 2000,
@@ -387,7 +391,7 @@ export const ResponseStyles = {
       includeAnalysis: true,
       includePredictions: true,
       includeRecommendations: true,
-      includeCorrelations: true
-    }
-  }
-}; 
+      includeCorrelations: true,
+    },
+  },
+};

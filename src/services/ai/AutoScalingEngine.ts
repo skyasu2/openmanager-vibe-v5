@@ -150,7 +150,11 @@ export class AutoScalingEngine {
     const ruleBasedDecision = await this.evaluateRules(servers, metrics);
 
     // 2. 예측 기반 평가 (활성화된 경우)
-    let predictiveDecision: { action: string; confidence: number; reasons: string[] } | null = null;
+    let predictiveDecision: {
+      action: string;
+      confidence: number;
+      reasons: string[];
+    } | null = null;
     if (this.policy.predictiveScaling) {
       predictiveDecision = await this.evaluatePredictiveScaling(servers);
     }
@@ -664,14 +668,14 @@ export class AutoScalingEngine {
     try {
       const message = success
         ? `🤖 자동 스케일링 완료\n` +
-        `• 작업: ${decision.action}\n` +
-        `• 서버 수: ${decision.currentServers} → ${decision.targetServers}\n` +
-        `• 신뢰도: ${(decision.confidence * 100).toFixed(1)}%\n` +
-        `• 비용 영향: ${decision.costImpact.savings > 0 ? '절약' : '증가'} ${Math.abs(decision.costImpact.savings).toFixed(0)}원/시간`
+          `• 작업: ${decision.action}\n` +
+          `• 서버 수: ${decision.currentServers} → ${decision.targetServers}\n` +
+          `• 신뢰도: ${(decision.confidence * 100).toFixed(1)}%\n` +
+          `• 비용 영향: ${decision.costImpact.savings > 0 ? '절약' : '증가'} ${Math.abs(decision.costImpact.savings).toFixed(0)}원/시간`
         : `❌ 자동 스케일링 실패\n` +
-        `• 작업: ${decision.action}\n` +
-        `• 오류: ${error}\n` +
-        `• 현재 서버 수: ${decision.currentServers}개`;
+          `• 작업: ${decision.action}\n` +
+          `• 오류: ${error}\n` +
+          `• 현재 서버 수: ${decision.currentServers}개`;
 
       // 스케일링 알림 (콘솔 로그)
       if (success) {

@@ -17,16 +17,20 @@ export interface AuthState {
   isLocked: boolean;
   lockoutEndTime: number | null;
   lastLoginTime: number | null;
-  
+
   // 사용자 정보
   user: {
     name: string;
     role: 'admin' | 'user';
     permissions: string[];
   } | null;
-  
+
   // 액션
-  authenticate: (password: string) => { success: boolean; message: string; remainingTime?: number };
+  authenticate: (password: string) => {
+    success: boolean;
+    message: string;
+    remainingTime?: number;
+  };
   logout: () => void;
   checkLockStatus: () => boolean;
   getRemainingLockTime: () => number;
@@ -48,16 +52,16 @@ export const useAuthStore = create<AuthState>()(
       authenticate: (password: string) => {
         try {
           const { attempts, checkLockStatus } = get();
-          
+
           // 잠금 상태 확인
           if (!checkLockStatus()) {
             return {
               success: false,
               message: '계정이 잠겨있습니다.',
-              remainingTime: get().getRemainingLockTime()
+              remainingTime: get().getRemainingLockTime(),
             };
           }
-          
+
           // 비밀번호 검증
           if (password === ADMIN_PASSWORD) {
             set({
@@ -67,57 +71,58 @@ export const useAuthStore = create<AuthState>()(
               user: {
                 name: '관리자',
                 role: 'admin',
-                permissions: ['system:control', 'ai:access', 'servers:manage']
-              }
+                permissions: ['system:control', 'ai:access', 'servers:manage'],
+              },
             });
-            
+
             console.log('✅ [Auth] 인증 성공');
-            
+
             // 인증 성공 이벤트
             if (typeof window !== 'undefined') {
-              window.dispatchEvent(new CustomEvent('auth:success', {
-                detail: { timestamp: Date.now() }
-              }));
+              window.dispatchEvent(
+                new CustomEvent('auth:success', {
+                  detail: { timestamp: Date.now() },
+                })
+              );
             }
-            
+
             return {
               success: true,
-              message: '인증이 완료되었습니다.'
+              message: '인증이 완료되었습니다.',
             };
           } else {
             const newAttempts = attempts + 1;
-            
+
             if (newAttempts >= MAX_ATTEMPTS) {
               const lockoutEndTime = Date.now() + LOCKOUT_DURATION;
-              
+
               set({
                 attempts: newAttempts,
                 isLocked: true,
-                lockoutEndTime
+                lockoutEndTime,
               });
-              
+
               console.log(`🔒 [Auth] 계정 잠금 - ${MAX_ATTEMPTS}회 실패`);
-              
+
               return {
                 success: false,
                 message: `${MAX_ATTEMPTS}회 실패로 계정이 잠겼습니다.`,
-                remainingTime: LOCKOUT_DURATION
+                remainingTime: LOCKOUT_DURATION,
               };
             } else {
               set({ attempts: newAttempts });
-              
+
               return {
                 success: false,
-                message: `비밀번호가 틀렸습니다. (${newAttempts}/${MAX_ATTEMPTS})`
+                message: `비밀번호가 틀렸습니다. (${newAttempts}/${MAX_ATTEMPTS})`,
               };
             }
           }
-          
         } catch (error) {
           console.error('❌ [Auth] 인증 오류:', error);
           return {
             success: false,
-            message: '인증 중 오류가 발생했습니다.'
+            message: '인증 중 오류가 발생했습니다.',
           };
         }
       },
@@ -128,18 +133,19 @@ export const useAuthStore = create<AuthState>()(
           set({
             isAuthenticated: false,
             user: null,
-            lastLoginTime: null
+            lastLoginTime: null,
           });
-          
+
           console.log('👋 [Auth] 로그아웃');
-          
+
           // 로그아웃 이벤트
           if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('auth:logout', {
-              detail: { timestamp: Date.now() }
-            }));
+            window.dispatchEvent(
+              new CustomEvent('auth:logout', {
+                detail: { timestamp: Date.now() },
+              })
+            );
           }
-          
         } catch (error) {
           console.error('❌ [Auth] 로그아웃 오류:', error);
         }
@@ -149,7 +155,7 @@ export const useAuthStore = create<AuthState>()(
       checkLockStatus: () => {
         try {
           const { isLocked, lockoutEndTime } = get();
-          
+
           if (isLocked && lockoutEndTime) {
             const now = Date.now();
             if (now < lockoutEndTime) {
@@ -159,14 +165,14 @@ export const useAuthStore = create<AuthState>()(
               set({
                 isLocked: false,
                 lockoutEndTime: null,
-                attempts: 0
+                attempts: 0,
               });
-              
+
               console.log('🔓 [Auth] 계정 잠금 해제');
               return true;
             }
           }
-          
+
           return !isLocked;
         } catch (error) {
           console.error('❌ [Auth] 잠금 상태 확인 실패:', error);
@@ -191,22 +197,22 @@ export const useAuthStore = create<AuthState>()(
         set({
           attempts: 0,
           isLocked: false,
-          lockoutEndTime: null
+          lockoutEndTime: null,
         });
-        
+
         console.log('🔄 [Auth] 시도 횟수 초기화');
-      }
+      },
     }),
     {
       name: 'auth-store',
       storage: createJSONStorage(() => localStorage),
       // 민감한 정보는 세션 종료 시 제거
-      partialize: (state) => ({
+      partialize: state => ({
         attempts: state.attempts,
         isLocked: state.isLocked,
         lockoutEndTime: state.lockoutEndTime,
-        lastLoginTime: state.lastLoginTime
-      })
+        lastLoginTime: state.lastLoginTime,
+      }),
     }
   )
-); 
+);

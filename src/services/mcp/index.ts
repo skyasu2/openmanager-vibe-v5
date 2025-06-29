@@ -1,6 +1,6 @@
 /**
  * 🎯 MCP Processor - RealMCPClient 래퍼 (중복 제거)
- * 
+ *
  * ⚠️ 기존 MCPProcessor는 RealMCPClient 싱글톤의 래퍼로 변경됨
  * ✅ 하위 호환성 유지
  * ✅ Render MCP 서버 전용
@@ -78,7 +78,8 @@ export class MCPProcessor {
 
       return {
         success: result.success || true,
-        response: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
+        response:
+          typeof result === 'string' ? result : JSON.stringify(result, null, 2),
         data: result,
         confidence: 0.8, // 중간-높은 신뢰도
       };
@@ -104,15 +105,27 @@ export class MCPProcessor {
 
     // 간소화된 의도 분석
     if (lowerText.includes('파일') || lowerText.includes('file')) {
-      return { category: 'filesystem', confidence: 0.8, keywords: ['파일', 'file'] };
+      return {
+        category: 'filesystem',
+        confidence: 0.8,
+        keywords: ['파일', 'file'],
+      };
     }
 
     if (lowerText.includes('서버') || lowerText.includes('server')) {
-      return { category: 'system', confidence: 0.8, keywords: ['서버', 'server'] };
+      return {
+        category: 'system',
+        confidence: 0.8,
+        keywords: ['서버', 'server'],
+      };
     }
 
     if (lowerText.includes('데이터베이스') || lowerText.includes('database')) {
-      return { category: 'database', confidence: 0.8, keywords: ['데이터베이스', 'database'] };
+      return {
+        category: 'database',
+        confidence: 0.8,
+        keywords: ['데이터베이스', 'database'],
+      };
     }
 
     return { category: 'general', confidence: 0.5, keywords: [] };

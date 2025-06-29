@@ -1,6 +1,6 @@
 /**
  * 🧠 OpenManager Vibe v5 - 메모리 관리 시스템
- * 
+ *
  * 메모리 누수 방지, 객체 풀링, 가비지 컬렉션 최적화
  */
 
@@ -32,12 +32,12 @@ export class ObjectPool<T> {
     created: 0,
     acquired: 0,
     released: 0,
-    destroyed: 0
+    destroyed: 0,
   };
 
   constructor(
-    createFn: () => T, 
-    resetFn: (obj: T) => void, 
+    createFn: () => T,
+    resetFn: (obj: T) => void,
     options: Partial<ObjectPoolOptions> = {}
   ) {
     this.createFn = createFn;
@@ -45,9 +45,9 @@ export class ObjectPool<T> {
     this.options = {
       initialSize: 5,
       maxSize: 50,
-      ...options
+      ...options,
     };
-    
+
     this.initialize();
   }
 
@@ -64,17 +64,17 @@ export class ObjectPool<T> {
    */
   acquire(): T {
     let obj: T;
-    
+
     if (this.pool.length > 0) {
       obj = this.pool.pop()!;
     } else {
       obj = this.createFn();
       this.metrics.created++;
     }
-    
+
     this.inUse.add(obj);
     this.metrics.acquired++;
-    
+
     return obj;
   }
 
@@ -86,15 +86,15 @@ export class ObjectPool<T> {
       console.warn('⚠️ 풀에 없는 객체를 반환하려고 시도');
       return;
     }
-    
+
     this.inUse.delete(obj);
-    
+
     // 객체 검증
     if (this.options.validateObject && !this.options.validateObject(obj)) {
       this.metrics.destroyed++;
       return;
     }
-    
+
     // 풀 크기 제한
     if (this.pool.length < this.options.maxSize) {
       this.resetFn(obj);
@@ -102,7 +102,7 @@ export class ObjectPool<T> {
     } else {
       this.metrics.destroyed++;
     }
-    
+
     this.metrics.released++;
   }
 
@@ -114,8 +114,10 @@ export class ObjectPool<T> {
       poolSize: this.pool.length,
       inUse: this.inUse.size,
       metrics: this.metrics,
-      efficiency: this.metrics.acquired > 0 ? 
-        Math.round((this.metrics.released / this.metrics.acquired) * 100) : 0
+      efficiency:
+        this.metrics.acquired > 0
+          ? Math.round((this.metrics.released / this.metrics.acquired) * 100)
+          : 0,
     };
   }
 
@@ -135,18 +137,18 @@ export class MemoryMonitor {
   private interval: NodeJS.Timeout | null = null;
   private metrics: MemoryMetrics[] = [];
   private maxMetrics: number = 100; // 최근 100개 기록만 유지
-  
+
   private thresholds = {
-    heapWarning: 256 * 1024 * 1024,  // 256MB
+    heapWarning: 256 * 1024 * 1024, // 256MB
     heapCritical: 512 * 1024 * 1024, // 512MB
-    rssWarning: 512 * 1024 * 1024,   // 512MB
-    rssCritical: 1024 * 1024 * 1024  // 1GB
+    rssWarning: 512 * 1024 * 1024, // 512MB
+    rssCritical: 1024 * 1024 * 1024, // 1GB
   };
 
   private callbacks = {
     onWarning: [] as Array<(metrics: MemoryMetrics) => void>,
     onCritical: [] as Array<(metrics: MemoryMetrics) => void>,
-    onRecovery: [] as Array<(metrics: MemoryMetrics) => void>
+    onRecovery: [] as Array<(metrics: MemoryMetrics) => void>,
   };
 
   private lastState: 'normal' | 'warning' | 'critical' = 'normal';
@@ -188,11 +190,11 @@ export class MemoryMonitor {
       rss: usage.rss,
       external: usage.external,
       arrayBuffers: usage.arrayBuffers,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     this.metrics.push(metric);
-    
+
     // 메트릭 수 제한
     if (this.metrics.length > this.maxMetrics) {
       this.metrics.shift();
@@ -209,13 +211,17 @@ export class MemoryMonitor {
     let currentState: 'normal' | 'warning' | 'critical' = 'normal';
 
     // Critical 상태 확인
-    if (metric.heapUsed > this.thresholds.heapCritical || 
-        metric.rss > this.thresholds.rssCritical) {
+    if (
+      metric.heapUsed > this.thresholds.heapCritical ||
+      metric.rss > this.thresholds.rssCritical
+    ) {
       currentState = 'critical';
     }
     // Warning 상태 확인
-    else if (metric.heapUsed > this.thresholds.heapWarning || 
-             metric.rss > this.thresholds.rssWarning) {
+    else if (
+      metric.heapUsed > this.thresholds.heapWarning ||
+      metric.rss > this.thresholds.rssWarning
+    ) {
       currentState = 'warning';
     }
 
@@ -229,19 +235,22 @@ export class MemoryMonitor {
   /**
    * 🔄 상태 변화 처리
    */
-  private handleStateChange(newState: 'normal' | 'warning' | 'critical', metric: MemoryMetrics): void {
+  private handleStateChange(
+    newState: 'normal' | 'warning' | 'critical',
+    metric: MemoryMetrics
+  ): void {
     switch (newState) {
       case 'warning':
         console.warn('⚠️ 메모리 사용량 경고!', this.formatMetrics(metric));
         this.callbacks.onWarning.forEach(cb => cb(metric));
         break;
-        
+
       case 'critical':
         console.error('🚨 메모리 사용량 위험!', this.formatMetrics(metric));
         this.callbacks.onCritical.forEach(cb => cb(metric));
         this.triggerGarbageCollection();
         break;
-        
+
       case 'normal':
         if (this.lastState !== 'normal') {
           console.log('✅ 메모리 사용량 정상화', this.formatMetrics(metric));
@@ -258,7 +267,7 @@ export class MemoryMonitor {
     if (global.gc) {
       console.log('🗑️ 수동 가비지 컬렉션 실행...');
       global.gc();
-      
+
       // GC 후 메트릭 다시 수집
       setTimeout(() => {
         const usage = process.memoryUsage();
@@ -273,7 +282,8 @@ export class MemoryMonitor {
    * 📝 메트릭 로깅
    */
   private logMetrics(metric: MemoryMetrics): void {
-    if (this.metrics.length % 6 === 0) { // 1분마다 로그 (10초 간격 × 6)
+    if (this.metrics.length % 6 === 0) {
+      // 1분마다 로그 (10초 간격 × 6)
       console.log('📊 메모리 상태:', this.formatMetrics(metric));
     }
   }
@@ -305,7 +315,7 @@ export class MemoryMonitor {
     }
 
     const recent = this.metrics.slice(-10); // 최근 10개
-    
+
     const heapUsed = recent.map(m => m.heapUsed);
     const rss = recent.map(m => m.rss);
 
@@ -313,25 +323,27 @@ export class MemoryMonitor {
       current: this.formatMetrics(this.metrics[this.metrics.length - 1]),
       trend: {
         heapUsed: this.calculateTrend(heapUsed),
-        rss: this.calculateTrend(rss)
+        rss: this.calculateTrend(rss),
       },
       thresholds: {
         heapWarning: this.formatBytes(this.thresholds.heapWarning),
         heapCritical: this.formatBytes(this.thresholds.heapCritical),
         rssWarning: this.formatBytes(this.thresholds.rssWarning),
-        rssCritical: this.formatBytes(this.thresholds.rssCritical)
+        rssCritical: this.formatBytes(this.thresholds.rssCritical),
       },
       samples: this.metrics.length,
-      state: this.lastState
+      state: this.lastState,
     };
   }
 
   /**
    * 📈 트렌드 계산
    */
-  private calculateTrend(values: number[]): 'increasing' | 'decreasing' | 'stable' {
+  private calculateTrend(
+    values: number[]
+  ): 'increasing' | 'decreasing' | 'stable' {
     if (values.length < 2) return 'stable';
-    
+
     const first = values[0];
     const last = values[values.length - 1];
     const change = (last - first) / first;
@@ -369,7 +381,7 @@ export class MemoryManagerFactory {
    */
   static createServerMetricsPool(): ObjectPool<any> {
     const poolName = 'serverMetrics';
-    
+
     if (!this.pools.has(poolName)) {
       const pool = new ObjectPool(
         () => ({
@@ -380,9 +392,9 @@ export class MemoryManagerFactory {
           disk: 0,
           network: { in: 0, out: 0 },
           processes: [],
-          timestamp: ''
+          timestamp: '',
         }),
-        (obj) => {
+        obj => {
           obj.id = '';
           obj.hostname = '';
           obj.cpu = 0;
@@ -394,10 +406,10 @@ export class MemoryManagerFactory {
         },
         { initialSize: 10, maxSize: 100 }
       );
-      
+
       this.pools.set(poolName, pool);
     }
-    
+
     return this.pools.get(poolName)!;
   }
 
@@ -406,7 +418,7 @@ export class MemoryManagerFactory {
    */
   static createAnalysisResultPool(): ObjectPool<any> {
     const poolName = 'analysisResult';
-    
+
     if (!this.pools.has(poolName)) {
       const pool = new ObjectPool(
         () => ({
@@ -416,9 +428,9 @@ export class MemoryManagerFactory {
           processingTime: 0,
           tools: [],
           context: {},
-          cached: false
+          cached: false,
         }),
-        (obj) => {
+        obj => {
           obj.success = false;
           obj.data = null;
           obj.confidence = 0;
@@ -429,10 +441,10 @@ export class MemoryManagerFactory {
         },
         { initialSize: 5, maxSize: 50 }
       );
-      
+
       this.pools.set(poolName, pool);
     }
-    
+
     return this.pools.get(poolName)!;
   }
 
@@ -442,22 +454,22 @@ export class MemoryManagerFactory {
   static startMemoryMonitoring(): MemoryMonitor {
     if (!this.monitor) {
       this.monitor = new MemoryMonitor();
-      
+
       // 경고 시 객체 풀 정리
       this.monitor.onWarning(() => {
         console.log('🧹 메모리 경고로 인한 객체 풀 정리 시작...');
         this.cleanupPools();
       });
-      
+
       // 위험 시 강제 정리
       this.monitor.onCritical(() => {
         console.log('🚨 메모리 위험으로 인한 강제 정리 시작...');
         this.emergencyCleanup();
       });
-      
+
       this.monitor.start(10000); // 10초 간격
     }
-    
+
     return this.monitor;
   }
 
@@ -466,14 +478,14 @@ export class MemoryManagerFactory {
    */
   static cleanupPools(): void {
     let cleaned = 0;
-    
+
     for (const [name, pool] of this.pools.entries()) {
       const statsBefore = pool.getStats();
       pool.cleanup();
       cleaned += statsBefore.poolSize;
       console.log(`🧹 ${name} 풀 정리: ${statsBefore.poolSize}개 객체 해제`);
     }
-    
+
     console.log(`✅ 총 ${cleaned}개 객체 정리 완료`);
   }
 
@@ -482,10 +494,10 @@ export class MemoryManagerFactory {
    */
   static emergencyCleanup(): void {
     console.log('🚨 응급 메모리 정리 시작...');
-    
+
     // 모든 풀 정리
     this.cleanupPools();
-    
+
     // 가비지 컬렉션 강제 실행
     if (global.gc) {
       global.gc();
@@ -499,13 +511,13 @@ export class MemoryManagerFactory {
   static getOverallStatus(): any {
     const poolStats = Array.from(this.pools.entries()).map(([name, pool]) => ({
       name,
-      stats: pool.getStats()
+      stats: pool.getStats(),
     }));
 
     return {
       pools: poolStats,
       monitor: this.monitor?.getStatistics() || null,
-      system: process.memoryUsage()
+      system: process.memoryUsage(),
     };
   }
 }
@@ -517,5 +529,5 @@ export const memoryManager = {
   monitor: MemoryManagerFactory.startMemoryMonitoring(),
   getStatus: () => MemoryManagerFactory.getOverallStatus(),
   cleanup: () => MemoryManagerFactory.cleanupPools(),
-  emergencyCleanup: () => MemoryManagerFactory.emergencyCleanup()
-}; 
+  emergencyCleanup: () => MemoryManagerFactory.emergencyCleanup(),
+};

@@ -174,28 +174,28 @@ export async function GET(request: NextRequest) {
         backup: {
           enabled: true,
           frequency: 'daily',
-          retention: 30
-        }
+          retention: 30,
+        },
       },
       templates: [
         {
           id: 'system-analysis',
           name: '시스템 분석 노트',
           description: '서버 상태 및 성능 분석용 템플릿',
-          fields: ['서버명', '상태', '분석결과', '권장사항']
+          fields: ['서버명', '상태', '분석결과', '권장사항'],
         },
         {
           id: 'incident-report',
           name: '장애 보고서',
           description: '시스템 장애 발생 시 사용하는 템플릿',
-          fields: ['발생시간', '장애유형', '영향범위', '해결방안']
+          fields: ['발생시간', '장애유형', '영향범위', '해결방안'],
         },
         {
           id: 'maintenance-log',
           name: '유지보수 로그',
           description: '정기 유지보수 작업 기록용 템플릿',
-          fields: ['작업일시', '작업내용', '담당자', '결과']
-        }
+          fields: ['작업일시', '작업내용', '담당자', '결과'],
+        },
       ],
       categories: [
         'System Analysis',
@@ -203,7 +203,7 @@ export async function GET(request: NextRequest) {
         'Incident Management',
         'Maintenance',
         'AI Insights',
-        'General Notes'
+        'General Notes',
       ],
       permissions: {
         create: true,
@@ -211,20 +211,20 @@ export async function GET(request: NextRequest) {
         update: true,
         delete: true,
         share: false,
-        export: true
+        export: true,
       },
       limits: {
         maxNoteSize: 10240, // 10KB
         maxAttachments: 5,
         maxCategories: 20,
-        maxTags: 50
+        maxTags: 50,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return NextResponse.json({
       success: true,
-      data: notesSetup
+      data: notesSetup,
     });
   } catch (error) {
     console.error('노트 설정 조회 오류:', error);
@@ -233,7 +233,7 @@ export async function GET(request: NextRequest) {
         success: false,
         error: '노트 설정 조회 실패',
         code: 'NOTES_SETUP_ERROR',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );
@@ -253,15 +253,15 @@ export async function DELETE(request: NextRequest) {
         notes: resetType === 'all' ? 247 : 0,
         templates: resetType === 'all' || resetType === 'templates' ? 8 : 0,
         categories: resetType === 'all' || resetType === 'categories' ? 12 : 0,
-        settings: resetType === 'all' || resetType === 'settings' ? 1 : 0
+        settings: resetType === 'all' || resetType === 'settings' ? 1 : 0,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return NextResponse.json({
       success: true,
       message: '노트 설정이 성공적으로 초기화되었습니다.',
-      data: resetResult
+      data: resetResult,
     });
   } catch (error) {
     console.error('노트 설정 초기화 오류:', error);
@@ -270,7 +270,7 @@ export async function DELETE(request: NextRequest) {
         success: false,
         error: '노트 설정 초기화 실패',
         code: 'NOTES_RESET_ERROR',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );

@@ -4,13 +4,16 @@ import { useState, useEffect } from 'react';
 
 /**
  * 🔍 useMediaQuery Hook
- * 
+ *
  * CSS 미디어 쿼리를 React에서 사용할 수 있게 해주는 커스텀 훅
  * - SSR 안전성 보장
  * - 리사이즈 이벤트 최적화
  * - 디바운스 처리
  */
-export function useMediaQuery(query: string, defaultValue: boolean = false): boolean {
+export function useMediaQuery(
+  query: string,
+  defaultValue: boolean = false
+): boolean {
   const [matches, setMatches] = useState<boolean>(defaultValue);
   const [mounted, setMounted] = useState<boolean>(false);
 
@@ -74,8 +77,8 @@ export const useBreakpoint = () => {
     isExtraLarge,
     // 편의 기능
     isSmallScreen: isMobile || isTablet,
-    isLargeScreen: isLargeDesktop || isExtraLarge
+    isLargeScreen: isLargeDesktop || isExtraLarge,
   };
 };
 
-export default useMediaQuery; 
+export default useMediaQuery;

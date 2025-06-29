@@ -1,6 +1,6 @@
 /**
  * 🤖 AI 응답 컴포넌트 타입 정의
- * 
+ *
  * Single Responsibility: 모든 AI 응답 관련 인터페이스와 타입을 통합 관리
  */
 
@@ -73,9 +73,21 @@ export interface AnswerDisplayProps {
   typingText: string;
 }
 
-export type AICategory = 'monitoring' | 'analysis' | 'prediction' | 'incident' | 'general';
+export type AICategory =
+  | 'monitoring'
+  | 'analysis'
+  | 'prediction'
+  | 'incident'
+  | 'general';
 
-export type LogLevel = 'INFO' | 'DEBUG' | 'PROCESSING' | 'SUCCESS' | 'ANALYSIS' | 'WARNING' | 'ERROR';
+export type LogLevel =
+  | 'INFO'
+  | 'DEBUG'
+  | 'PROCESSING'
+  | 'SUCCESS'
+  | 'ANALYSIS'
+  | 'WARNING'
+  | 'ERROR';
 
 export interface CategoryKeywords {
   monitoring: string[];
@@ -95,4 +107,4 @@ export interface AIResponseHookReturn {
   goToPrev: () => void;
   goToNext: () => void;
   handleVerifyLog: (log: RealTimeLogEntry) => Promise<void>;
-} 
+}

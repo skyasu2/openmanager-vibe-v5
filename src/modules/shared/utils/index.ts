@@ -1,6 +1,6 @@
 /**
  * Shared Utils
- * 
+ *
  * 🔧 모든 모듈에서 공통으로 사용하는 유틸리티 함수들
  */
 
@@ -16,9 +16,12 @@ export const generateId = (prefix = 'id'): string => {
 /**
  * 날짜 포맷팅
  */
-export const formatDate = (date: Date | string, format = 'YYYY-MM-DD HH:mm:ss'): string => {
+export const formatDate = (
+  date: Date | string,
+  format = 'YYYY-MM-DD HH:mm:ss'
+): string => {
   const d = new Date(date);
-  
+
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
@@ -43,7 +46,7 @@ export const debounce = <T extends (...args: any[]) => any>(
   wait: number
 ): ((...args: Parameters<T>) => void) => {
   let timeout: NodeJS.Timeout;
-  
+
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
@@ -58,12 +61,12 @@ export const throttle = <T extends (...args: any[]) => any>(
   limit: number
 ): ((...args: Parameters<T>) => void) => {
   let inThrottle: boolean;
-  
+
   return (...args: Parameters<T>) => {
     if (!inThrottle) {
       func(...args);
       inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
+      setTimeout(() => (inThrottle = false), limit);
     }
   };
 };
@@ -76,15 +79,19 @@ export const deepMerge = <T extends Record<string, any>>(
   source: Partial<T>
 ): T => {
   const result = { ...target };
-  
+
   for (const key in source) {
-    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-      result[key] = deepMerge(result[key] || {} as any, source[key] as any);
+    if (
+      source[key] &&
+      typeof source[key] === 'object' &&
+      !Array.isArray(source[key])
+    ) {
+      result[key] = deepMerge(result[key] || ({} as any), source[key] as any);
     } else {
       result[key] = source[key] as any;
     }
   }
-  
+
   return result;
 };
 
@@ -96,17 +103,17 @@ export const validateConfig = (config: BaseConfig): boolean => {
     console.error('Config validation failed: name is required');
     return false;
   }
-  
+
   if (!config.version || typeof config.version !== 'string') {
     console.error('Config validation failed: version is required');
     return false;
   }
-  
+
   if (typeof config.enabled !== 'boolean') {
     console.error('Config validation failed: enabled must be boolean');
     return false;
   }
-  
+
   return true;
 };
 
@@ -153,16 +160,18 @@ export const unique = <T>(array: T[]): T[] => {
 /**
  * 객체에서 빈 값 제거
  */
-export const removeEmpty = <T extends Record<string, any>>(obj: T): Partial<T> => {
+export const removeEmpty = <T extends Record<string, any>>(
+  obj: T
+): Partial<T> => {
   const result: Partial<T> = {};
-  
+
   for (const key in obj) {
     const value = obj[key];
     if (value !== null && value !== undefined && value !== '') {
       result[key] = value;
     }
   }
-  
+
   return result;
 };
 
@@ -170,7 +179,8 @@ export const removeEmpty = <T extends Record<string, any>>(obj: T): Partial<T> =
  * 랜덤 문자열 생성
  */
 export const randomString = (length = 8): string => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const chars =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
   for (let i = 0; i < length; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -183,4 +193,4 @@ export const randomString = (length = 8): string => {
  */
 export const sleep = (ms: number): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, ms));
-}; 
+};

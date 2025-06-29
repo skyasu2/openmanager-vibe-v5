@@ -1,10 +1,10 @@
 import { InteractionLogger } from './logging/InteractionLogger';
 import { AILogProcessor } from './AILogProcessor';
-import { 
-  QueryLogForAI, 
-  FailurePriority, 
-  QueryGroup, 
-  UserInteractionLog 
+import {
+  QueryLogForAI,
+  FailurePriority,
+  QueryGroup,
+  UserInteractionLog,
 } from '@/types/ai-learning';
 
 /**
@@ -41,28 +41,32 @@ export class FailurePriorityAnalyzer {
       const allLogs = await this.interactionLogger.getInteractions({
         startDate: timeRange.start,
         endDate: timeRange.end,
-        limit: limit * 3 // 충분한 데이터 확보
+        limit: limit * 3, // 충분한 데이터 확보
       });
 
-      const failureLogs = allLogs.filter(log => 
-        log.userFeedback === 'not_helpful' || 
-        log.userFeedback === 'incorrect' ||
-        log.confidence < 0.6 ||
-        log.intent === 'unknown'
+      const failureLogs = allLogs.filter(
+        log =>
+          log.userFeedback === 'not_helpful' ||
+          log.userFeedback === 'incorrect' ||
+          log.confidence < 0.6 ||
+          log.intent === 'unknown'
       );
 
       // AI 로그로 변환 (우선순위 점수 포함)
       const aiLogs = await this.logProcessor.convertToAILogs(failureLogs);
 
       // 우선순위 분석 결과 생성
-      const priorities = aiLogs.map(log => this.createFailurePriority(log, allLogs));
+      const priorities = aiLogs.map(log =>
+        this.createFailurePriority(log, allLogs)
+      );
 
       // 우선순위 점수 기준 정렬
       priorities.sort((a, b) => b.priorityScore - a.priorityScore);
 
-      console.log(`✅ [FailurePriorityAnalyzer] ${priorities.length}개 우선순위 분석 완료`);
+      console.log(
+        `✅ [FailurePriorityAnalyzer] ${priorities.length}개 우선순위 분석 완료`
+      );
       return priorities.slice(0, limit);
-
     } catch (error) {
       console.error('❌ [FailurePriorityAnalyzer] 우선순위 분석 실패:', error);
       throw error;
@@ -77,7 +81,9 @@ export class FailurePriorityAnalyzer {
     similarityThreshold: number = 0.7
   ): Promise<QueryGroup[]> {
     try {
-      console.log(`🔗 [FailurePriorityAnalyzer] 유사 질의 그룹핑 시작 (${logs.length}개)`);
+      console.log(
+        `🔗 [FailurePriorityAnalyzer] 유사 질의 그룹핑 시작 (${logs.length}개)`
+      );
 
       const groups = new Map<string, QueryGroup>();
       const processedLogs = new Set<string>();
@@ -87,9 +93,14 @@ export class FailurePriorityAnalyzer {
 
         // 기존 그룹과의 유사도 검사
         let assignedGroup: QueryGroup | null = null;
-        
+
         for (const group of groups.values()) {
-          if (this.calculateQuerySimilarity(log.query, group.representativeQuery) >= similarityThreshold) {
+          if (
+            this.calculateQuerySimilarity(
+              log.query,
+              group.representativeQuery
+            ) >= similarityThreshold
+          ) {
             assignedGroup = group;
             break;
           }
@@ -99,10 +110,10 @@ export class FailurePriorityAnalyzer {
           // 기존 그룹에 추가
           assignedGroup.queries.push(log);
           assignedGroup.totalCount++;
-          
+
           // 그룹 통계 업데이트
           this.updateGroupStatistics(assignedGroup);
-          
+
           // 그룹 ID 할당
           log.groupId = assignedGroup.id;
         } else {
@@ -116,7 +127,7 @@ export class FailurePriorityAnalyzer {
             failureRate: 0,
             totalCount: 1,
             avgConfidence: log.confidence,
-            suggestedImprovement: this.generateGroupImprovement(log)
+            suggestedImprovement: this.generateGroupImprovement(log),
           };
 
           groups.set(newGroup.id, newGroup);
@@ -135,9 +146,10 @@ export class FailurePriorityAnalyzer {
       // 실패율 기준 정렬
       finalGroups.sort((a, b) => b.failureRate - a.failureRate);
 
-      console.log(`✅ [FailurePriorityAnalyzer] ${finalGroups.length}개 그룹 생성 완료`);
+      console.log(
+        `✅ [FailurePriorityAnalyzer] ${finalGroups.length}개 그룹 생성 완료`
+      );
       return finalGroups;
-
     } catch (error) {
       console.error('❌ [FailurePriorityAnalyzer] 그룹핑 실패:', error);
       throw error;
@@ -162,13 +174,16 @@ export class FailurePriorityAnalyzer {
         groupId: group.id,
         priority,
         suggestions,
-        estimatedImpact
+        estimatedImpact,
       };
     });
   }
 
   // Private 헬퍼 메서드들
-  private createFailurePriority(log: QueryLogForAI, allLogs: UserInteractionLog[]): FailurePriority {
+  private createFailurePriority(
+    log: QueryLogForAI,
+    allLogs: UserInteractionLog[]
+  ): FailurePriority {
     const reasons = this.analyzeFailureReasons(log);
     const urgencyLevel = this.calculateUrgencyLevel(log.priorityScore || 0);
     const failureCount = this.countSimilarFailures(log, allLogs);
@@ -180,7 +195,7 @@ export class FailurePriorityAnalyzer {
       urgencyLevel,
       estimatedImpact: this.calculateEstimatedImpact(log),
       failureCount,
-      lastFailure: log.timestamp
+      lastFailure: log.timestamp,
     };
   }
 
@@ -197,7 +212,9 @@ export class FailurePriorityAnalyzer {
     return reasons;
   }
 
-  private calculateUrgencyLevel(priorityScore: number): 'critical' | 'high' | 'medium' | 'low' {
+  private calculateUrgencyLevel(
+    priorityScore: number
+  ): 'critical' | 'high' | 'medium' | 'low' {
     if (priorityScore >= 80) return 'critical';
     if (priorityScore >= 60) return 'high';
     if (priorityScore >= 40) return 'medium';
@@ -215,10 +232,15 @@ export class FailurePriorityAnalyzer {
     return Math.min(100, impact);
   }
 
-  private countSimilarFailures(log: QueryLogForAI, allLogs: UserInteractionLog[]): number {
-    return allLogs.filter(otherLog => 
-      otherLog.intent === log.intent &&
-      (otherLog.userFeedback === 'not_helpful' || otherLog.userFeedback === 'incorrect')
+  private countSimilarFailures(
+    log: QueryLogForAI,
+    allLogs: UserInteractionLog[]
+  ): number {
+    return allLogs.filter(
+      otherLog =>
+        otherLog.intent === log.intent &&
+        (otherLog.userFeedback === 'not_helpful' ||
+          otherLog.userFeedback === 'incorrect')
     ).length;
   }
 
@@ -226,24 +248,41 @@ export class FailurePriorityAnalyzer {
     // 간단한 유사도 계산 (실제로는 더 정교한 NLP 기법 사용 가능)
     const words1 = this.extractKeywords(query1);
     const words2 = this.extractKeywords(query2);
-    
+
     const intersection = words1.filter(word => words2.includes(word));
     const union = [...new Set([...words1, ...words2])];
-    
+
     return intersection.length / union.length;
   }
 
   private extractKeywords(query: string): string[] {
-    return query.toLowerCase()
+    return query
+      .toLowerCase()
       .replace(/[^\w\s가-힣]/g, '')
       .split(/\s+/)
       .filter(word => word.length > 1)
-      .filter(word => !['은', '는', '이', '가', '을', '를', '의', '에', '서', '로', '와', '과'].includes(word));
+      .filter(
+        word =>
+          ![
+            '은',
+            '는',
+            '이',
+            '가',
+            '을',
+            '를',
+            '의',
+            '에',
+            '서',
+            '로',
+            '와',
+            '과',
+          ].includes(word)
+      );
   }
 
   private extractCommonPatterns(queries: string[]): string[] {
     const patterns = new Set<string>();
-    
+
     queries.forEach(query => {
       const keywords = this.extractKeywords(query);
       keywords.forEach(keyword => patterns.add(keyword));
@@ -254,18 +293,24 @@ export class FailurePriorityAnalyzer {
 
   private updateGroupStatistics(group: QueryGroup): void {
     const queries = group.queries;
-    
+
     // 평균 신뢰도 계산
-    group.avgConfidence = queries.reduce((sum, q) => sum + q.confidence, 0) / queries.length;
-    
+    group.avgConfidence =
+      queries.reduce((sum, q) => sum + q.confidence, 0) / queries.length;
+
     // 실패율 계산
-    const failureCount = queries.filter(q => 
-      q.feedback === 'not_helpful' || q.feedback === 'incorrect' || q.confidence < 0.6
+    const failureCount = queries.filter(
+      q =>
+        q.feedback === 'not_helpful' ||
+        q.feedback === 'incorrect' ||
+        q.confidence < 0.6
     ).length;
     group.failureRate = failureCount / queries.length;
-    
+
     // 공통 패턴 업데이트
-    group.commonPatterns = this.extractCommonPatterns(queries.map(q => q.query));
+    group.commonPatterns = this.extractCommonPatterns(
+      queries.map(q => q.query)
+    );
   }
 
   private generateGroupImprovement(log: QueryLogForAI): string {
@@ -281,9 +326,14 @@ export class FailurePriorityAnalyzer {
     return '일반적인 응답 품질 개선 필요';
   }
 
-  private calculateGroupPriority(group: QueryGroup): 'critical' | 'high' | 'medium' | 'low' {
-    const score = group.failureRate * 100 + (1 - group.avgConfidence) * 50 + group.totalCount * 5;
-    
+  private calculateGroupPriority(
+    group: QueryGroup
+  ): 'critical' | 'high' | 'medium' | 'low' {
+    const score =
+      group.failureRate * 100 +
+      (1 - group.avgConfidence) * 50 +
+      group.totalCount * 5;
+
     if (score >= 80) return 'critical';
     if (score >= 60) return 'high';
     if (score >= 40) return 'medium';
@@ -292,29 +342,40 @@ export class FailurePriorityAnalyzer {
 
   private generateGroupSuggestions(group: QueryGroup): string[] {
     const suggestions: string[] = [];
-    
+
     if (group.failureRate > 0.5) {
       suggestions.push(`${group.intent} 인텐트의 패턴 매칭 규칙 재검토`);
     }
-    
+
     if (group.avgConfidence < 0.7) {
-      suggestions.push(`${group.intent} 인텐트의 신뢰도 개선을 위한 추가 패턴 정의`);
+      suggestions.push(
+        `${group.intent} 인텐트의 신뢰도 개선을 위한 추가 패턴 정의`
+      );
     }
-    
+
     if (group.totalCount > 10) {
-      suggestions.push(`고빈도 질의 "${group.representativeQuery}"에 대한 전용 응답 템플릿 개발`);
+      suggestions.push(
+        `고빈도 질의 "${group.representativeQuery}"에 대한 전용 응답 템플릿 개발`
+      );
     }
-    
-    suggestions.push(`공통 패턴 "${group.commonPatterns.join(', ')}" 활용한 정규식 최적화`);
-    
+
+    suggestions.push(
+      `공통 패턴 "${group.commonPatterns.join(', ')}" 활용한 정규식 최적화`
+    );
+
     return suggestions;
   }
 
   private calculateGroupImpact(group: QueryGroup): number {
-    return Math.min(100, group.failureRate * 60 + group.totalCount * 2 + (1 - group.avgConfidence) * 30);
+    return Math.min(
+      100,
+      group.failureRate * 60 +
+        group.totalCount * 2 +
+        (1 - group.avgConfidence) * 30
+    );
   }
 
   private generateGroupId(): string {
     return `group_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
   }
-} 
+}

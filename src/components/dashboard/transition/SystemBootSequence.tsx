@@ -21,7 +21,11 @@ interface SystemBootSequenceProps {
   skipAnimation?: boolean;
   autoStart?: boolean;
   loadingProgress?: number;
-  loadingPhase?: 'system-starting' | 'data-loading' | 'python-warmup' | 'completed';
+  loadingPhase?:
+    | 'system-starting'
+    | 'data-loading'
+    | 'python-warmup'
+    | 'completed';
   estimatedTimeRemaining?: number;
   elapsedTime?: number;
 }
@@ -96,7 +100,8 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
 
         let currentProgress = startProgress;
         progressTimer = setInterval(() => {
-          currentProgress += (endProgress - startProgress) / (stage.duration / 50);
+          currentProgress +=
+            (endProgress - startProgress) / (stage.duration / 50);
           if (currentProgress >= endProgress) {
             currentProgress = endProgress;
             clearInterval(progressTimer);
@@ -158,7 +163,13 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
       };
 
       (window as any).emergencyCompleteBootSequence = handleFinalComplete;
-    }, [handleFinalComplete, currentStage, isComplete, progress, servers.length]);
+    }, [
+      handleFinalComplete,
+      currentStage,
+      isComplete,
+      progress,
+      servers.length,
+    ]);
 
     if (skipAnimation || isComplete) {
       return null;
@@ -212,7 +223,9 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
             <div className='w-80 mx-auto'>
               <div className='flex justify-between text-sm text-gray-400 mb-2'>
                 <span>{Math.round(progress)}%</span>
-                <span>{currentStage + 1} / {LOADING_STAGES.length}</span>
+                <span>
+                  {currentStage + 1} / {LOADING_STAGES.length}
+                </span>
               </div>
               <div className='w-full bg-gray-700 rounded-full h-2'>
                 <motion.div

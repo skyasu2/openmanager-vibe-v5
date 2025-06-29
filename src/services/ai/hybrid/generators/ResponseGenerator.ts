@@ -1,14 +1,18 @@
 /**
  * 💬 하이브리드 AI용 응답 생성기 (래퍼)
- * 
+ *
  * 통합 응답 생성 시스템의 래퍼 클래스
  * 다중 AI 엔진 결과 통합을 위한 기존 API 호환성 유지
  */
 
-import { SmartQuery, DocumentContext, ResponseContext } from '../types/HybridTypes';
+import {
+  SmartQuery,
+  DocumentContext,
+  ResponseContext,
+} from '../types/HybridTypes';
 import {
   unifiedResponseGenerator,
-  UnifiedResponseRequest
+  UnifiedResponseRequest,
 } from '../../response/UnifiedResponseGenerator';
 
 export class ResponseGenerator {
@@ -24,7 +28,9 @@ export class ResponseGenerator {
     await unifiedResponseGenerator.initialize();
 
     this.isInitialized = true;
-    console.log('💬 [ResponseGenerator] 하이브리드 AI용 응답 생성기가 초기화되었습니다 (통합 시스템 사용)');
+    console.log(
+      '💬 [ResponseGenerator] 하이브리드 AI용 응답 생성기가 초기화되었습니다 (통합 시스템 사용)'
+    );
   }
 
   /**
@@ -46,16 +52,17 @@ export class ResponseGenerator {
         isKorean: smartQuery.isKorean,
         keywords: smartQuery.keywords,
         intent: smartQuery.intent,
-        entities: (smartQuery as any).entities || {}
+        entities: (smartQuery as any).entities || {},
       },
       analysisResults: analysisResults,
       documents: documents,
       language: smartQuery.isKorean ? 'ko' : 'en',
-      responseType: 'hybrid'
+      responseType: 'hybrid',
     };
 
     // 통합 응답 생성기로 응답 생성
-    const unifiedResult = await unifiedResponseGenerator.generateResponse(unifiedRequest);
+    const unifiedResult =
+      await unifiedResponseGenerator.generateResponse(unifiedRequest);
 
     // 기존 인터페이스로 변환하여 반환
     return {
@@ -68,7 +75,10 @@ export class ResponseGenerator {
   /**
    * 응답 품질 평가 (기존 로직 유지)
    */
-  evaluateResponseQuality(response: ResponseContext, smartQuery: SmartQuery): {
+  evaluateResponseQuality(
+    response: ResponseContext,
+    smartQuery: SmartQuery
+  ): {
     score: number;
     feedback: string[];
   } {
@@ -107,7 +117,7 @@ export class ResponseGenerator {
 
     return {
       score: Math.max(0, Math.min(100, score)),
-      feedback
+      feedback,
     };
   }
 
@@ -118,7 +128,7 @@ export class ResponseGenerator {
     return {
       isInitialized: this.isInitialized,
       unifiedGeneratorStats: unifiedResponseGenerator.getStats(),
-      wrapperType: 'HybridResponseGenerator'
+      wrapperType: 'HybridResponseGenerator',
     };
   }
 }

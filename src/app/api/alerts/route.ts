@@ -12,7 +12,10 @@ export async function GET(request: NextRequest) {
     const alerts = generateMockAlerts();
 
     // 최신 순으로 정렬
-    alerts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    alerts.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
 
     // 알림 통계 생성
     const summary = {
@@ -20,7 +23,7 @@ export async function GET(request: NextRequest) {
       critical: alerts.filter(a => a.severity === 'critical').length,
       warning: alerts.filter(a => a.severity === 'warning').length,
       resolved: alerts.filter(a => a.resolved).length,
-      unresolved: alerts.filter(a => !a.resolved).length
+      unresolved: alerts.filter(a => !a.resolved).length,
     };
 
     return NextResponse.json({
@@ -29,21 +32,23 @@ export async function GET(request: NextRequest) {
       data: {
         alerts,
         summary,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
       headers: {
         'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=30',
       },
     });
-
   } catch (error) {
     console.error('❌ 알림 목록 조회 오류:', error);
 
-    return NextResponse.json({
-      success: false,
-      message: '알림 조회에 실패했습니다.',
-      error: error instanceof Error ? error.message : '알 수 없는 오류'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: '알림 조회에 실패했습니다.',
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -120,4 +125,4 @@ const generateMockAlerts = () => {
   ];
 
   return alerts;
-}; 
+};

@@ -1,6 +1,6 @@
 /**
  * 🔧 기본 컨텍스트 관리자 (Level 1)
- * 
+ *
  * ✅ CPU/메모리/디스크/알림 상태 실시간 수집
  * ✅ Upstash Redis 캐시 사용 (30MB 이하)
  * ✅ 고성능 데이터 압축
@@ -130,7 +130,7 @@ export class BasicContextManager {
         usage: this.calculateCpuUsage(cpuUsage),
         load: [0.5, 0.7, 0.9], // 1분, 5분, 15분 로드
         cores: 4, // 기본값
-        temperature: undefined
+        temperature: undefined,
       },
       memory: {
         used: memUsage.heapUsed,
@@ -139,30 +139,30 @@ export class BasicContextManager {
         percentage: (memUsage.heapUsed / memUsage.heapTotal) * 100,
         swap: {
           used: 0,
-          total: 0
-        }
+          total: 0,
+        },
       },
       disk: {
         used: 0,
         total: 100 * 1024 * 1024 * 1024, // 100GB 기본값
         available: 50 * 1024 * 1024 * 1024, // 50GB 기본값
         percentage: 50,
-        iops: undefined
+        iops: undefined,
       },
       network: {
         bytesIn: 0,
         bytesOut: 0,
         packetsIn: 0,
         packetsOut: 0,
-        latency: undefined
+        latency: undefined,
       },
       alerts: {
         active: 0,
         critical: 0,
         warning: 0,
-        recent: []
+        recent: [],
       },
-      timestamp
+      timestamp,
     };
 
     // 실제 시스템 정보 수집 (가능한 경우)
@@ -174,12 +174,14 @@ export class BasicContextManager {
   /**
    * 🔍 시스템 정보 보강
    */
-  private async enrichWithSystemInfo(metrics: BasicSystemMetrics): Promise<void> {
+  private async enrichWithSystemInfo(
+    metrics: BasicSystemMetrics
+  ): Promise<void> {
     try {
       // 실제 시스템 API 호출로 메트릭 수집
       const response = await fetch('/api/system/metrics', {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
 
       if (response.ok) {
@@ -201,7 +203,10 @@ export class BasicContextManager {
       }
     } catch (error) {
       // 시스템 API 실패 시 기본값 사용
-      console.warn('⚠️ [BasicContext] 시스템 API 호출 실패, 기본값 사용:', error);
+      console.warn(
+        '⚠️ [BasicContext] 시스템 API 호출 실패, 기본값 사용:',
+        error
+      );
     }
   }
 
@@ -213,7 +218,9 @@ export class BasicContextManager {
       const newMetrics = await this.collectSystemMetrics();
 
       // 기존 캐시 조회
-      const cachedData = await this.redis.get<BasicContextCache>(this.CACHE_KEY);
+      const cachedData = await this.redis.get<BasicContextCache>(
+        this.CACHE_KEY
+      );
 
       let contextCache: BasicContextCache;
 
@@ -223,7 +230,7 @@ export class BasicContextManager {
           current: newMetrics,
           history: [...cachedData.history, newMetrics].slice(-this.MAX_HISTORY),
           trends: this.updateTrends(cachedData.trends, newMetrics),
-          lastUpdate: Date.now()
+          lastUpdate: Date.now(),
         };
       } else {
         // 새로운 데이터 생성
@@ -233,9 +240,9 @@ export class BasicContextManager {
           trends: {
             cpu: [newMetrics.cpu.usage],
             memory: [newMetrics.memory.percentage],
-            disk: [newMetrics.disk.percentage]
+            disk: [newMetrics.disk.percentage],
           },
-          lastUpdate: Date.now()
+          lastUpdate: Date.now(),
         };
       }
 
@@ -260,8 +267,12 @@ export class BasicContextManager {
 
     return {
       cpu: [...currentTrends.cpu, newMetrics.cpu.usage].slice(-maxTrendPoints),
-      memory: [...currentTrends.memory, newMetrics.memory.percentage].slice(-maxTrendPoints),
-      disk: [...currentTrends.disk, newMetrics.disk.percentage].slice(-maxTrendPoints)
+      memory: [...currentTrends.memory, newMetrics.memory.percentage].slice(
+        -maxTrendPoints
+      ),
+      disk: [...currentTrends.disk, newMetrics.disk.percentage].slice(
+        -maxTrendPoints
+      ),
     };
   }
 
@@ -295,13 +306,14 @@ export class BasicContextManager {
       const newAlert: Alert = {
         ...alert,
         id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       const contextCache = await this.getCurrentContext();
       if (contextCache) {
         contextCache.current.alerts.recent.unshift(newAlert);
-        contextCache.current.alerts.recent = contextCache.current.alerts.recent.slice(0, 20); // 최대 20개 유지
+        contextCache.current.alerts.recent =
+          contextCache.current.alerts.recent.slice(0, 20); // 최대 20개 유지
 
         // 알림 카운트 업데이트
         contextCache.current.alerts.active++;
@@ -314,7 +326,9 @@ export class BasicContextManager {
         await this.redis.setex(this.CACHE_KEY, this.TTL, contextCache);
       }
 
-      console.log(`🚨 [BasicContext] ${alert.level} 알림 추가: ${alert.message}`);
+      console.log(
+        `🚨 [BasicContext] ${alert.level} 알림 추가: ${alert.message}`
+      );
     } catch (error) {
       console.error('❌ [BasicContext] 알림 추가 실패:', error);
     }
@@ -336,7 +350,7 @@ export class BasicContextManager {
         status: 'critical',
         score: 0,
         issues: ['기본 컨텍스트 데이터를 조회할 수 없음'],
-        recommendations: ['시스템 모니터링을 다시 시작하세요']
+        recommendations: ['시스템 모니터링을 다시 시작하세요'],
       };
     }
 
@@ -348,7 +362,9 @@ export class BasicContextManager {
     // CPU 상태 확인
     if (current.cpu.usage > 90) {
       issues.push(`CPU 사용률 높음 (${current.cpu.usage.toFixed(1)}%)`);
-      recommendations.push('불필요한 프로세스를 종료하거나 스케일링을 고려하세요');
+      recommendations.push(
+        '불필요한 프로세스를 종료하거나 스케일링을 고려하세요'
+      );
       score -= 30;
     } else if (current.cpu.usage > 70) {
       issues.push(`CPU 사용률 주의 필요 (${current.cpu.usage.toFixed(1)}%)`);
@@ -358,22 +374,30 @@ export class BasicContextManager {
 
     // 메모리 상태 확인
     if (current.memory.percentage > 90) {
-      issues.push(`메모리 사용률 높음 (${current.memory.percentage.toFixed(1)}%)`);
+      issues.push(
+        `메모리 사용률 높음 (${current.memory.percentage.toFixed(1)}%)`
+      );
       recommendations.push('메모리 정리 또는 추가 메모리를 고려하세요');
       score -= 25;
     } else if (current.memory.percentage > 80) {
-      issues.push(`메모리 사용률 주의 필요 (${current.memory.percentage.toFixed(1)}%)`);
+      issues.push(
+        `메모리 사용률 주의 필요 (${current.memory.percentage.toFixed(1)}%)`
+      );
       recommendations.push('메모리 사용률을 모니터링하세요');
       score -= 10;
     }
 
     // 디스크 상태 확인
     if (current.disk.percentage > 95) {
-      issues.push(`디스크 사용률 위험 (${current.disk.percentage.toFixed(1)}%)`);
+      issues.push(
+        `디스크 사용률 위험 (${current.disk.percentage.toFixed(1)}%)`
+      );
       recommendations.push('즉시 디스크 공간을 확보하세요');
       score -= 20;
     } else if (current.disk.percentage > 85) {
-      issues.push(`디스크 사용률 높음 (${current.disk.percentage.toFixed(1)}%)`);
+      issues.push(
+        `디스크 사용률 높음 (${current.disk.percentage.toFixed(1)}%)`
+      );
       recommendations.push('디스크 정리를 고려하세요');
       score -= 10;
     }
@@ -404,7 +428,7 @@ export class BasicContextManager {
       status,
       score: Math.max(0, score),
       issues,
-      recommendations
+      recommendations,
     };
   }
 
@@ -419,4 +443,4 @@ export class BasicContextManager {
       console.error('❌ [BasicContext] 캐시 정리 실패:', error);
     }
   }
-} 
+}

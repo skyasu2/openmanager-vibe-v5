@@ -1,12 +1,12 @@
 /**
  * ⚡ Cursor-Vercel 직접 연동 API 테스터 v1.0
- * 
+ *
  * 🎯 목적: Cursor IDE에서 Vercel 프로덕션 API 직접 테스트
  * 📊 성능: 평균 응답시간 47ms (로컬), 156ms (프로덕션)
  * 🔒 보안: X-Cursor-Dev-Mode 헤더 인증
- * 
+ *
  * @author SkyAsus Team
- * @date 2025-06-27 04:42 KST  
+ * @date 2025-06-27 04:42 KST
  * @version 1.0.0
  */
 

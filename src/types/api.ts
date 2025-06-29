@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod';
 // 실제 사용을 위해 유형을 가져옵니다. ESLint에서는 사용하지 않는다고 표시될 수 있지만
 // Zod 스키마와 TypeScript 타입 간의 일관성을 위해 필요합니다.
 /* import type { 
@@ -19,49 +19,51 @@ export const BaseApiResponseSchema = z.object({
   success: z.boolean(),
   timestamp: z.string(),
   requestId: z.string().optional(),
-  version: z.string().default('1.0.0')
-})
+  version: z.string().default('1.0.0'),
+});
 
 export const ApiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
   BaseApiResponseSchema.extend({
     data: dataSchema.optional(),
     error: z.string().optional(),
-    metadata: z.record(z.string()).optional()
-  })
+    metadata: z.record(z.string()).optional(),
+  });
 
 export type ApiResponse<T = unknown> = {
-  readonly success: boolean
-  readonly timestamp: string
-  readonly requestId?: string
-  readonly version: string
-  readonly data?: T
-  readonly error?: string
-  readonly metadata?: Readonly<Record<string, string>>
-}
+  readonly success: boolean;
+  readonly timestamp: string;
+  readonly requestId?: string;
+  readonly version: string;
+  readonly data?: T;
+  readonly error?: string;
+  readonly metadata?: Readonly<Record<string, string>>;
+};
 
 // 🏥 헬스체크 API 스키마
 export const HealthCheckResponseSchema = z.object({
   status: z.enum(['healthy', 'degraded', 'unhealthy']),
-  services: z.record(z.object({
-    status: z.enum(['connected', 'disconnected', 'error']),
-    latency: z.number().optional(),
-    lastCheck: z.string(),
-    details: z.string().optional()
-  })),
+  services: z.record(
+    z.object({
+      status: z.enum(['connected', 'disconnected', 'error']),
+      latency: z.number().optional(),
+      lastCheck: z.string(),
+      details: z.string().optional(),
+    })
+  ),
   uptime: z.number(),
   version: z.string(),
-  timestamp: z.string()
-})
+  timestamp: z.string(),
+});
 
-export type HealthCheckResponse = z.infer<typeof HealthCheckResponseSchema>
+export type HealthCheckResponse = z.infer<typeof HealthCheckResponseSchema>;
 
 // 🤖 MCP 쿼리 API 스키마
 export const MCPQueryRequestSchema = z.object({
   query: z.string().min(1).max(1000),
   context: z.record(z.string()).optional(),
   sessionId: z.string().optional(),
-  userId: z.string().optional()
-})
+  userId: z.string().optional(),
+});
 
 export const MCPQueryResponseSchema = z.object({
   id: z.string(),
@@ -72,11 +74,11 @@ export const MCPQueryResponseSchema = z.object({
   confidence: z.number().min(0).max(1),
   timestamp: z.string(),
   sources: z.array(z.string()),
-  actionable: z.boolean()
-})
+  actionable: z.boolean(),
+});
 
-export type MCPQueryRequest = z.infer<typeof MCPQueryRequestSchema>
-export type MCPQueryResponse = z.infer<typeof MCPQueryResponseSchema>
+export type MCPQueryRequest = z.infer<typeof MCPQueryRequestSchema>;
+export type MCPQueryResponse = z.infer<typeof MCPQueryResponseSchema>;
 
 // 🖥️ 서버 모니터링 API 스키마
 export const ServerMetricsSchema = z.object({
@@ -89,11 +91,11 @@ export const ServerMetricsSchema = z.object({
     packetsIn: z.number().min(0),
     packetsOut: z.number().min(0),
     latency: z.number().min(0),
-    connections: z.number().min(0)
+    connections: z.number().min(0),
   }),
   processes: z.number().min(0),
-  loadAverage: z.tuple([z.number(), z.number(), z.number()])
-})
+  loadAverage: z.tuple([z.number(), z.number(), z.number()]),
+});
 
 export const ServerStatusSchema = z.object({
   id: z.string(),
@@ -102,30 +104,32 @@ export const ServerStatusSchema = z.object({
   lastUpdate: z.string(),
   location: z.string(),
   uptime: z.number().min(0),
-  metrics: ServerMetricsSchema
-})
+  metrics: ServerMetricsSchema,
+});
 
 // 📊 대시보드 API 스키마
 export const DashboardDataSchema = z.object({
   servers: z.array(ServerStatusSchema),
-  alerts: z.array(z.object({
-    id: z.string(),
-    serverId: z.string(),
-    severity: z.enum(['low', 'medium', 'high', 'critical']),
-    type: z.string(),
-    message: z.string(),
-    timestamp: z.string(),
-    resolved: z.boolean()
-  })),
+  alerts: z.array(
+    z.object({
+      id: z.string(),
+      serverId: z.string(),
+      severity: z.enum(['low', 'medium', 'high', 'critical']),
+      type: z.string(),
+      message: z.string(),
+      timestamp: z.string(),
+      resolved: z.boolean(),
+    })
+  ),
   systemOverview: z.object({
     totalServers: z.number().min(0),
     onlineServers: z.number().min(0),
     criticalAlerts: z.number().min(0),
     averageResponseTime: z.number().min(0),
-    systemHealth: z.enum(['excellent', 'good', 'warning', 'critical'])
+    systemHealth: z.enum(['excellent', 'good', 'warning', 'critical']),
   }),
-  timestamp: z.string()
-})
+  timestamp: z.string(),
+});
 
 // 🔧 페이지네이션 스키마
 export const PaginationSchema = z.object({
@@ -133,14 +137,16 @@ export const PaginationSchema = z.object({
   limit: z.number().min(1).max(100),
   total: z.number().min(0),
   hasNext: z.boolean(),
-  hasPrev: z.boolean()
-})
+  hasPrev: z.boolean(),
+});
 
-export const PaginatedResponseSchema = <T extends z.ZodTypeAny>(itemSchema: T) =>
+export const PaginatedResponseSchema = <T extends z.ZodTypeAny>(
+  itemSchema: T
+) =>
   z.object({
     items: z.array(itemSchema),
-    pagination: PaginationSchema
-  })
+    pagination: PaginationSchema,
+  });
 
 // 🎯 에러 응답 스키마
 export const ErrorResponseSchema = z.object({
@@ -148,20 +154,20 @@ export const ErrorResponseSchema = z.object({
   error: z.string(),
   errorCode: z.string().optional(),
   details: z.record(z.unknown()).optional(),
-  timestamp: z.string()
-})
+  timestamp: z.string(),
+});
 
-export type ErrorResponse = z.infer<typeof ErrorResponseSchema>
+export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
 
 // 🛡️ 타입 가드 함수들
 export function isSuccessResponse<T>(
   response: ApiResponse<T>
 ): response is ApiResponse<T> & { success: true; data: T } {
-  return response.success === true && response.data !== undefined
+  return response.success === true && response.data !== undefined;
 }
 
 export function isErrorResponse(
   response: ApiResponse<unknown>
 ): response is ApiResponse<never> & { success: false; error: string } {
-  return response.success === false && response.error !== undefined
-} 
+  return response.success === false && response.error !== undefined;
+}

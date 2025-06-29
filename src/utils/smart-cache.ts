@@ -3,7 +3,7 @@
 
 /**
  * 🧠 지능형 캐싱 시스템
- * 
+ *
  * 서버/클라이언트 양쪽에서 사용 가능한 캐싱 솔루션
  */
 
@@ -39,7 +39,7 @@ export class SmartCache {
     refetchOnWindowFocus: false, // 서버 환경에서는 기본 false
     retry: 3,
     retryDelay: 1000,
-    dedupeTime: 2000
+    dedupeTime: 2000,
   };
 
   private constructor() {
@@ -92,7 +92,7 @@ export class SmartCache {
 
   async invalidateQueries(keyPrefix: string): Promise<void> {
     const keysToInvalidate: string[] = [];
-    
+
     for (const key of this.cache.keys()) {
       if (key.startsWith(keyPrefix)) {
         keysToInvalidate.push(key);
@@ -102,7 +102,7 @@ export class SmartCache {
     for (const key of keysToInvalidate) {
       this.cache.delete(key);
       this.pendingRequests.delete(key);
-      
+
       // 구독자들에게 무효화 알림
       const subs = this.subscribers.get(key);
       if (subs) {
@@ -123,9 +123,9 @@ export class SmartCache {
     if (!this.subscribers.has(key)) {
       this.subscribers.set(key, new Set());
     }
-    
+
     this.subscribers.get(key)!.add(callback);
-    
+
     // 현재 캐시된 데이터가 있으면 즉시 콜백 실행
     const cached = this.cache.get(key);
     if (cached && !cached.error) {
@@ -135,7 +135,7 @@ export class SmartCache {
         console.error(`❌ 구독 콜백 실패: ${key}`, error);
       }
     }
-    
+
     // 구독 해제 함수 반환
     return () => {
       const subs = this.subscribers.get(key);
@@ -150,7 +150,7 @@ export class SmartCache {
 
   removeQueries(keyPrefix: string): void {
     const keysToRemove: string[] = [];
-    
+
     for (const key of this.cache.keys()) {
       if (key.startsWith(keyPrefix)) {
         keysToRemove.push(key);
@@ -189,7 +189,7 @@ export class SmartCache {
       freshEntries: freshCount,
       staleEntries: staleCount,
       totalSize: this.calculateCacheSize(),
-      hitRate: 0.85 // 임시값, 실제로는 히트/미스 카운터 필요
+      hitRate: 0.85, // 임시값, 실제로는 히트/미스 카운터 필요
     };
   }
 
@@ -203,7 +203,7 @@ export class SmartCache {
 
     try {
       const result = await fetcher();
-      
+
       // 성공적으로 데이터를 가져온 경우
       this.updateCacheEntry(key, {
         data: result,
@@ -211,7 +211,7 @@ export class SmartCache {
         isLoading: false,
         error: undefined,
         retryCount: 0,
-        isStale: false
+        isStale: false,
       });
 
       // 구독자들에게 새 데이터 알림
@@ -221,10 +221,15 @@ export class SmartCache {
     } catch (error) {
       // 재시도 가능한 경우
       if (retryCount < options.retry) {
-        console.warn(`⚠️ 재시도 ${retryCount + 1}/${options.retry}: ${key}`, error);
-        
+        console.warn(
+          `⚠️ 재시도 ${retryCount + 1}/${options.retry}: ${key}`,
+          error
+        );
+
         // 지연 후 재시도
-        await new Promise(resolve => setTimeout(resolve, options.retryDelay * (retryCount + 1)));
+        await new Promise(resolve =>
+          setTimeout(resolve, options.retryDelay * (retryCount + 1))
+        );
         return this.fetchWithRetry(key, fetcher, options, retryCount + 1);
       }
 
@@ -232,7 +237,7 @@ export class SmartCache {
       this.updateCacheEntry(key, {
         isLoading: false,
         error: error as Error,
-        retryCount
+        retryCount,
       });
 
       throw error;
@@ -257,18 +262,20 @@ export class SmartCache {
 
   private updateCacheEntry(key: string, updates: Partial<CacheEntry>): void {
     const existing = this.cache.get(key);
-    const updated = existing ? { ...existing, ...updates } : {
-      data: null,
-      timestamp: Date.now(),
-      staleTime: this.defaultOptions.staleTime,
-      cacheTime: this.defaultOptions.cacheTime,
-      refetchOnWindowFocus: this.defaultOptions.refetchOnWindowFocus,
-      retryCount: 0,
-      isStale: false,
-      isLoading: false,
-      ...updates
-    };
-    
+    const updated = existing
+      ? { ...existing, ...updates }
+      : {
+          data: null,
+          timestamp: Date.now(),
+          staleTime: this.defaultOptions.staleTime,
+          cacheTime: this.defaultOptions.cacheTime,
+          refetchOnWindowFocus: this.defaultOptions.refetchOnWindowFocus,
+          retryCount: 0,
+          isStale: false,
+          isLoading: false,
+          ...updates,
+        };
+
     this.cache.set(key, updated);
   }
 
@@ -317,10 +324,13 @@ export class SmartCache {
 
   private setupCleanupInterval(): void {
     // 10분마다 만료된 캐시 정리
-    setInterval(() => {
-      this.cleanupExpiredEntries();
-      this.optimizeCache();
-    }, 10 * 60 * 1000); // 10분마다 정리 (성능 최적화)
+    setInterval(
+      () => {
+        this.cleanupExpiredEntries();
+        this.optimizeCache();
+      },
+      10 * 60 * 1000
+    ); // 10분마다 정리 (성능 최적화)
   }
 
   private cleanupExpiredEntries(): void {
@@ -348,9 +358,10 @@ export class SmartCache {
     try {
       const jsonString = JSON.stringify(Array.from(this.cache.entries()));
       const sizeInBytes = new Blob([jsonString]).size;
-      
+
       if (sizeInBytes < 1024) return `${sizeInBytes} B`;
-      if (sizeInBytes < 1024 * 1024) return `${(sizeInBytes / 1024).toFixed(1)} KB`;
+      if (sizeInBytes < 1024 * 1024)
+        return `${(sizeInBytes / 1024).toFixed(1)} KB`;
       return `${(sizeInBytes / (1024 * 1024)).toFixed(1)} MB`;
     } catch {
       return '계산 불가';
@@ -359,4 +370,4 @@ export class SmartCache {
 }
 
 // 싱글톤 인스턴스 내보내기
-export const smartCache = SmartCache.getInstance(); 
+export const smartCache = SmartCache.getInstance();

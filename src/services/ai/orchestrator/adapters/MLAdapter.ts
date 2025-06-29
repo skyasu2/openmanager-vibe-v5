@@ -13,7 +13,7 @@ export class MLAdapter implements EngineAdapter {
     try {
       // 실제 ML 기반 분석 로직
       const analysis = await this.performMLAnalysis(question);
-      
+
       return {
         success: true,
         answer: analysis.answer,
@@ -44,7 +44,7 @@ export class MLAdapter implements EngineAdapter {
     patterns: string[];
   }> {
     const questionLower = question.toLowerCase();
-    
+
     // 성능 관련 질문 분석
     if (this.isPerformanceQuery(questionLower)) {
       return {
@@ -54,7 +54,7 @@ export class MLAdapter implements EngineAdapter {
         patterns: ['cpu_trend', 'memory_pattern', 'response_time'],
       };
     }
-    
+
     // 장애 관련 질문 분석
     if (this.isTroubleshootingQuery(questionLower)) {
       return {
@@ -64,7 +64,7 @@ export class MLAdapter implements EngineAdapter {
         patterns: ['error_correlation', 'anomaly_detection'],
       };
     }
-    
+
     // 예측 관련 질문 분석
     if (this.isPredictionQuery(questionLower)) {
       return {
@@ -74,7 +74,7 @@ export class MLAdapter implements EngineAdapter {
         patterns: ['trend_analysis', 'capacity_planning'],
       };
     }
-    
+
     // 일반적인 분석
     return {
       answer: this.generateGeneralAnalysis(questionLower),
@@ -85,17 +85,41 @@ export class MLAdapter implements EngineAdapter {
   }
 
   private isPerformanceQuery(question: string): boolean {
-    const performanceKeywords = ['성능', '속도', 'cpu', '메모리', '응답시간', 'performance', 'latency'];
+    const performanceKeywords = [
+      '성능',
+      '속도',
+      'cpu',
+      '메모리',
+      '응답시간',
+      'performance',
+      'latency',
+    ];
     return performanceKeywords.some(keyword => question.includes(keyword));
   }
 
   private isTroubleshootingQuery(question: string): boolean {
-    const troubleKeywords = ['문제', '오류', '장애', '에러', 'error', '안됨', '실패'];
+    const troubleKeywords = [
+      '문제',
+      '오류',
+      '장애',
+      '에러',
+      'error',
+      '안됨',
+      '실패',
+    ];
     return troubleKeywords.some(keyword => question.includes(keyword));
   }
 
   private isPredictionQuery(question: string): boolean {
-    const predictionKeywords = ['예측', '전망', '미래', '예상', 'predict', '트렌드', 'trend'];
+    const predictionKeywords = [
+      '예측',
+      '전망',
+      '미래',
+      '예상',
+      'predict',
+      '트렌드',
+      'trend',
+    ];
     return predictionKeywords.some(keyword => question.includes(keyword));
   }
 
@@ -114,4 +138,4 @@ export class MLAdapter implements EngineAdapter {
   private generateGeneralAnalysis(question: string): string {
     return `ML 일반 분석 결과: 질문 "${question}"에 대한 데이터 기반 분석을 수행했습니다. 현재 시스템 상태는 전반적으로 안정적이며, 주요 지표들이 정상 범위 내에서 운영되고 있습니다. 추가적인 세부 분석이 필요한 경우 구체적인 메트릭을 지정해 주세요.`;
   }
-} 
+}

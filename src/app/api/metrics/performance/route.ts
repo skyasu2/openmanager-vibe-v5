@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 /**
  * 📊 실시간 성능 메트릭 API
  * GET /api/metrics/performance
- * 
+ *
  * 시스템의 실시간 성능 데이터를 제공합니다
  */
 export async function GET(request: NextRequest) {
@@ -23,18 +23,20 @@ export async function GET(request: NextRequest) {
       metadata: {
         dataPoints: performanceData.length,
         resolution: getResolution(timeRange),
-        nextUpdate: new Date(Date.now() + 30000).toISOString() // 30초 후 업데이트
-      }
+        nextUpdate: new Date(Date.now() + 30000).toISOString(), // 30초 후 업데이트
+      },
     });
-
   } catch (error) {
     console.error('❌ 성능 메트릭 조회 오류:', error);
 
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : '알 수 없는 오류',
-      timestamp: new Date().toISOString()
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -47,7 +49,7 @@ async function collectPerformanceMetrics(timeRange: string, metric: string) {
     '1h': 60 * 60 * 1000,
     '6h': 6 * 60 * 60 * 1000,
     '24h': 24 * 60 * 60 * 1000,
-    '7d': 7 * 24 * 60 * 60 * 1000
+    '7d': 7 * 24 * 60 * 60 * 1000,
   };
 
   const duration = ranges[timeRange as keyof typeof ranges] || ranges['1h'];
@@ -58,7 +60,7 @@ async function collectPerformanceMetrics(timeRange: string, metric: string) {
   const metrics: any[] = [];
 
   for (let i = 0; i < dataPoints; i++) {
-    const timestamp = startTime + (i * interval);
+    const timestamp = startTime + i * interval;
     const dataPoint = generateMetricDataPoint(timestamp, metric);
     metrics.push(dataPoint);
   }
@@ -72,7 +74,7 @@ async function collectPerformanceMetrics(timeRange: string, metric: string) {
 function generateMetricDataPoint(timestamp: number, metric: string) {
   const baseData = {
     timestamp: new Date(timestamp).toISOString(),
-    unixTimestamp: timestamp
+    unixTimestamp: timestamp,
   };
 
   // 실제 프로덕션에서는 Redis나 데이터베이스에서 실제 메트릭을 가져옴
@@ -84,9 +86,9 @@ function generateMetricDataPoint(timestamp: number, metric: string) {
         loadAverage: [
           Math.random() * 2 + 0.5,
           Math.random() * 2 + 0.8,
-          Math.random() * 2 + 1.0
-        ]
-      }
+          Math.random() * 2 + 1.0,
+        ],
+      },
     });
   }
 
@@ -97,8 +99,8 @@ function generateMetricDataPoint(timestamp: number, metric: string) {
         total: 8192, // 8GB
         available: Math.random() * 3000 + 2000,
         buffers: Math.random() * 500 + 200,
-        cached: Math.random() * 1000 + 500
-      }
+        cached: Math.random() * 1000 + 500,
+      },
     });
   }
 
@@ -111,8 +113,8 @@ function generateMetricDataPoint(timestamp: number, metric: string) {
         readOps: Math.random() * 1000 + 500,
         writeOps: Math.random() * 500 + 200,
         readBytes: Math.random() * 10000000 + 5000000,
-        writeBytes: Math.random() * 5000000 + 2000000
-      }
+        writeBytes: Math.random() * 5000000 + 2000000,
+      },
     });
   }
 
@@ -124,8 +126,8 @@ function generateMetricDataPoint(timestamp: number, metric: string) {
         packetsIn: Math.random() * 1000 + 500,
         packetsOut: Math.random() * 800 + 300,
         errors: Math.floor(Math.random() * 5),
-        dropped: Math.floor(Math.random() * 3)
-      }
+        dropped: Math.floor(Math.random() * 3),
+      },
     });
   }
 
@@ -137,14 +139,14 @@ function generateMetricDataPoint(timestamp: number, metric: string) {
         processes: Math.floor(Math.random() * 200 + 100),
         threads: Math.floor(Math.random() * 1000 + 500),
         handles: Math.floor(Math.random() * 10000 + 5000),
-        temperature: Math.random() * 20 + 40 // 40-60°C
+        temperature: Math.random() * 20 + 40, // 40-60°C
       },
       application: {
         responseTime: Math.random() * 200 + 50, // 50-250ms
         throughput: Math.random() * 1000 + 500, // 500-1500 req/min
         errorRate: Math.random() * 2, // 0-2%
-        activeConnections: Math.floor(Math.random() * 100 + 50)
-      }
+        activeConnections: Math.floor(Math.random() * 100 + 50),
+      },
     });
   }
 
@@ -156,10 +158,10 @@ function generateMetricDataPoint(timestamp: number, metric: string) {
  */
 function getDataPointCount(timeRange: string): number {
   const counts = {
-    '1h': 60,   // 1분마다
-    '6h': 72,   // 5분마다
+    '1h': 60, // 1분마다
+    '6h': 72, // 5분마다
     '24h': 144, // 10분마다
-    '7d': 168   // 1시간마다
+    '7d': 168, // 1시간마다
   };
 
   return counts[timeRange as keyof typeof counts] || 60;
@@ -173,7 +175,7 @@ function getResolution(timeRange: string): string {
     '1h': '1분',
     '6h': '5분',
     '24h': '10분',
-    '7d': '1시간'
+    '7d': '1시간',
   };
 
   return resolutions[timeRange as keyof typeof resolutions] || '1분';
@@ -191,4 +193,4 @@ export async function OPTIONS(request: NextRequest) {
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
   });
-} 
+}

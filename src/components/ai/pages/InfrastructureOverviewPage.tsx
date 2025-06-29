@@ -292,12 +292,13 @@ export default function InfrastructureOverviewPage({
             <div className='text-xs text-gray-600'>💻 Total CPU</div>
             <div className='w-full bg-gray-200 rounded-full h-1.5 mt-1'>
               <div
-                className={`h-1.5 rounded-full transition-all duration-500 ${stats.totalCpu >= 90
-                  ? 'bg-red-500'
-                  : stats.totalCpu >= 70
-                    ? 'bg-yellow-500'
-                    : 'bg-green-500'
-                  }`}
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  stats.totalCpu >= 90
+                    ? 'bg-red-500'
+                    : stats.totalCpu >= 70
+                      ? 'bg-yellow-500'
+                      : 'bg-green-500'
+                }`}
                 style={{ width: `${Math.min(stats.totalCpu, 100)}%` }}
               />
             </div>
@@ -320,12 +321,13 @@ export default function InfrastructureOverviewPage({
             <div className='text-xs text-gray-600'>💾 Total RAM</div>
             <div className='w-full bg-gray-200 rounded-full h-1.5 mt-1'>
               <div
-                className={`h-1.5 rounded-full transition-all duration-500 ${stats.totalRam >= 90
-                  ? 'bg-red-500'
-                  : stats.totalRam >= 70
-                    ? 'bg-yellow-500'
-                    : 'bg-green-500'
-                  }`}
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  stats.totalRam >= 90
+                    ? 'bg-red-500'
+                    : stats.totalRam >= 70
+                      ? 'bg-yellow-500'
+                      : 'bg-green-500'
+                }`}
                 style={{ width: `${Math.min(stats.totalRam, 100)}%` }}
               />
             </div>
@@ -348,12 +350,13 @@ export default function InfrastructureOverviewPage({
             <div className='text-xs text-gray-600'>💿 Total Disk</div>
             <div className='w-full bg-gray-200 rounded-full h-1.5 mt-1'>
               <div
-                className={`h-1.5 rounded-full transition-all duration-500 ${stats.totalDisk >= 90
-                  ? 'bg-red-500'
-                  : stats.totalDisk >= 70
-                    ? 'bg-yellow-500'
-                    : 'bg-green-500'
-                  }`}
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  stats.totalDisk >= 90
+                    ? 'bg-red-500'
+                    : stats.totalDisk >= 70
+                      ? 'bg-yellow-500'
+                      : 'bg-green-500'
+                }`}
                 style={{ width: `${Math.min(stats.totalDisk, 100)}%` }}
               />
             </div>

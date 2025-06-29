@@ -221,24 +221,32 @@ export class MasterAIEngine {
 
     try {
       // 🚀 Vercel 최적화: 타임아웃과 함께 실제 엔진 실행
-      const queryPromise = this.executeActualQuery(request, thinkingSteps, enableThinking);
-      
+      const queryPromise = this.executeActualQuery(
+        request,
+        thinkingSteps,
+        enableThinking
+      );
+
       if (VERCEL_OPTIMIZATION.isVercel) {
         // Vercel 환경에서는 타임아웃 적용
         const timeoutPromise = new Promise<never>((_, reject) => {
           setTimeout(() => reject(new Error('AI Engine Timeout')), timeout);
         });
-        
+
         const result = await Promise.race([queryPromise, timeoutPromise]);
         return result;
       } else {
         // 개발 환경에서는 타임아웃 없이 실행
         return await queryPromise;
       }
-      
     } catch (error) {
       // 에러 발생 시 폴백 처리
-      return await this.handleQueryError(request, error as Error, startTime, thinkingSteps);
+      return await this.handleQueryError(
+        request,
+        error as Error,
+        startTime,
+        thinkingSteps
+      );
     }
   }
 
@@ -246,8 +254,8 @@ export class MasterAIEngine {
    * 🎯 실제 쿼리 실행 (원본 로직 복원)
    */
   private async executeActualQuery(
-    request: AIEngineRequest, 
-    thinkingSteps: AIThinkingStep[], 
+    request: AIEngineRequest,
+    thinkingSteps: AIThinkingStep[],
     enableThinking: boolean
   ): Promise<AIEngineResponse> {
     const startTime = Date.now();
@@ -404,11 +412,41 @@ export class MasterAIEngine {
         if (!Array.isArray(request.data)) {
           // 기본 검색 대상 데이터 생성
           const defaultSearchData = [
-            { id: 'server-1', name: '웹서버-01', status: 'running', cpu: 45, memory: 60 },
-            { id: 'server-2', name: '데이터베이스-01', status: 'warning', cpu: 78, memory: 85 },
-            { id: 'server-3', name: 'API서버-01', status: 'running', cpu: 32, memory: 45 },
-            { id: 'server-4', name: '캐시서버-01', status: 'running', cpu: 25, memory: 30 },
-            { id: 'server-5', name: '로드밸런서-01', status: 'running', cpu: 15, memory: 20 }
+            {
+              id: 'server-1',
+              name: '웹서버-01',
+              status: 'running',
+              cpu: 45,
+              memory: 60,
+            },
+            {
+              id: 'server-2',
+              name: '데이터베이스-01',
+              status: 'warning',
+              cpu: 78,
+              memory: 85,
+            },
+            {
+              id: 'server-3',
+              name: 'API서버-01',
+              status: 'running',
+              cpu: 32,
+              memory: 45,
+            },
+            {
+              id: 'server-4',
+              name: '캐시서버-01',
+              status: 'running',
+              cpu: 25,
+              memory: 30,
+            },
+            {
+              id: 'server-5',
+              name: '로드밸런서-01',
+              status: 'running',
+              cpu: 15,
+              memory: 20,
+            },
           ];
           request.data = defaultSearchData;
         }
@@ -854,11 +892,7 @@ export class MasterAIEngine {
 
     if (thinkingSteps.length > 0) {
       thinkingSteps.push(
-        this.createThinkingStep(
-          'error',
-          '오류 발생',
-          error.message
-        )
+        this.createThinkingStep('error', '오류 발생', error.message)
       );
     }
 

@@ -20,7 +20,8 @@ export function evaluateResponse(results: EngineResult[]): {
   const qualityScore = Math.round(avgConfidence * 100);
 
   const sufficient =
-    successful.length >= MIN_SUCCESS_ENGINES && qualityScore >= DEFAULT_THRESHOLD;
+    successful.length >= MIN_SUCCESS_ENGINES &&
+    qualityScore >= DEFAULT_THRESHOLD;
 
   return { qualityScore, sufficient };
-} 
+}

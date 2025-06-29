@@ -1,6 +1,6 @@
 /**
  * StatusIndicator Component
- * 
+ *
  * 🟢 AI 상태 표시 컴포넌트
  */
 
@@ -15,7 +15,7 @@ interface StatusIndicatorProps {
 
 export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   status = 'online',
-  className = ''
+  className = '',
 }) => {
   const getStatusConfig = () => {
     switch (status) {
@@ -23,25 +23,25 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
         return {
           color: 'bg-green-500',
           label: '온라인',
-          icon: '🟢'
+          icon: '🟢',
         };
       case 'offline':
         return {
           color: 'bg-red-500',
           label: '오프라인',
-          icon: '🔴'
+          icon: '🔴',
         };
       case 'loading':
         return {
           color: 'bg-yellow-500 animate-pulse',
           label: '연결 중',
-          icon: '🟡'
+          icon: '🟡',
         };
       default:
         return {
           color: 'bg-gray-500',
           label: '알 수 없음',
-          icon: '⚪'
+          icon: '⚪',
         };
     }
   };
@@ -51,9 +51,9 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   return (
     <div className={`flex items-center space-x-1 ${className}`}>
       <div className={`w-2 h-2 rounded-full ${config.color}`} />
-      <span className="text-xs text-gray-500 dark:text-gray-400">
+      <span className='text-xs text-gray-500 dark:text-gray-400'>
         {config.label}
       </span>
     </div>
   );
-}; 
+};

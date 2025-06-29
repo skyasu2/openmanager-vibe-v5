@@ -185,8 +185,13 @@ export const useAIChat = (options: ChatHookOptions) => {
         // 응답 상태 확인
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`❌ Smart Fallback API 오류: ${response.status} ${response.statusText}`, errorText);
-          throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+          console.error(
+            `❌ Smart Fallback API 오류: ${response.status} ${response.statusText}`,
+            errorText
+          );
+          throw new Error(
+            `HTTP ${response.status}: ${response.statusText} - ${errorText}`
+          );
         }
 
         // JSON 파싱 안전하게 처리

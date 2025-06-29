@@ -60,7 +60,10 @@ export function useSystemAlerts() {
     fetchAlerts(); // 초기 로드
 
     // 🎯 데이터 수집 간격과 동기화
-    const intervalId = setInterval(fetchAlerts, calculateOptimalCollectionInterval());
+    const intervalId = setInterval(
+      fetchAlerts,
+      calculateOptimalCollectionInterval()
+    );
 
     return () => clearInterval(intervalId); // 컴포넌트 언마운트 시 인터벌 정리
   }, []);

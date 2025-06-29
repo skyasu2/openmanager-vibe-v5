@@ -1,6 +1,6 @@
 /**
  * AI Agent Plugin System
- * 
+ *
  * 🔌 확장 가능한 플러그인 아키텍처
  * - 런타임 플러그인 로딩
  * - 이벤트 기반 훅 시스템
@@ -52,7 +52,7 @@ export class PluginManager {
 
     // 기본 플러그인 로드
     await this.loadBuiltinPlugins();
-    
+
     this.isInitialized = true;
     this.context.logger.info('Plugin Manager initialized');
   }
@@ -72,7 +72,7 @@ export class PluginManager {
 
     // 플러그인 초기화
     await plugin.initialize(this.context);
-    
+
     // 훅 등록
     for (const hook of plugin.manifest.hooks) {
       this.registerHook(hook, plugin);
@@ -174,7 +174,7 @@ export class PluginManager {
       name: plugin.manifest.name,
       version: plugin.manifest.version,
       active: true,
-      hooks: plugin.manifest.hooks
+      hooks: plugin.manifest.hooks,
     };
   }
 
@@ -249,7 +249,7 @@ export class DebugPlugin implements Plugin {
     version: '1.0.0',
     description: 'Debug and development tools',
     author: 'OpenManager',
-    hooks: ['onQuery', 'onResponse', 'onIntent', 'onAction']
+    hooks: ['onQuery', 'onResponse', 'onIntent', 'onAction'],
   };
 
   private context!: PluginContext;
@@ -266,7 +266,10 @@ export class DebugPlugin implements Plugin {
 
   async onResponse(response: any, context: any): Promise<any> {
     this.context.logger.debug('Response generated:', { response, context });
-    return { ...response, debugInfo: { responseLength: response.response?.length || 0 } };
+    return {
+      ...response,
+      debugInfo: { responseLength: response.response?.length || 0 },
+    };
   }
 
   async onIntent(intent: any, context: any): Promise<any> {
@@ -287,7 +290,7 @@ export class MetricsPlugin implements Plugin {
     version: '1.0.0',
     description: 'Performance and usage metrics',
     author: 'OpenManager',
-    hooks: ['onQuery', 'onResponse', 'onIntent']
+    hooks: ['onQuery', 'onResponse', 'onIntent'],
   };
 
   private context!: PluginContext;
@@ -303,7 +306,7 @@ export class MetricsPlugin implements Plugin {
     this.queryCount++;
     this.context.metrics.increment('ai_agent.queries.total');
     this.context.metrics.gauge('ai_agent.queries.count', this.queryCount);
-    
+
     context.startTime = Date.now();
     return {};
   }
@@ -313,9 +316,10 @@ export class MetricsPlugin implements Plugin {
       const duration = Date.now() - context.startTime;
       this.responseTime.push(duration);
       this.context.metrics.timing('ai_agent.response.duration', duration);
-      
+
       // 평균 응답 시간 계산
-      const avgTime = this.responseTime.reduce((a, b) => a + b, 0) / this.responseTime.length;
+      const avgTime =
+        this.responseTime.reduce((a, b) => a + b, 0) / this.responseTime.length;
       this.context.metrics.gauge('ai_agent.response.avg_duration', avgTime);
     }
 
@@ -324,8 +328,13 @@ export class MetricsPlugin implements Plugin {
   }
 
   async onIntent(intent: any, context: any): Promise<any> {
-    this.context.metrics.increment('ai_agent.intents.total', 1, { intent: intent.name });
-    this.context.metrics.histogram('ai_agent.intent.confidence', intent.confidence);
+    this.context.metrics.increment('ai_agent.intents.total', 1, {
+      intent: intent.name,
+    });
+    this.context.metrics.histogram(
+      'ai_agent.intent.confidence',
+      intent.confidence
+    );
     return intent;
   }
 }
@@ -337,17 +346,20 @@ export class CachePlugin implements Plugin {
     version: '1.0.0',
     description: 'Response caching for performance',
     author: 'OpenManager',
-    hooks: ['onQuery', 'onResponse']
+    hooks: ['onQuery', 'onResponse'],
   };
 
   private context!: PluginContext;
-  private cache = new Map<string, { response: any; timestamp: number; ttl: number }>();
+  private cache = new Map<
+    string,
+    { response: any; timestamp: number; ttl: number }
+  >();
   private defaultTTL = 5 * 60 * 1000; // 5분
 
   async initialize(context: PluginContext): Promise<void> {
     this.context = context;
     this.context.logger.info('Cache plugin initialized');
-    
+
     // 캐시 정리 스케줄러
     setInterval(() => this.cleanupCache(), 60000); // 1분마다
   }
@@ -355,14 +367,14 @@ export class CachePlugin implements Plugin {
   async onQuery(query: string, context: any): Promise<any> {
     const cacheKey = this.generateCacheKey(query, context);
     const cached = this.cache.get(cacheKey);
-    
+
     if (cached && Date.now() < cached.timestamp + cached.ttl) {
       this.context.logger.debug('Cache hit:', cacheKey);
       this.context.metrics.increment('ai_agent.cache.hits');
       context.fromCache = true;
       return cached.response;
     }
-    
+
     this.context.metrics.increment('ai_agent.cache.misses');
     context.cacheKey = cacheKey;
     return {};
@@ -377,7 +389,7 @@ export class CachePlugin implements Plugin {
       this.cache.set(context.cacheKey, {
         response,
         timestamp: Date.now(),
-        ttl: this.defaultTTL
+        ttl: this.defaultTTL,
       });
       this.context.logger.debug('Response cached:', context.cacheKey);
     }
@@ -393,16 +405,16 @@ export class CachePlugin implements Plugin {
   private cleanupCache(): void {
     const now = Date.now();
     let cleaned = 0;
-    
+
     for (const [key, value] of this.cache.entries()) {
       if (now > value.timestamp + value.ttl) {
         this.cache.delete(key);
         cleaned++;
       }
     }
-    
+
     if (cleaned > 0) {
       this.context.logger.debug(`Cache cleanup: ${cleaned} entries removed`);
     }
   }
-} 
+}

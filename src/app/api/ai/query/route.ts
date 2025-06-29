@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       response: `질문을 받았습니다: "${query}". 현재 간단한 응답 모드로 동작 중입니다.`,
-      confidence: 0.5
+      confidence: 0.5,
     });
   } catch (error) {
     return NextResponse.json(
@@ -18,4 +18,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

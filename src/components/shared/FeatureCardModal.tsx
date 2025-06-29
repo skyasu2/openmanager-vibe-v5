@@ -423,12 +423,13 @@ const TechCard = ({ tech, index }: { tech: TechItem; index: number }) => {
       <div className='relative flex items-center justify-between mb-3'>
         <div className='flex items-center gap-2'>
           <div
-            className={`w-2 h-2 rounded-full ${tech.status === 'active'
-              ? 'bg-green-400'
-              : tech.status === 'ready'
-                ? 'bg-yellow-400'
-                : 'bg-gray-400'
-              }`}
+            className={`w-2 h-2 rounded-full ${
+              tech.status === 'active'
+                ? 'bg-green-400'
+                : tech.status === 'ready'
+                  ? 'bg-yellow-400'
+                  : 'bg-gray-400'
+            }`}
           />
           <span className='text-xs text-gray-400 capitalize'>
             {tech.status}
@@ -605,7 +606,7 @@ export default function FeatureCardModal({
                   </h4>
                   <div className='grid grid-cols-1 lg:grid-cols-2 gap-3'>
                     {selectedCard.features &&
-                      selectedCard.features.length > 0 ? (
+                    selectedCard.features.length > 0 ? (
                       selectedCard.features.map(
                         (feature: string, index: number) => (
                           <motion.div

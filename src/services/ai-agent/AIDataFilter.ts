@@ -68,10 +68,10 @@ export interface AIDataFilterOptions {
 
   // AI 분석 타입별 최적화
   analysisType?:
-  | 'anomaly_detection'
-  | 'performance_prediction'
-  | 'pattern_analysis'
-  | 'recommendation';
+    | 'anomaly_detection'
+    | 'performance_prediction'
+    | 'pattern_analysis'
+    | 'recommendation';
 
   // 시간 범위
   timeWindow?: {

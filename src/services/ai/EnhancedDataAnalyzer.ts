@@ -474,7 +474,12 @@ export class EnhancedDataAnalyzer {
     reliability: any,
     efficiency: any
   ) {
-    const recommendations: Array<{ priority: 'low' | 'medium' | 'high'; action: string; impact: string; effort: string }> = [];
+    const recommendations: Array<{
+      priority: 'low' | 'medium' | 'high';
+      action: string;
+      impact: string;
+      effort: string;
+    }> = [];
 
     // 성능 개선
     if (performance.score < 70) {
@@ -521,7 +526,11 @@ export class EnhancedDataAnalyzer {
   }
 
   private generateAlerts(servers: ServerInstance[], performance: any) {
-    const alerts: Array<{ level: 'critical' | 'warning' | 'info'; message: string; affectedComponents: string[] }> = [];
+    const alerts: Array<{
+      level: 'critical' | 'warning' | 'info';
+      message: string;
+      affectedComponents: string[];
+    }> = [];
 
     // 임계 상태 서버
     const criticalServers = servers.filter(s => s.health.score < 30);

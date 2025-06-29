@@ -511,13 +511,17 @@ export class MCPAIRouter {
       engines: {
         korean: { status: 'ready' },
         transformers: { status: 'ready' },
-        anomalyDetector: { status: orchestratorStatus.anomalyDetectorReady ? 'ready' : 'not_ready' }
+        anomalyDetector: {
+          status: orchestratorStatus.anomalyDetectorReady
+            ? 'ready'
+            : 'not_ready',
+        },
       },
       stats: {
         totalRequests: 0,
         avgProcessingTime: 0,
-        errors: 0
-      }
+        errors: 0,
+      },
     };
   }
 
