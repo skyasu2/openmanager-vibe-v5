@@ -272,10 +272,10 @@ export function generateSpecializedMetrics(
   }
 }
 
-// 🔧 기본 설정 상수
+// 🔧 기본 설정 상수 - 데이터 생성과 수집 분리 전략
 export const DEFAULT_CONFIG = {
   maxServers: 30,
-  updateInterval: 30000, // 30초
+  updateInterval: 32000, // 32초 (데이터 생성 기본값, 30-35초 범위)
   enableRealtime: true,
   serverArchitecture: 'load-balanced' as const,
   enableRedis: true,

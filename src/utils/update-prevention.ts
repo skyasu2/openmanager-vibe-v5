@@ -12,16 +12,16 @@ export const UPDATE_PREVENTION_CONFIG = {
   AI_INSIGHTS_CACHE_DURATION: 45 * 1000, // 45초 (AI용)
   AI_INSIGHTS_SIGNIFICANT_CHANGE_THRESHOLD: 0.2, // 20%
 
-  // 서버 메트릭 관련 (30-40초 범위)
-  SERVER_METRICS_MIN_INTERVAL: 35 * 1000, // 35초
-  SERVER_METRICS_CACHE_DURATION: 35 * 1000, // 35초
+  // 서버 메트릭 관련 (40-45초) - 데이터 수집 간격
+  SERVER_METRICS_MIN_INTERVAL: 42 * 1000, // 42초 (수집 간격)
+  SERVER_METRICS_CACHE_DURATION: 42 * 1000, // 42초
 
   // 일반적인 API 호출
   DEFAULT_MIN_INTERVAL: 60 * 1000, // 1분
   DEFAULT_CACHE_DURATION: 35 * 1000, // 35초 (서버 모니터링과 동일)
 
   // 수동 갱신 제한
-  MANUAL_REFRESH_MIN_INTERVAL: 35 * 1000, // 35초
+  MANUAL_REFRESH_MIN_INTERVAL: 30 * 1000, // 30초 (데이터 생성 간격 고려)
 };
 
 // 📊 갱신 이력 추적

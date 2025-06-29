@@ -37,9 +37,9 @@ class RealtimeDataManager {
   private isRunning = false;
   private updateCount = 0;
 
-  // 환경별 갱신 주기 설정
+  // 환경별 갱신 주기 설정 - 데이터 수집 전용 (40-45초)
   private config: UpdateConfig = {
-    high: process.env.NODE_ENV === 'development' ? 30000 : 60000, // 30초/60초
+    high: process.env.NODE_ENV === 'development' ? 42000 : 43000, // 42-43초 (수집 간격)
     medium: process.env.NODE_ENV === 'development' ? 60000 : 120000, // 60초/120초
     low: process.env.NODE_ENV === 'development' ? 120000 : 300000, // 120초/300초
   };

@@ -97,7 +97,7 @@ export class RealServerDataGenerator {
 
     this.config = {
       maxServers: centralConfig.maxServers, // 🎯 중앙 설정에서 서버 개수 가져오기 (기본 20개)
-      updateInterval: centralConfig.cache.updateInterval, // 🎯 중앙 설정에서 업데이트 간격 가져오기
+      updateInterval: centralConfig.cache.updateInterval, // 🎯 데이터 생성 간격 (30-35초 동적)
       enableRealtime: true,
       serverArchitecture: 'load-balanced',
       enableRedis: !this.shouldUseMockRedis(), // 🎭 목업 모드 결정

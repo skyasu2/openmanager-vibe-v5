@@ -73,8 +73,8 @@ interface GlobalRealtimeState {
   clearError: () => void;
 }
 
-// 🔧 통합 실시간 설정
-const UNIFIED_POLLING_INTERVAL = 30000; // 30초 통일
+// 🔧 통합 실시간 설정 - 데이터 수집 전용 (40-45초)
+const UNIFIED_POLLING_INTERVAL = 42000; // 42초 (데이터 수집 간격, 생성보다 10초 늦음)
 const MAX_RETRY_COUNT = 5;
 const RETRY_DELAY_BASE = 2000;
 

@@ -1,6 +1,9 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { subscribeWithSelector } from 'zustand/middleware';
+import {
+  createJSONStorage,
+  persist,
+  subscribeWithSelector,
+} from 'zustand/middleware';
 
 /**
  * 🏗️ System Store Module
@@ -172,5 +175,5 @@ if (typeof window !== 'undefined') {
     if (store.isStarted) {
       store.updateMetrics();
     }
-  }, 30000); // 30초마다 업데이트 (과도한 헬스체크 방지)
+  }, 43000); // 43초마다 업데이트 (데이터 수집 간격)
 }

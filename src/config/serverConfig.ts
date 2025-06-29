@@ -68,8 +68,8 @@ export function calculateServerConfig(
   const batchSize = Math.min(100, Math.max(10, Math.ceil(serverCount / 2)));
   const bufferSize = Math.min(1000, serverCount * 10);
 
-  // 캐시 설정 (30-40초 갱신 주기 최적화)
-  const updateInterval = calculateOptimalUpdateInterval(); // 동적 계산
+  // 캐시 설정 (데이터 생성 간격 - 30-35초 동적 계산)
+  const updateInterval = calculateOptimalGenerationInterval(); // 동적 계산
   const expireTime = 60000; // 1분 고정
 
   return {
@@ -95,19 +95,19 @@ export function calculateServerConfig(
 }
 
 /**
- * 🧠 메모리 사용량 기반 최적 업데이트 간격 계산 (30-40초 범위)
- * 🎯 생성과 수집 분리 전략: 생성 30-35초, 수집 35-40초
+ * 🎯 데이터 생성 최적 간격 계산 (30-35초 범위)
+ * 메모리 사용량과 서버 부하에 따라 동적 조정
  */
-export function calculateOptimalUpdateInterval(): number {
+export function calculateOptimalGenerationInterval(): number {
   // 서버 사이드에서는 Node.js process.memoryUsage() 사용
   if (typeof process !== 'undefined' && process.memoryUsage) {
     const memoryUsage = process.memoryUsage();
     const usagePercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
 
-    // 🎯 데이터 생성 간격 (30-35초 범위)
-    if (usagePercent > 80) return 35000; // 높은 사용률: 35초
-    if (usagePercent > 60) return 33000; // 중간 사용률: 33초
-    return 30000; // 낮은 사용률: 30초
+    // 🎯 데이터 생성 간격 (30-35초 범위, 서버별 분산)
+    if (usagePercent > 80) return 32000 + Math.random() * 3000; // 높은 사용률: 32-35초
+    if (usagePercent > 60) return 31000 + Math.random() * 2000; // 중간 사용률: 31-33초
+    return 30000 + Math.random() * 2000; // 낮은 사용률: 30-32초
   }
 
   // 클라이언트 사이드에서는 performance.memory 사용
@@ -115,22 +115,48 @@ export function calculateOptimalUpdateInterval(): number {
     const memory = (performance as any).memory;
     const usagePercent = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
 
-    if (usagePercent > 80) return 35000; // 높은 사용률: 35초
-    if (usagePercent > 60) return 33000; // 중간 사용률: 33초
-    return 30000; // 낮은 사용률: 30초
+    if (usagePercent > 80) return 32000 + Math.random() * 3000; // 높은 사용률: 32-35초
+    if (usagePercent > 60) return 31000 + Math.random() * 2000; // 중간 사용률: 31-33초
+    return 30000 + Math.random() * 2000; // 낮은 사용률: 30-32초
   }
 
-  return 30000; // 기본값: 30초 (생성 간격)
+  return 30000 + Math.random() * 5000; // 기본값: 30-35초 (서버별 분산)
 }
 
 /**
- * 🎯 데이터 수집 최적 간격 계산 (35-40초 범위)
- * 생성 간격보다 5초 늦게 시작하여 부담 분산
+ * 🎯 레거시 호환성을 위한 함수 (데이터 생성 간격 반환)
+ */
+export function calculateOptimalUpdateInterval(): number {
+  return calculateOptimalGenerationInterval();
+}
+
+/**
+ * 🎯 데이터 수집 최적 간격 계산 (40-45초 범위)
+ * 생성 간격보다 10초 늦게 시작하여 부담 분산 및 부드러운 업데이트 보장
  */
 export function calculateOptimalCollectionInterval(): number {
-  const generationInterval = calculateOptimalUpdateInterval();
-  // 생성 간격 + 5초 = 수집 간격
-  return generationInterval + 5000;
+  // 메모리 사용량에 따른 동적 조정
+  if (typeof process !== 'undefined' && process.memoryUsage) {
+    const memoryUsage = process.memoryUsage();
+    const usagePercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
+
+    // 🎯 데이터 수집 간격 (40-45초 범위)
+    if (usagePercent > 80) return 42000 + Math.random() * 3000; // 높은 사용률: 42-45초
+    if (usagePercent > 60) return 41000 + Math.random() * 2000; // 중간 사용률: 41-43초
+    return 40000 + Math.random() * 2000; // 낮은 사용률: 40-42초
+  }
+
+  // 클라이언트 사이드
+  if (typeof window !== 'undefined' && 'memory' in performance) {
+    const memory = (performance as any).memory;
+    const usagePercent = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
+
+    if (usagePercent > 80) return 42000 + Math.random() * 3000; // 높은 사용률: 42-45초
+    if (usagePercent > 60) return 41000 + Math.random() * 2000; // 중간 사용률: 41-43초
+    return 40000 + Math.random() * 2000; // 낮은 사용률: 40-42초
+  }
+
+  return 40000 + Math.random() * 5000; // 기본값: 40-45초 (분산)
 }
 
 /**

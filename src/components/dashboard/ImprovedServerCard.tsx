@@ -13,7 +13,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { AlertCircle, CheckCircle2, Clock, MapPin, Server } from 'lucide-react';
 import React, { memo, useCallback, useEffect, useState } from 'react';
 import { Server as ServerType } from '../../types/server';
-import { ServerCardGauge } from '../shared/UnifiedCircularGauge';
+import ServerCardLineChart from './ServerCardLineChart';
 
 interface ImprovedServerCardProps {
   server: ServerType;
@@ -70,7 +70,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
             lastUpdate: Date.now(),
           }));
         },
-        35000 + index * 1000 // 🎯 데이터 수집 간격 (35초 + 서버별 지연)
+        20000 + index * 500 // 🎯 데이터 수집 간격 (20초 + 서버별 지연) - RealServerDataGenerator 동기화
       );
 
       return () => clearInterval(interval);
@@ -315,34 +315,34 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
           </motion.div>
         </div>
 
-        {/* 메트릭 섹션 - 통합 컴포넌트 사용 */}
+        {/* 메트릭 섹션 - 라인차트 컴포넌트 사용 */}
         <div className={`grid grid-cols-2 gap-4 ${getVariantStyles().spacing}`}>
-          <ServerCardGauge
+          <ServerCardLineChart
             label='CPU'
             value={realtimeMetrics.cpu}
             type='cpu'
-            size={60}
+            serverId={server.id}
             showRealTimeUpdates={showRealTimeUpdates}
           />
-          <ServerCardGauge
+          <ServerCardLineChart
             label='메모리'
             value={realtimeMetrics.memory}
             type='memory'
-            size={60}
+            serverId={server.id}
             showRealTimeUpdates={showRealTimeUpdates}
           />
-          <ServerCardGauge
+          <ServerCardLineChart
             label='디스크'
             value={realtimeMetrics.disk}
             type='disk'
-            size={60}
+            serverId={server.id}
             showRealTimeUpdates={showRealTimeUpdates}
           />
-          <ServerCardGauge
+          <ServerCardLineChart
             label='네트워크'
             value={realtimeMetrics.network}
             type='network'
-            size={60}
+            serverId={server.id}
             showRealTimeUpdates={showRealTimeUpdates}
           />
         </div>

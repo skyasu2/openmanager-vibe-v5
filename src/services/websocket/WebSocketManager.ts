@@ -8,14 +8,9 @@
  * - 압축 기반 효율적 전송
  */
 
+import { BehaviorSubject, interval, Subject } from 'rxjs';
+import { distinctUntilChanged, filter, throttleTime } from 'rxjs/operators';
 import { Server as SocketIOServer } from 'socket.io';
-import { Observable, Subject, BehaviorSubject, interval } from 'rxjs';
-import {
-  map,
-  filter,
-  throttleTime,
-  distinctUntilChanged,
-} from 'rxjs/operators';
 import { RealServerDataGenerator } from '../data-generator/RealServerDataGenerator';
 // lightweight-anomaly-detector removed - using AnomalyDetectionService instead
 
@@ -185,11 +180,11 @@ export class WebSocketManager {
   }
 
   /**
-   * 📊 실시간 데이터 생성 시작 - 🎯 데이터 생성기와 동기화 (5초 → 20초)
+   * 📊 실시간 데이터 수집 시작 - 🎯 데이터 수집 전용 (40-45초)
    */
   private startDataGeneration(): void {
-    // 20초마다 새로운 서버 메트릭 생성 (데이터 생성기와 동기화)
-    interval(20000).subscribe(() => {
+    // 43초마다 서버 메트릭 수집 (데이터 생성기보다 늦은 수집 간격)
+    interval(43000).subscribe(() => {
       if (!this.isActive || this.clients.size === 0) return;
 
       try {
