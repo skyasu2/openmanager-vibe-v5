@@ -64,7 +64,8 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
   // 베르셀 시스템 상태 (완전 통합)
   const vercelStore = useVercelSystemStore();
   const isSystemStarted = vercelStore.systemInfo.state === 'RUNNING';
-  const systemTimeRemaining = Math.floor(vercelStore.getRemainingTime());
+  // Redis 기반에서는 카운트다운 없음
+  const systemTimeRemaining = 0;
 
   // AI 에이전트 상태 (호환성 유지)
   const aiAgent = store.aiAgent;
@@ -201,24 +202,18 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
     e.preventDefault();
     e.stopPropagation();
 
-    if (isSystemStarted) {
-      const result = await vercelStopSystem();
-      if (result.success) {
+    try {
+      if (isSystemStarted) {
+        await vercelStopSystem();
         success('시스템이 중단되었습니다.');
       } else {
-        error('시스템 중단 실패: ' + result.message);
-      }
-    } else {
-      const result = await vercelStartSystem({
-        enableCountdown: true,
-        countdownMinutes: 30,
-        operatorName: '프로필 사용자',
-      });
-      if (result.success) {
+        await vercelStartSystem();
         success('시스템이 시작되었습니다.');
-      } else {
-        error('시스템 시작 실패: ' + result.message);
       }
+    } catch (err) {
+      error(
+        `시스템 ${isSystemStarted ? '중단' : '시작'} 실패: ${err instanceof Error ? err.message : '알 수 없는 오류'}`
+      );
     }
   };
 

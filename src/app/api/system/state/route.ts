@@ -1,254 +1,342 @@
 /**
- * 🌐 글로벌 시스템 상태 API
+ * 🚀 베르셀 친화적 Redis 기반 시스템 상태 API v2.0
  *
- * 모든 클라이언트가 공유하는 시스템 상태를 서버에서 관리
+ * 한국시간: 2025-01-28 02:15 KST
+ * - Redis/Upstash 기반 영구 상태 저장
+ * - 다중 사용자 실시간 동기화
+ * - 서버리스 환경 최적화
+ * - 자동 세션 정리 및 안전한 상태 관리
  */
 
+import { devKeyManager } from '@/utils/dev-key-manager';
+import { Redis } from '@upstash/redis';
 import { NextRequest, NextResponse } from 'next/server';
 
-// 글로벌 시스템 상태 (서버 메모리에 저장)
-let globalSystemState = {
-  state: 'STOPPED' as 'STOPPED' | 'STARTING' | 'RUNNING' | 'STOPPING' | 'ERROR',
-  startedAt: null as number | null,
-  stoppedAt: Date.now(),
-  activeUsers: 0,
-  lastStateChange: Date.now(),
-  operatorName: null as string | null,
-  isManualControl: true,
-  autoShutdownEnabled: false,
-  autoShutdownAt: null as number | null,
-  startingProgress: 0, // 0-100 시작 진행률
-  stoppingProgress: 0, // 0-100 종료 진행률
+// Redis 클라이언트 초기화
+let redis: Redis | null = null;
+
+function getRedisClient(): Redis {
+  if (!redis) {
+    const redisUrl =
+      devKeyManager.getKey('UPSTASH_REDIS_REST_URL') ||
+      process.env.UPSTASH_REDIS_REST_URL;
+    const redisToken =
+      devKeyManager.getKey('UPSTASH_REDIS_REST_TOKEN') ||
+      process.env.UPSTASH_REDIS_REST_TOKEN;
+
+    if (!redisUrl || !redisToken) {
+      throw new Error('Redis 환경변수가 설정되지 않았습니다');
+    }
+
+    redis = new Redis({
+      url: redisUrl,
+      token: redisToken,
+    });
+  }
+  return redis;
+}
+
+// 시스템 상태 타입
+export type SystemState = 'STOPPED' | 'STARTING' | 'RUNNING' | 'STOPPING';
+
+interface SystemStateData {
+  state: SystemState;
+  lastUpdated: string;
+  sessionId: string;
+  activeUsers: number;
+  startedAt?: string;
+  stoppedAt?: string;
+  heartbeat: string;
+}
+
+const REDIS_KEYS = {
+  SYSTEM_STATE: 'vercel:system:state',
+  ACTIVE_SESSIONS: 'vercel:system:sessions',
+  HEARTBEAT_PREFIX: 'vercel:system:heartbeat:',
 };
 
-// 상태 변경 리스너들 (Server-Sent Events용)
-const stateListeners = new Set<(state: typeof globalSystemState) => void>();
+const SESSION_TIMEOUT = 5 * 60 * 1000; // 5분
 
-// 상태 변경 알림
-function notifyStateChange() {
-  stateListeners.forEach(listener => {
-    try {
-      listener(globalSystemState);
-    } catch (error) {
-      console.error('❌ State listener error:', error);
-    }
+/**
+ * 현재 한국시간 반환
+ */
+function getKoreanTime(): string {
+  return new Date().toLocaleString('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
   });
 }
 
-// 시스템 시작 프로세스 시뮬레이션
-async function startSystemProcess(operatorName: string): Promise<boolean> {
+/**
+ * 세션 정리 (비활성 세션 제거)
+ */
+async function cleanupInactiveSessions(redis: Redis): Promise<void> {
   try {
-    globalSystemState.state = 'STARTING';
-    globalSystemState.operatorName = operatorName;
-    globalSystemState.lastStateChange = Date.now();
-    globalSystemState.startingProgress = 0;
-    notifyStateChange();
+    const now = Date.now();
+    const sessions = (await redis.smembers(
+      REDIS_KEYS.ACTIVE_SESSIONS
+    )) as string[];
 
-    // 단계별 시작 프로세스 (실제로는 실제 시스템 초기화)
-    const steps = [
-      { name: '시스템 검증', duration: 1000 },
-      { name: '서비스 초기화', duration: 2000 },
-      { name: '데이터베이스 연결', duration: 1500 },
-      { name: 'AI 엔진 활성화', duration: 2000 },
-      { name: '시스템 준비 완료', duration: 500 },
-    ];
+    for (const sessionId of sessions) {
+      const heartbeatKey = REDIS_KEYS.HEARTBEAT_PREFIX + sessionId;
+      const lastHeartbeat = await redis.get(heartbeatKey);
 
-    for (let i = 0; i < steps.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, steps[i].duration));
-      globalSystemState.startingProgress = Math.round(
-        ((i + 1) / steps.length) * 100
-      );
-      notifyStateChange();
+      if (
+        !lastHeartbeat ||
+        now - parseInt(lastHeartbeat as string) > SESSION_TIMEOUT
+      ) {
+        // 비활성 세션 제거
+        await redis.srem(REDIS_KEYS.ACTIVE_SESSIONS, sessionId);
+        await redis.del(heartbeatKey);
+      }
     }
-
-    // 시작 완료
-    globalSystemState.state = 'RUNNING';
-    globalSystemState.startedAt = Date.now();
-    globalSystemState.startingProgress = 100;
-
-    // 자동 종료 설정 (선택적)
-    if (globalSystemState.autoShutdownEnabled) {
-      globalSystemState.autoShutdownAt = Date.now() + 30 * 60 * 1000;
-    }
-
-    notifyStateChange();
-    return true;
   } catch (error) {
-    console.error('❌ 시스템 시작 실패:', error);
-    globalSystemState.state = 'ERROR';
-    globalSystemState.startingProgress = 0;
-    notifyStateChange();
-    return false;
+    console.error('세션 정리 실패:', error);
   }
 }
 
-// 시스템 종료 프로세스 시뮬레이션
-async function stopSystemProcess(operatorName: string): Promise<boolean> {
+/**
+ * GET - 시스템 상태 조회
+ */
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    globalSystemState.state = 'STOPPING';
-    globalSystemState.operatorName = operatorName;
-    globalSystemState.lastStateChange = Date.now();
-    globalSystemState.stoppingProgress = 0;
-    notifyStateChange();
+    const redis = getRedisClient();
+    const url = new URL(request.url);
+    const sessionId = url.searchParams.get('sessionId') || 'anonymous';
 
-    // 안전한 종료 프로세스
-    const steps = [
-      { name: '진행 중인 작업 완료 대기', duration: 2000 },
-      { name: 'AI 엔진 안전 종료', duration: 1500 },
-      { name: '데이터베이스 연결 종료', duration: 1000 },
-      { name: '서비스 정리', duration: 1500 },
-      { name: '시스템 종료 완료', duration: 500 },
-    ];
+    // 세션 정리
+    await cleanupInactiveSessions(redis);
 
-    for (let i = 0; i < steps.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, steps[i].duration));
-      globalSystemState.stoppingProgress = Math.round(
-        ((i + 1) / steps.length) * 100
-      );
-      notifyStateChange();
+    // 현재 시스템 상태 조회
+    const systemState = (await redis.get(
+      REDIS_KEYS.SYSTEM_STATE
+    )) as SystemStateData | null;
+
+    // 활성 세션 수 계산
+    const activeSessions = await redis.scard(REDIS_KEYS.ACTIVE_SESSIONS);
+
+    const currentTime = getKoreanTime();
+
+    if (!systemState) {
+      // 초기 상태
+      const initialState: SystemStateData = {
+        state: 'STOPPED',
+        lastUpdated: currentTime,
+        sessionId: sessionId,
+        activeUsers: 0,
+        heartbeat: currentTime,
+      };
+
+      await redis.set(REDIS_KEYS.SYSTEM_STATE, JSON.stringify(initialState), {
+        ex: 24 * 60 * 60,
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: initialState,
+        timestamp: currentTime,
+      });
     }
 
-    // 종료 완료
-    globalSystemState.state = 'STOPPED';
-    globalSystemState.stoppedAt = Date.now();
-    globalSystemState.startedAt = null;
-    globalSystemState.autoShutdownAt = null;
-    globalSystemState.stoppingProgress = 100;
+    // 상태 데이터 업데이트
+    const updatedState: SystemStateData = {
+      ...systemState,
+      activeUsers: activeSessions,
+      heartbeat: currentTime,
+    };
 
-    notifyStateChange();
-    return true;
+    // 세션 하트비트 업데이트
+    const heartbeatKey = REDIS_KEYS.HEARTBEAT_PREFIX + sessionId;
+    await redis.set(heartbeatKey, Date.now().toString(), {
+      ex: SESSION_TIMEOUT / 1000,
+    });
+    await redis.sadd(REDIS_KEYS.ACTIVE_SESSIONS, sessionId);
+
+    return NextResponse.json({
+      success: true,
+      data: updatedState,
+      timestamp: currentTime,
+      debug: {
+        activeSessions,
+        sessionId,
+        redisConnected: true,
+      },
+    });
   } catch (error) {
-    console.error('❌ 시스템 종료 실패:', error);
-    globalSystemState.state = 'ERROR';
-    globalSystemState.stoppingProgress = 0;
-    notifyStateChange();
-    return false;
-  }
-}
+    console.error('시스템 상태 조회 실패:', error);
 
-// GET: 현재 상태 조회
-export async function GET() {
-  return NextResponse.json({
-    success: true,
-    data: globalSystemState,
-  });
-}
-
-// POST: 상태 변경 요청
-export async function POST(request: NextRequest) {
-  try {
-    const {
-      action,
-      operatorName = '사용자',
-      ...options
-    } = await request.json();
-
-    switch (action) {
-      case 'start':
-        if (
-          globalSystemState.state !== 'STOPPED' &&
-          globalSystemState.state !== 'ERROR'
-        ) {
-          return NextResponse.json({
-            success: false,
-            message: `시스템을 시작할 수 없습니다. 현재 상태: ${globalSystemState.state}`,
-            data: globalSystemState,
-          });
-        }
-
-        // 비동기 시작 프로세스 실행
-        startSystemProcess(operatorName);
-
-        return NextResponse.json({
-          success: true,
-          message: '시스템 시작 프로세스가 시작되었습니다.',
-          data: globalSystemState,
-        });
-
-      case 'stop':
-        if (
-          globalSystemState.state !== 'RUNNING' &&
-          globalSystemState.state !== 'STARTING'
-        ) {
-          return NextResponse.json({
-            success: false,
-            message: `시스템을 종료할 수 없습니다. 현재 상태: ${globalSystemState.state}`,
-            data: globalSystemState,
-          });
-        }
-
-        // 비동기 종료 프로세스 실행
-        stopSystemProcess(operatorName);
-
-        return NextResponse.json({
-          success: true,
-          message: '시스템 종료 프로세스가 시작되었습니다.',
-          data: globalSystemState,
-        });
-
-      case 'join':
-        globalSystemState.activeUsers += 1;
-        notifyStateChange();
-
-        return NextResponse.json({
-          success: true,
-          message: '세션에 참여했습니다.',
-          data: globalSystemState,
-        });
-
-      case 'leave':
-        globalSystemState.activeUsers = Math.max(
-          0,
-          globalSystemState.activeUsers - 1
-        );
-        notifyStateChange();
-
-        return NextResponse.json({
-          success: true,
-          message: '세션에서 나갔습니다.',
-          data: globalSystemState,
-        });
-
-      case 'toggle-auto-shutdown':
-        globalSystemState.autoShutdownEnabled = options.enabled;
-        if (!options.enabled) {
-          globalSystemState.autoShutdownAt = null;
-        } else if (globalSystemState.state === 'RUNNING') {
-          globalSystemState.autoShutdownAt = Date.now() + 30 * 60 * 1000;
-        }
-        notifyStateChange();
-
-        return NextResponse.json({
-          success: true,
-          message: `자동 종료가 ${options.enabled ? '활성화' : '비활성화'}되었습니다.`,
-          data: globalSystemState,
-        });
-
-      default:
-        return NextResponse.json(
-          {
-            success: false,
-            message: '알 수 없는 액션입니다.',
-          },
-          { status: 400 }
-        );
-    }
-  } catch (error) {
-    console.error('❌ 시스템 상태 API 오류:', error);
     return NextResponse.json(
       {
         success: false,
-        message: '서버 오류가 발생했습니다.',
+        error: '시스템 상태 조회 실패',
+        details: error instanceof Error ? error.message : String(error),
+        timestamp: getKoreanTime(),
       },
       { status: 500 }
     );
   }
 }
 
-// Server-Sent Events를 위한 스트림 등록
-export function registerStateListener(
-  callback: (state: typeof globalSystemState) => void
-) {
-  stateListeners.add(callback);
-  return () => stateListeners.delete(callback);
+/**
+ * POST - 시스템 상태 변경
+ */
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  try {
+    const redis = getRedisClient();
+    const body = await request.json();
+    const { action, sessionId = 'anonymous' } = body;
+
+    const currentTime = getKoreanTime();
+
+    // 현재 상태 조회
+    const currentStateData = (await redis.get(
+      REDIS_KEYS.SYSTEM_STATE
+    )) as SystemStateData | null;
+    const currentState = currentStateData?.state || 'STOPPED';
+
+    let newState: SystemState = currentState;
+    let additionalData = {};
+
+    // 상태 전이 로직
+    switch (action) {
+      case 'start':
+        if (currentState === 'STOPPED') {
+          newState = 'STARTING';
+          additionalData = { startedAt: currentTime };
+        }
+        break;
+
+      case 'complete_start':
+        if (currentState === 'STARTING') {
+          newState = 'RUNNING';
+        }
+        break;
+
+      case 'stop':
+        if (currentState === 'RUNNING') {
+          newState = 'STOPPING';
+        }
+        break;
+
+      case 'complete_stop':
+        if (currentState === 'STOPPING') {
+          newState = 'STOPPED';
+          additionalData = { stoppedAt: currentTime, startedAt: undefined };
+        }
+        break;
+
+      default:
+        return NextResponse.json(
+          {
+            success: false,
+            error: '잘못된 액션입니다',
+            validActions: ['start', 'complete_start', 'stop', 'complete_stop'],
+          },
+          { status: 400 }
+        );
+    }
+
+    // 활성 세션 수 계산
+    await cleanupInactiveSessions(redis);
+    const activeSessions = await redis.scard(REDIS_KEYS.ACTIVE_SESSIONS);
+
+    // 새로운 상태 저장
+    const newStateData: SystemStateData = {
+      state: newState,
+      lastUpdated: currentTime,
+      sessionId: sessionId,
+      activeUsers: activeSessions,
+      heartbeat: currentTime,
+      ...(currentStateData || {}),
+      ...additionalData,
+    };
+
+    await redis.set(REDIS_KEYS.SYSTEM_STATE, JSON.stringify(newStateData), {
+      ex: 24 * 60 * 60,
+    });
+
+    // 세션 등록
+    const heartbeatKey = REDIS_KEYS.HEARTBEAT_PREFIX + sessionId;
+    await redis.set(heartbeatKey, Date.now().toString(), {
+      ex: SESSION_TIMEOUT / 1000,
+    });
+    await redis.sadd(REDIS_KEYS.ACTIVE_SESSIONS, sessionId);
+
+    console.log(
+      `🔄 시스템 상태 변경: ${currentState} → ${newState} (세션: ${sessionId}, 사용자: ${activeSessions}명)`
+    );
+
+    return NextResponse.json({
+      success: true,
+      data: newStateData,
+      previousState: currentState,
+      timestamp: currentTime,
+      debug: {
+        action,
+        sessionId,
+        activeSessions,
+        redisConnected: true,
+      },
+    });
+  } catch (error) {
+    console.error('시스템 상태 변경 실패:', error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: '시스템 상태 변경 실패',
+        details: error instanceof Error ? error.message : String(error),
+        timestamp: getKoreanTime(),
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE - 세션 정리 (수동)
+ */
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
+  try {
+    const redis = getRedisClient();
+    const url = new URL(request.url);
+    const sessionId = url.searchParams.get('sessionId');
+
+    if (sessionId) {
+      // 특정 세션 제거
+      await redis.srem(REDIS_KEYS.ACTIVE_SESSIONS, sessionId);
+      await redis.del(REDIS_KEYS.HEARTBEAT_PREFIX + sessionId);
+    } else {
+      // 모든 비활성 세션 정리
+      await cleanupInactiveSessions(redis);
+    }
+
+    const activeSessions = await redis.scard(REDIS_KEYS.ACTIVE_SESSIONS);
+
+    return NextResponse.json({
+      success: true,
+      message: sessionId
+        ? '세션이 제거되었습니다'
+        : '비활성 세션이 정리되었습니다',
+      activeUsers: activeSessions,
+      timestamp: getKoreanTime(),
+    });
+  } catch (error) {
+    console.error('세션 정리 실패:', error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: '세션 정리 실패',
+        details: error instanceof Error ? error.message : String(error),
+        timestamp: getKoreanTime(),
+      },
+      { status: 500 }
+    );
+  }
 }

@@ -1,11 +1,11 @@
 /**
- * 🚀 베르셀 친화적 시스템 상태 관리
+ * 🚀 베르셀 친화적 Redis 기반 시스템 스토어 v2.0
  *
- * ✅ 베르셀 환경 특화:
- * - 서버리스 함수 제한 고려
- * - Redis/Upstash 기반 상태 저장
- * - 폴링 방식 상태 동기화
- * - 자원 최소화 및 정리
+ * 한국시간: 2025-01-28 02:20 KST
+ * - Redis/Upstash 기반 다중 사용자 동기화
+ * - 서버리스 환경 최적화
+ * - 세션 기반 실시간 상태 관리
+ * - 자동 폴백 및 에러 처리
  */
 
 'use client';
@@ -13,374 +13,422 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-// 시스템 상태 정의
-export type SystemState =
-  | 'STOPPED' // 완전 중지 (자원 최소화)
-  | 'STARTING' // 시작 중 (초기화 단계)
-  | 'RUNNING' // 안정적 운영 중
-  | 'STOPPING'; // 안전한 종료 중
+// 시스템 상태 타입 (Redis API와 동일)
+export type SystemState = 'STOPPED' | 'STARTING' | 'RUNNING' | 'STOPPING';
 
 export interface VercelSystemInfo {
   state: SystemState;
-  startedAt: number | null;
-  startedBy: string;
+  lastUpdated: string;
+  sessionId: string;
   activeUsers: number;
-  lastHeartbeat: number;
-
-  // 30분 카운트다운 (옵션)
-  countdownEnabled: boolean;
-  countdownStartAt: number | null;
-  countdownDuration: number; // 기본 30분 (1800초)
-
-  // 자원 관리
-  resourcesActive: boolean;
-  dataGenerationActive: boolean;
+  startedAt?: string;
+  stoppedAt?: string;
+  heartbeat: string;
 }
 
 interface VercelSystemStore {
+  // 상태
   systemInfo: VercelSystemInfo;
+  isLoading: boolean;
+  error: string | null;
+  pollingEnabled: boolean;
+  pollingInterval: NodeJS.Timeout | null;
+  sessionId: string;
 
-  // 시스템 제어
-  startSystem: (options?: {
-    enableCountdown?: boolean;
-    countdownMinutes?: number;
-    operatorName?: string;
-  }) => Promise<{ success: boolean; message: string }>;
+  // Redis 동기화 관련
+  isConnectedToRedis: boolean;
+  lastSyncTime: string;
+  retryCount: number;
 
-  stopSystem: (
-    reason?: 'manual' | 'countdown' | 'error'
-  ) => Promise<{ success: boolean; message: string }>;
-
-  // 상태 동기화 (폴링 방식)
-  syncWithServer: () => Promise<void>;
+  // 액션
+  startSystem: () => Promise<void>;
+  stopSystem: () => Promise<void>;
+  fetchSystemState: () => Promise<void>;
   startPolling: () => void;
   stopPolling: () => void;
+  reset: () => void;
 
-  // 카운트다운 관리
-  toggleCountdown: (enabled: boolean, minutes?: number) => void;
-  startCountdownTimer: () => void;
-  getRemainingTime: () => number;
-
-  // 상태 확인
-  canStart: () => boolean;
-  canStop: () => boolean;
-  isStable: () => boolean;
-
-  // 자원 관리
-  cleanupResources: () => Promise<void>;
+  // 내부 메서드
+  setSystemInfo: (info: VercelSystemInfo) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
 }
 
-// 초기 상태
-const createInitialState = (): VercelSystemInfo => ({
+// 세션 ID 생성
+function generateSessionId(): string {
+  return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// 한국시간 반환
+function getKoreanTime(): string {
+  return new Date().toLocaleString('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+}
+
+// API 호출 유틸리티
+async function callSystemAPI(
+  method: 'GET' | 'POST' | 'DELETE',
+  body?: any,
+  params?: Record<string, string>
+): Promise<any> {
+  try {
+    const url = new URL('/api/system/state', window.location.origin);
+
+    // 쿼리 파라미터 추가
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        url.searchParams.append(key, value);
+      });
+    }
+
+    const options: RequestInit = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+
+    if (body && method !== 'GET') {
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(url.toString(), options);
+
+    if (!response.ok) {
+      throw new Error(
+        `API 호출 실패: ${response.status} ${response.statusText}`
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('API 호출 에러:', error);
+    throw error;
+  }
+}
+
+// 기본 시스템 정보
+const defaultSystemInfo: VercelSystemInfo = {
   state: 'STOPPED',
-  startedAt: null,
-  startedBy: '',
+  lastUpdated: getKoreanTime(),
+  sessionId: generateSessionId(),
   activeUsers: 0,
-  lastHeartbeat: Date.now(),
-
-  countdownEnabled: false,
-  countdownStartAt: null,
-  countdownDuration: 30 * 60, // 30분 (초)
-
-  resourcesActive: false,
-  dataGenerationActive: false,
-});
+  heartbeat: getKoreanTime(),
+};
 
 export const useVercelSystemStore = create<VercelSystemStore>()(
   persist(
-    (set, get) => {
-      let pollingInterval: NodeJS.Timeout | null = null;
-      let countdownInterval: NodeJS.Timeout | null = null;
+    (set, get) => ({
+      // 초기 상태
+      systemInfo: defaultSystemInfo,
+      isLoading: false,
+      error: null,
+      pollingEnabled: false,
+      pollingInterval: null,
+      sessionId: generateSessionId(),
+      isConnectedToRedis: false,
+      lastSyncTime: getKoreanTime(),
+      retryCount: 0,
 
-      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      // 시스템 시작
+      startSystem: async () => {
+        const store = get();
 
-      return {
-        systemInfo: createInitialState(),
+        try {
+          set({ isLoading: true, error: null });
 
-        // 시스템 시작 (30분 강제 종료 제거)
-        startSystem: async (options = {}) => {
-          const {
-            enableCountdown = false,
-            countdownMinutes = 30,
-            operatorName = '사용자',
-          } = options;
-
-          const { canStart } = get();
-
-          if (!canStart()) {
-            return {
-              success: false,
-              message:
-                '시스템을 시작할 수 없습니다. 이미 동작 중이거나 시작 중입니다.',
-            };
-          }
-
-          try {
-            console.log('🚀 베르셀 시스템 시작:', {
-              enableCountdown,
-              operatorName,
-            });
-
-            const now = Date.now();
-
-            // 로컬 상태 업데이트
-            set({
-              systemInfo: {
-                ...get().systemInfo,
-                state: 'STARTING',
-                startedAt: now,
-                startedBy: operatorName,
-                countdownEnabled: enableCountdown,
-                countdownStartAt: enableCountdown ? now : null,
-                countdownDuration: countdownMinutes * 60,
-                resourcesActive: true,
-                lastHeartbeat: now,
-              },
-            });
-
-            // 시작 프로세스 시뮬레이션 (3초 후 RUNNING 상태로)
-            setTimeout(() => {
-              set({
-                systemInfo: {
-                  ...get().systemInfo,
-                  state: 'RUNNING',
-                  dataGenerationActive: true,
-                },
-              });
-
-              // 카운트다운 활성화 시 타이머 시작
-              if (enableCountdown) {
-                get().startCountdownTimer();
-              }
-
-              console.log('✅ 시스템 운영 상태 진입');
-            }, 3000);
-
-            // 폴링 시작
-            get().startPolling();
-
-            return {
-              success: true,
-              message: '시스템이 시작되었습니다. 안정적 운영이 보장됩니다.',
-            };
-          } catch (error) {
-            console.error('❌ 시스템 시작 실패:', error);
-            return {
-              success: false,
-              message: `시스템 시작 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-            };
-          }
-        },
-
-        // 시스템 종료 (안전한 종료)
-        stopSystem: async (reason = 'manual') => {
-          const { canStop } = get();
-
-          if (!canStop()) {
-            return {
-              success: false,
-              message:
-                '시스템을 종료할 수 없습니다. 이미 중지되었거나 종료 중입니다.',
-            };
-          }
-
-          try {
-            console.log('⏹️ 안전한 시스템 종료 시작:', reason);
-
-            // 로컬 상태를 STOPPING으로 변경
-            set({
-              systemInfo: {
-                ...get().systemInfo,
-                state: 'STOPPING',
-                lastHeartbeat: Date.now(),
-              },
-            });
-
-            // 자원 정리
-            await get().cleanupResources();
-
-            // 안전한 종료 프로세스 시뮬레이션 (2초)
-            setTimeout(() => {
-              set({
-                systemInfo: {
-                  ...createInitialState(),
-                  lastHeartbeat: Date.now(),
-                },
-              });
-
-              console.log('✅ 시스템 완전 종료 - 자원 최소화 완료');
-            }, 2000);
-
-            return {
-              success: true,
-              message:
-                reason === 'countdown'
-                  ? '카운트다운 완료로 시스템이 안전하게 종료되었습니다.'
-                  : '시스템이 안전하게 종료되었습니다.',
-            };
-          } catch (error) {
-            console.error('❌ 시스템 종료 실패:', error);
-            return {
-              success: false,
-              message: `시스템 종료 중 오류 발생: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-            };
-          }
-        },
-
-        // 서버와 상태 동기화 (베르셀 친화적 폴링)
-        syncWithServer: async () => {
-          try {
-            // 실제 구현 시 Redis 상태 확인
-            const { systemInfo } = get();
-
-            // 하트비트 업데이트
-            set({
-              systemInfo: {
-                ...systemInfo,
-                lastHeartbeat: Date.now(),
-              },
-            });
-          } catch (error) {
-            console.warn('⚠️ 서버 상태 동기화 실패:', error);
-          }
-        },
-
-        // 폴링 시작 (베르셀 최적화 간격)
-        startPolling: () => {
-          get().stopPolling();
-
-          pollingInterval = setInterval(() => {
-            get().syncWithServer();
-          }, 10000); // 10초 간격 (베르셀 친화적)
-        },
-
-        // 폴링 중지
-        stopPolling: () => {
-          if (pollingInterval) {
-            clearInterval(pollingInterval);
-            pollingInterval = null;
-          }
-
-          if (countdownInterval) {
-            clearInterval(countdownInterval);
-            countdownInterval = null;
-          }
-        },
-
-        // 카운트다운 설정
-        toggleCountdown: (enabled: boolean, minutes = 30) => {
-          const { systemInfo } = get();
-          const now = Date.now();
-
-          set({
-            systemInfo: {
-              ...systemInfo,
-              countdownEnabled: enabled,
-              countdownStartAt: enabled ? now : null,
-              countdownDuration: minutes * 60,
-            },
+          // 1단계: 시작 요청
+          const startResponse = await callSystemAPI('POST', {
+            action: 'start',
+            sessionId: store.sessionId,
           });
 
-          if (enabled && systemInfo.state === 'RUNNING') {
-            get().startCountdownTimer();
-          } else {
-            if (countdownInterval) {
-              clearInterval(countdownInterval);
-              countdownInterval = null;
+          if (!startResponse.success) {
+            throw new Error(startResponse.error || '시스템 시작 요청 실패');
+          }
+
+          // 상태 업데이트
+          set({
+            systemInfo: startResponse.data,
+            isConnectedToRedis: true,
+            lastSyncTime: getKoreanTime(),
+            retryCount: 0,
+          });
+
+          // 시작 프로세스 시뮬레이션 (3초)
+          setTimeout(async () => {
+            try {
+              const completeResponse = await callSystemAPI('POST', {
+                action: 'complete_start',
+                sessionId: store.sessionId,
+              });
+
+              if (completeResponse.success) {
+                set({
+                  systemInfo: completeResponse.data,
+                  lastSyncTime: getKoreanTime(),
+                });
+              }
+            } catch (error) {
+              console.error('시작 완료 요청 실패:', error);
+              set({ error: '시작 완료 처리 실패' });
             }
+          }, 3000);
+        } catch (error) {
+          console.error('시스템 시작 실패:', error);
+          set({
+            error: error instanceof Error ? error.message : '시스템 시작 실패',
+            isConnectedToRedis: false,
+            retryCount: get().retryCount + 1,
+          });
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      // 시스템 중지
+      stopSystem: async () => {
+        const store = get();
+
+        try {
+          set({ isLoading: true, error: null });
+
+          // 1단계: 중지 요청
+          const stopResponse = await callSystemAPI('POST', {
+            action: 'stop',
+            sessionId: store.sessionId,
+          });
+
+          if (!stopResponse.success) {
+            throw new Error(stopResponse.error || '시스템 중지 요청 실패');
           }
-        },
 
-        // 카운트다운 타이머 시작
-        startCountdownTimer: () => {
-          if (countdownInterval) {
-            clearInterval(countdownInterval);
-          }
+          // 상태 업데이트
+          set({
+            systemInfo: stopResponse.data,
+            lastSyncTime: getKoreanTime(),
+          });
 
-          countdownInterval = setInterval(() => {
-            const remaining = get().getRemainingTime();
+          // 중지 프로세스 시뮬레이션 (2초)
+          setTimeout(async () => {
+            try {
+              const completeResponse = await callSystemAPI('POST', {
+                action: 'complete_stop',
+                sessionId: store.sessionId,
+              });
 
-            if (remaining <= 0) {
-              console.log('⏰ 카운트다운 종료 - 시스템 자동 종료');
-              get().stopSystem('countdown');
+              if (completeResponse.success) {
+                set({
+                  systemInfo: completeResponse.data,
+                  lastSyncTime: getKoreanTime(),
+                });
+              }
+            } catch (error) {
+              console.error('중지 완료 요청 실패:', error);
+              set({ error: '중지 완료 처리 실패' });
             }
-          }, 1000);
-        },
+          }, 2000);
+        } catch (error) {
+          console.error('시스템 중지 실패:', error);
+          set({
+            error: error instanceof Error ? error.message : '시스템 중지 실패',
+            retryCount: get().retryCount + 1,
+          });
+        } finally {
+          set({ isLoading: false });
+        }
+      },
 
-        // 남은 시간 계산 (초)
-        getRemainingTime: () => {
-          const { systemInfo } = get();
+      // 시스템 상태 조회 (Redis 동기화)
+      fetchSystemState: async () => {
+        const store = get();
 
-          if (!systemInfo.countdownEnabled || !systemInfo.countdownStartAt) {
-            return 0;
-          }
+        try {
+          const response = await callSystemAPI('GET', undefined, {
+            sessionId: store.sessionId,
+          });
 
-          const elapsed = (Date.now() - systemInfo.countdownStartAt) / 1000;
-          return Math.max(0, systemInfo.countdownDuration - elapsed);
-        },
+          if (response.success) {
+            const updatedInfo = response.data;
 
-        // 상태 확인 메서드들
-        canStart: () => {
-          const { state } = get().systemInfo;
-          return state === 'STOPPED';
-        },
-
-        canStop: () => {
-          const { state } = get().systemInfo;
-          return state === 'RUNNING' || state === 'STARTING';
-        },
-
-        isStable: () => {
-          const { state, lastHeartbeat } = get().systemInfo;
-          const timeSinceHeartbeat = Date.now() - lastHeartbeat;
-
-          return state === 'RUNNING' && timeSinceHeartbeat < 30000;
-        },
-
-        // 자원 정리 (베르셀 최적화)
-        cleanupResources: async () => {
-          console.log('🧹 동적 자원 정리 시작...');
-
-          try {
-            // 폴링 중지
-            get().stopPolling();
-
-            // 로컬 상태 정리
+            // 상태 업데이트
             set({
-              systemInfo: {
-                ...get().systemInfo,
-                resourcesActive: false,
-                dataGenerationActive: false,
-              },
+              systemInfo: updatedInfo,
+              isConnectedToRedis: true,
+              lastSyncTime: getKoreanTime(),
+              error: null,
+              retryCount: 0,
             });
 
-            console.log('✅ 자원 정리 완료 - 메모리 사용량 최소화');
-          } catch (error) {
-            console.error('❌ 자원 정리 실패:', error);
+            console.log(
+              `🔄 Redis 동기화: ${updatedInfo.state} (사용자: ${updatedInfo.activeUsers}명)`
+            );
+          } else {
+            throw new Error(response.error || '상태 조회 실패');
           }
-        },
-      };
-    },
+        } catch (error) {
+          console.error('상태 조회 실패:', error);
+
+          const retryCount = get().retryCount + 1;
+          set({
+            error: error instanceof Error ? error.message : '상태 조회 실패',
+            isConnectedToRedis: false,
+            retryCount,
+          });
+
+          // 재시도 로직 (최대 3회)
+          if (retryCount < 3) {
+            setTimeout(() => {
+              get().fetchSystemState();
+            }, 2000 * retryCount); // 점진적 백오프
+          }
+        }
+      },
+
+      // 폴링 시작
+      startPolling: () => {
+        const store = get();
+
+        if (store.pollingInterval) {
+          clearInterval(store.pollingInterval);
+        }
+
+        // 즉시 한 번 실행
+        store.fetchSystemState();
+
+        // 10초마다 폴링
+        const interval = setInterval(() => {
+          const currentStore = get();
+          if (currentStore.pollingEnabled) {
+            currentStore.fetchSystemState();
+          }
+        }, 10000);
+
+        set({
+          pollingEnabled: true,
+          pollingInterval: interval,
+        });
+
+        console.log('🔄 Redis 폴링 시작 (10초 간격)');
+      },
+
+      // 폴링 중지
+      stopPolling: () => {
+        const store = get();
+
+        if (store.pollingInterval) {
+          clearInterval(store.pollingInterval);
+        }
+
+        set({
+          pollingEnabled: false,
+          pollingInterval: null,
+        });
+
+        console.log('⏹️ Redis 폴링 중지');
+      },
+
+      // 상태 초기화
+      reset: () => {
+        const store = get();
+
+        // 폴링 중지
+        if (store.pollingInterval) {
+          clearInterval(store.pollingInterval);
+        }
+
+        // 새 세션 ID 생성
+        const newSessionId = generateSessionId();
+
+        set({
+          systemInfo: {
+            ...defaultSystemInfo,
+            sessionId: newSessionId,
+          },
+          isLoading: false,
+          error: null,
+          pollingEnabled: false,
+          pollingInterval: null,
+          sessionId: newSessionId,
+          isConnectedToRedis: false,
+          lastSyncTime: getKoreanTime(),
+          retryCount: 0,
+        });
+
+        console.log('🔄 베르셀 시스템 스토어 초기화');
+      },
+
+      // 내부 메서드들
+      setSystemInfo: (info: VercelSystemInfo) => {
+        set({
+          systemInfo: info,
+          lastSyncTime: getKoreanTime(),
+        });
+      },
+
+      setLoading: (loading: boolean) => {
+        set({ isLoading: loading });
+      },
+
+      setError: (error: string | null) => {
+        set({ error });
+      },
+    }),
     {
-      name: 'vercel-system-storage-v2',
+      name: 'vercel-system-storage-v3', // 버전 업그레이드
       partialize: state => ({
+        // 중요한 상태만 persist
+        sessionId: state.sessionId,
         systemInfo: {
           ...state.systemInfo,
-          lastHeartbeat: Date.now(),
+          // 하트비트는 저장하지 않음
+          heartbeat: getKoreanTime(),
         },
       }),
-      // 베르셀 환경에서 하트비트 기반 상태 검증
       onRehydrateStorage: () => state => {
-        if (state?.systemInfo) {
-          const timeSinceLastHeartbeat =
-            Date.now() - state.systemInfo.lastHeartbeat;
-          // 5분 이상 비활성 상태면 강제 STOPPED
-          if (timeSinceLastHeartbeat > 5 * 60 * 1000) {
-            console.log('🔄 비활성 상태 감지 - 시스템 상태 초기화');
-            state.systemInfo = createInitialState();
-          }
+        if (state) {
+          // 스토리지에서 복원 후 즉시 Redis와 동기화
+          console.log('📦 베르셀 시스템 스토어 복원 완료');
+
+          // 복원 후 즉시 폴링 시작하여 최신 상태 동기화
+          setTimeout(() => {
+            if (state.fetchSystemState) {
+              state.fetchSystemState();
+              state.startPolling();
+            }
+          }, 100);
         }
       },
     }
   )
 );
+
+// 자동 초기화 (클라이언트 사이드에서만)
+if (typeof window !== 'undefined') {
+  // 페이지 로드 시 자동으로 폴링 시작
+  setTimeout(() => {
+    const store = useVercelSystemStore.getState();
+    if (!store.pollingEnabled) {
+      store.startPolling();
+    }
+  }, 1000);
+
+  // 페이지 언로드 시 정리
+  window.addEventListener('beforeunload', () => {
+    const store = useVercelSystemStore.getState();
+    store.stopPolling();
+
+    // 세션 정리 요청 (백그라운드에서)
+    if (store.sessionId && navigator.sendBeacon) {
+      const url = `/api/system/state?sessionId=${store.sessionId}`;
+      navigator.sendBeacon(url, JSON.stringify({ method: 'DELETE' }));
+    }
+  });
+}

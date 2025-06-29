@@ -28,17 +28,15 @@ const FeatureCardsGrid = dynamic(
 export default function Home() {
   const router = useRouter();
 
-  // 베르셀 친화적 시스템 상태 관리
+  // 베르셀 친화적 시스템 상태 관리 (Redis 기반)
   const {
     systemInfo,
     startSystem,
     stopSystem,
-    toggleCountdown,
-    getRemainingTime,
-    canStart,
-    canStop,
     startPolling,
     stopPolling,
+    isLoading: systemLoading,
+    error: systemError,
   } = useVercelSystemStore();
 
   const isSystemStarted = systemInfo.state === 'RUNNING';
@@ -115,7 +113,7 @@ export default function Home() {
     console.log('🔍 Home - 시스템 상태 변화:', {
       systemState: systemInfo.state,
       isSystemStarted,
-      remainingTime: getRemainingTime(),
+      activeUsers: systemInfo.activeUsers,
     });
   }, [isMounted, systemInfo.state, isSystemStarted]);
 
@@ -136,26 +134,17 @@ export default function Home() {
       state: systemInfo.state,
       started: isSystemStarted,
       starting: isSystemStarting,
+      activeUsers: systemInfo.activeUsers,
     });
   }, [isMounted, systemInfo.state, isSystemStarted, isSystemStarting]);
 
-  // 시스템 타이머 업데이트 (베르셀 시스템용)
+  // 시스템 타이머 업데이트 (베르셀 시스템용) - Redis에서는 불필요
   useEffect(() => {
     if (!isMounted) return;
 
-    if (isSystemStarted) {
-      const updateTimer = () => {
-        const remaining = getRemainingTime();
-        setSystemTimeRemaining(remaining);
-      };
-
-      updateTimer();
-      const interval = setInterval(updateTimer, 1000);
-      return () => clearInterval(interval);
-    } else {
-      setSystemTimeRemaining(0);
-    }
-  }, [isMounted, isSystemStarted, getRemainingTime]);
+    // Redis 기반 시스템에서는 카운트다운이 없으므로 타이머 불필요
+    setSystemTimeRemaining(0);
+  }, [isMounted, isSystemStarted]);
 
   // 시간 포맷 함수 (초 단위를 분:초로 변환)
   const formatTime = (seconds: number) => {
@@ -232,12 +221,8 @@ export default function Home() {
     try {
       console.log('🚀 베르셀 시스템 시작 실행');
       setIsLoading(true);
-      // 30분 카운트다운 기본 활성화
-      await startSystem({
-        enableCountdown: true,
-        countdownMinutes: 30,
-        operatorName: '시스템 관리자',
-      });
+      // 베르셀 시스템 시작 (Redis 기반)
+      await startSystem();
       console.log('✅ 시스템이 성공적으로 시작되었습니다.');
       router.push('/system-boot');
     } catch (error) {
@@ -258,7 +243,9 @@ export default function Home() {
 
   // 🛑 시스템 중지 함수 (베르셀 시스템용)
   const handleSystemStop = async () => {
-    if (!canStop()) return;
+    // 시스템이 실행 중이거나 시작 중일 때만 중지 가능
+    if (systemInfo.state !== 'RUNNING' && systemInfo.state !== 'STARTING')
+      return;
 
     try {
       console.log('🛑 베르셀 시스템 중지 요청');
