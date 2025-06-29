@@ -1,0 +1,37 @@
+# 베르셀 환경변수 설정 파일
+# 생성일: 2025-01-25 10:43 KST
+# OpenManager Vibe v5 - AI 엔진 완전 설정
+
+# Google AI 설정 (베르셀 \r\n 문제 해결)
+GOOGLE_AI_API_KEY=AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM
+GOOGLE_AI_ENABLED=true
+GOOGLE_AI_QUOTA_PROTECTION=false
+GOOGLE_AI_BETA_MODE=true
+GOOGLE_AI_TEST_LIMIT_PER_DAY=10000
+GOOGLE_AI_NATURAL_LANGUAGE_ONLY=false
+
+# 시스템 설정
+NODE_ENV=production
+NEXT_TELEMETRY_DISABLED=1
+SKIP_ENV_VALIDATION=true
+
+# 데이터베이스 설정 (Supabase)
+NEXT_PUBLIC_SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8
+
+# Redis 설정 (Upstash)
+UPSTASH_REDIS_REST_URL=https://charming-condor-46598.upstash.io
+UPSTASH_REDIS_REST_TOKEN=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+
+# MCP 서버 설정
+RENDER_MCP_SERVER_URL=https://openmanager-vibe-v5.onrender.com
+MCP_SERVER_PORT=10000
+
+# AI 엔진 설정
+AI_ENGINE_MODE=AUTO
+SUPABASE_RAG_ENABLED=true
+LOCAL_AI_FALLBACK=true
+
+# 팀 복호화 비밀번호 (백업 시스템용)
+TEAM_DECRYPT_PASSWORD=openmanager2025

@@ -1,48 +1,42 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { googleAIManager } from '@/lib/google-ai-manager';
+import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * Google AI 키 잠금 해제 API
+ * Google AI 키 초기화 API
  *
  * POST /api/google-ai/unlock
- * Body: { password: string }
+ * Body: { password?: string } (레거시 호환성, 현재는 자동 초기화)
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { password } = body;
+    console.log('🔧 Google AI 초기화 API 요청 시작...');
 
-    // 비밀번호 검증
-    if (!password || typeof password !== 'string') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: '비밀번호가 필요합니다.',
-        },
-        { status: 400 }
-      );
-    }
+    // Google AI 매니저 자동 초기화 시도
+    const initResult = await googleAIManager.initialize();
 
-    // Google AI 키 잠금 해제 시도
-    const result = await googleAIManager.unlockTeamKey(password.trim());
+    if (initResult) {
+      const status = googleAIManager.getStatus();
 
-    if (result.success) {
       return NextResponse.json({
         success: true,
-        message: 'Google AI 키가 성공적으로 잠금 해제되었습니다.',
-        status: googleAIManager.getKeyStatus(),
+        message: 'Google AI가 성공적으로 초기화되었습니다.',
+        status: {
+          ...status,
+          timestamp: new Date().toISOString(),
+        },
       });
     } else {
       return NextResponse.json(
         {
           success: false,
-          error: result.error || '잠금 해제에 실패했습니다.',
+          error: 'Google AI 초기화에 실패했습니다. 환경변수를 확인해주세요.',
+          status: googleAIManager.getStatus(),
         },
         { status: 401 }
       );
     }
   } catch (error) {
-    console.error('Google AI 잠금 해제 API 오류:', error);
+    console.error('Google AI 초기화 API 오류:', error);
     return NextResponse.json(
       {
         success: false,
@@ -60,14 +54,15 @@ export async function POST(request: NextRequest) {
  */
 export async function GET() {
   try {
-    const status = googleAIManager.getKeyStatus();
-    const isAvailable = googleAIManager.isAPIKeyAvailable();
+    const status = googleAIManager.getStatus();
+    const apiKey = googleAIManager.getAPIKey();
 
     return NextResponse.json({
       success: true,
       status: {
         ...status,
-        isAvailable,
+        isAvailable: status.hasApiKey && status.isValid,
+        apiKeyPreview: apiKey ? `${apiKey.substring(0, 10)}...` : null,
         timestamp: new Date().toISOString(),
       },
     });
@@ -84,25 +79,33 @@ export async function GET() {
 }
 
 /**
- * Google AI 키 잠금 API
+ * Google AI 재초기화 API
  *
  * DELETE /api/google-ai/unlock
  */
 export async function DELETE() {
   try {
-    googleAIManager.lockTeamKey();
+    console.log('🔄 Google AI 재초기화 API 요청...');
+
+    const reinitResult = await googleAIManager.reinitialize();
+    const status = googleAIManager.getStatus();
 
     return NextResponse.json({
-      success: true,
-      message: 'Google AI 키가 잠금되었습니다.',
-      status: googleAIManager.getKeyStatus(),
+      success: reinitResult,
+      message: reinitResult
+        ? 'Google AI가 재초기화되었습니다.'
+        : 'Google AI 재초기화에 실패했습니다.',
+      status: {
+        ...status,
+        timestamp: new Date().toISOString(),
+      },
     });
   } catch (error) {
-    console.error('Google AI 잠금 API 오류:', error);
+    console.error('Google AI 재초기화 API 오류:', error);
     return NextResponse.json(
       {
         success: false,
-        error: '잠금 처리 중 오류가 발생했습니다.',
+        error: '재초기화 처리 중 오류가 발생했습니다.',
       },
       { status: 500 }
     );

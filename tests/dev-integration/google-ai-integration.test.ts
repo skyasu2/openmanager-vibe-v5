@@ -144,22 +144,25 @@ vi.mock('@/services/ai/GoogleAIService', () => ({
   })),
 }));
 
-// Google AI Manager 완전 모킹
+// Google AI Manager 완전 모킹 (새로운 시스템에 맞게 업데이트)
 vi.mock('@/lib/google-ai-manager', () => ({
   getGoogleAIKey: vi.fn(() => process.env.GOOGLE_AI_API_KEY || 'test-api-key'),
   isGoogleAIAvailable: vi.fn(() => true),
   getGoogleAIStatus: vi.fn(() => ({
-    source: 'env',
-    isAvailable: true,
-    needsUnlock: false,
+    isInitialized: true,
+    hasApiKey: true,
+    apiKeySource: 'environment',
+    isValid: true,
   })),
   googleAIManager: {
+    initialize: vi.fn(() => Promise.resolve(true)),
+    reinitialize: vi.fn(() => Promise.resolve(true)),
     getAPIKey: vi.fn(() => process.env.GOOGLE_AI_API_KEY || 'test-api-key'),
-    isAPIKeyAvailable: vi.fn(() => true),
-    getKeyStatus: vi.fn(() => ({
-      source: 'env',
-      isAvailable: true,
-      needsUnlock: false,
+    getStatus: vi.fn(() => ({
+      isInitialized: true,
+      hasApiKey: true,
+      apiKeySource: 'environment',
+      isValid: true,
     })),
   },
 }));
