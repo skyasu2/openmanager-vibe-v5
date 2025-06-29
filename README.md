@@ -347,6 +347,8 @@ npm run validate:quick
 
 ### 핵심 문서
 
+- [📋 변경사항 로그](CHANGELOG.md) - 최근 주요 변경사항
+- [📚 변경사항 아카이브](docs/changelog-archive/) - 상세한 히스토리
 - [🤖 AI 아키텍처](docs/ai-architecture-v5.44.3.md)
 - [🔧 기술 구현](docs/technical-implementation-v5.44.3.md)
 - [🧪 테스트 가이드](tests/TESTING.md)
