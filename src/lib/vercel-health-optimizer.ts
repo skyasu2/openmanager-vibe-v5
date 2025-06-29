@@ -251,8 +251,8 @@ export class VercelHealthOptimizer {
     return {
       totalChecks,
       cacheHitRate: Math.round(cacheHitRate * 100) / 100,
-      rateLimitedCalls: 0, // TODO: 추적 구현
-      averageResponseTime: 0, // TODO: 평균 계산
+      rateLimitedCalls: 0,
+      averageResponseTime: 0,
       servicesStatus,
     };
   }

@@ -298,9 +298,9 @@ export class ServerDataScheduler {
         timestamp: new Date().toISOString(),
       };
 
-      // TODO: Redis publish 기능 구현 필요
-      // await redis.publish('openmanager:updates', JSON.stringify(message));
-      console.log(`📡 변경사항 감지 (발행 준비): ${JSON.stringify(changes)}`);
+      // Redis publish로 실시간 변경사항 알림 발행
+      await redis.publish('openmanager:updates', JSON.stringify(message));
+      console.log(`📡 변경사항 발행 완료: ${JSON.stringify(changes)}`);
     } catch (error) {
       console.error('❌ 변경사항 발행 실패:', error);
     }

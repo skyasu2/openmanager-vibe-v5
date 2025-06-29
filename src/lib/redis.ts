@@ -26,6 +26,7 @@ interface RedisClientInterface {
   incr(key: string): Promise<number>;
   ping(): Promise<string>;
   pipeline(): any;
+  publish(channel: string, message: string): Promise<number>;
 }
 
 // Redis 클라이언트 인스턴스들

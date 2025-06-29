@@ -83,8 +83,6 @@ interface AIEngine {
 //   content?: string;
 //   preview?: string;
 // }
-// TODO: 향후 문서/로그 파일 업로드 분석 기능 개발 예정
-
 interface ChatMessage {
   id: string;
   type: 'user' | 'ai';
@@ -93,7 +91,6 @@ interface ChatMessage {
   thinking?: ThinkingStep[];
   engine?: string;
   confidence?: number;
-  // files?: UploadedFile[]; // TODO: 향후 파일 첨부 기능 개발 예정
 }
 
 interface ThinkingStep {
@@ -136,7 +133,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   const [selectedEngine, setSelectedEngine] = useState<AIMode>('LOCAL');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showEngineInfo, setShowEngineInfo] = useState(false);
-  // const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]); // TODO: 향후 파일 업로드 기능
+
   const [expandedThinking, setExpandedThinking] = useState<string | null>(null);
 
   // 프리셋 질문 네비게이션 상태는 PresetQuestionManager에서 관리됨
@@ -209,7 +206,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
   // 스크롤 참조
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  // const fileInputRef = useRef<HTMLInputElement>(null); // TODO: 향후 파일 업로드 기능
+
   const presetScrollRef = useRef<HTMLDivElement>(null);
 
   // 실시간 AI 로그 훅
