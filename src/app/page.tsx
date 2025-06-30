@@ -432,11 +432,7 @@ export default function Home() {
                 <motion.button
                   onClick={handleSystemToggle}
                   disabled={isLoading}
-                  className={`w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-200 border shadow-xl ${
-                    isLoading
-                      ? 'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50 hover:shadow-2xl'
-                  }`}
+                  className={`w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-200 border shadow-xl ${isLoading ? 'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed' : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50 hover:shadow-2xl'}`}
                   whileHover={!isLoading ? { scale: 1.05, y: -2 } : {}}
                   whileTap={!isLoading ? { scale: 0.98 } : {}}
                   animate={{
