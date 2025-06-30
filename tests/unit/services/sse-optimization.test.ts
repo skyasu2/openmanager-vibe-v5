@@ -22,42 +22,44 @@ import { SSEHealthMonitor } from '@/services/sse/SSEHealthMonitor';
 
 // Mock EventSource
 class MockEventSource {
-    public readyState: number = 0;
-    public url: string;
-    public withCredentials: boolean;
-    public onopen: ((event: Event) => void) | null = null;
-    public onmessage: ((event: MessageEvent) => void) | null = null;
-    public onerror: ((event: Event) => void) | null = null;
+    url: string;
+    withCredentials: boolean;
+    readyState: number;
+    onopen: ((event: Event) => void) | null = null;
+    onmessage: ((event: MessageEvent) => void) | null = null;
+    onerror: ((event: Event) => void) | null = null;
 
-    constructor(url: string, eventSourceInitDict?: EventSourceInit) {
+    constructor(url: string) {
         this.url = url;
-        this.withCredentials = eventSourceInitDict?.withCredentials || false;
+        this.withCredentials = false;
+        this.readyState = 0; // CONNECTING
+
+        // 비동기적으로 연결 상태 변경
         setTimeout(() => {
             this.readyState = 1; // OPEN
-            this.onopen?.(new Event('open'));
+            if (this.onopen) {
+                this.onopen(new Event('open'));
+            }
         }, 10);
     }
 
-    close() {
-        this.readyState = 2; // CLOSED
-        // 즉시 error 이벤트 트리거하여 재연결 로직 테스트
-        setTimeout(() => {
-            if (this.onerror) {
-                this.onerror(new Event('error'));
-            }
-        }, 1);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    addEventListener(_type: string, _listener: EventListener): void {
+        // 이벤트 리스너 등록 목업
     }
 
-    addEventListener(_type: string, _listener: EventListener) {
-        // Mock implementation
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    removeEventListener(_type: string, _listener: EventListener): void {
+        // 이벤트 리스너 제거 목업
     }
 
-    removeEventListener(_type: string, _listener: EventListener) {
-        // Mock implementation
-    }
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     dispatchEvent(_event: Event): boolean {
         return true;
+    }
+
+    close(): void {
+        this.readyState = 2; // CLOSED
     }
 }
 
@@ -400,7 +402,7 @@ describe('🧪 TDD - SSE 최적화', () => {
         it('실제 SSE 스트림 데이터를 처리할 수 있어야 함', async () => {
             sseManager = new OptimizedSSEManager();
 
-            const messages: any[] = [];
+            const messages: Array<{ type: string; payload: Record<string, unknown> }> = [];
             const connection = await sseManager.createConnection('data-stream');
 
             sseManager.on('message', (data) => {
