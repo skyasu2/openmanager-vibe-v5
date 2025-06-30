@@ -1,13 +1,13 @@
 /**
  * 📊 PerformanceChart Storybook Stories
- * 2025-06-30 업데이트: TypeScript 오류 수정 및 v5.56.0 호환성 개선
+ * 2025-06-30 업데이트: TypeScript 완전 호환성 달성
  */
 
 import type { Meta, StoryObj } from '@storybook/react';
 import type { ChartDataPoint } from '../../types/dashboard';
 import PerformanceChart from './PerformanceChart';
 
-// 📊 Mock 데이터 생성기 (ChartDataPoint 타입 호환)
+// 📊 Mock 데이터 생성기 (실제 PerformanceChart Props 호환)
 const generatePerformanceData = (
   count: number,
   pattern: 'normal' | 'high' | 'mixed' | 'empty' = 'normal'
