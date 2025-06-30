@@ -49,7 +49,6 @@ export default function Home() {
 
   // 🔄 클라이언트 마운트 상태 (hydration 문제 방지)
   const [isMounted, setIsMounted] = useState(false);
-  const [forceShow, setForceShow] = useState(false);
 
   // 🕐 카운트다운 상태 (점진적 수정용)
   const [systemStartCountdown, setSystemStartCountdown] = useState(0);
@@ -57,16 +56,10 @@ export default function Home() {
     null
   );
 
-  // 🔄 클라이언트 마운트 감지 및 강제 표시 로직
+  // 🔄 클라이언트 마운트 감지
   useEffect(() => {
     // 즉시 클라이언트 마운트 처리
     setIsMounted(true);
-
-    // 1초 후 강제 표시 (hydration 문제 방지)
-    const forceShowTimer = setTimeout(() => {
-      setForceShow(true);
-      console.log('🚀 강제 표시 활성화 (1초 후)');
-    }, 1000);
 
     // 베르셀 시스템 폴링 시작 (상태 동기화)
     console.log('🔄 베르셀 시스템 폴링 시작 (상태 동기화)');
@@ -116,7 +109,6 @@ export default function Home() {
     const warmupTimer = setTimeout(performRenderWarmup, 3000);
 
     return () => {
-      clearTimeout(forceShowTimer);
       clearTimeout(warmupTimer);
       stopPolling(); // 페이지 언마운트 시 폴링 중지
     };
@@ -278,22 +270,7 @@ export default function Home() {
     router.push('/system-boot');
   };
 
-  // 🔄 초기 로딩 조건: 강제 표시가 활성화되지 않은 경우만
-  if (!forceShow) {
-    return (
-      <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
-        <div className='flex items-center justify-center min-h-screen'>
-          <div className='text-center'>
-            <Loader2 className='w-8 h-8 animate-spin text-white mx-auto mb-4' />
-            <p className='text-white/80'>OpenManager 로딩 중...</p>
-            <p className='text-white/50 text-sm mt-2'>
-              AI 기반 서버 모니터링 시스템
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // ✅ A 방식: 즉시 표시 - 조건부 렌더링 제거로 바로 메인 대시보드 표시
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
