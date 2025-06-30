@@ -4,24 +4,42 @@ import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
 import { useVercelSystemStore } from '@/stores/vercelSystemStore';
 import { motion } from 'framer-motion';
 import { Bot, Loader2, Play, Zap } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 // 토스트 알림과 인라인 피드백 시스템 제거됨
 
-const FeatureCardsGrid = dynamic(
-  () => import('@/components/home/FeatureCardsGrid'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12'>
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className='h-32 bg-white/10 rounded-lg animate-pulse' />
-        ))}
+// 임시로 FeatureCardsGrid 컴포넌트를 단순화 (렌더링 오류 해결)
+const FeatureCardsGrid = () => {
+  return (
+    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12'>
+      <div className='p-6 rounded-xl bg-white/10 border border-white/20'>
+        <div className='flex items-center gap-3 mb-3'>
+          <Zap className='w-6 h-6 text-yellow-400' />
+          <h3 className='text-lg font-semibold text-white'>
+            🧠 AI 기반 모니터링
+          </h3>
+        </div>
+        <p className='text-white/70 text-sm'>실시간 서버 상태 분석 및 예측</p>
       </div>
-    ),
-  }
-);
+      <div className='p-6 rounded-xl bg-white/10 border border-white/20'>
+        <div className='flex items-center gap-3 mb-3'>
+          <Bot className='w-6 h-6 text-blue-400' />
+          <h3 className='text-lg font-semibold text-white'>🤖 AI 어시스턴트</h3>
+        </div>
+        <p className='text-white/70 text-sm'>자연어로 서버 관리 및 문제 해결</p>
+      </div>
+      <div className='p-6 rounded-xl bg-white/10 border border-white/20'>
+        <div className='flex items-center gap-3 mb-3'>
+          <Play className='w-6 h-6 text-green-400' />
+          <h3 className='text-lg font-semibold text-white'>
+            ⚡ 실시간 대시보드
+          </h3>
+        </div>
+        <p className='text-white/70 text-sm'>15개 서버 통합 모니터링</p>
+      </div>
+    </div>
+  );
+};
 
 // 토스트 알림 훅 제거됨
 
