@@ -11,6 +11,7 @@
 'use client';
 
 import { useToast } from '@/components/ui/ToastNotification';
+import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -20,7 +21,6 @@ import {
   Lock,
   LogOut,
   Play,
-  Server,
   Settings,
   Square,
   Unlock,
@@ -60,6 +60,11 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
   const aiAgent = store.aiAgent;
   const isLocked = store.isLocked;
   const adminMode = store.adminMode;
+
+  // 📊 다중 사용자 시스템 상태 추가
+  const { status: multiUserStatus } = useSystemStatus({
+    pollingInterval: 15000,
+  }); // 15초마다 업데이트
 
   // 액션들은 안정적이므로 한 번만 가져오기
   const { startSystem, stopSystem, logout, authenticateAdmin, logoutAdmin } =
@@ -266,31 +271,29 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
     return aiAgent.isEnabled ? 'text-purple-600' : 'text-cyan-600';
   };
 
-  const getSystemStatus = () => {
-    if (isSystemStarted) {
-      return {
-        text: '시스템 동작 중',
-        color: 'text-green-600',
-        bgColor: 'bg-green-500/20',
-        icon: Activity,
-        details: '모든 서비스가 정상 동작 중입니다.',
-      };
-    } else {
-      return {
-        text: '시스템 대기 중',
-        color: 'text-gray-600',
-        bgColor: 'bg-gray-500/20',
-        icon: Server,
-        details: '시스템이 대기 상태입니다.',
-      };
+  // 📊 시스템 상태 텍스트 생성 (다중 사용자 정보 포함)
+  const getSystemStatusText = () => {
+    if (multiUserStatus.isStarting) {
+      return `🔄 시스템 시작 중... (${multiUserStatus.userCount}명 대기)`;
     }
+
+    if (multiUserStatus.isRunning || isSystemStarted) {
+      return `🟢 시스템 가동 중 (${multiUserStatus.userCount}명 접속)`;
+    }
+
+    return `🔴 시스템 정지됨 (${multiUserStatus.userCount}명 접속)`;
+  };
+
+  // 📊 시스템 상태 색상 결정
+  const getSystemStatusColor = () => {
+    if (multiUserStatus.isStarting) return 'text-yellow-400';
+    if (multiUserStatus.isRunning || isSystemStarted) return 'text-green-400';
+    return 'text-red-400';
   };
 
   // 드롭다운 메뉴 (Portal로 렌더링)
   const DropdownPortal = useCallback(() => {
     if (typeof window === 'undefined') return null;
-
-    const systemStatus = getSystemStatus();
 
     return createPortal(
       <AnimatePresence mode='wait'>
@@ -366,23 +369,37 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                   </div>
                 </div>
 
-                {/* 시스템 상태 */}
-                <div className='flex items-center justify-between p-3 rounded-lg bg-gray-100 mb-3'>
-                  <div className='flex items-center gap-3'>
-                    <div className={`p-2 rounded-lg ${systemStatus.bgColor}`}>
-                      <systemStatus.icon
-                        className={`w-4 h-4 ${systemStatus.color}`}
-                      />
+                {/* 📊 시스템 상태 표시 (새로 추가) */}
+                <div className='p-3 bg-gradient-to-r from-gray-50/80 to-blue-50/80 border-b border-white/10'>
+                  <div className='flex items-center justify-between'>
+                    <div className='flex items-center gap-2'>
+                      <Activity className='w-4 h-4 text-blue-600' />
+                      <span className='text-sm font-medium text-gray-700'>
+                        시스템 상태
+                      </span>
                     </div>
-                    <div>
-                      <div className='text-gray-900 text-sm font-medium'>
-                        {systemStatus.text}
-                      </div>
-                      <div className={`text-xs ${systemStatus.color}`}>
-                        {systemStatus.details}
-                      </div>
+                    <div className='flex items-center gap-2'>
+                      <span
+                        className={`text-sm font-medium ${getSystemStatusColor()}`}
+                      >
+                        {getSystemStatusText()}
+                      </span>
                     </div>
                   </div>
+
+                  {/* 환경 정보 */}
+                  <div className='mt-1 flex items-center justify-between text-xs text-gray-500'>
+                    <span>환경: {multiUserStatus.environment}</span>
+                    <span>v{multiUserStatus.version}</span>
+                  </div>
+
+                  {/* 업타임 정보 */}
+                  {multiUserStatus.uptime && multiUserStatus.uptime > 0 && (
+                    <div className='mt-1 text-xs text-gray-500'>
+                      업타임: {Math.floor(multiUserStatus.uptime / 3600)}시간{' '}
+                      {Math.floor((multiUserStatus.uptime % 3600) / 60)}분
+                    </div>
+                  )}
                 </div>
               </div>
 

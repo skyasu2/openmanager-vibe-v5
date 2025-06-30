@@ -1,6 +1,7 @@
 'use client';
 
 import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
+import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
 import {
@@ -44,6 +45,14 @@ export default function Home() {
     logout,
     getSystemRemainingTime,
   } = useUnifiedAdminStore();
+
+  // 📊 다중 사용자 시스템 상태 관리 (새로 추가)
+  const {
+    status: multiUserStatus,
+    isLoading: statusLoading,
+    startSystem: startMultiUserSystem,
+  } = useSystemStatus();
+
   // 토스트 알림 기능 제거됨
   const [isLoading, setIsLoading] = useState(false);
   const [systemTimeRemaining, setSystemTimeRemaining] = useState(0);
@@ -198,84 +207,107 @@ export default function Home() {
 
   // 🚀 시스템 시작 카운트다운 함수
   const startSystemCountdown = () => {
-    console.log('🚀 시스템 시작 카운트다운 시작 (3초)');
-    console.log('🚀 3초 후 시스템이 시작되고 로딩 페이지로 이동합니다!');
-
-    setSystemStartCountdown(3);
-
+    setSystemStartCountdown(5);
     const timer = setInterval(() => {
       setSystemStartCountdown(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          // 3초 후 시스템 시작 및 로딩 페이지로 이동
-          handleSystemStart();
+          handleSystemStart(); // 기존 시스템 시작 함수 호출
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-
     setCountdownTimer(timer);
   };
 
-  // 🛑 카운트다운 중지 함수
   const stopSystemCountdown = () => {
-    console.log('🛑 시스템 시작 카운트다운 취소');
     if (countdownTimer) {
       clearInterval(countdownTimer);
+      setCountdownTimer(null);
     }
     setSystemStartCountdown(0);
-    setCountdownTimer(null);
-    console.log('⏹️ 시스템 시작이 취소되었습니다.');
   };
 
-  // 🚀 통합 시스템 시작 함수
+  // 🚀 시스템 시작 함수 (다중 사용자 기능 통합)
   const handleSystemStart = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
     try {
-      console.log('🚀 시스템 시작 실행');
-      setIsLoading(true);
+      // 1. 다중 사용자 상태 업데이트
+      await startMultiUserSystem();
+
+      // 2. 기존 시스템 시작 로직 실행
       await startSystem();
-      console.log('✅ 시스템이 성공적으로 시작되었습니다.');
-      // 로딩 페이지로 이동
-      router.push('/system-boot');
+
+      console.log('🚀 시스템 시작 완료 (다중 사용자 지원)');
     } catch (error) {
       console.error('❌ 시스템 시작 실패:', error);
-      console.error('❌ 시스템 시작에 실패했습니다.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 🚀 시스템 토글 함수 (카운트다운 포함)
+  // 🔄 시스템 토글 함수 (기존 로직 보존 + 다중 사용자 상태 연동)
   const handleSystemToggle = async () => {
     if (isLoading) return;
 
-    if (isSystemStarted) {
-      // 시스템이 실행 중이면 즉시 중지
-      setIsLoading(true);
-      try {
-        console.log('🛑 시스템 중지 요청');
-        await stopSystem();
-        console.log('✅ 시스템이 성공적으로 중지되었습니다.');
-      } catch (error) {
-        console.error('❌ 시스템 중지 실패:', error);
-        console.error('❌ 시스템 중지에 실패했습니다.');
-      } finally {
-        setIsLoading(false);
-      }
-    } else if (systemStartCountdown > 0) {
-      // 카운트다운 중이면 카운트다운 중지
+    if (systemStartCountdown > 0) {
       stopSystemCountdown();
+      return;
+    }
+
+    // 🔄 다중 사용자 상태에 따른 동작 결정
+    if (multiUserStatus.isRunning || isSystemStarted) {
+      // 시스템이 이미 실행 중이면 대시보드로 이동
+      handleDashboardClick();
     } else {
-      // 시스템이 중지 상태면 3초 카운트다운 시작
+      // 시스템이 정지 상태면 카운트다운 시작
       startSystemCountdown();
     }
   };
 
-  // 📊 대시보드 이동 함수 (항상 접속 가능)
   const handleDashboardClick = () => {
-    console.log('📊 대시보드로 바로 이동');
     router.push('/dashboard');
+  };
+
+  // 📊 버튼 텍스트와 상태 결정 (다중 사용자 기능 적용)
+  const getButtonConfig = () => {
+    if (systemStartCountdown > 0) {
+      return {
+        text: `시작 취소 (${systemStartCountdown}초)`,
+        icon: <X className='w-5 h-5' />,
+        className:
+          'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50',
+      };
+    }
+
+    if (isLoading || statusLoading) {
+      return {
+        text: '시스템 초기화 중...',
+        icon: <Loader2 className='w-5 h-5 animate-spin' />,
+        className:
+          'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed',
+      };
+    }
+
+    // 다중 사용자 상태 우선 확인
+    if (multiUserStatus.isRunning || isSystemStarted) {
+      return {
+        text: `📊 대시보드 이동 (사용자: ${multiUserStatus.userCount}명)`,
+        icon: <BarChart3 className='w-5 h-5' />,
+        className:
+          'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50',
+      };
+    }
+
+    return {
+      text: '🚀 시스템 시작',
+      icon: <Play className='w-5 h-5' />,
+      className:
+        'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-blue-400/50',
+    };
   };
 
   // 🔄 클라이언트 마운트 전에는 기본 상태로 렌더링 (hydration 문제 방지)
@@ -291,6 +323,8 @@ export default function Home() {
       </div>
     );
   }
+
+  const buttonConfig = getButtonConfig();
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
@@ -454,78 +488,30 @@ export default function Home() {
                 <motion.button
                   onClick={handleSystemToggle}
                   disabled={isLoading}
-                  className={`w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-200 border shadow-xl ${
-                    isLoading
-                      ? 'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed'
-                      : systemStartCountdown > 0
-                        ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-400/50 shadow-lg shadow-orange-500/50'
-                        : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50 hover:shadow-2xl'
-                  }`}
-                  whileHover={!isLoading ? { scale: 1.05, y: -2 } : {}}
-                  whileTap={!isLoading ? { scale: 0.98 } : {}}
-                  animate={
-                    systemStartCountdown > 0
-                      ? {
-                          scale: [1, 1.08, 1],
-                          boxShadow: [
-                            '0 0 0 0 rgba(255, 165, 0, 0.8)',
-                            '0 0 0 15px rgba(255, 165, 0, 0)',
-                            '0 0 0 0 rgba(255, 165, 0, 0)',
-                          ],
-                        }
-                      : {
-                          boxShadow: [
-                            '0 0 0 0 rgba(34, 197, 94, 0.5)',
-                            '0 0 0 10px rgba(34, 197, 94, 0)',
-                            '0 0 0 0 rgba(34, 197, 94, 0)',
-                          ],
-                        }
-                  }
-                  transition={{
-                    duration: systemStartCountdown > 0 ? 1 : 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
+                  className={`w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-200 border shadow-xl ${buttonConfig.className}`}
+                  whileHover={!isLoading ? { scale: 1.05 } : {}}
+                  whileTap={!isLoading ? { scale: 0.95 } : {}}
                 >
-                  {isLoading ? (
-                    <Loader2 className='w-6 h-6 animate-spin' />
-                  ) : systemStartCountdown > 0 ? (
-                    <div className='flex items-center gap-2'>
-                      <X className='w-6 h-6' />
-                      <span>🛑 시작 취소</span>
-                      <div className='bg-white/20 rounded-full w-8 h-8 flex items-center justify-center'>
-                        <span className='text-lg font-bold text-yellow-300'>
-                          {systemStartCountdown}
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <Play className='w-6 h-6' />
-                      <span className='text-lg'>🚀 시스템 시작</span>
-                    </>
-                  )}
+                  {buttonConfig.icon}
+                  <span className='text-lg'>{buttonConfig.text}</span>
                 </motion.button>
 
                 {/* 상태 안내 */}
-                <div className='mt-3 flex justify-center'>
-                  <span
-                    className={`text-2xl ${systemStartCountdown > 0 ? 'animate-bounce text-orange-400' : 'animate-wiggle text-yellow-400'}`}
-                  >
-                    {systemStartCountdown > 0 ? '⏰' : '👆'}
-                  </span>
-                </div>
                 <div className='mt-2 flex justify-center'>
                   <span
                     className={`text-sm font-medium opacity-80 ${
                       systemStartCountdown > 0
                         ? 'text-orange-300 animate-pulse'
-                        : 'animate-point-bounce text-white'
+                        : multiUserStatus.isRunning
+                          ? 'text-green-300'
+                          : 'animate-point-bounce text-white'
                     }`}
                   >
                     {systemStartCountdown > 0
-                      ? '시스템 시작 중... (취소하려면 버튼 클릭)'
-                      : '시스템을 시작하려면 버튼을 클릭하세요'}
+                      ? '⚠️ 시작 예정 - 취소하려면 클릭'
+                      : multiUserStatus.isRunning
+                        ? `✅ 시스템 가동 중 (${multiUserStatus.userCount}명 접속)`
+                        : '클릭하여 OpenManager 시작하기'}
                   </span>
                 </div>
               </div>
