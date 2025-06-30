@@ -4,15 +4,7 @@ import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
-import {
-  BarChart3,
-  Bot,
-  Loader2,
-  Play,
-  StopCircle,
-  X,
-  Zap,
-} from 'lucide-react';
+import { BarChart3, Bot, Loader2, Play, X, Zap } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -242,6 +234,9 @@ export default function Home() {
       await startSystem();
 
       console.log('🚀 시스템 시작 완료 (다중 사용자 지원)');
+
+      // 3. 시스템 시작 완료 후 대시보드로 이동
+      router.push('/dashboard');
     } catch (error) {
       console.error('❌ 시스템 시작 실패:', error);
     } finally {
@@ -560,64 +555,17 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* 제어 버튼들 - 3개를 가로로 배치 */}
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-6'>
-                {/* AI 엔진 상태 표시 */}
-                <div className='flex flex-col items-center'>
-                  <motion.div
-                    className='w-52 h-14 flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold border border-green-400/50 shadow-lg shadow-green-500/30'
-                    animate={{
-                      scale: [1, 1.02, 1],
-                      boxShadow: [
-                        '0 0 0 0 rgba(34, 197, 94, 0.6)',
-                        '0 0 0 8px rgba(34, 197, 94, 0)',
-                        '0 0 0 0 rgba(34, 197, 94, 0)',
-                      ],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    }}
-                  >
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: 'linear',
-                      }}
-                    >
-                      <Bot className='w-5 h-5' />
-                    </motion.div>
-                    <span className='text-white font-bold drop-shadow-lg'>
-                      🧠 AI 엔진 활성
-                    </span>
-                  </motion.div>
-
-                  {/* 상태 표시 */}
-                  <div className='mt-2 flex justify-center'>
-                    <span className='text-green-400 text-xl animate-pulse'>
-                      ✅
-                    </span>
-                  </div>
-                  <div className='mt-1 flex justify-center'>
-                    <span className='text-green-300 text-xs opacity-70'>
-                      시스템 준비 완료
-                    </span>
-                  </div>
-                </div>
-
-                {/* 대시보드 버튼 */}
+              {/* 대시보드 버튼 - 중앙 배치 */}
+              <div className='flex justify-center mb-6'>
                 <div className='flex flex-col items-center'>
                   <motion.button
                     onClick={handleDashboardClick}
-                    className='w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500/50'
+                    className='w-64 h-16 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500/50 shadow-xl'
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
                     <BarChart3 className='w-5 h-5' />
-                    <span>📊 대시보드 열기</span>
+                    <span className='text-lg'>📊 대시보드 열기</span>
                   </motion.button>
 
                   {/* 안내 아이콘 */}
@@ -631,24 +579,6 @@ export default function Home() {
                       클릭하세요
                     </span>
                   </div>
-                </div>
-
-                {/* 시스템 중지 버튼 */}
-                <div className='flex flex-col items-center'>
-                  <motion.button
-                    onClick={handleSystemToggle}
-                    disabled={isLoading}
-                    className='w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border disabled:opacity-75 bg-red-600 hover:bg-red-700 text-white border-red-500/50'
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {isLoading ? (
-                      <Loader2 className='w-5 h-5 animate-spin' />
-                    ) : (
-                      <StopCircle className='w-5 h-5' />
-                    )}
-                    <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
-                  </motion.button>
                 </div>
               </div>
 
