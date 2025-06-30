@@ -1,6 +1,6 @@
 /**
  * 한국시간(KST/Asia Seoul) 유틸리티 함수
- * 작성일: 2025-01-05 00:04:15 (KST)
+ * 작성일: 2025-01-05 00:11:00 (KST)
  *
  * OpenManager Vibe v5에서 모든 시간 관련 작업은 한국시간을 기준으로 합니다.
  * 한국시간 기준 개발 규칙에 따라 모든 시간 처리는 KST/Asia/Seoul을 사용합니다.
@@ -167,74 +167,35 @@ export class KoreanTimeUtil {
   }
 
   /**
-   * 올바른 프로젝트 날짜 검증 (2025년 1월 이후)
-   * @param dateString 검증할 날짜 문자열
+   * 프로젝트 날짜 검증 (2025년 1월 이후만 유효)
+   * @param dateString 확인할 날짜 문자열
    * @returns 유효한 프로젝트 날짜 여부
    */
   static isValidProjectDate(dateString: string): boolean {
-    const date = new Date(dateString);
-    const projectStart = new Date('2025-01-01'); // 실제 프로젝트 시작
-    const now = new Date();
-
-    return date >= projectStart && date <= now;
+    const projectStartDate = new Date('2025-01-01');
+    const targetDate = new Date(dateString);
+    return targetDate >= projectStartDate && targetDate <= new Date();
   }
 
   /**
-   * 잘못된 날짜 패턴 감지 및 수정
-   * @param text 검사할 텍스트
-   * @returns 잘못된 날짜 배열
+   * 잘못된 미래 날짜 패턴 감지
+   * @param content 확인할 내용
+   * @returns 잘못된 날짜 패턴 배열
    */
-  static findInvalidDates(text: string): string[] {
-    const invalidPatterns = [
-      /2025-0[6-9]-\d{2}/g, // 2025년 6-9월 (미래 날짜)
-      /2025-1[0-2]-\d{2}/g, // 2025년 10-12월 (미래 날짜)
-      /2025년 0[6-9]월/g, // 한글 형태 미래 날짜
-      /2025년 1[0-2]월/g, // 한글 형태 미래 날짜
+  static detectWrongDates(content: string): string[] {
+    const wrongPatterns = [
+      /2025-0[6-9]|2025-1[0-2]/g,  // 6월-12월
+      /2025년 0[6-9]월|2025년 1[0-2]월/g,  // 한국어 6월-12월
+      /20250[6-9]|202510|202511|202512/g  // 파일명 형식
     ];
 
-    const invalidDates: string[] = [];
-
-    invalidPatterns.forEach(pattern => {
-      const matches = text.match(pattern);
-      if (matches) {
-        invalidDates.push(...matches);
-      }
+    const found: string[] = [];
+    wrongPatterns.forEach(pattern => {
+      const matches = content.match(pattern);
+      if (matches) found.push(...matches);
     });
 
-    return invalidDates;
-  }
-
-  /**
-   * 올바른 프로젝트 타임라인 생성 (2025년 1월 기준)
-   */
-  static getCorrectProjectTimeline(): Array<{
-    phase: string;
-    period: string;
-    description: string;
-  }> {
-    return [
-      {
-        phase: 'Phase 1: 프로젝트 시작',
-        period: '2025.01 - 진행중',
-        description: 'OpenManager Vibe v5 개발 시작, TDD 리팩토링 도입',
-      },
-      {
-        phase: 'Phase 2: 모듈 분리',
-        period: '2025.01.04 - 진행중',
-        description:
-          'RealServerDataGenerator, UnifiedAIEngineRouter 등 대형 파일 모듈화',
-      },
-      {
-        phase: 'Phase 3: 백업 복구',
-        period: '2025.01.05 - 계획',
-        description: 'commit 폴더 백업 파일들의 고급 기능 복구 및 적용',
-      },
-      {
-        phase: 'Phase 4: 시스템 안정화',
-        period: '2025.01 - 계획',
-        description: '프론트엔드 안정성 확보, 기존 기능 100% 보장',
-      },
-    ];
+    return [...new Set(found)];
   }
 }
 
@@ -249,8 +210,10 @@ export const KST = {
   commit: () => KoreanTimeUtil.commitTimestamp(),
   file: () => KoreanTimeUtil.fileTimestamp(),
   isWork: () => KoreanTimeUtil.isWorkingHours(),
-  validate: (date: string) => KoreanTimeUtil.isValidProjectDate(date),
-  findInvalid: (text: string) => KoreanTimeUtil.findInvalidDates(text),
+  aiLog: (engine: string) => KoreanTimeUtil.aiLogTimestamp(engine),
+  metric: () => KoreanTimeUtil.metricTimestamp(),
+  valid: (date: string) => KoreanTimeUtil.isValidProjectDate(date),
+  check: (content: string) => KoreanTimeUtil.detectWrongDates(content),
 };
 
 // 기본 export
