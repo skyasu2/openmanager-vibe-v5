@@ -153,15 +153,28 @@ export class EnvironmentManagerProxy {
         SUPABASE_RAG_ENABLED: 'true',
         KOREAN_NLP_ENABLED: 'true',
         REDIS_CONNECTION_DISABLED: 'false',
-        FORCE_MOCK_REDIS: 'false',
+        FORCE_MOCK_REDIS: 'true', // 개발환경에서는 Mock Redis 사용
 
         // 🛡️ 베르셀 시스템 관련 기본값 추가
         VERCEL: 'false', // 개발환경에서는 false
         NODE_ENV: process.env.NODE_ENV || 'development',
 
         // 🛡️ Google AI 관련 기본값
-        GOOGLE_AI_ENABLED: 'false', // 기본적으로 비활성화
+        GOOGLE_AI_ENABLED: 'true', // 기본적으로 활성화
         GOOGLE_AI_QUOTA_PROTECTION: 'true',
+        GOOGLE_AI_API_KEY: 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM',
+
+        // 🗄️ Supabase 관련 필수 환경변수 (가장 중요!)
+        NEXT_PUBLIC_SUPABASE_URL: 'https://vnswjnltnhpsueosfhmw.supabase.co',
+        NEXT_PUBLIC_SUPABASE_ANON_KEY:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU',
+        SUPABASE_SERVICE_ROLE_KEY:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8',
+
+        // 📡 Redis 관련 환경변수
+        UPSTASH_REDIS_REST_URL: 'https://charming-condor-46598.upstash.io',
+        UPSTASH_REDIS_REST_TOKEN:
+          'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
 
         // 🛡️ 기타 시스템 관련 기본값
         DISABLE_AUTO_BACKUP: 'true', // 개발환경에서는 백업 비활성화
@@ -171,6 +184,14 @@ export class EnvironmentManagerProxy {
         // 🛡️ 데이터베이스 관련 기본값
         DATABASE_CONNECTION_POOLING: 'true',
         CACHE_ENABLED: 'true',
+
+        // 🔌 MCP 서버 관련
+        RENDER_MCP_SERVER_URL: 'https://openmanager-vibe-v5.onrender.com',
+        MCP_SERVER_PORT: '10000',
+
+        // 🎯 AI 엔진 관련
+        LOCAL_AI_FALLBACK: 'true',
+        TEAM_DECRYPT_PASSWORD: 'openmanager2025',
       };
 
       const restored: Record<string, string> = {};

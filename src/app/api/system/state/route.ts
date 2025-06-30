@@ -7,7 +7,6 @@
  * ✅ 세션 기반 실시간 동기화
  */
 
-import { devKeyManager } from '@/utils/dev-key-manager';
 import { Redis } from '@upstash/redis';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -16,12 +15,9 @@ let redis: Redis | null = null;
 
 function getRedisClient(): Redis {
   if (!redis) {
-    const redisUrl =
-      devKeyManager.getKey('UPSTASH_REDIS_REST_URL') ||
-      process.env.UPSTASH_REDIS_REST_URL;
-    const redisToken =
-      devKeyManager.getKey('UPSTASH_REDIS_REST_TOKEN') ||
-      process.env.UPSTASH_REDIS_REST_TOKEN;
+    // 개발환경에서는 process.env 직접 사용 (devKeyManager는 Redis 키를 관리하지 않음)
+    const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+    const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
     if (!redisUrl || !redisToken) {
       throw new Error('Redis 환경변수가 설정되지 않았습니다');

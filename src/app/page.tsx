@@ -381,7 +381,7 @@ export default function Home() {
         {/* 타이틀 섹션 */}
         <motion.div
           className='text-center mb-12'
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
@@ -402,7 +402,7 @@ export default function Home() {
         {/* 제어 패널 */}
         <motion.div
           className='mb-12'
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
@@ -497,7 +497,7 @@ export default function Home() {
             /* 시스템 시작 중 또는 활성 상태 - 대시보드 접근 가능 */
             <motion.div
               className='max-w-4xl mx-auto text-center'
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 1, scale: 1 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
             >

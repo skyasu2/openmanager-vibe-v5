@@ -1,8 +1,7 @@
+import { getVercelOptimizedConfig } from '@/config/environment';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../types/database-types';
 import { env } from './env';
 import { usageMonitor } from './usage-monitor';
-import { getVercelOptimizedConfig } from '@/config/environment';
 
 // 빌드 타임에는 최소 유효한 URL, 런타임에는 실제 환경변수 사용
 function getSupabaseUrl() {
