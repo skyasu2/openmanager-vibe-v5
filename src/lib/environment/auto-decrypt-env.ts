@@ -169,8 +169,8 @@ export async function ensureInitialized(): Promise<void> {
 if (
   typeof window === 'undefined' &&
   process.env.NODE_ENV !== 'test' &&
-  !process.env.DISABLE_AUTO_ENV_INIT && // 수동 비활성화 옵션
-  process.env.NODE_ENV === 'production' // 운영 환경에서만 자동 실행
+  !process.env.DISABLE_AUTO_ENV_INIT // 수동 비활성화 옵션
+  // ✅ NODE_ENV 조건 제거: 개발환경에서도 환경변수 초기화 필요
 ) {
   // 한 번만 실행되도록 보장
   ensureInitialized().catch(error => {

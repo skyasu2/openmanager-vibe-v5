@@ -108,8 +108,21 @@ async function callSystemAPI(
 
     return await response.json();
   } catch (error) {
-    console.error('API 호출 에러:', error);
-    throw error;
+    console.warn('🔄 API 호출 실패 - fallback 모드 사용:', error);
+
+    // 🛡️ Fallback 응답 (오프라인/서버 오류 시)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      data: {
+        state: 'STOPPED' as SystemState,
+        lastUpdated: getKoreanTime(),
+        sessionId: generateSessionId(),
+        activeUsers: 0,
+        heartbeat: getKoreanTime(),
+      },
+      fallback: true,
+    };
   }
 }
 
@@ -269,24 +282,54 @@ export const useVercelSystemStore = create<VercelSystemStore>()(
             console.log(
               `🔄 Redis 동기화: ${updatedInfo.state} (사용자: ${updatedInfo.activeUsers}명)`
             );
+          } else if (response.fallback) {
+            // 🛡️ Fallback 응답 처리 - 오프라인 모드
+            const fallbackInfo = response.data;
+
+            set({
+              systemInfo: fallbackInfo,
+              isConnectedToRedis: false,
+              lastSyncTime: getKoreanTime(),
+              error: null, // 오류가 아닌 오프라인 상태로 처리
+              retryCount: 0,
+            });
+
+            console.log('🔄 오프라인 모드 - 기본 상태로 동작');
           } else {
             throw new Error(response.error || '상태 조회 실패');
           }
         } catch (error) {
-          console.error('상태 조회 실패:', error);
+          console.warn('상태 조회 실패 - 기본 상태 유지:', error);
 
           const retryCount = get().retryCount + 1;
-          set({
-            error: error instanceof Error ? error.message : '상태 조회 실패',
-            isConnectedToRedis: false,
-            retryCount,
-          });
 
-          // 재시도 로직 (최대 3회)
+          // 🛡️ 첫 번째 실패 시에는 에러 표시하지 않고 기본 상태 유지
+          if (retryCount === 1) {
+            set({
+              systemInfo: {
+                ...defaultSystemInfo,
+                sessionId: store.sessionId,
+              },
+              isConnectedToRedis: false,
+              lastSyncTime: getKoreanTime(),
+              error: null, // 첫 번째 실패는 에러로 표시하지 않음
+              retryCount,
+            });
+            console.log('🔄 첫 번째 연결 실패 - 기본 상태로 시작');
+          } else {
+            // 여러 번 실패한 경우에만 에러 표시
+            set({
+              error: `연결 실패 (${retryCount}번째 시도)`,
+              isConnectedToRedis: false,
+              retryCount,
+            });
+          }
+
+          // 재시도 로직 (최대 3회, 점진적 백오프)
           if (retryCount < 3) {
             setTimeout(() => {
               get().fetchSystemState();
-            }, 2000 * retryCount); // 점진적 백오프
+            }, 2000 * retryCount);
           }
         }
       },

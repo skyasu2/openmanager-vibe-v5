@@ -154,6 +154,23 @@ export class EnvironmentManagerProxy {
         KOREAN_NLP_ENABLED: 'true',
         REDIS_CONNECTION_DISABLED: 'false',
         FORCE_MOCK_REDIS: 'false',
+
+        // 🛡️ 베르셀 시스템 관련 기본값 추가
+        VERCEL: 'false', // 개발환경에서는 false
+        NODE_ENV: process.env.NODE_ENV || 'development',
+
+        // 🛡️ Google AI 관련 기본값
+        GOOGLE_AI_ENABLED: 'false', // 기본적으로 비활성화
+        GOOGLE_AI_QUOTA_PROTECTION: 'true',
+
+        // 🛡️ 기타 시스템 관련 기본값
+        DISABLE_AUTO_BACKUP: 'true', // 개발환경에서는 백업 비활성화
+        DISABLE_HEALTH_CHECK: 'false',
+        HEALTH_CHECK_CONTEXT: 'true',
+
+        // 🛡️ 데이터베이스 관련 기본값
+        DATABASE_CONNECTION_POOLING: 'true',
+        CACHE_ENABLED: 'true',
       };
 
       const restored: Record<string, string> = {};
