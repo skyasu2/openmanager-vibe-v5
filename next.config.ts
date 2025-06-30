@@ -65,27 +65,23 @@ const nextConfig: NextConfig = {
     BUILD_TIME: 'true', // 🔨 빌드 시 타이머 차단용
     VERCEL_BUILD_PHASE: process.env.VERCEL ? 'true' : 'false',
 
-    // 🔧 Redis 환경변수 안전 설정
-    FORCE_MOCK_REDIS: process.env.VERCEL ? 'false' : 'true',
+    // 🔧 Redis 환경변수 안전 설정 (Vercel에서도 Mock 모드 활성화)
+    FORCE_MOCK_REDIS: 'true', // 양쪽 환경에서 모두 Mock 모드
     REDIS_CONNECTION_DISABLED: 'false',
 
-    // 🗄️ 로컬 개발 환경용 Supabase 설정 (베르셀에서는 별도 설정됨)
-    ...(process.env.VERCEL
-      ? {}
-      : {
-          NEXT_PUBLIC_SUPABASE_URL: 'https://vnswjnltnhpsueosfhmw.supabase.co',
-          NEXT_PUBLIC_SUPABASE_ANON_KEY:
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU',
-          SUPABASE_SERVICE_ROLE_KEY:
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8',
-          UPSTASH_REDIS_REST_URL: 'https://charming-condor-46598.upstash.io',
-          UPSTASH_REDIS_REST_TOKEN:
-            'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
-          GOOGLE_AI_API_KEY: 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM',
-          GOOGLE_AI_ENABLED: 'true',
-          AI_ENGINE_MODE: 'AUTO',
-          RENDER_MCP_SERVER_URL: 'https://openmanager-vibe-v5.onrender.com',
-        }),
+    // 🗄️ 필수 환경변수 - Vercel과 로컬 환경 공통 적용
+    NEXT_PUBLIC_SUPABASE_URL: 'https://vnswjnltnhpsueosfhmw.supabase.co',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY:
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU',
+    SUPABASE_SERVICE_ROLE_KEY:
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8',
+    UPSTASH_REDIS_REST_URL: 'https://charming-condor-46598.upstash.io',
+    UPSTASH_REDIS_REST_TOKEN:
+      'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
+    GOOGLE_AI_API_KEY: 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM',
+    GOOGLE_AI_ENABLED: 'true',
+    AI_ENGINE_MODE: 'AUTO',
+    RENDER_MCP_SERVER_URL: 'https://openmanager-vibe-v5.onrender.com',
   },
 
   serverExternalPackages: [
