@@ -75,19 +75,19 @@ export class UnifiedAIEngineRouter {
     engineUsage: Record<string, number>;
     lastUpdated: string;
   } = {
-    totalRequests: 0,
-    successfulRequests: 0,
-    failedRequests: 0,
-    averageResponseTime: 0,
-    modeUsage: {
-      LOCAL: 0,
-      GOOGLE_AI: 0,
-      AUTO: 0,
-      GOOGLE_ONLY: 0,
-    },
-    engineUsage: {},
-    lastUpdated: new Date().toISOString(),
-  };
+      totalRequests: 0,
+      successfulRequests: 0,
+      failedRequests: 0,
+      averageResponseTime: 0,
+      modeUsage: {
+        LOCAL: 0,
+        GOOGLE_AI: 0,
+        AUTO: 0,
+        GOOGLE_ONLY: 0,
+      },
+      engineUsage: {},
+      lastUpdated: new Date().toISOString(),
+    };
 
   private constructor() {
     this.googleAI = GoogleAIService.getInstance();
@@ -180,14 +180,19 @@ export class UnifiedAIEngineRouter {
 
     // UTF-8 인코딩 정규화
     const normalizedQuery = this.validateKoreanQueryContent(request.query);
+
+    // 🔍 모드 검증 및 정규화
+    const validatedMode = this.validateAndNormalizeMode(request.mode || 'LOCAL');
+
     const normalizedRequest: AIRequest = {
       ...request,
       query: normalizedQuery,
+      mode: validatedMode,
     };
 
     utf8Logger.korean(
       '🎯',
-      `POST 쿼리 (${normalizedRequest.mode || 'LOCAL'} 모드): "${normalizedQuery}"`
+      `POST 쿼리 (${normalizedRequest.mode} 모드): "${normalizedQuery}"`
     );
 
     if (!this.initialized) {
@@ -982,6 +987,34 @@ export class UnifiedAIEngineRouter {
     }
 
     return normalized;
+  }
+
+  /**
+   * 🔍 AI 모드 검증 및 정규화
+   */
+  private validateAndNormalizeMode(mode: string): AIMode {
+    const supportedModes: AIMode[] = ['LOCAL', 'GOOGLE_AI'];
+
+    // 레거시 모드 변환
+    const modeMap: Record<string, AIMode> = {
+      'AUTO': 'LOCAL', // AUTO 모드는 LOCAL로 폴백
+      'GOOGLE_ONLY': 'GOOGLE_AI', // GOOGLE_ONLY는 GOOGLE_AI로 변환
+      'LOCAL': 'LOCAL',
+      'GOOGLE_AI': 'GOOGLE_AI',
+    };
+
+    const normalizedMode = modeMap[mode] || 'LOCAL';
+
+    if (!supportedModes.includes(normalizedMode)) {
+      console.warn(`⚠️ 지원되지 않는 AI 모드: ${mode}, LOCAL 모드로 폴백`);
+      return 'LOCAL';
+    }
+
+    if (mode !== normalizedMode) {
+      console.log(`🔄 AI 모드 변환: ${mode} → ${normalizedMode}`);
+    }
+
+    return normalizedMode;
   }
 
   /**

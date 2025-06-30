@@ -36,7 +36,7 @@ interface SmartFallbackResponse {
 export async function POST(request: NextRequest) {
   try {
     const body: SmartFallbackRequest = await request.json();
-    const { query, context = '', mode = 'AUTO', priority = 'medium' } = body;
+    const { query, context = '', mode = 'LOCAL', priority = 'medium' } = body;
 
     if (!query?.trim()) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
@@ -197,7 +197,7 @@ export async function GET() {
     service: 'Unified AI Engine Router',
     version: '3.1',
     status: 'active',
-    supportedModes: ['AUTO', 'LOCAL', 'GOOGLE_ONLY'],
+    supportedModes: ['LOCAL', 'GOOGLE_AI'],
     architecture: {
       AUTO: 'Supabase RAG (80%) → Google AI (15%) → 하위AI (5%)',
       LOCAL: 'Supabase RAG (90%) → 하위AI (10%) → Google AI 제외',
