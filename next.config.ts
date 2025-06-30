@@ -65,8 +65,8 @@ const nextConfig: NextConfig = {
     BUILD_TIME: 'true', // 🔨 빌드 시 타이머 차단용
     VERCEL_BUILD_PHASE: process.env.VERCEL ? 'true' : 'false',
 
-    // 🔧 Redis 환경변수 안전 설정 (Vercel에서도 Mock 모드 활성화)
-    FORCE_MOCK_REDIS: 'true', // 양쪽 환경에서 모두 Mock 모드
+    // 🔧 Redis 환경변수 안전 설정 (Vercel에서는 실제 Redis, 로컬에서는 Mock)
+    FORCE_MOCK_REDIS: process.env.VERCEL ? 'false' : 'true',
     REDIS_CONNECTION_DISABLED: 'false',
 
     // 🗄️ 필수 환경변수 - Vercel과 로컬 환경 공통 적용
