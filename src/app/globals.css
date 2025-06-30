@@ -49,7 +49,7 @@ body {
   overflow-x: hidden;
   font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
   line-height: 1.6;
-  color: var(--text-primary);
+  color: var(--text-white); /* 흰색 텍스트로 변경 */
   background: #1e293b;
   /* 다크 배경 기본 설정 */
 }
