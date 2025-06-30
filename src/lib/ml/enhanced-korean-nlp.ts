@@ -141,7 +141,7 @@ export class EnhancedKoreanNLP {
       const keywordSimilarity =
         matchedKeywords.length > 0
           ? matchedKeywords.length /
-          Math.max(embedding1.keywords.length, embedding2.keywords.length)
+            Math.max(embedding1.keywords.length, embedding2.keywords.length)
           : 0;
 
       // 3. 의미적 매칭 (의도, 서버타입 등)
@@ -217,7 +217,7 @@ export class EnhancedKoreanNLP {
     });
 
     const stemMatches = stemText.match(patterns.stems) || [];
-    stems.push(...stemMatches.filter(s => s.length >= 2));
+    stems.push(...(stemMatches as string[]).filter(s => s.length >= 2));
 
     return {
       stems: [...new Set(stems)],
