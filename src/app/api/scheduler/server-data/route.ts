@@ -9,15 +9,14 @@
  */
 
 import { serverDataScheduler } from '@/services/background/ServerDataScheduler';
+import KoreanTimeUtil from '@/utils/koreanTime';
 import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const action = searchParams.get('action') || 'status';
 
-  console.log(
-    `🔄 스케줄러 API 요청: ${action} (${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })})`
-  );
+  console.log(`🔄 스케줄러 API 요청: ${action} (${KoreanTimeUtil.now()})`);
 
   try {
     switch (action) {
