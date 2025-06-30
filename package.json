@@ -266,7 +266,8 @@
     "git:list-tags": "git tag --sort=-version:refname | head -10",
     "git:latest-tag": "git describe --tags --abbrev=0",
     "kst:time": "node -e \"const now = new Date(); console.log('🕒 현재 한국시간:', now.toLocaleString('ko-KR', {timeZone: 'Asia/Seoul'}) + ' (KST)')\"",
-    "kst:commit": "node -e \"const now = new Date(); console.log('커밋용 시간:', '(' + now.toLocaleString('sv-SE', {timeZone: 'Asia/Seoul'}).substring(0, 16) + ' KST)')\""
+    "kst:commit": "node -e \"const now = new Date(); console.log('커밋용 시간:', '(' + now.toLocaleString('sv-SE', {timeZone: 'Asia/Seoul'}).substring(0, 16) + ' KST)')\"",
+    "kst:ntp-test": "node -e \"console.log('📡 NTP 시간 동기화 테스트 시작...'); fetch('https://worldtimeapi.org/api/timezone/Asia/Seoul').then(r=>r.json()).then(d=>{const serverTime=new Date(d.datetime);const localTime=new Date();const offset=serverTime.getTime()-localTime.getTime();console.log('로컬 시간:', localTime.toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}));console.log('NTP 서버 시간:', serverTime.toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}));console.log('시간 차이:', offset+'ms');}).catch(e=>console.error('NTP 동기화 실패:',e))\""
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",

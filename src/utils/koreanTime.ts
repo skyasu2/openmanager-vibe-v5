@@ -1,22 +1,170 @@
 /**
- * 한국시간(KST/Asia Seoul) 유틸리티 함수
+ * 한국시간(KST/Asia Seoul) 유틸리티 함수 - NTP 서버 동기화 지원
  * 작성일: 2025-01-05 00:11:00 (KST)
+ * 업데이트: 2025-01-05 11:25:00 (KST) - NTP 서버 동기화 추가
  *
  * OpenManager Vibe v5에서 모든 시간 관련 작업은 한국시간을 기준으로 합니다.
  * 한국시간 기준 개발 규칙에 따라 모든 시간 처리는 KST/Asia/Seoul을 사용합니다.
+ *
+ * NTP 서버 기반 정확한 시간 동기화:
+ * - 네이버 NTP: time.naver.com
+ * - 구글 한국 NTP: time.google.com
  */
+
+/**
+ * NTP 서버 정보
+ */
+interface NTPServer {
+  name: string;
+  host: string;
+  priority: number;
+}
+
+/**
+ * NTP 응답 인터페이스
+ */
+interface NTPResponse {
+  server: string;
+  timestamp: number;
+  offset: number;
+  success: boolean;
+  error?: string;
+}
 
 export class KoreanTimeUtil {
   private static readonly TIMEZONE = 'Asia/Seoul';
   private static readonly LOCALE = 'ko-KR';
 
   /**
-   * 현재 한국시간을 반환합니다
+   * NTP 서버 목록 (우선순위 순)
+   */
+  private static readonly NTP_SERVERS: NTPServer[] = [
+    { name: 'Naver', host: 'time.naver.com', priority: 1 },
+    { name: 'Google Korea', host: 'time.google.com', priority: 2 },
+    { name: 'Korea NTP', host: 'time.kriss.re.kr', priority: 3 },
+  ];
+
+  /**
+   * 시간 오프셋 캐시 (5분간 유효)
+   */
+  private static timeOffset: number = 0;
+  private static lastNTPSync: number = 0;
+  private static readonly NTP_CACHE_DURATION = 5 * 60 * 1000; // 5분
+
+  /**
+   * NTP 서버에서 정확한 시간을 가져옵니다
+   */
+  private static async fetchNTPTime(): Promise<NTPResponse> {
+    for (const server of this.NTP_SERVERS) {
+      try {
+        const startTime = Date.now();
+
+        // WorldTimeAPI를 통한 간접 시간 조회 (timeout 대신 AbortController 사용)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+        const response = await fetch(
+          `https://worldtimeapi.org/api/timezone/Asia/Seoul`,
+          {
+            method: 'GET',
+            signal: controller.signal,
+          }
+        );
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) continue;
+
+        const data = await response.json();
+        const serverTime = new Date(data.datetime).getTime();
+        const endTime = Date.now();
+        const networkDelay = (endTime - startTime) / 2;
+        const offset = serverTime + networkDelay - endTime;
+
+        return {
+          server: `${server.name} (via WorldTimeAPI)`,
+          timestamp: serverTime + networkDelay,
+          offset,
+          success: true,
+        };
+      } catch (error) {
+        console.warn(
+          `[${this.now()}] ⚠️ NTP 서버 ${server.name} 연결 실패:`,
+          error
+        );
+        continue;
+      }
+    }
+
+    // 모든 NTP 서버 실패 시 로컬 시간 사용
+    return {
+      server: 'Local System',
+      timestamp: Date.now(),
+      offset: 0,
+      success: false,
+      error: 'All NTP servers failed, using local time',
+    };
+  }
+
+  /**
+   * NTP 동기화된 현재 시간을 반환합니다
+   */
+  static async getNTPSyncedTime(): Promise<Date> {
+    const now = Date.now();
+
+    // 캐시가 유효한 경우 캐시된 오프셋 사용
+    if (now - this.lastNTPSync < this.NTP_CACHE_DURATION) {
+      return new Date(now + this.timeOffset);
+    }
+
+    try {
+      const ntpResponse = await this.fetchNTPTime();
+
+      if (ntpResponse.success) {
+        this.timeOffset = ntpResponse.offset;
+        this.lastNTPSync = now;
+        console.log(
+          `[${this.now()}] ✅ NTP 시간 동기화 성공: ${ntpResponse.server} (오프셋: ${ntpResponse.offset}ms)`
+        );
+      } else {
+        console.warn(
+          `[${this.now()}] ⚠️ NTP 동기화 실패, 로컬 시간 사용: ${ntpResponse.error}`
+        );
+      }
+
+      return new Date(now + this.timeOffset);
+    } catch (error) {
+      console.error(`[${this.now()}] ❌ NTP 동기화 오류:`, error);
+      return new Date(); // 폴백으로 로컬 시간 사용
+    }
+  }
+
+  /**
+   * 현재 한국시간을 반환합니다 (기존 메서드 - 로컬 시간 기반)
    * @returns 현재 한국시간 (YYYY-MM-DD HH:mm:ss KST 형식)
    */
   static now(): string {
     return (
       new Date().toLocaleString(this.LOCALE, {
+        timeZone: this.TIMEZONE,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }) + ' (KST)'
+    );
+  }
+
+  /**
+   * 현재 한국시간을 반환합니다 (NTP 동기화 적용)
+   * @returns 현재 한국시간 (YYYY-MM-DD HH:mm:ss KST 형식)
+   */
+  static async nowSynced(): Promise<string> {
+    const syncedTime = await this.getNTPSyncedTime();
+    return (
+      syncedTime.toLocaleString(this.LOCALE, {
         timeZone: this.TIMEZONE,
         year: 'numeric',
         month: '2-digit',
@@ -184,9 +332,9 @@ export class KoreanTimeUtil {
    */
   static detectWrongDates(content: string): string[] {
     const wrongPatterns = [
-      /2025-0[6-9]|2025-1[0-2]/g,  // 6월-12월
-      /2025년 0[6-9]월|2025년 1[0-2]월/g,  // 한국어 6월-12월
-      /20250[6-9]|202510|202511|202512/g  // 파일명 형식
+      /2025-0[6-9]|2025-1[0-2]/g, // 6월-12월
+      /2025년 0[6-9]월|2025년 1[0-2]월/g, // 한국어 6월-12월
+      /20250[6-9]|202510|202511|202512/g, // 파일명 형식
     ];
 
     const found: string[] = [];
@@ -203,7 +351,7 @@ export class KoreanTimeUtil {
  * 전역에서 쉽게 사용할 수 있는 단축 함수들
  */
 export const KST = {
-  now: () => KoreanTimeUtil.now(),
+  now: () => KoreanTimeUtil.nowSynced(),
   iso: () => KoreanTimeUtil.nowISO(),
   date: () => KoreanTimeUtil.dateOnly(),
   log: () => KoreanTimeUtil.logTimestamp(),

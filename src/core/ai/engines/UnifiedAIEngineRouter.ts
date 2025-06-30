@@ -10,6 +10,7 @@
  * - GOOGLE_AI: Google AI (40%) → Supabase RAG + MCP 컨텍스트 (40%) → 로컬AI (20%)
  */
 
+import { AIFallbackHandler } from '@/core/ai/handlers/AIFallbackHandler';
 import { getSupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { CustomEngines } from '@/services/ai/engines/CustomEngines';
 import { OpenSourceEngines } from '@/services/ai/engines/OpenSourceEngines';
@@ -52,7 +53,7 @@ export class UnifiedAIEngineRouter {
   private mcpClient: any; // 🎯 역할 변경: AI 엔진 → 컨텍스트 수집기
 
   // 🚀 통합된 고급 엔진들 (임시 비활성화)
-
+  private fallbackHandler: AIFallbackHandler;
   private intelligentMonitoring: any; // IntelligentMonitoringService;
   private autoIncidentReport: AutoIncidentReportSystem | null = null;
 
@@ -75,23 +76,24 @@ export class UnifiedAIEngineRouter {
     engineUsage: Record<string, number>;
     lastUpdated: string;
   } = {
-      totalRequests: 0,
-      successfulRequests: 0,
-      failedRequests: 0,
-      averageResponseTime: 0,
-      modeUsage: {
-        LOCAL: 0,
-        GOOGLE_AI: 0,
-        AUTO: 0,
-        GOOGLE_ONLY: 0,
-      },
-      engineUsage: {},
-      lastUpdated: new Date().toISOString(),
-    };
+    totalRequests: 0,
+    successfulRequests: 0,
+    failedRequests: 0,
+    averageResponseTime: 0,
+    modeUsage: {
+      LOCAL: 0,
+      GOOGLE_AI: 0,
+      AUTO: 0,
+      GOOGLE_ONLY: 0,
+    },
+    engineUsage: {},
+    lastUpdated: new Date().toISOString(),
+  };
 
   private constructor() {
     this.googleAI = GoogleAIService.getInstance();
     this.mcpClient = RealMCPClient ? RealMCPClient.getInstance() : null; // 🎯 컨텍스트 수집 전용
+    this.fallbackHandler = AIFallbackHandler.getInstance();
 
     // 🚀 고급 엔진들 안전한 초기화 (초기화 과정에서 로드됨)
     this.intelligentMonitoring = null;
@@ -182,7 +184,9 @@ export class UnifiedAIEngineRouter {
     const normalizedQuery = this.validateKoreanQueryContent(request.query);
 
     // 🔍 모드 검증 및 정규화
-    const validatedMode = this.validateAndNormalizeMode(request.mode || 'LOCAL');
+    const validatedMode = this.validateAndNormalizeMode(
+      request.mode || 'LOCAL'
+    );
 
     const normalizedRequest: AIRequest = {
       ...request,
@@ -234,7 +238,7 @@ export class UnifiedAIEngineRouter {
       console.warn('쿼리 처리 실패, 간단한 폴백 사용:', error);
 
       // Simple fallback 처리
-      return this.createEmergencyFallback(
+      return this.fallbackHandler.createEmergencyFallback(
         normalizedRequest,
         normalizedRequest.mode || 'LOCAL',
         startTime
@@ -387,10 +391,11 @@ export class UnifiedAIEngineRouter {
     }
 
     // LOCAL 모드 전용 응급 폴백
-    return this.createLocalModeEmergencyFallback(
+    return this.fallbackHandler.createLocalModeEmergencyFallback(
       request,
       startTime,
-      fallbacksUsed
+      fallbacksUsed,
+      'local-mode-all-engines-failed'
     );
   }
 
@@ -638,10 +643,11 @@ export class UnifiedAIEngineRouter {
     }
 
     // GOOGLE_AI 모드 전용 응급 폴백
-    return this.createGoogleOnlyModeEmergencyFallback(
+    return this.fallbackHandler.createGoogleOnlyModeEmergencyFallback(
       request,
       startTime,
-      fallbacksUsed
+      fallbacksUsed,
+      'google-ai-mode-all-engines-failed'
     );
   }
 
@@ -676,31 +682,34 @@ export class UnifiedAIEngineRouter {
   }
 
   /**
-   * 🌍 GOOGLE_AI 모드 전용 하위 AI 처리
+   * 🏠 GOOGLE_AI 모드 전용 하위 AI 처리
    */
   private async processGoogleOnlyModeSubEngines(
     request: AIRequest
   ): Promise<AIResponse> {
     try {
-      // GOOGLE_AI 모드는 Custom 엔진 사용
-      const customResult = await this.customEngines.customNLP(request.query);
+      // GOOGLE_AI 모드는 로컬 엔진과 함께 Google AI의 장점 활용
+      const koreanResult = await this.koreanEngine.processQuery(
+        request.query,
+        request.context?.serverData
+      );
 
-      if (customResult?.response_template) {
+      if (koreanResult?.success && koreanResult.response) {
         return {
           success: true,
-          response: `[GOOGLE_AI 모드 하위 AI] ${customResult.response_template}`,
-          confidence: 0.65,
+          response: `[GOOGLE_AI 모드 로컬 보강] ${koreanResult.response}`,
+          confidence: koreanResult.confidence || 0.7,
           mode: 'GOOGLE_AI',
-          enginePath: ['google-ai-custom'],
+          enginePath: ['google-ai-korean'],
           processingTime: 0,
           fallbacksUsed: 0,
           metadata: {
-            mainEngine: 'google-ai-custom',
-            supportEngines: ['custom'],
+            mainEngine: 'google-ai-korean',
+            supportEngines: ['korean'],
             ragUsed: false,
-            googleAIUsed: false,
+            googleAIUsed: true, // GOOGLE_AI 모드는 Google AI 사용
             mcpContextUsed: false,
-            subEnginesUsed: ['custom'],
+            subEnginesUsed: ['korean'],
           },
         };
       }
@@ -709,60 +718,6 @@ export class UnifiedAIEngineRouter {
     } catch (error) {
       throw new Error(`GOOGLE_AI 모드 하위 AI 처리 실패: ${error}`);
     }
-  }
-
-  /**
-   * 🚨 LOCAL 모드 전용 응급 폴백 (Google AI 완전 제외)
-   */
-  private createLocalModeEmergencyFallback(
-    request: AIRequest,
-    startTime: number,
-    fallbacksUsed: number
-  ): AIResponse {
-    return {
-      success: true,
-      response: `[LOCAL 모드 응급 폴백] "${request.query}"에 대한 로컬 기본 응답입니다. 외부 서비스 없이 로컬 시스템으로만 처리되었습니다.`,
-      confidence: 0.4,
-      mode: 'LOCAL',
-      enginePath: ['local-emergency-fallback'],
-      processingTime: Date.now() - startTime,
-      fallbacksUsed: fallbacksUsed + 1,
-      metadata: {
-        mainEngine: 'local-emergency-fallback',
-        supportEngines: [],
-        ragUsed: false,
-        googleAIUsed: false, // LOCAL 모드는 Google AI 절대 사용 안 함
-        mcpContextUsed: false,
-        subEnginesUsed: [],
-      },
-    };
-  }
-
-  /**
-   * 🚨 GOOGLE_AI 모드 전용 응급 폴백
-   */
-  private createGoogleOnlyModeEmergencyFallback(
-    request: AIRequest,
-    startTime: number,
-    fallbacksUsed: number
-  ): AIResponse {
-    return {
-      success: true,
-      response: `[GOOGLE_AI 모드 응급 폴백] "${request.query}"에 대한 고급 분석 기본 응답입니다. Google AI 서비스가 일시적으로 제한된 상태입니다.`,
-      confidence: 0.35,
-      mode: 'GOOGLE_AI',
-      enginePath: ['google-ai-emergency-fallback'],
-      processingTime: Date.now() - startTime,
-      fallbacksUsed: fallbacksUsed + 1,
-      metadata: {
-        mainEngine: 'google-ai-emergency-fallback',
-        supportEngines: [],
-        ragUsed: false,
-        googleAIUsed: false,
-        mcpContextUsed: false,
-        subEnginesUsed: [],
-      },
-    };
   }
 
   /**
@@ -815,45 +770,7 @@ export class UnifiedAIEngineRouter {
   }
 
   private combineResponses(responses: string[]): string {
-    return responses.join('\n\n🔹 ');
-  }
-
-  private createEmergencyFallback(
-    request: AIRequest,
-    mode: AIMode,
-    startTime: number
-  ): AIResponse {
-    console.log(`🚨 ${mode} 모드 응급 폴백 생성`);
-
-    let fallbackMessage = '';
-    switch (mode) {
-      case 'LOCAL':
-        fallbackMessage = `[LOCAL 모드 응급 폴백] "${request.query}"에 대한 기본 응답을 제공합니다. 로컬 AI 엔진이 일시적으로 제한된 기능으로 동작 중입니다.`;
-        break;
-      case 'GOOGLE_AI':
-        fallbackMessage = `[GOOGLE_AI 모드 응급 폴백] "${request.query}"에 대한 고급 분석 기본 응답입니다. Google AI 서비스가 일시적으로 제한된 상태입니다.`;
-        break;
-      default:
-        fallbackMessage = `[시스템 응급 폴백] "${request.query}"에 대한 기본 응답을 제공합니다.`;
-    }
-
-    return {
-      success: true,
-      response: fallbackMessage,
-      confidence: 0.3,
-      mode,
-      enginePath: [`${mode.toLowerCase()}-emergency-fallback`],
-      processingTime: Date.now() - startTime,
-      fallbacksUsed: 1,
-      metadata: {
-        mainEngine: `${mode.toLowerCase()}-emergency-fallback`,
-        supportEngines: [],
-        ragUsed: false,
-        googleAIUsed: mode === 'GOOGLE_AI',
-        mcpContextUsed: false,
-        subEnginesUsed: [],
-      },
-    };
+    return responses.join('\n\n');
   }
 
   private updateStats(response: AIResponse): void {
@@ -922,8 +839,7 @@ export class UnifiedAIEngineRouter {
   }
 
   public getFallbackMetrics() {
-    // This method is no longer applicable as UnifiedFallbackManager is removed
-    return null;
+    return this.fallbackHandler.getMetrics();
   }
 
   /**
@@ -939,13 +855,16 @@ export class UnifiedAIEngineRouter {
       engineUsage: {},
       lastUpdated: new Date().toISOString(),
     };
+
+    // 폴백 핸들러 메트릭도 초기화
+    this.fallbackHandler.resetMetrics();
   }
 
   /**
    * 🔧 폴백 전략 업데이트
    */
   public updateFallbackStrategy(mode: AIMode, strategy: any): void {
-    // This method is no longer applicable as UnifiedFallbackManager is removed
+    this.fallbackHandler.updateFallbackStrategy(mode, strategy);
   }
 
   /**
@@ -997,10 +916,10 @@ export class UnifiedAIEngineRouter {
 
     // 레거시 모드 변환
     const modeMap: Record<string, AIMode> = {
-      'AUTO': 'LOCAL', // AUTO 모드는 LOCAL로 폴백
-      'GOOGLE_ONLY': 'GOOGLE_AI', // GOOGLE_ONLY는 GOOGLE_AI로 변환
-      'LOCAL': 'LOCAL',
-      'GOOGLE_AI': 'GOOGLE_AI',
+      AUTO: 'LOCAL', // AUTO 모드는 LOCAL로 폴백
+      GOOGLE_ONLY: 'GOOGLE_AI', // GOOGLE_ONLY는 GOOGLE_AI로 변환
+      LOCAL: 'LOCAL',
+      GOOGLE_AI: 'GOOGLE_AI',
     };
 
     const normalizedMode = modeMap[mode] || 'LOCAL';
