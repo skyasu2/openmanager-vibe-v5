@@ -93,7 +93,6 @@ export class UnifiedAIEngineRouter {
   private constructor() {
     this.googleAI = GoogleAIService.getInstance();
     this.mcpClient = RealMCPClient ? RealMCPClient.getInstance() : null; // 🎯 컨텍스트 수집 전용
-    this.fallbackHandler = AIFallbackHandler.getInstance();
 
     // 🚀 고급 엔진들 안전한 초기화 (초기화 과정에서 로드됨)
     this.intelligentMonitoring = null;
@@ -400,37 +399,18 @@ export class UnifiedAIEngineRouter {
   }
 
   /**
-   * 🔍 MCP 컨텍스트 수집 (RAG 도우미 역할)
+   * 🔍 MCP 컨텍스트 수집 (MCPContextCollector 사용)
    */
   private async collectMCPContext(query: string, context?: any): Promise<any> {
-    try {
-      // 클라이언트 측에서는 MCP 비활성화
-      if (!this.mcpClient || typeof window !== 'undefined') {
-        console.log('⚠️ MCP 컨텍스트 수집: 클라이언트 측에서 비활성화');
-        return null;
+    return await this.mcpContextCollector.collectContextWithRetry(
+      query,
+      context,
+      {
+        timeout: 5000,
+        retryAttempts: 1,
+        enableLogging: true,
       }
-
-      // MCP는 이제 AI 응답 생성이 아닌 컨텍스트 수집만 수행
-      const mcpResult = await this.mcpClient.performComplexQuery(
-        query,
-        context
-      );
-
-      if (mcpResult && typeof mcpResult === 'object') {
-        return {
-          summary: mcpResult.response || mcpResult.summary,
-          category: mcpResult.category,
-          additionalInfo: mcpResult.additionalInfo || mcpResult.context,
-          timestamp: new Date().toISOString(),
-          source: 'mcp-context-helper',
-        };
-      }
-
-      return null;
-    } catch (error) {
-      console.warn('MCP 컨텍스트 수집 실패:', error);
-      return null;
-    }
+    );
   }
 
   /**
