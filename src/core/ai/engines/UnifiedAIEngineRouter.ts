@@ -10,6 +10,7 @@
  * - GOOGLE_AI: Google AI (40%) → Supabase RAG + MCP 컨텍스트 (40%) → 로컬AI (20%)
  */
 
+import { MCPContextCollector } from '@/core/ai/context/MCPContextCollector';
 import { AIFallbackHandler } from '@/core/ai/handlers/AIFallbackHandler';
 import { getSupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { CustomEngines } from '@/services/ai/engines/CustomEngines';
@@ -51,6 +52,7 @@ export class UnifiedAIEngineRouter {
   private supabaseRAG = getSupabaseRAGEngine();
   private googleAI: GoogleAIService;
   private mcpClient: any; // 🎯 역할 변경: AI 엔진 → 컨텍스트 수집기
+  private mcpContextCollector: MCPContextCollector; // 🚀 새로 추가: MCP 컨텍스트 수집기
 
   // 🚀 통합된 고급 엔진들 (임시 비활성화)
   private fallbackHandler: AIFallbackHandler;
@@ -93,6 +95,7 @@ export class UnifiedAIEngineRouter {
   private constructor() {
     this.googleAI = GoogleAIService.getInstance();
     this.mcpClient = RealMCPClient ? RealMCPClient.getInstance() : null; // 🎯 컨텍스트 수집 전용
+    this.mcpContextCollector = new MCPContextCollector();
 
     // 🚀 고급 엔진들 안전한 초기화 (초기화 과정에서 로드됨)
     this.intelligentMonitoring = null;

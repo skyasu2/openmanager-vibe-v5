@@ -25,31 +25,21 @@ import { ACTIVE_SERVER_CONFIG, logServerConfig } from '@/config/serverConfig';
 // 🏗️ 분리된 타입 정의 import (TDD Green 단계)
 import {
   GeneratorConfig,
-  REALISTIC_SERVER_TYPES,
   RealWorldServerType,
   calculateServerDistribution,
   generateHostname,
   generateSpecializedMetrics,
-  getServerTypesForCategory,
+  getServerTypesForCategory
 } from './types/NewServerTypes';
 
-// 🎯 현실적인 서버 분포 비율 (기업 환경 기준)
-const SERVER_DISTRIBUTION = {
-  web: 0.25, // 웹서버 25%
-  app: 0.3, // 애플리케이션 30%
-  database: 0.2, // 데이터베이스 20%
-  infrastructure: 0.25, // 인프라 25%
-};
+// 🔴 분리된 Redis 서비스 import (TDD Green 단계)
+import { RedisService } from './services/RedisService';
 
-// 🏷️ 호스트네임 생성 패턴: {service}-{tech}-{env}-{number}
-const HOSTNAME_PATTERNS = {
-  web: 'web',
-  app: 'app',
-  database: 'db',
-  infrastructure: 'infra',
-};
-
-// ✅ 중복 함수 제거 완료 - NewServerTypes에서 import하여 사용
+// ✅ 중복 코드 제거 완료 - NewServerTypes 모듈 함수 사용:
+// - SERVER_DISTRIBUTION → calculateServerDistribution() 함수 사용
+// - HOSTNAME_PATTERNS → generateHostname() 함수 사용
+// - Redis 연동 로직 → RedisService 모듈 사용
+// - 기타 중복 타입 정의들 → NewServerTypes 에서 import
 
 export class RealServerDataGenerator {
   private static instance: RealServerDataGenerator | null = null;
@@ -64,18 +54,8 @@ export class RealServerDataGenerator {
   // 🎭 AI 분석 가능한 장애 시나리오 매니저
   private scenarioManager: DemoScenarioManager;
 
-  // 🔴 Redis 연결
-  private redis: RedisType | null = null;
-  private readonly REDIS_PREFIX = 'openmanager:servers:';
-  private readonly REDIS_CLUSTERS_PREFIX = 'openmanager:clusters:';
-  private readonly REDIS_APPS_PREFIX = 'openmanager:apps:';
-
-  // 🛡️ 안전 장치: 과도한 갱신 방지
-  private lastSaveTime = 0;
-  private readonly MIN_SAVE_INTERVAL = 5000; // 최소 5초 간격
-  private saveThrottleCount = 0;
-  private readonly MAX_SAVES_PER_MINUTE = 10; // 분당 최대 10회 저장
-  private lastMinuteTimestamp = 0;
+  // 🔴 Redis 서비스 (분리된 모듈)
+  private redisService: RedisService;
 
   // 🎭 목업 모드 관리
   private isMockMode = false;
@@ -112,8 +92,13 @@ export class RealServerDataGenerator {
     // 초기 상태 설정
     this.isGenerating = false;
 
-    // Redis 초기화 (목업 모드 고려)
-    this.initializeRedis();
+    // 🔴 Redis 서비스 초기화 (분리된 모듈)
+    this.redisService = new RedisService({
+      enableRedis: this.config.enableRedis,
+      isMockMode: this.isMockMode,
+      isHealthCheckContext: this.isHealthCheckContext,
+      isTestContext: this.isTestContext,
+    });
 
     // 🎭 AI 분석 가능한 장애 시나리오 매니저 초기화
     this.scenarioManager = DemoScenarioManager.getInstance();
@@ -179,76 +164,6 @@ export class RealServerDataGenerator {
   }
 
   /**
-   * 🔴 Redis 연결 초기화 (목업 모드 지원)
-   */
-  private async initializeRedis(): Promise<void> {
-    // 베르셀 환경에서는 항상 Mock 모드 사용 (클라이언트 사이드 빌드 오류 방지)
-    if (
-      process.env.VERCEL === '1' ||
-      typeof window !== 'undefined' ||
-      !this.config.enableRedis ||
-      this.shouldUseMockRedis()
-    ) {
-      console.log(
-        '🎭 목업 Redis 모드로 실행 - 실제 Redis 연결 건너뜀 (베르셀 환경)'
-      );
-      this.isMockMode = true;
-      return;
-    }
-
-    try {
-      // 서버 환경에서만 Redis 동적 import
-      const { default: Redis } = await import('ioredis');
-
-      // 환경변수에서 Redis 설정 가져오기 (다중 소스 지원)
-      const redisUrl = process.env.REDIS_URL || process.env.KV_URL;
-      const redisHost =
-        process.env.REDIS_HOST || 'charming-condor-46598.upstash.io';
-      const redisPort = parseInt(process.env.REDIS_PORT || '6379');
-      const redisPassword =
-        process.env.REDIS_PASSWORD ||
-        process.env.KV_REST_API_TOKEN ||
-        'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA';
-
-      // Redis URL이 있으면 우선 사용
-      if (redisUrl) {
-        this.redis = new Redis(redisUrl, {
-          maxRetriesPerRequest: 2, // 3에서 2로 감소 (과도한 재시도 방지)
-          lazyConnect: true,
-          connectTimeout: 5000, // 5초로 단축
-          commandTimeout: 3000, // 3초로 단축
-        });
-      } else {
-        // 개별 설정으로 연결
-        this.redis = new Redis({
-          host: redisHost,
-          port: redisPort,
-          password: redisPassword,
-          tls: {},
-          maxRetriesPerRequest: 2, // 과도한 재시도 방지
-          lazyConnect: true,
-          connectTimeout: 5000,
-          commandTimeout: 3000,
-        });
-      }
-
-      // 연결 테스트 (타임아웃 설정)
-      const pingPromise = this.redis.ping();
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Redis 연결 타임아웃')), 3000)
-      );
-
-      await Promise.race([pingPromise, timeoutPromise]);
-      console.log('✅ Redis 연결 성공 - 서버 데이터 저장 활성화');
-    } catch (error) {
-      console.warn('⚠️ Redis 연결 실패, 목업 모드로 폴백:', error);
-      this.redis = null;
-      this.config.enableRedis = false;
-      this.isMockMode = true;
-    }
-  }
-
-  /**
    * 🛡️ 과도한 저장 방지 체크
    */
   private canSaveToRedis(): boolean {
@@ -283,7 +198,7 @@ export class RealServerDataGenerator {
       return;
     }
 
-    if (!this.redis || !this.canSaveToRedis()) return;
+    if (!this.redisService || !this.canSaveToRedis()) return;
 
     try {
       const key = `${this.REDIS_PREFIX}${server.id}`;
@@ -292,10 +207,10 @@ export class RealServerDataGenerator {
         lastUpdated: new Date().toISOString(),
       });
 
-      await this.redis.setex(key, 3600, data); // 1시간 TTL
+      await this.redisService.setex(key, 3600, data); // 1시간 TTL
 
       // 서버 목록에도 추가
-      await this.redis.sadd(`${this.REDIS_PREFIX}list`, server.id);
+      await this.redisService.sadd(`${this.REDIS_PREFIX}list`, server.id);
 
       this.lastSaveTime = Date.now();
       this.saveThrottleCount++;
@@ -310,11 +225,11 @@ export class RealServerDataGenerator {
   private async loadServerFromRedis(
     serverId: string
   ): Promise<ServerInstance | null> {
-    if (!this.redis) return null;
+    if (!this.redisService) return null;
 
     try {
       const key = `${this.REDIS_PREFIX}${serverId}`;
-      const data = await this.redis.get(key);
+      const data = await this.redisService.get(key);
 
       if (data) {
         return JSON.parse(data) as ServerInstance;
@@ -330,10 +245,10 @@ export class RealServerDataGenerator {
    * 🔴 Redis에서 모든 서버 데이터 조회
    */
   private async loadAllServersFromRedis(): Promise<ServerInstance[]> {
-    if (!this.redis) return [];
+    if (!this.redisService) return [];
 
     try {
-      const serverIds = await this.redis.smembers(`${this.REDIS_PREFIX}list`);
+      const serverIds = await this.redisService.smembers(`${this.REDIS_PREFIX}list`);
       const servers: ServerInstance[] = [];
 
       for (const serverId of serverIds) {
@@ -355,7 +270,7 @@ export class RealServerDataGenerator {
    * 🔴 Redis에 클러스터 데이터 저장
    */
   private async saveClusterToRedis(cluster: ServerCluster): Promise<void> {
-    if (!this.redis) return;
+    if (!this.redisService) return;
 
     try {
       const key = `${this.REDIS_CLUSTERS_PREFIX}${cluster.id}`;
@@ -364,8 +279,8 @@ export class RealServerDataGenerator {
         lastUpdated: new Date().toISOString(),
       });
 
-      await this.redis.setex(key, 3600, data);
-      await this.redis.sadd(`${this.REDIS_CLUSTERS_PREFIX}list`, cluster.id);
+      await this.redisService.setex(key, 3600, data);
+      await this.redisService.sadd(`${this.REDIS_CLUSTERS_PREFIX}list`, cluster.id);
     } catch (error) {
       console.warn(`⚠️ Redis 클러스터 저장 실패 (${cluster.id}):`, error);
     }
@@ -382,12 +297,12 @@ export class RealServerDataGenerator {
       return;
     }
 
-    if (!this.redis || !this.canSaveToRedis()) {
+    if (!this.redisService || !this.canSaveToRedis()) {
       return;
     }
 
     try {
-      const pipeline = this.redis.pipeline();
+      const pipeline = this.redisService.pipeline();
 
       for (const server of servers) {
         const key = `${this.REDIS_PREFIX}${server.id}`;
@@ -950,7 +865,7 @@ export class RealServerDataGenerator {
             Math.min(
               100,
               rawMetrics.memory +
-                (Math.random() - 0.5) * 15 * effectiveIntensity
+              (Math.random() - 0.5) * 15 * effectiveIntensity
             )
           ).toFixed(2)
         ),
@@ -967,12 +882,12 @@ export class RealServerDataGenerator {
           in: Math.max(
             0,
             rawMetrics.network.in +
-              (Math.random() - 0.5) * 50 * effectiveIntensity
+            (Math.random() - 0.5) * 50 * effectiveIntensity
           ),
           out: Math.max(
             0,
             rawMetrics.network.out +
-              (Math.random() - 0.5) * 30 * effectiveIntensity
+            (Math.random() - 0.5) * 30 * effectiveIntensity
           ),
         },
       };
@@ -1155,12 +1070,12 @@ export class RealServerDataGenerator {
         avgCpu:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
-              servers.length
+            servers.length
             : 0,
         avgMemory:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
-              servers.length
+            servers.length
             : 0,
       },
       clusters: {
@@ -1195,9 +1110,9 @@ export class RealServerDataGenerator {
         avgResponseTime:
           applications.length > 0
             ? applications.reduce(
-                (sum, a) => sum + a.performance.responseTime,
-                0
-              ) / applications.length
+              (sum, a) => sum + a.performance.responseTime,
+              0
+            ) / applications.length
             : 0,
       },
       timestamp: Date.now(),
@@ -1295,7 +1210,7 @@ export class RealServerDataGenerator {
       isHealthCheckContext: this.isHealthCheckContext,
       isTestContext: this.isTestContext,
       redisStatus: {
-        connected: this.redis !== null && !this.isMockMode,
+        connected: this.redisService !== null && !this.isMockMode,
         lastSaveTime: this.lastSaveTime,
         saveThrottleCount: this.saveThrottleCount,
         canSave: this.canSaveToRedis(),
