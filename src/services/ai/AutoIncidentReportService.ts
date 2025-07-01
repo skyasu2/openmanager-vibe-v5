@@ -5,9 +5,11 @@
  * - 자연어 질의 의존도: 70% (트리거 및 컨텍스트 제공)
  * - 독립적 기능: 30% (자체 데이터 수집 및 분석)
  * 
-import { koreanTime } from "@/utils/koreanTime";
+import { KST } from "@/utils/koreanTime";
  * + TXT 다운로드 기능 포함
  */
+
+import KoreanTimeUtil from "@/utils/koreanTime";
 
 export interface IncidentReport {
     id: string;
@@ -231,7 +233,7 @@ ${report.triggeredBy === 'natural_language_query' ?
 
 =================================================================
 생성 시스템: OpenManager Vibe v5 자동 장애 보고서 시스템
-생성 일시: ${koreanTime.nowSynced()}
+생성 일시: ${KoreanTimeUtil.logTimestamp()}
 =================================================================
 `;
 

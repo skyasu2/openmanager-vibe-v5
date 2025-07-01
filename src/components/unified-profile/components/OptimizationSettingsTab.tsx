@@ -5,19 +5,19 @@
  */
 
 'use client';
-import { koreanTime } from "@/utils/koreanTime";
 
-import { useState } from 'react';
+import KoreanTimeUtil from '@/utils/koreanTime';
 import { motion } from 'framer-motion';
 import {
-  Zap,
-  CheckCircle,
-  Settings,
-  BarChart3,
-  Loader2,
   Activity,
+  BarChart3,
+  CheckCircle,
+  Loader2,
+  Settings,
   TrendingUp,
+  Zap,
 } from 'lucide-react';
+import { useState } from 'react';
 
 interface OptimizationSettingsTabProps {
   onOptimizationRun: () => Promise<void>;
@@ -44,7 +44,7 @@ export function OptimizationSettingsTab({
       await onOptimizationRun();
       setSettings(prev => ({
         ...prev,
-        lastOptimized: koreanTime.nowSynced(),
+        lastOptimized: KoreanTimeUtil.now(),
       }));
     } catch (err) {
       console.error('최적화 실행 중 오류:', err);
@@ -195,11 +195,10 @@ export function OptimizationSettingsTab({
                       performanceMode: key as any,
                     }))
                   }
-                  className={`p-3 rounded-lg border transition-all duration-200 ${
-                    settings.performanceMode === key
-                      ? 'border-yellow-500/50 bg-yellow-500/20 text-yellow-400'
-                      : 'border-gray-600 bg-gray-700/50 text-gray-400 hover:border-gray-500'
-                  }`}
+                  className={`p-3 rounded-lg border transition-all duration-200 ${settings.performanceMode === key
+                    ? 'border-yellow-500/50 bg-yellow-500/20 text-yellow-400'
+                    : 'border-gray-600 bg-gray-700/50 text-gray-400 hover:border-gray-500'
+                    }`}
                 >
                   <Icon className='w-4 h-4 mx-auto mb-1' />
                   <div className='text-xs font-medium'>{label}</div>

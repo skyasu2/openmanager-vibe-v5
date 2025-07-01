@@ -196,6 +196,83 @@ export class TransformersEngine {
   }
 
   /**
+ * 🤔 쿼리 처리 (호환성 메서드)
+ */
+  async processQuery(query: string): Promise<{
+    success: boolean;
+    response: string;
+    confidence: number;
+    processingTime: number;
+    metadata?: any;
+  }> {
+    const startTime = Date.now();
+
+    try {
+      const analysis = await this.analyzeText(query);
+
+      // 응답 생성
+      const classification = analysis.classification;
+      const confidence = Math.round(analysis.confidence * 100);
+
+      let response = `쿼리 "${query}"에 대한 분석이 완료되었습니다.\n\n`;
+
+      if (classification && classification.label) {
+        response += `📊 분류: ${classification.label} (신뢰도: ${confidence}%)\n`;
+      }
+
+      if (analysis.summary) {
+        response += `📋 요약: ${analysis.summary}\n`;
+      }
+
+      if (analysis.usingFallback) {
+        response += `\n⚠️ 일부 기능은 폴백 모드로 처리되었습니다.`;
+      }
+
+      return {
+        success: true,
+        response,
+        confidence: analysis.confidence,
+        processingTime: analysis.processingTime,
+        metadata: {
+          classification: analysis.classification,
+          usingFallback: analysis.usingFallback
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        response: `분석 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+        confidence: 0,
+        processingTime: Date.now() - startTime
+      };
+    }
+  }
+
+  /**
+   * 📝 분석 결과를 기반으로 응답 생성
+   */
+  private generateResponse(analysis: AnalysisResult, query: string): string {
+    const classification = analysis.classification;
+    const confidence = Math.round(analysis.confidence * 100);
+
+    let response = `쿼리 "${query}"에 대한 분석이 완료되었습니다.\n\n`;
+
+    if (classification && classification.label) {
+      response += `📊 분류: ${classification.label} (신뢰도: ${confidence}%)\n`;
+    }
+
+    if (analysis.summary) {
+      response += `📋 요약: ${analysis.summary}\n`;
+    }
+
+    if (analysis.usingFallback) {
+      response += `\n⚠️ 일부 기능은 폴백 모드로 처리되었습니다.`;
+    }
+
+    return response;
+  }
+
+  /**
    * 🧠 종합 분석 처리 (안정화 버전)
    */
   async analyzeText(

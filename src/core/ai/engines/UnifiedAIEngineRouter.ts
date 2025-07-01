@@ -18,9 +18,8 @@ import { OpenSourceEngines } from '@/services/ai/engines/OpenSourceEngines';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { KoreanAIEngine } from '@/services/ai/korean-ai-engine';
 import { TransformersEngine } from '@/services/ai/transformers-engine';
-import { koreanTime } from "@/utils/koreanTime";
 import { AIMode, AIRequest, AIResponse } from '@/types/ai-types';
-import { koreanTime } from '@/utils/koreanTime';
+import KoreanTimeUtil from '@/utils/koreanTime';
 import { utf8Logger } from '@/utils/utf8-logger';
 // 서버 사이드에서만 MCP 클라이언트 사용
 let RealMCPClient: any = null;
@@ -791,7 +790,7 @@ export class UnifiedAIEngineRouter {
       });
     }
 
-    this.stats.lastUpdated = koreanTime.nowSynced();
+    this.stats.lastUpdated = KoreanTimeUtil.now();
   }
 
   /**
@@ -986,7 +985,7 @@ export class UnifiedAIEngineRouter {
 
         // 실제 시스템 데이터 수집
         const systemMetrics = {
-          timestamp: koreanTime.nowSynced(),
+          timestamp: KoreanTimeUtil.now(),
           uptime: Math.floor(process.uptime()),
           memory: process.memoryUsage(),
           cpu: process.cpuUsage(),
@@ -1209,7 +1208,7 @@ export class UnifiedAIEngineRouter {
         try {
           // 간단한 시스템 상태 수집
           const systemInfo = {
-            timestamp: koreanTime.nowSynced(),
+            timestamp: KoreanTimeUtil.now(),
             uptime: Math.floor(process.uptime()),
             memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
           };
@@ -1252,7 +1251,7 @@ export class UnifiedAIEngineRouter {
           );
 
           if (transformersResult && transformersResult.success) {
-            const response = transformersResult.response || transformersResult.text;
+            const response = transformersResult.response;
             if (response && response.length > 10) {
               checkTimeout();
               // UTF-8 정규화 및 내용 검증
@@ -1292,15 +1291,15 @@ export class UnifiedAIEngineRouter {
     const patterns = [
       {
         keywords: ['안녕', 'hello', '반가워'],
-        response: `안녕하세요! 🖐️ 질문해 주셔서 감사합니다.\n\n"${query}"에 대한 답변을 도와드리겠습니다.\n\n처리 시간: ${koreanTime.nowSynced()}`
+        response: `안녕하세요! 🖐️ 질문해 주셔서 감사합니다.\n\n"${query}"에 대한 답변을 도와드리겠습니다.\n\n처리 시간: ${KoreanTimeUtil.now()}`
       },
       {
         keywords: ['서버', 'server', '시스템'],
-        response: `🖥️ 서버 관련 질문이시군요!\n\n"${query}"에 대한 시시음 정보를 확인 중입니다.\n\n분석 시간: ${koreanTime.nowSynced()}`
+        response: `🖥️ 서버 관련 질문이시군요!\n\n"${query}"에 대한 시시음 정보를 확인 중입니다.\n\n분석 시간: ${KoreanTimeUtil.now()}`
       },
       {
         keywords: ['도움', 'help', '문의'],
-        response: `🤝 도움이 필요하시군요!\n\n"${query}"에 대한 지원을 제공하겠습니다.\n\n지원 시작: ${koreanTime.nowSynced()}`
+        response: `🤝 도움이 필요하시군요!\n\n"${query}"에 대한 지원을 제공하겠습니다.\n\n지원 시작: ${KoreanTimeUtil.now()}`
       }
     ];
 

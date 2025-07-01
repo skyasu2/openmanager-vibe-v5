@@ -4,8 +4,8 @@
  * 🔋 시스템 절전 모드 및 전력 관리
  */
 
+import KoreanTimeUtil from '@/utils/koreanTime';
 import { create } from 'zustand';
-import { koreanTime } from "@/utils/koreanTime";
 import { persist } from 'zustand/middleware';
 
 export type PowerMode = 'sleep' | 'active' | 'monitoring' | 'emergency';
@@ -53,7 +53,7 @@ interface PowerStore extends PowerState {
   acknowledgeAlert: (alertId: string) => void;
   clearOldReports: () => void;
   setEnergyLevel: (level: 'low' | 'medium' | 'high') => void;
-  
+
   // Getters
   getActiveAlerts: () => SystemAlert[];
   getCriticalAlerts: () => SystemAlert[];
@@ -86,7 +86,7 @@ export const usePowerStore = create<PowerStore>()(
           lastActivity: new Date(),
           isDataCollecting: true
         });
-        
+
         // 시스템 활성화시 환영 리포트 생성
         const welcomeReport: Omit<AutoReport, 'id' | 'createdAt'> = {
           type: 'daily',
@@ -117,19 +117,19 @@ export const usePowerStore = create<PowerStore>()(
             '성능 임계값 조정 고려'
           ]
         };
-        
+
         get().addAutoReport(welcomeReport);
       },
 
       enterSleepMode: () => {
         const currentState = get();
-        
+
         // 절전 모드 진입 전 최종 리포트 생성
         if (currentState.sessionStartTime) {
           const sessionDuration = Date.now() - currentState.sessionStartTime.getTime();
           const hours = Math.floor(sessionDuration / (1000 * 60 * 60));
           const minutes = Math.floor((sessionDuration % (1000 * 60 * 60)) / (1000 * 60));
-          
+
           const sleepReport: Omit<AutoReport, 'id' | 'createdAt'> = {
             type: 'daily',
             title: '세션 종료 및 절전 모드 진입',
@@ -139,7 +139,7 @@ export const usePowerStore = create<PowerStore>()(
 - 활성 시간: ${hours}시간 ${minutes}분
 - 처리된 알림: ${currentState.systemAlerts.length}개
 - 생성된 리포트: ${currentState.autoReports.length}개
-- 마지막 활동: ${koreanTime.nowSynced()}
+- 마지막 활동: ${KoreanTimeUtil.now()}
 
 🔋 **절전 모드 설정**
 - 백그라운드 모니터링: 최소화
@@ -159,10 +159,10 @@ export const usePowerStore = create<PowerStore>()(
               '알림 설정 최적화 고려'
             ]
           };
-          
+
           currentState.addAutoReport(sleepReport);
         }
-        
+
         set({
           mode: 'sleep',
           sessionStartTime: null,
@@ -203,7 +203,7 @@ export const usePowerStore = create<PowerStore>()(
           id: `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           createdAt: new Date()
         };
-        
+
         set((state) => ({
           autoReports: [newReport, ...state.autoReports].slice(0, 50) // 최대 50개 보관
         }));
@@ -217,11 +217,11 @@ export const usePowerStore = create<PowerStore>()(
           acknowledged: false,
           autoResolved: false
         };
-        
+
         set((state) => ({
           systemAlerts: [newAlert, ...state.systemAlerts].slice(0, 100) // 최대 100개 보관
         }));
-        
+
         // 심각한 알림의 경우 자동 리포트 생성
         if (alert.severity === 'critical') {
           const criticalReport: Omit<AutoReport, 'id' | 'createdAt'> = {
@@ -233,7 +233,7 @@ export const usePowerStore = create<PowerStore>()(
 - 서버: ${alert.serverName} (${alert.serverId})
 - 문제 유형: ${alert.type}
 - 심각도: ${alert.severity}
-- 감지 시간: ${koreanTime.nowSynced()}
+- 감지 시간: ${KoreanTimeUtil.now()}
 
 📋 **문제 상세**
 ${alert.message}
@@ -257,7 +257,7 @@ ${alert.message}
               '사용자 공지 준비'
             ]
           };
-          
+
           get().addAutoReport(criticalReport);
         }
       },
@@ -288,7 +288,7 @@ ${alert.message}
       },
 
       getCriticalAlerts: () => {
-        return get().systemAlerts.filter(alert => 
+        return get().systemAlerts.filter(alert =>
           alert.severity === 'critical' && !alert.acknowledged && !alert.autoResolved
         );
       },
@@ -303,11 +303,11 @@ ${alert.message}
         const activeAlerts = state.getActiveAlerts();
         const criticalAlerts = state.getCriticalAlerts();
         const recentReports = state.getRecentReports();
-        
-        const uptime = state.sessionStartTime 
+
+        const uptime = state.sessionStartTime
           ? Date.now() - state.sessionStartTime.getTime()
           : 0;
-        
+
         return {
           totalAlerts: activeAlerts.length,
           criticalAlerts: criticalAlerts.length,

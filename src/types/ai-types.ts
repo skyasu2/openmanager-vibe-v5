@@ -83,6 +83,8 @@ export interface AIResponseMetadata {
   subEnginesUsed: string[];
   cacheUsed?: boolean;
   fallbackReason?: string;
+  processingTime?: number;
+  enginePath?: string[];
 }
 
 export interface PerformanceMetrics {
