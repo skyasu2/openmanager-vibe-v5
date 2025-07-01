@@ -5,6 +5,7 @@
  */
 
 'use client';
+import { koreanTime } from "@/utils/koreanTime";
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -43,7 +44,7 @@ export function OptimizationSettingsTab({
       await onOptimizationRun();
       setSettings(prev => ({
         ...prev,
-        lastOptimized: new Date().toLocaleString('ko-KR'),
+        lastOptimized: koreanTime.nowSynced(),
       }));
     } catch (err) {
       console.error('최적화 실행 중 오류:', err);

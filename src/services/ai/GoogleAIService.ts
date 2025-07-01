@@ -5,6 +5,7 @@
  * ✅ 서버 모니터링 특화 분석
  * ✅ 베타 모드 전용 고급 기능
  * ✅ 무료 할당량 최적화
+import { koreanTime } from "@/utils/koreanTime";
  * ✅ 폴백 시스템 내장
  * ✅ 보안 강화된 API 키 관리
  * ✅ 싱글톤 패턴으로 할당량 중앙 관리
@@ -664,7 +665,7 @@ ${index + 1}. 서버: ${server.name}
 - 엔진: Google AI Studio (Gemini ${this.config.model})
 - 분석 유형: ${request.analysisType}
 - 우선순위: ${request.priority}
-- 생성 시간: ${new Date().toLocaleString('ko-KR')}
+        - 생성 시간: ${koreanTime.nowSynced()}
 - 베타 기능: 고급 분석 활성화 ✨`;
 
     return enhanced;

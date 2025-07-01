@@ -18,7 +18,9 @@ import { OpenSourceEngines } from '@/services/ai/engines/OpenSourceEngines';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { KoreanAIEngine } from '@/services/ai/korean-ai-engine';
 import { TransformersEngine } from '@/services/ai/transformers-engine';
+import { koreanTime } from "@/utils/koreanTime";
 import { AIMode, AIRequest, AIResponse } from '@/types/ai-types';
+import { koreanTime } from '@/utils/koreanTime';
 import { utf8Logger } from '@/utils/utf8-logger';
 // 서버 사이드에서만 MCP 클라이언트 사용
 let RealMCPClient: any = null;
@@ -78,19 +80,19 @@ export class UnifiedAIEngineRouter {
     engineUsage: Record<string, number>;
     lastUpdated: string;
   } = {
-    totalRequests: 0,
-    successfulRequests: 0,
-    failedRequests: 0,
-    averageResponseTime: 0,
-    modeUsage: {
-      LOCAL: 0,
-      GOOGLE_AI: 0,
-      AUTO: 0,
-      GOOGLE_ONLY: 0,
-    },
-    engineUsage: {},
-    lastUpdated: new Date().toISOString(),
-  };
+      totalRequests: 0,
+      successfulRequests: 0,
+      failedRequests: 0,
+      averageResponseTime: 0,
+      modeUsage: {
+        LOCAL: 0,
+        GOOGLE_AI: 0,
+        AUTO: 0,
+        GOOGLE_ONLY: 0,
+      },
+      engineUsage: {},
+      lastUpdated: new Date().toISOString(),
+    };
 
   private constructor() {
     this.googleAI = GoogleAIService.getInstance();
@@ -757,20 +759,39 @@ export class UnifiedAIEngineRouter {
   }
 
   private updateStats(response: AIResponse): void {
-    const currentAvg = this.stats.averageResponseTime;
-    const totalRequests = this.stats.totalRequests;
+    this.stats.totalRequests++;
 
-    this.stats.averageResponseTime =
-      (currentAvg * (totalRequests - 1) + response.processingTime) /
-      totalRequests;
-
-    // 엔진 사용률 업데이트
-    if (response.metadata.mainEngine) {
-      this.stats.engineUsage[response.metadata.mainEngine] =
-        (this.stats.engineUsage[response.metadata.mainEngine] || 0) + 1;
+    if (response.success) {
+      this.stats.successfulRequests++;
+    } else {
+      this.stats.failedRequests++;
     }
 
-    this.stats.lastUpdated = new Date().toISOString();
+    // 응답 시간 업데이트
+    if (response.metadata?.processingTime) {
+      const currentAvg = this.stats.averageResponseTime;
+      const newTime = response.metadata.processingTime;
+      const totalRequests = this.stats.totalRequests;
+
+      this.stats.averageResponseTime =
+        (currentAvg * (totalRequests - 1) + newTime) / totalRequests;
+    }
+
+    // 모드 사용량 업데이트
+    if (response.mode) {
+      this.stats.modeUsage[response.mode] =
+        (this.stats.modeUsage[response.mode] || 0) + 1;
+    }
+
+    // 엔진 사용량 업데이트
+    if (response.metadata?.enginePath) {
+      response.metadata.enginePath.forEach(engine => {
+        this.stats.engineUsage[engine] =
+          (this.stats.engineUsage[engine] || 0) + 1;
+      });
+    }
+
+    this.stats.lastUpdated = koreanTime.nowSynced();
   }
 
   /**
@@ -965,7 +986,7 @@ export class UnifiedAIEngineRouter {
 
         // 실제 시스템 데이터 수집
         const systemMetrics = {
-          timestamp: new Date().toLocaleString('ko-KR'),
+          timestamp: koreanTime.nowSynced(),
           uptime: Math.floor(process.uptime()),
           memory: process.memoryUsage(),
           cpu: process.cpuUsage(),
@@ -1188,7 +1209,7 @@ export class UnifiedAIEngineRouter {
         try {
           // 간단한 시스템 상태 수집
           const systemInfo = {
-            timestamp: new Date().toLocaleString('ko-KR'),
+            timestamp: koreanTime.nowSynced(),
             uptime: Math.floor(process.uptime()),
             memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
           };
@@ -1221,162 +1242,77 @@ export class UnifiedAIEngineRouter {
     try {
       checkTimeout();
 
-      // 한국어 처리 최적화
-      const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(request.query);
-      if (!isKorean) {
-        return null;
+      // 🧪 Transformers 엔진 (로컬 ML 모델)
+      if (this.transformersEngine) {
+        console.log('🤖 베르셀 환경: Transformers 엔진으로 실제 응답 생성');
+
+        try {
+          const transformersResult = await this.transformersEngine.processQuery(
+            request.query
+          );
+
+          if (transformersResult && transformersResult.success) {
+            const response = transformersResult.response || transformersResult.text;
+            if (response && response.length > 10) {
+              checkTimeout();
+              // UTF-8 정규화 및 내용 검증
+              const normalized = this.normalizeTextContent(response);
+              if (normalized.length > 5) {
+                console.log(
+                  `🤖 Transformers 엔진 성공 (${checkTimeout()}ms): ${normalized.substring(0, 50)}...`
+                );
+                return normalized;
+              }
+            }
+          }
+        } catch (transformersError) {
+          console.log('⚠️ Transformers 엔진 빠른 응답 실패:', transformersError);
+        }
       }
 
       checkTimeout();
 
-      // 🎯 실제 서버 데이터 기반 스마트 응답 생성
-      const smartResponse = await this.generateDataBasedResponse(
-        request.query,
-        checkTimeout
-      );
-      if (smartResponse) {
-        return this.normalizeTextContent(smartResponse);
+      // 🛠️ 간단한 패턴 매칭 응답 생성 (UTF-8 안전 처리)
+      const simpleResponse = this.generateSimplePatternResponse(request.query);
+      if (simpleResponse) {
+        console.log(
+          `🎯 패턴 매칭 응답 생성 (${checkTimeout()}ms): ${simpleResponse.substring(0, 50)}...`
+        );
+        return this.normalizeTextContent(simpleResponse);
       }
 
-      // 🔍 실제 서버 데이터 수집 및 분석
-      const realServerData = await this.collectRealServerMetrics();
-      const analysisResult = this.analyzeQueryWithRealData(
-        request.query,
-        realServerData
-      );
-
-      // 기본 한국어 응답 (실제 데이터 포함)
-      const systemInfo = {
-        timestamp: new Date().toLocaleString('ko-KR'),
-        uptime: Math.floor(process.uptime()),
-        memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-      };
-
-      const responseText = `"${request.query}"에 대한 실시간 분석 결과입니다.
-
-🔍 **실시간 시스템 분석**
-${analysisResult.summary}
-
-📊 **서버 상태 요약**
-- 총 서버 수: ${realServerData.totalServers}개
-- 정상 서버: ${realServerData.healthyServers}개
-- 경고 서버: ${realServerData.warningServers}개
-- 심각 서버: ${realServerData.criticalServers}개
-
-⚡ **처리 정보**
-- 분석 시간: ${checkTimeout()}ms
-- 시스템 가동시간: ${systemInfo.uptime}초
-- 메모리 사용량: ${systemInfo.memory}MB
-
-${analysisResult.recommendations ? '💡 **권장사항**\n' + analysisResult.recommendations : ''}
-
-베르셀 환경에서 실제 데이터 기반 분석을 완료했습니다.`;
-
-      console.log('🔍 Generated response text:', responseText);
-      return this.normalizeTextContent(responseText);
+      return null;
     } catch (error) {
-      console.log('⚠️ 경량 AI 엔진 타임아웃:', error);
+      console.log('⚠️ 경량 AI 엔진 처리 오류:', error);
       return null;
     }
   }
 
-  /**
-   * 🔍 실제 서버 메트릭 수집
-   */
-  private async collectRealServerMetrics(): Promise<any> {
-    try {
-      // request context에서 서버 데이터 추출 시도
-      const serverData = this.lastRequestContext?.serverData;
-
-      if (serverData && Array.isArray(serverData)) {
-        const totalServers = serverData.length;
-        const healthyServers = serverData.filter(
-          s => s.status === 'healthy' || s.status === 'online'
-        ).length;
-        const warningServers = serverData.filter(
-          s => s.status === 'warning'
-        ).length;
-        const criticalServers = serverData.filter(
-          s => s.status === 'critical' || s.status === 'offline'
-        ).length;
-
-        return {
-          totalServers,
-          healthyServers,
-          warningServers,
-          criticalServers,
-          servers: serverData,
-        };
+  private generateSimplePatternResponse(query: string): string | null {
+    const patterns = [
+      {
+        keywords: ['안녕', 'hello', '반가워'],
+        response: `안녕하세요! 🖐️ 질문해 주셔서 감사합니다.\n\n"${query}"에 대한 답변을 도와드리겠습니다.\n\n처리 시간: ${koreanTime.nowSynced()}`
+      },
+      {
+        keywords: ['서버', 'server', '시스템'],
+        response: `🖥️ 서버 관련 질문이시군요!\n\n"${query}"에 대한 시시음 정보를 확인 중입니다.\n\n분석 시간: ${koreanTime.nowSynced()}`
+      },
+      {
+        keywords: ['도움', 'help', '문의'],
+        response: `🤝 도움이 필요하시군요!\n\n"${query}"에 대한 지원을 제공하겠습니다.\n\n지원 시작: ${koreanTime.nowSynced()}`
       }
+    ];
 
-      // 폴백: 기본 메트릭
-      return {
-        totalServers: 15,
-        healthyServers: 12,
-        warningServers: 2,
-        criticalServers: 1,
-        servers: [],
-      };
-    } catch (error) {
-      console.warn('실제 서버 메트릭 수집 실패:', error);
-      return {
-        totalServers: 0,
-        healthyServers: 0,
-        warningServers: 0,
-        criticalServers: 0,
-        servers: [],
-      };
-    }
-  }
-
-  /**
-   * 🤖 실제 데이터 기반 쿼리 분석
-   */
-  private analyzeQueryWithRealData(query: string, serverData: any): any {
-    const queryLower = query.toLowerCase();
-
-    // 키워드 기반 분석
-    if (queryLower.includes('메모리') || queryLower.includes('memory')) {
-      const highMemoryServers = serverData.servers.filter(
-        (s: any) => s.memory > 80
-      ).length;
-      return {
-        summary: `메모리 사용률이 높은 서버 ${highMemoryServers}개를 발견했습니다.`,
-        recommendations:
-          highMemoryServers > 0
-            ? '메모리 사용률이 높은 서버들의 프로세스를 점검하고 최적화를 고려하세요.'
-            : null,
-      };
+    for (const pattern of patterns) {
+      if (pattern.keywords.some(keyword =>
+        query.toLowerCase().includes(keyword.toLowerCase())
+      )) {
+        return pattern.response;
+      }
     }
 
-    if (queryLower.includes('cpu') || queryLower.includes('프로세서')) {
-      const highCpuServers = serverData.servers.filter(
-        (s: any) => s.cpu > 80
-      ).length;
-      return {
-        summary: `CPU 사용률이 높은 서버 ${highCpuServers}개를 확인했습니다.`,
-        recommendations:
-          highCpuServers > 0
-            ? 'CPU 사용률이 높은 서버들의 워크로드 분산을 검토하세요.'
-            : null,
-      };
-    }
-
-    if (queryLower.includes('상태') || queryLower.includes('status')) {
-      return {
-        summary: `전체 시스템 상태가 분석되었습니다. 정상 ${serverData.healthyServers}개, 경고 ${serverData.warningServers}개, 심각 ${serverData.criticalServers}개 서버가 있습니다.`,
-        recommendations:
-          serverData.criticalServers > 0
-            ? '심각 상태의 서버들을 우선적으로 점검하세요.'
-            : null,
-      };
-    }
-
-    // 기본 분석
-    return {
-      summary: '시스템 전반적인 상태를 분석했습니다.',
-      recommendations: '정기적인 모니터링을 통해 시스템 안정성을 유지하세요.',
-    };
+    return null;
   }
 
   /**

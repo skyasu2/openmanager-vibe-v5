@@ -5,6 +5,7 @@
  */
 
 import { create } from 'zustand';
+import { koreanTime } from "@/utils/koreanTime";
 import { persist } from 'zustand/middleware';
 
 export type PowerMode = 'sleep' | 'active' | 'monitoring' | 'emergency';
@@ -138,7 +139,7 @@ export const usePowerStore = create<PowerStore>()(
 - 활성 시간: ${hours}시간 ${minutes}분
 - 처리된 알림: ${currentState.systemAlerts.length}개
 - 생성된 리포트: ${currentState.autoReports.length}개
-- 마지막 활동: ${new Date().toLocaleString()}
+- 마지막 활동: ${koreanTime.nowSynced()}
 
 🔋 **절전 모드 설정**
 - 백그라운드 모니터링: 최소화
@@ -232,7 +233,7 @@ export const usePowerStore = create<PowerStore>()(
 - 서버: ${alert.serverName} (${alert.serverId})
 - 문제 유형: ${alert.type}
 - 심각도: ${alert.severity}
-- 감지 시간: ${new Date().toLocaleString()}
+- 감지 시간: ${koreanTime.nowSynced()}
 
 📋 **문제 상세**
 ${alert.message}

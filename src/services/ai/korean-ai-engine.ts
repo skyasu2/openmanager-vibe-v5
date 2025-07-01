@@ -1,10 +1,10 @@
 // 자체 개발 한국어 처리 엔진 사용 (korean-js 대체)
 import { type ServerInstance } from '@/types/data-generator';
+import { koreanTime } from "@/utils/koreanTime";
 
 // 한국어 서버 모니터링 특화 NLU 엔진
 export class KoreanServerNLU {
   private intents: Record<string, string[]>;
-  private entities: Record<string, string[]>;
 
   constructor() {
     this.intents = {
@@ -172,7 +172,7 @@ export class KoreanResponseGenerator {
     return {
       message,
       actions,
-      timestamp: new Date().toLocaleString('ko-KR'),
+      timestamp: koreanTime.nowSynced(),
       status,
     };
   }

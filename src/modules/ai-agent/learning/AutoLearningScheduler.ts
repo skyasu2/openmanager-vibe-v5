@@ -5,6 +5,7 @@ export interface LearningScheduleConfig {
   analysisInterval: number; // 분석 실행 간격 (분)
   suggestionThreshold: number; // 제안 생성 임계값 (자동 승인 아님)
   maxConcurrentTests: number; // 최대 동시 테스트 수
+import { koreanTime } from "@/utils/koreanTime";
   learningWindowDays: number; // 학습 데이터 기간 (일)
   enableSuggestionGeneration: boolean; // 제안 생성 활성화 (자동 승인 금지)
   enableContinuousLearning: boolean; // 지속적 학습 활성화
@@ -429,7 +430,7 @@ export class AutoLearningScheduler {
         총_제안수: suggestionReport.suggestions?.length || 0,
         우선순위_높음: suggestionReport.highPriority?.length || 0,
         예상_성능_향상: suggestionReport.expectedImprovement || 'N/A',
-        생성_시간: new Date().toLocaleString('ko-KR'),
+        생성_시간: koreanTime.nowSynced(),
         주요_제안:
           suggestionReport.suggestions?.slice(0, 3)?.map((s: any) => s.title) ||
           [],

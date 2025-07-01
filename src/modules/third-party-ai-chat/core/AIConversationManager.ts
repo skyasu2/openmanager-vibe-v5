@@ -5,6 +5,7 @@
 
 export interface AIProvider {
   name: string;
+import { koreanTime } from "@/utils/koreanTime";
   apiKey: string;
   baseUrl: string;
   model: string;
@@ -120,7 +121,7 @@ export class AIConversationManager {
       id: sessionId,
       title:
         title ||
-        `${provider.name} 대화 - ${new Date().toLocaleString('ko-KR')}`,
+        `${provider.name} 대화 - ${koreanTime.nowSynced()}`,
       provider: providerName,
       messages: [],
       createdAt: new Date(),
