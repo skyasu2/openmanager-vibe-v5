@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI 사이드바 & MCP 서버 연동 테스트</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #4f46e5;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #f9fafb;
+        }
+
+        .test-button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .test-button:hover {
+            background: #3730a3;
+        }
+
+        .test-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #f3f4f6;
+            border-left: 4px solid #10b981;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .error {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-online {
+            background: #10b981;
+        }
+
+        .status-offline {
+            background: #ef4444;
+        }
+
+        .status-warning {
+            background: #f59e0b;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🤖 AI 사이드바 & MCP 서버 연동 테스트</h1>
+
+        <div class="test-section">
+            <h3>📊 시스템 상태 확인</h3>
+            <p>현재 시스템의 전반적인 상태를 확인합니다.</p>
+            <button class="test-button" onclick="checkSystemStatus()">시스템 상태 확인</button>
+            <div id="system-status-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔗 MCP 서버 연결 테스트</h3>
+            <p>Render에서 실행 중인 MCP 서버와의 연결을 테스트합니다.</p>
+            <button class="test-button" onclick="testMCPConnection()">MCP 연결 테스트</button>
+            <div id="mcp-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🧠 AI 엔진 상태 확인</h3>
+            <p>AI 엔진들의 상태와 성능을 확인합니다.</p>
+            <button class="test-button" onclick="checkAIEngines()">AI 엔진 상태</button>
+            <div id="ai-engines-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>💬 자연어 응답 테스트</h3>
+            <p>AI 사이드바의 자연어 응답 기능을 테스트합니다.</p>
+            <div class="grid">
+                <button class="test-button" onclick="testNaturalLanguage('현재 서버 상태를 분석해주세요')">서버 상태 분석</button>
+                <button class="test-button" onclick="testNaturalLanguage('CPU 사용량이 높은 서버를 찾아주세요')">CPU 분석</button>
+                <button class="test-button" onclick="testNaturalLanguage('메모리 사용량 분석해주세요')">메모리 분석</button>
+                <button class="test-button" onclick="testNaturalLanguage('최근 에러 로그를 확인해주세요')">에러 로그 확인</button>
+            </div>
+            <div id="natural-language-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 장애보고서 생성 테스트</h3>
+            <p>자동 장애보고서 생성 기능을 테스트합니다.</p>
+            <button class="test-button" onclick="testIncidentReport()">장애보고서 생성</button>
+            <div id="incident-report-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔄 실시간 서버 데이터 확인</h3>
+            <p>서버데이터 생성기가 생성하는 실시간 데이터를 확인합니다.</p>
+            <button class="test-button" onclick="checkServerData()">서버 데이터 확인</button>
+            <div id="server-data-result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = window.location.origin;
+
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.innerHTML = '<span class="loading"></span>테스트 진행 중...';
+            element.className = 'result';
+        }
+
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.innerHTML = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+            element.className = isError ? 'result error' : 'result';
+        }
+
+        async function checkSystemStatus() {
+            showLoading('system-status-result');
+            try {
+                const response = await fetch(`${BASE_URL}/api/health`);
+                const data = await response.json();
+                showResult('system-status-result', `✅ 시스템 정상 작동
+시간: ${new Date().toLocaleString()}
+상태: ${data.status || '정상'}
+응답시간: ${response.headers.get('x-response-time') || 'N/A'}
+
+상세 정보:
+${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                showResult('system-status-result', `❌ 시스템 상태 확인 실패: ${error.message}`, true);
+            }
+        }
+
+        async function testMCPConnection() {
+            showLoading('mcp-result');
+            try {
+                const response = await fetch(`${BASE_URL}/api/system/mcp-status`);
+                const data = await response.json();
+
+                const renderStatus = data.mcp?.servers?.render;
+                const statusText = renderStatus?.healthy ? '✅ 정상' : '❌ 오류';
+
+                showResult('mcp-result', `🔗 MCP 서버 연결 테스트 결과
+
+Render MCP 서버: ${statusText}
+URL: ${renderStatus?.url || 'N/A'}
+IPs: ${renderStatus?.ips?.join(', ') || 'N/A'}
+포트: ${renderStatus?.port || 'N/A'}
+지연시간: ${renderStatus?.latency || 'N/A'}ms
+업타임: ${renderStatus?.uptime || 'N/A'}초
+버전: ${renderStatus?.version || 'N/A'}
+
+전체 응답:
+${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                showResult('mcp-result', `❌ MCP 연결 테스트 실패: ${error.message}`, true);
+            }
+        }
+
+        async function checkAIEngines() {
+            showLoading('ai-engines-result');
+            try {
+                const response = await fetch(`${BASE_URL}/api/ai/engines/status`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const engines = data.data.engines;
+                    const activeEngines = engines.filter(e => e.status === 'active').length;
+
+                    let result = `🧠 AI 엔진 상태 (${activeEngines}/${engines.length} 활성화)
+
+`;
+                    engines.forEach(engine => {
+                        const statusIcon = engine.status === 'active' ? '✅' : '⚠️';
+                        result += `${statusIcon} ${engine.name}: ${engine.status} (${engine.responseTime}ms)
+   타입: ${engine.type} | 버전: ${engine.version}
+   설명: ${engine.description}
+
+`;
+                    });
+
+                    result += `📊 전체 메트릭:
+- 총 엔진: ${data.data.metrics.totalEngines}개
+- 활성 엔진: ${data.data.metrics.activeEngines}개
+- 평균 응답시간: ${data.data.metrics.averageResponseTime}ms
+- 마지막 업데이트: ${data.data.metrics.lastUpdated}`;
+
+                    showResult('ai-engines-result', result);
+                } else {
+                    showResult('ai-engines-result', `❌ AI 엔진 상태 확인 실패: ${data.error}`, true);
+                }
+            } catch (error) {
+                showResult('ai-engines-result', `❌ AI 엔진 상태 확인 실패: ${error.message}`, true);
+            }
+        }
+
+        async function testNaturalLanguage(query) {
+            showLoading('natural-language-result');
+            try {
+                const response = await fetch(`${BASE_URL}/api/ai/smart-query?q=${encodeURIComponent(query)}`);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('natural-language-result', `💬 자연어 응답 테스트 성공
+
+질문: "${query}"
+
+응답:
+${data.answer || data.response || JSON.stringify(data, null, 2)}`);
+                } else {
+                    showResult('natural-language-result', `⚠️ 응답 상태: ${response.status}
+내용: ${await response.text()}`, true);
+                }
+            } catch (error) {
+                showResult('natural-language-result', `❌ 자연어 응답 테스트 실패: ${error.message}`, true);
+            }
+        }
+
+        async function testIncidentReport() {
+            showLoading('incident-report-result');
+            try {
+                // 장애보고서 API 테스트 (실제 구현에 따라 조정 필요)
+                const response = await fetch(`${BASE_URL}/api/ai/auto-report`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type: 'incident',
+                        context: 'ai_sidebar_test'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('incident-report-result', `📋 장애보고서 생성 테스트 성공
+
+${JSON.stringify(data, null, 2)}`);
+                } else {
+                    showResult('incident-report-result', `⚠️ 응답 상태: ${response.status}
+내용: ${await response.text()}`, true);
+                }
+            } catch (error) {
+                showResult('incident-report-result', `❌ 장애보고서 생성 실패: ${error.message}`, true);
+            }
+        }
+
+        async function checkServerData() {
+            showLoading('server-data-result');
+            try {
+                const response = await fetch(`${BASE_URL}/api/servers/realtime?type=servers`);
+                const data = await response.json();
+
+                if (data.success && data.data) {
+                    const servers = data.data;
+                    const runningServers = servers.filter(s => s.status === 'running').length;
+                    const errorServers = servers.filter(s => s.status === 'error').length;
+                    const warningServers = servers.filter(s => s.status === 'warning').length;
+
+                    showResult('server-data-result', `🔄 서버데이터 생성기 상태
+
+총 서버: ${servers.length}개
+- 정상: ${runningServers}개
+- 오류: ${errorServers}개  
+- 경고: ${warningServers}개
+
+최근 서버 샘플 (처음 3개):
+${servers.slice(0, 3).map(server =>
+                        `- ${server.name}: ${server.status} (CPU: ${server.metrics?.cpu || 'N/A'}%, Memory: ${server.metrics?.memory || 'N/A'}%)`
+                    ).join('\n')}
+
+데이터 생성 시간: ${new Date().toLocaleString()}`);
+                } else {
+                    showResult('server-data-result', `❌ 서버 데이터 확인 실패: ${data.error || '알 수 없는 오류'}`, true);
+                }
+            } catch (error) {
+                showResult('server-data-result', `❌ 서버 데이터 확인 실패: ${error.message}`, true);
+            }
+        }
+
+        // 페이지 로드 시 자동으로 시스템 상태 확인
+        window.addEventListener('load', () => {
+            checkSystemStatus();
+        });
+    </script>
+</body>
+
+</html>
