@@ -26,6 +26,12 @@ interface RedisClientInterface {
   incr(key: string): Promise<number>;
   ping(): Promise<string>;
   pipeline(): any;
+  // Set 관련 메서드 추가
+  sadd(key: string, ...members: string[]): Promise<number>;
+  srem(key: string, ...members: string[]): Promise<number>;
+  scard(key: string): Promise<number>;
+  smembers(key: string): Promise<string[]>;
+  expire(key: string, seconds: number): Promise<number>;
 }
 
 // Redis 클라이언트 인스턴스들
@@ -170,6 +176,76 @@ class EnhancedMockRedis implements RedisClientInterface {
       },
       exec: async () => [],
     };
+  }
+
+  // Set 관련 메서드 구현
+  async sadd(key: string, ...members: string[]): Promise<number> {
+    this.stats.operations++;
+    let set = this.store.get(key)?.value;
+    if (!set || !Array.isArray(set)) {
+      set = [];
+    }
+
+    let added = 0;
+    for (const member of members) {
+      if (!set.includes(member)) {
+        set.push(member);
+        added++;
+      }
+    }
+
+    this.store.set(key, { value: set });
+    return added;
+  }
+
+  async srem(key: string, ...members: string[]): Promise<number> {
+    this.stats.operations++;
+    const set = this.store.get(key)?.value;
+    if (!set || !Array.isArray(set)) {
+      return 0;
+    }
+
+    let removed = 0;
+    for (const member of members) {
+      const index = set.indexOf(member);
+      if (index !== -1) {
+        set.splice(index, 1);
+        removed++;
+      }
+    }
+
+    this.store.set(key, { value: set });
+    return removed;
+  }
+
+  async scard(key: string): Promise<number> {
+    this.stats.operations++;
+    const set = this.store.get(key)?.value;
+    if (!set || !Array.isArray(set)) {
+      return 0;
+    }
+    return set.length;
+  }
+
+  async smembers(key: string): Promise<string[]> {
+    this.stats.operations++;
+    const set = this.store.get(key)?.value;
+    if (!set || !Array.isArray(set)) {
+      return [];
+    }
+    return [...set]; // 복사본 반환
+  }
+
+  async expire(key: string, seconds: number): Promise<number> {
+    this.stats.operations++;
+    const item = this.store.get(key);
+    if (!item) {
+      return 0;
+    }
+
+    const expiry = Date.now() + seconds * 1000;
+    this.store.set(key, { ...item, expiry });
+    return 1;
   }
 
   // 🧹 주기적 정리 (성능 최적화)

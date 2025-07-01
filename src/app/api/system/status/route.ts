@@ -1,298 +1,202 @@
 /**
- * 🏥 시스템 상태 API v2.0
- * 
- * ✅ 전체 시스템 상태 조회
- * ✅ AI 엔진 상태 관리
- * ✅ 인프라 메트릭 수집
- * ✅ 환경 정보 제공
+ * 🔄 페이지 갱신 기반 시스템 상태 API
+ *
+ * @description
+ * 실시간 폴링 없이 페이지 이벤트 기반으로만 상태를 확인합니다.
+ * - 페이지 로드 시
+ * - 페이지 포커스 시
+ * - 페이지 가시성 변경 시
+ * - 수동 새로고침 시
+ *
+ * @features
+ * - Redis 기반 상태 공유
+ * - 30분 시스템 타이머
+ * - 5분 사용자 활동 추적
+ * - 자동 비활성 사용자 정리
  */
 
-import { createHealthContainer } from '@/lib/di/HealthContainer';
+import {
+  generateAnonymousId,
+  systemStateManager,
+} from '@/lib/redis/SystemStateManager';
 import { NextRequest, NextResponse } from 'next/server';
 
-// 시스템 상태 타입
-interface SystemStatusData {
-    engines: {
-        active: number;
-        total: number;
-        list: Array<{
-            name: string;
-            status: 'active' | 'inactive' | 'error';
-            lastUsed?: string;
-            performance?: number;
-        }>;
-    };
-    environment: string;
-    uptime: number;
-    memoryUsage: number;
-    connections: number;
-    activeUsers: number;
+// 사용자 ID 추출 또는 생성
+function getUserId(request: NextRequest): string {
+  const url = new URL(request.url);
+  const userIdFromQuery = url.searchParams.get('userId');
+  const userIdFromHeader = request.headers.get('x-user-id');
+
+  return userIdFromQuery || userIdFromHeader || generateAnonymousId();
 }
 
-// 메모리 사용량 시뮬레이션 (실제 환경에서는 process.memoryUsage() 사용)
-function getMemoryUsage(): number {
-    try {
-        const usage = process.memoryUsage();
-        const totalMemory = usage.heapTotal + usage.external;
-        const usedMemory = usage.heapUsed;
-        return Math.round((usedMemory / totalMemory) * 100);
-    } catch {
-        // Vercel 환경에서는 시뮬레이션
-        return Math.floor(Math.random() * 30) + 20; // 20-50% 범위
-    }
+// 요청 컨텍스트 정보
+function getRequestContext(request: NextRequest) {
+  const url = new URL(request.url);
+  return {
+    source: url.searchParams.get('source') || 'unknown', // 'page-load', 'focus', 'visibility', 'manual'
+    timestamp: Date.now(),
+    userAgent: request.headers.get('user-agent') || 'unknown',
+  };
 }
 
-// 시스템 업타임 계산
-function getSystemUptime(): number {
-    try {
-        return process.uptime();
-    } catch {
-        // 시뮬레이션: 1-24시간 범위
-        return Math.floor(Math.random() * 86400) + 3600;
-    }
-}
-
-// AI 엔진 상태 시뮬레이션
-function getEngineStatus(): SystemStatusData['engines'] {
-    const engines = [
-        {
-            name: 'Supabase RAG',
-            status: 'active' as const,
-            lastUsed: new Date(Date.now() - Math.random() * 3600000).toISOString(),
-            performance: Math.floor(Math.random() * 20) + 80 // 80-100%
-        },
-        {
-            name: 'Google AI',
-            status: 'active' as const,
-            lastUsed: new Date(Date.now() - Math.random() * 1800000).toISOString(),
-            performance: Math.floor(Math.random() * 15) + 85 // 85-100%
-        },
-        {
-            name: 'MCP Context',
-            status: 'active' as const,
-            lastUsed: new Date(Date.now() - Math.random() * 900000).toISOString(),
-            performance: Math.floor(Math.random() * 25) + 75 // 75-100%
-        },
-        {
-            name: 'Korean AI',
-            status: Math.random() > 0.1 ? 'active' as const : 'inactive' as const,
-            lastUsed: new Date(Date.now() - Math.random() * 7200000).toISOString(),
-            performance: Math.floor(Math.random() * 30) + 70 // 70-100%
-        },
-        {
-            name: 'Transformers',
-            status: Math.random() > 0.2 ? 'active' as const : 'inactive' as const,
-            lastUsed: new Date(Date.now() - Math.random() * 3600000).toISOString(),
-            performance: Math.floor(Math.random() * 35) + 65 // 65-100%
-        }
-    ];
-
-    const activeEngines = engines.filter(engine => engine.status === 'active').length;
-
-    return {
-        active: activeEngines,
-        total: engines.length,
-        list: engines
-    };
-}
-
-// 환경 정보 감지
-function getEnvironmentInfo(): string {
-    if (process.env.VERCEL) {
-        return process.env.VERCEL_ENV === 'production' ? 'Vercel Production' : 'Vercel Development';
-    }
-    if (process.env.NODE_ENV === 'development') {
-        return 'Local Development';
-    }
-    return 'Unknown';
-}
-
+/**
+ * GET /api/system/status
+ * 페이지 이벤트 발생 시 시스템 상태 확인
+ */
 export async function GET(request: NextRequest) {
-    const startTime = Date.now();
+  try {
+    const userId = getUserId(request);
+    const context = getRequestContext(request);
 
-    try {
-        // 🏗️ DI 컨테이너 또는 함수형 패턴 자동 선택
-        const healthContainer = createHealthContainer();
+    console.log(
+      `🔄 시스템 상태 확인 - 사용자: ${userId.substring(0, 12)}..., 소스: ${context.source}`
+    );
 
-        console.log(`🚀 헬스체크 실행 - Runtime: ${healthContainer.runtime}, DI 지원: ${healthContainer.diSupported}`);
+    // 1. 사용자 활동 업데이트 (5분 TTL)
+    const activeUserCount = await systemStateManager.updateUserActivity(userId);
 
-        // 🎯 통합 헬스체크 실행
-        const healthResult = await healthContainer.performHealthCheck();
+    // 2. 비활성 사용자 정리 (5분 이상 비활성)
+    await systemStateManager.cleanupInactiveUsers();
 
-        const responseTime = Date.now() - startTime;
+    // 3. 현재 시스템 상태 조회
+    const systemState = await systemStateManager.getSystemState();
 
-        const response = {
-            success: true,
-            status: healthResult.status,
-            timestamp: healthResult.timestamp,
-            responseTime: `${responseTime}ms`,
+    // 4. 응답 데이터 구성
+    const responseData = {
+      success: true,
+      timestamp: Date.now(),
+      source: context.source,
+      state: systemState,
+      // 하위 호환성을 위한 플랫 필드들
+      isRunning: systemState.isRunning,
+      startTime: systemState.startTime,
+      endTime: systemState.endTime,
+      activeUsers: systemState.activeUsers,
+      remainingTime:
+        systemState.endTime > 0
+          ? Math.max(0, systemState.endTime - Date.now())
+          : 0,
+      version: systemState.version,
+      environment: systemState.environment,
+    };
 
-            // 🏗️ DI 시스템 정보
-            system: {
-                runtime: healthContainer.runtime,
-                diSupported: healthContainer.diSupported,
-                environment: process.env.NODE_ENV || 'development',
-                vercel: !!process.env.VERCEL
-            },
+    console.log(
+      `✅ 상태 응답 - 실행중: ${systemState.isRunning}, 활성사용자: ${systemState.activeUsers}명`
+    );
 
-            // 📊 헬스체크 결과
-            health: healthResult,
+    return NextResponse.json(responseData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': userId,
+        'X-Request-Source': context.source,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
+    });
+  } catch (error) {
+    console.error('❌ 시스템 상태 확인 실패:', error);
 
-            // 🎯 API 최적화 정보
-            optimization: {
-                cachingEnabled: true,
-                diContainer: healthContainer.diSupported,
-                vercelOptimized: !!process.env.VERCEL,
-                duplicateAPIsRemoved: true
-            },
-
-            // 📈 요약 통계
-            summary: {
-                overallStatus: healthResult.status,
-                responseTime: `${responseTime}ms`,
-                apiCallsReduced: '98%',
-                duplicatesRemoved: 3
-            }
-        };
-
-        console.log(`✅ 통합 헬스체크 완료 (${responseTime}ms) - 상태: ${healthResult.status}`);
-
-        return NextResponse.json(response, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Cache-Control': process.env.VERCEL
-                    ? 'public, max-age=300, s-maxage=600' // Vercel: 5분 브라우저, 10분 CDN
-                    : 'no-cache, no-store, must-revalidate', // 로컬: 캐시 없음
-            }
-        });
-
-    } catch (error: any) {
-        const responseTime = Date.now() - startTime;
-
-        console.error('❌ 통합 헬스체크 오류:', error);
-
-        return NextResponse.json(
-            {
-                success: false,
-                status: 'error',
-                timestamp: new Date().toISOString(),
-                responseTime: `${responseTime}ms`,
-                error: error.message || 'System status check failed',
-                system: {
-                    runtime: 'unknown',
-                    diSupported: false,
-                    fallback: true
-                }
-            },
-            { status: 500 }
-        );
-    }
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : '시스템 상태 확인 실패',
+        timestamp: Date.now(),
+        state: {
+          isRunning: false,
+          startedBy: '',
+          startTime: 0,
+          endTime: 0,
+          activeUsers: 0,
+          lastActivity: Date.now(),
+          version: '5.44.4',
+          environment: 'error',
+        },
+      },
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  }
 }
 
+/**
+ * POST /api/system/status
+ * 시스템 제어 (시작/중지)
+ */
 export async function POST(request: NextRequest) {
-    try {
-        const body = await request.json();
-        const { action, engine, config } = body;
+  try {
+    const body = await request.json();
+    const { action, userId: bodyUserId } = body;
 
-        // 엔진 제어 액션 처리
-        switch (action) {
-            case 'restart_engine':
-                if (!engine) {
-                    return NextResponse.json({
-                        success: false,
-                        error: '엔진 이름이 필요합니다'
-                    }, { status: 400 });
-                }
+    const userId = bodyUserId || getUserId(request);
+    const context = getRequestContext(request);
 
-                // 실제 환경에서는 해당 엔진 재시작 로직 구현
-                console.log(`🔄 엔진 재시작 요청: ${engine}`);
+    console.log(
+      `🎮 시스템 제어 요청 - 액션: ${action}, 사용자: ${userId.substring(0, 12)}...`
+    );
 
-                return NextResponse.json({
-                    success: true,
-                    message: `${engine} 엔진이 재시작되었습니다`,
-                    timestamp: new Date().toISOString()
-                });
+    let systemState;
 
-            case 'update_config':
-                if (!config) {
-                    return NextResponse.json({
-                        success: false,
-                        error: '설정 데이터가 필요합니다'
-                    }, { status: 400 });
-                }
+    switch (action) {
+      case 'start':
+        systemState = await systemStateManager.startSystem(userId);
+        console.log(`🚀 시스템 시작됨 - 30분 타이머 활성화`);
+        break;
 
-                // 실제 환경에서는 설정 업데이트 로직 구현
-                console.log('⚙️ 시스템 설정 업데이트:', config);
+      case 'stop':
+        systemState = await systemStateManager.stopSystem(userId);
+        console.log(`🛑 시스템 중지됨`);
+        break;
 
-                return NextResponse.json({
-                    success: true,
-                    message: '시스템 설정이 업데이트되었습니다',
-                    timestamp: new Date().toISOString()
-                });
-
-            case 'health_check':
-                // 전체 시스템 헬스 체크
-                const healthStatus = {
-                    overall: 'healthy' as const,
-                    engines: getEngineStatus(),
-                    memory: getMemoryUsage(),
-                    uptime: getSystemUptime(),
-                    timestamp: new Date().toISOString()
-                };
-
-                return NextResponse.json({
-                    success: true,
-                    data: healthStatus,
-                    message: '헬스 체크 완료'
-                });
-
-            default:
-                return NextResponse.json({
-                    success: false,
-                    error: '지원하지 않는 액션입니다'
-                }, { status: 400 });
-        }
-
-    } catch (error) {
-        console.error('❌ 시스템 제어 실패:', error);
-
-        return NextResponse.json({
-            success: false,
-            error: '시스템 제어에 실패했습니다',
-            details: error instanceof Error ? error.message : '알 수 없는 오류'
-        }, { status: 500 });
+      default:
+        throw new Error(`지원하지 않는 액션: ${action}`);
     }
+
+    // 응답 데이터 구성
+    const responseData = {
+      success: true,
+      action,
+      timestamp: Date.now(),
+      state: systemState,
+      // 하위 호환성
+      isRunning: systemState.isRunning,
+      startTime: systemState.startTime,
+      endTime: systemState.endTime,
+      activeUsers: systemState.activeUsers,
+      remainingTime:
+        systemState.endTime > 0
+          ? Math.max(0, systemState.endTime - Date.now())
+          : 0,
+    };
+
+    return NextResponse.json(responseData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': userId,
+        'X-Action': action,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      },
+    });
+  } catch (error) {
+    console.error('❌ 시스템 제어 실패:', error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : '시스템 제어 실패',
+        timestamp: Date.now(),
+      },
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  }
 }
-
-export async function PUT(request: NextRequest) {
-    try {
-        const body = await request.json();
-        const { settings } = body;
-
-        if (!settings) {
-            return NextResponse.json({
-                success: false,
-                error: '설정 데이터가 필요합니다'
-            }, { status: 400 });
-        }
-
-        // 시스템 설정 업데이트 (실제 환경에서는 데이터베이스나 설정 파일 업데이트)
-        console.log('🔧 시스템 설정 업데이트:', settings);
-
-        return NextResponse.json({
-            success: true,
-            message: '시스템 설정이 성공적으로 업데이트되었습니다',
-            updatedSettings: settings,
-            timestamp: new Date().toISOString()
-        });
-
-    } catch (error) {
-        console.error('❌ 시스템 설정 업데이트 실패:', error);
-
-        return NextResponse.json({
-            success: false,
-            error: '시스템 설정 업데이트에 실패했습니다',
-            details: error instanceof Error ? error.message : '알 수 없는 오류'
-        }, { status: 500 });
-    }
-} 

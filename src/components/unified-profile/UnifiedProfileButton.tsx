@@ -11,7 +11,7 @@
 'use client';
 
 import { useToast } from '@/components/ui/ToastNotification';
-import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { useSystemState } from '@/hooks/useSystemState';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -21,6 +21,7 @@ import {
   Lock,
   LogOut,
   Play,
+  RefreshCw,
   Settings,
   Square,
   Unlock,
@@ -30,6 +31,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { CountdownTimer } from '../system/CountdownTimer';
 import { DropdownPosition, ProfileButtonProps } from './types/ProfileTypes';
 
 interface UnifiedProfileButtonProps extends ProfileButtonProps {
@@ -61,10 +63,16 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
   const isLocked = store.isLocked;
   const adminMode = store.adminMode;
 
-  // 📊 다중 사용자 시스템 상태 추가
-  const { status: multiUserStatus } = useSystemStatus({
-    pollingInterval: 15000,
-  }); // 15초마다 업데이트
+  // 📊 페이지 갱신 기반 시스템 상태
+  const {
+    systemState,
+    isLoading: systemLoading,
+    error: systemError,
+    userId,
+    refreshState,
+    startSystem: startSystemState,
+    stopSystem: stopSystemState,
+  } = useSystemState();
 
   // 액션들은 안정적이므로 한 번만 가져오기
   const { startSystem, stopSystem, logout, authenticateAdmin, logoutAdmin } =
@@ -179,15 +187,15 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
   }, [isOpen, onClick]);
 
   // 이벤트 핸들러들
-  const handleSystemToggle = (e: React.MouseEvent) => {
+  const handleSystemToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (isSystemStarted) {
-      stopSystem();
+    if (systemState?.isRunning) {
+      await handleSystemControl('stop');
       success('시스템이 중단되었습니다.');
     } else {
-      startSystem();
+      await handleSystemControl('start');
       success('시스템이 시작되었습니다.');
     }
   };
@@ -273,22 +281,45 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
 
   // 📊 시스템 상태 텍스트 생성 (다중 사용자 정보 포함)
   const getSystemStatusText = () => {
-    if (multiUserStatus.isStarting) {
-      return `🔄 시스템 시작 중... (${multiUserStatus.userCount}명 대기)`;
+    if (!systemState) return '상태 확인 중...';
+
+    if (systemState.isRunning) {
+      return `🟢 시스템 가동 중 (${systemState.activeUsers}명 접속)`;
     }
 
-    if (multiUserStatus.isRunning || isSystemStarted) {
-      return `🟢 시스템 가동 중 (${multiUserStatus.userCount}명 접속)`;
-    }
-
-    return `🔴 시스템 정지됨 (${multiUserStatus.userCount}명 접속)`;
+    return `🔴 시스템 정지됨 (${systemState.activeUsers}명 접속)`;
   };
 
   // 📊 시스템 상태 색상 결정
   const getSystemStatusColor = () => {
-    if (multiUserStatus.isStarting) return 'text-yellow-400';
-    if (multiUserStatus.isRunning || isSystemStarted) return 'text-green-400';
+    if (!systemState) return 'text-gray-400';
+    if (systemState.isRunning) return 'text-green-400';
     return 'text-red-400';
+  };
+
+  // 시간 만료 시 콜백
+  const handleTimerExpired = async () => {
+    console.log('⏰ 시스템 세션 만료 - 상태 새로고침');
+    await refreshState();
+  };
+
+  // 시스템 제어 통합
+  const handleSystemControl = async (action: 'start' | 'stop') => {
+    try {
+      if (action === 'start') {
+        const success = await startSystemState();
+        if (success) {
+          startSystem(); // 기존 스토어 상태도 업데이트
+        }
+      } else {
+        const success = await stopSystemState();
+        if (success) {
+          stopSystem(); // 기존 스토어 상태도 업데이트
+        }
+      }
+    } catch (error) {
+      console.error('시스템 제어 실패:', error);
+    }
   };
 
   // 드롭다운 메뉴 (Portal로 렌더링)
@@ -389,17 +420,26 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
 
                   {/* 환경 정보 */}
                   <div className='mt-1 flex items-center justify-between text-xs text-gray-500'>
-                    <span>환경: {multiUserStatus.environment}</span>
-                    <span>v{multiUserStatus.version}</span>
+                    <span>환경: {systemState?.environment || 'Unknown'}</span>
+                    <span>v{systemState?.version || '1.0.0'}</span>
                   </div>
 
-                  {/* 업타임 정보 */}
-                  {multiUserStatus.uptime && multiUserStatus.uptime > 0 && (
-                    <div className='mt-1 text-xs text-gray-500'>
-                      업타임: {Math.floor(multiUserStatus.uptime / 3600)}시간{' '}
-                      {Math.floor((multiUserStatus.uptime % 3600) / 60)}분
+                  {/* 카운트다운 타이머 (시스템 실행 중일 때만) */}
+                  {systemState?.isRunning && systemState.endTime && (
+                    <div className='mt-2 flex justify-center'>
+                      <CountdownTimer
+                        endTime={systemState.endTime}
+                        onExpired={handleTimerExpired}
+                        size='sm'
+                        className='bg-blue-50/80 border-blue-200'
+                      />
                     </div>
                   )}
+
+                  {/* 사용자 ID */}
+                  <div className='mt-1 text-xs text-gray-400 text-center'>
+                    사용자 ID: {userId.slice(0, 8)}...
+                  </div>
                 </div>
               </div>
 
@@ -482,19 +522,20 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                 {/* 시스템 시작/중단 버튼 */}
                 <motion.button
                   whileHover={{
-                    backgroundColor: isSystemStarted
+                    backgroundColor: systemState?.isRunning
                       ? 'rgba(239, 68, 68, 0.1)'
                       : 'rgba(34, 197, 94, 0.1)',
                   }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleSystemToggle}
-                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 mb-2'
+                  disabled={systemLoading}
+                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 mb-2 disabled:opacity-50'
                   role='menuitem'
                 >
                   <div
-                    className={`p-2 rounded-lg ${isSystemStarted ? 'bg-red-500/20' : 'bg-green-500/20'}`}
+                    className={`p-2 rounded-lg ${systemState?.isRunning ? 'bg-red-500/20' : 'bg-green-500/20'}`}
                   >
-                    {isSystemStarted ? (
+                    {systemState?.isRunning ? (
                       <Square className='w-4 h-4 text-red-600' />
                     ) : (
                       <Play className='w-4 h-4 text-green-600' />
@@ -502,21 +543,50 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                   </div>
                   <div className='flex-1'>
                     <div className='text-gray-900 font-medium'>
-                      {isSystemStarted ? '시스템 중단' : '시스템 시작'}
+                      {systemState?.isRunning ? '시스템 중단' : '시스템 시작'}
                     </div>
                     <div className='text-gray-600 text-xs'>
-                      {isSystemStarted
-                        ? '모니터링을 중단합니다'
-                        : '모니터링을 시작합니다'}
+                      {systemState?.isRunning
+                        ? '30분 세션을 중단합니다'
+                        : '30분 세션을 시작합니다'}
                     </div>
                   </div>
-                  {isSystemStarted && (
+                  {systemState?.isRunning && (
                     <div className='w-2 h-2 bg-green-400 rounded-full animate-pulse' />
                   )}
                 </motion.button>
 
+                {/* 상태 새로고침 버튼 */}
+                <motion.button
+                  whileHover={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={async e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    await refreshState();
+                    success('시스템 상태를 새로고침했습니다.');
+                  }}
+                  disabled={systemLoading}
+                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2 disabled:opacity-50'
+                  role='menuitem'
+                >
+                  <div className='p-2 rounded-lg bg-blue-500/20'>
+                    <RefreshCw
+                      className={`w-4 h-4 text-blue-600 ${systemLoading ? 'animate-spin' : ''}`}
+                    />
+                  </div>
+                  <div className='flex-1'>
+                    <div className='text-gray-900 font-medium'>
+                      상태 새로고침
+                    </div>
+                    <div className='text-gray-600 text-xs'>
+                      시스템 상태를 수동으로 확인합니다
+                    </div>
+                  </div>
+                </motion.button>
+
                 {/* 대시보드 이동 버튼 (시스템 동작 중일 때만) */}
-                {isSystemStarted && (
+                {systemState?.isRunning && (
                   <Link href='/dashboard'>
                     <motion.button
                       whileHover={{
