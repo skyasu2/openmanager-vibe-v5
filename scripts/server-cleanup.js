@@ -5,6 +5,7 @@
  * OpenManager Vibe v5 - 2025-07-01 19:48:00 (KST)
  */
 
+/* eslint-disable */
 const { exec } = require('child_process');
 const { promisify } = require('util');
 
@@ -36,7 +37,7 @@ class SimpleServerCleanup {
                 if (results[port]) {
                     console.log(`  📊 포트 ${port}: 사용 중`);
                 }
-            } catch (error) {
+            } catch (_) {
                 results[port] = false;
             }
         }

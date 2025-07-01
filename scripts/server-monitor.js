@@ -5,10 +5,11 @@
  * OpenManager Vibe v5 - 2025-07-01 19:46:00 (KST)
  */
 
-import fs from 'fs';
-import cron from 'node-cron';
-import path from 'path';
-import ServerManager from './server-manager.js';
+/* eslint-disable */
+const fs = require('fs');
+const cron = require('node-cron');
+const path = require('path');
+const ServerManager = require('./server-manager.js');
 
 class ServerMonitor {
     constructor(options = {}) {
@@ -332,8 +333,8 @@ async function main() {
     }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (require.main === module) {
     main().catch(console.error);
 }
 
-export default ServerMonitor; 
+module.exports = ServerMonitor; 

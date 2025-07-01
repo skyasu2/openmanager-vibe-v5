@@ -5,6 +5,7 @@
  * OpenManager Vibe v5 - 2025-07-01 19:44:00 (KST)
  */
 
+/* eslint-disable */
 const { exec, spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -355,8 +356,8 @@ async function main() {
     }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (require.main === module) {
     main().catch(console.error);
 }
 
-export default ServerManager; 
+module.exports = ServerManager; 
