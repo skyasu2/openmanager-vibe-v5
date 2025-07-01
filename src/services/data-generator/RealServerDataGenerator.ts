@@ -29,7 +29,7 @@ import {
   calculateServerDistribution,
   generateHostname,
   generateSpecializedMetrics,
-  getServerTypesForCategory
+  getServerTypesForCategory,
 } from './types/NewServerTypes';
 
 // 🔴 분리된 Redis 서비스 import (TDD Green 단계)
@@ -94,7 +94,7 @@ export class RealServerDataGenerator {
 
     // 🔴 Redis 서비스 초기화 (분리된 모듈)
     this.redisService = new RedisService({
-      enableRedis: this.config.enableRedis,
+      enableRedis: this.config.enableRedis || false,
       isMockMode: this.isMockMode,
       isHealthCheckContext: this.isHealthCheckContext,
       isTestContext: this.isTestContext,
@@ -164,166 +164,49 @@ export class RealServerDataGenerator {
   }
 
   /**
-   * 🛡️ 과도한 저장 방지 체크
+   * 🛡️ Redis 저장 가능 여부 체크 (RedisService로 위임)
    */
   private canSaveToRedis(): boolean {
-    const now = Date.now();
-
-    // 1. 최소 간격 체크 (5초)
-    if (now - this.lastSaveTime < this.MIN_SAVE_INTERVAL) {
-      return false;
-    }
-
-    // 2. 분당 저장 횟수 체크
-    if (now - this.lastMinuteTimestamp > 60000) {
-      // 새로운 분 시작
-      this.lastMinuteTimestamp = now;
-      this.saveThrottleCount = 0;
-    }
-
-    if (this.saveThrottleCount >= this.MAX_SAVES_PER_MINUTE) {
-      console.warn('⚠️ 분당 최대 저장 횟수 초과 - Redis 저장 건너뜀');
-      return false;
-    }
-
-    return true;
+    return this.redisService.isConnected();
   }
 
   /**
-   * 🔴 Redis에 서버 데이터 저장 (목업 모드 지원)
+   * 🔴 Redis에 서버 데이터 저장 (RedisService로 위임)
    */
   private async saveServerToRedis(server: ServerInstance): Promise<void> {
-    if (this.isMockMode) {
-      // 목업 모드에서는 메모리에만 저장
-      return;
-    }
-
-    if (!this.redisService || !this.canSaveToRedis()) return;
-
-    try {
-      const key = `${this.REDIS_PREFIX}${server.id}`;
-      const data = JSON.stringify({
-        ...server,
-        lastUpdated: new Date().toISOString(),
-      });
-
-      await this.redisService.setex(key, 3600, data); // 1시간 TTL
-
-      // 서버 목록에도 추가
-      await this.redisService.sadd(`${this.REDIS_PREFIX}list`, server.id);
-
-      this.lastSaveTime = Date.now();
-      this.saveThrottleCount++;
-    } catch (error) {
-      console.warn(`⚠️ Redis 서버 저장 실패 (${server.id}):`, error);
-    }
+    await this.redisService.saveServer(server);
   }
 
   /**
-   * 🔴 Redis에서 서버 데이터 조회
+   * 🔴 Redis에서 서버 데이터 조회 (RedisService로 위임)
    */
   private async loadServerFromRedis(
     serverId: string
   ): Promise<ServerInstance | null> {
-    if (!this.redisService) return null;
-
-    try {
-      const key = `${this.REDIS_PREFIX}${serverId}`;
-      const data = await this.redisService.get(key);
-
-      if (data) {
-        return JSON.parse(data) as ServerInstance;
-      }
-    } catch (error) {
-      console.warn(`⚠️ Redis 서버 조회 실패 (${serverId}):`, error);
-    }
-
-    return null;
+    return await this.redisService.loadServer(serverId);
   }
 
   /**
-   * 🔴 Redis에서 모든 서버 데이터 조회
+   * 🔴 Redis에서 모든 서버 데이터 조회 (RedisService로 위임)
    */
   private async loadAllServersFromRedis(): Promise<ServerInstance[]> {
-    if (!this.redisService) return [];
-
-    try {
-      const serverIds = await this.redisService.smembers(`${this.REDIS_PREFIX}list`);
-      const servers: ServerInstance[] = [];
-
-      for (const serverId of serverIds) {
-        const server = await this.loadServerFromRedis(serverId);
-        if (server) {
-          servers.push(server);
-        }
-      }
-
-      console.log(`📊 Redis에서 ${servers.length}개 서버 데이터 로드됨`);
-      return servers;
-    } catch (error) {
-      console.warn('⚠️ Redis 전체 서버 조회 실패:', error);
-      return [];
-    }
+    return await this.redisService.loadAllServers();
   }
 
   /**
-   * 🔴 Redis에 클러스터 데이터 저장
+   * 🔴 Redis에 클러스터 데이터 저장 (RedisService로 위임)
    */
   private async saveClusterToRedis(cluster: ServerCluster): Promise<void> {
-    if (!this.redisService) return;
-
-    try {
-      const key = `${this.REDIS_CLUSTERS_PREFIX}${cluster.id}`;
-      const data = JSON.stringify({
-        ...cluster,
-        lastUpdated: new Date().toISOString(),
-      });
-
-      await this.redisService.setex(key, 3600, data);
-      await this.redisService.sadd(`${this.REDIS_CLUSTERS_PREFIX}list`, cluster.id);
-    } catch (error) {
-      console.warn(`⚠️ Redis 클러스터 저장 실패 (${cluster.id}):`, error);
-    }
+    await this.redisService.saveCluster(cluster);
   }
 
   /**
-   * 🔴 Redis에 서버 데이터 배치 저장 (성능 개선)
+   * 🔴 Redis에 서버 데이터 배치 저장 (RedisService로 위임)
    */
   private async batchSaveServersToRedis(
     servers: ServerInstance[]
   ): Promise<void> {
-    if (this.isMockMode) {
-      console.log(`🎭 목업 모드: ${servers.length}개 서버 메모리 저장 완료`);
-      return;
-    }
-
-    if (!this.redisService || !this.canSaveToRedis()) {
-      return;
-    }
-
-    try {
-      const pipeline = this.redisService.pipeline();
-
-      for (const server of servers) {
-        const key = `${this.REDIS_PREFIX}${server.id}`;
-        const data = JSON.stringify({
-          ...server,
-          lastUpdated: new Date().toISOString(),
-        });
-
-        pipeline.setex(key, 3600, data); // 1시간 TTL
-        pipeline.sadd(`${this.REDIS_PREFIX}list`, server.id);
-      }
-
-      await pipeline.exec();
-
-      this.lastSaveTime = Date.now();
-      this.saveThrottleCount++;
-
-      console.log(`📊 Redis 배치 저장 완료: ${servers.length}개 서버`);
-    } catch (error) {
-      console.warn(`⚠️ Redis 배치 저장 실패:`, error);
-    }
+    await this.redisService.batchSaveServers(servers);
   }
 
   public async initialize(): Promise<void> {
@@ -865,7 +748,7 @@ export class RealServerDataGenerator {
             Math.min(
               100,
               rawMetrics.memory +
-              (Math.random() - 0.5) * 15 * effectiveIntensity
+                (Math.random() - 0.5) * 15 * effectiveIntensity
             )
           ).toFixed(2)
         ),
@@ -882,12 +765,12 @@ export class RealServerDataGenerator {
           in: Math.max(
             0,
             rawMetrics.network.in +
-            (Math.random() - 0.5) * 50 * effectiveIntensity
+              (Math.random() - 0.5) * 50 * effectiveIntensity
           ),
           out: Math.max(
             0,
             rawMetrics.network.out +
-            (Math.random() - 0.5) * 30 * effectiveIntensity
+              (Math.random() - 0.5) * 30 * effectiveIntensity
           ),
         },
       };
@@ -1070,12 +953,12 @@ export class RealServerDataGenerator {
         avgCpu:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
-            servers.length
+              servers.length
             : 0,
         avgMemory:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
-            servers.length
+              servers.length
             : 0,
       },
       clusters: {
@@ -1110,9 +993,9 @@ export class RealServerDataGenerator {
         avgResponseTime:
           applications.length > 0
             ? applications.reduce(
-              (sum, a) => sum + a.performance.responseTime,
-              0
-            ) / applications.length
+                (sum, a) => sum + a.performance.responseTime,
+                0
+              ) / applications.length
             : 0,
       },
       timestamp: Date.now(),
@@ -1209,11 +1092,9 @@ export class RealServerDataGenerator {
       isMockMode: this.isMockMode,
       isHealthCheckContext: this.isHealthCheckContext,
       isTestContext: this.isTestContext,
-      redisStatus: {
-        connected: this.redisService !== null && !this.isMockMode,
-        lastSaveTime: this.lastSaveTime,
-        saveThrottleCount: this.saveThrottleCount,
-        canSave: this.canSaveToRedis(),
+      redisStatus: this.redisService?.getStatus() || {
+        connected: false,
+        mockMode: true,
       },
     };
   }
