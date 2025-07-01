@@ -38,7 +38,10 @@ import { RedisService } from './services/RedisService';
 import { ServerInstanceFactory } from './factories/ServerInstanceFactory';
 
 // 📊 분리된 MetricsProcessor import (TDD Green 단계)
-import { MetricsProcessor, ScenarioContext } from './processors/MetricsProcessor';
+import {
+  MetricsProcessor,
+  ScenarioContext,
+} from './processors/MetricsProcessor';
 
 // ✅ 중복 코드 제거 완료 - NewServerTypes 모듈 함수 사용:
 // - SERVER_DISTRIBUTION → calculateServerDistribution() 함수 사용
@@ -712,7 +715,8 @@ export class RealServerDataGenerator {
               : 1.0;
 
       baseScenarioContext.phase = currentScenario.phase;
-      baseScenarioContext.affectedTypes = currentScenario?.changes?.serverTypes || [];
+      baseScenarioContext.affectedTypes =
+        currentScenario?.changes?.serverTypes || [];
 
       if (!this.isMockMode) {
         console.log(
@@ -866,12 +870,12 @@ export class RealServerDataGenerator {
         avgCpu:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
-            servers.length
+              servers.length
             : 0,
         avgMemory:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
-            servers.length
+              servers.length
             : 0,
       },
       clusters: {
@@ -906,9 +910,9 @@ export class RealServerDataGenerator {
         avgResponseTime:
           applications.length > 0
             ? applications.reduce(
-              (sum, a) => sum + a.performance.responseTime,
-              0
-            ) / applications.length
+                (sum, a) => sum + a.performance.responseTime,
+                0
+              ) / applications.length
             : 0,
       },
       timestamp: Date.now(),
