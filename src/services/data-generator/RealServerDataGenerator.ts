@@ -37,6 +37,9 @@ import { RedisService } from './services/RedisService';
 // 🏭 분리된 ServerInstanceFactory import (TDD Green 단계)
 import { ServerInstanceFactory } from './factories/ServerInstanceFactory';
 
+// 📊 분리된 MetricsProcessor import (TDD Green 단계)
+import { MetricsProcessor, ScenarioContext } from './processors/MetricsProcessor';
+
 // ✅ 중복 코드 제거 완료 - NewServerTypes 모듈 함수 사용:
 // - SERVER_DISTRIBUTION → calculateServerDistribution() 함수 사용
 // - HOSTNAME_PATTERNS → generateHostname() 함수 사용
@@ -687,15 +690,19 @@ export class RealServerDataGenerator {
     const updatedServers: ServerInstance[] = [];
     let hasSignificantChange = false;
 
-    // 🎭 1단계: AI 분석 가능한 장애 시나리오 정보 수집
+    // 🎭 1단계: AI 분석 가능한 장애 시나리오 정보 수집 (ScenarioContext 생성)
     const currentScenario = this.scenarioManager.getCurrentScenario();
-    let scenarioIntensity = 1.0; // 기본 강도
-    let scenarioAffectedTypes: string[] = [];
-
     const scenarioStatus = this.scenarioManager?.getStatus();
+
+    // 🎭 시나리오 컨텍스트 생성 (MetricsProcessor용)
+    const baseScenarioContext: Omit<ScenarioContext, 'isAffectedServer'> = {
+      intensity: 1.0,
+      affectedTypes: [],
+      phase: 'normal',
+    };
+
     if (currentScenario && this.scenarioManager && scenarioStatus?.isActive) {
-      // 시나리오 정보에서 강도와 영향받는 서버 타입 추출
-      scenarioIntensity =
+      baseScenarioContext.intensity =
         currentScenario.phase === 'critical_state'
           ? 2.5
           : currentScenario.phase === 'cascade_failure'
@@ -704,179 +711,80 @@ export class RealServerDataGenerator {
               ? 1.5
               : 1.0;
 
-      // 시나리오 변경사항에서 영향받는 서버 타입 추출
-      if (currentScenario?.changes?.serverTypes) {
-        scenarioAffectedTypes = currentScenario.changes.serverTypes;
-      }
+      baseScenarioContext.phase = currentScenario.phase;
+      baseScenarioContext.affectedTypes = currentScenario?.changes?.serverTypes || [];
 
       if (!this.isMockMode) {
         console.log(
-          `🎭 장애 시나리오 활성: ${currentScenario.description} (단계: ${currentScenario.phase}, 강도: ${scenarioIntensity})`
+          `🎭 장애 시나리오 활성: ${currentScenario.description} (단계: ${currentScenario.phase}, 강도: ${baseScenarioContext.intensity})`
         );
       }
     }
 
     for (const [serverId, server] of this.servers) {
-      // 🎯 2단계: 원본 메트릭 수집
-      const rawMetrics = {
-        cpu: server.metrics.cpu,
-        memory: server.metrics.memory,
-        disk: server.metrics.disk,
-        network: { ...server.metrics.network },
-        timestamp: Date.now(),
-      };
-
-      // 🎯 3단계: 데이터 전처리 (장애 시나리오 반영)
-      const variation = Math.sin(Date.now() / 60000) * 0.3 + 0.7; // 시간에 따른 변화 패턴
-
-      // 🎭 장애 시나리오 기반 메트릭 변동 계산
+      // 🎭 서버별 시나리오 컨텍스트 생성
       const isAffectedByScenario =
-        scenarioAffectedTypes.includes(server.role) ||
+        baseScenarioContext.affectedTypes.includes(server.role) ||
         (currentScenario?.changes?.targetServers?.includes(server.id) ?? false);
-      const effectiveIntensity = isAffectedByScenario ? scenarioIntensity : 1.0;
 
-      const processedMetrics = {
-        cpu: parseFloat(
-          Math.max(
-            0,
-            Math.min(
-              100,
-              rawMetrics.cpu + (Math.random() - 0.5) * 20 * effectiveIntensity
-            )
-          ).toFixed(2)
-        ),
-        memory: parseFloat(
-          Math.max(
-            0,
-            Math.min(
-              100,
-              rawMetrics.memory +
-                (Math.random() - 0.5) * 15 * effectiveIntensity
-            )
-          ).toFixed(2)
-        ),
-        disk: parseFloat(
-          Math.max(
-            0,
-            Math.min(
-              100,
-              rawMetrics.disk + (Math.random() - 0.5) * 10 * effectiveIntensity
-            )
-          ).toFixed(2)
-        ),
-        network: {
-          in: Math.max(
-            0,
-            rawMetrics.network.in +
-              (Math.random() - 0.5) * 50 * effectiveIntensity
-          ),
-          out: Math.max(
-            0,
-            rawMetrics.network.out +
-              (Math.random() - 0.5) * 30 * effectiveIntensity
-          ),
-        },
+      const scenarioContext: ScenarioContext = {
+        ...baseScenarioContext,
+        isAffectedServer: isAffectedByScenario,
       };
+
+      // 📊 MetricsProcessor로 메트릭 처리 위임
+      const updateInterval = this.config.updateInterval ?? 30000;
+      const result = MetricsProcessor.processServerMetrics(
+        server,
+        scenarioContext,
+        updateInterval
+      );
 
       // 🔧 Generated metrics 디버깅 로그 (요청된 추가)
       console.log('🔧 Generated metrics:', {
         serverId: server.id,
-        cpu: processedMetrics.cpu,
-        memory: processedMetrics.memory,
-        disk: processedMetrics.disk,
+        cpu: result.processedMetrics.cpu,
+        memory: result.processedMetrics.memory,
+        disk: result.processedMetrics.disk,
         timestamp: new Date().toISOString(),
       });
 
-      // 🎭 장애 시나리오 기반 추가 메트릭 조정
-      if (isAffectedByScenario && currentScenario) {
-        // 시나리오 단계별 특별한 메트릭 패턴 적용
-        switch (currentScenario.phase) {
-          case 'failure_start':
-            // 장애 시작: CPU와 메모리 급증
-            processedMetrics.cpu = Math.min(100, processedMetrics.cpu + 15);
-            processedMetrics.memory = Math.min(
-              100,
-              processedMetrics.memory + 10
-            );
-            break;
-          case 'cascade_failure':
-            // 연쇄 장애: 모든 리소스에 부하
-            processedMetrics.cpu = Math.min(100, processedMetrics.cpu + 25);
-            processedMetrics.memory = Math.min(
-              100,
-              processedMetrics.memory + 20
-            );
-            processedMetrics.disk = Math.min(100, processedMetrics.disk + 15);
-            break;
-          case 'critical_state':
-            // 임계 상태: 극심한 부하
-            processedMetrics.cpu = Math.min(100, processedMetrics.cpu + 35);
-            processedMetrics.memory = Math.min(
-              100,
-              processedMetrics.memory + 30
-            );
-            break;
-          case 'auto_recovery':
-            // 복구 중: 점진적 개선
-            processedMetrics.cpu = Math.max(0, processedMetrics.cpu - 10);
-            processedMetrics.memory = Math.max(0, processedMetrics.memory - 8);
-            break;
-        }
-
-        if (!this.isMockMode) {
-          console.log(
-            `🎯 서버 ${server.id} (${server.role}) 장애 영향: CPU ${processedMetrics.cpu}%, Memory ${processedMetrics.memory}%`
-          );
-        }
+      // 🎯 시나리오 영향 로그 (기존 로그 유지)
+      if (isAffectedByScenario && currentScenario && !this.isMockMode) {
+        console.log(
+          `🎯 서버 ${server.id} (${server.role}) 장애 영향: CPU ${result.processedMetrics.cpu}%, Memory ${result.processedMetrics.memory}%`
+        );
       }
 
-      // 🎯 4단계: 유의미한 변화 감지 (10% 이상 변화 시에만 저장 - 임계값 상향 조정)
-      const cpuChange = Math.abs(processedMetrics.cpu - server.metrics.cpu);
-      const memoryChange = Math.abs(
-        processedMetrics.memory - server.metrics.memory
-      );
-
-      if (cpuChange > 10 || memoryChange > 10) {
-        // 5%에서 10%로 상향 조정
-        hasSignificantChange = true;
-      }
-
-      // 🎯 5단계: 서버 상태 업데이트 (메모리)
-      const updateInterval = this.config.updateInterval ?? 30000; // 기본값 30초
-      server.metrics = {
-        ...server.metrics,
-        ...processedMetrics,
-        uptime: server.metrics.uptime + updateInterval / 1000,
-        requests: server.metrics.requests + Math.floor(Math.random() * 100),
-        errors: server.metrics.errors + (Math.random() > 0.95 ? 1 : 0),
-      };
-
-      // 🎯 6단계: 메트릭 기반 서버 상태 동적 업데이트
+      // 🎯 메트릭 및 상태 업데이트
+      server.metrics = result.processedMetrics;
       const previousStatus = server.status;
-      const newStatus = this.determineServerStatusFromMetrics(server.metrics);
 
       // 상태가 변경된 경우에만 업데이트
-      if (newStatus !== previousStatus) {
-        server.status = newStatus;
+      if (result.newStatus !== previousStatus) {
+        server.status = result.newStatus;
         hasSignificantChange = true;
 
         if (!this.isMockMode) {
           console.log(
-            `🔄 서버 ${server.id} 상태 변경: ${previousStatus} → ${newStatus}`
+            `🔄 서버 ${server.id} 상태 변경: ${previousStatus} → ${result.newStatus}`
           );
         }
       }
 
-      // 🎯 7단계: 건강 점수 재계산 (ServerInstanceFactory로 위임)
-      server.health.score = ServerInstanceFactory.calculateHealthScore(
-        server.metrics
-      );
+      // 🎯 건강 점수 업데이트
+      server.health.score = result.healthScore;
       server.health.lastCheck = new Date().toISOString();
+
+      // 🎯 유의미한 변화 감지 결과 반영
+      if (result.hasSignificantChange) {
+        hasSignificantChange = true;
+      }
 
       updatedServers.push(server);
     }
 
-    // 🎯 8단계: 유의미한 변화가 있을 때만 저장 (성능 최적화 + 과도한 갱신 방지)
+    // 🎯 유의미한 변화가 있을 때만 저장 (성능 최적화 + 과도한 갱신 방지)
     if (hasSignificantChange && updatedServers.length > 0) {
       await this.batchSaveServersToRedis(updatedServers);
 
@@ -958,12 +866,12 @@ export class RealServerDataGenerator {
         avgCpu:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
-              servers.length
+            servers.length
             : 0,
         avgMemory:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
-              servers.length
+            servers.length
             : 0,
       },
       clusters: {
@@ -998,9 +906,9 @@ export class RealServerDataGenerator {
         avgResponseTime:
           applications.length > 0
             ? applications.reduce(
-                (sum, a) => sum + a.performance.responseTime,
-                0
-              ) / applications.length
+              (sum, a) => sum + a.performance.responseTime,
+              0
+            ) / applications.length
             : 0,
       },
       timestamp: Date.now(),
