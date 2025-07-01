@@ -49,7 +49,7 @@ beforeAll(async () => {
 
   // 콘솔 경고 억제 (테스트 환경)
   const originalWarn = console.warn;
-  console.warn = (...args: any[]) => {
+  console.warn = (...args: unknown[]) => {
     const message = args.join(' ');
     if (
       message.includes('ReactDOMTestUtils.act') ||
@@ -164,6 +164,4 @@ if (typeof process !== 'undefined' && process.on) {
 
 // 테스트 환경 확인
 console.log('🧪 Test environment initialized');
-console.log('📦 React version:', require('react').version);
 console.log('🌍 Node environment:', process.env.NODE_ENV);
-
