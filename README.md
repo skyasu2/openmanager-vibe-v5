@@ -161,6 +161,74 @@ Content-Type: application/json
 }
 ```
 
+## 🛡️ **서버 관리 시스템** (v5.44.5 NEW!)
+
+### 중복 실행 방지 및 자동 정리
+
+OpenManager Vibe v5.44.5부터 지능형 서버 관리 시스템이 도입되었습니다.
+
+#### 🚀 **빠른 사용법**
+
+```bash
+# 📊 현재 서버 상태 확인
+npm run server:cleanup:check
+
+# 🛡️ 안전한 개발 포트 정리 (MCP 서버 보호)
+npm run server:cleanup:dev
+
+# 🔄 정리 후 안전한 개발 서버 시작
+npm run dev:safe
+
+# 📚 정리 후 안전한 Storybook 시작
+npm run storybook:safe
+```
+
+#### 🔍 **모니터링 기능**
+
+```bash
+# ⏰ 실시간 서버 모니터링 시작 (30초 간격)
+npm run monitor:server:start
+
+# 🚀 빠른 모니터링 (10초 간격)
+npm run monitor:server:fast
+
+# 📊 현재 상태만 확인
+npm run monitor:server:check
+```
+
+#### 🛡️ **보호 모드 특징**
+
+- **MCP 서버 완전 보호**: DuckDuckGo, PostgreSQL, Brave Search, GitHub, Memory MCP
+- **개발 포트만 정리**: 포트 3000 (Next.js), 6006 (Storybook)
+- **지능형 중복 감지**: 동일 포트 다중 프로세스 자동 감지
+- **실시간 알림**: 3회 연속 중복 감지 시 자동 알림
+
+#### 📊 **상태 표시 예시**
+
+```
+🏥 OpenManager Vibe v5 서버 상태 점검
+⏰ 2025. 07. 01. 오후 07:50:09 (KST)
+============================================================
+📊 상태 요약:
+  - Node.js 프로세스: 12개
+  - MCP 서버: 4개 실행 중
+    ├── 🦆 DuckDuckGo MCP (1개)
+    ├── 🐘 PostgreSQL MCP (1개)
+    ├── 🔍 Brave Search MCP (1개)
+    └── 🐙 GitHub MCP (1개)
+  - 사용 중인 개발 포트: 없음 ✅
+  - 중복 실행: 감지 안됨 ✅
+```
+
+#### 🧹 **자동 정리 기능**
+
+- **포트 충돌 해결**: 자동 감지 및 정리
+- **좀비 프로세스 제거**: 남은 개발 서버 프로세스 정리
+- **메모리 최적화**: 불필요한 Node.js 프로세스 정리
+- **성능 향상**: 시스템 리소스 최적화
+
+---
+
 ## 🛠️ **기술 스택**
 
 ### 프론트엔드

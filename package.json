@@ -165,6 +165,25 @@
     "push:tdd": "git push origin main --no-verify",
     "push:force": "git push origin main --force --no-verify",
     "validate:quick": "npm run type-check && npm run lint && npm run test:unit",
+    "server:manager": "node scripts/server-manager.js",
+    "server:manager:status": "node scripts/server-manager.js status",
+    "server:manager:cleanup": "node scripts/server-manager.js cleanup",
+    "server:manager:watch": "node scripts/server-manager.js watch",
+    "server:manager:start:nextjs": "node scripts/server-manager.js start nextjs",
+    "server:manager:start:storybook": "node scripts/server-manager.js start storybook",
+    "server:manager:stop:nextjs": "node scripts/server-manager.js stop NextJS",
+    "server:manager:stop:storybook": "node scripts/server-manager.js stop Storybook",
+    "dev:safe": "npm run server:manager:cleanup && npm run server:manager:start:nextjs",
+    "storybook:safe": "npm run server:manager:cleanup && npm run server:manager:start:storybook",
+    "monitor:server": "node scripts/server-monitor.js",
+    "monitor:server:start": "node scripts/server-monitor.js start",
+    "monitor:server:check": "node scripts/server-monitor.js check",
+    "monitor:server:report": "node scripts/server-monitor.js report",
+    "monitor:server:fast": "node scripts/server-monitor.js start --fast",
+    "monitor:server:slow": "node scripts/server-monitor.js start --slow",
+    "server:cleanup:check": "node scripts/server-cleanup.js check",
+    "server:cleanup:dev": "node scripts/server-cleanup.js cleanup",
+    "server:cleanup:ports": "node scripts/server-cleanup.js ports",
     "consolidate": "node development/scripts/consolidate-project.js",
     "consolidate:report": "node development/scripts/consolidate-project.js && cat CONSOLIDATION_REPORT.md",
     "mcp:setup": "node development/scripts/mcp/setup-mcp.js",
@@ -383,7 +402,15 @@
     "zustand": "^5.0.5"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
+    "src/**/*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "components/**/*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "tests/**/*.{js,jsx,ts,tsx}": [
       "eslint --fix",
       "prettier --write"
     ],
