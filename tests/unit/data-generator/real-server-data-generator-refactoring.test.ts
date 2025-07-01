@@ -204,6 +204,99 @@ describe('RealServerDataGenerator 리팩토링 TDD', () => {
     });
   });
 
+  describe('RealServerDataGenerator TDD 리팩토링 테스트', () => {
+    // 🟢 분리 후 기능 테스트 (TDD Green 단계)
+    describe('Phase 4: ServerFactory 모듈 분리 후 테스트', () => {
+      beforeEach(async () => {
+        // ServerFactory 분리 후 테스트 준비
+        generator = new RealServerDataGenerator({
+          maxServers: 5,
+          enableRedis: false,
+          enableRealtime: false,
+        });
+        await generator.initialize();
+      });
+
+      test('ServerFactory: 서버 타입별 특화 사양이 올바르게 생성되어야 함', () => {
+        const servers = generator.getAllServers();
+        expect(servers.length).toBeGreaterThan(0);
+
+        servers.forEach(server => {
+          expect(server.specs).toBeDefined();
+          expect(server.specs.cpu).toBeDefined();
+          expect(server.specs.memory).toBeDefined();
+          expect(server.specs.disk).toBeDefined();
+          expect(server.specs.network).toBeDefined();
+
+          // 서버 타입별 특화 사양 검증
+          expect(server.specs.cpu.cores).toBeGreaterThan(0);
+          expect(server.specs.memory.total).toBeGreaterThan(0);
+          expect(server.specs.disk.total).toBeGreaterThan(0);
+        });
+      });
+
+      test('ServerFactory: 서버 건강 점수가 올바르게 계산되어야 함', () => {
+        const servers = generator.getAllServers();
+        expect(servers.length).toBeGreaterThan(0);
+
+        servers.forEach(server => {
+          expect(server.health.score).toBeGreaterThanOrEqual(0);
+          expect(server.health.score).toBeLessThanOrEqual(100);
+        });
+      });
+
+      test('ServerFactory: 서버 타입별 현실적인 이슈가 생성되어야 함', () => {
+        const servers = generator.getAllServers();
+        const serversWithIssues = servers.filter(
+          s => s.health.issues.length > 0
+        );
+
+        // 일부 서버는 이슈가 있어야 함
+        if (serversWithIssues.length > 0) {
+          serversWithIssues.forEach(server => {
+            expect(Array.isArray(server.health.issues)).toBe(true);
+            expect(server.health.issues.length).toBeLessThanOrEqual(3); // 최대 3개
+
+            // 이슈 메시지가 의미있어야 함
+            server.health.issues.forEach(issue => {
+              expect(typeof issue).toBe('string');
+              expect(issue.length).toBeGreaterThan(0);
+            });
+          });
+        }
+      });
+
+      test('ServerFactory: 데이터베이스 서버는 특화 사양을 가져야 함', () => {
+        const servers = generator.getAllServers();
+        const dbServers = servers.filter(s =>
+          ['mysql', 'postgresql', 'mongodb', 'redis'].includes(s.type)
+        );
+
+        if (dbServers.length > 0) {
+          dbServers.forEach(server => {
+            // 데이터베이스는 높은 메모리와 디스크 성능을 가져야 함
+            expect(server.specs.memory.total).toBeGreaterThanOrEqual(8192); // 최소 8GB
+            expect(server.specs.disk.iops).toBeGreaterThanOrEqual(3000); // 최소 3000 IOPS
+          });
+        }
+      });
+
+      test('ServerFactory: 웹서버는 네트워크 특화 사양을 가져야 함', () => {
+        const servers = generator.getAllServers();
+        const webServers = servers.filter(s =>
+          ['nginx', 'apache', 'haproxy'].includes(s.type)
+        );
+
+        if (webServers.length > 0) {
+          webServers.forEach(server => {
+            // 웹서버는 높은 네트워크 대역폭을 가져야 함
+            expect(server.specs.network.bandwidth).toBeGreaterThanOrEqual(1000); // 최소 1Gbps
+          });
+        }
+      });
+    });
+  });
+
   afterEach(() => {
     generator.dispose();
   });
