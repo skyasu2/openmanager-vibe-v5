@@ -148,7 +148,8 @@ export class SupabaseRAGEngine {
             }
           );
 
-          if (fileResponse.ok) {
+          // fileResponse가 정의되어 있고 ok 상태인지 확인
+          if (fileResponse && fileResponse.ok) {
             const fileData = await fileResponse.json();
 
             // MCP 응답 형식에서 실제 내용 추출
@@ -189,7 +190,8 @@ export class SupabaseRAGEngine {
             }
           );
 
-          if (dirResponse.ok) {
+          // dirResponse가 정의되어 있고 ok 상태인지 확인
+          if (dirResponse && dirResponse.ok) {
             const dirData = await dirResponse.json();
 
             // MCP 응답 형식에서 실제 내용 추출

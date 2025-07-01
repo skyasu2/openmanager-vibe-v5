@@ -97,6 +97,7 @@ export class UnifiedAIEngineRouter {
     this.googleAI = GoogleAIService.getInstance();
     this.mcpClient = RealMCPClient ? RealMCPClient.getInstance() : null; // 🎯 컨텍스트 수집 전용
     this.mcpContextCollector = new MCPContextCollector();
+    this.fallbackHandler = new AIFallbackHandler();
 
     // 🚀 고급 엔진들 안전한 초기화 (초기화 과정에서 로드됨)
     this.intelligentMonitoring = null;
@@ -287,7 +288,7 @@ export class UnifiedAIEngineRouter {
       return this.processLocalModeWithTimeout(request, startTime);
     }
 
-    const enginePath: string[] = [];
+    const enginePath: string[] = ['LOCAL']; // 'LOCAL' 모드를 명시적으로 추가
     const supportEngines: string[] = [];
     let fallbacksUsed = 0;
 
@@ -758,8 +759,6 @@ export class UnifiedAIEngineRouter {
   }
 
   private updateStats(response: AIResponse): void {
-    this.stats.totalRequests++;
-
     if (response.success) {
       this.stats.successfulRequests++;
     } else {
@@ -774,12 +773,6 @@ export class UnifiedAIEngineRouter {
 
       this.stats.averageResponseTime =
         (currentAvg * (totalRequests - 1) + newTime) / totalRequests;
-    }
-
-    // 모드 사용량 업데이트
-    if (response.mode) {
-      this.stats.modeUsage[response.mode] =
-        (this.stats.modeUsage[response.mode] || 0) + 1;
     }
 
     // 엔진 사용량 업데이트
@@ -1348,88 +1341,4 @@ For detailed analysis, please check in local environment.`;
     const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(request.query);
 
     if (isKorean) {
-      return `죄송합니다. 베르셀 환경에서 처리 중 문제가 발생했습니다.
-
-❌ **오류 정보**
-- 오류 유형: ${error.message}
-- 환경: 베르셀 서버리스
-- 권장사항: 로컬 환경에서 재시도
-
-🔧 **해결 방법**
-1. 쿼리를 단순화해서 다시 시도
-2. 로컬 환경에서 상세 분석 요청
-3. 영어로 질문 시도`;
-    }
-
-    return `Sorry, an error occurred while processing in Vercel environment.
-
-❌ **Error Information**
-- Error type: ${error.message}
-- Environment: Vercel Serverless
-- Recommendation: Retry in local environment
-
-🔧 **Solutions**
-1. Simplify query and retry
-2. Request detailed analysis in local environment
-3. Try asking in English`;
-  }
-
-  /**
-   * 🚀 성공 응답 포맷팅
-   */
-  private formatSuccessResponse(
-    response: string,
-    enginePath: string[],
-    supportEngines: string[],
-    startTime: number
-  ): AIResponse {
-    return {
-      success: true,
-      response,
-      confidence: 0.85,
-      mode: 'LOCAL',
-      enginePath,
-      processingTime: Date.now() - startTime,
-      fallbacksUsed: 0,
-      metadata: {
-        mainEngine: enginePath[0] || 'local-fast',
-        supportEngines,
-        ragUsed: false,
-        googleAIUsed: false,
-        mcpContextUsed: false,
-        subEnginesUsed: supportEngines,
-        cacheUsed: false,
-      },
-    };
-  }
-
-  /**
-   * 🚀 오류 응답 포맷팅
-   */
-  private formatErrorResponse(
-    response: string,
-    enginePath: string[],
-    supportEngines: string[],
-    startTime: number
-  ): AIResponse {
-    return {
-      success: false,
-      response,
-      confidence: 0.3,
-      mode: 'LOCAL',
-      enginePath,
-      processingTime: Date.now() - startTime,
-      fallbacksUsed: 1,
-      metadata: {
-        mainEngine: 'error-handler',
-        supportEngines,
-        ragUsed: false,
-        googleAIUsed: false,
-        mcpContextUsed: false,
-        subEnginesUsed: supportEngines,
-      },
-    };
-  }
-}
-
-export const unifiedAIRouter = UnifiedAIEngineRouter.getInstance();
+      return `
