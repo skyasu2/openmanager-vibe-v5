@@ -1,11 +1,11 @@
 import { ImprovementHistory } from '@/types/ai-learning';
+import KoreanTimeUtil from '@/utils/koreanTime';
 
 /**
  * 컨텍스트 변경 이력 관리 및 Changelog 생성 서비스
  */
 export class ContextChangelogManager {
   private static instance: ContextChangelogManager;
-import { koreanTime } from "@/utils/koreanTime";
   private improvementHistory: Map<string, ImprovementHistory> = new Map();
 
   private constructor() {
@@ -34,10 +34,15 @@ import { koreanTime } from "@/utils/koreanTime";
     }>
   ): Promise<ImprovementHistory> {
     try {
-      console.log(`📝 [ContextChangelogManager] 개선 이력 기록 시작: ${sessionId}`);
+      console.log(
+        `📝 [ContextChangelogManager] 개선 이력 기록 시작: ${sessionId}`
+      );
 
       const version = this.generateVersion();
-      const changelogEntry = this.generateChangelogEntry(approvedSuggestions, version);
+      const changelogEntry = this.generateChangelogEntry(
+        approvedSuggestions,
+        version
+      );
 
       const history: ImprovementHistory = {
         id: this.generateHistoryId(),
@@ -47,7 +52,7 @@ import { koreanTime } from "@/utils/koreanTime";
         approvedSuggestions,
         changelogEntry,
         version,
-        status: 'pending'
+        status: 'pending',
       };
 
       this.improvementHistory.set(history.id, history);
@@ -59,9 +64,10 @@ import { koreanTime } from "@/utils/koreanTime";
       history.status = 'applied';
       this.improvementHistory.set(history.id, history);
 
-      console.log(`✅ [ContextChangelogManager] 개선 이력 기록 완료: ${history.id}`);
+      console.log(
+        `✅ [ContextChangelogManager] 개선 이력 기록 완료: ${history.id}`
+      );
       return history;
-
     } catch (error) {
       console.error('❌ [ContextChangelogManager] 개선 이력 기록 실패:', error);
       throw error;
@@ -84,17 +90,24 @@ import { koreanTime } from "@/utils/koreanTime";
         history = history.filter(h => h.adminId === filters.adminId);
       }
       if (filters.startDate) {
-        history = history.filter(h => new Date(h.timestamp) >= filters.startDate!);
+        history = history.filter(
+          h => new Date(h.timestamp) >= filters.startDate!
+        );
       }
       if (filters.endDate) {
-        history = history.filter(h => new Date(h.timestamp) <= filters.endDate!);
+        history = history.filter(
+          h => new Date(h.timestamp) <= filters.endDate!
+        );
       }
       if (filters.status) {
         history = history.filter(h => h.status === filters.status);
       }
     }
 
-    return history.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    return history.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
   }
 
   /**
@@ -105,7 +118,7 @@ import { koreanTime } from "@/utils/koreanTime";
 
     let changelog = `# 🧠 AI 에이전트 컨텍스트 변경 이력\n\n`;
     changelog += `> 이 파일은 AI 에이전트의 컨텍스트 개선 사항을 자동으로 기록합니다.\n\n`;
-    changelog += `**마지막 업데이트**: ${koreanTime.nowSynced()}\n\n`;
+    changelog += `**마지막 업데이트**: ${KoreanTimeUtil.now()}\n\n`;
 
     // 버전별로 그룹핑
     const versionGroups = this.groupByVersion(history);
@@ -136,7 +149,7 @@ import { koreanTime } from "@/utils/koreanTime";
     const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
     const recentEntries = this.getImprovementHistory({
       startDate: cutoffDate,
-      status: 'applied'
+      status: 'applied',
     });
 
     const byType: Record<string, number> = {};
@@ -153,7 +166,7 @@ import { koreanTime } from "@/utils/koreanTime";
       totalChanges: recentEntries.length,
       byType,
       totalImpact,
-      recentEntries
+      recentEntries,
     };
   }
 
@@ -193,8 +206,8 @@ import { koreanTime } from "@/utils/koreanTime";
       });
     });
 
-    const mostCommonType = Object.entries(typeCount)
-      .sort(([, a], [, b]) => b - a)[0]?.[0] || 'none';
+    const mostCommonType =
+      Object.entries(typeCount).sort(([, a], [, b]) => b - a)[0]?.[0] || 'none';
 
     const improvementTrend = Object.entries(monthlyData)
       .map(([month, data]) => ({ month, ...data }))
@@ -204,7 +217,7 @@ import { koreanTime } from "@/utils/koreanTime";
       totalImprovements: history.length,
       averageImpact: totalSuggestions > 0 ? totalImpact / totalSuggestions : 0,
       mostCommonType,
-      improvementTrend
+      improvementTrend,
     };
   }
 
@@ -224,7 +237,7 @@ import { koreanTime } from "@/utils/koreanTime";
     suggestions: ImprovementHistory['approvedSuggestions'],
     version: string
   ): string {
-    const timestamp = koreanTime.nowSynced();
+    const timestamp = KoreanTimeUtil.now();
 
     let entry = `### 🔄 ${timestamp} (v${version})\n\n`;
 
@@ -248,7 +261,9 @@ import { koreanTime } from "@/utils/koreanTime";
     return entry;
   }
 
-  private groupSuggestionsByType(suggestions: ImprovementHistory['approvedSuggestions']) {
+  private groupSuggestionsByType(
+    suggestions: ImprovementHistory['approvedSuggestions']
+  ) {
     const grouped: Record<string, typeof suggestions> = {};
 
     suggestions.forEach(suggestion => {
@@ -266,7 +281,7 @@ import { koreanTime } from "@/utils/koreanTime";
       pattern: '🔍',
       intent: '🎯',
       response: '💬',
-      context: '📋'
+      context: '📋',
     };
     return icons[type as keyof typeof icons] || '📝';
   }
@@ -276,30 +291,42 @@ import { koreanTime } from "@/utils/koreanTime";
       pattern: '패턴 매칭 개선',
       intent: '인텐트 분류 개선',
       response: '응답 템플릿 개선',
-      context: '컨텍스트 구조 개선'
+      context: '컨텍스트 구조 개선',
     };
     return labels[type as keyof typeof labels] || '기타 개선';
   }
 
-  private async updateChangelogFile(history: ImprovementHistory): Promise<void> {
+  private async updateChangelogFile(
+    history: ImprovementHistory
+  ): Promise<void> {
     try {
       // 실제 파일 시스템 작업은 브라우저 환경에서 제한적
       // 여기서는 로컬 스토리지에 저장하고, 서버 환경에서는 실제 파일 작성
       if (typeof window !== 'undefined') {
-        const existingChangelog = localStorage.getItem('ai-context-changelog') || '';
+        const existingChangelog =
+          localStorage.getItem('ai-context-changelog') || '';
         const newEntry = history.changelogEntry;
-        const updatedChangelog = this.insertChangelogEntry(existingChangelog, newEntry);
+        const updatedChangelog = this.insertChangelogEntry(
+          existingChangelog,
+          newEntry
+        );
         localStorage.setItem('ai-context-changelog', updatedChangelog);
       }
 
       console.log(`📄 [ContextChangelogManager] Changelog 업데이트 완료`);
     } catch (error) {
-      console.error('❌ [ContextChangelogManager] Changelog 파일 업데이트 실패:', error);
+      console.error(
+        '❌ [ContextChangelogManager] Changelog 파일 업데이트 실패:',
+        error
+      );
       throw error;
     }
   }
 
-  private insertChangelogEntry(existingChangelog: string, newEntry: string): string {
+  private insertChangelogEntry(
+    existingChangelog: string,
+    newEntry: string
+  ): string {
     if (!existingChangelog) {
       return `# 🧠 AI 에이전트 컨텍스트 변경 이력\n\n${newEntry}`;
     }
@@ -316,7 +343,9 @@ import { koreanTime } from "@/utils/koreanTime";
     return lines.join('\n');
   }
 
-  private groupByVersion(history: ImprovementHistory[]): Map<string, ImprovementHistory[]> {
+  private groupByVersion(
+    history: ImprovementHistory[]
+  ): Map<string, ImprovementHistory[]> {
     const groups = new Map<string, ImprovementHistory[]>();
 
     history.forEach(entry => {
@@ -328,7 +357,9 @@ import { koreanTime } from "@/utils/koreanTime";
     });
 
     // 버전 순으로 정렬 (최신 버전 먼저)
-    return new Map([...groups.entries()].sort(([a], [b]) => b.localeCompare(a)));
+    return new Map(
+      [...groups.entries()].sort(([a], [b]) => b.localeCompare(a))
+    );
   }
 
   private generateStatistics(history: ImprovementHistory[]): string {
@@ -352,4 +383,4 @@ import { koreanTime } from "@/utils/koreanTime";
   private generateHistoryId(): string {
     return `history_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
   }
-} 
+}

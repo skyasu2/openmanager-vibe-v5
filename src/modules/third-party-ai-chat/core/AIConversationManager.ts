@@ -3,7 +3,7 @@
  * 다양한 AI 서비스와 직접 대화할 수 있는 통합 모듈
  */
 
-import { KST } from "@/utils/koreanTime";
+import KoreanTimeUtil from '@/utils/koreanTime';
 
 export interface AIProvider {
   name: string;
@@ -120,9 +120,7 @@ export class AIConversationManager {
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const session: ConversationSession = {
       id: sessionId,
-      title:
-        title ||
-        `${provider.name} 대화 - ${await KST.now()}`,
+      title: title || `${provider.name} 대화 - ${KoreanTimeUtil.now()}`,
       provider: providerName,
       messages: [],
       createdAt: new Date(),
