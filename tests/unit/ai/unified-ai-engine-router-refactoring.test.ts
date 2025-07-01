@@ -116,6 +116,13 @@ describe('UnifiedAIEngineRouter 리팩토링 TDD', () => {
     it('통계 정보가 올바르게 수집되어야 함', async () => {
       const initialStats = router.getStats();
 
+      // 통계 객체가 올바른 구조를 가지고 있는지 확인
+      expect(initialStats).toBeDefined();
+      expect(typeof initialStats.totalRequests).toBe('number');
+      expect(typeof initialStats.successfulRequests).toBe('number');
+      expect(typeof initialStats.failedRequests).toBe('number');
+      expect(initialStats.totalRequests).toBeGreaterThanOrEqual(0);
+
       const request: AIRequest = {
         query: '통계 테스트',
         mode: 'LOCAL',
@@ -124,6 +131,7 @@ describe('UnifiedAIEngineRouter 리팩토링 TDD', () => {
       await router.processQuery(request);
 
       const updatedStats = router.getStats();
+      expect(updatedStats).toBeDefined();
       expect(updatedStats.totalRequests).toBe(initialStats.totalRequests + 1);
     });
 

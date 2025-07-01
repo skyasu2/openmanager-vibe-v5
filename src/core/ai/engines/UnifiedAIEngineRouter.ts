@@ -79,25 +79,25 @@ export class UnifiedAIEngineRouter {
     engineUsage: Record<string, number>;
     lastUpdated: string;
   } = {
-      totalRequests: 0,
-      successfulRequests: 0,
-      failedRequests: 0,
-      averageResponseTime: 0,
-      modeUsage: {
-        LOCAL: 0,
-        GOOGLE_AI: 0,
-        AUTO: 0,
-        GOOGLE_ONLY: 0,
-      },
-      engineUsage: {},
-      lastUpdated: new Date().toISOString(),
-    };
+    totalRequests: 0,
+    successfulRequests: 0,
+    failedRequests: 0,
+    averageResponseTime: 0,
+    modeUsage: {
+      LOCAL: 0,
+      GOOGLE_AI: 0,
+      AUTO: 0,
+      GOOGLE_ONLY: 0,
+    },
+    engineUsage: {},
+    lastUpdated: new Date().toISOString(),
+  };
 
   private constructor() {
     this.googleAI = GoogleAIService.getInstance();
     this.mcpClient = RealMCPClient ? RealMCPClient.getInstance() : null; // 🎯 컨텍스트 수집 전용
     this.mcpContextCollector = new MCPContextCollector();
-    this.fallbackHandler = new AIFallbackHandler();
+    this.fallbackHandler = AIFallbackHandler.getInstance();
 
     // 🚀 고급 엔진들 안전한 초기화 (초기화 과정에서 로드됨)
     this.intelligentMonitoring = null;
@@ -1258,7 +1258,10 @@ export class UnifiedAIEngineRouter {
             }
           }
         } catch (transformersError) {
-          console.log('⚠️ Transformers 엔진 빠른 응답 실패:', transformersError);
+          console.log(
+            '⚠️ Transformers 엔진 빠른 응답 실패:',
+            transformersError
+          );
         }
       }
 
@@ -1284,22 +1287,24 @@ export class UnifiedAIEngineRouter {
     const patterns = [
       {
         keywords: ['안녕', 'hello', '반가워'],
-        response: `안녕하세요! 🖐️ 질문해 주셔서 감사합니다.\n\n"${query}"에 대한 답변을 도와드리겠습니다.\n\n처리 시간: ${KoreanTimeUtil.now()}`
+        response: `안녕하세요! 🖐️ 질문해 주셔서 감사합니다.\n\n"${query}"에 대한 답변을 도와드리겠습니다.\n\n처리 시간: ${KoreanTimeUtil.now()}`,
       },
       {
         keywords: ['서버', 'server', '시스템'],
-        response: `🖥️ 서버 관련 질문이시군요!\n\n"${query}"에 대한 시시음 정보를 확인 중입니다.\n\n분석 시간: ${KoreanTimeUtil.now()}`
+        response: `🖥️ 서버 관련 질문이시군요!\n\n"${query}"에 대한 시시음 정보를 확인 중입니다.\n\n분석 시간: ${KoreanTimeUtil.now()}`,
       },
       {
         keywords: ['도움', 'help', '문의'],
-        response: `🤝 도움이 필요하시군요!\n\n"${query}"에 대한 지원을 제공하겠습니다.\n\n지원 시작: ${KoreanTimeUtil.now()}`
-      }
+        response: `🤝 도움이 필요하시군요!\n\n"${query}"에 대한 지원을 제공하겠습니다.\n\n지원 시작: ${KoreanTimeUtil.now()}`,
+      },
     ];
 
     for (const pattern of patterns) {
-      if (pattern.keywords.some(keyword =>
-        query.toLowerCase().includes(keyword.toLowerCase())
-      )) {
+      if (
+        pattern.keywords.some(keyword =>
+          query.toLowerCase().includes(keyword.toLowerCase())
+        )
+      ) {
         return pattern.response;
       }
     }
@@ -1341,4 +1346,84 @@ For detailed analysis, please check in local environment.`;
     const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(request.query);
 
     if (isKorean) {
-      return `
+      return `죄송합니다. 처리 중 오류가 발생했습니다.
+
+🚨 **오류 정보**
+- 오류 유형: ${error.name}
+- 처리 시간: ${KoreanTimeUtil.now()}
+- 모드: ${request.mode || 'LOCAL'}
+
+다시 시도해 주시기 바랍니다.`;
+    }
+
+    return `Sorry, an error occurred during processing.
+
+🚨 **Error Information**
+- Error Type: ${error.name}
+- Processing Time: ${new Date().toISOString()}
+- Mode: ${request.mode || 'LOCAL'}
+
+Please try again.`;
+  }
+
+  /**
+   * 🎯 성공 응답 포맷팅
+   */
+  private formatSuccessResponse(
+    response: string,
+    enginePath: string[],
+    supportEngines: string[],
+    startTime: number
+  ): AIResponse {
+    return {
+      success: true,
+      response,
+      confidence: 0.8,
+      mode: this.currentMode,
+      enginePath,
+      processingTime: Date.now() - startTime,
+      fallbacksUsed: 0,
+      metadata: {
+        mainEngine: enginePath[0] || 'unknown',
+        supportEngines,
+        ragUsed: enginePath.includes('supabase-rag'),
+        googleAIUsed: enginePath.includes('google-ai'),
+        mcpContextUsed: supportEngines.includes('mcp-context'),
+        subEnginesUsed: supportEngines,
+        cacheUsed: false,
+      },
+    };
+  }
+
+  /**
+   * 🚨 오류 응답 포맷팅
+   */
+  private formatErrorResponse(
+    response: string,
+    enginePath: string[],
+    supportEngines: string[],
+    startTime: number
+  ): AIResponse {
+    return {
+      success: false,
+      response,
+      confidence: 0.1,
+      mode: this.currentMode,
+      enginePath,
+      processingTime: Date.now() - startTime,
+      fallbacksUsed: 1,
+      metadata: {
+        mainEngine: 'error-fallback',
+        supportEngines,
+        ragUsed: false,
+        googleAIUsed: false,
+        mcpContextUsed: false,
+        subEnginesUsed: [],
+        cacheUsed: false,
+      },
+    };
+  }
+}
+
+// Export singleton instance for convenient access
+export const unifiedAIRouter = UnifiedAIEngineRouter.getInstance();
