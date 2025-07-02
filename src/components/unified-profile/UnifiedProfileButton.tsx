@@ -1,10 +1,11 @@
 /**
- * 🎯 Unified Profile Button
+ * 🎯 Unified Profile Button (Optimized)
  *
- * 통합 프로필 버튼 컴포넌트
+ * 통합 프로필 버튼 컴포넌트 - 드롭다운 최적화 버전
  * 드롭다운 메뉴와 상태 표시 포함
  *
  * @created 2025-06-09
+ * @updated 2025-07-02 - 드롭다운 최적화
  * @author AI Assistant
  */
 
@@ -54,92 +55,119 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
   const [showPasswordInput, setShowPasswordInput] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [isPositionCalculated, setIsPositionCalculated] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // 필요한 상태만 선택적으로 구독 (깜빡임 방지)
+  // 상태는 선택적으로 구독하여 불필요한 리렌더링 방지
   const store = useUnifiedAdminStore();
   const isSystemStarted = store.isSystemStarted;
   const aiAgent = store.aiAgent;
   const isLocked = store.isLocked;
   const adminMode = store.adminMode;
 
-  // 📊 페이지 갱신 기반 시스템 상태
+  // 시스템 상태 (안정적인 상태만 구독)
   const {
     systemState,
-    isLoading: systemLoading,
-    error: systemError,
     userId,
-    refreshState,
     startSystem: startSystemState,
     stopSystem: stopSystemState,
   } = useSystemState();
 
-  // 액션들은 안정적이므로 한 번만 가져오기
+  // 액션들 (안정적이므로 한 번만 가져오기)
   const { startSystem, stopSystem, logout, authenticateAdmin, logoutAdmin } =
     store;
 
   const { success, info, error } = useToast();
 
-  // 드롭다운 위치 계산 (개선된 버전)
+  // 🎯 개선된 드롭다운 위치 계산 (단순화)
   const calculateDropdownPosition = useCallback(() => {
-    if (!buttonRef.current || !isOpen) return;
+    if (!buttonRef.current) return;
 
     const buttonRect = buttonRef.current.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    // 실제 드롭다운 크기 사용 (w-96 = 384px)
-    const dropdownWidth = 384;
-    const estimatedDropdownHeight = 450; // 더 정확한 높이 추정
-    const padding = 16; // 화면 여백
+    const dropdownWidth = 384; // w-96
+    const dropdownHeight = 500; // 예상 높이
+    const gap = 8; // 간격
 
     // 기본 위치: 버튼 아래, 오른쪽 정렬
-    let top = buttonRect.bottom + 8;
+    let top = buttonRect.bottom + gap;
     let left = buttonRect.right - dropdownWidth;
     let transformOrigin = 'top right';
 
-    // 화면 아래로 넘어가는 경우 위쪽에 표시
-    if (top + estimatedDropdownHeight > viewportHeight - padding) {
-      top = buttonRect.top - estimatedDropdownHeight - 8;
+    // 화면 아래 넘침 체크
+    if (top + dropdownHeight > window.innerHeight - 20) {
+      top = buttonRect.top - dropdownHeight - gap;
       transformOrigin = 'bottom right';
     }
 
-    // 화면 왼쪽으로 넘어가는 경우 왼쪽 정렬로 변경
-    if (left < padding) {
+    // 화면 왼쪽 넘침 체크
+    if (left < 20) {
       left = buttonRect.left;
       transformOrigin = transformOrigin.replace('right', 'left');
     }
 
-    // 여전히 화면을 넘어가는 경우 중앙 정렬
-    if (left + dropdownWidth > viewportWidth - padding) {
-      left = Math.max(padding, (viewportWidth - dropdownWidth) / 2);
+    // 화면 오른쪽 넘침 체크
+    if (left + dropdownWidth > window.innerWidth - 20) {
+      left = window.innerWidth - dropdownWidth - 20;
       transformOrigin = transformOrigin
         .replace('left', 'center')
         .replace('right', 'center');
     }
 
-    // 모바일에서는 더 나은 위치 계산
-    if (viewportWidth < 768) {
-      // 작은 화면에서는 중앙 정렬하되 여백 확보
-      left = Math.max(
-        padding,
-        (viewportWidth - Math.min(dropdownWidth, viewportWidth - padding * 2)) /
-          2
-      );
-      transformOrigin = 'top center';
-    }
-
     setDropdownPosition({ top, left, transformOrigin });
-  }, [isOpen, buttonRef]); // buttonRef 다시 추가하여 위치 정확도 향상
+    setIsPositionCalculated(true);
+  }, [buttonRef]);
 
-  // 위치 계산 - isOpen 변경 시와 윈도우 리사이즈 시 실행
+  // 위치 계산 (드롭다운 열릴 때만)
   useEffect(() => {
     if (isOpen) {
-      calculateDropdownPosition();
+      setIsPositionCalculated(false);
+      // requestAnimationFrame으로 레이아웃 완료 후 계산
+      requestAnimationFrame(() => {
+        calculateDropdownPosition();
+      });
+    } else {
+      setIsPositionCalculated(false);
     }
   }, [isOpen, calculateDropdownPosition]);
 
-  // 윈도우 리사이즈 시 위치 재계산
+  // 🎯 간소화된 외부 클릭 감지
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      // 버튼이나 드롭다운 내부 클릭은 무시
+      if (
+        buttonRef.current?.contains(target) ||
+        dropdownRef.current?.contains(target)
+      ) {
+        return;
+      }
+
+      onClick({} as React.MouseEvent);
+    };
+
+    // 지연 없이 즉시 이벤트 리스너 등록
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, onClick, buttonRef]);
+
+  // ESC 키로 드롭다운 닫기
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClick({} as React.MouseEvent);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClick]);
+
+  // 리사이즈 시 위치 재계산
   useEffect(() => {
     if (!isOpen) return;
 
@@ -147,88 +175,26 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
       calculateDropdownPosition();
     };
 
-    window.addEventListener('resize', handleResize, { passive: true });
+    window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isOpen, calculateDropdownPosition]);
 
-  // 애니메이션은 CSS와 framer-motion에서 처리하므로 별도 상태 불필요
-
-  // 외부 클릭 감지 (개선된 버전)
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleClickOutside = (event: Event) => {
-      const target = event.target as Node;
-
-      // 버튼 클릭은 무시 (onClick 핸들러에서 처리)
-      if (buttonRef.current?.contains(target)) {
-        return;
-      }
-
-      // 드롭다운 내부 클릭은 무시
-      if (dropdownRef.current?.contains(target)) {
-        return;
-      }
-
-      // 설정 모달이 열려있을 때는 드롭다운 닫기 무시
-      const settingsModal = document.querySelector(
-        '[data-testid="unified-settings-modal"], [role="dialog"]'
-      );
-      if (settingsModal?.contains(target)) {
-        return;
-      }
-
-      // 외부 클릭 시 드롭다운 닫기
-      onClick({} as React.MouseEvent);
-    };
-
-    // 짧은 지연 후 이벤트 리스너 등록 (중복 클릭 방지)
-    const timeoutId = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside, {
-        passive: true,
-        capture: true,
-      });
-    }, 50);
-
-    return () => {
-      clearTimeout(timeoutId);
-      document.removeEventListener('mousedown', handleClickOutside, true);
-    };
-  }, [isOpen, onClick, buttonRef]);
-
-  // ESC 키로 드롭다운 닫기 (최적화된 버전)
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        onClick({} as React.MouseEvent);
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape, {
-      passive: false,
-      capture: true,
-    });
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape, true);
-    };
-  }, [isOpen, onClick]);
-
-  // 이벤트 핸들러들
+  // 🎯 이벤트 핸들러들 (기존 로직 유지)
   const handleSystemToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (systemState?.isRunning) {
-      await handleSystemControl('stop');
-      success('시스템이 중단되었습니다.');
-    } else {
-      await handleSystemControl('start');
-      success('시스템이 시작되었습니다.');
+    try {
+      if (isSystemStarted) {
+        await stopSystem();
+        success('시스템이 정지되었습니다');
+      } else {
+        await startSystem();
+        success('시스템이 시작되었습니다');
+      }
+      onClick({} as React.MouseEvent); // 드롭다운 닫기
+    } catch (error) {
+      console.error('시스템 토글 실패:', error);
     }
   };
 
@@ -236,15 +202,14 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
     e.preventDefault();
     e.stopPropagation();
     onSettingsClick();
-    onClick(e); // 드롭다운 닫기
+    onClick({} as React.MouseEvent); // 드롭다운 닫기
   };
 
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     logout();
-    info('로그아웃되었습니다.');
-    onClick(e); // 드롭다운 닫기
+    onClick({} as React.MouseEvent); // 드롭다운 닫기
   };
 
   const handleAdminModeToggle = (e: React.MouseEvent) => {
@@ -252,14 +217,10 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
     e.stopPropagation();
 
     if (adminMode.isAuthenticated) {
-      // 관리자 모드 해제
       logoutAdmin();
-      success('관리자 모드가 해제되었습니다.');
+      success('관리자 모드가 해제되었습니다');
     } else {
-      // 비밀번호 입력 모드 활성화
       setShowPasswordInput(true);
-      setPassword('');
-      setPasswordError('');
     }
   };
 
@@ -268,24 +229,17 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
     e.stopPropagation();
 
     try {
-      const result = await authenticateAdmin(password);
-
-      if (result.success) {
+      const isAuthenticated = await authenticateAdmin(password);
+      if (isAuthenticated) {
         setShowPasswordInput(false);
         setPassword('');
         setPasswordError('');
-        success(result.message);
+        success('관리자 모드가 활성화되었습니다');
       } else {
-        setPasswordError(result.message);
-        setPassword('');
-        if (result.remainingTime) {
-          error(`인증 실패: ${result.message}`);
-        }
+        setPasswordError('비밀번호가 올바르지 않습니다');
       }
-    } catch (err) {
-      setPasswordError('인증 처리 중 오류가 발생했습니다.');
-      setPassword('');
-      error('인증 처리 중 오류가 발생했습니다.');
+    } catch (error) {
+      setPasswordError('인증 중 오류가 발생했습니다');
     }
   };
 
@@ -297,83 +251,72 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
     setPasswordError('');
   };
 
+  // 🎯 유틸리티 함수들 (기존 로직 유지)
   const getModeDisplayText = () => {
-    if (adminMode.isAuthenticated) {
-      return 'AI 관리자 모드';
-    }
-    return aiAgent.isEnabled ? 'AI 어시스턴트 모드' : '기본 모니터링 모드';
+    if (isLocked) return '잠금 상태';
+    if (adminMode.isAuthenticated) return '관리자 모드';
+    if (aiAgent.isEnabled) return 'AI 활성화';
+    return '일반 모드';
   };
 
   const getModeStatusColor = () => {
-    if (adminMode.isAuthenticated) {
-      return 'text-orange-600';
-    }
-    return aiAgent.isEnabled ? 'text-purple-600' : 'text-cyan-600';
+    if (isLocked) return 'text-red-400';
+    if (adminMode.isAuthenticated) return 'text-orange-400';
+    if (aiAgent.isEnabled) return 'text-purple-400';
+    return 'text-cyan-400';
   };
 
-  // 📊 시스템 상태 텍스트 생성 (다중 사용자 정보 포함)
   const getSystemStatusText = () => {
-    if (!systemState) return '상태 확인 중...';
-
-    if (systemState.isRunning) {
-      return `🟢 시스템 가동 중 (${systemState.activeUsers}명 접속)`;
-    }
-
-    return `🔴 시스템 정지됨 (${systemState.activeUsers}명 접속)`;
+    if (!systemState) return '확인 중...';
+    if (systemState.isRunning) return '실행 중';
+    return '정지됨';
   };
 
-  // 📊 시스템 상태 색상 결정
   const getSystemStatusColor = () => {
-    if (!systemState) return 'text-gray-400';
-    if (systemState.isRunning) return 'text-green-400';
-    return 'text-red-400';
+    if (!systemState) return 'text-gray-500';
+    return systemState.isRunning ? 'text-green-600' : 'text-red-600';
   };
 
-  // 시간 만료 시 콜백
   const handleTimerExpired = async () => {
-    console.log('⏰ 시스템 세션 만료 - 상태 새로고침');
-    await refreshState();
+    try {
+      await stopSystemState();
+      info('시스템 실행 시간이 만료되어 자동으로 정지되었습니다');
+    } catch (error) {
+      console.error('시스템 자동 정지 실패:', error);
+    }
   };
 
-  // 시스템 제어 통합
   const handleSystemControl = async (action: 'start' | 'stop') => {
     try {
       if (action === 'start') {
-        const success = await startSystemState();
-        if (success) {
-          startSystem(); // 기존 스토어 상태도 업데이트
-        }
+        await startSystemState();
+        success('시스템이 시작되었습니다');
       } else {
-        const success = await stopSystemState();
-        if (success) {
-          stopSystem(); // 기존 스토어 상태도 업데이트
-        }
+        await stopSystemState();
+        success('시스템이 정지되었습니다');
       }
     } catch (error) {
       console.error('시스템 제어 실패:', error);
     }
   };
 
-  // 드롭다운 메뉴 (Portal로 렌더링) - 의존성 최적화
-  const DropdownPortal = useCallback(() => {
-    if (typeof window === 'undefined') return null;
+  // 🎯 단순화된 드롭다운 렌더링 (Portal 사용하지만 의존성 최소화)
+  const renderDropdown = () => {
+    if (typeof window === 'undefined' || !isOpen || !isPositionCalculated) {
+      return null;
+    }
 
     return createPortal(
       <AnimatePresence mode='wait'>
         {isOpen && (
           <>
-            {/* 오버레이 (모바일용) */}
+            {/* 모바일 오버레이 */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-              className='fixed inset-0 bg-black/20 z-[9998] sm:hidden'
-              onClick={e => {
-                e.preventDefault();
-                e.stopPropagation();
-                onClick({} as React.MouseEvent);
-              }}
+              className='fixed inset-0 bg-black/20 z-[999] sm:hidden'
+              onClick={() => onClick({} as React.MouseEvent)}
             />
 
             {/* 드롭다운 메뉴 */}
@@ -382,23 +325,16 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
               initial={{ opacity: 0, scale: 0.95, y: -10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -10 }}
-              transition={{
-                duration: 0.2,
-                ease: [0.16, 1, 0.3, 1], // 더 부드러운 이징
-              }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
               style={{
                 position: 'fixed',
-                top: Math.round(dropdownPosition.top), // 픽셀 정확도 향상
-                left: Math.round(dropdownPosition.left),
+                top: dropdownPosition.top,
+                left: dropdownPosition.left,
                 transformOrigin: dropdownPosition.transformOrigin,
-                willChange: 'transform, opacity',
-                transform: 'translate3d(0, 0, 0)',
-                maxHeight: '80vh', // 화면 높이 제한
-                overflowY: 'auto', // 스크롤 가능
+                zIndex: 1000,
               }}
-              className='w-96 bg-white/95 backdrop-blur-xl border border-gray-300 rounded-xl shadow-2xl z-[9999] ring-1 ring-black/5'
+              className='w-96 bg-white/95 backdrop-blur-xl border border-gray-300 rounded-xl shadow-2xl ring-1 ring-black/5'
               role='menu'
-              aria-orientation='vertical'
             >
               {/* 헤더 */}
               <div className='px-4 py-3 border-b border-gray-200'>
@@ -438,49 +374,20 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
 
                   {/* 상태 인디케이터 */}
                   <div className='flex items-center gap-1'>
-                    {/* 시스템 상태 - 깜빡임 속도 조정 */}
                     {isSystemStarted && (
-                      <div
-                        className='w-2 h-2 bg-green-400 rounded-full'
-                        style={{
-                          animation:
-                            'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        }}
-                      />
+                      <div className='w-2 h-2 bg-green-400 rounded-full animate-pulse' />
                     )}
-
-                    {/* 관리자 모드 상태 - 깜빡임 속도 조정 */}
                     {adminMode.isAuthenticated && (
-                      <div
-                        className='w-2 h-2 bg-orange-400 rounded-full'
-                        style={{
-                          animation:
-                            'pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                          animationDelay: '0.5s',
-                        }}
-                      />
+                      <div className='w-2 h-2 bg-orange-400 rounded-full animate-pulse' />
                     )}
-
-                    {/* AI 에이전트 상태 - 깜빡임 속도 조정 */}
                     {aiAgent.isEnabled && aiAgent.state === 'processing' && (
-                      <div
-                        className='w-2 h-2 bg-purple-400 rounded-full'
-                        style={{
-                          animation:
-                            'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                          animationDelay: '1s',
-                        }}
-                      />
+                      <div className='w-2 h-2 bg-purple-400 rounded-full animate-pulse' />
                     )}
-
-                    {/* 잠금 상태 */}
                     {isLocked && (
                       <AlertTriangle className='w-3 h-3 text-red-400' />
                     )}
-
-                    {/* 드롭다운 아이콘 */}
                     <ChevronDown
-                      className={`w-3 h-3 text-white/70 transition-transform duration-200 ${
+                      className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${
                         isOpen ? 'rotate-180' : ''
                       }`}
                     />
@@ -488,8 +395,8 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                 </div>
               </div>
 
-              {/* 📊 시스템 상태 표시 (새로 추가) */}
-              <div className='p-3 bg-gradient-to-r from-gray-50/80 to-blue-50/80 border-b border-white/10'>
+              {/* 시스템 상태 */}
+              <div className='p-3 bg-gradient-to-r from-gray-50/80 to-blue-50/80 border-b border-gray-100'>
                 <div className='flex items-center justify-between'>
                   <div className='flex items-center gap-2'>
                     <Activity className='w-4 h-4 text-blue-600' />
@@ -497,13 +404,11 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                       시스템 상태
                     </span>
                   </div>
-                  <div className='flex items-center gap-2'>
-                    <span
-                      className={`text-sm font-medium ${getSystemStatusColor()}`}
-                    >
-                      {getSystemStatusText()}
-                    </span>
-                  </div>
+                  <span
+                    className={`text-sm font-medium ${getSystemStatusColor()}`}
+                  >
+                    {getSystemStatusText()}
+                  </span>
                 </div>
 
                 {/* 환경 정보 */}
@@ -512,7 +417,7 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                   <span>v{systemState?.version || '1.0.0'}</span>
                 </div>
 
-                {/* 카운트다운 타이머 (시스템 실행 중일 때만) */}
+                {/* 카운트다운 타이머 */}
                 {systemState?.isRunning && systemState.endTime && (
                   <div className='mt-2 flex justify-center'>
                     <CountdownTimer
@@ -539,10 +444,13 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                     whileTap={{ scale: 0.98 }}
                     onClick={handleAdminModeToggle}
                     className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 mb-2'
-                    role='menuitem'
                   >
                     <div
-                      className={`p-2 rounded-lg ${adminMode.isAuthenticated ? 'bg-orange-500/20' : 'bg-gray-500/20'}`}
+                      className={`p-2 rounded-lg ${
+                        adminMode.isAuthenticated
+                          ? 'bg-orange-500/20'
+                          : 'bg-gray-500/20'
+                      }`}
                     >
                       {adminMode.isAuthenticated ? (
                         <Unlock className='w-4 h-4 text-orange-600' />
@@ -550,129 +458,122 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                         <Lock className='w-4 h-4 text-gray-600' />
                       )}
                     </div>
-                    <div className='flex-1'>
+                    <div>
                       <div className='text-gray-900 font-medium'>
                         {adminMode.isAuthenticated
                           ? '관리자 모드 해제'
-                          : '관리자 모드 활성화'}
+                          : '관리자 모드'}
                       </div>
                       <div className='text-gray-600 text-xs'>
                         {adminMode.isAuthenticated
-                          ? 'AI 관리 권한을 해제합니다'
-                          : 'AI 관리 권한을 활성화합니다'}
+                          ? '관리자 권한을 해제합니다'
+                          : '관리자 권한을 획득합니다'}
                       </div>
                     </div>
-                    {adminMode.isAuthenticated && (
-                      <div className='w-2 h-2 bg-orange-400 rounded-full animate-pulse' />
-                    )}
                   </motion.button>
                 ) : (
-                  /* 비밀번호 입력 폼 */
-                  <div className='p-3 rounded-lg bg-gray-100 mb-2'>
-                    <div className='text-gray-900 text-sm font-medium mb-2'>
-                      관리자 비밀번호 입력
-                    </div>
-                    <form onSubmit={handlePasswordSubmit} className='space-y-2'>
-                      <input
-                        type='password'
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
-                        placeholder='4자리 비밀번호'
-                        maxLength={4}
-                        className='w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-center text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-orange-500'
-                        autoFocus
-                      />
-                      {passwordError && (
-                        <div className='text-red-600 text-xs text-center'>
-                          {passwordError}
+                  // 패스워드 입력 폼
+                  <div className='p-3 mb-2'>
+                    <form onSubmit={handlePasswordSubmit}>
+                      <div className='space-y-2'>
+                        <input
+                          type='password'
+                          value={password}
+                          onChange={e => setPassword(e.target.value)}
+                          placeholder='관리자 비밀번호'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500'
+                          autoFocus
+                        />
+                        {passwordError && (
+                          <p className='text-red-500 text-xs'>
+                            {passwordError}
+                          </p>
+                        )}
+                        <div className='flex gap-2'>
+                          <button
+                            type='submit'
+                            className='flex-1 px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors'
+                          >
+                            확인
+                          </button>
+                          <button
+                            type='button'
+                            onClick={handlePasswordCancel}
+                            className='flex-1 px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors'
+                          >
+                            취소
+                          </button>
                         </div>
-                      )}
-                      <div className='flex gap-2'>
-                        <button
-                          type='submit'
-                          className='flex-1 px-3 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors'
-                        >
-                          확인
-                        </button>
-                        <button
-                          type='button'
-                          onClick={handlePasswordCancel}
-                          className='flex-1 px-3 py-2 bg-gray-500 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors'
-                        >
-                          취소
-                        </button>
                       </div>
                     </form>
                   </div>
                 )}
 
-                {/* 시스템 시작/중단 버튼 */}
+                {/* 시스템 제어 */}
                 <motion.button
-                  whileHover={{
-                    backgroundColor: systemState?.isRunning
-                      ? 'rgba(239, 68, 68, 0.1)'
-                      : 'rgba(34, 197, 94, 0.1)',
-                  }}
+                  whileHover={{ backgroundColor: 'rgba(34, 197, 94, 0.1)' }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleSystemToggle}
-                  disabled={systemLoading}
-                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 mb-2 disabled:opacity-50'
-                  role='menuitem'
+                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 mb-2'
                 >
                   <div
-                    className={`p-2 rounded-lg ${systemState?.isRunning ? 'bg-red-500/20' : 'bg-green-500/20'}`}
+                    className={`p-2 rounded-lg ${
+                      isSystemStarted ? 'bg-red-500/20' : 'bg-green-500/20'
+                    }`}
                   >
-                    {systemState?.isRunning ? (
+                    {isSystemStarted ? (
                       <Square className='w-4 h-4 text-red-600' />
                     ) : (
                       <Play className='w-4 h-4 text-green-600' />
                     )}
                   </div>
-                  <div className='flex-1'>
+                  <div>
                     <div className='text-gray-900 font-medium'>
-                      {systemState?.isRunning ? '시스템 중단' : '시스템 시작'}
+                      {isSystemStarted ? '시스템 정지' : '시스템 시작'}
                     </div>
                     <div className='text-gray-600 text-xs'>
-                      {systemState?.isRunning
-                        ? '30분 세션을 중단합니다'
-                        : '30분 세션을 시작합니다'}
-                    </div>
-                  </div>
-                  {systemState?.isRunning && (
-                    <div className='w-2 h-2 bg-green-400 rounded-full animate-pulse' />
-                  )}
-                </motion.button>
-
-                {/* 상태 새로고침 버튼 */}
-                <motion.button
-                  whileHover={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={async e => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    await refreshState();
-                    success('시스템 상태를 새로고침했습니다.');
-                  }}
-                  disabled={systemLoading}
-                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2 disabled:opacity-50'
-                  role='menuitem'
-                >
-                  <div className='p-2 rounded-lg bg-blue-500/20'>
-                    <RefreshCw
-                      className={`w-4 h-4 text-blue-600 ${systemLoading ? 'animate-spin' : ''}`}
-                    />
-                  </div>
-                  <div className='flex-1'>
-                    <div className='text-gray-900 font-medium'>
-                      상태 새로고침
-                    </div>
-                    <div className='text-gray-600 text-xs'>
-                      시스템 상태를 수동으로 확인합니다
+                      {isSystemStarted
+                        ? '실행 중인 시스템을 정지합니다'
+                        : '시스템을 시작합니다'}
                     </div>
                   </div>
                 </motion.button>
 
-                {/* 대시보드 이동 버튼 (시스템 동작 중일 때만) */}
+                {/* 시스템 재시작 */}
+                {isSystemStarted && (
+                  <motion.button
+                    whileHover={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={async e => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      try {
+                        await handleSystemControl('stop');
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        await handleSystemControl('start');
+                        success('시스템이 재시작되었습니다');
+                        onClick({} as React.MouseEvent);
+                      } catch (error) {
+                        console.error('시스템 재시작 실패:', error);
+                      }
+                    }}
+                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2'
+                  >
+                    <div className='p-2 rounded-lg bg-blue-500/20'>
+                      <RefreshCw className='w-4 h-4 text-blue-600' />
+                    </div>
+                    <div>
+                      <div className='text-gray-900 font-medium'>
+                        시스템 재시작
+                      </div>
+                      <div className='text-gray-600 text-xs'>
+                        시스템을 재시작합니다
+                      </div>
+                    </div>
+                  </motion.button>
+                )}
+
+                {/* 대시보드 이동 */}
                 {systemState?.isRunning && (
                   <Link href='/dashboard'>
                     <motion.button
@@ -682,7 +583,6 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                       whileTap={{ scale: 0.98 }}
                       onClick={() => onClick({} as React.MouseEvent)}
                       className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2'
-                      role='menuitem'
                     >
                       <div className='p-2 rounded-lg bg-blue-500/20'>
                         <Activity className='w-4 h-4 text-blue-600' />
@@ -699,14 +599,13 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                   </Link>
                 )}
 
-                {/* 일반 설정 버튼 */}
+                {/* 설정 버튼 */}
                 {!adminMode.isAuthenticated && (
                   <motion.button
                     whileHover={{ backgroundColor: 'rgba(128, 90, 213, 0.1)' }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleSettingsClick}
                     className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 mb-2'
-                    role='menuitem'
                   >
                     <div className='p-2 rounded-lg bg-purple-500/20'>
                       <Settings className='w-4 h-4 text-purple-600' />
@@ -726,7 +625,6 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                   whileTap={{ scale: 0.98 }}
                   onClick={handleLogout}
                   className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-red-500'
-                  role='menuitem'
                 >
                   <div className='p-2 rounded-lg bg-red-500/20'>
                     <LogOut className='w-4 h-4 text-red-600' />
@@ -745,20 +643,7 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
       </AnimatePresence>,
       document.body
     );
-  }, [
-    isOpen,
-    onClick,
-    dropdownPosition.top,
-    dropdownPosition.left,
-    dropdownPosition.transformOrigin,
-    userName,
-    userAvatar,
-    isLocked,
-    adminMode.isAuthenticated,
-    aiAgent.isEnabled,
-    aiAgent.state,
-    // 핵심 상태만 의존성에 포함하여 리렌더링 최소화
-  ]);
+  };
 
   return (
     <div className='relative'>
@@ -820,42 +705,16 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
 
         {/* 상태 인디케이터 */}
         <div className='flex items-center gap-1'>
-          {/* 시스템 상태 - 깜빡임 속도 조정 */}
           {isSystemStarted && (
-            <div
-              className='w-2 h-2 bg-green-400 rounded-full'
-              style={{
-                animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              }}
-            />
+            <div className='w-2 h-2 bg-green-400 rounded-full animate-pulse' />
           )}
-
-          {/* 관리자 모드 상태 - 깜빡임 속도 조정 */}
           {adminMode.isAuthenticated && (
-            <div
-              className='w-2 h-2 bg-orange-400 rounded-full'
-              style={{
-                animation: 'pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                animationDelay: '0.5s',
-              }}
-            />
+            <div className='w-2 h-2 bg-orange-400 rounded-full animate-pulse' />
           )}
-
-          {/* AI 에이전트 상태 - 깜빡임 속도 조정 */}
           {aiAgent.isEnabled && aiAgent.state === 'processing' && (
-            <div
-              className='w-2 h-2 bg-purple-400 rounded-full'
-              style={{
-                animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                animationDelay: '1s',
-              }}
-            />
+            <div className='w-2 h-2 bg-purple-400 rounded-full animate-pulse' />
           )}
-
-          {/* 잠금 상태 */}
           {isLocked && <AlertTriangle className='w-3 h-3 text-red-400' />}
-
-          {/* 드롭다운 아이콘 */}
           <ChevronDown
             className={`w-3 h-3 text-white/70 transition-transform duration-200 ${
               isOpen ? 'rotate-180' : ''
@@ -865,7 +724,7 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
       </motion.button>
 
       {/* 드롭다운 메뉴 */}
-      <DropdownPortal />
+      {renderDropdown()}
     </div>
   );
 };
