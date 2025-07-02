@@ -406,10 +406,10 @@ const cardData: FeatureCard[] = [
     icon: Bot,
     gradient: 'from-purple-500 via-indigo-500 to-cyan-400',
     detailedContent: {
-      overview: `UnifiedAIEngineRouter v3.3.0 - 11개 AI 엔진을 통합한 차세대 한국어 AI 시스템입니다. 서버 모니터링 전용으로 설계되어 자연어 질의를 통한 실시간 시스템 분석과 장애 예측, 자동 보고서 생성을 지원합니다.`,
+      overview: `UnifiedAIEngineRouter v3.3.0 - 11개 통합 AI 컴포넌트를 조합한 차세대 한국어 AI 시스템입니다. 서버 모니터링 전용으로 설계되어 자연어 질의를 통한 실시간 시스템 분석과 장애 예측, 자동 보고서 생성을 지원합니다.`,
       features: [
         '🇰🇷 완전한 한국어 지원: "CPU 높은 서버는?" → 즉시 분석 결과 제공',
-        '🤖 11개 AI 엔진 통합: Google AI Studio + Korean NLP + MCP Protocol',
+        '🤖 11개 통합 AI 컴포넌트: Google AI Studio + Korean NLP + MCP Protocol',
         '⚡ 2가지 성능 모드: LOCAL(정확도 우선) + GOOGLE_ONLY(속도 우선)',
         '🧠 실시간 시스템 분석: 서버 상태, 성능 메트릭, 장애 패턴 자동 해석',
         '📋 자동 장애 보고서: 시스템 이상 감지 시 상세 분석 리포트 즉시 생성',
@@ -437,7 +437,7 @@ const cardData: FeatureCard[] = [
     icon: Database,
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
-      overview: `마이크로서비스 아키텍처 기반의 확장 가능한 서버 모니터링 플랫폼입니다. 603개 파일, 200,081줄 규모로 프론트엔드, 백엔드, AI 엔진, 데이터베이스가 모두 통합된 완전한 생태계를 구축했습니다.`,
+      overview: `마이크로서비스 아키텍처 기반의 확장 가능한 서버 모니터링 플랫폼입니다. 603개 파일, 200,081줄 규모로 프론트엔드, 백엔드, 통합 AI 컴포넌트, 데이터베이스가 모두 통합된 완전한 생태계를 구축했습니다.`,
       features: [
         '🏗️ 마이크로서비스 아키텍처: 독립적인 서비스 단위로 확장성 확보',
         '🌐 하이브리드 클라우드: Vercel(웹) + Render(AI) 멀티클라우드 전략',

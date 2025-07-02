@@ -9,7 +9,6 @@
  */
 
 import type { EnhancedServerMetrics } from '../types/server';
-import { cacheService } from './cacheService';
 
 // 시계열 데이터 포인트 타입
 export interface TimeSeriesPoint {
@@ -191,7 +190,7 @@ export class RedisTimeSeriesService {
   }
 
   /**
-   * 📈 여러 서버의 메트릭 비교 조회
+   * 📈 여러 통합 AI 컴포넌트의 메트릭 비교 조회
    */
   async queryMultipleServers(
     serverIds: string[],

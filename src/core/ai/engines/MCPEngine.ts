@@ -423,7 +423,7 @@ export class MCPEngine {
 
       // 기본 응답 (기존 시뮬레이션)
       return {
-        answer: `"${query}"에 대한 분석을 완료했습니다. 현재 ${allServers.length}개의 서버가 모니터링되고 있으며, 평균 CPU 사용률은 ${(allServers.reduce((sum, s) => sum + s.cpu, 0) / allServers.length).toFixed(1)}%입니다.`,
+        answer: `"${query}"에 대한 분석을 완료했습니다. 현재 ${allServers.length}개의 통합 AI 컴포넌트가 협력하여 모니터링하고 있으며, 평균 CPU 사용률은 ${(allServers.reduce((sum, s) => sum + s.cpu, 0) / allServers.length).toFixed(1)}%입니다.`,
         confidence: 0.75,
         reasoning_steps: [
           '질의 분석',

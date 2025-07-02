@@ -922,7 +922,7 @@ export class IntelligentMonitoringService {
           recommendations.push(...prediction.preventiveActions);
         }
       } else {
-        // 전체 시스템 예측 (여러 서버)
+        // 전체 시스템 예측 (여러 통합 AI 컴포넌트)
         const systemPredictions = await this.runSystemWidePrediction();
         predictions.push(...systemPredictions);
 
