@@ -73,7 +73,7 @@ export interface IntelligentAnalysisRequest {
     end: Date;
   };
   analysisDepth: 'quick' | 'standard' | 'deep';
-  mode?: 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY'; // 🎯 모드 추가 (MONITORING 제거)
+  mode?: 'LOCAL' | 'GOOGLE_ONLY'; // 🎯 모드 추가 (MONITORING 제거)
   includeSteps: {
     anomalyDetection: boolean;
     rootCauseAnalysis: boolean;

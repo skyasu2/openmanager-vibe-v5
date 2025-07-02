@@ -1,6 +1,6 @@
 /**
  * 🤖 AI 관련 공통 타입 정의 v2.0
- * 
+ *
  * ✅ 중앙 집중화된 타입 시스템
  * ✅ 모드 타입 통합 관리
  * ✅ 유지보수성 향상
@@ -11,13 +11,11 @@
 // ==============================================
 
 /**
- * 자연어 처리 AI 모드 (확장 호환성)
+ * 자연어 처리 AI 모드 (2-Mode System)
  * - LOCAL: 로컬 AI 엔진들만 사용 (Google AI 비활성화)
- * - GOOGLE_AI: 로컬 AI + Google AI 효율적 조합
- * - AUTO: 자동 모드 선택 (상황에 따라 최적 모드)
  * - GOOGLE_ONLY: Google AI만 사용 (레거시 호환성)
  */
-export type AIMode = 'LOCAL' | 'GOOGLE_AI' | 'AUTO' | 'GOOGLE_ONLY';
+export type AIMode = 'LOCAL' | 'GOOGLE_ONLY';
 
 /**
  * AI 에이전트 모드 (응답 깊이)
@@ -191,11 +189,14 @@ export interface AIEngineStats {
   averageResponseTime: number;
   successRate: number;
   fallbackRate: number;
-  enginePerformance: Record<string, {
-    queries: number;
-    successRate: number;
-    averageTime: number;
-  }>;
+  enginePerformance: Record<
+    string,
+    {
+      queries: number;
+      successRate: number;
+      averageTime: number;
+    }
+  >;
 }
 
 // ==============================================

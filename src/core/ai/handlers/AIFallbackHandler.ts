@@ -41,8 +41,6 @@ export class AIFallbackHandler {
     totalFallbacks: 0,
     fallbacksByMode: {
       LOCAL: 0,
-      GOOGLE_AI: 0,
-      AUTO: 0,
       GOOGLE_ONLY: 0,
     },
     fallbacksByReason: {},
@@ -210,7 +208,7 @@ ${errorDetails.solutions.map((solution, i) => `${i + 1}. ${solution}`).join('\n'
   }
 
   /**
-   * 🚨 GOOGLE_AI 모드 전용 응급 폴백
+   * 🚨 GOOGLE_ONLY 모드 전용 응급 폴백
    */
   public createGoogleOnlyModeEmergencyFallback(
     request: AIRequest,
@@ -221,15 +219,15 @@ ${errorDetails.solutions.map((solution, i) => `${i + 1}. ${solution}`).join('\n'
     const processingTime = Date.now() - startTime;
     const errorDetails = this.getErrorDetails(
       reason || 'google-ai-unavailable',
-      'GOOGLE_AI'
+      'GOOGLE_ONLY'
     );
 
     console.log(
-      `[${KST.log()}] 🚨 GOOGLE_AI 모드 응급 폴백 생성: ${reason || '알 수 없는 오류'}`
+      `[${KST.log()}] 🚨 GOOGLE_ONLY 모드 응급 폴백 생성: ${reason || '알 수 없는 오류'}`
     );
 
     const detailedResponse = `
-🤖 **GOOGLE_AI 모드 응급 폴백 응답**
+🤖 **GOOGLE_ONLY 모드 응급 폴백 응답**
 
 **문제 상황**: ${errorDetails.category}
 ${errorDetails.description}
@@ -362,7 +360,7 @@ ${errorDetails.solutions.map((solution, i) => `${i + 1}. ${solution}`).join('\n'
         '고급 AI 분석',
         'Cloud 서비스',
       ],
-      AUTO: ['자동 모드 선택', '모든 AI 엔진', '최적화 시스템', '라우팅 엔진'],
+      // AUTO 모드 제거됨
       GOOGLE_ONLY: ['Google AI 전용 서비스', 'Gemini API', 'Cloud AI Platform'],
     };
 

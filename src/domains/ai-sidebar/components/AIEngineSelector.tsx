@@ -7,53 +7,43 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { Brain, ChevronDown, Database, Globe, Zap } from 'lucide-react';
+import { ChevronDown, Database, Zap } from 'lucide-react';
 import React, { useState } from 'react';
 
 // 타입 임포트
-import { AIEngine } from '../types/ai-sidebar-types';
+interface AIEngine {
+  id: string;
+  name: string;
+  description: string;
+  icon: any;
+  color: string;
+  bgColor: string;
+  features: string[];
+  status: string;
+  usage?: { used: number; limit: number };
+}
 
 // 사용 가능한 AI 엔진 목록
 export const availableEngines: AIEngine[] = [
   {
-    id: 'auto',
-    name: 'AUTO 모드',
-    description: '상황에 맞는 최적의 AI 엔진을 자동 선택',
-    icon: Brain,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100',
-    features: ['자동 선택', '최적화', '균형'],
+    id: 'LOCAL',
+    name: 'LOCAL 모드',
+    description: '로컬 AI 엔진 우선 (Google AI 비활성화)',
+    icon: Database,
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    features: ['프라이버시', '오프라인', '로컬 처리'],
     status: 'ready',
   },
   {
-    id: 'google-ai',
-    name: 'Google AI',
-    description: 'Gemini 기반 고성능 추론 및 분석',
+    id: 'GOOGLE_ONLY',
+    name: 'GOOGLE_ONLY 모드',
+    description: 'Google AI 전용 (최고 품질)',
     icon: Zap,
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     features: ['고급 추론', '빠른 응답'],
     usage: { used: 45, limit: 100 },
-    status: 'ready',
-  },
-  {
-    id: 'local-rag',
-    name: 'Local RAG',
-    description: '로컬 벡터 DB 기반 컨텍스트 검색',
-    icon: Database,
-    color: 'text-green-600',
-    bgColor: 'bg-green-100',
-    features: ['프라이버시', '오프라인'],
-    status: 'ready',
-  },
-  {
-    id: 'web-search',
-    name: 'Web Search',
-    description: '실시간 웹 검색 및 정보 수집',
-    icon: Globe,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100',
-    features: ['실시간', '최신 정보'],
     status: 'ready',
   },
 ];
