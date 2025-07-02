@@ -103,24 +103,22 @@ export default defineConfig({
       // 테스트 격리 환경
       TEST_ISOLATION: 'true',
     },
-
-    // 📦 의존성 최적화
-    deps: {
-      inline: [
-        // 현재 아키텍처에 필요한 모듈만
-        '@/core/ai/engines/UnifiedAIEngineRouter',
-        '@/core/ai/engines/SupabaseRAGEngine',
-        '@/core/ai/engines/KoreanNLPEngine',
-        '@vercel/analytics',
-        '@vercel/speed-insights',
-      ],
-      external: [
-        // 제외할 모듈들
-        'puppeteer',
-        'onnxruntime-node',
-      ],
-    },
   },
+
+  // 🚀 현대화된 의존성 최적화 설정
+  optimizeDeps: {
+    include: [
+      // 현재 아키텍처에 필요한 모듈만
+      '@vercel/analytics',
+      '@vercel/speed-insights',
+    ],
+    exclude: [
+      // 제외할 모듈들
+      'puppeteer',
+      'onnxruntime-node',
+    ],
+  },
+
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

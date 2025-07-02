@@ -5,6 +5,7 @@
  * ✅ 기능별 페이지 전환 시스템
  * ✅ 실시간 AI 로그 연동
  * ✅ 도메인 주도 설계(DDD) 적용
+ * ✅ AI 모드 전환 UI 추가 (LOCAL/GOOGLE_AI)
  */
 
 'use client';
@@ -27,7 +28,7 @@ import {
   Sparkles,
   Target,
   User,
-  Zap
+  Zap,
 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RealAISidebarService } from '../services/RealAISidebarService';
@@ -43,7 +44,7 @@ import { AISidebarHeader } from './AISidebarHeader';
 import type {
   AISidebarV2Props,
   ChatMessage,
-  ThinkingStep
+  ThinkingStep,
 } from '../types/ai-sidebar-types';
 
 // 새로 분리된 컴포넌트들 import
@@ -53,7 +54,8 @@ import AIAgentIconPanel, {
   AIAgentFunction,
 } from '@/components/ai/AIAgentIconPanel';
 
-// 🎯 AI 타입 추가
+// 🎯 AI 타입 및 모드 선택기 추가
+import { AIModeSelector } from '@/components/ai/AIModeSelector';
 import type { AIMode } from '@/types/ai-types';
 
 // AI_ENGINES는 이제 AIEngineSelector에서 import됨
@@ -414,39 +416,74 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     }
   };
 
-  // 🤖 자동장애보고서 생성 함수
+  // 🤖 자동장애보고서 생성
   const generateAutoReport = async () => {
     if (!autoReportTrigger.shouldGenerate) return;
 
     try {
+      console.log('🤖 자동장애보고서 생성 중...');
+      // 자동장애보고서 API 호출
       const response = await fetch('/api/ai/auto-report', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          trigger: 'ai_query',
           query: autoReportTrigger.lastQuery,
           severity: autoReportTrigger.severity,
           sessionId: currentSessionId,
         }),
       });
 
-      const result = await response.json();
+      if (response.ok) {
+        const reportData = await response.json();
+        console.log('✅ 자동장애보고서 생성 완료:', reportData);
 
-      if (result.success) {
-        // 자동장애보고서 페이지로 전환
-        setSelectedFunction('auto-report');
+        // 보고서를 AI 메시지로 추가
+        const reportMessage: ChatMessage = {
+          id: `auto-report-${Date.now()}`,
+          type: 'ai',
+          content: `📊 **자동 장애 분석 보고서**\n\n${reportData.report}`,
+          timestamp: new Date(),
+          engine: 'auto-report',
+          confidence: 0.9,
+        };
 
-        // 트리거 상태 초기화
-        setAutoReportTrigger({
-          shouldGenerate: false,
-        });
-
-        return result;
+        // 채팅에 추가하는 대신 별도 알림으로 처리
+        console.log('📊 자동 보고서 생성됨:', reportMessage);
       }
     } catch (error) {
-      console.error('❌ 자동장애보고서 생성 오류:', error);
+      console.error('❌ 자동장애보고서 생성 실패:', error);
+    } finally {
+      setAutoReportTrigger({ shouldGenerate: false });
+    }
+  };
+
+  // 🎯 AI 모드 변경 핸들러
+  const handleModeChange = async (newMode: AIMode) => {
+    if (isGenerating) {
+      console.log('⚠️ 생성 중에는 모드 변경 불가');
+      return;
+    }
+
+    try {
+      setSelectedEngine(newMode);
+
+      // UnifiedAIEngineRouter 모드 변경
+      unifiedAIRouter.setMode(newMode);
+
+      console.log(`🎯 AI 모드 변경: ${selectedEngine} → ${newMode}`);
+
+      // 모드 변경 알림 메시지 (선택사항)
+      const modeNames = {
+        LOCAL: '로컬 AI',
+        GOOGLE_AI: 'Google AI',
+        AUTO: '자동 선택',
+      };
+
+      console.log(`✅ ${modeNames[newMode]} 모드로 전환되었습니다.`);
+    } catch (error) {
+      console.error('❌ AI 모드 변경 실패:', error);
+      // 실패 시 이전 모드로 롤백
+      setSelectedEngine(selectedEngine);
     }
   };
 
@@ -639,8 +676,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                           unifiedAIRouter.setMode(engine.id as AIMode);
                           setShowEngineInfo(false);
                         }}
-                        className={`w-full p-2 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${selectedEngine === engine.id ? 'bg-blue-50' : ''
-                          }`}
+                        className={`w-full p-2 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
+                          selectedEngine === engine.id ? 'bg-blue-50' : ''
+                        }`}
                       >
                         <div className='flex items-start space-x-2'>
                           <div
@@ -745,7 +783,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         )}
 
         {/* 채팅 메시지들 렌더링 (간소화) */}
-        {chatMessages.map((message) => (
+        {chatMessages.map(message => (
           <motion.div
             key={message.id}
             initial={{ opacity: 0, y: 20 }}
@@ -753,17 +791,19 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${message.type === 'user'
-                ? 'flex-row-reverse space-x-reverse'
-                : ''
-                }`}
+              className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${
+                message.type === 'user'
+                  ? 'flex-row-reverse space-x-reverse'
+                  : ''
+              }`}
             >
               {/* 아바타 */}
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${message.type === 'user'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                  }`}
+                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  message.type === 'user'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                }`}
               >
                 {message.type === 'user' ? (
                   <User className='w-3 h-3' />
@@ -775,10 +815,11 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
               {/* 메시지 콘텐츠 */}
               <div className='flex-1'>
                 <div
-                  className={`rounded-lg p-3 ${message.type === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-white border border-gray-200'
-                    }`}
+                  className={`rounded-lg p-3 ${
+                    message.type === 'user'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-white border border-gray-200'
+                  }`}
                 >
                   <div className='text-sm whitespace-pre-wrap break-words'>
                     {message.content}
@@ -804,11 +845,21 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       </div>
 
       {/* 프리셋 질문 - 분리된 컴포넌트 사용 */}
-      <AIPresetQuestions
-        onQuestionSelect={handlePresetQuestion}
-        currentPage={Math.floor(currentPresetIndex / PRESETS_PER_PAGE)}
-        onPageChange={(page) => setCurrentPresetIndex(page * PRESETS_PER_PAGE)}
-      />
+      <div className='px-3 space-y-3'>
+        {/* AI 모드 선택기 */}
+        <AIModeSelector
+          selectedMode={selectedEngine}
+          onModeChange={handleModeChange}
+          disabled={isGenerating}
+          className='mb-3'
+        />
+
+        <AIPresetQuestions
+          onQuestionSelect={handlePresetQuestion}
+          currentPage={Math.floor(currentPresetIndex / PRESETS_PER_PAGE)}
+          onPageChange={page => setCurrentPresetIndex(page * PRESETS_PER_PAGE)}
+        />
+      </div>
 
       {/* 입력 영역 */}
       <div className='p-3 border-t border-gray-200 bg-white/80 backdrop-blur-sm'>
@@ -877,9 +928,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          role="dialog"
-          aria-labelledby="ai-sidebar-title"
-          aria-modal="true"
+          role='dialog'
+          aria-labelledby='ai-sidebar-title'
+          aria-modal='true'
           className={`fixed top-0 right-0 h-full 
             w-full sm:w-[90vw] md:w-[600px] lg:w-[700px] xl:w-[800px] 
             max-w-[90vw] bg-white shadow-2xl z-30 flex ${className}`}

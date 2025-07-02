@@ -64,6 +64,50 @@ const config: StorybookConfig = {
       };
     }
 
+    // 🚀 번들 크기 최적화 설정
+    if (config.optimization) {
+      config.optimization = {
+        ...config.optimization,
+        // 코드 스플리팅 최적화
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            // React 관련 라이브러리 별도 청크
+            react: {
+              test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+              name: 'react-vendor',
+              chunks: 'all',
+              priority: 20,
+            },
+            // UI 라이브러리 별도 청크
+            ui: {
+              test: /[\\/]node_modules[\\/](@radix-ui|lucide-react|clsx|class-variance-authority)[\\/]/,
+              name: 'ui-vendor',
+              chunks: 'all',
+              priority: 15,
+            },
+            // 기타 vendor 라이브러리
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendor',
+              chunks: 'all',
+              priority: 10,
+            },
+          },
+        },
+        // 트리 셰이킹 활성화
+        usedExports: true,
+        sideEffects: false,
+      };
+    }
+
+    // 🎯 성능 최적화 설정
+    config.performance = {
+      hints: 'warning',
+      maxAssetSize: 250000, // 250KB
+      maxEntrypointSize: 250000, // 250KB
+    };
+
     return config;
   },
 };
