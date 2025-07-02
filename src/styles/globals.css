@@ -98,7 +98,7 @@
   background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
 }
 
-/* 손가락 포인터 애니메이션 - 좌우 흔들림으로 개선 */
+/* 손가락 포인터 애니메이션 - 성능 최적화 */
 .finger-pointer {
   position: absolute;
   top: 100%;
@@ -108,7 +108,8 @@
   font-size: 1.5rem;
   pointer-events: none;
   z-index: 60;
-  animation: fingerWiggle 1.5s ease-in-out infinite;
+  animation: fingerWiggle 2s ease-in-out infinite;
+  will-change: transform;
 }
 
 .finger-pointer-primary {
@@ -120,7 +121,9 @@
   font-size: 1.5rem;
   pointer-events: none;
   z-index: 60;
-  animation: fingerWigglePrimary 1.5s ease-in-out infinite;
+  animation: fingerWigglePrimary 2.5s ease-in-out infinite;
+  will-change: transform;
+  color: #fbbf24; /* text-yellow-400 */
 }
 
 .finger-pointer-dashboard {
@@ -132,7 +135,9 @@
   font-size: 1.25rem;
   pointer-events: none;
   z-index: 60;
-  animation: fingerWiggleDashboard 2s ease-in-out infinite;
+  animation: fingerWiggleDashboard 3s ease-in-out infinite;
+  will-change: transform;
+  color: #fbbf24; /* text-yellow-400 */
 }
 
 .finger-pointer-ai {
@@ -144,88 +149,71 @@
   font-size: 1.125rem;
   pointer-events: none;
   z-index: 45;
-  animation: fingerWiggleAI 2.5s ease-in-out infinite;
+  animation: fingerWiggleAI 3.5s ease-in-out infinite;
   will-change: transform;
+  color: #fbbf24; /* text-yellow-400 */
 }
 
 /* 모달이나 사이드바가 열릴 때 손가락 애니메이션 숨김 */
 .finger-pointer-ai.hidden-by-modal {
   z-index: 10;
   opacity: 0.3;
+  transition: opacity 0.3s ease;
 }
 
-/* 좌우 흔들림 애니메이션들 */
+/* 성능 최적화된 애니메이션들 */
 @keyframes fingerWiggle {
-
-  0%,
-  100% {
+  0%, 100% {
     transform: translateX(-50%) rotate(0deg);
   }
-
   25% {
     transform: translateX(-50%) rotate(3deg);
   }
-
   75% {
     transform: translateX(-50%) rotate(-3deg);
   }
 }
 
 @keyframes fingerWigglePrimary {
-
-  0%,
-  100% {
+  0%, 100% {
     transform: translateX(-50%) rotate(0deg) scale(1);
   }
-
   25% {
     transform: translateX(-50%) rotate(5deg) scale(1.05);
   }
-
   50% {
     transform: translateX(-50%) rotate(0deg) scale(1);
   }
-
   75% {
     transform: translateX(-50%) rotate(-5deg) scale(1.05);
   }
 }
 
 @keyframes fingerWiggleDashboard {
-
-  0%,
-  100% {
+  0%, 100% {
     transform: translateX(-50%) rotate(0deg);
   }
-
   20% {
     transform: translateX(-50%) rotate(4deg);
   }
-
   40% {
     transform: translateX(-50%) rotate(-2deg);
   }
-
   60% {
     transform: translateX(-50%) rotate(3deg);
   }
-
   80% {
     transform: translateX(-50%) rotate(-4deg);
   }
 }
 
 @keyframes fingerWiggleAI {
-
-  0%,
-  100% {
+  0%, 100% {
     transform: translateX(-50%) rotate(0deg);
   }
-
   25% {
     transform: translateX(-50%) rotate(4deg);
   }
-
   75% {
     transform: translateX(-50%) rotate(-4deg);
   }

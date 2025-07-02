@@ -499,7 +499,7 @@ export default function Home() {
                         ? 'text-orange-300 animate-pulse'
                         : multiUserStatus.isRunning
                           ? 'text-green-300'
-                          : 'animate-point-bounce text-white'
+                          : 'text-white'
                     }`}
                   >
                     {systemStartCountdown > 0
@@ -509,6 +509,13 @@ export default function Home() {
                         : '클릭하여 OpenManager 시작하기'}
                   </span>
                 </div>
+
+                {/* 시작 버튼 안내 아이콘 - 시스템 정지 상태일 때만 표시 */}
+                {!systemStartCountdown && !multiUserStatus.isRunning && (
+                  <div className='mt-2 flex justify-center'>
+                    <span className='finger-pointer-primary'>👆</span>
+                  </div>
+                )}
               </div>
 
               {/* 추가 설명 */}
@@ -570,12 +577,10 @@ export default function Home() {
 
                   {/* 안내 아이콘 */}
                   <div className='mt-2 flex justify-center'>
-                    <span className='text-xl animate-wiggle text-yellow-400'>
-                      👆
-                    </span>
+                    <span className='finger-pointer-dashboard'>👆</span>
                   </div>
                   <div className='mt-1 flex justify-center'>
-                    <span className='text-xs opacity-70 text-white animate-point-bounce'>
+                    <span className='text-xs opacity-70 text-white'>
                       클릭하세요
                     </span>
                   </div>

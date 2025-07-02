@@ -322,7 +322,7 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
     }
   };
 
-  // 드롭다운 메뉴 (Portal로 렌더링)
+  // 드롭다운 메뉴 (Portal로 렌더링) - 의존성 최적화
   const DropdownPortal = useCallback(() => {
     if (typeof window === 'undefined') return null;
 
@@ -367,8 +367,9 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
               aria-orientation='vertical'
             >
               {/* 헤더 */}
-              <div className='p-4 border-b border-gray-300'>
-                <div className='flex items-center gap-3 mb-3'>
+              <div className='px-4 py-3 border-b border-gray-200'>
+                <div className='flex items-center gap-3'>
+                  {/* 아바타 */}
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center ${
                       isLocked
@@ -392,54 +393,106 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                       <User className='w-5 h-5 text-white' />
                     )}
                   </div>
+
+                  {/* 사용자 정보 */}
                   <div className='flex-1'>
-                    <div className='text-gray-900 font-medium'>{userName}</div>
-                    <div className={`text-sm ${getModeStatusColor()}`}>
+                    <h3 className='font-medium text-gray-900'>{userName}</h3>
+                    <p className={`text-sm ${getModeStatusColor()}`}>
                       {getModeDisplayText()}
-                    </div>
+                    </p>
+                  </div>
+
+                  {/* 상태 인디케이터 */}
+                  <div className='flex items-center gap-1'>
+                    {/* 시스템 상태 - 깜빡임 속도 조정 */}
+                    {isSystemStarted && (
+                      <div
+                        className='w-2 h-2 bg-green-400 rounded-full'
+                        style={{
+                          animation:
+                            'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        }}
+                      />
+                    )}
+
+                    {/* 관리자 모드 상태 - 깜빡임 속도 조정 */}
+                    {adminMode.isAuthenticated && (
+                      <div
+                        className='w-2 h-2 bg-orange-400 rounded-full'
+                        style={{
+                          animation:
+                            'pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                          animationDelay: '0.5s',
+                        }}
+                      />
+                    )}
+
+                    {/* AI 에이전트 상태 - 깜빡임 속도 조정 */}
+                    {aiAgent.isEnabled && aiAgent.state === 'processing' && (
+                      <div
+                        className='w-2 h-2 bg-purple-400 rounded-full'
+                        style={{
+                          animation:
+                            'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                          animationDelay: '1s',
+                        }}
+                      />
+                    )}
+
+                    {/* 잠금 상태 */}
+                    {isLocked && (
+                      <AlertTriangle className='w-3 h-3 text-red-400' />
+                    )}
+
+                    {/* 드롭다운 아이콘 */}
+                    <ChevronDown
+                      className={`w-3 h-3 text-white/70 transition-transform duration-200 ${
+                        isOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 📊 시스템 상태 표시 (새로 추가) */}
+              <div className='p-3 bg-gradient-to-r from-gray-50/80 to-blue-50/80 border-b border-white/10'>
+                <div className='flex items-center justify-between'>
+                  <div className='flex items-center gap-2'>
+                    <Activity className='w-4 h-4 text-blue-600' />
+                    <span className='text-sm font-medium text-gray-700'>
+                      시스템 상태
+                    </span>
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <span
+                      className={`text-sm font-medium ${getSystemStatusColor()}`}
+                    >
+                      {getSystemStatusText()}
+                    </span>
                   </div>
                 </div>
 
-                {/* 📊 시스템 상태 표시 (새로 추가) */}
-                <div className='p-3 bg-gradient-to-r from-gray-50/80 to-blue-50/80 border-b border-white/10'>
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center gap-2'>
-                      <Activity className='w-4 h-4 text-blue-600' />
-                      <span className='text-sm font-medium text-gray-700'>
-                        시스템 상태
-                      </span>
-                    </div>
-                    <div className='flex items-center gap-2'>
-                      <span
-                        className={`text-sm font-medium ${getSystemStatusColor()}`}
-                      >
-                        {getSystemStatusText()}
-                      </span>
-                    </div>
-                  </div>
+                {/* 환경 정보 */}
+                <div className='mt-1 flex items-center justify-between text-xs text-gray-500'>
+                  <span>환경: {systemState?.environment || 'Unknown'}</span>
+                  <span>v{systemState?.version || '1.0.0'}</span>
+                </div>
 
-                  {/* 환경 정보 */}
-                  <div className='mt-1 flex items-center justify-between text-xs text-gray-500'>
-                    <span>환경: {systemState?.environment || 'Unknown'}</span>
-                    <span>v{systemState?.version || '1.0.0'}</span>
+                {/* 카운트다운 타이머 (시스템 실행 중일 때만) */}
+                {systemState?.isRunning && systemState.endTime && (
+                  <div className='mt-2 flex justify-center'>
+                    <CountdownTimer
+                      endTime={systemState.endTime}
+                      onExpired={handleTimerExpired}
+                      size='sm'
+                      className='bg-blue-50/80 border-blue-200'
+                    />
                   </div>
+                )}
 
-                  {/* 카운트다운 타이머 (시스템 실행 중일 때만) */}
-                  {systemState?.isRunning && systemState.endTime && (
-                    <div className='mt-2 flex justify-center'>
-                      <CountdownTimer
-                        endTime={systemState.endTime}
-                        onExpired={handleTimerExpired}
-                        size='sm'
-                        className='bg-blue-50/80 border-blue-200'
-                      />
-                    </div>
-                  )}
-
-                  {/* 사용자 ID */}
-                  <div className='mt-1 text-xs text-gray-400 text-center'>
-                    사용자 ID: {userId.slice(0, 8)}...
-                  </div>
+                {/* 사용자 ID */}
+                <div className='mt-1 text-xs text-gray-400 text-center'>
+                  사용자 ID: {userId.slice(0, 8)}...
                 </div>
               </div>
 
@@ -661,23 +714,16 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
   }, [
     isOpen,
     onClick,
-    dropdownPosition,
-    dropdownRef,
+    dropdownPosition.top,
+    dropdownPosition.left,
+    dropdownPosition.transformOrigin,
     userName,
     userAvatar,
     isLocked,
-    adminMode,
-    aiAgent,
-    success,
-    info,
-    error,
-    showPasswordInput,
-    password,
-    passwordError,
-    handleAdminModeToggle,
-    handleSystemToggle,
-    handleSettingsClick,
-    handleLogout,
+    adminMode.isAuthenticated,
+    aiAgent.isEnabled,
+    aiAgent.state,
+    // 핵심 상태만 의존성에 포함하여 리렌더링 최소화
   ]);
 
   return (
@@ -740,19 +786,36 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
 
         {/* 상태 인디케이터 */}
         <div className='flex items-center gap-1'>
-          {/* 시스템 상태 */}
+          {/* 시스템 상태 - 깜빡임 속도 조정 */}
           {isSystemStarted && (
-            <div className='w-2 h-2 bg-green-400 rounded-full animate-pulse' />
+            <div
+              className='w-2 h-2 bg-green-400 rounded-full'
+              style={{
+                animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              }}
+            />
           )}
 
-          {/* 관리자 모드 상태 */}
+          {/* 관리자 모드 상태 - 깜빡임 속도 조정 */}
           {adminMode.isAuthenticated && (
-            <div className='w-2 h-2 bg-orange-400 rounded-full animate-pulse' />
+            <div
+              className='w-2 h-2 bg-orange-400 rounded-full'
+              style={{
+                animation: 'pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                animationDelay: '0.5s',
+              }}
+            />
           )}
 
-          {/* AI 에이전트 상태 */}
+          {/* AI 에이전트 상태 - 깜빡임 속도 조정 */}
           {aiAgent.isEnabled && aiAgent.state === 'processing' && (
-            <div className='w-2 h-2 bg-purple-400 rounded-full animate-pulse' />
+            <div
+              className='w-2 h-2 bg-purple-400 rounded-full'
+              style={{
+                animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                animationDelay: '1s',
+              }}
+            />
           )}
 
           {/* 잠금 상태 */}
