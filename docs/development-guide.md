@@ -89,6 +89,30 @@ OpenManager Vibe v5는 테스트 주도 개발 방식을 적극 도입하여 안
 
 **교훈**: 논리적 분석 없는 강제 분리는 오히려 코드 품질 저하
 
+#### 3️⃣ 2모드 전용 시스템 구현 (v3.3.0)
+
+**대상**: `UnifiedAIEngineRouter` 아키텍처 단순화
+
+- **AUTO 모드 완전 제거**: 복잡한 가중치 시스템 삭제
+- **2모드 전용**: LOCAL + GOOGLE_ONLY만 지원
+- **타입 안전성 확보**: 모든 setMode 호출 타입 검증
+- **프론트엔드 대응**: 5개 컴포넌트 모두 2모드 전용으로 수정
+
+**성과**:
+
+- **복잡성 제거**: AUTO 모드 관련 1000+ 줄 삭제
+- **명확한 처리 경로**: 모드별 최적화된 파이프라인
+- **테스트 안정성**: 모든 단위 테스트 통과
+- **성능 최적화**: LOCAL(2-8초), GOOGLE_ONLY(1-3초)
+
+**수정된 파일**:
+
+- `src/core/ai/engines/UnifiedAIEngineRouter.ts` - 메인 라우터
+- `src/app/api/ai/unified-query/route.ts` - API 엔드포인트
+- `src/components/ai/AIModeSelector.tsx` - 모드 선택기
+- `src/domains/ai-sidebar/components/AISidebarV2.tsx` - AI 사이드바
+- `src/components/unified-profile/components/AISettingsTab.tsx` - 설정 탭
+
 ## 📝 **문서 관리 원칙**
 
 ### 커밋/푸시 시마다 수행
@@ -349,7 +373,7 @@ npm run validate:competition  # 전체 품질 검증
 # 1. 개발 중 검증
 npm run test:tdd-safe
 
-# 2. 커밋 전 검증  
+# 2. 커밋 전 검증
 npm run validate:competition
 
 # 3. 안전한 푸시

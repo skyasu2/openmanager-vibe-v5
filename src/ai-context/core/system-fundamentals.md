@@ -5,7 +5,7 @@ domain: 'core-system'
 scenarios: ['general', 'troubleshooting', 'monitoring', 'optimization']
 keywords: ['system', 'fundamentals', 'basics', 'core', 'foundation']
 confidence_level: 0.99
-last_verified: '2025-01-10'
+  last_verified: '2025-07-02'
 dependencies: []
 ai_hints:
   - '모든 AI 분석의 기본이 되는 핵심 컨텍스트'

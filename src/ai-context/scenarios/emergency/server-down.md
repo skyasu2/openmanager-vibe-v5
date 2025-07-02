@@ -6,7 +6,7 @@ scenarios: ['server-down', 'service-outage', 'connectivity-issues']
 keywords:
   ['server', 'down', 'offline', 'unresponsive', 'outage', 'connectivity']
 confidence_level: 0.99
-last_verified: '2025-01-10'
+  last_verified: '2025-07-02'
 dependencies: ['system-fundamentals', 'network-troubleshooting']
 ai_hints:
   - '서버 다운 상황 시 최우선 참조'

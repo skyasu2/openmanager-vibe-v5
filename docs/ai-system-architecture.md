@@ -1,334 +1,336 @@
-# 🤖 AI 시스템 아키텍처
+# 🤖 AI 시스템 아키텍처 v3.3.0
 
-> **OpenManager Vibe v5.44.4** - 통합 AI 엔진 아키텍처 (2025년 7주차 개발 진행 중)
+> **OpenManager Vibe v5** - 2모드 전용 통합 AI 엔진 아키텍처 (2025년 7월 업데이트)
 
 ## 📋 **개요**
 
-OpenManager Vibe v5의 AI 시스템은 **2개의 운영 모드**를 제공하는 통합 AI 엔진 아키텍처입니다. 각 모드는 서로 다른 사용 시나리오에 최적화되어 있으며, 상황에 따라 적절한 AI 엔진을 선택하여 최적의 성능을 제공합니다.
+OpenManager Vibe v5의 AI 시스템은 **2개의 명확한 운영 모드**를 제공하는 통합 AI 엔진 아키텍처입니다. AUTO 모드를 완전히 제거하여 복잡성을 줄이고, 각 모드는 명확한 처리 경로를 통해 최적의 성능을 제공합니다.
 
-## 🎯 **2개 운영 모드**
+## 🎯 **2개 운영 모드 (AUTO 모드 제거)**
 
-### **1. LOCAL 모드** (기본 모드)
-
-```
-🏠 LOCAL 모드 - 빠른 응답 중심
-├─ Supabase RAG + MCP 컨텍스트 (80%)
-├─ 로컬 AI 도구들 (20%)
-├─ 평균 응답 시간: 620ms
-└─ 사용 시나리오: 일반적인 운영 환경
-```
-
-#### **구성 요소**
-
-- **Supabase RAG Engine** (80%): 메인 추론 엔진
-- **MCP Context Collector**: 실시간 컨텍스트 수집
-- **로컬 AI 도구들** (20%): 한국어 NLP, 패턴 매칭, 규칙 기반 엔진
-
-#### **특징**
-
-- ⚡ **빠른 응답**: 620ms 평균 응답 시간
-- 🔒 **프라이버시**: 로컬 처리 중심
-- 🌐 **네트워크 최적화**: 제한된 네트워크 환경에서도 안정적
-- 💡 **효율성**: 리소스 사용량 최소화
-
-### **2. GOOGLE_AI 모드** (고급 모드)
+### **1. LOCAL 모드** (완전한 로컬 처리)
 
 ```
-🧠 GOOGLE_AI 모드 - 고급 추론 중심
-├─ Google AI Studio (40%)
-├─ Supabase RAG + MCP 컨텍스트 (40%)
-├─ 로컬 AI 도구들 (20%)
-├─ 평균 응답 시간: 1200ms
-└─ 사용 시나리오: 복잡한 분석 및 심층 추론
+🏠 LOCAL 모드 - RAG + NLP + MCP + 하위 AI 엔진
+├─ Supabase RAG Engine (메인 추론)
+├─ OptimizedKoreanNLPEngine (한국어 처리)
+├─ MCP Context Collector (실시간 컨텍스트)
+├─ OpenSource Engines (보조 처리)
+├─ Custom Engines (특화 처리)
+├─ 평균 응답 시간: 2-6초 (복잡도별)
+└─ 사용 시나리오: 완전한 로컬 환경, 프라이버시 중시
 ```
 
 #### **구성 요소**
 
-- **Google AI Studio** (40%): Gemini 모델 기반 고급 추론
-- **Supabase RAG Engine** (40%): 보조 추론 및 검증
-- **MCP Context Collector**: 상세 컨텍스트 수집
-- **로컬 AI 도구들** (20%): 후처리 및 검증
+- **Supabase RAG Engine**: 메인 자연어 처리 및 추론
+- **OptimizedKoreanNLPEngine**: 5단계 병렬 처리 한국어 NLP
+- **MCP Context Collector**: 실시간 시스템 컨텍스트 수집
+- **OpenSource Engines**: 오픈소스 AI 모델 통합
+- **Custom Engines**: 특화된 커스텀 처리 엔진
 
 #### **특징**
 
-- 🧠 **고급 추론**: 복잡한 문제 해결 능력
-- 📊 **상세 분석**: 심층적인 데이터 분석
-- 🔍 **정확성**: 높은 정확도의 결과 제공
-- 📝 **상세 보고**: 자세한 분석 보고서 생성
+- 🔒 **완전한 프라이버시**: 모든 처리가 로컬에서 수행
+- 🌐 **네트워크 독립**: 인터넷 연결 없이도 동작
+- 📊 **포괄적 처리**: RAG + NLP + MCP + 하위 AI 엔진 모두 활용
+- ⚡ **최적화된 성능**: 단순(2초), 중간(4초), 복잡(6초), 매우복잡(8초)
 
-## 🏗️ **시스템 아키텍처**
+### **2. GOOGLE_ONLY 모드** (Google AI + 선택적 로컬)
+
+```
+🚀 GOOGLE_ONLY 모드 - Google AI + 로컬모드(필요한 부분만)
+├─ Google AI Studio (메인 추론 엔진)
+├─ Supabase RAG (보조 컨텍스트)
+├─ OptimizedKoreanNLPEngine (한국어 전처리)
+├─ MCP Context (필요시만)
+├─ 평균 응답 시간: 1-3초
+└─ 사용 시나리오: 고급 추론, 복잡한 분석, 창의적 문제 해결
+```
+
+#### **구성 요소**
+
+- **Google AI Studio**: Gemini 모델 기반 고급 추론 (메인)
+- **Supabase RAG**: 보조 컨텍스트 및 검증
+- **OptimizedKoreanNLPEngine**: 한국어 전처리 (필요시)
+- **MCP Context**: 선택적 시스템 컨텍스트
+
+#### **특징**
+
+- 🧠 **고급 추론**: Google AI의 강력한 추론 능력
+- ⚡ **빠른 응답**: 클라우드 처리로 1-3초 응답
+- 🎯 **선택적 로컬**: 필요한 부분만 로컬 처리 추가
+- 📈 **확장성**: Google AI 인프라 활용
+
+## 🏗️ **시스템 아키텍처 v3.3.0**
 
 ### **전체 구조도**
 
 ```mermaid
 graph TD
-    A[사용자 요청] --> B[UnifiedAIEngine]
+    A[사용자 요청] --> B[UnifiedAIEngineRouter v3.3.0]
     B --> C{모드 선택}
 
     C -->|LOCAL 모드| D[LOCAL 파이프라인]
-    C -->|GOOGLE_AI 모드| E[GOOGLE_AI 파이프라인]
+    C -->|GOOGLE_ONLY 모드| E[GOOGLE_ONLY 파이프라인]
 
-    D --> F[Supabase RAG 80%]
-    D --> G[로컬 AI 도구 20%]
-    F --> H[MCP Context]
-    G --> H
+    D --> F[Supabase RAG]
+    D --> G[OptimizedKoreanNLP]
+    D --> H[MCP Context]
+    D --> I[OpenSource Engines]
+    D --> J[Custom Engines]
 
-    E --> I[Google AI 40%]
-    E --> J[Supabase RAG 40%]
-    E --> K[로컬 AI 도구 20%]
-    I --> L[MCP Context]
-    J --> L
-    K --> L
+    E --> K[Google AI Studio]
+    E --> L[Supabase RAG 보조]
+    E --> M[OptimizedKoreanNLP 전처리]
+    E --> N[MCP Context 선택적]
 
-    H --> M[결과 통합]
-    L --> M
-    M --> N[응답 반환]
+    F --> O[결과 통합]
+    G --> O
+    H --> O
+    I --> O
+    J --> O
+
+    K --> P[결과 통합]
+    L --> P
+    M --> P
+    N --> P
+
+    O --> Q[LOCAL 응답]
+    P --> R[GOOGLE_ONLY 응답]
 ```
 
 ### **핵심 구성 요소**
 
-#### **1. UnifiedAIEngine (통합 AI 엔진)**
+#### **1. UnifiedAIEngineRouter v3.3.0**
 
 ```typescript
-export class UnifiedAIEngine {
-  private mode: 'LOCAL' | 'GOOGLE_AI' = 'LOCAL';
+/**
+ * 🚀 통합 AI 엔진 라우터 v3.3 (2모드 전용)
+ *
+ * 핵심 모드:
+ * - LOCAL: RAG + NLP + MCP + 하위 AI 엔진 (완전한 로컬 처리)
+ * - GOOGLE_ONLY: Google AI + 로컬모드(필요한 부분만)
+ *
+ * 제거된 기능:
+ * - AUTO 모드 완전 삭제
+ * - 모드 간 자동 전환 로직 제거
+ * - 복잡한 가중치 시스템 단순화
+ */
+export class UnifiedAIEngineRouter {
+  private currentMode: 'LOCAL' | 'GOOGLE_ONLY' = 'LOCAL';
 
-  async processQuery(query: string): Promise<AIResponse> {
-    switch (this.mode) {
+  async processQuery(request: AIRequest): Promise<AIResponse> {
+    const mode = this.normalizeMode(request.mode);
+
+    switch (mode) {
       case 'LOCAL':
-        return this.processLocalMode(query);
-      case 'GOOGLE_AI':
-        return this.processGoogleAIMode(query);
+        return this.processLocalMode(request);
+      case 'GOOGLE_ONLY':
+        return this.processGoogleOnlyMode(request);
     }
   }
 }
 ```
 
-**역할**:
-
-- 모드별 라우팅 및 처리
-- 응답 통합 및 최적화
-- 오류 처리 및 폴백
-
-#### **2. Supabase RAG Engine**
+#### **2. LOCAL 모드 처리 파이프라인**
 
 ```typescript
-export class SupabaseRAGEngine {
-  async generateResponse(query: string, context: string): Promise<string> {
-    const embedding = await this.generateEmbedding(query);
-    const relevantDocs = await this.searchSimilarDocuments(embedding);
-    return this.generateResponseWithContext(query, relevantDocs, context);
+private async processLocalMode(request: AIRequest): Promise<AIResponse> {
+  const startTime = Date.now();
+
+  try {
+    // 1. 한국어 NLP 처리 (병렬)
+    const koreanNLPPromise = this.optimizedKoreanNLP.process(request.query);
+
+    // 2. MCP 컨텍스트 수집 (병렬)
+    const mcpContextPromise = this.mcpContextCollector?.collectContext(request.query);
+
+    // 3. Supabase RAG 처리 (메인)
+    const ragContext = await Promise.all([koreanNLPPromise, mcpContextPromise]);
+    const ragResponse = await this.supabaseRAG.generateResponse(
+      request.query,
+      this.combineContext(ragContext)
+    );
+
+    // 4. 보조 엔진들 처리 (병렬)
+    const [openSourceResult, customResult] = await Promise.all([
+      this.openSourceEngines.process(request.query),
+      this.customEngines.process(request.query)
+    ]);
+
+    // 5. 결과 통합
+    return this.combineLocalResults(ragResponse, openSourceResult, customResult);
+
+  } catch (error) {
+    return this.formatErrorResponse(error, startTime, 'LOCAL');
   }
 }
 ```
 
-**역할**:
-
-- 자연어 처리 및 이해
-- 벡터 검색 및 유사도 계산
-- 컨텍스트 기반 응답 생성
-- 한국어 처리 최적화
-
-#### **3. Google AI Studio**
+#### **3. GOOGLE_ONLY 모드 처리 파이프라인**
 
 ```typescript
-export class GoogleAIEngine {
-  async generateAdvancedResponse(
-    query: string,
-    context: string
-  ): Promise<string> {
-    const prompt = this.buildAdvancedPrompt(query, context);
-    return this.callGeminiAPI(prompt);
+private async processGoogleOnlyMode(request: AIRequest): Promise<AIResponse> {
+  const startTime = Date.now();
+
+  try {
+    // 1. 한국어 전처리 (필요시)
+    const preprocessed = await this.optimizedKoreanNLP.preprocess(request.query);
+
+    // 2. Google AI 메인 처리
+    const googleResponse = await this.googleAI.generateResponse(
+      preprocessed || request.query,
+      request.context
+    );
+
+    // 3. 보조 컨텍스트 (선택적)
+    const supportContext = await Promise.all([
+      this.supabaseRAG.getRelevantContext(request.query),
+      this.mcpContextCollector?.collectContext(request.query)
+    ]);
+
+    // 4. 결과 검증 및 보완
+    return this.enhanceGoogleResponse(googleResponse, supportContext);
+
+  } catch (error) {
+    return this.formatErrorResponse(error, startTime, 'GOOGLE_ONLY');
   }
 }
 ```
-
-**역할**:
-
-- 고급 추론 및 분석
-- 복잡한 질의 처리
-- 상세한 보고서 생성
-- 창의적 문제 해결
-
-#### **4. MCP Context Collector**
-
-```typescript
-export class MCPContextCollector {
-  async collectContext(query: string): Promise<MCPContext> {
-    const fileContext = await this.getFileSystemContext();
-    const systemContext = await this.getSystemContext();
-    return this.buildContext(query, fileContext, systemContext);
-  }
-}
-```
-
-**역할**:
-
-- 실시간 시스템 정보 수집
-- 파일 시스템 접근
-- 표준 MCP 도구 제공
-- 컨텍스트 정규화
-
-#### **5. 로컬 AI 도구들**
-
-```typescript
-export class LocalAITools {
-  koreanNLP: KoreanNLPProcessor;
-  patternMatcher: PatternMatcher;
-  ruleEngine: RuleBasedEngine;
-
-  async processWithLocalTools(query: string): Promise<LocalAIResult> {
-    const nlpResult = await this.koreanNLP.process(query);
-    const patterns = await this.patternMatcher.findPatterns(query);
-    const rules = await this.ruleEngine.applyRules(query);
-
-    return this.combineResults(nlpResult, patterns, rules);
-  }
-}
-```
-
-**역할**:
-
-- 한국어 형태소 분석
-- 패턴 매칭 및 규칙 적용
-- 빠른 로컬 처리
-- 결과 후처리 및 검증
 
 ## ⚡ **성능 최적화**
 
-### **응답 시간 최적화**
-
-#### **LOCAL 모드 (620ms)**
-
-```
-컨텍스트 수집: 150ms
-Supabase RAG 처리: 350ms
-로컬 AI 처리: 80ms
-결과 통합: 40ms
-```
-
-#### **GOOGLE_AI 모드 (1200ms)**
-
-```
-컨텍스트 수집: 200ms
-Google AI 처리: 600ms
-Supabase RAG 처리: 250ms
-로컬 AI 처리: 100ms
-결과 통합: 50ms
-```
-
-### **메모리 최적화**
-
-- **스트리밍 처리**: 대용량 데이터 스트리밍 처리
-- **캐싱 전략**: Redis 기반 지능형 캐싱
-- **가비지 컬렉션**: 메모리 누수 방지
-
-### **네트워크 최적화**
-
-- **요청 배칭**: 여러 요청을 배치로 처리
-- **압축**: 응답 데이터 압축
-- **CDN 활용**: 정적 리소스 CDN 배포
-
-## 🔧 **모드 선택 전략**
-
-### **자동 모드 선택**
+### **LOCAL 모드 최적화**
 
 ```typescript
-export class ModeSelector {
-  selectMode(query: string, context: QueryContext): 'LOCAL' | 'GOOGLE_AI' {
-    // 복잡도 분석
-    const complexity = this.analyzeComplexity(query);
+// 5단계 병렬 처리 파이프라인
+const performanceTargets = {
+  simple: 2000, // 단순 질의: 2초
+  medium: 4000, // 중간 질의: 4초
+  complex: 6000, // 복잡 질의: 6초
+  veryComplex: 8000, // 매우 복잡: 8초
+};
 
-    // 응답 시간 요구사항
-    const urgency = context.urgency;
+// 품질 목표
+const qualityTargets = {
+  confidence: 0.75, // 75% 이상 신뢰도
+  accuracy: 0.8, // 80% 이상 정확도
+  completeness: 0.85, // 85% 이상 완성도
+};
+```
 
-    // 네트워크 상태
-    const networkStatus = context.networkStatus;
+### **GOOGLE_ONLY 모드 최적화**
 
-    if (complexity.high && !urgency.immediate && networkStatus.stable) {
-      return 'GOOGLE_AI';
-    }
+```typescript
+// 빠른 응답 최적화
+const googleOptimization = {
+  responseTime: 1000, // 1초 목표
+  maxTime: 3000, // 최대 3초
+  fallbackTime: 5000, // 폴백 5초
+  cacheEnabled: true, // 캐싱 활성화
+  streamingEnabled: true, // 스트리밍 응답
+};
+```
 
-    return 'LOCAL';
-  }
+## 🔧 **설정 및 사용법**
+
+### **모드 변경**
+
+```typescript
+// 프로그래밍 방식
+const router = UnifiedAIEngineRouter.getInstance();
+router.setMode('LOCAL');        // 로컬 모드
+router.setMode('GOOGLE_ONLY');  // Google AI 모드
+
+// API 호출 방식
+POST /api/ai/unified-query
+{
+  "query": "서버 상태 확인",
+  "mode": "LOCAL"  // 또는 "GOOGLE_ONLY"
 }
 ```
 
-### **사용자 수동 선택**
+### **응답 구조**
 
 ```typescript
-// 사용자가 직접 모드 선택 가능
-const aiEngine = new UnifiedAIEngine();
-aiEngine.setMode('GOOGLE_AI'); // 고급 분석 모드
-aiEngine.setMode('LOCAL'); // 빠른 응답 모드
+interface AIResponse {
+  success: boolean;
+  response: string;
+  confidence: number;
+  mode: 'LOCAL' | 'GOOGLE_ONLY';
+  enginePath: string[];
+  processingTime: number;
+  fallbacksUsed: number;
+  metadata: {
+    mainEngine: string;
+    supportEngines: string[];
+    ragUsed: boolean;
+    googleAIUsed: boolean;
+    mcpContextUsed: boolean;
+    subEnginesUsed: string[];
+    isKorean?: boolean;
+    qualityScore?: number;
+  };
+}
 ```
 
-## 📊 **성능 지표**
+## 📊 **모니터링 및 통계**
 
-### **현재 성능 (2025.07.02 기준)**
+### **성능 메트릭**
 
-| 지표           | LOCAL 모드  | GOOGLE_AI 모드 | 목표           |
-| -------------- | ----------- | -------------- | -------------- |
-| 평균 응답 시간 | 620ms       | 1200ms         | 500ms / 1000ms |
-| 정확도         | 92%         | 96%            | 95% / 98%      |
-| 가용성         | 99.5%       | 99.2%          | 99.9%          |
-| 처리량         | 100 req/min | 50 req/min     | 150 / 75       |
+```typescript
+interface AIEngineStats {
+  successfulRequests: number;
+  failedRequests: number;
+  averageResponseTime: number;
+  lastUpdated: string;
+  modeDistribution: {
+    LOCAL: number;
+    GOOGLE_ONLY: number;
+  };
+  engineUsage: {
+    supabaseRAG: number;
+    googleAI: number;
+    optimizedKoreanNLP: number;
+    openSourceEngines: number;
+    customEngines: number;
+  };
+}
+```
 
-### **개선 진행 상황**
+### **상태 조회**
 
-🔄 **현재 진행 중**:
+```typescript
+const status = router.getStatus();
+console.log(status);
+// {
+//   router: 'UnifiedAIEngineRouter',
+//   version: '3.3.0',
+//   mode: 'LOCAL',
+//   initialized: true,
+//   availableModes: ['LOCAL', 'GOOGLE_ONLY'],
+//   stats: { ... },
+//   engines: { ... }
+// }
+```
 
-- 응답 시간 최적화 (목표: LOCAL 500ms, GOOGLE_AI 1000ms)
-- 정확도 개선 (한국어 처리 고도화)
-- 가용성 향상 (오류 처리 강화)
+## 🚀 **향후 계획**
 
-## 🛠️ **개발 현황**
+### **v3.4 계획**
 
-### **완성된 기능**
+- 스트리밍 응답 지원 강화
+- 캐싱 시스템 최적화
+- 성능 모니터링 대시보드
 
-✅ **기본 AI 엔진 통합**  
-✅ **2개 모드 운영 체계**  
-✅ **Supabase RAG 엔진**  
-✅ **Google AI Studio 연동**  
-✅ **MCP 컨텍스트 수집**  
-✅ **한국어 처리 최적화**  
-✅ **성능 모니터링**
+### **v3.5 계획**
 
-### **개발 진행 중**
-
-🔄 **응답 시간 최적화**  
-🔄 **정확도 개선**  
-🔄 **오류 처리 강화**  
-🔄 **캐싱 시스템 고도화**  
-🔄 **모니터링 대시보드**
-
-### **향후 계획**
-
-🎯 **단기 (1-2주)**:
-
-- 성능 최적화 완료
-- 오류 처리 개선
-- 모니터링 강화
-
-🎯 **중기 (1개월)**:
-
-- 추가 AI 엔진 통합
-- 고급 분석 기능
-- 사용자 맞춤화
-
-🎯 **장기 (2-3개월)**:
-
-- 확장성 개선
-- 분산 처리 시스템
-- 오픈소스 생태계
-
-## 📚 **관련 문서**
-
-- [프로젝트 개요](./프로젝트-개요.md) - 전체 프로젝트 소개
-- [시스템 아키텍처](./시스템-아키텍처.md) - 전체 시스템 구조
-- [개발 과정](./개발-과정.md) - 7주간의 개발 여정
-- [성능 최적화](./성능-최적화.md) - 성능 개선 전략
+- 커스텀 엔진 플러그인 시스템
+- 고급 컨텍스트 관리
+- 멀티모달 지원 확장
 
 ---
 
-> **개발 현황**: 2025년 7월 2일 기준, AI 시스템 아키텍처의 핵심 기능이 구현 완료되었으며, 성능 최적화와 안정성 개선을 지속적으로 진행하고 있습니다. 🤖
+> **마지막 업데이트**: 2025년 7월  
+> **버전**: UnifiedAIEngineRouter v3.3.0  
+> **상태**: 2모드 전용 시스템 완료
