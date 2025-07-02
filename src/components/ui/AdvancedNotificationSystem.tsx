@@ -4,25 +4,25 @@
  * 고급 알림 시스템 - 슬랙 연동 제외한 모든 일반 알림 처리
  * 모달과 블러 배경 위에서도 확실히 표시되는 최고 우선순위 알림
  *
- * @created 2025-01-03
+ * @created 2025-07-02
  * @author AI Assistant
  */
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { createPortal } from 'react-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  CheckCircle,
-  XCircle,
+  Activity,
   AlertTriangle,
+  CheckCircle,
+  Clock,
   Info,
   X,
-  Clock,
+  XCircle,
   Zap,
-  Activity,
 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export interface AdvancedNotification {
   id: string;

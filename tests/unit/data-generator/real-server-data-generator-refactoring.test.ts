@@ -7,7 +7,7 @@
  * - Refactor 단계: 코드 개선
  *
  * @author OpenManager Vibe v5
- * @since 2025-01-29 04:30 KST
+ * @since 2025-07-02 04:30 KST
  */
 
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';

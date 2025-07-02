@@ -7,7 +7,7 @@
  * - 범용 응급 폴백
  * - 한국시간 기준 로깅 및 메트릭
  *
- * 작성일: 2025-01-05 11:00 KST
+ * 작성일: 2025-07-02 11:00 KST
  */
 
 import { AIMode, AIRequest, AIResponse } from '@/types/ai-types';

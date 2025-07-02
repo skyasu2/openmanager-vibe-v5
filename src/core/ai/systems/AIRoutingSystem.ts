@@ -1,6 +1,6 @@
 /**
  * 🔄 AI 라우팅 시스템 v2.0
- * 작성일: 2025-01-05 00:16:30 (KST)
+ * 작성일: 2025-07-02 00:16:30 (KST)
  *
  * UnifiedAIEngineRouter에서 분리된 모드별 라우팅 로직
  * TDD Green 단계 - AIRoutingSystem 모듈 분리

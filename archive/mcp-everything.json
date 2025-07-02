@@ -49,7 +49,7 @@
   "metadata": {
     "version": "2.0",
     "type": "everything-mcp-unified",
-    "created": "2025-01-14T00:00:00.000Z",
+    "created": "2025-07-02T00:00:00.000Z",
     "description": "Everything MCP 기반 통합 개발 환경",
     "migration": {
       "from": "multi-server-setup",

@@ -233,7 +233,7 @@ function updateApiDoc(projectInfo, serverConfig) {
     "warning": ${Math.floor(serverConfig.serverCount * serverConfig.warningPercent / 100)},
     "critical": ${Math.floor(serverConfig.serverCount * serverConfig.criticalPercent / 100)}
   },
-  "lastUpdated": "2025-01-29T10:30:00Z"
+  "lastUpdated": "2025-07-02T10:30:00Z"
 }
 \`\`\`
 
@@ -293,7 +293,7 @@ function createNewApiDoc(apiPath, projectInfo, serverConfig) {
     "warning": ${Math.floor(serverConfig.serverCount * serverConfig.warningPercent / 100)},
     "critical": ${Math.floor(serverConfig.serverCount * serverConfig.criticalPercent / 100)}
   },
-  "lastUpdated": "2025-01-29T10:30:00Z"
+  "lastUpdated": "2025-07-02T10:30:00Z"
 }
 \`\`\`
 
@@ -378,4 +378,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     main();
 }
 
-export { main, getProjectInfo, getServerConfig }; 
+export { getProjectInfo, getServerConfig, main };
+
