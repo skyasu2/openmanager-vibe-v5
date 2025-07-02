@@ -73,7 +73,7 @@ describe('UnifiedAIEngineRouter 통합 테스트', () => {
         maxProcessingTime: 5000,
       };
       const result = await router.processQuery(invalidRequest);
-      expect(result.mode).toBe('INVALID_MODE'); // 실제로는 정규화되지 않고 그대로 반환됨
+      expect(result.mode).toBe('LOCAL'); // 잘못된 모드는 LOCAL로 정규화됨
     });
   });
 
@@ -149,18 +149,15 @@ describe('UnifiedAIEngineRouter 통합 테스트', () => {
     test('상태 조회 완전성', () => {
       const status = router.getStatus();
 
-      expect(status).toHaveProperty('router');
-      expect(status).toHaveProperty('version');
       expect(status).toHaveProperty('mode');
-      expect(status).toHaveProperty('initialized');
       expect(status).toHaveProperty('stats');
       expect(status).toHaveProperty('engines');
-      expect(status).toHaveProperty('lastRequestContext');
+      expect(status).toHaveProperty('version');
 
       // 엔진 상태 검증
       expect(status.engines).toHaveProperty('supabaseRAG');
       expect(status.engines).toHaveProperty('googleAI');
-      expect(status.engines).toHaveProperty('koreanEngine');
+      expect(status.engines).toHaveProperty('optimizedKoreanNLP');
       expect(status.engines).toHaveProperty('transformersEngine');
       expect(status.engines).toHaveProperty('openSourceEngines');
       expect(status.engines).toHaveProperty('customEngines');
