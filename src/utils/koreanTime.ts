@@ -416,7 +416,7 @@ export class KoreanTimeUtil {
   }
 
   /**
-   * 프로젝트 날짜 검증 (2025년 1월 이후만 유효) - 개선된 버전
+   * 프로젝트 날짜 검증 (2025년 7월 현재 기준) - 개선된 버전
    * @param dateString 확인할 날짜 문자열
    * @returns 유효한 프로젝트 날짜 여부
    */

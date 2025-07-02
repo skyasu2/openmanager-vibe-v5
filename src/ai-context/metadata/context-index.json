@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2025-01-10T00:00:00Z",
+  "last_updated": "2025-07-02T00:00:00Z",
   "total_contexts": 7,
   "contexts": {
     "system-fundamentals": {
@@ -12,7 +12,7 @@
       "confidence_level": 0.99,
       "dependencies": [],
       "file_size": "8.2KB",
-      "last_verified": "2025-01-10"
+      "last_verified": "2025-07-02"
     },
     "server-down-emergency": {
       "path": "src/ai-context/scenarios/emergency/server-down.md",
@@ -30,7 +30,7 @@
       "confidence_level": 0.99,
       "dependencies": ["system-fundamentals", "network-troubleshooting"],
       "file_size": "6.5KB",
-      "last_verified": "2025-01-10"
+      "last_verified": "2025-07-02"
     },
     "metrics-interpretation": {
       "path": "src/ai-context/domains/server-monitoring/metrics-interpretation.md",
@@ -48,7 +48,7 @@
       "confidence_level": 0.95,
       "dependencies": ["system-fundamentals"],
       "file_size": "5.8KB",
-      "last_verified": "2025-01-10"
+      "last_verified": "2025-07-02"
     },
     "memory-leak": {
       "path": "src/ai-context/scenarios/emergency/memory-leak.md",
@@ -59,7 +59,7 @@
       "confidence_level": 0.92,
       "dependencies": ["system-fundamentals", "metrics-interpretation"],
       "file_size": "4.2KB",
-      "last_verified": "2025-01-10"
+      "last_verified": "2025-07-02"
     },
     "production-environment": {
       "path": "src/ai-context/environments/production.md",
@@ -70,7 +70,7 @@
       "confidence_level": 0.9,
       "dependencies": ["system-fundamentals"],
       "file_size": "4.7KB",
-      "last_verified": "2025-01-10"
+      "last_verified": "2025-07-02"
     },
     "prometheus-integration": {
       "path": "src/ai-context/integrations/prometheus.md",
@@ -87,7 +87,7 @@
       "confidence_level": 0.85,
       "dependencies": ["system-fundamentals", "metrics-interpretation"],
       "file_size": "3.9KB",
-      "last_verified": "2025-01-10"
+      "last_verified": "2025-07-02"
     }
   },
   "priority_distribution": {

@@ -1015,6 +1015,7 @@ export class UnifiedAIEngineRouter {
         openSourceEngines: !!this.openSourceEngines,
         customEngines: !!this.customEngines,
         mcpContextCollector: !!this.mcpContextCollector,
+        fallbackHandler: !!this.fallbackHandler,
       },
     };
   }
