@@ -170,7 +170,7 @@ export async function GET(request: NextRequest) {
         success: false,
         error:
           '잘못된 요청입니다. action=status 또는 action=query&query=검색어&mode=모드를 사용하세요.',
-        availableModes: ['AUTO', 'LOCAL', 'GOOGLE_ONLY'],
+        availableModes: ['LOCAL', 'GOOGLE_ONLY'],
       },
       { status: 400 }
     );
@@ -206,14 +206,14 @@ export async function POST(request: NextRequest) {
       body = JSON.parse(textBody);
     }
 
-    const { query, mode = 'AUTO', category, context } = body;
+    const { query, mode = 'LOCAL', category, context } = body;
 
     if (!query) {
       return NextResponse.json(
         {
           success: false,
           error: 'query 필드가 필요합니다.',
-          availableModes: ['AUTO', 'LOCAL', 'GOOGLE_ONLY'],
+          availableModes: ['LOCAL', 'GOOGLE_ONLY'],
         },
         { status: 400 }
       );
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
     // 🚀 통합 AI 엔진 라우터로 처리
     const result = await aiRouter.processQuery({
       query: normalizedQuery, // 정규화된 쿼리 사용
-      mode: mode as 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY',
+      mode: mode as 'LOCAL' | 'GOOGLE_ONLY',
       category: category || undefined,
       context: {
         timestamp: new Date().toISOString(),

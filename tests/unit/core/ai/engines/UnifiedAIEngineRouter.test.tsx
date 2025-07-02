@@ -35,7 +35,7 @@ describe('UnifiedAIEngineRouter 통합 테스트', () => {
     test('초기 상태 확인', () => {
       const status = router.getStatus();
       expect(status.router).toBe('UnifiedAIEngineRouter');
-      expect(status.version).toBe('3.2.0');
+      expect(status.version).toBe('3.3.0');
       expect(status.initialized).toBe(false);
     });
   });
@@ -56,21 +56,12 @@ describe('UnifiedAIEngineRouter 통합 테스트', () => {
       expect(result.success).toBeDefined();
     });
 
-    test('GOOGLE_AI 모드 처리', async () => {
+    test('GOOGLE_ONLY 모드 처리', async () => {
       const result = await router.processQuery({
         ...mockRequest,
-        mode: 'GOOGLE_AI',
+        mode: 'GOOGLE_ONLY',
       });
-      expect(result.mode).toBe('GOOGLE_AI');
-      expect(result.success).toBeDefined();
-    });
-
-    test('AUTO 모드 처리', async () => {
-      const result = await router.processQuery({
-        ...mockRequest,
-        mode: 'AUTO',
-      });
-      expect(result.mode).toBe('AUTO');
+      expect(result.mode).toBe('GOOGLE_ONLY');
       expect(result.success).toBeDefined();
     });
 
@@ -96,9 +87,15 @@ describe('UnifiedAIEngineRouter 통합 테스트', () => {
     });
 
     test('모드 변경', () => {
-      router.setMode('GOOGLE_AI');
+      router.setMode('GOOGLE_ONLY');
       const status = router.getStatus();
-      expect(status.mode).toBe('GOOGLE_AI');
+      expect(status.mode).toBe('GOOGLE_ONLY');
+    });
+
+    test('현재 모드 확인', () => {
+      const router = UnifiedAIEngineRouter.getInstance();
+      router.setMode('LOCAL');
+      expect(router.getCurrentMode()).toBe('LOCAL');
     });
   });
 
@@ -107,7 +104,7 @@ describe('UnifiedAIEngineRouter 통합 테스트', () => {
       const request: AIRequest = {
         query: '메모리 사용량 확인',
         category: 'system',
-        mode: 'AUTO',
+        mode: 'LOCAL',
       };
 
       const result = await router.processQuery(request);

@@ -42,7 +42,7 @@ export function AISettingsTab({
 }: AISettingsTabProps) {
   const { adminMode } = useUnifiedAdminStore();
   const isAdminAuthenticated = adminMode.isAuthenticated;
-  const [currentMode, setCurrentMode] = useState<AIMode>('AUTO');
+  const [currentMode, setCurrentMode] = useState<AIMode>('GOOGLE_ONLY');
   const [isChangingMode, setIsChangingMode] = useState(false);
 
   // 현재 AI 모드 조회
@@ -60,9 +60,7 @@ export function AISettingsTab({
   }, []);
 
   // AI 모드 변경 핸들러
-  const handleModeChange = async (newMode: AIMode) => {
-    if (isChangingMode) return;
-
+  const handleModeChange = (newMode: 'LOCAL' | 'GOOGLE_ONLY') => {
     setIsChangingMode(true);
     try {
       unifiedAIRouter.setMode(newMode);
@@ -88,27 +86,29 @@ export function AISettingsTab({
           <p className='text-sm text-gray-300 mb-4'>
             현재 모드:{' '}
             <span className='font-semibold text-purple-300'>
-              {currentMode === 'AUTO'
-                ? '🤖 스마트 AI 모드'
-                : '⚡ 빠른 로컬 모드'}
+              {currentMode === 'GOOGLE_ONLY'
+                ? '🚀 Google AI 모드'
+                : '🏠 로컬 모드'}
             </span>
           </p>
 
           <div className='grid grid-cols-1 gap-3'>
-            {/* 스마트 AI 모드 */}
+            {/* Google AI 모드 */}
             <motion.button
-              onClick={() => handleModeChange('AUTO')}
-              disabled={isChangingMode || currentMode === 'AUTO'}
+              onClick={() => handleModeChange('GOOGLE_ONLY')}
+              disabled={isChangingMode || currentMode === 'GOOGLE_ONLY'}
               className={`p-4 rounded-lg border transition-all ${
-                currentMode === 'AUTO'
+                currentMode === 'GOOGLE_ONLY'
                   ? 'bg-purple-500/20 border-purple-500/50 text-purple-300'
                   : 'bg-gray-800/50 border-gray-600/50 text-gray-300 hover:bg-purple-500/10 hover:border-purple-500/30'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
               whileHover={{
-                scale: currentMode !== 'AUTO' && !isChangingMode ? 1.02 : 1,
+                scale:
+                  currentMode !== 'GOOGLE_ONLY' && !isChangingMode ? 1.02 : 1,
               }}
               whileTap={{
-                scale: currentMode !== 'AUTO' && !isChangingMode ? 0.98 : 1,
+                scale:
+                  currentMode !== 'GOOGLE_ONLY' && !isChangingMode ? 0.98 : 1,
               }}
             >
               <div className='flex items-center gap-3'>
@@ -116,26 +116,26 @@ export function AISettingsTab({
                   <Zap className='w-5 h-5 text-purple-400' />
                 </div>
                 <div className='text-left flex-1'>
-                  <h4 className='font-semibold'>🤖 스마트 AI 모드</h4>
+                  <h4 className='font-semibold'>🚀 Google AI 모드</h4>
                   <p className='text-xs opacity-80'>
-                    모든 AI 엔진 활용 (최고 성능)
+                    Google AI + 로컬모드(필요한 부분만)
                   </p>
                   <div className='flex flex-wrap gap-1 mt-1'>
                     <span className='text-xs px-2 py-0.5 bg-purple-500/20 rounded'>
-                      최고 성능
+                      고급 추론
                     </span>
                     <span className='text-xs px-2 py-0.5 bg-purple-500/20 rounded'>
-                      지능형 라우팅
+                      자연어 처리
                     </span>
                   </div>
                 </div>
-                {currentMode === 'AUTO' && (
+                {currentMode === 'GOOGLE_ONLY' && (
                   <Check className='w-5 h-5 text-green-400' />
                 )}
               </div>
             </motion.button>
 
-            {/* 빠른 로컬 모드 */}
+            {/* 로컬 모드 */}
             <motion.button
               onClick={() => handleModeChange('LOCAL')}
               disabled={isChangingMode || currentMode === 'LOCAL'}
@@ -156,16 +156,16 @@ export function AISettingsTab({
                   <Home className='w-5 h-5 text-blue-400' />
                 </div>
                 <div className='text-left flex-1'>
-                  <h4 className='font-semibold'>⚡ 빠른 로컬 모드</h4>
+                  <h4 className='font-semibold'>🏠 로컬 모드</h4>
                   <p className='text-xs opacity-80'>
-                    로컬 AI만 사용 (빠른 응답)
+                    RAG + NLP + MCP + 하위 AI 엔진
                   </p>
                   <div className='flex flex-wrap gap-1 mt-1'>
                     <span className='text-xs px-2 py-0.5 bg-blue-500/20 rounded'>
-                      빠른 응답
+                      완전한 프라이버시
                     </span>
                     <span className='text-xs px-2 py-0.5 bg-blue-500/20 rounded'>
-                      데이터 보안
+                      빠른 응답
                     </span>
                   </div>
                 </div>

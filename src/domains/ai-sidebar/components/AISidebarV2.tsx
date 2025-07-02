@@ -458,14 +458,14 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   };
 
   // 🎯 AI 모드 변경 핸들러
-  const handleModeChange = async (newMode: AIMode) => {
+  const handleModeChange = async (newMode: 'LOCAL' | 'GOOGLE_ONLY') => {
     if (isGenerating) {
       console.log('⚠️ 생성 중에는 모드 변경 불가');
       return;
     }
 
     try {
-      setSelectedEngine(newMode);
+      setSelectedEngine(newMode as AIMode);
 
       // UnifiedAIEngineRouter 모드 변경
       unifiedAIRouter.setMode(newMode);
@@ -475,8 +475,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       // 모드 변경 알림 메시지 (선택사항)
       const modeNames = {
         LOCAL: '로컬 AI',
-        GOOGLE_AI: 'Google AI',
-        AUTO: '자동 선택',
+        GOOGLE_ONLY: 'Google AI',
       };
 
       console.log(`✅ ${modeNames[newMode]} 모드로 전환되었습니다.`);
@@ -674,7 +673,13 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                           );
                           setSelectedEngine(engine.id as AIMode);
                           // UnifiedAIEngineRouter 모드도 동기화
-                          unifiedAIRouter.setMode(engine.id as AIMode);
+                          const normalizedMode =
+                            engine.id === 'GOOGLE_AI'
+                              ? 'GOOGLE_ONLY'
+                              : engine.id === 'AUTO'
+                                ? 'LOCAL'
+                                : (engine.id as 'LOCAL' | 'GOOGLE_ONLY');
+                          unifiedAIRouter.setMode(normalizedMode);
                           setShowEngineInfo(false);
                         }}
                         className={`w-full p-2 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${

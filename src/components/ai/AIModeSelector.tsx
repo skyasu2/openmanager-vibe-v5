@@ -12,7 +12,7 @@
 import type { AIMode } from '@/types/ai-types';
 import { motion } from 'framer-motion';
 import { Brain, Cpu, Zap } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 
 interface AiModeSelectorProps {
   selectedMode: AIMode;
@@ -32,7 +32,7 @@ const AI_MODE_CONFIG = {
     textColor: 'text-blue-700',
     selectedBg: 'bg-blue-500',
   },
-  GOOGLE_AI: {
+  GOOGLE_ONLY: {
     label: 'Google AI',
     description: '고급 추론, 자연어 질의',
     icon: Brain,
@@ -50,6 +50,22 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
   disabled = false,
   className = '',
 }) => {
+  const [isChanging, setIsChanging] = useState(false);
+
+  const handleModeChange = async (newMode: AIMode) => {
+    if (disabled || isChanging || newMode === selectedMode) return;
+
+    setIsChanging(true);
+    try {
+      onModeChange(newMode);
+      console.log(`🔧 AI 모드 변경: ${selectedMode} → ${newMode}`);
+    } catch (error) {
+      console.error('❌ AI 모드 변경 실패:', error);
+    } finally {
+      setIsChanging(false);
+    }
+  };
+
   return (
     <div className={`space-y-2 ${className}`}>
       {/* 헤더 */}
@@ -64,7 +80,7 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
           className={`absolute top-1 bottom-1 rounded-md shadow-sm ${
             selectedMode === 'LOCAL'
               ? AI_MODE_CONFIG.LOCAL.selectedBg
-              : AI_MODE_CONFIG.GOOGLE_AI.selectedBg
+              : AI_MODE_CONFIG.GOOGLE_ONLY.selectedBg
           }`}
           initial={false}
           animate={{
@@ -80,12 +96,13 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
             const config = AI_MODE_CONFIG[mode];
             const Icon = config.icon;
             const isSelected = selectedMode === mode;
+            const isDisabled = disabled || config.disabled || isChanging;
 
             return (
               <motion.button
                 key={mode}
-                onClick={() => !disabled && onModeChange(mode)}
-                disabled={disabled}
+                onClick={() => !isDisabled && handleModeChange(mode)}
+                disabled={isDisabled}
                 className={`
                   relative px-3 py-2 rounded-md text-xs font-medium transition-colors
                   ${
@@ -93,10 +110,10 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
                       ? 'text-white'
                       : 'text-gray-600 hover:text-gray-800'
                   }
-                  ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
+                  ${isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
                 `}
-                whileHover={!disabled ? { scale: 1.02 } : {}}
-                whileTap={!disabled ? { scale: 0.98 } : {}}
+                whileHover={!isDisabled ? { scale: 1.02 } : {}}
+                whileTap={!isDisabled ? { scale: 0.98 } : {}}
               >
                 <div className='flex items-center justify-center space-x-1.5'>
                   <Icon className='w-3.5 h-3.5' />
@@ -135,7 +152,7 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
         </div>
 
         {/* 추가 정보 */}
-        {selectedMode === 'GOOGLE_AI' && (
+        {selectedMode === 'GOOGLE_ONLY' && (
           <div className='mt-1 text-xs text-gray-500'>
             💡 복잡한 질문이나 자연어 대화에 최적화
           </div>
@@ -148,7 +165,7 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
       </motion.div>
 
       {/* 사용량 표시 (Google AI인 경우) */}
-      {selectedMode === 'GOOGLE_AI' && (
+      {selectedMode === 'GOOGLE_ONLY' && (
         <div className='px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg'>
           <div className='flex items-center justify-between text-xs'>
             <span className='text-amber-700 font-medium'>Google AI 사용량</span>
