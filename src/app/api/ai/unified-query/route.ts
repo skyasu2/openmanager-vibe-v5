@@ -56,16 +56,19 @@ export async function GET(request: NextRequest) {
   try {
     if (action === 'status') {
       // 🎯 새로운 통합 AI 엔진 라우터 상태
-      const engineStatus = aiRouter.getEngineStatus();
+      const routerStatus = aiRouter.getStatus();
 
       return NextResponse.json({
         success: true,
         status: 'healthy',
-        engines: engineStatus.engines,
+        engines: routerStatus.engines,
         version: '4.0',
-        availableModes: engineStatus.availableModes,
-        currentMode: engineStatus.currentMode,
-        stats: engineStatus.stats,
+        availableModes: ['AUTO', 'LOCAL', 'GOOGLE_ONLY'],
+        currentMode: routerStatus.mode,
+        stats: routerStatus.stats,
+        router: routerStatus.router,
+        routerVersion: routerStatus.version,
+        initialized: routerStatus.initialized,
         features: {
           smartFallback: '지능형 폴백 시스템',
           intelligentMonitoring: '지능형 모니터링 분석',

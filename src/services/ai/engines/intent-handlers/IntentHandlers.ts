@@ -5,14 +5,11 @@
  * Single Responsibility: 각 핸들러는 하나의 의도만 처리
  */
 
+import { RealMCPClient } from '../../../mcp/real-mcp-client';
 import {
-  ProcessingContext,
   IntentHandler,
-  SystemMetrics,
-  AIQueryRequest,
-  AIQueryResponse,
+  ProcessingContext
 } from '../ai-types/AITypes';
-import { realMCPClient } from '../../../mcp/real-mcp-client';
 import { MetricsCollector } from '../metrics/MetricsCollector';
 
 export class TroubleshootingHandler implements IntentHandler {
@@ -27,7 +24,8 @@ export class TroubleshootingHandler implements IntentHandler {
     });
 
     // MCP를 통한 문서 검색
-    const mcpResults = await realMCPClient.searchDocuments(request.query);
+    const mcpClient = RealMCPClient.getInstance();
+    const mcpResults = await mcpClient.searchDocuments(request.query);
     response.mcp_results = mcpResults;
     response.processing_stats.data_sources.push('mcp-docs');
 
@@ -86,7 +84,8 @@ export class PredictionHandler implements IntentHandler {
     }
 
     // MCP를 통한 예측 관련 문서 검색
-    const mcpResults = await realMCPClient.searchDocuments(
+    const mcpClient = RealMCPClient.getInstance();
+    const mcpResults = await mcpClient.searchDocuments(
       `prediction ${request.query}`
     );
     response.mcp_results = mcpResults;
@@ -133,7 +132,8 @@ export class AnalysisHandler implements IntentHandler {
     }
 
     // MCP를 통한 분석 관련 문서 검색
-    const mcpResults = await realMCPClient.searchDocuments(
+    const mcpClient = RealMCPClient.getInstance();
+    const mcpResults = await mcpClient.searchDocuments(
       `analysis ${request.query}`
     );
     response.mcp_results = mcpResults;
@@ -172,7 +172,8 @@ export class MonitoringHandler implements IntentHandler {
     response.analysis_results.active_alerts = systemMetrics.alerts;
 
     // MCP를 통한 모니터링 관련 문서 검색
-    const mcpResults = await realMCPClient.searchDocuments(
+    const mcpClient = RealMCPClient.getInstance();
+    const mcpResults = await mcpClient.searchDocuments(
       `monitoring ${request.query}`
     );
     response.mcp_results = mcpResults;
@@ -211,7 +212,8 @@ export class ReportingHandler implements IntentHandler {
     response.analysis_results.active_alerts = systemMetrics.alerts;
 
     // MCP를 통한 보고서 관련 문서 검색
-    const mcpResults = await realMCPClient.searchDocuments(
+    const mcpClient = RealMCPClient.getInstance();
+    const mcpResults = await mcpClient.searchDocuments(
       `report ${request.query}`
     );
     response.mcp_results = mcpResults;
@@ -261,7 +263,8 @@ export class PerformanceHandler implements IntentHandler {
     }
 
     // MCP를 통한 성능 관련 문서 검색
-    const mcpResults = await realMCPClient.searchDocuments(
+    const mcpClient = RealMCPClient.getInstance();
+    const mcpResults = await mcpClient.searchDocuments(
       `performance ${request.query}`
     );
     response.mcp_results = mcpResults;
@@ -299,7 +302,8 @@ export class GeneralHandler implements IntentHandler {
     }
 
     // MCP를 통한 일반 검색
-    const mcpResults = await realMCPClient.searchDocuments(request.query);
+    const mcpClient = RealMCPClient.getInstance();
+    const mcpResults = await mcpClient.searchDocuments(request.query);
     response.mcp_results = { ...response.mcp_results, ...mcpResults };
     response.processing_stats.components_used.push('mcp-client');
   }
@@ -308,7 +312,7 @@ export class GeneralHandler implements IntentHandler {
     try {
       const results: any[] = [];
       for (const keyword of keywords.slice(0, 3)) {
-        const docs = await realMCPClient.searchDocuments(keyword);
+        const docs = await RealMCPClient.getInstance().searchDocuments(keyword);
         if (docs && Array.isArray(docs)) {
           results.push(...docs);
         }

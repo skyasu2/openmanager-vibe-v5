@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       const { unifiedAIRouter } = await import(
         '@/core/ai/engines/UnifiedAIEngineRouter'
       );
-      const routerStatus = unifiedAIRouter.getEngineStatus();
+      const routerStatus = unifiedAIRouter.getStatus();
 
       results.tests.unifiedRouter = {
         available: true,
