@@ -1,34 +1,36 @@
 /**
- * 🤖 Google AI 베타 모드 설정 컴포넌트
+ * 🤖 Google AI GOOGLE_ONLY 모드 설정 컴포넌트
  *
  * ✨ 기능:
- * - 베타 모드 온/오프 토글
+ * - GOOGLE_ONLY 모드 온/오프 토글
  * - Google AI Studio API 키 설정
  * - 모델 선택 (Gemini 1.5 Flash/Pro)
  * - 연결 테스트 및 상태 표시
  * - 사용량 통계 표시
+ *
+ * 특징:
+ * - Google AI는 자연어 질의 전용으로 제한적 사용
+ * - LOCAL 모드 완전 구현 후 성능 비교용 추가 옵션
+ * - 확장성 테스트 및 벤치마킹 목적
  */
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Sparkles,
-  Settings,
-  Eye,
-  EyeOff,
-  CheckCircle,
   AlertCircle,
-  Loader2,
-  Zap,
   Brain,
+  CheckCircle,
   Gauge,
   Info,
+  Loader2,
+  Settings,
   Shield,
+  Sparkles,
+  Zap,
 } from 'lucide-react';
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { requireAdminAuth } from '@/lib/auth';
+import { useEffect, useState } from 'react';
 
 interface GoogleAIBetaSettingsProps {
   className?: string;
@@ -275,7 +277,7 @@ export default function GoogleAIBetaSettings({
           </div>
           <div>
             <h3 className='font-semibold text-gray-900'>Google AI Studio</h3>
-            <p className='text-sm text-gray-500'>베타 모드 고급 기능</p>
+            <p className='text-sm text-gray-500'>GOOGLE_ONLY 모드 고급 기능</p>
           </div>
         </div>
 
@@ -298,9 +300,12 @@ export default function GoogleAIBetaSettings({
           <div className='flex items-center gap-3'>
             <Brain className='w-5 h-5 text-purple-600' />
             <div>
-              <h4 className='font-medium text-gray-900'>베타 모드 활성화</h4>
-              <p className='text-sm text-gray-600'>
-                Google AI Studio (Gemini) 사용
+              <h4 className='font-medium text-gray-900'>
+                GOOGLE_ONLY 모드 활성화
+              </h4>
+              <p className='text-sm text-gray-500 mt-1'>
+                자연어 질의 전용 Google AI 기능을 활성화합니다. (성능 비교 및
+                확장성 테스트용)
               </p>
             </div>
           </div>

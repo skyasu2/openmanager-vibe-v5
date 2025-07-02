@@ -117,8 +117,8 @@ export class AnalysisProcessor {
     console.log(`🔬 ${strategy.tier} 티어로 분석 시작`);
 
     switch (strategy.tier) {
-      case 'beta_enabled':
-        return this.performBetaEnabledAnalysis(intent, context, options);
+      case 'google_extended':
+        return this.performGoogleExtendedAnalysis(intent, context, options);
       case 'enhanced':
         return this.performEnhancedAnalysis(intent, context, options);
       case 'core_only':
@@ -131,14 +131,14 @@ export class AnalysisProcessor {
   }
 
   /**
-   * Beta 모드 분석 (모든 엔진 사용)
+   * Google Extended 모드 분석 (모든 엔진 사용)
    */
-  private async performBetaEnabledAnalysis(
+  private async performGoogleExtendedAnalysis(
     intent: any,
     context: MCPContext,
     options?: any
   ): Promise<MCPResponse> {
-    console.log('🚀 Beta 모드 분석 시작 (Google AI + MCP + RAG)');
+    console.log('🚀 Google Extended 모드 분석 시작 (Google AI + MCP + RAG)');
 
     try {
       // Google AI 우선 시도
@@ -152,8 +152,8 @@ export class AnalysisProcessor {
             success: true,
             content: googleResult.content || '분석이 완료되었습니다.',
             confidence: 0.95,
-            sources: ['google-ai', 'beta-mode'],
-            metadata: { tier: 'beta_enabled', engine: 'google-ai' },
+            sources: ['google-ai', 'google-extended-mode'],
+            metadata: { tier: 'google_extended', engine: 'google-ai' },
           };
         }
       }
@@ -161,7 +161,7 @@ export class AnalysisProcessor {
       // MCP 폴백
       return this.performEnhancedAnalysis(intent, context, options);
     } catch (error) {
-      console.error('❌ Beta 모드 분석 실패:', error);
+      console.error('❌ Google Extended 모드 분석 실패:', error);
       return this.performEnhancedAnalysis(intent, context, options);
     }
   }
@@ -203,7 +203,8 @@ export class AnalysisProcessor {
       // RAG 엔진 폴백 (기본 응답으로 대체)
       return {
         success: true,
-        content: '분석이 완료되었습니다. 시스템 상태가 정상적으로 모니터링되고 있습니다.',
+        content:
+          '분석이 완료되었습니다. 시스템 상태가 정상적으로 모니터링되고 있습니다.',
         confidence: 0.75,
         sources: ['fallback', 'enhanced-mode'],
         metadata: { tier: 'enhanced', engine: 'fallback' },

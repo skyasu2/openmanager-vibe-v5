@@ -8,7 +8,10 @@
  * - 모니터링 데이터
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+// 강제 동적 라우팅 설정
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 import { ProcessManager } from '@/core/system/ProcessManager';
 import {
   getProcessConfigs,
@@ -16,6 +19,7 @@ import {
 } from '@/core/system/process-configs';
 import { systemLogger } from '@/lib/logger';
 import { MCPWarmupService } from '@/services/mcp/mcp-warmup-service';
+import { NextRequest, NextResponse } from 'next/server';
 
 // 싱글톤 ProcessManager 인스턴스
 let processManager: ProcessManager | null = null;

@@ -336,7 +336,7 @@ const VERSION_HISTORY = {
       version: '5.44.0',
       date: KoreanTimeUtil.getVersionDate('5.44.0'),
       changes:
-        'TensorFlow 완전 제거, 경량 ML 엔진 통합, LocalRAG 독립화, Google AI Studio 베타 연동',
+        'TensorFlow 완전 제거, 경량 ML 엔진 통합, LocalRAG 독립화, Google AI Studio 성능 비교 연동',
     },
     {
       version: '5.43.0',

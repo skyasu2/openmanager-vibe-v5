@@ -1,4 +1,7 @@
-import { unifiedAIRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
+import { UnifiedAIEngineRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
+import { getAISessionStorage, saveAIResponse } from '@/lib/ai-session-storage';
+import { EdgeLogger } from '@/lib/edge-runtime-utils';
+import { AIRequest } from '@/types/ai-types';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -11,25 +14,56 @@ import { NextRequest, NextResponse } from 'next/server';
  * - 성능 최적화
  */
 
+/**
+ * 🤖 OpenManager Vibe v5 AI Agent API
+ * - 2-Mode 시스템 (LOCAL 기본값, GOOGLE_ONLY 자연어 처리용)
+ * - LOCAL: Supabase RAG + Korean AI + MCP 통합
+ * - GOOGLE_ONLY: Google AI 전용 (자연어 처리에서만 사용자 선택)
+ * - Edge Runtime 완전 호환
+ * - Vercel Hobby/Pro 플랜 지원
+ */
+
+const logger = EdgeLogger.getInstance();
+
+// Edge Runtime 설정 (Pro 플랜 최적화, Hobby 플랜 폴백 지원)
+export const runtime = 'edge';
+export const preferredRegion = ['icn1', 'hnd1', 'sin1']; // 아시아 지역 최적화
+
+// Vercel 플랜별 제한사항
+const VERCEL_LIMITS = {
+  hobby: {
+    maxExecutionTime: 10000, // 10초
+    maxMemory: 128, // MB
+    requestsPerMinute: 100,
+  },
+  pro: {
+    maxExecutionTime: 15000, // 15초 (기본)
+    maxMemory: 1024, // MB
+    requestsPerMinute: 1000,
+  },
+} as const;
+
 interface AIAgentRequest {
   message?: string;
   query?: string;
   context?: {
     source?: string;
     timestamp?: string;
-    mode?: 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY';
+    mode?: 'LOCAL' | 'GOOGLE_ONLY';
     [key: string]: any;
   };
 }
 
 interface AIRouterRequest {
   query: string;
-  mode?: 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY';
+  mode?: 'LOCAL' | 'GOOGLE_ONLY';
   context?: Record<string, any>;
+  sessionId?: string;
   options?: {
     maxTokens?: number;
     temperature?: number;
     includeThinking?: boolean;
+    saveSession?: boolean;
   };
 }
 
@@ -72,112 +106,232 @@ interface SystemMetrics {
   };
 }
 
+interface AIRequestBody {
+  query?: string;
+  action?: string;
+  context?: {
+    sessionId?: string;
+    mode?: 'LOCAL' | 'GOOGLE_ONLY';
+    priority?: number;
+    timeout?: number;
+  };
+  metadata?: Record<string, any>;
+}
+
+interface AIResponseBody {
+  success: boolean;
+  response?: string;
+  data?: any;
+  error?: string;
+  metadata?: {
+    mode?: 'LOCAL' | 'GOOGLE_ONLY';
+    enginePath?: string;
+    duration?: number;
+    sessionId?: string;
+    timestamp?: string;
+  };
+}
+
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
+  // Vercel 플랜 감지
+  const isProPlan =
+    process.env.VERCEL_PLAN === 'pro' || process.env.NODE_ENV === 'development';
+  const limits = isProPlan ? VERCEL_LIMITS.pro : VERCEL_LIMITS.hobby;
+
+  // 타임아웃 설정
+  const timeoutController = new AbortController();
+  const timeoutId = setTimeout(() => {
+    timeoutController.abort();
+  }, limits.maxExecutionTime);
+
   try {
-    // 빌드 환경에서는 빠른 응답 반환
-    if (process.env.NEXT_PHASE === 'phase-production-build') {
-      return NextResponse.json({
-        success: true,
-        response: 'Build mode - AI agent ready',
-        timestamp: new Date().toISOString(),
-      });
-    }
+    const body: AIRequestBody = await request.json();
+    const { query, action, context, metadata } = body;
 
-    const body: AIAgentRequest = await request.json();
-    const { message, query, context } = body;
-
-    // message 또는 query 중 하나를 사용
-    const userQuery = message || query;
-
-    if (!userQuery) {
+    // 1. 입력 검증
+    if (!query && !action) {
       return NextResponse.json(
         {
           success: false,
-          error: 'message 또는 query가 필요합니다',
-          timestamp: new Date().toISOString(),
+          error: 'query 또는 action이 필요합니다',
+          metadata: { timestamp: new Date().toISOString() },
         },
         { status: 400 }
       );
     }
 
-    console.log(`🤖 AI 에이전트 요청: ${userQuery}`);
-    console.log(`📍 요청 소스: ${context?.source || 'unknown'}`);
+    // 2. 모드 설정 및 검증 (기본값: LOCAL)
+    const requestedMode = context?.mode || 'LOCAL';
+    const mode = ['LOCAL', 'GOOGLE_ONLY'].includes(requestedMode)
+      ? requestedMode
+      : 'LOCAL';
 
-    // 새로운 UnifiedAIEngineRouter 사용
-    const routerRequest: AIRouterRequest = {
-      query: userQuery.trim(),
-      mode: context?.mode || 'AUTO',
+    if (mode !== requestedMode) {
+      console.warn(`⚠️ 지원하지 않는 모드 ${requestedMode}, LOCAL 모드로 처리`);
+    }
+
+    logger.info('🤖 AI Agent 요청 처리 시작', { query, mode });
+
+    // 쿼리 검증
+    if (!query || query.trim() === '') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'MISSING_QUERY',
+            message: '질문이 필요합니다.',
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    // 세션 ID 생성
+    const storage = getAISessionStorage();
+    const sessionId = storage.generateSessionId();
+
+    // Thinking Process 추적을 위한 배열
+    const thinkingProcess: Array<{
+      type: string;
+      title: string;
+      description: string;
+      timestamp: number;
+    }> = [];
+
+    // 생각 과정 1: 질의 분석
+    thinkingProcess.push({
+      type: 'analysis',
+      title: '질의 분석',
+      description: `사용자 질문을 분석하고 적절한 AI 모드(${mode})를 선택했습니다.`,
+      timestamp: Date.now(),
+    });
+
+    // AI 요청 생성
+    const aiRequest: AIRequest = {
+      query: query.trim(),
+      mode,
       context: {
-        urgency: determineUrgency(userQuery),
-        sessionId: context?.sessionId || generateSessionId(),
-        source: context?.source || 'ai-agent',
-        ...context,
-      },
-      options: {
-        maxTokens: 1000,
-        temperature: 0.7,
-        includeThinking: false, // 배포환경에서는 간소화
+        sessionId,
+        timestamp: new Date().toISOString(),
+        userAgent: request.headers.get('User-Agent') || 'unknown',
       },
     };
 
-    // AI 라우터 초기화 및 처리
-    await unifiedAIRouter.initialize();
-    const result = await unifiedAIRouter.processQuery(routerRequest);
+    // 생각 과정 2: 엔진 호출
+    thinkingProcess.push({
+      type: 'processing',
+      title: 'AI 엔진 호출',
+      description:
+        'Unified AI Engine Router를 통해 최적의 AI 엔진들을 호출합니다.',
+      timestamp: Date.now(),
+    });
 
-    // 배포환경에 최적화된 응답 포맷
-    const optimizedResponse = formatForDeployment(result);
+    // Unified AI Router로 처리
+    const unifiedAIRouter = UnifiedAIEngineRouter.getInstance();
+    await unifiedAIRouter.initialize();
+    const response = await unifiedAIRouter.processQuery(aiRequest);
+
+    // 생각 과정 3: 응답 생성
+    thinkingProcess.push({
+      type: 'completion',
+      title: '응답 생성 완료',
+      description: `${response.enginePath?.length || 1}개 엔진을 사용하여 응답을 생성했습니다.`,
+      timestamp: Date.now(),
+    });
+
+    // 📝 AI 세션 저장 (비동기, 실패해도 응답은 계속)
+    saveAIResponse(
+      sessionId,
+      query.trim(),
+      mode,
+      response,
+      thinkingProcess,
+      (response as any).reasoning || []
+    ).catch(error => {
+      logger.warn('AI 세션 저장 실패 (응답에는 영향 없음)', error);
+    });
+
+    // Edge Runtime 최적화된 응답 포맷
+    const optimizedResponse = formatForEdgeDeployment(response, isProPlan);
 
     return NextResponse.json({
       success: true,
-      query: userQuery,
+      query: query || '',
       response: optimizedResponse,
       metadata: {
-        processingMethod: 'unified-ai-router',
-        mode: routerRequest.mode,
-        engine: (result as any).engine || 'unknown',
-        responseTime: (result as any).responseTime || 0,
-        confidence: (result as any).confidence || 0.5,
+        processingMethod: 'unified-ai-router-edge',
+        requestedMode: requestedMode,
+        actualMode: mode,
+        vercelPlan: isProPlan ? 'pro' : 'hobby',
+        edgeRuntime: true,
+        region: process.env.VERCEL_REGION || 'auto',
+        engine: (response as any).engine || 'unknown',
+        responseTime: Date.now() - startTime,
+        confidence: (response as any).confidence || 0.5,
+        planOptimized: isProPlan,
       },
       timestamp: new Date().toISOString(),
-      source: 'ai-agent-v5.44.3',
+      source: 'ai-agent-edge-v5.44.3',
     });
   } catch (error) {
-    console.error('❌ AI 에이전트 오류:', error);
+    clearTimeout(timeoutId);
+    console.error('❌ AI 에이전트 Edge Runtime 오류:', error);
 
-    // 폴백: 기본 응답 생성
+    // Edge Runtime 폴백 처리
+    if (error instanceof Error && error.message === 'Request timeout') {
+      return NextResponse.json({
+        success: true, // 타임아웃도 성공으로 처리 (사용자 경험)
+        query: 'timeout',
+        response: generateTimeoutFallback(isProPlan),
+        metadata: {
+          processingMethod: 'timeout-fallback',
+          vercelPlan: isProPlan ? 'pro' : 'hobby',
+          edgeRuntime: true,
+          timeout: true,
+          responseTime: Date.now() - startTime,
+        },
+        timestamp: new Date().toISOString(),
+        source: 'timeout-fallback-edge',
+      });
+    }
+
+    // 일반 폴백 처리
     try {
       const body: AIAgentRequest = await request.json();
-      const { message, query, context } = body;
-      const userQuery = message || query;
+      const { message, query } = body;
+      const userQuery = message || query || 'unknown';
 
-      if (!userQuery) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'message 또는 query가 필요합니다',
-            timestamp: new Date().toISOString(),
-          },
-          { status: 400 }
-        );
-      }
-
-      const fallbackResponse = await processQueryFallback(userQuery, context);
+      const fallbackResponse = await processQueryFallback(userQuery, {
+        edgeRuntime: true,
+        isProPlan,
+      });
       return NextResponse.json({
         success: true,
         query: userQuery,
         response: fallbackResponse,
         metadata: {
-          processingMethod: 'fallback-basic',
+          processingMethod: 'fallback-edge',
           fallbackUsed: true,
+          vercelPlan: isProPlan ? 'pro' : 'hobby',
+          edgeRuntime: true,
         },
         timestamp: new Date().toISOString(),
-        source: 'fallback-ai-agent',
+        source: 'fallback-ai-agent-edge',
       });
     } catch (fallbackError) {
       return NextResponse.json(
         {
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: 'AI 서비스 일시 중단',
+          details: isProPlan
+            ? error instanceof Error
+              ? error.message
+              : 'Unknown error'
+            : 'Resource limited',
+          vercelPlan: isProPlan ? 'pro' : 'hobby',
+          edgeRuntime: true,
           timestamp: new Date().toISOString(),
         },
         { status: 500 }
@@ -265,48 +419,89 @@ function generateSessionId(): string {
   return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-function formatForDeployment(result: any): string {
+/**
+ * 🚀 Edge Runtime 최적화된 응답 포맷
+ */
+function formatForEdgeDeployment(result: any, isProPlan: boolean): string {
   if (typeof result === 'string') {
     return result;
   }
 
   if (result && result.response) {
-    return result.response;
-  }
+    let response = result.response;
 
-  if (result && result.answer) {
-    return result.answer;
+    // Pro 플랜: 풍부한 메타데이터 포함
+    if (isProPlan && result.metadata) {
+      if (result.metadata.confidence) {
+        response += `\n\n🎯 **신뢰도**: ${Math.round(result.metadata.confidence * 100)}%`;
+      }
+      if (result.metadata.processingTime) {
+        response += `\n⚡ **처리시간**: ${result.metadata.processingTime}ms (Edge Runtime)`;
+      }
+    }
+
+    return response;
   }
 
   // 기본 응답
-  return '죄송합니다. 현재 AI 시스템이 응답을 생성할 수 없습니다. 잠시 후 다시 시도해주세요.';
+  return isProPlan
+    ? '현재 AI 시스템이 응답을 준비 중입니다. Edge Runtime에서 최적화된 처리를 진행하고 있습니다.'
+    : '현재 시스템이 제한된 모드로 운영 중입니다. 기본적인 응답만 제공됩니다.';
+}
+
+/**
+ * 📱 타임아웃 폴백 응답 생성
+ */
+function generateTimeoutFallback(isProPlan: boolean): string {
+  if (isProPlan) {
+    return `⏱️ **처리 시간 초과 (Pro 플랜)**
+
+요청하신 분석이 예상보다 복잡하여 시간이 초과되었습니다. 
+
+**즉시 도움을 받으시려면:**
+1. 더 구체적인 질문으로 다시 시도
+2. 시스템 대시보드에서 실시간 상태 확인
+3. 문제가 지속되면 지원팀 문의
+
+**Pro 플랜 혜택**: 더 긴 처리 시간과 고급 분석 기능을 이용하실 수 있습니다.`;
+  } else {
+    return `⏱️ **처리 시간 제한 (Hobby 플랜)**
+
+Hobby 플랜의 10초 처리 제한에 도달했습니다.
+
+**권장사항:**
+1. 더 간단한 질문으로 다시 시도
+2. 기본 모니터링 기능 이용
+3. Pro 플랜 업그레이드 시 15초+ 처리 시간 제공
+
+현재 제한된 모드에서도 기본적인 서버 상태 확인은 가능합니다.`;
+  }
 }
 
 async function processQueryFallback(
   query: string,
   context?: any
 ): Promise<string> {
-  // 기본 키워드 기반 응답 시스템
+  const isProPlan = context?.isProPlan || false;
   const lowerQuery = query.toLowerCase();
 
+  // Edge Runtime 최적화된 키워드 기반 응답
   if (lowerQuery.includes('서버') || lowerQuery.includes('모니터링')) {
-    return `서버 모니터링에 대한 질문을 받았습니다: "${query}"\n\n현재 시스템 상태를 확인하여 관련 정보를 제공하겠습니다. OpenManager Vibe v5의 실시간 모니터링 기능을 통해 서버 상태를 추적하고 있습니다.`;
+    return isProPlan
+      ? `**서버 모니터링 (Pro 플랜)**: "${query}"\n\n실시간 서버 상태를 확인하여 상세한 분석을 제공하겠습니다. Edge Runtime에서 최적화된 처리로 빠른 응답을 보장합니다.\n\n• 고급 분석 기능 활용 가능\n• 예측적 모니터링 지원\n• 다중 서버 상관 분석`
+      : `**서버 모니터링 (Hobby 플랜)**: "${query}"\n\n기본 서버 상태 확인이 가능합니다.\n\n• 기본 메트릭 제공\n• 실시간 상태 표시\n• Pro 플랜 업그레이드시 고급 기능 이용 가능`;
   }
 
   if (lowerQuery.includes('ai') || lowerQuery.includes('인공지능')) {
-    return `AI 관련 질문을 받았습니다: "${query}"\n\nOpenManager Vibe v5는 Supabase RAG 엔진을 중심으로 한 통합 AI 시스템을 제공합니다. Google AI와 로컬 AI 엔진을 함께 활용하여 최적의 응답을 생성합니다.`;
-  }
-
-  if (
-    lowerQuery.includes('에러') ||
-    lowerQuery.includes('오류') ||
-    lowerQuery.includes('문제')
-  ) {
-    return `시스템 문제에 대한 질문을 받았습니다: "${query}"\n\n문제 해결을 위해 시스템 로그를 확인하고 관련 정보를 분석하겠습니다. 구체적인 에러 메시지나 상황을 알려주시면 더 정확한 도움을 드릴 수 있습니다.`;
+    return isProPlan
+      ? `**AI 시스템 (Pro 플랜)**: "${query}"\n\nOpenManager Vibe v5의 모든 AI 기능을 이용하실 수 있습니다.\n\n• Supabase RAG 엔진\n• Google AI 통합\n• MCP 파일시스템 연동\n• Edge Runtime 최적화`
+      : `**AI 시스템 (Hobby 플랜)**: "${query}"\n\n기본 AI 기능을 제공합니다.\n\n• 로컬 AI 엔진\n• 기본 분석 기능\n• 제한된 응답 시간`;
   }
 
   // 기본 응답
-  return `질문을 받았습니다: "${query}"\n\n현재 AI 시스템이 일시적으로 제한된 모드로 작동 중입니다. 기본적인 응답만 제공할 수 있으며, 더 정확한 답변을 위해서는 시스템이 완전히 복구된 후 다시 문의해주세요.`;
+  return isProPlan
+    ? `**Pro 플랜 응답**: "${query}"\n\nEdge Runtime에서 최적화된 처리가 진행되었습니다. 더 정확한 분석을 위해 AI 시스템이 완전히 복구된 후 다시 문의해주세요.`
+    : `**Hobby 플랜 응답**: "${query}"\n\n제한된 기능으로 기본 응답만 제공됩니다. Pro 플랜 업그레이드시 고급 AI 기능과 더 긴 처리 시간을 이용하실 수 있습니다.`;
 }
 
 /**

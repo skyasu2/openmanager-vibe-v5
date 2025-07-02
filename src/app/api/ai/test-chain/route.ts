@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { query, mode = 'AUTO' } = body;
+    const { query, mode = 'LOCAL' } = body;
 
     if (!query) {
       return NextResponse.json(

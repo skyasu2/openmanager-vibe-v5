@@ -12,10 +12,22 @@
 
 /**
  * 자연어 처리 AI 모드 (2-Mode System)
- * - LOCAL: 로컬 AI 엔진들만 사용 (Google AI 비활성화)
- * - GOOGLE_ONLY: Google AI만 사용 (레거시 호환성)
+ * - LOCAL: 로컬 AI 엔진들만 사용 (기본값)
+ * - GOOGLE_ONLY: Google AI만 사용 (자연어 처리에서만 사용자 선택)
  */
 export type AIMode = 'LOCAL' | 'GOOGLE_ONLY';
+
+/**
+ * AI 엔진 타입 정의
+ */
+export type AIEngineType =
+  | 'google-ai'
+  | 'supabase-rag'
+  | 'korean-ai'
+  | 'mcp-client'
+  | 'render-mcp'
+  | 'transformers'
+  | 'mcp-context';
 
 /**
  * AI 에이전트 모드 (응답 깊이)
@@ -48,6 +60,7 @@ export type Priority = 'low' | 'medium' | 'high' | 'critical';
 
 export interface AIRequest {
   query: string;
+  type?: string; // 요청 타입 (자연어, 명령어, 분석 등)
   mode?: AIMode;
   agentMode?: AIAgentMode;
   category?: string;
@@ -60,6 +73,7 @@ export interface AIRequest {
 export interface AIResponse {
   success: boolean;
   response: string;
+  data?: any;
   confidence: number;
   mode: AIMode;
   agentMode?: AIAgentMode;
@@ -73,18 +87,26 @@ export interface AIResponse {
 }
 
 export interface AIResponseMetadata {
-  mainEngine: string;
-  supportEngines: string[];
-  ragUsed: boolean;
-  googleAIUsed: boolean;
-  mcpContextUsed: boolean;
-  subEnginesUsed: string[];
+  mainEngine?: string;
+  supportEngines?: string[];
+  ragUsed?: boolean;
+  googleAIUsed?: boolean;
+  mcpContextUsed?: boolean;
+  subEnginesUsed?: string[];
   cacheUsed?: boolean;
   fallbackReason?: string;
   processingTime?: number;
   enginePath?: string[];
   error?: string;
   allEnginesFailed?: boolean;
+  requestId?: string;
+  duration?: number;
+  timestamp?: string;
+  confidence?: number;
+  combinedResponses?: number;
+  vercelPlan?: string;
+  nlpUsed?: boolean;
+  mcpUsed?: boolean;
 }
 
 export interface PerformanceMetrics {

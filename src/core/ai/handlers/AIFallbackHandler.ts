@@ -254,7 +254,7 @@ ${errorDetails.solutions.map((solution, i) => `${i + 1}. ${solution}`).join('\n'
       success: true,
       response: detailedResponse,
       confidence: 0.35,
-      mode: 'GOOGLE_AI',
+      mode: 'GOOGLE_ONLY',
       enginePath: ['google-ai-emergency-fallback'],
       processingTime,
       fallbacksUsed: fallbacksUsed + 1,
@@ -270,7 +270,7 @@ ${errorDetails.solutions.map((solution, i) => `${i + 1}. ${solution}`).join('\n'
     };
 
     this.updateMetrics(
-      'GOOGLE_AI',
+      'GOOGLE_ONLY',
       processingTime,
       reason || 'google-ai-mode-emergency'
     );
@@ -332,7 +332,7 @@ ${errorDetails.solutions.map((solution, i) => `${i + 1}. ${solution}`).join('\n'
         mainEngine: `${mode.toLowerCase()}-emergency-fallback`,
         supportEngines: [],
         ragUsed: false,
-        googleAIUsed: mode === 'GOOGLE_AI' || mode === 'GOOGLE_ONLY',
+        googleAIUsed: mode === 'GOOGLE_ONLY',
         mcpContextUsed: false,
         subEnginesUsed: [],
         fallbackReason: `${errorDetails.category}: ${errorDetails.description}`,
@@ -354,13 +354,6 @@ ${errorDetails.solutions.map((solution, i) => `${i + 1}. ${solution}`).join('\n'
         'Transformers 엔진',
         'MCP 컨텍스트',
       ],
-      GOOGLE_AI: [
-        'Google AI API',
-        'Gemini Pro',
-        '고급 AI 분석',
-        'Cloud 서비스',
-      ],
-      // AUTO 모드 제거됨
       GOOGLE_ONLY: ['Google AI 전용 서비스', 'Gemini API', 'Cloud AI Platform'],
     };
 
@@ -373,8 +366,6 @@ ${errorDetails.solutions.map((solution, i) => `${i + 1}. ${solution}`).join('\n'
   private getConfidenceByMode(mode: AIMode): number {
     const confidence = {
       LOCAL: 0.35,
-      GOOGLE_AI: 0.3,
-      AUTO: 0.25,
       GOOGLE_ONLY: 0.2,
     };
 
@@ -433,8 +424,6 @@ ${errorDetails.solutions.map((solution, i) => `${i + 1}. ${solution}`).join('\n'
       totalFallbacks: 0,
       fallbacksByMode: {
         LOCAL: 0,
-        GOOGLE_AI: 0,
-        AUTO: 0,
         GOOGLE_ONLY: 0,
       },
       fallbacksByReason: {},

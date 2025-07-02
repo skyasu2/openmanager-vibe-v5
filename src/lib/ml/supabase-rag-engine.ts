@@ -1,14 +1,14 @@
 /**
- * 🚀 Supabase Vector RAG Engine v3.0 (MCP 파일시스템 연동)
+ * 🚀 Supabase Vector RAG Engine v3.1 (Edge Runtime 호환)
  * Supabase pgvector를 활용한 고성능 벡터 검색 시스템
  * + 향상된 한국어 NLP 처리
  * + 캐싱 및 성능 최적화
  * + MCP 파일시스템 서버 연동으로 동적 컨텍스트 조회
+ * + Edge Runtime 완전 호환
  */
 
 import { utf8Logger } from '@/utils/utf8-logger';
 import { createClient } from '@supabase/supabase-js';
-import { checkEnvironmentStatus } from '../environment/auto-decrypt-env';
 import { koreanMorphologyAnalyzer } from './korean-morphology-analyzer';
 
 interface VectorDocument {
@@ -495,20 +495,23 @@ export class SupabaseRAGEngine {
   }
 
   /**
-   * Supabase 클라이언트 생성 (암호화된 환경변수 활용)
+   * Supabase 클라이언트 생성 (Edge Runtime 호환)
    */
   private createSupabaseClient() {
-    // 자동 복호화 시스템을 통한 환경변수 복구 시도
+    // Edge Runtime 호환 환경변수 검증
     try {
-      checkEnvironmentStatus()
-        .then(envStatus => {
-          if (!envStatus.valid) {
-            console.warn('⚠️ 환경변수 검증 실패:', envStatus.message);
-          }
-        })
-        .catch(error => {
-          console.warn('⚠️ 환경변수 상태 확인 실패:', error);
-        });
+      // 간단한 환경변수 검증 (Edge Runtime 호환)
+      const requiredEnvs = [
+        'NEXT_PUBLIC_SUPABASE_URL',
+        'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+      ];
+      const missing = requiredEnvs.filter(env => !process.env[env]);
+
+      if (missing.length > 0) {
+        console.warn('⚠️ 누락된 환경변수:', missing.join(', '));
+      } else {
+        console.log('✅ 환경변수 검증 완료');
+      }
     } catch (error) {
       console.warn('⚠️ 환경변수 상태 확인 실패:', error);
     }
@@ -537,7 +540,7 @@ export class SupabaseRAGEngine {
     }
 
     this.supabase = createClient(supabaseUrl, supabaseKey);
-    console.log('✅ Supabase 클라이언트 생성 완료 (자동 복호화 시스템 활용)');
+    console.log('✅ Supabase 클라이언트 생성 완료 (Edge Runtime 호환)');
   }
 
   /**

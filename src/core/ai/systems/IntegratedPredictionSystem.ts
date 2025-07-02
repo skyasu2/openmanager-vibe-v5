@@ -131,7 +131,7 @@ export class IntegratedPredictionSystem implements IIntegratedPredictionSystem {
         new IncidentDetectionEngine(),
         new SolutionDatabase(),
         true,
-        'AUTO'
+        'LOCAL'
       );
       this.anomalyDetectionService = new AnomalyDetectionService();
       this.ruleBasedEngine = new RuleBasedMainEngine();

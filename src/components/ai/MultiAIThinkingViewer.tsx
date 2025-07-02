@@ -27,7 +27,7 @@ export interface MultiAIThinkingStep {
 }
 
 export interface MultiAIThinkingProps {
-  mode: 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY';
+  mode: 'LOCAL' | 'GOOGLE_ONLY';
   isThinking: boolean;
   steps: MultiAIThinkingStep[];
   currentQuery?: string;

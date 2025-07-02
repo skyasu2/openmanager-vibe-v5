@@ -1,13 +1,13 @@
 /**
  * 🚨 자동 장애 보고서 생성 시스템 v3.1
- * 
+ *
  * 📋 주요 기능:
  * - 실시간 장애 감지 및 분석
  * - 자동 해결 방안 제시
  * - 예측 기반 사전 대응
  * - AI 기반 근본 원인 분석
  * - 학습 기능으로 정확도 지속 향상
- * 
+ *
  * 🎯 새로운 기능 (v3.1):
  * - AI 모드별 처리 전략 (LOCAL/GOOGLE_AI)
  * - 머신러닝 기반 패턴 학습
@@ -22,7 +22,7 @@ import {
   Incident,
   IncidentAnalysis,
   IncidentReport,
-  Priority
+  Priority,
 } from '@/types/ai-types';
 
 // 추가 시스템 전용 인터페이스
@@ -86,14 +86,18 @@ export class AutoIncidentReportSystem {
       batchSize: 5, // 한 번에 5개씩 처리
     };
 
-    console.log(`🚨 자동 장애 보고서 시스템 초기화됨 (모드: ${this.currentMode})`);
+    console.log(
+      `🚨 자동 장애 보고서 시스템 초기화됨 (모드: ${this.currentMode})`
+    );
   }
 
   /**
    * 🎯 AI 모드 변경
    */
   public setMode(mode: AIMode): void {
-    console.log(`🔄 자동 장애 보고서 시스템 모드 변경: ${this.currentMode} → ${mode}`);
+    console.log(
+      `🔄 자동 장애 보고서 시스템 모드 변경: ${this.currentMode} → ${mode}`
+    );
     this.currentMode = mode;
   }
 
@@ -160,17 +164,28 @@ export class AutoIncidentReportSystem {
       let analysis: IncidentAnalysis;
       switch (this.currentMode) {
         case 'LOCAL':
-          analysis = await this.analyzeWithLocalMode(incident, serverData, context);
+          analysis = await this.analyzeWithLocalMode(
+            incident,
+            serverData,
+            context
+          );
           break;
-        case 'GOOGLE_AI':
-          analysis = await this.analyzeWithGoogleAIMode(incident, serverData, context);
+        case 'GOOGLE_ONLY':
+          analysis = await this.analyzeWithGoogleAIMode(
+            incident,
+            serverData,
+            context
+          );
           break;
         default:
           throw new Error(`지원하지 않는 모드: ${this.currentMode}`);
       }
 
       // 3단계: 해결 방안 제시
-      const recommendations = await this.generateRecommendations(incident, analysis);
+      const recommendations = await this.generateRecommendations(
+        incident,
+        analysis
+      );
 
       // 4단계: 보고서 생성
       const report: IncidentReport = {
@@ -184,17 +199,26 @@ export class AutoIncidentReportSystem {
 
       // 5단계: 학습 데이터 업데이트
       if (this.learningConfig.enabled) {
-        await this.updateLearningData(incident, analysis, Date.now() - startTime);
+        await this.updateLearningData(
+          incident,
+          analysis,
+          Date.now() - startTime
+        );
       }
 
-      console.log(`✅ 장애 분석 완료 (${Date.now() - startTime}ms, 신뢰도: ${analysis.confidence})`);
+      console.log(
+        `✅ 장애 분석 완료 (${Date.now() - startTime}ms, 신뢰도: ${analysis.confidence})`
+      );
       return report;
-
     } catch (error) {
       console.error('❌ 장애 분석 실패:', error);
 
       // 응급 폴백 보고서 생성
-      return this.generateEmergencyReport(serverData, error, Date.now() - startTime);
+      return this.generateEmergencyReport(
+        serverData,
+        error,
+        Date.now() - startTime
+      );
     }
   }
 
@@ -239,7 +263,11 @@ export class AutoIncidentReportSystem {
 
     try {
       // 먼저 로컬 분석 수행
-      const localAnalysis = await this.analyzeWithLocalMode(incident, serverData, context);
+      const localAnalysis = await this.analyzeWithLocalMode(
+        incident,
+        serverData,
+        context
+      );
 
       // Google AI 추가 분석 (실제 구현에서는 GoogleAIService 사용)
       // 현재는 로컬 분석을 기반으로 향상된 결과 제공
@@ -255,11 +283,13 @@ export class AutoIncidentReportSystem {
 
       // 근본 원인 추론 강화
       if (!enhancedAnalysis.rootCause) {
-        enhancedAnalysis.rootCause = this.inferAdvancedRootCause(incident, serverData);
+        enhancedAnalysis.rootCause = this.inferAdvancedRootCause(
+          incident,
+          serverData
+        );
       }
 
       return enhancedAnalysis;
-
     } catch (error) {
       console.warn('⚠️ Google AI 분석 실패, 로컬 모드로 폴백:', error);
       return this.analyzeWithLocalMode(incident, serverData, context);
@@ -269,7 +299,10 @@ export class AutoIncidentReportSystem {
   /**
    * 🔍 장애 감지 (Public 인터페이스)
    */
-  public async detectIncident(serverData: any, alertData?: any): Promise<Incident> {
+  public async detectIncident(
+    serverData: any,
+    alertData?: any
+  ): Promise<Incident> {
     const incident: Incident = {
       id: `incident-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type: this.classifyIncidentType(serverData),
@@ -318,9 +351,12 @@ export class AutoIncidentReportSystem {
   private generateDescription(serverData: any): string {
     const issues: string[] = [];
 
-    if (serverData.cpu_usage > 80) issues.push(`CPU 사용률 ${serverData.cpu_usage}%`);
-    if (serverData.memory_usage > 80) issues.push(`메모리 사용률 ${serverData.memory_usage}%`);
-    if (serverData.disk_usage > 90) issues.push(`디스크 사용률 ${serverData.disk_usage}%`);
+    if (serverData.cpu_usage > 80)
+      issues.push(`CPU 사용률 ${serverData.cpu_usage}%`);
+    if (serverData.memory_usage > 80)
+      issues.push(`메모리 사용률 ${serverData.memory_usage}%`);
+    if (serverData.disk_usage > 90)
+      issues.push(`디스크 사용률 ${serverData.disk_usage}%`);
 
     return issues.length > 0
       ? `성능 이슈 감지: ${issues.join(', ')}`
@@ -372,9 +408,13 @@ export class AutoIncidentReportSystem {
    * 🔍 패턴 매칭
    */
   private findMatchingPattern(incident: Incident): LearningPattern | null {
-    return this.learningData.patterns.find(
-      pattern => pattern.type === incident.type && pattern.confidence > this.learningConfig.minConfidenceThreshold
-    ) || null;
+    return (
+      this.learningData.patterns.find(
+        pattern =>
+          pattern.type === incident.type &&
+          pattern.confidence > this.learningConfig.minConfidenceThreshold
+      ) || null
+    );
   }
 
   /**
@@ -396,7 +436,10 @@ export class AutoIncidentReportSystem {
   /**
    * 💡 권장사항 생성
    */
-  private async generateRecommendations(incident: Incident, analysis: IncidentAnalysis): Promise<string[]> {
+  private async generateRecommendations(
+    incident: Incident,
+    analysis: IncidentAnalysis
+  ): Promise<string[]> {
     const recommendations = [...analysis.recommendations];
 
     // 솔루션 DB에서 추가 권장사항 조회 (메서드가 존재하는 경우만)
@@ -421,7 +464,11 @@ export class AutoIncidentReportSystem {
   /**
    * 🚨 응급 보고서 생성
    */
-  private generateEmergencyReport(serverData: any, error: any, processingTime: number): IncidentReport {
+  private generateEmergencyReport(
+    serverData: any,
+    error: any,
+    processingTime: number
+  ): IncidentReport {
     const emergencyIncident: Incident = {
       id: `emergency-${Date.now()}`,
       type: 'system_error',
@@ -465,7 +512,11 @@ export class AutoIncidentReportSystem {
   /**
    * 📈 학습 데이터 업데이트
    */
-  private async updateLearningData(incident: Incident, analysis: IncidentAnalysis, processingTime: number): Promise<void> {
+  private async updateLearningData(
+    incident: Incident,
+    analysis: IncidentAnalysis,
+    processingTime: number
+  ): Promise<void> {
     if (!this.learningConfig.enabled) return;
 
     this.learningData.totalIncidents++;
@@ -476,7 +527,10 @@ export class AutoIncidentReportSystem {
       const pattern: LearningPattern = {
         id: `pattern-${Date.now()}`,
         type: incident.type,
-        pattern: { rootCause: analysis.rootCause, confidence: analysis.confidence },
+        pattern: {
+          rootCause: analysis.rootCause,
+          confidence: analysis.confidence,
+        },
         confidence: analysis.confidence,
         usageCount: 1,
       };
@@ -484,7 +538,10 @@ export class AutoIncidentReportSystem {
       this.learningData.patterns.push(pattern);
 
       // 패턴 수 제한
-      if (this.learningData.patterns.length > this.learningConfig.maxPatternsPerType * 10) {
+      if (
+        this.learningData.patterns.length >
+        this.learningConfig.maxPatternsPerType * 10
+      ) {
         this.learningData.patterns = this.learningData.patterns
           .sort((a, b) => b.confidence - a.confidence)
           .slice(0, this.learningConfig.maxPatternsPerType * 10);
@@ -525,8 +582,9 @@ export class AutoIncidentReportSystem {
     if (trend.length < 3) return null;
 
     const recentUsage = trend.slice(-3);
-    const isIncreasing = recentUsage.every((value, index) =>
-      index === 0 || value.memory_usage > recentUsage[index - 1].memory_usage
+    const isIncreasing = recentUsage.every(
+      (value, index) =>
+        index === 0 || value.memory_usage > recentUsage[index - 1].memory_usage
     );
 
     if (isIncreasing && recentUsage[recentUsage.length - 1].memory_usage > 85) {
@@ -550,8 +608,8 @@ export class AutoIncidentReportSystem {
   public async detectCascadeFailure(metrics: any[]): Promise<Incident | null> {
     if (metrics.length < 2) return null;
 
-    const failedServers = metrics.filter(m =>
-      m.cpu_usage > 90 || m.memory_usage > 90 || m.response_time > 5000
+    const failedServers = metrics.filter(
+      m => m.cpu_usage > 90 || m.memory_usage > 90 || m.response_time > 5000
     );
 
     if (failedServers.length >= 2) {
@@ -606,18 +664,25 @@ export class AutoIncidentReportSystem {
 
     // 간단한 트렌드 분석
     const trend = historicalData.slice(-5);
-    const avgIncrease = trend.reduce((sum, data, index) => {
-      if (index === 0) return 0;
-      return sum + (data.cpu_usage - trend[index - 1].cpu_usage);
-    }, 0) / (trend.length - 1);
+    const avgIncrease =
+      trend.reduce((sum, data, index) => {
+        if (index === 0) return 0;
+        return sum + (data.cpu_usage - trend[index - 1].cpu_usage);
+      }, 0) /
+      (trend.length - 1);
 
     const currentUsage = trend[trend.length - 1].cpu_usage;
-    const timeToFailure = avgIncrease > 0 ? (95 - currentUsage) / avgIncrease : null;
+    const timeToFailure =
+      avgIncrease > 0 ? (95 - currentUsage) / avgIncrease : null;
 
     return {
       prediction: timeToFailure ? 'predicted' : 'stable',
-      estimatedTime: timeToFailure ? `${Math.round(timeToFailure)}시간 후` : null,
-      confidence: timeToFailure ? Math.min(0.8, Math.max(0.3, 1 - (timeToFailure / 100))) : 0.9,
+      estimatedTime: timeToFailure
+        ? `${Math.round(timeToFailure)}시간 후`
+        : null,
+      confidence: timeToFailure
+        ? Math.min(0.8, Math.max(0.3, 1 - timeToFailure / 100))
+        : 0.9,
     };
   }
 
@@ -694,27 +759,40 @@ export class AutoIncidentReportSystem {
   // 헬퍼 메서드들
   private estimateAffectedUsers(incident: Incident): number {
     const baseUsers = 100;
-    const multiplier = incident.severity === 'critical' ? 10 :
-      incident.severity === 'high' ? 5 :
-        incident.severity === 'medium' ? 2 : 1;
+    const multiplier =
+      incident.severity === 'critical'
+        ? 10
+        : incident.severity === 'high'
+          ? 5
+          : incident.severity === 'medium'
+            ? 2
+            : 1;
     return baseUsers * multiplier;
   }
 
   private calculateBusinessImpact(incident: Incident): string {
     switch (incident.severity) {
-      case 'critical': return '매우 높음 - 서비스 중단';
-      case 'high': return '높음 - 성능 저하';
-      case 'medium': return '보통 - 일부 기능 영향';
-      default: return '낮음 - 미미한 영향';
+      case 'critical':
+        return '매우 높음 - 서비스 중단';
+      case 'high':
+        return '높음 - 성능 저하';
+      case 'medium':
+        return '보통 - 일부 기능 영향';
+      default:
+        return '낮음 - 미미한 영향';
     }
   }
 
   private estimateRecoveryTime(incident: Incident): string {
     switch (incident.severity) {
-      case 'critical': return '30분 - 2시간';
-      case 'high': return '15분 - 1시간';
-      case 'medium': return '5분 - 30분';
-      default: return '즉시 - 15분';
+      case 'critical':
+        return '30분 - 2시간';
+      case 'high':
+        return '15분 - 1시간';
+      case 'medium':
+        return '5분 - 30분';
+      default:
+        return '즉시 - 15분';
     }
   }
 
@@ -747,7 +825,6 @@ export class AutoIncidentReportSystem {
 
       console.log(`✅ 장애 보고서 생성 완료 (${Date.now() - startTime}ms)`);
       return report;
-
     } catch (error) {
       console.error('❌ 보고서 생성 실패:', error);
       throw error;

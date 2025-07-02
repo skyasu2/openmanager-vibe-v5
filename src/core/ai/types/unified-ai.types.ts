@@ -77,7 +77,7 @@ export interface UnifiedAnalysisResponse {
     contextIds?: string[];
   };
   systemStatus?: {
-    tier: 'emergency' | 'core_only' | 'enhanced' | 'beta_enabled';
+    tier: 'emergency' | 'core_only' | 'enhanced' | 'google_extended';
     availableComponents: string[];
     degradationLevel: 'none' | 'minimal' | 'moderate' | 'high' | 'critical';
     recommendation: string;
@@ -191,7 +191,7 @@ export interface ProcessingStrategy {
 
 // 🎯 시스템 상태 인터페이스
 export interface SystemStatus {
-  tier: 'emergency' | 'core_only' | 'enhanced' | 'beta_enabled';
+  tier: 'emergency' | 'core_only' | 'enhanced' | 'google_extended';
   availableComponents: string[];
   degradationLevel: 'none' | 'minimal' | 'moderate' | 'high' | 'critical';
   recommendation: string;

@@ -1,7 +1,10 @@
 /**
- * 🎯 실제 MCP 표준 클라이언트 v4.0 (컴포넌트 분리)
+ * 🎯 실제 MCP 표준 클라이언트 v4.1 (목적별 서버 분리)
  *
  * ✅ 컴포넌트 기반 아키텍처
+ * ✅ 목적별 MCP 서버 분리:
+ *    - AI 기능: Render MCP 전용
+ *    - 개발/모니터링: Vercel 내장 MCP
  * ✅ MCPServerManager: 서버 관리
  * ✅ MCPPerformanceMonitor: 성능 모니터링
  * ✅ MCPToolHandler: 도구 호출
@@ -10,7 +13,10 @@
 
 import { MCPContextManager } from './components/MCPContextManager';
 import { MCPPerformanceMonitor } from './components/MCPPerformanceMonitor';
-import { MCPServerConfig, MCPServerManager } from './components/MCPServerManager';
+import {
+  MCPServerConfig,
+  MCPServerManager,
+} from './components/MCPServerManager';
 import { MCPToolHandler } from './components/MCPToolHandler';
 
 interface MCPClient {
@@ -19,10 +25,13 @@ interface MCPClient {
   close(): Promise<void>;
   process?: any;
   nextId?: number;
-  pendingRequests?: Map<number, {
-    resolve: (value: any) => void;
-    reject: (reason?: any) => void;
-  }>;
+  pendingRequests?: Map<
+    number,
+    {
+      resolve: (value: any) => void;
+      reject: (reason?: any) => void;
+    }
+  >;
 }
 
 interface MCPSearchResult {
@@ -34,38 +43,66 @@ interface MCPSearchResult {
   serverUsed?: string;
 }
 
+export type MCPUsagePurpose =
+  | 'ai-production'
+  | 'development'
+  | 'monitoring'
+  | 'testing';
+
 export class RealMCPClient {
-  private static instance: RealMCPClient | null = null;
+  private static aiInstance: RealMCPClient | null = null;
+  private static devToolsInstance: RealMCPClient | null = null;
 
   // 🎯 컴포넌트 인스턴스들
   private serverManager: MCPServerManager;
   private performanceMonitor: MCPPerformanceMonitor;
   private toolHandler: MCPToolHandler;
   private contextManager: MCPContextManager;
+  private purpose: MCPUsagePurpose;
 
   // 기본 클라이언트 관리
   private clients: Map<string, MCPClient> = new Map();
   private isInitialized = false;
 
-  private constructor() {
+  private constructor(purpose: MCPUsagePurpose) {
+    this.purpose = purpose;
+
     // 컴포넌트 초기화
     this.serverManager = new MCPServerManager();
     this.performanceMonitor = new MCPPerformanceMonitor();
     this.toolHandler = new MCPToolHandler();
     this.contextManager = new MCPContextManager();
 
-    console.log('🎯 RealMCPClient v4.0 컴포넌트 기반 초기화 완료');
+    console.log(`🎯 RealMCPClient v4.1 초기화 완료 (용도: ${purpose})`);
   }
 
   /**
-   * 🎯 싱글톤 인스턴스 반환
+   * 🎯 AI 기능용 싱글톤 인스턴스 반환 (Render MCP 전용)
+   */
+  public static getAIInstance(): RealMCPClient {
+    if (!RealMCPClient.aiInstance) {
+      RealMCPClient.aiInstance = new RealMCPClient('ai-production');
+      console.log('🤖 AI 전용 MCP 클라이언트 생성 (Render 서버 전용)');
+    }
+    return RealMCPClient.aiInstance;
+  }
+
+  /**
+   * 🛠️ 개발 도구용 싱글톤 인스턴스 반환 (Vercel 내장 MCP)
+   */
+  public static getDevToolsInstance(): RealMCPClient {
+    if (!RealMCPClient.devToolsInstance) {
+      RealMCPClient.devToolsInstance = new RealMCPClient('development');
+      console.log('🛠️ 개발 도구 전용 MCP 클라이언트 생성 (Vercel 내장 MCP)');
+    }
+    return RealMCPClient.devToolsInstance;
+  }
+
+  /**
+   * 🎯 범용 싱글톤 인스턴스 반환 (호환성용 - AI 인스턴스 반환)
    */
   public static getInstance(): RealMCPClient {
-    if (!RealMCPClient.instance) {
-      RealMCPClient.instance = new RealMCPClient();
-      console.log('🎯 RealMCPClient 싱글톤 인스턴스 생성 (Render 서버 전용)');
-    }
-    return RealMCPClient.instance;
+    return RealMCPClient.getAIInstance();
   }
 
   /**
@@ -73,34 +110,54 @@ export class RealMCPClient {
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) {
-      console.log('✅ MCP 클라이언트 이미 초기화됨');
+      console.log(`✅ MCP 클라이언트 이미 초기화됨 (용도: ${this.purpose})`);
       return;
     }
 
-    console.log('🚀 MCP 클라이언트 초기화 시작...');
+    console.log(`🚀 MCP 클라이언트 초기화 시작 (용도: ${this.purpose})...`);
 
     try {
+      // 용도별 설정 로그
+      switch (this.purpose) {
+        case 'ai-production':
+          console.log('🤖 AI 프로덕션 MCP 설정 로드 (Render 서버)');
+          break;
+        case 'development':
+        case 'monitoring':
+        case 'testing':
+          console.log('🛠️ 개발 도구 MCP 설정 로드 (Vercel 내장)');
+          break;
+        default:
+          console.log('🔧 기본 MCP 설정 로드');
+      }
+
       await this.serverManager.initialize();
       const serverNames = this.serverManager.getAvailableServers();
 
       for (const serverName of serverNames) {
-        const config = this.serverManager.getServerConfig(serverName);
-        if (config && config.enabled) {
+        const serverConfig = this.serverManager.getServerConfig(serverName);
+        if (serverConfig && serverConfig.enabled) {
           try {
             const client = await this.connectToServer(serverName);
             this.clients.set(serverName, client);
-            console.log(`✅ ${serverName} 서버 연결 성공`);
+            console.log(`✅ ${serverName} 서버 연결 성공 (${this.purpose})`);
           } catch (error) {
-            console.warn(`⚠️ ${serverName} 서버 연결 실패, 목업 모드로 대체:`, error);
+            console.warn(
+              `⚠️ ${serverName} 서버 연결 실패, 목업 모드로 대체:`,
+              error
+            );
             this.clients.set(serverName, this.createMockClient(serverName));
           }
         }
       }
 
       this.isInitialized = true;
-      console.log('✅ MCP 클라이언트 초기화 완료');
+      console.log(`✅ MCP 클라이언트 초기화 완료 (용도: ${this.purpose})`);
     } catch (error) {
-      console.error('❌ MCP 클라이언트 초기화 실패:', error);
+      console.error(
+        `❌ MCP 클라이언트 초기화 실패 (용도: ${this.purpose}):`,
+        error
+      );
       throw error;
     }
   }
@@ -124,13 +181,17 @@ export class RealMCPClient {
           return await this.toolHandler.getAvailableTools();
         }
         if (request.method === 'tools/call') {
-          return { content: [{ type: 'text', text: `목업 응답: ${request.params.name}` }] };
+          return {
+            content: [
+              { type: 'text', text: `목업 응답: ${request.params.name}` },
+            ],
+          };
         }
         return { result: 'mock_response' };
       },
       async close(): Promise<void> {
         console.log(`🎭 ${serverName} 목업 클라이언트 연결 종료`);
-      }
+      },
     };
   }
 
@@ -138,19 +199,38 @@ export class RealMCPClient {
     return await this.toolHandler.listTools(serverName, this.clients);
   }
 
-  async callTool(serverName: string, toolName: string, args: any): Promise<any> {
+  async callTool(
+    serverName: string,
+    toolName: string,
+    args: any
+  ): Promise<any> {
     const startTime = Date.now();
 
     try {
-      const result = await this.toolHandler.callTool(serverName, toolName, args, this.clients);
+      const result = await this.toolHandler.callTool(
+        serverName,
+        toolName,
+        args,
+        this.clients
+      );
       const responseTime = Date.now() - startTime;
       const servers = this.getServersMap();
-      this.performanceMonitor.updateServerStats(serverName, responseTime, true, servers);
+      this.performanceMonitor.updateServerStats(
+        serverName,
+        responseTime,
+        true,
+        servers
+      );
       return result;
     } catch (error) {
       const responseTime = Date.now() - startTime;
       const servers = this.getServersMap();
-      this.performanceMonitor.updateServerStats(serverName, responseTime, false, servers);
+      this.performanceMonitor.updateServerStats(
+        serverName,
+        responseTime,
+        false,
+        servers
+      );
       throw error;
     }
   }
@@ -172,13 +252,16 @@ export class RealMCPClient {
 
     try {
       const servers = this.getServersMap();
-      const serverName = this.performanceMonitor.selectOptimalServer(servers, this.clients);
+      const serverName = this.performanceMonitor.selectOptimalServer(
+        servers,
+        this.clients
+      );
       const result = await this.toolHandler.searchDocuments(query);
 
       return {
         ...result,
         responseTime: Date.now() - startTime,
-        serverUsed: serverName || 'local'
+        serverUsed: serverName || 'local',
       };
     } catch (error) {
       console.error('❌ 문서 검색 실패:', error);
@@ -187,7 +270,7 @@ export class RealMCPClient {
         results: [],
         source: 'error',
         tools_used: [],
-        responseTime: Date.now() - startTime
+        responseTime: Date.now() - startTime,
       };
     }
   }
@@ -206,7 +289,12 @@ export class RealMCPClient {
 
   async readFile(filePath: string): Promise<string> {
     try {
-      const result = await this.toolHandler.callTool('filesystem', 'read_file', { path: filePath }, this.clients);
+      const result = await this.toolHandler.callTool(
+        'filesystem',
+        'read_file',
+        { path: filePath },
+        this.clients
+      );
 
       if (result.success) {
         return result.content;
@@ -221,7 +309,12 @@ export class RealMCPClient {
 
   async listDirectory(dirPath: string): Promise<string[]> {
     try {
-      const result = await this.toolHandler.callTool('filesystem', 'list_directory', { path: dirPath }, this.clients);
+      const result = await this.toolHandler.callTool(
+        'filesystem',
+        'list_directory',
+        { path: dirPath },
+        this.clients
+      );
 
       if (result.success) {
         return result.items.map((item: any) => item.name);
@@ -250,8 +343,8 @@ export class RealMCPClient {
           successfulRequests: 0,
           failedRequests: 0,
           averageResponseTime: 0,
-          healthScore: 100
-        }
+          healthScore: 100,
+        },
       };
     }
 
@@ -273,9 +366,9 @@ export class RealMCPClient {
         responseTime: Date.now() - startTime,
         sources: {
           documents: docResults,
-          web: webResults
+          web: webResults,
         },
-        context
+        context,
       };
 
       if (context.sessionId) {
@@ -310,7 +403,9 @@ export class RealMCPClient {
 
   getConnectionInfo(): any {
     const serverNames = this.serverManager.getAvailableServers();
-    const performanceReport = this.performanceMonitor.generatePerformanceReport(new Map());
+    const performanceReport = this.performanceMonitor.generatePerformanceReport(
+      new Map()
+    );
     const contextStats = this.contextManager.getContextStats();
 
     return {
@@ -321,7 +416,7 @@ export class RealMCPClient {
       connectedServers: Array.from(this.clients.keys()),
       performance: performanceReport,
       context: contextStats,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 }

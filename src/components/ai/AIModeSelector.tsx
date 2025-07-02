@@ -96,7 +96,7 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
             const config = AI_MODE_CONFIG[mode];
             const Icon = config.icon;
             const isSelected = selectedMode === mode;
-            const isDisabled = disabled || config.disabled || isChanging;
+            const isDisabled = disabled || isChanging;
 
             return (
               <motion.button

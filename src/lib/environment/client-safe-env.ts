@@ -149,7 +149,7 @@ export class EnvironmentManagerProxy {
 
       // 기본값 설정 (하드코딩된 안전한 값들)
       const defaultValues: Record<string, string> = {
-        AI_ENGINE_MODE: 'AUTO',
+        AI_ENGINE_MODE: 'LOCAL',
         SUPABASE_RAG_ENABLED: 'true',
         KOREAN_NLP_ENABLED: 'true',
         REDIS_CONNECTION_DISABLED: 'false',

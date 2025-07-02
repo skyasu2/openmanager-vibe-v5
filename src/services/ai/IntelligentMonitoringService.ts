@@ -476,7 +476,7 @@ export class IntelligentMonitoringService {
       // 🎯 모드별 AI 엔진 전략 결정
       const strategy = this.getAIEngineStrategy(request.mode);
       console.log(
-        `🧠 [IntelligentMonitoring] 모드: ${request.mode || 'AUTO'}, 전략:`,
+        `🧠 [IntelligentMonitoring] 모드: ${request.mode || 'LOCAL'}, 전략:`,
         strategy
       );
 

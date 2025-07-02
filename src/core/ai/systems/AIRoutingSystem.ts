@@ -9,16 +9,19 @@
 import { AIMode, AIRequest } from '@/types/ai-types';
 import { KoreanTimeUtil } from '@/utils/koreanTime';
 
-// 🚀 베르셀 환경 감지 및 최적화 설정
+/**
+ * 📡 VERCEL 배포 최적화 설정
+ */
 const VERCEL_OPTIMIZATION = {
-  isVercel: process.env.VERCEL === '1' || process.env.NODE_ENV === 'production',
-  maxProcessingTime: 8000, // 8초 제한
-  enableFastMode: true,
-  cacheEnabled: true,
-  simplifiedChain: true, // 엔진 체인 단순화
+  isVercel: !!process.env.VERCEL,
+  maxTimeout: 8000, // Vercel 8초 제한
+  fallbackTimeout: 5000,
+  enableQuickFallback: true,
 };
 
-// 🎯 AI 모드 구성 인터페이스
+/**
+ * 🎛️ AI 모드별 설정
+ */
 interface AIModeConfig {
   name: AIMode;
   description: string;
@@ -30,45 +33,27 @@ interface AIModeConfig {
   optimizationLevel: 'low' | 'medium' | 'high';
 }
 
-// 🎯 AI 모드 구성 정의
+/**
+ * 📋 AI 모드 설정
+ */
 const AI_MODE_CONFIGS: Record<AIMode, AIModeConfig> = {
   LOCAL: {
     name: 'LOCAL',
-    description: 'Supabase RAG + MCP 컨텍스트 기반 로컬 AI',
+    description: 'Supabase RAG + Korean AI + MCP 컨텍스트 (기본값)',
     primaryEngine: 'supabase-rag',
-    fallbackEngines: ['mcp-context', 'korean-ai', 'transformers'],
+    fallbackEngines: ['korean-ai', 'mcp-context', 'transformers'],
     maxProcessingTime: VERCEL_OPTIMIZATION.isVercel ? 8000 : 15000,
-    priority: 80, // 80% 우선순위
+    priority: 90, // 90% 우선순위 (기본값)
     enableCache: true,
     optimizationLevel: 'high',
   },
-  GOOGLE_AI: {
-    name: 'GOOGLE_AI',
-    description: 'Google AI + Supabase RAG + MCP 컨텍스트 조합',
-    primaryEngine: 'google-ai',
-    fallbackEngines: ['supabase-rag', 'mcp-context', 'korean-ai'],
-    maxProcessingTime: VERCEL_OPTIMIZATION.isVercel ? 8000 : 20000,
-    priority: 40, // 40% Google AI + 40% LOCAL + 20% 로컬AI
-    enableCache: true,
-    optimizationLevel: 'medium',
-  },
-  AUTO: {
-    name: 'AUTO',
-    description: '쿼리 분석에 따른 자동 모드 선택',
-    primaryEngine: 'auto-selector',
-    fallbackEngines: ['supabase-rag', 'google-ai', 'korean-ai'],
-    maxProcessingTime: VERCEL_OPTIMIZATION.isVercel ? 8000 : 25000,
-    priority: 50, // 동적 우선순위
-    enableCache: true,
-    optimizationLevel: 'medium',
-  },
   GOOGLE_ONLY: {
     name: 'GOOGLE_ONLY',
-    description: 'Google AI 전용 모드',
+    description: 'Google AI 전용 모드 (자연어 처리용)',
     primaryEngine: 'google-ai',
     fallbackEngines: ['transformers', 'korean-ai'],
     maxProcessingTime: VERCEL_OPTIMIZATION.isVercel ? 8000 : 10000,
-    priority: 90, // 90% Google AI 우선
+    priority: 80, // 80% Google AI 우선
     enableCache: false, // 실시간 응답 우선
     optimizationLevel: 'low',
   },
@@ -78,9 +63,8 @@ const AI_MODE_CONFIGS: Record<AIMode, AIModeConfig> = {
  * 🔄 AI 라우팅 시스템
  *
  * UnifiedAIEngineRouter에서 분리된 라우팅 로직:
- * - 모드별 라우팅 결정
- * - AUTO 모드 자동 선택
- * - 쿼리 분석 및 최적 모드 추천
+ * - 모드별 라우팅 결정 (LOCAL, GOOGLE_ONLY)
+ * - 쿼리 분석 및 모드 추천
  * - 모드 검증 및 정규화
  */
 export class AIRoutingSystem {
@@ -89,8 +73,6 @@ export class AIRoutingSystem {
     totalRoutes: 0,
     modeUsage: {
       LOCAL: 0,
-      GOOGLE_AI: 0,
-      AUTO: 0,
       GOOGLE_ONLY: 0,
     },
     lastUpdated: KoreanTimeUtil.now(),
@@ -119,11 +101,8 @@ export class AIRoutingSystem {
       request.mode || 'LOCAL'
     );
 
-    // AUTO 모드인 경우 자동 선택
-    const targetMode =
-      validatedMode === 'AUTO'
-        ? this.selectOptimalMode(request.query, request.context)
-        : validatedMode;
+    // 검증된 모드 사용
+    const targetMode = validatedMode;
 
     const config = AI_MODE_CONFIGS[targetMode];
 
@@ -147,69 +126,25 @@ export class AIRoutingSystem {
   }
 
   /**
-   * 🤖 쿼리 분석에 따른 자동 모드 선택 (AUTO 모드)
-   * @param query 사용자 쿼리
-   * @param context 요청 컨텍스트
-   * @returns 최적 AI 모드
-   */
-  public selectOptimalMode(query: string, context?: any): AIMode {
-    // 한국어 쿼리 감지
-    const isKorean = this.isKoreanQuery(query);
-
-    // 복잡성 분석
-    const complexity = this.analyzeQueryComplexity(query);
-
-    // 실시간 데이터 요구 분석
-    const needsRealtime = this.needsRealtimeData(query);
-
-    // 기술적 쿼리 감지
-    const isTechnical = this.isTechnicalQuery(query);
-
-    let optimalMode: AIMode;
-
-    if (needsRealtime || complexity === 'high') {
-      // 실시간 데이터나 복잡한 쿼리는 Google AI 활용
-      optimalMode = 'GOOGLE_AI';
-    } else if (isTechnical || isKorean) {
-      // 기술적이거나 한국어 쿼리는 LOCAL 모드 우선
-      optimalMode = 'LOCAL';
-    } else if (complexity === 'simple') {
-      // 단순한 쿼리는 LOCAL 모드로 충분
-      optimalMode = 'LOCAL';
-    } else {
-      // 기타 경우는 GOOGLE_AI 모드
-      optimalMode = 'GOOGLE_AI';
-    }
-
-    console.log(
-      `🤖 자동 모드 선택: ${optimalMode} (한국어: ${isKorean}, 복잡도: ${complexity}, 실시간: ${needsRealtime})`
-    );
-
-    return optimalMode;
-  }
-
-  /**
    * 🔍 모드 검증 및 정규화
    * @param mode 입력 모드
    * @returns 정규화된 모드
    */
   public validateAndNormalizeMode(mode: string): AIMode {
-    const supportedModes: AIMode[] = [
-      'LOCAL',
-      'GOOGLE_AI',
-      'AUTO',
-      'GOOGLE_ONLY',
-    ];
+    const supportedModes: AIMode[] = ['LOCAL', 'GOOGLE_ONLY'];
 
     // 레거시 모드 변환 맵
     const modeMap: Record<string, AIMode> = {
-      AUTO: 'AUTO',
-      GOOGLE_ONLY: 'GOOGLE_AI', // GOOGLE_ONLY는 GOOGLE_AI로 변환
       LOCAL: 'LOCAL',
-      GOOGLE_AI: 'GOOGLE_AI',
+      GOOGLE_ONLY: 'GOOGLE_ONLY',
+      // 레거시 호환성
+      GOOGLE_AI: 'GOOGLE_ONLY',
+      auto: 'LOCAL',
+      local: 'LOCAL',
+      'google-only': 'GOOGLE_ONLY',
     };
 
-    const normalizedMode = modeMap[mode] || 'LOCAL';
+    const normalizedMode = modeMap[mode] || 'LOCAL'; // 기본값을 LOCAL로 변경
 
     if (!supportedModes.includes(normalizedMode)) {
       console.warn(`⚠️ 지원되지 않는 AI 모드: ${mode}, LOCAL 모드로 폴백`);
@@ -319,9 +254,8 @@ export class AIRoutingSystem {
   // 🎛️ 상태 관리 메서드들
 
   public setMode(mode: AIMode): void {
-    const oldMode = this.currentMode;
-    this.currentMode = this.validateAndNormalizeMode(mode);
-    console.log(`🔄 라우팅 모드 변경: ${oldMode} → ${this.currentMode}`);
+    this.currentMode = mode;
+    console.log(`🔄 AI 라우팅 모드 변경: ${mode}`);
   }
 
   public getCurrentMode(): AIMode {
@@ -335,7 +269,7 @@ export class AIRoutingSystem {
   public getRoutingStats() {
     return {
       ...this.routingStats,
-      lastUpdated: KoreanTimeUtil.now(),
+      currentMode: this.currentMode,
     };
   }
 
@@ -344,12 +278,10 @@ export class AIRoutingSystem {
       totalRoutes: 0,
       modeUsage: {
         LOCAL: 0,
-        GOOGLE_AI: 0,
-        AUTO: 0,
         GOOGLE_ONLY: 0,
       },
       lastUpdated: KoreanTimeUtil.now(),
     };
-    console.log('🔄 라우팅 통계 초기화 완료');
+    console.log('📊 라우팅 통계가 초기화되었습니다.');
   }
 }

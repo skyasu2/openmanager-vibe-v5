@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// 강제 동적 라우팅 설정
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 /**
  * 🤖 AI 에이전트 통합 API
  * 통합된 AI 에이전트 기능을 제공하는 엔드포인트
@@ -70,7 +74,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { query, mode = 'AUTO', category = 'general' } = body;
+    const { query, mode = 'LOCAL', category = 'general' } = body;
 
     if (!query) {
       return NextResponse.json(

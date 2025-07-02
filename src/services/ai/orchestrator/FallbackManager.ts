@@ -14,10 +14,14 @@ export class FallbackManager {
       if (!googleAI.isAvailable()) {
         return null;
       }
-      const result = await googleAI.generateContent(question, { isNaturalLanguage: true });
+      const result = await googleAI.processQuery({
+        query: question,
+        mode: 'GOOGLE_ONLY',
+        context: { isNaturalLanguage: true },
+      });
       return {
         success: true,
-        answer: (result as any).content || (result as any).response || '응답 없음',
+        answer: result.response || '응답 없음',
         confidence: (result as any).confidence || 0.8,
         engine: 'google-ai',
         processingTime: Date.now() - start,
@@ -33,4 +37,4 @@ export class FallbackManager {
       };
     }
   }
-} 
+}

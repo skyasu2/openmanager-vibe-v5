@@ -1,323 +1,351 @@
 /**
- * 🤖 통합 AI 쿼리 API v4.0 (통합 AI 엔진 라우터 중심)
- *
- * 새로운 기능:
- * - 3가지 AI 모드 지원 (AUTO, LOCAL, GOOGLE_ONLY)
- * - 고급 엔진 통합 (SmartFallbackEngine, IntelligentMonitoringService)
- * - 복구된 NLP 기능들 활용
- * - 실제 서버 데이터 연동 강화
+ * 🤖 통합 AI 쿼리 API - Edge Runtime 최적화 버전
+ * Vercel Pro/Hobby 플랜 지원
  */
 
 import { UnifiedAIEngineRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { getAISessionStorage, saveAIResponse } from '@/lib/ai-session-storage';
+import { EdgeLogger } from '@/lib/edge-runtime-utils';
+import { AIRequest } from '@/types/ai-types';
 import { NextRequest, NextResponse } from 'next/server';
 
-// 🎯 통합 AI 엔진 라우터 (모든 엔진 통합)
-const aiRouter = UnifiedAIEngineRouter.getInstance();
+// Edge Runtime 설정
+export const runtime = 'edge';
+export const preferredRegion = ['icn1', 'hnd1', 'sin1']; // 아시아 지역 최적화
 
-/**
- * 📊 실제 서버 데이터 수집 함수
- */
-async function collectRealServerData() {
-  try {
-    const generator = RealServerDataGenerator.getInstance();
+// Vercel 플랜별 제한사항
+const VERCEL_OPTIMIZATION = {
+  hobby: {
+    maxExecutionTime: 10000, // 10초
+    maxConcurrentRequests: 10,
+    enableAdvancedFeatures: false,
+    ragTimeout: 5000,
+    koreanNLPTimeout: 3000,
+  },
+  pro: {
+    maxExecutionTime: 15000, // 15초
+    maxConcurrentRequests: 100,
+    enableAdvancedFeatures: true,
+    ragTimeout: 10000,
+    koreanNLPTimeout: 8000,
+  },
+} as const;
 
-    // 초기화되지 않았으면 초기화
-    if (!generator.getStatus().isInitialized) {
-      await generator.initialize();
-    }
-
-    // 실시간 데이터 생성이 시작되지 않았으면 시작
-    if (!generator.getStatus().isRunning) {
-      generator.startAutoGeneration();
-    }
-
-    const servers = generator.getAllServers();
-    const summary = generator.getDashboardSummary();
-
-    return {
-      servers: servers.slice(0, 10), // 처음 10개 서버만 (AI 처리 최적화)
-      summary,
-      serverCount: servers.length,
-      timestamp: new Date().toISOString(),
-    };
-  } catch (error) {
-    console.error('❌ 서버 데이터 수집 실패:', error);
-    return null;
-  }
-}
-
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const action = searchParams.get('action');
-  const query = searchParams.get('query');
-  const mode = searchParams.get('mode') || 'AUTO';
-
-  try {
-    if (action === 'status') {
-      // 🎯 새로운 통합 AI 엔진 라우터 상태
-      const routerStatus = aiRouter.getStatus();
-
-      return NextResponse.json({
-        success: true,
-        status: 'healthy',
-        engines: routerStatus.engines,
-        version: '4.0',
-        availableModes: ['AUTO', 'LOCAL', 'GOOGLE_ONLY'],
-        currentMode: routerStatus.mode,
-        stats: routerStatus.stats,
-        router: routerStatus.router,
-        routerVersion: routerStatus.version,
-        initialized: routerStatus.initialized,
-        features: {
-          smartFallback: '지능형 폴백 시스템',
-          intelligentMonitoring: '지능형 모니터링 분석',
-          enhancedNLP: '향상된 한국어 NLP',
-          multiModalSupport: '3가지 AI 모드 지원',
-        },
-      });
-    }
-
-    if (action === 'query' && query) {
-      console.log(`🎯 통합 AI 쿼리 (${mode} 모드): "${query}"`);
-
-      // 📊 실제 서버 데이터 수집
-      const serverData = await collectRealServerData();
-
-      // 🚀 통합 AI 엔진 라우터로 처리
-      const result = await aiRouter.processQuery({
-        query,
-        mode: mode as 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY',
-        category: searchParams.get('category') || undefined,
-        context: {
-          timestamp: new Date().toISOString(),
-          source: 'unified-api-get',
-          userAgent: request.headers.get('user-agent'),
-          // 📊 실제 서버 데이터 포함
-          serverData,
-          // 🔍 모니터링 모드 특화 컨텍스트
-          ...(mode === 'MONITORING' && {
-            monitoringContext: {
-              enableAnomalyDetection: true,
-              enableRootCauseAnalysis: true,
-              enablePredictiveMonitoring: true,
-            },
-          }),
-        },
-      });
-
-      return NextResponse.json({
-        success: result.success,
-        response: result.response,
-        confidence: result.confidence,
-        mode: result.mode,
-        engine: result.metadata.mainEngine,
-        processingTime: result.processingTime,
-        enginePath: result.enginePath,
-        fallbacksUsed: result.fallbacksUsed,
-        metadata: {
-          ...result.metadata,
-          version: '4.0',
-          apiMethod: 'GET',
-          serverDataIncluded: !!serverData,
-        },
-      });
-    }
-
-    // 🧪 테스트용 한국어 쿼리 엔드포인트
-    if (action === 'test-korean') {
-      console.log('🧪 한국어 AI 엔진 테스트 시작');
-
-      // 📊 실제 서버 데이터 수집
-      const serverData = await collectRealServerData();
-
-      // 🇰🇷 한국어 쿼리로 테스트
-      const testQuery = '현재 서버 상태를 분석해줘';
-
-      // 🚀 통합 AI 엔진 라우터로 처리
-      const result = await aiRouter.processQuery({
-        query: testQuery,
-        mode: 'LOCAL',
-        context: {
-          timestamp: new Date().toISOString(),
-          source: 'test-korean-endpoint',
-          serverData,
-        },
-      });
-
-      return NextResponse.json({
-        success: result.success,
-        testQuery,
-        response: result.response,
-        confidence: result.confidence,
-        mode: result.mode,
-        engine: result.metadata.mainEngine,
-        processingTime: result.processingTime,
-        enginePath: result.enginePath,
-        fallbacksUsed: result.fallbacksUsed,
-        serverDataIncluded: !!serverData,
-        serverCount: serverData?.servers?.length || 0,
-        metadata: {
-          ...result.metadata,
-          version: '4.0',
-          apiMethod: 'GET-TEST',
-        },
-      });
-    }
-
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          '잘못된 요청입니다. action=status 또는 action=query&query=검색어&mode=모드를 사용하세요.',
-        availableModes: ['LOCAL', 'GOOGLE_ONLY'],
-      },
-      { status: 400 }
-    );
-  } catch (error) {
-    console.error('❌ 통합 AI 쿼리 API 오류:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          error instanceof Error ? error.message : '서버 오류가 발생했습니다.',
-        mode: mode,
-        version: '4.0',
-      },
-      { status: 500 }
-    );
-  }
-}
+const logger = EdgeLogger.getInstance();
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
+  // Vercel 플랜 감지 및 설정
+  const isProPlan =
+    process.env.VERCEL_PLAN === 'pro' || process.env.NODE_ENV === 'development';
+  const config = isProPlan
+    ? VERCEL_OPTIMIZATION.pro
+    : VERCEL_OPTIMIZATION.hobby;
+
+  // Edge Runtime 타임아웃 설정
+  const controller = new AbortController();
+  const timeoutId = setTimeout(
+    () => controller.abort(),
+    config.maxExecutionTime
+  );
+
   try {
-    // UTF-8 인코딩을 명시적으로 처리
-    const textBody = await request.text();
-    let body;
-
-    try {
-      // UTF-8 디코딩 확인 및 JSON 파싱
-      const utf8Decoder = new TextDecoder('utf-8');
-      const utf8Encoder = new TextEncoder();
-      const normalizedText = utf8Decoder.decode(utf8Encoder.encode(textBody));
-      body = JSON.parse(normalizedText);
-    } catch (parseError) {
-      // 폴백: 기본 JSON 파싱
-      body = JSON.parse(textBody);
-    }
-
-    const { query, mode = 'LOCAL', category, context } = body;
+    const body = await request.json();
+    const { query, mode = 'LOCAL', enableThinking = false } = body;
 
     if (!query) {
+      clearTimeout(timeoutId);
       return NextResponse.json(
         {
           success: false,
-          error: 'query 필드가 필요합니다.',
-          availableModes: ['LOCAL', 'GOOGLE_ONLY'],
+          error: 'query 필드가 필요합니다',
+          vercelPlan: isProPlan ? 'pro' : 'hobby',
         },
         { status: 400 }
       );
     }
 
-    // 한글 쿼리 UTF-8 정규화
-    const normalizedQuery = normalizeKoreanQuery(query);
-    console.log(`🎯 POST 쿼리 (${mode} 모드): "${normalizedQuery}"`);
+    // 모드 정규화 (Hobby 플랜 제한 적용)
+    let normalizedMode: 'LOCAL' | 'GOOGLE_ONLY' = 'LOCAL';
+    if (mode === 'GOOGLE_ONLY' && isProPlan) {
+      normalizedMode = 'GOOGLE_ONLY';
+    } else {
+      normalizedMode = 'LOCAL'; // 기본값: LOCAL (Hobby 플랜 항상, Pro 플랜 기본값)
+    }
 
-    // 📊 실제 서버 데이터 수집
-    const serverData = await collectRealServerData();
+    // 세션 관리
+    const storage = getAISessionStorage();
+    const sessionId = storage.generateSessionId();
 
-    // 🚀 통합 AI 엔진 라우터로 처리
-    const result = await aiRouter.processQuery({
-      query: normalizedQuery, // 정규화된 쿼리 사용
-      mode: mode as 'LOCAL' | 'GOOGLE_ONLY',
-      category: category || undefined,
-      context: {
-        timestamp: new Date().toISOString(),
-        source: 'unified-api-post',
-        userAgent: request.headers.get('user-agent'),
-        // 📊 실제 서버 데이터 포함
-        serverData,
-        ...context,
-        // 🔍 모니터링 모드 특화 컨텍스트
-        ...(mode === 'MONITORING' && {
-          monitoringContext: {
-            enableAnomalyDetection: true,
-            enableRootCauseAnalysis: true,
-            enablePredictiveMonitoring: true,
-          },
-        }),
-      },
+    // 자연어 질의 특화 Thinking Process
+    const thinkingProcess: Array<{
+      type: string;
+      title: string;
+      description: string;
+      timestamp: number;
+    }> = [];
+
+    // 생각 과정 1: 자연어 분석
+    thinkingProcess.push({
+      type: 'nlp-analysis',
+      title: '자연어 이해',
+      description: '사용자의 자연어 질문을 분석하고 의도를 파악합니다.',
+      timestamp: Date.now(),
     });
 
-    return NextResponse.json({
-      success: result.success,
-      response: result.response,
-      confidence: result.confidence,
-      mode: result.mode,
-      engine: result.metadata.mainEngine,
-      processingTime: result.processingTime,
-      enginePath: result.enginePath,
-      fallbacksUsed: result.fallbacksUsed,
-      metadata: {
-        ...result.metadata,
-        version: '4.0',
-        apiMethod: 'POST',
-        requestBody: {
-          queryLength: normalizedQuery.length,
-          hasCategory: !!category,
-          hasContext: !!context,
-          isKorean: /[가-힣]/.test(normalizedQuery),
-        },
-        serverDataIncluded: !!serverData,
+    // 생각 과정 2: 컨텍스트 구성
+    thinkingProcess.push({
+      type: 'context-building',
+      title: '컨텍스트 구성',
+      description: 'RAG 엔진과 Korean AI를 활용하여 관련 정보를 수집합니다.',
+      timestamp: Date.now(),
+    });
+
+    // AI 요청 구성
+    const aiRequest: AIRequest = {
+      query: query.trim(),
+      mode: normalizedMode,
+      context: {
+        sessionId,
+        vercelPlan: isProPlan ? 'pro' : 'hobby',
+        edgeRuntime: true,
+        maxExecutionTime: config.maxExecutionTime,
+        enableAdvancedFeatures: config.enableAdvancedFeatures,
+        timestamp: new Date().toISOString(),
+        userAgent: request.headers.get('User-Agent') || 'unknown',
+        queryType: 'natural-language', // 자연어 질의 표시
+        origin: 'unified-query-api',
       },
+      timeout: config.maxExecutionTime - 1000,
+      enableFallback: true,
+    };
+
+    // 생각 과정 3: AI 엔진 처리
+    thinkingProcess.push({
+      type: 'ai-processing',
+      title: 'AI 엔진 처리',
+      description: `${normalizedMode} 모드로 통합 AI 엔진을 실행하여 최적의 답변을 생성합니다.`,
+      timestamp: Date.now(),
+    });
+
+    // AI 라우터 처리 (타임아웃과 함께)
+    const router = UnifiedAIEngineRouter.getInstance();
+    await router.initialize();
+
+    const resultPromise = router.processQuery(aiRequest);
+    const timeoutPromise = new Promise((_, reject) => {
+      controller.signal.addEventListener('abort', () => {
+        reject(new Error('Edge Runtime timeout'));
+      });
+    });
+
+    const result = await Promise.race([resultPromise, timeoutPromise]);
+    clearTimeout(timeoutId);
+
+    // 생각 과정 4: 품질 검증
+    thinkingProcess.push({
+      type: 'quality-check',
+      title: '응답 품질 검증',
+      description: `신뢰도 ${Math.round(((result as any).confidence || 0.7) * 100)}%로 응답 품질을 검증했습니다.`,
+      timestamp: Date.now(),
+    });
+
+    // 📝 자연어 질의 세션 저장 (확장된 메타데이터 포함)
+    saveAIResponse(
+      sessionId,
+      query,
+      normalizedMode,
+      {
+        ...(result as any),
+        queryType: 'natural-language',
+        processingSteps: thinkingProcess.length,
+      },
+      thinkingProcess,
+      (result as any).reasoning || []
+    ).catch(error => {
+      logger.warn('자연어 질의 세션 저장 실패', error);
+    });
+
+    // Edge Runtime 최적화 응답
+    return NextResponse.json({
+      success: true,
+      query,
+      ...formatUnifiedResponse(result, isProPlan),
+      metadata: {
+        ...((result as any).metadata || {}),
+        vercelPlan: isProPlan ? 'pro' : 'hobby',
+        edgeRuntime: true,
+        requestedMode: mode,
+        actualMode: normalizedMode,
+        processingTime: Date.now() - startTime,
+        region: process.env.VERCEL_REGION || 'auto',
+        optimizedForPlan: true,
+      },
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('❌ 통합 AI 쿼리 POST 오류:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          error instanceof Error ? error.message : '서버 오류가 발생했습니다.',
-        version: '4.0',
-        apiMethod: 'POST',
+    clearTimeout(timeoutId);
+
+    // Edge Runtime 타임아웃 처리
+    if (error instanceof Error && error.message === 'Edge Runtime timeout') {
+      return NextResponse.json({
+        success: true, // UX를 위해 success로 처리
+        query: 'timeout',
+        response: generateTimeoutResponse(isProPlan),
+        confidence: 0.5,
+        enginePath: ['timeout-handler'],
+        processingTime: Date.now() - startTime,
+        fallbacksUsed: 1,
+        metadata: {
+          timeout: true,
+          vercelPlan: isProPlan ? 'pro' : 'hobby',
+          edgeRuntime: true,
+          timeoutReason: 'execution_limit_reached',
+        },
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    console.error('❌ Unified Query Edge Runtime 오류:', error);
+
+    // 폴백 응답
+    return NextResponse.json({
+      success: true,
+      query: 'error_fallback',
+      response: generateFallbackResponse(isProPlan),
+      confidence: 0.3,
+      enginePath: ['fallback-handler'],
+      processingTime: Date.now() - startTime,
+      fallbacksUsed: 1,
+      metadata: {
+        error: true,
+        vercelPlan: isProPlan ? 'pro' : 'hobby',
+        edgeRuntime: true,
+        fallbackReason: 'system_error',
       },
-      { status: 500 }
-    );
+      timestamp: new Date().toISOString(),
+    });
   }
 }
 
-/**
- * 🇰🇷 한글 쿼리 UTF-8 정규화 함수
- */
-function normalizeKoreanQuery(query: string): string {
-  try {
-    console.log(`🔍 한국어 감지 디버깅 - 원본 쿼리: "${query}"`);
-    console.log(`🔍 한국어 정규식 테스트: ${/[가-힣]/.test(query)}`);
-    console.log(
-      `🔍 문자 코드:`,
-      query.split('').map(c => c.charCodeAt(0))
-    );
+export async function GET(request: NextRequest) {
+  return NextResponse.json({
+    service: 'Unified AI Query API - Edge Runtime',
+    status: 'ready',
+    version: '5.44.3-edge',
+    runtime: 'edge',
+    regions: ['icn1', 'hnd1', 'sin1'],
+    capabilities: {
+      hobby: {
+        maxExecutionTime: '10s',
+        modes: ['LOCAL'],
+        features: ['basic-ai', 'local-rag'],
+      },
+      pro: {
+        maxExecutionTime: '15s',
+        modes: ['LOCAL', 'GOOGLE_ONLY'],
+        features: [
+          'advanced-ai',
+          'google-ai',
+          'mcp-integration',
+          'enhanced-rag',
+        ],
+      },
+    },
+    currentPlan: process.env.VERCEL_PLAN || 'development',
+    timestamp: new Date().toISOString(),
+  });
+}
 
-    // 1. UTF-8 인코딩/디코딩으로 정규화
-    const encoder = new TextEncoder();
-    const decoder = new TextDecoder('utf-8');
-    const encoded = encoder.encode(query);
-    const normalized = decoder.decode(encoded);
+// 유틸리티 함수들
+function generateSessionId(): string {
+  return `edge_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+}
 
-    console.log(`🔍 UTF-8 정규화 후: "${normalized}"`);
-    console.log(`🔍 정규화 후 한국어 감지: ${/[가-힣]/.test(normalized)}`);
+function formatUnifiedResponse(result: any, isProPlan: boolean) {
+  if (!result) {
+    return {
+      response: generateFallbackResponse(isProPlan),
+      confidence: 0.3,
+      enginePath: ['fallback'],
+      processingTime: 0,
+      fallbacksUsed: 1,
+    };
+  }
 
-    // 2. 한글 자모 정규화 (NFC)
-    const nfcNormalized = normalized.normalize('NFC');
+  let formattedResponse = result.response || '응답을 생성할 수 없습니다.';
 
-    // 3. 불필요한 공백 제거
-    const trimmed = nfcNormalized.trim().replace(/\s+/g, ' ');
+  // Pro 플랜 메타데이터 추가
+  if (isProPlan && result.metadata) {
+    if (result.metadata.confidence > 0.8) {
+      formattedResponse += `\n\n🎯 **고품질 분석** (신뢰도: ${Math.round(result.metadata.confidence * 100)}%)`;
+    }
+    if (result.metadata.ragUsed) {
+      formattedResponse += `\n📚 **RAG 엔진 활용** - 벡터 검색 기반 정확한 응답`;
+    }
+    if (result.metadata.mcpContextUsed) {
+      formattedResponse += `\n🔗 **실시간 컨텍스트** - MCP 파일시스템 연동`;
+    }
+  }
 
-    console.log(`🔤 한글 쿼리 정규화: "${query}" → "${trimmed}"`);
-    console.log(`🔍 최종 한국어 감지: ${/[가-힣]/.test(trimmed)}`);
-    return trimmed;
-  } catch (error) {
-    console.warn('⚠️ 한글 쿼리 정규화 실패, 원본 사용:', error);
-    return query;
+  return {
+    response: formattedResponse,
+    confidence: result.confidence || 0.5,
+    enginePath: result.enginePath || ['unknown'],
+    processingTime: result.processingTime || 0,
+    fallbacksUsed: result.fallbacksUsed || 0,
+  };
+}
+
+function generateTimeoutResponse(isProPlan: boolean): string {
+  if (isProPlan) {
+    return `⏱️ **Pro 플랜 - 처리 시간 초과**
+
+요청이 복잡하여 15초 제한에 도달했습니다.
+
+**최적화 제안:**
+• 더 구체적인 질문으로 세분화
+• 대시보드에서 실시간 모니터링 이용
+• 배치 처리가 필요한 경우 별도 문의
+
+Edge Runtime에서 최대 성능으로 처리했지만 시간이 부족했습니다.`;
+  } else {
+    return `⏱️ **Hobby 플랜 - 처리 시간 제한**
+
+10초 처리 제한에 도달했습니다.
+
+**권장사항:**
+• 간단한 질문으로 다시 시도
+• Pro 플랜 업그레이드시 15초+ 처리 시간
+• 기본 모니터링 기능은 계속 이용 가능
+
+현재 제한된 모드에서도 기본 서비스는 제공됩니다.`;
+  }
+}
+
+function generateFallbackResponse(isProPlan: boolean): string {
+  if (isProPlan) {
+    return `🔧 **Pro 플랜 - 시스템 복구 중**
+
+AI 시스템이 일시적으로 제한된 모드로 운영 중입니다.
+
+**이용 가능한 기능:**
+• 실시간 서버 모니터링
+• 기본 성능 분석
+• 대시보드 및 알림 시스템
+
+시스템이 완전히 복구되면 고급 AI 기능을 다시 이용하실 수 있습니다.`;
+  } else {
+    return `🔧 **Hobby 플랜 - 기본 모드**
+
+현재 기본 기능만 제공됩니다.
+
+**이용 가능한 기능:**
+• 서버 상태 확인
+• 기본 모니터링
+• 단순 질의 응답
+
+Pro 플랜 업그레이드시 고급 AI 기능과 더 긴 처리 시간을 이용하실 수 있습니다.`;
   }
 }

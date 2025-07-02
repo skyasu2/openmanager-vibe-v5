@@ -245,13 +245,16 @@ export class GeminiLearningEngine {
 
       this.incrementRequestCount();
 
-      const response = await this.googleAI.generateContent(prompt);
+      const response = await this.googleAI.processQuery({
+        query: prompt,
+        mode: 'GOOGLE_ONLY',
+      });
 
       if (!response.success) {
         throw new Error('Gemini API 호출 실패');
       }
 
-      const suggestion = this.parseGeminiResponse(response.content);
+      const suggestion = this.parseGeminiResponse(response.response);
 
       if (suggestion) {
         suggestion.id = `suggestion_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

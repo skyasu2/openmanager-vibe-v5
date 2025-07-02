@@ -8,13 +8,11 @@
  * - 타이핑 애니메이션용 스트리밍 응답
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { getMCPStatus } from '@/config/mcp-config';
+import type { QueryRequest } from '@/services/mcp/ServerMonitoringAgent';
 import { serverMonitoringAgent } from '@/services/mcp/ServerMonitoringAgent';
-import type {
-  QueryRequest,
-  IncidentReport,
-} from '@/services/mcp/ServerMonitoringAgent';
-import { getMCPClient } from '@/services/mcp/official-mcp-client';
+import { RealMCPClient } from '@/services/mcp/real-mcp-client';
+import { NextRequest, NextResponse } from 'next/server';
 
 // 에이전트 초기화 (한 번만)
 let isInitialized = false;
@@ -27,78 +25,31 @@ const initializeAgent = async () => {
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const type = searchParams.get('type') || 'status';
-    const server = searchParams.get('server') || 'all';
+    // 🛠️ 개발 도구 전용 MCP 클라이언트 사용 (Vercel 내장)
+    const devMcpClient = RealMCPClient.getDevToolsInstance();
+    await devMcpClient.initialize();
 
-    // MCP 모니터링 데이터 생성
-    const monitoringData = {
-      type,
-      server,
-      status: 'healthy',
-      servers: [
-        {
-          id: 'filesystem',
-          name: 'Filesystem Server',
-          status: 'connected',
-          uptime: '2h 15m',
-          lastHeartbeat: new Date().toISOString(),
-          metrics: {
-            requestCount: 247,
-            errorRate: 0.8,
-            averageResponseTime: 45,
-            memoryUsage: 32.5
-          }
-        },
-        {
-          id: 'github',
-          name: 'GitHub Server',
-          status: 'connected',
-          uptime: '1h 42m',
-          lastHeartbeat: new Date().toISOString(),
-          metrics: {
-            requestCount: 156,
-            errorRate: 1.2,
-            averageResponseTime: 78,
-            memoryUsage: 28.3
-          }
-        },
-        {
-          id: 'openmanager-docs',
-          name: 'OpenManager Docs Server',
-          status: 'connected',
-          uptime: '3h 8m',
-          lastHeartbeat: new Date().toISOString(),
-          metrics: {
-            requestCount: 89,
-            errorRate: 0.5,
-            averageResponseTime: 32,
-            memoryUsage: 19.7
-          }
-        }
-      ],
-      summary: {
-        totalServers: 3,
-        connectedServers: 3,
-        healthyServers: 3,
-        totalRequests: 492,
-        averageErrorRate: 0.83,
-        systemLoad: 'low'
-      },
-      timestamp: new Date().toISOString()
-    };
+    const mcpStatus = getMCPStatus();
+    const serverStatus = await devMcpClient.getServerStatus();
+    const connectionInfo = devMcpClient.getConnectionInfo();
 
     return NextResponse.json({
       success: true,
-      data: monitoringData
+      data: {
+        status: mcpStatus,
+        servers: serverStatus,
+        connection: connectionInfo,
+        purpose: '개발/테스트/모니터링 전용 (Vercel 내장 MCP)',
+        timestamp: new Date().toISOString(),
+      },
     });
   } catch (error) {
-    console.error('MCP 모니터링 조회 오류:', error);
+    console.error('❌ MCP 모니터링 조회 실패:', error);
     return NextResponse.json(
       {
         success: false,
-        error: 'MCP 모니터링 조회 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        purpose: '개발/테스트/모니터링 전용 (Vercel 내장 MCP)',
       },
       { status: 500 }
     );
@@ -120,7 +71,7 @@ export async function POST(request: NextRequest) {
           server: server || 'all',
           status: 'success',
           message: `${server || 'All'} 서버가 재시작되었습니다`,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
         break;
 
@@ -133,9 +84,9 @@ export async function POST(request: NextRequest) {
             connectivity: true,
             memory: true,
             performance: true,
-            errors: false
+            errors: false,
           },
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
         break;
 
@@ -146,7 +97,7 @@ export async function POST(request: NextRequest) {
           status: 'success',
           config: config || {},
           message: '구성이 업데이트되었습니다',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
         break;
 
@@ -156,13 +107,13 @@ export async function POST(request: NextRequest) {
           status: 'error',
           message: '지원하지 않는 액션입니다',
           supportedActions: ['restart', 'healthcheck', 'configure'],
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
     }
 
     return NextResponse.json({
       success: result.status !== 'error',
-      data: result
+      data: result,
     });
   } catch (error) {
     console.error('MCP 모니터링 액션 오류:', error);
@@ -170,7 +121,7 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         error: 'MCP 모니터링 액션 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -215,48 +166,29 @@ async function handleStreamingResponse(queryRequest: QueryRequest) {
         }
 
         // 3. 답변 타이핑 애니메이션
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({
-              type: 'answer-start',
-              data: { message: '답변을 생성하고 있습니다...' },
-            })}\n\n`
-          )
-        );
+        const responseText = response.answer;
+        const words = responseText.split(' ');
 
-        // 답변을 단어별로 전송
-        const words = response.answer.split(' ');
-        let currentAnswer = '';
-
-        for (const word of words) {
-          currentAnswer += (currentAnswer ? ' ' : '') + word;
-
+        for (let i = 0; i < words.length; i++) {
+          const partialText = words.slice(0, i + 1).join(' ');
           controller.enqueue(
             encoder.encode(
               `data: ${JSON.stringify({
-                type: 'answer-chunk',
-                data: {
-                  chunk: word,
-                  currentAnswer,
-                  progress: (words.indexOf(word) + 1) / words.length,
-                },
+                type: 'typing',
+                data: { text: partialText, progress: (i + 1) / words.length },
               })}\n\n`
             )
           );
 
-          // 타이핑 속도 시뮬레이션
-          await new Promise(resolve => setTimeout(resolve, 80));
+          await new Promise(resolve => setTimeout(resolve, 50));
         }
 
-        // 4. 최종 결과 전송
+        // 4. 완료 신호
         controller.enqueue(
           encoder.encode(
             `data: ${JSON.stringify({
               type: 'complete',
-              data: {
-                ...response,
-                streamingComplete: true,
-              },
+              data: response,
             })}\n\n`
           )
         );

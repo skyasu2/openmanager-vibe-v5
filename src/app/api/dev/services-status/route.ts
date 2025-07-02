@@ -3,6 +3,10 @@ import { createClient } from '@supabase/supabase-js';
 import { Redis } from '@upstash/redis';
 import { NextRequest, NextResponse } from 'next/server';
 
+// 강제 동적 라우팅 설정
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 interface ServiceStatus {
   name: string;
   status: 'connected' | 'error' | 'unknown';
