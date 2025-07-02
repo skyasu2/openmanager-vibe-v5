@@ -196,3 +196,120 @@ Content-Type: application/json
 ---
 
 > **개발 진행 상황**: 2025년 5월 중순부터 시작하여 현재 7주차 개발 진행 중입니다. 지속적인 개선과 기능 확장을 통해 더 나은 서버 관리 플랫폼을 만들어가고 있습니다.
+
+## 🎯 OpenManager Vibe v5
+
+OpenManager는 서버 관리를 위한 통합 대시보드입니다.
+
+### ✨ 최근 업데이트
+
+#### 🧪 TDD 방식 컴포넌트 분리 완료 (2024-12)
+
+- **MCP 클라이언트 대규모 리팩토링** (1437줄 → 330줄, -77% 감소)
+- **컴포넌트 기반 아키텍처** 도입으로 유지보수성 대폭 향상
+- **Test-Driven Development** 방법론 완전 적용
+
+**분리된 컴포넌트들:**
+
+- `MCPServerManager` (314줄) - 서버 관리
+- `MCPPerformanceMonitor` (282줄) - 성능 모니터링  
+- `MCPToolHandler` (504줄) - 도구 호출
+- `MCPContextManager` (387줄) - 컨텍스트 관리
+
+### 🚀 주요 기능
+
+- **실시간 서버 모니터링** - CPU, 메모리, 네트워크 상태 추적
+- **AI 통합 지원** - Claude, GPT, Gemini 등 다중 AI 엔진
+- **MCP 프로토콜** - Model Context Protocol 기반 확장성
+- **반응형 UI** - 모바일/데스크톱 최적화
+- **실시간 알림** - 서버 상태 변화 즉시 알림
+
+### 🏗️ 아키텍처
+
+```
+src/
+├── components/           # React 컴포넌트
+├── domains/             # 도메인별 기능 모듈
+│   ├── ai-sidebar/     # AI 사이드바 (컴포넌트 분리 완료)
+│   └── server-management/
+├── services/           # 서비스 레이어
+│   └── mcp/           # MCP 클라이언트 (TDD 분리 완료)
+├── lib/               # 유틸리티 및 헬퍼
+└── types/            # TypeScript 타입 정의
+```
+
+### 🧪 테스트 전략
+
+- **TDD (Test-Driven Development)** 방법론 적용
+- **컴포넌트 단위 테스트** - Vitest + React Testing Library
+- **통합 테스트** - API 및 서비스 레이어
+- **E2E 테스트** - Playwright (계획)
+
+### 📊 성능 최적화
+
+- **코드 분할** - 동적 import를 통한 번들 크기 최적화
+- **컴포넌트 분리** - 단일 책임 원칙 적용
+- **메모리 관리** - 효율적인 상태 관리
+- **캐싱 전략** - 서버 데이터 캐싱
+
+### 🛠️ 기술 스택
+
+- **Frontend**: Next.js 14, React 18, TypeScript
+- **Styling**: Tailwind CSS, Shadcn/ui
+- **State Management**: Zustand
+- **Testing**: Vitest, React Testing Library
+- **AI Integration**: Multiple AI providers
+- **Protocol**: MCP (Model Context Protocol)
+
+### 📈 개발 진행 상황
+
+- ✅ AI 사이드바 컴포넌트 분리 (AISidebarV2: 1462줄 → 926줄)
+- ✅ MCP 클라이언트 TDD 분리 (RealMCPClient: 1437줄 → 330줄)
+- 🔄 다음 대상: ServerCard 컴포넌트 분리 예정
+- 🔄 UnifiedAIEngineRouter 최적화 예정
+
+### 🚀 시작하기
+
+```bash
+# 의존성 설치
+npm install
+
+# 개발 서버 시작
+npm run dev
+
+# 테스트 실행
+npm test
+
+# 빌드
+npm run build
+```
+
+### 📝 개발 가이드
+
+1. **컴포넌트 분리 원칙**
+   - 400줄 이상 파일은 분리 대상
+   - TDD 방식으로 안전한 리팩토링
+   - 단일 책임 원칙 준수
+
+2. **코딩 컨벤션**
+   - TypeScript strict 모드
+   - ESLint + Prettier 적용
+   - 컴포넌트별 테스트 필수
+
+3. **커밋 메시지**
+   - feat: 새로운 기능
+   - fix: 버그 수정
+   - refactor: 리팩토링
+   - test: 테스트 관련
+
+### 🤝 기여하기
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### 📄 라이선스
+
+MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
