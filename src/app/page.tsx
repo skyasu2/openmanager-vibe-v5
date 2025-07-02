@@ -506,7 +506,7 @@ export default function Home() {
                       ? '⚠️ 시작 예정 - 취소하려면 클릭'
                       : multiUserStatus.isRunning
                         ? `✅ 시스템 가동 중 (${multiUserStatus.userCount}명 접속)`
-                        : '클릭하여 OpenManager 시작하기'}
+                        : '클릭하여 시작하기'}
                   </span>
                 </div>
 
