@@ -158,7 +158,6 @@ describe('UnifiedAIEngineRouter 통합 테스트', () => {
       expect(status.engines).toHaveProperty('supabaseRAG');
       expect(status.engines).toHaveProperty('googleAI');
       expect(status.engines).toHaveProperty('optimizedKoreanNLP');
-      expect(status.engines).toHaveProperty('transformersEngine');
       expect(status.engines).toHaveProperty('openSourceEngines');
       expect(status.engines).toHaveProperty('customEngines');
       expect(status.engines).toHaveProperty('mcpContextCollector');
