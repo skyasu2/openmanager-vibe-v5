@@ -1011,9 +1011,10 @@ export class UnifiedAIEngineRouter {
       engines: {
         supabaseRAG: !!this.supabaseRAG,
         googleAI: !!this.googleAI,
-        koreanAI: !!this.koreanEngine,
-        transformers: !!this.transformersEngine,
         optimizedKoreanNLP: !!this.optimizedKoreanNLP,
+        openSourceEngines: !!this.openSourceEngines,
+        customEngines: !!this.customEngines,
+        mcpContextCollector: !!this.mcpContextCollector,
       },
     };
   }
