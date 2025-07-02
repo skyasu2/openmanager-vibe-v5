@@ -22,9 +22,11 @@ import {
 import { cacheService } from '../../../services/cacheService';
 
 /**
- * 🏢 엔터프라이즈 API
- * 엔터프라이즈 기능 및 정보를 제공하는 엔드포인트
+ * Enterprise API Endpoint
+ *
+ * 엔터프라이즈 기능 및 설정을 제공합니다.
  */
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -253,10 +255,13 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ 엔터프라이즈 API 오류:', error);
+    console.error('Enterprise API error:', error);
+
     return NextResponse.json(
       {
-        error: '엔터프라이즈 정보 조회 중 오류가 발생했습니다',
+        success: false,
+        error: 'Failed to get enterprise information',
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );

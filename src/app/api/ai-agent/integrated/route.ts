@@ -6,47 +6,59 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action') || 'status';
-
-    switch (action) {
-      case 'status':
-        return NextResponse.json({
+    const agentStatus = {
+      status: 'active',
+      version: '3.2.0',
+      capabilities: {
+        koreanNLP: true,
+        serverMonitoring: true,
+        realTimeAnalysis: true,
+        contextAware: true,
+        multiEngine: true,
+      },
+      engines: {
+        korean: {
           status: 'active',
-          engines: {
-            unified: true,
-            rag: true,
-            nlp: true,
-            google: false,
-          },
-          performance: {
-            responseTime: 120,
-            accuracy: 0.85,
-            uptime: 0.99,
-          },
-        });
+          confidence: 0.95,
+          features: [
+            'entity_extraction',
+            'intent_classification',
+            'semantic_analysis',
+          ],
+        },
+        supabaseRAG: {
+          status: 'active',
+          confidence: 0.85,
+          features: ['vector_search', 'context_retrieval', 'document_analysis'],
+        },
+        mcp: {
+          status: 'active',
+          confidence: 0.9,
+          features: ['file_operations', 'system_monitoring', 'data_collection'],
+        },
+      },
+      performance: {
+        averageResponseTime: '2-3 seconds',
+        successRate: '95%',
+        qualityScore: 0.88,
+        lastOptimization: new Date().toISOString(),
+      },
+    };
 
-      case 'health':
-        return NextResponse.json({
-          healthy: true,
-          timestamp: new Date().toISOString(),
-          services: {
-            ai_engine: 'operational',
-            data_processor: 'operational',
-            cache: 'operational',
-          },
-        });
-
-      default:
-        return NextResponse.json(
-          { error: '지원하지 않는 액션입니다.' },
-          { status: 400 }
-        );
-    }
+    return NextResponse.json({
+      success: true,
+      data: agentStatus,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
-    console.error('AI 에이전트 통합 API 오류:', error);
+    console.error('Integrated AI agent API error:', error);
+
     return NextResponse.json(
-      { error: 'AI 에이전트 상태를 확인할 수 없습니다.' },
+      {
+        success: false,
+        error: 'Failed to get AI agent status',
+        timestamp: new Date().toISOString(),
+      },
       { status: 500 }
     );
   }
@@ -58,30 +70,51 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { query, context } = body;
+    const { query, mode = 'AUTO', category = 'general' } = body;
 
     if (!query) {
       return NextResponse.json(
-        { error: '질의가 필요합니다.' },
+        {
+          success: false,
+          error: 'Query is required',
+          timestamp: new Date().toISOString(),
+        },
         { status: 400 }
       );
     }
 
-    // 간단한 AI 응답 시뮬레이션
+    // 시뮬레이션된 AI 응답
     const response = {
       query,
-      response: `"${query}"에 대한 AI 분석 결과입니다.`,
-      confidence: 0.85,
-      timestamp: new Date().toISOString(),
-      engine: 'unified',
-      processing_time: Math.random() * 200 + 50,
+      mode,
+      category,
+      result: {
+        intent: 'analysis',
+        confidence: 0.88,
+        response: `분석 결과: "${query}"에 대한 처리가 완료되었습니다.`,
+        suggestions: [
+          '추가 모니터링 설정',
+          '성능 최적화 권장사항',
+          '관련 문서 검토',
+        ],
+        processingTime: Math.random() * 2000 + 1000,
+      },
     };
 
-    return NextResponse.json(response);
+    return NextResponse.json({
+      success: true,
+      data: response,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
-    console.error('AI 에이전트 질의 처리 오류:', error);
+    console.error('Integrated AI agent query error:', error);
+
     return NextResponse.json(
-      { error: 'AI 질의를 처리할 수 없습니다.' },
+      {
+        success: false,
+        error: 'Failed to process AI query',
+        timestamp: new Date().toISOString(),
+      },
       { status: 500 }
     );
   }

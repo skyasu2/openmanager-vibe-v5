@@ -136,15 +136,36 @@ export async function GET(request: NextRequest) {
     const validServers = allServers.filter(
       server => server !== null
     ) as Server[];
-    const dashboardSummary = generator.getDashboardSummary();
 
     // 🔒 변환 품질 검증
     const validServersFiltered = validServers.filter(
       server => server && server.id && server.name && server.services
     );
 
+    // 🎯 실제 서버 데이터 기반 요약 통계 계산 (수정됨)
+    const dashboardSummary = {
+      total: validServersFiltered.length,
+      online: validServersFiltered.filter(
+        s => s.status === 'online' || s.status === 'healthy'
+      ).length,
+      warning: validServersFiltered.filter(s => s.status === 'warning').length,
+      critical: validServersFiltered.filter(
+        s => s.status === 'offline' || s.status === 'critical'
+      ).length,
+      lastUpdate: new Date().toISOString(),
+      averageCpu:
+        validServersFiltered.reduce((sum, s) => sum + s.cpu, 0) /
+        Math.max(validServersFiltered.length, 1),
+      averageMemory:
+        validServersFiltered.reduce((sum, s) => sum + s.memory, 0) /
+        Math.max(validServersFiltered.length, 1),
+    };
+
     console.log(
       `🔄 Enhanced v2.0: ${allServerInstances.length}개 ServerInstance → ${validServersFiltered.length}개 검증된 Server 변환 완료`
+    );
+    console.log(
+      `📊 요약 통계: 총 ${dashboardSummary.total}개, 온라인 ${dashboardSummary.online}개, 경고 ${dashboardSummary.warning}개, 위험 ${dashboardSummary.critical}개`
     );
 
     const totalServers = validServersFiltered.length;

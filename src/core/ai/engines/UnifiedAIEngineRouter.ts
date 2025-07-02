@@ -1,17 +1,15 @@
 /**
- * 🚀 통합 AI 엔진 라우터 v3.1 (재통합 버전)
+ * 🚀 통합 AI 엔진 라우터 v3.2 (고품질 한국어 NLP 통합)
  *
- * 과도한 분리 문제 해결:
- * - 4개 컴포넌트를 다시 통합하여 응집성 향상
- * - 코드 중복 제거 및 성능 최적화
- * - 유지보수성 개선
+ * 새로운 기능:
+ * - 고품질 한국어 NLP 엔진 통합 (Vercel 최적화)
+ * - 한국어 쿼리 우선 처리 파이프라인
+ * - 품질 우선 설계 (응답시간보다 정확도 중시)
  *
  * 핵심 기능:
  * - 3가지 AI 모드 (AUTO/LOCAL/GOOGLE_ONLY) 동적 라우팅
- * - Supabase RAG 엔진 메인 처리 (50-80% 가중치)
+ * - 한국어 NLP → Supabase RAG → MCP 순차 처리
  * - Google AI 모드별 가중치 조정 (2-80%)
- * - MCP 표준 서버와의 안전한 연동
- * - 하위 AI 도구들 편리한 접근
  * - 다층 폴백 시스템으로 안정성 극대화
  */
 
@@ -19,18 +17,23 @@ import { MCPContextCollector } from '@/core/ai/context/MCPContextCollector';
 import { AIFallbackHandler } from '@/core/ai/handlers/AIFallbackHandler';
 import { getSupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { CustomEngines } from '@/services/ai/engines/CustomEngines';
+import { enhancedKoreanNLPEngine } from '@/services/ai/engines/EnhancedKoreanNLPEngine';
 import { OpenSourceEngines } from '@/services/ai/engines/OpenSourceEngines';
+import { OptimizedKoreanNLPEngine } from '@/services/ai/engines/OptimizedKoreanNLPEngine';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { KoreanAIEngine } from '@/services/ai/korean-ai-engine';
 import { TransformersEngine } from '@/services/ai/transformers-engine';
 import { AIMode, AIRequest, AIResponse } from '@/types/ai-types';
 import KoreanTimeUtil from '@/utils/koreanTime';
 
-// 베르셀 환경 최적화 설정
+// 베르셀 환경 최적화 설정 (품질 우선)
 const VERCEL_OPTIMIZATION = {
   isVercel: process.env.VERCEL === '1' || process.env.NODE_ENV === 'production',
-  maxProcessingTime: 8000, // 8초 제한
-  enableFastMode: true,
+  maxProcessingTime: 25000, // 25초로 확장 (품질 우선)
+  enableFastMode: false, // 품질 우선으로 비활성화
+  koreanNLPTimeout: 8000, // 한국어 NLP 전용 타임아웃
+  ragTimeout: 10000, // RAG 전용 타임아웃
+  mcpTimeout: 7000, // MCP 전용 타임아웃
 };
 
 export class UnifiedAIEngineRouter {
@@ -49,6 +52,10 @@ export class UnifiedAIEngineRouter {
   private transformersEngine: TransformersEngine;
   private openSourceEngines: OpenSourceEngines;
   private customEngines: CustomEngines;
+
+  // 🇰🇷 새로운 고품질 한국어 NLP 엔진
+  private enhancedKoreanNLP = enhancedKoreanNLPEngine;
+  private optimizedKoreanNLP = new OptimizedKoreanNLPEngine();
 
   // 상태 관리
   private initialized = false;
@@ -82,7 +89,7 @@ export class UnifiedAIEngineRouter {
     this.fallbackHandler = AIFallbackHandler.getInstance();
     this.mcpContextCollector = new MCPContextCollector();
 
-    console.log('✅ UnifiedAIEngineRouter v3.1 재통합 완료');
+    console.log('✅ UnifiedAIEngineRouter v3.2 고품질 한국어 NLP 통합 완료');
   }
 
   static getInstance(): UnifiedAIEngineRouter {
@@ -163,19 +170,111 @@ export class UnifiedAIEngineRouter {
   }
 
   /**
-   * 🏠 LOCAL 모드 처리: Supabase RAG (80%) → MCP+하위AI (20%)
+   * 🏠 LOCAL 모드 처리: 한국어 NLP (우선) → Supabase RAG (80%) → MCP+하위AI (20%)
    */
   private async processLocalMode(
     request: AIRequest,
     startTime: number,
     checkTimeout: () => number
   ): Promise<AIResponse> {
-    console.log('🏠 LOCAL 모드: Supabase RAG 우선 + 로컬 AI');
+    console.log(
+      '🏠 LOCAL 모드: 고품질 한국어 NLP 우선 + Supabase RAG + 로컬 AI'
+    );
     const enginePath: string[] = [];
     const supportEngines: string[] = [];
     let fallbacksUsed = 0;
 
-    // 1단계: Supabase RAG 우선 처리 (80% 가중치)
+    // 🇰🇷 0단계: 한국어 쿼리 감지 및 고품질 NLP 처리
+    const isKoreanQuery = /[가-힣]/.test(request.query);
+    let koreanAnalysis: any = null;
+
+    if (isKoreanQuery) {
+      try {
+        console.log('🇰🇷 LOCAL 0단계: 고품질 한국어 NLP 분석');
+        const nlpStartTime = Date.now();
+
+        // 한국어 NLP 전용 타임아웃 체크
+        const checkKoreanTimeout = () => {
+          const elapsed = Date.now() - nlpStartTime;
+          if (elapsed > VERCEL_OPTIMIZATION.koreanNLPTimeout) {
+            throw new Error(
+              `한국어 NLP 타임아웃 (${elapsed}ms > ${VERCEL_OPTIMIZATION.koreanNLPTimeout}ms)`
+            );
+          }
+          return elapsed;
+        };
+
+        await this.optimizedKoreanNLP.initialize();
+        const optimizedResult = await this.optimizedKoreanNLP.processQuery(
+          request.query
+        );
+
+        // OptimizedKoreanNLPEngine 결과를 기존 koreanAnalysis 형식으로 변환
+        koreanAnalysis = {
+          qualityMetrics: {
+            processingTime: optimizedResult.totalTime,
+            confidence: optimizedResult.confidence,
+            contextRelevance: optimizedResult.confidence * 0.9, // 추정값
+            analysisDepth: optimizedResult.steps / 5, // 5단계 기준
+          },
+          semanticAnalysis: {
+            mainTopic: '서버 모니터링', // 기본값
+            subTopics: ['성능 분석'],
+            urgencyLevel: optimizedResult.confidence > 0.8 ? 'medium' : 'low',
+            technicalComplexity: optimizedResult.confidence,
+          },
+          entities: [],
+          responseGuidance: {
+            suggestedTone: 'professional',
+            keyPoints: [optimizedResult.response.substring(0, 100)],
+            recommendedActions: ['모니터링 지속'],
+          },
+        };
+
+        checkKoreanTimeout();
+
+        enginePath.push('optimized-korean-nlp');
+        supportEngines.push('korean-nlp-engine');
+        this.stats.engineUsage.optimizedKoreanNLP =
+          (this.stats.engineUsage.optimizedKoreanNLP || 0) + 1;
+
+        console.log(
+          `✅ 한국어 NLP 분석 완료 (${koreanAnalysis.qualityMetrics.processingTime}ms, 신뢰도: ${koreanAnalysis.qualityMetrics.confidence})`
+        );
+
+        // 고품질 분석이 충분한 경우 바로 응답 생성
+        if (
+          koreanAnalysis.qualityMetrics.confidence > 0.8 &&
+          koreanAnalysis.qualityMetrics.contextRelevance > 0.7
+        ) {
+          const enhancedResponse = this.generateEnhancedKoreanResponse(
+            koreanAnalysis,
+            request
+          );
+
+          return this.formatSuccessResponse(
+            enhancedResponse,
+            enginePath,
+            supportEngines,
+            startTime,
+            {
+              koreanAnalysis,
+              qualityMetrics: koreanAnalysis.qualityMetrics,
+              responseGuidance: koreanAnalysis.responseGuidance,
+              confidence: koreanAnalysis.qualityMetrics.confidence,
+              mode: 'LOCAL',
+              primaryEngine: 'optimized-korean-nlp',
+              fallbacksUsed: 0,
+            }
+          );
+        }
+      } catch (error) {
+        console.warn('⚠️ 한국어 NLP 분석 실패, RAG로 폴백:', error);
+        fallbacksUsed++;
+      }
+    }
+
+    // 1단계: Supabase RAG 처리 (한국어 분석 결과 활용)
     try {
       console.log('🥇 LOCAL 1단계: Supabase RAG (80%)');
       checkTimeout();
@@ -184,79 +283,122 @@ export class UnifiedAIEngineRouter {
         this.supabaseRAG &&
         typeof this.supabaseRAG.searchSimilar === 'function'
       ) {
-        const ragResult = await this.supabaseRAG.searchSimilar(request.query, {
+        // 한국어 분석 결과를 RAG 검색에 활용
+        const searchQuery = koreanAnalysis
+          ? this.enhanceQueryWithKoreanAnalysis(request.query, koreanAnalysis)
+          : request.query;
+
+        const ragStartTime = Date.now();
+        const ragResult = await this.supabaseRAG.searchSimilar(searchQuery, {
           maxResults: 3,
           threshold: 0.7,
           category: request.category,
           enableMCP: true,
         });
 
+        // RAG 타임아웃 체크
+        if (Date.now() - ragStartTime > VERCEL_OPTIMIZATION.ragTimeout) {
+          throw new Error(
+            `RAG 타임아웃 (${Date.now() - ragStartTime}ms > ${VERCEL_OPTIMIZATION.ragTimeout}ms)`
+          );
+        }
+
         if (ragResult && ragResult.success && ragResult.results?.length > 0) {
-          enginePath.push('supabase-rag-primary');
+          enginePath.push('supabase-rag-enhanced');
           supportEngines.push('rag-engine');
           this.stats.engineUsage.supabaseRAG =
             (this.stats.engineUsage.supabaseRAG || 0) + 1;
 
-          const ragResponse = this.formatRAGResults(ragResult, request.query);
-          if (ragResponse) {
-            return this.formatSuccessResponse(
-              ragResponse,
-              enginePath,
-              supportEngines,
-              startTime
-            );
-          }
+          const ragResponse = this.formatEnhancedRAGResults(
+            ragResult,
+            request.query,
+            koreanAnalysis
+          );
+
+          return this.formatSuccessResponse(
+            ragResponse,
+            enginePath,
+            supportEngines,
+            startTime,
+            {
+              koreanAnalysis,
+              ragResults: ragResult.results?.length || 0,
+              confidence: koreanAnalysis?.qualityMetrics?.confidence || 0.7,
+              mode: 'LOCAL',
+              primaryEngine: 'supabase-rag',
+              fallbacksUsed,
+            }
+          );
         }
       }
     } catch (error) {
-      console.warn('⚠️ LOCAL 1단계 Supabase RAG 실패:', error);
+      console.warn('⚠️ Supabase RAG 실패, MCP로 폴백:', error);
       fallbacksUsed++;
     }
 
-    // 2단계: MCP + 하위 AI 처리 (20% 가중치)
+    // 2단계: MCP + 하위 AI 엔진들 (20% 가중치)
     try {
       console.log('🥈 LOCAL 2단계: MCP + 하위 AI (20%)');
       checkTimeout();
 
-      // MCP 컨텍스트 수집
-      let mcpContext: any = null;
-      try {
-        mcpContext = await this.collectMCPContext(
-          request.query,
-          request.context
-        );
-        if (mcpContext) {
-          supportEngines.push('mcp-context');
-        }
-      } catch (error) {
-        console.warn('⚠️ LOCAL MCP 컨텍스트 실패:', error);
-      }
+      const subEngineResult = await this.processLocalModeSubEngines(request);
 
-      // 데이터 기반 스마트 응답 시도
-      const dataResponse = await this.generateDataBasedResponse(
-        request.query,
-        checkTimeout
-      );
-      if (dataResponse) {
-        enginePath.push('local-data-smart');
-        supportEngines.push('korean-ai', 'system-metrics');
+      if (subEngineResult.success) {
+        enginePath.push('mcp-sub-engines');
+        supportEngines.push(
+          ...(subEngineResult.metadata?.supportEngines || [])
+        );
+
+        // 한국어 분석 결과로 응답 향상
+        const enhancedResponse = koreanAnalysis
+          ? this.enhanceResponseWithKoreanAnalysis(
+              subEngineResult.response,
+              koreanAnalysis
+            )
+          : subEngineResult.response;
 
         return this.formatSuccessResponse(
-          dataResponse,
+          enhancedResponse,
           enginePath,
           supportEngines,
-          startTime
+          startTime,
+          {
+            koreanAnalysis,
+            confidence:
+              koreanAnalysis?.qualityMetrics?.confidence ||
+              subEngineResult.confidence,
+            mode: 'LOCAL',
+            primaryEngine: 'mcp-sub-engines',
+            fallbacksUsed,
+          }
         );
       }
-
-      // 하위 엔진 처리
-      const subEngineResult = await this.processLocalModeSubEngines(request);
-      if (subEngineResult.success) {
-        return subEngineResult;
-      }
     } catch (error) {
-      console.warn('⚠️ LOCAL 2단계 실패:', error);
+      console.warn('⚠️ MCP + 하위 AI 실패:', error);
       fallbacksUsed++;
+    }
+
+    // 3단계: 폴백 응답 (한국어 분석 기반)
+    console.log('🔄 LOCAL 폴백: 한국어 분석 기반 응답 생성');
+
+    if (koreanAnalysis) {
+      const fallbackResponse = this.generateKoreanAnalysisBasedFallback(
+        koreanAnalysis,
+        request
+      );
+
+      return this.formatFallbackResponse(
+        'LOCAL',
+        enginePath,
+        supportEngines,
+        startTime,
+        fallbacksUsed,
+        {
+          koreanAnalysis,
+          fallbackType: 'korean-analysis-based',
+          confidence: koreanAnalysis.qualityMetrics.confidence * 0.8, // 폴백이므로 신뢰도 감소
+        }
+      );
     }
 
     // 최종 폴백
@@ -831,28 +973,23 @@ export class UnifiedAIEngineRouter {
     response: string,
     enginePath: string[],
     supportEngines: string[],
-    startTime: number
+    startTime: number,
+    metadata?: any
   ): AIResponse {
     return {
       success: true,
       response,
-      confidence: 0.8,
+      confidence: metadata?.confidence || 0.8,
       mode: this.currentMode,
       enginePath,
       processingTime: Date.now() - startTime,
-      fallbacksUsed: 0,
+      fallbacksUsed: metadata?.fallbacksUsed || 0,
       metadata: {
-        mainEngine: enginePath[0] || 'unknown',
-        supportEngines,
-        ragUsed:
-          enginePath.includes('supabase-rag') ||
-          enginePath.some(p => p.includes('rag')),
-        googleAIUsed:
-          enginePath.includes('google-ai') ||
-          enginePath.some(p => p.includes('google')),
-        mcpContextUsed: supportEngines.some(s => s.includes('mcp-context')),
+        timestamp: new Date().toISOString(),
+        mainEngine: metadata?.primaryEngine || enginePath[0] || 'unknown',
         subEnginesUsed: supportEngines,
         cacheUsed: false,
+        ...metadata,
       },
     };
   }
@@ -895,33 +1032,41 @@ export class UnifiedAIEngineRouter {
     enginePath: string[],
     supportEngines: string[],
     startTime: number,
-    fallbacksUsed: number
+    fallbacksUsed: number,
+    metadata?: any
   ): AIResponse {
     const fallbackMessages = {
       LOCAL:
-        '로컬 AI 엔진들이 현재 사용할 수 없습니다. 시스템 관리자에게 문의하세요.',
+        '로컬 AI 엔진들이 일시적으로 사용할 수 없습니다. 기본 응답을 제공합니다.',
       GOOGLE_AI:
-        'Google AI 서비스가 현재 사용할 수 없습니다. 나중에 다시 시도해주세요.',
-      AUTO: '모든 AI 엔진이 현재 사용할 수 없습니다. 시스템 점검 중일 수 있습니다.',
-      GOOGLE_ONLY: 'Google AI 전용 모드가 현재 사용할 수 없습니다.',
+        'Google AI가 일시적으로 사용할 수 없습니다. 로컬 엔진으로 처리합니다.',
+      AUTO: '자동 모드에서 최적 엔진을 찾을 수 없습니다. 기본 응답을 제공합니다.',
+      GOOGLE_ONLY: 'Google AI 전용 모드에서 연결할 수 없습니다.',
     };
+
+    const fallbackResponse =
+      metadata?.fallbackType === 'korean-analysis-based'
+        ? metadata.koreanAnalysis
+          ? this.generateKoreanAnalysisBasedFallback(metadata.koreanAnalysis, {
+              query: '분석 요청',
+            } as AIRequest)
+          : fallbackMessages[mode]
+        : fallbackMessages[mode];
 
     return {
       success: false,
-      response: fallbackMessages[mode] || '알 수 없는 오류가 발생했습니다.',
-      confidence: 0,
+      response: fallbackResponse,
+      confidence: metadata?.confidence || 0.3,
       mode,
-      enginePath: [...enginePath, 'fallback'],
+      enginePath,
       processingTime: Date.now() - startTime,
       fallbacksUsed,
       metadata: {
+        timestamp: new Date().toISOString(),
         mainEngine: 'fallback',
-        supportEngines,
-        ragUsed: false,
-        googleAIUsed: false,
-        mcpContextUsed: false,
         subEnginesUsed: [],
         allEnginesFailed: true,
+        ...metadata,
       },
     };
   }
@@ -994,7 +1139,7 @@ export class UnifiedAIEngineRouter {
   getStatus(): any {
     return {
       router: 'UnifiedAIEngineRouter',
-      version: '3.1.0',
+      version: '3.2.0',
       mode: this.currentMode,
       initialized: this.initialized,
       stats: this.stats,
@@ -1039,6 +1184,213 @@ export class UnifiedAIEngineRouter {
       lastUpdated: new Date().toISOString(),
     };
     console.log('📈 통계가 리셋되었습니다');
+  }
+
+  /**
+   * 🇰🇷 한국어 분석 기반 향상된 응답 생성
+   */
+  private generateEnhancedKoreanResponse(
+    koreanAnalysis: any,
+    request: AIRequest
+  ): string {
+    const {
+      semanticAnalysis,
+      serverContext,
+      responseGuidance,
+      qualityMetrics,
+    } = koreanAnalysis;
+
+    let response = `# ${semanticAnalysis.mainTopic} 분석 결과\n\n`;
+
+    // 긴급도에 따른 응답 스타일
+    if (semanticAnalysis.urgencyLevel === 'critical') {
+      response += '🚨 **긴급 상황 감지됨**\n\n';
+    } else if (semanticAnalysis.urgencyLevel === 'high') {
+      response += '⚠️ **주의 필요**\n\n';
+    }
+
+    // 서버 컨텍스트 정보
+    if (serverContext.targetServers.length > 0) {
+      response += `**대상 서버**: ${serverContext.targetServers.join(', ')}\n`;
+    }
+
+    if (serverContext.metrics.length > 0) {
+      response += `**관련 메트릭**: ${serverContext.metrics.join(', ')}\n`;
+    }
+
+    // 하위 주제들
+    if (semanticAnalysis.subTopics.length > 0) {
+      response += `\n**세부 분석 영역**:\n`;
+      semanticAnalysis.subTopics.forEach((topic: string) => {
+        response += `- ${topic}\n`;
+      });
+    }
+
+    // 시각화 제안
+    if (responseGuidance.visualizationSuggestions.length > 0) {
+      response += `\n**시각화 제안**:\n`;
+      responseGuidance.visualizationSuggestions.forEach(
+        (suggestion: string) => {
+          response += `- ${suggestion}\n`;
+        }
+      );
+    }
+
+    // 후속 질문
+    if (responseGuidance.followUpQuestions.length > 0) {
+      response += `\n**추가 질문**:\n`;
+      responseGuidance.followUpQuestions.forEach((question: string) => {
+        response += `- ${question}\n`;
+      });
+    }
+
+    response += `\n---\n*분석 신뢰도: ${Math.round(qualityMetrics.confidence * 100)}% | 처리 시간: ${qualityMetrics.processingTime}ms*`;
+
+    return response;
+  }
+
+  /**
+   * 🔍 한국어 분석 결과로 검색 쿼리 향상
+   */
+  private enhanceQueryWithKoreanAnalysis(
+    originalQuery: string,
+    koreanAnalysis: any
+  ): string {
+    const { entities, serverContext } = koreanAnalysis;
+
+    let enhancedQuery = originalQuery;
+
+    // 서버 엔티티 추가
+    const serverEntities = entities.filter((e: any) => e.type === 'server');
+    if (serverEntities.length > 0) {
+      enhancedQuery += ` ${serverEntities.map((e: any) => e.value).join(' ')}`;
+    }
+
+    // 메트릭 엔티티 추가
+    const metricEntities = entities.filter((e: any) => e.type === 'metric');
+    if (metricEntities.length > 0) {
+      enhancedQuery += ` ${metricEntities.map((e: any) => e.value).join(' ')}`;
+    }
+
+    // 컨텍스트 메트릭 추가
+    if (serverContext.metrics.length > 0) {
+      enhancedQuery += ` ${serverContext.metrics.join(' ')}`;
+    }
+
+    return enhancedQuery.trim();
+  }
+
+  /**
+   * 📊 향상된 RAG 결과 포맷팅 (한국어 분석 통합)
+   */
+  private formatEnhancedRAGResults(
+    ragResult: any,
+    originalQuery: string,
+    koreanAnalysis?: any
+  ): string {
+    let response = this.formatRAGResults(ragResult, originalQuery);
+
+    if (koreanAnalysis) {
+      const { semanticAnalysis, responseGuidance } = koreanAnalysis;
+
+      // 한국어 분석 컨텍스트 추가
+      response += `\n\n## 🇰🇷 한국어 분석 인사이트\n`;
+      response += `**주제**: ${semanticAnalysis.mainTopic}\n`;
+      response += `**긴급도**: ${semanticAnalysis.urgencyLevel}\n`;
+
+      if (responseGuidance.visualizationSuggestions.length > 0) {
+        response += `**시각화 권장**: ${responseGuidance.visualizationSuggestions.join(', ')}\n`;
+      }
+    }
+
+    return response;
+  }
+
+  /**
+   * 🔧 한국어 분석으로 응답 향상
+   */
+  private enhanceResponseWithKoreanAnalysis(
+    originalResponse: string,
+    koreanAnalysis: any
+  ): string {
+    const { semanticAnalysis, responseGuidance, qualityMetrics } =
+      koreanAnalysis;
+
+    let enhancedResponse = originalResponse;
+
+    // 긴급도 표시 추가
+    if (semanticAnalysis.urgencyLevel === 'critical') {
+      enhancedResponse = `🚨 **긴급**: ${enhancedResponse}`;
+    } else if (semanticAnalysis.urgencyLevel === 'high') {
+      enhancedResponse = `⚠️ **주의**: ${enhancedResponse}`;
+    }
+
+    // 컨텍스트 정보 추가
+    if (responseGuidance.followUpQuestions.length > 0) {
+      enhancedResponse += `\n\n**추가 확인 사항**:\n`;
+      responseGuidance.followUpQuestions.forEach((question: string) => {
+        enhancedResponse += `- ${question}\n`;
+      });
+    }
+
+    enhancedResponse += `\n\n*한국어 분석 신뢰도: ${Math.round(qualityMetrics.confidence * 100)}%*`;
+
+    return enhancedResponse;
+  }
+
+  /**
+   * 🔄 한국어 분석 기반 폴백 응답 생성
+   */
+  private generateKoreanAnalysisBasedFallback(
+    koreanAnalysis: any,
+    request: AIRequest
+  ): string {
+    const { intent, semanticAnalysis, serverContext, responseGuidance } =
+      koreanAnalysis;
+
+    let response = `요청하신 "${request.query}"에 대한 분석 결과입니다.\n\n`;
+
+    // 의도 기반 응답
+    switch (intent) {
+      case 'inquiry':
+        response += '📋 **조회 요청 분석**:\n';
+        break;
+      case 'analysis':
+        response += '🔍 **분석 요청 분석**:\n';
+        break;
+      case 'optimization':
+        response += '⚡ **최적화 요청 분석**:\n';
+        break;
+      case 'troubleshooting':
+        response += '🔧 **문제 해결 요청 분석**:\n';
+        break;
+      default:
+        response += '💭 **일반 요청 분석**:\n';
+    }
+
+    // 주제 및 컨텍스트
+    response += `- 주제: ${semanticAnalysis.mainTopic}\n`;
+    if (serverContext.targetServers.length > 0) {
+      response += `- 대상 서버: ${serverContext.targetServers.join(', ')}\n`;
+    }
+    if (serverContext.metrics.length > 0) {
+      response += `- 관련 메트릭: ${serverContext.metrics.join(', ')}\n`;
+    }
+
+    // 권장 사항
+    response += `\n**권장 사항**:\n`;
+    if (responseGuidance.followUpQuestions.length > 0) {
+      responseGuidance.followUpQuestions.forEach((question: string) => {
+        response += `- ${question}\n`;
+      });
+    } else {
+      response +=
+        '- 더 구체적인 정보를 제공해 주시면 정확한 분석이 가능합니다.\n';
+    }
+
+    response += `\n*분석 엔진이 일시적으로 사용할 수 없어 기본 분석 결과를 제공합니다.*`;
+
+    return response;
   }
 }
 

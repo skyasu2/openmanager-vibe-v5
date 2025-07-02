@@ -1,3 +1,9 @@
+/**
+ * Admin Thresholds API Endpoint
+ *
+ * 시스템 임계값 설정을 관리합니다.
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 
 // 임계값 설정 기본값
@@ -62,27 +68,42 @@ const defaultThresholds = {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const category = searchParams.get('category');
-
-    let data = defaultThresholds;
-
-    if (category && data[category as keyof typeof data]) {
-      data = { [category]: data[category as keyof typeof data] } as any;
-    }
+    const thresholds = {
+      cpu: {
+        warning: 70,
+        critical: 85,
+      },
+      memory: {
+        warning: 80,
+        critical: 90,
+      },
+      disk: {
+        warning: 80,
+        critical: 95,
+      },
+      network: {
+        warning: 60,
+        critical: 80,
+      },
+      responseTime: {
+        warning: 1000,
+        critical: 3000,
+      },
+    };
 
     return NextResponse.json({
       success: true,
-      data,
-      category: category || 'all',
+      data: thresholds,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('❌ Admin thresholds GET error:', error);
+    console.error('Admin thresholds API error:', error);
+
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to load thresholds',
+        error: 'Failed to get thresholds',
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );
@@ -91,45 +112,24 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const newThresholds = await request.json();
+    const body = await request.json();
 
-    // 임계값 유효성 검사
-    if (!newThresholds || typeof newThresholds !== 'object') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid thresholds data',
-        },
-        { status: 400 }
-      );
-    }
-
-    // 각 임계값이 올바른 순서인지 확인 (warning < critical < emergency)
-    const validateThresholdOrder = (thresholds: any) => {
-      if (
-        thresholds.warning >= thresholds.critical ||
-        thresholds.critical >= thresholds.emergency
-      ) {
-        return false;
-      }
-      return true;
-    };
-
-    // 실제 환경에서는 데이터베이스에 저장
-    console.log('💾 Admin thresholds updated:', newThresholds);
+    // 임계값 업데이트 로직 (여기서는 시뮬레이션)
+    console.log('Updating thresholds:', body);
 
     return NextResponse.json({
       success: true,
       message: 'Thresholds updated successfully',
-      data: { ...defaultThresholds, ...newThresholds },
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('❌ Admin thresholds POST error:', error);
+    console.error('Admin thresholds update error:', error);
+
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to update thresholds',
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );
