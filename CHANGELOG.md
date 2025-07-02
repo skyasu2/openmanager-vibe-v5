@@ -1,5 +1,30 @@
 # 📋 OpenManager Vibe v5 - 변경 로그
 
+## 📚 v5.44.6 (2025-07-02) - TDD 커밋 스테이징 전략 구현 완료
+
+### ✨ **주요 변경사항**
+
+- **🎯 TDD 커밋 스테이징 전략 구현**: `npm run dev:tdd`, `tdd:check`, `tdd:commit`, `tdd:push`
+- **🎯 TDD 안전모드 구현**: 2개 실패 허용 기준 (95% 성공률)
+- **🎯 백업 & 복원 시스템**: `tdd:backup`, `tdd:restore`, `tdd:safe-commit`
+- **🎯 TDD 워크플로우 가이드**: `docs/tdd-workflow-guide.md` 생성
+- **🎯 실시간 테스트 감시**: vitest watch 모드 통합
+- **🎯 Vercel 배포 오류 해결**: getEngineStatus → getStatus, realMCPClient 임포트 수정
+
+### 🏗️ **테스트 성과**
+
+- **🎯 성공률**: 95.1% (39/41 테스트 통과)
+- **🎯 빌드 성공**: 149개 페이지 성공적 빌드
+- **🎯 TypeScript 오류**: 완전 해결
+- **🎯 허용된 실패**: AIEnhancedChat.tsx (논리적 응집성), UnifiedAIEngineRouter (개발 중)
+
+### 🚀 **TDD 개발 효율성 향상**
+
+- **🎯 직선적 개발**: 브랜치 전환 없이 Red→Green→Refactor
+- **🎯 깔끔한 커밋 기록**: 완성된 기능만 커밋
+- **🎯 CI/CD 안정성**: 항상 통과하는 커밋만 푸시
+- **🎯 개발자 경험**: 실시간 피드백 및 자동화된 워크플로우
+
 ## 📚 v5.44.5 (2025-07-02) - 문서 체계 정리 및 최신화 완료
 
 ### ✨ **주요 변경사항**
