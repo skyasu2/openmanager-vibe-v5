@@ -171,15 +171,6 @@ export interface SystemStatus {
   aiAgentAuthenticated: boolean;
 }
 
-export interface ProfileDropdownProps {
-  isOpen: boolean;
-  onClose: () => void;
-  position: DropdownPosition;
-  userName: string;
-  userAvatar?: string;
-  onSettingsClick: () => void;
-}
-
 export interface MenuItemProps {
   icon: React.ReactNode;
   title: string;

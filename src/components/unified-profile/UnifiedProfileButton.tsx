@@ -80,7 +80,7 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
 
   const { success, info, error } = useToast();
 
-  // 드롭다운 위치 계산 (메모이제이션 최적화)
+  // 드롭다운 위치 계산 (개선된 버전)
   const calculateDropdownPosition = useCallback(() => {
     if (!buttonRef.current || !isOpen) return;
 
@@ -88,35 +88,67 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
+    // 실제 드롭다운 크기 사용 (w-96 = 384px)
+    const dropdownWidth = 384;
+    const estimatedDropdownHeight = 450; // 더 정확한 높이 추정
+    const padding = 16; // 화면 여백
+
     // 기본 위치: 버튼 아래, 오른쪽 정렬
     let top = buttonRect.bottom + 8;
-    let left = buttonRect.right - 380;
+    let left = buttonRect.right - dropdownWidth;
+    let transformOrigin = 'top right';
 
-    // 드롭다운이 화면 아래로 넘어가는 경우 위쪽에 표시
-    const dropdownHeight = 500;
-    if (top + dropdownHeight > viewportHeight) {
-      top = buttonRect.top - dropdownHeight - 8;
+    // 화면 아래로 넘어가는 경우 위쪽에 표시
+    if (top + estimatedDropdownHeight > viewportHeight - padding) {
+      top = buttonRect.top - estimatedDropdownHeight - 8;
+      transformOrigin = 'bottom right';
     }
 
-    // 드롭다운이 화면 왼쪽으로 넘어가는 경우
-    if (left < 16) {
-      left = 16;
+    // 화면 왼쪽으로 넘어가는 경우 왼쪽 정렬로 변경
+    if (left < padding) {
+      left = buttonRect.left;
+      transformOrigin = transformOrigin.replace('right', 'left');
     }
 
-    // 모바일에서는 중앙 정렬
-    if (viewportWidth < 640) {
-      left = (viewportWidth - 380) / 2;
-      if (left < 16) left = 16;
+    // 여전히 화면을 넘어가는 경우 중앙 정렬
+    if (left + dropdownWidth > viewportWidth - padding) {
+      left = Math.max(padding, (viewportWidth - dropdownWidth) / 2);
+      transformOrigin = transformOrigin
+        .replace('left', 'center')
+        .replace('right', 'center');
     }
 
-    setDropdownPosition({ top, left, transformOrigin: 'top right' });
-  }, [isOpen]); // buttonRef 의존성 제거로 불필요한 재계산 방지
+    // 모바일에서는 더 나은 위치 계산
+    if (viewportWidth < 768) {
+      // 작은 화면에서는 중앙 정렬하되 여백 확보
+      left = Math.max(
+        padding,
+        (viewportWidth - Math.min(dropdownWidth, viewportWidth - padding * 2)) /
+          2
+      );
+      transformOrigin = 'top center';
+    }
 
-  // 위치 계산 - isOpen 변경 시에만 실행
+    setDropdownPosition({ top, left, transformOrigin });
+  }, [isOpen, buttonRef]); // buttonRef 다시 추가하여 위치 정확도 향상
+
+  // 위치 계산 - isOpen 변경 시와 윈도우 리사이즈 시 실행
   useEffect(() => {
     if (isOpen) {
       calculateDropdownPosition();
     }
+  }, [isOpen, calculateDropdownPosition]);
+
+  // 윈도우 리사이즈 시 위치 재계산
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleResize = () => {
+      calculateDropdownPosition();
+    };
+
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => window.removeEventListener('resize', handleResize);
   }, [isOpen, calculateDropdownPosition]);
 
   // 애니메이션은 CSS와 framer-motion에서 처리하므로 별도 상태 불필요
@@ -336,7 +368,7 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
-              className='fixed inset-0 bg-black/20 z-[9990] sm:hidden'
+              className='fixed inset-0 bg-black/20 z-[9998] sm:hidden'
               onClick={e => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -351,18 +383,20 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -10 }}
               transition={{
-                duration: 0.15,
-                ease: [0.4, 0.0, 0.2, 1],
+                duration: 0.2,
+                ease: [0.16, 1, 0.3, 1], // 더 부드러운 이징
               }}
               style={{
                 position: 'fixed',
-                top: dropdownPosition.top,
-                left: dropdownPosition.left,
+                top: Math.round(dropdownPosition.top), // 픽셀 정확도 향상
+                left: Math.round(dropdownPosition.left),
                 transformOrigin: dropdownPosition.transformOrigin,
                 willChange: 'transform, opacity',
                 transform: 'translate3d(0, 0, 0)',
+                maxHeight: '80vh', // 화면 높이 제한
+                overflowY: 'auto', // 스크롤 가능
               }}
-              className='w-96 bg-white/95 backdrop-blur-xl border border-gray-300 rounded-xl shadow-2xl z-[10000]'
+              className='w-96 bg-white/95 backdrop-blur-xl border border-gray-300 rounded-xl shadow-2xl z-[9999] ring-1 ring-black/5'
               role='menu'
               aria-orientation='vertical'
             >
