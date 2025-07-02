@@ -39,7 +39,6 @@
     "src/domains/ai-sidebar/stores/useAISidebarStore.ts",
     "src/services/ai-agent/**",
     "src/services/ai/orchestrator/adapters/RAGAdapter.ts",
-    "fetch-mcp/**/*",
     "commit/**/*"
   ]
 }
