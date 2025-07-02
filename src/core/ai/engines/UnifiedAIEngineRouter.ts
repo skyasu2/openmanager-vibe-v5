@@ -987,6 +987,12 @@ export class UnifiedAIEngineRouter {
       metadata: {
         timestamp: new Date().toISOString(),
         mainEngine: metadata?.primaryEngine || enginePath[0] || 'unknown',
+        ragUsed:
+          enginePath.some(path => path.includes('rag')) ||
+          supportEngines.some(engine => engine.includes('rag')),
+        googleAIUsed:
+          enginePath.some(path => path.includes('google')) ||
+          supportEngines.some(engine => engine.includes('google')),
         subEnginesUsed: supportEngines,
         cacheUsed: false,
         ...metadata,
