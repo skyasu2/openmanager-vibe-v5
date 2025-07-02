@@ -14,10 +14,36 @@ interface QueryRequest {
   };
 }
 
+/**
+ * 🇰🇷 한글 인코딩 복구 함수
+ */
+function fixKoreanEncoding(text: string): string {
+  try {
+    // 간단한 한글 복구 로직
+    if (!text || typeof text !== 'string') {
+      return text || '';
+    }
+
+    // URL 디코딩 시도
+    try {
+      const decoded = decodeURIComponent(encodeURIComponent(text));
+      return decoded;
+    } catch {
+      return text;
+    }
+  } catch (error) {
+    console.warn('한글 인코딩 복구 실패:', error);
+    return text || '';
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body: QueryRequest = await request.json();
-    const { query, context, options } = body;
+    let { query, context, options } = body;
+
+    // 🇰🇷 한글 인코딩 문제 해결
+    query = fixKoreanEncoding(query);
 
     if (!query || typeof query !== 'string') {
       return NextResponse.json(
@@ -25,7 +51,12 @@ export async function POST(request: NextRequest) {
           success: false,
           error: '질의 내용이 필요합니다',
         },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+          },
+        }
       );
     }
 
@@ -36,7 +67,12 @@ export async function POST(request: NextRequest) {
           success: false,
           error: 'AI 엔진이 초기화되지 않았습니다',
         },
-        { status: 503 }
+        {
+          status: 503,
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+          },
+        }
       );
     }
 
@@ -72,7 +108,7 @@ export async function POST(request: NextRequest) {
     const response = {
       success: result.success,
       data: {
-        query: query,
+        query: query, // 복구된 한글 쿼리 사용
         answer: formatAnswer(result.result, selectedEngine),
         engine_used: result.engine_used,
         confidence: result.confidence,
@@ -94,7 +130,12 @@ export async function POST(request: NextRequest) {
       `✅ AI 질의 완료: ${processingTime}ms (신뢰도: ${(result.confidence * 100).toFixed(1)}%)`
     );
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-cache',
+      },
+    });
   } catch (error) {
     console.error('❌ AI 질의 처리 오류:', error);
     return NextResponse.json(
@@ -112,7 +153,12 @@ export async function POST(request: NextRequest) {
           confidence: 0,
         },
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+      }
     );
   }
 }

@@ -35,7 +35,7 @@ import { RealAISidebarService } from '../services/RealAISidebarService';
 
 // 분리된 컴포넌트들 import
 import { unifiedAIRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
-import { AI_ENGINES } from './AIEngineSelector';
+import { availableEngines } from './AIEngineSelector';
 import { AIFunctionPages } from './AIFunctionPages';
 import { AIPresetQuestions } from './AIPresetQuestions';
 import { AISidebarHeader } from './AISidebarHeader';
@@ -629,13 +629,14 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
               className='flex items-center space-x-2 px-2 py-1 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-xs'
             >
               {React.createElement(
-                AI_ENGINES.find(e => e.id === selectedEngine)?.icon || Zap,
+                availableEngines.find(e => e.id === selectedEngine)?.icon ||
+                  Zap,
                 {
-                  className: `w-3 h-3 ${AI_ENGINES.find(e => e.id === selectedEngine)?.color}`,
+                  className: `w-3 h-3 ${availableEngines.find(e => e.id === selectedEngine)?.color}`,
                 }
               )}
               <span className='font-medium'>
-                {AI_ENGINES.find(e => e.id === selectedEngine)?.name}
+                {availableEngines.find(e => e.id === selectedEngine)?.name}
               </span>
               <ChevronDown className='w-3 h-3 text-gray-500' />
             </button>
@@ -664,7 +665,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                   </div>
 
                   <div className='max-h-48 overflow-y-auto'>
-                    {AI_ENGINES.map(engine => (
+                    {availableEngines.map(engine => (
                       <button
                         key={engine.id}
                         onClick={() => {

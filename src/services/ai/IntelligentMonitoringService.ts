@@ -6,6 +6,54 @@
  * 2단계: 🔍 다중 AI 근본 원인 분석 (여러 AI 엔진 협업)
  * 3단계: 🔮 예측적 모니터링 (PredictiveAnalysisEngine.ts 활용)
  * 4단계: 🤖 ML 기반 자동 학습 및 최적화 (NEW!)
+ *
+ * 📋 **클래스 구조 가이드 (1273줄)**
+ *
+ * 🏗️ **생성자 & 초기화 (120-193줄)**
+ * - 싱글톤 패턴 구현
+ * - AI 엔진 인스턴스 초기화
+ * - ML 엔진 지연 로딩 설정
+ *
+ * 🎯 **메인 분석 함수 (218-353줄)**
+ * - runIntelligentAnalysis(): 4단계 분석 워크플로우 실행
+ * - 진행 상황 추적 및 에러 처리
+ * - 통합 결과 생성
+ *
+ * 🚨 **이상 탐지 (354-460줄)**
+ * - runAnomalyDetection(): AnomalyDetection.ts 연동
+ * - 서버별/시스템 전체 이상 탐지
+ * - 신뢰도 계산 및 요약 생성
+ *
+ * 🔍 **근본 원인 분석 (461-610줄)**
+ * - runRootCauseAnalysis(): 다중 AI 엔진 활용
+ * - 한국어 AI 엔진 협업 분석
+ * - 원인별 확률 계산
+ *
+ * 🔮 **예측적 모니터링 (856-912줄)**
+ * - runPredictiveMonitoring(): PredictiveAnalysisEngine 활용
+ * - 장애 예측 및 예방 조치 권장
+ * - 시스템 레벨 예측 분석
+ *
+ * 🤖 **ML 최적화 (1091-1200줄)**
+ * - runMLOptimization(): 경량 ML 엔진 연동
+ * - 자동 학습 및 패턴 인식
+ * - 성능 최적화 권장사항 생성
+ *
+ * 📊 **통합 결과 생성 (976-1036줄)**
+ * - generateOverallResult(): 4단계 결과 종합
+ * - 심각도 계산 및 조치 우선순위 결정
+ * - 신뢰도 기반 최종 권장사항
+ *
+ * 🔧 **유틸리티 함수 (1037-1273줄)**
+ * - 분석 ID 생성, 진행 상황 추적
+ * - 상태 관리 및 조회
+ * - 헬퍼 함수들
+ *
+ * ⚠️ **주의사항:**
+ * - 이 클래스는 의도적으로 통합된 구조입니다
+ * - 단일 API 엔드포인트에서만 사용되므로 분리하지 않습니다
+ * - 각 단계별 로직은 위 가이드를 참고하여 수정하세요
+ * - 리팩토링보다는 문서화와 테스트 개선을 우선합니다
  */
 
 import { PredictiveAnalysisEngine } from '../../engines/PredictiveAnalysisEngine';
@@ -101,11 +149,11 @@ export interface IntelligentAnalysisResult {
 export interface RootCause {
   id: string;
   category:
-  | 'system'
-  | 'application'
-  | 'network'
-  | 'infrastructure'
-  | 'external';
+    | 'system'
+    | 'application'
+    | 'network'
+    | 'infrastructure'
+    | 'external';
   description: string;
   probability: number;
   evidence: string[];
@@ -193,7 +241,7 @@ export class IntelligentMonitoringService {
   }
 
   /**
-   * �� 모드별 AI 엔진 사용 전략 결정 (Google AI 제거)
+   * 🎯 모드별 AI 엔진 사용 전략 결정 (Google AI 제거)
    */
   private getAIEngineStrategy(mode?: string): {
     useLocal: boolean;
@@ -782,9 +830,9 @@ export class IntelligentMonitoringService {
   ): Promise<AIInsight> {
     const query = `시스템에서 ${anomalies.length}개의 이상 징후가 발견되었습니다. 
 주요 문제: ${anomalies
-        .slice(0, 2)
-        .map(a => a.description)
-        .join(', ')}
+      .slice(0, 2)
+      .map(a => a.description)
+      .join(', ')}
 근본 원인을 분석하고 해결 방안을 제시해주세요.`;
 
     try {

@@ -1,11 +1,11 @@
 /**
  * 🚀 통합 AI 엔진 라우터 v3.1 (재통합 버전)
- * 
+ *
  * 과도한 분리 문제 해결:
  * - 4개 컴포넌트를 다시 통합하여 응집성 향상
  * - 코드 중복 제거 및 성능 최적화
  * - 유지보수성 개선
- * 
+ *
  * 핵심 기능:
  * - 3가지 AI 모드 (AUTO/LOCAL/GOOGLE_ONLY) 동적 라우팅
  * - Supabase RAG 엔진 메인 처리 (50-80% 가중치)
@@ -63,14 +63,14 @@ export class UnifiedAIEngineRouter {
     engineUsage: Record<string, number>;
     lastUpdated: string;
   } = {
-      totalRequests: 0,
-      successfulRequests: 0,
-      failedRequests: 0,
-      averageResponseTime: 0,
-      modeUsage: { LOCAL: 0, GOOGLE_AI: 0, AUTO: 0, GOOGLE_ONLY: 0 },
-      engineUsage: {},
-      lastUpdated: new Date().toISOString(),
-    };
+    totalRequests: 0,
+    successfulRequests: 0,
+    failedRequests: 0,
+    averageResponseTime: 0,
+    modeUsage: { LOCAL: 0, GOOGLE_AI: 0, AUTO: 0, GOOGLE_ONLY: 0 },
+    engineUsage: {},
+    lastUpdated: new Date().toISOString(),
+  };
 
   private constructor() {
     // 기본 엔진들 초기화 (싱글톤 패턴 사용)
@@ -103,8 +103,13 @@ export class UnifiedAIEngineRouter {
     // 베르셀 환경 타임아웃 체크
     const checkTimeout = () => {
       const elapsed = Date.now() - startTime;
-      if (VERCEL_OPTIMIZATION.isVercel && elapsed > VERCEL_OPTIMIZATION.maxProcessingTime) {
-        throw new Error(`베르셀 환경 타임아웃 (${elapsed}ms > ${VERCEL_OPTIMIZATION.maxProcessingTime}ms)`);
+      if (
+        VERCEL_OPTIMIZATION.isVercel &&
+        elapsed > VERCEL_OPTIMIZATION.maxProcessingTime
+      ) {
+        throw new Error(
+          `베르셀 환경 타임아웃 (${elapsed}ms > ${VERCEL_OPTIMIZATION.maxProcessingTime}ms)`
+        );
       }
       return elapsed;
     };
@@ -121,10 +126,18 @@ export class UnifiedAIEngineRouter {
       // 모드별 처리
       switch (normalizedMode) {
         case 'LOCAL':
-          result = await this.processLocalMode(request, startTime, checkTimeout);
+          result = await this.processLocalMode(
+            request,
+            startTime,
+            checkTimeout
+          );
           break;
         case 'GOOGLE_AI':
-          result = await this.processGoogleOnlyMode(request, startTime, checkTimeout);
+          result = await this.processGoogleOnlyMode(
+            request,
+            startTime,
+            checkTimeout
+          );
           break;
         case 'AUTO':
           result = await this.processAutoMode(request, startTime, checkTimeout);
@@ -137,12 +150,15 @@ export class UnifiedAIEngineRouter {
       this.updateSuccessStats(Date.now() - startTime);
 
       return result;
-
     } catch (error) {
       console.error('❌ UnifiedAIEngineRouter 오류:', error);
       this.updateFailureStats();
 
-      return this.formatErrorResponse(error, startTime, request.mode || 'LOCAL');
+      return this.formatErrorResponse(
+        error,
+        startTime,
+        request.mode || 'LOCAL'
+      );
     }
   }
 
@@ -164,7 +180,10 @@ export class UnifiedAIEngineRouter {
       console.log('🥇 LOCAL 1단계: Supabase RAG (80%)');
       checkTimeout();
 
-      if (this.supabaseRAG && typeof this.supabaseRAG.searchSimilar === 'function') {
+      if (
+        this.supabaseRAG &&
+        typeof this.supabaseRAG.searchSimilar === 'function'
+      ) {
         const ragResult = await this.supabaseRAG.searchSimilar(request.query, {
           maxResults: 3,
           threshold: 0.7,
@@ -175,7 +194,8 @@ export class UnifiedAIEngineRouter {
         if (ragResult && ragResult.success && ragResult.results?.length > 0) {
           enginePath.push('supabase-rag-primary');
           supportEngines.push('rag-engine');
-          this.stats.engineUsage.supabaseRAG = (this.stats.engineUsage.supabaseRAG || 0) + 1;
+          this.stats.engineUsage.supabaseRAG =
+            (this.stats.engineUsage.supabaseRAG || 0) + 1;
 
           const ragResponse = this.formatRAGResults(ragResult, request.query);
           if (ragResponse) {
@@ -201,7 +221,10 @@ export class UnifiedAIEngineRouter {
       // MCP 컨텍스트 수집
       let mcpContext: any = null;
       try {
-        mcpContext = await this.collectMCPContext(request.query, request.context);
+        mcpContext = await this.collectMCPContext(
+          request.query,
+          request.context
+        );
         if (mcpContext) {
           supportEngines.push('mcp-context');
         }
@@ -210,7 +233,10 @@ export class UnifiedAIEngineRouter {
       }
 
       // 데이터 기반 스마트 응답 시도
-      const dataResponse = await this.generateDataBasedResponse(request.query, checkTimeout);
+      const dataResponse = await this.generateDataBasedResponse(
+        request.query,
+        checkTimeout
+      );
       if (dataResponse) {
         enginePath.push('local-data-smart');
         supportEngines.push('korean-ai', 'system-metrics');
@@ -228,14 +254,19 @@ export class UnifiedAIEngineRouter {
       if (subEngineResult.success) {
         return subEngineResult;
       }
-
     } catch (error) {
       console.warn('⚠️ LOCAL 2단계 실패:', error);
       fallbacksUsed++;
     }
 
     // 최종 폴백
-    return this.formatFallbackResponse('LOCAL', enginePath, supportEngines, startTime, fallbacksUsed);
+    return this.formatFallbackResponse(
+      'LOCAL',
+      enginePath,
+      supportEngines,
+      startTime,
+      fallbacksUsed
+    );
   }
 
   /**
@@ -270,15 +301,22 @@ export class UnifiedAIEngineRouter {
         ? `${request.query}\n\n[Google AI 컨텍스트: ${mcpContext.summary || ''}]`
         : request.query;
 
-      if (this.googleAI && typeof this.googleAI.generateContent === 'function') {
-        const googleResult = await this.googleAI.generateContent(enhancedQuery, {
-          timeout: 5000,
-          isNaturalLanguage: true,
-        });
+      if (
+        this.googleAI &&
+        typeof this.googleAI.generateContent === 'function'
+      ) {
+        const googleResult = await this.googleAI.generateContent(
+          enhancedQuery,
+          {
+            timeout: 5000,
+            isNaturalLanguage: true,
+          }
+        );
 
         if (googleResult.success) {
           enginePath.push('google-ai-primary');
-          this.stats.engineUsage.googleAI = (this.stats.engineUsage.googleAI || 0) + 1;
+          this.stats.engineUsage.googleAI =
+            (this.stats.engineUsage.googleAI || 0) + 1;
 
           let enhancedResponse = googleResult.content;
           if (mcpContext?.additionalInfo) {
@@ -303,7 +341,10 @@ export class UnifiedAIEngineRouter {
       console.log('🥈 GOOGLE_AI 2단계: Supabase RAG (40%)');
       checkTimeout();
 
-      if (this.supabaseRAG && typeof this.supabaseRAG.searchSimilar === 'function') {
+      if (
+        this.supabaseRAG &&
+        typeof this.supabaseRAG.searchSimilar === 'function'
+      ) {
         const ragResult = await this.supabaseRAG.searchSimilar(request.query, {
           maxResults: 3,
           threshold: 0.6,
@@ -314,7 +355,8 @@ export class UnifiedAIEngineRouter {
         if (ragResult && ragResult.success && ragResult.results?.length > 0) {
           enginePath.push('supabase-rag-google-fallback');
           supportEngines.push('rag-engine-google');
-          this.stats.engineUsage.supabaseRAG = (this.stats.engineUsage.supabaseRAG || 0) + 1;
+          this.stats.engineUsage.supabaseRAG =
+            (this.stats.engineUsage.supabaseRAG || 0) + 1;
 
           const ragResponse = this.formatRAGResults(ragResult, request.query);
           if (ragResponse) {
@@ -337,7 +379,8 @@ export class UnifiedAIEngineRouter {
       console.log('🥉 GOOGLE_AI 3단계: 하위 AI (20%)');
       checkTimeout();
 
-      const subEngineResult = await this.processGoogleOnlyModeSubEngines(request);
+      const subEngineResult =
+        await this.processGoogleOnlyModeSubEngines(request);
       if (subEngineResult.success) {
         return subEngineResult;
       }
@@ -347,7 +390,13 @@ export class UnifiedAIEngineRouter {
     }
 
     // 최종 폴백
-    return this.formatFallbackResponse('GOOGLE_AI', enginePath, supportEngines, startTime, fallbacksUsed);
+    return this.formatFallbackResponse(
+      'GOOGLE_AI',
+      enginePath,
+      supportEngines,
+      startTime,
+      fallbacksUsed
+    );
   }
 
   /**
@@ -368,7 +417,10 @@ export class UnifiedAIEngineRouter {
       console.log('🥇 AUTO 1단계: Supabase RAG (50%)');
       checkTimeout();
 
-      if (this.supabaseRAG && typeof this.supabaseRAG.searchSimilar === 'function') {
+      if (
+        this.supabaseRAG &&
+        typeof this.supabaseRAG.searchSimilar === 'function'
+      ) {
         const ragResult = await this.supabaseRAG.searchSimilar(request.query, {
           maxResults: 4,
           threshold: 0.65,
@@ -379,7 +431,8 @@ export class UnifiedAIEngineRouter {
         if (ragResult && ragResult.success && ragResult.results?.length > 0) {
           enginePath.push('supabase-rag-auto');
           supportEngines.push('rag-engine-auto');
-          this.stats.engineUsage.supabaseRAG = (this.stats.engineUsage.supabaseRAG || 0) + 1;
+          this.stats.engineUsage.supabaseRAG =
+            (this.stats.engineUsage.supabaseRAG || 0) + 1;
 
           const ragResponse = this.formatRAGResults(ragResult, request.query);
           if (ragResponse) {
@@ -405,7 +458,10 @@ export class UnifiedAIEngineRouter {
       // MCP 컨텍스트 수집
       let mcpContext: any = null;
       try {
-        mcpContext = await this.collectMCPContext(request.query, request.context);
+        mcpContext = await this.collectMCPContext(
+          request.query,
+          request.context
+        );
         if (mcpContext) {
           supportEngines.push('mcp-context-auto');
         }
@@ -414,7 +470,10 @@ export class UnifiedAIEngineRouter {
       }
 
       // 데이터 기반 응답
-      const dataResponse = await this.generateDataBasedResponse(request.query, checkTimeout);
+      const dataResponse = await this.generateDataBasedResponse(
+        request.query,
+        checkTimeout
+      );
       if (dataResponse) {
         enginePath.push('auto-data-smart');
         supportEngines.push('korean-ai-auto', 'system-metrics-auto');
@@ -458,7 +517,8 @@ export class UnifiedAIEngineRouter {
       if (googleResult.success) {
         enginePath.push('google-ai-auto-fallback');
         supportEngines.push('google-ai-final');
-        this.stats.engineUsage.googleAI = (this.stats.engineUsage.googleAI || 0) + 1;
+        this.stats.engineUsage.googleAI =
+          (this.stats.engineUsage.googleAI || 0) + 1;
 
         return this.formatSuccessResponse(
           googleResult.content,
@@ -473,7 +533,13 @@ export class UnifiedAIEngineRouter {
     }
 
     // 최종 폴백
-    return this.formatFallbackResponse('AUTO', enginePath, supportEngines, startTime, fallbacksUsed);
+    return this.formatFallbackResponse(
+      'AUTO',
+      enginePath,
+      supportEngines,
+      startTime,
+      fallbacksUsed
+    );
   }
 
   // ===========================================
@@ -521,10 +587,19 @@ export class UnifiedAIEngineRouter {
 
       // 실제 시스템 메트릭 기반 응답 생성
       const keywords = [
-        '서버', '상태', '모니터링', '성능', '분석',
-        'CPU', '메모리', '디스크', '네트워크',
+        '서버',
+        '상태',
+        '모니터링',
+        '성능',
+        '분석',
+        'CPU',
+        '메모리',
+        '디스크',
+        '네트워크',
       ];
-      const hasSystemKeyword = keywords.some(keyword => query.includes(keyword));
+      const hasSystemKeyword = keywords.some(keyword =>
+        query.includes(keyword)
+      );
 
       if (hasSystemKeyword) {
         checkTimeout();
@@ -539,8 +614,12 @@ export class UnifiedAIEngineRouter {
         let response = `"${query}"에 대한 실시간 분석 결과입니다.\n\n`;
 
         if (query.includes('메모리')) {
-          const memoryUsed = Math.round(systemMetrics.memory.heapUsed / 1024 / 1024);
-          const memoryTotal = Math.round(systemMetrics.memory.heapTotal / 1024 / 1024);
+          const memoryUsed = Math.round(
+            systemMetrics.memory.heapUsed / 1024 / 1024
+          );
+          const memoryTotal = Math.round(
+            systemMetrics.memory.heapTotal / 1024 / 1024
+          );
           response += `💾 **메모리 상태**\n- 사용량: ${memoryUsed}MB / ${memoryTotal}MB\n- 사용률: ${Math.round((memoryUsed / memoryTotal) * 100)}%\n\n`;
         }
 
@@ -605,14 +684,16 @@ export class UnifiedAIEngineRouter {
   /**
    * LOCAL 모드 전용 하위 엔진 처리
    */
-  private async processLocalModeSubEngines(request: AIRequest): Promise<AIResponse> {
+  private async processLocalModeSubEngines(
+    request: AIRequest
+  ): Promise<AIResponse> {
     try {
       const koreanResult = await this.koreanEngine.processQuery(request.query, {
         category: request.category,
         maxTokens: 800,
       });
 
-      if (koreanResult.success) {
+      if (koreanResult && koreanResult.success) {
         return {
           success: true,
           response: koreanResult.response,
@@ -657,23 +738,26 @@ export class UnifiedAIEngineRouter {
   /**
    * GOOGLE_AI 모드 전용 하위 엔진 처리
    */
-  private async processGoogleOnlyModeSubEngines(request: AIRequest): Promise<AIResponse> {
+  private async processGoogleOnlyModeSubEngines(
+    request: AIRequest
+  ): Promise<AIResponse> {
     try {
       const koreanResult = await this.koreanEngine.processQuery(request.query, {
         category: request.category,
         maxTokens: 600,
       });
 
-      if (koreanResult.success) {
+      if (koreanResult && koreanResult.success) {
         try {
           const googleEnhanced = await this.googleAI.generateContent(
             `서버 관리 전문가로서 다음 정보를 향상시켜주세요: ${koreanResult.response}`,
             { isNaturalLanguage: true }
           );
 
-          const finalResponse = googleEnhanced.success
-            ? googleEnhanced.content
-            : koreanResult.response;
+          const finalResponse =
+            googleEnhanced && googleEnhanced.success
+              ? googleEnhanced.content
+              : koreanResult.response;
 
           return {
             success: true,
@@ -760,8 +844,12 @@ export class UnifiedAIEngineRouter {
       metadata: {
         mainEngine: enginePath[0] || 'unknown',
         supportEngines,
-        ragUsed: enginePath.includes('supabase-rag') || enginePath.some(p => p.includes('rag')),
-        googleAIUsed: enginePath.includes('google-ai') || enginePath.some(p => p.includes('google')),
+        ragUsed:
+          enginePath.includes('supabase-rag') ||
+          enginePath.some(p => p.includes('rag')),
+        googleAIUsed:
+          enginePath.includes('google-ai') ||
+          enginePath.some(p => p.includes('google')),
         mcpContextUsed: supportEngines.some(s => s.includes('mcp-context')),
         subEnginesUsed: supportEngines,
         cacheUsed: false,
@@ -772,7 +860,11 @@ export class UnifiedAIEngineRouter {
   /**
    * ❌ 오류 응답 포맷팅
    */
-  private formatErrorResponse(error: any, startTime: number, mode: AIMode): AIResponse {
+  private formatErrorResponse(
+    error: any,
+    startTime: number,
+    mode: AIMode
+  ): AIResponse {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     return {
@@ -806,8 +898,10 @@ export class UnifiedAIEngineRouter {
     fallbacksUsed: number
   ): AIResponse {
     const fallbackMessages = {
-      LOCAL: '로컬 AI 엔진들이 현재 사용할 수 없습니다. 시스템 관리자에게 문의하세요.',
-      GOOGLE_AI: 'Google AI 서비스가 현재 사용할 수 없습니다. 나중에 다시 시도해주세요.',
+      LOCAL:
+        '로컬 AI 엔진들이 현재 사용할 수 없습니다. 시스템 관리자에게 문의하세요.',
+      GOOGLE_AI:
+        'Google AI 서비스가 현재 사용할 수 없습니다. 나중에 다시 시도해주세요.',
       AUTO: '모든 AI 엔진이 현재 사용할 수 없습니다. 시스템 점검 중일 수 있습니다.',
       GOOGLE_ONLY: 'Google AI 전용 모드가 현재 사용할 수 없습니다.',
     };
@@ -852,7 +946,8 @@ export class UnifiedAIEngineRouter {
   private updateSuccessStats(processingTime: number): void {
     this.stats.successfulRequests++;
     this.stats.averageResponseTime =
-      (this.stats.averageResponseTime * (this.stats.successfulRequests - 1) + processingTime) /
+      (this.stats.averageResponseTime * (this.stats.successfulRequests - 1) +
+        processingTime) /
       this.stats.successfulRequests;
     this.stats.lastUpdated = new Date().toISOString();
   }
@@ -876,7 +971,9 @@ export class UnifiedAIEngineRouter {
 
       // AutoIncidentReportSystem 지연 로딩
       try {
-        const { AutoIncidentReportSystem } = await import('@/core/ai/systems/AutoIncidentReportSystem');
+        const { AutoIncidentReportSystem } = await import(
+          '@/core/ai/systems/AutoIncidentReportSystem'
+        );
         this.autoIncidentReport = AutoIncidentReportSystem;
         console.log('✅ AutoIncidentReportSystem 연결됨');
       } catch (error) {
