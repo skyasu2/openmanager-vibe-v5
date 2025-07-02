@@ -13,61 +13,80 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
     Bot,
+    Brain,
     ChevronDown,
-    Clock,
+    ChevronLeft,
+    ChevronRight,
+    Database,
     FileText,
+    Globe,
+    RotateCcw,
     Send,
     Sparkles,
+    StopCircle,
     User,
+    Zap,
 } from 'lucide-react';
-import React, { useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 
-// Types
-export interface ChatMessage {
-    id: string;
-    type: 'user' | 'ai';
-    content: string;
-    timestamp: Date;
-    thinking?: ThinkingStep[];
-    engine?: string;
-    confidence?: number;
-}
+// 타입 임포트
+import {
+    AIEngine,
+    AutoReportTrigger,
+    ChatMessage
+} from '../types/ai-sidebar-types';
 
-export interface ThinkingStep {
-    id: string;
-    step: number;
-    title: string;
-    description: string;
-    status: 'pending' | 'processing' | 'completed';
-    duration?: number;
-}
-
-export interface AIEngine {
-    id: string;
-    name: string;
-    description: string;
-    icon: React.ComponentType<any>;
-    color: string;
-    bgColor: string;
-    features: string[];
-    usage?: {
-        used: number;
-        limit: number;
-        resetTime?: string;
-    };
-    status: 'ready' | 'loading' | 'error' | 'disabled';
-}
+// 사용 가능한 AI 엔진 목록
+const availableEngines: AIEngine[] = [
+    {
+        id: 'auto',
+        name: 'AUTO 모드',
+        description: '상황에 맞는 최적의 AI 엔진을 자동 선택',
+        icon: Brain,
+        color: 'text-purple-600',
+        bgColor: 'bg-purple-100',
+        features: ['자동 선택', '최적화', '균형'],
+        status: 'ready',
+    },
+    {
+        id: 'google-ai',
+        name: 'Google AI',
+        description: 'Gemini 기반 고성능 추론 및 분석',
+        icon: Zap,
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-100',
+        features: ['고급 추론', '빠른 응답'],
+        usage: { used: 45, limit: 100 },
+        status: 'ready',
+    },
+    {
+        id: 'local-rag',
+        name: 'Local RAG',
+        description: '로컬 벡터 DB 기반 컨텍스트 검색',
+        icon: Database,
+        color: 'text-green-600',
+        bgColor: 'bg-green-100',
+        features: ['프라이버시', '오프라인'],
+        status: 'ready',
+    },
+    {
+        id: 'web-search',
+        name: 'Web Search',
+        description: '실시간 웹 검색 및 정보 수집',
+        icon: Globe,
+        color: 'text-orange-600',
+        bgColor: 'bg-orange-100',
+        features: ['실시간', '최신 정보'],
+        status: 'ready',
+    },
+];
 
 interface AIEnhancedChatProps {
     selectedEngine: string;
     onEngineChange: (engine: string) => void;
     chatMessages: ChatMessage[];
     isGenerating: boolean;
-    autoReportTrigger: {
-        shouldGenerate: boolean;
-        lastQuery?: string;
-        severity?: 'low' | 'medium' | 'high' | 'critical';
-    };
+    autoReportTrigger: AutoReportTrigger;
     onAutoReportGenerate: () => void;
     onAutoReportDismiss: () => void;
     onSendMessage: () => void;
@@ -109,56 +128,52 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
     canGoNext,
     className = '',
 }) => {
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
-    const [showEngineInfo, setShowEngineInfo] = React.useState(false);
-    const [expandedThinking, setExpandedThinking] = React.useState<string | null>(null);
+    const [showEngineInfo, setShowEngineInfo] = useState(false);
 
-    // 메시지 스크롤
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [chatMessages]);
+    // 선택된 엔진 데이터 찾기
+    const selectedEngineData = availableEngines.find(engine => engine.id === selectedEngine);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (inputValue.trim() && !isGenerating) {
             onSendMessage();
-            onInputChange?.('');
         }
     };
 
-    const selectedEngineData = chatMessages.find(e => e.type === 'ai');
-
     return (
-        <div className={`flex flex-col h-full bg-gradient-to-br from-slate-50 to-blue-50 ${className}`}>
-            {/* 헤더 - 모델 선택 */}
-            <div className='p-4 border-b border-gray-200 bg-white/80 backdrop-blur-sm'>
-                <div className='flex items-center justify-between mb-3'>
-                    <div className='flex items-center space-x-3'>
-                        <div className='w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center'>
-                            <Bot className='w-4 h-4 text-white' />
+        <div className={`flex flex-col h-full bg-gray-50 ${className}`} data-testid="ai-enhanced-chat">
+            {/* 헤더 */}
+            <div className='flex-shrink-0 p-3 sm:p-4 bg-white border-b border-gray-200'>
+                <div className='flex items-center justify-between'>
+                    <div className='flex items-center space-x-2'>
+                        <div className='w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center'>
+                            <Sparkles className='w-4 h-4 text-white' />
                         </div>
                         <div>
-                            <h3 className='text-sm font-bold text-gray-800'>자연어 질의</h3>
-                            <p className='text-xs text-gray-600'>AI 기반 대화형 인터페이스</p>
+                            <h3 className='text-sm font-semibold text-gray-800'>
+                                자연어 질의
+                            </h3>
+                            <p className='text-xs text-gray-600'>
+                                AI와 대화하며 시스템을 관리하세요
+                            </p>
                         </div>
                     </div>
 
-                    {/* 모델 선택 드롭다운 */}
-                    {chatMessages.length > 0 && (
+                    {/* 엔진 선택 버튼 */}
+                    {selectedEngineData && (
                         <div className='relative'>
                             <button
                                 onClick={() => setShowEngineInfo(!showEngineInfo)}
                                 className='flex items-center space-x-2 px-2 py-1 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-xs'
                             >
-                                {selectedEngineData && React.createElement(
+                                {React.createElement(
                                     selectedEngineData.icon,
                                     {
                                         className: `w-3 h-3 ${selectedEngineData.color}`,
                                     }
                                 )}
                                 <span className='font-medium'>
-                                    {selectedEngineData?.content || '엔진 선택'}
+                                    {selectedEngineData.name || '엔진 선택'}
                                 </span>
                                 <ChevronDown className='w-3 h-3 text-gray-500' />
                             </button>
@@ -182,7 +197,7 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
                                         </div>
 
                                         <div className='max-h-48 overflow-y-auto'>
-                                            {chatMessages.map(engine => (
+                                            {availableEngines.map(engine => (
                                                 <button
                                                     key={engine.id}
                                                     onClick={() => {
@@ -203,7 +218,7 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
                                                         <div className='flex-1'>
                                                             <div className='flex items-center space-x-2'>
                                                                 <h5 className='text-xs font-medium text-gray-800'>
-                                                                    {engine.content}
+                                                                    {engine.name}
                                                                 </h5>
                                                                 {engine.usage && (
                                                                     <span className='text-xs text-gray-500'>
@@ -256,7 +271,7 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
                                         자동장애보고서 생성 준비
                                     </h4>
                                     <p className='text-xs text-red-600'>
-                                        "{autoReportTrigger.lastQuery}"에서{' '}
+                                        [{autoReportTrigger.lastQuery}] 쿼리에서{' '}
                                         {autoReportTrigger.severity} 수준의 이슈가 감지되었습니다.
                                     </p>
                                 </div>
@@ -348,36 +363,49 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
 
                                 {/* 생각 과정 표시 */}
                                 {message.thinking && message.thinking.length > 0 && (
-                                    <div className='mt-2 border-t border-gray-200 pt-2'>
-                                        <button
-                                            onClick={() => setExpandedThinking(
-                                                expandedThinking === message.id ? null : message.id
-                                            )}
-                                            className='flex items-center space-x-1 text-xs text-gray-600 hover:text-gray-800'
-                                        >
-                                            <Clock className='w-3 h-3' />
-                                            <span>생각 과정 보기</span>
-                                        </button>
+                                    <div className='mt-2 p-2 bg-gray-50 rounded border'>
+                                        <div className='text-xs font-medium text-gray-700 mb-1'>
+                                            💭 생각 과정
+                                        </div>
+                                        <div className='space-y-1'>
+                                            {message.thinking.map((step) => (
+                                                <div key={step.id} className='flex items-center space-x-2'>
+                                                    <div
+                                                        className={`w-2 h-2 rounded-full ${step.status === 'completed'
+                                                            ? 'bg-green-500'
+                                                            : step.status === 'processing'
+                                                                ? 'bg-blue-500 animate-pulse'
+                                                                : 'bg-gray-300'
+                                                            }`}
+                                                    />
+                                                    <span className='text-xs text-gray-600'>
+                                                        {step.title}
+                                                    </span>
+                                                    {step.duration && (
+                                                        <span className='text-xs text-gray-500'>
+                                                            ({step.duration}ms)
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
-                                        {expandedThinking === message.id && (
-                                            <motion.div
-                                                initial={{ opacity: 0, height: 0 }}
-                                                animate={{ opacity: 1, height: 'auto' }}
-                                                className='mt-2 space-y-1'
-                                            >
-                                                {message.thinking.map((step) => (
-                                                    <div key={step.id} className='flex items-center space-x-2 text-xs'>
-                                                        <div className={`w-2 h-2 rounded-full ${step.status === 'completed' ? 'bg-green-500' :
-                                                            step.status === 'processing' ? 'bg-yellow-500' :
-                                                                'bg-gray-300'
-                                                            }`} />
-                                                        <span>{step.title}</span>
-                                                        {step.duration && (
-                                                            <span className='text-gray-500'>({step.duration}ms)</span>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </motion.div>
+                                {/* AI 메시지 액션 버튼 */}
+                                {message.type === 'ai' && (
+                                    <div className='flex items-center space-x-2 mt-2'>
+                                        <button
+                                            onClick={() => onRegenerateResponse(message.id)}
+                                            className='flex items-center space-x-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors'
+                                        >
+                                            <RotateCcw className='w-3 h-3' />
+                                            <span>재생성</span>
+                                        </button>
+                                        {message.confidence && (
+                                            <span className='text-xs text-gray-500'>
+                                                신뢰도: {Math.round(message.confidence * 100)}%
+                                            </span>
                                         )}
                                     </div>
                                 )}
@@ -386,53 +414,116 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
                     </motion.div>
                 ))}
 
-                {/* 로딩 애니메이션 */}
+                {/* 생성 중 표시 */}
                 {isGenerating && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className='flex justify-start'
-                        data-testid="ai-thinking-animation"
                     >
                         <div className='flex items-start space-x-2 max-w-[85%]'>
-                            <div className='w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center flex-shrink-0'>
-                                <Bot className='w-3 h-3' />
+                            <div className='w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0'>
+                                <Bot className='w-3 h-3 text-white' />
                             </div>
                             <div className='bg-white border border-gray-200 rounded-lg px-3 py-2'>
-                                <div className='flex space-x-1'>
-                                    <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce' />
-                                    <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce' style={{ animationDelay: '0.1s' }} />
-                                    <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce' style={{ animationDelay: '0.2s' }} />
+                                <div className='flex items-center space-x-2'>
+                                    <div className='flex space-x-1'>
+                                        <div className='w-2 h-2 bg-purple-500 rounded-full animate-bounce'></div>
+                                        <div className='w-2 h-2 bg-purple-500 rounded-full animate-bounce' style={{ animationDelay: '0.1s' }}></div>
+                                        <div className='w-2 h-2 bg-purple-500 rounded-full animate-bounce' style={{ animationDelay: '0.2s' }}></div>
+                                    </div>
+                                    <span className='text-xs text-gray-600'>생각하는 중...</span>
                                 </div>
                             </div>
                         </div>
                     </motion.div>
                 )}
-
-                <div ref={messagesEndRef} />
             </div>
 
+            {/* 프리셋 질문 영역 */}
+            {showPresets && (
+                <div className='flex-shrink-0 p-3 sm:p-4 bg-white border-t border-gray-200'>
+                    <div className='flex items-center justify-between mb-2'>
+                        <h4 className='text-xs font-semibold text-gray-800'>
+                            💡 추천 질문
+                        </h4>
+                        <div className='flex items-center space-x-2'>
+                            <button
+                                onClick={onPreviousPresets}
+                                disabled={!canGoPrevious}
+                                className='p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                                title="이전 프리셋 질문"
+                            >
+                                <ChevronLeft className='w-4 h-4' />
+                            </button>
+                            <span className='text-xs text-gray-500'>
+                                {currentPresetIndex + 1}
+                            </span>
+                            <button
+                                onClick={onNextPresets}
+                                disabled={!canGoNext}
+                                className='p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                                title="다음 프리셋 질문"
+                            >
+                                <ChevronRight className='w-4 h-4' />
+                            </button>
+                        </div>
+                    </div>
+                    {/* 프리셋 질문 버튼들은 부모 컴포넌트에서 처리 */}
+                </div>
+            )}
+
             {/* 입력 영역 */}
-            <div className='p-4 border-t border-gray-200 bg-white/80 backdrop-blur-sm'>
-                <form onSubmit={handleSubmit} className='flex space-x-2'>
-                    <input
-                        ref={inputRef}
-                        type='text'
-                        value={inputValue}
-                        onChange={(e) => onInputChange?.(e.target.value)}
-                        placeholder='질문을 입력하세요...'
-                        className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm'
-                        disabled={isGenerating}
-                        data-testid="ai-chat-input"
-                    />
-                    <button
-                        type='submit'
-                        disabled={!inputValue.trim() || isGenerating}
-                        className='px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-                        data-testid="ai-chat-send-button"
-                    >
-                        <Send className='w-4 h-4' />
-                    </button>
+            <div className='flex-shrink-0 p-3 sm:p-4 bg-white border-t border-gray-200'>
+                <form onSubmit={handleSubmit} className='flex items-end space-x-2'>
+                    <div className='flex-1'>
+                        <textarea
+                            value={inputValue}
+                            onChange={(e) => onInputChange(e.target.value)}
+                            placeholder='질문을 입력하세요... (Shift+Enter로 줄바꿈)'
+                            className='w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm'
+                            rows={1}
+                            style={{ minHeight: '40px', maxHeight: '120px' }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSubmit(e);
+                                }
+                            }}
+                            disabled={isGenerating}
+                        />
+                    </div>
+                    <div className='flex space-x-2'>
+                        <button
+                            type='button'
+                            onClick={onTogglePresets}
+                            className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors ${showPresets
+                                ? 'bg-purple-100 text-purple-700'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                        >
+                            💡
+                        </button>
+                        {isGenerating ? (
+                            <button
+                                type='button'
+                                onClick={onStopGeneration}
+                                className='px-3 py-2 bg-red-500 text-white text-xs font-medium rounded-lg hover:bg-red-600 transition-colors flex items-center space-x-1'
+                            >
+                                <StopCircle className='w-3 h-3' />
+                                <span>중지</span>
+                            </button>
+                        ) : (
+                            <button
+                                type='submit'
+                                disabled={!inputValue.trim()}
+                                className='px-3 py-2 bg-purple-500 text-white text-xs font-medium rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1'
+                            >
+                                <Send className='w-3 h-3' />
+                                <span>전송</span>
+                            </button>
+                        )}
+                    </div>
                 </form>
             </div>
         </div>

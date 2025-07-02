@@ -85,6 +85,8 @@ export interface AIResponseMetadata {
   fallbackReason?: string;
   processingTime?: number;
   enginePath?: string[];
+  error?: string;
+  allEnginesFailed?: boolean;
 }
 
 export interface PerformanceMetrics {
