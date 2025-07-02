@@ -24,7 +24,7 @@ const ENV_VARS = {
   UPSTASH_REDIS_REST_URL: 'https://charming-condor-46598.upstash.io',
   UPSTASH_REDIS_REST_TOKEN: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
   RENDER_MCP_SERVER_URL: 'https://openmanager-vibe-v5.onrender.com',
-  GOOGLE_AI_API_KEY: 'AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY',
+  GOOGLE_AI_API_KEY: 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM',
   // Google AI 할당량 보호 설정
   GOOGLE_AI_ENABLED: 'true',
   GOOGLE_AI_QUOTA_PROTECTION: 'true',
