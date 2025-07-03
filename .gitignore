@@ -70,6 +70,7 @@ config/env-backups/
 **/env-backup-*.json
 env-backup-production-*.json
 env-backup-development-*.json
+config/env-backup.json
 # Slack webhooks and sensitive URLs
 slack-webhook-url.txt
 webhook-urls.txt
