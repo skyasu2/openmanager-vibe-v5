@@ -106,6 +106,21 @@ export class ServerDataScheduler {
       return;
     }
 
+    // 🚨 중지 상태 감지 추가
+    if (
+      typeof global !== 'undefined' &&
+      (global as any).IDLE_STATE_SCHEDULERS_DISABLED
+    ) {
+      console.log('😴 중지 상태에서 서버 데이터 스케줄러 비활성화됨');
+      return;
+    }
+
+    // 🚨 응급 모드 확인
+    if (process.env.EMERGENCY_MODE_ACTIVE === 'true') {
+      console.log('🚨 응급 모드에서 서버 데이터 스케줄러 비활성화됨');
+      return;
+    }
+
     if (this.isRunning_) {
       console.log('⚠️ 스케줄러가 이미 실행 중입니다.');
       return;
@@ -117,18 +132,76 @@ export class ServerDataScheduler {
     // 즉시 첫 데이터 생성
     await this.generateAndStore();
 
+    // 🚨 최적화된 간격 적용
+    const optimizedInterval = this.getOptimizedInterval();
+    console.log(`⏰ 최적화된 간격: ${optimizedInterval / 1000}초`);
+
     // 정기 업데이트 시작
     this.intervalId = setInterval(async () => {
       try {
+        // 🚨 실행 전 상태 재확인
+        if (this.shouldSkipExecution()) {
+          console.log('⏭️ 중지 상태 감지 - 스케줄러 실행 건너뜀');
+          return;
+        }
+
         await this.generateAndStore();
       } catch (error) {
         console.error('❌ 백그라운드 데이터 생성 오류:', error);
       }
-    }, this.GENERATION_INTERVAL);
+    }, optimizedInterval);
 
-    console.log(
-      `📅 스케줄러 활성화: ${this.GENERATION_INTERVAL / 1000}초 간격`
-    );
+    console.log(`📅 스케줄러 활성화: ${optimizedInterval / 1000}초 간격`);
+  }
+
+  // 🚨 최적화된 간격 계산
+  private getOptimizedInterval(): number {
+    // 응급 모드에서는 매우 긴 간격 사용
+    if (process.env.EMERGENCY_MODE_ACTIVE === 'true') {
+      return 30 * 60 * 1000; // 30분
+    }
+
+    // 중지 상태에서는 긴 간격 사용
+    if (
+      typeof global !== 'undefined' &&
+      (global as any).OPTIMIZED_POLLING_INTERVAL
+    ) {
+      return Math.max(
+        (global as any).OPTIMIZED_POLLING_INTERVAL,
+        5 * 60 * 1000
+      ); // 최소 5분
+    }
+
+    // 환경변수에서 설정된 간격 사용
+    if (process.env.SYSTEM_POLLING_INTERVAL) {
+      return parseInt(process.env.SYSTEM_POLLING_INTERVAL, 10);
+    }
+
+    // 기본 간격 (현재보다 증가)
+    return Math.max(this.GENERATION_INTERVAL, 2 * 60 * 1000); // 최소 2분
+  }
+
+  // 🚨 실행 건너뛰기 조건 확인
+  private shouldSkipExecution(): boolean {
+    // 환경변수 재확인
+    if (process.env.SERVER_DATA_SCHEDULER_DISABLED === 'true') {
+      return true;
+    }
+
+    // 중지 상태 확인
+    if (
+      typeof global !== 'undefined' &&
+      (global as any).IDLE_STATE_SCHEDULERS_DISABLED
+    ) {
+      return true;
+    }
+
+    // 응급 모드 확인
+    if (process.env.EMERGENCY_MODE_ACTIVE === 'true') {
+      return true;
+    }
+
+    return false;
   }
 
   /**

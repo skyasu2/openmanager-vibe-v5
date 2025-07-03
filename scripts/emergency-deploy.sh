@@ -1,37 +1,33 @@
 #!/bin/bash
 
-# 🚨 응급 배포: Edge Request 사용량 제한
-echo "🚨 응급 배포 시작 - Edge Request 사용량 제한"
+# 🚨 긴급 중지 상태 사용량 최적화 배포
+echo "🚨 긴급 중지 상태 사용량 최적화 배포 시작"
 
-# 1. 빌드 테스트
-echo "📦 빌드 테스트 중..."
+# 환경변수 적용
+echo "SERVER_DATA_SCHEDULER_DISABLED=true" >> .env.local
+echo "KEEP_ALIVE_SCHEDULER_DISABLED=true" >> .env.local
+echo "SYSTEM_POLLING_INTERVAL=300000" >> .env.local
+echo "EMERGENCY_MODE_ACTIVE=true" >> .env.local
+
+echo "✅ 응급 환경변수 적용 완료"
+
+# 빌드 테스트
 npm run build
 if [ $? -ne 0 ]; then
-    echo "❌ 빌드 실패 - 배포 중단"
+    echo "❌ 빌드 실패!"
     exit 1
 fi
 
-# 2. Git 커밋
-echo "📝 Git 커밋 중..."
+# Git 커밋 및 푸시
 git add .
-git commit -m "🚨 응급 조치: Edge Request 사용량 95% 감소
+git commit -m "🚨 긴급 중지 상태 사용량 최적화
 
-- /api/system/status 캐싱 활성화 (60초)
-- 메모리 기반 중복 요청 차단 (30초)
-- 환경변수 기반 Rate Limiting
-- Redis 작업 최소화 (10분 간격 정리)
-- Edge Runtime 최적화 설정
+- 폴링 간격 5초 → 30초 증가 (6배)
+- 백그라운드 스케줄러 비활성화
+- Keep-Alive 간격 최적화
+- 예상 사용량 감소: 96.7% ↓"
 
-예상 효과: 100K → 5K 요청으로 감소"
+git push
 
-# 3. Vercel 배포
-echo "🚀 Vercel 프로덕션 배포 중..."
-vercel --prod
-
-# 4. 환경변수 설정 안내
-echo ""
-echo "🔧 Vercel 환경변수 수동 설정 필요:"
-echo "   EMERGENCY_THROTTLE=true"
-echo "   MAX_STATUS_REQUESTS_PER_MINUTE=30"
-echo ""
-echo "✅ 응급 배포 완료 - 5분 내 사용량 감소 예상" 
+echo "✅ 긴급 배포 완료!"
+echo "📊 예상 효과: 하루 8,640회 → 288회 호출" 

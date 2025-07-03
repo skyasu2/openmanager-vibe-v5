@@ -9,10 +9,10 @@
  * - Vercel 환경 최적화
  */
 
+import { browserNotificationService } from '@/services/notifications/BrowserNotificationService';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { systemLogger } from '../lib/logger';
-import { browserNotificationService } from '@/services/notifications/BrowserNotificationService';
 
 export type SystemState = 'inactive' | 'initializing' | 'active' | 'stopping';
 export type DataCollectionState =
@@ -132,7 +132,32 @@ interface GlobalSystemStore extends GlobalSystemStatus {
 
 const COLLECTION_DURATION = 1 * 60 * 1000; // 1분
 const SESSION_DURATION = 30 * 60 * 1000; // 30분
-const TIMER_INTERVAL = 5000; // 5초 간격 (Vercel 최적화)
+
+// 🚨 응급 최적화: 동적 타이머 간격
+const getOptimizedTimerInterval = (): number => {
+  // 응급 모드에서는 매우 긴 간격
+  if (process.env.EMERGENCY_MODE_ACTIVE === 'true') {
+    return 60000; // 1분
+  }
+
+  // 중지 상태에서는 긴 간격
+  if (
+    typeof global !== 'undefined' &&
+    (global as any).OPTIMIZED_POLLING_INTERVAL
+  ) {
+    return Math.max((global as any).OPTIMIZED_POLLING_INTERVAL, 30000); // 최소 30초
+  }
+
+  // 환경변수에서 설정된 간격
+  if (process.env.SYSTEM_POLLING_INTERVAL) {
+    return parseInt(process.env.SYSTEM_POLLING_INTERVAL, 10);
+  }
+
+  // 기본 간격 증가 (5초 → 30초)
+  return 30000; // 30초 간격으로 증가
+};
+
+const TIMER_INTERVAL = getOptimizedTimerInterval();
 
 export const useGlobalSystemStore = create<GlobalSystemStore>()(
   persist(
@@ -159,8 +184,31 @@ export const useGlobalSystemStore = create<GlobalSystemStore>()(
       const startStatusMonitoring = () => {
         if (statusTimer) return;
 
+        // 🚨 중지 상태 확인
+        if (
+          typeof global !== 'undefined' &&
+          (global as any).IDLE_STATE_SCHEDULERS_DISABLED
+        ) {
+          console.log('😴 중지 상태에서 상태 모니터링 건너뜀');
+          return;
+        }
+
+        // 🚨 최적화된 간격 적용
+        const currentInterval = getOptimizedTimerInterval();
+        console.log(`⏰ 상태 모니터링 간격: ${currentInterval / 1000}초`);
+
         statusTimer = setInterval(() => {
           const state = get();
+
+          // 🚨 실행 중 상태 재확인
+          if (
+            typeof global !== 'undefined' &&
+            (global as any).IDLE_STATE_SCHEDULERS_DISABLED
+          ) {
+            console.log('😴 중지 상태 감지 - 상태 모니터링 건너뜀');
+            return;
+          }
+
           if (!state.isSessionActive) {
             if (statusTimer) {
               clearInterval(statusTimer);
@@ -181,8 +229,9 @@ export const useGlobalSystemStore = create<GlobalSystemStore>()(
             totalServers: state.totalServers,
             critical: state.criticalServers,
             warning: state.warningServers,
+            interval: currentInterval,
           });
-        }, TIMER_INTERVAL);
+        }, currentInterval);
       };
 
       const stopStatusMonitoring = () => {
