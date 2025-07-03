@@ -1,29 +1,17 @@
 #!/usr/bin/env sh
 
-echo "🚀 Pre-push 빠른 검증 시작..."
+echo "🚀 Pre-push 검증 시작..."
 
-# 📚 문서 분석 및 정리
-echo "📚 문서 분석 및 정리..."
-npm run docs:analyze
+# 전체 검증 (타입 체크 + 린트 + 테스트 + 빌드)
+echo "🔍 전체 품질 검사..."
+npm run validate:all
 if [ $? -ne 0 ]; then
-  echo "❌ 문서 분석 실패!"
-  exit 1
-fi
-
-npm run docs:autopurge
-if [ $? -ne 0 ]; then
-  echo "❌ 문서 자동 정리 실패!"
-  exit 1
-fi
-
-# 빠른 검증만 실행 (타입 체크 + 린트)
-echo "🔍 빠른 품질 검사..."
-npm run validate:quick
-if [ $? -ne 0 ]; then
-  echo "❌ 빠른 검증 실패! 다음 항목들을 확인하세요:"
+  echo "❌ 검증 실패! 다음 항목들을 확인하세요:"
   echo "   - TypeScript 타입 에러"
   echo "   - ESLint 에러"
+  echo "   - 단위 테스트 실패"
+  echo "   - 빌드 실패"
   exit 1
 fi
 
-echo "✅ Pre-push 빠른 검증 완료! 🎉" 
+echo "✅ Pre-push 검증 완료! 🎉" 
