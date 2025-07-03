@@ -1,64 +1,64 @@
 {
   "version": "1.0.0",
-  "created": "2025-07-03T06:30:39.783Z",
-  "lastBackup": "2025-07-03T06:30:39.783Z",
+  "created": "2025-07-03T07:34:49.588Z",
+  "lastBackup": "2025-07-03T07:34:49.588Z",
   "entries": [
     {
       "key": "NEXT_PUBLIC_SUPABASE_URL",
       "value": "https://test.supabase.co",
       "encrypted": false,
       "priority": "critical",
-      "lastUpdated": "2025-07-03T06:30:39.782Z"
+      "lastUpdated": "2025-07-03T07:34:49.587Z"
     },
     {
       "key": "SUPABASE_URL",
       "value": "https://test.supabase.co",
       "encrypted": false,
       "priority": "critical",
-      "lastUpdated": "2025-07-03T06:30:39.782Z"
+      "lastUpdated": "2025-07-03T07:34:49.587Z"
     },
     {
       "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-      "value": "cfc1e1af08beefa78508080793c013a8:7de07cd987ce38c7e90778a6682aaab7",
+      "value": "efe143b59bd790223d929aabfe5d558e:0fd50ba46cde77c386ac41c021e4e20b",
       "encrypted": true,
       "priority": "critical",
-      "lastUpdated": "2025-07-03T06:30:39.782Z"
+      "lastUpdated": "2025-07-03T07:34:49.588Z"
     },
     {
       "key": "SUPABASE_SERVICE_ROLE_KEY",
-      "value": "02b60c262c6ee95cc4785499cc9fb9d0:1695ecd6fc60fccd9893d25ce9114b9bbfe770ef77463630bd993494d3bf35a2",
+      "value": "a3f7bb09d9702460deb3d251ab8123c4:af659802c46bd3ddff73886188f69489b729b3b1bd301307bca4e9cc98ecb641",
       "encrypted": true,
       "priority": "critical",
-      "lastUpdated": "2025-07-03T06:30:39.782Z"
+      "lastUpdated": "2025-07-03T07:34:49.588Z"
     },
     {
       "key": "NODE_ENV",
       "value": "development",
       "encrypted": false,
       "priority": "critical",
-      "lastUpdated": "2025-07-03T06:30:39.782Z"
+      "lastUpdated": "2025-07-03T07:34:49.588Z"
     },
     {
       "key": "GOOGLE_AI_API_KEY",
-      "value": "93b33831ec9bafe6ee18fbe68768db3f:86570fbf16e535e86909bf7b5454bebe6ef3c73b0ef6264b7dbeb27a2decfd2882390c7863f70652d188806afd6a5119",
+      "value": "50e028194cd9a3796f650eec9093e51c:757ebd4a1232274bd3b540c08958cf05a7a924e4449dcc151c524a35cb7a7c8ae4407da55e26df8e12ae40a8194e7c4a",
       "encrypted": true,
       "priority": "important",
-      "lastUpdated": "2025-07-03T06:30:39.783Z"
+      "lastUpdated": "2025-07-03T07:34:49.588Z"
     },
     {
       "key": "GOOGLE_AI_DAILY_LIMIT",
       "value": "1200",
       "encrypted": false,
       "priority": "optional",
-      "lastUpdated": "2025-07-03T06:30:39.783Z"
+      "lastUpdated": "2025-07-03T07:34:49.588Z"
     },
     {
       "key": "GOOGLE_AI_RPM_LIMIT",
       "value": "12",
       "encrypted": false,
       "priority": "optional",
-      "lastUpdated": "2025-07-03T06:30:39.783Z"
+      "lastUpdated": "2025-07-03T07:34:49.588Z"
     }
   ],
-  "checksum": "fb38aaa33f3b57e582d3fa872be521ee"
+  "checksum": "3a21dfd54f74371e56a9c5654ceb30f4"
 }
