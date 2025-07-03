@@ -92,10 +92,18 @@ npm run validate:competition  # 경연대회 수준 검증
 
 ### **AI & Backend**
 
-- **Google AI Studio** (Gemini) - 고급 추론 엔진 (자연어 처리 전용)
+- **Google AI Studio** (Gemini 2.0 Flash) - 2025년 최신 모델 (15 RPM, 1M TPM, 1500 RPD)
 - **Supabase** - PostgreSQL + 벡터 검색 (RAG 엔진)
 - **MCP Protocol** - Render 서버 기반 AI 도구 (분리 배포)
 - **Edge Runtime** - Vercel 최적화 경량 실행환경
+
+### **📋 Google AI 2025년 업데이트**
+
+- **Gemini 2.0 Flash** (기본): 균형 잡힌 멀티모달 모델
+- **무료 할당량 대폭 확대**: 일일 1500회 → 1200회 (안전 마진)
+- **분당 제한 추가**: 15 RPM → 12 RPM (안전 마진)
+- **자동 유료 전환 없음**: 429 에러로 안전하게 차단
+- **실시간 할당량 모니터링**: Redis 기반 정밀 추적
 
 ### **개발 & 배포**
 
@@ -173,6 +181,7 @@ const analysis = await aiQuery('서버 상태를 종합적으로 분석해줘', 
 - 🛠️ [**개발 가이드**](docs/development-guide.md) - TDD 방법론 및 개발 규칙
 - 🏗️ [**시스템 아키텍처**](docs/system-architecture.md) - 기술적 설계 문서
 - 🚀 [**배포 가이드**](docs/deployment-guide.md) - 프로덕션 배포 방법
+- 🤖 [**Google AI 2025년 가이드**](docs/google-ai-2025-guide.md) - 최신 할당량 및 모니터링 완벽 가이드
 
 ## 🤝 기여하기
 

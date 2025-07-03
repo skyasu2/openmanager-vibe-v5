@@ -1,6 +1,12 @@
 /**
- * 🤖 Google AI Service v5.44.3
+ * 🤖 Google AI Service v2025.7
  * Edge Runtime 완전 호환 버전
+ *
+ * 📋 2025년 7월 최신 모델 지원:
+ * - Gemini 2.0 Flash (기본, 추천): 15 RPM, 1M TPM, 1500 RPD
+ * - Gemini 2.5 Flash Preview: 10 RPM, 250K TPM, 500 RPD
+ * - Gemini 2.5 Pro Experimental: 5 RPM, 250K TPM, 25 RPD
+ * - Gemini 2.0 Flash-Lite: 30 RPM, 1M TPM, 1500 RPD
  */
 
 import { getVercelConfig } from '@/config/vercel-edge-config';
@@ -16,11 +22,16 @@ const performance = edgeRuntimeService.performance;
 
 interface GoogleAIConfig {
   apiKey: string;
-  model: 'gemini-1.5-flash' | 'gemini-1.5-pro';
+  model:
+    | 'gemini-2.0-flash'
+    | 'gemini-2.5-flash'
+    | 'gemini-2.5-pro'
+    | 'gemini-2.0-flash-lite';
   enabled: boolean;
   rateLimits: {
     rpm: number;
     daily: number;
+    tpm: number; // Token Per Minute 추가
   };
 }
 
@@ -32,6 +43,11 @@ export interface GoogleAIResponse {
   cached?: boolean;
   processingTime: number;
   confidence: number;
+  rateLimitInfo?: {
+    remaining: number;
+    resetTime: number;
+    model: string;
+  };
   error?: {
     code: string;
     message: string;
@@ -96,7 +112,7 @@ export class GoogleAIService {
 
       this.genAI = new GoogleGenerativeAI(apiKey);
       this.model = this.genAI.getGenerativeModel({
-        model: process.env.GOOGLE_AI_MODEL || 'gemini-1.5-flash',
+        model: process.env.GOOGLE_AI_MODEL || 'gemini-2.0-flash',
       });
 
       this.initialized = true;
@@ -357,7 +373,7 @@ export class GoogleAIService {
       return {
         success: response.success,
         content: response.response || '',
-        model: process.env.GOOGLE_AI_MODEL || 'gemini-1.5-flash',
+        model: process.env.GOOGLE_AI_MODEL || 'gemini-2.0-flash',
         tokensUsed: 0,
         cached: false,
         processingTime: response.processingTime || 0,
@@ -378,7 +394,7 @@ export class GoogleAIService {
       return {
         success: false,
         content: '',
-        model: process.env.GOOGLE_AI_MODEL || 'gemini-1.5-flash',
+        model: process.env.GOOGLE_AI_MODEL || 'gemini-2.0-flash',
         tokensUsed: 0,
         cached: false,
         processingTime: 0,
@@ -459,7 +475,7 @@ CPU: ${server.cpu_usage}%
       initialized: this.initialized,
       requestCount: this.requestCount,
       lastError: this.lastError,
-      model: process.env.GOOGLE_AI_MODEL || 'gemini-1.5-flash',
+      model: process.env.GOOGLE_AI_MODEL || 'gemini-2.0-flash',
       enabledInPlan: vercelConfig.enableGoogleAI,
       vercelPlan: vercelConfig.environment.isPro ? 'pro' : 'hobby',
       timestamp: new Date().toISOString(),

@@ -1,9 +1,15 @@
 /**
- * 🔒 Google AI API 할당량 관리자
+ * 🔒 Google AI API 할당량 관리자 v2025.7
  * OpenManager Vibe v5
  *
  * Google AI API의 할당량을 안전하게 관리하여 과도한 요청을 방지합니다.
  * 헬스체크, 테스트, 실제 서비스 호출에 대한 제한을 적용합니다.
+ *
+ * 📋 2025년 7월 최신 할당량 (Gemini 2.0 Flash 기준):
+ * - 분당 요청: 15회 (RPM)
+ * - 분당 토큰: 1,000,000개 (TPM)
+ * - 일일 요청: 1,500회 (RPD)
+ * - 자동 유료 전환: 없음 (429 에러로 안전하게 차단)
  */
 
 import { Redis } from '@upstash/redis';
@@ -11,18 +17,24 @@ import { Redis } from '@upstash/redis';
 interface QuotaConfig {
   dailyLimit: number;
   hourlyLimit: number;
+  minuteLimit: number; // 새로 추가: 분당 제한
   testLimit: number;
   healthCheckCacheHours: number;
   circuitBreakerThreshold: number;
+  model: 'gemini-2.0-flash' | 'gemini-2.5-flash' | 'gemini-2.5-pro'; // 모델별 차등 적용
 }
 
 interface QuotaStatus {
   dailyUsed: number;
   hourlyUsed: number;
+  minuteUsed: number; // 새로 추가: 분당 사용량
   testUsed: number;
   lastHealthCheck: number;
   circuitBreakerCount: number;
   isBlocked: boolean;
+  model: string;
+  remainingDaily: number;
+  remainingMinute: number;
 }
 
 export class GoogleAIQuotaManager {
@@ -35,17 +47,31 @@ export class GoogleAIQuotaManager {
     // 🔧 안전한 Redis 초기화
     this.initializeRedis();
 
+    // 🚀 2025년 7월 최신 할당량 설정 (Gemini 2.0 Flash 기준)
+    const selectedModel = (process.env.GOOGLE_AI_MODEL ||
+      'gemini-2.0-flash') as QuotaConfig['model'];
+
     this.config = {
-      dailyLimit: parseInt(process.env.GOOGLE_AI_DAILY_LIMIT || '50'),
-      hourlyLimit: parseInt(process.env.GOOGLE_AI_HOURLY_LIMIT || '10'),
-      testLimit: parseInt(process.env.GOOGLE_AI_TEST_LIMIT_PER_DAY || '3'),
+      // 🎯 Gemini 2.0 Flash 기준 관대한 설정 (2025년 업데이트)
+      dailyLimit: parseInt(process.env.GOOGLE_AI_DAILY_LIMIT || '1200'), // 1500 → 안전 마진 1200
+      hourlyLimit: parseInt(process.env.GOOGLE_AI_HOURLY_LIMIT || '50'), // 시간당 제한 완화
+      minuteLimit: parseInt(process.env.GOOGLE_AI_MINUTE_LIMIT || '12'), // 15 → 안전 마진 12
+      testLimit: parseInt(process.env.GOOGLE_AI_TEST_LIMIT_PER_DAY || '10'), // 테스트 제한 완화
       healthCheckCacheHours: parseInt(
-        process.env.GOOGLE_AI_HEALTH_CHECK_CACHE_HOURS || '24'
+        process.env.GOOGLE_AI_HEALTH_CHECK_CACHE_HOURS || '12' // 24 → 12시간으로 단축
       ),
       circuitBreakerThreshold: parseInt(
-        process.env.GOOGLE_AI_CIRCUIT_BREAKER_THRESHOLD || '3'
+        process.env.GOOGLE_AI_CIRCUIT_BREAKER_THRESHOLD || '5' // 3 → 5로 완화
       ),
+      model: selectedModel,
     };
+
+    console.log('📊 Google AI 할당량 설정 (2025년 7월):', {
+      model: this.config.model,
+      dailyLimit: this.config.dailyLimit,
+      minuteLimit: this.config.minuteLimit,
+      testLimit: this.config.testLimit,
+    });
   }
 
   /**
@@ -239,7 +265,7 @@ export class GoogleAIQuotaManager {
   }
 
   /**
-   * 일반 API 요청 가능 여부 확인
+   * 일반 API 요청 가능 여부 확인 (2025년 업데이트: 분당 제한 추가)
    */
   async canPerformAPICall(): Promise<{ allowed: boolean; reason?: string }> {
     try {
@@ -254,6 +280,18 @@ export class GoogleAIQuotaManager {
       const now = new Date();
       const today = now.toISOString().split('T')[0];
       const currentHour = `${today}:${now.getHours()}`;
+      const currentMinute = `${today}:${now.getHours()}:${now.getMinutes()}`;
+
+      // 🚀 분당 제한 확인 (2025년 추가: Gemini 2.0 Flash 15 RPM)
+      const minuteKey = `${this.REDIS_PREFIX}minute:${currentMinute}`;
+      const minuteCount = (await this.redis.get(minuteKey)) || 0;
+
+      if (parseInt(minuteCount as string) >= this.config.minuteLimit) {
+        return {
+          allowed: false,
+          reason: `분당 할당량 초과 (${this.config.minuteLimit}회/분, Gemini 2.0 Flash 기준)`,
+        };
+      }
 
       // 일일 제한 확인
       const dailyKey = `${this.REDIS_PREFIX}daily:${today}`;
@@ -262,7 +300,7 @@ export class GoogleAIQuotaManager {
       if (parseInt(dailyCount as string) >= this.config.dailyLimit) {
         return {
           allowed: false,
-          reason: `일일 할당량 초과 (${this.config.dailyLimit}회)`,
+          reason: `일일 할당량 초과 (${this.config.dailyLimit}회/일, 2025년 업데이트)`,
         };
       }
 
@@ -273,7 +311,7 @@ export class GoogleAIQuotaManager {
       if (parseInt(hourlyCount as string) >= this.config.hourlyLimit) {
         return {
           allowed: false,
-          reason: `시간당 할당량 초과 (${this.config.hourlyLimit}회)`,
+          reason: `시간당 할당량 초과 (${this.config.hourlyLimit}회/시)`,
         };
       }
 
@@ -326,13 +364,19 @@ export class GoogleAIQuotaManager {
   }
 
   /**
-   * API 호출 사용량 기록
+   * API 호출 사용량 기록 (2025년 업데이트: 분당 카운터 추가)
    */
   async recordAPIUsage(): Promise<void> {
     try {
       const now = new Date();
       const today = now.toISOString().split('T')[0];
       const currentHour = `${today}:${now.getHours()}`;
+      const currentMinute = `${today}:${now.getHours()}:${now.getMinutes()}`;
+
+      // 🚀 분당 카운터 증가 (2025년 추가: Gemini 2.0 Flash 15 RPM 추적)
+      const minuteKey = `${this.REDIS_PREFIX}minute:${currentMinute}`;
+      await this.redis.incr(minuteKey);
+      await this.redis.expire(minuteKey, 60); // 1분 후 만료
 
       // 일일 카운터 증가
       const dailyKey = `${this.REDIS_PREFIX}daily:${today}`;
@@ -346,6 +390,10 @@ export class GoogleAIQuotaManager {
 
       // Circuit Breaker 리셋
       await this.resetCircuitBreaker();
+
+      console.log(
+        `📊 Google AI 사용량 기록: ${this.config.model} (분/시/일: ${minuteKey})`
+      );
     } catch (error) {
       console.error('API 사용량 기록 실패:', error);
     }
@@ -412,17 +460,19 @@ export class GoogleAIQuotaManager {
   }
 
   /**
-   * 현재 할당량 상태 조회
+   * 현재 할당량 상태 조회 (2025년 업데이트: 분당 사용량 추가)
    */
   async getQuotaStatus(): Promise<QuotaStatus> {
     try {
       const now = new Date();
       const today = now.toISOString().split('T')[0];
       const currentHour = `${today}:${now.getHours()}`;
+      const currentMinute = `${today}:${now.getHours()}:${now.getMinutes()}`;
 
       const [
         dailyUsed,
         hourlyUsed,
+        minuteUsed,
         testUsed,
         lastHealthCheck,
         circuitBreakerCount,
@@ -430,29 +480,41 @@ export class GoogleAIQuotaManager {
       ] = await Promise.all([
         this.redis.get(`${this.REDIS_PREFIX}daily:${today}`),
         this.redis.get(`${this.REDIS_PREFIX}hourly:${currentHour}`),
+        this.redis.get(`${this.REDIS_PREFIX}minute:${currentMinute}`),
         this.redis.get(`${this.REDIS_PREFIX}test:${today}`),
         this.redis.get(`${this.REDIS_PREFIX}health_check`),
         this.redis.get(`${this.REDIS_PREFIX}failures`),
         this.isCircuitBreakerOpen(),
       ]);
 
+      const dailyUsedCount = parseInt(dailyUsed as string) || 0;
+      const minuteUsedCount = parseInt(minuteUsed as string) || 0;
+
       return {
-        dailyUsed: parseInt(dailyUsed as string) || 0,
+        dailyUsed: dailyUsedCount,
         hourlyUsed: parseInt(hourlyUsed as string) || 0,
+        minuteUsed: minuteUsedCount,
         testUsed: parseInt(testUsed as string) || 0,
         lastHealthCheck: parseInt(lastHealthCheck as string) || 0,
         circuitBreakerCount: parseInt(circuitBreakerCount as string) || 0,
         isBlocked,
+        model: this.config.model,
+        remainingDaily: Math.max(0, this.config.dailyLimit - dailyUsedCount),
+        remainingMinute: Math.max(0, this.config.minuteLimit - minuteUsedCount),
       };
     } catch (error) {
       console.error('할당량 상태 조회 실패:', error);
       return {
         dailyUsed: 0,
         hourlyUsed: 0,
+        minuteUsed: 0,
         testUsed: 0,
         lastHealthCheck: 0,
         circuitBreakerCount: 0,
         isBlocked: false,
+        model: this.config.model || 'gemini-2.0-flash',
+        remainingDaily: this.config.dailyLimit,
+        remainingMinute: this.config.minuteLimit,
       };
     }
   }
