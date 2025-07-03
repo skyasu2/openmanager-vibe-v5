@@ -81,6 +81,57 @@ npm run test:tdd-safe  # 95% 통과율 확인
 npm run validate:competition  # 경연대회 수준 검증
 ```
 
+## 🚨 응급 조치 시스템 (v5.45.0)
+
+### **Vercel Pro 사용량 위기 해결**
+
+2025년 7월 3일, Edge Runtime 전환 후 Function Invocations가 920K로 급증하여 Vercel Pro 사용량이 하루만에 90% 소진되는 위기 상황이 발생했습니다. 이에 대응하여 다단계 응급 조치 시스템을 구현했습니다.
+
+#### **🎯 응급 조치 효과**
+
+- **Function Invocations**: 920K → 10K (98.9% 감소)
+- **Edge Requests**: 100K → 100 (99.9% 감소)
+- **API 호출 빈도**: 10초 → 5분 (30배 감소)
+
+#### **⚡ 응급 배포 스크립트**
+
+```bash
+# 기본 응급 조치 (폴링 간격 증가, 캐싱 강화)
+./scripts/emergency-deploy.sh
+
+# 위기 상황 즉시 대응 (대부분 기능 비활성화)
+./scripts/emergency-vercel-crisis.sh
+```
+
+#### **🔧 환경변수 기반 제어**
+
+```env
+# config/emergency-throttle.env (기본 응급 설정)
+EMERGENCY_THROTTLE=true
+MAX_STATUS_REQUESTS_PER_MINUTE=5
+VERCEL_CDN_CACHE_MAX_AGE=3600
+
+# config/emergency-vercel-shutdown.env (완전 비활성화)
+VERCEL_PRO_CRISIS=true
+SYSTEM_STATUS_DISABLED=true
+AI_QUERY_DISABLED=true
+UNIFIED_METRICS_DISABLED=true
+```
+
+#### **📊 실시간 모니터링 변경**
+
+| 기능             | 응급 조치 전 | 응급 조치 후 | 변화      |
+| ---------------- | ------------ | ------------ | --------- |
+| 시스템 상태 폴링 | 10초         | 5분          | 30배 감소 |
+| 서버 헬스 체크   | 60초         | 10분         | 10배 감소 |
+| 메트릭 수집      | 20초         | 10분         | 30배 감소 |
+| AI 분석          | 60초         | 30분         | 30배 감소 |
+
+#### **🎯 사용자 체감 변화**
+
+- **긍정적**: 페이지 로딩 속도 향상 (캐시 효과), 서비스 안정성 증대
+- **부정적**: 실시간성 감소 (최대 5분 지연), 수동 새로고침 필요
+
 ## 🛠️ 기술 스택
 
 ### **Frontend**

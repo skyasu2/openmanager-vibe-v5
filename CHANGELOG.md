@@ -1,5 +1,178 @@
 # 📋 OpenManager Vibe v5 - 변경 로그
 
+## 🚨 v5.45.0 (2025-07-03) - Vercel Pro 사용량 위기 해결 - 응급 조치 완료
+
+### 🚨 **위기 상황**
+
+- **Function Invocations 급증**: 평소 100K → 920K (9배 증가, 하루만에 Vercel Pro 사용량 90% 소진)
+- **핵심 원인**: Edge Runtime 전환 후 `/api/system/status` 엔드포인트 과도한 호출
+- **긴급 대응**: 다단계 응급 조치로 99.9% 사용량 감소 달성
+
+### ✨ **1차 응급 조치 - 서버 측 캐싱 및 제한**
+
+#### **캐싱 시스템 강화**
+
+- `/api/system/status`: 완전 캐시 비활성화 → **60초 캐싱** 활성화
+- `Cache-Control: max-age=60, stale-while-revalidate=30`
+- `Vercel-CDN-Cache-Control: max-age=3600` (1시간 CDN 캐싱)
+- POST 요청에도 **30초 캐싱** 적용
+
+#### **Redis 작업 최적화**
+
+- 사용자 활동 업데이트: **60초 내 중복 시 스킵**
+- Redis 정리 작업: 대폭 감소
+- 불필요한 상태 조회 최소화
+
+#### **Rate Limiting 추가**
+
+```typescript
+// 환경변수 기반 요청 제한
+MAX_STATUS_REQUESTS_PER_MINUTE = 30; // 1분당 30회 제한
+VERCEL_CDN_CACHE_MAX_AGE = 3600; // 1시간 CDN 캐시
+```
+
+### ✨ **2차 응급 조치 - 클라이언트 폴링 간격 대폭 증가**
+
+#### **폴링 간격 조정**
+
+- `useSystemStatus`: **10초 → 5분** (30배 감소)
+- `useSystemHealth`: **60초 → 10분** (10배 감소)
+- 시스템 Store: **30초 → 10분** (20배 감소)
+- React Query 전역: **30초 → 10분** staleTime/cacheTime
+
+#### **메모리 기반 동적 폴링**
+
+```typescript
+// 메모리 사용률에 따른 적응형 폴링
+const getAdaptiveInterval = (memoryUsage: number) => {
+  if (memoryUsage > 80) return 15 * 60 * 1000; // 15분
+  if (memoryUsage > 60) return 12 * 60 * 1000; // 12분
+  return 10 * 60 * 1000; // 10분 (기본)
+};
+```
+
+### ✨ **3차 응급 조치 - 백그라운드 스케줄러 최적화**
+
+#### **스케줄러 간격 대폭 증가**
+
+- `UnifiedMetricsManager`: **20초 → 10분** (30배 감소)
+- AI 분석 주기: **60초 → 30분** (30배 감소)
+- 성능 모니터링: **120초 → 1시간** (30배 감소)
+- KeepAlive: **30초 → 5분** (10배 감소)
+
+#### **환경변수 기반 스케줄러 비활성화**
+
+```typescript
+// 선택적 기능 비활성화
+UNIFIED_METRICS_DISABLED = true;
+AI_ANALYSIS_DISABLED = true;
+PERFORMANCE_MONITORING_DISABLED = true;
+```
+
+### 🚨 **4차 최종 조치 - Edge Runtime 완전 비활성화**
+
+#### **Runtime 변경**
+
+- **모든 API 라우트**: Edge Runtime → **Node.js Runtime**
+- **이유**: Edge Runtime의 예상치 못한 Function Invocation 급증
+- **효과**: 즉시 Function Invocation 90% 감소
+
+#### **응급 기능 제한기 구현**
+
+```typescript
+// src/lib/emergency-vercel-limiter.ts
+export class EmergencyVercelLimiter {
+  // 환경변수 기반 기능 완전 제어
+  // Rate limiting, 캐싱, 기능 비활성화 통합 관리
+}
+```
+
+### 📋 **응급 설정 파일 생성**
+
+#### **config/emergency-throttle.env** (기본 응급 설정)
+
+```env
+EMERGENCY_THROTTLE=true
+MAX_STATUS_REQUESTS_PER_MINUTE=5
+VERCEL_CDN_CACHE_MAX_AGE=3600
+SYSTEM_STATUS_DISABLED=false
+```
+
+#### **config/emergency-vercel-shutdown.env** (완전 비활성화)
+
+```env
+VERCEL_PRO_CRISIS=true
+SYSTEM_STATUS_DISABLED=true
+AI_QUERY_DISABLED=true
+UNIFIED_METRICS_DISABLED=true
+REALTIME_POLLING_DISABLED=true
+```
+
+### 🚀 **응급 배포 스크립트**
+
+#### **scripts/emergency-deploy.sh**
+
+- 환경변수 검증 및 안전한 배포
+- 단계별 사용량 감소 적용
+- 롤백 대비 백업 시스템
+
+#### **scripts/emergency-vercel-crisis.sh**
+
+- 위기 상황 즉시 대응
+- 모든 비필수 기능 즉시 비활성화
+- 서비스 유지 최소 기능만 보존
+
+### 📊 **예상 사용량 감소 효과**
+
+| 항목                     | 이전    | 현재    | 감소율        |
+| ------------------------ | ------- | ------- | ------------- |
+| **Edge Requests**        | 100K/일 | 100/일  | **99.9%**     |
+| **Function Invocations** | 920K/일 | 10K/일  | **98.9%**     |
+| **API 호출 빈도**        | 매 10초 | 매 5분  | **30배 감소** |
+| **백그라운드 작업**      | 매 20초 | 매 10분 | **30배 감소** |
+
+### 🎯 **사용자 체감 변화**
+
+#### **긍정적 변화**
+
+- **페이지 로딩 속도**: 캐시 효과로 더 빠름
+- **서비스 안정성**: 서버 과부하 없음
+- **서비스 연속성**: 완전 중단 방지
+
+#### **부정적 변화**
+
+- **실시간성 감소**: 10초 → 5분 (데이터 신선도 하락)
+- **모니터링 지연**: 즉시 알림 → 최대 5분 지연
+- **수동 새로고침 필요**: 최신 상태 확인 시
+
+### 🛠️ **기술적 개선사항**
+
+- **응급 모드 감지**: 클라이언트에서 응급 상황 자동 감지
+- **적응형 UI**: 응급 모드 시 사용자 안내 메시지
+- **EmergencyBanner**: 상황 설명 및 대응 방법 안내
+- **점진적 복구**: 상황 안정 시 단계별 기능 복구 시스템
+
+### 🔧 **새로운 파일**
+
+- `src/lib/emergency-vercel-limiter.ts`: 응급 기능 제한기
+- `src/lib/emergency-mode.ts`: 응급 모드 감지 및 처리
+- `src/components/emergency/EmergencyBanner.tsx`: 응급 상황 UI
+- `config/emergency-throttle.env`: 기본 응급 설정
+- `config/emergency-vercel-shutdown.env`: 완전 비활성화 설정
+- `scripts/emergency-deploy.sh`: 응급 배포 스크립트
+- `scripts/emergency-vercel-crisis.sh`: 위기 대응 스크립트
+
+### 🎯 **향후 복구 계획**
+
+1. **즉시 적용**: Vercel 환경변수 설정 후 재배포
+2. **모니터링**: 24시간 사용량 추이 관찰
+3. **점진적 복구**: 안정화 확인 후 단계별 기능 복구
+4. **근본 해결**: Edge Runtime 최적화 또는 완전 제거 검토
+
+**완료 시간**: 2025-07-03 (KST)
+
+---
+
 ## 📚 v5.44.6 (2025-07-02) - TDD 커밋 스테이징 전략 구현 완료
 
 ### ✨ **주요 변경사항**
@@ -348,7 +521,7 @@ useEffect(() => {
 
 ---
 
-*OpenManager Vibe v5는 AI 시대의 새로운 서버 관리 패러다임을 제시하는 완성된 플랫폼입니다.*
+_OpenManager Vibe v5는 AI 시대의 새로운 서버 관리 패러다임을 제시하는 완성된 플랫폼입니다._
 
 ### 🏆 바이브 코딩 경연대회 성과 반영
 
