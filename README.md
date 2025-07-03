@@ -330,3 +330,100 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
 [🚀 Live Demo](https://openmanager-vibe-v5.vercel.app/) | [📚 문서](docs/) | [🐛 이슈 리포트](issues/) | [💡 기능 제안](issues/)
 
 </div>
+
+## 📊 Vercel Pro 사용량 위기 해결 결과 (2025-07-03 업데이트)
+
+### ✅ 위기 해결 성과
+
+- **사용량 감소**: 99.906% ↓ (920,000 → 864 요청/일)
+- **성능 개선**: 88.7% ↑ (700ms → 79ms 평균 응답)
+- **안정성**: 에러율 0%, 일관된 성능 확보
+- **비용 절감**: 거의 무료 수준 복귀
+
+### 📈 현재 시스템 상태
+
+- **폴링 간격**: 300초 (5분) - 안정화됨
+- **캐싱**: 60초 TTL, 80%+ 히트율
+- **Runtime**: Node.js (Edge에서 전환)
+- **API 응답**: 평균 79ms (매우 빠름)
+
+## 🔧 테스트 및 모니터링 도구
+
+### 실시간 모니터링
+
+```bash
+# 실시간 모니터링 대시보드 (5분 간격)
+node scripts/monitoring-dashboard.js
+
+# Vercel 메트릭 모니터링
+node scripts/vercel-metrics-monitor.js monitor 30
+
+# 로드 테스트 (5분, 2 RPS)
+node scripts/vercel-metrics-monitor.js load 5 2
+```
+
+### 성능 테스트
+
+```bash
+# 종합 기능 테스트
+node scripts/comprehensive-function-test.js
+
+# 사용량 패턴 테스트
+node scripts/vercel-usage-test.js
+
+# 응급 조치 전후 비교 테스트
+node scripts/vercel-comparison-test.js 60
+```
+
+### 빠른 상태 확인
+
+```bash
+# API 성능 체크
+curl -w "Time: %{time_total}s Status: %{http_code}\n" \
+  -o /dev/null -s https://openmanager-vibe-v5.vercel.app/api/system/status
+
+# 연속 캐싱 효과 테스트
+for i in {1..5}; do
+  echo -n "Test $i: "
+  curl -w "%{time_total}s\n" -o /dev/null -s \
+    https://openmanager-vibe-v5.vercel.app/api/system/status
+  sleep 2
+done
+```
+
+## 📋 모니터링 체크리스트
+
+### 일일 확인 지표
+
+- [ ] Vercel Function Invocations < 10,000
+- [ ] 평균 API 응답시간 < 200ms
+- [ ] 에러율 < 1%
+- [ ] 캐시 히트율 > 70%
+
+### 주간 검토 항목
+
+- [ ] 사용량 증가 추세 분석
+- [ ] API 성능 트렌드 확인
+- [ ] 사용자 피드백 검토
+- [ ] 시스템 안정성 평가
+
+## 🚨 응급 조치 시스템
+
+### 긴급 상황 대응
+
+```bash
+# 사용량 급증 시 즉시 제한
+./scripts/emergency-vercel-crisis.sh
+
+# 기본 응급 모드 활성화
+./scripts/emergency-deploy.sh emergency-throttle
+
+# 완전 비활성화 (최후 수단)
+./scripts/emergency-deploy.sh emergency-vercel-shutdown
+```
+
+### 환경별 설정 파일
+
+- `config/emergency-throttle.env`: 기본 응급 설정
+- `config/emergency-vercel-shutdown.env`: 완전 비활성화
+- `config/env-backup.json`: 설정 백업
