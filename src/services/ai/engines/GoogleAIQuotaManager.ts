@@ -1,15 +1,14 @@
 /**
- * 🔒 Google AI API 할당량 관리자 v2025.7
+ * 🔒 Google AI API 할당량 관리자 v2025.7.1
  * OpenManager Vibe v5
  *
  * Google AI API의 할당량을 안전하게 관리하여 과도한 요청을 방지합니다.
  * 헬스체크, 테스트, 실제 서비스 호출에 대한 제한을 적용합니다.
  *
- * 📋 2025년 7월 최신 할당량 (Gemini 2.0 Flash 기준):
+ * 📋 2025년 7월 최신 할당량 (TPM 기능 추가):
  * - 분당 요청: 15회 (RPM)
- * - 분당 토큰: 1,000,000개 (TPM)
+ * - 분당 토큰: 800,000개 (TPM) - 안전 마진 적용
  * - 일일 요청: 1,500회 (RPD)
- * - 자동 유료 전환: 없음 (429 에러로 안전하게 차단)
  */
 
 import { Redis } from '@upstash/redis';
@@ -17,17 +16,19 @@ import { Redis } from '@upstash/redis';
 interface QuotaConfig {
   dailyLimit: number;
   hourlyLimit: number;
-  minuteLimit: number; // 새로 추가: 분당 제한
+  minuteLimit: number;
+  tpmLimit: number; // 🚀 분당 토큰 제한
   testLimit: number;
   healthCheckCacheHours: number;
   circuitBreakerThreshold: number;
-  model: 'gemini-2.0-flash' | 'gemini-2.5-flash' | 'gemini-2.5-pro'; // 모델별 차등 적용
+  model: 'gemini-2.0-flash' | 'gemini-2.5-flash' | 'gemini-2.5-pro';
 }
 
 interface QuotaStatus {
   dailyUsed: number;
   hourlyUsed: number;
-  minuteUsed: number; // 새로 추가: 분당 사용량
+  minuteUsed: number;
+  tpmUsed: number; // 🚀 분당 토큰 사용량
   testUsed: number;
   lastHealthCheck: number;
   circuitBreakerCount: number;
@@ -35,6 +36,7 @@ interface QuotaStatus {
   model: string;
   remainingDaily: number;
   remainingMinute: number;
+  remainingTpm: number; // 🚀 남은 분당 토큰
 }
 
 export class GoogleAIQuotaManager {
@@ -44,54 +46,37 @@ export class GoogleAIQuotaManager {
   private isMockMode: boolean = false;
 
   constructor() {
-    // 🔧 안전한 Redis 초기화
     this.initializeRedis();
 
-    // 🚀 2025년 7월 최신 할당량 설정 (Gemini 2.0 Flash 기준)
     const selectedModel = (process.env.GOOGLE_AI_MODEL ||
       'gemini-2.0-flash') as QuotaConfig['model'];
 
     this.config = {
-      // 🎯 Gemini 2.0 Flash 기준 관대한 설정 (2025년 업데이트)
-      dailyLimit: parseInt(process.env.GOOGLE_AI_DAILY_LIMIT || '1200'), // 1500 → 안전 마진 1200
-      hourlyLimit: parseInt(process.env.GOOGLE_AI_HOURLY_LIMIT || '50'), // 시간당 제한 완화
-      minuteLimit: parseInt(process.env.GOOGLE_AI_MINUTE_LIMIT || '12'), // 15 → 안전 마진 12
-      testLimit: parseInt(process.env.GOOGLE_AI_TEST_LIMIT_PER_DAY || '10'), // 테스트 제한 완화
+      dailyLimit: parseInt(process.env.GOOGLE_AI_DAILY_LIMIT || '1200'),
+      hourlyLimit: parseInt(process.env.GOOGLE_AI_HOURLY_LIMIT || '50'),
+      minuteLimit: parseInt(process.env.GOOGLE_AI_MINUTE_LIMIT || '12'),
+      tpmLimit: parseInt(process.env.GOOGLE_AI_TPM_LIMIT || '800000'), // 🚀
+      testLimit: parseInt(process.env.GOOGLE_AI_TEST_LIMIT_PER_DAY || '10'),
       healthCheckCacheHours: parseInt(
-        process.env.GOOGLE_AI_HEALTH_CHECK_CACHE_HOURS || '12' // 24 → 12시간으로 단축
+        process.env.GOOGLE_AI_HEALTH_CHECK_CACHE_HOURS || '12'
       ),
       circuitBreakerThreshold: parseInt(
-        process.env.GOOGLE_AI_CIRCUIT_BREAKER_THRESHOLD || '5' // 3 → 5로 완화
+        process.env.GOOGLE_AI_CIRCUIT_BREAKER_THRESHOLD || '5'
       ),
       model: selectedModel,
     };
 
-    console.log('📊 Google AI 할당량 설정 (2025년 7월):', {
+    console.log('📊 Google AI 할당량 설정 (v2025.7.1 - TPM 적용):', {
       model: this.config.model,
       dailyLimit: this.config.dailyLimit,
       minuteLimit: this.config.minuteLimit,
+      tpmLimit: this.config.tpmLimit, // 🚀
       testLimit: this.config.testLimit,
     });
   }
 
-  /**
-   * 🔧 안전한 Redis 초기화
-   */
   private initializeRedis(): void {
     try {
-      // 🔍 환경 감지
-      const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
-      const isBuild = process.env.BUILD_TIME === 'true';
-
-      console.log('🔍 GoogleAIQuotaManager Redis 초기화:', {
-        isVercel,
-        isBuild,
-        hasRedisUrl: !!process.env.UPSTASH_REDIS_REST_URL,
-        hasRedisToken: !!process.env.UPSTASH_REDIS_REST_TOKEN,
-        nodeEnv: process.env.NODE_ENV,
-      });
-
-      // 🚫 환경변수 검증
       const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
       const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -102,20 +87,7 @@ export class GoogleAIQuotaManager {
         return;
       }
 
-      // URL 형식 검증
-      if (!redisUrl.startsWith('http')) {
-        console.log('⚠️ Redis URL 형식 오류 - Mock 모드로 전환');
-        this.isMockMode = true;
-        this.redis = this.createMockRedis();
-        return;
-      }
-
-      // 실제 Redis 클라이언트 생성
-      this.redis = new Redis({
-        url: redisUrl,
-        token: redisToken,
-      });
-
+      this.redis = new Redis({ url: redisUrl, token: redisToken });
       console.log('✅ Google AI Quota Manager - Redis 연결 초기화 완료');
     } catch (error) {
       console.error('❌ Redis 초기화 실패 - Mock 모드로 전환:', error);
@@ -124,68 +96,81 @@ export class GoogleAIQuotaManager {
     }
   }
 
-  /**
-   * 🎭 Mock Redis 클라이언트 생성
-   */
   private createMockRedis(): any {
     const mockData = new Map<string, string>();
-
+    const incr = async (key: string, by: number = 1): Promise<number> => {
+      const current = parseInt(mockData.get(key) || '0');
+      const newValue = current + by;
+      mockData.set(key, newValue.toString());
+      return newValue;
+    };
     return {
-      async get(key: string): Promise<string | null> {
+      async get(key: string) {
         return mockData.get(key) || null;
       },
-      async set(
-        key: string,
-        value: string,
-        options?: { ex?: number }
-      ): Promise<'OK'> {
+      async set(key: string, value: string, options?: { ex?: number }) {
         mockData.set(key, value);
-        if (options?.ex) {
+        if (options?.ex)
           setTimeout(() => mockData.delete(key), options.ex * 1000);
-        }
         return 'OK';
       },
-      async incr(key: string): Promise<number> {
-        const current = parseInt(mockData.get(key) || '0');
-        const newValue = current + 1;
-        mockData.set(key, newValue.toString());
-        return newValue;
+      async incr(key: string) {
+        return incr(key, 1);
       },
-      async expire(key: string, seconds: number): Promise<number> {
+      async incrby(key: string, value: number) {
+        return incr(key, value);
+      },
+      async expire(key: string, seconds: number) {
         setTimeout(() => mockData.delete(key), seconds * 1000);
         return 1;
+      },
+      // 🚀 파이프라인 Mock 구현
+      pipeline() {
+        const operations: Array<() => Promise<any>> = [];
+        return {
+          incr: (key: string) => {
+            operations.push(() => incr(key, 1));
+            return this;
+          },
+          incrby: (key: string, value: number) => {
+            operations.push(() => incr(key, value));
+            return this;
+          },
+          expire: (key: string, seconds: number) => {
+            operations.push(async () => {
+              setTimeout(() => mockData.delete(key), seconds * 1000);
+              return 1;
+            });
+            return this;
+          },
+          async exec() {
+            const results = await Promise.all(
+              operations.map(op =>
+                op()
+                  .then(result => [null, result])
+                  .catch(error => [error, null])
+              )
+            );
+            return results;
+          },
+        };
       },
     };
   }
 
-  /**
-   * 헬스체크 요청 가능 여부 확인
-   */
   async canPerformHealthCheck(): Promise<{
     allowed: boolean;
     reason?: string;
     cached?: boolean;
   }> {
     try {
-      // 🚫 테스트 환경에서는 헬스체크 차단
       if (
         process.env.NODE_ENV === 'test' ||
-        process.env.TEST_CONTEXT === 'true' ||
-        process.env.FORCE_MOCK_GOOGLE_AI === 'true' ||
-        process.env.DISABLE_HEALTH_CHECK === 'true'
+        process.env.FORCE_MOCK_GOOGLE_AI === 'true'
       ) {
         return {
           allowed: false,
-          reason: '테스트 환경 - 헬스체크 차단 (할당량 보호)',
-          cached: true,
-        };
-      }
-
-      // 🛡️ 헬스체크 컨텍스트에서 추가 제한
-      if (process.env.HEALTH_CHECK_CONTEXT === 'true') {
-        return {
-          allowed: false,
-          reason: '헬스체크 컨텍스트 - API 호출 제한 (차단 방지)',
+          reason: '테스트 환경 - 헬스체크 차단',
           cached: true,
         };
       }
@@ -196,25 +181,15 @@ export class GoogleAIQuotaManager {
 
       if (lastCheck) {
         const timeDiff = now - parseInt(lastCheck as string);
-        const cacheValidHours =
-          this.config.healthCheckCacheHours * 60 * 60 * 1000;
-
-        if (timeDiff < cacheValidHours) {
-          return {
-            allowed: false,
-            reason: `헬스체크 캐시 유효 (${Math.round((cacheValidHours - timeDiff) / (60 * 60 * 1000))}시간 남음)`,
-            cached: true,
-          };
+        const cacheValidMs = this.config.healthCheckCacheHours * 3600 * 1000;
+        if (timeDiff < cacheValidMs) {
+          return { allowed: false, reason: `헬스체크 캐시 유효`, cached: true };
         }
       }
 
-      // Circuit Breaker 확인
       const isBlocked = await this.isCircuitBreakerOpen();
       if (isBlocked) {
-        return {
-          allowed: false,
-          reason: 'Circuit Breaker 활성화 - 연속 실패로 인한 일시 차단',
-        };
+        return { allowed: false, reason: 'Circuit Breaker 활성화' };
       }
 
       return { allowed: true };
@@ -224,9 +199,6 @@ export class GoogleAIQuotaManager {
     }
   }
 
-  /**
-   * 테스트 요청 가능 여부 확인
-   */
   async canPerformTest(): Promise<{
     allowed: boolean;
     reason?: string;
@@ -235,93 +207,57 @@ export class GoogleAIQuotaManager {
     try {
       const today = new Date().toISOString().split('T')[0];
       const testKey = `${this.REDIS_PREFIX}test:${today}`;
-      const testCount = (await this.redis.get(testKey)) || 0;
+      const testCount = parseInt((await this.redis.get(testKey)) || '0');
 
-      if (parseInt(testCount as string) >= this.config.testLimit) {
+      if (testCount >= this.config.testLimit) {
         return {
           allowed: false,
-          reason: `일일 테스트 제한 초과 (${this.config.testLimit}회)`,
+          reason: `일일 테스트 제한 초과`,
           remaining: 0,
         };
       }
 
-      // Circuit Breaker 확인
       const isBlocked = await this.isCircuitBreakerOpen();
       if (isBlocked) {
-        return {
-          allowed: false,
-          reason: 'Circuit Breaker 활성화 - 연속 실패로 인한 일시 차단',
-        };
+        return { allowed: false, reason: 'Circuit Breaker 활성화' };
       }
 
-      return {
-        allowed: true,
-        remaining: this.config.testLimit - parseInt(testCount as string),
-      };
+      return { allowed: true, remaining: this.config.testLimit - testCount };
     } catch (error) {
       console.error('테스트 권한 확인 실패:', error);
       return { allowed: false, reason: 'Redis 연결 오류' };
     }
   }
 
-  /**
-   * 일반 API 요청 가능 여부 확인 (2025년 업데이트: 분당 제한 추가)
-   */
   async canPerformAPICall(): Promise<{ allowed: boolean; reason?: string }> {
     try {
-      // 개발 환경에서는 제한 완화
-      if (
-        process.env.NODE_ENV === 'development' &&
-        process.env.GOOGLE_AI_QUOTA_PROTECTION !== 'true'
-      ) {
-        return { allowed: true };
+      if (this.isMockMode) return { allowed: true };
+
+      const isBlocked = await this.isCircuitBreakerOpen();
+      if (isBlocked) {
+        return { allowed: false, reason: 'Circuit Breaker 활성화' };
       }
 
       const now = new Date();
       const today = now.toISOString().split('T')[0];
-      const currentHour = `${today}:${now.getHours()}`;
       const currentMinute = `${today}:${now.getHours()}:${now.getMinutes()}`;
 
-      // 🚀 분당 제한 확인 (2025년 추가: Gemini 2.0 Flash 15 RPM)
-      const minuteKey = `${this.REDIS_PREFIX}minute:${currentMinute}`;
-      const minuteCount = (await this.redis.get(minuteKey)) || 0;
+      const [minuteCount, dailyCount, tpmCount] = await Promise.all([
+        this.redis.get(`${this.REDIS_PREFIX}minute:${currentMinute}`),
+        this.redis.get(`${this.REDIS_PREFIX}daily:${today}`),
+        this.redis.get(`${this.REDIS_PREFIX}tpm:${currentMinute}`),
+      ]);
 
-      if (parseInt(minuteCount as string) >= this.config.minuteLimit) {
-        return {
-          allowed: false,
-          reason: `분당 할당량 초과 (${this.config.minuteLimit}회/분, Gemini 2.0 Flash 기준)`,
-        };
+      if (parseInt(String(minuteCount) || '0') >= this.config.minuteLimit) {
+        return { allowed: false, reason: `분당 요청 한도(RPM) 초과` };
       }
 
-      // 일일 제한 확인
-      const dailyKey = `${this.REDIS_PREFIX}daily:${today}`;
-      const dailyCount = (await this.redis.get(dailyKey)) || 0;
-
-      if (parseInt(dailyCount as string) >= this.config.dailyLimit) {
-        return {
-          allowed: false,
-          reason: `일일 할당량 초과 (${this.config.dailyLimit}회/일, 2025년 업데이트)`,
-        };
+      if (parseInt(String(tpmCount) || '0') >= this.config.tpmLimit) {
+        return { allowed: false, reason: `분당 토큰 한도(TPM) 초과` };
       }
 
-      // 시간당 제한 확인
-      const hourlyKey = `${this.REDIS_PREFIX}hourly:${currentHour}`;
-      const hourlyCount = (await this.redis.get(hourlyKey)) || 0;
-
-      if (parseInt(hourlyCount as string) >= this.config.hourlyLimit) {
-        return {
-          allowed: false,
-          reason: `시간당 할당량 초과 (${this.config.hourlyLimit}회/시)`,
-        };
-      }
-
-      // Circuit Breaker 확인
-      const isBlocked = await this.isCircuitBreakerOpen();
-      if (isBlocked) {
-        return {
-          allowed: false,
-          reason: 'Circuit Breaker 활성화 - 연속 실패로 인한 일시 차단',
-        };
+      if (parseInt(String(dailyCount) || '0') >= this.config.dailyLimit) {
+        return { allowed: false, reason: `일일 요청 한도(RPD) 초과` };
       }
 
       return { allowed: true };
@@ -331,84 +267,88 @@ export class GoogleAIQuotaManager {
     }
   }
 
-  /**
-   * 헬스체크 성공 기록
-   */
   async recordHealthCheckSuccess(): Promise<void> {
     try {
-      const now = Date.now();
       const cacheKey = `${this.REDIS_PREFIX}health_check`;
-      await this.redis.set(cacheKey, now.toString(), {
-        ex: this.config.healthCheckCacheHours * 60 * 60,
+      await this.redis.set(cacheKey, Date.now().toString(), {
+        ex: this.config.healthCheckCacheHours * 3600,
       });
-
-      // Circuit Breaker 리셋
       await this.resetCircuitBreaker();
     } catch (error) {
       console.error('헬스체크 성공 기록 실패:', error);
     }
   }
 
-  /**
-   * 테스트 사용량 기록
-   */
   async recordTestUsage(): Promise<void> {
     try {
       const today = new Date().toISOString().split('T')[0];
       const testKey = `${this.REDIS_PREFIX}test:${today}`;
-      await this.redis.incr(testKey);
-      await this.redis.expire(testKey, 24 * 60 * 60); // 24시간 후 만료
+      const newCount = await this.redis.incr(testKey);
+      if (newCount === 1) await this.redis.expire(testKey, 24 * 3600);
     } catch (error) {
       console.error('테스트 사용량 기록 실패:', error);
     }
   }
 
-  /**
-   * API 호출 사용량 기록 (2025년 업데이트: 분당 카운터 추가)
-   */
-  async recordAPIUsage(): Promise<void> {
+  async recordAPIUsage(tokens: number): Promise<void> {
     try {
+      if (this.isMockMode) return;
+
       const now = new Date();
       const today = now.toISOString().split('T')[0];
       const currentHour = `${today}:${now.getHours()}`;
       const currentMinute = `${today}:${now.getHours()}:${now.getMinutes()}`;
 
-      // 🚀 분당 카운터 증가 (2025년 추가: Gemini 2.0 Flash 15 RPM 추적)
+      const pipeline = this.redis.pipeline();
+
       const minuteKey = `${this.REDIS_PREFIX}minute:${currentMinute}`;
-      await this.redis.incr(minuteKey);
-      await this.redis.expire(minuteKey, 60); // 1분 후 만료
+      pipeline.incr(minuteKey);
+      pipeline.expire(minuteKey, 61);
 
-      // 일일 카운터 증가
+      const tpmKey = `${this.REDIS_PREFIX}tpm:${currentMinute}`;
+      pipeline.incrby(tpmKey, tokens);
+      pipeline.expire(tpmKey, 61);
+
       const dailyKey = `${this.REDIS_PREFIX}daily:${today}`;
-      await this.redis.incr(dailyKey);
-      await this.redis.expire(dailyKey, 24 * 60 * 60);
+      pipeline.incr(dailyKey);
+      pipeline.expire(dailyKey, 24 * 3600 + 60);
 
-      // 시간당 카운터 증가
       const hourlyKey = `${this.REDIS_PREFIX}hourly:${currentHour}`;
-      await this.redis.incr(hourlyKey);
-      await this.redis.expire(hourlyKey, 60 * 60);
+      pipeline.incr(hourlyKey);
+      pipeline.expire(hourlyKey, 3600 + 60);
 
-      // Circuit Breaker 리셋
+      // 🚀 파이프라인 실행 및 에러 처리 개선
+      const results = await pipeline.exec();
+
+      // 파이프라인 결과 검증
+      const failedOperations = results?.filter((result, index) => {
+        if (result && Array.isArray(result) && result[0] !== null) {
+          console.warn(`Redis 파이프라인 ${index}번째 작업 실패:`, result[0]);
+          return true;
+        }
+        return false;
+      });
+
+      if (failedOperations && failedOperations.length > 0) {
+        console.warn(
+          `⚠️ Redis 파이프라인 ${failedOperations.length}개 작업 실패`
+        );
+      } else {
+        console.log(`✅ API 사용량 기록 완료: 토큰 ${tokens}개`);
+      }
+
       await this.resetCircuitBreaker();
-
-      console.log(
-        `📊 Google AI 사용량 기록: ${this.config.model} (분/시/일: ${minuteKey})`
-      );
     } catch (error) {
       console.error('API 사용량 기록 실패:', error);
     }
   }
 
-  /**
-   * API 호출 실패 기록 (Circuit Breaker용)
-   */
   async recordAPIFailure(): Promise<void> {
     try {
-      const failureKey = `${this.REDIS_PREFIX}failures`;
-      const count = await this.redis.incr(failureKey);
-      await this.redis.expire(failureKey, 60 * 60); // 1시간 후 만료
-
-      if (count >= this.config.circuitBreakerThreshold) {
+      const key = `${this.REDIS_PREFIX}failures`;
+      const failures = await this.redis.incr(key);
+      if (failures === 1) await this.redis.expire(key, 30 * 60); // 30분
+      if (failures >= this.config.circuitBreakerThreshold) {
         await this.openCircuitBreaker();
       }
     } catch (error) {
@@ -416,54 +356,38 @@ export class GoogleAIQuotaManager {
     }
   }
 
-  /**
-   * Circuit Breaker 상태 확인
-   */
   private async isCircuitBreakerOpen(): Promise<boolean> {
     try {
-      const blockedKey = `${this.REDIS_PREFIX}circuit_breaker`;
-      const blocked = await this.redis.get(blockedKey);
-      return !!blocked;
+      const key = `${this.REDIS_PREFIX}circuit_breaker`;
+      const result = await this.redis.get(key);
+      return result === 'open';
     } catch (error) {
       console.error('Circuit Breaker 상태 확인 실패:', error);
       return false;
     }
   }
 
-  /**
-   * Circuit Breaker 활성화
-   */
   private async openCircuitBreaker(): Promise<void> {
     try {
-      const blockedKey = `${this.REDIS_PREFIX}circuit_breaker`;
-      await this.redis.set(blockedKey, 'true', { ex: 30 * 60 }); // 30분 차단
-      console.warn(
-        '🚨 Google AI Circuit Breaker 활성화 - 30분간 API 호출 차단'
-      );
+      const key = `${this.REDIS_PREFIX}circuit_breaker`;
+      await this.redis.set(key, 'open', { ex: 30 * 60 }); // 30분 동안 차단
     } catch (error) {
       console.error('Circuit Breaker 활성화 실패:', error);
     }
   }
 
-  /**
-   * Circuit Breaker 리셋
-   */
   private async resetCircuitBreaker(): Promise<void> {
     try {
-      const failureKey = `${this.REDIS_PREFIX}failures`;
-      const blockedKey = `${this.REDIS_PREFIX}circuit_breaker`;
-      await this.redis.del(failureKey);
-      await this.redis.del(blockedKey);
+      await this.redis.expire(`${this.REDIS_PREFIX}failures`, 0);
     } catch (error) {
       console.error('Circuit Breaker 리셋 실패:', error);
     }
   }
 
-  /**
-   * 현재 할당량 상태 조회 (2025년 업데이트: 분당 사용량 추가)
-   */
   async getQuotaStatus(): Promise<QuotaStatus> {
     try {
+      if (this.isMockMode) return this.getMockQuotaStatus();
+
       const now = new Date();
       const today = now.toISOString().split('T')[0];
       const currentHour = `${today}:${now.getHours()}`;
@@ -473,61 +397,59 @@ export class GoogleAIQuotaManager {
         dailyUsed,
         hourlyUsed,
         minuteUsed,
+        tpmUsed,
         testUsed,
         lastHealthCheck,
-        circuitBreakerCount,
-        isBlocked,
+        failures,
       ] = await Promise.all([
         this.redis.get(`${this.REDIS_PREFIX}daily:${today}`),
         this.redis.get(`${this.REDIS_PREFIX}hourly:${currentHour}`),
         this.redis.get(`${this.REDIS_PREFIX}minute:${currentMinute}`),
+        this.redis.get(`${this.REDIS_PREFIX}tpm:${currentMinute}`),
         this.redis.get(`${this.REDIS_PREFIX}test:${today}`),
         this.redis.get(`${this.REDIS_PREFIX}health_check`),
         this.redis.get(`${this.REDIS_PREFIX}failures`),
-        this.isCircuitBreakerOpen(),
       ]);
 
-      const dailyUsedCount = parseInt(dailyUsed as string) || 0;
-      const minuteUsedCount = parseInt(minuteUsed as string) || 0;
+      const dailyUsedCount = parseInt(String(dailyUsed) || '0');
+      const minuteUsedCount = parseInt(String(minuteUsed) || '0');
+      const tpmUsedCount = parseInt(String(tpmUsed) || '0');
+      const circuitBreakerCount = parseInt(String(failures) || '0');
 
       return {
         dailyUsed: dailyUsedCount,
-        hourlyUsed: parseInt(hourlyUsed as string) || 0,
+        hourlyUsed: parseInt(String(hourlyUsed) || '0'),
         minuteUsed: minuteUsedCount,
-        testUsed: parseInt(testUsed as string) || 0,
-        lastHealthCheck: parseInt(lastHealthCheck as string) || 0,
-        circuitBreakerCount: parseInt(circuitBreakerCount as string) || 0,
-        isBlocked,
+        tpmUsed: tpmUsedCount,
+        testUsed: parseInt(String(testUsed) || '0'),
+        lastHealthCheck: parseInt(String(lastHealthCheck) || '0'),
+        circuitBreakerCount,
+        isBlocked: circuitBreakerCount >= this.config.circuitBreakerThreshold,
         model: this.config.model,
         remainingDaily: Math.max(0, this.config.dailyLimit - dailyUsedCount),
         remainingMinute: Math.max(0, this.config.minuteLimit - minuteUsedCount),
+        remainingTpm: Math.max(0, this.config.tpmLimit - tpmUsedCount),
       };
     } catch (error) {
-      console.error('할당량 상태 조회 실패:', error);
-      return {
-        dailyUsed: 0,
-        hourlyUsed: 0,
-        minuteUsed: 0,
-        testUsed: 0,
-        lastHealthCheck: 0,
-        circuitBreakerCount: 0,
-        isBlocked: false,
-        model: this.config.model || 'gemini-2.0-flash',
-        remainingDaily: this.config.dailyLimit,
-        remainingMinute: this.config.minuteLimit,
-      };
+      console.error('할당량 상태 가져오기 실패:', error);
+      return this.getMockQuotaStatus();
     }
   }
 
-  /**
-   * 강제 Mock 모드 여부 확인
-   */
-  shouldUseMockMode(): boolean {
-    return (
-      process.env.FORCE_MOCK_GOOGLE_AI === 'true' ||
-      process.env.NODE_ENV === 'test' ||
-      (process.env.NODE_ENV === 'development' &&
-        process.env.GOOGLE_AI_QUOTA_PROTECTION === 'strict')
-    );
+  private getMockQuotaStatus(): QuotaStatus {
+    return {
+      dailyUsed: 0,
+      hourlyUsed: 0,
+      minuteUsed: 0,
+      tpmUsed: 0,
+      testUsed: 0,
+      lastHealthCheck: 0,
+      circuitBreakerCount: 0,
+      isBlocked: false,
+      model: this.config.model,
+      remainingDaily: this.config.dailyLimit,
+      remainingMinute: this.config.minuteLimit,
+      remainingTpm: this.config.tpmLimit,
+    };
   }
 }

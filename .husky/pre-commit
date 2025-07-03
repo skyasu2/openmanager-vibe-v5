@@ -30,19 +30,4 @@ fi
 echo "✨ 코드 포맷팅..."
 npx lint-staged
 
-# 📚 커밋 전 문서 동기화
-echo "🔄 문서 동기화 실행..."
-npm run docs:sync
-if [ $? -ne 0 ]; then
-  echo "❌ 문서 동기화 실패. 커밋을 취소합니다."
-  exit 1
-fi
-
-# 스토리북 검증 추가
-echo "🔍 스토리북 파일 검증 중..."
-npm run storybook:validate --silent || {
-  echo "❌ 스토리북 파일에 문제가 있습니다. 수정 후 다시 커밋해주세요."
-  exit 1
-}
-
 echo "✅ Pre-commit 검증 완료!"

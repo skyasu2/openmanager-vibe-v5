@@ -20,6 +20,15 @@ const logger = edgeRuntimeService.logger;
 const cache = edgeRuntimeService.cache;
 const performance = edgeRuntimeService.performance;
 
+// 🚀 신규: 쿼리 복잡도에 따른 모델 매핑 (Free Tier 전용)
+const MODEL_MAPPING = {
+  simple: 'gemini-2.0-flash-lite', // 비용 최적화
+  normal: 'gemini-2.0-flash', // 표준
+  complex: 'gemini-2.0-flash', // 🚀 복잡한 쿼리도 안정적인 무료 티어 모델로 처리
+};
+
+type QueryComplexity = keyof typeof MODEL_MAPPING;
+
 interface GoogleAIConfig {
   apiKey: string;
   model:
@@ -132,6 +141,28 @@ export class GoogleAIService {
   }
 
   /**
+   * 🚀 신규: 쿼리 복잡도 분석
+   * @param query - 사용자 쿼리
+   * @returns 'simple' | 'normal' | 'complex'
+   */
+  private analyzeQueryComplexity(query: string): QueryComplexity {
+    const length = query.length;
+    const hasCode = query.includes('```');
+    const hasKeywords =
+      /(SELECT|UPDATE|DELETE|FROM|WHERE|function|class|interface|type)/i.test(
+        query
+      );
+
+    if (hasCode || (length > 500 && hasKeywords)) {
+      return 'complex';
+    } else if (length > 150 || hasKeywords) {
+      return 'normal';
+    } else {
+      return 'simple';
+    }
+  }
+
+  /**
    * 🎯 AI 쿼리 처리 (자연어 질의 전용)
    */
   async processQuery(request: AIRequest): Promise<AIResponse> {
@@ -144,8 +175,32 @@ export class GoogleAIService {
     });
 
     try {
-      if (!this.initialized || !this.model) {
+      if (!this.initialized || !this.model || !this.genAI) {
         throw new Error('Google AI Service가 초기화되지 않았습니다');
+      }
+
+      // 🚀 환경변수 기반 Feature Flag 적용
+      const useDynamicRouting =
+        process.env.USE_DYNAMIC_AI_MODEL_ROUTING === 'true';
+      let modelToUse;
+      let modelName;
+
+      if (useDynamicRouting) {
+        // 동적 라우팅 활성화 시
+        const complexity = this.analyzeQueryComplexity(request.query || '');
+        modelName = MODEL_MAPPING[complexity];
+        modelToUse = this.genAI.getGenerativeModel({ model: modelName });
+        logger.info(
+          `🧠 [FLAG ON] 동적 모델 선택: ${complexity} → ${modelName}`,
+          { requestId }
+        );
+      } else {
+        // 동적 라우팅 비활성화 시 (기존 방식)
+        modelName = process.env.GOOGLE_AI_MODEL || 'gemini-2.0-flash';
+        modelToUse = this.model;
+        logger.info(`🧠 [FLAG OFF] 기본 모델 사용: ${modelName}`, {
+          requestId,
+        });
       }
 
       // 자연어 질의 확인
@@ -161,11 +216,22 @@ export class GoogleAIService {
         return cached;
       }
 
+      // 🔒 할당량 관리자에서 API 호출 권한 확인
+      const { GoogleAIQuotaManager } = await import(
+        './engines/GoogleAIQuotaManager'
+      );
+      const quotaManager = new GoogleAIQuotaManager();
+
+      const permission = await quotaManager.canPerformAPICall();
+      if (!permission.allowed) {
+        throw new Error(`API 호출 제한: ${permission.reason}`);
+      }
+
       // Google AI 요청
       const googleTimer = performance.startTimer('google-ai-api-call');
 
-      const result = await Promise.race([
-        this.model.generateContent(this.buildPrompt(request)),
+      const result: any = await Promise.race([
+        modelToUse.generateContent(this.buildPrompt(request)), // 🚀 선택된 모델 사용
         new Promise((_, reject) =>
           setTimeout(
             () => reject(new Error('Google AI API timeout')),
@@ -177,11 +243,19 @@ export class GoogleAIService {
       const googleDuration = googleTimer();
 
       if (!result.response) {
+        await quotaManager.recordAPIFailure(); // 🚀 실패 기록
         throw new Error('Google AI에서 응답을 받지 못했습니다');
       }
 
       const text = result.response.text();
       const confidence = this.calculateConfidence(text, request.query || '');
+
+      // 🚀 실제 토큰 사용량 계산 및 기록
+      const estimatedTokens = this.estimateTokenUsage(
+        request.query || '',
+        text
+      );
+      await quotaManager.recordAPIUsage(estimatedTokens);
 
       const response: AIResponse = {
         success: true,
@@ -192,7 +266,7 @@ export class GoogleAIService {
         processingTime: googleDuration,
         fallbacksUsed: 0,
         metadata: {
-          mainEngine: 'Google AI (Gemini)',
+          mainEngine: `Google AI (${modelName})`, // 🚀 사용된 모델 이름 명시
           supportEngines: ['Google AI (Gemini)'],
           ragUsed: false,
           googleAIUsed: true,
@@ -216,6 +290,17 @@ export class GoogleAIService {
     } catch (error) {
       const duration = timer();
       this.lastError = error instanceof Error ? error.message : 'Unknown error';
+
+      // 🚀 API 실패 기록 (할당량 관리자가 초기화된 경우만)
+      try {
+        const { GoogleAIQuotaManager } = await import(
+          './engines/GoogleAIQuotaManager'
+        );
+        const quotaManager = new GoogleAIQuotaManager();
+        await quotaManager.recordAPIFailure();
+      } catch (quotaError) {
+        logger.warn('할당량 관리자 실패 기록 중 오류:', quotaError);
+      }
 
       logger.error(
         `❌ Google AI 쿼리 실패: ${requestId} (${duration.toFixed(2)}ms)`,
@@ -343,6 +428,26 @@ export class GoogleAIService {
     confidence += Math.min(solutionsFound * 0.03, 0.1);
 
     return Math.min(confidence, 0.95);
+  }
+
+  /**
+   * 🚀 토큰 사용량 추정
+   * Google AI 토큰 계산: 평균 4글자 = 1토큰 (한국어), 3글자 = 1토큰 (영어)
+   */
+  private estimateTokenUsage(inputText: string, outputText: string): number {
+    const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(inputText + outputText);
+    const charPerToken = isKorean ? 4 : 3;
+
+    const inputTokens = Math.ceil(inputText.length / charPerToken);
+    const outputTokens = Math.ceil(outputText.length / charPerToken);
+
+    // 입력 토큰 + 출력 토큰 (Google AI는 둘 다 카운트)
+    const totalTokens = inputTokens + outputTokens;
+
+    logger.info(
+      `🔢 토큰 사용량 추정: 입력(${inputTokens}) + 출력(${outputTokens}) = ${totalTokens}`
+    );
+    return totalTokens;
   }
 
   /**
