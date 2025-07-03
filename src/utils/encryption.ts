@@ -1,8 +1,30 @@
 import CryptoJS from 'crypto-js';
 
-// 암호화 키 (실제 환경에서는 더 안전한 방법 사용)
-const ENCRYPTION_KEY =
-  process.env.ENCRYPTION_KEY || 'openmanager-vibe-v5-default-key';
+// 🔐 암호화 키 보안 강화 - 환경변수 우선, 런타임 생성 fallback
+const ENCRYPTION_KEY = (() => {
+  // 1순위: 환경변수에서 가져오기
+  if (process.env.ENCRYPTION_KEY) {
+    return process.env.ENCRYPTION_KEY;
+  }
+
+  // 2순위: 프로덕션에서는 에러
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('🚨 프로덕션에서는 ENCRYPTION_KEY 환경변수가 필수입니다');
+  }
+
+  // 3순위: 개발환경에서만 동적 생성
+  const nodeVersion = process.version;
+  const projectHash = require('crypto')
+    .createHash('sha256')
+    .update(process.cwd() + 'openmanager-vibe-v5')
+    .digest('hex')
+    .substring(0, 32);
+
+  console.warn(
+    '⚠️ 개발환경: 동적 암호화 키 생성됨 (프로덕션에서는 ENCRYPTION_KEY 설정 필요)'
+  );
+  return `dev-${nodeVersion}-${projectHash}`;
+})();
 
 /**
  * 🔒 문자열 암호화
