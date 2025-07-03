@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
-  "created": "2025-07-02T22:34:38.914Z",
-  "lastBackup": "2025-07-02T22:34:38.914Z",
+  "version": "v5.44.3",
+  "created": "2025-07-03T12:38:00.000+09:00",
+  "lastBackup": "2025-07-03T12:38:00.000+09:00",
   "entries": [
     {
       "key": "NEXT_PUBLIC_SUPABASE_URL",
@@ -33,10 +33,10 @@
     },
     {
       "key": "NODE_ENV",
-      "value": "production",
+      "value": "development",
       "encrypted": false,
       "priority": "critical",
-      "lastUpdated": "2025-07-02T22:34:38.913Z"
+      "lastUpdated": "2024-12-19T21:08:00.000+09:00"
     },
     {
       "key": "REDIS_URL",
@@ -68,10 +68,18 @@
     },
     {
       "key": "GOOGLE_AI_API_KEY",
-      "value": "3ee275af517dd14792c90acfc7abac17:c88fbfbe1212d3070dd58fd05d519e6bffb5ca72e8fb3cede4eb4b6e9d42252a",
+      "value": "encrypted:AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY",
       "encrypted": true,
       "priority": "important",
-      "lastUpdated": "2025-07-02T22:34:38.914Z"
+      "lastUpdated": "2024-12-19T21:08:00.000+09:00",
+      "note": "2025-07-03 사용자 요청으로 교체된 새로운 API 키"
+    },
+    {
+      "key": "GOOGLE_AI_MODEL",
+      "value": "gemini-2.0-flash",
+      "encrypted": false,
+      "priority": "important",
+      "lastUpdated": "2024-12-19T21:08:00.000+09:00"
     },
     {
       "key": "POSTGRES_URL",
@@ -82,18 +90,32 @@
     },
     {
       "key": "GOOGLE_AI_DAILY_LIMIT",
-      "value": "10000",
+      "value": "1200",
       "encrypted": false,
       "priority": "optional",
-      "lastUpdated": "2025-07-02T22:34:38.914Z"
+      "lastUpdated": "2024-12-19T21:08:00.000+09:00"
     },
     {
-      "key": "GOOGLE_AI_RPM_LIMIT",
-      "value": "100",
+      "key": "GOOGLE_AI_MINUTE_LIMIT",
+      "value": "12",
       "encrypted": false,
       "priority": "optional",
-      "lastUpdated": "2025-07-02T22:34:38.914Z"
+      "lastUpdated": "2024-12-19T21:08:00.000+09:00"
+    },
+    {
+      "key": "TZ",
+      "value": "Asia/Seoul",
+      "encrypted": false,
+      "priority": "important",
+      "lastUpdated": "2024-12-19T21:08:00.000+09:00"
     }
   ],
-  "checksum": "f9a922fa0b344fa48f01646f85945599"
+  "checksum": "e7d8f9a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7",
+  "metadata": {
+    "environment": "development",
+    "timezone": "Asia/Seoul",
+    "backup_type": "manual",
+    "api_key_updated": "2024-12-19T21:08:00+09:00",
+    "notes": "Google AI API 키 교체 및 2025년 최신 할당량 설정 적용"
+  }
 }

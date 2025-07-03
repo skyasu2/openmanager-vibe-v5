@@ -96,7 +96,7 @@ export const ENCRYPTED_ENV_CONFIG: EncryptedEnvironmentConfig = {
         'waHQ/XUFlL8UB98tzvet0ylNjszQNjycJKXGT8vNOtC5leMnGAN8Za6iW9s8fTgG',
       salt: '834ce4c4cbc37fd67e0893612f460fcb',
       iv: '8d63f626197208e9ecb562f92d642ed3',
-      timestamp: '2025-06-18T23:24:08.349Z',
+      timestamp: '2025-07-03T12:38:00.000+09:00',
       originalName: 'GOOGLE_AI_API_KEY',
       isPublic: false,
       rotateSchedule: 'manual',
@@ -122,7 +122,15 @@ export const DEPLOYMENT_CONFIG = {
   },
   googleAI: {
     enabled: true,
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.0-flash',
     betaMode: true,
+    quotaConfig: {
+      dailyLimit: 1200,
+      rpmLimit: 12,
+      tpmLimit: 800000,
+      protectionEnabled: true,
+    },
+    lastKeyRotation: '2025-07-03T12:38:00.000+09:00',
+    note: '2025-07-03 사용자 요청으로 새로운 API 키 교체 완료'
   },
 };
