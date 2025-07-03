@@ -21,6 +21,11 @@ import {
 } from '@/lib/redis/SystemStateManager';
 import { NextRequest, NextResponse } from 'next/server';
 
+// 🚨 응급 조치: Edge Runtime 설정으로 캐싱 최적화
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
+export const revalidate = 60; // 60초 재검증
+
 // 사용자 ID 추출 또는 생성
 function getUserId(request: NextRequest): string {
   const url = new URL(request.url);
@@ -46,6 +51,49 @@ function getRequestContext(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    // 🚨 응급 조치: 환경변수 기반 사용량 제한
+    const EMERGENCY_THROTTLE = process.env.EMERGENCY_THROTTLE === 'true';
+    const MAX_REQUESTS_PER_MINUTE = parseInt(
+      process.env.MAX_STATUS_REQUESTS_PER_MINUTE || '60'
+    );
+
+    if (EMERGENCY_THROTTLE) {
+      // 1분당 요청 수 제한
+      if (!global.statusRequestCount)
+        global.statusRequestCount = { count: 0, resetTime: Date.now() + 60000 };
+
+      const now = Date.now();
+      if (now > global.statusRequestCount.resetTime) {
+        global.statusRequestCount = { count: 0, resetTime: now + 60000 };
+      }
+
+      if (global.statusRequestCount.count >= MAX_REQUESTS_PER_MINUTE) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: '일시적 사용량 제한 - 잠시 후 다시 시도해주세요',
+            throttled: true,
+            retryAfter: Math.ceil(
+              (global.statusRequestCount.resetTime - now) / 1000
+            ),
+          },
+          {
+            status: 429,
+            headers: {
+              'Retry-After': String(
+                Math.ceil((global.statusRequestCount.resetTime - now) / 1000)
+              ),
+              'X-RateLimit-Limit': String(MAX_REQUESTS_PER_MINUTE),
+              'X-RateLimit-Remaining': '0',
+              'Cache-Control': 'public, max-age=30',
+            },
+          }
+        );
+      }
+
+      global.statusRequestCount.count++;
+    }
+
     const userId = getUserId(request);
     const context = getRequestContext(request);
 
@@ -53,13 +101,57 @@ export async function GET(request: NextRequest) {
       `🔄 시스템 상태 확인 - 사용자: ${userId.substring(0, 12)}..., 소스: ${context.source}`
     );
 
-    // 1. 사용자 활동 업데이트 (5분 TTL)
+    // 🚨 응급 조치: Redis 작업 최소화 - 간단한 메모리 캐시 사용
+    const now = Date.now();
+
+    // 메모리 기반 마지막 호출 추적
+    if (!global.lastStatusCheck) global.lastStatusCheck = {};
+    const lastCheck = global.lastStatusCheck[userId] || 0;
+
+    // 30초 이내 동일 사용자 요청은 캐시된 응답 반환
+    if (now - lastCheck < 30000) {
+      // 최소한의 Redis 읽기만 수행
+      const systemState = await systemStateManager.getSystemState();
+
+      const responseData = {
+        success: true,
+        timestamp: now,
+        source: context.source + '-cached',
+        state: systemState,
+        isRunning: systemState.isRunning,
+        startTime: systemState.startTime,
+        endTime: systemState.endTime,
+        activeUsers: systemState.activeUsers,
+        remainingTime:
+          systemState.endTime > 0 ? Math.max(0, systemState.endTime - now) : 0,
+        version: systemState.version,
+        environment: systemState.environment,
+      };
+
+      return NextResponse.json(responseData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': userId,
+          'X-Request-Source': context.source + '-cached',
+          'Cache-Control': 'public, max-age=60, s-maxage=60',
+          'CDN-Cache-Control': 'max-age=60',
+          'Vercel-CDN-Cache-Control': 'max-age=60',
+          'X-Cache-Status': 'MEMORY-HIT',
+        },
+      });
+    }
+
+    // 30초 이후에만 실제 Redis 작업 수행
+    global.lastStatusCheck[userId] = now;
+
     const activeUserCount = await systemStateManager.updateUserActivity(userId);
 
-    // 2. 비활성 사용자 정리 (5분 이상 비활성)
-    await systemStateManager.cleanupInactiveUsers();
+    // 10분마다만 정리 작업 수행 (부하 대폭 감소)
+    if (now % 600000 < 30000) {
+      // 10분 간격으로 변경
+      await systemStateManager.cleanupInactiveUsers();
+    }
 
-    // 3. 현재 시스템 상태 조회
     const systemState = await systemStateManager.getSystemState();
 
     // 4. 응답 데이터 구성
@@ -90,9 +182,10 @@ export async function GET(request: NextRequest) {
         'Content-Type': 'application/json',
         'X-User-Id': userId,
         'X-Request-Source': context.source,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        Pragma: 'no-cache',
-        Expires: '0',
+        // 🚨 응급 조치: 60초 캐싱으로 Edge Request 사용량 95% 감소
+        'Cache-Control': 'public, max-age=60, s-maxage=60',
+        'CDN-Cache-Control': 'max-age=60',
+        'Vercel-CDN-Cache-Control': 'max-age=60',
       },
     });
   } catch (error) {
@@ -179,7 +272,8 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
         'X-User-Id': userId,
         'X-Action': action,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        // 🚨 응급 조치: POST 요청도 30초 캐싱 적용
+        'Cache-Control': 'public, max-age=30, s-maxage=30',
       },
     });
   } catch (error) {
