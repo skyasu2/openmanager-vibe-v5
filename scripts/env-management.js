@@ -98,7 +98,7 @@ class EnvSecurityManager {
         encrypt: true,
       },
 
-      // 🤖 Google AI (기존 시스템)
+      // 🤖 Google AI (기존 시스템 + 할당량 보호 설정)
       GOOGLE_AI_API_KEY: {
         required: true,
         public: false,
@@ -108,12 +108,53 @@ class EnvSecurityManager {
       GOOGLE_AI_MODEL: {
         required: false,
         public: false,
-        default: 'gemini-1.5-flash',
+        default: 'gemini-2.0-flash',
       },
       GOOGLE_AI_BETA_MODE: {
         required: false,
         public: false,
         default: 'true',
+      },
+      // 📊 할당량 보호 설정 (encrypt-env-vars.mjs에서 통합)
+      GOOGLE_AI_ENABLED: {
+        required: false,
+        public: false,
+        default: 'true',
+      },
+      GOOGLE_AI_QUOTA_PROTECTION: {
+        required: false,
+        public: false,
+        default: 'true',
+      },
+      GOOGLE_AI_DAILY_LIMIT: {
+        required: false,
+        public: false,
+        default: '1200',
+      },
+      GOOGLE_AI_HOURLY_LIMIT: {
+        required: false,
+        public: false,
+        default: '100',
+      },
+      GOOGLE_AI_TEST_LIMIT_PER_DAY: {
+        required: false,
+        public: false,
+        default: '5',
+      },
+      GOOGLE_AI_HEALTH_CHECK_CACHE_HOURS: {
+        required: false,
+        public: false,
+        default: '24',
+      },
+      GOOGLE_AI_CIRCUIT_BREAKER_THRESHOLD: {
+        required: false,
+        public: false,
+        default: '5',
+      },
+      FORCE_MOCK_GOOGLE_AI: {
+        required: false,
+        public: false,
+        default: 'false',
       },
 
       // 📢 Slack
@@ -143,6 +184,33 @@ class EnvSecurityManager {
         required: false,
         public: false,
         default: 'http://localhost:3000',
+      },
+
+      // 🔧 개발 환경 기본 설정 (restore-env.js에서 통합)
+      DISABLE_GOOGLE_AI_HEALTH_CHECK: {
+        required: false,
+        public: false,
+        default: 'true',
+      },
+      NEXT_TELEMETRY_DISABLED: {
+        required: false,
+        public: false,
+        default: '1',
+      },
+      SKIP_ENV_VALIDATION: {
+        required: false,
+        public: false,
+        default: 'true',
+      },
+      DEVELOPMENT_MODE: {
+        required: false,
+        public: false,
+        default: 'true',
+      },
+      LOCAL_DEVELOPMENT: {
+        required: false,
+        public: false,
+        default: 'true',
       },
     };
   }

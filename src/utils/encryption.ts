@@ -113,16 +113,50 @@ export function encryptGoogleAIKey(apiKey: string): string {
 }
 
 /**
+ * 🧪 암호화/복호화 테스트
+ * quick-encrypt.js에서 추출된 기능
+ */
+export function testEncryption(testValue: string = 'test-encryption-value'): {
+  success: boolean;
+  originalValue: string;
+  encryptedValue: string;
+  decryptedValue: string;
+  error?: string;
+} {
+  try {
+    const encrypted = encrypt(testValue);
+    const decrypted = decrypt(encrypted);
+
+    return {
+      success: decrypted === testValue,
+      originalValue: testValue,
+      encryptedValue: encrypted.substring(0, 20) + '...',
+      decryptedValue: decrypted,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      originalValue: testValue,
+      encryptedValue: 'failed',
+      decryptedValue: 'failed',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
  * 📊 암호화 시스템 상태
  */
 export function getEncryptionStatus() {
   try {
     const hasEnvKey = !!process.env.ENCRYPTION_KEY;
     const googleAIKey = getSecureGoogleAIKey();
+    const testResult = testEncryption();
 
     return {
       enabled: hasEnvKey,
       keySource: hasEnvKey ? 'env' : 'default',
+      testPassed: testResult.success,
       googleAI: {
         hasKey: !!googleAIKey,
         source: process.env.GOOGLE_AI_API_KEY ? 'env' : 'builtin',
@@ -134,6 +168,7 @@ export function getEncryptionStatus() {
     return {
       enabled: false,
       keySource: 'error',
+      testPassed: false,
       googleAI: {
         hasKey: false,
         source: 'error',

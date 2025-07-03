@@ -52,13 +52,13 @@ export class GoogleAIQuotaManager {
       'gemini-2.0-flash') as QuotaConfig['model'];
 
     this.config = {
-      dailyLimit: parseInt(process.env.GOOGLE_AI_DAILY_LIMIT || '1200'),
+      dailyLimit: parseInt(process.env.GOOGLE_AI_DAILY_LIMIT || '1200'), // 무료 한도: 1500 (20% 안전 마진)
       hourlyLimit: parseInt(process.env.GOOGLE_AI_HOURLY_LIMIT || '50'),
-      minuteLimit: parseInt(process.env.GOOGLE_AI_MINUTE_LIMIT || '12'),
-      tpmLimit: parseInt(process.env.GOOGLE_AI_TPM_LIMIT || '800000'), // 🚀
-      testLimit: parseInt(process.env.GOOGLE_AI_TEST_LIMIT_PER_DAY || '10'),
+      minuteLimit: parseInt(process.env.GOOGLE_AI_MINUTE_LIMIT || '10'), // 무료 한도: 15 (33% 안전 마진)
+      tpmLimit: parseInt(process.env.GOOGLE_AI_TPM_LIMIT || '800000'), // 무료 한도: 1M (20% 안전 마진)
+      testLimit: parseInt(process.env.GOOGLE_AI_TEST_LIMIT_PER_DAY || '5'), // 더 엄격한 테스트 제한
       healthCheckCacheHours: parseInt(
-        process.env.GOOGLE_AI_HEALTH_CHECK_CACHE_HOURS || '12'
+        process.env.GOOGLE_AI_HEALTH_CHECK_CACHE_HOURS || '24' // 24시간 캐시로 확대
       ),
       circuitBreakerThreshold: parseInt(
         process.env.GOOGLE_AI_CIRCUIT_BREAKER_THRESHOLD || '5'
@@ -66,12 +66,13 @@ export class GoogleAIQuotaManager {
       model: selectedModel,
     };
 
-    console.log('📊 Google AI 할당량 설정 (v2025.7.1 - TPM 적용):', {
+    console.log('📊 Google AI 할당량 설정 (v2025.7.3 - 무료 한도 최적화):', {
       model: this.config.model,
       dailyLimit: this.config.dailyLimit,
-      minuteLimit: this.config.minuteLimit,
-      tpmLimit: this.config.tpmLimit, // 🚀
-      testLimit: this.config.testLimit,
+      minuteLimit: this.config.minuteLimit, // 무료 한도 대비 33% 안전 마진
+      tpmLimit: this.config.tpmLimit, // 무료 한도 대비 20% 안전 마진
+      testLimit: this.config.testLimit, // 엄격한 테스트 제한
+      healthCheckCache: `${this.config.healthCheckCacheHours}시간`, // 24시간 캐시
     });
   }
 
