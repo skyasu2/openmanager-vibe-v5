@@ -1,6 +1,9 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { subscribeWithSelector } from 'zustand/middleware';
+import {
+  createJSONStorage,
+  persist,
+  subscribeWithSelector,
+} from 'zustand/middleware';
 
 /**
  * 🏗️ System Store Module
@@ -165,12 +168,12 @@ export const useSystemStore = create<SystemState>()(
   )
 );
 
-// 메트릭 자동 업데이트 - 🚨 과도한 헬스체크 방지: 5초 → 30초로 변경
+// 메트릭 자동 업데이트 - 🚨 응급: 30초 → 10분으로 대폭 증가
 if (typeof window !== 'undefined') {
   setInterval(() => {
     const store = useSystemStore.getState();
     if (store.isStarted) {
       store.updateMetrics();
     }
-  }, 30000); // 30초마다 업데이트 (과도한 헬스체크 방지)
+  }, 600000); // 🚨 응급: 10분마다 업데이트 (Edge Request 사용량 감소)
 }

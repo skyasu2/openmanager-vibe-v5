@@ -9,10 +9,10 @@
  */
 
 import {
-  useQuery,
-  useMutation,
-  useQueryClient,
   keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
 } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 
@@ -220,18 +220,18 @@ export const useSystemHealth = (options?: {
   refetchInterval?: number;
   enabled?: boolean;
 }) => {
-  // 🧠 메모리 기반 동적 폴링 주기 계산
+  // 🧠 메모리 기반 동적 폴링 주기 계산 - 🚨 응급: 대폭 증가
   const calculateOptimalInterval = () => {
     if (typeof window !== 'undefined' && 'memory' in performance) {
       const memory = (performance as any).memory;
       const memoryUsage = memory.usedJSHeapSize / memory.totalJSHeapSize;
 
-      // 메모리 사용률에 따른 폴링 주기 조정
-      if (memoryUsage > 0.8) return 90000; // 높은 사용률: 90초
-      if (memoryUsage > 0.6) return 75000; // 중간 사용률: 75초
-      return 60000; // 낮은 사용률: 60초
+      // 🚨 응급 조치: 폴링 주기 10배 증가
+      if (memoryUsage > 0.8) return 900000; // 높은 사용률: 15분
+      if (memoryUsage > 0.6) return 600000; // 중간 사용률: 10분
+      return 300000; // 낮은 사용률: 5분
     }
-    return options?.refetchInterval ?? 60000;
+    return options?.refetchInterval ?? 300000; // 기본 5분
   };
 
   return useQuery({
@@ -314,10 +314,10 @@ export const useSystemStatus = (options?: {
   return useQuery({
     queryKey: systemKeys.status(),
     queryFn: fetchSystemStatus,
-    refetchInterval: options?.refetchInterval ?? 10000, // 10초 간격
-    staleTime: 5000, // 5초
+    refetchInterval: options?.refetchInterval ?? 300000, // 🚨 응급: 5분 간격으로 변경
+    staleTime: 120000, // 🚨 응급: 2분 캐시
     enabled: options?.enabled ?? true,
-    retry: 2,
+    retry: 1, // 🚨 응급: 재시도 최소화
     placeholderData: keepPreviousData,
     select: data => ({
       ...data,

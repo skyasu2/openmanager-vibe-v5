@@ -225,18 +225,23 @@ export class UnifiedMetricsManager {
    * ⏰ 통합 스케줄러 시작
    */
   private startUnifiedSchedulers(): void {
-    // 1. 메트릭 생성 스케줄러 - 🎯 데이터 생성기와 동기화 (15초 → 20초)
+    // 🚨 응급 조치: 환경변수로 스케줄러 비활성화
+    if (process.env.UNIFIED_METRICS_DISABLED === 'true') {
+      console.log('🚨 통합 메트릭 스케줄러 비활성화됨 (환경변수)');
+      return;
+    }
+    // 1. 메트릭 생성 스케줄러 - 🚨 응급: 20초 → 10분으로 대폭 증가
     if (this.config.generation.enabled) {
       timerManager.register({
         id: 'unified-metrics-generation',
         callback: async () => await this.generateMetrics(),
-        interval: 20000, // 20초 (데이터 생성기와 동기화)
+        interval: 600000, // 🚨 응급: 10분 (Edge Request 사용량 감소)
         priority: 'high',
         enabled: true,
       });
     }
 
-    // 2. AI 분석 스케줄러 - 🎯 데이터 생성기 간격의 3배로 조정 (5분 → 60초)
+    // 2. AI 분석 스케줄러 - 🚨 응급: 60초 → 30분으로 대폭 증가
     if (this.config.ai_analysis.enabled) {
       timerManager.register({
         id: 'unified-ai-analysis',
@@ -244,7 +249,7 @@ export class UnifiedMetricsManager {
           console.log('🤖 AI 분석 수행 중...');
           // await this.performAIAnalysis();
         },
-        interval: 60000, // 60초 (데이터 생성기 20초의 3배)
+        interval: 1800000, // 🚨 응급: 30분 (Edge Request 사용량 감소)
         priority: 'medium',
         enabled: true,
       });
@@ -264,11 +269,11 @@ export class UnifiedMetricsManager {
       });
     }
 
-    // 4. 성능 모니터링 스케줄러 - 🎯 데이터 생성기 간격의 6배로 조정 (120초 → 120초 유지)
+    // 4. 성능 모니터링 스케줄러 - 🚨 응급: 120초 → 1시간으로 대폭 증가
     timerManager.register({
       id: 'unified-performance-monitor',
       callback: async () => await this.monitorPerformance(),
-      interval: 120000, // 120초 (데이터 생성기 20초의 6배)
+      interval: 3600000, // 🚨 응급: 1시간 (Edge Request 사용량 감소)
       priority: 'low',
       enabled: true,
     });

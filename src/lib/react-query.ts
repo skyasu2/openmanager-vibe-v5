@@ -21,8 +21,8 @@ export const queryClient = new QueryClient({
       refetchOnReconnect: true, // 네트워크 재연결 시 재요청
       refetchOnMount: true, // 컴포넌트 마운트 시 재요청
 
-      // 서버 모니터링 특화 설정
-      refetchInterval: 30000, // 30초마다 자동 새로고침 (서버 모니터링용)
+      // 서버 모니터링 특화 설정 - 🚨 응급: 대폭 증가
+      refetchInterval: 600000, // 🚨 10분마다 자동 새로고침 (Edge Request 사용량 감소)
       refetchIntervalInBackground: false, // 백그라운드에서는 자동 새로고침 안함
     },
     mutations: {

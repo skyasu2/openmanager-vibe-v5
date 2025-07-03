@@ -3,12 +3,9 @@
  * 무료 티어 서비스 휴면/삭제 방지 시스템
  */
 
-import { logger } from './logger';
-import { env } from './env';
-import { usageMonitor } from './usage-monitor';
-import { createClient } from '@supabase/supabase-js';
+import smartRedis from './redis';
 import { checkSupabaseConnection } from './supabase';
-import smartRedis, { getRedisClient } from './redis';
+import { usageMonitor } from './usage-monitor';
 
 interface KeepAliveStatus {
   lastPing: {
@@ -106,6 +103,12 @@ class KeepAliveScheduler {
 
   // 스케줄러 초기화
   private async initializeScheduler(): Promise<void> {
+    // 🚨 응급 조치: 환경변수로 Keep-Alive 스케줄러 비활성화
+    if (process.env.KEEP_ALIVE_SCHEDULER_DISABLED === 'true') {
+      console.log('🚨 Keep-Alive 스케줄러 비활성화됨 (환경변수)');
+      return;
+    }
+
     // 환경 체크 추가
     let envManager;
     try {

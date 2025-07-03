@@ -46,7 +46,7 @@ export const useSystemStatus = (
   options: UseSystemStatusOptions = {}
 ): UseSystemStatusReturn => {
   const {
-    pollingInterval = 30000, // 30초
+    pollingInterval = 600000, // 🚨 응급: 10분으로 대폭 증가
     autoStart = true,
   } = options;
 
