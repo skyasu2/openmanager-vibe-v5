@@ -7,7 +7,9 @@
  * ✅ Edge Runtime 최적화
  */
 
-export const runtime = 'edge';
+// 🚨 응급 조치: Edge Runtime 비활성화 (Vercel Pro 사용량 위기)
+// export const runtime = 'edge'; // DISABLED - 사용량 급증 원인
+export const runtime = 'nodejs';
 
 import { getAISessionStorage } from '@/lib/ai-session-storage';
 import { EdgeLogger } from '@/lib/edge-runtime-utils';

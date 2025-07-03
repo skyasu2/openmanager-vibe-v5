@@ -15,16 +15,18 @@
  * - 자동 비활성 사용자 정리
  */
 
+import { emergencyLimiter } from '@/lib/emergency-vercel-limiter';
 import {
   generateAnonymousId,
   systemStateManager,
 } from '@/lib/redis/SystemStateManager';
 import { NextRequest, NextResponse } from 'next/server';
 
-// 🚨 응급 조치: Edge Runtime 설정으로 캐싱 최적화
-export const runtime = 'edge';
+// 🚨 응급 조치: Edge Runtime 완전 비활성화 (Vercel Pro 사용량 위기)
+// export const runtime = 'edge'; // DISABLED - 사용량 급증 원인
+export const runtime = 'nodejs'; // Node.js Runtime으로 강제 변경
 export const dynamic = 'force-dynamic';
-export const revalidate = 60; // 60초 재검증
+export const revalidate = 300; // 5분 재검증으로 증가
 
 // 사용자 ID 추출 또는 생성
 function getUserId(request: NextRequest): string {
@@ -52,6 +54,12 @@ function getRequestContext(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // 🚨 응급 조치: 환경변수 기반 사용량 제한
+    if (emergencyLimiter.isFeatureDisabled('system-status')) {
+      return emergencyLimiter.createEmergencyResponse(
+        '시스템 상태 조회 비활성화'
+      );
+    }
+
     const EMERGENCY_THROTTLE = process.env.EMERGENCY_THROTTLE === 'true';
     const MAX_REQUESTS_PER_MINUTE = parseInt(
       process.env.MAX_STATUS_REQUESTS_PER_MINUTE || '60'

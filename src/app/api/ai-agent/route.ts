@@ -25,8 +25,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const logger = EdgeLogger.getInstance();
 
-// Edge Runtime 설정 (Pro 플랜 최적화, Hobby 플랜 폴백 지원)
-export const runtime = 'edge';
+// 🚨 응급 조치: Edge Runtime 비활성화 (Vercel Pro 사용량 위기)
+// export const runtime = 'edge'; // DISABLED - 사용량 급증 원인
+export const runtime = 'nodejs';
 export const preferredRegion = ['icn1', 'hnd1', 'sin1']; // 아시아 지역 최적화
 
 // Vercel 플랜별 제한사항
