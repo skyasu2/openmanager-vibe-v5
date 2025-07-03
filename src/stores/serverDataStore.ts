@@ -275,6 +275,14 @@ export const useServerDataStore = create<ServerDataState>()(
         }
 
         // ✅ 폴링 주기 최적화: 35초로 조정 (30-40초 갱신 주기에 맞춤)
+        // 🚨 비상 모드 체크
+        const isEmergencyMode =
+          process.env.NEXT_PUBLIC_EMERGENCY_MODE === 'true';
+        if (isEmergencyMode) {
+          console.log('🚨 비상 모드 - 서버 데이터 자동 업데이트 차단');
+          return;
+        }
+
         const updateInterval = setInterval(() => {
           console.log('🔄 서버 데이터 자동 업데이트 (35초 주기)');
           get().fetchServers();

@@ -65,6 +65,14 @@ export default function Home() {
     // 🔥 홈페이지 접속 시 Render 웜업만 실행 (시스템 시작과 무관)
     const performRenderWarmup = async () => {
       try {
+        // 🚨 비상 모드 체크 - 웜업 차단
+        const isEmergencyMode =
+          process.env.NEXT_PUBLIC_EMERGENCY_MODE === 'true';
+        if (isEmergencyMode) {
+          console.log('🚨 비상 모드 - Render 웜업 차단');
+          return;
+        }
+
         console.log('🔥 Render 서버 웜업 시작 (백그라운드)');
 
         // 캐시 확인 - 세션당 한 번만 실행

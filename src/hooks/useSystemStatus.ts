@@ -50,6 +50,10 @@ export const useSystemStatus = (
     autoStart = true,
   } = options;
 
+  // 🚨 비상 모드 체크
+  const isEmergencyMode = process.env.NEXT_PUBLIC_EMERGENCY_MODE === 'true';
+  const actualPollingInterval = isEmergencyMode ? 0 : pollingInterval; // 🚨 비상 시 폴링 완전 차단
+
   const [status, setStatus] = useState<SystemStatus>({
     isRunning: false,
     isStarting: false,
@@ -165,18 +169,18 @@ export const useSystemStatus = (
     }
   }, [checkStatus, autoStart]);
 
-  // 주기적 상태 체크
+  // 주기적 상태 체크 - 🚨 비상 모드 시 차단
   useEffect(() => {
-    if (pollingInterval > 0) {
+    if (actualPollingInterval > 0 && !isEmergencyMode) {
       const interval = setInterval(() => {
         if (!status.isStarting) {
           checkStatus();
         }
-      }, pollingInterval);
+      }, actualPollingInterval);
 
       return () => clearInterval(interval);
     }
-  }, [checkStatus, pollingInterval, status.isStarting]);
+  }, [checkStatus, actualPollingInterval, status.isStarting, isEmergencyMode]);
 
   // 페이지 포커스 시 상태 체크
   useEffect(() => {

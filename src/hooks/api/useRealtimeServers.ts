@@ -233,6 +233,11 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
     enableNotifications = true,
   } = options;
 
+  // 🚨 비상 모드 체크 - 모든 자동 갱신 차단
+  const isEmergencyMode = process.env.NEXT_PUBLIC_EMERGENCY_MODE === 'true';
+  const actualAutoRefresh = isEmergencyMode ? false : autoRefresh;
+  const actualRefreshInterval = isEmergencyMode ? 0 : refreshInterval;
+
   // 상태 관리
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [servers, setServers] = useState<ServerInstance[]>([]);
@@ -634,9 +639,9 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
       }
     };
 
-    intervalRef.current = setInterval(attemptRefresh, refreshInterval);
+    intervalRef.current = setInterval(attemptRefresh, actualRefreshInterval);
     console.log(
-      `🔄 자동 새로고침 시작 (${refreshInterval}ms 간격, 자동 재연결 포함)`
+      `🔄 자동 새로고침 시작 (${actualRefreshInterval}ms 간격, 자동 재연결 포함)${isEmergencyMode ? ' - 🚨 비상 모드로 차단됨' : ''}`
     );
   }, [refreshAll, refreshInterval]);
 
@@ -663,8 +668,8 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
     // 초기 데이터 로드
     refreshAll();
 
-    // 자동 새로고침 시작
-    if (autoRefresh) {
+    // 자동 새로고침 시작 - 🚨 비상 모드 시 차단
+    if (actualAutoRefresh && !isEmergencyMode) {
       startAutoRefresh();
     }
 
