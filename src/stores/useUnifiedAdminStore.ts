@@ -1,6 +1,7 @@
+import { browserNotificationService } from '@/services/notifications/BrowserNotificationService';
+import { modeTimerManager } from '@/utils/ModeTimerManager';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { modeTimerManager } from '@/utils/ModeTimerManager';
 
 const ADMIN_PASSWORD = '4231';
 const MAX_ATTEMPTS = 5;
@@ -93,6 +94,12 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
           // 30분 후 자동 종료 타이머 설정
           const shutdownTimer = setTimeout(() => {
             console.log('⏰ [System] 30분 자동 종료 타이머 실행');
+
+            // 🔔 30분 자동 종료 알림 발송
+            browserNotificationService.sendSystemShutdownNotification(
+              '30분 자동 종료'
+            );
+
             get().stopSystem();
           }, SYSTEM_AUTO_SHUTDOWN_TIME);
 

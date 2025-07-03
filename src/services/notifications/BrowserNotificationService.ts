@@ -216,6 +216,48 @@ class BrowserNotificationService {
     this.previousServerStates.clear();
     console.log('🧹 서버 알림 히스토리 초기화 완료');
   }
+
+  /**
+   * 🛑 시스템 중지 알림 (새로 추가)
+   */
+  sendSystemShutdownNotification(reason: string = '30분 자동 종료'): void {
+    if (!this.isEnabled) return;
+
+    const title = '🛑 OpenManager 시스템 중지';
+    const message = `시스템이 중지되었습니다. (${reason})`;
+
+    this.sendNotification(message, 'warning', 'system-shutdown');
+
+    // 추가: 브라우저 확인 팝업 (선택사항)
+    if (typeof window !== 'undefined' && reason === '30분 자동 종료') {
+      setTimeout(() => {
+        const userConfirm = confirm(
+          '⏰ 30분 세션이 종료되었습니다.\n\n새로운 세션을 시작하시겠습니까?'
+        );
+        if (userConfirm) {
+          // 페이지 새로고침으로 새 세션 준비
+          window.location.reload();
+        }
+      }, 2000); // 2초 후 확인 팝업
+    }
+  }
+
+  /**
+   * 🚨 시스템 강제 종료 알림 (새로 추가)
+   */
+  sendSystemForceShutdownNotification(message: string): void {
+    if (!this.isEnabled) return;
+
+    // 브라우저 네이티브 알림
+    this.sendNotification(`🚨 ${message}`, 'critical', 'force-shutdown');
+
+    // 즉시 브라우저 알림 팝업
+    if (typeof window !== 'undefined') {
+      alert(
+        `🚨 ${message}\n\n페이지를 새로고침하여 시스템을 다시 시작해주세요.`
+      );
+    }
+  }
 }
 
 // 싱글톤 인스턴스

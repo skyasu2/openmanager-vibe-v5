@@ -46,6 +46,9 @@
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",
+    "@google-cloud/functions-framework": "^4.0.0",
+    "@google-cloud/run": "^2.1.0",
+    "@google-cloud/storage": "^7.16.0",
     "@google/generative-ai": "^0.16.0",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^3.9.0",

@@ -26,10 +26,10 @@ export interface GoogleAIEncryptedConfig {
  */
 export const ENCRYPTED_GOOGLE_AI_CONFIG: GoogleAIEncryptedConfig = {
   encryptedKey:
-    'nOnuT7TY8Yo0i9M/yJUVxBjsi45GE6uvE0ojKEp7mwxrrxjBC04Y+itW0s1vcwW6',
-  salt: '0a366ab3f48fe4f18e58b675468eab26',
-  iv: 'bae5489f8c37eda3d5dbc5315ef83578',
-  createdAt: '2025-06-10T00:49:17.797Z',
+    '//ursbnOO7w7S4KUxROHbN/GpPiUMsstq0NUwh4AaTr/WZISKvrJYYblJXWhcv/L',
+  salt: 'f469506619af58ea3bd84682eed853b5',
+  iv: '80d59344750896018bfebe85b869467c',
+  createdAt: '2025-07-03T11:04:07.275Z',
   version: '1.0.0',
 };
 

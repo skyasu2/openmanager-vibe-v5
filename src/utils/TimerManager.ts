@@ -509,7 +509,21 @@ export const timerManager = TimerManager.getInstance();
 
 // 브라우저 환경에서 페이지 언로드 시 자동 정리
 if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
+  window.addEventListener('beforeunload', event => {
+    // 시스템이 활성화된 상태에서 새로고침/탭 닫기 시 경고
+    const isSystemActive =
+      typeof document !== 'undefined' &&
+      document.querySelector('[data-system-active="true"]');
+
+    if (isSystemActive) {
+      const message =
+        '⚠️ 시스템이 실행 중입니다. 페이지를 떠나면 세션이 종료됩니다.';
+      event.preventDefault();
+      event.returnValue = message; // Chrome에서 필요
+      return message; // 기타 브라우저
+    }
+
+    // 타이머 정리
     timerManager.cleanup();
   });
 }

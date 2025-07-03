@@ -330,7 +330,10 @@ export default function Home() {
   const buttonConfig = getButtonConfig();
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
+    <div
+      className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'
+      data-system-active={isSystemStarted ? 'true' : 'false'}
+    >
       {/* 웨이브 파티클 배경 효과 */}
       <div className='wave-particles'></div>
 

@@ -12,6 +12,7 @@
 import { getVercelConfig } from '@/config/vercel-edge-config';
 import { edgeRuntimeService } from '@/lib/edge-runtime-utils';
 import { AIRequest, AIResponse } from '@/types/ai-types';
+import { getSecureGoogleAIKey } from '@/utils/encryption';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Edge Runtime 설정
@@ -114,9 +115,12 @@ export class GoogleAIService {
         throw new Error('Google AI는 Pro 플랜에서만 사용 가능합니다');
       }
 
-      const apiKey = process.env.GOOGLE_AI_API_KEY;
+      // 🔑 통합 암호화 시스템 사용
+      const apiKey = getSecureGoogleAIKey();
       if (!apiKey) {
-        throw new Error('GOOGLE_AI_API_KEY 환경 변수가 설정되지 않았습니다');
+        throw new Error(
+          'Google AI API 키가 설정되지 않았습니다 (GOOGLE_AI_API_KEY 또는 GOOGLE_AI_API_KEY_ENCRYPTED 필요)'
+        );
       }
 
       this.genAI = new GoogleGenerativeAI(apiKey);

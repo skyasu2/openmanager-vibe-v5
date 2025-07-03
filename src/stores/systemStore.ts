@@ -343,6 +343,12 @@ export const useGlobalSystemStore = create<GlobalSystemStore>()(
 
             if (remaining <= 0) {
               systemLogger.system('⏰ 30분 세션 시간 만료 - 자동 종료');
+
+              // 🔔 30분 자동 종료 특별 알림
+              browserNotificationService.sendSystemShutdownNotification(
+                '30분 자동 종료'
+              );
+
               get()._handleSessionEnd();
             } else {
               set({ remainingTime: remaining });
@@ -574,6 +580,11 @@ export const useGlobalSystemStore = create<GlobalSystemStore>()(
         _handleSessionEnd: async () => {
           clearTimers();
 
+          // 🔔 시스템 중지 알림 발송
+          browserNotificationService.sendSystemShutdownNotification(
+            '세션 종료'
+          );
+
           // 모든 서비스 중지
           try {
             await fetch('/api/system/stop', {
@@ -635,6 +646,11 @@ export const useGlobalSystemStore = create<GlobalSystemStore>()(
 
         // 세션 중지
         stopSession: () => {
+          // 🔔 수동 세션 중지 알림
+          browserNotificationService.sendSystemShutdownNotification(
+            '사용자 요청'
+          );
+
           set({
             isSessionActive: false,
             sessionStartTime: null,
