@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 
 // 새로운 API 키와 팀 비밀번호
-const NEW_API_KEY = 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM';
+const NEW_API_KEY = 'YOUR_GOOGLE_AI_API_KEY_HERE';
 const TEAM_PASSWORD = 'openmanager2025'; // 팀 비밀번호
 
 console.log('🔐 Google AI API 키 빠른 암호화 시작...');

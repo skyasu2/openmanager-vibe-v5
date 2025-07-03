@@ -33,7 +33,7 @@ const requiredEnvVars = {
     'RAG_ENGINE_TYPE': 'SUPABASE_ONLY',
 
     // 기존 설정 유지 (OpenAI 제거, Slack 제거)
-    'GOOGLE_AI_API_KEY': 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM',
+    'GOOGLE_AI_API_KEY': 'YOUR_GOOGLE_AI_API_KEY_HERE',
     'GOOGLE_AI_ENABLED': 'true',
     'REDIS_URL': 'redis://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA@charming-condor-46598.upstash.io:6379'
 };

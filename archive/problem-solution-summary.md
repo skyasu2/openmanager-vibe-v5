@@ -38,7 +38,7 @@
 # .env.local 파일 생성 (복호화된 값 직접 설정)
 NEXT_PUBLIC_SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
-GOOGLE_AI_API_KEY=AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM
+GOOGLE_AI_API_KEY=YOUR_GOOGLE_AI_API_KEY_HERE
 ```
 
 ```javascript

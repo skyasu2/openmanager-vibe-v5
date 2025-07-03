@@ -9,7 +9,7 @@ const CryptoJS = require('crypto-js');
 const crypto = require('crypto');
 
 // 새로운 API 키
-const NEW_API_KEY = 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM';
+const NEW_API_KEY = 'YOUR_GOOGLE_AI_API_KEY_HERE';
 
 // 기존 암호화 시스템과 동일한 키 생성 로직
 const ENCRYPTION_KEY = (() => {

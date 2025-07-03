@@ -4,7 +4,7 @@
  * 🔑 Google AI API 키 직접 설정 스크립트
  */
 
-const API_KEY = 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM';
+const API_KEY = 'YOUR_GOOGLE_AI_API_KEY_HERE';
 const API_URL = 'http://localhost:3001/api/ai/google-ai/config';
 
 async function setGoogleAIKey() {

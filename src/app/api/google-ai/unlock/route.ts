@@ -1,5 +1,5 @@
+import googleAIManager from '@/lib/google-ai-manager';
 import { NextRequest, NextResponse } from 'next/server';
-import { googleAIManager } from '@/lib/google-ai-manager';
 
 /**
  * Google AI 키 잠금 해제 API
