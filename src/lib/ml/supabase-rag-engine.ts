@@ -65,7 +65,7 @@ export class SupabaseRAGEngine {
 
   // 🔗 MCP 파일시스템 연동 설정
   private mcpEnabled = true;
-  private mcpServerUrl = 'https://openmanager-vibe-v5.onrender.com';
+  private mcpServerUrl = 'http://104.154.205.25:10000';
   private mcpContextCache = new Map<
     string,
     { context: MCPFileSystemContext; timestamp: number }
@@ -108,8 +108,8 @@ export class SupabaseRAGEngine {
       this.stats.mcpQueries++;
 
       // 🗂️ 표준 MCP 파일시스템 서버와 통신
-      // Render에서 실행되는 순수 공식 MCP 서버 사용
-      const mcpServerUrl = 'https://openmanager-vibe-v5.onrender.com';
+      // GCP VM에서 실행되는 순수 공식 MCP 서버 사용
+      const mcpServerUrl = 'http://104.154.205.25:10000';
 
       // 1. 프로젝트 루트 구조 조회 (표준 MCP 리소스)
       let systemContext = null;

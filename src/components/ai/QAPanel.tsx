@@ -9,25 +9,25 @@
 
 'use client';
 
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
-  MessageSquare,
+  PRESET_QUESTIONS,
+  useAIChat,
+  useAIThinking,
+} from '@/stores/useAISidebarStore';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Bot,
+  Clock,
   Lightbulb,
+  MessageSquare,
   Send,
   Trash2,
   User,
-  Bot,
-  Clock,
   Zap,
 } from 'lucide-react';
+import React from 'react';
 import BasePanelLayout from './shared/BasePanelLayout';
 import ThinkingView from './ThinkingView';
-import {
-  useAIChat,
-  useAIThinking,
-  PRESET_QUESTIONS,
-} from '@/stores/useAISidebarStore';
 
 // 패널용 프리셋 질문 (5개 선별)
 const PANEL_PRESET_QUESTIONS = [
@@ -80,7 +80,7 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
         body: JSON.stringify({
           query: question,
           sessionId: `qa_${Date.now()}`,
-          mcpServerUrl: 'https://openmanager-vibe-v5.onrender.com',
+          mcpServerUrl: 'http://104.154.205.25:10000',
         }),
       });
 

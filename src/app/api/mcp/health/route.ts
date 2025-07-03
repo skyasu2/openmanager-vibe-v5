@@ -25,17 +25,21 @@ const MCP_SYSTEM_START_TIME = Date.now();
 // 🎯 MCP 적응형 캐시 TTL 설정
 const MCP_ADAPTIVE_CACHE_TTL = {
   // 시작 초반 2분간: 30초 캐시 (집중 모니터링)
-  STARTUP_INTENSIVE: 30 * 1000,     // 30초
-  STARTUP_DURATION: 2 * 60 * 1000,  // 2분간 집중 모니터링
+  STARTUP_INTENSIVE: 30 * 1000, // 30초
+  STARTUP_DURATION: 2 * 60 * 1000, // 2분간 집중 모니터링
 
   // 안정화 후: 환경별 차등 적용
-  VERCEL_PROD: 8 * 60 * 1000,  // 8분 캐시 (프로덕션)
-  VERCEL_DEV: 5 * 60 * 1000,   // 5분 캐시 (개발)
-  LOCAL: 3 * 60 * 1000         // 3분 캐시 (로컬)
+  VERCEL_PROD: 8 * 60 * 1000, // 8분 캐시 (프로덕션)
+  VERCEL_DEV: 5 * 60 * 1000, // 5분 캐시 (개발)
+  LOCAL: 3 * 60 * 1000, // 3분 캐시 (로컬)
 };
 
 // 🧠 MCP 동적 캐시 TTL 계산 (적응형 모니터링)
-function getMCPAdaptiveCacheTTL(): { ttl: number; phase: string; reasoning: string } {
+function getMCPAdaptiveCacheTTL(): {
+  ttl: number;
+  phase: string;
+  reasoning: string;
+} {
   const uptime = Date.now() - MCP_SYSTEM_START_TIME;
   const isVercel = !!process.env.VERCEL;
   const isProd = process.env.NODE_ENV === 'production';
@@ -45,7 +49,7 @@ function getMCPAdaptiveCacheTTL(): { ttl: number; phase: string; reasoning: stri
     return {
       ttl: MCP_ADAPTIVE_CACHE_TTL.STARTUP_INTENSIVE,
       phase: 'mcp_startup_intensive',
-      reasoning: `MCP 시작 후 ${Math.round(uptime / 1000)}초 - 집중 모니터링 모드 (30초 간격)`
+      reasoning: `MCP 시작 후 ${Math.round(uptime / 1000)}초 - 집중 모니터링 모드 (30초 간격)`,
     };
   }
 
@@ -67,7 +71,7 @@ function getMCPAdaptiveCacheTTL(): { ttl: number; phase: string; reasoning: stri
   return {
     ttl,
     phase: 'mcp_stable_efficient',
-    reasoning: `MCP 안정화 완료 (${Math.round(uptime / 60000)}분 경과) - ${environment} 효율 모드 (${ttl / 60000}분 간격)`
+    reasoning: `MCP 안정화 완료 (${Math.round(uptime / 60000)}분 경과) - ${environment} 효율 모드 (${ttl / 60000}분 간격)`,
   };
 }
 
@@ -90,7 +94,7 @@ function setCachedMCPHealth(key: string, result: any, ttl: number): void {
   mcpHealthCache.set(key, {
     result,
     timestamp: Date.now(),
-    ttl
+    ttl,
   });
 }
 
@@ -109,7 +113,9 @@ export async function GET(request: NextRequest) {
     const cached = getCachedMCPHealth(cacheKey);
 
     if (cached) {
-      console.log(`🎯 MCP 헬스체크 캐시 사용 (${adaptiveInfo.phase} 모드) - API 호출 절약`);
+      console.log(
+        `🎯 MCP 헬스체크 캐시 사용 (${adaptiveInfo.phase} 모드) - API 호출 절약`
+      );
       return NextResponse.json({
         ...cached,
         cached: true,
@@ -118,13 +124,13 @@ export async function GET(request: NextRequest) {
           reasoning: adaptiveInfo.reasoning,
           systemUptime: `${Math.round(uptime / 1000)}초`,
           nextCheckIn: `${Math.round(adaptiveInfo.ttl / 1000)}초 후`,
-          cacheHit: true
+          cacheHit: true,
         },
         cacheInfo: {
           hit: true,
           ttl: adaptiveInfo.ttl,
-          responseTime: `${Date.now() - start}ms`
-        }
+          responseTime: `${Date.now() - start}ms`,
+        },
       });
     }
 
@@ -142,18 +148,17 @@ export async function GET(request: NextRequest) {
     if (isVercel) {
       // 🎯 Vercel 환경: 단일 서버만 최소한의 체크
       try {
-        console.log(`🚀 Vercel 환경: 최적화된 MCP 헬스체크 실행 (${adaptiveInfo.phase} 모드)`);
-
-        const response = await fetch(
-          'https://openmanager-vibe-v5.onrender.com/health',
-          {
-            method: 'HEAD', // HEAD 요청으로 데이터 전송량 최소화
-            signal: AbortSignal.timeout(6000), // 6초 타임아웃
-            headers: {
-              'User-Agent': 'OpenManager-Vercel-HealthCheck/1.0'
-            }
-          }
+        console.log(
+          `🚀 Vercel 환경: 최적화된 MCP 헬스체크 실행 (${adaptiveInfo.phase} 모드)`
         );
+
+        const response = await fetch('http://104.154.205.25:10000/health', {
+          method: 'HEAD', // HEAD 요청으로 데이터 전송량 최소화
+          signal: AbortSignal.timeout(6000), // 6초 타임아웃
+          headers: {
+            'User-Agent': 'OpenManager-Vercel-HealthCheck/1.0',
+          },
+        });
 
         healthResults = [
           {
@@ -161,12 +166,14 @@ export async function GET(request: NextRequest) {
             status: response.ok ? 'healthy' : 'degraded',
             responseCode: response.status,
             note: `Vercel 최적화: 단일 서버 HEAD 요청 (${adaptiveInfo.phase})`,
-            optimization: 'vercel_minimal_check'
+            optimization: 'vercel_minimal_check',
           },
         ];
-
       } catch (error) {
-        console.warn(`⚠️ Vercel MCP 헬스체크 실패 (${adaptiveInfo.phase} 모드):`, error);
+        console.warn(
+          `⚠️ Vercel MCP 헬스체크 실패 (${adaptiveInfo.phase} 모드):`,
+          error
+        );
 
         healthResults = [
           {
@@ -174,7 +181,7 @@ export async function GET(request: NextRequest) {
             status: 'degraded',
             error: error instanceof Error ? error.message : 'Connection failed',
             note: `Vercel 환경: 헬스체크 실패해도 로컬 MCP 사용 (${adaptiveInfo.phase})`,
-            optimization: 'vercel_fallback'
+            optimization: 'vercel_fallback',
           },
         ];
       }
@@ -185,13 +192,15 @@ export async function GET(request: NextRequest) {
           server: 'local-mcp',
           status: 'healthy',
           note: `로컬 환경: 표준 MCP 서버 사용 (${adaptiveInfo.phase})`,
-          optimization: 'local_standard'
-        }
+          optimization: 'local_standard',
+        },
       ];
     }
 
     const responseTime = Date.now() - start;
-    const healthyCount = healthResults.filter(r => r.status === 'healthy').length;
+    const healthyCount = healthResults.filter(
+      r => r.status === 'healthy'
+    ).length;
 
     const result = {
       status: healthyCount > 0 ? 'operational' : 'degraded',
@@ -207,7 +216,7 @@ export async function GET(request: NextRequest) {
         systemUptime: `${Math.round(uptime / 1000)}초`,
         nextCheckIn: `${Math.round(adaptiveInfo.ttl / 1000)}초 후`,
         intensivePhase: uptime < MCP_ADAPTIVE_CACHE_TTL.STARTUP_DURATION,
-        cacheHit: false
+        cacheHit: false,
       },
 
       // 🚀 Vercel 최적화 정보
@@ -218,23 +227,26 @@ export async function GET(request: NextRequest) {
         cacheTTL: adaptiveInfo.ttl,
         minimalChecks: isVercel,
         apiCallsReduced: true,
-        monitoringStrategy: adaptiveInfo.phase === 'mcp_startup_intensive' ?
-          'MCP 집중 모니터링 (30초 간격)' :
-          'MCP 효율 모니터링 (5-8분 간격)'
+        monitoringStrategy:
+          adaptiveInfo.phase === 'mcp_startup_intensive'
+            ? 'MCP 집중 모니터링 (30초 간격)'
+            : 'MCP 효율 모니터링 (5-8분 간격)',
       },
 
       summary: {
         healthy: healthyCount,
         total: healthResults.length,
         percentage: Math.round((healthyCount / healthResults.length) * 100),
-        uptime: `${Math.floor(process.uptime())}초`
-      }
+        uptime: `${Math.floor(process.uptime())}초`,
+      },
     };
 
     // 🎯 적응형 TTL로 캐싱 (성공/실패 모두)
     setCachedMCPHealth(cacheKey, result, adaptiveInfo.ttl);
 
-    console.log(`✅ [MCP 적응형 모니터링] 헬스체크 완료 - ${adaptiveInfo.phase} 모드 (다음 체크: ${Math.round(adaptiveInfo.ttl / 1000)}초 후)`);
+    console.log(
+      `✅ [MCP 적응형 모니터링] 헬스체크 완료 - ${adaptiveInfo.phase} 모드 (다음 체크: ${Math.round(adaptiveInfo.ttl / 1000)}초 후)`
+    );
 
     return NextResponse.json({
       ...result,
@@ -242,10 +254,9 @@ export async function GET(request: NextRequest) {
       cacheInfo: {
         hit: false,
         stored: true,
-        ttl: adaptiveInfo.ttl
-      }
+        ttl: adaptiveInfo.ttl,
+      },
     });
-
   } catch (error: any) {
     const responseTime = Date.now() - start;
     const adaptiveInfo = getMCPAdaptiveCacheTTL();
@@ -262,13 +273,13 @@ export async function GET(request: NextRequest) {
           phase: adaptiveInfo.phase,
           reasoning: adaptiveInfo.reasoning,
           systemUptime: `${Math.round((Date.now() - MCP_SYSTEM_START_TIME) / 1000)}초`,
-          errorDuringPhase: adaptiveInfo.phase
+          errorDuringPhase: adaptiveInfo.phase,
         },
         optimization: {
           environment: process.env.VERCEL ? 'vercel' : 'local',
           production: process.env.NODE_ENV === 'production',
-          errorCached: false
-        }
+          errorCached: false,
+        },
       },
       { status: 500 }
     );
@@ -322,19 +333,24 @@ export async function POST(request: NextRequest) {
 }
 
 // 🧹 MCP 캐시 정리 (10분마다 실행)
-setInterval(() => {
-  const now = Date.now();
-  const expired: string[] = [];
+setInterval(
+  () => {
+    const now = Date.now();
+    const expired: string[] = [];
 
-  mcpHealthCache.forEach((cached, key) => {
-    if (now > cached.timestamp + cached.ttl) {
-      expired.push(key);
+    mcpHealthCache.forEach((cached, key) => {
+      if (now > cached.timestamp + cached.ttl) {
+        expired.push(key);
+      }
+    });
+
+    expired.forEach(key => mcpHealthCache.delete(key));
+
+    if (expired.length > 0) {
+      console.log(
+        `🧹 MCP 헬스체크 캐시 정리: ${expired.length}개 만료 항목 제거`
+      );
     }
-  });
-
-  expired.forEach(key => mcpHealthCache.delete(key));
-
-  if (expired.length > 0) {
-    console.log(`🧹 MCP 헬스체크 캐시 정리: ${expired.length}개 만료 항목 제거`);
-  }
-}, 10 * 60 * 1000);
+  },
+  10 * 60 * 1000
+);

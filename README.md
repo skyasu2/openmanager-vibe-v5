@@ -28,7 +28,7 @@
 ├─────────────────────────────────────────────┤
 │ LOCAL Mode    │ GOOGLE_ONLY Mode │ MCP     │
 │ Supabase RAG  │ Google AI Only   │ Tools   │
-│ + Korean AI   │ Natural Language │ (Render)│
+│ + Korean AI   │ Natural Language │ (GCP)   │
 │    (70%)      │       (25%)      │  (5%)   │
 └─────────────────────────────────────────────┘
 ```
@@ -145,7 +145,7 @@ UNIFIED_METRICS_DISABLED=true
 
 - **Google AI Studio** (Gemini 2.0 Flash) - 2025년 최신 모델 (15 RPM, 1M TPM, 1500 RPD)
 - **Supabase** - PostgreSQL + 벡터 검색 (RAG 엔진)
-- **MCP Protocol** - Render 서버 기반 AI 도구 (분리 배포)
+- **MCP Protocol** - GCP VM 기반 AI 도구 (분리 배포)
 - **Edge Runtime** - Vercel 최적화 경량 실행환경
 
 ### **📋 Google AI 2025년 업데이트**
@@ -161,7 +161,7 @@ UNIFIED_METRICS_DISABLED=true
 - **Cursor IDE** + **Claude Sonnet 3.7** - AI 협업 개발
 - **Vitest** - TDD 테스트 프레임워크
 - **Vercel** - 메인 애플리케이션 배포 (Edge Runtime)
-- **Render** - MCP 서버 분리 배포
+- **GCP Compute Engine** - MCP 서버 e2-micro VM 배포 (무료 티어)
 
 ## 📈 성능 지표
 
@@ -280,7 +280,7 @@ npm run deploy:competition  # 경연대회 수준 전체 검증
 
 - Edge Runtime 클라우드 네이티브
 - MCP 서버 분리 배포
-- Vercel + Render 이중화 아키텍처
+- Vercel + GCP 하이브리드 아키텍처 (무료 티어)
 
 ## 📊 라이브 데모
 

@@ -209,8 +209,7 @@ async function checkGoogleAI(): Promise<ServiceStatus> {
 async function checkRenderMCP(): Promise<ServiceStatus> {
   const startTime = Date.now();
   try {
-    const mcpUrl =
-      devKeyManager.getMCPUrl() || 'https://openmanager-vibe-v5.onrender.com';
+    const mcpUrl = devKeyManager.getMCPUrl() || 'http://104.154.205.25:10000';
 
     const response = await fetch(`${mcpUrl}/health`, {
       method: 'GET',

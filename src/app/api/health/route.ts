@@ -324,7 +324,7 @@ class AutoEnvRecoverySystem {
         UPSTASH_REDIS_REST_TOKEN:
           'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
         GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY || 'demo-key',
-        RENDER_MCP_SERVER_URL: 'https://openmanager-vibe-v5.onrender.com',
+        GCP_MCP_SERVER_URL: 'http://104.154.205.25:10000',
         SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL || 'demo-webhook',
       };
 
@@ -580,13 +580,10 @@ async function checkMCPServersHealth(): Promise<{
 
     if (isVercel) {
       // Vercel에서는 HEAD 요청으로 최소한의 체크
-      const response = await fetch(
-        'https://openmanager-vibe-v5.onrender.com/health',
-        {
-          method: 'HEAD',
-          signal: AbortSignal.timeout(5000), // 5초 타임아웃
-        }
-      );
+      const response = await fetch('http://104.154.205.25:10000/health', {
+        method: 'HEAD',
+        signal: AbortSignal.timeout(5000), // 5초 타임아웃
+      });
 
       const result = {
         status: response.ok ? 'operational' : 'degraded',

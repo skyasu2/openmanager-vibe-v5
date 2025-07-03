@@ -14,7 +14,6 @@
  * - 공개 버전: 완전한 보안 강화
  */
 
-import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 
@@ -435,7 +434,7 @@ CRON_GEMINI_LEARNING=true
     return (
       this.getKey('MCP_URL') ||
       process.env.MCP_URL ||
-      'https://openmanager-vibe-v5.onrender.com'
+      'http://104.154.205.25:10000'
     );
   }
 }

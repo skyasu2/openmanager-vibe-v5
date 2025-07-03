@@ -73,7 +73,7 @@ class EnvSecurityManager {
       RENDER_MCP_SERVER_URL: {
         required: true,
         public: false,
-        value: 'https://openmanager-vibe-v5.onrender.com',
+        value: 'http://104.154.205.25:10000',
         encrypt: true,
       },
       RENDER_MCP_SERVER_IPS: {
@@ -320,7 +320,7 @@ export const DEPLOYMENT_CONFIG = {
     console.log('🌐 Render MCP 서버 설정 중...');
 
     const renderConfig = {
-      server_url: 'https://openmanager-vibe-v5.onrender.com',
+      server_url: 'http://104.154.205.25:10000',
       server_ips: ['13.228.225.19', '18.142.128.26', '54.254.162.138'],
       region: 'singapore',
       connection_timeout: 30000,
@@ -521,7 +521,7 @@ SUPABASE_DB_PASSWORD=2D3DWhSl8HBlgYIm
 # =============================================================================
 # 📡 Render MCP 서버 (2025년 메모리 저장소)
 # =============================================================================
-RENDER_MCP_SERVER_URL=https://openmanager-vibe-v5.onrender.com
+GCP_MCP_SERVER_URL=http://104.154.205.25:10000
 RENDER_MCP_SERVER_IPS=13.228.225.19,18.142.128.26,54.254.162.138
 
 # =============================================================================

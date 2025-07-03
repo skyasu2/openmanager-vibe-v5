@@ -3,7 +3,7 @@
  *
  * 🎯 사용 목적별 MCP 분리:
  * - Vercel 내장 MCP: 개발/테스트/상태 분석 전용
- * - Render MCP: 실제 AI 기능 전용
+ * - GCP MCP: 실제 AI 기능 전용
  */
 
 export interface MCPServerConfig {
@@ -16,7 +16,7 @@ export interface MCPServerConfig {
   purpose: string;
   timeout?: number;
   memory?: string;
-  target?: 'vercel' | 'render' | 'local'; // 추가: 타겟 환경
+  target?: 'vercel' | 'gcp' | 'local'; // 추가: 타겟 환경
   usage?: 'development' | 'testing' | 'monitoring' | 'ai-production'; // 추가: 사용 목적
 }
 
@@ -129,7 +129,7 @@ export const DEVELOPMENT_MCP_CONFIG: MCPEnvironmentConfig = {
 };
 
 /**
- * 🤖 AI용 MCP 서버 구성 (Render 프로덕션) - 30초/1분 타임아웃 적용
+ * 🤖 AI용 MCP 서버 구성 (GCP VM) - 30초/1분 타임아웃 적용
  */
 export const AI_PRODUCTION_MCP_CONFIG: MCPEnvironmentConfig = {
   environment: 'ai-production',
@@ -144,9 +144,9 @@ export const AI_PRODUCTION_MCP_CONFIG: MCPEnvironmentConfig = {
       env: {
         NODE_ENV: 'production',
         PORT: '3100',
-        AI_ENGINE_MODE: 'render',
+        AI_ENGINE_MODE: 'gcp',
         AI_ANALYSIS_ONLY: 'true',
-        RENDER_OPTIMIZED: 'true',
+        GCP_OPTIMIZED: 'true',
       },
       enabled: true,
       description: 'AI 엔진 전용 분석 서버',
@@ -218,7 +218,7 @@ export const AI_PRODUCTION_MCP_CONFIG: MCPEnvironmentConfig = {
     patternRecognition: true,
     contextManagement: true,
     performanceOptimized: true,
-    renderOptimized: true,
+    gcpOptimized: true,
     timeoutOptimized: true, // 🕐 타임아웃 최적화 추가
   },
 };
@@ -300,10 +300,10 @@ export const VERCEL_DEV_TOOLS_MCP_CONFIG: MCPEnvironmentConfig = {
 };
 
 /**
- * Render 프로덕션 서버 정보
+ * GCP VM 프로덕션 서버 정보
  */
-export const RENDER_SERVER_CONFIG = {
-  url: 'https://openmanager-vibe-v5.onrender.com',
+export const GCP_SERVER_CONFIG = {
+  url: 'http://104.154.205.25:10000',
   port: 10000,
   healthEndpoint: '/health',
   statusEndpoint: '/status',
@@ -420,7 +420,7 @@ export interface MCPServerStatus {
     concurrency: number;
   };
   features: string[];
-  renderConfig?: typeof RENDER_SERVER_CONFIG;
+  gcpConfig?: typeof GCP_SERVER_CONFIG;
 }
 
 /**
@@ -437,8 +437,8 @@ export function getMCPStatus(): MCPServerStatus {
     totalServers: Object.keys(config.servers).length,
     performance: config.performance,
     features: Object.keys(config.features).filter(key => config.features[key]),
-    renderConfig:
-      config.environment === 'ai-production' ? RENDER_SERVER_CONFIG : undefined,
+    gcpConfig:
+      config.environment === 'ai-production' ? GCP_SERVER_CONFIG : undefined,
   };
 }
 
@@ -452,7 +452,7 @@ export function logMCPConfiguration(): void {
 🔧 MCP 서버 구성 정보
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📋 환경 타입: ${status.type === 'development' ? '🔧 개발용 (Cursor IDE) - 기존 설정 유지' : status.type === 'ai-production' ? '🤖 AI용 (Render 프로덕션) - 30초/1분 타임아웃' : '🏢 Vercel 내장 MCP'}
+📋 환경 타입: ${status.type === 'development' ? '🔧 개발용 (Cursor IDE) - 기존 설정 유지' : status.type === 'ai-production' ? '🤖 AI용 (GCP VM) - 30초/1분 타임아웃' : '🏢 Vercel 내장 MCP'}
 🎯 목적: ${status.purpose}
 🖥️  활성 서버: ${status.activeServers}/${status.totalServers}개
 
@@ -461,17 +461,17 @@ export function logMCPConfiguration(): void {
    • 타임아웃: ${status.performance.timeout / 1000}초 ${status.type === 'ai-production' ? '(사용자 요청: 충분한 대기)' : '(기존 설정 유지)'}
    • 동시 연결: ${status.performance.concurrency}개
 
-🚀 활성 기능: ${status.features.join(', ')}
-
+  🚀 활성 기능: ${status.features.join(', ')}
+  
 ${
-  status.renderConfig
+  status.gcpConfig
     ? `
-🌐 Render 서버 정보:
-   • URL: ${status.renderConfig.url}
-   • 포트: ${status.renderConfig.port}
-   • 리전: ${status.renderConfig.deployment.region}
-   • IP: ${status.renderConfig.ips.join(', ')}
-   • 응답 대기: ${status.renderConfig.monitoring.maxResponseTime / 1000}초 (🕐 30초로 조정)
+  🌐 GCP VM 서버 정보:
+  • URL: ${status.gcpConfig.url}
+  • 포트: ${status.gcpConfig.port}
+  • 리전: ${status.gcpConfig.deployment.region}
+  • IP: ${status.gcpConfig.ips.join(', ')}
+  • 응답 대기: ${status.gcpConfig.monitoring.maxResponseTime / 1000}초 (🕐 30초로 조정)
 `
     : ''
 }
@@ -490,7 +490,7 @@ const mcpConfig = {
   ai: AI_PRODUCTION_MCP_CONFIG,
 
   // 서버 정보
-  server: RENDER_SERVER_CONFIG,
+  server: GCP_SERVER_CONFIG,
 
   // 환경 감지
   getCurrentConfig() {

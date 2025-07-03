@@ -8,104 +8,124 @@ OpenManager Vibe v5는 **완전 자동화된 배포 및 운영**을 제공하는
 
 ### ✨ **핵심 특징**
 
-- **이중 배포 시스템**: Vercel (메인) + Render (MCP 서버)
+- **이중 배포 시스템**: Vercel (메인) + GCP (MCP 서버)
 - **Vercel 최적화**: 서버리스 환경 완전 최적화
 - **자동 CI/CD**: GitHub Actions 기반 자동 배포
 - **실시간 모니터링**: 99.9% 가용성 보장
 - **무중단 배포**: Blue-Green 배포 전략
 
-## 🏗️ **배포 아키텍처**
+## 🚀 배포 아키텍처 (2025년 GCP 무료 티어)
 
-### **이중 배포 시스템**
+### 📊 **현재 배포 구조**
+
+- **이중 배포 시스템**: Vercel (메인) + GCP (MCP 서버)
 
 ```mermaid
-graph TB
-    A[GitHub Repository] --> B[GitHub Actions]
-
+graph TD
+    A[개발자] --> B[Git Push]
     B --> C[Vercel 배포]
-    B --> D[Render 배포]
+    B --> D[GCP VM 배포]
 
-    C --> E[Next.js App Router]
-    D --> F[MCP Server]
+    C --> E[Next.js App]
+    D --> F[MCP 서버]
 
-    E --> G[Vercel Edge Network]
-    F --> H[Render Infrastructure]
+    E --> G[사용자]
+    F --> H[GCP Infrastructure]
 
-    G --> I[사용자]
-    H --> I
+    G --> I[API 요청]
+    I --> J[MCP 통신]
+    J --> F
 
-    E --> J[Supabase PostgreSQL]
-    E --> K[Upstash Redis]
+subgraph "Vercel 환경"
+    E
+    direction TB
+    E --> K[Edge Runtime]
+end
 
-    subgraph "Vercel 환경"
-        E
-        G
-        L[서버리스 함수]
-        M[정적 자산]
-    end
-
-    subgraph "Render 환경"
-        F
-        H
-        N[MCP 파일시스템 서버]
-        O[Keep-alive 시스템]
-    end
+subgraph "GCP 무료 티어"
+    F --> L[e2-micro VM]
+    L --> M[Node.js MCP Server]
+    M --> N[Port 10000]
+end
 ```
 
-### **배포 환경 구성**
+### 🏗️ **배포 환경별 세부사항**
 
 #### **1. Vercel (메인 애플리케이션)**
 
 ```yaml
-# vercel.json
+# vercel.json 최적화 설정
 {
-  'framework': 'nextjs',
-  'buildCommand': 'npm run build',
-  'outputDirectory': '.next',
-  'installCommand': 'npm install',
-  'functions': { 'src/app/api/**/*.ts': { 'maxDuration': 30 } },
+  'functions': { 'app/api/**/*.ts': { 'runtime': 'edge' } },
   'headers':
     [
       {
-        'source': '/(.*)',
-        'headers':
-          [
-            { 'key': 'X-Content-Type-Options', 'value': 'nosniff' },
-            { 'key': 'X-Frame-Options', 'value': 'DENY' },
-            { 'key': 'X-XSS-Protection', 'value': '1; mode=block' },
-          ],
-      },
-    ],
-  'redirects':
-    [
-      {
-        'source': '/admin',
-        'destination': '/admin/ai-agent',
-        'permanent': false,
+        'source': '/api/(.*)',
+        'headers': [{ 'key': 'Cache-Control', 'value': 's-maxage=60' }],
       },
     ],
 }
 ```
 
-#### **2. Render (MCP 서버)**
+#### **2. GCP Compute Engine (MCP 서버)**
+
+```bash
+# VM 설정
+인스턴스: mcp-server
+리전: us-central1-a (무료 티어)
+외부 IP: 104.154.205.25
+포트: 10000
+OS: Ubuntu 20.04 LTS
+```
+
+### 🔄 **자동 배포 파이프라인**
 
 ```yaml
-# render.yaml
-services:
-  - type: web
-    name: openmanager-vibe-v5-mcp
-    env: node
-    plan: free
-    buildCommand: npm install
-    startCommand: node server.js
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 10000
-    healthCheckPath: /health
-    autoDeploy: true
-    branch: main
+name: Deploy to Vercel and GCP
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-vercel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v20
+
+  deploy-gcp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to GCP VM
+        run: |
+          # SSH를 통한 VM 업데이트
+          ssh gcp-user@104.154.205.25 'cd mcp-server && git pull && npm restart'
+```
+
+### 🔍 **배포 상태 모니터링**
+
+```typescript
+// 실시간 배포 상태 확인
+const deploymentStatus = {
+  vercel: {
+    url: 'https://openmanager-vibe-v5.vercel.app',
+    status: 'healthy',
+    lastDeploy: '2025-07-03T13:40:00Z',
+  },
+  gcp: {
+    url: 'http://104.154.205.25:10000',
+    status: 'healthy',
+    vm: 'e2-micro',
+    region: 'us-central1-a',
+  },
+};
+
+async function checkDeploymentHealth() {
+  return Promise.all([this.checkVercelHealth(), this.checkGCPHealth()]);
+}
 ```
 
 ## 🔧 **Vercel 최적화**

@@ -1,0 +1,26 @@
+{
+  "name": "gcp-health-check",
+  "version": "1.0.0",
+  "description": "GCP Free Tier Health Check Function",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "firebase-functions": "^6.0.1"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "deploy": "gcloud functions deploy health-check --runtime nodejs20 --trigger-http --allow-unauthenticated"
+  },
+  "keywords": [
+    "health-check",
+    "gcp",
+    "cloud-functions",
+    "openmanager",
+    "free-tier"
+  ],
+  "author": "OpenManager Team",
+  "license": "MIT"
+}

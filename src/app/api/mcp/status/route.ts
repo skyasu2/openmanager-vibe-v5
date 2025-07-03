@@ -16,9 +16,7 @@ export async function GET(request: NextRequest) {
         version: '1.0.0',
         uptime: process.uptime(),
         environment: process.env.NODE_ENV || 'development',
-        renderUrl:
-          process.env.MCP_SERVER_URL ||
-          'https://openmanager-vibe-v5.onrender.com',
+        renderUrl: process.env.MCP_SERVER_URL || 'http://104.154.205.25:10000',
       },
       tools: {
         available: [

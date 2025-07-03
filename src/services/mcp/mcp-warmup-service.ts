@@ -1,7 +1,7 @@
 /**
  * 🚀 MCP 서버 Wake-up 서비스
  *
- * Render 무료 플랜의 Cold Start 문제 해결
+ * GCP VM의 Cold Start 문제 해결
  * - 시작버튼 클릭 시 MCP 서버를 먼저 깨움
  * - 최대 3분 대기, 재시도 로직 포함
  * - 진행상황 실시간 피드백
@@ -25,7 +25,7 @@ export interface MCPWakeupResult {
 
 export class MCPWarmupService {
   private static instance: MCPWarmupService;
-  private readonly MCP_SERVER_URL = 'https://openmanager-vibe-v5.onrender.com';
+  private readonly MCP_SERVER_URL = 'http://104.154.205.25:10000';
   private readonly MAX_WAIT_TIME = 180000; // 3분
   private readonly RETRY_INTERVAL = 10000; // 10초
   private readonly INITIAL_TIMEOUT = 30000; // 첫 시도는 30초

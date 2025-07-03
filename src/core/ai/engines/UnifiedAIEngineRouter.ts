@@ -1,6 +1,6 @@
 /**
  * 🤖 통합 AI 엔진 라우터 v5.44.4
- * Edge Runtime 최적화 + Render MCP 분리
+ * Edge Runtime 최적화 + GCP MCP 분리
  */
 
 import { getVercelConfig } from '@/config/vercel-edge-config';
@@ -8,7 +8,7 @@ import { edgeRuntimeService } from '@/lib/edge-runtime-utils';
 import { SupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { KoreanAIEngine } from '@/services/ai/korean-ai-engine';
-// MCPClientWrapper 제거 - Render 서버 MCP만 사용
+// MCPClientWrapper 제거 - GCP VM MCP만 사용
 import { AIEngineType, AIRequest, AIResponse } from '@/types/ai-types';
 
 // Edge Runtime 호환성 확인
@@ -71,8 +71,8 @@ export class UnifiedAIEngineRouter {
       await this.initializeEngine('google-ai', GoogleAIService);
       await this.initializeEngine('supabase-rag', SupabaseRAGEngine);
 
-      // Render MCP는 HTTP 기반으로 처리 (직접 import 없음)
-      this.initializeRenderMCP();
+      // GCP MCP는 HTTP 기반으로 처리 (직접 import 없음)
+      this.initializeGCPMCP();
 
       // 하위 AI 컴포넌트 (Edge Runtime 호환 확인 필요)
       if (vercelConfig.environment.isVercel) {
@@ -92,14 +92,13 @@ export class UnifiedAIEngineRouter {
   }
 
   /**
-   * 🌐 Render MCP HTTP 기반 초기화
+   * 🌐 GCP MCP HTTP 기반 초기화
    */
-  private initializeRenderMCP() {
+  private initializeGCPMCP() {
     try {
       // Render MCP 서버 URL
       const renderMCPUrl =
-        process.env.RENDER_MCP_SERVER_URL ||
-        'https://openmanager-vibe-v5.onrender.com';
+        process.env.RENDER_MCP_SERVER_URL || 'http://104.154.205.25:10000';
 
       // HTTP 기반 MCP 클라이언트 설정
       const renderMCPClient = {
@@ -112,7 +111,7 @@ export class UnifiedAIEngineRouter {
       this.engines.set('render-mcp', renderMCPClient);
       logger.info('✅ Render MCP HTTP 클라이언트 초기화 완료');
     } catch (error) {
-      logger.error('❌ Render MCP 초기화 실패:', error);
+      logger.error('❌ GCP MCP 초기화 실패:', error);
       this.failedEngines.add('render-mcp');
     }
   }
@@ -373,7 +372,7 @@ export class UnifiedAIEngineRouter {
 
         if (mcpResponse.success && mcpResponse.confidence > 0.3) {
           responses.push(mcpResponse);
-          usedEngines.push('MCP Client (Render)');
+          usedEngines.push('MCP Client (GCP)');
         }
       }
 
@@ -391,7 +390,7 @@ export class UnifiedAIEngineRouter {
           supportEngines: usedEngines,
           ragUsed: usedEngines.includes('Supabase RAG Engine'),
           nlpUsed: usedEngines.includes('Korean AI Engine'),
-          mcpUsed: usedEngines.includes('MCP Client (Render)'),
+          mcpUsed: usedEngines.includes('MCP Client (GCP)'),
           vercelPlan: vercelConfig.environment.isPro ? 'pro' : 'hobby',
         },
       };

@@ -24,22 +24,15 @@ const nextConfig = {
         ignoreDuringBuilds: false,
     },
 
-    // 서버 외부 패키지 설정 (새로운 방식)
-    serverExternalPackages: ['@supabase/supabase-js'],
+    // 서버 외부 패키지 설정 (Next.js 15 새로운 방식)
+    serverExternalPackages: ['@supabase/supabase-js', '@google/generative-ai'],
 
-    // 🚀 SWC 및 실험적 기능 최적화 (2025.7.3 개선)
+    // 🚀 SWC 및 실험적 기능 최적화 (Next.js 15 호환)
     experimental: {
         forceSwcTransforms: true, // SWC 트랜스파일러 강제 사용 (Babel보다 빠름)
         swcTraceProfiling: false, // 프로파일링 비활성화 (프로덕션 성능 향상)
         optimizeCss: true, // CSS 최적화 활성화
         optimizeServerReact: true, // 서버 컴포넌트 최적화
-        turbotrace: {
-            logLevel: 'error', // 불필요한 로그 감소
-        },
-        // Pages Router 완전 비활성화
-        disableStaticImages: true,
-        // 서버 컴포넌트 외부 패키지 최적화
-        serverComponentsExternalPackages: ['@supabase/supabase-js', '@google/generative-ai'],
         // 워커 스레드 및 호환성 설정
         workerThreads: false,
         craCompat: false,

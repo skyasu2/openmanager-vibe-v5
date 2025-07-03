@@ -41,7 +41,7 @@ NODE_ENV=development
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 # AI & MCP Configuration
-MCP_SERVER_URL=https://openmanager-vibe-v5.onrender.com
+MCP_SERVER_URL=http://104.154.205.25:10000
 AI_ENGINE_MODE=hybrid
 EOF
 

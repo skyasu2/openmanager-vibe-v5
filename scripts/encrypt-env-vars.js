@@ -26,7 +26,7 @@ const ENV_VARS = {
   UPSTASH_REDIS_REST_URL: 'https://charming-condor-46598.upstash.io',
   UPSTASH_REDIS_REST_TOKEN:
     'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
-  RENDER_MCP_SERVER_URL: 'https://openmanager-vibe-v5.onrender.com',
+  GCP_MCP_SERVER_URL: 'http://104.154.205.25:10000',
   GOOGLE_AI_API_KEY: 'YOUR_GOOGLE_AI_API_KEY_HERE',
 };
 

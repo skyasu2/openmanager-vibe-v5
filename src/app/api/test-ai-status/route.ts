@@ -1,9 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// 개발 환경 체크 함수
+function isDevelopment() {
+  return process.env.NODE_ENV === 'development';
+}
+
+// 프로덕션에서 테스트 API 차단
+function blockInProduction() {
+  if (!isDevelopment()) {
+    return NextResponse.json(
+      {
+        error: 'Test endpoint only available in development mode',
+        status: 'blocked',
+      },
+      { status: 403 }
+    );
+  }
+  return null;
+}
+
 /**
  * 🧪 AI 엔진 상태 테스트 엔드포인트
  */
 export async function GET(request: NextRequest) {
+  // 프로덕션에서 차단
+  const blockResponse = blockInProduction();
+  if (blockResponse) return blockResponse;
+
   const startTime = Date.now();
 
   try {

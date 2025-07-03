@@ -21,7 +21,7 @@ OpenManager Vibe v5는 민감한 환경변수들을 AES 암호화하여 안전�
 
 ### 📡 MCP 서버
 
-- `RENDER_MCP_SERVER_URL`: Render 배포 MCP 서버 URL
+- `GCP_MCP_SERVER_URL`: GCP VM 배포 MCP 서버 URL (<http://104.154.205.25:10000>)
 
 ## 🚀 사용법
 

@@ -272,8 +272,7 @@ class NodeMCPService implements IMCPService {
             uptime: process.uptime(),
             environment: process.env.NODE_ENV || 'development',
             renderUrl:
-              process.env.MCP_SERVER_URL ||
-              'https://openmanager-vibe-v5.onrender.com',
+              process.env.MCP_SERVER_URL || 'http://104.154.205.25:10000',
           },
           tools: {
             available: [
@@ -306,7 +305,7 @@ class NodeMCPService implements IMCPService {
         // 폴백: Render 서버 체크
         try {
           const renderResponse = await fetch(
-            'https://openmanager-vibe-v5.onrender.com/health',
+            'http://104.154.205.25:10000/health',
             {
               method: 'HEAD',
               signal: AbortSignal.timeout(3000),

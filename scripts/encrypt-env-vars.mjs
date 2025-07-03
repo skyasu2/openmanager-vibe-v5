@@ -23,7 +23,7 @@ const ENV_VARS = {
   SUPABASE_SERVICE_ROLE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8',
   UPSTASH_REDIS_REST_URL: 'https://charming-condor-46598.upstash.io',
   UPSTASH_REDIS_REST_TOKEN: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
-  RENDER_MCP_SERVER_URL: 'https://openmanager-vibe-v5.onrender.com',
+  GCP_MCP_SERVER_URL: 'http://104.154.205.25:10000',
   GOOGLE_AI_API_KEY: 'YOUR_GOOGLE_AI_API_KEY_HERE',
   // Google AI 할당량 보호 설정
   GOOGLE_AI_ENABLED: 'true',

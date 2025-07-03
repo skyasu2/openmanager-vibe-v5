@@ -1,15 +1,31 @@
 import CryptoJS from 'crypto-js';
 
-// 🔐 암호화 키 보안 강화 - 환경변수 우선, 런타임 생성 fallback
-const ENCRYPTION_KEY = (() => {
-  // 1순위: 환경변수에서 가져오기
-  if (process.env.ENCRYPTION_KEY) {
-    return process.env.ENCRYPTION_KEY;
+// 🔐 암호화 키 lazy loading - 빌드 타임 오류 방지
+let _encryptionKey: string | null = null;
+
+const getEncryptionKey = (): string => {
+  if (_encryptionKey) {
+    return _encryptionKey;
   }
 
-  // 2순위: 프로덕션에서는 에러
+  // 1순위: 환경변수에서 가져오기
+  if (process.env.ENCRYPTION_KEY) {
+    _encryptionKey = process.env.ENCRYPTION_KEY;
+    return _encryptionKey;
+  }
+
+  // 2순위: 프로덕션에서는 에러 (런타임에만)
   if (process.env.NODE_ENV === 'production') {
-    throw new Error('🚨 프로덕션에서는 ENCRYPTION_KEY 환경변수가 필수입니다');
+    // 빌드 타임 vs 런타임 구분
+    if (typeof window === 'undefined' && !global.vercelBuildTime) {
+      // 서버 런타임에서만 에러 발생
+      throw new Error('🚨 프로덕션에서는 ENCRYPTION_KEY 환경변수가 필수입니다');
+    } else {
+      // 빌드 타임이나 클라이언트에서는 임시 키 사용
+      console.warn('⚠️ 빌드 타임: 임시 암호화 키 사용');
+      _encryptionKey = 'build-time-temp-key-' + Date.now();
+      return _encryptionKey;
+    }
   }
 
   // 3순위: 개발환경에서만 동적 생성
@@ -23,15 +39,17 @@ const ENCRYPTION_KEY = (() => {
   console.warn(
     '⚠️ 개발환경: 동적 암호화 키 생성됨 (프로덕션에서는 ENCRYPTION_KEY 설정 필요)'
   );
-  return `dev-${nodeVersion}-${projectHash}`;
-})();
+  _encryptionKey = `dev-${nodeVersion}-${projectHash}`;
+  return _encryptionKey;
+};
 
 /**
  * 🔒 문자열 암호화
  */
 export function encrypt(text: string): string {
   try {
-    const encrypted = CryptoJS.AES.encrypt(text, ENCRYPTION_KEY).toString();
+    const key = getEncryptionKey();
+    const encrypted = CryptoJS.AES.encrypt(text, key).toString();
     return encrypted;
   } catch (error) {
     console.error('🔒 암호화 실패:', error);
@@ -44,7 +62,8 @@ export function encrypt(text: string): string {
  */
 export function decrypt(encryptedText: string): string {
   try {
-    const bytes = CryptoJS.AES.decrypt(encryptedText, ENCRYPTION_KEY);
+    const key = getEncryptionKey();
+    const bytes = CryptoJS.AES.decrypt(encryptedText, key);
     const decrypted = bytes.toString(CryptoJS.enc.Utf8);
 
     if (!decrypted) {
@@ -97,13 +116,29 @@ export function encryptGoogleAIKey(apiKey: string): string {
  * 📊 암호화 시스템 상태
  */
 export function getEncryptionStatus() {
-  return {
-    enabled: !!process.env.ENCRYPTION_KEY,
-    keySource: process.env.ENCRYPTION_KEY ? 'env' : 'default',
-    googleAI: {
-      hasKey: !!getSecureGoogleAIKey(),
-      source: process.env.GOOGLE_AI_API_KEY ? 'env' : 'builtin',
-      preview: getSecureGoogleAIKey()?.substring(0, 30) + '...' || 'none',
-    },
-  };
+  try {
+    const hasEnvKey = !!process.env.ENCRYPTION_KEY;
+    const googleAIKey = getSecureGoogleAIKey();
+
+    return {
+      enabled: hasEnvKey,
+      keySource: hasEnvKey ? 'env' : 'default',
+      googleAI: {
+        hasKey: !!googleAIKey,
+        source: process.env.GOOGLE_AI_API_KEY ? 'env' : 'builtin',
+        preview: googleAIKey?.substring(0, 30) + '...' || 'none',
+      },
+    };
+  } catch (error) {
+    console.error('암호화 상태 확인 실패:', error);
+    return {
+      enabled: false,
+      keySource: 'error',
+      googleAI: {
+        hasKey: false,
+        source: 'error',
+        preview: 'error',
+      },
+    };
+  }
 }

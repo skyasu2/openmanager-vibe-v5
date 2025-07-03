@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { MCPWarmupService } from '@/services/mcp/mcp-warmup-service';
 
 /**
  * 🔥 MCP 서버 웜업 API
@@ -97,7 +96,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function performMCPWarmup(): Promise<MCPWarmupResult> {
-  const serverUrl = 'https://openmanager-vibe-v5.onrender.com';
+  const serverUrl = 'http://104.154.205.25:10000';
   const startTime = Date.now();
 
   console.log('🔥 MCP 서버 웜업 시작:', serverUrl);

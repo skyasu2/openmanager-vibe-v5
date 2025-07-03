@@ -14,8 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const serverUrl =
-      mcpServerUrl || 'https://openmanager-vibe-v5.onrender.com';
+    const serverUrl = mcpServerUrl || 'http://104.154.205.25:10000';
     const startTime = Date.now();
 
     // 1. MCP 서버 상태 확인

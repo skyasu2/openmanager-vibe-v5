@@ -1,20 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Brain,
-  Search,
-  Zap,
-  CheckCircle,
-  Loader2,
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  Activity,
-} from 'lucide-react';
 import { useAIThinking } from '@/stores/useAISidebarStore';
-import type { AgentLog } from '@/stores/useAISidebarStore';
+import { motion } from 'framer-motion';
+import { Brain, CheckCircle, Search, Zap } from 'lucide-react';
+import { useState } from 'react';
 
 interface AgentThinkingPanelProps {
   className?: string;
@@ -77,7 +66,7 @@ export default function AgentThinkingPanel({
           <Brain className='w-8 h-8 mx-auto mb-2 opacity-50' />
           <p className='text-sm'>🤖 AI 사고 과정 준비 완료</p>
           <p className='text-xs mt-1 opacity-70'>
-            ✅ MCP 서버 연동됨 (Render: openmanager-vibe-v5.onrender.com)
+            ✅ MCP 서버 연동됨 (GCP: 104.154.205.25:10000)
           </p>
         </div>
       </div>
