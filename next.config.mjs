@@ -27,24 +27,28 @@ const nextConfig = {
     // 서버 외부 패키지 설정 (새로운 방식)
     serverExternalPackages: ['@supabase/supabase-js'],
 
-    // SWC 강제 사용으로 Babel 충돌 해결 + 기타 실험적 기능
+    // 🚀 SWC 및 실험적 기능 최적화 (2025.7.3 개선)
     experimental: {
-        forceSwcTransforms: true,
-        swcTraceProfiling: false,
+        forceSwcTransforms: true, // SWC 트랜스파일러 강제 사용 (Babel보다 빠름)
+        swcTraceProfiling: false, // 프로파일링 비활성화 (프로덕션 성능 향상)
+        optimizeCss: true, // CSS 최적화 활성화
+        optimizeServerReact: true, // 서버 컴포넌트 최적화
+        turbotrace: {
+            logLevel: 'error', // 불필요한 로그 감소
+        },
         // Pages Router 완전 비활성화
         disableStaticImages: true,
-        // 모든 페이지에서 Pages Router 관련 기능 비활성화
-        serverComponentsExternalPackages: ['@supabase/supabase-js'],
-        // 정적 워커 비활성화
+        // 서버 컴포넌트 외부 패키지 최적화
+        serverComponentsExternalPackages: ['@supabase/supabase-js', '@google/generative-ai'],
+        // 워커 스레드 및 호환성 설정
         workerThreads: false,
-        // 빌드 관련 실험적 기능 비활성화
         craCompat: false,
     },
 
-    // 빌드 설정 - 정적 최적화 비활성화
-    poweredByHeader: false,
-    generateEtags: false,
-    compress: false,
+    // 🚀 빌드 설정 - 성능 최적화 활성화 (2025.7.3 개선)
+    poweredByHeader: false, // 보안상 헤더 숨김
+    generateEtags: true, // 캐싱 최적화를 위해 ETag 활성화
+    compress: true, // Gzip 압축 활성화로 번들 크기 최적화
 
     // App Router 전용 설정
     onDemandEntries: {
