@@ -54,7 +54,7 @@ const requiredEnvVars = {
 
     // 📊 Google AI (선택적)
     'GOOGLE_AI_API_KEY': process.env.GOOGLE_AI_API_KEY || '',
-    'GOOGLE_AI_ENABLED': 'true',
+    'GOOGLE_AI_ENABLED': 'false', // 무료 모델 전용 모드
     'GOOGLE_AI_MODEL': 'gemini-1.5-flash',
 
     // 📧 알림 설정 (Slack)

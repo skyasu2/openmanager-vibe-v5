@@ -68,7 +68,14 @@ export class UnifiedAIEngineRouter {
 
     try {
       // 메인 AI 컴포넌트 (Edge Runtime 호환)
-      await this.initializeEngine('google-ai', GoogleAIService);
+      // Google AI는 Vercel 설정에 따라 조건부 초기화
+      if (vercelConfig.enableGoogleAI) {
+        await this.initializeEngine('google-ai', GoogleAIService);
+        logger.info('✅ Google AI 엔진 활성화됨');
+      } else {
+        logger.info('🚫 Google AI 엔진 비활성화됨 (무료 모델 전용)');
+      }
+
       await this.initializeEngine('supabase-rag', SupabaseRAGEngine);
 
       // GCP MCP는 HTTP 기반으로 처리 (직접 import 없음)

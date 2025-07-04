@@ -14,11 +14,8 @@ export const VERCEL_PLANS = {
     requestsPerMinute: 100,
     edgeRequestsPerMonth: 1000000, // 1M
 
-    // 기능 제한 - Google AI 키가 있으면 활성화 허용
-    enableGoogleAI:
-      !!process.env.GOOGLE_AI_API_KEY ||
-      !!process.env.GOOGLE_AI_API_KEY_ENCRYPTED ||
-      process.env.GOOGLE_AI_ENABLED === 'true',
+    // 기능 제한 - 무료 플랜에서는 Google AI 완전 비활성화
+    enableGoogleAI: false, // 무료 모델 전용 (Google AI 비활성화)
     enableAdvancedRAG: false,
     enableMCPIntegration: false,
     maxConcurrentRequests: 10,

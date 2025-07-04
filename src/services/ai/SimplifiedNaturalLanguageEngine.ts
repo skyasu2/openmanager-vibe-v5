@@ -690,11 +690,17 @@ export class SimplifiedNaturalLanguageEngine {
   }
 
   /**
-   * 🔍 Google AI 사용 가능 여부 확인
+   * 🔍 Google AI 사용 가능 여부 확인 (무료 모델 전용 모드에서는 비활성화)
    */
   private isGoogleAIAvailable(): boolean {
+    // 무료 모델 전용 모드: Google AI 완전 비활성화
+    if (process.env.GOOGLE_AI_ENABLED === 'false') {
+      return false;
+    }
+
+    // API 키가 있고 명시적으로 활성화된 경우만 허용
     return !!(
-      process.env.GOOGLE_AI_API_KEY || process.env.GOOGLE_AI_ENABLED === 'true'
+      process.env.GOOGLE_AI_API_KEY && process.env.GOOGLE_AI_ENABLED === 'true'
     );
   }
 
