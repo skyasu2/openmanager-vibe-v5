@@ -6,7 +6,8 @@ import { usageMonitor } from './usage-monitor';
 // 빌드 타임에는 최소 유효한 URL, 런타임에는 실제 환경변수 사용
 function getSupabaseUrl() {
   // 🔧 임시 해결: 환경변수 직접 읽기 (.env.local 지원)
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
+  const url =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
   if (
     !url &&
     (process.env.NODE_ENV === undefined ||
@@ -379,8 +380,8 @@ class VercelSupabaseClient {
     }
 
     try {
-      // 배치 크기 제한 (Vercel 메모리 최적화)
-      const batchSize = this.config.IS_VERCEL ? 100 : 500;
+      // 배치 크기 제한 (GCP Functions 최적화)
+      const batchSize = 500; // GCP Functions는 더 큰 메모리 제한
 
       for (let i = 0; i < metrics.length; i += batchSize) {
         const batch = metrics.slice(i, i + batchSize);

@@ -4,8 +4,6 @@
  * AI 기반 고급 서버 시뮬레이션 및 시나리오 생성
  */
 
-import { VercelDatabase } from '@/lib/supabase';
-
 export interface ServerMetrics {
   cpu: number;
   memory: number;
@@ -75,9 +73,12 @@ export class AdvancedSimulationEngine {
     }
 
     try {
-      // 실제 데이터베이스에서 메트릭 조회
-      const dashboardData = await VercelDatabase.getDashboardData();
-      const realMetrics = dashboardData.metrics;
+      // 🌐 Google Cloud Functions에서 메트릭 조회
+      const response = await fetch(
+        'https://us-central1-openmanager-vibe-v5.cloudfunctions.net/enterpriseMetrics?action=current'
+      );
+      const gcpData = await response.json();
+      const realMetrics = gcpData.success ? gcpData.data.metrics : [];
 
       // 서버별로 캐싱
       this.realMetricsCache.clear();
