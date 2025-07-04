@@ -1,4 +1,6 @@
 {
+  "_archived": "2025-07-04 - Migrated to GCP Cloud Functions",
+  "_migration_summary": "See archive/vercel-migration-summary.md for details",
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "src/app/api/**/*.ts": {

@@ -25,7 +25,12 @@ const nextConfig = {
     },
 
     // 서버 외부 패키지 설정 (Next.js 15 새로운 방식)
-    serverExternalPackages: ['@supabase/supabase-js', '@google/generative-ai'],
+    serverExternalPackages: [
+        '@supabase/supabase-js',
+        '@google/generative-ai',
+        'onnxruntime-node',        // 서버 사이드 바이너리 모듈
+        '@xenova/transformers',    // ONNX Runtime 의존성
+    ],
 
     // 🚀 SWC 및 실험적 기능 최적화 (Next.js 15 호환)
     experimental: {

@@ -57,4 +57,7 @@ coverage/
 # Build artifacts
 dist/
 build/
-.tmp/ 
+.tmp/
+
+# Deployment scripts
+deploy.sh
