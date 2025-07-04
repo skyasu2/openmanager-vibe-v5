@@ -85,6 +85,7 @@ sensitive-env.md
 
 # vercel
 .vercel
+.vercel-archived
 
 # typescript
 *.tsbuildinfo

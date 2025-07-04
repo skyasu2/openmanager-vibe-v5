@@ -5,7 +5,7 @@
 > **30일 완성 차세대 AI 통합 서버 모니터링 플랫폼**  
 > _2개 AI 모드 협업 시스템으로 혁신적인 서버 관리 경험 제공_
 
-[![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?logo=vercel)](https://openmanager-vibe-v5.vercel.app/)
+[![GCP](https://img.shields.io/badge/Deployed%20on-GCP%20Cloud%20Functions-blue?logo=google-cloud)](https://us-central1-openmanager-free-tier.cloudfunctions.net/health-check)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Tests](https://img.shields.io/badge/Tests-95%25%20Pass-green)](https://github.com/your-repo/actions)
@@ -81,11 +81,22 @@ npm run test:tdd-safe  # 95% 통과율 확인
 npm run validate:competition  # 경연대회 수준 검증
 ```
 
-## 🚨 응급 조치 시스템 (v5.45.0)
+## 🚀 GCP 마이그레이션 완료 (v5.47.0)
 
-### **Vercel Pro 사용량 위기 해결**
+### **Vercel → GCP Cloud Functions 성공적 이전**
 
-2025년 7월 3일, Edge Runtime 전환 후 Function Invocations가 920K로 급증하여 Vercel Pro 사용량이 하루만에 90% 소진되는 위기 상황이 발생했습니다. 이에 대응하여 다단계 응급 조치 시스템을 구현했습니다.
+2025년 7월 4일, 비용 절감과 성능 향상을 위해 Vercel에서 Google Cloud Functions로 핵심 기능을 이전했습니다. 무료 GCP 티어를 활용하여 운영 비용을 완전히 절감하면서도 더 나은 성능을 제공합니다.
+
+#### **🏆 마이그레이션 성과**
+
+- **💰 비용 절감**: Vercel Pro $20/월 → GCP Free Tier $0/월
+- **⚡ 성능 향상**: 메모리 1GB, 타임아웃 540초 지원
+- **🔧 안정성 증대**: 전용 인프라로 더 안정적 운영
+
+#### **🌐 새로운 엔드포인트**
+
+- **Health Check**: `https://us-central1-openmanager-free-tier.cloudfunctions.net/health-check`
+- **Enterprise Metrics**: `https://us-central1-openmanager-free-tier.cloudfunctions.net/enterprise-metrics`
 
 ## 🔓 무료 Vercel 최적화 (v5.46.0)
 
@@ -313,7 +324,7 @@ npm run deploy:competition  # 경연대회 수준 전체 검증
 
 ## 📊 라이브 데모
 
-🌐 **[Live Demo](https://openmanager-vibe-v5.vercel.app/)**
+🌐 **[Live Demo](https://us-central1-openmanager-free-tier.cloudfunctions.net/health-check)**
 
 ### 테스트 계정
 
@@ -356,7 +367,7 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
 
 **⭐ 이 프로젝트가 도움이 되셨다면 스타를 눌러주세요! ⭐**
 
-[🚀 Live Demo](https://openmanager-vibe-v5.vercel.app/) | [📚 문서](docs/) | [🐛 이슈 리포트](issues/) | [💡 기능 제안](issues/)
+[🚀 Live Demo](https://us-central1-openmanager-free-tier.cloudfunctions.net/health-check) | [📚 문서](docs/) | [🐛 이슈 리포트](issues/) | [💡 기능 제안](issues/)
 
 </div>
 
@@ -539,19 +550,19 @@ const { remainingTime, isWarning, resetTimer } = useAutoLogout({
 
 ### 프로덕션 배포
 
-#### Vercel 배포 (권장)
+#### GCP Cloud Functions 배포 (권장)
 
 ```bash
-# Vercel CLI 설치
-npm install -g vercel
+# GCP CLI 설치 및 인증
+gcloud auth login
+gcloud config set project openmanager-free-tier
 
-# 프로젝트 배포
-vercel --prod
+# 전체 배포 (빌드 + 함수 배포)
+bash scripts/deploy-gcp.sh
 
-# 환경 변수 설정
-vercel env add GOOGLE_OAUTH_CLIENT_ID
-vercel env add GOOGLE_OAUTH_CLIENT_SECRET
-vercel env add GOOGLE_OAUTH_TEAM_PASSWORD
+# 개별 함수 배포
+cd gcp-cloud-functions/health && npm run deploy
+cd ../enterprise-metrics && npm run deploy
 ```
 
 ## ⚙️ 환경 변수 설정

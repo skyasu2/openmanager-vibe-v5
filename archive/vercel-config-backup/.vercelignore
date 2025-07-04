@@ -1,0 +1,75 @@
+# HTML 파일 완전 차단 (최우선)
+*.html
+**/*.html
+public/*.html
+public/**/*.html
+out/*.html
+out/**/*.html
+
+# 특정 파일들 직접 차단
+index.html
+public/index.html
+out/index.html
+
+# 루트 api 폴더
+/api
+
+# Storybook 관련 파일들 (프로덕션 빌드 제외)
+**/*.stories.tsx
+**/*.stories.ts
+**/*.stories.js
+**/*.stories.jsx
+.storybook/
+storybook-static/
+*.storybook.*
+
+# 테스트 관련 파일들
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+e2e/
+tests/
+test-results/
+playwright-report/
+coverage/
+
+# 환경 변수 및 로그
+.env.local
+.env*.local
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 개발 도구
+.DS_Store
+.vscode/
+.idea/
+
+# 테스트 관련
+.nyc_output
+*.tgz
+*.tar.gz
+
+# Next.js 빌드 파일
+.next/
+out/
+dist/
+
+# 캐시 파일
+node_modules/
+.cache/
+.parcel-cache/
+
+# 문서 및 스크립트 (배포에 불필요)
+docs/
+scripts/
+!scripts/conditional-mcp-setup.mjs
+!scripts/build-time-decryption.mjs
+!scripts/safe-prebuild.mjs
+.github/
+README.md
+.env.example
+.env.template
+tsconfig.tsbuildinfo 
