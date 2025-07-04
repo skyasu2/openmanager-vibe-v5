@@ -42,7 +42,9 @@
     "pre-commit": "lint-staged",
     "pre-push": "npm run validate:all",
     "kst:time": "node -e \"const now = new Date(); console.log('🕒 현재 한국시간:', now.toLocaleString('ko-KR', {timeZone: 'Asia/Seoul'}) + ' (KST)')\"",
-    "kst:commit": "node -e \"const now = new Date(); console.log('커밋용 시간:', '(' + now.toLocaleString('sv-SE', {timeZone: 'Asia/Seoul'}).substring(0, 16) + ' KST)')\""
+    "kst:commit": "node -e \"const now = new Date(); console.log('커밋용 시간:', '(' + now.toLocaleString('sv-SE', {timeZone: 'Asia/Seoul'}).substring(0, 16) + ' KST)')\"",
+    "cursor:validate": "npm run validate:all",
+    "cursor:auto-test": "npm run test:unit && npm run test:integration"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",
