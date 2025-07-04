@@ -18,6 +18,7 @@
   ],
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/build-time-decryption.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -44,7 +45,10 @@
     "kst:time": "node -e \"const now = new Date(); console.log('🕒 현재 한국시간:', now.toLocaleString('ko-KR', {timeZone: 'Asia/Seoul'}) + ' (KST)')\"",
     "kst:commit": "node -e \"const now = new Date(); console.log('커밋용 시간:', '(' + now.toLocaleString('sv-SE', {timeZone: 'Asia/Seoul'}).substring(0, 16) + ' KST)')\"",
     "cursor:validate": "npm run validate:all",
-    "cursor:auto-test": "npm run test:unit && npm run test:integration"
+    "cursor:auto-test": "npm run test:unit && npm run test:integration",
+    "test:passwordless": "node scripts/test-passwordless-system.js",
+    "passwordless:enable": "cross-env PASSWORDLESS_DEV_MODE=true npm run dev",
+    "passwordless:test": "npm run test:passwordless"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",

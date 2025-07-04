@@ -125,3 +125,5 @@ fetch-mcp-server/
 
 # 💾 커밋 백업 폴더 (롤백 시 생성되는 백업)
 commit/
+# Build-time generated files
+.env.build

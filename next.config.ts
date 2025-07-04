@@ -25,13 +25,13 @@ const nextConfig: NextConfig = {
 
   // 🚫 Vercel 빌드 시 ESLint 완전 비활성화
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
     dirs: [], // ESLint 검사 디렉토리 없음
   },
 
   // TypeScript 빌드 오류 무시
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
 
   // ⚡ Next.js 15 최적화 설정
@@ -47,6 +47,7 @@ const nextConfig: NextConfig = {
       '@tanstack/react-query',
     ],
     optimizeCss: true,
+    forceSwcTransforms: true,
     // Server Actions 활성화
     serverActions: {
       allowedOrigins: [
@@ -57,6 +58,11 @@ const nextConfig: NextConfig = {
       ],
       bodySizeLimit: '2mb',
     },
+    serverComponentsExternalPackages: [
+      '@upstash/redis',
+      'ioredis',
+      'redis',
+    ],
   },
 
   // 환경변수 기본값 설정
@@ -67,6 +73,9 @@ const nextConfig: NextConfig = {
     // 🔧 Redis 환경변수 안전 설정
     FORCE_MOCK_REDIS: process.env.VERCEL ? 'false' : 'true',
     REDIS_CONNECTION_DISABLED: 'false',
+    VERCEL_FREE_TIER_OPTIMIZED: 'true',
+    BUNDLE_SIZE_OPTIMIZED: 'true',
+    EDGE_RUNTIME_COMPATIBLE: 'true',
   },
 
   serverExternalPackages: [
@@ -83,6 +92,8 @@ const nextConfig: NextConfig = {
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 31536000, // 1년
     dangerouslyAllowSVG: false,
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
   compress: true,
@@ -196,6 +207,66 @@ const nextConfig: NextConfig = {
       ];
     }
 
+    // 무료 Vercel 번들 크기 최적화 (기존 설정과 통합)
+    if (!dev && !isServer && !isCI) {
+      // 번들 분할을 기존 CI 최적화와 별도로 처리
+      config.optimization.splitChunks = {
+        ...config.optimization.splitChunks,
+        chunks: 'all',
+        cacheGroups: {
+          ...config.optimization.splitChunks?.cacheGroups,
+          // 암복호화 모듈 별도 청크
+          encryption: {
+            test: /[\\/](unified-encryption-manager|crypto-utils|decrypt)[\\/]/,
+            name: 'encryption',
+            chunks: 'all',
+            priority: 20,
+          },
+          // AI 엔진 별도 청크  
+          aiEngine: {
+            test: /[\\/](ai|engines|rag)[\\/]/,
+            name: 'ai-engine',
+            chunks: 'all',
+            priority: 15,
+          },
+          // Redis 관련 별도 청크
+          redis: {
+            test: /[\\/](redis|upstash)[\\/]/,
+            name: 'redis',
+            chunks: 'all',
+            priority: 10,
+          },
+          // 기본 벤더 청크
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendor',
+            chunks: 'all',
+            priority: 5,
+          },
+        },
+      };
+
+      // 기존 alias 설정과 통합하여 사용하지 않는 모듈 제거
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        // Node.js 전용 모듈들 Mock 처리 (기존 설정 유지)
+        'crypto': false,
+        'os': false,
+        'stream': false,
+        'util': false,
+      };
+    }
+
+    // Edge Runtime 호환성
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push({
+        '@upstash/redis': 'commonjs @upstash/redis',
+        'ioredis': 'commonjs ioredis',
+        'redis': 'commonjs redis',
+      });
+    }
+
     return config;
   },
 
@@ -203,6 +274,24 @@ const nextConfig: NextConfig = {
   generateBuildId: async () => {
     return 'openmanager-vibe-v5-app-router';
   },
+
+  // 🔄 리다이렉트 최적화
+  async redirects() {
+    return [];
+  },
+
+  // 🌐 국제화 비활성화 (번들 크기 절약)
+  i18n: undefined,
+
+  // 📝 로깅 최적화
+  logging: {
+    fetches: {
+      fullUrl: false,
+    },
+  },
+
+  // 🔧 기타 최적화  
+  generateEtags: true,
 };
 
 // 번들 분석기 적용

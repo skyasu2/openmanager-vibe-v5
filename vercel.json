@@ -2,23 +2,23 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "src/app/api/**/*.ts": {
-      "maxDuration": 25,
+      "maxDuration": 10,
       "memory": 512
     },
     "src/app/api/ai/**/*.ts": {
-      "maxDuration": 45,
+      "maxDuration": 10,
       "memory": 1024
     },
     "src/app/api/ai/logging/stream/route.ts": {
-      "maxDuration": 35,
+      "maxDuration": 10,
       "memory": 512
     },
     "src/app/api/data-generator/**/*.ts": {
-      "maxDuration": 30,
+      "maxDuration": 10,
       "memory": 512
     },
     "src/app/api/ai-agent/**/*.ts": {
-      "maxDuration": 45,
+      "maxDuration": 10,
       "memory": 1024
     }
   },
@@ -64,7 +64,9 @@
       "destination": "/api/health"
     }
   ],
-  "regions": ["icn1"],
+  "regions": [
+    "icn1"
+  ],
   "cleanUrls": true,
   "trailingSlash": false,
   "buildCommand": "npm run build",

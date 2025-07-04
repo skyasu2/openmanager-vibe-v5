@@ -1,13 +1,12 @@
+import { getVercelOptimizedConfig } from '@/config/environment';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../types/database-types';
 import { env } from './env';
 import { usageMonitor } from './usage-monitor';
-import { getVercelOptimizedConfig } from '@/config/environment';
 
 // 빌드 타임에는 최소 유효한 URL, 런타임에는 실제 환경변수 사용
 function getSupabaseUrl() {
-  // 빌드 타임에 환경변수가 없으면 최소 유효 URL 반환
-  const url = env.NEXT_PUBLIC_SUPABASE_URL;
+  // 🔧 임시 해결: 환경변수 직접 읽기 (.env.local 지원)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
   if (
     !url &&
     (process.env.NODE_ENV === undefined ||

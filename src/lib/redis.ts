@@ -385,14 +385,34 @@ async function initializeRedis(): Promise<RedisClientInterface> {
   let redisUrl = env.KV_REST_API_URL;
   let redisToken = env.KV_REST_API_TOKEN;
 
-  // 환경변수가 없으면 런타임 복호화 시도
+  // 환경변수가 없으면 통합 매니저에서 조회
   if (!redisUrl || !redisToken) {
-    console.log('🔓 환경변수 누락 - 런타임 복호화 시도 중...');
-    const decryptedConfig = getDecryptedRedisConfig();
-    if (decryptedConfig) {
-      redisUrl = decryptedConfig.url;
-      redisToken = decryptedConfig.token;
-      console.log('✅ Redis 환경변수 런타임 복호화 성공');
+    console.log('🔓 환경변수 누락 - 통합 매니저에서 조회 중...');
+    try {
+      // Edge Runtime 호환을 위한 정적 임포트 대체
+      const { encryptionManager } = require('./unified-encryption-manager');
+      await encryptionManager.initialize();
+
+      if (!redisUrl) {
+        redisUrl = encryptionManager.get('KV_REST_API_URL') ||
+          encryptionManager.get('UPSTASH_REDIS_REST_URL');
+      }
+      if (!redisToken) {
+        redisToken = encryptionManager.get('KV_REST_API_TOKEN') ||
+          encryptionManager.get('UPSTASH_REDIS_REST_TOKEN');
+      }
+
+      if (redisUrl && redisToken) {
+        console.log('✅ Redis 환경변수 통합 매니저 조회 성공');
+      }
+    } catch (error) {
+      console.warn('⚠️ 통합 매니저 조회 실패, 기존 방식으로 폴백:', error);
+      const decryptedConfig = getDecryptedRedisConfig();
+      if (decryptedConfig) {
+        redisUrl = decryptedConfig.url;
+        redisToken = decryptedConfig.token;
+        console.log('✅ Redis 환경변수 폴백 복호화 성공');
+      }
     }
   }
 
@@ -401,25 +421,44 @@ async function initializeRedis(): Promise<RedisClientInterface> {
     return new EnhancedMockRedis();
   }
 
-  // ➡️ 실제 Redis 연결 시도 (빠른 폴백)
+  // ➡️ 실제 Redis 연결 시도 (Edge Runtime 호환)
   try {
-    const { Redis } = await import('@upstash/redis');
+    // Edge Runtime 감지 - globalThis에 EdgeRuntime이 있으면 Edge Runtime
+    const isEdgeRuntime = 'EdgeRuntime' in globalThis;
 
-    const redisClient = new Redis({
-      url: redisUrl,
-      token: redisToken,
-      retry: {
-        retries: 2,
-        backoff: retryCount => Math.min(retryCount * 300, 800),
-      },
-      automaticDeserialization: true,
-      enableAutoPipelining: false,
-    });
+    if (!isEdgeRuntime && typeof window === 'undefined') {
+      try {
+        // 동적 임포트로 @upstash/redis 모듈 로드 시도
+        const redisModule = await import('@upstash/redis').catch(() => null);
 
-    // 빠른 연결 테스트
-    await redisClient.ping();
-    console.log('✅ Real Redis 연결 성공');
-    return redisClient;
+        if (redisModule?.Redis) {
+          const redisClient = new redisModule.Redis({
+            url: redisUrl,
+            token: redisToken,
+            retry: {
+              retries: 2,
+              backoff: retryCount => Math.min(retryCount * 300, 800),
+            },
+            automaticDeserialization: true,
+            enableAutoPipelining: false,
+          });
+
+          // 빠른 연결 테스트
+          await redisClient.ping();
+          console.log('✅ Real Redis 연결 성공');
+          return redisClient;
+        } else {
+          console.log('⚠️ Redis 모듈을 로드할 수 없음, Mock Redis로 전환');
+          return new EnhancedMockRedis();
+        }
+      } catch (redisError) {
+        console.log('⚠️ Redis 모듈 로드 실패, Mock Redis로 전환');
+        return new EnhancedMockRedis();
+      }
+    } else {
+      console.log('🔄 Edge Runtime 감지 → Enhanced Mock Redis 사용');
+      return new EnhancedMockRedis();
+    }
   } catch (error: any) {
     console.log(`⚠️ Real Redis 연결 실패 → Mock Redis로 전환`);
     return new EnhancedMockRedis();
