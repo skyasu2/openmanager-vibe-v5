@@ -36,7 +36,7 @@ export class VMPersistentDataManager {
     // 핵심 컴포넌트들
     private enrichedMetricsGenerator = EnrichedMetricsGenerator.getInstance();
     private longRunningScenarioEngine = new LongRunningScenarioEngine();
-    private baselineStorage = new BaselineStorageService();
+    private baselineStorage = BaselineStorageService.getInstance();
     private unifiedMetricsManager = UnifiedMetricsManager.getInstance();
 
     // 설정

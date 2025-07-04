@@ -63,7 +63,7 @@ export function AutoLogoutWarning({
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                         베르셀 서버리스 사용량을 줄이기 위해 비활성 상태에서는 자동으로 로그아웃됩니다.
-                        계속 사용하시려면 "세션 연장"을 클릭하거나 화면을 클릭하세요.
+                        계속 사용하시려면 &quot;세션 연장&quot;을 클릭하거나 화면을 클릭하세요.
                     </p>
                 </div>
 

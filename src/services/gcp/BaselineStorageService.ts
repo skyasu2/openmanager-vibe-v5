@@ -134,11 +134,12 @@ interface IncidentPattern {
  * - AI 분석을 위한 연속성 보장
  */
 export class BaselineStorageService {
+  private static instance: BaselineStorageService;
   private storage: Storage;
   private firestore: Firestore;
   private bucketName: string;
 
-  constructor() {
+  private constructor() {
     // TODO: 실제 GCP 모듈 설치 후 활성화
     this.storage = null as any;
     this.firestore = null as any;
@@ -149,6 +150,16 @@ export class BaselineStorageService {
     console.log('🏗️ BaselineStorageService 초기화 완료 (스텁 모드)');
     console.log(`📦 저장소: ${this.bucketName}`);
     console.log(`🗃️ Firestore: ${process.env.GCP_PROJECT_ID}`);
+  }
+
+  /**
+   * 🔄 싱글톤 인스턴스 반환
+   */
+  static getInstance(): BaselineStorageService {
+    if (!BaselineStorageService.instance) {
+      BaselineStorageService.instance = new BaselineStorageService();
+    }
+    return BaselineStorageService.instance;
   }
 
   /**

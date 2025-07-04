@@ -44,7 +44,7 @@ export class BaselineContinuityManager {
 
     // 핵심 컴포넌트
     private enrichedMetricsGenerator = EnrichedMetricsGenerator.getInstance();
-    private baselineStorage = new BaselineStorageService();
+    private baselineStorage = BaselineStorageService.getInstance();
 
     // 연속성 데이터
     private snapshots: BaselineSnapshot[] = [];
