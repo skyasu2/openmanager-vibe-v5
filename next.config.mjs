@@ -134,12 +134,12 @@ const nextConfig = {
     trailingSlash: false,
     skipTrailingSlashRedirect: true,
 
-    // 환경변수 설정
+    // 환경변수 설정 (안전한 접근)
     env: {
         CUSTOM_KEY: 'app-router-only',
         DISABLE_PAGES_ROUTER: 'true',
-        VERCEL_ENV: process.env.VERCEL_ENV || 'development',
-        NEXT_PUBLIC_VERCEL_URL: process.env.VERCEL_URL || 'localhost:3000'
+        VERCEL_ENV: (typeof process !== 'undefined' && process.env?.VERCEL_ENV) || 'development',
+        NEXT_PUBLIC_VERCEL_URL: (typeof process !== 'undefined' && process.env?.VERCEL_URL) || 'localhost:3000'
     },
 
     // 타입체크 최적화
