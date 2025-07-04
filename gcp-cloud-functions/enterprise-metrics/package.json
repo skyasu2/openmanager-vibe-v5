@@ -1,7 +1,7 @@
 {
   "name": "gcp-enterprise-metrics",
   "version": "1.0.0",
-  "description": "GCP Enterprise Metrics Generator - Vercel Alternative",
+  "description": "GCP Free Tier Enterprise Metrics Generator",
   "type": "module",
   "main": "index.js",
   "engines": {
@@ -12,14 +12,16 @@
   },
   "scripts": {
     "start": "node index.js",
-    "deploy": "gcloud functions deploy enterprise-metrics --runtime nodejs20 --trigger-http --allow-unauthenticated --timeout 540s --memory 1GB"
+    "deploy": "gcloud functions deploy enterprise-metrics --runtime nodejs20 --trigger-http --allow-unauthenticated --memory 256MB --timeout 30s"
   },
   "keywords": [
     "enterprise-metrics",
     "gcp",
     "cloud-functions",
     "openmanager",
-    "monitoring"
+    "free-tier",
+    "monitoring",
+    "25-metrics"
   ],
   "author": "OpenManager Team",
   "license": "MIT"

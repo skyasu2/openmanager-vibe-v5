@@ -75,7 +75,7 @@ export class AdvancedSimulationEngine {
     try {
       // 🌐 Google Cloud Functions에서 메트릭 조회
       const response = await fetch(
-        'https://us-central1-openmanager-vibe-v5.cloudfunctions.net/enterpriseMetrics?action=current'
+        'https://us-central1-openmanager-vibe-v5.cloudfunctions.net/enterprise-metrics?action=current'
       );
       const gcpData = await response.json();
       const realMetrics = gcpData.success ? gcpData.data.metrics : [];

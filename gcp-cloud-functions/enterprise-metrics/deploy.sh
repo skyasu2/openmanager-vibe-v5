@@ -1,55 +1,52 @@
 #!/bin/bash
 
-# 🚀 Google Cloud Functions 엔터프라이즈 메트릭 배포 스크립트
-# OpenManager Vibe v5 - Vercel 대체
+# 🏢 GCP Enterprise Metrics Functions 배포 스크립트
+# 25개 핵심 메트릭 생성기 배포 자동화
 
-echo "🏢 엔터프라이즈 메트릭 Google Cloud Functions 배포 시작..."
+set -e
 
-# 📋 설정 변수
-PROJECT_ID="openmanager-vibe-v5"
-FUNCTION_NAME="enterpriseMetrics"
-REGION="us-central1"
-RUNTIME="nodejs20"
-MEMORY="1GB"
-TIMEOUT="540s"
+echo "🚀 GCP Enterprise Metrics Functions 배포 시작..."
 
-# 🔧 프로젝트 설정
-echo "🔧 GCP 프로젝트 설정: $PROJECT_ID"
-gcloud config set project $PROJECT_ID
-
-# 🌟 Firebase Functions 배포
-echo "🌟 Firebase Functions 배포 시작..."
-gcloud functions deploy $FUNCTION_NAME \
-  --gen2 \
-  --runtime=$RUNTIME \
-  --region=$REGION \
-  --source=. \
-  --entry-point=$FUNCTION_NAME \
-  --trigger-http \
-  --allow-unauthenticated \
-  --memory=$MEMORY \
-  --timeout=$TIMEOUT \
-  --set-env-vars="NODE_ENV=production" \
-  --max-instances=10 \
-  --min-instances=0
-
-# ✅ 배포 확인
-if [ $? -eq 0 ]; then
-    echo "✅ 배포 성공!"
-    echo "🌐 엔드포인트: https://$REGION-$PROJECT_ID.cloudfunctions.net/$FUNCTION_NAME"
-    echo "🎯 테스트 URL: https://$REGION-$PROJECT_ID.cloudfunctions.net/$FUNCTION_NAME?action=status"
-    
-    # 📊 배포 상태 확인
-    echo "📊 배포 상태 확인 중..."
-    gcloud functions describe $FUNCTION_NAME --region=$REGION
-    
-    # 🧪 간단한 테스트
-    echo "🧪 엔드포인트 테스트 중..."
-    curl -s "https://$REGION-$PROJECT_ID.cloudfunctions.net/$FUNCTION_NAME?action=status" | jq '.'
-    
-else
-    echo "❌ 배포 실패"
+# 현재 디렉토리 확인
+if [ ! -f "package.json" ]; then
+    echo "❌ package.json이 없습니다. enterprise-metrics 폴더에서 실행하세요."
     exit 1
 fi
 
-echo "🎉 엔터프라이즈 메트릭 Google Cloud Functions 배포 완료!" 
+# 의존성 설치
+echo "📦 의존성 설치 중..."
+npm ci
+
+# 함수 배포
+echo "☁️ GCP Functions 배포 중..."
+gcloud functions deploy enterprise-metrics \
+  --gen2 \
+  --runtime nodejs20 \
+  --trigger-http \
+  --allow-unauthenticated \
+  --memory 256MB \
+  --timeout 30s \
+  --region us-central1 \
+  --source . \
+  --entry-point enterpriseMetrics \
+  --max-instances 10 \
+  --set-env-vars "NODE_ENV=production" \
+  --quiet
+
+# 배포 완료 확인
+if [ $? -eq 0 ]; then
+    echo "✅ 배포 완료!"
+    echo "🌐 함수 URL: https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/enterprise-metrics"
+    echo "🔗 테스트 URL: https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/enterprise-metrics?action=status"
+    echo ""
+    echo "📋 사용 가능한 액션:"
+    echo "  - current: 현재 모든 서버 메트릭"
+    echo "  - dashboard: 대시보드 요약"
+    echo "  - status: 생성기 상태"
+    echo ""
+    echo "🔍 함수 로그 확인:"
+    echo "  gcloud functions logs read enterprise-metrics --gen2 --region us-central1"
+else
+    echo "❌ 배포 실패"
+    exit 1
+fi 

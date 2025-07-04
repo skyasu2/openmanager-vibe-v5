@@ -1,294 +1,276 @@
-# 🏢 엔터프라이즈 메트릭 Google Cloud Functions
+# 🏢 GCP Enterprise Metrics Functions
 
-**OpenManager Vibe v5** - Vercel 리소스 절약을 위한 Google Cloud Functions 이전
-
-## 📋 개요
-
-기존 Vercel에서 실행되던 엔터프라이즈 메트릭 생성 로직을 Google Cloud Functions로 완전 이전하여:
-
-- **Vercel Function Invocations 80% 절약**
-- **25개 핵심 엔터프라이즈급 메트릭** 제공
-- **실제 장애 시나리오** 시뮬레이션 (6가지)
-- **24시간 히스토리** 관리 (144개 데이터포인트)
+OpenManager Vibe v5의 엔터프라이즈급 서버 모니터링 메트릭 생성기 (GCP Functions 버전)
 
 ## 🎯 주요 기능
 
-### 📊 엔터프라이즈급 메트릭 (25개)
+### 25개 핵심 메트릭 생성
 
-#### 🔧 시스템 리소스 메트릭 (10개)
+- **시스템 리소스 (10개)**: CPU, 메모리, 디스크, 네트워크, 온도, Load Average, IOPS, 스왑 등
+- **애플리케이션 성능 (8개)**: 응답시간, RPS, 에러율, 연결수, 쓰레드 풀, 캐시 히트율, 쿼리 시간, SSL 핸드셰이크
+- **시스템 상태 (7개)**: 프로세스 수, 파일 디스크립터, 업타임, 보안 이벤트, 로그 에러, 헬스 스코어, 메모리 누수
 
-- CPU 사용률 & 온도 & Load Average
-- 메모리 사용률 & 스왑 사용률
-- 디스크 사용률 & IOPS
-- 네트워크 인바운드/아웃바운드 & 연결 수
+### 6가지 실제 장애 시나리오
 
-#### 🚀 애플리케이션 성능 메트릭 (8개)
-
-- 응답시간 & RPS & 에러율
-- 활성 연결 & 쓰레드 풀 사용률
-- 캐시 히트율 & DB 쿼리 시간
-- SSL 핸드셰이크 시간
-
-#### 🛡️ 시스템 상태 메트릭 (7개)
-
-- 프로세스 수 & 파일 디스크립터 사용률
-- 업타임 & 보안 이벤트
-- 로그 에러 & 서비스 헬스 스코어
-- 메모리 누수 지표
-
-### 🎭 실제 장애 시나리오 (6가지)
-
-1. **정상 운영** (70%) - 안정적인 상태
-2. **피크 부하** (15%) - 트래픽 급증
-3. **메모리 누수** (5%) - 점진적 메모리 증가
-4. **디스크 폭증** (3%) - 디스크 공간 급격한 소모
-5. **네트워크 혼잡** (4%) - 네트워크 지연 증가
-6. **서비스 장애** (3%) - 완전한 서비스 중단
-
-## 🌐 API 엔드포인트
-
-### 기본 URL
-
-```
-https://us-central1-openmanager-vibe-v5.cloudfunctions.net/enterpriseMetrics
-```
-
-### 지원 액션
-
-#### 1. 📊 현재 모든 서버 메트릭
-
-```bash
-GET ?action=current
-```
-
-#### 2. 🔍 특정 서버 상세 메트릭
-
-```bash
-GET ?action=server&serverId=web-01
-```
-
-#### 3. 📋 대시보드 요약
-
-```bash
-GET ?action=dashboard
-```
-
-#### 4. 🎪 현재 활성 시나리오
-
-```bash
-GET ?action=scenarios
-```
-
-#### 5. 🚨 서버별 임계값
-
-```bash
-GET ?action=thresholds&serverType=web
-```
-
-#### 6. 📊 생성기 상태
-
-```bash
-GET ?action=status
-```
+- **정상 운영 (70%)**: 안정적인 기준 상태
+- **피크 부하 (15%)**: 트래픽 급증, CPU/메모리 증가
+- **메모리 누수 (5%)**: 점진적 메모리 증가, 스왑 사용
+- **디스크 포화 (3%)**: 디스크 사용량/IOPS 급증
+- **네트워크 혼잡 (4%)**: 네트워크 지연, 연결 증가
+- **서비스 장애 (3%)**: 에러율 급증, 성능 저하
 
 ## 🚀 배포 방법
 
 ### 1. 사전 요구사항
 
 ```bash
-# Google Cloud CLI 설치 및 인증
+# Google Cloud CLI 설치 확인
+gcloud --version
+
+# 프로젝트 설정
+gcloud config set project YOUR_PROJECT_ID
+
+# 인증
 gcloud auth login
-gcloud config set project openmanager-vibe-v5
 ```
 
-### 2. 의존성 설치
+### 2. 함수 배포
 
 ```bash
-npm install
-```
+# 의존성 설치
+npm ci
 
-### 3. 배포 실행
-
-```bash
-# 자동 배포 스크립트
+# 배포 스크립트 실행
 chmod +x deploy.sh
 ./deploy.sh
 
-# 또는 수동 배포
-npm run deploy
+# 또는 직접 배포
+gcloud functions deploy enterprise-metrics \
+  --gen2 \
+  --runtime nodejs20 \
+  --trigger-http \
+  --allow-unauthenticated \
+  --memory 256MB \
+  --timeout 30s \
+  --region us-central1 \
+  --source . \
+  --entry-point enterpriseMetrics
 ```
 
-### 4. 배포 확인
+### 3. 배포 후 확인
 
 ```bash
-# 엔드포인트 테스트
-curl "https://us-central1-openmanager-vibe-v5.cloudfunctions.net/enterpriseMetrics?action=status"
+# 함수 상태 확인
+gcloud functions describe enterprise-metrics --gen2 --region us-central1
+
+# 로그 확인
+gcloud functions logs read enterprise-metrics --gen2 --region us-central1
+
+# 테스트 호출
+curl "https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/enterprise-metrics?action=status"
 ```
 
-## 📊 서버 구성
+## 📋 API 엔드포인트
 
-### 8개 시뮬레이션 서버
+### GET 요청
 
-- **Web Servers**: web-01, web-02 (us-east-1, us-west-2)
-- **Database Servers**: db-01, db-02 (Primary/Replica)
-- **API Gateways**: api-01, api-02
-- **Cache Servers**: cache-01, cache-02 (Redis)
+#### 현재 메트릭 조회
 
-### 서버 타입별 임계값
+```bash
+curl "https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/enterprise-metrics?action=current"
+```
+
+#### 대시보드 요약
+
+```bash
+curl "https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/enterprise-metrics?action=dashboard"
+```
+
+#### 생성기 상태 확인
+
+```bash
+curl "https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/enterprise-metrics?action=status"
+```
+
+### POST 요청
+
+#### 생성기 활성화
+
+```bash
+curl -X POST "https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/enterprise-metrics" \
+  -H "Content-Type: application/json" \
+  -d '{"action": "enable"}'
+```
+
+#### 생성기 비활성화
+
+```bash
+curl -X POST "https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/enterprise-metrics" \
+  -H "Content-Type: application/json" \
+  -d '{"action": "disable"}'
+```
+
+## 🏗️ 응답 구조
+
+### 현재 메트릭 응답 예시
+
+```json
+{
+  "success": true,
+  "action": "current",
+  "data": {
+    "metrics": [
+      {
+        "serverId": "web-app-01",
+        "serverName": "Web Server 01",
+        "serverType": "web",
+        "timestamp": "2025-01-27T10:30:00.000Z",
+        "scenario": "normal",
+        "systemResources": {
+          "cpuUsage": 42.5,
+          "memoryUsage": 65.2,
+          "diskUsage": 75.8,
+          "networkInbound": 180,
+          "networkOutbound": 145,
+          "networkConnections": 420,
+          "diskIOPS": 850,
+          "cpuTemperature": 58,
+          "loadAverage": 1.3,
+          "swapUsage": 5.2
+        },
+        "applicationPerformance": {
+          "responseTime": 165,
+          "requestsPerSecond": 125,
+          "errorRate": 0.8,
+          "activeConnections": 220,
+          "threadPoolUsage": 62,
+          "cacheHitRate": 89,
+          "dbQueryTime": 28,
+          "sslHandshakeTime": 48
+        },
+        "systemHealth": {
+          "processCount": 185,
+          "fileDescriptorUsage": 58,
+          "uptime": 2592000,
+          "securityEvents": 2,
+          "logErrors": 8,
+          "serviceHealthScore": 92,
+          "memoryLeakIndicator": 1.8
+        }
+      }
+    ],
+    "servers": [...]
+  },
+  "timestamp": "2025-01-27T10:30:00.000Z",
+  "metricsCount": 25,
+  "serversCount": 8,
+  "source": "gcp-functions"
+}
+```
+
+## 💰 비용 최적화
+
+### GCP 무료 티어 활용
+
+- **호출 횟수**: 월 200만 건 무료
+- **컴퓨팅 시간**: 월 40만 GB-초 무료
+- **네트워크**: 월 5GB 무료
+
+### 리소스 제한
+
+- **메모리**: 256MB (최소 사양)
+- **타임아웃**: 30초
+- **최대 인스턴스**: 10개
+- **지역**: us-central1 (무료 티어)
+
+## 🔍 모니터링 및 디버깅
+
+### 로그 확인
+
+```bash
+# 실시간 로그 스트리밍
+gcloud functions logs tail enterprise-metrics --gen2 --region us-central1
+
+# 최근 로그 조회
+gcloud functions logs read enterprise-metrics --gen2 --region us-central1 --limit 50
+```
+
+### 성능 모니터링
+
+```bash
+# 함수 메트릭 확인
+gcloud functions describe enterprise-metrics --gen2 --region us-central1
+
+# 에러율 확인
+gcloud logging read "resource.type=cloud_function AND resource.labels.function_name=enterprise-metrics"
+```
+
+## 🔧 구성 변경
+
+### 서버 수정
+
+`index.js`의 `initializeServers()` 함수에서 서버 정보 수정 가능:
 
 ```javascript
-// Web 서버 임계값
-web: {
-  cpu: { warning: 70, critical: 85 },
-  memory: { warning: 80, critical: 90 },
-  disk: { warning: 85, critical: 95 }
-}
-
-// Database 서버 임계값
-database: {
-  cpu: { warning: 60, critical: 80 },
-  memory: { warning: 85, critical: 95 },
-  disk: { warning: 90, critical: 98 }
+initializeServers() {
+  return [
+    { id: 'web-app-01', name: 'Web Server 01', type: 'web', cores: 16, ram: 64 },
+    // 추가 서버 정의...
+  ];
 }
 ```
 
-## 🔄 Vercel 프록시 연동
+### 시나리오 비율 조정
 
-Vercel의 `/api/enterprise/metrics` 엔드포인트는 자동으로 Google Cloud Functions로 프록시됩니다:
+`generateScenario()` 함수에서 시나리오 비율 조정:
 
-```typescript
-// src/app/api/enterprise/metrics/route.ts
-const GCP_ENTERPRISE_METRICS_URL =
-  'https://us-central1-openmanager-vibe-v5.cloudfunctions.net/enterpriseMetrics';
+```javascript
+const scenarios = [
+  { name: 'normal', weight: 70 }, // 정상 운영 70%
+  { name: 'peak', weight: 15 }, // 피크 부하 15%
+  { name: 'memory_leak', weight: 5 }, // 메모리 누수 5%
+  // 기타 시나리오...
+];
 ```
 
-## 📈 성능 최적화
+## 🚨 문제 해결
 
-### 콜드 스타트 최적화
+### 배포 실패 시
 
-- **지연 초기화**: 첫 요청시에만 메트릭 생성기 초기화
-- **전역 인스턴스**: 요청 간 상태 유지
-- **24시간 히스토리**: 메모리 내 캐싱
+1. **권한 확인**: GCP IAM 역할 확인
+2. **프로젝트 ID**: 올바른 프로젝트 ID 설정
+3. **API 활성화**: Cloud Functions API 활성화
+4. **빌링 계정**: 유효한 빌링 계정 연결
 
-### 리소스 설정
+### 함수 실행 오류 시
 
-- **메모리**: 1GB (대용량 히스토리 데이터 처리)
-- **타임아웃**: 540초 (복잡한 메트릭 계산)
-- **최대 인스턴스**: 10개 (동시 요청 처리)
+1. **로그 확인**: 상세 에러 메시지 확인
+2. **메모리 부족**: 메모리 할당량 증가
+3. **타임아웃**: 실행 시간 증가
+4. **코드 문법**: JavaScript 문법 오류 확인
 
-## 🧪 테스트
+## 📊 성능 벤치마크
 
-### 로컬 테스트
+### 응답 시간
 
-```bash
-# Functions Framework로 로컬 실행
-npm start
+- **평균**: 50-100ms
+- **최대**: 200ms
+- **Cold Start**: 1-2초
 
-# 로컬 엔드포인트 테스트
-curl "http://localhost:8080?action=status"
-```
+### 메모리 사용량
 
-### 프로덕션 테스트
+- **평균**: 80-120MB
+- **최대**: 200MB
+- **할당량**: 256MB
 
-```bash
-# 상태 확인
-curl "https://us-central1-openmanager-vibe-v5.cloudfunctions.net/enterpriseMetrics?action=status"
+### 처리량
 
-# 현재 메트릭 조회
-curl "https://us-central1-openmanager-vibe-v5.cloudfunctions.net/enterpriseMetrics?action=current"
+- **RPS**: 초당 50-100 요청
+- **동시 실행**: 최대 10 인스턴스
+- **일일 처리량**: 약 500만 요청
 
-# 대시보드 데이터
-curl "https://us-central1-openmanager-vibe-v5.cloudfunctions.net/enterpriseMetrics?action=dashboard"
-```
+## 🔗 관련 문서
 
-## 📊 모니터링
-
-### 실시간 로그 확인
-
-```bash
-gcloud functions logs read enterpriseMetrics --region=us-central1 --limit=50
-```
-
-### 성능 메트릭
-
-```bash
-gcloud monitoring metrics list --filter="metric.type:cloudfunctions"
-```
-
-## 🛠️ 문제 해결
-
-### 일반적인 문제
-
-1. **함수가 응답하지 않음**
-
-   ```bash
-   gcloud functions describe enterpriseMetrics --region=us-central1
-   ```
-
-2. **메모리 부족 오류**
-   - 메모리 한도를 2GB로 증가
-   - 히스토리 데이터 크기 최적화
-
-3. **타임아웃 오류**
-   - 타임아웃을 600초로 증가
-   - 비동기 처리 최적화
-
-### 디버깅 모드
-
-```bash
-# 상세 로그 활성화
-export DEBUG=true
-npm start
-```
-
-## 📋 비용 분석
-
-### Vercel vs Google Cloud Functions
-
-**Vercel (이전)**:
-
-- Function Invocations: 월 1M → 80% 사용
-- 비용: $20/월 Pro 플랜
-
-**Google Cloud Functions (현재)**:
-
-- Invocations: 월 2M 무료
-- Compute Time: 월 400K GB-seconds 무료
-- **예상 비용: $0/월** (무료 티어 내)
-
-### 리소스 절약 효과
-
-- **Vercel Function Invocations**: 80% 절약
-- **메모리 사용량**: 30% 효율화
-- **응답 시간**: 평균 200ms → 150ms 개선
-
-## 🔄 업데이트 방법
-
-### 코드 업데이트
-
-```bash
-# 코드 수정 후 재배포
-./deploy.sh
-
-# 또는 특정 함수만 업데이트
-gcloud functions deploy enterpriseMetrics --source=.
-```
-
-### 환경 변수 업데이트
-
-```bash
-gcloud functions deploy enterpriseMetrics \
-  --update-env-vars="NEW_VAR=value"
-```
-
-## 📞 지원
-
-문제 발생시:
-
-1. **로그 확인**: `gcloud functions logs read enterpriseMetrics`
-2. **상태 점검**: 엔드포인트 `/action=status` 호출
-3. **이슈 리포트**: GitHub Issues에 상세 정보 제출
-
----
-
-**🎉 Google Cloud Functions로 성공적인 Vercel 리소스 절약 달성!**
+- [Google Cloud Functions 문서](https://cloud.google.com/functions/docs)
+- [Firebase Functions v2 가이드](https://firebase.google.com/docs/functions/get-started)
+- [OpenManager Vibe v5 메인 문서](../../docs/)

@@ -1,33 +1,55 @@
-import { NextResponse } from 'next/server';
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
-import { MCPWarmupService } from '@/services/mcp/mcp-warmup-service';
 import { systemLogger } from '@/lib/logger';
+import { MCPWarmupService } from '@/services/mcp/mcp-warmup-service';
+import { NextResponse } from 'next/server';
 
 // 초기화 상태를 저장하는 간단한 플래그
 let isInitialized = false;
 let isInitializing = false;
+
+// 🎯 GCP Functions 설정
+const GCP_FUNCTIONS_BASE_URL =
+  process.env.GCP_FUNCTIONS_BASE_URL ||
+  'https://us-central1-openmanager-vibe-v5.cloudfunctions.net';
+
+/**
+ * 🌐 GCP Functions 연결 확인
+ */
+async function checkGCPFunctions(): Promise<boolean> {
+  try {
+    const response = await fetch(
+      `${GCP_FUNCTIONS_BASE_URL}/enterprise-metrics?action=health`,
+      {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(5000), // 5초 타임아웃
+      }
+    );
+
+    return response.ok;
+  } catch (error) {
+    console.warn('⚠️ GCP Functions 연결 확인 실패:', error);
+    return false;
+  }
+}
 
 async function runInitialization(): Promise<string[]> {
   const logs: string[] = [];
   isInitializing = true;
 
   try {
-    // 1. 데이터 생성기 초기화
+    // 1. GCP Functions 연결 확인
     try {
-      const generator = RealServerDataGenerator.getInstance();
-      if (generator.getAllServers().length === 0) {
-        await generator.initialize();
-        generator.startAutoGeneration();
-        logs.push('✅ 데이터 생성기 초기화 완료');
-        systemLogger.info('✅ 데이터 생성기 초기화 완료');
+      const gcpConnected = await checkGCPFunctions();
+      if (gcpConnected) {
+        logs.push('✅ GCP Functions 연결 확인 완료');
+        systemLogger.info('✅ GCP Functions 연결 확인 완료');
       } else {
-        logs.push('👍 데이터 생성기는 이미 실행 중입니다.');
-        systemLogger.info('👍 데이터 생성기는 이미 실행 중입니다.');
+        logs.push('⚠️ GCP Functions 연결 실패, 폴백 모드로 동작');
+        systemLogger.warn('⚠️ GCP Functions 연결 실패, 폴백 모드로 동작');
       }
     } catch (error) {
-      logs.push(`❌ 데이터 생성기 초기화 실패: ${error.message}`);
-      systemLogger.error('❌ 데이터 생성기 초기화 실패:', error);
-      throw new Error('Data generator failed');
+      logs.push(`⚠️ GCP Functions 확인 중 오류: ${error.message}`);
+      systemLogger.warn('⚠️ GCP Functions 확인 중 오류:', error);
     }
 
     // 2. MCP 서버 웜업 (비동기, 실패해도 계속)
@@ -43,9 +65,9 @@ async function runInitialization(): Promise<string[]> {
       });
     logs.push('👍 MCP 서버 웜업 시작 (백그라운드)');
 
-    // 3. 기타 필수 서비스 초기화 (예시)
-    // 다른 서비스들...
+    // 3. 기타 필수 서비스 초기화
     logs.push('✅ 기타 필수 서비스 초기화 완료');
+    logs.push('🌐 GCP Functions 기반 시스템 준비 완료');
 
     isInitialized = true;
     return logs;
@@ -69,18 +91,23 @@ export async function POST() {
     return NextResponse.json({
       success: true,
       message: '시스템이 이미 초기화되었습니다.',
-      logs: ['👍 시스템은 이미 준비되었습니다.'],
+      logs: ['👍 시스템은 이미 준비되었습니다.', '🌐 GCP Functions 연결 활성'],
     });
   }
 
   try {
-    systemLogger.info('🚀 통합 시스템 초기화 API 시작...');
+    systemLogger.info('🚀 통합 시스템 초기화 API 시작 (GCP Functions 기반)...');
     const logs = await runInitialization();
     systemLogger.info('🎉 통합 시스템 초기화 API 완료');
     return NextResponse.json({
       success: true,
-      message: '시스템 초기화 성공',
+      message: '시스템 초기화 성공 (GCP Functions 기반)',
       logs,
+      metadata: {
+        dataSource: 'gcp_functions',
+        endpoint: GCP_FUNCTIONS_BASE_URL,
+        version: '5.44.3',
+      },
     });
   } catch (error) {
     systemLogger.error(

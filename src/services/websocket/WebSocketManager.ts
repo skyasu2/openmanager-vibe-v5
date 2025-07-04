@@ -1,23 +1,82 @@
 /**
- * 🚀 WebSocket Manager v2.0
+ * 🚀 WebSocket Manager v2.0 (GCP Functions 기반)
  *
  * 실시간 서버 메트릭 스트리밍 및 클라이언트 관리
  * - 실시간 데이터 브로드캐스트
  * - 클라이언트별 구독 관리
  * - 자동 재연결 및 상태 모니터링
  * - 압축 기반 효율적 전송
+ * - ☁️ GCP Functions 전환 완료
  */
 
+import { BehaviorSubject, interval, Subject } from 'rxjs';
+import { distinctUntilChanged, filter, throttleTime } from 'rxjs/operators';
 import { Server as SocketIOServer } from 'socket.io';
-import { Observable, Subject, BehaviorSubject, interval } from 'rxjs';
-import {
-  map,
-  filter,
-  throttleTime,
-  distinctUntilChanged,
-} from 'rxjs/operators';
-import { RealServerDataGenerator } from '../data-generator/RealServerDataGenerator';
 // lightweight-anomaly-detector removed - using AnomalyDetectionService instead
+
+// GCP Functions URL
+const GCP_FUNCTIONS_URL =
+  'https://us-central1-openmanager-vibe-v5.cloudfunctions.net/enterprise-metrics';
+
+/**
+ * ☁️ GCP Functions에서 서버 데이터 가져오기
+ */
+async function getGCPServers() {
+  try {
+    const response = await fetch(GCP_FUNCTIONS_URL, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(8000), // 8초 타임아웃
+    });
+
+    if (!response.ok) {
+      throw new Error(`GCP Functions 응답 오류: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // GCP Functions 데이터를 기존 형식으로 변환
+    return (data.servers || []).map((server: any) => ({
+      id: server.serverId,
+      name: server.serverName,
+      type: server.serverType,
+      status:
+        server.systemHealth?.serviceHealthScore > 80
+          ? 'running'
+          : server.systemHealth?.serviceHealthScore > 60
+            ? 'warning'
+            : 'error',
+      metrics: {
+        cpu: server.systemResources?.cpuUsage || 0,
+        memory: server.systemResources?.memoryUsage || 0,
+        disk: server.systemResources?.diskUsage || 0,
+        requests: server.applicationPerformance?.requestsPerSecond || 0,
+      },
+    }));
+  } catch (error) {
+    console.error('GCP Functions 호출 실패:', error);
+    // 폴백: 기본 서버 8개 반환
+    return Array.from({ length: 8 }, (_, i) => ({
+      id: `server-${i + 1}`,
+      name: `Server ${i + 1}`,
+      type: ['web', 'database', 'api', 'cache'][i % 4],
+      status:
+        i % 4 === 0
+          ? 'running'
+          : i % 4 === 1
+            ? 'warning'
+            : i % 4 === 2
+              ? 'error'
+              : 'running',
+      metrics: {
+        cpu: Math.random() * 100,
+        memory: Math.random() * 100,
+        disk: Math.random() * 100,
+        requests: Math.random() * 1000,
+      },
+    }));
+  }
+}
 
 // 🎯 타입 정의
 export interface WebSocketClient {
@@ -55,14 +114,12 @@ export class WebSocketManager {
   private streams: Map<string, Subject<MetricStream>> = new Map();
   private connectionCount$ = new BehaviorSubject<number>(0);
   private isActive = false;
-  private dataGenerator: RealServerDataGenerator;
 
   // 스트림 데이터 소스
   private dataSubject = new Subject<MetricStream>();
   private alertSubject = new Subject<any>();
 
   constructor() {
-    this.dataGenerator = RealServerDataGenerator.getInstance();
     this.initializeStreams();
     this.startDataGeneration();
   }
@@ -185,16 +242,16 @@ export class WebSocketManager {
   }
 
   /**
-   * 📊 실시간 데이터 생성 시작 - 🎯 데이터 생성기와 동기화 (5초 → 20초)
+   * �� 실시간 데이터 생성 시작 - 🎯 GCP Functions와 동기화 (5초 → 20초)
    */
   private startDataGeneration(): void {
-    // 20초마다 새로운 서버 메트릭 생성 (데이터 생성기와 동기화)
-    interval(20000).subscribe(() => {
+    // 20초마다 새로운 서버 메트릭 생성 (GCP Functions 호출 주기와 동기화)
+    interval(20000).subscribe(async () => {
       if (!this.isActive || this.clients.size === 0) return;
 
       try {
-        // RealServerDataGenerator에서 서버 데이터 가져오기
-        const allServers = this.dataGenerator.getAllServers();
+        // GCP Functions에서 서버 데이터 가져오기
+        const allServers = await getGCPServers();
         const selectedServers = allServers.slice(0, 3); // 처음 3개 서버만 사용
 
         selectedServers.forEach(server => {
@@ -249,7 +306,7 @@ export class WebSocketManager {
       if (!this.isActive || this.clients.size === 0) return;
 
       try {
-        const allServers = this.dataGenerator.getAllServers();
+        const allServers = await getGCPServers();
         const testMetrics = allServers.slice(0, 10).map(server => ({
           timestamp: Date.now(),
           cpu: server.metrics.cpu,

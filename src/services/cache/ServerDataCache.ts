@@ -1,15 +1,79 @@
 /**
- * 🚀 Server Data Cache Service
+ * 🚀 Server Data Cache Service (GCP Functions 기반)
  *
  * 서버 데이터를 효율적으로 캐싱하고 관리하는 서비스
  * - 백그라운드에서 데이터 준비
  * - 차분 업데이트로 성능 최적화
  * - 페이지네이션 데이터 미리 준비
+ * - ☁️ GCP Functions 전환 완료
  */
 
-import { ServerInstance } from '@/types/data-generator';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { ServerInstance } from '@/types/data-generator';
+
+// GCP Functions URL
+const GCP_FUNCTIONS_URL =
+  'https://us-central1-openmanager-vibe-v5.cloudfunctions.net/enterprise-metrics';
+
+/**
+ * ☁️ GCP Functions에서 서버 데이터 가져오기
+ */
+async function getGCPServers() {
+  try {
+    const response = await fetch(GCP_FUNCTIONS_URL, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(8000), // 8초 타임아웃
+    });
+
+    if (!response.ok) {
+      throw new Error(`GCP Functions 응답 오류: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // GCP Functions 데이터를 기존 형식으로 변환
+    return (data.servers || []).map((server: any) => ({
+      id: server.serverId,
+      name: server.serverName,
+      type: server.serverType,
+      status:
+        server.systemHealth?.serviceHealthScore > 80
+          ? 'running'
+          : server.systemHealth?.serviceHealthScore > 60
+            ? 'warning'
+            : 'error',
+      metrics: {
+        cpu: server.systemResources?.cpuUsage || 0,
+        memory: server.systemResources?.memoryUsage || 0,
+        disk: server.systemResources?.diskUsage || 0,
+        requests: server.applicationPerformance?.requestsPerSecond || 0,
+      },
+    }));
+  } catch (error) {
+    console.error('GCP Functions 호출 실패:', error);
+    // 폴백: 기본 서버 8개 반환
+    return Array.from({ length: 8 }, (_, i) => ({
+      id: `server-${i + 1}`,
+      name: `Server ${i + 1}`,
+      type: ['web', 'database', 'api', 'cache'][i % 4],
+      status:
+        i % 4 === 0
+          ? 'running'
+          : i % 4 === 1
+            ? 'warning'
+            : i % 4 === 2
+              ? 'error'
+              : 'running',
+      metrics: {
+        cpu: Math.random() * 100,
+        memory: Math.random() * 100,
+        disk: Math.random() * 100,
+        requests: Math.random() * 1000,
+      },
+    }));
+  }
+}
 
 interface CachedServerData {
   servers: ServerInstance[];
@@ -115,7 +179,7 @@ export class ServerDataCache {
   }
 
   /**
-   * 📊 캐시 데이터 업데이트 (직접 데이터 생성기 사용)
+   * 📊 캐시 데이터 업데이트 (GCP Functions 기반)
    */
   private async updateCache(): Promise<void> {
     if (this.isUpdating) {
@@ -126,21 +190,15 @@ export class ServerDataCache {
     this.isUpdating = true;
 
     try {
-      // 🚀 RealServerDataGenerator 직접 사용
-      const generator = RealServerDataGenerator.getInstance();
-
-      // 생성기가 초기화되지 않았으면 초기화
-      if (!generator.getStatus().isInitialized) {
-        await generator.initialize();
-      }
-
-      // 서버 데이터 가져오기
-      const servers = generator.getAllServers();
-      const summary = generator.getDashboardSummary();
+      // 🚀 GCP Functions에서 서버 데이터 가져오기
+      const servers = await getGCPServers();
 
       if (!Array.isArray(servers)) {
         throw new Error('Invalid server data format');
       }
+
+      // 대시보드 요약 계산
+      const summary = this.calculateSummary(servers);
 
       // 🎯 차분 업데이트: 변경된 서버만 감지
       const hasChanges = this.detectChanges(servers);
@@ -149,21 +207,12 @@ export class ServerDataCache {
         const newCache: CachedServerData = {
           servers: [...servers], // 깊은 복사로 불변성 보장
           summary: {
-            total: summary?.servers?.total || servers.length,
-            online:
-              summary?.servers?.online ||
-              summary?.servers?.running ||
-              servers.filter(s => s.status === 'running').length,
-            warning:
-              summary?.servers?.warning ||
-              servers.filter(s => s.status === 'warning').length,
-            offline:
-              summary?.servers?.offline ||
-              summary?.servers?.error ||
-              servers.filter(s => s.status === 'error').length,
-            avgCpu: Math.round((summary?.servers?.avgCpu || 0) * 100) / 100,
-            avgMemory:
-              Math.round((summary?.servers?.avgMemory || 0) * 100) / 100,
+            total: servers.length,
+            online: servers.filter(s => s.status === 'running').length,
+            warning: servers.filter(s => s.status === 'warning').length,
+            offline: servers.filter(s => s.status === 'error').length,
+            avgCpu: summary.avgCpu,
+            avgMemory: summary.avgMemory,
           },
           lastUpdated: Date.now(),
           version: (this.cache?.version || 0) + 1,
@@ -178,7 +227,7 @@ export class ServerDataCache {
         this.notifySubscribers(newCache);
 
         console.log(
-          `📊 캐시 업데이트 완료 (v${newCache.version}): ${servers.length}개 서버`
+          `📊 캐시 업데이트 완료 (v${newCache.version}): ${servers.length}개 서버 (GCP Functions)`
         );
       } else {
         console.log('📊 변경사항 없음 - 캐시 유지');

@@ -1,11 +1,12 @@
 /**
- * 🎯 통합 데이터 브로커
+ * 🎯 통합 데이터 브로커 (GCP Functions 기반)
  *
  * 기능:
  * - 단일 진입점으로 모든 데이터 수집 통합
  * - 캐시 우선, 실시간 폴백 전략
  * - Redis 명령어 최소화
  * - 경연대회 모드 최적화
+ * - ☁️ GCP Functions 전환 완료
  */
 
 import {
@@ -14,7 +15,70 @@ import {
 } from '@/config/competition-config';
 import { smartRedis } from '@/lib/redis';
 import type { ServerInstance } from '@/types/data-generator';
-import { realServerDataGenerator } from '../data-generator/RealServerDataGenerator';
+
+// GCP Functions URL
+const GCP_FUNCTIONS_URL =
+  'https://us-central1-openmanager-vibe-v5.cloudfunctions.net/enterprise-metrics';
+
+/**
+ * ☁️ GCP Functions에서 서버 데이터 가져오기
+ */
+async function getGCPServers() {
+  try {
+    const response = await fetch(GCP_FUNCTIONS_URL, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(8000), // 8초 타임아웃
+    });
+
+    if (!response.ok) {
+      throw new Error(`GCP Functions 응답 오류: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // GCP Functions 데이터를 기존 형식으로 변환
+    return (data.servers || []).map((server: any) => ({
+      id: server.serverId,
+      name: server.serverName,
+      type: server.serverType,
+      status:
+        server.systemHealth?.serviceHealthScore > 80
+          ? 'running'
+          : server.systemHealth?.serviceHealthScore > 60
+            ? 'warning'
+            : 'error',
+      metrics: {
+        cpu: server.systemResources?.cpuUsage || 0,
+        memory: server.systemResources?.memoryUsage || 0,
+        disk: server.systemResources?.diskUsage || 0,
+        requests: server.applicationPerformance?.requestsPerSecond || 0,
+      },
+    }));
+  } catch (error) {
+    console.error('GCP Functions 호출 실패:', error);
+    // 폴백: 기본 서버 8개 반환
+    return Array.from({ length: 8 }, (_, i) => ({
+      id: `server-${i + 1}`,
+      name: `Server ${i + 1}`,
+      type: ['web', 'database', 'api', 'cache'][i % 4],
+      status:
+        i % 4 === 0
+          ? 'running'
+          : i % 4 === 1
+            ? 'warning'
+            : i % 4 === 2
+              ? 'error'
+              : 'running',
+      metrics: {
+        cpu: Math.random() * 100,
+        memory: Math.random() * 100,
+        disk: Math.random() * 100,
+        requests: Math.random() * 1000,
+      },
+    }));
+  }
+}
 
 export interface DataBrokerMetrics {
   cacheHitRate: number;
@@ -314,40 +378,54 @@ export class UnifiedDataBroker {
   }
 
   /**
-   * 🆕 새로운 데이터 생성
+   * 🔄 데이터 생성 (GCP Functions 기반)
    */
   private async generateFreshData(key: string): Promise<any> {
     try {
-      if (key.includes('metrics')) {
-        // 서버 메트릭 데이터 집계
-        const servers = realServerDataGenerator.getAllServers();
-        const summary = realServerDataGenerator.getDashboardSummary();
+      console.log(`🔄 새로운 데이터 생성: ${key} (GCP Functions)`);
+
+      if (key === 'servers') {
+        const servers = await getGCPServers();
 
         return {
-          metrics: {
-            serverMetrics: servers.map(s => ({
-              id: s.id,
-              cpu: s.metrics.cpu,
-              memory: s.metrics.memory,
-              disk: s.metrics.disk,
-              status: s.status,
-            })),
-            summary: summary.servers,
-            health: summary.clusters,
+          servers,
+          summary: {
+            total: servers.length,
+            online: servers.filter((s: any) => s.status === 'running').length,
+            warning: servers.filter((s: any) => s.status === 'warning').length,
+            error: servers.filter((s: any) => s.status === 'error').length,
+            avgCpu:
+              servers.reduce((sum: number, s: any) => sum + s.metrics.cpu, 0) /
+              servers.length,
+            avgMemory:
+              servers.reduce(
+                (sum: number, s: any) => sum + s.metrics.memory,
+                0
+              ) / servers.length,
           },
-          timestamp: new Date(),
-        };
-      } else {
-        return {
-          servers: realServerDataGenerator.getAllServers(),
-          clusters: realServerDataGenerator.getAllClusters(),
-          applications: realServerDataGenerator.getAllApplications(),
-          summary: realServerDataGenerator.getDashboardSummary(),
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
         };
       }
+
+      if (key === 'metrics') {
+        const servers = await getGCPServers();
+        return {
+          totalServers: servers.length,
+          onlineServers: servers.filter((s: any) => s.status === 'running')
+            .length,
+          avgCpu:
+            servers.reduce((sum: number, s: any) => sum + s.metrics.cpu, 0) /
+            servers.length,
+          avgMemory:
+            servers.reduce((sum: number, s: any) => sum + s.metrics.memory, 0) /
+            servers.length,
+          timestamp: new Date().toISOString(),
+        };
+      }
+
+      return null;
     } catch (error) {
-      console.error('데이터 생성 실패:', error);
+      console.error(`❌ 데이터 생성 실패 (${key}):`, error);
       return null;
     }
   }

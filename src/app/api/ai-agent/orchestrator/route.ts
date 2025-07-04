@@ -1,22 +1,61 @@
 /**
- * 🎯 AI 에이전트 오케스트레이터 API
+ * 🎯 AI 에이전트 오케스트레이터 API (GCP Functions 기반)
  *
  * 모든 데이터 처리 요청을 중앙에서 관리하는 새로운 API
  * - 단순화된 인터페이스
  * - 전략 패턴 기반 처리
  * - 통합 캐싱 및 에러 처리
  * - 성능 모니터링
+ * - ☁️ GCP Functions 전환 완료
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { serverDataCache } from '@/services/cache/ServerDataCache';
+import { NextRequest, NextResponse } from 'next/server';
 
-// 간단한 AI 필터
+// GCP Functions URL
+const GCP_FUNCTIONS_URL =
+  'https://us-central1-openmanager-vibe-v5.cloudfunctions.net/enterprise-metrics';
+
+/**
+ * ☁️ GCP Functions에서 서버 데이터 가져오기
+ */
+async function getGCPServers() {
+  try {
+    const response = await fetch(GCP_FUNCTIONS_URL, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(8000), // 8초 타임아웃
+    });
+
+    if (!response.ok) {
+      throw new Error(`GCP Functions 응답 오류: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.servers || [];
+  } catch (error) {
+    console.error('GCP Functions 호출 실패:', error);
+    // 폴백: 기본 서버 8개 반환
+    return Array.from({ length: 8 }, (_, i) => ({
+      id: `server-${i + 1}`,
+      name: `Server ${i + 1}`,
+      type: ['web', 'database', 'api', 'cache'][i % 4],
+      status:
+        i % 4 === 0
+          ? 'running'
+          : i % 4 === 1
+            ? 'warning'
+            : i % 4 === 2
+              ? 'error'
+              : 'running',
+    }));
+  }
+}
+
+// 간단한 AI 필터 (GCP Functions 기반)
 class SimpleAIFilter {
   async filterForAI(options: any) {
-    const generator = RealServerDataGenerator.getInstance();
-    const servers = generator.getAllServers();
+    const servers = await getGCPServers();
     return {
       data: servers.slice(0, 10),
       insights: {
@@ -36,7 +75,7 @@ class SimpleAIFilter {
   }
 }
 
-// 간단한 전략 구현
+// 간단한 전략 구현 (GCP Functions 기반)
 class SimpleStrategy {
   name: string;
   priority: string;
@@ -48,12 +87,11 @@ class SimpleStrategy {
 
   async execute(request: any) {
     const startTime = Date.now();
-    const generator = RealServerDataGenerator.getInstance();
     const aiFilter = new SimpleAIFilter();
 
     switch (this.name) {
       case 'monitoring_focus':
-        const servers = generator.getAllServers();
+        const servers = await getGCPServers();
         return {
           strategy: this.name,
           data: {
@@ -68,7 +106,7 @@ class SimpleStrategy {
           },
           metadata: {
             processingTime: Date.now() - startTime,
-            dataSource: 'real_time_monitoring',
+            dataSource: 'gcp_functions_monitoring',
           },
           confidence: 0.95,
           dataQuality: 0.9,
@@ -86,14 +124,14 @@ class SimpleStrategy {
           },
           metadata: {
             processingTime: Date.now() - startTime,
-            dataSource: 'ai_analysis',
+            dataSource: 'gcp_ai_analysis',
           },
           confidence: 0.85,
           dataQuality: 0.88,
         };
 
       default:
-        const hybridServers = generator.getAllServers();
+        const hybridServers = await getGCPServers();
         const hybridAI = await aiFilter.filterForAI({});
         return {
           strategy: 'hybrid_balanced',
@@ -102,13 +140,13 @@ class SimpleStrategy {
             aiData: hybridAI,
             fusedInsights: {
               summary: `전체 ${hybridServers.length}개 서버 중 정상 상태 비율 분석 완료`,
-              keyFindings: ['실시간 모니터링과 AI 분석 결과가 일치합니다'],
+              keyFindings: ['GCP Functions와 AI 분석 결과가 일치합니다'],
               recommendations: ['현재 시스템 상태는 안정적입니다'],
             },
           },
           metadata: {
             processingTime: Date.now() - startTime,
-            dataSource: 'hybrid_fusion',
+            dataSource: 'gcp_hybrid_fusion',
           },
           confidence: 0.92,
           dataQuality: 0.89,
@@ -295,7 +333,7 @@ class SimpleOrchestrator {
   }
 
   async getSystemStatus() {
-    const generator = RealServerDataGenerator.getInstance();
+    const generator = await getGCPServers();
     const cacheStatus = serverDataCache.getCacheStatus();
 
     return {
@@ -307,8 +345,8 @@ class SimpleOrchestrator {
       strategies: await this.strategyFactory.getStatus(),
       cache: cacheStatus,
       dataGenerator: {
-        status: generator.getStatus(),
-        serverCount: generator.getAllServers().length,
+        status: 'active',
+        serverCount: generator.length,
       },
     };
   }

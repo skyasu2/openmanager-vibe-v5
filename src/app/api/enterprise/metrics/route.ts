@@ -1,216 +1,177 @@
 /**
- * 🏢 엔터프라이즈 메트릭 API v2.0
+ * 🏢 엔터프라이즈 메트릭 API v3.0 - GCP Functions 프록시
  *
- * 25개 핵심 메트릭 기반 로컬 생성 (Vercel 리소스 절약)
- * Google Cloud Functions 대신 가벼운 로컬 생성기 사용
+ * Vercel → GCP Functions 완전 전환
+ * 25개 핵심 메트릭을 GCP Functions에서 생성하고 프록시 역할만 수행
  */
 
-import { SimpleEnterpriseMetrics } from '@/services/data-generator/SimpleEnterpriseMetrics';
 import { NextRequest, NextResponse } from 'next/server';
 
-// 🏗️ 간단한 엔터프라이즈 메트릭 생성기 인스턴스
-const metricsGenerator = SimpleEnterpriseMetrics.getInstance();
+// 🎯 GCP Functions 설정
+const GCP_FUNCTIONS_BASE_URL =
+  process.env.GCP_FUNCTIONS_BASE_URL ||
+  'https://us-central1-openmanager-vibe-v5.cloudfunctions.net';
+const ENTERPRISE_METRICS_ENDPOINT = `${GCP_FUNCTIONS_BASE_URL}/enterprise-metrics`;
+
+// 🔧 HTTP 요청 타임아웃 설정
+const REQUEST_TIMEOUT = 15000; // 15초
+
+/**
+ * 🌐 GCP Functions 요청 헬퍼
+ */
+async function callGCPFunction(
+  method: 'GET' | 'POST',
+  searchParams?: URLSearchParams,
+  body?: any
+) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
+  try {
+    const url = searchParams
+      ? `${ENTERPRISE_METRICS_ENDPOINT}?${searchParams.toString()}`
+      : ENTERPRISE_METRICS_ENDPOINT;
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'OpenManager-Vibe-v5/3.0',
+        'X-Forwarded-For': 'vercel-proxy',
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `GCP Functions 응답 오류: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('GCP Functions 요청 타임아웃');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 /**
  * 🎯 GET /api/enterprise/metrics
- * 25개 핵심 메트릭 생성 및 반환
+ * GCP Functions 프록시 - 메트릭 조회
  */
 export async function GET(request: NextRequest) {
   try {
-    // 🔧 쿼리 파라미터 추출
     const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action') || 'current';
-    const serverId = searchParams.get('serverId');
-    const hours = searchParams.get('hours');
-    const serverType = searchParams.get('serverType');
 
-    let data;
+    // 모든 쿼리 파라미터를 GCP Functions로 전달
+    const gcpResponse = await callGCPFunction('GET', searchParams);
 
-    switch (action) {
-      case 'current':
-        // 📊 현재 모든 서버의 25개 메트릭 생성
-        data = {
-          metrics: metricsGenerator.generateMetrics(),
-          totalServers: metricsGenerator.getAllServers().length,
-          generatedAt: new Date().toISOString(),
-        };
-        break;
-
-      case 'server':
-        // 🔍 특정 서버의 상세 메트릭
-        if (!serverId) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: 'serverId 파라미터가 필요합니다.',
-            },
-            { status: 400 }
-          );
-        }
-
-        const allMetrics = metricsGenerator.generateMetrics();
-        const serverMetrics = allMetrics.find(m => m.serverId === serverId);
-
-        if (!serverMetrics) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: `서버 ID '${serverId}'를 찾을 수 없습니다.`,
-            },
-            { status: 404 }
-          );
-        }
-
-        data = {
-          server: serverMetrics,
-          scenario: metricsGenerator.getCurrentScenario(serverId),
-          metrics: serverMetrics,
-        };
-        break;
-
-      case 'dashboard':
-        // 📈 대시보드 요약 정보
-        const dashboardMetrics = metricsGenerator.generateMetrics();
-
-        data = {
-          summary: {
-            totalServers: dashboardMetrics.length,
-            healthyServers: dashboardMetrics.filter(
-              m => m.systemHealth.serviceHealthScore >= 90
-            ).length,
-            warningServers: dashboardMetrics.filter(
-              m =>
-                m.systemHealth.serviceHealthScore >= 70 &&
-                m.systemHealth.serviceHealthScore < 90
-            ).length,
-            criticalServers: dashboardMetrics.filter(
-              m => m.systemHealth.serviceHealthScore < 70
-            ).length,
-            avgCpuUsage: Math.round(
-              dashboardMetrics.reduce(
-                (sum, m) => sum + m.systemResources.cpuUsage,
-                0
-              ) / dashboardMetrics.length
-            ),
-            avgMemoryUsage: Math.round(
-              dashboardMetrics.reduce(
-                (sum, m) => sum + m.systemResources.memoryUsage,
-                0
-              ) / dashboardMetrics.length
-            ),
-            totalErrors: dashboardMetrics.reduce(
-              (sum, m) => sum + m.systemHealth.logErrors,
-              0
-            ),
-          },
-          servers: dashboardMetrics,
-        };
-        break;
-
-      case 'scenarios':
-        // 🎭 현재 활성 시나리오들
-        const servers = metricsGenerator.getAllServers();
-        data = {
-          scenarios: servers.map(server => ({
-            serverId: server.id,
-            serverName: server.name,
-            scenario: metricsGenerator.getCurrentScenario(server.id),
-          })),
-        };
-        break;
-
-      case 'status':
-        // ⚙️ 생성기 상태
-        data = metricsGenerator.getStatus();
-        break;
-
-      default:
-        return NextResponse.json(
-          {
-            success: false,
-            error: `지원하지 않는 액션입니다: ${action}`,
-          },
-          { status: 400 }
-        );
-    }
-
+    // GCP Functions 응답에 프록시 정보 추가
     return NextResponse.json({
-      success: true,
-      data,
-      source: 'local-generator',
-      timestamp: new Date().toISOString(),
-      action,
-      params: { serverId, hours, serverType },
-      performance: {
-        responseTime: '< 10ms',
-        metricsCount: 25,
-        serversCount: metricsGenerator.getAllServers().length,
+      ...gcpResponse,
+      proxy: {
+        source: 'vercel-proxy',
+        target: 'gcp-functions',
+        version: '3.0',
+        timestamp: new Date().toISOString(),
       },
     });
   } catch (error) {
-    console.error('🚨 엔터프라이즈 메트릭 생성 오류:', error);
+    console.error('GCP Functions 프록시 오류 (GET):', error);
 
+    // 🚨 GCP Functions 장애 시 폴백 응답
     return NextResponse.json(
       {
         success: false,
-        error: '메트릭 생성 중 오류가 발생했습니다.',
-        message: error instanceof Error ? error.message : '알 수 없는 오류',
-        timestamp: new Date().toISOString(),
+        error: 'GCP Functions 연결 실패',
+        details: error instanceof Error ? error.message : '알 수 없는 오류',
+        fallback: {
+          message: 'GCP Functions가 일시적으로 사용할 수 없습니다',
+          action: 'retry',
+          retryAfter: 30,
+        },
+        proxy: {
+          source: 'vercel-proxy',
+          target: 'gcp-functions',
+          version: '3.0',
+          status: 'error',
+          timestamp: new Date().toISOString(),
+        },
       },
-      { status: 500 }
+      { status: 503 }
     );
   }
 }
 
 /**
  * 🎯 POST /api/enterprise/metrics
- * 엔터프라이즈 메트릭 생성기 제어 (enable/disable)
+ * GCP Functions 프록시 - 메트릭 생성기 제어
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action } = body;
 
-    if (!['enable', 'disable'].includes(action)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: '유효하지 않은 액션입니다. enable 또는 disable만 허용됩니다.',
-        },
-        { status: 400 }
-      );
-    }
+    // POST 요청을 GCP Functions로 전달
+    const gcpResponse = await callGCPFunction('POST', undefined, body);
 
-    // 🔧 생성기 제어
-    if (action === 'enable') {
-      metricsGenerator.enable();
-    } else {
-      metricsGenerator.disable();
-    }
-
-    const status = metricsGenerator.getStatus();
-
+    // GCP Functions 응답에 프록시 정보 추가
     return NextResponse.json({
-      success: true,
-      data: {
-        action,
-        status,
-        message: `엔터프라이즈 메트릭 생성기가 ${action === 'enable' ? '활성화' : '비활성화'}되었습니다.`,
+      ...gcpResponse,
+      proxy: {
+        source: 'vercel-proxy',
+        target: 'gcp-functions',
+        version: '3.0',
+        timestamp: new Date().toISOString(),
       },
-      source: 'local-generator',
-      timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('🚨 엔터프라이즈 메트릭 제어 오류:', error);
+    console.error('GCP Functions 프록시 오류 (POST):', error);
 
+    // 🚨 GCP Functions 장애 시 폴백 응답
     return NextResponse.json(
       {
         success: false,
-        error: '메트릭 생성기 제어 중 오류가 발생했습니다.',
-        message: error instanceof Error ? error.message : '알 수 없는 오류',
-        timestamp: new Date().toISOString(),
+        error: 'GCP Functions 연결 실패',
+        details: error instanceof Error ? error.message : '알 수 없는 오류',
+        fallback: {
+          message: 'GCP Functions가 일시적으로 사용할 수 없습니다',
+          action: 'retry',
+          retryAfter: 30,
+        },
+        proxy: {
+          source: 'vercel-proxy',
+          target: 'gcp-functions',
+          version: '3.0',
+          status: 'error',
+          timestamp: new Date().toISOString(),
+        },
       },
-      { status: 500 }
+      { status: 503 }
     );
   }
+}
+
+/**
+ * 🎯 OPTIONS /api/enterprise/metrics
+ * CORS 헤더 처리
+ */
+export async function OPTIONS(request: NextRequest) {
+  return NextResponse.json(
+    {},
+    {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Max-Age': '86400',
+      },
+    }
+  );
 }
