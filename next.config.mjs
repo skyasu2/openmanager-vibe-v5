@@ -17,8 +17,6 @@ const nextConfig = {
         craCompat: false,
         // Pages Router 관련 기능 완전 비활성화
         disableOptimizedLoading: false,
-        // 정적 최적화 비활성화
-        isrMemoryCacheSize: 0,
         // 프리렌더링 완전 비활성화  
         ppr: false
     },
