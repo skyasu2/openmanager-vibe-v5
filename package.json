@@ -48,7 +48,10 @@
     "cursor:auto-test": "npm run test:unit && npm run test:integration",
     "test:passwordless": "node scripts/test-passwordless-system.js",
     "passwordless:enable": "cross-env PASSWORDLESS_DEV_MODE=true npm run dev",
-    "passwordless:test": "npm run test:passwordless"
+    "passwordless:test": "npm run test:passwordless",
+    "encrypt-gcp-vm": "node scripts/encrypt-gcp-vm-config.mjs",
+    "gcp-vm:status": "curl -s http://104.154.205.25:10000/health",
+    "gcp-vm:config": "node -e \"console.log('📋 GCP VM 설정 조회는 encrypt-gcp-vm 스크립트를 먼저 실행하세요')\""
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",
