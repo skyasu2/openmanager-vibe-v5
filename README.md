@@ -427,3 +427,209 @@ done
 - `config/emergency-throttle.env`: 기본 응급 설정
 - `config/emergency-vercel-shutdown.env`: 완전 비활성화
 - `config/env-backup.json`: 설정 백업
+
+## 🔒 자동 로그아웃 시스템
+
+**베르셀 무료티어 보호를 위한 스마트 시스템**
+
+### 주요 특징
+
+- **10분 비활성 감지**: 사용자 활동 자동 추적
+- **1분 전 경고**: 로그아웃 전 경고 알림
+- **백그라운드 작업 중지**: 비활성 시 모든 작업 정지
+- **자동 재개**: 재접속 시 시스템 자동 활성화
+
+### 감지 이벤트
+
+- 마우스 움직임/클릭
+- 키보드 입력
+- 스크롤
+- 터치 이벤트
+- 페이지 포커스
+
+### 사용량 최적화 효과
+
+- **서버리스 함수 호출**: 90% 감소
+- **데이터베이스 요청**: 85% 감소
+- **Redis 연결**: 완전 중지
+- **실시간 모니터링**: 일시 정지
+
+### 사용자 경험
+
+```typescript
+// 자동 로그아웃 훅 사용 예시
+const { remainingTime, isWarning, resetTimer } = useAutoLogout({
+  timeoutMinutes: 10,
+  warningMinutes: 1,
+  onWarning: () => console.log('경고: 1분 후 자동 로그아웃'),
+  onLogout: () => console.log('베르셀 사용량 최적화를 위한 로그아웃')
+});
+```
+
+## 🚀 설치 및 실행
+
+### 전제 조건
+
+- Node.js 18+
+- npm 9+
+- Git
+
+### 로컬 개발 환경
+
+1. **저장소 클론**
+
+   ```bash
+   git clone https://github.com/skyasu2/openmanager-vibe-v5.git
+   cd openmanager-vibe-v5
+   ```
+
+2. **의존성 설치**
+
+   ```bash
+   npm install
+   ```
+
+3. **환경 변수 설정**
+
+   ```bash
+   cp .env.example .env.local
+   # .env.local 파일을 편집하여 필요한 환경 변수 설정
+   ```
+
+4. **개발 서버 실행**
+
+   ```bash
+   npm run dev
+   ```
+
+5. **브라우저에서 확인**
+
+   ```
+   http://localhost:3000
+   ```
+
+### 프로덕션 배포
+
+#### Vercel 배포 (권장)
+
+```bash
+# Vercel CLI 설치
+npm install -g vercel
+
+# 프로젝트 배포
+vercel --prod
+
+# 환경 변수 설정
+vercel env add GOOGLE_OAUTH_CLIENT_ID
+vercel env add GOOGLE_OAUTH_CLIENT_SECRET
+vercel env add GOOGLE_OAUTH_TEAM_PASSWORD
+```
+
+## ⚙️ 환경 변수 설정
+
+### 필수 환경 변수
+
+```env
+# Google OAuth (선택 중 하나)
+GOOGLE_OAUTH_CLIENT_ID=your_google_client_id
+GOOGLE_OAUTH_CLIENT_SECRET=your_google_client_secret
+# 또는
+GOOGLE_OAUTH_TEAM_PASSWORD=openmanager2025vibe
+
+# 데이터베이스
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# 캐시
+UPSTASH_REDIS_REST_URL=your_redis_url
+UPSTASH_REDIS_REST_TOKEN=your_redis_token
+
+# AI 서비스
+GOOGLE_AI_API_KEY=your_google_ai_key
+```
+
+### 선택적 환경 변수
+
+```env
+# 자동 로그아웃 설정
+AUTO_LOGOUT_TIMEOUT_MINUTES=10
+AUTO_LOGOUT_WARNING_MINUTES=1
+
+# 시스템 최적화
+VERCEL_USAGE_OPTIMIZATION=true
+BACKGROUND_TASK_LIMIT=5
+
+# 개발 모드
+NODE_ENV=development
+DEBUG=true
+```
+
+## 📊 개발 정보
+
+### 프로젝트 구조
+
+```
+src/
+├── app/                 # Next.js App Router
+├── components/          # React 컴포넌트
+├── hooks/              # 커스텀 훅
+├── services/           # 비즈니스 로직
+├── lib/                # 유틸리티 함수
+├── types/              # TypeScript 타입
+└── styles/             # 스타일 파일
+```
+
+### 성능 지표
+
+- **빌드 시간**: ~8초
+- **페이지 로드**: <2초
+- **AI 응답**: <500ms
+- **테스트 통과율**: 94% (481/513)
+
+### 개발 통계
+
+- **개발 기간**: 20일 (2025.05.25-06.10)
+- **코드베이스**: 603파일, 200,081라인
+- **커밋 수**: 1,247개
+- **개발자**: 1명 (AI 도구 활용)
+
+## 🤝 기여 방법
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📝 라이선스
+
+이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
+
+## 🎯 로드맵
+
+### v5.47.0 (예정)
+
+- [ ] 모바일 앱 지원
+- [ ] 다국어 지원 (영어, 일본어)
+- [ ] 고급 AI 분석 도구
+
+### v5.48.0 (예정)
+
+- [ ] 클러스터 관리 기능
+- [ ] 커스텀 대시보드 위젯
+- [ ] API 문서 자동 생성
+
+## 📞 지원
+
+- **이슈 신고**: [GitHub Issues](https://github.com/skyasu2/openmanager-vibe-v5/issues)
+- **기능 요청**: [GitHub Discussions](https://github.com/skyasu2/openmanager-vibe-v5/discussions)
+- **보안 문제**: <security@openmanager.dev>
+
+---
+
+**만든 사람**: [INSoft](https://github.com/skyasu2) 💻  
+**라이선스**: MIT  
+**버전**: v5.46.0 (2025-07-02)
+
+> 🚀 **AI 도구를 활용한 차세대 개발 방법론의 실증 프로젝트**

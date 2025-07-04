@@ -1,9 +1,12 @@
 'use client';
 
+import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
 import { NotificationToast } from '@/components/system/NotificationToast';
+import { useAutoLogout } from '@/hooks/useAutoLogout';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { cn } from '@/lib/utils';
 import { AISidebar } from '@/presentation/ai-sidebar';
+import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -106,7 +109,22 @@ function DashboardPageContent() {
   const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [selectedServer, setSelectedServer] = useState<any>(null);
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
+  const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const isResizing = false;
+
+  // 🔒 자동 로그아웃 시스템 - 베르셀 사용량 최적화
+  const { remainingTime, isWarning, resetTimer, forceLogout } = useAutoLogout({
+    timeoutMinutes: 10, // 10분 비활성 시 로그아웃
+    warningMinutes: 1,  // 1분 전 경고
+    onWarning: () => {
+      setShowLogoutWarning(true);
+      console.log('⚠️ 자동 로그아웃 경고 표시 - 베르셀 사용량 최적화');
+    },
+    onLogout: () => {
+      console.log('🔒 자동 로그아웃 실행 - 베르셀 사용량 최적화');
+      systemInactivityService.pauseSystem();
+    }
+  });
 
   // 🎯 실제 서버 데이터 생성기 데이터 사용 - 즉시 로드
   const {
@@ -148,6 +166,21 @@ function DashboardPageContent() {
   const closeAgent = useCallback(() => {
     setIsAgentOpen(false);
   }, []);
+
+  // 🔄 세션 연장 처리
+  const handleExtendSession = useCallback(() => {
+    resetTimer();
+    setShowLogoutWarning(false);
+    systemInactivityService.resumeSystem();
+    console.log('🔄 사용자가 세션을 연장했습니다 - 베르셀 사용량 최적화');
+  }, [resetTimer]);
+
+  // 🔒 즉시 로그아웃 처리
+  const handleLogoutNow = useCallback(() => {
+    forceLogout();
+    setShowLogoutWarning(false);
+    console.log('🔒 사용자가 즉시 로그아웃을 선택했습니다');
+  }, [forceLogout]);
 
   // 🎯 서버 클릭 핸들러 - 실제 데이터와 연동
   const handleServerClick = useCallback(
@@ -199,60 +232,72 @@ function DashboardPageContent() {
           onToggleAgent={toggleAgent}
           isAgentOpen={isAgentOpen}
         />
-        <main className='flex-1 min-h-0 overflow-y-auto p-2 sm:p-4 lg:p-6 xl:p-8'>
-          {/* 🚀 로딩 상태 최적화 - 서버 데이터 로딩 중일 때만 스켈레톤 표시 */}
-          {serverDataLoading && realServers.length === 0 ? (
-            <div className='space-y-6'>
-              {/* 간단한 로딩 인디케이터 */}
-              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                  <div
-                    key={i}
-                    className='h-48 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse'
-                  ></div>
-                ))}
-              </div>
-            </div>
-          ) : (
+
+        <div className='flex-1 overflow-hidden'>
+          <Suspense fallback={<ContentLoadingSkeleton />}>
             <DashboardContent
               showSequentialGeneration={false}
               servers={realServers}
               status={{ type: 'idle' }}
-              actions={{ start: () => {}, stop: () => {} }}
+              actions={{ start: () => { }, stop: () => { } }}
               selectedServer={selectedServer || dashboardSelectedServer}
               onServerClick={handleServerClick}
               onServerModalClose={handleServerModalClose}
-              onStatsUpdate={() => {}}
-              onShowSequentialChange={() => {}}
+              onStatsUpdate={() => { }}
+              onShowSequentialChange={() => { }}
               mainContentVariants={{}}
               isAgentOpen={isAgentOpen}
             />
-          )}
-        </main>
-      </div>
-      <AnimatePresence>
-        {isAgentOpen && (
-          <motion.aside
-            initial={{ width: 0 }}
-            animate={{ width: 'auto' }}
-            exit={{ width: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className='overflow-hidden'
-          >
-            <AISidebar onClose={closeAgent} isOpen={isAgentOpen} />
-          </motion.aside>
-        )}
-      </AnimatePresence>
-      <FloatingSystemControl {...dummySystemControl} />
-      <NotificationToast />
+          </Suspense>
+        </div>
 
-      {/* 🎯 서버 상세 모달 - 동적 로딩 */}
-      {isServerModalOpen && (selectedServer || dashboardSelectedServer) && (
-        <EnhancedServerModalDynamic
-          server={selectedServer || dashboardSelectedServer}
-          onClose={handleServerModalClose}
+        {/* 🎯 AI 에이전트 */}
+        <AnimatePresence>
+          {isAgentOpen && (
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className='fixed inset-y-0 right-0 w-96 z-40'
+            >
+              <AISidebar onClose={closeAgent} isOpen={isAgentOpen} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 🎯 서버 모달 */}
+        <AnimatePresence>
+          {isServerModalOpen && selectedServer && (
+            <EnhancedServerModalDynamic
+              server={selectedServer}
+              onClose={handleServerModalClose}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* 🔒 자동 로그아웃 경고 모달 - 베르셀 사용량 최적화 */}
+        <AutoLogoutWarning
+          remainingTime={remainingTime}
+          isWarning={showLogoutWarning}
+          onExtendSession={handleExtendSession}
+          onLogoutNow={handleLogoutNow}
         />
-      )}
+
+        {/* 🎯 플로팅 시스템 제어 */}
+        <FloatingSystemControl
+          systemState={dummySystemControl.systemState}
+          aiAgentState={dummySystemControl.aiAgentState}
+          isSystemActive={dummySystemControl.isSystemActive}
+          isSystemPaused={dummySystemControl.isSystemPaused}
+          onStartSystem={dummySystemControl.onStartSystem}
+          onStopSystem={dummySystemControl.onStopSystem}
+          onResumeSystem={dummySystemControl.onResumeSystem}
+        />
+      </div>
+
+      {/* 🔔 알림 토스트 */}
+      <NotificationToast />
     </div>
   );
 }
