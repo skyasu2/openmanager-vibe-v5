@@ -9,8 +9,9 @@
  * - 접근성 (ARIA 속성, 키보드 내비게이션)
  */
 
+import { fireEvent, screen } from '@testing-library/dom';
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ImprovedServerCard from '../../src/components/dashboard/ImprovedServerCard';

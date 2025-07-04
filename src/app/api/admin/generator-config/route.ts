@@ -7,12 +7,11 @@
  */
 
 import { getDataGeneratorConfig } from '@/config/environment';
+import { fetchGCPServers } from '@/config/gcp-functions';
 import { AIEnhancedDataGenerator } from '@/services/ai-enhanced/AIEnhancedDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
-// GCP Functions URL
-const GCP_FUNCTIONS_URL =
-  'https://us-central1-openmanager-vibe-v5.cloudfunctions.net/enterprise-metrics';
+// GCP Functions 설정을 중앙에서 관리
 
 interface GeneratorConfigResponse {
   serverCount: number;
@@ -46,28 +45,7 @@ interface GeneratorConfigResponse {
  * ☁️ GCP Functions에서 서버 데이터 가져오기
  */
 async function getGCPServers() {
-  try {
-    const response = await fetch(GCP_FUNCTIONS_URL, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      signal: AbortSignal.timeout(10000), // 10초 타임아웃
-    });
-
-    if (!response.ok) {
-      throw new Error(`GCP Functions 응답 오류: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.servers || [];
-  } catch (error) {
-    console.error('GCP Functions 호출 실패:', error);
-    // 폴백: 기본 서버 8개 반환
-    return Array.from({ length: 8 }, (_, i) => ({
-      id: `server-${i + 1}`,
-      name: `Server ${i + 1}`,
-      type: ['web', 'database', 'api', 'cache'][i % 4],
-    }));
-  }
+  return await fetchGCPServers();
 }
 
 /**

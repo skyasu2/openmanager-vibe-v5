@@ -8,14 +8,10 @@
  * - 기존 OptimizedDataGenerator와 완벽 통합
  */
 
-import type { EnhancedServerMetrics } from '../../types/server';
-import {
-  ServerEnvironment,
-  ServerRole,
-  ServerStatus,
-} from '../../types/server';
-import { OptimizedDataGenerator } from '../OptimizedDataGenerator';
 import { getDataGeneratorConfig } from '../../config/environment';
+import { isLocalDataGenerationDisabled } from '../../config/gcp-functions';
+import type { EnhancedServerMetrics } from '../../types/server';
+import { OptimizedDataGenerator } from '../OptimizedDataGenerator';
 
 // 🧠 AI 모듈 인터페이스
 interface AnomalyDetectionResult {
@@ -165,6 +161,14 @@ export class AIEnhancedDataGenerator {
    * 🚀 AI 강화 데이터 생성기 시작
    */
   async start(initialServers: EnhancedServerMetrics[]): Promise<void> {
+    // 🚫 로컬 데이터 생성 비활성화 체크
+    if (isLocalDataGenerationDisabled()) {
+      console.log(
+        '🚫 로컬 AI 데이터 생성이 비활성화됨 - GCP Functions 사용 중'
+      );
+      return;
+    }
+
     if (this.isRunning) {
       console.log('⚠️ AI 강화 데이터 생성기가 이미 실행 중입니다');
       return;

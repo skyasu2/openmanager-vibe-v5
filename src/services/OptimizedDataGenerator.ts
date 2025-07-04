@@ -10,6 +10,7 @@
  * - 중앙 버전 관리 시스템 통합
  */
 
+import { isLocalDataGenerationDisabled } from '../config/gcp-functions';
 import { DATA_GENERATOR_VERSIONS, VersionManager } from '../config/versions';
 import type { EnhancedServerMetrics } from '../types/server';
 import { ServerEnvironment, ServerRole, ServerStatus } from '../types/server';
@@ -665,6 +666,12 @@ export class OptimizedDataGenerator {
    * 🚀 최적화된 데이터 생성기 시작
    */
   async start(initialServers: EnhancedServerMetrics[]): Promise<void> {
+    // 🚫 로컬 데이터 생성 비활성화 체크
+    if (isLocalDataGenerationDisabled()) {
+      console.log('🚫 로컬 데이터 생성이 비활성화됨 - GCP Functions 사용 중');
+      return;
+    }
+
     if (this.isRunning) {
       console.log('⚠️ OptimizedDataGenerator가 이미 실행 중입니다');
       return;

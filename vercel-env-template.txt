@@ -1,0 +1,146 @@
+# 🚀 Vercel 배포를 위한 환경변수 설정 가이드
+
+## ⚠️ 중요: Vercel Dashboard에서 환경변수 설정 필수
+
+### 📋 설정 방법
+1. Vercel Dashboard → 프로젝트 선택 → Settings → Environment Variables
+2. 아래 환경변수들을 모두 추가
+3. Environment: Production, Preview, Development 모두 체크
+
+## 🔑 필수 환경변수
+
+### 1. Supabase 연결 (중요도: 🔴 필수)
+```
+SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8
+```
+
+### 2. Google AI 설정 (중요도: 🔴 필수)
+```
+GOOGLE_AI_API_KEY=AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM
+GOOGLE_AI_ENABLED=true
+```
+
+### 3. 서버 개수 8개 고정 설정 (중요도: 🔴 필수)
+```
+TARGET_SERVER_COUNT=8
+DEFAULT_SERVER_COUNT=8
+FALLBACK_SERVER_COUNT=8
+FIXED_SERVER_COUNT=8
+DISABLE_LOCAL_DATA_GENERATION=true
+USE_GCP_FUNCTIONS_ONLY=true
+```
+
+### 4. Vercel 배포 최적화 설정 (중요도: 🟡 권장)
+```
+NODE_ENV=production
+VERCEL=1
+VERCEL_DEPLOYMENT=true
+DISABLE_LOCAL_RAG=true
+DISABLE_HEALTH_CHECK=true
+DISABLE_CRON_JOBS=true
+AI_ENGINE_PRIORITY=google-ai
+BUILD_TARGET=vercel
+AI_STREAM_TIMEOUT_PREVENTION=true
+DISABLE_LOCAL_DATA_GENERATION=true
+```
+
+### 5. GCP Functions 설정 (중요도: 🔴 필수)
+```
+GCP_FUNCTIONS_BASE_URL=https://us-central1-openmanager-free-tier.cloudfunctions.net
+GCP_ENTERPRISE_METRICS_URL=https://us-central1-openmanager-free-tier.cloudfunctions.net/enterprise-metrics
+```
+
+### 6. 알림 설정 (중요도: 🟢 선택)
+```
+SLACK_WEBHOOK_URL=your_slack_webhook_url_here
+ENABLE_BROWSER_NOTIFICATIONS=false
+```
+
+## 🎯 Vercel 전용 최적화 설정
+
+### Build Command (선택사항)
+```
+npm run vercel-build
+```
+
+### Install Command (기본값 사용)
+```
+npm install
+```
+
+### Output Directory (기본값)
+```
+.next
+```
+
+### Root Directory (기본값)
+```
+.
+```
+
+## 🔧 문제 해결
+
+### 1. Supabase 연결 실패 시
+- SUPABASE_ANON_KEY가 정확히 설정되었는지 확인
+- 환경변수에 공백이나 특수문자가 없는지 확인
+
+### 2. AI 기능 작동 안 함
+- GOOGLE_AI_API_KEY가 유효한지 확인
+- Google AI API 할당량 확인
+
+### 3. 빌드 실패 시
+- Vercel 함수 타임아웃 설정 확인 (30초)
+- 메모리 사용량 확인 (1024MB)
+
+## 📊 배포 후 확인사항
+
+1. ✅ 홈페이지 로딩 확인
+2. ✅ 대시보드 데이터 표시 확인  
+3. ✅ AI 채팅 기능 테스트
+4. ✅ 서버 모니터링 데이터 확인
+
+## 🔗 유용한 링크
+
+- Vercel Dashboard: https://vercel.com/dashboard
+- 환경변수 설정: https://vercel.com/docs/concepts/projects/environment-variables
+- 빌드 설정: https://vercel.com/docs/concepts/projects/overview
+
+## Vercel CLI 명령어로 환경변수 설정
+
+```bash
+# 필수 환경변수 설정
+vercel env add SUPABASE_URL production
+vercel env add SUPABASE_ANON_KEY production
+vercel env add SUPABASE_SERVICE_ROLE_KEY production
+vercel env add GOOGLE_AI_API_KEY production
+vercel env add GOOGLE_AI_ENABLED production
+vercel env add TARGET_SERVER_COUNT production
+vercel env add DEFAULT_SERVER_COUNT production
+vercel env add FALLBACK_SERVER_COUNT production
+vercel env add FIXED_SERVER_COUNT production
+vercel env add DISABLE_LOCAL_DATA_GENERATION production
+vercel env add USE_GCP_FUNCTIONS_ONLY production
+vercel env add NODE_ENV production
+vercel env add VERCEL_DEPLOYMENT production
+vercel env add DISABLE_LOCAL_RAG production
+vercel env add DISABLE_HEALTH_CHECK production
+vercel env add DISABLE_CRON_JOBS production
+vercel env add AI_ENGINE_PRIORITY production
+vercel env add BUILD_TARGET production
+vercel env add SLACK_WEBHOOK_URL production
+vercel env add ENABLE_BROWSER_NOTIFICATIONS production
+vercel env add GCP_FUNCTIONS_BASE_URL production
+vercel env add GCP_ENTERPRISE_METRICS_URL production
+```
+
+## 배포 명령어
+
+```bash
+# Vercel 배포
+vercel --prod
+
+# 환경변수 확인
+vercel env ls
+``` 

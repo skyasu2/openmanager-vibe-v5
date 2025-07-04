@@ -5,13 +5,11 @@
  * 25개 핵심 메트릭을 GCP Functions에서 생성하고 프록시 역할만 수행
  */
 
+import { GCP_FUNCTIONS_CONFIG } from '@/config/gcp-functions';
 import { NextRequest, NextResponse } from 'next/server';
 
 // 🎯 GCP Functions 설정
-const GCP_FUNCTIONS_BASE_URL =
-  process.env.GCP_FUNCTIONS_BASE_URL ||
-  'https://us-central1-openmanager-vibe-v5.cloudfunctions.net';
-const ENTERPRISE_METRICS_ENDPOINT = `${GCP_FUNCTIONS_BASE_URL}/enterprise-metrics`;
+const ENTERPRISE_METRICS_ENDPOINT = GCP_FUNCTIONS_CONFIG.ENTERPRISE_METRICS;
 
 // 🔧 HTTP 요청 타임아웃 설정
 const REQUEST_TIMEOUT = 15000; // 15초

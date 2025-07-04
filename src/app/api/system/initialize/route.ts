@@ -1,3 +1,4 @@
+import { GCP_FUNCTIONS_CONFIG } from '@/config/gcp-functions';
 import { systemLogger } from '@/lib/logger';
 import { MCPWarmupService } from '@/services/mcp/mcp-warmup-service';
 import { NextResponse } from 'next/server';
@@ -6,18 +7,13 @@ import { NextResponse } from 'next/server';
 let isInitialized = false;
 let isInitializing = false;
 
-// 🎯 GCP Functions 설정
-const GCP_FUNCTIONS_BASE_URL =
-  process.env.GCP_FUNCTIONS_BASE_URL ||
-  'https://us-central1-openmanager-vibe-v5.cloudfunctions.net';
-
 /**
  * 🌐 GCP Functions 연결 확인
  */
 async function checkGCPFunctions(): Promise<boolean> {
   try {
     const response = await fetch(
-      `${GCP_FUNCTIONS_BASE_URL}/enterprise-metrics?action=health`,
+      `${GCP_FUNCTIONS_CONFIG.ENTERPRISE_METRICS}?action=health`,
       {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -91,7 +87,7 @@ export async function POST() {
     return NextResponse.json({
       success: true,
       message: '시스템이 이미 초기화되었습니다.',
-      logs: ['👍 시스템은 이미 준비되었습니다.', '🌐 GCP Functions 연결 활성'],
+      logs: ['👍 시스템은 이미 준비되었습니다.', '🌐 GCP Functions 연결 휴성'],
     });
   }
 
@@ -105,7 +101,7 @@ export async function POST() {
       logs,
       metadata: {
         dataSource: 'gcp_functions',
-        endpoint: GCP_FUNCTIONS_BASE_URL,
+        endpoint: GCP_FUNCTIONS_CONFIG.BASE_URL,
         version: '5.44.3',
       },
     });

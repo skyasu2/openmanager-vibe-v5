@@ -1,3 +1,125 @@
+# Vercel 배포 최적화된 무시 파일
+
+# 개발 환경 파일
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 로그 파일
+*.log
+logs/
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 테스트 파일
+__tests__/
+*.test.*
+*.spec.*
+test/
+tests/
+coverage/
+.nyc_output/
+
+# 개발도구
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS 생성 파일
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 백업 파일
+*.backup
+*.bak
+*.tmp
+*.old
+backups/
+
+# 문서 파일
+*.md
+!README.md
+docs/
+documentation/
+
+# 설정 파일
+.eslintrc.*
+.prettierrc.*
+tsconfig.json
+vitest.config.*
+tailwind.config.*
+
+# 빌드 캐시
+.next/
+.turbo/
+.cache/
+node_modules/.cache/
+
+# 불필요한 스크립트
+scripts/
+tools/
+dev-tools/
+
+# 환경 파일
+.env.example
+.env.template
+vercel-env-template.txt
+
+# 테스트 데이터
+test-data/
+mock-data/
+fixtures/
+
+# 임시 파일
+temp/
+tmp/
+.tmp/
+
+# 마이그레이션 관련
+archive/
+MIGRATION_COMPLETE.md
+vercel-migration-summary.md
+
+# GCP 관련 (Vercel에서 불필요)
+gcp-cloud-functions/
+.gcloudignore
+gcp-*.json
+
+# 개발 전용 컴포넌트
+src/components/dev/
+src/pages/dev/
+src/app/dev-tools/
+
+# 로컬 전용 서비스
+src/services/local/
+src/services/development/
+
+# 큰 바이너리 파일
+*.zip
+*.tar.gz
+*.rar
+*.7z
+*.exe
+*.dll
+*.so
+*.dylib
+
+# 데이터베이스 파일
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
 # HTML 파일 완전 차단 (최우선)
 *.html
 **/*.html
@@ -33,14 +155,6 @@ tests/
 test-results/
 playwright-report/
 coverage/
-
-# 환경 변수 및 로그
-.env.local
-.env*.local
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # 개발 도구
 .DS_Store

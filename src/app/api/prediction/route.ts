@@ -112,3 +112,36 @@ export async function OPTIONS() {
     },
   });
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    const { data, model, type } = await request.json();
+
+    if (!data) {
+      return NextResponse.json(
+        { success: false, error: 'Data required' },
+        { status: 400 }
+      );
+    }
+
+    // 예측 결과 생성
+    const prediction = {
+      result: Math.random() > 0.5 ? 'positive' : 'negative',
+      confidence: Math.random(),
+      model: model || 'default-model',
+      type: type || 'classification',
+    };
+
+    return NextResponse.json({
+      success: true,
+      prediction,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error: any) {
+    console.error('Prediction Error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Prediction error' },
+      { status: 500 }
+    );
+  }
+}

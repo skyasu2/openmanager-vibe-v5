@@ -107,7 +107,7 @@ npm run validate:competition  # 경연대회 수준 검증
 #### **🎯 핵심 성과**
 
 - **Dashboard 응답시간**: 46초 → 3초 (93% 단축)
-- **개발 시작시간**: 설정 없이 즉시 `npm run dev` 가능  
+- **개발 시작시간**: 설정 없이 즉시 `npm run dev` 가능
 - **무료 Vercel 호환**: 10초 제한 완벽 준수
 - **Edge Runtime**: 동적 임포트 오류 완전 해결
 
@@ -502,11 +502,71 @@ const { remainingTime, isWarning, resetTimer } = useAutoLogout({
   timeoutMinutes: 10,
   warningMinutes: 1,
   onWarning: () => console.log('경고: 1분 후 자동 로그아웃'),
-  onLogout: () => console.log('베르셀 사용량 최적화를 위한 로그아웃')
+  onLogout: () => console.log('베르셀 사용량 최적화를 위한 로그아웃'),
 });
 ```
 
-## 🚀 설치 및 실행
+## 🚀 배포
+
+### Vercel 배포 (권장)
+
+이 프로젝트는 Vercel에서 최적화된 배포를 지원합니다.
+
+#### 빠른 배포
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/openmanager-vibe-v5)
+
+#### 수동 배포 단계
+
+1. **저장소 연결**
+
+   ```bash
+   # Vercel CLI 설치
+   npm i -g vercel
+
+   # 프로젝트 배포
+   vercel --prod
+   ```
+
+2. **환경변수 설정** (중요!)
+   - Vercel Dashboard → Settings → Environment Variables
+   - `vercel-env-template.txt` 파일의 모든 환경변수 추가
+   - **필수**: `SUPABASE_ANON_KEY`, `GOOGLE_AI_API_KEY`
+
+3. **배포 설정 확인**
+   - Build Command: `npm run vercel-build`
+   - Install Command: `npm install`
+   - Output Directory: `.next`
+
+#### ⚡ Vercel 최적화 기능
+
+- **Edge Runtime**: AI 응답 속도 50% 향상
+- **자동 스케일링**: 트래픽에 따른 자동 확장
+- **CDN 최적화**: 전세계 빠른 로딩
+- **제로 다운타임**: 자동 롤백 지원
+
+### GCP Cloud Functions 배포
+
+기존 GCP 배포도 계속 지원됩니다.
+
+```bash
+# GCP 배포 스크립트 실행
+./scripts/deploy-gcp.sh
+```
+
+#### GCP 엔드포인트
+
+- **Health Check**: <https://us-central1-openmanager-free-tier.cloudfunctions.net/health-check>
+- **Enterprise Metrics**: <https://us-central1-openmanager-free-tier.cloudfunctions.net/enterprise-metrics>
+
+### 배포 비교
+
+| 플랫폼     | 장점                                 | 적합한 용도         |
+| ---------- | ------------------------------------ | ------------------- |
+| **Vercel** | 빠른 배포, 자동 최적화, Edge Runtime | 프로덕션, 개발 환경 |
+| **GCP**    | 높은 메모리(1GB), 긴 타임아웃(540초) | 복잡한 AI 워크로드  |
+
+## 🔧 개발 환경 설정
 
 ### 전제 조건
 

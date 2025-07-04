@@ -8,32 +8,21 @@
  * - ☁️ GCP Functions 전환 완료
  */
 
+import { fetchGCPServers } from '@/config/gcp-functions';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
 import { ServerInstance } from '@/types/data-generator';
 
-// GCP Functions URL
-const GCP_FUNCTIONS_URL =
-  'https://us-central1-openmanager-vibe-v5.cloudfunctions.net/enterprise-metrics';
+// GCP Functions 설정은 중앙에서 관리
 
 /**
  * ☁️ GCP Functions에서 서버 데이터 가져오기
  */
 async function getGCPServers() {
   try {
-    const response = await fetch(GCP_FUNCTIONS_URL, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      signal: AbortSignal.timeout(8000), // 8초 타임아웃
-    });
-
-    if (!response.ok) {
-      throw new Error(`GCP Functions 응답 오류: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const servers = await fetchGCPServers();
 
     // GCP Functions 데이터를 기존 형식으로 변환
-    return (data.servers || []).map((server: any) => ({
+    return servers.map((server: any) => ({
       id: server.serverId,
       name: server.serverName,
       type: server.serverType,

@@ -1,51 +1,66 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { useEffect } from 'react'
+/**
+ * 🚨 App Router 전용 에러 페이지
+ * Pages Router의 _error.js를 완전 대체
+ */
+
+import Link from 'next/link';
+import { useEffect } from 'react';
 
 export default function Error({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   useEffect(() => {
-    console.error(error)
-  }, [error])
+    // 에러 로깅
+    console.error('App Router Error:', error);
+  }, [error]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6 text-center">
-        <div className="mb-4">
-          <h1 className="text-6xl font-bold text-red-500 mb-2">500</h1>
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">오류가 발생했습니다</h2>
-          <p className="text-gray-600 mb-6">
-            예상치 못한 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+    <div className='min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8'>
+      <div className='max-w-md w-full space-y-8'>
+        <div className='text-center'>
+          <h1 className='text-6xl font-bold text-red-600'>500</h1>
+          <h2 className='mt-6 text-3xl font-extrabold text-gray-900'>
+            시스템 오류가 발생했습니다
+          </h2>
+          <p className='mt-2 text-sm text-gray-600'>
+            죄송합니다. 예상치 못한 오류가 발생했습니다.
           </p>
+          {error.digest && (
+            <p className='mt-2 text-xs text-gray-400'>
+              오류 ID: {error.digest}
+            </p>
+          )}
         </div>
 
-        <div className="space-y-3">
+        <div className='mt-8 space-y-4'>
           <button
-            onClick={() => reset()}
-            className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+            onClick={reset}
+            className='group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'
           >
             다시 시도
           </button>
 
           <Link
-            href="/"
-            className="block w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+            href='/dashboard'
+            className='group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
           >
-            홈으로 돌아가기
+            대시보드로 이동
           </Link>
-        </div>
 
-        <div className="mt-6 text-sm text-gray-500">
-          <p>OpenManager Vibe v5</p>
-          {error.digest && <p className="mt-2">Error ID: {error.digest}</p>}
+          <Link
+            href='/'
+            className='group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+          >
+            홈으로 이동
+          </Link>
         </div>
       </div>
     </div>
-  )
+  );
 }

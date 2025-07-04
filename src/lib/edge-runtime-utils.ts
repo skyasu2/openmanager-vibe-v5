@@ -251,14 +251,19 @@ export function isEdgeRuntime(): boolean {
 export function checkEdgeCompatibility() {
   const incompatibleModules: string[] = [];
 
-  // Node.js 고유 모듈들 검사
+  // Edge Runtime 환경에서는 Node.js 모듈이 사용할 수 없어야 함
   const nodeModules = ['fs', 'path', 'os', 'crypto', 'stream', 'net', 'dns'];
 
+  // 안전한 모듈 가용성 검사 (동적 require 회피)
   nodeModules.forEach(module => {
     try {
-      // Edge Runtime에서는 require/import가 실패해야 함
-      if (typeof require !== 'undefined') {
-        require(module);
+      // process 객체를 통한 간접 검사 (require 대신)
+      if (
+        typeof process !== 'undefined' &&
+        process.versions &&
+        process.versions.node
+      ) {
+        // Node.js 환경에서는 호환되지 않음
         incompatibleModules.push(module);
       }
     } catch {
@@ -269,7 +274,7 @@ export function checkEdgeCompatibility() {
   return {
     isEdge: isEdgeRuntime(),
     incompatibleModules,
-    compatible: incompatibleModules.length === 0,
+    compatible: isEdgeRuntime() || incompatibleModules.length === 0,
   };
 }
 

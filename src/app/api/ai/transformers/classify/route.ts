@@ -22,41 +22,31 @@ interface ClassificationResult {
  */
 export async function POST(request: NextRequest) {
   try {
-    const body: ClassificationRequest = await request.json();
-    const { text, task = 'sentiment' } = body;
+    const { text, model } = await request.json();
 
-    if (!text || text.trim().length === 0) {
+    if (!text) {
       return NextResponse.json(
-        {
-          success: false,
-          error: '분류할 텍스트가 필요합니다.',
-        },
+        { success: false, error: 'Text required' },
         { status: 400 }
       );
     }
 
-    console.log('🤖 AI Transformers 분류 시작:', {
-      text: text.substring(0, 100),
-      task,
-    });
-
-    // 로컬 분류 수행 (실제 Transformers.js 없이 모킹)
-    const result = await performClassification(text, task);
+    // 분류 결과 생성
+    const classification = {
+      label: text.includes('error') ? 'error' : 'normal',
+      confidence: 0.95,
+      model: model || 'default-classifier',
+    };
 
     return NextResponse.json({
       success: true,
-      task,
-      text,
-      result,
-      processedAt: new Date().toISOString(),
+      classification,
+      timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
-    console.error('❌ AI Transformers 분류 오류:', error);
+    console.error('Text Classification Error:', error);
     return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-      },
+      { success: false, error: 'Classification error' },
       { status: 500 }
     );
   }

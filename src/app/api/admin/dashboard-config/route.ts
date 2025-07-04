@@ -131,37 +131,31 @@ const DEFAULT_CONFIG: DashboardConfig = {
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const section = searchParams.get('section');
-
-    if (section) {
-      const sectionConfig = DEFAULT_CONFIG[section as keyof DashboardConfig];
-      if (sectionConfig !== undefined) {
-        return NextResponse.json({
-          section,
-          config: sectionConfig,
-          timestamp: new Date().toISOString(),
-        });
-      } else {
-        return NextResponse.json(
-          { error: `지원하지 않는 섹션: ${section}` },
-          { status: 400 }
-        );
-      }
-    }
+    const config = {
+      enabled: true,
+      theme: 'dark',
+      features: {
+        monitoring: true,
+        analytics: true,
+        notifications: true,
+        userManagement: true,
+      },
+      limits: {
+        maxUsers: 100,
+        maxServers: 50,
+        dataRetention: 30,
+      },
+    };
 
     return NextResponse.json({
-      config: DEFAULT_CONFIG,
-      metadata: {
-        version: '1.0.0',
-        lastModified: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development',
-      },
+      success: true,
+      config,
+      timestamp: new Date().toISOString(),
     });
-  } catch (error) {
-    console.error('대시보드 설정 조회 오류:', error);
+  } catch (error: any) {
+    console.error('Dashboard Config Error:', error);
     return NextResponse.json(
-      { error: '대시보드 설정을 조회할 수 없습니다.' },
+      { success: false, error: 'Configuration error' },
       { status: 500 }
     );
   }
@@ -172,31 +166,18 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { config, section } = body;
+    const updates = await request.json();
 
-    if (section) {
-      // 특정 섹션 업데이트
-      return NextResponse.json({
-        success: true,
-        message: `${section} 설정이 업데이트되었습니다.`,
-        section,
-        config: config[section] || config,
-        timestamp: new Date().toISOString(),
-      });
-    } else {
-      // 전체 설정 업데이트
-      return NextResponse.json({
-        success: true,
-        message: '대시보드 설정이 업데이트되었습니다.',
-        config: { ...DEFAULT_CONFIG, ...config },
-        timestamp: new Date().toISOString(),
-      });
-    }
-  } catch (error) {
-    console.error('대시보드 설정 업데이트 오류:', error);
+    return NextResponse.json({
+      success: true,
+      message: 'Configuration updated',
+      updates,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error: any) {
+    console.error('Dashboard Config Update Error:', error);
     return NextResponse.json(
-      { error: '대시보드 설정을 업데이트할 수 없습니다.' },
+      { success: false, error: 'Update error' },
       { status: 500 }
     );
   }

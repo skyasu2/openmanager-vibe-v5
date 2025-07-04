@@ -1,14 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "src/app/**": {
-      "memory": 1024,
-      "maxDuration": 10
-    },
-    "src/pages/api/**": {
-      "memory": 1024,
-      "maxDuration": 10
-    },
     "src/app/api/**/*.ts": {
       "maxDuration": 25,
       "memory": 512
@@ -31,23 +23,6 @@
     }
   },
   "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        }
-      ]
-    },
     {
       "source": "/api/(.*)",
       "headers": [
@@ -111,17 +86,7 @@
       "DISABLE_LOCAL_RAG": "true",
       "VERCEL_HEALTH_OPTIMIZATION": "true",
       "DISABLE_CRON_JOBS": "true",
-      "AI_STREAM_TIMEOUT_PREVENTION": "true",
-      "DISABLE_LOCAL_DATA_GENERATION": "true",
-      "GCP_FUNCTIONS_BASE_URL": "https://us-central1-openmanager-free-tier.cloudfunctions.net",
-      "GCP_ENTERPRISE_METRICS_URL": "https://us-central1-openmanager-free-tier.cloudfunctions.net/enterprise-metrics",
-      "TARGET_SERVER_COUNT": "8",
-      "DEFAULT_SERVER_COUNT": "8",
-      "FALLBACK_SERVER_COUNT": "8",
-      "SUPABASE_ANON_KEY": "fallback-key-for-build",
-      "DISABLE_PAGES_ROUTER": "true",
-      "NEXT_TELEMETRY_DISABLED": "1"
+      "AI_STREAM_TIMEOUT_PREVENTION": "true"
     }
-  },
-  "version": 2
+  }
 }
