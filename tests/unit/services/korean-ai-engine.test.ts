@@ -373,7 +373,7 @@ describe('🇰🇷 KoreanAIEngine 통합 테스트', () => {
     });
 
     it('처리 중 에러 발생 시 폴백 응답을 제공해야 함', async () => {
-      // RealServerDataGenerator에서 에러가 발생하도록 Mock
+      // 서버 데이터 생성기에서 에러가 발생하도록 Mock
       const errorKoreanAI = new KoreanAIEngine();
 
       // dataGenerator의 메서드를 에러를 던지도록 Mock
