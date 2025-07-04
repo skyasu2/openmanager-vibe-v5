@@ -66,6 +66,8 @@ node_modules/
 docs/
 scripts/
 !scripts/conditional-mcp-setup.mjs
+!scripts/build-time-decryption.mjs
+!scripts/safe-prebuild.mjs
 .github/
 README.md
 .env.example
