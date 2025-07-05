@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * 🔥 MCP 서버 웜업 API
+ * 🔍 MCP 서버 상태 확인 API
  *
- * 서버 시작 시 MCP 연결을 미리 준비하여 첫 요청 지연 시간을 줄입니다.
+ * Google Cloud VM으로 이전된 MCP 서버의 상태를 확인합니다.
+ * VM은 항상 가동 중이므로 웜업이 불필요합니다.
  */
 
 interface MCPWarmupResult {
@@ -34,24 +35,24 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 새로운 웜업 실행
-    const warmupResult = await performMCPWarmup();
+    // 새로운 상태 확인 실행
+    const healthResult = await performMCPHealthCheck();
 
     // 캐시 업데이트
-    warmupCache = warmupResult;
+    warmupCache = healthResult;
     lastWarmupTime = now;
 
     return NextResponse.json({
-      ...warmupResult,
+      ...healthResult,
       cached: false,
     });
   } catch (error: any) {
-    console.error('MCP 웜업 실패:', error);
+    console.error('MCP 서버 상태 확인 실패:', error);
 
     return NextResponse.json(
       {
         success: false,
-        error: 'MCP 웜업 중 오류 발생',
+        error: 'MCP 서버 상태 확인 중 오류 발생',
         message: error.message,
         timestamp: new Date().toISOString(),
       },
@@ -70,23 +71,23 @@ export async function POST(request: NextRequest) {
       lastWarmupTime = 0;
     }
 
-    const warmupResult = await performMCPWarmup();
+    const healthResult = await performMCPHealthCheck();
 
     // 캐시 업데이트
-    warmupCache = warmupResult;
+    warmupCache = healthResult;
     lastWarmupTime = Date.now();
 
     return NextResponse.json({
-      ...warmupResult,
+      ...healthResult,
       forced: forceRefresh || false,
     });
   } catch (error: any) {
-    console.error('MCP 강제 웜업 실패:', error);
+    console.error('MCP 서버 상태 확인 실패:', error);
 
     return NextResponse.json(
       {
         success: false,
-        error: 'MCP 강제 웜업 중 오류 발생',
+        error: 'MCP 서버 상태 확인 중 오류 발생',
         message: error.message,
         timestamp: new Date().toISOString(),
       },
@@ -95,11 +96,11 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function performMCPWarmup(): Promise<MCPWarmupResult> {
+async function performMCPHealthCheck(): Promise<MCPWarmupResult> {
   const serverUrl = 'http://104.154.205.25:10000';
   const startTime = Date.now();
 
-  console.log('🔥 MCP 서버 웜업 시작:', serverUrl);
+  console.log('🔍 MCP 서버 상태 확인 시작:', serverUrl);
 
   try {
     // 1. 헬스 체크
@@ -110,7 +111,7 @@ async function performMCPWarmup(): Promise<MCPWarmupResult> {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'OpenManager-Vibe-Warmup/5.43.5',
+        'User-Agent': 'OpenManager-Vibe-HealthCheck/5.44.0',
       },
       signal: healthController.signal,
     });
@@ -144,32 +145,6 @@ async function performMCPWarmup(): Promise<MCPWarmupResult> {
       console.warn('도구 목록 가져오기 실패:', toolsError);
     }
 
-    // 3. 간단한 테스트 쿼리
-    try {
-      const testController = new AbortController();
-      const testTimeout = setTimeout(() => testController.abort(), 5000);
-
-      const testResponse = await fetch(`${serverUrl}/mcp/query`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: '웜업 테스트',
-          sessionId: `warmup-${Date.now()}`,
-        }),
-        signal: testController.signal,
-      });
-
-      clearTimeout(testTimeout);
-
-      if (testResponse.ok) {
-        console.log('✅ MCP 테스트 쿼리 성공');
-      }
-    } catch (testError) {
-      console.warn('테스트 쿼리 실패:', testError);
-    }
-
     const responseTime = Date.now() - startTime;
 
     const result: MCPWarmupResult = {
@@ -181,13 +156,15 @@ async function performMCPWarmup(): Promise<MCPWarmupResult> {
       lastWarmup: new Date().toISOString(),
     };
 
-    console.log(`🔥 MCP 웜업 완료: ${responseTime}ms, 도구 ${toolsCount}개`);
+    console.log(
+      `✅ MCP 서버 상태 확인 완료: ${responseTime}ms, 도구 ${toolsCount}개`
+    );
 
     return result;
   } catch (error: any) {
     const responseTime = Date.now() - startTime;
 
-    console.error('MCP 웜업 실패:', error);
+    console.error('MCP 서버 상태 확인 실패:', error);
 
     return {
       success: false,
