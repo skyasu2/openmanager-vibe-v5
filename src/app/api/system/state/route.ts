@@ -112,8 +112,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        data: currentState,
-        // 하위 호환성을 위한 추가 필드들
+        // 훅이 기대하는 최상위 레벨 필드들
         isRunning: currentState.isRunning,
         isStarting: currentState.isStarting,
         systemActive: currentState.isRunning,
@@ -121,6 +120,11 @@ export async function GET(request: NextRequest) {
         lastUpdate: currentState.lastUpdate,
         userCount: currentState.userCount,
         version: currentState.version,
+        environment: currentState.environment,
+        uptime: currentState.uptime,
+        services: currentState.services,
+        // 전체 데이터 객체 (추가 정보용)
+        data: currentState,
       },
       {
         headers: {
@@ -139,6 +143,21 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         error: error instanceof Error ? error.message : '알 수 없는 오류',
+        // 오류 시에도 기본 상태 정보를 최상위 레벨에 제공
+        isRunning: false,
+        isStarting: false,
+        systemActive: false,
+        systemStarting: false,
+        lastUpdate: new Date().toISOString(),
+        userCount: 1,
+        version: '5.44.3',
+        environment: 'error',
+        uptime: 0,
+        services: {
+          database: false,
+          cache: false,
+          ai: false,
+        },
         data: {
           isRunning: false,
           isStarting: false,
