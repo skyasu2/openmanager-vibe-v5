@@ -104,10 +104,7 @@ class KeepAliveScheduler {
   // 스케줄러 초기화
   private async initializeScheduler(): Promise<void> {
     // 환경변수 확인
-    if (process.env.KEEP_ALIVE_SCHEDULER_DISABLED === 'true') {
-      console.log('🚫 Keep-Alive 스케줄러 비활성화됨 (환경변수)');
-      return;
-    }
+    // 🎯 환경변수 비활성화 로직 제거 - 항상 활성화
 
     // 환경 체크 추가
     let envManager;

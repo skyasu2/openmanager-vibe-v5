@@ -351,9 +351,8 @@ class NodeMCPService implements IMCPService {
 class NodeRedisService implements IRedisService {
   async checkRedisHealth(): Promise<RedisResult> {
     // Redis 연결 테스트 (환경변수 기반)
-    const redisDisabled =
-      process.env.REDIS_CONNECTION_DISABLED === 'true' ||
-      process.env.UPSTASH_REDIS_DISABLED === 'true';
+    // 🎯 환경변수 비활성화 로직 제거 - 항상 활성화
+    const redisDisabled = false;
 
     if (redisDisabled) {
       return {
@@ -376,7 +375,7 @@ class NodeRedisService implements IRedisService {
   }
 
   async testConnection(): Promise<boolean> {
-    return !process.env.REDIS_CONNECTION_DISABLED;
+    return true; // 🎯 환경변수 비활성화 로직 제거 - 항상 활성화
   }
 }
 

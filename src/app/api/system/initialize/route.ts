@@ -76,18 +76,23 @@ async function runInitialization(): Promise<string[]> {
 }
 
 export async function POST() {
+  // 🎯 초기화 중일 때도 상태 정보 제공 (차단하지 않음)
   if (isInitializing) {
-    return NextResponse.json(
-      { success: false, message: '시스템이 이미 초기화 중입니다.' },
-      { status: 429 } // Too Many Requests
-    );
+    return NextResponse.json({
+      success: true,
+      message: '시스템이 현재 초기화 중입니다.',
+      status: 'initializing',
+      logs: ['🔄 초기화 진행 중...', '잠시만 기다려주세요.'],
+      note: '초기화가 완료되면 자동으로 업데이트됩니다.',
+    });
   }
 
   if (isInitialized) {
     return NextResponse.json({
       success: true,
       message: '시스템이 이미 초기화되었습니다.',
-      logs: ['👍 시스템은 이미 준비되었습니다.', '🌐 GCP Functions 연결 휴성'],
+      status: 'initialized',
+      logs: ['👍 시스템은 이미 준비되었습니다.', '🌐 GCP Functions 연결 활성'],
     });
   }
 
@@ -98,6 +103,7 @@ export async function POST() {
     return NextResponse.json({
       success: true,
       message: '시스템 초기화 성공 (GCP Functions 기반)',
+      status: 'completed',
       logs,
       metadata: {
         dataSource: 'gcp_functions',
@@ -111,7 +117,12 @@ export async function POST() {
       error
     );
     return NextResponse.json(
-      { success: false, message: `시스템 초기화 실패: ${error.message}` },
+      {
+        success: false,
+        message: `시스템 초기화 실패: ${error.message}`,
+        status: 'failed',
+        error: error.message,
+      },
       { status: 500 }
     );
   }

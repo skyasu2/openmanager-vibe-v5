@@ -11,28 +11,42 @@ const dataCache = new Map<
   { data: any; timestamp: number; ttl: number }
 >();
 
-// 기본 Rate Limiting (메모리 기반)
-const requestTracker = new Map<string, { count: number; resetTime: number }>();
-
+// 🎯 최적화된 Rate Limiting (대폭 완화)
 function isRateLimited(
   ip: string,
-  maxRequests: number = 20,
+  maxRequests: number = 200, // 기존 20 → 200으로 증가
   windowMs: number = 60000
 ): boolean {
-  const now = Date.now();
-  const key = `${ip}:data-generator`;
-  const record = requestTracker.get(key);
-
-  if (!record || now > record.resetTime) {
-    requestTracker.set(key, { count: 1, resetTime: now + windowMs });
+  // 개발 환경에서는 제한 없음
+  if (process.env.NODE_ENV === 'development') {
     return false;
   }
 
-  if (record.count >= maxRequests) {
+  const now = Date.now();
+  const key = `rate_limit_${ip}`;
+
+  if (!global.rateLimitStore) {
+    global.rateLimitStore = {};
+  }
+
+  const store = global.rateLimitStore as Record<
+    string,
+    { count: number; resetTime: number }
+  >;
+
+  if (!store[key] || now > store[key].resetTime) {
+    store[key] = { count: 1, resetTime: now + windowMs };
+    return false;
+  }
+
+  if (store[key].count >= maxRequests) {
+    console.warn(
+      `🚨 Rate limit exceeded for IP: ${ip} (${store[key].count}/${maxRequests})`
+    );
     return true;
   }
 
-  record.count++;
+  store[key].count++;
   return false;
 }
 

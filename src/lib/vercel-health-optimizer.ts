@@ -1,362 +1,348 @@
 /**
- * 🚀 Vercel 헬스체크 최적화 시스템 v1.0
- * 
- * ✅ 과도한 헬스체크 방지
- * ✅ API 호출 제한 및 캐싱
- * ✅ 서버리스 환경 최적화
- * ✅ 배치 처리 및 지연 로딩
+ * 🎯 Vercel 최적화 헬스체크 시스템
+ *
+ * @description
+ * Vercel 환경에서 최적화된 헬스체크 시스템
+ * 비활성화 기능 제거 - 항상 정상 동작
+ *
+ * @features
+ * - 캐싱 기반 성능 최적화
+ * - 배치 처리 지원
+ * - 레이트 리미팅 (보안용)
+ * - 비활성화 로직 완전 제거
  */
 
 export interface HealthCheckConfig {
-    enabled: boolean;
-    cacheTimeout: number; // 캐시 유지 시간 (ms)
-    maxRetries: number;
-    batchSize: number;
-    rateLimitWindow: number; // 제한 시간 창 (ms)
-    maxCallsPerWindow: number;
+  cacheTimeout: number; // 캐시 유지 시간 (ms)
+  maxRetries: number;
+  batchSize: number;
+  rateLimitWindow: number; // 제한 시간 창 (ms)
+  maxCallsPerWindow: number;
 }
 
 export interface OptimizedHealthResult {
-    status: 'healthy' | 'degraded' | 'offline' | 'cached';
-    timestamp: string;
-    cached: boolean;
-    source: string;
-    responseTime?: number;
-    error?: string;
+  status: 'healthy' | 'degraded' | 'offline' | 'cached';
+  timestamp: string;
+  cached: boolean;
+  source: string;
+  responseTime?: number;
+  error?: string;
 }
 
-/**
- * 🎯 Vercel 헬스체크 최적화 매니저
- */
+interface CachedHealthResult {
+  result: OptimizedHealthResult;
+  timestamp: number;
+  ttl: number;
+}
+
 export class VercelHealthOptimizer {
-    private static instance: VercelHealthOptimizer | null = null;
+  private static instance: VercelHealthOptimizer | null = null;
 
-    // 캐시 저장소 (메모리 기반)
-    private healthCache = new Map<string, {
-        result: OptimizedHealthResult;
-        timestamp: number;
-        ttl: number;
-    }>();
+  // 헬스체크 결과 캐시
+  private healthCache = new Map<string, CachedHealthResult>();
 
-    // API 호출 제한 추적
-    private apiCallTracker = new Map<string, {
-        calls: number;
-        windowStart: number;
-    }>();
+  // API 호출 추적 (레이트 리미팅용)
+  private apiCallTracker = new Map<
+    string,
+    {
+      calls: number;
+      windowStart: number;
+    }
+  >();
 
-    // 기본 설정
-    private config: HealthCheckConfig = {
-        enabled: process.env.VERCEL_HEALTH_OPTIMIZATION !== 'false',
-        cacheTimeout: 5 * 60 * 1000, // 5분 캐시
-        maxRetries: 2,
-        batchSize: 3,
-        rateLimitWindow: 60 * 1000, // 1분 창
-        maxCallsPerWindow: 10 // 1분에 최대 10회 호출
-    };
+  private config: HealthCheckConfig = {
+    cacheTimeout: 3 * 60 * 1000, // 3분 캐시
+    maxRetries: 2,
+    batchSize: 5,
+    rateLimitWindow: 60 * 1000, // 1분 창
+    maxCallsPerWindow: 10,
+  };
 
-    private constructor() {
-        this.startCleanupTimer();
-        console.log('🚀 VercelHealthOptimizer 초기화 완료');
+  private constructor() {
+    this.startCleanupTimer();
+  }
+
+  public static getInstance(): VercelHealthOptimizer {
+    if (!VercelHealthOptimizer.instance) {
+      VercelHealthOptimizer.instance = new VercelHealthOptimizer();
+    }
+    return VercelHealthOptimizer.instance;
+  }
+
+  /**
+   * 🎯 최적화된 헬스체크 실행
+   */
+  public async checkHealth(
+    serviceId: string,
+    healthCheckFn: () => Promise<any>,
+    customConfig?: Partial<HealthCheckConfig>
+  ): Promise<OptimizedHealthResult> {
+    const config = { ...this.config, ...customConfig };
+
+    // 1. 캐시 확인
+    const cachedResult = this.getCachedHealth(serviceId);
+    if (cachedResult) {
+      return cachedResult;
     }
 
-    public static getInstance(): VercelHealthOptimizer {
-        if (!VercelHealthOptimizer.instance) {
-            VercelHealthOptimizer.instance = new VercelHealthOptimizer();
-        }
-        return VercelHealthOptimizer.instance;
+    // 2. 레이트 리미팅 확인
+    if (!this.canMakeAPICall(serviceId, config)) {
+      return {
+        status: 'cached',
+        timestamp: new Date().toISOString(),
+        cached: true,
+        source: 'rate-limited',
+        error: 'Rate limit exceeded, using cached result or default',
+      };
     }
 
-    /**
-     * 📊 통합 헬스체크 (캐싱 및 제한 적용)
-     */
-    public async checkHealth(
-        serviceId: string,
-        healthCheckFn: () => Promise<any>,
-        customConfig?: Partial<HealthCheckConfig>
-    ): Promise<OptimizedHealthResult> {
-        const config = { ...this.config, ...customConfig };
+    // 3. 실제 헬스체크 실행
+    try {
+      this.trackAPICall(serviceId, config);
 
-        if (!config.enabled) {
-            return {
-                status: 'offline',
-                timestamp: new Date().toISOString(),
-                cached: false,
-                source: 'disabled'
-            };
-        }
+      const startTime = Date.now();
+      const timeoutPromise = this.createTimeoutPromise(10000); // 10초 타임아웃
 
-        // 1. 캐시 확인
-        const cached = this.getCachedHealth(serviceId);
-        if (cached) {
-            return cached;
-        }
+      const result = await Promise.race([healthCheckFn(), timeoutPromise]);
 
-        // 2. API 호출 제한 확인
-        if (!this.canMakeAPICall(serviceId, config)) {
-            return {
-                status: 'degraded',
-                timestamp: new Date().toISOString(),
-                cached: false,
-                source: 'rate-limited',
-                error: 'API 호출 제한 초과'
-            };
-        }
+      const responseTime = Date.now() - startTime;
 
-        // 3. 실제 헬스체크 수행
-        const startTime = Date.now();
-        try {
-            const result = await Promise.race([
-                healthCheckFn(),
-                this.createTimeoutPromise(8000) // 8초 타임아웃
-            ]);
+      const healthResult: OptimizedHealthResult = {
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        cached: false,
+        source: serviceId,
+        responseTime,
+      };
 
-            const healthResult: OptimizedHealthResult = {
-                status: result ? 'healthy' : 'degraded',
-                timestamp: new Date().toISOString(),
-                cached: false,
-                source: serviceId,
-                responseTime: Date.now() - startTime
-            };
+      // 캐시 저장
+      this.setCachedHealth(serviceId, healthResult, config.cacheTimeout);
 
-            // 4. 결과 캐싱
-            this.setCachedHealth(serviceId, healthResult, config.cacheTimeout);
-            this.trackAPICall(serviceId, config);
+      return healthResult;
+    } catch (error) {
+      const errorResult: OptimizedHealthResult = {
+        status: 'offline',
+        timestamp: new Date().toISOString(),
+        cached: false,
+        source: serviceId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
 
-            return healthResult;
+      // 에러 결과도 짧게 캐시 (1분)
+      this.setCachedHealth(serviceId, errorResult, 60 * 1000);
 
-        } catch (error) {
-            const errorResult: OptimizedHealthResult = {
-                status: 'offline',
-                timestamp: new Date().toISOString(),
-                cached: false,
-                source: serviceId,
-                responseTime: Date.now() - startTime,
-                error: error instanceof Error ? error.message : 'Unknown error'
-            };
-
-            // 에러도 짧은 시간 캐싱 (재시도 방지)
-            this.setCachedHealth(serviceId, errorResult, 30000); // 30초
-            this.trackAPICall(serviceId, config);
-
-            return errorResult;
-        }
+      return errorResult;
     }
+  }
 
-    /**
-     * 🔄 배치 헬스체크 (여러 서비스 동시 확인)
-     */
-    public async batchHealthCheck(
-        services: Array<{
-            id: string;
-            name: string;
-            healthCheckFn: () => Promise<any>;
-            priority: 'high' | 'medium' | 'low';
-        }>
-    ): Promise<Record<string, OptimizedHealthResult>> {
-        const results: Record<string, OptimizedHealthResult> = {};
+  /**
+   * 🎯 배치 헬스체크 실행
+   */
+  public async batchHealthCheck(
+    services: Array<{
+      id: string;
+      name: string;
+      healthCheckFn: () => Promise<any>;
+      priority: 'high' | 'medium' | 'low';
+    }>
+  ): Promise<Record<string, OptimizedHealthResult>> {
+    const config = this.getVercelOptimizedConfig();
+    const results: Record<string, OptimizedHealthResult> = {};
 
-        // 우선순위별 그룹화
-        const highPriority = services.filter(s => s.priority === 'high');
-        const mediumPriority = services.filter(s => s.priority === 'medium');
-        const lowPriority = services.filter(s => s.priority === 'low');
+    // 우선순위별 정렬
+    const sortedServices = services.sort((a, b) => {
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    });
 
-        // 고우선순위 먼저 처리
-        for (const service of highPriority) {
-            results[service.id] = await this.checkHealth(
-                service.id,
-                service.healthCheckFn,
-                { cacheTimeout: 2 * 60 * 1000 } // 2분 캐시
-            );
-        }
+    // 배치 단위로 처리
+    for (let i = 0; i < sortedServices.length; i += config.batchSize) {
+      const batch = sortedServices.slice(i, i + config.batchSize);
 
-        // 중간/낮은 우선순위는 배치로 처리
-        const batchServices = [...mediumPriority, ...lowPriority];
-        const batchPromises = batchServices.map(service =>
-            this.checkHealth(
-                service.id,
-                service.healthCheckFn,
-                { cacheTimeout: 10 * 60 * 1000 } // 10분 캐시
-            ).then(result => ({ id: service.id, result }))
+      const batchPromises = batch.map(async service => {
+        const result = await this.checkHealth(
+          service.id,
+          service.healthCheckFn,
+          config
         );
+        return { id: service.id, result };
+      });
 
-        const batchResults = await Promise.allSettled(batchPromises);
-        batchResults.forEach(promiseResult => {
-            if (promiseResult.status === 'fulfilled') {
-                const { id, result } = promiseResult.value;
-                results[id] = result;
-            }
-        });
-
-        return results;
-    }
-
-    /**
-     * 🎯 Vercel 환경 감지 및 최적화
-     */
-    public getVercelOptimizedConfig(): HealthCheckConfig {
-        const isVercel = !!process.env.VERCEL;
-        const isProd = process.env.NODE_ENV === 'production';
-
-        if (isVercel && isProd) {
-            return {
-                ...this.config,
-                cacheTimeout: 10 * 60 * 1000, // 10분 캐시
-                maxCallsPerWindow: 5, // 더 엄격한 제한
-                rateLimitWindow: 2 * 60 * 1000, // 2분 창
-                batchSize: 2 // 작은 배치
-            };
+      const batchResults = await Promise.allSettled(batchPromises);
+      batchResults.forEach(promiseResult => {
+        if (promiseResult.status === 'fulfilled') {
+          const { id, result } = promiseResult.value;
+          results[id] = result;
         }
-
-        if (isVercel) {
-            return {
-                ...this.config,
-                cacheTimeout: 5 * 60 * 1000, // 5분 캐시
-                maxCallsPerWindow: 8,
-                batchSize: 3
-            };
-        }
-
-        return this.config; // 로컬 환경은 기본 설정
+      });
     }
 
-    /**
-     * 📈 통계 및 모니터링
-     */
-    public getHealthStats(): {
-        totalChecks: number;
-        cacheHitRate: number;
-        rateLimitedCalls: number;
-        averageResponseTime: number;
-        servicesStatus: Record<string, string>;
-    } {
-        const totalChecks = Array.from(this.apiCallTracker.values())
-            .reduce((sum, tracker) => sum + tracker.calls, 0);
+    return results;
+  }
 
-        const cachedChecks = this.healthCache.size;
-        const cacheHitRate = totalChecks > 0 ? (cachedChecks / totalChecks) * 100 : 0;
+  /**
+   * 🎯 Vercel 환경 감지 및 최적화
+   */
+  public getVercelOptimizedConfig(): HealthCheckConfig {
+    const isVercel = !!process.env.VERCEL;
+    const isProd = process.env.NODE_ENV === 'production';
 
-        const servicesStatus: Record<string, string> = {};
-        this.healthCache.forEach((cached, serviceId) => {
-            servicesStatus[serviceId] = cached.result.status;
-        });
-
-        return {
-            totalChecks,
-            cacheHitRate: Math.round(cacheHitRate * 100) / 100,
-            rateLimitedCalls: 0, // TODO: 추적 구현
-            averageResponseTime: 0, // TODO: 평균 계산
-            servicesStatus
-        };
+    if (isVercel && isProd) {
+      return {
+        ...this.config,
+        cacheTimeout: 10 * 60 * 1000, // 10분 캐시
+        maxCallsPerWindow: 5, // 더 엄격한 제한
+        rateLimitWindow: 2 * 60 * 1000, // 2분 창
+        batchSize: 2, // 작은 배치
+      };
     }
 
-    /**
-     * 🧹 캐시 정리 및 최적화
-     */
-    public clearExpiredCache(): void {
-        const now = Date.now();
-        const expired: string[] = [];
-
-        this.healthCache.forEach((cached, key) => {
-            if (now > cached.timestamp + cached.ttl) {
-                expired.push(key);
-            }
-        });
-
-        expired.forEach(key => this.healthCache.delete(key));
-
-        if (expired.length > 0) {
-            console.log(`🧹 만료된 헬스체크 캐시 ${expired.length}개 정리`);
-        }
+    if (isVercel) {
+      return {
+        ...this.config,
+        cacheTimeout: 5 * 60 * 1000, // 5분 캐시
+        maxCallsPerWindow: 8,
+        batchSize: 3,
+      };
     }
 
-    /**
-     * 🔒 강제 헬스체크 비활성화 (긴급 상황용)
-     */
-    public disableHealthChecks(): void {
-        this.config.enabled = false;
-        console.log('🚨 헬스체크 강제 비활성화됨');
+    return this.config; // 로컬 환경은 기본 설정
+  }
+
+  /**
+   * 📈 통계 및 모니터링
+   */
+  public getHealthStats(): {
+    totalChecks: number;
+    cacheHitRate: number;
+    rateLimitedCalls: number;
+    averageResponseTime: number;
+    servicesStatus: Record<string, string>;
+  } {
+    const totalChecks = Array.from(this.apiCallTracker.values()).reduce(
+      (sum, tracker) => sum + tracker.calls,
+      0
+    );
+
+    const cachedChecks = this.healthCache.size;
+    const cacheHitRate =
+      totalChecks > 0 ? (cachedChecks / totalChecks) * 100 : 0;
+
+    const servicesStatus: Record<string, string> = {};
+    this.healthCache.forEach((cached, serviceId) => {
+      servicesStatus[serviceId] = cached.result.status;
+    });
+
+    return {
+      totalChecks,
+      cacheHitRate: Math.round(cacheHitRate * 100) / 100,
+      rateLimitedCalls: 0, // TODO: 추적 구현
+      averageResponseTime: 0, // TODO: 평균 계산
+      servicesStatus,
+    };
+  }
+
+  /**
+   * 🧹 캐시 정리 및 최적화
+   */
+  public clearExpiredCache(): void {
+    const now = Date.now();
+    const expired: string[] = [];
+
+    this.healthCache.forEach((cached, key) => {
+      if (now > cached.timestamp + cached.ttl) {
+        expired.push(key);
+      }
+    });
+
+    expired.forEach(key => this.healthCache.delete(key));
+
+    if (expired.length > 0) {
+      console.log(`🧹 만료된 헬스체크 캐시 ${expired.length}개 정리`);
+    }
+  }
+
+  // Private 헬퍼 메서드들
+  private getCachedHealth(serviceId: string): OptimizedHealthResult | null {
+    const cached = this.healthCache.get(serviceId);
+    if (!cached) return null;
+
+    const now = Date.now();
+    if (now > cached.timestamp + cached.ttl) {
+      this.healthCache.delete(serviceId);
+      return null;
     }
 
-    public enableHealthChecks(): void {
-        this.config.enabled = true;
-        console.log('✅ 헬스체크 재활성화됨');
+    return {
+      ...cached.result,
+      cached: true,
+    };
+  }
+
+  private setCachedHealth(
+    serviceId: string,
+    result: OptimizedHealthResult,
+    ttl: number
+  ): void {
+    this.healthCache.set(serviceId, {
+      result,
+      timestamp: Date.now(),
+      ttl,
+    });
+  }
+
+  private canMakeAPICall(
+    serviceId: string,
+    config: HealthCheckConfig
+  ): boolean {
+    const tracker = this.apiCallTracker.get(serviceId);
+    const now = Date.now();
+
+    if (!tracker) {
+      return true;
     }
 
-    // Private 헬퍼 메서드들
-    private getCachedHealth(serviceId: string): OptimizedHealthResult | null {
-        const cached = this.healthCache.get(serviceId);
-        if (!cached) return null;
-
-        const now = Date.now();
-        if (now > cached.timestamp + cached.ttl) {
-            this.healthCache.delete(serviceId);
-            return null;
-        }
-
-        return {
-            ...cached.result,
-            cached: true
-        };
+    // 시간 창이 지났으면 리셋
+    if (now > tracker.windowStart + config.rateLimitWindow) {
+      this.apiCallTracker.set(serviceId, {
+        calls: 0,
+        windowStart: now,
+      });
+      return true;
     }
 
-    private setCachedHealth(
-        serviceId: string,
-        result: OptimizedHealthResult,
-        ttl: number
-    ): void {
-        this.healthCache.set(serviceId, {
-            result,
-            timestamp: Date.now(),
-            ttl
-        });
+    return tracker.calls < config.maxCallsPerWindow;
+  }
+
+  private trackAPICall(serviceId: string, config: HealthCheckConfig): void {
+    const now = Date.now();
+    const tracker = this.apiCallTracker.get(serviceId);
+
+    if (!tracker || now > tracker.windowStart + config.rateLimitWindow) {
+      this.apiCallTracker.set(serviceId, {
+        calls: 1,
+        windowStart: now,
+      });
+    } else {
+      tracker.calls++;
     }
+  }
 
-    private canMakeAPICall(serviceId: string, config: HealthCheckConfig): boolean {
-        const tracker = this.apiCallTracker.get(serviceId);
-        const now = Date.now();
+  private createTimeoutPromise(timeout: number): Promise<never> {
+    return new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Health check timeout')), timeout);
+    });
+  }
 
-        if (!tracker) {
-            return true;
-        }
-
-        // 시간 창이 지났으면 리셋
-        if (now > tracker.windowStart + config.rateLimitWindow) {
-            this.apiCallTracker.set(serviceId, {
-                calls: 0,
-                windowStart: now
-            });
-            return true;
-        }
-
-        return tracker.calls < config.maxCallsPerWindow;
-    }
-
-    private trackAPICall(serviceId: string, config: HealthCheckConfig): void {
-        const now = Date.now();
-        const tracker = this.apiCallTracker.get(serviceId);
-
-        if (!tracker || now > tracker.windowStart + config.rateLimitWindow) {
-            this.apiCallTracker.set(serviceId, {
-                calls: 1,
-                windowStart: now
-            });
-        } else {
-            tracker.calls++;
-        }
-    }
-
-    private createTimeoutPromise(timeout: number): Promise<never> {
-        return new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Health check timeout')), timeout);
-        });
-    }
-
-    private startCleanupTimer(): void {
-        // 5분마다 만료된 캐시 정리
-        setInterval(() => {
-            this.clearExpiredCache();
-        }, 5 * 60 * 1000);
-    }
+  private startCleanupTimer(): void {
+    // 5분마다 만료된 캐시 정리
+    setInterval(
+      () => {
+        this.clearExpiredCache();
+      },
+      5 * 60 * 1000
+    );
+  }
 }
 
 // 싱글톤 인스턴스 export
@@ -364,16 +350,16 @@ export const vercelHealthOptimizer = VercelHealthOptimizer.getInstance();
 
 // 편의 함수들
 export const optimizedHealthCheck = (
-    serviceId: string,
-    healthCheckFn: () => Promise<any>,
-    config?: Partial<HealthCheckConfig>
+  serviceId: string,
+  healthCheckFn: () => Promise<any>,
+  config?: Partial<HealthCheckConfig>
 ) => vercelHealthOptimizer.checkHealth(serviceId, healthCheckFn, config);
 
 export const batchHealthCheck = (
-    services: Array<{
-        id: string;
-        name: string;
-        healthCheckFn: () => Promise<any>;
-        priority: 'high' | 'medium' | 'low';
-    }>
-) => vercelHealthOptimizer.batchHealthCheck(services); 
+  services: Array<{
+    id: string;
+    name: string;
+    healthCheckFn: () => Promise<any>;
+    priority: 'high' | 'medium' | 'low';
+  }>
+) => vercelHealthOptimizer.batchHealthCheck(services);

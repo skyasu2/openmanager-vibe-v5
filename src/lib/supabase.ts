@@ -259,13 +259,14 @@ class SmartSupabaseClient {
     return usageMonitor.getUsageStatus().supabase;
   }
 
-  // 수동 제어
+  // 🎯 수동 제어 (사용량 리셋으로 변경)
   enable() {
-    usageMonitor.forceEnable('supabase');
+    usageMonitor.resetUsage('supabase');
+    console.log('✅ Supabase 사용량 리셋 (항상 활성화됨)');
   }
 
   disable() {
-    usageMonitor.disable('supabase');
+    console.log('⚠️ Supabase 비활성화 기능이 제거되었습니다 (항상 활성화됨)');
   }
 
   // 대기 중인 작업 동기화 (무료 티어 활성화시)

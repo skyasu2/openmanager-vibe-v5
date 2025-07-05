@@ -77,13 +77,12 @@ export class RedisConnectionManager {
       }
 
       // 🛡️ 헬스체크 차단 방지 - 테스트/헬스체크 컨텍스트 체크
+      // 🎯 환경변수 비활성화 로직 제거 - 테스트 환경에서만 건너뜀
       if (
         process.env.TEST_CONTEXT === 'true' ||
-        process.env.HEALTH_CHECK_CONTEXT === 'true' ||
-        process.env.DISABLE_HEALTH_CHECK === 'true' ||
-        process.env.REDIS_CONNECTION_DISABLED === 'true'
+        process.env.HEALTH_CHECK_CONTEXT === 'true'
       ) {
-        console.log('🛡️ 차단 방지 모드 - RedisConnectionManager 연결 건너뜀');
+        console.log('🛡️ 테스트 모드 - RedisConnectionManager 연결 건너뜀');
         return false;
       }
 

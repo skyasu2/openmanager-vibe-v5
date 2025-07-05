@@ -226,10 +226,7 @@ export class UnifiedMetricsManager {
    */
   private startUnifiedSchedulers(): void {
     // 🚨 응급 조치: 환경변수로 스케줄러 비활성화
-    if (process.env.UNIFIED_METRICS_DISABLED === 'true') {
-      console.log('🚨 통합 메트릭 스케줄러 비활성화됨 (환경변수)');
-      return;
-    }
+    // 🎯 환경변수 비활성화 로직 제거 - 항상 활성화
     // 1. 메트릭 생성 스케줄러 - 🚨 응급: 20초 → 10분으로 대폭 증가
     if (this.config.generation.enabled) {
       timerManager.register({

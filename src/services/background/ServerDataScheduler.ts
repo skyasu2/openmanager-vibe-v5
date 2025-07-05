@@ -109,11 +109,7 @@ export class ServerDataScheduler {
    * 🚀 스케줄러 시작
    */
   public async start(): Promise<void> {
-    // 환경변수 확인
-    if (process.env.SERVER_DATA_SCHEDULER_DISABLED === 'true') {
-      console.log('🚫 서버 데이터 스케줄러 비활성화됨 (환경변수)');
-      return;
-    }
+    // 🎯 환경변수 비활성화 로직 제거 - 항상 활성화
 
     if (this.isRunning_) {
       console.log('⚠️ 스케줄러가 이미 실행 중입니다.');

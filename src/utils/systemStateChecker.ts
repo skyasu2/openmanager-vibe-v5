@@ -20,10 +20,9 @@ export async function checkSystemState(): Promise<SystemStateInfo> {
     // 환경변수 기반 시스템 상태 확인
     const forceSystemOff = process.env.FORCE_SYSTEM_OFF === 'true';
     const systemMaintenanceMode = process.env.SYSTEM_MAINTENANCE === 'true';
-    const cronJobsDisabled = process.env.DISABLE_CRON_JOBS === 'true';
 
-    // 강제 비활성화 조건들
-    if (forceSystemOff || systemMaintenanceMode || cronJobsDisabled) {
+    // 🎯 강제 비활성화 조건들 (DISABLE 환경변수 제거)
+    if (forceSystemOff || systemMaintenanceMode) {
       return {
         isSystemActive: false,
         powerMode: 'sleep',
@@ -117,7 +116,7 @@ export function getSystemControlEnvVars(): {
   return {
     forceOff: process.env.FORCE_SYSTEM_OFF === 'true',
     maintenanceMode: process.env.SYSTEM_MAINTENANCE === 'true',
-    cronDisabled: process.env.DISABLE_CRON_JOBS === 'true',
-    dataGenerationDisabled: process.env.DISABLE_DATA_GENERATION === 'true',
+    cronDisabled: false, // 환경변수 비활성화 제거
+    dataGenerationDisabled: false, // 환경변수 비활성화 제거
   };
 }
