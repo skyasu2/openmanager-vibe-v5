@@ -25,7 +25,7 @@ import { NextRequest, NextResponse } from 'next/server';
 // export const runtime = 'edge'; // DISABLED - 사용량 급증 원인
 export const runtime = 'nodejs'; // Node.js Runtime으로 강제 변경
 export const dynamic = 'force-dynamic';
-export const revalidate = 300; // 5분 재검증으로 증가
+export const revalidate = 1800; // 30분 재검증으로 증가 (Vercel 사용량 절약)
 
 // 사용자 ID 추출 또는 생성
 function getUserId(request: NextRequest): string {
@@ -110,10 +110,49 @@ export async function GET(request: NextRequest) {
     if (!global.lastStatusCheck) global.lastStatusCheck = {};
     const lastCheck = global.lastStatusCheck[userId] || 0;
 
-    // 🚨 무료 티어 절약: 5분 이내 동일 사용자 요청은 캐시된 응답 반환
-    if (now - lastCheck < 300000) {
+    // 🚨 무료 티어 절약: 30분 이내 동일 사용자 요청은 캐시된 응답 반환
+    if (now - lastCheck < 1800000) {
       // 최소한의 Redis 읽기만 수행
       const systemState = await systemStateManager.getSystemState();
+
+      // 🚨 시스템이 시작되지 않은 상태에서는 Redis 작업 최소화
+      if (!systemState.isRunning) {
+        console.log('⏸️ 시스템 미시작 상태 - 최소 응답 반환 (Vercel 절약)');
+        const minimalResponse = {
+          success: true,
+          timestamp: now,
+          source: context.source + '-minimal',
+          state: {
+            isRunning: false,
+            startedBy: '',
+            startTime: 0,
+            endTime: 0,
+            activeUsers: 0,
+            lastActivity: now,
+            version: '5.44.4',
+            environment: 'standby',
+          },
+          isRunning: false,
+          startTime: 0,
+          endTime: 0,
+          activeUsers: 0,
+          remainingTime: 0,
+          version: '5.44.4',
+          environment: 'standby',
+        };
+
+        return NextResponse.json(minimalResponse, {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-User-Id': userId,
+            'X-Request-Source': context.source + '-minimal',
+            'Cache-Control': 'public, max-age=1800, s-maxage=1800', // 🚨 30분 캐싱
+            'CDN-Cache-Control': 'max-age=1800',
+            'Vercel-CDN-Cache-Control': 'max-age=1800',
+            'X-Cache-Status': 'MINIMAL-STANDBY',
+          },
+        });
+      }
 
       const responseData = {
         success: true,

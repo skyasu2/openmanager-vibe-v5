@@ -314,7 +314,7 @@ export const useSystemStatus = (options?: {
   return useQuery({
     queryKey: systemKeys.status(),
     queryFn: fetchSystemStatus,
-    refetchInterval: options?.refetchInterval ?? 300000, // 🚨 응급: 5분 간격으로 변경
+    refetchInterval: options?.refetchInterval ?? 1800000, // 🚨 응급: 30분 간격으로 변경 (Vercel 사용량 절약)
     staleTime: 120000, // 🚨 응급: 2분 캐시
     enabled: options?.enabled ?? true,
     retry: 1, // 🚨 응급: 재시도 최소화

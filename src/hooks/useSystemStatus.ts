@@ -46,7 +46,7 @@ export const useSystemStatus = (
   options: UseSystemStatusOptions = {}
 ): UseSystemStatusReturn => {
   const {
-    pollingInterval = 600000, // 🚨 응급: 10분으로 대폭 증가
+    pollingInterval = 1800000, // 🚨 응급: 30분으로 대폭 증가 (Vercel 사용량 절약)
     autoStart = true,
   } = options;
 
@@ -75,6 +75,12 @@ export const useSystemStatus = (
   // 시스템 상태 체크 함수
   const checkStatus = useCallback(async (): Promise<SystemStatus | null> => {
     try {
+      // 🚨 시스템이 시작되지 않은 상태에서는 API 호출 차단 (Vercel 사용량 절약)
+      if (!status.isRunning && !status.isStarting) {
+        console.log('⏸️ 시스템 미시작 상태 - API 호출 차단 (Vercel 절약)');
+        return status; // 현재 상태 유지
+      }
+
       const response = await fetch('/api/system/state', {
         method: 'GET',
         headers: {
@@ -169,9 +175,9 @@ export const useSystemStatus = (
     }
   }, [checkStatus, autoStart]);
 
-  // 주기적 상태 체크 - 🚨 비상 모드 시 차단
+  // 주기적 상태 체크 - 🚨 시스템 시작된 경우에만 실행
   useEffect(() => {
-    if (actualPollingInterval > 0 && !isEmergencyMode) {
+    if (actualPollingInterval > 0 && !isEmergencyMode && status.isRunning) {
       const interval = setInterval(() => {
         if (!status.isStarting) {
           checkStatus();
@@ -180,12 +186,18 @@ export const useSystemStatus = (
 
       return () => clearInterval(interval);
     }
-  }, [checkStatus, actualPollingInterval, status.isStarting, isEmergencyMode]);
+  }, [
+    checkStatus,
+    actualPollingInterval,
+    status.isStarting,
+    status.isRunning,
+    isEmergencyMode,
+  ]);
 
-  // 페이지 포커스 시 상태 체크
+  // 페이지 포커스 시 상태 체크 - 🚨 시스템 시작된 경우에만 실행
   useEffect(() => {
     const handleFocus = () => {
-      if (!document.hidden && !status.isStarting) {
+      if (!document.hidden && !status.isStarting && status.isRunning) {
         checkStatus();
       }
     };
@@ -197,7 +209,7 @@ export const useSystemStatus = (
       document.removeEventListener('visibilitychange', handleFocus);
       window.removeEventListener('focus', handleFocus);
     };
-  }, [checkStatus, status.isStarting]);
+  }, [checkStatus, status.isStarting, status.isRunning]);
 
   return {
     status,

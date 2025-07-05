@@ -62,52 +62,10 @@ export default function Home() {
   useEffect(() => {
     setIsMounted(true);
 
-    // 🔥 홈페이지 접속 시 GCP VM 웜업만 실행 (시스템 시작과 무관)
-    const performRenderWarmup = async () => {
-      try {
-        // 🚨 비상 모드 체크 - 웜업 차단
-        const isEmergencyMode =
-          process.env.NEXT_PUBLIC_EMERGENCY_MODE === 'true';
-        if (isEmergencyMode) {
-          console.log('🚨 비상 모드 - GCP VM 웜업 차단');
-          return;
-        }
-
-        console.log('🔥 Render 서버 웜업 시작 (백그라운드)');
-
-        // 캐시 확인 - 세션당 한 번만 실행
-        const warmupKey = 'render-warmup-session';
-        const lastWarmup = sessionStorage.getItem(warmupKey);
-        const now = Date.now();
-
-        if (lastWarmup && now - parseInt(lastWarmup) < 10 * 60 * 1000) {
-          console.log('📦 Render 웜업 캐시 사용 (10분 이내)');
-          return;
-        }
-
-        // 백그라운드에서 조용히 웜업 실행
-        const response = await fetch('/api/mcp/warmup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ forceRefresh: false }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log(`✅ Render 웜업 완료: ${data.responseTime}ms`);
-          sessionStorage.setItem(warmupKey, now.toString());
-        } else {
-          console.warn(`⚠️ Render 웜업 실패: ${response.status}`);
-        }
-      } catch (error) {
-        console.warn('⚠️ Render 웜업 오류 (무시됨):', error);
-      }
-    };
-
-    // 페이지 로드 3초 후 웜업 실행 (UI 렌더링 완료 후)
-    const warmupTimer = setTimeout(performRenderWarmup, 3000);
-
-    return () => clearTimeout(warmupTimer);
+    // 🚨 Google Cloud 24시간 기동으로 웜업 불필요 - 완전 제거
+    console.log(
+      '🔄 페이지 로드 완료 - Google Cloud 24시간 기동으로 웜업 불필요'
+    );
   }, []);
 
   // 🔧 상태 변화 디버깅 (클라이언트에서만)
