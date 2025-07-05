@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import type { MCPServerConfig, MCPConfig } from '../../types/mcp';
+import { clientSafeEnv } from '../../lib/environment/client-safe-env';
+import type { MCPConfig, MCPServerConfig } from '../../types/mcp';
 
 export class MCPConfigManager {
   private static instance: MCPConfigManager;
@@ -75,17 +76,20 @@ export class MCPConfigManager {
     | 'development'
     | 'production' {
     // Render.com 환경 감지
-    if (process.env.RENDER || process.cwd().includes('/opt/render/project')) {
+    if (
+      clientSafeEnv.get('RENDER') ||
+      process.cwd().includes('/opt/render/project')
+    ) {
       return 'render';
     }
 
     // Cursor IDE 환경 감지
-    if (process.env.CURSOR_IDE || process.env.VSCODE_PID) {
+    if (clientSafeEnv.get('CURSOR_IDE') || clientSafeEnv.get('VSCODE_PID')) {
       return 'cursor';
     }
 
     // 일반적인 환경 감지
-    if (process.env.NODE_ENV === 'production') {
+    if (clientSafeEnv.getEnvironment() === 'production') {
       return 'production';
     }
 

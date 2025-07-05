@@ -1,4 +1,5 @@
 import type { Server } from '@/types/server';
+import { clientSafeEnv } from '../lib/environment/client-safe-env';
 
 /**
  * 🎯 통합 폴백 서버 데이터
@@ -328,16 +329,16 @@ export function validateProductionEnvironment(): {
   ];
 
   for (const key of critical) {
-    if (!process.env[key]) {
+    if (!clientSafeEnv.get(key)) {
       issues.push(`Missing critical environment variable: ${key}`);
     }
   }
 
   // URL 형식 검증
   const urls = {
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
-    RENDER_MCP_SERVER_URL: process.env.RENDER_MCP_SERVER_URL,
+    NEXT_PUBLIC_SUPABASE_URL: clientSafeEnv.get('NEXT_PUBLIC_SUPABASE_URL'),
+    UPSTASH_REDIS_REST_URL: clientSafeEnv.get('UPSTASH_REDIS_REST_URL'),
+    RENDER_MCP_SERVER_URL: clientSafeEnv.get('RENDER_MCP_SERVER_URL'),
   };
 
   for (const [key, value] of Object.entries(urls)) {
