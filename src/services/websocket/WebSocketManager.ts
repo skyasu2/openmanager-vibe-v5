@@ -9,6 +9,7 @@
  * - ☁️ GCP Functions 전환 완료
  */
 
+import { clientSafeEnv } from '@/lib/environment/client-safe-env';
 import { BehaviorSubject, interval, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, throttleTime } from 'rxjs/operators';
 import { Server as SocketIOServer } from 'socket.io';
@@ -131,7 +132,7 @@ export class WebSocketManager {
     this.io = new SocketIOServer(server, {
       cors: {
         origin:
-          process.env.NODE_ENV === 'production'
+          clientSafeEnv.get('NODE_ENV') === 'production'
             ? [
                 'https://openmanager-vibe-v5.vercel.app',
                 'https://openmanager-ai-engine.onrender.com',
@@ -242,7 +243,7 @@ export class WebSocketManager {
   }
 
   /**
-   * �� 실시간 데이터 생성 시작 - 🎯 GCP Functions와 동기화 (5초 → 20초)
+   * 🎯 실시간 데이터 생성 시작 - 🎯 GCP Functions와 동기화 (5초 → 20초)
    */
   private startDataGeneration(): void {
     // 20초마다 새로운 서버 메트릭 생성 (GCP Functions 호출 주기와 동기화)

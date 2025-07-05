@@ -3,13 +3,15 @@
  * VM 로컬 데이터 생성 대신 GCP Functions 사용
  */
 
-// 환경변수에서 URL 가져오기 (폴백 포함)
+import { clientSafeEnv } from '@/lib/environment/client-safe-env';
+
+// 환경변수에서 URL 가져오기 (폴백 포함) - 안전한 접근 방식 사용
 const GCP_BASE_URL =
-  process.env.GCP_FUNCTIONS_BASE_URL ||
+  clientSafeEnv.get('GCP_FUNCTIONS_BASE_URL') ||
   'https://us-central1-openmanager-free-tier.cloudfunctions.net';
 
 const GCP_ENTERPRISE_METRICS_URL =
-  process.env.GCP_ENTERPRISE_METRICS_URL ||
+  clientSafeEnv.get('GCP_ENTERPRISE_METRICS_URL') ||
   `${GCP_BASE_URL}/enterprise-metrics`;
 
 // 서버 개수 설정 (8개로 고정)
@@ -20,9 +22,9 @@ const FIXED_SERVER_COUNT = 8;
  */
 export const isLocalDataGenerationDisabled = (): boolean => {
   return (
-    process.env.DISABLE_LOCAL_DATA_GENERATION === 'true' ||
-    process.env.NODE_ENV === 'production' ||
-    process.env.VERCEL === '1'
+    clientSafeEnv.get('DISABLE_LOCAL_DATA_GENERATION') === 'true' ||
+    clientSafeEnv.get('NODE_ENV') === 'production' ||
+    clientSafeEnv.get('VERCEL') === '1'
   );
 };
 

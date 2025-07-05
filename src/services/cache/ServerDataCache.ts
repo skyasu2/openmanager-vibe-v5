@@ -10,6 +10,7 @@
 
 import { fetchGCPServers } from '@/config/gcp-functions';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
+import { clientSafeEnv } from '@/lib/environment/client-safe-env';
 import { ServerInstance } from '@/types/data-generator';
 
 // GCP Functions 설정은 중앙에서 관리
@@ -149,8 +150,9 @@ export class ServerDataCache {
 
     // 🔨 빌드 환경에서는 백그라운드 타이머 생성 금지
     if (
-      process.env.NODE_ENV === 'production' &&
-      (process.env.VERCEL === '1' || process.env.BUILD_TIME === 'true')
+      clientSafeEnv.get('NODE_ENV') === 'production' &&
+      (clientSafeEnv.get('VERCEL') === '1' ||
+        clientSafeEnv.get('BUILD_TIME') === 'true')
     ) {
       console.log(
         '🔨 빌드 환경 감지 - 백그라운드 업데이트 건너뜀 (타이머 차단)'
