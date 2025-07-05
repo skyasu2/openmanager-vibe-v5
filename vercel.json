@@ -87,5 +87,8 @@
       "MINIMIZE_BUILD_LOGS": "true",
       "DISABLE_DUPLICATE_LOGS": "true"
     }
-  }
+  },
+  "crons": [],
+  "cleanUrls": true,
+  "trailingSlash": false
 }
