@@ -599,6 +599,16 @@ export class SupabaseRAGEngine {
    * Supabase 연결 2회 점검
    */
   private async performConnectionCheck(): Promise<void> {
+    // 🚨 빌드 시 연결 체크 건너뛰기 (Vercel 최적화)
+    if (
+      process.env.SKIP_SUPABASE_CONNECTION_CHECK === 'true' ||
+      process.env.BUILD_TIME_OPTIMIZATION === 'true' ||
+      process.env.NODE_ENV === 'production'
+    ) {
+      console.log('⏸️ 빌드 환경 - Supabase 연결 체크 건너뜀 (Vercel 최적화)');
+      return;
+    }
+
     console.log('🔍 Supabase 연결 2회 점검 시작...');
 
     try {

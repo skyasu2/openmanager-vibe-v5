@@ -22,6 +22,7 @@ const nextConfig = {
     experimental: {
         forceSwcTransforms: true, // SWC 트랜스파일러 강제 사용 (Babel보다 빠름)
         optimizeCss: true, // CSS 최적화 활성화
+        optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'], // 패키지 임포트 최적화
     },
 
     // 🚫 정적 최적화 비활성화
@@ -82,6 +83,15 @@ const nextConfig = {
                 crypto: false,
             };
         }
+
+        // 🚨 Edge Runtime 동적 의존성 경고 억제
+        config.ignoreWarnings = [
+            ...(config.ignoreWarnings || []),
+            {
+                module: /edge-runtime-utils\.ts/,
+                message: /Critical dependency: the request of a dependency is an expression/,
+            },
+        ];
 
         return config;
     },

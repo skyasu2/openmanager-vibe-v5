@@ -2,24 +2,19 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "src/app/api/**/*.ts": {
-      "maxDuration": 25,
-      "memory": 512
+      "maxDuration": 25
     },
     "src/app/api/ai/**/*.ts": {
-      "maxDuration": 45,
-      "memory": 1024
+      "maxDuration": 45
     },
     "src/app/api/ai/logging/stream/route.ts": {
-      "maxDuration": 35,
-      "memory": 512
+      "maxDuration": 35
     },
     "src/app/api/data-generator/**/*.ts": {
-      "maxDuration": 30,
-      "memory": 512
+      "maxDuration": 30
     },
     "src/app/api/ai-agent/**/*.ts": {
-      "maxDuration": 45,
-      "memory": 1024
+      "maxDuration": 45
     }
   },
   "headers": [
@@ -86,7 +81,11 @@
       "DISABLE_LOCAL_RAG": "true",
       "VERCEL_HEALTH_OPTIMIZATION": "true",
       "DISABLE_CRON_JOBS": "true",
-      "AI_STREAM_TIMEOUT_PREVENTION": "true"
+      "AI_STREAM_TIMEOUT_PREVENTION": "true",
+      "SKIP_SUPABASE_CONNECTION_CHECK": "true",
+      "BUILD_TIME_OPTIMIZATION": "true",
+      "MINIMIZE_BUILD_LOGS": "true",
+      "DISABLE_DUPLICATE_LOGS": "true"
     }
   }
 }

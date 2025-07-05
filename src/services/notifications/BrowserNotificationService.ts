@@ -46,7 +46,13 @@ class BrowserNotificationService {
   private async initializePermission(): Promise<void> {
     // 서버사이드 렌더링 환경 체크
     if (typeof window === 'undefined') {
-      console.warn('⚠️ 서버 환경에서는 브라우저 알림을 사용할 수 없습니다');
+      // 🚨 빌드 시에는 경고 메시지 출력하지 않음 (Vercel 최적화)
+      if (
+        process.env.NODE_ENV !== 'production' &&
+        process.env.BUILD_TIME_OPTIMIZATION !== 'true'
+      ) {
+        console.warn('⚠️ 서버 환경에서는 브라우저 알림을 사용할 수 없습니다');
+      }
       return;
     }
 

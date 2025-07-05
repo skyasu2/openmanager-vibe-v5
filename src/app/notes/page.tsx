@@ -1,8 +1,7 @@
 'use client';
 
-import { supabase } from '@/lib/supabase';
-import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 // Notes 데이터를 가져오는 컴포넌트
 function NotesContent() {
@@ -13,6 +12,9 @@ function NotesContent() {
   useEffect(() => {
     async function fetchNotes() {
       try {
+        // 🚨 빌드 시 Supabase 연결 오류 방지 (동적 임포트)
+        const { supabase } = await import('@/lib/supabase');
+
         const { data: notes, error } = await supabase
           .from('notes')
           .select('*')
