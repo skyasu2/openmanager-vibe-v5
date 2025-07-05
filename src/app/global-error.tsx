@@ -1,5 +1,8 @@
 'use client';
 
+// 🔧 RSC 프리렌더링 오류 방지: 동적 렌더링 강제
+export const dynamic = 'force-dynamic';
+
 /**
  * 🌍 App Router 전용 글로벌 에러 페이지
  * root layout 에러 처리 및 Pages Router 완전 대체

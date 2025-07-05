@@ -45,7 +45,9 @@ function useAdminAuth() {
     const checkAdminAuth = () => {
       // 현재는 localStorage 기반 간단 체크
       const adminToken = localStorage.getItem('admin_access');
-      const isDevMode = process.env.NODE_ENV === 'development';
+      const isDevMode =
+        typeof process !== 'undefined' &&
+        process.env?.NODE_ENV === 'development';
 
       // 개발 모드에서는 자동 허용, 프로덕션에서는 토큰 체크
       if (isDevMode || adminToken === 'vibe_admin_2025') {
