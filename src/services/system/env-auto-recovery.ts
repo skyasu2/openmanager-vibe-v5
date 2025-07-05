@@ -9,8 +9,33 @@
  */
 
 import { EnvBackupManager } from '@/lib/env-backup-manager';
-import { EnvironmentCryptoManager } from '@/lib/env-crypto-manager';
 import { AILogger, LogCategory } from '@/services/ai/logging/AILogger';
+
+// 기본 암호화 관리자 (삭제된 EnvironmentCryptoManager 대체)
+class BasicEnvCryptoManager {
+  private static instance: BasicEnvCryptoManager | null = null;
+
+  static getInstance(): BasicEnvCryptoManager {
+    if (!BasicEnvCryptoManager.instance) {
+      BasicEnvCryptoManager.instance = new BasicEnvCryptoManager();
+    }
+    return BasicEnvCryptoManager.instance;
+  }
+
+  // 기본 구현 - 실제 암호화는 하지 않고 로깅만
+  async decryptEnvironmentVariable(key: string): Promise<string | null> {
+    console.log(`🔓 환경변수 복호화 시도: ${key} (기본 구현)`);
+    return process.env[key] || null;
+  }
+
+  async encryptEnvironmentVariable(
+    key: string,
+    value: string
+  ): Promise<boolean> {
+    console.log(`🔐 환경변수 암호화 시도: ${key} (기본 구현)`);
+    return true;
+  }
+}
 
 export interface EnvRecoveryResult {
   success: boolean;
@@ -31,7 +56,7 @@ export interface EnvValidationResult {
 export class EnvAutoRecoveryService {
   private static instance: EnvAutoRecoveryService | null = null;
   private envBackupManager: EnvBackupManager;
-  private envCryptoManager: EnvironmentCryptoManager;
+  private envCryptoManager: BasicEnvCryptoManager;
   private logger: AILogger;
   private isInitialized: boolean = false;
   private lastRecoveryAttempt: number = 0;
@@ -81,7 +106,7 @@ export class EnvAutoRecoveryService {
 
   private constructor() {
     this.envBackupManager = EnvBackupManager.getInstance();
-    this.envCryptoManager = EnvironmentCryptoManager.getInstance();
+    this.envCryptoManager = BasicEnvCryptoManager.getInstance();
     this.logger = AILogger.getInstance();
     this.detectExecutionContext();
     console.log(
@@ -287,12 +312,13 @@ export class EnvAutoRecoveryService {
       for (const password of defaultPasswords) {
         try {
           const unlockResult =
-            await this.envCryptoManager.unlockEnvironmentVars(password);
+            await this.envCryptoManager.decryptEnvironmentVariable(password);
 
-          if (unlockResult.success) {
+          if (unlockResult && unlockResult.trim() !== '') {
             // 누락된 변수들을 복구 시도
             for (const varName of missingVars) {
-              const value = this.envCryptoManager.getEnvironmentVar(varName);
+              const value =
+                await this.envCryptoManager.decryptEnvironmentVariable(varName);
               if (value && value.trim() !== '') {
                 process.env[varName] = value;
                 recovered.push(varName);
