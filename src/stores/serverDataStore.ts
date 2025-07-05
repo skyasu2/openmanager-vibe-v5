@@ -231,7 +231,7 @@ export const useServerDataStore = create<ServerDataState>()(
         try {
           console.log('🚀 최적화된 서버 데이터 가져오기 시작');
 
-          const response = await fetch('/api/servers/all');
+          const response = await fetch('/api/data-generator?type=servers');
           const result = await response.json();
 
           if (result.success && result.data) {
