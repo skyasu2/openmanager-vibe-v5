@@ -3,38 +3,114 @@
  * Pages Router의 _document, _error 등을 대체
  */
 
-import Link from 'next/link';
+/* eslint-disable @next/next/no-html-link-for-pages */
 
 export default function NotFound() {
   return (
-    <div className='min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8'>
-      <div className='max-w-md w-full space-y-8'>
-        <div className='text-center'>
-          <h1 className='text-6xl font-bold text-gray-900'>404</h1>
-          <h2 className='mt-6 text-3xl font-extrabold text-gray-900'>
-            페이지를 찾을 수 없습니다
-          </h2>
-          <p className='mt-2 text-sm text-gray-600'>
-            요청하신 페이지가 존재하지 않거나 이동되었습니다.
-          </p>
-        </div>
-
-        <div className='mt-8 space-y-4'>
-          <Link
-            href='/dashboard'
-            className='group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+    <html lang='ko'>
+      <head>
+        <title>404 - 페이지를 찾을 수 없습니다</title>
+        <meta
+          name='description'
+          content='요청하신 페이지가 존재하지 않거나 이동되었습니다.'
+        />
+        <meta name='viewport' content='width=device-width, initial-scale=1' />
+      </head>
+      <body>
+        <div
+          style={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#f9fafb',
+            padding: '48px 16px',
+          }}
+        >
+          <div
+            style={{
+              maxWidth: '448px',
+              width: '100%',
+              textAlign: 'center',
+            }}
           >
-            대시보드로 이동
-          </Link>
+            <h1
+              style={{
+                fontSize: '72px',
+                fontWeight: 'bold',
+                color: '#111827',
+                margin: '0 0 24px 0',
+              }}
+            >
+              404
+            </h1>
+            <h2
+              style={{
+                fontSize: '30px',
+                fontWeight: '800',
+                color: '#111827',
+                margin: '0 0 8px 0',
+              }}
+            >
+              페이지를 찾을 수 없습니다
+            </h2>
+            <p
+              style={{
+                fontSize: '14px',
+                color: '#6b7280',
+                margin: '0 0 32px 0',
+              }}
+            >
+              요청하신 페이지가 존재하지 않거나 이동되었습니다.
+            </p>
 
-          <Link
-            href='/'
-            className='group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-          >
-            홈으로 이동
-          </Link>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+              }}
+            >
+              <a
+                href='/dashboard'
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '8px 16px',
+                  backgroundColor: '#4f46e5',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  textAlign: 'center',
+                }}
+              >
+                대시보드로 이동
+              </a>
+
+              <a
+                href='/'
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '8px 16px',
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  textDecoration: 'none',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  textAlign: 'center',
+                }}
+              >
+                홈으로 이동
+              </a>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </body>
+    </html>
   );
 }
