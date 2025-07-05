@@ -1,4 +1,5 @@
 import { ClientProviders } from '@/components/providers/ClientProviders';
+import '@/polyfills/process-browser';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -21,19 +22,29 @@ if (typeof window === 'undefined') {
   import('@/utils/update-prevention-init').catch(console.warn);
 
   // 한글 인코딩 자동 설정
-  import('@/utils/encoding-fix').then(({ detectAndFixTerminalEncoding }) => {
-    detectAndFixTerminalEncoding();
-  }).catch(console.warn);
+  import('@/utils/encoding-fix')
+    .then(({ detectAndFixTerminalEncoding }) => {
+      detectAndFixTerminalEncoding();
+    })
+    .catch(console.warn);
 
   // 🔓 개발 환경에서 Passwordless 시스템 초기화
-  if (process.env.NODE_ENV === 'development' || process.env.PASSWORDLESS_DEV_MODE === 'true') {
-    import('@/lib/passwordless-env-manager').then(({ passwordlessEnv }) => {
-      passwordlessEnv.initialize().then((success) => {
-        if (success) {
-          passwordlessEnv.printStatusReport()
-        }
-      }).catch(console.warn)
-    }).catch(console.warn);
+  if (
+    process.env.NODE_ENV === 'development' ||
+    process.env.PASSWORDLESS_DEV_MODE === 'true'
+  ) {
+    import('@/lib/passwordless-env-manager')
+      .then(({ passwordlessEnv }) => {
+        passwordlessEnv
+          .initialize()
+          .then(success => {
+            if (success) {
+              passwordlessEnv.printStatusReport();
+            }
+          })
+          .catch(console.warn);
+      })
+      .catch(console.warn);
   }
 }
 

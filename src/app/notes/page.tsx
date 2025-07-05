@@ -1,8 +1,11 @@
 'use client';
 
+// 🔧 RSC 프리렌더링 오류 방지: 동적 렌더링 강제
+export const dynamic = 'force-dynamic';
+
 import { supabase } from '@/lib/supabase';
-import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 // Notes 데이터를 가져오는 컴포넌트
 function NotesContent() {

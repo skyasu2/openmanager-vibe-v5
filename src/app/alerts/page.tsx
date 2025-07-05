@@ -1,3 +1,8 @@
+'use client';
+
+// 🔧 RSC 프리렌더링 오류 방지: 동적 렌더링 강제
+export const dynamic = 'force-dynamic';
+
 /**
  * 🚨 시스템 알림 전체 보기 페이지
  *
@@ -177,10 +182,7 @@ export default function AlertsPage() {
             실시간 시스템 상태 알림 및 경고 관리
           </p>
         </div>
-        <Button
-          variant='outline'
-          className='flex items-center'
-        >
+        <Button variant='outline' className='flex items-center'>
           <RefreshCw className='w-4 h-4 mr-2' />
           새로고침
         </Button>

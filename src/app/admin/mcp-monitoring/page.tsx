@@ -1,5 +1,8 @@
 'use client';
 
+// 🔧 RSC 프리렌더링 오류 방지: 동적 렌더링 강제
+export const dynamic = 'force-dynamic';
+
 /**
  * 📊 MCP 시스템 모니터링 대시보드 (단순화 버전)
  *

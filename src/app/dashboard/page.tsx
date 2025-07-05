@@ -1,5 +1,8 @@
 'use client';
 
+// 🔧 RSC 프리렌더링 오류 방지: 동적 렌더링 강제
+export const dynamic = 'force-dynamic';
+
 import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
 import { NotificationToast } from '@/components/system/NotificationToast';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
@@ -9,28 +12,20 @@ import { AISidebar } from '@/presentation/ai-sidebar';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import React, { Suspense, useCallback, useEffect, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 
 // --- Dynamic Imports ---
-const DashboardHeader = dynamic(
+const DashboardHeader = lazy(
   () => import('../../components/dashboard/DashboardHeader')
 );
-const DashboardContent = dynamic(
+const DashboardContent = lazy(
   () => import('../../components/dashboard/DashboardContent')
 );
-const FloatingSystemControl = dynamic(
+const FloatingSystemControl = lazy(
   () => import('../../components/system/FloatingSystemControl')
 );
-const EnhancedServerModalDynamic = dynamic(
-  () => import('../../components/dashboard/EnhancedServerModal'),
-  {
-    loading: () => (
-      <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
-        <div className='w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin'></div>
-      </div>
-    ),
-  }
+const EnhancedServerModalDynamic = lazy(
+  () => import('../../components/dashboard/EnhancedServerModal')
 );
 
 const ContentLoadingSkeleton = () => (
@@ -115,7 +110,7 @@ function DashboardPageContent() {
   // 🔒 자동 로그아웃 시스템 - 베르셀 사용량 최적화
   const { remainingTime, isWarning, resetTimer, forceLogout } = useAutoLogout({
     timeoutMinutes: 10, // 10분 비활성 시 로그아웃
-    warningMinutes: 1,  // 1분 전 경고
+    warningMinutes: 1, // 1분 전 경고
     onWarning: () => {
       setShowLogoutWarning(true);
       console.log('⚠️ 자동 로그아웃 경고 표시 - 베르셀 사용량 최적화');
@@ -123,7 +118,7 @@ function DashboardPageContent() {
     onLogout: () => {
       console.log('🔒 자동 로그아웃 실행 - 베르셀 사용량 최적화');
       systemInactivityService.pauseSystem();
-    }
+    },
   });
 
   // 🎯 실제 서버 데이터 생성기 데이터 사용 - 즉시 로드
@@ -239,12 +234,12 @@ function DashboardPageContent() {
               showSequentialGeneration={false}
               servers={realServers}
               status={{ type: 'idle' }}
-              actions={{ start: () => { }, stop: () => { } }}
+              actions={{ start: () => {}, stop: () => {} }}
               selectedServer={selectedServer || dashboardSelectedServer}
               onServerClick={handleServerClick}
               onServerModalClose={handleServerModalClose}
-              onStatsUpdate={() => { }}
-              onShowSequentialChange={() => { }}
+              onStatsUpdate={() => {}}
+              onShowSequentialChange={() => {}}
               mainContentVariants={{}}
               isAgentOpen={isAgentOpen}
             />
