@@ -51,6 +51,23 @@ export default function AIHealthStatus() {
   const fetchHealthStatus = async () => {
     setLoading(true);
     try {
+      // 🚨 시스템 상태 먼저 확인 (Vercel 절약)
+      const systemResponse = await fetch('/api/system/status');
+      const systemData = await systemResponse.json();
+
+      if (!systemData.isRunning) {
+        console.log('⏸️ 시스템 미시작 상태 - AI 헬스 체크 생략');
+        setStatus({
+          mcp: { status: 'offline' },
+          rag: { status: 'offline' },
+          google_ai: { status: 'offline' },
+          overall: 'critical',
+          timestamp: new Date().toISOString(),
+        });
+        setLastUpdate(new Date());
+        return;
+      }
+
       const response = await fetch('/api/ai/health');
       if (response.ok) {
         const data = await response.json();

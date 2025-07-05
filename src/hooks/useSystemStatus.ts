@@ -75,13 +75,7 @@ export const useSystemStatus = (
   // 시스템 상태 체크 함수
   const checkStatus = useCallback(async (): Promise<SystemStatus | null> => {
     try {
-      // 🚨 시스템이 시작되지 않은 상태에서는 API 호출 차단 (Vercel 사용량 절약)
-      if (!status.isRunning && !status.isStarting) {
-        console.log('⏸️ 시스템 미시작 상태 - API 호출 차단 (Vercel 절약)');
-        return status; // 현재 상태 유지
-      }
-
-      const response = await fetch('/api/system/state', {
+      const response = await fetch('/api/system/status', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -138,13 +132,14 @@ export const useSystemStatus = (
     try {
       setStatus(prev => ({ ...prev, isStarting: true }));
 
-      // 기존 시스템 시작 API 호출
-      const response = await fetch('/api/system/start', {
+      // 시스템 시작 API 호출
+      const response = await fetch('/api/system/status', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          action: 'start',
           timestamp: new Date().toISOString(),
           initiatedBy: 'user',
         }),

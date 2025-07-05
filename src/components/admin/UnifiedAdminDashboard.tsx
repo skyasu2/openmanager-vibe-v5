@@ -123,17 +123,55 @@ export default function UnifiedAdminDashboard() {
       setLoading(true);
       setError(null);
 
-      // 병렬로 데이터 요청
-      const [performanceRes, logsRes, systemRes] = await Promise.all([
+      // 🚨 시스템 상태 먼저 확인 후 조건부로 다른 API 호출 (Vercel 절약)
+      const systemRes = await fetch('/api/system/status');
+      const systemData = await systemRes.json();
+
+      // 시스템이 시작되지 않은 상태에서는 최소한의 데이터만 로드
+      if (!systemData.isRunning) {
+        console.log('⏸️ 시스템 미시작 상태 - 관리자 대시보드 최소 로드');
+        setData({
+          status: {
+            overall: 'inactive' as any,
+            performance: {
+              score: 0,
+              status: 'inactive' as any,
+              metrics: {
+                avgResponseTime: 0,
+                successRate: 0,
+                errorRate: 0,
+                fallbackRate: 0,
+              },
+            },
+            logging: { status: 'inactive', totalLogs: 0, errorRate: 0 },
+            engines: { active: 0, total: 0, engines: [] },
+            infrastructure: {
+              environment: 'standby',
+              uptime: 0,
+              memoryUsage: 0,
+              connections: 0,
+            },
+          },
+          alerts: [],
+          quickStats: {
+            totalRequests: 0,
+            activeUsers: 0,
+            systemUptime: 0,
+            lastUpdate: new Date().toISOString(),
+          },
+        });
+        return;
+      }
+
+      // 시스템이 시작된 상태에서만 전체 데이터 로드
+      const [performanceRes, logsRes] = await Promise.all([
         fetch('/api/performance?summary=true'),
         fetch('/api/logs?summary=true'),
-        fetch('/api/system/status'),
       ]);
 
-      const [performanceData, logsData, systemData] = await Promise.all([
+      const [performanceData, logsData] = await Promise.all([
         performanceRes.json(),
         logsRes.json(),
-        systemRes.json(),
       ]);
 
       // 데이터 통합
