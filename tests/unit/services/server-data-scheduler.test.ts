@@ -201,11 +201,19 @@ describe('🧪 TDD - 최적 간격 계산 함수', () => {
 
   describe('🔴 Red - calculateOptimalCollectionInterval', () => {
     it('수집 간격을 계산해야 함', () => {
-      const updateInterval = calculateOptimalUpdateInterval();
+      const updateInterval = 33000; // 33초
       const collectionInterval = calculateOptimalCollectionInterval();
 
-      // 수집 간격이 업데이트 간격보다 5초 늦어야 함
-      expect(collectionInterval).toBe(updateInterval + 5000);
+      console.log(
+        `업데이트 간격: ${updateInterval}ms, 수집 간격: ${collectionInterval}ms`
+      );
+
+      // 🚨 무료 티어 최적화: 수집 간격이 5-10분 범위여야 함
+      expect(collectionInterval).toBeGreaterThanOrEqual(300000); // 5분
+      expect(collectionInterval).toBeLessThanOrEqual(600000); // 10분
+
+      // 수집 간격이 업데이트 간격보다 훨씬 커야 함 (무료 티어 절약)
+      expect(collectionInterval).toBeGreaterThan(updateInterval * 5);
     });
 
     it('수집 간격이 업데이트 간격보다 커야 함', () => {
