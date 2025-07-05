@@ -91,23 +91,18 @@ const nextConfig = {
         return config;
     },
 
-    // 리다이렉트 설정 (Pages Router 대신 App Router 사용)
+    // 리다이렉트 설정 (App Router 전용)
     async redirects() {
         return [
             {
-                source: '/_error',
-                destination: '/500',
-                permanent: false,
-            },
-            {
-                source: '/_document',
-                destination: '/500',
+                source: '/dashboard',
+                destination: '/',
                 permanent: false,
             },
         ];
     },
 
-    // �� 캐싱 최적화
+    // 🎯 캐싱 최적화
     headers: async () => {
         return [
             {
@@ -154,17 +149,6 @@ const nextConfig = {
 
     // 🌐 국제화 비활성화 (한국어 전용)
     i18n: undefined,
-
-    // 🔄 리다이렉트 최적화
-    redirects: async () => {
-        return [
-            {
-                source: '/dashboard',
-                destination: '/',
-                permanent: false,
-            },
-        ];
-    },
 };
 
 export default nextConfig; 
