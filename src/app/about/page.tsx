@@ -1,9 +1,16 @@
+'use client';
+
 import { Lock } from 'lucide-react';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function AboutRedirectPage() {
-  // 서버 사이드에서 즉시 리다이렉트
-  redirect('/admin/development-process');
+  const router = useRouter();
+
+  useEffect(() => {
+    // 클라이언트 사이드에서 리다이렉트 (빌드 오류 방지)
+    router.push('/admin/development-process');
+  }, [router]);
 
   // 이 부분은 실행되지 않지만 TypeScript를 위해 유지
   return (

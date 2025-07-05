@@ -562,8 +562,8 @@ export class SupabaseRAGEngine {
     try {
       console.log('🚀 Supabase RAG Engine 초기화 시작...');
 
-      // 1. Supabase 연결 테스트 (2회 점검)
-      await this.performConnectionCheck();
+      // 1. Supabase 연결 테스트 (완전 삭제 - Vercel CPU 절약)
+      console.log('⏸️ Supabase 연결 체크 건너뜀 (Vercel 최적화)');
 
       // 2. 기존 데이터 확인
       const { count, error: countError } = await this.supabase
@@ -596,46 +596,9 @@ export class SupabaseRAGEngine {
   }
 
   /**
-   * Supabase 연결 2회 점검
+   * 🗑️ Supabase 연결 체크 완전 삭제 (Vercel CPU 절약)
+   * 연결 체크는 실제 사용 시점에서 처리됨
    */
-  private async performConnectionCheck(): Promise<void> {
-    // 🚨 빌드 시 연결 체크 건너뛰기 (Vercel 최적화)
-    if (
-      process.env.SKIP_SUPABASE_CONNECTION_CHECK === 'true' ||
-      process.env.BUILD_TIME_OPTIMIZATION === 'true' ||
-      process.env.NODE_ENV === 'production'
-    ) {
-      console.log('⏸️ 빌드 환경 - Supabase 연결 체크 건너뜀 (Vercel 최적화)');
-      return;
-    }
-
-    console.log('🔍 Supabase 연결 2회 점검 시작...');
-
-    try {
-      // 1차 점검: 기본 테이블 접근
-      const { error: firstCheck } = await this.supabase
-        .from('command_vectors')
-        .select('count')
-        .limit(1);
-
-      if (firstCheck && firstCheck.code !== '42P01') {
-        // 테이블 없음 오류가 아닌 경우
-        console.warn('⚠️ 1차 연결 점검 실패:', firstCheck.message);
-
-        // 2차 점검: 다른 방식으로 연결 확인
-        const { error: secondCheck } = await this.supabase.rpc('version'); // PostgreSQL 버전 확인
-
-        if (secondCheck) {
-          throw new Error(`2차 연결 점검도 실패: ${secondCheck.message}`);
-        }
-      }
-
-      console.log('✅ Supabase 연결 2회 점검 완료');
-    } catch (error) {
-      console.error('❌ Supabase 연결 점검 실패:', error);
-      throw error;
-    }
-  }
 
   /**
    * 벡터 테이블 생성 및 확인

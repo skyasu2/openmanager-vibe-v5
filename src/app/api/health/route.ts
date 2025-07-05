@@ -639,27 +639,5 @@ function determineOverallStatus(statuses: string[]): string {
   return 'unhealthy';
 }
 
-// 🧹 캐시 정리 함수 (Vercel 환경에서는 비활성화)
-if (!process.env.VERCEL && process.env.DISABLE_CRON_JOBS !== 'true') {
-  setInterval(
-    () => {
-      const now = Date.now();
-      const expired: string[] = [];
-
-      healthCache.forEach((cached, key) => {
-        if (now > cached.timestamp + cached.ttl) {
-          expired.push(key);
-        }
-      });
-
-      expired.forEach(key => healthCache.delete(key));
-
-      if (expired.length > 0) {
-        console.log(
-          `🧹 헬스체크 캐시 정리: ${expired.length}개 만료 항목 제거`
-        );
-      }
-    },
-    5 * 60 * 1000
-  );
-}
+// 🗑️ 백그라운드 캐시 정리 프로세스 완전 삭제 (Vercel CPU 절약)
+// 캐시는 메모리 한계에 의해 자동으로 정리됨
