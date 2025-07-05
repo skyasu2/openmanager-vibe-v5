@@ -30,8 +30,10 @@ if (typeof window === 'undefined') {
 
   // 🔓 개발 환경에서 Passwordless 시스템 초기화
   if (
-    process.env.NODE_ENV === 'development' ||
-    process.env.PASSWORDLESS_DEV_MODE === 'true'
+    (typeof process !== 'undefined' &&
+      process.env?.NODE_ENV === 'development') ||
+    (typeof process !== 'undefined' &&
+      process.env?.PASSWORDLESS_DEV_MODE === 'true')
   ) {
     import('@/lib/passwordless-env-manager')
       .then(({ passwordlessEnv }) => {
