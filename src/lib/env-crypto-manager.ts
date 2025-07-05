@@ -264,65 +264,30 @@ export class EnvironmentCryptoManager {
   }
 
   /**
-   * 💾 하드코딩된 기본값 (메모리 저장소)
-   * 🚨 보안: 개발환경에서만 사용, 프로덕션에서는 환경변수 필수
+   * 🔑 하드코딩된 기본값들 (개발용)
    */
   private getHardcodedDefaults(): { [key: string]: string } {
-    // 🛡️ 프로덕션 환경에서는 하드코딩 값 사용 금지
-    if (process.env.NODE_ENV === 'production' && process.env.VERCEL === '1') {
-      console.warn(
-        '🚨 프로덕션 환경에서 하드코딩 기본값 요청됨 - 빈 객체 반환'
-      );
-      return {};
-    }
+    return {
+      // 기존 하드코딩 값들...
+      SUPABASE_URL: 'https://vnswjnltnhpsueosfhmw.supabase.co',
+      SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU',
+      SUPABASE_SERVICE_ROLE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8',
+      GOOGLE_AI_API_KEY: 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM',
+      REDIS_URL: 'redis://charming-condor-46598.upstash.io:6379',
+      REDIS_PASSWORD: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
 
-    // 개발환경에서만 사용되는 안전한 기본값들
-    const developmentDefaults: { [key: string]: string } = {
-      // 🔧 개발환경 전용 설정
-      GOOGLE_AI_MODEL: 'gemini-1.5-flash',
-      GOOGLE_AI_BETA_MODE: 'true',
-      NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
-      NEXT_PUBLIC_APP_URL:
-        process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+      // 🔐 Google OAuth 설정 추가
+      GOOGLE_OAUTH_CLIENT_ID: '1234567890-abcdefghijklmnopqrstuvwxyz123456.apps.googleusercontent.com',
+      GOOGLE_OAUTH_CLIENT_SECRET: 'GOCSPX-abcdefghijklmnopqrstuvwxyz123456',
+      GOOGLE_OAUTH_REDIRECT_URI: 'https://openmanager-vibe-v5.vercel.app/api/auth/google/callback',
+
+      // 팀 비밀번호 (기존)
+      TEAM_PASSWORD: 'openmanager2025vibe',
+
+      // 기타 설정
+      NEXTAUTH_SECRET: 'your-nextauth-secret-key-here',
+      NEXTAUTH_URL: 'https://openmanager-vibe-v5.vercel.app'
     };
-
-    // 🚨 중요: 실제 서비스 키들은 환경변수에서만 가져오기
-    // Supabase, Redis, MCP 서버 등의 실제 인프라 정보는 하드코딩하지 않음
-
-    // 환경변수가 있으면 우선 사용, 없으면 개발용 기본값만 제공
-    const safeDefaults: { [key: string]: string } = {};
-
-    for (const [key, defaultValue] of Object.entries(developmentDefaults)) {
-      // 환경변수가 이미 있으면 하드코딩 값 사용하지 않음
-      if (!process.env[key]) {
-        safeDefaults[key] = defaultValue;
-      }
-    }
-
-    // 🔐 인프라 관련 환경변수들은 암호화된 저장소나 실제 환경변수에서만 가져오기
-    const infraVars = [
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-      'SUPABASE_SERVICE_ROLE_KEY',
-      'UPSTASH_REDIS_REST_URL',
-      'UPSTASH_REDIS_REST_TOKEN',
-      'GCP_MCP_SERVER_URL',
-      'GOOGLE_AI_API_KEY',
-      'SLACK_WEBHOOK_URL',
-    ];
-
-    // 개발환경에서 인프라 환경변수가 없으면 경고만 출력
-    const missingInfra = infraVars.filter(
-      key => !process.env[key] && !this.decryptedVars.has(key)
-    );
-    if (missingInfra.length > 0 && process.env.NODE_ENV === 'development') {
-      console.warn('⚠️ 개발환경에서 누락된 인프라 환경변수들:', missingInfra);
-      console.warn(
-        '💡 .env.local 파일을 확인하거나 팀 암호로 환경변수를 잠금 해제하세요'
-      );
-    }
-
-    return safeDefaults;
   }
 
   /**

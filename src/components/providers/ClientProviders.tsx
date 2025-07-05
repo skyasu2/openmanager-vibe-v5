@@ -1,5 +1,6 @@
 'use client';
 
+import { AuthProvider } from '@/contexts/AuthContext';
 import { ReactNode } from 'react';
 import { QueryProvider } from './QueryProvider';
 
@@ -15,5 +16,11 @@ interface ClientProvidersProps {
  * 모든 클라이언트 사이드 상태 관리 Provider들을 여기서 통합 관리합니다.
  */
 export function ClientProviders({ children }: ClientProvidersProps) {
-  return <QueryProvider>{children}</QueryProvider>;
+  return (
+    <QueryProvider>
+      <AuthProvider>
+        {children}
+      </AuthProvider>
+    </QueryProvider>
+  );
 }

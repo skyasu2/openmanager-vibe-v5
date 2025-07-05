@@ -7,7 +7,8 @@ import { Bot, Clock } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 // 추가된 임포트
-import UnifiedProfileComponent from '../UnifiedProfileComponent';
+import { useAuth } from '@/contexts/AuthContext';
+import ProfileDropdown from '../auth/ProfileDropdown';
 
 /**
  * 대시보드 헤더 컴포넌트 Props
@@ -81,6 +82,7 @@ const DashboardHeader = React.memo(function DashboardHeader({
   isAgentOpen = false, // 기존 호환성을 위해 유지
 }: DashboardHeaderProps) {
   const { aiAgent, ui } = useUnifiedAdminStore();
+  const { user, sessionId, isAuthenticated } = useAuth();
 
   // 새로운 AI 사이드바 상태
   const { isOpen: isSidebarOpen, setOpen: setSidebarOpen } =
@@ -133,10 +135,9 @@ const DashboardHeader = React.memo(function DashboardHeader({
               onClick={handleAIAgentToggle}
               className={`
                 relative p-3 rounded-xl transition-all duration-300 transform
-                ${
-                  isSidebarOpen || aiAgent.isEnabled
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-105'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900'
+                ${isSidebarOpen || aiAgent.isEnabled
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-105'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900'
                 }
               `}
               title={
@@ -178,9 +179,9 @@ const DashboardHeader = React.memo(function DashboardHeader({
                   animate={
                     aiAgent.isEnabled
                       ? {
-                          rotate: [0, 360],
-                          scale: [1, 1.2, 1],
-                        }
+                        rotate: [0, 360],
+                        scale: [1, 1.2, 1],
+                      }
                       : {}
                   }
                   transition={{
@@ -246,8 +247,10 @@ const DashboardHeader = React.memo(function DashboardHeader({
               )}
           </div>
 
-          {/* 프로필 컴포넌트 */}
-          <UnifiedProfileComponent userName='사용자' />
+          {/* 프로필 드롭다운 */}
+          {isAuthenticated && user && sessionId && (
+            <ProfileDropdown user={user} sessionId={sessionId} />
+          )}
         </div>
       </div>
 
