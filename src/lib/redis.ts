@@ -9,7 +9,6 @@
 
 import { getDecryptedRedisConfig } from '@/lib/config/runtime-env-decryptor';
 import { env } from './env';
-import { usageMonitor } from './usage-monitor';
 
 /**
  * 🚀 스마트 Redis 클라이언트
@@ -346,10 +345,7 @@ function shouldUseMockRedis(context?: string, dataSize?: number): boolean {
     return true;
   }
 
-  // 8. 사용량 모니터링 기반 판단
-  if (!usageMonitor.canUseRedis()) {
-    return true;
-  }
+  // 8. 기본적으로 Redis 사용 허용 (사용량 모니터링 제거됨)
 
   // 9. 기본값: 실제 Redis 사용
   return false;

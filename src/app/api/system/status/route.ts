@@ -15,7 +15,6 @@
  * - 자동 비활성 사용자 정리
  */
 
-import { emergencyLimiter } from '@/lib/emergency-vercel-limiter';
 import {
   generateAnonymousId,
   systemStateManager,
@@ -53,12 +52,7 @@ function getRequestContext(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    // 🚨 응급 조치: 환경변수 기반 사용량 제한
-    if (emergencyLimiter.isFeatureDisabled('system-status')) {
-      return emergencyLimiter.createEmergencyResponse(
-        '시스템 상태 조회 비활성화'
-      );
-    }
+    // 🚨 긴급 제한 기능 제거됨 (정적 최적화로 대체)
 
     const EMERGENCY_THROTTLE = process.env.EMERGENCY_THROTTLE === 'true';
     const MAX_REQUESTS_PER_MINUTE = parseInt(

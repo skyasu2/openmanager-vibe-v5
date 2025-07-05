@@ -1,8 +1,6 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '../types/database-types';
-import { env } from './env';
-import { usageMonitor } from './usage-monitor';
 import { getVercelOptimizedConfig } from '@/config/environment';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { env } from './env';
 
 // 빌드 타임에는 최소 유효한 URL, 런타임에는 실제 환경변수 사용
 function getSupabaseUrl() {
@@ -109,18 +107,7 @@ class SmartSupabaseClient {
   async select(table: string, query?: string) {
     const cacheKey = `select_${table}_${query || 'all'}`;
 
-    // 무료 티어 체크
-    if (!usageMonitor.canUseSupabase()) {
-      console.warn('🔄 Supabase disabled, using cached data');
-      return {
-        data: this.fallbackStorage.get(cacheKey) || [],
-        error: null,
-      };
-    }
-
     try {
-      usageMonitor.recordSupabaseUsage(0.05, 1); // 50KB, 1 request
-
       let queryBuilder = supabase.from(table).select(query || '*');
       const result = await queryBuilder;
 
@@ -139,31 +126,13 @@ class SmartSupabaseClient {
     }
   }
 
-  // INSERT 작업 (사용량 체크 포함)
+  // INSERT 작업
   async insert(table: string, data: any) {
-    // fallback storage에 저장 (백업용)
-    const cacheKey = `insert_${table}_${Date.now()}`;
-    this.fallbackStorage.set(cacheKey, data);
-
-    // 무료 티어 체크
-    if (!usageMonitor.canUseSupabase()) {
-      console.warn('🔄 Supabase disabled, data queued for later sync');
-      return {
-        data: [data],
-        error: null,
-      };
-    }
-
     try {
-      usageMonitor.recordSupabaseUsage(0.1, 1); // 100KB, 1 request
       const result = await supabase.from(table).insert(data);
-
-      // 성공시 캐시에서 제거
-      this.fallbackStorage.delete(cacheKey);
-
       return result;
     } catch (error) {
-      console.warn('Supabase INSERT error, data queued:', error);
+      console.warn('Supabase INSERT error:', error);
       return {
         data: [data],
         error,
@@ -171,19 +140,9 @@ class SmartSupabaseClient {
     }
   }
 
-  // UPDATE 작업 (사용량 체크 포함)
+  // UPDATE 작업
   async update(table: string, data: any, match: any) {
-    // 무료 티어 체크
-    if (!usageMonitor.canUseSupabase()) {
-      console.warn('🔄 Supabase disabled, update queued for later sync');
-      return {
-        data: [{ ...match, ...data }],
-        error: null,
-      };
-    }
-
     try {
-      usageMonitor.recordSupabaseUsage(0.1, 1); // 100KB, 1 request
       return await supabase.from(table).update(data).match(match);
     } catch (error) {
       console.warn('Supabase UPDATE error:', error);
@@ -194,19 +153,9 @@ class SmartSupabaseClient {
     }
   }
 
-  // DELETE 작업 (사용량 체크 포함)
+  // DELETE 작업
   async delete(table: string, match: any) {
-    // 무료 티어 체크
-    if (!usageMonitor.canUseSupabase()) {
-      console.warn('🔄 Supabase disabled, delete queued for later sync');
-      return {
-        data: [],
-        error: null,
-      };
-    }
-
     try {
-      usageMonitor.recordSupabaseUsage(0.05, 1); // 50KB, 1 request
       return await supabase.from(table).delete().match(match);
     } catch (error) {
       console.warn('Supabase DELETE error:', error);
@@ -217,21 +166,11 @@ class SmartSupabaseClient {
     }
   }
 
-  // RPC 호출 (사용량 체크 포함)
+  // RPC 호출
   async rpc(functionName: string, params?: any) {
     const cacheKey = `rpc_${functionName}_${JSON.stringify(params)}`;
 
-    // 무료 티어 체크
-    if (!usageMonitor.canUseSupabase()) {
-      console.warn('🔄 Supabase disabled, using cached RPC result');
-      return {
-        data: this.fallbackStorage.get(cacheKey) || null,
-        error: null,
-      };
-    }
-
     try {
-      usageMonitor.recordSupabaseUsage(0.1, 1); // 100KB, 1 request
       const result = await supabase.rpc(functionName, params);
 
       // 성공시 캐시에 저장
@@ -252,44 +191,6 @@ class SmartSupabaseClient {
   // 원본 Supabase 클라이언트 접근 (필요시)
   get raw() {
     return supabase;
-  }
-
-  // 사용량 상태 확인
-  getUsageStatus() {
-    return usageMonitor.getUsageStatus().supabase;
-  }
-
-  // 수동 제어
-  enable() {
-    usageMonitor.forceEnable('supabase');
-  }
-
-  disable() {
-    usageMonitor.disable('supabase');
-  }
-
-  // 대기 중인 작업 동기화 (무료 티어 활성화시)
-  async syncPendingOperations() {
-    if (!usageMonitor.canUseSupabase()) {
-      console.warn('Cannot sync: Supabase still disabled');
-      return;
-    }
-
-    const insertKeys = Array.from(this.fallbackStorage.keys()).filter(key =>
-      key.startsWith('insert_')
-    );
-
-    for (const key of insertKeys) {
-      const data = this.fallbackStorage.get(key);
-      const table = key.split('_')[1];
-
-      try {
-        await this.insert(table, data);
-        console.log(`✅ Synced pending insert for ${table}`);
-      } catch (error) {
-        console.warn(`❌ Failed to sync insert for ${table}:`, error);
-      }
-    }
   }
 
   // 캐시 정리

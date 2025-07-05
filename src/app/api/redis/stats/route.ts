@@ -8,7 +8,7 @@
  */
 
 import smartRedis from '@/lib/redis';
-import { usageMonitor } from '@/lib/usage-monitor';
+
 import { NextRequest, NextResponse } from 'next/server';
 
 // Next.js App Router 런타임 설정
@@ -50,19 +50,18 @@ export async function GET() {
     // 🔧 하이브리드 Redis 통계 수집
     const hybridStats = await smartRedis.getStats();
 
-    // 📊 사용량 통계 수집
-    const usageStatus = usageMonitor.getUsageStatus();
+    // 📊 사용량 통계 (사용량 모니터링 제거됨)
     const usageStats = {
       redis: {
-        canUse: usageMonitor.canUseRedis(),
-        commands: usageStatus.redis.usage.commands,
-        lastReset: usageStatus.redis.usage.lastReset,
+        canUse: true,
+        commands: 0,
+        lastReset: new Date().toISOString(),
       },
       supabase: {
-        canUse: usageMonitor.canUseSupabase(),
-        requests: usageStatus.supabase.usage.requests,
-        transferMB: usageStatus.supabase.usage.transferMB,
-        lastReset: usageStatus.supabase.usage.lastReset,
+        canUse: true,
+        requests: 0,
+        transferMB: 0,
+        lastReset: new Date().toISOString(),
       },
     };
 

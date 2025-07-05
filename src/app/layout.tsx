@@ -7,7 +7,7 @@ import { EmergencyBanner } from '@/components/emergency/EmergencyBanner';
 import { SystemBootstrap } from '@/components/system/SystemBootstrap';
 
 // Keep-alive 스케줄러 초기화
-import '@/lib/keep-alive-scheduler';
+// keep-alive-scheduler 제거됨 (사용량 모니터링 간소화)
 // 인코딩 자동 설정
 import { detectAndFixTerminalEncoding } from '@/utils/encoding-fix';
 
