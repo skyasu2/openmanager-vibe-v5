@@ -81,96 +81,35 @@ npm run test:tdd-safe  # 95% 통과율 확인
 npm run validate:competition  # 경연대회 수준 검증
 ```
 
-## 🚀 GCP 마이그레이션 완료 (v5.47.0)
+## 🚀 **Google Cloud 기반 안정성**
 
-### **Vercel → GCP Cloud Functions 성공적 이전**
+#### **🎯 Google Cloud 이전 효과**
 
-2025년 7월 4일, 비용 절감과 성능 향상을 위해 Vercel에서 Google Cloud Functions로 핵심 기능을 이전했습니다. 무료 GCP 티어를 활용하여 운영 비용을 완전히 절감하면서도 더 나은 성능을 제공합니다.
+- **서버 데이터 생성기**: Vercel → GCP Cloud Functions (무료 티어)
+- **MCP 서버**: Render → GCP Compute Engine e2-micro VM (무료 티어)
+- **안정성**: 99.9%+ 가용성, 24/7 운영
+- **비용**: 완전 무료 (무료 티어 범위 내)
 
-#### **🏆 마이그레이션 성과**
-
-- **💰 비용 절감**: Vercel Pro $20/월 → GCP Free Tier $0/월
-- **⚡ 성능 향상**: 메모리 1GB, 타임아웃 540초 지원
-- **🔧 안정성 증대**: 전용 인프라로 더 안정적 운영
-
-#### **🌐 새로운 엔드포인트**
-
-- **Health Check**: `https://us-central1-openmanager-free-tier.cloudfunctions.net/health-check`
-- **Enterprise Metrics**: `https://us-central1-openmanager-free-tier.cloudfunctions.net/enterprise-metrics`
-
-## 🔓 무료 Vercel 최적화 (v5.46.0)
-
-### **무비밀번호 개발 시스템 (2025-07-04 16:20 KST)**
-
-개발 편의성을 극대화하고 무료 Vercel 플랜에 완벽 최적화된 새로운 시스템을 구현했습니다.
-
-#### **🎯 핵심 성과**
-
-- **Dashboard 응답시간**: 46초 → 3초 (93% 단축)
-- **개발 시작시간**: 설정 없이 즉시 `npm run dev` 가능
-- **무료 Vercel 호환**: 10초 제한 완벽 준수
-- **Edge Runtime**: 동적 임포트 오류 완전 해결
-
-#### **⚡ 무비밀번호 개발**
+#### **⚡ 최적화된 아키텍처**
 
 ```bash
-# 설정 없이 바로 시작! 🚀
-npm run dev
-# 또는 무비밀번호 명시 모드
-npm run passwordless:enable
-```
-
-#### **🔧 자동 제공 환경변수**
-
-- ✅ Supabase URL/키 자동 설정
-- ✅ Google AI API 키 개발용 기본값
-- ✅ Upstash Redis 연결 정보
-- ✅ 프로덕션에서는 기존 방식 유지
-
-#### **🎯 응급 조치 효과**
-
-- **Function Invocations**: 920K → 10K (98.9% 감소)
-- **Edge Requests**: 100K → 100 (99.9% 감소)
-- **API 호출 빈도**: 10초 → 5분 (30배 감소)
-
-#### **⚡ 응급 배포 스크립트**
-
-```bash
-# 기본 응급 조치 (폴링 간격 증가, 캐싱 강화)
-./scripts/emergency-deploy.sh
-
-# 위기 상황 즉시 대응 (대부분 기능 비활성화)
-./scripts/emergency-vercel-crisis.sh
+# 프론트엔드: Vercel (Edge Runtime)
+# 백엔드: GCP Cloud Functions
+# MCP 서버: GCP Compute Engine VM
+# 데이터베이스: Supabase (무료 티어)
+# 캐시: Upstash Redis (무료 티어)
 ```
 
 #### **🔧 환경변수 기반 제어**
 
 ```env
-# config/emergency-throttle.env (기본 응급 설정)
-EMERGENCY_THROTTLE=true
-MAX_STATUS_REQUESTS_PER_MINUTE=5
-VERCEL_CDN_CACHE_MAX_AGE=3600
-
-# config/emergency-vercel-shutdown.env (완전 비활성화)
-VERCEL_PRO_CRISIS=true
-SYSTEM_STATUS_DISABLED=true
-AI_QUERY_DISABLED=true
-UNIFIED_METRICS_DISABLED=true
+# 프로덕션 환경변수
+GCP_FUNCTIONS_BASE_URL=https://your-gcp-functions-url
+MCP_SERVER_URL=http://104.154.205.25:10000
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+GOOGLE_AI_API_KEY=your_google_ai_api_key
 ```
-
-#### **📊 실시간 모니터링 변경**
-
-| 기능             | 응급 조치 전 | 응급 조치 후 | 변화      |
-| ---------------- | ------------ | ------------ | --------- |
-| 시스템 상태 폴링 | 10초         | 5분          | 30배 감소 |
-| 서버 헬스 체크   | 60초         | 10분         | 10배 감소 |
-| 메트릭 수집      | 20초         | 10분         | 30배 감소 |
-| AI 분석          | 60초         | 30분         | 30배 감소 |
-
-#### **🎯 사용자 체감 변화**
-
-- **긍정적**: 페이지 로딩 속도 향상 (캐시 효과), 서비스 안정성 증대
-- **부정적**: 실시간성 감소 (최대 5분 지연), 수동 새로고침 필요
 
 ## 🛠️ 기술 스택
 
@@ -623,46 +562,6 @@ bash scripts/deploy-gcp.sh
 # 개별 함수 배포
 cd gcp-cloud-functions/health && npm run deploy
 cd ../enterprise-metrics && npm run deploy
-```
-
-## ⚙️ 환경 변수 설정
-
-### 필수 환경 변수
-
-```env
-# Google OAuth (선택 중 하나)
-GOOGLE_OAUTH_CLIENT_ID=your_google_client_id
-GOOGLE_OAUTH_CLIENT_SECRET=your_google_client_secret
-# 또는
-GOOGLE_OAUTH_TEAM_PASSWORD=openmanager2025vibe
-
-# 데이터베이스
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-
-# 캐시
-UPSTASH_REDIS_REST_URL=your_redis_url
-UPSTASH_REDIS_REST_TOKEN=your_redis_token
-
-# AI 서비스
-GOOGLE_AI_API_KEY=your_google_ai_key
-```
-
-### 선택적 환경 변수
-
-```env
-# 자동 로그아웃 설정
-AUTO_LOGOUT_TIMEOUT_MINUTES=10
-AUTO_LOGOUT_WARNING_MINUTES=1
-
-# 시스템 최적화
-VERCEL_USAGE_OPTIMIZATION=true
-BACKGROUND_TASK_LIMIT=5
-
-# 개발 모드
-NODE_ENV=development
-DEBUG=true
 ```
 
 ## 📊 개발 정보

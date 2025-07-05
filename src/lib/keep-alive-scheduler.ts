@@ -103,24 +103,9 @@ class KeepAliveScheduler {
 
   // 스케줄러 초기화
   private async initializeScheduler(): Promise<void> {
-    // 🚨 응급 조치: 환경변수로 Keep-Alive 스케줄러 비활성화
+    // 환경변수 확인
     if (process.env.KEEP_ALIVE_SCHEDULER_DISABLED === 'true') {
-      console.log('🚨 Keep-Alive 스케줄러 비활성화됨 (환경변수)');
-      return;
-    }
-
-    // 🚨 중지 상태 감지 추가
-    if (
-      typeof global !== 'undefined' &&
-      (global as any).IDLE_STATE_SCHEDULERS_DISABLED
-    ) {
-      console.log('😴 중지 상태에서 Keep-Alive 스케줄러 비활성화됨');
-      return;
-    }
-
-    // 🚨 응급 모드 확인
-    if (process.env.EMERGENCY_MODE_ACTIVE === 'true') {
-      console.log('🚨 응급 모드에서 Keep-Alive 스케줄러 비활성화됨');
+      console.log('🚫 Keep-Alive 스케줄러 비활성화됨 (환경변수)');
       return;
     }
 
@@ -146,16 +131,6 @@ class KeepAliveScheduler {
       return;
     }
 
-    // 🚨 최적화된 간격 적용
-    const optimizedInterval = this.getOptimizedInterval();
-    if (optimizedInterval !== this.INTERVALS.supabase) {
-      console.log(
-        `⏰ Keep-Alive 간격 최적화: ${optimizedInterval / 1000 / 60}분`
-      );
-      this.INTERVALS.supabase = optimizedInterval;
-      this.INTERVALS.redis = optimizedInterval * 3; // Redis는 3배 간격
-    }
-
     this.startSupabaseKeepAlive();
     this.startRedisKeepAlive();
 
@@ -168,28 +143,6 @@ class KeepAliveScheduler {
     if (envManager) {
       envManager.log('info', 'Keep-Alive 스케줄러 시작됨');
     }
-  }
-
-  // 🚨 최적화된 간격 계산
-  private getOptimizedInterval(): number {
-    // 응급 모드에서는 매우 긴 간격 사용
-    if (process.env.EMERGENCY_MODE_ACTIVE === 'true') {
-      return 24 * 60 * 60 * 1000; // 24시간
-    }
-
-    // 중지 상태에서는 긴 간격 사용
-    if (
-      typeof global !== 'undefined' &&
-      (global as any).OPTIMIZED_POLLING_INTERVAL
-    ) {
-      return Math.max(
-        (global as any).OPTIMIZED_POLLING_INTERVAL * 10,
-        12 * 60 * 60 * 1000
-      ); // 최소 12시간
-    }
-
-    // 기본 간격
-    return 4 * 60 * 60 * 1000; // 4시간
   }
 
   // Supabase Keep-alive 시작

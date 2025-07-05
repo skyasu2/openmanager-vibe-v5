@@ -46,13 +46,9 @@ export const useSystemStatus = (
   options: UseSystemStatusOptions = {}
 ): UseSystemStatusReturn => {
   const {
-    pollingInterval = 600000, // 🚨 응급: 10분으로 대폭 증가
+    pollingInterval = 30000, // 30초 간격으로 복원
     autoStart = true,
   } = options;
-
-  // 🚨 비상 모드 체크
-  const isEmergencyMode = process.env.NEXT_PUBLIC_EMERGENCY_MODE === 'true';
-  const actualPollingInterval = isEmergencyMode ? 0 : pollingInterval; // 🚨 비상 시 폴링 완전 차단
 
   const [status, setStatus] = useState<SystemStatus>({
     isRunning: false,
@@ -169,18 +165,18 @@ export const useSystemStatus = (
     }
   }, [checkStatus, autoStart]);
 
-  // 주기적 상태 체크 - 🚨 비상 모드 시 차단
+  // 주기적 상태 체크 - 정상 폴링 복원
   useEffect(() => {
-    if (actualPollingInterval > 0 && !isEmergencyMode) {
+    if (pollingInterval > 0) {
       const interval = setInterval(() => {
         if (!status.isStarting) {
           checkStatus();
         }
-      }, actualPollingInterval);
+      }, pollingInterval);
 
       return () => clearInterval(interval);
     }
-  }, [checkStatus, actualPollingInterval, status.isStarting, isEmergencyMode]);
+  }, [checkStatus, pollingInterval, status.isStarting]);
 
   // 페이지 포커스 시 상태 체크
   useEffect(() => {

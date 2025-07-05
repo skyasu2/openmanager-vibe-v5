@@ -1,5 +1,4 @@
 import { QueryClient } from '@tanstack/react-query';
-import { emergencyMode } from './emergency-mode';
 
 /**
  * React Query 클라이언트 설정
@@ -11,27 +10,24 @@ import { emergencyMode } from './emergency-mode';
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // 🚨 비상 모드 설정 병합
-      ...emergencyMode.getEmergencyQuerySettings(),
-
       // 기본 옵션
-      staleTime: emergencyMode.isEmergencyMode() ? Infinity : 1000 * 60 * 5, // 🚨 비상 시 영원히 캐시
-      gcTime: emergencyMode.isEmergencyMode() ? Infinity : 1000 * 60 * 30, // 🚨 비상 시 영원히 보관
-      retry: emergencyMode.isEmergencyMode() ? false : 3, // 🚨 비상 시 재시도 차단
+      staleTime: 1000 * 60 * 5, // 5분
+      gcTime: 1000 * 60 * 30, // 30분
+      retry: 3, // 3회 재시도
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // 지수 백오프
 
-      // 네트워크 관련 - 🚨 비상 시 모든 자동 갱신 차단
+      // 네트워크 관련
       refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 재요청 비활성화
-      refetchOnReconnect: emergencyMode.isEmergencyMode() ? false : true, // 🚨 비상 시 재연결 갱신 차단
-      refetchOnMount: emergencyMode.isEmergencyMode() ? false : true, // 🚨 비상 시 마운트 갱신 차단
+      refetchOnReconnect: true, // 재연결 시 갱신
+      refetchOnMount: true, // 마운트 시 갱신
 
-      // 서버 모니터링 특화 설정 - 🚨 비상 시 완전 차단
-      refetchInterval: emergencyMode.isEmergencyMode() ? false : 600000, // 🚨 비상 시 자동 갱신 완전 차단
+      // 서버 모니터링 특화 설정
+      refetchInterval: 600000, // 10분마다 자동 갱신
       refetchIntervalInBackground: false, // 백그라운드에서는 자동 새로고침 안함
     },
     mutations: {
-      // Mutation 기본 옵션 - 🚨 비상 시 재시도 차단
-      retry: emergencyMode.isEmergencyMode() ? false : 1, // 🚨 비상 시 변형 재시도 차단
+      // Mutation 기본 옵션
+      retry: 1, // 1회 재시도
       retryDelay: 1000, // 1초 대기
     },
   },

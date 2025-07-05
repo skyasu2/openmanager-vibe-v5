@@ -133,28 +133,15 @@ interface GlobalSystemStore extends GlobalSystemStatus {
 const COLLECTION_DURATION = 1 * 60 * 1000; // 1분
 const SESSION_DURATION = 30 * 60 * 1000; // 30분
 
-// 🚨 응급 최적화: 동적 타이머 간격
+// 최적화된 타이머 간격 설정
 const getOptimizedTimerInterval = (): number => {
-  // 응급 모드에서는 매우 긴 간격
-  if (process.env.EMERGENCY_MODE_ACTIVE === 'true') {
-    return 60000; // 1분
-  }
-
-  // 중지 상태에서는 긴 간격
-  if (
-    typeof global !== 'undefined' &&
-    (global as any).OPTIMIZED_POLLING_INTERVAL
-  ) {
-    return Math.max((global as any).OPTIMIZED_POLLING_INTERVAL, 30000); // 최소 30초
-  }
-
   // 환경변수에서 설정된 간격
   if (process.env.SYSTEM_POLLING_INTERVAL) {
     return parseInt(process.env.SYSTEM_POLLING_INTERVAL, 10);
   }
 
-  // 기본 간격 증가 (5초 → 30초)
-  return 30000; // 30초 간격으로 증가
+  // 기본 간격: 30초
+  return 30000; // 30초 간격
 };
 
 const TIMER_INTERVAL = getOptimizedTimerInterval();

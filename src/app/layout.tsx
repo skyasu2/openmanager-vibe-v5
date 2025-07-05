@@ -3,7 +3,6 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 // 🛡️ 빌드 시 타이머 차단 시스템 (즉시 로드)
-import { EmergencyBanner } from '@/components/emergency/EmergencyBanner';
 import { SystemBootstrap } from '@/components/system/SystemBootstrap';
 import '@/lib/build-safety/TimerBlocker';
 
@@ -51,7 +50,6 @@ export default function RootLayout({
   return (
     <html lang='ko'>
       <body className={inter.className}>
-        <EmergencyBanner />
         <ClientProviders>
           <SystemBootstrap />
           {children}
