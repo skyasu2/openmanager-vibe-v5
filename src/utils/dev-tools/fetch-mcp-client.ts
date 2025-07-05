@@ -140,8 +140,14 @@ export class FetchMCPClient {
     type: string = 'status',
     server: string = 'all'
   ): Promise<MCPResponse<any>> {
-    const params = new URLSearchParams({ type, server });
-    return this.makeRequest('GET', `/api/mcp/monitoring?${params}`);
+    // API 삭제됨 - 기본 상태 반환
+    return {
+      success: false,
+      error: 'MCP 모니터링 API가 삭제되었습니다',
+      responseTime: 0,
+      timestamp: new Date().toISOString(),
+      data: null,
+    };
   }
 
   /**
@@ -152,11 +158,14 @@ export class FetchMCPClient {
     server?: string,
     config?: any
   ): Promise<MCPResponse<any>> {
-    return this.makeRequest('POST', '/api/mcp/monitoring', {
-      action,
-      server,
-      config,
-    });
+    // API 삭제됨 - 기본 응답 반환
+    return {
+      success: false,
+      error: 'MCP 모니터링 API가 삭제되었습니다',
+      responseTime: 0,
+      timestamp: new Date().toISOString(),
+      data: null,
+    };
   }
 
   /**

@@ -47,7 +47,7 @@ class CursorAIDevelopmentAssistant {
 
             // 개별 AI 엔진들
             mcpQuery: '/api/mcp/query',
-            mcpStatus: '/api/mcp/monitoring',
+            // mcpStatus: '/api/mcp/monitoring',
 
             // AI 엔진 상태
             aiEngines: '/api/ai/engines/status',

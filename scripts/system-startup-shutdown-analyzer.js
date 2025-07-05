@@ -47,7 +47,8 @@ class SystemAnalyzer {
         console.log('🔍 백그라운드 프로세스 감지 중...');
 
         const processes = [
-            { name: 'Keep-Alive 스케줄러', endpoint: '/api/keep-alive/status' },
+            // 삭제된 API 엔드포인트들 (참고용)
+            // { name: 'Keep-Alive 스케줄러', endpoint: '/api/keep-alive/status' },
             { name: '서버 데이터 스케줄러', endpoint: '/api/scheduler/server-data' },
             { name: '메트릭 수집기', endpoint: '/api/metrics' },
             { name: '시스템 상태', endpoint: '/api/system/status' }

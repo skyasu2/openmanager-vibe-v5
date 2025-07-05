@@ -88,7 +88,8 @@ async function main() {
       url: 'http://localhost:3000/api/system/mcp-status',
       name: 'MCP 시스템 상태',
     },
-    { url: 'http://localhost:3000/api/mcp/monitoring', name: 'MCP 모니터링' },
+    // 삭제된 API 엔드포인트들 (참고용)
+    // { url: 'http://localhost:3000/api/mcp/monitoring', name: 'MCP 모니터링' },
     {
       url: 'http://localhost:3000/api/ai/engines/status',
       name: 'AI 엔진 상태',
@@ -122,7 +123,7 @@ async function main() {
   const total = results.length;
   const avgResponseTime =
     results.filter(r => r.success).reduce((sum, r) => sum + r.responseTime, 0) /
-      successful || 0;
+    successful || 0;
 
   log(
     colors.green,

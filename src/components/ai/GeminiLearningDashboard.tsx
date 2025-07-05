@@ -1,27 +1,22 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import {
-  Brain,
-  RefreshCw,
-  Clock,
-  Target,
-  CheckCircle,
   AlertTriangle,
-  TrendingUp,
-  Lightbulb,
-  Settings,
-  Play,
-  Pause,
   BarChart3,
-  Calendar,
+  Brain,
+  CheckCircle,
+  Clock,
   Clock4,
-  Zap,
+  Lightbulb,
+  Play,
+  RefreshCw,
+  Settings,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
 interface GeminiLearningStatus {
   enabled: boolean;
@@ -112,28 +107,26 @@ export default function GeminiLearningDashboard() {
   const executeManualLearning = async () => {
     setIsExecuting(true);
     try {
-      const response = await fetch('/api/cron/gemini-learning', {
-        method: 'POST',
-        headers: {
-          'x-session-id': 'admin-session-id', // 실제 구현에서는 세션 ID 사용
-        },
-      });
+      // API 삭제됨 - 로컬 학습 엔진 사용
+      const { GeminiLearningEngine } = await import(
+        '@/modules/ai-agent/learning/GeminiLearningEngine'
+      );
+      const learningEngine = GeminiLearningEngine.getInstance();
 
-      const result = await response.json();
+      // 로컬 실패 로그 분석 실행
+      await learningEngine.runPeriodicAnalysis();
 
-      if (result.success) {
-        // 상태 및 데이터 새로고침
-        await loadStatus();
-        await loadSuggestions();
-        await loadExecutionHistory();
+      // 상태 및 데이터 새로고침
+      await loadStatus();
+      await loadSuggestions();
+      await loadExecutionHistory();
 
-        alert(`✅ 학습 분석 완료!\n${result.message}`);
-      } else {
-        alert(`❌ 학습 분석 실패:\n${result.error}`);
-      }
+      alert(`✅ 로컬 학습 분석 완료!\n(API 삭제로 인해 로컬 엔진 사용)`);
     } catch (error) {
       console.error('수동 실행 실패:', error);
-      alert('수동 실행 중 오류가 발생했습니다.');
+      alert(
+        '수동 실행 중 오류가 발생했습니다. (API가 삭제되어 로컬 처리만 가능)'
+      );
     } finally {
       setIsExecuting(false);
     }

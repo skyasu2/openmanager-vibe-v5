@@ -1,8 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "name": "openmanager-vibe-v5",
   "functions": {
     "src/app/api/**/*.ts": {
-      "maxDuration": 25
+      "memory": 1024,
+      "maxDuration": 30
     },
     "src/app/api/ai/**/*.ts": {
       "maxDuration": 45
@@ -23,34 +26,50 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=300, s-maxage=600"
+          "value": "public, s-maxage=300, stale-while-revalidate=600"
+        },
+        {
+          "key": "CDN-Cache-Control",
+          "value": "public, s-maxage=300"
+        },
+        {
+          "key": "Vercel-CDN-Cache-Control",
+          "value": "public, s-maxage=1800"
         }
       ]
     },
     {
-      "source": "/api/ai/logging/stream",
+      "source": "/api/system/status",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
+          "value": "public, s-maxage=1800, stale-while-revalidate=3600"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
         },
         {
-          "key": "X-Accel-Buffering",
-          "value": "no"
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
         }
       ]
     }
   ],
   "redirects": [
     {
-      "source": "/",
-      "has": [
-        {
-          "type": "query",
-          "key": "dashboard"
-        }
-      ],
-      "destination": "/dashboard"
+      "source": "/admin/mcp-monitoring",
+      "destination": "/admin/ai-agent",
+      "permanent": true
     }
   ],
   "rewrites": [
@@ -78,14 +97,14 @@
   "build": {
     "env": {
       "NODE_ENV": "production",
-      "DISABLE_LOCAL_RAG": "true",
-      "VERCEL_HEALTH_OPTIMIZATION": "true",
-      "DISABLE_CRON_JOBS": "true",
-      "AI_STREAM_TIMEOUT_PREVENTION": "true",
-      "SKIP_SUPABASE_CONNECTION_CHECK": "true",
+      "SKIP_ENV_VALIDATION": "true",
+      "ESLINT_NO_DEV_ERRORS": "true",
       "BUILD_TIME_OPTIMIZATION": "true",
-      "MINIMIZE_BUILD_LOGS": "true",
-      "DISABLE_DUPLICATE_LOGS": "true"
+      "SKIP_SUPABASE_CONNECTION_CHECK": "true",
+      "DISABLE_HEALTH_CHECK": "true",
+      "HEALTH_CHECK_CONTEXT": "false",
+      "REDIS_CONNECTION_DISABLED": "true",
+      "UPSTASH_REDIS_DISABLED": "true"
     }
   },
   "crons": [],

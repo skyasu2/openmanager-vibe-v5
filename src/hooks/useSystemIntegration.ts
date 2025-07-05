@@ -294,9 +294,19 @@ export const useSystemIntegration = () => {
       const patternResponse = await fetch('/api/metrics/pattern-check');
       const patternData = await patternResponse.json();
 
-      // DataRetention 상태 조회
-      const retentionResponse = await fetch('/api/cron/cleanup');
-      const retentionData = await retentionResponse.json();
+      // DataRetention 상태 조회 (API 삭제됨 - 기본값 사용)
+      const retentionData = {
+        success: false,
+        data: {
+          isActive: false,
+          stats: {
+            lastCleanup: null,
+            interval: 300000,
+            totalPolicies: 0,
+            totalCleaned: 0,
+          },
+        },
+      };
 
       // Notifications 상태 조회 (Phase 2.1)
       let notificationData = { success: false, data: {} };
@@ -621,25 +631,30 @@ export const useSystemIntegration = () => {
 
   const forceDataCleanup = useCallback(async (): Promise<any> => {
     try {
-      const response = await fetch('/api/cron/cleanup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'cleanup' }),
-      });
-      const result = await response.json();
-
-      if (result.success) {
-        emitEvent(
-          'data_cleaned',
-          'info',
-          `✅ 데이터 정리 완료: ${result.data?.cleanedCount || 0}개 항목 정리`
-        );
-        return result.data;
-      } else {
-        throw new Error(result.error || '데이터 정리 실패');
+      // API 삭제됨 - 브라우저 메모리 정리로 대체
+      if (typeof window !== 'undefined' && window.gc) {
+        window.gc(); // Chrome DevTools에서만 가능
       }
+
+      // 로컬 스토리지 정리
+      const beforeSize = localStorage.length;
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('cache_') || key.startsWith('temp_')) {
+          localStorage.removeItem(key);
+        }
+      });
+      const afterSize = localStorage.length;
+      const cleanedCount = beforeSize - afterSize;
+
+      emitEvent(
+        'data_cleaned',
+        'info',
+        `✅ 로컬 데이터 정리 완료: ${cleanedCount}개 항목 정리 (API 삭제로 인한 대체 기능)`
+      );
+
+      return { cleanedCount, type: 'local_cleanup' };
     } catch (error) {
-      emitEvent('error', 'warning', `❌ 데이터 정리 실패: ${error}`);
+      emitEvent('error', 'warning', `❌ 로컬 데이터 정리 실패: ${error}`);
       return null;
     }
   }, [emitEvent]);
