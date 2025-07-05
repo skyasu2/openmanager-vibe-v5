@@ -54,11 +54,7 @@ export class EnvAutoRecoveryService {
       'UPSTASH_REDIS_REST_URL',
       'UPSTASH_REDIS_REST_TOKEN',
     ],
-    optional: [
-      'GOOGLE_AI_API_KEY',
-      'RENDER_MCP_SERVER_URL',
-      'SLACK_WEBHOOK_URL',
-    ],
+    optional: ['GOOGLE_AI_API_KEY', 'GCP_MCP_SERVER_URL', 'SLACK_WEBHOOK_URL'],
     defaults: {
       // 🔧 개발환경 전용 안전한 기본값들
       GOOGLE_AI_MODEL: 'gemini-1.5-flash',
@@ -184,7 +180,7 @@ export class EnvAutoRecoveryService {
       'NEXT_PUBLIC_SUPABASE_URL',
       'SUPABASE_URL',
       'UPSTASH_REDIS_REST_URL',
-      'RENDER_MCP_SERVER_URL',
+      'GCP_MCP_SERVER_URL',
     ];
     for (const varName of urlVars) {
       const value = process.env[varName];

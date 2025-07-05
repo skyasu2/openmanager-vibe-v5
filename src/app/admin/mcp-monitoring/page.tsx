@@ -9,7 +9,9 @@
  * ✅ 알림 및 액션 관리
  */
 
-import React, { useState, useEffect } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -17,28 +19,26 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Activity,
-  Server,
-  Cpu,
-  Clock,
-  CheckCircle,
   AlertTriangle,
-  XCircle,
-  RefreshCw,
-  Play,
-  Pause,
-  RotateCcw,
-  Zap,
-  Database,
   BarChart3,
-  TrendingUp,
+  CheckCircle,
+  Clock,
+  Cpu,
+  Database,
   HardDrive,
+  Pause,
+  Play,
+  RefreshCw,
+  RotateCcw,
+  Server,
+  TrendingUp,
+  XCircle,
+  Zap,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface SystemStatus {
   overall: 'healthy' | 'degraded' | 'unhealthy';
@@ -283,9 +283,11 @@ export default function MCPMonitoringPage() {
       <div className='flex justify-between items-center mb-8'>
         <div>
           <h1 className='text-3xl font-bold text-gray-900'>
-            MCP 시스템 모니터링
+            Google VM MCP 시스템 모니터링
           </h1>
-          <p className='text-gray-600 mt-2'>실시간 시스템 상태 및 성능 지표</p>
+          <p className='text-gray-600 mt-2'>
+            Google VM 서버 기반 실시간 시스템 상태 및 성능 지표
+          </p>
         </div>
 
         <div className='flex gap-4'>

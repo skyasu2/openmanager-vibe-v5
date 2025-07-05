@@ -8,9 +8,9 @@
 
 'use client';
 
-import React from 'react';
-import { XCircle, CheckCircle, AlertCircle } from 'lucide-react';
 import { useMCPStatus } from '@/hooks/api/useMCPQuery';
+import { AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import React from 'react';
 
 export const MCPServerStatusPanel: React.FC = () => {
   const { data: mcpStatus, isLoading, error } = useMCPStatus();
@@ -53,7 +53,7 @@ export const MCPServerStatusPanel: React.FC = () => {
   }
 
   // 서버 데이터 추출
-  const renderServer = mcpStatus?.mcp?.servers?.render;
+  const gcpServer = mcpStatus?.mcp?.servers?.gcp;
   const localServers = mcpStatus?.mcp?.servers?.local || {};
   const totalServers = mcpStatus?.mcp?.stats?.totalServers || 0;
   const activeServers = Object.values(localServers).filter(
@@ -66,9 +66,9 @@ export const MCPServerStatusPanel: React.FC = () => {
 
   // 전체 상태 계산
   const overallStatus =
-    renderServer?.status === 'connected' && activeServers > 0
+    gcpServer?.status === 'connected' && activeServers > 0
       ? 'healthy'
-      : renderServer?.status === 'connected'
+      : gcpServer?.status === 'connected'
         ? 'warning'
         : 'error';
 
@@ -137,17 +137,17 @@ export const MCPServerStatusPanel: React.FC = () => {
             {activeServers}개
           </span>
         </div>
-        {renderServer && (
+        {gcpServer && (
           <div className='flex justify-between items-center'>
-            <span>Render 서버:</span>
+            <span>Google VM 서버:</span>
             <span
               className={`font-medium text-xs px-2 py-1 rounded ${
-                renderServer.status === 'connected'
+                gcpServer.status === 'connected'
                   ? 'bg-green-100 text-green-700'
                   : 'bg-red-100 text-red-700'
               }`}
             >
-              {renderServer.status === 'connected' ? '연결됨' : '연결 안됨'}
+              {gcpServer.status === 'connected' ? '연결됨' : '연결 안됨'}
             </span>
           </div>
         )}

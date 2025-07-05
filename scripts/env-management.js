@@ -70,7 +70,7 @@ class EnvSecurityManager {
       },
 
       // 📡 Render MCP 서버 (메모리 저장소 확인됨)
-      RENDER_MCP_SERVER_URL: {
+      GCP_MCP_SERVER_URL: {
         required: true,
         public: false,
         value: 'http://104.154.205.25:10000',
@@ -488,7 +488,7 @@ export const DEPLOYMENT_CONFIG = {
     // URL 형식 검증
     const urlVars = [
       'NEXT_PUBLIC_SUPABASE_URL',
-      'RENDER_MCP_SERVER_URL',
+      'GCP_MCP_SERVER_URL',
       'UPSTASH_REDIS_REST_URL',
     ];
     urlVars.forEach(varName => {

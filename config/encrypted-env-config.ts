@@ -81,13 +81,13 @@ export const ENCRYPTED_ENV_CONFIG: EncryptedEnvironmentConfig = {
       isPublic: false,
       rotateSchedule: 'quarterly',
     },
-    RENDER_MCP_SERVER_URL: {
+    GCP_MCP_SERVER_URL: {
       encrypted:
         'plTmj8an+jM+tneI026GiwWVrRKdnoA+5JsSoalOJDjywb4KYcPDlFYbneUtkDXs',
       salt: '1d5939c975fef05407acb9420f8e02a7',
       iv: '4d6f76f39e56b627d29786a1cfe590bc',
       timestamp: '2025-06-18T23:24:08.270Z',
-      originalName: 'RENDER_MCP_SERVER_URL',
+      originalName: 'GCP_MCP_SERVER_URL',
       isPublic: false,
       rotateSchedule: 'manual',
     },

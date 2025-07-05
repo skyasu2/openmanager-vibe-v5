@@ -141,9 +141,9 @@ export class MCPServerManager {
    * 🚀 프로덕션 환경 서버 설정
    */
   private setupProductionServers(): void {
-    // Render 서버 기반 설정
-    this.servers.set('render-mcp', {
-      name: 'render-mcp',
+    // Google VM 서버 기반 설정
+    this.servers.set('gcp-mcp', {
+      name: 'gcp-mcp',
       command: 'curl',
       args: ['-X', 'POST', 'http://104.154.205.25:10000/mcp'],
       enabled: true,

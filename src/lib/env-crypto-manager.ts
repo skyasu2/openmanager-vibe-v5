@@ -306,7 +306,7 @@ export class EnvironmentCryptoManager {
       'SUPABASE_SERVICE_ROLE_KEY',
       'UPSTASH_REDIS_REST_URL',
       'UPSTASH_REDIS_REST_TOKEN',
-      'RENDER_MCP_SERVER_URL',
+      'GCP_MCP_SERVER_URL',
       'GOOGLE_AI_API_KEY',
       'SLACK_WEBHOOK_URL',
     ];
@@ -383,7 +383,7 @@ export class EnvironmentCryptoManager {
     const importantVars = [
       'NEXT_PUBLIC_SUPABASE_URL',
       'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-      'RENDER_MCP_SERVER_URL',
+      'GCP_MCP_SERVER_URL',
       'UPSTASH_REDIS_REST_URL',
       'GOOGLE_AI_API_KEY',
     ];
