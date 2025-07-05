@@ -7,13 +7,14 @@
  * - 하이브리드 분석 및 자동 폴백
  */
 
+import { getMasterAIEngine } from '@/services/ai/MasterAIEngine';
 import { NextRequest, NextResponse } from 'next/server';
-import { masterAIEngine } from '@/services/ai/MasterAIEngine';
 
 export async function GET(request: NextRequest) {
   try {
     console.log('🎯 통합 MCP 상태 조회');
 
+    const masterAIEngine = getMasterAIEngine();
     const systemInfo = masterAIEngine.getSystemInfo();
     const engineStatuses = masterAIEngine.getEngineStatuses();
     const mcpEngine = engineStatuses.find(e => e.name === 'mcp');
@@ -85,6 +86,7 @@ export async function POST(request: NextRequest) {
     const engineType = use_hybrid ? 'hybrid' : 'mcp';
 
     // MasterAIEngine을 통한 쿼리 처리
+    const masterAIEngine = getMasterAIEngine();
     const result = await masterAIEngine.query({
       engine: engineType,
       query,

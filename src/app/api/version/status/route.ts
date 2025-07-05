@@ -27,7 +27,7 @@ try {
 
 try {
   const masterAIEngineModule = require('@/services/ai/MasterAIEngine');
-  masterAIEngine = masterAIEngineModule.masterAIEngine;
+  masterAIEngine = masterAIEngineModule.getMasterAIEngine();
 } catch (error) {
   console.warn('MasterAIEngine import 실패:', error.message);
 }

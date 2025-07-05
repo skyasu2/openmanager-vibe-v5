@@ -1,8 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+// 🔧 RSC 프리렌더링 오류 방지: 동적 렌더링 강제
+export const dynamic = 'force-dynamic';
+
+import { ArrowRight, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Lock, ArrowRight } from 'lucide-react';
+import { useEffect } from 'react';
 
 export default function AboutRedirectPage() {
   const router = useRouter();

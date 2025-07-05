@@ -1,5 +1,8 @@
 'use client';
 
+// 🔧 RSC 프리렌더링 오류 방지: 동적 렌더링 강제
+export const dynamic = 'force-dynamic';
+
 import { AIEnginesPanel } from '@/components/dev-tools/AIEnginesPanel';
 import { ServicesMonitor } from '@/components/dev-tools/ServicesMonitor';
 import { Badge } from '@/components/ui/badge';
@@ -185,8 +188,7 @@ export default function DevToolsPage() {
               <CardHeader>
                 <div className='flex items-center justify-between'>
                   <CardTitle className='flex items-center gap-2'>
-                    <Key className='w-6 h-6' />
-                    키 매니저 상태
+                    <Key className='w-6 h-6' />키 매니저 상태
                   </CardTitle>
                   <div className='flex gap-2'>
                     <Button
@@ -230,32 +232,48 @@ export default function DevToolsPage() {
                       <Card>
                         <CardContent className='p-4'>
                           <div className='text-center'>
-                            <p className='text-2xl font-bold'>{keyManager.summary.total}</p>
-                            <p className='text-sm text-slate-600 dark:text-slate-400'>총 키</p>
+                            <p className='text-2xl font-bold'>
+                              {keyManager.summary.total}
+                            </p>
+                            <p className='text-sm text-slate-600 dark:text-slate-400'>
+                              총 키
+                            </p>
                           </div>
                         </CardContent>
                       </Card>
                       <Card>
                         <CardContent className='p-4'>
                           <div className='text-center'>
-                            <p className='text-2xl font-bold text-green-600'>{keyManager.summary.valid}</p>
-                            <p className='text-sm text-slate-600 dark:text-slate-400'>유효</p>
+                            <p className='text-2xl font-bold text-green-600'>
+                              {keyManager.summary.valid}
+                            </p>
+                            <p className='text-sm text-slate-600 dark:text-slate-400'>
+                              유효
+                            </p>
                           </div>
                         </CardContent>
                       </Card>
                       <Card>
                         <CardContent className='p-4'>
                           <div className='text-center'>
-                            <p className='text-2xl font-bold text-red-600'>{keyManager.summary.invalid}</p>
-                            <p className='text-sm text-slate-600 dark:text-slate-400'>무효</p>
+                            <p className='text-2xl font-bold text-red-600'>
+                              {keyManager.summary.invalid}
+                            </p>
+                            <p className='text-sm text-slate-600 dark:text-slate-400'>
+                              무효
+                            </p>
                           </div>
                         </CardContent>
                       </Card>
                       <Card>
                         <CardContent className='p-4'>
                           <div className='text-center'>
-                            <p className='text-2xl font-bold text-yellow-600'>{keyManager.summary.missing}</p>
-                            <p className='text-sm text-slate-600 dark:text-slate-400'>누락</p>
+                            <p className='text-2xl font-bold text-yellow-600'>
+                              {keyManager.summary.missing}
+                            </p>
+                            <p className='text-sm text-slate-600 dark:text-slate-400'>
+                              누락
+                            </p>
                           </div>
                         </CardContent>
                       </Card>
@@ -273,18 +291,27 @@ export default function DevToolsPage() {
                               <CardContent className='p-4'>
                                 <div className='flex items-center justify-between'>
                                   <div className='flex items-center gap-3'>
-                                    <span className='text-2xl'>{getSourceIcon(service.source)}</span>
+                                    <span className='text-2xl'>
+                                      {getSourceIcon(service.source)}
+                                    </span>
                                     <div>
-                                      <h5 className='font-medium'>{service.service}</h5>
+                                      <h5 className='font-medium'>
+                                        {service.service}
+                                      </h5>
                                       <p className='text-sm text-slate-600 dark:text-slate-400'>
                                         {service.preview}
                                       </p>
                                     </div>
                                   </div>
-                                  <Badge variant={
-                                    service.status === 'active' ? 'default' :
-                                      service.status === 'missing' ? 'destructive' : 'secondary'
-                                  }>
+                                  <Badge
+                                    variant={
+                                      service.status === 'active'
+                                        ? 'default'
+                                        : service.status === 'missing'
+                                          ? 'destructive'
+                                          : 'secondary'
+                                    }
+                                  >
                                     {service.status}
                                   </Badge>
                                 </div>

@@ -3,11 +3,6 @@
  * Pages Router의 _document, _error 등을 대체
  */
 
-'use client';
-
-// 🔧 RSC 프리렌더링 오류 방지: 동적 렌더링 강제
-export const dynamic = 'force-dynamic';
-
 import Link from 'next/link';
 
 export default function NotFound() {

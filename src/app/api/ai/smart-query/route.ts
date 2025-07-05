@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  masterAIEngine,
-  type AIEngineRequest,
+  AIEngineRequest,
+  getMasterAIEngine,
 } from '../../../../services/ai/MasterAIEngine';
 
 interface QueryRequest {
@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     // AI 엔진 초기화 확인
+    const masterAIEngine = getMasterAIEngine();
     if (!masterAIEngine) {
       return NextResponse.json(
         {

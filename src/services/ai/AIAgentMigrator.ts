@@ -8,12 +8,8 @@
  * - 성능 모니터링 → 14개 엔진 통합 모니터링
  */
 
-import {
-  masterAIEngine,
-  AIEngineRequest,
-  AIEngineResponse,
-} from './MasterAIEngine';
 import { AIThinkingStep } from '../../types/ai-thinking';
+import { getMasterAIEngine } from './MasterAIEngine';
 
 // 기존 AI 에이전트 데이터 타입들
 export interface LegacyUserLog {
@@ -187,7 +183,7 @@ export class AIAgentMigrator {
       for (const pattern of legacyPatterns) {
         try {
           // Enhanced 엔진에 패턴 데이터 등록
-          const enhancedResult = await masterAIEngine.query({
+          const enhancedResult = await getMasterAIEngine().query({
             engine: 'enhanced',
             query: '패턴 학습',
             data: {
@@ -203,7 +199,7 @@ export class AIAgentMigrator {
           });
 
           // Prediction 엔진에 패턴 예측 데이터 등록
-          const predictionResult = await masterAIEngine.query({
+          const predictionResult = await getMasterAIEngine().query({
             engine: 'prediction',
             query: '패턴 예측 학습',
             data: {
@@ -245,7 +241,7 @@ export class AIAgentMigrator {
       for (const test of legacyTests) {
         try {
           // Hybrid 엔진에 실험 설정 등록
-          const hybridResult = await masterAIEngine.query({
+          const hybridResult = await getMasterAIEngine().query({
             engine: 'hybrid',
             query: 'A/B 테스트 설정',
             data: {

@@ -6,7 +6,6 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { masterAIEngine } from '@/services/ai/MasterAIEngine';
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,27 +22,27 @@ export async function GET(request: NextRequest) {
           metric1: 'cpu',
           metric2: 'memory',
           correlation: 0.85,
-          significance: 'high'
+          significance: 'high',
         },
         {
           metric1: 'cpu',
           metric2: 'network',
           correlation: 0.62,
-          significance: 'medium'
+          significance: 'medium',
         },
         {
           metric1: 'memory',
           metric2: 'disk',
           correlation: 0.43,
-          significance: 'low'
-        }
+          significance: 'low',
+        },
       ],
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return NextResponse.json({
       success: true,
-      data: correlationData
+      data: correlationData,
     });
   } catch (error) {
     console.error('AI 상관관계 분석 오류:', error);
@@ -51,7 +50,7 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         error: 'AI 상관관계 분석 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -72,19 +71,19 @@ export async function POST(request: NextRequest) {
       results: {
         strongCorrelations: [
           { pair: ['cpu', 'memory'], value: 0.89 },
-          { pair: ['network', 'disk'], value: 0.76 }
+          { pair: ['network', 'disk'], value: 0.76 },
         ],
         weakCorrelations: [
           { pair: ['cpu', 'disk'], value: 0.23 },
-          { pair: ['memory', 'network'], value: 0.34 }
-        ]
+          { pair: ['memory', 'network'], value: 0.34 },
+        ],
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return NextResponse.json({
       success: true,
-      data: analysis
+      data: analysis,
     });
   } catch (error) {
     console.error('AI 상관관계 분석 POST 오류:', error);
@@ -92,7 +91,7 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         error: 'AI 상관관계 분석 실행 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
