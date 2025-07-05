@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, Suspense } from 'react';
 import { QueryProvider } from './QueryProvider';
 
 interface ClientProvidersProps {
@@ -15,5 +15,9 @@ interface ClientProvidersProps {
  * 모든 클라이언트 사이드 상태 관리 Provider들을 여기서 통합 관리합니다.
  */
 export function ClientProviders({ children }: ClientProvidersProps) {
-  return <QueryProvider>{children}</QueryProvider>;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <QueryProvider>{children}</QueryProvider>
+    </Suspense>
+  );
 }

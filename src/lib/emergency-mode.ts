@@ -17,14 +17,33 @@ export class EmergencyMode {
   }
 
   /**
+   * 안전한 환경변수 접근
+   */
+  private getEnvSafely(key: string): string | undefined {
+    try {
+      return typeof process !== 'undefined' && process.env
+        ? process.env[key]
+        : undefined;
+    } catch (error) {
+      console.warn(`환경변수 ${key} 접근 실패:`, error);
+      return undefined;
+    }
+  }
+
+  /**
    * 비상 모드 활성화 여부 확인
    */
   public isEmergencyMode(): boolean {
-    return (
-      process.env.NEXT_PUBLIC_EMERGENCY_MODE === 'true' ||
-      process.env.EMERGENCY_MODE === 'true' ||
-      process.env.VERCEL_PRO_CRISIS === 'true'
-    );
+    try {
+      return (
+        this.getEnvSafely('NEXT_PUBLIC_EMERGENCY_MODE') === 'true' ||
+        this.getEnvSafely('EMERGENCY_MODE') === 'true' ||
+        this.getEnvSafely('VERCEL_PRO_CRISIS') === 'true'
+      );
+    } catch (error) {
+      console.warn('비상 모드 확인 실패:', error);
+      return false;
+    }
   }
 
   /**
