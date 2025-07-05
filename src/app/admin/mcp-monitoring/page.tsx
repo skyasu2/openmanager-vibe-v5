@@ -90,8 +90,8 @@ export default function MCPMonitoringPage() {
   const [activeTab, setActiveTab] = useState<
     'overview' | 'components' | 'performance' | 'cache' | 'analytics'
   >('overview');
-  const [autoRefresh, setAutoRefresh] = useState(true);
-  const [refreshInterval, setRefreshInterval] = useState(30); // 30초
+  const [autoRefresh, setAutoRefresh] = useState(false); // 🚨 기본값 false로 변경 (무료 티어 절약)
+  const [refreshInterval, setRefreshInterval] = useState(300); // 🚨 5분으로 변경 (무료 티어 절약)
 
   // 시스템 상태 조회
   const fetchSystemStatus = async () => {

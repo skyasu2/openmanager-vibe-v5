@@ -102,14 +102,14 @@ interface SystemIntegrationState {
 interface SystemEvent {
   id: string;
   type:
-  | 'pattern_detected'
-  | 'notification_sent'
-  | 'data_cleaned'
-  | 'connection_change'
-  | 'error'
-  | 'prediction'
-  | 'server_alert'
-  | 'security';
+    | 'pattern_detected'
+    | 'notification_sent'
+    | 'data_cleaned'
+    | 'connection_change'
+    | 'error'
+    | 'prediction'
+    | 'server_alert'
+    | 'security';
   severity: 'info' | 'warning' | 'critical';
   message: string;
   timestamp: Date;
@@ -498,7 +498,7 @@ export const useSystemIntegration = () => {
         const errorData = await response.json();
         throw new Error(
           errorData.message ||
-          `서버에서 ${response.status} 오류를 반환했습니다.`
+            `서버에서 ${response.status} 오류를 반환했습니다.`
         );
       }
 
@@ -517,10 +517,13 @@ export const useSystemIntegration = () => {
         '🎉 시스템이 성공적으로 시작되었습니다!'
       );
 
-      // 상태 폴링 시작
+      // 🚨 무료 티어 절약: 상태 폴링 시작 (5분 간격)
       if (pollingInterval.current) clearInterval(pollingInterval.current);
-      // 🎯 데이터 수집 간격과 동기화
-      pollingInterval.current = setInterval(pollSystemStatus, calculateOptimalCollectionInterval());
+      // 🎯 데이터 수집 간격과 동기화 (5-10분)
+      pollingInterval.current = setInterval(
+        pollSystemStatus,
+        calculateOptimalCollectionInterval()
+      );
       await pollSystemStatus();
 
       return true;
@@ -895,4 +898,3 @@ export const useSystemIntegration = () => {
 };
 
 export type { SystemEvent, SystemIntegrationActions, SystemIntegrationState };
-

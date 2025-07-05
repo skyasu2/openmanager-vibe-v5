@@ -285,6 +285,17 @@ class EnhancedMockRedis implements RedisClientInterface {
   }
 }
 
+// 🚨 무료 티어 절약: Redis 연결 상태 캐싱
+let redisConnectionCache: {
+  connected: boolean;
+  timestamp: number;
+  ttl: number;
+} = {
+  connected: false,
+  timestamp: 0,
+  ttl: 300000, // 5분 캐싱
+};
+
 /**
  * 🎯 하이브리드 전략 결정 함수 - 환경변수 우선 체크
  */
@@ -625,14 +636,33 @@ export async function setBatch(
 }
 
 /**
- * 🔌 Redis 연결 상태 확인
+ * 🚨 무료 티어 최적화: Redis 연결 상태 확인 (5분 캐싱)
  */
 export async function isRedisConnected(): Promise<boolean> {
+  const now = Date.now();
+
+  // 캐시된 결과가 유효한 경우 반환
+  if (now - redisConnectionCache.timestamp < redisConnectionCache.ttl) {
+    console.log(
+      `🔄 Redis 연결 상태 캐시 사용: ${redisConnectionCache.connected}`
+    );
+    return redisConnectionCache.connected;
+  }
+
   try {
-    const client = await getHybridRedisClient('status-check');
-    await client.ping();
+    if (!realRedis) {
+      console.log('❌ Redis 클라이언트가 초기화되지 않음');
+      redisConnectionCache = { connected: false, timestamp: now, ttl: 300000 };
+      return false;
+    }
+
+    await realRedis.ping();
+    console.log('✅ Redis 연결 확인됨 (새로 체크)');
+    redisConnectionCache = { connected: true, timestamp: now, ttl: 300000 };
     return true;
   } catch (error) {
+    console.error('❌ Redis 연결 실패:', error);
+    redisConnectionCache = { connected: false, timestamp: now, ttl: 300000 };
     return false;
   }
 }

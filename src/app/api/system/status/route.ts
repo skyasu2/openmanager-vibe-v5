@@ -116,8 +116,8 @@ export async function GET(request: NextRequest) {
     if (!global.lastStatusCheck) global.lastStatusCheck = {};
     const lastCheck = global.lastStatusCheck[userId] || 0;
 
-    // 30초 이내 동일 사용자 요청은 캐시된 응답 반환
-    if (now - lastCheck < 30000) {
+    // 🚨 무료 티어 절약: 5분 이내 동일 사용자 요청은 캐시된 응답 반환
+    if (now - lastCheck < 300000) {
       // 최소한의 Redis 읽기만 수행
       const systemState = await systemStateManager.getSystemState();
 
@@ -141,22 +141,22 @@ export async function GET(request: NextRequest) {
           'Content-Type': 'application/json',
           'X-User-Id': userId,
           'X-Request-Source': context.source + '-cached',
-          'Cache-Control': 'public, max-age=60, s-maxage=60',
-          'CDN-Cache-Control': 'max-age=60',
-          'Vercel-CDN-Cache-Control': 'max-age=60',
+          'Cache-Control': 'public, max-age=300, s-maxage=300', // 🚨 5분 캐싱
+          'CDN-Cache-Control': 'max-age=300',
+          'Vercel-CDN-Cache-Control': 'max-age=300',
           'X-Cache-Status': 'MEMORY-HIT',
         },
       });
     }
 
-    // 30초 이후에만 실제 Redis 작업 수행
+    // 🚨 무료 티어 절약: 5분 이후에만 실제 Redis 작업 수행
     global.lastStatusCheck[userId] = now;
 
     const activeUserCount = await systemStateManager.updateUserActivity(userId);
 
-    // 10분마다만 정리 작업 수행 (부하 대폭 감소)
-    if (now % 600000 < 30000) {
-      // 10분 간격으로 변경
+    // 🚨 무료 티어 절약: 30분마다만 정리 작업 수행 (부하 대폭 감소)
+    if (now % 1800000 < 300000) {
+      // 30분 간격으로 변경
       await systemStateManager.cleanupInactiveUsers();
     }
 

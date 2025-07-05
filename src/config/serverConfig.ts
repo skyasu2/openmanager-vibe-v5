@@ -118,13 +118,32 @@ export function calculateOptimalUpdateInterval(): number {
 }
 
 /**
- * 🎯 데이터 수집 최적 간격 계산 (35-40초 범위)
- * 생성 간격보다 5초 늦게 시작하여 부담 분산
+ * 🎯 데이터 수집 최적화 간격 계산 (5-10분 범위)
+ * 🚨 무료 티어 절약: 기존 35-40초 → 5-10분으로 변경
  */
 export function calculateOptimalCollectionInterval(): number {
-  const generationInterval = calculateOptimalUpdateInterval();
-  // 생성 간격 + 5초 = 수집 간격
-  return generationInterval + 5000;
+  // 서버 사이드에서는 Node.js process.memoryUsage() 사용
+  if (typeof process !== 'undefined' && process.memoryUsage) {
+    const memoryUsage = process.memoryUsage();
+    const usagePercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
+
+    // 🚨 무료 티어 최적화: 5-10분 범위로 대폭 증가
+    if (usagePercent > 80) return 600000; // 높은 사용률: 10분
+    if (usagePercent > 60) return 450000; // 중간 사용률: 7.5분
+    return 300000; // 낮은 사용률: 5분
+  }
+
+  // 클라이언트 사이드에서는 performance.memory 사용
+  if (typeof window !== 'undefined' && 'memory' in performance) {
+    const memory = (performance as any).memory;
+    const usagePercent = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
+
+    if (usagePercent > 80) return 600000; // 높은 사용률: 10분
+    if (usagePercent > 60) return 450000; // 중간 사용률: 7.5분
+    return 300000; // 낮은 사용률: 5분
+  }
+
+  return 300000; // 기본값: 5분 (무료 티어 최적화)
 }
 
 /**
