@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * 🔍 MCP 서버 상태 확인 API
+ * 🔥 MCP 서버 웜업 API
  *
- * Google Cloud VM으로 이전된 MCP 서버의 상태를 확인합니다.
- * VM은 항상 가동 중이므로 웜업이 불필요합니다.
+ * Render에서 호스팅되는 MCP 서버를 웜업합니다.
+ * 콜드 스타트 문제를 해결하여 응답 시간을 개선합니다.
  */
 
 interface MCPWarmupResult {
@@ -35,24 +35,24 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 새로운 상태 확인 실행
-    const healthResult = await performMCPHealthCheck();
+    // 새로운 웜업 실행
+    const warmupResult = await performMCPWarmup();
 
     // 캐시 업데이트
-    warmupCache = healthResult;
+    warmupCache = warmupResult;
     lastWarmupTime = now;
 
     return NextResponse.json({
-      ...healthResult,
+      ...warmupResult,
       cached: false,
     });
   } catch (error: any) {
-    console.error('MCP 서버 상태 확인 실패:', error);
+    console.error('MCP 서버 웜업 실패:', error);
 
     return NextResponse.json(
       {
         success: false,
-        error: 'MCP 서버 상태 확인 중 오류 발생',
+        error: 'MCP 서버 웜업 중 오류 발생',
         message: error.message,
         timestamp: new Date().toISOString(),
       },
@@ -71,23 +71,23 @@ export async function POST(request: NextRequest) {
       lastWarmupTime = 0;
     }
 
-    const healthResult = await performMCPHealthCheck();
+    const warmupResult = await performMCPWarmup();
 
     // 캐시 업데이트
-    warmupCache = healthResult;
+    warmupCache = warmupResult;
     lastWarmupTime = Date.now();
 
     return NextResponse.json({
-      ...healthResult,
+      ...warmupResult,
       forced: forceRefresh || false,
     });
   } catch (error: any) {
-    console.error('MCP 서버 상태 확인 실패:', error);
+    console.error('MCP 서버 웜업 실패:', error);
 
     return NextResponse.json(
       {
         success: false,
-        error: 'MCP 서버 상태 확인 중 오류 발생',
+        error: 'MCP 서버 웜업 중 오류 발생',
         message: error.message,
         timestamp: new Date().toISOString(),
       },
@@ -96,22 +96,23 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function performMCPHealthCheck(): Promise<MCPWarmupResult> {
-  const serverUrl = 'http://104.154.205.25:10000';
+async function performMCPWarmup(): Promise<MCPWarmupResult> {
+  // 환경에 따라 서버 URL 결정
+  const serverUrl = process.env.MCP_SERVER_URL || 'http://104.154.205.25:10000';
   const startTime = Date.now();
 
-  console.log('🔍 MCP 서버 상태 확인 시작:', serverUrl);
+  console.log('🔥 MCP 서버 웜업 시작:', serverUrl);
 
   try {
-    // 1. 헬스 체크
+    // 1. 헬스 체크로 서버 깨우기
     const healthController = new AbortController();
-    const healthTimeout = setTimeout(() => healthController.abort(), 10000);
+    const healthTimeout = setTimeout(() => healthController.abort(), 15000);
 
     const healthResponse = await fetch(`${serverUrl}/health`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'OpenManager-Vibe-HealthCheck/5.44.0',
+        'User-Agent': 'OpenManager-Vibe-Warmup/5.44.0',
       },
       signal: healthController.signal,
     });
@@ -119,11 +120,11 @@ async function performMCPHealthCheck(): Promise<MCPWarmupResult> {
     clearTimeout(healthTimeout);
     const healthStatus = healthResponse.ok ? 'healthy' : 'unhealthy';
 
-    // 2. 도구 목록 가져오기
+    // 2. 도구 목록 가져오기로 완전 웜업
     let toolsCount = 0;
     try {
       const toolsController = new AbortController();
-      const toolsTimeout = setTimeout(() => toolsController.abort(), 8000);
+      const toolsTimeout = setTimeout(() => toolsController.abort(), 12000);
 
       const toolsResponse = await fetch(`${serverUrl}/mcp/tools`, {
         method: 'GET',
@@ -157,14 +158,14 @@ async function performMCPHealthCheck(): Promise<MCPWarmupResult> {
     };
 
     console.log(
-      `✅ MCP 서버 상태 확인 완료: ${responseTime}ms, 도구 ${toolsCount}개`
+      `✅ MCP 서버 웜업 완료: ${responseTime}ms, 도구 ${toolsCount}개`
     );
 
     return result;
   } catch (error: any) {
     const responseTime = Date.now() - startTime;
 
-    console.error('MCP 서버 상태 확인 실패:', error);
+    console.error('MCP 서버 웜업 실패:', error);
 
     return {
       success: false,

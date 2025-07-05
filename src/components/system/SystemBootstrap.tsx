@@ -58,31 +58,32 @@ export function SystemBootstrap() {
         }
       }
 
-      // 1. MCP 상태 확인 (Google Cloud VM - 웜업 불필요)
+      // 1. MCP 서버 웜업 (Render 서버 웨이크업)
       try {
-        console.log('🔄 MCP 서버 상태 확인...');
+        console.log('🔥 MCP 서버 웜업 시작...');
         const mcpResponse = await fetch('/api/mcp/warmup', {
-          method: 'GET', // VM은 항상 가동 중이므로 GET으로 상태만 확인
+          method: 'POST', // 웜업을 위해 POST 사용
           headers: {
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({ forceRefresh: false }),
         });
 
         if (isMounted) {
           if (mcpResponse.ok) {
             const mcpData = await mcpResponse.json();
             console.log(
-              '✅ MCP 서버 상태 확인 완료:',
-              mcpData.healthStatus || '활성'
+              '✅ MCP 서버 웜업 완료:',
+              `${mcpData.responseTime}ms, 도구 ${mcpData.toolsCount}개`
             );
             setBootstrapStatus(prev => ({ ...prev, mcp: 'success' }));
           } else {
-            console.warn('⚠️ MCP 서버 상태 확인 실패:', mcpResponse.status);
+            console.warn('⚠️ MCP 서버 웜업 실패:', mcpResponse.status);
             setBootstrapStatus(prev => ({ ...prev, mcp: 'failed' }));
           }
         }
       } catch (error) {
-        console.error('❌ MCP 서버 상태 확인 오류:', error);
+        console.error('❌ MCP 서버 웜업 오류:', error);
         if (isMounted) {
           setBootstrapStatus(prev => ({ ...prev, mcp: 'failed' }));
         }

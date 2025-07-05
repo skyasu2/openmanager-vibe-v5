@@ -11,7 +11,17 @@ import { useEffect, useState } from 'react';
 // 토스트 알림과 인라인 피드백 시스템 제거됨
 
 const FeatureCardsGrid = dynamic(
-  () => import('@/components/home/FeatureCardsGrid')
+  () => import('@/components/home/FeatureCardsGrid'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12'>
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className='h-32 bg-white/10 rounded-lg animate-pulse' />
+        ))}
+      </div>
+    ),
+  }
 );
 
 // 토스트 알림 훅 제거됨
@@ -52,9 +62,50 @@ export default function Home() {
   useEffect(() => {
     setIsMounted(true);
 
-    // 🔥 MCP 서버가 Google Cloud VM으로 이전되어 웜업 불필요
-    // 기존 Render 서버 웜업 로직 제거됨 - VM은 항상 가동 중
-    console.log('✅ MCP 서버: Google Cloud VM (웜업 불필요)');
+    // 🔥 홈페이지 접속 시 MCP 서버 웜업 실행 (배포된 사이트와 일치)
+    const performMCPWarmup = async () => {
+      try {
+        // 🚨 비상 모드 체크 - 웜업 차단
+        const isEmergencyMode =
+          process.env.NEXT_PUBLIC_EMERGENCY_MODE === 'true';
+        if (isEmergencyMode) {
+          console.log('🚨 비상 모드 - MCP 웜업 차단');
+          return;
+        }
+
+        console.log('🔥 MCP 서버 웜업 시작 (백그라운드)');
+
+        // 캐시 확인 - 세션당 한 번만 실행
+        const warmupKey = 'mcp-warmup-session';
+        const lastWarmup = sessionStorage.getItem(warmupKey);
+        const now = Date.now();
+
+        if (lastWarmup && now - parseInt(lastWarmup) < 10 * 60 * 1000) {
+          console.log('📦 MCP 웜업 캐시 사용 (10분 이내)');
+          return;
+        }
+
+        // 백그라운드에서 조용히 웜업 실행
+        const response = await fetch('/api/mcp/warmup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ forceRefresh: false }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(`✅ MCP 웜업 완료: ${data.responseTime}ms`);
+          sessionStorage.setItem(warmupKey, now.toString());
+        } else {
+          console.warn(`⚠️ MCP 웜업 실패: ${response.status}`);
+        }
+      } catch (error) {
+        console.warn('⚠️ MCP 웜업 중 오류 (무시됨):', error);
+      }
+    };
+
+    // 🚀 비동기 웜업 실행 (백그라운드)
+    performMCPWarmup();
   }, []);
 
   // 🔧 상태 변화 디버깅 (클라이언트에서만)
