@@ -11,6 +11,10 @@ import smartRedis from '@/lib/redis';
 import { usageMonitor } from '@/lib/usage-monitor';
 import { NextRequest, NextResponse } from 'next/server';
 
+// Next.js App Router 런타임 설정
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const startTime = Date.now();
 

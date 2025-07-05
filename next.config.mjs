@@ -1,25 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // 빌드 최적화 설정 (Vercel 배포용)
-    // output: 'standalone', // 정적 내보내기 오류 방지를 위해 주석 처리
-
-    // 정적 생성 비활성화 (빌드 오류 방지)
-    trailingSlash: false,
-
-    // API 라우트 정적 생성 비활성화
-    skipTrailingSlashRedirect: true,
-
-    // 정적 내보내기 비활성화 (누락된 라우트 오류 방지)
+    // 🚀 Next.js 15 완전 동적 모드 (정적 생성 완전 비활성화)
     output: undefined,
+    trailingSlash: false,
+    skipTrailingSlashRedirect: true,
 
     // Pages Router 완전 비활성화 (App Router만 사용)
     pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
 
-    // 정적 생성 및 빌드 오류 방지
+    // 🚫 정적 생성 에러 방지 설정
     typescript: {
         ignoreBuildErrors: false,
     },
-
     eslint: {
         ignoreDuringBuilds: false,
     },
@@ -49,7 +41,7 @@ const nextConfig = {
         pagesBufferLength: 2,
     },
 
-    // 커스텀 404/500 페이지 비활성화 (App Router 전용)
+    // 커스텀 빌드 ID
     generateBuildId: async () => {
         return 'openmanager-vibe-v5';
     },
@@ -89,7 +81,7 @@ const nextConfig = {
         return config;
     },
 
-    // 리다이렉트 설정 (Pages Router 대신 App Router 사용)
+    // 🚫 문제 페이지 리다이렉트 설정
     async redirects() {
         return [
             {
@@ -101,6 +93,21 @@ const nextConfig = {
                 source: '/_document',
                 destination: '/500',
                 permanent: false,
+            },
+        ];
+    },
+
+    // 🚫 정적 생성에서 제외할 경로들
+    async headers() {
+        return [
+            {
+                source: '/api/:path*',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'no-store, max-age=0',
+                    },
+                ],
             },
         ];
     },

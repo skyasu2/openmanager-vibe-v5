@@ -82,6 +82,22 @@ interface ServerInfo {
 }
 
 /**
+ * 🚀 서버 페이지네이션 API v2.1
+ *
+ * 목적: 서버 목록을 페이지 단위로 가져오는 최적화된 API
+ *
+ * 주요 기능:
+ * - 페이지 기반 서버 목록 조회
+ * - 캐시 최적화로 빠른 응답 제공
+ * - 실시간 서버 상태 업데이트 지원
+ * - 정렬 및 필터링 옵션
+ */
+
+// Next.js App Router 런타임 설정
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+/**
  * 🖥️ 서버 Next API
  * 다음 서버 정보 또는 서버 페이지네이션을 처리하는 엔드포인트
  */

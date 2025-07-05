@@ -14,6 +14,10 @@ import { serverMonitoringAgent } from '@/services/mcp/ServerMonitoringAgent';
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
 import { NextRequest, NextResponse } from 'next/server';
 
+// Next.js App Router 런타임 설정
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // 에이전트 초기화 (한 번만)
 let isInitialized = false;
 const initializeAgent = async () => {
