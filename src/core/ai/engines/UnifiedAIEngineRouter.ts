@@ -103,23 +103,25 @@ export class UnifiedAIEngineRouter {
    */
   private initializeGCPMCP() {
     try {
-      // Render MCP 서버 URL
-      const renderMCPUrl =
-        process.env.RENDER_MCP_SERVER_URL || 'http://104.154.205.25:10000';
+      // Google VM MCP 서버 URL
+      const gcpMCPUrl =
+        process.env.GCP_MCP_SERVER_URL ||
+        process.env.MCP_SERVER_URL ||
+        'http://104.154.205.25:10000';
 
       // HTTP 기반 MCP 클라이언트 설정
-      const renderMCPClient = {
-        url: renderMCPUrl,
+      const gcpMCPClient = {
+        url: gcpMCPUrl,
         timeout: 30000, // 30초 타임아웃
         initialized: true,
-        type: 'render-mcp-http',
+        type: 'gcp-mcp-http',
       };
 
-      this.engines.set('render-mcp', renderMCPClient);
-      logger.info('✅ Render MCP HTTP 클라이언트 초기화 완료');
+      this.engines.set('gcp-mcp', gcpMCPClient);
+      logger.info('✅ Google VM MCP HTTP 클라이언트 초기화 완료');
     } catch (error) {
       logger.error('❌ GCP MCP 초기화 실패:', error);
-      this.failedEngines.add('render-mcp');
+      this.failedEngines.add('gcp-mcp');
     }
   }
 
@@ -580,7 +582,7 @@ export class UnifiedAIEngineRouter {
         optimizedKoreanNLP: this.engines.has('korean-ai'),
         openSourceEngines: false, // 현재 미구현 상태
         customEngines: false, // 현재 미구현 상태
-        mcpContextCollector: this.engines.has('render-mcp'),
+        mcpContextCollector: this.engines.has('gcp-mcp'),
         fallbackHandler: true, // 항상 사용 가능
       },
     };

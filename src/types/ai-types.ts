@@ -25,7 +25,7 @@ export type AIEngineType =
   | 'supabase-rag'
   | 'korean-ai'
   | 'mcp-client'
-  | 'render-mcp'
+  | 'gcp-mcp'
   | 'transformers'
   | 'mcp-context';
 

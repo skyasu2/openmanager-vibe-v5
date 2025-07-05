@@ -560,7 +560,7 @@ export async function OPTIONS() {
   });
 }
 
-// 🚀 최적화된 MCP 서버 헬스체크 (과도한 요청 방지)
+// 🌐 단순화된 Google VM MCP 서버 헬스체크
 async function checkMCPServersHealth(): Promise<{
   status: string;
   details: any;
@@ -575,55 +575,50 @@ async function checkMCPServersHealth(): Promise<{
   }
 
   try {
-    // 🎯 Vercel 환경에서는 단일 MCP 서버만 체크 (Render 서버)
-    const isVercel = !!process.env.VERCEL;
+    // 🎯 Google VM MCP 서버 단일 체크 (Render 의존성 완전 제거)
+    const mcpServerUrl =
+      process.env.GCP_MCP_SERVER_URL ||
+      process.env.MCP_SERVER_URL ||
+      'http://104.154.205.25:10000';
+    const timeout = parseInt(process.env.MCP_TIMEOUT || '5000');
 
-    if (isVercel) {
-      // Vercel에서는 HEAD 요청으로 최소한의 체크
-      const response = await fetch('http://104.154.205.25:10000/health', {
-        method: 'HEAD',
-        signal: AbortSignal.timeout(5000), // 5초 타임아웃
-      });
+    const response = await fetch(`${mcpServerUrl}/health`, {
+      method: 'HEAD',
+      signal: AbortSignal.timeout(timeout),
+    });
 
-      const result = {
-        status: response.ok ? 'operational' : 'degraded',
-        details: {
-          servers: [
-            {
-              name: 'openmanager-vibe-v5',
-              status: response.ok ? 'healthy' : 'degraded',
-              responseCode: response.status,
-              note: 'Vercel 최적화: 단일 서버 체크',
-            },
-          ],
-          optimization: 'vercel_minimal_check',
-        },
-      };
-
-      // 결과 캐싱 (성공/실패 모두)
-      setCachedHealth(cacheKey, result, getAdaptiveCacheTTL().ttl);
-      return result;
-    }
-
-    // 로컬 환경에서는 기존 방식 유지
     const result = {
-      status: 'operational',
+      status: response.ok ? 'operational' : 'degraded',
       details: {
-        servers: [{ name: 'local-mcp', status: 'healthy' }],
-        optimization: 'local_standard',
+        server: {
+          name: 'google-vm-mcp',
+          url: mcpServerUrl,
+          status: response.ok ? 'healthy' : 'degraded',
+          responseCode: response.status,
+          note: 'Google VM MCP 서버 (단일 서버 모드)',
+        },
+        optimization: 'google_vm_simplified',
       },
     };
 
-    setCachedHealth(cacheKey, result, getAdaptiveCacheTTL().ttl);
+    // 결과 캐싱
+    const cacheTTL = parseInt(process.env.MCP_HEALTH_CHECK_INTERVAL || '30000');
+    setCachedHealth(cacheKey, result, cacheTTL);
+
+    console.log(`✅ Google VM MCP 헬스체크 성공: ${response.status}`);
     return result;
   } catch (error) {
-    console.warn('⚠️ MCP 헬스체크 실패 (캐싱됨):', error);
+    console.warn('⚠️ Google VM MCP 헬스체크 실패:', error);
 
     const errorResult = {
       status: 'degraded',
       details: {
-        servers: [],
-        error: error instanceof Error ? error.message : 'Connection failed',
+        server: {
+          name: 'google-vm-mcp',
+          status: 'unhealthy',
+          error: error instanceof Error ? error.message : 'Connection failed',
+          note: 'Google VM MCP 서버 연결 실패',
+        },
         optimization: 'error_cached',
       },
     };

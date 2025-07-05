@@ -149,7 +149,7 @@ export const INFRASTRUCTURE_CONFIG = {
   },
   mcp: {
     serverUrl:
-      process.env.RENDER_MCP_SERVER_URL || process.env.MCP_SERVER_URL || '',
+      process.env.GCP_MCP_SERVER_URL || process.env.MCP_SERVER_URL || '',
     serverIps: (
       process.env.RENDER_MCP_SERVER_IPS ||
       process.env.MCP_SERVER_IPS ||
@@ -216,7 +216,7 @@ export function validateEnvironmentConfig(): {
   const recommended = [
     'GOOGLE_AI_API_KEY',
     'UPSTASH_REDIS_REST_URL',
-    'RENDER_MCP_SERVER_URL',
+    'GCP_MCP_SERVER_URL',
   ];
 
   for (const key of required) {
@@ -256,7 +256,7 @@ export function getInfrastructureUrl(
       );
     case 'mcp':
       return (
-        process.env.RENDER_MCP_SERVER_URL || INFRASTRUCTURE_CONFIG.mcp.serverUrl
+        process.env.GCP_MCP_SERVER_URL || INFRASTRUCTURE_CONFIG.mcp.serverUrl
       );
     default:
       throw new Error(`지원하지 않는 인프라 서비스: ${service}`);
@@ -337,7 +337,7 @@ export function validateProductionEnvironment(): {
   const urls = {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
-    RENDER_MCP_SERVER_URL: process.env.RENDER_MCP_SERVER_URL,
+    GCP_MCP_SERVER_URL: process.env.GCP_MCP_SERVER_URL,
   };
 
   for (const [key, value] of Object.entries(urls)) {

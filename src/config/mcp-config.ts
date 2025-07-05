@@ -349,8 +349,11 @@ export function getMCPConfigByPurpose(
  * 🎯 환경별 MCP 설정 가져오기 (업데이트)
  */
 export function getMCPConfig(): MCPEnvironmentConfig {
-  // Render 환경 감지 - AI 프로덕션용
-  if (process.env.RENDER || process.cwd().includes('/opt/render/project')) {
+  // Google VM 환경 감지 - AI 프로덕션용
+  if (
+    process.env.GCP_MCP_SERVER_URL ||
+    process.env.MCP_SERVER_TYPE === 'google-vm-only'
+  ) {
     return AI_PRODUCTION_MCP_CONFIG;
   }
 
@@ -385,7 +388,7 @@ export function getMCPServerType():
 }
 
 /**
- * 🎯 AI 엔진용 MCP 설정 강제 반환 (Render 전용)
+ * 🎯 AI 엔진용 MCP 설정 강제 반환 (Google VM 전용)
  */
 export function getAIProductionMCPConfig(): MCPEnvironmentConfig {
   return AI_PRODUCTION_MCP_CONFIG;
@@ -486,7 +489,7 @@ const mcpConfig = {
   // 개발용 MCP 설정 (Cursor IDE)
   development: DEVELOPMENT_MCP_CONFIG,
 
-  // AI용 MCP 설정 (Render 프로덕션)
+  // AI용 MCP 설정 (Google VM 프로덕션)
   ai: AI_PRODUCTION_MCP_CONFIG,
 
   // 서버 정보
