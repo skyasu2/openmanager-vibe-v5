@@ -15,7 +15,6 @@
  * - 자동 비활성 사용자 정리
  */
 
-import { emergencyLimiter } from '@/lib/emergency-vercel-limiter';
 import {
   generateAnonymousId,
   systemStateManager,
@@ -53,54 +52,9 @@ function getRequestContext(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    // 🚨 응급 조치: 환경변수 기반 사용량 제한
-    if (emergencyLimiter.isFeatureDisabled('system-status')) {
-      return emergencyLimiter.createEmergencyResponse(
-        '시스템 상태 조회 비활성화'
-      );
-    }
+    // 🎯 응급 제한기 제거 - 정상 동작 모드
 
-    const EMERGENCY_THROTTLE = process.env.EMERGENCY_THROTTLE === 'true';
-    const MAX_REQUESTS_PER_MINUTE = parseInt(
-      process.env.MAX_STATUS_REQUESTS_PER_MINUTE || '60'
-    );
-
-    if (EMERGENCY_THROTTLE) {
-      // 1분당 요청 수 제한
-      if (!global.statusRequestCount)
-        global.statusRequestCount = { count: 0, resetTime: Date.now() + 60000 };
-
-      const now = Date.now();
-      if (now > global.statusRequestCount.resetTime) {
-        global.statusRequestCount = { count: 0, resetTime: now + 60000 };
-      }
-
-      if (global.statusRequestCount.count >= MAX_REQUESTS_PER_MINUTE) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: '일시적 사용량 제한 - 잠시 후 다시 시도해주세요',
-            throttled: true,
-            retryAfter: Math.ceil(
-              (global.statusRequestCount.resetTime - now) / 1000
-            ),
-          },
-          {
-            status: 429,
-            headers: {
-              'Retry-After': String(
-                Math.ceil((global.statusRequestCount.resetTime - now) / 1000)
-              ),
-              'X-RateLimit-Limit': String(MAX_REQUESTS_PER_MINUTE),
-              'X-RateLimit-Remaining': '0',
-              'Cache-Control': 'public, max-age=30',
-            },
-          }
-        );
-      }
-
-      global.statusRequestCount.count++;
-    }
+    // 🎯 응급 스로틀링 제거 - 정상 처리 모드
 
     const userId = getUserId(request);
     const context = getRequestContext(request);
