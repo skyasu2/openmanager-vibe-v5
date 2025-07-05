@@ -8,6 +8,10 @@
  * - 캐시 기반 효율적 업데이트
  */
 
+import {
+  getCurrentPollingInterval,
+  getOptimizedConfig,
+} from '@/config/vercel-optimization';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type { ServerStatus } from '../types/common';
@@ -274,15 +278,29 @@ export const useServerDataStore = create<ServerDataState>()(
           console.log('🔄 기존 폴링 타이머 정리됨');
         }
 
-        // ✅ 폴링 주기 최적화: 35초로 조정 (30-40초 갱신 주기에 맞춤)
+        // 🚀 Vercel 최적화: 스마트 폴링 간격 적용
+        const config = getOptimizedConfig();
+        const optimizedInterval = config.USE_SMART_POLLING
+          ? getCurrentPollingInterval(config.SERVER_DATA_STORE)
+          : 35000; // 기본값
+
+        console.log(
+          `⚡ serverDataStore 폴링 간격: ${optimizedInterval / 1000}초 (최적화: ${config.USE_SMART_POLLING ? 'ON' : 'OFF'})`
+        );
+
+        // ✅ 폴링 주기 최적화: 스마트 간격 적용
         const updateInterval = setInterval(() => {
-          console.log('🔄 서버 데이터 자동 업데이트 (35초 주기)');
+          console.log(
+            `🔄 서버 데이터 자동 업데이트 (${optimizedInterval / 1000}초 주기)`
+          );
           get().fetchServers();
-        }, 35000); // 35초마다 업데이트
+        }, optimizedInterval);
 
         // 정리를 위해 interval ID 저장
         (get() as any)._updateInterval = updateInterval;
-        console.log('✅ 실시간 업데이트 시작 (35초 주기)');
+        console.log(
+          `✅ 실시간 업데이트 시작 (${optimizedInterval / 1000}초 주기)`
+        );
       },
 
       // 실시간 업데이트 중지

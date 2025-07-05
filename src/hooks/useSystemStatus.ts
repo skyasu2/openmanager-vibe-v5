@@ -12,6 +12,10 @@
  * - 여러 사용자간 상태 동기화
  */
 
+import {
+  getCurrentPollingInterval,
+  getOptimizedConfig,
+} from '@/config/vercel-optimization';
 import { useCallback, useEffect, useState } from 'react';
 
 export interface SystemStatus {
@@ -45,10 +49,19 @@ interface UseSystemStatusReturn {
 export const useSystemStatus = (
   options: UseSystemStatusOptions = {}
 ): UseSystemStatusReturn => {
-  const {
-    pollingInterval = 30000, // 30초 간격으로 복원
-    autoStart = true,
-  } = options;
+  const config = getOptimizedConfig();
+  const baseInterval = options.pollingInterval || 30000;
+
+  // 🚀 Vercel 최적화: 스마트 폴링 간격 적용
+  const optimizedInterval = config.USE_SMART_POLLING
+    ? getCurrentPollingInterval(config.SYSTEM_STATUS)
+    : baseInterval;
+
+  const { autoStart = true } = options;
+
+  console.log(
+    `⚡ useSystemStatus 폴링 간격: ${optimizedInterval / 1000}초 (최적화: ${config.USE_SMART_POLLING ? 'ON' : 'OFF'})`
+  );
 
   const [status, setStatus] = useState<SystemStatus>({
     isRunning: false,
@@ -167,16 +180,16 @@ export const useSystemStatus = (
 
   // 주기적 상태 체크 - 정상 폴링 복원
   useEffect(() => {
-    if (pollingInterval > 0) {
+    if (optimizedInterval > 0) {
       const interval = setInterval(() => {
         if (!status.isStarting) {
           checkStatus();
         }
-      }, pollingInterval);
+      }, optimizedInterval);
 
       return () => clearInterval(interval);
     }
-  }, [checkStatus, pollingInterval, status.isStarting]);
+  }, [checkStatus, optimizedInterval, status.isStarting]);
 
   // 페이지 포커스 시 상태 체크
   useEffect(() => {

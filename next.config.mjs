@@ -36,6 +36,8 @@ const nextConfig = {
         // 워커 스레드 및 호환성 설정
         workerThreads: false,
         craCompat: false,
+        serverComponentsExternalPackages: ['@supabase/supabase-js', '@google/generative-ai'],
+        optimizePackageImports: ['lucide-react', 'recharts'],
     },
 
     // 🚀 빌드 설정 - 성능 최적화 활성화 (2025.7.3 개선)
@@ -100,6 +102,65 @@ const nextConfig = {
             {
                 source: '/_document',
                 destination: '/500',
+                permanent: false,
+            },
+        ];
+    },
+
+    // �� 캐싱 최적화
+    headers: async () => {
+        return [
+            {
+                source: '/api/system/state',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'public, s-maxage=60, stale-while-revalidate=120', // 1분 캐시, 2분 stale
+                    },
+                ],
+            },
+            {
+                source: '/api/dashboard',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'public, s-maxage=120, stale-while-revalidate=300', // 2분 캐시, 5분 stale
+                    },
+                ],
+            },
+            {
+                source: '/api/unified-metrics',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'public, s-maxage=180, stale-while-revalidate=600', // 3분 캐시, 10분 stale
+                    },
+                ],
+            },
+        ];
+    },
+
+    // 🎯 이미지 최적화
+    images: {
+        domains: ['images.unsplash.com', 'via.placeholder.com'],
+        formats: ['image/webp', 'image/avif'],
+        minimumCacheTTL: 3600, // 1시간 캐시
+    },
+
+    // 🚫 불필요한 기능 비활성화
+    eslint: {
+        ignoreDuringBuilds: false,
+    },
+
+    // 🌐 국제화 비활성화 (한국어 전용)
+    i18n: undefined,
+
+    // 🔄 리다이렉트 최적화
+    redirects: async () => {
+        return [
+            {
+                source: '/dashboard',
+                destination: '/',
                 permanent: false,
             },
         ];

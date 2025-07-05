@@ -8,6 +8,10 @@
  * - 클러스터 정보 관리
  */
 
+import {
+  getCurrentPollingInterval,
+  getOptimizedConfig,
+} from '@/config/vercel-optimization';
 import type {
   ApplicationMetrics,
   ServerCluster,
@@ -227,11 +231,19 @@ const mapStatus = (rawStatus: string): 'online' | 'warning' | 'offline' => {
 };
 
 export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
-  const {
-    autoRefresh = true,
-    refreshInterval = 20000, // 20초로 통일 (5초 → 20초)
-    enableNotifications = true,
-  } = options;
+  const config = getOptimizedConfig();
+  const baseInterval = options.refreshInterval || 20000;
+
+  // 🚀 Vercel 최적화: 스마트 폴링 간격 적용
+  const optimizedInterval = config.USE_SMART_POLLING
+    ? getCurrentPollingInterval(config.REALTIME_SERVERS)
+    : baseInterval;
+
+  const { autoRefresh = true, enableNotifications = true } = options;
+
+  console.log(
+    `⚡ useRealtimeServers 폴링 간격: ${optimizedInterval / 1000}초 (최적화: ${config.USE_SMART_POLLING ? 'ON' : 'OFF'})`
+  );
 
   // 상태 관리
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
@@ -244,18 +256,17 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
   const [selectedCluster, setSelectedCluster] = useState<ServerCluster | null>(
     null
   );
-
-  // 로딩 및 오류 상태
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // 연결 상태
-  const [isConnected, setIsConnected] = useState(false);
+  const [isConnected, setIsConnected] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-  // 자동 새로고침 제어
+  // Refs
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // 🚀 Vercel 최적화: refreshInterval을 optimizedInterval로 변경
+  const refreshInterval = optimizedInterval;
 
   /**
    * 📊 대시보드 요약 데이터 가져오기
