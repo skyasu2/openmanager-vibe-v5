@@ -55,7 +55,6 @@ documentation/
 # 설정 파일
 .eslintrc.*
 .prettierrc.*
-tsconfig.json
 vitest.config.*
 tailwind.config.*
 
@@ -186,4 +185,5 @@ scripts/
 README.md
 .env.example
 .env.template
-tsconfig.tsbuildinfo 
+tsconfig.tsbuildinfo
+!tsconfig.json 
