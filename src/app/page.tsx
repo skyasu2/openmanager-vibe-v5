@@ -1,18 +1,16 @@
 'use client';
 
-// 🔧 RSC 프리렌더링 오류 방지: 동적 렌더링 강제
-export const dynamic = 'force-dynamic';
-
 import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
 import { BarChart3, Bot, Loader2, Play, X, Zap } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { lazy, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 // 토스트 알림과 인라인 피드백 시스템 제거됨
 
-const FeatureCardsGrid = lazy(
+const FeatureCardsGrid = dynamic(
   () => import('@/components/home/FeatureCardsGrid')
 );
 

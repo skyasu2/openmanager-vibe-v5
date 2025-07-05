@@ -1,8 +1,5 @@
 'use client';
 
-// 🔧 RSC 프리렌더링 오류 방지: 동적 렌더링 강제
-export const dynamic = 'force-dynamic';
-
 import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
 import { NotificationToast } from '@/components/system/NotificationToast';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
@@ -12,19 +9,20 @@ import { AISidebar } from '@/presentation/ai-sidebar';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
-import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+import React, { Suspense, useCallback, useEffect, useState } from 'react';
 
 // --- Dynamic Imports ---
-const DashboardHeader = lazy(
+const DashboardHeader = dynamic(
   () => import('../../components/dashboard/DashboardHeader')
 );
-const DashboardContent = lazy(
+const DashboardContent = dynamic(
   () => import('../../components/dashboard/DashboardContent')
 );
-const FloatingSystemControl = lazy(
+const FloatingSystemControl = dynamic(
   () => import('../../components/system/FloatingSystemControl')
 );
-const EnhancedServerModalDynamic = lazy(
+const EnhancedServerModalDynamic = dynamic(
   () => import('../../components/dashboard/EnhancedServerModal')
 );
 
