@@ -40,12 +40,12 @@ const nextConfig = {
         return [
             {
                 source: '/_document',
-                destination: '/not-found',
+                destination: '/',
                 permanent: false,
             },
             {
                 source: '/_error',
-                destination: '/error',
+                destination: '/',
                 permanent: false,
             },
         ];
