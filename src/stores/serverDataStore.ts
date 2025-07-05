@@ -8,10 +8,6 @@
  * - 캐시 기반 효율적 업데이트
  */
 
-import {
-  getCurrentPollingInterval,
-  getOptimizedConfig,
-} from '@/config/vercel-optimization';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type { ServerStatus } from '../types/common';
@@ -269,7 +265,7 @@ export const useServerDataStore = create<ServerDataState>()(
         await get().fetchServers();
       },
 
-      // 실시간 업데이트 시작
+      // 🚨 긴급 수정: 실시간 업데이트 간격 대폭 증가
       startRealTimeUpdates: () => {
         // 기존 타이머가 있으면 정리
         const existingInterval = (get() as any)._updateInterval;
@@ -278,28 +274,25 @@ export const useServerDataStore = create<ServerDataState>()(
           console.log('🔄 기존 폴링 타이머 정리됨');
         }
 
-        // 🚀 Vercel 최적화: 스마트 폴링 간격 적용
-        const config = getOptimizedConfig();
-        const optimizedInterval = config.USE_SMART_POLLING
-          ? getCurrentPollingInterval(config.SERVER_DATA_STORE)
-          : 35000; // 기본값
+        // 🎯 스마트 최적화: 정적 설정 기반 폴링 간격
+        const smartInterval = 600000; // 10분 (정적 최적화)
 
         console.log(
-          `⚡ serverDataStore 폴링 간격: ${optimizedInterval / 1000}초 (최적화: ${config.USE_SMART_POLLING ? 'ON' : 'OFF'})`
+          `🎯 스마트 최적화 - serverDataStore 폴링 간격: ${smartInterval / 1000}초`
         );
 
-        // ✅ 폴링 주기 최적화: 스마트 간격 적용
+        // 🚨 긴급 수정: 대폭 증가된 폴링 간격 적용
         const updateInterval = setInterval(() => {
           console.log(
-            `🔄 서버 데이터 자동 업데이트 (${optimizedInterval / 1000}초 주기)`
+            `🔄 서버 데이터 자동 업데이트 (${smartInterval / 1000}초 주기)`
           );
           get().fetchServers();
-        }, optimizedInterval);
+        }, smartInterval);
 
         // 정리를 위해 interval ID 저장
         (get() as any)._updateInterval = updateInterval;
         console.log(
-          `✅ 실시간 업데이트 시작 (${optimizedInterval / 1000}초 주기)`
+          `✅ 스마트 최적화 - 실시간 업데이트 시작 (${smartInterval / 1000}초 주기)`
         );
       },
 

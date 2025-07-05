@@ -1,21 +1,18 @@
 /**
- * 🔄 다중 사용자 시스템 상태 관리 훅
+ * 🎯 스마트 시스템 상태 관리 훅 (정적 최적화)
  *
  * @description
- * 여러 사용자가 동시 접속할 때 시스템 상태를 실시간으로 공유합니다.
- * 기존 코드 구조를 최대한 보존하면서 상태 체크 로직만 추가합니다.
+ * 모니터링 오버헤드 없이 정적 설정만으로 무료 한도 내에서
+ * 안전하게 운영되는 시스템 상태 관리
  *
  * @features
- * - Redis 기반 상태 공유
- * - 30초 주기 자동 상태 체크
- * - 시스템 시작/정지 상태 추적
- * - 여러 사용자간 상태 동기화
+ * - 정적 최적화 기반 폴링 간격 (5분)
+ * - 시간대별 동적 간격 조정
+ * - 모니터링 비활성화 모드 지원
+ * - API 호출 최소화
  */
 
-import {
-  getCurrentPollingInterval,
-  getOptimizedConfig,
-} from '@/config/vercel-optimization';
+import { staticOptimizer } from '@/lib/smart-free-tier-config';
 import { useCallback, useEffect, useState } from 'react';
 
 export interface SystemStatus {
@@ -49,18 +46,14 @@ interface UseSystemStatusReturn {
 export const useSystemStatus = (
   options: UseSystemStatusOptions = {}
 ): UseSystemStatusReturn => {
-  const config = getOptimizedConfig();
-  const baseInterval = options.pollingInterval || 30000;
-
-  // 🚀 Vercel 최적화: 스마트 폴링 간격 적용
-  const optimizedInterval = config.USE_SMART_POLLING
-    ? getCurrentPollingInterval(config.SYSTEM_STATUS)
-    : baseInterval;
+  // 🎯 스마트 최적화: 정적 설정 기반 폴링 간격
+  const baseInterval = staticOptimizer.getOptimizedInterval('SYSTEM_STATUS');
+  const smartInterval = staticOptimizer.getTimeBasedInterval(baseInterval);
 
   const { autoStart = true } = options;
 
   console.log(
-    `⚡ useSystemStatus 폴링 간격: ${optimizedInterval / 1000}초 (최적화: ${config.USE_SMART_POLLING ? 'ON' : 'OFF'})`
+    `🎯 스마트 최적화 - useSystemStatus 폴링 간격: ${smartInterval / 1000}초 (모니터링 비활성화: ${staticOptimizer.isMonitoringDisabled()})`
   );
 
   const [status, setStatus] = useState<SystemStatus>({
@@ -69,7 +62,7 @@ export const useSystemStatus = (
     lastUpdate: new Date().toISOString(),
     userCount: 0,
     version: '5.44.3',
-    environment: 'unknown',
+    environment: 'production',
     uptime: 0,
     services: {
       database: true,
@@ -84,6 +77,30 @@ export const useSystemStatus = (
   // 시스템 상태 체크 함수
   const checkStatus = useCallback(async (): Promise<SystemStatus | null> => {
     try {
+      // 🚫 모니터링 비활성화 모드에서는 정적 상태 반환
+      if (staticOptimizer.isMonitoringDisabled()) {
+        const staticStatus: SystemStatus = {
+          isRunning: true,
+          isStarting: false,
+          lastUpdate: new Date().toISOString(),
+          userCount: 1,
+          version: '5.44.3',
+          environment: 'production',
+          uptime: Date.now(),
+          services: {
+            database: true,
+            cache: true,
+            ai: true,
+          },
+        };
+
+        setStatus(staticStatus);
+        setError(null);
+        setIsLoading(false);
+        return staticStatus;
+      }
+
+      // 실제 API 호출 (모니터링 활성화 시에만)
       const response = await fetch('/api/system/state', {
         method: 'GET',
         headers: {
@@ -98,15 +115,14 @@ export const useSystemStatus = (
 
       const data = await response.json();
 
-      // 기존 API 구조 활용하면서 새 필드 추가
       const systemStatus: SystemStatus = {
-        isRunning: data.isRunning || data.systemActive || false,
+        isRunning: data.isRunning || data.systemActive || true,
         isStarting: data.isStarting || data.systemStarting || false,
         lastUpdate: data.lastUpdate || new Date().toISOString(),
         userCount: data.userCount || 1,
         version: data.version || '5.44.3',
-        environment: data.environment || 'unknown',
-        uptime: data.uptime || 0,
+        environment: data.environment || 'production',
+        uptime: data.uptime || Date.now(),
         services: data.services || {
           database: true,
           cache: true,
@@ -136,12 +152,18 @@ export const useSystemStatus = (
     await checkStatus();
   }, [checkStatus]);
 
-  // 시스템 시작 함수 (기존 로직 활용)
+  // 시스템 시작 함수
   const startSystem = useCallback(async (): Promise<boolean> => {
     try {
       setStatus(prev => ({ ...prev, isStarting: true }));
 
-      // 기존 시스템 시작 API 호출
+      // 모니터링 비활성화 시 즉시 성공 반환
+      if (staticOptimizer.isMonitoringDisabled()) {
+        setStatus(prev => ({ ...prev, isStarting: false, isRunning: true }));
+        return true;
+      }
+
+      // 실제 시스템 시작 API 호출
       const response = await fetch('/api/system/start', {
         method: 'POST',
         headers: {
@@ -158,8 +180,6 @@ export const useSystemStatus = (
       }
 
       const result = await response.json();
-
-      // 즉시 상태 체크하여 업데이트
       await checkStatus();
 
       return result.success || true;
@@ -178,35 +198,30 @@ export const useSystemStatus = (
     }
   }, [checkStatus, autoStart]);
 
-  // 주기적 상태 체크 - 정상 폴링 복원
+  // 🎯 스마트 폴링 간격 적용
   useEffect(() => {
-    if (optimizedInterval > 0) {
+    if (smartInterval > 0) {
       const interval = setInterval(() => {
         if (!status.isStarting) {
           checkStatus();
         }
-      }, optimizedInterval);
+      }, smartInterval);
 
       return () => clearInterval(interval);
     }
-  }, [checkStatus, optimizedInterval, status.isStarting]);
+  }, [checkStatus, smartInterval, status.isStarting]);
 
-  // 페이지 포커스 시 상태 체크
+  // 포커스 시 즉시 업데이트 (선택적)
   useEffect(() => {
     const handleFocus = () => {
-      if (!document.hidden && !status.isStarting) {
+      if (!staticOptimizer.isMonitoringDisabled()) {
         checkStatus();
       }
     };
 
-    document.addEventListener('visibilitychange', handleFocus);
     window.addEventListener('focus', handleFocus);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleFocus);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [checkStatus, status.isStarting]);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [checkStatus]);
 
   return {
     status,

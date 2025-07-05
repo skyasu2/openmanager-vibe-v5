@@ -10,8 +10,9 @@ import '@/lib/build-safety/TimerBlocker';
 import '@/lib/keep-alive-scheduler';
 // 성능 모니터링 초기화
 import '@/utils/performance';
-// 과도한 갱신 방지 시스템 초기화
+// 스마트 무료 티어 최적화 시스템 초기화
 import { passwordlessEnv } from '@/lib/passwordless-env-manager';
+import { staticOptimizer } from '@/lib/smart-free-tier-config';
 import { detectAndFixTerminalEncoding } from '@/utils/encoding-fix';
 import '@/utils/update-prevention-init';
 
@@ -35,11 +36,29 @@ if (
     .catch(console.warn);
 }
 
+// 🎯 스마트 무료 티어 최적화 시스템 초기화
+if (typeof window !== 'undefined') {
+  console.log(
+    '🎯 스마트 무료 티어 최적화 시스템 활성화:',
+    staticOptimizer.getConfigSummary()
+  );
+}
+
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'OpenManager Vibe v5 - Korean AI Hybrid Engine',
-  description: '세계 최초 한국어 특화 AI 하이브리드 서버 모니터링 시스템',
+  title: 'OpenManager Vibe v5 - 무료 티어 최적화',
+  description: '모든 서비스 무료 한도 내 운영하는 차세대 서버 관리 시스템',
+  keywords: [
+    '서버 관리',
+    '무료 티어',
+    'Vercel',
+    'Supabase',
+    'Google Cloud',
+    'AI',
+  ],
+  authors: [{ name: 'OpenManager Team' }],
+  viewport: 'width=device-width, initial-scale=1',
 };
 
 export default function RootLayout({
