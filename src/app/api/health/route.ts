@@ -437,14 +437,13 @@ class AutoEnvRecoverySystem {
  */
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔍 헬스체크 API 호출됨');
+    console.log('🏥 헬스체크 API 호출됨');
 
-    // 환경변수 상태 확인 (서버 전용)
+    // 환경변수 상태 확인 (기본값 설정)
     let envStatus = {
-      initialized: true,
-      valid: true,
-      missing: [] as string[],
-      message: '환경변수 상태 확인 불가 (클라이언트 모드)',
+      isValid: true,
+      issues: [] as string[],
+      suggestions: [] as string[],
     };
 
     try {
@@ -481,7 +480,7 @@ export async function GET(request: NextRequest) {
     // 서비스 상태 확인
     const services = {
       nextjs: 'healthy',
-      environment: envStatus.valid ? 'healthy' : 'warning',
+      environment: envStatus.isValid ? 'healthy' : 'warning',
       memory: systemInfo.memory.used < 200 ? 'healthy' : 'warning',
     };
 
@@ -500,10 +499,14 @@ export async function GET(request: NextRequest) {
       environment: environmentInfo,
       services,
       envStatus: {
-        initialized: envStatus.initialized,
-        valid: envStatus.valid,
-        missingCount: envStatus.missing.length,
-        message: envStatus.message,
+        initialized: true,
+        valid: envStatus.isValid,
+        missingCount: envStatus.issues.length,
+        message: envStatus.isValid
+          ? '환경변수가 정상적으로 설정되어 있습니다.'
+          : `${envStatus.issues.length}개 환경변수 문제 발견`,
+        issues: envStatus.issues,
+        suggestions: envStatus.suggestions,
       },
     };
 
