@@ -7,11 +7,12 @@
  * - 서버 모니터링 프론트엔드 일관성 보장
  */
 
+import { clientSafeEnv } from '@/lib/environment/client-safe-env';
 import { NextRequest, NextResponse } from 'next/server';
 
 // 🎯 GCP Functions 설정
 const GCP_FUNCTIONS_BASE_URL =
-  process.env.GCP_FUNCTIONS_BASE_URL ||
+  clientSafeEnv.get('GCP_FUNCTIONS_BASE_URL') ||
   'https://us-central1-openmanager-vibe-v5.cloudfunctions.net';
 const ENTERPRISE_METRICS_ENDPOINT = `${GCP_FUNCTIONS_BASE_URL}/enterprise-metrics`;
 const REQUEST_TIMEOUT = 10000; // 10초
