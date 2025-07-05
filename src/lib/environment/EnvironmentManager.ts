@@ -193,10 +193,10 @@ export class EnvironmentManager {
   }
 
   /**
-   * 🌐 Render MCP 서버 연결 허용 여부 (프로덕션용)
+   * 🌐 Google VM MCP 서버 연결 허용 여부 (프로덕션용)
    */
-  shouldConnectRenderMCP(): boolean {
-    // 프로덕션 환경에서만 Render MCP 서버 연결
+  shouldConnectGoogleVMMCP(): boolean {
+    // 프로덕션 환경에서만 Google VM MCP 서버 연결
     return this.isProduction && this._config.enableMCPServers;
   }
 

@@ -69,14 +69,14 @@ class EnvSecurityManager {
         encrypt: true,
       },
 
-      // 📡 Render MCP 서버 (메모리 저장소 확인됨)
+      // 📡 Google VM MCP 서버 (메모리 저장소 확인됨)
       GCP_MCP_SERVER_URL: {
         required: true,
         public: false,
         value: 'http://104.154.205.25:10000',
         encrypt: true,
       },
-      RENDER_MCP_SERVER_IPS: {
+      GCP_MCP_SERVER_IPS: {
         required: true,
         public: false,
         value: '13.228.225.19,18.142.128.26,54.254.162.138',
@@ -382,12 +382,12 @@ export const DEPLOYMENT_CONFIG = {
   }
 
   /**
-   * 🌐 Render MCP 서버 설정
+   * 🌐 Google VM MCP 서버 설정
    */
-  setupRenderMCP() {
-    console.log('🌐 Render MCP 서버 설정 중...');
+  setupGoogleVMMCP() {
+    console.log('🌐 Google VM MCP 서버 설정 중...');
 
-    const renderConfig = {
+    const gcpConfig = {
       server_url: 'http://104.154.205.25:10000',
       server_ips: ['13.228.225.19', '18.142.128.26', '54.254.162.138'],
       region: 'singapore',
@@ -396,13 +396,13 @@ export const DEPLOYMENT_CONFIG = {
       healthcheck_interval: 60000,
     };
 
-    console.log('📊 Render MCP 서버 정보:');
-    console.log(`   URL: ${renderConfig.server_url}`);
-    console.log(`   IPs: ${renderConfig.server_ips.join(', ')}`);
-    console.log(`   지역: ${renderConfig.region}`);
-    console.log(`   타임아웃: ${renderConfig.connection_timeout}ms`);
+    console.log('📊 Google VM MCP 서버 정보:');
+    console.log(`   URL: ${gcpConfig.server_url}`);
+    console.log(`   IPs: ${gcpConfig.server_ips.join(', ')}`);
+    console.log(`   지역: ${gcpConfig.region}`);
+    console.log(`   타임아웃: ${gcpConfig.connection_timeout}ms`);
 
-    return renderConfig;
+    return gcpConfig;
   }
 
   /**
@@ -756,7 +756,7 @@ async function main() {
       break;
 
     case 'setup-render-mcp':
-      const renderConfig = manager.setupRenderMCP();
+      const renderConfig = manager.setupGoogleVMMCP();
       console.log('\n✅ Render MCP 설정 완료');
       break;
 

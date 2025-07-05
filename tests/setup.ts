@@ -7,13 +7,13 @@ import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from 'vitest';
 
-// React 19 호환성 설정
-import { setupReactTestCompat } from '../src/lib/react-compat';
+// React 18 호환성 설정은 직접 구현
+if (typeof window !== 'undefined') {
+  // @ts-ignore
+  window.React = require('react');
+}
 
-// React 호환성 설정 초기화
-setupReactTestCompat();
-
-// 환경변수 설정 (테스트용)
+// 환경변수 설정
 if (!process.env.NODE_ENV) {
   Object.defineProperty(process.env, 'NODE_ENV', {
     value: 'test',

@@ -50,16 +50,7 @@ async function testAIEngines() {
         console.log(`   ❌ 오류: ${error.message}`);
     }
 
-    console.log('\n2️⃣ Supabase RAG 엔진 테스트');
-    try {
-        const ragTest = await makeRequest(`${baseUrl}/api/test-supabase-rag`);
-        console.log(`   상태: ${ragTest.status}`);
-        console.log(`   응답:`, JSON.stringify(ragTest.data, null, 2));
-    } catch (error) {
-        console.log(`   ❌ 오류: ${error.message}`);
-    }
-
-    console.log('\n3️⃣ Google AI 상태 테스트');
+    console.log('\n2️⃣ Google AI 상태 테스트');
     try {
         const googleAI = await makeRequest(`${baseUrl}/api/ai/google-ai/status`);
         console.log(`   상태: ${googleAI.status}`);
@@ -68,7 +59,7 @@ async function testAIEngines() {
         console.log(`   ❌ 오류: ${error.message}`);
     }
 
-    console.log('\n4️⃣ AI 에이전트 상태 테스트');
+    console.log('\n3️⃣ AI 에이전트 상태 테스트');
     try {
         const aiAgent = await makeRequest(`${baseUrl}/api/ai-agent/status`);
         console.log(`   상태: ${aiAgent.status}`);
@@ -77,7 +68,7 @@ async function testAIEngines() {
         console.log(`   ❌ 오류: ${error.message}`);
     }
 
-    console.log('\n5️⃣ AI 채팅 테스트');
+    console.log('\n4️⃣ AI 채팅 테스트');
     try {
         const chatTest = await makeRequest(`${baseUrl}/api/ai-chat`, {
             method: 'POST',

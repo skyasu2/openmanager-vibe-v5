@@ -110,7 +110,7 @@ export const DEPLOYMENT_CONFIG = {
     region: 'Seoul-DC-1',
     project: 'vnswjnltnhpsueosfhmw',
   },
-  renderMCP: {
+  googleVMMCP: {
     enabled: true,
     region: 'Seoul',
     loadBalanced: true,

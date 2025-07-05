@@ -206,7 +206,7 @@ async function checkGoogleAI(): Promise<ServiceStatus> {
   }
 }
 
-async function checkRenderMCP(): Promise<ServiceStatus> {
+async function checkGoogleVMMCP(): Promise<ServiceStatus> {
   const startTime = Date.now();
   try {
     const mcpUrl = devKeyManager.getMCPUrl() || 'http://104.154.205.25:10000';
@@ -222,7 +222,7 @@ async function checkRenderMCP(): Promise<ServiceStatus> {
 
     if (!response.ok) {
       return {
-        name: 'Render MCP Server',
+        name: 'Google VM MCP Server',
         status: 'error',
         responseTime,
         details: { httpStatus: response.status },
@@ -233,7 +233,7 @@ async function checkRenderMCP(): Promise<ServiceStatus> {
     const data = await response.json();
 
     return {
-      name: 'Render MCP Server',
+      name: 'Google VM MCP Server',
       status: 'connected',
       responseTime,
       details: {
@@ -245,7 +245,7 @@ async function checkRenderMCP(): Promise<ServiceStatus> {
     };
   } catch (error: any) {
     return {
-      name: 'Render MCP Server',
+      name: 'Google VM MCP Server',
       status: 'error',
       responseTime: Date.now() - startTime,
       details: null,
@@ -314,7 +314,7 @@ export async function GET(request: NextRequest) {
       checkSupabase(),
       checkRedis(),
       checkGoogleAI(),
-      checkRenderMCP(),
+      checkGoogleVMMCP(),
       checkVercel(),
     ]);
 

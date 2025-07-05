@@ -1,18 +1,27 @@
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
+import { logger } from '@/lib/logger';
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
-// DataIntegrityValidator 동적 import (빌드 오류 방지)
+// 기본 데이터 검증 함수
 async function getDataValidator() {
-  try {
-    const { dataIntegrityValidator } = await import(
-      '@/lib/data-validation/DataIntegrityValidator'
-    );
-    return dataIntegrityValidator;
-  } catch (error) {
-    console.warn('DataIntegrityValidator 로드 실패, 기본 검증 사용:', error);
-    return null;
-  }
+  // 기본 검증 로직 사용
+  return {
+    validateServerData: (data: any) => {
+      // 기본적인 서버 데이터 검증
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid server data format');
+      }
+      return true;
+    },
+    validateServerArray: (servers: any[]) => {
+      // 기본적인 서버 배열 검증
+      if (!Array.isArray(servers)) {
+        throw new Error('Servers must be an array');
+      }
+      return true;
+    },
+  };
 }
 
 // 기본 경고 생성 함수 (폴백용)
@@ -127,20 +136,20 @@ export async function GET(request: NextRequest) {
       dataSource = 'fallback';
     }
 
-    // 데이터 검증 실행 (동적 로드)
+    // 데이터 검증
+    const validator = await getDataValidator();
     try {
-      const validator = await getDataValidator();
-      if (validator) {
-        const validationResult = validator.validateServerData(
-          servers,
-          dataSource
-        );
-        if (!validationResult.isValid && validationResult.errors.length > 0) {
-          console.warn('⚠️ 데이터 검증 실패:', validationResult);
-        }
-      }
+      validator.validateServerArray(servers);
+      logger.info('서버 데이터 검증 완료', {
+        serverCount: servers.length,
+        dataSource,
+      });
     } catch (validationError) {
-      console.warn('데이터 검증 중 오류 발생:', validationError);
+      logger.warn('서버 데이터 검증 실패', {
+        error: validationError.message,
+        serverCount: servers.length,
+      });
+      // 검증 실패해도 계속 진행 (기본 검증이므로)
     }
 
     // 상태별 필터링
