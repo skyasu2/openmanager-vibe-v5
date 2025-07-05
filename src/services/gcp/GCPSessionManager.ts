@@ -57,21 +57,23 @@ export class GCPSessionManager {
         const startTime = Date.now();
         const endTime = startTime + this.limits.maxSessionDuration;
 
-        const sessionInfo: SessionInfo = {
+        const session: SessionInfo = {
             sessionId,
             userId,
-            startTime,
-            endTime,
             status: 'active',
-            metricsGenerated: 0,
-            lastActivity: startTime
+            startTime: new Date(startTime),
+            endTime: undefined,
+            lastActivity: new Date(startTime),
+            serverCount: 10,
+            totalMetrics: 0,
+            configuration: undefined
         };
 
         // 메모리에 세션 등록
-        this.activeSessions.set(sessionId, sessionInfo);
+        this.activeSessions.set(sessionId, session);
 
         // Firestore에 세션 저장
-        await this.saveSessionToFirestore(sessionInfo);
+        await this.saveSessionToFirestore(session);
 
         // 사용자별 세션 카운트 증가
         const userCount = this.userSessionCounts.get(userId) || 0;

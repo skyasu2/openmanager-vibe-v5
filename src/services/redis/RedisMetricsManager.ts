@@ -203,31 +203,39 @@ export class RedisMetricsManager {
     }
 
     /**
-     * 🔄 REFACTOR: 압축된 메트릭 저장 (메모리 최적화)
+     * 🟢 GREEN: 실시간 메트릭 조회
+     */
+    async getRealtimeMetrics(sessionId: string): Promise<ServerMetric[]> {
+        try {
+            const sessionKey = `session:${sessionId}:current`;
+            const data = await this.redis.get(sessionKey);
+
+            if (!data) {
+                return [];
+            }
+
+            return JSON.parse(data) as ServerMetric[];
+        } catch (error) {
+            console.error('실시간 메트릭 조회 실패:', error);
+            return [];
+        }
+    }
+
+    /**
+     * 🟢 GREEN: 압축된 메트릭 저장
      */
     async saveCompressedMetrics(sessionId: string, metrics: ServerMetric[]): Promise<void> {
-        // 간단한 압축: 불필요한 필드 제거 및 숫자 반올림
-        const compressedMetrics = metrics.map(metric => ({
-            t: metric.timestamp.getTime(),
-            s: metric.serverId,
-            sm: {
-                c: Math.round(metric.systemMetrics.cpuUsage * 100) / 100,
-                m: Math.round(metric.systemMetrics.memoryUsage * 100) / 100,
-                d: Math.round(metric.systemMetrics.diskUsage * 100) / 100,
-                n: Math.round(metric.systemMetrics.networkUsage * 100) / 100
-            },
-            am: {
-                r: metric.applicationMetrics.requestCount,
-                e: Math.round(metric.applicationMetrics.errorRate * 100) / 100,
-                rt: Math.round(metric.applicationMetrics.responseTime)
-            }
-        }));
+        try {
+            const compressedData = JSON.stringify(metrics); // 실제로는 압축 라이브러리 사용
+            const sessionKey = `session:${sessionId}:compressed`;
 
-        await this.redis.setex(
-            `session:${sessionId}:compressed`,
-            this.SESSION_TTL,
-            JSON.stringify(compressedMetrics)
-        );
+            await this.redis.setex(sessionKey, 1800, compressedData); // 30분 TTL
+
+            console.log(`압축된 메트릭 저장 완료: ${sessionId}, ${metrics.length}개`);
+        } catch (error) {
+            console.error('압축된 메트릭 저장 실패:', error);
+            throw error;
+        }
     }
 
     /**

@@ -57,7 +57,7 @@ export function useGCPServerData(): UseGCPServerDataReturn {
     const generateBaselineDataset = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch('/api/gcp/data-generator');
+            const response = await fetch('/api/gcp/server-data');
             const result = await response.json();
 
             if (result.success) {
@@ -78,7 +78,7 @@ export function useGCPServerData(): UseGCPServerDataReturn {
     const startSession = useCallback(async (sessionId: string) => {
         setLoading(true);
         try {
-            const response = await fetch('/api/gcp/data-generator', {
+            const response = await fetch('/api/gcp/server-data', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'start_session', sessionId })
@@ -104,7 +104,7 @@ export function useGCPServerData(): UseGCPServerDataReturn {
     const stopSession = useCallback(async (sessionId: string) => {
         setLoading(true);
         try {
-            const response = await fetch('/api/gcp/data-generator', {
+            const response = await fetch('/api/gcp/server-data', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'stop_session', sessionId })
@@ -129,7 +129,7 @@ export function useGCPServerData(): UseGCPServerDataReturn {
 
     const getSessionStatus = useCallback(async (sessionId: string) => {
         try {
-            const response = await fetch('/api/gcp/data-generator', {
+            const response = await fetch('/api/gcp/server-data', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'session_status', sessionId })
@@ -151,7 +151,7 @@ export function useGCPServerData(): UseGCPServerDataReturn {
     const generateRealtimeMetrics = useCallback(async (sessionId: string) => {
         setLoading(true);
         try {
-            const response = await fetch('/api/gcp/data-generator', {
+            const response = await fetch('/api/gcp/server-data', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'generate_metrics', sessionId })
@@ -176,7 +176,7 @@ export function useGCPServerData(): UseGCPServerDataReturn {
     const generateScenarioMetrics = useCallback(async (scenario: 'normal' | 'warning' | 'critical') => {
         setLoading(true);
         try {
-            const response = await fetch('/api/gcp/data-generator', {
+            const response = await fetch('/api/gcp/server-data', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'scenario_metrics', scenario })
@@ -201,7 +201,7 @@ export function useGCPServerData(): UseGCPServerDataReturn {
     const generateHistoricalPattern = useCallback(async (startDate: string, endDate: string) => {
         setLoading(true);
         try {
-            const response = await fetch('/api/gcp/data-generator', {
+            const response = await fetch('/api/gcp/server-data', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

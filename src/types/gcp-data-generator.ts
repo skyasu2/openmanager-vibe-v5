@@ -174,6 +174,7 @@ export interface SessionInfo {
     lastActivity: Date;
     serverCount: number;
     totalMetrics: number;
+    metricsGenerated: number;
     configuration?: any; // 임시로 any 타입 사용
 }
 

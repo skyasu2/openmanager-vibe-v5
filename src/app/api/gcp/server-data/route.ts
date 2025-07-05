@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
         }
 
         // GCP Firestore 연결 및 데이터 조회
-        const gcpResponse = await fetchGCPMetrics(sessionId, limit, serverId);
+        const gcpResponse = await fetchGCPMetrics(sessionId, limit, serverId || undefined);
 
         if (!gcpResponse.success) {
             return NextResponse.json(gcpResponse, {

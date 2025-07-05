@@ -55,7 +55,7 @@ export class GCPAIDataAdapter {
             console.log('🤖 GCP → AI 데이터 변환 시작...');
 
             // 1. GCP 데이터 조회
-            const gcpData = await this.fetchGCPData(targetSessionId);
+            const gcpData = await this.fetchGCPData(targetSessionId || undefined);
 
             if (!gcpData.success) {
                 console.warn('⚠️ GCP 데이터 조회 실패, 로컬 데이터로 폴백');
@@ -198,26 +198,33 @@ export class GCPAIDataAdapter {
                 const server: ServerMetadata = {
                     id: metric.serverId,
                     name: this.getServerName(metric.serverId),
-                    type: this.getServerType(metric.serverId),
-                    environment: 'production',
+                    serverType: this.getServerType(metric.serverId),
                     location: {
-                        region: 'us-central1',
-                        zone: 'us-central1-a',
-                        datacenter: 'GCP',
-                        cloud: 'GCP' as const
+                        region: 'local',
+                        zone: 'local-a',
+                        datacenter: 'Local',
+                        cloud: 'On-Premise'
                     },
-                    status: this.calculateServerStatus(metric),
+                    os: {
+                        type: 'Linux',
+                        distribution: 'Ubuntu',
+                        version: '22.04',
+                        architecture: 'x64'
+                    },
+                    usageProfile: {
+                        type: 'Web',
+                        tier: 'Production',
+                        criticality: 'High',
+                        scalingType: 'Auto'
+                    },
+                    resources: this.estimateServerResources(metric),
                     tags: {
-                        environment: 'production',
-                        service: metric.serverId.split('-')[0] || 'unknown',
-                        version: '1.0.0'
+                        environment: 'development',
+                        type: 'fallback'
                     },
-                    specifications: {
-                        cpu: this.estimateCpuSpecs(metric),
-                        memory: this.estimateMemorySpecs(metric),
-                        disk: this.estimateDiskSpecs(metric),
-                        network: this.estimateNetworkSpecs(metric)
-                    }
+                    created: new Date(Date.now() - Math.random() * 86400000),
+                    lastUpdate: metric.timestamp,
+                    processes: []
                 };
                 serverMap.set(metric.serverId, server);
             }
@@ -447,12 +454,14 @@ export class GCPAIDataAdapter {
         });
 
         // AI 컨텍스트 정보 추가
-        dataset.metadata.aiContext = {
-            dataSource: 'GCP-realtime',
-            optimizedFor: 'anomaly-detection',
-            confidence: this.calculateConfidence(dataset),
-            recommendations: this.generateAIRecommendations(dataset)
-        };
+        if (this.options.aiOptimization) {
+            (dataset.metadata as any).aiContext = {
+                optimization: true,
+                modelVersion: '2.0',
+                features: ['anomaly_detection', 'pattern_analysis'],
+                confidence: this.calculateConfidence(dataset)
+            };
+        }
     }
 
     /**
@@ -497,13 +506,14 @@ export class GCPAIDataAdapter {
             criticalAlerts: [
                 criticalServers > 0 ? `${criticalServers}개 서버 임계 상태` : null,
                 errorRate > 0.1 ? '높은 에러율 감지' : null,
-                dataset.patterns.anomalies.length > 5 ? '다수 이상 패턴 감지' : null
+                dataset.patterns?.anomalies && dataset.patterns.anomalies.length > 5 ? '다수 이상 패턴 감지' : null ||
+                    '정상 운영 상태'
             ].filter(Boolean),
 
             patterns: [
-                `${dataset.patterns.anomalies.length}개 이상 패턴 감지`,
-                `${dataset.patterns.correlations.length}개 상관관계 발견`,
-                `${dataset.patterns.trends.length}개 트렌드 분석`
+                `${dataset.patterns?.anomalies?.length || 0}개 이상 패턴 감지`,
+                `${dataset.patterns?.correlations?.length || 0}개 상관관계 발견`,
+                `${dataset.patterns?.trends?.length || 0}개 트렌드 분석`
             ]
         };
     }
@@ -529,17 +539,62 @@ export class GCPAIDataAdapter {
                 {
                     id: 'fallback-web-01',
                     name: 'Fallback Web Server',
-                    type: 'nginx',
-                    environment: 'production',
-                    location: 'Local',
-                    status: 'healthy',
-                    tags: ['web', 'fallback'],
-                    specifications: {
-                        cpu: { cores: 4, model: 'Virtual CPU' },
-                        memory: { total: 8589934592, type: 'Virtual' },
-                        disk: { total: 107374182400, type: 'Virtual' },
-                        network: { bandwidth: 1000, type: 'Virtual' }
-                    }
+                    serverType: 'nginx',
+                    location: {
+                        region: 'local',
+                        zone: 'local-a',
+                        datacenter: 'Local',
+                        cloud: 'On-Premise'
+                    },
+                    os: {
+                        type: 'Linux',
+                        distribution: 'Ubuntu',
+                        version: '22.04',
+                        architecture: 'x64'
+                    },
+                    usageProfile: {
+                        type: 'Web',
+                        tier: 'Production',
+                        criticality: 'High',
+                        scalingType: 'Auto'
+                    },
+                    resources: this.estimateServerResources({
+                        system: {
+                            cpu: {
+                                usage: 80,
+                                load1: 0.5
+                            },
+                            memory: {
+                                used: 4294967296,
+                                available: 4294967296
+                            },
+                            disk: {
+                                utilization: 0.5
+                            }
+                        },
+                        application: {
+                            requests: {
+                                errors: 0,
+                                total: 100,
+                                success: 100
+                            },
+                            database: {
+                                queries: {
+                                    total: 0,
+                                    slow: 0,
+                                    deadlocks: 0
+                                },
+                                connections: 0
+                            }
+                        }
+                    }),
+                    tags: {
+                        environment: 'development',
+                        type: 'fallback'
+                    },
+                    created: new Date(Date.now() - Math.random() * 86400000),
+                    lastUpdate: new Date(),
+                    processes: []
                 }
             ],
             metrics: [],
@@ -664,14 +719,17 @@ export class GCPAIDataAdapter {
         return nameMap[serverId] || serverId;
     }
 
-    private getServerType(serverId: string): string {
-        if (serverId.includes('web')) return 'nginx';
-        if (serverId.includes('app')) return 'nodejs';
-        if (serverId.includes('db')) return 'postgresql';
-        if (serverId.includes('cache')) return 'redis';
-        if (serverId.includes('search')) return 'elasticsearch';
-        if (serverId.includes('queue')) return 'rabbitmq';
-        return 'unknown';
+    private getServerType(serverId: string): 'Host' | 'Cloud' | 'Container' | 'VM' | 'Edge' {
+        if (serverId.includes('web') || serverId.includes('app')) {
+            return 'Container';
+        } else if (serverId.includes('db') || serverId.includes('cache')) {
+            return 'VM';
+        } else if (serverId.includes('edge')) {
+            return 'Edge';
+        } else if (serverId.includes('cloud')) {
+            return 'Cloud';
+        }
+        return 'Host';
     }
 
     private calculateServerStatus(metric: TimeSeriesMetrics): string {
@@ -692,6 +750,15 @@ export class GCPAIDataAdapter {
         if (serverId.includes('cache')) tags.push('cache');
 
         return tags;
+    }
+
+    private estimateServerResources(metric: TimeSeriesMetrics): any {
+        return {
+            cpu: this.estimateCpuSpecs(metric),
+            memory: this.estimateMemorySpecs(metric),
+            disk: this.estimateDiskSpecs(metric),
+            network: this.estimateNetworkSpecs(metric)
+        };
     }
 
     private estimateCpuSpecs(metric: TimeSeriesMetrics): any {
