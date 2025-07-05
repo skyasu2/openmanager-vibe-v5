@@ -2,18 +2,14 @@ import { ClientProviders } from '@/components/providers/ClientProviders';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-// 🛡️ 빌드 시 타이머 차단 시스템 (즉시 로드)
+// 🛡️ Emergency Banner 시스템
 import { EmergencyBanner } from '@/components/emergency/EmergencyBanner';
 import { SystemBootstrap } from '@/components/system/SystemBootstrap';
-import '@/lib/build-safety/TimerBlocker';
 
 // Keep-alive 스케줄러 초기화
 import '@/lib/keep-alive-scheduler';
-// 성능 모니터링 초기화
-import '@/utils/performance';
-// 과도한 갱신 방지 시스템 초기화
+// 인코딩 자동 설정
 import { detectAndFixTerminalEncoding } from '@/utils/encoding-fix';
-import '@/utils/update-prevention-init';
 
 // 시스템 시작 시 한글 인코딩 자동 설정
 if (typeof window === 'undefined') {
