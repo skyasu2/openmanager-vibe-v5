@@ -4,7 +4,7 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useCallback, useState } from 'react';
 import { safeErrorLog, safeErrorMessage } from '../lib/error-handler';
 import { systemLogger } from '../lib/logger';
-import { useGlobalSystemStore, useSystemStore } from '../stores/systemStore';
+import { useGlobalSystemStore } from '../stores/systemStore';
 
 interface SystemStatus {
   isRunning: boolean;
@@ -48,7 +48,6 @@ export function useSystemControl(): UseSystemControlReturn {
     getSystemRemainingTime,
   } = useUnifiedAdminStore();
 
-  const store = useSystemStore();
   const globalStore = useGlobalSystemStore();
 
   // 기본값으로 안전하게 처리
@@ -280,11 +279,11 @@ export function useSystemControl(): UseSystemControlReturn {
         if (systemResponse.ok) {
           systemLogger.system(`✅ 시뮬레이션 엔진 시작: ${systemData.message}`);
 
-          // ❌ fallback 처리 제거 - 명시적 에러 상태로 변경
+          // ❌ fallback 처리 완전 제거 - 시스템 데이터에 fallback이 있으면 에러로 처리
           if (systemData.fallback) {
             isErrorState = true;
-            errors.push('🚨 시스템이 에러 상태로 시작됨 - 일부 기능 사용 불가');
-            warnings.push('⚠️ 실제 데이터 연결 실패로 인한 제한 모드');
+            errors.push('🚨 시스템이 에러 상태로 시작됨 - 실제 데이터 연결 실패');
+            warnings.push('⚠️ 시스템이 제한된 기능으로만 동작합니다');
           }
 
           if (systemData.warnings && systemData.warnings.length > 0) {

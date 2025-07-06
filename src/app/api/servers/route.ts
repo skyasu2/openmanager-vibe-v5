@@ -98,7 +98,9 @@ export async function GET(request: NextRequest) {
       console.log('🌐 Vercel 환경: GCP 실제 서버 데이터 요청');
 
       try {
+        // ✅ GCP 실제 데이터 사용 시도
         const gcpService = GCPRealDataService.getInstance();
+        await gcpService.initialize();
         const gcpResponse = await gcpService.getRealServerMetrics();
 
         // GCP 데이터 조회 성공

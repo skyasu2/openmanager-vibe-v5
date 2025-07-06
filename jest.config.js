@@ -21,7 +21,7 @@ const config = {
     ],
     '^.+\\.(js|jsx)$': ['babel-jest'],
   },
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^~/(.*)$': '<rootDir>/$1',
   },

@@ -8,7 +8,7 @@
  */
 
 import { detectEnvironment } from '@/config/environment';
-import { STATIC_ERROR_SERVERS, ERROR_STATE_METADATA } from '@/config/fallback-data';
+import { ERROR_STATE_METADATA, STATIC_ERROR_SERVERS } from '@/config/fallback-data';
 
 export interface GCPServerMetrics {
     id: string;
@@ -256,5 +256,4 @@ export class GCPRealDataService {
         this.cache.clear();
         console.log('🧹 GCP 데이터 캐시 정리 완료');
     }
-} 
 } 

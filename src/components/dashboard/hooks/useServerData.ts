@@ -21,14 +21,14 @@
  * 📅 생성일: 2025.06.14 (ServerDashboard 1522줄 분리 작업)
  */
 
-import { UNIFIED_FALLBACK_SERVERS } from '@/config/fallback-data';
+import { STATIC_ERROR_SERVERS } from '@/config/fallback-data';
 import { useRealtimeServers } from '@/hooks/api/useRealtimeServers';
 import type { Server } from '@/types/server';
 import { useCallback, useEffect, useState } from 'react';
 import { DashboardStats, ServerFilters } from '../types/dashboard.types';
 
 // 🎯 통합된 폴백 서버 데이터 사용 (하드코딩 제거)
-const fallbackServers: Server[] = UNIFIED_FALLBACK_SERVERS;
+const fallbackServers: Server[] = STATIC_ERROR_SERVERS;
 
 // 🔄 기존 useServerDashboard와의 호환성을 위한 인터페이스 확장
 export interface UseServerDataReturn {

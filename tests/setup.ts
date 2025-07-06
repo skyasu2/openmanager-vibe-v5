@@ -1,11 +1,10 @@
 /**
- * 🧪 Vitest Test Setup Configuration
+ * 🧪 Jest Test Setup Configuration
  * OpenManager Vibe v5 - 기본 테스트 환경 설정
  */
 
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
-import { afterAll, afterEach, beforeAll, beforeEach, vi } from 'vitest';
 
 // React 18 호환성 설정은 직접 구현
 if (typeof window !== 'undefined') {
@@ -34,7 +33,7 @@ process.env.UPSTASH_REDIS_REST_URL = 'https://test-redis.upstash.io';
 process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token';
 process.env.NEXT_PUBLIC_APP_NAME = 'OpenManager Vibe v5';
 process.env.NEXT_PUBLIC_APP_VERSION = '5.44.0';
-process.env.VITEST = 'true';
+process.env.JEST = 'true';
 process.env.FORCE_MOCK_REDIS = 'true';
 process.env.FORCE_MOCK_GOOGLE_AI = 'true';
 process.env.TEST_ISOLATION = 'true';
@@ -65,14 +64,12 @@ beforeAll(async () => {
 
 // 각 테스트 전 설정
 beforeEach(() => {
-  // Mock 타이머 설정
-  vi.useFakeTimers({
-    shouldAdvanceTime: true,
-  });
+  // Jest 타이머 설정
+  jest.useFakeTimers();
 
   // 고정된 시간 설정 (테스트 일관성)
   const mockDate = new Date('2024-06-19T12:26:40.000Z');
-  vi.setSystemTime(mockDate);
+  jest.setSystemTime(mockDate);
 });
 
 // 각 테스트 후 정리
@@ -80,12 +77,12 @@ afterEach(() => {
   // React Testing Library 정리
   cleanup();
 
-  // Mock 타이머 정리
-  vi.useRealTimers();
+  // Jest 타이머 정리
+  jest.useRealTimers();
 
   // 모든 모의 함수 정리
-  vi.clearAllMocks();
-  vi.clearAllTimers();
+  jest.clearAllMocks();
+  jest.clearAllTimers();
 });
 
 // 전체 테스트 종료 후 정리
@@ -97,45 +94,45 @@ afterAll(async () => {
 });
 
 // 글로벌 fetch mock 설정
-global.fetch = vi.fn();
+global.fetch = jest.fn();
 
 // ResizeObserver mock
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
 }));
 
 // IntersectionObserver mock
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
+global.IntersectionObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
 }));
 
 // matchMedia mock
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation(query => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
   })),
 });
 
 // localStorage mock
 const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
   length: 0,
-  key: vi.fn(),
+  key: jest.fn(),
 };
 
 Object.defineProperty(window, 'localStorage', {
@@ -152,8 +149,8 @@ Object.defineProperty(window, 'sessionStorage', {
 });
 
 // URL.createObjectURL mock
-global.URL.createObjectURL = vi.fn(() => 'mock-object-url');
-global.URL.revokeObjectURL = vi.fn();
+global.URL.createObjectURL = jest.fn(() => 'mock-object-url');
+global.URL.revokeObjectURL = jest.fn();
 
 // 에러 핸들링 개선 (Edge Runtime 호환성)
 if (typeof process !== 'undefined' && process.on) {
@@ -163,5 +160,5 @@ if (typeof process !== 'undefined' && process.on) {
 }
 
 // 테스트 환경 확인
-console.log('🧪 Test environment initialized');
+console.log('🧪 Jest test environment initialized');
 console.log('🌍 Node environment:', process.env.NODE_ENV);

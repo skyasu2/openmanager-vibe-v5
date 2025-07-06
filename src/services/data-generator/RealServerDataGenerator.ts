@@ -155,7 +155,7 @@ export class GCPRealServerDataGenerator {
     }
 
     /**
-     * 🔧 GCP에서 실제 서버 데이터 조회
+     * �� GCP에서 실제 서버 데이터 조회 (개선된 버전)
      */
     async generateServers(): Promise<ServerInstance[]> {
         const env = detectEnvironment();
@@ -163,31 +163,153 @@ export class GCPRealServerDataGenerator {
         try {
             // 🌐 Vercel 환경: GCP 실제 데이터 시도
             if (env.IS_VERCEL) {
-                console.log('🌐 GCP 실제 서버 데이터 요청 시도...');
+                console.log('🌐 Vercel 환경: GCP 실제 서버 데이터 요청 시도...');
 
-                const response = await this.fetchFromGCP(this.config.limit);
+                try {
+                    const response = await this.fetchFromGCP(this.config.limit);
 
-                if (response && response.ok) {
-                    const realData = await response.json();
-                    console.log('✅ GCP 실제 데이터 수신 성공');
-                    return realData.servers || [];
-                } else {
-                    // ❌ GCP 실패 시 명시적 에러 반환 (fallback 없음)
-                    console.error('❌ GCP 실제 데이터 수신 실패');
-                    throw new Error('GCP_CONNECTION_FAILED');
+                    if (response && response.ok) {
+                        const realData = await response.json();
+                        console.log('✅ GCP 실제 데이터 수신 성공');
+                        return realData.servers || [];
+                    } else {
+                        // ❌ GCP API 응답 실패
+                        console.error('❌ GCP API 응답 실패:', response?.status);
+                        throw new Error(`GCP_API_ERROR_${response?.status || 'UNKNOWN'}`);
+                    }
+                } catch (networkError) {
+                    // ❌ GCP 네트워크 연결 실패
+                    console.error('❌ GCP 네트워크 연결 실패:', networkError);
+                    throw new Error('GCP_NETWORK_CONNECTION_FAILED');
                 }
             }
 
             // 🏠 로컬 환경: 목업 데이터 생성
-            console.log('🏠 로컬 환경: 목업 서버 데이터 생성');
-            return this.generateMockServers(this.config.limit);
+            if (env.IS_LOCAL) {
+                console.log('🏠 로컬 환경: 목업 서버 데이터 생성');
+                return this.generateMockServers(this.config.limit);
+            }
+
+            // ⚠️ 알 수 없는 환경
+            console.warn('⚠️ 알 수 없는 환경에서 실행됨');
+            throw new Error('UNKNOWN_ENVIRONMENT');
 
         } catch (error) {
             console.error('🚨 서버 데이터 생성 실패:', error);
 
-            // ❌ 모든 실패는 명시적 에러 상태로 반환 (Silent fallback 금지)
-            throw new Error(`서버 데이터 생성 실패: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            // ❌ 모든 실패는 명시적 에러 상태로 반환 (Silent fallback 완전 금지)
+            const errorMessage = error instanceof Error ? error.message : 'UNKNOWN_ERROR';
+            throw new Error(`서버 데이터 생성 실패: ${errorMessage}`);
         }
+    }
+
+    /**
+     * 🎭 로컬 환경용 목업 서버 데이터 생성
+     * ⚠️ 로컬 개발환경에서만 사용
+     */
+    private generateMockServers(limit: number = 20): ServerInstance[] {
+        const env = detectEnvironment();
+
+        if (env.IS_VERCEL) {
+            // Vercel 환경에서는 에러 상태 서버만 반환
+            return STATIC_ERROR_SERVERS.map(server => ({
+                id: server.id,
+                name: server.name,
+                type: 'error' as any,
+                role: 'error' as ServerRole,
+                location: 'ERROR_LOCATION',
+                status: 'offline' as ServerStatus,
+                environment: 'error' as ServerEnvironment,
+                specs: {
+                    cpu: { cores: 0, model: 'ERROR', architecture: 'ERROR' },
+                    memory: { total: 0, type: 'ERROR', speed: 0 },
+                    disk: { total: 0, type: 'ERROR', iops: 0 },
+                    network: { bandwidth: 0, latency: 999 }
+                },
+                metrics: {
+                    cpu: 0, memory: 0, disk: 0,
+                    network: { in: 0, out: 0 },
+                    requests: 0, errors: 999, uptime: 0,
+                    customMetrics: {}
+                },
+                health: {
+                    score: 0,
+                    issues: ['ERROR: 실제 데이터 연결 실패'],
+                    lastCheck: new Date().toISOString()
+                }
+            }));
+        }
+
+        // 로컬 환경용 목업 데이터 생성
+        console.log(`🎭 로컬 목업 서버 ${limit}개 생성 중...`);
+
+        const mockServers: ServerInstance[] = [];
+        const locations = ['Seoul', 'Tokyo', 'Singapore', 'Frankfurt', 'Oregon'];
+        const serverTypes = ['nginx', 'nodejs', 'mysql', 'redis', 'docker'];
+        const environments: ServerEnvironment[] = ['production', 'staging', 'development'];
+        const statuses: ServerStatus[] = ['running', 'stopped', 'warning'];
+
+        for (let i = 1; i <= limit; i++) {
+            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+            const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+            const randomType = serverTypes[Math.floor(Math.random() * serverTypes.length)];
+            const randomEnv = environments[Math.floor(Math.random() * environments.length)];
+
+            mockServers.push({
+                id: `mock-server-${i.toString().padStart(3, '0')}`,
+                name: `목업서버-${i}`,
+                type: randomType as any,
+                role: i <= 3 ? 'primary' : 'secondary',
+                location: randomLocation,
+                status: randomStatus,
+                environment: randomEnv,
+                specs: {
+                    cpu: {
+                        cores: Math.floor(Math.random() * 16) + 4,
+                        model: 'Intel Xeon E5-2620',
+                        architecture: 'x86_64'
+                    },
+                    memory: {
+                        total: Math.floor(Math.random() * 64) + 16,
+                        type: 'DDR4',
+                        speed: 2400
+                    },
+                    disk: {
+                        total: Math.floor(Math.random() * 1000) + 500,
+                        type: 'SSD',
+                        iops: 3000
+                    },
+                    network: {
+                        bandwidth: 1000,
+                        latency: Math.floor(Math.random() * 10) + 1
+                    }
+                },
+                metrics: {
+                    cpu: Math.floor(Math.random() * 100),
+                    memory: Math.floor(Math.random() * 100),
+                    disk: Math.floor(Math.random() * 100),
+                    network: {
+                        in: Math.floor(Math.random() * 1000),
+                        out: Math.floor(Math.random() * 800)
+                    },
+                    requests: Math.floor(Math.random() * 5000),
+                    errors: Math.floor(Math.random() * 10),
+                    uptime: Math.floor(Math.random() * 100),
+                    customMetrics: {
+                        connections: Math.floor(Math.random() * 200),
+                        response_time: Math.floor(Math.random() * 300)
+                    }
+                },
+                health: {
+                    score: Math.floor(Math.random() * 100),
+                    issues: randomStatus === 'warning' ? ['높은 CPU 사용률'] : [],
+                    lastCheck: new Date().toISOString()
+                }
+            });
+        }
+
+        console.log(`✅ 로컬 목업 서버 ${mockServers.length}개 생성 완료`);
+        return mockServers;
     }
 
     /**

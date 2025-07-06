@@ -915,67 +915,50 @@ export class UnifiedMetricsManager {
       console.warn('⚠️ 서버 목록 조회 실패, 기본 데이터 생성:', error);
 
       // 실패시 기본 서버 데이터 생성
-      return this.generateFallbackServers();
+      return this.generateErrorStateServers();
     }
   }
 
   /**
-   * 🆘 Fallback 서버 데이터 생성
+   * 🚨 에러 상태 서버 데이터 생성 (fallback 대신)
+   * 실제 데이터 조회 실패 시 명시적 에러 상태 반환
    */
-  private generateFallbackServers(): any[] {
-    console.log('🆘 Fallback 서버 데이터 생성 중...');
+  private generateErrorStateServers(): any[] {
+    console.log('🚨 에러 상태 서버 데이터 생성 중...');
 
-    const fallbackServers = Array.from({ length: 16 }, (_, i) => {
-      const serverTypes = ['web', 'api', 'database', 'cache'];
-      const environments = ['production', 'staging'];
-      const serverType = serverTypes[i % serverTypes.length];
-      const environment = environments[i % environments.length];
-      const serverNum = Math.floor(i / serverTypes.length) + 1;
-
-      const baseId = `${serverType}-${environment.slice(0, 4)}-${String(serverNum).padStart(2, '0')}`;
-      const timestamp = Date.now();
-
+    const errorServers = Array.from({ length: 3 }, (_, i) => {
       return {
-        id: baseId,
-        hostname: baseId,
-        environment,
-        role: serverType,
-        status: i < 12 ? 'healthy' : i < 14 ? 'warning' : 'critical',
-
-        // Prometheus 표준 메트릭
-        node_cpu_usage_percent: 20 + Math.random() * 60,
-        node_memory_usage_percent: 30 + Math.random() * 50,
-        node_disk_usage_percent: 40 + Math.random() * 40,
-        node_network_receive_rate_mbps: 1 + Math.random() * 99,
-        node_network_transmit_rate_mbps: 1 + Math.random() * 99,
-        node_uptime_seconds: 24 * 3600 * (1 + Math.random() * 30),
-        http_request_duration_seconds: (50 + Math.random() * 200) / 1000,
-        http_requests_total: Math.floor(Math.random() * 10000),
-        http_requests_errors_total: Math.floor(Math.random() * 100),
-
-        // ServerDashboard 호환 필드
-        cpu_usage: 20 + Math.random() * 60,
-        memory_usage: 30 + Math.random() * 50,
-        disk_usage: 40 + Math.random() * 40,
-        response_time: 50 + Math.random() * 200,
-        uptime: 24 * (1 + Math.random() * 30),
-        last_updated: new Date(timestamp).toISOString(),
-
-        timestamp,
-        labels: {
-          environment,
-          role: serverType,
-          cluster: 'openmanager-v5',
-          version: '5.12.0',
-          fallback: 'true',
-        },
+        id: `ERROR_SERVER_${i + 1}`,
+        name: `🚨 ERROR_${i + 1}`,
+        hostname: `ERROR: 실제 데이터 연결 실패`,
+        status: 'offline',
+        location: 'ERROR_STATE',
+        type: 'ERROR',
+        environment: 'ERROR',
+        cpu: 0,
+        memory: 0,
+        disk: 0,
+        network: 0,
+        networkStatus: 'offline',
+        uptime: '연결 실패',
+        lastUpdate: new Date(),
+        alerts: 999,
+        services: [
+          { name: 'ERROR', status: 'stopped', port: 0 },
+          { name: '실제_데이터_없음', status: 'stopped', port: 0 },
+        ],
+        isErrorState: true,
+        errorMessage: '실제 서버 데이터를 가져올 수 없습니다',
+        timestamp: new Date().toISOString(),
+        source: 'error-state',
+        error_state: 'true', // fallback 대신 error_state
       };
     });
 
     console.log(
-      `✅ Fallback 서버 데이터 생성 완료: ${fallbackServers.length}개`
+      `🚨 에러 상태 서버 데이터 생성 완료: ${errorServers.length}개`
     );
-    return fallbackServers;
+    return errorServers;
   }
 
   /**

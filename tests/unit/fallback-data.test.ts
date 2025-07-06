@@ -4,8 +4,9 @@ import {
   INFRASTRUCTURE_CONFIG,
   isDevelopmentMode,
   isProductionMode,
+  STATIC_ERROR_SERVERS,
   UNIFIED_FALLBACK_SERVERS,
-  validateEnvironmentVariables,
+  validateEnvironmentVariables
 } from '@/config/fallback-data';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -221,7 +222,7 @@ describe('Fallback Data Configuration', () => {
     });
 
     it('프로덕션에서 폴백 키 사용 시 경고해야 함', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
 
       const mockEnv = {
         NODE_ENV: 'production',
@@ -337,5 +338,146 @@ describe('Fallback Data Configuration', () => {
       expect(serversSize).toBeLessThan(1024 * 1024);
       expect(configSize).toBeLessThan(1024 * 1024);
     });
+  });
+});
+
+describe('STATIC_ERROR_SERVERS', () => {
+  it('should be defined and be an array', () => {
+    expect(STATIC_ERROR_SERVERS).toBeDefined();
+    expect(Array.isArray(STATIC_ERROR_SERVERS)).toBe(true);
+    expect(STATIC_ERROR_SERVERS.length).toBeGreaterThan(0);
+  });
+
+  it('should have at least 1 server', () => {
+    expect(STATIC_ERROR_SERVERS.length).toBeGreaterThan(0);
+
+    STATIC_ERROR_SERVERS.forEach(server => {
+      expect(server).toHaveProperty('id');
+      expect(server).toHaveProperty('name');
+      expect(server).toHaveProperty('status');
+      expect(server).toHaveProperty('cpu');
+      expect(server).toHaveProperty('memory');
+      expect(server).toHaveProperty('disk');
+      expect(server).toHaveProperty('network');
+
+      expect(typeof server.id).toBe('string');
+      expect(typeof server.name).toBe('string');
+      expect(typeof server.status).toBe('string');
+      expect(typeof server.cpu).toBe('number');
+      expect(typeof server.memory).toBe('number');
+      expect(typeof server.disk).toBe('number');
+      expect(typeof server.network).toBe('number');
+
+      expect(server.cpu).toBeGreaterThanOrEqual(0);
+      expect(server.cpu).toBeLessThanOrEqual(100);
+      expect(server.memory).toBeGreaterThanOrEqual(0);
+      expect(server.memory).toBeLessThanOrEqual(100);
+      expect(server.disk).toBeGreaterThanOrEqual(0);
+      expect(server.disk).toBeLessThanOrEqual(100);
+      expect(server.network).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  it('server ID should be unique', () => {
+    const ids = STATIC_ERROR_SERVERS.map(server => server.id);
+    const uniqueIds = new Set(ids);
+    expect(uniqueIds.size).toBe(ids.length);
+  });
+
+  it('server name should be unique', () => {
+    const names = STATIC_ERROR_SERVERS.map(server => server.name);
+    const uniqueNames = new Set(names);
+    expect(uniqueNames.size).toBe(names.length);
+  });
+
+  it('should include various server statuses', () => {
+    const statuses = STATIC_ERROR_SERVERS.map(server => server.status);
+    const uniqueStatuses = new Set(statuses);
+
+    expect(uniqueStatuses.has('healthy')).toBe(true);
+    expect(uniqueStatuses.size).toBeGreaterThan(1); // at least 2 different statuses
+  });
+
+  it('server metrics should be realistic', () => {
+    STATIC_ERROR_SERVERS.forEach(server => {
+      // Critical status server should have high metrics
+      if (server.status === 'critical') {
+        expect(
+          server.cpu > 80 || server.memory > 80 || server.disk > 80
+        ).toBe(true);
+      }
+
+      // Healthy status server should have appropriate metrics
+      if (server.status === 'healthy') {
+        expect(server.cpu).toBeLessThan(80);
+        expect(server.memory).toBeLessThan(80);
+      }
+    });
+  });
+
+  it('data consistency', () => {
+    // server status and metric consistency verification
+    STATIC_ERROR_SERVERS.forEach(server => {
+      if (server.status === 'critical') {
+        const highMetrics = [server.cpu, server.memory, server.disk].filter(
+          metric => metric > 85
+        );
+        expect(highMetrics.length).toBeGreaterThan(0);
+      }
+
+      if (server.status === 'healthy') {
+        const highMetrics = [server.cpu, server.memory, server.disk].filter(
+          metric => metric > 90
+        );
+        expect(highMetrics.length).toBe(0);
+      }
+    });
+  });
+
+  it('infrastructure configuration should be appropriate for environment', () => {
+    // development environment
+    const mockDevEnv = { NODE_ENV: 'development' };
+    vi.stubGlobal('process', { env: mockDevEnv });
+
+    expect(isDevelopmentMode()).toBe(true);
+
+    // production environment
+    const mockProdEnv = { NODE_ENV: 'production' };
+    vi.stubGlobal('process', { env: mockProdEnv });
+
+    expect(isProductionMode()).toBe(true);
+  });
+
+  it('performance', () => {
+    const startTime = Date.now();
+
+    // data access
+    const servers = STATIC_ERROR_SERVERS;
+    const config = INFRASTRUCTURE_CONFIG;
+
+    const loadTime = Date.now() - startTime;
+    expect(loadTime).toBeLessThan(100); // within 100ms
+
+    expect(servers).toBeDefined();
+    expect(config).toBeDefined();
+  });
+
+  it('memory usage', () => {
+    const serversSize = JSON.stringify(STATIC_ERROR_SERVERS).length;
+    const configSize = JSON.stringify(INFRASTRUCTURE_CONFIG).length;
+
+    // within 1MB limit
+    expect(serversSize).toBeLessThan(1024 * 1024);
+    expect(configSize).toBeLessThan(1024 * 1024);
+  });
+});
+
+describe('Static Error Data Configuration', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 });

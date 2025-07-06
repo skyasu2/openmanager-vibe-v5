@@ -1,138 +1,196 @@
 /**
- * 🌍 환경별 설정 관리
+ * 🌍 환경별 설정 관리 (v2.0)
  *
- * Vercel 배포 환경과 로컬 개발 환경을 구분하여
- * Redis, Supabase 연결을 최적화합니다.
+ * 개발/배포 환경을 명확히 구분하고 각 환경에 최적화된 설정을 제공합니다.
+ * Silent fallback을 제거하고 명시적 에러 상태를 구현합니다.
  */
 
 export interface EnvironmentConfig {
+  // 🎯 핵심 환경 정보
   NODE_ENV: 'development' | 'production' | 'test';
   IS_VERCEL: boolean;
+  IS_RENDER: boolean;
   IS_LOCAL: boolean;
   IS_PRODUCTION: boolean;
   IS_DEVELOPMENT: boolean;
+  IS_TEST: boolean;
 
-  // 환경 정보
+  // 🏷️ 환경 메타데이터
   name: string;
   tier: string;
+  platform: 'local' | 'vercel' | 'render' | 'unknown';
+
+  // 📊 성능 제한
   maxServers: number;
   interval: number;
 
-  // Database & Cache
+  // 🗄️ Database & Cache
   database: {
     supabase: {
       url: string;
       key: string;
       enabled: boolean;
+      connectionStatus: 'connected' | 'error' | 'disabled';
     };
     redis: {
       url: string;
       token: string;
       enabled: boolean;
+      connectionStatus: 'connected' | 'error' | 'disabled';
     };
   };
 
-  // Performance Settings
+  // ⚡ Performance Settings
   performance: {
     maxMemory: number;
     maxConcurrency: number;
     timeout: number;
+    enableOptimizations: boolean;
   };
 
-  // Feature Flags
+  // 🎛️ Feature Flags
   features: {
     enableAI: boolean;
     enableRealtime: boolean;
     enableNotifications: boolean;
     enableWebSocket: boolean;
+    enableMockData: boolean;
+    enableDebugLogs: boolean;
   };
 
-  // 업데이트 간격
+  // ⏱️ 업데이트 간격
   updateInterval: number;
   refreshInterval: number;
   pollingInterval: number;
 
-  // 서버 제한
+  // 📈 서버 제한
   maxClusters: number;
   maxApplications: number;
 
-  // 기타 설정
-  enableDebugLogs: boolean;
+  // 🔧 기타 설정
   enableMetrics: boolean;
-  enableNotifications: boolean;
+  enableValidation: boolean;
+  strictMode: boolean;
 }
 
 /**
- * 🔧 환경 감지 및 설정 로드
+ * 🔍 환경변수 안전 접근 함수 (개선된 버전)
+ */
+const getEnvVar = (key: string, defaultValue: string = ''): string => {
+  if (typeof process === 'undefined' || !process.env) {
+    console.warn(`⚠️ 환경변수 접근 불가: ${key}`);
+    return defaultValue;
+  }
+  const value = process.env[key];
+  if (!value && defaultValue === '') {
+    console.warn(`⚠️ 환경변수 미설정: ${key}`);
+  }
+  return value || defaultValue;
+};
+
+/**
+ * 🎯 플랫폼 감지 함수 (개선된 버전)
+ */
+function detectPlatform(): 'local' | 'vercel' | 'render' | 'unknown' {
+  const isVercel = getEnvVar('VERCEL') === '1' || getEnvVar('VERCEL_ENV') !== '';
+  const isRender = getEnvVar('RENDER') === 'true' || getEnvVar('RENDER_SERVICE_ID') !== '';
+
+  if (isVercel) return 'vercel';
+  if (isRender) return 'render';
+
+  // 로컬 환경 감지 (NODE_ENV 기반)
+  const nodeEnv = getEnvVar('NODE_ENV', 'development');
+  if (nodeEnv === 'development') return 'local';
+
+  return 'unknown';
+}
+
+/**
+ * 🔧 환경 감지 및 설정 로드 (개선된 버전)
  */
 export function getEnvironmentConfig(): EnvironmentConfig {
-  const isVercel = getEnvVar('VERCEL') === '1';
-  const nodeEnv = getEnvVar('NODE_ENV', 'development');
+  const platform = detectPlatform();
+  const nodeEnv = getEnvVar('NODE_ENV', 'development') as 'development' | 'production' | 'test';
+
+  const isVercel = platform === 'vercel';
+  const isRender = platform === 'render';
+  const isLocal = platform === 'local';
   const isProduction = nodeEnv === 'production';
   const isDevelopment = nodeEnv === 'development';
-  const isLocal = !isVercel && isDevelopment;
+  const isTest = nodeEnv === 'test';
+
+  // 🗄️ 데이터베이스 연결 상태 확인
+  const supabaseUrl = getEnvVar('NEXT_PUBLIC_SUPABASE_URL');
+  const supabaseKey = getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  const redisUrl = getEnvVar('UPSTASH_REDIS_REST_URL');
+  const redisToken = getEnvVar('UPSTASH_REDIS_REST_TOKEN');
 
   return {
-    NODE_ENV: nodeEnv as 'development' | 'production' | 'test',
+    // 🎯 핵심 환경 정보
+    NODE_ENV: nodeEnv,
     IS_VERCEL: isVercel,
+    IS_RENDER: isRender,
     IS_LOCAL: isLocal,
     IS_PRODUCTION: isProduction,
     IS_DEVELOPMENT: isDevelopment,
+    IS_TEST: isTest,
 
-    // 추가된 속성들 (리팩토링으로 필요한 속성)
-    name: getEnvVar('NAME'),
-    tier: getEnvVar('TIER'),
-    maxServers: 15, // 로컬/Vercel 통일
-    interval: 30000, // 30초로 통일
+    // 🏷️ 환경 메타데이터
+    name: getEnvVar('APP_NAME', 'OpenManager Vibe v5'),
+    tier: isProduction ? 'production' : isDevelopment ? 'development' : 'test',
+    platform,
 
-    // Database & Cache
+    // 📊 성능 제한 (환경별 최적화)
+    maxServers: 15, // 모든 환경에서 통일
+    interval: 30000, // 30초 통일
+
+    // 🗄️ Database & Cache
     database: {
       supabase: {
-        url: getEnvVar('NEXT_PUBLIC_SUPABASE_URL'),
-        key: getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
-        enabled: !!(
-          getEnvVar('NEXT_PUBLIC_SUPABASE_URL') &&
-          getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY')
-        ),
+        url: supabaseUrl,
+        key: supabaseKey,
+        enabled: !!(supabaseUrl && supabaseKey),
+        connectionStatus: (supabaseUrl && supabaseKey) ? 'connected' : 'disabled'
       },
       redis: {
-        url: getEnvVar('UPSTASH_REDIS_REST_URL'),
-        token: getEnvVar('UPSTASH_REDIS_REST_TOKEN'),
-        enabled: !!(
-          getEnvVar('UPSTASH_REDIS_REST_URL') &&
-          getEnvVar('UPSTASH_REDIS_REST_TOKEN')
-        ),
+        url: redisUrl,
+        token: redisToken,
+        enabled: !!(redisUrl && redisToken) && !isTest, // 테스트 환경에서는 Redis 비활성화
+        connectionStatus: (redisUrl && redisToken && !isTest) ? 'connected' : 'disabled'
       },
     },
 
-    // Performance Settings
+    // ⚡ Performance Settings (환경별 최적화)
     performance: {
-      maxMemory: isVercel ? 1024 : 4096,
-      maxConcurrency: isVercel ? 10 : 4,
-      timeout: isVercel ? 30000 : 60000,
+      maxMemory: isVercel ? 1024 : isLocal ? 4096 : 2048,
+      maxConcurrency: isVercel ? 10 : isLocal ? 20 : 15,
+      timeout: isVercel ? 25000 : isLocal ? 60000 : 30000,
+      enableOptimizations: isProduction || isVercel
     },
 
-    // Feature Flags
+    // 🎛️ Feature Flags (환경별 기능 제어)
     features: {
       enableAI: true,
-      enableRealtime: true,
-      enableNotifications: true,
-      enableWebSocket: !isVercel, // Vercel에서는 WebSocket 제한
+      enableRealtime: !isTest, // 테스트에서는 실시간 기능 비활성화
+      enableNotifications: !isTest,
+      enableWebSocket: isLocal, // Vercel/Render에서는 WebSocket 제한
+      enableMockData: isLocal || isDevelopment, // 로컬/개발환경에서만 목업 데이터
+      enableDebugLogs: isDevelopment || isLocal
     },
 
-    // 업데이트 간격 (30초로 통일)
-    updateInterval: 30000,
-    refreshInterval: 30000,
-    pollingInterval: 30000,
+    // ⏱️ 업데이트 간격 (환경별 최적화)
+    updateInterval: isProduction ? 30000 : 15000,
+    refreshInterval: isProduction ? 30000 : 10000,
+    pollingInterval: isProduction ? 30000 : 5000,
 
-    // 서버 제한 (Edge Request 절감)
-    maxClusters: 10,
+    // 📈 서버 제한 (Edge Request 절감)
+    maxClusters: isVercel ? 8 : 10,
     maxApplications: 15,
 
-    // 기타 설정
-    enableDebugLogs: isDevelopment,
+    // 🔧 기타 설정
     enableMetrics: true,
-    enableNotifications: true,
+    enableValidation: isProduction || isVercel,
+    strictMode: isProduction
   };
 }
 
@@ -163,72 +221,6 @@ export function getVercelOptimizedConfig() {
     maxServers: 15, // 🎯 모든 환경에서 15개로 통일
   };
 }
-
-/**
- * 📊 환경 상태 로그
- */
-export function logEnvironmentStatus() {
-  const config = getEnvironmentConfig();
-
-  console.log('🌍 환경 설정 상태:');
-  console.log(`📋 환경: ${config.NODE_ENV}`);
-  console.log(`☁️ Vercel: ${config.IS_VERCEL ? '활성화' : '비활성화'}`);
-  console.log(`🏠 로컬: ${config.IS_LOCAL ? '활성화' : '비활성화'}`);
-  console.log(
-    `🗄️ Supabase: ${config.database.supabase.enabled ? '연결됨' : '비활성화'}`
-  );
-  console.log(
-    `⚡ Redis: ${config.database.redis.enabled ? '연결됨' : '비활성화'}`
-  );
-  console.log(
-    `🧠 AI 기능: ${config.features.enableAI ? '활성화' : '비활성화'}`
-  );
-  console.log(
-    `📊 실시간 데이터: ${config.features.enableRealtime ? '활성화' : '비활성화'}`
-  );
-}
-
-// 🔧 추가 함수들 (빌드 오류 수정용)
-
-/**
- * 환경변수 안전 접근 함수
- */
-const getEnvVar = (key: string, defaultValue: string = ''): string => {
-  if (typeof process === 'undefined' || !process.env) {
-    return defaultValue;
-  }
-  return process.env[key] || defaultValue;
-};
-
-/**
- * 환경 감지
- */
-export const detectEnvironment = () => {
-  const isVercel = getEnvVar('VERCEL') === '1';
-  const nodeEnv = getEnvVar('NODE_ENV', 'development');
-  const isProduction = nodeEnv === 'production';
-  const isDevelopment = nodeEnv === 'development';
-
-  return {
-    isVercel,
-    nodeEnv,
-    isProduction,
-    isDevelopment,
-    isClient: typeof window !== 'undefined',
-    NODE_ENV: nodeEnv as 'development' | 'production' | 'test',
-    IS_VERCEL: isVercel,
-    IS_PRODUCTION: isProduction,
-    IS_DEVELOPMENT: isDevelopment,
-    IS_LOCAL: !isVercel && isDevelopment,
-    performance: {
-      maxMemory: isVercel ? 1024 : 4096,
-      maxConcurrency: isVercel ? 10 : 4,
-      timeout: isVercel ? 30000 : 60000,
-    },
-  };
-};
-
-export const env = detectEnvironment();
 
 /**
  * 현재 환경 정보 반환
@@ -402,4 +394,161 @@ export function shouldEnableDebugLogging(): boolean {
   );
 }
 
-export default env;
+/**
+ * 🎯 환경 감지 함수 (하위 호환성을 위한 별칭)
+ */
+export const detectEnvironment = () => {
+  return getEnvironmentConfig();
+};
+
+export default getEnvironmentConfig();
+
+/**
+ * 🔍 환경 설정 검증 함수
+ */
+export function validateEnvironmentConfig(): {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  recommendations: string[];
+} {
+  const config = getEnvironmentConfig();
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  const recommendations: string[] = [];
+
+  // 🎯 필수 환경변수 검증
+  if (!getEnvVar('NODE_ENV')) {
+    errors.push('NODE_ENV가 설정되지 않음');
+    recommendations.push('package.json scripts에 NODE_ENV 명시적 설정');
+  }
+
+  // 🌐 플랫폼 감지 검증
+  if (config.platform === 'unknown') {
+    warnings.push('플랫폼을 자동 감지하지 못함');
+    recommendations.push('VERCEL 또는 RENDER 환경변수 확인');
+  }
+
+  // 🗄️ 데이터베이스 연결 검증
+  if (!config.database.supabase.enabled) {
+    warnings.push('Supabase 연결이 비활성화됨');
+    recommendations.push('NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY 설정');
+  }
+
+  if (!config.database.redis.enabled && config.IS_PRODUCTION) {
+    warnings.push('프로덕션에서 Redis 연결이 비활성화됨');
+    recommendations.push('UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN 설정');
+  }
+
+  // ⚡ 성능 설정 검증
+  if (config.IS_VERCEL && config.performance.maxMemory > 1024) {
+    errors.push('Vercel Free Plan 메모리 제한 초과');
+    recommendations.push('maxMemory를 1024MB 이하로 설정');
+  }
+
+  // 🎛️ 기능 충돌 검증
+  if (config.features.enableWebSocket && config.IS_VERCEL) {
+    warnings.push('Vercel에서 WebSocket 기능이 제한될 수 있음');
+    recommendations.push('Vercel에서는 WebSocket 대신 SSE 사용 권장');
+  }
+
+  if (config.features.enableMockData && config.IS_PRODUCTION) {
+    errors.push('프로덕션에서 목업 데이터가 활성화됨');
+    recommendations.push('프로덕션에서는 enableMockData를 false로 설정');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+    recommendations
+  };
+}
+
+/**
+ * 📊 환경 상태 로그 (개선된 버전)
+ */
+export function logEnvironmentStatus(): void {
+  const config = getEnvironmentConfig();
+  const validation = validateEnvironmentConfig();
+
+  console.log('🌍 ===== 환경 설정 상태 =====');
+  console.log(`📋 NODE_ENV: ${config.NODE_ENV}`);
+  console.log(`🏷️ Platform: ${config.platform}`);
+  console.log(`☁️ Vercel: ${config.IS_VERCEL ? '✅ 활성화' : '❌ 비활성화'}`);
+  console.log(`🏠 Local: ${config.IS_LOCAL ? '✅ 활성화' : '❌ 비활성화'}`);
+
+  console.log('\n🗄️ ===== 데이터베이스 연결 =====');
+  console.log(`📊 Supabase: ${config.database.supabase.enabled ? '✅ 연결됨' : '❌ 비활성화'}`);
+  console.log(`⚡ Redis: ${config.database.redis.enabled ? '✅ 연결됨' : '❌ 비활성화'}`);
+
+  console.log('\n🎛️ ===== 기능 상태 =====');
+  console.log(`🧠 AI: ${config.features.enableAI ? '✅' : '❌'}`);
+  console.log(`📊 실시간: ${config.features.enableRealtime ? '✅' : '❌'}`);
+  console.log(`🔌 WebSocket: ${config.features.enableWebSocket ? '✅' : '❌'}`);
+  console.log(`🎭 목업 데이터: ${config.features.enableMockData ? '✅' : '❌'}`);
+
+  console.log('\n⚡ ===== 성능 설정 =====');
+  console.log(`💾 최대 메모리: ${config.performance.maxMemory}MB`);
+  console.log(`🔄 동시 처리: ${config.performance.maxConcurrency}`);
+  console.log(`⏱️ 타임아웃: ${config.performance.timeout}ms`);
+
+  // 🚨 검증 결과 출력
+  if (!validation.isValid) {
+    console.log('\n🚨 ===== 환경 설정 오류 =====');
+    validation.errors.forEach(error => console.error(`❌ ${error}`));
+  }
+
+  if (validation.warnings.length > 0) {
+    console.log('\n⚠️ ===== 환경 설정 경고 =====');
+    validation.warnings.forEach(warning => console.warn(`⚠️ ${warning}`));
+  }
+
+  if (validation.recommendations.length > 0) {
+    console.log('\n💡 ===== 권장사항 =====');
+    validation.recommendations.forEach(rec => console.log(`💡 ${rec}`));
+  }
+
+  console.log('\n✅ 환경 설정 상태 로그 완료\n');
+}
+
+/**
+ * 🔧 환경별 최적화 설정 적용
+ */
+export function applyEnvironmentOptimizations(): void {
+  const config = getEnvironmentConfig();
+
+  if (config.IS_VERCEL) {
+    console.log('🚀 Vercel 환경 최적화 적용');
+
+    // Vercel Edge Function 최적화
+    if (globalThis.process) {
+      process.env.VERCEL_EDGE_OPTIMIZED = 'true';
+    }
+
+    // 메모리 사용량 모니터링
+    if (config.performance.maxMemory > 1024) {
+      console.warn('⚠️ Vercel Free Plan 메모리 제한 초과 위험');
+    }
+  }
+
+  if (config.IS_LOCAL) {
+    console.log('🏠 로컬 환경 최적화 적용');
+
+    // 개발 도구 활성화
+    if (globalThis.process) {
+      process.env.DEV_TOOLS_ENABLED = 'true';
+      process.env.HOT_RELOAD_ENABLED = 'true';
+    }
+  }
+
+  if (config.IS_PRODUCTION) {
+    console.log('🔒 프로덕션 환경 보안 강화');
+
+    // 프로덕션 보안 설정
+    if (globalThis.process) {
+      process.env.STRICT_MODE = 'true';
+      process.env.DEBUG_LOGS = 'false';
+    }
+  }
+}

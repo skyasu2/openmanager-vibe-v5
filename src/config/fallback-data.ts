@@ -91,127 +91,6 @@ export const ERROR_STATE_METADATA = {
 };
 
 /**
- * 🎯 통합 폴백 서버 데이터
- * 모든 컴포넌트에서 일관된 폴백 데이터 사용
- * RealServerDataGenerator와 동일한 구조 유지
- */
-export const UNIFIED_FALLBACK_SERVERS: Server[] = [
-  // 심각 상태 (offline) 서버들
-  {
-    id: 'api-jp-040',
-    name: 'api-jp-040',
-    hostname: 'api-jp-040.example.com',
-    status: 'offline',
-    location: 'Asia Pacific',
-    type: 'API',
-    environment: 'production',
-    cpu: 95,
-    memory: 98,
-    disk: 85,
-    network: 85,
-    networkStatus: 'offline',
-    uptime: '0분',
-    lastUpdate: new Date(),
-    alerts: 5,
-    services: [
-      { name: 'nginx', status: 'stopped', port: 80 },
-      { name: 'nodejs', status: 'stopped', port: 3000 },
-      { name: 'gunicorn', status: 'stopped', port: 8000 },
-      { name: 'uwsgi', status: 'stopped', port: 8080 },
-    ],
-  },
-  {
-    id: 'api-sg-044',
-    name: 'api-sg-044',
-    hostname: 'api-sg-044.example.com',
-    status: 'offline',
-    location: 'Singapore',
-    type: 'API',
-    environment: 'production',
-    cpu: 88,
-    memory: 92,
-    disk: 78,
-    network: 78,
-    networkStatus: 'offline',
-    uptime: '0분',
-    lastUpdate: new Date(),
-    alerts: 4,
-    services: [
-      { name: 'nodejs', status: 'stopped', port: 3000 },
-      { name: 'nginx', status: 'stopped', port: 80 },
-    ],
-  },
-  // 경고 상태 (warning) 서버들
-  {
-    id: 'api-eu-045',
-    name: 'api-eu-045',
-    hostname: 'api-eu-045.example.com',
-    status: 'warning',
-    location: 'EU West',
-    type: 'API',
-    environment: 'production',
-    cpu: 78,
-    memory: 85,
-    disk: 68,
-    network: 65,
-    networkStatus: 'warning',
-    uptime: '8일 12시간',
-    lastUpdate: new Date(),
-    alerts: 2,
-    services: [
-      { name: 'nodejs', status: 'stopped', port: 3000 },
-      { name: 'nginx', status: 'running', port: 80 },
-      { name: 'gunicorn', status: 'running', port: 8000 },
-    ],
-  },
-  {
-    id: 'api-sg-042',
-    name: 'api-sg-042',
-    hostname: 'api-sg-042.example.com',
-    status: 'warning',
-    location: 'Singapore',
-    type: 'API',
-    environment: 'production',
-    cpu: 72,
-    memory: 79,
-    disk: 58,
-    network: 55,
-    networkStatus: 'warning',
-    uptime: '8일 6시간',
-    lastUpdate: new Date(),
-    alerts: 1,
-    services: [
-      { name: 'gunicorn', status: 'stopped', port: 8000 },
-      { name: 'python', status: 'stopped', port: 3000 },
-      { name: 'uwsgi', status: 'running', port: 8080 },
-    ],
-  },
-  // 정상 상태 (healthy) 서버들 - 테스트에서 'healthy' 상태를 찾기 때문에 수정
-  {
-    id: 'api-us-041',
-    name: 'api-us-041',
-    hostname: 'api-us-041.example.com',
-    status: 'healthy',
-    location: 'US East',
-    type: 'API',
-    environment: 'production',
-    cpu: 59,
-    memory: 48,
-    disk: 30,
-    network: 35,
-    networkStatus: 'healthy',
-    uptime: '22일 5시간',
-    lastUpdate: new Date(),
-    alerts: 0,
-    services: [
-      { name: 'nginx', status: 'running', port: 80 },
-      { name: 'nodejs', status: 'running', port: 3000 },
-      { name: 'gunicorn', status: 'running', port: 8000 },
-    ],
-  },
-];
-
-/**
  * 🏢 환경변수 기반 인프라 설정
  * 개발환경과 배포환경 모두 지원
  */
@@ -362,11 +241,10 @@ export function getApiKey(service: 'google'): string {
     case 'google':
       const googleKey = process.env.GOOGLE_AI_API_KEY;
       if (!googleKey && isProduction) {
-        console.warn('⚠️ 프로덕션에서 폴백 API 키 사용 중');
-        return INFRASTRUCTURE_CONFIG.api.googleAI.fallbackKey;
+        console.warn('⚠️ 프로덕션에서 Google AI API 키가 설정되지 않음');
+        throw new Error('Google AI API 키가 필요합니다');
       }
-      return googleKey || INFRASTRUCTURE_CONFIG.api.googleAI.fallbackKey;
-    // slack case 제거됨
+      return googleKey || '';
     default:
       throw new Error(`지원하지 않는 API 서비스: ${service}`);
   }
