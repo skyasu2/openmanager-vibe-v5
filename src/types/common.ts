@@ -8,28 +8,25 @@
 
 // 🔧 환경변수 타입 확장 - 테스트 환경에서 사용되는 환경변수들
 declare global {
-  namespace NodeJS {
-    interface ProcessEnv {
-      readonly NODE_ENV: 'development' | 'production' | 'test';
-      ENABLE_MOCK_DATA?: string;
-      DISABLE_EXTERNAL_CALLS?: string;
-      REDIS_CONNECTION_DISABLED?: string;
-      UPSTASH_REDIS_DISABLED?: string;
-      DISABLE_HEALTH_CHECK?: string;
-      HEALTH_CHECK_CONTEXT?: string;
-      GOOGLE_AI_QUOTA_PROTECTION?: string;
-      FORCE_MOCK_GOOGLE_AI?: string;
-      MCP_SERVER_ENABLED?: string;
-      [key: string]: string | undefined;
-    }
+  // NodeJS ProcessEnv 인터페이스 확장 (namespace 대신 interface 확장 사용)
+  interface ProcessEnv {
+    readonly NODE_ENV: 'development' | 'production' | 'test';
+    ENABLE_MOCK_DATA?: string;
+    DISABLE_EXTERNAL_CALLS?: string;
+    REDIS_CONNECTION_DISABLED?: string;
+    UPSTASH_REDIS_DISABLED?: string;
+    DISABLE_HEALTH_CHECK?: string;
+    HEALTH_CHECK_CONTEXT?: string;
+    GOOGLE_AI_QUOTA_PROTECTION?: string;
+    FORCE_MOCK_GOOGLE_AI?: string;
+    MCP_SERVER_ENABLED?: string;
+    [key: string]: string | undefined;
   }
+}
 
-  // Jest 환경에서의 stubGlobal 함수 타입 정의
-  namespace jest {
-    interface Global {
-      stubGlobal?: (name: string, value: any) => void;
-    }
-  }
+// Jest 환경에서의 stubGlobal 함수 타입 정의 (별도 파일로 분리 권장)
+interface JestGlobal {
+  stubGlobal?: (name: string, value: any) => void;
 }
 
 // 환경변수 모킹을 위한 타입
