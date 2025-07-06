@@ -57,13 +57,19 @@ class DocumentationAutoUpdater {
         console.log(`\n🔄 문서 업데이트 시작...`);
 
         const documents = [
-            'docs/프로젝트가이드.md',
-            'docs/기술아키텍처.md',
-            'docs/바이브코딩.md',
-            'docs/개발과정.md',
-            'docs/시스템관리.md',
-            'docs/코드참고.md',
-            'docs/문서자동화.md'
+            'docs/ai-system-architecture.md',
+            'docs/deployment-guide.md',
+            'docs/development-guide.md',
+            'docs/development-progress-2025-07.md',
+            'docs/development-tools.md',
+            'docs/encryption-system-guide.md',
+            'docs/environment-setup-guide.md',
+            'docs/gcp-data-generator-architecture.md',
+            'docs/operations-deployment.md',
+            'docs/redis-swr-optimization-guide.md',
+            'docs/server-management-guide.md',
+            'docs/system-architecture.md',
+            'docs/testing-guide.md'
         ];
 
         let updatedCount = 0;
@@ -225,13 +231,19 @@ class DocumentationAutoUpdater {
         console.log('\n🔍 문서 유효성 검사...');
 
         const documents = [
-            'docs/프로젝트가이드.md',
-            'docs/기술아키텍처.md',
-            'docs/바이브코딩.md',
-            'docs/개발과정.md',
-            'docs/시스템관리.md',
-            'docs/코드참고.md',
-            'docs/문서자동화.md'
+            'docs/ai-system-architecture.md',
+            'docs/deployment-guide.md',
+            'docs/development-guide.md',
+            'docs/development-progress-2025-07.md',
+            'docs/development-tools.md',
+            'docs/encryption-system-guide.md',
+            'docs/environment-setup-guide.md',
+            'docs/gcp-data-generator-architecture.md',
+            'docs/operations-deployment.md',
+            'docs/redis-swr-optimization-guide.md',
+            'docs/server-management-guide.md',
+            'docs/system-architecture.md',
+            'docs/testing-guide.md'
         ];
 
         let totalIssues = 0;

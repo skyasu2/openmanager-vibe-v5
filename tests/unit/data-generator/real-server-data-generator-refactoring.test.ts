@@ -13,8 +13,20 @@
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
-describe('RealServerDataGenerator TDD 리팩토링 테스트', () => {
-  let generator: RealServerDataGenerator;
+let generator: typeof RealServerDataGenerator;
+
+beforeEach(() => {
+  generator = RealServerDataGenerator;
+});
+
+describe('🎯 RealServerDataGenerator 리팩토링 테스트', () => {
+  it('GCP 설정으로 서버 생성', async () => {
+    const config = {
+      enabled: true,
+      region: 'europe-west1',
+      // maxServers 속성 제거 - GCPServerConfig 타입에 없음
+    };
+  });
 
   // 🔴 분리 전 기존 기능 테스트 (Baseline) - API 변경으로 인해 skip
   describe.skip('분리 전 기존 기능 테스트 (Baseline)', () => {

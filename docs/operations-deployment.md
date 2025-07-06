@@ -680,7 +680,7 @@ export const OperationsDashboard = () => {
 
 **OpenManager Vibe v5**는 현대적인 배포 및 운영 방식을 통해 안정적이고 확장 가능한 서비스를 제공합니다! 🚀
 
-**문서 버전**: v1.0.0  
+**문서 버전**: v5.44.3  
 **마지막 업데이트**: 2025-06-24  
 **작성자**: OpenManager Vibe v5 팀
 

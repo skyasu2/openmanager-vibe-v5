@@ -71,10 +71,10 @@ describe('환경 감지 로직', () => {
 
             const env = detectEnvironment();
 
-            expect(env.ENABLE_MOCK_DATA).toBe(true);
-            expect(env.ENABLE_DEBUG_LOGGING).toBe(true);
-            expect(env.MEMORY_LIMIT_MB).toBe(undefined);
-            expect(env.TIMEOUT_MS).toBe(undefined);
+            expect(env.features.enableMockData).toBe(true);
+            expect(env.features.enableDebugLogs).toBe(true);
+            expect(env.performance.maxMemory).toBeGreaterThan(0);
+            expect(env.performance.timeout).toBeGreaterThan(0);
         });
     });
 
@@ -105,10 +105,10 @@ describe('환경 감지 로직', () => {
 
             const env = detectEnvironment();
 
-            expect(env.ENABLE_MOCK_DATA).toBe(false);
-            expect(env.MEMORY_LIMIT_MB).toBe(1024);
-            expect(env.TIMEOUT_MS).toBe(30000);
-            expect(env.DISABLE_WEBSOCKET).toBe(true);
+            expect(env.features.enableMockData).toBe(false);
+            expect(env.performance.maxMemory).toBe(1024);
+            expect(env.performance.timeout).toBe(30000);
+            expect(env.features.enableWebSocket).toBe(false);
         });
     });
 
@@ -199,9 +199,9 @@ describe('환경 감지 로직', () => {
 
             const env = detectEnvironment();
 
-            expect(env.ENABLE_MOCK_DATA).toBe(true);
-            expect(env.ENABLE_DEBUG_LOGGING).toBe(true);
-            expect(env.DISABLE_EXTERNAL_CALLS).toBe(false);
+            expect(env.features.enableMockData).toBe(true);
+            expect(env.features.enableDebugLogs).toBe(true);
+            expect(env.features.enableExternalCalls).toBe(true);
         });
 
         test('프로덕션 환경에서 보안 기능 활성화', () => {
@@ -212,8 +212,8 @@ describe('환경 감지 로직', () => {
 
             const env = detectEnvironment();
 
-            expect(env.ENABLE_MOCK_DATA).toBe(false);
-            expect(env.ENABLE_DEBUG_LOGGING).toBe(false);
+            expect(env.features.enableMockData).toBe(false);
+            expect(env.features.enableDebugLogs).toBe(false);
             expect(env.IS_PRODUCTION).toBe(true);
         });
 
@@ -222,8 +222,8 @@ describe('환경 감지 로직', () => {
 
             const env = detectEnvironment();
 
-            expect(env.DISABLE_EXTERNAL_CALLS).toBe(true);
-            expect(env.ENABLE_MOCK_DATA).toBe(true);
+            expect(env.features.enableExternalCalls).toBe(false);
+            expect(env.features.enableMockData).toBe(true);
         });
     });
 
@@ -233,8 +233,8 @@ describe('환경 감지 로직', () => {
 
             const env = detectEnvironment();
 
-            expect(env.DATA_SOURCE).toBe('mock');
-            expect(env.ENABLE_MOCK_DATA).toBe(true);
+            expect(env.platform).toBe('local');
+            expect(env.features.enableMockData).toBe(true);
         });
 
         test('Vercel 환경에서 GCP 실제 데이터 사용', () => {
@@ -245,8 +245,8 @@ describe('환경 감지 로직', () => {
 
             const env = detectEnvironment();
 
-            expect(env.DATA_SOURCE).toBe('gcp');
-            expect(env.ENABLE_MOCK_DATA).toBe(false);
+            expect(env.platform).toBe('vercel');
+            expect(env.features.enableMockData).toBe(false);
         });
     });
 

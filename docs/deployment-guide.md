@@ -1,6 +1,6 @@
 # 🚀 배포 가이드 (Vercel)
 
-> **OpenManager Vibe v5.44.4** - Vercel 배포 가이드 (2025년 7월 2일 기준)
+> **OpenManager Vibe v5.44.3** - Vercel 배포 가이드 (2025년 7월 2일 기준)
 
 ## 📋 **개요**
 
@@ -62,6 +62,61 @@ npm run dev
 ```
 
 #### **환경 변수 설정**
+
+OpenManager Vibe v5는 Vercel 환경변수를 통해 Supabase, Redis, Google AI 등 다양한 서비스와 연동됩니다. 특히 OpenAI 의존성을 제거하고 Supabase RAG에 최적화된 환경변수 설정이 중요합니다.
+
+##### 1. Vercel Dashboard에서 설정
+
+Vercel 프로젝트 설정의 `Environment Variables` 섹션에서 다음 환경변수들을 추가합니다. 각 변수의 값은 실제 서비스에서 발급받은 키 또는 URL로 대체해야 합니다.
+
+```bash
+# Supabase 설정 (1차 점검)
+NEXT_PUBLIC_SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU
+
+# Supabase 설정 (2차 점검 - Vercel 배포용)
+ENCRYPTED_SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
+ENCRYPTED_SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU
+
+# RAG Engine 설정
+FORCE_SUPABASE_RAG=true
+RAG_VECTOR_DIMENSION=384
+RAG_SIMILARITY_THRESHOLD=0.7
+RAG_ENGINE_TYPE=SUPABASE_ONLY
+
+# Google AI (선택 사항)
+GOOGLE_AI_API_KEY=your_google_ai_api_key_here
+GOOGLE_AI_ENABLED=true
+REDIS_URL=redis://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA@charming-condor-46598.upstash.io:6379
+```
+
+##### 2. CLI로 설정 (선택사항)
+
+Vercel CLI를 사용하여 환경변수를 설정할 수도 있습니다. 이는 대량의 환경변수를 설정할 때 유용합니다.
+
+```bash
+vercel env add NEXT_PUBLIC_SUPABASE_URL
+vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
+vercel env add ENCRYPTED_SUPABASE_URL
+vercel env add ENCRYPTED_SUPABASE_KEY
+vercel env add FORCE_SUPABASE_RAG
+# 필요한 다른 환경변수들도 동일하게 추가
+```
+
+##### 3. 설정 확인
+
+설정된 환경변수 목록은 다음 명령어로 확인할 수 있습니다.
+
+```bash
+vercel env ls
+```
+
+##### 주요 개선사항
+
+*   **OpenAI API 의존성 완전 제거**: 프로젝트에서 OpenAI API에 대한 의존성을 완전히 제거하고 Supabase 기반 RAG 시스템으로 전환했습니다.
+*   **로컬 임베딩 생성 시스템**: 자체적으로 임베딩을 생성하는 시스템을 구축하여 외부 서비스 의존성을 줄였습니다.
+*   **2회 환경변수 점검 시스템**: Vercel 배포 시 환경변수가 올바르게 설정되었는지 2단계에 걸쳐 점검하는 시스템을 도입하여 안정성을 높였습니다.
+*   **Supabase 벡터 DB 전용 최적화**: Supabase 벡터 데이터베이스를 활용한 RAG 시스템에 최적화된 설정을 적용했습니다.
 
 ```env
 # AI 엔진 설정
