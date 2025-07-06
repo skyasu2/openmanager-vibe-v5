@@ -54,7 +54,6 @@
     "@google/generative-ai": "^0.16.0",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^3.9.0",
-    "@influxdata/influxdb-client": "^1.35.0",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@modelcontextprotocol/server-filesystem": "^2025.3.28",
     "@next/bundle-analyzer": "^15.4.0-canary.51",

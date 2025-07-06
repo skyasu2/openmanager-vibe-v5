@@ -544,44 +544,33 @@ export class UnifiedDataProcessor {
    * 🏷️ 서버 컨텍스트 추론
    */
   private inferServerContext(serverInstance: ServerInstance) {
-    // 서버 이름과 타입을 기반으로 역할 추론
     const serverName = serverInstance.name.toLowerCase();
-    const serverType = serverInstance.type.toLowerCase();
 
+    // 서버 역할 추론
     let serverRole: 'web' | 'api' | 'database' | 'cache' | 'queue' = 'web';
-    if (
-      serverName.includes('db') ||
-      serverName.includes('database') ||
-      ['mysql', 'postgresql', 'mongodb', 'oracle', 'mssql'].includes(serverType)
-    ) {
+    if (serverName.includes('db') || serverName.includes('database') || serverName.includes('mysql') || serverName.includes('postgres')) {
       serverRole = 'database';
-    } else if (
-      serverName.includes('api') ||
-      serverName.includes('service') ||
-      ['nodejs', 'springboot', 'django', 'dotnet', 'php'].includes(serverType)
-    ) {
+    } else if (serverName.includes('api') || serverName.includes('backend')) {
       serverRole = 'api';
-    } else if (
-      serverName.includes('cache') ||
-      serverName.includes('redis') ||
-      serverType === 'redis'
-    ) {
+    } else if (serverName.includes('redis') || serverName.includes('cache') || serverName.includes('memcached')) {
       serverRole = 'cache';
-    } else if (
-      serverName.includes('queue') ||
-      serverName.includes('worker') ||
-      ['rabbitmq', 'kafka'].includes(serverType)
-    ) {
+    } else if (serverName.includes('queue') || serverName.includes('worker') || serverName.includes('job')) {
       serverRole = 'queue';
     }
 
-    // 환경 추론
-    let environment: 'production' | 'staging' | 'development' =
-      serverInstance.environment || 'production';
-    if (serverName.includes('dev') || serverName.includes('test')) {
-      environment = 'development';
-    } else if (serverName.includes('staging') || serverName.includes('stage')) {
-      environment = 'staging';
+    // 환경 추론 - 안전한 타입 변환
+    const envString = serverInstance.environment || 'production';
+    let environment: 'production' | 'staging' | 'development' = 'production';
+
+    if (envString === 'development' || envString === 'staging' || envString === 'production') {
+      environment = envString;
+    } else {
+      // 문자열에서 환경 추론
+      if (serverName.includes('dev') || serverName.includes('test') || envString.includes('dev')) {
+        environment = 'development';
+      } else if (serverName.includes('staging') || serverName.includes('stage') || envString.includes('stag')) {
+        environment = 'staging';
+      }
     }
 
     // 비즈니스 중요도 추론 (서버 역할과 환경 기반)
@@ -936,7 +925,11 @@ export class UnifiedDataProcessor {
       ],
       metadata: {
         location: serverInstance.region || 'unknown',
-        environment: serverInstance.environment || 'production',
+        environment: (serverInstance.environment === 'development' ||
+          serverInstance.environment === 'staging' ||
+          serverInstance.environment === 'production')
+          ? serverInstance.environment
+          : 'production',
         provider: 'onpremise',
         cluster: undefined,
         zone: undefined,
@@ -1061,7 +1054,7 @@ export class UnifiedDataProcessor {
     console.log('🧹 통합 처리 캐시 클리어 완료');
   }
 
-  public getStatus() {
+  public async getStatus() {
     return {
       cacheStats: this.cacheManager.getStats(),
       processingStats: this.processingStats,

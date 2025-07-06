@@ -19,6 +19,32 @@ import {
     TimeSeriesMetrics
 } from '@/types/gcp-data-generator';
 
+// 타입 정의
+interface ProcessInfo {
+    pid: number;
+    name: string;
+    cpuUsage: number;
+    memoryUsage: number;
+    status: 'running' | 'sleeping' | 'stopped';
+    user: string;
+    startTime: string;
+}
+
+interface AnomalyInfo {
+    type: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    confidence: number;
+}
+
+interface ServerData {
+    id: string;
+    name: string;
+    type: string;
+    environment: string;
+    specs: any;
+    baseline: any;
+}
+
 export class GCPServerDataGenerator {
     private firestore: GCPFirestoreClient;
     private cloudStorage: GCPCloudStorageClient;
@@ -673,9 +699,9 @@ export class GCPServerDataGenerator {
         }
     }
 
-    private generateProcessList(server: ServerData): any[] {
+    private generateProcessList(server: ServerData): ProcessInfo[] {
         const processCount = Math.floor(20 + Math.random() * 30);
-        const processes = [];
+        const processes: ProcessInfo[] = [];
 
         for (let i = 0; i < processCount; i++) {
             processes.push({
@@ -733,8 +759,8 @@ export class GCPServerDataGenerator {
         return baseLatency;
     }
 
-    private detectAnomalies(metric: TimeSeriesMetrics, scenario: ScenarioContext): any[] {
-        const anomalies = [];
+    private detectAnomalies(metric: TimeSeriesMetrics, scenario: ScenarioContext): AnomalyInfo[] {
+        const anomalies: AnomalyInfo[] = [];
 
         if (metric.system.cpu.usage > 80) {
             anomalies.push({
