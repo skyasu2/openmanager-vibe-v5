@@ -97,7 +97,10 @@ const customJestConfig = {
   testTimeout: 30000,
 
   // 환경 변수 설정
-  setupFiles: ['<rootDir>/tests/scripts/.env.test'],
+  setupFiles: [
+    '<rootDir>/tests/scripts/.env.test',
+    '<rootDir>/tests/jest-env-setup.js'
+  ],
 
   // 병렬 실행 설정
   maxWorkers: '50%',

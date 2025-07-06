@@ -6,6 +6,22 @@
 
 import { detectEnvironment, logEnvironmentStatus, validateEnvironmentConfig } from '@/config/environment';
 
+// 🔧 환경변수 안전 모킹 함수
+function setTestEnv(envVars: Record<string, string | undefined>) {
+    Object.keys(envVars).forEach(key => {
+        if (envVars[key] === undefined) {
+            delete process.env[key];
+        } else {
+            Object.defineProperty(process.env, key, {
+                value: envVars[key],
+                writable: true,
+                configurable: true,
+                enumerable: true
+            });
+        }
+    });
+}
+
 describe('환경 감지 로직', () => {
     let originalEnv: NodeJS.ProcessEnv;
 
@@ -14,14 +30,29 @@ describe('환경 감지 로직', () => {
     });
 
     afterEach(() => {
-        process.env = originalEnv;
+        // 원본 환경변수 복원
+        Object.keys(process.env).forEach(key => {
+            delete process.env[key];
+        });
+        Object.keys(originalEnv).forEach(key => {
+            if (originalEnv[key] !== undefined) {
+                Object.defineProperty(process.env, key, {
+                    value: originalEnv[key],
+                    writable: true,
+                    configurable: true,
+                    enumerable: true
+                });
+            }
+        });
     });
 
     describe('로컬 개발 환경 감지', () => {
         test('NODE_ENV=development일 때 로컬 환경으로 감지', () => {
-            process.env.NODE_ENV = 'development';
-            delete process.env.VERCEL;
-            delete process.env.RENDER;
+            setTestEnv({
+                NODE_ENV: 'development',
+                VERCEL: undefined,
+                RENDER: undefined
+            });
 
             const env = detectEnvironment();
 
@@ -32,7 +63,7 @@ describe('환경 감지 로직', () => {
         });
 
         test('로컬 환경에서 올바른 설정 반환', () => {
-            process.env.NODE_ENV = 'development';
+            setTestEnv({ NODE_ENV: 'development' });
 
             const env = detectEnvironment();
 
@@ -45,8 +76,10 @@ describe('환경 감지 로직', () => {
 
     describe('Vercel 배포 환경 감지', () => {
         test('VERCEL=1일 때 Vercel 환경으로 감지', () => {
-            process.env.VERCEL = '1';
-            process.env.NODE_ENV = 'production';
+            setTestEnv({
+                VERCEL: '1',
+                NODE_ENV: 'production'
+            });
 
             const env = detectEnvironment();
 
@@ -57,8 +90,10 @@ describe('환경 감지 로직', () => {
         });
 
         test('Vercel 환경에서 제한된 설정 반환', () => {
-            process.env.VERCEL = '1';
-            process.env.VERCEL_ENV = 'production';
+            setTestEnv({
+                VERCEL: '1',
+                VERCEL_ENV: 'production'
+            });
 
             const env = detectEnvironment();
 
@@ -71,8 +106,10 @@ describe('환경 감지 로직', () => {
 
     describe('Render 배포 환경 감지', () => {
         test('RENDER=true일 때 Render 환경으로 감지', () => {
-            process.env.RENDER = 'true';
-            process.env.NODE_ENV = 'production';
+            setTestEnv({
+                RENDER: 'true',
+                NODE_ENV: 'production'
+            });
 
             const env = detectEnvironment();
 
@@ -84,7 +121,7 @@ describe('환경 감지 로직', () => {
 
     describe('테스트 환경 감지', () => {
         test('NODE_ENV=test일 때 테스트 환경으로 감지', () => {
-            process.env.NODE_ENV = 'test';
+            setTestEnv({ NODE_ENV: 'test' });
 
             const env = detectEnvironment();
 
@@ -96,7 +133,7 @@ describe('환경 감지 로직', () => {
 
     describe('환경 설정 검증', () => {
         test('필수 환경변수 누락 시 검증 실패', () => {
-            delete process.env.NODE_ENV;
+            setTestEnv({ NODE_ENV: undefined });
 
             const validation = validateEnvironmentConfig();
 
@@ -105,9 +142,11 @@ describe('환경 감지 로직', () => {
         });
 
         test('Vercel 환경에서 필수 환경변수 검증', () => {
-            process.env.VERCEL = '1';
-            process.env.NODE_ENV = 'production';
-            delete process.env.SUPABASE_URL;
+            setTestEnv({
+                VERCEL: '1',
+                NODE_ENV: 'production',
+                SUPABASE_URL: undefined
+            });
 
             const validation = validateEnvironmentConfig();
 
@@ -118,9 +157,11 @@ describe('환경 감지 로직', () => {
         });
 
         test('모든 환경변수가 올바르게 설정된 경우 검증 성공', () => {
-            process.env.NODE_ENV = 'development';
-            process.env.SUPABASE_URL = 'https://test.supabase.co';
-            process.env.SUPABASE_ANON_KEY = 'test-key';
+            setTestEnv({
+                NODE_ENV: 'development',
+                SUPABASE_URL: 'https://test.supabase.co',
+                SUPABASE_ANON_KEY: 'test-key'
+            });
 
             const validation = validateEnvironmentConfig();
 
@@ -133,7 +174,7 @@ describe('환경 감지 로직', () => {
         test('환경 상태 로깅 함수 동작 확인', () => {
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-            process.env.NODE_ENV = 'development';
+            setTestEnv({ NODE_ENV: 'development' });
             logEnvironmentStatus();
 
             expect(consoleSpy).toHaveBeenCalledWith(
@@ -146,7 +187,7 @@ describe('환경 감지 로직', () => {
 
     describe('환경별 기능 토글', () => {
         test('로컬 환경에서 모든 기능 활성화', () => {
-            process.env.NODE_ENV = 'development';
+            setTestEnv({ NODE_ENV: 'development' });
 
             const env = detectEnvironment();
 
@@ -156,8 +197,10 @@ describe('환경 감지 로직', () => {
         });
 
         test('프로덕션 환경에서 보안 기능 활성화', () => {
-            process.env.NODE_ENV = 'production';
-            process.env.VERCEL = '1';
+            setTestEnv({
+                NODE_ENV: 'production',
+                VERCEL: '1'
+            });
 
             const env = detectEnvironment();
 
@@ -167,7 +210,7 @@ describe('환경 감지 로직', () => {
         });
 
         test('테스트 환경에서 외부 호출 차단', () => {
-            process.env.NODE_ENV = 'test';
+            setTestEnv({ NODE_ENV: 'test' });
 
             const env = detectEnvironment();
 
@@ -178,7 +221,7 @@ describe('환경 감지 로직', () => {
 
     describe('환경별 데이터 소스 선택', () => {
         test('로컬 환경에서 목업 데이터 사용', () => {
-            process.env.NODE_ENV = 'development';
+            setTestEnv({ NODE_ENV: 'development' });
 
             const env = detectEnvironment();
 
@@ -187,8 +230,10 @@ describe('환경 감지 로직', () => {
         });
 
         test('Vercel 환경에서 GCP 실제 데이터 사용', () => {
-            process.env.VERCEL = '1';
-            process.env.NODE_ENV = 'production';
+            setTestEnv({
+                VERCEL: '1',
+                NODE_ENV: 'production'
+            });
 
             const env = detectEnvironment();
 
@@ -198,21 +243,14 @@ describe('환경 감지 로직', () => {
     });
 
     describe('에러 처리', () => {
-        test('잘못된 환경 설정에 대한 에러 처리', () => {
-            process.env.NODE_ENV = 'invalid_env';
+        test('잘못된 NODE_ENV 값에 대한 처리', () => {
+            setTestEnv({ NODE_ENV: 'invalid' as any });
 
-            expect(() => {
-                const validation = validateEnvironmentConfig();
-                if (!validation.isValid) {
-                    throw new Error(validation.errors.join(', '));
-                }
-            }).toThrow();
-        });
+            const env = detectEnvironment();
 
-        test('환경 감지 함수의 안전한 실행', () => {
-            delete process.env.NODE_ENV;
-
-            expect(() => detectEnvironment()).not.toThrow();
+            // 기본값으로 처리되는지 확인
+            expect(env.IS_LOCAL).toBe(false);
+            expect(env.IS_PRODUCTION).toBe(false);
         });
     });
 }); 

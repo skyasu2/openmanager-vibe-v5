@@ -6,6 +6,46 @@
  * - 확장 가능한 인터페이스 구조
  */
 
+// 🔧 환경변수 타입 확장 - 테스트 환경에서 사용되는 환경변수들
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      NODE_ENV: 'development' | 'production' | 'test';
+      ENABLE_MOCK_DATA?: string;
+      DISABLE_EXTERNAL_CALLS?: string;
+      REDIS_CONNECTION_DISABLED?: string;
+      UPSTASH_REDIS_DISABLED?: string;
+      DISABLE_HEALTH_CHECK?: string;
+      HEALTH_CHECK_CONTEXT?: string;
+      GOOGLE_AI_QUOTA_PROTECTION?: string;
+      FORCE_MOCK_GOOGLE_AI?: string;
+      MCP_SERVER_ENABLED?: string;
+      [key: string]: string | undefined;
+    }
+  }
+
+  // Jest 환경에서의 stubGlobal 함수 타입 정의
+  namespace jest {
+    interface Global {
+      stubGlobal?: (name: string, value: any) => void;
+    }
+  }
+}
+
+// 환경변수 모킹을 위한 타입
+export interface MockEnvironmentConfig {
+  NODE_ENV?: 'development' | 'production' | 'test';
+  ENABLE_MOCK_DATA?: boolean;
+  DISABLE_EXTERNAL_CALLS?: boolean;
+  REDIS_CONNECTION_DISABLED?: boolean;
+  UPSTASH_REDIS_DISABLED?: boolean;
+  DISABLE_HEALTH_CHECK?: boolean;
+  HEALTH_CHECK_CONTEXT?: boolean;
+  GOOGLE_AI_QUOTA_PROTECTION?: boolean;
+  FORCE_MOCK_GOOGLE_AI?: boolean;
+  MCP_SERVER_ENABLED?: boolean;
+}
+
 // 기본 서비스 상태 타입
 export type ServiceStatus =
   | 'running'

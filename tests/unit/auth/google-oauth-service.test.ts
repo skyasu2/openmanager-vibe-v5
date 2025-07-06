@@ -7,6 +7,22 @@
 import { GoogleOAuthService } from '@/services/auth/GoogleOAuthService';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+// 🔧 환경변수 안전 모킹 함수
+function setTestEnv(envVars: Record<string, string | undefined>) {
+    Object.keys(envVars).forEach(key => {
+        if (envVars[key] === undefined) {
+            delete process.env[key];
+        } else {
+            Object.defineProperty(process.env, key, {
+                value: envVars[key],
+                writable: true,
+                configurable: true,
+                enumerable: true
+            });
+        }
+    });
+}
+
 // Mock fetch
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -38,14 +54,12 @@ describe('GoogleOAuthService', () => {
         googleOAuthService = new GoogleOAuthService();
         vi.clearAllMocks();
 
-        // 환경변수 모킹
-        process.env.GOOGLE_OAUTH_CLIENT_ID = 'test-client-id';
-        process.env.GOOGLE_OAUTH_CLIENT_SECRET = 'test-client-secret';
-        process.env.GOOGLE_OAUTH_REDIRECT_URI = 'http://localhost:3000/auth/callback';
-
-        Object.defineProperty(process.env, 'NODE_ENV', {
-            value: 'development',
-            writable: true
+        // 환경변수 안전 모킹
+        setTestEnv({
+            GOOGLE_OAUTH_CLIENT_ID: 'test-client-id',
+            GOOGLE_OAUTH_CLIENT_SECRET: 'test-client-secret',
+            GOOGLE_OAUTH_REDIRECT_URI: 'http://localhost:3000/auth/callback',
+            NODE_ENV: 'development'
         });
     });
 
@@ -63,7 +77,7 @@ describe('GoogleOAuthService', () => {
         });
 
         it('should use default redirect URI when not configured', () => {
-            delete process.env.GOOGLE_OAUTH_REDIRECT_URI;
+            setTestEnv({ GOOGLE_OAUTH_REDIRECT_URI: undefined });
 
             // window 객체가 정의되지 않은 테스트 환경
             const originalWindow = global.window;

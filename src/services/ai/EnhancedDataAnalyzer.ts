@@ -96,7 +96,7 @@ export interface QueryResponse {
 
 export class EnhancedDataAnalyzer {
   private static instance: EnhancedDataAnalyzer | null = null;
-  private dataGenerator: RealServerDataGenerator;
+  private dataGenerator: typeof RealServerDataGenerator;
   private redis: any;
 
   // 한국어 자연어 처리 매핑
@@ -139,14 +139,14 @@ export class EnhancedDataAnalyzer {
     optimization: ['최적화', '개선', '향상', '효율', '절약', '줄이'],
   };
 
-  private constructor() {
-    this.dataGenerator = RealServerDataGenerator.getInstance();
+  constructor(dataGenerator: typeof RealServerDataGenerator) {
+    this.dataGenerator = dataGenerator;
     this.redis = smartRedis;
   }
 
   public static getInstance(): EnhancedDataAnalyzer {
     if (!EnhancedDataAnalyzer.instance) {
-      EnhancedDataAnalyzer.instance = new EnhancedDataAnalyzer();
+      EnhancedDataAnalyzer.instance = new EnhancedDataAnalyzer(RealServerDataGenerator.getInstance());
     }
     return EnhancedDataAnalyzer.instance;
   }
@@ -241,13 +241,13 @@ export class EnhancedDataAnalyzer {
     if (totalServers === 0)
       return { score: 0, trend: 'stable' as const, bottlenecks: [] };
 
-    // CPU, 메모리, 응답시간 분석
+    // CPU, 메모리, 응답시간 분석 - 안전 접근 패턴 적용
     const avgCpu =
-      servers.reduce((sum, s) => sum + s.metrics.cpu, 0) / totalServers;
+      servers.reduce((sum, s) => sum + (s.metrics?.cpu || 0), 0) / totalServers;
     const avgMemory =
-      servers.reduce((sum, s) => sum + s.metrics.memory, 0) / totalServers;
+      servers.reduce((sum, s) => sum + (s.metrics?.memory || 0), 0) / totalServers;
     const avgErrors =
-      servers.reduce((sum, s) => sum + s.metrics.errors, 0) / totalServers;
+      servers.reduce((sum, s) => sum + (s.errors?.count || 0), 0) / totalServers;
 
     // 성능 점수 계산 (0-100)
     const cpuScore = Math.max(0, 100 - avgCpu);
@@ -278,11 +278,11 @@ export class EnhancedDataAnalyzer {
     if (totalServers === 0)
       return { score: 0, uptime: 0, incidents: 0, mttr: 0 };
 
-    const healthyServers = servers.filter(s => s.health.score > 80).length;
+    const healthyServers = servers.filter(s => (s.health?.score || 0) > 80).length;
     const avgUptime =
-      servers.reduce((sum, s) => sum + s.metrics.uptime, 0) / totalServers;
+      servers.reduce((sum, s) => sum + (s.metrics?.uptime || s.uptime || 0), 0) / totalServers;
     const totalIncidents = servers.reduce(
-      (sum, s) => sum + s.health.issues.length,
+      (sum, s) => sum + (s.health?.issues?.length || 0),
       0
     );
 
@@ -308,15 +308,17 @@ export class EnhancedDataAnalyzer {
     if (totalServers === 0)
       return { score: 0, resourceUtilization: 0, costOptimization: 0 };
 
-    // 리소스 활용률
+    // 리소스 활용률 - 안전 접근 패턴 적용
     const avgUtilization =
       servers.reduce((sum, s) => {
-        return sum + (s.metrics.cpu + s.metrics.memory) / 2;
+        const cpu = s.metrics?.cpu || s.cpu || 0;
+        const memory = s.metrics?.memory || s.memory || 0;
+        return sum + (cpu + memory) / 2;
       }, 0) / totalServers;
 
     // 비용 최적화 점수 (리소스 대비 처리량)
     const avgRequests =
-      servers.reduce((sum, s) => sum + s.metrics.requests, 0) / totalServers;
+      servers.reduce((sum, s) => sum + (s.requests?.total || 0), 0) / totalServers;
     const costOptimization =
       avgRequests > 0 ? Math.min(100, (avgRequests / avgUtilization) * 10) : 0;
 
@@ -338,10 +340,10 @@ export class EnhancedDataAnalyzer {
     const correlations: any[] = [];
 
     if (servers.length > 1) {
-      // CPU와 응답시간 상관관계
+      // CPU와 응답시간 상관관계 - 안전 접근 패턴 적용
       const cpuResponseCorr = this.calculateCorrelation(
-        servers.map(s => s.metrics.cpu),
-        servers.map(s => s.metrics.requests)
+        servers.map(s => s.metrics?.cpu || s.cpu || 0),
+        servers.map(s => s.requests?.total || 0)
       );
 
       if (Math.abs(cpuResponseCorr) > 0.3) {
@@ -356,10 +358,10 @@ export class EnhancedDataAnalyzer {
         });
       }
 
-      // 메모리와 오류율 상관관계
+      // 메모리와 오류율 상관관계 - 안전 접근 패턴 적용
       const memoryErrorCorr = this.calculateCorrelation(
-        servers.map(s => s.metrics.memory),
-        servers.map(s => s.metrics.errors)
+        servers.map(s => s.metrics?.memory || s.memory || 0),
+        servers.map(s => s.errors?.count || 0)
       );
 
       if (Math.abs(memoryErrorCorr) > 0.3) {

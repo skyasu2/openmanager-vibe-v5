@@ -40,22 +40,22 @@ export class MCPEngine {
   private mcpClient: RealMCPClient;
   private contextManager: ContextManager;
   private mlToolkit: UnifiedMLToolkit;
-  private serverDataGenerator: RealServerDataGenerator;
+  private serverDataGenerator: typeof RealServerDataGenerator;
   private independentCache: Map<string, any> = new Map();
   private initialized = false;
   private lastQueryTime = 0;
 
-  private constructor() {
+  constructor(serverDataGenerator: typeof RealServerDataGenerator) {
+    this.serverDataGenerator = serverDataGenerator;
     this.mcpClient = RealMCPClient.getInstance();
     this.contextManager = ContextManager.getInstance();
     this.mlToolkit = new UnifiedMLToolkit();
-    this.serverDataGenerator = RealServerDataGenerator.getInstance();
     this.initialize();
   }
 
   static getInstance(): MCPEngine {
     if (!MCPEngine.instance) {
-      MCPEngine.instance = new MCPEngine();
+      MCPEngine.instance = new MCPEngine(RealServerDataGenerator.getInstance());
     }
     return MCPEngine.instance;
   }

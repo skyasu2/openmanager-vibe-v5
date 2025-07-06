@@ -4,26 +4,43 @@
  * 실제 환경에서의 시스템 동작 검증
  */
 
-import { detectEnvironment } from '@/config/environment';
+import { detectEnvironment } from '@/lib/environment/environment-detector';
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 
-describe('환경별 통합 테스트', () => {
-    let originalEnv: NodeJS.ProcessEnv;
-
-    beforeEach(() => {
-        originalEnv = { ...process.env };
+// 🔧 환경변수 안전 모킹 함수
+function setTestEnv(envVars: Record<string, string | undefined>) {
+    Object.keys(envVars).forEach(key => {
+        if (envVars[key] === undefined) {
+            delete process.env[key];
+        } else {
+            Object.defineProperty(process.env, key, {
+                value: envVars[key],
+                writable: true,
+                configurable: true,
+                enumerable: true
+            });
+        }
     });
+}
 
-    afterEach(() => {
-        process.env = originalEnv;
+describe('환경별 통합 테스트', () => {
+    beforeEach(() => {
+        // 테스트 전 기본 환경 설정
+        setTestEnv({
+            NODE_ENV: 'test',
+            ENABLE_MOCK_DATA: 'true',
+            DISABLE_EXTERNAL_CALLS: 'true'
+        });
     });
 
     describe('로컬 개발 환경 통합 테스트', () => {
         beforeEach(() => {
-            process.env.NODE_ENV = 'development';
-            delete process.env.VERCEL;
-            delete process.env.RENDER;
+            setTestEnv({
+                NODE_ENV: 'development',
+                VERCEL: undefined,
+                RENDER: undefined
+            });
         });
 
         test('로컬 환경에서 목업 데이터 생성기 정상 동작', async () => {
@@ -79,9 +96,11 @@ describe('환경별 통합 테스트', () => {
 
     describe('Vercel 환경 통합 테스트', () => {
         beforeEach(() => {
-            process.env.VERCEL = '1';
-            process.env.NODE_ENV = 'production';
-            process.env.VERCEL_ENV = 'production';
+            setTestEnv({
+                VERCEL: '1',
+                NODE_ENV: 'production',
+                VERCEL_ENV: 'production'
+            });
         });
 
         test('Vercel 환경에서 GCP 데이터 서비스 초기화', async () => {
@@ -112,11 +131,13 @@ describe('환경별 통합 테스트', () => {
 
     describe('테스트 환경 통합 테스트', () => {
         beforeEach(() => {
-            process.env.NODE_ENV = 'test';
-            process.env.REDIS_CONNECTION_DISABLED = 'true';
-            process.env.UPSTASH_REDIS_DISABLED = 'true';
-            process.env.DISABLE_HEALTH_CHECK = 'true';
-            process.env.FORCE_MOCK_GOOGLE_AI = 'true';
+            setTestEnv({
+                NODE_ENV: 'test',
+                REDIS_CONNECTION_DISABLED: 'true',
+                UPSTASH_REDIS_DISABLED: 'true',
+                DISABLE_HEALTH_CHECK: 'true',
+                FORCE_MOCK_GOOGLE_AI: 'true'
+            });
         });
 
         test('테스트 환경에서 외부 연결 차단 확인', () => {
@@ -140,16 +161,20 @@ describe('환경별 통합 테스트', () => {
     describe('환경 전환 테스트', () => {
         test('개발 환경에서 프로덕션 환경으로 전환', () => {
             // 개발 환경 설정
-            process.env.NODE_ENV = 'development';
-            delete process.env.VERCEL;
+            setTestEnv({
+                NODE_ENV: 'development',
+                VERCEL: undefined
+            });
 
             const devEnv = detectEnvironment();
             expect(devEnv.IS_LOCAL).toBe(true);
             expect(devEnv.ENABLE_MOCK_DATA).toBe(true);
 
             // 프로덕션 환경으로 전환
-            process.env.NODE_ENV = 'production';
-            process.env.VERCEL = '1';
+            setTestEnv({
+                NODE_ENV: 'production',
+                VERCEL: '1'
+            });
 
             const prodEnv = detectEnvironment();
             expect(prodEnv.IS_VERCEL).toBe(true);
@@ -164,14 +189,7 @@ describe('환경별 통합 테스트', () => {
             ];
 
             environments.forEach(envVars => {
-                // 환경 변수 설정
-                Object.entries(envVars).forEach(([key, value]) => {
-                    if (value === undefined) {
-                        delete process.env[key];
-                    } else {
-                        process.env[key] = value;
-                    }
-                });
+                setTestEnv(envVars);
 
                 const env = detectEnvironment();
 
@@ -187,7 +205,7 @@ describe('환경별 통합 테스트', () => {
 
     describe('환경별 API 응답 테스트', () => {
         test('로컬 환경에서 서버 API 응답 구조', async () => {
-            process.env.NODE_ENV = 'development';
+            setTestEnv({ NODE_ENV: 'development' });
 
             const generator = RealServerDataGenerator.getInstance();
             await generator.initialize();
@@ -217,20 +235,18 @@ describe('환경별 통합 테스트', () => {
 
             for (const testCase of testCases) {
                 // 환경 설정
-                Object.entries(testCase).forEach(([key, value]) => {
-                    if (key === 'expectMockData') return;
-                    process.env[key] = String(value);
-                });
+                const { expectMockData, ...envVars } = testCase;
+                setTestEnv(envVars);
 
                 const env = detectEnvironment();
-                expect(env.ENABLE_MOCK_DATA).toBe(testCase.expectMockData);
+                expect(env.ENABLE_MOCK_DATA).toBe(expectMockData);
             }
         });
     });
 
     describe('성능 테스트', () => {
         test('로컬 환경에서 서버 데이터 생성 성능', async () => {
-            process.env.NODE_ENV = 'development';
+            setTestEnv({ NODE_ENV: 'development' });
 
             const generator = RealServerDataGenerator.getInstance();
             await generator.initialize();
@@ -265,7 +281,7 @@ describe('환경별 통합 테스트', () => {
         test('환경별 메모리 사용량 모니터링', async () => {
             const initialMemory = process.memoryUsage();
 
-            process.env.NODE_ENV = 'development';
+            setTestEnv({ NODE_ENV: 'development' });
             const generator = RealServerDataGenerator.getInstance();
             await generator.initialize();
             await generator.getAllServers();

@@ -34,13 +34,18 @@ import {
 export class AnalysisProcessor {
   private static instance: AnalysisProcessor | null = null;
   private degradationManager: GracefulDegradationManager;
-  private googleAI?: GoogleAIService;
+  private googleAI?: typeof GoogleAIService;
   private mcpClient: RealMCPClient | null = null;
   private openSourceEngines?: OpenSourceEngines;
   private customEngines?: CustomEngines;
 
-  private constructor() {
+  constructor(
+    private localRAG: LocalRAGEngine,
+    private mcpEngine: MCPEngine,
+    googleAI?: typeof GoogleAIService,
+  ) {
     this.degradationManager = GracefulDegradationManager.getInstance();
+    this.googleAI = googleAI;
   }
 
   public static getInstance(): AnalysisProcessor {
@@ -54,7 +59,7 @@ export class AnalysisProcessor {
    * 엔진 초기화
    */
   public async initialize(
-    googleAI?: GoogleAIService,
+    googleAI?: typeof GoogleAIService,
     mcpClient?: RealMCPClient,
     openSourceEngines?: OpenSourceEngines,
     customEngines?: CustomEngines
