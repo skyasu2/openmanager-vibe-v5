@@ -40,7 +40,7 @@ export default function Custom500() {
         </div>
 
         <div className='mt-6 text-sm text-gray-500'>
-          <p>OpenManager Vibe v5</p>
+          <p>OpenManager</p>
           <p>오류 시간: {new Date().toLocaleString()}</p>
         </div>
       </div>

@@ -133,23 +133,45 @@ export class GCPMetricsCollector {
     private applyGCPMetrics(server: ServerInstance, gcpMetrics: GCPMetricData): void {
         // 🔄 GCP 메트릭 기반 서버 상태 업데이트
         if (!server.metrics) {
-            server.metrics = { cpu: 0, memory: 0, disk: 0, network: 0 };
+            server.metrics = {
+                cpu: 0,
+                memory: 0,
+                disk: 0,
+                network: { in: 0, out: 0 },
+                requests: 0,
+                errors: 0,
+                uptime: 0
+            };
         }
 
-        server.metrics.cpu = gcpMetrics.cpu?.usage || gcpMetrics.cpu || 0;
-        server.metrics.memory = gcpMetrics.memory?.usage || gcpMetrics.memory || 0;
-        server.metrics.disk = gcpMetrics.disk?.usage || gcpMetrics.disk || 0;
-        server.metrics.network = gcpMetrics.network?.usage || gcpMetrics.network?.in || 0;
+        server.metrics.cpu = gcpMetrics.cpu || 0;
+        server.metrics.memory = gcpMetrics.memory || 0;
+        server.metrics.disk = gcpMetrics.disk || 0;
+        server.metrics.network = gcpMetrics.network || { in: 0, out: 0 };
+        server.metrics.requests = gcpMetrics.requests || 0;
+        server.metrics.errors = gcpMetrics.errors || 0;
+        server.metrics.uptime = gcpMetrics.uptime || 0;
 
-        server.status = this.determineServerStatus(gcpMetrics) as 'healthy' | 'warning' | 'critical' | 'error' | 'running' | 'stopped' | 'maintenance';
+        // 서버 상태 결정 (허용된 상태만 사용)
+        const statusValue = this.determineServerStatus(gcpMetrics);
+        if (['warning', 'error', 'stopped', 'running', 'maintenance'].includes(statusValue)) {
+            server.status = statusValue as 'warning' | 'error' | 'stopped' | 'running' | 'maintenance';
+        } else {
+            server.status = 'running'; // critical이나 healthy는 running으로 매핑
+        }
 
-        // 마지막 체크 시간 업데이트
-        server.lastCheck = gcpMetrics.timestamp.toISOString();
+        // 마지막 체크 시간 업데이트 (선택적 속성)
+        if ('lastCheck' in server) {
+            (server as any).lastCheck = gcpMetrics.timestamp.toISOString();
+        }
 
-        // GCP 태그 추가
-        if (!server.tags || !server.tags.includes('source:gcp')) {
-            if (!server.tags) server.tags = [];
-            server.tags.push('source:gcp');
+        // GCP 태그 추가 (선택적 속성)
+        if ('tags' in server) {
+            const serverWithTags = server as any;
+            if (!serverWithTags.tags || !serverWithTags.tags.includes('source:gcp')) {
+                if (!serverWithTags.tags) serverWithTags.tags = [];
+                serverWithTags.tags.push('source:gcp');
+            }
         }
     }
 

@@ -514,10 +514,12 @@ export class SimplifiedNaturalLanguageEngine {
    */
   private async tryMCP(query: string) {
     // 🎯 MCP 역할 변경: AI 응답 생성 → 컨텍스트 수집 도우미
-    const mcpClient = RealMCPClient.getInstance();
-
     try {
-      const contextResult = await mcpClient.performComplexQuery(query);
+      // UnifiedAIEngineRouter를 통한 MCP 접근
+      const contextResult = await this.unifiedAI.processQuery(query, {
+        preferredEngine: 'mcp',
+        timeout: 5000
+      });
 
       if (contextResult && typeof contextResult === 'object') {
         // MCP는 더 이상 응답을 생성하지 않고, 컨텍스트만 제공
@@ -574,7 +576,9 @@ export class SimplifiedNaturalLanguageEngine {
    */
   private async tryRAG(query: string) {
     if (!this.ragEngine) {
-      this.ragEngine = getSupabaseRAGEngine();
+      // SupabaseRAGEngine 직접 임포트 및 초기화
+      const { SupabaseRAGEngine } = await import('@/lib/ml/rag-engine');
+      this.ragEngine = new SupabaseRAGEngine();
       await this.ragEngine.initialize();
     }
 

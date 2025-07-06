@@ -153,13 +153,13 @@ export default function SystemBootPage() {
       name: '시스템 완료',
       delay: 4800,
       icon: CheckCircle,
-      description: 'OpenManager Vibe v5가 준비되었습니다!',
+      description: 'OpenManager가 준비되었습니다!',
     },
   ];
 
   // 🚀 실제 제품 로딩 애니메이션
   useEffect(() => {
-    console.log('🚀 OpenManager Vibe v5 시스템 로딩 시작');
+    console.log('🚀 OpenManager 시스템 로딩 시작');
 
     stages.forEach(({ name, delay, icon, description }, index) => {
       setTimeout(() => {
@@ -380,17 +380,16 @@ export default function SystemBootPage() {
                   >
                     {/* 메인 아이콘 컨테이너 */}
                     <motion.div
-                      className={`w-12 h-12 rounded-xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${
-                        isActive
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${isActive
                           ? 'bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 text-white shadow-lg'
                           : 'bg-white/10 text-white/40 border border-white/20'
-                      }`}
+                        }`}
                       animate={
                         isCurrentStep
                           ? {
-                              scale: [1, 1.1, 1],
-                              rotate: [0, 5, -5, 0],
-                            }
+                            scale: [1, 1.1, 1],
+                            rotate: [0, 5, -5, 0],
+                          }
                           : {}
                       }
                       transition={{
@@ -404,8 +403,8 @@ export default function SystemBootPage() {
                         animate={
                           isActive
                             ? {
-                                rotate: [0, 360],
-                              }
+                              rotate: [0, 360],
+                            }
                             : {}
                         }
                         transition={{

@@ -3,6 +3,7 @@ export interface PerformanceMetrics {
   successfulRequests: number;
   failedRequests: number;
   averageResponseTime: number;
+  requestsPerMinute: number;
   lastRequestTime: number;
   lastSuccessTime: number;
   successRate: number;
@@ -12,14 +13,13 @@ export interface SystemHealth {
   status: 'healthy' | 'degraded' | 'unhealthy';
   pythonServiceStatus: 'up' | 'down' | 'slow';
   jsEnginesStatus: 'up' | 'down' | 'partial';
-  warmupHealth: 'good' | 'poor' | 'failed';
   lastHealthCheck: string;
   uptime: number;
 }
 
 export interface ErrorReport {
   timestamp: string;
-  type: 'warmup_failure' | 'request_failure' | 'engine_failure' | 'timeout';
+  type: 'request_failure' | 'engine_failure' | 'timeout' | 'system_error';
   message: string;
   stack?: string;
   context?: any;
@@ -32,15 +32,15 @@ export class MonitoringService {
     successfulRequests: 0,
     failedRequests: 0,
     averageResponseTime: 0,
+    requestsPerMinute: 0,
     lastRequestTime: 0,
     lastSuccessTime: 0,
-    successRate: 0
+    successRate: 1.0
   };
   private systemHealth: SystemHealth = {
     status: 'healthy',
     pythonServiceStatus: 'up',
     jsEnginesStatus: 'up',
-    warmupHealth: 'good',
     lastHealthCheck: new Date().toISOString(),
     uptime: 0
   };
@@ -51,40 +51,47 @@ export class MonitoringService {
 
   constructor() {
     this.startTime = Date.now();
+    console.log('📊 [MonitoringService] 초기화 완료 - Google Cloud VM 24시간 동작');
 
-    // 정기적인 메트릭 정리 (5분마다)
-    setInterval(() => this.cleanupMetrics(), 5 * 60 * 1000);
+    // 🔄 주기적 메트릭 정리 (5분마다)
+    setInterval(() => {
+      this.cleanupMetrics();
+    }, 5 * 60 * 1000);
   }
 
   /**
-   * 📊 요청 성능 기록
+   * 📊 요청 기록
    */
   recordRequest(success: boolean, responseTime: number, engine: string) {
-    const now = Date.now();
+    const timestamp = Date.now();
 
+    // 성능 메트릭 업데이트
     this.performanceMetrics.totalRequests++;
-    this.responseTimesBuffer.push(responseTime);
-    this.requestBuffer.push({ timestamp: now, success, responseTime, engine });
-
     if (success) {
       this.performanceMetrics.successfulRequests++;
+      this.performanceMetrics.lastSuccessTime = timestamp;
     } else {
       this.performanceMetrics.failedRequests++;
     }
 
-    // 응답시간 메트릭 업데이트
-    this.updateResponseTimeMetrics();
+    this.performanceMetrics.lastRequestTime = timestamp;
+    this.performanceMetrics.successRate = this.performanceMetrics.successfulRequests / this.performanceMetrics.totalRequests;
 
-    // 분당 요청수 계산 (최근 1분간)
-    this.calculateRequestsPerMinute();
-
-    // 버퍼 크기 제한 (최근 1000개만 유지)
-    if (this.responseTimesBuffer.length > 1000) {
-      this.responseTimesBuffer = this.responseTimesBuffer.slice(-1000);
+    // 응답시간 버퍼 업데이트
+    this.responseTimesBuffer.push(responseTime);
+    if (this.responseTimesBuffer.length > 100) {
+      this.responseTimesBuffer = this.responseTimesBuffer.slice(-100);
     }
+
+    // 요청 버퍼 업데이트
+    this.requestBuffer.push({ timestamp, success, responseTime, engine });
     if (this.requestBuffer.length > 1000) {
       this.requestBuffer = this.requestBuffer.slice(-1000);
     }
+
+    // 메트릭 계산
+    this.updateResponseTimeMetrics();
+    this.calculateRequestsPerMinute();
   }
 
   private updateResponseTimeMetrics() {

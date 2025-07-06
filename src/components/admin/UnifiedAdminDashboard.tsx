@@ -430,7 +430,7 @@ export default function UnifiedAdminDashboard() {
             <div className='w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center'>
               <Shield className='w-6 h-6 text-white' />
             </div>
-            OpenManager Vibe v5 관리자 대시보드
+            OpenManager 관리자 대시보드
           </h1>
           <p className='text-gray-600 mt-1'>
             AI 엔진 통합 모니터링 및 시스템 관리
@@ -1201,12 +1201,12 @@ export default function UnifiedAdminDashboard() {
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ delay: index * 0.1 }}
                         className={`p-4 rounded-lg border-l-4 ${alert.type === 'critical'
-                            ? 'bg-red-50 border-red-500'
-                            : alert.type === 'error'
-                              ? 'bg-red-50 border-red-400'
-                              : alert.type === 'warning'
-                                ? 'bg-yellow-50 border-yellow-500'
-                                : 'bg-blue-50 border-blue-500'
+                          ? 'bg-red-50 border-red-500'
+                          : alert.type === 'error'
+                            ? 'bg-red-50 border-red-400'
+                            : alert.type === 'warning'
+                              ? 'bg-yellow-50 border-yellow-500'
+                              : 'bg-blue-50 border-blue-500'
                           } ${alert.acknowledged ? 'opacity-60' : ''}`}
                       >
                         <div className='flex items-start justify-between'>
@@ -1277,7 +1277,7 @@ export default function UnifiedAdminDashboard() {
         className='flex items-center justify-between text-sm text-gray-500 pt-4 border-t border-gray-200'
       >
         <div className='flex items-center gap-4'>
-          <span>OpenManager Vibe v5.21.0</span>
+          <span>OpenManager v5.21.0</span>
           <span>환경: {data.status.infrastructure.environment}</span>
           <span>
             업타임: {Math.round(data.status.infrastructure.uptime / 3600)}시간

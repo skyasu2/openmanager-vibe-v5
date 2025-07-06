@@ -217,7 +217,12 @@ export class GCPAIDataAdapter {
                         criticality: 'High',
                         scalingType: 'Auto'
                     },
-                    resources: this.estimateServerResources(metric),
+                    resources: {
+                        cpu: { cores: 4, model: 'GCP Virtual CPU', clockSpeed: 2400 },
+                        memory: { total: 8589934592, type: 'DDR4' }, // 8GB
+                        storage: { total: 107374182400, type: 'SSD' }, // 100GB
+                        network: { bandwidth: 1000, type: '1G' }
+                    },
                     tags: {
                         environment: 'development',
                         type: 'fallback'
@@ -506,9 +511,13 @@ export class GCPAIDataAdapter {
             criticalAlerts: [
                 criticalServers > 0 ? `${criticalServers}개 서버 임계 상태` : null,
                 errorRate > 0.1 ? '높은 에러율 감지' : null,
-                dataset.patterns?.anomalies && dataset.patterns.anomalies.length > 5 ? '다수 이상 패턴 감지' : null ||
-                    '정상 운영 상태'
-            ].filter(Boolean),
+                (dataset.patterns?.anomalies && dataset.patterns.anomalies.length > 5) ? '다수 이상 패턴 감지' : null
+            ].filter(Boolean).concat(
+                // 기본 상태가 없으면 정상 상태 메시지 추가
+                (criticalServers === 0 && errorRate <= 0.1 && (!dataset.patterns?.anomalies || dataset.patterns.anomalies.length <= 5))
+                    ? ['정상 운영 상태']
+                    : []
+            ),
 
             patterns: [
                 `${dataset.patterns?.anomalies?.length || 0}개 이상 패턴 감지`,
@@ -558,36 +567,12 @@ export class GCPAIDataAdapter {
                         criticality: 'High',
                         scalingType: 'Auto'
                     },
-                    resources: this.estimateServerResources({
-                        system: {
-                            cpu: {
-                                usage: 80,
-                                load1: 0.5
-                            },
-                            memory: {
-                                used: 4294967296,
-                                available: 4294967296
-                            },
-                            disk: {
-                                utilization: 0.5
-                            }
-                        },
-                        application: {
-                            requests: {
-                                errors: 0,
-                                total: 100,
-                                success: 100
-                            },
-                            database: {
-                                queries: {
-                                    total: 0,
-                                    slow: 0,
-                                    deadlocks: 0
-                                },
-                                connections: 0
-                            }
-                        }
-                    }),
+                    resources: {
+                        cpu: { cores: 4, model: 'GCP Virtual CPU', clockSpeed: 2400 },
+                        memory: { total: 8589934592, type: 'DDR4' }, // 8GB
+                        storage: { total: 107374182400, type: 'SSD' }, // 100GB
+                        network: { bandwidth: 1000, type: '1G' }
+                    },
                     tags: {
                         environment: 'development',
                         type: 'fallback'
@@ -652,7 +637,7 @@ export class GCPAIDataAdapter {
         const factors = [
             dataset.metrics.length > 10 ? 0.3 : 0.1,
             dataset.servers.length > 5 ? 0.2 : 0.1,
-            dataset.patterns.anomalies.length > 0 ? 0.2 : 0.1,
+            (dataset.patterns?.anomalies?.length || 0) > 0 ? 0.2 : 0.1,
             dataset.logs.length > 0 ? 0.15 : 0.05,
             dataset.traces.length > 0 ? 0.15 : 0.05
         ];
@@ -670,7 +655,7 @@ export class GCPAIDataAdapter {
         if (dataset.servers.length > 0) score += 0.2;
 
         // 패턴 분석 완성도
-        if (dataset.patterns.anomalies.length > 0) score += 0.2;
+        if ((dataset.patterns?.anomalies?.length || 0) > 0) score += 0.2;
 
         // 로그 데이터 완성도
         if (dataset.logs.length > 0) score += 0.15;
@@ -682,9 +667,9 @@ export class GCPAIDataAdapter {
     }
 
     private generateAIRecommendations(dataset: AIAnalysisDataset): string[] {
-        const recommendations = [];
+        const recommendations: string[] = [];
 
-        if (dataset.patterns.anomalies.length > 5) {
+        if ((dataset.patterns?.anomalies?.length || 0) > 5) {
             recommendations.push('다수의 이상 패턴이 감지되었습니다. 시스템 점검이 필요합니다.');
         }
 
@@ -699,7 +684,7 @@ export class GCPAIDataAdapter {
 
     private async detectAnomalies(dataset: AIAnalysisDataset): Promise<number> {
         // 기존 패턴에서 이상 개수 반환
-        return dataset.patterns.anomalies.length;
+        return dataset.patterns?.anomalies?.length || 0;
     }
 
     // 서버 정보 추출 헬퍼들
@@ -754,38 +739,52 @@ export class GCPAIDataAdapter {
 
     private estimateServerResources(metric: TimeSeriesMetrics): any {
         return {
-            cpu: this.estimateCpuSpecs(metric),
-            memory: this.estimateMemorySpecs(metric),
-            disk: this.estimateDiskSpecs(metric),
-            network: this.estimateNetworkSpecs(metric)
+            cpu: {
+                cores: Math.max(1, Math.ceil(metric.system.cpu.load1)),
+                model: 'GCP Virtual CPU',
+                clockSpeed: 2400
+            },
+            memory: {
+                total: metric.system.memory.used + metric.system.memory.available,
+                type: 'DDR4' as const
+            },
+            storage: {
+                total: 100 * 1024 * 1024 * 1024, // 100GB 가정
+                type: 'SSD' as const
+            },
+            network: {
+                bandwidth: 1000,
+                type: '1G' as const
+            }
         };
     }
 
     private estimateCpuSpecs(metric: TimeSeriesMetrics): any {
         return {
-            cores: Math.ceil(metric.system.cpu.load1),
-            model: 'GCP Virtual CPU'
+            cores: Math.max(1, Math.ceil(metric.system.cpu.load1)),
+            model: 'GCP Virtual CPU',
+            clockSpeed: 2400
         };
     }
 
     private estimateMemorySpecs(metric: TimeSeriesMetrics): any {
         return {
             total: metric.system.memory.used + metric.system.memory.available,
-            type: 'Virtual'
+            type: 'DDR4' as const
         };
     }
 
     private estimateDiskSpecs(metric: TimeSeriesMetrics): any {
         return {
             total: 100 * 1024 * 1024 * 1024, // 100GB 가정
-            type: 'SSD'
+            type: 'SSD' as const
         };
     }
 
     private estimateNetworkSpecs(metric: TimeSeriesMetrics): any {
         return {
             bandwidth: 1000,
-            type: '1G'
+            type: '1G' as const
         };
     }
 

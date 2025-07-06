@@ -91,16 +91,6 @@ interface SystemIntegrationState {
   isInitialized: boolean;
   initializationProgress: number;
 
-  // 🚀 MCP Wake-up 상태 추가
-  mcpWakeupStatus: {
-    isInProgress: boolean;
-    stage: MCPWakeupProgress['stage'] | null;
-    message: string;
-    progress: number;
-    elapsedTime: number;
-    estimatedRemaining?: number;
-  };
-
   // 실시간 이벤트
   recentEvents: SystemEvent[];
   eventCount: number;
@@ -202,7 +192,7 @@ export const useSystemIntegration = () => {
       dataRetention: {
         isRunning: false,
         lastCleanup: null,
-        cleanupInterval: 300000, // 5분
+        cleanupInterval: 300000,
         activePolicies: 0,
         cleanedDataPoints: 0,
       },
@@ -220,14 +210,6 @@ export const useSystemIntegration = () => {
       lastUpdate: null,
       isInitialized: false,
       initializationProgress: 0,
-      // 🚀 MCP Wake-up 상태 초기화
-      mcpWakeupStatus: {
-        isInProgress: false,
-        stage: null,
-        message: '',
-        progress: 0,
-        elapsedTime: 0,
-      },
       recentEvents: [],
       eventCount: 0,
       status: {
