@@ -26,21 +26,21 @@ describe('🌐 GCP 서버 데이터 생성기', () => {
         mockFirestore = {
             collection: jest.fn().mockReturnThis(),
             doc: jest.fn().mockReturnThis(),
-            add: jest.fn().mockResolvedValue({ id: 'test-doc' } as unknown),
-            get: jest.fn().mockResolvedValue({ exists: true, data: () => ({}) } as unknown),
-            set: jest.fn().mockResolvedValue({} as unknown),
-            delete: jest.fn().mockResolvedValue({} as unknown),
+            add: jest.fn().mockResolvedValue({ id: 'test-doc' }),
+            get: jest.fn().mockResolvedValue({ exists: true, data: () => ({}) }),
+            set: jest.fn().mockResolvedValue({}),
+            delete: jest.fn().mockResolvedValue({}),
             where: jest.fn().mockReturnThis(),
             orderBy: jest.fn().mockReturnThis(),
             limit: jest.fn().mockReturnThis()
-        } as unknown;
+        } as any;
 
         mockCloudStorage = {
             bucket: jest.fn().mockReturnThis(),
             file: jest.fn().mockReturnThis(),
-            download: jest.fn().mockResolvedValue([Buffer.from('{"test": "data"}')] as unknown),
-            save: jest.fn().mockResolvedValue({} as unknown)
-        } as unknown;
+            download: jest.fn().mockResolvedValue([Buffer.from('{"test": "data"}')]),
+            save: jest.fn().mockResolvedValue({})
+        } as any;
 
         generator = new GCPServerDataGenerator(mockFirestore, mockCloudStorage);
         sessionManager = new GCPSessionManager(mockFirestore);
@@ -557,14 +557,14 @@ describe('🔄 GCP 세션 매니저', () => {
         mockFirestore = {
             collection: jest.fn().mockReturnThis(),
             doc: jest.fn().mockReturnThis(),
-            add: jest.fn().mockResolvedValue({ id: 'test-doc' } as unknown),
-            get: jest.fn().mockResolvedValue({ exists: true, data: () => ({}) } as unknown),
-            set: jest.fn().mockResolvedValue({} as unknown),
-            delete: jest.fn().mockResolvedValue({} as unknown),
+            add: jest.fn().mockResolvedValue({ id: 'test-doc' }),
+            get: jest.fn().mockResolvedValue({ exists: true, data: () => ({}) }),
+            set: jest.fn().mockResolvedValue({}),
+            delete: jest.fn().mockResolvedValue({}),
             where: jest.fn().mockReturnThis(),
             orderBy: jest.fn().mockReturnThis(),
             limit: jest.fn().mockReturnThis()
-        } as unknown;
+        } as any;
 
         sessionManager = new GCPSessionManager(mockFirestore);
     });

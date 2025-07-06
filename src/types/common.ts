@@ -10,7 +10,7 @@
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      NODE_ENV: 'development' | 'production' | 'test';
+      readonly NODE_ENV: 'development' | 'production' | 'test';
       ENABLE_MOCK_DATA?: string;
       DISABLE_EXTERNAL_CALLS?: string;
       REDIS_CONNECTION_DISABLED?: string;

@@ -61,6 +61,13 @@ describe('GoogleOAuthService', () => {
             GOOGLE_OAUTH_REDIRECT_URI: 'http://localhost:3000/auth/callback',
             NODE_ENV: 'development'
         });
+
+        // NODE_ENV를 안전하게 변경
+        Object.defineProperty(process.env, 'NODE_ENV', {
+            value: 'development',
+            writable: true,
+            configurable: true
+        });
     });
 
     afterEach(() => {

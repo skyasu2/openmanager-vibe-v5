@@ -116,16 +116,17 @@ describe('환경별 통합 테스트', () => {
             const env = detectEnvironment();
 
             expect(env.IS_VERCEL).toBe(true);
-            expect(env.MEMORY_LIMIT_MB).toBe(1024);
-            expect(env.TIMEOUT_MS).toBe(30000);
-            expect(env.DISABLE_WEBSOCKET).toBe(true);
+            expect(env.IS_PRODUCTION).toBe(true);
+            expect(env.performance.maxMemory).toBe(1024);
+            expect(env.performance.timeout).toBe(25000);
+            expect(env.features.enableWebSocket).toBe(false);
         });
 
         test('Vercel 환경에서 목업 데이터 비활성화 확인', () => {
             const env = detectEnvironment();
 
-            expect(env.ENABLE_MOCK_DATA).toBe(false);
-            expect(env.DATA_SOURCE).toBe('gcp');
+            expect(env.features.enableMockData).toBe(false);
+            expect(env.platform).toBe('vercel');
         });
     });
 
@@ -144,8 +145,8 @@ describe('환경별 통합 테스트', () => {
             const env = detectEnvironment();
 
             expect(env.IS_TEST).toBe(true);
-            expect(env.DISABLE_EXTERNAL_CALLS).toBe(true);
-            expect(env.ENABLE_MOCK_DATA).toBe(true);
+            expect(env.features.enableMockData).toBe(true);
+            expect(env.platform).toBe('local');
         });
 
         test('테스트 환경에서 Redis 연결 비활성화', () => {
@@ -168,7 +169,7 @@ describe('환경별 통합 테스트', () => {
 
             const devEnv = detectEnvironment();
             expect(devEnv.IS_LOCAL).toBe(true);
-            expect(devEnv.ENABLE_MOCK_DATA).toBe(true);
+            expect(devEnv.features.enableMockData).toBe(true);
 
             // 프로덕션 환경으로 전환
             setTestEnv({
@@ -178,7 +179,7 @@ describe('환경별 통합 테스트', () => {
 
             const prodEnv = detectEnvironment();
             expect(prodEnv.IS_VERCEL).toBe(true);
-            expect(prodEnv.ENABLE_MOCK_DATA).toBe(false);
+            expect(prodEnv.features.enableMockData).toBe(false);
         });
 
         test('환경 전환 시 설정 일관성 확인', () => {

@@ -226,7 +226,7 @@ export class GCPRealServerDataGenerator {
             return STATIC_ERROR_SERVERS.map(server => ({
                 id: server.id,
                 name: server.name,
-                type: 'error' as any,
+                type: server.type || 'unknown',
                 location: server.location,
                 status: 'offline' as ServerStatus,
                 environment: 'error' as ServerEnvironment,
@@ -286,7 +286,7 @@ export class GCPRealServerDataGenerator {
             mockServers.push({
                 id: `mock-server-${i.toString().padStart(3, '0')}`,
                 name: `목업서버-${i}`,
-                type: randomType as any,
+                type: randomType || 'unknown',
                 location: randomLocation,
                 lastUpdated: new Date().toISOString(),
                 provider: 'Mock Provider',
@@ -622,7 +622,7 @@ export class GCPRealServerDataGenerator {
                 name: `🚨 ERROR: ${server.name}`,
                 hostname: `❌ 연결실패: ${error instanceof Error ? error.message : 'Unknown'}`,
                 status: server.status as ServerStatus,
-                type: server.type,
+                type: server.type || 'unknown',
                 environment: server.environment as ServerEnvironment,
                 cpu: server.cpu,
                 memory: server.memory,

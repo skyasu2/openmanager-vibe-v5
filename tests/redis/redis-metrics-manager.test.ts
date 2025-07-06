@@ -204,6 +204,12 @@ describe('🔴 TDD Red Phase: RedisMetricsManager 실패 테스트', () => {
 });
 
 describe('🔵 TDD Refactor Phase: 성능 최적화 테스트', () => {
+    let manager: RedisMetricsManager;
+
+    beforeEach(() => {
+        manager = new RedisMetricsManager(mockRedis as any);
+    });
+
     test('🔴 FAIL: 대량 메트릭 배치 처리 성능 테스트', async () => {
         const sessionId = 'test-session-performance';
         const largeMetrics = generateMockServerMetrics(1000); // 1000개 서버
