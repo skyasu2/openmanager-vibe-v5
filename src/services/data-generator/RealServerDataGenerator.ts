@@ -224,43 +224,14 @@ export class GCPRealServerDataGenerator {
         if (env.IS_VERCEL) {
             // Vercel 환경에서는 에러 상태 서버만 반환
             return STATIC_ERROR_SERVERS.map(server => ({
-                id: server.id,
-                name: server.name,
-                type: 'error' as any,
-                location: 'ERROR_LOCATION',
-                status: 'offline' as ServerStatus,
-                environment: 'error' as ServerEnvironment,
-                cpu: 0,
-                memory: 0,
-                disk: 0,
-                network: 0,
-                uptime: 0,
+                ...server,
+                // 🔧 누락된 필수 속성들 추가
                 lastCheck: new Date().toISOString(),
                 region: 'error-region',
                 version: '0.0.0',
                 tags: ['error'],
-                alerts: 999,
                 lastUpdated: new Date().toISOString(),
-                provider: 'ERROR_PROVIDER',
-                specs: {
-                    cpu_cores: 0,
-                    memory_gb: 0,
-                    disk_gb: 0,
-                    network_speed: 'ERROR'
-                },
-                metrics: {
-                    cpu: 0, memory: 0, disk: 0,
-                    network: 0,
-                    requests: 0, errors: 999, uptime: 0,
-                    customMetrics: {}
-                },
-                health: {
-                    score: 0,
-                    trend: [0, 0, 0, 0, 0],
-                    status: 'offline' as ServerStatus,
-                    issues: ['ERROR: 실제 데이터 연결 실패'],
-                    lastChecked: new Date().toISOString()
-                }
+                provider: 'ERROR_PROVIDER'
             }));
         }
 

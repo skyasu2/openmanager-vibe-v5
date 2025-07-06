@@ -883,19 +883,20 @@ export class ServerMonitoringAgent {
   private generateResolutionActions(server: ServerInstance): string[] {
     const actions: string[] = [];
 
-    if (server.metrics.cpu > 80) {
-      actions.push('CPU 집약적 프로세스 식별 및 최적화');
-      actions.push('로드 밸런서 설정 검토');
+    // 🔧 안전한 metrics 접근
+    if (server.metrics?.cpu > 80) {
+      actions.push('CPU 사용률 최적화: 불필요한 프로세스 종료');
+      actions.push('로드 밸런싱 재구성 또는 서버 증설 검토');
     }
 
-    if (server.metrics.memory > 85) {
-      actions.push('메모리 사용량 분석 및 정리');
-      actions.push('캐시 크기 조정');
+    if (server.metrics?.memory > 85) {
+      actions.push('메모리 정리: 캐시 클리어 및 메모리 누수 점검');
+      actions.push('애플리케이션 재시작 고려');
     }
 
-    if (server.metrics.disk > 90) {
-      actions.push('불필요한 파일 정리');
-      actions.push('로그 아카이빙');
+    if (server.metrics?.disk > 90) {
+      actions.push('디스크 공간 확보: 로그 파일 정리');
+      actions.push('스토리지 확장 계획 수립');
     }
 
     actions.push('서비스 재시작');
