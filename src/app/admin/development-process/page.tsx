@@ -40,30 +40,42 @@ function useAdminAuth() {
   useEffect(() => {
     // 🔧 TODO: 실제 관리자 인증 로직으로 교체 필요
     const checkAdminAuth = () => {
-      // 현재는 localStorage 기반 간단 체크
-      const adminToken = localStorage.getItem('admin_access');
-      // 🚨 빌드 시 process.env 접근 오류 방지
-      const isDevMode =
-        typeof window !== 'undefined' &&
-        (window.location.hostname === 'localhost' ||
-          window.location.hostname === '127.0.0.1');
+      try {
+        // 브라우저 환경에서만 실행
+        if (typeof window === 'undefined') {
+          setIsLoading(false);
+          return;
+        }
 
-      // 개발 모드에서는 자동 허용, 프로덕션에서는 토큰 체크
-      if (isDevMode || adminToken === 'vibe_admin_2025') {
-        setIsAdmin(true);
-      } else {
-        // 관리자 토큰이 없으면 간편 설정 제안
-        const userConfirm = confirm(
-          '개발과정 페이지에 접근하시겠습니까? (임시 관리자 권한 부여)'
-        );
-        if (userConfirm) {
-          localStorage.setItem('admin_access', 'vibe_admin_2025');
+        // 현재는 localStorage 기반 간단 체크
+        const adminToken = localStorage.getItem('admin_access');
+
+        // 🚨 빌드 시 process.env 접근 오류 방지 - window 객체로만 판단
+        const isDevMode =
+          window.location.hostname === 'localhost' ||
+          window.location.hostname === '127.0.0.1';
+
+        // 개발 모드에서는 자동 허용, 프로덕션에서는 토큰 체크
+        if (isDevMode || adminToken === 'vibe_admin_2025') {
           setIsAdmin(true);
         } else {
-          router.push('/');
+          // 관리자 토큰이 없으면 간편 설정 제안
+          const userConfirm = confirm(
+            '개발과정 페이지에 접근하시겠습니까? (임시 관리자 권한 부여)'
+          );
+          if (userConfirm) {
+            localStorage.setItem('admin_access', 'vibe_admin_2025');
+            setIsAdmin(true);
+          } else {
+            router.push('/');
+          }
         }
+      } catch (error) {
+        console.error('Admin auth check error:', error);
+        setIsAdmin(false);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     checkAdminAuth();
