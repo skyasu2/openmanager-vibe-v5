@@ -12,7 +12,6 @@ import { MCPTaskResult } from './MCPAIRouter';
 //     LightweightAnomalyDetector,
 //     createLightweightAnomalyDetector,
 // } from './lightweight-anomaly-detector'; // removed - using AnomalyDetectionService
-import { RealServerDataGenerator } from '../data-generator/RealServerDataGenerator';
 
 // 로컬 MCPTask 인터페이스 정의 (input 속성 포함)
 interface MCPTask {
@@ -54,10 +53,17 @@ function normalizeMetricData(data: any): any {
 
 export class TaskOrchestrator {
   private initialized = false;
-  private dataGenerator: RealServerDataGenerator;
+  private dataGenerator: any;
 
   constructor() {
-    this.dataGenerator = RealServerDataGenerator.getInstance();
+    // RealServerDataGenerator import 수정 필요
+    try {
+      const { RealServerDataGenerator } = require('@/services/data-generator/RealServerDataGenerator');
+      this.dataGenerator = RealServerDataGenerator.getInstance();
+    } catch (error) {
+      console.warn('RealServerDataGenerator 로드 실패, 기본값 사용');
+      this.dataGenerator = null;
+    }
     // lightweight-anomaly-detector removed - using simple detection instead
   }
 

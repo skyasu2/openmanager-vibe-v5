@@ -245,23 +245,16 @@ export class EdgeMockDataGenerator {
         status: 'running',
         environment: 'production',
         specs: {
-          cpu: {
-            cores: 8,
-            model: 'Intel Xeon E5-2620',
-            architecture: 'x86_64',
-          },
-          memory: { total: 32768, type: 'DDR4', speed: 2400 },
-          disk: { total: 1024000, type: 'SSD', iops: 3000 },
-          network: { bandwidth: 1000, latency: 1 },
+          cpu_cores: 8,
+          memory_gb: 32,
+          disk_gb: 1000,
+          network_speed: '1Gbps'
         },
         metrics: {
           cpu: this.randomBetween(15, 85),
           memory: this.randomBetween(30, 75),
           disk: this.randomBetween(20, 60),
-          network: {
-            in: this.randomBetween(100, 1000),
-            out: this.randomBetween(80, 800),
-          },
+          network: this.randomBetween(100, 1000),
           requests: this.randomBetween(500, 2000),
           errors: this.randomBetween(0, 5),
           uptime: 99.8,
@@ -272,8 +265,10 @@ export class EdgeMockDataGenerator {
         },
         health: {
           score: this.randomBetween(80, 100),
+          trend: [85, 87, 90, 88, 92],
+          status: 'healthy' as const,
           issues: [],
-          lastCheck: now,
+          lastChecked: now,
         },
       },
       {
@@ -285,23 +280,16 @@ export class EdgeMockDataGenerator {
         status: 'running',
         environment: 'production',
         specs: {
-          cpu: {
-            cores: 16,
-            model: 'Intel Xeon Gold 6130',
-            architecture: 'x86_64',
-          },
-          memory: { total: 65536, type: 'DDR4', speed: 2666 },
-          disk: { total: 2048000, type: 'NVMe SSD', iops: 50000 },
-          network: { bandwidth: 10000, latency: 0.5 },
+          cpu_cores: 16,
+          memory_gb: 64,
+          disk_gb: 2000,
+          network_speed: '10Gbps'
         },
         metrics: {
           cpu: this.randomBetween(25, 70),
           memory: this.randomBetween(50, 85),
           disk: this.randomBetween(40, 80),
-          network: {
-            in: this.randomBetween(200, 1500),
-            out: this.randomBetween(150, 1200),
-          },
+          network: this.randomBetween(200, 1500),
           requests: this.randomBetween(1000, 5000),
           errors: this.randomBetween(0, 3),
           uptime: 99.9,
@@ -313,8 +301,10 @@ export class EdgeMockDataGenerator {
         },
         health: {
           score: this.randomBetween(85, 100),
+          trend: [88, 90, 92, 89, 95],
+          status: 'healthy' as const,
           issues: [],
-          lastCheck: now,
+          lastChecked: now,
         },
       },
       {
@@ -326,19 +316,16 @@ export class EdgeMockDataGenerator {
         status: 'running',
         environment: 'production',
         specs: {
-          cpu: { cores: 12, model: 'AMD EPYC 7302P', architecture: 'x86_64' },
-          memory: { total: 49152, type: 'DDR4', speed: 3200 },
-          disk: { total: 512000, type: 'SSD', iops: 8000 },
-          network: { bandwidth: 10000, latency: 1 },
+          cpu_cores: 12,
+          memory_gb: 48,
+          disk_gb: 500,
+          network_speed: '10Gbps'
         },
         metrics: {
           cpu: this.randomBetween(20, 65),
           memory: this.randomBetween(35, 70),
           disk: this.randomBetween(25, 55),
-          network: {
-            in: this.randomBetween(300, 2000),
-            out: this.randomBetween(250, 1800),
-          },
+          network: this.randomBetween(300, 2000),
           requests: this.randomBetween(2000, 8000),
           errors: this.randomBetween(0, 10),
           uptime: 99.7,
@@ -349,8 +336,10 @@ export class EdgeMockDataGenerator {
         },
         health: {
           score: this.randomBetween(80, 95),
+          trend: [82, 85, 88, 86, 90],
+          status: 'healthy' as const,
           issues: [],
-          lastCheck: now,
+          lastChecked: now,
         },
       },
     ];

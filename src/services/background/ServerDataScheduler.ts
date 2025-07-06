@@ -239,13 +239,15 @@ export class ServerDataScheduler {
       // 데이터 생성 (getDashboardSummary 사용)
       const dashboardData = this.generator.getDashboardSummary();
 
-      // 적절한 형태로 변환 (안전한 접근)
+      // 새 데이터 구조 생성
       const newData = {
-        servers: Array.isArray((dashboardData as any)?.servers?.data)
-          ? (dashboardData as any).servers.data
-          : [],
+        servers: Array.isArray(dashboardData)
+          ? dashboardData
+          : (dashboardData as any)?.servers?.data ||
+          (dashboardData as any)?.data ||
+          [],
         summary:
-          (dashboardData as any)?.summary || dashboardData?.servers || {},
+          (dashboardData as any)?.summary || (dashboardData as any)?.servers || {},
         timestamp: new Date().toISOString(),
       };
 

@@ -130,13 +130,14 @@ export class AIEngineProcessor {
 
   private async getRealTimeServerData(): Promise<ServerInstance[]> {
     try {
-      if (this.dataGenerator.getAllServers().length === 0) {
+      const existingServers = await this.dataGenerator.getAllServers();
+      if (existingServers.length === 0) {
         await this.dataGenerator.initialize();
         this.dataGenerator.startAutoGeneration();
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      const servers = this.dataGenerator.getAllServers();
+      const servers = await this.dataGenerator.getAllServers();
       console.log(`🧠 AI용 실시간 서버 데이터 수집: ${servers.length}개`);
       return servers;
     } catch (error) {
@@ -211,13 +212,13 @@ export class AIEngineProcessor {
         cpu: {
           usage: serverInstance.metrics?.cpu || 0,
           loadAverage: [0, 0, 0],
-          cores: serverInstance.specs?.cpu?.cores || 4,
+          cores: serverInstance.specs?.cpu_cores || 4,
         },
         memory: {
           total:
-            (serverInstance.specs?.memory?.total || 8) * 1024 * 1024 * 1024,
+            (serverInstance.specs?.memory_gb || 8) * 1024 * 1024 * 1024,
           used: Math.floor(
-            ((serverInstance.specs?.memory?.total || 8) *
+            ((serverInstance.specs?.memory_gb || 8) *
               1024 *
               1024 *
               1024 *
@@ -225,7 +226,7 @@ export class AIEngineProcessor {
             100
           ),
           available: Math.floor(
-            ((serverInstance.specs?.memory?.total || 8) *
+            ((serverInstance.specs?.memory_gb || 8) *
               1024 *
               1024 *
               1024 *
@@ -236,9 +237,9 @@ export class AIEngineProcessor {
         },
         disk: {
           total:
-            (serverInstance.specs?.disk?.total || 100) * 1024 * 1024 * 1024,
+            (serverInstance.specs?.disk_gb || 100) * 1024 * 1024 * 1024,
           used: Math.floor(
-            ((serverInstance.specs?.disk?.total || 100) *
+            ((serverInstance.specs?.disk_gb || 100) *
               1024 *
               1024 *
               1024 *
@@ -246,7 +247,7 @@ export class AIEngineProcessor {
             100
           ),
           available: Math.floor(
-            ((serverInstance.specs?.disk?.total || 100) *
+            ((serverInstance.specs?.disk_gb || 100) *
               1024 *
               1024 *
               1024 *

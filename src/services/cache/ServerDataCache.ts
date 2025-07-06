@@ -335,9 +335,9 @@ export class ServerDataCache {
           case 'name':
             return a.name.localeCompare(b.name);
           case 'cpu':
-            return b.metrics.cpu - a.metrics.cpu;
+            return (b.metrics?.cpu || 0) - (a.metrics?.cpu || 0);
           case 'memory':
-            return b.metrics.memory - a.metrics.memory;
+            return (b.metrics?.memory || 0) - (a.metrics?.memory || 0);
           case 'status':
             return a.status.localeCompare(b.status);
           case 'priority':
