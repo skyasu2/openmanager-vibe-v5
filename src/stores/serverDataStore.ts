@@ -265,40 +265,27 @@ export const useServerDataStore = create<ServerDataState>()(
         await get().fetchServers();
       },
 
-      // 실시간 업데이트 시작
+      // 🚫 실시간 업데이트 비활성화 (서버리스 호환)
       startRealTimeUpdates: () => {
-        // 기존 타이머가 있으면 정리
-        const existingInterval = (get() as any)._updateInterval;
-        if (existingInterval) {
-          clearInterval(existingInterval);
-          console.log('🔄 기존 폴링 타이머 정리됨');
-        }
+        console.warn('⚠️ 실시간 업데이트 무시됨 - 서버리스에서는 요청별 처리');
+        console.warn('📊 Vercel Dashboard: https://vercel.com/dashboard');
 
-        // ✅ 폴링 주기 최적화: 35초로 조정 (30-40초 갱신 주기에 맞춤)
-        // 🚨 비상 모드 체크
-        const isEmergencyMode =
-          process.env.NEXT_PUBLIC_EMERGENCY_MODE === 'true';
-        if (isEmergencyMode) {
-          console.log('🚨 비상 모드 - 서버 데이터 자동 업데이트 차단');
-          return;
-        }
+        // 🚫 타이머 생성하지 않음 - 서버리스 환경에서 지속적 타이머 금지
+        // const updateInterval = setInterval(() => { ... }, 35000);
 
-        const updateInterval = setInterval(() => {
-          console.log('🔄 서버 데이터 자동 업데이트 (35초 주기)');
-          get().fetchServers();
-        }, 35000); // 35초마다 업데이트
-
-        // 정리를 위해 interval ID 저장
-        (get() as any)._updateInterval = updateInterval;
-        console.log('✅ 실시간 업데이트 시작 (35초 주기)');
+        console.log('🚫 서버리스 환경에서는 실시간 업데이트가 비활성화됩니다.');
       },
 
-      // 실시간 업데이트 중지
+      // 🚫 실시간 업데이트 중지 비활성화
       stopRealTimeUpdates: () => {
+        console.warn('⚠️ 실시간 업데이트 중지 무시됨 - 서버리스 환경');
+
+        // 기존 타이머가 있다면 정리 (레거시 호환성)
         const interval = (get() as any)._updateInterval;
         if (interval) {
           clearInterval(interval);
           delete (get() as any)._updateInterval;
+          console.log('🧹 레거시 타이머 정리됨');
         }
       },
 

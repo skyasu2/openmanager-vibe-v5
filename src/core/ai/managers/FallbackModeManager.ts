@@ -8,10 +8,10 @@
 
 import { MCPContextCollector } from '@/core/ai/context/MCPContextCollector';
 import {
-  SupabaseRAGEngine,
   getSupabaseRAGEngine,
+  SupabaseRAGEngine,
 } from '@/lib/ml/supabase-rag-engine';
-import { GoogleAIService } from '@/services/ai/GoogleAIService';
+import { createGoogleAIService, RequestScopedGoogleAIService } from '@/services/ai/GoogleAIService';
 // 서버 사이드에서만 MCP 클라이언트 사용
 let RealMCPClient: any = null;
 if (typeof window === 'undefined') {
@@ -50,20 +50,21 @@ export class FallbackModeManager {
   private static instance: FallbackModeManager | null = null;
 
   private supabaseRAG: SupabaseRAGEngine;
-  private googleAI: GoogleAIService;
+  private googleAI: RequestScopedGoogleAIService;
   private mcpClient: any; // 🎯 컨텍스트 수집 전용
   private mcpContextCollector: MCPContextCollector; // 🔵 TDD Blue: 중복 코드 제거
 
   private config: FallbackConfig = {
-    timeoutMs: 30000,
-    retryAttempts: 3,
+    timeoutMs: 8000,
+    retryAttempts: 2,
     enableLogging: true,
     fallbackChain: ['rag-with-mcp-context', 'google-ai', 'emergency'],
   };
 
   private constructor() {
     this.supabaseRAG = getSupabaseRAGEngine();
-    this.googleAI = GoogleAIService.getInstance();
+    // 🚫 서버리스 호환: 요청별 Google AI 서비스 생성
+    this.googleAI = createGoogleAIService();
     this.mcpClient = RealMCPClient ? RealMCPClient.getInstance() : null; // 🎯 컨텍스트 수집 전용
     this.mcpContextCollector = new MCPContextCollector(); // 🔵 TDD Blue: 통합 모듈 사용
   }
@@ -253,25 +254,26 @@ export class FallbackModeManager {
       enhancedQuery = `${query}\n\n참고 컨텍스트: ${mcpContext.summary}`;
     }
 
-    const result = await this.googleAI.generateResponse(enhancedQuery);
+    // 🚫 서버리스 호환: RequestScopedGoogleAIService 메서드 사용
+    const result = await this.googleAI.processQuery(enhancedQuery);
 
     if (result.success) {
-      let response = result.content || '응답을 생성했습니다.';
+      let response = result.response || '응답을 생성했습니다.';
 
       // MCP 컨텍스트 정보를 응답에 추가
       if (mcpContext && mcpContext.additionalInfo) {
-        response += `\n\n🔍 시스템 정보: ${mcpContext.additionalInfo}`;
+        response += `\n\n📋 추가 정보: ${mcpContext.additionalInfo}`;
       }
 
       return {
         success: true,
         engine: 'google-ai-with-mcp-context',
         response,
-        confidence: result.confidence || 0.7,
+        confidence: 0.8,
       };
     }
 
-    throw new Error('Google AI 실패');
+    throw new Error('Google AI 처리 실패');
   }
 
   /**

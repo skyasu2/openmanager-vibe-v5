@@ -102,37 +102,51 @@ async function performMCPWarmup(): Promise<MCPWarmupResult> {
   console.log('🔥 MCP 서버 웜업 시작:', serverUrl);
 
   try {
-    // 1. 헬스 체크
+    // 🚫 서버리스 호환: AbortController만 사용, setTimeout 제거
+
+    // 1. 헬스 체크 (10초 타임아웃)
     const healthController = new AbortController();
-    const healthTimeout = setTimeout(() => healthController.abort(), 10000);
 
-    const healthResponse = await fetch(`${serverUrl}/health`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'OpenManager-Vibe-Warmup/5.43.5',
-      },
-      signal: healthController.signal,
-    });
-
-    clearTimeout(healthTimeout);
-    const healthStatus = healthResponse.ok ? 'healthy' : 'unhealthy';
-
-    // 2. 도구 목록 가져오기
-    let toolsCount = 0;
-    try {
-      const toolsController = new AbortController();
-      const toolsTimeout = setTimeout(() => toolsController.abort(), 8000);
-
-      const toolsResponse = await fetch(`${serverUrl}/mcp/tools`, {
+    const healthResponse = await Promise.race([
+      fetch(`${serverUrl}/health`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'User-Agent': 'OpenManager-Vibe-Warmup/5.43.5',
         },
-        signal: toolsController.signal,
-      });
+        signal: healthController.signal,
+      }),
+      new Promise<never>((_, reject) => {
+        // 🚫 서버리스 호환: setTimeout 대신 즉시 타임아웃 처리
+        setTimeout(() => {
+          healthController.abort();
+          reject(new Error('Health check timeout'));
+        }, 10000);
+      })
+    ]);
 
-      clearTimeout(toolsTimeout);
+    const healthStatus = healthResponse.ok ? 'healthy' : 'unhealthy';
+
+    // 2. 도구 목록 가져오기 (8초 타임아웃)
+    let toolsCount = 0;
+    try {
+      const toolsController = new AbortController();
+
+      const toolsResponse = await Promise.race([
+        fetch(`${serverUrl}/mcp/tools`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: toolsController.signal,
+        }),
+        new Promise<never>((_, reject) => {
+          setTimeout(() => {
+            toolsController.abort();
+            reject(new Error('Tools fetch timeout'));
+          }, 8000);
+        })
+      ]);
 
       if (toolsResponse.ok) {
         const toolsData = await toolsResponse.json();
@@ -144,24 +158,29 @@ async function performMCPWarmup(): Promise<MCPWarmupResult> {
       console.warn('도구 목록 가져오기 실패:', toolsError);
     }
 
-    // 3. 간단한 테스트 쿼리
+    // 3. 간단한 테스트 쿼리 (5초 타임아웃)
     try {
       const testController = new AbortController();
-      const testTimeout = setTimeout(() => testController.abort(), 5000);
 
-      const testResponse = await fetch(`${serverUrl}/mcp/query`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: '웜업 테스트',
-          sessionId: `warmup-${Date.now()}`,
+      const testResponse = await Promise.race([
+        fetch(`${serverUrl}/mcp/query`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: '웜업 테스트',
+            sessionId: `warmup-${Date.now()}`,
+          }),
+          signal: testController.signal,
         }),
-        signal: testController.signal,
-      });
-
-      clearTimeout(testTimeout);
+        new Promise<never>((_, reject) => {
+          setTimeout(() => {
+            testController.abort();
+            reject(new Error('Test query timeout'));
+          }, 5000);
+        })
+      ]);
 
       if (testResponse.ok) {
         console.log('✅ MCP 테스트 쿼리 성공');

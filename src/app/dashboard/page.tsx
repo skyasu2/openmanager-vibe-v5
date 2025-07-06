@@ -19,9 +19,6 @@ const DashboardHeader = dynamic(
 const DashboardContent = dynamic(
   () => import('../../components/dashboard/DashboardContent')
 );
-const FloatingSystemControl = dynamic(
-  () => import('../../components/system/FloatingSystemControl')
-);
 const EnhancedServerModalDynamic = dynamic(
   () => import('../../components/dashboard/EnhancedServerModal'),
   {
@@ -282,17 +279,6 @@ function DashboardPageContent() {
           isWarning={showLogoutWarning}
           onExtendSession={handleExtendSession}
           onLogoutNow={handleLogoutNow}
-        />
-
-        {/* 🎯 플로팅 시스템 제어 */}
-        <FloatingSystemControl
-          systemState={dummySystemControl.systemState}
-          aiAgentState={dummySystemControl.aiAgentState}
-          isSystemActive={dummySystemControl.isSystemActive}
-          isSystemPaused={dummySystemControl.isSystemPaused}
-          onStartSystem={dummySystemControl.onStartSystem}
-          onStopSystem={dummySystemControl.onStopSystem}
-          onResumeSystem={dummySystemControl.onResumeSystem}
         />
       </div>
 

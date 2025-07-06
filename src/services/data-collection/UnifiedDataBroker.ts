@@ -59,7 +59,6 @@ export class UnifiedDataBroker {
   };
 
   private isActive = false;
-  private optimizationTimer: NodeJS.Timeout | null = null;
 
   constructor() {
     this.setupCompetitionListeners();
@@ -94,65 +93,30 @@ export class UnifiedDataBroker {
   }
 
   /**
-   * 🔄 최적화 루프 시작
+   * 🚫 최적화 루프 비활성화 (서버리스 호환)
    */
   private startOptimizationLoop(): void {
-    this.optimizationTimer = setInterval(() => {
-      this.optimizePerformance();
-    }, 30000); // 30초마다 최적화
+    console.warn('⚠️ 최적화 루프 무시됨 - 서버리스에서는 요청별 처리');
+    console.warn('📊 Vercel이 자동으로 최적화를 수행합니다.');
+
+    // 🚫 setInterval 생성하지 않음
+    // this.optimizationTimer = setInterval(() => { ... }, 30000);
   }
 
   /**
-   * ⚡ 성능 최적화
+   * ⚡ 성능 최적화 (요청별 실행)
    */
   private optimizePerformance(): void {
-    const config = getCompetitionConfig();
+    console.warn('⚠️ 성능 최적화 무시됨 - 서버리스 환경에서는 Vercel이 자동 관리');
 
-    // 캐시 정리 (5분 이상 된 데이터)
+    // 기본적인 캐시 정리만 수행 (상태 유지 없이)
     const now = new Date();
     for (const [key, entry] of this.cache.entries()) {
       const age = now.getTime() - entry.timestamp.getTime();
       if (age > 5 * 60 * 1000) {
-        // 5분
         this.cache.delete(key);
       }
     }
-
-    // 구독자 없으면 절전 모드
-    if (this.subscribers.size === 0) {
-      this.setActive(false);
-    }
-
-    // 실시간 최적화 적용
-    if (config.features.realTimeOptimization) {
-      competitionConfig.optimizeForUsage({
-        activeUsers: this.subscribers.size,
-        redisCommandsUsed: this.metrics.redisCommands,
-        memoryUsage: this.calculateMemoryUsage(),
-      });
-    }
-
-    // 캐시 히트율 계산
-    const totalRequests = Array.from(this.cache.values()).reduce(
-      (sum, entry) => sum + entry.hits,
-      0
-    );
-    const cacheHits = Array.from(this.cache.values()).filter(
-      entry => entry.hits > 0
-    ).length;
-    this.metrics.cacheHitRate =
-      totalRequests > 0 ? (cacheHits / totalRequests) * 100 : 0;
-  }
-
-  /**
-   * 💾 메모리 사용량 계산
-   */
-  private calculateMemoryUsage(): number {
-    let totalSize = 0;
-    for (const entry of this.cache.values()) {
-      totalSize += JSON.stringify(entry.data).length;
-    }
-    return totalSize / 1024 / 1024; // MB 단위
   }
 
   /**
@@ -240,10 +204,9 @@ export class UnifiedDataBroker {
       subscriber.lastUpdate = new Date();
     }
 
-    // 다음 업데이트 스케줄링
-    setTimeout(() => {
-      this.startDataFlow(subscriberId);
-    }, options.interval);
+    // 🚫 다음 업데이트 스케줄링 비활성화 (서버리스 호환)
+    console.warn('⚠️ 자동 데이터 플로우 무시됨 - 서버리스에서는 요청별 처리');
+    // setTimeout(() => { this.startDataFlow(subscriberId); }, options.interval);
   }
 
   /**
@@ -412,11 +375,6 @@ export class UnifiedDataBroker {
     this.isActive = false;
     this.subscribers.clear();
     this.cache.clear();
-
-    if (this.optimizationTimer) {
-      clearInterval(this.optimizationTimer);
-      this.optimizationTimer = null;
-    }
 
     console.log('🏁 통합 데이터 브로커 종료');
   }

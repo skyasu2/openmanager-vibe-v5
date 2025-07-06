@@ -1,4 +1,3 @@
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -32,18 +31,16 @@ function formatUptime(hours: number): string {
   return `${days}d ${remainingHours}h ${minutes}m`;
 }
 
-// 서버 데이터 생성기 초기화
+// 🚫 서버 데이터 생성기 초기화 비활성화 (서버리스 호환)
 const initializeGenerator = async () => {
-  if (!isGeneratorInitialized) {
-    try {
-      await RealServerDataGenerator.getInstance().initialize();
-      await RealServerDataGenerator.getInstance().startAutoGeneration();
-      isGeneratorInitialized = true;
-      console.log('✅ RealServerDataGenerator 초기화 및 시작 완료');
-    } catch (error) {
-      console.error('❌ RealServerDataGenerator 초기화 실패:', error);
-    }
-  }
+  console.warn('⚠️ 서버 데이터 생성기 초기화 무시됨 - 서버리스 환경');
+  console.warn('📊 요청별 데이터 생성 사용 권장');
+
+  // 🚫 전역 상태 관리 비활성화
+  // await RealServerDataGenerator.getInstance().initialize();
+  // await RealServerDataGenerator.getInstance().startAutoGeneration();
+
+  console.log('🚫 서버리스 환경에서는 요청별 처리만 지원');
 };
 
 // 간단한 서버 상태 관리 (실제로는 데이터베이스 사용)

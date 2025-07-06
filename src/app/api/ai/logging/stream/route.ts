@@ -17,191 +17,67 @@ const PING_INTERVAL = isVercel ? 10000 : 30000; // 베르셀에서는 10초, 로
 const MAX_STREAM_DURATION = isVercel ? VERCEL_TIMEOUT : 300000; // 베르셀: 30초, 로컬: 5분
 
 export async function GET(request: NextRequest) {
+  const isVercel = process.env.VERCEL === '1';
+
+  // 🚫 서버리스 호환: 스트리밍 대신 즉시 응답
+  console.warn('⚠️ 서버리스 환경에서 지속적 스트리밍 비활성화');
+
   try {
     const { searchParams } = new URL(request.url);
-    const sessionId = searchParams.get('sessionId');
-    const mode = searchParams.get('mode') || 'sidebar'; // 'sidebar' | 'admin'
+    const sessionId = searchParams.get('sessionId') || 'default';
+    const mode = searchParams.get('mode') || 'standard';
 
-    console.log('🔄 AI 로그 스트림 요청:', {
+    // 🚫 서버리스 호환: 즉시 로그 스냅샷 반환
+    const logSnapshot = {
+      type: 'snapshot',
       sessionId,
       mode,
-      isVercel,
-      maxDuration: MAX_STREAM_DURATION,
-      pingInterval: PING_INTERVAL,
-    });
-
-    // Server-Sent Events 헤더 설정
-    const headers = new Headers({
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'X-Stream-Timeout': MAX_STREAM_DURATION.toString(),
-      'X-Environment': isVercel ? 'vercel' : 'local',
-    });
-
-    // 베르셀 최적화 스트림 (타임아웃 방지)
-    const optimizedStream = new ReadableStream({
-      start(controller) {
-        const streamStartTime = Date.now();
-        let pingInterval: NodeJS.Timeout | null = null;
-        let streamTimeout: NodeJS.Timeout | null = null;
-
-        // 정리 함수
-        const cleanup = () => {
-          try {
-            if (pingInterval) {
-              clearInterval(pingInterval);
-              pingInterval = null;
-            }
-            if (streamTimeout) {
-              clearTimeout(streamTimeout);
-              streamTimeout = null;
-            }
-            console.log('✅ AI 로그 스트림 정리 완료');
-          } catch (error) {
-            console.error('정리 함수 오류:', error);
-          }
-        };
-
-        try {
-          // 초기 연결 메시지
-          const initMessage = `data: ${JSON.stringify({
-            type: 'connection',
-            message: `AI 로그 스트림 연결됨 (${isVercel ? 'Vercel' : 'Local'})`,
-            timestamp: new Date().toISOString(),
-            sessionId: sessionId || 'all',
-            mode,
-            status: 'connected',
-            environment: isVercel ? 'vercel' : 'local',
-            maxDuration: MAX_STREAM_DURATION,
-            pingInterval: PING_INTERVAL,
-          })}\n\n`;
-
-          controller.enqueue(new TextEncoder().encode(initMessage));
-
-          // 환영 메시지 (즉시 전송)
-          setTimeout(() => {
-            try {
-              const welcomeMessage = `data: ${JSON.stringify({
-                type: 'log',
-                level: 'SUCCESS',
-                engine: 'system',
-                message: `AI 어시스턴트가 준비되었습니다. 질문을 입력해주세요. (${isVercel ? 'Vercel 환경' : '로컬 환경'})`,
-                timestamp: new Date().toISOString(),
-                sessionId: sessionId || 'system',
-                metadata: {
-                  source: 'stream_init',
-                  environment: isVercel ? 'vercel' : 'local',
-                },
-              })}\n\n`;
-
-              controller.enqueue(new TextEncoder().encode(welcomeMessage));
-            } catch (error) {
-              console.error('환영 메시지 전송 오류:', error);
-            }
-          }, 500);
-
-          // Keep-alive 핑 (베르셀: 10초, 로컬: 30초)
-          pingInterval = setInterval(() => {
-            try {
-              const elapsed = Date.now() - streamStartTime;
-              const pingMessage = `data: ${JSON.stringify({
-                type: 'ping',
-                timestamp: new Date().toISOString(),
-                status: 'alive',
-                elapsed: elapsed,
-                environment: isVercel ? 'vercel' : 'local',
-              })}\n\n`;
-
-              controller.enqueue(new TextEncoder().encode(pingMessage));
-            } catch (error) {
-              console.error('핑 전송 오류:', error);
-              cleanup();
-            }
-          }, PING_INTERVAL);
-
-          // 🚀 베르셀 환경: 자동 스트림 종료 (타임아웃 방지)
-          streamTimeout = setTimeout(() => {
-            try {
-              const finalMessage = `data: ${JSON.stringify({
-                type: 'stream_timeout',
-                message: `스트림이 ${MAX_STREAM_DURATION / 1000}초 후 자동 종료됩니다 (${isVercel ? 'Vercel 타임아웃 방지' : '최대 지속시간 도달'})`,
-                timestamp: new Date().toISOString(),
-                reason: isVercel
-                  ? 'vercel_timeout_prevention'
-                  : 'max_duration_reached',
-                environment: isVercel ? 'vercel' : 'local',
-              })}\n\n`;
-
-              controller.enqueue(new TextEncoder().encode(finalMessage));
-
-              // 500ms 후 스트림 종료
-              setTimeout(() => {
-                cleanup();
-                controller.close();
-              }, 500);
-            } catch (error) {
-              console.error('스트림 종료 오류:', error);
-              cleanup();
-              controller.close();
-            }
-          }, MAX_STREAM_DURATION);
-
-          // 연결 종료 시 정리
-          request.signal.addEventListener('abort', cleanup);
-
-          // 스트림 종료 시 정리
-          return cleanup;
-        } catch (error) {
-          console.error('스트림 초기화 오류:', error);
-          cleanup();
-
-          // 오류 메시지 전송
-          const errorMessage = `data: ${JSON.stringify({
-            type: 'error',
-            message: '스트림 초기화 중 오류가 발생했습니다',
-            timestamp: new Date().toISOString(),
-            error: error instanceof Error ? error.message : '알 수 없는 오류',
-            environment: isVercel ? 'vercel' : 'local',
-          })}\n\n`;
-
-          controller.enqueue(new TextEncoder().encode(errorMessage));
-
-          // 2초 후 연결 종료
-          setTimeout(() => {
-            controller.close();
-          }, 2000);
+      timestamp: new Date().toISOString(),
+      environment: isVercel ? 'vercel' : 'local',
+      serverless: true,
+      logs: [
+        {
+          type: 'system',
+          level: 'INFO',
+          message: '서버리스 환경에서는 실시간 스트리밍이 비활성화됩니다',
+          timestamp: new Date().toISOString(),
+        },
+        {
+          type: 'recommendation',
+          level: 'INFO',
+          message: 'Vercel Dashboard > Functions > Logs에서 실시간 로그를 확인하세요',
+          timestamp: new Date().toISOString(),
         }
-      },
+      ],
+      metadata: {
+        reason: 'serverless_compatibility',
+        alternative: 'vercel_dashboard_logs',
+      }
+    };
 
-      cancel() {
-        console.log(
-          `AI 로그 스트림 연결 종료 (${isVercel ? 'Vercel' : 'Local'})`
-        );
+    return new Response(JSON.stringify(logSnapshot), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'X-Serverless-Mode': 'true',
+        'X-Environment': isVercel ? 'vercel' : 'local',
       },
-    });
-
-    return new Response(optimizedStream, {
-      headers,
       status: 200,
     });
-  } catch (error) {
-    console.error('❌ AI 로그 스트림 API 오류:', error);
 
-    // JSON 오류 응답 (최후의 폴백)
+  } catch (error) {
+    console.error('❌ AI 로그 API 오류:', error);
+
     return new Response(
       JSON.stringify({
-        error: 'AI 로그 스트림 초기화 실패',
+        error: 'AI 로그 조회 실패',
         message: error instanceof Error ? error.message : '알 수 없는 오류',
         timestamp: new Date().toISOString(),
-        fallback: true,
+        serverless: true,
         environment: isVercel ? 'vercel' : 'local',
       }),
       {
-        status: 200, // 500 대신 200으로 변경
+        status: 200,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',

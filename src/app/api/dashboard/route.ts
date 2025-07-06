@@ -7,7 +7,7 @@
  * @version 5.12.0
  */
 
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { createServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -15,45 +15,24 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
+    const format = searchParams.get('format') || 'standard';
     const includeHistory = searchParams.get('include_history') === 'true';
-    const format = searchParams.get('format') || 'dashboard';
-
-    // 📇 변경 감지: ?since=ISO_TIMESTAMP (또는 epoch ms)
-    const sinceParam = searchParams.get('since');
-    let sinceTimestamp: number | null = null;
-    if (sinceParam) {
-      // epoch (숫자) 또는 ISO 문자열 지원
-      const parsed = Number(sinceParam);
-      if (!isNaN(parsed)) {
-        sinceTimestamp = parsed;
-      } else {
-        const isoParsed = Date.parse(sinceParam);
-        if (!isNaN(isoParsed)) sinceTimestamp = isoParsed;
-      }
-    }
+    const sinceTimestamp = searchParams.get('since')
+      ? parseInt(searchParams.get('since')!)
+      : null;
 
     console.log(
-      `📊 대시보드 데이터 요청: format=${format}, history=${includeHistory}, since=${sinceTimestamp}`
+      `🚀 대시보드 API 요청: format=${format}, history=${includeHistory}, since=${sinceTimestamp}`
     );
 
-    // 1. 실제 서버 데이터 생성기에서 직접 데이터 가져오기
-    const realServerDataGenerator = RealServerDataGenerator.getInstance();
+    // 🚫 서버리스 호환: 요청별 데이터 생성기 생성
+    const dataGenerator = createServerDataGenerator({
+      count: 16,
+      includeMetrics: true,
+    });
 
-    // 🚀 POC 프로젝트: 초기화되지 않았으면 초기화
-    if (!realServerDataGenerator.getStatus().isInitialized) {
-      console.log('🔄 대시보드 API: RealServerDataGenerator 초기화 중...');
-      await realServerDataGenerator.initialize();
-      console.log('✅ 대시보드 API: RealServerDataGenerator 초기화 완료');
-    }
-
-    // 실시간 데이터 생성이 시작되지 않았으면 시작
-    if (!realServerDataGenerator.getStatus().isRunning) {
-      console.log('▶️ 대시보드 API: 실시간 데이터 생성 시작');
-      realServerDataGenerator.startAutoGeneration();
-    }
-
-    const originalServers = realServerDataGenerator.getAllServers();
-    const generatorStatus = realServerDataGenerator.getStatus();
+    // 🔧 서버 데이터 생성 (요청별)
+    const originalServers = await dataGenerator.generateServers();
 
     console.log(
       `📊 총 ${originalServers.length}개 서버에서 대시보드 데이터 생성`
@@ -63,7 +42,7 @@ export async function GET(request: NextRequest) {
     const servers: any[] = sinceTimestamp
       ? originalServers.filter(
         s =>
-          new Date(s.health?.lastCheck || Date.now()).getTime() >
+          new Date(s.lastUpdate || Date.now()).getTime() >
           (sinceTimestamp as number)
       )
       : originalServers;
@@ -71,32 +50,32 @@ export async function GET(request: NextRequest) {
     // 서버 데이터를 대시보드 API 형식으로 변환
     const formattedServers = servers.map(server => ({
       id: server.id,
-      hostname: server.hostname,
-      environment: server.environment,
-      role: server.role,
-      status: server.status, // 실제 서버 데이터 생성기의 상태 사용
-      node_cpu_usage_percent: server.metrics.cpu,
-      node_memory_usage_percent: server.metrics.memory,
-      node_disk_usage_percent: server.metrics.disk,
-      node_network_receive_rate_mbps: server.metrics.network.in,
-      node_network_transmit_rate_mbps: server.metrics.network.out,
-      node_uptime_seconds: server.metrics.uptime,
-      http_request_duration_seconds: server.metrics.responseTime / 1000,
-      http_requests_total: server.metrics.requests,
-      http_requests_errors_total: server.metrics.errors,
+      hostname: server.hostname || server.name,
+      environment: server.environment || 'production',
+      role: server.role || 'web',
+      status: server.status,
+      node_cpu_usage_percent: server.cpu || 0,
+      node_memory_usage_percent: server.memory || 0,
+      node_disk_usage_percent: server.disk || 0,
+      node_network_receive_rate_mbps: server.network || 0,
+      node_network_transmit_rate_mbps: server.network || 0,
+      node_uptime_seconds: server.uptime || 0,
+      http_request_duration_seconds: (server.responseTime || 0) / 1000,
+      http_requests_total: server.requests || 0,
+      http_requests_errors_total: server.errors || 0,
       timestamp: Date.now(),
       labels: {
-        environment: server.environment,
-        role: server.role,
+        environment: server.environment || 'production',
+        role: server.role || 'web',
         cluster: 'openmanager-v5',
         version: '5.11.0',
       },
       // 호환성을 위한 추가 필드
-      cpu_usage: server.metrics.cpu,
-      memory_usage: server.metrics.memory,
-      disk_usage: server.metrics.disk,
-      response_time: server.metrics.responseTime,
-      uptime: server.metrics.uptime / 3600, // 시간 단위로 변환
+      cpu_usage: server.cpu || 0,
+      memory_usage: server.memory || 0,
+      disk_usage: server.disk || 0,
+      response_time: server.responseTime || 0,
+      uptime: (server.uptime || 0) / 3600, // 시간 단위로 변환
       last_updated: new Date().toISOString(),
     }));
 
@@ -132,7 +111,7 @@ export async function GET(request: NextRequest) {
         system_availability: calculateSystemAvailability(formattedServers),
         active_incidents: alertsSummary.total_alerts,
         last_updated: new Date().toISOString(),
-        system_running: generatorStatus.isRunning,
+        system_running: true, // Assuming system_running is always true in this context
       },
 
       // 🏗️ 환경별 현황
@@ -212,11 +191,9 @@ export async function GET(request: NextRequest) {
           processing_time_ms: Date.now() - startTime,
           timestamp: new Date().toISOString(),
         },
-        system_info: generatorStatus,
+        system_info: { isRunning: true }, // Assuming system_info is always running in this context
         data_freshness: {
-          last_system_update: generatorStatus.isRunning
-            ? 'real-time'
-            : 'static',
+          last_system_update: 'real-time',
           cache_ttl_seconds: 30,
           refresh_recommended: true,
         },
@@ -334,15 +311,15 @@ function calculateResourceUtilization(servers: any[]) {
   if (servers.length === 0) return { avg_cpu: 0, avg_memory: 0, avg_disk: 0 };
 
   const totalCpu = servers.reduce(
-    (sum, s) => sum + (s.cpu_usage || s.node_cpu_usage_percent || 0),
+    (sum, s) => sum + (s.cpu_usage || 0),
     0
   );
   const totalMemory = servers.reduce(
-    (sum, s) => sum + (s.memory_usage || s.node_memory_usage_percent || 0),
+    (sum, s) => sum + (s.memory_usage || 0),
     0
   );
   const totalDisk = servers.reduce(
-    (sum, s) => sum + (s.disk_usage || s.node_disk_usage_percent || 0),
+    (sum, s) => sum + (s.disk_usage || 0),
     0
   );
 
@@ -370,16 +347,16 @@ function getTopResourceConsumers(servers: any[]) {
   return servers
     .sort(
       (a, b) =>
-        (b.cpu_usage || b.node_cpu_usage_percent || 0) -
-        (a.cpu_usage || a.node_cpu_usage_percent || 0)
+        (b.cpu_usage || 0) -
+        (a.cpu_usage || 0)
     )
     .slice(0, 5)
     .map(server => ({
       id: server.id,
       hostname: server.hostname,
-      cpu_usage: server.cpu_usage || server.node_cpu_usage_percent || 0,
+      cpu_usage: server.cpu_usage || 0,
       memory_usage:
-        server.memory_usage || server.node_memory_usage_percent || 0,
+        server.memory_usage || 0,
       status: server.status,
     }));
 }
@@ -387,10 +364,10 @@ function getTopResourceConsumers(servers: any[]) {
 function analyzePatterns(servers: any[]) {
   return {
     high_cpu_pattern: servers.filter(
-      s => (s.cpu_usage || s.node_cpu_usage_percent || 0) > 80
+      s => (s.cpu_usage || 0) > 80
     ).length,
     high_memory_pattern: servers.filter(
-      s => (s.memory_usage || s.node_memory_usage_percent || 0) > 80
+      s => (s.memory_usage || 0) > 80
     ).length,
     error_pattern: servers.filter(
       s => s.status === 'error' || s.status === 'critical'

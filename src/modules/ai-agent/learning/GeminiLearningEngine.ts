@@ -8,7 +8,7 @@
  */
 
 import { InteractionLogger } from '@/services/ai-agent/logging/InteractionLogger';
-import { GoogleAIService } from '@/services/ai/GoogleAIService';
+import { createGoogleAIService, RequestScopedGoogleAIService } from '@/services/ai/GoogleAIService';
 import { UserInteractionLog } from '@/types/ai-learning';
 import { ContextUpdate, ContextUpdateEngine } from './ContextUpdateEngine';
 
@@ -46,7 +46,7 @@ export interface ContextSuggestion {
 export class GeminiLearningEngine {
   private static instance: GeminiLearningEngine;
   private config: GeminiLearningConfig;
-  private googleAI: GoogleAIService;
+  private googleAI: RequestScopedGoogleAIService;
   private interactionLogger: InteractionLogger;
   private contextEngine: ContextUpdateEngine;
   private requestCount = { daily: 0, lastReset: new Date() };
@@ -63,7 +63,7 @@ export class GeminiLearningEngine {
       ...config,
     };
 
-    this.googleAI = GoogleAIService.getInstance();
+    this.googleAI = createGoogleAIService();
     this.interactionLogger = InteractionLogger.getInstance();
     this.contextEngine = ContextUpdateEngine.getInstance();
   }

@@ -1,10 +1,8 @@
-// React import 제거 - 서버 환경 호환성을 위해
-// import { useState, useEffect, useCallback } from 'react';
-
 /**
- * 🧠 지능형 캐싱 시스템
+ * 🧠 요청별 캐싱 시스템 (서버리스 호환)
  * 
- * 서버/클라이언트 양쪽에서 사용 가능한 캐싱 솔루션
+ * 서버리스 환경에서 요청 범위 내에서만 동작하는 캐싱 솔루션
+ * 싱글톤 패턴 제거, 전역 상태 제거
  */
 
 export interface CacheEntry<T = any> {
@@ -28,11 +26,13 @@ export interface CacheOptions {
   dedupeTime?: number; // 중복 요청 방지 시간 (ms)
 }
 
-export class SmartCache {
-  private static instance: SmartCache;
+/**
+ * 🚫 서버리스 호환: 요청별 인스턴스, 전역 상태 없음
+ * 각 요청마다 새로운 인스턴스를 생성하여 사용
+ */
+export class RequestScopedCache {
   private cache = new Map<string, CacheEntry>();
   private pendingRequests = new Map<string, Promise<any>>();
-  private subscribers = new Map<string, Set<(data: any) => void>>();
   private defaultOptions: Required<CacheOptions> = {
     staleTime: 300000, // 5분
     cacheTime: 1800000, // 30분
@@ -42,19 +42,9 @@ export class SmartCache {
     dedupeTime: 2000
   };
 
-  private constructor() {
-    this.setupCleanupInterval();
-    // 브라우저 환경에서만 포커스 리스너 설정
-    if (typeof window !== 'undefined') {
-      this.setupWindowFocusListener();
-    }
-  }
-
-  static getInstance(): SmartCache {
-    if (!SmartCache.instance) {
-      SmartCache.instance = new SmartCache();
-    }
-    return SmartCache.instance;
+  constructor() {
+    // 🚫 타이머 제거: 서버리스에서 지속적 타이머 금지
+    // 🚫 이벤트 리스너 제거: 전역 상태 유지 금지
   }
 
   async query<T>(
@@ -71,7 +61,6 @@ export class SmartCache {
     }
 
     // 이미 진행 중인 요청이 있는 경우 중복 제거
-    const pendingKey = `${key}:${Date.now()}`;
     if (this.pendingRequests.has(key)) {
       return this.pendingRequests.get(key);
     }
@@ -92,7 +81,7 @@ export class SmartCache {
 
   async invalidateQueries(keyPrefix: string): Promise<void> {
     const keysToInvalidate: string[] = [];
-    
+
     for (const key of this.cache.keys()) {
       if (key.startsWith(keyPrefix)) {
         keysToInvalidate.push(key);
@@ -102,55 +91,14 @@ export class SmartCache {
     for (const key of keysToInvalidate) {
       this.cache.delete(key);
       this.pendingRequests.delete(key);
-      
-      // 구독자들에게 무효화 알림
-      const subs = this.subscribers.get(key);
-      if (subs) {
-        subs.forEach(callback => {
-          try {
-            callback(undefined);
-          } catch (error) {
-            console.error(`❌ 무효화 알림 실패: ${key}`, error);
-          }
-        });
-      }
     }
 
     console.log(`🗑️ 캐시 무효화: ${keysToInvalidate.length}개 키 제거`);
   }
 
-  subscribe<T>(key: string, callback: (data: T) => void): () => void {
-    if (!this.subscribers.has(key)) {
-      this.subscribers.set(key, new Set());
-    }
-    
-    this.subscribers.get(key)!.add(callback);
-    
-    // 현재 캐시된 데이터가 있으면 즉시 콜백 실행
-    const cached = this.cache.get(key);
-    if (cached && !cached.error) {
-      try {
-        callback(cached.data);
-      } catch (error) {
-        console.error(`❌ 구독 콜백 실패: ${key}`, error);
-      }
-    }
-    
-    // 구독 해제 함수 반환
-    return () => {
-      const subs = this.subscribers.get(key);
-      if (subs) {
-        subs.delete(callback);
-        if (subs.size === 0) {
-          this.subscribers.delete(key);
-        }
-      }
-    };
-  }
-
   removeQueries(keyPrefix: string): void {
     const keysToRemove: string[] = [];
-    
+
     for (const key of this.cache.keys()) {
       if (key.startsWith(keyPrefix)) {
         keysToRemove.push(key);
@@ -160,7 +108,6 @@ export class SmartCache {
     for (const key of keysToRemove) {
       this.cache.delete(key);
       this.pendingRequests.delete(key);
-      this.subscribers.delete(key);
     }
 
     console.log(`🗑️ 캐시 제거: ${keysToRemove.length}개 키 삭제`);
@@ -199,36 +146,35 @@ export class SmartCache {
     options: Required<CacheOptions>,
     retryCount = 0
   ): Promise<T> {
-    this.updateCacheEntry(key, { isLoading: true, error: undefined });
-
     try {
-      const result = await fetcher();
-      
-      // 성공적으로 데이터를 가져온 경우
-      this.updateCacheEntry(key, {
-        data: result,
+      this.updateCacheEntry(key, { isLoading: true, error: undefined });
+
+      const data = await fetcher();
+
+      const entry: CacheEntry<T> = {
+        data,
         timestamp: Date.now(),
-        isLoading: false,
-        error: undefined,
+        staleTime: options.staleTime,
+        cacheTime: options.cacheTime,
+        refetchOnWindowFocus: options.refetchOnWindowFocus,
         retryCount: 0,
-        isStale: false
-      });
+        isStale: false,
+        isLoading: false
+      };
 
-      // 구독자들에게 새 데이터 알림
-      this.notifySubscribers(key, result);
+      this.cache.set(key, entry);
 
-      return result;
+      return data;
     } catch (error) {
-      // 재시도 가능한 경우
       if (retryCount < options.retry) {
-        console.warn(`⚠️ 재시도 ${retryCount + 1}/${options.retry}: ${key}`, error);
-        
-        // 지연 후 재시도
-        await new Promise(resolve => setTimeout(resolve, options.retryDelay * (retryCount + 1)));
+        console.warn(`🔄 재시도 ${retryCount + 1}/${options.retry}: ${key}`);
+
+        // 🚫 setTimeout 제거: 서버리스에서 타이머 사용 금지
+        // await new Promise(resolve => setTimeout(resolve, options.retryDelay * (retryCount + 1)));
+
         return this.fetchWithRetry(key, fetcher, options, retryCount + 1);
       }
 
-      // 최종 실패
       this.updateCacheEntry(key, {
         isLoading: false,
         error: error as Error,
@@ -239,124 +185,55 @@ export class SmartCache {
     }
   }
 
-  private async backgroundRefetch<T>(
-    key: string,
-    fetcher: () => Promise<T>,
-    options: Required<CacheOptions>
-  ): Promise<void> {
-    try {
-      await this.fetchWithRetry(key, fetcher, options);
-    } catch (error) {
-      console.warn(`⚠️ 백그라운드 갱신 실패: ${key}`, error);
-    }
-  }
-
   private isStale(entry: CacheEntry): boolean {
     return Date.now() - entry.timestamp > entry.staleTime;
   }
 
   private updateCacheEntry(key: string, updates: Partial<CacheEntry>): void {
     const existing = this.cache.get(key);
-    const updated = existing ? { ...existing, ...updates } : {
-      data: null,
-      timestamp: Date.now(),
-      staleTime: this.defaultOptions.staleTime,
-      cacheTime: this.defaultOptions.cacheTime,
-      refetchOnWindowFocus: this.defaultOptions.refetchOnWindowFocus,
-      retryCount: 0,
-      isStale: false,
-      isLoading: false,
-      ...updates
-    };
-    
-    this.cache.set(key, updated);
-  }
-
-  private notifySubscribers(key: string, data: any): void {
-    const subs = this.subscribers.get(key);
-    if (subs) {
-      subs.forEach(callback => {
-        try {
-          callback(data);
-        } catch (error) {
-          console.error(`❌ 구독자 알림 실패: ${key}`, error);
-        }
-      });
+    if (existing) {
+      this.cache.set(key, { ...existing, ...updates });
+    } else {
+      this.cache.set(key, {
+        data: null,
+        timestamp: Date.now(),
+        staleTime: this.defaultOptions.staleTime,
+        cacheTime: this.defaultOptions.cacheTime,
+        retryCount: 0,
+        isStale: false,
+        isLoading: false,
+        ...updates
+      } as CacheEntry);
     }
-  }
-
-  private setupWindowFocusListener(): void {
-    if (typeof window === 'undefined') return;
-
-    let focused = true;
-
-    const handleFocus = () => {
-      if (!focused) {
-        focused = true;
-        console.log('🔄 윈도우 포커스 - 캐시 갱신 시작');
-        this.refetchOnFocus();
-      }
-    };
-
-    const handleBlur = () => {
-      focused = false;
-    };
-
-    window.addEventListener('focus', handleFocus);
-    window.addEventListener('blur', handleBlur);
-  }
-
-  private refetchOnFocus(): void {
-    for (const [key, entry] of this.cache) {
-      if (entry.refetchOnWindowFocus && this.isStale(entry)) {
-        // 백그라운드에서 갱신 (fetcher가 없어서 스킵)
-        console.log(`🔄 포커스 갱신 대상: ${key}`);
-      }
-    }
-  }
-
-  private setupCleanupInterval(): void {
-    // 10분마다 만료된 캐시 정리
-    setInterval(() => {
-      this.cleanupExpiredEntries();
-      this.optimizeCache();
-    }, 10 * 60 * 1000); // 10분마다 정리 (성능 최적화)
-  }
-
-  private cleanupExpiredEntries(): void {
-    const now = Date.now();
-    let cleanedCount = 0;
-
-    for (const [key, entry] of this.cache) {
-      if (now - entry.timestamp > entry.cacheTime) {
-        this.cache.delete(key);
-        this.subscribers.delete(key);
-        cleanedCount++;
-      }
-    }
-
-    if (cleanedCount > 0) {
-      console.log(`🧹 만료된 캐시 ${cleanedCount}개 정리 완료`);
-    }
-  }
-
-  private optimizeCache(): void {
-    // 캐시 최적화 로직 구현
   }
 
   private calculateCacheSize(): string {
-    try {
-      const jsonString = JSON.stringify(Array.from(this.cache.entries()));
-      const sizeInBytes = new Blob([jsonString]).size;
-      
-      if (sizeInBytes < 1024) return `${sizeInBytes} B`;
-      if (sizeInBytes < 1024 * 1024) return `${(sizeInBytes / 1024).toFixed(1)} KB`;
-      return `${(sizeInBytes / (1024 * 1024)).toFixed(1)} MB`;
-    } catch {
-      return '계산 불가';
+    const sizeInBytes = JSON.stringify(Array.from(this.cache.entries())).length;
+    const sizeInKB = sizeInBytes / 1024;
+
+    if (sizeInKB < 1024) {
+      return `${sizeInKB.toFixed(2)} KB`;
+    } else {
+      return `${(sizeInKB / 1024).toFixed(2)} MB`;
     }
   }
 }
 
-// 싱글톤 인스턴스 내보내기
-export const smartCache = SmartCache.getInstance(); 
+/**
+ * 🔧 서버리스 호환 헬퍼 함수
+ * 각 요청마다 새로운 캐시 인스턴스 생성
+ */
+export function createRequestCache(): RequestScopedCache {
+  return new RequestScopedCache();
+}
+
+/**
+ * 🚫 레거시 호환성 (사용 금지)
+ * @deprecated 서버리스 환경에서는 createRequestCache() 사용
+ */
+export const SmartCache = {
+  getInstance: () => {
+    console.warn('⚠️ SmartCache.getInstance()는 서버리스에서 사용 금지. createRequestCache() 사용하세요.');
+    return new RequestScopedCache();
+  }
+}; 

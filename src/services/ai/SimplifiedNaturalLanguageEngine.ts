@@ -9,11 +9,11 @@
  */
 
 import { UnifiedAIEngineRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
-import { SupabaseRAGEngine, getSupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
+import { getSupabaseRAGEngine, SupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { AutoReportService } from '@/services/ai/AutoReportService';
-import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { MCPWarmupService } from '@/services/mcp/mcp-warmup-service';
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
+import { createGoogleAIService, RequestScopedGoogleAIService } from './GoogleAIService';
 
 // 🎯 스마트 모드 정의
 type AIMode = 'auto' | 'google-only' | 'local' | 'offline';
@@ -61,7 +61,7 @@ export class SimplifiedNaturalLanguageEngine {
   private static instance: SimplifiedNaturalLanguageEngine | null = null;
   private unifiedAI: UnifiedAIEngineRouter;
   private ragEngine: SupabaseRAGEngine; // 🎯 Supabase RAG 전용
-  private googleAI: GoogleAIService | null = null;
+  private googleAI: RequestScopedGoogleAIService | null = null;
   private mcpWarmup: MCPWarmupService;
   private autoReportService: AutoReportService;
   private initialized = false;
@@ -73,15 +73,15 @@ export class SimplifiedNaturalLanguageEngine {
   private mlInitialized = false;
 
   private constructor() {
-    this.unifiedAI = UnifiedAIEngineRouter.getInstance();
-    this.ragEngine = getSupabaseRAGEngine(); // 🎯 Supabase RAG 싱글톤 사용
-    this.mcpWarmup = MCPWarmupService.getInstance();
-    this.autoReportService = AutoReportService.getInstance();
+    this.unifiedAI = new UnifiedAIEngineRouter();
+    this.ragEngine = new SupabaseRAGEngine(); // 🎯 Supabase RAG 전용
+    this.mcpWarmup = new MCPWarmupService();
+    this.autoReportService = new AutoReportService();
 
-    // 🎯 Google AI 싱글톤 인스턴스 사용 (할당량 중앙 관리)
+    // 🚫 서버리스 호환: 요청별 Google AI 서비스 생성
     try {
-      this.googleAI = GoogleAIService.getInstance();
-      console.log('✅ GoogleAI 싱글톤 인스턴스 연결됨 (SimplifiedNaturalLanguageEngine)');
+      this.googleAI = createGoogleAIService();
+      console.log('✅ 요청별 GoogleAI 서비스 연결됨 (SimplifiedNaturalLanguageEngine)');
     } catch (error) {
       console.warn('⚠️ Google AI 서비스 연결 실패:', error);
       this.googleAI = null;
@@ -305,7 +305,7 @@ export class SimplifiedNaturalLanguageEngine {
   ): Promise<FastTrackResult> {
     if (!this.googleAI) {
       // 🎯 싱글톤 인스턴스 사용 (새 인스턴스 생성 금지)
-      this.googleAI = GoogleAIService.getInstance();
+      this.googleAI = createGoogleAIService();
       console.log('🔄 Google AI 싱글톤 재연결 (processGoogleOnly)');
     }
 
@@ -523,7 +523,7 @@ export class SimplifiedNaturalLanguageEngine {
   private async tryGoogle(query: string) {
     if (!this.googleAI) {
       // 🎯 싱글톤 인스턴스 사용 (새 인스턴스 생성 금지)
-      this.googleAI = GoogleAIService.getInstance();
+      this.googleAI = createGoogleAIService();
       console.log('🔄 Google AI 싱글톤 재연결 (tryGoogle)');
     }
 

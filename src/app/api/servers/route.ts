@@ -1,6 +1,6 @@
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
 import { logger } from '@/lib/logger';
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { createServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
 // 기본 데이터 검증 함수
@@ -37,7 +37,7 @@ function createBasicFallbackWarning(dataSource: string, reason: string) {
     actionRequired: '실제 데이터 소스 연결 필요',
     productionImpact:
       process.env.NODE_ENV === 'production' ||
-      process.env.VERCEL_ENV === 'production'
+        process.env.VERCEL_ENV === 'production'
         ? 'CRITICAL'
         : 'LOW',
   };
@@ -93,47 +93,68 @@ export async function GET(request: NextRequest) {
     );
     const status = searchParams.get('status');
 
-    // 실제 서버 데이터 생성기 사용
-    const generator = RealServerDataGenerator.getInstance();
-    let servers = await generator.getAllServers();
-    let dataSource = 'RealServerDataGenerator';
+    // 🚫 서버리스 호환: 요청별 데이터 생성기 생성
+    const generator = createServerDataGenerator({
+      count: ACTIVE_SERVER_CONFIG.maxServers,
+      includeMetrics: true,
+    });
 
-    // 🛡️ 데이터 무결성 검증 및 폴백 처리
+    // 🔧 서버 데이터 생성 (요청별)
+    let servers = await generator.generateServers();
+    let dataSource = 'RequestScopedServerDataGenerator';
+
+    console.log(`📊 요청별 서버 데이터 생성 완료: ${servers.length}개`);
+
+    // 🛡️ 데이터 무결성 검증
     if (!servers || servers.length === 0) {
-      // 경고 생성
-      const warning = createBasicFallbackWarning(
-        'RealServerDataGenerator',
-        '서버 데이터가 존재하지 않음'
-      );
+      console.log('🔄 빈 데이터 감지, 재시도...');
 
-      // 프로덕션 환경에서는 에러 발생
-      if (
-        process.env.NODE_ENV === 'production' ||
-        process.env.VERCEL_ENV === 'production'
-      ) {
-        console.error('💀 PRODUCTION_DATA_ERROR:', warning);
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'PRODUCTION_DATA_ERROR',
-            message: '프로덕션 환경에서 실제 서버 데이터 필수',
-            warning,
-            actionRequired: '실제 데이터 소스 연결 필요',
-          },
-          {
-            status: 500,
-            headers: {
-              'X-Data-Fallback-Warning': 'true',
-              'X-Production-Error': 'true',
-            },
-          }
+      // 새 인스턴스로 재시도
+      const newGenerator = createServerDataGenerator({
+        count: ACTIVE_SERVER_CONFIG.maxServers,
+        includeMetrics: true,
+      });
+      servers = await newGenerator.generateServers();
+
+      if (servers && servers.length > 0) {
+        console.log(`✅ 재시도 성공: ${servers.length}개 서버 로드됨`);
+        dataSource = 'RequestScopedServerDataGenerator-Retry';
+      } else {
+        // 경고 생성
+        const warning = createBasicFallbackWarning(
+          'RequestScopedServerDataGenerator',
+          '재시도 후에도 서버 데이터가 존재하지 않음'
         );
-      }
 
-      // 개발 환경에서만 목업 데이터 사용
-      console.warn('⚠️ DATA_FALLBACK_WARNING:', warning);
-      servers = generateMockServers();
-      dataSource = 'fallback';
+        // 프로덕션 환경에서는 에러 발생
+        if (
+          process.env.NODE_ENV === 'production' ||
+          process.env.VERCEL_ENV === 'production'
+        ) {
+          console.error('💀 PRODUCTION_DATA_ERROR:', warning);
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'PRODUCTION_DATA_ERROR',
+              message: '프로덕션 환경에서 실제 서버 데이터 필수',
+              warning,
+              actionRequired: '실제 데이터 소스 연결 필요',
+            },
+            {
+              status: 500,
+              headers: {
+                'X-Data-Fallback-Warning': 'true',
+                'X-Production-Error': 'true',
+              },
+            }
+          );
+        }
+
+        // 개발 환경에서만 목업 데이터 사용
+        console.warn('⚠️ DATA_FALLBACK_WARNING:', warning);
+        servers = generateMockServers();
+        dataSource = 'fallback';
+      }
     }
 
     // 데이터 검증
@@ -149,7 +170,6 @@ export async function GET(request: NextRequest) {
         error: validationError.message,
         serverCount: servers.length,
       });
-      // 검증 실패해도 계속 진행 (기본 검증이므로)
     }
 
     // 상태별 필터링
@@ -168,33 +188,29 @@ export async function GET(request: NextRequest) {
     // 통계 계산
     const stats = {
       total: servers.length,
-      online: servers.filter(s => s.status === 'running').length,
+      online: servers.filter(s => s.status === 'healthy').length,
       warning: servers.filter(s => s.status === 'warning').length,
-      offline: servers.filter(
-        s => s.status === 'error' || s.status === 'stopped'
-      ).length,
+      offline: servers.filter(s => s.status === 'critical').length,
       avgCpu: Math.round(
-        servers.reduce((sum, s) => sum + (s.metrics?.cpu || 0), 0) /
-          servers.length
+        servers.reduce((sum, s) => sum + (s.cpu || 0), 0) / servers.length
       ),
       avgMemory: Math.round(
-        servers.reduce((sum, s) => sum + (s.metrics?.memory || 0), 0) /
-          servers.length
+        servers.reduce((sum, s) => sum + (s.memory || 0), 0) / servers.length
       ),
       avgDisk: Math.round(
-        servers.reduce((sum, s) => sum + (s.metrics?.disk || 0), 0) /
-          servers.length
+        servers.reduce((sum, s) => sum + (s.disk || 0), 0) / servers.length
       ),
     };
 
-    // 응답 헤더 설정 (목업 데이터 사용시 경고)
+    // 응답 헤더 설정
     const responseHeaders: Record<string, string> = {};
     if (dataSource === 'fallback') {
       responseHeaders['X-Data-Fallback-Warning'] = 'true';
       responseHeaders['X-Data-Source'] = 'mock';
       responseHeaders['X-Warning-Level'] = 'CRITICAL';
     } else {
-      responseHeaders['X-Data-Source'] = 'real';
+      responseHeaders['X-Data-Source'] = 'serverless';
+      responseHeaders['X-Generator-Type'] = 'request-scoped';
     }
 
     return NextResponse.json(
@@ -218,6 +234,7 @@ export async function GET(request: NextRequest) {
           isMockData: dataSource === 'fallback',
           environment: process.env.NODE_ENV,
           warningLevel: dataSource === 'fallback' ? 'CRITICAL' : 'NONE',
+          serverless: true,
         },
         timestamp: Date.now(),
       },

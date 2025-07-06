@@ -6,7 +6,7 @@
  * ✅ 메모리 사용량 최적화
  */
 
-import { GoogleAIService } from '@/services/ai/GoogleAIService';
+import { createGoogleAIService, RequestScopedGoogleAIService } from '@/services/ai/GoogleAIService';
 
 interface GoogleAIRequest {
   query: string;
@@ -21,14 +21,13 @@ interface GoogleAIResponse {
   confidence: number;
 }
 
-export class GoogleAIEngine {
-  private googleAIService: GoogleAIService;
+export class GoogleAIEngine implements AIEngine {
+  private googleAIService: RequestScopedGoogleAIService;
   private initialized = false;
 
   constructor() {
-    // 🎯 싱글톤 인스턴스 사용 (독립 인스턴스 생성 금지)
-    this.googleAIService = GoogleAIService.getInstance();
-    console.log('🤖 GoogleAIEngine 프록시 생성됨 (싱글톤 사용)');
+    // 🚫 서버리스 호환: 요청별 Google AI 서비스 생성
+    this.googleAIService = createGoogleAIService();
   }
 
   public async initialize(): Promise<void> {
@@ -79,7 +78,7 @@ export class GoogleAIEngine {
   /**
    * 🎯 싱글톤 서비스 직접 접근 (고급 사용)
    */
-  public getService(): GoogleAIService {
+  public getService(): RequestScopedGoogleAIService {
     return this.googleAIService;
   }
 }

@@ -1,5 +1,6 @@
 import { browserNotificationService } from '@/services/notifications/BrowserNotificationService';
-import { modeTimerManager } from '@/utils/ModeTimerManager';
+// // 🚫 ModeTimerManager 제거됨 - Vercel 플랫폼 모니터링 사용
+// import { modeTimerManager } from '@/utils/ModeTimerManager';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -112,16 +113,6 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
 
           console.log('🚀 [System] 시스템 시작 완료');
           console.log('🤖 [AI] AI 에이전트는 항상 활성화 상태 유지');
-
-          // ModeTimerManager를 사용한 모니터링 모드 시작
-          try {
-            modeTimerManager.switchMode('monitoring');
-          } catch (timerError) {
-            console.warn(
-              '⚠️ [Timer] ModeTimerManager 전환 중 오류:',
-              timerError
-            );
-          }
         } catch (error) {
           console.error('❌ [System] 시스템 시작 실패:', error);
         }

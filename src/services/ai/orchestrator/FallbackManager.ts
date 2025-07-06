@@ -1,4 +1,3 @@
-import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { EngineResult } from './types';
 
 const googleAI = GoogleAIService.getInstance();

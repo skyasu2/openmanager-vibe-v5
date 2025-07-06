@@ -18,7 +18,7 @@ import { AutoIncidentReportSystem } from '@/core/ai/systems/AutoIncidentReportSy
 import { getSupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { CustomEngines } from '@/services/ai/engines/CustomEngines';
 import { OpenSourceEngines } from '@/services/ai/engines/OpenSourceEngines';
-import { GoogleAIService } from '@/services/ai/GoogleAIService';
+import { createGoogleAIService, RequestScopedGoogleAIService } from '@/services/ai/GoogleAIService';
 import { KoreanAIEngine } from '@/services/ai/korean-ai-engine';
 import { TransformersEngine } from '@/services/ai/transformers-engine';
 import type { AIMode } from '@/types/ai-types';
@@ -52,7 +52,7 @@ export interface EngineStatus {
 export class AIEngineManager {
   // 메인 엔진들
   public readonly supabaseRAG = getSupabaseRAGEngine();
-  public readonly googleAI: GoogleAIService;
+  public readonly googleAI: RequestScopedGoogleAIService;
   public readonly mcpClient: any; // 🎯 역할 변경: AI 엔진 → 컨텍스트 수집기
 
   // 고급 엔진들 (임시 비활성화)
@@ -80,7 +80,7 @@ export class AIEngineManager {
   > = {};
 
   constructor() {
-    this.googleAI = GoogleAIService.getInstance();
+    this.googleAI = createGoogleAIService();
     this.mcpClient = RealMCPClient ? RealMCPClient.getInstance() : null;
 
     this.koreanEngine = new KoreanAIEngine();

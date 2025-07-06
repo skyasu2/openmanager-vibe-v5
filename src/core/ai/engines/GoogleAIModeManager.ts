@@ -6,7 +6,7 @@
  * - GOOGLE_AI: 로컬 AI + Google AI 효율적 조합
  */
 
-import { GoogleAIService } from '@/services/ai/GoogleAIService';
+import { createGoogleAIService, RequestScopedGoogleAIService } from '@/services/ai/GoogleAIService';
 import {
   AIEngineConfig,
   AIEngineResult,
@@ -31,10 +31,12 @@ interface ModeUsageStats {
 }
 
 export class GoogleAIModeManager {
-  private googleAI: GoogleAIService;
+  private googleAI: RequestScopedGoogleAIService;
   private config: GoogleAIModeConfig;
   private currentMode: AIMode;
   private stats: AIEngineStats;
+  private initialized = false;
+  private modeHistory: ModeHistoryEntry[] = [];
 
   constructor(config?: Partial<GoogleAIModeConfig>) {
     this.config = {
@@ -53,7 +55,7 @@ export class GoogleAIModeManager {
     };
 
     this.currentMode = this.config.mode;
-    this.googleAI = GoogleAIService.getInstance();
+    this.googleAI = createGoogleAIService();
 
     this.stats = {
       totalQueries: 0,
