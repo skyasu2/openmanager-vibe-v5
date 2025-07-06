@@ -19,8 +19,11 @@ if (typeof window === 'undefined') {
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'OpenManager Vibe v5 - Korean AI Hybrid Engine',
-  description: '세계 최초 한국어 특화 AI 하이브리드 서버 모니터링 시스템',
+  title: 'OpenManager - Korean AI Hybrid Engine',
+  description: 'AI 기반 서버 모니터링 및 관리 시스템',
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({

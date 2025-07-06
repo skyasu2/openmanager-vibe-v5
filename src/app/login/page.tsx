@@ -145,7 +145,7 @@ export default function LoginPage() {
                     </motion.div>
 
                     <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                        OpenManager Vibe v5
+                        OpenManager
                     </h2>
                     <p className="text-gray-600">
                         시스템에 로그인하여 시작하세요
@@ -233,7 +233,7 @@ export default function LoginPage() {
                     transition={{ delay: 0.6, duration: 0.5 }}
                     className="text-center text-sm text-gray-500"
                 >
-                    <p>© 2024 OpenManager Vibe v5. All rights reserved.</p>
+                    <p>© 2024 OpenManager. All rights reserved.</p>
                 </motion.div>
             </motion.div>
         </div>

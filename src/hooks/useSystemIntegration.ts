@@ -31,9 +31,6 @@ import {
   MetricDataPoint,
   predictiveAnalysisEngine,
 } from '@/engines/PredictiveAnalysisEngine';
-import {
-  MCPWakeupProgress
-} from '@/services/mcp/mcp-warmup-service';
 // MCP 웜업 서비스 제거됨 - Google Cloud VM 24시간 동작
 
 // Phase 1 + 2.1 모듈 타입 정의
@@ -71,6 +68,16 @@ interface NotificationStatus {
   lastNotification: Date | null;
 }
 
+interface SystemStatus {
+  initialized: boolean;
+  healthy: boolean;
+  mcpConnected: boolean;
+  aiEngineReady: boolean;
+  databaseConnected: boolean;
+  lastCheck: string;
+  errors: string[];
+}
+
 interface SystemIntegrationState {
   // 모듈 상태
   realTimeHub: RealTimeHubStatus;
@@ -97,6 +104,10 @@ interface SystemIntegrationState {
   // 실시간 이벤트
   recentEvents: SystemEvent[];
   eventCount: number;
+
+  status: SystemStatus;
+  isLoading: boolean;
+  error: string | null;
 }
 
 interface SystemEvent {
@@ -219,6 +230,17 @@ export const useSystemIntegration = () => {
       },
       recentEvents: [],
       eventCount: 0,
+      status: {
+        initialized: false,
+        healthy: false,
+        mcpConnected: false,
+        aiEngineReady: false,
+        databaseConnected: false,
+        lastCheck: '',
+        errors: []
+      },
+      isLoading: true,
+      error: null,
     })
   ).current;
 

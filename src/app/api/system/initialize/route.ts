@@ -1,4 +1,9 @@
-import { NextResponse } from 'next/server';
+/**
+ * 🚀 시스템 초기화 API - 통합 초기화 v3.0
+ */
+
+import { createServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { NextRequest, NextResponse } from 'next/server';
 // MCP 웜업 서비스 제거됨 - Google Cloud VM 24시간 동작
 import { systemLogger } from '@/lib/logger';
 
@@ -13,19 +18,13 @@ async function runInitialization(): Promise<string[]> {
   try {
     // 1. 데이터 생성기 초기화
     try {
-      const generator = createRealServerDataGenerator();
-      if (generator.getAllServers().length === 0) {
-        await generator.initialize();
-        generator.startAutoGeneration();
-        logs.push('✅ 데이터 생성기 초기화 완료');
-        systemLogger.info('✅ 데이터 생성기 초기화 완료');
-      } else {
-        logs.push('👍 데이터 생성기는 이미 실행 중입니다.');
-        systemLogger.info('👍 데이터 생성기는 이미 실행 중입니다.');
-      }
+      const generator = createServerDataGenerator();
+      await generator.initialize();
+      logs.push('✅ 서버 데이터 생성기 초기화 완료');
+      systemLogger.info('✅ 서버 데이터 생성기 초기화 완료');
     } catch (error) {
-      logs.push(`❌ 데이터 생성기 초기화 실패: ${error.message}`);
-      systemLogger.error('❌ 데이터 생성기 초기화 실패:', error);
+      logs.push(`❌ 서버 데이터 생성기 초기화 실패: ${error.message}`);
+      systemLogger.error('❌ 서버 데이터 생성기 초기화 실패:', error);
       throw new Error('Data generator failed');
     }
 
@@ -56,7 +55,7 @@ async function runInitialization(): Promise<string[]> {
   }
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   if (isInitializing) {
     return NextResponse.json(
       { success: false, message: '시스템이 이미 초기화 중입니다.' },
@@ -73,9 +72,9 @@ export async function POST() {
   }
 
   try {
-    systemLogger.info('🚀 통합 시스템 초기화 API 시작...');
+    systemLogger.info('🚀 시스템 초기화 시작...');
     const logs = await runInitialization();
-    systemLogger.info('🎉 통합 시스템 초기화 API 완료');
+    systemLogger.info('🎉 시스템 초기화 완료');
     return NextResponse.json({
       success: true,
       message: '시스템 초기화 성공',
@@ -83,7 +82,7 @@ export async function POST() {
     });
   } catch (error) {
     systemLogger.error(
-      `❌ 통합 시스템 초기화 API 오류: ${error.message}`,
+      `❌ 시스템 초기화 실패: ${error.message}`,
       error
     );
     return NextResponse.json(

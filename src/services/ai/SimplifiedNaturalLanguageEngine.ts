@@ -8,10 +8,10 @@
  * ✅ 경량 ML 엔진 통합 - 질의 최적화 및 자동 학습 (NEW!)
  */
 
-import { createGoogleAIService, RequestScopedGoogleAIService } from '@/core/ai/engines/GoogleAIEngine';
 import { UnifiedAIEngineRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
 import { SupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { AutoReportService } from '@/services/ai/AutoReportService';
+import { createGoogleAIService, RequestScopedGoogleAIService } from '@/services/ai/GoogleAIService';
 
 // 🎯 스마트 모드 정의
 type AIMode = 'auto' | 'google-only' | 'local' | 'offline';

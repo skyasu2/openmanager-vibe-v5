@@ -106,22 +106,13 @@ export default function HomePage() {
                     <motion.h1
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4, duration: 0.6 }}
-                        className="text-6xl font-bold mb-4"
+                        transition={{ delay: 0.3, duration: 0.8 }}
+                        className="text-5xl font-bold mb-4"
                     >
-                        <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                        <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
                             OpenManager
                         </span>
                     </motion.h1>
-
-                    <motion.h2
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5, duration: 0.6 }}
-                        className="text-2xl font-semibold text-gray-700 mb-6"
-                    >
-                        Vibe v5
-                    </motion.h2>
 
                     {/* 부제목 */}
                     <motion.p
@@ -194,7 +185,7 @@ export default function HomePage() {
                             시스템 시작을 클릭하여 모니터링을 시작하세요
                         </p>
                         <p className="text-gray-400 text-xs">
-                            © 2024 OpenManager Vibe v5. All rights reserved.
+                            © 2024 OpenManager. All rights reserved.
                         </p>
                     </motion.div>
                 </motion.div>
