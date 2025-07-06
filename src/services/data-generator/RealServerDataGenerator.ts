@@ -223,15 +223,26 @@ export class GCPRealServerDataGenerator {
                 id: server.id,
                 name: server.name,
                 type: 'error' as any,
-                role: 'error' as ServerRole,
                 location: 'ERROR_LOCATION',
                 status: 'offline' as ServerStatus,
                 environment: 'error' as ServerEnvironment,
+                cpu: 0,
+                memory: 0,
+                disk: 0,
+                network: 0,
+                uptime: 0,
+                lastCheck: new Date().toISOString(),
+                region: 'error-region',
+                version: '0.0.0',
+                tags: ['error'],
+                alerts: 999,
+                lastUpdated: new Date().toISOString(),
+                provider: 'ERROR_PROVIDER',
                 specs: {
-                    cpu: { cores: 0, model: 'ERROR', architecture: 'ERROR' },
-                    memory: { total: 0, type: 'ERROR', speed: 0 },
-                    disk: { total: 0, type: 'ERROR', iops: 0 },
-                    network: { bandwidth: 0, latency: 999 }
+                    cpu_cores: 0,
+                    memory_gb: 0,
+                    disk_gb: 0,
+                    network_speed: 'ERROR'
                 },
                 metrics: {
                     cpu: 0, memory: 0, disk: 0,
@@ -241,8 +252,10 @@ export class GCPRealServerDataGenerator {
                 },
                 health: {
                     score: 0,
+                    trend: [0, 0, 0, 0, 0],
+                    status: 'offline' as ServerStatus,
                     issues: ['ERROR: 실제 데이터 연결 실패'],
-                    lastCheck: new Date().toISOString()
+                    lastChecked: new Date().toISOString()
                 }
             }));
         }
@@ -266,7 +279,6 @@ export class GCPRealServerDataGenerator {
                 id: `mock-server-${i.toString().padStart(3, '0')}`,
                 name: `목업서버-${i}`,
                 type: randomType as any,
-                role: i <= 3 ? 'primary' : 'secondary',
                 location: randomLocation,
                 lastUpdated: new Date().toISOString(),
                 provider: 'Mock Provider',

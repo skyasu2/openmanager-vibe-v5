@@ -35,6 +35,12 @@ export class EnvironmentConfigManager {
     if (env.IS_VERCEL) {
       console.log('🚫 Vercel 환경: 목업 데이터 생성 시스템 비활성화');
       return {
+        serverArchitecture: 'single',
+        databaseType: 'single',
+        networkTopology: 'simple',
+        specialWorkload: 'standard',
+        scalingPolicy: 'manual',
+        securityLevel: 'basic',
         mode: 'gcp-real-data',
         enableMockData: false,
         enableRealtime: false,
@@ -53,6 +59,12 @@ export class EnvironmentConfigManager {
 
     // 🏠 로컬 환경: 목업 데이터 생성 활성화
     return {
+      serverArchitecture: 'load-balanced',
+      databaseType: 'replica',
+      networkTopology: 'multi-cloud',
+      specialWorkload: 'container',
+      scalingPolicy: 'auto',
+      securityLevel: 'enhanced',
       mode: env.IS_DEVELOPMENT ? 'development' : 'production',
       enableMockData: true,
       enableRealtime: this.dataGeneratorConfig.enabled,

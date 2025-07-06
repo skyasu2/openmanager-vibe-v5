@@ -26,6 +26,8 @@ export class ServerInstanceManager {
         role: ServerInstance['role'] = 'standalone',
         environment: ServerInstance['environment'] = 'production'
     ): ServerInstance {
+        const now = new Date().toISOString();
+
         const server: ServerInstance = {
             id,
             name,
@@ -34,6 +36,18 @@ export class ServerInstanceManager {
             location,
             status: 'running',
             environment,
+            cpu: 0,
+            memory: 0,
+            disk: 0,
+            network: 0,
+            uptime: 0,
+            lastCheck: now,
+            region: 'ap-northeast-2',
+            version: '1.0.0',
+            tags: [type, environment],
+            alerts: 0,
+            lastUpdated: now,
+            provider: 'AWS',
             specs: this.generateServerSpecs(type),
             metrics: {
                 cpu: 0,
@@ -50,11 +64,11 @@ export class ServerInstanceManager {
                 trend: [100, 100, 100, 100, 100],
                 status: 'running' as const,
                 issues: [],
-                lastChecked: new Date().toISOString(),
+                lastChecked: now,
             },
             security: {
                 level: 'enhanced',
-                lastSecurityScan: new Date().toISOString(),
+                lastSecurityScan: now,
                 vulnerabilities: 0,
                 patchLevel: '2024.12',
             },

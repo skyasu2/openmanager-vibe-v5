@@ -205,6 +205,20 @@ class RealDataStrategy implements DataGeneratorStrategy {
     const servers: ServerInstance[] = [];
 
     for (const [id, server] of this.servers) {
+      // 🔧 안전한 메트릭 접근 - server.metrics가 undefined일 수 있음
+      if (!server.metrics) {
+        server.metrics = {
+          cpu: 0,
+          memory: 0,
+          disk: 0,
+          network: { in: 0, out: 0 },
+          requests: 0,
+          errors: 0,
+          uptime: 0,
+          customMetrics: {},
+        };
+      }
+
       // 메트릭 업데이트 (소수점 2자리)
       server.metrics.cpu = parseFloat(
         Math.max(
