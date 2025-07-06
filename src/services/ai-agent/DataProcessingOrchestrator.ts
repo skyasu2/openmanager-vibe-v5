@@ -9,13 +9,11 @@
 
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import {
-  aiDataFilter,
-  AIDataFilterOptions,
-  AIFilterResult,
+  AIDataFilterOptions
 } from './AIDataFilter';
-import { StrategyFactory, ProcessingStrategy } from './StrategyFactory';
-import { UnifiedCacheManager } from './UnifiedCacheManager';
 import { ErrorHandlingMiddleware } from './ErrorHandlingMiddleware';
+import { StrategyFactory } from './StrategyFactory';
+import { UnifiedCacheManager } from './UnifiedCacheManager';
 
 export interface OrchestratorRequest {
   requestId: string;
@@ -284,7 +282,7 @@ export class DataProcessingOrchestrator {
       strategies: await this.strategyFactory.getStatus(),
       dataGenerator: {
         status: 'active',
-        serverCount: this.dataGenerator.getAllServers().length,
+        serverCount: (await this.dataGenerator.getAllServers()).length,
       },
     };
   }

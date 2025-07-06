@@ -42,8 +42,8 @@ describe('RealServerDataGenerator TDD 리팩토링 테스트', () => {
       await generator.initialize();
     });
 
-    test('ServerFactory: 서버 타입별 특화 사양이 올바르게 생성되어야 함', () => {
-      const servers = generator.getAllServers();
+    test('ServerFactory: 서버 타입별 특화 사양이 올바르게 생성되어야 함', async () => {
+      const servers = await generator.getAllServers();
       expect(servers.length).toBeGreaterThan(0);
 
       servers.forEach(server => {
@@ -55,8 +55,8 @@ describe('RealServerDataGenerator TDD 리팩토링 테스트', () => {
       });
     });
 
-    test('ServerFactory: 서버 건강 점수가 올바르게 계산되어야 함', () => {
-      const servers = generator.getAllServers();
+    test('ServerFactory: 서버 건강 점수가 올바르게 계산되어야 함', async () => {
+      const servers = await generator.getAllServers();
 
       servers.forEach(server => {
         expect(server.health.score).toBeGreaterThanOrEqual(0);
@@ -64,8 +64,8 @@ describe('RealServerDataGenerator TDD 리팩토링 테스트', () => {
       });
     });
 
-    test('ServerFactory: 서버 타입별 현실적인 이슈가 생성되어야 함', () => {
-      const servers = generator.getAllServers();
+    test('ServerFactory: 서버 타입별 현실적인 이슈가 생성되어야 함', async () => {
+      const servers = await generator.getAllServers();
       const serversWithIssues = servers.filter(s => s.health.issues.length > 0);
 
       if (serversWithIssues.length > 0) {
@@ -76,8 +76,8 @@ describe('RealServerDataGenerator TDD 리팩토링 테스트', () => {
       }
     });
 
-    test('ServerFactory: 데이터베이스 서버는 특화 사양을 가져야 함', () => {
-      const servers = generator.getAllServers();
+    test('ServerFactory: 데이터베이스 서버는 특화 사양을 가져야 함', async () => {
+      const servers = await generator.getAllServers();
       const dbServers = servers.filter(s =>
         ['mysql', 'postgresql', 'mongodb', 'redis'].includes(s.type)
       );
@@ -90,8 +90,8 @@ describe('RealServerDataGenerator TDD 리팩토링 테스트', () => {
       }
     });
 
-    test('ServerFactory: 웹서버는 네트워크 특화 사양을 가져야 함', () => {
-      const servers = generator.getAllServers();
+    test('ServerFactory: 웹서버는 네트워크 특화 사양을 가져야 함', async () => {
+      const servers = await generator.getAllServers();
       const webServers = servers.filter(s =>
         ['nginx', 'apache', 'haproxy'].includes(s.type)
       );
@@ -120,13 +120,13 @@ describe('RealServerDataGenerator TDD 리팩토링 테스트', () => {
     });
 
     test('MetricsProcessor: 메트릭 처리 로직이 올바르게 작동해야 함', async () => {
-      const servers = generator.getAllServers();
+      const servers = await generator.getAllServers();
       expect(servers.length).toBeGreaterThan(0);
 
       generator.startAutoGeneration();
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      const updatedServers = generator.getAllServers();
+      const updatedServers = await generator.getAllServers();
       updatedServers.forEach(server => {
         expect(['running', 'warning', 'error']).toContain(server.status);
         expect(server.metrics.cpu).toBeGreaterThanOrEqual(0);
@@ -139,8 +139,8 @@ describe('RealServerDataGenerator TDD 리팩토링 테스트', () => {
       generator.stopAutoGeneration();
     });
 
-    test('MetricsProcessor: 서버 상태가 메트릭에 따라 올바르게 결정되어야 함', () => {
-      const servers = generator.getAllServers();
+    test('MetricsProcessor: 서버 상태가 메트릭에 따라 올바르게 결정되어야 함', async () => {
+      const servers = await generator.getAllServers();
 
       servers.forEach(server => {
         const { cpu, memory, disk } = server.metrics;
@@ -162,8 +162,8 @@ describe('RealServerDataGenerator TDD 리팩토링 테스트', () => {
       });
     });
 
-    test('MetricsProcessor: 건강 점수가 올바르게 계산되어야 함', () => {
-      const servers = generator.getAllServers();
+    test('MetricsProcessor: 건강 점수가 올바르게 계산되어야 함', async () => {
+      const servers = await generator.getAllServers();
 
       servers.forEach(server => {
         expect(server.health.score).toBeGreaterThanOrEqual(0);
@@ -172,8 +172,8 @@ describe('RealServerDataGenerator TDD 리팩토링 테스트', () => {
       });
     });
 
-    test('MetricsProcessor: 클러스터 건강 상태가 올바르게 계산되어야 함', () => {
-      const clusters = generator.getAllClusters();
+    test('MetricsProcessor: 클러스터 건강 상태가 올바르게 계산되어야 함', async () => {
+      const clusters = await generator.getAllClusters();
 
       clusters.forEach(cluster => {
         const healthyCount = cluster.servers.filter(
@@ -186,8 +186,8 @@ describe('RealServerDataGenerator TDD 리팩토링 테스트', () => {
       });
     });
 
-    test('MetricsProcessor: 장애 시나리오 영향이 올바르게 반영되어야 함', () => {
-      const servers = generator.getAllServers();
+    test('MetricsProcessor: 장애 시나리오 영향이 올바르게 반영되어야 함', async () => {
+      const servers = await generator.getAllServers();
       const healthyServers = servers.filter(s => s.status === 'running');
 
       expect(healthyServers.length).toBeGreaterThanOrEqual(
@@ -195,8 +195,8 @@ describe('RealServerDataGenerator TDD 리팩토링 테스트', () => {
       );
     });
 
-    test('MetricsProcessor: 유의미한 변화 감지가 올바르게 작동해야 함', () => {
-      const servers = generator.getAllServers();
+    test('MetricsProcessor: 유의미한 변화 감지가 올바르게 작동해야 함', async () => {
+      const servers = await generator.getAllServers();
 
       servers.forEach(server => {
         expect(server.metrics.cpu).toBeGreaterThanOrEqual(0);

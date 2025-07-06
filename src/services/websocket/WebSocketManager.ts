@@ -193,7 +193,7 @@ export class WebSocketManager {
 
       try {
         // RealServerDataGenerator에서 서버 데이터 가져오기
-        const allServers = this.dataGenerator.getAllServers();
+        const allServers = await this.dataGenerator.getAllServers();
         const selectedServers = allServers.slice(0, 3); // 처음 3개 서버만 사용
 
         selectedServers.forEach(server => {
@@ -248,7 +248,7 @@ export class WebSocketManager {
       if (!this.isActive || this.clients.size === 0) return;
 
       try {
-        const allServers = this.dataGenerator.getAllServers();
+        const allServers = await this.dataGenerator.getAllServers();
         const testMetrics = allServers.slice(0, 10).map(server => ({
           timestamp: Date.now(),
           cpu: server.metrics.cpu,

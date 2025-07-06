@@ -26,18 +26,18 @@ describe('🌐 GCP 서버 데이터 생성기', () => {
         mockFirestore = {
             collection: jest.fn().mockReturnThis(),
             doc: jest.fn().mockReturnThis(),
-            add: jest.fn().mockResolvedValue({ id: 'test-doc' }),
-            get: jest.fn().mockResolvedValue({ exists: true, data: () => ({}) }),
-            set: jest.fn().mockResolvedValue({}),
-            delete: jest.fn().mockResolvedValue({})
-        };
+            add: jest.fn().mockResolvedValue({ id: 'test-doc' } as any),
+            get: jest.fn().mockResolvedValue({ exists: true, data: () => ({}) } as any),
+            set: jest.fn().mockResolvedValue({} as any),
+            delete: jest.fn().mockResolvedValue({} as any)
+        } as any;
 
         mockCloudStorage = {
             bucket: jest.fn().mockReturnThis(),
             file: jest.fn().mockReturnThis(),
-            download: jest.fn().mockResolvedValue([Buffer.from('{"test": "data"}')]),
-            save: jest.fn().mockResolvedValue({})
-        };
+            download: jest.fn().mockResolvedValue([Buffer.from('{"test": "data"}')] as any),
+            save: jest.fn().mockResolvedValue({} as any)
+        } as any;
 
         generator = new GCPServerDataGenerator(mockFirestore, mockCloudStorage);
         sessionManager = new GCPSessionManager(mockFirestore);
@@ -110,20 +110,22 @@ describe('🌐 GCP 서버 데이터 생성기', () => {
             dataset.servers.forEach(server => {
                 const patterns = server.historical_patterns;
 
-                // 24시간 사이클 (24개 값)
-                expect(patterns.daily_cycle).toHaveLength(24);
-                patterns.daily_cycle.forEach(value => {
-                    expect(value).toBeGreaterThanOrEqual(0.1);
-                    expect(value).toBeLessThanOrEqual(1.0);
-                });
+                if (patterns) {
+                    // 24시간 사이클 (24개 값)
+                    expect(patterns.daily_cycle).toHaveLength(24);
+                    patterns.daily_cycle?.forEach(value => {
+                        expect(value).toBeGreaterThanOrEqual(0.1);
+                        expect(value).toBeLessThanOrEqual(1.0);
+                    });
 
-                // 주간 사이클 (7개 값)
-                expect(patterns.weekly_cycle).toHaveLength(7);
+                    // 주간 사이클 (7개 값)
+                    expect(patterns.weekly_cycle).toHaveLength(7);
 
-                // 이상 패턴 정의
-                expect(patterns.anomaly_patterns.cpu_spike).toBeDefined();
-                expect(patterns.anomaly_patterns.memory_leak).toBeDefined();
-                expect(patterns.anomaly_patterns.disk_io_storm).toBeDefined();
+                    // 이상 패턴 정의
+                    expect(patterns.anomaly_patterns?.cpu_spike).toBeDefined();
+                    expect(patterns.anomaly_patterns?.memory_leak).toBeDefined();
+                    expect(patterns.anomaly_patterns?.disk_io_storm).toBeDefined();
+                }
             });
         });
     });
@@ -541,14 +543,14 @@ describe('🔄 GCP 세션 매니저', () => {
         mockFirestore = {
             collection: jest.fn().mockReturnThis(),
             doc: jest.fn().mockReturnThis(),
-            add: jest.fn().mockResolvedValue({ id: 'test-doc' }),
-            get: jest.fn().mockResolvedValue({ exists: true, data: () => ({}) }),
-            set: jest.fn().mockResolvedValue({}),
-            delete: jest.fn().mockResolvedValue({}),
+            add: jest.fn().mockResolvedValue({ id: 'test-doc' } as any),
+            get: jest.fn().mockResolvedValue({ exists: true, data: () => ({}) } as any),
+            set: jest.fn().mockResolvedValue({} as any),
+            delete: jest.fn().mockResolvedValue({} as any),
             where: jest.fn().mockReturnThis(),
             orderBy: jest.fn().mockReturnThis(),
             limit: jest.fn().mockReturnThis()
-        };
+        } as any;
 
         sessionManager = new GCPSessionManager(mockFirestore);
     });

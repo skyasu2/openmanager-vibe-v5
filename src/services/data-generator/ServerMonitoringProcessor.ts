@@ -134,15 +134,15 @@ export class ServerMonitoringProcessor {
   private async getRealTimeServerData(): Promise<ServerInstance[]> {
     try {
       // 데이터 생성기 초기화 확인
-      if (this.dataGenerator.getAllServers().length === 0) {
+      const existingServers = await this.dataGenerator.getAllServers();
+      if (existingServers.length === 0) {
+        console.log('🔄 데이터 생성기 초기화 중...');
         await this.dataGenerator.initialize();
         this.dataGenerator.startAutoGeneration();
-
-        // 초기화 후 잠시 대기 (데이터 생성 시간 확보)
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      const servers = this.dataGenerator.getAllServers();
+      const servers = await this.dataGenerator.getAllServers();
       console.log(`📊 실시간 서버 데이터 수집: ${servers.length}개`);
 
       return servers;
@@ -191,7 +191,7 @@ export class ServerMonitoringProcessor {
       const systemAdapter = SystemIntegrationAdapter.getInstance();
 
       // 현재 서버 목록 가져오기
-      const currentServers = this.dataGenerator.getAllServers();
+      const currentServers = await this.dataGenerator.getAllServers();
       const historicalMetrics: HistoricalMetrics[] = [];
 
       // 각 서버별로 히스토리 데이터 조회

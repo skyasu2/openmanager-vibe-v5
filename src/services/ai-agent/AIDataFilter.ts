@@ -154,7 +154,7 @@ export class AIDataFilter {
 
     try {
       // 1. 원본 서버 데이터 가져오기
-      const rawServers = this.dataGenerator.getAllServers();
+      const rawServers = await this.dataGenerator.getAllServers();
 
       // 2. AI 최적화 데이터로 변환
       const aiOptimizedData = rawServers.map(server =>

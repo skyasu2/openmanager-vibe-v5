@@ -4,7 +4,7 @@
  * 실제 환경에서의 시스템 동작 검증
  */
 
-import { detectEnvironment } from '@/lib/environment/environment-detector';
+import { detectEnvironment } from '@/config/environment';
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 

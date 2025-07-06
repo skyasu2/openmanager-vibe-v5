@@ -10,13 +10,11 @@
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import {
   aiDataFilter,
-  AIDataFilterOptions,
-  AIFilterResult,
+  AIDataFilterOptions
 } from './AIDataFilter';
 import {
   hybridDataManager,
-  HybridDataRequest,
-  HybridDataResponse,
+  HybridDataRequest
 } from './HybridDataManager';
 
 export interface ProcessingStrategy {
@@ -60,7 +58,7 @@ export class MonitoringFocusStrategy implements ProcessingStrategy {
       console.log(`🔍 [${request.requestId}] 모니터링 우선 전략 실행`);
 
       // 실시간 서버 데이터 우선 수집
-      const servers = this.dataGenerator.getAllServers();
+      const servers = await this.dataGenerator.getAllServers();
 
       // 모니터링 필터 적용
       let filteredServers = [...servers];
@@ -195,7 +193,7 @@ export class AIAnalysisStrategy implements ProcessingStrategy {
       const aiResult = await aiDataFilter.filterForAI(aiOptions);
 
       // 모니터링 컨텍스트 (최소한)
-      const allServers = this.dataGenerator.getAllServers();
+      const allServers = await this.dataGenerator.getAllServers();
       const serverContext = {
         total: allServers.length,
         online: allServers.filter(s => s.status === 'running').length,

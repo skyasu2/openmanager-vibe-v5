@@ -347,13 +347,12 @@ export class UnifiedDataProcessor {
     timestamp: string;
   }> {
     // 데이터 생성기 초기화 확인
-    if (this.dataGenerator.getAllServers().length === 0) {
+    if ((await this.dataGenerator.getAllServers()).length === 0) {
+      console.log('⚠️ 데이터 생성기가 비어있음. 초기화 시도...');
       await this.dataGenerator.initialize();
-      this.dataGenerator.startAutoGeneration();
-      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    const rawServers = this.dataGenerator.getAllServers();
+    const rawServers = await this.dataGenerator.getAllServers();
     console.log(`📊 공통 전처리: ${rawServers.length}개 서버 데이터 수집`);
 
     return {
@@ -1066,7 +1065,7 @@ export class UnifiedDataProcessor {
     return {
       cacheStats: this.cacheManager.getStats(),
       processingStats: this.processingStats,
-      isReady: this.dataGenerator.getAllServers().length > 0,
+      isReady: (await this.dataGenerator.getAllServers()).length > 0,
     };
   }
 

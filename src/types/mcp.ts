@@ -34,6 +34,18 @@ export interface MCPResponse {
     data?: any;
   };
   id?: string | number;
+
+  // 🔧 MCPAIRouter 호환성을 위한 추가 속성들
+  summary?: string;
+  enginesUsed?: string[];
+  recommendations?: string[];
+  metadata?: {
+    sessionId?: string;
+    timestamp?: string;
+    processingTime?: number;
+    engineUsed?: string;
+    [key: string]: any;
+  };
 }
 
 // MCP 서버 상태 타입

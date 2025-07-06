@@ -13,8 +13,7 @@ import { RealServerDataGenerator } from '@/services/data-generator/RealServerDat
 import {
   aiDataFilter,
   AIDataFilterOptions,
-  AIFilterResult,
-  AIOptimizedServerData,
+  AIFilterResult
 } from './AIDataFilter';
 
 export interface MonitoringData {
@@ -188,7 +187,7 @@ export class HybridDataManager {
   private async collectMonitoringData(
     filters?: HybridDataRequest['monitoringFilters']
   ): Promise<MonitoringData> {
-    const servers = this.dataGenerator.getAllServers();
+    const servers = await this.dataGenerator.getAllServers();
     let filteredServers = [...servers];
 
     // 모니터링 필터 적용

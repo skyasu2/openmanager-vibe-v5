@@ -9,8 +9,7 @@
  */
 
 import type {
-    ServerInstance,
-    CustomEnvironmentConfig
+    ServerInstance
 } from '@/types/data-generator';
 
 export class ServerInstanceManager {
@@ -48,8 +47,10 @@ export class ServerInstanceManager {
             },
             health: {
                 score: 100,
+                trend: [100, 100, 100, 100, 100],
+                status: 'running' as const,
                 issues: [],
-                lastCheck: new Date().toISOString(),
+                lastChecked: new Date().toISOString(),
             },
             security: {
                 level: 'enhanced',
@@ -221,8 +222,10 @@ export class ServerInstanceManager {
 
         server.health = {
             score: Math.max(0, score),
+            trend: [score, score, score, score, score], // 기본 트렌드
+            status: score < 50 ? 'error' : score < 80 ? 'warning' : 'running',
             issues,
-            lastCheck: new Date().toISOString(),
+            lastChecked: new Date().toISOString(),
         };
 
         // 상태 업데이트

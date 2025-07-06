@@ -16,6 +16,14 @@ export interface CustomEnvironmentConfig {
   specialWorkload: 'standard' | 'gpu' | 'storage' | 'container';
   scalingPolicy: 'manual' | 'auto' | 'predictive';
   securityLevel: 'basic' | 'enhanced' | 'enterprise';
+
+  // 🔧 EnvironmentConfigManager 호환성을 위한 추가 속성들
+  mode?: 'development' | 'production' | 'gcp-real-data';
+  enableMockData?: boolean;
+  enableRealtime?: boolean;
+  maxServers?: number;
+  updateInterval?: number;
+  performanceMode?: 'high' | 'balanced' | 'eco';
 }
 
 // 서버 인스턴스 인터페이스 (server.ts와 완전 호환)
@@ -80,9 +88,14 @@ export interface ServerInstance {
     cpu: number;
     memory: number;
     disk: number;
-    network: number;
+    network: number | { in: number; out: number };
     timestamp?: string;
     uptime?: number;
+
+    // 🔧 korean-ai-engine 및 기타 모듈 호환성을 위한 추가 속성들
+    requests?: number;
+    errors?: number;
+    customMetrics?: Record<string, any>;
   };
 
   // 추가 필드들 (선택적)

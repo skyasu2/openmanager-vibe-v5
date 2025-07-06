@@ -28,7 +28,8 @@ describe('Data Generation On/Off Control', () => {
 
             expect(result && 'success' in result ? result.success : false).toBe(false);
             expect(result && 'message' in result ? result.message : '').toContain('시스템이 비활성화');
-            expect(generator.getStatus().isRunning).toBe(false);
+            const status = await generator.getStatus();
+            expect(status.isRunning).toBe(false);
         });
 
         it('시스템 ON 상태에서만 데이터 생성을 허용해야 함', async () => {
@@ -58,14 +59,15 @@ describe('Data Generation On/Off Control', () => {
             const generator = RealServerDataGenerator.getInstance();
 
             await generator.startAutoGeneration();
-            expect(generator.getStatus().isRunning).toBe(true);
+            const status1 = await generator.getStatus();
+            expect(status1.isRunning).toBe(true);
 
             // 시스템 OFF로 변경
             process.env.FORCE_SYSTEM_OFF = 'true';
 
             // 다음 생성 사이클에서 중단되어야 함
             // (실제로는 내부 타이머에서 시스템 상태를 확인)
-            const status = generator.getStatus();
+            const status = await generator.getStatus();
             expect(status.isMockMode).toBe(true); // 테스트 환경에서는 mock 모드
 
             // 정리

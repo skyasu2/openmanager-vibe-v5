@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 // 실제 데이터 상태에서 getDashboardSummary 동작 테스트
 
@@ -72,7 +72,7 @@ describe('RealServerDataGenerator.getDashboardSummary', () => {
 
   it('실제 서버 데이터와 일치하는 카운트를 반환한다', () => {
     const summary = generator.getDashboardSummary();
-    const allServers = generator.getAllServers();
+    const allServers = await generator.getAllServers();
     const allApplications = generator.getAllApplications();
     const allClusters = generator.getAllClusters();
 

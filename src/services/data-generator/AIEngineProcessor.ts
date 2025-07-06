@@ -262,8 +262,12 @@ export class AIEngineProcessor {
         },
         network: {
           interface: 'eth0',
-          bytesReceived: serverInstance.metrics?.network?.in || 0,
-          bytesSent: serverInstance.metrics?.network?.out || 0,
+          bytesReceived: typeof serverInstance.metrics?.network === 'object'
+            ? serverInstance.metrics.network.in || 0
+            : 0,
+          bytesSent: typeof serverInstance.metrics?.network === 'object'
+            ? serverInstance.metrics.network.out || 0
+            : 0,
           packetsReceived: 0,
           packetsSent: 0,
           errorsReceived: 0,

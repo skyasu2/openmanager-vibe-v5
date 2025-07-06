@@ -148,8 +148,8 @@ export class GCPMetricsCollector {
         server.metrics.memory = gcpMetrics.memory || 0;
         server.metrics.disk = gcpMetrics.disk || 0;
         server.metrics.network = gcpMetrics.network || { in: 0, out: 0 };
-        server.metrics.requests = gcpMetrics.requests || 0;
-        server.metrics.errors = gcpMetrics.errors || 0;
+        (server.metrics as any).requests = gcpMetrics.requests || 0;
+        (server.metrics as any).errors = gcpMetrics.errors || 0;
         server.metrics.uptime = gcpMetrics.uptime || 0;
 
         // 서버 상태 결정 (허용된 상태만 사용)

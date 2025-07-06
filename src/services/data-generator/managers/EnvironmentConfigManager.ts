@@ -12,7 +12,7 @@ import {
   getDataGeneratorConfig,
   getVercelOptimizedConfig
 } from '@/config/environment';
-import { CustomEnvironmentConfig } from '../types/ServerTypes';
+import { CustomEnvironmentConfig } from '@/types/data-generator';
 
 export class EnvironmentConfigManager {
   private environmentConfig: CustomEnvironmentConfig;

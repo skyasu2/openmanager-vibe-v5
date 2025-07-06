@@ -33,6 +33,10 @@ export interface SupabaseQueryBuilder {
     order(column: string, options?: { ascending?: boolean }): SupabaseQueryBuilder;
     limit(count: number): SupabaseQueryBuilder;
     range(from: number, to: number): SupabaseQueryBuilder;
+
+    // 🔧 Promise를 반환하는 메서드들 추가
+    then<T>(onfulfilled?: (value: { data: any; error: any }) => T): Promise<T>;
+    catch<T>(onrejected?: (reason: any) => T): Promise<T>;
 }
 
 export interface SupabaseStorageBucket {
