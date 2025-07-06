@@ -108,8 +108,8 @@ export function transformServerInstanceToServerOptimized(
   const name = serverInstance.name;
   const instanceLocation = serverInstance.location || serverInstance.region;
   const status = serverInstance.status;
-  const lastUpdated = serverInstance.lastUpdated || serverInstance.lastCheck;
-  const provider = serverInstance.provider;
+  const lastUpdated = serverInstance.lastUpdated || serverInstance.lastCheck || new Date().toISOString();
+  const provider = serverInstance.provider || 'Unknown';
 
   // 🔧 안전한 메트릭 접근 - ServerInstance의 직접 속성 사용
   const cpu = serverInstance.cpu || 0;
@@ -123,19 +123,19 @@ export function transformServerInstanceToServerOptimized(
   const cpuCores = 'cpu_cores' in safeSpecs
     ? (safeSpecs as any).cpu_cores
     : 'cpu' in safeSpecs && safeSpecs.cpu && typeof safeSpecs.cpu === 'object' && 'cores' in safeSpecs.cpu
-      ? safeSpecs.cpu.cores
+      ? (safeSpecs.cpu as any).cores
       : 4;
 
   const memoryGb = 'memory_gb' in safeSpecs
     ? (safeSpecs as any).memory_gb
     : 'memory' in safeSpecs && safeSpecs.memory && typeof safeSpecs.memory === 'object' && 'total' in safeSpecs.memory
-      ? Math.round(safeSpecs.memory.total / (1024 * 1024 * 1024))
+      ? Math.round(Number((safeSpecs.memory as any).total) / (1024 * 1024 * 1024))
       : 8;
 
   const diskGb = 'disk_gb' in safeSpecs
     ? (safeSpecs as any).disk_gb
     : 'disk' in safeSpecs && safeSpecs.disk && typeof safeSpecs.disk === 'object' && 'total' in safeSpecs.disk
-      ? Math.round(safeSpecs.disk.total / (1024 * 1024 * 1024))
+      ? Math.round(Number((safeSpecs.disk as any).total) / (1024 * 1024 * 1024))
       : 100;
 
   const networkSpeed = 'network_speed' in safeSpecs
@@ -159,7 +159,7 @@ export function transformServerInstanceToServerOptimized(
     network: networkValue,
     uptime: metricsUptime,
     lastUpdated: lastUpdated,
-    provider: provider || 'Unknown',
+    provider: provider,
     os: 'Linux',
     details: {
       cpu_cores: cpuCores,

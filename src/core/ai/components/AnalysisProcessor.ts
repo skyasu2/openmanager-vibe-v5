@@ -38,14 +38,18 @@ export class AnalysisProcessor {
   private mcpClient: RealMCPClient | null = null;
   private openSourceEngines?: OpenSourceEngines;
   private customEngines?: CustomEngines;
+  private localRAG?: any;
+  private mcpEngine?: any;
 
   constructor(
-    private localRAG: LocalRAGEngine,
-    private mcpEngine: MCPEngine,
     googleAI?: typeof GoogleAIService,
+    localRAG?: any,
+    mcpEngine?: any,
   ) {
     this.degradationManager = GracefulDegradationManager.getInstance();
     this.googleAI = googleAI;
+    this.localRAG = localRAG;
+    this.mcpEngine = mcpEngine;
   }
 
   public static getInstance(): AnalysisProcessor {
@@ -148,15 +152,17 @@ export class AnalysisProcessor {
     try {
       // Google AI 우선 시도
       if (this.googleAI) {
-        const googleResult = await this.googleAI.generateResponse(
-          `서버 모니터링 분석: ${JSON.stringify(intent)}`
-        );
+        const googleService = this.googleAI.getInstance();
+        const googleResult = await googleService.processQuery({
+          query: `서버 모니터링 분석: ${JSON.stringify(intent)}`,
+          mode: 'GOOGLE_ONLY'
+        });
 
         if (googleResult.success) {
           return {
             success: true,
-            content: googleResult.content || '분석이 완료되었습니다.',
-            confidence: 0.95,
+            content: googleResult.response || '분석이 완료되었습니다.',
+            confidence: googleResult.confidence || 0.95,
             sources: ['google-ai', 'google-extended-mode'],
             metadata: { tier: 'google_extended', engine: 'google-ai' },
           };

@@ -22,7 +22,7 @@ export interface CustomEnvironmentConfig {
 export interface ServerInstance {
   id: string;
   name: string;
-  status: 'running' | 'stopped' | 'warning' | 'error' | 'maintenance' | 'healthy' | 'critical' | 'offline';
+  status: 'running' | 'stopped' | 'error' | 'healthy' | 'warning' | 'critical' | 'offline' | 'maintenance' | 'online' | 'active' | 'inactive';
   cpu: number;
   memory: number;
   disk: number;
@@ -35,34 +35,58 @@ export interface ServerInstance {
   version: string;
   tags: string[];
   alerts: number;
-  // 추가 필드들 (server.ts와 호환)
+
+  // 🔧 기본 속성들 (필수) - server.ts와 호환
+  location: string;
+  lastUpdated: string;
+  provider: string;
+
+  // 🔧 확장된 속성들 - 누락된 속성 오류 해결
+  health?: {
+    score: number;
+    trend: number[];
+    status: 'running' | 'stopped' | 'error' | 'healthy' | 'warning' | 'critical' | 'offline' | 'maintenance' | 'online' | 'active' | 'inactive';
+    issues?: string[];
+    lastChecked?: string;
+  };
+
+  specs?: {
+    cpu_cores: number;
+    memory_gb: number;
+    disk_gb: number;
+    network_speed?: string;
+  };
+
+  requests?: {
+    total: number;
+    success: number;
+    errors: number;
+    averageTime: number;
+  };
+
+  errors?: {
+    count: number;
+    recent: string[];
+    lastError?: string;
+  };
+
+  custom?: {
+    updateInterval?: number;
+    enableMockData?: boolean;
+    [key: string]: any;
+  };
+
   metrics?: {
     cpu: number;
     memory: number;
     disk: number;
     network: number;
+    timestamp?: string;
+    uptime?: number;
   };
-  // 확장 필드들 (선택적)
+
+  // 추가 필드들 (선택적)
   role?: 'primary' | 'replica' | 'worker' | 'standalone';
-  location?: string;
-  specs?: {
-    cpu: { cores: number; model: string; architecture?: string };
-    memory: { total: number; type: string; speed?: number };
-    disk: { total: number; type: string; iops?: number };
-    network: { bandwidth: number; latency?: number };
-    gpu?: { count: number; model: string; memory: number };
-  };
-  health?: {
-    score: number;
-    issues: string[];
-    lastCheck: string;
-  };
-  security?: {
-    level: 'basic' | 'enhanced' | 'enterprise';
-    lastSecurityScan: string;
-    vulnerabilities: number;
-    patchLevel: string;
-  };
 }
 
 // 서버 클러스터 인터페이스

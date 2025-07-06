@@ -10,7 +10,7 @@
  */
 
 import { UnifiedMLToolkit } from '@/lib/ml/UnifiedMLToolkit';
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { GCPRealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
 import { ContextManager } from '../ContextManager';
 
@@ -40,22 +40,22 @@ export class MCPEngine {
   private mcpClient: RealMCPClient;
   private contextManager: ContextManager;
   private mlToolkit: UnifiedMLToolkit;
-  private serverDataGenerator: typeof RealServerDataGenerator;
+  private serverDataGenerator: GCPRealServerDataGenerator;
   private independentCache: Map<string, any> = new Map();
   private initialized = false;
   private lastQueryTime = 0;
 
-  constructor(serverDataGenerator: typeof RealServerDataGenerator) {
-    this.serverDataGenerator = serverDataGenerator;
+  constructor(serverDataGenerator: GCPRealServerDataGenerator) {
     this.mcpClient = RealMCPClient.getInstance();
     this.contextManager = ContextManager.getInstance();
     this.mlToolkit = new UnifiedMLToolkit();
+    this.serverDataGenerator = serverDataGenerator;
     this.initialize();
   }
 
   static getInstance(): MCPEngine {
     if (!MCPEngine.instance) {
-      MCPEngine.instance = new MCPEngine(RealServerDataGenerator.getInstance());
+      MCPEngine.instance = new MCPEngine(GCPRealServerDataGenerator.getInstance());
     }
     return MCPEngine.instance;
   }

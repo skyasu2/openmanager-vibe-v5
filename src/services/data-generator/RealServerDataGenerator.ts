@@ -268,49 +268,40 @@ export class GCPRealServerDataGenerator {
                 type: randomType as any,
                 role: i <= 3 ? 'primary' : 'secondary',
                 location: randomLocation,
+                lastUpdated: new Date().toISOString(),
+                provider: 'Mock Provider',
                 status: randomStatus,
                 environment: randomEnv,
+                region: randomLocation,
+                version: '1.0.0',
+                tags: [`${randomType}`, `${randomEnv}`],
+                alerts: randomStatus === 'warning' ? 1 : 0,
+                uptime: Math.floor(Math.random() * 365 * 24 * 60 * 60),
+                lastCheck: new Date().toISOString(),
+                cpu: Math.floor(Math.random() * 100),
+                memory: Math.floor(Math.random() * 100),
+                disk: Math.floor(Math.random() * 100),
+                network: Math.floor(Math.random() * 100),
                 specs: {
-                    cpu: {
-                        cores: Math.floor(Math.random() * 16) + 4,
-                        model: 'Intel Xeon E5-2620',
-                        architecture: 'x86_64'
-                    },
-                    memory: {
-                        total: Math.floor(Math.random() * 64) + 16,
-                        type: 'DDR4',
-                        speed: 2400
-                    },
-                    disk: {
-                        total: Math.floor(Math.random() * 1000) + 500,
-                        type: 'SSD',
-                        iops: 3000
-                    },
-                    network: {
-                        bandwidth: 1000,
-                        latency: Math.floor(Math.random() * 10) + 1
-                    }
+                    cpu_cores: Math.floor(Math.random() * 16) + 4,
+                    memory_gb: Math.floor(Math.random() * 64) + 16,
+                    disk_gb: Math.floor(Math.random() * 1000) + 500,
+                    network_speed: '1Gbps'
                 },
                 metrics: {
                     cpu: Math.floor(Math.random() * 100),
                     memory: Math.floor(Math.random() * 100),
                     disk: Math.floor(Math.random() * 100),
-                    network: {
-                        in: Math.floor(Math.random() * 1000),
-                        out: Math.floor(Math.random() * 800)
-                    },
-                    requests: Math.floor(Math.random() * 5000),
-                    errors: Math.floor(Math.random() * 10),
-                    uptime: Math.floor(Math.random() * 100),
-                    customMetrics: {
-                        connections: Math.floor(Math.random() * 200),
-                        response_time: Math.floor(Math.random() * 300)
-                    }
+                    network: Math.floor(Math.random() * 100),
+                    timestamp: new Date().toISOString(),
+                    uptime: Math.floor(Math.random() * 365 * 24 * 60 * 60)
                 },
                 health: {
                     score: Math.floor(Math.random() * 100),
+                    trend: [90, 85, 88, 92, 87],
+                    status: randomStatus,
                     issues: randomStatus === 'warning' ? ['높은 CPU 사용률'] : [],
-                    lastCheck: new Date().toISOString()
+                    lastChecked: new Date().toISOString()
                 }
             });
         }
@@ -364,12 +355,36 @@ export class GCPRealServerDataGenerator {
                 network: Math.round(latestMetric.network || 0),
                 uptime: this.calculateUptime(latestMetric),
                 lastCheck: latestMetric.timestamp.toISOString(),
+                lastUpdated: new Date().toISOString(),
+                provider: 'Google Cloud Platform',
                 type: this.getServerType(serverId),
                 environment: 'production', // GCP는 프로덕션 환경
                 region: this.config.region,
                 version: this.extractVersion(latestMetric),
                 tags: this.generateTags(serverId, latestMetric),
                 alerts: this.countAlerts(latestMetric),
+                location: this.config.region,
+                specs: {
+                    cpu_cores: 4,
+                    memory_gb: 8,
+                    disk_gb: 100,
+                    network_speed: '1Gbps'
+                },
+                metrics: {
+                    cpu: Math.round(latestMetric.cpu || 0),
+                    memory: Math.round(latestMetric.memory || 0),
+                    disk: Math.round(latestMetric.disk || 0),
+                    network: Math.round(latestMetric.network || 0),
+                    timestamp: latestMetric.timestamp.toISOString(),
+                    uptime: this.calculateUptime(latestMetric)
+                },
+                health: {
+                    score: 85,
+                    trend: [80, 82, 85, 87, 85],
+                    status: this.determineServerStatus(latestMetric),
+                    issues: [],
+                    lastChecked: new Date().toISOString()
+                }
             };
 
             servers.push(server);

@@ -1,3 +1,10 @@
+// 🔄 중복 제거: common.ts의 타입들 재사용
+import { AlertSeverity } from './common';
+import { ServerHealth, ServerMetrics, ServerSpecs, ServerStatus } from './server-common';
+
+// 다른 파일에서 사용할 수 있도록 재export
+export { AlertSeverity, ServerHealth, ServerMetrics, ServerSpecs, ServerStatus };
+
 export interface ServerInstance {
   id: string;
   name: string;
@@ -15,10 +22,10 @@ export interface ServerInstance {
   tags: string[];
   alerts: number;
 
-  // 🔧 누락된 속성들 추가
-  location?: string;
-  lastUpdated?: string;
-  provider?: string;
+  // 🔧 기본 속성들 (필수)
+  location: string;
+  lastUpdated: string;
+  provider: string;
 
   // 🔧 확장된 속성들 - 누락된 속성 오류 해결
   health?: ServerHealth;
@@ -156,12 +163,6 @@ export interface SystemInfo {
   lastUpdate: string;
 }
 
-// 🔄 중복 제거: common.ts의 타입들 재사용
-import { ServerStatus, ServerHealth, ServerSpecs, ServerMetrics } from './server-common';
-
-// 다른 파일에서 사용할 수 있도록 재export
-export { ServerStatus, ServerHealth, ServerSpecs, ServerMetrics };
-
 export type ServerEnvironment =
   | 'production'
   | 'staging'
@@ -197,7 +198,24 @@ export interface ServerMetrics {
   alerts: ServerAlert[];
 }
 
-export interface EnhancedServerMetrics extends ServerMetrics {
+export interface EnhancedServerMetrics {
+  // 🔧 기본 ServerMetrics 속성들 (완전 포함)
+  id: string;
+  hostname: string;
+  environment: ServerEnvironment;
+  role: ServerRole;
+  status: ServerStatus;
+  cpu_usage: number;
+  memory_usage: number;
+  disk_usage: number;
+  network_in: number;
+  network_out: number;
+  response_time: number;
+  uptime: number;
+  last_updated: string;
+  alerts: ServerAlert[];
+
+  // 🔧 추가된 Enhanced 속성들
   name: string;
   network_usage?: number;
   timestamp?: string;
@@ -206,6 +224,9 @@ export interface EnhancedServerMetrics extends ServerMetrics {
   patternsEnabled?: boolean;
   currentLoad?: number;
   activeFailures?: number;
+
+  // 🔧 호환성을 위한 추가 속성들
+  network?: number; // network_in/network_out의 합계 또는 평균
 }
 
 export interface ServerAlert {
@@ -424,16 +445,6 @@ export const FAILURE_IMPACT_GRAPH: Record<ServerRole, ServerRole[]> = {
   'load-balancer': ['web'],
   backup: ['storage'],
 };
-
-
-
-export interface ServerHealth {
-  status: ServerStatus;
-  score: number;
-  trend: number[];
-  issues: string[];
-  lastChecked: string;
-}
 
 export interface SystemOverview {
   total: number;

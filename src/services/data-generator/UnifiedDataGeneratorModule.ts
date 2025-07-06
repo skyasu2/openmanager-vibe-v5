@@ -156,6 +156,18 @@ class RealDataStrategy implements DataGeneratorStrategy {
         location: ['Seoul-DC-1', 'Seoul-DC-2', 'Busan-DC-1'][
           Math.floor(Math.random() * 3)
         ],
+        lastUpdated: new Date().toISOString(),
+        provider: 'Unified Data Generator',
+        region: 'ap-northeast-2',
+        version: '1.0.0',
+        tags: [serverType, environment, role],
+        alerts: Math.random() > 0.8 ? 1 : 0,
+        uptime: Math.random() * 365 * 24 * 60 * 60,
+        lastCheck: new Date().toISOString(),
+        cpu: parseFloat((Math.random() * 80 + 10).toFixed(2)),
+        memory: parseFloat((Math.random() * 70 + 20).toFixed(2)),
+        disk: parseFloat((Math.random() * 60 + 30).toFixed(2)),
+        network: parseFloat((Math.random() * 50 + 10).toFixed(2)),
         status:
           Math.random() > 0.1
             ? 'running'
@@ -163,43 +175,25 @@ class RealDataStrategy implements DataGeneratorStrategy {
               ? 'warning'
               : 'error',
         specs: {
-          cpu: {
-            cores: Math.floor(Math.random() * 16) + 4,
-            model: 'Intel Xeon',
-            architecture: Math.random() > 0.7 ? 'arm64' : 'x86_64',
-          },
-          memory: {
-            total: Math.pow(2, Math.floor(Math.random() * 4) + 3) * 1024,
-            type: 'DDR4',
-            speed: 3200,
-          },
-          disk: {
-            total: Math.pow(2, Math.floor(Math.random() * 3) + 8) * 1024,
-            type: 'SSD',
-            iops: 3000,
-          },
-          network: {
-            bandwidth: 1000,
-            latency: Math.random() * 10 + 1,
-          },
+          cpu_cores: Math.floor(Math.random() * 16) + 4,
+          memory_gb: Math.pow(2, Math.floor(Math.random() * 4) + 3),
+          disk_gb: Math.pow(2, Math.floor(Math.random() * 3) + 8),
+          network_speed: '1Gbps'
         },
         metrics: {
           cpu: parseFloat((Math.random() * 80 + 10).toFixed(2)),
           memory: parseFloat((Math.random() * 70 + 20).toFixed(2)),
           disk: parseFloat((Math.random() * 60 + 30).toFixed(2)),
-          network: {
-            in: Math.random() * 100,
-            out: Math.random() * 100,
-          },
-          requests: Math.random() * 1000 + 100,
-          errors: Math.random() * 10,
-          uptime: Math.random() * 8760 * 3600,
-          customMetrics: {},
+          network: parseFloat((Math.random() * 50 + 10).toFixed(2)),
+          timestamp: new Date().toISOString(),
+          uptime: Math.random() * 365 * 24 * 60 * 60
         },
         health: {
           score: Math.random() * 40 + 60,
-          lastCheck: new Date().toISOString(),
+          trend: [85, 87, 82, 90, 88],
+          status: Math.random() > 0.1 ? 'running' : 'warning',
           issues: [],
+          lastChecked: new Date().toISOString()
         },
       };
 

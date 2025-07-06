@@ -9,7 +9,7 @@
  */
 
 import { smartRedis } from '@/lib/redis';
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { GCPRealServerDataGenerator } from '@/services/data-generator/GCPRealServerDataGenerator';
 import {
   type ApplicationMetrics,
   type ServerCluster,
@@ -96,7 +96,7 @@ export interface QueryResponse {
 
 export class EnhancedDataAnalyzer {
   private static instance: EnhancedDataAnalyzer | null = null;
-  private dataGenerator: typeof RealServerDataGenerator;
+  private dataGenerator: GCPRealServerDataGenerator;
   private redis: any;
 
   // 한국어 자연어 처리 매핑
@@ -139,25 +139,29 @@ export class EnhancedDataAnalyzer {
     optimization: ['최적화', '개선', '향상', '효율', '절약', '줄이'],
   };
 
-  constructor(dataGenerator: typeof RealServerDataGenerator) {
+  constructor(dataGenerator: GCPRealServerDataGenerator) {
     this.dataGenerator = dataGenerator;
-    this.redis = smartRedis;
+    this.initializeRedis();
   }
 
   public static getInstance(): EnhancedDataAnalyzer {
     if (!EnhancedDataAnalyzer.instance) {
-      EnhancedDataAnalyzer.instance = new EnhancedDataAnalyzer(RealServerDataGenerator.getInstance());
+      EnhancedDataAnalyzer.instance = new EnhancedDataAnalyzer(GCPRealServerDataGenerator.getInstance());
     }
     return EnhancedDataAnalyzer.instance;
+  }
+
+  private initializeRedis() {
+    this.redis = smartRedis;
   }
 
   /**
    * 📊 종합 시스템 분석
    */
   public async analyzeSystem(): Promise<EnhancedAnalysisResult> {
-    const servers = this.dataGenerator.getAllServers();
-    const clusters = this.dataGenerator.getAllClusters();
-    const applications = this.dataGenerator.getAllApplications();
+    const servers = await this.dataGenerator.getAllServers();
+    const clusters = await this.dataGenerator.getAllClusters();
+    const applications = await this.dataGenerator.getAllApplications();
 
     // 성능 분석
     const performanceAnalysis = this.analyzePerformance(servers, clusters);
@@ -596,8 +600,8 @@ export class EnhancedDataAnalyzer {
    * ⚡ 쿼리 실행
    */
   private async executeQuery(intent: string, context: any, query: string) {
-    const servers = this.dataGenerator.getAllServers();
-    const clusters = this.dataGenerator.getAllClusters();
+    const servers = await this.dataGenerator.getAllServers();
+    const clusters = await this.dataGenerator.getAllClusters();
 
     switch (intent) {
       case 'status':

@@ -33,4 +33,17 @@ export interface ServerMetrics {
   network: number;
   timestamp?: string;
   uptime?: number;
+  id?: string;
+  hostname?: string;
+  environment?: string;
+  role?: string;
+  status?: ServerStatus;
+  cpu_usage?: number;
+  memory_usage?: number;
+  disk_usage?: number;
+  network_in?: number;
+  network_out?: number;
+  response_time?: number;
+  last_updated?: string;
+  alerts?: any[];
 }
