@@ -1,264 +1,268 @@
 /**
  * 🌍 환경 감지 로직 테스트
- * 
+ *
  * 개발, 배포, 테스트 환경 구분 로직 검증
  */
 
-import { detectEnvironment, logEnvironmentStatus, validateEnvironmentConfig } from '@/config/environment';
+import {
+  detectEnvironment,
+  logEnvironmentStatus,
+  validateEnvironmentConfig,
+} from '@/config/environment';
 
 // 🔧 환경변수 안전 모킹 함수
 function setTestEnv(envVars: Record<string, string | undefined>) {
-    Object.keys(envVars).forEach(key => {
-        if (envVars[key] === undefined) {
-            delete process.env[key];
-        } else {
-            Object.defineProperty(process.env, key, {
-                value: envVars[key],
-                writable: true,
-                configurable: true,
-                enumerable: true
-            });
-        }
-    });
+  Object.keys(envVars).forEach(key => {
+    if (envVars[key] === undefined) {
+      delete process.env[key];
+    } else {
+      Object.defineProperty(process.env, key, {
+        value: envVars[key],
+        writable: true,
+        configurable: true,
+        enumerable: true,
+      });
+    }
+  });
 }
 
 describe('환경 감지 로직', () => {
-    let originalEnv: NodeJS.ProcessEnv;
+  let originalEnv: NodeJS.ProcessEnv;
 
-    beforeEach(() => {
-        originalEnv = { ...process.env };
+  beforeEach(() => {
+    originalEnv = { ...process.env };
+  });
+
+  afterEach(() => {
+    // 원본 환경변수 복원
+    Object.keys(process.env).forEach(key => {
+      delete process.env[key];
+    });
+    Object.keys(originalEnv).forEach(key => {
+      if (originalEnv[key] !== undefined) {
+        Object.defineProperty(process.env, key, {
+          value: originalEnv[key],
+          writable: true,
+          configurable: true,
+          enumerable: true,
+        });
+      }
+    });
+  });
+
+  describe('로컬 개발 환경 감지', () => {
+    test('NODE_ENV=development일 때 로컬 환경으로 감지', () => {
+      setTestEnv({
+        NODE_ENV: 'development',
+        VERCEL: undefined,
+        RENDER: undefined,
+      });
+
+      const env = detectEnvironment();
+
+      expect(env.IS_LOCAL).toBe(true);
+      expect(env.IS_VERCEL).toBe(false);
+      expect(env.IS_RENDER).toBe(false);
+      expect(env.IS_PRODUCTION).toBe(false);
+      expect(env.features.enableMockData).toBe(true);
+      expect(env.features.enableDebugLogs).toBe(true);
+      expect(env.performance.maxMemory).toBeGreaterThan(0);
+      expect(env.performance.timeout).toBeGreaterThan(0);
     });
 
-    afterEach(() => {
-        // 원본 환경변수 복원
-        Object.keys(process.env).forEach(key => {
-            delete process.env[key];
-        });
-        Object.keys(originalEnv).forEach(key => {
-            if (originalEnv[key] !== undefined) {
-                Object.defineProperty(process.env, key, {
-                    value: originalEnv[key],
-                    writable: true,
-                    configurable: true,
-                    enumerable: true
-                });
-            }
-        });
+    test('로컬 환경에서 올바른 설정 반환', () => {
+      setTestEnv({ NODE_ENV: 'development' });
+
+      const env = detectEnvironment();
+
+      expect(env.features.enableMockData).toBe(true);
+      expect(env.features.enableDebugLogs).toBe(true);
+      expect(env.performance.maxMemory).toBeGreaterThan(0);
+      expect(env.performance.timeout).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Vercel 배포 환경 감지', () => {
+    test('VERCEL=1일 때 Vercel 환경으로 감지', () => {
+      setTestEnv({
+        VERCEL: '1',
+        NODE_ENV: 'production',
+      });
+
+      const env = detectEnvironment();
+
+      expect(env.IS_VERCEL).toBe(true);
+      expect(env.IS_LOCAL).toBe(false);
+      expect(env.IS_RENDER).toBe(false);
+      expect(env.IS_PRODUCTION).toBe(true);
+      expect(env.features.enableMockData).toBe(false);
+      expect(env.performance.maxMemory).toBe(1024);
+      expect(env.performance.timeout).toBe(30000);
+      expect(env.features.enableWebSocket).toBe(false);
     });
 
-    describe('로컬 개발 환경 감지', () => {
-        test('NODE_ENV=development일 때 로컬 환경으로 감지', () => {
-            setTestEnv({
-                NODE_ENV: 'development',
-                VERCEL: undefined,
-                RENDER: undefined
-            });
+    test('Vercel 환경에서 제한된 설정 반환', () => {
+      setTestEnv({
+        VERCEL: '1',
+        VERCEL_ENV: 'production',
+      });
 
-            const env = detectEnvironment();
+      const env = detectEnvironment();
 
-            expect(env.IS_LOCAL).toBe(true);
-            expect(env.IS_VERCEL).toBe(false);
-            expect(env.IS_RENDER).toBe(false);
-            expect(env.IS_PRODUCTION).toBe(false);
-            expect(env.features.enableMockData).toBe(true);
-            expect(env.features.enableDebugLogs).toBe(true);
-            expect(env.performance.maxMemory).toBeGreaterThan(0);
-            expect(env.performance.timeout).toBeGreaterThan(0);
-        });
+      expect(env.features.enableMockData).toBe(false);
+      expect(env.performance.maxMemory).toBe(1024);
+      expect(env.performance.timeout).toBe(30000);
+      expect(env.features.enableWebSocket).toBe(false);
+    });
+  });
 
-        test('로컬 환경에서 올바른 설정 반환', () => {
-            setTestEnv({ NODE_ENV: 'development' });
+  describe('Render 배포 환경 감지', () => {
+    test('RENDER=true일 때 Render 환경으로 감지', () => {
+      setTestEnv({
+        RENDER: 'true',
+        NODE_ENV: 'production',
+      });
 
-            const env = detectEnvironment();
+      const env = detectEnvironment();
 
-            expect(env.features.enableMockData).toBe(true);
-            expect(env.features.enableDebugLogs).toBe(true);
-            expect(env.performance.maxMemory).toBeGreaterThan(0);
-            expect(env.performance.timeout).toBeGreaterThan(0);
-        });
+      expect(env.IS_RENDER).toBe(true);
+      expect(env.IS_VERCEL).toBe(false);
+      expect(env.IS_LOCAL).toBe(false);
+    });
+  });
+
+  describe('테스트 환경 감지', () => {
+    test('NODE_ENV=test일 때 테스트 환경으로 감지', () => {
+      setTestEnv({ NODE_ENV: 'test' });
+
+      const env = detectEnvironment();
+
+      expect(env.IS_TEST).toBe(true);
+      expect(env.features.enableMockData).toBe(true);
+      expect(env.features.enableRealtime).toBe(false);
+    });
+  });
+
+  describe('환경 설정 검증', () => {
+    test('필수 환경변수 누락 시 검증 실패', () => {
+      setTestEnv({ NODE_ENV: undefined });
+
+      const validation = validateEnvironmentConfig();
+
+      expect(validation.isValid).toBe(false);
+      expect(validation.errors).toContain('NODE_ENV가 설정되지 않았습니다');
     });
 
-    describe('Vercel 배포 환경 감지', () => {
-        test('VERCEL=1일 때 Vercel 환경으로 감지', () => {
-            setTestEnv({
-                VERCEL: '1',
-                NODE_ENV: 'production'
-            });
+    test('Vercel 환경에서 필수 환경변수 검증', () => {
+      setTestEnv({
+        VERCEL: '1',
+        NODE_ENV: 'production',
+        SUPABASE_URL: undefined,
+      });
 
-            const env = detectEnvironment();
+      const validation = validateEnvironmentConfig();
 
-            expect(env.IS_VERCEL).toBe(true);
-            expect(env.IS_LOCAL).toBe(false);
-            expect(env.IS_RENDER).toBe(false);
-            expect(env.IS_PRODUCTION).toBe(true);
-            expect(env.features.enableMockData).toBe(false);
-            expect(env.performance.maxMemory).toBe(1024);
-            expect(env.performance.timeout).toBe(30000);
-            expect(env.features.enableWebSocket).toBe(false);
-        });
-
-        test('Vercel 환경에서 제한된 설정 반환', () => {
-            setTestEnv({
-                VERCEL: '1',
-                VERCEL_ENV: 'production'
-            });
-
-            const env = detectEnvironment();
-
-            expect(env.features.enableMockData).toBe(false);
-            expect(env.performance.maxMemory).toBe(1024);
-            expect(env.performance.timeout).toBe(30000);
-            expect(env.features.enableWebSocket).toBe(false);
-        });
+      expect(validation.isValid).toBe(false);
+      expect(
+        validation.errors.some(error => error.includes('SUPABASE_URL'))
+      ).toBe(true);
     });
 
-    describe('Render 배포 환경 감지', () => {
-        test('RENDER=true일 때 Render 환경으로 감지', () => {
-            setTestEnv({
-                RENDER: 'true',
-                NODE_ENV: 'production'
-            });
+    test('모든 환경변수가 올바르게 설정된 경우 검증 성공', () => {
+      setTestEnv({
+        NODE_ENV: 'development',
+        SUPABASE_URL: 'https://test.supabase.co',
+        SUPABASE_ANON_KEY: 'test-key',
+      });
 
-            const env = detectEnvironment();
+      const validation = validateEnvironmentConfig();
 
-            expect(env.IS_RENDER).toBe(true);
-            expect(env.IS_VERCEL).toBe(false);
-            expect(env.IS_LOCAL).toBe(false);
-        });
+      expect(validation.isValid).toBe(true);
+      expect(validation.errors).toHaveLength(0);
+    });
+  });
+
+  describe('환경 로깅', () => {
+    test('환경 상태 로깅 함수 동작 확인', () => {
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+      setTestEnv({ NODE_ENV: 'development' });
+      logEnvironmentStatus();
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('🏠 로컬 개발환경')
+      );
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('환경별 기능 토글', () => {
+    test('로컬 환경에서 모든 기능 활성화', () => {
+      setTestEnv({ NODE_ENV: 'development' });
+
+      const env = detectEnvironment();
+
+      expect(env.features.enableMockData).toBe(true);
+      expect(env.features.enableDebugLogs).toBe(true);
+      expect(env.features.enableWebSocket).toBe(true);
     });
 
-    describe('테스트 환경 감지', () => {
-        test('NODE_ENV=test일 때 테스트 환경으로 감지', () => {
-            setTestEnv({ NODE_ENV: 'test' });
+    test('프로덕션 환경에서 보안 기능 활성화', () => {
+      setTestEnv({
+        NODE_ENV: 'production',
+        VERCEL: '1',
+      });
 
-            const env = detectEnvironment();
+      const env = detectEnvironment();
 
-            expect(env.IS_TEST).toBe(true);
-            expect(env.features.enableMockData).toBe(true);
-            expect(env.features.enableExternalCalls).toBe(false);
-        });
+      expect(env.features.enableMockData).toBe(false);
+      expect(env.features.enableDebugLogs).toBe(false);
+      expect(env.IS_PRODUCTION).toBe(true);
     });
 
-    describe('환경 설정 검증', () => {
-        test('필수 환경변수 누락 시 검증 실패', () => {
-            setTestEnv({ NODE_ENV: undefined });
+    test('테스트 환경에서 실시간 기능 차단', () => {
+      setTestEnv({ NODE_ENV: 'test' });
 
-            const validation = validateEnvironmentConfig();
+      const env = detectEnvironment();
 
-            expect(validation.isValid).toBe(false);
-            expect(validation.errors).toContain('NODE_ENV가 설정되지 않았습니다');
-        });
+      expect(env.features.enableRealtime).toBe(false);
+      expect(env.features.enableMockData).toBe(true);
+    });
+  });
 
-        test('Vercel 환경에서 필수 환경변수 검증', () => {
-            setTestEnv({
-                VERCEL: '1',
-                NODE_ENV: 'production',
-                SUPABASE_URL: undefined
-            });
+  describe('환경별 데이터 소스 선택', () => {
+    test('로컬 환경에서 목업 데이터 사용', () => {
+      setTestEnv({ NODE_ENV: 'development' });
 
-            const validation = validateEnvironmentConfig();
+      const env = detectEnvironment();
 
-            expect(validation.isValid).toBe(false);
-            expect(validation.errors.some(error =>
-                error.includes('SUPABASE_URL')
-            )).toBe(true);
-        });
-
-        test('모든 환경변수가 올바르게 설정된 경우 검증 성공', () => {
-            setTestEnv({
-                NODE_ENV: 'development',
-                SUPABASE_URL: 'https://test.supabase.co',
-                SUPABASE_ANON_KEY: 'test-key'
-            });
-
-            const validation = validateEnvironmentConfig();
-
-            expect(validation.isValid).toBe(true);
-            expect(validation.errors).toHaveLength(0);
-        });
+      expect(env.platform).toBe('local');
+      expect(env.features.enableMockData).toBe(true);
     });
 
-    describe('환경 로깅', () => {
-        test('환경 상태 로깅 함수 동작 확인', () => {
-            const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+    test('Vercel 환경에서 GCP 실제 데이터 사용', () => {
+      setTestEnv({
+        VERCEL: '1',
+        NODE_ENV: 'production',
+      });
 
-            setTestEnv({ NODE_ENV: 'development' });
-            logEnvironmentStatus();
+      const env = detectEnvironment();
 
-            expect(consoleSpy).toHaveBeenCalledWith(
-                expect.stringContaining('🏠 로컬 개발환경')
-            );
-
-            consoleSpy.mockRestore();
-        });
+      expect(env.platform).toBe('vercel');
+      expect(env.features.enableMockData).toBe(false);
     });
+  });
 
-    describe('환경별 기능 토글', () => {
-        test('로컬 환경에서 모든 기능 활성화', () => {
-            setTestEnv({ NODE_ENV: 'development' });
+  describe('에러 처리', () => {
+    test('잘못된 NODE_ENV 값에 대한 처리', () => {
+      setTestEnv({ NODE_ENV: 'invalid' as any });
 
-            const env = detectEnvironment();
+      const env = detectEnvironment();
 
-            expect(env.features.enableMockData).toBe(true);
-            expect(env.features.enableDebugLogs).toBe(true);
-            expect(env.features.enableExternalCalls).toBe(true);
-        });
-
-        test('프로덕션 환경에서 보안 기능 활성화', () => {
-            setTestEnv({
-                NODE_ENV: 'production',
-                VERCEL: '1'
-            });
-
-            const env = detectEnvironment();
-
-            expect(env.features.enableMockData).toBe(false);
-            expect(env.features.enableDebugLogs).toBe(false);
-            expect(env.IS_PRODUCTION).toBe(true);
-        });
-
-        test('테스트 환경에서 외부 호출 차단', () => {
-            setTestEnv({ NODE_ENV: 'test' });
-
-            const env = detectEnvironment();
-
-            expect(env.features.enableExternalCalls).toBe(false);
-            expect(env.features.enableMockData).toBe(true);
-        });
+      // 기본값으로 처리되는지 확인
+      expect(env.IS_LOCAL).toBe(false);
+      expect(env.IS_PRODUCTION).toBe(false);
     });
-
-    describe('환경별 데이터 소스 선택', () => {
-        test('로컬 환경에서 목업 데이터 사용', () => {
-            setTestEnv({ NODE_ENV: 'development' });
-
-            const env = detectEnvironment();
-
-            expect(env.platform).toBe('local');
-            expect(env.features.enableMockData).toBe(true);
-        });
-
-        test('Vercel 환경에서 GCP 실제 데이터 사용', () => {
-            setTestEnv({
-                VERCEL: '1',
-                NODE_ENV: 'production'
-            });
-
-            const env = detectEnvironment();
-
-            expect(env.platform).toBe('vercel');
-            expect(env.features.enableMockData).toBe(false);
-        });
-    });
-
-    describe('에러 처리', () => {
-        test('잘못된 NODE_ENV 값에 대한 처리', () => {
-            setTestEnv({ NODE_ENV: 'invalid' as any });
-
-            const env = detectEnvironment();
-
-            // 기본값으로 처리되는지 확인
-            expect(env.IS_LOCAL).toBe(false);
-            expect(env.IS_PRODUCTION).toBe(false);
-        });
-    });
-}); 
+  });
+});

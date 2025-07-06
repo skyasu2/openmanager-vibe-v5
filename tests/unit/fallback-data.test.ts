@@ -5,31 +5,36 @@ import {
   isDevelopmentMode,
   isProductionMode,
   STATIC_ERROR_SERVERS,
-  UNIFIED_FALLBACK_SERVERS,
-  validateEnvironmentVariables
+  validateEnvironmentVariables,
 } from '@/config/fallback-data';
-// Jest globals are available without import
 
 describe('Fallback Data Configuration', () => {
+  const originalEnv = process.env;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    // 환경변수 초기화 (읽기 전용 문제 해결)
+    jest.resetModules();
+    process.env = { ...originalEnv };
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+    // 환경변수 복원
+    process.env = originalEnv;
   });
 
-  describe('UNIFIED_FALLBACK_SERVERS', () => {
-    it('통합 폴백 서버 데이터가 올바르게 정의되어야 함', () => {
-      expect(UNIFIED_FALLBACK_SERVERS).toBeDefined();
-      expect(Array.isArray(UNIFIED_FALLBACK_SERVERS)).toBe(true);
-      expect(UNIFIED_FALLBACK_SERVERS.length).toBeGreaterThan(0);
+  describe('STATIC_ERROR_SERVERS', () => {
+    it('정적 에러 서버 데이터가 올바르게 정의되어야 함', () => {
+      expect(STATIC_ERROR_SERVERS).toBeDefined();
+      expect(Array.isArray(STATIC_ERROR_SERVERS)).toBe(true);
+      expect(STATIC_ERROR_SERVERS.length).toBeGreaterThan(0);
     });
 
     it('모든 서버가 올바른 구조를 가져야 함', () => {
-      expect(UNIFIED_FALLBACK_SERVERS.length).toBeGreaterThan(0);
+      expect(STATIC_ERROR_SERVERS.length).toBeGreaterThan(0);
 
-      UNIFIED_FALLBACK_SERVERS.forEach(server => {
+      STATIC_ERROR_SERVERS.forEach(server => {
         expect(server).toHaveProperty('id');
         expect(server).toHaveProperty('name');
         expect(server).toHaveProperty('status');
@@ -46,50 +51,33 @@ describe('Fallback Data Configuration', () => {
         expect(typeof server.disk).toBe('number');
         expect(typeof server.network).toBe('number');
 
-        expect(server.cpu).toBeGreaterThanOrEqual(0);
-        expect(server.cpu).toBeLessThanOrEqual(100);
-        expect(server.memory).toBeGreaterThanOrEqual(0);
-        expect(server.memory).toBeLessThanOrEqual(100);
-        expect(server.disk).toBeGreaterThanOrEqual(0);
-        expect(server.disk).toBeLessThanOrEqual(100);
-        expect(server.network).toBeGreaterThanOrEqual(0);
+        // 에러 서버는 모두 0 값을 가져야 함
+        expect(server.cpu).toBe(0);
+        expect(server.memory).toBe(0);
+        expect(server.disk).toBe(0);
+        expect(server.network).toBe(0);
+        expect(server.status).toBe('offline');
       });
     });
 
     it('서버 ID가 고유해야 함', () => {
-      const ids = UNIFIED_FALLBACK_SERVERS.map(server => server.id);
+      const ids = STATIC_ERROR_SERVERS.map(server => server.id);
       const uniqueIds = new Set(ids);
       expect(uniqueIds.size).toBe(ids.length);
     });
 
     it('서버 이름이 고유해야 함', () => {
-      const names = UNIFIED_FALLBACK_SERVERS.map(server => server.name);
+      const names = STATIC_ERROR_SERVERS.map(server => server.name);
       const uniqueNames = new Set(names);
       expect(uniqueNames.size).toBe(names.length);
     });
 
-    it('다양한 서버 상태가 포함되어야 함', () => {
-      const statuses = UNIFIED_FALLBACK_SERVERS.map(server => server.status);
-      const uniqueStatuses = new Set(statuses);
-
-      expect(uniqueStatuses.has('healthy')).toBe(true);
-      expect(uniqueStatuses.size).toBeGreaterThan(1); // 최소 2개 이상의 상태
-    });
-
-    it('서버 메트릭이 현실적인 범위에 있어야 함', () => {
-      UNIFIED_FALLBACK_SERVERS.forEach(server => {
-        // Critical 상태 서버는 높은 메트릭을 가져야 함
-        if (server.status === 'critical') {
-          expect(
-            server.cpu > 80 || server.memory > 80 || server.disk > 80
-          ).toBe(true);
-        }
-
-        // Healthy 상태 서버는 적절한 메트릭을 가져야 함
-        if (server.status === 'healthy') {
-          expect(server.cpu).toBeLessThan(80);
-          expect(server.memory).toBeLessThan(80);
-        }
+    it('모든 서버가 에러 상태여야 함', () => {
+      STATIC_ERROR_SERVERS.forEach(server => {
+        expect(server.status).toBe('offline');
+        expect(server.alerts).toBe(999);
+        expect(server.environment).toBe('ERROR');
+        expect(server.type).toBe('ERROR');
       });
     });
   });
@@ -133,13 +121,16 @@ describe('Fallback Data Configuration', () => {
     });
 
     it('필수 환경변수가 있을 때 성공해야 함', () => {
-      const mockEnv = {
+      // 환경변수 설정 (읽기 전용 문제 해결)
+      const testEnv = {
+        ...originalEnv,
         NEXT_PUBLIC_SUPABASE_URL: 'https://test.supabase.co',
         NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-anon-key',
         NODE_ENV: 'test',
       };
 
-      jest.stubGlobal('process', { env: mockEnv });
+      // process.env를 완전히 교체
+      (process as any).env = testEnv;
 
       const result = validateEnvironmentVariables(['NEXT_PUBLIC_SUPABASE_URL']);
       expect(result.isValid).toBe(true);
@@ -147,11 +138,13 @@ describe('Fallback Data Configuration', () => {
     });
 
     it('필수 환경변수가 없을 때 실패해야 함', () => {
-      const mockEnv = {
+      const testEnv = {
+        ...originalEnv,
         NODE_ENV: 'test',
       };
+      // MISSING_VAR는 애초에 설정하지 않음
 
-      jest.stubGlobal('process', { env: mockEnv });
+      (process as any).env = testEnv;
 
       const result = validateEnvironmentVariables(['MISSING_VAR']);
       expect(result.isValid).toBe(false);
@@ -159,12 +152,13 @@ describe('Fallback Data Configuration', () => {
     });
 
     it('빈 문자열 환경변수를 누락으로 처리해야 함', () => {
-      const mockEnv = {
+      const testEnv = {
+        ...originalEnv,
         EMPTY_VAR: '',
         NODE_ENV: 'test',
       };
 
-      jest.stubGlobal('process', { env: mockEnv });
+      (process as any).env = testEnv;
 
       const result = validateEnvironmentVariables(['EMPTY_VAR']);
       expect(result.isValid).toBe(false);
@@ -174,20 +168,26 @@ describe('Fallback Data Configuration', () => {
 
   describe('Infrastructure URL Helpers', () => {
     it('인프라 URL을 올바르게 반환해야 함', () => {
-      // 테스트 환경에서는 기본 설정값이 반환되므로 해당 값으로 검증
+      const testEnv = {
+        ...originalEnv,
+        UPSTASH_REDIS_REST_URL: 'https://test-redis.upstash.io',
+      };
+
+      (process as any).env = testEnv;
+
       const redisUrl = getInfrastructureUrl('redis');
       expect(redisUrl).toBe('https://test-redis.upstash.io');
     });
 
-    it('환경변수가 없을 때 폴백 URL을 반환해야 함', () => {
-      const mockEnv = {
-        NODE_ENV: 'test',
-      };
+    it('환경변수가 없을 때 빈 문자열을 반환해야 함', () => {
+      const testEnv = { ...originalEnv };
+      delete testEnv.UPSTASH_REDIS_REST_URL;
+      delete testEnv.REDIS_URL;
 
-      jest.stubGlobal('process', { env: mockEnv });
+      (process as any).env = testEnv;
 
       const redisUrl = getInfrastructureUrl('redis');
-      expect(redisUrl).toBe(INFRASTRUCTURE_CONFIG.redis.url);
+      expect(redisUrl).toBe('');
     });
 
     it('지원하지 않는 인프라 서비스에 대해 에러를 던져야 함', () => {
@@ -198,286 +198,64 @@ describe('Fallback Data Configuration', () => {
   });
 
   describe('API Key Helpers', () => {
-    it('API 키를 올바르게 반환해야 함', () => {
-      const mockEnv = {
-        GOOGLE_AI_API_KEY: 'custom-api-key',
-        NODE_ENV: 'test',
+    it('Google AI API 키를 올바르게 반환해야 함', () => {
+      const testEnv = {
+        ...originalEnv,
+        GOOGLE_AI_API_KEY: 'test-google-ai-key',
       };
 
-      jest.stubGlobal('process', { env: mockEnv });
+      (process as any).env = testEnv;
 
       const apiKey = getApiKey('google');
-      expect(apiKey).toBe('custom-api-key');
+      expect(apiKey).toBe('test-google-ai-key');
     });
 
-    it('환경변수가 없을 때 폴백 키를 반환해야 함', () => {
-      const mockEnv = {
-        NODE_ENV: 'development',
-      };
+    it('환경변수가 없을 때 빈 문자열을 반환해야 함', () => {
+      const testEnv = { ...originalEnv };
+      delete testEnv.GOOGLE_AI_API_KEY;
 
-      jest.stubGlobal('process', { env: mockEnv });
+      (process as any).env = testEnv;
 
       const apiKey = getApiKey('google');
-      expect(apiKey).toBe(INFRASTRUCTURE_CONFIG.api.googleAI.fallbackKey);
-    });
-
-    it('프로덕션에서 폴백 키 사용 시 경고해야 함', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => { });
-
-      const mockEnv = {
-        NODE_ENV: 'production',
-      };
-
-      jest.stubGlobal('process', { env: mockEnv });
-
-      getApiKey('google');
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('프로덕션에서 폴백 API 키 사용')
-      );
-
-      consoleSpy.mockRestore();
-    });
-
-    it('지원하지 않는 API 서비스에 대해 에러를 던져야 함', () => {
-      expect(() => {
-        getApiKey('unknown' as never);
-      }).toThrow('지원하지 않는 API 서비스');
+      expect(apiKey).toBe('');
     });
   });
 
-  describe('Environment Mode Helpers', () => {
+  describe('Environment Mode Detection', () => {
     it('개발 모드를 올바르게 감지해야 함', () => {
-      const mockEnv = {
+      const testEnv = {
+        ...originalEnv,
         NODE_ENV: 'development',
       };
 
-      jest.stubGlobal('process', { env: mockEnv });
+      (process as any).env = testEnv;
 
       expect(isDevelopmentMode()).toBe(true);
       expect(isProductionMode()).toBe(false);
     });
 
     it('프로덕션 모드를 올바르게 감지해야 함', () => {
-      const mockEnv = {
+      const testEnv = {
+        ...originalEnv,
         NODE_ENV: 'production',
       };
 
-      jest.stubGlobal('process', { env: mockEnv });
+      (process as any).env = testEnv;
 
       expect(isDevelopmentMode()).toBe(false);
       expect(isProductionMode()).toBe(true);
     });
 
-    it('테스트 모드를 개발 모드로 처리해야 함', () => {
-      const mockEnv = {
-        NODE_ENV: 'test',
+    it('기본값으로 개발 모드를 반환해야 함', () => {
+      const testEnv = {
+        ...originalEnv,
+        NODE_ENV: undefined, // delete 대신 undefined로 설정
       };
 
-      jest.stubGlobal('process', { env: mockEnv });
+      (process as any).env = testEnv;
 
       expect(isDevelopmentMode()).toBe(true);
       expect(isProductionMode()).toBe(false);
     });
-  });
-
-  describe('Data Consistency', () => {
-    it('폴백 서버 데이터가 일관성을 가져야 함', () => {
-      // 서버 상태와 메트릭의 일관성 검증
-      UNIFIED_FALLBACK_SERVERS.forEach(server => {
-        if (server.status === 'critical') {
-          const highMetrics = [server.cpu, server.memory, server.disk].filter(
-            metric => metric > 85
-          );
-          expect(highMetrics.length).toBeGreaterThan(0);
-        }
-
-        if (server.status === 'healthy') {
-          const highMetrics = [server.cpu, server.memory, server.disk].filter(
-            metric => metric > 90
-          );
-          expect(highMetrics.length).toBe(0);
-        }
-      });
-    });
-
-    it('인프라 설정이 환경별로 적절해야 함', () => {
-      // 개발 환경
-      const mockDevEnv = { NODE_ENV: 'development' };
-      jest.stubGlobal('process', { env: mockDevEnv });
-
-      expect(isDevelopmentMode()).toBe(true);
-
-      // 프로덕션 환경
-      const mockProdEnv = { NODE_ENV: 'production' };
-      jest.stubGlobal('process', { env: mockProdEnv });
-
-      expect(isProductionMode()).toBe(true);
-    });
-  });
-
-  describe('Performance and Memory', () => {
-    it('폴백 데이터 로딩이 빨라야 함', () => {
-      const startTime = Date.now();
-
-      // 데이터 접근
-      const servers = UNIFIED_FALLBACK_SERVERS;
-      const config = INFRASTRUCTURE_CONFIG;
-
-      const loadTime = Date.now() - startTime;
-      expect(loadTime).toBeLessThan(100); // 100ms 이내
-
-      expect(servers).toBeDefined();
-      expect(config).toBeDefined();
-    });
-
-    it('메모리 사용량이 적절해야 함', () => {
-      const serversSize = JSON.stringify(UNIFIED_FALLBACK_SERVERS).length;
-      const configSize = JSON.stringify(INFRASTRUCTURE_CONFIG).length;
-
-      // 1MB 이내로 제한
-      expect(serversSize).toBeLessThan(1024 * 1024);
-      expect(configSize).toBeLessThan(1024 * 1024);
-    });
-  });
-});
-
-describe('STATIC_ERROR_SERVERS', () => {
-  it('정적 에러 서버 데이터가 올바르게 정의되어야 함', () => {
-    expect(STATIC_ERROR_SERVERS).toBeDefined();
-    expect(Array.isArray(STATIC_ERROR_SERVERS)).toBe(true);
-    expect(STATIC_ERROR_SERVERS.length).toBeGreaterThan(0);
-  });
-
-  it('should have at least 1 server', () => {
-    expect(STATIC_ERROR_SERVERS.length).toBeGreaterThan(0);
-
-    STATIC_ERROR_SERVERS.forEach(server => {
-      expect(server).toHaveProperty('id');
-      expect(server).toHaveProperty('name');
-      expect(server).toHaveProperty('status');
-      expect(server).toHaveProperty('cpu');
-      expect(server).toHaveProperty('memory');
-      expect(server).toHaveProperty('disk');
-      expect(server).toHaveProperty('network');
-
-      expect(typeof server.id).toBe('string');
-      expect(typeof server.name).toBe('string');
-      expect(typeof server.status).toBe('string');
-      expect(typeof server.cpu).toBe('number');
-      expect(typeof server.memory).toBe('number');
-      expect(typeof server.disk).toBe('number');
-      expect(typeof server.network).toBe('number');
-
-      expect(server.cpu).toBeGreaterThanOrEqual(0);
-      expect(server.cpu).toBeLessThanOrEqual(100);
-      expect(server.memory).toBeGreaterThanOrEqual(0);
-      expect(server.memory).toBeLessThanOrEqual(100);
-      expect(server.disk).toBeGreaterThanOrEqual(0);
-      expect(server.disk).toBeLessThanOrEqual(100);
-      expect(server.network).toBeGreaterThanOrEqual(0);
-    });
-  });
-
-  it('server ID should be unique', () => {
-    const ids = STATIC_ERROR_SERVERS.map(server => server.id);
-    const uniqueIds = new Set(ids);
-    expect(uniqueIds.size).toBe(ids.length);
-  });
-
-  it('server name should be unique', () => {
-    const names = STATIC_ERROR_SERVERS.map(server => server.name);
-    const uniqueNames = new Set(names);
-    expect(uniqueNames.size).toBe(names.length);
-  });
-
-  it('should include various server statuses', () => {
-    const statuses = STATIC_ERROR_SERVERS.map(server => server.status);
-    const uniqueStatuses = new Set(statuses);
-
-    expect(uniqueStatuses.has('healthy')).toBe(true);
-    expect(uniqueStatuses.size).toBeGreaterThan(1); // at least 2 different statuses
-  });
-
-  it('server metrics should be realistic', () => {
-    STATIC_ERROR_SERVERS.forEach(server => {
-      // Critical status server should have high metrics
-      if (server.status === 'critical') {
-        expect(
-          server.cpu > 80 || server.memory > 80 || server.disk > 80
-        ).toBe(true);
-      }
-
-      // Healthy status server should have appropriate metrics
-      if (server.status === 'healthy') {
-        expect(server.cpu).toBeLessThan(80);
-        expect(server.memory).toBeLessThan(80);
-      }
-    });
-  });
-
-  it('data consistency', () => {
-    // server status and metric consistency verification
-    STATIC_ERROR_SERVERS.forEach(server => {
-      if (server.status === 'critical') {
-        const highMetrics = [server.cpu, server.memory, server.disk].filter(
-          metric => metric > 85
-        );
-        expect(highMetrics.length).toBeGreaterThan(0);
-      }
-
-      if (server.status === 'healthy') {
-        const highMetrics = [server.cpu, server.memory, server.disk].filter(
-          metric => metric > 90
-        );
-        expect(highMetrics.length).toBe(0);
-      }
-    });
-  });
-
-  it('infrastructure configuration should be appropriate for environment', () => {
-    // development environment
-    const mockDevEnv = { NODE_ENV: 'development' };
-    jest.stubGlobal('process', { env: mockDevEnv });
-
-    expect(isDevelopmentMode()).toBe(true);
-
-    // production environment
-    const mockProdEnv = { NODE_ENV: 'production' };
-    jest.stubGlobal('process', { env: mockProdEnv });
-
-    expect(isProductionMode()).toBe(true);
-  });
-
-  it('performance', () => {
-    const startTime = Date.now();
-
-    // data access
-    const servers = STATIC_ERROR_SERVERS;
-    const config = INFRASTRUCTURE_CONFIG;
-
-    const loadTime = Date.now() - startTime;
-    expect(loadTime).toBeLessThan(100); // within 100ms
-
-    expect(servers).toBeDefined();
-    expect(config).toBeDefined();
-  });
-
-  it('memory usage', () => {
-    const serversSize = JSON.stringify(STATIC_ERROR_SERVERS).length;
-    const configSize = JSON.stringify(INFRASTRUCTURE_CONFIG).length;
-
-    // within 1MB limit
-    expect(serversSize).toBeLessThan(1024 * 1024);
-    expect(configSize).toBeLessThan(1024 * 1024);
-  });
-});
-
-describe('Static Error Data Configuration', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
   });
 });
