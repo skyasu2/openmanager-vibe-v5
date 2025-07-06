@@ -3,7 +3,7 @@ import { AlertSeverity } from './common';
 import { ServerHealth, ServerMetrics, ServerSpecs, ServerStatus } from './server-common';
 
 // 다른 파일에서 사용할 수 있도록 재export
-export { AlertSeverity, ServerHealth, ServerMetrics, ServerSpecs, ServerStatus };
+export type { AlertSeverity, ServerHealth, ServerMetrics, ServerSpecs, ServerStatus };
 
 export interface ServerInstance {
   id: string;

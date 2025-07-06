@@ -666,13 +666,13 @@ export class ServerMonitoringAgent {
 
     // 비용 절약 제안
     response += `**비용 최적화 제안:**\n`;
-    const underutilizedServers = data.servers.filter(
-      (s: ServerInstance) => s.metrics?.cpu < 30 && s.metrics?.memory < 40
+    const lowUtilizationServers = data.servers.filter(
+      (s: ServerInstance) => (s.metrics?.cpu || 0) < 30 && (s.metrics?.memory || 0) < 40
     );
 
-    if (underutilizedServers.length > 0) {
-      response += `• ${underutilizedServers.length}대의 서버가 저활용 상태입니다\n`;
-      response += `• 서버 통합을 통해 월 $${(underutilizedServers.length * 50).toFixed(2)} 절약 가능\n`;
+    if (lowUtilizationServers.length > 0) {
+      response += `• ${lowUtilizationServers.length}대의 서버가 저활용 상태입니다\\n`;
+      response += `• 서버 통합을 통해 월 $${(lowUtilizationServers.length * 50).toFixed(2)} 절약 가능\\n`;
     }
 
     response += `• 자동 스케일링을 통한 리소스 효율성 향상\n`;
@@ -730,7 +730,7 @@ export class ServerMonitoringAgent {
 
     // 성능 인사이트
     const highCpuServers = data.servers.filter(
-      (s: ServerInstance) => s.metrics?.cpu > 70
+      (s: ServerInstance) => (s.metrics?.cpu || 0) > 70
     );
     if (highCpuServers.length > 0) {
       insights.push({
@@ -747,7 +747,7 @@ export class ServerMonitoringAgent {
 
     // 비용 인사이트
     const underutilizedServers = data.servers.filter(
-      (s: ServerInstance) => s.metrics?.cpu < 30 && s.metrics?.memory < 40
+      (s: ServerInstance) => (s.metrics?.cpu || 0) < 30 && (s.metrics?.memory || 0) < 40
     );
     if (underutilizedServers.length > 0) {
       insights.push({
@@ -765,7 +765,7 @@ export class ServerMonitoringAgent {
 
     // 가용성 인사이트
     const unhealthyServers = data.servers.filter(
-      (s: ServerInstance) => s.health?.score < 80
+      (s: ServerInstance) => (s.health?.score || 100) < 80
     );
     if (unhealthyServers.length > 0) {
       insights.push({
@@ -884,17 +884,17 @@ export class ServerMonitoringAgent {
     const actions: string[] = [];
 
     // 🔧 안전한 metrics 접근
-    if (server.metrics?.cpu > 80) {
+    if ((server.metrics?.cpu || 0) > 80) {
       actions.push('CPU 사용률 최적화: 불필요한 프로세스 종료');
       actions.push('로드 밸런싱 재구성 또는 서버 증설 검토');
     }
 
-    if (server.metrics?.memory > 85) {
+    if ((server.metrics?.memory || 0) > 85) {
       actions.push('메모리 정리: 캐시 클리어 및 메모리 누수 점검');
       actions.push('애플리케이션 재시작 고려');
     }
 
-    if (server.metrics?.disk > 90) {
+    if ((server.metrics?.disk || 0) > 90) {
       actions.push('디스크 공간 확보: 로그 파일 정리');
       actions.push('스토리지 확장 계획 수립');
     }

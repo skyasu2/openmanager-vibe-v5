@@ -117,7 +117,7 @@ export class GCPRealServerDataGenerator {
                 cpu: server.cpu,
                 memory: server.memory,
                 disk: server.disk,
-                network: server.network,
+                network: server.network || 0,
                 cpu_usage: server.cpu,
                 memory_usage: server.memory,
                 disk_usage: server.disk,
@@ -233,7 +233,7 @@ export class GCPRealServerDataGenerator {
                 cpu: server.cpu,
                 memory: server.memory,
                 disk: server.disk,
-                network: server.network,
+                network: server.network || 0,
                 uptime: 0,
                 lastCheck: new Date().toISOString(),
                 region: 'error-region',
@@ -252,7 +252,7 @@ export class GCPRealServerDataGenerator {
                     cpu: server.cpu,
                     memory: server.memory,
                     disk: server.disk,
-                    network: server.network,
+                    network: server.network || 0,
                     requests: 0,
                     errors: 999,
                     uptime: 0,
@@ -623,13 +623,19 @@ export class GCPRealServerDataGenerator {
                 name: `🚨 ERROR: ${server.name}`,
                 hostname: `❌ 연결실패: ${error instanceof Error ? error.message : 'Unknown'}`,
                 lastUpdate: new Date(),
+                // 🔧 누락된 필수 속성들 추가
+                lastCheck: new Date().toISOString(),
+                region: 'error-region',
+                version: '0.0.0-error',
+                tags: ['error', 'fallback'],
+                lastUpdated: new Date().toISOString(),
                 // 추가 에러 메타데이터
                 errorMetadata: {
                     ...ERROR_STATE_METADATA,
                     originalError: error instanceof Error ? error.message : String(error),
                     failureTime: new Date().toISOString()
                 }
-            })) as ServerInstance[];
+            }));
         }
     }
 

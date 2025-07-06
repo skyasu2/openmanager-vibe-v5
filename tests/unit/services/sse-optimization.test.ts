@@ -311,7 +311,9 @@ describe('🧪 TDD - SSE 최적화', () => {
         connectionPool = new ServerlessSSEConnectionPool();
 
         const connection = await connectionPool.acquire('test-url');
-        connectionPool.release(connection);
+        if (connection) {
+          connectionPool.release(connection);
+        }
 
         expect(connectionPool.getActiveCount()).toBe(0);
         expect(connectionPool.getPoolSize()).toBe(1);
@@ -324,7 +326,9 @@ describe('🧪 TDD - SSE 최적화', () => {
         });
 
         const connection = await connectionPool.acquire('test-url');
-        connectionPool.release(connection);
+        if (connection) {
+          connectionPool.release(connection);
+        }
 
         expect(connectionPool.getPoolSize()).toBe(1);
 

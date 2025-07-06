@@ -190,21 +190,36 @@ export class WebSocketManager {
     // 실시간 서버 데이터 브로드캐스트 (20초마다)
     interval(20000).subscribe(async () => {
       const allServers = await this.dataGenerator.getAllServers();
-      const serverMetrics = allServers.map(server => ({
-        id: server.id,
-        name: server.name,
-        status: server.status,
-        metrics: {
-          cpu: server.metrics?.cpu || 0,
-          memory: server.metrics?.memory || 0,
-          disk: server.metrics?.disk || 0,
-          network: {
-            bytesIn: typeof server.metrics?.network === 'object' ? server.metrics.network.in || 0 : server.metrics?.network || 0,
-            bytesOut: typeof server.metrics?.network === 'object' ? server.metrics.network.out || 0 : server.metrics?.network || 0,
-          }
-        },
-        timestamp: new Date().toISOString()
-      }));
+      const serverMetrics = allServers.map(server => {
+        // 🔧 network 타입 안전 처리
+        const networkMetrics = server.metrics?.network;
+        let bytesIn = 0;
+        let bytesOut = 0;
+
+        if (networkMetrics && typeof networkMetrics === 'object' && 'in' in networkMetrics) {
+          bytesIn = (networkMetrics as { in: number; out: number }).in || 0;
+          bytesOut = (networkMetrics as { in: number; out: number }).out || 0;
+        } else if (typeof networkMetrics === 'number') {
+          bytesIn = networkMetrics;
+          bytesOut = networkMetrics;
+        }
+
+        return {
+          id: server.id,
+          name: server.name,
+          status: server.status,
+          metrics: {
+            cpu: server.metrics?.cpu || 0,
+            memory: server.metrics?.memory || 0,
+            disk: server.metrics?.disk || 0,
+            network: {
+              bytesIn,
+              bytesOut,
+            }
+          },
+          timestamp: new Date().toISOString()
+        };
+      });
 
       // 임계값 초과 시 알림 발생
       if (serverMetrics.some(server => server.metrics.cpu > 85 || server.metrics.memory > 90)) {
