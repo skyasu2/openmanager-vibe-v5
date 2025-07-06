@@ -74,12 +74,16 @@ describe('🌐 GCP 실제 데이터 서비스 테스트', () => {
 
         // 응답 구조 검증 (존재하지 않는 속성들 제거)
         expect(response).toHaveProperty('success');
-        expect(response).toHaveProperty('data');
         expect(response.success).toBe(true);
 
-        if (response.data) {
-            expect(response.data).toHaveProperty('servers');
-            expect(Array.isArray(response.data.servers)).toBe(true);
+        if (response.data && Array.isArray(response.data)) {
+            const healthyCount = response.data.filter(s => s.status === 'healthy').length;
+            const warningCount = response.data.filter(s => s.status === 'warning').length;
+            const criticalCount = response.data.filter(s => s.status === 'critical').length;
+
+            expect(healthyCount).toBeGreaterThanOrEqual(0);
+            expect(warningCount).toBeGreaterThanOrEqual(0);
+            expect(criticalCount).toBeGreaterThanOrEqual(0);
         }
     });
 

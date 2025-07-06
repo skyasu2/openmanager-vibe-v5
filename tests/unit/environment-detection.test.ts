@@ -60,6 +60,10 @@ describe('환경 감지 로직', () => {
             expect(env.IS_VERCEL).toBe(false);
             expect(env.IS_RENDER).toBe(false);
             expect(env.IS_PRODUCTION).toBe(false);
+            expect(env.features.enableMockData).toBe(true);
+            expect(env.features.enableDebugLogs).toBe(true);
+            expect(env.performance.maxMemory).toBeGreaterThan(0);
+            expect(env.performance.timeout).toBeGreaterThan(0);
         });
 
         test('로컬 환경에서 올바른 설정 반환', () => {
@@ -87,6 +91,10 @@ describe('환경 감지 로직', () => {
             expect(env.IS_LOCAL).toBe(false);
             expect(env.IS_RENDER).toBe(false);
             expect(env.IS_PRODUCTION).toBe(true);
+            expect(env.features.enableMockData).toBe(false);
+            expect(env.performance.maxMemory).toBe(1024);
+            expect(env.performance.timeout).toBe(30000);
+            expect(env.features.enableWebSocket).toBe(false);
         });
 
         test('Vercel 환경에서 제한된 설정 반환', () => {
@@ -126,8 +134,8 @@ describe('환경 감지 로직', () => {
             const env = detectEnvironment();
 
             expect(env.IS_TEST).toBe(true);
-            expect(env.ENABLE_MOCK_DATA).toBe(true);
-            expect(env.DISABLE_EXTERNAL_CALLS).toBe(true);
+            expect(env.features.enableMockData).toBe(true);
+            expect(env.features.enableExternalCalls).toBe(false);
         });
     });
 
