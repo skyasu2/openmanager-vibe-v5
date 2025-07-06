@@ -73,6 +73,13 @@ export class GCPRealServerDataGenerator {
     }
 
     /**
+     * 🔍 초기화 상태 확인 (public getter)
+     */
+    get initialized(): boolean {
+        return this.isInitialized;
+    }
+
+    /**
      * 🏗️ 초기화 (Vercel에서는 즉시 false 반환)
      */
     async initialize(): Promise<boolean> {
@@ -155,7 +162,7 @@ export class GCPRealServerDataGenerator {
     }
 
     /**
-     * �� GCP에서 실제 서버 데이터 조회 (개선된 버전)
+     * 🎭 GCP에서 실제 서버 데이터 조회 (개선된 버전)
      */
     async generateServers(): Promise<ServerInstance[]> {
         const env = detectEnvironment();
@@ -816,7 +823,12 @@ export interface ServerDataGenerator {
 }
 
 /**
- * 🔄 호환성을 위한 alias
+ * 🔄 호환성을 위한 타입 정의
+ */
+export type RealServerDataGeneratorType = GCPRealServerDataGenerator;
+
+/**
+ * 🔄 호환성을 위한 alias (클래스)
  */
 export const RealServerDataGenerator = GCPRealServerDataGenerator;
 

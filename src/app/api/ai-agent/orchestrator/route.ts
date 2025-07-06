@@ -8,15 +8,15 @@
  * - 성능 모니터링
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { serverDataCache } from '@/services/cache/ServerDataCache';
+import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { NextRequest, NextResponse } from 'next/server';
 
 // 간단한 AI 필터
 class SimpleAIFilter {
   async filterForAI(options: any) {
     const generator = RealServerDataGenerator.getInstance();
-    const servers = generator.getAllServers();
+    const servers = await generator.getAllServers();
     return {
       data: servers.slice(0, 10),
       insights: {
@@ -53,7 +53,7 @@ class SimpleStrategy {
 
     switch (this.name) {
       case 'monitoring_focus':
-        const servers = generator.getAllServers();
+        const servers = await generator.getAllServers();
         return {
           strategy: this.name,
           data: {
@@ -93,7 +93,7 @@ class SimpleStrategy {
         };
 
       default:
-        const hybridServers = generator.getAllServers();
+        const hybridServers = await generator.getAllServers();
         const hybridAI = await aiFilter.filterForAI({});
         return {
           strategy: 'hybrid_balanced',
@@ -308,7 +308,7 @@ class SimpleOrchestrator {
       cache: cacheStatus,
       dataGenerator: {
         status: generator.getStatus(),
-        serverCount: generator.getAllServers().length,
+        serverCount: (await generator.getAllServers()).length,
       },
     };
   }

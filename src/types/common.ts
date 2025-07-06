@@ -22,7 +22,11 @@ export type ServerStatus =
   | 'warning'
   | 'critical'
   | 'offline'
-  | 'maintenance';
+  | 'maintenance'
+  | 'running'
+  | 'stopped'
+  | 'error'
+  | 'online';
 
 // 알림 심각도 타입
 export type AlertSeverity = 'info' | 'warning' | 'critical';

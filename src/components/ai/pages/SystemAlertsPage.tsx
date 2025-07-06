@@ -9,36 +9,24 @@
 
 'use client';
 
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  useRef,
-} from 'react';
-import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { useSystemAlerts } from '@/hooks/useSystemAlerts';
+import { cn } from '@/lib/utils';
+import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import {
   AlertTriangle,
-  AlertCircle,
   CheckCircle,
-  Clock,
-  Server,
-  Cpu,
-  HardDrive,
-  Activity,
-  X,
-  Eye,
-  ExternalLink,
-  RefreshCw,
-  XCircle,
-  Info,
   ChevronRight,
+  Info,
+  RefreshCw,
+  XCircle
 } from 'lucide-react';
-import { formatPercentage } from '@/lib/utils';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useSystemAlerts } from '@/hooks/useSystemAlerts';
+import React, {
+  useEffect,
+  useRef,
+  useState
+} from 'react';
 
 interface SystemAlert {
   id: string;
@@ -101,7 +89,7 @@ const AlertItem = React.memo(({ alert, isLeaving }: any) => {
 AlertItem.displayName = 'AlertItem';
 
 export default function SystemAlertsPage({ className }: SystemAlertsPageProps) {
-  const { alerts, isLoading, error } = useSystemAlerts();
+  const { alerts, loading, error } = useSystemAlerts();
   const [visibleAlerts, setVisibleAlerts] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -167,7 +155,7 @@ export default function SystemAlertsPage({ className }: SystemAlertsPageProps) {
       </div>
 
       <div className='flex-grow overflow-y-auto p-2' ref={containerRef}>
-        {isLoading && (
+        {loading && (
           <div className='flex items-center justify-center h-full text-gray-500'>
             <RefreshCw className='w-5 h-5 animate-spin mr-2' />
             알림을 불러오는 중...
@@ -179,7 +167,7 @@ export default function SystemAlertsPage({ className }: SystemAlertsPageProps) {
             오류: {error}
           </div>
         )}
-        {!isLoading && !error && (
+        {!loading && !error && (
           <LayoutGroup>
             <motion.div
               variants={containerVariants}

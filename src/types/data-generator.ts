@@ -7,10 +7,10 @@
 // 환경 설정 인터페이스
 export interface CustomEnvironmentConfig {
   serverArchitecture:
-    | 'single'
-    | 'master-slave'
-    | 'load-balanced'
-    | 'microservices';
+  | 'single'
+  | 'master-slave'
+  | 'load-balanced'
+  | 'microservices';
   databaseType: 'single' | 'replica' | 'sharded' | 'distributed';
   networkTopology: 'simple' | 'dmz' | 'multi-cloud' | 'hybrid';
   specialWorkload: 'standard' | 'gpu' | 'storage' | 'container';
@@ -18,94 +18,71 @@ export interface CustomEnvironmentConfig {
   securityLevel: 'basic' | 'enhanced' | 'enterprise';
 }
 
-// 서버 인스턴스 인터페이스
+// 서버 인스턴스 인터페이스 (server.ts와 호환)
 export interface ServerInstance {
   id: string;
   name: string;
+  status: 'running' | 'stopped' | 'warning' | 'error' | 'maintenance' | 'healthy' | 'critical' | 'offline';
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: number;
+  uptime: number;
+  lastCheck: string;
   type: // 🌐 웹서버
   | 'nginx'
-    | 'apache'
-    | 'iis'
-    // 🚀 애플리케이션 서버
-    | 'nodejs'
-    | 'springboot'
-    | 'django'
-    | 'dotnet'
-    | 'php'
-    // 🗄️ 데이터베이스
-    | 'mysql'
-    | 'postgresql'
-    | 'mongodb'
-    | 'oracle'
-    | 'mssql'
-    // ⚙️ 인프라 서비스
-    | 'redis'
-    | 'rabbitmq'
-    | 'elasticsearch'
-    | 'jenkins'
-    | 'prometheus'
-    | 'kafka'
-    // 🔄 하위 호환성 (기존 타입)
-    | 'web'
-    | 'api'
-    | 'database'
-    | 'cache'
-    | 'queue'
-    | 'cdn'
-    | 'gpu'
-    | 'storage';
-  role: 'primary' | 'replica' | 'worker' | 'standalone';
-  location: string;
-  status: 'running' | 'stopped' | 'warning' | 'error' | 'maintenance';
-  environment: 'production' | 'staging' | 'development';
-  specs: {
+  | 'apache'
+  | 'iis'
+  // 🚀 애플리케이션 서버
+  | 'nodejs'
+  | 'springboot'
+  | 'django'
+  | 'dotnet'
+  | 'php'
+  // 🗄️ 데이터베이스
+  | 'mysql'
+  | 'postgresql'
+  | 'mongodb'
+  | 'oracle'
+  | 'mssql'
+  // ⚙️ 인프라 서비스
+  | 'redis'
+  | 'rabbitmq'
+  | 'elasticsearch'
+  | 'jenkins'
+  | 'prometheus'
+  | 'kafka'
+  // 🔄 하위 호환성 (기존 타입)
+  | 'web'
+  | 'api'
+  | 'database'
+  | 'cache'
+  | 'queue'
+  | 'cdn'
+  | 'gpu'
+  | 'storage'
+  | string;
+  environment: 'production' | 'staging' | 'development' | string;
+  region: string;
+  version: string;
+  tags: string[];
+  alerts: number;
+  role?: 'primary' | 'replica' | 'worker' | 'standalone';
+  location?: string;
+  specs?: {
     cpu: { cores: number; model: string; architecture?: string };
     memory: { total: number; type: string; speed?: number };
     disk: { total: number; type: string; iops?: number };
     network: { bandwidth: number; latency?: number };
     gpu?: { count: number; model: string; memory: number };
   };
-  metrics: {
+  metrics?: {
     cpu: number;
     memory: number;
     disk: number;
-    network: { in: number; out: number };
-    requests: number;
-    errors: number;
-    uptime: number;
-    // 🎯 확장된 특화 메트릭
-    customMetrics?: {
-      // 🗄️ 데이터베이스 메트릭
-      connection_pool?: number;
-      query_time?: number;
-      active_connections?: number;
-      replication_lag?: number;
-
-      // 🌐 웹서버 메트릭
-      concurrent_connections?: number;
-      response_time?: number;
-      ssl_handshakes?: number;
-
-      // 🚀 애플리케이션 메트릭
-      thread_pool?: number;
-      heap_usage?: number;
-      gc_time?: number;
-
-      // ⚙️ 인프라 메트릭
-      cache_hit_ratio?: number;
-      evicted_keys?: number;
-      connected_clients?: number;
-      queue_depth?: number;
-      message_rate?: number;
-      consumer_count?: number;
-
-      // 🔄 기존 호환성
-      gpu_utilization?: number;
-      storage_iops?: number;
-      container_count?: number;
-    };
+    network: number;
   };
-  health: {
+  health?: {
     score: number;
     issues: string[];
     lastCheck: string;
@@ -240,15 +217,15 @@ export interface NetworkNode {
   id: string;
   name: string;
   type:
-    | 'server'
-    | 'switch'
-    | 'router'
-    | 'firewall'
-    | 'load-balancer'
-    | 'database'
-    | 'cache'
-    | 'proxy'
-    | 'loadbalancer';
+  | 'server'
+  | 'switch'
+  | 'router'
+  | 'firewall'
+  | 'load-balancer'
+  | 'database'
+  | 'cache'
+  | 'proxy'
+  | 'loadbalancer';
   location: string;
   connections: string[];
 }

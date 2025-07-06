@@ -11,8 +11,8 @@
 import { transformServerInstancesToServers } from '@/adapters/server-data-adapter';
 import { getRedisClient } from '@/lib/redis';
 import {
-  RealServerDataGenerator,
   realServerDataGenerator,
+  type RealServerDataGeneratorType
 } from '@/services/data-generator/RealServerDataGenerator';
 import { Server } from '@/types/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -30,7 +30,7 @@ function createBasicFallbackWarning(dataSource: string, reason: string) {
     actionRequired: '실제 데이터 소스 연결 필요',
     productionImpact:
       process.env.NODE_ENV === 'production' ||
-      process.env.VERCEL_ENV === 'production'
+        process.env.VERCEL_ENV === 'production'
         ? 'CRITICAL'
         : 'LOW',
   };
@@ -39,7 +39,7 @@ function createBasicFallbackWarning(dataSource: string, reason: string) {
 export const dynamic = 'force-dynamic';
 
 // 전역 변수로 생성기 상태 관리
-let generator: RealServerDataGenerator | null = null;
+let generator: RealServerDataGeneratorType | null = null;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 현재 서버 데이터 가져오기
-    const allServerInstances = generator.getAllServers();
+    const allServerInstances = await generator.getAllServers();
 
     console.log(
       `초기화 실행 from /api/servers/realtime (서버 ${allServerInstances.length}개 감지)`
@@ -120,14 +120,15 @@ export async function GET(request: NextRequest) {
       console.log('✅ RealServerDataGenerator 초기화 완료');
 
       // 초기화 후에도 데이터가 없으면 추가 경고
-      const retryServerInstances = generator.getAllServers();
+      const retryServerInstances = await generator.getAllServers();
       if (retryServerInstances.length === 0) {
         console.error('🚨 초기화 후에도 서버 데이터 없음 - 시스템 점검 필요');
       }
     }
 
     // 실시간 데이터 생성 시작 (아직 시작되지 않은 경우에만)
-    if (!generator.getStatus().isRunning) {
+    const status = await generator.getStatus();
+    if (!status.isRunning) {
       generator.startAutoGeneration();
     }
 

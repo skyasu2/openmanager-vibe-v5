@@ -8,15 +8,15 @@ import {
   UNIFIED_FALLBACK_SERVERS,
   validateEnvironmentVariables
 } from '@/config/fallback-data';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+// Jest globals are available without import
 
 describe('Fallback Data Configuration', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('UNIFIED_FALLBACK_SERVERS', () => {
@@ -139,7 +139,7 @@ describe('Fallback Data Configuration', () => {
         NODE_ENV: 'test',
       };
 
-      vi.stubGlobal('process', { env: mockEnv });
+      jest.stubGlobal('process', { env: mockEnv });
 
       const result = validateEnvironmentVariables(['NEXT_PUBLIC_SUPABASE_URL']);
       expect(result.isValid).toBe(true);
@@ -151,7 +151,7 @@ describe('Fallback Data Configuration', () => {
         NODE_ENV: 'test',
       };
 
-      vi.stubGlobal('process', { env: mockEnv });
+      jest.stubGlobal('process', { env: mockEnv });
 
       const result = validateEnvironmentVariables(['MISSING_VAR']);
       expect(result.isValid).toBe(false);
@@ -164,7 +164,7 @@ describe('Fallback Data Configuration', () => {
         NODE_ENV: 'test',
       };
 
-      vi.stubGlobal('process', { env: mockEnv });
+      jest.stubGlobal('process', { env: mockEnv });
 
       const result = validateEnvironmentVariables(['EMPTY_VAR']);
       expect(result.isValid).toBe(false);
@@ -184,7 +184,7 @@ describe('Fallback Data Configuration', () => {
         NODE_ENV: 'test',
       };
 
-      vi.stubGlobal('process', { env: mockEnv });
+      jest.stubGlobal('process', { env: mockEnv });
 
       const redisUrl = getInfrastructureUrl('redis');
       expect(redisUrl).toBe(INFRASTRUCTURE_CONFIG.redis.url);
@@ -204,7 +204,7 @@ describe('Fallback Data Configuration', () => {
         NODE_ENV: 'test',
       };
 
-      vi.stubGlobal('process', { env: mockEnv });
+      jest.stubGlobal('process', { env: mockEnv });
 
       const apiKey = getApiKey('google');
       expect(apiKey).toBe('custom-api-key');
@@ -215,20 +215,20 @@ describe('Fallback Data Configuration', () => {
         NODE_ENV: 'development',
       };
 
-      vi.stubGlobal('process', { env: mockEnv });
+      jest.stubGlobal('process', { env: mockEnv });
 
       const apiKey = getApiKey('google');
       expect(apiKey).toBe(INFRASTRUCTURE_CONFIG.api.googleAI.fallbackKey);
     });
 
     it('프로덕션에서 폴백 키 사용 시 경고해야 함', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => { });
 
       const mockEnv = {
         NODE_ENV: 'production',
       };
 
-      vi.stubGlobal('process', { env: mockEnv });
+      jest.stubGlobal('process', { env: mockEnv });
 
       getApiKey('google');
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -251,7 +251,7 @@ describe('Fallback Data Configuration', () => {
         NODE_ENV: 'development',
       };
 
-      vi.stubGlobal('process', { env: mockEnv });
+      jest.stubGlobal('process', { env: mockEnv });
 
       expect(isDevelopmentMode()).toBe(true);
       expect(isProductionMode()).toBe(false);
@@ -262,7 +262,7 @@ describe('Fallback Data Configuration', () => {
         NODE_ENV: 'production',
       };
 
-      vi.stubGlobal('process', { env: mockEnv });
+      jest.stubGlobal('process', { env: mockEnv });
 
       expect(isDevelopmentMode()).toBe(false);
       expect(isProductionMode()).toBe(true);
@@ -273,7 +273,7 @@ describe('Fallback Data Configuration', () => {
         NODE_ENV: 'test',
       };
 
-      vi.stubGlobal('process', { env: mockEnv });
+      jest.stubGlobal('process', { env: mockEnv });
 
       expect(isDevelopmentMode()).toBe(true);
       expect(isProductionMode()).toBe(false);
@@ -303,13 +303,13 @@ describe('Fallback Data Configuration', () => {
     it('인프라 설정이 환경별로 적절해야 함', () => {
       // 개발 환경
       const mockDevEnv = { NODE_ENV: 'development' };
-      vi.stubGlobal('process', { env: mockDevEnv });
+      jest.stubGlobal('process', { env: mockDevEnv });
 
       expect(isDevelopmentMode()).toBe(true);
 
       // 프로덕션 환경
       const mockProdEnv = { NODE_ENV: 'production' };
-      vi.stubGlobal('process', { env: mockProdEnv });
+      jest.stubGlobal('process', { env: mockProdEnv });
 
       expect(isProductionMode()).toBe(true);
     });
@@ -342,7 +342,7 @@ describe('Fallback Data Configuration', () => {
 });
 
 describe('STATIC_ERROR_SERVERS', () => {
-  it('should be defined and be an array', () => {
+  it('정적 에러 서버 데이터가 올바르게 정의되어야 함', () => {
     expect(STATIC_ERROR_SERVERS).toBeDefined();
     expect(Array.isArray(STATIC_ERROR_SERVERS)).toBe(true);
     expect(STATIC_ERROR_SERVERS.length).toBeGreaterThan(0);
@@ -437,13 +437,13 @@ describe('STATIC_ERROR_SERVERS', () => {
   it('infrastructure configuration should be appropriate for environment', () => {
     // development environment
     const mockDevEnv = { NODE_ENV: 'development' };
-    vi.stubGlobal('process', { env: mockDevEnv });
+    jest.stubGlobal('process', { env: mockDevEnv });
 
     expect(isDevelopmentMode()).toBe(true);
 
     // production environment
     const mockProdEnv = { NODE_ENV: 'production' };
-    vi.stubGlobal('process', { env: mockProdEnv });
+    jest.stubGlobal('process', { env: mockProdEnv });
 
     expect(isProductionMode()).toBe(true);
   });

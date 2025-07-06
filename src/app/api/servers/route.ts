@@ -1,5 +1,6 @@
 import { detectEnvironment } from '@/config/environment';
 import { ERROR_STATE_METADATA, STATIC_ERROR_SERVERS } from '@/config/fallback-data';
+import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 import { GCPServerDataGenerator } from '@/services/gcp/GCPServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
@@ -166,7 +167,7 @@ export async function GET(request: NextRequest) {
       const generator = RealServerDataGenerator.getInstance();
 
       // 목업 생성기 초기화 확인
-      if (!generator.isInitialized) {
+      if (!generator.initialized) {
         await generator.initialize();
       }
 
