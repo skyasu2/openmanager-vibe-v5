@@ -63,14 +63,14 @@ export function useSystemControl(): UseSystemControlReturn {
   const userInitiated = false;
 
   // 누락된 함수들을 기본 구현으로 추가
-  const updateActivity = () => {};
+  const updateActivity = () => { };
   const pauseSystem = async (reason?: string) => ({
     success: true,
     message: 'Paused',
   });
   const resumeSystem = async () => ({ success: true, message: 'Resumed' });
-  const enableAIAgent = () => {};
-  const disableAIAgent = () => {};
+  const enableAIAgent = () => { };
+  const disableAIAgent = () => { };
 
   const [status, setStatus] = useState<SystemStatus>({
     isRunning: false,
@@ -233,8 +233,8 @@ export function useSystemControl(): UseSystemControlReturn {
   }, [startSystem, stopSystem]);
 
   /**
-   * 🚀 시스템 전체 시작 (사용자 세션) - Vercel 최적화
-   * 사용자가 직접 시작하는 세션은 자동 종료되지 않음
+   * 🚀 시스템 전체 시작
+   * ⚠️ Silent fallback 금지 - 모든 실패는 명시적 에러로 반환
    */
   const startFullSystem = async (options?: {
     mode?: 'fast' | 'full';
@@ -245,13 +245,13 @@ export function useSystemControl(): UseSystemControlReturn {
     errors: string[];
     warnings?: string[];
     recommendations?: string[];
-    fallback?: boolean;
+    isErrorState?: boolean; // fallback 대신 에러 상태 명시
     mode?: string;
   }> => {
     const errors: string[] = [];
     const warnings: string[] = [];
     let message = '';
-    let fallback = false;
+    let isErrorState = false;
     const mode = options?.mode || 'fast';
 
     try {
@@ -280,9 +280,11 @@ export function useSystemControl(): UseSystemControlReturn {
         if (systemResponse.ok) {
           systemLogger.system(`✅ 시뮬레이션 엔진 시작: ${systemData.message}`);
 
+          // ❌ fallback 처리 제거 - 명시적 에러 상태로 변경
           if (systemData.fallback) {
-            fallback = true;
-            warnings.push('일부 기능이 Fallback 모드로 동작 중');
+            isErrorState = true;
+            errors.push('🚨 시스템이 에러 상태로 시작됨 - 일부 기능 사용 불가');
+            warnings.push('⚠️ 실제 데이터 연결 실패로 인한 제한 모드');
           }
 
           if (systemData.warnings && systemData.warnings.length > 0) {
@@ -296,35 +298,38 @@ export function useSystemControl(): UseSystemControlReturn {
             `ℹ️ 시뮬레이션 엔진 이미 실행 중: ${systemData.message}`
           );
         } else if (systemResponse.status === 206) {
-          systemLogger.system(
-            `✅ 시뮬레이션 엔진 부분 시작 (정상): ${systemData.message}`
+          // ❌ 부분 시작도 에러 상태로 처리
+          systemLogger.error(
+            `❌ 시뮬레이션 엔진 부분 시작 실패: ${systemData.message}`
           );
-          warnings.push('시스템이 제한 모드로 시작되었지만 정상 작동합니다');
+          isErrorState = true;
+          errors.push('시스템이 불완전한 상태로 시작됨');
+          warnings.push('일부 핵심 기능이 작동하지 않을 수 있습니다');
         } else {
-          const errorMsg = `시뮬레이션 엔진 시작 실패: ${systemData.message || '알 수 없는 오류'}`;
-          warnings.push(errorMsg);
-          systemLogger.warn(errorMsg);
-          fallback = true;
+          const errorMsg = `❌ 시뮬레이션 엔진 시작 실패: ${systemData.message || '알 수 없는 오류'}`;
+          errors.push(errorMsg);
+          systemLogger.error(errorMsg);
+          isErrorState = true;
         }
       } catch (error: any) {
         if (error.name === 'AbortError') {
-          const errorMsg = '시뮬레이션 엔진 시작 타임아웃';
-          warnings.push(errorMsg);
-          systemLogger.warn(errorMsg);
-          fallback = true;
+          const errorMsg = '❌ 시뮬레이션 엔진 시작 타임아웃';
+          errors.push(errorMsg);
+          systemLogger.error(errorMsg);
+          isErrorState = true;
         } else {
-          const errorMsg = '시뮬레이션 엔진 시작 실패';
-          warnings.push(errorMsg);
-          systemLogger.warn(errorMsg, error);
-          fallback = true;
+          const errorMsg = '❌ 시뮬레이션 엔진 시작 실패';
+          errors.push(errorMsg);
+          systemLogger.error(errorMsg, error);
+          isErrorState = true;
         }
       }
 
-      // 결과 메시지 설정
-      if (fallback) {
-        message = '시스템이 Fallback 모드로 시작되었습니다.';
+      // 결과 메시지 설정 - 명시적 에러 상태 표시
+      if (isErrorState) {
+        message = '🚨 시스템 시작 실패 - 에러 상태로 동작 중';
       } else if (warnings.length > 0) {
-        message = '시스템이 기본 모드로 시작되었습니다.';
+        message = '⚠️ 시스템이 경고와 함께 시작되었습니다';
       } else {
         message = '🎉 시스템이 성공적으로 시작되었습니다!';
       }
@@ -332,16 +337,18 @@ export function useSystemControl(): UseSystemControlReturn {
       systemLogger.system(message);
 
       return {
-        success: true,
+        success: !isErrorState, // 에러 상태면 success: false
         message,
         errors,
         warnings,
-        recommendations: ['대시보드에서 상세 모니터링을 확인하세요'],
-        fallback,
-        mode,
+        recommendations: isErrorState
+          ? ['시스템 관리자에게 문의하세요', '실제 데이터 연결 상태를 확인하세요']
+          : ['대시보드에서 상세 모니터링을 확인하세요'],
+        isErrorState, // fallback 대신 명시적 에러 상태
+        mode: isErrorState ? 'error' : mode,
       };
     } catch (error) {
-      const errorMsg = '시스템 시작 중 치명적 오류 발생';
+      const errorMsg = '🚨 시스템 시작 중 치명적 오류 발생';
       systemLogger.error(errorMsg, error);
 
       // 치명적 오류 시 시스템 중지
@@ -352,9 +359,12 @@ export function useSystemControl(): UseSystemControlReturn {
         message: errorMsg,
         errors: [safeErrorMessage(error, '알 수 없는 오류')],
         warnings: [],
-        recommendations: ['페이지를 새로고침 후 다시 시도하세요'],
-        fallback: true,
-        mode: 'emergency',
+        recommendations: [
+          '페이지를 새로고침 후 다시 시도하세요',
+          '문제가 지속되면 시스템 관리자에게 문의하세요'
+        ],
+        isErrorState: true, // 치명적 오류는 항상 에러 상태
+        mode: 'critical-error',
       };
     }
   };

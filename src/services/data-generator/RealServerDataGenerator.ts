@@ -6,6 +6,7 @@
  */
 
 import { detectEnvironment } from '@/config/environment';
+import { ERROR_STATE_METADATA, STATIC_ERROR_SERVERS } from '@/config/fallback-data';
 import { systemLogger } from '@/lib/logger';
 import { ServerAlert, ServerEnvironment, ServerInstance, ServerMetrics, ServerRole, ServerStatus } from '@/types/server';
 
@@ -157,53 +158,54 @@ export class GCPRealServerDataGenerator {
      * 🔧 GCP에서 실제 서버 데이터 조회
      */
     async generateServers(): Promise<ServerInstance[]> {
+        const env = detectEnvironment();
+
         try {
-            systemLogger.system('📡 GCP에서 실제 서버 데이터 조회 시작...');
+            // 🌐 Vercel 환경: GCP 실제 데이터 시도
+            if (env.IS_VERCEL) {
+                console.log('🌐 GCP 실제 서버 데이터 요청 시도...');
 
-            // GCP API 호출
-            const gcpData = await this.fetchFromGCP();
+                const response = await this.fetchFromGCP(this.config.limit);
 
-            if (!gcpData.success) {
-                throw new Error(`GCP 데이터 조회 실패: ${gcpData.error}`);
+                if (response && response.ok) {
+                    const realData = await response.json();
+                    console.log('✅ GCP 실제 데이터 수신 성공');
+                    return realData.servers || [];
+                } else {
+                    // ❌ GCP 실패 시 명시적 에러 반환 (fallback 없음)
+                    console.error('❌ GCP 실제 데이터 수신 실패');
+                    throw new Error('GCP_CONNECTION_FAILED');
+                }
             }
 
-            // GCP 데이터를 ServerInstance 형식으로 변환
-            const servers = this.transformGCPDataToServers(gcpData.data);
+            // 🏠 로컬 환경: 목업 데이터 생성
+            console.log('🏠 로컬 환경: 목업 서버 데이터 생성');
+            return this.generateMockServers(this.config.limit);
 
-            systemLogger.system(`✅ GCP에서 ${servers.length}개 실제 서버 데이터 조회 완료`);
-            return servers;
         } catch (error) {
-            systemLogger.error('❌ GCP 서버 데이터 조회 실패:', error);
+            console.error('🚨 서버 데이터 생성 실패:', error);
 
-            // GCP 실패 시 에러 반환 (목업 폴백 없음)
-            throw new Error(`Google Cloud 연결 실패: ${error instanceof Error ? error.message : String(error)}`);
+            // ❌ 모든 실패는 명시적 에러 상태로 반환 (Silent fallback 금지)
+            throw new Error(`서버 데이터 생성 실패: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
 
     /**
      * 📡 GCP API 호출
      */
-    private async fetchFromGCP(): Promise<{
-        success: boolean;
-        data?: any;
-        error?: string;
-    }> {
+    private async fetchFromGCP(limit: number): Promise<Response> {
         try {
             // GCP 서버 데이터 API 엔드포인트 호출
-            const response = await fetch(`/api/gcp/server-data?sessionId=${this.config.sessionId}&limit=${this.config.limit}`);
+            const response = await fetch(`/api/gcp/server-data?sessionId=${this.config.sessionId}&limit=${limit}`);
 
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
-            const result = await response.json();
-            return result;
+            return response;
         } catch (error) {
             console.error('GCP API 호출 실패:', error);
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'GCP 연결 실패'
-            };
+            throw error;
         }
     }
 
@@ -445,7 +447,26 @@ export class GCPRealServerDataGenerator {
             return [];
         }
 
-        return await this.generateServers();
+        try {
+            return await this.generateServers();
+        } catch (error) {
+            console.error('🚨 서버 데이터 조회 실패 - 정적 에러 상태 반환:', error);
+
+            // ❌ 실패 시 정적 에러 서버 반환 (사용자가 즉시 인식 가능)
+            return STATIC_ERROR_SERVERS.map(server => ({
+                ...server,
+                // 에러 상태임을 더욱 명확히 표시
+                name: `🚨 ERROR: ${server.name}`,
+                hostname: `❌ 연결실패: ${error instanceof Error ? error.message : 'Unknown'}`,
+                lastUpdate: new Date(),
+                // 추가 에러 메타데이터
+                errorMetadata: {
+                    ...ERROR_STATE_METADATA,
+                    originalError: error instanceof Error ? error.message : String(error),
+                    failureTime: new Date().toISOString()
+                }
+            })) as ServerInstance[];
+        }
     }
 
     /**
@@ -506,31 +527,49 @@ export class GCPRealServerDataGenerator {
             const servers = await this.generateServers();
             const status = await this.getStatus();
 
+            // 에러 서버인지 확인
+            const isErrorState = servers.some(server =>
+                server.id.startsWith('ERROR_SERVER_') ||
+                server.name.includes('🚨 ERROR')
+            );
+
+            if (isErrorState) {
+                return {
+                    ...ERROR_STATE_METADATA,
+                    totalServers: servers.length,
+                    healthyServers: 0,
+                    warningServers: 0,
+                    criticalServers: servers.length,
+                    errorMessage: '⚠️ 실제 서버 데이터를 가져올 수 없습니다',
+                    displayWarning: '시스템 오류 상태 - 관리자에게 문의하세요'
+                };
+            }
+
+            // 정상 상태일 때의 요약
+            const healthyCount = servers.filter(s => s.status === 'healthy').length;
+            const warningCount = servers.filter(s => s.status === 'warning').length;
+            const criticalCount = servers.filter(s => s.status === 'critical' || s.status === 'offline').length;
+
             return {
-                totalServers: status.total,
-                healthyServers: status.healthy,
-                warningServers: status.warning,
-                criticalServers: status.critical,
-                averageCpu: Math.round(servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length),
-                averageMemory: Math.round(servers.reduce((sum, s) => sum + s.memory, 0) / servers.length),
-                averageDisk: Math.round(servers.reduce((sum, s) => sum + s.disk, 0) / servers.length),
-                totalAlerts: servers.reduce((sum, s) => sum + s.alerts, 0),
-                uptime: status.uptime,
-                lastUpdate: new Date().toISOString(),
+                totalServers: servers.length,
+                healthyServers: healthyCount,
+                warningServers: warningCount,
+                criticalServers: criticalCount,
+                isErrorState: false,
+                lastUpdate: new Date().toISOString()
             };
         } catch (error) {
+            console.error('🚨 대시보드 요약 생성 실패:', error);
+
+            // ❌ 실패 시 명시적 에러 상태 반환
             return {
+                ...ERROR_STATE_METADATA,
                 totalServers: 0,
                 healthyServers: 0,
                 warningServers: 0,
                 criticalServers: 0,
-                averageCpu: 0,
-                averageMemory: 0,
-                averageDisk: 0,
-                totalAlerts: 0,
-                uptime: 0,
-                lastUpdate: new Date().toISOString(),
-                error: error instanceof Error ? error.message : 'Unknown error',
+                errorMessage: `⚠️ 대시보드 데이터 로드 실패: ${error instanceof Error ? error.message : 'Unknown'}`,
+                displayWarning: '시스템 오류 - 데이터를 가져올 수 없습니다'
             };
         }
     }

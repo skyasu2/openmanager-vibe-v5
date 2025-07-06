@@ -1,17 +1,22 @@
 /**
  * 🌐 GCP 실제 데이터 서비스
  * Google Cloud Monitoring API를 통해 실제 서버 메트릭을 수집
+ * 
+ * ⚠️ 중요: Silent fallback 금지
+ * - 모든 실패는 명시적 에러로 반환
+ * - 사용자와 AI가 즉시 오류 상태 인식 가능
  */
 
 import { detectEnvironment } from '@/config/environment';
+import { STATIC_ERROR_SERVERS, ERROR_STATE_METADATA } from '@/config/fallback-data';
 
 export interface GCPServerMetrics {
     id: string;
     name: string;
-    type: 'compute-engine' | 'gke-node' | 'cloud-sql' | 'cloud-run';
+    type: 'compute-engine' | 'gke-node' | 'cloud-sql' | 'cloud-run' | 'ERROR';
     zone: string;
     projectId: string;
-    status: 'healthy' | 'warning' | 'critical' | 'unknown';
+    status: 'healthy' | 'warning' | 'critical' | 'unknown' | 'ERROR';
     metrics: {
         cpu: {
             usage: number;
@@ -36,128 +41,120 @@ export interface GCPServerMetrics {
             connections: number;
         };
     };
-    labels: Record<string, string>;
-    lastUpdated: string;
-    source: 'gcp-monitoring';
+    timestamp: string;
+    // 에러 상태 메타데이터 추가
+    isErrorState?: boolean;
+    errorMessage?: string;
 }
 
-export interface GCPDataResponse {
+export interface GCPRealDataResponse {
     success: boolean;
     data: GCPServerMetrics[];
     totalServers: number;
-    healthyServers: number;
-    warningServers: number;
-    criticalServers: number;
     timestamp: string;
-    source: 'gcp-real-data';
+    source: 'gcp-real-data' | 'static-error';
+    // 에러 상태 정보
+    isErrorState: boolean;
+    errorMetadata?: typeof ERROR_STATE_METADATA;
 }
 
 export class GCPRealDataService {
     private static instance: GCPRealDataService | null = null;
-    private projectId: string;
     private isInitialized = false;
     private cache: Map<string, any> = new Map();
     private cacheTimeout = 30000; // 30초 캐시
 
-    constructor(projectId?: string) {
-        this.projectId = projectId || process.env.GCP_PROJECT_ID || 'openmanager-vibe-v5';
+    constructor() {
+        console.log('🌐 GCP 실제 데이터 서비스 초기화');
     }
 
-    static getInstance(projectId?: string): GCPRealDataService {
-        if (!GCPRealDataService.instance) {
-            GCPRealDataService.instance = new GCPRealDataService(projectId);
+    static getInstance(): GCPRealDataService {
+        const env = detectEnvironment();
+
+        // 서버리스 환경에서는 매번 새 인스턴스
+        if (env.IS_VERCEL) {
+            return new GCPRealDataService();
         }
+
+        // 로컬 환경에서는 싱글톤
+        if (!GCPRealDataService.instance) {
+            GCPRealDataService.instance = new GCPRealDataService();
+        }
+
         return GCPRealDataService.instance;
     }
 
     /**
-     * 🏗️ 서비스 초기화
+     * 🔧 서비스 초기화
+     * ⚠️ 실패 시 명시적 에러 반환 (Silent fallback 없음)
      */
-    async initialize(): Promise<boolean> {
-        try {
-            const env = detectEnvironment();
+    async initialize(): Promise<void> {
+        const env = detectEnvironment();
 
+        try {
+            if (env.IS_VERCEL) {
+                console.log('🌐 Vercel 환경: GCP API 연결 시도...');
+
+                // GCP API 연결 테스트
+                const testResponse = await this.testGCPConnection();
+
+                if (!testResponse.success) {
+                    throw new Error(`GCP 연결 실패: ${testResponse.error}`);
+                }
+
+                console.log('✅ GCP API 연결 성공');
+                this.isInitialized = true;
+            } else {
+                console.log('🏠 로컬 환경: GCP 서비스 시뮬레이션 모드');
+                this.isInitialized = true;
+            }
+        } catch (error) {
+            console.error('❌ GCP 서비스 초기화 실패:', error);
+            this.isInitialized = false;
+
+            // ❌ 초기화 실패 시 명시적 에러 throw (Silent fallback 금지)
+            throw new Error(`GCP 서비스 초기화 실패: ${error instanceof Error ? error.message : 'Unknown'}`);
+        }
+    }
+
+    /**
+     * 🌐 GCP 실제 서버 메트릭 조회
+     * ⚠️ 실패 시 정적 에러 데이터 반환 (사용자가 즉시 인식)
+     */
+    async getRealServerMetrics(): Promise<GCPRealDataResponse> {
+        const env = detectEnvironment();
+
+        try {
             if (!env.IS_VERCEL) {
-                console.log('🏠 로컬 환경: GCP 실제 데이터 서비스 건너뛰기');
-                return false;
+                // 로컬 환경에서는 에러 상태 반환
+                console.log('🏠 로컬 환경: GCP 실제 데이터 사용 불가');
+                return this.createErrorResponse('로컬 환경에서는 GCP 실제 데이터를 사용할 수 없습니다');
             }
 
-            console.log('🌐 GCP 실제 데이터 서비스 초기화 중...');
+            console.log('🌐 GCP 실제 서버 메트릭 조회 시작...');
 
-            // GCP 인증 확인
-            const hasCredentials = await this.checkGCPCredentials();
-            if (!hasCredentials) {
-                console.warn('⚠️ GCP 인증 정보 없음 - Mock 데이터로 대체');
-                return false;
-            }
-
-            this.isInitialized = true;
-            console.log('✅ GCP 실제 데이터 서비스 초기화 완료');
-            return true;
-
-        } catch (error) {
-            console.error('❌ GCP 실제 데이터 서비스 초기화 실패:', error);
-            return false;
-        }
-    }
-
-    /**
-     * 🔐 GCP 인증 정보 확인
-     */
-    private async checkGCPCredentials(): Promise<boolean> {
-        try {
-            // 환경변수에서 GCP 서비스 계정 키 확인
-            const serviceAccountKey = process.env.GCP_SERVICE_ACCOUNT_KEY;
-            const projectId = process.env.GCP_PROJECT_ID;
-
-            if (!serviceAccountKey || !projectId) {
-                console.warn('⚠️ GCP_SERVICE_ACCOUNT_KEY 또는 GCP_PROJECT_ID 환경변수 누락');
-                return false;
-            }
-
-            // JSON 파싱 테스트
-            const credentials = JSON.parse(serviceAccountKey);
-            if (!credentials.client_email || !credentials.private_key) {
-                console.warn('⚠️ GCP 서비스 계정 키 형식 오류');
-                return false;
-            }
-
-            console.log('✅ GCP 인증 정보 확인 완료');
-            return true;
-
-        } catch (error) {
-            console.error('❌ GCP 인증 정보 확인 실패:', error);
-            return false;
-        }
-    }
-
-    /**
-     * 📊 실제 서버 메트릭 조회
-     */
-    async getRealServerMetrics(): Promise<GCPDataResponse> {
-        try {
+            // 캐시 확인
             const cacheKey = 'gcp-server-metrics';
             const cached = this.cache.get(cacheKey);
-
-            if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
-                console.log('📦 캐시된 GCP 서버 메트릭 반환');
+            if (cached && (Date.now() - cached.timestamp) < this.cacheTimeout) {
+                console.log('📦 캐시된 GCP 데이터 반환');
                 return cached.data;
             }
 
-            console.log('🌐 GCP 실제 서버 메트릭 조회 중...');
+            // GCP Monitoring API 호출 시뮬레이션
+            const realMetrics = await this.fetchGCPMetrics();
 
-            // 실제 GCP Monitoring API 호출 (현재는 Mock 데이터)
-            const realMetrics = await this.fetchGCPMonitoringData();
+            if (!realMetrics || realMetrics.length === 0) {
+                throw new Error('GCP에서 서버 메트릭을 가져올 수 없습니다');
+            }
 
-            const response: GCPDataResponse = {
+            const response: GCPRealDataResponse = {
                 success: true,
                 data: realMetrics,
                 totalServers: realMetrics.length,
-                healthyServers: realMetrics.filter(s => s.status === 'healthy').length,
-                warningServers: realMetrics.filter(s => s.status === 'warning').length,
-                criticalServers: realMetrics.filter(s => s.status === 'critical').length,
                 timestamp: new Date().toISOString(),
-                source: 'gcp-real-data'
+                source: 'gcp-real-data',
+                isErrorState: false
             };
 
             // 캐시 저장
@@ -166,161 +163,90 @@ export class GCPRealDataService {
                 timestamp: Date.now()
             });
 
-            console.log(`✅ GCP 실제 서버 메트릭 조회 완료: ${realMetrics.length}개 서버`);
+            console.log(`✅ GCP 실제 메트릭 조회 성공: ${realMetrics.length}개 서버`);
             return response;
 
         } catch (error) {
-            console.error('❌ GCP 실제 서버 메트릭 조회 실패:', error);
+            console.error('❌ GCP 서버 메트릭 조회 실패:', error);
 
+            // ❌ 실패 시 정적 에러 응답 반환 (사용자가 명확히 인식)
+            return this.createErrorResponse(
+                error instanceof Error ? error.message : 'GCP 연결 실패'
+            );
+        }
+    }
+
+    /**
+     * 🚨 에러 응답 생성
+     * 사용자와 AI가 즉시 오류 상태를 인식할 수 있도록 명시적 에러 데이터 반환
+     */
+    private createErrorResponse(errorMessage: string): GCPRealDataResponse {
+        const errorServers: GCPServerMetrics[] = STATIC_ERROR_SERVERS.map(server => ({
+            id: server.id,
+            name: `🚨 ${server.name}`,
+            type: 'ERROR',
+            zone: 'ERROR_ZONE',
+            projectId: 'ERROR_PROJECT',
+            status: 'ERROR',
+            metrics: {
+                cpu: { usage: 0, cores: 0 },
+                memory: { usage: 0, total: 0, available: 0 },
+                disk: { usage: 0, total: 0, io: { read: 0, write: 0 } },
+                network: { rx: 0, tx: 0, connections: 0 }
+            },
+            timestamp: new Date().toISOString(),
+            isErrorState: true,
+            errorMessage: errorMessage
+        }));
+
+        return {
+            success: false,
+            data: errorServers,
+            totalServers: errorServers.length,
+            timestamp: new Date().toISOString(),
+            source: 'static-error',
+            isErrorState: true,
+            errorMetadata: {
+                ...ERROR_STATE_METADATA,
+                errorMessage: errorMessage,
+                timestamp: new Date().toISOString()
+            }
+        };
+    }
+
+    /**
+     * 🔗 GCP 연결 테스트
+     */
+    private async testGCPConnection(): Promise<{ success: boolean; error?: string }> {
+        try {
+            // 실제 GCP API 호출 시뮬레이션
+            // 여기서는 환경변수 확인으로 대체
+            const hasGCPConfig = process.env.GOOGLE_CLOUD_PROJECT &&
+                process.env.GOOGLE_APPLICATION_CREDENTIALS;
+
+            if (!hasGCPConfig) {
+                return {
+                    success: false,
+                    error: 'GCP 설정이 누락되었습니다 (GOOGLE_CLOUD_PROJECT, GOOGLE_APPLICATION_CREDENTIALS)'
+                };
+            }
+
+            return { success: true };
+        } catch (error) {
             return {
                 success: false,
-                data: [],
-                totalServers: 0,
-                healthyServers: 0,
-                warningServers: 0,
-                criticalServers: 0,
-                timestamp: new Date().toISOString(),
-                source: 'gcp-real-data'
+                error: error instanceof Error ? error.message : 'GCP 연결 테스트 실패'
             };
         }
     }
 
     /**
-     * 🔍 GCP Monitoring API 실제 데이터 조회
+     * 📊 GCP 메트릭 가져오기 (시뮬레이션)
      */
-    private async fetchGCPMonitoringData(): Promise<GCPServerMetrics[]> {
-        try {
-            // TODO: 실제 GCP Monitoring API 연동
-            // 현재는 실제적인 Mock 데이터 반환
-
-            const mockRealServers: GCPServerMetrics[] = [
-                {
-                    id: 'gcp-web-server-001',
-                    name: 'Production Web Server 01',
-                    type: 'compute-engine',
-                    zone: 'asia-northeast3-a',
-                    projectId: this.projectId,
-                    status: 'healthy',
-                    metrics: {
-                        cpu: { usage: 42, cores: 4 },
-                        memory: { usage: 68, total: 8589934592, available: 2684354560 },
-                        disk: { usage: 35, total: 107374182400, io: { read: 150, write: 80 } },
-                        network: { rx: 2048000, tx: 1024000, connections: 145 }
-                    },
-                    labels: {
-                        environment: 'production',
-                        service: 'web-frontend',
-                        tier: 'frontend'
-                    },
-                    lastUpdated: new Date().toISOString(),
-                    source: 'gcp-monitoring'
-                },
-                {
-                    id: 'gcp-api-server-001',
-                    name: 'Production API Server 01',
-                    type: 'compute-engine',
-                    zone: 'asia-northeast3-b',
-                    projectId: this.projectId,
-                    status: 'warning',
-                    metrics: {
-                        cpu: { usage: 78, cores: 8 },
-                        memory: { usage: 84, total: 17179869184, available: 2684354560 },
-                        disk: { usage: 45, total: 214748364800, io: { read: 280, write: 180 } },
-                        network: { rx: 5120000, tx: 3072000, connections: 324 }
-                    },
-                    labels: {
-                        environment: 'production',
-                        service: 'api-backend',
-                        tier: 'backend'
-                    },
-                    lastUpdated: new Date().toISOString(),
-                    source: 'gcp-monitoring'
-                },
-                {
-                    id: 'gcp-database-001',
-                    name: 'Production Database Primary',
-                    type: 'cloud-sql',
-                    zone: 'asia-northeast3-c',
-                    projectId: this.projectId,
-                    status: 'healthy',
-                    metrics: {
-                        cpu: { usage: 55, cores: 16 },
-                        memory: { usage: 72, total: 68719476736, available: 19327352832 },
-                        disk: { usage: 62, total: 1099511627776, io: { read: 450, write: 320 } },
-                        network: { rx: 8192000, tx: 4096000, connections: 89 }
-                    },
-                    labels: {
-                        environment: 'production',
-                        service: 'postgresql',
-                        tier: 'database'
-                    },
-                    lastUpdated: new Date().toISOString(),
-                    source: 'gcp-monitoring'
-                },
-                {
-                    id: 'gcp-cache-server-001',
-                    name: 'Production Redis Cache',
-                    type: 'compute-engine',
-                    zone: 'asia-northeast3-a',
-                    projectId: this.projectId,
-                    status: 'healthy',
-                    metrics: {
-                        cpu: { usage: 25, cores: 4 },
-                        memory: { usage: 45, total: 34359738368, available: 18889465856 },
-                        disk: { usage: 20, total: 107374182400, io: { read: 80, write: 40 } },
-                        network: { rx: 1536000, tx: 768000, connections: 67 }
-                    },
-                    labels: {
-                        environment: 'production',
-                        service: 'redis-cache',
-                        tier: 'cache'
-                    },
-                    lastUpdated: new Date().toISOString(),
-                    source: 'gcp-monitoring'
-                },
-                {
-                    id: 'gcp-load-balancer-001',
-                    name: 'Production Load Balancer',
-                    type: 'compute-engine',
-                    zone: 'asia-northeast3-b',
-                    projectId: this.projectId,
-                    status: 'critical',
-                    metrics: {
-                        cpu: { usage: 89, cores: 4 },
-                        memory: { usage: 91, total: 8589934592, available: 773094400 },
-                        disk: { usage: 25, total: 107374182400, io: { read: 200, write: 120 } },
-                        network: { rx: 10240000, tx: 7168000, connections: 512 }
-                    },
-                    labels: {
-                        environment: 'production',
-                        service: 'nginx-lb',
-                        tier: 'frontend'
-                    },
-                    lastUpdated: new Date().toISOString(),
-                    source: 'gcp-monitoring'
-                }
-            ];
-
-            // 실시간 변동 시뮬레이션
-            return mockRealServers.map(server => ({
-                ...server,
-                metrics: {
-                    ...server.metrics,
-                    cpu: {
-                        ...server.metrics.cpu,
-                        usage: Math.max(5, Math.min(95, server.metrics.cpu.usage + (Math.random() - 0.5) * 10))
-                    },
-                    memory: {
-                        ...server.metrics.memory,
-                        usage: Math.max(10, Math.min(95, server.metrics.memory.usage + (Math.random() - 0.5) * 8))
-                    }
-                }
-            }));
-
-        } catch (error) {
-            console.error('❌ GCP Monitoring 데이터 조회 실패:', error);
-            return [];
-        }
+    private async fetchGCPMetrics(): Promise<GCPServerMetrics[]> {
+        // 실제 환경에서는 Google Cloud Monitoring API 호출
+        // 현재는 에러 발생으로 시뮬레이션
+        throw new Error('GCP Monitoring API 연결 실패 - 실제 구현 필요');
     }
 
     /**
@@ -330,4 +256,5 @@ export class GCPRealDataService {
         this.cache.clear();
         console.log('🧹 GCP 데이터 캐시 정리 완료');
     }
+} 
 } 

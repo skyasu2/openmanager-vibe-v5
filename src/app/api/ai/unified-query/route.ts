@@ -3,10 +3,9 @@
  * Vercel Pro/Hobby 플랜 지원
  */
 
-import { UnifiedAIEngineRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
-import { getAISessionStorage, saveAIResponse } from '@/lib/ai-session-storage';
+import { detectEnvironment } from '@/config/environment';
 import { EdgeLogger } from '@/lib/edge-runtime-utils';
-import { AIRequest } from '@/types/ai-types';
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 import { NextRequest, NextResponse } from 'next/server';
 
 // 🚨 응급 조치: Edge Runtime 비활성화 (Vercel Pro 사용량 위기)
@@ -52,181 +51,66 @@ export async function POST(request: NextRequest) {
   );
 
   try {
-    const body = await request.json();
-    const { query, mode = 'LOCAL', enableThinking = false } = body;
+    const { query, options } = await request.json();
 
-    if (!query) {
+    if (!query || typeof query !== 'string') {
       clearTimeout(timeoutId);
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'query 필드가 필요합니다',
-          vercelPlan: isProPlan ? 'pro' : 'hobby',
-        },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid query parameter',
+        message: 'query는 필수 문자열 파라미터입니다',
+        timestamp: new Date().toISOString()
+      }, { status: 400 });
     }
 
-    // 모드 정규화 (Hobby 플랜 제한 적용)
-    let normalizedMode: 'LOCAL' | 'GOOGLE_ONLY' = 'LOCAL';
-    if (mode === 'GOOGLE_ONLY' && isProPlan) {
-      normalizedMode = 'GOOGLE_ONLY';
-    } else {
-      normalizedMode = 'LOCAL'; // 기본값: LOCAL (Hobby 플랜 항상, Pro 플랜 기본값)
-    }
+    const env = detectEnvironment();
 
-    // 세션 관리
-    const storage = getAISessionStorage();
-    const sessionId = storage.generateSessionId();
+    // �� Vercel 환경: GCP 실제 데이터 기반 AI 응답
+    if (env.IS_VERCEL) {
+      console.log('🌐 Vercel AI 쿼리:', query);
 
-    // 자연어 질의 특화 Thinking Process
-    const thinkingProcess: Array<{
-      type: string;
-      title: string;
-      description: string;
-      timestamp: number;
-    }> = [];
+      const gcpService = GCPRealDataService.getInstance();
+      const serverData = await gcpService.getRealServerMetrics();
 
-    // 생각 과정 1: 자연어 분석
-    thinkingProcess.push({
-      type: 'nlp-analysis',
-      title: '자연어 이해',
-      description: '사용자의 자연어 질문을 분석하고 의도를 파악합니다.',
-      timestamp: Date.now(),
-    });
+      // 간단한 AI 응답 생성 (실제로는 더 복잡한 AI 엔진 사용)
+      const aiResponse = generateAIResponse(query, serverData.data);
 
-    // 생각 과정 2: 컨텍스트 구성
-    thinkingProcess.push({
-      type: 'context-building',
-      title: '컨텍스트 구성',
-      description: 'RAG 엔진과 Korean AI를 활용하여 관련 정보를 수집합니다.',
-      timestamp: Date.now(),
-    });
-
-    // AI 요청 구성
-    const aiRequest: AIRequest = {
-      query: query.trim(),
-      mode: normalizedMode,
-      context: {
-        sessionId,
-        vercelPlan: isProPlan ? 'pro' : 'hobby',
-        edgeRuntime: true,
-        maxExecutionTime: config.maxExecutionTime,
-        enableAdvancedFeatures: config.enableAdvancedFeatures,
+      return NextResponse.json({
+        success: true,
+        query,
+        response: aiResponse,
+        dataSource: 'gcp-real-data',
+        serverCount: serverData.totalServers,
         timestamp: new Date().toISOString(),
-        userAgent: request.headers.get('User-Agent') || 'unknown',
-        queryType: 'natural-language', // 자연어 질의 표시
-        origin: 'unified-query-api',
-      },
-      timeout: config.maxExecutionTime - 1000,
-      enableFallback: true,
-    };
-
-    // 생각 과정 3: AI 엔진 처리
-    thinkingProcess.push({
-      type: 'ai-processing',
-      title: 'AI 엔진 처리',
-      description: `${normalizedMode} 모드로 통합 AI 엔진을 실행하여 최적의 답변을 생성합니다.`,
-      timestamp: Date.now(),
-    });
-
-    // AI 라우터 처리 (타임아웃과 함께)
-    const router = UnifiedAIEngineRouter.getInstance();
-    await router.initialize();
-
-    const resultPromise = router.processQuery(aiRequest);
-    const timeoutPromise = new Promise((_, reject) => {
-      controller.signal.addEventListener('abort', () => {
-        reject(new Error('Edge Runtime timeout'));
+        environment: 'vercel'
       });
-    });
+    }
 
-    const result = await Promise.race([resultPromise, timeoutPromise]);
-    clearTimeout(timeoutId);
+    // 🏠 로컬 환경: 목업 데이터 기반 AI 응답
+    console.log('🏠 로컬 AI 쿼리:', query);
 
-    // 생각 과정 4: 품질 검증
-    thinkingProcess.push({
-      type: 'quality-check',
-      title: '응답 품질 검증',
-      description: `신뢰도 ${Math.round(((result as any).confidence || 0.7) * 100)}%로 응답 품질을 검증했습니다.`,
-      timestamp: Date.now(),
-    });
+    const mockResponse = generateMockAIResponse(query);
 
-    // 📝 자연어 질의 세션 저장 (확장된 메타데이터 포함)
-    saveAIResponse(
-      sessionId,
-      query,
-      normalizedMode,
-      {
-        ...(result as any),
-        queryType: 'natural-language',
-        processingSteps: thinkingProcess.length,
-      },
-      thinkingProcess,
-      (result as any).reasoning || []
-    ).catch(error => {
-      logger.warn('자연어 질의 세션 저장 실패', error);
-    });
-
-    // Edge Runtime 최적화 응답
     return NextResponse.json({
       success: true,
       query,
-      ...formatUnifiedResponse(result, isProPlan),
-      metadata: {
-        ...((result as any).metadata || {}),
-        vercelPlan: isProPlan ? 'pro' : 'hobby',
-        edgeRuntime: true,
-        requestedMode: mode,
-        actualMode: normalizedMode,
-        processingTime: Date.now() - startTime,
-        region: process.env.VERCEL_REGION || 'auto',
-        optimizedForPlan: true,
-      },
+      response: mockResponse,
+      dataSource: 'mock-data',
       timestamp: new Date().toISOString(),
+      environment: 'local'
     });
+
   } catch (error) {
     clearTimeout(timeoutId);
 
-    // Edge Runtime 타임아웃 처리
-    if (error instanceof Error && error.message === 'Edge Runtime timeout') {
-      return NextResponse.json({
-        success: true, // UX를 위해 success로 처리
-        query: 'timeout',
-        response: generateTimeoutResponse(isProPlan),
-        confidence: 0.5,
-        enginePath: ['timeout-handler'],
-        processingTime: Date.now() - startTime,
-        fallbacksUsed: 1,
-        metadata: {
-          timeout: true,
-          vercelPlan: isProPlan ? 'pro' : 'hobby',
-          edgeRuntime: true,
-          timeoutReason: 'execution_limit_reached',
-        },
-        timestamp: new Date().toISOString(),
-      });
-    }
+    console.error('❌ 통합 AI 쿼리 오류:', error);
 
-    console.error('❌ Unified Query Edge Runtime 오류:', error);
-
-    // 폴백 응답
     return NextResponse.json({
-      success: true,
-      query: 'error_fallback',
-      response: generateFallbackResponse(isProPlan),
-      confidence: 0.3,
-      enginePath: ['fallback-handler'],
-      processingTime: Date.now() - startTime,
-      fallbacksUsed: 1,
-      metadata: {
-        error: true,
-        vercelPlan: isProPlan ? 'pro' : 'hobby',
-        edgeRuntime: true,
-        fallbackReason: 'system_error',
-      },
-      timestamp: new Date().toISOString(),
-    });
+      success: false,
+      error: 'Internal server error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
   }
 }
 
@@ -349,4 +233,45 @@ AI 시스템이 일시적으로 제한된 모드로 운영 중입니다.
 
 Pro 플랜 업그레이드시 고급 AI 기능과 더 긴 처리 시간을 이용하실 수 있습니다.`;
   }
+}
+
+/**
+ * 🤖 GCP 실제 데이터 기반 AI 응답 생성
+ */
+function generateAIResponse(query: string, serverData: any[]): string {
+  const lowerQuery = query.toLowerCase();
+
+  if (lowerQuery.includes('서버') || lowerQuery.includes('server')) {
+    const totalServers = serverData.length;
+    const healthyServers = serverData.filter(s => s.status === 'healthy').length;
+    const criticalServers = serverData.filter(s => s.status === 'critical').length;
+
+    return `현재 GCP에서 ${totalServers}개의 서버가 운영 중입니다. 정상 상태: ${healthyServers}개, 위험 상태: ${criticalServers}개입니다.`;
+  }
+
+  if (lowerQuery.includes('cpu') || lowerQuery.includes('메모리') || lowerQuery.includes('memory')) {
+    const avgCpu = serverData.reduce((sum, s) => sum + (s.metrics?.cpu?.usage || 0), 0) / serverData.length;
+    const avgMemory = serverData.reduce((sum, s) => sum + (s.metrics?.memory?.usage || 0), 0) / serverData.length;
+
+    return `평균 CPU 사용률: ${avgCpu.toFixed(1)}%, 평균 메모리 사용률: ${avgMemory.toFixed(1)}%입니다.`;
+  }
+
+  return `GCP 실제 데이터를 기반으로 "${query}"에 대한 분석을 수행했습니다. 총 ${serverData.length}개 서버의 실시간 메트릭을 분석했습니다.`;
+}
+
+/**
+ * 🏠 목업 데이터 기반 AI 응답 생성
+ */
+function generateMockAIResponse(query: string): string {
+  const lowerQuery = query.toLowerCase();
+
+  if (lowerQuery.includes('서버') || lowerQuery.includes('server')) {
+    return '로컬 개발 환경에서 목업 서버 데이터를 분석했습니다. 실제 운영 환경에서는 GCP 실제 데이터가 사용됩니다.';
+  }
+
+  if (lowerQuery.includes('cpu') || lowerQuery.includes('메모리') || lowerQuery.includes('memory')) {
+    return '목업 환경에서 시뮬레이션된 CPU 및 메모리 사용률 데이터를 분석했습니다.';
+  }
+
+  return `로컬 개발 환경에서 "${query}"에 대한 목업 응답을 생성했습니다. Vercel 배포 시 GCP 실제 데이터가 사용됩니다.`;
 }

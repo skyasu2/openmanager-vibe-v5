@@ -1,6 +1,96 @@
 import type { Server } from '@/types/server';
 
 /**
+ * 🚨 정적 에러 상태 서버 데이터
+ * ⚠️ 주의: 이 데이터는 실제 서버 연결이 실패했을 때 표시되는 정적 에러 상태입니다.
+ * 
+ * 특징:
+ * - 모든 서버가 명시적으로 "ERROR" 상태
+ * - 사용자와 AI가 즉시 시스템 장애를 인식 가능
+ * - Silent fallback 없이 투명한 에러 상태 제공
+ */
+export const STATIC_ERROR_SERVERS: Server[] = [
+  {
+    id: 'ERROR_SERVER_001',
+    name: '⚠️ CONNECTION_FAILED',
+    hostname: 'ERROR: 실제 서버 연결 실패',
+    status: 'offline',
+    location: 'ERROR_STATE',
+    type: 'ERROR',
+    environment: 'ERROR',
+    cpu: 0,
+    memory: 0,
+    disk: 0,
+    network: 0,
+    networkStatus: 'offline',
+    uptime: '연결 실패',
+    lastUpdate: new Date(),
+    alerts: 999,
+    services: [
+      { name: 'ERROR', status: 'stopped', port: 0 },
+      { name: '실제_서버_연결_실패', status: 'stopped', port: 0 },
+    ],
+  },
+  {
+    id: 'ERROR_SERVER_002',
+    name: '🔥 SYSTEM_FAILURE',
+    hostname: 'ERROR: GCP 연결 불가',
+    status: 'offline',
+    location: 'ERROR_STATE',
+    type: 'ERROR',
+    environment: 'ERROR',
+    cpu: 0,
+    memory: 0,
+    disk: 0,
+    network: 0,
+    networkStatus: 'offline',
+    uptime: '시스템 장애',
+    lastUpdate: new Date(),
+    alerts: 999,
+    services: [
+      { name: 'GCP_API_FAILED', status: 'stopped', port: 0 },
+      { name: '데이터_수집_불가', status: 'stopped', port: 0 },
+    ],
+  },
+  {
+    id: 'ERROR_SERVER_003',
+    name: '❌ DATA_UNAVAILABLE',
+    hostname: 'ERROR: 실시간 데이터 없음',
+    status: 'offline',
+    location: 'ERROR_STATE',
+    type: 'ERROR',
+    environment: 'ERROR',
+    cpu: 0,
+    memory: 0,
+    disk: 0,
+    network: 0,
+    networkStatus: 'offline',
+    uptime: '데이터 없음',
+    lastUpdate: new Date(),
+    alerts: 999,
+    services: [
+      { name: 'REAL_DATA_MISSING', status: 'stopped', port: 0 },
+      { name: '모니터링_중단', status: 'stopped', port: 0 },
+    ],
+  },
+];
+
+/**
+ * 🚨 에러 상태 메타데이터
+ * 시스템이 에러 상태임을 명확히 표시
+ */
+export const ERROR_STATE_METADATA = {
+  isErrorState: true,
+  errorType: 'CONNECTION_FAILURE',
+  errorMessage: '실제 서버 데이터 연결에 실패했습니다',
+  fallbackActive: false, // fallback 없음을 명시
+  displayMessage: '⚠️ 시스템 오류: 실제 데이터를 가져올 수 없습니다',
+  userAction: '관리자에게 문의하거나 잠시 후 다시 시도해주세요',
+  timestamp: new Date().toISOString(),
+  severity: 'CRITICAL'
+};
+
+/**
  * 🎯 통합 폴백 서버 데이터
  * 모든 컴포넌트에서 일관된 폴백 데이터 사용
  * RealServerDataGenerator와 동일한 구조 유지
@@ -128,8 +218,8 @@ export const UNIFIED_FALLBACK_SERVERS: Server[] = [
 export const INFRASTRUCTURE_CONFIG = {
   redis: {
     host:
-      process.env.REDIS_HOST || process.env.UPSTASH_REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379'),
+      process.env.REDIS_HOST || process.env.UPSTASH_REDIS_HOST || '',
+    port: parseInt(process.env.REDIS_PORT || '0'),
     url: process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_URL || '',
     token:
       process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_TOKEN || '',
@@ -142,7 +232,6 @@ export const INFRASTRUCTURE_CONFIG = {
   api: {
     googleAI: {
       key: process.env.GOOGLE_AI_API_KEY || '',
-      fallbackKey: process.env.DEMO_API_KEY || 'demo-key-for-testing',
       model: process.env.GOOGLE_AI_MODEL || 'gemini-1.5-flash',
     },
     // slack 설정 제거됨

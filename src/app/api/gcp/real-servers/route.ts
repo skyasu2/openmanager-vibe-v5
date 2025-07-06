@@ -1,21 +1,34 @@
 import { detectEnvironment } from '@/config/environment';
+import { ERROR_STATE_METADATA } from '@/config/fallback-data';
 import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * 🌐 GCP 실제 서버 데이터 API
- * Vercel 환경에서 GCP Monitoring API를 통해 실제 서버 메트릭 제공
+ * ⚠️ Silent fallback 금지 - 명시적 에러 상태만 반환
  */
 export async function GET(request: NextRequest) {
     try {
         const env = detectEnvironment();
 
-        // 🚫 로컬 환경에서는 사용 불가
+        // 🚫 로컬 환경에서는 명시적 에러 반환
         if (!env.IS_VERCEL) {
             return NextResponse.json({
                 success: false,
-                error: 'GCP 실제 데이터는 Vercel 환경에서만 사용 가능',
-                message: '로컬 환경에서는 목업 데이터를 사용하세요',
+                error: 'GCP_NOT_AVAILABLE_LOCALLY',
+                message: '🚫 GCP 실제 데이터는 로컬 환경에서 사용할 수 없습니다',
+                userMessage: '⚠️ 이 기능은 Vercel 배포 환경에서만 사용 가능합니다',
+                environment: 'local',
+                isErrorState: true,
+                errorMetadata: {
+                    ...ERROR_STATE_METADATA,
+                    errorType: 'ENVIRONMENT_RESTRICTION',
+                    errorMessage: '로컬 환경에서는 GCP 실제 데이터 접근 불가'
+                },
+                recommendations: [
+                    'Vercel에 배포된 환경에서 시도하세요',
+                    '로컬에서는 목업 데이터를 사용하세요'
+                ],
                 timestamp: new Date().toISOString()
             }, { status: 400 });
         }
@@ -25,55 +38,117 @@ export async function GET(request: NextRequest) {
         // GCP 실제 데이터 서비스 초기화
         const gcpService = GCPRealDataService.getInstance();
 
-        if (!gcpService.isInitialized) {
-            const initialized = await gcpService.initialize();
-            if (!initialized) {
-                return NextResponse.json({
-                    success: false,
-                    error: 'GCP 서비스 초기화 실패',
-                    message: 'GCP 인증 정보를 확인하세요',
-                    timestamp: new Date().toISOString()
-                }, { status: 500 });
-            }
-        }
+        try {
+            // 서비스 초기화 시도
+            await gcpService.initialize();
+        } catch (initError) {
+            console.error('❌ GCP 서비스 초기화 실패:', initError);
 
-        // 실제 서버 메트릭 조회
-        const metricsResponse = await gcpService.getRealServerMetrics();
-
-        if (!metricsResponse.success) {
             return NextResponse.json({
                 success: false,
-                error: 'GCP 메트릭 조회 실패',
-                message: 'GCP Monitoring API 호출 오류',
+                error: 'GCP_INITIALIZATION_FAILED',
+                message: '🚨 GCP 서비스 초기화 실패',
+                userMessage: '⚠️ Google Cloud와 연결할 수 없습니다',
+                environment: 'vercel',
+                isErrorState: true,
+                errorMetadata: {
+                    ...ERROR_STATE_METADATA,
+                    errorType: 'INITIALIZATION_FAILURE',
+                    originalError: initError instanceof Error ? initError.message : String(initError)
+                },
+                recommendations: [
+                    'GCP 설정을 확인하세요',
+                    'API 키와 권한을 점검하세요',
+                    '시스템 관리자에게 문의하세요'
+                ],
+                timestamp: new Date().toISOString()
+            }, { status: 503 });
+        }
+
+        // GCP 실제 메트릭 조회
+        try {
+            const realDataResponse = await gcpService.getRealServerMetrics();
+
+            // 성공적으로 실제 데이터 조회
+            if (realDataResponse.success && !realDataResponse.isErrorState) {
+                return NextResponse.json({
+                    success: true,
+                    data: realDataResponse.data,
+                    totalServers: realDataResponse.totalServers,
+                    source: realDataResponse.source,
+                    message: '✅ GCP 실제 서버 데이터 조회 성공',
+                    environment: 'vercel',
+                    isErrorState: false,
+                    timestamp: realDataResponse.timestamp
+                });
+            }
+
+            // ❌ GCP 데이터 조회 실패 - 명시적 에러 응답
+            return NextResponse.json({
+                success: false,
+                data: realDataResponse.data, // 정적 에러 서버 데이터
+                totalServers: realDataResponse.totalServers,
+                source: realDataResponse.source,
+                error: 'GCP_DATA_FETCH_FAILED',
+                message: '🚨 GCP 실제 데이터 조회 실패',
+                userMessage: '⚠️ Google Cloud에서 서버 데이터를 가져올 수 없습니다',
+                environment: 'vercel',
+                isErrorState: true,
+                errorMetadata: realDataResponse.errorMetadata,
+                recommendations: [
+                    'GCP 서비스 상태를 확인하세요',
+                    'API 할당량을 점검하세요',
+                    '잠시 후 다시 시도하세요',
+                    '문제가 지속되면 관리자에게 문의하세요'
+                ],
+                timestamp: realDataResponse.timestamp
+            }, { status: 503 });
+
+        } catch (fetchError) {
+            console.error('❌ GCP 메트릭 조회 중 오류:', fetchError);
+
+            return NextResponse.json({
+                success: false,
+                error: 'GCP_FETCH_ERROR',
+                message: '🚨 GCP 메트릭 조회 중 오류 발생',
+                userMessage: '⚠️ 서버 데이터를 불러오는 중 오류가 발생했습니다',
+                environment: 'vercel',
+                isErrorState: true,
+                errorMetadata: {
+                    ...ERROR_STATE_METADATA,
+                    errorType: 'FETCH_ERROR',
+                    originalError: fetchError instanceof Error ? fetchError.message : String(fetchError)
+                },
+                recommendations: [
+                    '네트워크 연결을 확인하세요',
+                    'GCP 서비스 상태를 점검하세요',
+                    '잠시 후 다시 시도하세요'
+                ],
                 timestamp: new Date().toISOString()
             }, { status: 500 });
         }
 
-        console.log(`✅ GCP 실제 서버 데이터 조회 성공: ${metricsResponse.totalServers}개 서버`);
-
-        return NextResponse.json({
-            success: true,
-            data: metricsResponse.data,
-            summary: {
-                totalServers: metricsResponse.totalServers,
-                healthyServers: metricsResponse.healthyServers,
-                warningServers: metricsResponse.warningServers,
-                criticalServers: metricsResponse.criticalServers,
-                averageCpuUsage: calculateAverageCpuUsage(metricsResponse.data),
-                averageMemoryUsage: calculateAverageMemoryUsage(metricsResponse.data)
-            },
-            source: 'gcp-real-data',
-            timestamp: metricsResponse.timestamp,
-            environment: 'vercel'
-        });
-
     } catch (error) {
-        console.error('❌ GCP 실제 서버 데이터 API 오류:', error);
+        console.error('❌ GCP 실제 서버 API 치명적 오류:', error);
 
         return NextResponse.json({
             success: false,
-            error: 'Internal server error',
-            message: error instanceof Error ? error.message : 'Unknown error',
+            error: 'CRITICAL_API_ERROR',
+            message: '🚨 API 치명적 오류 발생',
+            userMessage: '⚠️ 서버에서 심각한 오류가 발생했습니다',
+            environment: 'vercel',
+            isErrorState: true,
+            errorMetadata: {
+                ...ERROR_STATE_METADATA,
+                severity: 'CRITICAL',
+                errorType: 'API_CRITICAL_ERROR',
+                originalError: error instanceof Error ? error.message : String(error)
+            },
+            recommendations: [
+                '페이지를 새로고침하세요',
+                '잠시 후 다시 시도하세요',
+                '즉시 시스템 관리자에게 문의하세요'
+            ],
             timestamp: new Date().toISOString()
         }, { status: 500 });
     }
