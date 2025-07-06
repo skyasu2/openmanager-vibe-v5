@@ -233,7 +233,7 @@ export class EdgeMockDataGenerator {
   /**
    * 🎭 Edge Runtime 호환 모의 서버 데이터 생성
    */
-  generateMockServerData(): ServerInstance[] {
+  generateMockServerData(): any[] {
     const now = new Date().toISOString();
     const servers: ServerInstance[] = [
       {
@@ -251,18 +251,17 @@ export class EdgeMockDataGenerator {
           network_speed: '1Gbps'
         },
         metrics: {
-          cpu: this.randomBetween(15, 85),
+          cpu: this.randomBetween(30, 75),
           memory: this.randomBetween(30, 75),
           disk: this.randomBetween(20, 60),
           network: this.randomBetween(100, 1000),
-          requests: this.randomBetween(500, 2000),
-          errors: this.randomBetween(0, 5),
           uptime: 99.8,
           customMetrics: {
             concurrent_connections: this.randomBetween(50, 200),
             response_time: this.randomBetween(50, 300),
           },
-        },
+          ...(({ requests: this.randomBetween(500, 2000), errors: this.randomBetween(0, 5) }) as any),
+        } as any,
         health: {
           score: this.randomBetween(80, 100),
           trend: [85, 87, 90, 88, 92],
@@ -290,15 +289,14 @@ export class EdgeMockDataGenerator {
           memory: this.randomBetween(50, 85),
           disk: this.randomBetween(40, 80),
           network: this.randomBetween(200, 1500),
-          requests: this.randomBetween(1000, 5000),
-          errors: this.randomBetween(0, 3),
           uptime: 99.9,
           customMetrics: {
             connection_pool: this.randomBetween(50, 200),
             query_time: this.randomBetween(10, 100),
             active_connections: this.randomBetween(20, 80),
           },
-        },
+          ...(({ requests: this.randomBetween(1000, 5000), errors: this.randomBetween(0, 3) }) as any),
+        } as any,
         health: {
           score: this.randomBetween(85, 100),
           trend: [88, 90, 92, 89, 95],
@@ -326,13 +324,12 @@ export class EdgeMockDataGenerator {
           memory: this.randomBetween(35, 70),
           disk: this.randomBetween(25, 55),
           network: this.randomBetween(300, 2000),
-          requests: this.randomBetween(2000, 8000),
-          errors: this.randomBetween(0, 10),
           uptime: 99.7,
           customMetrics: {
             thread_pool: this.randomBetween(50, 150),
             heap_usage: this.randomBetween(30, 80),
           },
+          ...(({ requests: this.randomBetween(2000, 8000), errors: this.randomBetween(0, 10) }) as any),
         },
         health: {
           score: this.randomBetween(80, 95),

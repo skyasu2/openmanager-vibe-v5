@@ -93,12 +93,12 @@ export class MetricsProcessor {
         in: Math.max(
           0,
           rawMetrics.network.in +
-            (Math.random() - 0.5) * 50 * effectiveIntensity
+          (Math.random() - 0.5) * 50 * effectiveIntensity
         ),
         out: Math.max(
           0,
           rawMetrics.network.out +
-            (Math.random() - 0.5) * 30 * effectiveIntensity
+          (Math.random() - 0.5) * 30 * effectiveIntensity
         ),
       },
     };
@@ -124,12 +124,13 @@ export class MetricsProcessor {
     const healthScore = this.calculateHealthScore(processedMetrics);
 
     // 🎯 7단계: 최종 메트릭 업데이트
+    const currentMetrics = server.metrics || { uptime: 0, requests: 0, errors: 0 };
     const finalMetrics = {
-      ...server.metrics,
+      ...currentMetrics,
       ...processedMetrics,
-      uptime: server.metrics.uptime + updateInterval / 1000,
-      requests: server.metrics.requests + Math.floor(Math.random() * 100),
-      errors: server.metrics.errors + (Math.random() > 0.95 ? 1 : 0),
+      uptime: (currentMetrics.uptime || 0) + updateInterval / 1000,
+      requests: ((currentMetrics as any).requests || 0) + Math.floor(Math.random() * 100),
+      errors: ((currentMetrics as any).errors || 0) + (Math.random() > 0.95 ? 1 : 0),
     };
 
     return {
@@ -259,5 +260,33 @@ export class MetricsProcessor {
     if (healthPercentage >= 0.9) return 'healthy';
     if (healthPercentage >= 0.7) return 'warning';
     return 'critical';
+  }
+
+  private extractMetrics(server: ServerInstance): any {
+    if (!server.metrics) {
+      return {
+        cpu: 0,
+        memory: 0,
+        disk: 0,
+        network: { in: 0, out: 0 },
+        requests: 0,
+        errors: 0,
+        uptime: 0,
+      };
+    }
+
+    const metrics = server.metrics;
+
+    return {
+      cpu: metrics.cpu || 0,
+      memory: metrics.memory || 0,
+      disk: metrics.disk || 0,
+      network: typeof metrics.network === 'object'
+        ? { ...metrics.network }
+        : { in: metrics.network || 0, out: metrics.network || 0 },
+      requests: (metrics as any).requests || 0,
+      errors: (metrics as any).errors || 0,
+      uptime: metrics.uptime || 0,
+    };
   }
 }

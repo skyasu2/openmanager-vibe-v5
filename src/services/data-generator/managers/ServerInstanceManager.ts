@@ -175,15 +175,27 @@ export class ServerInstanceManager {
     /**
      * 서버 헬스 스코어 계산
      */
-    calculateServerHealth(server: ServerInstance): void {
+    private calculateServerHealth(server: ServerInstance): void {
         const metrics = server.metrics;
+        if (!metrics) {
+            // metrics가 없으면 기본 health 설정
+            server.health = {
+                score: 50,
+                trend: [50, 50, 50, 50, 50],
+                status: 'warning',
+                issues: ['메트릭 데이터 없음'],
+                lastChecked: new Date().toISOString(),
+            };
+            return;
+        }
+
         let score = 100;
         const issues: string[] = [];
 
         // CPU 사용률 체크
         if (metrics.cpu > 90) {
             score -= 30;
-            issues.push('높은 CPU 사용률');
+            issues.push('CPU 사용률 높음');
         } else if (metrics.cpu > 80) {
             score -= 15;
             issues.push('CPU 사용률 주의');
@@ -204,20 +216,24 @@ export class ServerInstanceManager {
             issues.push('디스크 공간 부족');
         }
 
-        // 에러율 체크
-        const errorRate = metrics.requests > 0 ? metrics.errors / metrics.requests : 0;
-        if (errorRate > 0.05) {
-            score -= 35;
+        // 에러율 체크 (안전한 접근)
+        const requests = (metrics as any).requests || 0;
+        const errors = (metrics as any).errors || 0;
+        const errorRate = requests > 0 ? errors / requests : 0;
+
+        if (errorRate > 0.1) {
+            score -= 25;
             issues.push('높은 에러율');
-        } else if (errorRate > 0.01) {
-            score -= 15;
-            issues.push('에러율 증가');
+        } else if (errorRate > 0.05) {
+            score -= 10;
+            issues.push('에러율 주의');
         }
 
-        // 업타임 체크
-        if (metrics.uptime < 12) {
-            score -= 10;
-            issues.push('최근 재시작됨');
+        // 업타임 체크 (안전한 접근)
+        const uptime = metrics.uptime || 0;
+        if (uptime < 12) {
+            score -= 15;
+            issues.push('짧은 업타임');
         }
 
         server.health = {

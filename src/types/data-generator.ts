@@ -23,7 +23,7 @@ export interface CustomEnvironmentConfig {
   enableRealtime?: boolean;
   maxServers?: number;
   updateInterval?: number;
-  performanceMode?: 'high' | 'balanced' | 'eco';
+  performanceMode?: 'high' | 'balanced' | 'eco' | 'minimal' | 'development' | 'production';
 }
 
 // 서버 인스턴스 인터페이스 (server.ts와 완전 호환)
