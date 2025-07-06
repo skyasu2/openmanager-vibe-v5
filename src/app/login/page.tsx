@@ -70,7 +70,7 @@ export default function LoginPage() {
                 localStorage.setItem('auth_user', JSON.stringify(result.user));
 
                 // 대시보드로 리다이렉트
-                router.push('/home');
+                router.push('/');
             } else {
                 setError(result.error || '게스트 로그인에 실패했습니다.');
             }
@@ -112,7 +112,7 @@ export default function LoginPage() {
                 window.history.replaceState({}, document.title, '/login');
 
                 // 대시보드로 리다이렉트
-                router.push('/home');
+                router.push('/');
             } else {
                 setError(result.error || 'Google 로그인에 실패했습니다.');
             }

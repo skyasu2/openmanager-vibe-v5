@@ -61,12 +61,13 @@ export class GCPSessionManager {
             sessionId,
             userId,
             status: 'active',
-            startTime: new Date(startTime),
+            startTime: new Date(),
             endTime: undefined,
-            lastActivity: new Date(startTime),
-            serverCount: 10,
+            lastActivity: new Date(Date.now()),
+            serverCount: 0,
             totalMetrics: 0,
-            configuration: undefined
+            metricsGenerated: 0,
+            configuration: undefined,
         };
 
         // 메모리에 세션 등록
@@ -109,7 +110,7 @@ export class GCPSessionManager {
 
         // 세션 상태 업데이트
         session.status = 'stopped';
-        session.endTime = Date.now();
+        session.endTime = new Date(Date.now());
 
         // Firestore 업데이트
         await this.updateSessionInFirestore(session);
@@ -156,7 +157,7 @@ export class GCPSessionManager {
         const session = this.activeSessions.get(sessionId);
         if (!session) return;
 
-        session.lastActivity = Date.now();
+        session.lastActivity = new Date(Date.now());
         session.metricsGenerated += metricsCount;
 
         // 메트릭 생성 제한 체크
