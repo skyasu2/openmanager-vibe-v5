@@ -1,4 +1,5 @@
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
+import { apiCacheManager, getCacheHeaders, getCacheKey } from '@/lib/api-cache-manager';
 import { logger } from '@/lib/logger';
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
@@ -37,7 +38,7 @@ function createBasicFallbackWarning(dataSource: string, reason: string) {
     actionRequired: '실제 데이터 소스 연결 필요',
     productionImpact:
       process.env.NODE_ENV === 'production' ||
-      process.env.VERCEL_ENV === 'production'
+        process.env.VERCEL_ENV === 'production'
         ? 'CRITICAL'
         : 'LOW',
   };
@@ -92,6 +93,23 @@ export async function GET(request: NextRequest) {
       searchParams.get('limit') || String(ACTIVE_SERVER_CONFIG.maxServers)
     );
     const status = searchParams.get('status');
+
+    // 🚀 캐시 키 생성 및 캐시 확인
+    const cacheKey = getCacheKey('/api/servers', {
+      page,
+      limit,
+      status: status || 'all'
+    });
+
+    const cachedResult = apiCacheManager.get(cacheKey);
+    if (cachedResult) {
+      return NextResponse.json(cachedResult, {
+        headers: {
+          ...getCacheHeaders(true),
+          'X-Data-Source': cachedResult.dataSource || 'cached',
+        }
+      });
+    }
 
     // 실제 서버 데이터 생성기 사용
     const generator = RealServerDataGenerator.getInstance();
@@ -175,20 +193,49 @@ export async function GET(request: NextRequest) {
       ).length,
       avgCpu: Math.round(
         servers.reduce((sum, s) => sum + (s.metrics?.cpu || 0), 0) /
-          servers.length
+        servers.length
       ),
       avgMemory: Math.round(
         servers.reduce((sum, s) => sum + (s.metrics?.memory || 0), 0) /
-          servers.length
+        servers.length
       ),
       avgDisk: Math.round(
         servers.reduce((sum, s) => sum + (s.metrics?.disk || 0), 0) /
-          servers.length
+        servers.length
       ),
     };
 
+    // 응답 데이터 구성
+    const responseData = {
+      success: true,
+      data: paginatedServers,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+      stats,
+      dataSource,
+      timestamp: new Date().toISOString(),
+      cached: false,
+    };
+
+    // 🚀 결과 캐싱 (폴백 데이터는 짧은 TTL)
+    const cacheOptions = {
+      category: 'servers',
+      customTTL: dataSource === 'fallback' ? 30 * 1000 : undefined, // 폴백은 30초만
+    };
+
+    apiCacheManager.set(cacheKey, responseData, cacheOptions);
+
     // 응답 헤더 설정 (목업 데이터 사용시 경고)
-    const responseHeaders: Record<string, string> = {};
+    const responseHeaders: Record<string, string> = {
+      ...getCacheHeaders(false),
+    };
+
     if (dataSource === 'fallback') {
       responseHeaders['X-Data-Fallback-Warning'] = 'true';
       responseHeaders['X-Data-Source'] = 'mock';
@@ -197,43 +244,25 @@ export async function GET(request: NextRequest) {
       responseHeaders['X-Data-Source'] = 'real';
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: paginatedServers,
-        pagination: {
-          currentPage: page,
-          totalPages,
-          totalItems,
-          itemsPerPage: limit,
-          hasNextPage: page < totalPages,
-          hasPrevPage: page > 1,
-        },
-        summary: {
-          servers: stats,
-        },
-        // 🛡️ 데이터 무결성 정보 추가
-        dataIntegrity: {
-          dataSource,
-          isMockData: dataSource === 'fallback',
-          environment: process.env.NODE_ENV,
-          warningLevel: dataSource === 'fallback' ? 'CRITICAL' : 'NONE',
-        },
-        timestamp: Date.now(),
-      },
-      {
-        headers: responseHeaders,
-      }
-    );
+    return NextResponse.json(responseData, {
+      headers: responseHeaders,
+    });
+
   } catch (error) {
-    console.error('Error fetching servers:', error);
+    logger.error('서버 데이터 조회 실패', { error: error.message });
+
     return NextResponse.json(
       {
         success: false,
-        message: 'Internal server error',
-        error: process.env.NODE_ENV === 'development' ? error : undefined,
+        error: 'INTERNAL_SERVER_ERROR',
+        message: '서버 데이터를 가져오는 중 오류가 발생했습니다.',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: getCacheHeaders(false),
+      }
     );
   }
 }

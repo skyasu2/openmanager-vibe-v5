@@ -1,3 +1,4 @@
+import { GET } from '@/app/api/health/route';
 import { NextRequest } from 'next/server';
 import { describe, expect, it } from 'vitest';
 
@@ -11,7 +12,6 @@ describe('On-Demand Health Check', () => {
       process.env.FORCE_SYSTEM_OFF = 'true';
 
       try {
-        const { GET } = await import('@/app/api/health/route');
         const req = new NextRequest('http://localhost/api/health', {
           method: 'GET',
         });
@@ -44,7 +44,6 @@ describe('On-Demand Health Check', () => {
       delete process.env.SYSTEM_MAINTENANCE;
 
       try {
-        const { GET } = await import('@/app/api/health/route');
         const req = new NextRequest('http://localhost/api/health', {
           method: 'GET',
         });
@@ -70,7 +69,6 @@ describe('On-Demand Health Check', () => {
     it('유지보수 모드에서는 maintenance 상태를 반환해야 함', async () => {
       process.env.SYSTEM_MAINTENANCE = 'true';
 
-      const { GET } = await import('@/app/api/health/route');
       const req = new NextRequest('http://localhost/api/health', {
         method: 'GET',
       });
@@ -101,8 +99,6 @@ describe('On-Demand Health Check', () => {
       delete process.env.FORCE_SYSTEM_OFF;
       (process.env as Record<string, string | undefined>).NODE_ENV =
         'development';
-
-      const { GET } = await import('@/app/api/health/route');
 
       // 첫 번째 요청
       const req1 = new NextRequest('http://localhost/api/health', {

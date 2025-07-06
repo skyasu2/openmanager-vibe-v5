@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // 🚀 Next.js 15 완전 동적 모드 (정적 생성 완전 비활성화)
+    // 🚀 Next.js 15 하이브리드 모드 (정적 + 동적)
     output: 'standalone',
     trailingSlash: false,
 
@@ -25,13 +25,13 @@ const nextConfig = {
         optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'], // 패키지 임포트 최적화
     },
 
-    // 🚫 정적 최적화 비활성화
+    // 🚀 정적 최적화 활성화
     poweredByHeader: false,
     compress: true,
 
-    // 🚫 이미지 최적화 비활성화 (정적 생성 방지)
+    // 🚀 이미지 최적화 설정
     images: {
-        unoptimized: true,
+        unoptimized: true, // 빌드 에러 방지를 위해 일시적으로 비활성화
         domains: [],
         formats: ['image/webp', 'image/avif'],
     },
@@ -52,7 +52,7 @@ const nextConfig = {
         ];
     },
 
-    // 🚫 헤더 설정 (캐싱 최적화)
+    // 🚀 헤더 설정 (캐싱 최적화)
     async headers() {
         return [
             {
@@ -68,11 +68,21 @@ const nextConfig = {
                     },
                 ],
             },
+            {
+                // API 라우트는 별도 캐싱 정책
+                source: '/api/(.*)',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'public, s-maxage=60, stale-while-revalidate=300',
+                    },
+                ],
+            },
         ];
     },
 
     // 🔧 웹팩 설정 (번들 최적화)
-    webpack: (config, { isServer }) => {
+    webpack: (config, { isServer, dev }) => {
         // 클라이언트 사이드에서 Node.js 모듈 사용 방지
         if (!isServer) {
             config.resolve.fallback = {

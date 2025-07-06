@@ -128,7 +128,6 @@ export class RealTimeMetricsCollector {
      * 엔진 이름 추출
      */
     private extractEngineName(endpoint: string): string {
-        if (endpoint.includes('/ai/smart-query')) return 'SmartQuery';
         if (endpoint.includes('/ai/google-ai')) return 'GoogleAI';
         if (endpoint.includes('/ai/engines')) return 'EngineManager';
         if (endpoint.includes('/ai/predict')) return 'PredictiveAnalytics';

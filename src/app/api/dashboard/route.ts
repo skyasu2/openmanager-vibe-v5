@@ -7,6 +7,7 @@
  * @version 5.12.0
  */
 
+import { apiCacheManager, getCacheHeaders, getCacheKey } from '@/lib/api-cache-manager';
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -17,6 +18,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const includeHistory = searchParams.get('include_history') === 'true';
     const format = searchParams.get('format') || 'dashboard';
+    const refresh = searchParams.get('refresh') === 'true';
 
     // 📇 변경 감지: ?since=ISO_TIMESTAMP (또는 epoch ms)
     const sinceParam = searchParams.get('since');
@@ -35,6 +37,18 @@ export async function GET(request: NextRequest) {
     console.log(
       `📊 대시보드 데이터 요청: format=${format}, history=${includeHistory}, since=${sinceTimestamp}`
     );
+
+    // 🚀 캐시 키 생성 및 캐시 확인 (refresh 요청이 아닌 경우)
+    const cacheKey = getCacheKey('/api/dashboard');
+
+    if (!refresh) {
+      const cachedResult = apiCacheManager.get(cacheKey);
+      if (cachedResult) {
+        return NextResponse.json(cachedResult, {
+          headers: getCacheHeaders(true),
+        });
+      }
+    }
 
     // 1. 실제 서버 데이터 생성기에서 직접 데이터 가져오기
     const realServerDataGenerator = RealServerDataGenerator.getInstance();
@@ -202,41 +216,21 @@ export async function GET(request: NextRequest) {
         generateHistoricalSummary(formattedServers);
     }
 
-    // 6. 메타데이터 추가
-    const response = {
-      meta: {
-        request_info: {
-          format,
-          include_history: includeHistory,
-          since: sinceTimestamp,
-          processing_time_ms: Date.now() - startTime,
-          timestamp: new Date().toISOString(),
-        },
-        system_info: generatorStatus,
-        data_freshness: {
-          last_system_update: generatorStatus.isRunning
-            ? 'real-time'
-            : 'static',
-          cache_ttl_seconds: 30,
-          refresh_recommended: true,
-        },
-      },
+    // 응답 데이터 구성
+    const responseData = {
+      success: true,
       data: dashboardData,
+      timestamp: new Date().toISOString(),
+      cached: false,
     };
 
-    return NextResponse.json(response, {
-      headers: {
-        'X-Total-Servers': originalServers.length.toString(),
-        'X-Returned-Servers': servers.length.toString(),
-        'X-Delta-Mode': sinceTimestamp ? 'true' : 'false',
-        'X-Health-Score': calculateHealthScore(
-          statusDistributionAll
-        ).toString(),
-        'X-Active-Alerts': alertsSummary.total_alerts.toString(),
-        'X-Processing-Time-Ms': (Date.now() - startTime).toString(),
-        'Cache-Control': 'no-cache, must-revalidate',
-        'X-Refresh-Interval': '30',
-      },
+    // 🚀 결과 캐싱
+    apiCacheManager.set(cacheKey, responseData, {
+      category: 'dashboard',
+    });
+
+    return NextResponse.json(responseData, {
+      headers: getCacheHeaders(false),
     });
   } catch (error) {
     console.error('❌ 대시보드 데이터 생성 실패:', error);
@@ -244,14 +238,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Dashboard data generation failed',
+        error: 'INTERNAL_SERVER_ERROR',
         message:
           error instanceof Error
             ? error.message
             : '대시보드 데이터 생성 중 오류가 발생했습니다',
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: getCacheHeaders(false),
+      }
     );
   }
 }

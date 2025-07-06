@@ -30,9 +30,14 @@ export interface SupabaseQueryBuilder {
     eq(column: string, value: any): SupabaseQueryBuilder;
     gte(column: string, value: any): SupabaseQueryBuilder;
     lte(column: string, value: any): SupabaseQueryBuilder;
+    lt(column: string, value: any): SupabaseQueryBuilder;
+    gt(column: string, value: any): SupabaseQueryBuilder;
     order(column: string, options?: { ascending?: boolean }): SupabaseQueryBuilder;
     limit(count: number): SupabaseQueryBuilder;
     range(from: number, to: number): SupabaseQueryBuilder;
+    then(onfulfilled?: (value: { data: any; error: any }) => any): Promise<any>;
+    data?: any;
+    error?: any;
 }
 
 export interface SupabaseStorageBucket {
@@ -148,7 +153,9 @@ export class SupabaseTimeSeriesManager {
             queryBuilder = queryBuilder.limit(query.limit);
         }
 
-        const { data, error } = await queryBuilder;
+        const result = await queryBuilder;
+        const { data, error } = result as any; // 타입 단언으로 임시 해결
+
         if (error) {
             throw new Error(`시계열 데이터 조회 실패: ${error.message}`);
         }
@@ -238,10 +245,12 @@ export class SupabaseTimeSeriesManager {
         cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
         // 아카이브할 데이터 조회
-        const { data: archiveData, error: selectError } = await this.supabase
+        const selectResult = await this.supabase
             .from(this.TABLE_NAME)
             .select('*')
-            .lte('created_at', cutoffDate.toISOString());
+            .lt('created_at', cutoffDate.toISOString());
+
+        const { data: archiveData, error: selectError } = selectResult as any; // 타입 단언으로 임시 해결
 
         if (selectError) {
             throw new Error(`아카이브 데이터 조회 실패: ${selectError.message}`);

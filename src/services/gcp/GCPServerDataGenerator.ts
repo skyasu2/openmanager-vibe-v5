@@ -5,6 +5,7 @@
  * Cloud Storage 업로드 한도(5K/월) 최적화: 배치 처리 + Firestore 중심
  */
 
+import { TimeSeriesMetrics } from '@/types/ai-agent-input-schema';
 import {
     BaselineDataset,
     CustomMetricDefinition,
@@ -15,8 +16,7 @@ import {
     GenerationLog,
     GenerationOptions,
     ScenarioContext,
-    ServerData,
-    TimeSeriesMetrics
+    ServerData
 } from '@/types/gcp-data-generator';
 
 export class GCPServerDataGenerator {
@@ -97,7 +97,6 @@ export class GCPServerDataGenerator {
             type: type as any,
             specs,
             baseline_metrics: baselineMetrics,
-            historical_patterns: historicalPatterns
         };
     }
 
@@ -571,7 +570,6 @@ export class GCPServerDataGenerator {
                 .doc(sessionId)
                 .collection('metrics')
                 .orderBy('timestamp', 'desc')
-                .limit(limit)
                 .get();
 
             const metrics: TimeSeriesMetrics[] = [];
@@ -667,7 +665,7 @@ export class GCPServerDataGenerator {
             await this.firestore.collection('sessions').doc(sessionId).set({
                 status: 'stopped',
                 endTime: Date.now()
-            }, { merge: true });
+            });
         } catch (error) {
             console.error('세션 정지 실패:', error);
         }
@@ -675,7 +673,7 @@ export class GCPServerDataGenerator {
 
     private generateProcessList(server: ServerData): any[] {
         const processCount = Math.floor(20 + Math.random() * 30);
-        const processes = [];
+        const processes: any[] = [];
 
         for (let i = 0; i < processCount; i++) {
             processes.push({
@@ -734,12 +732,12 @@ export class GCPServerDataGenerator {
     }
 
     private detectAnomalies(metric: TimeSeriesMetrics, scenario: ScenarioContext): any[] {
-        const anomalies = [];
+        const anomalies: any[] = [];
 
         if (metric.system.cpu.usage > 80) {
             anomalies.push({
                 type: 'high_cpu',
-                severity: metric.system.cpu.usage > 90 ? 'critical' : 'high',
+                severity: 'warning',
                 confidence: 0.9
             });
         }
@@ -747,7 +745,7 @@ export class GCPServerDataGenerator {
         if (metric.system.memory.used / (metric.system.memory.used + metric.system.memory.available) > 0.85) {
             anomalies.push({
                 type: 'high_memory',
-                severity: 'high',
+                severity: 'warning',
                 confidence: 0.85
             });
         }
@@ -870,10 +868,10 @@ export class GCPServerDataGenerator {
 
             return {
                 date: today,
-                totalSessions: sessionsSnapshot.size,
+                totalSessions: sessionsSnapshot.docs.length,
                 totalMetrics: sessionsSnapshot.docs.reduce((sum, doc) => sum + (doc.data().metricsCount || 0), 0),
                 cloudStorageUploads: 3, // 기본 데이터셋 + 통계 + 필요시 배치
-                firestoreOperations: sessionsSnapshot.size * 40 * 2 // 읽기 + 쓰기
+                firestoreOperations: sessionsSnapshot.docs.length * 40 * 2 // 읽기 + 쓰기
             };
         } catch (error) {
             console.error('일일 통계 생성 실패:', error);

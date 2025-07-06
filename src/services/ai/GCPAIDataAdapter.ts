@@ -217,7 +217,12 @@ export class GCPAIDataAdapter {
                         criticality: 'High',
                         scalingType: 'Auto'
                     },
-                    resources: this.estimateServerResources(metric),
+                    resources: {
+                        cpu: { cores: 4, model: 'GCP Virtual CPU', clockSpeed: 2.4 },
+                        memory: { total: 8589934592, type: 'DDR4' as const },
+                        storage: { total: 107374182400, type: 'SSD' as const },
+                        network: { bandwidth: 1000, type: '1G' as const }
+                    },
                     tags: {
                         environment: 'development',
                         type: 'fallback'
@@ -468,32 +473,37 @@ export class GCPAIDataAdapter {
      * 💡 인사이트 생성
      */
     private generateInsights(dataset: AIAnalysisDataset): any {
-        const metrics = dataset.metrics;
-        const serverCount = dataset.servers.length;
+        const avgCpu = dataset.metrics.length > 0
+            ? dataset.metrics.reduce((sum, m) => sum + m.system.cpu.usage, 0) / dataset.metrics.length
+            : 0;
 
-        // 전체 시스템 상태 분석
-        const avgCpu = metrics.reduce((sum, m) => sum + m.system.cpu.usage, 0) / metrics.length;
-        const avgMemory = metrics.reduce((sum, m) => {
-            return sum + (m.system.memory.used / (m.system.memory.used + m.system.memory.available) * 100);
-        }, 0) / metrics.length;
+        const avgMemory = dataset.metrics.length > 0
+            ? dataset.metrics.reduce((sum, m) => {
+                const total = m.system.memory.used + m.system.memory.available;
+                return sum + (m.system.memory.used / total * 100);
+            }, 0) / dataset.metrics.length
+            : 0;
 
-        const totalErrors = metrics.reduce((sum, m) => sum + m.application.requests.errors, 0);
-        const totalRequests = metrics.reduce((sum, m) => sum + m.application.requests.total, 0);
+        const totalErrors = dataset.metrics.length > 0
+            ? dataset.metrics.reduce((sum, m) => sum + m.application.requests.errors, 0)
+            : 0;
+        const totalRequests = dataset.metrics.length > 0
+            ? dataset.metrics.reduce((sum, m) => sum + m.application.requests.total, 0)
+            : 0;
         const errorRate = totalRequests > 0 ? totalErrors / totalRequests : 0;
 
-        // 심각도 분류
-        const criticalServers = metrics.filter(m =>
+        const criticalServers = dataset.metrics.filter(m =>
             m.system.cpu.usage > 90 ||
             (m.system.memory.used / (m.system.memory.used + m.system.memory.available)) > 0.95
         ).length;
 
-        const warningServers = metrics.filter(m =>
-            m.system.cpu.usage > 80 ||
-            (m.system.memory.used / (m.system.memory.used + m.system.memory.available)) > 0.85
-        ).length;
-
         return {
-            summary: `${serverCount}개 서버 모니터링 중. 평균 CPU: ${avgCpu.toFixed(1)}%, 메모리: ${avgMemory.toFixed(1)}%, 전체 에러율: ${(errorRate * 100).toFixed(2)}%`,
+            summary: [
+                `${dataset.servers.length}개 서버 분석 완료`,
+                `평균 CPU: ${avgCpu.toFixed(1)}%`,
+                `평균 메모리: ${avgMemory.toFixed(1)}%`,
+                `에러율: ${(errorRate * 100).toFixed(2)}%`
+            ].join(' | '),
 
             recommendations: [
                 avgCpu > 80 ? '🚨 CPU 사용률이 높습니다. 스케일링을 고려하세요.' : null,
@@ -506,9 +516,14 @@ export class GCPAIDataAdapter {
             criticalAlerts: [
                 criticalServers > 0 ? `${criticalServers}개 서버 임계 상태` : null,
                 errorRate > 0.1 ? '높은 에러율 감지' : null,
-                dataset.patterns?.anomalies && dataset.patterns.anomalies.length > 5 ? '다수 이상 패턴 감지' : null ||
-                    '정상 운영 상태'
-            ].filter(Boolean),
+                dataset.patterns?.anomalies && dataset.patterns.anomalies.length > 5 ? '다수 이상 패턴 감지' : null
+            ].filter(Boolean).length > 0
+                ? [
+                    criticalServers > 0 ? `${criticalServers}개 서버 임계 상태` : null,
+                    errorRate > 0.1 ? '높은 에러율 감지' : null,
+                    dataset.patterns?.anomalies && dataset.patterns.anomalies.length > 5 ? '다수 이상 패턴 감지' : null
+                ].filter(Boolean)
+                : ['정상 운영 상태'],
 
             patterns: [
                 `${dataset.patterns?.anomalies?.length || 0}개 이상 패턴 감지`,
@@ -539,7 +554,7 @@ export class GCPAIDataAdapter {
                 {
                     id: 'fallback-web-01',
                     name: 'Fallback Web Server',
-                    serverType: 'nginx',
+                    serverType: 'Host' as const,
                     location: {
                         region: 'local',
                         zone: 'local-a',
@@ -558,36 +573,12 @@ export class GCPAIDataAdapter {
                         criticality: 'High',
                         scalingType: 'Auto'
                     },
-                    resources: this.estimateServerResources({
-                        system: {
-                            cpu: {
-                                usage: 80,
-                                load1: 0.5
-                            },
-                            memory: {
-                                used: 4294967296,
-                                available: 4294967296
-                            },
-                            disk: {
-                                utilization: 0.5
-                            }
-                        },
-                        application: {
-                            requests: {
-                                errors: 0,
-                                total: 100,
-                                success: 100
-                            },
-                            database: {
-                                queries: {
-                                    total: 0,
-                                    slow: 0,
-                                    deadlocks: 0
-                                },
-                                connections: 0
-                            }
-                        }
-                    }),
+                    resources: {
+                        cpu: { cores: 4, model: 'GCP Virtual CPU', clockSpeed: 2.4 },
+                        memory: { total: 8589934592, type: 'DDR4' as const },
+                        storage: { total: 107374182400, type: 'SSD' as const },
+                        network: { bandwidth: 1000, type: '1G' as const }
+                    },
                     tags: {
                         environment: 'development',
                         type: 'fallback'
@@ -652,7 +643,7 @@ export class GCPAIDataAdapter {
         const factors = [
             dataset.metrics.length > 10 ? 0.3 : 0.1,
             dataset.servers.length > 5 ? 0.2 : 0.1,
-            dataset.patterns.anomalies.length > 0 ? 0.2 : 0.1,
+            (dataset.patterns?.anomalies?.length ?? 0) > 0 ? 0.2 : 0.1,
             dataset.logs.length > 0 ? 0.15 : 0.05,
             dataset.traces.length > 0 ? 0.15 : 0.05
         ];
@@ -670,7 +661,7 @@ export class GCPAIDataAdapter {
         if (dataset.servers.length > 0) score += 0.2;
 
         // 패턴 분석 완성도
-        if (dataset.patterns.anomalies.length > 0) score += 0.2;
+        if ((dataset.patterns?.anomalies?.length ?? 0) > 0) score += 0.2;
 
         // 로그 데이터 완성도
         if (dataset.logs.length > 0) score += 0.15;
@@ -682,16 +673,13 @@ export class GCPAIDataAdapter {
     }
 
     private generateAIRecommendations(dataset: AIAnalysisDataset): string[] {
-        const recommendations = [];
+        const recommendations: string[] = [];
 
-        if (dataset.patterns.anomalies.length > 5) {
+        if (dataset.patterns?.anomalies && dataset.patterns.anomalies.length > 5) {
             recommendations.push('다수의 이상 패턴이 감지되었습니다. 시스템 점검이 필요합니다.');
-        }
-
-        if (dataset.metrics.length < 10) {
+        } else {
             recommendations.push('더 많은 데이터 포인트가 필요합니다. 모니터링 주기를 늘려보세요.');
         }
-
         recommendations.push('GCP 실시간 데이터를 활용한 AI 분석이 진행 중입니다.');
 
         return recommendations;
@@ -699,7 +687,7 @@ export class GCPAIDataAdapter {
 
     private async detectAnomalies(dataset: AIAnalysisDataset): Promise<number> {
         // 기존 패턴에서 이상 개수 반환
-        return dataset.patterns.anomalies.length;
+        return dataset.patterns?.anomalies?.length || 0;
     }
 
     // 서버 정보 추출 헬퍼들
@@ -763,29 +751,53 @@ export class GCPAIDataAdapter {
 
     private estimateCpuSpecs(metric: TimeSeriesMetrics): any {
         return {
-            cores: Math.ceil(metric.system.cpu.load1),
-            model: 'GCP Virtual CPU'
+            usage: metric.system.cpu.usage,
+            load1: 0.5,
+            load5: 0.4,
+            load15: 0.3,
+            processes: 120,
+            threads: 450
         };
     }
 
     private estimateMemorySpecs(metric: TimeSeriesMetrics): any {
         return {
-            total: metric.system.memory.used + metric.system.memory.available,
-            type: 'Virtual'
+            used: metric.system.memory.used * 1024 * 1024 * 1024, // GB to bytes
+            available: (100 - metric.system.memory.used / (metric.system.memory.used + metric.system.memory.available)) * 1024 * 1024 * 1024,
+            buffers: 256 * 1024 * 1024,
+            cached: 512 * 1024 * 1024,
+            swap: {
+                used: 0,
+                total: 2 * 1024 * 1024 * 1024
+            }
         };
     }
 
     private estimateDiskSpecs(metric: TimeSeriesMetrics): any {
         return {
-            total: 100 * 1024 * 1024 * 1024, // 100GB 가정
-            type: 'SSD'
+            io: {
+                read: 50,
+                write: 30
+            },
+            throughput: {
+                read: 100,
+                write: 80
+            },
+            utilization: metric.system.disk.utilization,
+            queue: 2
         };
     }
 
     private estimateNetworkSpecs(metric: TimeSeriesMetrics): any {
         return {
-            bandwidth: 1000,
-            type: '1G'
+            total: 1000,
+            success: 950,
+            errors: 5,
+            latency: {
+                p50: 50,
+                p95: 150,
+                p99: 300
+            }
         };
     }
 

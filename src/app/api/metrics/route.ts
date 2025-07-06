@@ -8,8 +8,12 @@
  * - 24/7 지속적 메트릭 생성
  */
 
+import { APICacheManager, getCacheHeaders, getCacheKey } from '@/lib/api-cache-manager';
 import { NextRequest, NextResponse } from 'next/server';
 import { OptimizedDataGenerator } from '../../../services/OptimizedDataGenerator';
+
+// 통합 캐시 매니저 인스턴스
+const cacheManager = APICacheManager.getInstance();
 
 /**
  * 🎯 표준 Prometheus /metrics 엔드포인트
@@ -17,6 +21,21 @@ import { OptimizedDataGenerator } from '../../../services/OptimizedDataGenerator
  */
 export async function GET() {
   try {
+    // 캐시 키 생성
+    const cacheKey = getCacheKey('/api/metrics');
+
+    // 캐시에서 조회
+    const cachedResult = cacheManager.get(cacheKey);
+    if (cachedResult) {
+      console.log('🎯 메트릭 캐시 사용 (API 호출 절약)');
+      return NextResponse.json(cachedResult, {
+        headers: {
+          ...getCacheHeaders(true),
+          'X-Cache-Source': 'api-cache-manager',
+        },
+      });
+    }
+
     // 목업 메트릭 데이터
     const metrics = {
       totalServers: 20,
@@ -28,11 +47,19 @@ export async function GET() {
       averageDisk: Math.floor(Math.random() * 40) + 15, // 15-55%
       totalAlerts: Math.floor(Math.random() * 10) + 2, // 2-12
       timestamp: new Date().toISOString(),
+      cacheInfo: {
+        cached: false,
+        source: 'fresh-data',
+      },
     };
+
+    // 결과를 캐시에 저장
+    cacheManager.set(cacheKey, metrics, { category: 'system' });
 
     return NextResponse.json(metrics, {
       headers: {
-        'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30',
+        ...getCacheHeaders(false),
+        'X-Cache-Source': 'api-cache-manager',
       },
     });
   } catch (error) {
@@ -42,8 +69,19 @@ export async function GET() {
       {
         error: 'Failed to fetch metrics',
         details: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+        cacheInfo: {
+          cached: false,
+          source: 'error-response',
+        },
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          ...getCacheHeaders(false),
+          'X-Cache-Source': 'api-cache-manager',
+        },
+      }
     );
   }
 }

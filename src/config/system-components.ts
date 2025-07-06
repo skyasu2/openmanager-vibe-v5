@@ -8,11 +8,11 @@
  */
 
 import { safeErrorLog } from '../lib/error-handler';
+import type { SystemComponent } from '../types/system-checklist';
 import {
   fetchWithTracking,
   recordNetworkRequest,
 } from '../utils/network-tracking';
-import type { SystemComponent } from '../types/system-checklist';
 
 export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
   {
@@ -52,8 +52,9 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
     estimatedTime: 1000,
     checkFunction: async () => {
       try {
+        // 삭제된 unified-metrics API 대신 health API 사용
         const { response, networkInfo } = await fetchWithTracking(
-          '/api/unified-metrics?action=health',
+          '/api/health',
           {
             method: 'GET',
           }

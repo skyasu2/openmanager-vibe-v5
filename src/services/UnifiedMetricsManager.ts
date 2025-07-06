@@ -835,7 +835,7 @@ export class UnifiedMetricsManager {
     console.log('🛑 통합 메트릭 관리자 중지...');
 
     // 모든 타이머 해제
-    timerManager.unregister('unified-metrics-generation');
+    // timerManager.unregister('unified-metrics-generation'); // REMOVED - API 엔드포인트 삭제됨
     timerManager.unregister('unified-ai-analysis');
     timerManager.unregister('unified-autoscaling');
     timerManager.unregister('unified-performance-monitor');

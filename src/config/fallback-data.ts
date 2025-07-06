@@ -351,3 +351,50 @@ export function validateProductionEnvironment(): {
     issues,
   };
 }
+
+// 🚨 경고: 목업 서버 데이터 생성 (프로덕션에서 사용 금지)
+export const generateMockServers = (): any[] => {
+  const servers: any[] = [];
+  const locations = ['Seoul', 'Tokyo', 'Singapore', 'Frankfurt', 'Oregon'];
+  const statuses = ['online', 'warning', 'offline'] as const;
+  const services = [
+    ['nginx', 'mysql', 'redis'],
+    ['apache', 'postgresql', 'memcached'],
+    ['node.js', 'mongodb', 'rabbitmq'],
+    ['docker', 'containers', 'prometheus'],
+    ['jenkins', 'gitlab', 'elasticsearch'],
+  ];
+
+  for (let i = 1; i <= 15; i++) {
+    const status = statuses[Math.floor(Math.random() * statuses.length)];
+    const location = locations[Math.floor(Math.random() * locations.length)];
+    const serviceSet = services[Math.floor(Math.random() * services.length)];
+
+    servers.push({
+      id: `server-${i}`,
+      name: `Server-${i.toString().padStart(2, '0')}`,
+      hostname: `server-${i}.example.com`, // 🚨 의심스러운 호스트네임
+      status,
+      location,
+      cpu: Math.floor(Math.random() * 100),
+      memory: Math.floor(Math.random() * 100),
+      disk: Math.floor(Math.random() * 100),
+      network: Math.floor(Math.random() * 1000),
+      uptime: Math.floor(Math.random() * 86400 * 30),
+      services: serviceSet,
+      lastUpdate: new Date().toISOString(),
+      // 🏷️ 목업 데이터 명시적 표시
+      _isMockData: true,
+      _dataSource: 'fallback',
+      _warningLevel: 'CRITICAL',
+      metrics: {
+        cpu: Math.floor(Math.random() * 100),
+        memory: Math.floor(Math.random() * 100),
+        disk: Math.floor(Math.random() * 100),
+        network: Math.floor(Math.random() * 1000),
+      }
+    });
+  }
+
+  return servers;
+};

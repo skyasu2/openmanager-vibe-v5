@@ -12,6 +12,7 @@
 export const runtime = 'nodejs';
 
 import { getAISessionStorage } from '@/lib/ai-session-storage';
+import { apiCacheManager, getCacheHeaders, getCacheKey } from '@/lib/api-cache-manager';
 import { EdgeLogger } from '@/lib/edge-runtime-utils';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -31,8 +32,22 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');
+    const includeHistory = searchParams.get('includeHistory') === 'true';
     const limit = parseInt(searchParams.get('limit') || '10');
     const userId = searchParams.get('userId');
+
+    // 🚀 캐시 키 생성 및 캐시 확인
+    const cacheKey = getCacheKey('/api/ai/sessions', {
+      sessionId: sessionId || 'all',
+      includeHistory,
+    });
+
+    const cachedResult = apiCacheManager.get(cacheKey);
+    if (cachedResult) {
+      return NextResponse.json(cachedResult, {
+        headers: getCacheHeaders(true),
+      });
+    }
 
     const storage = getAISessionStorage();
 
@@ -55,7 +70,8 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      return NextResponse.json({
+      // 응답 데이터 구성
+      const responseData = {
         success: true,
         data: {
           session,
@@ -66,6 +82,15 @@ export async function GET(request: NextRequest) {
           source: 'supabase',
           cache_status: 'fresh',
         },
+      };
+
+      // 🚀 결과 캐싱 (AI 데이터는 더 긴 TTL)
+      apiCacheManager.set(cacheKey, responseData, {
+        category: 'ai',
+      });
+
+      return NextResponse.json(responseData, {
+        headers: getCacheHeaders(false),
       });
     }
 
@@ -75,7 +100,8 @@ export async function GET(request: NextRequest) {
     const sessions = await storage.getUserSessions(userId || undefined, limit);
     const storageStats = await storage.getStorageStats();
 
-    return NextResponse.json({
+    // 응답 데이터 구성
+    const responseData = {
       success: true,
       data: {
         sessions,
@@ -88,6 +114,15 @@ export async function GET(request: NextRequest) {
         limit_applied: limit,
         health_status: storageStats.storage_health,
       },
+    };
+
+    // 🚀 결과 캐싱 (AI 데이터는 더 긴 TTL)
+    apiCacheManager.set(cacheKey, responseData, {
+      category: 'ai',
+    });
+
+    return NextResponse.json(responseData, {
+      headers: getCacheHeaders(false),
     });
   } catch (error) {
     logger.error('AI 세션 조회 API 오류', error);

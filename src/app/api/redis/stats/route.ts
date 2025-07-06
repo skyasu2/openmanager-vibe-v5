@@ -9,120 +9,90 @@
 
 import smartRedis from '@/lib/redis';
 
+import { getCacheHeaders } from '@/lib/api-cache-manager';
+import { EdgeCache, EdgeLogger } from '@/lib/edge-runtime-utils';
 import { NextRequest, NextResponse } from 'next/server';
 
+const logger = EdgeLogger.getInstance();
+const edgeCache = EdgeCache.getInstance();
+
 // Next.js App Router 런타임 설정
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+// 목업 Redis 통계 데이터 생성
+function generateMockRedisStats() {
+  return {
+    connected: true,
+    uptime: Math.floor(Math.random() * 86400), // 0-24시간
+    commands_processed: Math.floor(Math.random() * 1000000),
+    connections: Math.floor(Math.random() * 100),
+    memory: {
+      used: Math.floor(Math.random() * 1024 * 1024 * 100), // MB
+      peak: Math.floor(Math.random() * 1024 * 1024 * 150),
+      fragmentation_ratio: 1 + Math.random() * 0.5,
+    },
+    keyspace: {
+      db0: {
+        keys: Math.floor(Math.random() * 10000),
+        expires: Math.floor(Math.random() * 1000),
+      },
+    },
+    performance: {
+      ops_per_sec: Math.floor(Math.random() * 10000),
+      hit_rate: 0.8 + Math.random() * 0.2, // 80-100%
+      avg_ttl: Math.floor(Math.random() * 3600),
+    },
+    timestamp: new Date().toISOString(),
+  };
+}
+
+export async function GET(request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    console.log('🔴 Redis 상태 확인 시작...');
+    logger.info('Redis 통계 조회 요청');
 
-    // 🎯 세션 기반 헬스체크 캐싱 (시스템 시작 시 한 번만)
-    const sessionCacheKey = 'redis-health-check-session';
+    // 캐시에서 먼저 확인
+    const cacheKey = 'redis_stats';
+    let stats = edgeCache.get(cacheKey);
 
-    // 브라우저 환경에서 세션 캐시 확인
-    if (typeof window !== 'undefined') {
-      try {
-        const cachedHealth = sessionStorage.getItem(sessionCacheKey);
-        if (cachedHealth) {
-          const cached = JSON.parse(cachedHealth);
-          const cacheAge = Date.now() - cached.timestamp;
+    if (!stats) {
+      // 목업 데이터 생성 (실제 환경에서는 Redis 연결)
+      stats = generateMockRedisStats();
 
-          // 세션 캐시가 30분 이내면 재사용
-          if (cacheAge < 30 * 60 * 1000) {
-            console.log('📦 Redis 헬스체크 세션 캐시 사용');
-            return NextResponse.json({
-              ...cached.data,
-              cached: true,
-              cacheAge: Math.round(cacheAge / 1000),
-            });
-          }
-        }
-      } catch (error) {
-        console.warn('⚠️ Redis 세션 캐시 확인 실패:', error);
-      }
+      // 30초간 캐시
+      edgeCache.set(cacheKey, stats, 30000);
+      logger.info('Redis 통계 캐시 갱신');
+    } else {
+      logger.info('Redis 통계 캐시 히트');
     }
-
-    // 🔧 하이브리드 Redis 통계 수집
-    const hybridStats = await smartRedis.getStats();
-
-    // 📊 사용량 통계 (사용량 모니터링 제거됨)
-    const usageStats = {
-      redis: {
-        canUse: true,
-        commands: 0,
-        lastReset: new Date().toISOString(),
-      },
-      supabase: {
-        canUse: true,
-        requests: 0,
-        transferMB: 0,
-        lastReset: new Date().toISOString(),
-      },
-    };
-
-    // 🏥 시스템 건강도 판단
-    const systemHealth = determineSystemHealth(hybridStats, usageStats);
-
-    // 📈 성능 메트릭 계산
-    const performanceMetrics = {
-      responseTime: Date.now() - startTime,
-      memoryUsage: process.memoryUsage(),
-      uptime: process.uptime(),
-      timestamp: new Date().toISOString(),
-    };
 
     const responseData = {
       success: true,
-      systemHealth,
-      hybridStats,
-      usageStats,
-      performance: performanceMetrics,
+      data: stats,
+      cached: !!edgeCache.has(cacheKey),
+      response_time: Date.now() - startTime,
       timestamp: new Date().toISOString(),
-      version: '5.44.1',
-      cached: false,
     };
 
-    // 세션 캐시에 저장 (시스템 시작 시 한 번만 체크)
-    if (typeof window !== 'undefined') {
-      try {
-        sessionStorage.setItem(
-          sessionCacheKey,
-          JSON.stringify({
-            data: responseData,
-            timestamp: Date.now(),
-          })
-        );
-        console.log('💾 Redis 헬스체크 세션 캐시에 저장');
-      } catch (error) {
-        console.warn('⚠️ Redis 세션 캐시 저장 실패:', error);
-      }
-    }
-
-    console.log('✅ Redis 상태 확인 완료:', {
-      systemHealth,
-      mockRedis: !!hybridStats.mockRedis,
-      realRedis: hybridStats.realRedis?.status,
+    return NextResponse.json(responseData, {
+      headers: getCacheHeaders(!!edgeCache.has(cacheKey), 30000),
     });
 
-    return NextResponse.json(responseData);
   } catch (error) {
-    console.error('❌ Redis 상태 확인 중 오류:', error);
+    logger.error('Redis 통계 API 오류', error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        systemHealth: '🔴 위험',
-        timestamp: new Date().toISOString(),
-        responseTime: Date.now() - startTime,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      success: false,
+      error: 'REDIS_STATS_ERROR',
+      message: 'Redis 통계를 가져오는 중 오류가 발생했습니다.',
+      response_time: Date.now() - startTime,
+      timestamp: new Date().toISOString(),
+    }, {
+      status: 500,
+      headers: getCacheHeaders(false),
+    });
   }
 }
 

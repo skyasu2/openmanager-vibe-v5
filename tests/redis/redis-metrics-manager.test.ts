@@ -248,7 +248,7 @@ describe('🔄 REFACTOR: 성능 최적화 테스트', () => {
 
     it('압축된 메트릭 저장 테스트', async () => {
         const sessionId = 'compression-test';
-        const metrics = generateMockServerMetrics(1);
+        const metrics = generateMockServerMetrics(10);
 
         await manager.saveCompressedMetrics(sessionId, metrics);
 
@@ -257,5 +257,45 @@ describe('🔄 REFACTOR: 성능 최적화 테스트', () => {
             1800,
             expect.any(String)
         );
+    });
+
+    // 대용량 메트릭 저장 테스트
+    test('대용량 메트릭 저장 처리', async () => {
+        const sessionId = 'large-session-001';
+        const largeMetrics = Array.from({ length: 1000 }, (_, i) => ({
+            timestamp: new Date(Date.now() + i * 1000),
+            serverId: `server-${i % 10}`,
+            systemMetrics: {
+                cpuUsage: Math.random() * 100,
+                memoryUsage: Math.random() * 100,
+                diskUsage: Math.random() * 100,
+                networkUsage: Math.random() * 100
+            },
+            applicationMetrics: {
+                requestCount: Math.floor(Math.random() * 1000),
+                errorRate: Math.random() * 5,
+                responseTime: Math.random() * 500
+            }
+        }));
+
+        const mockManager = new RedisMetricsManager(mockRedis as any);
+        await mockManager.saveRealtimeMetrics(sessionId, largeMetrics);
+
+        expect(mockRedis.setex).toHaveBeenCalled();
+    });
+
+    test('압축된 메트릭 저장', async () => {
+        const sessionId = 'compressed-session-001';
+        const metrics = generateMockServerMetrics(10);
+
+        const mockManager = new RedisMetricsManager(mockRedis as any);
+        await mockManager.saveCompressedMetrics(sessionId, metrics);
+
+        expect(mockRedis.setex).toHaveBeenCalled();
+    });
+
+    // 정리
+    afterEach(() => {
+        manager.disconnect();
     });
 }); 

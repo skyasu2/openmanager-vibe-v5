@@ -516,7 +516,8 @@ export class KoreanTimeUtil {
  */
 export const KST = {
   // 기본 시간 함수들
-  now: () => KoreanTimeUtil.nowSynced(),
+  now: () => KoreanTimeUtil.now(),
+  nowSynced: () => KoreanTimeUtil.nowSynced(),
   iso: () => KoreanTimeUtil.nowISO(),
   date: () => KoreanTimeUtil.dateOnly(),
   log: () => KoreanTimeUtil.logTimestamp(),
@@ -536,6 +537,11 @@ export const KST = {
   nextVer: (current: string, type?: 'major' | 'minor' | 'patch') =>
     KoreanTimeUtil.getNextVersion(current, type),
 };
+
+// 🚀 개별 함수들도 직접 export (호환성 보장)
+export const nowISO = () => KoreanTimeUtil.nowISO();
+export const logTimestamp = () => KoreanTimeUtil.logTimestamp();
+export const getVersionDate = (version: string) => KoreanTimeUtil.getVersionDate(version);
 
 // 기본 export
 export default KoreanTimeUtil;

@@ -61,12 +61,13 @@ export class GCPSessionManager {
             sessionId,
             userId,
             status: 'active',
-            startTime: new Date(startTime),
+            startTime: new Date(),
             endTime: undefined,
-            lastActivity: new Date(startTime),
-            serverCount: 10,
+            lastActivity: new Date(),
+            serverCount: 0,
             totalMetrics: 0,
-            configuration: undefined
+            metricsGenerated: 0,
+            configuration: undefined,
         };
 
         // 메모리에 세션 등록
@@ -109,7 +110,7 @@ export class GCPSessionManager {
 
         // 세션 상태 업데이트
         session.status = 'stopped';
-        session.endTime = Date.now();
+        session.endTime = new Date();
 
         // Firestore 업데이트
         await this.updateSessionInFirestore(session);
@@ -156,7 +157,7 @@ export class GCPSessionManager {
         const session = this.activeSessions.get(sessionId);
         if (!session) return;
 
-        session.lastActivity = Date.now();
+        session.lastActivity = new Date();
         session.metricsGenerated += metricsCount;
 
         // 메트릭 생성 제한 체크
@@ -201,7 +202,6 @@ export class GCPSessionManager {
             const sessionsSnapshot = await this.firestore
                 .collection('sessions')
                 .where('userId', '==', userId)
-                .where('startTime', '>=', today.getTime())
                 .get();
 
             sessionsSnapshot.docs.forEach(doc => {
@@ -247,7 +247,7 @@ export class GCPSessionManager {
 
     private async updateSessionInFirestore(session: SessionInfo): Promise<void> {
         try {
-            await this.firestore.collection('sessions').doc(session.sessionId).set(session, { merge: true });
+            await this.firestore.collection('sessions').doc(session.sessionId).set(session);
         } catch (error) {
             console.error('세션 업데이트 실패:', error);
         }
@@ -287,7 +287,7 @@ export class GCPSessionManager {
     private async cleanupExpiredSessions(): Promise<void> {
         const now = Date.now();
         const expiredSessions = Array.from(this.activeSessions.values())
-            .filter(s => now > s.endTime);
+            .filter(s => s.endTime && now > (s.endTime instanceof Date ? s.endTime.getTime() : s.endTime));
 
         for (const session of expiredSessions) {
             await this.stopSession(session.sessionId);
