@@ -1,73 +1,81 @@
 'use client';
 
-import { calculateOptimalCollectionInterval } from '@/config/serverConfig';
 import { useEffect, useState } from 'react';
 
-// src/types/system.ts 또는 유사한 파일에 정의되어 있다고 가정
-export interface SystemAlert {
+interface Alert {
   id: string;
-  level: 'critical' | 'error' | 'warning' | 'info' | 'success';
-  title: string;
+  type: 'info' | 'warning' | 'error';
   message: string;
-  timestamp: string; // ISO 8601 형식
+  timestamp: string;
+  serverId?: string;
 }
 
 export function useSystemAlerts() {
-  const [alerts, setAlerts] = useState<SystemAlert[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAlerts = async () => {
     try {
-      // 실제 API 엔드포인트는 /api/alerts 또는 유사한 경로로 가정
-      const response = await fetch('/api/alerts');
-      if (!response.ok) {
-        throw new Error(`Failed to fetch alerts: ${response.statusText}`);
-      }
-      const result = await response.json();
-
-      // API 응답 구조 확인 및 데이터 추출
-      let alertsData: SystemAlert[] = [];
-      if (result.success && result.data && Array.isArray(result.data.alerts)) {
-        alertsData = result.data.alerts;
-      } else if (Array.isArray(result)) {
-        alertsData = result;
-      } else {
-        console.warn('🚨 예상하지 못한 API 응답 구조:', result);
-        alertsData = [];
-      }
-
-      // 최신순으로 정렬 (배열인 경우에만)
-      const sortedAlerts = alertsData.sort(
-        (a, b) =>
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      );
-
-      setAlerts(sortedAlerts);
+      setLoading(true);
       setError(null);
-    } catch (e) {
-      if (e instanceof Error) {
-        setError(e.message);
-      } else {
-        setError('An unknown error occurred');
+
+      // 🔄 대시보드 API에서 서버 상태를 가져와서 알림 생성
+      const response = await fetch('/api/dashboard');
+
+      if (!response.ok) {
+        throw new Error(`API 요청 실패: ${response.status}`);
       }
+
+      const dashboardData = await response.json();
+
+      // 서버 상태에서 알림 추출
+      const extractedAlerts: Alert[] = [];
+
+      if (dashboardData.servers) {
+        dashboardData.servers.forEach((server: any) => {
+          if (server.status === 'critical') {
+            extractedAlerts.push({
+              id: `${server.id}-critical`,
+              type: 'error',
+              message: `서버 ${server.name}에 심각한 문제가 발생했습니다`,
+              timestamp: new Date().toISOString(),
+              serverId: server.id
+            });
+          } else if (server.status === 'warning') {
+            extractedAlerts.push({
+              id: `${server.id}-warning`,
+              type: 'warning',
+              message: `서버 ${server.name}에 주의가 필요합니다`,
+              timestamp: new Date().toISOString(),
+              serverId: server.id
+            });
+          }
+        });
+      }
+
+      setAlerts(extractedAlerts);
+    } catch (err) {
+      console.error('시스템 알림 조회 실패:', err);
+      setError(err instanceof Error ? err.message : '알 수 없는 오류');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchAlerts(); // 초기 로드
+    fetchAlerts();
 
-    // 🎯 데이터 수집 간격과 동기화
-    // 🚨 무료 티어 절약: 알림 체크 간격 5-10분
-    const intervalId = setInterval(
-      fetchAlerts,
-      calculateOptimalCollectionInterval()
-    );
+    // 30초마다 알림 업데이트
+    const interval = setInterval(fetchAlerts, 30000);
 
-    return () => clearInterval(intervalId); // 컴포넌트 언마운트 시 인터벌 정리
+    return () => clearInterval(interval);
   }, []);
 
-  return { alerts, isLoading, error };
+  return {
+    alerts,
+    loading,
+    error,
+    refetch: fetchAlerts
+  };
 }

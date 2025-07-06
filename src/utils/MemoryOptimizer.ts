@@ -130,3 +130,8 @@ export const MemoryOptimizer = {
     return new ServerlessMemoryManager();
   }
 };
+
+/**
+ * 🔄 호환성을 위한 인스턴스 export
+ */
+export const memoryOptimizer = new ServerlessMemoryManager();

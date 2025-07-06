@@ -10,7 +10,7 @@
  * @param skipCondition - 스킵 조건
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface UseSequentialLoadingTimeProps {
   onComplete?: () => void;
@@ -33,11 +33,12 @@ export const useSequentialLoadingTime = ({
   const [isCompleted, setIsCompleted] = useState(false);
 
   // 로딩 단계 정의 (기존 구성 유지)
-  const stages: LoadingStage[] = [
-    { name: 'system-init', duration: 1500, description: '시스템 초기화 중...' },
-    { name: 'data-loading', duration: 1200, description: '데이터 로딩 중...' },
-    { name: 'ai-warmup', duration: 800, description: 'AI 엔진 준비 중...' },
-    { name: 'finalizing', duration: 500, description: '완료 중...' },
+  const phases = [
+    { name: 'system-init', duration: 500, description: '시스템 초기화 중...' },
+    { name: 'data-load', duration: 800, description: '데이터 로딩 중...' },
+    // ai-warmup 제거됨 - Google Cloud VM 24시간 동작
+    { name: 'ui-render', duration: 400, description: 'UI 렌더링 중...' },
+    { name: 'final-check', duration: 300, description: '최종 확인 중...' },
   ];
 
   // 완료 처리 함수
@@ -47,7 +48,7 @@ export const useSequentialLoadingTime = ({
       setIsCompleted(true);
       setIsLoading(false);
       setProgress(100);
-      setCurrentStage(stages.length);
+      setCurrentStage(phases.length);
 
       setTimeout(() => {
         try {
@@ -57,7 +58,7 @@ export const useSequentialLoadingTime = ({
         }
       }, 100);
     }
-  }, [isCompleted, onComplete, stages.length]);
+  }, [isCompleted, onComplete, phases.length]);
 
   // 스킵 조건 처리
   useEffect(() => {
@@ -99,18 +100,18 @@ export const useSequentialLoadingTime = ({
     };
 
     const runStage = (stageIndex: number) => {
-      if (isCleanedUp || isCompleted || stageIndex >= stages.length) {
+      if (isCleanedUp || isCompleted || stageIndex >= phases.length) {
         handleComplete();
         return;
       }
 
-      const stage = stages[stageIndex];
+      const stage = phases[stageIndex];
       console.log(`📊 ${stage.name} 단계 시작: ${stage.description}`);
       setCurrentStage(stageIndex);
 
       const startTime = Date.now();
-      const baseProgress = (stageIndex / stages.length) * 100;
-      const stageProgressRange = 100 / stages.length;
+      const baseProgress = (stageIndex / phases.length) * 100;
+      const stageProgressRange = 100 / phases.length;
 
       // 단계별 진행률 업데이트
       intervalId = setInterval(() => {
@@ -145,7 +146,7 @@ export const useSequentialLoadingTime = ({
       cleanup();
       clearTimeout(safetyTimer);
     };
-  }, [skipCondition, isCompleted, handleComplete, stages]);
+  }, [skipCondition, isCompleted, handleComplete, phases]);
 
   // 클릭으로 스킵 (2초 후 활성화)
   useEffect(() => {
@@ -167,9 +168,9 @@ export const useSequentialLoadingTime = ({
   return {
     isLoading,
     progress,
-    currentStage: currentStage < stages.length ? stages[currentStage] : null,
-    stageDescription: currentStage < stages.length ? stages[currentStage].description : '완료',
-    totalStages: stages.length,
+    currentStage: currentStage < phases.length ? phases[currentStage] : null,
+    stageDescription: currentStage < phases.length ? phases[currentStage].description : '완료',
+    totalStages: phases.length,
     currentStageIndex: currentStage,
   };
 };

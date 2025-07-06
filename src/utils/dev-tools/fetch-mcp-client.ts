@@ -112,12 +112,10 @@ export class FetchMCPClient {
   }
 
   /**
-   * 🔥 MCP 서버 웜업
+   * 🌐 Google Cloud VM MCP 서버 상태 확인 (24시간 동작)
    */
-  async warmup(): Promise<MCPResponse<any>> {
-    return this.makeRequest('POST', '/api/mcp/warmup', {
-      action: 'warmup',
-    });
+  async checkStatus(): Promise<MCPResponse<any>> {
+    return this.makeRequest('GET', '/health', {});
   }
 
   /**
@@ -584,11 +582,6 @@ export const mcpClient = new FetchMCPClient();
 export const mcp = {
   // 기본 작업
   health: () => mcpClient.checkHealth(),
-  warmup: () => mcpClient.warmup(),
-  query: (q: string, sessionId?: string) =>
-    mcpClient.query({ query: q, sessionId }),
-
-  // 모니터링
   status: (type?: string, server?: string) =>
     mcpClient.getMonitoringStatus(type, server),
   restart: (server?: string) =>

@@ -156,21 +156,36 @@ export const api = {
     },
   },
 
-  // 데이터 생성기 API
+  // 데이터 생성기 API (dashboard 기반으로 변경)
   dataGenerator: {
     getStatus: async (): Promise<any> => {
-      const response = await fetch('/api/data-generator');
+      // 🔄 dashboard API에서 서버 생성 상태 확인
+      const response = await fetch('/api/dashboard');
       if (!response.ok) {
         throw new Error(`데이터 생성기 상태 조회 실패: ${response.status}`);
       }
-      return response.json();
+
+      const data = await response.json();
+
+      // 대시보드 데이터에서 생성기 상태 시뮬레이션
+      return {
+        status: 'active',
+        serversGenerated: data.servers?.length || 0,
+        lastUpdate: data.timestamp || new Date().toISOString(),
+        mode: 'gcp-direct' // GCP 직접 연동 모드
+      };
     },
 
     start: async (pattern?: string): Promise<any> => {
-      const response = await fetch('/api/data-generator', {
+      // 🔄 서버 생성 요청을 servers API로 전달
+      const response = await fetch('/api/servers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pattern }),
+        body: JSON.stringify({
+          action: 'generate',
+          pattern: pattern || 'default',
+          source: 'gcp-direct'
+        }),
       });
       if (!response.ok) {
         throw new Error(`데이터 생성기 시작 실패: ${response.status}`);

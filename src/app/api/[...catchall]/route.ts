@@ -54,13 +54,16 @@ async function handleRequest(request: NextRequest, params: { catchall: string[] 
     suggestions: suggestions.length > 0 ? suggestions : null,
     availableEndpoints: [
       'GET /api/health',
-      'GET /api/data-generator',
+      'GET /api/dashboard',
+      'POST /api/dashboard',
+      'GET /api/servers',
+      'POST /api/servers',
       'GET /api/servers/next',
       'POST /api/servers/next',
-      'GET /api/admin/monitoring',
-      'POST /api/admin/monitoring',
-      'POST /api/ai/mcp',
-      'GET /api/analyze'
+      'GET /api/ai/prediction',
+      'POST /api/ai/auto-report',
+      'GET /api/ai-agent',
+      'POST /api/ai-agent'
     ]
   }, {
     status: 404,
@@ -75,11 +78,12 @@ async function handleRequest(request: NextRequest, params: { catchall: string[] 
 function getSuggestions(requestedPath: string): string[] {
   const knownEndpoints = [
     '/api/health',
-    '/api/data-generator',
+    '/api/dashboard',
+    '/api/servers',
     '/api/servers/next',
-    '/api/admin/monitoring',
-    '/api/ai/mcp',
-    '/api/analyze'
+    '/api/ai/prediction',
+    '/api/ai/auto-report',
+    '/api/ai-agent'
   ];
 
   const suggestions: string[] = [];

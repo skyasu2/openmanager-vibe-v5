@@ -168,3 +168,8 @@ export const TimerManager = {
     return new ServerlessTimerManager();
   }
 };
+
+/**
+ * 🔄 호환성을 위한 인스턴스 export
+ */
+export const timerManager = new ServerlessTimerManager();

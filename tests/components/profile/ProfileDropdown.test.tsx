@@ -150,7 +150,7 @@ describe('ProfileDropdown', () => {
         });
 
         it('should handle logout when clicked', async () => {
-            mockLogout.mockResolvedValue();
+            mockLogout.mockResolvedValue(undefined);
 
             render(<ProfileDropdown />);
 

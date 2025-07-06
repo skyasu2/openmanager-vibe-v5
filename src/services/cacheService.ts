@@ -155,3 +155,8 @@ export const EnhancedCacheService = {
     return new RequestScopedCacheService();
   }
 };
+
+/**
+ * 🔄 호환성을 위한 인스턴스 export
+ */
+export const cacheService = new RequestScopedCacheService();

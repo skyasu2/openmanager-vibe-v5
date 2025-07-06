@@ -8,11 +8,11 @@
  */
 
 import { safeErrorLog } from '../lib/error-handler';
+import type { SystemComponent } from '../types/system-checklist';
 import {
   fetchWithTracking,
   recordNetworkRequest,
 } from '../utils/network-tracking';
-import type { SystemComponent } from '../types/system-checklist';
 
 export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
   {
@@ -53,7 +53,7 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
     checkFunction: async () => {
       try {
         const { response, networkInfo } = await fetchWithTracking(
-          '/api/unified-metrics?action=health',
+          '/api/dashboard?action=health',
           {
             method: 'GET',
           }

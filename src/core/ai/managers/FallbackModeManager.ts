@@ -257,7 +257,7 @@ export class FallbackModeManager {
     // 🚫 서버리스 호환: RequestScopedGoogleAIService 메서드 사용
     const result = await this.googleAI.processQuery({
       query: enhancedQuery,
-      mode: 'natural_language'
+      context: mcpContext
     });
 
     if (result.success) {

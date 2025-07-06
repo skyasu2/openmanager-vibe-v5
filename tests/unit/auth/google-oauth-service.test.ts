@@ -42,6 +42,11 @@ describe('GoogleOAuthService', () => {
         process.env.GOOGLE_OAUTH_CLIENT_ID = 'test-client-id';
         process.env.GOOGLE_OAUTH_CLIENT_SECRET = 'test-client-secret';
         process.env.GOOGLE_OAUTH_REDIRECT_URI = 'http://localhost:3000/auth/callback';
+
+        Object.defineProperty(process.env, 'NODE_ENV', {
+            value: 'development',
+            writable: true
+        });
     });
 
     afterEach(() => {

@@ -1,22 +1,19 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  AlertTriangle,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Activity,
-  Wifi,
-  Database,
-  AlertOctagon,
-  TrendingDown,
-  Server,
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import CollapsibleCard from '@/components/shared/CollapsibleCard';
-import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
 import { SystemAlert } from '@/domains/ai-sidebar/types';
+import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Activity,
+  AlertOctagon,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Database,
+  XCircle
+} from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface SystemEvent {
   id: string;
@@ -76,6 +73,7 @@ export default function LiveSystemAlerts() {
   const rotationRef = useRef<NodeJS.Timeout | null>(null);
   const esRef = useRef<EventSource | null>(null);
   const visibilityTimeout = useRef<NodeJS.Timeout | null>(null);
+  const [isConnected, setIsConnected] = useState(true);
 
   // SystemEvent 상태 추가
   const [events, setEvents] = useState<SystemEvent[]>([
@@ -110,52 +108,57 @@ export default function LiveSystemAlerts() {
   ]);
 
   useEffect(() => {
-    const openSSE = () => {
-      if (esRef.current) return;
-      esRef.current = new EventSource('/api/alerts/stream');
+    if (!isConnected) return;
 
-      esRef.current.onmessage = e => {
-        try {
-          const parsed: SystemAlert = JSON.parse(e.data);
-          setAlerts(prev => [...prev, parsed].slice(-20));
-        } catch (err) {
-          console.warn('🚨 알림 파싱 실패:', err);
+    // 🔄 EventSource 대신 polling 방식으로 변경
+    const pollAlerts = async () => {
+      try {
+        const response = await fetch('/api/dashboard');
+        if (response.ok) {
+          const data = await response.json();
+
+          // 서버 상태에서 알림 추출
+          const newAlerts: any[] = [];
+
+          if (data.servers) {
+            data.servers.forEach((server: any) => {
+              if (server.status === 'critical') {
+                newAlerts.push({
+                  id: `${server.id}-critical`,
+                  type: 'error',
+                  message: `서버 ${server.name}에 심각한 문제가 발생했습니다`,
+                  timestamp: new Date().toISOString(),
+                  serverId: server.id
+                });
+              } else if (server.status === 'warning') {
+                newAlerts.push({
+                  id: `${server.id}-warning`,
+                  type: 'warning',
+                  message: `서버 ${server.name}에 주의가 필요합니다`,
+                  timestamp: new Date().toISOString(),
+                  serverId: server.id
+                });
+              }
+            });
+          }
+
+          setAlerts(newAlerts);
         }
-      };
-
-      esRef.current.onerror = () => {
-        console.warn('🚨 SSE 연결 오류');
-        esRef.current?.close();
-        esRef.current = null;
-      };
-    };
-
-    openSSE();
-
-    const handleVisibility = () => {
-      if (document.visibilityState === 'hidden') {
-        // 30초 이상 백그라운드 → SSE 닫기
-        visibilityTimeout.current = setTimeout(() => {
-          esRef.current?.close();
-          esRef.current = null;
-        }, 30000);
-      } else {
-        if (visibilityTimeout.current) {
-          clearTimeout(visibilityTimeout.current);
-          visibilityTimeout.current = null;
-        }
-        // 보이는 상태이고 SSE 닫혀 있으면 재연결
-        if (!esRef.current) openSSE();
+      } catch (error) {
+        console.error('알림 조회 실패:', error);
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibility);
+    // 초기 로드
+    pollAlerts();
+
+    // 15초마다 폴링
+    const pollInterval = setInterval(pollAlerts, 15000);
 
     return () => {
-      esRef.current?.close();
-      document.removeEventListener('visibilitychange', handleVisibility);
+      clearInterval(pollInterval);
     };
-  }, []);
+  }, [isConnected]);
 
   // 5초마다 알림 로테이션
   useEffect(() => {

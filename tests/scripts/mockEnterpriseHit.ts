@@ -98,8 +98,8 @@ async function runEnterpriseTests() {
   // 4. 대시보드 데이터
   results.push(await testEndpoint('/api/dashboard'));
 
-  // 5. 알림 시스템
-  results.push(await testEndpoint('/api/alerts'));
+  // 5. 대시보드 알림 (alerts API 대체)
+  results.push(await testEndpoint('/api/dashboard?alerts=true'));
 
   // 6. Enterprise 시딩 (POST)
   results.push(await testEndpoint('/api/enterprise/seed', 'POST'));
@@ -184,3 +184,4 @@ if (require.main === module) {
 }
 
 export { runEnterpriseTests, testEndpoint };
+

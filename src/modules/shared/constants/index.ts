@@ -14,8 +14,8 @@ export const MODULE_VERSIONS = {
 export const API_ENDPOINTS = {
   AI_AGENT: '/api/ai-agent',
   HEALTH: '/api/health',
-  STATUS: '/api/status',
-  ALERTS: '/api/alerts',
+  STATUS: '/api/dashboard',
+  DASHBOARD: '/api/dashboard',
   SERVERS: '/api/servers'
 } as const;
 

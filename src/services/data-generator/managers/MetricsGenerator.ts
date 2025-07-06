@@ -131,34 +131,24 @@ export class GCPMetricsCollector {
      * 🌐 실제 GCP 메트릭을 서버 인스턴스에 적용
      */
     private applyGCPMetrics(server: ServerInstance, gcpMetrics: GCPMetricData): void {
-        // 기본 메트릭 업데이트
-        server.metrics.cpu = Math.round(gcpMetrics.cpu);
-        server.metrics.memory = Math.round(gcpMetrics.memory);
-        server.metrics.disk = Math.round(gcpMetrics.disk);
-        server.metrics.network = {
-            in: Math.round(gcpMetrics.network.in),
-            out: Math.round(gcpMetrics.network.out),
-        };
-        server.metrics.requests = gcpMetrics.requests;
-        server.metrics.errors = gcpMetrics.errors;
-        server.metrics.uptime = gcpMetrics.uptime;
-
-        // 커스텀 메트릭 업데이트
-        if (gcpMetrics.customMetrics) {
-            server.metrics.customMetrics = {
-                ...server.metrics.customMetrics,
-                ...gcpMetrics.customMetrics,
-            };
+        // 🔄 GCP 메트릭 기반 서버 상태 업데이트
+        if (!server.metrics) {
+            server.metrics = { cpu: 0, memory: 0, disk: 0, network: 0 };
         }
 
-        // 서버 상태 업데이트 (실제 메트릭 기반)
-        server.status = this.determineServerStatus(gcpMetrics);
+        server.metrics.cpu = gcpMetrics.cpu?.usage || gcpMetrics.cpu || 0;
+        server.metrics.memory = gcpMetrics.memory?.usage || gcpMetrics.memory || 0;
+        server.metrics.disk = gcpMetrics.disk?.usage || gcpMetrics.disk || 0;
+        server.metrics.network = gcpMetrics.network?.usage || gcpMetrics.network?.in || 0;
+
+        server.status = this.determineServerStatus(gcpMetrics) as 'healthy' | 'warning' | 'critical' | 'error' | 'running' | 'stopped' | 'maintenance';
 
         // 마지막 체크 시간 업데이트
         server.lastCheck = gcpMetrics.timestamp.toISOString();
 
         // GCP 태그 추가
-        if (!server.tags.includes('source:gcp')) {
+        if (!server.tags || !server.tags.includes('source:gcp')) {
+            if (!server.tags) server.tags = [];
             server.tags.push('source:gcp');
         }
     }

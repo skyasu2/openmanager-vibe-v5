@@ -1,29 +1,11 @@
-export interface WarmupMetrics {
-  totalAttempts: number;
-  successfulAttempts: number;
-  failedAttempts: number;
-  successRate: number;
-  averageWarmupTime: number;
-  lastWarmupTime: number;
-  lastAttemptTime: string;
-  lastSuccessTime: string;
-}
-
 export interface PerformanceMetrics {
   totalRequests: number;
   successfulRequests: number;
   failedRequests: number;
   averageResponseTime: number;
-  p95ResponseTime: number;
-  p99ResponseTime: number;
-  requestsPerMinute: number;
-  enginesUsage: {
-    tensorflow: number;
-    transformers: number;
-    onnx: number;
-    python: number;
-    fallback: number;
-  };
+  lastRequestTime: number;
+  lastSuccessTime: number;
+  successRate: number;
 }
 
 export interface SystemHealth {
@@ -45,31 +27,14 @@ export interface ErrorReport {
 }
 
 export class MonitoringService {
-  private warmupMetrics: WarmupMetrics = {
-    totalAttempts: 0,
-    successfulAttempts: 0,
-    failedAttempts: 0,
-    successRate: 0,
-    averageWarmupTime: 0,
-    lastWarmupTime: 0,
-    lastAttemptTime: '',
-    lastSuccessTime: ''
-  };
   private performanceMetrics: PerformanceMetrics = {
     totalRequests: 0,
     successfulRequests: 0,
     failedRequests: 0,
     averageResponseTime: 0,
-    p95ResponseTime: 0,
-    p99ResponseTime: 0,
-    requestsPerMinute: 0,
-    enginesUsage: {
-      tensorflow: 0,
-      transformers: 0,
-      onnx: 0,
-      python: 0,
-      fallback: 0
-    }
+    lastRequestTime: 0,
+    lastSuccessTime: 0,
+    successRate: 0
   };
   private systemHealth: SystemHealth = {
     status: 'healthy',
@@ -86,84 +51,9 @@ export class MonitoringService {
 
   constructor() {
     this.startTime = Date.now();
-    this.initializeMetrics();
 
     // 정기적인 메트릭 정리 (5분마다)
     setInterval(() => this.cleanupMetrics(), 5 * 60 * 1000);
-  }
-
-  private initializeMetrics() {
-    this.warmupMetrics = {
-      totalAttempts: 0,
-      successfulAttempts: 0,
-      failedAttempts: 0,
-      successRate: 0,
-      averageWarmupTime: 0,
-      lastWarmupTime: 0,
-      lastAttemptTime: '',
-      lastSuccessTime: ''
-    };
-
-    this.performanceMetrics = {
-      totalRequests: 0,
-      successfulRequests: 0,
-      failedRequests: 0,
-      averageResponseTime: 0,
-      p95ResponseTime: 0,
-      p99ResponseTime: 0,
-      requestsPerMinute: 0,
-      enginesUsage: {
-        tensorflow: 0,
-        transformers: 0,
-        onnx: 0,
-        python: 0,
-        fallback: 0
-      }
-    };
-
-    this.systemHealth = {
-      status: 'healthy',
-      pythonServiceStatus: 'up',
-      jsEnginesStatus: 'up',
-      warmupHealth: 'good',
-      lastHealthCheck: new Date().toISOString(),
-      uptime: 0
-    };
-  }
-
-  /**
-   * 🔥 웜업 시도 기록
-   */
-  recordWarmupAttempt(success: boolean, warmupTime: number, error?: string) {
-    const now = new Date().toISOString();
-
-    this.warmupMetrics.totalAttempts++;
-    this.warmupMetrics.lastWarmupTime = warmupTime;
-    this.warmupMetrics.lastAttemptTime = now;
-
-    if (success) {
-      this.warmupMetrics.successfulAttempts++;
-      this.warmupMetrics.lastSuccessTime = now;
-    } else {
-      this.warmupMetrics.failedAttempts++;
-
-      // 에러 보고서 생성
-      this.addErrorReport({
-        timestamp: now,
-        type: 'warmup_failure',
-        message: error || '웜업 실패',
-        severity: 'high'
-      });
-    }
-
-    // 성공률 계산
-    this.warmupMetrics.successRate = this.warmupMetrics.successfulAttempts / this.warmupMetrics.totalAttempts;
-
-    // 평균 웜업 시간 계산 (성공한 경우만)
-    if (success) {
-      const totalSuccessTime = this.warmupMetrics.averageWarmupTime * (this.warmupMetrics.successfulAttempts - 1) + warmupTime;
-      this.warmupMetrics.averageWarmupTime = totalSuccessTime / this.warmupMetrics.successfulAttempts;
-    }
   }
 
   /**
@@ -178,12 +68,6 @@ export class MonitoringService {
 
     if (success) {
       this.performanceMetrics.successfulRequests++;
-
-      // 엔진 사용량 기록
-      const engineKey = this.mapEngineToKey(engine);
-      if (engineKey) {
-        this.performanceMetrics.enginesUsage[engineKey]++;
-      }
     } else {
       this.performanceMetrics.failedRequests++;
     }
@@ -203,15 +87,6 @@ export class MonitoringService {
     }
   }
 
-  private mapEngineToKey(engine: string): keyof typeof this.performanceMetrics.enginesUsage | null {
-    if (engine.includes('tensorflow')) return 'tensorflow';
-    if (engine.includes('transformers')) return 'transformers';
-    if (engine.includes('onnx')) return 'onnx';
-    if (engine.includes('python')) return 'python';
-    if (engine.includes('fallback')) return 'fallback';
-    return null;
-  }
-
   private updateResponseTimeMetrics() {
     if (this.responseTimesBuffer.length === 0) return;
 
@@ -219,8 +94,6 @@ export class MonitoringService {
     const total = sorted.reduce((sum, time) => sum + time, 0);
 
     this.performanceMetrics.averageResponseTime = total / sorted.length;
-    this.performanceMetrics.p95ResponseTime = sorted[Math.floor(sorted.length * 0.95)];
-    this.performanceMetrics.p99ResponseTime = sorted[Math.floor(sorted.length * 0.99)];
   }
 
   private calculateRequestsPerMinute() {
@@ -259,15 +132,6 @@ export class MonitoringService {
     this.systemHealth.lastHealthCheck = new Date().toISOString();
     this.systemHealth.uptime = Date.now() - this.startTime;
 
-    // 웜업 건강도 평가
-    if (this.warmupMetrics.successRate > 0.9) {
-      this.systemHealth.warmupHealth = 'good';
-    } else if (this.warmupMetrics.successRate > 0.7) {
-      this.systemHealth.warmupHealth = 'poor';
-    } else {
-      this.systemHealth.warmupHealth = 'failed';
-    }
-
     // 🔧 전체 시스템 상태 결정 - Python 서비스를 옵셔널로 처리
     const criticalErrors = this.errorReports.filter(e => e.severity === 'critical').length;
     const recentFailureRate = this.calculateRecentFailureRate();
@@ -302,7 +166,6 @@ export class MonitoringService {
    */
   getAllMetrics() {
     return {
-      warmup: this.warmupMetrics,
       performance: this.performanceMetrics,
       health: this.systemHealth,
       errors: this.errorReports.slice(-10), // 최근 10개 에러만
@@ -310,8 +173,6 @@ export class MonitoringService {
         totalUptime: Date.now() - this.startTime,
         overallSuccessRate: this.performanceMetrics.totalRequests > 0 ?
           this.performanceMetrics.successfulRequests / this.performanceMetrics.totalRequests : 1,
-        warmupSuccessRate: this.warmupMetrics.successRate,
-        averageResponseTime: this.performanceMetrics.averageResponseTime,
         systemStatus: this.systemHealth.status
       }
     };
@@ -489,7 +350,6 @@ export class MonitoringService {
       },
       current: {
         systemStatus: this.systemHealth.status,
-        warmupSuccessRate: this.warmupMetrics.successRate,
         uptime: now - this.startTime
       }
     };

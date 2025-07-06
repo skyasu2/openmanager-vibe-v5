@@ -6,6 +6,9 @@
 
 import { TimeSeriesMetrics } from '@/types/ai-agent-input-schema';
 
+// TimeSeriesMetrics를 re-export
+export type { TimeSeriesMetrics } from '@/types/ai-agent-input-schema';
+
 // ===== 기본 데이터셋 구조 =====
 
 export interface BaselineDataset {
@@ -21,6 +24,11 @@ export interface ServerData {
     type: string;
     specs: ServerSpecs;
     baseline_metrics: BaselineMetrics;
+    historical_patterns?: {
+        daily_cycle: number[];
+        weekly_cycle: number[];
+        anomaly_patterns: Record<string, any>;
+    };
 }
 
 export interface ServerSpecs {
@@ -223,14 +231,17 @@ export interface GCPFirestoreCollection {
 }
 
 export interface GCPFirestoreDocument {
-    set(data: any): Promise<void>;
+    set(data: any, options?: { merge?: boolean }): Promise<void>;
     get(): Promise<{ exists: boolean; data: () => any }>;
     delete(): Promise<void>;
     collection(path: string): GCPFirestoreCollection;
 }
 
 export interface GCPFirestoreQuery {
-    get(): Promise<{ docs: Array<{ id: string; data: () => any }> }>;
+    get(): Promise<{ docs: Array<{ id: string; data: () => any }>; size: number }>;
+    where(field: string, operator: string, value: any): GCPFirestoreQuery;
+    orderBy(field: string, direction?: 'asc' | 'desc'): GCPFirestoreQuery;
+    limit(count: number): GCPFirestoreQuery;
 }
 
 export interface GCPCloudStorageClient {

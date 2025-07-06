@@ -466,9 +466,8 @@ export function logMCPConfiguration(): void {
 
   🚀 활성 기능: ${status.features.join(', ')}
   
-${
-  status.gcpConfig
-    ? `
+${status.gcpConfig
+      ? `
   🌐 GCP VM 서버 정보:
   • URL: ${status.gcpConfig.url}
   • 포트: ${status.gcpConfig.port}
@@ -476,8 +475,8 @@ ${
   • IP: ${status.gcpConfig.ips.join(', ')}
   • 응답 대기: ${status.gcpConfig.monitoring.maxResponseTime / 1000}초 (🕐 30초로 조정)
 `
-    : ''
-}
+      : ''
+    }
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   `);
 }
@@ -530,6 +529,16 @@ const mcpConfig = {
     );
 
     return results;
+  },
+
+  // 🌐 Google Cloud VM MCP 서버 (24시간 동작)
+  production: {
+    name: 'Google Cloud VM MCP Server',
+    url: 'http://104.154.205.25:10000', // Google Cloud VM - 24시간 동작
+    timeout: 5000,
+    retries: 2,
+    healthCheck: '/health',
+    description: 'Google Cloud VM에서 24시간 동작하는 MCP 서버 (Render 대체)',
   },
 };
 

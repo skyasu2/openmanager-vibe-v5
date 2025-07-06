@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
-import { MCPWarmupService } from '@/services/mcp/mcp-warmup-service';
+// MCP 웜업 서비스 제거됨 - Google Cloud VM 24시간 동작
 import { systemLogger } from '@/lib/logger';
 
 // 초기화 상태를 저장하는 간단한 플래그
@@ -14,7 +13,7 @@ async function runInitialization(): Promise<string[]> {
   try {
     // 1. 데이터 생성기 초기화
     try {
-      const generator = RealServerDataGenerator.getInstance();
+      const generator = createRealServerDataGenerator();
       if (generator.getAllServers().length === 0) {
         await generator.initialize();
         generator.startAutoGeneration();
@@ -31,17 +30,17 @@ async function runInitialization(): Promise<string[]> {
     }
 
     // 2. MCP 서버 웜업 (비동기, 실패해도 계속)
-    MCPWarmupService.getInstance()
-      .wakeupMCPServer()
-      .then(() => {
-        systemLogger.info('✅ MCP 서버 웜업 요청 완료 (백그라운드)');
-      })
-      .catch(error => {
-        systemLogger.warn(
-          `⚠️ MCP 서버 웜업 실패 (백그라운드): ${error.message}`
-        );
-      });
-    logs.push('👍 MCP 서버 웜업 시작 (백그라운드)');
+    // MCPWarmupService.getInstance()
+    //   .wakeupMCPServer()
+    //   .then(() => {
+    //     systemLogger.info('✅ MCP 서버 웜업 요청 완료 (백그라운드)');
+    //   })
+    //   .catch(error => {
+    //     systemLogger.warn(
+    //       `⚠️ MCP 서버 웜업 실패 (백그라운드): ${error.message}`
+    //     );
+    //   });
+    logs.push('�� MCP 서버 웜업 시작 (백그라운드)');
 
     // 3. 기타 필수 서비스 초기화 (예시)
     // 다른 서비스들...

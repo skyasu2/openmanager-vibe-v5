@@ -61,13 +61,12 @@ export class GoogleAIEngine implements AIEngine {
       // 🎯 싱글톤 서비스로 요청 프록시
       const result = await this.googleAIService.processQuery({
         query: request.query,
-        context: request.context,
-        mode: 'natural_language'
+        context: request.context
       });
 
       return {
         success: result.success,
-        response: result.content,
+        response: result.response || '',
         data: result,
         confidence: result.confidence || 0.8,
       };

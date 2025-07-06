@@ -9,18 +9,23 @@
 
 'use client';
 
-import React from 'react';
 import { motion } from 'framer-motion';
 import {
+  CheckCircle,
+  Clock,
   Loader2,
   Server,
-  CheckCircle,
-  XCircle,
-  Clock,
   Wifi,
-  WifiOff,
+  XCircle
 } from 'lucide-react';
-import { MCPWakeupProgress } from '@/services/mcp/mcp-warmup-service';
+
+interface MCPWakeupProgress {
+  stage: 'connecting' | 'waking' | 'ready' | 'timeout' | 'error';
+  message: string;
+  progress: number;
+  elapsedTime: number;
+  estimatedRemaining?: number;
+}
 
 interface MCPWakeupStatusProps {
   wakeupStatus: {

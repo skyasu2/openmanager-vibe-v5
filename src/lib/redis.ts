@@ -680,45 +680,28 @@ export async function getRedisStats(): Promise<any> {
 /**
  * 🌐 Redis 연결 풀링 라이브러리
  * 
- * Google Cloud → Redis → Vercel 최적화 아키텍처
- * 연결 재사용으로 성능 및 비용 최적화
+ * 싱글톤 패턴으로 Redis 연결을 관리하여 성능 최적화
  */
 
-let redis: Redis | null = null;
 
-interface RedisConfig {
-  host?: string;
-  port?: number;
-  password?: string;
-  maxRetriesPerRequest?: number;
-  retryDelayOnFailover?: number;
-  connectTimeout?: number;
-  commandTimeout?: number;
+interface RedisStatus {
+  status: 'connected' | 'disconnected' | 'reconnecting' | 'error' | 'ready';
+  connectedAt: number | null;
+  lastError: string | null;
+  uptime?: number;
+  timestamp?: string;
 }
 
-/**
- * 🔧 Redis 인스턴스 가져오기 (연결 풀링)
- */
-export const getRedis = (): Redis => {
-  if (!redis) {
-    const config: RedisConfig = {
-      tls: {},
-      lazyConnect: true,
-      enableReadyCheck: true,
-      keepAlive: 30000,
-      family: 4,
-      host: process.env.GCP_REDIS_HOST || 'charming-condor-46598.upstash.io',
-      port: parseInt(process.env.GCP_REDIS_PORT || '6379'),
-      password: process.env.GCP_REDIS_PASSWORD || 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
-      maxRetriesPerRequest: 3,
-      retryDelayOnFailover: 100,
-      connectTimeout: 10000,
-      commandTimeout: 5000,
-    };
+let redis: Redis | null = null;
+let redisStatus: RedisStatus = {
+  status: 'disconnected',
+  connectedAt: null,
+  lastError: null,
+};
 
+export function getRedis(): Redis {
+  if (!redis) {
     redis = new Redis({
-      ...config,
-      tls: {},
       lazyConnect: true,
       enableReadyCheck: true,
       keepAlive: 30000,
@@ -727,10 +710,9 @@ export const getRedis = (): Redis => {
       port: parseInt(process.env.GCP_REDIS_PORT || '6379'),
       password: process.env.GCP_REDIS_PASSWORD || 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
       maxRetriesPerRequest: 3,
-      retryDelayOnFailover: 100,
       connectTimeout: 10000,
       commandTimeout: 5000,
-    });
+    } as any);
 
     // 연결 이벤트 핸들러
     redis.on('connect', () => {
@@ -751,40 +733,25 @@ export const getRedis = (): Redis => {
     });
 
     redis.on('close', () => {
-      console.log('⚠️ Redis 연결 종료');
+      console.log('🔌 Redis 연결 종료됨');
       redisStatus.status = 'disconnected';
     });
 
     redis.on('reconnecting', () => {
-      console.log('🔄 Redis 재연결 시도 중...');
+      console.log('🔄 Redis 재연결 중...');
       redisStatus.status = 'reconnecting';
     });
-
-    console.log('🌐 Redis 클라이언트 생성됨 (지연 연결)');
   }
 
   return redis;
-};
+}
 
-/**
- * 🧹 Redis 연결 정리 (서버 종료 시)
- */
-export const closeRedis = async (): Promise<void> => {
-  if (redis) {
-    await redis.quit();
-    redis = null;
-    console.log('🌐 Redis 연결 풀 정리 완료');
-  }
-};
-
-/**
- * 📊 Redis 연결 상태 확인
- */
-export const getRedisStatus = () => {
+export function getRedisStatus(): RedisStatus {
   return {
     status: redisStatus.status,
+    connectedAt: redisStatus.connectedAt,
     uptime: redisStatus.connectedAt ? Date.now() - redisStatus.connectedAt : 0,
     lastError: redisStatus.lastError,
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   };
-};
+}

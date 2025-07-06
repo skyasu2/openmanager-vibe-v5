@@ -9,7 +9,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
-import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { createServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface ReportData {
@@ -142,26 +142,19 @@ async function generateReport(type: ReportData['type']): Promise<ReportData> {
   console.log(`🤖 ${type} 보고서 생성 시작...`);
 
   // 실제 서버 데이터 가져오기
-  const servers = realServerDataGenerator.getAllServers();
+  const generator = createServerDataGenerator();
+  const servers = await generator.getAllServers();
 
   // 서버 상태 분석
-  const healthyServers = servers.filter(s => s.status === 'running').length;
+  const healthyServers = servers.filter(s => s.status === 'healthy').length;
   const warningServers = servers.filter(s => s.status === 'warning').length;
-  const criticalServers = servers.filter(s => s.status === 'error').length;
+  const criticalServers = servers.filter(s => s.status === 'critical').length;
 
   // 평균 메트릭 계산
-  const avgCpu =
-    servers.reduce((sum, s) => sum + s.metrics.cpu, 0) / servers.length;
-  const avgMemory =
-    servers.reduce((sum, s) => sum + s.metrics.memory, 0) / servers.length;
-  const avgDisk =
-    servers.reduce((sum, s) => sum + s.metrics.disk, 0) / servers.length;
-  const avgResponseTime =
-    servers.reduce(
-      (sum, s) =>
-        sum + (s.metrics.requests > 0 ? 1000 / s.metrics.requests : 100),
-      0
-    ) / servers.length;
+  const avgCpu = servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length;
+  const avgMemory = servers.reduce((sum, s) => sum + s.memory, 0) / servers.length;
+  const avgDisk = servers.reduce((sum, s) => sum + s.disk, 0) / servers.length;
+  const avgResponseTime = servers.reduce((sum, s) => sum + (s.uptime || 100), 0) / servers.length;
 
   // 장애 시뮬레이션 (실제 환경에서는 로그 분석)
   const totalIncidents = warningServers + criticalServers;
@@ -261,17 +254,17 @@ function generateDailyReportContent(servers: any[], metrics: any): string {
 
 ## 🔍 상세 분석
 ${servers
-  .map(
-    server => `
+      .map(
+        server => `
 ### ${server.name} (${server.id})
 - **상태**: ${server.status === 'running' ? '✅ 정상' : server.status === 'warning' ? '⚠️ 주의' : '❌ 위험'}
-- **CPU**: ${server.metrics.cpu.toFixed(1)}%
-- **메모리**: ${server.metrics.memory.toFixed(1)}%
-- **디스크**: ${server.metrics.disk.toFixed(1)}%
-- **업타임**: ${(server.metrics.uptime / 3600).toFixed(1)}시간
+- **CPU**: ${server.cpu.toFixed(1)}%
+- **메모리**: ${server.memory.toFixed(1)}%
+- **디스크**: ${server.disk.toFixed(1)}%
+- **업타임**: ${(server.uptime / 3600).toFixed(1)}시간
 `
-  )
-  .join('')}
+      )
+      .join('')}
 
 ## 📈 권장사항
 - CPU 사용률이 80% 이상인 서버는 스케일링을 고려하세요
@@ -297,16 +290,16 @@ function generateIncidentReportContent(
 
 ## 🔍 문제 서버 분석
 ${problemServers
-  .map(
-    server => `
+      .map(
+        server => `
 ### ${server.name} - ${server.status === 'warning' ? '⚠️ 경고' : '❌ 위험'}
 - **문제 유형**: ${server.status === 'warning' ? 'CPU/메모리 과부하' : '서비스 중단'}
-- **CPU**: ${server.metrics.cpu.toFixed(1)}%
-- **메모리**: ${server.metrics.memory.toFixed(1)}%
-- **예상 원인**: ${server.metrics.cpu > 90 ? 'CPU 과부하' : server.metrics.memory > 90 ? '메모리 부족' : '네트워크 문제'}
+- **CPU**: ${server.cpu.toFixed(1)}%
+- **메모리**: ${server.memory.toFixed(1)}%
+- **예상 원인**: ${server.cpu > 90 ? 'CPU 과부하' : server.memory > 90 ? '메모리 부족' : '네트워크 문제'}
 `
-  )
-  .join('')}
+      )
+      .join('')}
 
 ## 🛠️ 대응 방안
 1. **즉시 조치**: 문제 서버 재시작 또는 트래픽 분산
@@ -320,10 +313,10 @@ function generatePerformanceReportContent(
   metrics: any
 ): string {
   const topCpuServers = servers
-    .sort((a, b) => b.metrics.cpu - a.metrics.cpu)
+    .sort((a, b) => b.cpu - a.cpu)
     .slice(0, 5);
   const topMemoryServers = servers
-    .sort((a, b) => b.metrics.memory - a.metrics.memory)
+    .sort((a, b) => b.memory - a.memory)
     .slice(0, 5);
 
   return `
@@ -335,10 +328,10 @@ function generatePerformanceReportContent(
 - **평균 응답시간**: ${metrics.avgResponseTime.toFixed(0)}ms
 
 ## 🔥 CPU 사용률 TOP 5
-${topCpuServers.map((server, idx) => `${idx + 1}. ${server.name}: ${server.metrics.cpu.toFixed(1)}%`).join('\n')}
+${topCpuServers.map((server, idx) => `${idx + 1}. ${server.name}: ${server.cpu.toFixed(1)}%`).join('\n')}
 
 ## 💾 메모리 사용률 TOP 5
-${topMemoryServers.map((server, idx) => `${idx + 1}. ${server.name}: ${server.metrics.memory.toFixed(1)}%`).join('\n')}
+${topMemoryServers.map((server, idx) => `${idx + 1}. ${server.name}: ${server.memory.toFixed(1)}%`).join('\n')}
 
 ## 📈 성능 최적화 권장사항
 - 고부하 서버에 대한 로드 밸런싱 적용

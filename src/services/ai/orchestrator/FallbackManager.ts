@@ -1,3 +1,4 @@
+import { createGoogleAIService } from '@/services/ai/GoogleAIService';
 import { EngineResult } from './types';
 
 // 🚫 GoogleAIService.getInstance() 제거됨 - 서버리스 환경에서 사용 금지
@@ -8,16 +9,17 @@ console.warn('🔧 대신 createGoogleAIService()를 사용하세요');
 
 export class FallbackManager {
   private enabled = process.env.EXTERNAL_AI_FALLBACK_ENABLED !== 'false';
+  private googleAI = createGoogleAIService();
 
   async query(question: string): Promise<EngineResult | null> {
     if (!this.enabled) return null;
 
     const start = Date.now();
     try {
-      if (!googleAI.isAvailable()) {
+      if (!this.googleAI.isAvailable()) {
         return null;
       }
-      const result = await googleAI.processQuery({
+      const result = await this.googleAI.processQuery({
         query: question,
         mode: 'GOOGLE_ONLY',
         context: { isNaturalLanguage: true },
@@ -38,6 +40,22 @@ export class FallbackManager {
         processingTime: Date.now() - start,
         metadata: { error: true },
       };
+    }
+  }
+
+  async processWithFallback(query: string, context: any) {
+    try {
+      if (!this.googleAI.isAvailable()) {
+        throw new Error('Google AI 서비스 사용 불가');
+      }
+      const result = await this.googleAI.processQuery({
+        query,
+        context
+      });
+      return result;
+    } catch (error) {
+      console.error('Fallback 처리 오류:', error);
+      throw error;
     }
   }
 }

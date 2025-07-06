@@ -1,10 +1,17 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { safeConsoleError, safeErrorMessage } from '../lib/utils-functions';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { safeConsoleError } from '../lib/utils-functions';
 
 interface UseNaturalLoadingTimeProps {
   actualLoadingPromise?: Promise<any> | null;
   skipCondition?: boolean;
   onComplete?: () => void;
+}
+
+interface LoadingPhase {
+  phase: 'system-starting' | 'data-loading' | 'completed';
+  progress: number;
+  message: string;
+  elapsedTime: number;
 }
 
 interface LoadingState {

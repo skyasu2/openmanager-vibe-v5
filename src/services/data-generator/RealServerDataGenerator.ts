@@ -11,8 +11,10 @@ import { ServerInstance } from '@/types/server';
 interface GCPServerConfig {
     sessionId?: string;
     limit?: number;
+    count?: number;
     region?: string;
     projectId?: string;
+    includeMetrics?: boolean;
 }
 
 /**
@@ -26,8 +28,10 @@ export class GCPRealServerDataGenerator {
         this.config = {
             sessionId: config.sessionId || this.generateSessionId(),
             limit: config.limit || 20,
+            count: config.count || 20,
             region: config.region || 'auto',
             projectId: config.projectId || process.env.GCP_PROJECT_ID || '',
+            includeMetrics: config.includeMetrics || false,
         };
 
         console.log('🌐 GCP 실제 서버 데이터 생성기 초기화');
@@ -315,6 +319,185 @@ export class GCPRealServerDataGenerator {
     dispose(): void {
         systemLogger.system('🌐 GCP 서버 데이터 생성기 정리 완료');
     }
+
+    /**
+     * 📊 모든 서버 조회
+     */
+    async getAllServers(): Promise<ServerInstance[]> {
+        return await this.generateServers();
+    }
+
+    /**
+     * 📋 서버 상태 조회
+     */
+    async getStatus(): Promise<any> {
+        try {
+            const servers = await this.generateServers();
+            const total = servers.length;
+            const healthy = servers.filter(s => s.status === 'healthy').length;
+            const warning = servers.filter(s => s.status === 'warning').length;
+            const critical = servers.filter(s => s.status === 'critical').length;
+
+            return {
+                total,
+                healthy,
+                warning,
+                critical,
+                uptime: 99.9, // GCP 기본 SLA
+                lastUpdate: new Date().toISOString(),
+                sessionId: this.config.sessionId,
+            };
+        } catch (error) {
+            return {
+                total: 0,
+                healthy: 0,
+                warning: 0,
+                critical: 0,
+                uptime: 0,
+                lastUpdate: new Date().toISOString(),
+                error: error instanceof Error ? error.message : 'Unknown error',
+            };
+        }
+    }
+
+    /**
+     * 📈 대시보드 요약 정보
+     */
+    async getDashboardSummary(): Promise<any> {
+        try {
+            const servers = await this.generateServers();
+            const status = await this.getStatus();
+
+            return {
+                totalServers: status.total,
+                healthyServers: status.healthy,
+                warningServers: status.warning,
+                criticalServers: status.critical,
+                averageCpu: Math.round(servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length),
+                averageMemory: Math.round(servers.reduce((sum, s) => sum + s.memory, 0) / servers.length),
+                averageDisk: Math.round(servers.reduce((sum, s) => sum + s.disk, 0) / servers.length),
+                totalAlerts: servers.reduce((sum, s) => sum + s.alerts, 0),
+                uptime: status.uptime,
+                lastUpdate: new Date().toISOString(),
+            };
+        } catch (error) {
+            return {
+                totalServers: 0,
+                healthyServers: 0,
+                warningServers: 0,
+                criticalServers: 0,
+                averageCpu: 0,
+                averageMemory: 0,
+                averageDisk: 0,
+                totalAlerts: 0,
+                uptime: 0,
+                lastUpdate: new Date().toISOString(),
+                error: error instanceof Error ? error.message : 'Unknown error',
+            };
+        }
+    }
+
+    /**
+     * 🏗️ 모든 클러스터 조회
+     */
+    async getAllClusters(): Promise<any[]> {
+        try {
+            const servers = await this.generateServers();
+            const clusters = new Map<string, any>();
+
+            // 서버를 타입별로 클러스터로 그룹화
+            for (const server of servers) {
+                const clusterName = `${server.type}-cluster`;
+                if (!clusters.has(clusterName)) {
+                    clusters.set(clusterName, {
+                        id: clusterName,
+                        name: `${server.type.charAt(0).toUpperCase() + server.type.slice(1)} Cluster`,
+                        type: server.type,
+                        servers: [],
+                        region: server.region,
+                        status: 'healthy',
+                    });
+                }
+                clusters.get(clusterName)!.servers.push(server);
+            }
+
+            // 클러스터 상태 업데이트
+            for (const cluster of clusters.values()) {
+                const criticalCount = cluster.servers.filter((s: any) => s.status === 'critical').length;
+                const warningCount = cluster.servers.filter((s: any) => s.status === 'warning').length;
+
+                if (criticalCount > 0) {
+                    cluster.status = 'critical';
+                } else if (warningCount > 0) {
+                    cluster.status = 'warning';
+                } else {
+                    cluster.status = 'healthy';
+                }
+            }
+
+            return Array.from(clusters.values());
+        } catch (error) {
+            console.error('클러스터 조회 실패:', error);
+            return [];
+        }
+    }
+
+    /**
+     * 🚀 모든 애플리케이션 조회
+     */
+    async getAllApplications(): Promise<any[]> {
+        try {
+            const servers = await this.generateServers();
+            const applications = [];
+
+            // 서버 타입별로 애플리케이션 생성
+            const appTypes = [...new Set(servers.map(s => s.type))];
+
+            for (const type of appTypes) {
+                const typeServers = servers.filter(s => s.type === type);
+                const app = {
+                    id: `app-${type}`,
+                    name: `${type.charAt(0).toUpperCase() + type.slice(1)} Application`,
+                    type,
+                    version: typeServers[0]?.version || '1.0.0',
+                    status: this.getApplicationStatus(typeServers),
+                    serverCount: typeServers.length,
+                    healthyServers: typeServers.filter(s => s.status === 'healthy').length,
+                    warningServers: typeServers.filter(s => s.status === 'warning').length,
+                    criticalServers: typeServers.filter(s => s.status === 'critical').length,
+                    lastDeployment: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+                    environment: 'production',
+                };
+
+                applications.push(app);
+            }
+
+            return applications;
+        } catch (error) {
+            console.error('애플리케이션 조회 실패:', error);
+            return [];
+        }
+    }
+
+    /**
+     * 🎯 애플리케이션 상태 결정
+     */
+    private getApplicationStatus(servers: ServerInstance[]): 'healthy' | 'warning' | 'critical' {
+        const criticalCount = servers.filter(s => s.status === 'critical').length;
+        const warningCount = servers.filter(s => s.status === 'warning').length;
+        const healthyCount = servers.filter(s => s.status === 'healthy').length;
+
+        // 절반 이상이 critical이면 critical
+        if (criticalCount >= servers.length / 2) {
+            return 'critical';
+        }
+        // critical이 1개라도 있거나 절반 이상이 warning이면 warning
+        if (criticalCount > 0 || warningCount >= servers.length / 2) {
+            return 'warning';
+        }
+        // 나머지는 healthy
+        return 'healthy';
+    }
 }
 
 /**
@@ -333,4 +516,9 @@ export const RealServerDataGenerator = {
         console.warn('🔧 대신 createServerDataGenerator()를 사용하세요.');
         return new GCPRealServerDataGenerator();
     }
-}; 
+};
+
+/**
+ * 🔄 호환성을 위한 인스턴스 export
+ */
+export const realServerDataGenerator = new GCPRealServerDataGenerator(); 

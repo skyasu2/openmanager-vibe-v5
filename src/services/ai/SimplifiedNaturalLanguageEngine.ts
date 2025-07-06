@@ -8,12 +8,10 @@
  * ✅ 경량 ML 엔진 통합 - 질의 최적화 및 자동 학습 (NEW!)
  */
 
+import { createGoogleAIService, RequestScopedGoogleAIService } from '@/core/ai/engines/GoogleAIEngine';
 import { UnifiedAIEngineRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
-import { getSupabaseRAGEngine, SupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
+import { SupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { AutoReportService } from '@/services/ai/AutoReportService';
-import { MCPWarmupService } from '@/services/mcp/mcp-warmup-service';
-import { RealMCPClient } from '@/services/mcp/real-mcp-client';
-import { createGoogleAIService, RequestScopedGoogleAIService } from './GoogleAIService';
 
 // 🎯 스마트 모드 정의
 type AIMode = 'auto' | 'google-only' | 'local' | 'offline';
@@ -22,7 +20,7 @@ interface FastTrackOptions {
   timeout: number; // 기본 3초
   enableParallel: boolean; // 병렬 처리 활성화
   preferEngine?: 'mcp' | 'rag' | 'google' | 'auto'; // 선호 엔진
-  enableMCPWarmup: boolean; // MCP 웜업 활성화
+  // MCP 웜업 제거됨 - Google Cloud VM 24시간 동작
   mode?: AIMode; // 강제 모드 설정
   enableAutoReport: boolean; // 자동장애보고서 트리거 감지 활성화
   enableMLOptimization?: boolean; // 🤖 ML 최적화 활성화
@@ -35,7 +33,6 @@ interface FastTrackResult {
   confidence: number;
   responseTime: number;
   fallbackUsed: boolean;
-  warmupTime?: number; // MCP 웜업 시간
   mode: AIMode; // 사용된 모드
   failureReport?: any; // 자동 장애 보고서 (기존 시스템 활용)
   mlInsights?: any; // 🤖 ML 인사이트 (NEW!)
@@ -62,10 +59,8 @@ export class SimplifiedNaturalLanguageEngine {
   private unifiedAI: UnifiedAIEngineRouter;
   private ragEngine: SupabaseRAGEngine; // 🎯 Supabase RAG 전용
   private googleAI: RequestScopedGoogleAIService | null = null;
-  private mcpWarmup: MCPWarmupService;
   private autoReportService: AutoReportService;
   private initialized = false;
-  private mcpWarmedUp = false;
   private currentMode: AIMode = 'auto';
 
   // 🤖 ML 엔진 통합 (NEW!)
@@ -75,8 +70,7 @@ export class SimplifiedNaturalLanguageEngine {
   private constructor() {
     this.unifiedAI = new UnifiedAIEngineRouter();
     this.ragEngine = new SupabaseRAGEngine(); // 🎯 Supabase RAG 전용
-    this.mcpWarmup = new MCPWarmupService();
-    this.autoReportService = new AutoReportService();
+    this.autoReportService = AutoReportService.getInstance();
 
     // 🚫 서버리스 호환: 요청별 Google AI 서비스 생성
     try {
@@ -157,7 +151,7 @@ export class SimplifiedNaturalLanguageEngine {
       timeout: 3000, // 3초 타임아웃 (더 빠르게)
       enableParallel: true,
       preferEngine: 'auto',
-      enableMCPWarmup: true,
+      // MCP 웜업 제거됨 - Google Cloud VM 24시간 동작
       mode: options.mode || this.currentMode,
       enableAutoReport: options.enableAutoReport || false,
       enableMLOptimization: options.enableMLOptimization || false,
@@ -309,17 +303,12 @@ export class SimplifiedNaturalLanguageEngine {
       console.log('🔄 Google AI 싱글톤 재연결 (processGoogleOnly)');
     }
 
-    const result = (await Promise.race([
-      this.googleAI.generateResponse(query),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Google AI 타임아웃')), 3000)
-      ),
-    ])) as any;
+    const result = await this.googleAI.processQuery({ query });
 
-    if (result?.success && result?.content) {
+    if (result?.success && result?.response) {
       return {
         success: true,
-        response: result.content,
+        response: result.response,
         mode: 'google-only',
         engine: 'google',
         responseTime: Date.now() - startTime,
@@ -354,15 +343,6 @@ export class SimplifiedNaturalLanguageEngine {
     query: string,
     startTime: number
   ): Promise<FastTrackResult> {
-    // MCP 웜업 (필요시)
-    let warmupTime = 0;
-    if (!this.mcpWarmedUp) {
-      const warmupStart = Date.now();
-      await this.warmupMCP();
-      warmupTime = Date.now() - warmupStart;
-      this.mcpWarmedUp = true;
-    }
-
     // 병렬 실행: MCP + RAG
     const promises = [
       this.tryMCP(query).catch(() => null),
@@ -387,7 +367,6 @@ export class SimplifiedNaturalLanguageEngine {
         responseTime: Date.now() - startTime,
         confidence: best.confidence || 0.8,
         fallbackUsed: false,
-        warmupTime,
         metadata: {
           engines: {
             attempted: [best.engine],
@@ -418,15 +397,6 @@ export class SimplifiedNaturalLanguageEngine {
     query: string,
     startTime: number
   ): Promise<FastTrackResult> {
-    // MCP 웜업 (필요시)
-    let warmupTime = 0;
-    if (!this.mcpWarmedUp) {
-      const warmupStart = Date.now();
-      await this.warmupMCP();
-      warmupTime = Date.now() - warmupStart;
-      this.mcpWarmedUp = true;
-    }
-
     // 3개 엔진 병렬 실행
     const promises = [
       this.tryGoogle(query).catch(() => null),
@@ -459,7 +429,6 @@ export class SimplifiedNaturalLanguageEngine {
         responseTime: Date.now() - startTime,
         confidence: best.confidence || 0.8,
         fallbackUsed: false,
-        warmupTime,
         metadata: {
           engines: {
             attempted: ['google', best.engine],
@@ -527,11 +496,11 @@ export class SimplifiedNaturalLanguageEngine {
       console.log('🔄 Google AI 싱글톤 재연결 (tryGoogle)');
     }
 
-    const result = await this.googleAI.generateResponse(query);
+    const result = await this.googleAI.processQuery({ query });
 
-    if (result?.success && result?.content) {
+    if (result?.success && result?.response) {
       return {
-        response: result.content,
+        response: result.response,
         confidence: 0.95,
         engine: 'google',
       };
@@ -678,18 +647,6 @@ export class SimplifiedNaturalLanguageEngine {
   }
 
   /**
-   * 🔥 MCP 웜업
-   */
-  private async warmupMCP(): Promise<void> {
-    try {
-      await this.mcpWarmup.warmupAllServers();
-      this.mcpWarmedUp = true;
-    } catch (error) {
-      console.warn('MCP 웜업 실패:', error);
-    }
-  }
-
-  /**
    * 🔍 Google AI 사용 가능 여부 확인 (무료 모델 전용 모드에서는 비활성화)
    */
   private isGoogleAIAvailable(): boolean {
@@ -711,7 +668,6 @@ export class SimplifiedNaturalLanguageEngine {
     return {
       initialized: this.initialized,
       currentMode: this.currentMode,
-      mcpWarmedUp: this.mcpWarmedUp,
       engines: {
         mcp: this.unifiedAI ? true : false,
         rag: this.ragEngine ? true : false,

@@ -12,18 +12,16 @@
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-import { ProcessManager } from '@/core/system/ProcessManager';
 import {
   getProcessConfigs,
   validateProcessConfigs,
 } from '@/core/system/process-configs';
+import { ProcessManager } from '@/core/system/ProcessManager';
 import { systemLogger } from '@/lib/logger';
-import { MCPWarmupService } from '@/services/mcp/mcp-warmup-service';
 import { NextRequest, NextResponse } from 'next/server';
 
 // 싱글톤 ProcessManager 인스턴스
 let processManager: ProcessManager | null = null;
-let mcpWarmupStarted = false;
 
 function getProcessManager(): ProcessManager {
   if (!processManager) {
@@ -51,16 +49,6 @@ function getProcessManager(): ProcessManager {
     systemLogger.system(
       `✅ ProcessManager 초기화 완료 (${configs.length}개 프로세스 등록)`
     );
-
-    // MCP 워밍업 최적화 (과도한 요청 방지)
-    if (!mcpWarmupStarted) {
-      const mcpWarmupService = MCPWarmupService.getInstance();
-      mcpWarmupService.startPeriodicWarmup(15); // 1분 → 15분 간격으로 변경
-      mcpWarmupStarted = true;
-      systemLogger.system(
-        '🔥 MCP 워밍업 최적화 시작 (15분 간격, 과도한 요청 방지)'
-      );
-    }
   }
 
   return processManager;
@@ -378,35 +366,35 @@ export async function GET(request: NextRequest) {
               event: string;
               handler: (...args: any[]) => void;
             }> = [
-              {
-                event: 'system:started',
-                handler: (data: any) => sendEvent('system-started', data),
-              },
-              {
-                event: 'system:stopped',
-                handler: (data: any) => sendEvent('system-stopped', data),
-              },
-              {
-                event: 'system:health-update',
-                handler: (data: any) => sendEvent('health-update', data),
-              },
-              {
-                event: 'process:started',
-                handler: (data: any) => sendEvent('process-started', data),
-              },
-              {
-                event: 'process:stopped',
-                handler: (data: any) => sendEvent('process-stopped', data),
-              },
-              {
-                event: 'process:unhealthy',
-                handler: (data: any) => sendEvent('process-unhealthy', data),
-              },
-              {
-                event: 'system:stable',
-                handler: (data: any) => sendEvent('system-stable', data),
-              },
-            ];
+                {
+                  event: 'system:started',
+                  handler: (data: any) => sendEvent('system-started', data),
+                },
+                {
+                  event: 'system:stopped',
+                  handler: (data: any) => sendEvent('system-stopped', data),
+                },
+                {
+                  event: 'system:health-update',
+                  handler: (data: any) => sendEvent('health-update', data),
+                },
+                {
+                  event: 'process:started',
+                  handler: (data: any) => sendEvent('process-started', data),
+                },
+                {
+                  event: 'process:stopped',
+                  handler: (data: any) => sendEvent('process-stopped', data),
+                },
+                {
+                  event: 'process:unhealthy',
+                  handler: (data: any) => sendEvent('process-unhealthy', data),
+                },
+                {
+                  event: 'system:stable',
+                  handler: (data: any) => sendEvent('system-stable', data),
+                },
+              ];
 
             listeners.forEach(({ event, handler }) => {
               manager.on(event, handler);

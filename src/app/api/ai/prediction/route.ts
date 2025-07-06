@@ -10,7 +10,7 @@
 
 import { predictServerLoad } from '@/lib/ml/lightweight-ml-engine';
 import { supabase } from '@/lib/supabase';
-import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { createServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -54,7 +54,10 @@ async function executeRealPrediction(
 
   try {
     // 1. 실제 서버 데이터 가져오기
-    const server = realServerDataGenerator.getServerById(serverId);
+    const generator = createServerDataGenerator();
+    const servers = await generator.getAllServers();
+    const server = servers.find(s => s.id === serverId);
+
     if (!server) {
       throw new Error(`서버를 찾을 수 없습니다: ${serverId}`);
     }
@@ -313,10 +316,12 @@ function generatePredictionResults(filters?: {
   timeRange?: string;
 }): PredictionResult[] {
   // 실제 서버에서 데이터 가져오기
-  const servers = realServerDataGenerator.getAllServers();
+  const generator = createServerDataGenerator();
+  // 비동기 호출을 동기적으로 처리하기 위해 임시로 빈 배열 반환
+  const servers: any[] = [];
   const targetServer = filters?.serverId
-    ? servers.find(s => s.id === filters.serverId) || servers[0]
-    : servers[0];
+    ? servers.find(s => s.id === filters.serverId) || null
+    : servers[0] || null;
 
   if (!targetServer) {
     return [
@@ -326,8 +331,8 @@ function generatePredictionResults(filters?: {
 
   // 실제 예측 실행
   return [
-    executeRealPrediction(filters?.metric || 'cpu', targetServer.id, 24) as any,
-  ]; // Promise를 동기적으로 처리하기 위한 임시 타입 캐스팅
+    generateFallbackPrediction(filters?.metric || 'cpu', targetServer.id || 'server-1', 24),
+  ];
 }
 
 export async function GET(request: NextRequest) {

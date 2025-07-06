@@ -18,24 +18,13 @@ export interface MCPContext {
   aiContexts?: any[]; // AI 컨텍스트 검색 결과
 }
 
-export interface MCPResponse {
+export interface MCPRouterResponse {
   success: boolean;
-  results: MCPTaskResult[];
-  summary: string;
-  confidence: number;
-  processingTime: number;
-  enginesUsed: string[];
-  recommendations: string[];
-  metadata: {
-    tasksExecuted: number;
-    successRate: number;
-    fallbacksUsed: number;
-    pythonWarmupTriggered: boolean;
-    contextId?: string;
-    relevanceScore?: number;
-    matchedKeywords?: string[];
-    processingTime?: number;
-  };
+  data?: any;
+  error?: string;
+  source: 'mcp' | 'python' | 'fallback';
+  responseTime: number;
+  // pythonWarmupTriggered 제거됨 - Google Cloud VM 24시간 동작
 }
 
 export interface MCPTaskResult {
@@ -129,7 +118,7 @@ export class MCPAIRouter {
   /**
    * 🎯 메인 처리 흐름
    */
-  async processQuery(query: string, context: MCPContext): Promise<MCPResponse> {
+  async processQuery(query: string, context: MCPContext): Promise<MCPRouterResponse> {
     const startTime = Date.now();
     const sessionId = context.sessionId || this.generateSessionId();
 
@@ -183,7 +172,6 @@ export class MCPAIRouter {
           successRate: results.filter(r => r.success).length / results.length,
           fallbacksUsed: results.filter(r => r.warning?.includes('fallback'))
             .length,
-          pythonWarmupTriggered: hasPythonTasks,
         },
       };
     } catch (error) {
@@ -335,7 +323,7 @@ export class MCPAIRouter {
   /**
    * ❌ 오류 응답 생성
    */
-  private createErrorResponse(error: any, processingTime: number): MCPResponse {
+  private createErrorResponse(error: any, processingTime: number): MCPRouterResponse {
     return {
       success: false,
       results: [],
@@ -351,7 +339,6 @@ export class MCPAIRouter {
         tasksExecuted: 0,
         successRate: 0,
         fallbacksUsed: 0,
-        pythonWarmupTriggered: false,
       },
     };
   }
@@ -581,8 +568,8 @@ export class MCPAIRouter {
 }
 
 // Import 선언들
-import { IntentClassifier } from '@/modules/ai-agent/processors/IntentClassifier';
-import { TaskOrchestrator } from './TaskOrchestrator';
+import { monitoringService } from './MonitoringService';
 import { ResponseMerger } from './ResponseMerger';
 import { SessionManager } from './SessionManager';
-import { monitoringService } from './MonitoringService';
+import { TaskOrchestrator } from './TaskOrchestrator';
+

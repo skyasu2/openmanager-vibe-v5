@@ -92,9 +92,7 @@ export class GCPRedisService {
         lazyConnect: true,
         connectTimeout: 10000,
         commandTimeout: 5000,
-        retryDelayOnFailover: 100,
         enableReadyCheck: false,
-        maxLoadingTimeout: 2000,
       });
 
       // 연결 이벤트 핸들러

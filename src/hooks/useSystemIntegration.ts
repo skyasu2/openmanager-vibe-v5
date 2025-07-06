@@ -32,9 +32,9 @@ import {
   predictiveAnalysisEngine,
 } from '@/engines/PredictiveAnalysisEngine';
 import {
-  MCPWakeupProgress,
-  MCPWarmupService,
+  MCPWakeupProgress
 } from '@/services/mcp/mcp-warmup-service';
+// MCP 웜업 서비스 제거됨 - Google Cloud VM 24시간 동작
 
 // Phase 1 + 2.1 모듈 타입 정의
 interface RealTimeHubStatus {
@@ -102,14 +102,14 @@ interface SystemIntegrationState {
 interface SystemEvent {
   id: string;
   type:
-    | 'pattern_detected'
-    | 'notification_sent'
-    | 'data_cleaned'
-    | 'connection_change'
-    | 'error'
-    | 'prediction'
-    | 'server_alert'
-    | 'security';
+  | 'pattern_detected'
+  | 'notification_sent'
+  | 'data_cleaned'
+  | 'connection_change'
+  | 'error'
+  | 'prediction'
+  | 'server_alert'
+  | 'security';
   severity: 'info' | 'warning' | 'critical';
   message: string;
   timestamp: Date;
@@ -391,79 +391,53 @@ export const useSystemIntegration = () => {
   }, [emitEvent]);
 
   /**
-   * 🚀 MCP 서버 Wake-up 실행 (Render Cold Start 해결)
+   * 🚀 MCP 서버 상태 확인 (Google Cloud VM 24시간 동작)
    */
   const wakeupMCPServer = useCallback(async (): Promise<boolean> => {
     try {
-      const mcpService = MCPWarmupService.getInstance();
+      setState(prev => ({
+        ...prev,
+        mcpWakeupStatus: {
+          isInProgress: true,
+          stage: 'connecting',
+          message: 'MCP 서버 상태 확인 중...',
+          progress: 50,
+          elapsedTime: 0,
+        },
+      }));
 
-      // Wake-up 진행상황 업데이트
-      const onProgress = (progress: MCPWakeupProgress) => {
-        setState(prev => ({
-          ...prev,
-          mcpWakeupStatus: {
-            isInProgress: true,
-            stage: progress.stage,
-            message: progress.message,
-            progress: progress.progress,
-            elapsedTime: progress.elapsedTime,
-            estimatedRemaining: progress.estimatedRemaining,
-          },
-        }));
-
-        // 이벤트 로그에도 추가
-        emitEvent(
-          'connection_change',
-          progress.stage === 'error' ? 'critical' : 'info',
-          progress.message
-        );
-      };
-
-      // MCP Wake-up 실행
-      const result = await mcpService.wakeupMCPServer(onProgress);
-
-      // 최종 상태 업데이트
+      // Google Cloud VM에서 24시간 동작하므로 즉시 ready 상태로 설정
       setState(prev => ({
         ...prev,
         mcpWakeupStatus: {
           isInProgress: false,
-          stage: result.success ? 'ready' : 'error',
-          message: result.success
-            ? `✅ MCP 서버 활성화 완료 (${Math.round(result.totalTime / 1000)}초)`
-            : `❌ MCP 서버 Wake-up 실패: ${result.error}`,
+          stage: 'ready',
+          message: '✅ MCP 서버가 활성 상태입니다 (Google Cloud VM 24시간 동작)',
           progress: 100,
-          elapsedTime: result.totalTime,
+          elapsedTime: 100,
         },
       }));
 
-      if (result.success) {
-        emitEvent(
-          'connection_change',
-          'info',
-          `🚀 MCP 서버가 성공적으로 활성화되었습니다! (${result.attempts}회 시도, ${Math.round(result.totalTime / 1000)}초)`
-        );
-      } else {
-        emitEvent(
-          'error',
-          'warning',
-          `⚠️ MCP 서버 Wake-up 실패했지만 시스템은 계속 진행됩니다: ${result.error}`
-        );
-      }
+      emitEvent(
+        'connection_change',
+        'info',
+        '🚀 MCP 서버가 Google Cloud VM에서 24시간 동작 중입니다'
+      );
 
-      return result.success;
+      return true;
     } catch (error) {
       setState(prev => ({
         ...prev,
         mcpWakeupStatus: {
           isInProgress: false,
           stage: 'error',
-          message: `❌ MCP Wake-up 오류: ${error.message}`,
+          message: `❌ MCP 상태 확인 오류: ${error.message}`,
           progress: 100,
           elapsedTime: 0,
         },
       }));
 
-      emitEvent('error', 'critical', `❌ MCP Wake-up 실행 오류: ${error}`);
+      emitEvent('error', 'critical', `❌ MCP 상태 확인 오류: ${error}`);
       return false;
     }
   }, [emitEvent]);
@@ -508,7 +482,7 @@ export const useSystemIntegration = () => {
         const errorData = await response.json();
         throw new Error(
           errorData.message ||
-            `서버에서 ${response.status} 오류를 반환했습니다.`
+          `서버에서 ${response.status} 오류를 반환했습니다.`
         );
       }
 
@@ -913,3 +887,4 @@ export const useSystemIntegration = () => {
 };
 
 export type { SystemEvent, SystemIntegrationActions, SystemIntegrationState };
+

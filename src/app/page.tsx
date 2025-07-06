@@ -1,8 +1,9 @@
 /**
- * 🏠 Main Page - Redirect to Login
+ * 🏠 Main Page - Redirect to Login or Home
  * 
  * Google OAuth 인증 시스템으로 변경됨
  * 메인 페이지 접속 시 로그인 페이지로 리다이렉트
+ * 로그인된 사용자는 홈 페이지(이전 첫 페이지)로 이동
  */
 
 'use client';
@@ -18,8 +19,8 @@ export default function Home() {
   useEffect(() => {
     if (!isLoading) {
       if (isAuthenticated) {
-        // 이미 로그인된 경우 대시보드로 이동
-        router.push('/dashboard');
+        // 이미 로그인된 경우 홈 페이지로 이동 (이전 첫 페이지 복구)
+        router.push('/home');
       } else {
         // 로그인되지 않은 경우 로그인 페이지로 이동
         router.push('/login');

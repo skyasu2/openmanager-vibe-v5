@@ -71,7 +71,7 @@ async function globalSetup(config: FullConfig) {
         // 데이터 생성기 확인
         try {
             console.log('🔍 데이터 생성기 상태 확인...');
-            const dataResponse = await page.goto(`${baseURL}/api/data-generator/unified`, {
+            const dataResponse = await page.goto(`${baseURL}/api/dashboard`, {
                 timeout: 15000,
             });
 

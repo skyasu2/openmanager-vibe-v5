@@ -231,7 +231,7 @@ export class UnifiedMetricsManager {
     }
     // 1. 메트릭 생성 스케줄러 - 🚨 응급: 20초 → 10분으로 대폭 증가
     if (this.config.generation.enabled) {
-      TimerManager.register({
+      TimerManager.getInstance().register({
         id: 'unified-metrics-generation',
         callback: async () => await this.generateMetrics(),
         interval: 600000, // 🚨 응급: 10분 (Edge Request 사용량 감소)
@@ -242,7 +242,7 @@ export class UnifiedMetricsManager {
 
     // 2. AI 분석 스케줄러 - 🚨 응급: 60초 → 30분으로 대폭 증가
     if (this.config.ai_analysis.enabled) {
-      TimerManager.register({
+      TimerManager.getInstance().register({
         id: 'unified-ai-analysis',
         callback: async () => {
           console.log('🤖 AI 분석 수행 중...');
@@ -256,7 +256,7 @@ export class UnifiedMetricsManager {
 
     // 3. 자동 스케일링 스케줄러 - 🎯 데이터 생성기 간격의 4배로 조정 (60초 → 80초)
     if (this.config.autoscaling.enabled) {
-      TimerManager.register({
+      TimerManager.getInstance().register({
         id: 'unified-autoscaling',
         callback: async () => {
           console.log('⚖️ 자동 스케일링 수행 중...');
@@ -269,7 +269,7 @@ export class UnifiedMetricsManager {
     }
 
     // 4. 성능 모니터링 스케줄러 - 🚨 응급: 120초 → 1시간으로 대폭 증가
-    TimerManager.register({
+    TimerManager.getInstance().register({
       id: 'unified-performance-monitor',
       callback: async () => await this.monitorPerformance(),
       interval: 3600000, // 🚨 응급: 1시간 (Edge Request 사용량 감소)
@@ -834,10 +834,10 @@ export class UnifiedMetricsManager {
     console.log('🛑 통합 메트릭 관리자 중지...');
 
     // 모든 타이머 해제
-    TimerManager.unregister('unified-metrics-generation');
-    TimerManager.unregister('unified-ai-analysis');
-    TimerManager.unregister('unified-autoscaling');
-    TimerManager.unregister('unified-performance-monitor');
+    TimerManager.getInstance().unregister('unified-metrics-generation');
+    TimerManager.getInstance().unregister('unified-ai-analysis');
+    TimerManager.getInstance().unregister('unified-autoscaling');
+    TimerManager.getInstance().unregister('unified-performance-monitor');
 
     // Prometheus 허브 중지
     // await prometheusDataHub.stop();
