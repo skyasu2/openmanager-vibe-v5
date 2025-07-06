@@ -124,7 +124,7 @@ export class GCPRealServerDataGenerator {
                 network_in: typeof server.network === 'number' ? server.network : 0,
                 network_out: typeof server.network === 'number' ? server.network : 0,
                 response_time: 0,
-                uptime: server.uptime,
+                uptime: typeof server.uptime === 'number' ? server.uptime : 0,
                 last_updated: server.lastCheck,
                 alerts: []
             }));
@@ -628,7 +628,7 @@ export class GCPRealServerDataGenerator {
                 memory: server.memory,
                 disk: server.disk,
                 network: server.network || 0,
-                uptime: server.uptime || 0,
+                uptime: typeof server.uptime === 'number' ? server.uptime : 0,
                 lastUpdate: new Date(),
                 lastCheck: new Date().toISOString(),
                 region: 'error-region',
