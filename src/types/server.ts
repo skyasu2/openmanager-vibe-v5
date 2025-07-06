@@ -14,12 +14,37 @@ export interface ServerInstance {
   version: string;
   tags: string[];
   alerts: number;
-  metrics?: {
-    cpu: number;
-    memory: number;
-    disk: number;
-    network: number;
+
+  // 🔧 누락된 속성들 추가
+  location?: string;
+  lastUpdated?: string;
+  provider?: string;
+
+  // 🔧 확장된 속성들 - 누락된 속성 오류 해결
+  health?: ServerHealth;
+
+  specs?: ServerSpecs;
+
+  requests?: {
+    total: number;
+    success: number;
+    errors: number;
+    averageTime: number;
   };
+
+  errors?: {
+    count: number;
+    recent: string[];
+    lastError?: string;
+  };
+
+  custom?: {
+    updateInterval?: number;
+    enableMockData?: boolean;
+    [key: string]: any;
+  };
+
+  metrics?: ServerMetrics;
 }
 
 export interface Server {
@@ -132,10 +157,10 @@ export interface SystemInfo {
 }
 
 // 🔄 중복 제거: common.ts의 타입들 재사용
-import type { AlertSeverity, ServerStatus } from './common';
+import { ServerStatus, ServerHealth, ServerSpecs, ServerMetrics } from './server-common';
 
 // 다른 파일에서 사용할 수 있도록 재export
-export type { ServerStatus } from './common';
+export { ServerStatus, ServerHealth, ServerSpecs, ServerMetrics };
 
 export type ServerEnvironment =
   | 'production'
@@ -492,3 +517,16 @@ export interface TimeSeriesMetrics {
   network: number;
   processes?: ProcessInfo[];
 }
+
+export type ServerStatus =
+  | 'running'
+  | 'stopped'
+  | 'error'
+  | 'healthy'
+  | 'warning'
+  | 'critical'
+  | 'offline'
+  | 'maintenance'
+  | 'online'    // 🔧 data-generator 호환성을 위해 추가
+  | 'active'    // 🔧 추가 호환성
+  | 'inactive'; // 🔧 추가 호환성

@@ -39,8 +39,13 @@ export class AnalysisProcessor {
   private openSourceEngines?: OpenSourceEngines;
   private customEngines?: CustomEngines;
 
-  private constructor() {
+  constructor(
+    private localRAG: LocalRAGEngine,
+    private mcpEngine: MCPEngine,
+    googleAI?: typeof GoogleAIService,
+  ) {
     this.degradationManager = GracefulDegradationManager.getInstance();
+    this.googleAI = googleAI;
   }
 
   public static getInstance(): AnalysisProcessor {

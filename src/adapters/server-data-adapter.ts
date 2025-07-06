@@ -8,10 +8,6 @@
  * - 실시간 검증 및 폴백 메커니즘
  */
 
-import {
-  determineServerStatus,
-  ServerMetrics,
-} from '@/config/server-status-thresholds';
 import { ServerInstance } from '@/types/data-generator';
 import { Server } from '@/types/server';
 
@@ -107,89 +103,88 @@ export function transformServerInstancesToServersOptimized(
 export function transformServerInstanceToServerOptimized(
   serverInstance: ServerInstance
 ): Server {
-  // 🎯 필수 메트릭만 추출 (성능 최적화)
-  const {
-    cpu = 0,
-    memory = 0,
-    disk = 0,
-    network,
-    uptime = 0,
-  } = serverInstance.metrics || {};
-  const networkIn = network?.in || 0;
-  const networkOut = network?.out || 0;
+  // 🔧 안전한 속성 접근
+  const id = serverInstance.id;
+  const name = serverInstance.name;
+  const instanceLocation = serverInstance.location;
+  const status = serverInstance.status;
+  const instanceMetrics = serverInstance.metrics;
+  const instanceSpecs = serverInstance.specs;
+  const lastUpdated = serverInstance.lastUpdated;
+  const region = serverInstance.region;
+  const provider = serverInstance.provider;
 
-  // 🚀 상태 판별 최적화 (한 번만 계산)
-  const serverMetrics: ServerMetrics = {
-    cpu,
-    memory,
-    disk,
-    responseTime: 0,
-    networkLatency: 0,
-  };
-  const status = determineServerStatus(serverMetrics);
+  // 🔧 안전한 메트릭 접근
+  const safeMetrics = instanceMetrics || {};
+  const cpu = safeMetrics.cpu || 0;
+  const memory = safeMetrics.memory || 0;
+  const disk = safeMetrics.disk || 0;
+  const network = safeMetrics.network || 0;
+  const metricsUptime = safeMetrics.uptime;
 
-  // 🎯 최소한의 변환으로 완전한 Server 객체 생성
+  // 🔧 안전한 스펙 접근 - data-generator와 server 타입 호환
+  const safeSpecs = instanceSpecs || {};
+  const cpuCores = 'cpu_cores' in safeSpecs
+    ? (safeSpecs as any).cpu_cores
+    : 'cpu' in safeSpecs && safeSpecs.cpu && typeof safeSpecs.cpu === 'object' && 'cores' in safeSpecs.cpu
+      ? safeSpecs.cpu.cores
+      : 4;
+
+  const memoryGb = 'memory_gb' in safeSpecs
+    ? (safeSpecs as any).memory_gb
+    : 'memory' in safeSpecs && safeSpecs.memory && typeof safeSpecs.memory === 'object' && 'total' in safeSpecs.memory
+      ? safeSpecs.memory.total
+      : 8;
+
+  const diskGb = 'disk_gb' in safeSpecs
+    ? (safeSpecs as any).disk_gb
+    : 'disk' in safeSpecs && safeSpecs.disk && typeof safeSpecs.disk === 'object' && 'total' in safeSpecs.disk
+      ? safeSpecs.disk.total
+      : 100;
+
+  const networkSpeed = 'network_speed' in safeSpecs
+    ? (safeSpecs as any).network_speed
+    : '1Gbps';
+
+  // 🔧 네트워크 타입 안전 처리
+  const networkValue = typeof network === 'number' ? network : 0;
+  const networkIn = typeof network === 'object' && network && 'in' in network ? (network as any).in : networkValue;
+  const networkOut = typeof network === 'object' && network && 'out' in network ? (network as any).out : networkValue;
+
+  const location = instanceLocation || region || 'Unknown';
+
   return {
-    id: serverInstance.id,
-    name: serverInstance.name,
-    status: status as any,
+    id,
+    name,
+    location,
+    status: status as any, // 🔧 타입 호환성
     cpu,
     memory,
     disk,
-    network: networkIn,
-    uptime: formatUptimeOptimized(uptime),
-    location: serverInstance.location || 'Unknown',
-    alerts: calculateAlertsOptimized(cpu, memory, disk),
+    network: networkValue,
+    uptime: metricsUptime || serverInstance.uptime || 0,
+    lastUpdated: lastUpdated || new Date().toISOString(),
+    provider: provider || 'Unknown',
 
-    // 🚀 필수 필드만 생성 (성능 최적화)
-    ip: generateIPOptimized(serverInstance.id),
-    os: serverInstance.specs?.cpu?.model?.includes('Intel')
-      ? 'Ubuntu 22.04'
-      : 'CentOS 8',
-    hostname: serverInstance.name,
-    type: serverInstance.type || 'application',
-    environment: serverInstance.environment || 'production',
-    provider: 'AWS',
+    // 🔧 확장된 속성들
+    os: cpuCores > 4 ? 'Linux Enterprise' : 'Linux Standard',
 
-    specs: {
-      cpu_cores: serverInstance.specs?.cpu?.cores || 4,
-      memory_gb: serverInstance.specs?.memory?.total || 8,
-      disk_gb: serverInstance.specs?.disk?.total || 100,
-      network_speed: networkIn > 80 ? '1Gbps' : '100Mbps',
+    // 상세 정보
+    details: {
+      cpu_cores: cpuCores,
+      memory_gb: memoryGb,
+      disk_gb: diskGb,
+      network_speed: networkSpeed,
     },
 
-    lastUpdate: new Date(),
-    services: transformServicesOptimized(serverInstance.type),
-    networkStatus: mapNetworkStatusOptimized(networkIn + networkOut),
-
-    // 🎯 경량화된 시스템 정보
-    systemInfo: {
-      os: serverInstance.specs?.cpu?.model?.includes('Intel')
-        ? 'Ubuntu 22.04'
-        : 'CentOS 8',
-      uptime: formatUptimeOptimized(uptime),
-      processes: Math.floor(cpu * 2) + 50, // CPU 기반 프로세스 수
-      zombieProcesses: cpu > 90 ? Math.floor(Math.random() * 5) : 0,
-      loadAverage: `${(cpu / 100).toFixed(2)} ${((cpu / 100) * 1.2).toFixed(2)} ${((cpu / 100) * 1.5).toFixed(2)}`,
-      lastUpdate: new Date().toISOString(),
+    // 네트워크 상세 정보
+    networkDetails: {
+      os: cpuCores > 4 ? 'Linux Enterprise' : 'Linux Standard',
+      in: networkIn,
+      out: networkOut,
+      total: networkIn + networkOut,
     },
-
-    // 🎯 경량화된 네트워크 정보
-    networkInfo: {
-      interface: 'eth0',
-      receivedBytes: `${(networkIn * 1024).toFixed(0)} KB`,
-      sentBytes: `${(networkOut * 1024).toFixed(0)} KB`,
-      receivedErrors: 0,
-      sentErrors: 0,
-      status: mapNetworkStatusOptimized(networkIn + networkOut),
-      cpu_usage: cpu,
-      memory_usage: memory,
-      disk_usage: disk,
-      uptime,
-      last_updated: new Date().toISOString(),
-      alerts: [],
-    },
-  };
+  } as Server;
 }
 
 // ============================================================================

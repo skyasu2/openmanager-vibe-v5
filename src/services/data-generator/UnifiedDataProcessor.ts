@@ -870,6 +870,14 @@ export class UnifiedDataProcessor {
   private createStandardMetricsFromServerInstance(
     serverInstance: ServerInstance
   ): StandardServerMetrics {
+    // 안전 접근 패턴 적용
+    const metrics = serverInstance.metrics || { cpu: 0, memory: 0, disk: 0, network: 0 };
+    const specs = serverInstance.specs || {
+      cpu_cores: 4,
+      memory_gb: 8,
+      disk_gb: 100
+    };
+
     return {
       serverId: serverInstance.id,
       hostname: serverInstance.name, // ServerInstance는 name 속성 사용
@@ -877,38 +885,38 @@ export class UnifiedDataProcessor {
       status: this.mapServerStatus(serverInstance.status),
       metrics: {
         cpu: {
-          usage: serverInstance.metrics.cpu,
+          usage: metrics.cpu,
           loadAverage: [
-            serverInstance.metrics.cpu / 100,
-            serverInstance.metrics.cpu / 100,
-            serverInstance.metrics.cpu / 100,
+            metrics.cpu / 100,
+            metrics.cpu / 100,
+            metrics.cpu / 100,
           ],
-          cores: serverInstance.specs.cpu.cores || 4,
+          cores: specs.cpu_cores || 4,
         },
         memory: {
-          total: serverInstance.specs.memory.total,
+          total: (specs.memory_gb || 8) * 1024 * 1024 * 1024, // GB to bytes
           used:
-            (serverInstance.metrics.memory / 100) *
-            serverInstance.specs.memory.total,
+            (metrics.memory / 100) *
+            (specs.memory_gb || 8) * 1024 * 1024 * 1024,
           available:
-            ((100 - serverInstance.metrics.memory) / 100) *
-            serverInstance.specs.memory.total,
-          usage: serverInstance.metrics.memory,
+            ((100 - metrics.memory) / 100) *
+            (specs.memory_gb || 8) * 1024 * 1024 * 1024,
+          usage: metrics.memory,
         },
         disk: {
-          total: serverInstance.specs.disk.total,
+          total: (specs.disk_gb || 100) * 1024 * 1024 * 1024, // GB to bytes
           used:
-            (serverInstance.metrics.disk / 100) *
-            serverInstance.specs.disk.total,
+            (metrics.disk / 100) *
+            (specs.disk_gb || 100) * 1024 * 1024 * 1024,
           available:
-            ((100 - serverInstance.metrics.disk) / 100) *
-            serverInstance.specs.disk.total,
-          usage: serverInstance.metrics.disk,
-          iops: { read: serverInstance.specs.disk.iops || 100, write: 50 },
+            ((100 - metrics.disk) / 100) *
+            (specs.disk_gb || 100) * 1024 * 1024 * 1024,
+          usage: metrics.disk,
+          iops: { read: 100, write: 50 }, // 기본값
         },
         network: {
-          bytesReceived: serverInstance.metrics.network.in * 1024 * 1024,
-          bytesSent: serverInstance.metrics.network.out * 1024 * 1024,
+          bytesReceived: (typeof metrics.network === 'number' ? metrics.network : 0) * 1024 * 1024,
+          bytesSent: (typeof metrics.network === 'number' ? metrics.network : 0) * 1024 * 1024,
           packetsReceived: 1000,
           packetsSent: 800,
           interface: 'eth0', // 기본 네트워크 인터페이스
@@ -928,7 +936,7 @@ export class UnifiedDataProcessor {
         },
       ],
       metadata: {
-        location: serverInstance.location || 'unknown',
+        location: serverInstance.region || 'unknown',
         environment: serverInstance.environment || 'production',
         provider: 'onpremise',
         cluster: undefined,
