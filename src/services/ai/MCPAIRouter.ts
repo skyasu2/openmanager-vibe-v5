@@ -164,8 +164,15 @@ export class MCPAIRouter {
       });
 
       return {
-        ...response,
+        success: true,
+        source: 'mcp' as const,
+        responseTime: Date.now() - startTime,
+        results: results,
+        summary: response?.summary || '작업이 완료되었습니다.',
+        confidence: response?.confidence || 0.8,
         processingTime: Date.now() - startTime,
+        enginesUsed: response?.enginesUsed || ['mcp'],
+        recommendations: response?.recommendations || [],
         metadata: {
           tasksExecuted: results.length,
           successRate: results.filter(r => r.success).length / results.length,
