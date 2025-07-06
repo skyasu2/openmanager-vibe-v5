@@ -7,7 +7,6 @@
 
 export interface EnvironmentConfig {
   // 🎯 핵심 환경 정보
-  NODE_ENV: 'development' | 'production' | 'test';
   IS_VERCEL: boolean;
   IS_RENDER: boolean;
   IS_LOCAL: boolean;
@@ -110,14 +109,13 @@ function detectPlatform(): 'local' | 'vercel' | 'render' | 'unknown' {
  */
 export function getEnvironmentConfig(): EnvironmentConfig {
   const platform = detectPlatform();
-  const nodeEnv = getEnvVar('NODE_ENV', 'development') as 'development' | 'production' | 'test';
 
   const isVercel = platform === 'vercel';
   const isRender = platform === 'render';
   const isLocal = platform === 'local';
-  const isProduction = nodeEnv === 'production';
-  const isDevelopment = nodeEnv === 'development';
-  const isTest = nodeEnv === 'test';
+  const isProduction = getEnvVar('NODE_ENV', 'development') === 'production';
+  const isDevelopment = getEnvVar('NODE_ENV', 'development') === 'development';
+  const isTest = getEnvVar('NODE_ENV', 'development') === 'test';
 
   // 🗄️ 데이터베이스 연결 상태 확인
   const supabaseUrl = getEnvVar('NEXT_PUBLIC_SUPABASE_URL');
@@ -127,7 +125,6 @@ export function getEnvironmentConfig(): EnvironmentConfig {
 
   return {
     // 🎯 핵심 환경 정보
-    NODE_ENV: nodeEnv,
     IS_VERCEL: isVercel,
     IS_RENDER: isRender,
     IS_LOCAL: isLocal,
@@ -390,7 +387,7 @@ export function envLog(message: string, data?: any): void {
 export function shouldEnableDebugLogging(): boolean {
   const config = getEnvironmentConfig();
   return (
-    config.NODE_ENV === 'development' || process.env.DEBUG_LOGGING === 'true'
+    config.IS_DEVELOPMENT || process.env.DEBUG_LOGGING === 'true'
   );
 }
 
@@ -473,7 +470,7 @@ export function logEnvironmentStatus(): void {
   const validation = validateEnvironmentConfig();
 
   console.log('🌍 ===== 환경 설정 상태 =====');
-  console.log(`📋 NODE_ENV: ${config.NODE_ENV}`);
+  console.log(`📋 NODE_ENV: ${config.IS_DEVELOPMENT ? 'development' : config.IS_PRODUCTION ? 'production' : 'test'}`);
   console.log(`🏷️ Platform: ${config.platform}`);
   console.log(`☁️ Vercel: ${config.IS_VERCEL ? '✅ 활성화' : '❌ 비활성화'}`);
   console.log(`🏠 Local: ${config.IS_LOCAL ? '✅ 활성화' : '❌ 비활성화'}`);

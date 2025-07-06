@@ -201,17 +201,17 @@ function getMetricValue(prediction: any, metric: string): number {
 function getServerMetricValue(server: any, metric: string): number {
   switch (metric) {
     case 'cpu':
-      return server.metrics.cpu;
+      return server.metrics?.cpu || 0;
     case 'memory':
-      return server.metrics.memory;
+      return server.metrics?.memory || 0;
     case 'disk':
-      return server.metrics.disk;
+      return server.metrics?.disk || 0;
     case 'network':
-      return server.metrics.network.in;
+      return (server.metrics?.network as any)?.in || 0;
     case 'response_time':
-      return server.metrics.requests > 0 ? 1000 / server.metrics.requests : 100;
+      return server.metrics?.requests > 0 ? 1000 / server.metrics.requests : 100;
     default:
-      return server.metrics.cpu;
+      return server.metrics?.cpu || 0;
   }
 }
 
@@ -262,12 +262,12 @@ function generateTimeSeriesData(server: any, hours: number): any[] {
 
     data.push({
       timestamp,
-      cpu: Math.max(0, Math.min(100, server.metrics.cpu + variation * 20)),
+      cpu: Math.max(0, Math.min(100, (server.metrics?.cpu || 0) + variation * 20)),
       memory: Math.max(
         0,
-        Math.min(100, server.metrics.memory + variation * 15)
+        Math.min(100, (server.metrics?.memory || 0) + variation * 15)
       ),
-      disk: Math.max(0, Math.min(100, server.metrics.disk + variation * 10)),
+      disk: Math.max(0, Math.min(100, (server.metrics?.disk || 0) + variation * 10)),
     });
   }
 

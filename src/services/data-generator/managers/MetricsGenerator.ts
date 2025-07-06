@@ -131,26 +131,16 @@ export class GCPMetricsCollector {
      * 🌐 실제 GCP 메트릭을 서버 인스턴스에 적용
      */
     private applyGCPMetrics(server: ServerInstance, gcpMetrics: GCPMetricData): void {
-        // 🔄 GCP 메트릭 기반 서버 상태 업데이트
-        if (!server.metrics) {
-            server.metrics = {
-                cpu: 0,
-                memory: 0,
-                disk: 0,
-                network: { in: 0, out: 0 },
-                requests: 0,
-                errors: 0,
-                uptime: 0
-            };
-        }
+        // GCP 메트릭을 서버 메트릭에 적용
+        if (server.metrics) {
+            server.metrics.cpu = gcpMetrics.cpu || 0;
+            server.metrics.memory = gcpMetrics.memory || 0;
+            server.metrics.disk = gcpMetrics.disk || 0;
+            server.metrics.network = gcpMetrics.network || { in: 0, out: 0 };
 
-        server.metrics.cpu = gcpMetrics.cpu || 0;
-        server.metrics.memory = gcpMetrics.memory || 0;
-        server.metrics.disk = gcpMetrics.disk || 0;
-        server.metrics.network = gcpMetrics.network || { in: 0, out: 0 };
-        (server.metrics as any).requests = gcpMetrics.requests || 0;
-        (server.metrics as any).errors = gcpMetrics.errors || 0;
-        server.metrics.uptime = gcpMetrics.uptime || 0;
+            // 추가 메트릭
+            server.metrics.uptime = gcpMetrics.uptime || 0;
+        }
 
         // 서버 상태 결정 (허용된 상태만 사용)
         const statusValue = this.determineServerStatus(gcpMetrics);
