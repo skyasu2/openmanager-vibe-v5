@@ -14,7 +14,7 @@ import {
 } from '@/config/competition-config';
 import { smartRedis } from '@/lib/redis';
 import type { ServerInstance } from '@/types/data-generator';
-import { realServerDataGenerator } from '../data-generator/RealServerDataGenerator';
+import { createServerDataGenerator } from '../data-generator/RealServerDataGenerator';
 
 export interface DataBrokerMetrics {
   cacheHitRate: number;
@@ -283,8 +283,8 @@ export class UnifiedDataBroker {
     try {
       if (key.includes('metrics')) {
         // 서버 메트릭 데이터 집계
-        const servers = realServerDataGenerator.getAllServers();
-        const summary = realServerDataGenerator.getDashboardSummary();
+        const servers = createServerDataGenerator.getAllServers();
+        const summary = createServerDataGenerator.getDashboardSummary();
 
         return {
           metrics: {
@@ -302,10 +302,10 @@ export class UnifiedDataBroker {
         };
       } else {
         return {
-          servers: realServerDataGenerator.getAllServers(),
-          clusters: realServerDataGenerator.getAllClusters(),
-          applications: realServerDataGenerator.getAllApplications(),
-          summary: realServerDataGenerator.getDashboardSummary(),
+          servers: createServerDataGenerator.getAllServers(),
+          clusters: createServerDataGenerator.getAllClusters(),
+          applications: createServerDataGenerator.getAllApplications(),
+          summary: createServerDataGenerator.getDashboardSummary(),
           timestamp: new Date(),
         };
       }

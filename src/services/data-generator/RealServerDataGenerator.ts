@@ -6,7 +6,7 @@
  */
 
 import { systemLogger } from '@/lib/logger';
-import { ServerData } from '@/types/server';
+import { ServerInstance } from '@/types/server';
 
 interface ServerGenerationConfig {
     count?: number;
@@ -36,9 +36,9 @@ export class RequestScopedServerDataGenerator {
     /**
      * 🔧 서버 데이터 생성 (요청별)
      */
-    async generateServers(): Promise<ServerData[]> {
+    async generateServers(): Promise<ServerInstance[]> {
         try {
-            const servers: ServerData[] = [];
+            const servers: ServerInstance[] = [];
 
             for (let i = 1; i <= this.config.count; i++) {
                 const server = this.createServerData(i);
@@ -56,7 +56,7 @@ export class RequestScopedServerDataGenerator {
     /**
      * 🔧 개별 서버 데이터 생성
      */
-    private createServerData(index: number): ServerData {
+    private createServerData(index: number): ServerInstance {
         const serverTypes = ['web', 'api', 'database', 'cache', 'worker'];
         const environments = ['production', 'staging', 'development'];
         const regions = ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1'];

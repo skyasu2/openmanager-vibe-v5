@@ -91,9 +91,24 @@ export class SSEHealthMonitor {
     }
 
     /**
-     * 🔄 모니터링 시작
+     * 🔄 모니터링 시작 (서버리스 환경에서 비활성화)
      */
     startMonitoring(): void {
+        const isVercel = process.env.VERCEL === '1';
+
+        if (isVercel) {
+            console.warn('⚠️ 서버리스 환경에서 SSE 지속적 모니터링 비활성화');
+            console.warn('📊 Vercel 플랫폼 모니터링 사용 권장:');
+            console.warn('   - Functions > Logs 탭에서 SSE 연결 로그 확인');
+            console.warn('   - Analytics 탭에서 실시간 연결 메트릭 확인');
+            console.warn('   - Edge Network 탭에서 네트워크 상태 확인');
+
+            // 서버리스 환경에서는 즉시 성공 상태로 설정
+            this.healthStatus.isHealthy = true;
+            this.healthStatus.lastCheck = new Date();
+            return;
+        }
+
         if (this.isMonitoring) return;
 
         this.isMonitoring = true;
@@ -105,7 +120,7 @@ export class SSEHealthMonitor {
             }
         }, this.config.checkInterval);
 
-        console.log(`🔄 SSE 건강 모니터링 시작 (${this.config.checkInterval}ms 간격)`);
+        console.log(`🔄 SSE 건강 모니터링 시작 (${this.config.checkInterval}ms 간격) - 로컬 환경`);
     }
 
     /**

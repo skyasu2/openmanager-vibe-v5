@@ -343,9 +343,20 @@ export class VMMultiServiceOrchestrator extends EventEmitter {
     }
 
     /**
-     * 🔄 헬스체크 시작
+     * 🔄 헬스체크 시작 (서버리스 환경에서 비활성화)
      */
     private startHealthCheck(): void {
+        const isVercel = process.env.VERCEL === '1';
+
+        if (isVercel) {
+            console.warn('⚠️ 서버리스 환경에서 VM 헬스체크 비활성화');
+            console.warn('📊 Vercel 플랫폼 모니터링 사용 권장:');
+            console.warn('   - Functions > Health 탭에서 함수 상태 확인');
+            console.warn('   - Analytics 탭에서 성능 메트릭 확인');
+            console.warn('   - Edge Network 탭에서 네트워크 상태 확인');
+            return;
+        }
+
         this.healthCheckInterval = setInterval(async () => {
             try {
                 // MCP 서버 헬스체크
@@ -369,7 +380,7 @@ export class VMMultiServiceOrchestrator extends EventEmitter {
             }
         }, this.config.healthCheckInterval);
 
-        systemLogger.info(`🔄 헬스체크 시작 (${this.config.healthCheckInterval / 1000}초 간격)`);
+        systemLogger.info(`🔄 헬스체크 시작 (${this.config.healthCheckInterval / 1000}초 간격) - 로컬 환경`);
     }
 
     /**

@@ -9,8 +9,8 @@
  */
 
 import { EventEmitter } from 'events';
-import { SystemWatchdog } from './SystemWatchdog';
 import { systemLogger } from '../../lib/logger';
+import { SystemWatchdog } from './SystemWatchdog';
 
 export interface ProcessConfig {
   id: string;
@@ -28,12 +28,12 @@ export interface ProcessConfig {
 export interface ProcessState {
   id: string;
   status:
-    | 'stopped'
-    | 'starting'
-    | 'running'
-    | 'stopping'
-    | 'error'
-    | 'restarting';
+  | 'stopped'
+  | 'starting'
+  | 'running'
+  | 'stopping'
+  | 'error'
+  | 'restarting';
   startedAt?: Date;
   stoppedAt?: Date;
   lastHealthCheck?: Date;
@@ -390,14 +390,25 @@ export class ProcessManager extends EventEmitter {
   }
 
   /**
-   * 헬스체크 시스템
+   * 🚫 헬스체크 시스템 (서버리스 환경에서 비활성화)
    */
   private startHealthChecks(): void {
+    const isVercel = process.env.VERCEL === '1';
+
+    if (isVercel) {
+      console.warn('⚠️ 서버리스 환경에서 지속적 헬스체크 비활성화');
+      console.warn('📊 Vercel 플랫폼 모니터링 사용 권장:');
+      console.warn('   - Functions > Logs 탭에서 실시간 로그 확인');
+      console.warn('   - Analytics 탭에서 성능 메트릭 확인');
+      console.warn('   - Functions > Errors 탭에서 에러 추적');
+      return;
+    }
+
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
     }
 
-    systemLogger.system('💓 헬스체크 시스템 시작');
+    systemLogger.system('💓 헬스체크 시스템 시작 (로컬 환경)');
 
     this.healthCheckInterval = setInterval(async () => {
       const healthPromises = Array.from(this.processes.entries()).map(
