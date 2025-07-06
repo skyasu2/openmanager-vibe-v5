@@ -1,6 +1,10 @@
 import { EngineResult } from './types';
 
-const googleAI = GoogleAIService.getInstance();
+// 🚫 GoogleAIService.getInstance() 제거됨 - 서버리스 환경에서 사용 금지
+// 대신 createGoogleAIService() 팩토리 함수 사용 권장
+
+console.warn('⚠️ FallbackManager: GoogleAIService.getInstance() 제거됨');
+console.warn('🔧 대신 createGoogleAIService()를 사용하세요');
 
 export class FallbackManager {
   private enabled = process.env.EXTERNAL_AI_FALLBACK_ENABLED !== 'false';

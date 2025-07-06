@@ -30,6 +30,14 @@ interface ModeUsageStats {
   GOOGLE_ONLY: number;
 }
 
+interface ModeHistoryEntry {
+  mode: string;
+  timestamp: number;
+  success: boolean;
+  latency?: number;
+  error?: string;
+}
+
 export class GoogleAIModeManager {
   private googleAI: RequestScopedGoogleAIService;
   private config: GoogleAIModeConfig;
@@ -37,6 +45,8 @@ export class GoogleAIModeManager {
   private stats: AIEngineStats;
   private initialized = false;
   private modeHistory: ModeHistoryEntry[] = [];
+  private lastModeSwitch: number = 0;
+  private readonly MODE_SWITCH_COOLDOWN = 30000; // 30초
 
   constructor(config?: Partial<GoogleAIModeConfig>) {
     this.config = {

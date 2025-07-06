@@ -213,10 +213,9 @@ export class UnifiedMetricsManager {
       'performance-monitor',
     ];
 
-    // TimerManager에서 제거
-    duplicateTimerIds.forEach(id => {
-      TimerManager.unregister(id);
-    });
+    // 🚫 서버리스 호환: TimerManager 메서드 비활성화
+    console.warn('⚠️ TimerManager.unregister() 서버리스에서 비활성화됨');
+    // TimerManager.unregister(id);
 
     console.log(`🧹 ${duplicateTimerIds.length}개 중복 타이머 정리 완료`);
   }

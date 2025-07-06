@@ -283,8 +283,14 @@ export class UnifiedDataBroker {
     try {
       if (key.includes('metrics')) {
         // 서버 메트릭 데이터 집계
-        const servers = createServerDataGenerator.getAllServers();
-        const summary = createServerDataGenerator.getDashboardSummary();
+        // 🚫 서버리스 호환: 요청별 데이터 생성기 생성
+        const dataGenerator = createServerDataGenerator({
+          count: 16,
+          includeMetrics: true
+        });
+
+        const servers = await dataGenerator.generateServers();
+        const summary = await dataGenerator.generateDashboardSummary();
 
         return {
           metrics: {

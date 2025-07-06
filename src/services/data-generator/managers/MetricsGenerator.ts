@@ -1,332 +1,305 @@
 /**
- * 📊 메트릭 생성기 v1.0
+ * 🌐 GCP 실제 메트릭 수집기 v2.0
  * 
+ * 목적: 시뮬레이션 제거, GCP에서 실제 서버 메트릭 수집
  * 책임:
- * - 서버 메트릭 업데이트
- * - 시뮬레이션 로직
- * - 로드 멀티플라이어 적용
- * - 인시던트 시뮬레이션
+ * - GCP Monitoring API 연동
+ * - 실제 서버 메트릭 수집
+ * - 메트릭 데이터 변환
+ * - 실시간 모니터링
  */
 
-import type {
-    ServerInstance,
-    SimulationConfig
-} from '@/types/data-generator';
+import type { ServerInstance } from '@/types/data-generator';
 
-export class MetricsGenerator {
-    private simulationConfig: SimulationConfig;
-    private serverBaselines = new Map<string, any>();
-    private incidentStates = new Map<string, { active: boolean; startTime: number; type: string }>();
+interface GCPMetricsConfig {
+    projectId: string;
+    region: string;
+    sessionId: string;
+    refreshInterval: number;
+}
 
-    constructor(simulationConfig: SimulationConfig) {
-        this.simulationConfig = simulationConfig;
+interface GCPMetricData {
+    serverId: string;
+    timestamp: Date;
+    cpu: number;
+    memory: number;
+    disk: number;
+    network: {
+        in: number;
+        out: number;
+    };
+    requests: number;
+    errors: number;
+    uptime: number;
+    customMetrics?: Record<string, any>;
+}
+
+export class GCPMetricsCollector {
+    private config: GCPMetricsConfig;
+    private lastCollectionTime = 0;
+    private metricsCache = new Map<string, GCPMetricData>();
+
+    constructor(config: GCPMetricsConfig) {
+        this.config = config;
+        console.log('🌐 GCP 실제 메트릭 수집기 초기화');
+        console.log(`📡 프로젝트: ${config.projectId}`);
+        console.log(`🌍 리전: ${config.region}`);
     }
 
     /**
-     * 서버 메트릭 업데이트
+     * 🌐 GCP에서 실제 서버 메트릭 수집 및 업데이트
      */
-    updateServerMetrics(
-        server: ServerInstance,
-        loadMultiplier: number,
-        realMetrics?: any
-    ): void {
-        const baseline = this.getOrCreateBaseline(server.id, server.type);
-        const timeMultiplier = this.getTimeMultiplier(new Date().getHours());
-        const finalMultiplier = loadMultiplier * timeMultiplier;
+    async updateServerMetrics(server: ServerInstance): Promise<void> {
+        try {
+            // GCP에서 실제 메트릭 수집
+            const gcpMetrics = await this.collectGCPMetrics(server.id);
 
-        // CPU 메트릭 업데이트
-        server.metrics.cpu = Math.min(
-            100,
-            baseline.cpu * finalMultiplier + (Math.random() - 0.5) * 10
-        );
+            if (!gcpMetrics) {
+                throw new Error(`GCP에서 서버 ${server.id}의 메트릭을 찾을 수 없습니다`);
+            }
 
-        // 메모리 메트릭 업데이트
-        server.metrics.memory = Math.min(
-            100,
-            baseline.memory * finalMultiplier + (Math.random() - 0.5) * 8
-        );
+            // 실제 메트릭으로 서버 데이터 업데이트
+            this.applyGCPMetrics(server, gcpMetrics);
 
-        // 디스크 메트릭 업데이트
-        server.metrics.disk = Math.min(
-            100,
-            baseline.disk + (Math.random() - 0.5) * 5
-        );
+            console.log(`✅ ${server.name}: GCP 실제 메트릭 업데이트 완료`);
+        } catch (error) {
+            console.error(`❌ ${server.name}: GCP 메트릭 수집 실패:`, error);
+            throw new Error(`GCP 메트릭 수집 실패: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
 
-        // 네트워크 메트릭 업데이트
-        const networkBaseline = baseline.network || { in: 100, out: 50 };
-        server.metrics.network = {
-            in: Math.max(0, networkBaseline.in * finalMultiplier + (Math.random() - 0.5) * 50),
-            out: Math.max(0, networkBaseline.out * finalMultiplier + (Math.random() - 0.5) * 30),
+    /**
+     * 📡 GCP Monitoring API에서 메트릭 수집
+     */
+    private async collectGCPMetrics(serverId: string): Promise<GCPMetricData | null> {
+        try {
+            // 캐시 확인 (최근 수집한 데이터가 있으면 사용)
+            const cached = this.metricsCache.get(serverId);
+            const now = Date.now();
+
+            if (cached && (now - this.lastCollectionTime) < this.config.refreshInterval) {
+                console.log(`📦 캐시된 GCP 메트릭 사용: ${serverId}`);
+                return cached;
+            }
+
+            // GCP Monitoring API 호출
+            const response = await fetch(`/api/gcp/metrics?serverId=${serverId}&sessionId=${this.config.sessionId}`);
+
+            if (!response.ok) {
+                throw new Error(`GCP API 호출 실패: ${response.status} ${response.statusText}`);
+            }
+
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(`GCP 메트릭 조회 실패: ${result.error}`);
+            }
+
+            // GCP 응답을 내부 형식으로 변환
+            const gcpMetrics = this.transformGCPResponse(result.data, serverId);
+
+            // 캐시 업데이트
+            this.metricsCache.set(serverId, gcpMetrics);
+            this.lastCollectionTime = now;
+
+            return gcpMetrics;
+        } catch (error) {
+            console.error(`GCP 메트릭 수집 실패 (${serverId}):`, error);
+            return null;
+        }
+    }
+
+    /**
+     * 🔄 GCP API 응답을 내부 메트릭 형식으로 변환
+     */
+    private transformGCPResponse(gcpData: any, serverId: string): GCPMetricData {
+        return {
+            serverId,
+            timestamp: new Date(),
+            cpu: this.extractCPUMetric(gcpData),
+            memory: this.extractMemoryMetric(gcpData),
+            disk: this.extractDiskMetric(gcpData),
+            network: this.extractNetworkMetrics(gcpData),
+            requests: this.extractRequestMetrics(gcpData),
+            errors: this.extractErrorMetrics(gcpData),
+            uptime: this.extractUptimeMetric(gcpData),
+            customMetrics: this.extractCustomMetrics(gcpData, serverId),
         };
+    }
 
-        // 요청 및 에러 메트릭
-        const requestsBaseline = baseline.requests || 1000;
-        server.metrics.requests = Math.max(
-            0,
-            Math.floor(requestsBaseline * finalMultiplier + (Math.random() - 0.5) * 200)
-        );
-
-        // 에러율 계산 (정상: 0.1%, 부하 시: 증가)
-        const baseErrorRate = server.metrics.cpu > 80 ? 0.005 : 0.001;
-        server.metrics.errors = Math.floor(
-            server.metrics.requests * baseErrorRate * (0.5 + Math.random())
-        );
-
-        // 업타임 업데이트 (시뮬레이션)
-        server.metrics.uptime += 0.1; // 6분마다 1시간 증가
-
-        // 인시던트 시뮬레이션 적용
-        this.simulateIncidents(server);
+    /**
+     * 🌐 실제 GCP 메트릭을 서버 인스턴스에 적용
+     */
+    private applyGCPMetrics(server: ServerInstance, gcpMetrics: GCPMetricData): void {
+        // 기본 메트릭 업데이트
+        server.metrics.cpu = Math.round(gcpMetrics.cpu);
+        server.metrics.memory = Math.round(gcpMetrics.memory);
+        server.metrics.disk = Math.round(gcpMetrics.disk);
+        server.metrics.network = {
+            in: Math.round(gcpMetrics.network.in),
+            out: Math.round(gcpMetrics.network.out),
+        };
+        server.metrics.requests = gcpMetrics.requests;
+        server.metrics.errors = gcpMetrics.errors;
+        server.metrics.uptime = gcpMetrics.uptime;
 
         // 커스텀 메트릭 업데이트
-        this.updateCustomMetrics(server, finalMultiplier);
+        if (gcpMetrics.customMetrics) {
+            server.metrics.customMetrics = {
+                ...server.metrics.customMetrics,
+                ...gcpMetrics.customMetrics,
+            };
+        }
 
-        // 실제 메트릭이 있다면 일부 적용
-        if (realMetrics) {
-            this.applyRealMetrics(server, realMetrics);
+        // 서버 상태 업데이트 (실제 메트릭 기반)
+        server.status = this.determineServerStatus(gcpMetrics);
+
+        // 마지막 체크 시간 업데이트
+        server.lastCheck = gcpMetrics.timestamp.toISOString();
+
+        // GCP 태그 추가
+        if (!server.tags.includes('source:gcp')) {
+            server.tags.push('source:gcp');
         }
     }
 
     /**
-     * 인시던트 시뮬레이션
+     * 🏥 실제 메트릭 기반 서버 상태 결정
      */
-    private simulateIncidents(server: ServerInstance): void {
-        const incidentState = this.incidentStates.get(server.id);
-        const now = Date.now();
+    private determineServerStatus(metrics: GCPMetricData): 'healthy' | 'warning' | 'critical' {
+        const { cpu, memory, disk, errors, requests } = metrics;
+        const errorRate = requests > 0 ? (errors / requests) * 100 : 0;
 
-        // 기존 인시던트 체크
-        if (incidentState?.active) {
-            const duration = now - incidentState.startTime;
-
-            if (duration > this.simulationConfig.incidents.duration) {
-                // 인시던트 종료
-                this.incidentStates.delete(server.id);
-                console.log(`🔧 ${server.name}: ${incidentState.type} 인시던트 해결됨`);
-            } else {
-                // 인시던트 진행 중 - 메트릭 악화
-                this.applyIncidentEffects(server, incidentState.type, duration);
-            }
-            return;
+        // Critical 조건 (GCP 권장 임계값)
+        if (cpu > 90 || memory > 95 || disk > 95 || errorRate > 5) {
+            return 'critical';
         }
 
-        // 새 인시던트 발생 확률 체크
-        if (Math.random() < this.simulationConfig.incidents.probability) {
-            const incidentTypes = ['cpu-spike', 'memory-leak', 'disk-full', 'network-congestion'];
-            const incidentType = incidentTypes[Math.floor(Math.random() * incidentTypes.length)];
-
-            this.incidentStates.set(server.id, {
-                active: true,
-                startTime: now,
-                type: incidentType,
-            });
-
-            console.log(`🚨 ${server.name}: ${incidentType} 인시던트 발생`);
+        // Warning 조건
+        if (cpu > 70 || memory > 80 || disk > 85 || errorRate > 1) {
+            return 'warning';
         }
+
+        return 'healthy';
     }
 
-    /**
-     * 인시던트 효과 적용
-     */
-    private applyIncidentEffects(server: ServerInstance, incidentType: string, duration: number): void {
-        const severity = Math.min(1, duration / (this.simulationConfig.incidents.duration * 0.5));
+    // ===== GCP 메트릭 추출 메서드들 =====
 
-        switch (incidentType) {
-            case 'cpu-spike':
-                server.metrics.cpu = Math.min(100, server.metrics.cpu + severity * 40);
-                break;
-            case 'memory-leak':
-                server.metrics.memory = Math.min(100, server.metrics.memory + severity * 30);
-                break;
-            case 'disk-full':
-                server.metrics.disk = Math.min(100, server.metrics.disk + severity * 25);
-                break;
-            case 'network-congestion':
-                server.metrics.network.in *= (1 + severity * 2);
-                server.metrics.network.out *= (1 + severity * 2);
-                break;
-        }
-
-        // 에러율 증가
-        const additionalErrors = Math.floor(server.metrics.requests * severity * 0.01);
-        server.metrics.errors += additionalErrors;
+    private extractCPUMetric(gcpData: any): number {
+        return gcpData.cpu_utilization || gcpData.cpu || 0;
     }
 
-    /**
-     * 커스텀 메트릭 업데이트
-     */
-    private updateCustomMetrics(server: ServerInstance, multiplier: number): void {
-        if (!server.metrics.customMetrics) return;
-
-        const customMetrics = server.metrics.customMetrics;
-
-        switch (server.type) {
-            case 'database':
-                if (customMetrics.replication_lag !== undefined) {
-                    customMetrics.replication_lag = Math.max(0,
-                        (customMetrics.replication_lag + (Math.random() - 0.5) * 50) * (0.8 + multiplier * 0.4)
-                    );
-                }
-                if (customMetrics.connection_pool !== undefined) {
-                    customMetrics.connection_pool = Math.max(10,
-                        Math.min(500, customMetrics.connection_pool + (Math.random() - 0.5) * 20)
-                    );
-                }
-                break;
-
-            case 'cache':
-                if (customMetrics.cache_hit_ratio !== undefined) {
-                    // 부하가 높을수록 캐시 히트율 감소
-                    const loadPenalty = Math.max(0, (server.metrics.cpu - 50) * 0.1);
-                    customMetrics.cache_hit_ratio = Math.max(60,
-                        Math.min(99, customMetrics.cache_hit_ratio - loadPenalty + (Math.random() - 0.5) * 2)
-                    );
-                }
-                break;
-
-            case 'gpu':
-                if (customMetrics.gpu_utilization !== undefined) {
-                    customMetrics.gpu_utilization = Math.max(0,
-                        Math.min(100, customMetrics.gpu_utilization * multiplier + (Math.random() - 0.5) * 15)
-                    );
-                }
-                break;
-
-            case 'storage':
-                if (customMetrics.storage_iops !== undefined) {
-                    customMetrics.storage_iops = Math.max(100,
-                        customMetrics.storage_iops * (0.8 + multiplier * 0.4) + (Math.random() - 0.5) * 500
-                    );
-                }
-                break;
-
-            case 'api':
-            case 'web':
-                if (customMetrics.container_count !== undefined) {
-                    // 오토스케일링 시뮬레이션
-                    const targetContainers = Math.ceil(server.metrics.cpu / 10);
-                    const currentContainers = customMetrics.container_count;
-                    const diff = targetContainers - currentContainers;
-
-                    if (Math.abs(diff) > 0) {
-                        customMetrics.container_count += Math.sign(diff) * Math.min(Math.abs(diff), 2);
-                        customMetrics.container_count = Math.max(1, Math.min(50, customMetrics.container_count));
-                    }
-                }
-                break;
-        }
+    private extractMemoryMetric(gcpData: any): number {
+        return gcpData.memory_utilization || gcpData.memory || 0;
     }
 
-    /**
-     * 실제 메트릭 적용 (Prometheus 등에서)
-     */
-    private applyRealMetrics(server: ServerInstance, realMetrics: any): void {
-        // 실제 메트릭의 일부를 가중 평균으로 적용
-        const weight = 0.3; // 30% 가중치
-
-        if (realMetrics.cpu !== undefined) {
-            server.metrics.cpu = server.metrics.cpu * (1 - weight) + realMetrics.cpu * weight;
-        }
-
-        if (realMetrics.memory !== undefined) {
-            server.metrics.memory = server.metrics.memory * (1 - weight) + realMetrics.memory * weight;
-        }
-
-        if (realMetrics.network) {
-            server.metrics.network.in = server.metrics.network.in * (1 - weight) + realMetrics.network.in * weight;
-            server.metrics.network.out = server.metrics.network.out * (1 - weight) + realMetrics.network.out * weight;
-        }
+    private extractDiskMetric(gcpData: any): number {
+        return gcpData.disk_utilization || gcpData.disk || 0;
     }
 
-    /**
-     * 기준선 가져오기 또는 생성
-     */
-    private getOrCreateBaseline(serverId: string, serverType: string): any {
-        if (!this.serverBaselines.has(serverId)) {
-            this.serverBaselines.set(serverId, this.generateBaselineProfile(serverType));
-        }
-        return this.serverBaselines.get(serverId);
-    }
-
-    /**
-     * 기준선 프로필 생성
-     */
-    private generateBaselineProfile(serverType: string): any {
-        const profiles = {
-            web: { cpu: 25, memory: 40, disk: 60, network: { in: 150, out: 100 }, requests: 800 },
-            api: { cpu: 35, memory: 50, disk: 30, network: { in: 300, out: 200 }, requests: 1500 },
-            database: { cpu: 45, memory: 70, disk: 80, network: { in: 500, out: 300 }, requests: 2000 },
-            cache: { cpu: 20, memory: 80, disk: 10, network: { in: 800, out: 400 }, requests: 5000 },
-            queue: { cpu: 30, memory: 35, disk: 40, network: { in: 200, out: 150 }, requests: 1000 },
-            cdn: { cpu: 15, memory: 25, disk: 90, network: { in: 2000, out: 1500 }, requests: 10000 },
-            gpu: { cpu: 60, memory: 85, disk: 50, network: { in: 400, out: 200 }, requests: 500 },
-            storage: { cpu: 25, memory: 45, disk: 95, network: { in: 600, out: 400 }, requests: 300 },
-        };
-
-        const profile = profiles[serverType as keyof typeof profiles] || profiles.web;
-
-        // 약간의 변동성 추가
+    private extractNetworkMetrics(gcpData: any): { in: number; out: number } {
         return {
-            cpu: profile.cpu * (0.8 + Math.random() * 0.4),
-            memory: profile.memory * (0.8 + Math.random() * 0.4),
-            disk: profile.disk * (0.9 + Math.random() * 0.2),
-            network: {
-                in: profile.network.in * (0.7 + Math.random() * 0.6),
-                out: profile.network.out * (0.7 + Math.random() * 0.6),
-            },
-            requests: profile.requests * (0.5 + Math.random() * 1.0),
+            in: gcpData.network_in || gcpData.network?.in || 0,
+            out: gcpData.network_out || gcpData.network?.out || 0,
+        };
+    }
+
+    private extractRequestMetrics(gcpData: any): number {
+        return gcpData.requests_per_second || gcpData.requests || 0;
+    }
+
+    private extractErrorMetrics(gcpData: any): number {
+        return gcpData.error_count || gcpData.errors || 0;
+    }
+
+    private extractUptimeMetric(gcpData: any): number {
+        return gcpData.uptime_seconds || gcpData.uptime || 0;
+    }
+
+    private extractCustomMetrics(gcpData: any, serverId: string): Record<string, any> {
+        const customMetrics: Record<string, any> = {};
+
+        // 서버 타입별 커스텀 메트릭 추출
+        if (serverId.includes('db')) {
+            customMetrics.connections = gcpData.database_connections || 0;
+            customMetrics.queries_per_second = gcpData.queries_per_second || 0;
+            customMetrics.replication_lag = gcpData.replication_lag || 0;
+        }
+
+        if (serverId.includes('cache')) {
+            customMetrics.cache_hit_ratio = gcpData.cache_hit_ratio || 0;
+            customMetrics.cache_memory_usage = gcpData.cache_memory_usage || 0;
+        }
+
+        if (serverId.includes('web')) {
+            customMetrics.active_connections = gcpData.active_connections || 0;
+            customMetrics.response_time = gcpData.response_time || 0;
+        }
+
+        return customMetrics;
+    }
+
+    /**
+     * 🔄 모든 서버의 메트릭을 배치로 수집
+     */
+    async batchUpdateMetrics(servers: ServerInstance[]): Promise<void> {
+        console.log(`🌐 ${servers.length}개 서버의 GCP 메트릭 배치 수집 시작...`);
+
+        const updatePromises = servers.map(server =>
+            this.updateServerMetrics(server).catch(error => {
+                console.error(`서버 ${server.id} 메트릭 업데이트 실패:`, error);
+                return null;
+            })
+        );
+
+        await Promise.allSettled(updatePromises);
+        console.log(`✅ GCP 메트릭 배치 수집 완료`);
+    }
+
+    /**
+     * 🧹 캐시 정리
+     */
+    clearCache(): void {
+        this.metricsCache.clear();
+        this.lastCollectionTime = 0;
+        console.log('🧹 GCP 메트릭 캐시 정리 완료');
+    }
+
+    /**
+     * 📊 수집기 상태 조회
+     */
+    getCollectorStatus(): {
+        cacheSize: number;
+        lastCollectionTime: number;
+        config: GCPMetricsConfig;
+    } {
+        return {
+            cacheSize: this.metricsCache.size,
+            lastCollectionTime: this.lastCollectionTime,
+            config: this.config,
         };
     }
 
     /**
-     * 시간대별 멀티플라이어
+     * 🚫 시뮬레이션 기능 완전 제거됨
      */
-    private getTimeMultiplier(hour: number): number {
-        // 피크 시간대 체크
-        if (this.simulationConfig.peakHours.includes(hour)) {
-            return 1.5 + Math.random() * 0.5; // 1.5x ~ 2.0x
-        }
-
-        // 심야 시간대 (새벽 2-6시)
-        if (hour >= 2 && hour <= 6) {
-            return 0.3 + Math.random() * 0.2; // 0.3x ~ 0.5x
-        }
-
-        // 일반 시간대
-        return 0.8 + Math.random() * 0.4; // 0.8x ~ 1.2x
+    simulateIncidents(): void {
+        throw new Error('시뮬레이션 기능이 제거되었습니다. GCP에서 실제 메트릭을 사용하세요.');
     }
 
-    /**
-     * 기준선 새로고침
-     */
-    refreshBaselines(): void {
-        this.serverBaselines.clear();
-        console.log('🔄 서버 기준선 데이터 새로고침 완료');
+    updateSimulationConfig(): void {
+        throw new Error('시뮬레이션 기능이 제거되었습니다. GCP에서 실제 메트릭을 사용하세요.');
     }
 
-    /**
-     * 시뮬레이션 설정 업데이트
-     */
-    updateSimulationConfig(config: Partial<SimulationConfig>): void {
-        this.simulationConfig = { ...this.simulationConfig, ...config };
+    getActiveIncidents(): never {
+        throw new Error('시뮬레이션 기능이 제거되었습니다. GCP에서 실제 알림을 사용하세요.');
     }
+}
 
-    /**
-     * 현재 인시던트 상태
-     */
-    getActiveIncidents(): Array<{ serverId: string; type: string; duration: number }> {
-        const now = Date.now();
-        const incidents: Array<{ serverId: string; type: string; duration: number }> = [];
+// 🔧 GCP 메트릭 수집기 팩토리 함수
+export function createGCPMetricsCollector(config: GCPMetricsConfig): GCPMetricsCollector {
+    return new GCPMetricsCollector(config);
+}
 
-        this.incidentStates.forEach((state, serverId) => {
-            if (state.active) {
-                incidents.push({
-                    serverId,
-                    type: state.type,
-                    duration: now - state.startTime,
-                });
-            }
-        });
-
-        return incidents;
-    }
-} 
+// 🚫 레거시 호환성 (사용 금지)
+export const MetricsGenerator = GCPMetricsCollector; 

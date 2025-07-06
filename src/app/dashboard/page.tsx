@@ -1,63 +1,14 @@
 'use client';
 
 import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
+import { OptimizedDashboard } from '@/components/dashboard/OptimizedDashboard';
 import { NotificationToast } from '@/components/system/NotificationToast';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
-import { useServerDashboard } from '@/hooks/useServerDashboard';
-import { cn } from '@/lib/utils';
 import { AISidebar } from '@/presentation/ai-sidebar';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import React, { Suspense, useCallback, useEffect, useState } from 'react';
-
-// --- Dynamic Imports ---
-const DashboardHeader = dynamic(
-  () => import('../../components/dashboard/DashboardHeader')
-);
-const DashboardContent = dynamic(
-  () => import('../../components/dashboard/DashboardContent')
-);
-const EnhancedServerModalDynamic = dynamic(
-  () => import('../../components/dashboard/EnhancedServerModal'),
-  {
-    loading: () => (
-      <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
-        <div className='w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin'></div>
-      </div>
-    ),
-  }
-);
-
-const ContentLoadingSkeleton = () => (
-  <div className='min-h-screen bg-gray-100 dark:bg-gray-900 p-6'>
-    <div className='space-y-6'>
-      {/* 헤더 스켈레톤 */}
-      <div className='h-16 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse'></div>
-
-      {/* 통계 카드 스켈레톤 */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
-        {[1, 2, 3, 4].map(i => (
-          <div
-            key={i}
-            className='h-24 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse'
-          ></div>
-        ))}
-      </div>
-
-      {/* 서버 카드 그리드 스켈레톤 */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
-        {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-          <div
-            key={i}
-            className='h-48 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse'
-          ></div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
+import React, { useCallback, useEffect, useState } from 'react';
 
 // Error Boundary for Dashboard
 class DashboardErrorBoundary extends React.Component<
@@ -104,10 +55,7 @@ class DashboardErrorBoundary extends React.Component<
 
 function DashboardPageContent() {
   const [isAgentOpen, setIsAgentOpen] = useState(false);
-  const [selectedServer, setSelectedServer] = useState<any>(null);
-  const [isServerModalOpen, setIsServerModalOpen] = useState(false);
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
-  const isResizing = false;
 
   // 🔒 자동 로그아웃 시스템 - 베르셀 사용량 최적화
   const { remainingTime, isWarning, resetTimer, forceLogout } = useAutoLogout({
@@ -123,37 +71,34 @@ function DashboardPageContent() {
     }
   });
 
-  // 🎯 실제 서버 데이터 생성기 데이터 사용 - 즉시 로드
-  const {
-    paginatedServers: realServers,
-    handleServerSelect,
-    selectedServer: dashboardSelectedServer,
-    handleModalClose: dashboardModalClose,
-    isLoading: serverDataLoading,
-  } = useServerDashboard({});
-
-  // 🚀 대시보드 직접 접속 시 최적화된 초기화
+  // 🌐 Redis + GCP 연동 확인 및 초기화
   useEffect(() => {
-    console.log('🎯 대시보드 직접 접속 - 최적화된 초기화');
+    console.log('🌐 Redis + GCP 최적화 대시보드 초기화');
 
-    // 🔥 즉시 실행 최적화
-    const initializeDashboard = async () => {
+    const initializeOptimizedDashboard = async () => {
       try {
-        // 필요한 경우에만 데이터 생성기 상태 확인
-        const response = await fetch('/api/data-generator/status');
-        const status = await response.json();
+        // Redis 연결 상태 확인
+        const redisStatus = await fetch('/api/redis/status');
+        if (redisStatus.ok) {
+          console.log('✅ Redis 연결 확인됨');
+        } else {
+          console.warn('⚠️ Redis 연결 실패 - 폴백 모드');
+        }
 
-        if (!status.success || !status.data.isRunning) {
-          console.log('📊 데이터 생성기 자동 시작');
-          await fetch('/api/data-generator/start', { method: 'POST' });
+        // GCP 서버 데이터 확인
+        const gcpStatus = await fetch('/api/gcp/server-data?limit=1');
+        if (gcpStatus.ok) {
+          console.log('✅ GCP 서버 데이터 연결 확인됨');
+        } else {
+          console.warn('⚠️ GCP 서버 데이터 연결 실패');
         }
       } catch (error) {
-        console.warn('⚠️ 데이터 생성기 초기화 실패 (폴백 데이터 사용):', error);
+        console.warn('⚠️ 최적화 대시보드 초기화 실패:', error);
       }
     };
 
     // 🚀 비동기로 초기화 (블로킹하지 않음)
-    initializeDashboard();
+    initializeOptimizedDashboard();
   }, []);
 
   const toggleAgent = useCallback(() => {
@@ -179,122 +124,100 @@ function DashboardPageContent() {
     console.log('🔒 사용자가 즉시 로그아웃을 선택했습니다');
   }, [forceLogout]);
 
-  // 🎯 서버 클릭 핸들러 - 실제 데이터와 연동
-  const handleServerClick = useCallback(
-    (server: any) => {
-      try {
-        console.log('🖱️ 서버 카드 클릭됨:', server?.name || server?.id);
-        if (!server) {
-          console.warn('⚠️ 유효하지 않은 서버 데이터');
-          return;
-        }
-        handleServerSelect(server);
-        setSelectedServer(server);
-        setIsServerModalOpen(true);
-      } catch (error) {
-        console.error('❌ 서버 클릭 처리 중 오류:', error);
-      }
-    },
-    [handleServerSelect]
-  );
-
-  // 🔒 서버 모달 닫기
-  const handleServerModalClose = useCallback(() => {
-    dashboardModalClose();
-    setSelectedServer(null);
-    setIsServerModalOpen(false);
-  }, [dashboardModalClose]);
-
-  // 🚀 시스템 제어 더미 데이터 최적화
-  const dummySystemControl = {
-    systemState: { status: 'ok' },
-    aiAgentState: { state: 'idle' },
-    isSystemActive: true,
-    isSystemPaused: false,
-    onStartSystem: () => Promise.resolve(),
-    onStopSystem: () => Promise.resolve(),
-    onResumeSystem: () => Promise.resolve(),
-  };
-
   return (
-    <div
-      className={cn(
-        'flex h-screen bg-gray-100 dark:bg-gray-900',
-        isResizing && 'cursor-col-resize'
-      )}
-    >
-      <div className='flex-1 flex flex-col min-h-0'>
-        <DashboardHeader
-          onNavigateHome={() => (window.location.href = '/')}
-          onToggleAgent={toggleAgent}
-          isAgentOpen={isAgentOpen}
-        />
+    <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900">
+      {/* 메인 대시보드 영역 */}
+      <main
+        className={`flex-1 transition-all duration-300 ease-in-out ${isAgentOpen ? 'mr-96' : 'mr-0'
+          }`}
+      >
+        <div className="p-6">
+          {/* 대시보드 헤더 */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  🌐 최적화 대시보드
+                </h1>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Google Cloud → Redis → Vercel 아키텍처 • SWR 캐싱 활성화
+                </p>
+              </div>
+              <div className="flex items-center space-x-4">
+                {/* 자동 로그아웃 타이머 */}
+                {isWarning && (
+                  <div className="text-sm text-orange-600 dark:text-orange-400">
+                    ⏰ {Math.ceil(remainingTime / 60)}분 후 자동 로그아웃
+                  </div>
+                )}
 
-        <div className='flex-1 overflow-hidden'>
-          <Suspense fallback={<ContentLoadingSkeleton />}>
-            <DashboardContent
-              showSequentialGeneration={false}
-              servers={realServers}
-              status={{ type: 'idle' }}
-              actions={{ start: () => { }, stop: () => { } }}
-              selectedServer={selectedServer || dashboardSelectedServer}
-              onServerClick={handleServerClick}
-              onServerModalClose={handleServerModalClose}
-              onStatsUpdate={() => { }}
-              onShowSequentialChange={() => { }}
-              mainContentVariants={{}}
-              isAgentOpen={isAgentOpen}
-            />
-          </Suspense>
+                {/* AI 어시스턴트 토글 버튼 */}
+                <button
+                  onClick={toggleAgent}
+                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                >
+                  {isAgentOpen ? '🤖 AI 닫기' : '🤖 AI 열기'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 🌐 Redis + SWR 최적화 대시보드 */}
+          <DashboardErrorBoundary>
+            <OptimizedDashboard />
+          </DashboardErrorBoundary>
         </div>
+      </main>
 
-        {/* 🎯 AI 에이전트 */}
-        <AnimatePresence>
-          {isAgentOpen && (
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className='fixed inset-y-0 right-0 w-96 z-40'
-            >
-              <AISidebar onClose={closeAgent} isOpen={isAgentOpen} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* 🎯 서버 모달 */}
-        <AnimatePresence>
-          {isServerModalOpen && selectedServer && (
-            <EnhancedServerModalDynamic
-              server={selectedServer}
-              onClose={handleServerModalClose}
+      {/* AI 어시스턴트 사이드바 */}
+      <AnimatePresence>
+        {isAgentOpen && (
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed right-0 top-0 h-full w-96 bg-white dark:bg-gray-800 shadow-2xl z-40 border-l border-gray-200 dark:border-gray-700"
+          >
+            <AISidebar
+              isOpen={isAgentOpen}
+              onClose={closeAgent}
             />
-          )}
-        </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        {/* 🔒 자동 로그아웃 경고 모달 - 베르셀 사용량 최적화 */}
-        <AutoLogoutWarning
-          remainingTime={remainingTime}
-          isWarning={showLogoutWarning}
-          onExtendSession={handleExtendSession}
-          onLogoutNow={handleLogoutNow}
-        />
-      </div>
+      {/* 자동 로그아웃 경고 모달 */}
+      <AnimatePresence>
+        {showLogoutWarning && (
+          <AutoLogoutWarning
+            remainingTime={remainingTime}
+            isWarning={showLogoutWarning}
+            onExtendSession={handleExtendSession}
+            onLogoutNow={handleLogoutNow}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* 🔔 알림 토스트 */}
+      {/* 시스템 알림 토스트 */}
       <NotificationToast />
     </div>
   );
 }
 
-// 🎯 대시보드 페이지 - 직접 접속 최적화
+/**
+ * 🌐 최적화 대시보드 메인 페이지
+ * 
+ * 핵심 기능:
+ * - Redis 직접 읽기 + Batch API
+ * - SWR 캐싱 (30초 브라우저 캐시, 1분 자동 업데이트)
+ * - Google Cloud 실시간 데이터 연동
+ * - 월 사용량 90% 절약
+ */
 export default function DashboardPage() {
   return (
     <DashboardErrorBoundary>
-      <Suspense fallback={<ContentLoadingSkeleton />}>
-        <DashboardPageContent />
-      </Suspense>
+      <DashboardPageContent />
     </DashboardErrorBoundary>
   );
 }

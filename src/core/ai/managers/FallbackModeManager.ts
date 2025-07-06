@@ -255,7 +255,10 @@ export class FallbackModeManager {
     }
 
     // 🚫 서버리스 호환: RequestScopedGoogleAIService 메서드 사용
-    const result = await this.googleAI.processQuery(enhancedQuery);
+    const result = await this.googleAI.processQuery({
+      query: enhancedQuery,
+      mode: 'natural_language'
+    });
 
     if (result.success) {
       let response = result.response || '응답을 생성했습니다.';

@@ -198,7 +198,7 @@ export class GCPAIDataAdapter {
                 const server: ServerMetadata = {
                     id: metric.serverId,
                     name: this.getServerName(metric.serverId),
-                    serverType: this.getServerType(metric.serverId),
+                    serverType: 'Host',
                     location: {
                         region: 'local',
                         zone: 'local-a',
@@ -539,7 +539,7 @@ export class GCPAIDataAdapter {
                 {
                     id: 'fallback-web-01',
                     name: 'Fallback Web Server',
-                    serverType: 'nginx',
+                    serverType: 'Host',
                     location: {
                         region: 'local',
                         zone: 'local-a',

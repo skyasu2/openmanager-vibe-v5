@@ -21,6 +21,12 @@ interface GoogleAIResponse {
   confidence: number;
 }
 
+interface AIEngine {
+  initialize(): Promise<void>;
+  processQuery(request: GoogleAIRequest): Promise<GoogleAIResponse>;
+  isReady(): boolean;
+}
+
 export class GoogleAIEngine implements AIEngine {
   private googleAIService: RequestScopedGoogleAIService;
   private initialized = false;
@@ -53,7 +59,11 @@ export class GoogleAIEngine implements AIEngine {
 
     try {
       // 🎯 싱글톤 서비스로 요청 프록시
-      const result = await this.googleAIService.generateResponse(request.query);
+      const result = await this.googleAIService.processQuery({
+        query: request.query,
+        context: request.context,
+        mode: 'natural_language'
+      });
 
       return {
         success: result.success,
