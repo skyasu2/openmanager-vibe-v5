@@ -358,7 +358,7 @@ export class RedisTimeSeriesService {
 
     let totalPoints = 0;
     let oldestPoint: number | null = null;
-    let newestPoint: number | null = null;
+    newestPoint: number | null = null;
 
     for (const serverId of serverIds) {
       const points = storage[serverId];
