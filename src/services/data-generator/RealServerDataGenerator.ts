@@ -602,6 +602,11 @@ export interface ServerDataGenerator {
 export const RealServerDataGenerator = GCPRealServerDataGenerator;
 
 /**
+ * 🔄 호환성을 위한 인스턴스 export
+ */
+export const realServerDataGenerator = GCPRealServerDataGenerator.getInstance();
+
+/**
  * 🚀 기본 export (서버리스 호환)
  */
 export default GCPRealServerDataGenerator; 

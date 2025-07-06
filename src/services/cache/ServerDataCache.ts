@@ -7,9 +7,9 @@
  * - 페이지네이션 데이터 미리 준비
  */
 
-import { ServerInstance } from '@/types/data-generator';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { ServerInstance } from '@/types/data-generator';
 
 interface CachedServerData {
   servers: ServerInstance[];
@@ -61,6 +61,13 @@ export class ServerDataCache {
   }
 
   public static getInstance(): ServerDataCache {
+    // 서버리스 환경에서는 매번 새 인스턴스 생성
+    if (typeof process !== 'undefined' && process.env.VERCEL) {
+      console.log('🔧 Vercel 환경: ServerDataCache 새 인스턴스 생성');
+      return new ServerDataCache();
+    }
+
+    // 로컬 환경에서는 싱글톤 사용
     if (!ServerDataCache.instance) {
       ServerDataCache.instance = new ServerDataCache();
     }
