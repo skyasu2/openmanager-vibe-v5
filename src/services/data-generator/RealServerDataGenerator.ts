@@ -239,7 +239,7 @@ export class GCPRealServerDataGenerator {
                 region: 'error-region',
                 version: '0.0.0',
                 tags: ['error'],
-                alerts: server.alerts,
+                alerts: typeof server.alerts === 'number' ? server.alerts : 999,
                 lastUpdated: new Date().toISOString(),
                 provider: 'ERROR_PROVIDER',
                 specs: {
@@ -618,17 +618,31 @@ export class GCPRealServerDataGenerator {
 
             // ❌ 실패 시 정적 에러 서버 반환 (사용자가 즉시 인식 가능)
             return STATIC_ERROR_SERVERS.map(server => ({
-                ...server,
-                // 에러 상태임을 더욱 명확히 표시
+                id: server.id,
                 name: `🚨 ERROR: ${server.name}`,
                 hostname: `❌ 연결실패: ${error instanceof Error ? error.message : 'Unknown'}`,
+                status: server.status as ServerStatus,
+                type: server.type,
+                environment: server.environment as ServerEnvironment,
+                cpu: server.cpu,
+                memory: server.memory,
+                disk: server.disk,
+                network: server.network || 0,
+                uptime: server.uptime || 0,
                 lastUpdate: new Date(),
-                // 🔧 누락된 필수 속성들 추가
                 lastCheck: new Date().toISOString(),
                 region: 'error-region',
                 version: '0.0.0-error',
                 tags: ['error', 'fallback'],
                 lastUpdated: new Date().toISOString(),
+                alerts: typeof server.alerts === 'number' ? server.alerts : 999,
+                health: {
+                    score: 0,
+                    status: 'critical',
+                    issues: ['Connection failed', 'Data unavailable'],
+                    lastCheck: new Date().toISOString()
+                },
+                services: server.services || [],
                 // 추가 에러 메타데이터
                 errorMetadata: {
                     ...ERROR_STATE_METADATA,

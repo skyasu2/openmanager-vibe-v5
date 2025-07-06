@@ -19,7 +19,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { OptimizedSSEManager } from '@/services/sse/OptimizedSSEManager';
 import { ServerlessSSEConnectionPool } from '@/services/sse/SSEConnectionPool';
 import { SSEHealthMonitor } from '@/services/sse/SSEHealthMonitor';
-import { SSEMetricsCollector } from '@/services/sse/SSEMetricsCollector';
 
 // Mock EventSource
 class MockEventSource {
@@ -71,7 +70,6 @@ describe('🧪 TDD - SSE 최적화', () => {
   let sseManager: OptimizedSSEManager;
   let connectionPool: ServerlessSSEConnectionPool;
   let healthMonitor: SSEHealthMonitor;
-  let metricsCollector: SSEMetricsCollector;
 
   beforeEach(() => {
     vi.clearAllMocks();

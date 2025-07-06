@@ -26,18 +26,18 @@ describe('🌐 GCP 서버 데이터 생성기', () => {
         mockFirestore = {
             collection: jest.fn().mockReturnThis(),
             doc: jest.fn().mockReturnThis(),
-            add: jest.fn().mockResolvedValue({ id: 'test-doc' } as any),
-            get: jest.fn().mockResolvedValue({ exists: true, data: () => ({}) } as any),
-            set: jest.fn().mockResolvedValue({} as any),
-            delete: jest.fn().mockResolvedValue({} as any)
-        } as any;
+            add: jest.fn().mockResolvedValue({ id: 'test-doc' } as unknown),
+            get: jest.fn().mockResolvedValue({ exists: true, data: () => ({}) } as unknown),
+            set: jest.fn().mockResolvedValue({} as unknown),
+            delete: jest.fn().mockResolvedValue({} as unknown)
+        } as unknown;
 
         mockCloudStorage = {
             bucket: jest.fn().mockReturnThis(),
             file: jest.fn().mockReturnThis(),
-            download: jest.fn().mockResolvedValue([Buffer.from('{"test": "data"}')] as any),
-            save: jest.fn().mockResolvedValue({} as any)
-        } as any;
+            download: jest.fn().mockResolvedValue([Buffer.from('{"test": "data"}')] as unknown),
+            save: jest.fn().mockResolvedValue({} as unknown)
+        } as unknown;
 
         generator = new GCPServerDataGenerator(mockFirestore, mockCloudStorage);
         sessionManager = new GCPSessionManager(mockFirestore);
@@ -134,7 +134,7 @@ describe('🌐 GCP 서버 데이터 생성기', () => {
         test('TimeSeriesMetrics 구조가 기존 AI 엔진 호환성을 유지해야 함', async () => {
             // Given
             const sessionId = 'test-session-123';
-            await generator.loadBaselineDataset();
+            // loadBaselineDataset은 private 메서드이므로 호출하지 않음
 
             // When
             const metrics = await generator.generateRealtimeMetrics(sessionId);
