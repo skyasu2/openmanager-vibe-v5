@@ -9,7 +9,7 @@ import { transformServerInstanceToServer } from '@/adapters/server-data-adapter'
 import { SystemIntegrationAdapter } from '@/modules/ai-agent/adapters/SystemIntegrationAdapter';
 import { ServerInstance } from '@/types/data-generator';
 import { Server } from '@/types/server';
-import { RealServerDataGenerator } from './RealServerDataGenerator';
+import { RealServerDataGenerator, type RealServerDataGeneratorType } from './RealServerDataGenerator';
 
 export interface ProcessedServerData {
   servers: Server[];
@@ -40,7 +40,7 @@ export interface HistoricalMetrics {
 
 export class ServerMonitoringProcessor {
   private static instance: ServerMonitoringProcessor | null = null;
-  private dataGenerator: RealServerDataGenerator;
+  private dataGenerator: RealServerDataGeneratorType;
   private lastProcessTime = 0;
   private readonly CACHE_DURATION = 35000; // 35초 캐시 (30-40초 범위)
   private cachedData: ProcessedServerData | null = null;

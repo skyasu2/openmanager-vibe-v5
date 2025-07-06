@@ -42,35 +42,30 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
         setSuccessMessage(null);
 
         try {
-            const result = await login.withGoogle();
+            // OAuth 서비스 초기화
+            const oauthService = new GoogleOAuthService();
+            const authUrl = oauthService.getAuthUrl();
 
-            if (result.success) {
-                // 성공 메시지 설정
-                if (result.systemStarted) {
-                    setSuccessMessage('시스템이 시작되었습니다.');
-                } else if (result.systemError) {
-                    setSuccessMessage('로그인은 성공했지만 시스템 시작에 실패했습니다.');
-                }
+            // 인증 URL로 리다이렉트
+            window.location.href = authUrl;
 
-                // 콜백 호출
-                if (onLoginSuccess) {
-                    onLoginSuccess(result);
-                }
-
-                // 대시보드로 리다이렉트
-                router.push('/dashboard');
-            } else {
-                setError(result.error || '로그인에 실패했습니다.');
-            }
         } catch (error) {
-            console.error('로그인 실패:', error);
+            console.error('Google OAuth 초기화 실패:', error);
 
-            // 에러 타입에 따른 메시지 설정
+            // 구체적인 에러 메시지 설정
             if (error instanceof Error) {
-                if (error.message.includes('Network')) {
-                    setError('네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.');
-                } else {
-                    setError('로그인에 실패했습니다. 다시 시도해주세요.');
+                switch (error.message) {
+                    case 'Failed to exchange authorization code for token':
+                        setError('Google OAuth 토큰 교환이 실패했습니다.');
+                        break;
+                    case 'Failed to fetch Google user profile':
+                        setError('Google 프로필 정보를 가져오는데 실패했습니다.');
+                        break;
+                    case 'Network':
+                        setError('네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.');
+                        break;
+                    default:
+                        setError('로그인에 실패했습니다. 다시 시도해주세요.');
                 }
             } else {
                 setError('알 수 없는 오류가 발생했습니다.');

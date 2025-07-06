@@ -10,7 +10,7 @@ import {
   SystemIntegrationAdapter,
 } from '@/modules/ai-agent/adapters/SystemIntegrationAdapter';
 import { ServerInstance } from '@/types/data-generator';
-import { RealServerDataGenerator } from './RealServerDataGenerator';
+import { RealServerDataGenerator, type RealServerDataGeneratorType } from './RealServerDataGenerator';
 
 export interface ProcessedAIData {
   metrics: StandardServerMetrics[];
@@ -53,7 +53,7 @@ export interface AIHistoricalData {
 
 export class AIEngineProcessor {
   private static instance: AIEngineProcessor | null = null;
-  private dataGenerator: RealServerDataGenerator;
+  private dataGenerator: RealServerDataGeneratorType;
   private lastProcessTime = 0;
   private readonly CACHE_DURATION = 45000; // 45초 캐시 (40-50초 범위)
   private cachedData: ProcessedAIData | null = null;
@@ -222,7 +222,7 @@ export class AIEngineProcessor {
               1024 *
               1024 *
               (serverInstance.metrics?.memory || 0)) /
-              100
+            100
           ),
           available: Math.floor(
             ((serverInstance.specs?.memory?.total || 8) *
@@ -230,7 +230,7 @@ export class AIEngineProcessor {
               1024 *
               1024 *
               (100 - (serverInstance.metrics?.memory || 0))) /
-              100
+            100
           ),
           usage: serverInstance.metrics?.memory || 0,
         },
@@ -243,7 +243,7 @@ export class AIEngineProcessor {
               1024 *
               1024 *
               (serverInstance.metrics?.disk || 0)) /
-              100
+            100
           ),
           available: Math.floor(
             ((serverInstance.specs?.disk?.total || 100) *
@@ -251,7 +251,7 @@ export class AIEngineProcessor {
               1024 *
               1024 *
               (100 - (serverInstance.metrics?.disk || 0))) /
-              100
+            100
           ),
           usage: serverInstance.metrics?.disk || 0,
           iops: {

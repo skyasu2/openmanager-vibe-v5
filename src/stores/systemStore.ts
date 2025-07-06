@@ -21,6 +21,9 @@ interface ServerlessSystemStatus {
 }
 
 interface ServerlessSystemStore extends ServerlessSystemStatus {
+  // 🚫 세션 상태 조회 (읽기 전용)
+  isSessionActive: boolean;
+
   // 🚫 세션 관리 비활성화
   startGlobalSession: () => Promise<{ success: boolean; message: string }>;
   stopGlobalSession: (
@@ -90,6 +93,7 @@ export const useGlobalSystemStore = create<ServerlessSystemStore>()((set, get) =
     // 초기 상태
     state: 'inactive',
     message: '서버리스 환경에서는 전역 상태 관리가 비활성화됩니다.',
+    isSessionActive: false, // 서버리스 환경에서는 항상 false
 
     /**
      * 🚫 전역 세션 시작 비활성화

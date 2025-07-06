@@ -18,7 +18,7 @@ export interface CustomEnvironmentConfig {
   securityLevel: 'basic' | 'enhanced' | 'enterprise';
 }
 
-// 서버 인스턴스 인터페이스 (server.ts와 호환)
+// 서버 인스턴스 인터페이스 (server.ts와 완전 호환)
 export interface ServerInstance {
   id: string;
   name: string;
@@ -29,44 +29,20 @@ export interface ServerInstance {
   network: number;
   uptime: number;
   lastCheck: string;
-  type: // 🌐 웹서버
-  | 'nginx'
-  | 'apache'
-  | 'iis'
-  // 🚀 애플리케이션 서버
-  | 'nodejs'
-  | 'springboot'
-  | 'django'
-  | 'dotnet'
-  | 'php'
-  // 🗄️ 데이터베이스
-  | 'mysql'
-  | 'postgresql'
-  | 'mongodb'
-  | 'oracle'
-  | 'mssql'
-  // ⚙️ 인프라 서비스
-  | 'redis'
-  | 'rabbitmq'
-  | 'elasticsearch'
-  | 'jenkins'
-  | 'prometheus'
-  | 'kafka'
-  // 🔄 하위 호환성 (기존 타입)
-  | 'web'
-  | 'api'
-  | 'database'
-  | 'cache'
-  | 'queue'
-  | 'cdn'
-  | 'gpu'
-  | 'storage'
-  | string;
-  environment: 'production' | 'staging' | 'development' | string;
+  type: string;
+  environment: string;
   region: string;
   version: string;
   tags: string[];
   alerts: number;
+  // 추가 필드들 (server.ts와 호환)
+  metrics?: {
+    cpu: number;
+    memory: number;
+    disk: number;
+    network: number;
+  };
+  // 확장 필드들 (선택적)
   role?: 'primary' | 'replica' | 'worker' | 'standalone';
   location?: string;
   specs?: {
@@ -75,12 +51,6 @@ export interface ServerInstance {
     disk: { total: number; type: string; iops?: number };
     network: { bandwidth: number; latency?: number };
     gpu?: { count: number; model: string; memory: number };
-  };
-  metrics?: {
-    cpu: number;
-    memory: number;
-    disk: number;
-    network: number;
   };
   health?: {
     score: number;

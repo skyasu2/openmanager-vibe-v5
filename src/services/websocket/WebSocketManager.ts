@@ -8,15 +8,14 @@
  * - 압축 기반 효율적 전송
  */
 
-import { Server as SocketIOServer } from 'socket.io';
-import { Observable, Subject, BehaviorSubject, interval } from 'rxjs';
+import { BehaviorSubject, interval, Subject } from 'rxjs';
 import {
-  map,
-  filter,
-  throttleTime,
   distinctUntilChanged,
+  filter,
+  throttleTime
 } from 'rxjs/operators';
-import { RealServerDataGenerator } from '../data-generator/RealServerDataGenerator';
+import { Server as SocketIOServer } from 'socket.io';
+import { RealServerDataGenerator, type RealServerDataGeneratorType } from '../data-generator/RealServerDataGenerator';
 // lightweight-anomaly-detector removed - using AnomalyDetectionService instead
 
 // 🎯 타입 정의
@@ -55,7 +54,7 @@ export class WebSocketManager {
   private streams: Map<string, Subject<MetricStream>> = new Map();
   private connectionCount$ = new BehaviorSubject<number>(0);
   private isActive = false;
-  private dataGenerator: RealServerDataGenerator;
+  private dataGenerator: RealServerDataGeneratorType;
 
   // 스트림 데이터 소스
   private dataSubject = new Subject<MetricStream>();
@@ -76,9 +75,9 @@ export class WebSocketManager {
         origin:
           process.env.NODE_ENV === 'production'
             ? [
-                'https://openmanager-vibe-v5.vercel.app',
-                'https://openmanager-ai-engine.onrender.com',
-              ]
+              'https://openmanager-vibe-v5.vercel.app',
+              'https://openmanager-ai-engine.onrender.com',
+            ]
             : ['http://localhost:3000'],
         methods: ['GET', 'POST'],
         credentials: true,

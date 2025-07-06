@@ -34,7 +34,7 @@ import {
 export class AnalysisProcessor {
   private static instance: AnalysisProcessor | null = null;
   private degradationManager: GracefulDegradationManager;
-  private googleAI?: GoogleAIService;
+  private googleAI?: typeof GoogleAIService;
   private mcpClient: RealMCPClient | null = null;
   private openSourceEngines?: OpenSourceEngines;
   private customEngines?: CustomEngines;
@@ -54,7 +54,7 @@ export class AnalysisProcessor {
    * 엔진 초기화
    */
   public async initialize(
-    googleAI?: GoogleAIService,
+    googleAI?: typeof GoogleAIService,
     mcpClient?: RealMCPClient,
     openSourceEngines?: OpenSourceEngines,
     customEngines?: CustomEngines

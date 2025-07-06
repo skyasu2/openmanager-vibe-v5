@@ -14,7 +14,7 @@
 
 import { calculateOptimalUpdateInterval } from '@/config/serverConfig';
 import { getRedisClient } from '@/lib/redis';
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { RealServerDataGenerator, type RealServerDataGeneratorType } from '@/services/data-generator/RealServerDataGenerator';
 
 interface StoredServerData {
   servers: any[];
@@ -48,7 +48,7 @@ interface PerformanceMetrics {
 
 export class ServerDataScheduler {
   private static instance: ServerDataScheduler;
-  private generator: RealServerDataGenerator;
+  private generator: RealServerDataGeneratorType;
   private isRunning_ = false;
   private intervalId: NodeJS.Timeout | null = null;
   private lastVersion = 0;
@@ -374,7 +374,7 @@ export class ServerDataScheduler {
     const avgGeneration =
       this.performanceStats.generationTimes.length > 0
         ? this.performanceStats.generationTimes.reduce((a, b) => a + b, 0) /
-          this.performanceStats.generationTimes.length
+        this.performanceStats.generationTimes.length
         : 0;
 
     // 메모리 사용량 계산 (근사치)
@@ -394,7 +394,7 @@ export class ServerDataScheduler {
       timing: {
         lastGeneration:
           this.performanceStats.generationTimes[
-            this.performanceStats.generationTimes.length - 1
+          this.performanceStats.generationTimes.length - 1
           ] || 0,
         averageGeneration: avgGeneration,
         totalGenerations: this.performanceStats.totalGenerations,

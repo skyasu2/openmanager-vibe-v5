@@ -18,6 +18,20 @@ export interface MCPContext {
   aiContexts?: any[]; // AI 컨텍스트 검색 결과
 }
 
+export interface MCPResponse {
+  success: boolean;
+  content: string;
+  confidence: number;
+  sources: string[];
+  metadata?: {
+    tier?: string;
+    engine?: string;
+    [key: string]: any;
+  };
+  error?: string;
+  warning?: string;
+}
+
 export interface MCPRouterResponse {
   success: boolean;
   data?: any;

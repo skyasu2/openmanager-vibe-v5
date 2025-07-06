@@ -20,7 +20,7 @@ import {
 } from '@/modules/ai-agent/adapters/SystemIntegrationAdapter';
 import { ServerInstance } from '@/types/data-generator';
 import { Server } from '@/types/server';
-import { RealServerDataGenerator } from './RealServerDataGenerator';
+import { RealServerDataGenerator, type RealServerDataGeneratorType } from './RealServerDataGenerator';
 
 // 🎯 통합 처리 옵션
 export interface ProcessingOptions {
@@ -201,7 +201,7 @@ class SmartCacheManager {
 let globalProcessorInstance: UnifiedDataProcessor | null = null;
 
 export class UnifiedDataProcessor {
-  private dataGenerator: RealServerDataGenerator;
+  private dataGenerator: RealServerDataGeneratorType;
   private systemAdapter: SystemIntegrationAdapter;
   private cacheManager: SmartCacheManager;
   private processingStats = {

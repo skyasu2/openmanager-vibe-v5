@@ -42,9 +42,7 @@ export class GoogleOAuthService {
             clientId: getEnvironmentVar('GOOGLE_OAUTH_CLIENT_ID') ||
                 process.env.GOOGLE_OAUTH_CLIENT_ID ||
                 (this.isDev ? '1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com' : ''),
-            redirectUri: getEnvironmentVar('GOOGLE_OAUTH_REDIRECT_URI') ||
-                process.env.GOOGLE_OAUTH_REDIRECT_URI ||
-                (typeof window !== 'undefined' ? `${window.location.origin}/login` : 'http://localhost:3000/login'),
+            redirectUri: this.getRedirectUri(),
             scope: [
                 'openid',
                 'email',
@@ -60,6 +58,10 @@ export class GoogleOAuthService {
                 scope: this.config.scope
             });
         }
+    }
+
+    private getRedirectUri(): string {
+        return typeof window !== 'undefined' ? `${window.location.origin}/login` : 'http://localhost:3000/login';
     }
 
     /**
@@ -188,6 +190,10 @@ export class GoogleOAuthService {
         // 세션 스토리지에 state 저장 (CSRF 검증용)
         if (typeof window !== 'undefined') {
             sessionStorage.setItem('google_oauth_state', state);
+            // 타이머 설정으로 state 만료 방지
+            setTimeout(() => {
+                sessionStorage.removeItem('google_oauth_state');
+            }, 3600000); // 1시간 후 자동 삭제
         }
 
         return state;
@@ -198,13 +204,23 @@ export class GoogleOAuthService {
      */
     verifyState(state: string): boolean {
         if (typeof window === 'undefined') {
-            return true; // 서버사이드에서는 검증 스킵
+            return true; // 서버 사이드에서는 검증 불가능
         }
 
         const storedState = sessionStorage.getItem('google_oauth_state');
-        sessionStorage.removeItem('google_oauth_state'); // 일회용이므로 삭제
+        if (!storedState) {
+            console.warn('No stored state found');
+            return false;
+        }
 
-        return storedState === state;
+        if (state !== storedState) {
+            console.warn('State mismatch');
+            return false;
+        }
+
+        // 검증 후 state 삭제
+        sessionStorage.removeItem('google_oauth_state');
+        return true;
     }
 
     /**
