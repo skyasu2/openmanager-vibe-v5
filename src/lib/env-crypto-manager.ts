@@ -51,21 +51,27 @@ export class EnvironmentCryptoManager {
   }
 
   /**
-   * 🗄️ Supabase 클라이언트 초기화
+   * 🔧 Supabase 클라이언트 초기화
    */
   private async initializeSupabaseClient() {
     try {
+      // 환경변수에서 Supabase 설정 가져오기
+      const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseKey) {
+        console.warn('⚠️  Supabase 환경변수가 설정되지 않았습니다.');
+        return;
+      }
+      
+      // 동적 import로 Supabase 클라이언트 생성
       const { createClient } = await import('@supabase/supabase-js');
-
-      // 메모리에서 Supabase 설정 가져오기
-      const supabaseUrl = 'https://vnswjnltnhpsueosfhmw.supabase.co';
-      const supabaseAnonKey =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU';
-
-      this.supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+      this.supabaseClient = createClient(supabaseUrl, supabaseKey);
+      
       console.log('✅ Supabase 클라이언트 초기화 완료');
     } catch (error) {
-      console.warn('⚠️ Supabase 클라이언트 초기화 실패:', error);
+      console.error('❌ Supabase 초기화 실패:', error);
+      this.supabaseClient = null;
     }
   }
 
@@ -268,25 +274,36 @@ export class EnvironmentCryptoManager {
    */
   private getHardcodedDefaults(): { [key: string]: string } {
     return {
-      // 기존 하드코딩 값들...
-      SUPABASE_URL: 'https://vnswjnltnhpsueosfhmw.supabase.co',
-      SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU',
-      SUPABASE_SERVICE_ROLE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8',
-      GOOGLE_AI_API_KEY: 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM',
-      REDIS_URL: 'redis://charming-condor-46598.upstash.io:6379',
-      REDIS_PASSWORD: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
+      // ⚠️ 주의: 실제 프로덕션 키들은 환경변수에서만 가져오기
+      // 아래는 개발환경용 안전한 기본값들입니다
 
-      // 🔐 Google OAuth 설정 추가
-      GOOGLE_OAUTH_CLIENT_ID: '1234567890-abcdefghijklmnopqrstuvwxyz123456.apps.googleusercontent.com',
-      GOOGLE_OAUTH_CLIENT_SECRET: 'GOCSPX-abcdefghijklmnopqrstuvwxyz123456',
-      GOOGLE_OAUTH_REDIRECT_URI: 'https://openmanager-vibe-v5.vercel.app/api/auth/google/callback',
+      // 개발용 기본 설정
+      GOOGLE_AI_MODEL: 'gemini-1.5-flash',
+      GOOGLE_AI_BETA_MODE: 'true',
+      NEXTAUTH_URL: 'http://localhost:3000',
+      NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
 
-      // 팀 비밀번호 (기존)
-      TEAM_PASSWORD: 'openmanager2025vibe',
+      // 🚨 중요: 실제 인프라 키들은 환경변수에서만 가져오기
+      // 프로덕션 환경에서는 절대 하드코딩 값 사용하지 않음
+      ...(process.env.NODE_ENV === 'development' ? {
+        // 개발환경에서만 경고와 함께 제공되는 임시값들
+        SUPABASE_URL: process.env.SUPABASE_URL || '',
+        SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || '',
+        SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+        GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY || '',
+        REDIS_URL: process.env.REDIS_URL || '',
+        REDIS_PASSWORD: process.env.REDIS_PASSWORD || '',
+        GOOGLE_OAUTH_CLIENT_ID: process.env.GOOGLE_OAUTH_CLIENT_ID || '',
+        GOOGLE_OAUTH_CLIENT_SECRET: process.env.GOOGLE_OAUTH_CLIENT_SECRET || '',
+        GOOGLE_OAUTH_REDIRECT_URI: process.env.GOOGLE_OAUTH_REDIRECT_URI || 'http://localhost:3000/api/auth/google/callback',
+        NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'development-only-secret-key',
+      } : {
+        // 프로덕션에서는 환경변수만 사용
+        NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || '',
+      }),
 
-      // 기타 설정
-      NEXTAUTH_SECRET: 'your-nextauth-secret-key-here',
-      NEXTAUTH_URL: 'https://openmanager-vibe-v5.vercel.app'
+      // 팀 비밀번호 (기본값만)
+      TEAM_PASSWORD: 'openmanager2025',
     };
   }
 

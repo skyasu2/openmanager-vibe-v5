@@ -8,34 +8,9 @@
  * - 실시간 모니터링 및 알림
  */
 
+import { UnifiedEnvCryptoManager } from '@/lib/crypto/UnifiedEnvCryptoManager';
 import { EnvBackupManager } from '@/lib/env-backup-manager';
 import { AILogger, LogCategory } from '@/services/ai/logging/AILogger';
-
-// 기본 암호화 관리자 (삭제된 EnvironmentCryptoManager 대체)
-class BasicEnvCryptoManager {
-  private static instance: BasicEnvCryptoManager | null = null;
-
-  static getInstance(): BasicEnvCryptoManager {
-    if (!BasicEnvCryptoManager.instance) {
-      BasicEnvCryptoManager.instance = new BasicEnvCryptoManager();
-    }
-    return BasicEnvCryptoManager.instance;
-  }
-
-  // 기본 구현 - 실제 암호화는 하지 않고 로깅만
-  async decryptEnvironmentVariable(key: string): Promise<string | null> {
-    console.log(`🔓 환경변수 복호화 시도: ${key} (기본 구현)`);
-    return process.env[key] || null;
-  }
-
-  async encryptEnvironmentVariable(
-    key: string,
-    value: string
-  ): Promise<boolean> {
-    console.log(`🔐 환경변수 암호화 시도: ${key} (기본 구현)`);
-    return true;
-  }
-}
 
 export interface EnvRecoveryResult {
   success: boolean;
@@ -56,7 +31,7 @@ export interface EnvValidationResult {
 export class EnvAutoRecoveryService {
   private static instance: EnvAutoRecoveryService | null = null;
   private envBackupManager: EnvBackupManager;
-  private envCryptoManager: BasicEnvCryptoManager;
+  private envCryptoManager: UnifiedEnvCryptoManager;
   private logger: AILogger;
   private isInitialized: boolean = false;
   private lastRecoveryAttempt: number = 0;
@@ -91,10 +66,10 @@ export class EnvAutoRecoveryService {
       // 프로덕션 환경에서는 절대 하드코딩 값 사용하지 않음
       ...(process.env.NODE_ENV === 'development'
         ? {
-            // 개발환경에서만 경고와 함께 제공되는 임시값들
-            GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY || '',
-            SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL || '',
-          }
+          // 개발환경에서만 경고와 함께 제공되는 임시값들
+          GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY || '',
+          SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL || '',
+        }
         : {}),
     } as Record<string, string>,
   };
@@ -106,7 +81,7 @@ export class EnvAutoRecoveryService {
 
   private constructor() {
     this.envBackupManager = EnvBackupManager.getInstance();
-    this.envCryptoManager = BasicEnvCryptoManager.getInstance();
+    this.envCryptoManager = UnifiedEnvCryptoManager.getInstance();
     this.logger = AILogger.getInstance();
     this.detectExecutionContext();
     console.log(
@@ -293,7 +268,7 @@ export class EnvAutoRecoveryService {
   }
 
   /**
-   * 🔐 암호화된 환경변수 복구 시도
+   * 🔐 암호화된 백업에서 복구 시도
    */
   private async tryEncryptedRecovery(
     missingVars: string[]
@@ -301,52 +276,46 @@ export class EnvAutoRecoveryService {
     try {
       const recovered: string[] = [];
 
-      // 기본 팀 비밀번호들 시도
+      // 기본 팀 비밀번호들로 자동 복구 시도
       const defaultPasswords = [
+        'openmanager2025',
         'openmanager-vibe-v5-2025',
-        process.env.CRON_SECRET || 'openmanager-vibe-v5-backup',
         'team-password-2025',
         'openmanager-team-key',
+        'development-mock-password',
       ];
 
-      for (const password of defaultPasswords) {
-        try {
-          const unlockResult =
-            await this.envCryptoManager.decryptEnvironmentVariable(password);
+      // UnifiedEnvCryptoManager의 자동 복구 기능 사용
+      try {
+        const recoveredVars = await this.envCryptoManager.autoRecoverEnvVars(defaultPasswords);
 
-          if (unlockResult && unlockResult.trim() !== '') {
-            // 누락된 변수들을 복구 시도
-            for (const varName of missingVars) {
-              const value =
-                await this.envCryptoManager.decryptEnvironmentVariable(varName);
-              if (value && value.trim() !== '') {
-                process.env[varName] = value;
-                recovered.push(varName);
-                console.log(`✅ ${varName}: 암호화된 백업에서 복구 완료`);
-              }
-            }
-
-            if (recovered.length > 0) {
-              await this.logger.info(
-                LogCategory.SYSTEM,
-                `🔐 암호화된 백업에서 환경변수 복구 완료: ${recovered.join(', ')}`,
-                { recovered, method: 'encrypted' }
-              );
-
-              return {
-                success: true,
-                recovered,
-                failed: missingVars.filter(v => !recovered.includes(v)),
-                method: 'encrypted',
-                message: `암호화된 백업에서 ${recovered.length}개 변수 복구`,
-                timestamp: new Date().toISOString(),
-              };
-            }
+        // 누락된 변수들 중에서 복구된 것들 확인
+        for (const varName of missingVars) {
+          if (recoveredVars[varName]) {
+            process.env[varName] = recoveredVars[varName];
+            recovered.push(varName);
+            console.log(`✅ ${varName}: 암호화된 백업에서 복구 완료`);
           }
-        } catch (error) {
-          // 다음 비밀번호 시도
-          continue;
         }
+
+        if (recovered.length > 0) {
+          await this.logger.info(
+            LogCategory.SYSTEM,
+            `🔐 암호화된 백업에서 환경변수 복구 완료: ${recovered.join(', ')}`,
+            { recovered, method: 'encrypted' }
+          );
+
+          return {
+            success: true,
+            recovered,
+            failed: missingVars.filter(v => !recovered.includes(v)),
+            method: 'encrypted',
+            message: `암호화된 백업에서 ${recovered.length}개 변수 복구`,
+            timestamp: new Date().toISOString(),
+          };
+        }
+      } catch (error) {
+        console.log('🔐 자동 복구 실패, 수동 시도 진행...');
       }
 
       return {
@@ -443,9 +412,17 @@ export class EnvAutoRecoveryService {
     try {
       const recovered: string[] = [];
 
+      // 🚨 보안 경고: 실제 프로덕션 키는 환경변수에서만 가져오기
+      // 개발환경에서만 사용되는 안전한 기본값들
+      const defaults = {
+        NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        SUPABASE_URL: process.env.SUPABASE_URL || '',
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      };
+
       for (const varName of missingVars) {
-        if (this.envConfig.defaults[varName]) {
-          process.env[varName] = this.envConfig.defaults[varName];
+        if (defaults[varName as keyof typeof defaults]) {
+          process.env[varName] = defaults[varName as keyof typeof defaults];
           recovered.push(varName);
           console.log(`✅ ${varName}: 기본값으로 복구 완료`);
         }
@@ -711,12 +688,12 @@ export class EnvAutoRecoveryService {
     const recovered: string[] = [];
 
     try {
-      // 기본값으로 복구 시도
+      // 🚨 보안 경고: 실제 프로덕션 키는 환경변수에서만 가져오기
+      // 개발환경에서만 사용되는 안전한 기본값들
       const defaults = {
-        NEXT_PUBLIC_SUPABASE_URL: 'https://vnswjnltnhpsueosfhmw.supabase.co',
-        SUPABASE_URL: 'https://vnswjnltnhpsueosfhmw.supabase.co',
-        NEXT_PUBLIC_SUPABASE_ANON_KEY:
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU',
+        NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        SUPABASE_URL: process.env.SUPABASE_URL || '',
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
       };
 
       for (const varName of missingVars) {
