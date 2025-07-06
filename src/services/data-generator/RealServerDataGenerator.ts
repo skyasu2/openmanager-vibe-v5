@@ -6,7 +6,7 @@
  */
 
 import { systemLogger } from '@/lib/logger';
-import { ServerInstance, ServerMetrics, ServerAlert, ServerEnvironment, ServerRole, ServerStatus } from '@/types/server';
+import { ServerAlert, ServerEnvironment, ServerInstance, ServerMetrics, ServerRole, ServerStatus } from '@/types/server';
 
 interface GCPServerConfig {
     sessionId?: string;
@@ -22,7 +22,39 @@ interface GCPServerConfig {
  * 목업 데이터 없이 Google Cloud에서 실제 서버 정보 조회
  */
 export class GCPRealServerDataGenerator {
+    private static instance: GCPRealServerDataGenerator | null = null;
     private readonly config: Required<GCPServerConfig>;
+
+    constructor(config: GCPServerConfig = {}) {
+        this.config = {
+            sessionId: config.sessionId || this.generateSessionId(),
+            limit: config.limit || 20,
+            count: config.count || 20,
+            region: config.region || 'auto',
+            projectId: config.projectId || process.env.GCP_PROJECT_ID || '',
+            includeMetrics: config.includeMetrics || false,
+        };
+
+        console.log('🌐 GCP 실제 서버 데이터 생성기 초기화');
+        console.log(`📡 세션 ID: ${this.config.sessionId}`);
+        console.log(`🎯 프로젝트: ${this.config.projectId}`);
+    }
+
+    /**
+     * 🔧 싱글톤 인스턴스 가져오기 (서버리스 호환)
+     */
+    static getInstance(config?: GCPServerConfig): GCPRealServerDataGenerator {
+        // 서버리스 환경에서는 매번 새 인스턴스 생성
+        if (typeof process !== 'undefined' && process.env.VERCEL) {
+            return new GCPRealServerDataGenerator(config);
+        }
+
+        // 로컬 환경에서는 싱글톤 사용
+        if (!GCPRealServerDataGenerator.instance) {
+            GCPRealServerDataGenerator.instance = new GCPRealServerDataGenerator(config);
+        }
+        return GCPRealServerDataGenerator.instance;
+    }
 
     /**
      * 📊 서버 메트릭스 조회
@@ -81,21 +113,6 @@ export class GCPRealServerDataGenerator {
             systemLogger.error('GCP 알림 조회 실패:', error);
             return [];
         }
-    }
-
-    constructor(config: GCPServerConfig = {}) {
-        this.config = {
-            sessionId: config.sessionId || this.generateSessionId(),
-            limit: config.limit || 20,
-            count: config.count || 20,
-            region: config.region || 'auto',
-            projectId: config.projectId || process.env.GCP_PROJECT_ID || '',
-            includeMetrics: config.includeMetrics || false,
-        };
-
-        console.log('🌐 GCP 실제 서버 데이터 생성기 초기화');
-        console.log(`📡 세션 ID: ${this.config.sessionId}`);
-        console.log(`🎯 프로젝트: ${this.config.projectId}`);
     }
 
     /**
@@ -574,27 +591,17 @@ export function createServerDataGenerator(config?: GCPServerConfig): GCPRealServ
  * 🚫 레거시 호환성 (GCP 연동으로 변경)
  */
 export interface ServerDataGenerator {
-  generateServers(): Promise<ServerInstance[]>;
-  getMetrics(): Promise<ServerMetrics[]>;
-  getAlerts(): Promise<ServerAlert[]>;
+    generateServers(): Promise<ServerInstance[]>;
+    getMetrics(): Promise<ServerMetrics[]>;
+    getAlerts(): Promise<ServerAlert[]>;
 }
 
-export const RealServerDataGenerator: ServerDataGenerator = {
-  generateServers: async () => {
-    const generator = new GCPRealServerDataGenerator();
-    return generator.generateServers();
-  },
-  getMetrics: async () => {
-    const generator = new GCPRealServerDataGenerator();
-    return generator.getMetrics();
-  },
-  getAlerts: async () => {
-    const generator = new GCPRealServerDataGenerator();
-    return generator.getAlerts();
-  }
-};
+/**
+ * 🔄 호환성을 위한 alias
+ */
+export const RealServerDataGenerator = GCPRealServerDataGenerator;
 
 /**
- * 🔄 호환성을 위한 인스턴스 export
+ * 🚀 기본 export (서버리스 호환)
  */
-export const realServerDataGenerator = new GCPRealServerDataGenerator(); 
+export default GCPRealServerDataGenerator; 
