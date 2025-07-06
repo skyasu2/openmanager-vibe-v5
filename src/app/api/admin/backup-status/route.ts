@@ -6,122 +6,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * 🔍 백업 상태 조회
+ * 🔄 관리자 백업 상태 API
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const detailed = searchParams.get('detailed') === 'true';
-    const backupId = searchParams.get('backupId');
-
+    // 백업 상태 확인
     const backupStatus = {
+      lastBackup: new Date().toISOString(),
       status: 'healthy',
-      lastBackup: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 24시간 전
-      nextScheduledBackup: new Date(
-        Date.now() + 6 * 60 * 60 * 1000
-      ).toISOString(), // 6시간 후
-      backupFrequency: 'daily',
-      retentionPeriod: 30, // days
-      totalBackups: 47,
-      successfulBackups: 46,
-      failedBackups: 1,
-      successRate: 97.9,
-      storage: {
-        used: '2.3TB',
-        available: '7.7TB',
-        total: '10TB',
-        usage: 23,
-      },
-      recentBackups: [
-        {
-          id: 'backup_20241225_030000',
-          startTime: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          endTime: new Date(
-            Date.now() - 24 * 60 * 60 * 1000 + 45 * 60 * 1000
-          ).toISOString(),
-          status: 'completed',
-          size: '156GB',
-          duration: 45, // minutes
-          type: 'full',
-        },
-        {
-          id: 'backup_20241224_030000',
-          startTime: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-          endTime: new Date(
-            Date.now() - 48 * 60 * 60 * 1000 + 38 * 60 * 1000
-          ).toISOString(),
-          status: 'completed',
-          size: '142GB',
-          duration: 38,
-          type: 'full',
-        },
-        {
-          id: 'backup_20241223_030000',
-          startTime: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString(),
-          endTime: new Date(
-            Date.now() - 72 * 60 * 60 * 1000 + 52 * 60 * 1000
-          ).toISOString(),
-          status: 'failed',
-          size: '0GB',
-          duration: 52,
-          type: 'full',
-          error: 'Storage connection timeout',
-        },
-      ],
+      totalBackups: 150,
+      lastBackupSize: '2.5MB',
+      nextScheduledBackup: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      retention: '30 days',
+      location: 'cloud-storage'
     };
 
-    if (backupId) {
-      const backup = backupStatus.recentBackups.find(b => b.id === backupId);
-      if (backup) {
-        return NextResponse.json({
-          backup,
-          timestamp: new Date().toISOString(),
-        });
-      } else {
-        return NextResponse.json(
-          {
-            error: `백업을 찾을 수 없습니다: ${backupId}`,
-          },
-          { status: 404 }
-        );
-      }
-    }
-
-    if (detailed) {
-      return NextResponse.json({
-        ...backupStatus,
-        configuration: {
-          schedule: '0 3 * * *', // 매일 새벽 3시
-          compression: 'gzip',
-          encryption: 'AES-256',
-          verificationEnabled: true,
-          incrementalEnabled: false,
-        },
-        performance: {
-          averageDuration: 42, // minutes
-          averageSize: '149GB',
-          compressionRatio: 0.73,
-          transferSpeed: '3.5GB/min',
-        },
-        alerts: [
-          {
-            type: 'warning',
-            message: '백업 크기가 평균보다 10% 증가했습니다',
-            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          },
-        ],
-      });
-    }
-
-    return NextResponse.json(backupStatus);
+    return NextResponse.json({
+      success: true,
+      data: backupStatus,
+      timestamp: new Date().toISOString()
+    });
   } catch (error) {
-    console.error('❌ 백업 상태 조회 오류:', error);
-    return NextResponse.json(
-      {
-        error: '백업 상태 조회 중 오류가 발생했습니다',
-      },
-      { status: 500 }
-    );
+    console.error('❌ 백업 상태 조회 실패:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to get backup status',
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
   }
 }
 
