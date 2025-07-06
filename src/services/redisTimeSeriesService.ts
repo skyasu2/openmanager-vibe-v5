@@ -1,7 +1,7 @@
 /**
  * 📊 Redis 기반 시계열 데이터 서비스
  *
- * OpenManager AI v5.11.0 - InfluxDB 대체 솔루션
+ * OpenManager AI v5.11.0 - Redis를 활용한 경량 시계열 데이터 솔루션
  * - Redis 스트림을 활용한 시계열 데이터 저장
  * - JSON 구조 기반 메트릭 집계
  * - 효율적인 메모리 관리

@@ -29,7 +29,10 @@ describe('🌐 GCP 서버 데이터 생성기', () => {
             add: jest.fn().mockResolvedValue({ id: 'test-doc' } as unknown),
             get: jest.fn().mockResolvedValue({ exists: true, data: () => ({}) } as unknown),
             set: jest.fn().mockResolvedValue({} as unknown),
-            delete: jest.fn().mockResolvedValue({} as unknown)
+            delete: jest.fn().mockResolvedValue({} as unknown),
+            where: jest.fn().mockReturnThis(),
+            orderBy: jest.fn().mockReturnThis(),
+            limit: jest.fn().mockReturnThis()
         } as unknown;
 
         mockCloudStorage = {
@@ -249,8 +252,9 @@ describe('🌐 GCP 서버 데이터 생성기', () => {
 
             // 세션 상태 확인
             const session = await sessionManager.getSession(sessionId);
-            expect(session.status).toBe('active');
-            expect(session.userId).toBe(userId);
+            expect(session).toBeDefined();
+            expect(session?.status).toBe('active');
+            expect(session?.userId).toBe(userId);
         });
 
         test('20분 경과 후 메트릭 생성이 중단되어야 함', async () => {
@@ -270,7 +274,8 @@ describe('🌐 GCP 서버 데이터 생성기', () => {
 
             // 세션이 정지되었는지 확인
             const session = await sessionManager.getSession(sessionId);
-            expect(session.status).toBe('stopped');
+            expect(session).toBeDefined();
+            expect(session?.status).toBe('stopped');
         });
 
         test('사용자별 기존 세션이 정리되어야 함', async () => {
@@ -288,11 +293,13 @@ describe('🌐 GCP 서버 데이터 생성기', () => {
 
             // 첫 번째 세션이 정리되었는지 확인
             const session1 = await sessionManager.getSession(sessionId1);
-            expect(session1.status).toBe('stopped');
+            expect(session1).toBeDefined();
+            expect(session1?.status).toBe('stopped');
 
             // 두 번째 세션이 활성화되었는지 확인
             const session2 = await sessionManager.getSession(sessionId2);
-            expect(session2.status).toBe('active');
+            expect(session2).toBeDefined();
+            expect(session2?.status).toBe('active');
         });
     });
 
@@ -386,11 +393,12 @@ describe('🌐 GCP 서버 데이터 생성기', () => {
 
             // Then
             expect(response.success).toBe(true);
-            expect(response.data.sessionId).toBe(sessionId);
-            expect(response.data.metrics).toBeDefined();
-            expect(response.data.dataSource).toBe('GCP');
-            expect(response.data.timestamp).toBeDefined();
-            expect(response.data.metrics.length).toBeLessThanOrEqual(limit);
+            expect(response.data).toBeDefined();
+            expect(response.data?.sessionId).toBe(sessionId);
+            expect(response.data?.metrics).toBeDefined();
+            expect(response.data?.dataSource).toBe('GCP');
+            expect(response.data?.timestamp).toBeDefined();
+            expect(response.data?.metrics.length).toBeLessThanOrEqual(limit);
         });
 
         test('세션이 없을 때 적절한 에러를 반환해야 함', async () => {
@@ -467,7 +475,9 @@ describe('🌐 GCP 서버 데이터 생성기', () => {
 
             // When
             for (let i = 0; i < 10; i++) {
-                await generator.loadBaselineDataset();
+                // loadBaselineDataset은 private 메서드이므로 호출하지 않음
+                // 대신 public 메서드를 통해 간접적으로 테스트
+                await generator.generateRealtimeMetrics('test-session');
             }
 
             // Then

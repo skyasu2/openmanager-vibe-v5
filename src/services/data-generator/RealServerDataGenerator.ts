@@ -636,6 +636,8 @@ export class GCPRealServerDataGenerator {
                 tags: ['error', 'fallback'],
                 lastUpdated: new Date().toISOString(),
                 alerts: typeof server.alerts === 'number' ? server.alerts : 999,
+                location: server.location || 'ERROR_LOCATION',
+                provider: 'ERROR_PROVIDER',
                 health: {
                     score: 0,
                     status: 'critical',
