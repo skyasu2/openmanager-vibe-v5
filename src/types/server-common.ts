@@ -46,4 +46,9 @@ export interface ServerMetrics {
   response_time?: number;
   last_updated?: string;
   alerts?: any[];
+
+  // 🔧 korean-ai-engine 호환성을 위한 추가 속성들
+  requests?: number;
+  errors?: number;
+  customMetrics?: Record<string, any>;
 }

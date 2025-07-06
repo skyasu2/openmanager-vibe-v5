@@ -80,9 +80,11 @@ export class EnvironmentConfigManager {
       console.log('🚫 Vercel 최적화: 모든 목업 데이터 생성 기능 비활성화');
     } else {
       // 로컬 환경: 기존 최적화 적용
-      if (this.vercelConfig.emergency.throttle) {
+      // 🔧 안전한 접근 - emergency 속성이 없을 수 있음
+      const emergency = (this.vercelConfig as any).emergency;
+      if (emergency?.throttle) {
         this.environmentConfig.updateInterval = Math.max(
-          this.environmentConfig.updateInterval,
+          this.environmentConfig.updateInterval || 30000,
           60000 // 최소 1분 간격
         );
       }
@@ -140,7 +142,7 @@ export class EnvironmentConfigManager {
    */
   shouldUseMockData(): boolean {
     const env = detectEnvironment();
-    return !env.IS_VERCEL && this.environmentConfig.enableMockData;
+    return !env.IS_VERCEL && (this.environmentConfig.enableMockData ?? false);
   }
 
   /**

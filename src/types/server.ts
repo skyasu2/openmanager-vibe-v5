@@ -181,44 +181,6 @@ export type ServerRole =
   | 'load-balancer'
   | 'backup';
 
-export interface ServerMetrics {
-  // 기본 메트릭 속성들
-  cpu: number;
-  memory: number;
-  disk: number;
-  network: number;
-  timestamp?: string;
-  uptime?: number;
-
-  // 확장된 메트릭 속성들 (서버 타입과의 호환성)
-  id?: string;
-  hostname?: string;
-  environment?: string;
-  role?: string;
-  status?: ServerStatus;
-  cpu_usage?: number;
-  memory_usage?: number;
-  disk_usage?: number;
-  network_in?: number;
-  network_out?: number;
-  response_time?: number;
-  last_updated?: string;
-  alerts?: any[];
-
-  // 🔧 korean-ai-engine 호환성을 위한 추가 속성들
-  requests?: number;
-  errors?: number;
-  customMetrics?: Record<string, any>;
-}
-
-export interface ServerHealth {
-  score: number; // 0-100
-  trend: number[]; // 최근 30개 점수  
-  status: ServerStatus;
-  issues?: string[];
-  lastChecked?: string;
-}
-
 export interface EnhancedServerMetrics {
   // 🔧 기본 ServerMetrics 속성들 (완전 포함)
   id: string;
@@ -549,16 +511,3 @@ export interface TimeSeriesMetrics {
   network: number;
   processes?: ProcessInfo[];
 }
-
-export type ServerStatus =
-  | 'running'
-  | 'stopped'
-  | 'error'
-  | 'healthy'
-  | 'warning'
-  | 'critical'
-  | 'offline'
-  | 'maintenance'
-  | 'online'    // 🔧 data-generator 호환성을 위해 추가
-  | 'active'    // 🔧 추가 호환성
-  | 'inactive'; // 🔧 추가 호환성

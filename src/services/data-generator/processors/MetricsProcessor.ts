@@ -48,12 +48,25 @@ export class MetricsProcessor {
     scenarioContext: ScenarioContext,
     updateInterval: number = 30000
   ): MetricsProcessingResult {
+    // 🔧 안전한 메트릭 접근 - server.metrics가 undefined일 수 있음
+    const serverMetrics = server.metrics || {
+      cpu: 0,
+      memory: 0,
+      disk: 0,
+      network: { in: 0, out: 0 },
+      uptime: 0,
+      requests: 0,
+      errors: 0
+    };
+
     // 🎯 1단계: 원본 메트릭 수집
     const rawMetrics = {
-      cpu: server.metrics.cpu,
-      memory: server.metrics.memory,
-      disk: server.metrics.disk,
-      network: { ...server.metrics.network },
+      cpu: serverMetrics.cpu,
+      memory: serverMetrics.memory,
+      disk: serverMetrics.disk,
+      network: typeof serverMetrics.network === 'number'
+        ? { in: serverMetrics.network / 2, out: serverMetrics.network / 2 }
+        : { ...serverMetrics.network },
     };
 
     // 🎯 2단계: 데이터 전처리 (장애 시나리오 반영)
@@ -113,7 +126,7 @@ export class MetricsProcessor {
 
     // 🎯 4단계: 유의미한 변화 감지
     const hasSignificantChange = this.detectSignificantChange(
-      server.metrics,
+      serverMetrics,
       processedMetrics
     );
 
@@ -124,7 +137,7 @@ export class MetricsProcessor {
     const healthScore = this.calculateHealthScore(processedMetrics);
 
     // 🎯 7단계: 최종 메트릭 업데이트
-    const currentMetrics = server.metrics || { uptime: 0, requests: 0, errors: 0 };
+    const currentMetrics = serverMetrics;
     const finalMetrics = {
       ...currentMetrics,
       ...processedMetrics,

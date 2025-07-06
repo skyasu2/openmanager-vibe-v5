@@ -9,7 +9,7 @@ export class ResponseMerger {
     results: MCPTaskResult[],
     intent: Intent,
     context: MCPContext
-  ): Promise<Omit<MCPResponse, 'processingTime' | 'metadata'>> {
+  ): Promise<Omit<MCPResponse, 'processingTime'>> {
 
     const successfulResults = results.filter(r => r.success);
     const failedResults = results.filter(r => !r.success);

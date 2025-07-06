@@ -24,6 +24,14 @@ export interface CustomEnvironmentConfig {
   maxServers?: number;
   updateInterval?: number;
   performanceMode?: 'high' | 'balanced' | 'eco' | 'minimal' | 'development' | 'production';
+  cacheEnabled?: boolean;
+  features?: {
+    networkTopology?: boolean;
+    demoScenarios?: boolean;
+    baselineOptimization?: boolean;
+    autoRotate?: boolean;
+    [key: string]: any;
+  };
 }
 
 // 서버 인스턴스 인터페이스 (server.ts와 완전 호환)
@@ -96,6 +104,14 @@ export interface ServerInstance {
     requests?: number;
     errors?: number;
     customMetrics?: Record<string, any>;
+  };
+
+  // 🔧 ServerInstanceManager 호환성을 위한 추가 속성들
+  security?: {
+    level: string;
+    lastSecurityScan: string;
+    vulnerabilities: number;
+    patchLevel: string;
   };
 
   // 추가 필드들 (선택적)
