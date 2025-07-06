@@ -240,7 +240,7 @@ describe('환경별 통합 테스트', () => {
                 setTestEnv(envVars);
 
                 const env = detectEnvironment();
-                expect(env.ENABLE_MOCK_DATA).toBe(expectMockData);
+                expect(env.features.enableMockData).toBe(expectMockData);
             }
         });
     });

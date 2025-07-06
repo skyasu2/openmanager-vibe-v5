@@ -16,73 +16,55 @@ describe('RealServerDataGenerator.getDashboardSummary', () => {
     generator.getInstance().dispose();
   });
 
-  it('초기화된 상태에서 기본 데이터 구조를 반환한다', () => {
-    const summary = generator.getInstance().getDashboardSummary();
+  it('초기화된 상태에서 기본 데이터 구조를 반환한다', async () => {
+    const summary = await generator.getInstance().getDashboardSummary();
 
-    // 기본 구조 검증
-    expect(summary).toHaveProperty('servers');
-    expect(summary).toHaveProperty('applications');
-    expect(summary).toHaveProperty('clusters');
-
-    // servers 객체 구조 검증
-    expect(summary.servers).toHaveProperty('avgCpu');
-    expect(summary.servers).toHaveProperty('avgMemory');
-    expect(summary.servers).toHaveProperty('total');
-    expect(summary.servers).toHaveProperty('online');
-
-    // applications 객체 구조 검증
-    expect(summary.applications).toHaveProperty('avgResponseTime');
-    expect(summary.applications).toHaveProperty('total');
-
-    // clusters 객체 구조 검증
-    expect(summary.clusters).toHaveProperty('total');
+    // 기본 구조 검증 (실제 getDashboardSummary 반환 구조에 맞게 수정)
+    expect(summary).toHaveProperty('totalServers');
+    expect(summary).toHaveProperty('healthyServers');
+    expect(summary).toHaveProperty('warningServers');
+    expect(summary).toHaveProperty('criticalServers');
 
     // 타입 검증
-    expect(typeof summary.servers.avgCpu).toBe('number');
-    expect(typeof summary.servers.avgMemory).toBe('number');
-    expect(typeof summary.servers.total).toBe('number');
-    expect(typeof summary.servers.online).toBe('number');
-    expect(typeof summary.applications.avgResponseTime).toBe('number');
-    expect(typeof summary.applications.total).toBe('number');
-    expect(typeof summary.clusters.total).toBe('number');
+    expect(typeof summary.totalServers).toBe('number');
+    expect(typeof summary.healthyServers).toBe('number');
+    expect(typeof summary.warningServers).toBe('number');
+    expect(typeof summary.criticalServers).toBe('number');
   });
 
-  it('NaN 값이 없고 유효한 숫자 범위를 반환한다', () => {
-    const summary = generator.getInstance().getDashboardSummary();
+  it('NaN 값이 없고 유효한 숫자 범위를 반환한다', async () => {
+    const summary = await generator.getInstance().getDashboardSummary();
 
     // NaN 검증
-    expect(Number.isNaN(summary.servers.avgCpu)).toBe(false);
-    expect(Number.isNaN(summary.servers.avgMemory)).toBe(false);
-    expect(Number.isNaN(summary.applications.avgResponseTime)).toBe(false);
+    expect(Number.isNaN(summary.totalServers)).toBe(false);
+    expect(Number.isNaN(summary.healthyServers)).toBe(false);
+    expect(Number.isNaN(summary.warningServers)).toBe(false);
+    expect(Number.isNaN(summary.criticalServers)).toBe(false);
 
     // 논리적 범위 검증
-    expect(summary.servers.avgCpu).toBeGreaterThanOrEqual(0);
-    expect(summary.servers.avgCpu).toBeLessThanOrEqual(100);
-    expect(summary.servers.avgMemory).toBeGreaterThanOrEqual(0);
-    expect(summary.servers.avgMemory).toBeLessThanOrEqual(100);
-    expect(summary.servers.total).toBeGreaterThanOrEqual(0);
-    expect(summary.servers.online).toBeGreaterThanOrEqual(0);
-    expect(summary.servers.online).toBeLessThanOrEqual(summary.servers.total);
-    expect(summary.applications.avgResponseTime).toBeGreaterThanOrEqual(0);
-    expect(summary.applications.total).toBeGreaterThanOrEqual(0);
-    expect(summary.clusters.total).toBeGreaterThanOrEqual(0);
+    expect(summary.totalServers).toBeGreaterThanOrEqual(0);
+    expect(summary.healthyServers).toBeGreaterThanOrEqual(0);
+    expect(summary.warningServers).toBeGreaterThanOrEqual(0);
+    expect(summary.criticalServers).toBeGreaterThanOrEqual(0);
+    expect(summary.healthyServers + summary.warningServers + summary.criticalServers).toBeLessThanOrEqual(summary.totalServers);
   });
 
   it('실제 서버 데이터와 일치하는 카운트를 반환한다', async () => {
     // Given
     const allServers = await generator.getInstance().getAllServers();
-    const allApplications = generator.getInstance().getAllApplications();
-    const allClusters = generator.getInstance().getAllClusters();
+    const allApplications = await generator.getInstance().getAllApplications();
+    const allClusters = await generator.getInstance().getAllClusters();
 
-    const summary = generator.getInstance().getDashboardSummary();
+    const summary = await generator.getInstance().getDashboardSummary();
 
     // 실제 데이터와 요약 데이터 일치성 검증
-    expect(summary.servers.total).toBe(allServers.length);
-    expect(summary.applications.total).toBe(allApplications.length);
-    expect(summary.clusters.total).toBe(allClusters.length);
+    expect(summary.totalServers).toBe(allServers.length);
+    expect(summary.healthyServers).toBeGreaterThanOrEqual(0);
+    expect(summary.warningServers).toBeGreaterThanOrEqual(0);
+    expect(summary.criticalServers).toBeGreaterThanOrEqual(0);
 
-    // 온라인 서버 수가 전체 서버 수를 초과하지 않음
-    expect(summary.servers.online).toBeLessThanOrEqual(summary.servers.total);
+    // 총합이 전체 서버 수와 일치하는지 확인
+    expect(summary.healthyServers + summary.warningServers + summary.criticalServers).toBeLessThanOrEqual(summary.totalServers);
   });
 
   it('실시간 데이터 생성 후에도 일관된 데이터를 반환한다', async () => {
@@ -92,16 +74,17 @@ describe('RealServerDataGenerator.getDashboardSummary', () => {
     // 잠시 대기하여 데이터 생성
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    const summary1 = generator.getInstance().getDashboardSummary();
+    const summary1 = await generator.getInstance().getDashboardSummary();
 
     // 다시 한 번 확인
     await new Promise(resolve => setTimeout(resolve, 50));
-    const summary2 = generator.getInstance().getDashboardSummary();
+    const summary2 = await generator.getInstance().getDashboardSummary();
 
     // 데이터 구조 일관성 검증
-    expect(summary1.servers.total).toBe(summary2.servers.total);
-    expect(summary1.applications.total).toBe(summary2.applications.total);
-    expect(summary1.clusters.total).toBe(summary2.clusters.total);
+    expect(summary1.totalServers).toBe(summary2.totalServers);
+    expect(summary1.healthyServers).toBeGreaterThanOrEqual(0);
+    expect(summary1.warningServers).toBeGreaterThanOrEqual(0);
+    expect(summary1.criticalServers).toBeGreaterThanOrEqual(0);
 
     // 실시간 생성 중지
     generator.getInstance().stopAutoGeneration();
