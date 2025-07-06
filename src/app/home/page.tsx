@@ -118,22 +118,12 @@ export default function HomePage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5, duration: 0.6 }}
-                        className="text-2xl font-semibold text-gray-700 mb-6"
-                    >
-                        Vibe v5
-                    </motion.h2>
-
-                    {/* 부제목 */}
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.6, duration: 0.6 }}
                         className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed"
                     >
                         AI 기반 서버 모니터링 및 관리 시스템
                         <br />
                         지능형 분석과 실시간 모니터링으로 서버를 효율적으로 관리하세요
-                    </motion.p>
+                    </motion.h2>
 
                     {/* 기능 카드들 */}
                     <motion.div
@@ -194,7 +184,7 @@ export default function HomePage() {
                             시스템 시작을 클릭하여 모니터링을 시작하세요
                         </p>
                         <p className="text-gray-400 text-xs">
-                            © 2024 OpenManager Vibe v5. All rights reserved.
+                            © 2024 OpenManager. All rights reserved.
                         </p>
                     </motion.div>
                 </motion.div>

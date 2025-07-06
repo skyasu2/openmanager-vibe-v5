@@ -35,7 +35,7 @@ export default function Home() {
         <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto">
           <span className="text-white text-xl font-bold">OM</span>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">OpenManager Vibe v5</h1>
+        <h1 className="text-2xl font-bold text-gray-900">OpenManager</h1>
         <div className="flex items-center space-x-2 justify-center">
           <div className="w-6 h-6 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
           <span className="text-gray-600">시스템 초기화 중...</span>
