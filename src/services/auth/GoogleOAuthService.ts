@@ -38,10 +38,10 @@ export class GoogleOAuthService {
         this.config = {
             clientId: getEnvironmentVar('GOOGLE_OAUTH_CLIENT_ID') ||
                 process.env.GOOGLE_OAUTH_CLIENT_ID ||
-                '',
+                'development-mock-client-id',
             redirectUri: getEnvironmentVar('GOOGLE_OAUTH_REDIRECT_URI') ||
                 process.env.GOOGLE_OAUTH_REDIRECT_URI ||
-                (typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : 'http://localhost:3000/auth/callback'),
+                (typeof window !== 'undefined' ? `${window.location.origin}/login` : 'http://localhost:3000/login'),
             scope: [
                 'openid',
                 'email',
