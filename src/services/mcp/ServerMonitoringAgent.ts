@@ -432,7 +432,7 @@ export class ServerMonitoringAgent {
     // 서버별 이상 탐지
     for (const server of data.servers) {
       // CPU 이상
-      if (server.metrics.cpu > this.knowledgeBase.thresholds.cpu.critical) {
+      if (server.metrics?.cpu > this.knowledgeBase.thresholds.cpu.critical) {
         analysis.pattern = 'high-cpu';
         analysis.severity = 'critical';
         analysis.issues.push(
@@ -442,7 +442,7 @@ export class ServerMonitoringAgent {
           `${server.name} 서버의 CPU 부하를 줄이거나 스케일링을 고려하세요`
         );
       } else if (
-        server.metrics.cpu > this.knowledgeBase.thresholds.cpu.warning
+        server.metrics?.cpu > this.knowledgeBase.thresholds.cpu.warning
       ) {
         analysis.pattern = 'cpu-warning';
         analysis.severity =
@@ -454,7 +454,7 @@ export class ServerMonitoringAgent {
 
       // 메모리 이상
       if (
-        server.metrics.memory > this.knowledgeBase.thresholds.memory.critical
+        server.metrics?.memory > this.knowledgeBase.thresholds.memory.critical
       ) {
         analysis.pattern = 'memory-issue';
         analysis.severity = 'critical';
@@ -467,7 +467,7 @@ export class ServerMonitoringAgent {
       }
 
       // 디스크 이상
-      if (server.metrics.disk > this.knowledgeBase.thresholds.disk.critical) {
+      if (server.metrics?.disk > this.knowledgeBase.thresholds.disk.critical) {
         analysis.pattern = 'disk-full';
         analysis.severity = 'critical';
         analysis.issues.push(

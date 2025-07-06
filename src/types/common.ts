@@ -34,7 +34,6 @@ declare global {
 
 // 환경변수 모킹을 위한 타입
 export interface MockEnvironmentConfig {
-  NODE_ENV?: 'development' | 'production' | 'test';
   ENABLE_MOCK_DATA?: boolean;
   DISABLE_EXTERNAL_CALLS?: boolean;
   REDIS_CONNECTION_DISABLED?: boolean;

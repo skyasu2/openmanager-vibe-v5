@@ -13,7 +13,7 @@
  * - 하트비트 모니터링
  */
 
-import { SSEConnectionPool } from './SSEConnectionPool';
+import { ServerlessSSEConnectionPool } from './SSEConnectionPool';
 import { SSEHealthMonitor } from './SSEHealthMonitor';
 
 export interface SSEManagerConfig {
@@ -24,7 +24,7 @@ export interface SSEManagerConfig {
     heartbeatInterval?: number;
     heartbeatTimeout?: number;
     exponentialBackoff?: boolean;
-    connectionPool?: SSEConnectionPool;
+    connectionPool?: ServerlessSSEConnectionPool;
     healthMonitor?: SSEHealthMonitor;
 }
 
@@ -60,7 +60,7 @@ export class OptimizedSSEManager {
             heartbeatInterval: config.heartbeatInterval || 30000,
             heartbeatTimeout: config.heartbeatTimeout || 5000,
             exponentialBackoff: config.exponentialBackoff || false,
-            connectionPool: config.connectionPool || new SSEConnectionPool(),
+            connectionPool: config.connectionPool || new ServerlessSSEConnectionPool(),
             healthMonitor: config.healthMonitor || new SSEHealthMonitor(),
         };
     }

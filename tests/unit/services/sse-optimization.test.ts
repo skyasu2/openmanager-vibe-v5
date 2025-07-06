@@ -17,8 +17,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // 테스트할 클래스들 (아직 구현되지 않음)
 import { OptimizedSSEManager } from '@/services/sse/OptimizedSSEManager';
-import { SSEConnectionPool } from '@/services/sse/SSEConnectionPool';
+import { ServerlessSSEConnectionPool } from '@/services/sse/SSEConnectionPool';
 import { SSEHealthMonitor } from '@/services/sse/SSEHealthMonitor';
+import { SSEMetricsCollector } from '@/services/sse/SSEMetricsCollector';
 
 // Mock EventSource
 class MockEventSource {
@@ -68,8 +69,9 @@ global.EventSource = MockEventSource as typeof EventSource;
 
 describe('🧪 TDD - SSE 최적화', () => {
   let sseManager: OptimizedSSEManager;
-  let connectionPool: SSEConnectionPool;
+  let connectionPool: ServerlessSSEConnectionPool;
   let healthMonitor: SSEHealthMonitor;
+  let metricsCollector: SSEMetricsCollector;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -285,7 +287,7 @@ describe('🧪 TDD - SSE 최적화', () => {
   describe('🔴 Red Phase - SSEConnectionPool', () => {
     describe('연결 풀 관리', () => {
       it('연결 풀이 정상적으로 초기화되어야 함', () => {
-        connectionPool = new SSEConnectionPool({
+        connectionPool = new ServerlessSSEConnectionPool({
           maxPoolSize: 10,
           idleTimeout: 30000,
           cleanupInterval: 5000,
@@ -297,7 +299,7 @@ describe('🧪 TDD - SSE 최적화', () => {
       });
 
       it('연결을 풀에서 가져올 수 있어야 함', async () => {
-        connectionPool = new SSEConnectionPool();
+        connectionPool = new ServerlessSSEConnectionPool();
 
         const connection = await connectionPool.acquire('test-url');
 
@@ -306,7 +308,7 @@ describe('🧪 TDD - SSE 최적화', () => {
       });
 
       it('연결을 풀에 반환할 수 있어야 함', async () => {
-        connectionPool = new SSEConnectionPool();
+        connectionPool = new ServerlessSSEConnectionPool();
 
         const connection = await connectionPool.acquire('test-url');
         connectionPool.release(connection);
@@ -316,7 +318,7 @@ describe('🧪 TDD - SSE 최적화', () => {
       });
 
       it('유휴 연결을 자동으로 정리해야 함', async () => {
-        connectionPool = new SSEConnectionPool({
+        connectionPool = new ServerlessSSEConnectionPool({
           idleTimeout: 100,
           cleanupInterval: 50,
         });
@@ -396,7 +398,7 @@ describe('🧪 TDD - SSE 최적화', () => {
 
   describe('🔴 Red Phase - 통합 테스트', () => {
     it.skip('매니저, 풀, 모니터가 함께 작동해야 함', async () => {
-      connectionPool = new SSEConnectionPool();
+      connectionPool = new ServerlessSSEConnectionPool();
       healthMonitor = new SSEHealthMonitor();
 
       sseManager = new OptimizedSSEManager({

@@ -205,39 +205,24 @@ class RealDataStrategy implements DataGeneratorStrategy {
     const servers: ServerInstance[] = [];
 
     for (const [id, server] of this.servers) {
-      // 🔧 안전한 메트릭 접근 - server.metrics가 undefined일 수 있음
-      if (!server.metrics) {
-        server.metrics = {
-          cpu: 0,
-          memory: 0,
-          disk: 0,
-          network: { in: 0, out: 0 },
-          requests: 0,
-          errors: 0,
-          uptime: 0,
-          customMetrics: {},
-        };
+      // 🔧 안전한 metrics 접근
+      if (server.metrics) {
+        server.metrics.cpu = parseFloat(
+          (
+            Math.min(95, server.metrics.cpu + (Math.random() - 0.5) * 10)
+          ).toFixed(1)
+        );
+        server.metrics.memory = parseFloat(
+          (
+            Math.min(90, server.metrics.memory + (Math.random() - 0.5) * 8)
+          ).toFixed(1)
+        );
+        server.metrics.disk = parseFloat(
+          (
+            Math.min(85, server.metrics.disk + (Math.random() - 0.5) * 3)
+          ).toFixed(1)
+        );
       }
-
-      // 메트릭 업데이트 (소수점 2자리)
-      server.metrics.cpu = parseFloat(
-        Math.max(
-          5,
-          Math.min(95, server.metrics.cpu + (Math.random() - 0.5) * 10)
-        ).toFixed(2)
-      );
-      server.metrics.memory = parseFloat(
-        Math.max(
-          10,
-          Math.min(90, server.metrics.memory + (Math.random() - 0.5) * 8)
-        ).toFixed(2)
-      );
-      server.metrics.disk = parseFloat(
-        Math.max(
-          20,
-          Math.min(85, server.metrics.disk + (Math.random() - 0.5) * 3)
-        ).toFixed(2)
-      );
 
       servers.push(server);
     }

@@ -187,60 +187,48 @@ export class WebSocketManager {
    * 📊 실시간 데이터 생성 시작 - 🎯 데이터 생성기와 동기화 (5초 → 20초)
    */
   private startDataGeneration(): void {
-    // 20초마다 새로운 서버 메트릭 생성 (데이터 생성기와 동기화)
-    interval(20000).subscribe(() => {
-      if (!this.isActive || this.clients.size === 0) return;
-
-      try {
-        // RealServerDataGenerator에서 서버 데이터 가져오기
-        const allServers = await this.dataGenerator.getAllServers();
-        const selectedServers = allServers.slice(0, 3); // 처음 3개 서버만 사용
-
-        selectedServers.forEach(server => {
-          const streamData: MetricStream = {
-            serverId: server.id,
-            data: {
-              serverName: server.name,
-              cpu: server.metrics.cpu,
-              memory: server.metrics.memory,
-              disk: server.metrics.disk,
-              network: {
-                bytesIn: server.metrics.network.in,
-                bytesOut: server.metrics.network.out,
-                latency: Math.random() * 100, // 임시 지연시간
-              },
-              application: {
-                responseTime: Math.random() * 1000 + 100,
-                throughput: Math.random() * 1000 + 500,
-                errorRate: Math.random() * 5,
-              },
-              status: server.status,
-            },
-            timestamp: new Date().toISOString(),
-            type: 'cpu',
-            priority: this.calculatePriority(
-              server.metrics.cpu,
-              server.metrics.memory
-            ),
-          };
-
-          this.dataSubject.next(streamData);
-
-          // 임계값 초과 시 알림 발생
-          if (server.metrics.cpu > 85 || server.metrics.memory > 90) {
-            this.alertSubject.next({
-              serverId: server.id,
-              serverName: server.name,
-              type: 'threshold_exceeded',
-              message: `${server.name}: CPU ${server.metrics.cpu.toFixed(1)}%, 메모리 ${server.metrics.memory.toFixed(1)}%`,
-              priority: server.metrics.cpu > 95 ? 'critical' : 'high',
-              timestamp: new Date().toISOString(),
-            });
+    // 실시간 서버 데이터 브로드캐스트 (20초마다)
+    interval(20000).subscribe(async () => {
+      const allServers = await this.dataGenerator.getAllServers();
+      const serverMetrics = allServers.map(server => ({
+        id: server.id,
+        name: server.name,
+        status: server.status,
+        metrics: {
+          cpu: server.metrics?.cpu || 0,
+          memory: server.metrics?.memory || 0,
+          disk: server.metrics?.disk || 0,
+          network: {
+            bytesIn: typeof server.metrics?.network === 'object' ? server.metrics.network.in || 0 : server.metrics?.network || 0,
+            bytesOut: typeof server.metrics?.network === 'object' ? server.metrics.network.out || 0 : server.metrics?.network || 0,
           }
+        },
+        timestamp: new Date().toISOString()
+      }));
+
+      // 임계값 초과 시 알림 발생
+      if (serverMetrics.some(server => server.metrics.cpu > 85 || server.metrics.memory > 90)) {
+        this.alertSubject.next({
+          serverId: 'anomaly-detector',
+          serverName: 'Anomaly Detector',
+          type: 'threshold_exceeded',
+          message: 'High resource usage detected',
+          priority: 'high',
+          timestamp: new Date().toISOString(),
         });
-      } catch (error) {
-        console.error('❌ 데이터 생성 중 오류:', error);
       }
+
+      serverMetrics.forEach(server => {
+        const streamData: MetricStream = {
+          serverId: server.id,
+          data: server.metrics,
+          timestamp: server.timestamp,
+          type: 'cpu',
+          priority: this.calculatePriority(server.metrics.cpu, server.metrics.memory),
+        };
+
+        this.dataSubject.next(streamData);
+      });
     });
 
     // 30초마다 이상 탐지 실행
@@ -251,9 +239,9 @@ export class WebSocketManager {
         const allServers = await this.dataGenerator.getAllServers();
         const testMetrics = allServers.slice(0, 10).map(server => ({
           timestamp: Date.now(),
-          cpu: server.metrics.cpu,
-          memory: server.metrics.memory,
-          disk: server.metrics.disk,
+          cpu: server.metrics?.cpu || 0,
+          memory: server.metrics?.memory || 0,
+          disk: server.metrics?.disk || 0,
         }));
 
         // Simple anomaly detection replacement (lightweight-anomaly-detector removed)
