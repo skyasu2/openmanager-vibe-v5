@@ -260,10 +260,10 @@ export class GCPRealServerDataGenerator {
                 },
                 health: {
                     score: 0,
-                    trend: [0, 0, 0, 0, 0],
-                    status: 'offline' as ServerStatus,
-                    issues: ['ERROR: 실제 데이터 연결 실패'],
-                    lastChecked: new Date().toISOString()
+                    status: 'critical',
+                    issues: ['Connection failed', 'Data unavailable'],
+                    lastChecked: new Date().toISOString(),
+                    trend: [0, 0, 0, 0, 0]
                 }
             }));
         }
@@ -642,7 +642,8 @@ export class GCPRealServerDataGenerator {
                     score: 0,
                     status: 'critical',
                     issues: ['Connection failed', 'Data unavailable'],
-                    lastCheck: new Date().toISOString()
+                    lastChecked: new Date().toISOString(),
+                    trend: [0, 0, 0, 0, 0]
                 },
                 services: server.services || [],
                 // 추가 에러 메타데이터

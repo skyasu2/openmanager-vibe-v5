@@ -4,22 +4,20 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 // 실제 데이터 상태에서 getDashboardSummary 동작 테스트
 
 describe('RealServerDataGenerator.getDashboardSummary', () => {
-  let generator: RealServerDataGenerator;
+  let generator: typeof RealServerDataGenerator;
 
-  beforeEach(async () => {
-    generator = RealServerDataGenerator.getInstance();
-    // 실제 초기화 수행
-    await generator.initialize();
+  beforeEach(() => {
+    generator = RealServerDataGenerator;
   });
 
   afterEach(() => {
     // 정리 작업
-    generator.stopAutoGeneration();
-    generator.dispose();
+    generator.getInstance().stopAutoGeneration();
+    generator.getInstance().dispose();
   });
 
   it('초기화된 상태에서 기본 데이터 구조를 반환한다', () => {
-    const summary = generator.getDashboardSummary();
+    const summary = generator.getInstance().getDashboardSummary();
 
     // 기본 구조 검증
     expect(summary).toHaveProperty('servers');
@@ -50,7 +48,7 @@ describe('RealServerDataGenerator.getDashboardSummary', () => {
   });
 
   it('NaN 값이 없고 유효한 숫자 범위를 반환한다', () => {
-    const summary = generator.getDashboardSummary();
+    const summary = generator.getInstance().getDashboardSummary();
 
     // NaN 검증
     expect(Number.isNaN(summary.servers.avgCpu)).toBe(false);
@@ -70,11 +68,13 @@ describe('RealServerDataGenerator.getDashboardSummary', () => {
     expect(summary.clusters.total).toBeGreaterThanOrEqual(0);
   });
 
-  it('실제 서버 데이터와 일치하는 카운트를 반환한다', () => {
-    const summary = generator.getDashboardSummary();
-    const allServers = await generator.getAllServers();
-    const allApplications = generator.getAllApplications();
-    const allClusters = generator.getAllClusters();
+  it('실제 서버 데이터와 일치하는 카운트를 반환한다', async () => {
+    // Given
+    const allServers = await generator.getInstance().getAllServers();
+    const allApplications = generator.getInstance().getAllApplications();
+    const allClusters = generator.getInstance().getAllClusters();
+
+    const summary = generator.getInstance().getDashboardSummary();
 
     // 실제 데이터와 요약 데이터 일치성 검증
     expect(summary.servers.total).toBe(allServers.length);
@@ -87,16 +87,16 @@ describe('RealServerDataGenerator.getDashboardSummary', () => {
 
   it('실시간 데이터 생성 후에도 일관된 데이터를 반환한다', async () => {
     // 실시간 생성 시작
-    generator.startAutoGeneration();
+    generator.getInstance().startAutoGeneration();
 
     // 잠시 대기하여 데이터 생성
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    const summary1 = generator.getDashboardSummary();
+    const summary1 = generator.getInstance().getDashboardSummary();
 
     // 다시 한 번 확인
     await new Promise(resolve => setTimeout(resolve, 50));
-    const summary2 = generator.getDashboardSummary();
+    const summary2 = generator.getInstance().getDashboardSummary();
 
     // 데이터 구조 일관성 검증
     expect(summary1.servers.total).toBe(summary2.servers.total);
@@ -104,6 +104,6 @@ describe('RealServerDataGenerator.getDashboardSummary', () => {
     expect(summary1.clusters.total).toBe(summary2.clusters.total);
 
     // 실시간 생성 중지
-    generator.stopAutoGeneration();
+    generator.getInstance().stopAutoGeneration();
   });
 });

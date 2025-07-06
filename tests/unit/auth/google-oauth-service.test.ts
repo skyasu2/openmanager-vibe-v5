@@ -341,27 +341,38 @@ describe('GoogleOAuthService', () => {
 
     describe('Development Mode', () => {
         it('should detect development mode', () => {
-            process.env.NODE_ENV = 'development';
+            // 환경 변수 모킹
+            const originalEnv = process.env.NODE_ENV;
+            (process.env as any).NODE_ENV = 'development';
 
             const isDev = googleOAuthService.isDevelopmentMode();
 
             expect(isDev).toBe(true);
+
+            // 원래 값 복원
+            (process.env as any).NODE_ENV = originalEnv;
         });
 
         it('should detect test mode', () => {
-            process.env.NODE_ENV = 'test';
+            const originalEnv = process.env.NODE_ENV;
+            (process.env as any).NODE_ENV = 'test';
 
             const isDev = googleOAuthService.isDevelopmentMode();
 
             expect(isDev).toBe(true);
+
+            (process.env as any).NODE_ENV = originalEnv;
         });
 
         it('should detect production mode', () => {
-            process.env.NODE_ENV = 'production';
+            const originalEnv = process.env.NODE_ENV;
+            (process.env as any).NODE_ENV = 'production';
 
             const isDev = googleOAuthService.isDevelopmentMode();
 
             expect(isDev).toBe(false);
+
+            (process.env as any).NODE_ENV = originalEnv;
         });
     });
 }); 

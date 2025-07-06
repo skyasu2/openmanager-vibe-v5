@@ -22,14 +22,14 @@ describe('🌐 GCP 서버 데이터 생성기', () => {
     let mockCloudStorage: any;
 
     beforeEach(() => {
-        // Mock GCP 서비스
+        // Mock GCP 서비스 (타입 안전하게)
         mockFirestore = {
             collection: jest.fn().mockReturnThis(),
             doc: jest.fn().mockReturnThis(),
-            add: jest.fn().mockResolvedValue({ id: 'test-doc' }),
-            get: jest.fn().mockResolvedValue({ exists: true, data: () => ({}) }),
-            set: jest.fn().mockResolvedValue({}),
-            delete: jest.fn().mockResolvedValue({}),
+            add: jest.fn().mockResolvedValue({ id: 'test-doc' } as any) as jest.MockedFunction<any>,
+            get: jest.fn().mockResolvedValue({ exists: true, data: () => ({}) } as any) as jest.MockedFunction<any>,
+            set: jest.fn().mockResolvedValue({} as any) as jest.MockedFunction<any>,
+            delete: jest.fn().mockResolvedValue({} as any) as jest.MockedFunction<any>,
             where: jest.fn().mockReturnThis(),
             orderBy: jest.fn().mockReturnThis(),
             limit: jest.fn().mockReturnThis()
@@ -38,8 +38,8 @@ describe('🌐 GCP 서버 데이터 생성기', () => {
         mockCloudStorage = {
             bucket: jest.fn().mockReturnThis(),
             file: jest.fn().mockReturnThis(),
-            download: jest.fn().mockResolvedValue([Buffer.from('{"test": "data"}')]),
-            save: jest.fn().mockResolvedValue({})
+            download: jest.fn().mockResolvedValue([Buffer.from('{"test": "data"}')] as any) as jest.MockedFunction<any>,
+            save: jest.fn().mockResolvedValue({} as any) as jest.MockedFunction<any>
         } as any;
 
         generator = new GCPServerDataGenerator(mockFirestore, mockCloudStorage);
@@ -557,10 +557,10 @@ describe('🔄 GCP 세션 매니저', () => {
         mockFirestore = {
             collection: jest.fn().mockReturnThis(),
             doc: jest.fn().mockReturnThis(),
-            add: jest.fn().mockResolvedValue({ id: 'test-doc' }),
-            get: jest.fn().mockResolvedValue({ exists: true, data: () => ({}) }),
-            set: jest.fn().mockResolvedValue({}),
-            delete: jest.fn().mockResolvedValue({}),
+            add: jest.fn().mockResolvedValue({ id: 'test-doc' } as any) as jest.MockedFunction<any>,
+            get: jest.fn().mockResolvedValue({ exists: true, data: () => ({}) } as any) as jest.MockedFunction<any>,
+            set: jest.fn().mockResolvedValue({} as any) as jest.MockedFunction<any>,
+            delete: jest.fn().mockResolvedValue({} as any) as jest.MockedFunction<any>,
             where: jest.fn().mockReturnThis(),
             orderBy: jest.fn().mockReturnThis(),
             limit: jest.fn().mockReturnThis()
