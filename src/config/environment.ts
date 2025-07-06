@@ -237,7 +237,7 @@ export function getCurrentEnvironment() {
   return getEnvironmentConfig();
 }
 
-import { ACTIVE_SERVER_CONFIG, DEFAULT_SERVER_COUNT } from './serverConfig';
+import { ACTIVE_SERVER_CONFIG } from './serverConfig';
 
 /**
  * 데이터 생성기 설정 반환 (로컬/Vercel 통일)
@@ -246,13 +246,35 @@ export function getDataGeneratorConfig() {
   const config = getEnvironmentConfig();
   const centralConfig = ACTIVE_SERVER_CONFIG;
 
-  // 🚀 모든 환경에서 동일한 설정 사용
+  // 🚫 Vercel 환경에서는 데이터 생성기 완전 비활성화
+  if (config.IS_VERCEL) {
+    console.log('🚫 Vercel 환경: 목업 데이터 생성기 비활성화 (GCP 실제 데이터만 사용)');
+    return {
+      enabled: false,
+      maxServers: 0,
+      minServers: 0,
+      defaultArchitecture: 'single' as const,
+      updateInterval: 0,
+      refreshInterval: 0,
+      memoryLimit: 0,
+      mode: 'disabled' as const,
+      features: {
+        networkTopology: false,
+        demoScenarios: false,
+        baselineOptimization: false,
+        maxNodes: 0,
+        autoRotate: false,
+      },
+    };
+  }
+
+  // 🏠 로컬 환경에서만 목업 데이터 생성기 활성화
   const maxServers = centralConfig.maxServers; // 15개로 통일
   const minServers = Math.max(5, Math.floor(maxServers * 0.4)); // 최소값: 최대값의 40% (최소 5개)
   const serverArchitecture: 'single' | 'master-slave' | 'load-balanced' | 'microservices' = 'load-balanced';
 
   console.log(
-    `🎯 통합 환경 설정: ${minServers}-${maxServers}개 서버 (중앙설정: ${centralConfig.maxServers}개, 간격: ${centralConfig.cache.updateInterval}ms)`
+    `🎯 로컬 환경 설정: ${minServers}-${maxServers}개 서버 (중앙설정: ${centralConfig.maxServers}개, 간격: ${centralConfig.cache.updateInterval}ms)`
   );
 
   return {

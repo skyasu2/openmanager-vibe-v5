@@ -5,6 +5,7 @@
  * 서버리스 환경에서 상태 유지 없이 동작
  */
 
+import { detectEnvironment } from '@/config/environment';
 import { systemLogger } from '@/lib/logger';
 import { ServerAlert, ServerEnvironment, ServerInstance, ServerMetrics, ServerRole, ServerStatus } from '@/types/server';
 
@@ -24,8 +25,20 @@ interface GCPServerConfig {
 export class GCPRealServerDataGenerator {
     private static instance: GCPRealServerDataGenerator | null = null;
     private readonly config: Required<GCPServerConfig>;
+    private isInitialized = false;
+    private gcpDataGenerator: any = null;
 
     constructor(config: GCPServerConfig = {}) {
+        // 🚫 Vercel 환경에서는 목업 데이터 생성 완전 비활성화
+        const env = detectEnvironment();
+        if (env.IS_VERCEL) {
+            console.log('🚫 Vercel 환경: 목업 데이터 생성기 비활성화 - GCP 실제 데이터만 사용');
+            this.isInitialized = false;
+            return;
+        }
+
+        console.log('🏠 로컬 환경: 목업 데이터 생성기 활성화');
+
         this.config = {
             sessionId: config.sessionId || this.generateSessionId(),
             limit: config.limit || 20,
@@ -41,19 +54,44 @@ export class GCPRealServerDataGenerator {
     }
 
     /**
-     * 🔧 싱글톤 인스턴스 가져오기 (서버리스 호환)
+     * 🔄 싱글톤 인스턴스 반환 (서버리스 환경 호환)
      */
-    static getInstance(config?: GCPServerConfig): GCPRealServerDataGenerator {
-        // 서버리스 환경에서는 매번 새 인스턴스 생성
-        if (typeof process !== 'undefined' && process.env.VERCEL) {
-            return new GCPRealServerDataGenerator(config);
+    static getInstance(): GCPRealServerDataGenerator {
+        const env = detectEnvironment();
+
+        // 🚫 Vercel 환경에서는 항상 새 인스턴스 (비활성화된 상태)
+        if (env.IS_VERCEL) {
+            return new GCPRealServerDataGenerator();
         }
 
-        // 로컬 환경에서는 싱글톤 사용
+        // 🏠 로컬 환경에서는 싱글톤 패턴
         if (!GCPRealServerDataGenerator.instance) {
-            GCPRealServerDataGenerator.instance = new GCPRealServerDataGenerator(config);
+            GCPRealServerDataGenerator.instance = new GCPRealServerDataGenerator();
         }
         return GCPRealServerDataGenerator.instance;
+    }
+
+    /**
+     * 🏗️ 초기화 (Vercel에서는 즉시 false 반환)
+     */
+    async initialize(): Promise<boolean> {
+        const env = detectEnvironment();
+
+        if (env.IS_VERCEL) {
+            console.log('🚫 Vercel 환경: 데이터 생성기 초기화 건너뛰기');
+            this.isInitialized = false;
+            return false;
+        }
+
+        try {
+            systemLogger.system('🌐 GCP 서버 데이터 생성기 초기화 완료');
+            this.isInitialized = true;
+            return true;
+        } catch (error) {
+            systemLogger.error('GCP 서버 데이터 생성기 초기화 실패:', error);
+            this.isInitialized = false;
+            return false;
+        }
     }
 
     /**
@@ -392,10 +430,6 @@ export class GCPRealServerDataGenerator {
         };
     }
 
-    async initialize(): Promise<void> {
-        systemLogger.system('🌐 GCP 서버 데이터 생성기 초기화 완료');
-    }
-
     dispose(): void {
         systemLogger.system('🌐 GCP 서버 데이터 생성기 정리 완료');
     }
@@ -404,6 +438,13 @@ export class GCPRealServerDataGenerator {
      * 📊 모든 서버 조회
      */
     async getAllServers(): Promise<ServerInstance[]> {
+        const env = detectEnvironment();
+
+        if (env.IS_VERCEL) {
+            console.log('🚫 Vercel 환경: 목업 서버 데이터 생성 비활성화');
+            return [];
+        }
+
         return await this.generateServers();
     }
 
@@ -444,6 +485,23 @@ export class GCPRealServerDataGenerator {
      * 📈 대시보드 요약 정보
      */
     async getDashboardSummary(): Promise<any> {
+        const env = detectEnvironment();
+
+        if (env.IS_VERCEL) {
+            console.log('🚫 Vercel 환경: 목업 대시보드 데이터 생성 비활성화');
+            return {
+                totalServers: 0,
+                healthyServers: 0,
+                warningServers: 0,
+                criticalServers: 0,
+                averageCpuUsage: 0,
+                averageMemoryUsage: 0,
+                totalNetworkTraffic: 0,
+                uptime: '0%',
+                lastUpdated: new Date().toISOString()
+            };
+        }
+
         try {
             const servers = await this.generateServers();
             const status = await this.getStatus();

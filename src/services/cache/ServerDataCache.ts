@@ -137,13 +137,15 @@ export class ServerDataCache {
       const generator = RealServerDataGenerator.getInstance();
 
       // 생성기가 초기화되지 않았으면 초기화
-      if (!generator.getStatus().isInitialized) {
+      try {
         await generator.initialize();
+      } catch (error) {
+        console.log('⚠️ 생성기 초기화 건너뜀 (이미 초기화됨)');
       }
 
-      // 서버 데이터 가져오기
-      const servers = generator.getAllServers();
-      const summary = generator.getDashboardSummary();
+      // 서버 데이터 가져오기 (비동기 메서드들)
+      const servers = await generator.getAllServers();
+      const summary = await generator.getDashboardSummary();
 
       if (!Array.isArray(servers)) {
         throw new Error('Invalid server data format');

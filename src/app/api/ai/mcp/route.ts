@@ -7,60 +7,45 @@
  * - 하이브리드 분석 및 자동 폴백
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { detectEnvironment } from '@/config/environment';
 import { masterAIEngine } from '@/services/ai/MasterAIEngine';
+import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * 🤖 MCP (Model Context Protocol) API
+ * Vercel 환경에서는 비활성화, 로컬에서만 활성화
+ */
 export async function GET(request: NextRequest) {
   try {
-    console.log('🎯 통합 MCP 상태 조회');
+    const env = detectEnvironment();
 
-    const systemInfo = masterAIEngine.getSystemInfo();
-    const engineStatuses = masterAIEngine.getEngineStatuses();
-    const mcpEngine = engineStatuses.find(e => e.name === 'mcp');
+    // 🚫 Vercel 환경에서는 MCP 비활성화
+    if (env.IS_VERCEL) {
+      return NextResponse.json({
+        success: false,
+        error: 'MCP는 Vercel 환경에서 비활성화됨',
+        message: 'GCP 실제 데이터를 사용하세요',
+        timestamp: new Date().toISOString()
+      }, { status: 400 });
+    }
 
+    // 🏠 로컬 환경에서만 MCP 활성화
     return NextResponse.json({
       success: true,
-      data: {
-        mcp_status: {
-          engine_info: {
-            name: 'mcp',
-            type: 'custom_engine',
-            status: mcpEngine?.status || 'ready',
-            memory_usage: mcpEngine?.memory_usage || '~5MB',
-            success_rate: mcpEngine?.success_rate || 0,
-            avg_response_time: mcpEngine?.avg_response_time || 0,
-          },
-          capabilities: [
-            'context_awareness',
-            'reasoning_steps',
-            'server_analysis',
-            'korean_optimization',
-            'fallback_support',
-          ],
-          integration: {
-            master_engine: true,
-            opensource_fallback: true,
-            hybrid_analysis: true,
-          },
-        },
-        system_overview: {
-          total_engines: systemInfo.master_engine.total_engines,
-          custom_engines: systemInfo.master_engine.custom_engines,
-          opensource_engines: systemInfo.master_engine.opensource_engines,
-          initialized: systemInfo.master_engine.initialized,
-        },
-      },
-      message: '통합 MCP 상태 조회 완료',
+      message: 'MCP 서비스 활성화됨 (로컬 환경)',
+      environment: 'local',
+      timestamp: new Date().toISOString()
     });
+
   } catch (error) {
-    console.error('❌ MCP 상태 조회 오류:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : '알 수 없는 오류',
-      },
-      { status: 500 }
-    );
+    console.error('❌ MCP API 오류:', error);
+
+    return NextResponse.json({
+      success: false,
+      error: 'Internal server error',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
   }
 }
 
