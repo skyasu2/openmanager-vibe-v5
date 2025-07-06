@@ -448,7 +448,7 @@ export class GCPRealServerDataGenerator {
     async getAllApplications(): Promise<any[]> {
         try {
             const servers = await this.generateServers();
-            const applications = [];
+            const applications: any[] = [];
 
             // 서버 타입별로 애플리케이션 생성
             const appTypes = [...new Set(servers.map(s => s.type))];
