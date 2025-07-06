@@ -87,6 +87,7 @@ describe('환경 감지 로직', () => {
       setTestEnv({
         VERCEL: '1',
         NODE_ENV: 'production',
+        VERCEL_ENV: 'production',
       });
 
       const env = detectEnvironment();
@@ -97,7 +98,7 @@ describe('환경 감지 로직', () => {
       expect(env.IS_PRODUCTION).toBe(true);
       expect(env.features.enableMockData).toBe(false);
       expect(env.performance.maxMemory).toBe(1024);
-      expect(env.performance.timeout).toBe(30000);
+      expect(env.performance.timeout).toBe(25000);
       expect(env.features.enableWebSocket).toBe(false);
     });
 
@@ -111,7 +112,7 @@ describe('환경 감지 로직', () => {
 
       expect(env.features.enableMockData).toBe(false);
       expect(env.performance.maxMemory).toBe(1024);
-      expect(env.performance.timeout).toBe(30000);
+      expect(env.performance.timeout).toBe(25000);
       expect(env.features.enableWebSocket).toBe(false);
     });
   });

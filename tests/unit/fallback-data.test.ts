@@ -7,19 +7,20 @@ import {
   STATIC_ERROR_SERVERS,
   validateEnvironmentVariables,
 } from '@/config/fallback-data';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Fallback Data Configuration', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // 환경변수 초기화 (읽기 전용 문제 해결)
-    jest.resetModules();
+    vi.resetModules();
     process.env = { ...originalEnv };
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
     // 환경변수 복원
     process.env = originalEnv;
   });
