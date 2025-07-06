@@ -78,8 +78,6 @@ interface ServerlessSystemStore extends ServerlessSystemStatus {
     timeRemaining: number;
     phase: 'collecting' | 'monitoring' | 'inactive';
   };
-
-  isSessionActive: boolean;
 }
 
 /**
@@ -252,6 +250,5 @@ export const useGlobalSystemStore = create<ServerlessSystemStore>()((set, get) =
       };
     },
 
-    isSessionActive: false,
   };
 });

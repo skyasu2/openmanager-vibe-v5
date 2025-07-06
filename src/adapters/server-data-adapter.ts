@@ -106,24 +106,20 @@ export function transformServerInstanceToServerOptimized(
   // 🔧 안전한 속성 접근
   const id = serverInstance.id;
   const name = serverInstance.name;
-  const instanceLocation = serverInstance.location;
+  const instanceLocation = serverInstance.location || serverInstance.region;
   const status = serverInstance.status;
-  const instanceMetrics = serverInstance.metrics;
-  const instanceSpecs = serverInstance.specs;
-  const lastUpdated = serverInstance.lastUpdated;
-  const region = serverInstance.region;
+  const lastUpdated = serverInstance.lastUpdated || serverInstance.lastCheck;
   const provider = serverInstance.provider;
 
-  // 🔧 안전한 메트릭 접근
-  const safeMetrics = instanceMetrics || {};
-  const cpu = safeMetrics.cpu || 0;
-  const memory = safeMetrics.memory || 0;
-  const disk = safeMetrics.disk || 0;
-  const network = safeMetrics.network || 0;
-  const metricsUptime = safeMetrics.uptime;
+  // 🔧 안전한 메트릭 접근 - ServerInstance의 직접 속성 사용
+  const cpu = serverInstance.cpu || 0;
+  const memory = serverInstance.memory || 0;
+  const disk = serverInstance.disk || 0;
+  const network = serverInstance.network || 0;
+  const metricsUptime = serverInstance.uptime || 0;
 
   // 🔧 안전한 스펙 접근 - data-generator와 server 타입 호환
-  const safeSpecs = instanceSpecs || {};
+  const safeSpecs = serverInstance.specs || {};
   const cpuCores = 'cpu_cores' in safeSpecs
     ? (safeSpecs as any).cpu_cores
     : 'cpu' in safeSpecs && safeSpecs.cpu && typeof safeSpecs.cpu === 'object' && 'cores' in safeSpecs.cpu
@@ -133,57 +129,50 @@ export function transformServerInstanceToServerOptimized(
   const memoryGb = 'memory_gb' in safeSpecs
     ? (safeSpecs as any).memory_gb
     : 'memory' in safeSpecs && safeSpecs.memory && typeof safeSpecs.memory === 'object' && 'total' in safeSpecs.memory
-      ? safeSpecs.memory.total
+      ? Math.round(safeSpecs.memory.total / (1024 * 1024 * 1024))
       : 8;
 
   const diskGb = 'disk_gb' in safeSpecs
     ? (safeSpecs as any).disk_gb
     : 'disk' in safeSpecs && safeSpecs.disk && typeof safeSpecs.disk === 'object' && 'total' in safeSpecs.disk
-      ? safeSpecs.disk.total
+      ? Math.round(safeSpecs.disk.total / (1024 * 1024 * 1024))
       : 100;
 
   const networkSpeed = 'network_speed' in safeSpecs
     ? (safeSpecs as any).network_speed
     : '1Gbps';
 
-  // 🔧 네트워크 타입 안전 처리
+  // 🔧 네트워크 타입 처리 개선
   const networkValue = typeof network === 'number' ? network : 0;
   const networkIn = typeof network === 'object' && network && 'in' in network ? (network as any).in : networkValue;
   const networkOut = typeof network === 'object' && network && 'out' in network ? (network as any).out : networkValue;
 
-  const location = instanceLocation || region || 'Unknown';
-
+  // 🔧 Server 타입에 맞는 반환 객체 생성
   return {
     id,
     name,
-    location,
-    status: status as any, // 🔧 타입 호환성
-    cpu,
-    memory,
-    disk,
+    location: instanceLocation || 'Unknown',
+    status: status as any,
+    cpu: cpu,
+    memory: memory,
+    disk: disk,
     network: networkValue,
-    uptime: metricsUptime || serverInstance.uptime || 0,
-    lastUpdated: lastUpdated || new Date().toISOString(),
+    uptime: metricsUptime,
+    lastUpdated: lastUpdated,
     provider: provider || 'Unknown',
-
-    // 🔧 확장된 속성들
-    os: cpuCores > 4 ? 'Linux Enterprise' : 'Linux Standard',
-
-    // 상세 정보
+    os: 'Linux',
     details: {
       cpu_cores: cpuCores,
       memory_gb: memoryGb,
       disk_gb: diskGb,
       network_speed: networkSpeed,
     },
-
-    // 네트워크 상세 정보
     networkDetails: {
-      os: cpuCores > 4 ? 'Linux Enterprise' : 'Linux Standard',
       in: networkIn,
       out: networkOut,
-      total: networkIn + networkOut,
     },
+    lastUpdate: new Date(lastUpdated || Date.now()),
+    services: [],
   } as Server;
 }
 

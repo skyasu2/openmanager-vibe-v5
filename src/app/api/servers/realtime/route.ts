@@ -126,8 +126,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 실시간 데이터 생성 시작 (아직 시작되지 않은 경우에만)
+    // 🔧 getStatus()는 Promise를 반환하므로 await 사용
     const status = await generator.getStatus();
+    const isMockMode = status.isMockMode;
+
+    // 실시간 데이터 생성 시작 (아직 시작되지 않은 경우에만)
     if (!status.isRunning) {
       generator.startAutoGeneration();
     }
@@ -193,7 +196,6 @@ export async function GET(request: NextRequest) {
     // 🛡️ 데이터 소스 추적
     const dataSource =
       allServerInstances.length > 0 ? 'RealServerDataGenerator' : 'initialized';
-    const isMockMode = generator.getStatus().isMockMode;
 
     // 응답 헤더 설정
     const responseHeaders: Record<string, string> = {
