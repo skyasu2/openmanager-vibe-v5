@@ -33,12 +33,15 @@ export interface GoogleUserProfile {
 
 export class GoogleOAuthService {
     private config: GoogleOAuthConfig;
+    private isDev: boolean;
 
     constructor() {
+        this.isDev = process.env.NODE_ENV === 'development';
+
         this.config = {
             clientId: getEnvironmentVar('GOOGLE_OAUTH_CLIENT_ID') ||
                 process.env.GOOGLE_OAUTH_CLIENT_ID ||
-                'development-mock-client-id',
+                (this.isDev ? '1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com' : ''),
             redirectUri: getEnvironmentVar('GOOGLE_OAUTH_REDIRECT_URI') ||
                 process.env.GOOGLE_OAUTH_REDIRECT_URI ||
                 (typeof window !== 'undefined' ? `${window.location.origin}/login` : 'http://localhost:3000/login'),
@@ -48,6 +51,15 @@ export class GoogleOAuthService {
                 'profile'
             ]
         };
+
+        // 개발 환경에서 설정 확인
+        if (this.isDev) {
+            console.log('🔧 개발 모드: Google OAuth 설정', {
+                clientId: this.config.clientId.substring(0, 20) + '...',
+                redirectUri: this.config.redirectUri,
+                scope: this.config.scope
+            });
+        }
     }
 
     /**

@@ -115,8 +115,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 if (!isAuth && !isPublicPath) {
                     router.push('/login');
                 } else if (isAuth && pathname === '/login') {
-                    // 이미 로그인된 상태에서 로그인 페이지 접근시 대시보드로 리다이렉트
-                    router.push('/dashboard');
+                    // 이미 로그인된 상태에서 로그인 페이지 접근시 홈으로 리다이렉트
+                    router.push('/home');
                 }
 
             } catch (error) {

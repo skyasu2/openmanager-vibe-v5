@@ -44,6 +44,39 @@ export default function LoginPage() {
             setIsLoading(true);
             setError(null);
 
+            // 개발 환경에서는 Mock 로그인 처리
+            if (process.env.NODE_ENV === 'development') {
+                console.log('🔧 개발 모드: Google OAuth Mock 로그인');
+
+                // Mock 사용자 데이터
+                const mockUser = {
+                    id: 'dev-google-user-' + Date.now(),
+                    email: 'developer@openmanager.dev',
+                    name: '개발자 (Google)',
+                    picture: 'https://via.placeholder.com/150',
+                    type: 'google' as const,
+                    permissions: [
+                        'dashboard:access',
+                        'dashboard:view',
+                        'ai:basic',
+                        'servers:view',
+                        'settings:view'
+                    ]
+                };
+
+                const mockSessionId = 'dev-session-' + Date.now();
+
+                // Mock 로그인 처리
+                localStorage.setItem('auth_session', mockSessionId);
+                localStorage.setItem('auth_user', JSON.stringify(mockUser));
+                localStorage.setItem('google_access_token', 'mock-token-' + Date.now());
+
+                // 홈 페이지로 리다이렉트
+                router.push('/home');
+                return;
+            }
+
+            // 프로덕션 환경에서는 실제 Google OAuth
             const authUrl = googleOAuthService.getAuthUrl();
             window.location.href = authUrl;
 
@@ -170,13 +203,14 @@ export default function LoginPage() {
                         </motion.div>
                     )}
 
-                    {/* Google OAuth 로그인 - 임시 비활성화 */}
+                    {/* Google OAuth 로그인 */}
                     <motion.button
                         type="button"
-                        disabled={true}
-                        className="w-full bg-gray-300 text-gray-500 py-3 px-4 rounded-lg font-medium cursor-not-allowed flex items-center justify-center gap-3"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        onClick={handleGoogleLogin}
+                        disabled={isLoading}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                        whileTap={{ scale: isLoading ? 1 : 0.98 }}
                     >
                         <svg className="w-5 h-5" viewBox="0 0 24 24">
                             <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -184,7 +218,7 @@ export default function LoginPage() {
                             <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                             <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                         </svg>
-                        Google 로그인 (준비 중)
+                        {isLoading ? '로그인 중...' : 'Google로 로그인'}
                     </motion.button>
 
                     {/* 구분선 */}

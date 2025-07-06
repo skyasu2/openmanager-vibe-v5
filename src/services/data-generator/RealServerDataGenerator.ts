@@ -6,7 +6,7 @@
  */
 
 import { systemLogger } from '@/lib/logger';
-import { ServerInstance } from '@/types/server';
+import { ServerInstance, ServerMetrics, ServerAlert, ServerEnvironment, ServerRole, ServerStatus } from '@/types/server';
 
 interface GCPServerConfig {
     sessionId?: string;
@@ -23,6 +23,65 @@ interface GCPServerConfig {
  */
 export class GCPRealServerDataGenerator {
     private readonly config: Required<GCPServerConfig>;
+
+    /**
+     * 📊 서버 메트릭스 조회
+     */
+    async getMetrics(): Promise<ServerMetrics[]> {
+        try {
+            const servers = await this.generateServers();
+            return servers.map(server => ({
+                id: server.id,
+                hostname: server.name,
+                environment: server.environment as ServerEnvironment,
+                role: server.type as ServerRole,
+                status: server.status as ServerStatus,
+                cpu_usage: server.cpu,
+                memory_usage: server.memory,
+                disk_usage: server.disk,
+                network_in: server.network || 0,
+                network_out: server.network || 0,
+                response_time: 0,
+                uptime: server.uptime,
+                last_updated: server.lastCheck,
+                alerts: []
+            }));
+        } catch (error) {
+            systemLogger.error('GCP 메트릭스 조회 실패:', error);
+            return [];
+        }
+    }
+
+    /**
+     * ⚠️ 서버 알림 조회
+     */
+    async getAlerts(): Promise<ServerAlert[]> {
+        try {
+            const servers = await this.generateServers();
+            const alerts: ServerAlert[] = [];
+
+            for (const server of servers) {
+                if (server.status !== 'healthy') {
+                    alerts.push({
+                        id: `alert-${server.id}-${Date.now()}`,
+                        server_id: server.id,
+                        type: 'cpu',
+                        message: `Server ${server.id} is ${server.status}`,
+                        severity: server.status === 'critical' ? 'critical' : 'warning',
+                        timestamp: new Date().toISOString(),
+                        resolved: false,
+                        relatedServers: [],
+                        rootCause: server.status
+                    });
+                }
+            }
+
+            return alerts;
+        } catch (error) {
+            systemLogger.error('GCP 알림 조회 실패:', error);
+            return [];
+        }
+    }
 
     constructor(config: GCPServerConfig = {}) {
         this.config = {
@@ -160,7 +219,11 @@ export class GCPRealServerDataGenerator {
     /**
      * 🏥 서버 상태 결정
      */
-    private determineServerStatus(metric: any): 'healthy' | 'warning' | 'critical' {
+    private determineServerStatus(metric: any): ServerStatus {
+        if (!metric) {
+            return 'offline';
+        }
+
         const cpu = metric.cpu || 0;
         const memory = metric.memory || 0;
         const disk = metric.disk || 0;
@@ -510,12 +573,25 @@ export function createServerDataGenerator(config?: GCPServerConfig): GCPRealServ
 /**
  * 🚫 레거시 호환성 (GCP 연동으로 변경)
  */
-export const RealServerDataGenerator = {
-    getInstance: () => {
-        console.warn('⚠️ RealServerDataGenerator.getInstance()는 더 이상 사용되지 않습니다.');
-        console.warn('🔧 대신 createServerDataGenerator()를 사용하세요.');
-        return new GCPRealServerDataGenerator();
-    }
+export interface ServerDataGenerator {
+  generateServers(): Promise<ServerInstance[]>;
+  getMetrics(): Promise<ServerMetrics[]>;
+  getAlerts(): Promise<ServerAlert[]>;
+}
+
+export const RealServerDataGenerator: ServerDataGenerator = {
+  generateServers: async () => {
+    const generator = new GCPRealServerDataGenerator();
+    return generator.generateServers();
+  },
+  getMetrics: async () => {
+    const generator = new GCPRealServerDataGenerator();
+    return generator.getMetrics();
+  },
+  getAlerts: async () => {
+    const generator = new GCPRealServerDataGenerator();
+    return generator.getAlerts();
+  }
 };
 
 /**

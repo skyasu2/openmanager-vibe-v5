@@ -1,7 +1,7 @@
 export interface ServerInstance {
   id: string;
   name: string;
-  status: 'healthy' | 'warning' | 'critical' | 'error' | 'running' | 'stopped' | 'maintenance';
+  status: ServerStatus;
   cpu: number;
   memory: number;
   disk: number;
@@ -400,8 +400,10 @@ export const FAILURE_IMPACT_GRAPH: Record<ServerRole, ServerRole[]> = {
   backup: ['storage'],
 };
 
+
+
 export interface ServerHealth {
-  status: 'online' | 'offline' | 'warning' | 'healthy' | 'critical';
+  status: ServerStatus;
   score: number;
   trend: number[];
   issues: string[];
