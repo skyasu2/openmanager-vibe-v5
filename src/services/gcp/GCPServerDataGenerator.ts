@@ -36,7 +36,7 @@ interface AnomalyInfo {
     confidence: number;
 }
 
-interface ServerData {
+interface LocalServerData {
     id: string;
     name: string;
     type: string;
@@ -355,7 +355,8 @@ export class GCPServerDataGenerator {
         timestamp: Date,
         customMetrics?: any
     ): Promise<TimeSeriesMetrics> {
-        const baseline = server.baseline_metrics;
+        // 🔧 안전한 baseline_metrics 접근
+        const baseline = (server as any).baseline_metrics || this.getBaselineMetrics(server.type);
         const finalMultiplier = timeMultiplier * scenario.loadMultiplier;
 
         // 시스템 메트릭 생성

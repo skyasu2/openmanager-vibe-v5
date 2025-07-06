@@ -11,9 +11,7 @@
 
 import { unifiedDataBroker } from '@/services/data-collection/UnifiedDataBroker';
 import type {
-  ServerInstance,
-  ServerCluster,
-  ApplicationMetrics,
+  ServerInstance
 } from '@/types/data-generator';
 
 // 🧠 AI 생각과정 단계
@@ -203,7 +201,7 @@ export class ServerMonitoringAgent {
     },
   ];
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): ServerMonitoringAgent {
     if (!ServerMonitoringAgent.instance) {
@@ -668,13 +666,13 @@ export class ServerMonitoringAgent {
 
     // 비용 절약 제안
     response += `**비용 최적화 제안:**\n`;
-    const lowUtilizationServers = data.servers.filter(
-      (s: ServerInstance) => s.metrics.cpu < 30 && s.metrics.memory < 40
+    const underutilizedServers = data.servers.filter(
+      (s: ServerInstance) => s.metrics?.cpu < 30 && s.metrics?.memory < 40
     );
 
-    if (lowUtilizationServers.length > 0) {
-      response += `• ${lowUtilizationServers.length}대의 서버가 저활용 상태입니다\n`;
-      response += `• 서버 통합을 통해 월 $${(lowUtilizationServers.length * 50).toFixed(2)} 절약 가능\n`;
+    if (underutilizedServers.length > 0) {
+      response += `• ${underutilizedServers.length}대의 서버가 저활용 상태입니다\n`;
+      response += `• 서버 통합을 통해 월 $${(underutilizedServers.length * 50).toFixed(2)} 절약 가능\n`;
     }
 
     response += `• 자동 스케일링을 통한 리소스 효율성 향상\n`;
@@ -732,7 +730,7 @@ export class ServerMonitoringAgent {
 
     // 성능 인사이트
     const highCpuServers = data.servers.filter(
-      (s: ServerInstance) => s.metrics.cpu > 70
+      (s: ServerInstance) => s.metrics?.cpu > 70
     );
     if (highCpuServers.length > 0) {
       insights.push({
@@ -749,7 +747,7 @@ export class ServerMonitoringAgent {
 
     // 비용 인사이트
     const underutilizedServers = data.servers.filter(
-      (s: ServerInstance) => s.metrics.cpu < 30 && s.metrics.memory < 40
+      (s: ServerInstance) => s.metrics?.cpu < 30 && s.metrics?.memory < 40
     );
     if (underutilizedServers.length > 0) {
       insights.push({
@@ -767,7 +765,7 @@ export class ServerMonitoringAgent {
 
     // 가용성 인사이트
     const unhealthyServers = data.servers.filter(
-      (s: ServerInstance) => s.health.score < 80
+      (s: ServerInstance) => s.health?.score < 80
     );
     if (unhealthyServers.length > 0) {
       insights.push({
@@ -814,7 +812,7 @@ export class ServerMonitoringAgent {
     const report: IncidentReport = {
       id: `incident_${Date.now()}`,
       title: `${server.name} 시스템 이상 감지`,
-      summary: `${server.name}에서 ${server.health.issues.join(', ')} 문제가 발생했습니다`,
+      summary: `${server.name}에서 ${server.health?.issues?.join(', ') || '알 수 없는 문제'} 문제가 발생했습니다`,
       severity:
         server.status === 'error'
           ? 'critical'
@@ -828,7 +826,7 @@ export class ServerMonitoringAgent {
       },
       rootCause: {
         analysis: this.analyzeRootCause(server),
-        factors: server.health.issues || [],
+        factors: server.health?.issues || [],
         confidence: 0.75,
       },
       impact: {
@@ -864,18 +862,16 @@ export class ServerMonitoringAgent {
    * 🔍 근본 원인 분석
    */
   private analyzeRootCause(server: ServerInstance): string {
-    const issues = server.health.issues;
+    const issues = server.health?.issues || [];
 
     if (issues.includes('High CPU usage detected')) {
-      return '높은 CPU 사용률로 인한 시스템 과부하. 프로세스 최적화 또는 리소스 확장이 필요합니다.';
+      return 'CPU 사용률 급증으로 인한 시스템 과부하. 프로세스 최적화 또는 스케일 아웃 필요.';
     }
-
     if (issues.includes('Memory leak suspected')) {
-      return '메모리 누수가 의심됩니다. 애플리케이션 재시작 및 코드 검토가 필요합니다.';
+      return '메모리 누수 의심. 애플리케이션 재시작 및 메모리 사용 패턴 분석 필요.';
     }
-
     if (issues.includes('Disk space running low')) {
-      return '디스크 공간 부족으로 인한 서비스 장애 위험. 즉시 정리 작업이 필요합니다.';
+      return '디스크 공간 부족. 로그 정리 및 스토리지 확장 필요.';
     }
 
     return '복합적인 요인으로 인한 시스템 성능 저하. 종합적인 점검이 필요합니다.';

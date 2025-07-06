@@ -288,7 +288,7 @@ export class GCPSessionManager {
     private async cleanupExpiredSessions(): Promise<void> {
         const now = Date.now();
         const expiredSessions = Array.from(this.activeSessions.values())
-            .filter(s => now > s.endTime);
+            .filter(s => s.endTime && now > s.endTime.getTime());
 
         for (const session of expiredSessions) {
             await this.stopSession(session.sessionId);
