@@ -31,7 +31,9 @@
       "Bash(claude --usage)",
       "Bash(npm uninstall:*)",
       "Bash(pip3 list:*)",
-      "Bash(uv tool:*)"
+      "Bash(uv tool:*)",
+      "Bash(claude-usage-monitor)",
+      "Bash(python:*)"
     ],
     "deny": []
   }

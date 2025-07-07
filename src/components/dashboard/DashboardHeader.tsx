@@ -3,12 +3,10 @@
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
-import { Bot, Clock } from 'lucide-react';
+import { Bot, Clock, LogOut, Settings, User } from 'lucide-react';
+import { signOut, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
-
-// 추가된 임포트
-import { useAuth } from '@/contexts/AuthContext';
-import ProfileDropdown from '../auth/ProfileDropdown';
 
 /**
  * 대시보드 헤더 컴포넌트 Props
@@ -20,6 +18,8 @@ interface DashboardHeaderProps {
   onToggleAgent?: () => void;
   /** AI 에이전트 열림 상태 - 기존 호환성을 위해 유지 */
   isAgentOpen?: boolean;
+  onMenuClick?: () => void;
+  title?: string;
 }
 
 /**
@@ -80,9 +80,13 @@ const DashboardHeader = React.memo(function DashboardHeader({
   onNavigateHome,
   onToggleAgent, // 기존 호환성을 위해 유지
   isAgentOpen = false, // 기존 호환성을 위해 유지
+  onMenuClick,
+  title = 'OpenManager Dashboard',
 }: DashboardHeaderProps) {
   const { aiAgent, ui } = useUnifiedAdminStore();
-  const { user, sessionId, isAuthenticated } = useAuth();
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   // 새로운 AI 사이드바 상태
   const { isOpen: isSidebarOpen, setOpen: setSidebarOpen } =
@@ -97,6 +101,27 @@ const DashboardHeader = React.memo(function DashboardHeader({
 
     // 기존 호환성을 위한 콜백 호출
     onToggleAgent?.();
+  };
+
+  const handleLogout = async () => {
+    if (session) {
+      // GitHub OAuth 로그아웃
+      await signOut({ callbackUrl: '/login' });
+    } else {
+      // 게스트 모드 로그아웃
+      router.push('/login');
+    }
+  };
+
+  const getUserName = () => {
+    if (session?.user) {
+      return session.user.name || session.user.email || 'GitHub 사용자';
+    }
+    return '게스트';
+  };
+
+  const getUserType = () => {
+    return session ? 'GitHub' : '게스트';
   };
 
   return (
@@ -135,9 +160,10 @@ const DashboardHeader = React.memo(function DashboardHeader({
               onClick={handleAIAgentToggle}
               className={`
                 relative p-3 rounded-xl transition-all duration-300 transform
-                ${isSidebarOpen || aiAgent.isEnabled
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-105'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900'
+                ${
+                  isSidebarOpen || aiAgent.isEnabled
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-105'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900'
                 }
               `}
               title={
@@ -179,9 +205,9 @@ const DashboardHeader = React.memo(function DashboardHeader({
                   animate={
                     aiAgent.isEnabled
                       ? {
-                        rotate: [0, 360],
-                        scale: [1, 1.2, 1],
-                      }
+                          rotate: [0, 360],
+                          scale: [1, 1.2, 1],
+                        }
                       : {}
                   }
                   transition={{
@@ -248,9 +274,56 @@ const DashboardHeader = React.memo(function DashboardHeader({
           </div>
 
           {/* 프로필 드롭다운 */}
-          {isAuthenticated && user && sessionId && (
-            <ProfileDropdown user={user} sessionId={sessionId} />
-          )}
+          <div className='relative'>
+            <button
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className='flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors'
+            >
+              <div className='w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center'>
+                <User className='w-5 h-5 text-white' />
+              </div>
+              <div className='hidden sm:block text-left'>
+                <div className='text-sm font-medium text-gray-900'>
+                  {getUserName()}
+                </div>
+                <div className='text-xs text-gray-500'>{getUserType()}</div>
+              </div>
+            </button>
+
+            {/* 프로필 드롭다운 메뉴 */}
+            {showProfileMenu && (
+              <div className='absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200'>
+                <div className='px-4 py-2 text-sm text-gray-700 border-b border-gray-200'>
+                  <div className='font-medium'>{getUserName()}</div>
+                  <div className='text-xs text-gray-500'>
+                    {getUserType()} 로그인
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    router.push('/settings');
+                  }}
+                  className='flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
+                >
+                  <Settings className='w-4 h-4 mr-3' />
+                  설정
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    handleLogout();
+                  }}
+                  className='flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
+                >
+                  <LogOut className='w-4 h-4 mr-3' />
+                  로그아웃
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

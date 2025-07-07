@@ -1,37 +1,37 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
+  calculatePercentage,
+  clamp,
   cn,
-  parseError,
-  safeErrorMessage,
-  generateSessionId,
-  formatBytes,
-  generateTimestamp,
-  safeJsonParse,
+  debounce,
   deepClone,
+  formatBytes,
+  formatDuration,
+  formatNumber,
   formatPercentage,
   formatRelativeTime,
-  formatDuration,
-  debounce,
-  throttle,
-  sleep,
-  retry,
-  hashString,
-  isServer,
-  isDevelopment,
-  groupBy,
-  pick,
-  omit,
-  clamp,
   generateId,
-  isValidEmail,
-  truncate,
-  calculatePercentage,
-  sortBy,
-  getStatusColor,
+  generateSessionId,
+  generateTimestamp,
   getSeverityIcon,
-  formatNumber,
+  getStatusColor,
+  groupBy,
+  hashString,
+  isDevelopment,
   isEmpty,
+  isServer,
+  isValidEmail,
+  omit,
+  parseError,
+  pick,
+  retry,
+  safeErrorMessage,
+  safeJsonParse,
+  sleep,
+  sortBy,
+  throttle,
+  truncate,
 } from '@/lib/utils-functions';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Utils Functions', () => {
   describe('cn (className merger)', () => {
@@ -214,17 +214,26 @@ describe('Utils Functions', () => {
 
   describe('debounce', () => {
     it('함수 호출을 지연시킨다', async () => {
+      vi.useFakeTimers();
+
       const mockFn = vi.fn();
       const debouncedFn = debounce(mockFn, 100);
 
       debouncedFn();
       expect(mockFn).not.toHaveBeenCalled();
 
-      await sleep(150);
+      // 타이머를 150ms 진행
+      vi.advanceTimersByTime(150);
+      await vi.runAllTimersAsync();
+
       expect(mockFn).toHaveBeenCalledTimes(1);
+
+      vi.useRealTimers();
     });
 
     it('연속 호출 시 마지막 호출만 실행한다', async () => {
+      vi.useFakeTimers();
+
       const mockFn = vi.fn();
       const debouncedFn = debounce(mockFn, 100);
 
@@ -232,13 +241,20 @@ describe('Utils Functions', () => {
       debouncedFn();
       debouncedFn();
 
-      await sleep(150);
+      // 타이머를 150ms 진행
+      vi.advanceTimersByTime(150);
+      await vi.runAllTimersAsync();
+
       expect(mockFn).toHaveBeenCalledTimes(1);
+
+      vi.useRealTimers();
     });
   });
 
   describe('throttle', () => {
     it('함수 호출을 제한한다', async () => {
+      vi.useFakeTimers();
+
       const mockFn = vi.fn();
       const throttledFn = throttle(mockFn, 100);
 
@@ -248,9 +264,14 @@ describe('Utils Functions', () => {
 
       expect(mockFn).toHaveBeenCalledTimes(1);
 
-      await sleep(150);
+      // 타이머를 150ms 진행
+      vi.advanceTimersByTime(150);
+      await vi.runAllTimersAsync();
+
       throttledFn();
       expect(mockFn).toHaveBeenCalledTimes(2);
+
+      vi.useRealTimers();
     });
   });
 
@@ -280,23 +301,40 @@ describe('Utils Functions', () => {
     });
 
     it('실패하는 함수를 재시도한다', async () => {
+      vi.useFakeTimers();
+
       const failFn = vi
         .fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockResolvedValue('success');
 
-      const result = await retry(failFn, 3, 10);
+      const resultPromise = retry(failFn, 3, 10);
+
+      // 재시도 지연 시간들을 빠르게 진행 (10ms * 2회)
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
 
       expect(result).toBe('success');
       expect(failFn).toHaveBeenCalledTimes(3);
+
+      vi.useRealTimers();
     });
 
     it('모든 재시도가 실패하면 에러를 던진다', async () => {
+      vi.useFakeTimers();
+
       const failFn = vi.fn().mockRejectedValue(new Error('always fail'));
 
-      await expect(retry(failFn, 2, 10)).rejects.toThrow('always fail');
+      const failPromise = retry(failFn, 2, 10);
+
+      // 재시도 지연 시간을 빠르게 진행 (10ms * 1회)
+      await vi.runAllTimersAsync();
+
+      await expect(failPromise).rejects.toThrow('always fail');
       expect(failFn).toHaveBeenCalledTimes(2);
+
+      vi.useRealTimers();
     });
   });
 

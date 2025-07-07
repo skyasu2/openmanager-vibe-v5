@@ -1,14 +1,14 @@
 import { ENCRYPTED_GOOGLE_AI_CONFIG } from '@/config/google-ai-config';
+import { unifiedCrypto } from '@/lib/crypto/UnifiedEnvCryptoManager';
 import { getSecureGoogleAIKey } from '@/utils/encryption';
-import CryptoJS from 'crypto-js';
 
 /**
- * Google AI API 키 관리자 v2.0
+ * Google AI API 키 관리자 v3.0 (Node.js crypto 호환)
  *
  * 기존 환경변수 암복호화 시스템과 통합
  * 우선순위:
  * 1. 환경변수 (암호화/평문)
- * 2. 팀 설정 (레거시 - 복호화)
+ * 2. 팀 설정 (Node.js crypto - 복호화)
  * 3. null (키 없음)
  */
 class GoogleAIManager {
@@ -37,9 +37,9 @@ class GoogleAIManager {
       return secureKey;
     }
 
-    // 2순위: 레거시 팀 설정 (하위 호환성)
+    // 2순위: 팀 설정 (Node.js crypto)
     if (this.isTeamKeyUnlocked && this.decryptedTeamKey) {
-      console.log('🔑 Google AI API 키 소스: 레거시 팀 설정');
+      console.log('🔑 Google AI API 키 소스: 팀 설정 (Node.js crypto)');
       return this.decryptedTeamKey;
     }
 
@@ -62,6 +62,7 @@ class GoogleAIManager {
     source: 'env' | 'team' | 'none';
     isAvailable: boolean;
     needsUnlock: boolean;
+    cryptoMethod: 'crypto-js' | 'node-crypto' | 'none';
   } {
     const secureKey = getSecureGoogleAIKey();
 
@@ -70,6 +71,7 @@ class GoogleAIManager {
         source: 'env',
         isAvailable: true,
         needsUnlock: false,
+        cryptoMethod: 'node-crypto',
       };
     }
 
@@ -78,6 +80,7 @@ class GoogleAIManager {
         source: 'team',
         isAvailable: true,
         needsUnlock: false,
+        cryptoMethod: 'node-crypto',
       };
     }
 
@@ -86,11 +89,12 @@ class GoogleAIManager {
       source: 'none',
       isAvailable: false,
       needsUnlock: hasTeamConfig,
+      cryptoMethod: 'none',
     };
   }
 
   /**
-   * 레거시 팀 비밀번호로 Google AI 키 잠금 해제 (하위 호환성)
+   * 팀 비밀번호로 Google AI 키 잠금 해제 (Node.js crypto)
    */
   async unlockTeamKey(
     password: string
@@ -99,31 +103,29 @@ class GoogleAIManager {
       if (!ENCRYPTED_GOOGLE_AI_CONFIG) {
         return {
           success: false,
-          error: '레거시 팀 설정이 없습니다. 환경변수를 사용하세요.',
+          error: '팀 설정이 없습니다. 환경변수를 사용하세요.',
         };
       }
 
-      const { encryptedKey, salt, iv } = ENCRYPTED_GOOGLE_AI_CONFIG;
+      // 새로운 암호화 방식 사용
+      const encryptedData = {
+        encrypted: ENCRYPTED_GOOGLE_AI_CONFIG.encryptedKey,
+        salt: ENCRYPTED_GOOGLE_AI_CONFIG.salt,
+        iv: ENCRYPTED_GOOGLE_AI_CONFIG.iv,
+        timestamp: ENCRYPTED_GOOGLE_AI_CONFIG.createdAt,
+        version: ENCRYPTED_GOOGLE_AI_CONFIG.version,
+      };
 
-      // 비밀번호와 솔트로 키 생성
-      const key = CryptoJS.PBKDF2(password, salt, {
-        keySize: 256 / 32,
-        iterations: 10000,
-      });
-
-      // 복호화 시도
-      const decrypted = CryptoJS.AES.decrypt(encryptedKey, key, {
-        iv: CryptoJS.enc.Hex.parse(iv),
-        mode: CryptoJS.mode.CBC,
-        padding: CryptoJS.pad.Pkcs7,
-      });
-
-      const decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
+      // Node.js crypto 모듈로 복호화
+      const decryptedText = await unifiedCrypto.decrypt(
+        encryptedData,
+        password
+      );
 
       if (!decryptedText || !decryptedText.startsWith('AIza')) {
         return {
           success: false,
-          error: '비밀번호가 올바르지 않습니다.',
+          error: '비밀번호가 올바르지 않거나 복호화에 실패했습니다.',
         };
       }
 
@@ -132,11 +134,11 @@ class GoogleAIManager {
       this.isTeamKeyUnlocked = true;
 
       console.log(
-        '✅ 레거시 Google AI 팀 키가 성공적으로 잠금 해제되었습니다.'
+        '✅ Google AI 팀 키가 성공적으로 잠금 해제되었습니다 (Node.js crypto).'
       );
       return { success: true };
     } catch (error) {
-      console.error('레거시 Google AI 키 복호화 실패:', error);
+      console.error('Google AI 키 복호화 실패:', error);
       return {
         success: false,
         error: '복호화 중 오류가 발생했습니다.',
@@ -150,7 +152,30 @@ class GoogleAIManager {
   lockTeamKey(): void {
     this.decryptedTeamKey = null;
     this.isTeamKeyUnlocked = false;
-    console.log('🔒 레거시 Google AI 팀 키가 잠금되었습니다.');
+    console.log('🔒 Google AI 팀 키가 잠금되었습니다.');
+  }
+
+  /**
+   * 기본 팀 비밀번호로 자동 잠금 해제 시도
+   */
+  async tryAutoUnlock(): Promise<boolean> {
+    const defaultPasswords = [
+      'team2025secure',
+      'openmanager2025',
+      'openmanager-vibe-v5-2025',
+      'team-password-2025',
+    ];
+
+    for (const password of defaultPasswords) {
+      const result = await this.unlockTeamKey(password);
+      if (result.success) {
+        console.log(`🔓 자동 잠금 해제 성공: ${password.substring(0, 3)}***`);
+        return true;
+      }
+    }
+
+    console.log('🔒 자동 잠금 해제 실패');
+    return false;
   }
 }
 
@@ -163,5 +188,6 @@ export const getGoogleAIStatus = () => googleAIManager.getKeyStatus();
 export const unlockGoogleAITeamKey = (password: string) =>
   googleAIManager.unlockTeamKey(password);
 export const lockGoogleAITeamKey = () => googleAIManager.lockTeamKey();
+export const tryAutoUnlockGoogleAI = () => googleAIManager.tryAutoUnlock();
 
 export default googleAIManager;

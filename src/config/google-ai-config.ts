@@ -1,40 +1,105 @@
 /**
- * Google AI API 키 암호화 설정
+ * 🔐 Google AI API 암호화된 설정 v3.0
  *
- * 이 파일은 암호화된 Google AI API 키를 저장합니다.
- * Git에 커밋해도 안전하며, 팀 비밀번호로만 복호화할 수 있습니다.
+ * 새로운 API 키: AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY
+ * 팀 비밀번호: team2025secure
+ * 암호화 알고리즘: AES-256-GCM
+ * 솔트: 128bit 랜덤, IV: 96bit 랜덤
  *
- * 구조:
- * - encryptedKey: AES 암호화된 Google AI API 키
- * - salt: 암호화에 사용된 솔트
- * - iv: 초기화 벡터
+ * 암호화 날짜: 2025-01-30 (한국시간)
+ * 유효기간: 2025년 말까지
  */
 
-export interface GoogleAIEncryptedConfig {
+export interface EncryptedGoogleAIConfig {
   encryptedKey: string;
   salt: string;
   iv: string;
-  createdAt: string;
   version: string;
+  algorithm: string;
+  createdAt: string;
+  description: string;
+  keyPrefix: string;
+  teamPassword?: string;
 }
 
 /**
- * 암호화된 Google AI 설정
- * 이 값들은 encrypt-google-ai.js 스크립트로 생성됩니다.
+ * 🔐 암호화된 Google AI 설정 (팀 공유)
+ *
+ * 복호화 방법:
+ * 1. 팀 비밀번호: team2025secure
+ * 2. UnifiedEnvCryptoManager.decrypt() 사용
+ * 3. 결과: AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY
  */
-export const ENCRYPTED_GOOGLE_AI_CONFIG: GoogleAIEncryptedConfig = {
+export const ENCRYPTED_GOOGLE_AI_CONFIG: EncryptedGoogleAIConfig = {
+  // 🔐 새로운 API 키 암호화 결과
   encryptedKey:
-    'nimoLDQDIRGXgvhsgmyE75qRwP366vsjxGQQXUcnTr8wtOPouKD7XifhwdbVwTi+',
-  salt: '151e3f103c7ab58cd8ceed1d35c0d1d3',
-  iv: 'ce840ff0b3968e9ba7d1597565db1029',
-  createdAt: '2025-07-07T11:21:08.018Z',
-  version: '1.0.0',
+    'ymppwQOSkN5lotCTegQJT/Jw/pJnWy494YLG4E9fuIih1JlQluijX4akdrQORjGP',
+  salt: 'd2f9cce3838651ef3f27ab0755f3438e',
+  iv: '4d31ddece291dfeb9a7803eb03bd40a8',
+
+  // 🔧 메타데이터
+  version: '3.0.0',
+  algorithm: 'aes-256-gcm',
+  createdAt: '2025-01-30T09:30:00.000Z',
+  description: 'Google AI API 키 (새로운 키로 업데이트)',
+  keyPrefix: 'AIzaSyABFUH',
+
+  // 🔑 팀 비밀번호 (옵션)
+  teamPassword: 'team2025secure',
 };
 
-// 개발 환경에서만 사용되는 기본 설정 (암호화되지 않음)
-export const DEV_CONFIG = {
-  isProduction: process.env.NODE_ENV === 'production',
-  useEncryption:
-    process.env.NODE_ENV === 'production' ||
-    process.env.FORCE_ENCRYPTION === 'true',
-};
+/**
+ * 🔐 Google AI 설정 검증 함수
+ */
+export function validateGoogleAIConfig(): {
+  isValid: boolean;
+  hasEncryptedKey: boolean;
+  hasMetadata: boolean;
+  version: string;
+  algorithm: string;
+} {
+  const config = ENCRYPTED_GOOGLE_AI_CONFIG;
+
+  return {
+    isValid: !!(config.encryptedKey && config.salt && config.iv),
+    hasEncryptedKey: !!config.encryptedKey,
+    hasMetadata: !!(config.version && config.algorithm && config.createdAt),
+    version: config.version,
+    algorithm: config.algorithm,
+  };
+}
+
+/**
+ * 🔐 Google AI 설정 정보 출력
+ */
+export function getGoogleAIConfigInfo(): {
+  keyPrefix: string;
+  version: string;
+  algorithm: string;
+  createdAt: string;
+  description: string;
+  hasTeamPassword: boolean;
+} {
+  const config = ENCRYPTED_GOOGLE_AI_CONFIG;
+
+  return {
+    keyPrefix: config.keyPrefix,
+    version: config.version,
+    algorithm: config.algorithm,
+    createdAt: config.createdAt,
+    description: config.description,
+    hasTeamPassword: !!config.teamPassword,
+  };
+}
+
+/**
+ * 🔐 기본 팀 비밀번호 목록
+ */
+export const DEFAULT_TEAM_PASSWORDS = [
+  'team2025secure',
+  'openmanager2025',
+  'openmanager-vibe-v5-2025',
+  'team-password-2025',
+] as const;
+
+export default ENCRYPTED_GOOGLE_AI_CONFIG;

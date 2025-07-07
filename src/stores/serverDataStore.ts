@@ -95,6 +95,12 @@ interface ServerDataState {
     status: 'healthy' | 'warning' | 'critical'
   ) => EnhancedServerMetrics[];
   getServersByEnvironment: (environment: string) => EnhancedServerMetrics[];
+
+  // 추가 액션들
+  actions?: {
+    updateServer?: (id: string, data: any) => void;
+    refreshServers?: () => Promise<void>;
+  };
 }
 
 // ✅ 안전한 초기 서버 데이터 생성 (hydration 에러 방지)

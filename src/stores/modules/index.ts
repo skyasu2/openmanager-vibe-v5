@@ -1,95 +1,73 @@
 /**
  * 🏪 Store Modules Export
- * 모든 Zustand 스토어 모듈 중앙 관리
+ *
+ * OpenManager Vibe v5 상태 관리 모듈 통합 (Google OAuth 제거됨)
  */
 
-// 개별 스토어 import
-import { useAIStore, type AIState } from './ai.store';
-import { useAuthStore, type AuthState } from './auth.store';
-import { useSystemStore, type SystemState } from './system.store';
+import { useServerDataStore } from '../serverDataStore';
+import { useUnifiedAdminStore } from '../useUnifiedAdminStore';
 
-// 개별 스토어 export
-export { useAIStore, type AIAgentState, type AIState } from './ai.store';
-export { useAuthStore, type AuthState } from './auth.store';
-export { useSystemStore, type SystemState } from './system.store';
-
-// 통합 상태 타입
-export interface GlobalState {
-  system: SystemState;
-  auth: AuthState;
-  ai: AIState;
-}
-
-// 통합 훅 (모든 스토어에 접근)
-export const useGlobalState = () => {
-  const system = useSystemStore();
-  const auth = useAuthStore();
-  const ai = useAIStore();
-
-  return {
-    system,
-    auth,
-    ai
-  };
-};
+// 기본 스토어들 익스포트
+export { useServerDataStore } from '../serverDataStore';
+export { useUnifiedAdminStore } from '../useUnifiedAdminStore';
 
 // 특정 기능별 통합 훅
 export const useSystemAuth = () => {
-  const { isStarted, start, stop, getRemainingTime } = useSystemStore();
-  const { isAuthenticated, authenticate, logout } = useAuthStore();
+  const { isSystemStarted, startSystem, stopSystem, getSystemRemainingTime } =
+    useUnifiedAdminStore();
+  const { adminMode, authenticateAdmin, logoutAdmin } = useUnifiedAdminStore();
 
   return {
     // 시스템 상태
-    isSystemStarted: isStarted,
-    systemRemainingTime: getRemainingTime(),
+    isSystemStarted,
+    systemRemainingTime: getSystemRemainingTime(),
 
-    // 인증 상태
-    isAuthenticated,
+    // 관리자 인증 상태
+    isAdminAuthenticated: adminMode.isAuthenticated,
 
     // 통합 액션
     startSystem: () => {
-      if (isAuthenticated) {
-        start();
+      if (adminMode.isAuthenticated) {
+        startSystem();
       } else {
-        console.warn('⚠️ 인증이 필요합니다.');
+        console.warn('⚠️ 관리자 인증이 필요합니다.');
       }
     },
 
-    stopSystem: stop,
-    authenticate,
+    stopSystem,
+    authenticateAdmin,
     logout: () => {
-      if (isStarted) {
-        stop();
+      if (isSystemStarted) {
+        stopSystem();
       }
-      logout();
-    }
+      logoutAdmin();
+    },
   };
 };
 
-export const useAISystem = () => {
-  const { isStarted } = useSystemStore();
-  const { isAuthenticated } = useAuthStore();
-  const { isEnabled, enable, disable, state, metrics } = useAIStore();
+// 서버 데이터 관련 통합 훅
+export const useServerManagement = () => {
+  const { servers, isLoading, error, actions } = useServerDataStore();
+  const { isSystemStarted } = useUnifiedAdminStore();
 
   return {
-    // AI 상태
-    isAIEnabled: isEnabled,
-    aiState: state,
-    aiMetrics: metrics,
+    servers: isSystemStarted ? servers : [],
+    isLoading: isSystemStarted ? isLoading : false,
+    error: isSystemStarted ? error : null,
+    updateServer: actions?.updateServer,
+    refreshServers: actions?.refreshServers,
+    isSystemActive: isSystemStarted,
+  };
+};
 
-    // 조건부 AI 제어
-    enableAI: () => {
-      if (isStarted && isAuthenticated) {
-        enable();
-      } else {
-        console.warn('⚠️ 시스템 시작 및 인증이 필요합니다.');
-      }
-    },
+// 통합 상태 훅
+export const useAppState = () => {
+  const systemAuth = useSystemAuth();
+  const serverManagement = useServerManagement();
 
-    disableAI: disable,
-
-    // 상태 체크
-    canUseAI: isStarted && isAuthenticated,
+  return {
+    ...systemAuth,
+    ...serverManagement,
   };
 };
 
@@ -111,17 +89,15 @@ export const resetAllStores = () => {
 // 스토어 상태 디버깅 (개발용)
 export const debugStores = () => {
   if (process.env.NODE_ENV === 'development') {
-    const system = useSystemStore.getState();
-    const auth = useAuthStore.getState();
-    const ai = useAIStore.getState();
+    const servers = useServerDataStore.getState();
+    const auth = useUnifiedAdminStore.getState();
 
     console.group('🔍 Store Debug Info');
-    console.log('System:', system);
+    console.log('Servers:', servers);
     console.log('Auth:', auth);
-    console.log('AI:', ai);
     console.groupEnd();
 
-    return { system, auth, ai };
+    return { servers, auth };
   }
   return undefined;
-}; 
+};

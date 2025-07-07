@@ -1,11 +1,17 @@
+/**
+ * 🔧 Client Providers
+ *
+ * OpenManager Vibe v5 클라이언트 프로바이더 통합 관리
+ * NextAuth + TanStack Query만 사용 (Google OAuth 제거됨)
+ */
+
 'use client';
 
-import { AuthProvider } from '@/contexts/AuthContext';
-import { ReactNode } from 'react';
-import { QueryProvider } from './QueryProvider';
+import NextAuthProvider from './NextAuthProvider';
+import QueryProvider from './QueryProvider';
 
 interface ClientProvidersProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 /**
@@ -14,13 +20,17 @@ interface ClientProvidersProps {
  * @description
  * 서버 컴포넌트인 layout.tsx에서 클라이언트 Provider들을 사용하기 위한 래퍼 컴포넌트입니다.
  * 모든 클라이언트 사이드 상태 관리 Provider들을 여기서 통합 관리합니다.
+ *
+ * Provider 계층 구조:
+ * 1. NextAuthProvider (NextAuth 세션 관리)
+ * 2. QueryProvider (TanStack Query)
  */
 export function ClientProviders({ children }: ClientProvidersProps) {
   return (
-    <QueryProvider>
-      <AuthProvider>
-        {children}
-      </AuthProvider>
-    </QueryProvider>
+    <NextAuthProvider>
+      <QueryProvider>{children}</QueryProvider>
+    </NextAuthProvider>
   );
 }
+
+export default ClientProviders;

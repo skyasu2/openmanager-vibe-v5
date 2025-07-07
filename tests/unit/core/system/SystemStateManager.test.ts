@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SystemStateManager } from '../../../../src/core/system/SystemStateManager';
 
 // 외부 시스템만 Mock 처리 (비용/제한 고려)
@@ -68,7 +68,9 @@ describe('SystemStateManager', () => {
       expect(typeof status.simulation.dataCount).toBe('number');
       expect(typeof status.environment.plan).toBe('string');
       expect(typeof status.performance.apiCalls).toBe('number');
-      expect(['healthy', 'warning', 'critical', 'degraded']).toContain(status.health);
+      expect(['healthy', 'warning', 'critical', 'degraded']).toContain(
+        status.health
+      );
     });
 
     it('should have consistent structure across multiple calls', () => {
@@ -76,10 +78,18 @@ describe('SystemStateManager', () => {
       const status2 = manager.getSystemStatus();
 
       // 구조 일관성 검증 (값이 아닌 구조)
-      expect(Object.keys(status1.simulation)).toEqual(Object.keys(status2.simulation));
-      expect(Object.keys(status1.environment)).toEqual(Object.keys(status2.environment));
-      expect(Object.keys(status1.services)).toEqual(Object.keys(status2.services));
-      expect(typeof status1.environment.plan).toBe(typeof status2.environment.plan);
+      expect(Object.keys(status1.simulation)).toEqual(
+        Object.keys(status2.simulation)
+      );
+      expect(Object.keys(status1.environment)).toEqual(
+        Object.keys(status2.environment)
+      );
+      expect(Object.keys(status1.services)).toEqual(
+        Object.keys(status2.services)
+      );
+      expect(typeof status1.environment.plan).toBe(
+        typeof status2.environment.plan
+      );
     });
   });
 
@@ -94,15 +104,13 @@ describe('SystemStateManager', () => {
       expect(() => manager.trackApiCall(200, true)).not.toThrow();
     });
 
-    it('should maintain performance metrics structure', async () => {
+    it('should maintain performance metrics structure', () => {
       // API 호출 추적
       manager.trackApiCall(50, false);
       manager.trackApiCall(100, false);
       manager.trackApiCall(200, true);
 
-      // 상태 업데이트를 위한 짧은 대기
-      await new Promise(resolve => setTimeout(resolve, 100));
-
+      // 즉시 상태 확인 (타이머 제거)
       const status = manager.getSystemStatus();
 
       // 성능 메트릭 구조 검증
@@ -167,7 +175,9 @@ describe('SystemStateManager', () => {
       manager.trackApiCall(40, false);
 
       const healthyStatus = manager.getSystemStatus();
-      expect(['healthy', 'warning', 'critical', 'degraded']).toContain(healthyStatus.health);
+      expect(['healthy', 'warning', 'critical', 'degraded']).toContain(
+        healthyStatus.health
+      );
 
       // 나쁜 메트릭 추가
       manager.trackApiCall(5000, true); // 매우 느리고 실패
@@ -175,7 +185,9 @@ describe('SystemStateManager', () => {
       manager.trackApiCall(6000, true);
 
       const degradedStatus = manager.getSystemStatus();
-      expect(['healthy', 'warning', 'critical', 'degraded']).toContain(degradedStatus.health);
+      expect(['healthy', 'warning', 'critical', 'degraded']).toContain(
+        degradedStatus.health
+      );
     });
 
     it('should handle edge cases in health calculation', () => {
@@ -186,7 +198,9 @@ describe('SystemStateManager', () => {
       const status = manager.getSystemStatus();
 
       // 여전히 유효한 헬스 상태여야 함
-      expect(['healthy', 'warning', 'critical', 'degraded']).toContain(status.health);
+      expect(['healthy', 'warning', 'critical', 'degraded']).toContain(
+        status.health
+      );
       expect(typeof status.performance.averageResponseTime).toBe('number');
       expect(status.performance.averageResponseTime).toBeGreaterThanOrEqual(0);
     });

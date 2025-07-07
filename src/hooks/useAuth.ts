@@ -1,335 +1,143 @@
 /**
- * 🔐 useAuth Hook - 인증 상태 관리 훅
- * 
- * OpenManager Vibe v5 인증 시스템 React 훅
+ * 🔐 useAuth - 게스트 인증 훅
+ *
+ * OpenManager Vibe v5 게스트 인증 시스템 (Google OAuth 제거됨)
  */
 
-'use client';
+import { AuthStateManager, AuthUser } from '@/services/auth/AuthStateManager';
+import { useEffect, useState } from 'react';
 
-import { AuthResult, AuthStateManager, AuthUser } from '@/services/auth/AuthStateManager';
-import { useCallback, useEffect, useState } from 'react';
-
-// 전역 AuthStateManager 인스턴스
-let authManagerInstance: AuthStateManager | null = null;
-
-const getAuthManager = (): AuthStateManager => {
-    if (!authManagerInstance) {
-        authManagerInstance = new AuthStateManager();
-    }
-    return authManagerInstance;
-};
-
-export interface UseAuthReturn {
-    // 상태
-    isAuthenticated: boolean;
-    user: AuthUser | null;
-    isLoading: boolean;
-    error: string | null;
-
-    // 액션
-    login: {
-        withGoogle: (token?: string) => Promise<AuthResult>;
-        asGuest: () => Promise<AuthResult>;
-    };
-    logout: () => Promise<void>;
-    refreshAuth: () => Promise<void>;
-
-    // 권한
-    hasPermission: (permission: string) => boolean;
-
-    // 세션
-    getSessionInfo: () => any;
+export interface UseAuthResult {
+  user: AuthUser | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  sessionId: string | null;
+  login: () => Promise<{ success: boolean; error?: string }>;
+  logout: () => void;
+  checkAuth: () => Promise<void>;
+  hasPermission: (permission: string) => boolean;
 }
 
-export const useAuth = (): UseAuthReturn => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [user, setUser] = useState<AuthUser | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [sessionId, setSessionId] = useState<string | null>(null);
+export function useAuth(): UseAuthResult {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
-    const authManager = getAuthManager();
+  const authManager = new AuthStateManager();
 
-    // 세션 복구 및 초기화
-    useEffect(() => {
-        const initializeAuth = async () => {
-            try {
-                setIsLoading(true);
-
-                // 로컬 스토리지에서 세션 정보 복구
-                const savedSessionId = localStorage.getItem('auth_session_id');
-                const savedUser = localStorage.getItem('auth_user');
-
-                if (savedSessionId && savedUser) {
-                    // 세션 유효성 검증
-                    const isValidSession = authManager.validateSession(savedSessionId);
-
-                    if (isValidSession) {
-                        const parsedUser = JSON.parse(savedUser);
-                        setIsAuthenticated(true);
-                        setUser(parsedUser);
-                        setSessionId(savedSessionId);
-                        console.log('✅ 세션 복구 성공:', parsedUser.name);
-                    } else {
-                        // 만료된 세션 정리
-                        localStorage.removeItem('auth_session_id');
-                        localStorage.removeItem('auth_user');
-                        console.log('⏰ 만료된 세션 정리 완료');
-                    }
-                }
-            } catch (error) {
-                console.error('❌ 인증 초기화 실패:', error);
-                setError('인증 시스템 초기화에 실패했습니다.');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        initializeAuth();
-    }, []);
-
-    // 세션 정리 (컴포넌트 언마운트 시)
-    useEffect(() => {
-        const handleBeforeUnload = () => {
-            authManager.cleanupExpiredSessions();
-        };
-
-        window.addEventListener('beforeunload', handleBeforeUnload);
-        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, []);
-
-    // Google OAuth 로그인
-    const loginWithGoogle = useCallback(async (token?: string): Promise<AuthResult> => {
-        try {
-            setIsLoading(true);
-            setError(null);
-
-            let authToken = token;
-
-            // 토큰이 제공되지 않은 경우 Google OAuth 플로우 시작
-            if (!authToken) {
-                authToken = await initiateGoogleOAuth();
-            }
-
-            const result = await authManager.loginWithGoogle(authToken);
-
-            if (result.success && result.user && result.sessionId) {
-                setIsAuthenticated(true);
-                setUser(result.user);
-                setSessionId(result.sessionId);
-
-                // 세션 정보 로컬 스토리지에 저장
-                localStorage.setItem('auth_session_id', result.sessionId);
-                localStorage.setItem('auth_user', JSON.stringify(result.user));
-
-                console.log('✅ Google 로그인 성공:', result.user.name);
-            } else {
-                setError(result.error || 'Google 로그인에 실패했습니다.');
-            }
-
-            return result;
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Google 로그인 중 오류가 발생했습니다.';
-            setError(errorMessage);
-            console.error('❌ Google 로그인 실패:', error);
-
-            return {
-                success: false,
-                error: errorMessage
-            };
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
-
-    // 게스트 로그인
-    const loginAsGuest = useCallback(async (): Promise<AuthResult> => {
-        try {
-            setIsLoading(true);
-            setError(null);
-
-            const result = await authManager.loginAsGuest();
-
-            if (result.success && result.user && result.sessionId) {
-                setIsAuthenticated(true);
-                setUser(result.user);
-                setSessionId(result.sessionId);
-
-                // 게스트 세션은 로컬 스토리지에 저장하지 않음 (보안상 이유)
-                console.log('👤 게스트 로그인 성공:', result.user.id);
-            } else {
-                setError(result.error || '게스트 로그인에 실패했습니다.');
-            }
-
-            return result;
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '게스트 로그인 중 오류가 발생했습니다.';
-            setError(errorMessage);
-            console.error('❌ 게스트 로그인 실패:', error);
-
-            return {
-                success: false,
-                error: errorMessage
-            };
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
-
-    // 로그아웃
-    const logout = useCallback(async (): Promise<void> => {
-        try {
-            if (sessionId) {
-                authManager.logout(sessionId);
-            }
-
-            // 상태 초기화
-            setIsAuthenticated(false);
-            setUser(null);
-            setSessionId(null);
-            setError(null);
-
-            // 로컬 스토리지 정리
-            localStorage.removeItem('auth_session_id');
-            localStorage.removeItem('auth_user');
-            localStorage.removeItem('google_oauth_token');
-
-            console.log('🚪 로그아웃 완료');
-        } catch (error) {
-            console.error('❌ 로그아웃 실패:', error);
-        }
-    }, [sessionId]);
-
-    // 인증 상태 새로고침
-    const refreshAuth = useCallback(async (): Promise<void> => {
-        if (!sessionId) return;
-
-        try {
-            const isValidSession = authManager.validateSession(sessionId);
-
-            if (!isValidSession) {
-                await logout();
-            }
-        } catch (error) {
-            console.error('❌ 인증 새로고침 실패:', error);
-            await logout();
-        }
-    }, [sessionId, logout]);
-
-    // 권한 확인
-    const hasPermission = useCallback((permission: string): boolean => {
-        if (!sessionId || !isAuthenticated) return false;
-        return authManager.hasPermission(sessionId, permission);
-    }, [sessionId, isAuthenticated]);
-
-    // 세션 정보 가져오기
-    const getSessionInfo = useCallback(() => {
-        if (!sessionId) return null;
-        return authManager.getSession(sessionId);
-    }, [sessionId]);
-
-    return {
-        // 상태
-        isAuthenticated,
-        user,
-        isLoading,
-        error,
-
-        // 액션
-        login: {
-            withGoogle: loginWithGoogle,
-            asGuest: loginAsGuest
-        },
-        logout,
-        refreshAuth,
-
-        // 권한
-        hasPermission,
-
-        // 세션
-        getSessionInfo
-    };
-};
-
-/**
- * 🔐 Google OAuth 플로우 시작
- */
-async function initiateGoogleOAuth(): Promise<string> {
-    return new Promise((resolve, reject) => {
-        try {
-            // 개발 환경에서는 목업 토큰 반환
-            if (process.env.NODE_ENV === 'development') {
-                resolve('mock-google-token');
-                return;
-            }
-
-            // Google API 스크립트 로드 확인
-            if (typeof window.gapi === 'undefined') {
-                loadGoogleAPI().then(() => {
-                    startOAuthFlow(resolve, reject);
-                }).catch(reject);
-            } else {
-                startOAuthFlow(resolve, reject);
-            }
-        } catch (error) {
-            reject(error);
-        }
-    });
-}
-
-/**
- * 📜 Google API 스크립트 로드
- */
-function loadGoogleAPI(): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = 'https://apis.google.com/js/api.js';
-        script.onload = () => {
-            window.gapi.load('auth2', () => {
-                resolve();
-            });
-        };
-        script.onerror = () => reject(new Error('Google API 스크립트 로드 실패'));
-        document.head.appendChild(script);
-    });
-}
-
-/**
- * 🚀 OAuth 플로우 시작
- */
-function startOAuthFlow(resolve: (token: string) => void, reject: (error: Error) => void) {
+  // 로그인 함수 (게스트 모드만 지원)
+  const login = async (): Promise<{ success: boolean; error?: string }> => {
     try {
-        const clientId = process.env.NEXT_PUBLIC_GOOGLE_OAUTH_CLIENT_ID;
+      setIsLoading(true);
 
-        if (!clientId) {
-            reject(new Error('Google OAuth Client ID가 설정되지 않았습니다.'));
-            return;
-        }
+      const result = await authManager.loginAsGuest();
 
-        window.gapi.auth2.init({
-            client_id: clientId
-        }).then(() => {
-            const authInstance = window.gapi.auth2.getAuthInstance();
+      if (result.success && result.user && result.sessionId) {
+        setUser(result.user);
+        setSessionId(result.sessionId);
 
-            authInstance.signIn().then((googleUser: any) => {
-                const authResponse = googleUser.getAuthResponse();
-                resolve(authResponse.access_token);
-            }).catch((error: any) => {
-                reject(new Error(`Google OAuth 로그인 실패: ${error.error || 'Unknown error'}`));
-            });
-        }).catch((error: any) => {
-            reject(new Error(`Google OAuth 초기화 실패: ${error.error || 'Unknown error'}`));
-        });
+        // 로컬 스토리지에 세션 정보 저장
+        localStorage.setItem('auth_session_id', result.sessionId);
+        localStorage.setItem('auth_type', 'guest');
+
+        return { success: true };
+      } else {
+        return { success: false, error: result.error || '로그인 실패' };
+      }
     } catch (error) {
-        reject(error instanceof Error ? error : new Error('OAuth 플로우 시작 실패'));
+      console.error('로그인 실패:', error);
+      return { success: false, error: '로그인 중 오류가 발생했습니다.' };
+    } finally {
+      setIsLoading(false);
     }
-}
+  };
 
-// 전역 타입 확장
-declare global {
-    interface Window {
-        gapi: any;
+  // 로그아웃 함수
+  const logout = (): void => {
+    try {
+      if (sessionId) {
+        authManager.logout(sessionId);
+      }
+
+      // 상태 초기화
+      setUser(null);
+      setSessionId(null);
+
+      // 로컬 스토리지 정리
+      localStorage.removeItem('auth_session_id');
+      localStorage.removeItem('auth_type');
+
+      console.log('로그아웃 완료');
+    } catch (error) {
+      console.error('로그아웃 실패:', error);
     }
-}
+  };
 
-export default useAuth; 
+  // 인증 상태 확인
+  const checkAuth = async (): Promise<void> => {
+    try {
+      setIsLoading(true);
+
+      const storedSessionId = localStorage.getItem('auth_session_id');
+      const authType = localStorage.getItem('auth_type');
+
+      if (!storedSessionId || authType !== 'guest') {
+        setUser(null);
+        setSessionId(null);
+        return;
+      }
+
+      // 세션 유효성 확인
+      const session = authManager.getSession(storedSessionId);
+
+      if (session) {
+        setUser(session.user);
+        setSessionId(storedSessionId);
+      } else {
+        // 세션이 만료된 경우 로컬 스토리지 정리
+        localStorage.removeItem('auth_session_id');
+        localStorage.removeItem('auth_type');
+        setUser(null);
+        setSessionId(null);
+      }
+    } catch (error) {
+      console.error('인증 상태 확인 실패:', error);
+      setUser(null);
+      setSessionId(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 권한 확인 함수
+  const hasPermission = (permission: string): boolean => {
+    // 게스트 모드에서는 기본 권한만 허용
+    if (!user) return false;
+
+    // 기본 권한 목록 (게스트 모드 기본 권한)
+    const guestPermissions = [
+      'view_dashboard',
+      'view_servers',
+      'view_metrics',
+      'basic_actions',
+    ];
+
+    return guestPermissions.includes(permission);
+  };
+
+  // 컴포넌트 마운트 시 인증 상태 확인
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  return {
+    user,
+    isLoading,
+    isAuthenticated: user !== null,
+    sessionId,
+    login,
+    logout,
+    checkAuth,
+    hasPermission,
+  };
+}

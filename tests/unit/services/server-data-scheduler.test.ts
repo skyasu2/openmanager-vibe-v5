@@ -172,12 +172,23 @@ describe('🧪 TDD - ServerDataScheduler', () => {
 
   describe('🔴 Red - 성능 최적화 테스트', () => {
     it('메모리 사용량을 모니터링할 수 있어야 함', () => {
+      // Mock process.memoryUsage to avoid actual memory measurements
+      const mockMemoryUsage = vi.spyOn(process, 'memoryUsage').mockReturnValue({
+        rss: 1024 * 1024 * 50, // 50MB
+        heapTotal: 1024 * 1024 * 30, // 30MB
+        heapUsed: 1024 * 1024 * 20, // 20MB
+        external: 1024 * 1024 * 5, // 5MB
+        arrayBuffers: 1024 * 1024 * 2, // 2MB
+      });
+
       const performance = scheduler.getPerformanceMetrics();
       expect(performance).toMatchObject({
         memoryUsage: expect.any(Object),
         cacheStats: expect.any(Object),
         timing: expect.any(Object),
       });
+
+      mockMemoryUsage.mockRestore();
     });
 
     it('캐시 클리어 기능이 있어야 함', async () => {

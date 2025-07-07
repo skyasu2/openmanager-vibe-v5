@@ -1,16 +1,16 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
-  createSafeError,
   classifyErrorType,
-  safeErrorLog,
-  safeErrorMessage,
+  createErrorBoundaryInfo,
+  createSafeError,
+  isAutoRecoverableError,
   isLoadingRelatedError,
   isTypeSafetyError,
-  isAutoRecoverableError,
   safeApiCall,
+  safeErrorLog,
+  safeErrorMessage,
   withErrorRecovery,
-  createErrorBoundaryInfo,
 } from '@/lib/error-handler';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Error Handler', () => {
   let consoleSpy: ReturnType<typeof vi.spyOn>;
@@ -354,53 +354,77 @@ describe('Error Handler', () => {
     });
 
     it('실패하는 작업을 재시도한다', async () => {
+      vi.useFakeTimers();
+
       const failingOperation = vi
         .fn()
         .mockRejectedValueOnce(new Error('Attempt 1 failed'))
         .mockRejectedValueOnce(new Error('Attempt 2 failed'))
         .mockResolvedValue('success on attempt 3');
 
-      const result = await withErrorRecovery(failingOperation, {
+      const resultPromise = withErrorRecovery(failingOperation, {
         maxRetries: 3,
         retryDelay: 10,
       });
+
+      // 재시도 지연 시간을 빠르게 진행
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
 
       expect(result.success).toBe(true);
       expect(result.data).toBe('success on attempt 3');
       expect(result.attempts).toBe(3);
       expect(failingOperation).toHaveBeenCalledTimes(3);
+
+      vi.useRealTimers();
     });
 
     it('최대 재시도 횟수에 도달하면 실패한다', async () => {
+      vi.useFakeTimers();
+
       const alwaysFailingOperation = vi
         .fn()
         .mockRejectedValue(new Error('Always fails'));
 
-      const result = await withErrorRecovery(alwaysFailingOperation, {
+      const resultPromise = withErrorRecovery(alwaysFailingOperation, {
         maxRetries: 2,
         retryDelay: 10,
       });
+
+      // 재시도 지연 시간을 빠르게 진행
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
 
       expect(result.success).toBe(false);
       expect(result.error?.message).toBe('Always fails');
       expect(result.attempts).toBe(2);
       expect(alwaysFailingOperation).toHaveBeenCalledTimes(2);
+
+      vi.useRealTimers();
     });
 
     it('재시도 콜백을 호출한다', async () => {
+      vi.useFakeTimers();
+
       const onRetry = vi.fn();
       const failingOperation = vi
         .fn()
         .mockRejectedValueOnce(new Error('First fail'))
         .mockResolvedValue('success');
 
-      await withErrorRecovery(failingOperation, {
+      const resultPromise = withErrorRecovery(failingOperation, {
         maxRetries: 2,
         retryDelay: 10,
         onRetry,
       });
 
+      // 재시도 지연 시간을 빠르게 진행
+      await vi.runAllTimersAsync();
+      await resultPromise;
+
       expect(onRetry).toHaveBeenCalledWith(2, expect.any(Object));
+
+      vi.useRealTimers();
     });
 
     it('shouldRetry 조건을 확인한다', async () => {
@@ -420,19 +444,27 @@ describe('Error Handler', () => {
       expect(failingOperation).toHaveBeenCalledTimes(1);
     });
 
-    it('fallback 값을 반환한다', () => {
+    it('fallback 값을 반환한다', async () => {
+      vi.useFakeTimers();
+
       const failingOperation = vi.fn().mockRejectedValue(new Error('Failed'));
       const fallbackValue = 'fallback';
 
-      const result = withErrorRecovery(failingOperation, {
+      const resultPromise = withErrorRecovery(failingOperation, {
         maxRetries: 1,
         fallbackValue,
       });
 
-      expect(result).resolves.toMatchObject({
+      // 재시도 지연 시간을 빠르게 진행
+      await vi.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result).toMatchObject({
         success: false,
         data: fallbackValue,
       });
+
+      vi.useRealTimers();
     });
   });
 

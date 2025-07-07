@@ -71,7 +71,7 @@ const nextConfig = {
         ];
     },
 
-    // 🔧 웹팩 설정 (번들 최적화)
+    // 🔧 웹팩 설정 (Node.js crypto만 사용)
     webpack: (config, { isServer }) => {
         // 메모리 최적화 설정
         config.optimization = {
@@ -89,6 +89,14 @@ const nextConfig = {
                 },
             },
         };
+
+        // 🚀 서버 사이드에서 self 객체 polyfill 추가
+        if (isServer) {
+            // Node.js 환경에서 global 객체에 self 추가
+            if (typeof global !== 'undefined' && typeof global.self === 'undefined') {
+                global.self = global;
+            }
+        }
 
         // 클라이언트 사이드에서 Node.js 모듈 사용 방지
         if (!isServer) {

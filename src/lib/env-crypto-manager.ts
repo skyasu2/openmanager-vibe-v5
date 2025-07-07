@@ -10,6 +10,7 @@
  * - 로컬 파일 저장 (개발용)
  */
 
+import crypto from 'crypto';
 import CryptoJS from 'crypto-js';
 
 export interface EncryptedEnvVar {
@@ -27,6 +28,14 @@ export interface EnvironmentData {
   createdAt: string;
   teamPasswordHash: string;
   variables: { [key: string]: EncryptedEnvVar };
+}
+
+export interface EncryptedData {
+  encryptedKey: string;
+  salt: string;
+  iv: string;
+  createdAt: number;
+  version: string;
 }
 
 export class EnvironmentCryptoManager {
@@ -56,18 +65,21 @@ export class EnvironmentCryptoManager {
   private async initializeSupabaseClient() {
     try {
       // 환경변수에서 Supabase 설정 가져오기
-      const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      
+      const supabaseUrl =
+        process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey =
+        process.env.SUPABASE_SERVICE_ROLE_KEY ||
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
       if (!supabaseUrl || !supabaseKey) {
         console.warn('⚠️  Supabase 환경변수가 설정되지 않았습니다.');
         return;
       }
-      
+
       // 동적 import로 Supabase 클라이언트 생성
       const { createClient } = await import('@supabase/supabase-js');
       this.supabaseClient = createClient(supabaseUrl, supabaseKey);
-      
+
       console.log('✅ Supabase 클라이언트 초기화 완료');
     } catch (error) {
       console.error('❌ Supabase 초기화 실패:', error);
@@ -285,22 +297,22 @@ export class EnvironmentCryptoManager {
 
       // 🚨 중요: 실제 인프라 키들은 환경변수에서만 가져오기
       // 프로덕션 환경에서는 절대 하드코딩 값 사용하지 않음
-      ...(process.env.NODE_ENV === 'development' ? {
-        // 개발환경에서만 경고와 함께 제공되는 임시값들
-        SUPABASE_URL: process.env.SUPABASE_URL || '',
-        SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || '',
-        SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-        GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY || '',
-        REDIS_URL: process.env.REDIS_URL || '',
-        REDIS_PASSWORD: process.env.REDIS_PASSWORD || '',
-        GOOGLE_OAUTH_CLIENT_ID: process.env.GOOGLE_OAUTH_CLIENT_ID || '',
-        GOOGLE_OAUTH_CLIENT_SECRET: process.env.GOOGLE_OAUTH_CLIENT_SECRET || '',
-        GOOGLE_OAUTH_REDIRECT_URI: process.env.GOOGLE_OAUTH_REDIRECT_URI || 'http://localhost:3000/api/auth/google/callback',
-        NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'development-only-secret-key',
-      } : {
-        // 프로덕션에서는 환경변수만 사용
-        NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || '',
-      }),
+      ...(process.env.NODE_ENV === 'development'
+        ? {
+            // 개발환경에서만 경고와 함께 제공되는 임시값들
+            SUPABASE_URL: process.env.SUPABASE_URL || '',
+            SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || '',
+            SUPABASE_SERVICE_ROLE_KEY:
+              process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+            REDIS_URL: process.env.REDIS_URL || '',
+            REDIS_PASSWORD: process.env.REDIS_PASSWORD || '',
+            NEXTAUTH_SECRET:
+              process.env.NEXTAUTH_SECRET || 'development-only-secret-key',
+          }
+        : {
+            // 프로덕션에서는 환경변수만 사용
+            NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || '',
+          }),
 
       // 팀 비밀번호 (기본값만)
       TEAM_PASSWORD: 'openmanager2025',
@@ -456,3 +468,112 @@ export function isEnvironmentUnlocked(): boolean {
 export async function unlockEnvironment(teamPassword: string) {
   return await envCryptoManager.unlockEnvironmentVars(teamPassword);
 }
+
+/**
+ * 🔐 통합 암호화 시스템
+ */
+export class UnifiedCryptoManager {
+  private readonly ALGORITHM = 'aes-256-gcm';
+
+  async encrypt(data: string, password: string): Promise<EncryptedData> {
+    try {
+      // Node.js crypto 사용 (서버 사이드)
+      if (typeof window === 'undefined') {
+        const salt = crypto.randomBytes(32);
+        const iv = crypto.randomBytes(16);
+        const key = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256');
+
+        const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+        cipher.setAAD(Buffer.from('additional-authenticated-data'));
+
+        let encrypted = cipher.update(data, 'utf8', 'hex');
+        encrypted += cipher.final('hex');
+
+        const authTag = cipher.getAuthTag();
+
+        return {
+          encryptedKey: encrypted + ':' + authTag.toString('hex'),
+          salt: salt.toString('hex'),
+          iv: iv.toString('hex'),
+          createdAt: Date.now(),
+          version: '2.0',
+        };
+      } else {
+        // CryptoJS 사용 (클라이언트 사이드)
+        const salt = CryptoJS.lib.WordArray.random(32);
+        const key = CryptoJS.PBKDF2(password, salt, {
+          keySize: 32,
+          iterations: 100000,
+        });
+
+        const encrypted = CryptoJS.AES.encrypt(data, key, {
+          mode: CryptoJS.mode.CBC,
+          padding: CryptoJS.pad.Pkcs7,
+        }).toString();
+
+        return {
+          encryptedKey: encrypted,
+          salt: salt.toString(),
+          iv: '', // CryptoJS GCM mode handles IV internally
+          createdAt: Date.now(),
+          version: '2.0',
+        };
+      }
+    } catch (error) {
+      console.error('암호화 실패:', error);
+      throw new Error('Encryption failed');
+    }
+  }
+
+  async decrypt(
+    encryptedData: EncryptedData,
+    password: string
+  ): Promise<string> {
+    try {
+      // Node.js crypto 사용 (서버 사이드)
+      if (typeof window === 'undefined') {
+        const salt = Buffer.from(encryptedData.salt, 'hex');
+        const iv = Buffer.from(encryptedData.iv, 'hex');
+        const key = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256');
+
+        const [encryptedText, authTagHex] =
+          encryptedData.encryptedKey.split(':');
+        const authTag = Buffer.from(authTagHex, 'hex');
+
+        const ivBuffer = Buffer.from(encryptedData.iv, 'hex');
+        const decipher = crypto.createDecipheriv('aes-256-gcm', key, ivBuffer);
+        decipher.setAAD(Buffer.from('additional-authenticated-data'));
+        decipher.setAuthTag(authTag);
+
+        let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+
+        return decrypted;
+      } else {
+        // CryptoJS 사용 (클라이언트 사이드)
+        const salt = CryptoJS.enc.Hex.parse(encryptedData.salt);
+        const key = CryptoJS.PBKDF2(password, salt, {
+          keySize: 32,
+          iterations: 100000,
+        });
+
+        const decrypted = CryptoJS.AES.decrypt(
+          encryptedData.encryptedKey,
+          key,
+          {
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7,
+          }
+        );
+
+        return decrypted.toString(CryptoJS.enc.Utf8);
+      }
+    } catch (error) {
+      console.error('복호화 실패:', error);
+      throw new Error('Decryption failed');
+    }
+  }
+}
+
+// 전역 인스턴스
+export const unifiedCrypto = new UnifiedCryptoManager();

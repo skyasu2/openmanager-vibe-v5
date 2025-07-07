@@ -83,7 +83,6 @@
     "@tanstack/react-query-devtools": "^5.79.0",
     "@tanstack/react-virtual": "^3.13.9",
     "@testing-library/user-event": "^14.6.1",
-    "@types/crypto-js": "^4.2.2",
     "@types/ioredis": "^4.28.10",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/react": "^19",
@@ -126,6 +125,7 @@
     "ml-regression-simple-linear": "^3.0.1",
     "natural": "^8.1.0",
     "next": "^15.3.2",
+    "next-auth": "^4.24.11",
     "node-cron": "^4.0.7",
     "openai": "^5.6.0",
     "pdf-parse": "^1.1.1",
@@ -196,6 +196,7 @@
     "@storybook/react": "^9.0.14",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
+    "@types/crypto-js": "^4.2.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.1",
     "@types/node-fetch": "^2.6.12",
@@ -223,6 +224,5 @@
     "typescript": "^5.8.3",
     "vitest": "^3.2.3",
     "webpack": "^5.99.9"
-  },
-  "optionalDependencies": {}
+  }
 }

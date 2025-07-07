@@ -1,189 +1,189 @@
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef } from 'react';
-
 /**
- * 자동 로그아웃 훅 v1.0
- * OpenManager Vibe v5 - 베르셀 사용량 최적화
- * 
- * 기능:
- * 1. 사용자 활동 추적 (마우스, 키보드, 터치)
- * 2. 10분 비활성 시 자동 로그아웃
- * 3. 로그아웃 전 1분 경고 알림
- * 4. 모든 백그라운드 작업 중지
- * 
- * 사용법:
- * const { remainingTime, isWarning } = useAutoLogout();
+ * 🔐 Auto Logout Hook
+ *
+ * OpenManager Vibe v5 자동 로그아웃 시스템 (Google OAuth 제거됨)
  */
 
-interface AutoLogoutOptions {
-    timeoutMinutes?: number;
-    warningMinutes?: number;
-    onWarning?: () => void;
-    onLogout?: () => void;
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+
+interface UseAutoLogoutOptions {
+  /** 비활성 시간 (밀리초) */
+  inactivityTimeout?: number;
+  /** 경고 시간 (밀리초) */
+  warningTimeout?: number;
+  /** 로그아웃 후 리다이렉트 경로 */
+  redirectPath?: string;
+  /** 경고 콜백 */
+  onWarning?: () => void;
+  /** 로그아웃 콜백 */
+  onLogout?: () => void;
+  /** 타임아웃 시간 (분) */
+  timeoutMinutes?: number;
+  /** 경고 시간 (분) */
+  warningMinutes?: number;
 }
 
-interface AutoLogoutReturn {
-    remainingTime: number;
-    isWarning: boolean;
-    resetTimer: () => void;
-    forceLogout: () => void;
-}
+export function useAutoLogout({
+  inactivityTimeout = 30 * 60 * 1000, // 30분
+  warningTimeout = 5 * 60 * 1000, // 5분 전 경고
+  redirectPath = '/login',
+  onWarning,
+  onLogout,
+  timeoutMinutes = 30,
+  warningMinutes = 5,
+}: UseAutoLogoutOptions = {}) {
+  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [remainingTime, setRemainingTime] = useState(inactivityTimeout);
+  const [isWarning, setIsWarning] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastActivityRef = useRef<number>(Date.now());
 
-export function useAutoLogout(options: AutoLogoutOptions = {}): AutoLogoutReturn {
-    const {
-        timeoutMinutes = 10,
-        warningMinutes = 1,
-        onWarning,
-        onLogout
-    } = options;
+  // 활동 업데이트
+  const updateActivity = () => {
+    lastActivityRef.current = Date.now();
+    resetTimers();
+  };
 
-    const router = useRouter();
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const lastActivityRef = useRef<number>(Date.now());
-    const isWarningRef = useRef<boolean>(false);
+  // 타이머 초기화
+  const resetTimers = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    if (warningTimeoutRef.current) {
+      clearTimeout(warningTimeoutRef.current);
+    }
 
-    // 남은 시간 계산
-    const getRemainingTime = useCallback(() => {
-        const elapsed = Date.now() - lastActivityRef.current;
-        const remaining = (timeoutMinutes * 60 * 1000) - elapsed;
-        return Math.max(0, Math.floor(remaining / 1000));
-    }, [timeoutMinutes]);
+    setIsWarning(false);
+    setRemainingTime(inactivityTimeout);
 
-    // 로그아웃 실행
-    const executeLogout = useCallback(async () => {
-        console.log('🔒 자동 로그아웃 실행 - 베르셀 사용량 최적화');
-
-        try {
-            // 1. 사용자 세션 정리
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user_info');
-            localStorage.removeItem('google_oauth_token');
-
-            // 2. 백그라운드 작업 중지 신호
-            localStorage.setItem('system_inactive', 'true');
-            localStorage.setItem('auto_logout_time', new Date().toISOString());
-
-            // 3. React Query 캐시 정리 (안전한 타입 체크)
-            if (typeof window !== 'undefined') {
-                const globalWindow = window as any;
-                if (globalWindow.queryClient && typeof globalWindow.queryClient.clear === 'function') {
-                    globalWindow.queryClient.clear();
-                }
-            }
-
-            // 4. 모든 타이머 정리
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-            if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
-
-            // 5. 사용자 콜백 실행
-            onLogout?.();
-
-            // 6. 로그인 페이지로 리다이렉트
-            router.push('/login?reason=timeout');
-
-        } catch (error) {
-            console.error('자동 로그아웃 중 오류:', error);
-            // 오류가 발생해도 로그아웃 처리
-            router.push('/login?reason=error');
-        }
-    }, [router, onLogout]);
-
-    // 경고 알림 실행
-    const executeWarning = useCallback(() => {
-        console.log('⚠️ 자동 로그아웃 경고 - 1분 후 로그아웃');
-        isWarningRef.current = true;
+    // 로그인된 사용자만 타이머 설정
+    if (isLoggedIn) {
+      // 경고 타이머
+      warningTimeoutRef.current = setTimeout(() => {
+        setIsWarning(true);
         onWarning?.();
+      }, inactivityTimeout - warningTimeout);
 
-        // 브라우저 알림
-        if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('OpenManager 자동 로그아웃 경고', {
-                body: `1분 후 자동 로그아웃됩니다. 계속 사용하려면 화면을 클릭하세요.`,
-                icon: '/favicon.ico',
-                tag: 'auto-logout-warning',
-                requireInteraction: true
-            });
-        }
-    }, [onWarning]);
+      // 로그아웃 타이머
+      timeoutRef.current = setTimeout(() => {
+        handleAutoLogout();
+      }, inactivityTimeout);
+    }
+  };
 
-    // 타이머 리셋
-    const resetTimer = useCallback(() => {
-        lastActivityRef.current = Date.now();
-        isWarningRef.current = false;
+  // 자동 로그아웃 처리
+  const handleAutoLogout = async () => {
+    try {
+      onLogout?.();
 
-        // 기존 타이머 정리
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
+      // 게스트 모드 - 로컬 스토리지 정리
+      localStorage.removeItem('auth_session_id');
+      localStorage.removeItem('auth_type');
+      setIsLoggedIn(false);
+      router.push(redirectPath);
 
-        // 경고 타이머 설정 (9분 후)
-        const warningTime = (timeoutMinutes - warningMinutes) * 60 * 1000;
-        warningTimeoutRef.current = setTimeout(executeWarning, warningTime);
+      console.log('🔐 자동 로그아웃 완료');
+    } catch (error) {
+      console.error('❌ 자동 로그아웃 실패:', error);
+      // 실패해도 로그인 페이지로 이동
+      router.push(redirectPath);
+    }
+  };
 
-        // 로그아웃 타이머 설정 (10분 후)
-        const logoutTime = timeoutMinutes * 60 * 1000;
-        timeoutRef.current = setTimeout(executeLogout, logoutTime);
+  // 강제 로그아웃
+  const forceLogout = async () => {
+    await handleAutoLogout();
+  };
 
-        console.log(`⏱️ 자동 로그아웃 타이머 리셋: ${timeoutMinutes}분 후 로그아웃`);
-    }, [timeoutMinutes, warningMinutes, executeWarning, executeLogout]);
+  // 수동 로그아웃
+  const logout = async () => {
+    try {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      if (warningTimeoutRef.current) {
+        clearTimeout(warningTimeoutRef.current);
+      }
 
-    // 사용자 활동 감지 이벤트들
-    const activityEvents = [
-        'mousedown',
-        'mousemove',
-        'keypress',
-        'scroll',
-        'touchstart',
-        'click',
-        'focus'
+      await handleAutoLogout();
+    } catch (error) {
+      console.error('❌ 수동 로그아웃 실패:', error);
+    }
+  };
+
+  // 활동 감지 이벤트 리스너
+  useEffect(() => {
+    const events = [
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click',
     ];
 
-    // 활동 감지 핸들러
-    const handleActivity = useCallback(() => {
-        resetTimer();
-    }, [resetTimer]);
-
-    // 페이지 가시성 변경 처리
-    const handleVisibilityChange = useCallback(() => {
-        if (document.visibilityState === 'visible') {
-            resetTimer();
-        }
-    }, [resetTimer]);
-
-    // 컴포넌트 마운트 시 이벤트 리스너 등록
-    useEffect(() => {
-        // 초기 타이머 설정
-        resetTimer();
-
-        // 활동 감지 이벤트 등록
-        activityEvents.forEach(event => {
-            document.addEventListener(event, handleActivity, true);
-        });
-
-        // 페이지 가시성 변경 이벤트
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-
-        // 브라우저 알림 권한 요청
-        if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission();
-        }
-
-        return () => {
-            // 이벤트 리스너 제거
-            activityEvents.forEach(event => {
-                document.removeEventListener(event, handleActivity, true);
-            });
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-
-            // 타이머 정리
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-            if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
-        };
-    }, [handleActivity, handleVisibilityChange, resetTimer]);
-
-    return {
-        remainingTime: getRemainingTime(),
-        isWarning: isWarningRef.current,
-        resetTimer,
-        forceLogout: executeLogout
+    const handleActivity = () => {
+      updateActivity();
     };
-} 
+
+    // 이벤트 리스너 등록
+    events.forEach(event => {
+      document.addEventListener(event, handleActivity, true);
+    });
+
+    // 초기 타이머 설정
+    resetTimers();
+
+    return () => {
+      // 이벤트 리스너 제거
+      events.forEach(event => {
+        document.removeEventListener(event, handleActivity, true);
+      });
+
+      // 타이머 정리
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      if (warningTimeoutRef.current) {
+        clearTimeout(warningTimeoutRef.current);
+      }
+    };
+  }, [isLoggedIn, inactivityTimeout, warningTimeout]);
+
+  // 로그인 상태 확인
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      const sessionId = localStorage.getItem('auth_session_id');
+      const authType = localStorage.getItem('auth_type');
+      setIsLoggedIn(!!sessionId && authType === 'guest');
+    };
+
+    checkAuthStatus();
+
+    // 주기적으로 상태 확인
+    const interval = setInterval(checkAuthStatus, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // 로그인 상태가 변경될 때 타이머 재설정
+  useEffect(() => {
+    resetTimers();
+  }, [isLoggedIn]);
+
+  return {
+    logout,
+    updateActivity,
+    lastActivity: lastActivityRef.current,
+    isLoggedIn,
+    remainingTime,
+    isWarning,
+    resetTimer: resetTimers,
+    forceLogout,
+  };
+}
