@@ -55,7 +55,7 @@ export default defineConfig({
       },
     },
     // ⏱️ 타임아웃 최적화
-    testTimeout: 10000, // 베르셀 Cold Start 고려
+    testTimeout: 60000, // 베르셀 Cold Start 고려
     hookTimeout: 10000,
     teardownTimeout: 5000, // 10초 → 5초 단축
 

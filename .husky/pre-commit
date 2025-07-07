@@ -5,7 +5,7 @@ echo "🔍 Pre-commit 검증 시작..."
 
 # 비밀 키 스캔
 echo "🔐 비밀 키 유출 검사..."
-node scripts/precommit-check-secrets.js
+node scripts/precommit-check-secrets.cjs
 if [ $? -ne 0 ]; then
   exit 1
 fi
