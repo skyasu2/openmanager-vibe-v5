@@ -196,12 +196,18 @@ export class WebSocketManager {
         let bytesIn = 0;
         let bytesOut = 0;
 
-        if (networkMetrics && typeof networkMetrics === 'object' && 'in' in networkMetrics) {
-          bytesIn = (networkMetrics as { in: number; out: number }).in || 0;
-          bytesOut = (networkMetrics as { in: number; out: number }).out || 0;
-        } else if (typeof networkMetrics === 'number') {
-          bytesIn = networkMetrics;
-          bytesOut = networkMetrics;
+        try {
+          if (networkMetrics && typeof networkMetrics === 'object' && 'in' in (networkMetrics as any)) {
+            bytesIn = (networkMetrics as { in: number; out: number }).in || 0;
+            bytesOut = (networkMetrics as { in: number; out: number }).out || 0;
+          } else if (typeof networkMetrics === 'number') {
+            bytesIn = networkMetrics;
+            bytesOut = networkMetrics;
+          }
+        } catch {
+          // 타입 에러 방지용 fallback
+          bytesIn = 0;
+          bytesOut = 0;
         }
 
         return {
