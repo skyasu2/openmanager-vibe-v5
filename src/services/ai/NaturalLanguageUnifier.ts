@@ -151,7 +151,7 @@ export class NaturalLanguageUnifier {
       return { success: false, error: result.error };
     } catch (error) {
       console.warn('⚠️ Korean AI 처리 실패:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: (error as Error).message };
     }
   }
 
@@ -171,7 +171,7 @@ export class NaturalLanguageUnifier {
       };
     } catch (error) {
       console.warn('⚠️ 데이터 분석기 처리 실패:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: (error as Error).message };
     }
   }
 

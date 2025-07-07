@@ -181,7 +181,7 @@ const useSimulationProgress = ({
         throw new Error('요청 시간 초과');
       }
       console.error('❌ 시뮬레이션 데이터 조회 실패:', err);
-      throw err;
+      throw err; // Ensure all code paths return a value
     }
   }, [getCachedData, setCachedData]);
 

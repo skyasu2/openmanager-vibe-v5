@@ -176,6 +176,7 @@ export default function PerformanceDashboard() {
             const interval = setInterval(fetchPerformanceData, 30000); // 30초마다
             return () => clearInterval(interval);
         }
+        return;
     }, [autoRefresh, fetchPerformanceData]);
 
     // 📊 차트 데이터 변환
@@ -694,8 +695,8 @@ export default function PerformanceDashboard() {
                                                 exit={{ opacity: 0, x: 20 }}
                                                 transition={{ delay: index * 0.1 }}
                                                 className={`p-4 rounded-lg border-l-4 ${alert.type === 'critical'
-                                                        ? 'bg-red-50 border-red-500'
-                                                        : 'bg-yellow-50 border-yellow-500'
+                                                    ? 'bg-red-50 border-red-500'
+                                                    : 'bg-yellow-50 border-yellow-500'
                                                     }`}
                                             >
                                                 <div className="flex items-start justify-between">

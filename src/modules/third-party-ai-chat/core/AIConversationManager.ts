@@ -204,7 +204,7 @@ export class AIConversationManager {
       const errorMessage: ConversationMessage = {
         id: `msg_${Date.now()}_error`,
         role: 'assistant',
-        content: `죄송합니다. ${provider.name}에서 오류가 발생했습니다: ${error.message}`,
+        content: `죄송합니다. ${provider.name}에서 오류가 발생했습니다: ${(error as Error).message}`,
         timestamp: new Date(),
         provider: session.provider,
         metadata: {

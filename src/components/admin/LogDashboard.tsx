@@ -200,6 +200,7 @@ export default function LogDashboard() {
             const interval = setInterval(fetchLogData, 30000);
             return () => clearInterval(interval);
         }
+        return;
     }, [autoRefresh, fetchLogData]);
 
     // 📊 차트 데이터 변환

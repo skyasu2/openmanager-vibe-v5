@@ -149,11 +149,11 @@ export interface IntelligentAnalysisResult {
 export interface RootCause {
   id: string;
   category:
-    | 'system'
-    | 'application'
-    | 'network'
-    | 'infrastructure'
-    | 'external';
+  | 'system'
+  | 'application'
+  | 'network'
+  | 'infrastructure'
+  | 'external';
   description: string;
   probability: number;
   evidence: string[];
@@ -830,9 +830,9 @@ export class IntelligentMonitoringService {
   ): Promise<AIInsight> {
     const query = `시스템에서 ${anomalies.length}개의 이상 징후가 발견되었습니다. 
 주요 문제: ${anomalies
-      .slice(0, 2)
-      .map(a => a.description)
-      .join(', ')}
+        .slice(0, 2)
+        .map(a => a.description)
+        .join(', ')}
 근본 원인을 분석하고 해결 방안을 제시해주세요.`;
 
     try {
@@ -1227,7 +1227,7 @@ export class IntelligentMonitoringService {
       return result;
     } catch (error) {
       aiLogger.info(LogCategory.AI_ENGINE, 'ML 최적화 실행 실패', {
-        error: error.message,
+        error: (error as Error).message,
         request,
       });
 
@@ -1243,7 +1243,7 @@ export class IntelligentMonitoringService {
           accuracyImprovement: 0,
           recommendedActions: ['ML 최적화 실행 실패'],
         },
-        summary: `ML 최적화 실패: ${error.message}`,
+        summary: `ML 최적화 실패: ${(error as Error).message}`,
         confidence: 0,
         processingTime: Date.now() - startTime,
       };

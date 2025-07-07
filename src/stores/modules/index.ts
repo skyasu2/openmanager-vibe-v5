@@ -95,7 +95,7 @@ export const useAISystem = () => {
 
 // 스토어 상태 초기화 (개발용)
 export const resetAllStores = () => {
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
     // localStorage 클리어
     localStorage.removeItem('system-store');
     localStorage.removeItem('auth-store');

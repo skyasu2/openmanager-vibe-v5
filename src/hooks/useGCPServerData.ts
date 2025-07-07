@@ -142,9 +142,12 @@ export function useGCPServerData(): UseGCPServerDataReturn {
                     isSessionActive: result.isActive,
                     activeSession: result.isActive ? sessionId : null
                 }));
+            } else {
+                setError(result.error || '세션 상태 확인에 실패했습니다.');
             }
         } catch (error) {
-            console.error('세션 상태 확인 오류:', error);
+            setError(error instanceof Error ? error.message : '네트워크 오류가 발생했습니다.');
+            setLoading(false); // Ensure loading is set to false on error
         }
     }, []);
 

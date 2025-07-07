@@ -280,6 +280,9 @@ export const useSystemIntegration = () => {
         case 'info':
           // success(message);
           break;
+        default:
+          // Do nothing or log an unexpected severity
+          break;
       }
     },
     []
@@ -441,7 +444,7 @@ export const useSystemIntegration = () => {
         },
       }));
 
-      emitEvent('error', 'critical', `❌ MCP 상태 확인 오류: ${error}`);
+      emitEvent('error', 'critical', `❌ MCP 상태 확인 오류: ${error instanceof Error ? error.message : String(error)}`);
       return false;
     }
   }, [emitEvent]);

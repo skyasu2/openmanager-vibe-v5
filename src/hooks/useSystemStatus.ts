@@ -110,7 +110,7 @@ export const useSystemStatus = (
       console.log('🔄 시스템 상태 업데이트:', systemStatus);
 
       return systemStatus;
-    } catch (err) {
+    } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : '알 수 없는 오류';
       setError(errorMessage);
@@ -155,7 +155,7 @@ export const useSystemStatus = (
       await checkStatus();
 
       return result.success || true;
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('❌ 시스템 시작 실패:', err);
       setStatus(prev => ({ ...prev, isStarting: false }));
       setError(err instanceof Error ? err.message : '시스템 시작 실패');
@@ -181,6 +181,7 @@ export const useSystemStatus = (
 
       return () => clearInterval(interval);
     }
+    return undefined; // Add explicit return for useEffect cleanup
   }, [
     checkStatus,
     actualPollingInterval,

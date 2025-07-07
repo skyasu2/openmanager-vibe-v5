@@ -317,6 +317,7 @@ export default function UnifiedAdminDashboard() {
       const interval = setInterval(fetchSystemData, 30000); // 30초마다
       return () => clearInterval(interval);
     }
+    return;
   }, [autoRefresh]);
 
   // 📊 시스템 상태 아이콘

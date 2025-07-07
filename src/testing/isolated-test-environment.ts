@@ -228,7 +228,7 @@ export class IsolatedTestEnvironment {
         // 읽기 전용 속성인 경우 무시
         console.warn(
           `⚠️ Cannot restore global property '${key}':`,
-          error.message
+          (error as Error).message
         );
       }
     }

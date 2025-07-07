@@ -147,7 +147,7 @@ export class SupabaseRAGMainEngine {
         } catch (error) {
           console.warn(
             '⚠️ 벡터 검색 실패, 텍스트 검색으로 폴백:',
-            error.message
+            (error as Error).message
           );
         }
       }
@@ -246,13 +246,13 @@ export class SupabaseRAGMainEngine {
       );
 
       if (error) {
-        console.warn(`⚠️ 벡터 RPC 실패, 폴백 검색 사용: ${error.message}`);
+        console.warn(`⚠️ 벡터 RPC 실패, 폴백 검색 사용: ${(error as Error).message}`);
         return this.performFallbackSearch(query, maxResults);
       }
 
       return data || [];
     } catch (error) {
-      console.warn(`⚠️ 벡터 검색 실패, 폴백 검색 사용: ${error.message}`);
+      console.warn(`⚠️ 벡터 검색 실패, 폴백 검색 사용: ${(error as Error).message}`);
       return this.performFallbackSearch(query, maxResults);
     }
   }
@@ -271,13 +271,13 @@ export class SupabaseRAGMainEngine {
       });
 
       if (error) {
-        console.warn(`⚠️ RPC 검색 실패, 폴백 검색 사용: ${error.message}`);
+        console.warn(`⚠️ RPC 검색 실패, 폴백 검색 사용: ${(error as Error).message}`);
         return this.performFallbackSearch(query, maxResults);
       }
 
       return data || [];
     } catch (error) {
-      console.warn(`⚠️ 텍스트 검색 실패, 폴백 검색 사용: ${error.message}`);
+      console.warn(`⚠️ 텍스트 검색 실패, 폴백 검색 사용: ${(error as Error).message}`);
       return this.performFallbackSearch(query, maxResults);
     }
   }
@@ -298,13 +298,13 @@ export class SupabaseRAGMainEngine {
         .limit(maxResults);
 
       if (error) {
-        console.warn(`⚠️ 폴백 검색도 실패, 목업 데이터 사용: ${error.message}`);
+        console.warn(`⚠️ 폴백 검색도 실패, 목업 데이터 사용: ${(error as Error).message}`);
         return this.generateMockResults(query, maxResults);
       }
 
       return data || [];
     } catch (error) {
-      console.warn(`⚠️ 폴백 검색 실패, 목업 데이터 사용: ${error.message}`);
+      console.warn(`⚠️ 폴백 검색 실패, 목업 데이터 사용: ${(error as Error).message}`);
       return this.generateMockResults(query, maxResults);
     }
   }

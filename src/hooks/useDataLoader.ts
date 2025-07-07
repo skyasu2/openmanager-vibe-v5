@@ -110,7 +110,7 @@ export const useMockDataLoader = <T>(
   mockDataGenerator: () => T,
   delay: number = 1000,
   refreshInterval?: number
-) => {
+): DataLoaderResult<T> => {
   return useDataLoader({
     loadData: async () => {
       await new Promise(resolve => setTimeout(resolve, delay));

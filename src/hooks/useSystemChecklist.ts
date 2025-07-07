@@ -144,6 +144,7 @@ export const useSystemChecklist = ({
         }));
 
         console.error(`❌ ${componentDef.name} 실패:`, errorMessage);
+        return; // Ensure all code paths return a value
       }
     },
     [components]

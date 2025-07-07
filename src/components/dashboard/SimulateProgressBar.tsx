@@ -69,14 +69,14 @@ const SimulateProgressBar: React.FC<SimulateProgressBarProps> = memo(({
     if (calculatedProgress >= 75) return 'from-blue-500 to-purple-600';
     if (calculatedProgress >= 50) return 'from-blue-400 to-blue-600';
     if (calculatedProgress >= 25) return 'from-cyan-400 to-blue-500';
-    return 'from-gray-400 to-gray-500';
+    return 'from-gray-400 to-gray-500'; // Default return
   };
 
   // 상태별 텍스트 색상
   const getTextColor = () => {
     if (error) return 'text-red-400';
     if (isComplete) return 'text-green-400';
-    return 'text-blue-400';
+    return 'text-blue-400'; // Default return
   };
 
   // 단계 변경 알림

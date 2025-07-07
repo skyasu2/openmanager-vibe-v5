@@ -165,7 +165,7 @@ export class VMMultiServiceOrchestrator extends EventEmitter {
 
             return {
                 success: false,
-                message: `❌ VM 다중 서비스 시작 실패: ${error.message}`,
+                message: `❌ VM 다중 서비스 시작 실패: ${(error as Error).message}`,
                 services: {
                     mcp: false,
                     dataGenerator: false,
@@ -257,7 +257,7 @@ export class VMMultiServiceOrchestrator extends EventEmitter {
 
             return {
                 success: false,
-                message: `❌ VM 다중 서비스 종료 실패: ${error.message}`,
+                message: `❌ VM 다중 서비스 종료 실패: ${(error as Error).message}`,
                 services: { mcp: false, dataGenerator: false, scenarioEngine: false },
                 totalTime: Date.now() - startTime,
             };

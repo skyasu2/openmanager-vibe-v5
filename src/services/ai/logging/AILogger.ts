@@ -102,7 +102,7 @@ export interface LogFilters {
 
 export class AILogger {
   private static instance: AILogger;
-  private winstonLogger: winston.Logger;
+  private winstonLogger!: winston.Logger;
   private pinoLogger: any;
   private logBuffer: AILogEntry[] = [];
   private readonly bufferSize = 1000;
@@ -357,7 +357,7 @@ export class AILogger {
         // Pino 로깅 실패 시 Winston으로 fallback (워커 스레드 오류 방지)
         console.warn(
           '⚠️ Pino 로깅 실패, Winston으로 fallback:',
-          pinoError.message
+          (pinoError as Error).message
         );
         // Winston은 이미 위에서 성공했으므로 추가 처리 불필요
       }

@@ -119,6 +119,7 @@ export const MultiAIThinkingViewer: React.FC<MultiAIThinkingProps> = ({
         }, speed);
         return () => clearTimeout(timer);
       }
+      return null; // Added return for all code paths
     }, [currentIndex, text, speed]);
 
     useEffect(() => {

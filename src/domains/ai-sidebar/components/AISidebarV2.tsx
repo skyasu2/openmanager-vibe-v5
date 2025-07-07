@@ -200,7 +200,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       BarChart3,
       Target,
     };
-    return icons[iconName] || Server;
+    return icons[iconName] || Server; // Default return
   };
 
   // 메시지 스크롤

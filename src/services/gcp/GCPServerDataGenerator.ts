@@ -904,7 +904,7 @@ export class GCPServerDataGenerator {
             };
         } catch (error) {
             console.error('일일 통계 생성 실패:', error);
-            return { date: new Date().toISOString().split('T')[0], error: error.message };
+            return { date: new Date().toISOString().split('T')[0], error: (error as Error).message };
         }
     }
 } 

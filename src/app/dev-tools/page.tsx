@@ -121,6 +121,7 @@ export default function DevToolsPage() {
   useEffect(() => {
     fetchKeyManagerStatus();
     fetchUpdateStats();
+    return;
   }, []);
 
   useEffect(() => {
@@ -131,6 +132,7 @@ export default function DevToolsPage() {
       }, 30000);
       return () => clearInterval(interval);
     }
+    return;
   }, [autoRefresh]);
 
   return (

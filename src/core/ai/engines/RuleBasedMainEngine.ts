@@ -563,7 +563,9 @@ export class RuleBasedMainEngine implements IRuleBasedMainEngine {
     private cacheResponse(key: string, response: RuleBasedResponse): void {
         if (this.responseCache.size >= this.config.performance.maxCacheSize) {
             const oldestKey = this.responseCache.keys().next().value;
-            this.responseCache.delete(oldestKey);
+            if (oldestKey) {
+                this.responseCache.delete(oldestKey);
+            }
         }
 
         this.responseCache.set(key, { response, timestamp: Date.now() });

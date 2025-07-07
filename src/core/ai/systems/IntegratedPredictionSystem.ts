@@ -52,10 +52,10 @@ import { IncidentDetectionEngine } from '../engines/IncidentDetectionEngine';
 import { AutoIncidentReportSystem } from './AutoIncidentReportSystem';
 
 export class IntegratedPredictionSystem implements IIntegratedPredictionSystem {
-  private predictiveEngine: PredictiveAnalysisEngine;
-  private incidentReportSystem: AutoIncidentReportSystem;
-  private anomalyDetectionService: AnomalyDetectionService;
-  private ruleBasedEngine: RuleBasedMainEngine;
+  private predictiveEngine!: PredictiveAnalysisEngine;
+  private incidentReportSystem!: AutoIncidentReportSystem;
+  private anomalyDetectionService!: AnomalyDetectionService;
+  private ruleBasedEngine!: RuleBasedMainEngine;
 
   private config: IntegratedPredictionConfig;
   private status: PredictionSystemStatus = 'initializing';

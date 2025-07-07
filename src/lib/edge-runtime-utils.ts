@@ -84,7 +84,9 @@ export class EdgeCache {
     // 캐시 크기 제한
     if (this.cache.size >= this.maxSize) {
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey) {
+        this.cache.delete(firstKey);
+      }
     }
 
     this.cache.set(key, { value, expires });

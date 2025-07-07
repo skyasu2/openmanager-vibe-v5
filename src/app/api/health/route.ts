@@ -173,7 +173,7 @@ class AutoEnvRecoverySystem {
         success: false,
         recovered: [],
         method: 'error',
-        message: `복구 실패: ${error.message}`,
+        message: `복구 실패: ${(error as Error).message}`,
       };
     } finally {
       this.recoveryInProgress = false;
@@ -241,7 +241,7 @@ class AutoEnvRecoverySystem {
         success: false,
         recovered: [],
         method: 'encrypted',
-        message: `암호화 복구 오류: ${error.message}`,
+        message: `암호화 복구 오류: ${(error as Error).message}`,
       };
     }
   }
@@ -295,7 +295,7 @@ class AutoEnvRecoverySystem {
         success: false,
         recovered: [],
         method: 'backup',
-        message: `백업 복구 오류: ${error.message}`,
+        message: `백업 복구 오류: ${(error as Error).message}`,
       };
     }
   }
@@ -350,7 +350,7 @@ class AutoEnvRecoverySystem {
         success: false,
         recovered: [],
         method: 'defaults',
-        message: `기본값 적용 오류: ${error.message}`,
+        message: `기본값 적용 오류: ${(error as Error).message}`,
       };
     }
   }

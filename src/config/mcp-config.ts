@@ -518,7 +518,7 @@ const mcpConfig = {
 
     // 각 서버별 헬스체크 로직
     const results = await Promise.allSettled(
-      config.servers.map(async (server: any) => {
+      Object.values(config.servers).map(async (server: any) => {
         try {
           // 실제 헬스체크 구현은 각 MCP 클라이언트에서 담당
           return { server: server.name, status: 'healthy' };

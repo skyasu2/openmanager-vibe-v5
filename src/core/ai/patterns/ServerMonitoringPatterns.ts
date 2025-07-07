@@ -8,13 +8,13 @@
 
 import {
     IServerMonitoringPatterns,
-    PatternMatchResult,
     PatternCategory,
-    PatternData,
-    PatternStatistics,
-    PatternMatchingError,
     PatternConfig,
-    PatternMatchOptions
+    PatternData,
+    PatternMatchingError,
+    PatternMatchOptions,
+    PatternMatchResult,
+    PatternStatistics
 } from '@/types/server-monitoring-patterns.types';
 
 // 🎯 서버별 실무 가이드 인터페이스 (NEW!)
@@ -796,7 +796,9 @@ export class ServerMonitoringPatterns implements IServerMonitoringPatterns {
         if (this.cache.size >= this.config.cacheSize) {
             // LRU 방식으로 가장 오래된 항목 제거
             const firstKey = this.cache.keys().next().value;
-            this.cache.delete(firstKey);
+            if (firstKey) {
+                this.cache.delete(firstKey);
+            }
         }
         this.cache.set(query, result);
     }

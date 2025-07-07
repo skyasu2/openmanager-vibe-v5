@@ -121,7 +121,7 @@ export function useCachedServers(
    * 🔄 서버 데이터 가져오기
    */
   const fetchData = useCallback(
-    async (showLoading = true) => {
+    async (showLoading = true): Promise<void> => {
       try {
         // 이전 요청 취소
         if (abortControllerRef.current) {
@@ -172,7 +172,7 @@ export function useCachedServers(
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
           console.log('🚫 요청이 취소되었습니다.');
-          return;
+          return; // Explicit return
         }
 
         console.error('❌ 캐시된 서버 데이터 로드 실패:', error);

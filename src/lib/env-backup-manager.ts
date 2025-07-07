@@ -147,7 +147,7 @@ export class EnvBackupManager {
       this.logger.logError(
         'EnvBackupManager',
         LogCategory.SYSTEM,
-        `복호화 실패: ${error.message}`,
+        `복호화 실패: ${(error as Error).message}`,
         { encryptedText }
       );
       return '';
@@ -224,7 +224,7 @@ export class EnvBackupManager {
       await this.logger.logError(
         'EnvBackupManager',
         LogCategory.SYSTEM,
-        `백업 생성 실패: ${error.message}`,
+        `백업 생성 실패: ${(error as Error).message}`,
         { backupPath: this.backupPath }
       );
       return false;
@@ -356,7 +356,7 @@ export class EnvBackupManager {
             'EnvBackupManager',
             LogCategory.SYSTEM,
             `환경변수 복구 실패: ${entry.key}`,
-            { error: error.message }
+            { error: (error as Error).message }
           );
         }
       }
@@ -390,7 +390,7 @@ export class EnvBackupManager {
         message,
       };
     } catch (error) {
-      const errorMessage = `긴급 복구 실패: ${error.message}`;
+      const errorMessage = `긴급 복구 실패: ${(error as Error).message}`;
       await this.logger.logError(
         'EnvBackupManager',
         LogCategory.SYSTEM,
@@ -433,7 +433,7 @@ export class EnvBackupManager {
         fs.appendFileSync(envPath, envLine);
       }
     } catch (error) {
-      throw new Error(`환경변수 파일 업데이트 실패: ${error.message}`);
+      throw new Error(`환경변수 파일 업데이트 실패: ${(error as Error).message}`);
     }
   }
 

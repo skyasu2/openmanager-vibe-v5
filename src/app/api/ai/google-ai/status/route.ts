@@ -14,7 +14,7 @@ try {
   const googleAIModule = require('@/services/ai/GoogleAIService');
   GoogleAIService = googleAIModule.GoogleAIService;
 } catch (error) {
-  console.warn('GoogleAIService import 실패:', error.message);
+  console.warn('GoogleAIService import 실패:', (error as Error).message);
 }
 
 try {
@@ -23,7 +23,7 @@ try {
   isGoogleAIAvailable = googleAIManagerModule.isGoogleAIAvailable;
   getGoogleAIStatus = googleAIManagerModule.getGoogleAIStatus;
 } catch (error) {
-  console.warn('google-ai-manager import 실패:', error.message);
+  console.warn('google-ai-manager import 실패:', (error as Error).message);
 }
 
 // 🛡️ 안전한 폴백 함수들
@@ -32,7 +32,7 @@ const safeGetGoogleAIKey = () => {
     try {
       return getGoogleAIKey();
     } catch (error) {
-      console.warn('getGoogleAIKey 실행 실패:', error.message);
+      console.warn('getGoogleAIKey 실행 실패:', (error as Error).message);
       return process.env.GOOGLE_AI_API_KEY || null;
     }
   }
@@ -44,7 +44,7 @@ const safeIsGoogleAIAvailable = () => {
     try {
       return isGoogleAIAvailable();
     } catch (error) {
-      console.warn('isGoogleAIAvailable 실행 실패:', error.message);
+      console.warn('isGoogleAIAvailable 실행 실패:', (error as Error).message);
       return !!process.env.GOOGLE_AI_API_KEY;
     }
   }
@@ -169,7 +169,7 @@ export async function POST(request: Request) {
         success: false,
         error: {
           message: 'Google AI 연결 테스트 실패',
-          details: error.message,
+          details: (error as Error).message,
           code: 'GOOGLE_AI_TEST_ERROR',
         },
         // 🚀 시연용 모의 응답

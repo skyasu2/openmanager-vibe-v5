@@ -151,7 +151,7 @@ export class BaselineContinuityManager {
 
             return {
                 success: false,
-                message: `❌ 연속성 관리자 시작 실패: ${error.message}`,
+                message: `❌ 연속성 관리자 시작 실패: ${(error as Error).message}`,
                 details: {
                     baselineLoaded: false,
                     historyRestored: false,
@@ -169,7 +169,7 @@ export class BaselineContinuityManager {
         success: boolean;
         message: string;
         finalSnapshot: boolean;
-        performanceReport: typeof this.performanceMetrics;
+        performanceReport: any;
     }> {
         if (!this.isRunning) {
             return {
@@ -218,7 +218,7 @@ export class BaselineContinuityManager {
 
             return {
                 success: false,
-                message: `❌ 연속성 관리자 종료 실패: ${error.message}`,
+                message: `❌ 연속성 관리자 종료 실패: ${(error as Error).message}`,
                 finalSnapshot: false,
                 performanceReport: this.performanceMetrics,
             };
@@ -248,7 +248,7 @@ export class BaselineContinuityManager {
             return true;
 
         } catch (error) {
-            systemLogger.warn(`⚠️ 기존 베이스라인 로드 실패: ${error.message}, 동적 생성으로 진행`);
+            systemLogger.warn(`⚠️ 기존 베이스라인 로드 실패: ${(error as Error).message}, 동적 생성으로 진행`);
             return false;
         }
     }
@@ -280,7 +280,7 @@ export class BaselineContinuityManager {
             return false;
 
         } catch (error) {
-            systemLogger.warn(`⚠️ 히스토리 복원 실패: ${error.message}`);
+            systemLogger.warn(`⚠️ 히스토리 복원 실패: ${(error as Error).message}`);
             return false;
         }
     }
@@ -329,7 +329,7 @@ export class BaselineContinuityManager {
             return false;
 
         } catch (error) {
-            systemLogger.error(`❌ 예측 모델 구축 실패: ${error.message}`);
+            systemLogger.error(`❌ 예측 모델 구축 실패: ${(error as Error).message}`);
             return false;
         }
     }

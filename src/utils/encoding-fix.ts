@@ -25,7 +25,7 @@ export function safeDecodeKorean(input: string): string {
           return decoded;
         }
       } catch (error) {
-        console.warn('URL 디코딩 실패:', error.message);
+        console.warn('URL 디코딩 실패:', (error as Error).message);
       }
     }
 
@@ -50,13 +50,13 @@ export function safeDecodeKorean(input: string): string {
         return utf8Decoded;
       }
     } catch (error) {
-      console.warn('Latin-1 변환 실패:', error.message);
+      console.warn('Latin-1 변환 실패:', (error as Error).message);
     }
 
     // 5. 원본 반환 (더 이상 처리할 수 없음)
     return input;
   } catch (error) {
-    console.error('한글 디코딩 실패:', error.message);
+    console.error('한글 디코딩 실패:', (error as Error).message);
     return input;
   }
 }
@@ -134,7 +134,7 @@ export function safeProcessQuery(query: string): string {
 
     return processed;
   } catch (error) {
-    console.error('쿼리 처리 실패:', error.message);
+    console.error('쿼리 처리 실패:', (error as Error).message);
     return query;
   }
 }
@@ -160,7 +160,7 @@ export async function safeProcessRequestBody(request: Request): Promise<any> {
 
     return body;
   } catch (error) {
-    console.error('요청 본문 처리 실패:', error.message);
+    console.error('요청 본문 처리 실패:', (error as Error).message);
     throw new Error('Invalid request body format');
   }
 }
@@ -184,7 +184,7 @@ export function detectAndFixTerminalEncoding(): void {
       console.log('✅ Windows 터미널 UTF-8 인코딩 설정 완료');
     }
   } catch (error) {
-    console.warn('터미널 인코딩 설정 실패:', error.message);
+    console.warn('터미널 인코딩 설정 실패:', (error as Error).message);
   }
 }
 
@@ -222,7 +222,7 @@ export function testKoreanEncoding(): {
       return {
         name: testCase.name,
         input: testCase.input,
-        output: error.message,
+        output: (error as Error).message,
         success: false,
       };
     }

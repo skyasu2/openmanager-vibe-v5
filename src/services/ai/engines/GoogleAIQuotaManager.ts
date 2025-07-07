@@ -40,7 +40,7 @@ interface QuotaStatus {
 }
 
 export class GoogleAIQuotaManager {
-  private redis: Redis;
+  private redis!: Redis;
   private config: QuotaConfig;
   private readonly REDIS_PREFIX = 'google_ai_quota:';
   private isMockMode: boolean = false;

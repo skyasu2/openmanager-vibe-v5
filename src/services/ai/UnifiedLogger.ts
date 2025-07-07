@@ -639,7 +639,7 @@ export class UnifiedLogger {
         enabled: boolean;
         logCount: number;
         lastLogTime?: string;
-        config: typeof this.config;
+        config: any;
     } {
         const lastLog = this.logs[this.logs.length - 1];
 

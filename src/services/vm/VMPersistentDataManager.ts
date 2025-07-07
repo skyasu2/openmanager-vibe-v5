@@ -151,7 +151,7 @@ export class VMPersistentDataManager {
 
             return {
                 success: false,
-                message: `❌ VM 시스템 시작 실패: ${error.message}`,
+                message: `❌ VM 시스템 시작 실패: ${(error as Error).message}`,
                 details: {
                     serversGenerated: 0,
                     baselineLoaded: false,
@@ -243,7 +243,7 @@ export class VMPersistentDataManager {
 
             return {
                 success: false,
-                message: `❌ VM 시스템 종료 실패: ${error.message}`,
+                message: `❌ VM 시스템 종료 실패: ${(error as Error).message}`,
                 details: {
                     baselineSaved: false,
                     enrichedMetricsStopped: false,
@@ -313,7 +313,7 @@ export class VMPersistentDataManager {
             return true;
 
         } catch (error) {
-            systemLogger.warn(`⚠️ 베이스라인 로드 실패 (${error.message}), 동적 생성으로 대체`);
+            systemLogger.warn(`⚠️ 베이스라인 로드 실패 (${(error as Error).message}), 동적 생성으로 대체`);
             return false;
         }
     }
@@ -332,7 +332,7 @@ export class VMPersistentDataManager {
             return true;
 
         } catch (error) {
-            systemLogger.error(`❌ 베이스라인 저장 실패: ${error.message}`);
+            systemLogger.error(`❌ 베이스라인 저장 실패: ${(error as Error).message}`);
             return false;
         }
     }

@@ -94,8 +94,8 @@ export class OptimizedKoreanNLPEngine {
 
   // 성능 최적화를 위한 패턴 캐시
   private patternCache = new Map<string, any>();
-  private entityPatterns: Map<string, RegExp>;
-  private intentPatterns: Map<string, RegExp>;
+  private entityPatterns!: Map<string, RegExp>;
+  private intentPatterns!: Map<string, RegExp>;
 
   constructor() {
     this.config = {
@@ -631,7 +631,9 @@ export class OptimizedKoreanNLPEngine {
     // 캐시 크기 제한 (최대 100개)
     if (this.cache.size >= 100) {
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey) {
+        this.cache.delete(firstKey);
+      }
     }
 
     this.cache.set(key, result);

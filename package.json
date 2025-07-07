@@ -223,7 +223,5 @@
     "vitest": "^3.2.3",
     "webpack": "^5.99.9"
   },
-  "optionalDependencies": {
-    "webworker-threads": "^0.7.17"
-  }
+  "optionalDependencies": {}
 }

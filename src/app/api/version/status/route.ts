@@ -22,21 +22,21 @@ try {
   DATA_GENERATOR_VERSIONS = versionsModule.DATA_GENERATOR_VERSIONS;
   VersionManager = versionsModule.VersionManager;
 } catch (error) {
-  console.warn('versions 모듈 import 실패:', error.message);
+  console.warn('versions 모듈 import 실패:', (error as Error).message);
 }
 
 try {
   const masterAIEngineModule = require('@/services/ai/MasterAIEngine');
   masterAIEngine = masterAIEngineModule.masterAIEngine;
 } catch (error) {
-  console.warn('MasterAIEngine import 실패:', error.message);
+  console.warn('MasterAIEngine import 실패:', (error as Error).message);
 }
 
 try {
   const optimizedDataGeneratorModule = require('@/services/OptimizedDataGenerator');
   OptimizedDataGenerator = optimizedDataGeneratorModule.OptimizedDataGenerator;
 } catch (error) {
-  console.warn('OptimizedDataGenerator import 실패:', error.message);
+  console.warn('OptimizedDataGenerator import 실패:', (error as Error).message);
 }
 
 export async function GET(request: NextRequest) {

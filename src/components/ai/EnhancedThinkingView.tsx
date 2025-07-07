@@ -10,19 +10,17 @@
 
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
     Brain,
-    Search,
-    Database,
-    Zap,
-    ChevronDown,
-    ChevronUp,
-    Loader2,
     CheckCircle,
-    Clock,
+    ChevronDown,
+    Database,
+    Loader2,
+    Search,
+    Zap
 } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface EnhancedThinkingStep {
     id: string;
@@ -88,6 +86,7 @@ const TypingText: React.FC<{ text: string; speed?: number }> = ({
             }, speed);
             return () => clearTimeout(timer);
         }
+        return;
     }, [currentIndex, text, speed]);
 
     return (
@@ -122,6 +121,7 @@ export const EnhancedThinkingView: React.FC<EnhancedThinkingViewProps> = ({
             }, 500);
             return () => clearTimeout(timer);
         }
+        return;
     }, [steps.length, visibleSteps.length]);
 
     // 자동 스크롤

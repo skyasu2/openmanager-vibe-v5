@@ -158,6 +158,8 @@ const getPriorityBorder = (priority: SystemComponent['priority']) => {
       return 'border-yellow-500/50';
     case 'low':
       return 'border-gray-500/50';
+    default:
+      return ''; // Default return for all code paths
   }
 };
 

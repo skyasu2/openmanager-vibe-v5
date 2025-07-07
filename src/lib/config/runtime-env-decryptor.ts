@@ -71,8 +71,8 @@ function decryptValue(
     }
 
     return decryptedText;
-  } catch (error) {
-    throw new Error(`복호화 실패: ${error.message}`);
+  } catch (error: unknown) {
+    throw new Error(`복호화 실패: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

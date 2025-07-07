@@ -315,10 +315,11 @@ export class EnhancedKoreanNLP {
   /**
    * 🔧 유틸리티 메서드들
    */
-  private generateTextHash(text: string): number {
+  private generateTextHash(text: string | undefined): number {
+    const safeText = text ?? '';
     let hash = 0;
-    for (let i = 0; i < text.length; i++) {
-      const char = text.charCodeAt(i);
+    for (let i = 0; i < safeText.length; i++) {
+      const char = safeText.charCodeAt(i);
       hash = (hash << 5) - hash + char;
       hash = hash & hash; // 32비트 정수로 변환
     }
@@ -426,8 +427,9 @@ export class EnhancedKoreanNLP {
     };
   }
 
-  private getCacheKey(text: string): string {
-    return `korean_nlp_${this.generateTextHash(text)}`;
+  private getCacheKey(text: string | undefined): string {
+    const safeText = text ?? '';
+    return `korean_nlp_${this.generateTextHash(safeText)}`;
   }
 
   private updateCache(key: string, result: KoreanEmbeddingResult): void {

@@ -56,7 +56,7 @@ export async function checkSystemState(): Promise<SystemStateInfo> {
       isSystemActive: false,
       powerMode: 'sleep',
       isDataCollecting: false,
-      reason: `시스템 상태 확인 오류: ${error.message}`,
+      reason: `시스템 상태 확인 오류: ${(error as Error).message}`,
       shouldSkipOperation: true,
     };
   }

@@ -25,7 +25,7 @@ interface GCPServerConfig {
  */
 export class GCPRealServerDataGenerator {
     private static instance: GCPRealServerDataGenerator | null = null;
-    private readonly config: Required<GCPServerConfig>;
+    private readonly config!: Required<GCPServerConfig>;
     private isInitialized = false;
     private gcpDataGenerator: any = null;
 

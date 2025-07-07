@@ -178,7 +178,7 @@ export class RealMCPClient {
       async request(request: any): Promise<any> {
         console.log(`🎭 ${serverName} 목업 요청:`, request.method);
         if (request.method === 'tools/list') {
-          return await this.toolHandler.getAvailableTools();
+          return await (this as any).toolHandler.getAvailableTools();
         }
         if (request.method === 'tools/call') {
           return {

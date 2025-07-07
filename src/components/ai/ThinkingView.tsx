@@ -99,6 +99,7 @@ const getStepIcon = (type: any, engine?: string) => {
     default:
       return <Brain className='w-4 h-4' />;
   }
+  return null; // Ensure all code paths return a value
 };
 
 // 단계별 색상 매핑 (AI 엔진별 구분 추가)
@@ -134,6 +135,7 @@ const getStepColor = (type: any, engine?: string) => {
     default:
       return 'text-gray-400 bg-gray-500/20 border-gray-500/30';
   }
+  return ''; // Ensure all code paths return a value
 };
 
 // 단계명 한국어 매핑
