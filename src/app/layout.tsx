@@ -1,7 +1,7 @@
 // 🚀 폴리필 최우선 로드 (빌드 타임 오류 방지)
-import '@/polyfills';
+// import '@/polyfills';
 // 🛡️ 추가 SSR 호환성 폴리필
-import '@/lib/polyfills';
+// import '@/lib/polyfills';
 
 import { ClientProviders } from '@/components/providers/ClientProviders';
 import type { Metadata } from 'next';
@@ -38,22 +38,43 @@ if (typeof globalThis !== 'undefined') {
   // document 참조 오류 방지 (서버 사이드)
   if (typeof globalThis.document === 'undefined') {
     globalThis.document = {
-      createElement: () => ({}),
+      createElement: () => ({
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        style: {},
+        setAttribute: () => {},
+        getAttribute: () => null,
+      }),
       getElementById: () => null,
       querySelector: () => null,
       querySelectorAll: () => [],
       addEventListener: () => {},
       removeEventListener: () => {},
+      body: {
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        style: {},
+      },
+      documentElement: {
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        style: {},
+      },
     } as any;
   }
 
   // navigator 참조 오류 방지 (서버 사이드)
   if (typeof globalThis.navigator === 'undefined') {
-    globalThis.navigator = {
-      userAgent: 'node.js',
-      platform: 'node',
-      language: 'ko-KR',
-    } as any;
+    Object.defineProperty(globalThis, 'navigator', {
+      value: {
+        userAgent: 'node.js',
+        platform: 'node',
+        language: 'ko-KR',
+      },
+      writable: false,
+      enumerable: true,
+      configurable: true,
+    });
   }
 
   // location 참조 오류 방지 (서버 사이드)
@@ -76,18 +97,39 @@ if (typeof window === 'undefined' && typeof global !== 'undefined') {
   (global as any).self = global;
   (global as any).window = global;
   (global as any).document = {
-    createElement: () => ({}),
+    createElement: () => ({
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      style: {},
+      setAttribute: () => {},
+      getAttribute: () => null,
+    }),
     getElementById: () => null,
     querySelector: () => null,
     querySelectorAll: () => [],
     addEventListener: () => {},
     removeEventListener: () => {},
+    body: {
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      style: {},
+    },
+    documentElement: {
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      style: {},
+    },
   };
-  (global as any).navigator = {
-    userAgent: 'node.js',
-    platform: 'node',
-    language: 'ko-KR',
-  };
+  Object.defineProperty(global, 'navigator', {
+    value: {
+      userAgent: 'node.js',
+      platform: 'node',
+      language: 'ko-KR',
+    },
+    writable: false,
+    enumerable: true,
+    configurable: true,
+  });
   (global as any).location = {
     href: '',
     origin: '',

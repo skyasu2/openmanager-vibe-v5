@@ -8,9 +8,10 @@
 
 import { motion } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
-export default function AuthErrorPage() {
+// useSearchParams를 사용하는 컴포넌트를 별도로 분리
+function AuthErrorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string>('');
@@ -205,5 +206,26 @@ export default function AuthErrorPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+// 로딩 컴포넌트
+function LoadingFallback() {
+  return (
+    <div className='min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center p-4'>
+      <div className='w-full max-w-md text-center'>
+        <div className='w-8 h-8 border-4 border-red-200 border-t-red-600 rounded-full animate-spin mx-auto mb-4'></div>
+        <p className='text-gray-600'>로딩 중...</p>
+      </div>
+    </div>
+  );
+}
+
+// 메인 컴포넌트 - Suspense로 감싸기
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AuthErrorContent />
+    </Suspense>
   );
 }

@@ -1,3 +1,4 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     // 🚀 Next.js 15 완전 동적 모드 (정적 생성 완전 비활성화)
@@ -15,8 +16,44 @@ const nextConfig = {
         ignoreDuringBuilds: true,
     },
 
-    // 서버 외부 패키지 설정 (Next.js 15 새로운 방식)
-    serverExternalPackages: ['@supabase/supabase-js', '@google/generative-ai'],
+    // 서버 외부 패키지 설정 (Next.js 15 통합 방식)
+    serverExternalPackages: [
+        '@supabase/supabase-js',
+        '@google/generative-ai',
+        'ioredis',
+        'redis',
+        '@redis/client',
+        'webworker-threads',
+        'generic-pool',
+        'cluster',
+        'denque',
+        'systeminformation',
+        'node-cron',
+        'pino',
+        'pino-pretty',
+        'winston',
+        'winston-daily-rotate-file',
+        'sharp',
+        'canvas',
+        'pdf-parse',
+        '@xenova/transformers',
+        'natural',
+        'compromise',
+        'fuzzyset.js',
+        'fuse.js',
+        'ml-kmeans',
+        'ml-pca',
+        'ml-regression',
+        'simple-statistics',
+        'reflect-metadata',
+        'uuid',
+        'crypto-js',
+    ],
+
+    // 🚀 패키지 트랜스파일 설정 (충돌 방지)
+    transpilePackages: [
+        // rxjs 제외 - serverExternalPackages와 충돌 방지
+    ],
 
     // 🚀 SWC 및 실험적 기능 최적화 (Next.js 15 호환)
     experimental: {
@@ -24,38 +61,6 @@ const nextConfig = {
         optimizeCss: true,
         // SWC 트랜스폼 강제 사용 (속도 향상)
         forceSwcTransforms: true,
-        // 서버 컴포넌트 강화
-        serverComponentsExternalPackages: [
-            'ioredis',
-            'redis',
-            '@redis/client',
-            'webworker-threads',
-            'generic-pool',
-            'cluster',
-            'denque',
-            'systeminformation',
-            'node-cron',
-            'pino',
-            'pino-pretty',
-            'winston',
-            'winston-daily-rotate-file',
-            'sharp',
-            'canvas',
-            'pdf-parse',
-            '@xenova/transformers',
-            'natural',
-            'compromise',
-            'fuzzyset.js',
-            'fuse.js',
-            'ml-kmeans',
-            'ml-pca',
-            'ml-regression',
-            'simple-statistics',
-            'rxjs',
-            'reflect-metadata',
-            'uuid',
-            'crypto-js',
-        ],
     },
 
     // 🚫 정적 최적화 비활성화
@@ -114,59 +119,8 @@ const nextConfig = {
         ];
     },
 
-    // 🔧 웹팩 설정 (Node.js crypto만 사용)
+    // 🔧 웹팩 설정 (단순화된 설정)
     webpack: (config, { isServer }) => {
-        // 🚨 전역 polyfill 강화 - self 오류 완전 해결
-        const webpack = require('webpack');
-
-        config.plugins.push(
-            new webpack.DefinePlugin({
-                // 서버와 클라이언트 모두에서 self 정의
-                'typeof self': JSON.stringify(isServer ? 'undefined' : 'object'),
-                'self': isServer ? 'global' : 'self',
-                'global.self': isServer ? 'global' : 'self',
-                'globalThis.self': isServer ? 'globalThis' : 'self',
-            })
-        );
-
-        // 🚨 ProvidePlugin으로 self 자동 제공
-        config.plugins.push(
-            new webpack.ProvidePlugin({
-                self: isServer ? 'global' : 'self',
-            })
-        );
-
-        // 메모리 최적화 설정
-        config.optimization = {
-            ...config.optimization,
-            splitChunks: {
-                chunks: 'all',
-                maxAsyncRequests: 20,
-                maxInitialRequests: 10,
-                cacheGroups: {
-                    vendor: {
-                        test: /[\\/]node_modules[\\/]/,
-                        name: 'vendors',
-                        chunks: 'all',
-                    },
-                },
-            },
-        };
-
-        // 🚀 서버 사이드에서 self 객체 polyfill 추가
-        if (isServer) {
-            // Node.js 환경에서 global 객체에 self 추가
-            if (typeof global !== 'undefined' && typeof global.self === 'undefined') {
-                global.self = global;
-            }
-
-            // 추가 서버 사이드 polyfills
-            config.resolve.alias = {
-                ...config.resolve.alias,
-                'self': 'global',
-            };
-        }
-
         // 클라이언트 사이드에서 Node.js 모듈 사용 방지
         if (!isServer) {
             config.resolve.fallback = {
@@ -175,23 +129,8 @@ const nextConfig = {
                 net: false,
                 tls: false,
                 crypto: false,
-                'global': false,
             };
         }
-
-        // 🚨 Edge Runtime 동적 의존성 경고 억제
-        config.ignoreWarnings = [
-            ...(config.ignoreWarnings || []),
-            {
-                module: /edge-runtime-utils\.ts/,
-                message: /Critical dependency: the request of a dependency is an expression/,
-            },
-            // self 관련 경고 억제
-            {
-                module: /vendors\.js/,
-                message: /self is not defined/,
-            },
-        ];
 
         return config;
     },
@@ -199,38 +138,10 @@ const nextConfig = {
     // 🚀 Next.js 15 Edge Runtime 최적화
     reactStrictMode: true,
 
-    // 🛡️ 보안 헤더 설정
-    async headers() {
-        return [
-            {
-                source: '/(.*)',
-                headers: [
-                    {
-                        key: 'X-Frame-Options',
-                        value: 'DENY',
-                    },
-                    {
-                        key: 'X-Content-Type-Options',
-                        value: 'nosniff',
-                    },
-                    {
-                        key: 'Referrer-Policy',
-                        value: 'strict-origin-when-cross-origin',
-                    },
-                    {
-                        key: 'X-XSS-Protection',
-                        value: '1; mode=block',
-                    },
-                ],
-            },
-        ];
-    },
-
     // 🔧 환경 변수 설정
     env: {
         CUSTOM_KEY: 'openmanager-vibe-v5',
         BUILD_TIME: new Date().toISOString(),
-        NODE_ENV: process.env.NODE_ENV || 'production',
         FORCE_NODE_CRYPTO: 'true',
     },
 };
