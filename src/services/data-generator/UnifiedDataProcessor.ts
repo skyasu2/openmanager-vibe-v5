@@ -589,7 +589,7 @@ export class UnifiedDataProcessor {
       serverRole,
       environment,
       businessCriticality,
-      dependencies: [], // 향후 확장
+      dependencies: [] as any[], // 향후 확장
     };
   }
 

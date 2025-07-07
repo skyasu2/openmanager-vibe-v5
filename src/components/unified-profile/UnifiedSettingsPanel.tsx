@@ -10,48 +10,30 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { createPortal } from 'react-dom';
 import {
-  X,
-  Eye,
-  EyeOff,
-  Check,
-  Loader2,
-  StopCircle,
-  HardDrive,
-  Lock,
-  Settings,
-  Monitor,
-  Database,
-  Bot,
-  Activity,
-  Zap,
-  Shield,
-  BarChart3,
-  Bell,
-  Palette,
-  Save,
-  RefreshCw,
-  Server,
-  Cpu,
-  Network,
-} from 'lucide-react';
-import {
-  useInlineFeedback,
   InlineFeedbackContainer,
-  ButtonWithFeedback,
+  useInlineFeedback
 } from '@/components/ui/InlineFeedbackSystem';
-import { UnifiedSettingsPanelProps, SettingsTab } from './types/ProfileTypes';
-import { useSettingsData } from './hooks/useSettingsData';
-import { useAuthentication } from './hooks/useAuthentication';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Bot,
+  Database,
+  Monitor,
+  Settings,
+  X,
+  Zap
+} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AISettingsTab } from './components/AISettingsTab';
+import { GeneralSettingsTab } from './components/GeneralSettingsTab';
 import { GeneratorSettingsTab } from './components/GeneratorSettingsTab';
 import { MonitorSettingsTab } from './components/MonitorSettingsTab';
-import { GeneralSettingsTab } from './components/GeneralSettingsTab';
 import { OptimizationSettingsTab } from './components/OptimizationSettingsTab';
+import { useAuthentication } from './hooks/useAuthentication';
+import { useSettingsData } from './hooks/useSettingsData';
+import { SettingsTab, UnifiedSettingsPanelProps } from './types/ProfileTypes';
 
 export function UnifiedSettingsPanel({
   isOpen,
@@ -316,11 +298,8 @@ export function UnifiedSettingsPanel({
       info('AI 최적화', 'AI 시스템 성능 최적화를 진행하고 있습니다...');
       await new Promise(resolve => setTimeout(resolve, 2000));
       success('최적화 완료', '🤖 AI 시스템이 성공적으로 최적화되었습니다!', {
-        priority: 'high',
-        action: {
-          label: '성능 보고서 보기',
-          onClick: () => info('성능 보고서', 'AI 성능이 15% 향상되었습니다.'),
-        },
+        duration: 5000,
+        persistent: true,
       });
     } catch (err) {
       error('최적화 실패', 'AI 시스템 최적화 중 오류가 발생했습니다.');
@@ -332,11 +311,8 @@ export function UnifiedSettingsPanel({
       info('시스템 진단', '종합적인 시스템 상태 분석을 진행하고 있습니다...');
       await new Promise(resolve => setTimeout(resolve, 1500));
       success('진단 완료', '🔍 시스템이 최적 상태로 운영되고 있습니다!', {
-        action: {
-          label: '세부 보고서',
-          onClick: () =>
-            info('진단 결과', 'CPU: 정상, 메모리: 최적, 네트워크: 안정'),
-        },
+        duration: 3000,
+        persistent: false,
       });
     } catch (err) {
       error('진단 실패', '시스템 진단 중 오류가 발생했습니다.');
@@ -502,11 +478,10 @@ export function UnifiedSettingsPanel({
                   <button
                     key={tabKey}
                     onClick={() => setActiveTab(tabKey)}
-                    className={`relative flex-shrink-0 px-3 py-2 text-sm font-medium rounded-md transition-colors min-w-0 ${
-                      activeTab === tabKey
-                        ? 'text-white'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
+                    className={`relative flex-shrink-0 px-3 py-2 text-sm font-medium rounded-md transition-colors min-w-0 ${activeTab === tabKey
+                      ? 'text-white'
+                      : 'text-gray-400 hover:text-white'
+                      }`}
                   >
                     {activeTab === tabKey && (
                       <motion.div

@@ -29,6 +29,7 @@ export default function HomePage() {
             // 카운트다운 완료 후 로딩 페이지로 이동
             router.push('/system-boot');
         }
+        return;
     }, [countdown, isCountingDown, router]);
 
     // 시스템 시작 버튼 클릭

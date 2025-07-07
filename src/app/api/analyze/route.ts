@@ -221,13 +221,13 @@ async function performIntelligentAnalysis(
 
       // 카테고리 필터링 적용
       if (categoryFilter) {
-        const categoryResults = ragResponse.results.filter(r =>
+        const categoryResults = ragResponse.results.filter((r: any) =>
           r.document.metadata.category.includes(categoryFilter)
         );
 
         if (categoryResults.length > 0) {
           const otherResults = ragResponse.results.filter(
-            r => !r.document.metadata.category.includes(categoryFilter)
+            (r: any) => !r.document.metadata.category.includes(categoryFilter)
           );
           filteredResults = [...categoryResults, ...otherResults];
         }
@@ -551,7 +551,7 @@ function extractSafetyWarnings(ragResults: any[]): string[] {
     if (content.includes('주의') || content.includes('경고')) {
       // 안전성 관련 문장 추출
       const sentences = content.split('.');
-      sentences.forEach(sentence => {
+      sentences.forEach((sentence: string) => {
         if (
           sentence.includes('주의') ||
           sentence.includes('경고') ||

@@ -147,7 +147,7 @@ class SmartSupabaseClient {
     } catch (error) {
       console.warn('Supabase UPDATE error:', error);
       return {
-        data: [],
+        data: [] as any[],
         error,
       };
     }
@@ -160,7 +160,7 @@ class SmartSupabaseClient {
     } catch (error) {
       console.warn('Supabase DELETE error:', error);
       return {
-        data: [],
+        data: [] as any[],
         error,
       };
     }

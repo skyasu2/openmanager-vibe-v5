@@ -134,7 +134,7 @@ export class ServerInstanceManager {
             },
         };
 
-        const spec = baseSpecs[type];
+        const spec = (baseSpecs as any)[type];
         return {
             ...spec,
             // 약간의 변동성 추가
@@ -310,7 +310,7 @@ export class ServerInstanceManager {
         // 우선순위: 개발환경 > 테스트 > 스테이징 > 프로덕션 순으로 제거
         const sortedServers = allServers.sort((a, b) => {
             const priority = { development: 1, test: 2, staging: 3, production: 4 };
-            return priority[a.environment] - priority[b.environment];
+            return (priority as any)[a.environment] - (priority as any)[b.environment];
         });
 
         // 초과분 제거

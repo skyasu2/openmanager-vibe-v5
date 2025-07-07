@@ -156,8 +156,8 @@ export class SupabaseRAGEngine {
             let content = '';
             if (fileData.content && Array.isArray(fileData.content)) {
               content = fileData.content
-                .filter(item => item.type === 'text')
-                .map(item => item.text)
+                .filter((item: any) => item.type === 'text')
+                .map((item: any) => item.text)
                 .join('\n');
             }
 
@@ -198,8 +198,8 @@ export class SupabaseRAGEngine {
             let dirContent = '';
             if (dirData.content && Array.isArray(dirData.content)) {
               dirContent = dirData.content
-                .filter(item => item.type === 'text')
-                .map(item => item.text)
+                .filter((item: any) => item.type === 'text')
+                .map((item: any) => item.text)
                 .join('\n');
             }
 
@@ -241,8 +241,8 @@ export class SupabaseRAGEngine {
             let searchContent = '';
             if (searchData.content && Array.isArray(searchData.content)) {
               searchContent = searchData.content
-                .filter(item => item.type === 'text')
-                .map(item => item.text)
+                .filter((item: any) => item.type === 'text')
+                .map((item: any) => item.text)
                 .join('\n');
             }
 
@@ -1000,7 +1000,7 @@ export class SupabaseRAGEngine {
           tags: ['command', 'fallback'],
           commands: [doc.command],
           scenario: 'fallback_search',
-          safety_warnings: [],
+          safety_warnings: [] as string[],
           priority: 'medium',
         },
         similarity: 0.7, // 기본 유사도
@@ -1070,7 +1070,7 @@ export class SupabaseRAGEngine {
         tags: ['command', 'mock'],
         commands: [cmd.command],
         scenario: 'mock_search',
-        safety_warnings: [],
+        safety_warnings: [] as string[],
         priority: 'medium',
       },
       similarity: 0.6 - index * 0.1, // 순서대로 유사도 감소

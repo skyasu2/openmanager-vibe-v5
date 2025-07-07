@@ -150,8 +150,8 @@ class MockEnvBackupManager {
     if (!exists) {
       return {
         exists: false,
-        lastBackup: undefined,
-        entriesCount: undefined
+        lastBackup: undefined as any,
+        entriesCount: undefined as any
       };
     }
 
@@ -166,8 +166,8 @@ class MockEnvBackupManager {
     } catch {
       return {
         exists: false,
-        lastBackup: undefined,
-        entriesCount: undefined
+        lastBackup: undefined as any,
+        entriesCount: undefined as any
       };
     }
   }

@@ -21,18 +21,19 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 const DOCS_STRUCTURE = {
     core: [
         'README.md',
-        'QUICK_START.md',
-        'INSTALLATION.md',
-        'AI_SETUP.md',
-        'DEVELOPMENT.md',
-        'ARCHITECTURE.md',
-        'DEPLOYMENT.md',
-        'API.md',
-        'TESTING.md'
+        'development-guide.md',
+        'system-architecture.md',
+        'ai-system-guide.md',
+        'gcp-optimization-guide.md',
+        'deployment-guide.md',
+        'testing-guide.md',
+        'security-guide.md',
+        'environment-setup-guide.md',
+        'memory-optimization-guide.md',
+        'development-tools.md'
     ],
     backup: ['backup/'],
-    deliverables: ['deliverables/'],
-    archived: ['archived/']
+    deliverables: ['deliverables/']
 };
 
 // 색상 출력 함수
@@ -47,11 +48,9 @@ const colors = {
 class DocumentManager {
     constructor() {
         this.docsDir = path.join(ROOT_DIR, 'docs');
-        this.archivedDir = path.join(this.docsDir, 'archived');
         this.stats = {
             coreDocuments: 0,
             backupDocuments: 0,
-            archivedDocuments: 0,
             totalSize: 0
         };
     }
@@ -75,7 +74,6 @@ class DocumentManager {
             'docs/backup/legacy',
             'docs/backup/development',
             'docs/backup/root',
-            'docs/archived',
             'docs/deliverables',
             'docs/deliverables/reports',
             'docs/deliverables/analysis'
@@ -112,9 +110,6 @@ class DocumentManager {
 
         // 백업 문서 분석
         await this.analyzeDirectory('docs/backup', 'backup');
-
-        // 아카이브 문서 분석
-        await this.analyzeDirectory('docs/archived', 'archived');
     }
 
     async analyzeDirectory(dirPath, type) {
@@ -179,55 +174,60 @@ class DocumentManager {
 > 생성일: ${dateKR}  
 > 마지막 업데이트: ${timestamp}
 
-## 🎯 핵심 문서 (7개)
+## 🎯 핵심 문서 (11개)
 
 ### 🚀 시작하기
 - [📖 README](../README.md) - 프로젝트 개요
-- [⚡ Quick Start](QUICK_START.md) - 5분 빠른 시작
-- [🔧 Installation](INSTALLATION.md) - 상세 설치 가이드
+- [🛠️ 개발 가이드](development-guide.md) - 개발 방법론 및 원칙
+- [🏗️ 시스템 아키텍처](system-architecture.md) - 전체 시스템 구조 및 데이터 흐름
 
-### 🤖 AI & 개발
-- [🤖 AI Setup](AI_SETUP.md) - AI 기능 설정
-- [🛠️ Development](DEVELOPMENT.md) - 개발 가이드
-- [🏗️ Architecture](ARCHITECTURE.md) - 시스템 아키텍처
+### 🤖 AI & 클라우드
+- [🤖 AI 시스템 가이드](ai-system-guide.md) - AI 엔진 구성 및 활용
+- [🌐 GCP 최적화 가이드](gcp-optimization-guide.md) - GCP 무료 티어 활용 및 마이그레이션
+- [☁️ 배포 가이드](deployment-guide.md) - Vercel 및 GCP 배포 운영
 
-### 🚀 배포 & API
-- [☁️ Deployment](DEPLOYMENT.md) - 배포 가이드
-- [📚 API Documentation](API.md) - API 완전 참조
-- [🧪 Testing](TESTING.md) - 테스트 가이드
+### 🧪 품질 & 보안
+- [🧪 테스트 가이드](testing-guide.md) - 테스트 주도 개발 및 전략
+- [🔐 보안 가이드](security-guide.md) - API 키 및 민감 정보 보안
+
+### 🔧 환경 & 도구
+- [환경 설정 가이드](environment-setup-guide.md) - 개발 환경 설정 및 관리
+- [메모리 최적화 가이드](memory-optimization-guide.md) - 메모리 사용량 분석 및 최적화
+- [개발 도구](development-tools.md) - 유용한 개발 도구 및 스크립트
 
 ## 📊 문서 통계
 
 | 구분 | 개수 | 상태 |
 |------|------|------|
-| 핵심 문서 | ${this.stats.coreDocuments}/9 | ${this.stats.coreDocuments === 9 ? '✅ 완료' : '⚠️ 미완성'} |
+| 핵심 문서 | ${this.stats.coreDocuments}/11 | ${this.stats.coreDocuments === 11 ? '✅ 완료' : '⚠️ 미완성'} |
 | 백업 문서 | ${this.stats.backupDocuments} | 📦 보관됨 |
-| 아카이브 문서 | ${this.stats.archivedDocuments} | 🗄️ 아카이브됨 |
 | 총 용량 | ${this.formatBytes(this.stats.totalSize)} | - |
 
 ## 📁 폴더 구조
 
-\`\`\`
+```
 docs/
-├── 📋 핵심 문서 (9개)
-│   ├── QUICK_START.md
-│   ├── INSTALLATION.md
-│   ├── AI_SETUP.md
-│   ├── DEVELOPMENT.md
-│   ├── ARCHITECTURE.md
-│   ├── DEPLOYMENT.md
-│   ├── API.md
-│   └── TESTING.md
+├── 📋 핵심 문서 (11개)
+│   ├── README.md
+│   ├── development-guide.md
+│   ├── system-architecture.md
+│   ├── ai-system-guide.md
+│   ├── gcp-optimization-guide.md
+│   ├── deployment-guide.md
+│   ├── testing-guide.md
+│   ├── security-guide.md
+│   ├── environment-setup-guide.md
+│   ├── memory-optimization-guide.md
+│   └── development-tools.md
 ├── 📦 backup/           # 기존 문서 백업
 │   ├── legacy/         # 레거시 문서
 │   ├── development/    # 개발 관련 백업
 │   └── root/          # 루트 경로 백업
-├── 🗄️ archived/        # 더이상 사용하지 않는 문서
 ├── 📊 deliverables/     # 산출물 및 보고서
 │   ├── reports/       # 프로젝트 보고서
 │   └── analysis/      # 분석 자료
 └── 📋 INDEX.md         # 이 파일
-\`\`\`
+```
 
 ## 🔄 문서 관리 규칙
 
@@ -242,11 +242,6 @@ docs/
 - 참조용 자료
 - 변경 금지
 
-### 🗄️ 아카이브 문서 (보관용)
-- 더이상 사용하지 않는 문서
-- 역사적 가치 보존
-- 필요시 참조
-
 ### 📊 산출물 (프로젝트 결과물)
 - 분석 보고서
 - 프로젝트 요약
@@ -254,7 +249,7 @@ docs/
 
 ## 🛠️ 관리 명령어
 
-\`\`\`bash
+```bash
 # 문서 구조 검증
 npm run docs:validate
 
@@ -266,12 +261,12 @@ npm run docs:index
 
 # 백업 생성
 npm run docs:backup
-\`\`\`
+```
 
 ## 📅 업데이트 히스토리
 
 - **${dateKR}**: 문서 구조 완전 리팩토링
-- 핵심 문서 7개 → 9개로 확장
+- 핵심 문서 7개 → 11개로 확장
 - 백업 시스템 구축
 - 자동화 스크립트 도입
 
@@ -330,18 +325,18 @@ npm run docs:backup
 
     // 통계 출력
     printStatistics() {
-        console.log(colors.blue('\n📊 문서 관리 통계'));
+        console.log(colors.blue('
+📊 문서 관리 통계'));
         console.log(colors.gray('-'.repeat(30)));
-        console.log(`핵심 문서: ${colors.green(this.stats.coreDocuments + '/9')}`);
+        console.log(`핵심 문서: ${colors.green(this.stats.coreDocuments + '/11')}`);
         console.log(`백업 문서: ${colors.yellow(this.stats.backupDocuments + '개')}`);
-        console.log(`아카이브: ${colors.gray(this.stats.archivedDocuments + '개')}`);
         console.log(`총 용량: ${colors.blue(this.formatBytes(this.stats.totalSize))}`);
         console.log(colors.gray('-'.repeat(30)));
 
-        if (this.stats.coreDocuments === 9) {
+        if (this.stats.coreDocuments === 11) {
             console.log(colors.green('✅ 모든 핵심 문서가 완비되었습니다!'));
         } else {
-            console.log(colors.yellow(`⚠️ ${9 - this.stats.coreDocuments}개 문서가 누락되었습니다.`));
+            console.log(colors.yellow(`⚠️ ${11 - this.stats.coreDocuments}개 문서가 누락되었습니다.`));
         }
     }
 

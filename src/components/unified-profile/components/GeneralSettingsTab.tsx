@@ -6,9 +6,9 @@
 
 'use client';
 
+import { useInlineFeedback } from '@/components/ui/InlineFeedbackSystem';
 import { motion } from 'framer-motion';
 import { Settings } from 'lucide-react';
-import { useInlineFeedback } from '@/components/ui/InlineFeedbackSystem';
 
 interface SettingsData {
   theme: string;
@@ -61,11 +61,11 @@ export function GeneralSettingsTab({ settingsData }: GeneralSettingsTabProps) {
               whileTap={{ scale: 0.95 }}
               onClick={async () => {
                 try {
-                  info('테마를 변경 중...');
+                  info('settings', '테마를 변경 중...');
                   await new Promise(resolve => setTimeout(resolve, 1000));
-                  success('테마가 변경되었습니다.');
+                  success('settings', '테마가 변경되었습니다.');
                 } catch (err) {
-                  error('테마 변경 실패');
+                  error('settings', '테마 변경 실패');
                 }
               }}
               className='px-4 py-3 bg-gray-500/20 text-gray-300 rounded-lg font-medium hover:bg-gray-500/30 transition-colors text-sm border border-gray-500/30'
@@ -82,11 +82,11 @@ export function GeneralSettingsTab({ settingsData }: GeneralSettingsTabProps) {
               whileTap={{ scale: 0.95 }}
               onClick={async () => {
                 try {
-                  info('백업을 생성 중...');
+                  info('backup', '백업을 생성 중...');
                   await new Promise(resolve => setTimeout(resolve, 2000));
-                  success('백업이 성공적으로 생성되었습니다.');
+                  success('backup', '백업이 성공적으로 생성되었습니다.');
                 } catch (err) {
-                  error('백업 생성 실패');
+                  error('backup', '백업 생성 실패');
                 }
               }}
               className='px-4 py-3 bg-gray-500/20 text-gray-300 rounded-lg font-medium hover:bg-gray-500/30 transition-colors text-sm border border-gray-500/30'

@@ -134,7 +134,7 @@ describe('🌐 GCP 실제 데이터 서비스 테스트', () => {
       ok: true,
       json: async () => ({
         success: true,
-        data: [],
+        data: [] as any[],
         summary: {
           totalServers: 0,
           healthyServers: 0,

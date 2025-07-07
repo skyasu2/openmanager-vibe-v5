@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { HybridMetricsBridge } from '@/services/ai/HybridMetricsBridge';
+import { NextRequest, NextResponse } from 'next/server';
 
 // 하이브리드 메트릭 브리지 인스턴스
 let hybridBridge: HybridMetricsBridge | null = null;
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     // 자연어 쿼리 처리
     if (body.type === 'natural_language_query') {
       const { query, context } = body;
-      
+
       if (!query) {
         return NextResponse.json(
           { success: false, error: '쿼리가 필요합니다' },
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
         },
         intent: {
           type: 'status' as const,
-          entities: [],
+          entities: [] as string[],
           confidence: 0.8
         }
       };
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     // 히스토리컬 분석
     if (body.type === 'historical_analysis') {
       const { timeRange } = body;
-      
+
       if (!timeRange || !timeRange.start || !timeRange.end) {
         return NextResponse.json(
           { success: false, error: '시간 범위가 필요합니다' },

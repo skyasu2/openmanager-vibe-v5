@@ -17,7 +17,7 @@ const getEncryptionKey = (): string => {
   // 2순위: 프로덕션에서는 에러 (런타임에만)
   if (process.env.NODE_ENV === 'production') {
     // 빌드 타임 vs 런타임 구분
-    if (typeof window === 'undefined' && !global.vercelBuildTime) {
+    if (typeof window === 'undefined' && !(global as any).vercelBuildTime) {
       // 서버 런타임에서만 에러 발생
       throw new Error('🚨 프로덕션에서는 ENCRYPTION_KEY 환경변수가 필수입니다');
     } else {

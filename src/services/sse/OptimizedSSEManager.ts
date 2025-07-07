@@ -263,13 +263,15 @@ export class OptimizedSSEManager {
             console.log(`✅ SSE 연결 열림: ${connection.channel}`);
         };
 
-        const onMessage = (event: MessageEvent) => {
+        const onMessage: EventListener = (event: Event) => {
             connection.lastActivity = new Date();
             try {
-                const data = JSON.parse(event.data);
+                const messageEvent = event as MessageEvent;
+                const data = JSON.parse(messageEvent.data);
                 this.emit('message', data);
             } catch (error) {
-                this.emit('message', event.data);
+                const messageEvent = event as MessageEvent;
+                this.emit('message', messageEvent.data);
             }
         };
 
@@ -283,7 +285,7 @@ export class OptimizedSSEManager {
 
         // 직접 프로퍼티에 할당 (Mock에서 더 잘 작동)
         connection.onopen = onOpen;
-        connection.onmessage = onMessage;
+        connection.onmessage = onMessage as any;
         connection.onerror = onError;
 
         // addEventListener도 호출 (표준 방식)

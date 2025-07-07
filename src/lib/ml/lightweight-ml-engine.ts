@@ -13,10 +13,10 @@
  */
 
 import { SimpleLinearRegression } from 'ml-regression-simple-linear';
-import KMeans from 'ml-kmeans';
-import { PCA } from 'ml-pca';
-import * as ss from 'simple-statistics';
-import _ from 'lodash';
+const KMeans = require('ml-kmeans') as any;
+const PCA = require('ml-pca').PCA as any;
+const ss = require('simple-statistics') as any;
+const _ = require('lodash') as any;
 
 export interface MetricPoint {
   timestamp: string; // ISO

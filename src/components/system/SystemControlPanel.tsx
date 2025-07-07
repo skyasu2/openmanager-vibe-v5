@@ -12,21 +12,15 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Activity,
   AlertCircle,
-  CheckCircle,
   ChevronDown,
   ChevronUp,
-  Clock,
-  Cpu,
-  HardDrive,
   Play,
   RefreshCw,
   Shield,
-  Square,
-  Zap,
+  Square
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 interface SystemStatus {
   isRunning: boolean;
@@ -78,7 +72,7 @@ export function SystemControlPanel() {
 
   // 🚫 주기적 API 호출 제거 - Vercel 플랫폼 모니터링 사용
   // 기존 fetchSystemStatus 함수의 타이머 기반 호출 제거
-  const fetchSystemStatus = useCallback(async () => {
+  const fetchSystemStatus = useCallback(async (): Promise<null> => {
     // 🚫 주기적 호출 제거됨
     // 사용자가 수동으로 새로고침하거나 특정 액션 시에만 호출
     // Vercel 대시보드에서 실시간 상태 확인 권장
@@ -305,8 +299,8 @@ export function SystemControlPanel() {
                   <div
                     key={index}
                     className={`p-3 rounded-lg text-sm ${alert.type === 'success'
-                        ? 'bg-green-50 text-green-800 border border-green-200'
-                        : 'bg-red-50 text-red-800 border border-red-200'
+                      ? 'bg-green-50 text-green-800 border border-green-200'
+                      : 'bg-red-50 text-red-800 border border-red-200'
                       }`}
                   >
                     <div className="flex items-center justify-between">

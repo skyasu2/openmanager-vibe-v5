@@ -102,7 +102,7 @@ export class SimulationEngine {
         response_time: Math.random() * 200 + 50, // 50-250ms 응답시간
         uptime: Math.random() * 720 + 1, // 1-721 시간 가동시간
         last_updated: metric.timestamp,
-        alerts: [],
+        alerts: [] as any[],
         // Additional compatibility fields
         network_usage: metric.network,
         timestamp: metric.timestamp,

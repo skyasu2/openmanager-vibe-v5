@@ -129,11 +129,11 @@ export class AILogger {
     if (typeof window !== 'undefined') {
       // Mock Winston logger for client-side
       this.winstonLogger = {
-        error: () => {},
-        warn: () => {},
-        info: () => {},
-        debug: () => {},
-        verbose: () => {},
+        error: () => { },
+        warn: () => { },
+        info: () => { },
+        debug: () => { },
+        verbose: () => { },
         level: 'info',
       } as any;
       return;
@@ -252,12 +252,12 @@ export class AILogger {
     if (isNextJS) {
       // Mock Pino logger - 모든 로깅 메서드를 빈 함수로 처리
       this.pinoLogger = {
-        error: () => {},
-        warn: () => {},
-        info: () => {},
-        debug: () => {},
-        trace: () => {},
-        fatal: () => {},
+        error: () => { },
+        warn: () => { },
+        info: () => { },
+        debug: () => { },
+        trace: () => { },
+        fatal: () => { },
         child: () => this.pinoLogger,
         level: 'info',
       };
@@ -347,7 +347,7 @@ export class AILogger {
 
       // Winston 로깅 (레벨 매핑)
       const winstonLevel = this.mapToWinstonLevel(logEntry.level);
-      this.winstonLogger[winstonLevel](logEntry.message, logEntry);
+      (this.winstonLogger as any)[winstonLevel](logEntry.message, logEntry);
 
       // Pino 로깅 (더 빠른 성능) - 안전장치 추가
       try {

@@ -7,18 +7,18 @@
  * - 애플리케이션 라이프사이클 관리
  */
 
+import { ConfigLoader } from '@/config';
+import { IConfigLoader, IErrorHandler, ILogger } from '@/interfaces/services';
+import { LoggingService } from '@/services/LoggingService';
+import { EnhancedCacheService } from '@/services/cacheService';
+import { ErrorHandlingService } from '@/services/error-handling/ErrorHandlingService';
+import { TestFramework } from '@/testing/TestFramework';
 import {
   container,
-  SERVICE_TOKENS,
-  registerService,
   registerFactory,
+  registerService,
+  SERVICE_TOKENS,
 } from './di-container';
-import { LoggingService } from '@/services/LoggingService';
-import { ErrorHandlingService } from '@/services/error-handling/ErrorHandlingService';
-import { EnhancedCacheService } from '@/services/cacheService';
-import { TestFramework } from '@/testing/TestFramework';
-import { ConfigLoader } from '@/config';
-import { ILogger, IErrorHandler, IConfigLoader } from '@/interfaces/services';
 
 export class ServiceRegistry {
   private static instance: ServiceRegistry;
@@ -219,7 +219,7 @@ export class ServiceRegistry {
       SERVICE_TOKENS.METRICS_COLLECTOR,
       () => {
         return {
-          collect: async () => ({
+          collect: async (): Promise<any> => ({
             server_id: 'temp',
             timestamp: new Date(),
             cpu_usage: 0,
@@ -232,7 +232,7 @@ export class ServiceRegistry {
             status: 'healthy' as const,
             alerts: [],
           }),
-          collectBatch: async () => [],
+          collectBatch: async (): Promise<any[]> => [],
           startCollection: () => { },
           stopCollection: () => { },
           isCollecting: () => false,
@@ -247,7 +247,7 @@ export class ServiceRegistry {
       () => {
         return {
           sendMetrics: async () => { },
-          getMetrics: async () => [],
+          getMetrics: async (): Promise<any[]> => [],
           isConnected: () => false,
           connect: async () => { },
           disconnect: () => { },

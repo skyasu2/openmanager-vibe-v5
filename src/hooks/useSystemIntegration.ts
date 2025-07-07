@@ -304,7 +304,7 @@ export const useSystemIntegration = () => {
         data: {
           isActive: false,
           stats: {
-            lastCleanup: null,
+            lastCleanup: null as Date | null,
             interval: 300000,
             totalPolicies: 0,
             totalCleaned: 0,

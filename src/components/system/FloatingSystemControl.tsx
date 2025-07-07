@@ -33,7 +33,7 @@ export default function FloatingSystemControl({
   onStartSystem,
   onStopSystem,
   onResumeSystem,
-}: FloatingSystemControlProps) {
+}: FloatingSystemControlProps): null {
   // 🚫 Vercel 플랫폼 자체 모니터링 사용으로 인한 제거
   // 
   // 대안:

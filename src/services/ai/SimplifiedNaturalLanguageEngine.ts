@@ -345,17 +345,17 @@ export class SimplifiedNaturalLanguageEngine {
   ): Promise<FastTrackResult> {
     // 병렬 실행: MCP + RAG
     const promises = [
-      this.tryMCP(query).catch(() => null),
-      this.tryRAG(query).catch(() => null),
+      this.tryMCP(query).catch((): null => null),
+      this.tryRAG(query).catch((): null => null),
     ];
 
     const results = await Promise.allSettled(promises);
     const successResults = results
-      .filter(r => r.status === 'fulfilled' && r.value)
-      .map(r => (r as PromiseFulfilledResult<any>).value);
+      .filter((r: any) => r.status === 'fulfilled' && r.value)
+      .map((r: any) => (r as PromiseFulfilledResult<any>).value);
 
     if (successResults.length > 0) {
-      const best = successResults.reduce((a, b) =>
+      const best = successResults.reduce((a: any, b: any) =>
         (a.confidence || 0) > (b.confidence || 0) ? a : b
       );
 
@@ -399,19 +399,19 @@ export class SimplifiedNaturalLanguageEngine {
   ): Promise<FastTrackResult> {
     // 3개 엔진 병렬 실행
     const promises = [
-      this.tryGoogle(query).catch(() => null),
-      this.tryMCP(query).catch(() => null),
-      this.tryRAG(query).catch(() => null),
+      this.tryGoogle(query).catch((): null => null),
+      this.tryMCP(query).catch((): null => null),
+      this.tryRAG(query).catch((): null => null),
     ];
 
     const results = await Promise.allSettled(promises);
     const successResults = results
-      .filter(r => r.status === 'fulfilled' && r.value)
-      .map(r => (r as PromiseFulfilledResult<any>).value);
+      .filter((r: any) => r.status === 'fulfilled' && r.value)
+      .map((r: any) => (r as PromiseFulfilledResult<any>).value);
 
     if (successResults.length > 0) {
       // Google AI 우선, 그 다음 신뢰도 순
-      const best = successResults.reduce((a, b) => {
+      const best = successResults.reduce((a: any, b: any) => {
         if (a.engine === 'google') return a;
         if (b.engine === 'google') return b;
         return (a.confidence || 0) > (b.confidence || 0) ? a : b;

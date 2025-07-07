@@ -451,7 +451,7 @@ const DashboardError: React.FC<{
                             <div className="space-y-2">
                                 <p className="text-sm font-medium text-gray-700">권장 조치:</p>
                                 <ul className="text-sm text-gray-600 space-y-1">
-                                    {recommendations.map((rec, index) => (
+                                    {recommendations.map((rec: string, index: number) => (
                                         <li key={index} className="flex items-start gap-2">
                                             <span className="text-blue-500">•</span>
                                             <span>{rec}</span>

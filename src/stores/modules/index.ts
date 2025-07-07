@@ -4,14 +4,14 @@
  */
 
 // 개별 스토어 import
-import { useSystemStore, type SystemState } from './system.store';
+import { useAIStore, type AIState } from './ai.store';
 import { useAuthStore, type AuthState } from './auth.store';
-import { useAIStore, type AIState, type AIAgentState } from './ai.store';
+import { useSystemStore, type SystemState } from './system.store';
 
 // 개별 스토어 export
-export { useSystemStore, type SystemState } from './system.store';
+export { useAIStore, type AIAgentState, type AIState } from './ai.store';
 export { useAuthStore, type AuthState } from './auth.store';
-export { useAIStore, type AIState, type AIAgentState } from './ai.store';
+export { useSystemStore, type SystemState } from './system.store';
 
 // 통합 상태 타입
 export interface GlobalState {
@@ -25,7 +25,7 @@ export const useGlobalState = () => {
   const system = useSystemStore();
   const auth = useAuthStore();
   const ai = useAIStore();
-  
+
   return {
     system,
     auth,
@@ -37,15 +37,15 @@ export const useGlobalState = () => {
 export const useSystemAuth = () => {
   const { isStarted, start, stop, getRemainingTime } = useSystemStore();
   const { isAuthenticated, authenticate, logout } = useAuthStore();
-  
+
   return {
     // 시스템 상태
     isSystemStarted: isStarted,
     systemRemainingTime: getRemainingTime(),
-    
+
     // 인증 상태
     isAuthenticated,
-    
+
     // 통합 액션
     startSystem: () => {
       if (isAuthenticated) {
@@ -54,7 +54,7 @@ export const useSystemAuth = () => {
         console.warn('⚠️ 인증이 필요합니다.');
       }
     },
-    
+
     stopSystem: stop,
     authenticate,
     logout: () => {
@@ -70,13 +70,13 @@ export const useAISystem = () => {
   const { isStarted } = useSystemStore();
   const { isAuthenticated } = useAuthStore();
   const { isEnabled, enable, disable, state, metrics } = useAIStore();
-  
+
   return {
     // AI 상태
     isAIEnabled: isEnabled,
     aiState: state,
     aiMetrics: metrics,
-    
+
     // 조건부 AI 제어
     enableAI: () => {
       if (isStarted && isAuthenticated) {
@@ -85,9 +85,9 @@ export const useAISystem = () => {
         console.warn('⚠️ 시스템 시작 및 인증이 필요합니다.');
       }
     },
-    
+
     disableAI: disable,
-    
+
     // 상태 체크
     canUseAI: isStarted && isAuthenticated,
   };
@@ -100,10 +100,10 @@ export const resetAllStores = () => {
     localStorage.removeItem('system-store');
     localStorage.removeItem('auth-store');
     localStorage.removeItem('ai-store');
-    
+
     // 스토어 재설정
     window.location.reload();
-    
+
     console.log('🔄 모든 스토어 초기화 완료');
   }
 };
@@ -114,13 +114,14 @@ export const debugStores = () => {
     const system = useSystemStore.getState();
     const auth = useAuthStore.getState();
     const ai = useAIStore.getState();
-    
+
     console.group('🔍 Store Debug Info');
     console.log('System:', system);
     console.log('Auth:', auth);
     console.log('AI:', ai);
     console.groupEnd();
-    
+
     return { system, auth, ai };
   }
+  return undefined;
 }; 

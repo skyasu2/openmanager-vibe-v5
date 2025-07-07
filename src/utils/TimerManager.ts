@@ -64,7 +64,7 @@ class ServerlessTimerManager {
     return {
       totalTimers: 0,
       activeTimers: 0,
-      timers: [],
+      timers: [] as any[],
       message: 'Vercel 서버리스 환경에서는 타이머 기능이 비활성화됩니다.'
     };
   }

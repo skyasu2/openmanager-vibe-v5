@@ -248,7 +248,7 @@ export class GCPMetricsCollector {
         console.log(`🌐 ${servers.length}개 서버의 GCP 메트릭 배치 수집 시작...`);
 
         const updatePromises = servers.map(server =>
-            this.updateServerMetrics(server).catch(error => {
+            this.updateServerMetrics(server).catch((error: any): null => {
                 console.error(`서버 ${server.id} 메트릭 업데이트 실패:`, error);
                 return null;
             })

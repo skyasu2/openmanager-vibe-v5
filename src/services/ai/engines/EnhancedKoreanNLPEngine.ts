@@ -348,7 +348,7 @@ export class EnhancedKoreanNLPEngine {
         Object.keys(category).some(
           key =>
             key.includes(word) ||
-            category[key].some(synonym => synonym.includes(word))
+            (category as any)[key].some((synonym: string) => synonym.includes(word))
         )
       )
     );
@@ -698,8 +698,8 @@ export class EnhancedKoreanNLPEngine {
     const analysisDepth = Math.min(
       1,
       semanticAnalysis.subTopics.length * 0.2 +
-        domainAnalysis.entities.length * 0.1 +
-        semanticAnalysis.technicalComplexity * 0.5
+      domainAnalysis.entities.length * 0.1 +
+      semanticAnalysis.technicalComplexity * 0.5
     );
 
     const contextRelevance = Math.min(
@@ -707,8 +707,8 @@ export class EnhancedKoreanNLPEngine {
       domainAnalysis.entities.filter(
         e => e.type === 'server' || e.type === 'metric'
       ).length *
-        0.3 +
-        (semanticAnalysis.mainTopic !== 'General Query' ? 0.7 : 0.3)
+      0.3 +
+      (semanticAnalysis.mainTopic !== 'General Query' ? 0.7 : 0.3)
     );
 
     return {

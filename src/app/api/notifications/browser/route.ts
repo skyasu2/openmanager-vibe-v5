@@ -138,7 +138,7 @@ async function handleGetHistory(
 
   // 서버 사이드에서는 빈 히스토리 반환 (클라이언트에서 관리)
   const history = {
-    notifications: [],
+    notifications: [] as any[],
     total: 0,
     filters: {
       limit,

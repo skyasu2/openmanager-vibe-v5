@@ -353,7 +353,7 @@ export class LightweightMLEngine {
 
         while (!converged && iterations < this.config.maxIterations) {
             // 각 점을 가장 가까운 클러스터에 할당
-            const clusters: number[][] = Array(k).fill(null).map(() => []);
+            const clusters: number[][] = Array(k).fill(null).map((): number[] => []);
 
             features.forEach((feature, index) => {
                 let minDistance = Infinity;

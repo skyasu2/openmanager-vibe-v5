@@ -141,7 +141,7 @@ describe('환경 감지 로직', () => {
     it('필수 환경변수 누락 시 검증 실패', () => {
       const testEnv = {
         ...originalEnv,
-        NODE_ENV: undefined, // delete 대신 undefined 할당
+        NODE_ENV: undefined as any, // delete 대신 undefined 할당
       };
 
       (process as any).env = testEnv;

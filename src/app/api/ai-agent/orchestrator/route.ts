@@ -198,7 +198,7 @@ class SimpleErrorHandler {
         requestId: request.requestId || 'unknown',
         processingTime,
       },
-      data: null,
+      data: null as any,
       metadata: {
         strategy: 'error_fallback',
         dataSource: 'error_handler',

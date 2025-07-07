@@ -57,7 +57,7 @@ export function useSystemControl(): UseSystemControlReturn {
   // 누락된 속성들을 기본값으로 설정
   const aiAgent = { isEnabled: false };
   const isPaused = false;
-  const pauseReason = undefined;
+  const pauseReason: string | undefined = undefined;
   const shouldAutoStop = false;
   const userInitiated = false;
 

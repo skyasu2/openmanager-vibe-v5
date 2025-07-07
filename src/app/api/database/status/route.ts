@@ -62,7 +62,7 @@ function getDatabaseStatus() {
     overall: {
       status: 'healthy',
       score: 94,
-      issues: [],
+      issues: [] as string[],
       lastHealthCheck: new Date().toISOString(),
     },
   };

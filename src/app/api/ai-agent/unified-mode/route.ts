@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         error: '상태 조회 실패',
-        details: error.message,
+        details: (error as Error).message,
       },
       { status: 500 }
     );
@@ -281,7 +281,7 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         error: '통합 AI 처리 실패',
-        details: error.message,
+        details: (error as Error).message,
         timestamp: new Date().toISOString(),
       },
       { status: 500 }

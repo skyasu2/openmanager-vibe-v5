@@ -272,7 +272,7 @@ class AutoEnvRecoverySystem {
         await this.envBackupManager.emergencyRestore('critical');
 
       if (emergencyResult.success) {
-        const recoveredFromMissing = emergencyResult.restored.filter(key =>
+        const recoveredFromMissing = emergencyResult.restored.filter((key: string) =>
           missingVars.includes(key.replace(' (기본값)', ''))
         );
 

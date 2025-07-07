@@ -106,7 +106,7 @@ const fallbackServers: Server[] = Array.from({ length: 15 }, (_, i) => ({
     network_speed: '1Gbps',
   },
   lastUpdate: new Date(),
-  services: [],
+  services: [] as any[],
   networkStatus: 'healthy',
   systemInfo: {
     os: 'Ubuntu 22.04 LTS',
@@ -233,7 +233,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
             network_speed: '1Gbps',
           },
           lastUpdate: server.lastUpdate || new Date(),
-          services: server.services || [],
+          services: server.services || [] as any[],
           networkStatus:
             server.status === 'healthy'
               ? 'healthy'

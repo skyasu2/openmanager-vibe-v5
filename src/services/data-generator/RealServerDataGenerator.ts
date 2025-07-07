@@ -126,7 +126,7 @@ export class GCPRealServerDataGenerator {
                 response_time: 0,
                 uptime: typeof server.uptime === 'number' ? server.uptime : 0,
                 last_updated: server.lastCheck,
-                alerts: []
+                alerts: [] as any[]
             }));
         } catch (error) {
             systemLogger.error('GCP 메트릭스 조회 실패:', error);

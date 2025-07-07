@@ -130,7 +130,7 @@ export class MCPAIRouter {
           needsNLP: false,
           needsAnomalyDetection: false,
           needsComplexML: false,
-          entities: [],
+          entities: [] as any[],
           urgency: 'medium',
         }),
       };

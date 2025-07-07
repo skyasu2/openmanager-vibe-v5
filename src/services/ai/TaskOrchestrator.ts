@@ -174,7 +174,7 @@ export class TaskOrchestrator {
 
       // 간단한 통계 분석 (lightweight anomaly detector replaced)
       const anomalies = timeSeriesData.filter(
-        (value, index) =>
+        (value: any, index: number) =>
           Math.abs(value - timeSeriesData[Math.max(0, index - 1)]) > 20
       );
       const analysis = {
@@ -227,7 +227,7 @@ export class TaskOrchestrator {
 
       const data = task.input?.data || [1, 2, 3, 2, 1, 10, 2, 1]; // 기본 데이터
       const result = {
-        anomalies: data.filter(val => val > 5),
+        anomalies: data.filter((val: any) => val > 5),
         confidence: 0.8,
         recommendations: ['Check high values'],
       };

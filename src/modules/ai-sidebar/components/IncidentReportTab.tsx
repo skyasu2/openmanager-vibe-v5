@@ -9,27 +9,26 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
-  FileText,
-  Download,
+  AlertCircle,
   AlertTriangle,
+  CheckCircle,
   Clock,
+  Download,
+  FileText,
+  RefreshCw,
   Server,
   TrendingUp,
-  RefreshCw,
-  CheckCircle,
   XCircle,
-  AlertCircle,
 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import BasicTyping from '../../../components/ui/BasicTyping';
 import {
   incidentReportService,
   type IncidentReport,
   type ServerStateComparison,
 } from '../../../services/ai/IncidentReportService';
 import type { ServerMetrics } from '../../../types/common';
-import BasicTyping from '../../../components/ui/BasicTyping';
 
 interface IncidentReportTabProps {
   className?: string;
@@ -166,7 +165,7 @@ export const IncidentReportTab: React.FC<IncidentReportTabProps> = ({
       response_time: Math.random() * 500 + 100,
       active_connections: Math.floor(Math.random() * 100),
       status: 'healthy' as const,
-      alerts: [],
+      alerts: [] as any[],
       timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5분 전
     }));
   };

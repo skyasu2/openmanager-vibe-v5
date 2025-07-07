@@ -165,7 +165,7 @@ export class SmartRoutingEngine {
       const result = {
         analysis: 'lightweight_analysis',
         confidence: 0.6,
-        results: [],
+        results: [] as any[],
         metrics_processed: Object.keys(request.metrics).length,
       };
       const processingTime = Date.now() - startTime;

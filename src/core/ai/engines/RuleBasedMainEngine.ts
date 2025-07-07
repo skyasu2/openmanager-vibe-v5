@@ -65,7 +65,7 @@ class QueryAnalyzer {
         return {
             ...bestMatch,
             entities: {},
-            technicalTerms: [],
+            technicalTerms: [] as string[],
             processingTime: Date.now()
         };
     }
@@ -464,7 +464,7 @@ export class RuleBasedMainEngine implements IRuleBasedMainEngine {
      * 🖥️ 서버 모니터링 특화 응답 생성
      */
     private generateServerMonitoringResponse(intent: string, query: string): string {
-        const serverResponses = {
+        const serverResponses: Record<string, string> = {
             [INTENT_CATEGORIES.SERVER_STATUS]: `서버 상태를 확인하고 있습니다. 현재 시스템 상태를 분석 중입니다.`,
             [INTENT_CATEGORIES.PERFORMANCE_ANALYSIS]: `성능 분석을 수행합니다. CPU, 메모리, 디스크 사용률을 확인하겠습니다.`,
             [INTENT_CATEGORIES.LOG_ANALYSIS]: `로그 분석을 시작합니다. 에러 패턴과 이상 징후를 찾고 있습니다.`,

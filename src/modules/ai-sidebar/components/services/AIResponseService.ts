@@ -160,7 +160,7 @@ export class AIResponseService {
     // ✅ API 호출로 변경
     const monitoringData = await fetch('/api/system/status')
       .then(res => res.json())
-      .catch(() => []);
+      .catch((): any[] => []);
 
     this.logEngine.addLog(sessionId, {
       level: 'SUCCESS',
@@ -296,7 +296,7 @@ export class AIResponseService {
     // ✅ API 호출로 변경
     const incidentData = await fetch('/api/system/incidents')
       .then(res => res.json())
-      .catch(() => []);
+      .catch((): any[] => []);
 
     this.logEngine.addLog(sessionId, {
       level: 'INFO',

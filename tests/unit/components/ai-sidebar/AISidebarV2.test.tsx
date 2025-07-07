@@ -26,17 +26,17 @@ vi.mock('@/stores/useAISidebarStore', () => ({
         setOpen: vi.fn(),
     }),
     useAIChat: () => ({
-        messages: [],
+        messages: [] as any[],
         sendMessage: vi.fn(),
         clearMessages: vi.fn(),
         isLoading: false,
-        error: null,
+        error: null as any,
         sessionId: 'test-session',
     }),
     useAIThinking: () => ({
         isThinking: false,
         currentQuestion: '',
-        logs: [],
+        logs: [] as any[],
         setThinking: vi.fn(),
         setCurrentQuestion: vi.fn(),
         addLog: vi.fn(),
@@ -46,7 +46,7 @@ vi.mock('@/stores/useAISidebarStore', () => ({
 
 vi.mock('@/hooks/useRealTimeAILogs', () => ({
     useRealTimeAILogs: () => ({
-        logs: [],
+        logs: [] as any[],
         isConnected: false,
         isProcessing: false,
         currentEngine: 'LOCAL',

@@ -11,7 +11,7 @@
  * - 캐싱 및 오류 처리
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 // ⚠️ 관리자 권한 체크용 import
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
@@ -20,10 +20,10 @@ interface UseRealAIOptions {
   enablePython?: boolean;
   enableMCP?: boolean;
   aiModel?:
-    | 'gpt-3.5-turbo'
-    | 'claude-3-haiku'
-    | 'gemini-1.5-flash'
-    | 'local-analyzer';
+  | 'gpt-3.5-turbo'
+  | 'claude-3-haiku'
+  | 'gemini-1.5-flash'
+  | 'local-analyzer';
   realTime?: boolean;
   autoRefresh?: boolean;
   refreshInterval?: number;
@@ -34,11 +34,11 @@ interface UseRealAIOptions {
 interface AIAnalysisRequest {
   query: string;
   type?:
-    | 'analysis'
-    | 'monitoring'
-    | 'prediction'
-    | 'optimization'
-    | 'troubleshooting';
+  | 'analysis'
+  | 'monitoring'
+  | 'prediction'
+  | 'optimization'
+  | 'troubleshooting';
   includeMetrics?: boolean;
   includeLogs?: boolean;
 }
@@ -279,7 +279,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
     }
   }, []);
 
-  const getPerformanceInfo = useCallback(() => {
+  const getPerformanceInfo = useCallback((): any => {
     if (!lastResponse) return null;
     return {
       totalTime: lastResponse.performance.totalTime,
@@ -311,13 +311,13 @@ export function useRealAI(options: UseRealAIOptions = {}) {
       analyze: () => Promise.resolve(null),
       analyzeMetrics: () => Promise.resolve(null),
       checkSystemHealth: () => Promise.resolve(null),
-      cancelAnalysis: () => {},
-      reset: () => {},
-      getPerformanceInfo: () => null,
-      getSystemSummary: () => null,
+      cancelAnalysis: () => { },
+      reset: () => { },
+      getPerformanceInfo: (): null => null,
+      getSystemSummary: (): null => null,
       isAnalyzing: false,
-      lastResponse: null,
-      systemHealth: null,
+      lastResponse: null as any,
+      systemHealth: null as any,
       isHealthChecking: false,
       error: '관리자 권한이 필요합니다.',
     };

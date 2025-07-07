@@ -44,7 +44,7 @@ process.env.DISABLE_HEALTH_CHECK = 'true';
 beforeAll(async () => {
   // React act 환경 설정
   if (typeof globalThis !== 'undefined') {
-    globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+    (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
   }
 
   // 콘솔 경고 억제 (테스트 환경)
@@ -90,7 +90,7 @@ afterEach(() => {
 afterAll(async () => {
   // React act 환경 정리
   if (typeof globalThis !== 'undefined') {
-    globalThis.IS_REACT_ACT_ENVIRONMENT = false;
+    (globalThis as any).IS_REACT_ACT_ENVIRONMENT = false;
   }
 });
 

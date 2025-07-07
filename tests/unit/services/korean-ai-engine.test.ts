@@ -48,8 +48,8 @@ describe('🇰🇷 KoreanAIEngine 통합 테스트', () => {
   beforeEach(() => {
     koreanAI = new KoreanAIEngine();
     // console.log 출력 억제
-    vi.spyOn(console, 'log').mockImplementation(() => {});
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => { });
+    vi.spyOn(console, 'error').mockImplementation(() => { });
   });
 
   afterEach(() => {
@@ -329,7 +329,7 @@ describe('🇰🇷 KoreanAIEngine 통합 테스트', () => {
 
       // 실제 명령어 가이드가 포함되어 있는지 확인
       const hasCommandGuide = result.additionalInfo.relatedCommands.some(
-        cmd =>
+        (cmd: any) =>
           cmd.includes('`') || cmd.includes('명령어') || cmd.includes('확인:')
       );
       expect(hasCommandGuide).toBe(true);

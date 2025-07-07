@@ -154,7 +154,7 @@ export class EdgeHTTPClient {
     url: string,
     options: RequestInit = {},
     config = EdgeHTTPClient.baseConfig
-  ) {
+  ): Promise<Response> {
     const { timeout, retries, retryDelay } = config;
 
     for (let attempt = 1; attempt <= retries; attempt++) {
@@ -182,6 +182,8 @@ export class EdgeHTTPClient {
         await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
       }
     }
+    // TypeScript를 위한 명시적 throw (실제로는 도달하지 않음)
+    throw new Error('모든 재시도 시도가 실패했습니다.');
   }
 
   static async get(url: string, config?: typeof EdgeHTTPClient.baseConfig) {

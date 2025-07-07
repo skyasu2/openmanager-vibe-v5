@@ -8,9 +8,9 @@
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
 import {
   DocumentContext,
+  DocumentIndexOptions,
   DocumentSearchOptions,
   VectorSearchResult,
-  DocumentIndexOptions,
 } from '../types/HybridTypes';
 
 export class DocumentProcessor {
@@ -179,7 +179,7 @@ export class DocumentProcessor {
     try {
       const paths = await (this.mcpClient as any).listResources();
       return paths.filter(
-        path =>
+        (path: string) =>
           path.endsWith('.md') ||
           path.endsWith('.ts') ||
           path.endsWith('.tsx') ||

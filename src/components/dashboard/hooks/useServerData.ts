@@ -131,7 +131,14 @@ export const useServerData = (): UseServerDataReturn => {
 
   // 서버 우선순위 정렬 (심각→경고→정상)
   const sortServersByPriority = useCallback((servers: Server[]): Server[] => {
-    const priorityOrder = { offline: 0, warning: 1, online: 2 };
+    const priorityOrder: Record<string, number> = {
+      offline: 0,
+      warning: 1,
+      online: 2,
+      healthy: 2,
+      critical: 0,
+      unhealthy: 0
+    };
 
     return [...servers].sort((a, b) => {
       const priorityA = priorityOrder[a.status] ?? 1;
@@ -157,7 +164,13 @@ export const useServerData = (): UseServerDataReturn => {
     const stats = servers.reduce(
       (acc, server) => {
         acc.total++;
-        acc[server.status]++;
+        // 안전한 인덱스 접근
+        if (server.status in acc) {
+          (acc as any)[server.status]++;
+        } else {
+          // 미지원 상태는 warning으로 분류
+          acc.warning++;
+        }
         return acc;
       },
       { total: 0, online: 0, warning: 0, offline: 0 }

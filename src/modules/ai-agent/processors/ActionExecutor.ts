@@ -21,7 +21,7 @@ export interface Action {
   estimatedDuration?: number; // 초 단위
 }
 
-export type ActionType = 
+export type ActionType =
   | 'server_restart'
   | 'service_restart'
   | 'log_download'
@@ -109,9 +109,9 @@ export class ActionExecutor {
 
       // 액션 실행 시뮬레이션
       const result = await this.simulateActionExecution(action, parameters);
-      
+
       const executionTime = Date.now() - startTime;
-      
+
       const actionResult: ActionResult = {
         actionId,
         success: true,
@@ -128,7 +128,7 @@ export class ActionExecutor {
 
     } catch (error) {
       const executionTime = Date.now() - startTime;
-      
+
       const actionResult: ActionResult = {
         actionId,
         success: false,
@@ -354,7 +354,7 @@ export class ActionExecutor {
           estimatedDuration: 10
         });
         break;
-      
+
       case 'actionable':
         actions.push({
           id: 'action_plan',
@@ -398,7 +398,7 @@ export class ActionExecutor {
    */
   private sortActionsByPriority(actions: Action[]): Action[] {
     const priorityOrder = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
-    
+
     return actions.sort((a, b) => {
       return priorityOrder[b.priority] - priorityOrder[a.priority];
     });
@@ -409,7 +409,7 @@ export class ActionExecutor {
    */
   private findActionByName(actionName: string): Action | null {
     for (const actions of this.actionTemplates.values()) {
-      const found = actions.find(action => action.name === actionName);
+      const found = actions.find((action: any) => action.name === actionName);
       if (found) return found;
     }
     return null;

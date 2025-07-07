@@ -240,7 +240,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           message: `${serverIds.length}개 서버 헬스체크가 시작되었습니다`,
-          results: serverIds.map(id => ({
+          results: serverIds.map((id: string) => ({
             serverId: id,
             status: ['healthy', 'warning', 'critical'][
               Math.floor(Math.random() * 3)

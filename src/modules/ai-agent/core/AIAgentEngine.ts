@@ -234,16 +234,16 @@ export class AIAgentEngine {
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 🖥️ 서버 데이터: ${Array.isArray(request.serverData) ? request.serverData.length : 0}개 서버 분석
 🔄 MCP 프로토콜: 활성화
-📈 분석 결과: ${mcpResponse?.intent?.intent || '일반 분석'}
-🎯 응답 액션: ${mcpResponse?.actions?.length || 0}개
+📈 분석 결과: ${(mcpResponse as any)?.intent?.intent || '일반 분석'}
+🎯 응답 액션: ${(mcpResponse as any)?.actions?.length || 0}개
 ⚡ 처리 상태: 성공
-💡 권장사항: ${mcpResponse?.actions?.join(', ') || '없음'}`,
+💡 권장사항: ${(mcpResponse as any)?.actions?.join(', ') || '없음'}`,
           'data_processing',
           {
             serverCount: Array.isArray(request.serverData)
               ? request.serverData.length
               : 0,
-            mcpIntent: mcpResponse?.intent?.intent,
+            mcpIntent: (mcpResponse as any)?.intent?.intent,
           }
         );
       }

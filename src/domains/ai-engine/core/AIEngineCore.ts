@@ -7,15 +7,15 @@
  * - 스트리밍 응답 처리
  */
 
+import { generateId } from '@/lib/utils-functions';
 import { IAIEngineCore } from '../interfaces';
 import {
-  ConversationItem,
-  ThinkingStep,
-  SystemLogEntry,
-  StreamEvent,
   AIResponse,
+  ConversationItem,
+  StreamEvent,
+  SystemLogEntry,
+  ThinkingStep,
 } from '../types';
-import { generateId } from '@/lib/utils-functions';
 
 export class AIEngineCore implements IAIEngineCore {
   private readonly API_ENDPOINT = '/api/ai-agent';
@@ -229,7 +229,7 @@ export class AIEngineCore implements IAIEngineCore {
         id: generateId(6),
         title: '질문 분석 중...',
         content: '사용자의 질문을 분석하고 의도를 파악하고 있습니다.',
-        logs: [],
+        logs: [] as any[],
         progress: 0,
         completed: false,
         timestamp: Date.now(),
@@ -238,7 +238,7 @@ export class AIEngineCore implements IAIEngineCore {
         id: generateId(6),
         title: '관련 데이터 수집 중...',
         content: '질문과 관련된 시스템 데이터와 로그를 수집하고 있습니다.',
-        logs: [],
+        logs: [] as any[],
         progress: 0,
         completed: false,
         timestamp: Date.now(),
@@ -247,7 +247,7 @@ export class AIEngineCore implements IAIEngineCore {
         id: generateId(6),
         title: '패턴 분석 중...',
         content: '수집된 데이터에서 패턴과 이상 징후를 분석하고 있습니다.',
-        logs: [],
+        logs: [] as any[],
         progress: 0,
         completed: false,
         timestamp: Date.now(),
@@ -256,7 +256,7 @@ export class AIEngineCore implements IAIEngineCore {
         id: generateId(6),
         title: '답변 생성 중...',
         content: '분석 결과를 바탕으로 최적의 답변을 생성하고 있습니다.',
-        logs: [],
+        logs: [] as any[],
         progress: 0,
         completed: false,
         timestamp: Date.now(),
@@ -270,7 +270,7 @@ export class AIEngineCore implements IAIEngineCore {
         id: generateId(6),
         title: '장애 원인 추적 중...',
         content: '시스템 로그를 분석하여 장애의 근본 원인을 추적하고 있습니다.',
-        logs: [],
+        logs: [] as any[],
         progress: 0,
         completed: false,
         timestamp: Date.now(),

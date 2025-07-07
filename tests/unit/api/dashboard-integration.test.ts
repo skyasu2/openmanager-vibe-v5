@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 // 대시보드 통합 로직 테스트
 describe('Dashboard Integration Logic', () => {
@@ -141,7 +141,7 @@ describe('Dashboard Integration Logic', () => {
 
       const currentData = {
         metrics: { cpu: 30, memory: 40, disk: 50 },
-        history: [],
+        history: [] as any[],
       };
 
       const newMetrics = { cpu: 35, memory: 45, disk: 55 };
@@ -276,7 +276,7 @@ describe('Dashboard Integration Logic', () => {
           '7d': 7 * 24 * 60 * 60 * 1000,
         };
 
-        const rangeMs = timeRanges[timeRange] || timeRanges['24h'];
+        const rangeMs = (timeRanges as any)[timeRange] || timeRanges['24h'];
         const filteredData = processedData.filter(
           item => now - item.timestamp <= rangeMs
         );
@@ -307,7 +307,7 @@ describe('Dashboard Integration Logic', () => {
           case 'pie':
             const categories = {};
             filteredData.forEach(item => {
-              categories[item.category] = (categories[item.category] || 0) + 1;
+              (categories as any)[item.category] = ((categories as any)[item.category] || 0) + 1;
             });
 
             return {
@@ -336,16 +336,16 @@ describe('Dashboard Integration Logic', () => {
 
         data.forEach(item => {
           const interval = Math.floor(item.timestamp / intervalMs) * intervalMs;
-          if (!groups[interval]) {
-            groups[interval] = { values: [], interval };
+          if (!(groups as any)[interval]) {
+            (groups as any)[interval] = { values: [], interval };
           }
-          groups[interval].values.push(item.value);
+          (groups as any)[interval].values.push(item.value);
         });
 
         return Object.values(groups).map((group: any) => ({
           interval: group.interval,
           average:
-            group.values.reduce((sum, val) => sum + val, 0) /
+            group.values.reduce((sum: any, val: any) => sum + val, 0) /
             group.values.length,
           count: group.values.length,
         }));
@@ -382,7 +382,7 @@ describe('Dashboard Integration Logic', () => {
       expect(pieChart.type).toBe('pie');
       expect(
         pieChart.data.every(
-          item => item.label && typeof item.value === 'number'
+          (item: any) => item.label && typeof item.value === 'number'
         )
       ).toBe(true);
     });
@@ -565,7 +565,7 @@ describe('Dashboard Integration Logic', () => {
           const tagMatch =
             item.tags &&
             Array.isArray(item.tags) &&
-            item.tags.some(tag => tag.toLowerCase().includes(normalizedQuery));
+            item.tags.some((tag: any) => tag.toLowerCase().includes(normalizedQuery));
 
           return textMatch || numericMatch || tagMatch;
         });

@@ -222,7 +222,7 @@ export class IsolatedTestEnvironment {
             configurable: true,
           });
         } else {
-          globalObject[key] = value;
+          (globalObject as any)[key] = value;
         }
       } catch (error) {
         // 읽기 전용 속성인 경우 무시

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNaturalLoadingTime } from './useMinimumLoadingTime';
 import { useSequentialLoadingTime } from './useSequentialLoadingTime';
 
@@ -223,7 +223,7 @@ export const useDashboardLogic = () => {
 
     // Server generation
     serverGeneration: {
-      servers: [],
+      servers: [] as any[],
       status: 'idle',
       actions: {},
     },

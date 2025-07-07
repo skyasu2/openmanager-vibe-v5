@@ -174,7 +174,7 @@ class EnhancedMockRedis implements RedisClientInterface {
         this.setex(key, seconds, value);
         return this;
       },
-      exec: async () => [],
+      exec: async (): Promise<any[]> => [],
     };
   }
 

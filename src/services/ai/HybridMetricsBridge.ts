@@ -24,9 +24,9 @@ export class HybridMetricsBridge {
         analyze: async (data: any) => {
           // Mock implementation
           return {
-            anomalies: [],
-            predictions: [],
-            patterns: [],
+            anomalies: [] as any[],
+            predictions: [] as any[],
+            patterns: [] as any[],
           };
         },
       };
@@ -328,9 +328,9 @@ export class HybridMetricsBridge {
   private performStatisticalAnalysis(metrics: TimeSeriesMetrics[]) {
     // 간단한 통계적 분석 구현
     return {
-      anomalies: [],
-      correlations: [],
-      trends: [],
+      anomalies: [] as any[],
+      correlations: [] as any[],
+      trends: [] as any[],
     };
   }
 

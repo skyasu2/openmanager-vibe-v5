@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
       health: {
         status: 'healthy',
         lastReset: new Date(Date.now() - 3600000).toISOString(), // 1시간 전
-        nextScheduledReset: null,
+        nextScheduledReset: null as string | null,
       },
       config: {
         maxConnections: 20,

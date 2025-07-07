@@ -344,7 +344,7 @@ export class ServerDataCache {
           default:
             const statusPriority = { error: 3, warning: 2, running: 1 };
             return (
-              (statusPriority[b.status] || 0) - (statusPriority[a.status] || 0)
+              ((statusPriority as any)[b.status] || 0) - ((statusPriority as any)[a.status] || 0)
             );
         }
       });
