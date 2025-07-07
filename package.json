@@ -3,6 +3,7 @@
   "version": "5.44.3",
   "description": "🚀 OpenManager AI v5.44.3 - AI 분석과 오토스케일링 완전 분리로 추론 안정성과 운영 시뮬 유연성을 동시에 확보한 차세대 서버 모니터링 시스템. 고정된 8개 AI 분석 타겟으로 일관된 추론을 보장하고, 8-30대 동적 서버 풀로 현실적인 스케일링 시뮬레이션을 제공합니다.",
   "private": true,
+  "type": "module",
   "engines": {
     "node": "20.x",
     "npm": ">=10.0.0"
@@ -23,11 +24,11 @@
     "lint": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development next lint",
     "lint:fix": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" next lint --fix",
     "type-check": "cross-env NODE_OPTIONS=\"--max-old-space-size=6144\" tsc --noEmit",
-    "test": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=test jest",
+    "test": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=test vitest run",
     "test:unit": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" vitest run tests/unit",
     "test:integration": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" vitest run tests/integration",
-    "test:watch": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=test jest --watch",
-    "test:coverage": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=test jest --coverage",
+    "test:watch": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=test vitest watch",
+    "test:coverage": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=test vitest run --coverage",
     "test:e2e": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" playwright test",
     "storybook": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" storybook dev -p 6006",
     "storybook:build": "cross-env NODE_OPTIONS=\"--max-old-space-size=6144\" storybook build",

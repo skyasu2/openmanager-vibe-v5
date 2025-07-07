@@ -1,6 +1,38 @@
 {
   "permissions": {
-    "allow": ["WebFetch(domain:docs.anthropic.com)"],
+    "allow": [
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(npm test)",
+      "Bash(npm run test:unit:*)",
+      "Bash(uv tool install:*)",
+      "Bash(claude-monitor)",
+      "Bash(export:*)",
+      "Bash(ls:*)",
+      "Bash(claude-monitor:*)",
+      "Bash(echo $SHELL)",
+      "Bash(source ~/.bashrc)",
+      "Bash(rm:*)",
+      "Bash(npm install:*)",
+      "Bash(cm)",
+      "Bash(git push:*)",
+      "Bash(git config:*)",
+      "Bash(sudo apt:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(find:*)",
+      "Bash(npm run:*)",
+      "Bash(grep:*)",
+      "Bash(claude --version)",
+      "Bash(claude config --help)",
+      "Bash(claude config list)",
+      "Bash(claude usage)",
+      "Bash(claude monitor)",
+      "Bash(ccusage)",
+      "Bash(npx ccusage@latest:*)",
+      "Bash(claude --usage)",
+      "Bash(npm uninstall:*)",
+      "Bash(pip3 list:*)",
+      "Bash(uv tool:*)"
+    ],
     "deny": []
   }
 }
