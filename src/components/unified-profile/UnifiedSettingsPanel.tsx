@@ -12,18 +12,11 @@
 
 import {
   InlineFeedbackContainer,
-  useInlineFeedback
+  useInlineFeedback,
 } from '@/components/ui/InlineFeedbackSystem';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-  Bot,
-  Database,
-  Monitor,
-  Settings,
-  X,
-  Zap
-} from 'lucide-react';
+import { Bot, Database, Monitor, Settings, X, Zap } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AISettingsTab } from './components/AISettingsTab';
@@ -191,6 +184,7 @@ export function UnifiedSettingsPanel({
 
       return () => window.removeEventListener('resize', handleResize);
     }
+    return undefined;
   }, [isOpen]);
 
   // 인증 핸들러들
@@ -478,10 +472,11 @@ export function UnifiedSettingsPanel({
                   <button
                     key={tabKey}
                     onClick={() => setActiveTab(tabKey)}
-                    className={`relative flex-shrink-0 px-3 py-2 text-sm font-medium rounded-md transition-colors min-w-0 ${activeTab === tabKey
-                      ? 'text-white'
-                      : 'text-gray-400 hover:text-white'
-                      }`}
+                    className={`relative flex-shrink-0 px-3 py-2 text-sm font-medium rounded-md transition-colors min-w-0 ${
+                      activeTab === tabKey
+                        ? 'text-white'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
                   >
                     {activeTab === tabKey && (
                       <motion.div

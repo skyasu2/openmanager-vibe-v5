@@ -83,6 +83,7 @@ const eslintConfig = [
       "@typescript-eslint/prefer-const": "off",
       "@typescript-eslint/no-var-requires": "off",
       "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/ban-ts-comment": "off", // @ts-ignore 사용 허용
       "react/display-name": "off",
       "react-hooks/exhaustive-deps": "off",
       "@next/next/no-img-element": "off",

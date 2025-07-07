@@ -298,6 +298,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     } else {
       setCurrentThinkingSteps([]);
       setThinkingStartTime(null);
+      return undefined;
     }
   }, [isGenerating, simulateRealTimeThinking]);
 

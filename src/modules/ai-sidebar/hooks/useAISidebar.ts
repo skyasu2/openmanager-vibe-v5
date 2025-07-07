@@ -1,10 +1,10 @@
 /**
  * useAISidebar Hook
- * 
+ *
  * 🎨 AI 사이드바 상태 관리를 위한 React 훅
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { SidebarHookOptions } from '../types';
 
 export const useAISidebar = (options: SidebarHookOptions = {}) => {
@@ -78,6 +78,7 @@ export const useAISidebar = (options: SidebarHookOptions = {}) => {
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
+    return undefined;
   }, [isOpen, closeSidebar]);
 
   return {
@@ -86,7 +87,7 @@ export const useAISidebar = (options: SidebarHookOptions = {}) => {
     isMinimized,
     width,
     position,
-    
+
     // 액션
     openSidebar,
     closeSidebar,
@@ -94,14 +95,17 @@ export const useAISidebar = (options: SidebarHookOptions = {}) => {
     minimizeSidebar,
     maximizeSidebar,
     resizeWidth,
-    
+
     // 유틸리티
     isVisible: isOpen && !isMinimized,
     sidebarStyle: {
       width: `${width}px`,
       [position]: 0,
-      transform: isOpen ? 'translateX(0)' : 
-                 position === 'right' ? 'translateX(100%)' : 'translateX(-100%)'
-    }
+      transform: isOpen
+        ? 'translateX(0)'
+        : position === 'right'
+          ? 'translateX(100%)'
+          : 'translateX(-100%)',
+    },
   };
-}; 
+};

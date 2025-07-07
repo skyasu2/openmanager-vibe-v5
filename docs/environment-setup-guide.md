@@ -315,7 +315,7 @@ UPSTASH_REDIS_REST_TOKEN=your-token
 #### 2. 환경 변수 설정
 
 ```bash
-GOOGLE_AI_API_KEY=AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM
+GOOGLE_AI_API_KEY=AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY
 GOOGLE_AI_ENABLED=true
 GOOGLE_AI_QUOTA_PROTECTION=true
 ```
@@ -581,5 +581,5 @@ npm run dev
 
 ---
 
-*마지막 업데이트: 2025년 7월 2일*
-*버전: v5.44.3*
+_마지막 업데이트: 2025년 7월 2일_
+_버전: v5.44.3_

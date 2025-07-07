@@ -89,7 +89,11 @@ function hiddenQuestion(query) {
 // 일반 질문
 function question(query) {
   return new Promise(resolve => {
-    rl.question(query, resolve);
+    const rl = createInterface();
+    rl.question(query, (answer) => {
+      rl.close();
+      resolve(answer);
+    });
   });
 }
 
@@ -346,7 +350,7 @@ async function main() {
     );
     process.exit(1);
   } finally {
-    rl.close();
+    // 더 이상 rl.close() 필요 없음
   }
 }
 

@@ -4,26 +4,23 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Brain,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
-  Clock,
-  Target,
-  Activity,
-  Shield,
-  Zap,
-  BarChart3,
-  RefreshCw,
-  Eye,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-} from 'lucide-react';
 import { PredictionResult } from '@/engines/PredictiveAnalysisEngine';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Activity,
+  AlertCircle,
+  AlertTriangle,
+  BarChart3,
+  Brain,
+  CheckCircle2,
+  Clock,
+  Eye,
+  RefreshCw,
+  Shield,
+  Target,
+  XCircle,
+} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface PredictionDashboardProps {
   className?: string;
@@ -61,7 +58,7 @@ export const PredictionDashboard: React.FC<PredictionDashboardProps> = ({
   className = '',
   serverId = 'web-server-01',
   autoRefresh = true,
-      refreshInterval = 20000, // 20초로 통일
+  refreshInterval = 20000, // 20초로 통일
 }) => {
   const [predictionData, setPredictionData] = useState<PredictionData | null>(
     null
@@ -131,6 +128,7 @@ export const PredictionDashboard: React.FC<PredictionDashboardProps> = ({
 
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [serverId, autoRefresh, refreshInterval]);
 
   // 심각도별 색상 및 아이콘

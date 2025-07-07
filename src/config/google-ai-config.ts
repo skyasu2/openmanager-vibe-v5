@@ -21,15 +21,13 @@ export interface GoogleAIEncryptedConfig {
 /**
  * 암호화된 Google AI 설정
  * 이 값들은 encrypt-google-ai.js 스크립트로 생성됩니다.
- *
- * ⚠️ 팀 비밀번호는 별도로 관리합니다 (보안상 이유로 코드에 노출 금지)
  */
 export const ENCRYPTED_GOOGLE_AI_CONFIG: GoogleAIEncryptedConfig = {
   encryptedKey:
-    '//ursbnOO7w7S4KUxROHbN/GpPiUMsstq0NUwh4AaTr/WZISKvrJYYblJXWhcv/L',
-  salt: 'f469506619af58ea3bd84682eed853b5',
-  iv: '80d59344750896018bfebe85b869467c',
-  createdAt: '2025-07-03T11:04:07.275Z',
+    'nimoLDQDIRGXgvhsgmyE75qRwP366vsjxGQQXUcnTr8wtOPouKD7XifhwdbVwTi+',
+  salt: '151e3f103c7ab58cd8ceed1d35c0d1d3',
+  iv: 'ce840ff0b3968e9ba7d1597565db1029',
+  createdAt: '2025-07-07T11:21:08.018Z',
   version: '1.0.0',
 };
 

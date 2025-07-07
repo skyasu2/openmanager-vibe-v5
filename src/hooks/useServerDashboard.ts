@@ -233,7 +233,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
             network_speed: '1Gbps',
           },
           lastUpdate: server.lastUpdate || new Date(),
-          services: server.services || [] as any[],
+          services: server.services || ([] as any[]),
           networkStatus:
             server.status === 'healthy'
               ? 'healthy'
@@ -335,6 +335,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
       return () => clearTimeout(timeoutId);
     }
+    return undefined;
   }, [stats, onStatsUpdate]);
 
   // 서버 선택 핸들러
@@ -427,6 +428,7 @@ export function useEnhancedServerDashboard({
       window.addEventListener('resize', handleResize);
       return () => window.removeEventListener('resize', handleResize);
     }
+    return undefined;
   }, []);
 
   // 🎯 표시 모드 설정 계산

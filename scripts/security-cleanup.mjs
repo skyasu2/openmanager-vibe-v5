@@ -33,7 +33,7 @@ const REPLACEMENTS = {
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9': 'your_jwt_token_here',
 
     // Google API 키
-    'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM': 'your_google_ai_api_key_here',
+    'AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY': 'your_google_ai_api_key_here',
 
     // Google OAuth
     'GOCSPX-abcdefghijklmnopqrstuvwxyz123456': 'your_google_oauth_client_secret_here',

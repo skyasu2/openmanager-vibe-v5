@@ -46,7 +46,7 @@ export default function RootLayout({
         <ClientProviders>
           <SystemBootstrap />
           <Toaster />
-            {children}
+          {children}
         </ClientProviders>
       </body>
     </html>

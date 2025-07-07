@@ -8,9 +8,9 @@
  * - 성능 최적화
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { ServerInstance } from '@/types/data-generator';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
+import { ServerInstance } from '@/types/data-generator';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface CachedServerData {
   servers: ServerInstance[];
@@ -253,6 +253,7 @@ export function useCachedServers(
         }
       };
     }
+    return undefined;
   }, [autoRefresh, refreshInterval, fetchData]);
 
   /**

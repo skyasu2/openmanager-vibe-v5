@@ -12,21 +12,21 @@
  * @version 3.0.0 (모듈화 완성)
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { OPENMANAGER_COMPONENTS } from '../config/system-components';
 import type {
-  SystemComponent,
   ComponentStatus,
-  UseSystemChecklistProps,
   SystemChecklistState,
+  SystemComponent,
+  UseSystemChecklistProps,
 } from '../types/system-checklist';
 
 // 타입들을 re-export
 export type {
-  SystemComponent,
   ComponentStatus,
-  UseSystemChecklistProps,
   SystemChecklistState,
+  SystemComponent,
+  UseSystemChecklistProps,
 } from '../types/system-checklist';
 
 export const useSystemChecklist = ({
@@ -241,6 +241,7 @@ export const useSystemChecklist = ({
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [skipCondition]);
 
   // 자동 시작
