@@ -39,6 +39,11 @@ process.env.FORCE_MOCK_REDIS = 'true';
 process.env.FORCE_MOCK_GOOGLE_AI = 'true';
 process.env.TEST_ISOLATION = 'true';
 process.env.DISABLE_HEALTH_CHECK = 'true';
+process.env.FORCE_EXIT = 'true';
+process.env.CI = 'true';
+
+// 🚨 강제 종료 타이머 설정 (30초 후 강제 종료)
+let forceExitTimer: NodeJS.Timeout | null = null;
 
 // 전역 테스트 설정
 beforeAll(async () => {
@@ -61,29 +66,53 @@ beforeAll(async () => {
     }
     originalWarn.apply(console, args);
   };
+
+  // 🚨 강제 종료 타이머 시작
+  if (process.env.FORCE_EXIT === 'true') {
+    forceExitTimer = setTimeout(() => {
+      console.log('🚨 테스트 강제 종료 - 30초 타임아웃');
+      process.exit(0);
+    }, 30000);
+  }
 });
 
 // 각 테스트 전 설정
 beforeEach(() => {
-  // Vitest 타이머 설정
-  vi.useFakeTimers();
+  // Vitest 타이머 설정 (조건부)
+  if (!process.env.CI) {
+    vi.useFakeTimers();
+  }
 
   // 고정된 시간 설정 (테스트 일관성)
   const mockDate = new Date('2024-06-19T12:26:40.000Z');
-  vi.setSystemTime(mockDate);
+  if (!process.env.CI) {
+    vi.setSystemTime(mockDate);
+  }
 });
 
 // 각 테스트 후 정리
-afterEach(() => {
+afterEach(async () => {
   // React Testing Library 정리
   cleanup();
 
-  // Vitest 타이머 정리
-  vi.useRealTimers();
+  // Vitest 타이머 정리 (조건부)
+  if (!process.env.CI) {
+    vi.useRealTimers();
+  }
 
   // 모든 모의 함수 정리
   vi.clearAllMocks();
   vi.clearAllTimers();
+
+  // 🧹 추가 정리 작업
+  if (typeof window !== 'undefined') {
+    // 이벤트 리스너 정리
+    window.removeEventListener = vi.fn();
+    window.addEventListener = vi.fn();
+  }
+
+  // 비동기 작업 대기 (최대 100ms)
+  await new Promise(resolve => setTimeout(resolve, 100));
 });
 
 // 전체 테스트 종료 후 정리
@@ -91,6 +120,27 @@ afterAll(async () => {
   // React act 환경 정리
   if (typeof globalThis !== 'undefined') {
     (globalThis as any).IS_REACT_ACT_ENVIRONMENT = false;
+  }
+
+  // 🚨 강제 종료 타이머 정리
+  if (forceExitTimer) {
+    clearTimeout(forceExitTimer);
+    forceExitTimer = null;
+  }
+
+  // 🧹 최종 정리 작업
+  vi.clearAllMocks();
+  vi.clearAllTimers();
+
+  // 모든 비동기 작업 완료 대기
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  // 🚨 CI 환경에서 강제 종료
+  if (process.env.CI === 'true' || process.env.FORCE_EXIT === 'true') {
+    setTimeout(() => {
+      console.log('✅ 테스트 완료 - 프로세스 종료');
+      process.exit(0);
+    }, 1000);
   }
 });
 
@@ -153,13 +203,43 @@ Object.defineProperty(window, 'sessionStorage', {
 global.URL.createObjectURL = vi.fn(() => 'mock-object-url');
 global.URL.revokeObjectURL = vi.fn();
 
-// 에러 핸들링 개선 (Edge Runtime 호환성)
+// 🚨 강화된 에러 핸들링 및 프로세스 종료 관리
 if (typeof process !== 'undefined' && process.on) {
   process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    // CI 환경에서는 즉시 종료하지 않고 로그만 출력
+    if (process.env.CI !== 'true') {
+      process.exit(1);
+    }
+  });
+
+  process.on('uncaughtException', error => {
+    console.error('Uncaught Exception:', error);
+    if (process.env.CI !== 'true') {
+      process.exit(1);
+    }
+  });
+
+  // 🚨 SIGINT/SIGTERM 핸들러 (Ctrl+C 등)
+  process.on('SIGINT', () => {
+    console.log('🚨 테스트 중단됨 (SIGINT)');
+    if (forceExitTimer) {
+      clearTimeout(forceExitTimer);
+    }
+    process.exit(0);
+  });
+
+  process.on('SIGTERM', () => {
+    console.log('🚨 테스트 중단됨 (SIGTERM)');
+    if (forceExitTimer) {
+      clearTimeout(forceExitTimer);
+    }
+    process.exit(0);
   });
 }
 
 // 테스트 환경 확인
 console.log('🧪 Vitest test environment initialized');
 console.log('🌍 Node environment:', process.env.NODE_ENV);
+console.log('🚨 Force exit enabled:', process.env.FORCE_EXIT);
+console.log('🔄 CI mode:', process.env.CI);

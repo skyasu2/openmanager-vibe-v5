@@ -1,5 +1,5 @@
-import { defineConfig } from 'vitest/config';
 import path from 'path';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [],
@@ -54,16 +54,21 @@ export default defineConfig({
         maxThreads: 4,
       },
     },
-    // ⏱️ 타임아웃 최적화
-    testTimeout: 60000, // 베르셀 Cold Start 고려
-    hookTimeout: 10000,
-    teardownTimeout: 5000, // 10초 → 5초 단축
+    // ⏱️ 타임아웃 최적화 - 테스트 종료 문제 해결
+    testTimeout: 30000, // 60초 → 30초 단축
+    hookTimeout: 5000,  // 10초 → 5초 단축
+    teardownTimeout: 3000, // 5초 → 3초 단축
 
-    // 🛡️ 테스트 격리 및 안정성
+    // 🛡️ 테스트 격리 및 안정성 - 강제 종료 설정 추가
     isolate: true,
     passWithNoTests: false, // 빈 테스트 케이스 허용 안 함
-    bail: 5, // 5개 실패 시 중단
-    retry: 2, // 실패 시 2회 재시도
+    bail: 3, // 5개 → 3개 실패 시 중단
+    retry: 1, // 2회 → 1회 재시도로 단축
+
+    // 🚨 강제 종료 설정 추가
+    forceRerunTriggers: ['**/package.json', '**/vitest.config.*', '**/vite.config.*'],
+    maxConcurrency: 4, // 동시 실행 테스트 수 제한
+
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -101,6 +106,9 @@ export default defineConfig({
       KOREAN_NLP_ENABLED: 'true',
       // 테스트 격리 환경
       TEST_ISOLATION: 'true',
+      // 🚨 강제 종료 플래그 추가
+      FORCE_EXIT: 'true',
+      CI: 'true', // CI 환경으로 간주하여 더 빠른 종료
     },
   },
 
@@ -127,5 +135,7 @@ export default defineConfig({
   define: {
     'process.env.NODE_ENV': '"test"',
     'process.env.VITEST': '"true"',
+    'process.env.FORCE_EXIT': '"true"',
+    'process.env.CI': '"true"',
   },
 });

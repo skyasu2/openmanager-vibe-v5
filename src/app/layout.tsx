@@ -1,11 +1,14 @@
+// 🚀 폴리필 최우선 로드 (빌드 타임 오류 방지)
+import '@/polyfills';
+// 🛡️ 추가 SSR 호환성 폴리필
+import '@/lib/polyfills';
+
 import { ClientProviders } from '@/components/providers/ClientProviders';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 // 🛡️ Emergency Banner 시스템
 import { EmergencyBanner } from '@/components/emergency/EmergencyBanner';
-// 🚀 폴리필 로드 (빌드 타임 오류 방지)
-import '@/polyfills';
 
 import { SystemBootstrap } from '@/components/system/SystemBootstrap';
 import { Toaster } from '@/components/ui/toaster';
@@ -20,9 +23,9 @@ if (typeof window === 'undefined') {
   detectAndFixTerminalEncoding();
 }
 
-// �� SSR 호환성을 위한 전역 폴리필 강화
+// 🚨 SSR 호환성을 위한 전역 폴리필 강화 (Vercel 빌드 오류 완전 해결)
 if (typeof globalThis !== 'undefined') {
-  // self 참조 오류 방지 (강화)
+  // self 참조 오류 방지 (강화) - 최우선
   if (typeof globalThis.self === 'undefined') {
     (globalThis as any).self = globalThis;
   }
@@ -34,12 +37,23 @@ if (typeof globalThis !== 'undefined') {
 
   // document 참조 오류 방지 (서버 사이드)
   if (typeof globalThis.document === 'undefined') {
-    globalThis.document = {} as any;
+    globalThis.document = {
+      createElement: () => ({}),
+      getElementById: () => null,
+      querySelector: () => null,
+      querySelectorAll: () => [],
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    } as any;
   }
 
   // navigator 참조 오류 방지 (서버 사이드)
   if (typeof globalThis.navigator === 'undefined') {
-    globalThis.navigator = { userAgent: 'node.js' } as any;
+    globalThis.navigator = {
+      userAgent: 'node.js',
+      platform: 'node',
+      language: 'ko-KR',
+    } as any;
   }
 
   // location 참조 오류 방지 (서버 사이드)
@@ -50,22 +64,39 @@ if (typeof globalThis !== 'undefined') {
       pathname: '',
       search: '',
       hash: '',
+      hostname: 'localhost',
+      port: '',
+      protocol: 'https:',
     } as any;
   }
 }
 
-// 추가적인 global 객체에도 적용
+// 추가적인 global 객체에도 적용 (이중 안전장치)
 if (typeof window === 'undefined' && typeof global !== 'undefined') {
   (global as any).self = global;
   (global as any).window = global;
-  (global as any).document = {};
-  (global as any).navigator = { userAgent: 'node.js' };
+  (global as any).document = {
+    createElement: () => ({}),
+    getElementById: () => null,
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  };
+  (global as any).navigator = {
+    userAgent: 'node.js',
+    platform: 'node',
+    language: 'ko-KR',
+  };
   (global as any).location = {
     href: '',
     origin: '',
     pathname: '',
     search: '',
     hash: '',
+    hostname: 'localhost',
+    port: '',
+    protocol: 'https:',
   };
 }
 
