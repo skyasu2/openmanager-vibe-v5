@@ -7,13 +7,13 @@ import { CollectorConfig } from '@/types/collector';
  */
 
 // 프로덕션 전용 설정
-const COLLECTOR_MODE = process.env.COLLECTOR_MODE || 'production'; // 'production' only
+const COLLECTOR_MODE = process.env['COLLECTOR_MODE'] || 'production'; // 'production' only
 
 // 빌드 타임 체크 함수
 function isBuildTime() {
   return (
-    process.env.NODE_ENV === undefined ||
-    process.env.npm_lifecycle_event === 'build'
+    process.env['NODE_ENV'] === undefined ||
+    process.env['npm_lifecycle_event'] === 'build'
   );
 }
 
@@ -25,7 +25,7 @@ const productionConfigs: CollectorConfig[] = [
     id: 'prometheus',
     type: 'prometheus',
     name: 'Prometheus Metrics',
-    endpoint: process.env.PROMETHEUS_ENDPOINT || 'http://localhost:9090',
+    endpoint: process.env['PROMETHEUS_ENDPOINT'] || 'http://localhost:9090',
     interval: 30000, // 30초
     timeout: 10000,
     retryAttempts: 3,
@@ -33,56 +33,56 @@ const productionConfigs: CollectorConfig[] = [
     tags: ['metrics', 'monitoring', 'performance'],
     authentication: {
       type: 'bearer',
-      token: process.env.PROMETHEUS_TOKEN,
+      token: process.env['PROMETHEUS_TOKEN'],
     },
   },
   {
     id: 'grafana',
     type: 'custom',
     name: 'Grafana API',
-    endpoint: process.env.GRAFANA_ENDPOINT || 'http://localhost:3000/api',
+    endpoint: process.env['GRAFANA_ENDPOINT'] || 'http://localhost:3000/api',
     interval: 60000, // 1분
     timeout: 15000,
     retryAttempts: 2,
-    enabled: Boolean(process.env.GRAFANA_ENDPOINT),
+    enabled: Boolean(process.env['GRAFANA_ENDPOINT']),
     tags: ['visualization', 'dashboards'],
     authentication: {
       type: 'api-key',
-      apiKey: process.env.GRAFANA_API_KEY,
+      apiKey: process.env['GRAFANA_API_KEY'],
     },
   },
   {
     id: 'cloudwatch',
     type: 'cloudwatch',
     name: 'AWS CloudWatch',
-    endpoint: process.env.AWS_CLOUDWATCH_ENDPOINT,
+    endpoint: process.env['AWS_CLOUDWATCH_ENDPOINT'],
     interval: 120000, // 2분
     timeout: 20000,
     retryAttempts: 3,
     enabled: Boolean(
-      process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
+      process.env['AWS_ACCESS_KEY_ID'] && process.env['AWS_SECRET_ACCESS_KEY']
     ),
     tags: ['aws', 'cloud', 'metrics'],
     authentication: {
       type: 'aws',
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      region: process.env.AWS_REGION || 'us-east-1',
+      accessKeyId: process.env['AWS_ACCESS_KEY_ID'],
+      secretAccessKey: process.env['AWS_SECRET_ACCESS_KEY'],
+      region: process.env['AWS_REGION'] || 'us-east-1',
     },
   },
   {
     id: 'custom-webhook',
     type: 'custom',
     name: 'Custom Webhook Collector',
-    endpoint: process.env.CUSTOM_WEBHOOK_ENDPOINT,
+    endpoint: process.env['CUSTOM_WEBHOOK_ENDPOINT'],
     interval: 45000, // 45초
     timeout: 12000,
     retryAttempts: 2,
-    enabled: Boolean(process.env.CUSTOM_WEBHOOK_ENDPOINT),
+    enabled: Boolean(process.env['CUSTOM_WEBHOOK_ENDPOINT']),
     tags: ['webhook', 'custom', 'integration'],
     authentication: {
       type: 'bearer',
-      token: process.env.CUSTOM_WEBHOOK_TOKEN,
+      token: process.env['CUSTOM_WEBHOOK_TOKEN'],
     },
   },
 ];
@@ -109,25 +109,25 @@ export function validateEnvironment(): { valid: boolean; errors: string[] } {
 
   if (COLLECTOR_MODE === 'production') {
     // Supabase 설정 검증
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    if (!process.env['NEXT_PUBLIC_SUPABASE_URL']) {
       errors.push('NEXT_PUBLIC_SUPABASE_URL이 설정되지 않았습니다');
     }
-    if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    if (!process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']) {
       errors.push('NEXT_PUBLIC_SUPABASE_ANON_KEY가 설정되지 않았습니다');
     }
 
     // Redis 설정 검증
-    if (!process.env.REDIS_URL) {
+    if (!process.env['REDIS_URL']) {
       errors.push('REDIS_URL이 설정되지 않았습니다');
     }
 
     // 수집기별 필수 환경변수 검증
-    const hasPrometheus = !!process.env.PROMETHEUS_ENDPOINT;
+    const hasPrometheus = !!process.env['PROMETHEUS_ENDPOINT'];
     const hasCloudWatch = !!(
-      process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
+      process.env['AWS_ACCESS_KEY_ID'] && process.env['AWS_SECRET_ACCESS_KEY']
     );
     const hasCustomAPI = !!(
-      process.env.ONPREM_API_ENDPOINT && process.env.ONPREM_API_KEY
+      process.env['ONPREM_API_ENDPOINT'] && process.env['ONPREM_API_KEY']
     );
 
     if (!hasPrometheus && !hasCloudWatch && !hasCustomAPI) {

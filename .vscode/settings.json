@@ -7,10 +7,10 @@
   "mcp.autoStart": true,
   "mcp.logging.enabled": true,
   "mcp.logging.level": "info",
-  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.preferences.includePackageJsonAutoImports": "off",
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit",
+    "source.fixAll.eslint": "never",
     "source.organizeImports": "explicit"
   },
   "files.associations": {
@@ -23,7 +23,9 @@
   },
   "json.schemas": [
     {
-      "fileMatch": [".cursor/mcp.json"],
+      "fileMatch": [
+        ".cursor/mcp.json"
+      ],
       "schema": {
         "type": "object",
         "properties": {
@@ -63,7 +65,12 @@
     "**/storybook-static": true,
     "**/cursor-test-report.json": true,
     "**/eslint-report.json": true,
-    "**/storybook-validation-report.json": true
+    "**/storybook-validation-report.json": true,
+    "node_modules": true,
+    "out": true,
+    ".cache": true,
+    "logs": true,
+    ".vercel": true
   },
   "emmet.includeLanguages": {
     "typescript": "html",
@@ -75,7 +82,7 @@
   "prettier.semi": true,
   "prettier.trailingComma": "es5",
   "typescript.preferences.importModuleSpecifier": "relative",
-  "typescript.suggest.autoImports": true,
+  "typescript.suggest.autoImports": false,
   "typescript.updateImportsOnFileMove.enabled": "always",
   "tailwindCSS.includeLanguages": {
     "typescript": "javascript",
@@ -103,7 +110,10 @@
     },
     "Ubuntu (WSL)": {
       "path": "C:\\Windows\\System32\\wsl.exe",
-      "args": ["-d", "Ubuntu"],
+      "args": [
+        "-d",
+        "Ubuntu"
+      ],
       "icon": "terminal-ubuntu"
     },
     "PowerShell": {
@@ -139,19 +149,28 @@
   "terminal.integrated.allowChords": false,
   // 📁 파일 감시 최적화 (WSL 성능 향상)
   "files.watcherExclude": {
-    "**/node_modules/**": true,
     "**/.git/objects/**": true,
     "**/.git/subtree-cache/**": true,
-    "**/node_modules/*/**": true,
+    "**/node_modules/**": true,
     "**/.next/**": true,
-    "**/dist/**": true,
+    "**/out/**": true,
     "**/build/**": true,
-    "**/coverage/**": true
+    "**/dist/**": true,
+    "**/.cache/**": true,
+    "**/logs/**": true,
+    "**/.vercel/**": true
   },
   "files.autoSave": "onFocusChange",
   "editor.quickSuggestions": {
     "strings": true
   },
   "jest.autoRun": "off",
-  "tasks.autoDetect": "on"
+  "tasks.autoDetect": "on",
+  "typescript.disableAutomaticTypeAcquisition": true,
+  "typescript.tsserver.maxTsServerMemory": 8192,
+  "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+  "typescript.validate.enable": false,
+  "typescript.suggest.includeCompletionsForImportStatements": false,
+  "typescript.suggest.includeCompletionsForModuleExports": false,
+  "eslint.enable": false
 }
