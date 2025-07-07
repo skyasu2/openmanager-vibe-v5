@@ -10,21 +10,21 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Brain,
-  Search,
-  Cog,
-  Target,
-  MessageSquare,
-  CheckCircle,
-  Loader2,
-  Clock,
-  Zap,
-  AlertTriangle,
-} from 'lucide-react';
 import { AgentLog } from '@/stores/useAISidebarStore';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  AlertTriangle,
+  Brain,
+  CheckCircle,
+  Clock,
+  Cog,
+  Loader2,
+  MessageSquare,
+  Search,
+  Target,
+  Zap,
+} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 // 타이핑 애니메이션 컴포넌트
 const TypingText: React.FC<{ text: string; speed?: number }> = ({ text, speed = 25 }) => {
@@ -39,6 +39,7 @@ const TypingText: React.FC<{ text: string; speed?: number }> = ({ text, speed = 
       }, speed);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [currentIndex, text, speed]);
 
   useEffect(() => {
@@ -81,6 +82,8 @@ const getStepIcon = (type: any, engine?: string) => {
         return <Brain className='w-4 h-4 text-orange-400' />;
       case 'local':
         return <Cog className='w-4 h-4 text-gray-400' />;
+      default:
+        return <Brain className='w-4 h-4' />;
     }
   }
 
@@ -99,7 +102,6 @@ const getStepIcon = (type: any, engine?: string) => {
     default:
       return <Brain className='w-4 h-4' />;
   }
-  return null; // Ensure all code paths return a value
 };
 
 // 단계별 색상 매핑 (AI 엔진별 구분 추가)
@@ -117,6 +119,8 @@ const getStepColor = (type: any, engine?: string) => {
         return 'text-orange-400 bg-orange-500/10 border-orange-500/20';
       case 'local':
         return 'text-gray-400 bg-gray-500/10 border-gray-500/20';
+      default:
+        return 'text-gray-400 bg-gray-500/20 border-gray-500/30';
     }
   }
 
@@ -135,7 +139,6 @@ const getStepColor = (type: any, engine?: string) => {
     default:
       return 'text-gray-400 bg-gray-500/20 border-gray-500/30';
   }
-  return ''; // Ensure all code paths return a value
 };
 
 // 단계명 한국어 매핑
@@ -193,6 +196,7 @@ const ThinkingView: React.FC<ThinkingViewProps> = ({
       setThinkingStartTime(0);
       setElapsedTime(0);
       setIsTimeout(false);
+      return undefined;
     }
   }, [isThinking, thinkingStartTime, totalTimeout]);
 
@@ -201,7 +205,7 @@ const ThinkingView: React.FC<ThinkingViewProps> = ({
     if (logs.length === 0) {
       setVisibleLogs([]);
       setCurrentStep('');
-      return;
+      return undefined;
     }
 
     const timer = setTimeout(() => {
@@ -282,8 +286,8 @@ const ThinkingView: React.FC<ThinkingViewProps> = ({
           <div className='w-full bg-gray-700 rounded-full h-2'>
             <div
               className={`h-2 rounded-full transition-all duration-1000 ${progressPercentage > 80
-                  ? 'bg-gradient-to-r from-yellow-500 to-red-500'
-                  : 'bg-gradient-to-r from-blue-500 to-purple-500'
+                ? 'bg-gradient-to-r from-yellow-500 to-red-500'
+                : 'bg-gradient-to-r from-blue-500 to-purple-500'
                 }`}
               style={{ width: `${progressPercentage}%` }}
             />
@@ -414,8 +418,8 @@ const ThinkingView: React.FC<ThinkingViewProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className={`mt-4 p-3 rounded-lg ${isTimeout
-              ? 'bg-yellow-500/20 border border-yellow-500/30'
-              : 'bg-green-500/20 border border-green-500/30'
+            ? 'bg-yellow-500/20 border border-yellow-500/30'
+            : 'bg-green-500/20 border border-green-500/30'
             }`}
         >
           <div className={`flex items-center gap-2 ${isTimeout ? 'text-yellow-300' : 'text-green-300'

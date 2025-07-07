@@ -119,7 +119,7 @@ export const MultiAIThinkingViewer: React.FC<MultiAIThinkingProps> = ({
         }, speed);
         return () => clearTimeout(timer);
       }
-      return null; // Added return for all code paths
+      return undefined;
     }, [currentIndex, text, speed]);
 
     useEffect(() => {
@@ -159,9 +159,9 @@ export const MultiAIThinkingViewer: React.FC<MultiAIThinkingProps> = ({
             animate={
               isThinking
                 ? {
-                    rotate: [0, 360],
-                    scale: [1, 1.1, 1],
-                  }
+                  rotate: [0, 360],
+                  scale: [1, 1.1, 1],
+                }
                 : {}
             }
             transition={{

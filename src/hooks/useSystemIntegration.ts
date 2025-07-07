@@ -438,7 +438,7 @@ export const useSystemIntegration = () => {
         mcpWakeupStatus: {
           isInProgress: false,
           stage: 'error',
-          message: `❌ MCP 상태 확인 오류: ${error.message}`,
+          message: `❌ MCP 상태 확인 오류: ${error instanceof Error ? error.message : String(error)}`,
           progress: 100,
           elapsedTime: 0,
         },
@@ -525,9 +525,9 @@ export const useSystemIntegration = () => {
         initializationProgress: 100,
         isInitialized: false,
         isError: true,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       }));
-      emitEvent('error', 'critical', `시스템 초기화 실패: ${error.message}`);
+      emitEvent('error', 'critical', `시스템 초기화 실패: ${error instanceof Error ? error.message : String(error)}`);
       return false;
     }
   }, [emitEvent, pollSystemStatus, getState]);
@@ -841,6 +841,7 @@ export const useSystemIntegration = () => {
 
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [state.realTimeHub.isConnected, runPredictionAnalysis]);
 
   const actions: SystemIntegrationActions = {

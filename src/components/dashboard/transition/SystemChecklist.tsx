@@ -11,14 +11,13 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import {
   useSystemChecklist,
-  type SystemComponent,
   type ComponentStatus,
+  type SystemComponent,
 } from '../../../hooks/useSystemChecklist';
-import { safeErrorLog } from '../../../lib/error-handler';
 
 interface SystemChecklistProps {
   onComplete: () => void;
@@ -326,6 +325,7 @@ export default function SystemChecklist({
 
       return () => clearTimeout(autoCompleteTimer);
     }
+    return undefined;
   }, [isCompleted, showCompleted, onComplete]);
 
   // 키보드 단축키 (이미 훅에서 처리되고 있지만 추가 재시도 기능)
