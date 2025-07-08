@@ -378,13 +378,15 @@ describe('🧪 TDD - SSE 최적화', () => {
         });
 
         expect(healthMonitor).toBeDefined();
-        expect(healthMonitor.getHealthStatus()).toEqual({
-          isHealthy: true,
-          lastCheck: expect.any(Date),
-          errorCount: 0,
-          consecutiveErrors: 0,
-          uptime: 0,
-        });
+        const status = healthMonitor.getHealthStatus();
+
+        // 🔧 수정: uptime은 0 또는 1일 수 있으므로 범위로 확인
+        expect(status.isHealthy).toBe(true);
+        expect(status.lastCheck).toBeInstanceOf(Date);
+        expect(status.errorCount).toBe(0);
+        expect(status.consecutiveErrors).toBe(0);
+        expect(status.uptime).toBeGreaterThanOrEqual(0);
+        expect(status.uptime).toBeLessThanOrEqual(2); // 타이밍 이슈 허용
       });
 
       it.skip('연결 상태를 주기적으로 확인해야 함', async () => {

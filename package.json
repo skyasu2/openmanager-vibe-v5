@@ -28,6 +28,8 @@
     "test:watch": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" vitest watch tests/unit",
     "test:ui": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" vitest --ui tests/unit",
     "test:coverage": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" vitest run --coverage tests/unit",
+    "test:dynamic": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" vitest run tests/unit -t \"(실시간|동적|시뮬레이션|데이터생성|상태변화)\"",
+    "test:static": "npm run lint && npm run type-check && npm run security-check",
     "test:integration": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" vitest run tests/integration",
     "test:all": "npm run test && npm run test:integration",
     "test:ci": "npm run test:coverage && npm run lint:check && npm run type-check && npm run test:static-analysis",
@@ -52,7 +54,14 @@
     "cursor:validate": "npm run validate:all",
     "cursor:auto-test": "npm run test:unit && npm run test:integration",
     "memory:cleanup": "node scripts/memory-cleanup.js",
-    "memory:check": "node -e \"console.log('Node.js 메모리 사용량:', process.memoryUsage())\""
+    "memory:check": "node -e \"console.log('Node.js 메모리 사용량:', process.memoryUsage())\"",
+    "security-check": "npm audit --audit-level moderate",
+    "code-quality": "npm run lint && npm run type-check && npm run test:coverage",
+    "analyze-bundle": "cross-env ANALYZE=true npm run build",
+    "test:e2e": "playwright test",
+    "check-types": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",

@@ -303,7 +303,12 @@ export class GCPRealServerDataGenerator {
       'staging',
       'development',
     ];
-    const statuses: ServerStatus[] = ['running', 'stopped', 'warning'];
+    const statuses: ServerStatus[] = [
+      'healthy',
+      'warning',
+      'critical',
+      'offline',
+    ];
 
     for (let i = 1; i <= limit; i++) {
       const randomStatus =
@@ -327,7 +332,8 @@ export class GCPRealServerDataGenerator {
         region: randomLocation,
         version: '1.0.0',
         tags: [`${randomType}`, `${randomEnv}`],
-        alerts: randomStatus === 'warning' ? 1 : 0,
+        alerts:
+          randomStatus === 'warning' ? 1 : randomStatus === 'critical' ? 2 : 0,
         uptime: Math.floor(Math.random() * 365 * 24 * 60 * 60),
         lastCheck: new Date().toISOString(),
         cpu: Math.floor(Math.random() * 100),
@@ -352,7 +358,14 @@ export class GCPRealServerDataGenerator {
           score: Math.floor(Math.random() * 100),
           trend: [90, 85, 88, 92, 87],
           status: randomStatus,
-          issues: randomStatus === 'warning' ? ['높은 CPU 사용률'] : [],
+          issues:
+            randomStatus === 'warning'
+              ? ['높은 CPU 사용률']
+              : randomStatus === 'critical'
+                ? ['높은 CPU 사용률', '메모리 부족']
+                : randomStatus === 'offline'
+                  ? ['서버 응답 없음']
+                  : [],
           lastChecked: new Date().toISOString(),
         },
       });
@@ -845,6 +858,9 @@ export class GCPRealServerDataGenerator {
         const warningCount = cluster.servers.filter(
           (s: any) => s.status === 'warning'
         ).length;
+
+        // 🔧 nodeCount 필드 추가
+        cluster.nodeCount = cluster.servers.length;
 
         if (criticalCount > 0) {
           cluster.status = 'critical';
