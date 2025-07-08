@@ -74,7 +74,7 @@ export class GoogleAIModeManager {
 
     this.stats = {
       totalQueries: 0,
-      modeUsage: { LOCAL: 0, GOOGLE_ONLY: 0, auto: 0 },
+      modeUsage: { LOCAL: 0, GOOGLE_ONLY: 0, THREE_TIER: 0, auto: 0 },
       averageResponseTime: 0,
       successRate: 100,
       fallbackRate: 0,

@@ -51,7 +51,7 @@ function AuthErrorContent() {
       }
     };
 
-    setError(getErrorMessage(errorParam));
+    setError(getErrorMessage(errorParam || null));
   }, [searchParams]);
 
   /**

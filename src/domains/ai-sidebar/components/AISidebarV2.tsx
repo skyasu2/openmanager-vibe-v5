@@ -174,8 +174,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       try {
         await unifiedAIRouter.initialize();
         // TDD 안전 모드: 타입 캐시 문제 해결을 위한 임시 방법
-        const routerStatus = unifiedAIRouter.getStatus();
-        const currentMode = routerStatus?.mode || 'LOCAL';
+        const currentMode = unifiedAIRouter.getCurrentMode();
         setSelectedEngine(currentMode as AIMode);
         console.log(`🎯 AI 사이드바 초기화 - 현재 모드: ${currentMode}`);
       } catch (error) {

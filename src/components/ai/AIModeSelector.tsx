@@ -11,7 +11,7 @@
 
 import type { AIMode } from '@/types/ai-types';
 import { motion } from 'framer-motion';
-import { Brain, Cpu, Zap } from 'lucide-react';
+import { Brain, Cpu, Settings, Zap } from 'lucide-react';
 import React, { useState } from 'react';
 
 interface AiModeSelectorProps {
@@ -41,6 +41,16 @@ const AI_MODE_CONFIG = {
     borderColor: 'border-emerald-200',
     textColor: 'text-emerald-700',
     selectedBg: 'bg-emerald-500',
+  },
+  THREE_TIER: {
+    label: '3계층 AI',
+    description: '로컬 → GCP → Google AI 폴백',
+    icon: Settings,
+    color: 'orange',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-200',
+    textColor: 'text-orange-700',
+    selectedBg: 'bg-orange-500',
   },
   auto: {
     label: '자동 선택',
@@ -91,13 +101,15 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
             ? AI_MODE_CONFIG.LOCAL.selectedBg
             : selectedMode === 'GOOGLE_ONLY'
               ? AI_MODE_CONFIG.GOOGLE_ONLY.selectedBg
-              : AI_MODE_CONFIG.auto.selectedBg
+              : selectedMode === 'THREE_TIER'
+                ? AI_MODE_CONFIG.THREE_TIER.selectedBg
+                : AI_MODE_CONFIG.auto.selectedBg
             }`}
           initial={false}
           animate={{
-            left: selectedMode === 'LOCAL' ? '4px' : selectedMode === 'GOOGLE_ONLY' ? '50%' : '50%',
+            left: selectedMode === 'LOCAL' ? '4px' : selectedMode === 'GOOGLE_ONLY' ? '50%' : selectedMode === 'THREE_TIER' ? '50%' : '50%',
             width:
-              selectedMode === 'LOCAL' ? 'calc(50% - 4px)' : selectedMode === 'GOOGLE_ONLY' ? 'calc(50% - 4px)' : 'calc(50% - 4px)',
+              selectedMode === 'LOCAL' ? 'calc(50% - 4px)' : selectedMode === 'GOOGLE_ONLY' ? 'calc(50% - 4px)' : selectedMode === 'THREE_TIER' ? 'calc(50% - 4px)' : 'calc(50% - 4px)',
           }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         />
@@ -170,6 +182,11 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
         {selectedMode === 'LOCAL' && (
           <div className='mt-1 text-xs text-gray-500'>
             ⚡ 빠른 응답과 기본적인 시스템 질의에 최적화
+          </div>
+        )}
+        {selectedMode === 'THREE_TIER' && (
+          <div className='mt-1 text-xs text-gray-500'>
+            🤖 로컬 → GCP → Google AI 폴백 폴리시
           </div>
         )}
         {selectedMode === 'auto' && (

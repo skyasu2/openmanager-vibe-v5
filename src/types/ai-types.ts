@@ -16,7 +16,7 @@
  * - GOOGLE_ONLY: Google AI만 사용 (자연어 처리에서만 사용자 선택)
  * - auto: 자동 모드 선택
  */
-export type AIMode = 'LOCAL' | 'GOOGLE_ONLY' | 'auto';
+export type AIMode = 'LOCAL' | 'GOOGLE_ONLY' | 'THREE_TIER' | 'auto';
 
 /**
  * AI 엔진 타입 정의

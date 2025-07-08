@@ -57,6 +57,16 @@ const AI_MODE_CONFIGS: Record<AIMode, AIModeConfig> = {
     enableCache: false, // 실시간 응답 우선
     optimizationLevel: 'low',
   },
+  THREE_TIER: {
+    name: 'THREE_TIER',
+    description: '3계층 폴백 전략 (로컬 → GCP → Google AI)',
+    primaryEngine: 'three-tier-router',
+    fallbackEngines: ['supabase-rag', 'korean-ai', 'google-ai'],
+    maxProcessingTime: VERCEL_OPTIMIZATION.isVercel ? 12000 : 20000,
+    priority: 85, // 85% 3계층 우선순위
+    enableCache: true,
+    optimizationLevel: 'medium',
+  },
   auto: {
     name: 'auto',
     description: '질의 내용에 따라 자동으로 최적 AI 엔진 선택',
@@ -84,6 +94,7 @@ export class AIRoutingSystem {
     modeUsage: {
       LOCAL: 0,
       GOOGLE_ONLY: 0,
+      THREE_TIER: 0,
       auto: 0,
     },
     lastUpdated: KoreanTimeUtil.now(),
@@ -142,7 +153,7 @@ export class AIRoutingSystem {
    * @returns 정규화된 모드
    */
   public validateAndNormalizeMode(mode: string): AIMode {
-    const supportedModes: AIMode[] = ['LOCAL', 'GOOGLE_ONLY', 'auto'];
+    const supportedModes: AIMode[] = ['LOCAL', 'GOOGLE_ONLY', 'THREE_TIER', 'auto'];
 
     // 레거시 모드 변환 맵
     const modeMap: Record<string, AIMode> = {
@@ -290,6 +301,7 @@ export class AIRoutingSystem {
       modeUsage: {
         LOCAL: 0,
         GOOGLE_ONLY: 0,
+        THREE_TIER: 0,
         auto: 0,
       },
       lastUpdated: KoreanTimeUtil.now(),
