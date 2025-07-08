@@ -72,14 +72,56 @@ export interface FallbackScenario {
  */
 export class NaturalLanguageErrorHandler {
     private static instance: NaturalLanguageErrorHandler;
+    private errorPatterns: Map<string, NLErrorCode>;
+    private initialized = false;
 
-    private constructor() { }
+    constructor() {
+        this.errorPatterns = new Map();
+        this.initializeErrorPatterns();
+        console.log('🚨 NaturalLanguageErrorHandler v2.0 - GCP Functions 연동');
+    }
 
     public static getInstance(): NaturalLanguageErrorHandler {
         if (!NaturalLanguageErrorHandler.instance) {
             NaturalLanguageErrorHandler.instance = new NaturalLanguageErrorHandler();
         }
         return NaturalLanguageErrorHandler.instance;
+    }
+
+    /**
+     * 🔧 오류 패턴 초기화
+     */
+    private initializeErrorPatterns(): void {
+        // API 키 관련
+        this.errorPatterns.set('api.*key.*missing', NLErrorCode.GOOGLE_AI_API_KEY_MISSING);
+        this.errorPatterns.set('unauthorized', NLErrorCode.GOOGLE_AI_API_KEY_MISSING);
+
+        // 할당량 관련
+        this.errorPatterns.set('quota.*exceeded', NLErrorCode.GOOGLE_AI_QUOTA_EXCEEDED);
+        this.errorPatterns.set('rate.*limit', NLErrorCode.GOOGLE_AI_QUOTA_EXCEEDED);
+
+        // 네트워크 관련
+        this.errorPatterns.set('network.*error', NLErrorCode.GOOGLE_AI_NETWORK_ERROR);
+        this.errorPatterns.set('connection.*failed', NLErrorCode.MCP_CONNECTION_FAILED);
+        this.errorPatterns.set('fetch.*failed', NLErrorCode.MCP_CONNECTION_FAILED);
+
+        // 타임아웃 관련
+        this.errorPatterns.set('timeout', NLErrorCode.SYSTEM_TIMEOUT);
+        this.errorPatterns.set('aborted', NLErrorCode.SYSTEM_TIMEOUT);
+
+        // MCP 관련
+        this.errorPatterns.set('mcp.*connection', NLErrorCode.MCP_CONNECTION_FAILED);
+        this.errorPatterns.set('mcp.*failed', NLErrorCode.MCP_CONNECTION_FAILED);
+
+        // RAG 관련
+        this.errorPatterns.set('rag.*index', NLErrorCode.RAG_INDEX_ERROR);
+        this.errorPatterns.set('vector.*database', NLErrorCode.RAG_INDEX_ERROR);
+
+        // 한국어 AI 관련
+        this.errorPatterns.set('korean.*ai.*unavailable', NLErrorCode.KOREAN_AI_UNAVAILABLE);
+        this.errorPatterns.set('korean.*engine.*failed', NLErrorCode.KOREAN_AI_UNAVAILABLE);
+
+        this.initialized = true;
     }
 
     /**

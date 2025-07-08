@@ -1,5 +1,5 @@
 /**
- * 🚀 GCP Functions AI 서비스 v1.0
+ * 🚀 GCP Functions AI 서비스 v1.1
  * 
  * OpenManager AI 엔진 이전 프로젝트
  * 베르셀 부하 75% 감소 + AI 처리 성능 50% 향상
@@ -73,7 +73,8 @@ export class GCPFunctionsService {
     private stats: UsageStats;
     private initialized = false;
 
-    private constructor() {
+    // 생성자를 public으로 변경하여 직접 인스턴스 생성 허용
+    constructor(customConfig?: Partial<GCPFunctionsConfig>) {
         this.config = {
             enabled: process.env.GCP_FUNCTIONS_ENABLED === 'true',
             timeout: parseInt(process.env.GCP_FUNCTIONS_TIMEOUT || '8000'),
@@ -89,6 +90,7 @@ export class GCPFunctionsService {
                 enabled: process.env.GCP_VM_CONTEXT_ENABLED === 'true',
                 endpoint: process.env.GCP_VM_CONTEXT_URL || 'http://34.64.213.108:10001',
             },
+            ...customConfig // 사용자 정의 설정 오버라이드
         };
 
         this.stats = {
@@ -138,6 +140,92 @@ export class GCPFunctionsService {
             systemLogger.error('❌ GCP Functions Service 초기화 실패:', error);
             throw error;
         }
+    }
+
+    /**
+     * 🎯 개별 Function 호출 메서드 (신규 추가)
+     */
+    public async callFunction(functionName: string, data: any): Promise<GCPResponse> {
+        if (!this.config.enabled) {
+            throw new Error('GCP Functions가 비활성화되어 있습니다');
+        }
+
+        if (!this.initialized) {
+            await this.initialize();
+        }
+
+        const endpoint = this.getFunctionEndpoint(functionName);
+        if (!endpoint) {
+            throw new Error(`Unknown function: ${functionName}`);
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Vercel-Request': 'true',
+                    'User-Agent': 'OpenManager-Vercel/1.1',
+                },
+                body: JSON.stringify(data),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+
+            // 통계 업데이트
+            this.updateFunctionStats(functionName);
+
+            return result;
+
+        } catch (error) {
+            clearTimeout(timeoutId);
+            systemLogger.error(`GCP Function ${functionName} 호출 실패:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * 🗺️ Function 이름에서 엔드포인트 URL 가져오기
+     */
+    private getFunctionEndpoint(functionName: string): string | null {
+        const endpointMap: Record<string, string> = {
+            'ai-gateway': this.config.endpoints.aiGateway,
+            'korean-nlp': this.config.endpoints.koreanNLP,
+            'rule-engine': this.config.endpoints.ruleEngine,
+            'basic-ml': this.config.endpoints.basicML,
+        };
+
+        return endpointMap[functionName] || null;
+    }
+
+    /**
+     * 📊 Function별 통계 업데이트
+     */
+    private updateFunctionStats(functionName: string): void {
+        switch (functionName) {
+            case 'korean-nlp':
+                this.stats.engineUsage.korean++;
+                break;
+            case 'rule-engine':
+                this.stats.engineUsage.rule++;
+                break;
+            case 'basic-ml':
+                this.stats.engineUsage.ml++;
+                break;
+            default:
+                break;
+        }
+        this.stats.totalRequests++;
     }
 
     /**
@@ -198,12 +286,14 @@ export class GCPFunctionsService {
                 body: JSON.stringify({
                     query: request.query,
                     mode: request.mode || 'auto',
+                    data: request.data,
                     context: request.context,
-                    sessionId: request.sessionId,
-                    requestId: `vercel-${Date.now()}`,
-                    timestamp: Date.now(),
+                    options: {
+                        timeout: this.config.timeout,
+                        maxRetries: this.config.maxRetries,
+                    },
                 }),
-                signal: controller.signal,
+                signal: controller.signal
             });
 
             clearTimeout(timeoutId);
@@ -212,11 +302,7 @@ export class GCPFunctionsService {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
-            const data = await response.json();
-            this.stats.freeQuotaUsage.calls++;
-            this.stats.freeQuotaUsage.network += this.estimateNetworkUsage(request, data);
-
-            return data;
+            return await response.json();
 
         } catch (error) {
             clearTimeout(timeoutId);
@@ -228,62 +314,51 @@ export class GCPFunctionsService {
      * 🏥 헬스체크
      */
     private async healthCheck(): Promise<void> {
-        try {
-            const response = await fetch(`${this.config.endpoints.aiGateway}/health`, {
-                method: 'GET',
-                headers: {
-                    'X-Vercel-Health-Check': 'true',
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`Health check failed: ${response.statusText}`);
+        const healthPromises = Object.entries(this.config.endpoints).map(
+            async ([name, url]) => {
+                try {
+                    const response = await fetch(url, {
+                        method: 'GET',
+                        timeout: 3000,
+                    });
+                    return { name, status: response.ok };
+                } catch {
+                    return { name, status: false };
+                }
             }
+        );
 
-            const data = await response.json();
-            systemLogger.info('🏥 GCP Functions 헬스체크 성공:', data);
+        const results = await Promise.all(healthPromises);
+        const failedServices = results.filter(r => !r.status);
 
-        } catch (error) {
-            systemLogger.error('🚨 GCP Functions 헬스체크 실패:', error);
-            throw error;
+        if (failedServices.length > 0) {
+            systemLogger.warn(`GCP Functions 일부 서비스 불안정:`, failedServices);
         }
     }
 
     /**
-     * 📊 GCP 응답 처리
+     * 🔄 GCP 응답을 AI 응답으로 변환
      */
     private processGCPResponse(gcpResponse: GCPResponse, startTime: number): AIResponse {
         const processingTime = Date.now() - startTime;
 
-        // 엔진 사용량 통계 업데이트
-        if (gcpResponse.engine?.includes('korean')) {
-            this.stats.engineUsage.korean++;
-        } else if (gcpResponse.engine?.includes('rule')) {
-            this.stats.engineUsage.rule++;
-        } else if (gcpResponse.engine?.includes('ml')) {
-            this.stats.engineUsage.ml++;
-        }
-
         return {
             success: gcpResponse.success,
             response: gcpResponse.response,
-            confidence: gcpResponse.confidence,
-            engine: `gcp-${gcpResponse.engine}`,
+            confidence: gcpResponse.confidence || 0.8,
             processingTime,
-            sources: gcpResponse.sources || [`gcp-${gcpResponse.engine}`],
-            suggestions: gcpResponse.suggestions,
+            sources: gcpResponse.sources || ['gcp-functions'],
             metadata: {
-                ...gcpResponse.metadata,
-                gcpFunctions: true,
-                networkLatency: processingTime - (gcpResponse.processingTime || 0),
-                totalProcessingTime: processingTime,
-                architecture: '3-tier-gcp',
+                engine: gcpResponse.engine,
+                timestamp: new Date().toISOString(),
+                gcpProcessingTime: gcpResponse.processingTime || 0,
+                vercelProcessingTime: processingTime,
             },
         };
     }
 
     /**
-     * 📈 통계 업데이트
+     * 📊 통계 업데이트
      */
     private updateStats(response: AIResponse, startTime: number): void {
         const responseTime = Date.now() - startTime;
@@ -299,53 +374,52 @@ export class GCPFunctionsService {
             (this.stats.successRate * (this.stats.totalRequests - 1) + successCount * 100) /
             this.stats.totalRequests;
 
-        // 컴퓨팅 사용량 추정 (GB-초)
+        // 할당량 사용량 추정
+        this.stats.freeQuotaUsage.calls++;
+        this.stats.freeQuotaUsage.network += this.estimateNetworkUsage(response as any, response);
         this.stats.freeQuotaUsage.compute += this.estimateComputeUsage(responseTime);
+
+        // 백분율 계산 (무료 한도 기준)
+        this.stats.freeQuotaUsage.callsPercent = (this.stats.freeQuotaUsage.calls / 2000000) * 100;
+        this.stats.freeQuotaUsage.computePercent = (this.stats.freeQuotaUsage.compute / 400000) * 100;
+        this.stats.freeQuotaUsage.networkPercent = (this.stats.freeQuotaUsage.network / (5 * 1024 * 1024 * 1024)) * 100;
     }
 
     /**
-     * 📊 네트워크 사용량 추정
+     * 🌐 네트워크 사용량 추정
      */
     private estimateNetworkUsage(request: AIRequest, response: any): number {
         const requestSize = JSON.stringify(request).length;
         const responseSize = JSON.stringify(response).length;
-        return Math.ceil((requestSize + responseSize) / 1024 / 1024 * 100) / 100; // MB 단위
+        return requestSize + responseSize; // bytes
     }
 
     /**
      * 💻 컴퓨팅 사용량 추정
      */
     private estimateComputeUsage(responseTime: number): number {
-        // 256MB 메모리 × 응답시간(초) = GB-초
-        return (256 / 1024) * (responseTime / 1000);
+        // 256MB 메모리 기준으로 GB-초 계산
+        return (0.256 * responseTime) / 1000;
     }
 
     /**
      * 📊 사용량 통계 조회
      */
     public getUsageStats(): UsageStats {
-        return {
-            ...this.stats,
-            freeQuotaUsage: {
-                ...this.stats.freeQuotaUsage,
-                // 무료 한도 대비 사용률 계산
-                callsPercent: (this.stats.freeQuotaUsage.calls / 2000000) * 100, // 2M calls/month
-                computePercent: (this.stats.freeQuotaUsage.compute / 400000) * 100, // 400K GB-seconds/month
-                networkPercent: (this.stats.freeQuotaUsage.network / 25000) * 100, // 25GB/month
-            },
-        };
+        return { ...this.stats };
     }
 
     /**
-     * 🌐 서비스 상태 조회
+     * 🔍 서비스 상태 조회
      */
     public getServiceStatus() {
         return {
+            name: 'GCP Functions Service v1.1',
             enabled: this.config.enabled,
             initialized: this.initialized,
             endpoints: this.config.endpoints,
             vmContext: this.config.vmContext,
-            stats: this.getUsageStats(),
+            stats: this.stats,
             config: {
                 timeout: this.config.timeout,
                 maxRetries: this.config.maxRetries,
@@ -355,15 +429,15 @@ export class GCPFunctionsService {
     }
 
     /**
-     * 🔧 설정 업데이트
+     * ⚙️ 설정 업데이트
      */
     public updateConfig(newConfig: Partial<GCPFunctionsConfig>): void {
         this.config = { ...this.config, ...newConfig };
-        systemLogger.info('🔧 GCP Functions 설정 업데이트:', newConfig);
+        systemLogger.info('GCP Functions Service 설정 업데이트');
     }
 
     /**
-     * 📊 사용량 리셋 (월별)
+     * 🔄 통계 초기화
      */
     public resetUsageStats(): void {
         this.stats = {
@@ -385,6 +459,6 @@ export class GCPFunctionsService {
                 networkPercent: 0,
             },
         };
-        systemLogger.info('📊 GCP Functions 사용량 통계 초기화');
+        systemLogger.info('GCP Functions Service 통계 초기화');
     }
 } 
