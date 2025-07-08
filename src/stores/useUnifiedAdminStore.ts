@@ -322,6 +322,8 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         isLocked: state.isLocked,
         lockoutEndTime: state.lockoutEndTime,
       }),
+      // SSR 안전성을 위한 skipHydration 추가
+      skipHydration: true,
     }
   )
 );

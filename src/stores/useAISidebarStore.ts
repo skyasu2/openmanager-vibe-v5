@@ -187,6 +187,8 @@ export const useAISidebarStore = create<AISidebarState>()(
           functionTab: state.functionTab,
           selectedContext: state.selectedContext,
         }),
+        // SSR 안전성을 위한 skipHydration 추가
+        skipHydration: true,
       }
     ),
     { name: 'AISidebarStore' }

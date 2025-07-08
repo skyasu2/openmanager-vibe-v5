@@ -35,7 +35,8 @@
       "Bash(claude-usage-monitor)",
       "Bash(python:*)",
       "Bash(sed:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }

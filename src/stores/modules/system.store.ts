@@ -163,6 +163,8 @@ export const useSystemStore = create<SystemState>()(
           uptime: state.uptime,
           memory: state.memory,
         }),
+        // SSR 안전성을 위한 skipHydration 추가
+        skipHydration: true,
       }
     )
   )

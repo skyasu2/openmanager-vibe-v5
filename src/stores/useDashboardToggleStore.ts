@@ -83,6 +83,8 @@ export const useDashboardToggleStore = create<DashboardToggleState>()(
         {
             name: 'dashboard-toggle-storage',
             version: 1,
+            // SSR 안전성을 위한 skipHydration 추가
+            skipHydration: true,
         }
     )
 ); 
