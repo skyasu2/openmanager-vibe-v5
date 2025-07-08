@@ -530,4 +530,73 @@ export class NaturalLanguageErrorHandler {
 
         return recommendations;
     }
+
+    /**
+     * 🚨 에러 처리 메서드 (기존 코드와의 호환성을 위해)
+     */
+    public handleError(
+        code: string,
+        mode: NaturalLanguageMode | string,
+        context?: any
+    ): NLErrorInfo {
+        // 문자열 모드를 NaturalLanguageMode로 변환
+        const normalizedMode = this.normalizeMode(mode);
+
+        // 에러 코드에 따른 에러 처리
+        switch (code) {
+            case 'EMPTY_QUERY':
+                return {
+                    code: NLErrorCode.EMPTY_QUERY,
+                    severity: ErrorSeverity.LOW,
+                    message: '빈 쿼리',
+                    userMessage: '질문을 입력해주세요.',
+                    suggestions: ['질문을 입력해주세요'],
+                    retryable: true,
+                    metadata: context
+                };
+
+            case 'INVALID_MODE':
+                return {
+                    code: NLErrorCode.INVALID_MODE,
+                    severity: ErrorSeverity.MEDIUM,
+                    message: '잘못된 모드',
+                    userMessage: '잘못된 AI 모드가 지정되었습니다.',
+                    suggestions: ['LOCAL 또는 GOOGLE_AI 모드를 사용하세요'],
+                    retryable: false,
+                    metadata: context
+                };
+
+            case 'PROCESSING_ERROR':
+                return {
+                    code: NLErrorCode.INTERNAL_ERROR,
+                    severity: ErrorSeverity.HIGH,
+                    message: '처리 오류',
+                    userMessage: 'AI 처리 중 오류가 발생했습니다.',
+                    suggestions: ['잠시 후 다시 시도해주세요'],
+                    retryable: true,
+                    metadata: context
+                };
+
+            default:
+                return this.createGenericError(`Unknown error code: ${code}`);
+        }
+    }
+
+    /**
+     * 🔄 모드 정규화 메서드
+     */
+    private normalizeMode(mode: string | NaturalLanguageMode): NaturalLanguageMode {
+        if (typeof mode === 'string') {
+            switch (mode.toUpperCase()) {
+                case 'LOCAL':
+                    return 'LOCAL';
+                case 'GOOGLE_AI':
+                case 'GOOGLE_ONLY':
+                    return 'GOOGLE_AI';
+                default:
+                    return 'LOCAL';
+            }
+        }
+        return mode;
+    }
 } 

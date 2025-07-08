@@ -317,10 +317,15 @@ export class GCPFunctionsService {
         const healthPromises = Object.entries(this.config.endpoints).map(
             async ([name, url]) => {
                 try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 3000);
+
                     const response = await fetch(url, {
                         method: 'GET',
-                        timeout: 3000,
+                        signal: controller.signal
                     });
+
+                    clearTimeout(timeoutId);
                     return { name, status: response.ok };
                 } catch {
                     return { name, status: false };

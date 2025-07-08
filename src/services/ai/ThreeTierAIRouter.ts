@@ -570,4 +570,59 @@ export class ThreeTierAIRouter {
             },
         };
     }
+
+    /**
+     * 🔍 시스템 상태 조회
+     */
+    public getSystemStatus() {
+        return this.getRouterStatus();
+    }
+
+    /**
+     * 🚀 GCP 서비스 조회
+     */
+    public getGCPService() {
+        return this.gcpFunctionsService;
+    }
+
+    /**
+     * 🏥 헬스 체크
+     */
+    public async healthCheck() {
+        const healthStatus = {
+            overall: true,
+            services: {
+                gcp: false,
+                google: false,
+                local: false,
+            },
+            timestamp: new Date().toISOString(),
+        };
+
+        try {
+            // GCP Functions 헬스 체크
+            const gcpStatus = this.gcpFunctionsService.getServiceStatus();
+            healthStatus.services.gcp = gcpStatus.enabled && gcpStatus.initialized;
+        } catch (error) {
+            healthStatus.services.gcp = false;
+        }
+
+        try {
+            // Google AI 헬스 체크
+            healthStatus.services.google = this.googleAIService !== null;
+        } catch (error) {
+            healthStatus.services.google = false;
+        }
+
+        try {
+            // Local AI 헬스 체크
+            healthStatus.services.local = true; // 항상 사용 가능
+        } catch (error) {
+            healthStatus.services.local = false;
+        }
+
+        healthStatus.overall = Object.values(healthStatus.services).some(status => status);
+
+        return healthStatus;
+    }
 } 

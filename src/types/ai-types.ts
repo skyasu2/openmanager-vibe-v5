@@ -72,6 +72,7 @@ export interface AIRequest {
   // 추가 프로퍼티
   engineType?: string;
   sessionId?: string;
+  data?: any;
 }
 
 export interface AIResponse {
@@ -120,6 +121,12 @@ export interface AIResponseMetadata {
   fallbackUsed?: boolean;
   threeTierRouter?: boolean;
   totalProcessingTime?: number;
+  engine?: string;
+  // 추가 프로퍼티들
+  architecture?: string;
+  gcpProcessingTime?: number;
+  vercelProcessingTime?: number;
+  tierProcessingTime?: number;
 }
 
 export interface PerformanceMetrics {

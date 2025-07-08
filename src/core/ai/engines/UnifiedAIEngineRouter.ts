@@ -339,6 +339,13 @@ export class UnifiedAIEngineRouter {
   }
 
   /**
+   * 📊 상태 조회 (별명 메서드)
+   */
+  public getStatus() {
+    return this.getSystemStatus();
+  }
+
+  /**
    * 🔍 쿼리 타입 분석
    */
   private analyzeQueryType(query: string) {
