@@ -1,0 +1,46 @@
+[
+  {
+    "timestamp": "2025-07-09 07:25:36",
+    "session_id": "session_1752013536",
+    "session_duration": 1.3e-05,
+    "claude_processes": 3,
+    "tokens": {
+      "input_tokens": 45000,
+      "output_tokens": 24000,
+      "total_tokens": 69000
+    }
+  },
+  {
+    "timestamp": "2025-07-09 07:25:44",
+    "session_id": "session_1752013536",
+    "session_duration": 8.257891,
+    "claude_processes": 3,
+    "tokens": {
+      "input_tokens": 45000,
+      "output_tokens": 24000,
+      "total_tokens": 69000
+    }
+  },
+  {
+    "timestamp": "2025-07-09 07:25:49",
+    "session_id": "session_1752013536",
+    "session_duration": 13.269748,
+    "claude_processes": 3,
+    "tokens": {
+      "input_tokens": 45000,
+      "output_tokens": 24000,
+      "total_tokens": 69000
+    }
+  },
+  {
+    "timestamp": "2025-07-09 07:25:54",
+    "session_id": "session_1752013536",
+    "session_duration": 18.284403,
+    "claude_processes": 3,
+    "tokens": {
+      "input_tokens": 45000,
+      "output_tokens": 24000,
+      "total_tokens": 69000
+    }
+  }
+]

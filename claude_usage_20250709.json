@@ -1,0 +1,35 @@
+[
+  {
+    "timestamp": "2025-07-09T07:24:39.981895",
+    "session_id": "session_1752013479",
+    "input_tokens": 1,
+    "output_tokens": 1,
+    "tool_calls": 27,
+    "api_requests": 0,
+    "session_duration": 0.013618,
+    "memory_usage": 870,
+    "cpu_usage": 0.0
+  },
+  {
+    "timestamp": "2025-07-09T07:24:44.995724",
+    "session_id": "session_1752013479",
+    "input_tokens": 173,
+    "output_tokens": 1,
+    "tool_calls": 27,
+    "api_requests": 0,
+    "session_duration": 5.027437,
+    "memory_usage": 871,
+    "cpu_usage": 0.0
+  },
+  {
+    "timestamp": "2025-07-09T07:24:50.011356",
+    "session_id": "session_1752013479",
+    "input_tokens": 348,
+    "output_tokens": 1,
+    "tool_calls": 27,
+    "api_requests": 0,
+    "session_duration": 10.043067,
+    "memory_usage": 870,
+    "cpu_usage": 0.0
+  }
+]

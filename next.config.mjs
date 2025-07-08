@@ -15,52 +15,51 @@ const nextConfig = {
         ignoreDuringBuilds: false,
     },
 
-    // 서버 외부 패키지 설정 (Next.js 15 통합 방식)
-    serverExternalPackages: [
-        '@supabase/supabase-js',
-        '@google/generative-ai',
-        'ioredis',
-        'redis',
-        '@redis/client',
-        'webworker-threads',
-        'generic-pool',
-        'cluster',
-        'denque',
-        'systeminformation',
-        'node-cron',
-        'pino',
-        'pino-pretty',
-        'winston',
-        'winston-daily-rotate-file',
-        'sharp',
-        'canvas',
-        'pdf-parse',
-        '@xenova/transformers',
-        'natural',
-        'compromise',
-        'fuzzyset.js',
-        'fuse.js',
-        'ml-kmeans',
-        'ml-pca',
-        'ml-regression',
-        'simple-statistics',
-        'reflect-metadata',
-        'uuid',
-        'crypto-js',
-    ],
+    // 서버 외부 패키지 설정 (Next.js 14 호환 방식)
+    experimental: {
+        serverComponentsExternalPackages: [
+            '@supabase/supabase-js',
+            '@google/generative-ai',
+            'ioredis',
+            'redis',
+            '@redis/client',
+            'webworker-threads',
+            'generic-pool',
+            'cluster',
+            'denque',
+            'systeminformation',
+            'node-cron',
+            'pino',
+            'pino-pretty',
+            'winston',
+            'winston-daily-rotate-file',
+            'sharp',
+            'canvas',
+            'pdf-parse',
+            '@xenova/transformers',
+            'natural',
+            'compromise',
+            'fuzzyset.js',
+            'fuse.js',
+            'ml-kmeans',
+            'ml-pca',
+            'ml-regression',
+            'simple-statistics',
+            'reflect-metadata',
+            'uuid',
+            'crypto-js',
+        ],
+        // CSS 최적화 (빌드 시간 단축)
+        optimizeCss: true,
+        // SWC 트랜스폼 강제 사용 (속도 향상)
+        forceSwcTransforms: true,
+    },
 
     // 🚀 패키지 트랜스파일 설정 (충돌 방지)
     transpilePackages: [
         // rxjs 제외 - serverExternalPackages와 충돌 방지
     ],
 
-    // 🚀 SWC 및 실험적 기능 최적화 (Next.js 15 호환)
-    experimental: {
-        // CSS 최적화 (빌드 시간 단축)
-        optimizeCss: true,
-        // SWC 트랜스폼 강제 사용 (속도 향상)
-        forceSwcTransforms: true,
-    },
 
     // 🚫 정적 최적화 비활성화
     poweredByHeader: false,
@@ -131,12 +130,19 @@ const nextConfig = {
             };
         }
 
+        // ONNX 바이너리 파일 제외
+        config.module.rules.push({
+            test: /\.node$/,
+            use: 'ignore-loader',
+        });
+
         // 동적 import 경고 억제
         config.ignoreWarnings = [
             /Critical dependency: the request of a dependency is an expression/,
             /Module not found: Can't resolve 'fs'/,
             /Module not found: Can't resolve 'net'/,
             /Module not found: Can't resolve 'tls'/,
+            /Can't resolve '\.\/.*\.node'/,
         ];
 
         return config;

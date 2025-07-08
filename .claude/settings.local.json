@@ -36,7 +36,15 @@
       "Bash(python:*)",
       "Bash(sed:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(tmux new-session:*)",
+      "Bash(tmux attach:*)",
+      "Bash(tmux list-sessions:*)",
+      "Bash(chmod:*)",
+      "Bash(pip3 install:*)",
+      "Bash(tmux capture-pane:*)",
+      "Bash(timeout 30 npm run dev)",
+      "Bash(timeout 180 npm run build)"
     ],
     "deny": []
   }
