@@ -1,6 +1,6 @@
 /**
  * 🖥️ 서버 인스턴스 관리자 v1.0
- * 
+ *
  * 책임:
  * - 서버 인스턴스 생성
  * - 서버 스펙 생성
@@ -8,328 +8,333 @@
  * - 서버 상태 관리
  */
 
-import type {
-    ServerInstance
-} from '@/types/data-generator';
+import type { ServerInstance } from '@/types/data-generator';
 
 export class ServerInstanceManager {
-    private servers: Map<string, ServerInstance> = new Map();
+  private servers: Map<string, ServerInstance> = new Map();
 
-    /**
-     * 서버 인스턴스 생성
-     */
-    createServer(
-        id: string,
-        name: string,
-        type: ServerInstance['type'],
-        location: string,
-        role: ServerInstance['role'] = 'standalone',
-        environment: ServerInstance['environment'] = 'production'
-    ): ServerInstance {
-        const now = new Date().toISOString();
+  /**
+   * 서버 인스턴스 생성
+   */
+  createServer(
+    id: string,
+    name: string,
+    type: ServerInstance['type'],
+    location: string,
+    role: ServerInstance['role'] = 'standalone',
+    environment: ServerInstance['environment'] = 'production'
+  ): ServerInstance {
+    const now = new Date().toISOString();
 
-        const server: ServerInstance = {
-            id,
-            name,
-            type,
-            role,
-            location,
-            status: 'running',
-            environment,
-            cpu: 0,
-            memory: 0,
-            disk: 0,
-            network: 0,
-            uptime: 0,
-            lastCheck: now,
-            region: 'ap-northeast-2',
-            version: '1.0.0',
-            tags: [type, environment],
-            alerts: 0,
-            lastUpdated: now,
-            provider: 'AWS',
-            specs: this.generateServerSpecs(type),
-            metrics: {
-                cpu: 0,
-                memory: 0,
-                disk: 0,
-                network: { in: 0, out: 0 },
-                requests: 0,
-                errors: 0,
-                uptime: 0,
-                customMetrics: this.generateCustomMetrics(type, role),
-            },
-            health: {
-                score: 100,
-                trend: [100, 100, 100, 100, 100],
-                status: 'running' as const,
-                issues: [],
-                lastChecked: now,
-            },
-            security: {
-                level: 'enhanced',
-                lastSecurityScan: now,
-                vulnerabilities: 0,
-                patchLevel: '2024.12',
-            },
-        };
+    const server: ServerInstance = {
+      id,
+      name,
+      type,
+      role,
+      location,
+      status: 'running',
+      environment,
+      cpu: 0,
+      memory: 0,
+      disk: 0,
+      network: 0,
+      uptime: 0,
+      lastCheck: now,
+      region: 'ap-northeast-2',
+      version: '1.0.0',
+      tags: [type, environment],
+      alerts: 0,
+      lastUpdated: now,
+      provider: 'AWS',
+      specs: this.generateServerSpecs(type),
+      metrics: {
+        cpu: 0,
+        memory: 0,
+        disk: 0,
+        network: { in: 0, out: 0 },
+        requests: 0,
+        errors: 0,
+        uptime: 0,
+        customMetrics: this.generateCustomMetrics(type, role),
+      },
+      health: {
+        score: 100,
+        trend: [100, 100, 100, 100, 100],
+        status: 'running' as const,
+        issues: [],
+        lastChecked: now,
+      },
+      security: {
+        level: 'enhanced',
+        lastSecurityScan: now,
+        vulnerabilities: 0,
+        patchLevel: '2024.12',
+      },
+    };
 
-        this.servers.set(id, server);
-        return server;
+    this.servers.set(id, server);
+    return server;
+  }
+
+  /**
+   * 서버 스펙 생성
+   */
+  private generateServerSpecs(type: ServerInstance['type']) {
+    const baseSpecs = {
+      web: {
+        cpu: { cores: 4, model: 'Intel Xeon E5-2680v4' },
+        memory: { total: 16, type: 'DDR4', speed: 2400 },
+        disk: { total: 500, type: 'SSD', iops: 3000 },
+        network: { bandwidth: 1000, latency: 5 },
+      },
+      api: {
+        cpu: { cores: 8, model: 'Intel Xeon E5-2680v4' },
+        memory: { total: 32, type: 'DDR4', speed: 2400 },
+        disk: { total: 1000, type: 'NVMe SSD', iops: 5000 },
+        network: { bandwidth: 10000, latency: 2 },
+      },
+      database: {
+        cpu: {
+          cores: 16,
+          model: 'Intel Xeon Gold 6252N',
+          architecture: 'x86_64',
+        },
+        memory: { total: 128, type: 'DDR4 ECC', speed: 3200 },
+        disk: { total: 2000, type: 'NVMe SSD RAID 10', iops: 10000 },
+        network: { bandwidth: 10000, latency: 1 },
+      },
+      cache: {
+        cpu: { cores: 8, model: 'AMD EPYC 7551P' },
+        memory: { total: 64, type: 'DDR4', speed: 2666 },
+        disk: { total: 200, type: 'NVMe SSD', iops: 8000 },
+        network: { bandwidth: 10000, latency: 1 },
+      },
+      queue: {
+        cpu: { cores: 4, model: 'Intel Core i7-11700K' },
+        memory: { total: 16, type: 'DDR4', speed: 3200 },
+        disk: { total: 500, type: 'SSD', iops: 4000 },
+        network: { bandwidth: 1000, latency: 3 },
+      },
+      cdn: {
+        cpu: { cores: 2, model: 'Intel Xeon D-1548' },
+        memory: { total: 8, type: 'DDR4', speed: 2400 },
+        disk: { total: 100, type: 'SSD', iops: 2000 },
+        network: { bandwidth: 100000, latency: 10 },
+      },
+      gpu: {
+        cpu: { cores: 24, model: 'Intel Xeon Platinum 8280' },
+        memory: { total: 256, type: 'DDR4 ECC', speed: 2933 },
+        disk: { total: 4000, type: 'NVMe SSD', iops: 15000 },
+        network: { bandwidth: 25000, latency: 1 },
+        gpu: { count: 4, model: 'NVIDIA A100 80GB', memory: 80 },
+      },
+      storage: {
+        cpu: { cores: 12, model: 'Intel Xeon Silver 4214' },
+        memory: { total: 64, type: 'DDR4 ECC', speed: 2400 },
+        disk: { total: 10000, type: 'HDD RAID 6 + SSD Cache', iops: 2000 },
+        network: { bandwidth: 10000, latency: 2 },
+      },
+    };
+
+    const spec = (baseSpecs as any)[type];
+    return {
+      ...spec,
+      // 약간의 변동성 추가
+      cpu: {
+        ...spec.cpu,
+        cores: spec.cpu.cores + (Math.random() > 0.7 ? 2 : 0),
+      },
+      memory: {
+        ...spec.memory,
+        total: spec.memory.total * (0.8 + Math.random() * 0.4),
+      },
+      disk: {
+        ...spec.disk,
+        total: spec.disk.total * (0.8 + Math.random() * 0.4),
+        iops: spec.disk.iops! * (0.9 + Math.random() * 0.2),
+      },
+    };
+  }
+
+  /**
+   * 커스텀 메트릭 생성
+   */
+  private generateCustomMetrics(
+    type: ServerInstance['type'],
+    role: ServerInstance['role']
+  ) {
+    const customMetrics: Record<string, number> = {};
+
+    switch (type) {
+      case 'database':
+        customMetrics.replication_lag =
+          role === 'replica' ? Math.random() * 100 : 0;
+        customMetrics.connection_pool = 50 + Math.random() * 200;
+        break;
+      case 'cache':
+        customMetrics.cache_hit_ratio = 85 + Math.random() * 10;
+        break;
+      case 'gpu':
+        customMetrics.gpu_utilization = Math.random() * 100;
+        break;
+      case 'storage':
+        customMetrics.storage_iops = 1000 + Math.random() * 3000;
+        break;
+      case 'api':
+      case 'web':
+        customMetrics.vm_count = 5 + Math.floor(Math.random() * 15);
+        break;
     }
 
-    /**
-     * 서버 스펙 생성
-     */
-    private generateServerSpecs(type: ServerInstance['type']) {
-        const baseSpecs = {
-            web: {
-                cpu: { cores: 4, model: 'Intel Xeon E5-2680v4' },
-                memory: { total: 16, type: 'DDR4', speed: 2400 },
-                disk: { total: 500, type: 'SSD', iops: 3000 },
-                network: { bandwidth: 1000, latency: 5 },
-            },
-            api: {
-                cpu: { cores: 8, model: 'Intel Xeon E5-2680v4' },
-                memory: { total: 32, type: 'DDR4', speed: 2400 },
-                disk: { total: 1000, type: 'NVMe SSD', iops: 5000 },
-                network: { bandwidth: 10000, latency: 2 },
-            },
-            database: {
-                cpu: { cores: 16, model: 'Intel Xeon Gold 6252N', architecture: 'x86_64' },
-                memory: { total: 128, type: 'DDR4 ECC', speed: 3200 },
-                disk: { total: 2000, type: 'NVMe SSD RAID 10', iops: 10000 },
-                network: { bandwidth: 10000, latency: 1 },
-            },
-            cache: {
-                cpu: { cores: 8, model: 'AMD EPYC 7551P' },
-                memory: { total: 64, type: 'DDR4', speed: 2666 },
-                disk: { total: 200, type: 'NVMe SSD', iops: 8000 },
-                network: { bandwidth: 10000, latency: 1 },
-            },
-            queue: {
-                cpu: { cores: 4, model: 'Intel Core i7-11700K' },
-                memory: { total: 16, type: 'DDR4', speed: 3200 },
-                disk: { total: 500, type: 'SSD', iops: 4000 },
-                network: { bandwidth: 1000, latency: 3 },
-            },
-            cdn: {
-                cpu: { cores: 2, model: 'Intel Xeon D-1548' },
-                memory: { total: 8, type: 'DDR4', speed: 2400 },
-                disk: { total: 100, type: 'SSD', iops: 2000 },
-                network: { bandwidth: 100000, latency: 10 },
-            },
-            gpu: {
-                cpu: { cores: 24, model: 'Intel Xeon Platinum 8280' },
-                memory: { total: 256, type: 'DDR4 ECC', speed: 2933 },
-                disk: { total: 4000, type: 'NVMe SSD', iops: 15000 },
-                network: { bandwidth: 25000, latency: 1 },
-                gpu: { count: 4, model: 'NVIDIA A100 80GB', memory: 80 },
-            },
-            storage: {
-                cpu: { cores: 12, model: 'Intel Xeon Silver 4214' },
-                memory: { total: 64, type: 'DDR4 ECC', speed: 2400 },
-                disk: { total: 10000, type: 'HDD RAID 6 + SSD Cache', iops: 2000 },
-                network: { bandwidth: 10000, latency: 2 },
-            },
-        };
+    return customMetrics;
+  }
 
-        const spec = (baseSpecs as any)[type];
-        return {
-            ...spec,
-            // 약간의 변동성 추가
-            cpu: {
-                ...spec.cpu,
-                cores: spec.cpu.cores + (Math.random() > 0.7 ? 2 : 0),
-            },
-            memory: {
-                ...spec.memory,
-                total: spec.memory.total * (0.8 + Math.random() * 0.4),
-            },
-            disk: {
-                ...spec.disk,
-                total: spec.disk.total * (0.8 + Math.random() * 0.4),
-                iops: spec.disk.iops! * (0.9 + Math.random() * 0.2),
-            },
-        };
+  /**
+   * 서버 헬스 스코어 계산
+   */
+  private calculateServerHealth(server: ServerInstance): void {
+    const metrics = server.metrics;
+    if (!metrics) {
+      // metrics가 없으면 기본 health 설정
+      server.health = {
+        score: 50,
+        trend: [50, 50, 50, 50, 50],
+        status: 'warning',
+        issues: ['메트릭 데이터 없음'],
+        lastChecked: new Date().toISOString(),
+      };
+      return;
     }
 
-    /**
-     * 커스텀 메트릭 생성
-     */
-    private generateCustomMetrics(
-        type: ServerInstance['type'],
-        role: ServerInstance['role']
-    ) {
-        const customMetrics: Record<string, number> = {};
+    let score = 100;
+    const issues: string[] = [];
 
-        switch (type) {
-            case 'database':
-                customMetrics.replication_lag = role === 'replica' ? Math.random() * 100 : 0;
-                customMetrics.connection_pool = 50 + Math.random() * 200;
-                break;
-            case 'cache':
-                customMetrics.cache_hit_ratio = 85 + Math.random() * 10;
-                break;
-            case 'gpu':
-                customMetrics.gpu_utilization = Math.random() * 100;
-                break;
-            case 'storage':
-                customMetrics.storage_iops = 1000 + Math.random() * 3000;
-                break;
-            case 'api':
-            case 'web':
-                customMetrics.container_count = 5 + Math.floor(Math.random() * 15);
-                break;
-        }
-
-        return customMetrics;
+    // CPU 사용률 체크
+    if (metrics.cpu > 90) {
+      score -= 30;
+      issues.push('CPU 사용률 높음');
+    } else if (metrics.cpu > 80) {
+      score -= 15;
+      issues.push('CPU 사용률 주의');
     }
 
-    /**
-     * 서버 헬스 스코어 계산
-     */
-    private calculateServerHealth(server: ServerInstance): void {
-        const metrics = server.metrics;
-        if (!metrics) {
-            // metrics가 없으면 기본 health 설정
-            server.health = {
-                score: 50,
-                trend: [50, 50, 50, 50, 50],
-                status: 'warning',
-                issues: ['메트릭 데이터 없음'],
-                lastChecked: new Date().toISOString(),
-            };
-            return;
-        }
-
-        let score = 100;
-        const issues: string[] = [];
-
-        // CPU 사용률 체크
-        if (metrics.cpu > 90) {
-            score -= 30;
-            issues.push('CPU 사용률 높음');
-        } else if (metrics.cpu > 80) {
-            score -= 15;
-            issues.push('CPU 사용률 주의');
-        }
-
-        // 메모리 사용률 체크
-        if (metrics.memory > 95) {
-            score -= 25;
-            issues.push('메모리 부족');
-        } else if (metrics.memory > 85) {
-            score -= 10;
-            issues.push('메모리 사용률 높음');
-        }
-
-        // 디스크 사용률 체크
-        if (metrics.disk > 90) {
-            score -= 20;
-            issues.push('디스크 공간 부족');
-        }
-
-        // 에러율 체크 (안전한 접근)
-        const requests = (metrics as any).requests || 0;
-        const errors = (metrics as any).errors || 0;
-        const errorRate = requests > 0 ? errors / requests : 0;
-
-        if (errorRate > 0.1) {
-            score -= 25;
-            issues.push('높은 에러율');
-        } else if (errorRate > 0.05) {
-            score -= 10;
-            issues.push('에러율 주의');
-        }
-
-        // 업타임 체크 (안전한 접근)
-        const uptime = metrics.uptime || 0;
-        if (uptime < 12) {
-            score -= 15;
-            issues.push('짧은 업타임');
-        }
-
-        server.health = {
-            score: Math.max(0, score),
-            trend: [score, score, score, score, score], // 기본 트렌드
-            status: score < 50 ? 'error' : score < 80 ? 'warning' : 'running',
-            issues,
-            lastChecked: new Date().toISOString(),
-        };
-
-        // 상태 업데이트
-        if (score < 50) {
-            server.status = 'error';
-        } else if (score < 80) {
-            server.status = 'warning';
-        } else {
-            server.status = 'running';
-        }
+    // 메모리 사용률 체크
+    if (metrics.memory > 95) {
+      score -= 25;
+      issues.push('메모리 부족');
+    } else if (metrics.memory > 85) {
+      score -= 10;
+      issues.push('메모리 사용률 높음');
     }
 
-    /**
-     * 서버 목록 반환
-     */
-    getAllServers(): ServerInstance[] {
-        return Array.from(this.servers.values());
+    // 디스크 사용률 체크
+    if (metrics.disk > 90) {
+      score -= 20;
+      issues.push('디스크 공간 부족');
     }
 
-    /**
-     * 서버 조회
-     */
-    getServerById(id: string): ServerInstance | undefined {
-        return this.servers.get(id);
+    // 에러율 체크 (안전한 접근)
+    const requests = (metrics as any).requests || 0;
+    const errors = (metrics as any).errors || 0;
+    const errorRate = requests > 0 ? errors / requests : 0;
+
+    if (errorRate > 0.1) {
+      score -= 25;
+      issues.push('높은 에러율');
+    } else if (errorRate > 0.05) {
+      score -= 10;
+      issues.push('에러율 주의');
     }
 
-    /**
-     * 서버 업데이트
-     */
-    updateServer(id: string, updates: Partial<ServerInstance>): boolean {
-        const server = this.servers.get(id);
-        if (!server) return false;
-
-        this.servers.set(id, { ...server, ...updates });
-        return true;
+    // 업타임 체크 (안전한 접근)
+    const uptime = metrics.uptime || 0;
+    if (uptime < 12) {
+      score -= 15;
+      issues.push('짧은 업타임');
     }
 
-    /**
-     * 서버 삭제
-     */
-    removeServer(id: string): boolean {
-        return this.servers.delete(id);
+    server.health = {
+      score: Math.max(0, score),
+      trend: [score, score, score, score, score], // 기본 트렌드
+      status: score < 50 ? 'error' : score < 80 ? 'warning' : 'running',
+      issues,
+      lastChecked: new Date().toISOString(),
+    };
+
+    // 상태 업데이트
+    if (score < 50) {
+      server.status = 'error';
+    } else if (score < 80) {
+      server.status = 'warning';
+    } else {
+      server.status = 'running';
     }
+  }
 
-    /**
-     * 서버 개수 제한
-     */
-    limitServerCount(maxCount: number): void {
-        const allServers = this.getAllServers();
-        if (allServers.length <= maxCount) return;
+  /**
+   * 서버 목록 반환
+   */
+  getAllServers(): ServerInstance[] {
+    return Array.from(this.servers.values());
+  }
 
-        // 우선순위: 개발환경 > 테스트 > 스테이징 > 프로덕션 순으로 제거
-        const sortedServers = allServers.sort((a, b) => {
-            const priority = { development: 1, test: 2, staging: 3, production: 4 };
-            return (priority as any)[a.environment] - (priority as any)[b.environment];
-        });
+  /**
+   * 서버 조회
+   */
+  getServerById(id: string): ServerInstance | undefined {
+    return this.servers.get(id);
+  }
 
-        // 초과분 제거
-        const serversToRemove = sortedServers.slice(maxCount);
-        serversToRemove.forEach(server => this.removeServer(server.id));
+  /**
+   * 서버 업데이트
+   */
+  updateServer(id: string, updates: Partial<ServerInstance>): boolean {
+    const server = this.servers.get(id);
+    if (!server) return false;
 
-        console.log(`🔄 서버 수 제한: ${allServers.length} → ${maxCount}개`);
-    }
+    this.servers.set(id, { ...server, ...updates });
+    return true;
+  }
 
-    /**
-     * 현재 상태 반환
-     */
-    getStatus() {
-        const servers = this.getAllServers();
-        return {
-            total: servers.length,
-            running: servers.filter(s => s.status === 'running').length,
-            warning: servers.filter(s => s.status === 'warning').length,
-            error: servers.filter(s => s.status === 'error').length,
-        };
-    }
-} 
+  /**
+   * 서버 삭제
+   */
+  removeServer(id: string): boolean {
+    return this.servers.delete(id);
+  }
+
+  /**
+   * 서버 개수 제한
+   */
+  limitServerCount(maxCount: number): void {
+    const allServers = this.getAllServers();
+    if (allServers.length <= maxCount) return;
+
+    // 우선순위: 개발환경 > 테스트 > 스테이징 > 프로덕션 순으로 제거
+    const sortedServers = allServers.sort((a, b) => {
+      const priority = { development: 1, test: 2, staging: 3, production: 4 };
+      return (
+        (priority as any)[a.environment] - (priority as any)[b.environment]
+      );
+    });
+
+    // 초과분 제거
+    const serversToRemove = sortedServers.slice(maxCount);
+    serversToRemove.forEach(server => this.removeServer(server.id));
+
+    console.log(`🔄 서버 수 제한: ${allServers.length} → ${maxCount}개`);
+  }
+
+  /**
+   * 현재 상태 반환
+   */
+  getStatus() {
+    const servers = this.getAllServers();
+    return {
+      total: servers.length,
+      running: servers.filter(s => s.status === 'running').length,
+      warning: servers.filter(s => s.status === 'warning').length,
+      error: servers.filter(s => s.status === 'error').length,
+    };
+  }
+}

@@ -172,26 +172,60 @@ export class EnvBackupManager {
   }
 
   /**
-   * 💾 현재 환경변수 백업
+   * 🔒 백업 생성
+   * 🚨 베르셀 환경에서 파일 저장 무력화 - 무료티어 최적화
    */
   public async createBackup(): Promise<boolean> {
     try {
-      const entries: EnvBackupEntry[] = [];
-      const allEnvKeys = [
-        ...this.config.critical,
-        ...this.config.important,
-        ...this.config.optional,
-      ];
+      // 🚨 베르셀 환경에서 파일 저장 건너뛰기
+      if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+        await this.logger.info(
+          LogCategory.SYSTEM,
+          '⚠️ 베르셀 환경에서 환경변수 백업 파일 저장 무력화',
+          { reason: 'vercel-file-system-protection' }
+        );
+        return true;
+      }
 
-      for (const key of allEnvKeys) {
+      const entries: EnvBackupEntry[] = [];
+
+      // Critical 환경변수 백업
+      for (const key of this.config.critical) {
         const value = process.env[key];
         if (value) {
-          const shouldEncrypt = this.isSensitive(key);
           entries.push({
             key,
-            value: shouldEncrypt ? this.encrypt(value) : value,
-            encrypted: shouldEncrypt,
-            priority: this.getEnvPriority(key),
+            value: this.isSensitive(key) ? this.encrypt(value) : value,
+            encrypted: this.isSensitive(key),
+            priority: 'critical',
+            lastUpdated: new Date().toISOString(),
+          });
+        }
+      }
+
+      // Important 환경변수 백업
+      for (const key of this.config.important) {
+        const value = process.env[key];
+        if (value) {
+          entries.push({
+            key,
+            value: this.isSensitive(key) ? this.encrypt(value) : value,
+            encrypted: this.isSensitive(key),
+            priority: 'important',
+            lastUpdated: new Date().toISOString(),
+          });
+        }
+      }
+
+      // Optional 환경변수 백업
+      for (const key of this.config.optional) {
+        const value = process.env[key];
+        if (value) {
+          entries.push({
+            key,
+            value: this.isSensitive(key) ? this.encrypt(value) : value,
+            encrypted: this.isSensitive(key),
+            priority: 'optional',
             lastUpdated: new Date().toISOString(),
           });
         }
@@ -407,33 +441,46 @@ export class EnvBackupManager {
 
   /**
    * 📝 .env.local 파일에 환경변수 추가
+   * 🚨 베르셀 환경에서 파일 쓰기 무력화 - 무료티어 최적화
    */
   private async appendToEnvFile(key: string, value: string): Promise<void> {
-    const envPath = path.join(process.cwd(), '.env.local');
-    const envLine = `${key}=${value}\n`;
-
     try {
-      // 기존 파일 읽기
-      let existingContent = '';
-      if (fs.existsSync(envPath)) {
-        existingContent = fs.readFileSync(envPath, 'utf8');
+      // 🚨 베르셀 환경에서 파일 쓰기 건너뛰기
+      if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+        await this.logger.info(
+          LogCategory.SYSTEM,
+          `⚠️ 베르셀 환경에서 .env.local 파일 쓰기 무력화: ${key}`,
+          { reason: 'vercel-file-system-protection' }
+        );
+        return;
       }
 
-      // 이미 존재하는 키인지 확인
-      const keyRegex = new RegExp(`^${key}=`, 'm');
-      if (keyRegex.test(existingContent)) {
-        // 기존 값 업데이트
-        existingContent = existingContent.replace(
-          new RegExp(`^${key}=.*$`, 'm'),
-          `${key}=${value}`
-        );
-        fs.writeFileSync(envPath, existingContent);
-      } else {
-        // 새 키 추가
-        fs.appendFileSync(envPath, envLine);
+      const envPath = path.join(this.getSafeWorkingDirectory(), '.env.local');
+      const envLine = `${key}=${value}\n`;
+
+      // 이미 존재하는 환경변수인지 확인
+      if (fs.existsSync(envPath)) {
+        const existingContent = fs.readFileSync(envPath, 'utf8');
+        if (existingContent.includes(`${key}=`)) {
+          // 기존 값 업데이트
+          const updatedContent = existingContent.replace(
+            new RegExp(`^${key}=.*$`, 'm'),
+            `${key}=${value}`
+          );
+          fs.writeFileSync(envPath, updatedContent);
+          return;
+        }
       }
+
+      // 새 환경변수 추가
+      fs.appendFileSync(envPath, envLine);
     } catch (error) {
-      throw new Error(`환경변수 파일 업데이트 실패: ${(error as Error).message}`);
+      await this.logger.logError(
+        'EnvBackupManager',
+        LogCategory.SYSTEM,
+        `환경변수 파일 쓰기 실패: ${key}`,
+        { error: (error as Error).message }
+      );
     }
   }
 

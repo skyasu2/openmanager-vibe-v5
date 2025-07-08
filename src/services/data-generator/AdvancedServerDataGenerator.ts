@@ -2,7 +2,7 @@
  * 🚀 고급 서버 데이터 생성기 v2.0
  *
  * 독립적으로 사용 가능한 고급 서버 메트릭 생성 모듈
- * - 6가지 서버 타입 지원 (K8s, Host, Cloud, Container, VM, Edge)
+ * - 5가지 서버 타입 지원 (K8s, Host, Cloud, VM, Edge)
  * - 실시간 메트릭 생성 및 Redis 캐싱
  * - 시간대별 로드 패턴 시뮬레이션
  * - 서버 타입별 특화 메트릭
@@ -29,7 +29,7 @@ export const MODULE_INFO = {
   version: '2.0.0',
   description: '고급 서버 메트릭 생성 및 시뮬레이션',
   features: [
-    '6가지 서버 타입 지원',
+    '5가지 서버 타입 지원',
     '실시간 메트릭 생성',
     'Redis 캐싱 통합',
     '시간대별 로드 패턴',
@@ -57,7 +57,7 @@ const BASE_PROCESSES: Record<string, string[]> = {
   ML: ['python', 'jupyter-notebook', 'tensorflow-serving'],
   Analytics: ['kafka', 'spark-worker', 'flink-taskmanager'],
   Gateway: ['kong', 'envoy', 'istiod'],
-  Default: ['systemd', 'sshd', 'cron', 'docker', 'journald'],
+  Default: ['systemd', 'sshd', 'cron', 'postgresql', 'journald'],
 };
 
 export class AdvancedServerDataGenerator implements IDataGenerator {
@@ -84,10 +84,9 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
       servers: {
         count: serverCount,
         types: {
-          Container: 1,
-          Host: 2,
-          Cloud: 2,
-          VM: 2,
+          Host: 1,
+          Cloud: 1,
+          VM: 1,
           Edge: 1,
         },
         regions: ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1'],
@@ -118,7 +117,6 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
     this.servers = [];
 
     const serverTypes: Array<ServerMetadata['serverType']> = [
-      'Container',
       'Host',
       'Cloud',
       'VM',

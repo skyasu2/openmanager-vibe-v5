@@ -272,8 +272,8 @@ class AutoEnvRecoverySystem {
         await this.envBackupManager.emergencyRestore('critical');
 
       if (emergencyResult.success) {
-        const recoveredFromMissing = emergencyResult.restored.filter((key: string) =>
-          missingVars.includes(key.replace(' (기본값)', ''))
+        const recoveredFromMissing = emergencyResult.restored.filter(
+          (key: string) => missingVars.includes(key.replace(' (기본값)', ''))
         );
 
         return {
@@ -438,6 +438,25 @@ class AutoEnvRecoverySystem {
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 헬스체크 API 호출됨');
+
+    // 🚨 유지보수 모드 체크 (최우선)
+    if (process.env.SYSTEM_MAINTENANCE === 'true') {
+      const maintenanceResponse = {
+        status: 'maintenance',
+        timestamp: new Date().toISOString(),
+        message: '시스템이 현재 유지보수 중입니다. 잠시 후 다시 시도해주세요.',
+        version: '5.44.0',
+        maintenanceMode: true,
+      };
+
+      return NextResponse.json(maintenanceResponse, {
+        status: 503,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Retry-After': '300', // 5분 후 재시도 권장
+        },
+      });
+    }
 
     // 환경변수 상태 확인 (서버 전용)
     let envStatus = {

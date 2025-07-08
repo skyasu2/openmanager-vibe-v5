@@ -195,8 +195,17 @@ export class VersionManager {
 
   /**
    * 변경 로그 파일 저장
+   * 🚨 베르셀 환경에서 파일 저장 무력화 - 무료티어 최적화
    */
   private static saveChangeLog(): void {
+    // 🚨 베르셀 환경에서 파일 저장 건너뛰기
+    if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+      console.log(
+        '⚠️ [VersionManager] 베르셀 환경에서 버전 변경 로그 파일 저장 무력화'
+      );
+      return;
+    }
+
     // 개발 환경에서만 파일에 저장 (브라우저 환경에서는 실행하지 않음)
     if (typeof window !== 'undefined') return;
 

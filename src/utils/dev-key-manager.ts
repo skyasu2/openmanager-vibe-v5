@@ -179,13 +179,22 @@ export class DevKeyManager {
       const envPath = path.join(process.cwd(), '.env.local');
       const envContent = this.generateEnvContent();
 
-      // 백업 생성 (기존 파일이 있는 경우)
-      if (fs.existsSync(envPath)) {
-        const backupPath = `${envPath}.backup.${Date.now()}`;
-        fs.copyFileSync(envPath, backupPath);
-        console.log(`📦 기존 .env.local 백업: ${backupPath}`);
+      // 🚨 베르셀 환경에서 파일 저장 건너뛰기
+      if (
+        process.env.VERCEL ||
+        (process.env.NODE_ENV as string) === 'production'
+      ) {
+        console.log(
+          '⚠️ [DevKeyManager] 베르셀 환경에서 환경 변수 파일 저장 무력화'
+        );
+        return {
+          success: true,
+          path: '',
+          message: '베르셀 환경에서 파일 저장이 무력화되었습니다.',
+        };
       }
 
+      // 파일 저장 (개발 환경에서만)
       fs.writeFileSync(envPath, envContent, 'utf8');
 
       return {

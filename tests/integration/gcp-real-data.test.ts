@@ -5,7 +5,7 @@
 
 import { detectEnvironment } from '@/config/environment';
 import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
-import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
+import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
 
 describe('🌐 GCP 실제 데이터 서비스 테스트', () => {
   let gcpService: GCPRealDataService;
@@ -130,7 +130,7 @@ describe('🌐 GCP 실제 데이터 서비스 테스트', () => {
     }
 
     // Mock fetch for testing
-    const mockFetch = jest.fn().mockResolvedValue({
+    const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
         success: true,

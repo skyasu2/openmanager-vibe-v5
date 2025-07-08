@@ -317,7 +317,7 @@ export class IntentClassifier {
     this.entityPatterns.set('location', /\b(us|eu|ap|asia|america|europe)\b/gi);
     this.entityPatterns.set(
       'service_name',
-      /\b(nginx|apache|mysql|redis|docker|kubernetes)\b/gi
+      /\b(nginx|apache|mysql|redis|virtualization|kubernetes)\b/gi
     );
   }
 

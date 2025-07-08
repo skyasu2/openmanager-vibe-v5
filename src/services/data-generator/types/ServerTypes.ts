@@ -11,7 +11,7 @@ export interface CustomEnvironmentConfig {
     | 'microservices';
   databaseType: 'single' | 'replica' | 'sharded' | 'distributed';
   networkTopology: 'simple' | 'dmz' | 'multi-cloud' | 'hybrid';
-  specialWorkload: 'standard' | 'gpu' | 'storage' | 'container';
+  specialWorkload: 'standard' | 'gpu' | 'storage' | 'vm';
   scalingPolicy: 'manual' | 'auto' | 'predictive';
   securityLevel: 'basic' | 'enhanced' | 'enterprise';
 }

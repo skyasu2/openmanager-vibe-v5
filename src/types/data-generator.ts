@@ -7,13 +7,13 @@
 // 환경 설정 인터페이스
 export interface CustomEnvironmentConfig {
   serverArchitecture:
-  | 'single'
-  | 'master-slave'
-  | 'load-balanced'
-  | 'microservices';
+    | 'single'
+    | 'master-slave'
+    | 'load-balanced'
+    | 'microservices';
   databaseType: 'single' | 'replica' | 'sharded' | 'distributed';
   networkTopology: 'simple' | 'dmz' | 'multi-cloud' | 'hybrid';
-  specialWorkload: 'standard' | 'gpu' | 'storage' | 'container';
+  specialWorkload: 'standard' | 'gpu' | 'storage' | 'vm';
   scalingPolicy: 'manual' | 'auto' | 'predictive';
   securityLevel: 'basic' | 'enhanced' | 'enterprise';
 
@@ -23,7 +23,13 @@ export interface CustomEnvironmentConfig {
   enableRealtime?: boolean;
   maxServers?: number;
   updateInterval?: number;
-  performanceMode?: 'high' | 'balanced' | 'eco' | 'minimal' | 'development' | 'production';
+  performanceMode?:
+    | 'high'
+    | 'balanced'
+    | 'eco'
+    | 'minimal'
+    | 'development'
+    | 'production';
   cacheEnabled?: boolean;
   features?: {
     networkTopology?: boolean;
@@ -38,7 +44,18 @@ export interface CustomEnvironmentConfig {
 export interface ServerInstance {
   id: string;
   name: string;
-  status: 'running' | 'stopped' | 'error' | 'healthy' | 'warning' | 'critical' | 'offline' | 'maintenance' | 'online' | 'active' | 'inactive';
+  status:
+    | 'running'
+    | 'stopped'
+    | 'error'
+    | 'healthy'
+    | 'warning'
+    | 'critical'
+    | 'offline'
+    | 'maintenance'
+    | 'online'
+    | 'active'
+    | 'inactive';
   cpu: number;
   memory: number;
   disk: number;
@@ -61,7 +78,18 @@ export interface ServerInstance {
   health?: {
     score: number;
     trend: number[];
-    status: 'running' | 'stopped' | 'error' | 'healthy' | 'warning' | 'critical' | 'offline' | 'maintenance' | 'online' | 'active' | 'inactive';
+    status:
+      | 'running'
+      | 'stopped'
+      | 'error'
+      | 'healthy'
+      | 'warning'
+      | 'critical'
+      | 'offline'
+      | 'maintenance'
+      | 'online'
+      | 'active'
+      | 'inactive';
     issues?: string[];
     lastChecked?: string;
   };
@@ -240,15 +268,15 @@ export interface NetworkNode {
   id: string;
   name: string;
   type:
-  | 'server'
-  | 'switch'
-  | 'router'
-  | 'firewall'
-  | 'load-balancer'
-  | 'database'
-  | 'cache'
-  | 'proxy'
-  | 'loadbalancer';
+    | 'server'
+    | 'switch'
+    | 'router'
+    | 'firewall'
+    | 'load-balancer'
+    | 'database'
+    | 'cache'
+    | 'proxy'
+    | 'loadbalancer';
   location: string;
   connections: string[];
 }

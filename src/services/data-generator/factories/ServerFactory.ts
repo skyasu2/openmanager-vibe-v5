@@ -208,8 +208,8 @@ export class ServerFactory {
         break;
     }
 
-    if (this.config.specialWorkload === 'container') {
-      customMetrics.container_count = Math.floor(Math.random() * 50) + 5;
+    if (this.config.specialWorkload === 'vm') {
+      customMetrics.vm_count = Math.floor(Math.random() * 50) + 5;
     }
 
     return Object.keys(customMetrics).length > 0 ? customMetrics : undefined;

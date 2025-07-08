@@ -6,7 +6,7 @@
 export interface ServerMetadata {
   id: string;
   name: string;
-  serverType: 'Host' | 'Cloud' | 'Container' | 'VM' | 'Edge';
+  serverType: 'Host' | 'Cloud' | 'VM' | 'Edge';
   location: {
     region: string;
     zone: string;
@@ -43,6 +43,20 @@ export interface ServerMetadata {
   created: Date;
   lastUpdate: Date;
   processes: ProcessInfo[];
+  vms?: {
+    count: number;
+    image: string;
+    resource_limit: {
+      cpu: number;
+      memory: number;
+      storage: number;
+    };
+  };
+  vm?: {
+    pods: { running: number; pending: number; failed: number };
+    nodes: { ready: number; notReady: number };
+    resources: { cpu: number; memory: number };
+  };
 }
 
 export interface ProcessInfo {
@@ -109,15 +123,15 @@ export interface TimeSeriesMetrics {
     };
   };
   infrastructure: {
-    containers?: {
+    vms?: {
       running: number;
       stopped: number;
       cpu: number;
       memory: number;
     };
-    container?: {
-      pods: { running: number; pending: number; failed: number };
-      nodes: { ready: number; notReady: number };
+    vm?: {
+      instances: { running: number; pending: number; failed: number };
+      hosts: { ready: number; notReady: number };
       resources: { cpu: number; memory: number };
     };
     cloud?: {

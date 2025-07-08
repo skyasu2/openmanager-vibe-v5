@@ -115,9 +115,9 @@ export class RealisticPatternEngine {
       },
     ],
     [
-      'container',
+      'vm',
       {
-        name: 'Container Node',
+        name: 'VM Node',
         cpu_base: 20,
         memory_base: 55,
         disk_base: 30,
@@ -377,7 +377,7 @@ export class RealisticPatternEngine {
       value = Math.max(70, value); // 캐시 서버는 항상 높은 메모리 사용
     } else if (serverType === 'database' && metricType === 'disk_usage') {
       value = Math.max(30, value); // DB 서버는 기본 디스크 사용량 높음
-    } else if (serverType === 'container' && metricType === 'cpu_usage') {
+    } else if (serverType === 'vm' && metricType === 'cpu_usage') {
       // 쿠버네티스는 Pod 스케줄링 패턴 반영
       const podSchedulingSpike = Math.sin(timestamp.getTime() / 60000) * 15; // 1분 주기 변동
       value += podSchedulingSpike;

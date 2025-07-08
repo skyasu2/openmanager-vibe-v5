@@ -8,7 +8,6 @@
  * - 데이터 출처 표시
  */
 
-/* eslint-disable */
 // @ts-nocheck
 'use client';
 

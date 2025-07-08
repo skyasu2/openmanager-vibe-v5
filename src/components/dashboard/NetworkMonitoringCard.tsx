@@ -9,7 +9,6 @@
  * - 네트워크 상태 시각화
  */
 
-/* eslint-disable */
 // @ts-nocheck
 
 'use client';

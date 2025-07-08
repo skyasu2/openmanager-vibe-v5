@@ -1,8 +1,8 @@
 import {
+  CollectorConfig,
   MetricCollector,
   ServerMetrics,
   ServiceStatus,
-  CollectorConfig,
 } from '../../types/collector';
 
 /**
@@ -255,7 +255,7 @@ export class DummyCollector implements MetricCollector {
           ...baseServices,
           { name: 'kubelet', status: 'running', port: 10250, pid: 5678 },
           { name: 'kube-proxy', status: 'running', port: 10256, pid: 5679 },
-          { name: 'containerd', status: 'running', port: 0, pid: 5680 },
+          { name: 'postgres', status: 'running', port: 5432, pid: 5680 },
           {
             name: 'calico-node',
             status: Math.random() > 0.1 ? 'running' : 'stopped',
@@ -280,7 +280,7 @@ export class DummyCollector implements MetricCollector {
             port: 80,
             pid: 3458,
           },
-          { name: 'docker', status: 'running', port: 0, pid: 3459 },
+          { name: 'apache2', status: 'running', port: 80, pid: 3459 },
         ];
 
       case 'onpremise':

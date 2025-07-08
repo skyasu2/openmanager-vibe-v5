@@ -133,10 +133,20 @@ export class ServerEnvironmentManager {
 
   /**
    * 📦 환경변수 백업
+   * 🚨 베르셀 환경에서 파일 저장 무력화 - 무료티어 최적화
    */
   async backupEnvironment(environment = 'current'): Promise<string | null> {
     try {
       console.log(`🔄 환경변수 백업 시작 (${environment})...`);
+
+      // 🚨 베르셀 환경에서 파일 저장 건너뛰기
+      if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+        console.log(
+          '⚠️ [ServerEnvironmentManager] 베르셀 환경에서 환경변수 백업 파일 저장 무력화'
+        );
+        const backupId = `env-backup-${environment}-${new Date().toISOString().replace(/[:.]/g, '-')}`;
+        return backupId;
+      }
 
       const sensitiveVars = {
         GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY,

@@ -7,7 +7,6 @@
  * - 애니메이션 효과
  */
 
-/* eslint-disable */
 // @ts-nocheck
 
 'use client';

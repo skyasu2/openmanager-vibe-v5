@@ -23,7 +23,7 @@ export interface ServerBaselineData {
     | 'api'
     | 'database'
     | 'cache'
-    | 'container'
+    | 'vm'
     | 'storage'
     | 'load-balancer'
     | 'backup';

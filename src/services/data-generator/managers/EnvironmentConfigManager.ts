@@ -10,7 +10,7 @@
 import {
   detectEnvironment,
   getDataGeneratorConfig,
-  getVercelOptimizedConfig
+  getVercelOptimizedConfig,
 } from '@/config/environment';
 import { CustomEnvironmentConfig } from '@/types/data-generator';
 
@@ -52,8 +52,8 @@ export class EnvironmentConfigManager {
           networkTopology: false,
           demoScenarios: false,
           baselineOptimization: false,
-          autoRotate: false
-        }
+          autoRotate: false,
+        },
       };
     }
 
@@ -62,7 +62,7 @@ export class EnvironmentConfigManager {
       serverArchitecture: 'load-balanced',
       databaseType: 'replica',
       networkTopology: 'multi-cloud',
-      specialWorkload: 'container',
+      specialWorkload: 'vm',
       scalingPolicy: 'auto',
       securityLevel: 'enhanced',
       mode: env.IS_DEVELOPMENT ? 'development' : 'production',
@@ -72,7 +72,7 @@ export class EnvironmentConfigManager {
       updateInterval: this.dataGeneratorConfig.updateInterval,
       cacheEnabled: true,
       performanceMode: env.IS_DEVELOPMENT ? 'development' : 'production',
-      features: this.dataGeneratorConfig.features
+      features: this.dataGeneratorConfig.features,
     };
   }
 
@@ -127,14 +127,14 @@ export class EnvironmentConfigManager {
 
       this.environmentConfig = {
         ...this.environmentConfig,
-        ...allowedUpdates
+        ...allowedUpdates,
       };
 
       console.log('🚫 Vercel 환경: 목업 관련 설정 변경 차단');
     } else {
       this.environmentConfig = {
         ...this.environmentConfig,
-        ...updates
+        ...updates,
       };
 
       console.log('🏠 로컬 환경: 설정 업데이트 완료');
@@ -170,7 +170,7 @@ export class EnvironmentConfigManager {
       realtimeEnabled: this.environmentConfig.enableRealtime,
       maxServers: this.environmentConfig.maxServers,
       updateInterval: this.environmentConfig.updateInterval,
-      performanceMode: this.environmentConfig.performanceMode
+      performanceMode: this.environmentConfig.performanceMode,
     };
   }
 }

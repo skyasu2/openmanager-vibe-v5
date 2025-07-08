@@ -6,6 +6,7 @@ import path from 'path';
  * - 압축 없이 개별 JSON 파일로 저장
  * - 날짜별 자동 분류
  * - 실시간 로그 추가 가능
+ * 🚨 베르셀 환경에서 파일 저장 무력화 - 무료티어 최적화
  */
 export class LogSaver {
   private static instance: LogSaver;
@@ -24,23 +25,36 @@ export class LogSaver {
   }
 
   /**
-   * 로그 디렉토리 구조 생성
+   * 🚨 베르셀 환경 체크 헬퍼 메서드
+   */
+  private isVercelEnvironment(): boolean {
+    return !!(process.env.VERCEL || process.env.NODE_ENV === 'production');
+  }
+
+  /**
+   * 디렉토리 생성
    */
   private ensureDirectories(): void {
-    const directories = [
-      this.logsPath,
-      path.join(this.logsPath, 'failures'),
-      path.join(this.logsPath, 'improvements'),
-      path.join(this.logsPath, 'analysis'),
-      path.join(this.logsPath, 'interactions'),
-      path.join(this.logsPath, 'patterns'),
-      path.join(this.logsPath, 'summaries')
+    // 🚨 베르셀 환경에서 디렉토리 생성 건너뛰기
+    if (this.isVercelEnvironment()) {
+      console.log('⚠️ [LogSaver] 베르셀 환경에서 디렉토리 생성 건너뛰기');
+      return;
+    }
+
+    const categories = [
+      'failures',
+      'improvements',
+      'analysis',
+      'interactions',
+      'patterns',
+      'summaries',
+      'backups',
     ];
 
-    directories.forEach(dir => {
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-        console.log(`📁 [LogSaver] 디렉토리 생성: ${dir}`);
+    categories.forEach(category => {
+      const categoryPath = path.join(this.logsPath, category);
+      if (!fs.existsSync(categoryPath)) {
+        fs.mkdirSync(categoryPath, { recursive: true });
       }
     });
   }
@@ -53,6 +67,14 @@ export class LogSaver {
     failures: any[]
   ): Promise<boolean> {
     try {
+      // 🚨 베르셀 환경에서 파일 저장 건너뛰기
+      if (this.isVercelEnvironment()) {
+        console.log(
+          `⚠️ [LogSaver] 베르셀 환경에서 실패 로그 저장 무력화: ${date}`
+        );
+        return true;
+      }
+
       const filename = `${date}-failure-log.json`;
       const filePath = path.join(this.logsPath, 'failures', filename);
 
@@ -62,15 +84,14 @@ export class LogSaver {
           type: 'failure_log',
           count: failures.length,
           savedAt: new Date().toISOString(),
-          version: '1.0.0'
+          version: '1.0.0',
         },
-        failures
+        failures,
       };
 
       fs.writeFileSync(filePath, JSON.stringify(logData, null, 2), 'utf-8');
       console.log(`✅ [LogSaver] 실패 로그 저장: ${filePath}`);
       return true;
-
     } catch (error) {
       console.error('❌ [LogSaver] 실패 로그 저장 실패:', error);
       return false;
@@ -85,6 +106,14 @@ export class LogSaver {
     improvements: any[]
   ): Promise<boolean> {
     try {
+      // 🚨 베르셀 환경에서 파일 저장 건너뛰기
+      if (this.isVercelEnvironment()) {
+        console.log(
+          `⚠️ [LogSaver] 베르셀 환경에서 개선 로그 저장 무력화: ${date}`
+        );
+        return true;
+      }
+
       const filename = `${date}-improvement-log.json`;
       const filePath = path.join(this.logsPath, 'improvements', filename);
 
@@ -94,15 +123,14 @@ export class LogSaver {
           type: 'improvement_log',
           count: improvements.length,
           savedAt: new Date().toISOString(),
-          version: '1.0.0'
+          version: '1.0.0',
         },
-        improvements
+        improvements,
       };
 
       fs.writeFileSync(filePath, JSON.stringify(logData, null, 2), 'utf-8');
       console.log(`✅ [LogSaver] 개선 로그 저장: ${filePath}`);
       return true;
-
     } catch (error) {
       console.error('❌ [LogSaver] 개선 로그 저장 실패:', error);
       return false;
@@ -118,6 +146,14 @@ export class LogSaver {
     results: any
   ): Promise<boolean> {
     try {
+      // 🚨 베르셀 환경에서 파일 저장 건너뛰기
+      if (this.isVercelEnvironment()) {
+        console.log(
+          `⚠️ [LogSaver] 베르셀 환경에서 분석 로그 저장 무력화: ${date}-${analysisType}`
+        );
+        return true;
+      }
+
       const filename = `${date}-${analysisType}-analysis.json`;
       const filePath = path.join(this.logsPath, 'analysis', filename);
 
@@ -127,15 +163,14 @@ export class LogSaver {
           type: 'analysis_log',
           analysisType,
           savedAt: new Date().toISOString(),
-          version: '1.0.0'
+          version: '1.0.0',
         },
-        results
+        results,
       };
 
       fs.writeFileSync(filePath, JSON.stringify(logData, null, 2), 'utf-8');
       console.log(`✅ [LogSaver] 분석 로그 저장: ${filePath}`);
       return true;
-
     } catch (error) {
       console.error('❌ [LogSaver] 분석 로그 저장 실패:', error);
       return false;
@@ -145,11 +180,16 @@ export class LogSaver {
   /**
    * 상호작용 로그 저장 (실시간 추가)
    */
-  async saveInteractionLog(
-    date: string,
-    interaction: any
-  ): Promise<boolean> {
+  async saveInteractionLog(date: string, interaction: any): Promise<boolean> {
     try {
+      // 🚨 베르셀 환경에서 파일 저장 건너뛰기
+      if (this.isVercelEnvironment()) {
+        console.log(
+          `⚠️ [LogSaver] 베르셀 환경에서 상호작용 로그 저장 무력화: ${date}`
+        );
+        return true;
+      }
+
       const filename = `${date}-interactions.json`;
       const filePath = path.join(this.logsPath, 'interactions', filename);
 
@@ -159,9 +199,9 @@ export class LogSaver {
           type: 'interaction_log',
           count: 0,
           lastUpdated: new Date().toISOString(),
-          version: '1.0.0'
+          version: '1.0.0',
         },
-        interactions: []
+        interactions: [],
       };
 
       // 기존 파일이 있으면 로드
@@ -173,17 +213,22 @@ export class LogSaver {
       // 새 상호작용 추가
       existingData.interactions.push({
         ...interaction,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       // 메타데이터 업데이트
       existingData.metadata.count = existingData.interactions.length;
       existingData.metadata.lastUpdated = new Date().toISOString();
 
-      fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2), 'utf-8');
-      console.log(`✅ [LogSaver] 상호작용 로그 추가: ${filePath} (총 ${existingData.metadata.count}개)`);
+      fs.writeFileSync(
+        filePath,
+        JSON.stringify(existingData, null, 2),
+        'utf-8'
+      );
+      console.log(
+        `✅ [LogSaver] 상호작용 로그 추가: ${filePath} (총 ${existingData.metadata.count}개)`
+      );
       return true;
-
     } catch (error) {
       console.error('❌ [LogSaver] 상호작용 로그 저장 실패:', error);
       return false;
@@ -193,11 +238,16 @@ export class LogSaver {
   /**
    * 패턴 분석 결과 저장
    */
-  async savePatternLog(
-    date: string,
-    patterns: any[]
-  ): Promise<boolean> {
+  async savePatternLog(date: string, patterns: any[]): Promise<boolean> {
     try {
+      // 🚨 베르셀 환경에서 파일 저장 건너뛰기
+      if (this.isVercelEnvironment()) {
+        console.log(
+          `⚠️ [LogSaver] 베르셀 환경에서 패턴 로그 저장 무력화: ${date}`
+        );
+        return true;
+      }
+
       const filename = `${date}-patterns.json`;
       const filePath = path.join(this.logsPath, 'patterns', filename);
 
@@ -207,15 +257,14 @@ export class LogSaver {
           type: 'pattern_log',
           count: patterns.length,
           savedAt: new Date().toISOString(),
-          version: '1.0.0'
+          version: '1.0.0',
         },
-        patterns
+        patterns,
       };
 
       fs.writeFileSync(filePath, JSON.stringify(logData, null, 2), 'utf-8');
       console.log(`✅ [LogSaver] 패턴 로그 저장: ${filePath}`);
       return true;
-
     } catch (error) {
       console.error('❌ [LogSaver] 패턴 로그 저장 실패:', error);
       return false;
@@ -230,6 +279,14 @@ export class LogSaver {
     data: any
   ): Promise<boolean> {
     try {
+      // 🚨 베르셀 환경에서 파일 저장 건너뛰기
+      if (this.isVercelEnvironment()) {
+        console.log(
+          `⚠️ [LogSaver] 베르셀 환경에서 요약 로그 저장 무력화: ${type}`
+        );
+        return true;
+      }
+
       const filename = `summary-${type}.json`;
       const filePath = path.join(this.logsPath, 'summaries', filename);
 
@@ -238,15 +295,14 @@ export class LogSaver {
           type: 'summary_log',
           summaryType: type,
           savedAt: new Date().toISOString(),
-          version: '1.0.0'
+          version: '1.0.0',
         },
-        data
+        data,
       };
 
       fs.writeFileSync(filePath, JSON.stringify(logData, null, 2), 'utf-8');
       console.log(`✅ [LogSaver] 요약 로그 저장: ${filePath}`);
       return true;
-
     } catch (error) {
       console.error('❌ [LogSaver] 요약 로그 저장 실패:', error);
       return false;
@@ -257,12 +313,18 @@ export class LogSaver {
    * 로그 파일 로드
    */
   async loadLog(
-    category: 'failures' | 'improvements' | 'analysis' | 'interactions' | 'patterns' | 'summaries',
+    category:
+      | 'failures'
+      | 'improvements'
+      | 'analysis'
+      | 'interactions'
+      | 'patterns'
+      | 'summaries',
     filename: string
   ): Promise<any | null> {
     try {
       const filePath = path.join(this.logsPath, category, filename);
-      
+
       if (!fs.existsSync(filePath)) {
         console.warn(`⚠️ [LogSaver] 로그 파일 없음: ${filePath}`);
         return null;
@@ -272,7 +334,6 @@ export class LogSaver {
       const logData = JSON.parse(content);
       console.log(`📖 [LogSaver] 로그 로드: ${filePath}`);
       return logData;
-
     } catch (error) {
       console.error('❌ [LogSaver] 로그 로드 실패:', error);
       return null;
@@ -283,13 +344,18 @@ export class LogSaver {
    * 날짜 범위별 로그 목록 조회
    */
   async getLogsByDateRange(
-    category: 'failures' | 'improvements' | 'analysis' | 'interactions' | 'patterns',
+    category:
+      | 'failures'
+      | 'improvements'
+      | 'analysis'
+      | 'interactions'
+      | 'patterns',
     startDate: string, // YYYY-MM-DD
-    endDate: string    // YYYY-MM-DD
+    endDate: string // YYYY-MM-DD
   ): Promise<string[]> {
     try {
       const categoryPath = path.join(this.logsPath, category);
-      
+
       if (!fs.existsSync(categoryPath)) {
         return [];
       }
@@ -300,14 +366,13 @@ export class LogSaver {
         .filter(file => {
           const match = file.match(/^(\d{4}-\d{2}-\d{2})/);
           if (!match) return false;
-          
+
           const fileDate = match[1];
           return fileDate >= startDate && fileDate <= endDate;
         })
         .sort(); // 날짜순 정렬
 
       return logFiles;
-
     } catch (error) {
       console.error('❌ [LogSaver] 날짜 범위 로그 조회 실패:', error);
       return [];
@@ -325,7 +390,14 @@ export class LogSaver {
     newestLog: string | null;
   }> {
     try {
-      const categories = ['failures', 'improvements', 'analysis', 'interactions', 'patterns', 'summaries'];
+      const categories = [
+        'failures',
+        'improvements',
+        'analysis',
+        'interactions',
+        'patterns',
+        'summaries',
+      ];
       const stats: Record<string, number> = {};
       let totalFiles = 0;
       let totalSize = 0;
@@ -334,9 +406,11 @@ export class LogSaver {
 
       for (const category of categories) {
         const categoryPath = path.join(this.logsPath, category);
-        
+
         if (fs.existsSync(categoryPath)) {
-          const files = fs.readdirSync(categoryPath).filter(f => f.endsWith('.json'));
+          const files = fs
+            .readdirSync(categoryPath)
+            .filter(f => f.endsWith('.json'));
           stats[category] = files.length;
           totalFiles += files.length;
 
@@ -371,9 +445,8 @@ export class LogSaver {
         totalFiles,
         totalSize: formatSize(totalSize),
         oldestLog,
-        newestLog
+        newestLog,
       };
-
     } catch (error) {
       console.error('❌ [LogSaver] 로그 통계 조회 실패:', error);
       return {
@@ -381,7 +454,7 @@ export class LogSaver {
         totalFiles: 0,
         totalSize: '0B',
         oldestLog: null,
-        newestLog: null
+        newestLog: null,
       };
     }
   }
@@ -390,12 +463,17 @@ export class LogSaver {
    * 오래된 로그 정리 (선택적)
    */
   async cleanupOldLogs(
-    category: 'failures' | 'improvements' | 'analysis' | 'interactions' | 'patterns',
+    category:
+      | 'failures'
+      | 'improvements'
+      | 'analysis'
+      | 'interactions'
+      | 'patterns',
     daysToKeep: number = 30
   ): Promise<number> {
     try {
       const categoryPath = path.join(this.logsPath, category);
-      
+
       if (!fs.existsSync(categoryPath)) {
         return 0;
       }
@@ -420,11 +498,12 @@ export class LogSaver {
       }
 
       if (deletedCount > 0) {
-        console.log(`✅ [LogSaver] ${category} 카테고리에서 ${deletedCount}개 오래된 로그 정리 완료`);
+        console.log(
+          `✅ [LogSaver] ${category} 카테고리에서 ${deletedCount}개 오래된 로그 정리 완료`
+        );
       }
 
       return deletedCount;
-
     } catch (error) {
       console.error('❌ [LogSaver] 로그 정리 실패:', error);
       return 0;
@@ -442,14 +521,20 @@ export class LogSaver {
    * 로그 백업 생성
    */
   async createBackup(
-    category: 'failures' | 'improvements' | 'analysis' | 'interactions' | 'patterns' | 'summaries',
+    category:
+      | 'failures'
+      | 'improvements'
+      | 'analysis'
+      | 'interactions'
+      | 'patterns'
+      | 'summaries',
     backupName?: string
   ): Promise<boolean> {
     try {
       const sourcePath = path.join(this.logsPath, category);
       const backupPath = path.join(
-        this.logsPath, 
-        'backups', 
+        this.logsPath,
+        'backups',
         backupName || `${category}-backup-${Date.now()}`
       );
 
@@ -485,10 +570,9 @@ export class LogSaver {
       copyDir(sourcePath, backupPath);
       console.log(`💾 [LogSaver] 백업 생성 완료: ${backupPath}`);
       return true;
-
     } catch (error) {
       console.error('❌ [LogSaver] 백업 생성 실패:', error);
       return false;
     }
   }
-} 
+}

@@ -524,6 +524,12 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     importance: 'showcase',
     description: '개발 효율성 300% 향상, AI 협업으로 완성한 실제 결과물',
   },
+  vm: {
+    name: 'VM',
+    category: 'Infrastructure',
+    description: '가상머신 기반 서버 관리 및 모니터링',
+    importance: 'medium',
+  },
 };
 
 // 카테고리 정의

@@ -100,7 +100,7 @@ export const CRITICAL_PROCESSES: Record<string, CriticalProcess[]> = {
       restartRequired: true,
     },
     {
-      name: 'containerd',
+      name: 'libvirt',
       description: '컨테이너 런타임',
       normalCpuUsage: 12,
       normalMemoryUsage: 512,

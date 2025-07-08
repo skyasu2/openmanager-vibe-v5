@@ -2,11 +2,16 @@
  * 🤖 Google AI Mode Manager
  *
  * Google AI의 2가지 운영 모드를 관리:
- * - LOCAL: Google AI 완전 비활성화, 로컬 AI 엔진들만 사용
- * - GOOGLE_AI: 로컬 AI + Google AI 효율적 조합
+ * - LOCAL: Google AI 완전 비활성화, 로컬 AI 엔진들만 사용 (기본값)
+ * - GOOGLE_ONLY: 자연어 질의 기능에서 Google AI 사용
+ *
+ * 🚨 베르셀 환경에서 설정 저장 무력화 - 무료티어 최적화
  */
 
-import { createGoogleAIService, RequestScopedGoogleAIService } from '@/services/ai/GoogleAIService';
+import {
+  createGoogleAIService,
+  RequestScopedGoogleAIService,
+} from '@/services/ai/GoogleAIService';
 import {
   AIEngineConfig,
   AIEngineResult,
@@ -50,7 +55,7 @@ export class GoogleAIModeManager {
 
   constructor(config?: Partial<GoogleAIModeConfig>) {
     this.config = {
-      mode: 'LOCAL',
+      mode: 'LOCAL', // 🏠 로컬 모드가 기본값
       fallbackTimeout: 5000,
       confidenceThreshold: 0.7,
       enableAutoSwitch: true,
@@ -76,7 +81,9 @@ export class GoogleAIModeManager {
       enginePerformance: {},
     };
 
-    console.log(`🤖 Google AI Mode Manager 생성됨 (모드: ${this.currentMode})`);
+    console.log(
+      `🤖 Google AI Mode Manager 생성됨 (기본 모드: ${this.currentMode})`
+    );
   }
 
   /**

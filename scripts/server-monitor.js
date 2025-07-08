@@ -50,7 +50,12 @@ class ServerMonitor {
         // 콘솔 출력
         console.log(logMessage.trim());
 
-        // 파일 로깅
+        // 🚨 베르셀 환경에서 파일 로깅 무력화 - 무료티어 최적화
+        if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+            return;
+        }
+
+        // 파일 로깅 (개발 환경에서만)
         try {
             fs.appendFileSync(this.logFile, logMessage);
         } catch (error) {

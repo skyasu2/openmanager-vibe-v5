@@ -81,10 +81,10 @@ export interface UnifiedGeneratorConfig {
   // Strategy별 설정
   realConfig?: {
     serverArchitecture:
-    | 'single'
-    | 'primary-replica'
-    | 'load-balanced'
-    | 'microservices';
+      | 'single'
+      | 'primary-replica'
+      | 'load-balanced'
+      | 'microservices';
   };
   optimizedConfig?: {
     usePregenerated: boolean;
@@ -96,11 +96,11 @@ export interface UnifiedGeneratorConfig {
   };
   realisticConfig?: {
     scenario:
-    | 'normal'
-    | 'spike'
-    | 'memory_leak'
-    | 'ddos'
-    | 'performance_degradation';
+      | 'normal'
+      | 'spike'
+      | 'memory_leak'
+      | 'ddos'
+      | 'performance_degradation';
   };
 }
 
@@ -178,7 +178,7 @@ class RealDataStrategy implements DataGeneratorStrategy {
           cpu_cores: Math.floor(Math.random() * 16) + 4,
           memory_gb: Math.pow(2, Math.floor(Math.random() * 4) + 3),
           disk_gb: Math.pow(2, Math.floor(Math.random() * 3) + 8),
-          network_speed: '1Gbps'
+          network_speed: '1Gbps',
         },
         metrics: {
           cpu: parseFloat((Math.random() * 80 + 10).toFixed(2)),
@@ -186,14 +186,14 @@ class RealDataStrategy implements DataGeneratorStrategy {
           disk: parseFloat((Math.random() * 60 + 30).toFixed(2)),
           network: parseFloat((Math.random() * 50 + 10).toFixed(2)),
           timestamp: new Date().toISOString(),
-          uptime: Math.random() * 365 * 24 * 60 * 60
+          uptime: Math.random() * 365 * 24 * 60 * 60,
         },
         health: {
           score: Math.random() * 40 + 60,
           trend: [85, 87, 82, 90, 88],
           status: Math.random() > 0.1 ? 'running' : 'warning',
           issues: [],
-          lastChecked: new Date().toISOString()
+          lastChecked: new Date().toISOString(),
         },
       };
 
@@ -208,19 +208,20 @@ class RealDataStrategy implements DataGeneratorStrategy {
       // 🔧 안전한 metrics 접근
       if (server.metrics) {
         server.metrics.cpu = parseFloat(
-          (
-            Math.min(95, server.metrics.cpu + (Math.random() - 0.5) * 10)
-          ).toFixed(1)
+          Math.min(95, server.metrics.cpu + (Math.random() - 0.5) * 10).toFixed(
+            1
+          )
         );
         server.metrics.memory = parseFloat(
-          (
-            Math.min(90, server.metrics.memory + (Math.random() - 0.5) * 8)
+          Math.min(
+            90,
+            server.metrics.memory + (Math.random() - 0.5) * 8
           ).toFixed(1)
         );
         server.metrics.disk = parseFloat(
-          (
-            Math.min(85, server.metrics.disk + (Math.random() - 0.5) * 3)
-          ).toFixed(1)
+          Math.min(85, server.metrics.disk + (Math.random() - 0.5) * 3).toFixed(
+            1
+          )
         );
       }
 
@@ -379,10 +380,9 @@ class AdvancedDataStrategy implements DataGeneratorStrategy {
       'Busan-DC-1',
     ];
     const serverTypes = this.config.advancedConfig?.serverTypes || [
-      'Container',
       'Host',
       'Cloud',
-      'Container',
+      'VM',
     ];
 
     for (let i = 0; i < this.config.maxServers; i++) {
@@ -612,9 +612,7 @@ export class UnifiedDataGeneratorModule {
         regions: (
           process.env.REGIONS || 'Seoul-DC-1,Seoul-DC-2,Busan-DC-1'
         ).split(','),
-        serverTypes: (process.env.SERVER_TYPES || 'Host,Cloud,Container').split(
-          ','
-        ),
+        serverTypes: (process.env.SERVER_TYPES || 'Host,Cloud,VM').split(','),
       },
       realisticConfig: {
         scenario: (process.env.DEMO_SCENARIO as any) || 'normal',

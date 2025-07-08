@@ -289,6 +289,7 @@ export class ContextLoader {
 
   /**
    * 컨텍스트 번들 업로드 (관리자 전용)
+   * 🚨 베르셀 환경에서 파일 저장 무력화 - 무료티어 최적화
    */
   async uploadContextBundle(
     bundleType: 'base' | 'advanced' | 'custom',
@@ -296,6 +297,19 @@ export class ContextLoader {
     clientId?: string
   ): Promise<boolean> {
     try {
+      // 🚨 베르셀 환경에서 파일 시스템 작업 건너뛰기
+      if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+        console.log(
+          `⚠️ [ContextLoader] 베르셀 환경에서 파일 업로드 무력화: ${bundleType}${clientId ? `-${clientId}` : ''}`
+        );
+
+        // 캐시 무효화만 수행
+        this.invalidateCache();
+
+        // 메모리 기반으로만 처리
+        return true;
+      }
+
       const targetPath =
         clientId && bundleType === 'custom'
           ? path.join(this.documentsPath, bundleType, clientId)

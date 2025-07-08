@@ -17,6 +17,8 @@ import { Toaster } from '@/components/ui/toaster';
 // keep-alive-scheduler 제거됨 (사용량 모니터링 간소화)
 // 인코딩 자동 설정
 import { detectAndFixTerminalEncoding } from '@/utils/encoding-fix';
+// 무료티어 보호 기능
+import { enableGlobalProtection } from '@/config/free-tier-emergency-fix';
 
 // 시스템 시작 시 한글 인코딩 자동 설정
 if (typeof window === 'undefined') {
@@ -143,6 +145,12 @@ if (typeof window === 'undefined' && typeof global !== 'undefined') {
 }
 
 const inter = Inter({ subsets: ['latin'] });
+
+// 무료티어 보호 기능 활성화
+if (typeof window === 'undefined') {
+  // 서버 사이드에서만 실행
+  enableGlobalProtection();
+}
 
 export const metadata: Metadata = {
   title: 'OpenManager - Korean AI Hybrid Engine',

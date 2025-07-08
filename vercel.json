@@ -4,8 +4,9 @@
   "name": "openmanager-vibe-v5",
   "functions": {
     "src/app/api/**/*.ts": {
-      "memory": 1024,
-      "maxDuration": 30
+      "maxDuration": 8,
+      "memory": 128,
+      "runtime": "nodejs20.x"
     },
     "src/app/api/ai/**/*.ts": {
       "maxDuration": 45
@@ -26,15 +27,11 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, s-maxage=300, stale-while-revalidate=600"
+          "value": "public, max-age=300, s-maxage=300"
         },
         {
-          "key": "CDN-Cache-Control",
-          "value": "public, s-maxage=300"
-        },
-        {
-          "key": "Vercel-CDN-Cache-Control",
-          "value": "public, s-maxage=1800"
+          "key": "X-Free-Tier-Mode",
+          "value": "enabled"
         }
       ]
     },
@@ -67,9 +64,9 @@
   ],
   "redirects": [
     {
-      "source": "/admin/mcp-monitoring",
+      "source": "/admin/((?!ai-agent).*)",
       "destination": "/admin/ai-agent",
-      "permanent": true
+      "permanent": false
     }
   ],
   "rewrites": [
@@ -92,7 +89,13 @@
     "HEALTH_CHECK_CACHE_HOURS": "6",
     "DISABLE_EXCESSIVE_HEALTH_CHECKS": "true",
     "DISABLE_CRON_JOBS": "true",
-    "AI_STREAM_TIMEOUT_PREVENTION": "true"
+    "AI_STREAM_TIMEOUT_PREVENTION": "true",
+    "NEXT_PUBLIC_FREE_TIER_MODE": "true",
+    "VERCEL_HOBBY_PLAN": "true",
+    "SERVERLESS_FUNCTION_TIMEOUT": "8",
+    "MEMORY_LIMIT_MB": "40",
+    "DISABLE_BACKGROUND_JOBS": "true",
+    "ENABLE_QUOTA_PROTECTION": "true"
   },
   "build": {
     "env": {
@@ -107,7 +110,12 @@
       "UPSTASH_REDIS_DISABLED": "true"
     }
   },
-  "crons": [],
+  "crons": [
+    {
+      "path": "/api/cron/cleanup",
+      "schedule": "0 0 * * *"
+    }
+  ],
   "cleanUrls": true,
   "trailingSlash": false
 }

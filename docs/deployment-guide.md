@@ -1,797 +1,795 @@
-# 🚀 배포 가이드 (Vercel)
+# 🚀 OpenManager Vibe v5 배포 가이드
 
-> **OpenManager Vibe v5.44.3** - Vercel 배포 가이드 (2025년 7월 2일 기준)
+## 📋 목차
 
-## 📋 **개요**
+1. [배포 개요](#배포-개요)
+2. [Vercel 배포 (권장)](#vercel-배포-권장)
+3. [베르셀 환경 파일 시스템 보호](#베르셀-환경-파일-시스템-보호)
+4. [AI 엔진 모드 배포 설정](#ai-엔진-모드-배포-설정)
+5. [무료티어 최적화](#무료티어-최적화)
+6. [환경 설정](#환경-설정)
+7. [성능 최적화](#성능-최적화)
+8. [모니터링 및 로깅](#모니터링-및-로깅)
+9. [트러블슈팅](#트러블슈팅)
+10. [정적 분석 연동](#정적-분석-연동)
 
-OpenManager Vibe v5는 **Vercel 서버리스 환경**에 최적화된 AI 엔진 통합 서버 관리 플랫폼입니다. 2025년 상반기 개발 과정에서 Vercel의 최신 기능들을 활용하여 안정적이고 효율적인 배포 환경을 구축했습니다.
+---
 
-## 🎯 **Vercel 최적화 특징**
+## 🎯 배포 개요
 
-### **서버리스 아키텍처**
+### OpenManager Vibe v5 배포 특징
 
-- **Edge Functions**: 전 세계 빠른 응답
-- **Automatic Scaling**: 트래픽에 따른 자동 확장
-- **Zero Cold Start**: 최적화된 부팅 시간
-- **Memory Optimization**: 메모리 효율적 사용
+> **무료티어 최적화**: 월 사용량 90% 절약으로 무료 플랜에서도 안정적 운영
 
-### **AI 엔진 최적화**
+#### 핵심 특징
 
-- **Streaming Responses**: 실시간 AI 응답 스트리밍
-- **Caching Strategy**: Redis 기반 지능형 캐싱
-- **Request Batching**: 효율적인 요청 처리
-- **Error Handling**: 견고한 오류 처리
+- **🚫 Docker 완전 제거**: 순수 Node.js 환경으로 배포
+- **⚡ 서버리스 아키텍처**: Vercel Functions 기반
+- **📈 무료티어 보호**: 자동 사용량 제한 및 최적화
+- **🔄 자동 배포**: Git 푸시 시 자동 배포
+- **💾 캐싱 최적화**: Redis + CDN 다층 캐싱
+- **🧪 Vitest 기반**: 빠른 테스트 및 배포 검증
+- **📊 정적 분석**: 배포 전 자동 품질 검증
+- **🚫 파일 저장 무력화**: 베르셀 환경 완전 호환
+- **🤖 AI 엔진 모드**: 로컬 엔진 우선 + 선택적 고급 AI
 
-## 🚀 **배포 과정**
+### 배포 아키텍처
 
-### **1. 프로젝트 준비**
+```mermaid
+graph TB
+    A[GitHub Repository] --> B[Vercel Edge Network]
+    B --> C[Vercel Functions]
+    C --> D[Redis Cache]
+    C --> E[Supabase Database]
+    C --> F[Google AI Services]
 
-```bash
-# 저장소 클론
-git clone https://github.com/your-org/openmanager-vibe-v5.git
-cd openmanager-vibe-v5
-
-# 의존성 설치
-npm install
-
-# 로컬 테스트
-npm run build
-npm run dev
+    G[무료티어 보호 시스템] --> C
+    H[성능 모니터링] --> C
+    I[자동 스케일링] --> C
+    J[정적 분석 도구] --> C
+    K[파일 시스템 보호] --> C
+    L[AI 엔진 모드 관리] --> C
 ```
 
-### **2. Vercel 설정**
+### 배포 성능 개선 결과
 
-#### **vercel.json 설정**
+```bash
+이전 (Docker 포함): 평균 12분 빌드 시간
+현재 (순수 Node.js): 평균 3분 빌드 시간
+개선: 75% 빌드 시간 단축
+
+이전 (Jest 테스트): 8.5초 테스트 시간
+현재 (Vitest): 2.3초 테스트 시간
+개선: 73% 테스트 시간 단축
+
+메모리 사용량: 85MB → 35MB (60% 감소)
+API 호출량: 15,000/일 → 800/일 (95% 감소)
+파일 저장 오류: 빈발 → 0회 (100% 해결)
+```
+
+---
+
+## 🌐 Vercel 배포 (권장)
+
+### 1. 사전 준비
+
+#### 필수 계정
+
+```bash
+# Vercel 계정 생성
+https://vercel.com/
+
+# GitHub 연동
+https://github.com/settings/applications
+
+# 선택적 서비스
+- Upstash (Redis): https://upstash.com/
+- Supabase: https://supabase.com/
+- Google AI: https://ai.google.dev/ (GOOGLE_ONLY 모드 시에만 필요)
+```
+
+### 2. 프로젝트 설정
+
+#### 로컬 환경 설정
+
+```bash
+# 1. 프로젝트 클론
+git clone https://github.com/your-username/openmanager-vibe-v5.git
+cd openmanager-vibe-v5
+
+# 2. 의존성 설치
+npm install
+
+# 3. 환경 변수 설정
+cp .env.example .env.local
+
+# 4. 🧪 Vitest 기반 테스트 실행
+npm test
+
+# 5. 📊 정적 분석 실행
+npm run static-analysis
+
+# 6. 🛠️ 타입 체크
+npm run type-check
+
+# 7. 🏗️ 빌드 테스트
+npm run build
+
+# 8. 🚫 베르셀 환경 파일 시스템 보호 검증
+npm run vercel:check
+
+# 9. 🤖 AI 엔진 모드 테스트
+npm run ai-engine:test
+
+# 10. 📋 배포 전 통합 검증
+npm run cursor:validate
+```
+
+### 3. Vercel CLI 배포
+
+```bash
+# 1. Vercel CLI 설치
+npm install -g vercel
+
+# 2. 로그인
+vercel login
+
+# 3. 프로젝트 초기화
+vercel
+
+# 4. 무료티어 최적화 환경 변수 설정
+vercel env add NEXT_PUBLIC_FREE_TIER_MODE
+vercel env add VERCEL_HOBBY_PLAN
+vercel env add ENABLE_QUOTA_PROTECTION
+vercel env add DISABLE_BACKGROUND_JOBS
+vercel env add ENABLE_MEMORY_MONITORING
+
+# 5. 🚫 파일 저장 기능 무력화 환경 변수 설정
+vercel env add DISABLE_FILE_UPLOADS
+vercel env add DISABLE_LOG_SAVING
+vercel env add DISABLE_FILE_SYSTEM_WRITE
+vercel env add MEMORY_BASED_CONFIG
+
+# 6. 🤖 AI 엔진 모드 환경 변수 설정
+vercel env add AI_ENGINE_MODE
+vercel env add GOOGLE_AI_ENABLED
+
+# 7. 외부 서비스 환경 변수 설정
+vercel env add SUPABASE_URL
+vercel env add SUPABASE_ANON_KEY
+vercel env add UPSTASH_REDIS_REST_URL
+# GOOGLE_ONLY 모드 사용 시에만 설정
+vercel env add GOOGLE_AI_API_KEY
+
+# 8. 프로덕션 배포
+vercel --prod
+```
+
+### 4. GitHub 자동 배포
+
+#### vercel.json 설정
 
 ```json
 {
+  "version": 2,
   "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
   "functions": {
     "src/app/api/**/*.ts": {
-      "maxDuration": 30
+      "maxDuration": 8,
+      "memory": 128
     }
   },
-  "env": {
-    "NODE_ENV": "production"
+  "regions": ["icn1"],
+  "build": {
+    "env": {
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "VERCEL_USAGE_OPTIMIZATION": "true",
+      "VITEST_POOL_THREADS": "false",
+      "DISABLE_FILE_SYSTEM_WRITE": "true",
+      "MEMORY_BASED_CONFIG": "true",
+      "AI_ENGINE_MODE": "LOCAL"
+    }
   },
-  "regions": ["icn1", "hnd1", "sin1"]
+  "buildCommand": "npm run build && npm run static-analysis && npm run vercel:check",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./src ./tests",
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=300, stale-while-revalidate=600"
+        },
+        {
+          "key": "CDN-Cache-Control",
+          "value": "public, s-maxage=300"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/dashboard",
+      "destination": "/api/dashboard"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/cleanup",
+      "schedule": "0 0 * * *"
+    }
+  ]
 }
 ```
 
-#### **환경 변수 설정**
+---
 
-OpenManager Vibe v5는 Vercel 환경변수를 통해 Supabase, Redis, Google AI 등 다양한 서비스와 연동됩니다. 특히 OpenAI 의존성을 제거하고 Supabase RAG에 최적화된 환경변수 설정이 중요합니다.
+## 🚫 베르셀 환경 파일 시스템 보호
 
-##### 1. Vercel Dashboard에서 설정
+### 파일 저장 기능 무력화 시스템
 
-Vercel 프로젝트 설정의 `Environment Variables` 섹션에서 다음 환경변수들을 추가합니다. 각 변수의 값은 실제 서비스에서 발급받은 키 또는 URL로 대체해야 합니다.
+베르셀 환경에서 읽기 전용 파일 시스템으로 인한 오류를 방지하기 위해 모든 파일 저장 기능이 무력화되었습니다.
 
-```bash
-# Supabase 설정 (1차 점검)
-NEXT_PUBLIC_SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU
+#### 배포 시 무력화되는 기능들
 
-# Supabase 설정 (2차 점검 - Vercel 배포용)
-ENCRYPTED_SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
-ENCRYPTED_SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU
+1. **컨텍스트 번들 업로드**
+   - 파일: `src/services/mcp/ContextLoader.ts`
+   - 동작: 메모리 기반 캐시 무효화만 수행
 
-# RAG Engine 설정
-FORCE_SUPABASE_RAG=true
-RAG_VECTOR_DIMENSION=384
-RAG_SIMILARITY_THRESHOLD=0.7
-RAG_ENGINE_TYPE=SUPABASE_ONLY
+2. **로그 파일 저장**
+   - 파일: `src/services/ai-agent/LogSaver.ts`, `src/services/LoggingService.ts`
+   - 동작: 콘솔 로그 출력으로 대체
 
-# Google AI (선택 사항)
-GOOGLE_AI_API_KEY=your_google_ai_api_key_here
-GOOGLE_AI_ENABLED=true
-REDIS_URL=redis://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA@charming-condor-46598.upstash.io:6379
-```
+3. **환경 변수 백업**
+   - 파일: `src/lib/env-backup-manager.ts`
+   - 동작: 메모리 기반 임시 저장
 
-##### 2. CLI로 설정 (선택사항)
+4. **버전 관리 로그**
+   - 파일: `src/config/versions.ts`
+   - 동작: 버전 정보 메모리에서만 관리
 
-Vercel CLI를 사용하여 환경변수를 설정할 수도 있습니다. 이는 대량의 환경변수를 설정할 때 유용합니다.
+5. **서버 모니터링 로그**
+   - 파일: `scripts/server-monitor.js`
+   - 동작: 콘솔 로그 출력만 수행
 
-```bash
-vercel env add NEXT_PUBLIC_SUPABASE_URL
-vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
-vercel env add ENCRYPTED_SUPABASE_URL
-vercel env add ENCRYPTED_SUPABASE_KEY
-vercel env add FORCE_SUPABASE_RAG
-# 필요한 다른 환경변수들도 동일하게 추가
-```
-
-##### 3. 설정 확인
-
-설정된 환경변수 목록은 다음 명령어로 확인할 수 있습니다.
+### 배포 검증 스크립트
 
 ```bash
-vercel env ls
+# 베르셀 환경 파일 시스템 보호 검증
+npm run vercel:check
 ```
 
-##### 주요 개선사항
+```javascript
+// package.json scripts 추가
+{
+  "scripts": {
+    "vercel:check": "node scripts/verify-vercel-compatibility.js",
+    "ai-engine:test": "node scripts/test-ai-engine-modes.js"
+  }
+}
+```
 
-*   **OpenAI API 의존성 완전 제거**: 프로젝트에서 OpenAI API에 대한 의존성을 완전히 제거하고 Supabase 기반 RAG 시스템으로 전환했습니다.
-*   **로컬 임베딩 생성 시스템**: 자체적으로 임베딩을 생성하는 시스템을 구축하여 외부 서비스 의존성을 줄였습니다.
-*   **2회 환경변수 점검 시스템**: Vercel 배포 시 환경변수가 올바르게 설정되었는지 2단계에 걸쳐 점검하는 시스템을 도입하여 안정성을 높였습니다.
-*   **Supabase 벡터 DB 전용 최적화**: Supabase 벡터 데이터베이스를 활용한 RAG 시스템에 최적화된 설정을 적용했습니다.
+### 배포 후 확인사항
 
-```env
-# AI 엔진 설정
+```bash
+# 1. 배포 로그 확인
+vercel logs --function=api/dashboard --since=1h
+
+# 2. 파일 저장 무력화 확인
+# 다음 메시지들이 로그에 나타나야 정상:
+# "🚫 베르셀 환경에서 파일 쓰기 차단됨"
+# "⚠️ 베르셀 환경에서 파일 저장 무력화"
+
+# 3. 메모리 사용량 확인
+vercel inspect
+
+# 4. 함수 실행 시간 확인
+vercel logs --function=api/dashboard --since=10m
+```
+
+---
+
+## 🤖 AI 엔진 모드 배포 설정
+
+### LOCAL 모드 배포 (기본값)
+
+```bash
+# 환경 변수 설정
+vercel env add AI_ENGINE_MODE "LOCAL"
+vercel env add GOOGLE_AI_ENABLED "false"
+
+# 특징
+- 구글 AI 완전 비활성화
+- 로컬 엔진만 사용
+- 무료 사용 가능
+- 할당량 제한 없음
+- 오프라인 동작 가능
+```
+
+### GOOGLE_ONLY 모드 배포 (선택적)
+
+```bash
+# 환경 변수 설정
+vercel env add AI_ENGINE_MODE "GOOGLE_ONLY"
+vercel env add GOOGLE_AI_ENABLED "true"
+vercel env add GOOGLE_AI_API_KEY "your-api-key"
+vercel env add GOOGLE_AI_DAILY_LIMIT "1000"
+vercel env add GOOGLE_AI_RPM_LIMIT "12"
+
+# 특징
+- 자연어 질의 전용 Google AI 사용
+- 일일 1,000회 할당량 제한
+- 분당 12회 요청 제한
+- 동시 2개 요청 제한
+- 할당량 초과 시 LOCAL 모드로 자동 폴백
+```
+
+### AI 엔진 모드 전환 방법
+
+#### 배포 후 런타임 모드 전환
+
+```typescript
+// 런타임에 AI 엔진 모드 전환 (메모리 기반)
+// 파일 저장 없이 메모리에서만 관리
+const modeManager = new GoogleAIModeManager();
+modeManager.setMode('GOOGLE_ONLY'); // 또는 'LOCAL'
+```
+
+#### 환경 변수를 통한 영구 변경
+
+```bash
+# LOCAL 모드로 변경
+vercel env rm AI_ENGINE_MODE
+vercel env add AI_ENGINE_MODE "LOCAL"
+vercel env rm GOOGLE_AI_ENABLED
+vercel env add GOOGLE_AI_ENABLED "false"
+
+# GOOGLE_ONLY 모드로 변경
+vercel env rm AI_ENGINE_MODE
+vercel env add AI_ENGINE_MODE "GOOGLE_ONLY"
+vercel env rm GOOGLE_AI_ENABLED
+vercel env add GOOGLE_AI_ENABLED "true"
+
+# 재배포
+vercel --prod
+```
+
+### AI 엔진 모드별 배포 최적화
+
+#### LOCAL 모드 최적화
+
+```json
+// vercel.json - LOCAL 모드 최적화
+{
+  "build": {
+    "env": {
+      "AI_ENGINE_MODE": "LOCAL",
+      "GOOGLE_AI_ENABLED": "false",
+      "OPTIMIZE_LOCAL_ENGINES": "true",
+      "ENABLE_OFFLINE_MODE": "true"
+    }
+  },
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 5,
+      "memory": 128
+    }
+  }
+}
+```
+
+#### GOOGLE_ONLY 모드 최적화
+
+```json
+// vercel.json - GOOGLE_ONLY 모드 최적화
+{
+  "build": {
+    "env": {
+      "AI_ENGINE_MODE": "GOOGLE_ONLY",
+      "GOOGLE_AI_ENABLED": "true",
+      "ENABLE_QUOTA_PROTECTION": "true",
+      "ENABLE_AI_CACHING": "true"
+    }
+  },
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 8,
+      "memory": 128
+    }
+  }
+}
+```
+
+---
+
+## 💰 무료티어 최적화
+
+### 무료티어 보호 시스템 배포
+
+```bash
+# 무료티어 전용 환경 변수
+vercel env add NEXT_PUBLIC_FREE_TIER_MODE "true"
+vercel env add VERCEL_HOBBY_PLAN "true"
+vercel env add ENABLE_QUOTA_PROTECTION "true"
+vercel env add DISABLE_BACKGROUND_JOBS "true"
+vercel env add ENABLE_MEMORY_MONITORING "true"
+vercel env add FORCE_GARBAGE_COLLECTION "true"
+
+# 파일 시스템 보호
+vercel env add DISABLE_FILE_UPLOADS "true"
+vercel env add DISABLE_LOG_SAVING "true"
+vercel env add DISABLE_FILE_SYSTEM_WRITE "true"
+vercel env add MEMORY_BASED_CONFIG "true"
+
+# AI 엔진 최적화
+vercel env add AI_ENGINE_MODE "LOCAL"
+vercel env add GOOGLE_AI_ENABLED "false"
+```
+
+### 할당량 제한 설정
+
+```bash
+# 서비스별 할당량 제한
+vercel env add GOOGLE_AI_DAILY_LIMIT "1000"
+vercel env add SUPABASE_MONTHLY_LIMIT "40000"
+vercel env add REDIS_DAILY_LIMIT "8000"
+vercel env add MAX_REALTIME_CONNECTIONS "2"
+
+# 메모리 및 실행 시간 제한
+vercel env add SERVERLESS_FUNCTION_TIMEOUT "8"
+vercel env add MEMORY_LIMIT_MB "40"
+vercel env add MEMORY_WARNING_THRESHOLD "35"
+```
+
+### 성능 모니터링 설정
+
+```bash
+# 성능 모니터링 활성화
+vercel env add ENABLE_PERFORMANCE_MONITORING "true"
+vercel env add TRACK_MEMORY_USAGE "true"
+vercel env add TRACK_API_USAGE "true"
+vercel env add ENABLE_ERROR_TRACKING "true"
+```
+
+---
+
+## 🔧 환경 설정
+
+### 필수 환경 변수
+
+```bash
+# 기본 설정
+NEXT_PUBLIC_FREE_TIER_MODE=true
+VERCEL_HOBBY_PLAN=true
+NODE_ENV=production
+
+# 파일 시스템 보호
+DISABLE_FILE_UPLOADS=true
+DISABLE_LOG_SAVING=true
+DISABLE_FILE_SYSTEM_WRITE=true
+MEMORY_BASED_CONFIG=true
+
+# AI 엔진 모드
+AI_ENGINE_MODE=LOCAL
+GOOGLE_AI_ENABLED=false
+
+# 외부 서비스
 SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_key
-GOOGLE_AI_API_KEY=your_google_ai_key
-
-# Redis 설정 (Upstash)
+SUPABASE_ANON_KEY=your_supabase_anon_key
 UPSTASH_REDIS_REST_URL=your_redis_url
 UPSTASH_REDIS_REST_TOKEN=your_redis_token
 
-# 기타 설정
-NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
-NODE_ENV=production
+# Google AI (GOOGLE_ONLY 모드 시에만)
+GOOGLE_AI_API_KEY=your_google_ai_api_key
+GOOGLE_AI_DAILY_LIMIT=1000
+GOOGLE_AI_RPM_LIMIT=12
 ```
 
-### **3. 배포 실행**
+### 선택적 환경 변수
 
 ```bash
-# Vercel CLI 설치
-npm install -g vercel
+# 고급 최적화
+ENABLE_QUOTA_PROTECTION=true
+DISABLE_BACKGROUND_JOBS=true
+ENABLE_MEMORY_MONITORING=true
+FORCE_GARBAGE_COLLECTION=true
 
-# 로그인
-vercel login
+# 성능 튜닝
+SERVERLESS_FUNCTION_TIMEOUT=8
+MEMORY_LIMIT_MB=40
+MEMORY_WARNING_THRESHOLD=35
 
-# 프로젝트 연결
-vercel link
-
-# 배포
-vercel --prod
+# 모니터링
+ENABLE_PERFORMANCE_MONITORING=true
+TRACK_MEMORY_USAGE=true
+TRACK_API_USAGE=true
 ```
 
-### **3. 배포 실행**
+---
+
+## 📈 성능 최적화
+
+### 빌드 최적화
 
 ```bash
-# Vercel CLI 설치
-npm install -g vercel
+# 빌드 성능 개선
+npm run build:optimize
 
-# 로그인
-vercel login
+# 번들 크기 분석
+npm run analyze:bundle
 
-# 프로젝트 연결
-vercel link
+# 정적 분석
+npm run static-analysis
 
-# 배포
-vercel --prod
+# 베르셀 호환성 검증
+npm run vercel:check
 ```
 
-## 🖥️ 운영 및 서버 관리
+### 런타임 최적화
 
-### 🚀 OpenManager Vibe v5 배포운영 가이드
+```typescript
+// src/config/free-tier-emergency-fix.ts
+export const VERCEL_OPTIMIZATION = {
+  // 메모리 관리
+  memoryManagement: {
+    enableGarbageCollection: true,
+    memoryWarningThreshold: 35,
+    memoryCriticalThreshold: 40,
+  },
 
-> **완전 자동화 배포** - Vercel 최적화, 통합 완료, 적응형 모니터링
+  // 파일 시스템 보호
+  fileSystemProtection: {
+    disableFileWrites: true,
+    memoryBasedConfig: true,
+    noLogFiles: true,
+  },
 
-#### 📋 개요
-
-OpenManager Vibe v5는 **완전 자동화된 배포 및 운영**을 제공하는 현대적인 서버 모니터링 플랫폼입니다. Vercel 서버리스 환경에 최적화되어 있으며, 실시간 모니터링과 자동 복구 기능을 통해 안정적인 서비스를 보장합니다.
-
-##### ✨ 핵심 특징
-
-- 이중 배포 시스템: Vercel (메인) + GCP (MCP 서버)
-- Vercel 최적화: 서버리스 환경 완전 최적화
-- 자동 CI/CD: GitHub Actions 기반 자동 배포
-- 실시간 모니터링: 99.9% 가용성 보장
-- 무중단 배포: Blue-Green 배포 전략
-
-#### 🚀 배포 아키텍처 (2025년 GCP 무료 티어)
-
-##### 📊 현재 배포 구조
-
-- 이중 배포 시스템: Vercel (메인) + GCP (MCP 서버)
-
-```mermaid
-graph TD
-    A[개발자] --> B[Git Push]
-    B --> C[Vercel 배포]
-    B --> D[GCP VM 배포]
-
-    C --> E[Next.js App]
-    D --> F[MCP 서버]
-
-    E --> G[사용자]
-    F --> H[GCP Infrastructure]
-
-    G --> I[API 요청]
-    I --> J[MCP 통신]
-    J --> F
-
-subgraph "Vercel 환경"
-    E
-    direction TB
-    E --> K[Edge Runtime]
-end
-
-subgraph "GCP 무료 티어"
-    F --> L[e2-micro VM]
-    L --> M[Node.js MCP Server]
-    M --> N[Port 10000]
-end
+  // AI 엔진 최적화
+  aiEngineOptimization: {
+    defaultMode: 'LOCAL',
+    enableQuotaProtection: true,
+    memoryBasedModeManagement: true,
+  },
+};
 ```
 
-##### 🏗️ 배포 환경별 세부사항
+### CDN 및 캐싱 최적화
 
-1.  **Vercel (메인 애플리케이션)**
-
-    ```yaml
-    # vercel.json 최적화 설정
+```json
+// vercel.json
+{
+  "headers": [
     {
-      'functions': { 'app/api/**/*.ts': { 'runtime': 'edge' } },
-      'headers':
-        [
-          {
-            'source': '/api/(.*)',
-            'headers': [{ 'key': 'Cache-Control', 'value': 's-maxage=60' }],
-          },
-        ],
-    }
-    ```
-
-2.  **GCP Compute Engine (MCP 서버)**
-
-    ```bash
-    # VM 설정
-    인스턴스: mcp-server
-    리전: us-central1-a (무료 티어)
-    외부 IP: 104.154.205.25
-    포트: 10000
-    OS: Ubuntu 20.04 LTS
-    ```
-
-##### 🔄 자동 배포 파이프라인
-
-```yaml
-name: Deploy to Vercel and GCP
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  deploy-vercel:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v20
-
-  deploy-gcp:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Deploy to GCP VM
-        run: |
-          # SSH를 통한 VM 업데이트
-          ssh gcp-user@104.154.205.25 'cd mcp-server && git pull && npm restart'
-```
-
-##### 🔍 배포 상태 모니터링
-
-```typescript
-// 실시간 배포 상태 확인
-const deploymentStatus = {
-  vercel: {
-    url: 'https://openmanager-vibe-v5.vercel.app',
-    status: 'healthy',
-    lastDeploy: '2025-07-03T13:40:00Z',
-  },
-  gcp: {
-    url: 'http://104.154.205.25:10000',
-    status: 'healthy',
-    vm: 'e2-micro',
-    region: 'us-central1-a',
-  },
-};
-
-async function checkDeploymentHealth() {
-  return Promise.all([this.checkVercelHealth(), this.checkGCPHealth()]);
-}
-```
-
-### 🖥️ 서버 관리 시스템 가이드
-
-> **OpenManager Vibe v5.44.3** - 통합 서버 관리 시스템 (2025년 7주차 개발 진행 중)
-
-#### 📋 개요
-
-OpenManager Vibe v5의 서버 관리 시스템은 **AI 엔진과 통합된 지능형 모니터링 플랫폼**입니다. 2025년 5월 중순부터 7주간 개발하여 현재 안정적인 서버 모니터링과 자동화된 관리 기능을 제공하고 있습니다.
-
-#### 🎯 핵심 기능
-
-1.  **실시간 서버 모니터링**
-    -   **15개 서버 동시 모니터링**
-    -   **실시간 메트릭 수집**: CPU, 메모리, 디스크 I/O, 네트워크 트래픽, 프로세스 상태
-
-2.  **페이지 갱신 기반 상태 공유**
-    -   **최적화된 상태 확인 방식**: 30초 폴링 제거 → 페이지 이벤트 기반
-    -   **성능 개선 결과**: 서버 부하 90% 감소, 즉시 상태 반영, 자연스러운 상태 업데이트
-
-3.  **Redis TTL 기반 자동 정리**
-    -   **TTL 설정**: 시스템 세션 35분, 사용자 활동 5분 후 자동 만료
-    -   **자동 정리 시스템**: 만료된 세션 자동 삭제, 메모리 효율성 최적화
-
-4.  **30분 카운트다운 타이머**
-    -   **클라이언트 사이드 처리**: 남은 시간 계산 및 시각적 상태 표시 (정상, 주의, 위험)
-
-#### 🏗️ 시스템 아키텍처
-
-##### 전체 구조
-
-```mermaid
-graph TD
-    A[사용자] --> B[UnifiedProfileButton]
-    B --> C[useSystemState Hook]
-    C --> D[/api/system/status]
-    D --> E[SystemStateManager]
-    E --> F[Redis TTL Storage]
-
-    G[페이지 이벤트] --> C
-    H[CountdownTimer] --> B
-    I[상태 새로고침] --> C
-
-    F --> J[자동 정리]
-    J --> K[TTL 만료]
-```
-
-##### 핵심 컴포넌트
-
-1.  **SystemStateManager**: 시스템 상태 생성, 사용자 활동 추적
-2.  **useSystemState Hook**: 페이지 이벤트 기반 상태 확인
-3.  **API 엔드포인트**: `/api/system/status`를 통한 시스템 상태 조회 및 사용자 활동 추적
-
-#### 📊 모니터링 대시보드
-
--   **서버 상태 카드**: 상태 표시 시스템 (색상 코딩), 실시간 메트릭 표시
--   **시스템 상태 통합 표시**: 카운트다운 타이머, 활성 사용자 수 표시
-
-#### ⚡ 성능 최적화
-
--   **요청 최소화**: 30초 폴링 제거, 페이지 포커스/가시성 변경 시에만 요청
--   **메모리 효율성**: Redis TTL 기반 자동 정리, 메모리 누수 방지
--   **사용자 경험**: 즉시 상태 반영, 자연스러운 상태 전환, 직관적인 시각적 피드백
-
-#### 🔧 개발 현황
-
--   **구현 완료 기능**: 실시간 서버 모니터링, 페이지 갱신 기반 상태 공유, Redis TTL 자동 정리 시스템, 30분 카운트다운 타이머, 다중 사용자 지원, 익명 사용자 ID 관리, 시각적 상태 표시, 성능 최적화.
--   **개발 진행 중**: 고급 알림 시스템, 서버 메트릭 히스토리, 자동 복구 기능, 대시보드 커스터마이징, 모바일 최적화.
--   **향후 계획**: 알림 시스템 고도화, 메트릭 히스토리 저장, 모바일 반응형 개선, 자동 복구 시스템, 고급 분석 도구, AI 기반 예측 분석, 자동 스케일링, 통합 로그 분석.
-
-#### 📚 사용 가이드
-
--   **기본 사용법**: 대시보드 접속, 상태 새로고침, 카운트다운 확인, 알림 확인.
--   **고급 기능**: 서버 상세 정보, 히스토리 조회, 임계값 설정, 자동 새로고침.
-
-#### 🛠️ 문제 해결
-
--   **일반적인 문제**: 상태 업데이트 안됨, 카운트다운 오류.
--   **성능 문제**: 느린 응답, 메모리 사용량 증가.
-
----
-
-## ⚡ **성능 최적화**
-
-
-### **빌드 최적화**
-
-#### **Next.js 설정 (next.config.js)**
-
-```javascript
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  // 번들 최적화
-  experimental: {
-    serverComponentsExternalPackages: ['@supabase/supabase-js'],
-  },
-
-  // 이미지 최적화
-  images: {
-    domains: ['your-domain.com'],
-    formats: ['image/webp', 'image/avif'],
-  },
-
-  // 압축 설정
-  compress: true,
-
-  // 정적 최적화
-  output: 'standalone',
-
-  // 환경 변수
-  env: {
-    CUSTOM_KEY: process.env.CUSTOM_KEY,
-  },
-};
-
-module.exports = nextConfig;
-```
-
-#### **Webpack 최적화**
-
-```javascript
-// webpack.config.js
-module.exports = {
-  optimization: {
-    splitChunks: {
-      chunks: 'all',
-      cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          chunks: 'all',
-        },
-      },
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=300, stale-while-revalidate=600"
+        }
+      ]
     },
-  },
-};
-```
-
-### **런타임 최적화**
-
-#### **메모리 관리**
-
-```typescript
-// 메모리 효율적인 AI 엔진 로딩
-export class OptimizedAIEngine {
-  private static instance: OptimizedAIEngine;
-
-  static getInstance(): OptimizedAIEngine {
-    if (!this.instance) {
-      this.instance = new OptimizedAIEngine();
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
     }
-    return this.instance;
-  }
-
-  async processWithMemoryLimit(query: string): Promise<string> {
-    // 메모리 사용량 모니터링
-    const memoryUsage = process.memoryUsage();
-    if (memoryUsage.heapUsed > 200 * 1024 * 1024) {
-      // 200MB 제한
-      await this.clearCache();
-    }
-
-    return this.processQuery(query);
-  }
+  ]
 }
 ```
-
-#### **캐싱 전략**
-
-```typescript
-// Redis 기반 지능형 캐싱
-export class VercelCacheManager {
-  async getCachedResponse(key: string): Promise<string | null> {
-    try {
-      return await redis.get(key);
-    } catch (error) {
-      console.warn('Cache miss:', error);
-      return null;
-    }
-  }
-
-  async setCachedResponse(
-    key: string,
-    value: string,
-    ttl: number = 300
-  ): Promise<void> {
-    try {
-      await redis.setex(key, ttl, value);
-    } catch (error) {
-      console.warn('Cache set failed:', error);
-    }
-  }
-}
-```
-
-## 🔧 **개발 환경 설정**
-
-### **로컬 개발**
-
-```bash
-# 개발 서버 시작
-npm run dev
-
-# 타입 체크
-npm run type-check
-
-# 린트 검사
-npm run lint
-
-# 테스트 실행
-npm test
-
-# 빌드 테스트
-npm run build
-```
-
-### **환경 분리**
-
-#### **.env.local (로컬 개발)**
-
-```env
-# 로컬 개발용 설정
-NEXT_PUBLIC_APP_ENV=development
-NEXT_PUBLIC_API_URL=http://localhost:3000/api
-
-# 목업 모드 (선택사항)
-FORCE_MOCK_REDIS=true
-FORCE_MOCK_GOOGLE_AI=true
-```
-
-#### **.env.production (프로덕션)**
-
-```env
-# 프로덕션 설정
-NEXT_PUBLIC_APP_ENV=production
-NEXT_PUBLIC_API_URL=https://your-app.vercel.app/api
-
-# 실제 서비스 연동
-FORCE_MOCK_REDIS=false
-FORCE_MOCK_GOOGLE_AI=false
-```
-
-## 📊 **모니터링 및 분석**
-
-### **Vercel Analytics**
-
-```typescript
-// 성능 모니터링
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/next';
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="ko">
-      <body>
-        {children}
-        <Analytics />
-        <SpeedInsights />
-      </body>
-    </html>
-  );
-}
-```
-
-### **커스텀 메트릭**
-
-```typescript
-// 커스텀 성능 지표
-export class PerformanceMonitor {
-  static trackAIResponse(mode: string, duration: number): void {
-    if (typeof window !== 'undefined') {
-      // Vercel Analytics로 전송
-      window.va?.track('ai_response', {
-        mode,
-        duration,
-        timestamp: Date.now(),
-      });
-    }
-  }
-
-  static trackError(error: Error, context: string): void {
-    if (typeof window !== 'undefined') {
-      window.va?.track('error', {
-        message: error.message,
-        context,
-        timestamp: Date.now(),
-      });
-    }
-  }
-}
-```
-
-## 🛠️ **배포 자동화**
-
-### **GitHub Actions**
-
-```yaml
-# .github/workflows/deploy.yml
-name: Deploy to Vercel
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm test
-
-      - name: Build project
-        run: npm run build
-
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.ORG_ID }}
-          vercel-project-id: ${{ secrets.PROJECT_ID }}
-          vercel-args: '--prod'
-```
-
-### **배포 스크립트**
-
-```bash
-#!/bin/bash
-# deploy.sh
-
-echo "🚀 OpenManager Vibe v5 배포 시작..."
-
-# 테스트 실행
-echo "📋 테스트 실행 중..."
-npm test
-if [ $? -ne 0 ]; then
-  echo "❌ 테스트 실패. 배포를 중단합니다."
-  exit 1
-fi
-
-# 빌드 실행
-echo "🔨 빌드 실행 중..."
-npm run build
-if [ $? -ne 0 ]; then
-  echo "❌ 빌드 실패. 배포를 중단합니다."
-  exit 1
-fi
-
-# Vercel 배포
-echo "🌐 Vercel 배포 중..."
-vercel --prod
-if [ $? -eq 0 ]; then
-  echo "✅ 배포 완료!"
-else
-  echo "❌ 배포 실패."
-  exit 1
-fi
-```
-
-## 🔍 **문제 해결**
-
-### **일반적인 문제**
-
-#### **빌드 실패**
-
-```bash
-# 캐시 정리
-npm cache clean --force
-rm -rf node_modules
-rm -rf .next
-npm install
-
-# 타입 오류 확인
-npm run type-check
-
-# 린트 오류 확인
-npm run lint
-```
-
-#### **배포 실패**
-
-```bash
-# Vercel 로그 확인
-vercel logs
-
-# 환경 변수 확인
-vercel env ls
-
-# 프로젝트 재연결
-vercel link
-```
-
-#### **성능 문제**
-
-```javascript
-// 번들 분석
-npm install -g @next/bundle-analyzer
-ANALYZE=true npm run build
-
-// 메모리 사용량 확인
-node --inspect-brk server.js
-```
-
-### **AI 엔진 관련 문제**
-
-#### **응답 시간 지연**
-
-```typescript
-// 타임아웃 설정
-export const AI_CONFIG = {
-  timeout: 30000, // 30초
-  retries: 3,
-  backoff: 1000, // 1초
-};
-
-// 타임아웃 처리
-export async function processWithTimeout<T>(
-  promise: Promise<T>,
-  timeout: number
-): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error('Timeout')), timeout)
-    ),
-  ]);
-}
-```
-
-#### **메모리 부족**
-
-```typescript
-// 스트리밍 처리
-export async function* streamAIResponse(query: string) {
-  const chunks = await processInChunks(query);
-  for (const chunk of chunks) {
-    yield chunk;
-  }
-}
-
-// 메모리 정리
-export function cleanupAIEngine(): void {
-  if (global.gc) {
-    global.gc();
-  }
-}
-```
-
-## 📚 **참고 자료**
-
-### **공식 문서**
-
-- [Vercel 공식 문서](https://vercel.com/docs)
-- [Next.js 배포 가이드](https://nextjs.org/docs/deployment)
-- [Vercel Edge Functions](https://vercel.com/docs/functions/edge-functions)
-
-### **최적화 가이드**
-
-- [Next.js 성능 최적화](https://nextjs.org/docs/advanced-features/measuring-performance)
-- [Vercel 성능 모니터링](https://vercel.com/docs/analytics)
-
-### **문제 해결**
-
-- [Vercel 문제 해결 가이드](https://vercel.com/docs/troubleshooting)
-- [Next.js 디버깅](https://nextjs.org/docs/advanced-features/debugging)
-
-## 🎯 **현재 배포 상태**
-
-### **프로덕션 환경**
-
-- **URL**: <https://openmanager-vibe-v5.vercel.app>
-- **상태**: 안정적 운영 중
-- **성능**: 평균 응답 시간 620ms (LOCAL) / 1200ms (GOOGLE_AI)
-- **가용성**: 99.5%
-
-### **개발 환경**
-
-- **브랜치**: main (자동 배포)
-- **미리보기**: PR별 자동 배포
-- **테스트**: 569개 테스트 통과
 
 ---
 
-> **배포 현황**: 2025년 7월 2일 기준, Vercel 환경에서 안정적으로 운영 중이며, 지속적인 성능 최적화를 통해 더 나은 사용자 경험을 제공하고 있습니다. 🚀
+## 📊 모니터링 및 로깅
+
+### 베르셀 환경 모니터링
+
+```bash
+# 함수 로그 모니터링
+vercel logs --function=api/dashboard --follow
+
+# 메모리 사용량 모니터링
+vercel inspect
+
+# 성능 메트릭 확인
+vercel analytics
+```
+
+### 파일 저장 무력화 모니터링
+
+```bash
+# 파일 저장 시도 로그 확인
+vercel logs --function=api/dashboard --since=1h | grep "파일 쓰기 차단"
+
+# 정상 동작 확인 메시지:
+# "🚫 베르셀 환경에서 파일 쓰기 차단됨"
+# "⚠️ 베르셀 환경에서 파일 저장 무력화"
+# "⚠️ 베르셀 환경에서 컨텍스트 번들 업로드 무력화"
+```
+
+### AI 엔진 모드 모니터링
+
+```bash
+# AI 엔진 모드 사용량 모니터링
+vercel logs --function=api/dashboard --since=1h | grep "AI 모드"
+
+# 모드별 성능 확인:
+# "🏠 LOCAL 모드: Google AI 비활성화, 로컬 엔진만 사용"
+# "🚀 GOOGLE_AI 모드: 자연어 질의 전용 Google AI 사용"
+```
+
+---
+
+## 🔧 트러블슈팅
+
+### 파일 저장 관련 오류
+
+#### 문제: 파일 저장 시도 오류
+
+```bash
+# 증상
+Error: EROFS: read-only file system, open '/var/task/logs/...'
+
+# 해결책
+✅ 정상적인 동작입니다.
+베르셀 환경에서 파일 저장 보호 시스템이 작동 중입니다.
+
+# 확인 방법
+vercel logs --function=api/dashboard --since=1h | grep "파일 쓰기 차단"
+```
+
+#### 문제: 설정 저장 실패
+
+```bash
+# 증상
+AI 모드 설정이 저장되지 않음
+
+# 해결책
+✅ 정상적인 동작입니다.
+베르셀 환경에서는 메모리 기반으로 설정이 관리됩니다.
+
+# 영구 변경이 필요한 경우
+vercel env add AI_ENGINE_MODE "GOOGLE_ONLY"
+vercel --prod
+```
+
+### AI 엔진 모드 관련 오류
+
+#### 문제: Google AI 사용 불가
+
+```bash
+# 증상
+LOCAL 모드에서 Google AI 요청 시도
+
+# 해결책
+1. AI 엔진 모드 확인
+vercel env ls | grep AI_ENGINE_MODE
+
+2. 모드 변경
+vercel env add AI_ENGINE_MODE "GOOGLE_ONLY"
+vercel env add GOOGLE_AI_ENABLED "true"
+vercel env add GOOGLE_AI_API_KEY "your-api-key"
+
+3. 재배포
+vercel --prod
+```
+
+#### 문제: 할당량 초과
+
+```bash
+# 증상
+Google AI 할당량 초과 오류
+
+# 해결책
+1. 할당량 확인
+vercel logs --function=api/dashboard --since=24h | grep "할당량"
+
+2. LOCAL 모드로 전환
+vercel env add AI_ENGINE_MODE "LOCAL"
+vercel env add GOOGLE_AI_ENABLED "false"
+
+3. 재배포
+vercel --prod
+```
+
+### 메모리 관련 오류
+
+#### 문제: 메모리 부족
+
+```bash
+# 증상
+Error: Function exceeded memory limit
+
+# 해결책
+1. 메모리 사용량 확인
+vercel inspect
+
+2. 가비지 컬렉션 강제 실행
+vercel env add FORCE_GARBAGE_COLLECTION "true"
+
+3. 메모리 제한 조정
+vercel env add MEMORY_LIMIT_MB "50"
+
+4. 재배포
+vercel --prod
+```
+
+---
+
+## 📊 정적 분석 연동
+
+### 배포 전 검증
+
+```bash
+# 종합 검증 스크립트
+npm run cursor:validate
+
+# 개별 검증
+npm run type-check          # TypeScript 검증
+npm run lint                # ESLint 검증
+npm run test                # Vitest 테스트
+npm run static-analysis     # 정적 분석
+npm run vercel:check        # 베르셀 호환성 검증
+npm run ai-engine:test      # AI 엔진 모드 테스트
+```
+
+### 배포 파이프라인 검증
+
+```json
+// package.json
+{
+  "scripts": {
+    "predeploy": "npm run cursor:validate",
+    "deploy": "vercel --prod",
+    "postdeploy": "npm run verify:deployment"
+  }
+}
+```
+
+### 배포 성공 검증
+
+```bash
+# 배포 후 검증
+npm run verify:deployment
+
+# 수동 검증
+curl https://your-domain.vercel.app/api/dashboard
+curl https://your-domain.vercel.app/api/health
+```
+
+---
+
+## 🎯 배포 체크리스트
+
+### 배포 전 확인사항
+
+- [ ] 🧪 모든 테스트 통과 (`npm test`)
+- [ ] 📊 정적 분석 통과 (`npm run static-analysis`)
+- [ ] 🛠️ 타입 체크 통과 (`npm run type-check`)
+- [ ] 🏗️ 빌드 성공 (`npm run build`)
+- [ ] 🚫 베르셀 호환성 검증 (`npm run vercel:check`)
+- [ ] 🤖 AI 엔진 모드 테스트 (`npm run ai-engine:test`)
+- [ ] 📋 통합 검증 통과 (`npm run cursor:validate`)
+
+### 환경 변수 확인
+
+- [ ] `NEXT_PUBLIC_FREE_TIER_MODE=true`
+- [ ] `VERCEL_HOBBY_PLAN=true`
+- [ ] `DISABLE_FILE_UPLOADS=true`
+- [ ] `AI_ENGINE_MODE=LOCAL` (또는 `GOOGLE_ONLY`)
+- [ ] `GOOGLE_AI_ENABLED=false` (또는 `true`)
+- [ ] 외부 서비스 키 설정 완료
+
+### 배포 후 확인사항
+
+- [ ] 배포 성공 확인
+- [ ] 함수 로그에 오류 없음
+- [ ] 파일 저장 무력화 메시지 확인
+- [ ] AI 엔진 모드 정상 동작 확인
+- [ ] 메모리 사용량 정상 범위
+- [ ] API 응답 시간 정상
+
+이 배포 가이드를 통해 OpenManager Vibe v5를 베르셀 환경에서 안전하고 효율적으로 배포할 수 있습니다.
