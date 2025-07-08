@@ -11,12 +11,11 @@
 // ==============================================
 
 /**
- * 자연어 처리 AI 모드 (3-Mode System + auto)
+ * AI 모드 정의 v2.0 (단순화)
  * - LOCAL: 로컬 AI 엔진들만 사용 (기본값)
- * - GOOGLE_ONLY: Google AI만 사용 (자연어 처리에서만 사용자 선택)
- * - auto: 자동 모드 선택
+ * - GOOGLE_ONLY: Google AI만 사용 (자연어 처리용)
  */
-export type AIMode = 'LOCAL' | 'GOOGLE_ONLY' | 'THREE_TIER' | 'auto';
+export type AIMode = 'LOCAL' | 'GOOGLE_ONLY';
 
 /**
  * AI 엔진 타입 정의

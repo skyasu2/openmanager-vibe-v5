@@ -11,7 +11,7 @@
 
 import type { AIMode } from '@/types/ai-types';
 import { motion } from 'framer-motion';
-import { Brain, Cpu, Settings, Zap } from 'lucide-react';
+import { Brain, Cpu, Zap } from 'lucide-react';
 import React, { useState } from 'react';
 
 interface AiModeSelectorProps {
@@ -41,26 +41,6 @@ const AI_MODE_CONFIG = {
     borderColor: 'border-emerald-200',
     textColor: 'text-emerald-700',
     selectedBg: 'bg-emerald-500',
-  },
-  THREE_TIER: {
-    label: '3계층 AI',
-    description: '로컬 → GCP → Google AI 폴백',
-    icon: Settings,
-    color: 'orange',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-200',
-    textColor: 'text-orange-700',
-    selectedBg: 'bg-orange-500',
-  },
-  auto: {
-    label: '자동 선택',
-    description: '상황에 따라 최적 AI 선택',
-    icon: Zap,
-    color: 'purple',
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-200',
-    textColor: 'text-purple-700',
-    selectedBg: 'bg-purple-500',
   },
 } as const;
 
@@ -99,22 +79,17 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
         <motion.div
           className={`absolute top-1 bottom-1 rounded-md shadow-sm ${selectedMode === 'LOCAL'
             ? AI_MODE_CONFIG.LOCAL.selectedBg
-            : selectedMode === 'GOOGLE_ONLY'
-              ? AI_MODE_CONFIG.GOOGLE_ONLY.selectedBg
-              : selectedMode === 'THREE_TIER'
-                ? AI_MODE_CONFIG.THREE_TIER.selectedBg
-                : AI_MODE_CONFIG.auto.selectedBg
+            : AI_MODE_CONFIG.GOOGLE_ONLY.selectedBg
             }`}
           initial={false}
           animate={{
-            left: selectedMode === 'LOCAL' ? '4px' : selectedMode === 'GOOGLE_ONLY' ? '50%' : selectedMode === 'THREE_TIER' ? '50%' : '50%',
-            width:
-              selectedMode === 'LOCAL' ? 'calc(50% - 4px)' : selectedMode === 'GOOGLE_ONLY' ? 'calc(50% - 4px)' : selectedMode === 'THREE_TIER' ? 'calc(50% - 4px)' : 'calc(50% - 4px)',
+            left: selectedMode === 'LOCAL' ? '4px' : 'calc(50% + 2px)',
+            width: 'calc(50% - 4px)',
           }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         />
 
-        <div className='relative grid grid-cols-3 gap-1'>
+        <div className='relative grid grid-cols-2 gap-1'>
           {(Object.keys(AI_MODE_CONFIG) as AIMode[]).map(mode => {
             const config = AI_MODE_CONFIG[mode];
             const Icon = config.icon;
@@ -182,16 +157,6 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
         {selectedMode === 'LOCAL' && (
           <div className='mt-1 text-xs text-gray-500'>
             ⚡ 빠른 응답과 기본적인 시스템 질의에 최적화
-          </div>
-        )}
-        {selectedMode === 'THREE_TIER' && (
-          <div className='mt-1 text-xs text-gray-500'>
-            🤖 로컬 → GCP → Google AI 폴백 폴리시
-          </div>
-        )}
-        {selectedMode === 'auto' && (
-          <div className='mt-1 text-xs text-gray-500'>
-            🤖 질의 유형에 따라 자동으로 최적 AI 엔진 선택
           </div>
         )}
       </motion.div>

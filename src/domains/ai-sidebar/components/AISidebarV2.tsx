@@ -463,15 +463,12 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     try {
       setIsGenerating(true);
 
-      // 'auto' 모드는 LOCAL로 처리
-      const actualMode = newMode === 'auto' ? 'LOCAL' : newMode;
-
-      setSelectedEngine(actualMode);
+      setSelectedEngine(newMode);
 
       // Unified AI Engine Router 모드 변경
       await unifiedAIRouter.processQuery({
         query: '모드 변경 테스트',
-        mode: actualMode,
+        mode: newMode,
         context: { modeChange: true }
       });
 
@@ -479,9 +476,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       const message: ChatMessage = {
         id: Date.now().toString(),
         type: 'ai',
-        content: `AI 모드가 ${newMode === 'auto' ? '자동 선택' : actualMode === 'LOCAL' ? '로컬' : 'Google AI'}로 변경되었습니다.`,
+        content: `AI 모드가 ${newMode === 'LOCAL' ? '로컬' : 'Google AI'}로 변경되었습니다.`,
         timestamp: new Date(),
-        engine: actualMode,
+        engine: newMode,
         processingTime: 0
       };
 
@@ -645,9 +642,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                           const normalizedMode =
                             engine.id === 'GOOGLE_AI'
                               ? 'GOOGLE_ONLY'
-                              : engine.id === 'AUTO'
-                                ? 'LOCAL'
-                                : (engine.id as 'LOCAL' | 'GOOGLE_ONLY');
+                              : (engine.id as 'LOCAL' | 'GOOGLE_ONLY');
                           unifiedAIRouter.setMode(normalizedMode);
                           setShowEngineInfo(false);
                         }}

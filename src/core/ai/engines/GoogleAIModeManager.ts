@@ -74,7 +74,7 @@ export class GoogleAIModeManager {
 
     this.stats = {
       totalQueries: 0,
-      modeUsage: { LOCAL: 0, GOOGLE_ONLY: 0, THREE_TIER: 0, auto: 0 },
+      modeUsage: { LOCAL: 0, GOOGLE_ONLY: 0 },
       averageResponseTime: 0,
       successRate: 100,
       fallbackRate: 0,
@@ -109,10 +109,6 @@ export class GoogleAIModeManager {
           break;
         case 'GOOGLE_ONLY':
           result = await this.processGoogleAIMode(query, context, priority);
-          break;
-        case 'auto':
-          // auto 모드: 질의 내용에 따라 자동 선택
-          result = await this.processAutoMode(query, context, priority);
           break;
         default:
           throw new Error(`지원하지 않는 모드: ${this.currentMode}`);
@@ -354,48 +350,5 @@ export class GoogleAIModeManager {
    */
   public getConfig(): GoogleAIModeConfig {
     return { ...this.config };
-  }
-
-  /**
-   * 🤖 AUTO 모드: 질의 내용에 따라 자동 선택
-   */
-  private async processAutoMode(
-    query: string,
-    context?: any,
-    priority: 'low' | 'medium' | 'high' | 'critical' = 'medium'
-  ): Promise<AIEngineResult> {
-    console.log('🤖 AUTO 모드: 질의 분석 후 최적 엔진 자동 선택');
-
-    // 질의 분석
-    const queryAnalysis = this.analyzeQuery(query);
-
-    // 자연어 질의이거나 복잡한 질문인 경우 Google AI 사용
-    if (queryAnalysis.isNaturalLanguage || queryAnalysis.complexity === 'complex') {
-      console.log('🚀 복잡한 질의 → Google AI 모드 선택');
-      return await this.processGoogleAIMode(query, context, priority);
-    }
-
-    // 간단한 시스템 질의인 경우 로컬 모드 사용
-    console.log('🏠 단순 질의 → LOCAL 모드 선택');
-    return await this.processLocalMode(query, context, priority);
-  }
-
-  /**
-   * 🔍 질의 분석
-   */
-  private analyzeQuery(query: string) {
-    const isNaturalLanguage = /[?？]|어떻게|어떤|무엇|언제|어디서|왜|누가|해줘|알려줘|설명해|가르쳐/.test(query);
-    const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(query);
-    const isSystemQuery = /서버|시스템|모니터링|상태|메트릭/.test(query);
-    const isComplexQuery = query.length > 20 || query.split(' ').length > 5;
-
-    return {
-      isNaturalLanguage,
-      isKorean,
-      isSystemQuery,
-      complexity: isComplexQuery ? 'complex' : 'simple',
-      length: query.length,
-      wordCount: query.split(' ').length
-    };
   }
 }

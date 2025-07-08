@@ -1,6 +1,6 @@
 /**
- * 🤖 통합 AI 엔진 라우터 v5.45.0
- * Edge Runtime 최적화 + GCP Functions 3-Tier 통합
+ * 🤖 통합 AI 엔진 라우터 v5.45.0 (단순화)
+ * Edge Runtime 최적화 + 2-Mode AI 시스템
  */
 
 import { getVercelConfig } from '@/config/vercel-edge-config';
@@ -8,8 +8,6 @@ import { edgeRuntimeService } from '@/lib/edge-runtime-utils';
 import { SupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { KoreanAIEngine } from '@/services/ai/korean-ai-engine';
-import { ThreeTierAIRouter } from '@/services/ai/ThreeTierAIRouter';
-// MCPClientWrapper 제거 - GCP VM MCP만 사용
 import { AIEngineType, AIRequest, AIResponse } from '@/types/ai-types';
 
 // Edge Runtime 호환성 확인
@@ -19,8 +17,8 @@ const cache = edgeRuntimeService.cache;
 const performance = edgeRuntimeService.performance;
 
 /**
- * 🚀 통합 AI 엔진 라우터 v5.45.0
- * GCP Functions 3-Tier 통합으로 베르셀 부하 75% 감소
+ * 🚀 통합 AI 엔진 라우터 v5.45.0 (단순화)
+ * LOCAL & GOOGLE_ONLY 2-Mode 시스템
  */
 export class UnifiedAIEngineRouter {
   private static instance: UnifiedAIEngineRouter;
@@ -30,17 +28,9 @@ export class UnifiedAIEngineRouter {
   private lastHealthCheck = Date.now();
   private isInitialized = false;
 
-  // 🚀 NEW: 3-Tier AI Router 통합
-  private threeTierRouter: ThreeTierAIRouter;
-  private useThreeTierRouter = false;
-
   constructor() {
-    // 3-Tier Router 초기화
-    this.threeTierRouter = ThreeTierAIRouter.getInstance();
-    this.useThreeTierRouter = process.env.THREE_TIER_AI_ENABLED === 'true';
-
     // constructor에서는 초기화하지 않음 (테스트 호환성)
-    logger.info('🤖 통합 AI 엔진 라우터 생성 완료 (3-Tier 통합)');
+    logger.info('🤖 통합 AI 엔진 라우터 생성 완료 (2-Mode 시스템)');
   }
 
   /**
@@ -62,12 +52,6 @@ export class UnifiedAIEngineRouter {
     const timer = performance.startTimer('engine-initialization');
 
     try {
-      // 🚀 3-Tier Router 초기화 (우선순위 높음)
-      if (this.useThreeTierRouter) {
-        await this.threeTierRouter.initialize();
-        logger.info('✅ 3-Tier AI Router 활성화됨 (GCP Functions 통합)');
-      }
-
       // 기존 엔진 초기화
       await this.initializeEngines();
 
@@ -81,11 +65,10 @@ export class UnifiedAIEngineRouter {
   }
 
   /**
-   * 🔧 기존 AI 엔진들 초기화
+   * 🔧 AI 엔진들 초기화
    */
   private async initializeEngines() {
     try {
-      // 메인 AI 컴포넌트 (Edge Runtime 호환)
       // Google AI는 Vercel 설정에 따라 조건부 초기화
       if (vercelConfig.enableGoogleAI) {
         await this.initializeEngine('google-ai', GoogleAIService);
@@ -109,7 +92,7 @@ export class UnifiedAIEngineRouter {
         logger.info('로컬 개발 환경 - 전체 AI 엔진들 로드');
       }
     } catch (error) {
-      logger.error('❌ 기존 AI 엔진 초기화 실패:', error);
+      logger.error('❌ AI 엔진 초기화 실패:', error);
     }
   }
 
@@ -121,26 +104,13 @@ export class UnifiedAIEngineRouter {
       await this.initialize();
     }
 
-    // 🚀 3-Tier Router 우선 처리
-    if (this.useThreeTierRouter) {
-      try {
-        const response = await this.threeTierRouter.processQuery(request);
-        logger.info('✅ 3-Tier Router 처리 완료');
-        return response;
-      } catch (error) {
-        logger.warn('⚠️ 3-Tier Router 실패, 기존 시스템으로 폴백:', error);
-        // 기존 로직으로 폴백
-      }
-    }
-
-    // 기존 처리 로직 유지 (폴백용)
-    return this.processWithLegacySystem(request);
+    return this.processWithDirectSystem(request);
   }
 
   /**
-   * 🔄 기존 시스템 처리 (폴백용)
+   * 🔄 직접 시스템 처리 (2-Mode)
    */
-  private async processWithLegacySystem(request: AIRequest): Promise<AIResponse> {
+  private async processWithDirectSystem(request: AIRequest): Promise<AIResponse> {
     const requestId = `unified-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     this.requestCount++;
 
@@ -285,11 +255,7 @@ export class UnifiedAIEngineRouter {
   /**
    * 🎯 현재 AI 모드 반환
    */
-  getCurrentMode(): 'THREE_TIER' | 'LOCAL' | 'GOOGLE_ONLY' {
-    if (this.useThreeTierRouter) {
-      return 'THREE_TIER';
-    }
-
+  getCurrentMode(): 'LOCAL' | 'GOOGLE_ONLY' {
     const mode = process.env.AI_ENGINE_MODE || 'LOCAL';
 
     // 유효한 모드인지 확인
@@ -313,20 +279,6 @@ export class UnifiedAIEngineRouter {
       lastHealthCheck: new Date(this.lastHealthCheck),
     };
 
-    // 3-Tier Router 상태 추가
-    if (this.useThreeTierRouter) {
-      return {
-        ...baseStatus,
-        threeTierRouter: this.threeTierRouter.getRouterStatus(),
-        architecture: '3-tier-integrated',
-        benefits: {
-          vercelLoadReduction: '75%',
-          aiPerformanceImprovement: '50%',
-          gcpFunctionsTier: 'free',
-        },
-      };
-    }
-
     return {
       ...baseStatus,
       engines: {
@@ -334,7 +286,7 @@ export class UnifiedAIEngineRouter {
         active: this.engines.size - this.failedEngines.size,
         failed: this.failedEngines.size,
       },
-      architecture: 'legacy-unified',
+      architecture: 'unified-ai-router',
     };
   }
 
@@ -348,16 +300,10 @@ export class UnifiedAIEngineRouter {
   /**
    * 🔧 AI 모드 설정
    */
-  public setMode(mode: 'LOCAL' | 'GOOGLE_ONLY' | 'THREE_TIER'): void {
-    if (mode === 'THREE_TIER') {
-      this.useThreeTierRouter = true;
-      logger.info('🎯 3-Tier Router 모드로 전환');
-    } else {
-      this.useThreeTierRouter = false;
-      // 환경변수를 통해 모드 설정 (런타임에서는 이 값을 우선 처리)
-      process.env.AI_ENGINE_MODE = mode;
-      logger.info(`🎯 ${mode} 모드로 전환`);
-    }
+  public setMode(mode: 'LOCAL' | 'GOOGLE_ONLY'): void {
+    // 환경변수를 통해 모드 설정
+    process.env.AI_ENGINE_MODE = mode;
+    logger.info(`🎯 ${mode} 모드로 전환`);
   }
 
   /**
