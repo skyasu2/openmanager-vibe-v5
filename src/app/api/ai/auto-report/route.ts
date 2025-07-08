@@ -152,9 +152,11 @@ async function generateReport(type: ReportData['type']): Promise<ReportData> {
 
   // 평균 메트릭 계산
   const avgCpu = servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length;
-  const avgMemory = servers.reduce((sum, s) => sum + s.memory, 0) / servers.length;
+  const avgMemory =
+    servers.reduce((sum, s) => sum + s.memory, 0) / servers.length;
   const avgDisk = servers.reduce((sum, s) => sum + s.disk, 0) / servers.length;
-  const avgResponseTime = servers.reduce((sum, s) => sum + (s.uptime || 100), 0) / servers.length;
+  const avgResponseTime =
+    servers.reduce((sum, s) => sum + (s.uptime || 100), 0) / servers.length;
 
   // 장애 시뮬레이션 (실제 환경에서는 로그 분석)
   const totalIncidents = warningServers + criticalServers;
@@ -254,8 +256,8 @@ function generateDailyReportContent(servers: any[], metrics: any): string {
 
 ## 🔍 상세 분석
 ${servers
-      .map(
-        server => `
+  .map(
+    server => `
 ### ${server.name} (${server.id})
 - **상태**: ${server.status === 'running' ? '✅ 정상' : server.status === 'warning' ? '⚠️ 주의' : '❌ 위험'}
 - **CPU**: ${server.cpu.toFixed(1)}%
@@ -263,8 +265,8 @@ ${servers
 - **디스크**: ${server.disk.toFixed(1)}%
 - **업타임**: ${(server.uptime / 3600).toFixed(1)}시간
 `
-      )
-      .join('')}
+  )
+  .join('')}
 
 ## 📈 권장사항
 - CPU 사용률이 80% 이상인 서버는 스케일링을 고려하세요
@@ -290,16 +292,16 @@ function generateIncidentReportContent(
 
 ## 🔍 문제 서버 분석
 ${problemServers
-      .map(
-        server => `
+  .map(
+    server => `
 ### ${server.name} - ${server.status === 'warning' ? '⚠️ 경고' : '❌ 위험'}
 - **문제 유형**: ${server.status === 'warning' ? 'CPU/메모리 과부하' : '서비스 중단'}
 - **CPU**: ${server.cpu.toFixed(1)}%
 - **메모리**: ${server.memory.toFixed(1)}%
 - **예상 원인**: ${server.cpu > 90 ? 'CPU 과부하' : server.memory > 90 ? '메모리 부족' : '네트워크 문제'}
 `
-      )
-      .join('')}
+  )
+  .join('')}
 
 ## 🛠️ 대응 방안
 1. **즉시 조치**: 문제 서버 재시작 또는 트래픽 분산
@@ -312,9 +314,7 @@ function generatePerformanceReportContent(
   servers: any[],
   metrics: any
 ): string {
-  const topCpuServers = servers
-    .sort((a, b) => b.cpu - a.cpu)
-    .slice(0, 5);
+  const topCpuServers = servers.sort((a, b) => b.cpu - a.cpu).slice(0, 5);
   const topMemoryServers = servers
     .sort((a, b) => b.memory - a.memory)
     .slice(0, 5);

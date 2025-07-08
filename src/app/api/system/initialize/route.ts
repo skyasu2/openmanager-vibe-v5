@@ -23,7 +23,9 @@ async function runInitialization(): Promise<string[]> {
       logs.push('✅ 서버 데이터 생성기 초기화 완료');
       systemLogger.info('✅ 서버 데이터 생성기 초기화 완료');
     } catch (error) {
-      logs.push(`❌ 서버 데이터 생성기 초기화 실패: ${(error as Error).message}`);
+      logs.push(
+        `❌ 서버 데이터 생성기 초기화 실패: ${(error as Error).message}`
+      );
       systemLogger.error('❌ 서버 데이터 생성기 초기화 실패:', error);
       throw new Error('Data generator failed');
     }
@@ -86,7 +88,10 @@ export async function POST(request: NextRequest) {
       error
     );
     return NextResponse.json(
-      { success: false, message: `시스템 초기화 실패: ${(error as Error).message}` },
+      {
+        success: false,
+        message: `시스템 초기화 실패: ${(error as Error).message}`,
+      },
       { status: 500 }
     );
   }

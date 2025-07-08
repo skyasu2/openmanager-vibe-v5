@@ -4,34 +4,34 @@
  */
 
 declare module 'ml-kmeans' {
-    interface KMeansOptions {
-        maxIterations?: number;
-        tolerance?: number;
-        distanceFunction?: (a: number[], b: number[]) => number;
-        seed?: number;
-    }
+  interface KMeansOptions {
+    maxIterations?: number;
+    tolerance?: number;
+    distanceFunction?: (a: number[], b: number[]) => number;
+    seed?: number;
+  }
 
-    interface KMeansResult {
-        clusters: number[][];
-        centroids: number[][];
-        iterations: number;
-        converged: boolean;
-    }
+  interface KMeansResult {
+    clusters: number[][];
+    centroids: number[][];
+    iterations: number;
+    converged: boolean;
+  }
 
-    class KMeans {
-        constructor(data: number[][], k: number, options?: KMeansOptions);
-        getClusters(): number[][];
-        getCentroids(): number[][];
-        getIterations(): number;
-        isConverged(): boolean;
-    }
+  class KMeans {
+    constructor(data: number[][], k: number, options?: KMeansOptions);
+    getClusters(): number[][];
+    getCentroids(): number[][];
+    getIterations(): number;
+    isConverged(): boolean;
+  }
 
-    export default KMeans;
+  export default KMeans;
 }
 
 declare module 'lodash' {
-    const _: any;
-    export default _;
+  const _: any;
+  export default _;
 }
 
-export { };
+export {};

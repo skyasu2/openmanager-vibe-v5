@@ -162,14 +162,21 @@ export class ServerDataCache {
             online:
               summary?.servers?.online ||
               summary?.servers?.running ||
-              servers.filter(s => s.status === 'running' || s.status === 'healthy').length,
+              servers.filter(
+                s => s.status === 'running' || s.status === 'healthy'
+              ).length,
             warning:
               summary?.servers?.warning ||
               servers.filter(s => s.status === 'warning').length,
             offline:
               summary?.servers?.offline ||
               summary?.servers?.error ||
-              servers.filter(s => s.status === 'error' || s.status === 'critical' || s.status === 'offline').length,
+              servers.filter(
+                s =>
+                  s.status === 'error' ||
+                  s.status === 'critical' ||
+                  s.status === 'offline'
+              ).length,
             avgCpu: Math.round((summary?.servers?.avgCpu || 0) * 100) / 100,
             avgMemory:
               Math.round((summary?.servers?.avgMemory || 0) * 100) / 100,
@@ -221,9 +228,16 @@ export class ServerDataCache {
    */
   private calculateSummary(servers: any[]): any {
     const total = servers.length;
-    const online = servers.filter(s => s.status === 'running' || s.status === 'healthy').length;
+    const online = servers.filter(
+      s => s.status === 'running' || s.status === 'healthy'
+    ).length;
     const warning = servers.filter(s => s.status === 'warning').length;
-    const offline = servers.filter(s => s.status === 'error' || s.status === 'critical' || s.status === 'offline').length;
+    const offline = servers.filter(
+      s =>
+        s.status === 'error' ||
+        s.status === 'critical' ||
+        s.status === 'offline'
+    ).length;
 
     const avgCpu =
       servers.reduce((sum, s) => sum + (s.metrics?.cpu || 0), 0) / total || 0;
@@ -344,7 +358,8 @@ export class ServerDataCache {
           default:
             const statusPriority = { error: 3, warning: 2, running: 1 };
             return (
-              ((statusPriority as any)[b.status] || 0) - ((statusPriority as any)[a.status] || 0)
+              ((statusPriority as any)[b.status] || 0) -
+              ((statusPriority as any)[a.status] || 0)
             );
         }
       });

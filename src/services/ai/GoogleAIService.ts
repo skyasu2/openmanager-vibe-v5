@@ -33,10 +33,10 @@ type QueryComplexity = keyof typeof MODEL_MAPPING;
 interface GoogleAIConfig {
   apiKey: string;
   model:
-  | 'gemini-2.0-flash'
-  | 'gemini-2.5-flash'
-  | 'gemini-2.5-pro'
-  | 'gemini-2.0-flash-lite';
+    | 'gemini-2.0-flash'
+    | 'gemini-2.5-flash'
+    | 'gemini-2.5-pro'
+    | 'gemini-2.0-flash-lite';
   enabled: boolean;
   rateLimits: {
     rpm: number;
@@ -119,7 +119,9 @@ export class RequestScopedGoogleAIService {
       this.lastError = null;
 
       const duration = timer();
-      logger.info(`✅ 요청별 Google AI Service 초기화 완료: ${duration.toFixed(2)}ms`);
+      logger.info(
+        `✅ 요청별 Google AI Service 초기화 완료: ${duration.toFixed(2)}ms`
+      );
     } catch (error) {
       const duration = timer();
       this.lastError = error instanceof Error ? error.message : 'Unknown error';
@@ -181,7 +183,14 @@ export class RequestScopedGoogleAIService {
         logger.info(`📋 Google AI 캐시 응답: ${requestId}`);
 
         // 🗄️ 캐시 응답도 로그에 저장
-        await this.logAIQuery(sessionId, request.query || '', cached.response, 'google-ai-cached', cached.processingTime || 0, cached.confidence || 0);
+        await this.logAIQuery(
+          sessionId,
+          request.query || '',
+          cached.response,
+          'google-ai-cached',
+          cached.processingTime || 0,
+          cached.confidence || 0
+        );
 
         return cached;
       }
@@ -232,22 +241,43 @@ export class RequestScopedGoogleAIService {
       cache.set(cacheKey, response, 300000); // 5분 캐시
 
       // 🗄️ AI 질의 로그 저장 (Supabase)
-      await this.logAIQuery(sessionId, request.query || '', text, 'google-ai', googleDuration, confidence, request.context);
+      await this.logAIQuery(
+        sessionId,
+        request.query || '',
+        text,
+        'google-ai',
+        googleDuration,
+        confidence,
+        request.context
+      );
 
       const totalDuration = timer();
-      logger.info(`✅ 요청별 Google AI 응답 완료: ${totalDuration.toFixed(2)}ms`);
+      logger.info(
+        `✅ 요청별 Google AI 응답 완료: ${totalDuration.toFixed(2)}ms`
+      );
 
       return response;
     } catch (error) {
       const duration = timer();
-      logger.error(`❌ 요청별 Google AI 처리 실패: ${duration.toFixed(2)}ms`, error);
+      logger.error(
+        `❌ 요청별 Google AI 처리 실패: ${duration.toFixed(2)}ms`,
+        error
+      );
 
       // 🗄️ 오류도 로그에 저장
-      await this.logAIQuery(sessionId, request.query || '', `오류: ${error instanceof Error ? error.message : 'Unknown error'}`, 'google-ai-error', duration, 0);
+      await this.logAIQuery(
+        sessionId,
+        request.query || '',
+        `오류: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'google-ai-error',
+        duration,
+        0
+      );
 
       return {
         success: false,
-        response: '죄송합니다. Google AI 서비스에 일시적인 문제가 발생했습니다.',
+        response:
+          '죄송합니다. Google AI 서비스에 일시적인 문제가 발생했습니다.',
         confidence: 0,
         mode: request.mode || 'GOOGLE_ONLY',
         enginePath: ['google-ai-service'],
@@ -391,7 +421,7 @@ export class RequestScopedGoogleAIService {
         category: category,
         language: 'ko',
         token_count: this.estimateTokenCount(query + response),
-        cost_estimate: this.estimateCost(query + response)
+        cost_estimate: this.estimateCost(query + response),
       });
     } catch (error) {
       logger.warn('⚠️ AI 로그 저장 실패 (무시하고 계속 진행):', error);
@@ -403,11 +433,11 @@ export class RequestScopedGoogleAIService {
    */
   private classifyIntent(query: string): string {
     const intentPatterns = {
-      'monitoring': ['상태', '모니터링', '확인', '현황'],
-      'analysis': ['분석', '원인', '이유', '왜'],
-      'prediction': ['예측', '예상', '미래', '앞으로'],
-      'optimization': ['최적화', '개선', '향상', '효율'],
-      'troubleshooting': ['문제', '오류', '장애', '해결']
+      monitoring: ['상태', '모니터링', '확인', '현황'],
+      analysis: ['분석', '원인', '이유', '왜'],
+      prediction: ['예측', '예상', '미래', '앞으로'],
+      optimization: ['최적화', '개선', '향상', '효율'],
+      troubleshooting: ['문제', '오류', '장애', '해결'],
     };
 
     for (const [intent, patterns] of Object.entries(intentPatterns)) {
@@ -424,12 +454,12 @@ export class RequestScopedGoogleAIService {
    */
   private classifyCategory(query: string): string {
     const categoryPatterns = {
-      'server': ['서버', '서버', '인스턴스'],
-      'database': ['데이터베이스', 'DB', '쿼리'],
-      'network': ['네트워크', '통신', '연결'],
-      'performance': ['성능', '속도', '응답시간'],
-      'security': ['보안', '인증', '권한'],
-      'logs': ['로그', '기록', '이벤트']
+      server: ['서버', '서버', '인스턴스'],
+      database: ['데이터베이스', 'DB', '쿼리'],
+      network: ['네트워크', '통신', '연결'],
+      performance: ['성능', '속도', '응답시간'],
+      security: ['보안', '인증', '권한'],
+      logs: ['로그', '기록', '이벤트'],
     };
 
     for (const [category, patterns] of Object.entries(categoryPatterns)) {
@@ -476,5 +506,5 @@ export const GoogleAIService = {
     console.warn('⚠️ GoogleAIService.getInstance()는 서버리스에서 사용 금지.');
     console.warn('🔧 대신 createGoogleAIService()를 사용하세요.');
     return new RequestScopedGoogleAIService();
-  }
+  },
 };

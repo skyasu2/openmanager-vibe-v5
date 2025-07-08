@@ -355,7 +355,7 @@ export const IncidentReportTab: React.FC<IncidentReportTabProps> = ({
                       {isTyping && index === 0 ? (
                         <BasicTyping
                           text={item.content}
-                          speed="fast"
+                          speed='fast'
                           showCursor={true}
                           className='text-gray-600'
                         />
@@ -397,12 +397,13 @@ export const IncidentReportTab: React.FC<IncidentReportTabProps> = ({
                     className='flex items-start space-x-3 text-sm'
                   >
                     <div
-                      className={`w-2 h-2 rounded-full mt-2 ${event.severity === 'critical'
-                        ? 'bg-red-500'
-                        : event.severity === 'warning'
-                          ? 'bg-yellow-500'
-                          : 'bg-blue-500'
-                        }`}
+                      className={`w-2 h-2 rounded-full mt-2 ${
+                        event.severity === 'critical'
+                          ? 'bg-red-500'
+                          : event.severity === 'warning'
+                            ? 'bg-yellow-500'
+                            : 'bg-blue-500'
+                      }`}
                     />
                     <div className='flex-1'>
                       <div className='flex items-center space-x-2'>

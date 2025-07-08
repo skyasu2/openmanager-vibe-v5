@@ -466,8 +466,9 @@ export function logMCPConfiguration(): void {
 
   🚀 활성 기능: ${status.features.join(', ')}
   
-${status.gcpConfig
-      ? `
+${
+  status.gcpConfig
+    ? `
   🌐 GCP VM 서버 정보:
   • URL: ${status.gcpConfig.url}
   • 포트: ${status.gcpConfig.port}
@@ -475,8 +476,8 @@ ${status.gcpConfig
   • IP: ${status.gcpConfig.ips.join(', ')}
   • 응답 대기: ${status.gcpConfig.monitoring.maxResponseTime / 1000}초 (🕐 30초로 조정)
 `
-      : ''
-    }
+    : ''
+}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   `);
 }

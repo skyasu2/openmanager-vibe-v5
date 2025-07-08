@@ -48,16 +48,16 @@ graph TB
     B --> C[Vercel Next.js App]
     C --> D[GCP Functions]
     D --> E[GCP VM - MCP Server]
-    
+
     F[Upstash Redis] --> C
     G[Supabase] --> C
     H[Google AI] --> D
-    
+
     I[AI Gateway] --> D
     J[Korean NLP] --> D
     K[Rule Engine] --> D
     L[Basic ML] --> D
-    
+
     M[104.154.205.25:10000] --> E
 ```
 
@@ -382,8 +382,8 @@ app.use(express.json());
 
 // 헬스체크 엔드포인트
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy', 
+  res.json({
+    status: 'healthy',
     timestamp: new Date().toISOString(),
     service: 'mcp-server'
   });
@@ -392,7 +392,7 @@ app.get('/health', (req, res) => {
 // MCP 컨텍스트 처리
 app.post('/mcp/context', (req, res) => {
   const { query, context } = req.body;
-  
+
   // 컨텍스트 처리 로직
   const response = {
     success: true,
@@ -400,7 +400,7 @@ app.post('/mcp/context', (req, res) => {
     context: context || {},
     timestamp: new Date().toISOString()
   };
-  
+
   res.json(response);
 });
 
@@ -462,16 +462,21 @@ export class ThreeTierAIRouter {
   private gcpFunctionsService = new GCPFunctionsService();
   private mcpService = new MCPService();
   private googleAIService = new GoogleAIService();
-  
+
   async routeQuery(query: string, context?: any): Promise<AIResponse> {
     console.log('🎯 3-Tier AI 처리 시작:', query);
-    
+
     // 1단계: GCP Functions 우선 처리
     try {
-      const gcpResponse = await this.gcpFunctionsService.callFunction('ai-gateway', {
-        query, context, mode: 'auto'
-      });
-      
+      const gcpResponse = await this.gcpFunctionsService.callFunction(
+        'ai-gateway',
+        {
+          query,
+          context,
+          mode: 'auto',
+        }
+      );
+
       if (gcpResponse.success) {
         console.log('✅ GCP Functions 처리 완료');
         return { ...gcpResponse, tier: 'gcp-functions' };
@@ -479,11 +484,11 @@ export class ThreeTierAIRouter {
     } catch (error) {
       console.warn('⚠️ GCP Functions 처리 실패, MCP 서버로 폴백');
     }
-    
+
     // 2단계: MCP Server 폴백
     try {
       const mcpResponse = await this.mcpService.processQuery(query, context);
-      
+
       if (mcpResponse.success) {
         console.log('✅ MCP Server 처리 완료');
         return { ...mcpResponse, tier: 'mcp-server' };
@@ -491,9 +496,12 @@ export class ThreeTierAIRouter {
     } catch (error) {
       console.warn('⚠️ MCP Server 처리 실패, Google AI로 폴백');
     }
-    
+
     // 3단계: Google AI 최종 폴백
-    const googleResponse = await this.googleAIService.processQuery(query, context);
+    const googleResponse = await this.googleAIService.processQuery(
+      query,
+      context
+    );
     console.log('✅ Google AI 처리 완료');
     return { ...googleResponse, tier: 'google-ai' };
   }
@@ -653,16 +661,16 @@ module.exports = nextConfig;
 export const cacheConfig = {
   redis: {
     ttl: 300, // 5분
-    maxSize: 1000
+    maxSize: 1000,
   },
   browser: {
     ttl: 30, // 30초
-    staleWhileRevalidate: 60
+    staleWhileRevalidate: 60,
   },
   cdn: {
     ttl: 86400, // 24시간
-    immutable: true
-  }
+    immutable: true,
+  },
 };
 ```
 
@@ -706,12 +714,12 @@ export class SystemMonitor {
       this.checkGCPFunctions(),
       this.checkMCPServer(),
       this.checkRedis(),
-      this.checkSupabase()
+      this.checkSupabase(),
     ]);
-    
+
     return {
       overall: checks.every(check => check.healthy),
-      services: checks
+      services: checks,
     };
   }
 }

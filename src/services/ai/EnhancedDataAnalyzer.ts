@@ -146,7 +146,9 @@ export class EnhancedDataAnalyzer {
 
   public static getInstance(): EnhancedDataAnalyzer {
     if (!EnhancedDataAnalyzer.instance) {
-      EnhancedDataAnalyzer.instance = new EnhancedDataAnalyzer(GCPRealServerDataGenerator.getInstance());
+      EnhancedDataAnalyzer.instance = new EnhancedDataAnalyzer(
+        GCPRealServerDataGenerator.getInstance()
+      );
     }
     return EnhancedDataAnalyzer.instance;
   }
@@ -249,9 +251,11 @@ export class EnhancedDataAnalyzer {
     const avgCpu =
       servers.reduce((sum, s) => sum + (s.metrics?.cpu || 0), 0) / totalServers;
     const avgMemory =
-      servers.reduce((sum, s) => sum + (s.metrics?.memory || 0), 0) / totalServers;
+      servers.reduce((sum, s) => sum + (s.metrics?.memory || 0), 0) /
+      totalServers;
     const avgErrors =
-      servers.reduce((sum, s) => sum + (s.errors?.count || 0), 0) / totalServers;
+      servers.reduce((sum, s) => sum + (s.errors?.count || 0), 0) /
+      totalServers;
 
     // 성능 점수 계산 (0-100)
     const cpuScore = Math.max(0, 100 - avgCpu);
@@ -283,9 +287,14 @@ export class EnhancedDataAnalyzer {
       return { score: 0, uptime: 0, incidents: 0, mttr: 0 };
 
     // 서버 상태
-    const healthyCount = servers.filter(s => (s.health?.score || 0) > 80).length;
+    const healthyCount = servers.filter(
+      s => (s.health?.score || 0) > 80
+    ).length;
     const avgUptime =
-      servers.reduce((sum, s) => sum + (s.metrics?.uptime || s.uptime || 0), 0) / totalServers;
+      servers.reduce(
+        (sum, s) => sum + (s.metrics?.uptime || s.uptime || 0),
+        0
+      ) / totalServers;
     const totalIncidents = servers.reduce(
       (sum, s) => sum + (s.health?.issues?.length || 0),
       0
@@ -323,7 +332,8 @@ export class EnhancedDataAnalyzer {
 
     // 비용 최적화 점수 (리소스 대비 처리량)
     const avgRequests =
-      servers.reduce((sum, s) => sum + (s.requests?.total || 0), 0) / totalServers;
+      servers.reduce((sum, s) => sum + (s.requests?.total || 0), 0) /
+      totalServers;
     const costOptimization =
       avgRequests > 0 ? Math.min(100, (avgRequests / avgUtilization) * 10) : 0;
 
@@ -451,7 +461,9 @@ export class EnhancedDataAnalyzer {
     const findings: string[] = [];
 
     // 서버 상태
-    const healthyCount = servers.filter(s => (s.health?.score || 0) > 80).length;
+    const healthyCount = servers.filter(
+      s => (s.health?.score || 0) > 80
+    ).length;
     findings.push(
       `전체 ${servers.length}대 서버 중 ${healthyCount}대가 정상 상태입니다.`
     );
@@ -481,7 +493,12 @@ export class EnhancedDataAnalyzer {
     reliability: any,
     efficiency: any
   ) {
-    const recommendations: Array<{ priority: 'low' | 'medium' | 'high'; action: string; impact: string; effort: string }> = [];
+    const recommendations: Array<{
+      priority: 'low' | 'medium' | 'high';
+      action: string;
+      impact: string;
+      effort: string;
+    }> = [];
 
     // 성능 개선
     if (performance.score < 70) {
@@ -528,7 +545,11 @@ export class EnhancedDataAnalyzer {
   }
 
   private generateAlerts(servers: ServerInstance[], performance: any) {
-    const alerts: Array<{ level: 'critical' | 'warning' | 'info'; message: string; affectedComponents: string[] }> = [];
+    const alerts: Array<{
+      level: 'critical' | 'warning' | 'info';
+      message: string;
+      affectedComponents: string[];
+    }> = [];
 
     // 임계 상태 서버
     const criticalServers = servers.filter(s => (s.health?.score || 0) < 30);
@@ -625,23 +646,39 @@ export class EnhancedDataAnalyzer {
       totalServers: servers.length,
       healthyServers: servers.filter(s => (s.health?.score || 0) > 80).length,
       clusters: clusters.length,
-      avgHealth: servers.length > 0 ? Math.round(
-        servers.reduce((sum, s) => sum + (s.health?.score || 0), 0) / servers.length
-      ) : 0,
+      avgHealth:
+        servers.length > 0
+          ? Math.round(
+              servers.reduce((sum, s) => sum + (s.health?.score || 0), 0) /
+                servers.length
+            )
+          : 0,
     };
   }
 
   private getPerformanceData(servers: ServerInstance[]) {
     return {
-      avgCpu: servers.length > 0 ? Math.round(
-        servers.reduce((sum, s) => sum + (s.metrics?.cpu || 0), 0) / servers.length
-      ) : 0,
-      avgMemory: servers.length > 0 ? Math.round(
-        servers.reduce((sum, s) => sum + (s.metrics?.memory || 0), 0) / servers.length
-      ) : 0,
-      avgRequests: servers.length > 0 ? Math.round(
-        servers.reduce((sum, s) => sum + (s.requests?.total || 0), 0) / servers.length
-      ) : 0,
+      avgCpu:
+        servers.length > 0
+          ? Math.round(
+              servers.reduce((sum, s) => sum + (s.metrics?.cpu || 0), 0) /
+                servers.length
+            )
+          : 0,
+      avgMemory:
+        servers.length > 0
+          ? Math.round(
+              servers.reduce((sum, s) => sum + (s.metrics?.memory || 0), 0) /
+                servers.length
+            )
+          : 0,
+      avgRequests:
+        servers.length > 0
+          ? Math.round(
+              servers.reduce((sum, s) => sum + (s.requests?.total || 0), 0) /
+                servers.length
+            )
+          : 0,
       topPerformers: servers
         .sort((a, b) => (b.health?.score || 0) - (a.health?.score || 0))
         .slice(0, 3)
@@ -650,7 +687,9 @@ export class EnhancedDataAnalyzer {
   }
 
   private getIssuesData(servers: ServerInstance[]) {
-    const issueServers = servers.filter(s => (s.health?.issues?.length || 0) > 0);
+    const issueServers = servers.filter(
+      s => (s.health?.issues?.length || 0) > 0
+    );
     return {
       totalIssues: issueServers.reduce(
         (sum, s) => sum + (s.health?.issues?.length || 0),
@@ -669,7 +708,8 @@ export class EnhancedDataAnalyzer {
     // 간단한 예측 로직
     const trends = servers.map(s => {
       const cpuTrend = (s.metrics?.cpu || 0) > 70 ? 'increasing' : 'stable';
-      const memoryTrend = (s.metrics?.memory || 0) > 80 ? 'increasing' : 'stable';
+      const memoryTrend =
+        (s.metrics?.memory || 0) > 80 ? 'increasing' : 'stable';
       return { server: s.name, cpu: cpuTrend, memory: memoryTrend };
     });
 

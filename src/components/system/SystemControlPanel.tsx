@@ -18,7 +18,7 @@ import {
   Play,
   RefreshCw,
   Shield,
-  Square
+  Square,
 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
@@ -28,12 +28,12 @@ interface SystemStatus {
   processes: Array<{
     id: string;
     status:
-    | 'stopped'
-    | 'starting'
-    | 'running'
-    | 'stopping'
-    | 'error'
-    | 'restarting';
+      | 'stopped'
+      | 'starting'
+      | 'running'
+      | 'stopping'
+      | 'error'
+      | 'restarting';
     healthScore: number;
     restartCount: number;
     uptime: number;
@@ -192,48 +192,49 @@ export function SystemControlPanel() {
 
   // 🎨 UI 렌더링 (Vercel 플랫폼 모니터링 안내 포함)
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <Shield className="h-6 w-6 text-blue-600" />
-          <h3 className="text-lg font-semibold text-gray-900">
+    <div className='bg-white rounded-lg shadow-sm border p-6'>
+      <div className='flex items-center justify-between mb-4'>
+        <div className='flex items-center space-x-3'>
+          <Shield className='h-6 w-6 text-blue-600' />
+          <h3 className='text-lg font-semibold text-gray-900'>
             시스템 제어 패널
           </h3>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className='flex items-center space-x-2'>
           <button
             onClick={handleManualRefresh}
-            className="px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
+            className='px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors'
           >
             📊 Vercel 대시보드 열기
           </button>
 
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+            className='p-2 hover:bg-gray-100 rounded-md transition-colors'
           >
             {isCollapsed ? (
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className='h-4 w-4' />
             ) : (
-              <ChevronUp className="h-4 w-4" />
+              <ChevronUp className='h-4 w-4' />
             )}
           </button>
         </div>
       </div>
 
       {/* Vercel 플랫폼 모니터링 안내 */}
-      <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <div className="flex items-start space-x-3">
-          <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+      <div className='mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200'>
+        <div className='flex items-start space-x-3'>
+          <AlertCircle className='h-5 w-5 text-blue-600 mt-0.5' />
           <div>
-            <h4 className="font-medium text-blue-900 mb-1">
+            <h4 className='font-medium text-blue-900 mb-1'>
               Vercel 플랫폼 모니터링 사용 권장
             </h4>
-            <p className="text-sm text-blue-800 mb-2">
-              주기적 헬스체크가 제거되었습니다. 실시간 모니터링은 Vercel 대시보드를 사용하세요.
+            <p className='text-sm text-blue-800 mb-2'>
+              주기적 헬스체크가 제거되었습니다. 실시간 모니터링은 Vercel
+              대시보드를 사용하세요.
             </p>
-            <div className="text-xs text-blue-700 space-y-1">
+            <div className='text-xs text-blue-700 space-y-1'>
               <div>• 📊 실시간 상태: Vercel Dashboard &gt; Functions</div>
               <div>• 📈 성능 메트릭: Analytics 탭</div>
               <div>• 🚨 에러 로그: Functions &gt; Errors</div>
@@ -250,43 +251,43 @@ export function SystemControlPanel() {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="space-y-4"
+            className='space-y-4'
           >
             {/* 수동 제어 버튼들 */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className='grid grid-cols-3 gap-3'>
               <button
                 onClick={handleStart}
                 disabled={isLoading}
-                className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className='flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
               >
-                <Play className="h-4 w-4" />
-                <span className="text-sm font-medium">시작</span>
+                <Play className='h-4 w-4' />
+                <span className='text-sm font-medium'>시작</span>
               </button>
 
               <button
                 onClick={handleStop}
                 disabled={isLoading}
-                className="flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className='flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
               >
-                <Square className="h-4 w-4" />
-                <span className="text-sm font-medium">중지</span>
+                <Square className='h-4 w-4' />
+                <span className='text-sm font-medium'>중지</span>
               </button>
 
               <button
                 onClick={handleRestart}
                 disabled={isLoading}
-                className="flex items-center justify-center space-x-2 px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className='flex items-center justify-center space-x-2 px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
               >
-                <RefreshCw className="h-4 w-4" />
-                <span className="text-sm font-medium">재시작</span>
+                <RefreshCw className='h-4 w-4' />
+                <span className='text-sm font-medium'>재시작</span>
               </button>
             </div>
 
             {/* 로딩 상태 표시 */}
             {isLoading && (
-              <div className="flex items-center justify-center space-x-2 py-4">
-                <RefreshCw className="h-4 w-4 animate-spin text-blue-600" />
-                <span className="text-sm text-gray-600">
+              <div className='flex items-center justify-center space-x-2 py-4'>
+                <RefreshCw className='h-4 w-4 animate-spin text-blue-600' />
+                <span className='text-sm text-gray-600'>
                   {operation} 작업 진행 중...
                 </span>
               </div>
@@ -294,18 +295,19 @@ export function SystemControlPanel() {
 
             {/* 알림 메시지 */}
             {alerts.length > 0 && (
-              <div className="space-y-2">
+              <div className='space-y-2'>
                 {alerts.slice(-3).map((alert, index) => (
                   <div
                     key={index}
-                    className={`p-3 rounded-lg text-sm ${alert.type === 'success'
-                      ? 'bg-green-50 text-green-800 border border-green-200'
-                      : 'bg-red-50 text-red-800 border border-red-200'
-                      }`}
+                    className={`p-3 rounded-lg text-sm ${
+                      alert.type === 'success'
+                        ? 'bg-green-50 text-green-800 border border-green-200'
+                        : 'bg-red-50 text-red-800 border border-red-200'
+                    }`}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className='flex items-center justify-between'>
                       <span>{alert.message}</span>
-                      <span className="text-xs opacity-75">
+                      <span className='text-xs opacity-75'>
                         {alert.timestamp.toLocaleTimeString()}
                       </span>
                     </div>

@@ -24,14 +24,18 @@ class ServerlessTimerManager {
   private timers = new Map<string, TimerConfig>();
 
   constructor() {
-    console.warn('⚠️ 서버리스 환경에서는 타이머 기능이 비활성화됩니다. Vercel Dashboard를 사용하세요.');
+    console.warn(
+      '⚠️ 서버리스 환경에서는 타이머 기능이 비활성화됩니다. Vercel Dashboard를 사용하세요.'
+    );
   }
 
   /**
    * 🚫 타이머 등록 비활성화
    */
   register(config: TimerConfig): void {
-    console.warn(`⚠️ 타이머 등록 무시됨: ${config.id} - 서버리스에서는 Vercel 모니터링 사용`);
+    console.warn(
+      `⚠️ 타이머 등록 무시됨: ${config.id} - 서버리스에서는 Vercel 모니터링 사용`
+    );
     console.warn('📊 Vercel Dashboard: https://vercel.com/dashboard');
   }
 
@@ -65,7 +69,7 @@ class ServerlessTimerManager {
       totalTimers: 0,
       activeTimers: 0,
       timers: [] as any[],
-      message: 'Vercel 서버리스 환경에서는 타이머 기능이 비활성화됩니다.'
+      message: 'Vercel 서버리스 환경에서는 타이머 기능이 비활성화됩니다.',
     };
   }
 
@@ -73,7 +77,9 @@ class ServerlessTimerManager {
    * 🚫 우선순위별 타이머 제어 비활성화
    */
   toggleByPriority(priority: TimerConfig['priority'], enabled: boolean): void {
-    console.warn(`⚠️ 우선순위별 타이머 제어 무시됨: ${priority} - 서버리스 환경`);
+    console.warn(
+      `⚠️ 우선순위별 타이머 제어 무시됨: ${priority} - 서버리스 환경`
+    );
   }
 
   /**
@@ -164,9 +170,11 @@ export function createServerlessTimerManager(): ServerlessTimerManager {
 export const TimerManager = {
   getInstance: () => {
     console.warn('⚠️ TimerManager.getInstance()는 서버리스에서 사용 금지.');
-    console.warn('📊 대신 Vercel Dashboard를 사용하세요: https://vercel.com/dashboard');
+    console.warn(
+      '📊 대신 Vercel Dashboard를 사용하세요: https://vercel.com/dashboard'
+    );
     return new ServerlessTimerManager();
-  }
+  },
 };
 
 /**

@@ -62,14 +62,14 @@ export function useSystemControl(): UseSystemControlReturn {
   const userInitiated = false;
 
   // 누락된 함수들을 기본 구현으로 추가
-  const updateActivity = () => { };
+  const updateActivity = () => {};
   const pauseSystem = async (reason?: string) => ({
     success: true,
     message: 'Paused',
   });
   const resumeSystem = async () => ({ success: true, message: 'Resumed' });
-  const enableAIAgent = () => { };
-  const disableAIAgent = () => { };
+  const enableAIAgent = () => {};
+  const disableAIAgent = () => {};
 
   const [status, setStatus] = useState<SystemStatus>({
     isRunning: false,
@@ -282,7 +282,9 @@ export function useSystemControl(): UseSystemControlReturn {
           // ❌ fallback 처리 완전 제거 - 시스템 데이터에 fallback이 있으면 에러로 처리
           if (systemData.fallback) {
             isErrorState = true;
-            errors.push('🚨 시스템이 에러 상태로 시작됨 - 실제 데이터 연결 실패');
+            errors.push(
+              '🚨 시스템이 에러 상태로 시작됨 - 실제 데이터 연결 실패'
+            );
             warnings.push('⚠️ 시스템이 제한된 기능으로만 동작합니다');
           }
 
@@ -341,7 +343,10 @@ export function useSystemControl(): UseSystemControlReturn {
         errors,
         warnings,
         recommendations: isErrorState
-          ? ['시스템 관리자에게 문의하세요', '실제 데이터 연결 상태를 확인하세요']
+          ? [
+              '시스템 관리자에게 문의하세요',
+              '실제 데이터 연결 상태를 확인하세요',
+            ]
           : ['대시보드에서 상세 모니터링을 확인하세요'],
         isErrorState, // fallback 대신 명시적 에러 상태
         mode: isErrorState ? 'error' : mode,
@@ -360,7 +365,7 @@ export function useSystemControl(): UseSystemControlReturn {
         warnings: [],
         recommendations: [
           '페이지를 새로고침 후 다시 시도하세요',
-          '문제가 지속되면 시스템 관리자에게 문의하세요'
+          '문제가 지속되면 시스템 관리자에게 문의하세요',
         ],
         isErrorState: true, // 치명적 오류는 항상 에러 상태
         mode: 'critical-error',

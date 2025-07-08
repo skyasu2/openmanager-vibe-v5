@@ -1,6 +1,6 @@
 /**
  * 🧪 환경변수 시스템 통합 테스트
- * 
+ *
  * 테스트 범위:
  * - 환경변수 백업 → 암호화 → 복구 전체 플로우
  * - 실제 파일 시스템과의 통합
@@ -8,7 +8,15 @@
  * - 긴급 복구 시나리오
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+} from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { EnvBackupManager } from '../../src/lib/env-backup-manager';
@@ -63,9 +71,9 @@ describe('환경변수 시스템 통합 테스트', () => {
     process.env = originalEnv;
 
     // 테스트 백업 파일 정리
-    const backupFiles = fs.readdirSync(testBackupPath).filter(file =>
-      file.startsWith('env-backup-') && file.endsWith('.json')
-    );
+    const backupFiles = fs
+      .readdirSync(testBackupPath)
+      .filter(file => file.startsWith('env-backup-') && file.endsWith('.json'));
     backupFiles.forEach(file => {
       fs.unlinkSync(path.join(testBackupPath, file));
     });
@@ -223,4 +231,4 @@ describe('환경변수 시스템 통합 테스트', () => {
       expect(results.every(result => typeof result === 'boolean')).toBe(true);
     });
   });
-}); 
+});

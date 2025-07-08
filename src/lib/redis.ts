@@ -679,10 +679,9 @@ export async function getRedisStats(): Promise<any> {
 
 /**
  * 🌐 Redis 연결 풀링 라이브러리
- * 
+ *
  * 싱글톤 패턴으로 Redis 연결을 관리하여 성능 최적화
  */
-
 
 interface RedisStatus {
   status: 'connected' | 'disconnected' | 'reconnecting' | 'error' | 'ready';
@@ -708,7 +707,9 @@ export function getRedis(): Redis {
       family: 4,
       host: process.env.GCP_REDIS_HOST || 'charming-condor-46598.upstash.io',
       port: parseInt(process.env.GCP_REDIS_PORT || '6379'),
-      password: process.env.GCP_REDIS_PASSWORD || 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
+      password:
+        process.env.GCP_REDIS_PASSWORD ||
+        'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
       maxRetriesPerRequest: 3,
       connectTimeout: 10000,
       commandTimeout: 5000,
@@ -726,7 +727,7 @@ export function getRedis(): Redis {
       redisStatus.status = 'ready';
     });
 
-    redis.on('error', (error) => {
+    redis.on('error', error => {
       console.error('❌ Redis 오류:', error);
       redisStatus.status = 'error';
       redisStatus.lastError = error.message;
@@ -752,6 +753,6 @@ export function getRedisStatus(): RedisStatus {
     connectedAt: redisStatus.connectedAt,
     uptime: redisStatus.connectedAt ? Date.now() - redisStatus.connectedAt : 0,
     lastError: redisStatus.lastError,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   };
 }

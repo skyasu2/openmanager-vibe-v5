@@ -137,7 +137,7 @@ export const useServerData = (): UseServerDataReturn => {
       online: 2,
       healthy: 2,
       critical: 0,
-      unhealthy: 0
+      unhealthy: 0,
     };
 
     return [...servers].sort((a, b) => {

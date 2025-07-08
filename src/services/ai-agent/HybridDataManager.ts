@@ -13,7 +13,7 @@ import { RealServerDataGenerator } from '@/services/data-generator/RealServerDat
 import {
   aiDataFilter,
   AIDataFilterOptions,
-  AIFilterResult
+  AIFilterResult,
 } from './AIDataFilter';
 
 export interface MonitoringData {

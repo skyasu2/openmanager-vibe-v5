@@ -107,7 +107,9 @@ export class UnifiedDataBroker {
    * ⚡ 성능 최적화 (요청별 실행)
    */
   private optimizePerformance(): void {
-    console.warn('⚠️ 성능 최적화 무시됨 - 서버리스 환경에서는 Vercel이 자동 관리');
+    console.warn(
+      '⚠️ 성능 최적화 무시됨 - 서버리스 환경에서는 Vercel이 자동 관리'
+    );
 
     // 기본적인 캐시 정리만 수행 (상태 유지 없이)
     const now = new Date();
@@ -286,7 +288,7 @@ export class UnifiedDataBroker {
         // 🚫 서버리스 호환: 요청별 데이터 생성기 생성
         const dataGenerator = createServerDataGenerator({
           limit: 16,
-          includeMetrics: true
+          includeMetrics: true,
         });
 
         const servers = await dataGenerator.getAllServers();
@@ -299,7 +301,7 @@ export class UnifiedDataBroker {
             memory: s.memory,
             disk: s.disk,
             network: s.network,
-          }
+          },
         }));
 
         return {

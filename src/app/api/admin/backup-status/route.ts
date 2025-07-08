@@ -16,23 +16,28 @@ export async function GET(request: NextRequest) {
       status: 'healthy',
       totalBackups: 150,
       lastBackupSize: '2.5MB',
-      nextScheduledBackup: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      nextScheduledBackup: new Date(
+        Date.now() + 24 * 60 * 60 * 1000
+      ).toISOString(),
       retention: '30 days',
-      location: 'cloud-storage'
+      location: 'cloud-storage',
     };
 
     return NextResponse.json({
       success: true,
       data: backupStatus,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error('❌ 백업 상태 조회 실패:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to get backup status',
-      timestamp: new Date().toISOString()
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to get backup status',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
   }
 }
 

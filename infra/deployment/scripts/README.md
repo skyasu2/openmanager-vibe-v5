@@ -1,6 +1,6 @@
-# ��� 배포 스크립트 가이드
+# ��� 배포 스크립트 가이드
 
-## ��� 구조
+## ��� 구조
 
 ```
 scripts/
@@ -14,15 +14,17 @@ scripts/
 └── README.md                  # 이 파일
 ```
 
-## ��� 권장 사용법
+## ��� 권장 사용법
 
 ### **메인 배포 스크립트 (권장)**
+
 ```bash
 # 크로스 플랫폼 배포 (Windows/Linux/Mac)
 node ../../development/scripts/deploy-v5.21.0.mjs
 ```
 
 ### **개별 스크립트 사용**
+
 ```bash
 # 기본 배포
 ./core/deploy.sh
@@ -43,7 +45,7 @@ node utils/deploy-check.js
 2. **검증 전용**: 이 폴더의 스크립트들은 검증/디버그용
 3. **환경 설정**: ../config/ 폴더의 설정 파일들 확인 필요
 
-## ��� 관련 문서
+## ��� 관련 문서
 
 - [배포 통합 가이드](../docs/deployment/배포_통합_가이드.md)
 - [Vercel 설정](../config/vercel.json)

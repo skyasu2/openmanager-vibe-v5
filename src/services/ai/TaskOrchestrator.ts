@@ -58,7 +58,9 @@ export class TaskOrchestrator {
   constructor() {
     // RealServerDataGenerator import 수정 필요
     try {
-      const { RealServerDataGenerator } = require('@/services/data-generator/RealServerDataGenerator');
+      const {
+        RealServerDataGenerator,
+      } = require('@/services/data-generator/RealServerDataGenerator');
       this.dataGenerator = RealServerDataGenerator.getInstance();
     } catch (error) {
       console.warn('RealServerDataGenerator 로드 실패, 기본값 사용');

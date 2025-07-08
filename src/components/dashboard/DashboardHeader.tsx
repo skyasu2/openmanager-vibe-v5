@@ -2,11 +2,21 @@
 
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { motion } from 'framer-motion';
 import { Bot, Clock, LogOut, Settings, User } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+
+// framer-motion을 동적 import로 처리
+const MotionButton = dynamic(
+  () => import('framer-motion').then(mod => ({ default: mod.motion.button })),
+  { ssr: false }
+);
+const MotionDiv = dynamic(
+  () => import('framer-motion').then(mod => ({ default: mod.motion.div })),
+  { ssr: false }
+);
 
 /**
  * 대시보드 헤더 컴포넌트 Props
@@ -156,7 +166,7 @@ const DashboardHeader = React.memo(function DashboardHeader({
         <div className='flex items-center gap-4'>
           {/* AI 어시스턴트 토글 버튼 */}
           <div className='relative'>
-            <motion.button
+            <MotionButton
               onClick={handleAIAgentToggle}
               className={`
                 relative p-3 rounded-xl transition-all duration-300 transform
@@ -178,7 +188,7 @@ const DashboardHeader = React.memo(function DashboardHeader({
             >
               {/* AI 활성화 시 그라데이션 테두리 애니메이션 */}
               {aiAgent.isEnabled && (
-                <motion.div
+                <MotionDiv
                   className='absolute inset-0 rounded-xl bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 opacity-75'
                   animate={{
                     rotate: [0, 360],
@@ -196,11 +206,11 @@ const DashboardHeader = React.memo(function DashboardHeader({
                   }}
                 >
                   <div className='w-full h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl' />
-                </motion.div>
+                </MotionDiv>
               )}
 
               <div className='relative flex items-center gap-2'>
-                <motion.div
+                <MotionDiv
                   className={`w-5 h-5 ${isSidebarOpen || aiAgent.isEnabled ? 'text-white' : 'text-gray-600'}`}
                   animate={
                     aiAgent.isEnabled
@@ -220,16 +230,16 @@ const DashboardHeader = React.memo(function DashboardHeader({
                   }}
                 >
                   <Bot className='w-5 h-5' />
-                </motion.div>
+                </MotionDiv>
                 <span className='hidden sm:inline text-sm font-medium'>
                   {aiAgent.isEnabled ? (
-                    <motion.span
+                    <MotionDiv
                       className='bg-gradient-to-r from-purple-100 via-pink-100 to-cyan-100 bg-clip-text text-transparent font-bold'
                       animate={{ opacity: [1, 0.7, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
                       AI 어시스턴트
-                    </motion.span>
+                    </MotionDiv>
                   ) : (
                     'AI 어시스턴트'
                   )}
@@ -238,7 +248,7 @@ const DashboardHeader = React.memo(function DashboardHeader({
 
               {/* 활성화 상태 표시 */}
               {(isSidebarOpen || aiAgent.isEnabled) && (
-                <motion.div
+                <MotionDiv
                   className='absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white'
                   animate={{
                     scale: [1, 1.2, 1],
@@ -252,13 +262,13 @@ const DashboardHeader = React.memo(function DashboardHeader({
                   aria-hidden='true'
                 />
               )}
-            </motion.button>
+            </MotionButton>
 
             {/* 손가락 아이콘 - AI 비활성화 시에만 표시 */}
             {!aiAgent.isEnabled &&
               !isSidebarOpen &&
               !ui.isSettingsPanelOpen && (
-                <motion.div
+                <MotionDiv
                   className='finger-pointer-ai'
                   style={{
                     zIndex: isSidebarOpen || ui.isSettingsPanelOpen ? 10 : 45,
@@ -268,8 +278,8 @@ const DashboardHeader = React.memo(function DashboardHeader({
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  👆
-                </motion.div>
+                  ��
+                </MotionDiv>
               )}
           </div>
 

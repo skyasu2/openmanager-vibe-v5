@@ -110,7 +110,9 @@ export class UnifiedAIEngineRouter {
   /**
    * 🔄 직접 시스템 처리 (2-Mode)
    */
-  private async processWithDirectSystem(request: AIRequest): Promise<AIResponse> {
+  private async processWithDirectSystem(
+    request: AIRequest
+  ): Promise<AIResponse> {
     const requestId = `unified-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     this.requestCount++;
 

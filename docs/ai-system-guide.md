@@ -67,10 +67,10 @@ export const aiGateway = functions
   .timeout(60)
   .https.onRequest(async (req, res) => {
     const { query, context, mode } = req.body;
-    
+
     // AI 요청 라우팅
     const result = await routeAIRequest(query, context, mode);
-    
+
     res.json(result);
   });
 
@@ -93,40 +93,37 @@ async function routeAIRequest(query: string, context: any, mode: string) {
 
 ```typescript
 // GCP Functions: korean-nlp
-export const koreanNLP = functions
-  .region('asia-northeast3')
-  .runtime.memory = '512MB'
-  .timeout(180)
-  .https.onRequest(async (req, res) => {
+export const koreanNLP = (functions.region('asia-northeast3').runtime.memory =
+  '512MB'.timeout(180).https.onRequest(async (req, res) => {
     const { query, context } = req.body;
-    
+
     // 한국어 자연어 처리
     const result = await processKoreanNLP(query, context);
-    
+
     res.json({
       success: true,
       result,
       processingTime: Date.now() - startTime,
-      service: 'korean-nlp'
+      service: 'korean-nlp',
     });
-  });
+  }));
 
 // 한국어 처리 로직
 async function processKoreanNLP(query: string, context: any) {
   // 형태소 분석
   const morphemes = await analyzeMorphemes(query);
-  
+
   // 의도 분석
   const intent = await analyzeIntent(morphemes, context);
-  
+
   // 응답 생성
   const response = await generateKoreanResponse(intent, context);
-  
+
   return {
     morphemes,
     intent,
     response,
-    confidence: calculateConfidence(intent)
+    confidence: calculateConfidence(intent),
   };
 }
 ```
@@ -135,46 +132,40 @@ async function processKoreanNLP(query: string, context: any) {
 
 ```typescript
 // GCP Functions: rule-engine
-export const ruleEngine = functions
-  .region('asia-northeast3')
-  .runtime.memory = '256MB'
-  .timeout(30)
-  .https.onRequest(async (req, res) => {
+export const ruleEngine = (functions.region('asia-northeast3').runtime.memory =
+  '256MB'.timeout(30).https.onRequest(async (req, res) => {
     const { query, context, rules } = req.body;
-    
+
     // 비즈니스 로직 처리
     const result = await processRuleEngine(query, context, rules);
-    
+
     res.json({
       success: true,
       result,
       rulesApplied: result.rulesApplied,
-      service: 'rule-engine'
+      service: 'rule-engine',
     });
-  });
+  }));
 ```
 
 #### 4. basic-ml (512MB, 120초)
 
 ```typescript
 // GCP Functions: basic-ml
-export const basicML = functions
-  .region('asia-northeast3')
-  .runtime.memory = '512MB'
-  .timeout(120)
-  .https.onRequest(async (req, res) => {
+export const basicML = (functions.region('asia-northeast3').runtime.memory =
+  '512MB'.timeout(120).https.onRequest(async (req, res) => {
     const { query, context, model } = req.body;
-    
+
     // 기본 머신러닝 작업
     const result = await processBasicML(query, context, model);
-    
+
     res.json({
       success: true,
       result,
       modelUsed: model,
-      service: 'basic-ml'
+      service: 'basic-ml',
     });
-  });
+  }));
 ```
 
 ### Vercel 서비스 레이어
@@ -185,42 +176,44 @@ export const basicML = functions
 // src/services/ai/GCPFunctionsService.ts (163 라인 ← 1,040 라인)
 class GCPFunctionsService {
   private baseUrl = 'https://asia-northeast3-openmanager-ai.cloudfunctions.net';
-  
+
   constructor() {
     console.log('🚀 GCP Functions Service 초기화');
   }
-  
+
   /**
    * GCP Functions 호출 (통합 메서드)
    */
   async callFunction(functionName: string, data: any): Promise<any> {
     const startTime = Date.now();
-    
+
     try {
       const response = await fetch(`${this.baseUrl}/${functionName}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': 'OpenManager-Vibe-v5'
+          'User-Agent': 'OpenManager-Vibe-v5',
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
-      
+
       if (!response.ok) {
         throw new Error(`GCP Functions 호출 실패: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      
-      console.log(`✅ GCP Functions 호출 완료: ${functionName} (${Date.now() - startTime}ms)`);
-      
+
+      console.log(
+        `✅ GCP Functions 호출 완료: ${functionName} (${Date.now() - startTime}ms)`
+      );
+
       return result;
     } catch (error) {
       console.error(`❌ GCP Functions 호출 오류: ${functionName}`, error);
       throw error;
     }
   }
-  
+
   /**
    * 한국어 자연어 처리
    */
@@ -228,29 +221,37 @@ class GCPFunctionsService {
     return await this.callFunction('korean-nlp', {
       query,
       context,
-      mode: 'natural-language'
+      mode: 'natural-language',
     });
   }
-  
+
   /**
    * 룰 엔진 처리
    */
-  async processRuleEngine(query: string, context?: any, rules?: any[]): Promise<any> {
+  async processRuleEngine(
+    query: string,
+    context?: any,
+    rules?: any[]
+  ): Promise<any> {
     return await this.callFunction('rule-engine', {
       query,
       context,
-      rules
+      rules,
     });
   }
-  
+
   /**
    * 기본 머신러닝 처리
    */
-  async processBasicML(query: string, context?: any, model?: string): Promise<any> {
+  async processBasicML(
+    query: string,
+    context?: any,
+    model?: string
+  ): Promise<any> {
     return await this.callFunction('basic-ml', {
       query,
       context,
-      model: model || 'default'
+      model: model || 'default',
     });
   }
 }
@@ -270,61 +271,67 @@ class ThreeTierAIRouter {
   private gcpFunctionsService = new GCPFunctionsService();
   private mcpService = new MCPService();
   private googleAIService = new GoogleAIService();
-  
+
   /**
    * 3-Tier AI 처리 (GCP Functions → MCP → Google AI)
    */
   async routeQuery(query: string, context?: any): Promise<AIResponse> {
     console.log('🎯 3-Tier AI 처리 시작:', query);
-    
+
     // 1단계: GCP Functions 우선 처리
     try {
-      const gcpResponse = await this.gcpFunctionsService.callFunction('ai-gateway', {
-        query,
-        context,
-        mode: 'auto'
-      });
-      
+      const gcpResponse = await this.gcpFunctionsService.callFunction(
+        'ai-gateway',
+        {
+          query,
+          context,
+          mode: 'auto',
+        }
+      );
+
       if (gcpResponse.success) {
         console.log('✅ GCP Functions 처리 완료');
         return {
           success: true,
           response: gcpResponse.result,
           tier: 'gcp-functions',
-          processingTime: gcpResponse.processingTime
+          processingTime: gcpResponse.processingTime,
         };
       }
     } catch (error) {
       console.warn('⚠️ GCP Functions 처리 실패, MCP 서버로 폴백');
     }
-    
+
     // 2단계: MCP Server 폴백
     try {
       const mcpResponse = await this.mcpService.processQuery(query, context);
-      
+
       if (mcpResponse.success) {
         console.log('✅ MCP Server 처리 완료');
         return {
           success: true,
           response: mcpResponse.result,
           tier: 'mcp-server',
-          processingTime: mcpResponse.processingTime
+          processingTime: mcpResponse.processingTime,
         };
       }
     } catch (error) {
       console.warn('⚠️ MCP Server 처리 실패, Google AI로 폴백');
     }
-    
+
     // 3단계: Google AI 최종 폴백
     try {
-      const googleResponse = await this.googleAIService.processQuery(query, context);
-      
+      const googleResponse = await this.googleAIService.processQuery(
+        query,
+        context
+      );
+
       console.log('✅ Google AI 처리 완료');
       return {
         success: true,
         response: googleResponse.result,
         tier: 'google-ai',
-        processingTime: googleResponse.processingTime
+        processingTime: googleResponse.processingTime,
       };
     } catch (error) {
       console.error('❌ 모든 AI 처리 실패');
@@ -342,45 +349,48 @@ export default new ThreeTierAIRouter();
 // src/app/api/ai/natural-language/route.ts
 export async function POST(request: Request) {
   const { query, context } = await request.json();
-  
+
   console.log('🗣️ 자연어 처리 요청:', query);
-  
+
   // GCP Functions 우선 처리
   try {
     const gcpResponse = await gcpFunctionsService.callFunction('korean-nlp', {
       query,
       context,
-      mode: 'natural-language'
+      mode: 'natural-language',
     });
-    
+
     if (gcpResponse.success) {
       return NextResponse.json({
         success: true,
         result: gcpResponse.result,
         tier: 'gcp-functions',
-        processingTime: gcpResponse.processingTime
+        processingTime: gcpResponse.processingTime,
       });
     }
   } catch (error) {
     console.warn('⚠️ GCP Functions 처리 실패, 폴백 처리');
   }
-  
+
   // MCP Server 폴백
   try {
     const mcpResponse = await mcpService.processQuery(query, context);
-    
+
     return NextResponse.json({
       success: true,
       result: mcpResponse.result,
       tier: 'mcp-server',
-      processingTime: mcpResponse.processingTime
+      processingTime: mcpResponse.processingTime,
     });
   } catch (error) {
     console.error('❌ 자연어 처리 실패');
-    return NextResponse.json({
-      success: false,
-      error: '자연어 처리 시스템 오류'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '자연어 처리 시스템 오류',
+      },
+      { status: 500 }
+    );
   }
 }
 ```
@@ -437,32 +447,32 @@ class GCPFunctionsService {
 interface GCPFunctionsQuota {
   functions: {
     'ai-gateway': {
-      invocations: 2000000,    // 월 200만 호출
-      memory: '256MB',
-      timeout: 60,
-      used: 0.023              // 2.3% 사용
-    },
+      invocations: 2000000; // 월 200만 호출
+      memory: '256MB';
+      timeout: 60;
+      used: 0.023; // 2.3% 사용
+    };
     'korean-nlp': {
-      invocations: 2000000,
-      memory: '512MB',
-      timeout: 180,
-      used: 0.018
-    },
+      invocations: 2000000;
+      memory: '512MB';
+      timeout: 180;
+      used: 0.018;
+    };
     'rule-engine': {
-      invocations: 2000000,
-      memory: '256MB',
-      timeout: 30,
-      used: 0.012
-    },
+      invocations: 2000000;
+      memory: '256MB';
+      timeout: 30;
+      used: 0.012;
+    };
     'basic-ml': {
-      invocations: 2000000,
-      memory: '512MB',
-      timeout: 120,
-      used: 0.015
-    }
-  },
-  totalUsage: 0.023,           // 2.3% (Free Tier 안전 범위)
-  safetyMargin: 0.77           // 77% 여유
+      invocations: 2000000;
+      memory: '512MB';
+      timeout: 120;
+      used: 0.015;
+    };
+  };
+  totalUsage: 0.023; // 2.3% (Free Tier 안전 범위)
+  safetyMargin: 0.77; // 77% 여유
 }
 ```
 
@@ -484,13 +494,13 @@ const gcpFunctionsMode = {
     '성능 50% 향상',
     '자동 스케일링',
     '무료 티어 최적화',
-    '3-Tier 폴백 시스템'
+    '3-Tier 폴백 시스템',
   ],
   tiers: [
     'GCP Functions (Primary)',
     'MCP Server (Secondary)',
-    'Google AI (Fallback)'
-  ]
+    'Google AI (Fallback)',
+  ],
 };
 ```
 
@@ -505,13 +515,9 @@ const googleOnlyMode = {
     'Gemini 2.0 Flash',
     '고급 추론 능력',
     '복잡한 질의 처리',
-    '할당량 관리'
+    '할당량 관리',
   ],
-  limitations: [
-    '일일 1,000회 할당량',
-    '분당 12회 제한',
-    '네트워크 연결 필요'
-  ]
+  limitations: ['일일 1,000회 할당량', '분당 12회 제한', '네트워크 연결 필요'],
 };
 ```
 
@@ -521,14 +527,14 @@ const googleOnlyMode = {
 // src/core/ai/engines/AIEngineModeManager.ts
 class AIEngineModeManager {
   private currentMode: AIMode = 'GCP_FUNCTIONS';
-  
+
   async selectOptimalMode(query: string, context?: any): Promise<AIMode> {
     // 질의 복잡도 분석
     const complexity = this.analyzeComplexity(query);
-    
+
     // 할당량 상태 확인
     const quotaStatus = await this.checkQuotaStatus();
-    
+
     // 최적 모드 선택
     if (complexity > 0.8 && quotaStatus.google.available) {
       return 'GOOGLE_ONLY';
@@ -536,15 +542,15 @@ class AIEngineModeManager {
       return 'GCP_FUNCTIONS';
     }
   }
-  
+
   private analyzeComplexity(query: string): number {
     // 복잡도 분석 로직
     const factors = {
       length: query.length / 1000,
       keywords: this.countComplexKeywords(query),
-      structure: this.analyzeStructure(query)
+      structure: this.analyzeStructure(query),
     };
-    
+
     return Math.min(factors.length + factors.keywords + factors.structure, 1.0);
   }
 }
@@ -564,34 +570,34 @@ class AIPerformanceMonitor {
       requests: 0,
       successRate: 0,
       avgResponseTime: 0,
-      quotaUsage: 0
+      quotaUsage: 0,
     },
     mcpServer: {
       requests: 0,
       successRate: 0,
       avgResponseTime: 0,
-      availability: 0
+      availability: 0,
     },
     googleAI: {
       requests: 0,
       successRate: 0,
       avgResponseTime: 0,
-      quotaUsage: 0
-    }
+      quotaUsage: 0,
+    },
   };
-  
+
   async trackRequest(tier: string, startTime: number, success: boolean) {
     const responseTime = Date.now() - startTime;
-    
+
     // 메트릭 업데이트
     this.metrics[tier].requests++;
-    this.metrics[tier].avgResponseTime = 
+    this.metrics[tier].avgResponseTime =
       (this.metrics[tier].avgResponseTime + responseTime) / 2;
-    
+
     if (success) {
       this.metrics[tier].successRate++;
     }
-    
+
     // 실시간 대시보드 업데이트
     await this.updateDashboard(tier, responseTime, success);
   }
@@ -610,16 +616,16 @@ class AILogger {
       inputSize: JSON.stringify(data).length,
       outputSize: JSON.stringify(result).length,
       success: result.success,
-      processingTime: result.processingTime
+      processingTime: result.processingTime,
     });
   }
-  
+
   static logFallbackUsage(from: string, to: string, reason: string) {
     console.warn(`⚠️ 폴백 사용: ${from} → ${to}`, {
       timestamp: new Date().toISOString(),
       from,
       to,
-      reason
+      reason,
     });
   }
 }
@@ -666,9 +672,9 @@ async processNewAIFunction(query: string, context?: any): Promise<any> {
 // src/app/api/ai/new-function/route.ts
 export async function POST(request: Request) {
   const { query, context } = await request.json();
-  
+
   const result = await gcpFunctionsService.processNewAIFunction(query, context);
-  
+
   return NextResponse.json(result);
 }
 ```
@@ -678,9 +684,11 @@ export async function POST(request: Request) {
 ```typescript
 // 할당량 확인 스크립트
 async function checkGCPQuota() {
-  const response = await fetch('https://cloudfunctions.googleapis.com/v1/projects/openmanager-ai/locations/asia-northeast3/functions');
+  const response = await fetch(
+    'https://cloudfunctions.googleapis.com/v1/projects/openmanager-ai/locations/asia-northeast3/functions'
+  );
   const functions = await response.json();
-  
+
   functions.forEach(func => {
     console.log(`📊 ${func.name}: ${func.metrics.invocations} 호출`);
   });
@@ -697,14 +705,14 @@ describe('GCP Functions AI 시스템', () => {
       '서버 상태를 확인해주세요',
       { userId: 'test' }
     );
-    
+
     expect(result.success).toBe(true);
     expect(result.result.intent).toBeDefined();
   });
-  
+
   test('3-Tier 폴백 시스템', async () => {
     const result = await threeTierAIRouter.routeQuery('테스트 쿼리');
-    
+
     expect(result.success).toBe(true);
     expect(['gcp-functions', 'mcp-server', 'google-ai']).toContain(result.tier);
   });

@@ -10,9 +10,7 @@
  */
 
 import { unifiedDataBroker } from '@/services/data-collection/UnifiedDataBroker';
-import type {
-  ServerInstance
-} from '@/types/data-generator';
+import type { ServerInstance } from '@/types/data-generator';
 
 // 🧠 AI 생각과정 단계
 export interface ThinkingStep {
@@ -201,7 +199,7 @@ export class ServerMonitoringAgent {
     },
   ];
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): ServerMonitoringAgent {
     if (!ServerMonitoringAgent.instance) {
@@ -667,7 +665,8 @@ export class ServerMonitoringAgent {
     // 비용 절약 제안
     response += `**비용 최적화 제안:**\n`;
     const lowUtilizationServers = data.servers.filter(
-      (s: ServerInstance) => (s.metrics?.cpu || 0) < 30 && (s.metrics?.memory || 0) < 40
+      (s: ServerInstance) =>
+        (s.metrics?.cpu || 0) < 30 && (s.metrics?.memory || 0) < 40
     );
 
     if (lowUtilizationServers.length > 0) {
@@ -747,7 +746,8 @@ export class ServerMonitoringAgent {
 
     // 비용 인사이트
     const underutilizedServers = data.servers.filter(
-      (s: ServerInstance) => (s.metrics?.cpu || 0) < 30 && (s.metrics?.memory || 0) < 40
+      (s: ServerInstance) =>
+        (s.metrics?.cpu || 0) < 30 && (s.metrics?.memory || 0) < 40
     );
     if (underutilizedServers.length > 0) {
       insights.push({

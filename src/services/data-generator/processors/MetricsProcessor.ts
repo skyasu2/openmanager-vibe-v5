@@ -56,7 +56,7 @@ export class MetricsProcessor {
       network: { in: 0, out: 0 },
       uptime: 0,
       requests: 0,
-      errors: 0
+      errors: 0,
     };
 
     // 🎯 1단계: 원본 메트릭 수집
@@ -64,9 +64,10 @@ export class MetricsProcessor {
       cpu: serverMetrics.cpu,
       memory: serverMetrics.memory,
       disk: serverMetrics.disk,
-      network: typeof serverMetrics.network === 'number'
-        ? { in: serverMetrics.network / 2, out: serverMetrics.network / 2 }
-        : { ...serverMetrics.network },
+      network:
+        typeof serverMetrics.network === 'number'
+          ? { in: serverMetrics.network / 2, out: serverMetrics.network / 2 }
+          : { ...serverMetrics.network },
     };
 
     // 🎯 2단계: 데이터 전처리 (장애 시나리오 반영)
@@ -106,12 +107,12 @@ export class MetricsProcessor {
         in: Math.max(
           0,
           rawMetrics.network.in +
-          (Math.random() - 0.5) * 50 * effectiveIntensity
+            (Math.random() - 0.5) * 50 * effectiveIntensity
         ),
         out: Math.max(
           0,
           rawMetrics.network.out +
-          (Math.random() - 0.5) * 30 * effectiveIntensity
+            (Math.random() - 0.5) * 30 * effectiveIntensity
         ),
       },
     };
@@ -142,8 +143,11 @@ export class MetricsProcessor {
       ...currentMetrics,
       ...processedMetrics,
       uptime: (currentMetrics.uptime || 0) + updateInterval / 1000,
-      requests: ((currentMetrics as any).requests || 0) + Math.floor(Math.random() * 100),
-      errors: ((currentMetrics as any).errors || 0) + (Math.random() > 0.95 ? 1 : 0),
+      requests:
+        ((currentMetrics as any).requests || 0) +
+        Math.floor(Math.random() * 100),
+      errors:
+        ((currentMetrics as any).errors || 0) + (Math.random() > 0.95 ? 1 : 0),
     };
 
     return {
@@ -294,9 +298,10 @@ export class MetricsProcessor {
       cpu: metrics.cpu || 0,
       memory: metrics.memory || 0,
       disk: metrics.disk || 0,
-      network: typeof metrics.network === 'object'
-        ? { ...metrics.network }
-        : { in: metrics.network || 0, out: metrics.network || 0 },
+      network:
+        typeof metrics.network === 'object'
+          ? { ...metrics.network }
+          : { in: metrics.network || 0, out: metrics.network || 0 },
       requests: (metrics as any).requests || 0,
       errors: (metrics as any).errors || 0,
       uptime: metrics.uptime || 0,

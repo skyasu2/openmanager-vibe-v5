@@ -44,7 +44,7 @@ export class AnalysisProcessor {
   constructor(
     googleAI?: typeof GoogleAIService,
     localRAG?: any,
-    mcpEngine?: any,
+    mcpEngine?: any
   ) {
     this.degradationManager = GracefulDegradationManager.getInstance();
     this.googleAI = googleAI;
@@ -155,7 +155,7 @@ export class AnalysisProcessor {
         const googleService = this.googleAI.getInstance();
         const googleResult = await googleService.processQuery({
           query: `서버 모니터링 분석: ${JSON.stringify(intent)}`,
-          mode: 'GOOGLE_ONLY'
+          mode: 'GOOGLE_ONLY',
         });
 
         if (googleResult.success) {

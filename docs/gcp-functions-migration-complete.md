@@ -30,12 +30,12 @@ After (GCP Functions 중심):
 
 #### 배포된 Functions
 
-| Function | 메모리 | 타임아웃 | 용도 | 사용률 |
-|----------|--------|----------|------|--------|
-| ai-gateway | 256MB | 60초 | AI 요청 라우팅 | 2.3% |
-| korean-nlp | 512MB | 180초 | 한국어 자연어 처리 | 1.8% |
-| rule-engine | 256MB | 30초 | 비즈니스 로직 처리 | 1.2% |
-| basic-ml | 512MB | 120초 | 기본 머신러닝 작업 | 1.5% |
+| Function    | 메모리 | 타임아웃 | 용도               | 사용률 |
+| ----------- | ------ | -------- | ------------------ | ------ |
+| ai-gateway  | 256MB  | 60초     | AI 요청 라우팅     | 2.3%   |
+| korean-nlp  | 512MB  | 180초    | 한국어 자연어 처리 | 1.8%   |
+| rule-engine | 256MB  | 30초     | 비즈니스 로직 처리 | 1.2%   |
+| basic-ml    | 512MB  | 120초    | 기본 머신러닝 작업 | 1.5%   |
 
 #### 배포 위치
 
@@ -56,54 +56,54 @@ class KoreanAIEngine {
   private cacheManager: CacheManager;
   private errorHandler: ErrorHandler;
   private logger: Logger;
-  
+
   // 복잡한 로컬 처리 로직
   async processKoreanNLP(query: string): Promise<NLPResult> {
     // 형태소 분석
     const morphemes = await this.morphemeAnalyzer.analyze(query);
-    
+
     // 의도 분석
     const intent = await this.intentClassifier.classify(morphemes);
-    
+
     // 응답 생성
     const response = await this.responseGenerator.generate(intent);
-    
+
     // 캐싱 처리
     await this.cacheManager.store(query, response);
-    
+
     return {
       morphemes,
       intent,
       response,
-      confidence: this.calculateConfidence(intent)
+      confidence: this.calculateConfidence(intent),
     };
   }
-  
+
   // ... 1,040 라인 복잡한 로직
 }
 
 // After (163 라인)
 class GCPFunctionsService {
   private baseUrl = 'https://asia-northeast3-openmanager-ai.cloudfunctions.net';
-  
+
   async processKoreanNLP(query: string, context?: any): Promise<any> {
     return await this.callFunction('korean-nlp', {
       query,
       context,
-      mode: 'natural-language'
+      mode: 'natural-language',
     });
   }
-  
+
   async callFunction(functionName: string, data: any): Promise<any> {
     const response = await fetch(`${this.baseUrl}/${functionName}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
-    
+
     return await response.json();
   }
-  
+
   // ... 163 라인 간단한 로직
 }
 ```
@@ -117,37 +117,41 @@ class PatternMatcherEngine {
   private matcher: PatternMatcher;
   private optimizer: PatternOptimizer;
   private validator: PatternValidator;
-  
+
   // 복잡한 패턴 매칭 로직
   async matchPatterns(query: string): Promise<MatchResult[]> {
     // 패턴 전처리
     const preprocessedQuery = await this.preprocessQuery(query);
-    
+
     // 패턴 매칭
     const matches = await this.matcher.match(preprocessedQuery, this.patterns);
-    
+
     // 결과 최적화
     const optimizedMatches = await this.optimizer.optimize(matches);
-    
+
     // 결과 검증
     const validatedMatches = await this.validator.validate(optimizedMatches);
-    
+
     return validatedMatches;
   }
-  
+
   // ... 950 라인 복잡한 로직
 }
 
 // After (162 라인)
 class GCPFunctionsService {
-  async processRuleEngine(query: string, context?: any, rules?: any[]): Promise<any> {
+  async processRuleEngine(
+    query: string,
+    context?: any,
+    rules?: any[]
+  ): Promise<any> {
     return await this.callFunction('rule-engine', {
       query,
       context,
-      rules
+      rules,
     });
   }
-  
+
   // ... 162 라인 간단한 로직
 }
 ```
@@ -242,30 +246,38 @@ class ThreeTierAIRouter {
   async routeQuery(query: string, context?: any): Promise<AIResponse> {
     // 1단계: GCP Functions 우선 처리
     try {
-      const gcpResponse = await this.gcpFunctionsService.callFunction('ai-gateway', {
-        query, context, mode: 'auto'
-      });
-      
+      const gcpResponse = await this.gcpFunctionsService.callFunction(
+        'ai-gateway',
+        {
+          query,
+          context,
+          mode: 'auto',
+        }
+      );
+
       if (gcpResponse.success) {
         return { ...gcpResponse, tier: 'gcp-functions' };
       }
     } catch (error) {
       console.warn('GCP Functions 처리 실패, MCP 서버로 폴백');
     }
-    
+
     // 2단계: MCP Server 폴백
     try {
       const mcpResponse = await this.mcpService.processQuery(query, context);
-      
+
       if (mcpResponse.success) {
         return { ...mcpResponse, tier: 'mcp-server' };
       }
     } catch (error) {
       console.warn('MCP Server 처리 실패, Google AI로 폴백');
     }
-    
+
     // 3단계: Google AI 최종 폴백
-    const googleResponse = await this.googleAIService.processQuery(query, context);
+    const googleResponse = await this.googleAIService.processQuery(
+      query,
+      context
+    );
     return { ...googleResponse, tier: 'google-ai' };
   }
 }
@@ -391,22 +403,22 @@ class ThreeTierAIRouter {
 
 ### 시스템 복잡도 비교
 
-| 측면 | Before | After | 개선 |
-|------|--------|-------|------|
-| 총 코드 라인 | 2,790 | 400 | 85% 감소 |
-| AI 처리 속도 | 2.5초 | 1.25초 | 50% 향상 |
-| 메모리 사용량 | 512MB | 128MB | 75% 감소 |
-| Vercel 사용률 | 15% | 3% | 80% 감소 |
-| 유지보수성 | 복잡 | 간단 | 60% 향상 |
-| 확장성 | 제한적 | 자동 | 무제한 |
+| 측면          | Before | After  | 개선     |
+| ------------- | ------ | ------ | -------- |
+| 총 코드 라인  | 2,790  | 400    | 85% 감소 |
+| AI 처리 속도  | 2.5초  | 1.25초 | 50% 향상 |
+| 메모리 사용량 | 512MB  | 128MB  | 75% 감소 |
+| Vercel 사용률 | 15%    | 3%     | 80% 감소 |
+| 유지보수성    | 복잡   | 간단   | 60% 향상 |
+| 확장성        | 제한적 | 자동   | 무제한   |
 
 ### 운영 비용 비교
 
-| 서비스 | Before | After | 절약 |
-|--------|--------|-------|------|
-| Vercel | 높은 사용률 | 낮은 사용률 | 80% 절약 |
-| GCP Functions | 미사용 | 2.3% 사용 | Free Tier |
-| 전체 비용 | $0/월 | $0/월 | 비용 유지 |
+| 서비스        | Before      | After       | 절약      |
+| ------------- | ----------- | ----------- | --------- |
+| Vercel        | 높은 사용률 | 낮은 사용률 | 80% 절약  |
+| GCP Functions | 미사용      | 2.3% 사용   | Free Tier |
+| 전체 비용     | $0/월       | $0/월       | 비용 유지 |
 
 ---
 

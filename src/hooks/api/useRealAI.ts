@@ -20,10 +20,10 @@ interface UseRealAIOptions {
   enablePython?: boolean;
   enableMCP?: boolean;
   aiModel?:
-  | 'gpt-3.5-turbo'
-  | 'claude-3-haiku'
-  | 'gemini-1.5-flash'
-  | 'local-analyzer';
+    | 'gpt-3.5-turbo'
+    | 'claude-3-haiku'
+    | 'gemini-1.5-flash'
+    | 'local-analyzer';
   realTime?: boolean;
   autoRefresh?: boolean;
   refreshInterval?: number;
@@ -34,11 +34,11 @@ interface UseRealAIOptions {
 interface AIAnalysisRequest {
   query: string;
   type?:
-  | 'analysis'
-  | 'monitoring'
-  | 'prediction'
-  | 'optimization'
-  | 'troubleshooting';
+    | 'analysis'
+    | 'monitoring'
+    | 'prediction'
+    | 'optimization'
+    | 'troubleshooting';
   includeMetrics?: boolean;
   includeLogs?: boolean;
 }
@@ -311,8 +311,8 @@ export function useRealAI(options: UseRealAIOptions = {}) {
       analyze: () => Promise.resolve(null),
       analyzeMetrics: () => Promise.resolve(null),
       checkSystemHealth: () => Promise.resolve(null),
-      cancelAnalysis: () => { },
-      reset: () => { },
+      cancelAnalysis: () => {},
+      reset: () => {},
       getPerformanceInfo: (): null => null,
       getSystemSummary: (): null => null,
       isAnalyzing: false,

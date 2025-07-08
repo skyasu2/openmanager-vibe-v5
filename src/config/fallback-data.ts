@@ -3,7 +3,7 @@ import type { Server } from '@/types/server';
 /**
  * 🚨 정적 에러 상태 서버 데이터
  * ⚠️ 주의: 이 데이터는 실제 서버 연결이 실패했을 때 표시되는 정적 에러 상태입니다.
- * 
+ *
  * 특징:
  * - 모든 서버가 명시적으로 "ERROR" 상태
  * - 사용자와 AI가 즉시 시스템 장애를 인식 가능
@@ -87,7 +87,7 @@ export const ERROR_STATE_METADATA = {
   displayMessage: '⚠️ 시스템 오류: 실제 데이터를 가져올 수 없습니다',
   userAction: '관리자에게 문의하거나 잠시 후 다시 시도해주세요',
   timestamp: new Date().toISOString(),
-  severity: 'CRITICAL'
+  severity: 'CRITICAL',
 };
 
 /**
@@ -96,8 +96,7 @@ export const ERROR_STATE_METADATA = {
  */
 export const INFRASTRUCTURE_CONFIG = {
   redis: {
-    host:
-      process.env.REDIS_HOST || process.env.UPSTASH_REDIS_HOST || '',
+    host: process.env.REDIS_HOST || process.env.UPSTASH_REDIS_HOST || '',
     port: parseInt(process.env.REDIS_PORT || '0'),
     url: process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_URL || '',
     token:

@@ -200,20 +200,23 @@ export async function GET_NEW(request: NextRequest) {
       uptime: '99.9%',
       lastCheck: new Date().toISOString(),
       version: '15.3',
-      region: 'ap-southeast-1'
+      region: 'ap-southeast-1',
     };
 
     return NextResponse.json({
       success: true,
       data: dbStatus,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error('❌ 데이터베이스 상태 조회 실패:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to get database status',
-      timestamp: new Date().toISOString()
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to get database status',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
   }
 }

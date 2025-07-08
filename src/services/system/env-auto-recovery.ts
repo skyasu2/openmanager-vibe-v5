@@ -66,10 +66,10 @@ export class EnvAutoRecoveryService {
       // 프로덕션 환경에서는 절대 하드코딩 값 사용하지 않음
       ...(process.env.NODE_ENV === 'development'
         ? {
-          // 개발환경에서만 경고와 함께 제공되는 임시값들
-          GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY || '',
-          SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL || '',
-        }
+            // 개발환경에서만 경고와 함께 제공되는 임시값들
+            GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY || '',
+            SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL || '',
+          }
         : {}),
     } as Record<string, string>,
   };
@@ -287,7 +287,8 @@ export class EnvAutoRecoveryService {
 
       // UnifiedEnvCryptoManager의 자동 복구 기능 사용
       try {
-        const recoveredVars = await this.envCryptoManager.autoRecoverEnvVars(defaultPasswords);
+        const recoveredVars =
+          await this.envCryptoManager.autoRecoverEnvVars(defaultPasswords);
 
         // 누락된 변수들 중에서 복구된 것들 확인
         for (const varName of missingVars) {
@@ -417,7 +418,8 @@ export class EnvAutoRecoveryService {
       const defaults = {
         NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
         SUPABASE_URL: process.env.SUPABASE_URL || '',
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+        NEXT_PUBLIC_SUPABASE_ANON_KEY:
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
       };
 
       for (const varName of missingVars) {
@@ -693,7 +695,8 @@ export class EnvAutoRecoveryService {
       const defaults = {
         NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
         SUPABASE_URL: process.env.SUPABASE_URL || '',
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+        NEXT_PUBLIC_SUPABASE_ANON_KEY:
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
       };
 
       for (const varName of missingVars) {

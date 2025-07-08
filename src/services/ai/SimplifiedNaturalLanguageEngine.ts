@@ -1,6 +1,6 @@
 /**
  * 🚀 최적화된 자연어 처리 엔진 + 경량 ML 엔진 통합 v4.0 (2025.06.10)
- * 
+ *
  * ✅ Supabase RAG 전용 (LocalRAG 제거)
  * ✅ Google AI 싱글톤 사용
  * ✅ UnifiedAI 라우터 통합
@@ -11,7 +11,10 @@
 import { UnifiedAIEngineRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
 import { SupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { AutoReportService } from '@/services/ai/AutoReportService';
-import { createGoogleAIService, RequestScopedGoogleAIService } from '@/services/ai/GoogleAIService';
+import {
+  createGoogleAIService,
+  RequestScopedGoogleAIService,
+} from '@/services/ai/GoogleAIService';
 
 // 🎯 스마트 모드 정의
 type AIMode = 'auto' | 'google-only' | 'local' | 'offline';
@@ -75,7 +78,9 @@ export class SimplifiedNaturalLanguageEngine {
     // 🚫 서버리스 호환: 요청별 Google AI 서비스 생성
     try {
       this.googleAI = createGoogleAIService();
-      console.log('✅ 요청별 GoogleAI 서비스 연결됨 (SimplifiedNaturalLanguageEngine)');
+      console.log(
+        '✅ 요청별 GoogleAI 서비스 연결됨 (SimplifiedNaturalLanguageEngine)'
+      );
     } catch (error) {
       console.warn('⚠️ Google AI 서비스 연결 실패:', error);
       this.googleAI = null;
@@ -521,8 +526,8 @@ export class SimplifiedNaturalLanguageEngine {
         context: {},
         metadata: {
           source: 'simplified-engine',
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       };
 
       const contextResult = await this.unifiedAI.processQuery(aiRequest);
@@ -534,7 +539,7 @@ export class SimplifiedNaturalLanguageEngine {
           category: 'mcp-context',
           additionalInfo: contextResult.data || '',
           timestamp: new Date().toISOString(),
-          source: 'mcp-context-helper'
+          source: 'mcp-context-helper',
         };
 
         console.log('✅ MCP 컨텍스트 수집 성공:', mcpContext.summary);
@@ -544,7 +549,7 @@ export class SimplifiedNaturalLanguageEngine {
           const enhancedQuery = `${query}\n\n[MCP 컨텍스트: ${mcpContext.summary}]`;
           const ragResult = await this.ragEngine.searchSimilar(enhancedQuery, {
             maxResults: 3,
-            threshold: 0.5
+            threshold: 0.5,
           });
 
           if (ragResult?.success && ragResult.results.length > 0) {
@@ -595,7 +600,7 @@ export class SimplifiedNaturalLanguageEngine {
 
     const result = await this.ragEngine.searchSimilar(query, {
       maxResults: 5,
-      threshold: 0.5
+      threshold: 0.5,
     });
 
     if (result?.success && result.results.length > 0) {
@@ -811,7 +816,9 @@ export class SimplifiedNaturalLanguageEngine {
    */
   private async initializeMLEngine(): Promise<void> {
     try {
-      const { LightweightMLEngine } = await import('@/lib/ml/LightweightMLEngine');
+      const { LightweightMLEngine } = await import(
+        '@/lib/ml/LightweightMLEngine'
+      );
       this.mlEngine = new LightweightMLEngine();
       this.mlInitialized = true;
       console.log('🤖 SimplifiedNaturalLanguageEngine: ML 엔진 초기화 완료');

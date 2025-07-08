@@ -55,12 +55,15 @@ export async function POST(request: NextRequest) {
 
     if (!query || typeof query !== 'string') {
       clearTimeout(timeoutId);
-      return NextResponse.json({
-        success: false,
-        error: 'Invalid query parameter',
-        message: 'query는 필수 문자열 파라미터입니다',
-        timestamp: new Date().toISOString()
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid query parameter',
+          message: 'query는 필수 문자열 파라미터입니다',
+          timestamp: new Date().toISOString(),
+        },
+        { status: 400 }
+      );
     }
 
     const env = detectEnvironment();
@@ -82,7 +85,7 @@ export async function POST(request: NextRequest) {
         dataSource: 'gcp-real-data',
         serverCount: serverData.totalServers,
         timestamp: new Date().toISOString(),
-        environment: 'vercel'
+        environment: 'vercel',
       });
     }
 
@@ -97,20 +100,22 @@ export async function POST(request: NextRequest) {
       response: mockResponse,
       dataSource: 'mock-data',
       timestamp: new Date().toISOString(),
-      environment: 'local'
+      environment: 'local',
     });
-
   } catch (error) {
     clearTimeout(timeoutId);
 
     console.error('❌ 통합 AI 쿼리 오류:', error);
 
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString()
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -243,15 +248,27 @@ function generateAIResponse(query: string, serverData: any[]): string {
 
   if (lowerQuery.includes('서버') || lowerQuery.includes('server')) {
     const totalServers = serverData.length;
-    const healthyServers = serverData.filter(s => s.status === 'healthy').length;
-    const criticalServers = serverData.filter(s => s.status === 'critical').length;
+    const healthyServers = serverData.filter(
+      s => s.status === 'healthy'
+    ).length;
+    const criticalServers = serverData.filter(
+      s => s.status === 'critical'
+    ).length;
 
     return `현재 GCP에서 ${totalServers}개의 서버가 운영 중입니다. 정상 상태: ${healthyServers}개, 위험 상태: ${criticalServers}개입니다.`;
   }
 
-  if (lowerQuery.includes('cpu') || lowerQuery.includes('메모리') || lowerQuery.includes('memory')) {
-    const avgCpu = serverData.reduce((sum, s) => sum + (s.metrics?.cpu?.usage || 0), 0) / serverData.length;
-    const avgMemory = serverData.reduce((sum, s) => sum + (s.metrics?.memory?.usage || 0), 0) / serverData.length;
+  if (
+    lowerQuery.includes('cpu') ||
+    lowerQuery.includes('메모리') ||
+    lowerQuery.includes('memory')
+  ) {
+    const avgCpu =
+      serverData.reduce((sum, s) => sum + (s.metrics?.cpu?.usage || 0), 0) /
+      serverData.length;
+    const avgMemory =
+      serverData.reduce((sum, s) => sum + (s.metrics?.memory?.usage || 0), 0) /
+      serverData.length;
 
     return `평균 CPU 사용률: ${avgCpu.toFixed(1)}%, 평균 메모리 사용률: ${avgMemory.toFixed(1)}%입니다.`;
   }
@@ -269,7 +286,11 @@ function generateMockAIResponse(query: string): string {
     return '로컬 개발 환경에서 목업 서버 데이터를 분석했습니다. 실제 운영 환경에서는 GCP 실제 데이터가 사용됩니다.';
   }
 
-  if (lowerQuery.includes('cpu') || lowerQuery.includes('메모리') || lowerQuery.includes('memory')) {
+  if (
+    lowerQuery.includes('cpu') ||
+    lowerQuery.includes('메모리') ||
+    lowerQuery.includes('memory')
+  ) {
     return '목업 환경에서 시뮬레이션된 CPU 및 메모리 사용률 데이터를 분석했습니다.';
   }
 

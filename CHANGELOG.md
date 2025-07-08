@@ -24,7 +24,7 @@
 **베르셀 사용량 대폭 감소**
 
 - 서버리스 함수 호출: 90% 감소
-- 데이터베이스 요청: 85% 감소  
+- 데이터베이스 요청: 85% 감소
 - Redis 연결: 완전 중지 (비활성 시)
 - 실시간 모니터링: 일시 정지
 
@@ -40,8 +40,13 @@
 
 ```typescript
 const activityEvents = [
-  'mousedown', 'mousemove', 'keypress', 
-  'scroll', 'touchstart', 'click', 'focus'
+  'mousedown',
+  'mousemove',
+  'keypress',
+  'scroll',
+  'touchstart',
+  'click',
+  'focus',
 ];
 ```
 

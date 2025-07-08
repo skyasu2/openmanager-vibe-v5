@@ -100,7 +100,7 @@ const getDefaultServers = (): ServerInstance[] => [
       cpu_cores: 4,
       memory_gb: 16,
       disk_gb: 500,
-      network_speed: '1Gbps'
+      network_speed: '1Gbps',
     },
     metrics: {
       cpu: 45,
@@ -108,7 +108,7 @@ const getDefaultServers = (): ServerInstance[] => [
       disk: 38,
       network: 125,
       uptime: 99.8,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     },
     health: {
       score: 95,
@@ -142,7 +142,7 @@ const getDefaultServers = (): ServerInstance[] => [
       cpu_cores: 8,
       memory_gb: 32,
       disk_gb: 1000,
-      network_speed: '1Gbps'
+      network_speed: '1Gbps',
     },
     metrics: {
       cpu: 78,
@@ -150,7 +150,7 @@ const getDefaultServers = (): ServerInstance[] => [
       disk: 65,
       network: 156,
       uptime: 99.9,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     },
     health: {
       score: 88,

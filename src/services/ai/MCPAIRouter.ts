@@ -140,7 +140,10 @@ export class MCPAIRouter {
   /**
    * 🎯 메인 처리 흐름
    */
-  async processQuery(query: string, context: MCPContext): Promise<MCPRouterResponse> {
+  async processQuery(
+    query: string,
+    context: MCPContext
+  ): Promise<MCPRouterResponse> {
     const startTime = Date.now();
     const sessionId = context.sessionId || this.generateSessionId();
 
@@ -343,7 +346,10 @@ export class MCPAIRouter {
   /**
    * ❌ 오류 응답 생성
    */
-  private createErrorResponse(error: any, processingTime: number): MCPRouterResponse {
+  private createErrorResponse(
+    error: any,
+    processingTime: number
+  ): MCPRouterResponse {
     return {
       success: false,
       source: 'fallback',
@@ -407,4 +413,3 @@ export class MCPAIRouter {
 import { ResponseMerger } from './ResponseMerger';
 import { SessionManager } from './SessionManager';
 import { TaskOrchestrator } from './TaskOrchestrator';
-

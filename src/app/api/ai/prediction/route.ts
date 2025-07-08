@@ -209,7 +209,9 @@ function getServerMetricValue(server: any, metric: string): number {
     case 'network':
       return (server.metrics?.network as any)?.in || 0;
     case 'response_time':
-      return server.metrics?.requests > 0 ? 1000 / server.metrics.requests : 100;
+      return server.metrics?.requests > 0
+        ? 1000 / server.metrics.requests
+        : 100;
     default:
       return server.metrics?.cpu || 0;
   }
@@ -262,12 +264,18 @@ function generateTimeSeriesData(server: any, hours: number): any[] {
 
     data.push({
       timestamp,
-      cpu: Math.max(0, Math.min(100, (server.metrics?.cpu || 0) + variation * 20)),
+      cpu: Math.max(
+        0,
+        Math.min(100, (server.metrics?.cpu || 0) + variation * 20)
+      ),
       memory: Math.max(
         0,
         Math.min(100, (server.metrics?.memory || 0) + variation * 15)
       ),
-      disk: Math.max(0, Math.min(100, (server.metrics?.disk || 0) + variation * 10)),
+      disk: Math.max(
+        0,
+        Math.min(100, (server.metrics?.disk || 0) + variation * 10)
+      ),
     });
   }
 
@@ -331,7 +339,11 @@ function generatePredictionResults(filters?: {
 
   // 실제 예측 실행
   return [
-    generateFallbackPrediction(filters?.metric || 'cpu', targetServer.id || 'server-1', 24),
+    generateFallbackPrediction(
+      filters?.metric || 'cpu',
+      targetServer.id || 'server-1',
+      24
+    ),
   ];
 }
 

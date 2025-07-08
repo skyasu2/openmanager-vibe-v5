@@ -73,12 +73,15 @@ export class GCPRedisService {
       const { default: Redis } = await import('ioredis');
 
       // GCP Redis 설정 (환경변수 또는 기본값)
-      const gcpRedisHost = this.config.gcpRedisHost ||
+      const gcpRedisHost =
+        this.config.gcpRedisHost ||
         process.env.GCP_REDIS_HOST ||
         'charming-condor-46598.upstash.io';
-      const gcpRedisPort = this.config.gcpRedisPort ||
+      const gcpRedisPort =
+        this.config.gcpRedisPort ||
         parseInt(process.env.GCP_REDIS_PORT || '6379');
-      const gcpRedisPassword = this.config.gcpRedisPassword ||
+      const gcpRedisPassword =
+        this.config.gcpRedisPassword ||
         process.env.GCP_REDIS_PASSWORD ||
         'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA';
 
@@ -112,7 +115,9 @@ export class GCPRedisService {
       console.log('🌐 GCP Redis 연결 설정 완료');
     } catch (error) {
       console.error('❌ GCP Redis 초기화 실패:', error);
-      throw new Error(`GCP Redis 초기화 실패: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `GCP Redis 초기화 실패: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -167,7 +172,9 @@ export class GCPRedisService {
       console.log(`✅ GCP Redis에 서버 데이터 저장 완료: ${server.id}`);
     } catch (error) {
       console.error(`❌ GCP Redis 서버 저장 실패 (${server.id}):`, error);
-      throw new Error(`GCP Redis 저장 실패: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `GCP Redis 저장 실패: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -193,7 +200,9 @@ export class GCPRedisService {
       return null;
     } catch (error) {
       console.error(`❌ GCP Redis 서버 조회 실패 (${serverId}):`, error);
-      throw new Error(`GCP Redis 조회 실패: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `GCP Redis 조회 실패: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -220,7 +229,9 @@ export class GCPRedisService {
       return servers;
     } catch (error) {
       console.error('❌ GCP Redis 모든 서버 조회 실패:', error);
-      throw new Error(`GCP Redis 전체 조회 실패: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `GCP Redis 전체 조회 실패: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -244,7 +255,9 @@ export class GCPRedisService {
       console.log(`✅ GCP Redis에 클러스터 데이터 저장 완료: ${cluster.id}`);
     } catch (error) {
       console.error(`❌ GCP Redis 클러스터 저장 실패 (${cluster.id}):`, error);
-      throw new Error(`GCP Redis 클러스터 저장 실패: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `GCP Redis 클러스터 저장 실패: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -275,7 +288,9 @@ export class GCPRedisService {
       console.log(`✅ GCP Redis에 ${servers.length}개 서버 배치 저장 완료`);
     } catch (error) {
       console.error('❌ GCP Redis 배치 저장 실패:', error);
-      throw new Error(`GCP Redis 배치 저장 실패: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `GCP Redis 배치 저장 실패: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -320,7 +335,9 @@ export class GCPRedisService {
 }
 
 // 🔧 GCP Redis 서비스 팩토리 함수
-export function createGCPRedisService(config: GCPRedisServiceConfig): GCPRedisService {
+export function createGCPRedisService(
+  config: GCPRedisServiceConfig
+): GCPRedisService {
   return new GCPRedisService(config);
 }
 

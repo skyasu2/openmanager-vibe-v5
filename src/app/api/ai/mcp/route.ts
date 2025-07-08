@@ -21,12 +21,15 @@ export async function GET(request: NextRequest) {
 
     // 🚫 Vercel 환경에서는 MCP 비활성화
     if (env.IS_VERCEL) {
-      return NextResponse.json({
-        success: false,
-        error: 'MCP는 Vercel 환경에서 비활성화됨',
-        message: 'GCP 실제 데이터를 사용하세요',
-        timestamp: new Date().toISOString()
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'MCP는 Vercel 환경에서 비활성화됨',
+          message: 'GCP 실제 데이터를 사용하세요',
+          timestamp: new Date().toISOString(),
+        },
+        { status: 400 }
+      );
     }
 
     // 🏠 로컬 환경에서만 MCP 활성화
@@ -34,18 +37,20 @@ export async function GET(request: NextRequest) {
       success: true,
       message: 'MCP 서비스 활성화됨 (로컬 환경)',
       environment: 'local',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
     console.error('❌ MCP API 오류:', error);
 
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString()
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
   }
 }
 

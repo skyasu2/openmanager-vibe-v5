@@ -12,7 +12,7 @@ import { transformServerInstancesToServers } from '@/adapters/server-data-adapte
 import { getRedisClient } from '@/lib/redis';
 import {
   realServerDataGenerator,
-  type RealServerDataGeneratorType
+  type RealServerDataGeneratorType,
 } from '@/services/data-generator/RealServerDataGenerator';
 import { Server } from '@/types/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -30,7 +30,7 @@ function createBasicFallbackWarning(dataSource: string, reason: string) {
     actionRequired: '실제 데이터 소스 연결 필요',
     productionImpact:
       process.env.NODE_ENV === 'production' ||
-        process.env.VERCEL_ENV === 'production'
+      process.env.VERCEL_ENV === 'production'
         ? 'CRITICAL'
         : 'LOW',
   };

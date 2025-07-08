@@ -7,6 +7,7 @@
 ## 🎯 핵심 API 엔드포인트
 
 ### **AI 엔진**
+
 ```
 POST /api/ai/enhanced
 - 용도: 스마트 AI 쿼리 처리
@@ -16,6 +17,7 @@ POST /api/ai/enhanced
 ```
 
 ### **시스템 관리**
+
 ```
 GET /api/system/status
 - 용도: 시스템 전체 상태 확인
@@ -31,6 +33,7 @@ POST /api/system/stop
 ```
 
 ### **서버 모니터링**
+
 ```
 GET /api/servers
 - 용도: 전체 서버 목록 조회
@@ -46,6 +49,7 @@ POST /api/servers/[id]/restart
 ```
 
 ### **메트릭 및 성능**
+
 ```
 GET /api/metrics/realtime
 - 용도: 실시간 성능 지표
@@ -59,6 +63,7 @@ GET /api/metrics/history
 ```
 
 ### **알림 시스템**
+
 ```
 GET /api/alerts
 - 용도: 현재 활성 알림 목록
@@ -76,6 +81,7 @@ POST /api/notifications/test
 ## 🔧 환경별 API 동작
 
 ### **Development**
+
 ```yaml
 API 응답 시간: 빠름 (디버깅 정보 포함)
 로깅: 상세한 debug 로그
@@ -84,6 +90,7 @@ API 응답 시간: 빠름 (디버깅 정보 포함)
 ```
 
 ### **Production**
+
 ```yaml
 API 응답 시간: 최적화됨
 로깅: 최소한의 error 로그만
@@ -94,6 +101,7 @@ API 응답 시간: 최적화됨
 ## 🚀 일반적인 사용 시나리오
 
 ### **시스템 상태 확인**
+
 ```bash
 # 1. 전체 시스템 상태
 curl http://localhost:3000/api/system/status
@@ -105,6 +113,7 @@ curl -X POST http://localhost:3000/api/ai/enhanced \
 ```
 
 ### **성능 문제 진단**
+
 ```bash
 # 1. 실시간 메트릭 확인
 curl http://localhost:3000/api/metrics/realtime
@@ -116,6 +125,7 @@ curl -X POST http://localhost:3000/api/ai/enhanced \
 ```
 
 ### **알림 설정 및 관리**
+
 ```bash
 # 1. 현재 알림 확인
 curl http://localhost:3000/api/alerts
@@ -129,6 +139,7 @@ curl -X POST http://localhost:3000/api/ai/enhanced \
 ## 📊 응답 형식 예시
 
 ### **AI 엔진 응답**
+
 ```json
 {
   "success": true,
@@ -147,6 +158,7 @@ curl -X POST http://localhost:3000/api/ai/enhanced \
 ```
 
 ### **시스템 상태 응답**
+
 ```json
 {
   "environment": "development",
@@ -166,6 +178,7 @@ curl -X POST http://localhost:3000/api/ai/enhanced \
 ## 🔍 오류 처리
 
 ### **일반적인 오류**
+
 ```json
 {
   "success": false,
@@ -178,6 +191,7 @@ curl -X POST http://localhost:3000/api/ai/enhanced \
 ```
 
 ### **서버 오류**
+
 ```json
 {
   "success": false,
@@ -192,6 +206,7 @@ curl -X POST http://localhost:3000/api/ai/enhanced \
 ## 🛡️ 보안 및 인증
 
 ### **API 키 (프로덕션)**
+
 ```bash
 # 환경변수 설정
 export API_SECRET_KEY="your-secret-key"
@@ -202,6 +217,7 @@ curl -H "X-API-Key: your-secret-key" \
 ```
 
 ### **Rate Limiting**
+
 ```
 - 기본: 100 요청/분
 - AI 엔진: 20 요청/분 (처리 시간 고려)
@@ -212,4 +228,4 @@ curl -H "X-API-Key: your-secret-key" \
 
 **관리**: src/modules/ai-agent/context/
 **활용**: AI 엔진의 API 관련 질문 응답시 참조
-**업데이트**: API 스펙 변경시 즉시 반영 
+**업데이트**: API 스펙 변경시 즉시 반영

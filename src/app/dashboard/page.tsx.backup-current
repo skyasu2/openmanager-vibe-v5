@@ -1,0 +1,203 @@
+'use client';
+
+import { useAISidebarStore } from '@/stores/useAISidebarStore';
+import { useAutoLogout } from '@/hooks/useAutoLogout';
+import { useSystemIntegration } from '@/hooks/useSystemIntegration';
+import { useServerData } from '@/hooks/useServerData';
+import { useToast } from '@/hooks/use-toast';
+import { Server } from '@/types/server';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+
+// 컴포넌트들을 동적 import로 처리
+const DashboardContent = dynamic(() => import('@/components/dashboard/DashboardContent'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-64">
+      <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      <span className="ml-2 text-gray-600">대시보드 로딩 중...</span>
+    </div>
+  ),
+});
+
+const DashboardHeader = dynamic(() => import('@/components/dashboard/DashboardHeader'), {
+  ssr: false,
+});
+
+const AISidebar = dynamic(() => import('@/modules/ai-sidebar/components/AISidebar'), {
+  ssr: false,
+});
+
+const FloatingSystemControl = dynamic(() => import('@/components/shared/FloatingSystemControl'), {
+  ssr: false,
+});
+
+const AutoLogoutWarning = dynamic(() => import('@/components/auth/AutoLogoutWarning'), {
+  ssr: false,
+});
+
+const EnhancedServerModalDynamic = dynamic(
+  () => import('../../components/dashboard/EnhancedServerModal'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
+        <div className='w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin'></div>
+      </div>
+    ),
+  }
+);
+
+export default function DashboardPage() {
+  const { data: session, status } = useSession({
+    required: true,
+  });
+  const router = useRouter();
+  const { toast } = useToast();
+
+  // AI 사이드바 스토어
+  const { isAgentOpen, openAgent, closeAgent, toggleAgent } = useAISidebarStore();
+
+  // 서버 모달 상태
+  const [isServerModalOpen, setIsServerModalOpen] = useState(false);
+  const [selectedServer, setSelectedServer] = useState<Server | null>(null);
+
+  // 시스템 통합 상태
+  const { isConnected, healthStatus } = useSystemIntegration();
+  
+  // 서버 데이터
+  const { servers, isLoading: isServersLoading, error: serversError } = useServerData();
+
+  // 자동 로그아웃 훅
+  const {
+    remainingTime,
+    isWarning: showLogoutWarning,
+    extendSession: handleExtendSession,
+    logout: handleLogoutNow,
+  } = useAutoLogout({
+    timeoutMinutes: 10,
+    warningMinutes: 1,
+    enableInactivityDetection: true,
+    onWarning: () => {
+      toast({
+        title: '⏰ 자동 로그아웃 경고',
+        description: '1분 후 자동 로그아웃됩니다. 세션을 연장하시겠습니까?',
+        variant: 'destructive',
+      });
+    },
+    onLogout: () => {
+      toast({
+        title: '🔒 자동 로그아웃',
+        description: '비활성으로 인한 자동 로그아웃되었습니다.',
+      });
+      router.push('/login');
+    },
+  });
+
+  // 로그인 상태 확인
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [status, router]);
+
+  // 서버 선택 핸들러
+  const handleServerSelect = (server: Server) => {
+    setSelectedServer(server);
+    setIsServerModalOpen(true);
+  };
+
+  // 서버 모달 닫기
+  const handleServerModalClose = () => {
+    setIsServerModalOpen(false);
+    setSelectedServer(null);
+  };
+
+  // 로딩 상태
+  if (status === 'loading' || !session) {
+    return (
+      <div className='min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-violet-900 flex items-center justify-center'>
+        <div className='text-center text-white'>
+          <div className='w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4'></div>
+          <p className='text-lg'>시스템 초기화 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className='min-h-screen bg-gray-50 dark:bg-gray-900 relative'>
+      {/* 자동 로그아웃 경고 */}
+      {showLogoutWarning && (
+        <AutoLogoutWarning
+          remainingTime={remainingTime}
+          isWarning={showLogoutWarning}
+          onExtendSession={handleExtendSession}
+          onLogoutNow={handleLogoutNow}
+        />
+      )}
+
+      {/* 메인 레이아웃 */}
+      <div className={`flex transition-all duration-300 ${isAgentOpen ? 'mr-80' : ''}`}>
+        {/* 메인 콘텐츠 */}
+        <div className='flex-1 flex flex-col min-h-screen'>
+          {/* 헤더 */}
+          <DashboardHeader />
+
+          {/* 대시보드 콘텐츠 */}
+          <main className='flex-1 p-6'>
+            <DashboardContent 
+              servers={servers}
+              isLoading={isServersLoading}
+              error={serversError}
+              onServerSelect={handleServerSelect}
+            />
+          </main>
+        </div>
+
+        {/* AI 사이드바 */}
+        {isAgentOpen && (
+          <div className='w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-xl z-30'>
+            <AISidebar isOpen={isAgentOpen} onClose={closeAgent} />
+          </div>
+        )}
+      </div>
+
+      {/* 플로팅 시스템 컨트롤 */}
+      <FloatingSystemControl />
+
+      {/* AI 에이전트 토글 버튼 (오른쪽 하단) */}
+      <div className='fixed bottom-6 right-6 z-20'>
+        <button
+          onClick={toggleAgent}
+          className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 ${
+            isAgentOpen
+              ? 'bg-red-500 hover:bg-red-600 text-white'
+              : 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white'
+          }`}
+          aria-label={isAgentOpen ? 'AI 에이전트 닫기' : 'AI 에이전트 열기'}
+        >
+          {isAgentOpen ? (
+            <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+            </svg>
+          ) : (
+            <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z' />
+            </svg>
+          )}
+        </button>
+      </div>
+
+      {/* 서버 상세 모달 */}
+      {isServerModalOpen && selectedServer && (
+        <EnhancedServerModalDynamic
+          server={selectedServer}
+          onClose={handleServerModalClose}
+        />
+      )}
+    </div>
+  );
+} 

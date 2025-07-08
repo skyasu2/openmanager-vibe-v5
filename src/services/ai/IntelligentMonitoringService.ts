@@ -149,11 +149,11 @@ export interface IntelligentAnalysisResult {
 export interface RootCause {
   id: string;
   category:
-  | 'system'
-  | 'application'
-  | 'network'
-  | 'infrastructure'
-  | 'external';
+    | 'system'
+    | 'application'
+    | 'network'
+    | 'infrastructure'
+    | 'external';
   description: string;
   probability: number;
   evidence: string[];
@@ -700,31 +700,35 @@ export class IntelligentMonitoringService {
    */
   private generateFallbackCauses(anomalies: any[]): RootCause[] {
     if (anomalies.length === 0) {
-      return [{
-        id: 'no_issues_detected',
-        category: 'system',
-        description: '현재 특별한 문제가 감지되지 않았습니다',
-        probability: 0.9,
-        evidence: ['정상 메트릭 범위 내 동작'],
-        aiEngine: 'BasicAnalysis',
-        recommendations: ['정기적인 모니터링 유지'],
-      }];
+      return [
+        {
+          id: 'no_issues_detected',
+          category: 'system',
+          description: '현재 특별한 문제가 감지되지 않았습니다',
+          probability: 0.9,
+          evidence: ['정상 메트릭 범위 내 동작'],
+          aiEngine: 'BasicAnalysis',
+          recommendations: ['정기적인 모니터링 유지'],
+        },
+      ];
     }
 
     // 이상 징후가 있을 경우 간단한 기본 원인 제공
-    return [{
-      id: 'general_system_issue',
-      category: 'system',
-      description: `${anomalies.length}개의 시스템 이상 징후가 감지되었습니다`,
-      probability: 0.6,
-      evidence: ['시스템 메트릭 이상'],
-      aiEngine: 'BasicAnalysis',
-      recommendations: [
-        '시스템 상태 점검',
-        '로그 파일 확인',
-        '리소스 사용량 모니터링'
-      ],
-    }];
+    return [
+      {
+        id: 'general_system_issue',
+        category: 'system',
+        description: `${anomalies.length}개의 시스템 이상 징후가 감지되었습니다`,
+        probability: 0.6,
+        evidence: ['시스템 메트릭 이상'],
+        aiEngine: 'BasicAnalysis',
+        recommendations: [
+          '시스템 상태 점검',
+          '로그 파일 확인',
+          '리소스 사용량 모니터링',
+        ],
+      },
+    ];
   }
 
   /**
@@ -813,9 +817,9 @@ export class IntelligentMonitoringService {
   ): Promise<AIInsight> {
     const query = `시스템에서 ${anomalies.length}개의 이상 징후가 발견되었습니다. 
 주요 문제: ${anomalies
-        .slice(0, 2)
-        .map(a => a.description)
-        .join(', ')}
+      .slice(0, 2)
+      .map(a => a.description)
+      .join(', ')}
 근본 원인을 분석하고 해결 방안을 제시해주세요.`;
 
     try {

@@ -27,7 +27,10 @@ import {
 import React, { useEffect, useState } from 'react';
 
 // 타이핑 애니메이션 컴포넌트
-const TypingText: React.FC<{ text: string; speed?: number }> = ({ text, speed = 25 }) => {
+const TypingText: React.FC<{ text: string; speed?: number }> = ({
+  text,
+  speed = 25,
+}) => {
   const [displayedText, setDisplayedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -51,7 +54,7 @@ const TypingText: React.FC<{ text: string; speed?: number }> = ({ text, speed = 
     <span>
       {displayedText}
       {currentIndex < text.length && (
-        <span className="animate-pulse text-blue-400">|</span>
+        <span className='animate-pulse text-blue-400'>|</span>
       )}
     </span>
   );
@@ -254,13 +257,14 @@ const ThinkingView: React.FC<ThinkingViewProps> = ({
                 ? 'AI 응답 타임아웃 (폴백 처리됨)'
                 : isThinking
                   ? 'AI가 생각하고 있습니다...'
-                  : '추론 과정 완료'
-              }
+                  : '추론 과정 완료'}
             </h3>
             {isThinking && (
               <div className='flex items-center gap-2 text-sm text-gray-400'>
                 <Clock className='w-3 h-3' />
-                <span>{formatTime(elapsedTime)} / {formatTime(totalTimeout)}</span>
+                <span>
+                  {formatTime(elapsedTime)} / {formatTime(totalTimeout)}
+                </span>
               </div>
             )}
           </div>
@@ -285,10 +289,11 @@ const ThinkingView: React.FC<ThinkingViewProps> = ({
           </div>
           <div className='w-full bg-gray-700 rounded-full h-2'>
             <div
-              className={`h-2 rounded-full transition-all duration-1000 ${progressPercentage > 80
-                ? 'bg-gradient-to-r from-yellow-500 to-red-500'
-                : 'bg-gradient-to-r from-blue-500 to-purple-500'
-                }`}
+              className={`h-2 rounded-full transition-all duration-1000 ${
+                progressPercentage > 80
+                  ? 'bg-gradient-to-r from-yellow-500 to-red-500'
+                  : 'bg-gradient-to-r from-blue-500 to-purple-500'
+              }`}
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
@@ -324,7 +329,8 @@ const ThinkingView: React.FC<ThinkingViewProps> = ({
           <div className='flex items-center gap-2'>
             <AlertTriangle className='w-4 h-4 text-yellow-400' />
             <span className='text-yellow-300 text-sm font-medium'>
-              응답 시간이 {formatTime(totalTimeout)}를 초과하여 폴백 처리되었습니다
+              응답 시간이 {formatTime(totalTimeout)}를 초과하여 폴백
+              처리되었습니다
             </span>
           </div>
         </motion.div>
@@ -367,7 +373,10 @@ const ThinkingView: React.FC<ThinkingViewProps> = ({
 
                 {/* 타이핑 애니메이션으로 사고 과정 표시 */}
                 <div className='text-sm text-gray-200 leading-relaxed'>
-                  <TypingText text={(log as any).content || log.message} speed={25} />
+                  <TypingText
+                    text={(log as any).content || log.message}
+                    speed={25}
+                  />
                 </div>
 
                 {/* 메타데이터 */}
@@ -406,7 +415,8 @@ const ThinkingView: React.FC<ThinkingViewProps> = ({
           <div className='flex items-center gap-3 text-gray-400'>
             <Loader2 className='w-5 h-5 animate-spin' />
             <span className='text-sm'>
-              AI가 질문을 분석하고 있습니다... (최대 {formatTime(totalTimeout)} 대기)
+              AI가 질문을 분석하고 있습니다... (최대 {formatTime(totalTimeout)}{' '}
+              대기)
             </span>
           </div>
         </div>
@@ -417,13 +427,17 @@ const ThinkingView: React.FC<ThinkingViewProps> = ({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className={`mt-4 p-3 rounded-lg ${isTimeout
-            ? 'bg-yellow-500/20 border border-yellow-500/30'
-            : 'bg-green-500/20 border border-green-500/30'
-            }`}
+          className={`mt-4 p-3 rounded-lg ${
+            isTimeout
+              ? 'bg-yellow-500/20 border border-yellow-500/30'
+              : 'bg-green-500/20 border border-green-500/30'
+          }`}
         >
-          <div className={`flex items-center gap-2 ${isTimeout ? 'text-yellow-300' : 'text-green-300'
-            }`}>
+          <div
+            className={`flex items-center gap-2 ${
+              isTimeout ? 'text-yellow-300' : 'text-green-300'
+            }`}
+          >
             {isTimeout ? (
               <AlertTriangle className='w-4 h-4' />
             ) : (
@@ -432,8 +446,7 @@ const ThinkingView: React.FC<ThinkingViewProps> = ({
             <span className='text-sm font-medium'>
               {isTimeout
                 ? `타임아웃 처리 완료 - ${visibleLogs.length}단계 처리됨 (${formatTime(elapsedTime)})`
-                : `추론 완료 - ${visibleLogs.length}단계 처리됨 (${formatTime(elapsedTime)})`
-              }
+                : `추론 완료 - ${visibleLogs.length}단계 처리됨 (${formatTime(elapsedTime)})`}
             </span>
           </div>
         </motion.div>

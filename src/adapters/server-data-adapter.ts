@@ -108,7 +108,10 @@ export function transformServerInstanceToServerOptimized(
   const name = serverInstance.name;
   const instanceLocation = serverInstance.location || serverInstance.region;
   const status = serverInstance.status;
-  const lastUpdated = serverInstance.lastUpdated || serverInstance.lastCheck || new Date().toISOString();
+  const lastUpdated =
+    serverInstance.lastUpdated ||
+    serverInstance.lastCheck ||
+    new Date().toISOString();
   const provider = serverInstance.provider || 'Unknown';
 
   // 🔧 안전한 메트릭 접근 - ServerInstance의 직접 속성 사용
@@ -120,32 +123,53 @@ export function transformServerInstanceToServerOptimized(
 
   // 🔧 안전한 스펙 접근 - data-generator와 server 타입 호환
   const safeSpecs = serverInstance.specs || {};
-  const cpuCores = 'cpu_cores' in safeSpecs
-    ? (safeSpecs as any).cpu_cores
-    : 'cpu' in safeSpecs && safeSpecs.cpu && typeof safeSpecs.cpu === 'object' && 'cores' in safeSpecs.cpu
-      ? (safeSpecs.cpu as any).cores
-      : 4;
+  const cpuCores =
+    'cpu_cores' in safeSpecs
+      ? (safeSpecs as any).cpu_cores
+      : 'cpu' in safeSpecs &&
+          safeSpecs.cpu &&
+          typeof safeSpecs.cpu === 'object' &&
+          'cores' in safeSpecs.cpu
+        ? (safeSpecs.cpu as any).cores
+        : 4;
 
-  const memoryGb = 'memory_gb' in safeSpecs
-    ? (safeSpecs as any).memory_gb
-    : 'memory' in safeSpecs && safeSpecs.memory && typeof safeSpecs.memory === 'object' && 'total' in safeSpecs.memory
-      ? Math.round(Number((safeSpecs.memory as any).total) / (1024 * 1024 * 1024))
-      : 8;
+  const memoryGb =
+    'memory_gb' in safeSpecs
+      ? (safeSpecs as any).memory_gb
+      : 'memory' in safeSpecs &&
+          safeSpecs.memory &&
+          typeof safeSpecs.memory === 'object' &&
+          'total' in safeSpecs.memory
+        ? Math.round(
+            Number((safeSpecs.memory as any).total) / (1024 * 1024 * 1024)
+          )
+        : 8;
 
-  const diskGb = 'disk_gb' in safeSpecs
-    ? (safeSpecs as any).disk_gb
-    : 'disk' in safeSpecs && safeSpecs.disk && typeof safeSpecs.disk === 'object' && 'total' in safeSpecs.disk
-      ? Math.round(Number((safeSpecs.disk as any).total) / (1024 * 1024 * 1024))
-      : 100;
+  const diskGb =
+    'disk_gb' in safeSpecs
+      ? (safeSpecs as any).disk_gb
+      : 'disk' in safeSpecs &&
+          safeSpecs.disk &&
+          typeof safeSpecs.disk === 'object' &&
+          'total' in safeSpecs.disk
+        ? Math.round(
+            Number((safeSpecs.disk as any).total) / (1024 * 1024 * 1024)
+          )
+        : 100;
 
-  const networkSpeed = 'network_speed' in safeSpecs
-    ? (safeSpecs as any).network_speed
-    : '1Gbps';
+  const networkSpeed =
+    'network_speed' in safeSpecs ? (safeSpecs as any).network_speed : '1Gbps';
 
   // 🔧 네트워크 타입 처리 개선
   const networkValue = typeof network === 'number' ? network : 0;
-  const networkIn = typeof network === 'object' && network && 'in' in network ? (network as any).in : networkValue;
-  const networkOut = typeof network === 'object' && network && 'out' in network ? (network as any).out : networkValue;
+  const networkIn =
+    typeof network === 'object' && network && 'in' in network
+      ? (network as any).in
+      : networkValue;
+  const networkOut =
+    typeof network === 'object' && network && 'out' in network
+      ? (network as any).out
+      : networkValue;
 
   // 🔧 Server 타입에 맞는 반환 객체 생성
   return {

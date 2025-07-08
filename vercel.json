@@ -56,9 +56,7 @@
       "destination": "/api/health"
     }
   ],
-  "regions": [
-    "icn1"
-  ],
+  "regions": ["icn1"],
   "cleanUrls": true,
   "trailingSlash": false,
   "buildCommand": "npm run build",

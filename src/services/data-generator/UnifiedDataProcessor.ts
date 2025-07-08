@@ -20,7 +20,10 @@ import {
 } from '@/modules/ai-agent/adapters/SystemIntegrationAdapter';
 import { ServerInstance } from '@/types/data-generator';
 import { Server } from '@/types/server';
-import { RealServerDataGenerator, type RealServerDataGeneratorType } from './RealServerDataGenerator';
+import {
+  RealServerDataGenerator,
+  type RealServerDataGeneratorType,
+} from './RealServerDataGenerator';
 
 // 🎯 통합 처리 옵션
 export interface ProcessingOptions {
@@ -548,13 +551,26 @@ export class UnifiedDataProcessor {
 
     // 서버 역할 추론
     let serverRole: 'web' | 'api' | 'database' | 'cache' | 'queue' = 'web';
-    if (serverName.includes('db') || serverName.includes('database') || serverName.includes('mysql') || serverName.includes('postgres')) {
+    if (
+      serverName.includes('db') ||
+      serverName.includes('database') ||
+      serverName.includes('mysql') ||
+      serverName.includes('postgres')
+    ) {
       serverRole = 'database';
     } else if (serverName.includes('api') || serverName.includes('backend')) {
       serverRole = 'api';
-    } else if (serverName.includes('redis') || serverName.includes('cache') || serverName.includes('memcached')) {
+    } else if (
+      serverName.includes('redis') ||
+      serverName.includes('cache') ||
+      serverName.includes('memcached')
+    ) {
       serverRole = 'cache';
-    } else if (serverName.includes('queue') || serverName.includes('worker') || serverName.includes('job')) {
+    } else if (
+      serverName.includes('queue') ||
+      serverName.includes('worker') ||
+      serverName.includes('job')
+    ) {
       serverRole = 'queue';
     }
 
@@ -562,13 +578,25 @@ export class UnifiedDataProcessor {
     const envString = serverInstance.environment || 'production';
     let environment: 'production' | 'staging' | 'development' = 'production';
 
-    if (envString === 'development' || envString === 'staging' || envString === 'production') {
+    if (
+      envString === 'development' ||
+      envString === 'staging' ||
+      envString === 'production'
+    ) {
       environment = envString;
     } else {
       // 문자열에서 환경 추론
-      if (serverName.includes('dev') || serverName.includes('test') || envString.includes('dev')) {
+      if (
+        serverName.includes('dev') ||
+        serverName.includes('test') ||
+        envString.includes('dev')
+      ) {
         environment = 'development';
-      } else if (serverName.includes('staging') || serverName.includes('stage') || envString.includes('stag')) {
+      } else if (
+        serverName.includes('staging') ||
+        serverName.includes('stage') ||
+        envString.includes('stag')
+      ) {
         environment = 'staging';
       }
     }
@@ -859,11 +887,16 @@ export class UnifiedDataProcessor {
     serverInstance: ServerInstance
   ): StandardServerMetrics {
     // 안전 접근 패턴 적용
-    const metrics = serverInstance.metrics || { cpu: 0, memory: 0, disk: 0, network: 0 };
+    const metrics = serverInstance.metrics || {
+      cpu: 0,
+      memory: 0,
+      disk: 0,
+      network: 0,
+    };
     const specs = serverInstance.specs || {
       cpu_cores: 4,
       memory_gb: 8,
-      disk_gb: 100
+      disk_gb: 100,
     };
 
     return {
@@ -885,26 +918,40 @@ export class UnifiedDataProcessor {
           total: (specs.memory_gb || 8) * 1024 * 1024 * 1024, // GB to bytes
           used:
             (metrics.memory / 100) *
-            (specs.memory_gb || 8) * 1024 * 1024 * 1024,
+            (specs.memory_gb || 8) *
+            1024 *
+            1024 *
+            1024,
           available:
             ((100 - metrics.memory) / 100) *
-            (specs.memory_gb || 8) * 1024 * 1024 * 1024,
+            (specs.memory_gb || 8) *
+            1024 *
+            1024 *
+            1024,
           usage: metrics.memory,
         },
         disk: {
           total: (specs.disk_gb || 100) * 1024 * 1024 * 1024, // GB to bytes
           used:
-            (metrics.disk / 100) *
-            (specs.disk_gb || 100) * 1024 * 1024 * 1024,
+            (metrics.disk / 100) * (specs.disk_gb || 100) * 1024 * 1024 * 1024,
           available:
             ((100 - metrics.disk) / 100) *
-            (specs.disk_gb || 100) * 1024 * 1024 * 1024,
+            (specs.disk_gb || 100) *
+            1024 *
+            1024 *
+            1024,
           usage: metrics.disk,
           iops: { read: 100, write: 50 }, // 기본값
         },
         network: {
-          bytesReceived: (typeof metrics.network === 'number' ? metrics.network : 0) * 1024 * 1024,
-          bytesSent: (typeof metrics.network === 'number' ? metrics.network : 0) * 1024 * 1024,
+          bytesReceived:
+            (typeof metrics.network === 'number' ? metrics.network : 0) *
+            1024 *
+            1024,
+          bytesSent:
+            (typeof metrics.network === 'number' ? metrics.network : 0) *
+            1024 *
+            1024,
           packetsReceived: 1000,
           packetsSent: 800,
           interface: 'eth0', // 기본 네트워크 인터페이스
@@ -925,11 +972,12 @@ export class UnifiedDataProcessor {
       ],
       metadata: {
         location: serverInstance.region || 'unknown',
-        environment: (serverInstance.environment === 'development' ||
+        environment:
+          serverInstance.environment === 'development' ||
           serverInstance.environment === 'staging' ||
-          serverInstance.environment === 'production')
-          ? serverInstance.environment
-          : 'production',
+          serverInstance.environment === 'production'
+            ? serverInstance.environment
+            : 'production',
         provider: 'onpremise',
         cluster: undefined,
         zone: undefined,
@@ -996,48 +1044,48 @@ export class UnifiedDataProcessor {
       monitoring:
         purpose === 'monitoring' || purpose === 'both'
           ? {
-            servers: [],
-            stats: {
-              total: 0,
-              healthy: 0,
-              warning: 0,
-              critical: 0,
-              offline: 0,
-              averageCpu: 0,
-              averageMemory: 0,
-              averageDisk: 0,
-              averageNetwork: 0,
-            },
-          }
+              servers: [],
+              stats: {
+                total: 0,
+                healthy: 0,
+                warning: 0,
+                critical: 0,
+                offline: 0,
+                averageCpu: 0,
+                averageMemory: 0,
+                averageDisk: 0,
+                averageNetwork: 0,
+              },
+            }
           : undefined,
       ai:
         purpose === 'ai' || purpose === 'both'
           ? {
-            metrics: [],
-            aggregatedStats: {
-              totalServers: 0,
-              avgNormalizedCpu: 0,
-              avgNormalizedMemory: 0,
-              avgNormalizedDisk: 0,
-              avgNormalizedNetwork: 0,
-              overallHealthScore: 0,
-              anomalyCount: 0,
-              riskDistribution: { low: 0, medium: 0, high: 0, critical: 0 },
-            },
-            trends: {
-              cpuTrend: 'stable',
-              memoryTrend: 'stable',
-              diskTrend: 'stable',
-              networkTrend: 'stable',
-              overallTrend: 'stable',
-            },
-            insights: {
-              criticalServers: [],
-              anomalousServers: [],
-              recommendations: [],
-              predictedIssues: [],
-            },
-          }
+              metrics: [],
+              aggregatedStats: {
+                totalServers: 0,
+                avgNormalizedCpu: 0,
+                avgNormalizedMemory: 0,
+                avgNormalizedDisk: 0,
+                avgNormalizedNetwork: 0,
+                overallHealthScore: 0,
+                anomalyCount: 0,
+                riskDistribution: { low: 0, medium: 0, high: 0, critical: 0 },
+              },
+              trends: {
+                cpuTrend: 'stable',
+                memoryTrend: 'stable',
+                diskTrend: 'stable',
+                networkTrend: 'stable',
+                overallTrend: 'stable',
+              },
+              insights: {
+                criticalServers: [],
+                anomalousServers: [],
+                recommendations: [],
+                predictedIssues: [],
+              },
+            }
           : undefined,
       metadata: {
         processingTime: 0,

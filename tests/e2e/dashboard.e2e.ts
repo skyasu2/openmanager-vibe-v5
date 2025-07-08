@@ -44,7 +44,9 @@ test.describe('🏠 Dashboard E2E Tests (Stable)', () => {
     // 페이지 기본 구조 확인
     await test.step('페이지 기본 구조 확인', async () => {
       // 페이지 제목 확인 (더 관대한 매칭)
-      await expect(page).toHaveTitle(/OpenManager|Vibe|Dashboard/i, { timeout: 15000 });
+      await expect(page).toHaveTitle(/OpenManager|Vibe|Dashboard/i, {
+        timeout: 15000,
+      });
 
       // HTML 기본 구조 확인
       await expect(page.locator('html')).toBeVisible();
@@ -97,7 +99,7 @@ test.describe('🏠 Dashboard E2E Tests (Stable)', () => {
 
     await page.goto('/dashboard', {
       waitUntil: 'domcontentloaded',
-      timeout: 45000
+      timeout: 45000,
     });
 
     await test.step('서버 관련 요소 탐지', async () => {
@@ -110,7 +112,7 @@ test.describe('🏠 Dashboard E2E Tests (Stable)', () => {
         'div:has-text("Server")',
         '[class*="card"]',
         '[class*="grid"]',
-        '[class*="dashboard"]'
+        '[class*="dashboard"]',
       ];
 
       let serverElementFound = false;
@@ -133,7 +135,10 @@ test.describe('🏠 Dashboard E2E Tests (Stable)', () => {
       if (!serverElementFound) {
         // 최후의 수단: 페이지 내용 텍스트 확인
         const pageContent = await page.textContent('body');
-        if (pageContent && (pageContent.includes('서버') || pageContent.includes('Server'))) {
+        if (
+          pageContent &&
+          (pageContent.includes('서버') || pageContent.includes('Server'))
+        ) {
           console.log('✅ 페이지에서 서버 관련 텍스트 발견');
           serverElementFound = true;
         }
@@ -153,7 +158,7 @@ test.describe('🏠 Dashboard E2E Tests (Stable)', () => {
 
     await page.goto('/dashboard', {
       waitUntil: 'domcontentloaded',
-      timeout: 45000
+      timeout: 45000,
     });
 
     await test.step('AI 관련 요소 탐지', async () => {
@@ -164,7 +169,7 @@ test.describe('🏠 Dashboard E2E Tests (Stable)', () => {
         'button:has-text("AI")',
         '[aria-label*="AI"]',
         'div:has-text("AI")',
-        '[class*="sidebar"]'
+        '[class*="sidebar"]',
       ];
 
       let aiElementFound = false;
@@ -204,7 +209,7 @@ test.describe('🏠 Dashboard E2E Tests (Stable)', () => {
 
     await page.goto('/dashboard', {
       waitUntil: 'domcontentloaded',
-      timeout: 45000
+      timeout: 45000,
     });
 
     await test.step('데스크톱 뷰 확인', async () => {
@@ -242,7 +247,7 @@ test.describe('🏠 Dashboard E2E Tests (Stable)', () => {
 
     await page.goto('/dashboard', {
       waitUntil: 'domcontentloaded',
-      timeout: 45000
+      timeout: 45000,
     });
 
     await test.step('현재 페이지 URL 확인', async () => {
@@ -258,7 +263,7 @@ test.describe('🏠 Dashboard E2E Tests (Stable)', () => {
         'a:has-text("Home")',
         'a:has-text("Dashboard")',
         'nav a',
-        '[class*="nav"] a'
+        '[class*="nav"] a',
       ];
 
       let linkFound = false;

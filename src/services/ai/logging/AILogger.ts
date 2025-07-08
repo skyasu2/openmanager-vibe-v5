@@ -129,11 +129,11 @@ export class AILogger {
     if (typeof window !== 'undefined') {
       // Mock Winston logger for client-side
       this.winstonLogger = {
-        error: () => { },
-        warn: () => { },
-        info: () => { },
-        debug: () => { },
-        verbose: () => { },
+        error: () => {},
+        warn: () => {},
+        info: () => {},
+        debug: () => {},
+        verbose: () => {},
         level: 'info',
       } as any;
       return;
@@ -252,12 +252,12 @@ export class AILogger {
     if (isNextJS) {
       // Mock Pino logger - 모든 로깅 메서드를 빈 함수로 처리
       this.pinoLogger = {
-        error: () => { },
-        warn: () => { },
-        info: () => { },
-        debug: () => { },
-        trace: () => { },
-        fatal: () => { },
+        error: () => {},
+        warn: () => {},
+        info: () => {},
+        debug: () => {},
+        trace: () => {},
+        fatal: () => {},
         child: () => this.pinoLogger,
         level: 'info',
       };

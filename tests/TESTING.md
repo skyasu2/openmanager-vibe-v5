@@ -133,7 +133,7 @@ export default defineConfig({
       'tests/integration/supabase-rag.test.ts',
       'tests/integration/env-backup.test.ts',
       // 'tests/e2e/**/*.test.ts' // E2E는 Playwright로 실행, Vitest 설정에서는 제외하는 것을 검토.
-                                // 현재 vitest.config.ts에는 포함되어 있음.
+      // 현재 vitest.config.ts에는 포함되어 있음.
     ],
 
     // 레거시 테스트 및 불필요한 파일 완전 제외
@@ -164,15 +164,17 @@ export default defineConfig({
       SUPABASE_RAG_ENABLED: 'true',
       GOOGLE_AI_ENABLED: 'false', // 테스트에서는 비활성화
       KOREAN_NLP_ENABLED: 'true',
-      SHARP_DISABLED: 'true',     // Sharp 모듈 비활성화
-      TEST_ISOLATION: 'true',   // 테스트 격리 환경
+      SHARP_DISABLED: 'true', // Sharp 모듈 비활성화
+      TEST_ISOLATION: 'true', // 테스트 격리 환경
     },
   },
 });
 ```
 
 ### Playwright 설정 (playwright.config.ts 참조)
+
 E2E 테스트는 Playwright를 사용하며, `playwright.config.ts` 파일에 상세 설정이 정의되어 있습니다.
+
 - **테스트 디렉토리**: `./tests/e2e`
 - **리포터**: HTML, JSON, JUnit 등 다수 설정
 - **타임아웃**: 전역 60초, expect 15초, 액션 45초, 네비게이션 60초

@@ -11,11 +11,11 @@ graph TD
     A[Vercel Next.js App] -->|API 호출| B[GCP Functions]
     B -->|AI 처리| C[GCP VM - MCP Server]
     C -->|컨텍스트 API| D[Context Processing]
-    
+
     B -->|캐싱| E[Upstash Redis]
     B -->|벡터 DB| F[Supabase]
     B -->|최종 폴백| G[Google AI - Gemini 2.0]
-    
+
     H[브라우저] -->|실시간 연결| A
 ```
 
@@ -113,16 +113,16 @@ class ThreeTierAIRouter {
   // 1. GCP Functions (Primary)
   // 2. MCP Server (Secondary)
   // 3. Google AI (Fallback)
-  
+
   async routeQuery(query: string, context?: any): Promise<AIResponse> {
     // 1단계: GCP Functions 우선 처리
     const gcpResponse = await this.gcpFunctionsService.process(query, context);
     if (gcpResponse.success) return gcpResponse;
-    
+
     // 2단계: MCP Server 폴백
     const mcpResponse = await this.mcpService.process(query, context);
     if (mcpResponse.success) return mcpResponse;
-    
+
     // 3단계: Google AI 최종 폴백
     return await this.googleAIService.process(query, context);
   }
@@ -134,14 +134,14 @@ class ThreeTierAIRouter {
 ```typescript
 class GCPFunctionsService {
   private baseUrl = 'https://asia-northeast3-openmanager-ai.cloudfunctions.net';
-  
+
   async callFunction(functionName: string, data: any): Promise<any> {
     const response = await fetch(`${this.baseUrl}/${functionName}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
-    
+
     return await response.json();
   }
 }
@@ -153,18 +153,18 @@ class GCPFunctionsService {
 // src/app/api/ai/natural-language/route.ts
 export async function POST(request: Request) {
   const { query, context } = await request.json();
-  
+
   // GCP Functions 우선 처리
   const gcpResponse = await gcpFunctionsService.callFunction('korean-nlp', {
     query,
     context,
-    mode: 'natural-language'
+    mode: 'natural-language',
   });
-  
+
   if (gcpResponse.success) {
     return NextResponse.json(gcpResponse);
   }
-  
+
   // MCP Server 폴백
   const mcpResponse = await mcpService.processQuery(query, context);
   return NextResponse.json(mcpResponse);
@@ -259,27 +259,27 @@ export async function POST(request: Request) {
 ```typescript
 interface SystemMetrics {
   vercel: {
-    executionUsage: 3,     // % (기존 15% → 3%)
-    bandwidthUsage: 5,     // %
-    buildTime: 10,         // 초
-    pageCount: 132         // 개
-  },
+    executionUsage: 3; // % (기존 15% → 3%)
+    bandwidthUsage: 5; // %
+    buildTime: 10; // 초
+    pageCount: 132; // 개
+  };
   gcp: {
-    functionsUsage: 2.3,   // % (Free Tier 안전)
-    vmCpuUsage: 28.31,     // %
-    storageUsage: 16,      // % (0.8GB/5GB)
-    totalCost: 0           // $/월
-  },
+    functionsUsage: 2.3; // % (Free Tier 안전)
+    vmCpuUsage: 28.31; // %
+    storageUsage: 16; // % (0.8GB/5GB)
+    totalCost: 0; // $/월
+  };
   redis: {
-    memoryUsage: 39,       // %
-    commandUsage: 30,      // %
-    connectionUsage: 25    // %
-  },
+    memoryUsage: 39; // %
+    commandUsage: 30; // %
+    connectionUsage: 25; // %
+  };
   supabase: {
-    databaseUsage: 40,     // %
-    apiRequestUsage: 30,   // %
-    storageUsage: 30       // %
-  }
+    databaseUsage: 40; // %
+    apiRequestUsage: 30; // %
+    storageUsage: 30; // %
+  };
 }
 ```
 

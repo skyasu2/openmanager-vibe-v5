@@ -8,9 +8,7 @@
  */
 
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
-import {
-  AIDataFilterOptions
-} from './AIDataFilter';
+import { AIDataFilterOptions } from './AIDataFilter';
 import { ErrorHandlingMiddleware } from './ErrorHandlingMiddleware';
 import { StrategyFactory } from './StrategyFactory';
 import { UnifiedCacheManager } from './UnifiedCacheManager';

@@ -1,6 +1,6 @@
 /**
  * 🌐 통합 대시보드 API (Redis 직접 읽기 + Batch API)
- * 
+ *
  * Google Cloud → Redis → Vercel Batch API → 대시보드
  * 핵심 아키텍처: 단일 API 호출로 모든 서버 데이터 가져오기
  */
@@ -52,11 +52,13 @@ interface DashboardResponse {
 
 /**
  * GET /api/dashboard
- * 
+ *
  * Redis Pipeline으로 모든 서버 데이터를 한 번에 가져오기
  * 30초 브라우저 캐시 + SWR 최적화
  */
-export async function GET(request: NextRequest): Promise<NextResponse<DashboardResponse>> {
+export async function GET(
+  request: NextRequest
+): Promise<NextResponse<DashboardResponse>> {
   const startTime = Date.now();
 
   try {
@@ -72,35 +74,38 @@ export async function GET(request: NextRequest): Promise<NextResponse<DashboardR
     console.log(`🔍 Redis에서 ${keys.length}개 서버 키 발견`);
 
     if (keys.length === 0) {
-      return NextResponse.json({
-        success: true,
-        data: {
-          servers: {},
-          stats: {
-            total: 0,
-            healthy: 0,
-            warning: 0,
-            critical: 0,
-            avgCpu: 0,
-            avgMemory: 0,
-            avgDisk: 0,
+      return NextResponse.json(
+        {
+          success: true,
+          data: {
+            servers: {},
+            stats: {
+              total: 0,
+              healthy: 0,
+              warning: 0,
+              critical: 0,
+              avgCpu: 0,
+              avgMemory: 0,
+              avgDisk: 0,
+            },
+            lastUpdate: new Date().toISOString(),
+            dataSource: 'redis-empty',
           },
-          lastUpdate: new Date().toISOString(),
-          dataSource: 'redis-empty',
+          metadata: {
+            responseTime: Date.now() - startTime,
+            cacheHit: false,
+            redisKeys: 0,
+            serversLoaded: 0,
+          },
         },
-        metadata: {
-          responseTime: Date.now() - startTime,
-          cacheHit: false,
-          redisKeys: 0,
-          serversLoaded: 0,
-        },
-      }, {
-        status: 200,
-        headers: {
-          'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
-          'X-Data-Source': 'Redis-Empty',
-        },
-      });
+        {
+          status: 200,
+          headers: {
+            'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
+            'X-Data-Source': 'Redis-Empty',
+          },
+        }
+      );
     }
 
     // 2. Redis Pipeline으로 모든 데이터 가져오기
@@ -126,7 +131,10 @@ export async function GET(request: NextRequest): Promise<NextResponse<DashboardR
           };
           successCount++;
         } catch (parseError) {
-          console.warn(`⚠️ 서버 데이터 파싱 실패 (${keys[index]}):`, parseError);
+          console.warn(
+            `⚠️ 서버 데이터 파싱 실패 (${keys[index]}):`,
+            parseError
+          );
         }
       }
     });
@@ -167,27 +175,29 @@ export async function GET(request: NextRequest): Promise<NextResponse<DashboardR
         'X-Server-Count': successCount.toString(),
       },
     });
-
   } catch (error) {
     console.error('❌ 대시보드 API 오류:', error);
 
     const responseTime = Date.now() - startTime;
-    return NextResponse.json({
-      success: false,
-      error: 'Redis 연결 실패 또는 데이터 조회 오류',
-      metadata: {
-        responseTime,
-        cacheHit: false,
-        redisKeys: 0,
-        serversLoaded: 0,
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Redis 연결 실패 또는 데이터 조회 오류',
+        metadata: {
+          responseTime,
+          cacheHit: false,
+          redisKeys: 0,
+          serversLoaded: 0,
+        },
       },
-    }, {
-      status: 500,
-      headers: {
-        'X-Error': 'Redis-Connection-Failed',
-        'X-Response-Time': `${responseTime}ms`,
-      },
-    });
+      {
+        status: 500,
+        headers: {
+          'X-Error': 'Redis-Connection-Failed',
+          'X-Response-Time': `${responseTime}ms`,
+        },
+      }
+    );
   }
 }
 
@@ -228,7 +238,7 @@ function calculateServerStats(servers: ServerData[]) {
 
 /**
  * POST /api/dashboard
- * 
+ *
  * 서버 데이터 강제 새로고침 (캐시 무효화)
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -251,12 +261,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       message: '대시보드 캐시 무효화 완료',
       invalidatedKeys: keys.length,
     });
-
   } catch (error) {
     console.error('❌ 대시보드 새로고침 오류:', error);
-    return NextResponse.json({
-      success: false,
-      error: '캐시 무효화 실패',
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '캐시 무효화 실패',
+      },
+      { status: 500 }
+    );
   }
 }

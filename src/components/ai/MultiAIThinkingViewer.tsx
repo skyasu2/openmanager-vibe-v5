@@ -159,9 +159,9 @@ export const MultiAIThinkingViewer: React.FC<MultiAIThinkingProps> = ({
             animate={
               isThinking
                 ? {
-                  rotate: [0, 360],
-                  scale: [1, 1.1, 1],
-                }
+                    rotate: [0, 360],
+                    scale: [1, 1.1, 1],
+                  }
                 : {}
             }
             transition={{

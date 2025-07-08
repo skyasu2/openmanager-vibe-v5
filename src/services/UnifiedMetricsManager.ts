@@ -955,9 +955,7 @@ export class UnifiedMetricsManager {
       };
     });
 
-    console.log(
-      `🚨 에러 상태 서버 데이터 생성 완료: ${errorServers.length}개`
-    );
+    console.log(`🚨 에러 상태 서버 데이터 생성 완료: ${errorServers.length}개`);
     return errorServers;
   }
 

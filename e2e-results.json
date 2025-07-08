@@ -26,10 +26,7 @@
           "outputFile": "e2e-results.json"
         }
       ],
-      [
-        "list",
-        null
-      ],
+      ["list", null],
       [
         "junit",
         {
@@ -52,9 +49,7 @@
         "name": "chromium-stable",
         "testDir": "D:/cursor/openmanager-vibe-v5/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.e2e.{ts,js}"
-        ],
+        "testMatch": ["**/*.e2e.{ts,js}"],
         "timeout": 60000
       },
       {
@@ -66,9 +61,7 @@
         "name": "firefox",
         "testDir": "D:/cursor/openmanager-vibe-v5/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.e2e.{ts,js}"
-        ],
+        "testMatch": ["**/*.e2e.{ts,js}"],
         "timeout": 60000
       },
       {
@@ -80,9 +73,7 @@
         "name": "webkit",
         "testDir": "D:/cursor/openmanager-vibe-v5/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.e2e.{ts,js}"
-        ],
+        "testMatch": ["**/*.e2e.{ts,js}"],
         "timeout": 60000
       },
       {
@@ -94,9 +85,7 @@
         "name": "Mobile Chrome",
         "testDir": "D:/cursor/openmanager-vibe-v5/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.e2e.{ts,js}"
-        ],
+        "testMatch": ["**/*.e2e.{ts,js}"],
         "timeout": 60000
       }
     ],

@@ -172,7 +172,7 @@ export const api = {
         status: 'active',
         serversGenerated: data.servers?.length || 0,
         lastUpdate: data.timestamp || new Date().toISOString(),
-        mode: 'gcp-direct' // GCP 직접 연동 모드
+        mode: 'gcp-direct', // GCP 직접 연동 모드
       };
     },
 
@@ -184,7 +184,7 @@ export const api = {
         body: JSON.stringify({
           action: 'generate',
           pattern: pattern || 'default',
-          source: 'gcp-direct'
+          source: 'gcp-direct',
         }),
       });
       if (!response.ok) {

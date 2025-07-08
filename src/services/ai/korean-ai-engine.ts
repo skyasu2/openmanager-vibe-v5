@@ -23,15 +23,23 @@ export class KoreanAIEngine {
       maxRetries: 2,
       fallbackToLocal: true,
       endpoints: {
-        aiGateway: process.env.GCP_AI_GATEWAY_URL || 'https://asia-northeast3-openmanager-ai.cloudfunctions.net/ai-gateway',
-        koreanNLP: process.env.GCP_KOREAN_NLP_URL || 'https://asia-northeast3-openmanager-ai.cloudfunctions.net/korean-nlp',
-        ruleEngine: process.env.GCP_RULE_ENGINE_URL || 'https://asia-northeast3-openmanager-ai.cloudfunctions.net/rule-engine',
-        basicML: process.env.GCP_BASIC_ML_URL || 'https://asia-northeast3-openmanager-ai.cloudfunctions.net/basic-ml',
+        aiGateway:
+          process.env.GCP_AI_GATEWAY_URL ||
+          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/ai-gateway',
+        koreanNLP:
+          process.env.GCP_KOREAN_NLP_URL ||
+          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/korean-nlp',
+        ruleEngine:
+          process.env.GCP_RULE_ENGINE_URL ||
+          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/rule-engine',
+        basicML:
+          process.env.GCP_BASIC_ML_URL ||
+          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/basic-ml',
       },
       vmContext: {
         enabled: false,
-        endpoint: ''
-      }
+        endpoint: '',
+      },
     });
 
     systemLogger.info('🚀 Korean AI Engine v4.0 - GCP Functions 연동 모드');
@@ -61,7 +69,7 @@ export class KoreanAIEngine {
         query,
         serverData,
         timestamp: KoreanTimeUtil.now(),
-        mode: 'korean'
+        mode: 'korean',
       });
 
       return {
@@ -71,7 +79,7 @@ export class KoreanAIEngine {
         processingTime: response.processingTime || 0,
         engine: 'GCP-KoreanNLP',
         timestamp: KoreanTimeUtil.now(),
-        fallbackUsed: false
+        fallbackUsed: false,
       };
     } catch (error) {
       systemLogger.error('Korean AI Engine 처리 실패:', error);
@@ -85,7 +93,7 @@ export class KoreanAIEngine {
         engine: 'fallback',
         timestamp: KoreanTimeUtil.now(),
         fallbackUsed: true,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -102,8 +110,8 @@ export class KoreanAIEngine {
         from: 'Vercel-Local',
         to: 'GCP-Functions',
         codeReduction: '95%', // 1,040줄 → 80줄
-        performance: '+50%'
-      }
+        performance: '+50%',
+      },
     };
   }
 
@@ -116,7 +124,7 @@ export class KoreanAIEngine {
     return {
       timestamp: KoreanTimeUtil.now(),
       engine: 'GCP-KoreanNLP',
-      legacy: true
+      legacy: true,
     };
   }
 }
@@ -124,7 +132,9 @@ export class KoreanAIEngine {
 // 하위 호환성을 위한 클래스들 (최소 구현)
 export class KoreanServerNLU {
   analyze(text: string) {
-    systemLogger.warn('⚠️ KoreanServerNLU는 deprecated되었습니다. GCP Functions를 사용하세요.');
+    systemLogger.warn(
+      '⚠️ KoreanServerNLU는 deprecated되었습니다. GCP Functions를 사용하세요.'
+    );
     return {
       intent: '기타',
       entities: {},
@@ -132,20 +142,22 @@ export class KoreanServerNLU {
       originalText: text,
       normalizedText: text.toLowerCase(),
       deprecated: true,
-      migration: 'GCP-Functions'
+      migration: 'GCP-Functions',
     };
   }
 }
 
 export class KoreanResponseGenerator {
   generate(status: string, server?: string, metric?: string, value?: number) {
-    systemLogger.warn('⚠️ KoreanResponseGenerator는 deprecated되었습니다. GCP Functions를 사용하세요.');
+    systemLogger.warn(
+      '⚠️ KoreanResponseGenerator는 deprecated되었습니다. GCP Functions를 사용하세요.'
+    );
     return {
       message: '한국어 응답 생성 기능이 GCP Functions로 이전되었습니다.',
       actions: [],
       timestamp: KoreanTimeUtil.now(),
       status: 'migrated',
-      migration: 'GCP-Functions'
+      migration: 'GCP-Functions',
     };
   }
 }

@@ -10,7 +10,10 @@ import {
   SystemIntegrationAdapter,
 } from '@/modules/ai-agent/adapters/SystemIntegrationAdapter';
 import { ServerInstance } from '@/types/data-generator';
-import { RealServerDataGenerator, type RealServerDataGeneratorType } from './RealServerDataGenerator';
+import {
+  RealServerDataGenerator,
+  type RealServerDataGeneratorType,
+} from './RealServerDataGenerator';
 
 export interface ProcessedAIData {
   metrics: StandardServerMetrics[];
@@ -215,15 +218,14 @@ export class AIEngineProcessor {
           cores: serverInstance.specs?.cpu_cores || 4,
         },
         memory: {
-          total:
-            (serverInstance.specs?.memory_gb || 8) * 1024 * 1024 * 1024,
+          total: (serverInstance.specs?.memory_gb || 8) * 1024 * 1024 * 1024,
           used: Math.floor(
             ((serverInstance.specs?.memory_gb || 8) *
               1024 *
               1024 *
               1024 *
               (serverInstance.metrics?.memory || 0)) /
-            100
+              100
           ),
           available: Math.floor(
             ((serverInstance.specs?.memory_gb || 8) *
@@ -231,20 +233,19 @@ export class AIEngineProcessor {
               1024 *
               1024 *
               (100 - (serverInstance.metrics?.memory || 0))) /
-            100
+              100
           ),
           usage: serverInstance.metrics?.memory || 0,
         },
         disk: {
-          total:
-            (serverInstance.specs?.disk_gb || 100) * 1024 * 1024 * 1024,
+          total: (serverInstance.specs?.disk_gb || 100) * 1024 * 1024 * 1024,
           used: Math.floor(
             ((serverInstance.specs?.disk_gb || 100) *
               1024 *
               1024 *
               1024 *
               (serverInstance.metrics?.disk || 0)) /
-            100
+              100
           ),
           available: Math.floor(
             ((serverInstance.specs?.disk_gb || 100) *
@@ -252,7 +253,7 @@ export class AIEngineProcessor {
               1024 *
               1024 *
               (100 - (serverInstance.metrics?.disk || 0))) /
-            100
+              100
           ),
           usage: serverInstance.metrics?.disk || 0,
           iops: {
@@ -262,12 +263,14 @@ export class AIEngineProcessor {
         },
         network: {
           interface: 'eth0',
-          bytesReceived: typeof serverInstance.metrics?.network === 'object'
-            ? serverInstance.metrics.network.in || 0
-            : 0,
-          bytesSent: typeof serverInstance.metrics?.network === 'object'
-            ? serverInstance.metrics.network.out || 0
-            : 0,
+          bytesReceived:
+            typeof serverInstance.metrics?.network === 'object'
+              ? serverInstance.metrics.network.in || 0
+              : 0,
+          bytesSent:
+            typeof serverInstance.metrics?.network === 'object'
+              ? serverInstance.metrics.network.out || 0
+              : 0,
           packetsReceived: 0,
           packetsSent: 0,
           errorsReceived: 0,

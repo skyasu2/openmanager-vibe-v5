@@ -27,13 +27,13 @@ interface LogEntry {
   id: string;
   timestamp: Date;
   type:
-  | 'analysis'
-  | 'reasoning'
-  | 'data_processing'
-  | 'pattern_matching'
-  | 'response_generation'
-  | 'thinking'
-  | 'user_query';
+    | 'analysis'
+    | 'reasoning'
+    | 'data_processing'
+    | 'pattern_matching'
+    | 'response_generation'
+    | 'thinking'
+    | 'user_query';
   level: 'info' | 'warning' | 'error' | 'success';
   step: string;
   content: string;
@@ -384,10 +384,11 @@ const AgentLogPanel: React.FC<AgentLogPanelProps> = ({ className = '' }) => {
             <button
               onClick={exportLogsToCSV}
               disabled={exportInProgress}
-              className={`px-3 py-1 rounded border ${exportInProgress
+              className={`px-3 py-1 rounded border ${
+                exportInProgress
                   ? 'bg-gray-100 text-gray-400 border-gray-300'
                   : 'bg-white text-purple-700 border-purple-300 hover:bg-purple-50'
-                }`}
+              }`}
             >
               {exportInProgress ? '내보내는 중...' : '📊 CSV 내보내기'}
             </button>

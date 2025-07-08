@@ -72,7 +72,9 @@ function decryptValue(
 
     return decryptedText;
   } catch (error: unknown) {
-    throw new Error(`복호화 실패: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(
+      `복호화 실패: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }
 
@@ -161,7 +163,10 @@ export function getDecryptedRedisConfig(): {
       token: redisToken,
     };
   } catch (error) {
-    console.error('❌ Redis 환경변수 복호화 실패:', error instanceof Error ? error.message : String(error));
+    console.error(
+      '❌ Redis 환경변수 복호화 실패:',
+      error instanceof Error ? error.message : String(error)
+    );
     return null;
   }
 }
@@ -184,7 +189,7 @@ export function getDecryptedEnvVar(varName: string): string | null {
     // Redis 설정만 지원
     if (
       !ENCRYPTED_REDIS_CONFIG.variables[
-      varName as keyof typeof ENCRYPTED_REDIS_CONFIG.variables
+        varName as keyof typeof ENCRYPTED_REDIS_CONFIG.variables
       ]
     ) {
       return null;
@@ -195,7 +200,10 @@ export function getDecryptedEnvVar(varName: string): string | null {
 
     return varName === 'UPSTASH_REDIS_REST_URL' ? config.url : config.token;
   } catch (error) {
-    console.error(`❌ ${varName} 복호화 실패:`, error instanceof Error ? error.message : String(error));
+    console.error(
+      `❌ ${varName} 복호화 실패:`,
+      error instanceof Error ? error.message : String(error)
+    );
     return null;
   }
 }

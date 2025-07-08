@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * 🚀 Enhanced Server Detail Modal v3.0
  *
@@ -11,7 +13,6 @@
  */
 
 import { calculateOptimalCollectionInterval } from '@/config/serverConfig';
-import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
   AlertTriangle,
@@ -21,11 +22,26 @@ import {
   Network,
   Pause,
   Play,
-  Server,
+  Server as ServerIcon,
   X,
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { ServerModal3DGauge } from '../shared/UnifiedCircularGauge';
+
+// framer-motion을 동적 import로 처리
+const MotionButton = dynamic(
+  () => import('framer-motion').then(mod => ({ default: mod.motion.button })),
+  { ssr: false }
+);
+const MotionDiv = dynamic(
+  () => import('framer-motion').then(mod => ({ default: mod.motion.div })),
+  { ssr: false }
+);
+const AnimatePresence = dynamic(
+  () => import('framer-motion').then(mod => ({ default: mod.AnimatePresence })),
+  { ssr: false }
+);
 
 interface EnhancedServerModalProps {
   server: {
@@ -338,14 +354,14 @@ export default function EnhancedServerModal({
     // 모달을 닫지 않고 오류 상태를 표시
     return (
       <AnimatePresence>
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className='fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4'
           onClick={onClose}
         >
-          <motion.div
+          <MotionDiv
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
@@ -365,22 +381,22 @@ export default function EnhancedServerModal({
             >
               닫기
             </button>
-          </motion.div>
-        </motion.div>
+          </MotionDiv>
+        </MotionDiv>
       </AnimatePresence>
     );
   }
 
   return (
     <AnimatePresence>
-      <motion.div
+      <MotionDiv
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className='fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4'
         onClick={onClose}
       >
-        <motion.div
+        <MotionDiv
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -393,7 +409,7 @@ export default function EnhancedServerModal({
             <div className='flex items-center justify-between'>
               <div className='flex items-center gap-4'>
                 <div className='p-3 bg-white/20 rounded-lg'>
-                  <Server className='w-6 h-6' />
+                  <ServerIcon className='w-6 h-6' />
                 </div>
                 <div>
                   <h2 className='text-2xl font-bold flex items-center gap-3'>
@@ -417,7 +433,7 @@ export default function EnhancedServerModal({
               </div>
 
               <div className='flex items-center gap-3'>
-                <motion.button
+                <MotionButton
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setIsRealtime(!isRealtime)}
@@ -435,16 +451,16 @@ export default function EnhancedServerModal({
                   {isRealtime
                     ? `실시간 (${Math.round(calculateOptimalCollectionInterval() / 1000)}초)`
                     : '정지됨'}
-                </motion.button>
+                </MotionButton>
 
-                <motion.button
+                <MotionButton
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={onClose}
                   className='p-2 bg-white/30 backdrop-blur-sm rounded-lg hover:bg-white/40 transition-all duration-200'
                 >
                   <X className='w-5 h-5' />
-                </motion.button>
+                </MotionButton>
               </div>
             </div>
 
@@ -453,7 +469,7 @@ export default function EnhancedServerModal({
               {tabs.map(tab => {
                 const Icon = tab.icon;
                 return (
-                  <motion.button
+                  <MotionButton
                     key={tab.id}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -466,7 +482,7 @@ export default function EnhancedServerModal({
                   >
                     <Icon className='w-4 h-4' />
                     {tab.label}
-                  </motion.button>
+                  </MotionButton>
                 );
               })}
             </div>
@@ -475,7 +491,7 @@ export default function EnhancedServerModal({
           {/* 콘텐츠 영역 */}
           <div className='flex-1 p-6 overflow-y-auto bg-gradient-to-br from-gray-50 to-gray-100'>
             <AnimatePresence mode='wait'>
-              <motion.div
+              <MotionDiv
                 key={selectedTab}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -671,7 +687,7 @@ export default function EnhancedServerModal({
                         </thead>
                         <tbody className='bg-white divide-y divide-gray-200'>
                           {realtimeData.processes.map((process, idx) => (
-                            <motion.tr
+                            <MotionDiv
                               key={idx}
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
@@ -695,7 +711,7 @@ export default function EnhancedServerModal({
                                   {process.memory.toFixed(1)}%
                                 </div>
                               </td>
-                            </motion.tr>
+                            </MotionDiv>
                           ))}
                         </tbody>
                       </table>
@@ -710,7 +726,7 @@ export default function EnhancedServerModal({
                     </h3>
                     <div className='bg-gray-900 rounded-xl p-4 h-96 overflow-y-auto font-mono text-sm'>
                       {realtimeData.logs.map((log, idx) => (
-                        <motion.div
+                        <MotionDiv
                           key={idx}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
@@ -741,7 +757,7 @@ export default function EnhancedServerModal({
                             {log.level.toUpperCase()}
                           </span>
                           <span className='ml-2'>{log.message}</span>
-                        </motion.div>
+                        </MotionDiv>
                       ))}
                     </div>
                   </div>
@@ -1019,11 +1035,11 @@ export default function EnhancedServerModal({
                     </div>
                   </div>
                 )}
-              </motion.div>
+              </MotionDiv>
             </AnimatePresence>
           </div>
-        </motion.div>
-      </motion.div>
+        </MotionDiv>
+      </MotionDiv>
     </AnimatePresence>
   );
 }

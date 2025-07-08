@@ -9,13 +9,12 @@
  */
 
 import { BehaviorSubject, interval, Subject } from 'rxjs';
-import {
-  distinctUntilChanged,
-  filter,
-  throttleTime
-} from 'rxjs/operators';
+import { distinctUntilChanged, filter, throttleTime } from 'rxjs/operators';
 import { Server as SocketIOServer } from 'socket.io';
-import { RealServerDataGenerator, type RealServerDataGeneratorType } from '../data-generator/RealServerDataGenerator';
+import {
+  RealServerDataGenerator,
+  type RealServerDataGeneratorType,
+} from '../data-generator/RealServerDataGenerator';
 // lightweight-anomaly-detector removed - using AnomalyDetectionService instead
 
 // 🎯 타입 정의
@@ -75,9 +74,9 @@ export class WebSocketManager {
         origin:
           process.env.NODE_ENV === 'production'
             ? [
-              'https://openmanager-vibe-v5.vercel.app',
-              'https://openmanager-ai-engine.onrender.com',
-            ]
+                'https://openmanager-vibe-v5.vercel.app',
+                'https://openmanager-ai-engine.onrender.com',
+              ]
             : ['http://localhost:3000'],
         methods: ['GET', 'POST'],
         credentials: true,
@@ -197,7 +196,11 @@ export class WebSocketManager {
         let bytesOut = 0;
 
         try {
-          if (networkMetrics && typeof networkMetrics === 'object' && 'in' in (networkMetrics as any)) {
+          if (
+            networkMetrics &&
+            typeof networkMetrics === 'object' &&
+            'in' in (networkMetrics as any)
+          ) {
             bytesIn = (networkMetrics as { in: number; out: number }).in || 0;
             bytesOut = (networkMetrics as { in: number; out: number }).out || 0;
           } else if (typeof networkMetrics === 'number') {
@@ -221,14 +224,18 @@ export class WebSocketManager {
             network: {
               bytesIn,
               bytesOut,
-            }
+            },
           },
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
       });
 
       // 임계값 초과 시 알림 발생
-      if (serverMetrics.some(server => server.metrics.cpu > 85 || server.metrics.memory > 90)) {
+      if (
+        serverMetrics.some(
+          server => server.metrics.cpu > 85 || server.metrics.memory > 90
+        )
+      ) {
         this.alertSubject.next({
           serverId: 'anomaly-detector',
           serverName: 'Anomaly Detector',
@@ -245,7 +252,10 @@ export class WebSocketManager {
           data: server.metrics,
           timestamp: server.timestamp,
           type: 'cpu',
-          priority: this.calculatePriority(server.metrics.cpu, server.metrics.memory),
+          priority: this.calculatePriority(
+            server.metrics.cpu,
+            server.metrics.memory
+          ),
         };
 
         this.dataSubject.next(streamData);

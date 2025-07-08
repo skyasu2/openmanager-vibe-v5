@@ -1,12 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "es2017",
-      "webworker"
-    ],
+    "lib": ["dom", "dom.iterable", "es2017", "webworker"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -34,42 +29,18 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@/components/*": [
-        "./src/components/*"
-      ],
-      "@/lib/*": [
-        "./src/lib/*"
-      ],
-      "@/utils/*": [
-        "./src/utils/*"
-      ],
-      "@/types/*": [
-        "./src/types/*"
-      ],
-      "@/services/*": [
-        "./src/services/*"
-      ],
-      "@/core/*": [
-        "./src/core/*"
-      ],
-      "@/modules/*": [
-        "./src/modules/*"
-      ],
-      "@/test/*": [
-        "./src/test/*"
-      ],
-      "~/*": [
-        "./*"
-      ]
+      "@/*": ["./src/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/utils/*": ["./src/utils/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/services/*": ["./src/services/*"],
+      "@/core/*": ["./src/core/*"],
+      "@/modules/*": ["./src/modules/*"],
+      "@/test/*": ["./src/test/*"],
+      "~/*": ["./*"]
     },
-    "types": [
-      "vitest/globals",
-      "@testing-library/jest-dom",
-      "node"
-    ],
+    "types": ["vitest/globals", "@testing-library/jest-dom", "node"],
     "tsBuildInfoFile": ".next/cache/tsbuildinfo",
     "assumeChangesOnlyAffectDirectDependencies": true
   },

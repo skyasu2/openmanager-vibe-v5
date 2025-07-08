@@ -3,7 +3,6 @@
 ## 발견된 문제들
 
 1. **missing-button-text** (src\components\dashboard\ServerCard.tsx:1)
-
    - 버튼에 접근 가능한 텍스트가 없음
    - 해결: aria-label 또는 title 속성 추가
 

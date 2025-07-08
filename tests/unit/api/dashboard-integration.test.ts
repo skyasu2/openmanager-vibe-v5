@@ -307,7 +307,8 @@ describe('Dashboard Integration Logic', () => {
           case 'pie':
             const categories = {};
             filteredData.forEach(item => {
-              (categories as any)[item.category] = ((categories as any)[item.category] || 0) + 1;
+              (categories as any)[item.category] =
+                ((categories as any)[item.category] || 0) + 1;
             });
 
             return {
@@ -565,7 +566,9 @@ describe('Dashboard Integration Logic', () => {
           const tagMatch =
             item.tags &&
             Array.isArray(item.tags) &&
-            item.tags.some((tag: any) => tag.toLowerCase().includes(normalizedQuery));
+            item.tags.some((tag: any) =>
+              tag.toLowerCase().includes(normalizedQuery)
+            );
 
           return textMatch || numericMatch || tagMatch;
         });

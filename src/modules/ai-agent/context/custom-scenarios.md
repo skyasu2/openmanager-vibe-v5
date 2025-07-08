@@ -7,6 +7,7 @@
 ## 🏗️ 서버 아키텍처별 특화 시나리오
 
 ### **단일 서버 환경 (Single Server)**
+
 ```yaml
 구성: 모든 서비스가 하나의 서버에서 동작
 특징: 리소스 공유, 상호 의존성 높음
@@ -29,6 +30,7 @@
 ```
 
 ### **마스터-슬레이브 구성 (Master-Slave)**
+
 ```yaml
 구성: 활성(Master) + 대기(Slave) 서버
 특징: 고가용성, 자동 페일오버
@@ -52,6 +54,7 @@
 ```
 
 ### **로드밸런서 + 멀티 백엔드**
+
 ```yaml
 구성: 로드밸런서 + 여러 백엔드 서버
 특징: 수평 확장, 트래픽 분산
@@ -77,6 +80,7 @@
 ## 🗄️ 데이터베이스 환경별 특화
 
 ### **단일 DB 서버**
+
 ```yaml
 모니터링 포인트:
   - 동시 연결 수 (최대 100개)
@@ -98,6 +102,7 @@
 ```
 
 ### **마스터-리플리카 DB**
+
 ```yaml
 구성: 쓰기용 마스터 + 읽기용 리플리카
 모니터링 포인트:
@@ -120,6 +125,7 @@
 ```
 
 ### **샤딩 DB 환경**
+
 ```yaml
 구성: 데이터를 여러 샤드로 분산
 모니터링 포인트:
@@ -144,6 +150,7 @@
 ## 🌐 네트워크 토폴로지별 특화
 
 ### **DMZ 구성 환경**
+
 ```yaml
 구성: DMZ + 내부 네트워크 분리
 보안 모니터링:
@@ -166,6 +173,7 @@
 ```
 
 ### **멀티 클라우드 환경**
+
 ```yaml
 구성: AWS + Azure + GCP 혼합 운영
 모니터링 포인트:
@@ -188,6 +196,7 @@
 ```
 
 ### **하이브리드 클라우드 (온프레미스 + 클라우드)**
+
 ```yaml
 구성: 온프레미스 + 퍼블릭 클라우드
 연결 모니터링:
@@ -212,6 +221,7 @@
 ## ⚙️ 특수 워크로드 환경
 
 ### **GPU 컴퓨팅 환경**
+
 ```yaml
 하드웨어 모니터링:
   - GPU 사용률 및 메모리 사용량
@@ -233,6 +243,7 @@
 ```
 
 ### **고성능 스토리지 환경**
+
 ```yaml
 스토리지 유형별 모니터링:
   - NVMe SSD: IOPS, 지연시간
@@ -254,6 +265,7 @@
 ```
 
 ### **컨테이너 오케스트레이션 환경**
+
 ```yaml
 Kubernetes 클러스터:
   - 노드별 리소스 사용률
@@ -277,10 +289,15 @@ Docker 스웜:
 ## 🔧 서버 데이터 생성기 연동
 
 ### **환경별 데이터 패턴**
+
 ```typescript
 // 커스텀 환경 설정
 interface CustomEnvironmentConfig {
-  serverArchitecture: 'single' | 'master-slave' | 'load-balanced' | 'microservices';
+  serverArchitecture:
+    | 'single'
+    | 'master-slave'
+    | 'load-balanced'
+    | 'microservices';
   databaseType: 'single' | 'replica' | 'sharded' | 'distributed';
   networkTopology: 'simple' | 'dmz' | 'multi-cloud' | 'hybrid';
   specialWorkload: 'standard' | 'gpu' | 'storage' | 'container';
@@ -296,6 +313,7 @@ function generateCustomMetrics(config: CustomEnvironmentConfig) {
 ```
 
 ### **실시간 시나리오 시뮬레이션**
+
 ```yaml
 시나리오 자동 실행:
   - 정상 운영: 기본 메트릭 패턴
@@ -315,7 +333,7 @@ function generateCustomMetrics(config: CustomEnvironmentConfig) {
 **관리**: src/modules/ai-agent/context/
 **업데이트**: 새로운 서버 환경 추가시 시나리오 확장
 **용도**: AI 에이전트가 특정 서버 구성에 특화된 모니터링 및 최적화 제안 제공
-**연동**: RealServerDataGenerator와 연계하여 실제 시나리오 구현 
+**연동**: RealServerDataGenerator와 연계하여 실제 시나리오 구현
 
 # ⚙️ 서버 환경별 커스텀 시나리오 (보조 지식)
 
@@ -326,6 +344,7 @@ function generateCustomMetrics(config: CustomEnvironmentConfig) {
 ## 🎯 커스텀 설정 활용 원칙
 
 ### **기본 원칙**
+
 ```yaml
 대응 우선순위:
   1순위: 기본 지식 (system-knowledge.md)     → 일반적인 서버 모니터링 대응
@@ -339,6 +358,7 @@ function generateCustomMetrics(config: CustomEnvironmentConfig) {
 ```
 
 ### **보조적 역할 정의**
+
 - **주 역할**: 기본/고급 지식 보완
 - **활용 빈도**: 전체 케이스의 10-20% 미만
 - **목적**: 특수 환경에서도 일관된 서비스 품질 유지
@@ -346,6 +366,7 @@ function generateCustomMetrics(config: CustomEnvironmentConfig) {
 ## 🏗️ 1. 단일 서버 환경 (All-in-One)
 
 ### **특징 및 한계점**
+
 ```yaml
 구성: 웹서버 + DB + 캐시가 한 서버에 통합
 장점: 간단한 구성, 낮은 네트워크 지연
@@ -354,12 +375,13 @@ function generateCustomMetrics(config: CustomEnvironmentConfig) {
 ```
 
 ### **보조 모니터링 포인트** (기본 지식에 추가)
+
 ```yaml
 ⚠️ 기본 CPU/Memory/Disk 모니터링 외 추가 사항:
 
 프로세스별 리소스 분석:
   - Nginx: CPU 5-10%, Memory 50-100MB
-  - MySQL: CPU 10-30%, Memory 500MB-2GB  
+  - MySQL: CPU 10-30%, Memory 500MB-2GB
   - Redis: CPU 2-5%, Memory 100-500MB
   - Application: CPU 20-50%, Memory 500MB-1GB
 
@@ -369,6 +391,7 @@ function generateCustomMetrics(config: CustomEnvironmentConfig) {
 ```
 
 ### **단일 서버 전용 알림** (보조 기능)
+
 ```yaml
 ⚠️ 표준 알림으로 해결 안되는 경우에만 사용:
 
@@ -379,13 +402,14 @@ function generateCustomMetrics(config: CustomEnvironmentConfig) {
 
 대응 방법:
 1. 기본 지식 적용 (일반적인 해결책)
-2. 고급 지식 적용 (AI 예측 기반 분석)  
+2. 고급 지식 적용 (AI 예측 기반 분석)
 3. 단일서버 특화 대응 (최후 수단)
 ```
 
 ## 🔄 2. 마스터-슬레이브 환경
 
 ### **보조 모니터링 항목**
+
 ```yaml
 ⚠️ 일반 DB 모니터링 + 추가 항목:
 
@@ -403,6 +427,7 @@ Split-brain 방지:
 ## ⚖️ 3. 로드밸런싱 환경
 
 ### **특수 상황 대응** (기본 해결 안될 때만)
+
 ```yaml
 로드밸런서 특화 이슈:
   - 세션 스티키니스 문제
@@ -415,9 +440,10 @@ Split-brain 방지:
 3. 최후에 로드밸런싱 환경 특화 대응
 ```
 
-## 🏢 4. 마이크로서비스 환경  
+## 🏢 4. 마이크로서비스 환경
 
 ### **서비스 메시 모니터링** (보조 기능)
+
 ```yaml
 ⚠️ 표준 모니터링으로 감지 안되는 경우:
 
@@ -434,6 +460,7 @@ Split-brain 방지:
 ## 🗃️ 5. 데이터베이스 특화 환경
 
 ### **RDBMS 클러스터** (보조 가이드)
+
 ```yaml
 MySQL Cluster / Galera:
   - 노드간 동기화 상태 (wsrep_local_state)
@@ -447,6 +474,7 @@ PostgreSQL HA:
 ```
 
 ### **NoSQL 클러스터** (보조 가이드)
+
 ```yaml
 MongoDB Replica Set:
   - Primary 선출 과정 모니터링
@@ -462,11 +490,12 @@ Redis Cluster:
 ## 🌐 6. 네트워크 토폴로지별 특화
 
 ### **멀티 데이터센터** (고급 보조 기능)
+
 ```yaml
 ⚠️ 기본 네트워크 모니터링으로 해결 안될 때:
 
 지역간 지연 관리:
-  - 데이터센터간 RTT 모니터링  
+  - 데이터센터간 RTT 모니터링
   - 지역별 사용자 트래픽 분산
   - Disaster Recovery 절차 자동화
 
@@ -479,6 +508,7 @@ CDN 연동 모니터링:
 ## 🎮 7. 특수 워크로드 환경
 
 ### **GPU 집약적 서버** (특화 보조 기능)
+
 ```yaml
 ⚠️ 일반 서버 모니터링 + GPU 특화:
 
@@ -494,6 +524,7 @@ GPU 리소스 모니터링:
 ```
 
 ### **스토리지 집약적 서버** (특화 보조 기능)
+
 ```yaml
 대용량 스토리지 환경:
   - RAID 상태 모니터링
@@ -509,16 +540,17 @@ GPU 리소스 모니터링:
 ## 📊 커스텀 환경별 데이터 생성 조정
 
 ### **환경 설정 변경시 자동 조정**
+
 ```typescript
 // 데이터 생성기가 환경에 맞게 메트릭 조정
 interface CustomEnvironmentMetrics {
   // 기본 메트릭은 유지하되, 환경별 가중치 적용
   environmentType: 'single' | 'cluster' | 'microservice' | 'gpu' | 'storage';
   customWeights: {
-    cpu_weight: number;      // 환경별 CPU 사용 패턴
-    memory_weight: number;   // 메모리 사용 특성
-    network_weight: number;  // 네트워크 트래픽 특성
-    disk_weight: number;     // 디스크 I/O 특성
+    cpu_weight: number; // 환경별 CPU 사용 패턴
+    memory_weight: number; // 메모리 사용 특성
+    network_weight: number; // 네트워크 트래픽 특성
+    disk_weight: number; // 디스크 I/O 특성
   };
   specialMetrics?: string[]; // 환경별 추가 메트릭
 }
@@ -527,16 +559,15 @@ interface CustomEnvironmentMetrics {
 ## 🚨 커스텀 시나리오 적용 기준
 
 ### **언제 커스텀 지식을 사용하나?**
+
 ```yaml
-적용 조건 (모두 만족시에만):
-  1. 기본 지식으로 해결되지 않음
-  2. 고급 AI 분석으로도 명확한 답 없음  
+적용 조건 (모두 만족시에만): 1. 기본 지식으로 해결되지 않음
+  2. 고급 AI 분석으로도 명확한 답 없음
   3. 특수한 서버 구성으로 인한 예외상황
   4. 표준 대응 방법이 환경에 적합하지 않음
 
-예시 상황:
-  ❌ 일반적인 CPU 사용률 증가 → 기본 지식 사용
-  ❌ 트래픽 패턴 예측 필요 → 고급 지식 사용  
+예시 상황: ❌ 일반적인 CPU 사용률 증가 → 기본 지식 사용
+  ❌ 트래픽 패턴 예측 필요 → 고급 지식 사용
   ✅ MySQL Galera 클러스터 split-brain → 커스텀 사용
   ✅ GPU 메모리 누수로 인한 CUDA 오류 → 커스텀 사용
 ```
@@ -546,4 +577,4 @@ interface CustomEnvironmentMetrics {
 **관리**: src/modules/ai-agent/context/
 **업데이트**: 새로운 특수 환경 도입시에만 추가
 **활용 빈도**: 전체 문의의 10-20% 미만 (보조적 역할)
-**우선순위**: 기본 → 고급 → 커스텀 순서로 적용 
+**우선순위**: 기본 → 고급 → 커스텀 순서로 적용

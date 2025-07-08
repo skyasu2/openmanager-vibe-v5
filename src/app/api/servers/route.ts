@@ -1,5 +1,8 @@
 import { detectEnvironment } from '@/config/environment';
-import { ERROR_STATE_METADATA, STATIC_ERROR_SERVERS } from '@/config/fallback-data';
+import {
+  ERROR_STATE_METADATA,
+  STATIC_ERROR_SERVERS,
+} from '@/config/fallback-data';
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 import { GCPServerDataGenerator } from '@/services/gcp/GCPServerDataGenerator';
@@ -39,7 +42,7 @@ function createBasicFallbackWarning(dataSource: string, reason: string) {
     actionRequired: '실제 데이터 소스 연결 필요',
     productionImpact:
       process.env.NODE_ENV === 'production' ||
-        process.env.VERCEL_ENV === 'production'
+      process.env.VERCEL_ENV === 'production'
         ? 'CRITICAL'
         : 'LOW',
   };
@@ -113,50 +116,59 @@ export async function GET(request: NextRequest) {
             timestamp: new Date().toISOString(),
             environment: 'vercel',
             isErrorState: false,
-            message: '✅ GCP 실제 데이터 조회 성공'
+            message: '✅ GCP 실제 데이터 조회 성공',
           });
         }
 
         // ❌ GCP 실패 시 명시적 에러 응답 (Silent fallback 금지)
-        return NextResponse.json({
-          success: false,
-          data: gcpResponse.data, // 정적 에러 서버 데이터
-          source: 'static-error',
-          timestamp: new Date().toISOString(),
-          environment: 'vercel',
-          isErrorState: true,
-          errorMetadata: gcpResponse.errorMetadata,
-          message: '🚨 GCP 연결 실패 - 에러 상태 데이터 표시',
-          userMessage: '⚠️ 실제 서버 데이터를 가져올 수 없습니다. 관리자에게 문의하세요.',
-          recommendations: [
-            'GCP 연결 상태를 확인하세요',
-            '잠시 후 다시 시도하세요',
-            '문제가 지속되면 시스템 관리자에게 문의하세요'
-          ]
-        }, { status: 503 }); // Service Unavailable
+        return NextResponse.json(
+          {
+            success: false,
+            data: gcpResponse.data, // 정적 에러 서버 데이터
+            source: 'static-error',
+            timestamp: new Date().toISOString(),
+            environment: 'vercel',
+            isErrorState: true,
+            errorMetadata: gcpResponse.errorMetadata,
+            message: '🚨 GCP 연결 실패 - 에러 상태 데이터 표시',
+            userMessage:
+              '⚠️ 실제 서버 데이터를 가져올 수 없습니다. 관리자에게 문의하세요.',
+            recommendations: [
+              'GCP 연결 상태를 확인하세요',
+              '잠시 후 다시 시도하세요',
+              '문제가 지속되면 시스템 관리자에게 문의하세요',
+            ],
+          },
+          { status: 503 }
+        ); // Service Unavailable
       } catch (error) {
         console.error('❌ GCP 서비스 호출 실패:', error);
 
         // ❌ 치명적 오류 시 정적 에러 데이터 반환
-        return NextResponse.json({
-          success: false,
-          data: STATIC_ERROR_SERVERS,
-          source: 'static-error',
-          timestamp: new Date().toISOString(),
-          environment: 'vercel',
-          isErrorState: true,
-          errorMetadata: {
-            ...ERROR_STATE_METADATA,
-            originalError: error instanceof Error ? error.message : String(error)
+        return NextResponse.json(
+          {
+            success: false,
+            data: STATIC_ERROR_SERVERS,
+            source: 'static-error',
+            timestamp: new Date().toISOString(),
+            environment: 'vercel',
+            isErrorState: true,
+            errorMetadata: {
+              ...ERROR_STATE_METADATA,
+              originalError:
+                error instanceof Error ? error.message : String(error),
+            },
+            message: '🚨 서버 데이터 API 호출 실패',
+            userMessage:
+              '⚠️ 서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.',
+            recommendations: [
+              '페이지를 새로고침하세요',
+              '네트워크 연결을 확인하세요',
+              '시스템 관리자에게 문의하세요',
+            ],
           },
-          message: '🚨 서버 데이터 API 호출 실패',
-          userMessage: '⚠️ 서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.',
-          recommendations: [
-            '페이지를 새로고침하세요',
-            '네트워크 연결을 확인하세요',
-            '시스템 관리자에게 문의하세요'
-          ]
-        }, { status: 500 });
+          { status: 500 }
+        );
       }
     }
 
@@ -180,55 +192,61 @@ export async function GET(request: NextRequest) {
         timestamp: new Date().toISOString(),
         environment: 'local',
         isErrorState: false,
-        message: '✅ 로컬 목업 데이터 조회 성공'
+        message: '✅ 로컬 목업 데이터 조회 성공',
       });
     } catch (error) {
       console.error('❌ 로컬 목업 데이터 생성 실패:', error);
 
       // ❌ 로컬에서도 실패 시 명시적 에러 반환
-      return NextResponse.json({
-        success: false,
-        data: STATIC_ERROR_SERVERS,
-        source: 'static-error',
-        timestamp: new Date().toISOString(),
-        environment: 'local',
-        isErrorState: true,
-        errorMetadata: {
-          ...ERROR_STATE_METADATA,
-          originalError: error instanceof Error ? error.message : String(error)
+      return NextResponse.json(
+        {
+          success: false,
+          data: STATIC_ERROR_SERVERS,
+          source: 'static-error',
+          timestamp: new Date().toISOString(),
+          environment: 'local',
+          isErrorState: true,
+          errorMetadata: {
+            ...ERROR_STATE_METADATA,
+            originalError:
+              error instanceof Error ? error.message : String(error),
+          },
+          message: '🚨 로컬 목업 데이터 생성 실패',
+          userMessage: '⚠️ 개발 환경에서 데이터를 생성할 수 없습니다.',
+          recommendations: [
+            '개발 서버를 재시작하세요',
+            '환경 설정을 확인하세요',
+            '로그를 확인하세요',
+          ],
         },
-        message: '🚨 로컬 목업 데이터 생성 실패',
-        userMessage: '⚠️ 개발 환경에서 데이터를 생성할 수 없습니다.',
-        recommendations: [
-          '개발 서버를 재시작하세요',
-          '환경 설정을 확인하세요',
-          '로그를 확인하세요'
-        ]
-      }, { status: 500 });
+        { status: 500 }
+      );
     }
-
   } catch (error) {
     console.error('❌ 서버 데이터 API 치명적 오류:', error);
 
-    return NextResponse.json({
-      success: false,
-      data: [],
-      source: 'critical-error',
-      timestamp: new Date().toISOString(),
-      isErrorState: true,
-      errorMetadata: {
-        ...ERROR_STATE_METADATA,
-        severity: 'CRITICAL',
-        originalError: error instanceof Error ? error.message : String(error)
+    return NextResponse.json(
+      {
+        success: false,
+        data: [],
+        source: 'critical-error',
+        timestamp: new Date().toISOString(),
+        isErrorState: true,
+        errorMetadata: {
+          ...ERROR_STATE_METADATA,
+          severity: 'CRITICAL',
+          originalError: error instanceof Error ? error.message : String(error),
+        },
+        message: '🚨 API 치명적 오류 발생',
+        userMessage: '⚠️ 서버에서 심각한 오류가 발생했습니다.',
+        recommendations: [
+          '페이지를 새로고침하세요',
+          '잠시 후 다시 시도하세요',
+          '즉시 시스템 관리자에게 문의하세요',
+        ],
       },
-      message: '🚨 API 치명적 오류 발생',
-      userMessage: '⚠️ 서버에서 심각한 오류가 발생했습니다.',
-      recommendations: [
-        '페이지를 새로고침하세요',
-        '잠시 후 다시 시도하세요',
-        '즉시 시스템 관리자에게 문의하세요'
-      ]
-    }, { status: 500 });
+      { status: 500 }
+    );
   }
 }
 
@@ -240,7 +258,7 @@ async function getGCPRealServerData(): Promise<any[]> {
     // GCP 실제 데이터 생성기 사용
     const gcpGenerator = new GCPServerDataGenerator(
       null as any, // Firestore client (실제 구현 시 연결)
-      null as any  // Cloud Storage client (실제 구현 시 연결)
+      null as any // Cloud Storage client (실제 구현 시 연결)
     );
 
     // 실제 GCP 메트릭 조회 (임시로 빈 배열 반환)
@@ -257,13 +275,12 @@ async function getGCPRealServerData(): Promise<any[]> {
           cpu: { usage: 45 },
           memory: { usage: 62 },
           disk: { usage: 38 },
-          network: { rx: 1024, tx: 512 }
+          network: { rx: 1024, tx: 512 },
         },
         source: 'gcp-monitoring',
-        lastUpdated: new Date().toISOString()
-      }
+        lastUpdated: new Date().toISOString(),
+      },
     ];
-
   } catch (error) {
     console.error('❌ GCP 실제 데이터 조회 실패:', error);
     return [];

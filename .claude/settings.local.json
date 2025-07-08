@@ -33,7 +33,9 @@
       "Bash(pip3 list:*)",
       "Bash(uv tool:*)",
       "Bash(claude-usage-monitor)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(sed:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }

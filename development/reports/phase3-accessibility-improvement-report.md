@@ -110,7 +110,6 @@
 ### 자동화 도구 개발
 
 1. **접근성 분석기** (`accessibility-analyzer.mjs`)
-
    - 179개 파일 스캔
    - WCAG 2.1 기준 자동 검증
    - 실시간 점수 계산
@@ -164,7 +163,6 @@ modifiedContent = modifiedContent.replace(
 ### 우선순위 1: 추가 개선
 
 1. **시맨틱 HTML 확대** (84개 남은 문제)
-
    - `<div>` → `<section>`, `<article>` 변경
    - 페이지 구조 요소 추가
 
@@ -175,7 +173,6 @@ modifiedContent = modifiedContent.replace(
 ### 우선순위 2: 고급 접근성
 
 1. **동적 콘텐츠 접근성**
-
    - `aria-live` 영역 추가
    - 실시간 업데이트 알림
 
@@ -186,7 +183,6 @@ modifiedContent = modifiedContent.replace(
 ### 우선순위 3: 지속적 개선
 
 1. **자동화 확장**
-
    - CI/CD 파이프라인 통합
    - 실시간 접근성 모니터링
 

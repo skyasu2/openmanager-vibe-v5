@@ -2,12 +2,17 @@
 
 import InfrastructureOverviewPage from '@/components/ai/pages/InfrastructureOverviewPage';
 import SystemAlertsPage from '@/components/ai/pages/SystemAlertsPage';
-import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 
 import { safeConsoleError, safeErrorMessage } from '../../lib/utils-functions';
 import { Server } from '../../types/server';
+
+// framer-motion을 동적 import로 처리
+const MotionDiv = dynamic(
+  () => import('framer-motion').then(mod => ({ default: mod.motion.div })),
+  { ssr: false }
+);
 
 interface DashboardContentProps {
   showSequentialGeneration: boolean;
@@ -177,7 +182,7 @@ export default function DashboardContent({
     // 일반 대시보드 모드 - 반응형 그리드 레이아웃
     console.log('📊 일반 대시보드 모드 렌더링');
     return (
-      <motion.div
+      <MotionDiv
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -405,7 +410,7 @@ export default function DashboardContent({
             </Suspense>
           </div>
         </div>
-      </motion.div>
+      </MotionDiv>
     );
   } catch (error) {
     safeConsoleError('❌ DashboardContent 렌더링 에러', error);

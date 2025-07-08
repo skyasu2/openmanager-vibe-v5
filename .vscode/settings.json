@@ -23,9 +23,7 @@
   },
   "json.schemas": [
     {
-      "fileMatch": [
-        ".cursor/mcp.json"
-      ],
+      "fileMatch": [".cursor/mcp.json"],
       "schema": {
         "type": "object",
         "properties": {
@@ -110,10 +108,7 @@
     },
     "Ubuntu (WSL)": {
       "path": "C:\\Windows\\System32\\wsl.exe",
-      "args": [
-        "-d",
-        "Ubuntu"
-      ],
+      "args": ["-d", "Ubuntu"],
       "icon": "terminal-ubuntu"
     },
     "PowerShell": {

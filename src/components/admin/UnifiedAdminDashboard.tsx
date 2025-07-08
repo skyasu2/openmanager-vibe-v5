@@ -1201,14 +1201,15 @@ export default function UnifiedAdminDashboard() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ delay: index * 0.1 }}
-                        className={`p-4 rounded-lg border-l-4 ${alert.type === 'critical'
-                          ? 'bg-red-50 border-red-500'
-                          : alert.type === 'error'
-                            ? 'bg-red-50 border-red-400'
-                            : alert.type === 'warning'
-                              ? 'bg-yellow-50 border-yellow-500'
-                              : 'bg-blue-50 border-blue-500'
-                          } ${alert.acknowledged ? 'opacity-60' : ''}`}
+                        className={`p-4 rounded-lg border-l-4 ${
+                          alert.type === 'critical'
+                            ? 'bg-red-50 border-red-500'
+                            : alert.type === 'error'
+                              ? 'bg-red-50 border-red-400'
+                              : alert.type === 'warning'
+                                ? 'bg-yellow-50 border-yellow-500'
+                                : 'bg-blue-50 border-blue-500'
+                        } ${alert.acknowledged ? 'opacity-60' : ''}`}
                       >
                         <div className='flex items-start justify-between'>
                           <div className='flex-1'>
@@ -1216,7 +1217,7 @@ export default function UnifiedAdminDashboard() {
                               <Badge
                                 variant={
                                   alert.type === 'critical' ||
-                                    alert.type === 'error'
+                                  alert.type === 'error'
                                     ? 'destructive'
                                     : alert.type === 'warning'
                                       ? 'secondary'

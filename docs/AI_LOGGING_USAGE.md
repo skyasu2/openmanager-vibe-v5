@@ -58,7 +58,7 @@ await supabaseAILogger.logQuery({
   confidence: 0.95,
   processing_time: 1250,
   user_intent: 'monitoring',
-  category: 'server'
+  category: 'server',
 });
 ```
 
@@ -154,11 +154,11 @@ SELECT cleanup_old_ai_logs(30);
 
 ```sql
 -- 일일 사용량 통계
-SELECT * FROM ai_query_stats 
+SELECT * FROM ai_query_stats
 WHERE date >= CURRENT_DATE - INTERVAL '7 days';
 
 -- 세션별 사용량
-SELECT * FROM ai_session_stats 
+SELECT * FROM ai_session_stats
 WHERE last_query >= NOW() - INTERVAL '24 hours';
 ```
 
@@ -202,7 +202,7 @@ await supabaseAILogger.batchLogQueries(logs);
 
 ```typescript
 // 실시간 통계 스트림
-await supabaseAILogger.subscribeToStats((stats) => {
+await supabaseAILogger.subscribeToStats(stats => {
   console.log('실시간 AI 사용량:', stats);
 });
 ```
@@ -214,7 +214,7 @@ await supabaseAILogger.subscribeToStats((stats) => {
 await supabaseAILogger.setAlerts({
   dailyQueryLimit: 1000,
   costLimit: 10.0,
-  lowConfidenceThreshold: 0.5
+  lowConfidenceThreshold: 0.5,
 });
 ```
 

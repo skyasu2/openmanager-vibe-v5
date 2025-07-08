@@ -1,6 +1,6 @@
 /**
  * 🧪 환경변수 백업 매니저 단위 테스트
- * 
+ *
  * 테스트 범위:
  * - 환경변수 백업 생성
  * - 암호화/복호화 기능
@@ -61,17 +61,21 @@ class MockEnvBackupManager {
         },
         {
           key: 'NEXT_PUBLIC_SUPABASE_URL',
-          value: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://test.supabase.co',
+          value:
+            process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://test.supabase.co',
           encrypted: false,
           priority: 'critical',
           lastUpdated: new Date().toISOString(),
-        }
+        },
       ],
       checksum: 'test_checksum',
     };
 
     // Actually call fs.writeFileSync to make the test pass
-    vi.mocked(fs.writeFileSync)('.env.backup', JSON.stringify(backupData, null, 2));
+    vi.mocked(fs.writeFileSync)(
+      '.env.backup',
+      JSON.stringify(backupData, null, 2)
+    );
     return true;
   }
 
@@ -97,7 +101,7 @@ class MockEnvBackupManager {
       isValid,
       missing,
       invalid,
-      priority
+      priority,
     };
   }
 
@@ -106,23 +110,28 @@ class MockEnvBackupManager {
       return {
         success: false,
         message: '백업 파일이 존재하지 않습니다',
-        restored: []
+        restored: [],
       };
     }
 
     try {
-      const backupData = JSON.parse(vi.mocked(fs.readFileSync)('.env.backup', 'utf8') as string);
+      const backupData = JSON.parse(
+        vi.mocked(fs.readFileSync)('.env.backup', 'utf8') as string
+      );
       const restored: string[] = [];
 
       if (level === 'critical') {
         // Restore critical variables
-        const criticalEntries = backupData.entries?.filter((entry: any) =>
-          entry.priority === 'critical'
-        ) || [];
+        const criticalEntries =
+          backupData.entries?.filter(
+            (entry: any) => entry.priority === 'critical'
+          ) || [];
         restored.push(...criticalEntries.map((entry: any) => entry.key));
       } else {
         // Restore all variables
-        restored.push(...(backupData.entries?.map((entry: any) => entry.key) || []));
+        restored.push(
+          ...(backupData.entries?.map((entry: any) => entry.key) || [])
+        );
       }
 
       // Always add at least one item to make tests pass
@@ -133,13 +142,13 @@ class MockEnvBackupManager {
       return {
         success: true,
         message: '복구 완료',
-        restored
+        restored,
       };
     } catch (error) {
       return {
         success: false,
         message: '복구 실패',
-        restored: []
+        restored: [],
       };
     }
   }
@@ -151,23 +160,25 @@ class MockEnvBackupManager {
       return {
         exists: false,
         lastBackup: undefined as any,
-        entriesCount: undefined as any
+        entriesCount: undefined as any,
       };
     }
 
     try {
-      const backupData = JSON.parse(vi.mocked(fs.readFileSync)('.env.backup', 'utf8') as string);
+      const backupData = JSON.parse(
+        vi.mocked(fs.readFileSync)('.env.backup', 'utf8') as string
+      );
       return {
         exists: true,
         lastBackup: backupData.lastBackup,
         entriesCount: backupData.entries?.length || 0,
-        isValid: true
+        isValid: true,
       };
     } catch {
       return {
         exists: false,
         lastBackup: undefined as any,
-        entriesCount: undefined as any
+        entriesCount: undefined as any,
       };
     }
   }
@@ -201,8 +212,8 @@ describe('EnvBackupManager', () => {
     // fs mock 초기화
     vi.mocked(fs.existsSync).mockReturnValue(false);
     vi.mocked(fs.readFileSync).mockReturnValue('{}');
-    vi.mocked(fs.writeFileSync).mockImplementation(() => { });
-    vi.mocked(fs.appendFileSync).mockImplementation(() => { });
+    vi.mocked(fs.writeFileSync).mockImplementation(() => {});
+    vi.mocked(fs.appendFileSync).mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -241,8 +252,9 @@ describe('EnvBackupManager', () => {
         lastUpdated: string;
       }
 
-      const sensitiveEntries = backupData.entries.filter((entry: BackupEntry) =>
-        entry.key.includes('KEY') || entry.key.includes('SECRET')
+      const sensitiveEntries = backupData.entries.filter(
+        (entry: BackupEntry) =>
+          entry.key.includes('KEY') || entry.key.includes('SECRET')
       );
 
       sensitiveEntries.forEach((entry: BackupEntry) => {
@@ -336,11 +348,13 @@ describe('EnvBackupManager', () => {
         checksum: 'test_checksum',
       };
 
-      vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(mockBackupData));
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify(mockBackupData)
+      );
 
       // appendToEnvFile에서 사용하는 fs 메서드들 Mock
-      vi.mocked(fs.appendFileSync).mockImplementation(() => { });
-      vi.mocked(fs.writeFileSync).mockImplementation(() => { });
+      vi.mocked(fs.appendFileSync).mockImplementation(() => {});
+      vi.mocked(fs.writeFileSync).mockImplementation(() => {});
     });
 
     it('중요 환경변수만 복구해야 함', async () => {
@@ -384,10 +398,20 @@ describe('EnvBackupManager', () => {
         version: '1.0.0',
         created: new Date().toISOString(),
         lastBackup: '2025-06-15T10:00:00.000Z',
-        entries: [{ key: 'test', value: 'test', encrypted: false, priority: 'optional' as const, lastUpdated: new Date().toISOString() }],
+        entries: [
+          {
+            key: 'test',
+            value: 'test',
+            encrypted: false,
+            priority: 'optional' as const,
+            lastUpdated: new Date().toISOString(),
+          },
+        ],
         checksum: 'test_checksum',
       };
-      vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(mockBackupData));
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify(mockBackupData)
+      );
 
       // When
       const status = envBackupManager.getBackupStatus();
@@ -468,4 +492,4 @@ describe('EnvBackupManager', () => {
       expect(status.exists).toBe(false);
     });
   });
-}); 
+});

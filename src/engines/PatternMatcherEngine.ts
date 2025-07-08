@@ -19,15 +19,23 @@ class PatternMatcherEngine {
       maxRetries: 2,
       fallbackToLocal: true,
       endpoints: {
-        aiGateway: process.env.GCP_AI_GATEWAY_URL || 'https://asia-northeast3-openmanager-ai.cloudfunctions.net/ai-gateway',
-        koreanNLP: process.env.GCP_KOREAN_NLP_URL || 'https://asia-northeast3-openmanager-ai.cloudfunctions.net/korean-nlp',
-        ruleEngine: process.env.GCP_RULE_ENGINE_URL || 'https://asia-northeast3-openmanager-ai.cloudfunctions.net/rule-engine',
-        basicML: process.env.GCP_BASIC_ML_URL || 'https://asia-northeast3-openmanager-ai.cloudfunctions.net/basic-ml',
+        aiGateway:
+          process.env.GCP_AI_GATEWAY_URL ||
+          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/ai-gateway',
+        koreanNLP:
+          process.env.GCP_KOREAN_NLP_URL ||
+          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/korean-nlp',
+        ruleEngine:
+          process.env.GCP_RULE_ENGINE_URL ||
+          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/rule-engine',
+        basicML:
+          process.env.GCP_BASIC_ML_URL ||
+          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/basic-ml',
       },
       vmContext: {
         enabled: false,
-        endpoint: ''
-      }
+        endpoint: '',
+      },
     });
 
     systemLogger.info('🔍 PatternMatcherEngine v2.0 - GCP Functions 연동 모드');
@@ -56,7 +64,7 @@ class PatternMatcherEngine {
       const response = await this.gcpService.callFunction('rule-engine', {
         metrics,
         timestamp: KoreanTimeUtil.now(),
-        mode: 'pattern-analysis'
+        mode: 'pattern-analysis',
       });
 
       return {
@@ -67,7 +75,7 @@ class PatternMatcherEngine {
         processingTime: response.processingTime || 0,
         engine: 'GCP-RuleEngine',
         timestamp: KoreanTimeUtil.now(),
-        fallbackUsed: false
+        fallbackUsed: false,
       };
     } catch (error) {
       systemLogger.error('PatternMatcherEngine 분석 실패:', error);
@@ -82,7 +90,7 @@ class PatternMatcherEngine {
         engine: 'fallback',
         timestamp: KoreanTimeUtil.now(),
         fallbackUsed: true,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -92,7 +100,7 @@ class PatternMatcherEngine {
       const response = await this.gcpService.callFunction('rule-engine', {
         action: 'add-rule',
         pattern,
-        timestamp: KoreanTimeUtil.now()
+        timestamp: KoreanTimeUtil.now(),
       });
       return response.success || false;
     } catch (error) {
@@ -106,7 +114,7 @@ class PatternMatcherEngine {
       const response = await this.gcpService.callFunction('rule-engine', {
         action: 'remove-rule',
         ruleId,
-        timestamp: KoreanTimeUtil.now()
+        timestamp: KoreanTimeUtil.now(),
       });
       return response.success || false;
     } catch (error) {
@@ -119,7 +127,7 @@ class PatternMatcherEngine {
     try {
       const response = await this.gcpService.callFunction('rule-engine', {
         action: 'get-rules',
-        timestamp: KoreanTimeUtil.now()
+        timestamp: KoreanTimeUtil.now(),
       });
       return response.rules || [];
     } catch (error) {
@@ -140,8 +148,8 @@ class PatternMatcherEngine {
         from: 'Vercel-Local',
         to: 'GCP-Functions',
         codeReduction: '90%',
-        performance: '+40%'
-      }
+        performance: '+40%',
+      },
     };
   }
 }
@@ -159,4 +167,4 @@ export function resetPatternMatcherEngine(): void {
   engineInstance = null;
 }
 
-export default PatternMatcherEngine; 
+export default PatternMatcherEngine;

@@ -15,10 +15,7 @@ import { ActionExecutor } from '../processors/ActionExecutor';
 import { IntentClassifier } from '../processors/IntentClassifier';
 import { ResponseGenerator } from '../processors/ResponseGenerator';
 import { AdminLogger } from './AdminLogger';
-import {
-  ModeManager,
-  createDefaultModeConfig,
-} from './ModeManager';
+import { ModeManager, createDefaultModeConfig } from './ModeManager';
 import { thinkingLogger } from './ThinkingLogger';
 import { ThinkingProcessor } from './ThinkingProcessor';
 
@@ -226,7 +223,7 @@ export class AIAgentEngine {
           'data_processing'
         );
         mcpResponse = await this.mcpProcessor.processQuery({
-          query: request.query
+          query: request.query,
         });
         thinkingLogger.logStep(
           thinkingSessionId,
@@ -424,7 +421,7 @@ export class AIAgentEngine {
         : 0;
     const memory =
       typeof process !== 'undefined' &&
-        typeof process.memoryUsage === 'function'
+      typeof process.memoryUsage === 'function'
         ? process.memoryUsage()
         : { rss: 0, heapTotal: 0, heapUsed: 0, external: 0, arrayBuffers: 0 };
 

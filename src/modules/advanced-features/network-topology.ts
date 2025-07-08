@@ -30,13 +30,23 @@ export interface NetworkConnection {
 }
 
 export class NetworkTopologyGenerator {
-  private nodeTypes = ['server', 'database', 'cache', 'proxy', 'loadbalancer', 'firewall'] as const;
+  private nodeTypes = [
+    'server',
+    'database',
+    'cache',
+    'proxy',
+    'loadbalancer',
+    'firewall',
+  ] as const;
   private connectionTypes = ['ethernet', 'fiber', 'wireless', 'vpn'] as const;
 
   /**
    * 🏗️ 네트워크 토폴로지 생성
    */
-  generateTopology(nodeCount: number = 10): { nodes: NetworkNode[], connections: NetworkConnection[] } {
+  generateTopology(nodeCount: number = 10): {
+    nodes: NetworkNode[];
+    connections: NetworkConnection[];
+  } {
     const nodes = this.generateNodes(nodeCount);
     const connections = this.generateConnections(nodes);
 
@@ -57,19 +67,19 @@ export class NetworkTopologyGenerator {
         location: faker.location.city(),
         coordinates: {
           x: faker.number.int({ min: 50, max: 950 }),
-          y: faker.number.int({ min: 50, max: 550 })
+          y: faker.number.int({ min: 50, max: 550 }),
         },
         status: faker.helpers.weightedArrayElement([
           { weight: 80, value: 'online' },
           { weight: 15, value: 'warning' },
-          { weight: 5, value: 'offline' }
+          { weight: 5, value: 'offline' },
         ] as const),
         connections: [] as any[],
         metrics: {
           throughput: faker.number.float({ min: 10, max: 1000 }),
           latency: faker.number.float({ min: 1, max: 100 }),
-          packetLoss: faker.number.float({ min: 0, max: 5 })
-        }
+          packetLoss: faker.number.float({ min: 0, max: 5 }),
+        },
       };
     });
   }
@@ -89,9 +99,10 @@ export class NetworkTopologyGenerator {
         const target = faker.helpers.arrayElement(possibleTargets);
 
         // 중복 연결 방지
-        const existingConnection = connections.find(c =>
-          (c.from === node.id && c.to === target.id) ||
-          (c.from === target.id && c.to === node.id)
+        const existingConnection = connections.find(
+          c =>
+            (c.from === node.id && c.to === target.id) ||
+            (c.from === target.id && c.to === node.id)
         );
 
         if (!existingConnection) {
@@ -104,8 +115,8 @@ export class NetworkTopologyGenerator {
             status: faker.helpers.weightedArrayElement([
               { weight: 85, value: 'active' },
               { weight: 10, value: 'degraded' },
-              { weight: 5, value: 'down' }
-            ] as const)
+              { weight: 5, value: 'down' },
+            ] as const),
           };
 
           connections.push(connection);
@@ -131,7 +142,7 @@ export class NetworkTopologyGenerator {
       cache: 'CACHE',
       proxy: 'PROXY',
       loadbalancer: 'LB',
-      firewall: 'FW'
+      firewall: 'FW',
     };
 
     const prefix = prefixes[type as keyof typeof prefixes] || 'NODE';
@@ -141,13 +152,20 @@ export class NetworkTopologyGenerator {
   /**
    * 🔌 연결 타입 선택
    */
-  private selectConnectionType(fromType: string, toType: string): NetworkConnection['type'] {
+  private selectConnectionType(
+    fromType: string,
+    toType: string
+  ): NetworkConnection['type'] {
     // 데이터베이스와 캐시는 고속 연결 선호
-    if ((fromType === 'database' || toType === 'database') ||
-      (fromType === 'cache' || toType === 'cache')) {
+    if (
+      fromType === 'database' ||
+      toType === 'database' ||
+      fromType === 'cache' ||
+      toType === 'cache'
+    ) {
       return faker.helpers.weightedArrayElement([
         { weight: 70, value: 'fiber' },
-        { weight: 30, value: 'ethernet' }
+        { weight: 30, value: 'ethernet' },
       ] as const);
     }
 
@@ -168,16 +186,20 @@ export class NetworkTopologyGenerator {
       connectionsByStatus: this.groupBy(connections, 'status'),
       avgConnections: (connections.length * 2) / nodes.length, // 양방향이므로 *2
       totalBandwidth: connections.reduce((sum, c) => sum + c.bandwidth, 0),
-      avgLatency: connections.reduce((sum, c) => sum + c.latency, 0) / connections.length
+      avgLatency:
+        connections.reduce((sum, c) => sum + c.latency, 0) / connections.length,
     };
   }
 
   private groupBy<T>(array: T[], key: keyof T): Record<string, number> {
-    return array.reduce((acc, item) => {
-      const group = String(item[key]);
-      acc[group] = (acc[group] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    return array.reduce(
+      (acc, item) => {
+        const group = String(item[key]);
+        acc[group] = (acc[group] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
   }
 }
 
@@ -191,4 +213,4 @@ export function generateNetworkTopology(nodeCount: number = 10) {
 
 export function generateNetworkNodes(count: number = 10) {
   return networkTopologyGenerator.generateTopology(count).nodes;
-} 
+}

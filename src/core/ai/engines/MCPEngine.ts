@@ -55,7 +55,9 @@ export class MCPEngine {
 
   static getInstance(): MCPEngine {
     if (!MCPEngine.instance) {
-      MCPEngine.instance = new MCPEngine(GCPRealServerDataGenerator.getInstance());
+      MCPEngine.instance = new MCPEngine(
+        GCPRealServerDataGenerator.getInstance()
+      );
     }
     return MCPEngine.instance;
   }

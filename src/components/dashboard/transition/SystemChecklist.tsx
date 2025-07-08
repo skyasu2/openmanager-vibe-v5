@@ -286,7 +286,7 @@ export default function SystemChecklist({
     const averageResponseTime =
       responseTimes.length > 0
         ? responseTimes.reduce((sum, time) => sum + time, 0) /
-        responseTimes.length
+          responseTimes.length
         : 0;
 
     setDebugInfo(prev => ({
@@ -676,13 +676,14 @@ export default function SystemChecklist({
                 className={`
                   flex items-center p-3 rounded-xl border backdrop-blur-sm
                   ${getPriorityBorder(component.priority)}
-                  ${status.status === 'completed'
-                    ? 'bg-green-500/10'
-                    : status.status === 'failed'
-                      ? 'bg-red-500/10'
-                      : status.status === 'loading'
-                        ? 'bg-blue-500/10'
-                        : 'bg-gray-500/10'
+                  ${
+                    status.status === 'completed'
+                      ? 'bg-green-500/10'
+                      : status.status === 'failed'
+                        ? 'bg-red-500/10'
+                        : status.status === 'loading'
+                          ? 'bg-blue-500/10'
+                          : 'bg-gray-500/10'
                   }
                   transition-all duration-300
                   ${status.status === 'failed' ? 'cursor-pointer hover:bg-red-500/20' : ''}

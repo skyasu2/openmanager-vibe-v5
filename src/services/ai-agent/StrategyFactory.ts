@@ -8,14 +8,8 @@
  */
 
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
-import {
-  aiDataFilter,
-  AIDataFilterOptions
-} from './AIDataFilter';
-import {
-  hybridDataManager,
-  HybridDataRequest
-} from './HybridDataManager';
+import { aiDataFilter, AIDataFilterOptions } from './AIDataFilter';
+import { hybridDataManager, HybridDataRequest } from './HybridDataManager';
 
 export interface ProcessingStrategy {
   name: string;

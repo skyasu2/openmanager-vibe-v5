@@ -48,8 +48,8 @@ describe('🇰🇷 KoreanAIEngine 통합 테스트', () => {
   beforeEach(() => {
     koreanAI = new KoreanAIEngine();
     // console.log 출력 억제
-    vi.spyOn(console, 'log').mockImplementation(() => { });
-    vi.spyOn(console, 'error').mockImplementation(() => { });
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {

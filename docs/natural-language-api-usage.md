@@ -164,7 +164,7 @@ curl -X POST "http://localhost:3000/api/ai/natural-language" \
   "response": "[Google AI] \"How can I optimize my server performance?\"에 대한 Google AI 분석 결과입니다. 서버 성능 최적화를 위한 주요 방법들은...",
   "mode": "GOOGLE_AI",
   "engine": "google-ai",
-  "confidence": 0.90,
+  "confidence": 0.9,
   "processingTime": 1800,
   "fallbacksUsed": [],
   "metadata": {
@@ -233,7 +233,7 @@ curl -X POST "http://localhost:3000/api/ai/natural-language" \
   "processingTime": 8500,
   "fallbacksUsed": [
     "korean-ai-error: Connection timeout",
-    "mcp-error: Service unavailable", 
+    "mcp-error: Service unavailable",
     "rag-error: Index not found"
   ],
   "error": "모든 로컬 AI 엔진에서 처리 실패했습니다. 시스템 관리자에게 문의하세요.",
@@ -260,7 +260,7 @@ curl -X POST "http://localhost:3000/api/ai/natural-language" \
 ### LOCAL 모드 폴백 순서
 
 1. **Korean AI** (1차) - 한국어 자연어 처리 특화
-2. **MCP** (2차) - 시스템 컨텍스트 기반 처리  
+2. **MCP** (2차) - 시스템 컨텍스트 기반 처리
 3. **RAG** (3차) - 지식 베이스 검색 기반 처리
 4. **에러** (최종) - 모든 엔진 실패 시
 
@@ -272,16 +272,16 @@ curl -X POST "http://localhost:3000/api/ai/natural-language" \
 
 ## 에러 코드 참조
 
-| 에러 코드 | 심각도 | 설명 | 재시도 가능 |
-|-----------|--------|------|-------------|
-| `EMPTY_QUERY` | low | 빈 질의 | ✅ |
-| `INVALID_MODE` | low | 잘못된 모드 | ✅ |
-| `KOREAN_AI_UNAVAILABLE` | medium | Korean AI 사용 불가 | ✅ |
-| `MCP_CONNECTION_FAILED` | medium | MCP 연결 실패 | ✅ |
-| `RAG_INDEX_ERROR` | medium | RAG 인덱스 오류 | ✅ |
-| `GOOGLE_AI_QUOTA_EXCEEDED` | high | Google AI 쿼터 초과 | ❌ |
-| `GOOGLE_AI_API_KEY_MISSING` | critical | API 키 누락 | ❌ |
-| `ALL_FALLBACKS_FAILED` | critical | 모든 폴백 실패 | ❌ |
+| 에러 코드                   | 심각도   | 설명                | 재시도 가능 |
+| --------------------------- | -------- | ------------------- | ----------- |
+| `EMPTY_QUERY`               | low      | 빈 질의             | ✅          |
+| `INVALID_MODE`              | low      | 잘못된 모드         | ✅          |
+| `KOREAN_AI_UNAVAILABLE`     | medium   | Korean AI 사용 불가 | ✅          |
+| `MCP_CONNECTION_FAILED`     | medium   | MCP 연결 실패       | ✅          |
+| `RAG_INDEX_ERROR`           | medium   | RAG 인덱스 오류     | ✅          |
+| `GOOGLE_AI_QUOTA_EXCEEDED`  | high     | Google AI 쿼터 초과 | ❌          |
+| `GOOGLE_AI_API_KEY_MISSING` | critical | API 키 누락         | ❌          |
+| `ALL_FALLBACKS_FAILED`      | critical | 모든 폴백 실패      | ❌          |
 
 ## 사용 권장사항
 
@@ -318,12 +318,12 @@ async function processNaturalLanguage(query, mode = 'LOCAL') {
       return result.response;
     } else {
       console.error(`❌ 처리 실패:`, result.errorInfo);
-      
+
       // 재시도 가능한 경우
       if (result.errorInfo?.retryable) {
         console.log('💡 제안:', result.errorInfo.suggestions);
       }
-      
+
       return null;
     }
   } catch (error) {
@@ -348,7 +348,7 @@ function NaturalLanguageQuery() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     setLoading(true);
 
@@ -362,9 +362,9 @@ function NaturalLanguageQuery() {
       const data = await response.json();
       setResult(data);
     } catch (error) {
-      setResult({ 
-        success: false, 
-        error: '네트워크 오류가 발생했습니다.' 
+      setResult({
+        success: false,
+        error: '네트워크 오류가 발생했습니다.',
       });
     } finally {
       setLoading(false);
@@ -372,73 +372,71 @@ function NaturalLanguageQuery() {
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">🗣️ 자연어 질의</h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className='p-6 max-w-2xl mx-auto'>
+      <h2 className='text-2xl font-bold mb-4'>🗣️ 자연어 질의</h2>
+
+      <form onSubmit={handleSubmit} className='space-y-4'>
         <div>
-          <label className="block text-sm font-medium mb-2">
+          <label className='block text-sm font-medium mb-2'>
             질문을 입력하세요:
           </label>
           <textarea
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md"
-            rows="3"
-            placeholder="예: 서버 상태는 어떻게 확인하나요?"
+            onChange={e => setQuery(e.target.value)}
+            className='w-full p-3 border border-gray-300 rounded-md'
+            rows='3'
+            placeholder='예: 서버 상태는 어떻게 확인하나요?'
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">
-            처리 모드:
-          </label>
+          <label className='block text-sm font-medium mb-2'>처리 모드:</label>
           <select
             value={mode}
-            onChange={(e) => setMode(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md"
+            onChange={e => setMode(e.target.value)}
+            className='w-full p-2 border border-gray-300 rounded-md'
           >
-            <option value="LOCAL">LOCAL (로컬 AI)</option>
-            <option value="GOOGLE_AI">GOOGLE_AI (Google AI)</option>
+            <option value='LOCAL'>LOCAL (로컬 AI)</option>
+            <option value='GOOGLE_AI'>GOOGLE_AI (Google AI)</option>
           </select>
         </div>
 
         <button
-          type="submit"
+          type='submit'
           disabled={loading || !query.trim()}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
+          className='w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50'
         >
           {loading ? '처리 중...' : '질의하기'}
         </button>
       </form>
 
       {result && (
-        <div className="mt-6 p-4 border rounded-md">
+        <div className='mt-6 p-4 border rounded-md'>
           {result.success ? (
             <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-green-600">✅ 성공</span>
-                <span className="text-sm text-gray-600">
+              <div className='flex items-center gap-2 mb-2'>
+                <span className='text-green-600'>✅ 성공</span>
+                <span className='text-sm text-gray-600'>
                   {result.engine} | {result.processingTime}ms
                 </span>
               </div>
-              <p className="text-gray-800">{result.response}</p>
-              
+              <p className='text-gray-800'>{result.response}</p>
+
               {result.fallbacksUsed.length > 0 && (
-                <div className="mt-2 text-sm text-orange-600">
+                <div className='mt-2 text-sm text-orange-600'>
                   폴백 사용됨: {result.fallbacksUsed.join(', ')}
                 </div>
               )}
             </div>
           ) : (
             <div>
-              <div className="text-red-600 font-medium">❌ 실패</div>
-              <p className="text-gray-800 mt-1">{result.response}</p>
-              
+              <div className='text-red-600 font-medium'>❌ 실패</div>
+              <p className='text-gray-800 mt-1'>{result.response}</p>
+
               {result.errorInfo?.suggestions && (
-                <div className="mt-2">
-                  <div className="text-sm font-medium text-gray-700">제안:</div>
-                  <ul className="text-sm text-gray-600 list-disc list-inside">
+                <div className='mt-2'>
+                  <div className='text-sm font-medium text-gray-700'>제안:</div>
+                  <ul className='text-sm text-gray-600 list-disc list-inside'>
                     {result.errorInfo.suggestions.map((suggestion, index) => (
                       <li key={index}>{suggestion}</li>
                     ))}

@@ -9,7 +9,10 @@ import { transformServerInstanceToServer } from '@/adapters/server-data-adapter'
 import { SystemIntegrationAdapter } from '@/modules/ai-agent/adapters/SystemIntegrationAdapter';
 import { ServerInstance } from '@/types/data-generator';
 import { Server } from '@/types/server';
-import { RealServerDataGenerator, type RealServerDataGeneratorType } from './RealServerDataGenerator';
+import {
+  RealServerDataGenerator,
+  type RealServerDataGeneratorType,
+} from './RealServerDataGenerator';
 
 export interface ProcessedServerData {
   servers: Server[];

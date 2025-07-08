@@ -103,14 +103,14 @@ interface SystemIntegrationState {
 interface SystemEvent {
   id: string;
   type:
-  | 'pattern_detected'
-  | 'notification_sent'
-  | 'data_cleaned'
-  | 'connection_change'
-  | 'error'
-  | 'prediction'
-  | 'server_alert'
-  | 'security';
+    | 'pattern_detected'
+    | 'notification_sent'
+    | 'data_cleaned'
+    | 'connection_change'
+    | 'error'
+    | 'prediction'
+    | 'server_alert'
+    | 'security';
   severity: 'info' | 'warning' | 'critical';
   message: string;
   timestamp: Date;
@@ -219,7 +219,7 @@ export const useSystemIntegration = () => {
         aiEngineReady: false,
         databaseConnected: false,
         lastCheck: '',
-        errors: []
+        errors: [],
       },
       isLoading: true,
       error: null,
@@ -419,7 +419,8 @@ export const useSystemIntegration = () => {
         mcpWakeupStatus: {
           isInProgress: false,
           stage: 'ready',
-          message: '✅ MCP 서버가 활성 상태입니다 (Google Cloud VM 24시간 동작)',
+          message:
+            '✅ MCP 서버가 활성 상태입니다 (Google Cloud VM 24시간 동작)',
           progress: 100,
           elapsedTime: 100,
         },
@@ -444,7 +445,11 @@ export const useSystemIntegration = () => {
         },
       }));
 
-      emitEvent('error', 'critical', `❌ MCP 상태 확인 오류: ${error instanceof Error ? error.message : String(error)}`);
+      emitEvent(
+        'error',
+        'critical',
+        `❌ MCP 상태 확인 오류: ${error instanceof Error ? error.message : String(error)}`
+      );
       return false;
     }
   }, [emitEvent]);
@@ -489,7 +494,7 @@ export const useSystemIntegration = () => {
         const errorData = await response.json();
         throw new Error(
           errorData.message ||
-          `서버에서 ${response.status} 오류를 반환했습니다.`
+            `서버에서 ${response.status} 오류를 반환했습니다.`
         );
       }
 
@@ -527,7 +532,11 @@ export const useSystemIntegration = () => {
         isError: true,
         error: error instanceof Error ? error.message : String(error),
       }));
-      emitEvent('error', 'critical', `시스템 초기화 실패: ${error instanceof Error ? error.message : String(error)}`);
+      emitEvent(
+        'error',
+        'critical',
+        `시스템 초기화 실패: ${error instanceof Error ? error.message : String(error)}`
+      );
       return false;
     }
   }, [emitEvent, pollSystemStatus, getState]);
@@ -895,4 +904,3 @@ export const useSystemIntegration = () => {
 };
 
 export type { SystemEvent, SystemIntegrationActions, SystemIntegrationState };
-

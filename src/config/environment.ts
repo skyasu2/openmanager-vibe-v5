@@ -91,8 +91,10 @@ const getEnvVar = (key: string, defaultValue: string = ''): string => {
  * 🎯 플랫폼 감지 함수 (개선된 버전)
  */
 function detectPlatform(): 'local' | 'vercel' | 'render' | 'unknown' {
-  const isVercel = getEnvVar('VERCEL') === '1' || getEnvVar('VERCEL_ENV') !== '';
-  const isRender = getEnvVar('RENDER') === 'true' || getEnvVar('RENDER_SERVICE_ID') !== '';
+  const isVercel =
+    getEnvVar('VERCEL') === '1' || getEnvVar('VERCEL_ENV') !== '';
+  const isRender =
+    getEnvVar('RENDER') === 'true' || getEnvVar('RENDER_SERVICE_ID') !== '';
 
   if (isVercel) return 'vercel';
   if (isRender) return 'render';
@@ -147,13 +149,14 @@ export function getEnvironmentConfig(): EnvironmentConfig {
         url: supabaseUrl,
         key: supabaseKey,
         enabled: !!(supabaseUrl && supabaseKey),
-        connectionStatus: (supabaseUrl && supabaseKey) ? 'connected' : 'disabled'
+        connectionStatus: supabaseUrl && supabaseKey ? 'connected' : 'disabled',
       },
       redis: {
         url: redisUrl,
         token: redisToken,
         enabled: !!(redisUrl && redisToken) && !isTest, // 테스트 환경에서는 Redis 비활성화
-        connectionStatus: (redisUrl && redisToken && !isTest) ? 'connected' : 'disabled'
+        connectionStatus:
+          redisUrl && redisToken && !isTest ? 'connected' : 'disabled',
       },
     },
 
@@ -162,7 +165,7 @@ export function getEnvironmentConfig(): EnvironmentConfig {
       maxMemory: isVercel ? 1024 : isLocal ? 4096 : 2048,
       maxConcurrency: isVercel ? 10 : isLocal ? 20 : 15,
       timeout: isVercel ? 25000 : isLocal ? 60000 : 30000,
-      enableOptimizations: isProduction || isVercel
+      enableOptimizations: isProduction || isVercel,
     },
 
     // 🎛️ Feature Flags (환경별 기능 제어)
@@ -172,7 +175,7 @@ export function getEnvironmentConfig(): EnvironmentConfig {
       enableNotifications: !isTest,
       enableWebSocket: isLocal, // Vercel/Render에서는 WebSocket 제한
       enableMockData: isLocal || isDevelopment, // 로컬/개발환경에서만 목업 데이터
-      enableDebugLogs: isDevelopment || isLocal
+      enableDebugLogs: isDevelopment || isLocal,
     },
 
     // ⏱️ 업데이트 간격 (환경별 최적화)
@@ -187,7 +190,7 @@ export function getEnvironmentConfig(): EnvironmentConfig {
     // 🔧 기타 설정
     enableMetrics: true,
     enableValidation: isProduction || isVercel,
-    strictMode: isProduction
+    strictMode: isProduction,
   };
 }
 
@@ -237,7 +240,9 @@ export function getDataGeneratorConfig() {
 
   // 🚫 Vercel 환경에서는 데이터 생성기 완전 비활성화
   if (config.IS_VERCEL) {
-    console.log('🚫 Vercel 환경: 목업 데이터 생성기 비활성화 (GCP 실제 데이터만 사용)');
+    console.log(
+      '🚫 Vercel 환경: 목업 데이터 생성기 비활성화 (GCP 실제 데이터만 사용)'
+    );
     return {
       enabled: false,
       maxServers: 0,
@@ -260,7 +265,11 @@ export function getDataGeneratorConfig() {
   // 🏠 로컬 환경에서만 목업 데이터 생성기 활성화
   const maxServers = centralConfig.maxServers; // 15개로 통일
   const minServers = Math.max(5, Math.floor(maxServers * 0.4)); // 최소값: 최대값의 40% (최소 5개)
-  const serverArchitecture: 'single' | 'master-slave' | 'load-balanced' | 'microservices' = 'load-balanced';
+  const serverArchitecture:
+    | 'single'
+    | 'master-slave'
+    | 'load-balanced'
+    | 'microservices' = 'load-balanced';
 
   console.log(
     `🎯 로컬 환경 설정: ${minServers}-${maxServers}개 서버 (중앙설정: ${centralConfig.maxServers}개, 간격: ${centralConfig.cache.updateInterval}ms)`
@@ -386,9 +395,7 @@ export function envLog(message: string, data?: any): void {
  */
 export function shouldEnableDebugLogging(): boolean {
   const config = getEnvironmentConfig();
-  return (
-    config.IS_DEVELOPMENT || process.env.DEBUG_LOGGING === 'true'
-  );
+  return config.IS_DEVELOPMENT || process.env.DEBUG_LOGGING === 'true';
 }
 
 /**
@@ -429,12 +436,16 @@ export function validateEnvironmentConfig(): {
   // 🗄️ 데이터베이스 연결 검증
   if (!config.database.supabase.enabled) {
     warnings.push('Supabase 연결이 비활성화됨');
-    recommendations.push('NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY 설정');
+    recommendations.push(
+      'NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY 설정'
+    );
   }
 
   if (!config.database.redis.enabled && config.IS_PRODUCTION) {
     warnings.push('프로덕션에서 Redis 연결이 비활성화됨');
-    recommendations.push('UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN 설정');
+    recommendations.push(
+      'UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN 설정'
+    );
   }
 
   // ⚡ 성능 설정 검증
@@ -458,7 +469,7 @@ export function validateEnvironmentConfig(): {
     isValid: errors.length === 0,
     errors,
     warnings,
-    recommendations
+    recommendations,
   };
 }
 
@@ -470,20 +481,28 @@ export function logEnvironmentStatus(): void {
   const validation = validateEnvironmentConfig();
 
   console.log('🌍 ===== 환경 설정 상태 =====');
-  console.log(`📋 NODE_ENV: ${config.IS_DEVELOPMENT ? 'development' : config.IS_PRODUCTION ? 'production' : 'test'}`);
+  console.log(
+    `📋 NODE_ENV: ${config.IS_DEVELOPMENT ? 'development' : config.IS_PRODUCTION ? 'production' : 'test'}`
+  );
   console.log(`🏷️ Platform: ${config.platform}`);
   console.log(`☁️ Vercel: ${config.IS_VERCEL ? '✅ 활성화' : '❌ 비활성화'}`);
   console.log(`🏠 Local: ${config.IS_LOCAL ? '✅ 활성화' : '❌ 비활성화'}`);
 
   console.log('\n🗄️ ===== 데이터베이스 연결 =====');
-  console.log(`📊 Supabase: ${config.database.supabase.enabled ? '✅ 연결됨' : '❌ 비활성화'}`);
-  console.log(`⚡ Redis: ${config.database.redis.enabled ? '✅ 연결됨' : '❌ 비활성화'}`);
+  console.log(
+    `📊 Supabase: ${config.database.supabase.enabled ? '✅ 연결됨' : '❌ 비활성화'}`
+  );
+  console.log(
+    `⚡ Redis: ${config.database.redis.enabled ? '✅ 연결됨' : '❌ 비활성화'}`
+  );
 
   console.log('\n🎛️ ===== 기능 상태 =====');
   console.log(`🧠 AI: ${config.features.enableAI ? '✅' : '❌'}`);
   console.log(`📊 실시간: ${config.features.enableRealtime ? '✅' : '❌'}`);
   console.log(`🔌 WebSocket: ${config.features.enableWebSocket ? '✅' : '❌'}`);
-  console.log(`🎭 목업 데이터: ${config.features.enableMockData ? '✅' : '❌'}`);
+  console.log(
+    `🎭 목업 데이터: ${config.features.enableMockData ? '✅' : '❌'}`
+  );
 
   console.log('\n⚡ ===== 성능 설정 =====');
   console.log(`💾 최대 메모리: ${config.performance.maxMemory}MB`);
