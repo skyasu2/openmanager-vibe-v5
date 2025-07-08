@@ -246,34 +246,57 @@ export class EdgeStateManager {
 export function isEdgeRuntime(): boolean {
   // Vercel Edge Runtime 환경 감지
   return (
-    typeof globalThis !== 'undefined' &&
-    (globalThis as any).EdgeRuntime === 'vercel'
+    (typeof globalThis !== 'undefined' &&
+      (globalThis as any).EdgeRuntime === 'vercel') ||
+    (typeof process !== 'undefined' &&
+      process.env.VERCEL_ENV !== undefined &&
+      typeof window === 'undefined')
   );
 }
 
-// Edge Runtime 호환 검사
+// Edge Runtime 호환 검사 (정적 검사로 변경)
 export function checkEdgeCompatibility() {
-  const incompatibleModules: string[] = [];
+  const isEdge = isEdgeRuntime();
+  const hasWindow = typeof window !== 'undefined';
+  const hasProcess = typeof process !== 'undefined';
+  const hasGlobal = typeof global !== 'undefined';
+  const hasBuffer = typeof Buffer !== 'undefined';
 
-  // Node.js 고유 모듈들 검사
-  const nodeModules = ['fs', 'path', 'os', 'crypto', 'stream', 'net', 'dns'];
+  // Edge Runtime에서 사용 가능한 기능들
+  const edgeFeatures = {
+    fetch: typeof fetch !== 'undefined',
+    crypto:
+      typeof crypto !== 'undefined' ||
+      (typeof globalThis !== 'undefined' && globalThis.crypto),
+    performance: typeof performance !== 'undefined',
+    console: typeof console !== 'undefined',
+    URL: typeof URL !== 'undefined',
+    URLSearchParams: typeof URLSearchParams !== 'undefined',
+    TextEncoder: typeof TextEncoder !== 'undefined',
+    TextDecoder: typeof TextDecoder !== 'undefined',
+    AbortController: typeof AbortController !== 'undefined',
+    ReadableStream: typeof ReadableStream !== 'undefined',
+    WritableStream: typeof WritableStream !== 'undefined',
+    TransformStream: typeof TransformStream !== 'undefined',
+  };
 
-  nodeModules.forEach(module => {
-    try {
-      // Edge Runtime에서는 require/import가 실패해야 함
-      if (typeof require !== 'undefined') {
-        require(module);
-        incompatibleModules.push(module);
-      }
-    } catch {
-      // Edge Runtime에서는 정상적으로 실패해야 함
-    }
-  });
+  // 환경 정보
+  const environment = {
+    isEdge,
+    hasWindow,
+    hasProcess,
+    hasGlobal,
+    hasBuffer,
+    userAgent: hasWindow ? (window as any).navigator?.userAgent : undefined,
+    nodeVersion: hasProcess ? process.version : undefined,
+    platform: hasProcess ? process.platform : undefined,
+  };
 
   return {
-    isEdge: isEdgeRuntime(),
-    incompatibleModules,
-    compatible: incompatibleModules.length === 0,
+    isEdge,
+    environment,
+    edgeFeatures,
+    compatible: isEdge ? Object.values(edgeFeatures).every(Boolean) : true,
   };
 }
 

@@ -7,17 +7,21 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
 import { getSession, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
+// 🚫 정적 생성 완전 비활성화 (동적 렌더링만 사용)
+export const dynamic = 'force-dynamic';
 
 export default function NextAuthSignInPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     // 이미 로그인된 사용자인지 확인
     checkExistingSession();
   }, []);
@@ -78,16 +82,20 @@ export default function NextAuthSignInPage() {
     router.push('/login');
   };
 
+  // 클라이언트 렌더링이 준비되지 않았으면 로딩 표시
+  if (!isClient) {
+    return (
+      <div className='min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center'>
+        <div className='text-white'>Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className='min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4'>
       <div className='w-full max-w-md'>
         {/* 헤더 */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className='text-center mb-8'
-        >
+        <div className='text-center mb-8'>
           <div className='w-16 h-16 bg-gradient-to-r from-gray-700 to-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-4'>
             <svg
               className='w-8 h-8 text-white'
@@ -103,22 +111,13 @@ export default function NextAuthSignInPage() {
           </div>
           <h1 className='text-2xl font-bold text-white mb-2'>GitHub OAuth</h1>
           <p className='text-gray-400'>NextAuth 기반 GitHub 로그인</p>
-        </motion.div>
+        </div>
 
         {/* 로그인 폼 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className='bg-gray-800 rounded-xl p-8 shadow-2xl border border-gray-700 space-y-6'
-        >
+        <div className='bg-gray-800 rounded-xl p-8 shadow-2xl border border-gray-700 space-y-6'>
           {/* 에러 메시지 */}
           {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className='bg-red-900/50 border border-red-700 rounded-lg p-4'
-            >
+            <div className='bg-red-900/50 border border-red-700 rounded-lg p-4'>
               <div className='flex'>
                 <svg
                   className='h-5 w-5 text-red-400'
@@ -135,15 +134,11 @@ export default function NextAuthSignInPage() {
                   <p className='text-sm text-red-300'>{error}</p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* GitHub 로그인 버튼 */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4, duration: 0.4 }}
-          >
+          <div>
             <button
               onClick={handleGitHubLogin}
               disabled={isLoading}
@@ -171,36 +166,26 @@ export default function NextAuthSignInPage() {
                 </>
               )}
             </button>
-          </motion.div>
+          </div>
 
           {/* 기존 로그인 페이지로 돌아가기 */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6, duration: 0.4 }}
-          >
+          <div>
             <button
               onClick={handleBackToMainLogin}
               className='w-full flex justify-center py-3 px-4 border border-gray-600 text-sm font-medium rounded-lg text-gray-300 bg-transparent hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200'
             >
               메인 로그인 페이지로 돌아가기
             </button>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* 정보 표시 */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
-          className='text-center mt-8'
-        >
+        <div className='text-center mt-8'>
           <div className='text-xs text-gray-500 space-y-1'>
             <p>🔐 NextAuth 기반 GitHub OAuth</p>
             <p>🔒 안전한 JWT 토큰 기반 인증</p>
-            <p>OpenManager Vibe v5.44.3</p>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

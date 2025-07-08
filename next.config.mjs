@@ -1,4 +1,3 @@
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     // 🚀 Next.js 15 완전 동적 모드 (정적 생성 완전 비활성화)
@@ -8,12 +7,12 @@ const nextConfig = {
     // Pages Router 완전 비활성화 (App Router만 사용)
     pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
 
-    // 🚫 정적 생성 에러 방지 설정 (빌드 에러 무시)
+    // 🔧 빌드 검사 활성화 (안정성 향상)
     typescript: {
-        ignoreBuildErrors: true,
+        ignoreBuildErrors: false,
     },
     eslint: {
-        ignoreDuringBuilds: true,
+        ignoreDuringBuilds: false,
     },
 
     // 서버 외부 패키지 설정 (Next.js 15 통합 방식)
@@ -119,7 +118,7 @@ const nextConfig = {
         ];
     },
 
-    // 🔧 웹팩 설정 (단순화된 설정)
+    // 🔧 웹팩 설정 (Edge Runtime 호환성 향상)
     webpack: (config, { isServer }) => {
         // 클라이언트 사이드에서 Node.js 모듈 사용 방지
         if (!isServer) {
@@ -131,6 +130,14 @@ const nextConfig = {
                 crypto: false,
             };
         }
+
+        // 동적 import 경고 억제
+        config.ignoreWarnings = [
+            /Critical dependency: the request of a dependency is an expression/,
+            /Module not found: Can't resolve 'fs'/,
+            /Module not found: Can't resolve 'net'/,
+            /Module not found: Can't resolve 'tls'/,
+        ];
 
         return config;
     },

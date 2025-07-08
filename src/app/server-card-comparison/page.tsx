@@ -9,6 +9,9 @@
  * - 3가지 배리언트 지원: compact, standard, detailed
  */
 
+// 🚫 정적 생성 완전 비활성화 (동적 렌더링만 사용)
+export const dynamic = 'force-dynamic';
+
 import { calculateOptimalCollectionInterval } from '@/config/serverConfig';
 import {
   AlertCircle,
@@ -26,6 +29,11 @@ const ServerCardComparisonPage = () => {
     'compact' | 'standard' | 'detailed'
   >('compact');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // 샘플 서버 데이터
   const sampleServers: Server[] = [
@@ -124,6 +132,8 @@ const ServerCardComparisonPage = () => {
   };
 
   useEffect(() => {
+    if (!isClient) return;
+
     // 🎯 데이터 수집 간격과 동기화
     // 🚨 무료 티어 절약: 데이터 새로고침 간격 5-10분
     const interval = setInterval(
@@ -131,7 +141,7 @@ const ServerCardComparisonPage = () => {
       calculateOptimalCollectionInterval()
     );
     return () => clearInterval(interval);
-  }, []);
+  }, [isClient]);
 
   const improvements = [
     {
@@ -165,6 +175,15 @@ const ServerCardComparisonPage = () => {
       details: '모든 사용자가 편리하게 사용 가능',
     },
   ];
+
+  // 클라이언트 렌더링이 준비되지 않았으면 로딩 표시
+  if (!isClient) {
+    return (
+      <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
+        <div className='text-gray-600'>Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className='min-h-screen bg-gray-50 py-8 px-4'>
