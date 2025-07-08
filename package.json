@@ -191,6 +191,10 @@
       "last 1 safari version"
     ]
   },
+  "overrides": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/your-username/openmanager-vibe-v5.git"
