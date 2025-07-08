@@ -1,19 +1,20 @@
 /**
- * 🔄 AI 폴백 모드 API 엔드포인트
+ * 🔄 AI 폴백 모드 API 엔드포인트 (ThreeTierAIRouter 통합)
  *
- * 2가지 모드별 폴백 전략 테스트:
- * - LOCAL: 룰기반 → RAG → MCP (Google AI 제외)
- * - GOOGLE_ONLY: Google AI 우선 → 나머지 AI 도구들
+ * 3-Tier 폴백 전략:
+ * - Local → GCP → Google AI
+ * - 성능, 비용, 안정성 전략 지원
  */
 
-import { FallbackModeManager } from '@/core/ai/managers/FallbackModeManager';
+import { ThreeTierAIRouter } from '@/services/ai/ThreeTierAIRouter';
+import { AIRequest } from '@/types/ai-types';
 import { NextRequest, NextResponse } from 'next/server';
 
 // 타입 정의
-type AIFallbackMode = 'LOCAL' | 'GOOGLE_ONLY';
+type AIFallbackStrategy = 'performance' | 'cost' | 'reliability';
 
-// FallbackModeManager 인스턴스
-const fallbackManager = FallbackModeManager.getInstance();
+// ThreeTierAIRouter 인스턴스
+const threeTierRouter = ThreeTierAIRouter.getInstance();
 
 // GET: 현재 모드 및 통계 조회
 export async function GET(request: NextRequest) {
@@ -23,26 +24,32 @@ export async function GET(request: NextRequest) {
 
     switch (action) {
       case 'status':
+        const stats = await threeTierRouter.getStats();
         return NextResponse.json({
           success: true,
-          currentMode: 'LOCAL', // 기본값
-          modeStats: {},
+          currentStrategy: process.env.THREE_TIER_STRATEGY || 'performance',
+          tierStats: stats,
           timestamp: new Date().toISOString(),
         });
 
-      case 'modes':
+      case 'strategies':
         return NextResponse.json({
           success: true,
-          availableModes: [
+          availableStrategies: [
             {
-              mode: 'LOCAL',
-              description: '룰기반 → RAG → MCP (Google AI 제외)',
-              priority: ['rule_based', 'rag', 'mcp'],
+              strategy: 'performance',
+              description: '성능 우선: Local → GCP → Google AI',
+              priority: ['local', 'gcp', 'google'],
             },
             {
-              mode: 'GOOGLE_ONLY',
-              description: 'Google AI 우선 → 나머지 AI 도구들',
-              priority: ['google_ai', 'other_ai_tools'],
+              strategy: 'cost',
+              description: '비용 우선: Local → GCP → Google AI (비용 최적화)',
+              priority: ['local', 'gcp', 'google'],
+            },
+            {
+              strategy: 'reliability',
+              description: '안정성 우선: GCP → Local → Google AI',
+              priority: ['gcp', 'local', 'google'],
             },
           ],
         });
@@ -50,11 +57,11 @@ export async function GET(request: NextRequest) {
       default:
         return NextResponse.json({
           success: true,
-          message: '폴백 모드 API',
+          message: '3-Tier AI 폴백 API',
           endpoints: {
-            'GET ?action=status': '현재 모드 및 통계',
-            'GET ?action=modes': '사용 가능한 모드 목록',
-            POST: '모드 설정 또는 질의 처리',
+            'GET ?action=status': '현재 전략 및 통계',
+            'GET ?action=strategies': '사용 가능한 전략 목록',
+            POST: '전략 설정 또는 질의 처리',
           },
         });
     }
@@ -74,25 +81,28 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, mode, query, context } = body;
+    const { action, strategy, query, context } = body;
 
     switch (action) {
-      case 'setMode':
-        if (!mode || !['LOCAL', 'GOOGLE_ONLY'].includes(mode)) {
+      case 'setStrategy':
+        if (!strategy || !['performance', 'cost', 'reliability'].includes(strategy)) {
           return NextResponse.json(
             {
               success: false,
               error:
-                '유효하지 않은 모드입니다. LOCAL, GOOGLE_ONLY 중 선택하세요.',
+                '유효하지 않은 전략입니다. performance, cost, reliability 중 선택하세요.',
             },
             { status: 400 }
           );
         }
 
+        // 환경 변수 업데이트 (실제로는 설정 파일이나 데이터베이스에 저장)
+        process.env.THREE_TIER_STRATEGY = strategy;
+
         return NextResponse.json({
           success: true,
-          message: `폴백 모드가 ${mode}로 변경되었습니다.`,
-          currentMode: mode,
+          message: `3-Tier 전략이 ${strategy}로 변경되었습니다.`,
+          currentStrategy: strategy,
           timestamp: new Date().toISOString(),
         });
 
@@ -107,24 +117,26 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // 실제 폴백 매니저를 사용한 처리
-        const response = await fallbackManager.executeWithFallback(
+        // ThreeTierAIRouter를 사용한 처리
+        const aiRequest: AIRequest = {
           query,
-          undefined,
-          context
-        );
+          mode: 'auto',
+          context,
+        };
+
+        const response = await threeTierRouter.processQuery(aiRequest);
 
         return NextResponse.json({
           success: response.success,
           query,
-          mode: response.mode,
+          strategy: process.env.THREE_TIER_STRATEGY || 'performance',
           response: {
             content: response.response,
             confidence: response.confidence,
-            fallbacksUsed: response.fallbacksUsed,
-            mcpContextUsed: response.mcpContextUsed,
+            tier: response.metadata?.tier,
+            fallbackUsed: response.metadata?.fallbackUsed,
           },
-          processingTime: response.totalTime,
+          processingTime: response.processingTime,
           timestamp: new Date().toISOString(),
         });
 
@@ -133,7 +145,7 @@ export async function POST(request: NextRequest) {
           {
             success: false,
             error:
-              '지원하지 않는 액션입니다. setMode 또는 processQuery를 사용하세요.',
+              '지원하지 않는 액션입니다. setStrategy 또는 processQuery를 사용하세요.',
           },
           { status: 400 }
         );

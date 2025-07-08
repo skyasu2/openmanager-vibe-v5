@@ -1,0 +1,29 @@
+{
+    "name": "openmanager-ai-gateway",
+    "version": "1.0.0",
+    "description": "AI Gateway Function - 베르셀 요청을 GCP Functions로 라우팅",
+    "main": "index.js",
+    "scripts": {
+        "start": "functions-framework --target=ai-gateway",
+        "deploy": "gcloud functions deploy ai-gateway --runtime nodejs18 --trigger-http --allow-unauthenticated --memory 256MB --timeout 60s --region asia-northeast3",
+        "deploy:health": "gcloud functions deploy ai-gateway-health --runtime nodejs18 --trigger-http --allow-unauthenticated --memory 128MB --timeout 10s --region asia-northeast3",
+        "logs": "gcloud functions logs read ai-gateway --region asia-northeast3",
+        "test": "node test.js"
+    },
+    "dependencies": {
+        "@google-cloud/functions-framework": "^3.3.0"
+    },
+    "devDependencies": {
+        "nodemon": "^3.0.1"
+    },
+    "engines": {
+        "node": "18"
+    },
+    "keywords": [
+        "ai",
+        "gateway",
+        "gcp",
+        "functions",
+        "openmanager"
+    ]
+}

@@ -13,6 +13,7 @@ import { getVercelConfig } from '@/config/vercel-edge-config';
 import { edgeRuntimeService } from '@/lib/edge-runtime-utils';
 import { AIRequest, AIResponse } from '@/types/ai-types';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { supabaseAILogger } from './logging/SupabaseAILogger';
 
 // Edge Runtime 설정
 const vercelConfig = getVercelConfig();
@@ -156,6 +157,7 @@ export class RequestScopedGoogleAIService {
   async processQuery(request: AIRequest): Promise<AIResponse> {
     const requestId = `google_${++this.requestCount}_${Date.now()}`;
     const timer = performance.startTimer('google-ai-query');
+    const sessionId = request.sessionId || requestId;
 
     logger.info(`🔄 요청별 Google AI 쿼리 처리: ${requestId}`, {
       query: request.query?.substring(0, 100),
@@ -177,6 +179,10 @@ export class RequestScopedGoogleAIService {
       const cached = cache.get(cacheKey);
       if (cached) {
         logger.info(`📋 Google AI 캐시 응답: ${requestId}`);
+
+        // 🗄️ 캐시 응답도 로그에 저장
+        await this.logAIQuery(sessionId, request.query || '', cached.response, 'google-ai-cached', cached.processingTime || 0, cached.confidence || 0);
+
         return cached;
       }
 
@@ -225,6 +231,9 @@ export class RequestScopedGoogleAIService {
       // 캐시에 저장
       cache.set(cacheKey, response, 300000); // 5분 캐시
 
+      // 🗄️ AI 질의 로그 저장 (Supabase)
+      await this.logAIQuery(sessionId, request.query || '', text, 'google-ai', googleDuration, confidence, request.context);
+
       const totalDuration = timer();
       logger.info(`✅ 요청별 Google AI 응답 완료: ${totalDuration.toFixed(2)}ms`);
 
@@ -232,6 +241,9 @@ export class RequestScopedGoogleAIService {
     } catch (error) {
       const duration = timer();
       logger.error(`❌ 요청별 Google AI 처리 실패: ${duration.toFixed(2)}ms`, error);
+
+      // 🗄️ 오류도 로그에 저장
+      await this.logAIQuery(sessionId, request.query || '', `오류: ${error instanceof Error ? error.message : 'Unknown error'}`, 'google-ai-error', duration, 0);
 
       return {
         success: false,
@@ -348,6 +360,103 @@ export class RequestScopedGoogleAIService {
    */
   cleanup(): void {
     console.warn('⚠️ Google AI 정리 무시됨 - 서버리스에서는 자동 정리');
+  }
+
+  /**
+   * 🗄️ AI 질의 로그 저장 (Supabase)
+   */
+  private async logAIQuery(
+    sessionId: string,
+    query: string,
+    response: string,
+    engine: string,
+    processingTime: number,
+    confidence: number,
+    context?: any
+  ): Promise<void> {
+    try {
+      // 의도 분류
+      const intent = this.classifyIntent(query);
+      const category = this.classifyCategory(query);
+
+      await supabaseAILogger.logQuery({
+        session_id: sessionId,
+        query: query.substring(0, 1000), // 긴 질의 제한
+        response: response.substring(0, 2000), // 긴 응답 제한
+        engine_used: engine,
+        mode: 'GOOGLE_ONLY',
+        confidence: confidence,
+        processing_time: Math.round(processingTime),
+        user_intent: intent,
+        category: category,
+        language: 'ko',
+        token_count: this.estimateTokenCount(query + response),
+        cost_estimate: this.estimateCost(query + response)
+      });
+    } catch (error) {
+      logger.warn('⚠️ AI 로그 저장 실패 (무시하고 계속 진행):', error);
+    }
+  }
+
+  /**
+   * 🎯 사용자 의도 분류
+   */
+  private classifyIntent(query: string): string {
+    const intentPatterns = {
+      'monitoring': ['상태', '모니터링', '확인', '현황'],
+      'analysis': ['분석', '원인', '이유', '왜'],
+      'prediction': ['예측', '예상', '미래', '앞으로'],
+      'optimization': ['최적화', '개선', '향상', '효율'],
+      'troubleshooting': ['문제', '오류', '장애', '해결']
+    };
+
+    for (const [intent, patterns] of Object.entries(intentPatterns)) {
+      if (patterns.some(pattern => query.includes(pattern))) {
+        return intent;
+      }
+    }
+
+    return 'general';
+  }
+
+  /**
+   * 📊 카테고리 분류
+   */
+  private classifyCategory(query: string): string {
+    const categoryPatterns = {
+      'server': ['서버', '서버', '인스턴스'],
+      'database': ['데이터베이스', 'DB', '쿼리'],
+      'network': ['네트워크', '통신', '연결'],
+      'performance': ['성능', '속도', '응답시간'],
+      'security': ['보안', '인증', '권한'],
+      'logs': ['로그', '기록', '이벤트']
+    };
+
+    for (const [category, patterns] of Object.entries(categoryPatterns)) {
+      if (patterns.some(pattern => query.includes(pattern))) {
+        return category;
+      }
+    }
+
+    return 'general';
+  }
+
+  /**
+   * 🔢 토큰 수 추정
+   */
+  private estimateTokenCount(text: string): number {
+    // 한글 기준 대략적인 토큰 수 계산
+    return Math.ceil(text.length / 3);
+  }
+
+  /**
+   * 💰 비용 추정
+   */
+  private estimateCost(text: string): number {
+    const tokenCount = this.estimateTokenCount(text);
+    // Google AI 가격 기준 (대략적)
+    const costPerToken = 0.00001; // $0.00001 per token
+    return tokenCount * costPerToken;
   }
 }
 

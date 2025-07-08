@@ -4,8 +4,8 @@
  * 실제 AI 엔진들의 처리 과정을 추적하고 시각화를 위한 데이터를 제공
  */
 
-import { EventEmitter } from 'events';
 import { AgentLog } from '@/stores/useAISidebarStore';
+import { EventEmitter } from 'events';
 
 export interface EnhancedThinkingStep {
     id: string;
@@ -340,26 +340,16 @@ export class EnhancedThinkingService extends EventEmitter {
     }
 
     /**
-     * 단계 폴백 처리
+     * 단계 폴백 처리 (단순화됨 - ThreeTierAIRouter가 전체 폴백 담당)
      */
     private handleStepFallback(sessionId: string, timeoutStep: EnhancedThinkingStep): void {
-        // 타임아웃된 엔진에서 다른 엔진으로 폴백
-        const fallbackEngines: Record<string, string> = {
-            'MCP': 'Local',
-            'Google-AI': 'RAG',
-            'RAG': 'Unified',
-            'Unified': 'Local',
-            'Local': 'Local' // 최종 폴백
-        };
-
-        const fallbackEngine = fallbackEngines[timeoutStep.engine] || 'Local';
-
-        // 폴백 단계 추가
+        // 간단한 폴백 메시지만 추가 (전체 폴백은 ThreeTierAIRouter에서 처리)
         this.addThinkingStep(
             sessionId,
-            fallbackEngine,
-            timeoutStep.type,
-            `${timeoutStep.engine} 엔진 타임아웃으로 ${fallbackEngine} 엔진으로 전환하여 처리합니다.`
+            'System',
+            'processing',
+            `${timeoutStep.engine} 엔진에서 타임아웃이 발생했습니다. 다른 방법으로 처리합니다.`,
+            0.8
         );
     }
 

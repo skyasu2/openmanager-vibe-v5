@@ -11,11 +11,12 @@
 // ==============================================
 
 /**
- * 자연어 처리 AI 모드 (2-Mode System)
+ * 자연어 처리 AI 모드 (3-Mode System + auto)
  * - LOCAL: 로컬 AI 엔진들만 사용 (기본값)
  * - GOOGLE_ONLY: Google AI만 사용 (자연어 처리에서만 사용자 선택)
+ * - auto: 자동 모드 선택
  */
-export type AIMode = 'LOCAL' | 'GOOGLE_ONLY';
+export type AIMode = 'LOCAL' | 'GOOGLE_ONLY' | 'auto';
 
 /**
  * AI 엔진 타입 정의
@@ -68,6 +69,9 @@ export interface AIRequest {
   priority?: Priority;
   timeout?: number;
   enableFallback?: boolean;
+  // 추가 프로퍼티
+  engineType?: string;
+  sessionId?: string;
 }
 
 export interface AIResponse {
@@ -84,6 +88,10 @@ export interface AIResponse {
   performance?: PerformanceMetrics;
   error?: string;
   warnings?: string[];
+  // 추가 프로퍼티
+  engine?: string;
+  sources?: string[];
+  suggestions?: string[];
 }
 
 export interface AIResponseMetadata {
@@ -107,6 +115,11 @@ export interface AIResponseMetadata {
   vercelPlan?: string;
   nlpUsed?: boolean;
   mcpUsed?: boolean;
+  // ThreeTierAIRouter 관련 프로퍼티
+  tier?: 'local' | 'gcp' | 'google';
+  fallbackUsed?: boolean;
+  threeTierRouter?: boolean;
+  totalProcessingTime?: number;
 }
 
 export interface PerformanceMetrics {

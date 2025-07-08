@@ -55,7 +55,13 @@
     "health:check": "curl -f http://localhost:3000/api/health || exit 1",
     "health:test": "node scripts/health-test.js",
     "time:kst": "node -e \"console.log('🕒 한국시간:', new Date().toLocaleString('ko-KR', {timeZone: 'Asia/Seoul'}) + ' (KST)')\"",
-    "time:commit": "node -e \"console.log('커밋시간:', '(' + new Date().toLocaleString('sv-SE', {timeZone: 'Asia/Seoul'}).substring(0, 16) + ' KST)')\""
+    "time:commit": "node -e \"console.log('커밋시간:', '(' + new Date().toLocaleString('sv-SE', {timeZone: 'Asia/Seoul'}).substring(0, 16) + ' KST)')\"",
+    "gcp:monitor": "node scripts/gcp-quota-monitor.js monitor",
+    "gcp:optimize": "node scripts/gcp-quota-monitor.js optimize",
+    "gcp:check": "node scripts/gcp-quota-monitor.js check",
+    "gcp:alert": "node scripts/gcp-quota-alert.js",
+    "gcp:console": "node scripts/gcp-console-helper.js",
+    "gcp:quota-report": "node scripts/gcp-quota-report.js"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

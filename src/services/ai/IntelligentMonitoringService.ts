@@ -696,52 +696,35 @@ export class IntelligentMonitoringService {
   }
 
   /**
-   * 🔄 폴백 원인 생성 (완전 오프라인 모드)
+   * 🔄 기본 원인 생성 (AI 엔진 실패 시 기본 분석)
    */
   private generateFallbackCauses(anomalies: any[]): RootCause[] {
-    const fallbackCauses: RootCause[] = [
-      {
-        id: 'fallback_system_load',
+    if (anomalies.length === 0) {
+      return [{
+        id: 'no_issues_detected',
         category: 'system',
-        description: '시스템 부하 증가로 인한 성능 저하',
-        probability: 0.7,
-        evidence: ['다수의 시스템 메트릭 이상 감지'],
-        aiEngine: 'FallbackAnalysis',
-        recommendations: [
-          '시스템 리소스 모니터링 강화',
-          '부하 분산 설정 검토',
-          '불필요한 프로세스 정리',
-        ],
-      },
-      {
-        id: 'fallback_network_latency',
-        category: 'network',
-        description: '네트워크 지연으로 인한 응답 시간 증가',
-        probability: 0.6,
-        evidence: ['응답 시간 관련 메트릭 이상'],
-        aiEngine: 'FallbackAnalysis',
-        recommendations: [
-          '네트워크 연결 상태 점검',
-          'CDN 설정 최적화',
-          '외부 API 의존성 검토',
-        ],
-      },
-      {
-        id: 'fallback_resource_exhaustion',
-        category: 'infrastructure',
-        description: '시스템 리소스 고갈 위험',
-        probability: 0.5,
-        evidence: ['리소스 사용률 임계치 근접'],
-        aiEngine: 'FallbackAnalysis',
-        recommendations: [
-          '용량 계획 수립',
-          '자동 스케일링 설정',
-          '리소스 사용 최적화',
-        ],
-      },
-    ];
+        description: '현재 특별한 문제가 감지되지 않았습니다',
+        probability: 0.9,
+        evidence: ['정상 메트릭 범위 내 동작'],
+        aiEngine: 'BasicAnalysis',
+        recommendations: ['정기적인 모니터링 유지'],
+      }];
+    }
 
-    return fallbackCauses;
+    // 이상 징후가 있을 경우 간단한 기본 원인 제공
+    return [{
+      id: 'general_system_issue',
+      category: 'system',
+      description: `${anomalies.length}개의 시스템 이상 징후가 감지되었습니다`,
+      probability: 0.6,
+      evidence: ['시스템 메트릭 이상'],
+      aiEngine: 'BasicAnalysis',
+      recommendations: [
+        '시스템 상태 점검',
+        '로그 파일 확인',
+        '리소스 사용량 모니터링'
+      ],
+    }];
   }
 
   /**

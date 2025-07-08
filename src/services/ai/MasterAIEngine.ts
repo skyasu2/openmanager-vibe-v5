@@ -11,20 +11,17 @@
  * - Vercel 무료 티어 최적화 (실제 동작 유지)
  */
 
-import { OpenSourceEngines } from './engines/OpenSourceEngines';
-import { CustomEngines } from './engines/CustomEngines';
-import {
-  AIThinkingStep,
-  AIResponseFormat,
-  ThinkingProcessState,
-} from '../../types/ai-thinking';
 import { AI_ENGINE_VERSIONS, VersionManager } from '../../config/versions';
 import {
-  correlationEngine,
-  CorrelationInsights,
+  AIThinkingStep
+} from '../../types/ai-thinking';
+import { PerformanceMonitor } from '../../utils/performance-monitor';
+import {
+  correlationEngine
 } from './engines/CorrelationEngine';
-import { PerformanceMonitor, perf } from '../../utils/performance-monitor';
-import { aiLogger, LogLevel, LogCategory } from './logging/AILogger';
+import { CustomEngines } from './engines/CustomEngines';
+import { OpenSourceEngines } from './engines/OpenSourceEngines';
+import { aiLogger, LogCategory, LogLevel } from './logging/AILogger';
 
 // 🚀 Vercel 최적화 설정 (실제 동작 유지)
 const VERCEL_OPTIMIZATION = {
@@ -37,18 +34,18 @@ const VERCEL_OPTIMIZATION = {
 
 export interface AIEngineRequest {
   engine:
-    | 'anomaly'
-    | 'prediction'
-    | 'autoscaling'
-    | 'korean'
-    | 'enhanced'
-    | 'integrated'
-    | 'mcp'
-    | 'mcp-test'
-    | 'hybrid'
-    | 'unified'
-    | 'custom-nlp'
-    | 'correlation';
+  | 'anomaly'
+  | 'prediction'
+  | 'autoscaling'
+  | 'korean'
+  | 'enhanced'
+  | 'integrated'
+  | 'mcp'
+  | 'mcp-test'
+  | 'hybrid'
+  | 'unified'
+  | 'custom-nlp'
+  | 'correlation';
   query: string;
   data?: any;
   context?: any;
@@ -222,20 +219,20 @@ export class MasterAIEngine {
     try {
       // 🚀 Vercel 최적화: 타임아웃과 함께 실제 엔진 실행
       const queryPromise = this.executeActualQuery(request, thinkingSteps, enableThinking);
-      
+
       if (VERCEL_OPTIMIZATION.isVercel) {
         // Vercel 환경에서는 타임아웃 적용
         const timeoutPromise = new Promise<never>((_, reject) => {
           setTimeout(() => reject(new Error('AI Engine Timeout')), timeout);
         });
-        
+
         const result = await Promise.race([queryPromise, timeoutPromise]);
         return result;
       } else {
         // 개발 환경에서는 타임아웃 없이 실행
         return await queryPromise;
       }
-      
+
     } catch (error) {
       // 에러 발생 시 폴백 처리
       return await this.handleQueryError(request, error as Error, startTime, thinkingSteps);
@@ -246,8 +243,8 @@ export class MasterAIEngine {
    * 🎯 실제 쿼리 실행 (원본 로직 복원)
    */
   private async executeActualQuery(
-    request: AIEngineRequest, 
-    thinkingSteps: AIThinkingStep[], 
+    request: AIEngineRequest,
+    thinkingSteps: AIThinkingStep[],
     enableThinking: boolean
   ): Promise<AIEngineResponse> {
     const startTime = Date.now();
@@ -472,78 +469,31 @@ export class MasterAIEngine {
   }
 
   /**
-   * 🔄 폴백 처리
+   * 🔄 간단한 엔진 폴백 처리 (ThreeTierAIRouter가 전체 폴백 담당)
    */
   private async handleFallback(
     request: AIEngineRequest,
     originalError: any
   ): Promise<any> {
-    console.log(`🔄 ${request.engine} 폴백 처리 시작...`);
+    console.log(`🔄 ${request.engine} 엔진 기본 폴백...`);
 
-    try {
-      // 엔진별 폴백 전략
-      switch (request.engine) {
-        case 'mcp':
-          // MCP 실패 시 오픈소스 NLP로 폴백
-          return await this.openSourceEngines.advancedNLP(request.query);
+    // 간단한 기본 응답만 제공 (전체 폴백은 ThreeTierAIRouter에서 처리)
+    const basicResponse = {
+      answer: `${request.engine} 엔진에서 일시적인 오류가 발생했습니다.`,
+      confidence: 0.1,
+      fallback: true,
+      engine: request.engine,
+      query: request.query,
+    };
 
-        case 'prediction':
-          // 예측 실패 시 단순 추세 분석으로 폴백
-          return {
-            predictions: Array.isArray(request.data)
-              ? [request.data[request.data.length - 1]]
-              : [0],
-            confidence: 0.3,
-            timeframe: 'fallback',
-            factors: ['simple_trend'],
-          };
+    await aiLogger.logError(
+      `${request.engine}_fallback`,
+      this.getLogCategory(request.engine),
+      originalError as Error,
+      { query: request.query }
+    );
 
-        case 'anomaly':
-          // 이상 탐지 실패 시 기본 통계로 폴백
-          return {
-            isAnomaly: false,
-            score: 0,
-            threshold: 2.0,
-            confidence: 0.1,
-          };
-
-        case 'korean':
-          // 한국어 처리 실패 시 기본 텍스트 처리로 폴백
-          return {
-            processedText: request.query,
-            keywords: request.query.split(/\s+/).slice(0, 3),
-            sentiment: 'neutral' as const,
-            similarity: 0,
-          };
-
-        case 'hybrid':
-          // 하이브리드 분석 실패 시 MCP만 사용
-          return await this.customEngines.mcpQuery(
-            request.query,
-            request.context
-          );
-
-        default:
-          // 기본 폴백: 간단한 텍스트 응답
-          return {
-            answer: `"${request.query}"에 대한 기본 응답입니다. 원래 엔진에서 오류가 발생했습니다.`,
-            confidence: 0.2,
-            fallback: true,
-            original_error:
-              originalError instanceof Error
-                ? originalError.message
-                : String(originalError),
-          };
-      }
-    } catch (fallbackError) {
-      await aiLogger.logError(
-        `${request.engine}_fallback`,
-        this.getLogCategory(request.engine),
-        fallbackError as Error,
-        { originalError: originalError, query: request.query }
-      );
-      return null;
-    }
+    return basicResponse;
   }
 
   /**

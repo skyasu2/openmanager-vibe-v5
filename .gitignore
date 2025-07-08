@@ -119,6 +119,11 @@ debug-*
 copy-*
 storybook-static/
 
+# GCP 모니터링 로그 및 리포트
+logs/gcp-*.json
+reports/gcp-quota-report-*.md
+.vscode/gcp-alerts.json
+
 # External MCP servers (cloned from GitHub)
 fetch-mcp/
 fetch-mcp-server/
