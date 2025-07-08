@@ -6,19 +6,23 @@
     "src/app/api/**/*.ts": {
       "maxDuration": 8,
       "memory": 128,
-      "runtime": "nodejs20.x"
+      "runtime": "nodejs22.x"
     },
     "src/app/api/ai/**/*.ts": {
-      "maxDuration": 45
+      "maxDuration": 45,
+      "runtime": "nodejs22.x"
     },
     "src/app/api/ai/logging/stream/route.ts": {
-      "maxDuration": 35
+      "maxDuration": 35,
+      "runtime": "nodejs22.x"
     },
     "src/app/api/data-generator/**/*.ts": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "runtime": "nodejs22.x"
     },
     "src/app/api/ai-agent/**/*.ts": {
-      "maxDuration": 45
+      "maxDuration": 45,
+      "runtime": "nodejs22.x"
     }
   },
   "headers": [
@@ -75,7 +79,9 @@
       "destination": "/api/health"
     }
   ],
-  "regions": ["icn1"],
+  "regions": [
+    "icn1"
+  ],
   "cleanUrls": true,
   "trailingSlash": false,
   "buildCommand": "npm run build",
