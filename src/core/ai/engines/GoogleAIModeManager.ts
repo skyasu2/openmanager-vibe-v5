@@ -77,7 +77,6 @@ export class GoogleAIModeManager {
       modeUsage: { LOCAL: 0, GOOGLE_ONLY: 0 },
       averageResponseTime: 0,
       successRate: 100,
-      fallbackRate: 0,
       enginePerformance: {},
     };
 
@@ -126,7 +125,7 @@ export class GoogleAIModeManager {
       return {
         success: false,
         mode: this.currentMode,
-        response: `${this.currentMode} 모드 처리 중 오류가 발생했습니다: ${error}`,
+        response: `${this.currentMode} 모드 처리 중 오류가 발생했습니다: ${error instanceof Error ? error.message : String(error)}`,
         confidence: 0,
         sources: [],
         suggestions: [
@@ -134,7 +133,7 @@ export class GoogleAIModeManager {
           '다른 모드로 재시도해보세요',
         ],
         processingTime: Date.now() - startTime,
-        fallbackUsed: true,
+        fallbackUsed: false,
         engineDetails: {
           error: error instanceof Error ? error.message : String(error),
         },
@@ -173,60 +172,67 @@ export class GoogleAIModeManager {
   }
 
   /**
-   * 🚀 GOOGLE_AI 모드: 로컬 AI + Google AI 효율적 조합
+   * 🚀 GOOGLE_ONLY 모드: Google AI 전용 (폴백 없음)
    */
   private async processGoogleAIMode(
     query: string,
     context?: any,
     priority: 'low' | 'medium' | 'high' | 'critical' = 'medium'
   ): Promise<AIEngineResult> {
-    console.log('🚀 GOOGLE_AI 모드: 로컬 AI + Google AI 조합');
+    console.log('🚀 GOOGLE_ONLY 모드: Google AI 전용 처리 (폴백 없음)');
 
     try {
-      // 1단계: Google AI 처리 시도
+      // Google AI 가용성 확인
       const googleAIAvailable = this.googleAI.isAvailable();
 
-      if (googleAIAvailable) {
-        console.log('✅ Google AI 사용 가능 - 고급 처리 진행');
-
-        const googleResponse = await this.googleAI.processQuery({
-          query: query,
-          mode: 'GOOGLE_ONLY',
-          timeout: priority === 'critical' ? 10000 : 5000,
-          context: {
-            isNaturalLanguage: true,
-            priority: priority,
-          },
-        });
-
-        if (googleResponse.success) {
-          return {
-            success: true,
-            mode: 'GOOGLE_ONLY',
-            response: googleResponse.response,
-            confidence: googleResponse.confidence || 0.9,
-            sources: ['google-ai', 'advanced-analysis'],
-            suggestions: this.extractSuggestions(googleResponse.response),
-            processingTime: googleResponse.processingTime,
-            fallbackUsed: false,
-            engineDetails: {
-              mode: 'GOOGLE_ONLY',
-              googleAIUsed: true,
-              processingTime: googleResponse.processingTime,
-              enginePath: googleResponse.enginePath,
-              fallbacksUsed: googleResponse.fallbacksUsed,
-            },
-          };
-        }
+      if (!googleAIAvailable) {
+        throw new Error(
+          'Google AI를 사용할 수 없습니다. 서비스 상태를 확인해주세요.'
+        );
       }
 
-      // 2단계: Google AI 실패 시 로컬 폴백
-      console.log('⚠️ Google AI 사용 불가 - 로컬 폴백 처리');
-      return await this.processLocalMode(query, context, priority);
+      console.log('✅ Google AI 사용 가능 - 처리 진행');
+
+      const googleResponse = await this.googleAI.processQuery({
+        query: query,
+        mode: 'GOOGLE_ONLY',
+        timeout: priority === 'critical' ? 10000 : 5000,
+        context: {
+          isNaturalLanguage: true,
+          priority: priority,
+        },
+      });
+
+      if (!googleResponse.success) {
+        throw new Error(
+          `Google AI 처리 실패: ${googleResponse.error || '알 수 없는 오류'}`
+        );
+      }
+
+      return {
+        success: true,
+        mode: 'GOOGLE_ONLY',
+        response: googleResponse.response,
+        confidence: googleResponse.confidence || 0.9,
+        sources: ['google-ai', 'advanced-analysis'],
+        suggestions: this.extractSuggestions(googleResponse.response),
+        processingTime: googleResponse.processingTime,
+        fallbackUsed: false,
+        engineDetails: {
+          mode: 'GOOGLE_ONLY',
+          googleAIUsed: true,
+          processingTime: googleResponse.processingTime,
+          enginePath: googleResponse.enginePath,
+          fallbacksUsed: googleResponse.fallbacksUsed,
+        },
+      };
     } catch (error) {
-      console.error('❌ Google AI 모드 오류:', error);
-      // 오류 시 로컬 폴백
-      return await this.processLocalMode(query, context, priority);
+      console.error('❌ GOOGLE_ONLY 모드 오류:', error);
+
+      // 폴백 없이 명확한 에러 반환
+      throw new Error(
+        `GOOGLE_ONLY 모드 실패: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -313,13 +319,6 @@ export class GoogleAIModeManager {
       (this.stats.averageResponseTime * (this.stats.totalQueries - 1) +
         processingTime) /
       this.stats.totalQueries;
-
-    // 폴백 비율 계산 (간단한 구현)
-    if (!success) {
-      this.stats.fallbackRate =
-        (this.stats.fallbackRate * (this.stats.totalQueries - 1) + 100) /
-        this.stats.totalQueries;
-    }
   }
 
   /**

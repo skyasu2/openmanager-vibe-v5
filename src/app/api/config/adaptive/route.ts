@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
       },
       ai: {
         modelSelection: 'auto',
-        fallbackEnabled: true,
+        fallbackEnabled: false,
         responseTimeout: 15000, // ms
         cacheEnabled: true,
         maxConcurrentRequests: 10,

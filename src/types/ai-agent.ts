@@ -49,7 +49,6 @@ export interface SystemHealth {
     documentsLoaded: number;
     lastSync: string;
   };
-  fallbackRate: number;
   learningCycle: {
     lastRun: string;
     nextRun: string;
@@ -71,5 +70,4 @@ export interface AIAgentStats {
   contextDocuments: number;
   totalWords: number;
   systemStatus: string;
-  fallbackRate: number;
 }

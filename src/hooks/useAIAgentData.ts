@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type {
-  ResponseLogData,
-  PatternSuggestion,
-  ContextDocument,
-  SystemHealth,
   AIAgentFilters,
   AIAgentStats,
+  ContextDocument,
+  PatternSuggestion,
+  ResponseLogData,
+  SystemHealth,
 } from '../types/ai-agent';
 
 interface UseAIAgentDataReturn {
@@ -258,7 +258,6 @@ export function useAIAgentData(): UseAIAgentDataReturn {
       contextDocuments.reduce((sum, doc) => sum + doc.wordCount, 0) / 1000
     ),
     systemStatus: systemHealth?.aiAgent.status === 'online' ? '정상' : '오류',
-    fallbackRate: (systemHealth?.fallbackRate || 0) * 100,
   };
 
   // 초기 데이터 로드
@@ -407,7 +406,6 @@ function generateMockSystemHealth(): SystemHealth {
         Date.now() - Math.random() * 60 * 60 * 1000
       ).toISOString(),
     },
-    fallbackRate: Math.random() * 0.15 + 0.02,
     learningCycle: {
       lastRun: new Date(
         Date.now() - Math.random() * 24 * 60 * 60 * 1000

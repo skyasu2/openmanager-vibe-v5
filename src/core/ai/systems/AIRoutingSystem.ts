@@ -26,7 +26,6 @@ interface AIModeConfig {
   name: AIMode;
   description: string;
   primaryEngine: string;
-  fallbackEngines: string[];
   maxProcessingTime: number;
   priority: number;
   enableCache: boolean;
@@ -34,14 +33,14 @@ interface AIModeConfig {
 }
 
 /**
- * 📋 AI 모드 설정 v2.0 (단순화)
+ * 📋 AI 모드 설정 v3.0 (폴백 제거)
+ * 각 모드는 오직 primaryEngine만 사용
  */
 const AI_MODE_CONFIGS: Record<AIMode, AIModeConfig> = {
   LOCAL: {
     name: 'LOCAL',
     description: 'Supabase RAG + Korean AI + MCP 컨텍스트 (기본값)',
     primaryEngine: 'supabase-rag',
-    fallbackEngines: ['korean-ai', 'mcp-context', 'transformers'],
     maxProcessingTime: VERCEL_OPTIMIZATION.isVercel ? 8000 : 15000,
     priority: 90, // 90% 우선순위 (기본값)
     enableCache: true,
@@ -51,7 +50,6 @@ const AI_MODE_CONFIGS: Record<AIMode, AIModeConfig> = {
     name: 'GOOGLE_ONLY',
     description: 'Google AI 전용 모드 (자연어 처리용)',
     primaryEngine: 'google-ai',
-    fallbackEngines: ['transformers', 'korean-ai'],
     maxProcessingTime: VERCEL_OPTIMIZATION.isVercel ? 8000 : 10000,
     priority: 80, // 80% Google AI 우선
     enableCache: false, // 실시간 응답 우선
@@ -247,7 +245,7 @@ export class AIRoutingSystem {
   private generateProcessingStrategy(mode: AIMode, request: AIRequest): string {
     const config = AI_MODE_CONFIGS[mode];
 
-    return `주요 엔진: ${config.primaryEngine}, 폴백: [${config.fallbackEngines.join(', ')}], 타임아웃: ${config.maxProcessingTime}ms`;
+    return `주요 엔진: ${config.primaryEngine}, 타임아웃: ${config.maxProcessingTime}ms`;
   }
 
   // 🎛️ 상태 관리 메서드들

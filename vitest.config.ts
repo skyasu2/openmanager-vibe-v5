@@ -33,6 +33,10 @@ export default defineConfig(({ mode }) => {
         'tests/health-check/**',
         'tests/monitoring/**',
         'tests/cleanup/**',
+        // 제거된 AI 모드 관련 테스트
+        'tests/integration/three-tier-router.test.ts',
+        'tests/**/auto-mode/**',
+        'tests/**/fallback-system/**',
       ],
 
       // 🎯 테스트 실행 최적화

@@ -90,7 +90,7 @@ describe('Adaptive Configuration API', () => {
         },
         ai: {
           modelSelection: 'auto',
-          fallbackEnabled: true,
+          fallbackEnabled: false,
           responseTimeout: 15000,
           cacheEnabled: true,
           maxConcurrentRequests: 10,

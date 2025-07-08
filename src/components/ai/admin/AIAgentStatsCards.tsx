@@ -1,7 +1,6 @@
-import React from 'react';
-import { Card, CardContent } from '../../ui/card';
-import { MessageSquare, Lightbulb, FileText, Activity } from 'lucide-react';
+import { Activity, FileText, Lightbulb, MessageSquare } from 'lucide-react';
 import type { AIAgentStats } from '../../../types/ai-agent';
+import { Card, CardContent } from '../../ui/card';
 
 interface AIAgentStatsCardsProps {
   stats: AIAgentStats;
@@ -76,9 +75,7 @@ export default function AIAgentStatsCards({ stats }: AIAgentStatsCardsProps) {
             </div>
             <Activity className='w-8 h-8 text-purple-500' />
           </div>
-          <p className='text-xs text-gray-500 mt-2'>
-            Fallback: {stats.fallbackRate.toFixed(1)}%
-          </p>
+          <p className='text-xs text-gray-500 mt-2'>실시간 모니터링 중</p>
         </CardContent>
       </Card>
     </div>

@@ -233,140 +233,50 @@ export class SupabaseRAGMainEngine {
     threshold: number
   ): Promise<any[]> {
     try {
-      // 로컬 임베딩 생성 (OpenAI 제거)
+      // 로컬 임베딩 생성
       const embedding = this.generateLocalEmbedding(query);
 
-      const { data, error } = await this.supabase.rpc(
-        'search_similar_commands',
-        {
-          query_embedding: embedding,
-          match_threshold: threshold,
-          match_count: maxResults,
-        }
-      );
+      // Supabase에서 벡터 검색 실행
+      const { data, error } = await this.supabase.rpc('match_commands', {
+        query_embedding: embedding,
+        match_threshold: threshold,
+        match_count: maxResults,
+      });
 
       if (error) {
-        console.warn(`⚠️ 벡터 RPC 실패, 폴백 검색 사용: ${(error as Error).message}`);
-        return this.performFallbackSearch(query, maxResults);
+        throw new Error(`벡터 검색 실패: ${error.message}`);
       }
 
       return data || [];
     } catch (error) {
-      console.warn(`⚠️ 벡터 검색 실패, 폴백 검색 사용: ${(error as Error).message}`);
-      return this.performFallbackSearch(query, maxResults);
+      console.error('❌ 벡터 검색 오류:', error);
+      throw error;
     }
   }
 
   /**
-   * 🔍 텍스트 검색 수행
+   * 🔎 텍스트 검색 수행
    */
   private async performTextSearch(
     query: string,
     maxResults: number
   ): Promise<any[]> {
     try {
-      const { data, error } = await this.supabase.rpc('search_all_commands', {
+      // Supabase RPC를 통한 전체 텍스트 검색
+      const { data, error } = await this.supabase.rpc('search_commands_text', {
         search_query: query,
         result_limit: maxResults,
       });
 
       if (error) {
-        console.warn(`⚠️ RPC 검색 실패, 폴백 검색 사용: ${(error as Error).message}`);
-        return this.performFallbackSearch(query, maxResults);
+        throw new Error(`텍스트 검색 실패: ${error.message}`);
       }
 
       return data || [];
     } catch (error) {
-      console.warn(`⚠️ 텍스트 검색 실패, 폴백 검색 사용: ${(error as Error).message}`);
-      return this.performFallbackSearch(query, maxResults);
+      console.error('❌ 텍스트 검색 오류:', error);
+      throw error;
     }
-  }
-
-  /**
-   * 🔄 폴백 검색 (RPC 실패시 기본 테이블 검색)
-   */
-  private async performFallbackSearch(
-    query: string,
-    maxResults: number
-  ): Promise<any[]> {
-    try {
-      // 기본 테이블에서 직접 검색
-      const { data, error } = await this.supabase
-        .from('rag_commands')
-        .select('id, command, description, category')
-        .or(`command.ilike.%${query}%,description.ilike.%${query}%`)
-        .limit(maxResults);
-
-      if (error) {
-        console.warn(`⚠️ 폴백 검색도 실패, 목업 데이터 사용: ${(error as Error).message}`);
-        return this.generateMockResults(query, maxResults);
-      }
-
-      return data || [];
-    } catch (error) {
-      console.warn(`⚠️ 폴백 검색 실패, 목업 데이터 사용: ${(error as Error).message}`);
-      return this.generateMockResults(query, maxResults);
-    }
-  }
-
-  /**
-   * 🎭 목업 검색 결과 생성 (최종 폴백)
-   */
-  private generateMockResults(query: string, maxResults: number): any[] {
-    const mockCommands = [
-      {
-        id: 1,
-        command: 'ps aux',
-        description: '실행 중인 프로세스 목록 확인',
-        category: 'system',
-        similarity: 0.8,
-      },
-      {
-        id: 2,
-        command: 'top -p 1',
-        description: '시스템 리소스 사용량 모니터링',
-        category: 'monitoring',
-        similarity: 0.7,
-      },
-      {
-        id: 3,
-        command: 'df -h',
-        description: '디스크 사용량 확인',
-        category: 'storage',
-        similarity: 0.6,
-      },
-      {
-        id: 4,
-        command: 'free -m',
-        description: '메모리 사용량 확인',
-        category: 'memory',
-        similarity: 0.6,
-      },
-      {
-        id: 5,
-        command: 'netstat -tulpn',
-        description: '네트워크 연결 상태 확인',
-        category: 'network',
-        similarity: 0.5,
-      },
-    ];
-
-    // 쿼리와 관련성이 높은 결과 필터링
-    const filtered = mockCommands
-      .filter(
-        cmd =>
-          cmd.command.toLowerCase().includes(query.toLowerCase()) ||
-          cmd.description.toLowerCase().includes(query.toLowerCase()) ||
-          query.toLowerCase().includes('서버') ||
-          query.toLowerCase().includes('상태') ||
-          query.toLowerCase().includes('모니터링')
-      )
-      .slice(0, maxResults);
-
-    console.log(
-      `🎭 목업 검색 결과 생성: ${filtered.length}개 (쿼리: "${query}")`
-    );
-    return filtered;
   }
 
   /**

@@ -12,13 +12,9 @@
  */
 
 import { AI_ENGINE_VERSIONS, VersionManager } from '../../config/versions';
-import {
-  AIThinkingStep
-} from '../../types/ai-thinking';
+import { AIThinkingStep } from '../../types/ai-thinking';
 import { PerformanceMonitor } from '../../utils/performance-monitor';
-import {
-  correlationEngine
-} from './engines/CorrelationEngine';
+import { correlationEngine } from './engines/CorrelationEngine';
 import { CustomEngines } from './engines/CustomEngines';
 import { OpenSourceEngines } from './engines/OpenSourceEngines';
 import { aiLogger, LogCategory, LogLevel } from './logging/AILogger';
@@ -34,18 +30,18 @@ const VERCEL_OPTIMIZATION = {
 
 export interface AIEngineRequest {
   engine:
-  | 'anomaly'
-  | 'prediction'
-  | 'autoscaling'
-  | 'korean'
-  | 'enhanced'
-  | 'integrated'
-  | 'mcp'
-  | 'mcp-test'
-  | 'hybrid'
-  | 'unified'
-  | 'custom-nlp'
-  | 'correlation';
+    | 'anomaly'
+    | 'prediction'
+    | 'autoscaling'
+    | 'korean'
+    | 'enhanced'
+    | 'integrated'
+    | 'mcp'
+    | 'mcp-test'
+    | 'hybrid'
+    | 'unified'
+    | 'custom-nlp'
+    | 'correlation';
   query: string;
   data?: any;
   context?: any;
@@ -218,7 +214,11 @@ export class MasterAIEngine {
 
     try {
       // 🚀 Vercel 최적화: 타임아웃과 함께 실제 엔진 실행
-      const queryPromise = this.executeActualQuery(request, thinkingSteps, enableThinking);
+      const queryPromise = this.executeActualQuery(
+        request,
+        thinkingSteps,
+        enableThinking
+      );
 
       if (VERCEL_OPTIMIZATION.isVercel) {
         // Vercel 환경에서는 타임아웃 적용
@@ -232,10 +232,14 @@ export class MasterAIEngine {
         // 개발 환경에서는 타임아웃 없이 실행
         return await queryPromise;
       }
-
     } catch (error) {
       // 에러 발생 시 폴백 처리
-      return await this.handleQueryError(request, error as Error, startTime, thinkingSteps);
+      return await this.handleQueryError(
+        request,
+        error as Error,
+        startTime,
+        thinkingSteps
+      );
     }
   }
 
@@ -361,7 +365,7 @@ export class MasterAIEngine {
   }
 
   /**
-   * 🔀 엔진별 라우팅
+   * 🔀 엔진별 라우팅 (폴백 없음)
    */
   private async routeToEngine(request: AIEngineRequest): Promise<any> {
     switch (request.engine) {
@@ -401,11 +405,41 @@ export class MasterAIEngine {
         if (!Array.isArray(request.data)) {
           // 기본 검색 대상 데이터 생성
           const defaultSearchData = [
-            { id: 'server-1', name: '웹서버-01', status: 'running', cpu: 45, memory: 60 },
-            { id: 'server-2', name: '데이터베이스-01', status: 'warning', cpu: 78, memory: 85 },
-            { id: 'server-3', name: 'API서버-01', status: 'running', cpu: 32, memory: 45 },
-            { id: 'server-4', name: '캐시서버-01', status: 'running', cpu: 25, memory: 30 },
-            { id: 'server-5', name: '로드밸런서-01', status: 'running', cpu: 15, memory: 20 }
+            {
+              id: 'server-1',
+              name: '웹서버-01',
+              status: 'running',
+              cpu: 45,
+              memory: 60,
+            },
+            {
+              id: 'server-2',
+              name: '데이터베이스-01',
+              status: 'warning',
+              cpu: 78,
+              memory: 85,
+            },
+            {
+              id: 'server-3',
+              name: 'API서버-01',
+              status: 'running',
+              cpu: 32,
+              memory: 45,
+            },
+            {
+              id: 'server-4',
+              name: '캐시서버-01',
+              status: 'running',
+              cpu: 25,
+              memory: 30,
+            },
+            {
+              id: 'server-5',
+              name: '로드밸런서-01',
+              status: 'running',
+              cpu: 15,
+              memory: 20,
+            },
           ];
           request.data = defaultSearchData;
         }
@@ -466,34 +500,6 @@ export class MasterAIEngine {
       default:
         throw new Error(`지원하지 않는 엔진: ${request.engine}`);
     }
-  }
-
-  /**
-   * 🔄 간단한 엔진 폴백 처리 (ThreeTierAIRouter가 전체 폴백 담당)
-   */
-  private async handleFallback(
-    request: AIEngineRequest,
-    originalError: any
-  ): Promise<any> {
-    console.log(`🔄 ${request.engine} 엔진 기본 폴백...`);
-
-    // 간단한 기본 응답만 제공 (전체 폴백은 ThreeTierAIRouter에서 처리)
-    const basicResponse = {
-      answer: `${request.engine} 엔진에서 일시적인 오류가 발생했습니다.`,
-      confidence: 0.1,
-      fallback: true,
-      engine: request.engine,
-      query: request.query,
-    };
-
-    await aiLogger.logError(
-      `${request.engine}_fallback`,
-      this.getLogCategory(request.engine),
-      originalError as Error,
-      { query: request.query }
-    );
-
-    return basicResponse;
   }
 
   /**
@@ -678,7 +684,7 @@ export class MasterAIEngine {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 오픈소스 엔진 (6개): ~43MB 메모리, ~933KB 번들
 🎯 커스텀 엔진 (5개): ~27MB 메모리, MCP 통합
-🔄 폴백 시스템: 100% 가용성 보장
+🎮 2-Mode AI 시스템: LOCAL & GOOGLE_ONLY
 💾 스마트 캐싱: 응답시간 50% 단축
 🇰🇷 한국어 최적화: hangul-js + korean-utils
 🔧 총 메모리 사용량: ~70MB (지연 로딩 적용)
@@ -804,48 +810,8 @@ export class MasterAIEngine {
 
     if (thinkingSteps.length > 0) {
       thinkingSteps.push(
-        this.createThinkingStep(
-          'error',
-          '오류 발생',
-          error.message
-        )
+        this.createThinkingStep('error', '오류 발생', error.message)
       );
-    }
-
-    // 폴백 처리
-    if (request.options?.fallback_enabled !== false) {
-      if (thinkingSteps.length > 0) {
-        thinkingSteps.push(
-          this.createThinkingStep(
-            'processing',
-            '폴백 처리',
-            '대체 엔진으로 재시도'
-          )
-        );
-      }
-
-      const fallbackResult = await this.handleFallback(request, error);
-      if (fallbackResult) {
-        if (thinkingSteps.length > 0) {
-          thinkingSteps.push(
-            this.createThinkingStep(
-              'completed',
-              '폴백 성공',
-              '대체 엔진으로 처리 완료'
-            )
-          );
-        }
-
-        return {
-          success: true,
-          result: fallbackResult,
-          engine_used: `${request.engine}_fallback`,
-          response_time: Date.now() - startTime,
-          confidence: 0.6,
-          fallback_used: true,
-          thinking_process: thinkingSteps,
-        };
-      }
     }
 
     // 통계 업데이트 (실패)

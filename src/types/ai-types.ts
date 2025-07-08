@@ -229,7 +229,6 @@ export interface AIEngineStats {
   modeUsage: Record<AIMode, number>;
   averageResponseTime: number;
   successRate: number;
-  fallbackRate: number;
   enginePerformance: Record<
     string,
     {
