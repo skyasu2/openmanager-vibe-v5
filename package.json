@@ -5,7 +5,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.0.0",
+    "node": ">=20.0.0",
     "npm": ">=9.0.0"
   },
   "keywords": [
@@ -115,10 +115,11 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^9.8.0",
+    "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^15.0.7",
     "@testing-library/user-event": "^14.6.1",
     "@types/lodash": "^4.17.13",
-    "@types/node": "^22.16.5",
+    "@types/node": "^22.0.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/uuid": "^10.0.0",

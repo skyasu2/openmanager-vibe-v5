@@ -6,23 +6,23 @@
     "src/app/api/**/*.ts": {
       "maxDuration": 8,
       "memory": 128,
-      "runtime": "nodejs22.x"
+      "runtime": "nodejs20.x"
     },
     "src/app/api/ai/**/*.ts": {
       "maxDuration": 45,
-      "runtime": "nodejs22.x"
+      "runtime": "nodejs20.x"
     },
     "src/app/api/ai/logging/stream/route.ts": {
       "maxDuration": 35,
-      "runtime": "nodejs22.x"
+      "runtime": "nodejs20.x"
     },
     "src/app/api/data-generator/**/*.ts": {
       "maxDuration": 30,
-      "runtime": "nodejs22.x"
+      "runtime": "nodejs20.x"
     },
     "src/app/api/ai-agent/**/*.ts": {
       "maxDuration": 45,
-      "runtime": "nodejs22.x"
+      "runtime": "nodejs20.x"
     }
   },
   "headers": [
