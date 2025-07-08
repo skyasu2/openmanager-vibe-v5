@@ -60,7 +60,7 @@ import { PredictiveAnalysisEngine } from '../../engines/PredictiveAnalysisEngine
 import { AnomalyDetection } from './AnomalyDetection';
 // Google AI 제거: 자연어 질의 전용으로 변경
 import { incidentReportService } from './IncidentReportService';
-import { koreanAIEngine } from './korean-ai-engine';
+import { KoreanAIEngine } from './korean-ai-engine';
 import { aiLogger, LogCategory } from './logging/AILogger';
 
 // 🤖 경량 ML 엔진 통합
@@ -176,7 +176,7 @@ export class IntelligentMonitoringService {
   private predictiveEngine: PredictiveAnalysisEngine;
   private incidentService: typeof incidentReportService;
   // Google AI 제거: 자연어 질의 전용
-  private koreanAI: typeof koreanAIEngine;
+  private koreanAI: KoreanAIEngine;
 
   // 🤖 ML 엔진 및 모니터링 시스템 (NEW!)
   private mlEngine: any; // LightweightMLEngine;
@@ -200,7 +200,7 @@ export class IntelligentMonitoringService {
     this.incidentService = incidentReportService;
     // 🎯 Google AI 싱글톤 인스턴스 사용 (할당량 중앙 관리)
     // Google AI 제거: 자연어 질의 전용
-    this.koreanAI = koreanAIEngine;
+    this.koreanAI = new KoreanAIEngine();
 
     // 🤖 ML 엔진 및 모니터링 시스템 초기화 (지연 로딩)
     this.mlEngine = null;

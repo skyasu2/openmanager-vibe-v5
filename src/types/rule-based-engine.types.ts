@@ -167,9 +167,9 @@ export interface IRuleBasedMainEngine {
     getConfig(): RuleBasedEngineConfig;
 
     // 패턴 관리
-    addPattern(pattern: Omit<PatternRule, 'id' | 'createdAt' | 'triggerCount'>): string;
+    addPattern(pattern: Omit<PatternRule, 'id' | 'createdAt' | 'triggerCount'>): Promise<string>;
     removePattern(patternId: string): boolean;
-    getPatterns(): PatternRule[];
+    getPatterns(): Promise<PatternRule[]>;
 }
 
 // ========================================
@@ -342,7 +342,7 @@ export interface RuleBasedQueryResult {
         rulesMatched: number;
         confidenceBreakdown?: Record<string, number>;
         fallbackUsed: boolean;
-        serverTypeDetected?: string; // �� NEW: 메타데이터에도 서버 타입
+        serverTypeDetected?: string; // 🎯 NEW: 메타데이터에도 서버 타입
     };
 }
 

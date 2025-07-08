@@ -631,8 +631,9 @@ export class RuleBasedMainEngine implements IRuleBasedMainEngine {
         return { ...this.config };
     }
 
-    addPattern(pattern: Omit<PatternRule, 'id' | 'createdAt' | 'triggerCount'>): string {
-        return this.patternMatcher.addRule(pattern);
+    async addPattern(pattern: Omit<PatternRule, 'id' | 'createdAt' | 'triggerCount'>): Promise<string> {
+        const success = await this.patternMatcher.addRule(pattern);
+        return success ? 'pattern-added-' + Date.now() : '';
     }
 
     removePattern(patternId: string): boolean {
@@ -640,8 +641,8 @@ export class RuleBasedMainEngine implements IRuleBasedMainEngine {
         return true; // 구현 필요
     }
 
-    getPatterns(): PatternRule[] {
-        return this.patternMatcher.getRules();
+    async getPatterns(): Promise<PatternRule[]> {
+        return await this.patternMatcher.getRules();
     }
 }
 

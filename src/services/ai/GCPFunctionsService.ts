@@ -40,6 +40,11 @@ interface GCPResponse {
     suggestions?: string[];
     metadata?: any;
     error?: string;
+    patterns?: any[];
+    anomalies?: any[];
+    rules?: any[];
+    data?: any;
+    results?: any[];
 }
 
 interface UsageStats {
@@ -351,7 +356,10 @@ export class GCPFunctionsService {
             success: gcpResponse.success,
             response: gcpResponse.response,
             confidence: gcpResponse.confidence || 0.8,
+            mode: 'LOCAL', // GCP Functions는 LOCAL 모드로 처리
+            enginePath: ['gcp-functions', gcpResponse.engine || 'unknown'],
             processingTime,
+            fallbacksUsed: 0, // GCP Functions는 1차 처리이므로 폴백 없음
             sources: gcpResponse.sources || ['gcp-functions'],
             metadata: {
                 engine: gcpResponse.engine,

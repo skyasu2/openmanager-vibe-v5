@@ -346,6 +346,21 @@ export class UnifiedAIEngineRouter {
   }
 
   /**
+   * 🔧 AI 모드 설정
+   */
+  public setMode(mode: 'LOCAL' | 'GOOGLE_ONLY' | 'THREE_TIER'): void {
+    if (mode === 'THREE_TIER') {
+      this.useThreeTierRouter = true;
+      logger.info('🎯 3-Tier Router 모드로 전환');
+    } else {
+      this.useThreeTierRouter = false;
+      // 환경변수를 통해 모드 설정 (런타임에서는 이 값을 우선 처리)
+      process.env.AI_ENGINE_MODE = mode;
+      logger.info(`🎯 ${mode} 모드로 전환`);
+    }
+  }
+
+  /**
    * 🔍 쿼리 타입 분석
    */
   private analyzeQueryType(query: string) {
@@ -423,3 +438,9 @@ export class UnifiedAIEngineRouter {
     // 현재는 기본 엔진들이 Edge 호환됨
   }
 }
+
+// 🚀 싱글톤 인스턴스 export
+export const unifiedAIRouter = UnifiedAIEngineRouter.getInstance();
+
+// 기본 export
+export default UnifiedAIEngineRouter;

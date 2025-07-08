@@ -160,3 +160,9 @@ export class EdgeMockDataGenerator {
     return [];
   }
 }
+
+// 🚀 싱글톤 인스턴스 export (하위 호환성)
+export const koreanAIEngine = new KoreanAIEngine();
+
+// 기본 export
+export default KoreanAIEngine;

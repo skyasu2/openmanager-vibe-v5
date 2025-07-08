@@ -2,29 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "name": "openmanager-vibe-v5",
-  "functions": {
-    "src/app/api/**/*.ts": {
-      "maxDuration": 8,
-      "memory": 128,
-      "runtime": "nodejs20.x"
-    },
-    "src/app/api/ai/**/*.ts": {
-      "maxDuration": 45,
-      "runtime": "nodejs20.x"
-    },
-    "src/app/api/ai/logging/stream/route.ts": {
-      "maxDuration": 35,
-      "runtime": "nodejs20.x"
-    },
-    "src/app/api/data-generator/**/*.ts": {
-      "maxDuration": 30,
-      "runtime": "nodejs20.x"
-    },
-    "src/app/api/ai-agent/**/*.ts": {
-      "maxDuration": 45,
-      "runtime": "nodejs20.x"
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
@@ -121,7 +98,5 @@
       "path": "/api/cron/cleanup",
       "schedule": "0 0 * * *"
     }
-  ],
-  "cleanUrls": true,
-  "trailingSlash": false
+  ]
 }

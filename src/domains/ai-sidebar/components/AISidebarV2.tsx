@@ -25,10 +25,9 @@ import {
   Search,
   Send,
   Server,
-  Sparkles,
   Target,
   User,
-  Zap,
+  Zap
 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RealAISidebarService } from '../services/RealAISidebarService';
@@ -68,21 +67,31 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   // 실제 AI 서비스 인스턴스
   const aiService = new RealAISidebarService();
 
-  // UI 상태
+  // 🔧 상태 관리 (8개 그룹)
+  const [selectedFunction, setSelectedFunction] = useState<AIAgentFunction>('chat');
+  const [selectedEngine, setSelectedEngine] = useState<AIMode>('LOCAL');
   const [inputValue, setInputValue] = useState('');
-  const [currentSessionId, setCurrentSessionId] = useState<string>('');
-  const [selectedFunction, setSelectedFunction] =
-    useState<AIAgentFunction>('chat');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [currentPresetIndex, setCurrentPresetIndex] = useState(0);
+
+  // 로컬 채팅 메시지 상태
+  const [localChatMessages, setLocalChatMessages] = useState<ChatMessage[]>([]);
+
+  // 자동 보고서 트리거 상태
+  const [autoReportTrigger, setAutoReportTrigger] = useState<{
+    shouldGenerate: boolean;
+    lastQuery?: string;
+    severity?: 'low' | 'medium' | 'high' | 'critical';
+  }>({
+    shouldGenerate: false,
+  });
 
   // Enhanced Chat 상태 (messages는 useAIChat에서 관리) - 디폴트 로컬 모드
-  const [selectedEngine, setSelectedEngine] = useState<AIMode>('LOCAL');
-  const [isGenerating, setIsGenerating] = useState(false);
   const [showEngineInfo, setShowEngineInfo] = useState(false);
   // const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]); // TODO: 향후 파일 업로드 기능
   const [expandedThinking, setExpandedThinking] = useState<string | null>(null);
 
   // 프리셋 질문 네비게이션 상태
-  const [currentPresetIndex, setCurrentPresetIndex] = useState(0);
   const PRESETS_PER_PAGE = 4;
 
   // 도메인 훅들 사용
@@ -99,15 +108,13 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
   // 새로운 useAIChat 훅 사용
   const {
-    messages: chatMessages,
-    sendMessage,
-    clearMessages,
-    isLoading: isChatLoading,
+    messages: hookMessages,
+    responses,
+    isLoading,
     error: chatError,
     sessionId: chatSessionId,
   } = useAIChat({
     apiEndpoint: '/api/ai/smart-fallback',
-    sessionId: currentSessionId,
   });
 
   // 🧠 실제 생각하기 기능 상태
@@ -139,15 +146,6 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     };
   }>({});
 
-  // 🤖 자동장애보고서 연결 상태
-  const [autoReportTrigger, setAutoReportTrigger] = useState<{
-    shouldGenerate: boolean;
-    lastQuery?: string;
-    severity?: 'low' | 'medium' | 'high' | 'critical';
-  }>({
-    shouldGenerate: false,
-  });
-
   // 스크롤 참조
   const messagesEndRef = useRef<HTMLDivElement>(null);
   // const fileInputRef = useRef<HTMLInputElement>(null); // TODO: 향후 파일 업로드 기능
@@ -162,7 +160,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     techStack,
     connectionStatus,
   } = useRealTimeAILogs({
-    sessionId: currentSessionId,
+    sessionId: chatSessionId,
     mode: 'sidebar',
     maxLogs: 30,
   });
@@ -203,10 +201,13 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     return icons[iconName] || Server; // Default return
   };
 
-  // 메시지 스크롤
+  // 전체 메시지 (훅 메시지 + 로컬 메시지 결합)
+  const allMessages = [...hookMessages, ...localChatMessages];
+
+  // 자동 스크롤
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages]);
+  }, [allMessages]);
 
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
@@ -430,7 +431,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         body: JSON.stringify({
           query: autoReportTrigger.lastQuery,
           severity: autoReportTrigger.severity,
-          sessionId: currentSessionId,
+          sessionId: chatSessionId,
         }),
       });
 
@@ -459,131 +460,99 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   };
 
   // 🎯 AI 모드 변경 핸들러
-  const handleModeChange = async (newMode: 'LOCAL' | 'GOOGLE_ONLY') => {
-    if (isGenerating) {
-      console.log('⚠️ 생성 중에는 모드 변경 불가');
-      return;
-    }
-
+  const handleModeChange = async (newMode: AIMode) => {
     try {
-      setSelectedEngine(newMode as AIMode);
+      setIsGenerating(true);
 
-      // UnifiedAIEngineRouter 모드 변경
-      unifiedAIRouter.setMode(newMode);
+      // 'auto' 모드는 LOCAL로 처리
+      const actualMode = newMode === 'auto' ? 'LOCAL' : newMode;
 
-      console.log(`🎯 AI 모드 변경: ${selectedEngine} → ${newMode}`);
+      setSelectedEngine(actualMode);
 
-      // 모드 변경 알림 메시지 (선택사항)
-      const modeNames = {
-        LOCAL: '로컬 AI',
-        GOOGLE_ONLY: 'Google AI',
+      // Unified AI Engine Router 모드 변경
+      await unifiedAIRouter.processQuery({
+        query: '모드 변경 테스트',
+        mode: actualMode,
+        context: { modeChange: true }
+      });
+
+      // 성공 메시지 추가
+      const message: ChatMessage = {
+        id: Date.now().toString(),
+        type: 'ai',
+        content: `AI 모드가 ${newMode === 'auto' ? '자동 선택' : actualMode === 'LOCAL' ? '로컬' : 'Google AI'}로 변경되었습니다.`,
+        timestamp: new Date(),
+        engine: actualMode,
+        processingTime: 0
       };
 
-      console.log(`✅ ${modeNames[newMode]} 모드로 전환되었습니다.`);
+      setLocalChatMessages(prev => [...prev, message]);
+
     } catch (error) {
-      console.error('❌ AI 모드 변경 실패:', error);
-      // 실패 시 이전 모드로 롤백
-      setSelectedEngine(selectedEngine);
+      console.error('AI 모드 변경 실패:', error);
+
+      // 에러 메시지 추가
+      const errorMessage: ChatMessage = {
+        id: Date.now().toString(),
+        type: 'ai',
+        content: `AI 모드 변경에 실패했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        timestamp: new Date(),
+        engine: selectedEngine,
+        processingTime: 0
+      };
+
+      setLocalChatMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
-  // 프리셋 질문 핸들러 (실제 AI API 연동)
+  // 프리셋 질문 핸들러
   const handlePresetQuestion = async (question: string) => {
-    if (isGenerating) return; // 생성 중이면 무시
+    if (isGenerating) return;
 
     setInputValue(question);
+    setIsGenerating(true);
 
-    // 사용자 메시지 즉시 추가
+    // 사용자 메시지 추가
     const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
+      id: `user_${Date.now()}`,
       type: 'user',
       content: question,
       timestamp: new Date(),
     };
 
-    const newMessages = [...chatMessages, userMessage];
-    // 채팅 메시지 직접 업데이트 (useAIChat 대신)
+    // 로컬 메시지에 추가
+    setLocalChatMessages(prev => [...prev, userMessage]);
 
-    // 🤖 실제 AI 질의 처리
-    const result = await processRealAIQuery(question, selectedEngine);
-
-    // AI 응답 메시지 추가
-    const aiMessage: ChatMessage = {
-      id: `ai-${Date.now()}`,
-      type: 'ai',
-      content: result.content,
-      timestamp: new Date(),
-      engine: result.engine,
-      confidence: result.confidence,
-    };
-
-    // sendMessage 호출하여 메시지 추가
-    await sendMessage(question);
-
-    // 자동장애보고서 트리거 확인 (신뢰도가 낮거나 오류 관련 질문인 경우)
-    if (
-      result.confidence < 0.7 ||
-      question.includes('오류') ||
-      question.includes('문제') ||
-      question.includes('장애')
-    ) {
-      setAutoReportTrigger({
-        shouldGenerate: true,
-        lastQuery: question,
-        severity: result.confidence < 0.5 ? 'critical' : 'medium',
-      });
-    }
+    // AI 처리
+    await processRealAIQuery(question, selectedEngine);
+    setIsGenerating(false);
   };
 
-  // 입력 전송 핸들러 (실제 AI API 연동)
+  // 🎯 메시지 전송 핸들러
   const handleSendInput = async () => {
-    if (!inputValue.trim() || isGenerating) return;
-
     const query = inputValue.trim();
-    setInputValue('');
+    if (!query || isGenerating) return;
 
-    // 사용자 메시지 즉시 추가
+    setIsGenerating(true);
+
+    // 사용자 메시지 추가
     const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
+      id: `user_${Date.now()}`,
       type: 'user',
       content: query,
       timestamp: new Date(),
     };
 
-    // 🤖 실제 AI 질의 처리
-    const result = await processRealAIQuery(query, selectedEngine);
+    // 로컬 메시지에 추가
+    setLocalChatMessages(prev => [...prev, userMessage]);
 
-    // AI 응답 메시지 추가
-    const aiMessage: ChatMessage = {
-      id: `ai-${Date.now()}`,
-      type: 'ai',
-      content: result.content,
-      timestamp: new Date(),
-      engine: result.engine,
-      confidence: result.confidence,
-    };
+    // 실제 AI 질의 처리
+    await processRealAIQuery(query, selectedEngine);
 
-    // sendMessage 호출하여 메시지 추가
-    await sendMessage(query);
-
-    // 🤖 자동장애보고서 트리거 확인
-    if (
-      result.confidence < 0.7 ||
-      query.includes('오류') ||
-      query.includes('문제') ||
-      query.includes('장애')
-    ) {
-      setAutoReportTrigger({
-        shouldGenerate: true,
-        lastQuery: query,
-        severity: result.confidence < 0.5 ? 'critical' : 'medium',
-      });
-
-      // 자동장애보고서 생성 (2초 후)
-      setTimeout(() => {
-        generateAutoReport();
-      }, 2000);
-    }
+    setInputValue('');
+    setIsGenerating(false);
   };
 
   // 생성 중단
@@ -593,16 +562,16 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
   // 응답 재생성
   const regenerateResponse = (messageId: string) => {
-    const messageToRegenerate = chatMessages.find(
+    const messageToRegenerate = allMessages.find(
       msg => msg.id === messageId && msg.type === 'ai'
     );
     if (!messageToRegenerate) return;
 
     // 마지막 사용자 메시지 찾아서 재처리
-    const lastUserMessage = chatMessages.find(msg => msg.type === 'user');
+    const lastUserMessage = allMessages.find(msg => msg.type === 'user');
     if (lastUserMessage) {
       // 기존 AI 메시지 이후의 새로운 응답 생성
-      sendMessage(lastUserMessage.content);
+      processRealAIQuery(lastUserMessage.content, selectedEngine);
     }
   };
 
@@ -630,7 +599,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             >
               {React.createElement(
                 availableEngines.find(e => e.id === selectedEngine)?.icon ||
-                  Zap,
+                Zap,
                 {
                   className: `w-3 h-3 ${availableEngines.find(e => e.id === selectedEngine)?.color}`,
                 }
@@ -683,9 +652,8 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                           unifiedAIRouter.setMode(normalizedMode);
                           setShowEngineInfo(false);
                         }}
-                        className={`w-full p-2 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
-                          selectedEngine === engine.id ? 'bg-blue-50' : ''
-                        }`}
+                        className={`w-full p-2 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${selectedEngine === engine.id ? 'bg-blue-50' : ''
+                          }`}
                       >
                         <div className='flex items-start space-x-2'>
                           <div
@@ -775,22 +743,22 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           </motion.div>
         )}
 
-        {chatMessages.length === 0 && (
+        {allMessages.length === 0 && (
           <div className='text-center py-8'>
             <div className='w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3'>
-              <Sparkles className='w-6 h-6 text-white' />
+              <Bot className='w-6 h-6 text-white' />
             </div>
-            <h4 className='text-sm font-semibold text-gray-800 mb-2'>
-              자연어 질의에 오신 것을 환영합니다!
-            </h4>
-            <p className='text-xs text-gray-600 mb-4'>
+            <h3 className='text-lg font-medium text-gray-900 mb-2'>
+              안녕하세요! 👋
+            </h3>
+            <p className='text-sm text-gray-500 max-w-[280px] mx-auto'>
               아래 프리셋 질문을 선택하거나 직접 질문을 입력해보세요.
             </p>
           </div>
         )}
 
         {/* 채팅 메시지들 렌더링 (간소화) */}
-        {chatMessages.map(message => (
+        {allMessages.map(message => (
           <motion.div
             key={message.id}
             initial={{ opacity: 0, y: 20 }}
@@ -798,19 +766,17 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${
-                message.type === 'user'
-                  ? 'flex-row-reverse space-x-reverse'
-                  : ''
-              }`}
+              className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${message.type === 'user'
+                ? 'flex-row-reverse space-x-reverse'
+                : ''
+                }`}
             >
               {/* 아바타 */}
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  message.type === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                }`}
+                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${message.type === 'user'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                  }`}
               >
                 {message.type === 'user' ? (
                   <User className='w-3 h-3' />
@@ -822,11 +788,10 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
               {/* 메시지 콘텐츠 */}
               <div className='flex-1'>
                 <div
-                  className={`rounded-lg p-3 ${
-                    message.type === 'user'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-white border border-gray-200'
-                  }`}
+                  className={`rounded-lg p-3 ${message.type === 'user'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white border border-gray-200'
+                    }`}
                 >
                   <div className='text-sm whitespace-pre-wrap break-words'>
                     {message.content}

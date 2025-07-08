@@ -13,7 +13,7 @@ import type {
 } from '@/types/ai-agent-input-schema';
 import { NLPProcessor } from './engines/nlp/NLPProcessor';
 import { EnhancedDataAnalyzer } from './EnhancedDataAnalyzer';
-import { koreanAIEngine } from './korean-ai-engine';
+import { KoreanAIEngine } from './korean-ai-engine';
 
 // 통합된 자연어 질의 인터페이스
 export interface UnifiedNLQuery {
@@ -46,7 +46,7 @@ export interface UnifiedNLResponse {
 }
 
 export class NaturalLanguageUnifier {
-  private koreanAI = koreanAIEngine;
+  private koreanAI = new KoreanAIEngine();
   private nlpProcessor = new NLPProcessor();
   private dataAnalyzer = EnhancedDataAnalyzer.getInstance();
   private initialized = false;

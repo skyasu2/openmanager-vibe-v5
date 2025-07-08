@@ -35,6 +35,7 @@ export interface ChatMessage {
     thinking?: ThinkingStep[];
     engine?: string;
     confidence?: number;
+    processingTime?: number;
 }
 
 export interface ThinkingStep {
