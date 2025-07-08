@@ -41,7 +41,7 @@
     "deploy:vercel": "vercel --prod",
     "clean:ports": "taskkill /f /im node.exe 2>nul || true",
     "health-check": "curl -f http://localhost:3000/api/health || exit 1",
-    "validate:all": "npm run type-check && npm run lint && npm run test:unit",
+    "validate:all": "npm run type-check && npm run lint && npm run test",
     "mcp:status": "node scripts/test-everything-mcp.js",
     "mcp:setup": "node scripts/setup-cross-platform-mcp.mjs",
     "prepare": "husky",
