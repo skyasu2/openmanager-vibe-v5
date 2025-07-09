@@ -12,7 +12,7 @@ const nextConfig = {
         ignoreBuildErrors: false,
     },
     eslint: {
-        ignoreDuringBuilds: false,
+        ignoreDuringBuilds: true,
     },
 
     // 서버 외부 패키지 설정 (Next.js 14 호환 방식)

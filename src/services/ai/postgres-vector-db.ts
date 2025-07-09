@@ -8,7 +8,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
-// Server-only import should be handled differently in server-side code
+import { supabaseAdmin } from '@/lib/supabase-server';
 
 interface VectorDocument {
   id: string;
