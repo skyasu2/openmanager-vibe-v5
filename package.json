@@ -20,7 +20,6 @@
   ],
   "scripts": {
     "dev": "next dev",
-    "prebuild": "tsx development/scripts/maintenance/decrypt-env-for-build.ts",
     "build": "next build",
     "start": "next start",
     "lint": "next lint --fix",
