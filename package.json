@@ -148,6 +148,7 @@
     "@faker-js/faker": "^9.8.0",
     "@next/eslint-plugin-next": "^14.2.4",
     "@playwright/test": "^1.53.2",
+    "@supabase/mcp-server-supabase": "^0.4.5",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^15.0.7",
     "@testing-library/user-event": "^14.6.1",

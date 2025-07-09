@@ -9,6 +9,14 @@ OpenManager Vibe v5 프로젝트에서는 3가지 타입의 MCP 서버를 사용
   - 코드 자동완성, 리팩토링, 문서 생성 등 개발 도구 기능
   - 로컬 파일 시스템에 직접 접근
   - 개발 생산성 향상을 위한 도구
+  - Supabase 데이터베이스 직접 접근 및 관리
+- **포함된 서버**:
+  - filesystem: 파일 시스템 접근
+  - memory: 지식 그래프 기반 메모리
+  - duckduckgo-search: 웹 검색
+  - sequential-thinking: 순차적 사고 처리
+  - openmanager-local: 로컬 개발 서버
+  - supabase: Supabase DB 접근 (NEW)
 
 ## 2. Vercel Dev Tools MCP (@vercel/mcp-adapter)
 - **용도**: 로컬에서 Vercel에 배포된 앱의 상태 확인 및 개발

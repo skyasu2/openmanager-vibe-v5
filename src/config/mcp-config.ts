@@ -108,6 +108,20 @@ export const DEVELOPMENT_MCP_CONFIG: MCPEnvironmentConfig = {
       purpose: '개발 환경 테스트 및 디버깅',
       memory: '1GB',
     },
+
+    'supabase': {
+      name: 'supabase',
+      command: 'npx',
+      args: ['@supabase/mcp-server-supabase'],
+      env: {
+        SUPABASE_URL: '${SUPABASE_URL}',
+        SUPABASE_SERVICE_ROLE_KEY: '${SUPABASE_SERVICE_ROLE_KEY}',
+      },
+      enabled: true,
+      description: 'Supabase 데이터베이스 직접 접근',
+      purpose: '데이터베이스 쿼리, 테이블 관리, 데이터 분석',
+      memory: '512MB',
+    },
   },
 
   performance: {
@@ -125,6 +139,7 @@ export const DEVELOPMENT_MCP_CONFIG: MCPEnvironmentConfig = {
     portBasedConnection: true,
     cursorOptimized: true,
     devMode: true,
+    supabaseAccess: true,
   },
 };
 
