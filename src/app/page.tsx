@@ -225,6 +225,9 @@ export default function Home() {
       window.addEventListener('keydown', handleEscKey);
       return () => window.removeEventListener('keydown', handleEscKey);
     }
+    
+    // 모든 코드 경로에서 값을 반환해야 함
+    return undefined;
   }, [systemStartCountdown]);
 
   // 시간 포맷 함수
