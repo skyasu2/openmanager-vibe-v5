@@ -20,6 +20,7 @@
   ],
   "scripts": {
     "dev": "next dev",
+    "prebuild": "tsx development/scripts/maintenance/decrypt-env-for-build.ts",
     "build": "next build",
     "start": "next start",
     "lint": "next lint --fix",
@@ -61,14 +62,22 @@
     "gcp:check": "node scripts/gcp-quota-monitor.js check",
     "gcp:alert": "node scripts/gcp-quota-alert.js",
     "gcp:console": "node scripts/gcp-console-helper.js",
-    "gcp:quota-report": "node scripts/gcp-quota-report.js"
+    "gcp:quota-report": "node scripts/gcp-quota-report.js",
+    "claude-usage": "bash scripts/show-claude-usage.sh",
+    "postcommit": "npm run claude-usage",
+    "postpush": "npm run claude-usage"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@google/generative-ai": "^0.16.0",
     "@heroicons/react": "^2.2.0",
+    "@modelcontextprotocol/server-brave-search": "^0.6.2",
+    "@modelcontextprotocol/server-filesystem": "^2025.7.1",
+    "@modelcontextprotocol/server-github": "^2025.4.8",
+    "@modelcontextprotocol/server-memory": "^2025.4.25",
     "@next/bundle-analyzer": "^14.2.4",
+    "@playwright/mcp": "^0.0.29",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-collapsible": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.14",
@@ -89,6 +98,7 @@
     "@tanstack/react-query": "^5.79.0",
     "@tanstack/react-query-devtools": "^5.79.0",
     "@types/socket.io": "^3.0.1",
+    "@upstash/context7-mcp": "^1.0.14",
     "@upstash/redis": "^1.34.3",
     "@use-gesture/react": "^10.3.1",
     "@xenova/transformers": "^2.17.2",
@@ -159,6 +169,7 @@
     "jsdom": "^25.0.1",
     "lint-staged": "^15.2.10",
     "prettier": "^3.4.2",
+    "tsx": "^4.20.3",
     "typescript": "^5.7.2",
     "vite": "^6.0.7",
     "vitest": "^2.1.8"
