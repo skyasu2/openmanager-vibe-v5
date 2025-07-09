@@ -9,14 +9,27 @@ import type { NextAuthOptions } from 'next-auth';
 import NextAuth from 'next-auth';
 import GitHubProvider from 'next-auth/providers/github';
 
+// 환경변수 체크
+const githubClientId = process.env.GITHUB_CLIENT_ID;
+const githubClientSecret = process.env.GITHUB_CLIENT_SECRET;
+const nextAuthSecret = process.env.NEXTAUTH_SECRET;
+
+// GitHub OAuth가 구성되지 않은 경우 빈 provider 배열 사용
+const providers = [];
+if (githubClientId && githubClientSecret) {
+  providers.push(
+    GitHubProvider({
+      clientId: githubClientId,
+      clientSecret: githubClientSecret,
+    })
+  );
+} else {
+  console.warn('⚠️ GitHub OAuth 환경변수가 설정되지 않았습니다. GitHub 로그인이 비활성화됩니다.');
+}
+
 export const authOptions: NextAuthOptions = {
   // 🔐 GitHub OAuth Provider 설정
-  providers: [
-    GitHubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    }),
-  ],
+  providers,
 
   // 🔧 NextAuth 설정
   session: {
@@ -85,8 +98,8 @@ export const authOptions: NextAuthOptions = {
     },
   },
 
-  // 🔐 보안 설정
-  secret: process.env.NEXTAUTH_SECRET,
+  // 🔐 보안 설정 - 기본값 제공으로 빌드 오류 방지
+  secret: nextAuthSecret || 'default-secret-for-development',
 
   // 🐛 디버그 모드 (개발 환경에서만)
   debug: process.env.NODE_ENV === 'development',

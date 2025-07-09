@@ -70,7 +70,8 @@
       "Bash(HUSKY=0 git commit --allow-empty -m \"test: Git hooks 테스트용 빈 커밋\")",
       "Bash(/mnt/d/cursor/openmanager-vibe-v5/.git/hooks/post-commit)",
       "Bash(ccusage --help)",
-      "Bash(ccusage monthly)"
+      "Bash(ccusage monthly)",
+      "Bash(git rm:*)"
     ],
     "deny": []
   }

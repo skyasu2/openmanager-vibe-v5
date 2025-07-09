@@ -38,6 +38,7 @@ export default function Home() {
     name: string;
     email?: string;
   } | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   const {
     isSystemStarted,
@@ -122,7 +123,8 @@ export default function Home() {
 
   // NextAuth 및 게스트 로그인 확인
   useEffect(() => {
-    if (status === 'loading') return;
+    // 클라이언트 마운트되지 않았거나 로딩 중이면 스킵
+    if (!isMounted || status === 'loading') return;
 
     const checkGuestLogin = () => {
       try {
@@ -142,13 +144,15 @@ export default function Home() {
     };
 
     const hasGuestLogin = checkGuestLogin();
+    setAuthChecked(true);
 
     // GitHub OAuth도 없고 게스트 로그인도 없으면 로그인 페이지로
-    if (!session && !hasGuestLogin) {
+    if (!session && !hasGuestLogin && status === 'unauthenticated') {
+      console.log('🔐 인증되지 않은 사용자 - 로그인 페이지로 이동');
       router.push('/login');
       return;
     }
-  }, [session, status, router]);
+  }, [session, status, router, isMounted]);
 
   // 🔧 상태 변화 디버깅 (클라이언트에서만)
   useEffect(() => {
@@ -385,8 +389,8 @@ export default function Home() {
     return { name: '사용자', avatar: null };
   };
 
-  // 🔄 클라이언트 마운트 전에는 기본 상태로 렌더링 (hydration 문제 방지)
-  if (!isMounted) {
+  // 🔄 클라이언트 마운트 전 또는 인증 체크 중에는 로딩 표시
+  if (!isMounted || status === 'loading' || !authChecked) {
     return (
       <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
         <div className='flex items-center justify-center min-h-screen'>
@@ -399,14 +403,15 @@ export default function Home() {
     );
   }
 
-  // NextAuth 로딩 중일 때는 별도 처리
-  if (status === 'loading') {
+  // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트 (클라이언트에서만)
+  if (!session && !guestUser && authChecked) {
+    router.push('/login');
     return (
       <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
         <div className='flex items-center justify-center min-h-screen'>
           <div className='text-center'>
             <Loader2 className='w-8 h-8 animate-spin text-white mx-auto mb-4' />
-            <p className='text-white/80'>시스템 초기화 중...</p>
+            <p className='text-white/80'>로그인 페이지로 이동 중...</p>
           </div>
         </div>
       </div>

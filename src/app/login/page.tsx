@@ -58,13 +58,22 @@ export default function LoginPage() {
 
       console.log('🔐 GitHub OAuth 로그인 시작...');
 
+      // GitHub OAuth 환경변수 체크
+      if (!process.env.NEXT_PUBLIC_GITHUB_CONFIGURED) {
+        console.warn('⚠️ GitHub OAuth가 구성되지 않았습니다. 게스트 모드를 사용하세요.');
+        alert('GitHub 로그인이 현재 사용할 수 없습니다. 게스트 모드를 이용해주세요.');
+        setIsLoading(false);
+        setLoadingType(null);
+        return;
+      }
+
       await signIn('github', {
         callbackUrl: '/', // 루트 페이지로 리다이렉트
         redirect: true,
       });
     } catch (error) {
       console.error('GitHub 로그인 실패:', error);
-      alert('GitHub 로그인에 실패했습니다. 다시 시도해주세요.');
+      alert('GitHub 로그인에 실패했습니다. 게스트 모드를 이용해주세요.');
     } finally {
       setIsLoading(false);
       setLoadingType(null);
