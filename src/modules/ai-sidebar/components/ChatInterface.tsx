@@ -10,7 +10,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AISidebarConfig } from '../types';
 import { useAIChat } from '../hooks/useAIChat';
 import { usePowerStore } from '../../../stores/powerStore';
-import { smartAIAgent } from '../../../services/aiAgent';
+// import { smartAIAgent } from '../../../services/aiAgent'; // Removed - causing build error
 import { useChatHistory } from '../hooks/useChatHistory';
 import { ThinkingProcessViewer } from './ThinkingProcessViewer';
 
@@ -138,7 +138,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   // 웰컴 메시지 및 프리셋 질문 업데이트
   const generateQuestions = useCallback(() => {
     if (isSystemActive) {
-      return smartAIAgent.generatePresetQuestions();
+      // return smartAIAgent.generatePresetQuestions();
+      return [
+        '현재 서버 상태는 어떤가요?',
+        '성능 지표를 보여주세요',
+        '문제가 있는 서버가 있나요?',
+        '서버 최적화 방법을 알려주세요'
+      ];
     } else {
       return [
         '시스템을 활성화해주세요',
@@ -165,9 +171,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
       // 시스템이 활성화된 경우 스마트 응답 생성
       if (isSystemActive) {
-        const smartResponse = smartAIAgent.generateSmartResponse(
-          inputValue.trim()
-        );
+        // const smartResponse = smartAIAgent.generateSmartResponse(
+        //   inputValue.trim()
+        // );
 
         // 사용자 메시지 전송
         sendMessage(inputValue.trim());

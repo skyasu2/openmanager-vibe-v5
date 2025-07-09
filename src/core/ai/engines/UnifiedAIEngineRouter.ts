@@ -70,7 +70,7 @@ export class UnifiedAIEngineRouter {
   private async initializeEngines() {
     try {
       // Google AI는 Vercel 설정에 따라 조건부 초기화
-      if (vercelConfig.enableGoogleAI) {
+      if (vercelConfig.enableGoogleAI && process.env.GOOGLE_AI_ENABLED !== 'false') {
         await this.initializeEngine('google-ai', GoogleAIService);
         logger.info('✅ Google AI 엔진 활성화됨');
       } else {

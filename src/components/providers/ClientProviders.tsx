@@ -9,6 +9,7 @@
 
 import NextAuthProvider from './NextAuthProvider';
 import QueryProvider from './QueryProvider';
+import { ServerDataStoreProvider } from './StoreProvider';
 
 interface ClientProvidersProps {
   children: React.ReactNode;
@@ -22,14 +23,17 @@ interface ClientProvidersProps {
  * 모든 클라이언트 사이드 상태 관리 Provider들을 여기서 통합 관리합니다.
  *
  * Provider 계층 구조:
- * 1. NextAuthProvider (NextAuth 세션 관리)
- * 2. QueryProvider (TanStack Query)
+ * 1. ServerDataStoreProvider (Zustand 상태 관리)
+ * 2. NextAuthProvider (NextAuth 세션 관리)
+ * 3. QueryProvider (TanStack Query)
  */
 export function ClientProviders({ children }: ClientProvidersProps) {
   return (
-    <NextAuthProvider>
-      <QueryProvider>{children}</QueryProvider>
-    </NextAuthProvider>
+    <ServerDataStoreProvider>
+      <NextAuthProvider>
+        <QueryProvider>{children}</QueryProvider>
+      </NextAuthProvider>
+    </ServerDataStoreProvider>
   );
 }
 

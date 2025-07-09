@@ -1,5 +1,6 @@
 'use client';
 
+import { useServerDataStore } from '@/components/providers/StoreProvider';
 import {
   calculateTwoRowsLayout,
   generateDisplayInfo,
@@ -7,7 +8,6 @@ import {
   type ServerDisplayMode,
 } from '@/config/display-config';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
-import { useServerDataStore } from '@/stores/serverDataStore';
 import { Server } from '@/types/server';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
@@ -142,7 +142,10 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const { onStatsUpdate } = options;
 
   // Zustand 스토어에서 서버 데이터 가져오기
-  const { servers, isLoading, error, fetchServers } = useServerDataStore();
+  const servers = useServerDataStore(state => state.servers);
+  const isLoading = useServerDataStore(state => state.isLoading);
+  const error = useServerDataStore(state => state.error);
+  const fetchServers = useServerDataStore(state => state.fetchServers);
 
   // 페이지네이션 상태 - 설정 기반으로 동적 조정
   const [currentPage, setCurrentPage] = useState(1);
@@ -299,20 +302,20 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const stats = useMemo(() => {
     const total = actualServers.length;
     const online = actualServers.filter(
-      s => s.status === 'healthy' || s.status === 'online'
+      (s: any) => s.status === 'healthy' || s.status === 'online'
     ).length;
     const offline = actualServers.filter(
-      s => s.status === 'critical' || s.status === 'offline'
+      (s: any) => s.status === 'critical' || s.status === 'offline'
     ).length;
-    const warning = actualServers.filter(s => s.status === 'warning').length;
+    const warning = actualServers.filter((s: any) => s.status === 'warning').length;
 
     const avgCpu =
-      actualServers.reduce((sum, s) => sum + ((s as any).cpu || 0), 0) / total;
+      actualServers.reduce((sum: number, s: any) => sum + (s.cpu || 0), 0) / total;
     const avgMemory =
-      actualServers.reduce((sum, s) => sum + ((s as any).memory || 0), 0) /
+      actualServers.reduce((sum: number, s: any) => sum + (s.memory || 0), 0) /
       total;
     const avgDisk =
-      actualServers.reduce((sum, s) => sum + ((s as any).disk || 0), 0) / total;
+      actualServers.reduce((sum: number, s: any) => sum + (s.disk || 0), 0) / total;
 
     return {
       total,

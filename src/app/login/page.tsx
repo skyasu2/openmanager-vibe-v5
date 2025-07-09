@@ -13,10 +13,15 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 // 게스트 로그인 관련 임포트
-import { AuthStateManager } from '@/services/auth/AuthStateManager';
+import { AuthStateManager, AuthUser } from '@/services/auth/AuthStateManager';
 
 // 🚫 정적 생성 완전 비활성화 (동적 렌더링만 사용)
 export const dynamic = 'force-dynamic';
+
+interface GuestSessionData {
+  sessionId: string;
+  user: AuthUser;
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,12 +30,25 @@ export default function LoginPage() {
     null
   );
   const [isClient, setIsClient] = useState(false);
+  const [guestSession, setGuestSession] = useState<GuestSessionData | null>(null);
 
   const authManager = new AuthStateManager();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // guestSession 상태가 변경되면 localStorage에 저장하고 페이지 이동
+  useEffect(() => {
+    if (guestSession) {
+      localStorage.setItem('auth_session_id', guestSession.sessionId);
+      localStorage.setItem('auth_type', 'guest');
+      localStorage.setItem('auth_user', JSON.stringify(guestSession.user));
+
+      console.log('✅ 게스트 세션 저장 완료, 페이지 이동:', guestSession.user.name);
+      router.push('/');
+    }
+  }, [guestSession, router]);
 
   // GitHub OAuth 로그인
   const handleGitHubLogin = async () => {
@@ -65,15 +83,8 @@ export default function LoginPage() {
       const result = await authManager.authenticateGuest();
 
       if (result.success && result.user && result.sessionId) {
-        // 로컬 스토리지에 게스트 세션 저장
-        localStorage.setItem('auth_session_id', result.sessionId);
-        localStorage.setItem('auth_type', 'guest');
-        localStorage.setItem('auth_user', JSON.stringify(result.user));
-
-        console.log('✅ 게스트 로그인 성공:', result.user.name);
-
-        // 루트 페이지로 리다이렉트
-        router.push('/');
+        // localStorage에 직접 접근하는 대신 상태를 업데이트
+        setGuestSession({ sessionId: result.sessionId, user: result.user });
       } else {
         console.error('게스트 로그인 실패:', result.error);
         alert('게스트 로그인에 실패했습니다. 다시 시도해주세요.');

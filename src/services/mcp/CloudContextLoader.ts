@@ -466,7 +466,8 @@ export class CloudContextLoader {
     ragEngineUrl?: string
   ): Promise<{ success: boolean; message?: string }> {
     try {
-      const endpoint = ragEngineUrl || '/api/rag/sync-context';
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+      const endpoint = ragEngineUrl || `${appUrl}/api/rag/sync-context`;
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -753,7 +754,8 @@ export class CloudContextLoader {
    */
   private async saveToFirestore(contextDoc: ContextDocument): Promise<void> {
     try {
-      const response = await fetch('/api/firestore/context-documents', {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+      const response = await fetch(`${appUrl}/api/firestore/context-documents`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -802,8 +804,9 @@ export class CloudContextLoader {
     contextId: string
   ): Promise<ContextDocument | null> {
     try {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
       const response = await fetch(
-        `/api/firestore/context-documents/${contextId}`
+        `${appUrl}/api/firestore/context-documents/${contextId}`
       );
 
       if (response.ok) {
@@ -840,9 +843,10 @@ export class CloudContextLoader {
     bundleType?: 'base' | 'advanced' | 'custom'
   ): Promise<string[]> {
     try {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
       const query = bundleType ? `?bundleType=${bundleType}` : '';
       const response = await fetch(
-        `/api/firestore/context-documents/list${query}`
+        `${appUrl}/api/firestore/context-documents/list${query}`
       );
 
       if (response.ok) {
@@ -865,10 +869,11 @@ export class CloudContextLoader {
     clientId?: string
   ): Promise<boolean> {
     try {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
       const contextId = this.generateContextId(bundleType, clientId);
 
       // 1. Firestore에서 삭제
-      await fetch(`/api/firestore/context-documents/${contextId}`, {
+      await fetch(`${appUrl}/api/firestore/context-documents/${contextId}`, {
         method: 'DELETE',
       });
 
@@ -918,7 +923,7 @@ export class CloudContextLoader {
   }
 
   /**
-   * 📊 컨텍스트 통계
+   * 📊 컨텍스트 통계 조회
    */
   async getContextStats(): Promise<{
     totalContexts: number;
@@ -927,21 +932,17 @@ export class CloudContextLoader {
     memoryUsage: string;
   }> {
     try {
-      const response = await fetch('/api/context-documents/stats');
-
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+      const response = await fetch(`${appUrl}/api/context-documents/stats`);
       if (response.ok) {
-        const stats = await response.json();
-        return {
-          ...stats,
-          memoryUsage: `${this.contextCache.size}/${this.config.maxCacheSize}`,
-        };
+        return await response.json();
       }
-
+      // 실패 시 기본값 반환
       return {
         totalContexts: 0,
         bundleTypes: {},
         cacheHitRate: 0,
-        memoryUsage: `${this.contextCache.size}/${this.config.maxCacheSize}`,
+        memoryUsage: '0 MB',
       };
     } catch (error) {
       console.error('❌ 컨텍스트 통계 조회 실패:', error);
@@ -949,7 +950,7 @@ export class CloudContextLoader {
         totalContexts: 0,
         bundleTypes: {},
         cacheHitRate: 0,
-        memoryUsage: `${this.contextCache.size}/${this.config.maxCacheSize}`,
+        memoryUsage: '0 MB',
       };
     }
   }

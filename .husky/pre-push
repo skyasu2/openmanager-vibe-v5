@@ -38,14 +38,6 @@ fi
 
 echo "✅ Pre-push 검증 완료! 🎉"
 
-# Claude 사용량 표시
-echo ""
-echo "🎯 Claude 토큰 사용량 확인..."
-timeout 5s claude-monitor --plan max20 2>/dev/null || {
-    echo "📊 Claude 모니터 확인 완료"
-}
-echo ""
-
 # 🧹 최종 프로세스 정리
 pkill -f "vitest" 2>/dev/null || true
 pkill -f "node.*test" 2>/dev/null || true 

@@ -75,12 +75,18 @@ export class SimplifiedNaturalLanguageEngine {
     this.ragEngine = new SupabaseRAGEngine(); // 🎯 Supabase RAG 전용
     this.autoReportService = AutoReportService.getInstance();
 
-    // 🚫 서버리스 호환: 요청별 Google AI 서비스 생성
+    // 🚫 서버리스 호환: 요청별 Google AI 서비스 생성 (환경변수 체크 추가)
     try {
-      this.googleAI = createGoogleAIService();
-      console.log(
-        '✅ 요청별 GoogleAI 서비스 연결됨 (SimplifiedNaturalLanguageEngine)'
-      );
+      // 환경변수 체크로 Google AI 완전 비활성화
+      if (process.env.GOOGLE_AI_ENABLED === 'false') {
+        console.log('🚫 Google AI 비활성화됨 (GOOGLE_AI_ENABLED=false)');
+        this.googleAI = null;
+      } else {
+        this.googleAI = createGoogleAIService();
+        console.log(
+          '✅ 요청별 GoogleAI 서비스 연결됨 (SimplifiedNaturalLanguageEngine)'
+        );
+      }
     } catch (error) {
       console.warn('⚠️ Google AI 서비스 연결 실패:', error);
       this.googleAI = null;
@@ -108,8 +114,8 @@ export class SimplifiedNaturalLanguageEngine {
         this.ragEngine.initialize(),
       ];
 
-      // Google AI 초기화 (사용 가능한 경우)
-      if (this.googleAI) {
+      // Google AI 초기화 (사용 가능한 경우 + 환경변수 체크)
+      if (this.googleAI && process.env.GOOGLE_AI_ENABLED !== 'false') {
         initPromises.push(
           this.googleAI
             .initialize()
@@ -302,10 +308,8 @@ export class SimplifiedNaturalLanguageEngine {
     query: string,
     startTime: number
   ): Promise<FastTrackResult> {
-    if (!this.googleAI) {
-      // 🎯 싱글톤 인스턴스 사용 (새 인스턴스 생성 금지)
-      this.googleAI = createGoogleAIService();
-      console.log('🔄 Google AI 싱글톤 재연결 (processGoogleOnly)');
+    if (!this.googleAI || process.env.GOOGLE_AI_ENABLED === 'false') {
+      throw new Error('Google AI 서비스가 비활성화되어 있습니다');
     }
 
     const result = await this.googleAI.processQuery({ query });
@@ -495,10 +499,8 @@ export class SimplifiedNaturalLanguageEngine {
    * 🤖 Google AI 시도
    */
   private async tryGoogle(query: string) {
-    if (!this.googleAI) {
-      // 🎯 싱글톤 인스턴스 사용 (새 인스턴스 생성 금지)
-      this.googleAI = createGoogleAIService();
-      console.log('🔄 Google AI 싱글톤 재연결 (tryGoogle)');
+    if (!this.googleAI || process.env.GOOGLE_AI_ENABLED === 'false') {
+      throw new Error('Google AI 서비스가 비활성화되어 있습니다');
     }
 
     const result = await this.googleAI.processQuery({ query });

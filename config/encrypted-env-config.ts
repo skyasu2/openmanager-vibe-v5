@@ -1,136 +1,74 @@
 /**
- * 🔐 OpenManager Vibe v5 - 암호화된 환경변수 설정
- *
- * 이 파일은 민감한 환경변수들을 AES 암호화하여 저장합니다.
- * Git에 커밋해도 안전하며, 팀 비밀번호로만 복호화할 수 있습니다.
- *
- * 생성일: 2025-06-18T23:24:08.349Z
- * 암호화된 변수: 7개
+ * 🔐 OpenManager Vibe v5 - 암호화된 환경변수 설정 (재생성됨)
+ * 생성일: 2025-07-09T04:11:47.238Z
  */
-
-export interface EncryptedEnvVar {
-  encrypted: string;
-  salt: string;
-  iv: string;
-  timestamp: string;
-  originalName: string;
-  isPublic: boolean;
-  rotateSchedule: string;
-}
-
-export interface EncryptedEnvironmentConfig {
-  version: string;
-  createdAt: string;
-  teamPasswordHash: string;
-  variables: { [key: string]: EncryptedEnvVar };
-}
-
-export const ENCRYPTED_ENV_CONFIG: EncryptedEnvironmentConfig = {
-  version: '2.0.0',
-  createdAt: '2025-06-18T23:24:08.349Z',
-  teamPasswordHash:
-    '7e346817b5382d72b3860a1aa9d6abc0263e2ddcea9e78c18724dfa2c1f575f5',
-  variables: {
-    NEXT_PUBLIC_SUPABASE_URL: {
-      encrypted:
-        'ErKN0MSvIAlf9gR68mzem7hxkFAfdBRQTBeeBJVyygugv9rlSAZhMT/HG78eR3Vp',
-      salt: 'cfb4cedc4d32e1f20dbf79babda54361',
-      iv: '4e4cfaa1e2a178f48c4c54fe67610268',
-      timestamp: '2025-06-18T23:24:07.819Z',
-      originalName: 'NEXT_PUBLIC_SUPABASE_URL',
-      isPublic: true,
-      rotateSchedule: 'manual',
+export const ENCRYPTED_ENV_CONFIG = {
+  "version": "2.1.0",
+  "createdAt": "2025-07-09T04:11:47.207Z",
+  "teamPasswordHash": "902764ec36829c2618cb6c66ea6a7a7b15df10e08805fb960905f263bd789f73d3e3b31138f03a33ea130c20386eb5bcb14e7258f5e014a78bd30e4eaa3d0c6c",
+  "variables": {
+    "NEXT_PUBLIC_SUPABASE_URL": {
+      "encrypted": "gYSZO5xsVGpUG294ouPsO1zvM3wjUAsSKY2DWcIlcRoEp1hMZQVeYlhsXgrf+ezc",
+      "salt": "0ff34944715803cefdc8e5f8ee589b04",
+      "iv": "69bcf1267559a22dbe25201bfd0735d2",
+      "timestamp": "2025-07-09T04:11:47.218Z",
+      "originalName": "NEXT_PUBLIC_SUPABASE_URL",
+      "isPublic": true,
+      "rotateSchedule": "manual"
     },
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: {
-      encrypted:
-        '3CMQu3v07n2COzXiV63Ts9NFuVtV2dy/+dLC/indJyrlAzEv63yhBtWBMSkZ1/qDF2FIK3f570F3RLexR4yGWtzJYAwU5++F1YmTmf5Woznm7ps1CJwO9iBv9RkKMmzfRhJNLd8QwgSxWITvOcuMHPynd0sVt/roqKvc46ZP4cCY5n3riwqIo6uLiNldDQQMFoo2T6h1QZy7VbH9PHE/ywiMa2yVOYGhHdrg3deHWalXQiLNg8SAbUvX20gXGZqG0MT7246JxeNOAr/MjcmauQHA/ejHtvqmaNp7oHI+tQY=',
-      salt: 'b515e1b60aa017693a641b345cec8586',
-      iv: '2b24f8591ecc6890cd6093c5c72c048f',
-      timestamp: '2025-06-18T23:24:07.914Z',
-      originalName: 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-      isPublic: true,
-      rotateSchedule: 'manual',
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": {
+      "encrypted": "LdJknjRFTehvRKhWTi84xqLCS7QtCUBYmfcHo9ywXsObHSU4dkADQIfTxA18nWWIc0Cu6w9Vg6oQ1pQvzbjKCX4GDJMW8oGes0gRZLpSdOVopiZT7PgT5x3UP0rmkTHkA9OZwJXbpJ1QymZtEtCdoM8t5B9c5rKfUu//SghJdM1OqdfdLVldwxHCVDGEhwwtyNex8VC2GVtM7PUo+fILhuwWvuXUJJcKYnydcNhBKy52ya4+NENyA68eYzMKNbGUObPNIt1O0591mIHb+gr9HzK9M2pzjlTYKVoQm4/857M=",
+      "salt": "c8611d83c81ac75a44c81feb2a7b7baa",
+      "iv": "27d09cfbef808ce8d0a75b695bfc46c6",
+      "timestamp": "2025-07-09T04:11:47.221Z",
+      "originalName": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "isPublic": true,
+      "rotateSchedule": "manual"
     },
-    SUPABASE_SERVICE_ROLE_KEY: {
-      encrypted:
-        'Z0TCFaM3orm+GIHDEWH1vGSwiBaIDsDcEtMmTx3K0Wbgfjmh0uHVj1uCD4ty9O0W9zKjII86vsPLXEl9SD2uqDzFB5yeSP+eR39wd09bu0QvN1NW8g0EvBaVL9RkA0K0L1535l+JxNX/LGByMXRoG0slTTJJS8JMYfFiZnHty9qSEkbJGxnJ/idQFMcLmQq2/bCaq4ANRqLXGWm0mf5SovfL8RBKW7d4QduXEFxy+efLTOgEyE0QXcrqzs+kyiWWIrSNeAFz9v+WtzAFk1KKxXGe8WQLxTAsm0+zT9tkaiU=',
-      salt: '9245aa7519814994485b663abfbd032b',
-      iv: 'e4849b54fd9e9b84eef2669eacd76547',
-      timestamp: '2025-06-18T23:24:08.000Z',
-      originalName: 'SUPABASE_SERVICE_ROLE_KEY',
-      isPublic: false,
-      rotateSchedule: 'manual',
+    "SUPABASE_SERVICE_ROLE_KEY": {
+      "encrypted": "nXC5YLozlzVl5mSP1diJy4bpqhyyxoDgbL2u9FjKMobOZR2ieg28kTOSSsRbTtNkWgdNfqAnt6dnFu+g0y/iRenCv8Ruswkip7IIURJ4BkYphWc9lWJq29rYwQpYYuRqbwfaPJIy8wItOQheamE4/a30aT8cjdncZ+UHQX8FEMlkCBG2uIKjCdLI4389nGNzn3hoxum/lOK64bzQB6qxKbUqqgK22GzuAwwn/JQaggcsmqiHNUzQtvIWD2+JJ00J1j3USEO68Rvzzpt2/SVi01Q+li4PhbwCK0UlfJJQtWE=",
+      "salt": "439097d59c4a03048103b44e59fadee8",
+      "iv": "dcea915833eb06b442b0348ebf74c3a5",
+      "timestamp": "2025-07-09T04:11:47.225Z",
+      "originalName": "SUPABASE_SERVICE_ROLE_KEY",
+      "isPublic": false,
+      "rotateSchedule": "manual"
     },
-    UPSTASH_REDIS_REST_URL: {
-      encrypted:
-        '9c86DAVxwMmum1CRTGQlzE1/0QtUm2T+DvNTnPfetl02W9BxBb17cJm4TCvQNYTM',
-      salt: 'd0047e315f3329b269ef15f8eb135207',
-      iv: '457777a8bb1ebd422ed559b208dcf20d',
-      timestamp: '2025-06-18T23:24:08.083Z',
-      originalName: 'UPSTASH_REDIS_REST_URL',
-      isPublic: false,
-      rotateSchedule: 'manual',
+    "UPSTASH_REDIS_REST_URL": {
+      "encrypted": "a32kkK42cjZ1e35s0MiIW47rj31t8/hQnCsUoWeZRxTowNrFdipoAG7IGBglysCJ",
+      "salt": "0eb00e8003446c39f09a16e516cce14d",
+      "iv": "145ae5257371d340cf51611c550ca282",
+      "timestamp": "2025-07-09T04:11:47.228Z",
+      "originalName": "UPSTASH_REDIS_REST_URL",
+      "isPublic": false,
+      "rotateSchedule": "manual"
     },
-    UPSTASH_REDIS_REST_TOKEN: {
-      encrypted:
-        '6loFOt/I0HlBaB6Ds0hL0T0OJVw8TZQhXZDZXzyPSpY0frDsGg4+IvqEKojVgFybmAI3//5uSOtDu3RfuVe5og==',
-      salt: 'e7ebd6ee2e53b72bc027a7598768109a',
-      iv: 'd89bda01209941992d5f6b9516abefe8',
-      timestamp: '2025-06-18T23:24:08.183Z',
-      originalName: 'UPSTASH_REDIS_REST_TOKEN',
-      isPublic: false,
-      rotateSchedule: 'quarterly',
+    "UPSTASH_REDIS_REST_TOKEN": {
+      "encrypted": "IpNjvd3QicrbDXQZuoLcf5tXRy+Ha0ixCwE6XpVp+3aULZJvdHkKxZ26eR+31Y97clFqHBPgyDS8FhtWygxZTg==",
+      "salt": "a79677d61be067420e21be699ab8fa49",
+      "iv": "37750830661d25056c439b5b094c505b",
+      "timestamp": "2025-07-09T04:11:47.231Z",
+      "originalName": "UPSTASH_REDIS_REST_TOKEN",
+      "isPublic": false,
+      "rotateSchedule": "manual"
     },
-    GCP_MCP_SERVER_URL: {
-      encrypted:
-        'plTmj8an+jM+tneI026GiwWVrRKdnoA+5JsSoalOJDjywb4KYcPDlFYbneUtkDXs',
-      salt: '1d5939c975fef05407acb9420f8e02a7',
-      iv: '4d6f76f39e56b627d29786a1cfe590bc',
-      timestamp: '2025-06-18T23:24:08.270Z',
-      originalName: 'GCP_MCP_SERVER_URL',
-      isPublic: false,
-      rotateSchedule: 'manual',
+    "GCP_MCP_SERVER_URL": {
+      "encrypted": "Wn+5lQfhxB48i/poyk7c/SYbwCvsYVXWAEyn0r+PeeUcbLFmXFb91/1MrEqQtdfX",
+      "salt": "0b5043336ddc034b1881852e74c17436",
+      "iv": "7a993c253cdec7f63c6f80f9e4222f20",
+      "timestamp": "2025-07-09T04:11:47.234Z",
+      "originalName": "GCP_MCP_SERVER_URL",
+      "isPublic": false,
+      "rotateSchedule": "manual"
     },
-    GOOGLE_AI_API_KEY: {
-      encrypted:
-        'waHQ/XUFlL8UB98tzvet0ylNjszQNjycJKXGT8vNOtC5leMnGAN8Za6iW9s8fTgG',
-      salt: '834ce4c4cbc37fd67e0893612f460fcb',
-      iv: '8d63f626197208e9ecb562f92d642ed3',
-      timestamp: '2025-07-03T12:38:00.000+09:00',
-      originalName: 'GOOGLE_AI_API_KEY',
-      isPublic: false,
-      rotateSchedule: 'manual',
-    },
-  },
-};
-
-export const DEPLOYMENT_CONFIG = {
-  supabase: {
-    enabled: true,
-    region: 'Seoul-DC-1',
-    project: 'vnswjnltnhpsueosfhmw',
-  },
-  googleVMMCP: {
-    enabled: true,
-    region: 'Seoul',
-    loadBalanced: true,
-  },
-  redis: {
-    enabled: true,
-    provider: 'upstash',
-    region: 'Seoul-DC-1',
-  },
-  googleAI: {
-    enabled: true,
-    model: 'gemini-2.0-flash',
-    betaMode: true,
-    quotaConfig: {
-      dailyLimit: 1200,
-      rpmLimit: 12,
-      tpmLimit: 800000,
-      protectionEnabled: true,
-    },
-    lastKeyRotation: '2025-07-03T12:38:00.000+09:00',
-    note: '2025-07-03 사용자 요청으로 새로운 API 키 교체 완료'
-  },
+    "GOOGLE_AI_API_KEY": {
+      "encrypted": "+KiMBTq7GSUF5TjxKkVJpNGF/Ur+R22WTXgmXYDEmBKzA5+QhuQ5IHmtZfiOsmnz",
+      "salt": "fb32454a20623eb980d77460bbad92ff",
+      "iv": "d80617533e01e747c62d8a83fac85a19",
+      "timestamp": "2025-07-09T04:11:47.238Z",
+      "originalName": "GOOGLE_AI_API_KEY",
+      "isPublic": false,
+      "rotateSchedule": "manual"
+    }
+  }
 };

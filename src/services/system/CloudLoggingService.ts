@@ -230,8 +230,9 @@ export class CloudLoggingService {
     this.logBuffer = [];
 
     try {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
       // Firestore 배치 저장
-      const response = await fetch('/api/firestore/system-logs/batch', {
+      const response = await fetch(`${appUrl}/api/firestore/system-logs/batch`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -266,7 +267,8 @@ export class CloudLoggingService {
     logEntry: SystemLogEntry
   ): Promise<void> {
     try {
-      await fetch('/api/notifications/log-alert', {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+      await fetch(`${appUrl}/api/notifications/log-alert`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -352,8 +354,13 @@ export class CloudLoggingService {
     realtimeCount: number;
   }> {
     try {
-      const query = date ? `?date=${date}` : '';
-      const response = await fetch(`/api/system-logs/stats${query}`);
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+      const queryParams = new URLSearchParams();
+      if (date) queryParams.set('date', date);
+
+      const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
+
+      const response = await fetch(`${appUrl}/api/system-logs/stats${query}`);
 
       if (response.ok) {
         const stats = await response.json();
@@ -409,6 +416,7 @@ export class CloudLoggingService {
     limit: number = 100
   ): Promise<SystemLogEntry[]> {
     try {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
       const params = new URLSearchParams({
         query,
         limit: limit.toString(),
@@ -419,7 +427,7 @@ export class CloudLoggingService {
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
 
-      const response = await fetch(`/api/system-logs/search?${params}`);
+      const response = await fetch(`${appUrl}/api/system-logs/search?${params}`);
 
       if (response.ok) {
         return await response.json();
@@ -441,10 +449,11 @@ export class CloudLoggingService {
     success: boolean;
   }> {
     try {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - this.config.logRetentionDays);
 
-      const response = await fetch('/api/system-logs/cleanup', {
+      const response = await fetch(`${appUrl}/api/system-logs/cleanup`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

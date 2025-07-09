@@ -161,8 +161,9 @@ export class CloudLogSaver {
    */
   private async saveToFirestore(logEntry: AnalysisLogEntry): Promise<void> {
     try {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
       // Firestore API 호출 (REST API 사용)
-      const response = await fetch('/api/firestore/analysis-logs', {
+      const response = await fetch(`${appUrl}/api/firestore/analysis-logs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -208,8 +209,9 @@ export class CloudLogSaver {
       const logs = this.logBuffer.get(date);
       if (!logs || logs.length === 0) return;
 
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
       // Cloud Storage API 호출
-      const response = await fetch('/api/cloud-storage/daily-logs', {
+      const response = await fetch(`${appUrl}/api/cloud-storage/daily-logs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -288,7 +290,8 @@ export class CloudLogSaver {
     logId: string
   ): Promise<AnalysisLogEntry | null> {
     try {
-      const response = await fetch(`/api/firestore/analysis-logs/${logId}`);
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+      const response = await fetch(`${appUrl}/api/firestore/analysis-logs/${logId}`);
 
       if (response.ok) {
         return await response.json();
@@ -311,21 +314,14 @@ export class CloudLogSaver {
     firestoreQueries: number;
   }> {
     try {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
       const response = await fetch(
-        `/api/analysis-logs/stats${date ? `?date=${date}` : ''}`
+        `${appUrl}/api/analysis-logs/stats${date ? `?date=${date}` : ''}`
       );
-
-      if (response.ok) {
-        return await response.json();
+      if (!response.ok) {
+        throw new Error('로그 통계 조회 실패');
       }
-
-      // 기본 통계 반환
-      return {
-        totalLogs: 0,
-        analysisTypes: {},
-        cacheHitRate: 0,
-        firestoreQueries: 0,
-      };
+      return await response.json();
     } catch (error) {
       console.error('❌ 로그 통계 조회 실패:', error);
       return {

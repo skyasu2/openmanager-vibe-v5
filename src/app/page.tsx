@@ -1,8 +1,8 @@
 /**
- * 🏠 OpenManager 메인 페이지
+ * 🏠 OpenManager 메인 페이지 - Commit 18a89a4 UI 복원
  *
- * GitHub OAuth + 게스트 로그인 지원
- * 로그인된 사용자에게 시스템 시작 버튼과 기능 카드들 표시
+ * GitHub OAuth + 게스트 로그인 지원 + 원래 UI 구조 복원
+ * 웨이브 파티클 배경, 고급 애니메이션, 카운트다운 시스템 복원
  */
 
 'use client';
@@ -11,7 +11,7 @@ import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
-import { BarChart3, Loader2, Play, X, Zap } from 'lucide-react';
+import { BarChart3, Bot, Loader2, Play, X, Zap } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
@@ -71,9 +71,53 @@ export default function Home() {
   // 🔄 클라이언트 마운트 감지
   useEffect(() => {
     setIsMounted(true);
-    console.log(
-      '🔄 페이지 로드 완료 - Google Cloud 24시간 기동으로 웜업 불필요'
-    );
+
+    // 🔥 홈페이지 접속 시 GCP VM 웜업만 실행 (시스템 시작과 무관)
+    const performRenderWarmup = async () => {
+      try {
+        // 🚨 비상 모드 체크 - 웜업 차단
+        const isEmergencyMode =
+          process.env.NEXT_PUBLIC_EMERGENCY_MODE === 'true';
+        if (isEmergencyMode) {
+          console.log('🚨 비상 모드 - GCP VM 웜업 차단');
+          return;
+        }
+
+        console.log('🔥 Render 서버 웜업 시작 (백그라운드)');
+
+        // 캐시 확인 - 세션당 한 번만 실행
+        const warmupKey = 'render-warmup-session';
+        const lastWarmup = sessionStorage.getItem(warmupKey);
+        const now = Date.now();
+
+        if (lastWarmup && now - parseInt(lastWarmup) < 10 * 60 * 1000) {
+          console.log('📦 Render 웜업 캐시 사용 (10분 이내)');
+          return;
+        }
+
+        // 백그라운드에서 조용히 웜업 실행
+        const response = await fetch('/api/mcp/warmup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ forceRefresh: false }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(`✅ Render 웜업 완료: ${data.responseTime}ms`);
+          sessionStorage.setItem(warmupKey, now.toString());
+        } else {
+          console.warn(`⚠️ Render 웜업 실패: ${response.status}`);
+        }
+      } catch (error) {
+        console.warn('⚠️ Render 웜업 오류 (무시됨):', error);
+      }
+    };
+
+    // 페이지 로드 3초 후 웜업 실행 (UI 렌더링 완료 후)
+    const warmupTimer = setTimeout(performRenderWarmup, 3000);
+
+    return () => clearTimeout(warmupTimer);
   }, []);
 
   // NextAuth 및 게스트 로그인 확인
@@ -240,10 +284,8 @@ export default function Home() {
 
       console.log('✅ 시스템 시작 완료');
 
-      // 3초 후 대시보드로 이동
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 3000);
+      // 3. 시스템 시작 완료 후 대시보드로 이동
+      router.push('/dashboard');
     } catch (error) {
       console.error('❌ 시스템 시작 실패:', error);
     } finally {
@@ -251,11 +293,21 @@ export default function Home() {
     }
   };
 
-  // 시스템 토글 함수
+  // 시스템 토글 함수 (18a89a4 스타일로 복원)
   const handleSystemToggle = async () => {
-    if (isSystemStarted) {
-      await stopSystem();
+    if (isLoading) return;
+
+    if (systemStartCountdown > 0) {
+      stopSystemCountdown();
+      return;
+    }
+
+    // 다중 사용자 상태에 따른 동작 결정
+    if (multiUserStatus.isRunning || isSystemStarted) {
+      // 시스템이 이미 실행 중이면 대시보드로 이동
+      handleDashboardClick();
     } else {
+      // 시스템이 정지 상태면 카운트다운 시작
       startSystemCountdown();
     }
   };
@@ -265,32 +317,41 @@ export default function Home() {
     router.push('/dashboard');
   };
 
-  // 버튼 설정 가져오기
+  // 📊 버튼 텍스트와 상태 결정 (18a89a4 스타일로 복원)
   const getButtonConfig = () => {
     if (systemStartCountdown > 0) {
       return {
-        text: `시스템 시작 중... ${systemStartCountdown}`,
-        icon: Loader2,
+        text: `시작 취소 (${systemStartCountdown}초)`,
+        icon: <X className='w-5 h-5' />,
         className:
-          'bg-gradient-to-r from-yellow-500 to-orange-500 animate-pulse',
-        disabled: true,
+          'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50',
       };
     }
 
-    if (isSystemStarted) {
+    if (isLoading || statusLoading) {
       return {
-        text: `시스템 실행 중 (${formatTime(systemTimeRemaining)})`,
-        icon: Zap,
-        className: 'bg-gradient-to-r from-green-500 to-emerald-500',
-        disabled: false,
+        text: '시스템 초기화 중...',
+        icon: <Loader2 className='w-5 h-5 animate-spin' />,
+        className:
+          'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed',
+      };
+    }
+
+    // 다중 사용자 상태 우선 확인
+    if (multiUserStatus.isRunning || isSystemStarted) {
+      return {
+        text: `📊 대시보드 이동 (사용자: ${multiUserStatus.userCount}명)`,
+        icon: <BarChart3 className='w-5 h-5' />,
+        className:
+          'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50',
       };
     }
 
     return {
-      text: '시스템 시작',
-      icon: Play,
-      className: 'bg-gradient-to-r from-blue-500 to-purple-500',
-      disabled: false,
+      text: '🚀 시스템 시작',
+      icon: <Play className='w-5 h-5' />,
+      className:
+        'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-blue-400/50',
     };
   };
 
@@ -354,179 +415,298 @@ export default function Home() {
 
   const userInfo = getUserInfo();
   const buttonConfig = getButtonConfig();
-  const ButtonIcon = buttonConfig.icon;
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 text-white overflow-hidden'>
-      {/* 배경 장식 */}
-      <div className='absolute inset-0 overflow-hidden pointer-events-none'>
-        <div className='absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob'></div>
-        <div className='absolute -bottom-40 -left-40 w-80 h-80 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000'></div>
-        <div className='absolute top-40 left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000'></div>
-      </div>
+    <div
+      className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'
+      data-system-active={isSystemStarted ? 'true' : 'false'}
+    >
+      {/* 웨이브 파티클 배경 효과 */}
+      <div className='wave-particles'></div>
 
-      {/* 메인 콘텐츠 */}
-      <div className='relative z-10 min-h-screen flex flex-col'>
-        {/* 상단 네비게이션 */}
-        <nav className='bg-black/20 backdrop-blur-lg border-b border-white/10 px-6 py-4'>
-          <div className='flex justify-between items-center'>
-            <div className='flex items-center space-x-3'>
-              <div className='w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center'>
-                <span className='text-white text-lg font-bold'>OM</span>
-              </div>
-              <div>
-                <h1 className='text-xl font-bold text-white'>OpenManager</h1>
-                <p className='text-xs text-gray-300'>AI 서버 모니터링 v5</p>
-              </div>
-            </div>
-
-            {/* 통합 프로필 컴포넌트 */}
-            <UnifiedProfileComponent
-              userName={userInfo.name}
-              userAvatar={userInfo.avatar || undefined}
-            />
-          </div>
-        </nav>
-
-        {/* 메인 콘텐츠 영역 */}
-        <main className='flex-1 container mx-auto px-6 py-12'>
-          {/* 히어로 섹션 */}
+      {/* 헤더 */}
+      <header className='relative z-10 flex justify-between items-center p-6'>
+        <div className='flex items-center space-x-3'>
+          {/* AI 컨셉 아이콘 - 통합 AI 카드 스타일 애니메이션 적용 */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className='text-center mb-16'
+            className='w-10 h-10 rounded-lg flex items-center justify-center relative shadow-lg'
+            animate={
+              aiAgent.isEnabled
+                ? {
+                    background: [
+                      'linear-gradient(135deg, #a855f7, #ec4899)',
+                      'linear-gradient(135deg, #ec4899, #06b6d4)',
+                      'linear-gradient(135deg, #06b6d4, #a855f7)',
+                    ],
+                    scale: [1, 1.1, 1],
+                    rotate: [0, 360],
+                    boxShadow: [
+                      '0 4px 15px rgba(168, 85, 247, 0.3)',
+                      '0 6px 20px rgba(236, 72, 153, 0.4)',
+                      '0 4px 15px rgba(6, 182, 212, 0.3)',
+                      '0 6px 20px rgba(168, 85, 247, 0.4)',
+                    ],
+                  }
+                : isSystemStarted
+                  ? {
+                      background: [
+                        'linear-gradient(135deg, #10b981, #059669)',
+                        'linear-gradient(135deg, #059669, #047857)',
+                        'linear-gradient(135deg, #047857, #10b981)',
+                      ],
+                      scale: [1, 1.05, 1],
+                      boxShadow: [
+                        '0 4px 15px rgba(16, 185, 129, 0.3)',
+                        '0 6px 20px rgba(5, 150, 105, 0.4)',
+                        '0 4px 15px rgba(16, 185, 129, 0.3)',
+                      ],
+                    }
+                  : {
+                      background: 'linear-gradient(135deg, #6b7280, #4b5563)',
+                      scale: 1,
+                      rotate: 0,
+                    }
+            }
+            transition={{
+              duration: aiAgent.isEnabled ? 2 : 3,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+            whileHover={{
+              scale: 1.15,
+              transition: { duration: 0.3 },
+            }}
           >
-            <motion.h1
-              className='text-5xl md:text-7xl font-bold mb-6 leading-tight'
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              {renderTextWithAIGradient('AI 서버 모니터링')}
-              <br />
-              <span className='text-4xl md:text-6xl bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent'>
-                차세대 플랫폼
-              </span>
-            </motion.h1>
-
-            <motion.p
-              className='text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed'
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              {renderTextWithAIGradient(
-                '실시간 AI 분석으로 서버 상태를 모니터링하고, 자연어 질의를 통해 시스템을 제어하세요.'
-              )}
-            </motion.p>
-
-            {/* 시스템 제어 버튼 */}
-            <motion.div
-              className='flex flex-col sm:flex-row gap-4 justify-center items-center mb-8'
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleSystemToggle}
-                disabled={buttonConfig.disabled}
-                className={`
-                  ${buttonConfig.className}
-                  px-8 py-4 rounded-xl font-semibold text-lg 
-                  shadow-lg hover:shadow-xl transition-all duration-300
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  flex items-center gap-3
-                `}
-              >
-                <ButtonIcon
-                  className={`w-6 h-6 ${isLoading ? 'animate-spin' : ''}`}
-                />
-                {buttonConfig.text}
-              </motion.button>
-
-              {isSystemStarted && (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleDashboardClick}
-                  className='px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3'
-                >
-                  <BarChart3 className='w-6 h-6' />
-                  대시보드 열기
-                </motion.button>
-              )}
-
-              {systemStartCountdown > 0 && (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={stopSystemCountdown}
-                  className='px-6 py-3 bg-red-500 hover:bg-red-600 rounded-lg font-semibold transition-colors flex items-center gap-2'
-                >
-                  <X className='w-5 h-5' />
-                  취소
-                </motion.button>
-              )}
-            </motion.div>
-
-            {/* 시스템 상태 표시 */}
-            {isSystemStarted && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className='inline-flex items-center gap-2 px-4 py-2 bg-green-500/20 border border-green-500/30 rounded-full text-green-300'
-              >
-                <div className='w-2 h-2 bg-green-400 rounded-full animate-pulse' />
-                <span>시스템 활성화</span>
-                {aiAgent.isEnabled && (
-                  <span className='ml-2 px-2 py-1 bg-purple-500/30 rounded-full text-xs'>
-                    {renderTextWithAIGradient('AI 활성화')}
-                  </span>
-                )}
-              </motion.div>
+            {/* AI 활성화 시 회전 아이콘 */}
+            {aiAgent.isEnabled ? (
+              <motion.i
+                className='fas fa-server text-white text-lg'
+                animate={{
+                  rotate: [0, 360],
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{
+                  rotate: { duration: 8, repeat: Infinity, ease: 'linear' },
+                  scale: {
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  },
+                }}
+                aria-hidden='true'
+              />
+            ) : (
+              <i
+                className='fas fa-server text-white text-lg'
+                aria-hidden='true'
+              />
             )}
           </motion.div>
 
-          {/* 기능 카드 그리드 */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-          >
-            <FeatureCardsGrid />
-          </motion.div>
-        </main>
+          {/* 브랜드 텍스트 */}
+          <div>
+            <h1 className='text-xl font-bold text-white'>OpenManager</h1>
+            <p className='text-xs text-white/70'>
+              {aiAgent.isEnabled && !isSystemStarted
+                ? 'AI 독립 모드'
+                : aiAgent.isEnabled && isSystemStarted
+                  ? 'AI + 시스템 통합 모드'
+                  : isSystemStarted
+                    ? '기본 모니터링'
+                    : '시스템 정지'}
+            </p>
+          </div>
+        </div>
+
+        {/* 오른쪽 헤더 컨트롤 */}
+        <div className='flex items-center gap-3'>
+          {/* 프로필 컴포넌트 */}
+          <UnifiedProfileComponent userName={userInfo.name} />
+        </div>
+      </header>
+
+      {/* 메인 콘텐츠 */}
+      <div className='relative z-10 container mx-auto px-6 pt-8'>
+        {/* 타이틀 섹션 */}
+        <motion.div
+          className='text-center mb-12'
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h1 className='text-3xl md:text-5xl font-bold mb-4'>
+            <span className='bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent'>
+              {renderTextWithAIGradient('AI')}
+            </span>{' '}
+            <span className='font-semibold text-white'>기반</span>{' '}
+            <span className='text-white'>서버 모니터링</span>
+          </h1>
+          <p className='text-lg md:text-xl max-w-3xl mx-auto leading-relaxed text-white/80'>
+            <span className='text-sm text-white/60'>
+              완전 독립 동작 AI 엔진 | 향후 개발: 선택적 LLM API 연동 확장
+            </span>
+          </p>
+        </motion.div>
+
+        {/* 제어 패널 */}
+        <motion.div
+          className='mb-12'
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          {!isSystemStarted ? (
+            /* 시스템 중지 상태 - 대시보드 버튼 중심으로 변경 */
+            <div className='max-w-2xl mx-auto text-center'>
+              {/* 시스템 종료 상태 안내 */}
+              <div className='mb-6 p-4 rounded-xl border bg-red-500/20 border-red-400/30'>
+                <div className='flex items-center justify-center gap-2 mb-2'>
+                  <div className='w-3 h-3 bg-red-500 rounded-full animate-pulse'></div>
+                  <span className='font-semibold text-red-200'>
+                    시스템 종료됨
+                  </span>
+                </div>
+                <p className='text-sm text-red-100'>
+                  모든 서비스가 중지되었습니다.
+                  <br />
+                  <strong>
+                    시스템 시작 버튼으로 전체 서비스를 활성화할 수 있습니다.
+                  </strong>
+                </p>
+              </div>
+
+              {/* 메인 제어 버튼들 */}
+              <div className='flex flex-col items-center mb-6 space-y-4'>
+                {/* 시스템 시작 버튼 */}
+                <motion.button
+                  onClick={handleSystemToggle}
+                  disabled={isLoading}
+                  className={`w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-200 border shadow-xl ${buttonConfig.className}`}
+                  whileHover={!isLoading ? { scale: 1.05 } : {}}
+                  whileTap={!isLoading ? { scale: 0.95 } : {}}
+                >
+                  {buttonConfig.icon}
+                  <span className='text-lg'>{buttonConfig.text}</span>
+                </motion.button>
+
+                {/* 상태 안내 */}
+                <div className='mt-2 flex justify-center'>
+                  <span
+                    className={`text-sm font-medium opacity-80 ${
+                      systemStartCountdown > 0
+                        ? 'text-orange-300 animate-pulse'
+                        : multiUserStatus.isRunning
+                          ? 'text-green-300'
+                          : 'text-white'
+                    }`}
+                  >
+                    {systemStartCountdown > 0
+                      ? '⚠️ 시작 예정 - 취소하려면 클릭'
+                      : multiUserStatus.isRunning
+                        ? `✅ 시스템 가동 중 (${multiUserStatus.userCount}명 접속)`
+                        : '클릭하여 시작하기'}
+                  </span>
+                </div>
+
+                {/* 시작 버튼 안내 아이콘 - 시스템 정지 상태일 때만 표시 */}
+                {!systemStartCountdown && !multiUserStatus.isRunning && (
+                  <div className='mt-2 flex justify-center'>
+                    <span className='finger-pointer-primary'>👆</span>
+                  </div>
+                )}
+              </div>
+
+              {/* 추가 설명 */}
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4 text-sm'>
+                <div className='p-3 rounded-lg bg-white/5'>
+                  <div className='flex items-center gap-2 mb-1'>
+                    <Zap className='w-4 h-4 text-blue-400' />
+                    <span className='font-semibold'>시스템 시작 과정</span>
+                  </div>
+                  <p className='text-white/70'>
+                    MCP 서버 Wake-up → 서버 시딩 → 시뮬레이션 → 대시보드 이동
+                  </p>
+                </div>
+                <div className='p-3 rounded-lg bg-white/5'>
+                  <div className='flex items-center gap-2 mb-1'>
+                    <Bot className='w-4 h-4 text-purple-400' />
+                    <span className='font-semibold'>AI 어시스턴트</span>
+                  </div>
+                  <p className='text-white/70'>
+                    시스템 시작 후 대시보드에서 AI 사이드바 이용 가능
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* 시스템 활성 상태 */
+            <motion.div
+              className='max-w-4xl mx-auto text-center'
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              {/* 시스템 활성 상태 안내 */}
+              <div className='mb-6 p-4 rounded-xl border bg-green-500/20 border-green-400/30'>
+                <div className='flex items-center justify-center gap-2 mb-2'>
+                  <div className='w-3 h-3 bg-green-500 rounded-full animate-pulse'></div>
+                  <span className='font-semibold text-green-200'>
+                    시스템 활성 - 남은 시간: {formatTime(systemTimeRemaining)}
+                  </span>
+                </div>
+                <p className='text-sm text-green-100'>
+                  모든 서비스가 정상 동작 중입니다. 대시보드에서 상세 정보를
+                  확인하세요.
+                </p>
+              </div>
+
+              {/* 대시보드 버튼 - 중앙 배치 */}
+              <div className='flex justify-center mb-6'>
+                <div className='flex flex-col items-center'>
+                  <motion.button
+                    onClick={handleDashboardClick}
+                    className='w-64 h-16 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500/50 shadow-xl'
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <BarChart3 className='w-5 h-5' />
+                    <span className='text-lg'>📊 대시보드 열기</span>
+                  </motion.button>
+
+                  {/* 안내 아이콘 */}
+                  <div className='mt-2 flex justify-center'>
+                    <span className='finger-pointer-dashboard'>👆</span>
+                  </div>
+                  <div className='mt-1 flex justify-center'>
+                    <span className='text-xs opacity-70 text-white'>
+                      클릭하세요
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <p className='text-white/60 text-xs mt-4 text-center'>
+                시스템이 활성화되어 있습니다. 대시보드에서 상세 모니터링을
+                확인하세요.
+              </p>
+            </motion.div>
+          )}
+        </motion.div>
+
+        {/* 기능 카드 그리드 */}
+        <div className='mb-12'>
+          <FeatureCardsGrid />
+        </div>
+
+        {/* 푸터 */}
+        <div className='mt-8 pt-6 border-t text-center border-white/20'>
+          <p className='text-white/70'>
+            Copyright(c) OpenManager. All rights reserved.
+          </p>
+        </div>
       </div>
 
-      {/* CSS 애니메이션 */}
-      <style jsx>{`
-        @keyframes blob {
-          0% {
-            transform: translate(0px, 0px) scale(1);
-          }
-          33% {
-            transform: translate(30px, -50px) scale(1.1);
-          }
-          66% {
-            transform: translate(-20px, 20px) scale(0.9);
-          }
-          100% {
-            transform: translate(0px, 0px) scale(1);
-          }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-      `}</style>
+      {/* 왼쪽 하단 실행중 기능들과 토스트 알람 제거됨 */}
     </div>
   );
 }

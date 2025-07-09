@@ -213,7 +213,8 @@ export class CloudVersionManager {
    */
   private async saveToFirestore(versionRecord: VersionRecord): Promise<void> {
     try {
-      const response = await fetch('/api/firestore/version-history', {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+      const response = await fetch(`${appUrl}/api/firestore/version-history`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -300,7 +301,8 @@ export class CloudVersionManager {
    */
   private async getLatestFromFirestore(): Promise<VersionRecord | null> {
     try {
-      const response = await fetch('/api/firestore/version-history/latest');
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+      const response = await fetch(`${appUrl}/api/firestore/version-history/latest`);
 
       if (response.ok) {
         return await response.json();
@@ -318,8 +320,9 @@ export class CloudVersionManager {
    */
   async getVersionHistory(limit: number = 20): Promise<VersionRecord[]> {
     try {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
       const response = await fetch(
-        `/api/firestore/version-history?limit=${limit}`
+        `${appUrl}/api/firestore/version-history?limit=${limit}`
       );
 
       if (response.ok) {
@@ -349,8 +352,9 @@ export class CloudVersionManager {
       }
 
       // Firestore에서 조회
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
       const response = await fetch(
-        `/api/firestore/version-history/${this.generateVersionId(version)}`
+        `${appUrl}/api/firestore/version-history/${this.generateVersionId(version)}`
       );
 
       if (response.ok) {
@@ -441,7 +445,8 @@ export class CloudVersionManager {
     upcomingMigrations: number;
   }> {
     try {
-      const response = await fetch('/api/version-history/stats');
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+      const response = await fetch(`${appUrl}/api/version-history/stats`);
 
       if (response.ok) {
         return await response.json();
@@ -547,8 +552,9 @@ export class CloudVersionManager {
    */
   private async extractDependencies(): Promise<Record<string, string>> {
     try {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
       // package.json 정보 조회
-      const response = await fetch('/api/system/dependencies');
+      const response = await fetch(`${appUrl}/api/system/dependencies`);
       if (response.ok) {
         return await response.json();
       }

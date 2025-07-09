@@ -63,6 +63,7 @@ ai-combined.log
 .env.development.local
 .env.test.local
 .env.production.local
+.env.build
 *.decrypted
 
 # 🔄 환경변수 자동 백업 파일들 (임시 백업 제외)

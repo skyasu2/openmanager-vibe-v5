@@ -47,7 +47,10 @@ export const useSystemAuth = () => {
 
 // 서버 데이터 관련 통합 훅
 export const useServerManagement = () => {
-  const { servers, isLoading, error, actions } = useServerDataStore();
+  const servers = useServerDataStore(state => state.servers);
+  const isLoading = useServerDataStore(state => state.isLoading);
+  const error = useServerDataStore(state => state.error);
+  const actions = useServerDataStore(state => state.actions);
   const { isSystemStarted } = useUnifiedAdminStore();
 
   return {
@@ -89,7 +92,7 @@ export const resetAllStores = () => {
 // 스토어 상태 디버깅 (개발용)
 export const debugStores = () => {
   if (process.env.NODE_ENV === 'development') {
-    const servers = useServerDataStore.getState();
+    const servers = {}; // useServerDataStore.getState();
     const auth = useUnifiedAdminStore.getState();
 
     console.group('🔍 Store Debug Info');
