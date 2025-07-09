@@ -20,12 +20,18 @@ import React, { useEffect, useState } from 'react';
 const SmoothLoadingSpinner = () => {
   return (
     <div className='relative w-20 h-20 mx-auto mb-8'>
-      {/* 외부 링 */}
-      <div className='absolute inset-0 border-4 border-transparent border-t-blue-500 border-r-purple-500 rounded-full animate-spin' />
-      {/* 내부 링 */}
-      <div className='absolute inset-2 border-3 border-transparent border-b-purple-400 border-l-pink-400 rounded-full animate-reverse-spin' />
-      {/* 중앙 아이콘 */}
-      <div className='absolute inset-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center animate-pulse'>
+      {/* 외부 링 - 더 부드러운 애니메이션 */}
+      <div className='absolute inset-0 border-4 border-transparent border-t-blue-500 border-r-purple-500 rounded-full animate-spin' 
+        style={{ animationDuration: '3s' }}
+      />
+      {/* 내부 링 - 더 부드러운 애니메이션 */}
+      <div className='absolute inset-2 border-3 border-transparent border-b-purple-400 border-l-pink-400 rounded-full animate-reverse-spin' 
+        style={{ animationDuration: '2.5s' }}
+      />
+      {/* 중앙 아이콘 - 부드러운 펄스 */}
+      <div className='absolute inset-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center animate-pulse'
+        style={{ animationDuration: '2s' }}
+      >
         <Monitor className='w-4 h-4 text-white' />
       </div>
     </div>
@@ -53,7 +59,7 @@ const ProgressBar = ({ progress }: { progress: number }) => {
 
         {/* 메인 진행률 바 */}
         <div
-          className='h-full rounded-full relative overflow-hidden transition-all duration-800 ease-out'
+          className='h-full rounded-full relative overflow-hidden transition-all duration-700 ease-out'
           style={{
             width: `${progress}%`,
             background:
@@ -69,10 +75,10 @@ const ProgressBar = ({ progress }: { progress: number }) => {
           <div className='absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-white/30 via-white/50 to-white/30 rounded-full' />
         </div>
 
-        {/* 진행률 포인터 */}
+        {/* 진행률 포인터 - 부드러운 트랜지션 */}
         <div
-          className='absolute top-1/2 transform -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg border-2 border-blue-400 animate-pulse'
-          style={{ left: `${progress}%` }}
+          className='absolute top-1/2 transform -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg border-2 border-blue-400 animate-pulse transition-all duration-700 ease-out'
+          style={{ left: `${progress}%`, animationDuration: '1.5s' }}
         />
       </div>
     </div>
@@ -89,6 +95,7 @@ export default function SystemBootPage() {
   const [currentIcon, setCurrentIcon] =
     useState<React.ComponentType<any>>(Loader2);
   const [isClient, setIsClient] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -148,9 +155,19 @@ export default function SystemBootPage() {
 
     stages.forEach(({ name, delay, icon, description }, index) => {
       setTimeout(() => {
-        setCurrentStage(name);
-        setCurrentIcon(icon);
-        setProgress(((index + 1) / stages.length) * 100);
+        // 페이드 트랜지션 시작
+        setIsTransitioning(true);
+        
+        setTimeout(() => {
+          setCurrentStage(name);
+          setCurrentIcon(icon);
+          setProgress(((index + 1) / stages.length) * 100);
+          
+          // 페이드 트랜지션 종료
+          setTimeout(() => {
+            setIsTransitioning(false);
+          }, 150);
+        }, 150);
 
         // 마지막 단계에서 완료 처리
         if (index === stages.length - 1) {
@@ -216,21 +233,27 @@ export default function SystemBootPage() {
           <div className='relative w-20 h-20 mx-auto mb-6'>
             <div className='absolute inset-0'>
               <div className='w-full h-full rounded-2xl flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 text-white shadow-2xl'>
-                {/* 아이콘 */}
-                <div className='w-full h-full rounded-2xl flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 text-white shadow-2xl'>
+                {/* 아이콘 - 페이드 트랜지션 추가 */}
+                <div 
+                  className={`transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
+                >
                   <CurrentIconComponent className='w-10 h-10' />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 현재 단계명 */}
-          <h2 className='text-2xl font-semibold text-white mb-4'>
+          {/* 현재 단계명 - 페이드 트랜지션 추가 */}
+          <h2 
+            className={`text-2xl font-semibold text-white mb-4 transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
+          >
             {currentStage}
           </h2>
 
-          {/* 단계 설명 */}
-          <p className='text-white/70 mb-8 font-light'>
+          {/* 단계 설명 - 페이드 트랜지션 추가 */}
+          <p 
+            className={`text-white/70 mb-8 font-light transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
+          >
             {currentStageData.description}
           </p>
 
@@ -270,7 +293,7 @@ export default function SystemBootPage() {
 
                     {/* 현재 단계 펄스 효과 */}
                     {isCurrentStep && (
-                      <div className='absolute inset-0 border-2 border-white/50 rounded-xl' />
+                      <div className='absolute inset-0 border-2 border-white/50 rounded-xl animate-pulse' />
                     )}
 
                     {/* 완료 체크 마크 */}
