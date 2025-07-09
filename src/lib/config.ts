@@ -28,7 +28,7 @@ interface EnvironmentConfig {
   supabase: {
     url: string;
     anonKey: string;
-    serviceKey?: string;
+    // serviceKey removed - server-only env vars should not be in client config
     poolMode: 'transaction' | 'session';
     host: string;
     port: number;
@@ -87,7 +87,7 @@ const parseSupabaseConfig = () => {
     validateEnvVar('NEXT_PUBLIC_SUPABASE_URL') || 'https://temp.supabase.co';
   const anonKey =
     validateEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY') || 'temp-anon-key';
-  const serviceKey = validateEnvVar('SUPABASE_SERVICE_ROLE_KEY', false);
+  // serviceKey removed - server-only env vars should not be accessed here
 
   // URL에서 호스트 정보 추출
   let host = 'aws-0-ap-southeast-1.pooler.supabase.com';
@@ -113,7 +113,7 @@ const parseSupabaseConfig = () => {
   return {
     url: supabaseUrl,
     anonKey,
-    serviceKey,
+    // serviceKey removed - server-only env vars should not be accessed here
     poolMode: 'transaction' as const,
     host,
     port,
@@ -211,7 +211,7 @@ const createConfig = (): EnvironmentConfig => {
       supabase: {
         url: 'https://temp.supabase.co',
         anonKey: 'temp-anon-key',
-        serviceKey: undefined,
+        // serviceKey removed - server-only env vars should not be accessed here
         poolMode: 'transaction' as const,
         host: 'temp.supabase.co',
         port: 6543,
@@ -263,7 +263,7 @@ export const validateEnvironment = (): {
     }
 
     // 선택적 환경변수 체크 (경고만) - Redis 다중 소스 지원
-    const optionalVars = ['SUPABASE_SERVICE_ROLE_KEY'];
+    const optionalVars: string[] = []; // service role key removed from client-side checks
 
     // Redis 환경변수 체크 (다중 소스)
     const hasRedisConfig = !!(

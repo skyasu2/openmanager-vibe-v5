@@ -22,7 +22,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint --fix",
+    "lint": "next lint",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -143,6 +143,8 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.30.1",
     "@faker-js/faker": "^9.8.0",
     "@next/eslint-plugin-next": "^14.2.4",
     "@playwright/test": "^1.53.2",
@@ -161,8 +163,8 @@
     "@vitest/coverage-v8": "^2.1.8",
     "@vitest/ui": "^2.1.8",
     "cross-env": "^7.0.3",
-    "eslint": "^9",
-    "eslint-config-next": "^14.1.8",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.30",
     "husky": "^9.1.6",
     "ignore-loader": "^0.1.2",
     "jsdom": "^25.0.1",

@@ -71,7 +71,11 @@
       "Bash(/mnt/d/cursor/openmanager-vibe-v5/.git/hooks/post-commit)",
       "Bash(ccusage --help)",
       "Bash(ccusage monthly)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(npm update:*)",
+      "Bash(npx next lint:*)",
+      "Bash(node:*)",
+      "Bash(npx tsx:*)"
     ],
     "deny": []
   }

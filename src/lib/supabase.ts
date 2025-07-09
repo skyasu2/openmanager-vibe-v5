@@ -38,39 +38,8 @@ function getSupabaseAnonKey() {
   return key;
 }
 
-function getSupabaseServiceKey() {
-  const key = env.SUPABASE_SERVICE_ROLE_KEY;
-
-  // 개발 환경에서는 임시 키 사용 허용
-  if (!key && process.env.NODE_ENV === 'development') {
-    console.warn(
-      '⚠️ SUPABASE_SERVICE_ROLE_KEY 없음 - 개발 환경에서 임시 키 사용'
-    );
-    return 'temp-service-key-for-development';
-  }
-
-  if (
-    !key &&
-    (process.env.NODE_ENV === undefined ||
-      process.env.npm_lifecycle_event === 'build')
-  ) {
-    return 'temp-service-key'; // 빌드만 통과하는 임시 키
-  }
-
-  if (!key) {
-    throw new Error('❌ SUPABASE_SERVICE_ROLE_KEY is required');
-  }
-
-  return key;
-}
-
-// 실제 Supabase 클라이언트 생성
+// 실제 Supabase 클라이언트 생성 (클라이언트 안전)
 export const supabase = createClient(getSupabaseUrl(), getSupabaseAnonKey());
-
-export const supabaseAdmin = createClient(
-  getSupabaseUrl(),
-  getSupabaseServiceKey()
-);
 
 if (process.env.NODE_ENV === 'development') {
   console.log('✅ Supabase 클라이언트 초기화됨:', env.NEXT_PUBLIC_SUPABASE_URL);

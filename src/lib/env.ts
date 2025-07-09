@@ -7,7 +7,7 @@ const EnvironmentSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+  // SUPABASE_SERVICE_ROLE_KEY removed - use env-server.ts for server-only env vars
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
   KV_REST_API_URL: z.string().url().optional(),
@@ -35,7 +35,7 @@ function getDefaultEnvironment() {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
     NEXT_PUBLIC_SUPABASE_ANON_KEY:
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+    // SUPABASE_SERVICE_ROLE_KEY removed - use env-server.ts for server-only env vars
     UPSTASH_REDIS_REST_URL:
       process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '',
     UPSTASH_REDIS_REST_TOKEN:
@@ -69,7 +69,7 @@ function validateEnvironment() {
       NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
       NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
       NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      // SUPABASE_SERVICE_ROLE_KEY removed - use env-server.ts for server-only env vars
       UPSTASH_REDIS_REST_URL:
         process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL,
       UPSTASH_REDIS_REST_TOKEN:
@@ -102,7 +102,7 @@ export function validateRuntimeEnvironment() {
     const requiredVars = [
       'NEXT_PUBLIC_SUPABASE_URL',
       'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-      'SUPABASE_SERVICE_ROLE_KEY',
+      // SUPABASE_SERVICE_ROLE_KEY removed - checked in server-only code
     ];
 
     // Redis는 KV 또는 UPSTASH 중 하나만 있으면 됨
@@ -141,7 +141,7 @@ export function getSupabaseConfig() {
   return {
     url: env.NEXT_PUBLIC_SUPABASE_URL || '',
     anonKey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-    serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY || '',
+    // serviceRoleKey removed - use getSupabaseServiceRoleKey() from env-server.ts
     isConfigured: !!(
       env.NEXT_PUBLIC_SUPABASE_URL && env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     ),

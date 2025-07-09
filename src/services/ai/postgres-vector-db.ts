@@ -7,7 +7,8 @@
  * ✅ 메타데이터 필터링
  */
 
-import { supabase, supabaseAdmin } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
+// Server-only import should be handled differently in server-side code
 
 interface VectorDocument {
   id: string;
