@@ -184,7 +184,7 @@ export const useSystemHealth = (options?: {
   return useQuery({
     queryKey: systemKeys.health(),
     queryFn: fetchSystemHealth,
-    refetchInterval: options?.refetchInterval || 30000, // 30초
+    refetchInterval: options?.refetchInterval || false, // 🚨 자동 refetch 비활성화
     enabled: options?.enabled ?? true,
     staleTime: 15000, // 15초
     select: (data: SystemHealth) => ({
@@ -205,7 +205,7 @@ export const useSystemStatus = (options?: {
   return useQuery({
     queryKey: systemKeys.status(),
     queryFn: fetchSystemStatus,
-    refetchInterval: options?.refetchInterval || 30000, // 30초
+    refetchInterval: options?.refetchInterval || false, // 🚨 자동 refetch 비활성화
     enabled: options?.enabled ?? true,
     staleTime: 15000, // 15초
     select: (data: SystemStatus) => ({
@@ -232,7 +232,7 @@ export const useSystemAlerts = (filters?: {
   return useQuery({
     queryKey: systemKeys.alertsWithFilters(JSON.stringify(filters || {})),
     queryFn: () => fetchSystemAlerts(filters),
-    refetchInterval: 60000, // 1분
+    refetchInterval: false, // 🚨 자동 refetch 비활성화 - 수동으로만 조회
     staleTime: 30000, // 30초
     select: (alerts: SystemAlert[]) => ({
       alerts,

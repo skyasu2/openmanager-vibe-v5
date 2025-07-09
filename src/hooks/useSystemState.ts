@@ -245,35 +245,13 @@ export const useSystemState = (): UseSystemStateReturn => {
   }, [userId]);
 
   /**
-   * 🎯 페이지 이벤트 리스너 설정
+   * 🎯 초기 로드 시에만 상태 확인 - 이벤트 기반 자동 체크 제거
    */
   useEffect(() => {
-    // 초기 상태 확인
+    // 초기 상태 확인만 수행
     fetchSystemState('page-load');
-
-    // 페이지 포커스 시 상태 확인
-    const handleFocus = () => {
-      console.log('👁️ 페이지 포커스 - 상태 확인');
-      fetchSystemState('page-focus');
-    };
-
-    // 페이지 가시성 변경 시 상태 확인
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        console.log('👁️ 페이지 가시성 변경 - 상태 확인');
-        fetchSystemState('visibility-change');
-      }
-    };
-
-    // 이벤트 리스너 등록
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // 정리
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
+    
+    // 🚨 페이지 포커스/가시성 이벤트 리스너 제거 - 과도한 API 호출 방지
   }, [fetchSystemState]);
 
   return {

@@ -25,8 +25,8 @@ export const queryClient = new QueryClient({
       refetchOnReconnect: emergencyMode.isEmergencyMode() ? false : true, // 🚨 비상 시 재연결 갱신 차단
       refetchOnMount: emergencyMode.isEmergencyMode() ? false : true, // 🚨 비상 시 마운트 갱신 차단
 
-      // 서버 모니터링 특화 설정 - 🚨 비상 시 완전 차단
-      refetchInterval: emergencyMode.isEmergencyMode() ? false : 600000, // 🚨 비상 시 자동 갱신 완전 차단
+      // 서버 모니터링 특화 설정 - 🚨 자동 refetch 비활성화 (과도한 API 호출 방지)
+      refetchInterval: false, // 🚨 모든 자동 갱신 비활성화 - 수동 새로고침만 허용
       refetchIntervalInBackground: false, // 백그라운드에서는 자동 새로고침 안함
     },
     mutations: {

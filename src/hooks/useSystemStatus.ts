@@ -190,22 +190,7 @@ export const useSystemStatus = (
     isEmergencyMode,
   ]);
 
-  // 페이지 포커스 시 상태 체크 - 🚨 시스템 시작된 경우에만 실행
-  useEffect(() => {
-    const handleFocus = () => {
-      if (!document.hidden && !status.isStarting && status.isRunning) {
-        checkStatus();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleFocus);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleFocus);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [checkStatus, status.isStarting, status.isRunning]);
+  // 🚨 페이지 포커스/가시성 이벤트 기반 상태 체크 제거 - 과도한 API 호출 방지
 
   return {
     status,
