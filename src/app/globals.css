@@ -212,6 +212,33 @@ a {
   }
 }
 
+/* 🚀 System Boot 애니메이션 */
+@keyframes reverse-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-reverse-spin {
+  animation: reverse-spin 2s linear infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
 /* 유틸리티 클래스 */
 .fade-in {
   animation: fadeIn 0.8s ease-out;

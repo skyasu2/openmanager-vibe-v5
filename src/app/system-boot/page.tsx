@@ -98,37 +98,43 @@ export default function SystemBootPage() {
   const stages = [
     {
       name: '시스템 초기화',
-      delay: 800,
+      delay: 500,
       icon: Loader2,
       description: '시스템 환경 설정을 확인하고 있습니다...',
     },
     {
       name: '서버 연결 확인',
-      delay: 1600,
+      delay: 1200,
       icon: ServerIcon,
       description: 'MCP 서버와 연결을 설정하고 있습니다...',
     },
     {
       name: '데이터베이스 연결',
-      delay: 2400,
+      delay: 1900,
       icon: Database,
       description: 'Supabase 데이터베이스에 연결하고 있습니다...',
     },
     {
       name: 'AI 엔진 로딩',
-      delay: 3200,
+      delay: 2600,
       icon: Brain,
       description: 'AI 분석 엔진을 초기화하고 있습니다...',
     },
     {
+      name: '서버 데이터 동기화',
+      delay: 3300,
+      icon: Cpu,
+      description: '실시간 서버 메트릭을 동기화하고 있습니다...',
+    },
+    {
       name: '대시보드 준비',
       delay: 4000,
-      icon: Loader2,
+      icon: Monitor,
       description: '모니터링 대시보드를 준비하고 있습니다...',
     },
     {
-      name: '시스템 완료',
-      delay: 4800,
+      name: '시스템 시작 완료',
+      delay: 4700,
       icon: CheckCircle,
       description: 'OpenManager가 준비되었습니다!',
     },
@@ -150,7 +156,7 @@ export default function SystemBootPage() {
         if (index === stages.length - 1) {
           setTimeout(() => {
             handleBootComplete();
-          }, 1000);
+          }, 1500); // 1.5초 후 대시보드로 이동
         }
       }, delay);
     });

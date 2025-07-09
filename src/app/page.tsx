@@ -213,6 +213,20 @@ export default function Home() {
     };
   }, [countdownTimer]);
 
+  // ESC 키로 카운트다운 취소
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && systemStartCountdown > 0) {
+        stopSystemCountdown();
+      }
+    };
+
+    if (systemStartCountdown > 0) {
+      window.addEventListener('keydown', handleEscKey);
+      return () => window.removeEventListener('keydown', handleEscKey);
+    }
+  }, [systemStartCountdown]);
+
   // 시간 포맷 함수
   const formatTime = (ms: number) => {
     const minutes = Math.floor(ms / (1000 * 60));
@@ -252,7 +266,7 @@ export default function Home() {
 
   // 🚀 시스템 시작 카운트다운 함수
   const startSystemCountdown = () => {
-    setSystemStartCountdown(5);
+    setSystemStartCountdown(3); // 3초 카운트다운
     const timer = setInterval(() => {
       setSystemStartCountdown(prev => {
         if (prev <= 1) {
@@ -288,8 +302,8 @@ export default function Home() {
 
       console.log('✅ 시스템 시작 완료');
 
-      // 3. 시스템 시작 완료 후 대시보드로 이동
-      router.push('/dashboard');
+      // 3. system-boot 페이지로 이동하여 로딩 애니메이션 표시
+      router.push('/system-boot');
     } catch (error) {
       console.error('❌ 시스템 시작 실패:', error);
     } finally {
@@ -328,7 +342,7 @@ export default function Home() {
         text: `시작 취소 (${systemStartCountdown}초)`,
         icon: <X className='w-5 h-5' />,
         className:
-          'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50',
+          'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50 animate-pulse',
       };
     }
 
@@ -595,7 +609,7 @@ export default function Home() {
                 </motion.button>
 
                 {/* 상태 안내 */}
-                <div className='mt-2 flex justify-center'>
+                <div className='mt-2 flex flex-col items-center gap-1'>
                   <span
                     className={`text-sm font-medium opacity-80 ${
                       systemStartCountdown > 0
@@ -611,6 +625,11 @@ export default function Home() {
                         ? `✅ 시스템 가동 중 (${multiUserStatus.userCount}명 접속)`
                         : '클릭하여 시작하기'}
                   </span>
+                  {systemStartCountdown > 0 && (
+                    <span className='text-xs text-white/60'>
+                      또는 ESC 키를 눌러 취소
+                    </span>
+                  )}
                 </div>
 
                 {/* 시작 버튼 안내 아이콘 - 시스템 정지 상태일 때만 표시 */}
