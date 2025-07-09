@@ -133,7 +133,7 @@ export const useSystemState = (): UseSystemStateReturn => {
         setIsLoading(false);
       }
     },
-    [userId, systemState]
+    [userId] // systemState 제거 - 무한 루프 방지
   );
 
   /**
@@ -252,7 +252,7 @@ export const useSystemState = (): UseSystemStateReturn => {
     fetchSystemState('page-load');
     
     // 🚨 페이지 포커스/가시성 이벤트 리스너 제거 - 과도한 API 호출 방지
-  }, [fetchSystemState]);
+  }, []); // 빈 배열로 변경 - 마운트 시 한 번만 실행
 
   return {
     systemState,
