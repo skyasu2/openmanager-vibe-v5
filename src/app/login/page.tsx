@@ -182,6 +182,24 @@ export default function LoginPage() {
             <p className='text-xs text-gray-500 mt-4'>
               모든 로그인 방식은 OpenManager 메인 페이지로 이동합니다
             </p>
+            
+            {/* 환경변수 설정 안내 - 개발/배포 환경에서만 표시 */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className='mt-4 p-3 bg-yellow-900/20 border border-yellow-600/30 rounded-lg text-left'>
+                <p className='text-yellow-300 text-xs font-semibold mb-1'>
+                  ⚠️ GitHub OAuth 설정 안내
+                </p>
+                <p className='text-yellow-200/80 text-xs'>
+                  GitHub 로그인을 사용하려면 다음 환경변수를 설정하세요:
+                </p>
+                <ul className='text-yellow-200/60 text-xs mt-1 ml-4 list-disc'>
+                  <li>GITHUB_CLIENT_ID</li>
+                  <li>GITHUB_CLIENT_SECRET</li>
+                  <li>NEXTAUTH_SECRET</li>
+                  <li>NEXTAUTH_URL</li>
+                </ul>
+              </div>
+            )}
           </div>
         </div>
 

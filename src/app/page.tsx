@@ -147,8 +147,9 @@ export default function Home() {
     setAuthChecked(true);
 
     // GitHub OAuth도 없고 게스트 로그인도 없으면 로그인 페이지로
-    if (!session && !hasGuestLogin && status === 'unauthenticated') {
-      console.log('🔐 인증되지 않은 사용자 - 로그인 페이지로 이동');
+    // status가 'loading'이 아닌 모든 경우에 인증 체크
+    if (!session && !hasGuestLogin && status !== 'loading') {
+      console.log('🔐 인증되지 않은 사용자 - 로그인 페이지로 이동 (status:', status, ')');
       router.push('/login');
       return;
     }
