@@ -8,7 +8,6 @@
 export interface EnvironmentInfo {
     isProduction: boolean;
     isVercelDeployment: boolean;
-    isRenderDeployment: boolean;
     isDevelopment: boolean;
     isTest: boolean;
     shouldUseLocalRAG: boolean;
@@ -37,7 +36,6 @@ export class DeploymentDetector {
     private detectEnvironment(): EnvironmentInfo {
         const nodeEnv = process.env.NODE_ENV;
         const isVercel = !!(process.env.VERCEL || process.env.VERCEL_ENV);
-        const isRender = !!(process.env.RENDER || process.env.RENDER_SERVICE_ID);
         const isTest = !!(process.env.JEST_WORKER_ID || nodeEnv === 'test');
         const isDev = nodeEnv === 'development' || !nodeEnv;
         const isProd = nodeEnv === 'production';
@@ -50,7 +48,7 @@ export class DeploymentDetector {
         let shouldUseLocalRAG = false;
         if (forceLocalRAG) {
             shouldUseLocalRAG = true;
-        } else if (disableLocalRAG || isProd || isVercel || isRender) {
+        } else if (disableLocalRAG || isProd || isVercel) {
             shouldUseLocalRAG = false;
         } else if (isDev || isTest) {
             shouldUseLocalRAG = true;
@@ -58,7 +56,7 @@ export class DeploymentDetector {
 
         // 환경 타입 결정
         let environmentType: 'development' | 'test' | 'production';
-        if (isProd || isVercel || isRender) {
+        if (isProd || isVercel) {
             environmentType = 'production';
         } else if (isTest) {
             environmentType = 'test';
@@ -67,9 +65,8 @@ export class DeploymentDetector {
         }
 
         return {
-            isProduction: isProd || isVercel || isRender,
+            isProduction: isProd || isVercel,
             isVercelDeployment: isVercel,
-            isRenderDeployment: isRender,
             isDevelopment: isDev,
             isTest,
             shouldUseLocalRAG,
@@ -115,7 +112,6 @@ export class DeploymentDetector {
             environmentType: info.environmentType,
             nodeEnv: process.env.NODE_ENV,
             isVercel: info.isVercelDeployment,
-            isRender: info.isRenderDeployment,
             shouldUseLocalRAG: info.shouldUseLocalRAG,
             shouldUseSupabaseRAG: info.shouldUseSupabaseRAG,
             forceLocalRAG: process.env.FORCE_LOCAL_RAG,

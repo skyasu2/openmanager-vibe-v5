@@ -8,7 +8,6 @@
 export interface EnvironmentConfig {
   // 🎯 핵심 환경 정보
   IS_VERCEL: boolean;
-  IS_RENDER: boolean;
   IS_LOCAL: boolean;
   IS_PRODUCTION: boolean;
   IS_DEVELOPMENT: boolean;
@@ -17,7 +16,7 @@ export interface EnvironmentConfig {
   // 🏷️ 환경 메타데이터
   name: string;
   tier: string;
-  platform: 'local' | 'vercel' | 'render' | 'unknown';
+  platform: 'local' | 'vercel' | 'unknown';
 
   // 📊 성능 제한
   maxServers: number;
@@ -100,14 +99,11 @@ const getEnvVar = (key: string, defaultValue: string = ''): string => {
 /**
  * 🎯 플랫폼 감지 함수 (개선된 버전)
  */
-function detectPlatform(): 'local' | 'vercel' | 'render' | 'unknown' {
+function detectPlatform(): 'local' | 'vercel' | 'unknown' {
   const isVercel =
     getEnvVar('VERCEL') === '1' || getEnvVar('VERCEL_ENV') !== '';
-  const isRender =
-    getEnvVar('RENDER') === 'true' || getEnvVar('RENDER_SERVICE_ID') !== '';
 
   if (isVercel) return 'vercel';
-  if (isRender) return 'render';
 
   // 로컬 환경 감지 (NODE_ENV 기반)
   const nodeEnv = getEnvVar('NODE_ENV', 'development');
@@ -123,7 +119,6 @@ export function getEnvironmentConfig(): EnvironmentConfig {
   const platform = detectPlatform();
 
   const isVercel = platform === 'vercel';
-  const isRender = platform === 'render';
   const isLocal = platform === 'local';
   const isProduction = getEnvVar('NODE_ENV', 'development') === 'production';
   const isDevelopment = getEnvVar('NODE_ENV', 'development') === 'development';
@@ -138,7 +133,6 @@ export function getEnvironmentConfig(): EnvironmentConfig {
   return {
     // 🎯 핵심 환경 정보
     IS_VERCEL: isVercel,
-    IS_RENDER: isRender,
     IS_LOCAL: isLocal,
     IS_PRODUCTION: isProduction,
     IS_DEVELOPMENT: isDevelopment,
@@ -183,7 +177,7 @@ export function getEnvironmentConfig(): EnvironmentConfig {
       enableAI: true,
       enableRealtime: !isTest, // 테스트에서는 실시간 기능 비활성화
       enableNotifications: !isTest,
-      enableWebSocket: isLocal, // Vercel/Render에서는 WebSocket 제한
+      enableWebSocket: isLocal, // Vercel에서는 WebSocket 제한
       enableMockData: isLocal || isDevelopment, // 로컬/개발환경에서만 목업 데이터
       enableDebugLogs: isDevelopment || isLocal,
     },
@@ -440,7 +434,7 @@ export function validateEnvironmentConfig(): {
   // 🌐 플랫폼 감지 검증
   if (config.platform === 'unknown') {
     warnings.push('플랫폼을 자동 감지하지 못함');
-    recommendations.push('VERCEL 또는 RENDER 환경변수 확인');
+    recommendations.push('VERCEL 환경변수 확인');
   }
 
   // 🗄️ 데이터베이스 연결 검증

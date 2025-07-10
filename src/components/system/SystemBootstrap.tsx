@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
  * ✅ 개선된 기능:
  * - 시스템이 실제로 시작된 상태일 때만 실행
  * - 사용자가 "시스템 시작" 버튼을 누르기 전에는 실행 안 함
- * - MCP 서버 자동 웜업 (Render 서버 웨이크업)
+ * - MCP 서버 자동 웜업 (GCP VM 서버)
  * - Google AI 연결 확인
  * - 시스템 초기화 상태 관리
  */
@@ -58,11 +58,11 @@ export function SystemBootstrap(): React.JSX.Element | null {
         }
       }
 
-      // 1. MCP 웜업 (Render 서버 한 번만 깨우기)
+      // 1. GCP VM 서버 상태 확인 (MCP Context Assistant)
       try {
-        console.log('🔄 MCP 웜업 시작...');
-        const mcpResponse = await fetch('/api/mcp/warmup', {
-          method: 'POST',
+        console.log('🔄 GCP VM 서버 상태 확인...');
+        const mcpResponse = await fetch('/api/ai/status', {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -72,17 +72,17 @@ export function SystemBootstrap(): React.JSX.Element | null {
           if (mcpResponse.ok) {
             const mcpData = await mcpResponse.json();
             console.log(
-              '✅ MCP 웜업 완료:',
-              mcpData.warmedUp ? '성공' : '이미 활성'
+              '✅ GCP VM 서버 상태:',
+              mcpData.mcp?.enabled ? '활성화' : '비활성화'
             );
             setBootstrapStatus(prev => ({ ...prev, mcp: 'success' }));
           } else {
-            console.warn('⚠️ MCP 웜업 실패:', mcpResponse.status);
+            console.warn('⚠️ GCP VM 서버 상태 확인 실패:', mcpResponse.status);
             setBootstrapStatus(prev => ({ ...prev, mcp: 'failed' }));
           }
         }
       } catch (error) {
-        console.error('❌ MCP 웜업 오류:', error);
+        console.error('❌ GCP VM 서버 상태 확인 오류:', error);
         if (isMounted) {
           setBootstrapStatus(prev => ({ ...prev, mcp: 'failed' }));
         }

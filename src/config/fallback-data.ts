@@ -118,7 +118,7 @@ export const INFRASTRUCTURE_CONFIG = {
     serverUrl:
       process.env.GCP_MCP_SERVER_URL || process.env.MCP_SERVER_URL || '',
     serverIps: (
-      process.env.RENDER_MCP_SERVER_IPS ||
+      process.env.GCP_MCP_SERVER_IPS ||
       process.env.MCP_SERVER_IPS ||
       ''
     )

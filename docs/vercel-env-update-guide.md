@@ -9,18 +9,15 @@
 
 ### 2. 업데이트할 환경변수
 
-#### 필수 변경
+#### MCP 서버 설정
 ```bash
-# 기존 (Render URL)
-GCP_MCP_SERVER_URL=https://openmanager-vibe-v5.onrender.com
-
-# 변경 (GCP VM URL)
+# GCP VM MCP 서버 URL (사용하는 경우)
 GCP_MCP_SERVER_URL=http://104.154.205.25:10000
 ```
 
-#### 삭제 권장 (있는 경우)
-- `RENDER_API_KEY`
-- `RENDER_SERVICE_ID`
+#### 삭제된 환경변수 (더 이상 사용하지 않음)
+- `RENDER_API_KEY` (Render 서비스 미사용)
+- `RENDER_SERVICE_ID` (Render 서비스 미사용)
 - `MCP_AI_ENGINE_ENABLED` (컨텍스트 보조로 역할 변경)
 
 ### 3. 추가 설정 (선택사항)

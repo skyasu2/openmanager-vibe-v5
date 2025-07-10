@@ -54,14 +54,12 @@ describe('환경 감지 로직', () => {
       setTestEnv({
         NODE_ENV: 'development',
         VERCEL: undefined,
-        RENDER: undefined,
       });
 
       const env = detectEnvironment();
 
       expect(env.IS_LOCAL).toBe(true);
       expect(env.IS_VERCEL).toBe(false);
-      expect(env.IS_RENDER).toBe(false);
       expect(env.IS_PRODUCTION).toBe(false);
       expect(env.features.enableMockData).toBe(true);
       expect(env.features.enableDebugLogs).toBe(true);
@@ -93,7 +91,6 @@ describe('환경 감지 로직', () => {
 
       expect(env.IS_VERCEL).toBe(true);
       expect(env.IS_LOCAL).toBe(false);
-      expect(env.IS_RENDER).toBe(false);
       expect(env.IS_PRODUCTION).toBe(true);
       expect(env.features.enableMockData).toBe(false);
       expect(env.performance.maxMemory).toBe(1024);
@@ -116,20 +113,7 @@ describe('환경 감지 로직', () => {
     });
   });
 
-  describe('Render 배포 환경 감지', () => {
-    test('RENDER=true일 때 Render 환경으로 감지', () => {
-      setTestEnv({
-        RENDER: 'true',
-        NODE_ENV: 'production',
-      });
-
-      const env = detectEnvironment();
-
-      expect(env.IS_RENDER).toBe(true);
-      expect(env.IS_VERCEL).toBe(false);
-      expect(env.IS_LOCAL).toBe(false);
-    });
-  });
+  // Render 배포 환경 감지 테스트 제거 (GCP VM으로 이전)
 
   describe('테스트 환경 감지', () => {
     it.skip('NODE_ENV=test일 때 테스트 환경으로 감지', () => {

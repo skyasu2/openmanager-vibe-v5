@@ -49,4 +49,4 @@ node utils/deploy-check.js
 
 - [배포 통합 가이드](../docs/deployment/배포_통합_가이드.md)
 - [Vercel 설정](../config/vercel.json)
-- [Render 설정](../config/render.yaml)
+- [GCP VM 설정](../config/gcp-vm.yaml)

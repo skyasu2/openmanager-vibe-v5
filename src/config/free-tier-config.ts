@@ -99,12 +99,12 @@ export const FREE_TIER_CONFIG = {
 
   // 🔄 MCP 서버 대안
   mcpServer: {
-    provider: 'render', // Render 무료 티어 사용
-    plan: 'free',
+    provider: 'gcp-vm', // GCP VM 사용 (Render에서 이전)
+    plan: 'always-free',
     limits: {
-      hoursPerMonth: 750, // 750시간 무료
-      memory: '512MB',
-      storage: '1GB',
+      hoursPerMonth: 720, // E2 micro VM 무료
+      memory: '1GB',
+      storage: '30GB',
     },
     fallback: {
       provider: 'railway', // Railway $5 크레딧
@@ -150,9 +150,9 @@ export function validateFreeTierUsage() {
       recommendation: '요청 간격 조절 및 캐싱 강화 필요',
     },
     mcp: {
-      status: 'requires_migration',
-      usage: 'N/A',
-      recommendation: 'Render 무료 티어로 이전 필요',
+      status: 'active',
+      usage: 'GCP VM Always Free Tier',
+      recommendation: 'GCP VM으로 이전 완료 (Render 대체)',
     },
   };
 }

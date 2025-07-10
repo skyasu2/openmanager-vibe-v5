@@ -71,13 +71,8 @@ export class MCPConfigManager {
    */
   private detectEnvironment():
     | 'cursor'
-    | 'render'
     | 'development'
     | 'production' {
-    // Render.com 환경 감지
-    if (process.env.RENDER || process.cwd().includes('/opt/render/project')) {
-      return 'render';
-    }
 
     // Cursor IDE 환경 감지
     if (process.env.CURSOR_IDE || process.env.VSCODE_PID) {
@@ -99,8 +94,6 @@ export class MCPConfigManager {
     switch (environment) {
       case 'cursor':
         return 'mcp-cursor.json';
-      case 'render':
-        return 'mcp-render.json';
       case 'production':
         return 'mcp.json';
       case 'development':

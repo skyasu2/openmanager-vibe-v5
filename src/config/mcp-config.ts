@@ -540,7 +540,7 @@ const mcpConfig = {
     timeout: 5000,
     retries: 2,
     healthCheck: '/health',
-    description: 'Google Cloud VM에서 24시간 동작하는 MCP 서버 (Render 대체)',
+    description: 'Google Cloud VM에서 24시간 동작하는 MCP 서버',
   },
 };
 

@@ -8,7 +8,7 @@
  * 2. 보안 토큰 로테이션
  * 3. 설정 검증
  * 4. Vercel 동기화
- * 5. Render MCP 서버 관리
+ * 5. GCP VM MCP 서버 관리
  * 6. Supabase 설정 관리
  *
  * 사용법:
@@ -16,7 +16,7 @@
  * node scripts/env-management.js --action=rotate --service=google-ai
  * node scripts/env-management.js --action=sync-vercel
  * node scripts/env-management.js --action=encrypt-all
- * node scripts/env-management.js --action=setup-render-mcp
+ * node scripts/env-management.js --action=setup-gcp-mcp
  * node scripts/env-management.js --action=setup-supabase
  */
 
@@ -316,7 +316,7 @@ class EnvSecurityManager {
  * 
  * 포함된 설정:
  * - Supabase DB 연결 정보
- * - Render MCP 서버 정보  
+ * - GCP VM MCP 서버 정보  
  * - Redis 인증 토큰
  * - Google AI API 키
  * - Slack Webhook URL
@@ -587,7 +587,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 SUPABASE_DB_PASSWORD=2D3DWhSl8HBlgYIm
 
 # =============================================================================
-# 📡 Render MCP 서버 (2025년 메모리 저장소)
+# 📡 GCP VM MCP 서버 (2025년 메모리 저장소)
 # =============================================================================
 GCP_MCP_SERVER_URL=http://104.154.205.25:10000
 RENDER_MCP_SERVER_IPS=13.228.225.19,18.142.128.26,54.254.162.138
@@ -755,9 +755,9 @@ async function main() {
       });
       break;
 
-    case 'setup-render-mcp':
-      const renderConfig = manager.setupGoogleVMMCP();
-      console.log('\n✅ Render MCP 설정 완료');
+    case 'setup-gcp-mcp':
+      const gcpConfig = manager.setupGoogleVMMCP();
+      console.log('\n✅ GCP VM MCP 설정 완료');
       break;
 
     case 'setup-supabase':
@@ -782,7 +782,7 @@ async function main() {
       console.log('  --action=validate       환경변수 검증');
       console.log('  --action=generate       환경변수 파일 생성');
       console.log('  --action=encrypt-all    모든 환경변수 암호화');
-      console.log('  --action=setup-render-mcp   Render MCP 설정');
+      console.log('  --action=setup-gcp-mcp      GCP VM MCP 설정');
       console.log('  --action=setup-supabase     Supabase 설정');
       console.log('  --action=sync-vercel    Vercel 동기화 가이드');
       console.log('  --action=suggest        갱신 제안');
