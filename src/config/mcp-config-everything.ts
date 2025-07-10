@@ -67,19 +67,7 @@ export const EVERYTHING_MCP_CONFIG: EverythingMCPConfig = {
  * 🎯 핵심 백업 서버들 (Everything으로 커버 안 되는 경우)
  */
 export const ESSENTIAL_BACKUP_SERVERS = {
-  'openmanager-local': {
-    name: 'openmanager-local',
-    command: 'node',
-    args: ['./mcp-server/dev-server.js'],
-    env: {
-      NODE_ENV: 'development',
-      PORT: '3100',
-    },
-    enabled: true,
-    description: 'OpenManager 로컬 서버 (프로젝트 전용)',
-    purpose: 'OpenManager 특화 기능',
-    memory: '512MB',
-  },
+  // 현재 백업 서버 없음 - Everything MCP가 모든 기능 제공
 };
 
 /**

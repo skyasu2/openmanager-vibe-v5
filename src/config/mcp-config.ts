@@ -95,20 +95,6 @@ export const DEVELOPMENT_MCP_CONFIG: MCPEnvironmentConfig = {
       memory: '512MB',
     },
 
-    'openmanager-local': {
-      name: 'openmanager-local',
-      command: 'node',
-      args: ['./mcp-server/dev-server.js'],
-      env: {
-        NODE_ENV: 'development',
-        PORT: '3100',
-      },
-      enabled: true,
-      description: 'OpenManager 로컬 서버 (포트 연결)',
-      purpose: '개발 환경 테스트 및 디버깅',
-      memory: '1GB',
-    },
-
     'supabase': {
       name: 'supabase',
       command: 'npx',
