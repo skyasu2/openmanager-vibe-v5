@@ -75,7 +75,10 @@
       "Bash(npm update:*)",
       "Bash(npx next lint:*)",
       "Bash(node:*)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "Bash(./scripts/show-claude-usage.sh:*)",
+      "Bash(command -v:*)",
+      "Bash(pip show:*)"
     ],
     "deny": []
   }
