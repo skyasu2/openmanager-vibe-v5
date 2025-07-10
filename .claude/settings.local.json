@@ -105,7 +105,8 @@
       "Bash(git pull:*)",
       "Bash(git stash:*)",
       "Bash(git restore:*)",
-      "Bash(jq:*)"
+      "Bash(jq:*)",
+      "Bash(HUSKY=0 git push origin main)"
     ],
     "deny": []
   }

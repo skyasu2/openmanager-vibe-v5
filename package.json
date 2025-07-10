@@ -68,7 +68,8 @@
     "cm": "claude-monitor --plan max20",
     "postcommit": "npm run claude-usage",
     "postpush": "npm run claude-usage",
-    "git:push": "bash scripts/git-push-helper.sh"
+    "git:push": "bash scripts/git-push-helper.sh",
+    "git:secure-push": "node scripts/github-auth-helper.cjs push"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

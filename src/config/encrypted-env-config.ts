@@ -26,6 +26,7 @@ export const ENCRYPTED_ENV_CONFIG = {
       'UPSTASH_REDIS_REST_TOKEN',
       'DATABASE_URL',
       'NEXTAUTH_SECRET',
+      'GITHUB_PAT',  // GitHub Personal Access Token 추가
     ],
 
     // 암호화 설정

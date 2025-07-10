@@ -140,3 +140,6 @@ commit/
 *github_pat*
 *.pat
 .github-token
+
+# GitHub 인증 정보
+.github-auth.json
