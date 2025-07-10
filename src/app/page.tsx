@@ -124,17 +124,42 @@ export default function Home() {
 
   // NextAuth 로딩 타임아웃 처리
   useEffect(() => {
+    console.log('⏱️ NextAuth 타임아웃 체크:', {
+      isMounted,
+      status,
+      willSetTimeout: isMounted && status === 'loading'
+    });
+    
     if (!isMounted || status !== 'loading') return;
 
     // NextAuth providers가 없는 경우 status가 계속 'loading'일 수 있으므로
     // 일정 시간 후 강제로 인증 체크를 진행
     const loadingTimeout = setTimeout(() => {
-      console.log('⚠️ NextAuth 로딩 지연 - 강제 인증 체크 진행');
+      console.log('⚠️ NextAuth 로딩 타임아웃 발생 - 강제 인증 체크 진행');
       setAuthChecked(true);
     }, 2000);
     
     return () => clearTimeout(loadingTimeout);
   }, [isMounted, status]);
+
+  // 즉시 리다이렉션 체크 (authChecked를 기다리지 않음)
+  useEffect(() => {
+    if (!isMounted) return;
+    
+    // 이미 로그인 페이지에 있으면 스킵
+    if (typeof window !== 'undefined' && window.location.pathname === '/login') {
+      return;
+    }
+    
+    // status가 loading이 아니고, 세션도 없고, 게스트 정보도 없으면 즉시 리다이렉트
+    if (status !== 'loading' && !session) {
+      const hasGuest = localStorage.getItem('auth_type') === 'guest';
+      if (!hasGuest) {
+        console.log('🚨 즉시 리다이렉션 - 인증 정보 없음');
+        window.location.href = '/login';
+      }
+    }
+  }, [isMounted, status, session]);
 
   // 게스트 로그인 확인 및 인증 체크
   useEffect(() => {
@@ -175,21 +200,37 @@ export default function Home() {
     const hasGuestLogin = checkGuestLogin();
     setAuthChecked(true);
 
-    console.log('🔐 인증 상태:', {
+    console.log('🔐 인증 상태 상세:', {
       hasSession: !!session,
-      sessionUser: session?.user?.email || session?.user?.name,
+      sessionData: session,
+      sessionUser: session?.user?.email || session?.user?.name || 'none',
       hasGuestLogin,
+      guestUser,
       status,
+      authChecked,
+      redirecting,
       pathname: typeof window !== 'undefined' ? window.location.pathname : 'unknown'
+    });
+
+    // 리다이렉션 조건 상세 로그
+    console.log('🔍 리다이렉션 조건 체크:', {
+      '!session': !session,
+      '!hasGuestLogin': !hasGuestLogin,
+      '!redirecting': !redirecting,
+      '모든 조건 충족': !session && !hasGuestLogin && !redirecting
     });
 
     // GitHub OAuth도 없고 게스트 로그인도 없으면 로그인 페이지로
     if (!session && !hasGuestLogin && !redirecting) {
       console.log('🚫 인증되지 않은 사용자 - 로그인 페이지로 이동');
       setRedirecting(true);
-      router.push('/login');
+      // 즉시 리다이렉션
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
     } else if ((session || hasGuestLogin) && redirecting) {
       // 인증되었는데 리다이렉팅 상태면 초기화
+      console.log('✅ 인증 확인됨 - 리다이렉션 취소');
       setRedirecting(false);
     }
   }, [session, status, router, isMounted, redirecting]);
@@ -477,11 +518,11 @@ export default function Home() {
   // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
   // authChecked가 true이고, 세션도 없고 게스트 로그인도 없는 경우
   if (authChecked && !session && !guestUser) {
+    console.log('🚫 최종 인증 실패 - 로그인 페이지로 리다이렉트 (렌더링 단계)');
     // 이미 리다이렉트 중이면 추가로 push하지 않음
-    if (typeof window !== 'undefined' && window.location.pathname !== '/login' && !redirecting) {
-      console.log('🚫 최종 인증 실패 - 로그인 페이지로 리다이렉트');
-      setRedirecting(true);
-      router.push('/login');
+    if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+      // 즉시 리다이렉션
+      window.location.href = '/login';
     }
     return (
       <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
