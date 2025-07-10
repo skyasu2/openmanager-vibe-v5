@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 
 // 개발 환경에서만 허용하는 API 패턴들
 const DEV_ONLY_PATTERNS = [
@@ -19,12 +20,25 @@ const PUBLIC_PATHS = [
   '/favicon.ico',
   '/api/health',
   '/api/ping',
-  '/about',  // about 페이지 추가
-  '/notes',  // notes 페이지 추가 (공개 페이지인 경우)
+  '/about',
+  '/notes',
+  '/',  // 홈페이지는 공개 (단, 기능은 제한)
 ];
 
-export function middleware(request: NextRequest) {
+// GitHub 인증이 필요한 경로들
+const PROTECTED_PATHS = [
+  '/dashboard',
+  '/admin',
+  '/system-boot',
+  '/api/dashboard',
+  '/api/admin',
+  '/api/ai',  // AI 기능은 인증 필요
+  '/api/servers',  // 서버 관리 API
+];
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const response = NextResponse.next();
 
   // 프로덕션에서 개발/테스트 API 차단
   if (process.env.NODE_ENV === 'production') {
@@ -44,7 +58,33 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  // 보호된 경로 체크
+  const isProtectedPath = PROTECTED_PATHS.some(path => 
+    pathname.startsWith(path)
+  );
+
+  if (isProtectedPath) {
+    try {
+      // Supabase 클라이언트 생성
+      const supabase = createMiddlewareClient({ req: request, res: response });
+      
+      // 세션 확인
+      const { data: { session }, error } = await supabase.auth.getSession();
+
+      if (error || !session) {
+        // GitHub 인증이 없으면 로그인 페이지로 리다이렉트
+        const redirectUrl = new URL('/login', request.url);
+        redirectUrl.searchParams.set('redirectTo', pathname);
+        return NextResponse.redirect(redirectUrl);
+      }
+    } catch (error) {
+      console.error('Middleware auth check error:', error);
+      // 에러 발생 시 안전하게 로그인 페이지로
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+  }
+
+  return response;
 }
 
 export const config = {

@@ -11,8 +11,8 @@ import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
-import { BarChart3, Bot, Loader2, Play, X, Zap } from 'lucide-react';
-import { signOut, useSession } from 'next-auth/react';
+import { BarChart3, Bot, Loader2, Play, X, Zap, LogIn } from 'lucide-react';
+import { getCurrentUser, isGitHubAuthenticated, signOut as supabaseSignOut, onAuthStateChange } from '@/lib/supabase-auth';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -33,13 +33,15 @@ const FeatureCardsGrid = dynamic(
 
 export default function Home() {
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const [guestUser, setGuestUser] = useState<{
+  const [isGitHubUser, setIsGitHubUser] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{
     name: string;
     email?: string;
+    avatar?: string;
   } | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
   const {
     isSystemStarted,
@@ -75,118 +77,61 @@ export default function Home() {
     setIsMounted(true);
   }, []);
 
-  // NextAuth 로딩 타임아웃 처리
-  useEffect(() => {
-    console.log('⏱️ NextAuth 타임아웃 체크:', {
-      isMounted,
-      status,
-      willSetTimeout: isMounted && status === 'loading'
-    });
-    
-    if (!isMounted || status !== 'loading') return;
-
-    // NextAuth providers가 없는 경우 status가 계속 'loading'일 수 있으므로
-    // 일정 시간 후 강제로 인증 체크를 진행
-    const loadingTimeout = setTimeout(() => {
-      console.log('⚠️ NextAuth 로딩 타임아웃 발생 - 강제 인증 체크 진행');
-      setAuthChecked(true);
-    }, 2000);
-    
-    return () => clearTimeout(loadingTimeout);
-  }, [isMounted, status]);
-
-  // 즉시 리다이렉션 체크 (authChecked를 기다리지 않음)
+  // Supabase Auth 상태 확인
   useEffect(() => {
     if (!isMounted) return;
+
+    let authListener: any;
+
+    const checkAuth = async () => {
+      setAuthLoading(true);
+      try {
+        // GitHub 인증 확인
+        const isGitHub = await isGitHubAuthenticated();
+        setIsGitHubUser(isGitHub);
+
+        // 현재 사용자 정보 가져오기
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+        
+        console.log('🔐 인증 상태:', { isGitHub, user });
+        setAuthChecked(true);
+      } catch (error) {
+        console.error('❌ 인증 확인 오류:', error);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    checkAuth();
+
+    // 인증 상태 변경 리스너
+    authListener = onAuthStateChange(async (session) => {
+      console.log('🔄 Auth 상태 변경 감지');
+      await checkAuth();
+    });
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
+  }, [isMounted]);
+
+  // 즉시 리다이렉션 체크
+  useEffect(() => {
+    if (!isMounted || authLoading) return;
     
     // 이미 로그인 페이지에 있으면 스킵
     if (typeof window !== 'undefined' && window.location.pathname === '/login') {
       return;
     }
     
-    // status가 loading이 아니고, 세션도 없고, 게스트 정보도 없으면 즉시 리다이렉트
-    if (status !== 'loading' && !session) {
-      const hasGuest = localStorage.getItem('auth_type') === 'guest';
-      if (!hasGuest) {
-        console.log('🚨 즉시 리다이렉션 - 인증 정보 없음');
-        window.location.href = '/login';
-      }
+    // 인증된 사용자가 없고 게스트도 아니면 로그인 페이지로
+    if (!currentUser) {
+      console.log('🚨 인증 정보 없음 - 로그인 페이지로 이동');
+      window.location.href = '/login';
     }
-  }, [isMounted, status, session]);
+  }, [isMounted, authLoading, currentUser]);
 
-  // 게스트 로그인 확인 및 인증 체크
-  useEffect(() => {
-    // 클라이언트 마운트되지 않았으면 스킵
-    if (!isMounted) {
-      console.log('🔄 Auth 체크 대기 중... (mounted:', isMounted, ')');
-      return;
-    }
-
-    // NextAuth가 로딩 중이면 스킵
-    if (status === 'loading') {
-      return;
-    }
-
-    const checkGuestLogin = () => {
-      try {
-        const authType = localStorage.getItem('auth_type');
-        const authUser = localStorage.getItem('auth_user');
-        const sessionId = localStorage.getItem('auth_session_id');
-
-        console.log('🔍 게스트 로그인 체크:', {
-          authType,
-          hasAuthUser: !!authUser,
-          hasSessionId: !!sessionId
-        });
-
-        if (authType === 'guest' && authUser && sessionId) {
-          setGuestUser(JSON.parse(authUser));
-          return true;
-        }
-        return false;
-      } catch (error) {
-        console.error('게스트 로그인 확인 실패:', error);
-        return false;
-      }
-    };
-
-    const hasGuestLogin = checkGuestLogin();
-    setAuthChecked(true);
-
-    console.log('🔐 인증 상태 상세:', {
-      hasSession: !!session,
-      sessionData: session,
-      sessionUser: session?.user?.email || session?.user?.name || 'none',
-      hasGuestLogin,
-      guestUser,
-      status,
-      authChecked,
-      redirecting,
-      pathname: typeof window !== 'undefined' ? window.location.pathname : 'unknown'
-    });
-
-    // 리다이렉션 조건 상세 로그
-    console.log('🔍 리다이렉션 조건 체크:', {
-      '!session': !session,
-      '!hasGuestLogin': !hasGuestLogin,
-      '!redirecting': !redirecting,
-      '모든 조건 충족': !session && !hasGuestLogin && !redirecting
-    });
-
-    // GitHub OAuth도 없고 게스트 로그인도 없으면 로그인 페이지로
-    if (!session && !hasGuestLogin && !redirecting) {
-      console.log('🚫 인증되지 않은 사용자 - 로그인 페이지로 이동');
-      setRedirecting(true);
-      // 즉시 리다이렉션
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
-    } else if ((session || hasGuestLogin) && redirecting) {
-      // 인증되었는데 리다이렉팅 상태면 초기화
-      console.log('✅ 인증 확인됨 - 리다이렉션 취소');
-      setRedirecting(false);
-    }
-  }, [session, status, router, isMounted, redirecting]);
 
   // 🔧 상태 변화 디버깅 (클라이언트에서만)
   useEffect(() => {
@@ -412,9 +357,10 @@ export default function Home() {
 
   // 로그아웃 처리
   const handleLogout = async () => {
-    if (session) {
+    if (isGitHubUser) {
       // GitHub OAuth 로그아웃
-      await signOut({ callbackUrl: '/login' });
+      await supabaseSignOut();
+      router.push('/login');
     } else {
       // 게스트 로그아웃
       localStorage.removeItem('auth_session_id');
@@ -426,15 +372,10 @@ export default function Home() {
 
   // 사용자 정보 가져오기
   const getUserInfo = () => {
-    if (session?.user) {
+    if (currentUser) {
       return {
-        name: session.user.name || 'GitHub 사용자',
-        avatar: session.user.image,
-      };
-    } else if (guestUser) {
-      return {
-        name: guestUser.name || '게스트',
-        avatar: null,
+        name: currentUser.name || currentUser.email || '사용자',
+        avatar: currentUser.avatar || null,
       };
     }
     return { name: '사용자', avatar: null };
@@ -653,46 +594,74 @@ export default function Home() {
 
               {/* 메인 제어 버튼들 */}
               <div className='flex flex-col items-center mb-6 space-y-4'>
-                {/* 시스템 시작 버튼 */}
-                <motion.button
-                  onClick={handleSystemToggle}
-                  disabled={isLoading}
-                  className={`w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-200 border shadow-xl ${buttonConfig.className}`}
-                  whileHover={!isLoading ? { scale: 1.05 } : {}}
-                  whileTap={!isLoading ? { scale: 0.95 } : {}}
-                >
-                  {buttonConfig.icon}
-                  <span className='text-lg'>{buttonConfig.text}</span>
-                </motion.button>
+                {isGitHubUser ? (
+                  <>
+                    {/* GitHub 인증 사용자 - 시스템 시작 버튼 표시 */}
+                    <motion.button
+                      onClick={handleSystemToggle}
+                      disabled={isLoading}
+                      className={`w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-200 border shadow-xl ${buttonConfig.className}`}
+                      whileHover={!isLoading ? { scale: 1.05 } : {}}
+                      whileTap={!isLoading ? { scale: 0.95 } : {}}
+                    >
+                      {buttonConfig.icon}
+                      <span className='text-lg'>{buttonConfig.text}</span>
+                    </motion.button>
 
-                {/* 상태 안내 */}
-                <div className='mt-2 flex flex-col items-center gap-1'>
-                  <span
-                    className={`text-sm font-medium opacity-80 ${
-                      systemStartCountdown > 0
-                        ? 'text-orange-300 animate-pulse'
-                        : multiUserStatus.isRunning
-                          ? 'text-green-300'
-                          : 'text-white'
-                    }`}
-                  >
-                    {systemStartCountdown > 0
-                      ? '⚠️ 시작 예정 - 취소하려면 클릭'
-                      : multiUserStatus.isRunning
-                        ? `✅ 시스템 가동 중 (${multiUserStatus.userCount}명 접속)`
-                        : '클릭하여 시작하기'}
-                  </span>
-                  {systemStartCountdown > 0 && (
-                    <span className='text-xs text-white/60'>
-                      또는 ESC 키를 눌러 취소
-                    </span>
-                  )}
-                </div>
+                    {/* 상태 안내 */}
+                    <div className='mt-2 flex flex-col items-center gap-1'>
+                      <span
+                        className={`text-sm font-medium opacity-80 ${
+                          systemStartCountdown > 0
+                            ? 'text-orange-300 animate-pulse'
+                            : multiUserStatus.isRunning
+                              ? 'text-green-300'
+                              : 'text-white'
+                        }`}
+                      >
+                        {systemStartCountdown > 0
+                          ? '⚠️ 시작 예정 - 취소하려면 클릭'
+                          : multiUserStatus.isRunning
+                            ? `✅ 시스템 가동 중 (${multiUserStatus.userCount}명 접속)`
+                            : '클릭하여 시작하기'}
+                      </span>
+                      {systemStartCountdown > 0 && (
+                        <span className='text-xs text-white/60'>
+                          또는 ESC 키를 눌러 취소
+                        </span>
+                      )}
+                    </div>
 
-                {/* 시작 버튼 안내 아이콘 - 시스템 정지 상태일 때만 표시 */}
-                {!systemStartCountdown && !multiUserStatus.isRunning && (
-                  <div className='mt-2 flex justify-center'>
-                    <span className='finger-pointer-primary'>👆</span>
+                    {/* 시작 버튼 안내 아이콘 - 시스템 정지 상태일 때만 표시 */}
+                    {!systemStartCountdown && !multiUserStatus.isRunning && (
+                      <div className='mt-2 flex justify-center'>
+                        <span className='finger-pointer-primary'>👆</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* 게스트 사용자 - 안내 메시지 표시 */
+                  <div className='text-center'>
+                    <div className='mb-4 p-6 rounded-xl border bg-blue-500/10 border-blue-400/30'>
+                      <LogIn className='w-12 h-12 text-blue-400 mx-auto mb-3' />
+                      <h3 className='text-lg font-semibold text-white mb-2'>
+                        GitHub 로그인이 필요합니다
+                      </h3>
+                      <p className='text-sm text-blue-100 mb-4'>
+                        시스템 시작 기능은 GitHub 인증된 사용자만 사용할 수 있습니다.
+                      </p>
+                      <motion.button
+                        onClick={() => router.push('/login')}
+                        className='px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors'
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        로그인 페이지로 이동
+                      </motion.button>
+                    </div>
+                    <p className='text-xs text-gray-400'>
+                      게스트 모드에서는 읽기 전용 기능만 사용 가능합니다
+                    </p>
                   </div>
                 )}
               </div>
@@ -744,15 +713,26 @@ export default function Home() {
               {/* 대시보드 버튼 - 중앙 배치 */}
               <div className='flex justify-center mb-6'>
                 <div className='flex flex-col items-center'>
-                  <motion.button
-                    onClick={handleDashboardClick}
-                    className='w-64 h-16 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500/50 shadow-xl'
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <BarChart3 className='w-5 h-5' />
-                    <span className='text-lg'>📊 대시보드 열기</span>
-                  </motion.button>
+                  {isGitHubUser ? (
+                    <motion.button
+                      onClick={handleDashboardClick}
+                      className='w-64 h-16 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500/50 shadow-xl'
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <BarChart3 className='w-5 h-5' />
+                      <span className='text-lg'>📊 대시보드 열기</span>
+                    </motion.button>
+                  ) : (
+                    <div className='text-center'>
+                      <p className='text-sm text-gray-400 mb-2'>
+                        시스템이 다른 사용자에 의해 실행 중입니다
+                      </p>
+                      <p className='text-xs text-gray-500'>
+                        GitHub 로그인 후 대시보드 접근이 가능합니다
+                      </p>
+                    </div>
+                  )}
 
                   {/* 안내 아이콘 */}
                   <div className='mt-2 flex justify-center'>

@@ -2,12 +2,12 @@
  * 🔧 Client Providers
  *
  * OpenManager Vibe v5 클라이언트 프로바이더 통합 관리
- * NextAuth + TanStack Query만 사용 (Google OAuth 제거됨)
+ * Supabase Auth + TanStack Query 사용
  */
 
 'use client';
 
-import NextAuthProvider from './NextAuthProvider';
+import SupabaseAuthProvider from './SupabaseAuthProvider';
 import QueryProvider from './QueryProvider';
 import { ServerDataStoreProvider } from './StoreProvider';
 
@@ -24,15 +24,15 @@ interface ClientProvidersProps {
  *
  * Provider 계층 구조:
  * 1. ServerDataStoreProvider (Zustand 상태 관리)
- * 2. NextAuthProvider (NextAuth 세션 관리)
+ * 2. SupabaseAuthProvider (Supabase Auth 세션 관리)
  * 3. QueryProvider (TanStack Query)
  */
 export function ClientProviders({ children }: ClientProvidersProps) {
   return (
     <ServerDataStoreProvider>
-      <NextAuthProvider>
+      <SupabaseAuthProvider>
         <QueryProvider>{children}</QueryProvider>
-      </NextAuthProvider>
+      </SupabaseAuthProvider>
     </ServerDataStoreProvider>
   );
 }

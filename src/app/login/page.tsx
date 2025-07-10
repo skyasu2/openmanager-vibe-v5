@@ -8,9 +8,11 @@
 'use client';
 
 import { Github, User } from 'lucide-react';
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
+// Supabase Auth 관련 임포트
+import { signInWithGitHub } from '@/lib/supabase-auth';
 
 // 게스트 로그인 관련 임포트
 import { AuthStateManager, AuthUser } from '@/services/auth/AuthStateManager';
@@ -56,20 +58,20 @@ export default function LoginPage() {
       setIsLoading(true);
       setLoadingType('github');
 
-      console.log('🔐 GitHub OAuth 로그인 시작...');
+      console.log('🔐 GitHub OAuth 로그인 시작 (Supabase Auth)...');
 
-      // GitHub OAuth 설정 확인 (클라이언트 사이드에서는 직접 체크하지 않음)
-      // Vercel 배포 환경에서는 환경변수가 서버 사이드에서만 접근 가능하므로
-      // signIn 시도 후 에러 처리로 대체
+      const { error } = await signInWithGitHub();
 
-      await signIn('github', {
-        callbackUrl: '/', // 루트 페이지로 리다이렉트
-        redirect: true,
-      });
+      if (error) {
+        console.error('GitHub 로그인 실패:', error);
+        alert('GitHub 로그인에 실패했습니다. 게스트 모드를 이용해주세요.');
+        setIsLoading(false);
+        setLoadingType(null);
+      }
+      // 성공 시 자동으로 OAuth 리다이렉트됨
     } catch (error) {
       console.error('GitHub 로그인 실패:', error);
       alert('GitHub 로그인에 실패했습니다. 게스트 모드를 이용해주세요.');
-    } finally {
       setIsLoading(false);
       setLoadingType(null);
     }
@@ -187,16 +189,15 @@ export default function LoginPage() {
             {process.env.NODE_ENV === 'development' && (
               <div className='mt-4 p-3 bg-yellow-900/20 border border-yellow-600/30 rounded-lg text-left'>
                 <p className='text-yellow-300 text-xs font-semibold mb-1'>
-                  ⚠️ GitHub OAuth 설정 안내
+                  ⚠️ Supabase GitHub OAuth 설정 안내
                 </p>
                 <p className='text-yellow-200/80 text-xs'>
-                  GitHub 로그인을 사용하려면 다음 환경변수를 설정하세요:
+                  GitHub 로그인을 사용하려면:
                 </p>
                 <ul className='text-yellow-200/60 text-xs mt-1 ml-4 list-disc'>
-                  <li>GITHUB_CLIENT_ID</li>
-                  <li>GITHUB_CLIENT_SECRET</li>
-                  <li>NEXTAUTH_SECRET</li>
-                  <li>NEXTAUTH_URL</li>
+                  <li>Supabase Dashboard에서 GitHub OAuth 활성화</li>
+                  <li>NEXT_PUBLIC_SUPABASE_URL 설정</li>
+                  <li>NEXT_PUBLIC_SUPABASE_ANON_KEY 설정</li>
                 </ul>
               </div>
             )}
@@ -206,7 +207,7 @@ export default function LoginPage() {
         {/* 푸터 */}
         <div className='text-center mt-8'>
           <p className='text-xs text-gray-500'>
-            OpenManager Vibe v5.44.3 • GitHub OAuth + 게스트 로그인
+            OpenManager Vibe v5.44.3 • Supabase Auth (GitHub OAuth + 게스트)
           </p>
         </div>
       </div>
