@@ -14,6 +14,15 @@ const githubClientId = process.env.GITHUB_CLIENT_ID;
 const githubClientSecret = process.env.GITHUB_CLIENT_SECRET;
 const nextAuthSecret = process.env.NEXTAUTH_SECRET;
 
+// 환경변수 디버깅 (배포 환경에서 확인용)
+console.log('🔍 NextAuth 환경변수 상태:', {
+  hasGithubClientId: !!githubClientId,
+  hasGithubClientSecret: !!githubClientSecret,
+  hasNextAuthSecret: !!nextAuthSecret,
+  nodeEnv: process.env.NODE_ENV,
+  nextAuthUrl: process.env.NEXTAUTH_URL || 'not set'
+});
+
 // GitHub OAuth가 구성되지 않은 경우 빈 provider 배열 사용
 const providers = [];
 if (githubClientId && githubClientSecret) {
@@ -23,6 +32,7 @@ if (githubClientId && githubClientSecret) {
       clientSecret: githubClientSecret,
     })
   );
+  console.log('✅ GitHub OAuth Provider 활성화됨');
 } else {
   console.warn('⚠️ GitHub OAuth 환경변수가 설정되지 않았습니다. GitHub 로그인이 비활성화됩니다.');
 }

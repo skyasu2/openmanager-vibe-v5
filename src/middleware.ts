@@ -19,6 +19,8 @@ const PUBLIC_PATHS = [
   '/favicon.ico',
   '/api/health',
   '/api/ping',
+  '/about',  // about 페이지 추가
+  '/notes',  // notes 페이지 추가 (공개 페이지인 경우)
 ];
 
 export function middleware(request: NextRequest) {
@@ -39,25 +41,6 @@ export function middleware(request: NextRequest) {
         },
         { status: 403 }
       );
-    }
-  }
-
-  // 인증 체크 (NextAuth 세션 또는 게스트 로그인)
-  const isPublicPath = PUBLIC_PATHS.some(path => pathname.startsWith(path));
-  
-  if (!isPublicPath) {
-    // NextAuth 세션 체크
-    const sessionToken = request.cookies.get('next-auth.session-token') || 
-                        request.cookies.get('__Secure-next-auth.session-token');
-    
-    // 게스트 로그인 체크를 위한 커스텀 헤더 (클라이언트에서 설정)
-    const isGuestAuth = request.headers.get('x-guest-auth') === 'true';
-    
-    // 세션도 없고 게스트 인증도 없으면 로그인 페이지로 리다이렉트
-    if (!sessionToken && !isGuestAuth && pathname !== '/') {
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('callbackUrl', pathname);
-      return NextResponse.redirect(loginUrl);
     }
   }
 

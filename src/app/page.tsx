@@ -39,6 +39,7 @@ export default function Home() {
     email?: string;
   } | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   const {
     isSystemStarted,
@@ -123,14 +124,37 @@ export default function Home() {
 
   // NextAuth 및 게스트 로그인 확인
   useEffect(() => {
-    // 클라이언트 마운트되지 않았거나 로딩 중이면 스킵
-    if (!isMounted || status === 'loading') return;
+    // 클라이언트 마운트되지 않았으면 스킵
+    if (!isMounted) {
+      console.log('🔄 Auth 체크 대기 중... (mounted:', isMounted, ')');
+      return;
+    }
+
+    // NextAuth 로딩 상태 확인
+    const isNextAuthLoading = status === 'loading';
+    
+    // NextAuth providers가 없는 경우 status가 계속 'loading'일 수 있으므로
+    // 일정 시간 후 강제로 인증 체크를 진행
+    if (isNextAuthLoading) {
+      const loadingTimeout = setTimeout(() => {
+        console.log('⚠️ NextAuth 로딩 지연 - 강제 인증 체크 진행');
+        setAuthChecked(true);
+      }, 2000);
+      
+      return () => clearTimeout(loadingTimeout);
+    }
 
     const checkGuestLogin = () => {
       try {
         const authType = localStorage.getItem('auth_type');
         const authUser = localStorage.getItem('auth_user');
         const sessionId = localStorage.getItem('auth_session_id');
+
+        console.log('🔍 게스트 로그인 체크:', {
+          authType,
+          hasAuthUser: !!authUser,
+          hasSessionId: !!sessionId
+        });
 
         if (authType === 'guest' && authUser && sessionId) {
           setGuestUser(JSON.parse(authUser));
@@ -146,14 +170,26 @@ export default function Home() {
     const hasGuestLogin = checkGuestLogin();
     setAuthChecked(true);
 
+    console.log('🔐 인증 상태:', {
+      hasSession: !!session,
+      sessionUser: session?.user?.email || session?.user?.name,
+      hasGuestLogin,
+      status,
+      pathname: typeof window !== 'undefined' ? window.location.pathname : 'unknown'
+    });
+
     // GitHub OAuth도 없고 게스트 로그인도 없으면 로그인 페이지로
     // status가 'loading'이 아닌 모든 경우에 인증 체크
-    if (!session && !hasGuestLogin && status !== 'loading') {
-      console.log('🔐 인증되지 않은 사용자 - 로그인 페이지로 이동 (status:', status, ')');
+    if (!session && !hasGuestLogin && status !== 'loading' && !redirecting) {
+      console.log('🚫 인증되지 않은 사용자 - 로그인 페이지로 이동');
+      setRedirecting(true);
       router.push('/login');
       return;
+    } else if ((session || hasGuestLogin) && redirecting) {
+      // 인증되었는데 리다이렉팅 상태면 초기화
+      setRedirecting(false);
     }
-  }, [session, status, router, isMounted]);
+  }, [session, status, router, isMounted, redirecting]);
 
   // 🔧 상태 변화 디버깅 (클라이언트에서만)
   useEffect(() => {
@@ -407,23 +443,43 @@ export default function Home() {
     return { name: '사용자', avatar: null };
   };
 
-  // 🔄 클라이언트 마운트 전 또는 인증 체크 중에는 로딩 표시
-  if (!isMounted || status === 'loading' || !authChecked) {
+  // 🔄 클라이언트 마운트 전에는 로딩 표시
+  if (!isMounted) {
     return (
       <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
         <div className='flex items-center justify-center min-h-screen'>
           <div className='text-center'>
             <Loader2 className='w-8 h-8 animate-spin text-white mx-auto mb-4' />
-            <p className='text-white/80'>시스템 초기화 중...</p>
+            <p className='text-white/80'>페이지 로딩 중...</p>
           </div>
         </div>
       </div>
     );
   }
 
-  // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트 (클라이언트에서만)
-  if (!session && !guestUser && authChecked) {
-    router.push('/login');
+  // NextAuth 로딩 중이고 아직 인증 체크가 안됐으면 대기
+  if (status === 'loading' && !authChecked) {
+    return (
+      <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
+        <div className='flex items-center justify-center min-h-screen'>
+          <div className='text-center'>
+            <Loader2 className='w-8 h-8 animate-spin text-white mx-auto mb-4' />
+            <p className='text-white/80'>인증 확인 중...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
+  // authChecked가 true이고, 세션도 없고 게스트 로그인도 없는 경우
+  if (authChecked && !session && !guestUser) {
+    // 이미 리다이렉트 중이면 추가로 push하지 않음
+    if (typeof window !== 'undefined' && window.location.pathname !== '/login' && !redirecting) {
+      console.log('🚫 최종 인증 실패 - 로그인 페이지로 리다이렉트');
+      setRedirecting(true);
+      router.push('/login');
+    }
     return (
       <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
         <div className='flex items-center justify-center min-h-screen'>
