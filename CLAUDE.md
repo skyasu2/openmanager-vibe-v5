@@ -220,7 +220,7 @@ This project demonstrates advanced Next.js patterns with AI integration, optimiz
 
 ## Gemini CLI Collaboration
 
-When working with Gemini CLI for local development assistance, refer to the detailed guide in `docs/gemini-collaboration.md`.
+When working with Gemini CLI for local development assistance, refer to the detailed guide in `development/gemini-local/`.
 
 ### Quick Reference
 
@@ -247,4 +247,4 @@ gemini /clear     # Reset context
 - **Vercel Optimization**: Edge Runtime, minimal memory usage
 - **Debugging**: Console logs added for auth state tracking
 
-For detailed collaboration patterns and examples, see `docs/gemini-collaboration.md`.
+For detailed collaboration patterns and examples, see `development/gemini-local/`.
