@@ -122,7 +122,21 @@ export default function Home() {
     return () => clearTimeout(warmupTimer);
   }, []);
 
-  // NextAuth 및 게스트 로그인 확인
+  // NextAuth 로딩 타임아웃 처리
+  useEffect(() => {
+    if (!isMounted || status !== 'loading') return;
+
+    // NextAuth providers가 없는 경우 status가 계속 'loading'일 수 있으므로
+    // 일정 시간 후 강제로 인증 체크를 진행
+    const loadingTimeout = setTimeout(() => {
+      console.log('⚠️ NextAuth 로딩 지연 - 강제 인증 체크 진행');
+      setAuthChecked(true);
+    }, 2000);
+    
+    return () => clearTimeout(loadingTimeout);
+  }, [isMounted, status]);
+
+  // 게스트 로그인 확인 및 인증 체크
   useEffect(() => {
     // 클라이언트 마운트되지 않았으면 스킵
     if (!isMounted) {
@@ -130,18 +144,9 @@ export default function Home() {
       return;
     }
 
-    // NextAuth 로딩 상태 확인
-    const isNextAuthLoading = status === 'loading';
-    
-    // NextAuth providers가 없는 경우 status가 계속 'loading'일 수 있으므로
-    // 일정 시간 후 강제로 인증 체크를 진행
-    if (isNextAuthLoading) {
-      const loadingTimeout = setTimeout(() => {
-        console.log('⚠️ NextAuth 로딩 지연 - 강제 인증 체크 진행');
-        setAuthChecked(true);
-      }, 2000);
-      
-      return () => clearTimeout(loadingTimeout);
+    // NextAuth가 로딩 중이면 스킵
+    if (status === 'loading') {
+      return;
     }
 
     const checkGuestLogin = () => {
@@ -179,12 +184,10 @@ export default function Home() {
     });
 
     // GitHub OAuth도 없고 게스트 로그인도 없으면 로그인 페이지로
-    // status가 'loading'이 아닌 모든 경우에 인증 체크
-    if (!session && !hasGuestLogin && status !== 'loading' && !redirecting) {
+    if (!session && !hasGuestLogin && !redirecting) {
       console.log('🚫 인증되지 않은 사용자 - 로그인 페이지로 이동');
       setRedirecting(true);
       router.push('/login');
-      return;
     } else if ((session || hasGuestLogin) && redirecting) {
       // 인증되었는데 리다이렉팅 상태면 초기화
       setRedirecting(false);
