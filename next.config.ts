@@ -47,6 +47,8 @@ const nextConfig: NextConfig = {
       '@tanstack/react-query',
     ],
     optimizeCss: true,
+    // Instrumentation 활성화 (암호화된 환경변수 로드)
+    instrumentationHook: true,
     // Server Actions 활성화
     serverActions: {
       allowedOrigins: [

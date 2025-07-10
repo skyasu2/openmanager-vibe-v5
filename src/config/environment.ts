@@ -76,12 +76,22 @@ export interface EnvironmentConfig {
  * 🔍 환경변수 안전 접근 함수 (개선된 버전)
  */
 const getEnvVar = (key: string, defaultValue: string = ''): string => {
+  // 클라이언트 사이드에서는 경고 없이 기본값 반환
+  if (typeof window !== 'undefined') {
+    // 클라이언트에서는 NEXT_PUBLIC_ 접두사가 있는 환경변수만 접근 가능
+    if (key.startsWith('NEXT_PUBLIC_')) {
+      return process.env[key] || defaultValue;
+    }
+    return defaultValue;
+  }
+  
   if (typeof process === 'undefined' || !process.env) {
     console.warn(`⚠️ 환경변수 접근 불가: ${key}`);
     return defaultValue;
   }
   const value = process.env[key];
   if (!value && defaultValue === '') {
+    // 서버 사이드에서만 경고 출력
     console.warn(`⚠️ 환경변수 미설정: ${key}`);
   }
   return value || defaultValue;

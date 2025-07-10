@@ -58,14 +58,9 @@ export default function LoginPage() {
 
       console.log('🔐 GitHub OAuth 로그인 시작...');
 
-      // GitHub OAuth 환경변수 체크
-      if (!process.env.NEXT_PUBLIC_GITHUB_CONFIGURED) {
-        console.warn('⚠️ GitHub OAuth가 구성되지 않았습니다. 게스트 모드를 사용하세요.');
-        alert('GitHub 로그인이 현재 사용할 수 없습니다. 게스트 모드를 이용해주세요.');
-        setIsLoading(false);
-        setLoadingType(null);
-        return;
-      }
+      // GitHub OAuth 설정 확인 (클라이언트 사이드에서는 직접 체크하지 않음)
+      // Vercel 배포 환경에서는 환경변수가 서버 사이드에서만 접근 가능하므로
+      // signIn 시도 후 에러 처리로 대체
 
       await signIn('github', {
         callbackUrl: '/', // 루트 페이지로 리다이렉트

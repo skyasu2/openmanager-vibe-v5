@@ -1,281 +1,355 @@
 #!/usr/bin/env node
 
 /**
- * 🔐 통합 환경변수 암복호화 CLI 도구
- * OpenManager Vibe v5 - 통합 암호화 시스템
+ * 🔐 통합 환경변수 암호화/복호화 스크립트
+ * 
+ * 사용법:
+ * - 암호화: node scripts/unified-env-crypto.mjs encrypt --password=your-password
+ * - 복호화: node scripts/unified-env-crypto.mjs decrypt --password=your-password
+ * - 확인: node scripts/unified-env-crypto.mjs verify --password=your-password
  */
 
-import CryptoJS from 'crypto-js';
+import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const { EnhancedEnvCryptoManager } = require('../src/lib/crypto/EnhancedEnvCryptoManager.ts');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.resolve(__dirname, '..');
 
 // 색상 코드
 const colors = {
-    reset: '\x1b[0m',
-    bright: '\x1b[1m',
-    red: '\x1b[31m',
-    green: '\x1b[32m',
-    yellow: '\x1b[33m',
-    blue: '\x1b[34m',
-    magenta: '\x1b[35m',
-    cyan: '\x1b[36m',
+  reset: '\x1b[0m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m'
 };
 
-function colorize(text, color) {
-    return `${colors[color]}${text}${colors.reset}`;
+// 로그 헬퍼
+const log = {
+  info: (msg) => console.log(`${colors.blue}ℹ️  ${msg}${colors.reset}`),
+  success: (msg) => console.log(`${colors.green}✅ ${msg}${colors.reset}`),
+  warning: (msg) => console.log(`${colors.yellow}⚠️  ${msg}${colors.reset}`),
+  error: (msg) => console.log(`${colors.red}❌ ${msg}${colors.reset}`),
+  header: (msg) => console.log(`\n${colors.magenta}${'='.repeat(50)}\n${msg}\n${'='.repeat(50)}${colors.reset}\n`)
+};
+
+// 커맨드라인 인자 파싱
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const command = args[0];
+  const options = {};
+  
+  for (let i = 1; i < args.length; i++) {
+    const arg = args[i];
+    if (arg.startsWith('--')) {
+      const [key, value] = arg.slice(2).split('=');
+      options[key] = value || true;
+    }
+  }
+  
+  return { command, options };
 }
 
-// 기본 팀 비밀번호들 (우선순위 순)
-const DEFAULT_PASSWORDS = [
-    'openmanager2025',
-    'openmanager-vibe-v5-2025',
-    'team-password-2025',
-    'openmanager-team-key',
-    'development-mock-password'
-];
-
-/**
- * 🔐 값 암호화
- */
-function encryptValue(value, password) {
-    const salt = CryptoJS.lib.WordArray.random(128 / 8).toString();
-    const iv = CryptoJS.lib.WordArray.random(128 / 8);
-
-    const key = CryptoJS.PBKDF2(password, salt, {
-        keySize: 256 / 32,
-        iterations: 10000,
-    });
-
-    const encrypted = CryptoJS.AES.encrypt(value, key, {
-        iv: iv,
-        mode: CryptoJS.mode.CBC,
-        padding: CryptoJS.pad.Pkcs7,
-    });
-
-    return {
-        encrypted: encrypted.toString(),
-        salt: salt,
-        iv: iv.toString(),
-        timestamp: new Date().toISOString(),
-        version: '1.0.0',
-    };
-}
-
-/**
- * 🔓 값 복호화
- */
-function decryptValue(encryptedData, password) {
+// 비밀번호 가져오기
+async function getPassword(options) {
+  // 1. 커맨드라인 인자
+  if (options.password) {
+    return options.password;
+  }
+  
+  // 2. 파일에서 읽기
+  if (options['password-file']) {
+    const passwordPath = path.resolve(PROJECT_ROOT, options['password-file']);
     try {
-        const { encrypted, salt, iv } = encryptedData;
-
-        const key = CryptoJS.PBKDF2(password, salt, {
-            keySize: 256 / 32,
-            iterations: 10000,
-        });
-
-        const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
-            iv: CryptoJS.enc.Hex.parse(iv),
-            mode: CryptoJS.mode.CBC,
-            padding: CryptoJS.pad.Pkcs7,
-        });
-
-        const result = decrypted.toString(CryptoJS.enc.Utf8);
-
-        if (!result) {
-            throw new Error('복호화 결과가 비어있습니다');
-        }
-
-        return result;
+      const password = await fs.readFile(passwordPath, 'utf-8');
+      return password.trim();
     } catch (error) {
-        throw new Error(`복호화 실패: ${error.message}`);
+      throw new Error(`비밀번호 파일을 읽을 수 없습니다: ${passwordPath}`);
     }
+  }
+  
+  // 3. 환경변수
+  if (process.env.ENV_MASTER_PASSWORD) {
+    return process.env.ENV_MASTER_PASSWORD;
+  }
+  
+  throw new Error('비밀번호가 필요합니다. --password, --password-file 또는 ENV_MASTER_PASSWORD 환경변수를 사용하세요.');
 }
 
-/**
- * 📋 사용법 출력
+// .env 파일 로드
+async function loadEnvFile(envPath) {
+  try {
+    const envContent = await fs.readFile(envPath, 'utf-8');
+    const env = dotenv.parse(envContent);
+    
+    // 민감한 변수만 필터링
+    const sensitiveKeys = [
+      'GOOGLE_AI_API_KEY',
+      'NEXTAUTH_SECRET',
+      'GITHUB_CLIENT_ID',
+      'GITHUB_CLIENT_SECRET',
+      'NEXT_PUBLIC_SUPABASE_URL',
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+      'SUPABASE_SERVICE_ROLE_KEY',
+      'UPSTASH_REDIS_REST_URL',
+      'UPSTASH_REDIS_REST_TOKEN',
+      'GOOGLE_OAUTH_ID',
+      'GOOGLE_OAUTH_SECRET',
+      'SENTRY_DSN',
+      'ANALYTICS_ID'
+    ];
+    
+    const filteredEnv = {};
+    for (const key of sensitiveKeys) {
+      if (env[key]) {
+        filteredEnv[key] = env[key];
+      }
+    }
+    
+    return filteredEnv;
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      throw new Error(`환경변수 파일을 찾을 수 없습니다: ${envPath}`);
+    }
+    throw error;
+  }
+}
+
+// 암호화된 설정 저장
+async function saveEncryptedConfig(config) {
+  const configPath = path.join(PROJECT_ROOT, 'config', 'encrypted-env.json');
+  const configDir = path.dirname(configPath);
+  
+  // 디렉토리 생성
+  await fs.mkdir(configDir, { recursive: true });
+  
+  // JSON으로 저장
+  await fs.writeFile(
+    configPath,
+    JSON.stringify(config, null, 2),
+    'utf-8'
+  );
+  
+  // TypeScript 파일로도 저장 (타입 안정성을 위해)
+  const tsContent = `/**
+ * 🔐 암호화된 환경변수 설정
+ * 
+ * 이 파일은 자동 생성됩니다. 직접 수정하지 마세요.
+ * 생성 시간: ${new Date().toISOString()}
  */
-function printUsage() {
-    console.log(colorize('\n🔐 통합 환경변수 암복호화 CLI 도구', 'cyan'));
-    console.log(colorize('OpenManager Vibe v5 - 통합 암호화 시스템\n', 'blue'));
 
-    console.log(colorize('사용법:', 'yellow'));
-    console.log('  node unified-env-crypto.mjs <명령어> [옵션]\n');
+import type { EncryptedEnvConfig } from '@/lib/crypto/EnhancedEnvCryptoManager';
 
-    console.log(colorize('명령어:', 'yellow'));
-    console.log('  encrypt <값> [비밀번호]     - 값 암호화');
-    console.log('  decrypt <암호화된값> [비밀번호] - 값 복호화');
-    console.log('  auto-decrypt <암호화된값>   - 자동 비밀번호 시도');
-    console.log('  validate <암호화된값>       - 암호화 데이터 검증');
-    console.log('  help                        - 도움말 출력\n');
-
-    console.log(colorize('예시:', 'yellow'));
-    console.log('  node unified-env-crypto.mjs encrypt "my-secret" "openmanager2025"');
-    console.log('  node unified-env-crypto.mjs decrypt "..." "openmanager2025"');
-    console.log('  node unified-env-crypto.mjs auto-decrypt "..."');
+export const encryptedEnvConfig: EncryptedEnvConfig = ${JSON.stringify(config, null, 2)};
+`;
+  
+  await fs.writeFile(
+    path.join(PROJECT_ROOT, 'config', 'encrypted-env-config.ts'),
+    tsContent,
+    'utf-8'
+  );
 }
 
-/**
- * 🔐 암호화 명령어
- */
-function encryptCommand(value, password) {
-    if (!value) {
-        console.log(colorize('❌ 암호화할 값을 입력하세요.', 'red'));
-        return;
-    }
-
-    const pwd = password || DEFAULT_PASSWORDS[0];
-
-    try {
-        console.log(colorize('🔐 값 암호화 중...', 'yellow'));
-        const encrypted = encryptValue(value, pwd);
-
-        console.log(colorize('\n✅ 암호화 완료!', 'green'));
-        console.log(colorize('암호화된 데이터:', 'cyan'));
-        console.log(JSON.stringify(encrypted, null, 2));
-
-        // 검증
-        const decrypted = decryptValue(encrypted, pwd);
-        if (decrypted === value) {
-            console.log(colorize('✅ 암호화 검증 성공', 'green'));
-        } else {
-            console.log(colorize('❌ 암호화 검증 실패', 'red'));
-        }
-
-    } catch (error) {
-        console.log(colorize(`❌ 암호화 실패: ${error.message}`, 'red'));
-    }
+// 암호화 명령
+async function encryptCommand(options) {
+  log.header('🔐 환경변수 암호화');
+  
+  try {
+    // 비밀번호 가져오기
+    const password = await getPassword(options);
+    log.info('마스터 비밀번호 확인됨');
+    
+    // .env 파일 경로
+    const envPath = path.join(PROJECT_ROOT, options.env || '.env.local');
+    log.info(`환경변수 파일 로드: ${envPath}`);
+    
+    // 환경변수 로드
+    const env = await loadEnvFile(envPath);
+    log.success(`${Object.keys(env).length}개 민감한 환경변수 발견`);
+    
+    // 암호화 매니저 초기화
+    const cryptoManager = new EnhancedEnvCryptoManager();
+    cryptoManager.initializeMasterKey(password);
+    
+    // 환경변수 암호화
+    log.info('환경변수 암호화 중...');
+    const encryptedConfig = cryptoManager.encryptEnvironment(env);
+    
+    // 저장
+    await saveEncryptedConfig(encryptedConfig);
+    log.success('암호화된 설정 저장 완료');
+    
+    // 요약
+    log.header('📊 암호화 완료');
+    log.info(`총 ${Object.keys(env).length}개 환경변수 암호화됨`);
+    log.info(`저장 위치: config/encrypted-env-config.ts`);
+    log.warning('Git에 커밋하기 전에 .env 파일은 반드시 .gitignore에 추가하세요!');
+    
+  } catch (error) {
+    log.error(`암호화 실패: ${error.message}`);
+    process.exit(1);
+  }
 }
 
-/**
- * 🔓 복호화 명령어
- */
-function decryptCommand(encryptedDataStr, password) {
-    if (!encryptedDataStr) {
-        console.log(colorize('❌ 복호화할 암호화된 데이터를 입력하세요.', 'red'));
-        return;
+// 복호화 명령
+async function decryptCommand(options) {
+  log.header('🔓 환경변수 복호화');
+  
+  try {
+    // 비밀번호 가져오기
+    const password = await getPassword(options);
+    log.info('마스터 비밀번호 확인됨');
+    
+    // 암호화된 설정 로드
+    const configPath = path.join(PROJECT_ROOT, 'config', 'encrypted-env-config.ts');
+    const configModule = await import(configPath);
+    const encryptedConfig = configModule.encryptedEnvConfig;
+    log.success('암호화된 설정 로드됨');
+    
+    // 암호화 매니저 초기화
+    const cryptoManager = new EnhancedEnvCryptoManager();
+    cryptoManager.initializeMasterKey(password);
+    
+    // 복호화
+    log.info('환경변수 복호화 중...');
+    const decryptedEnv = cryptoManager.decryptEnvironment(encryptedConfig);
+    
+    // 출력 옵션에 따라 처리
+    if (options.output === 'env') {
+      // .env 형식으로 출력
+      for (const [key, value] of Object.entries(decryptedEnv)) {
+        console.log(`${key}=${value}`);
+      }
+    } else if (options.output === 'json') {
+      // JSON 형식으로 출력
+      console.log(JSON.stringify(decryptedEnv, null, 2));
+    } else {
+      // 기본: 키만 표시
+      log.header('📊 복호화 완료');
+      log.success(`${Object.keys(decryptedEnv).length}개 환경변수 복호화됨:`);
+      for (const key of Object.keys(decryptedEnv)) {
+        log.info(`  - ${key}`);
+      }
     }
-
-    try {
-        const encryptedData = JSON.parse(encryptedDataStr);
-        const pwd = password || DEFAULT_PASSWORDS[0];
-
-        console.log(colorize('🔓 값 복호화 중...', 'yellow'));
-        const decrypted = decryptValue(encryptedData, pwd);
-
-        console.log(colorize('\n✅ 복호화 완료!', 'green'));
-        console.log(colorize('복호화된 값:', 'cyan'));
-        console.log(decrypted);
-
-    } catch (error) {
-        console.log(colorize(`❌ 복호화 실패: ${error.message}`, 'red'));
-    }
+    
+  } catch (error) {
+    log.error(`복호화 실패: ${error.message}`);
+    process.exit(1);
+  }
 }
 
-/**
- * 🔄 자동 복호화 명령어
- */
-function autoDecryptCommand(encryptedDataStr) {
-    if (!encryptedDataStr) {
-        console.log(colorize('❌ 복호화할 암호화된 데이터를 입력하세요.', 'red'));
-        return;
-    }
-
-    try {
-        const encryptedData = JSON.parse(encryptedDataStr);
-
-        console.log(colorize('🔄 자동 복호화 시작...', 'yellow'));
-
-        for (const password of DEFAULT_PASSWORDS) {
-            try {
-                console.log(colorize(`🔑 비밀번호 시도: ${password.substring(0, 3)}***`, 'blue'));
-                const decrypted = decryptValue(encryptedData, password);
-
-                console.log(colorize('\n✅ 자동 복호화 성공!', 'green'));
-                console.log(colorize(`사용된 비밀번호: ${password}`, 'cyan'));
-                console.log(colorize('복호화된 값:', 'cyan'));
-                console.log(decrypted);
-                return;
-
-            } catch (error) {
-                console.log(colorize(`❌ 실패: ${password.substring(0, 3)}***`, 'red'));
-            }
-        }
-
-        console.log(colorize('❌ 모든 기본 비밀번호로 복호화 실패', 'red'));
-
-    } catch (error) {
-        console.log(colorize(`❌ 자동 복호화 실패: ${error.message}`, 'red'));
-    }
+// 검증 명령
+async function verifyCommand(options) {
+  log.header('🔍 환경변수 암호화 검증');
+  
+  try {
+    // 비밀번호 가져오기
+    const password = await getPassword(options);
+    log.info('마스터 비밀번호 확인됨');
+    
+    // 암호화된 설정 로드
+    const configPath = path.join(PROJECT_ROOT, 'config', 'encrypted-env-config.ts');
+    const configModule = await import(configPath);
+    const encryptedConfig = configModule.encryptedEnvConfig;
+    log.success('암호화된 설정 로드됨');
+    
+    // 암호화 매니저 초기화
+    const cryptoManager = new EnhancedEnvCryptoManager();
+    cryptoManager.initializeMasterKey(password);
+    
+    // 복호화 시도
+    log.info('무결성 검증 중...');
+    const decryptedEnv = cryptoManager.decryptEnvironment(encryptedConfig);
+    
+    // 검증 결과
+    log.header('✅ 검증 성공');
+    log.success(`체크섬 검증: 통과`);
+    log.success(`복호화 가능: ${Object.keys(decryptedEnv).length}개 변수`);
+    log.info(`버전: ${encryptedConfig.version}`);
+    log.info(`환경: ${encryptedConfig.environment}`);
+    log.info(`생성 시간: ${new Date(encryptedConfig.variables[Object.keys(encryptedConfig.variables)[0]]?.timestamp).toLocaleString()}`);
+    
+  } catch (error) {
+    log.error(`검증 실패: ${error.message}`);
+    process.exit(1);
+  }
 }
 
-/**
- * ✅ 검증 명령어
- */
-function validateCommand(encryptedDataStr) {
-    if (!encryptedDataStr) {
-        console.log(colorize('❌ 검증할 암호화된 데이터를 입력하세요.', 'red'));
-        return;
-    }
+// 도움말
+function showHelp() {
+  console.log(`
+${colors.cyan}🔐 통합 환경변수 암호화 도구${colors.reset}
 
-    try {
-        const encryptedData = JSON.parse(encryptedDataStr);
+사용법:
+  node scripts/unified-env-crypto.mjs <command> [options]
 
-        console.log(colorize('✅ 암호화 데이터 검증 중...', 'yellow'));
+명령어:
+  encrypt   환경변수를 암호화합니다
+  decrypt   암호화된 환경변수를 복호화합니다
+  verify    암호화된 설정의 무결성을 검증합니다
+  help      이 도움말을 표시합니다
 
-        // 필수 필드 검증
-        const requiredFields = ['encrypted', 'salt', 'iv', 'timestamp'];
-        const missingFields = requiredFields.filter(field => !encryptedData[field]);
+옵션:
+  --password=<password>      마스터 비밀번호 직접 지정
+  --password-file=<path>     파일에서 마스터 비밀번호 읽기
+  --env=<path>              환경변수 파일 경로 (기본: .env.local)
+  --output=<format>         복호화 출력 형식 (env, json, keys)
 
-        if (missingFields.length > 0) {
-            console.log(colorize(`❌ 누락된 필드: ${missingFields.join(', ')}`, 'red'));
-            return;
-        }
+예제:
+  # 암호화
+  node scripts/unified-env-crypto.mjs encrypt --password="my-secret-password"
+  
+  # 파일에서 비밀번호 읽어서 암호화
+  echo "my-secret-password" > .env.key
+  node scripts/unified-env-crypto.mjs encrypt --password-file=.env.key
+  
+  # 복호화해서 환경변수 형식으로 출력
+  node scripts/unified-env-crypto.mjs decrypt --password-file=.env.key --output=env > .env.decrypted
+  
+  # 무결성 검증
+  node scripts/unified-env-crypto.mjs verify --password-file=.env.key
 
-        console.log(colorize('✅ 암호화 데이터 구조 검증 완료', 'green'));
-        console.log(colorize('데이터 정보:', 'cyan'));
-        console.log(`  버전: ${encryptedData.version || '1.0.0'}`);
-        console.log(`  타임스탬프: ${encryptedData.timestamp}`);
-        console.log(`  솔트 길이: ${encryptedData.salt.length}`);
-        console.log(`  IV 길이: ${encryptedData.iv.length}`);
-
-    } catch (error) {
-        console.log(colorize(`❌ 검증 실패: ${error.message}`, 'red'));
-    }
+환경변수:
+  ENV_MASTER_PASSWORD    마스터 비밀번호 (옵션보다 우선순위 낮음)
+`);
 }
 
-// 메인 실행
-function main() {
-    const args = process.argv.slice(2);
-
-    if (args.length === 0) {
-        printUsage();
-        return;
-    }
-
-    const command = args[0];
-
-    switch (command) {
-        case 'encrypt':
-            encryptCommand(args[1], args[2]);
-            break;
-        case 'decrypt':
-            decryptCommand(args[1], args[2]);
-            break;
-        case 'auto-decrypt':
-            autoDecryptCommand(args[1]);
-            break;
-        case 'validate':
-            validateCommand(args[1]);
-            break;
-        case 'help':
-        default:
-            printUsage();
-            break;
-    }
+// 메인 함수
+async function main() {
+  const { command, options } = parseArgs();
+  
+  switch (command) {
+    case 'encrypt':
+      await encryptCommand(options);
+      break;
+    case 'decrypt':
+      await decryptCommand(options);
+      break;
+    case 'verify':
+      await verifyCommand(options);
+      break;
+    case 'help':
+    case undefined:
+      showHelp();
+      break;
+    default:
+      log.error(`알 수 없는 명령어: ${command}`);
+      showHelp();
+      process.exit(1);
+  }
 }
 
-// 스크립트 실행
-main(); 
+// 실행
+main().catch(error => {
+  log.error(`치명적 오류: ${error.message}`);
+  process.exit(1);
+});
