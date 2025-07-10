@@ -3,7 +3,7 @@
  *
  * ✅ 컴포넌트 기반 아키텍처
  * ✅ 목적별 MCP 서버 분리:
- *    - AI 기능: Render MCP 전용
+ *    - AI 기능: GCP VM MCP 서버 (컨텍스트 분석) 전용
  *    - 개발/모니터링: Vercel 내장 MCP
  * ✅ MCPServerManager: 서버 관리
  * ✅ MCPPerformanceMonitor: 성능 모니터링
@@ -77,12 +77,12 @@ export class RealMCPClient {
   }
 
   /**
-   * 🎯 AI 기능용 싱글톤 인스턴스 반환 (Render MCP 전용)
+   * 🎯 AI 기능용 싱글톤 인스턴스 반환 (GCP VM MCP 서버 - 컨텍스트 분석 전용)
    */
   public static getAIInstance(): RealMCPClient {
     if (!RealMCPClient.aiInstance) {
       RealMCPClient.aiInstance = new RealMCPClient('ai-production');
-      console.log('🤖 AI 전용 MCP 클라이언트 생성 (Render 서버 전용)');
+      console.log('🤖 AI 전용 MCP 클라이언트 생성 (GCP VM MCP 서버 - 컨텍스트 분석 전용)');
     }
     return RealMCPClient.aiInstance;
   }
@@ -100,6 +100,7 @@ export class RealMCPClient {
 
   /**
    * 🎯 범용 싱글톤 인스턴스 반환 (호환성용 - AI 인스턴스 반환)
+   * AI 엔진의 컨텍스트 보조 역할을 수행하는 MCP 클라이언트
    */
   public static getInstance(): RealMCPClient {
     return RealMCPClient.getAIInstance();
@@ -120,7 +121,7 @@ export class RealMCPClient {
       // 용도별 설정 로그
       switch (this.purpose) {
         case 'ai-production':
-          console.log('🤖 AI 프로덕션 MCP 설정 로드 (Render 서버)');
+          console.log('🤖 AI 프로덕션 MCP 설정 로드 (GCP VM MCP 서버 - 컨텍스트 분석)');
           break;
         case 'development':
         case 'monitoring':

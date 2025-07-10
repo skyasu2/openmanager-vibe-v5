@@ -3,7 +3,8 @@
  * 
  * ⚠️ 기존 OfficialMCPClient는 RealMCPClient 싱글톤의 래퍼로 변경됨
  * ✅ 하위 호환성 유지
- * ✅ Render MCP 서버 전용
+ * ✅ GCP VM MCP 서버 (컨텍스트 분석) 전용
+ * ✅ AI 엔진의 컨텍스트 보조 역할
  * ✅ 중복 코드 제거
  */
 
@@ -17,6 +18,7 @@ export interface CallToolResult {
 
 /**
  * 🎯 OfficialMCPClient -> RealMCPClient 래퍼 (중복 제거)
+ * AI 엔진의 컨텍스트 보조를 위한 MCP 클라이언트
  */
 export class OfficialMCPClient {
   private realClient: RealMCPClient;
@@ -37,7 +39,7 @@ export class OfficialMCPClient {
     try {
       await this.realClient.initialize();
       this.isConnected = true;
-      console.log('✅ Official MCP Client 연결 완료 (Render 서버 전용)');
+      console.log('✅ Official MCP Client 연결 완료 (GCP VM MCP 서버 - 컨텍스트 분석 전용)');
     } catch (error) {
       console.warn('⚠️ Official MCP Client 연결 실패:', error);
       // 실패해도 폴백 모드로 연결 상태 유지

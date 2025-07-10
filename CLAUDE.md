@@ -111,7 +111,7 @@ The project implements a sophisticated AI routing system:
 2. **Google AI Service** - Primary AI engine with Gemini models
 3. **Supabase RAG Engine** - Vector search and knowledge retrieval
 4. **Korean NLP Engine** - Local natural language processing
-5. **MCP Client** - Model Context Protocol for enhanced context
+5. **MCP Context Assistant** - GCP VM에서 실행되는 컨텍스트 분석 보조 도구
 6. **AI Agent Engine** - Independent LLM-free intelligent inference
 
 ### Data Flow
@@ -119,7 +119,7 @@ The project implements a sophisticated AI routing system:
 ```
 User Query → AI Agent Engine → Intent Classifier → Response Generator
               ↓                    ↓                    ↓
-         Context Manager → MCP Processor → Action Executor
+         Context Manager → MCP Context (GCP VM) → Action Executor
 ```
 
 ## Development Guidelines

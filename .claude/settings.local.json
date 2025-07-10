@@ -101,7 +101,11 @@
       "Bash(git fetch:*)",
       "Bash(git remote get-url:*)",
       "Bash(unset GITHUB_TOKEN)",
-      "Bash(HUSKY=0 git push origin main)"
+      "Bash(HUSKY=0 git push origin main)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Bash(git restore:*)",
+      "Bash(jq:*)"
     ],
     "deny": []
   }

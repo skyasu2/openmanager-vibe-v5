@@ -79,10 +79,11 @@ export async function GET(request: NextRequest) {
         note: '규칙 기반 엔진 (로컬 처리)',
       },
       mcp: {
-        name: 'MCP Integration',
-        status: isVercel ? 'degraded' : 'healthy',
-        priority: 3,
-        note: isVercel ? 'Vercel: 표준 MCP만 사용' : '로컬: 전체 MCP 활성화',
+        name: 'MCP Context Assistant',
+        status: 'healthy',
+        priority: 5,
+        note: 'GCP VM에서 실행 중인 컨텍스트 분석 보조 도구',
+        role: 'context-helper',
       },
       googleAI: {
         name: 'Google AI',

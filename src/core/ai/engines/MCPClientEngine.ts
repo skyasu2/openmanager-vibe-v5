@@ -1,6 +1,7 @@
 /**
  * MCP Client 엔진 (20% 가중치)
- * 🎯 Render MCP 서버 전용 (중복 제거)
+ * 🎯 GCP VM MCP 서버 (컨텍스트 분석) 전용
+ * ✅ AI 엔진의 컨텍스트 보조 역할
  * ✅ RealMCPClient 싱글톤 사용
  * ✅ 개발용 MCP는 별도 분리
  */
@@ -42,10 +43,10 @@ export class MCPClientEngine {
     if (this.initialized) return;
 
     try {
-      // 🎯 Render MCP 서버만 초기화 (개발용 제외)
+      // 🎯 GCP VM MCP 서버 (컨텍스트 분석)만 초기화 (개발용 제외)
       await this.mcpClient.initialize();
       this.initialized = true;
-      console.log('✅ MCP Client 엔진 초기화 완료 (Render 서버 전용)');
+      console.log('✅ MCP Client 엔진 초기화 완료 (GCP VM MCP 서버 - 컨텍스트 분석 전용)');
     } catch (error) {
       console.error('❌ MCP Client 엔진 초기화 실패:', error);
       // MCP 실패해도 계속 진행 (폴백 시스템)
@@ -59,7 +60,7 @@ export class MCPClientEngine {
     }
 
     try {
-      // 🎯 Render MCP 서버를 통한 쿼리 처리
+      // 🎯 GCP VM MCP 서버 (컨텍스트 분석)를 통한 쿼리 처리
       const result = await this.mcpClient.performComplexQuery(
         request.query,
         request.context
@@ -72,10 +73,10 @@ export class MCPClientEngine {
         confidence: 0.7, // MCP는 중간 신뢰도
       };
     } catch (error) {
-      console.error('MCP Client 엔진 처리 실패 (Render 서버):', error);
+      console.error('MCP Client 엔진 처리 실패 (GCP VM MCP 서버):', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Render MCP 연결 실패',
+        error: error instanceof Error ? error.message : 'GCP VM MCP 서버 연결 실패',
         confidence: 0,
       };
     }
