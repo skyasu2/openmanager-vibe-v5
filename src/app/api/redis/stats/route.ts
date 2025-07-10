@@ -109,7 +109,13 @@ export async function GET() {
       realRedis: hybridStats.realRedis?.status,
     });
 
-    return NextResponse.json(responseData);
+    return NextResponse.json(responseData, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        'CDN-Cache-Control': 'public, s-maxage=300',
+        'Vercel-CDN-Cache-Control': 'public, s-maxage=300',
+      },
+    });
   } catch (error) {
     console.error('❌ Redis 상태 확인 중 오류:', error);
 

@@ -86,6 +86,11 @@ export async function GET(request: NextRequest) {
         component,
         data: componentData,
         timestamp: new Date().toISOString(),
+      }, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=180, stale-while-revalidate=360',
+          'CDN-Cache-Control': 'public, s-maxage=180',
+        },
       });
     }
 
@@ -102,6 +107,11 @@ export async function GET(request: NextRequest) {
         success: true,
         data: simpleStatus,
         timestamp: new Date().toISOString(),
+      }, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=180, stale-while-revalidate=360',
+          'CDN-Cache-Control': 'public, s-maxage=180',
+        },
       });
     }
 
@@ -110,6 +120,11 @@ export async function GET(request: NextRequest) {
       success: true,
       data: status,
       timestamp: new Date().toISOString(),
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=180, stale-while-revalidate=360',
+        'CDN-Cache-Control': 'public, s-maxage=180',
+      },
     });
   } catch (error) {
     console.error('❌ Database status GET error:', error);

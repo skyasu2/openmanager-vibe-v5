@@ -121,7 +121,12 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+        'CDN-Cache-Control': 'public, s-maxage=60',
+      },
+    });
 
   } catch (error) {
     console.error('❌ 로그 조회 실패:', error);

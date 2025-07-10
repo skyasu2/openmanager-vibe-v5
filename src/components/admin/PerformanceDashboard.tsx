@@ -212,25 +212,35 @@ export default function PerformanceDashboard() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        `/api/performance?timeRange=${selectedTimeRange}&includeAlerts=true&includeStatus=true`
-      );
+      // performance API 제거로 인한 모킹 (Vercel 무료 티어 최적화)
+      await new Promise(resolve => setTimeout(resolve, 300)); // 네트워크 지연 시뮬레이션
 
-      if (!response.ok) {
-        throw new Error(
-          `API 응답 오류: ${response.status} ${response.statusText}`
-        );
-      }
+      const mockData = {
+        stats: {
+          totalRequests: Math.floor(Math.random() * 1000) + 500,
+          averageResponseTime: Math.floor(Math.random() * 100) + 120,
+          successRate: 95 + Math.random() * 4,
+          errorRate: Math.random() * 3,
+          fallbackRate: Math.random() * 10,
+          engineStats: {
+            'google-ai': { requests: 150, avgTime: 250, successRate: 98 },
+            'mcp': { requests: 200, avgTime: 180, successRate: 96 },
+            'rag': { requests: 120, avgTime: 200, successRate: 94 },
+          },
+        },
+        alerts: [],
+        status: {
+          isActive: true,
+          lastUpdate: new Date().toISOString(),
+          healthScore: 85 + Math.random() * 10,
+        },
+        timeRange: selectedTimeRange,
+      };
 
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.error || '성능 데이터 로드 실패');
-      }
-
-      setData(result.data);
+      setData(mockData);
       setLastUpdate(new Date());
 
-      console.log('✅ 성능 대시보드 데이터 업데이트 완료');
+      console.log('✅ 성능 대시보드 데이터 업데이트 완료 (모킹)');
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다';
@@ -357,13 +367,20 @@ export default function PerformanceDashboard() {
     fetchPerformanceData();
   };
 
-  // 📥 데이터 내보내기
+  // 📥 데이터 내보내기 (모킹 - Vercel 무료 티어 최적화)
   const handleExportData = async () => {
     try {
-      const response = await fetch(
-        `/api/performance?timeRange=${selectedTimeRange}&export=true`
-      );
-      const blob = await response.blob();
+      // 현재 표시된 데이터를 JSON으로 내보내기
+      const exportData = {
+        timestamp: new Date().toISOString(),
+        timeRange: selectedTimeRange,
+        data: data,
+        source: 'portfolio-demo',
+      };
+      
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: 'application/json',
+      });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

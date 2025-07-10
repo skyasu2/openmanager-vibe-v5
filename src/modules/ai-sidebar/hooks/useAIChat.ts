@@ -145,38 +145,19 @@ export const useAIChat = (options: ChatHookOptions) => {
           'Smart Fallback Engine을 통해 처리를 시작합니다'
         );
 
-        // 🧠 Smart Fallback Engine 사용 (빠른 모드 우선)
-        const response = await fetch('/api/ai/smart-fallback', {
+        // 🧠 통합 AI 쿼리 엔진 사용
+        const response = await fetch('/api/ai/unified-query', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             query: content,
-            context: {
-              sessionId,
-              mode: 'fast', // 🚀 빠른 모드 활성화
+            options: {
               serverMetrics: await fetchCurrentServerMetrics(),
               logEntries: await fetchRecentLogEntries(),
-              timeRange: {
-                start: new Date(Date.now() - 24 * 60 * 60 * 1000),
-                end: new Date(),
-              },
-              userPreferences: {
-                language: 'ko',
-                responseStyle: 'concise', // 간결한 응답 스타일
-              },
-            },
-            options: {
-              fastMode: true, // 🚀 빠른 모드 명시적 활성화
-              timeout: 5000, // 5초 타임아웃 (기존 15초에서 단축)
-              enableParallel: true, // 병렬 처리 활성화
-              preferEngine: 'auto', // 자동 엔진 선택
-              // 기존 옵션들은 빠른 모드에서 사용하지 않음
-              enableMCP: true,
-              enableRAG: true,
-              enableGoogleAI: false, // Google AI는 빠른 모드에서 비활성화
-              maxRetries: 1,
+              sessionId,
+              language: 'ko',
             },
           }),
           signal: abortControllerRef.current.signal,
@@ -185,56 +166,55 @@ export const useAIChat = (options: ChatHookOptions) => {
         // 응답 상태 확인
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`❌ Smart Fallback API 오류: ${response.status} ${response.statusText}`, errorText);
+          console.error(`❌ 통합 AI 쿼리 API 오류: ${response.status} ${response.statusText}`, errorText);
           throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
         }
 
         // JSON 파싱 안전하게 처리
-        let smartFallbackResponse;
+        let unifiedQueryResponse;
         try {
           const responseText = await response.text();
           if (!responseText.trim()) {
             throw new Error('서버에서 빈 응답을 반환했습니다');
           }
-          smartFallbackResponse = JSON.parse(responseText);
+          unifiedQueryResponse = JSON.parse(responseText);
         } catch (parseError) {
           console.error('❌ JSON 파싱 오류:', parseError);
           throw new Error('서버 응답을 파싱할 수 없습니다');
         }
 
-        if (!smartFallbackResponse.success) {
+        if (!unifiedQueryResponse.success) {
           // 사고 과정 에러 로깅
           langGraphProcessor.errorThinking(
-            smartFallbackResponse.error || 'AI 응답 처리 실패'
+            unifiedQueryResponse.error || 'AI 응답 처리 실패'
           );
-          throw new Error(smartFallbackResponse.error || 'AI 응답 처리 실패');
+          throw new Error(unifiedQueryResponse.error || 'AI 응답 처리 실패');
         }
 
         // 🧠 사고 과정 완료 로깅
         langGraphProcessor.action(
-          `${smartFallbackResponse.metadata.stage} 엔진에서 응답 생성 완료`
+          `${unifiedQueryResponse.environment || 'unified'} 엔진에서 응답 생성 완료`
         );
         langGraphProcessor.answer(
-          `응답이 성공적으로 생성되었습니다 (신뢰도: ${smartFallbackResponse.metadata.confidence}%)`
+          `응답이 성공적으로 생성되었습니다`
         );
         langGraphProcessor.completeThinking({
-          response: smartFallbackResponse.response,
-          engine: smartFallbackResponse.metadata.stage,
-          confidence: smartFallbackResponse.metadata.confidence,
+          response: unifiedQueryResponse.response,
+          engine: unifiedQueryResponse.environment || 'unified',
+          confidence: 0.85,
         });
 
-        // Smart Fallback 응답을 기존 AIResponse 형식으로 변환
+        // Unified Query 응답을 기존 AIResponse 형식으로 변환
         const aiResponse: AIResponse = {
           success: true,
-          content: smartFallbackResponse.response,
-          confidence: smartFallbackResponse.metadata.confidence,
-          timestamp: smartFallbackResponse.metadata.processedAt,
+          content: unifiedQueryResponse.response,
+          confidence: 0.85,
+          timestamp: unifiedQueryResponse.timestamp,
           metadata: {
-            ...smartFallbackResponse.metadata,
-            engine: smartFallbackResponse.metadata.stage,
-            fallbackPath: smartFallbackResponse.metadata.fallbackPath,
-            quota: smartFallbackResponse.metadata.quota,
-            thinkingSession: thinkingLogger.getLiveSession(sessionId), // 실시간 사고 과정 데이터 추가
+            engine: unifiedQueryResponse.environment || 'unified',
+            dataSource: unifiedQueryResponse.dataSource,
+            serverCount: unifiedQueryResponse.serverCount,
+            thinkingSession: thinkingLogger.getLiveSession(sessionId),
           },
         };
 
@@ -262,12 +242,11 @@ export const useAIChat = (options: ChatHookOptions) => {
 
         const aiMessage = formatAIResponse(aiResponse);
 
-        // Smart Fallback 메타데이터 추가
+        // Unified Query 메타데이터 추가
         if (aiMessage.metadata) {
-          aiMessage.metadata.engine = smartFallbackResponse.metadata.stage;
-          aiMessage.metadata.fallbackPath =
-            smartFallbackResponse.metadata.fallbackPath;
-          aiMessage.metadata.quota = smartFallbackResponse.metadata.quota;
+          aiMessage.metadata.engine = unifiedQueryResponse.environment || 'unified';
+          aiMessage.metadata.dataSource = unifiedQueryResponse.dataSource;
+          aiMessage.metadata.serverCount = unifiedQueryResponse.serverCount;
         }
 
         // 🔄 메시지 추가 및 즉시 localStorage 저장
@@ -291,33 +270,16 @@ export const useAIChat = (options: ChatHookOptions) => {
           return updated;
         });
 
-        // 할당량 경고 표시
-        if (smartFallbackResponse.metadata.quota?.isNearLimit) {
-          const warningMessage = createSystemMessage(
-            '⚠️ Google AI 일일 할당량이 80%를 초과했습니다. 남은 사용량을 확인해주세요.'
-          );
-          setMessages(prev => {
-            const updated = [...prev, warningMessage];
-            // localStorage에 즉시 저장
-            if (typeof window !== 'undefined') {
-              localStorage.setItem(
-                `ai-chat-${sessionId}`,
-                JSON.stringify(updated)
-              );
-            }
-            return updated;
-          });
-        }
+        // 할당량 경고는 포트폴리오 버전에서 제거 (Vercel 무료 티어 최적화)
 
         // 응답 콜백 (기존 호환성 유지)
         options.onResponse?.(aiResponse);
 
-        console.log('🧠 Smart Fallback 응답:', {
-          stage: smartFallbackResponse.metadata.stage,
-          confidence: smartFallbackResponse.metadata.confidence,
-          responseTime: smartFallbackResponse.metadata.responseTime,
-          fallbackPath: smartFallbackResponse.metadata.fallbackPath,
-          quota: smartFallbackResponse.metadata.quota,
+        console.log('🧠 통합 AI 쿼리 응답:', {
+          environment: unifiedQueryResponse.environment,
+          dataSource: unifiedQueryResponse.dataSource,
+          serverCount: unifiedQueryResponse.serverCount,
+          timestamp: unifiedQueryResponse.timestamp,
         });
       } catch (err: any) {
         if (err.name === 'AbortError') {

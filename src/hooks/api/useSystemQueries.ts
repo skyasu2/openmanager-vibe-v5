@@ -81,13 +81,41 @@ export const systemKeys = {
     [...systemKeys.alerts(), filters] as const,
 } as const;
 
-// API 함수들
+// API 함수들 - 포트폴리오 버전에서 헬스체크 모킹
 const fetchSystemHealth = async (): Promise<SystemHealth> => {
-  const response = await fetch('/api/health');
-  if (!response.ok) {
-    throw new Error(`시스템 헬스 조회 실패: ${response.status}`);
-  }
-  return response.json();
+  // health API 제거로 인한 모킹 (Vercel 무료 티어 최적화)
+  await new Promise(resolve => setTimeout(resolve, 100)); // 네트워크 지연 시뮬레이션
+  
+  return {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: Math.floor(Math.random() * 86400), // 0-24시간
+    version: '5.44.3',
+    environment: process.env.NODE_ENV || 'development',
+    checks: {
+      memory: {
+        status: 'healthy',
+        heapUsed: '45.2 MB',
+        heapTotal: '128.0 MB',
+        usage: 35.3,
+      },
+      database: {
+        status: 'healthy',
+        responseTime: 120,
+        connections: 5,
+      },
+      redis: {
+        status: 'healthy',
+        responseTime: 50,
+        memoryUsage: 15.6,
+      },
+      ai_engine: {
+        status: 'healthy',
+        responseTime: 250,
+        predictionsToday: Math.floor(Math.random() * 100),
+      },
+    },
+  };
 };
 
 const fetchSystemStatus = async (): Promise<SystemStatus> => {

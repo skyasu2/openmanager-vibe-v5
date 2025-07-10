@@ -368,6 +368,11 @@ export async function GET(request: NextRequest) {
           accuracy: 0.95,
           generatedAt: new Date().toISOString(),
         },
+      }, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=1200',
+          'CDN-Cache-Control': 'public, s-maxage=600',
+        },
       });
     }
 
@@ -379,6 +384,11 @@ export async function GET(request: NextRequest) {
       total: results.length,
       filters: { metric, serverId, timeRange },
       timestamp: new Date().toISOString(),
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=1200',
+        'CDN-Cache-Control': 'public, s-maxage=600',
+      },
     });
   } catch (error) {
     console.error('예측 조회 오류:', error);

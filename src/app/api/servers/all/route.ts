@@ -31,6 +31,12 @@ export async function GET() {
       optimized: true,
       serverless: true,
       dataSource: 'request-scoped',
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=240',
+        'CDN-Cache-Control': 'public, s-maxage=120',
+        'Vercel-CDN-Cache-Control': 'public, s-maxage=120',
+      },
     });
   } catch (error) {
     console.error('❌ /api/servers/all 오류:', error);

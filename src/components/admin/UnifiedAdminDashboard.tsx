@@ -163,14 +163,27 @@ export default function UnifiedAdminDashboard() {
         return;
       }
 
-      // 시스템이 시작된 상태에서만 전체 데이터 로드
-      const [performanceRes, logsRes] = await Promise.all([
-        fetch('/api/performance?summary=true'),
+      // 시스템이 시작된 상태에서만 전체 데이터 로드 (performance API 제거로 인한 모킹)
+      const [logsRes] = await Promise.all([
         fetch('/api/logs?summary=true'),
       ]);
 
-      const [performanceData, logsData] = await Promise.all([
-        performanceRes.json(),
+      // performance API 모킹 (Vercel 무료 티어 최적화)
+      const performanceData = {
+        success: true,
+        data: {
+          score: 85,
+          status: 'good',
+          metrics: {
+            avgResponseTime: 150,
+            successRate: 98.5,
+            errorRate: 1.5,
+            fallbackRate: 5.2,
+          },
+        },
+      };
+
+      const [logsData] = await Promise.all([
         logsRes.json(),
       ]);
 

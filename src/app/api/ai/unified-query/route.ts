@@ -86,6 +86,11 @@ export async function POST(request: NextRequest) {
         serverCount: serverData.totalServers,
         timestamp: new Date().toISOString(),
         environment: 'vercel',
+      }, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+          'CDN-Cache-Control': 'public, s-maxage=300',
+        },
       });
     }
 
@@ -101,6 +106,11 @@ export async function POST(request: NextRequest) {
       dataSource: 'mock-data',
       timestamp: new Date().toISOString(),
       environment: 'local',
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        'CDN-Cache-Control': 'public, s-maxage=300',
+      },
     });
   } catch (error) {
     clearTimeout(timeoutId);
@@ -145,6 +155,11 @@ export async function GET(request: NextRequest) {
     },
     currentPlan: process.env.VERCEL_PLAN || 'development',
     timestamp: new Date().toISOString(),
+  }, {
+    headers: {
+      'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=1200',
+      'CDN-Cache-Control': 'public, s-maxage=600',
+    },
   });
 }
 
