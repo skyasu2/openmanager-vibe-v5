@@ -92,7 +92,15 @@ export default function Home() {
 
         // 현재 사용자 정보 가져오기
         const user = await getCurrentUser();
-        setCurrentUser(user);
+        if (user) {
+          setCurrentUser({
+            name: user.name || 'User',
+            email: user.email,
+            avatar: user.avatar
+          });
+        } else {
+          setCurrentUser(null);
+        }
         
         console.log('🔐 인증 상태:', { isGitHub, user });
         setAuthChecked(true);
@@ -410,8 +418,8 @@ export default function Home() {
   }
 
   // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
-  // authChecked가 true이고, 세션도 없고 게스트 로그인도 없는 경우
-  if (authChecked && !session && !guestUser) {
+  // authChecked가 true이고, currentUser가 없는 경우
+  if (authChecked && !currentUser) {
     console.log('🚫 최종 인증 실패 - 로그인 페이지로 리다이렉트 (렌더링 단계)');
     // 이미 리다이렉트 중이면 추가로 push하지 않음
     if (typeof window !== 'undefined' && window.location.pathname !== '/login') {

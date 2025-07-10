@@ -107,7 +107,10 @@
       "Bash(git restore:*)",
       "Bash(jq:*)",
       "Bash(HUSKY=0 git push origin main)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(/home/skyasu/.claude/local/claude usage)",
+      "Bash(HUSKY=0 git add .)",
+      "Bash(HUSKY=0 git commit -m \"🔧 Claude 설정 업데이트 및 TypeScript 오류 수정\n\n- Claude usage 명령어 허용 추가\n- AuthUser 타입 호환성 문제 해결\n- @supabase/auth-helpers-nextjs 패키지 설치\")"
     ],
     "deny": []
   }
