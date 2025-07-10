@@ -12,9 +12,9 @@ echo -e "${GREEN}🔐 Git Push Helper${NC}"
 echo "========================"
 
 # 암호화된 설정에서 GitHub 토큰 복호화
-if [ -f "scripts/decrypt-env-vars.mjs" ]; then
+if [ -f "scripts/decrypt-single-var.mjs" ]; then
     echo -e "${YELLOW}📦 GitHub 토큰 복호화 중...${NC}"
-    GITHUB_TOKEN=$(node scripts/decrypt-env-vars.mjs GITHUB_TOKEN 2>/dev/null)
+    GITHUB_TOKEN=$(node scripts/decrypt-single-var.mjs GITHUB_TOKEN 2>/dev/null)
     
     if [ -z "$GITHUB_TOKEN" ]; then
         echo -e "${RED}❌ 암호화된 GitHub 토큰을 찾을 수 없습니다.${NC}"

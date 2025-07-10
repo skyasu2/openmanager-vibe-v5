@@ -95,6 +95,8 @@ function loadEnvironmentVariables() {
     // NextAuth
     'NEXTAUTH_SECRET',
     'NEXTAUTH_URL',
+    // GitHub
+    'GITHUB_TOKEN',
   ];
 
   const envVars = {};
@@ -220,6 +222,7 @@ function getCategoryForVar(varName) {
   if (varName.includes('OAUTH')) return 'auth';
   if (varName.includes('NEXTAUTH')) return 'auth';
   if (varName.includes('MCP')) return 'services';
+  if (varName.includes('GITHUB')) return 'vcs';
   return 'general';
 }
 
