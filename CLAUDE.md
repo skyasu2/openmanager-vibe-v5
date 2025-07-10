@@ -217,3 +217,34 @@ When working with AI engines:
 - Check bundle size with `npm run build`
 
 This project demonstrates advanced Next.js patterns with AI integration, optimized for production deployment with comprehensive testing and monitoring capabilities.
+
+## Gemini CLI Collaboration
+
+When working with Gemini CLI for local development assistance, refer to the detailed guide in `docs/gemini-collaboration.md`.
+
+### Quick Reference
+
+```bash
+# Save project context
+gemini /memory add "OpenManager VIBE v5 - AI server monitoring"
+gemini /memory add "Next.js 15, TypeScript, Supabase Auth"
+gemini /memory add "Vercel free tier optimization focus"
+
+# Efficient usage (1,000 daily limit)
+cat src/app/page.tsx | gemini -p "analyze auth logic"
+echo "login redirect issue" | gemini -p "3-line solution"
+git diff | gemini -p "review changes"
+
+# Token management
+gemini /stats     # Check usage
+gemini /compress  # Compress conversation
+gemini /clear     # Reset context
+```
+
+### Current Development Focus
+
+- **Login Redirect Issue**: Authentication successful but home redirect failing
+- **Vercel Optimization**: Edge Runtime, minimal memory usage
+- **Debugging**: Console logs added for auth state tracking
+
+For detailed collaboration patterns and examples, see `docs/gemini-collaboration.md`.
