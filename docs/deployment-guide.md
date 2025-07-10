@@ -1,6 +1,6 @@
 # 🚀 OpenManager Vibe v5 배포 가이드
 
-> **GCP Functions 마이그레이션 완료** - 2025년 7월 최종 버전
+> **GCP Functions 마이그레이션 완료** - v5.44.3 (2025년 7월)
 
 ## 📋 목차
 

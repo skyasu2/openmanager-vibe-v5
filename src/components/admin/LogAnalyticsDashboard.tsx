@@ -25,62 +25,85 @@ import dynamic from 'next/dynamic';
 import { useState } from 'react';
 
 // 동적 import로 차트 컴포넌트들 로드
+import type {
+  AreaChart as AreaChartType,
+  BarChart as BarChartType,
+  LineChart as LineChartType,
+  PieChart as PieChartType,
+  ResponsiveContainer as ResponsiveContainerType,
+  XAxis as XAxisType,
+  YAxis as YAxisType,
+  CartesianGrid as CartesianGridType,
+  Tooltip as TooltipType,
+  Bar as BarType,
+  Line as LineType,
+  Cell as CellType,
+  Pie as PieType,
+  Area as AreaType,
+} from 'recharts';
+
 const AreaChart = dynamic(
-  () => import('recharts').then(mod => ({ default: mod.AreaChart })),
+  () => import('recharts').then(mod => mod.AreaChart as any),
   { ssr: false }
-);
+) as React.ComponentType<React.ComponentProps<typeof AreaChartType>>;
+
 const BarChart = dynamic(
-  () => import('recharts').then(mod => ({ default: mod.BarChart })),
+  () => import('recharts').then(mod => mod.BarChart as any),
   { ssr: false }
-);
+) as React.ComponentType<React.ComponentProps<typeof BarChartType>>;
+
 const LineChart = dynamic(
-  () => import('recharts').then(mod => ({ default: mod.LineChart })),
+  () => import('recharts').then(mod => mod.LineChart as any),
   { ssr: false }
-);
+) as React.ComponentType<React.ComponentProps<typeof LineChartType>>;
+
 const PieChart = dynamic(
-  () => import('recharts').then(mod => ({ default: mod.PieChart })),
+  () => import('recharts').then(mod => mod.PieChart as any),
   { ssr: false }
-);
+) as React.ComponentType<React.ComponentProps<typeof PieChartType>>;
+
 const ResponsiveContainer = dynamic(
-  () => import('recharts').then(mod => ({ default: mod.ResponsiveContainer })),
+  () => import('recharts').then(mod => mod.ResponsiveContainer as any),
   { ssr: false }
-);
-const XAxis = dynamic(
-  () => import('recharts').then(mod => ({ default: mod.XAxis })),
-  { ssr: false }
-);
-const YAxis = dynamic(
-  () => import('recharts').then(mod => ({ default: mod.YAxis })),
-  { ssr: false }
-);
+) as React.ComponentType<React.ComponentProps<typeof ResponsiveContainerType>>;
+
+const XAxis = dynamic(() => import('recharts').then(mod => mod.XAxis as any), {
+  ssr: false,
+}) as React.ComponentType<React.ComponentProps<typeof XAxisType>>;
+
+const YAxis = dynamic(() => import('recharts').then(mod => mod.YAxis as any), {
+  ssr: false,
+}) as React.ComponentType<React.ComponentProps<typeof YAxisType>>;
+
 const CartesianGrid = dynamic(
-  () => import('recharts').then(mod => ({ default: mod.CartesianGrid })),
+  () => import('recharts').then(mod => mod.CartesianGrid as any),
   { ssr: false }
-);
+) as React.ComponentType<React.ComponentProps<typeof CartesianGridType>>;
+
 const Tooltip = dynamic(
-  () => import('recharts').then(mod => ({ default: mod.Tooltip })),
+  () => import('recharts').then(mod => mod.Tooltip as any),
   { ssr: false }
-);
-const Bar = dynamic(
-  () => import('recharts').then(mod => ({ default: mod.Bar })),
-  { ssr: false }
-);
-const Line = dynamic(
-  () => import('recharts').then(mod => ({ default: mod.Line })),
-  { ssr: false }
-);
-const Cell = dynamic(
-  () => import('recharts').then(mod => ({ default: mod.Cell })),
-  { ssr: false }
-);
-const Pie = dynamic(
-  () => import('recharts').then(mod => ({ default: mod.Pie })),
-  { ssr: false }
-);
-const Area = dynamic(
-  () => import('recharts').then(mod => ({ default: mod.Area })),
-  { ssr: false }
-);
+) as React.ComponentType<React.ComponentProps<typeof TooltipType>>;
+
+const Bar = dynamic(() => import('recharts').then(mod => mod.Bar as any), {
+  ssr: false,
+}) as React.ComponentType<React.ComponentProps<typeof BarType>>;
+
+const Line = dynamic(() => import('recharts').then(mod => mod.Line as any), {
+  ssr: false,
+}) as React.ComponentType<React.ComponentProps<typeof LineType>>;
+
+const Cell = dynamic(() => import('recharts').then(mod => mod.Cell as any), {
+  ssr: false,
+}) as React.ComponentType<React.ComponentProps<typeof CellType>>;
+
+const Pie = dynamic(() => import('recharts').then(mod => mod.Pie as any), {
+  ssr: false,
+}) as React.ComponentType<React.ComponentProps<typeof PieType>>;
+
+const Area = dynamic(() => import('recharts').then(mod => mod.Area as any), {
+  ssr: false,
+}) as React.ComponentType<React.ComponentProps<typeof AreaType>>;
 // Legend는 잠시 제거 (차트 타입 문제로 인해)
 
 interface LogAnalyticsData {

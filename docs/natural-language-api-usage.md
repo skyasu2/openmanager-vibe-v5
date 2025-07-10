@@ -4,7 +4,7 @@
 
 2가지 모드로 자연어 질의를 처리할 수 있는 API입니다:
 
-- **LOCAL**: 로컬 AI 엔진들 (Korean AI + MCP + RAG)
+- **LOCAL**: 로컬 AI 엔진들 (GCP Functions + MCP + RAG)
 - **GOOGLE_AI**: Google AI 우선 처리
 
 각 모드별로 폴백 처리가 구현되어 있으며, 폴백 실패 시 상세한 에러 메시지를 반환합니다.
@@ -32,15 +32,15 @@ curl -X GET "http://localhost:3000/api/ai/natural-language?action=modes"
   "availableModes": [
     {
       "mode": "LOCAL",
-      "description": "로컬 AI 엔진들 (Korean AI + MCP + RAG)",
-      "engines": ["korean-ai", "mcp", "rag"],
-      "fallbackOrder": ["korean-ai", "mcp", "rag"]
+      "description": "로컬 AI 엔진들 (GCP Functions + MCP + RAG)",
+      "engines": ["gcp-functions", "mcp", "rag"],
+      "fallbackOrder": ["gcp-functions", "mcp", "rag"]
     },
     {
       "mode": "GOOGLE_AI",
       "description": "Google AI 우선 처리",
-      "engines": ["google-ai", "korean-ai"],
-      "fallbackOrder": ["google-ai", "korean-ai"]
+      "engines": ["google-ai", "gcp-functions"],
+      "fallbackOrder": ["google-ai", "gcp-functions"]
     }
   ]
 }

@@ -105,140 +105,132 @@ export interface ServerDataState {
 
 export type ServerDataStore = ReturnType<typeof createServerDataStore>;
 
-// Export hook for component usage
-export { useServerDataStore } from '@/components/providers/StoreProvider';
+// Export hook for component usage will be handled in StoreProvider
 
 export const createServerDataStore = (
   initialState: Partial<ServerDataState> = {}
 ) => {
   return createStore<ServerDataState>()(
-    devtools(
-      (set, get) => ({
-        ...{
-          // 초기 상태
-          servers: [],
-          isLoading: false,
-          error: null,
-          lastUpdate: null,
-          unifiedManagerStatus: null,
-          prometheusHubStatus: null,
-          performance: {
-            totalRequests: 0,
-            avgResponseTime: 0,
-            cacheHitRate: 0,
-            lastSyncTime: null,
-          },
+    devtools((set, get) => ({
+      ...{
+        // 초기 상태
+        servers: [],
+        isLoading: false,
+        error: null,
+        lastUpdate: null,
+        unifiedManagerStatus: null,
+        prometheusHubStatus: null,
+        performance: {
+          totalRequests: 0,
+          avgResponseTime: 0,
+          cacheHitRate: 0,
+          lastSyncTime: null,
         },
-        ...initialState,
+      },
+      ...initialState,
 
-        // 서버 데이터 가져오기 (올바른 API 엔드포인트 사용)
-        fetchServers: async () => {
-          set({ isLoading: true, error: null });
+      // 서버 데이터 가져오기 (올바른 API 엔드포인트 사용)
+      fetchServers: async () => {
+        set({ isLoading: true, error: null });
 
-          try {
-            console.log('🚀 최적화된 서버 데이터 가져오기 시작');
-            const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-            const response = await fetch(`${appUrl}/api/servers/all`);
-            const result = await response.json();
+        try {
+          console.log('🚀 최적화된 서버 데이터 가져오기 시작');
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+          const response = await fetch(`${appUrl}/api/servers/all`);
+          const result = await response.json();
 
-            if (result.success && result.data) {
-              console.log(
-                '✅ 최적화된 서버 데이터 수신:',
-                result.data.length,
-                '개'
-              );
+          if (result.success && result.data) {
+            console.log(
+              '✅ 최적화된 서버 데이터 수신:',
+              result.data.length,
+              '개'
+            );
 
-              set({
-                servers: result.data,
-                isLoading: false,
-                lastUpdate: new Date(),
-                error: null,
-              });
-            } else {
-              throw new Error(
-                result.message || '서버에서 데이터를 가져오지 못했습니다'
-              );
-            }
-          } catch (e: any) {
-            console.error('❌ 최종 서버 데이터 로드 실패:', e.message);
-            set({ isLoading: false, error: e.message });
-          }
-        },
-
-        // 데이터 새로고침
-        refreshData: async () => {
-          console.log('🔄 데이터 새로고침 중...');
-          await get().fetchServers();
-        },
-
-        // 실시간 업데이트 시작 (구현 필요)
-        startRealTimeUpdates: () => {
-          console.log('🔴 실시간 업데이트 시작 (미구현)');
-          // 여기에 WebSocket 또는 SSE 로직 추가
-        },
-
-        stopRealTimeUpdates: () => {
-          console.log('⚫ 실시간 업데이트 중지 (미구현)');
-        },
-
-        // 통합 시스템 제어
-        startUnifiedSystem: async () => {
-          try {
-            const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-            const response = await fetch(`${appUrl}/api/system/start`, {
-              method: 'POST',
+            set({
+              servers: result.data,
+              isLoading: false,
+              lastUpdate: new Date(),
+              error: null,
             });
-            if (!response.ok)
-              throw new Error('통합 시스템 시작에 실패했습니다.');
-            await get().refreshData();
-          } catch (e: any) {
-            console.error(e.message);
+          } else {
+            throw new Error(
+              result.message || '서버에서 데이터를 가져오지 못했습니다'
+            );
           }
-        },
+        } catch (e: any) {
+          console.error('❌ 최종 서버 데이터 로드 실패:', e.message);
+          set({ isLoading: false, error: e.message });
+        }
+      },
 
-        stopUnifiedSystem: async () => {
-          try {
-            const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-            const response = await fetch(`${appUrl}/api/system/stop`, {
-              method: 'POST',
-            });
-            if (!response.ok)
-              throw new Error('통합 시스템 중지에 실패했습니다.');
-            set({ servers: [] });
-          } catch (e: any) {
-            console.error(e.message);
-          }
-        },
+      // 데이터 새로고침
+      refreshData: async () => {
+        console.log('🔄 데이터 새로고침 중...');
+        await get().fetchServers();
+      },
 
-        getSystemStatus: () => {
-          const { servers, isLoading, error, lastUpdate } = get();
-          return {
-            totalServers: servers.length,
-            healthyServers: servers.filter(s => s.status === 'healthy').length,
-            warningServers: servers.filter(s => s.status === 'warning').length,
-            criticalServers: servers.filter(s => s.status === 'critical')
-              .length,
-            isLoading,
-            error,
-            lastUpdate,
-          };
-        },
+      // 실시간 업데이트 시작 (구현 필요)
+      startRealTimeUpdates: () => {
+        console.log('🔴 실시간 업데이트 시작 (미구현)');
+        // 여기에 WebSocket 또는 SSE 로직 추가
+      },
 
-        // 개별 서버 조회 및 필터링
-        getServerById: (id: string) => {
-          return get().servers.find(s => s.id === id);
-        },
+      stopRealTimeUpdates: () => {
+        console.log('⚫ 실시간 업데이트 중지 (미구현)');
+      },
 
-        getServersByStatus: (
-          status: 'healthy' | 'warning' | 'critical'
-        ) => {
-          return get().servers.filter(s => s.status === status);
-        },
+      // 통합 시스템 제어
+      startUnifiedSystem: async () => {
+        try {
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+          const response = await fetch(`${appUrl}/api/system/start`, {
+            method: 'POST',
+          });
+          if (!response.ok) throw new Error('통합 시스템 시작에 실패했습니다.');
+          await get().refreshData();
+        } catch (e: any) {
+          console.error(e.message);
+        }
+      },
 
-        getServersByEnvironment: (environment: string) => {
-          return get().servers.filter(s => s.environment === environment);
-        },
-      })
-    )
+      stopUnifiedSystem: async () => {
+        try {
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+          const response = await fetch(`${appUrl}/api/system/stop`, {
+            method: 'POST',
+          });
+          if (!response.ok) throw new Error('통합 시스템 중지에 실패했습니다.');
+          set({ servers: [] });
+        } catch (e: any) {
+          console.error(e.message);
+        }
+      },
+
+      getSystemStatus: () => {
+        const { servers, isLoading, error, lastUpdate } = get();
+        return {
+          totalServers: servers.length,
+          healthyServers: servers.filter(s => s.status === 'healthy').length,
+          warningServers: servers.filter(s => s.status === 'warning').length,
+          criticalServers: servers.filter(s => s.status === 'critical').length,
+          isLoading,
+          error,
+          lastUpdate,
+        };
+      },
+
+      // 개별 서버 조회 및 필터링
+      getServerById: (id: string) => {
+        return get().servers.find(s => s.id === id);
+      },
+
+      getServersByStatus: (status: 'healthy' | 'warning' | 'critical') => {
+        return get().servers.filter(s => s.status === status);
+      },
+
+      getServersByEnvironment: (environment: string) => {
+        return get().servers.filter(s => s.environment === environment);
+      },
+    }))
   );
 };

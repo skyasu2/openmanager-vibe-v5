@@ -78,7 +78,20 @@
       "Bash(npx tsx:*)",
       "Bash(./scripts/show-claude-usage.sh:*)",
       "Bash(command -v:*)",
-      "Bash(pip show:*)"
+      "Bash(pip show:*)",
+      "Bash(git clean:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(touch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(node:*)",
+      "Bash(uv:*)",
+      "Bash(dos2unix:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }

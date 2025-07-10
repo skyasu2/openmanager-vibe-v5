@@ -4,43 +4,44 @@ import { type ReactNode, createContext, useContext, useRef } from 'react';
 import { useStore } from 'zustand';
 
 import {
-    type ServerDataStore,
-    type ServerDataState,
-    createServerDataStore,
+  type ServerDataStore,
+  type ServerDataState,
+  createServerDataStore,
 } from '@/stores/serverDataStore';
 
-export const ServerDataStoreContext =
-    createContext<ServerDataStore | null>(null);
+export const ServerDataStoreContext = createContext<ServerDataStore | null>(
+  null
+);
 
 export interface ServerDataStoreProviderProps {
-    children: ReactNode;
+  children: ReactNode;
 }
 
 export const ServerDataStoreProvider = ({
-    children,
+  children,
 }: ServerDataStoreProviderProps) => {
-    const storeRef = useRef<ServerDataStore>();
-    if (!storeRef.current) {
-        storeRef.current = createServerDataStore();
-    }
+  const storeRef = useRef<ServerDataStore | undefined>(undefined);
+  if (!storeRef.current) {
+    storeRef.current = createServerDataStore();
+  }
 
-    return (
-        <ServerDataStoreContext.Provider value={storeRef.current}>
-            {children}
-        </ServerDataStoreContext.Provider>
-    );
+  return (
+    <ServerDataStoreContext.Provider value={storeRef.current}>
+      {children}
+    </ServerDataStoreContext.Provider>
+  );
 };
 
 export const useServerDataStore = <T,>(
-    selector: (store: ServerDataState) => T,
+  selector: (store: ServerDataState) => T
 ): T => {
-    const serverDataStoreContext = useContext(ServerDataStoreContext);
+  const serverDataStoreContext = useContext(ServerDataStoreContext);
 
-    if (!serverDataStoreContext) {
-        throw new Error(
-            `useServerDataStore must be use within ServerDataStoreProvider`
-        );
-    }
+  if (!serverDataStoreContext) {
+    throw new Error(
+      `useServerDataStore must be use within ServerDataStoreProvider`
+    );
+  }
 
-    return useStore(serverDataStoreContext, selector);
-}; 
+  return useStore(serverDataStoreContext, selector);
+};

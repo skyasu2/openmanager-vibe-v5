@@ -10,9 +10,11 @@
 // 🔐 암호화된 환경변수 설정
 export const ENCRYPTED_ENV_CONFIG = {
   version: '5.44.0',
+  environment: process.env.NODE_ENV || 'development',
   createdAt: new Date().toISOString(),
   teamPasswordHash: '', // 운영시 실제 해시 값으로 교체
   variables: {}, // 실제 암호화된 변수들은 별도 보안 저장소에서 관리
+  checksum: '', // 실제 운영시 체크섬 값으로 교체
 
   // 메타데이터 (기존 설정 유지)
   metadata: {
@@ -99,3 +101,6 @@ export function shouldEncryptKey(key: string): boolean {
 export function getEncryptionSettings() {
   return ENCRYPTED_ENV_CONFIG.metadata.ENCRYPTION_SETTINGS;
 }
+
+// encrypted-env-loader에서 사용하는 export
+export const encryptedEnvConfig = ENCRYPTED_ENV_CONFIG;
