@@ -63,6 +63,9 @@
     "gcp:console": "node scripts/gcp-console-helper.js",
     "gcp:quota-report": "node scripts/gcp-quota-report.js",
     "claude-usage": "bash scripts/show-claude-usage.sh",
+    "claude:usage": "bash scripts/claude-usage.sh",
+    "claude:show": "bash scripts/show-claude-usage.sh",
+    "cm": "claude-monitor --plan max20",
     "postcommit": "npm run claude-usage",
     "postpush": "npm run claude-usage",
     "git:push": "bash scripts/git-push-helper.sh"

@@ -95,7 +95,13 @@
       "Bash(git remote set-url:*)",
       "Bash(ssh:*)",
       "Bash(git remote set-url:*)",
-      "Bash(dos2unix:*)"
+      "Bash(dos2unix:*)",
+      "Bash(gh auth:*)",
+      "Bash(env)",
+      "Bash(git fetch:*)",
+      "Bash(git remote get-url:*)",
+      "Bash(unset GITHUB_TOKEN)",
+      "Bash(HUSKY=0 git push origin main)"
     ],
     "deny": []
   }
