@@ -94,7 +94,8 @@
       "Bash(sed:*)",
       "Bash(git remote set-url:*)",
       "Bash(ssh:*)",
-      "Bash(git remote set-url:*)"
+      "Bash(git remote set-url:*)",
+      "Bash(dos2unix:*)"
     ],
     "deny": []
   }
