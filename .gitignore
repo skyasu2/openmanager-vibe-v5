@@ -132,3 +132,11 @@ fetch-mcp-server/
 
 # 💾 커밋 백업 폴더 (롤백 시 생성되는 백업)
 commit/
+
+# 🔐 GitHub 인증 정보 (절대 커밋 금지)
+.git-credentials
+~/.git-credentials
+*github_token*
+*github_pat*
+*.pat
+.github-token
