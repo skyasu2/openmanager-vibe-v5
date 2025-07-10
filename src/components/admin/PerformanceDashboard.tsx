@@ -219,22 +219,61 @@ export default function PerformanceDashboard() {
         stats: {
           totalRequests: Math.floor(Math.random() * 1000) + 500,
           averageResponseTime: Math.floor(Math.random() * 100) + 120,
-          successRate: 95 + Math.random() * 4,
-          errorRate: Math.random() * 3,
-          fallbackRate: Math.random() * 10,
+          successRate: (95 + Math.random() * 4) / 100,
+          errorRate: (Math.random() * 3) / 100,
+          fallbackRate: (Math.random() * 10) / 100,
           engineStats: {
-            'google-ai': { requests: 150, avgTime: 250, successRate: 98 },
-            'mcp': { requests: 200, avgTime: 180, successRate: 96 },
-            'rag': { requests: 120, avgTime: 200, successRate: 94 },
+            'google-ai': { 
+              requests: 150, 
+              averageResponseTime: 250, 
+              successRate: 0.98,
+              confidence: 0.95
+            },
+            'mcp': { 
+              requests: 200, 
+              averageResponseTime: 180, 
+              successRate: 0.96,
+              confidence: 0.93
+            },
+            'rag': { 
+              requests: 120, 
+              averageResponseTime: 200, 
+              successRate: 0.94,
+              confidence: 0.89
+            },
           },
+          modeStats: {
+            'google-only': {
+              requests: 300,
+              averageResponseTime: 235,
+              successRate: 0.99,
+            },
+            'with-fallback': {
+              requests: 150,
+              averageResponseTime: 280,
+              successRate: 0.98,
+            },
+            'hybrid': {
+              requests: 20,
+              averageResponseTime: 195,
+              successRate: 0.97,
+            },
+          },
+          hourlyStats: Array.from({ length: 24 }, (_, i) => ({
+            hour: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
+            requests: Math.floor(Math.random() * 100) + 50,
+            averageResponseTime: Math.floor(Math.random() * 200) + 150,
+            successRate: 0.95 + Math.random() * 0.05,
+          })),
+          lastUpdated: new Date().toISOString(),
         },
         alerts: [],
         status: {
-          isActive: true,
-          lastUpdate: new Date().toISOString(),
-          healthScore: 85 + Math.random() * 10,
+          enabled: true,
+          metricsCount: Math.floor(Math.random() * 1000) + 500,
+          alertsCount: 0,
+          lastMetricTime: new Date().toISOString(),
         },
-        timeRange: selectedTimeRange,
       };
 
       setData(mockData);
