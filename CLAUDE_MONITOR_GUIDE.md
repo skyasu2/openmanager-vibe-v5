@@ -23,11 +23,27 @@ python3 ~/.claude-monitor/claude_code_monitor.py --plan auto --reset-hour 9
 ~/.claude-monitor/claude-monitor --plan auto --reset-hour 9
 ```
 
+### NPM 스크립트 사용법 (개선됨!)
+
+```bash
+# 빠른 상태 확인 (10초 제한)
+npm run claude:usage
+
+# 지속적인 모니터링
+npm run cm
+
+# tmux 백그라운드 실행 (새로운 기능!)
+npm run cm:background
+```
+
 ### 백그라운드 모니터링 (tmux)
 
 ```bash
-# 백그라운드 시작
-tmux new-session -d -s claude-monitor 'cd ~/.claude-monitor/sessions && python3 ~/.claude-monitor/claude_code_monitor.py --plan auto --reset-hour 9'
+# npm 스크립트를 사용한 간편한 백그라운드 실행
+npm run cm:background
+
+# 또는 직접 실행
+tmux new-session -d -s claude-monitor 'claude-monitor --plan max20'
 
 # 세션 확인
 tmux list-sessions
@@ -192,8 +208,33 @@ cat ~/.claude-monitor/sessions/.claude_session.json
 
 ---
 
+## 🆕 최근 개선사항 (2025-07-11)
+
+### 🔧 스크립트 정리 및 통합
+1. **중복 제거**: 
+   - `show-claude-usage.sh` 제거
+   - npm 스크립트 중복 제거 (`claude-usage`, `claude:show` 제거)
+   - `claude:usage` 하나로 통일
+
+2. **새로운 기능 추가**:
+   - `npm run cm:background`: tmux 백그라운드 실행 자동화
+   - `scripts/claude-monitor-tmux.sh`: 대화형 tmux 관리 스크립트
+   - Git hooks 최적화 (`--quiet` 옵션 추가)
+
+3. **개선된 사용성**:
+   - tmux 세션 중복 확인 및 관리
+   - 색상 코딩된 출력 메시지
+   - 더 나은 오류 처리
+
+### 📋 현재 npm 스크립트
+- `npm run cm`: 실시간 모니터링
+- `npm run claude:usage`: 빠른 상태 확인
+- `npm run cm:background`: tmux 백그라운드 실행
+
+---
+
 ## 🎉 성공적으로 설정 완료!
 
 이제 전문적인 Claude Code 사용량 모니터링을 시작할 수 있습니다. 
 
-**바로 시작하기**: `tmux attach -t claude-monitor`
+**바로 시작하기**: `npm run cm` 또는 `npm run cm:background`
