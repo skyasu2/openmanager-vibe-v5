@@ -4,11 +4,11 @@
  * OpenManager Vibe v5 상태 관리 모듈 통합 (Google OAuth 제거됨)
  */
 
-import { useServerDataStore } from '../serverDataStore';
+import { useServerDataStore } from '@/components/providers/StoreProvider';
 import { useUnifiedAdminStore } from '../useUnifiedAdminStore';
 
 // 기본 스토어들 익스포트
-export { useServerDataStore } from '../serverDataStore';
+export { useServerDataStore } from '@/components/providers/StoreProvider';
 export { useUnifiedAdminStore } from '../useUnifiedAdminStore';
 
 // 특정 기능별 통합 훅
