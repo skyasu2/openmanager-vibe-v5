@@ -1,16 +1,27 @@
-# 🌐 OpenManager Vibe v5
+# 🌐 OpenManager Vibe v5.44.3
 
-> **Vitest 기반 TDD 대시보드** - 월 사용량 90% 절약하는 실시간 서버 관리 플랫폼
+> **AI 기반 통합 서버 관리 플랫폼** - 월 사용량 90% 절약하면서도 실시간 모니터링 제공
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
 [![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
 [![Vitest](https://img.shields.io/badge/Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
+[![Node.js](https://img.shields.io/badge/Node.js%2022-5FA04E?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 
 ## 🎯 **프로젝트 개요**
 
 OpenManager Vibe v5는 **Google Cloud → Redis → Vercel** 아키텍처를 통해 월 사용량을 90% 이상 절약하면서도 1-2ms 응답시간을 제공하는 혁신적인 서버 관리 대시보드입니다.
+
+### 🚀 **주요 특징**
+
+- **통합 AI 시스템**: Google AI (Gemini) + Supabase RAG + 로컬 NLP 엔진 통합
+- **실시간 모니터링**: Redis Pipeline으로 초고속 데이터 조회
+- **강력한 인증**: Supabase Auth 기반 GitHub OAuth 지원
+- **MCP 아키텍처**: 개발-배포 환경별 최적화된 컨텍스트 관리
+- **비용 최적화**: Vercel 무료 티어로 월 90% 이상 비용 절감
+- **Node.js v22**: 최신 LTS 버전으로 30% 성능 향상
 
 ### ⚡ **핵심 성과**
 
@@ -22,6 +33,10 @@ OpenManager Vibe v5는 **Google Cloud → Redis → Vercel** 아키텍처를 통
 - **🗑️ 불필요한 테스트 제거**: 11개 테스트 파일 정리 및 정적 분석 도구 강화
 - **🚫 파일 저장 기능 제거**: 베르셀 환경 완전 호환 및 무료티어 최적화
 - **🤖 AI 엔진 모드 시스템**: 로컬 엔진 우선 + 선택적 고급 AI 사용
+- **🔐 Supabase Auth 도입**: NextAuth에서 완전 마이그레이션 완료
+- **🎯 MCP 서버 통합**: 3단계 MCP 아키텍처로 개발-배포 통합
+- **🚀 Node.js v22 업그레이드**: 최신 LTS로 성능 30% 향상
+- **🤝 AI 도구 협업**: Claude + Gemini CLI 효율적 조합
 
 ## 🏗️ **시스템 아키텍처**
 
@@ -35,6 +50,9 @@ graph LR
     F -->|정적 분석| G[Static Analysis]
     G -->|AI 엔진| H[LOCAL/GOOGLE_ONLY]
     H -->|메모리 관리| I[No File System]
+    J[Supabase Auth] -->|인증/인가| C
+    K[MCP Servers] -->|컨텍스트| H
+    L[GCP VM] -->|AI 처리| K
 ```
 
 ### **데이터 플로우**
@@ -47,6 +65,8 @@ graph LR
 6. **📊 정적 분석**: 정적 분석 도구로 코드 품질 보장
 7. **🤖 AI 엔진**: 로컬 엔진 우선 + 선택적 고급 AI 모드
 8. **🚫 파일 저장 무력화**: 베르셀 환경 완전 호환
+9. **🔐 인증 플로우**: Supabase Auth로 GitHub OAuth 처리
+10. **🎯 MCP 통합**: 개발/프로덕션 환경별 컨텍스트 관리
 
 ## 🚀 **주요 기능**
 
@@ -77,6 +97,9 @@ graph LR
 - **선택적 고급 AI**: GOOGLE_ONLY 모드 (자연어 질의 전용)
 - **베르셀 환경 최적화**: 파일 저장 기능 완전 제거
 - **메모리 기반 관리**: 설정 저장 없이 런타임 관리
+- **MCP 컨텍스트 어시스턴트**: GCP VM 기반 실시간 컨텍스트 분석
+- **Supabase RAG 엔진**: 벡터 검색 기반 지능형 응답
+- **통합 AI 라우터**: 다중 AI 엔진 폴백 전략
 
 ### **🚫 베르셀 환경 파일 시스템 보호**
 
@@ -89,16 +112,21 @@ graph LR
 
 ### **프론트엔드**
 
-- **Next.js 15**: React 풀스택 프레임워크
+- **Next.js 14.2.4**: React 풀스택 프레임워크
 - **SWR**: 데이터 페칭 및 캐싱
-- **TypeScript**: 타입 안전성
+- **TypeScript 5.7.2**: 타입 안전성
 - **Tailwind CSS**: 유틸리티 기반 스타일링
+- **Radix UI**: 접근성 높은 UI 컴포넌트
+- **Zustand**: 상태 관리
 
 ### **백엔드**
 
 - **Google Cloud Platform**: 실제 서버 데이터 소스
 - **Redis (Upstash)**: 고성능 캐싱 레이어
 - **Vercel**: 서버리스 배포 플랫폼
+- **Supabase**: 인증 및 데이터베이스
+- **Google AI (Gemini)**: AI 처리 엔진
+- **MCP Servers**: 컨텍스트 관리 시스템
 
 ### **테스트 및 개발**
 
@@ -106,6 +134,9 @@ graph LR
 - **TDD**: 테스트 주도 개발 방법론
 - **ESLint**: 코드 품질 관리
 - **정적 분석**: 코드 품질 자동 검증
+- **Playwright**: E2E 테스트
+- **Claude Monitor**: 실시간 Claude AI 사용량 모니터링
+- **Gemini CLI**: 효율적인 AI 협업 도구
 
 ### **최적화 기술**
 
@@ -115,6 +146,29 @@ graph LR
 - **무료티어 보호**: 자동 사용량 제한
 - **파일 시스템 보호**: 베르셀 환경 완전 호환
 - **메모리 기반 관리**: 실행 시간 중 설정 관리
+- **Node.js v22 최적화**: 메모리 효율성 및 성능 향상
+- **MCP 캐싱**: 컨텍스트 기반 지능형 캐싱
+
+## 🚀 **빠른 시작**
+
+```bash
+# 1. 저장소 클론
+git clone https://github.com/your-username/openmanager-vibe-v5.git
+cd openmanager-vibe-v5
+
+# 2. 의존성 설치 (Node.js 22+ 필요)
+npm install
+
+# 3. 환경 변수 설정
+cp .env.example .env.local
+# .env.local 파일 편집
+
+# 4. 개발 서버 시작
+npm run dev
+
+# 5. 브라우저에서 확인
+open http://localhost:3000
+```
 
 ## 📦 **설치 및 실행**
 
@@ -153,6 +207,18 @@ GCP_REDIS_HOST=your_redis_host
 GCP_REDIS_PORT=6379
 GCP_REDIS_PASSWORD=your_redis_password
 
+# Supabase 설정
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_key
+
+# Google AI 설정
+GOOGLE_AI_API_KEY=your_google_ai_key
+
+# GitHub OAuth 설정
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+
 # 무료티어 최적화 설정
 NEXT_PUBLIC_FREE_TIER_MODE=true
 VERCEL_HOBBY_PLAN=true
@@ -161,6 +227,10 @@ ENABLE_QUOTA_PROTECTION=true
 # AI 엔진 모드 설정
 AI_ENGINE_MODE=LOCAL          # 기본값: LOCAL 모드
 GOOGLE_AI_ENABLED=false       # 기본값: 구글 AI 비활성화
+
+# MCP 서버 설정
+MCP_VM_URL=http://104.154.205.25:10000
+MCP_TIMEOUT=30000
 ```
 
 ### **4. 개발 서버 실행**
@@ -240,11 +310,15 @@ npm run ai-engine:test
 
 ## 📚 **문서**
 
-- [📖 AI 엔진 모드 시스템](./docs/AI_ENGINE_MODES.md)
-- [🆓 무료티어 설정 가이드](./docs/FREE_TIER_SETUP.md)
+- [📖 AI 완전 가이드](./docs/ai-complete-guide.md)
+- [🎯 MCP 완전 가이드](./docs/mcp-complete-guide.md)
+- [🔐 인증 설정 가이드](./docs/auth-setup-guide.md)
+- [📊 Claude Monitor 가이드](./docs/claude-monitor-guide.md)
+- [🤖 Gemini 사용 가이드](./docs/gemini-usage-guide.md)
+- [🚀 배포 완전 가이드](./docs/deployment-complete-guide.md)
 - [🧪 테스트 가이드](./docs/testing-guide.md)
-- [🤖 AI 시스템 가이드](./docs/ai-system-guide.md)
-- [🚀 배포 가이드](./docs/deployment-guide.md)
+- [🔒 보안 완전 가이드](./docs/security-complete-guide.md)
+- [🗑️ 개발 가이드](./docs/development-guide.md)
 
 ## 🎯 **마이그레이션 가이드**
 
@@ -459,18 +533,33 @@ npm run gcp:monitor
 openmanager-vibe-v5/
 ├── src/                          # 소스 코드
 │   ├── app/                      # Next.js 앱 라우터
+│   │   ├── api/                  # API 라우트
+│   │   ├── auth/                 # 인증 페이지
+│   │   └── admin/                # 관리자 페이지
 │   ├── components/               # React 컴포넌트
 │   ├── services/                 # 서비스 레이어
+│   │   ├── auth/                 # 인증 서비스
+│   │   ├── mcp/                  # MCP 서비스
+│   │   └── ai/                   # AI 서비스
+│   ├── lib/                      # 공통 라이브러리
 │   └── core/                     # 핵심 로직
 ├── scripts/                      # 개발 스크립트
 │   ├── gcp-quota-monitor.js      # 🆕 실시간 모니터링
 │   ├── gcp-quota-alert.js        # 🆕 알림 시스템
 │   ├── gcp-console-helper.js     # 🆕 콘솔 접속 도구
-│   └── gcp-quota-report.js       # 🆕 보고서 생성기
+│   ├── gcp-quota-report.js       # 🆕 보고서 생성기
+│   ├── claude-monitor-tmux.sh    # 🆕 Claude 모니터
+│   └── github-auth-helper.cjs    # 🆕 Git 인증 도구
 ├── gcp-cloud-functions/          # GCP Functions
 ├── vm-context-api/               # VM Context API
 ├── tests/                        # 테스트 파일
+│   ├── unit/                     # 단위 테스트
+│   ├── integration/              # 통합 테스트
+│   └── e2e/                      # E2E 테스트
 ├── docs/                         # 문서
+│   └── archive/                  # 아카이브 문서
+├── development/                  # 개발 도구
+│   └── gemini-local/             # Gemini CLI 가이드
 ├── logs/                         # 🆕 로그 파일
 └── reports/                      # 🆕 보고서 파일
 ```
@@ -560,6 +649,59 @@ npm run gcp:optimize
 
 # 분기별 검토 (3, 6, 9, 12월)
 npm run validate:all
+```
+
+## 🤝 AI 도구 협업 전략
+
+### Claude + Gemini CLI 효율적 사용
+
+Claude와 Gemini CLI를 상황에 맞게 조합하여 비용 효율적인 개발:
+
+#### Claude가 적합한 작업:
+- 복잡한 코드 작성 및 리팩토링
+- 실시간 디버깅 및 문제 해결
+- 프로젝트 아키텍처 설계
+- 파일 생성/수정 작업
+- Git 작업 및 PR 생성
+
+#### Gemini CLI가 적합한 작업:
+- 대용량 파일 분석 (`@` 구문 활용)
+- 코드베이스 전체 이해
+- 간단한 코드 리뷰
+- 문서 요약 및 설명
+- 반복적인 질문/답변
+
+#### 협업 워크플로우 예시:
+```bash
+# 1. Gemini로 분석
+echo "분석 요청" | gemini -p "@src/ AI 엔진 구조 파악"
+
+# 2. Claude로 구현
+# Gemini 분석 결과를 바탕으로 Claude가 코드 작성
+
+# 3. Gemini로 리뷰
+git diff | gemini -p "변경사항 검토"
+
+# 4. Claude로 최종 수정 및 커밋
+```
+
+### MCP 서버 활용
+
+3단계 MCP 아키텍처로 개발-배포 통합:
+
+1. **로컬 개발 MCP**: Cursor IDE, Claude Code 등에서 사용
+2. **Vercel Dev Tools MCP**: 배포된 앱과 로컬 환경 연결
+3. **Production MCP (GCP VM)**: AI 엔진과 실시간 통합
+
+### Claude Monitor 활용
+
+실시간 사용량 모니터링:
+```bash
+# 백그라운드 모니터링
+npm run cm:background
+
+# 사용량 확인
+npm run claude:usage
 ```
 
 ## 📞 지원 및 문의

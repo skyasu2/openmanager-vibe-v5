@@ -138,6 +138,25 @@ User Query → AI Agent Engine → Intent Classifier → Response Generator
 
 ## Development Guidelines
 
+### 🚀 개발 체크리스트 (필수 준수사항)
+
+✅ **코드 작성 전**
+- [ ] 기존 코드에서 재사용 가능한 부분 확인 (`@codebase` 활용)
+- [ ] 실패하는 테스트 먼저 작성 (TDD - Red)
+- [ ] SOLID 원칙 고려한 설계
+
+✅ **코드 작성 중**
+- [ ] TypeScript any 타입 사용 금지
+- [ ] Next.js 최적화 (Image 컴포넌트, 서버/클라이언트 분리)
+- [ ] 1500줄 넘으면 파일 분리
+
+✅ **코드 작성 후**
+- [ ] 불필요한 import 제거
+- [ ] 테스트 통과 확인 (TDD - Green)
+- [ ] Gemini 피드백 반영하여 리팩토링 (TDD - Refactor)
+- [ ] CHANGELOG.md 업데이트
+- [ ] /docs 문서 갱신
+
 ### Time Zone Requirements
 
 - All timestamps must use Korean timezone (Asia/Seoul, UTC+9)
@@ -151,12 +170,65 @@ User Query → AI Agent Engine → Intent Classifier → Response Generator
 - Path aliases: `@/` for `src/`
 - Korean time format: `new Date().toLocaleString('ko-KR', {timeZone: 'Asia/Seoul'})`
 
-### Testing Strategy
+### 핵심 개발 규칙
 
+#### 1. SOLID 원칙 준수
+- **Single Responsibility**: 각 클래스/모듈은 하나의 책임만
+- **Open/Closed**: 확장에는 열려있고 수정에는 닫혀있게
+- **Liskov Substitution**: 하위 타입은 상위 타입을 대체 가능
+- **Interface Segregation**: 인터페이스는 최소한으로 분리
+- **Dependency Inversion**: 추상화에 의존, 구체화에 의존 X
+- **1500줄 규칙**: 파일이 1500줄을 넘으면 의도적인 분리 필수
+
+#### 2. 기존 코드 우선 원칙
+- 새 기능 개발 전 **반드시** 기존 코드 분석
+- `@codebase`로 중복 확인 후 재사용
+- 중복 코드 작성 금지
+- 기존 패턴과 컨벤션 따르기
+
+#### 3. Next.js 최적화
+- `next/image` 컴포넌트 사용 필수
+- 서버/클라이언트 컴포넌트 명확히 분리
+- Dynamic imports로 번들 크기 최적화
+- ISR/SSG 적극 활용
+
+#### 4. 타입 안전성
+- **any 타입 절대 금지**
+- 명확한 타입 정의 필수
+- 유틸리티 타입 활용 (Partial, Pick, Omit 등)
+- 타입 가드 함수 작성
+
+#### 5. 코드 정리 원칙
+- 사용하지 않는 import 즉시 제거
+- 주석 처리된 코드 커밋 금지
+- 명확하고 의미있는 커밋 메시지
+- 한 커밋에 하나의 기능/수정사항
+
+#### 6. 문서화 규칙
+- 모든 커밋마다 CHANGELOG.md 업데이트
+- `/docs` 경로의 관련 문서 갱신
+- 새로운 기능은 반드시 문서 작성
+- API 변경사항은 상세히 기록
+- 복잡한 로직은 인라인 주석 추가
+
+### Testing Strategy (TDD 필수)
+
+#### Test-Driven Development (TDD) 프로세스
+1. **Red**: 실패하는 테스트 먼저 작성
+2. **Green**: 테스트를 통과할 최소한의 구현
+3. **Refactor**: Claude가 Gemini로부터 받은 개선 피드백을 반영하여 고품질 코드로 마무리
+
+#### 테스트 유형
 - **Unit Tests**: Vitest for service logic and utilities
 - **Integration Tests**: API endpoints and AI engine flows
 - **E2E Tests**: Playwright for full user workflows
 - **Coverage Target**: 70% minimum across all metrics
+
+#### TDD 필수 적용 영역
+- API 엔드포인트
+- 핵심 비즈니스 로직
+- AI 엔진 통합
+- 데이터 처리 파이프라인
 
 ### Environment Variables
 
@@ -263,11 +335,118 @@ gemini /compress  # 대화 압축
 gemini /clear     # 컨텍스트 초기화
 ```
 
+## Claude Code 사용량 모니터링
+
+### ccusage 명령어 (설치 없이 사용)
+
+Claude Code의 토큰 사용량을 확인하는 공식 도구입니다:
+
+```bash
+# 🎯 빠른 실행 (명령어 가이드 포함)
+npm run ccusage
+
+# 또는 alias 설정 후
+ccusage  # (alias 설정: bash scripts/setup-ccusage-alias.sh)
+
+# 개별 명령어 실행
+npx ccusage@latest blocks --live    # 🆕 실시간 대시보드로 라이브 모니터링
+npx ccusage@latest blocks --active  # 현재 과금 블록과 예상 사용량 확인
+npx ccusage@latest daily           # 일별 사용량 세부 분석
+npx ccusage@latest session         # 현재 세션 분석
+npx ccusage@latest blocks          # 5시간 블록 단위 사용량 전체 보기
+
+# 고급 옵션
+npx ccusage@latest blocks --since 20250701    # 특정 날짜부터
+npx ccusage@latest blocks --until 20250731    # 특정 날짜까지
+npx ccusage@latest blocks --json              # JSON 출력
+npx ccusage@latest blocks --breakdown         # 상세 분석
+```
+
+### claude-monitor (커스텀 모니터)
+
+프로젝트에 포함된 한국어 최적화 모니터링 도구:
+
+```bash
+# claude-monitor 실행 (화면 지우지 않음)
+cd claude-monitor-standalone
+python3 claude-monitor.py --plan max20 --timezone Asia/Seoul --no-clear --once
+
+# 연속 모니터링 (5초마다 새로고침)
+python3 claude-monitor.py --plan max20 --no-clear
+
+# npm 스크립트 사용
+npm run cm:simple  # 간단한 정보만 출력
+```
+
+### 모니터링 도구 비교
+
+| 기능 | ccusage | claude-monitor |
+|------|---------|----------------|
+| 설치 | 불필요 (npx) | Python 필요 |
+| 실시간 | ✅ (--live) | ✅ (기본값) |
+| 한국어 | ❌ | ✅ |
+| 시각화 | 표 형식 | 프로그레스바 |
+| JSON 출력 | ✅ | ❌ |
+| 화면 지우기 | ✅ (항상) | 선택 가능 |
+
 ### 현재 개발 중점 사항
 
-- **로그인 리다이렉트 문제**: 인증은 성공하나 홈으로 리다이렉트 실패
+- **Node.js v22.15.1 업그레이드 완료**: 최신 LTS 버전으로 성능 향상
 - **Vercel 최적화**: Edge Runtime, 최소 메모리 사용
-- **디버깅**: 인증 상태 추적을 위한 콘솔 로그 추가
+- **AI 도구 협업**: Claude (유료) + Gemini CLI (무료) 효율적 조합
 
 자세한 협업 패턴과 예시는 `development/gemini-local/`을 참조하세요.
 MCP 서버 설정 가이드는 `docs/gemini-cli-mcp-setup.md`를 참조하세요.
+
+## AI 도구 협업 전략
+
+### Claude + Gemini CLI 효율적 사용
+
+Claude와 Gemini CLI를 상황에 맞게 조합하여 비용 효율적인 개발:
+
+#### Claude가 적합한 작업:
+- 복잡한 코드 작성 및 리팩토링
+- 실시간 디버깅 및 문제 해결
+- 프로젝트 아키텍처 설계
+- 파일 생성/수정 작업
+- Git 작업 및 PR 생성
+
+#### Gemini CLI가 적합한 작업:
+- 대용량 파일 분석 (`@` 구문 활용)
+- 코드베이스 전체 이해
+- 간단한 코드 리뷰
+- 문서 요약 및 설명
+- 반복적인 질문/답변
+
+#### 협업 워크플로우 예시:
+
+**TDD 개발 프로세스에서의 협업**
+```bash
+# 1. Gemini로 기존 코드 분석 (중복 방지)
+echo "새 기능: 사용자 인증" | gemini -p "@src/ 기존 인증 로직 분석"
+
+# 2. Claude로 테스트 작성 (TDD - Red)
+# 실패하는 테스트 먼저 작성
+
+# 3. Claude로 구현 (TDD - Green)
+# 테스트를 통과하는 최소 구현
+
+# 4. Gemini로 코드 리뷰 및 개선점 제안
+git diff | gemini -p "SOLID 원칙 관점에서 리뷰"
+
+# 5. Claude로 리팩토링 (TDD - Refactor)
+# Gemini 피드백 반영하여 고품질 코드로 개선
+
+# 6. 문서 업데이트
+echo "변경사항" | gemini -p "@docs/ 관련 문서 찾기"
+# Claude가 CHANGELOG.md 및 문서 갱신
+```
+
+### MCP 서버 활용
+
+Gemini CLI의 MCP 서버가 설정되어 있어 대용량 파일 분석이 가능합니다:
+- 설정 파일: `~/.gemini/settings.json`
+- MCP 도구: `gemini-mcp-tool`
+- 파일 참조: `@파일경로` 구문 사용
+
+자세한 사용법은 `GEMINI_USAGE_GUIDE.md`를 참조하세요.
