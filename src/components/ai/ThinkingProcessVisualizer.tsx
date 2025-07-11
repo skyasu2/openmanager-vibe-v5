@@ -7,8 +7,6 @@
  * - 애니메이션 효과
  */
 
-// @ts-nocheck
-
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -93,7 +91,7 @@ export const ThinkingProcessVisualizer: React.FC<
       : 0;
 
   // 단계 애니메이션 설정
-  const stepVariants = {
+  const stepVariants: any = {
     hidden: {
       opacity: 0,
       x: -20,
@@ -105,20 +103,21 @@ export const ThinkingProcessVisualizer: React.FC<
       scale: 1,
       transition: {
         duration: 0.4,
-        ease: [0.4, 0, 0.2, 1],
+        ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
       },
     },
     completed: {
       scale: 1.05,
       transition: {
         duration: 0.2,
-        yoyo: 1,
+        repeat: 1,
+        repeatType: 'reverse' as const,
       },
     },
   };
 
   // 진행률 바 애니메이션
-  const progressVariants = {
+  const progressVariants: any = {
     initial: { width: 0 },
     animate: {
       width: `${overallProgress}%`,
@@ -130,7 +129,7 @@ export const ThinkingProcessVisualizer: React.FC<
   };
 
   // 펄스 애니메이션 (활성 단계용)
-  const pulseVariants = {
+  const pulseVariants: any = {
     pulse: {
       scale: [1, 1.05, 1],
       transition: {

@@ -1,4 +1,9 @@
 import type { StorybookConfig } from '@storybook/nextjs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(js|jsx|ts|tsx|mdx)'],
@@ -53,7 +58,7 @@ const config: StorybookConfig = {
     if (config.resolve) {
       config.resolve.alias = {
         ...config.resolve.alias,
-        '@': require('path').resolve(__dirname, '../src'),
+        '@': path.resolve(__dirname, '../src'),
       };
 
       config.resolve.fallback = {
@@ -152,7 +157,7 @@ const config: StorybookConfig = {
 
     // 📦 번들 분석기 설정 (개발 시에만)
     if (process.env.ANALYZE_BUNDLE === 'true') {
-      const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+      const { BundleAnalyzerPlugin } = await import('webpack-bundle-analyzer');
       if (!config.plugins) {
         config.plugins = [];
       }

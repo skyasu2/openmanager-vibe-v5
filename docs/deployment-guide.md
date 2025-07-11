@@ -232,7 +232,7 @@ gcloud config set functions/region asia-northeast3
 # 1. ai-gateway 배포
 gcloud functions deploy ai-gateway \
   --gen2 \
-  --runtime=nodejs18 \
+  --runtime=nodejs22 \
   --region=asia-northeast3 \
   --source=./gcp-functions/ai-gateway \
   --entry-point=aiGateway \
@@ -251,7 +251,7 @@ gcloud functions describe ai-gateway --region=asia-northeast3
 # 1. korean-nlp 배포
 gcloud functions deploy korean-nlp \
   --gen2 \
-  --runtime=nodejs18 \
+  --runtime=nodejs22 \
   --region=asia-northeast3 \
   --source=./gcp-functions/korean-nlp \
   --entry-point=koreanNLP \
@@ -270,7 +270,7 @@ gcloud functions describe korean-nlp --region=asia-northeast3
 # 1. rule-engine 배포
 gcloud functions deploy rule-engine \
   --gen2 \
-  --runtime=nodejs18 \
+  --runtime=nodejs22 \
   --region=asia-northeast3 \
   --source=./gcp-functions/rule-engine \
   --entry-point=ruleEngine \
@@ -289,7 +289,7 @@ gcloud functions describe rule-engine --region=asia-northeast3
 # 1. basic-ml 배포
 gcloud functions deploy basic-ml \
   --gen2 \
-  --runtime=nodejs18 \
+  --runtime=nodejs22 \
   --region=asia-northeast3 \
   --source=./gcp-functions/basic-ml \
   --entry-point=basicML \
@@ -348,7 +348,7 @@ gcloud compute firewall-rules create allow-mcp-server \
 gcloud compute ssh mcp-server --zone=asia-northeast3-a
 
 # 2. Node.js 설치
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
 # 3. MCP 서버 설정

@@ -106,13 +106,17 @@
       "Bash(git stash:*)",
       "Bash(git restore:*)",
       "Bash(jq:*)",
-      "Bash(HUSKY=0 git push origin main)",
       "Bash(rg:*)",
       "Bash(/home/skyasu/.claude/local/claude usage)",
       "Bash(HUSKY=0 git add .)",
       "Bash(HUSKY=0 git commit -m \"🔧 Claude 설정 업데이트 및 TypeScript 오류 수정\n\n- Claude usage 명령어 허용 추가\n- AuthUser 타입 호환성 문제 해결\n- @supabase/auth-helpers-nextjs 패키지 설치\")",
       "Bash(tmux ls:*)",
-      "Bash(HUSKY=0 git commit -m \"🔧 claude-monitor 개선: 중복 제거 및 tmux 백그라운드 지원\n\n- npm 스크립트 중복 제거 (claude-usage, claude:show 제거)\n- 쉘 스크립트 통합 (show-claude-usage.sh 제거)\n- tmux 백그라운드 실행 스크립트 추가 (cm:background)\n- Git hooks 최적화 (--quiet 옵션 추가)\n- CLAUDE_MONITOR_GUIDE.md 문서 업데이트\")"
+      "Bash(HUSKY=0 git commit -m \"🔧 claude-monitor 개선: 중복 제거 및 tmux 백그라운드 지원\n\n- npm 스크립트 중복 제거 (claude-usage, claude:show 제거)\n- 쉘 스크립트 통합 (show-claude-usage.sh 제거)\n- tmux 백그라운드 실행 스크립트 추가 (cm:background)\n- Git hooks 최적화 (--quiet 옵션 추가)\n- CLAUDE_MONITOR_GUIDE.md 문서 업데이트\")",
+      "Bash(npm:*)",
+      "Bash(test:*)",
+      "Bash(/dev/null)",
+      "Bash(git checkout:*)",
+      "Bash(fnm:*)"
     ],
     "deny": []
   }

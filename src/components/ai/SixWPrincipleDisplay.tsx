@@ -8,7 +8,6 @@
  * - 데이터 출처 표시
  */
 
-// @ts-nocheck
 'use client';
 
 import React, { useState, useCallback } from 'react';
@@ -157,7 +156,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
   }, []);
 
   // 애니메이션 설정
-  const cardVariants = {
+  const cardVariants: any = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
@@ -175,7 +174,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
     },
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     hidden: { opacity: 0, x: -20 },
     visible: (index: number) => ({
       opacity: 1,
@@ -183,7 +182,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
       transition: {
         delay: index * 0.1,
         duration: 0.3,
-        ease: [0.4, 0, 0.2, 1],
+        ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
       },
     }),
   };

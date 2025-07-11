@@ -20,7 +20,8 @@ export const serverEnv = {
 export function getSupabaseServiceRoleKey(): string {
   const key = serverEnv.SUPABASE_SERVICE_ROLE_KEY;
   
-  if (!key && process.env.NODE_ENV === 'production') {
+  // Only check at runtime, not during build
+  if (!key && process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is required in production');
   }
   

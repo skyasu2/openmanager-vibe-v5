@@ -9,8 +9,6 @@
  * - 네트워크 상태 시각화
  */
 
-// @ts-nocheck
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -244,7 +242,7 @@ const NetworkMonitoringCard: React.FC<NetworkMonitoringCardProps> = ({
 
   return (
     <motion.div
-      ref={elementRef}
+      ref={elementRef as React.Ref<HTMLDivElement>}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className={`

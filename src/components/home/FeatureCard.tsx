@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 
 import React from 'react';
@@ -44,7 +43,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
 
   const completionRate = getCompletionRate(id);
 
-  const cardVariants = {
+  const cardVariants: any = {
     hidden: {
       opacity: 0,
       y: 50,
@@ -57,7 +56,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
       transition: {
         delay: index * 0.1,
         duration: 0.6,
-        ease: [0.4, 0, 0.2, 1],
+        ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
       },
     },
     hover: {
@@ -65,7 +64,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
       scale: 1.03,
       transition: {
         duration: 0.3,
-        ease: [0.4, 0, 0.2, 1],
+        ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
       },
     },
     tap: {
@@ -74,14 +73,14 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
     },
   };
 
-  const hoverVariants = {
+  const hoverVariants: any = {
     hover: {
       boxShadow: '0 25px 50px rgba(0, 0, 0, 0.4)',
       transition: { duration: 0.3 },
     },
   };
 
-  const glowVariants = {
+  const glowVariants: any = {
     hover: {
       opacity: [0, 0.3, 0],
       scale: [1, 1.05, 1],
@@ -93,7 +92,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
     },
   };
 
-  const iconRotateVariants = {
+  const iconRotateVariants: any = {
     hover: {
       rotate: [0, 10, -10, 0],
       scale: [1, 1.2, 1],

@@ -11,6 +11,7 @@ let isGoogleAIAvailable: any = null;
 let getGoogleAIStatus: any = null;
 
 try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const googleAIModule = require('@/services/ai/GoogleAIService');
   GoogleAIService = googleAIModule.GoogleAIService;
 } catch (error) {
@@ -18,6 +19,7 @@ try {
 }
 
 try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const googleAIManagerModule = require('@/lib/google-ai-manager');
   getGoogleAIKey = googleAIManagerModule.getGoogleAIKey;
   isGoogleAIAvailable = googleAIManagerModule.isGoogleAIAvailable;

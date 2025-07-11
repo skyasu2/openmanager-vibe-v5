@@ -643,7 +643,7 @@ class AILogger {
 # 새 함수 생성
 gcloud functions deploy new-ai-function \
   --gen2 \
-  --runtime=nodejs18 \
+  --runtime=nodejs22 \
   --region=asia-northeast3 \
   --source=. \
   --entry-point=newAIFunction \

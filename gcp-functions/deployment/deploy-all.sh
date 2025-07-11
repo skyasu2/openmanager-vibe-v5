@@ -112,7 +112,7 @@ deploy_function() {
     log "$func_name 배포 중... (메모리: $MEMORY, 타임아웃: $TIMEOUT)"
     
     if gcloud functions deploy $func_name \
-        --runtime nodejs18 \
+        --runtime nodejs22 \
         --trigger-http \
         --allow-unauthenticated \
         --memory $MEMORY \
@@ -125,7 +125,7 @@ deploy_function() {
         # 헬스 체크 Function도 배포
         log "$func_name-health Function 배포 중..."
         if gcloud functions deploy "${func_name}-health" \
-            --runtime nodejs18 \
+            --runtime nodejs22 \
             --trigger-http \
             --allow-unauthenticated \
             --memory 128MB \

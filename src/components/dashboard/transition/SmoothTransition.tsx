@@ -7,8 +7,6 @@
  * - 로딩 상태 관리
  */
 
-// @ts-nocheck
-
 import React, { memo, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -31,7 +29,7 @@ const SmoothTransition: React.FC<SmoothTransitionProps> = memo(
     onExitComplete,
   }) => {
     // 페이지 전환 애니메이션 variants
-    const pageVariants = {
+    const pageVariants: any = {
       initial: {
         opacity: 0,
         y: 20,
@@ -58,7 +56,7 @@ const SmoothTransition: React.FC<SmoothTransitionProps> = memo(
       },
     };
 
-    const contentVariants = {
+    const contentVariants: any = {
       initial: {
         opacity: 0,
         y: 10,

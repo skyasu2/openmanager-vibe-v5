@@ -38,8 +38,8 @@ Ubuntu 20.04+
 Debian 11+
 
 # Node.js
-v18.17.0+ (권장: v20.11.0+)
-npm 9.0.0+ (권장: v10.0.0+)
+v22.0.0+ (권장: v22.15.1+)
+npm 10.0.0+
 
 # 🧪 테스트 프레임워크
 Vitest (Jest 완전 대체)
@@ -83,10 +83,10 @@ VS Code: https://code.visualstudio.com/
 
 ```bash
 # Node.js 버전 확인
-node --version  # v18.17.0+
+node --version  # v22.0.0+
 
 # npm 버전 확인
-npm --version   # 9.0.0+
+npm --version   # 10.0.0+
 
 # Git 버전 확인
 git --version   # 2.30.0+
