@@ -5,8 +5,9 @@
 ## 🚨 중요 사항
 
 - **로컬 개발 전용**: 이 폴더의 내용은 프로덕션 코드와 무관합니다
-- **Gemini CLI**: 터미널에서 사용하는 개발 보조 도구입니다
+- **Gemini CLI**: 터미널에서 사용하는 개발 보조 도구입니다 (API 키 불필요)
 - **Google AI API**: 프로덕션 AI 기능과는 완전히 별개입니다
+- **인증 방식**: 로그인만 필요, API 사용 금지
 
 ## 📁 폴더 구조
 
@@ -27,13 +28,19 @@ development/gemini-local/
 gemini --version
 ```
 
-2. 프로젝트 컨텍스트 설정:
+2. 로그인 (최초 1회):
+```bash
+gemini login
+# 브라우저에서 Google 계정으로 로그인
+```
+
+3. 프로젝트 컨텍스트 설정:
 ```bash
 # 프로젝트 정보를 Gemini 메모리에 저장
 bash development/gemini-local/examples/project-context.sh
 ```
 
-3. 효율적인 사용:
+4. 효율적인 사용:
 ```bash
 # 특정 파일 분석
 cat src/app/page.tsx | gemini -p "인증 로직 분석"

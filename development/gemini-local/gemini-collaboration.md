@@ -1,9 +1,21 @@
 # Gemini CLI 협업 가이드 (로컬 개발 전용)
 
-**⚠️ 중요**: Gemini CLI는 로컬 개발 도구입니다. 프로덕션 코드나 Vercel 배포와는 무관합니다.
-- Google AI API (프로덕션용)와는 완전히 별개입니다
-- 로컬 터미널에서만 사용하는 개발 보조 도구입니다
-- 프로젝트 코드베이스에 영향을 주지 않습니다
+**⚠️ 중요**: Gemini CLI와 Google AI API는 완전히 다른 도구입니다.
+
+## Gemini CLI vs Google AI API 구분
+
+### Gemini CLI (로컬 개발 도구)
+- **사용법**: 터미널에서 `gemini` 명령어로 실행
+- **인증**: 로그인만 필요 (API 키 불필요)
+- **용도**: 로컬 개발 시 코드 분석, 문제 해결 보조
+- **제한**: 일일 1,000회 사용 제한
+- **특징**: API를 사용하지 않는 독립 실행형 도구
+
+### Google AI API (프로덕션 기능)
+- **사용법**: 프로젝트 내 자연어 질의 기능의 Google AI 모드
+- **인증**: `GOOGLE_AI_API_KEY` 환경 변수 필요
+- **용도**: 사용자를 위한 AI 기반 서버 모니터링 기능
+- **위치**: `src/services/ai/google-ai-service.ts`에서 구현
 
 ## 프로젝트 컨텍스트
 
@@ -20,9 +32,16 @@
 - Google AI (Gemini)
 - Vercel (배포)
 
-## Gemini CLI 사용 전략 (일일 1,000회 제한)
+## Gemini CLI 사용 방법
 
-### 1. 토큰 절약 명령어
+### 1. 로그인 (최초 1회)
+```bash
+# Gemini CLI 로그인
+gemini login
+# 브라우저에서 Google 계정으로 로그인 진행
+```
+
+### 2. 사용 전략 (일일 1,000회 제한)
 ```bash
 # 사용량 확인
 gemini /stats
@@ -34,7 +53,7 @@ gemini /compress
 gemini /clear
 ```
 
-### 2. 효율적인 파일 분석
+### 3. 효율적인 파일 분석
 ```bash
 # 특정 파일만 분석
 cat src/app/page.tsx | gemini -p "인증 로직 분석"
@@ -43,7 +62,7 @@ cat src/app/page.tsx | gemini -p "인증 로직 분석"
 echo "로그인 리다이렉션 문제" | gemini -p "해결책 3줄 요약"
 ```
 
-### 3. 프로젝트별 메모리 활용
+### 4. 프로젝트별 메모리 활용
 ```bash
 # 중요 정보 저장
 gemini /memory add "Vercel 무료 티어: 메모리 512MB, 실행시간 10초"
@@ -97,17 +116,22 @@ echo "한국 시간 포맷터" | gemini -p "KST 타임존, YYYY-MM-DD HH:mm:ss"
 
 ## 주의사항
 
-1. **토큰 관리**
+1. **API 사용 금지**
+   - Gemini CLI는 로그인만으로 작동 (API 키 불필요)
+   - API를 사용하는 설정은 피해야 함
+   - Google AI API는 프로덕션 기능에만 사용
+
+2. **토큰 관리**
    - 긴 파일은 필요한 부분만 추출
    - 반복 질문 대신 한 번에 명확히
    - 대화 길어지면 /compress 사용
 
-2. **컨텍스트 유지**
+3. **컨텍스트 유지**
    - 중요 정보는 /memory에 저장
    - 프로젝트별 컨텍스트 분리
    - 작업 완료 후 /clear
 
-3. **협업 효율**
+4. **협업 효율**
    - 구체적인 질문
    - 파일 경로 명확히 제공
    - 예상 결과 함께 설명

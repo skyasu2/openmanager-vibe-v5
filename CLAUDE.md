@@ -2,6 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 언어 설정
+
+- 모든 응답은 한국어로 제공해주세요
+- 기술적 설명도 한국어로 번역해서 설명해주세요
+- 영어 용어가 필요한 경우 한국어 설명 후 괄호에 영어를 병기해주세요
+
+## 응답 스타일
+
+- 친근하고 이해하기 쉬운 설명
+- 코드 주석도 한국어로 작성
+- 에러 메시지 해석 시 한국어로 설명
+- 기술적인 내용도 초보자가 이해할 수 있도록 쉽게 풀어서 설명
+- 작업 진행 상황을 단계별로 명확히 안내
+
 ## Common Commands
 
 ### Development
@@ -220,31 +234,40 @@ This project demonstrates advanced Next.js patterns with AI integration, optimiz
 
 ## Gemini CLI Collaboration
 
-When working with Gemini CLI for local development assistance, refer to the detailed guide in `development/gemini-local/`.
+Gemini CLI는 로컬 개발용 도구로, Google AI API와는 완전히 별개입니다. 상세 가이드는 `development/gemini-local/`을 참조하세요.
 
-### Quick Reference
+### 중요 차이점
+
+- **Gemini CLI**: 로그인만 필요 (API 키 불필요), 로컬 개발 전용
+- **Google AI API**: 프로덕션 AI 기능용, `GOOGLE_AI_API_KEY` 필요
+
+### 빠른 사용법
 
 ```bash
-# Save project context
+# 로그인 (최초 1회)
+gemini login
+
+# 프로젝트 컨텍스트 저장
 gemini /memory add "OpenManager VIBE v5 - AI server monitoring"
 gemini /memory add "Next.js 15, TypeScript, Supabase Auth"
 gemini /memory add "Vercel free tier optimization focus"
 
-# Efficient usage (1,000 daily limit)
-cat src/app/page.tsx | gemini -p "analyze auth logic"
-echo "login redirect issue" | gemini -p "3-line solution"
-git diff | gemini -p "review changes"
+# 효율적 사용 (일일 1,000회 제한)
+cat src/app/page.tsx | gemini -p "인증 로직 분석"
+echo "로그인 리다이렉트 문제" | gemini -p "3줄 해결책"
+git diff | gemini -p "변경사항 리뷰"
 
-# Token management
-gemini /stats     # Check usage
-gemini /compress  # Compress conversation
-gemini /clear     # Reset context
+# 토큰 관리
+gemini /stats     # 사용량 확인
+gemini /compress  # 대화 압축
+gemini /clear     # 컨텍스트 초기화
 ```
 
-### Current Development Focus
+### 현재 개발 중점 사항
 
-- **Login Redirect Issue**: Authentication successful but home redirect failing
-- **Vercel Optimization**: Edge Runtime, minimal memory usage
-- **Debugging**: Console logs added for auth state tracking
+- **로그인 리다이렉트 문제**: 인증은 성공하나 홈으로 리다이렉트 실패
+- **Vercel 최적화**: Edge Runtime, 최소 메모리 사용
+- **디버깅**: 인증 상태 추적을 위한 콘솔 로그 추가
 
-For detailed collaboration patterns and examples, see `development/gemini-local/`.
+자세한 협업 패턴과 예시는 `development/gemini-local/`을 참조하세요.
+MCP 서버 설정 가이드는 `docs/gemini-cli-mcp-setup.md`를 참조하세요.
