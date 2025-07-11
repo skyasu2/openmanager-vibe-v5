@@ -294,11 +294,10 @@ export class AIEnhancedDataGenerator {
 
     // 현재 상황 분석
     const avgCpu =
-      servers.reduce((sum, s) => sum + s.cpu_usage, 0) / servers.length;
+      servers.reduce((sum: number, s: any) => sum + s.cpu_usage, 0) / servers.length;
     const avgMemory =
-      servers.reduce((sum, s) => sum + s.memory_usage, 0) / servers.length;
-    const criticalServers = servers.filter(
-      s => s.cpu_usage > 90 || s.memory_usage > 90
+      servers.reduce((sum: number, s: any) => sum + s.memory_usage, 0) / servers.length;
+    const criticalServers = servers.filter((s: any) => s.cpu_usage > 90 || s.memory_usage > 90
     );
 
     // 상황에 맞는 시나리오 생성
@@ -347,7 +346,7 @@ export class AIEnhancedDataGenerator {
     servers: EnhancedServerMetrics[]
   ): Promise<EnhancedServerMetrics[]> {
     const currentLoad =
-      servers.reduce((sum, s) => sum + s.cpu_usage, 0) / servers.length;
+      servers.reduce((sum: number, s: any) => sum + s.cpu_usage, 0) / servers.length;
     const targetCount = this.calculateOptimalServerCount(
       currentLoad,
       servers.length
@@ -368,9 +367,9 @@ export class AIEnhancedDataGenerator {
     servers: EnhancedServerMetrics[]
   ): Promise<void> {
     const avgCpu =
-      servers.reduce((sum, s) => sum + s.cpu_usage, 0) / servers.length;
+      servers.reduce((sum: number, s: any) => sum + s.cpu_usage, 0) / servers.length;
     const avgMemory =
-      servers.reduce((sum, s) => sum + s.memory_usage, 0) / servers.length;
+      servers.reduce((sum: number, s: any) => sum + s.memory_usage, 0) / servers.length;
 
     const shouldScaleUp =
       (avgCpu > this.config.autoScaling.scaleUpThreshold ||
@@ -471,7 +470,7 @@ export class AIEnhancedDataGenerator {
    * 📊 상태 조회
    */
   getStatus() {
-    const baseStatus = this.baseGenerator.getStatus();
+    const baseStatus = this.baseGenerator.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' }));
 
     return {
       ...baseStatus,
@@ -800,7 +799,7 @@ class AdaptiveScenarioGenerator {
       )
       .slice(0, count);
 
-    return sortedServers.map(s => s.id);
+    return sortedServers.map((s: any) => s.id);
   }
 }
 
@@ -814,7 +813,7 @@ class PerformanceOptimizer {
     const optimizations: PerformanceOptimization[] = [];
 
     // CPU 최적화
-    const highCpuServers = servers.filter(s => s.cpu_usage > 80);
+    const highCpuServers = servers.filter((s: any) => s.cpu_usage > 80);
     for (const server of highCpuServers) {
       optimizations.push({
         target: `${server.hostname} CPU`,
@@ -830,7 +829,7 @@ class PerformanceOptimizer {
     }
 
     // 메모리 최적화
-    const highMemoryServers = servers.filter(s => s.memory_usage > 85);
+    const highMemoryServers = servers.filter((s: any) => s.memory_usage > 85);
     for (const server of highMemoryServers) {
       optimizations.push({
         target: `${server.hostname} Memory`,
@@ -846,8 +845,7 @@ class PerformanceOptimizer {
     }
 
     // 네트워크 최적화
-    const highNetworkServers = servers.filter(
-      s => s.network_in + s.network_out > 500
+    const highNetworkServers = servers.filter((s: any) => s.network_in + s.network_out > 500
     );
     for (const server of highNetworkServers) {
       optimizations.push({

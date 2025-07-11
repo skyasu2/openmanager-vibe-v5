@@ -64,25 +64,22 @@ export async function GET(request: NextRequest) {
 
     // 서버 상태별 분류
     const serversByStatus = {
-      critical: ENTERPRISE_SERVERS.filter(s => s.status === 'error'),
-      warning: ENTERPRISE_SERVERS.filter(s => s.status === 'warning'),
-      healthy: ENTERPRISE_SERVERS.filter(s => s.status === 'online'),
+      critical: ENTERPRISE_SERVERS.filter((s: any) => s.status === 'error'),
+      warning: ENTERPRISE_SERVERS.filter((s: any) => s.status === 'warning'),
+      healthy: ENTERPRISE_SERVERS.filter((s: any) => s.status === 'online'),
     };
 
     // IDC별 서버 분류
     const serversByLocation = Object.entries(IDC_LOCATIONS).map(
       ([location, serverIds]) => ({
         location,
-        servers: ENTERPRISE_SERVERS.filter(s => serverIds.includes(s.id)),
+        servers: ENTERPRISE_SERVERS.filter((s: any) => serverIds.includes(s.id)),
         totalServers: serverIds.length,
-        healthyServers: ENTERPRISE_SERVERS.filter(
-          s => serverIds.includes(s.id) && s.status === 'online'
+        healthyServers: ENTERPRISE_SERVERS.filter((s: any) => serverIds.includes(s.id) && s.status === 'online'
         ).length,
-        warningServers: ENTERPRISE_SERVERS.filter(
-          s => serverIds.includes(s.id) && s.status === 'warning'
+        warningServers: ENTERPRISE_SERVERS.filter((s: any) => serverIds.includes(s.id) && s.status === 'warning'
         ).length,
-        criticalServers: ENTERPRISE_SERVERS.filter(
-          s => serverIds.includes(s.id) && s.status === 'error'
+        criticalServers: ENTERPRISE_SERVERS.filter((s: any) => serverIds.includes(s.id) && s.status === 'error'
         ).length,
       })
     );
@@ -174,20 +171,18 @@ export async function GET(request: NextRequest) {
       serverDetails: {
         byStatus: serversByStatus,
         kubernetes: {
-          masters: ENTERPRISE_SERVERS.filter(s => s.id.includes('master')),
-          workers: ENTERPRISE_SERVERS.filter(s => s.id.includes('worker')),
+          masters: ENTERPRISE_SERVERS.filter((s: any) => s.id.includes('master')),
+          workers: ENTERPRISE_SERVERS.filter((s: any) => s.id.includes('worker')),
         },
         onPremise: {
-          web: ENTERPRISE_SERVERS.filter(s => s.id.includes('web-')),
-          database: ENTERPRISE_SERVERS.filter(s => s.id.includes('db-')),
-          storage: ENTERPRISE_SERVERS.filter(
-            s =>
+          web: ENTERPRISE_SERVERS.filter((s: any) => s.id.includes('web-')),
+          database: ENTERPRISE_SERVERS.filter((s: any) => s.id.includes('db-')),
+          storage: ENTERPRISE_SERVERS.filter((s: any) =>
               s.id.includes('storage-') ||
               s.id.includes('file-') ||
               s.id.includes('backup-')
           ),
-          infrastructure: ENTERPRISE_SERVERS.filter(
-            s =>
+          infrastructure: ENTERPRISE_SERVERS.filter((s: any) =>
               s.id.includes('monitor-') ||
               s.id.includes('log-') ||
               s.id.includes('proxy-') ||

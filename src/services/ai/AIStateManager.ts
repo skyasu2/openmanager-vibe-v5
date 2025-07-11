@@ -211,8 +211,7 @@ export class AIStateManager {
       system: {
         status: this.currentState,
         uptime: this.isMonitoring ? Date.now() : 0,
-        activeServices: Array.from(this.services.values()).filter(
-          s => s.status === 'active'
+        activeServices: Array.from(this.services.values()).filter((s: any) => s.status === 'active'
         ).length,
         totalServices: this.services.size,
       },
@@ -357,11 +356,10 @@ export class AIStateManager {
   // 헬퍼 메서드들
   private calculateAverageResponseTime(): number {
     const services = Array.from(this.services.values());
-    const activeSvcs = services.filter(s => s.status === 'active');
+    const activeSvcs = services.filter((s: any) => s.status === 'active');
     if (activeSvcs.length === 0) return 0;
 
-    const total = activeSvcs.reduce(
-      (sum, s) => sum + s.performance.responseTime,
+    const total = activeSvcs.reduce((sum: number, s: any) => sum + s.performance.responseTime,
       0
     );
     return total / activeSvcs.length;
@@ -369,11 +367,10 @@ export class AIStateManager {
 
   private calculateSuccessRate(): number {
     const services = Array.from(this.services.values());
-    const activeSvcs = services.filter(s => s.status === 'active');
+    const activeSvcs = services.filter((s: any) => s.status === 'active');
     if (activeSvcs.length === 0) return 0;
 
-    const total = activeSvcs.reduce(
-      (sum, s) => sum + s.performance.successRate,
+    const total = activeSvcs.reduce((sum: number, s: any) => sum + s.performance.successRate,
       0
     );
     return total / activeSvcs.length;
@@ -381,13 +378,13 @@ export class AIStateManager {
 
   private calculateThroughput(): number {
     const services = Array.from(this.services.values());
-    const activeSvcs = services.filter(s => s.status === 'active');
-    return activeSvcs.reduce((sum, s) => sum + s.performance.throughput, 0);
+    const activeSvcs = services.filter((s: any) => s.status === 'active');
+    return activeSvcs.reduce((sum: number, s: any) => sum + s.performance.throughput, 0);
   }
 
   private calculateErrorRate(): number {
     const services = Array.from(this.services.values());
-    const totalErrors = services.reduce((sum, s) => sum + s.errorCount, 0);
+    const totalErrors = services.reduce((sum: number, s: any) => sum + s.errorCount, 0);
     const totalServices = services.length;
     return totalServices > 0 ? totalErrors / totalServices : 0;
   }

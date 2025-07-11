@@ -252,25 +252,24 @@ export class MCPLangGraphAgent {
 
     // 상태별 분류
     const statusSummary = {
-      healthy: relevantServers.filter(s => s.status === 'healthy').length,
-      warning: relevantServers.filter(s => s.status === 'warning').length,
-      critical: relevantServers.filter(s => s.status === 'critical').length,
+      healthy: relevantServers.filter((s: any) => s.status === 'healthy').length,
+      warning: relevantServers.filter((s: any) => s.status === 'warning').length,
+      critical: relevantServers.filter((s: any) => s.status === 'critical').length,
       total: relevantServers.length,
     };
 
     // 성능 메트릭 요약
     const performanceSummary = {
       avg_cpu:
-        relevantServers.reduce((sum, s) => sum + (s.cpu_usage || 0), 0) /
+        relevantServers.reduce((sum: number, s: any) => sum + (s.cpu_usage || 0), 0) /
         relevantServers.length,
       avg_memory:
-        relevantServers.reduce((sum, s) => sum + (s.memory_usage || 0), 0) /
+        relevantServers.reduce((sum: number, s: any) => sum + (s.memory_usage || 0), 0) /
         relevantServers.length,
       max_response_time: Math.max(
-        ...relevantServers.map(s => s.response_time || 0)
+        ...relevantServers.map((s: any) => s.response_time || 0)
       ),
-      total_alerts: relevantServers.reduce(
-        (sum, s) => sum + (s.alerts?.length || 0),
+      total_alerts: relevantServers.reduce((sum: number, s: any) => sum + (s.alerts?.length || 0),
         0
       ),
     };
@@ -697,7 +696,7 @@ ${status.error > 0 ? '⚠️ 즉시 조치가 필요한 서버가 있습니다.'
 
   private predictSystemLoad(servers: any[]): string {
     const avgLoad =
-      servers.reduce((sum, s) => sum + s.cpu_usage, 0) / servers.length;
+      servers.reduce((sum: number, s: any) => sum + s.cpu_usage, 0) / servers.length;
 
     if (avgLoad > 80) return 'HIGH';
     if (avgLoad > 60) return 'MEDIUM';
@@ -707,12 +706,12 @@ ${status.error > 0 ? '⚠️ 즉시 조치가 필요한 서버가 있습니다.'
   private identifyPotentialIssues(servers: any[]): string[] {
     const issues: string[] = [];
 
-    const highCpuServers = servers.filter(s => s.cpu_usage > 85);
+    const highCpuServers = servers.filter((s: any) => s.cpu_usage > 85);
     if (highCpuServers.length > 0) {
       issues.push(`${highCpuServers.length}개 서버에서 CPU 과부하 예상`);
     }
 
-    const highMemoryServers = servers.filter(s => s.memory_usage > 90);
+    const highMemoryServers = servers.filter((s: any) => s.memory_usage > 90);
     if (highMemoryServers.length > 0) {
       issues.push(`${highMemoryServers.length}개 서버에서 메모리 부족 예상`);
     }

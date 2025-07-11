@@ -1,3 +1,4 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 /**
  * 📄 자동 장애 보고서 API
  *
@@ -9,7 +10,6 @@
  */
 
 import { supabase } from '@/lib/supabase';
-import { createServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface ReportData {
@@ -142,21 +142,22 @@ async function generateReport(type: ReportData['type']): Promise<ReportData> {
   console.log(`🤖 ${type} 보고서 생성 시작...`);
 
   // 실제 서버 데이터 가져오기
-  const generator = createServerDataGenerator();
-  const servers = await generator.getAllServers();
+  const gcpService = GCPRealDataService.getInstance();
+    const response = await gcpService.getRealServerMetrics();
+    const servers = response.data;
 
   // 서버 상태 분석
-  const healthyServers = servers.filter(s => s.status === 'healthy').length;
-  const warningServers = servers.filter(s => s.status === 'warning').length;
-  const criticalServers = servers.filter(s => s.status === 'critical').length;
+  const healthyServers = servers.filter((s: any) => s.status === 'healthy').length;
+  const warningServers = servers.filter((s: any) => s.status === 'warning').length;
+  const criticalServers = servers.filter((s: any) => s.status === 'critical').length;
 
   // 평균 메트릭 계산
-  const avgCpu = servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length;
+  const avgCpu = servers.reduce((sum: number, s: any) => sum + s.cpu, 0) / servers.length;
   const avgMemory =
-    servers.reduce((sum, s) => sum + s.memory, 0) / servers.length;
-  const avgDisk = servers.reduce((sum, s) => sum + s.disk, 0) / servers.length;
+    servers.reduce((sum: number, s: any) => sum + s.memory, 0) / servers.length;
+  const avgDisk = servers.reduce((sum: number, s: any) => sum + s.disk, 0) / servers.length;
   const avgResponseTime =
-    servers.reduce((sum, s) => sum + (s.uptime || 100), 0) / servers.length;
+    servers.reduce((sum: number, s: any) => sum + (s.uptime || 100), 0) / servers.length;
 
   // 장애 시뮬레이션 (실제 환경에서는 로그 분석)
   const totalIncidents = warningServers + criticalServers;
@@ -280,7 +281,7 @@ function generateIncidentReportContent(
   totalIncidents: number,
   resolvedIncidents: number
 ): string {
-  const problemServers = servers.filter(s => s.status !== 'running');
+  const problemServers = servers.filter((s: any) => s.status !== 'running');
 
   return `
 # 장애 분석 보고서

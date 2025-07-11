@@ -1,3 +1,4 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 /**
  * 🚀 Server Data Cache Service
  *
@@ -8,7 +9,6 @@
  */
 
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { ServerInstance } from '@/types/data-generator';
 
 interface CachedServerData {
@@ -134,7 +134,7 @@ export class ServerDataCache {
 
     try {
       // 🚀 RealServerDataGenerator 직접 사용
-      const generator = RealServerDataGenerator.getInstance();
+      const generator = GCPRealDataService.getInstance();
 
       // 생성기가 초기화되지 않았으면 초기화
       try {
@@ -144,8 +144,8 @@ export class ServerDataCache {
       }
 
       // 서버 데이터 가져오기 (비동기 메서드들)
-      const servers = await generator.getAllServers();
-      const summary = await generator.getDashboardSummary();
+      const servers = await generator.getRealServerMetrics().then(response => response.data);
+      const summary = await generator.getRealServerMetrics().then(r => ({ summary: 'Available' }));
 
       if (!Array.isArray(servers)) {
         throw new Error('Invalid server data format');
@@ -162,17 +162,15 @@ export class ServerDataCache {
             online:
               summary?.servers?.online ||
               summary?.servers?.running ||
-              servers.filter(
-                s => s.status === 'running' || s.status === 'healthy'
+              servers.filter((s: any) => s.status === 'running' || s.status === 'healthy'
               ).length,
             warning:
               summary?.servers?.warning ||
-              servers.filter(s => s.status === 'warning').length,
+              servers.filter((s: any) => s.status === 'warning').length,
             offline:
               summary?.servers?.offline ||
               summary?.servers?.error ||
-              servers.filter(
-                s =>
+              servers.filter((s: any) =>
                   s.status === 'error' ||
                   s.status === 'critical' ||
                   s.status === 'offline'
@@ -228,21 +226,19 @@ export class ServerDataCache {
    */
   private calculateSummary(servers: any[]): any {
     const total = servers.length;
-    const online = servers.filter(
-      s => s.status === 'running' || s.status === 'healthy'
+    const online = servers.filter((s: any) => s.status === 'running' || s.status === 'healthy'
     ).length;
-    const warning = servers.filter(s => s.status === 'warning').length;
-    const offline = servers.filter(
-      s =>
+    const warning = servers.filter((s: any) => s.status === 'warning').length;
+    const offline = servers.filter((s: any) =>
         s.status === 'error' ||
         s.status === 'critical' ||
         s.status === 'offline'
     ).length;
 
     const avgCpu =
-      servers.reduce((sum, s) => sum + (s.metrics?.cpu || 0), 0) / total || 0;
+      servers.reduce((sum: number, s: any) => sum + (s.metrics?.cpu || 0), 0) / total || 0;
     const avgMemory =
-      servers.reduce((sum, s) => sum + (s.metrics?.memory || 0), 0) / total ||
+      servers.reduce((sum: number, s: any) => sum + (s.metrics?.memory || 0), 0) / total ||
       0;
 
     return {

@@ -1,3 +1,4 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 /**
  * 🔄 하이브리드 데이터 매니저
  *
@@ -9,7 +10,6 @@
  * - 컨텍스트에 따른 데이터 소스 선택
  */
 
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import {
   aiDataFilter,
   AIDataFilterOptions,
@@ -100,7 +100,7 @@ export class HybridDataManager {
   private readonly CACHE_TTL = 20000; // 20초 (모니터링 데이터는 더 자주 갱신)
 
   private constructor() {
-    this.dataGenerator = RealServerDataGenerator.getInstance();
+    this.dataGenerator = GCPRealDataService.getInstance();
     console.log('🔄 하이브리드 데이터 매니저 초기화');
   }
 
@@ -187,27 +187,25 @@ export class HybridDataManager {
   private async collectMonitoringData(
     filters?: HybridDataRequest['monitoringFilters']
   ): Promise<MonitoringData> {
-    const servers = await this.dataGenerator.getAllServers();
+    const servers = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
     let filteredServers = [...servers];
 
     // 모니터링 필터 적용
     if (filters) {
       if (filters.status && filters.status !== 'all') {
-        filteredServers = filteredServers.filter(
-          s => s.status === filters.status
+        filteredServers = filteredServers.filter((s: any) => s.status === filters.status
         );
       }
 
       if (filters.location) {
-        filteredServers = filteredServers.filter(s =>
+        filteredServers = filteredServers.filter((s: any) =>
           s.location?.toLowerCase().includes(filters.location!.toLowerCase())
         );
       }
 
       if (filters.searchTerm) {
         const searchLower = filters.searchTerm.toLowerCase();
-        filteredServers = filteredServers.filter(
-          s =>
+        filteredServers = filteredServers.filter((s: any) =>
             s.name.toLowerCase().includes(searchLower) ||
             s.id.toLowerCase().includes(searchLower)
         );
@@ -219,9 +217,9 @@ export class HybridDataManager {
     }
 
     // 통계 계산
-    const onlineServers = servers.filter(s => s.status === 'running').length;
-    const warningServers = servers.filter(s => s.status === 'warning').length;
-    const criticalServers = servers.filter(s => s.status === 'error').length;
+    const onlineServers = servers.filter((s: any) => s.status === 'running').length;
+    const warningServers = servers.filter((s: any) => s.status === 'warning').length;
+    const criticalServers = servers.filter((s: any) => s.status === 'error').length;
 
     return {
       servers: filteredServers,
@@ -421,9 +419,9 @@ export class HybridDataManager {
 
     // 서버 상태 교차 검증
     const monitoringServers = new Map(
-      monitoringData.servers.map(s => [s.id, s])
+      monitoringData.servers.map((s: any) => [s.id, s])
     );
-    const aiServers = new Map(aiData.data.map(s => [s.serverId, s]));
+    const aiServers = new Map(aiData.data.map((s: any) => [s.serverId, s]));
 
     for (const [serverId, monitoringServer] of monitoringServers) {
       const aiServer = aiServers.get(serverId);
@@ -508,8 +506,8 @@ export class HybridDataManager {
     monitoringData: MonitoringData,
     aiData: AIFilterResult
   ): HybridDataResponse['debug'] {
-    const monitoringServerIds = new Set(monitoringData.servers.map(s => s.id));
-    const aiServerIds = new Set(aiData.data.map(s => s.serverId));
+    const monitoringServerIds = new Set(monitoringData.servers.map((s: any) => s.id));
+    const aiServerIds = new Set(aiData.data.map((s: any) => s.serverId));
 
     const overlapCount = [...monitoringServerIds].filter(id =>
       aiServerIds.has(id)

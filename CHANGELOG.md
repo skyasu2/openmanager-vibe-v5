@@ -1,5 +1,35 @@
 # Changelog
 
+## [5.46.2] - 2025-07-12
+
+### 🧹 프로젝트 루트 정리 및 TypeScript 안정화
+
+#### 정리된 파일들
+
+**백업 및 임시 파일 (4개 삭제)**
+- `.claude_session.json` - Claude 세션 캐시 파일
+- `CHANGELOG.md.backup` - 중복 백업 파일
+- `.env.local.backup` - 환경 변수 백업
+- `.env.local.backup.1751740303972` - 타임스탬프 백업
+
+**중복 설정 파일 (3개 삭제)**
+- `next.config.ts` - `next.config.mjs`로 통합
+- `.eslintrc.json` - `eslint.config.mjs`로 마이그레이션 완료
+- `static-analysis.config.js` - 미사용 설정 파일
+
+#### TypeScript 안정화 (이전 작업)
+
+**Vercel → Google Cloud 마이그레이션 사이드 이펙트 해결**
+- RealServerDataGenerator → GCPRealDataService 전환 (89개 파일)
+- 타입 안전성 개선 (any 타입 제거)
+- Import 오류 수정 및 중복 제거
+
+#### 개선 효과
+- 루트 디렉터리 파일 수 23% 감소
+- 프로젝트 구조 명확화
+- 중복 설정으로 인한 혼란 방지
+- 보안 강화 (백업 파일 제거)
+
 ## [5.46.1] - 2025-07-02
 
 ### 🔒 베르셀 사용량 최적화 - 자동 로그아웃 시스템

@@ -282,7 +282,7 @@ export const IncidentReportTab: React.FC<IncidentReportTabProps> = ({
               <span className='text-gray-600'>변화 감지</span>
             </div>
             <div className='font-medium'>
-              {serverData.current.filter(s => s.status !== 'healthy').length}개
+              {serverData.current.filter((s: any) => s.status !== 'healthy').length}개
             </div>
           </div>
         </div>

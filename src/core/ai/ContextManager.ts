@@ -261,14 +261,13 @@ export class ContextManager {
     intent: string
   ): number {
     const intentLower = intent.toLowerCase();
-    const scenarios = context.metadata.scenarios.map(s => s.toLowerCase());
+    const scenarios = context.metadata.scenarios.map((s: any) => s.toLowerCase());
 
     // 직접 매칭
     if (scenarios.includes(intentLower)) return 100;
 
     // 부분 매칭
-    const partialMatches = scenarios.filter(
-      s => s.includes(intentLower) || intentLower.includes(s)
+    const partialMatches = scenarios.filter((s: any) => s.includes(intentLower) || intentLower.includes(s)
     );
 
     return partialMatches.length > 0 ? 60 : 0;
@@ -500,8 +499,7 @@ export class ContextManager {
    */
   private getMatchedScenarios(context: ContextEntry, intent: string): string[] {
     const intentLower = intent.toLowerCase();
-    return context.metadata.scenarios.filter(
-      s =>
+    return context.metadata.scenarios.filter((s: any) =>
         s.toLowerCase().includes(intentLower) ||
         intentLower.includes(s.toLowerCase())
     );

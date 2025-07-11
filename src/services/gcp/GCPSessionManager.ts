@@ -203,8 +203,7 @@ export class GCPSessionManager {
     dailySessions: number;
     totalMetricsGenerated: number;
   }> {
-    const activeSessions = Array.from(this.activeSessions.values()).filter(
-      s => s.userId === userId && s.status === 'active'
+    const activeSessions = Array.from(this.activeSessions.values()).filter((s: any) => s.userId === userId && s.status === 'active'
     ).length;
 
     const dailySessions = this.userSessionCounts.get(userId) || 0;
@@ -283,8 +282,7 @@ export class GCPSessionManager {
   // ===== 정리 및 유지보수 =====
 
   private async cleanupUserSessions(userId: string): Promise<void> {
-    const userSessions = Array.from(this.activeSessions.values()).filter(
-      s => s.userId === userId
+    const userSessions = Array.from(this.activeSessions.values()).filter((s: any) => s.userId === userId
     );
 
     for (const session of userSessions) {
@@ -317,8 +315,7 @@ export class GCPSessionManager {
 
   private async cleanupExpiredSessions(): Promise<void> {
     const now = Date.now();
-    const expiredSessions = Array.from(this.activeSessions.values()).filter(
-      s => s.endTime && now > s.endTime.getTime()
+    const expiredSessions = Array.from(this.activeSessions.values()).filter((s: any) => s.endTime && now > s.endTime.getTime()
     );
 
     for (const session of expiredSessions) {
@@ -346,7 +343,7 @@ export class GCPSessionManager {
   }> {
     const activeSessions = this.activeSessions.size;
     const totalUsers = new Set(
-      Array.from(this.activeSessions.values()).map(s => s.userId)
+      Array.from(this.activeSessions.values()).map((s: any) => s.userId)
     ).size;
     const memoryUsage = process.memoryUsage().heapUsed / 1024 / 1024; // MB
 

@@ -452,7 +452,7 @@ export class OpenSourceEngines {
 
   private generateSummary(text: string): string {
     // 텍스트 요약 시뮬레이션
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const sentences = text.split(/[.!?]+/).filter((s: any) => s.trim().length > 0);
     if (sentences.length <= 2) return text;
 
     // 첫 번째와 마지막 문장 조합

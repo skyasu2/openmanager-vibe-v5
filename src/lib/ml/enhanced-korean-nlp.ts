@@ -217,7 +217,7 @@ export class EnhancedKoreanNLP {
     });
 
     const stemMatches = stemText.match(patterns.stems) || [];
-    stems.push(...(stemMatches as string[]).filter(s => s.length >= 2));
+    stems.push(...(stemMatches as string[]).filter((s: any) => s.length >= 2));
 
     return {
       stems: [...new Set(stems)],

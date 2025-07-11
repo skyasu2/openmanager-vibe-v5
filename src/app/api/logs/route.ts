@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
 
     // 상태 포함
     if (includeStatus) {
-      response.data.status = logger.getStatus();
+      response.data.status = logger.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' }));
     }
 
     // 내보내기 형식

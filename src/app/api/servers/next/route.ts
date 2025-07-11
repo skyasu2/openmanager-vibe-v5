@@ -1,3 +1,4 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -37,8 +38,8 @@ const initializeGenerator = async () => {
   console.warn('📊 요청별 데이터 생성 사용 권장');
 
   // 🚫 전역 상태 관리 비활성화
-  // await RealServerDataGenerator.getInstance().initialize();
-  // await RealServerDataGenerator.getInstance().startAutoGeneration();
+  // await GCPRealDataService.getInstance().initialize();
+  // await GCPRealDataService.getInstance().startAutoGeneration();
 
   console.log('🚫 서버리스 환경에서는 요청별 처리만 지원');
 };
@@ -181,9 +182,9 @@ export async function GET(request: NextRequest) {
         },
         summary: {
           total: filteredServers.length,
-          healthy: filteredServers.filter(s => s.status === 'healthy').length,
-          warning: filteredServers.filter(s => s.status === 'warning').length,
-          critical: filteredServers.filter(s => s.status === 'critical').length,
+          healthy: filteredServers.filter((s: any) => s.status === 'healthy').length,
+          warning: filteredServers.filter((s: any) => s.status === 'warning').length,
+          critical: filteredServers.filter((s: any) => s.status === 'critical').length,
         },
       },
       timestamp: new Date().toISOString(),

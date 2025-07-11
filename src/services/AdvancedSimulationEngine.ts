@@ -429,8 +429,8 @@ export class AdvancedSimulationEngine {
   async getIntegratedAIMetrics(): Promise<any> {
     const targets = await this.getAnalysisTargets();
     const totalServers = targets.length;
-    const criticalServers = targets.filter(s => s.status === 'critical').length;
-    const warningServers = targets.filter(s => s.status === 'warning').length;
+    const criticalServers = targets.filter((s: any) => s.status === 'critical').length;
+    const warningServers = targets.filter((s: any) => s.status === 'warning').length;
 
     return {
       totalServers,
@@ -438,10 +438,10 @@ export class AdvancedSimulationEngine {
       warningServers,
       healthyServers: totalServers - criticalServers - warningServers,
       averageCpu: Math.round(
-        targets.reduce((sum, s) => sum + s.cpu_usage, 0) / totalServers
+        targets.reduce((sum: number, s: any) => sum + s.cpu_usage, 0) / totalServers
       ),
       averageMemory: Math.round(
-        targets.reduce((sum, s) => sum + s.memory_usage, 0) / totalServers
+        targets.reduce((sum: number, s: any) => sum + s.memory_usage, 0) / totalServers
       ),
       activeScenarios: this.scenarios.length,
       timestamp: new Date().toISOString(),

@@ -90,7 +90,7 @@ export class KoreanMorphologyAnalyzer {
     const morphemes = this.analyzeMorphemes(tokens);
 
     // 4. 어간 추출
-    const stems = morphemes.map(m => m.stem).filter(s => s.length > 1);
+    const stems = morphemes.map(m => m.stem).filter((s: any) => s.length > 1);
 
     // 5. 키워드 추출
     const keywords = this.extractKeywords(morphemes);
@@ -375,8 +375,8 @@ export class KoreanMorphologyAnalyzer {
     const analysis2 = this.analyze(text2);
 
     // 대소문자 무시하고 비교
-    const stems1 = new Set(analysis1.stems.map(s => s.toLowerCase()));
-    const stems2 = new Set(analysis2.stems.map(s => s.toLowerCase()));
+    const stems1 = new Set(analysis1.stems.map((s: any) => s.toLowerCase()));
+    const stems2 = new Set(analysis2.stems.map((s: any) => s.toLowerCase()));
 
     const intersection = new Set([...stems1].filter(x => stems2.has(x)));
     const union = new Set([...stems1, ...stems2]);

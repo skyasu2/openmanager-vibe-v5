@@ -1,1 +1,0 @@
-// TypeScript type definition tests

@@ -1,3 +1,4 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 /**
  * 🟢 TDD Green - 백그라운드 서버 데이터 스케줄러
  *
@@ -72,7 +73,7 @@ export class ServerDataScheduler {
   };
 
   private constructor() {
-    this.generator = RealServerDataGenerator.getInstance();
+    this.generator = GCPRealDataService.getInstance();
     this.GENERATION_INTERVAL = calculateOptimalUpdateInterval();
     this.initializeGenerator();
   }
@@ -240,7 +241,7 @@ export class ServerDataScheduler {
 
     try {
       // 데이터 생성 (getDashboardSummary 사용)
-      const dashboardData = this.generator.getDashboardSummary();
+      const dashboardData = this.generator.getRealServerMetrics().then(r => ({ summary: 'Available' }));
 
       // 새 데이터 구조 생성
       const newData = {

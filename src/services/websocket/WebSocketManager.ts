@@ -1,3 +1,4 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 /**
  * 🚀 WebSocket Manager v2.0
  *
@@ -60,7 +61,7 @@ export class WebSocketManager {
   private alertSubject = new Subject<any>();
 
   constructor() {
-    this.dataGenerator = RealServerDataGenerator.getInstance();
+    this.dataGenerator = GCPRealDataService.getInstance();
     this.initializeStreams();
     this.startDataGeneration();
   }
@@ -188,7 +189,7 @@ export class WebSocketManager {
   private startDataGeneration(): void {
     // 실시간 서버 데이터 브로드캐스트 (20초마다)
     interval(20000).subscribe(async () => {
-      const allServers = await this.dataGenerator.getAllServers();
+      const allServers = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
       const serverMetrics = allServers.map(server => {
         // 🔧 network 타입 안전 처리
         const networkMetrics = server.metrics?.network;
@@ -267,7 +268,7 @@ export class WebSocketManager {
       if (!this.isActive || this.clients.size === 0) return;
 
       try {
-        const allServers = await this.dataGenerator.getAllServers();
+        const allServers = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
         const testMetrics = allServers.slice(0, 10).map(server => ({
           timestamp: Date.now(),
           cpu: server.metrics?.cpu || 0,

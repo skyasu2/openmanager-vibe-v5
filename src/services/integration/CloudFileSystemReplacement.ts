@@ -226,8 +226,8 @@ export class CloudFileSystemReplacement {
     const services = Array.from(this.serviceHealth.values());
 
     let overall: 'healthy' | 'degraded' | 'error' = 'healthy';
-    const errorCount = services.filter(s => s.status === 'error').length;
-    const degradedCount = services.filter(s => s.status === 'degraded').length;
+    const errorCount = services.filter((s: any) => s.status === 'error').length;
+    const degradedCount = services.filter((s: any) => s.status === 'degraded').length;
 
     if (errorCount > 0) {
       overall = 'error';
@@ -237,8 +237,7 @@ export class CloudFileSystemReplacement {
 
     const avgResponseTime =
       services.length > 0
-        ? services.reduce(
-            (sum, s) => sum + (s.responseTime > 0 ? s.responseTime : 0),
+        ? services.reduce((sum: number, s: any) => sum + (s.responseTime > 0 ? s.responseTime : 0),
             0
           ) / services.length
         : 0;

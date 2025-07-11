@@ -129,7 +129,8 @@
       "Bash(echo $COLORTERM)",
       "Bash(/mnt/d/cursor/openmanager-vibe-v5/scripts/cm-terminal-fix.sh:*)",
       "Bash(echo)",
-      "Bash(./unified-deployment-tools.sh:*)"
+      "Bash(./unified-deployment-tools.sh:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": []
   }

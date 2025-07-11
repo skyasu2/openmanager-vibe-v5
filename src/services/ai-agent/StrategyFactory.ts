@@ -1,3 +1,4 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 /**
  * 🏭 전략 팩토리 - 요청 타입별 처리 전략 선택
  *
@@ -7,7 +8,6 @@
  * - Performance: 전략별 성능 최적화
  */
 
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { aiDataFilter, AIDataFilterOptions } from './AIDataFilter';
 import { hybridDataManager, HybridDataRequest } from './HybridDataManager';
 
@@ -40,7 +40,7 @@ export class MonitoringFocusStrategy implements ProcessingStrategy {
   private lastUsed = new Date();
 
   constructor() {
-    this.dataGenerator = RealServerDataGenerator.getInstance();
+    this.dataGenerator = GCPRealDataService.getInstance();
   }
 
   async execute(request: any): Promise<any> {
@@ -52,7 +52,7 @@ export class MonitoringFocusStrategy implements ProcessingStrategy {
       console.log(`🔍 [${request.requestId}] 모니터링 우선 전략 실행`);
 
       // 실시간 서버 데이터 우선 수집
-      const servers = await this.dataGenerator.getAllServers();
+      const servers = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
 
       // 모니터링 필터 적용
       let filteredServers = [...servers];
@@ -60,19 +60,17 @@ export class MonitoringFocusStrategy implements ProcessingStrategy {
         const { status, location, searchTerm } = request.filters.monitoring;
 
         if (status && status !== 'all') {
-          filteredServers = filteredServers.filter(s => s.status === status);
+          filteredServers = filteredServers.filter((s: any) => s.status === status);
         }
 
         if (location) {
-          filteredServers = filteredServers.filter(
-            s => s.location === location
+          filteredServers = filteredServers.filter((s: any) => s.location === location
           );
         }
 
         if (searchTerm) {
           const searchLower = searchTerm.toLowerCase();
-          filteredServers = filteredServers.filter(
-            s =>
+          filteredServers = filteredServers.filter((s: any) =>
               s.name.toLowerCase().includes(searchLower) ||
               s.id.toLowerCase().includes(searchLower)
           );
@@ -81,14 +79,11 @@ export class MonitoringFocusStrategy implements ProcessingStrategy {
 
       // 실시간 메트릭 계산
       const totalServers = filteredServers.length;
-      const onlineServers = filteredServers.filter(
-        s => s.status === 'running'
+      const onlineServers = filteredServers.filter((s: any) => s.status === 'running'
       ).length;
-      const warningServers = filteredServers.filter(
-        s => s.status === 'warning'
+      const warningServers = filteredServers.filter((s: any) => s.status === 'warning'
       ).length;
-      const criticalServers = filteredServers.filter(
-        s => s.status === 'error'
+      const criticalServers = filteredServers.filter((s: any) => s.status === 'error'
       ).length;
 
       // AI 보조 분석 (경량)
@@ -164,7 +159,7 @@ export class AIAnalysisStrategy implements ProcessingStrategy {
   private lastUsed = new Date();
 
   constructor() {
-    this.dataGenerator = RealServerDataGenerator.getInstance();
+    this.dataGenerator = GCPRealDataService.getInstance();
   }
 
   async execute(request: any): Promise<any> {
@@ -187,11 +182,11 @@ export class AIAnalysisStrategy implements ProcessingStrategy {
       const aiResult = await aiDataFilter.filterForAI(aiOptions);
 
       // 모니터링 컨텍스트 (최소한)
-      const allServers = await this.dataGenerator.getAllServers();
+      const allServers = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
       const serverContext = {
         total: allServers.length,
-        online: allServers.filter(s => s.status === 'running').length,
-        issues: allServers.filter(s => s.status !== 'running').length,
+        online: allServers.filter((s: any) => s.status === 'running').length,
+        issues: allServers.filter((s: any) => s.status !== 'running').length,
       };
 
       const processingTime = Date.now() - startTime;
@@ -259,7 +254,7 @@ export class HybridBalancedStrategy implements ProcessingStrategy {
   private lastUsed = new Date();
 
   constructor() {
-    this.dataGenerator = RealServerDataGenerator.getInstance();
+    this.dataGenerator = GCPRealDataService.getInstance();
   }
 
   async execute(request: any): Promise<any> {
@@ -453,20 +448,19 @@ export class StrategyFactory {
    */
   getPerformanceAnalysis(): any {
     const strategies = Array.from(this.strategies.values());
-    const totalUsage = strategies.reduce(
-      (sum, s) => sum + s.getMetadata().usageCount,
+    const totalUsage = strategies.reduce((sum: number, s: any) => sum + s.getMetadata().usageCount,
       0
     );
 
     return {
       totalRequests: totalUsage,
-      strategyDistribution: strategies.map(s => ({
+      strategyDistribution: strategies.map((s: any) => ({
         name: s.name,
         usage: s.getMetadata().usageCount,
         percentage:
           totalUsage > 0 ? (s.getMetadata().usageCount / totalUsage) * 100 : 0,
       })),
-      averagePerformance: strategies.map(s => ({
+      averagePerformance: strategies.map((s: any) => ({
         name: s.name,
         avgTime: s.getMetadata().avgProcessingTime,
         successRate: s.getMetadata().successRate,

@@ -53,7 +53,7 @@ export async function GET(
           message: `서버 '${id}'를 찾을 수 없습니다`,
           available_servers: simulationEngine
             .getServers()
-            .map(s => ({ id: s.id, hostname: s.hostname })),
+            .map((s: any) => ({ id: s.id, hostname: s.hostname })),
           timestamp: new Date().toISOString(),
         },
         { status: 404 }

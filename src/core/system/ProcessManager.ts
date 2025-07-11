@@ -162,8 +162,7 @@ export class ProcessManager extends EventEmitter {
         this.setupStabilityMonitoring();
       }
 
-      const runningCount = Array.from(this.states.values()).filter(
-        s => s.status === 'running'
+      const runningCount = Array.from(this.states.values()).filter((s: any) => s.status === 'running'
       ).length;
 
       systemLogger.system(
@@ -318,8 +317,7 @@ export class ProcessManager extends EventEmitter {
         await this.delay(500);
       }
 
-      const stoppedCount = Array.from(this.states.values()).filter(
-        s => s.status === 'stopped'
+      const stoppedCount = Array.from(this.states.values()).filter((s: any) => s.status === 'stopped'
       ).length;
 
       systemLogger.system(
@@ -617,9 +615,8 @@ export class ProcessManager extends EventEmitter {
    */
   private evaluateSystemHealth(): void {
     const states = Array.from(this.states.values());
-    const runningCount = states.filter(s => s.status === 'running').length;
-    const healthyCount = states.filter(
-      s => s.status === 'running' && s.healthScore >= 70
+    const runningCount = states.filter((s: any) => s.status === 'running').length;
+    const healthyCount = states.filter((s: any) => s.status === 'running' && s.healthScore >= 70
     ).length;
 
     let systemHealth: 'healthy' | 'degraded' | 'critical';
@@ -712,9 +709,8 @@ export class ProcessManager extends EventEmitter {
    */
   getSystemMetrics(): SystemMetrics {
     const states = Array.from(this.states.values());
-    const runningProcesses = states.filter(s => s.status === 'running');
-    const healthyProcesses = states.filter(
-      s => s.status === 'running' && s.healthScore >= 70
+    const runningProcesses = states.filter((s: any) => s.status === 'running');
+    const healthyProcesses = states.filter((s: any) => s.status === 'running' && s.healthScore >= 70
     );
 
     const uptime = this.systemStartTime
@@ -723,10 +719,10 @@ export class ProcessManager extends EventEmitter {
 
     const averageHealthScore =
       states.length > 0
-        ? states.reduce((sum, s) => sum + s.healthScore, 0) / states.length
+        ? states.reduce((sum: number, s: any) => sum + s.healthScore, 0) / states.length
         : 0;
 
-    const totalRestarts = states.reduce((sum, s) => sum + s.restartCount, 0);
+    const totalRestarts = states.reduce((sum: number, s: any) => sum + s.restartCount, 0);
 
     return {
       totalProcesses: this.processes.size,

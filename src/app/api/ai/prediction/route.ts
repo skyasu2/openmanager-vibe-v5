@@ -1,3 +1,4 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 /**
  * 🔮 AI 예측 API - 실제 구현
  *
@@ -10,7 +11,6 @@
 
 import { predictServerLoad } from '@/lib/ml/lightweight-ml-engine';
 import { supabase } from '@/lib/supabase';
-import { createServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -54,8 +54,9 @@ async function executeRealPrediction(
 
   try {
     // 1. 실제 서버 데이터 가져오기
-    const generator = createServerDataGenerator();
-    const servers = await generator.getAllServers();
+    const gcpService = GCPRealDataService.getInstance();
+    const response = await gcpService.getRealServerMetrics();
+    const servers = response.data;
     const server = servers.find(s => s.id === serverId);
 
     if (!server) {
@@ -324,7 +325,7 @@ function generatePredictionResults(filters?: {
   timeRange?: string;
 }): PredictionResult[] {
   // 실제 서버에서 데이터 가져오기
-  const generator = createServerDataGenerator();
+  const generator = GCPRealDataService.getInstance();
   // 비동기 호출을 동기적으로 처리하기 위해 임시로 빈 배열 반환
   const servers: any[] = [];
   const targetServer = filters?.serverId

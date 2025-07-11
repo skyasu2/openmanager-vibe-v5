@@ -1,3 +1,4 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 /**
  * 🤖 통합 AI 쿼리 API - Edge Runtime 최적화 버전
  * Vercel Pro/Hobby 플랜 지원
@@ -5,7 +6,6 @@
 
 import { detectEnvironment } from '@/config/environment';
 import { EdgeLogger } from '@/lib/edge-runtime-utils';
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 import { NextRequest, NextResponse } from 'next/server';
 
 // 🚨 응급 조치: Edge Runtime 비활성화 (Vercel Pro 사용량 위기)
@@ -263,11 +263,9 @@ function generateAIResponse(query: string, serverData: any[]): string {
 
   if (lowerQuery.includes('서버') || lowerQuery.includes('server')) {
     const totalServers = serverData.length;
-    const healthyServers = serverData.filter(
-      s => s.status === 'healthy'
+    const healthyServers = serverData.filter((s: any) => s.status === 'healthy'
     ).length;
-    const criticalServers = serverData.filter(
-      s => s.status === 'critical'
+    const criticalServers = serverData.filter((s: any) => s.status === 'critical'
     ).length;
 
     return `현재 GCP에서 ${totalServers}개의 서버가 운영 중입니다. 정상 상태: ${healthyServers}개, 위험 상태: ${criticalServers}개입니다.`;
@@ -279,10 +277,10 @@ function generateAIResponse(query: string, serverData: any[]): string {
     lowerQuery.includes('memory')
   ) {
     const avgCpu =
-      serverData.reduce((sum, s) => sum + (s.metrics?.cpu?.usage || 0), 0) /
+      serverData.reduce((sum: number, s: any) => sum + (s.metrics?.cpu?.usage || 0), 0) /
       serverData.length;
     const avgMemory =
-      serverData.reduce((sum, s) => sum + (s.metrics?.memory?.usage || 0), 0) /
+      serverData.reduce((sum: number, s: any) => sum + (s.metrics?.memory?.usage || 0), 0) /
       serverData.length;
 
     return `평균 CPU 사용률: ${avgCpu.toFixed(1)}%, 평균 메모리 사용률: ${avgMemory.toFixed(1)}%입니다.`;

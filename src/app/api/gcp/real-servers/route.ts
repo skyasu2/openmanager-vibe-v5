@@ -1,6 +1,6 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 import { detectEnvironment } from '@/config/environment';
 import { ERROR_STATE_METADATA } from '@/config/fallback-data';
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 import { NextRequest, NextResponse } from 'next/server';
 
 // 이 라우트는 환경에 따라 다른 응답을 반환하므로 동적

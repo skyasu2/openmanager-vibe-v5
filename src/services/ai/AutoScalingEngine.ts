@@ -186,13 +186,13 @@ export class AutoScalingEngine {
     servers: EnhancedServerMetrics[]
   ): ScalingDecision['metrics'] {
     const avgCpu =
-      servers.reduce((sum, s) => sum + s.cpu_usage, 0) / servers.length;
+      servers.reduce((sum: number, s: any) => sum + s.cpu_usage, 0) / servers.length;
     const avgMemory =
-      servers.reduce((sum, s) => sum + s.memory_usage, 0) / servers.length;
+      servers.reduce((sum: number, s: any) => sum + s.memory_usage, 0) / servers.length;
     const avgDisk =
-      servers.reduce((sum, s) => sum + s.disk_usage, 0) / servers.length;
+      servers.reduce((sum: number, s: any) => sum + s.disk_usage, 0) / servers.length;
     const avgResponseTime =
-      servers.reduce((sum, s) => sum + s.response_time, 0) / servers.length;
+      servers.reduce((sum: number, s: any) => sum + s.response_time, 0) / servers.length;
 
     return { avgCpu, avgMemory, avgDisk, avgResponseTime };
   }

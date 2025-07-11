@@ -1,8 +1,8 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 /**
  * 🚀 시스템 초기화 API - 통합 초기화 v3.0
  */
 
-import { createServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 // MCP 웜업 서비스 제거됨 - Google Cloud VM 24시간 동작
 import { systemLogger } from '@/lib/logger';
@@ -18,7 +18,7 @@ async function runInitialization(): Promise<string[]> {
   try {
     // 1. 데이터 생성기 초기화
     try {
-      const generator = createServerDataGenerator();
+      const generator = GCPRealDataService.getInstance();
       await generator.initialize();
       logs.push('✅ 서버 데이터 생성기 초기화 완료');
       systemLogger.info('✅ 서버 데이터 생성기 초기화 완료');

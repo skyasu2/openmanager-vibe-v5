@@ -1,3 +1,4 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 /**
  * 🎯 MCP Engine - 완전 독립 동작 AI 엔진
  *
@@ -10,7 +11,6 @@
  */
 
 import { UnifiedMLToolkit } from '@/lib/ml/UnifiedMLToolkit';
-import { GCPRealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
 import { ContextManager } from '../ContextManager';
 
@@ -40,12 +40,12 @@ export class MCPEngine {
   private mcpClient: RealMCPClient;
   private contextManager: ContextManager;
   private mlToolkit: UnifiedMLToolkit;
-  private serverDataGenerator: GCPRealServerDataGenerator;
+  private serverDataGenerator: GCPRealDataService;
   private independentCache: Map<string, any> = new Map();
   private initialized = false;
   private lastQueryTime = 0;
 
-  constructor(serverDataGenerator: GCPRealServerDataGenerator) {
+  constructor(serverDataGenerator: GCPRealDataService) {
     this.mcpClient = RealMCPClient.getInstance();
     this.contextManager = ContextManager.getInstance();
     this.mlToolkit = new UnifiedMLToolkit();
@@ -56,7 +56,7 @@ export class MCPEngine {
   static getInstance(): MCPEngine {
     if (!MCPEngine.instance) {
       MCPEngine.instance = new MCPEngine(
-        GCPRealServerDataGenerator.getInstance()
+        GCPRealDataService.getInstance()
       );
     }
     return MCPEngine.instance;
@@ -186,7 +186,7 @@ export class MCPEngine {
    * 📊 통계 정보 조회 (getStats 별칭)
    */
   getStats(): MCPEngineStatus {
-    return this.getStatus();
+    return this.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' }));
   }
 
   /**
@@ -336,7 +336,7 @@ export class MCPEngine {
           related_servers: allServers
             .sort((a, b) => b.cpu - a.cpu)
             .slice(0, 3)
-            .map(s => s.hostname),
+            .map((s: any) => s.hostname),
         };
       }
 
@@ -381,19 +381,16 @@ export class MCPEngine {
 
       if (queryLower.includes('서버') && queryLower.includes('상태')) {
         // 전체 서버 상태 요약
-        const runningServers = allServers.filter(
-          s => s.status === 'running'
+        const runningServers = allServers.filter((s: any) => s.status === 'running'
         ).length;
-        const warningServers = allServers.filter(
-          s => s.status === 'warning'
+        const warningServers = allServers.filter((s: any) => s.status === 'warning'
         ).length;
-        const errorServers = allServers.filter(
-          s => s.status === 'error'
+        const errorServers = allServers.filter((s: any) => s.status === 'error'
         ).length;
         const avgCpu =
-          allServers.reduce((sum, s) => sum + s.cpu, 0) / allServers.length;
+          allServers.reduce((sum: number, s: any) => sum + s.cpu, 0) / allServers.length;
         const avgMemory =
-          allServers.reduce((sum, s) => sum + s.memory, 0) / allServers.length;
+          allServers.reduce((sum: number, s: any) => sum + s.memory, 0) / allServers.length;
 
         return {
           answer:
@@ -408,9 +405,9 @@ export class MCPEngine {
             `- 평균 메모리: ${avgMemory.toFixed(1)}%\n\n` +
             `🔍 **주의 필요 서버:**\n` +
             allServers
-              .filter(s => s.cpu > 80 || s.memory > 85)
+              .filter((s: any) => s.cpu > 80 || s.memory > 85)
               .slice(0, 3)
-              .map(s => `- ${s.hostname}: CPU ${s.cpu}%, 메모리 ${s.memory}%`)
+              .map((s: any) => `- ${s.hostname}: CPU ${s.cpu}%, 메모리 ${s.memory}%`)
               .join('\n'),
           confidence: 0.9,
           reasoning_steps: [
@@ -425,7 +422,7 @@ export class MCPEngine {
 
       // 기본 응답 (기존 시뮬레이션)
       return {
-        answer: `"${query}"에 대한 분석을 완료했습니다. 현재 ${allServers.length}개의 통합 AI 컴포넌트가 협력하여 모니터링하고 있으며, 평균 CPU 사용률은 ${(allServers.reduce((sum, s) => sum + s.cpu, 0) / allServers.length).toFixed(1)}%입니다.`,
+        answer: `"${query}"에 대한 분석을 완료했습니다. 현재 ${allServers.length}개의 통합 AI 컴포넌트가 협력하여 모니터링하고 있으며, 평균 CPU 사용률은 ${(allServers.reduce((sum: number, s: any) => sum + s.cpu, 0) / allServers.length).toFixed(1)}%입니다.`,
         confidence: 0.75,
         reasoning_steps: [
           '질의 분석',

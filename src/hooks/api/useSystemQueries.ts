@@ -240,10 +240,10 @@ export const useSystemStatus = (options?: {
       ...data,
       servicesCount: {
         total: Object.keys(data.services).length,
-        online: Object.values(data.services).filter(s => s === 'online').length,
-        degraded: Object.values(data.services).filter(s => s === 'degraded')
+        online: Object.values(data.services).filter((s: any) => s === 'online').length,
+        degraded: Object.values(data.services).filter((s: any) => s === 'degraded')
           .length,
-        offline: Object.values(data.services).filter(s => s === 'offline')
+        offline: Object.values(data.services).filter((s: any) => s === 'offline')
           .length,
       },
       performanceGrade: getPerformanceGrade(data.performance),

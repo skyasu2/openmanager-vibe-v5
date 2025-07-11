@@ -106,50 +106,50 @@ function analyzeAnomalies(servers: any[]) {
   }> = [];
 
   // CPU 사용률 이상
-  const highCpuServers = servers.filter(s => s.metrics?.cpu > 85);
+  const highCpuServers = servers.filter((s: any) => s.metrics?.cpu > 85);
   if (highCpuServers.length > 0) {
     anomalies.push({
       type: 'high_cpu',
       severity: 'warning',
       count: highCpuServers.length,
       message: `${highCpuServers.length}개 서버에서 높은 CPU 사용률 감지`,
-      servers: highCpuServers.map(s => s.name),
+      servers: highCpuServers.map((s: any) => s.name),
     });
   }
 
   // 메모리 사용률 이상
-  const highMemoryServers = servers.filter(s => s.metrics?.memory > 90);
+  const highMemoryServers = servers.filter((s: any) => s.metrics?.memory > 90);
   if (highMemoryServers.length > 0) {
     anomalies.push({
       type: 'high_memory',
       severity: 'critical',
       count: highMemoryServers.length,
       message: `${highMemoryServers.length}개 서버에서 높은 메모리 사용률 감지`,
-      servers: highMemoryServers.map(s => s.name),
+      servers: highMemoryServers.map((s: any) => s.name),
     });
   }
 
   // 디스크 사용률 이상
-  const highDiskServers = servers.filter(s => s.metrics?.disk > 95);
+  const highDiskServers = servers.filter((s: any) => s.metrics?.disk > 95);
   if (highDiskServers.length > 0) {
     anomalies.push({
       type: 'high_disk',
       severity: 'critical',
       count: highDiskServers.length,
       message: `${highDiskServers.length}개 서버에서 높은 디스크 사용률 감지`,
-      servers: highDiskServers.map(s => s.name),
+      servers: highDiskServers.map((s: any) => s.name),
     });
   }
 
   // 오프라인 서버
-  const offlineServers = servers.filter(s => s.status === 'critical');
+  const offlineServers = servers.filter((s: any) => s.status === 'critical');
   if (offlineServers.length > 0) {
     anomalies.push({
       type: 'server_offline',
       severity: 'critical',
       count: offlineServers.length,
       message: `${offlineServers.length}개 서버가 오프라인 상태`,
-      servers: offlineServers.map(s => s.name),
+      servers: offlineServers.map((s: any) => s.name),
     });
   }
 

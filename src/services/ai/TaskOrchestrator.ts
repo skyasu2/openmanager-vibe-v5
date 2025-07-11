@@ -1,3 +1,4 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 /**
  * 🎯 Task Orchestrator v3.0
  *
@@ -61,7 +62,7 @@ export class TaskOrchestrator {
       const {
         RealServerDataGenerator,
       } = require('@/services/data-generator/RealServerDataGenerator');
-      this.dataGenerator = RealServerDataGenerator.getInstance();
+      this.dataGenerator = GCPRealDataService.getInstance();
     } catch (error) {
       console.warn('RealServerDataGenerator 로드 실패, 기본값 사용');
       this.dataGenerator = null;

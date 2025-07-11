@@ -217,13 +217,13 @@ function calculateServerStats(servers: ServerData[]) {
     };
   }
 
-  const healthy = servers.filter(s => s.status === 'healthy').length;
-  const warning = servers.filter(s => s.status === 'warning').length;
-  const critical = servers.filter(s => s.status === 'critical').length;
+  const healthy = servers.filter((s: any) => s.status === 'healthy').length;
+  const warning = servers.filter((s: any) => s.status === 'warning').length;
+  const critical = servers.filter((s: any) => s.status === 'critical').length;
 
-  const totalCpu = servers.reduce((sum, s) => sum + (s.cpu || 0), 0);
-  const totalMemory = servers.reduce((sum, s) => sum + (s.memory || 0), 0);
-  const totalDisk = servers.reduce((sum, s) => sum + (s.disk || 0), 0);
+  const totalCpu = servers.reduce((sum: number, s: any) => sum + (s.cpu || 0), 0);
+  const totalMemory = servers.reduce((sum: number, s: any) => sum + (s.memory || 0), 0);
+  const totalDisk = servers.reduce((sum: number, s: any) => sum + (s.disk || 0), 0);
 
   return {
     total: servers.length,

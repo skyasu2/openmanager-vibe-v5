@@ -85,9 +85,9 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(({
 
     // 분류되지 않은 서버들을 기타 그룹으로 추가
     const categorizedServerIds = new Set(
-      groups.flatMap(group => group.servers.map(s => s.id))
+      groups.flatMap(group => group.servers.map((s: any) => s.id))
     );
-    const uncategorizedServers = servers.filter(s => !categorizedServerIds.has(s.id));
+    const uncategorizedServers = servers.filter((s: any) => !categorizedServerIds.has(s.id));
     
     if (uncategorizedServers.length > 0) {
       groups.push({

@@ -1,3 +1,4 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 /**
  * 🤖 AI 어시스턴트 전용 데이터 필터
  *
@@ -8,8 +9,6 @@
  * - 컨텍스트 기반 데이터 그룹핑
  * - 실시간 이상 탐지용 데이터 준비
  */
-
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 
 export interface AIOptimizedServerData {
   // 기본 식별 정보
@@ -123,7 +122,7 @@ export class AIDataFilter {
   private readonly CACHE_TTL = 30000; // 30초
 
   private constructor() {
-    this.dataGenerator = RealServerDataGenerator.getInstance();
+    this.dataGenerator = GCPRealDataService.getInstance();
     console.log('🤖 AI 전용 데이터 필터 초기화');
   }
 
@@ -154,7 +153,7 @@ export class AIDataFilter {
 
     try {
       // 1. 원본 서버 데이터 가져오기
-      const rawServers = await this.dataGenerator.getAllServers();
+      const rawServers = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
 
       // 2. AI 최적화 데이터로 변환
       const aiOptimizedData = rawServers.map(server =>

@@ -411,8 +411,7 @@ export class PatternAnalysisService {
     }
 
     // 제안 기반 권장사항
-    const highConfidenceSuggestions = suggestions.filter(
-      s => s.confidenceScore > 0.8
+    const highConfidenceSuggestions = suggestions.filter((s: any) => s.confidenceScore > 0.8
     );
     if (highConfidenceSuggestions.length > 0) {
       recommendations.push(
@@ -428,8 +427,7 @@ export class PatternAnalysisService {
     }
 
     // 자동 승인 가능한 제안
-    const autoApprovable = suggestions.filter(
-      s => s.confidenceScore >= this.config.autoApproveThreshold
+    const autoApprovable = suggestions.filter((s: any) => s.confidenceScore >= this.config.autoApproveThreshold
     );
     if (autoApprovable.length > 0) {
       recommendations.push(
@@ -453,7 +451,7 @@ export class PatternAnalysisService {
       analysisResult.lowConfidenceCount >
         analysisResult.totalInteractions * 0.4 ||
       patternAnalysis.priorityLevel === 'high' ||
-      suggestions.filter(s => s.estimatedImprovement > 30).length > 0
+      suggestions.filter((s: any) => s.estimatedImprovement > 30).length > 0
     ) {
       return 'high';
     }
@@ -463,7 +461,7 @@ export class PatternAnalysisService {
       analysisResult.lowConfidenceCount >
         analysisResult.totalInteractions * 0.2 ||
       patternAnalysis.priorityLevel === 'medium' ||
-      suggestions.filter(s => s.estimatedImprovement > 15).length > 0
+      suggestions.filter((s: any) => s.estimatedImprovement > 15).length > 0
     ) {
       return 'medium';
     }
@@ -484,7 +482,7 @@ export class PatternAnalysisService {
 
     // 높은 신뢰도 제안부터 테스트
     const sortedSuggestions = suggestions
-      .filter(s => s.confidenceScore >= 0.7)
+      .filter((s: any) => s.confidenceScore >= 0.7)
       .sort((a, b) => b.confidenceScore - a.confidenceScore)
       .slice(0, availableSlots);
 
@@ -560,8 +558,7 @@ export class PatternAnalysisService {
     const latestReport = this.getLatestReport();
     if (!latestReport) return;
 
-    const pendingSuggestions = latestReport.suggestions.filter(
-      s => !this.abTestManager.getActiveTests().some(t => t.patternId === s.id)
+    const pendingSuggestions = latestReport.suggestions.filter((s: any) => !this.abTestManager.getActiveTests().some(t => t.patternId === s.id)
     );
 
     const testsToStart = pendingSuggestions.slice(0, maxTests);

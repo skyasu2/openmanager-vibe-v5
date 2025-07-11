@@ -174,7 +174,7 @@ export function useAIController(): UseAIControllerReturn {
    */
   const getStatus = useCallback(async () => {
     try {
-      return await aiController.getStatus();
+      return await aiController.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' }));
     } catch (error) {
       console.error('상태 조회 오류:', error);
       throw error;

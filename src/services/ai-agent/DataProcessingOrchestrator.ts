@@ -1,3 +1,4 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 /**
  * 🎯 데이터 처리 중앙 오케스트레이터
  *
@@ -7,7 +8,6 @@
  * - 성능 최적화: 캐싱 및 병렬 처리
  */
 
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { AIDataFilterOptions } from './AIDataFilter';
 import { ErrorHandlingMiddleware } from './ErrorHandlingMiddleware';
 import { StrategyFactory } from './StrategyFactory';
@@ -69,7 +69,7 @@ export class DataProcessingOrchestrator {
     this.strategyFactory = StrategyFactory.getInstance();
     this.cacheManager = UnifiedCacheManager.getInstance();
     this.errorHandler = ErrorHandlingMiddleware.getInstance();
-    this.dataGenerator = RealServerDataGenerator.getInstance();
+    this.dataGenerator = GCPRealDataService.getInstance();
   }
 
   static getInstance(): DataProcessingOrchestrator {
@@ -276,11 +276,11 @@ export class DataProcessingOrchestrator {
         uptime: process.uptime(),
         memoryUsage: process.memoryUsage(),
       },
-      cache: await this.cacheManager.getStatus(),
-      strategies: await this.strategyFactory.getStatus(),
+      cache: await this.cacheManager.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' })),
+      strategies: await this.strategyFactory.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' })),
       dataGenerator: {
         status: 'active',
-        serverCount: (await this.dataGenerator.getAllServers()).length,
+        serverCount: (await this.dataGenerator.getRealServerMetrics().then(response => response.data)).length,
       },
     };
   }

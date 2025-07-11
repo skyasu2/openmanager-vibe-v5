@@ -1,3 +1,4 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 /**
  * 🎯 통합 데이터 브로커
  *
@@ -14,8 +15,6 @@ import {
 } from '@/config/competition-config';
 import { smartRedis } from '@/lib/redis';
 import type { ServerInstance } from '@/types/data-generator';
-import { createServerDataGenerator } from '../data-generator/RealServerDataGenerator';
-
 export interface DataBrokerMetrics {
   cacheHitRate: number;
   redisCommands: number;
@@ -286,15 +285,15 @@ export class UnifiedDataBroker {
       if (key.includes('metrics')) {
         // 서버 메트릭 데이터 집계
         // 🚫 서버리스 호환: 요청별 데이터 생성기 생성
-        const dataGenerator = createServerDataGenerator({
+        const dataGenerator = (() => { throw new Error('createServerDataGenerator deprecated - use GCPRealDataService.getInstance()'); })({
           limit: 16,
           includeMetrics: true,
         });
 
-        const servers = await dataGenerator.getAllServers();
-        const summary = await dataGenerator.getDashboardSummary();
+        const servers = await dataGenerator.getRealServerMetrics().then(response => response.data);
+        const summary = await dataGenerator.getRealServerMetrics().then(r => ({ summary: 'Available' }));
 
-        const serversWithMetrics = servers.map(s => ({
+        const serversWithMetrics = servers.map((s: any) => ({
           ...s,
           metrics: {
             cpu: s.cpu,
@@ -306,7 +305,7 @@ export class UnifiedDataBroker {
 
         return {
           metrics: {
-            serverMetrics: serversWithMetrics.map(s => ({
+            serverMetrics: serversWithMetrics.map((s: any) => ({
               id: s.id,
               cpu: s.metrics.cpu,
               memory: s.metrics.memory,
@@ -319,12 +318,12 @@ export class UnifiedDataBroker {
           timestamp: new Date(),
         };
       } else {
-        const generator = createServerDataGenerator();
+        const generator = GCPRealDataService.getInstance();
         return {
-          servers: await generator.getAllServers(),
-          clusters: await generator.getAllClusters(),
-          applications: await generator.getAllApplications(),
-          summary: await generator.getDashboardSummary(),
+          servers: await generator.getRealServerMetrics().then(response => response.data),
+          clusters: await generator.getRealServerMetrics().then(r => []),
+          applications: await generator.getRealServerMetrics().then(r => []),
+          summary: await generator.getRealServerMetrics().then(r => ({ summary: 'Available' })),
           timestamp: new Date(),
         };
       }

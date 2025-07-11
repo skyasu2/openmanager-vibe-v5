@@ -1,5 +1,5 @@
 import { transformServerInstancesToServersOptimized } from '@/adapters/server-data-adapter';
-import { createServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -9,7 +9,7 @@ export async function GET() {
     console.log('🚀 /api/servers/all - 서버리스 호환 데이터 생성 시작');
 
     // 🚫 서버리스 호환: 요청별 데이터 생성기 생성
-    const dataGenerator = createServerDataGenerator({
+    const dataGenerator = (() => { throw new Error('createServerDataGenerator deprecated - use GCPRealDataService.getInstance()'); })({
       count: 16,
       includeMetrics: true,
     });

@@ -215,13 +215,12 @@ export class PatternSuggester {
 
     console.log(`💡 [PatternSuggester] 패턴 제안 생성 완료:`, {
       totalSuggestions: suggestions.length,
-      highConfidenceSuggestions: suggestions.filter(
-        s => s.confidenceScore > 0.8
+      highConfidenceSuggestions: suggestions.filter((s: any) => s.confidenceScore > 0.8
       ).length,
       averageImprovement:
         suggestions.length > 0
           ? Math.round(
-              suggestions.reduce((sum, s) => sum + s.estimatedImprovement, 0) /
+              suggestions.reduce((sum: number, s: any) => sum + s.estimatedImprovement, 0) /
                 suggestions.length
             )
           : 0,
@@ -452,9 +451,9 @@ export class PatternSuggester {
       this.analyzeQuestionStructure(q)
     );
     const hasQuestionMark =
-      structures.filter(s => s.hasQuestion).length > structures.length * 0.7;
+      structures.filter((s: any) => s.hasQuestion).length > structures.length * 0.7;
     const hasCommand =
-      structures.filter(s => s.hasCommand).length > structures.length * 0.7;
+      structures.filter((s: any) => s.hasCommand).length > structures.length * 0.7;
 
     if (!hasQuestionMark && !hasCommand) return null;
 

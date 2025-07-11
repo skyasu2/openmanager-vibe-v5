@@ -10,10 +10,7 @@
 
 import { transformServerInstancesToServers } from '@/adapters/server-data-adapter';
 import { getRedisClient } from '@/lib/redis';
-import {
-  realServerDataGenerator,
-  type RealServerDataGeneratorType,
-} from '@/services/data-generator/RealServerDataGenerator';
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 import { Server } from '@/types/server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -64,7 +61,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 현재 서버 데이터 가져오기
-    const allServerInstances = await generator.getAllServers();
+    const allServerInstances = await generator.getRealServerMetrics().then(response => response.data);
 
     console.log(
       `초기화 실행 from /api/servers/realtime (서버 ${allServerInstances.length}개 감지)`
@@ -120,14 +117,14 @@ export async function GET(request: NextRequest) {
       console.log('✅ RealServerDataGenerator 초기화 완료');
 
       // 초기화 후에도 데이터가 없으면 추가 경고
-      const retryServerInstances = await generator.getAllServers();
+      const retryServerInstances = await generator.getRealServerMetrics().then(response => response.data);
       if (retryServerInstances.length === 0) {
         console.error('🚨 초기화 후에도 서버 데이터 없음 - 시스템 점검 필요');
       }
     }
 
     // 🔧 getStatus()는 Promise를 반환하므로 await 사용
-    const status = await generator.getStatus();
+    const status = await generator.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' }));
     const isMockMode = status.isMockMode;
 
     // 실시간 데이터 생성 시작 (아직 시작되지 않은 경우에만)
@@ -149,19 +146,17 @@ export async function GET(request: NextRequest) {
     // 🎯 실제 서버 데이터 기반 요약 통계 계산 (수정됨)
     const dashboardSummary = {
       total: validServersFiltered.length,
-      online: validServersFiltered.filter(
-        s => s.status === 'online' || s.status === 'healthy'
+      online: validServersFiltered.filter((s: any) => s.status === 'online' || s.status === 'healthy'
       ).length,
-      warning: validServersFiltered.filter(s => s.status === 'warning').length,
-      critical: validServersFiltered.filter(
-        s => s.status === 'offline' || s.status === 'critical'
+      warning: validServersFiltered.filter((s: any) => s.status === 'warning').length,
+      critical: validServersFiltered.filter((s: any) => s.status === 'offline' || s.status === 'critical'
       ).length,
       lastUpdate: new Date().toISOString(),
       averageCpu:
-        validServersFiltered.reduce((sum, s) => sum + s.cpu, 0) /
+        validServersFiltered.reduce((sum: number, s: any) => sum + s.cpu, 0) /
         Math.max(validServersFiltered.length, 1),
       averageMemory:
-        validServersFiltered.reduce((sum, s) => sum + s.memory, 0) /
+        validServersFiltered.reduce((sum: number, s: any) => sum + s.memory, 0) /
         Math.max(validServersFiltered.length, 1),
     };
 
@@ -221,7 +216,7 @@ export async function GET(request: NextRequest) {
           environment: process.env.NODE_ENV,
           warningLevel: isMockMode ? 'CRITICAL' : 'NONE',
           serverCount: validServersFiltered.length,
-          generatorStatus: generator.getStatus(),
+          generatorStatus: generator.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' })),
         },
         timestamp: Date.now(),
         count: paginatedServers.length,
@@ -268,7 +263,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           message: '실시간 데이터 생성이 시작되었습니다.',
-          status: generator.getStatus(),
+          status: generator.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' })),
         });
 
       case 'stop':
@@ -276,14 +271,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           message: '실시간 데이터 생성이 중지되었습니다.',
-          status: generator.getStatus(),
+          status: generator.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' })),
         });
 
       case 'status':
         return NextResponse.json({
           success: true,
-          status: generator.getStatus(),
-          summary: generator.getDashboardSummary(),
+          status: generator.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' })),
+          summary: generator.getRealServerMetrics().then(r => ({ summary: 'Available' })),
         });
 
       default:

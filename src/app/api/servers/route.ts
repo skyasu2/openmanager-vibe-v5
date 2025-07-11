@@ -1,11 +1,9 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 import { detectEnvironment } from '@/config/environment';
 import {
   ERROR_STATE_METADATA,
   STATIC_ERROR_SERVERS,
 } from '@/config/fallback-data';
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
-import { GCPServerDataGenerator } from '@/services/gcp/GCPServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
 // 이 라우트는 환경에 따라 다른 응답을 반환하므로 동적
@@ -179,14 +177,11 @@ export async function GET(request: NextRequest) {
     console.log('🏠 로컬 환경: 목업 서버 데이터 사용');
 
     try {
-      const generator = RealServerDataGenerator.getInstance();
-
-      // 목업 생성기 초기화 확인
-      if (!generator.initialized) {
-        await generator.initialize();
-      }
-
-      const servers = await generator.getAllServers();
+      const gcpService = GCPRealDataService.getInstance();
+      await gcpService.initialize();
+      
+      const response = await gcpService.getRealServerMetrics();
+      const servers = response.data;
 
       return NextResponse.json({
         success: true,
@@ -258,11 +253,8 @@ export async function GET(request: NextRequest) {
  */
 async function getGCPRealServerData(): Promise<any[]> {
   try {
-    // GCP 실제 데이터 생성기 사용
-    const gcpGenerator = new GCPServerDataGenerator(
-      null as any, // Firestore client (실제 구현 시 연결)
-      null as any // Cloud Storage client (실제 구현 시 연결)
-    );
+    // GCP 실제 데이터 서비스 사용
+    const gcpService = GCPRealDataService.getInstance();
 
     // 실제 GCP 메트릭 조회 (임시로 빈 배열 반환)
     // TODO: 실제 GCP Monitoring API 연동

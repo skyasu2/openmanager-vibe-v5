@@ -618,7 +618,7 @@ export class AutoIncidentReportSystem {
         type: 'cascade_failure',
         severity: 'critical',
         description: `${failedServers.length}개 서버에서 동시 장애 감지`,
-        affectedServer: failedServers.map(s => s.serverId).join(', '),
+        affectedServer: failedServers.map((s: any) => s.serverId).join(', '),
         detectedAt: new Date(),
         status: 'active',
       };

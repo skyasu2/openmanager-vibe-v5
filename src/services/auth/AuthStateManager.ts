@@ -227,7 +227,7 @@ export class AuthStateManager {
     return {
       totalSessions: this.sessions.size,
       activeSessions: activeSessions.length,
-      guestSessions: activeSessions.filter(s => s.userType === 'guest').length,
+      guestSessions: activeSessions.filter((s: any) => s.userType === 'guest').length,
     };
   }
 }

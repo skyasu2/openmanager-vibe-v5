@@ -44,10 +44,10 @@ export default function MobileSummaryCard({
   // 서버 통계 계산
   const stats: ServerStats = {
     total: safeServers.length,
-    online: safeServers.filter(s => s.status === 'online').length,
-    warning: safeServers.filter(s => s.status === 'warning').length,
-    offline: safeServers.filter(s => s.status === 'offline').length,
-    criticalAlerts: safeServers.reduce((sum, s) => {
+    online: safeServers.filter((s: any) => s.status === 'online').length,
+    warning: safeServers.filter((s: any) => s.status === 'warning').length,
+    offline: safeServers.filter((s: any) => s.status === 'offline').length,
+    criticalAlerts: safeServers.reduce((sum: number, s: any) => {
       const alertCount =
         typeof s.alerts === 'number'
           ? s.alerts
@@ -60,9 +60,9 @@ export default function MobileSummaryCard({
 
   // 상태별 우선순위 서버 (가장 중요한 것부터)
   const priorityServers = [
-    ...safeServers.filter(s => s.status === 'offline').slice(0, 2),
-    ...safeServers.filter(s => s.status === 'warning').slice(0, 2),
-    ...safeServers.filter(s => s.status === 'online').slice(0, 1),
+    ...safeServers.filter((s: any) => s.status === 'offline').slice(0, 2),
+    ...safeServers.filter((s: any) => s.status === 'warning').slice(0, 2),
+    ...safeServers.filter((s: any) => s.status === 'online').slice(0, 1),
   ].slice(0, 3);
 
   // 전체 상태 결정

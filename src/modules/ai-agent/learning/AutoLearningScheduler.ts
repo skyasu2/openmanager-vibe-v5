@@ -256,7 +256,7 @@ export class AutoLearningScheduler {
         averageConfidence,
         improvementRate,
         activePatterns:
-          analysisReport?.suggestions?.filter(s => (s as any).approved)
+          analysisReport?.suggestions?.filter((s: any) => (s as any).approved)
             ?.length || 0,
         pendingTests: activeTests.length,
         lastAnalysisTime: analysisReport?.timestamp || new Date(0),

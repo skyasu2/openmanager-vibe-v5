@@ -181,7 +181,7 @@ export class ThinkingProcessor {
    * 활성 사고 세션 목록
    */
   getActiveThinkingSessions(): ThinkingSession[] {
-    return Array.from(this.sessions.values()).filter(s => s.status === 'thinking');
+    return Array.from(this.sessions.values()).filter((s: any) => s.status === 'thinking');
   }
 
   /**
@@ -196,15 +196,15 @@ export class ThinkingProcessor {
     averageSteps: number;
   } {
     const sessions = Array.from(this.sessions.values());
-    const completed = sessions.filter(s => s.status === 'completed');
-    const errors = sessions.filter(s => s.status === 'error');
+    const completed = sessions.filter((s: any) => s.status === 'completed');
+    const errors = sessions.filter((s: any) => s.status === 'error');
     
     const avgDuration = completed.length > 0 
-      ? completed.reduce((sum, s) => sum + (s.totalDuration || 0), 0) / completed.length 
+      ? completed.reduce((sum: number, s: any) => sum + (s.totalDuration || 0), 0) / completed.length 
       : 0;
       
     const avgSteps = sessions.length > 0
-      ? sessions.reduce((sum, s) => sum + s.steps.length, 0) / sessions.length
+      ? sessions.reduce((sum: number, s: any) => sum + s.steps.length, 0) / sessions.length
       : 0;
 
     return {

@@ -433,14 +433,14 @@ export class SolutionDatabase implements ISolutionDatabase {
 
         // 성공률 평균 계산
         const successRates = solutions
-            .map(s => s.successRate || 0)
+            .map((s: any) => s.successRate || 0)
             .filter(rate => rate > 0);
         const averageSuccessRate = successRates.length > 0
             ? successRates.reduce((sum, rate) => sum + rate, 0) / successRates.length
             : 0;
 
         // 평균 해결 시간 계산
-        const estimatedTimes = solutions.map(s => s.estimatedTime);
+        const estimatedTimes = solutions.map((s: any) => s.estimatedTime);
         const averageResolutionTime = estimatedTimes.length > 0
             ? estimatedTimes.reduce((sum, time) => sum + time, 0) / estimatedTimes.length
             : 0;

@@ -880,7 +880,7 @@ export class OptimizedDataGenerator {
    * 🎭 데모 시나리오 상태 조회
    */
   getDemoStatus() {
-    return this.demoManager.getStatus();
+    return this.demoManager.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' }));
   }
 
   /**
@@ -907,9 +907,9 @@ export class OptimizedDataGenerator {
     const targetCritical = Math.round(total * 0.1);
     const targetWarning = Math.round(total * 0.2);
 
-    const critical = servers.filter(s => s.status === 'critical');
-    const warning = servers.filter(s => s.status === 'warning');
-    const normal = servers.filter(s => s.status === 'healthy');
+    const critical = servers.filter((s: any) => s.status === 'critical');
+    const warning = servers.filter((s: any) => s.status === 'warning');
+    const normal = servers.filter((s: any) => s.status === 'healthy');
 
     const sortByLoadDesc = (
       a: EnhancedServerMetrics,
@@ -940,11 +940,11 @@ export class OptimizedDataGenerator {
     }
 
     // ⚖️ warning 재조정
-    const updatedWarning = servers.filter(s => s.status === 'warning');
+    const updatedWarning = servers.filter((s: any) => s.status === 'warning');
     if (updatedWarning.length < targetWarning) {
       const need = targetWarning - updatedWarning.length;
       const candidates = servers
-        .filter(s => s.status === 'healthy')
+        .filter((s: any) => s.status === 'healthy')
         .sort(sortByLoadDesc)
         .slice(0, need);
       for (const s of candidates) s.status = 'warning';

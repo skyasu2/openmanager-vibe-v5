@@ -144,6 +144,9 @@ commit/
 # GitHub 인증 정보
 .github-auth.json
 
+# Claude 세션 정보
+.claude_session.json
+
 # 실행 파일들
 *.exe
 

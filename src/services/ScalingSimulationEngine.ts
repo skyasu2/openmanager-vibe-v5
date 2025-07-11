@@ -256,11 +256,11 @@ export class ScalingSimulationEngine {
   getAIMetrics(): any {
     const servers = this.getOperationalServers();
     const totalServers = servers.length;
-    const runningServers = servers.filter(s => s.status === 'running').length;
+    const runningServers = servers.filter((s: any) => s.status === 'running').length;
     const avgCpu =
-      servers.reduce((sum, s) => sum + s.cpu_usage, 0) / totalServers;
+      servers.reduce((sum: number, s: any) => sum + s.cpu_usage, 0) / totalServers;
     const avgMemory =
-      servers.reduce((sum, s) => sum + s.memory_usage, 0) / totalServers;
+      servers.reduce((sum: number, s: any) => sum + s.memory_usage, 0) / totalServers;
 
     return {
       totalServers,

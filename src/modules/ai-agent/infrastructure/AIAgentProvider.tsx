@@ -242,7 +242,7 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
   // 헬스체크 함수 먼저 정의 (강화된 에러 핸들링)
   const checkHealth = useCallback(async (): Promise<void> => {
     try {
-      const status = await service.getStatus();
+      const status = await service.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' }));
 
       // status 객체 검증
       if (!status || typeof status !== 'object') {
@@ -559,7 +559,7 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
   );
 
   const getEngineStatus = useCallback((): HybridEngineStatus => {
-    return hybridEngine.getStatus();
+    return hybridEngine.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' }));
   }, [hybridEngine]);
 
   const contextValue: AIAgentContextType = {

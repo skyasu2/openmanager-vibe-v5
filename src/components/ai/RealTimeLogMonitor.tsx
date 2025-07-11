@@ -431,13 +431,13 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
         <div className='flex items-center space-x-6 text-sm text-gray-600 dark:text-gray-400'>
           <span>총 로그: {filteredLogs.length}</span>
           <span>
-            활성 세션: {sessions.filter(s => s.status === 'active').length}
+            활성 세션: {sessions.filter((s: any) => s.status === 'active').length}
           </span>
           <span>
-            완료된 세션: {sessions.filter(s => s.status === 'completed').length}
+            완료된 세션: {sessions.filter((s: any) => s.status === 'completed').length}
           </span>
           <span>
-            실패한 세션: {sessions.filter(s => s.status === 'failed').length}
+            실패한 세션: {sessions.filter((s: any) => s.status === 'failed').length}
           </span>
         </div>
       </div>

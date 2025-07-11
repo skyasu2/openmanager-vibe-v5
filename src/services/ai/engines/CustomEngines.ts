@@ -443,15 +443,14 @@ export class CustomEngines {
 
   // Unified Analysis helpers
   private async analyzeServers(servers: any[]): Promise<any> {
-    const healthyCount = servers.filter(s => s.status === 'running').length;
+    const healthyCount = servers.filter((s: any) => s.status === 'running').length;
     const totalCount = servers.length;
 
     return {
       total_servers: totalCount,
       healthy_servers: healthyCount,
       health_ratio: totalCount > 0 ? healthyCount / totalCount : 0,
-      critical_servers: servers.filter(
-        s => s.cpu_usage > 90 || s.memory_usage > 90
+      critical_servers: servers.filter((s: any) => s.cpu_usage > 90 || s.memory_usage > 90
       ),
     };
   }

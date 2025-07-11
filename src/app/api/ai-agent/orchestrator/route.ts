@@ -1,3 +1,4 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 /**
  * 🎯 AI 에이전트 오케스트레이터 API
  *
@@ -9,14 +10,14 @@
  */
 
 import { serverDataCache } from '@/services/cache/ServerDataCache';
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
 // 간단한 AI 필터
 class SimpleAIFilter {
   async filterForAI(options: any) {
-    const generator = RealServerDataGenerator.getInstance();
-    const servers = await generator.getAllServers();
+    const gcpService = GCPRealDataService.getInstance();
+    const response = await gcpService.getRealServerMetrics();
+    const servers = response.data;
     return {
       data: servers.slice(0, 10),
       insights: {
@@ -48,22 +49,22 @@ class SimpleStrategy {
 
   async execute(request: any) {
     const startTime = Date.now();
-    const generator = RealServerDataGenerator.getInstance();
+    const generator = GCPRealDataService.getInstance();
     const aiFilter = new SimpleAIFilter();
 
     switch (this.name) {
       case 'monitoring_focus':
-        const servers = await generator.getAllServers();
+        const servers = await generator.getRealServerMetrics().then(response => response.data);
         return {
           strategy: this.name,
           data: {
             servers: servers.slice(0, 20),
             realTimeMetrics: {
               totalServers: servers.length,
-              onlineServers: servers.filter(s => s.status === 'running').length,
-              warningServers: servers.filter(s => s.status === 'warning')
+              onlineServers: servers.filter((s: any) => s.status === 'running').length,
+              warningServers: servers.filter((s: any) => s.status === 'warning')
                 .length,
-              criticalServers: servers.filter(s => s.status === 'error').length,
+              criticalServers: servers.filter((s: any) => s.status === 'error').length,
             },
           },
           metadata: {
@@ -93,7 +94,7 @@ class SimpleStrategy {
         };
 
       default:
-        const hybridServers = await generator.getAllServers();
+        const hybridServers = await generator.getRealServerMetrics().then(response => response.data);
         const hybridAI = await aiFilter.filterForAI({});
         return {
           strategy: 'hybrid_balanced',
@@ -165,7 +166,7 @@ class SimpleStrategyFactory {
 
   async getStatus() {
     return {
-      availableStrategies: Array.from(this.strategies.values()).map(s => ({
+      availableStrategies: Array.from(this.strategies.values()).map((s: any) => ({
         name: s.name,
         metadata: s.getMetadata(),
       })),
@@ -295,7 +296,7 @@ class SimpleOrchestrator {
   }
 
   async getSystemStatus() {
-    const generator = RealServerDataGenerator.getInstance();
+    const generator = GCPRealDataService.getInstance();
     const cacheStatus = serverDataCache.getCacheStatus();
 
     return {
@@ -307,8 +308,8 @@ class SimpleOrchestrator {
       strategies: await this.strategyFactory.getStatus(),
       cache: cacheStatus,
       dataGenerator: {
-        status: generator.getStatus(),
-        serverCount: (await generator.getAllServers()).length,
+        status: 'active',
+        serverCount: (await generator.getRealServerMetrics().then((response: any) => response.data)).length,
       },
     };
   }

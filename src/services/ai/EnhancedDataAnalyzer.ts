@@ -1,3 +1,4 @@
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 /**
  * 🧠 Enhanced Data Analyzer v2.0
  *
@@ -9,7 +10,6 @@
  */
 
 import { smartRedis } from '@/lib/redis';
-import { GCPRealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import {
   type ApplicationMetrics,
   type ServerCluster,
@@ -96,7 +96,7 @@ export interface QueryResponse {
 
 export class EnhancedDataAnalyzer {
   private static instance: EnhancedDataAnalyzer | null = null;
-  private dataGenerator: GCPRealServerDataGenerator;
+  private dataGenerator: GCPRealDataService;
   private redis: any;
 
   // 한국어 자연어 처리 매핑
@@ -139,7 +139,7 @@ export class EnhancedDataAnalyzer {
     optimization: ['최적화', '개선', '향상', '효율', '절약', '줄이'],
   };
 
-  constructor(dataGenerator: GCPRealServerDataGenerator) {
+  constructor(dataGenerator: GCPRealDataService) {
     this.dataGenerator = dataGenerator;
     this.initializeRedis();
   }
@@ -147,7 +147,7 @@ export class EnhancedDataAnalyzer {
   public static getInstance(): EnhancedDataAnalyzer {
     if (!EnhancedDataAnalyzer.instance) {
       EnhancedDataAnalyzer.instance = new EnhancedDataAnalyzer(
-        GCPRealServerDataGenerator.getInstance()
+        GCPRealDataService.getInstance()
       );
     }
     return EnhancedDataAnalyzer.instance;
@@ -161,9 +161,9 @@ export class EnhancedDataAnalyzer {
    * 📊 종합 시스템 분석
    */
   public async analyzeSystem(): Promise<EnhancedAnalysisResult> {
-    const servers = await this.dataGenerator.getAllServers();
-    const clusters = await this.dataGenerator.getAllClusters();
-    const applications = await this.dataGenerator.getAllApplications();
+    const servers = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
+    const clusters = await this.dataGenerator.getRealServerMetrics().then(r => []);
+    const applications = await this.dataGenerator.getRealServerMetrics().then(r => []);
 
     // 성능 분석
     const performanceAnalysis = this.analyzePerformance(servers, clusters);
@@ -249,12 +249,12 @@ export class EnhancedDataAnalyzer {
 
     // CPU, 메모리, 응답시간 분석 - 안전 접근 패턴 적용
     const avgCpu =
-      servers.reduce((sum, s) => sum + (s.metrics?.cpu || 0), 0) / totalServers;
+      servers.reduce((sum: number, s: any) => sum + (s.metrics?.cpu || 0), 0) / totalServers;
     const avgMemory =
-      servers.reduce((sum, s) => sum + (s.metrics?.memory || 0), 0) /
+      servers.reduce((sum: number, s: any) => sum + (s.metrics?.memory || 0), 0) /
       totalServers;
     const avgErrors =
-      servers.reduce((sum, s) => sum + (s.errors?.count || 0), 0) /
+      servers.reduce((sum: number, s: any) => sum + (s.errors?.count || 0), 0) /
       totalServers;
 
     // 성능 점수 계산 (0-100)
@@ -287,16 +287,13 @@ export class EnhancedDataAnalyzer {
       return { score: 0, uptime: 0, incidents: 0, mttr: 0 };
 
     // 서버 상태
-    const healthyCount = servers.filter(
-      s => (s.health?.score || 0) > 80
+    const healthyCount = servers.filter((s: any) => (s.health?.score || 0) > 80
     ).length;
     const avgUptime =
-      servers.reduce(
-        (sum, s) => sum + (s.metrics?.uptime || s.uptime || 0),
+      servers.reduce((sum: number, s: any) => sum + (s.metrics?.uptime || s.uptime || 0),
         0
       ) / totalServers;
-    const totalIncidents = servers.reduce(
-      (sum, s) => sum + (s.health?.issues?.length || 0),
+    const totalIncidents = servers.reduce((sum: number, s: any) => sum + (s.health?.issues?.length || 0),
       0
     );
 
@@ -324,7 +321,7 @@ export class EnhancedDataAnalyzer {
 
     // 리소스 활용률 - 안전 접근 패턴 적용
     const avgUtilization =
-      servers.reduce((sum, s) => {
+      servers.reduce((sum: number, s: any) => {
         const cpu = s.metrics?.cpu || s.cpu || 0;
         const memory = s.metrics?.memory || s.memory || 0;
         return sum + (cpu + memory) / 2;
@@ -332,7 +329,7 @@ export class EnhancedDataAnalyzer {
 
     // 비용 최적화 점수 (리소스 대비 처리량)
     const avgRequests =
-      servers.reduce((sum, s) => sum + (s.requests?.total || 0), 0) /
+      servers.reduce((sum: number, s: any) => sum + (s.requests?.total || 0), 0) /
       totalServers;
     const costOptimization =
       avgRequests > 0 ? Math.min(100, (avgRequests / avgUtilization) * 10) : 0;
@@ -357,8 +354,8 @@ export class EnhancedDataAnalyzer {
     if (servers.length > 1) {
       // CPU와 응답시간 상관관계 - 안전 접근 패턴 적용
       const cpuResponseCorr = this.calculateCorrelation(
-        servers.map(s => s.metrics?.cpu || s.cpu || 0),
-        servers.map(s => s.requests?.total || 0)
+        servers.map((s: any) => s.metrics?.cpu || s.cpu || 0),
+        servers.map((s: any) => s.requests?.total || 0)
       );
 
       if (Math.abs(cpuResponseCorr) > 0.3) {
@@ -375,8 +372,8 @@ export class EnhancedDataAnalyzer {
 
       // 메모리와 오류율 상관관계 - 안전 접근 패턴 적용
       const memoryErrorCorr = this.calculateCorrelation(
-        servers.map(s => s.metrics?.memory || s.memory || 0),
-        servers.map(s => s.errors?.count || 0)
+        servers.map((s: any) => s.metrics?.memory || s.memory || 0),
+        servers.map((s: any) => s.errors?.count || 0)
       );
 
       if (Math.abs(memoryErrorCorr) > 0.3) {
@@ -461,8 +458,7 @@ export class EnhancedDataAnalyzer {
     const findings: string[] = [];
 
     // 서버 상태
-    const healthyCount = servers.filter(
-      s => (s.health?.score || 0) > 80
+    const healthyCount = servers.filter((s: any) => (s.health?.score || 0) > 80
     ).length;
     findings.push(
       `전체 ${servers.length}대 서버 중 ${healthyCount}대가 정상 상태입니다.`
@@ -552,12 +548,12 @@ export class EnhancedDataAnalyzer {
     }> = [];
 
     // 임계 상태 서버
-    const criticalServers = servers.filter(s => (s.health?.score || 0) < 30);
+    const criticalServers = servers.filter((s: any) => (s.health?.score || 0) < 30);
     if (criticalServers.length > 0) {
       alerts.push({
         level: 'critical' as const,
         message: `${criticalServers.length}대 서버가 임계 상태입니다.`,
-        affectedComponents: criticalServers.map(s => s.name),
+        affectedComponents: criticalServers.map((s: any) => s.name),
       });
     }
 
@@ -571,12 +567,12 @@ export class EnhancedDataAnalyzer {
     }
 
     // 리소스 부족 경고
-    const highCpuServers = servers.filter(s => (s.metrics?.cpu || 0) > 85);
+    const highCpuServers = servers.filter((s: any) => (s.metrics?.cpu || 0) > 85);
     if (highCpuServers.length > 0) {
       alerts.push({
         level: 'warning' as const,
         message: 'CPU 사용률이 높은 서버가 있습니다.',
-        affectedComponents: highCpuServers.map(s => s.name),
+        affectedComponents: highCpuServers.map((s: any) => s.name),
       });
     }
 
@@ -622,8 +618,8 @@ export class EnhancedDataAnalyzer {
    * ⚡ 쿼리 실행
    */
   private async executeQuery(intent: string, context: any, query: string) {
-    const servers = await this.dataGenerator.getAllServers();
-    const clusters = await this.dataGenerator.getAllClusters();
+    const servers = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
+    const clusters = await this.dataGenerator.getRealServerMetrics().then(r => []);
 
     switch (intent) {
       case 'status':
@@ -644,12 +640,12 @@ export class EnhancedDataAnalyzer {
   private getStatusData(servers: ServerInstance[], clusters: ServerCluster[]) {
     return {
       totalServers: servers.length,
-      healthyServers: servers.filter(s => (s.health?.score || 0) > 80).length,
+      healthyServers: servers.filter((s: any) => (s.health?.score || 0) > 80).length,
       clusters: clusters.length,
       avgHealth:
         servers.length > 0
           ? Math.round(
-              servers.reduce((sum, s) => sum + (s.health?.score || 0), 0) /
+              servers.reduce((sum: number, s: any) => sum + (s.health?.score || 0), 0) /
                 servers.length
             )
           : 0,
@@ -661,43 +657,41 @@ export class EnhancedDataAnalyzer {
       avgCpu:
         servers.length > 0
           ? Math.round(
-              servers.reduce((sum, s) => sum + (s.metrics?.cpu || 0), 0) /
+              servers.reduce((sum: number, s: any) => sum + (s.metrics?.cpu || 0), 0) /
                 servers.length
             )
           : 0,
       avgMemory:
         servers.length > 0
           ? Math.round(
-              servers.reduce((sum, s) => sum + (s.metrics?.memory || 0), 0) /
+              servers.reduce((sum: number, s: any) => sum + (s.metrics?.memory || 0), 0) /
                 servers.length
             )
           : 0,
       avgRequests:
         servers.length > 0
           ? Math.round(
-              servers.reduce((sum, s) => sum + (s.requests?.total || 0), 0) /
+              servers.reduce((sum: number, s: any) => sum + (s.requests?.total || 0), 0) /
                 servers.length
             )
           : 0,
       topPerformers: servers
         .sort((a, b) => (b.health?.score || 0) - (a.health?.score || 0))
         .slice(0, 3)
-        .map(s => ({ name: s.name, score: s.health?.score || 0 })),
+        .map((s: any) => ({ name: s.name, score: s.health?.score || 0 })),
     };
   }
 
   private getIssuesData(servers: ServerInstance[]) {
-    const issueServers = servers.filter(
-      s => (s.health?.issues?.length || 0) > 0
+    const issueServers = servers.filter((s: any) => (s.health?.issues?.length || 0) > 0
     );
     return {
-      totalIssues: issueServers.reduce(
-        (sum, s) => sum + (s.health?.issues?.length || 0),
+      totalIssues: issueServers.reduce((sum: number, s: any) => sum + (s.health?.issues?.length || 0),
         0
       ),
       affectedServers: issueServers.length,
-      criticalServers: servers.filter(s => (s.health?.score || 0) < 30).length,
-      issues: issueServers.map(s => ({
+      criticalServers: servers.filter((s: any) => (s.health?.score || 0) < 30).length,
+      issues: issueServers.map((s: any) => ({
         server: s.name,
         issues: s.health?.issues || [],
       })),
@@ -706,7 +700,7 @@ export class EnhancedDataAnalyzer {
 
   private getPredictionData(servers: ServerInstance[]) {
     // 간단한 예측 로직
-    const trends = servers.map(s => {
+    const trends = servers.map((s: any) => {
       const cpuTrend = (s.metrics?.cpu || 0) > 70 ? 'increasing' : 'stable';
       const memoryTrend =
         (s.metrics?.memory || 0) > 80 ? 'increasing' : 'stable';
@@ -724,16 +718,14 @@ export class EnhancedDataAnalyzer {
   }
 
   private getOptimizationData(servers: ServerInstance[]) {
-    const underutilized = servers.filter(
-      s => (s.metrics?.cpu || 0) < 30 && (s.metrics?.memory || 0) < 40
+    const underutilized = servers.filter((s: any) => (s.metrics?.cpu || 0) < 30 && (s.metrics?.memory || 0) < 40
     );
-    const overutilized = servers.filter(
-      s => (s.metrics?.cpu || 0) > 80 || (s.metrics?.memory || 0) > 85
+    const overutilized = servers.filter((s: any) => (s.metrics?.cpu || 0) > 80 || (s.metrics?.memory || 0) > 85
     );
 
     return {
-      underutilized: underutilized.map(s => s.name),
-      overutilized: overutilized.map(s => s.name),
+      underutilized: underutilized.map((s: any) => s.name),
+      overutilized: overutilized.map((s: any) => s.name),
       recommendations: [
         '저사용률 서버의 워크로드 통합 고려',
         '고사용률 서버의 부하 분산 검토',
