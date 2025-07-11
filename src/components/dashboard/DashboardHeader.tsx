@@ -3,7 +3,7 @@
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { Bot, Clock, LogOut, Settings, User } from 'lucide-react';
-import { signOut, useSession } from 'next-auth/react';
+import { useSession, signOut } from '@/hooks/useSupabaseSession';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';

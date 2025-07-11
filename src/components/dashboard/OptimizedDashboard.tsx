@@ -19,7 +19,7 @@ import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { Server } from '@/types/server';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Bot, Clock, LogOut, User } from 'lucide-react';
-import { signOut, useSession } from 'next-auth/react';
+import { useSession, signOut } from '@/hooks/useSupabaseSession';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -42,9 +42,7 @@ export default function OptimizedDashboard({
   isLoading: propIsLoading,
   error: propError,
 }: OptimizedDashboardProps) {
-  const { data: session, status } = useSession({
-    required: true,
-  });
+  const { data: session, status } = useSession();
   const router = useRouter();
   const { toast } = useToast();
 

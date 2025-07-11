@@ -9,6 +9,9 @@
 import { CloudFileSystemReplacement } from '@/services/integration/CloudFileSystemReplacement';
 import { NextRequest, NextResponse } from 'next/server';
 
+// 이 라우트는 외부 서비스를 호출하므로 동적
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     console.log('📈 클라우드 파일시스템 성능 메트릭 조회 시작...');

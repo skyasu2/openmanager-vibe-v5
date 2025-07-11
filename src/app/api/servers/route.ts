@@ -8,6 +8,9 @@ import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 import { GCPServerDataGenerator } from '@/services/gcp/GCPServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
+// 이 라우트는 환경에 따라 다른 응답을 반환하므로 동적
+export const dynamic = 'force-dynamic';
+
 // 기본 데이터 검증 함수
 async function getDataValidator() {
   // 기본 검증 로직 사용

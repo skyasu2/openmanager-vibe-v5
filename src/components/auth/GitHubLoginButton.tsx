@@ -1,14 +1,14 @@
 /**
- * 🔐 GitHub Login Button (NextAuth)
+ * 🔐 GitHub Login Button (Supabase Auth)
  *
- * NextAuth 기반 GitHub OAuth 로그인 버튼
- * 기존 GoogleLoginButton과 완전히 분리된 구현
+ * Supabase Auth 기반 GitHub OAuth 로그인 버튼
+ * NextAuth에서 Supabase Auth로 마이그레이션됨
  */
 
 'use client';
 
 import { motion } from 'framer-motion';
-import { signIn, signOut, useSession } from 'next-auth/react';
+import { useSession, signIn, signOut } from '@/hooks/useSupabaseSession';
 import { useState } from 'react';
 
 export interface GitHubLoginButtonProps {
@@ -38,25 +38,14 @@ export default function GitHubLoginButton({
     try {
       setIsLoading(true);
 
-      console.log('🔐 NextAuth GitHub 로그인 시작...');
+      console.log('🔐 Supabase Auth GitHub 로그인 시작...');
 
-      const result = await signIn('github', {
+      await signIn('github', {
         callbackUrl,
-        redirect: false,
       });
 
-      if (result?.error) {
-        const errorMessage = `GitHub 로그인 실패: ${result.error}`;
-        console.error(errorMessage);
-        onLoginError?.(errorMessage);
-        return;
-      }
-
-      if (result?.url) {
-        console.log('✅ GitHub 로그인 성공, 리다이렉팅...');
-        onLoginSuccess?.(session?.user);
-        window.location.href = result.url;
-      }
+      // 로그인이 성공하면 자동으로 리다이렉트됨
+      console.log('✅ GitHub 로그인 시작, OAuth 페이지로 이동...');
     } catch (error) {
       const errorMessage = 'GitHub 로그인 중 오류가 발생했습니다.';
       console.error(errorMessage, error);
@@ -72,15 +61,13 @@ export default function GitHubLoginButton({
   const handleGitHubLogout = async () => {
     try {
       setIsLoading(true);
-      console.log('🔐 NextAuth GitHub 로그아웃...');
+      console.log('🔐 Supabase Auth GitHub 로그아웃...');
 
       await signOut({
         callbackUrl: '/auth/signin',
-        redirect: false,
       });
 
       console.log('✅ GitHub 로그아웃 완료');
-      window.location.href = '/auth/signin';
     } catch (error) {
       console.error('GitHub 로그아웃 중 오류:', error);
     } finally {
@@ -110,20 +97,20 @@ export default function GitHubLoginButton({
             className='bg-green-50 border border-green-200 rounded-lg p-4'
           >
             <div className='flex items-center space-x-3'>
-              {session.user.image && (
+              {session.user?.image && (
                 <img
                   src={session.user.image}
-                  alt={session.user.name || 'User'}
+                  alt={session.user?.name || 'User'}
                   className='w-10 h-10 rounded-full'
                 />
               )}
               <div>
                 <p className='text-sm font-medium text-green-800'>
-                  {session.user.name || 'GitHub 사용자'}
+                  {session.user?.name || 'GitHub 사용자'}
                 </p>
-                <p className='text-xs text-green-600'>{session.user.email}</p>
+                <p className='text-xs text-green-600'>{session.user?.email}</p>
                 <p className='text-xs text-green-500'>
-                  ✅ GitHub OAuth (NextAuth) 인증됨
+                  ✅ GitHub OAuth (Supabase Auth) 인증됨
                 </p>
               </div>
             </div>

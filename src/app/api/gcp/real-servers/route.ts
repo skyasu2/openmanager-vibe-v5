@@ -3,6 +3,9 @@ import { ERROR_STATE_METADATA } from '@/config/fallback-data';
 import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 import { NextRequest, NextResponse } from 'next/server';
 
+// 이 라우트는 환경에 따라 다른 응답을 반환하므로 동적
+export const dynamic = 'force-dynamic';
+
 /**
  * 🌐 GCP 실제 서버 데이터 API
  * ⚠️ Silent fallback 금지 - 명시적 에러 상태만 반환

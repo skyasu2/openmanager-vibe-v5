@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// 이 라우트는 동적이므로 정적 생성을 비활성화
+export const dynamic = 'force-dynamic';
+
 /**
  * 🔄 시뮬레이션 데이터 API
  * GET /api/simulate/data
