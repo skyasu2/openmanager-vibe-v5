@@ -1,5 +1,32 @@
 # Changelog
 
+## [5.46.9] - 2025-07-12
+
+### 🎯 cu 명령어 ccusage 원본 출력 모드
+
+#### ccusage 원본 출력 그대로 표시
+- **서브커맨드 단순화**: cu daily, cu monthly, cu session 등은 ccusage 원본 출력만 표시
+- **추가 메시지 제거**: "🔍 일별 사용량 분석...", "✅ 완료" 등 불필요한 메시지 제거
+- **순수한 ccusage 경험**: npx ccusage@latest와 동일한 출력
+
+#### 개선된 명령어 동작
+- **cu daily**: 추가 설명 없이 ccusage daily 원본 테이블만 표시
+- **cu monthly**: ccusage monthly 원본 데이터만 표시
+- **cu session**: ccusage session 원본 정보만 표시
+- **cu blocks**: ccusage blocks 원본 출력만 표시
+- **cu live**: ccusage blocks --live 원본 실시간 모니터링
+- **cu status**: ccusage blocks --active 원본 상태만 표시
+
+#### 기본 cu 명령어 유지
+- **헤더와 안내**: 기본 cu 명령어에서만 헤더, 시간, 명령어 안내 표시
+- **현재 상태**: ccusage blocks --active 원본 출력 포함
+- **명령어 가이드**: 모든 cu 서브커맨드 사용법 안내
+
+#### 사용자 경험 개선
+- **깔끔한 출력**: ccusage 공식 도구와 동일한 순수한 출력
+- **빠른 접근**: 추가 메시지 없이 바로 데이터 확인 가능
+- **일관성**: ccusage CLI 경험과 완전히 동일
+
 ## [5.46.8] - 2025-07-12
 
 ### 🚀 cu 명령어 ccusage 기반 완전 리빌드

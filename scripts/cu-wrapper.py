@@ -38,19 +38,11 @@ def show_commands():
     print("  • 모든 시간은 한국시간(KST) 기준입니다")
     print("  • 데이터는 Claude Code의 공식 ccusage를 사용합니다")
 
-def run_ccusage_command(command_args, description="ccusage 명령어 실행"):
-    """ccusage 명령어 실행"""
+def run_ccusage_command(command_args):
+    """ccusage 명령어 실행 (원본 출력 그대로)"""
     try:
-        print(f"\n🔍 {description}...")
-        print("-" * 40)
-        
         cmd = ['npx', 'ccusage@latest'] + command_args
-        result = subprocess.run(cmd, check=True)
-        
-        if result.returncode == 0:
-            print(f"\n✅ {description} 완료")
-        else:
-            print(f"❌ {description} 실패")
+        subprocess.run(cmd, check=True)
             
     except subprocess.CalledProcessError as e:
         print(f"❌ 명령어 실행 오류: {e}")
@@ -59,33 +51,31 @@ def run_ccusage_command(command_args, description="ccusage 명령어 실행"):
         print("❌ npx를 찾을 수 없습니다")
         print("💡 Node.js를 설치해주세요: https://nodejs.org/")
     except KeyboardInterrupt:
-        print(f"\n\n✅ {description}을 종료합니다")
+        print("\n\n✅ 종료합니다")
 
 def run_daily():
     """일별 사용량 분석"""
-    run_ccusage_command(['daily'], "일별 사용량 분석")
+    run_ccusage_command(['daily'])
 
 def run_monthly():
     """월별 사용량 요약"""
-    run_ccusage_command(['monthly'], "월별 사용량 요약")
+    run_ccusage_command(['monthly'])
 
 def run_session():
     """현재 세션 정보"""
-    run_ccusage_command(['session'], "현재 세션 정보")
+    run_ccusage_command(['session'])
 
 def run_blocks():
     """5시간 블록 단위 사용량"""
-    run_ccusage_command(['blocks'], "5시간 블록 단위 사용량")
+    run_ccusage_command(['blocks'])
 
 def run_live():
     """실시간 모니터링"""
-    print("\n🎯 실시간 모니터링을 시작합니다")
-    print("💡 종료하려면 Ctrl+C를 누르세요")
-    run_ccusage_command(['blocks', '--live'], "실시간 모니터링")
+    run_ccusage_command(['blocks', '--live'])
 
 def run_status():
     """현재 활성 상태"""
-    run_ccusage_command(['blocks', '--active'], "현재 활성 블록 상태")
+    run_ccusage_command(['blocks', '--active'])
 
 def show_basic_info():
     """기본 정보 표시"""
@@ -93,12 +83,10 @@ def show_basic_info():
     
     # 현재 시간 표시
     kst_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"🕒 현재 시간: {kst_time} KST")
+    print(f"🕒 현재 시간: {kst_time} KST\n")
     
-    # 간단한 상태 정보
+    # ccusage 원본 출력 표시
     try:
-        print("\n📊 현재 상태:")
-        print("-" * 20)
         cmd = ['npx', 'ccusage@latest', 'blocks', '--active']
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
         
