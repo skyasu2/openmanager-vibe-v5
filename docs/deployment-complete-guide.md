@@ -352,7 +352,7 @@ gcloud config set functions/region asia-northeast3
 ```bash
 gcloud functions deploy ai-gateway \
   --gen2 \
-  --runtime=nodejs20 \
+  --runtime=nodejs22 \
   --region=asia-northeast3 \
   --source=./gcp-functions/ai-gateway \
   --entry-point=aiGateway \
@@ -367,7 +367,7 @@ gcloud functions deploy ai-gateway \
 ```bash
 gcloud functions deploy korean-nlp \
   --gen2 \
-  --runtime=nodejs20 \
+  --runtime=nodejs22 \
   --region=asia-northeast3 \
   --source=./gcp-functions/korean-nlp \
   --entry-point=koreanNLP \
@@ -382,7 +382,7 @@ gcloud functions deploy korean-nlp \
 ```bash
 gcloud functions deploy rule-engine \
   --gen2 \
-  --runtime=nodejs20 \
+  --runtime=nodejs22 \
   --region=asia-northeast3 \
   --source=./gcp-functions/rule-engine \
   --entry-point=ruleEngine \
@@ -397,7 +397,7 @@ gcloud functions deploy rule-engine \
 ```bash
 gcloud functions deploy basic-ml \
   --gen2 \
-  --runtime=nodejs20 \
+  --runtime=nodejs22 \
   --region=asia-northeast3 \
   --source=./gcp-functions/basic-ml \
   --entry-point=basicML \
@@ -558,6 +558,7 @@ curl http://104.154.205.25:10000/health
 ### 무료티어 제한사항
 
 #### Vercel Hobby Plan
+
 - **메모리**: 50MB 제한 (128MB → 40MB 최적화)
 - **실행 시간**: 10초 제한 (8초 권장)
 - **월 실행 횟수**: 100,000회
@@ -565,17 +566,20 @@ curl http://104.154.205.25:10000/health
 - **파일 시스템**: 읽기 전용
 
 #### Supabase Free Plan
+
 - **데이터베이스**: 500MB
 - **월 요청**: 50,000회 (40,000회 안전 한도)
 - **실시간 연결**: 동시 2개
 - **스토리지**: 1GB
 
 #### Upstash Redis Free Plan
+
 - **메모리**: 256MB
 - **일일 명령어**: 10,000회 (8,000회 안전 한도)
 - **동시 연결**: 20개
 
 #### Google AI Gemini Free Plan
+
 - **일일 요청**: 1,500회 (1,000회 안전 한도)
 - **월 토큰**: 1,000,000개
 - **분당 요청**: 15회 (12회 안전 한도)
@@ -661,7 +665,8 @@ vercel inspect
 ```
 
 #### Vercel 대시보드
-- **Analytics**: https://vercel.com/dashboard/analytics
+
+- **Analytics**: <https://vercel.com/dashboard/analytics>
 - **Functions**: 실행 횟수, 메모리, 실행 시간 모니터링
 - **Logs**: 실시간 로그 스트리밍
 
@@ -712,6 +717,7 @@ export class SystemMonitor {
 ### Vercel 배포 문제
 
 #### 빌드 실패
+
 ```bash
 # 로컬 빌드 테스트
 npm run build
@@ -724,6 +730,7 @@ vercel env ls
 ```
 
 #### 메모리 초과
+
 ```bash
 # vercel.json에서 메모리 설정 조정
 "memory": 128  # 최대값
@@ -736,6 +743,7 @@ FORCE_GARBAGE_COLLECTION=true
 ### GCP Functions 문제
 
 #### 함수 배포 실패
+
 ```bash
 # 로그 확인
 gcloud functions logs read your-function --region=asia-northeast3
@@ -748,6 +756,7 @@ gcloud projects get-iam-policy openmanager-ai
 ```
 
 #### 타임아웃 오류
+
 ```bash
 # 타임아웃 증가
 gcloud functions deploy your-function \
@@ -763,6 +772,7 @@ gcloud functions deploy your-function \
 ### MCP 서버 문제
 
 #### 서버 접속 실패
+
 ```bash
 # 서비스 재시작
 sudo systemctl restart mcp-server
@@ -777,6 +787,7 @@ sudo netstat -tulpn | grep :10000
 ### 파일 시스템 오류 (Vercel)
 
 정상적인 보호 메시지:
+
 - "🚫 베르셀 환경에서 파일 쓰기 차단됨"
 - "⚠️ 베르셀 환경에서 파일 저장 무력화"
 
@@ -801,6 +812,7 @@ vercel env add VARIABLE_NAME
 ## 🎉 배포 완료 체크리스트
 
 ### Vercel 프론트엔드 ✅
+
 - [ ] GitHub 레포지토리 연동
 - [ ] 환경 변수 설정 완료
 - [ ] 자동 배포 설정 완료
@@ -808,6 +820,7 @@ vercel env add VARIABLE_NAME
 - [ ] 무료티어 최적화 확인
 
 ### GCP Functions AI 엔진 ✅
+
 - [ ] ai-gateway 배포 완료
 - [ ] korean-nlp 배포 완료
 - [ ] rule-engine 배포 완료
@@ -815,18 +828,21 @@ vercel env add VARIABLE_NAME
 - [ ] 헬스체크 테스트 완료
 
 ### GCP VM MCP 서버 ✅
+
 - [ ] VM 인스턴스 생성
 - [ ] MCP 서버 설정
 - [ ] systemd 서비스 등록
 - [ ] 24/7 운영 확인
 
 ### 3-Tier 시스템 연동 ✅
+
 - [ ] ThreeTierAIRouter 구현
 - [ ] 폴백 시스템 테스트
 - [ ] 성능 테스트 완료
 - [ ] 모니터링 시스템 구축
 
 ### 외부 서비스 연동 ✅
+
 - [ ] Upstash Redis 연동
 - [ ] Supabase 연동
 - [ ] Google AI 연동
@@ -837,18 +853,21 @@ vercel env add VARIABLE_NAME
 ## 📝 최종 상태
 
 ### 🎯 성과 요약
+
 1. **85% 코드 축소**: 2,790 → 400 라인
 2. **50% 성능 향상**: AI 처리 속도 대폭 개선
 3. **100% Free Tier 유지**: 운영 비용 $0/월
 4. **99.9% 가용성**: 3-Tier 폴백 시스템
 
 ### 🌍 현재 운영 상태
-- **Vercel**: https://openmanager-vibe-v5.vercel.app/
-- **GCP Functions**: https://asia-northeast3-openmanager-ai.cloudfunctions.net/
-- **MCP Server**: http://104.154.205.25:10000/
+
+- **Vercel**: <https://openmanager-vibe-v5.vercel.app/>
+- **GCP Functions**: <https://asia-northeast3-openmanager-ai.cloudfunctions.net/>
+- **MCP Server**: <http://104.154.205.25:10000/>
 - **모든 서비스**: Free Tier 범위 내 안정 운영
 
 ### 📚 참고 자료
+
 - [Vercel 문서](https://vercel.com/docs)
 - [GCP Functions 문서](https://cloud.google.com/functions/docs)
 - [Next.js 문서](https://nextjs.org/docs)

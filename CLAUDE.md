@@ -66,16 +66,17 @@ npm run memory:check     # Check memory usage
 ### Monitoring & Debugging
 
 ```bash
-# MCP server status
-npm run mcp:status       # Check MCP server status
-npm run mcp:setup        # Setup MCP server
-
 # Time utilities (Korean timezone)
 npm run kst:time        # Current Korean time
 npm run kst:commit      # Commit timestamp format
 
 # Health check
 npm run health-check    # API health check
+
+# Gemini CLI Dev Tools
+npm run gemini:status   # Gemini CLI connection status
+npm run gemini:analyze  # Code analysis
+npm run gemini:review   # Git changes review
 ```
 
 ## Architecture Overview
@@ -442,11 +443,47 @@ echo "변경사항" | gemini -p "@docs/ 관련 문서 찾기"
 # Claude가 CHANGELOG.md 및 문서 갱신
 ```
 
-### MCP 서버 활용
+### 🚀 Gemini CLI 개발도구 활용 (TypeScript 기반)
 
-Gemini CLI의 MCP 서버가 설정되어 있어 대용량 파일 분석이 가능합니다:
-- 설정 파일: `~/.gemini/settings.json`
-- MCP 도구: `gemini-mcp-tool`
-- 파일 참조: `@파일경로` 구문 사용
+TypeScript로 모듈화된 Gemini CLI 개발도구가 구축되어 있습니다:
 
-자세한 사용법은 `GEMINI_USAGE_GUIDE.md`를 참조하세요.
+#### 📊 코드 분석
+```bash
+# 기본 분석
+npm run gemini:analyze
+
+# 보안 중심 분석
+npm run gemini:analyze -- --types security --output security-report.md
+
+# 특정 패턴 분석
+npm run gemini:analyze -- --patterns "src/**/*.ts" --depth comprehensive
+```
+
+#### 🔍 Git 리뷰
+```bash
+# 현재 변경사항 리뷰
+npm run gemini:review
+
+# 특정 브랜치 리뷰
+npm run gemini:review -- --target feature/new-feature --base main
+
+# 보안 중심 리뷰
+npm run gemini:review -- --type security --output review-report.md
+```
+
+#### 📊 상태 확인
+```bash
+# Gemini CLI 상태 및 통계
+npm run gemini:status
+
+# 확장 도움말
+npm run gemini:help
+```
+
+#### 🔧 개발도구 특징
+- **로컬 전용**: Vercel 배포에서 자동 제외
+- **모듈화**: 재사용 가능한 TypeScript 모듈 구조
+- **타입 안전성**: 완전한 TypeScript 지원
+- **성능 최적화**: MCP 오버헤드 없는 직접 호출
+
+자세한 사용법은 `docs/gemini-cli-dev-tools-guide.md`를 참조하세요.

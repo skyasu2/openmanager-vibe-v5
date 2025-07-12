@@ -70,4 +70,10 @@ scripts/
 README.md
 .env.example
 .env.template
-tsconfig.tsbuildinfo 
+tsconfig.tsbuildinfo
+
+# 개발 도구 (로컬 전용)
+src/dev-tools/
+**/dev-tools/
+**/*.dev.*
+**/*-dev.* 

@@ -1,0 +1,59 @@
+{
+  "gemini": {
+    "executablePath": "gemini",
+    "timeout": 30000,
+    "maxRetries": 3,
+    "logLevel": "info"
+  },
+  "codeAnalysis": {
+    "defaultPatterns": [
+      "src/**/*.{ts,tsx,js,jsx}",
+      "!src/**/*.test.{ts,tsx,js,jsx}",
+      "!src/**/*.spec.{ts,tsx,js,jsx}",
+      "!src/**/dev-tools/**"
+    ],
+    "maxFiles": 50,
+    "excludePatterns": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/.next/**",
+      "**/coverage/**",
+      "**/.git/**"
+    ]
+  },
+  "gitReview": {
+    "defaultBase": "main",
+    "maxFiles": 20,
+    "excludePatterns": [
+      "*.lock",
+      "*.log",
+      "**/node_modules/**",
+      "**/dist/**"
+    ]
+  },
+  "output": {
+    "defaultFormat": "markdown",
+    "timestampFormat": "YYYY-MM-DD HH:mm:ss (KST)",
+    "maxOutputSize": "10MB"
+  },
+  "security": {
+    "allowedDirectories": [
+      "src/",
+      "tests/",
+      "docs/",
+      "scripts/"
+    ],
+    "blockedPatterns": [
+      "**/.env*",
+      "**/secrets/**",
+      "**/private/**"
+    ]
+  },
+  "performance": {
+    "batchSize": 5,
+    "parallelProcessing": true,
+    "cacheResults": true,
+    "cacheExpiry": 3600000
+  }
+}
