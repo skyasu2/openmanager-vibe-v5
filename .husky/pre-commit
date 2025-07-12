@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-
+# Husky pre-commit hook
 echo "🔍 Pre-commit 검증 시작..."
 
 # 비밀 키 스캔

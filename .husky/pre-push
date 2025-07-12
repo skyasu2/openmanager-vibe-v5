@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-
+# Husky pre-push hook
 echo "🚀 Pre-push 검증 시작..."
 
 # 🚨 백그라운드에서 30초 타임아웃 설정
