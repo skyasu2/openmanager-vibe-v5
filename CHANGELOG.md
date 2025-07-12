@@ -1,5 +1,26 @@
 # Changelog
 
+## [5.46.6] - 2025-07-12
+
+### 🧹 Claude Monitor 완전 정리 및 원본 복구
+
+#### GitHub 원본 기준 재설치 완료
+- **Maciek-roboblog/Claude-Code-Usage-Monitor** 원본 상태로 완전 복구
+- 모든 커스터마이징 파일 제거 (claude_monitor_korean.py, cm-tmux.sh)
+- Git working tree 완전 정리 (clean state)
+
+#### cm 명령어 체계 개선
+- **cm**: 기본 실행 (max20 플랜, Asia/Seoul 시간대)
+- **cm:dark**: 다크 테마 실행
+- **cm:light**: 라이트 테마 실행  
+- **cm:pro**: Pro 플랜 (~7,000 토큰)
+- **cm:max5**: Max5 플랜 (~35,000 토큰)
+
+#### 기술적 정리
+- 삭제된 파일 참조 제거 (cm:tmux 등)
+- postcommit/postpush 스크립트 안정화 (timeout 적용)
+- GitHub README 권장사항 준수
+
 ## [5.46.5] - 2025-07-12
 
 ### 🎯 Claude Monitor 복구 및 cu 명령어 추가
