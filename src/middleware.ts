@@ -22,11 +22,11 @@ const PUBLIC_PATHS = [
   '/api/ping',
   '/about',
   '/notes',
-  '/',  // 홈페이지는 공개 (단, 기능은 제한)
 ];
 
 // GitHub 인증이 필요한 경로들
 const PROTECTED_PATHS = [
+  '/',  // 홈페이지도 인증 필요
   '/dashboard',
   '/admin',
   '/system-boot',

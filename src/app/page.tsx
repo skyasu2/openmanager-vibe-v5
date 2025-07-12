@@ -92,7 +92,12 @@ export default function Home() {
 
         // 현재 사용자 정보 가져오기
         const user = await getCurrentUser();
-        if (user) {
+        
+        // 게스트 사용자는 홈페이지 접근 불가
+        if (user && user.provider === 'guest') {
+          console.log('🚫 게스트 사용자는 홈페이지 접근 불가');
+          setCurrentUser(null);
+        } else if (user) {
           setCurrentUser({
             name: user.name || 'User',
             email: user.email,
@@ -128,17 +133,12 @@ export default function Home() {
   useEffect(() => {
     if (!isMounted || authLoading) return;
     
-    // 이미 로그인 페이지에 있으면 스킵
-    if (typeof window !== 'undefined' && window.location.pathname === '/login') {
-      return;
-    }
-    
-    // 인증된 사용자가 없고 게스트도 아니면 로그인 페이지로
-    if (!currentUser) {
+    // 인증 체크 완료 후 사용자가 없으면 즉시 리다이렉션
+    if (authChecked && !currentUser) {
       console.log('🚨 인증 정보 없음 - 로그인 페이지로 이동');
-      window.location.href = '/login';
+      router.replace('/login');
     }
-  }, [isMounted, authLoading, currentUser]);
+  }, [isMounted, authLoading, authChecked, currentUser, router]);
 
 
   // 🔧 상태 변화 디버깅 (클라이언트에서만)
@@ -403,8 +403,8 @@ export default function Home() {
     );
   }
 
-  // NextAuth 로딩 중이고 아직 인증 체크가 안됐으면 대기
-  if (status === 'loading' && !authChecked) {
+  // 인증 로딩 중이고 아직 인증 체크가 안됐으면 대기
+  if (authLoading && !authChecked) {
     return (
       <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
         <div className='flex items-center justify-center min-h-screen'>
@@ -418,14 +418,7 @@ export default function Home() {
   }
 
   // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
-  // authChecked가 true이고, currentUser가 없는 경우
   if (authChecked && !currentUser) {
-    console.log('🚫 최종 인증 실패 - 로그인 페이지로 리다이렉트 (렌더링 단계)');
-    // 이미 리다이렉트 중이면 추가로 push하지 않음
-    if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-      // 즉시 리다이렉션
-      window.location.href = '/login';
-    }
     return (
       <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
         <div className='flex items-center justify-center min-h-screen'>
