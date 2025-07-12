@@ -7,6 +7,7 @@ TypeScript 기반의 모듈화된 Gemini CLI 통합 개발도구 사용법입니
 ### ✅ **채택된 방식: TypeScript 기반 개발도구**
 
 **이유:**
+
 1. **성능 최적화**: MCP 서버 2개 제거로 리소스 절약 (7개 → 9개 → 7개)
 2. **모듈화**: 재사용 가능한 TypeScript 모듈 구조
 3. **타입 안전성**: 완전한 TypeScript 지원
@@ -16,10 +17,12 @@ TypeScript 기반의 모듈화된 Gemini CLI 통합 개발도구 사용법입니
 ### ❌ **제거된 방식: MCP 활용**
 
 **제거된 MCP 서버:**
+
 - `gemini-mcp-tool` ❌ (제거됨)
 - `gemini-bridge` ❌ (제거됨)
 
 **이유:**
+
 - 높은 메모리 사용량
 - 복잡한 MCP 프로토콜 오버헤드
 - 단순한 터미널 명령어로 충분함
@@ -103,7 +106,7 @@ src/dev-tools/gemini-cli/
 
 ### 필요한 환경
 
-- **Node.js**: 18+ (권장: 22+)
+- **Node.js**: 22+ (권장: 22.15.1+)
 - **Gemini CLI**: 설치 및 로그인 완료
 - **TypeScript**: 프로젝트에 포함됨
 - **개발 환경**: 로컬 개발 전용
@@ -258,7 +261,7 @@ program
 1. **로컬 전용**: 서버 환경에서 실행 불가
 2. **파일 크기**: 매우 큰 파일 처리 시 메모리 주의
 3. **API 제한**: Gemini CLI 일일 사용량 제한
-4. **Node.js 의존성**: 22+ 권장 (18+ 최소)
+4. **Node.js 의존성**: 22+ 권장 (22.15.1+ 최소)
 
 ### 보안 고려사항
 
@@ -272,6 +275,7 @@ program
 ### 일반적인 문제
 
 1. **"Gemini CLI 연결 실패"**
+
    ```bash
    # 설치 확인
    gemini --version
@@ -281,6 +285,7 @@ program
    ```
 
 2. **"타임아웃 오류"**
+
    ```bash
    # 더 작은 패턴으로 분석
    npm run gemini:analyze -- --patterns "src/components/**/*.ts"
@@ -290,6 +295,7 @@ program
    ```
 
 3. **"메모리 부족"**
+
    ```bash
    # Node.js 메모리 증가
    NODE_OPTIONS="--max-old-space-size=8192" npm run gemini:analyze

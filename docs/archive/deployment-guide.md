@@ -1,7 +1,7 @@
 # 🚀 OpenManager Vibe v5 배포 가이드
 
 > **GCP Functions 마이그레이션 완료** - v5.44.3 (2025년 7월)
-> **주의**: GCP Functions는 Node.js 20까지만 지원하므로, Vercel과 MCP 서버는 Node.js 22.15.1을 사용합니다.
+> **주의**: GCP Functions는 Node.js 22를 지원하므로, 모든 서비스에서 Node.js 22.15.1을 사용합니다.
 
 ## 📋 목차
 
@@ -348,7 +348,7 @@ gcloud compute firewall-rules create allow-mcp-server \
 # 1. VM 접속
 gcloud compute ssh mcp-server --zone=asia-northeast3-a
 
-# 2. Node.js 설치 (v22.15.1 - Vercel/MCP용, GCP Functions는 Node.js 20 사용)
+# 2. Node.js 설치 (v22.15.1 - 모든 서비스용)
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt-get install -y nodejs
 

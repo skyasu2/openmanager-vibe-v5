@@ -1,6 +1,7 @@
 # MCP 문제 해결 완전 가이드
 
 ## 현재 문제 상황
+
 - ❌ Claude Code가 MCP 서버를 인식하지 못함
 - ❌ `/mcp` 명령 시 "No MCP servers configured" 메시지
 - ❌ MCP 프로세스가 실행되지 않음
@@ -8,6 +9,7 @@
 ## 문제 진단
 
 ### 1. 설정 파일 상태
+
 ```bash
 # Claude Code 전역 설정 확인
 cat ~/.claude/settings.json
@@ -19,6 +21,7 @@ cat .claude/mcp.json
 ```
 
 ### 2. 프로세스 상태
+
 ```bash
 # MCP 프로세스 확인
 ps aux | grep mcp
@@ -47,12 +50,14 @@ claude
 ### 방법 2: 수동 설정 (권장)
 
 #### 단계 1: Claude Code 전역 설정 업데이트
+
 ```bash
 # 설정 파일 직접 편집
 nano ~/.claude/settings.json
 ```
 
 다음 내용 추가:
+
 ```json
 {
   "mcpServers": {
@@ -76,6 +81,7 @@ nano ~/.claude/settings.json
 ```
 
 #### 단계 2: 환경 변수 설정
+
 ```bash
 # .bashrc 또는 .zshrc에 추가
 export SUPABASE_URL="https://vnswjnltnhpsueosfhmw.supabase.co"
@@ -88,6 +94,7 @@ source ~/.bashrc
 ```
 
 #### 단계 3: Claude Code 재시작
+
 ```bash
 # 모든 Claude 프로세스 종료
 pkill -f claude
@@ -118,6 +125,7 @@ ln -s /mnt/d/cursor/openmanager-vibe-v5 ~/openmanager-vibe-v5
 ## 디버깅 방법
 
 ### 1. Claude Code 로그 확인
+
 ```bash
 # 로그 디렉토리 찾기
 find ~ -name "claude*log*" -type f 2>/dev/null
@@ -127,12 +135,14 @@ tail -f ~/.claude/logs/*.log
 ```
 
 ### 2. MCP 서버 디버깅 모드
+
 ```bash
 # 디버깅 모드로 MCP 서버 실행
 DEBUG=* node /mnt/d/cursor/openmanager-vibe-v5/node_modules/@modelcontextprotocol/server-filesystem/dist/index.js
 ```
 
 ### 3. 권한 문제 확인
+
 ```bash
 # 파일 권한 확인
 ls -la ~/.claude/
@@ -145,28 +155,36 @@ chmod +x node_modules/@modelcontextprotocol/*/dist/index.js
 ## 일반적인 오류와 해결
 
 ### 오류 1: "No MCP servers configured"
+
 **원인**: Claude Code가 설정 파일을 찾지 못함
-**해결**: 
+**해결**:
+
 - 전역 설정 파일 생성 (~/.claude/settings.json)
 - 절대 경로 사용
 
 ### 오류 2: "ENOENT: no such file or directory"
+
 **원인**: 잘못된 경로
 **해결**:
+
 - 절대 경로 사용
 - WSL에서는 /mnt/d/ 경로 확인
 
 ### 오류 3: "Permission denied"
+
 **원인**: 실행 권한 없음
 **해결**:
+
 ```bash
 chmod +x node_modules/@modelcontextprotocol/*/dist/index.js
 chmod +x node_modules/@supabase/mcp-server-supabase/dist/index.js
 ```
 
 ### 오류 4: 환경 변수 인식 안됨
+
 **원인**: Claude Code가 환경 변수를 상속받지 못함
 **해결**:
+
 - 설정 파일에 직접 값 입력
 - 환경 변수 설정 후 같은 터미널에서 Claude 실행
 
@@ -210,7 +228,7 @@ chmod +x node_modules/@supabase/mcp-server-supabase/dist/index.js
 ## 문제가 지속된다면
 
 1. Claude Code 버전 확인
-2. Node.js 버전 확인 (v18+ 권장)
+2. Node.js 버전 확인 (v22+ 권장)
 3. WSL 버전 확인 (WSL2 권장)
 4. Claude Code 재설치 고려
 

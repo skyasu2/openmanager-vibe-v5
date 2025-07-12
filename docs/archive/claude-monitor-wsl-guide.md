@@ -56,6 +56,7 @@ source ~/.bashrc
 현재 두 가지 모니터링 시스템을 제공합니다:
 
 ### 1. 기존 시스템 (claude-usage-monitor)
+
 - 외부 npm 패키지 사용
 - 안정적이고 검증됨
 - UV 도구 필요
@@ -68,6 +69,7 @@ npm run cm:background     # tmux 백그라운드
 ```
 
 ### 2. 새로운 WSL 최적화 시스템 (Python)
+
 - 직접 구현, 커스터마이징 가능
 - WSL 환경에 최적화
 - 경량화된 실행
@@ -134,6 +136,7 @@ tmux kill-session -t claude-py
 ### WSL 시작 시 자동 실행
 
 1. **~/.profile에 추가**:
+
 ```bash
 # Claude Monitor 자동 시작
 if [ -f ~/openmanager-vibe-v5/scripts/claude-monitor.py ]; then
@@ -143,6 +146,7 @@ fi
 ```
 
 2. **Windows 작업 스케줄러 사용**:
+
 ```powershell
 # PowerShell에서 실행
 $action = New-ScheduledTaskAction -Execute "wsl.exe" -Argument "-d Ubuntu -- bash -c 'cd ~/openmanager-vibe-v5 && python3 scripts/claude-monitor.py --plan max20'"
@@ -170,6 +174,7 @@ Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "ClaudeMonito
 ### VS Code 통합
 
 1. **작업 추가** (.vscode/tasks.json):
+
 ```json
 {
   "version": "2.0.0",
@@ -192,6 +197,7 @@ Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "ClaudeMonito
 ```
 
 2. **키보드 단축키** (keybindings.json):
+
 ```json
 {
   "key": "ctrl+shift+m",
@@ -205,6 +211,7 @@ Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "ClaudeMonito
 ### 일반적인 문제
 
 #### 1. "ccusage를 찾을 수 없음"
+
 ```bash
 # ccusage 위치 확인
 which ccusage
@@ -214,6 +221,7 @@ export PATH="$HOME/.local/bin:$PATH"
 ```
 
 #### 2. Python 모듈 오류
+
 ```bash
 # pytz 재설치
 pip3 install --user --force-reinstall pytz
@@ -223,6 +231,7 @@ python3 -c "import sys; print(sys.path)"
 ```
 
 #### 3. 화면 깨짐
+
 ```bash
 # 터미널 환경 설정
 export TERM=xterm-256color
@@ -231,6 +240,7 @@ export TERM=xterm-256color
 ```
 
 #### 4. WSL 경로 문제
+
 ```bash
 # WSL 홈 디렉토리 사용
 cd ~
@@ -259,18 +269,20 @@ env | grep -E '(TERM|PATH|PYTHON)'
 | 메모리 사용량 | ~50MB | ~15MB |
 | 시작 시간 | 2-3초 | <1초 |
 | CPU 사용률 | 2-3% | <1% |
-| 의존성 | UV, Node.js 20+ | Python 3.8+ |
+| 의존성 | UV, Node.js 22+ | Python 3.8+ |
 | 커스터마이징 | 제한적 | 자유로움 |
 | WSL 최적화 | 일반적 | 특화됨 |
 
 ### 사용 시나리오
 
 **기존 시스템이 적합한 경우**:
+
 - 안정성이 최우선
 - 여러 컴퓨터에서 동일한 환경 필요
 - 업데이트 자동화 필요
 
 **새 Python 시스템이 적합한 경우**:
+
 - WSL 전용 환경
 - 빠른 시작과 낮은 리소스 사용 필요
 - 프로젝트별 커스터마이징 필요

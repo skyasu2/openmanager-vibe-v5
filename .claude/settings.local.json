@@ -125,7 +125,8 @@
       "Bash(alias cm)",
       "Bash(/mnt/d/cursor/openmanager-vibe-v5/scripts/fix-mcp-setup.sh:*)",
       "Bash(claude mcp:*)",
-      "Bash(claude:*)"
+      "Bash(claude:*)",
+      "Bash(cmd.exe:*)"
     ],
     "deny": []
   }

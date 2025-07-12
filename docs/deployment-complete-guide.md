@@ -45,7 +45,7 @@ graph TB
 ### 기술 스택
 
 - **프론트엔드**: Next.js 15, TypeScript, Tailwind CSS
-- **백엔드**: Edge Runtime, GCP Functions (Node.js 20)
+- **백엔드**: Edge Runtime, GCP Functions (Node.js 22)
 - **데이터베이스**: Supabase (PostgreSQL)
 - **캐싱**: Upstash Redis
 - **AI**: Google AI (Gemini), MCP Context Assistant
@@ -65,7 +65,7 @@ Ubuntu 20.04+
 
 # Node.js (필수)
 v22.15.1+ (Vercel/MCP용)
-v20.x (GCP Functions용)
+v22.x (GCP Functions용)
 npm 10.0.0+
 
 # 메모리

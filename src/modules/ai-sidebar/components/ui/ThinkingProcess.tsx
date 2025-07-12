@@ -8,22 +8,22 @@
 
 'use client';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { formatPercentage } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
+import React, { useState } from 'react';
 
 interface RealTimeLogEntry {
   id: string;
   timestamp: string;
   level:
-    | 'INFO'
-    | 'DEBUG'
-    | 'PROCESSING'
-    | 'SUCCESS'
-    | 'ERROR'
-    | 'WARNING'
-    | 'ANALYSIS'
-    | 'WARN';
+  | 'INFO'
+  | 'DEBUG'
+  | 'PROCESSING'
+  | 'SUCCESS'
+  | 'ERROR'
+  | 'WARNING'
+  | 'ANALYSIS'
+  | 'WARN';
   module: string;
   message: string;
   details?: string;
@@ -122,9 +122,9 @@ export const ThinkingProcess: React.FC<ThinkingProcessProps> = ({
             animate={
               isProcessing
                 ? {
-                    rotate: [0, 360],
-                    scale: [1, 1.1, 1],
-                  }
+                  rotate: [0, 360],
+                  scale: [1, 1.1, 1],
+                }
                 : {}
             }
             transition={{
@@ -213,7 +213,7 @@ export const ThinkingProcess: React.FC<ThinkingProcessProps> = ({
                         - React Framework
                       </div>
                       <div>
-                        • <span className='text-blue-400'>Node.js v18+</span> -
+                        • <span className='text-blue-400'>Node.js v22+</span> -
                         Runtime
                       </div>
                       <div>

@@ -49,7 +49,7 @@ if command -v npx &> /dev/null; then
     echo -e "${GREEN}✅ npx 설치 확인됨${NC}"
 else
     echo -e "${RED}❌ npx가 설치되지 않았습니다${NC}"
-    echo "Node.js를 설치하세요: curl -fsSL https://deb.nodesource.com/setup_18.x  < /dev/null |  sudo -E bash - && sudo apt-get install -y nodejs"
+    echo "Node.js를 설치하세요: curl -fsSL https://deb.nodesource.com/setup_22.x  < /dev/null |  sudo -E bash - && sudo apt-get install -y nodejs"
 fi
 
 # 5. 설정 완료
