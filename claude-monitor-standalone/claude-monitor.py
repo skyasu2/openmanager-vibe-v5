@@ -244,11 +244,23 @@ class ClaudeMonitor:
         remaining_tokens = token_limit - total_tokens
         usage_percentage = (total_tokens / token_limit) * 100 if token_limit > 0 else 0
         
+        # Input/Output 토큰 상세 정보
+        input_tokens = 0
+        output_tokens = 0
+        if session.get("tokenCounts"):
+            input_tokens = session["tokenCounts"].get("inputTokens", 0)
+            output_tokens = session["tokenCounts"].get("outputTokens", 0)
+        
         print(f"{Colors.BOLD}📊 토큰 사용량:{Colors.RESET}")
         print(f"   🟢 {self.get_progress_bar(total_tokens, token_limit, 40)} {usage_percentage:.1f}%")
         print(f"   현재: {self.format_number(total_tokens)} | "
               f"전체: {self.format_number(token_limit)} | "
               f"남은 토큰: {Colors.CYAN}{self.format_number(remaining_tokens)}{Colors.RESET}")
+        
+        # Input/Output 비율 표시
+        if input_tokens > 0 or output_tokens > 0:
+            print(f"   📥 Input: {self.format_number(input_tokens)} | "
+                  f"📤 Output: {self.format_number(output_tokens)}")
         print()
         
         # 타이밍 정보
@@ -272,9 +284,11 @@ class ClaudeMonitor:
         # Burn Rate
         if session.get("burnRate"):
             # tokensPerMinuteForIndicator를 사용 (실제 소비되는 토큰만)
-            burn_rate = session["burnRate"].get("tokensPerMinuteForIndicator", 
+            burn_rate_actual = session["burnRate"].get("tokensPerMinuteForIndicator", 
                                                session["burnRate"].get("tokensPerMinute", 0))
-            print(f"   🔥 소진율: {Colors.YELLOW}{burn_rate:.1f}{Colors.RESET} 토큰/분")
+            burn_rate_total = session["burnRate"].get("tokensPerMinute", 0)
+            print(f"   🔥 소진율: {Colors.YELLOW}{burn_rate_actual:.1f}{Colors.RESET} 토큰/분 (실제)")
+            print(f"   💾 캐시 포함: {Colors.GRAY}{self.format_number(burn_rate_total)}{Colors.RESET} 토큰/분")
         
         # 리셋 정보
         print(f"   🔄 다음 리셋: {next_reset.strftime('%H:%M:%S KST')}")
