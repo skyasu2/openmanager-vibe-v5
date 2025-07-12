@@ -42,7 +42,7 @@ def run_korean_monitor():
     """한글화된 Claude 모니터 실행"""
     try:
         # 한글 모니터를 한 번만 실행하도록 timeout 설정
-        cmd = ['timeout', '3', 'python3', 'claude_monitor_korean.py', '--plan', 'max20', '--timezone', 'Asia/Seoul']
+        cmd = ['timeout', '3', 'python3', 'claude_monitor_korean.py', '--plan', 'max20', '--timezone', 'Asia/Seoul', '--once']
         subprocess.run(cmd, cwd=os.path.expanduser('~/Claude-Code-Usage-Monitor'))
     except Exception as e:
         print(f"❌ 한글 모니터 오류: {e}")
