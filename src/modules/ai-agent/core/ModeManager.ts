@@ -50,7 +50,6 @@ export interface ModeConfig {
     idleTimeout: number; // 유휴 상태 진입 시간 (ms)
     sleepTimeout: number; // 절전 모드 진입 시간 (ms)
     wakeupTriggers: string[]; // 깨우기 트리거
-    enableAutoSleep: boolean;
   };
 }
 
@@ -78,10 +77,8 @@ export class ModeManager {
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    // 절전 모드 스케줄러 시작
-    if (this.config.powerManagement.enableAutoSleep) {
-      this.startPowerManagement();
-    }
+    // 절전 모드 스케줄러는 항상 시작
+    this.startPowerManagement();
 
     this.isInitialized = true;
     console.log('🎛️ Mode Manager initialized');

@@ -1,5 +1,26 @@
 # Changelog
 
+## [5.46.3] - 2025-07-12
+
+### 🎯 AI 엔진 Auto 모드 제거
+
+#### 제거된 기능들
+- AI 엔진의 자동 모드 전환 기능 완전 제거
+- `enableAutoSwitch`, `enableAutoSleep` 설정 제거
+- `autoModeEnabled` 관련 모든 코드 정리
+
+#### 변경된 파일들
+- `src/types/ai-types.ts` - auto 관련 설정 제거
+- `src/modules/ai-agent/core/EnhancedModeManager.ts` - 자동 모드 로직 제거
+- `src/modules/ai-agent/infrastructure/AIAgentProvider.tsx` - 'auto' 옵션 제거
+- `src/core/ai/engines/GoogleAIModeManager.ts` - enableAutoSwitch 제거
+- `src/modules/ai-agent/core/ModeManager.ts` - enableAutoSleep 제거
+
+#### 개선 효과
+- 더 명확하고 예측 가능한 AI 모드 시스템
+- LOCAL과 GOOGLE_ONLY 2가지 모드만 유지
+- 코드 복잡도 감소 및 유지보수성 향상
+
 ## [5.46.2] - 2025-07-12
 
 ### 🧹 프로젝트 루트 정리 및 TypeScript 안정화

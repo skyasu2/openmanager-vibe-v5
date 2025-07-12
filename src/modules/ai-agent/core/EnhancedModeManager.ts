@@ -47,7 +47,6 @@ interface IncidentHistoryItem {
 export class EnhancedModeManager {
   private modeDetector: SmartModeDetector;
   private currentMode: AIAgentMode = 'basic';
-  private autoModeEnabled: boolean = true;
   private modeHistory: Array<{
     timestamp: number;
     query: string;
@@ -71,14 +70,13 @@ export class EnhancedModeManager {
   }
 
   /**
-   * 쿼리 분석 후 자동 모드 선택
+   * 쿼리 분석 및 모드 반환 (자동 설정 제거)
    */
   analyzeAndSetMode(query: string): QueryAnalysis {
     const analysis = this.modeDetector.analyzeQuery(query);
     
-    if (this.autoModeEnabled) {
-      const previousMode = this.currentMode;
-      this.currentMode = analysis.detectedMode;
+    // 자동 모드 설정 제거 - 분석 결과만 반환
+    const previousMode = this.currentMode;
       
       // 모드 변경 히스토리 기록
       this.modeHistory.push({
@@ -106,10 +104,9 @@ export class EnhancedModeManager {
         incidentSeverity: analysis.incidentSeverity
       });
       
-      // 장애 관련 쿼리인 경우 장애 이력 관리
-      if (analysis.isIncidentRelated && analysis.incidentType) {
-        this.trackIncident(query, analysis.incidentType, analysis.incidentSeverity || 'medium');
-      }
+    // 장애 관련 쿼리인 경우 장애 이력 관리
+    if (analysis.isIncidentRelated && analysis.incidentType) {
+      this.trackIncident(query, analysis.incidentType, analysis.incidentSeverity || 'medium');
     }
     
     return analysis;
@@ -361,20 +358,6 @@ export class EnhancedModeManager {
     console.log(`🔄 Manual mode change to: ${mode}`);
   }
 
-  /**
-   * 자동 모드 활성화/비활성화
-   */
-  setAutoMode(enabled: boolean): void {
-    this.autoModeEnabled = enabled;
-    console.log(`🔄 Auto mode ${enabled ? 'enabled' : 'disabled'}`);
-  }
-
-  /**
-   * 자동 모드 상태 확인
-   */
-  isAutoModeEnabled(): boolean {
-    return this.autoModeEnabled;
-  }
 
   /**
    * 모드 변경 히스토리 조회

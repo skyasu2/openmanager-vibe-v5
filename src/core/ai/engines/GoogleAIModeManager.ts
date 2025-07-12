@@ -21,7 +21,6 @@ import {
 
 // GoogleAI 전용 설정 인터페이스 (기본 AIEngineConfig 확장)
 export interface GoogleAIModeConfig extends AIEngineConfig {
-  enableAutoSwitch: boolean;
   maxRetries: number;
   healthCheckInterval: number;
   quotaLimits: {
@@ -58,7 +57,6 @@ export class GoogleAIModeManager {
       mode: 'LOCAL', // 🏠 로컬 모드가 기본값
       fallbackTimeout: 5000,
       confidenceThreshold: 0.7,
-      enableAutoSwitch: true,
       maxRetries: 3,
       healthCheckInterval: 30000,
       quotaLimits: {

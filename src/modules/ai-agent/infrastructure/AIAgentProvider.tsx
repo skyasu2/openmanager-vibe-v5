@@ -27,7 +27,7 @@ import AIAgentService, {
 
 // 타입 정의를 인라인으로 이동
 interface HybridEngineStatus {
-  currentMode: 'mcp' | 'rag' | 'auto';
+  currentMode: 'mcp' | 'rag';
   mcpHealth?: {
     healthy: boolean;
   };
@@ -38,14 +38,14 @@ interface HybridEngineStatus {
 
 // HybridFailoverEngine 클래스 대체 구현
 class HybridFailoverEngine {
-  private mode: 'mcp' | 'rag' | 'auto' = 'auto';
+  private mode: 'mcp' | 'rag' = 'mcp';  // 기본값을 'mcp'로 변경
   private stats = {
     lastProcessingTime: 0,
     successRate: 1,
     totalQueries: 0
   };
 
-  setMode(mode: 'mcp' | 'rag' | 'auto') {
+  setMode(mode: 'mcp' | 'rag') {
     this.mode = mode;
   }
 

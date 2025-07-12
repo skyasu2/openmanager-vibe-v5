@@ -145,7 +145,6 @@ export interface AIEngineConfig {
   mode: AIMode;
   fallbackTimeout: number;
   confidenceThreshold: number;
-  enableAutoSwitch: boolean;
   maxRetries: number;
   enableCaching: boolean;
 }
@@ -182,7 +181,6 @@ export interface AIAgentConfig {
     idleTimeout: number;
     sleepTimeout: number;
     wakeupTriggers: string[];
-    enableAutoSleep: boolean;
   };
 }
 
