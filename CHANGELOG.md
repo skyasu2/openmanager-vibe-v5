@@ -1,5 +1,37 @@
 # Changelog
 
+## [5.46.11] - 2025-07-12
+
+### 🔧 cm 명령어 WSL 환경 완벽 지원
+
+#### WSL 호환성 문제 해결
+- **cm-wrapper.sh**: WSL에서 interactive/non-interactive 상관없이 동작하는 래퍼 스크립트 생성
+- **bashrc alias 문제 해결**: non-interactive shell에서 bashrc early return 문제 해결
+- **줄바꿈 문제 수정**: Windows 스타일 \r\n을 Unix 스타일로 변환
+
+#### 새로운 cm 명령어 구조
+- **cm**: 기본 실행 (max20 플랜, KST 시간대)
+- **cm:once**: 한 번만 실행 후 종료
+- **cm:compact**: 간결 모드 (Claude Code 접힘 방지)
+- **cm:pro**: Pro 플랜 (7,000 토큰 한도)
+- **cm:max5**: Max5 플랜 (35,000 토큰 한도)
+
+#### cm-wrapper.sh 기능
+- **인수 처리**: --plan, --once, --compact 옵션 지원
+- **기본 설정**: max20 플랜, Asia/Seoul 시간대
+- **유연한 실행**: 모든 추가 인수를 Claude Monitor로 전달
+
+#### 테스트 완료 기능
+- **cm:once**: 정상 작동 확인 (11,926/140,000 토큰, 8.5%)
+- **cm:compact**: 간결 모드 정상 작동
+- **cm:pro**: Pro 플랜 정상 작동 (11,953/7,000 토큰, 170.8% 초과 표시)
+- **WSL 감지**: "🐧 WSL에서 실행 중" 표시 정상
+
+#### 기술적 개선
+- **non-interactive shell 지원**: bashrc의 interactive check 우회
+- **스크립트 기반 실행**: npm run cm 명령어로 안정적 실행
+- **에러 처리**: 파일 권한, 경로 문제 해결
+
 ## [5.46.10] - 2025-07-12
 
 ### 🎯 cu 명령어 단순화: ccusage 명령어 안내 전용
