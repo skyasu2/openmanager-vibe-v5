@@ -1,5 +1,38 @@
 # Changelog
 
+## [5.46.5] - 2025-07-12
+
+### 🎯 Claude Monitor 복구 및 cu 명령어 추가
+
+#### 원상 복구
+- **커밋 복구**: 71e5aeda5 커밋으로 안정적인 상태 복구
+- **Maciek-roboblog 모니터**: 원본 Claude-Code-Usage-Monitor 사용
+
+#### 한글화 완료
+- **claude_monitor_korean.py**: Maciek-roboblog 모니터 한글화 버전 생성
+- **주요 텍스트 한글화**:
+  - 헤더: "CLAUDE 코드 사용량 모니터"
+  - 토큰 사용량, 리셋까지 시간, 소진율 등 모든 인터페이스
+  - 상태 메시지: "원활하게 진행 중...", "종료하려면 Ctrl+C" 등
+
+#### cu 명령어 시스템 구축
+- **cu-wrapper.py**: 통합 모니터링 스크립트 생성
+- **cu 명령어 옵션**:
+  - `cu`: 한글 모니터 + ccusage 정보 + 명령어 목록
+  - `cu --live`: 실시간 한글 모니터링
+  - `cu --usage`: ccusage 블록 정보만 표시
+  - `cu --json`: JSON 형태 데이터 표시
+
+#### WSL 최적화
+- **cu-setup-wsl.sh**: WSL 환경 설정 자동화 스크립트
+- **package.json**: cu 관련 npm 스크립트 추가
+- **alias 설정**: WSL bashrc에 cu 명령어 등록
+
+#### 기술적 개선사항
+- 한글 텍스트 자동 변환 시스템
+- 모듈화된 명령어 구조
+- ccusage와 한글 모니터 통합 인터페이스
+
 ## [5.46.4] - 2025-07-12
 
 ### 🔧 RealServerDataGenerator 완전 제거 및 GCP Redis 아키텍처 전환
