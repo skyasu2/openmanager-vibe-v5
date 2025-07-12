@@ -96,6 +96,10 @@ export default function Home() {
         // 게스트 사용자는 홈페이지 접근 불가
         if (user && user.provider === 'guest') {
           console.log('🚫 게스트 사용자는 홈페이지 접근 불가');
+          // 게스트 세션 정리
+          localStorage.removeItem('auth_session_id');
+          localStorage.removeItem('auth_type');
+          localStorage.removeItem('auth_user');
           setCurrentUser(null);
         } else if (user) {
           setCurrentUser({
