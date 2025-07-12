@@ -130,7 +130,8 @@
       "Bash(/mnt/d/cursor/openmanager-vibe-v5/scripts/cm-terminal-fix.sh:*)",
       "Bash(echo)",
       "Bash(./unified-deployment-tools.sh:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(alias cm='cd ~/Claude-Code-Usage-Monitor && python3 claude_monitor_korean.py --plan max20 --timezone Asia/Seoul')"
     ],
     "deny": []
   }

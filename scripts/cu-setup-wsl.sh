@@ -32,12 +32,6 @@ sed -i '/# cu 명령어 별칭/,/^$/d' ~/.bashrc 2>/dev/null || true
 echo "" >> ~/.bashrc
 echo "# cu 명령어 별칭" >> ~/.bashrc
 echo "alias cu='python3 $PROJECT_ROOT/scripts/cu-wrapper.py'" >> ~/.bashrc
-echo "alias cu-daily='python3 $PROJECT_ROOT/scripts/cu-wrapper.py daily'" >> ~/.bashrc
-echo "alias cu-monthly='python3 $PROJECT_ROOT/scripts/cu-wrapper.py monthly'" >> ~/.bashrc
-echo "alias cu-session='python3 $PROJECT_ROOT/scripts/cu-wrapper.py session'" >> ~/.bashrc
-echo "alias cu-blocks='python3 $PROJECT_ROOT/scripts/cu-wrapper.py blocks'" >> ~/.bashrc
-echo "alias cu-live='python3 $PROJECT_ROOT/scripts/cu-wrapper.py live'" >> ~/.bashrc
-echo "alias cu-status='python3 $PROJECT_ROOT/scripts/cu-wrapper.py status'" >> ~/.bashrc
 echo -e "${GREEN}✅ cu 명령어 Alias 추가 완료${NC}"
 
 # 3. Python 의존성 확인
@@ -62,18 +56,17 @@ fi
 echo -e "\n${GREEN}✅ 모든 설정이 완료되었습니다!${NC}"
 echo ""
 echo -e "${BLUE}사용 가능한 명령어:${NC}"
-echo "  ${YELLOW}cu${NC}          - 명령어 목록 및 기본 정보 표시"
-echo "  ${YELLOW}cu-daily${NC}    - 일별 사용량 상세 분석"
-echo "  ${YELLOW}cu-monthly${NC}  - 월별 사용량 요약"
-echo "  ${YELLOW}cu-session${NC}  - 현재 세션 정보"
-echo "  ${YELLOW}cu-blocks${NC}   - 5시간 블록 단위 사용량"
-echo "  ${YELLOW}cu-live${NC}     - 실시간 모니터링 (5초마다 갱신)"
-echo "  ${YELLOW}cu-status${NC}   - 현재 활성 블록 상태"
+echo "  ${YELLOW}cu${NC}                     - ccusage 명령어 안내 표시"
+echo "  ${YELLOW}npx ccusage${NC}            - 일별 사용량 (기본)"
+echo "  ${YELLOW}npx ccusage monthly${NC}    - 월별 사용량"
+echo "  ${YELLOW}npx ccusage session${NC}    - 세션 정보"
+echo "  ${YELLOW}npx ccusage blocks${NC}     - 5시간 블록 분석"
+echo "  ${YELLOW}npx ccusage blocks --live${NC} - 실시간 모니터링"
 echo ""
 echo -e "${YELLOW}💡 설정을 적용하려면:${NC}"
 echo "  source ~/.bashrc"
 echo "  또는 새 터미널 세션을 시작하세요"
 echo ""
 echo -e "${BLUE}테스트:${NC}"
-echo "  ${YELLOW}cu${NC}         - 지금 바로 테스트해보기"
-echo "  ${YELLOW}cu-status${NC}  - 현재 상태 빠르게 확인"
+echo "  ${YELLOW}cu${NC}                     - ccusage 명령어 안내 확인"
+echo "  ${YELLOW}npx ccusage blocks --active${NC} - 현재 상태 빠르게 확인"

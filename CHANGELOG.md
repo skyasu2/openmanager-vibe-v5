@@ -1,5 +1,35 @@
 # Changelog
 
+## [5.46.10] - 2025-07-12
+
+### 🎯 cu 명령어 단순화: ccusage 명령어 안내 전용
+
+#### 완전한 단순화
+- **cu 명령어**: ccusage 명령어 안내만 표시하는 순수한 가이드
+- **서브커맨드 제거**: cu daily, cu monthly 등 모든 서브커맨드 완전 제거
+- **사용자 직접 실행**: 사용자가 npx ccusage를 직접 실행하도록 안내
+
+#### 새로운 cu 명령어 구조
+- **cu**: ccusage 명령어 목록과 사용법만 표시
+- **npx ccusage**: 사용자가 직접 실행 (일별 사용량)
+- **npx ccusage monthly**: 사용자가 직접 실행 (월별 분석)
+- **npx ccusage blocks --live**: 사용자가 직접 실행 (실시간 모니터링)
+
+#### 제거된 복잡성
+- **ccusage-wrapper.sh**: 불필요한 래퍼 스크립트 삭제
+- **cu 서브커맨드들**: package.json에서 cu:daily, cu:monthly 등 제거
+- **복잡한 래핑 로직**: subprocess, 에러 처리 등 모든 복잡성 제거
+
+#### 사용자 경험 개선
+- **명확한 안내**: ccusage 명령어를 직접 사용하는 방법 명시
+- **추가 옵션 설명**: --active, --json, --since, --until 옵션 안내
+- **사용 예시**: 실용적인 ccusage 명령어 조합 제시
+
+#### WSL 환경 최적화
+- **cu-setup-wsl.sh**: 새로운 단순한 구조 반영
+- **alias 정리**: 불필요한 cu-* alias들 모두 제거
+- **단일 cu alias**: python3 scripts/cu-wrapper.py만 유지
+
 ## [5.46.9] - 2025-07-12
 
 ### 🎯 cu 명령어 ccusage 원본 출력 모드
