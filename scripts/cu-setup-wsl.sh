@@ -1,4 +1,4 @@
-#!/bin/bash
+#\!/bin/bash
 # cu 명령어 WSL 설정 스크립트
 
 # 색상 정의
@@ -15,6 +15,8 @@ echo "=================================="
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
+echo "프로젝트 루트: $PROJECT_ROOT"
+
 # 1. cu-wrapper.py 실행 권한 부여
 echo -e "\n${YELLOW}1. 실행 권한 설정 중...${NC}"
 chmod +x "$PROJECT_ROOT/scripts/cu-wrapper.py"
@@ -24,7 +26,7 @@ echo -e "${GREEN}✅ 실행 권한 설정 완료${NC}"
 echo -e "\n${YELLOW}2. cu 명령어 Alias 설정 중...${NC}"
 
 # 기존 cu alias 제거
-sed -i '/# cu 명령어 별칭/,/^$/d' ~/.bashrc 2>/dev/null
+sed -i '/# cu 명령어 별칭/,/^$/d' ~/.bashrc 2>/dev/null || true
 
 # 새로운 alias 추가
 echo "" >> ~/.bashrc
@@ -50,7 +52,7 @@ if command -v npx &> /dev/null; then
     echo -e "${GREEN}✅ npx 설치 확인됨${NC}"
 else
     echo -e "${RED}❌ npx가 설치되지 않았습니다${NC}"
-    echo "Node.js를 설치하세요: curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt-get install -y nodejs"
+    echo "Node.js를 설치하세요: curl -fsSL https://deb.nodesource.com/setup_18.x  < /dev/null |  sudo -E bash - && sudo apt-get install -y nodejs"
 fi
 
 # 5. 설정 완료
@@ -58,10 +60,13 @@ echo -e "\n${GREEN}✅ 모든 설정이 완료되었습니다!${NC}"
 echo ""
 echo -e "${BLUE}사용 가능한 명령어:${NC}"
 echo "  ${YELLOW}cu${NC}          - 한글 모니터 + ccusage 정보 + 명령어 목록"
-echo "  ${YELLOW}cu --live${NC}   - 실시간 한글 모니터링"
-echo "  ${YELLOW}cu --usage${NC}  - ccusage 블록 정보만 표시"
-echo "  ${YELLOW}cu --json${NC}   - JSON 형태 데이터 표시"
+echo "  ${YELLOW}cu-live${NC}     - 실시간 한글 모니터링"
+echo "  ${YELLOW}cu-usage${NC}    - ccusage 블록 정보만 표시"
+echo "  ${YELLOW}cu-json${NC}     - JSON 형태 데이터 표시"
 echo ""
 echo -e "${YELLOW}💡 설정을 적용하려면:${NC}"
 echo "  source ~/.bashrc"
 echo "  또는 새 터미널 세션을 시작하세요"
+echo ""
+echo -e "${BLUE}테스트:${NC}"
+echo "  ${YELLOW}cu-usage${NC}   - 지금 바로 테스트해보기"
