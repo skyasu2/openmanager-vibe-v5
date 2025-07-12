@@ -8,14 +8,13 @@ export async function GET() {
   try {
     console.log('🚀 /api/servers/all - 서버리스 호환 데이터 생성 시작');
 
-    // 🚫 서버리스 호환: 요청별 데이터 생성기 생성
-    const dataGenerator = (() => { throw new Error('createServerDataGenerator deprecated - use GCPRealDataService.getInstance()'); })({
-      count: 16,
-      includeMetrics: true,
-    });
+    // 🌐 GCP 실제 데이터 서비스 사용
+    const gcpDataService = GCPRealDataService.getInstance();
+    await gcpDataService.initialize();
 
-    // 🔧 서버 데이터 생성 (요청별)
-    const serverData = await dataGenerator.generateServers();
+    // 🔧 서버 데이터 가져오기
+    const metricsResponse = await gcpDataService.getRealServerMetrics();
+    const serverData = metricsResponse.data;
     console.log('📊 생성된 데이터:', serverData.length, '개 서버');
 
     // 🚀 배치 최적화 변환 사용

@@ -145,7 +145,7 @@ export class ServerDataCache {
 
       // 서버 데이터 가져오기 (비동기 메서드들)
       const servers = await generator.getRealServerMetrics().then(response => response.data);
-      const summary = await generator.getRealServerMetrics().then(r => ({ summary: 'Available' }));
+      // summary는 서버 데이터에서 직접 계산
 
       if (!Array.isArray(servers)) {
         throw new Error('Invalid server data format');
@@ -158,26 +158,22 @@ export class ServerDataCache {
         const newCache: CachedServerData = {
           servers: [...servers], // 깊은 복사로 불변성 보장
           summary: {
-            total: summary?.servers?.total || servers.length,
-            online:
-              summary?.servers?.online ||
-              summary?.servers?.running ||
-              servers.filter((s: any) => s.status === 'running' || s.status === 'healthy'
-              ).length,
-            warning:
-              summary?.servers?.warning ||
-              servers.filter((s: any) => s.status === 'warning').length,
-            offline:
-              summary?.servers?.offline ||
-              summary?.servers?.error ||
-              servers.filter((s: any) =>
-                  s.status === 'error' ||
-                  s.status === 'critical' ||
-                  s.status === 'offline'
-              ).length,
-            avgCpu: Math.round((summary?.servers?.avgCpu || 0) * 100) / 100,
-            avgMemory:
-              Math.round((summary?.servers?.avgMemory || 0) * 100) / 100,
+            total: servers.length,
+            online: servers.filter((s: any) => 
+              s.status === 'running' || s.status === 'healthy'
+            ).length,
+            warning: servers.filter((s: any) => s.status === 'warning').length,
+            offline: servers.filter((s: any) =>
+              s.status === 'error' ||
+              s.status === 'critical' ||
+              s.status === 'offline'
+            ).length,
+            avgCpu: Math.round(
+              servers.reduce((sum, s) => sum + (s.metrics?.cpu?.usage || 0), 0) / servers.length * 100
+            ) / 100,
+            avgMemory: Math.round(
+              servers.reduce((sum, s) => sum + (s.metrics?.memory?.usage || 0), 0) / servers.length * 100  
+            ) / 100,
           },
           lastUpdated: Date.now(),
           version: (this.cache?.version || 0) + 1,

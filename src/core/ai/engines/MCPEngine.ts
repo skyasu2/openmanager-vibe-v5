@@ -186,7 +186,7 @@ export class MCPEngine {
    * 📊 통계 정보 조회 (getStats 별칭)
    */
   getStats(): MCPEngineStatus {
-    return this.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' }));
+    return this.getStatus();
   }
 
   /**

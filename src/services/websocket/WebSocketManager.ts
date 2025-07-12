@@ -12,10 +12,7 @@ import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 import { BehaviorSubject, interval, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, throttleTime } from 'rxjs/operators';
 import { Server as SocketIOServer } from 'socket.io';
-import {
-  RealServerDataGenerator,
-  type RealServerDataGeneratorType,
-} from '../data-generator/RealServerDataGenerator';
+// RealServerDataGenerator import 제거 - GCPRealDataService로 대체됨
 // lightweight-anomaly-detector removed - using AnomalyDetectionService instead
 
 // 🎯 타입 정의

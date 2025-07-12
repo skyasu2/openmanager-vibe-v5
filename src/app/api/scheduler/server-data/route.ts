@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         return Response.json({
           success: true,
           message: '백그라운드 스케줄러 시작됨',
-          status: serverDataScheduler.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' })),
+          status: { status: serverDataScheduler.isRunning() ? 'active' : 'stopped' },
           timestamp: new Date().toISOString(),
         });
 
@@ -34,12 +34,12 @@ export async function GET(request: NextRequest) {
         return Response.json({
           success: true,
           message: '백그라운드 스케줄러 중지됨',
-          status: serverDataScheduler.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' })),
+          status: { status: serverDataScheduler.isRunning() ? 'active' : 'stopped' },
           timestamp: new Date().toISOString(),
         });
 
       case 'status':
-        const status = serverDataScheduler.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' }));
+        const status = { status: serverDataScheduler.isRunning() ? 'active' : 'stopped' };
         const storedData = await serverDataScheduler.getStoredData();
         const changes = await serverDataScheduler.getChanges();
 

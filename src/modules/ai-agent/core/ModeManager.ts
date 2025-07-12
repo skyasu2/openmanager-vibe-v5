@@ -148,8 +148,6 @@ export class ModeManager {
    * 절전 모드 진입 여부 확인
    */
   shouldEnterSleepMode(): boolean {
-    if (!this.config.powerManagement.enableAutoSleep) return false;
-
     const now = Date.now();
     const lastActivity = Math.max(
       this.activityMetrics.lastQueryTime,
@@ -164,8 +162,6 @@ export class ModeManager {
    * 유휴 모드 진입 여부 확인
    */
   shouldEnterIdleMode(): boolean {
-    if (!this.config.powerManagement.enableAutoSleep) return false;
-
     const now = Date.now();
     const lastActivity = Math.max(
       this.activityMetrics.lastQueryTime,
@@ -341,8 +337,7 @@ export const createDefaultModeConfig = (): ModeConfig => ({
   powerManagement: {
     idleTimeout: 5 * 60 * 1000, // 5분
     sleepTimeout: 15 * 60 * 1000, // 15분
-    wakeupTriggers: ['query', 'alert', 'data_update'],
-    enableAutoSleep: true
+    wakeupTriggers: ['query', 'alert', 'data_update']
   }
 });
 

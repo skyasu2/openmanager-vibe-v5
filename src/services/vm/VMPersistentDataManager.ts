@@ -394,7 +394,7 @@ export class VMPersistentDataManager {
       components: {
         enrichedMetrics: this.enrichedMetricsGenerator.getGeneratorStatus(),
         scenarios: this.longRunningScenarioEngine.getEngineStats(),
-        unifiedMetrics: this.unifiedMetricsManager.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' })),
+        unifiedMetrics: this.unifiedMetricsManager.getStatus(),
       },
     };
   }

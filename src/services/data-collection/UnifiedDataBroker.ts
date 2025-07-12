@@ -284,14 +284,13 @@ export class UnifiedDataBroker {
     try {
       if (key.includes('metrics')) {
         // 서버 메트릭 데이터 집계
-        // 🚫 서버리스 호환: 요청별 데이터 생성기 생성
-        const dataGenerator = (() => { throw new Error('createServerDataGenerator deprecated - use GCPRealDataService.getInstance()'); })({
-          limit: 16,
-          includeMetrics: true,
-        });
+        // 🌐 GCP 실제 데이터 서비스 사용
+        const gcpDataService = GCPRealDataService.getInstance();
+        await gcpDataService.initialize();
 
-        const servers = await dataGenerator.getRealServerMetrics().then(response => response.data);
-        const summary = await dataGenerator.getRealServerMetrics().then(r => ({ summary: 'Available' }));
+        const metricsResponse = await gcpDataService.getRealServerMetrics();
+        const servers = metricsResponse.data;
+        const summary = { summary: metricsResponse.success ? 'Available' : 'Error' };
 
         const serversWithMetrics = servers.map((s: any) => ({
           ...s,

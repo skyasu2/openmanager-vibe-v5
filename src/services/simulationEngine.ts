@@ -130,7 +130,7 @@ export class SimulationEngine {
    * 📊 상태 반환 (getState 별칭)
    */
   getState() {
-    return this.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' }));
+    return { status: this.isRunning ? 'active' : 'stopped' };
   }
 
   /**

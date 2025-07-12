@@ -1,5 +1,43 @@
 # Changelog
 
+## [5.46.4] - 2025-07-12
+
+### 🔧 RealServerDataGenerator 완전 제거 및 GCP Redis 아키텍처 전환
+
+#### 제거된 컴포넌트
+- RealServerDataGenerator 클래스 및 관련 import 모두 제거
+- createServerDataGenerator 함수 제거 
+- startAutoGeneration/stopAutoGeneration 메서드 제거 (서버리스 환경 부적합)
+
+#### 수정된 파일들 (19개)
+- `src/app/api/servers/realtime/route.ts` - GCPRealDataService로 전환
+- `src/app/api/servers/all/route.ts` - GCPRealDataService로 전환
+- `src/app/api/logs/route.ts` - getRealServerMetrics 호출 제거
+- `src/app/api/scheduler/server-data/route.ts` - isRunning() 메서드로 대체
+- `src/services/background/ServerDataScheduler.ts` - import 제거
+- `src/services/websocket/WebSocketManager.ts` - import 제거
+- `src/services/data-collection/UnifiedDataBroker.ts` - GCPRealDataService 사용
+- `src/lib/env-crypto-manager.ts` - 잘못된 메서드 호출 수정
+- `src/services/OptimizedDataGenerator.ts` - getDemoStatus 수정
+- `src/services/simulationEngine.ts` - getState 수정
+- `src/core/ai/engines/MCPEngine.ts` - getStats 수정
+- `src/modules/ai-agent/infrastructure/AIAgentProvider.tsx` - checkHealth/getStatus 사용
+- `src/presentation/ai-sidebar/hooks/useAIController.ts` - getStatus 사용
+- `src/services/vm/VMPersistentDataManager.ts` - getStatus 사용
+- `src/modules/ai-agent/core/ModeManager.ts` - enableAutoSleep 제거
+- `src/services/cache/ServerDataCache.ts` - summary 계산 로직 수정
+
+#### 새로운 아키텍처
+- **이전**: RealServerDataGenerator → 로컬 데이터 생성
+- **현재**: GCPRealDataService → GCP API 또는 명시적 에러 상태
+- **특징**: Silent fallback 방지, 서버리스 최적화
+
+#### 개선 효과
+- 서버리스 환경에 최적화된 구조
+- 명확한 에러 상태 표시 (Silent failure 방지)
+- 코드 복잡도 감소
+- GCP Redis 기반 실시간 데이터 전달 준비 완료
+
 ## [5.46.3] - 2025-07-12
 
 ### 🎯 AI 엔진 Auto 모드 제거

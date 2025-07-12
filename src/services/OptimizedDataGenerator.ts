@@ -880,7 +880,7 @@ export class OptimizedDataGenerator {
    * 🎭 데모 시나리오 상태 조회
    */
   getDemoStatus() {
-    return this.demoManager.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' }));
+    return { status: this.demoManager.isEnabled ? 'active' : 'inactive' };
   }
 
   /**

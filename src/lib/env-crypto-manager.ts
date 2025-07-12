@@ -462,7 +462,7 @@ export function getEnvironmentVar(varName: string): string | null {
 }
 
 export function isEnvironmentUnlocked(): boolean {
-  return envCryptoManager.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' })).isUnlocked;
+  return envCryptoManager.isUnlocked;
 }
 
 export async function unlockEnvironment(teamPassword: string) {

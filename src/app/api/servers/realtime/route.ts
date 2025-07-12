@@ -35,8 +35,8 @@ function createBasicFallbackWarning(dataSource: string, reason: string) {
 
 export const dynamic = 'force-dynamic';
 
-// 전역 변수로 생성기 상태 관리
-let generator: RealServerDataGeneratorType | null = null;
+// 전역 변수로 GCP 실제 데이터 서비스 상태 관리
+let gcpDataService: GCPRealDataService | null = null;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -54,14 +54,14 @@ export async function GET(request: NextRequest) {
       console.warn('⚠️ Redis 환경변수 누락 → Enhanced Mock Redis로 자동 전환');
     }
 
-    // 생성기 초기화 (한 번만)
-    if (!generator) {
-      generator = realServerDataGenerator;
-      await generator.initialize();
+    // GCP 데이터 서비스 초기화 (한 번만)
+    if (!gcpDataService) {
+      gcpDataService = GCPRealDataService.getInstance();
+      await gcpDataService.initialize();
     }
 
     // 현재 서버 데이터 가져오기
-    const allServerInstances = await generator.getRealServerMetrics().then(response => response.data);
+    const allServerInstances = await gcpDataService.getRealServerMetrics().then(response => response.data);
 
     console.log(
       `초기화 실행 from /api/servers/realtime (서버 ${allServerInstances.length}개 감지)`
@@ -112,25 +112,23 @@ export async function GET(request: NextRequest) {
 
       // 개발 환경에서만 초기화 시도
       console.warn('⚠️ REALTIME_DATA_FALLBACK_WARNING:', warning);
-      console.log('🚀 RealServerDataGenerator 초기화 시작...');
-      await generator.initialize();
-      console.log('✅ RealServerDataGenerator 초기화 완료');
+      console.log('🚀 GCP 실제 데이터 서비스 초기화 시작...');
+      await gcpDataService.initialize();
+      console.log('✅ GCP 실제 데이터 서비스 초기화 완료');
 
       // 초기화 후에도 데이터가 없으면 추가 경고
-      const retryServerInstances = await generator.getRealServerMetrics().then(response => response.data);
+      const retryServerInstances = await gcpDataService.getRealServerMetrics().then(response => response.data);
       if (retryServerInstances.length === 0) {
         console.error('🚨 초기화 후에도 서버 데이터 없음 - 시스템 점검 필요');
       }
     }
 
-    // 🔧 getStatus()는 Promise를 반환하므로 await 사용
-    const status = await generator.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' }));
-    const isMockMode = status.isMockMode;
+    // 🔧 GCP 실제 데이터 서비스 상태 확인
+    const metricsResponse = await gcpDataService.getRealServerMetrics();
+    const status = { status: metricsResponse.success ? 'active' : 'error' };
+    const isMockMode = metricsResponse.isErrorState;
 
-    // 실시간 데이터 생성 시작 (아직 시작되지 않은 경우에만)
-    if (!status.isRunning) {
-      generator.startAutoGeneration();
-    }
+    // 서버리스 환경에서는 자동 생성 개념 없음 (요청 시마다 데이터 가져오기)
 
     // 🎯 Enhanced v2.0: 완전한 타입 안전 변환
     const allServers = transformServerInstancesToServers(allServerInstances);
@@ -252,33 +250,35 @@ export async function POST(request: NextRequest) {
   try {
     const { action } = await request.json();
 
-    if (!generator) {
-      generator = realServerDataGenerator;
-      await generator.initialize();
+    if (!gcpDataService) {
+      gcpDataService = GCPRealDataService.getInstance();
+      await gcpDataService.initialize();
     }
 
     switch (action) {
       case 'start':
-        generator.startAutoGeneration();
+        // 서버리스 환경에서는 자동 생성 불필요
+        const startMetrics = await gcpDataService.getRealServerMetrics();
         return NextResponse.json({
           success: true,
-          message: '실시간 데이터 생성이 시작되었습니다.',
-          status: generator.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' })),
+          message: 'GCP 실제 데이터 서비스가 준비되었습니다.',
+          status: { status: startMetrics.success ? 'active' : 'error' },
         });
 
       case 'stop':
-        generator.stopAutoGeneration();
+        // 서버리스 환경에서는 중지 불필요
         return NextResponse.json({
           success: true,
-          message: '실시간 데이터 생성이 중지되었습니다.',
-          status: generator.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' })),
+          message: 'GCP 실제 데이터 서비스는 서버리스입니다 (중지 불필요).',
+          status: { status: 'idle' },
         });
 
       case 'status':
+        const statusMetrics = await gcpDataService.getRealServerMetrics();
         return NextResponse.json({
           success: true,
-          status: generator.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' })),
-          summary: generator.getRealServerMetrics().then(r => ({ summary: 'Available' })),
+          status: { status: statusMetrics.success ? 'active' : 'error' },
+          summary: { summary: statusMetrics.success ? 'Available' : 'Error' },
         });
 
       default:
