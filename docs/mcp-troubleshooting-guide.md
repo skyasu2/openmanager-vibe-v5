@@ -1,10 +1,21 @@
 # MCP 문제 해결 완전 가이드
 
+## 🆕 Claude Code v1.0.51 업데이트 사항
+
+Claude Code v1.0.51부터 MCP 서버 설정 방식이 변경되었습니다:
+- ❌ 기존: `~/.claude/settings.json` 파일의 `mcpServers` 필드 사용
+- ✅ 신규: `claude mcp add` CLI 명령어 사용
+
+### 주요 변경사항
+1. **settings.json의 mcpServers 필드 제거**: 더 이상 인식되지 않음
+2. **CLI 기반 설정**: 모든 MCP 서버는 CLI 명령어로 추가
+3. **설정 파일 위치 변경**: 내부 구조 변경으로 직접 편집 불가
+
 ## 현재 문제 상황
 
-- ❌ Claude Code가 MCP 서버를 인식하지 못함
+- ❌ Claude Code doctor가 "mcpServers" 필드를 인식하지 못함
+- ❌ settings.json에 직접 추가한 MCP 설정이 작동하지 않음
 - ❌ `/mcp` 명령 시 "No MCP servers configured" 메시지
-- ❌ MCP 프로세스가 실행되지 않음
 
 ## 문제 진단
 
@@ -30,77 +41,84 @@ ps aux | grep mcp
 
 ## 해결 방법
 
-### 방법 1: 빠른 수정 스크립트 실행
+### 🚀 방법 1: 자동 설정 스크립트 (권장)
+
+**npm 스크립트 사용**:
+```bash
+# 프로젝트 디렉토리에서
+npm run mcp:setup
+```
+
+**또는 직접 실행**:
+```bash
+# 스크립트 실행
+chmod +x scripts/setup-mcp-servers.sh
+./scripts/setup-mcp-servers.sh
+```
+
+⚠️ **중요**: Claude Code의 터미널이 아닌 일반 터미널(WSL, PowerShell 등)에서 실행하세요!
+
+### 🔧 방법 2: 설정 초기화 후 재설정
+
+문제가 지속되거나 기존 설정을 정리하고 싶을 때:
 
 ```bash
-# 1. 수정 스크립트 실행
-chmod +x scripts/fix-mcp-setup.sh
-./scripts/fix-mcp-setup.sh
+# 1. MCP 설정 초기화 (백업 포함)
+npm run mcp:reset
 
-# 2. Claude Code 완전 종료
-pkill -f claude
+# 2. MCP 서버 재설정
+npm run mcp:setup
+
+# 3. 설정 확인
+npm run mcp:list
+```
+
+### 🔄 방법 2: 설정 초기화 후 재설정
+
+```bash
+# 1. 설정 초기화
+chmod +x scripts/reset-mcp-settings.sh
+./scripts/reset-mcp-settings.sh
+
+# 2. MCP 서버 재설정
+./scripts/setup-mcp-servers.sh
 
 # 3. Claude Code 재시작
 claude
 
 # 4. MCP 확인
-/mcp
+claude mcp list
 ```
 
-### 방법 2: 수동 설정 (권장)
+### 방법 3: 수동으로 CLI 명령 실행
 
-#### 단계 1: Claude Code 전역 설정 업데이트
+각 MCP 서버를 개별적으로 추가:
 
 ```bash
-# 설정 파일 직접 편집
-nano ~/.claude/settings.json
-```
+# 파일시스템 MCP
+claude mcp add filesystem node \
+  "/mnt/d/cursor/openmanager-vibe-v5/node_modules/@modelcontextprotocol/server-filesystem/dist/index.js" \
+  -e ALLOWED_DIRECTORIES="/mnt/d/cursor/openmanager-vibe-v5"
 
-다음 내용 추가:
+# GitHub MCP
+claude mcp add github node \
+  "/mnt/d/cursor/openmanager-vibe-v5/node_modules/@modelcontextprotocol/server-github/dist/index.js" \
+  -e GITHUB_PERSONAL_ACCESS_TOKEN="${GITHUB_TOKEN}"
 
-```json
-{
-  "mcpServers": {
-    "filesystem": {
-      "command": "node",
-      "args": ["/mnt/d/cursor/openmanager-vibe-v5/node_modules/@modelcontextprotocol/server-filesystem/dist/index.js"],
-      "env": {
-        "ALLOWED_DIRECTORIES": "/mnt/d/cursor/openmanager-vibe-v5"
-      }
-    },
-    "supabase": {
-      "command": "node", 
-      "args": ["/mnt/d/cursor/openmanager-vibe-v5/node_modules/@supabase/mcp-server-supabase/dist/index.js"],
-      "env": {
-        "SUPABASE_URL": "https://vnswjnltnhpsueosfhmw.supabase.co",
-        "SUPABASE_SERVICE_ROLE_KEY": "your-service-role-key"
-      }
-    }
-  }
-}
-```
+# Memory MCP
+claude mcp add memory node \
+  "/mnt/d/cursor/openmanager-vibe-v5/node_modules/@modelcontextprotocol/server-memory/dist/index.js"
 
-#### 단계 2: 환경 변수 설정
+# Brave Search MCP
+claude mcp add brave-search node \
+  "/mnt/d/cursor/openmanager-vibe-v5/node_modules/@modelcontextprotocol/server-brave-search/dist/index.js" \
+  -e BRAVE_API_KEY="${BRAVE_API_KEY}"
 
-```bash
-# .bashrc 또는 .zshrc에 추가
-export SUPABASE_URL="https://vnswjnltnhpsueosfhmw.supabase.co"
-export SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
-export GITHUB_TOKEN="your-github-token"
-export BRAVE_API_KEY="your-brave-api-key"
-
-# 즉시 적용
-source ~/.bashrc
-```
-
-#### 단계 3: Claude Code 재시작
-
-```bash
-# 모든 Claude 프로세스 종료
-pkill -f claude
-
-# 재시작
-claude
+# Supabase MCP
+claude mcp add supabase node \
+  "/mnt/d/cursor/openmanager-vibe-v5/node_modules/@supabase/mcp-server-supabase/dist/index.js" \
+  -e SUPABASE_URL="https://vnswjnltnhpsueosfhmw.supabase.co" \
+  -e SUPABASE_SERVICE_ROLE_KEY="your-key"
 ```
 
 ### 방법 3: MCP 서버 직접 테스트
@@ -120,6 +138,51 @@ ln -s /mnt/d/cursor/openmanager-vibe-v5 ~/openmanager-vibe-v5
 
 # 설정에서 심볼릭 링크 경로 사용
 "args": ["/home/skyasu/openmanager-vibe-v5/node_modules/..."]
+```
+
+## 자주 발생하는 문제와 해결법
+
+### 1. "Unrecognized field: mcpServers" 오류
+
+**문제**: `/doctor` 명령 실행 시 settings.json의 mcpServers 필드 오류
+```
+⚠ Found invalid settings files. They will be ignored.
+└ Unrecognized field: mcpServers
+```
+
+**해결**: 
+```bash
+# 설정 초기화 후 재설정
+npm run mcp:reset
+npm run mcp:setup
+```
+
+### 2. "Raw mode is not supported" 오류
+
+**문제**: Claude Code 터미널에서 스크립트 실행 시 발생
+
+**해결**: 일반 터미널(WSL, PowerShell, Terminal 앱)에서 실행
+
+### 3. MCP 서버가 목록에 나타나지 않음
+
+**문제**: `claude mcp list` 실행 시 서버가 보이지 않음
+
+**해결**:
+1. Claude Code 완전히 종료 (Ctrl+C)
+2. 다시 시작: `claude`
+3. 확인: `claude mcp list`
+
+### 4. 환경변수 관련 오류
+
+**문제**: GITHUB_TOKEN, BRAVE_API_KEY 등이 설정되지 않음
+
+**해결**:
+```bash
+# GitHub 토큰 설정
+source scripts/setup-github-token.sh
+
+# Supabase 키 설정  
+source scripts/set-supabase-key.sh
 ```
 
 ## 디버깅 방법

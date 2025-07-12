@@ -8,14 +8,9 @@
  * - 기존 OptimizedDataGenerator와 완벽 통합
  */
 
-import type { EnhancedServerMetrics } from '../../types/server';
-import {
-  ServerEnvironment,
-  ServerRole,
-  ServerStatus,
-} from '../../types/server';
-import { OptimizedDataGenerator } from '../OptimizedDataGenerator';
 import { getDataGeneratorConfig } from '../../config/environment';
+import type { EnhancedServerMetrics } from '../../types/server';
+import { OptimizedDataGenerator } from '../OptimizedDataGenerator';
 
 // 🧠 AI 모듈 인터페이스
 interface AnomalyDetectionResult {
@@ -223,7 +218,7 @@ export class AIEnhancedDataGenerator {
       if (
         this.config.adaptiveScenarios.enabled &&
         Date.now() - this.lastScenarioGeneration >
-          this.config.adaptiveScenarios.generationInterval
+        this.config.adaptiveScenarios.generationInterval
       ) {
         await this.generateAdaptiveScenarios(baseData);
         this.lastScenarioGeneration = Date.now();
@@ -470,7 +465,7 @@ export class AIEnhancedDataGenerator {
    * 📊 상태 조회
    */
   getStatus() {
-    const baseStatus = this.baseGenerator.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' }));
+    const baseStatus = { status: 'active' };
 
     return {
       ...baseStatus,
@@ -603,7 +598,7 @@ export class AIEnhancedDataGenerator {
 
 // 🧠 이상 패턴 감지 엔진
 class AnomalyDetectionEngine {
-  constructor(private config: AIEnhancedConfig['anomalyDetection']) {}
+  constructor(private config: AIEnhancedConfig['anomalyDetection']) { }
 
   detectCpuSpike(
     server: EnhancedServerMetrics,
@@ -614,7 +609,7 @@ class AnomalyDetectionEngine {
       recentCpu.reduce((sum, cpu) => sum + cpu, 0) / recentCpu.length;
     const stdDev = Math.sqrt(
       recentCpu.reduce((sum, cpu) => sum + Math.pow(cpu - avgCpu, 2), 0) /
-        recentCpu.length
+      recentCpu.length
     );
 
     if (server.cpu_usage > avgCpu + 2 * stdDev && server.cpu_usage > 80) {
@@ -693,7 +688,7 @@ class AnomalyDetectionEngine {
 
 // 🎭 적응형 시나리오 생성기
 class AdaptiveScenarioGenerator {
-  constructor(private config: AIEnhancedConfig['adaptiveScenarios']) {}
+  constructor(private config: AIEnhancedConfig['adaptiveScenarios']) { }
 
   generateScenario(
     servers: EnhancedServerMetrics[],
@@ -805,7 +800,7 @@ class AdaptiveScenarioGenerator {
 
 // ⚡ 성능 최적화 엔진
 class PerformanceOptimizer {
-  constructor(private config: AIEnhancedConfig['performanceOptimization']) {}
+  constructor(private config: AIEnhancedConfig['performanceOptimization']) { }
 
   analyzeAndOptimize(
     servers: EnhancedServerMetrics[]

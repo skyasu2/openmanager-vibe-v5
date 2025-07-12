@@ -1,4 +1,4 @@
-# 🐧 Claude Monitor WSL 특화 가이드
+ㅁㅁ# 🐧 Claude Monitor WSL 특화 가이드
 
 Claude Monitor를 WSL 환경에서 최적화하여 사용하는 완벽한 가이드입니다.
 

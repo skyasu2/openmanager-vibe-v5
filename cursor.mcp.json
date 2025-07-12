@@ -1,0 +1,49 @@
+{
+    "mcpServers": {
+        "filesystem": {
+            "command": "node",
+            "args": [
+                "./node_modules/@modelcontextprotocol/server-filesystem/dist/index.js"
+            ],
+            "env": {
+                "ALLOWED_DIRECTORIES": "D:/cursor/openmanager-vibe-v5"
+            }
+        },
+        "github": {
+            "command": "node",
+            "args": [
+                "./node_modules/@modelcontextprotocol/server-github/dist/index.js"
+            ],
+            "env": {
+                "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+            }
+        },
+        "brave-search": {
+            "command": "node",
+            "args": [
+                "./node_modules/@modelcontextprotocol/server-brave-search/dist/index.js"
+            ],
+            "env": {
+                "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+            }
+        },
+        "memory": {
+            "command": "node",
+            "args": [
+                "./node_modules/@modelcontextprotocol/server-memory/dist/index.js"
+            ]
+        },
+        "playwright": {
+            "command": "node",
+            "args": [
+                "./node_modules/@playwright/mcp/cli.js"
+            ]
+        },
+        "context7": {
+            "command": "node",
+            "args": [
+                "./node_modules/@upstash/context7-mcp/dist/index.js"
+            ]
+        }
+    }
+}

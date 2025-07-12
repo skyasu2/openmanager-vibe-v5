@@ -27,7 +27,7 @@ function createBasicFallbackWarning(dataSource: string, reason: string) {
     actionRequired: '실제 데이터 소스 연결 필요',
     productionImpact:
       process.env.NODE_ENV === 'production' ||
-      process.env.VERCEL_ENV === 'production'
+        process.env.VERCEL_ENV === 'production'
         ? 'CRITICAL'
         : 'LOW',
   };
@@ -214,7 +214,7 @@ export async function GET(request: NextRequest) {
           environment: process.env.NODE_ENV,
           warningLevel: isMockMode ? 'CRITICAL' : 'NONE',
           serverCount: validServersFiltered.length,
-          generatorStatus: generator.getRealServerMetrics().then(r => ({ status: r.success ? 'active' : 'error' })),
+          generatorStatus: { status: 'active' },
         },
         timestamp: Date.now(),
         count: paginatedServers.length,

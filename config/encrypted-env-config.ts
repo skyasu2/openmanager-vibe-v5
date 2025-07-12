@@ -131,11 +131,11 @@ export const ENCRYPTED_ENV_CONFIG: EncryptedEnvironmentConfig = {
       "category": "auth"
     },
     "GITHUB_TOKEN": {
-      "encrypted": "oKyjKom3KrYIHeM465lNY7VJ2++8J0NRs20uC1wyNDFY7Ob07aw/hQ==",
-      "salt": "1d81352d8296013cc0a580469992dd7cae0910900071f7bf1a084c4398273e45",
-      "iv": "b7d0ec305a3c77d54bd473f54ee827bf",
-      "authTag": "18aded96a473dd5d2b6214b1a9ec43e9",
-      "timestamp": "2025-07-10T10:34:56.885Z",
+      "encrypted": "/QicOZMb+iWj/PVPX2rVAdzoONvrpqqVVojsT1r5JmRESCeZdY3nMA==",
+      "salt": "f0fc8502f4bb0794e273c8bf36690cc2f5ce82fa18625b6561567a01d2dbcc21",
+      "iv": "302ec0da21e06ad329630c45da681ca6",
+      "authTag": "a6b11ae85a232e90c76ee43db3b5a2da",
+      "timestamp": "2025-07-12T12:50:36.594Z",
       "version": "2.0.0",
       "originalName": "GITHUB_TOKEN",
       "isPublic": false,

@@ -126,7 +126,10 @@
       "Bash(/mnt/d/cursor/openmanager-vibe-v5/scripts/fix-mcp-setup.sh:*)",
       "Bash(claude mcp:*)",
       "Bash(claude:*)",
-      "Bash(cmd.exe:*)"
+      "Bash(cmd.exe:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(printenv)",
+      "mcp__filesystem__read_file"
     ],
     "deny": []
   }

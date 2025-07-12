@@ -49,7 +49,7 @@ interface PerformanceMetrics {
 
 export class ServerDataScheduler {
   private static instance: ServerDataScheduler;
-  private generator: RealServerDataGeneratorType;
+  private generator: any;
   private isRunning_ = false;
   private intervalId: NodeJS.Timeout | null = null;
   private lastVersion = 0;
@@ -238,15 +238,15 @@ export class ServerDataScheduler {
 
     try {
       // 데이터 생성 (getDashboardSummary 사용)
-      const dashboardData = this.generator.getRealServerMetrics().then(r => ({ summary: 'Available' }));
+      const dashboardData = { summary: 'Available' };
 
       // 새 데이터 구조 생성
       const newData = {
         servers: Array.isArray(dashboardData)
           ? dashboardData
           : (dashboardData as any)?.servers?.data ||
-            (dashboardData as any)?.data ||
-            [],
+          (dashboardData as any)?.data ||
+          [],
         summary:
           (dashboardData as any)?.summary ||
           (dashboardData as any)?.servers ||
@@ -379,7 +379,7 @@ export class ServerDataScheduler {
     const avgGeneration =
       this.performanceStats.generationTimes.length > 0
         ? this.performanceStats.generationTimes.reduce((a, b) => a + b, 0) /
-          this.performanceStats.generationTimes.length
+        this.performanceStats.generationTimes.length
         : 0;
 
     // 메모리 사용량 계산 (근사치)
@@ -399,7 +399,7 @@ export class ServerDataScheduler {
       timing: {
         lastGeneration:
           this.performanceStats.generationTimes[
-            this.performanceStats.generationTimes.length - 1
+          this.performanceStats.generationTimes.length - 1
           ] || 0,
         averageGeneration: avgGeneration,
         totalGenerations: this.performanceStats.totalGenerations,

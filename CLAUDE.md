@@ -2,6 +2,48 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🧠 **깊이 있는 사고 모드 (필수 적용)**
+
+**중요: 모든 사용자 명령에 대해 "think hard" 모드가 기본적으로 활성화됩니다.**
+
+### 🎯 **사고 프로세스 가이드라인**
+
+#### 1. **문제 분석 단계**
+- 사용자의 요청 뒤에 숨은 진짜 의도 파악
+- 현재 상황과 맥락을 종합적으로 고려
+- 즉시 해결책보다 문제의 근본 원인 탐구
+- 유사한 과거 경험이나 패턴과 연결하여 분석
+
+#### 2. **다각도 검토 단계**  
+- 기술적 관점: 코드 품질, 성능, 확장성
+- 사용자 관점: 사용성, 접근성, 경험
+- 비즈니스 관점: 비용, 유지보수, 장기적 영향
+- 보안 관점: 취약점, 데이터 보호, 권한 관리
+
+#### 3. **솔루션 설계 단계**
+- 여러 대안 솔루션 비교 검토
+- 각 솔루션의 장단점과 트레이드오프 분석
+- 프로젝트의 SOLID 원칙 및 개발 규칙 준수 확인
+- Vercel 무료 티어 최적화 고려
+
+#### 4. **미래 대비 단계**
+- 확장 가능성과 유지보수성 고려
+- 잠재적 문제점 및 리스크 식별
+- 성능 최적화 및 모니터링 방안
+- 문서화 및 팀 협업 관점에서의 개선점
+
+### 🔍 **구체적 적용 사례**
+
+- **단순 버그 수정 요청** → 버그의 근본 원인, 재발 방지책, 관련 코드 전반 점검
+- **기능 추가 요청** → 기존 아키텍처와의 호환성, 사용자 여정, 성능 영향 분석  
+- **설정 변경 요청** → 다른 시스템에 미치는 영향, 보안성, 복원 계획
+- **문서 작성 요청** → 독자 대상, 유지보수성, 실용성, 완전성
+
+### ⚡ **빠른 판단이 필요한 경우에도**
+- 긴급한 상황에서도 최소한의 리스크 분석 수행
+- 임시 해결책과 장기적 해결책 구분 제시
+- 빠른 조치 후 후속 개선 계획 제안
+
 ## 언어 설정
 
 - 모든 응답은 한국어로 제공해주세요
@@ -15,6 +57,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 에러 메시지 해석 시 한국어로 설명
 - 기술적인 내용도 초보자가 이해할 수 있도록 쉽게 풀어서 설명
 - 작업 진행 상황을 단계별로 명확히 안내
+- **항상 깊이 있는 분석을 기반으로 한 통찰력 있는 답변 제공**
 
 ## Common Commands
 
@@ -419,6 +462,26 @@ Claude와 Gemini CLI를 상황에 맞게 조합하여 비용 효율적인 개발
 - 문서 요약 및 설명
 - 반복적인 질문/답변
 
+#### 💊 Gemini CLI 사용량 관리 (일일 1,000회 제한):
+```bash
+# 사용량 확인
+gemini /stats      # 현재 사용량 및 남은 횟수
+gemini /compress   # 대화 압축으로 토큰 절약
+gemini /clear      # 컨텍스트 초기화
+
+# 사용량 임계값 가이드
+# 0-50%: 자유롭게 사용
+# 50-80%: 중요한 작업 위주  
+# 80-100%: Claude로 전환 권장
+
+# ✅ 효율적 (토큰 절약)
+echo "질문" | gemini -p "3줄로 답변"
+cat 파일명.js | gemini -p "핵심만 요약"
+
+# ❌ 비효율적 (토큰 낭비)
+gemini  # 장시간 대화형 모드
+```
+
 #### 협업 워크플로우 예시:
 
 **TDD 개발 프로세스에서의 협업**
@@ -443,47 +506,50 @@ echo "변경사항" | gemini -p "@docs/ 관련 문서 찾기"
 # Claude가 CHANGELOG.md 및 문서 갱신
 ```
 
-### 🚀 Gemini CLI 개발도구 활용 (TypeScript 기반)
+### 🚀 Gemini CLI 직접 사용 (권장)
 
-TypeScript로 모듈화된 Gemini CLI 개발도구가 구축되어 있습니다:
+복잡한 도구 없이 터미널에서 바로 사용하세요:
 
-#### 📊 코드 분석
+#### 📋 기본 사용법
 ```bash
-# 기본 분석
-npm run gemini:analyze
+# 사용법 안내
+npm run gemini:guide
 
-# 보안 중심 분석
-npm run gemini:analyze -- --types security --output security-report.md
+# 직접 질문
+gemini -p "TypeScript 에러 해결 방법"
 
-# 특정 패턴 분석
-npm run gemini:analyze -- --patterns "src/**/*.ts" --depth comprehensive
+# 파일 분석
+cat src/app/page.tsx | gemini -p "이 코드 리뷰해주세요"
+
+# Git 변경사항 리뷰
+git diff | gemini -p "변경사항 간단히 요약"
 ```
 
-#### 🔍 Git 리뷰
+#### 🐧 WSL 환경에서 Windows Gemini CLI 사용
 ```bash
-# 현재 변경사항 리뷰
-npm run gemini:review
+# ~/.bashrc에 추가된 별칭 사용
+gemini --version         # 버전 확인
+gp "안녕하세요"         # gemini -p 단축키
+gs                      # gemini /stats 단축키  
+gc                      # gemini /clear 단축키
+gcomp                   # gemini /compress 단축키
 
-# 특정 브랜치 리뷰
-npm run gemini:review -- --target feature/new-feature --base main
-
-# 보안 중심 리뷰
-npm run gemini:review -- --type security --output review-report.md
+# 파이프 사용 (특별 함수)
+cat file.ts | gemini-pipe -p "코드 리뷰"
+git diff | gemini-pipe -p "변경사항 요약"
 ```
 
-#### 📊 상태 확인
-```bash
-# Gemini CLI 상태 및 통계
-npm run gemini:status
+⚠️ **WSL 주의사항**: Claude Code의 Bash 환경에서는 Gemini CLI 호출이 타임아웃될 수 있습니다. 사용자가 직접 터미널에서 실행하세요.
 
-# 확장 도움말
-npm run gemini:help
+#### 📈 사용량 관리
+```bash
+gemini /stats      # 현재 사용량 확인 (일일 1,000회 제한)
+gemini /compress   # 대화 압축으로 토큰 절약
+gemini /clear      # 컨텍스트 초기화
 ```
 
-#### 🔧 개발도구 특징
-- **로컬 전용**: Vercel 배포에서 자동 제외
-- **모듈화**: 재사용 가능한 TypeScript 모듈 구조
-- **타입 안전성**: 완전한 TypeScript 지원
-- **성능 최적화**: MCP 오버헤드 없는 직접 호출
-
-자세한 사용법은 `docs/gemini-cli-dev-tools-guide.md`를 참조하세요.
+#### 💡 효율적 사용 팁
+- **간결한 프롬프트**: "3줄로 요약", "핵심만"
+- **파이프라인 활용**: `echo "질문" | gemini -p "답변"`
+- **사용량 모니터링**: 80% 초과 시 Claude로 전환
+- **WSL 사용자**: PowerShell 래퍼 별칭 활용

@@ -1,0 +1,27 @@
+{
+  "name": "gemini-cli-bridge",
+  "version": "1.0.0",
+  "description": "MCP server bridge for Windows Gemini CLI from WSL",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mcp",
+    "gemini",
+    "cli",
+    "bridge",
+    "wsl"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.1",
+    "zod": "^3.25.76"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

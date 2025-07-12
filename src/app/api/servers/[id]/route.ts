@@ -29,7 +29,7 @@ export async function GET(
 
     // 1. 시뮬레이션 엔진 상태 확인
     const currentState = simulationEngine.getState();
-    if (!currentState.isRunning) {
+    if (currentState.status !== 'running') {
       console.log('⚠️ 시뮬레이션 엔진이 실행되지 않음. 시작 시도...');
       simulationEngine.start();
       await new Promise(resolve => setTimeout(resolve, 100));

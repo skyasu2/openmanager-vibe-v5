@@ -1,7 +1,6 @@
+import { EventEmitter } from 'events';
 import { simulationEngine } from '../../services/simulationEngine';
 import { vercelStatusService } from '../../services/vercelStatusService';
-import { cacheService } from '../../services/cacheService';
-import { EventEmitter } from 'events';
 
 /**
  * 🔧 시스템 전체 상태 인터페이스
@@ -139,23 +138,23 @@ export class SystemStateManager extends EventEmitter {
       const averageResponseTime =
         this.performanceMetrics.lastResponseTimes.length > 0
           ? this.performanceMetrics.lastResponseTimes.reduce(
-              (sum, time) => sum + time,
-              0
-            ) / this.performanceMetrics.lastResponseTimes.length
+            (sum, time) => sum + time,
+            0
+          ) / this.performanceMetrics.lastResponseTimes.length
           : 0;
 
       const cacheHitRate =
         this.performanceMetrics.cacheRequests > 0
           ? (this.performanceMetrics.cacheHits /
-              this.performanceMetrics.cacheRequests) *
-            100
+            this.performanceMetrics.cacheRequests) *
+          100
           : 0;
 
       const errorRate =
         this.performanceMetrics.apiCalls > 0
           ? (this.performanceMetrics.errors /
-              this.performanceMetrics.apiCalls) *
-            100
+            this.performanceMetrics.apiCalls) *
+          100
           : 0;
 
       // 헬스 상태 결정
@@ -168,7 +167,7 @@ export class SystemStateManager extends EventEmitter {
       // 통합 상태 생성
       this.currentStatus = {
         simulation: {
-          isRunning: simulationState.isRunning,
+          isRunning: simulationState.status === 'running',
           startTime: null, // 기본값 사용
           runtime: 0, // 기본값 사용
           dataCount: simulationSummary.totalServers || 0,
@@ -192,7 +191,7 @@ export class SystemStateManager extends EventEmitter {
         },
         health,
         services: {
-          simulation: simulationState.isRunning ? 'online' : 'offline',
+          simulation: simulationState.status === 'running' ? 'online' : 'offline',
           cache: 'online', // 캐시는 항상 사용 가능
           prometheus: 'disabled', // 기본값 사용
           vercel: vercelStatus ? 'online' : 'unknown',
