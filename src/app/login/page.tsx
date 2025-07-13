@@ -33,11 +33,29 @@ export default function LoginPage() {
   );
   const [isClient, setIsClient] = useState(false);
   const [guestSession, setGuestSession] = useState<GuestSessionData | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const authManager = new AuthStateManager();
 
   useEffect(() => {
     setIsClient(true);
+    
+    // URL 파라미터에서 에러 메시지 확인
+    const searchParams = new URLSearchParams(window.location.search);
+    const error = searchParams.get('error');
+    const message = searchParams.get('message');
+    const warning = searchParams.get('warning');
+    
+    if (error && message) {
+      setErrorMessage(decodeURIComponent(message));
+    } else if (error === 'provider_error') {
+      setErrorMessage('GitHub OAuth 설정을 확인해주세요. 아래 가이드를 참고하세요.');
+    } else if (error === 'auth_callback_failed') {
+      setErrorMessage('인증 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } else if (warning === 'no_session') {
+      setSuccessMessage('인증이 완료되었지만 세션이 생성되지 않았습니다. 게스트 모드를 이용해주세요.');
+    }
   }, []);
 
   // guestSession 상태가 변경되면 localStorage와 쿠키에 저장하고 페이지 이동
@@ -135,6 +153,24 @@ export default function LoginPage() {
           <h2 className='text-xl font-semibold text-white mb-6 text-center'>
             로그인 방식을 선택하세요
           </h2>
+
+          {/* 🚨 에러 메시지 표시 */}
+          {errorMessage && (
+            <div className='mb-4 p-3 bg-red-900/20 border border-red-600/30 rounded-lg'>
+              <p className='text-red-300 text-sm'>
+                ❌ {errorMessage}
+              </p>
+            </div>
+          )}
+
+          {/* ✅ 성공 메시지 표시 */}
+          {successMessage && (
+            <div className='mb-4 p-3 bg-green-900/20 border border-green-600/30 rounded-lg'>
+              <p className='text-green-300 text-sm'>
+                ✅ {successMessage}
+              </p>
+            </div>
+          )}
 
           <div className='space-y-4'>
             {/* GitHub OAuth 로그인 */}

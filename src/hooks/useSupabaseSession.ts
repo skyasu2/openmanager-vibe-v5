@@ -41,8 +41,26 @@ export function useSession(): UseSessionReturn {
           setUser(session.user);
           setStatus('authenticated');
         } else {
-          setUser(null);
-          setStatus('unauthenticated');
+          // 🎯 게스트 세션 확인
+          const guestUser = localStorage.getItem('auth_user');
+          const authType = localStorage.getItem('auth_type');
+          
+          if (guestUser && authType === 'guest') {
+            const guestUserData = JSON.parse(guestUser);
+            // 게스트 사용자를 Supabase User 형태로 변환
+            setUser({
+              id: guestUserData.id,
+              email: guestUserData.email || null,
+              user_metadata: {
+                name: guestUserData.name,
+                auth_type: 'guest'
+              }
+            } as User);
+            setStatus('authenticated');
+          } else {
+            setUser(null);
+            setStatus('unauthenticated');
+          }
         }
       } catch (error) {
         console.error('세션 확인 오류:', error);
@@ -103,12 +121,24 @@ export function useSession(): UseSessionReturn {
 
 /**
  * NextAuth의 signOut을 대체하는 Supabase 기반 함수
+ * 게스트 세션도 함께 정리
  */
 export async function signOut(options?: { callbackUrl?: string }) {
   const supabase = createClientComponentClient();
   
   try {
     await supabase.auth.signOut();
+    
+    // 🍪 게스트 세션 정리 (localStorage + 쿠키)
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_session_id');
+      localStorage.removeItem('auth_type');
+      localStorage.removeItem('auth_user');
+      
+      // 게스트 세션 쿠키 정리
+      document.cookie = 'guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+      document.cookie = 'auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+    }
     
     // 콜백 URL이 제공되면 해당 URL로, 아니면 홈으로 리다이렉트
     if (typeof window !== 'undefined') {

@@ -18,20 +18,39 @@ export default function AuthCallbackPage() {
     const processCallback = async () => {
       console.log('🔄 Auth 콜백 처리 중...');
       
-      const { session, error } = await handleAuthCallback();
-      
-      if (error) {
-        console.error('❌ Auth 콜백 에러:', error);
-        router.push('/login?error=auth_callback_failed');
-        return;
-      }
+      try {
+        const { session, error } = await handleAuthCallback();
+        
+        if (error) {
+          console.error('❌ Auth 콜백 에러:', error);
+          
+          // 에러 타입에 따른 상세 처리
+          if (error.message?.includes('Invalid code')) {
+            router.push('/login?error=invalid_code&message=인증 코드가 유효하지 않습니다');
+          } else if (error.message?.includes('provider')) {
+            router.push('/login?error=provider_error&message=GitHub OAuth 설정을 확인해주세요');
+          } else {
+            router.push('/login?error=auth_callback_failed&message=인증 처리 중 오류가 발생했습니다');
+          }
+          return;
+        }
 
-      if (session) {
-        console.log('✅ Auth 콜백 성공, 홈으로 이동');
-        router.push('/');
-      } else {
-        console.warn('⚠️ 세션 없음, 로그인 페이지로 이동');
-        router.push('/login');
+        if (session) {
+          console.log('✅ Auth 콜백 성공:', session.user.email);
+          
+          // URL에서 리다이렉트 경로 확인
+          const searchParams = new URLSearchParams(window.location.search);
+          const redirectTo = searchParams.get('redirect') || '/';
+          
+          console.log('🔄 리다이렉트:', redirectTo);
+          router.push(redirectTo);
+        } else {
+          console.warn('⚠️ 세션 없음, 로그인 페이지로 이동');
+          router.push('/login?warning=no_session');
+        }
+      } catch (unexpectedError) {
+        console.error('💥 예상치 못한 콜백 에러:', unexpectedError);
+        router.push('/login?error=unexpected_error&message=예상치 못한 오류가 발생했습니다');
       }
     };
 
