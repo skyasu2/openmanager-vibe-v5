@@ -40,14 +40,19 @@ export default function LoginPage() {
     setIsClient(true);
   }, []);
 
-  // guestSession 상태가 변경되면 localStorage에 저장하고 페이지 이동
+  // guestSession 상태가 변경되면 localStorage와 쿠키에 저장하고 페이지 이동
   useEffect(() => {
     if (guestSession) {
+      // localStorage 저장 (기존 로직)
       localStorage.setItem('auth_session_id', guestSession.sessionId);
       localStorage.setItem('auth_type', 'guest');
       localStorage.setItem('auth_user', JSON.stringify(guestSession.user));
 
-      console.log('✅ 게스트 세션 저장 완료, 페이지 이동:', guestSession.user.name);
+      // 🍪 쿠키 저장 (middleware 인식용)
+      document.cookie = `guest_session_id=${guestSession.sessionId}; path=/; max-age=${2 * 60 * 60}; SameSite=Lax`;
+      document.cookie = `auth_type=guest; path=/; max-age=${2 * 60 * 60}; SameSite=Lax`;
+
+      console.log('✅ 게스트 세션 저장 완료 (localStorage + 쿠키), 페이지 이동:', guestSession.user.name);
       router.push('/');
     }
   }, [guestSession, router]);
@@ -185,22 +190,32 @@ export default function LoginPage() {
               모든 로그인 방식은 OpenManager 메인 페이지로 이동합니다
             </p>
             
-            {/* 환경변수 설정 안내 - 개발/배포 환경에서만 표시 */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className='mt-4 p-3 bg-yellow-900/20 border border-yellow-600/30 rounded-lg text-left'>
-                <p className='text-yellow-300 text-xs font-semibold mb-1'>
-                  ⚠️ Supabase GitHub OAuth 설정 안내
+            {/* Supabase GitHub OAuth 설정 안내 */}
+            <div className='mt-4 p-3 bg-blue-900/20 border border-blue-600/30 rounded-lg text-left'>
+              <p className='text-blue-300 text-xs font-semibold mb-2'>
+                🔧 GitHub OAuth 설정 가이드
+              </p>
+              <div className='space-y-2 text-xs'>
+                <div>
+                  <p className='text-blue-200/90 font-medium'>1. Supabase Dashboard 설정:</p>
+                  <ul className='text-blue-200/70 mt-1 ml-4 list-disc space-y-1'>
+                    <li>Authentication → Providers → GitHub 활성화</li>
+                    <li>GitHub App 생성 후 Client ID/Secret 입력</li>
+                    <li>Redirect URL: https://[프로젝트].supabase.co/auth/v1/callback</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className='text-blue-200/90 font-medium'>2. 환경변수 설정:</p>
+                  <ul className='text-blue-200/70 mt-1 ml-4 list-disc'>
+                    <li>NEXT_PUBLIC_SUPABASE_URL</li>
+                    <li>NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
+                  </ul>
+                </div>
+                <p className='text-blue-200/60 text-[11px] mt-2'>
+                  💡 설정 완료 전에는 게스트 모드를 사용하세요
                 </p>
-                <p className='text-yellow-200/80 text-xs'>
-                  GitHub 로그인을 사용하려면:
-                </p>
-                <ul className='text-yellow-200/60 text-xs mt-1 ml-4 list-disc'>
-                  <li>Supabase Dashboard에서 GitHub OAuth 활성화</li>
-                  <li>NEXT_PUBLIC_SUPABASE_URL 설정</li>
-                  <li>NEXT_PUBLIC_SUPABASE_ANON_KEY 설정</li>
-                </ul>
               </div>
-            )}
+            </div>
           </div>
         </div>
 

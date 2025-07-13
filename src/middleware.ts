@@ -79,6 +79,15 @@ export async function middleware(request: NextRequest) {
 
   if (isProtectedPath) {
     try {
+      // 🎯 게스트 세션 쿠키 확인 (우선순위)
+      const guestSessionCookie = request.cookies.get('guest_session_id');
+      const authTypeCookie = request.cookies.get('auth_type');
+      
+      if (guestSessionCookie && authTypeCookie?.value === 'guest') {
+        console.log('✅ 게스트 세션 확인됨, 접근 허용:', guestSessionCookie.value);
+        return response;
+      }
+
       // Supabase 클라이언트 생성
       const supabase = createMiddlewareClient({ req: request, res: response });
       
