@@ -116,7 +116,7 @@ export interface AIFilterResult {
 
 export class AIDataFilter {
   private static instance: AIDataFilter | null = null;
-  private dataGenerator: RealServerDataGenerator;
+  private dataGenerator: GCPRealDataService;
   private cache: Map<string, { data: AIFilterResult; timestamp: number }> =
     new Map();
   private readonly CACHE_TTL = 30000; // 30초

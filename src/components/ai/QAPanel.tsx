@@ -71,7 +71,7 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
   // 실제 AI API 호출 함수
   const callRealAI = React.useCallback(async (question: string) => {
     try {
-      // 1. 실제 MCP 서버 연동 시도 (Render)
+      // 1. 실제 MCP 서버 연동 시도 (GCP)
       const mcpResponse = await fetch('/api/mcp/query', {
         method: 'POST',
         headers: {
@@ -94,7 +94,7 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
           thinkingLogs: [
             {
               step: 'MCP 서버 연결',
-              content: 'Render 기반 MCP 서버에 성공적으로 연결되었습니다.',
+              content: 'GCP 기반 MCP 서버에 성공적으로 연결되었습니다.',
               type: 'analysis' as const,
               duration: 200,
               progress: 0.2,

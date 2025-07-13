@@ -14,6 +14,7 @@ export interface EncryptedGoogleAIConfig {
   encryptedKey: string;
   salt: string;
   iv: string;
+  authTag?: string; // 이전 버전 호환성을 위한 옵셔널 속성
   version: string;
   algorithm: string;
   createdAt: string;

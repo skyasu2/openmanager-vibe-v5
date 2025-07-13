@@ -3,7 +3,7 @@ import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
  * 🔮 AI 예측 API - 실제 구현
  *
  * 실제 서버 데이터와 AI 모델을 사용한 예측 시스템
- * - RealServerDataGenerator 연동
+ * - GCPRealDataService 연동
  * - Redis 기반 시계열 데이터
  * - 경량 ML 엔진 활용
  * - Supabase 예측 히스토리 저장

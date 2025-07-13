@@ -268,8 +268,8 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     importance: 'high',
     isCore: true,
   },
-  realserverdatagenerator: {
-    name: 'RealServerDataGenerator',
+      gcprealdata: {
+      name: 'GCPRealDataService',
     category: 'data-generation',
     description: '환경별(개발/프로덕션) 서버 생성 + 클러스터 관리',
     importance: 'high',
@@ -787,7 +787,7 @@ function normalizeTechName(tech: string): string {
     // Server Data Generator mappings
     'optimized data generator': 'optimizeddatagenerator',
     'baseline optimizer': 'baselineoptimizer',
-    'real server data generator': 'realserverdatagenerator',
+    'real server data generator': 'gcprealdata',
     'timer manager': 'timermanager',
     'memory optimizer': 'memoryoptimizer',
     'smart cache': 'smartcache',

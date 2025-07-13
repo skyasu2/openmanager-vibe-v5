@@ -298,7 +298,9 @@ export class EnvAutoRecoveryService {
             const config = configModule.ENCRYPTED_ENV_CONFIG;
             
             if (config && config.variables) {
-              const decrypted = this.envCryptoManager.decryptEnvironment(config, password);
+              const { adaptEncryptedEnvironmentConfigToEnvConfig } = await import('../../utils/encryption-adapter');
+              const adaptedConfig = adaptEncryptedEnvironmentConfigToEnvConfig(config);
+              const decrypted = this.envCryptoManager.decryptEnvironment(adaptedConfig, password);
               Object.assign(recoveredVars, decrypted);
               if (Object.keys(recoveredVars).length > 0) {
                 break; // 성공하면 중단

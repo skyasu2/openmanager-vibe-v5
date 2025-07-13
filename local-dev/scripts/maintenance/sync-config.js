@@ -35,8 +35,8 @@ const CONFIG_MAPPINGS = {
             'vercel-complete-env-setup.txt',
             'vercel-additional-env.txt',
             'vercel-env-vars.txt',
-            'render.yaml',
-            'render-mcp-config.json'
+            'gcp.yaml',
+            'gcp-mcp-config.json'
         ]
     },
     mcp: {
@@ -44,7 +44,7 @@ const CONFIG_MAPPINGS = {
         target: path.join(ROOT_DIR, 'development/mcp'),
         files: [
             'cursor.mcp.json',
-            'mcp-render-ai.json'
+            'mcp-gcp-ai.json'
         ]
     }
 };

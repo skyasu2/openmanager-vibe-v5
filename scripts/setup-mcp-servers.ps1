@@ -118,10 +118,10 @@ $settingsConfig = @{
             "PowerShell(npm test)",
             "PowerShell(npm run test:unit:*)",
             "PowerShell(uv tool install:*)",
-            "PowerShell(claude-monitor)",
+            
             "PowerShell($env:*)",
             "PowerShell(Get-ChildItem:*)",
-            "PowerShell(claude-monitor:*)",
+            
             "PowerShell(echo $env:SHELL)",
             "PowerShell(Get-Content ~/.bashrc)",
             "PowerShell(Remove-Item:*)",
@@ -169,7 +169,7 @@ $settingsConfig = @{
             "WebFetch(domain:openmanager-vibe-v5.vercel.app)",
             "PowerShell(Invoke-WebRequest:*)",
             "PowerShell(Start-Sleep:*)",
-            "PowerShell(~/.claude-monitor/claude-monitor --help)",
+            
             "PowerShell(Stop-Process:*)",
             "PowerShell(sudo npm uninstall -g @anthropic-ai/claude-code)",
             "PowerShell(echo $env:PATH)",
@@ -206,7 +206,7 @@ $settingsConfig = @{
             "PowerShell($env:HUSKY=0; git add .)",
             "PowerShell($env:HUSKY=0; git commit -m '🔧 Claude 설정 업데이트 및 TypeScript 오류 수정`n`n- Claude usage 명령어 허용 추가`n- AuthUser 타입 호환성 문제 해결`n- @supabase/auth-helpers-nextjs 패키지 설치')",
             "PowerShell(Get-Job:*)",
-            "PowerShell($env:HUSKY=0; git commit -m '🔧 claude-monitor 개선: 중복 제거 및 PowerShell 백그라운드 지원`n`n- npm 스크립트 중복 제거 (claude-usage, claude:show 제거)`n- PowerShell 스크립트 통합 (show-claude-usage.ps1 제거)`n- PowerShell 백그라운드 실행 스크립트 추가 (cm:background)`n- Git hooks 최적화 (--quiet 옵션 추가)`n- CLAUDE_MONITOR_GUIDE.md 문서 업데이트')",
+            "PowerShell($env:HUSKY=0; git commit -m '🔧 MCP 서버 설정 개선: PowerShell 백그라운드 지원`n`n- npm 스크립트 중복 제거`n- PowerShell 스크립트 통합`n- Git hooks 최적화')", hooks 최적화 (--quiet 옵션 추가)`n- CLAUDE_MONITOR_GUIDE.md 문서 업데이트')",
             "PowerShell(npm:*)",
             "PowerShell(Test-Path:*)",
             "PowerShell(git checkout:*)",

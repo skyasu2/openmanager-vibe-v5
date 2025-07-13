@@ -11,22 +11,22 @@ const importFixes = [
   {
     // RealServerDataGenerator import 제거 또는 대체
     pattern: /import\s+{[^}]*RealServerDataGenerator[^}]*}\s+from\s+['"]['"][^'"]*RealServerDataGenerator[^'"]*['"]['"];?\s*\n?/g,
-    replacement: "import { GCPServerDataGenerator } from '@/services/gcp/GCPServerDataGenerator';\n"
+    replacement: "import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';\n"
   },
   {
     // createServerDataGenerator import 제거 또는 대체
     pattern: /import\s+{[^}]*createServerDataGenerator[^}]*}\s+from[^;]+;?\s*\n?/g,
-    replacement: "import { GCPServerDataGenerator } from '@/services/gcp/GCPServerDataGenerator';\n"
+    replacement: "import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';\n"
   },
   {
-    // RealServerDataGenerator.getInstance() 사용을 GCPServerDataGenerator.getInstance()로 대체
+    // RealServerDataGenerator.getInstance() 사용을 GCPRealDataService.getInstance()로 대체
     pattern: /RealServerDataGenerator\.getInstance\(\)/g,
-    replacement: "GCPServerDataGenerator.getInstance()"
+    replacement: "GCPRealDataService.getInstance()"
   },
   {
-    // createServerDataGenerator() 사용을 GCPServerDataGenerator.getInstance()로 대체
+    // createServerDataGenerator() 사용을 GCPRealDataService.getInstance()로 대체
     pattern: /createServerDataGenerator\(\)/g,
-    replacement: "GCPServerDataGenerator.getInstance()"
+    replacement: "GCPRealDataService.getInstance()"
   }
 ];
 
@@ -108,7 +108,7 @@ async function fixImportsInFile(filePath) {
     const filteredLines = [];
     
     for (const line of lines) {
-      if (line.trim().startsWith('import ') && line.includes('GCPServerDataGenerator')) {
+      if (line.trim().startsWith('import ') && line.includes('GCPRealDataService')) {
         if (!imports.has(line.trim())) {
           imports.add(line.trim());
           filteredLines.push(line);

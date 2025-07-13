@@ -32,10 +32,10 @@ describe('🌐 GCP 실제 데이터 생성기 테스트', () => {
       console.log('✅ Vercel 환경: GCP 실제 데이터 서비스 초기화 완료');
     } else {
       // 로컬 환경: 목업 데이터 사용
-      const { GCPRealServerDataGenerator } = await import(
-        '@/services/data-generator/RealServerDataGenerator'
-      );
-      const mockGenerator = GCPRealServerDataGenerator.getInstance();
+          const { GCPRealDataService } = await import(
+      '@/services/gcp/GCPRealDataService'
+    );
+    const mockGenerator = GCPRealDataService.getInstance();
 
       const initialized = await mockGenerator.initialize();
       expect(initialized).toBe(true);
@@ -58,10 +58,10 @@ describe('🌐 GCP 실제 데이터 생성기 테스트', () => {
       console.log(`⚡ GCP 실제 데이터 조회 성능: ${duration}ms`);
     } else {
       // 로컬: 목업 데이터 조회
-      const { RealServerDataGenerator } = await import(
-        '@/services/data-generator/RealServerDataGenerator'
+      const { GCPRealDataService } = await import(
+        '@/services/gcp/GCPRealDataService'
       );
-      const mockGenerator = RealServerDataGenerator.getInstance();
+      const mockGenerator = GCPRealDataService.getInstance();
 
       const servers = await mockGenerator.getAllServers();
       const duration = Date.now() - startTime;
@@ -105,10 +105,10 @@ describe('🌐 GCP 실제 데이터 생성기 테스트', () => {
     } else {
       // 로컬: 목업 데이터 품질 검증
       try {
-        const { RealServerDataGenerator } = await import(
-          '@/services/data-generator/RealServerDataGenerator'
+        const { GCPRealDataService } = await import(
+          '@/services/gcp/GCPRealDataService'
         );
-        const mockGenerator = RealServerDataGenerator.getInstance();
+        const mockGenerator = GCPRealDataService.getInstance();
 
         const servers = await mockGenerator.getAllServers();
 
@@ -204,10 +204,10 @@ describe('🌐 GCP 실제 데이터 생성기 테스트', () => {
     } else {
       // 로컬: 목업 데이터로 장애 시뮬레이션
       try {
-        const { RealServerDataGenerator } = await import(
-          '@/services/data-generator/RealServerDataGenerator'
+        const { GCPRealDataService } = await import(
+          '@/services/gcp/GCPRealDataService'
         );
-        const mockGenerator = RealServerDataGenerator.getInstance();
+        const mockGenerator = GCPRealDataService.getInstance();
 
         const servers = await mockGenerator.getAllServers();
 

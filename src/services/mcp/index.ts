@@ -3,7 +3,7 @@
  * 
  * ⚠️ 기존 MCPProcessor는 RealMCPClient 싱글톤의 래퍼로 변경됨
  * ✅ 하위 호환성 유지
- * ✅ Render MCP 서버 전용
+ * ✅ GCP MCP 서버 전용
  * ✅ 중복 코드 제거
  */
 
@@ -50,7 +50,7 @@ export class MCPProcessor {
     if (this.isInitialized) return;
 
     try {
-      // 🎯 Render MCP 서버만 초기화 (개발용 제외)
+      // 🎯 GCP MCP 서버만 초기화 (개발용 제외)
       await this.realClient.initialize();
       this.isInitialized = true;
       console.log('✅ MCP Processor 초기화 완료 (RealMCPClient 위임)');
@@ -70,7 +70,7 @@ export class MCPProcessor {
     }
 
     try {
-      // 🎯 Render MCP 서버를 통한 복합 쿼리 처리
+      // 🎯 GCP MCP 서버를 통한 복합 쿼리 처리
       const result = await this.realClient.performComplexQuery(
         request.query,
         request.context
@@ -83,10 +83,10 @@ export class MCPProcessor {
         confidence: 0.8, // 중간-높은 신뢰도
       };
     } catch (error) {
-      console.error('MCP Processor 처리 실패 (Render 서버):', error);
+      console.error('MCP Processor 처리 실패 (GCP 서버):', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Render MCP 연결 실패',
+        error: error instanceof Error ? error.message : 'GCP MCP 연결 실패',
         confidence: 0,
       };
     }

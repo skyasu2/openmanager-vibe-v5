@@ -11,6 +11,7 @@
 import { transformServerInstancesToServers } from '@/adapters/server-data-adapter';
 import { getRedisClient } from '@/lib/redis';
 import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
 import { Server } from '@/types/server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -61,7 +62,8 @@ export async function GET(request: NextRequest) {
     }
 
     // 현재 서버 데이터 가져오기
-    const allServerInstances = await gcpDataService.getRealServerMetrics().then(response => response.data);
+    const gcpServerData = await gcpDataService.getRealServerMetrics().then(response => response.data);
+    const allServerInstances = adaptGCPMetricsToServerInstances(gcpServerData);
 
     console.log(
       `초기화 실행 from /api/servers/realtime (서버 ${allServerInstances.length}개 감지)`
@@ -71,7 +73,7 @@ export async function GET(request: NextRequest) {
     if (allServerInstances.length === 0) {
       // 경고 생성
       const warning = createBasicFallbackWarning(
-        'RealServerDataGenerator',
+        'GCPRealDataService',
         '서버 인스턴스가 존재하지 않음'
       );
 
@@ -117,7 +119,8 @@ export async function GET(request: NextRequest) {
       console.log('✅ GCP 실제 데이터 서비스 초기화 완료');
 
       // 초기화 후에도 데이터가 없으면 추가 경고
-      const retryServerInstances = await gcpDataService.getRealServerMetrics().then(response => response.data);
+      const retryGcpData = await gcpDataService.getRealServerMetrics().then(response => response.data);
+      const retryServerInstances = adaptGCPMetricsToServerInstances(retryGcpData);
       if (retryServerInstances.length === 0) {
         console.error('🚨 초기화 후에도 서버 데이터 없음 - 시스템 점검 필요');
       }
@@ -188,7 +191,7 @@ export async function GET(request: NextRequest) {
 
     // 🛡️ 데이터 소스 추적
     const dataSource =
-      allServerInstances.length > 0 ? 'RealServerDataGenerator' : 'initialized';
+      allServerInstances.length > 0 ? 'GCPRealDataService' : 'initialized';
 
     // 응답 헤더 설정
     const responseHeaders: Record<string, string> = {

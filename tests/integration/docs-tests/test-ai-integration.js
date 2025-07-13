@@ -138,7 +138,7 @@ async function testMCPSystem() {
         `   - 로컬 서버: ${Object.keys(data.mcp.servers.local).length}개`
       );
       console.log(
-        `   - Render 서버: ${data.mcp.servers.render.healthy ? '정상' : '오류'} (${data.mcp.servers.render.latency}ms)`
+        `   - GCP 서버: ${data.mcp.servers.gcp.healthy ? '정상' : '오류'} (${data.mcp.servers.gcp.latency}ms)`
       );
 
       return true;

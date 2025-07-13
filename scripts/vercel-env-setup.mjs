@@ -61,7 +61,7 @@ const requiredEnvVars = {
     'SLACK_WEBHOOK_URL': process.env.SLACK_WEBHOOK_URL || '',
 
     // 🔄 MCP 서버
-    'MCP_REMOTE_URL': process.env.MCP_REMOTE_URL || 'https://openmanager-vibe-v5.onrender.com'
+    'MCP_REMOTE_URL': process.env.MCP_REMOTE_URL || 'https://openmanager-vibe-v5.gcp.run'
 };
 
 /**

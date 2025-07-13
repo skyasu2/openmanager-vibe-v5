@@ -214,7 +214,7 @@ interface AIAgentContextType {
   clearThinking: () => void;
 
   // 하이브리드 엔진 제어
-  setEngineMode: (mode: 'mcp' | 'rag' | 'auto') => void;
+  setEngineMode: (mode: 'mcp' | 'rag') => void;
   getEngineStatus: () => HybridEngineStatus;
 
   // 서비스 인스턴스 (고급 사용자용)
@@ -242,7 +242,8 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
   // 헬스체크 함수 먼저 정의 (강화된 에러 핸들링)
   const checkHealth = useCallback(async (): Promise<void> => {
     try {
-      const status = await service.checkHealth();
+      // service에 checkHealth 메서드가 있는지 확인
+      const status = (service as any).checkHealth ? await (service as any).checkHealth() : { status: 'available' };
 
       // status 객체 검증
       if (!status || typeof status !== 'object') {

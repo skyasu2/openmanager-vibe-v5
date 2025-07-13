@@ -47,7 +47,7 @@ interface FeatureCard {
 // 기술 카테고리별 데이터
 const techCategories = {
   'mcp-ai-system': {
-    title: '🧠 MCP AI System (Render 배포)',
+    title: '🧠 MCP AI System (GCP 배포)',
     icon: Brain,
     color: 'from-purple-500 to-indigo-500',
     techs: [

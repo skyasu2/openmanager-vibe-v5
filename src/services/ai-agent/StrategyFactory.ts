@@ -33,7 +33,7 @@ export interface StrategyMetadata {
 export class MonitoringFocusStrategy implements ProcessingStrategy {
   name = 'monitoring_focus';
   priority = 'monitoring' as const;
-  private dataGenerator: RealServerDataGenerator;
+  private dataGenerator: GCPRealDataService;
   private usageCount = 0;
   private totalProcessingTime = 0;
   private successCount = 0;
@@ -152,7 +152,7 @@ export class MonitoringFocusStrategy implements ProcessingStrategy {
 export class AIAnalysisStrategy implements ProcessingStrategy {
   name = 'ai_analysis';
   priority = 'ai' as const;
-  private dataGenerator: RealServerDataGenerator;
+  private dataGenerator: GCPRealDataService;
   private usageCount = 0;
   private totalProcessingTime = 0;
   private successCount = 0;
@@ -247,7 +247,7 @@ export class AIAnalysisStrategy implements ProcessingStrategy {
 export class HybridBalancedStrategy implements ProcessingStrategy {
   name = 'hybrid_balanced';
   priority = 'balanced' as const;
-  private dataGenerator: RealServerDataGenerator;
+  private dataGenerator: GCPRealDataService;
   private usageCount = 0;
   private totalProcessingTime = 0;
   private successCount = 0;

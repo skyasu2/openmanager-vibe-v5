@@ -333,7 +333,7 @@ function generateCustomMetrics(config: CustomEnvironmentConfig) {
 **관리**: src/modules/ai-agent/context/
 **업데이트**: 새로운 서버 환경 추가시 시나리오 확장
 **용도**: AI 에이전트가 특정 서버 구성에 특화된 모니터링 및 최적화 제안 제공
-**연동**: RealServerDataGenerator와 연계하여 실제 시나리오 구현
+**연동**: GCPRealDataService와 연계하여 실제 시나리오 구현
 
 # ⚙️ 서버 환경별 커스텀 시나리오 (보조 지식)
 

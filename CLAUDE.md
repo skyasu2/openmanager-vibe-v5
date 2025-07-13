@@ -475,71 +475,42 @@ gemini /clear     # 컨텍스트 초기화
 
 ## Claude Code 사용량 모니터링
 
-### claude-monitor (Windows PowerShell/Python 호환)
+### ccusage 직접 사용 (권장)
 
-Windows PowerShell과 Python에서 모두 동작하는 통합 모니터링 도구입니다:
+설치 불필요하고 항상 최신 버전을 사용할 수 있는 ccusage 직접 사용을 권장합니다:
 
-#### PowerShell 사용법 (Windows 권장)
+#### 💡 PowerShell에서 바로 사용
 ```powershell
-# 🎯 빠른 실행 - 현재 사용량 요약
-npm run cm
+# 🎯 가장 많이 사용할 명령어
+npx ccusage@latest blocks --live      # 실시간 대시보드
+npx ccusage@latest blocks --active    # 현재 상태  
+npx ccusage@latest daily             # 일별 사용량
 
-# 실시간 대시보드
-npm run cm:live
-
-# 활성 블록만 보기
-npm run cm:active
-
-# 일별 사용량
-npm run cm:daily
-
-# 현재 세션 통계
-npm run cm:session
-
-# 도움말
-npm run cm:help
-
-# 직접 실행
-.\scripts\claude-monitor.ps1 -Live
-.\scripts\claude-monitor.ps1 blocks -Since 20250701 -Until 20250731
+# 📊 추가 명령어
+npx ccusage@latest session           # 현재 세션
+npx ccusage@latest monthly           # 월별 통계
+npx ccusage@latest blocks            # 모든 블록
 ```
 
-#### Python 사용법 (크로스 플랫폼)
-```bash
-# Python 스크립트 직접 실행
-python scripts/claude-monitor.py           # 빠른 통계
-python scripts/claude-monitor.py --live    # 실시간 대시보드
-python scripts/claude-monitor.py daily     # 일별 분석
-python scripts/claude-monitor.py session   # 세션 분석
-
-# 고급 옵션
-python scripts/claude-monitor.py blocks --since 20250701 --until 20250731
-python scripts/claude-monitor.py --json    # JSON 출력
-python scripts/claude-monitor.py --help    # 모든 옵션 보기
+#### ⚡ npm 단축 명령어
+```powershell
+npm run usage                        # 사용법 가이드
+npm run ccusage:live                 # 실시간 대시보드
+npm run ccusage:daily                # 일별 사용량
+npm run ccusage:blocks               # 현재 활성 블록
 ```
 
-### ccusage 직접 사용
+#### 🎯 일상 사용 패턴
+```powershell
+# 🌅 아침: 전날 사용량 확인
+npx ccusage@latest daily
 
-claude-monitor는 내부적으로 ccusage를 사용합니다. 직접 사용도 가능합니다:
+# 🕐 작업 중: 실시간 모니터링 (새 터미널)
+npx ccusage@latest blocks --live
 
-```bash
-# ccusage 직접 실행
-npx ccusage@latest blocks --live    # 실시간 대시보드
-npx ccusage@latest blocks --active  # 현재 과금 블록
-npx ccusage@latest daily           # 일별 사용량
-npx ccusage@latest session         # 현재 세션
+# 🌙 저녁: 현재 블록 상태 확인
+npx ccusage@latest blocks --active
 ```
-
-### 모니터링 도구 비교
-
-| 기능 | ccusage | claude-monitor |
-|------|---------|----------------|
-| 설치 | 불필요 (npx) | Python 필요 |
-| 실시간 | ✅ (--live) | ✅ (기본값) |
-| 한국어 | ❌ | ✅ |
-| 시각화 | 표 형식 | 프로그레스바 |
-| JSON 출력 | ✅ | ❌ |
-| 화면 지우기 | ✅ (항상) | 선택 가능 |
 
 ### 현재 개발 중점 사항
 

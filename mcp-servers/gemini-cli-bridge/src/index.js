@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { AdaptiveGeminiBridge } from './adaptive-gemini-bridge-v2.js';
+import { AdaptiveGeminiBridge } from './adaptive-gemini-bridge-v3.js';
 import { setupTools } from './tools.js';
 
 // 서버 인스턴스 생성
 const server = new Server(
   {
     name: 'gemini-cli-bridge-powershell',
-    version: '2.1.0'  // PowerShell 전용 버전
+    version: '3.0.0'  // PowerShell 전용 버전 v3.0
   },
   {
     capabilities: {
@@ -17,7 +17,7 @@ const server = new Server(
   }
 );
 
-// PowerShell 전용 Gemini Bridge 초기화 (v2)
+// PowerShell 전용 Gemini Bridge 초기화 (v3)
 const geminiBridge = new AdaptiveGeminiBridge({
   timeout: parseInt(process.env.GEMINI_TIMEOUT || '30000'),
   maxRetries: parseInt(process.env.GEMINI_MAX_RETRIES || '3')

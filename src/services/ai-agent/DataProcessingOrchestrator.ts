@@ -63,7 +63,7 @@ export class DataProcessingOrchestrator {
   private strategyFactory: StrategyFactory;
   private cacheManager: UnifiedCacheManager;
   private errorHandler: ErrorHandlingMiddleware;
-  private dataGenerator: RealServerDataGenerator;
+  private dataGenerator: GCPRealDataService;
 
   private constructor() {
     this.strategyFactory = StrategyFactory.getInstance();

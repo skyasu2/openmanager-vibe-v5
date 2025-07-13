@@ -7,10 +7,10 @@
 ### 1. **filesystem** 
 - **목적**: 파일시스템 작업을 위한 MCP 서버
 - **특징**: 
-  - HTTP 헬스체크 지원 (Render 배포용)
+  - HTTP 헬스체크 지원 (GCP 배포용)
   - 보안 경로 검증
   - 캐싱 시스템
-- **사용처**: Render 배포 시 파일시스템 접근이 필요한 경우
+- **사용처**: GCP 배포 시 파일시스템 접근이 필요한 경우
 - **참고**: Claude Code는 공식 `@modelcontextprotocol/server-filesystem` 패키지 사용
 
 ### 2. **gemini-cli-bridge** (v3.0)
@@ -58,7 +58,7 @@ mcp-servers/
 }
 ```
 
-### Render 배포 (filesystem 서버)
+### GCP 배포 (filesystem 서버)
 ```bash
 cd mcp-servers/filesystem
 npm install

@@ -6,7 +6,7 @@
  * 🗂️ 공식 MCP 파일시스템 서버 (Anthropic 권장 방식)
  * @modelcontextprotocol/server-filesystem 패키지 사용
  * 순수한 표준 MCP 파일시스템 서버 구현
- * + Render 배포를 위한 HTTP 헬스체크 서버 추가
+ * + GCP 배포를 위한 HTTP 헬스체크 서버 추가
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -21,7 +21,7 @@ import fs from 'node:fs/promises';
 import http from 'node:http';
 import path from 'node:path';
 
-// 🌐 Render 배포를 위한 HTTP 서버 설정
+// 🌐 GCP 배포를 위한 HTTP 서버 설정
 const PORT = process.env.PORT || 10000;
 const HTTP_ENABLED =
   process.env.NODE_ENV === 'production' || process.env.ENABLE_HTTP === 'true';
@@ -484,7 +484,7 @@ server.setRequestHandler(ReadResourceRequestSchema, async request => {
   }
 });
 
-// 🌐 HTTP 헬스체크 서버 (Render 배포용)
+// 🌐 HTTP 헬스체크 서버 (GCP 배포용)
 function createHealthCheckServer() {
   const httpServer = http.createServer((req, res) => {
     const { method, url } = req;
@@ -804,7 +804,7 @@ async function main() {
     '📚 표준 MCP 리소스: project-root, src-structure, docs-structure'
   );
 
-  // HTTP 서버 시작 (Render 배포용)
+  // HTTP 서버 시작 (GCP 배포용)
   if (HTTP_ENABLED) {
     const httpServer = createHealthCheckServer();
     httpServer.listen(PORT, () => {

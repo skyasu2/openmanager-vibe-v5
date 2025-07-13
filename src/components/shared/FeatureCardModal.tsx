@@ -121,7 +121,7 @@ const getCurrentTechStack = (cardId: string): TechItem[] => {
         description: 'MCP 서버 전용 클라우드 배포 환경',
         status: 'active',
         icon: 'Rocket',
-        tags: ['Cloud', 'MCP', 'Render'],
+        tags: ['Cloud', 'MCP', 'GCP'],
       },
     ],
     'fullstack-ecosystem': [

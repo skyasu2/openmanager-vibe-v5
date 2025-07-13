@@ -2,7 +2,7 @@
 
 /**
  * 🚀 OpenManager Vibe v5 개발 워크플로우
- * Render MCP ↔ Vercel 배포 연동 개발 환경
+ * GCP MCP ↔ Vercel 배포 연동 개발 환경
  */
 
 import fetch from 'node-fetch';
@@ -13,8 +13,8 @@ const CONFIG = {
     LOCAL_DEV: 'http://localhost:3000',
     LOCAL_MCP: 'http://localhost:3100',
 
-    // Render MCP 서버 (실제 배포 후 업데이트 필요)
-    RENDER_MCP: 'https://openmanager-mcp-server.onrender.com',
+    // GCP MCP 서버 (실제 배포 후 업데이트 필요)
+    GCP_MCP: 'https://openmanager-mcp-server.gcp.run',
 
     // Vercel 배포 URL (실제 배포 후 업데이트 필요)
     VERCEL_PROD: 'https://openmanager-vibe-v5.vercel.app',
@@ -144,9 +144,9 @@ class DevWorkflow {
         console.log('\n🌐 프로덕션 연결 테스트...');
 
         const prodTests = [
-            { name: 'Render MCP 서버', url: CONFIG.RENDER_MCP + CONFIG.ENDPOINTS.health },
+            { name: 'GCP MCP 서버', url: CONFIG.GCP_MCP + CONFIG.ENDPOINTS.health },
             { name: 'Vercel 메인 앱', url: CONFIG.VERCEL_PROD + CONFIG.ENDPOINTS.health },
-            { name: 'Vercel → Render 통신', url: CONFIG.VERCEL_PROD + CONFIG.ENDPOINTS.mcpStatus },
+            { name: 'Vercel → GCP 통신', url: CONFIG.VERCEL_PROD + CONFIG.ENDPOINTS.mcpStatus },
         ];
 
         for (const test of prodTests) {
@@ -173,7 +173,7 @@ class DevWorkflow {
 
         console.log('\n📝 개발 준비 완료! 다음 단계:');
         console.log('1. 로컬에서 개발 & 테스트');
-        console.log('2. npm run deploy:render - Render MCP 서버 배포');
+        console.log('2. npm run deploy:gcp - GCP MCP 서버 배포');
         console.log('3. npm run deploy:vercel - Vercel 메인 앱 배포');
         console.log('4. npm run test:production - 프로덕션 연결 테스트');
 

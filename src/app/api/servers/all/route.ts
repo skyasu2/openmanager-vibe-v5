@@ -1,5 +1,6 @@
 import { transformServerInstancesToServersOptimized } from '@/adapters/server-data-adapter';
 import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -14,8 +15,12 @@ export async function GET() {
 
     // 🔧 서버 데이터 가져오기
     const metricsResponse = await gcpDataService.getRealServerMetrics();
-    const serverData = metricsResponse.data;
-    console.log('📊 생성된 데이터:', serverData.length, '개 서버');
+    const gcpServerData = metricsResponse.data;
+    console.log('📊 생성된 데이터:', gcpServerData.length, '개 서버');
+
+    // 🔄 GCP 메트릭을 표준 ServerInstance로 변환
+    const serverData = adaptGCPMetricsToServerInstances(gcpServerData);
+    console.log('🔄 타입 변환 완료:', serverData.length, '개 서버');
 
     // 🚀 배치 최적화 변환 사용
     const servers = transformServerInstancesToServersOptimized(serverData);

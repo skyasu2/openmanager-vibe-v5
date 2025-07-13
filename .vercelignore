@@ -81,7 +81,6 @@ mcp-servers/
 mcp-server/
 **/mcp-servers/
 .claude/
-claude-monitor-standalone/
 fetch-mcp/
 fetch-mcp-server/
 mcp.json
@@ -97,7 +96,6 @@ MCP-*.md
 
 # Claude 개발 도구
 CLAUDE.md
-claude-monitor.py
 scripts/test-gemini-mcp.js
 scripts/test-adaptive-gemini.js
 scripts/mcp-secure-loader.ts

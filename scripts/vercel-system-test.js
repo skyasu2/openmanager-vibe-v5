@@ -8,7 +8,7 @@
  * 2. 대시보드 데이터 갱신 및 24시간 데이터
  * 3. 서버 카드 및 모달 데이터 분석
  * 4. AI 어시스턴트 데이터 수신 및 분석
- * 5. MCP 서버 연동 상태 (Render)
+ * 5. MCP 서버 연동 상태 (GCP)
  */
 
 const https = require('https');
@@ -16,7 +16,7 @@ const https = require('https');
 class VercelSystemTest {
     constructor() {
         this.vercelUrl = 'https://openmanager-vibe-v5.vercel.app';
-        this.mcpServerUrl = 'https://openmanager-vibe-v5.onrender.com';
+        this.mcpServerUrl = 'https://openmanager-vibe-v5.gcp.run';
         this.results = {
             serverDataGenerator: null,
             dashboardData: null,
@@ -298,9 +298,9 @@ class VercelSystemTest {
         }
     }
 
-    // 5. MCP 서버 연동 테스트 (Render)
+    // 5. MCP 서버 연동 테스트 (GCP)
     async testMCPServerIntegration() {
-        this.log('🔗 5. MCP 서버 연동 상태 테스트 (Render)', 'info');
+        this.log('🔗 5. MCP 서버 연동 상태 테스트 (GCP)', 'info');
 
         try {
             // MCP 서버 헬스체크
@@ -357,7 +357,7 @@ class VercelSystemTest {
             { name: 'Vercel 대시보드 데이터', result: this.results.dashboardData },
             { name: 'Vercel 서버 카드', result: this.results.serverCards },
             { name: 'Vercel AI 어시스턴트', result: this.results.aiAssistant },
-            { name: 'Render MCP 서버', result: this.results.mcpServer }
+            { name: 'GCP MCP 서버', result: this.results.mcpServer }
         ];
 
         let passedTests = 0;

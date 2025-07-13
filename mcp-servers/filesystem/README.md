@@ -6,7 +6,7 @@ HTTP 헬스체크를 지원하는 커스텀 파일시스템 MCP 서버입니다.
 
 이 서버는 두 가지 주요 기능을 제공합니다:
 1. **MCP 파일시스템 기능**: 파일 읽기/쓰기, 디렉터리 탐색
-2. **HTTP 헬스체크**: Render 등 클라우드 플랫폼 배포 지원
+2. **HTTP 헬스체크**: GCP 등 클라우드 플랫폼 배포 지원
 
 ## 🔧 주요 기능
 
@@ -48,11 +48,11 @@ npm start        # MCP 서버 시작
 npm run health   # 헬스체크 테스트
 ```
 
-### Render 배포
-1. Render에서 Web Service 생성
+### GCP 배포
+1. GCP에서 Cloud Run 서비스 생성
 2. 환경 변수 설정:
    - `NODE_ENV=production`
-   - `PORT=10000` (Render가 자동 설정)
+   - `PORT=10000`
 3. 빌드 명령: `npm install`
 4. 시작 명령: `npm start`
 

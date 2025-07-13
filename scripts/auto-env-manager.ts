@@ -18,6 +18,7 @@ import path from 'path';
 import { execSync } from 'child_process';
 import { ENCRYPTED_ENV_CONFIG } from '../config/encrypted-env-config';
 import { enhancedCryptoManager } from '../src/lib/crypto/EnhancedEnvCryptoManager';
+import { adaptEncryptedEnvironmentConfigToEnvConfig } from '../src/utils/encryption-adapter';
 
 // 환경 타입 정의
 type Environment = 'local' | 'ci' | 'vercel' | 'docker' | 'production';
@@ -90,7 +91,8 @@ async function autoLoadEnvironment() {
     enhancedCryptoManager.initializeMasterKey(masterPassword);
     
     // 환경변수 복호화 및 로드
-    enhancedCryptoManager.loadToProcess(ENCRYPTED_ENV_CONFIG);
+    const adaptedConfig = adaptEncryptedEnvironmentConfigToEnvConfig(ENCRYPTED_ENV_CONFIG);
+    enhancedCryptoManager.loadToProcess(adaptedConfig);
     
     console.log('✅ 환경변수 자동 로드 완료');
     
@@ -114,8 +116,9 @@ async function autoLoadEnvironment() {
 function setupVercelEnvironment() {
   // Vercel 빌드 최적화
   if (process.env.VERCEL_ENV === 'production') {
-    process.env.NODE_ENV = 'production';
+    // NODE_ENV는 읽기 전용이므로 환경별 설정은 다른 방식으로 처리
     console.log('🚀 Vercel 프로덕션 환경 설정 완료');
+    console.log(`💡 현재 NODE_ENV: ${process.env.NODE_ENV}`);
   }
 }
 

@@ -360,9 +360,9 @@ export const DEPLOYMENT_CONFIG = {
     region: 'ap-southeast-1',
     project: 'vnswjnltnhpsueosfhmw'
   },
-  renderMCP: {
+  gcpMCP: {
     enabled: true,
-    region: 'singapore',
+    region: 'asia-southeast1',
     loadBalanced: true
   },
   redis: {
@@ -590,7 +590,7 @@ SUPABASE_DB_PASSWORD=2D3DWhSl8HBlgYIm
 # 📡 GCP VM MCP 서버 (2025년 메모리 저장소)
 # =============================================================================
 GCP_MCP_SERVER_URL=http://104.154.205.25:10000
-RENDER_MCP_SERVER_IPS=13.228.225.19,18.142.128.26,54.254.162.138
+GCP_MCP_SERVER_IPS=104.154.205.25,34.150.123.45,35.247.178.92
 
 # =============================================================================
 # 🔴 Upstash Redis (2025년 메모리 저장소)
@@ -682,7 +682,7 @@ NEXTAUTH_URL=http://localhost:3000
         reason: '캐시 데이터 보호',
       },
       {
-        service: 'Render MCP Server',
+        service: 'GCP MCP Server',
         frequency: '필요시',
         risk: '낮',
         reason: '서버 재배포 시만',

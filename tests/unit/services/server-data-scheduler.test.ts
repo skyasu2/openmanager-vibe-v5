@@ -32,8 +32,8 @@ vi.mock('@/lib/redis', () => ({
 }));
 
 // Mock Server Data Generator
-vi.mock('@/services/data-generator/RealServerDataGenerator', () => ({
-  RealServerDataGenerator: {
+vi.mock('@/services/gcp/GCPRealDataService', () => ({
+  GCPRealDataService: {
     getInstance: vi.fn(() => ({
       initialize: vi.fn(),
       getDashboardSummary: vi.fn(() => ({

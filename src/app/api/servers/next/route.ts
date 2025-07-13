@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 /**
  * 🖥️ Sequential Server Generation API (실제 서버데이터 생성기 연동)
  *
- * ✅ 개선: RealServerDataGenerator를 사용하여 정교한 서버 데이터 제공
+ * ✅ 개선: GCPRealDataService를 사용하여 정교한 서버 데이터 제공
  * - 24시간 베이스라인 패턴 기반 데이터
  * - 실제 서버 스펙 및 메트릭
  * - 시간대별 부하 패턴 반영

@@ -94,7 +94,7 @@ export interface HybridDataResponse {
 
 export class HybridDataManager {
   private static instance: HybridDataManager | null = null;
-  private dataGenerator: RealServerDataGenerator;
+  private dataGenerator: GCPRealDataService;
   private cache: Map<string, { data: HybridDataResponse; timestamp: number }> =
     new Map();
   private readonly CACHE_TTL = 20000; // 20초 (모니터링 데이터는 더 자주 갱신)

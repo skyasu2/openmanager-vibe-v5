@@ -66,7 +66,7 @@ async function analyzePreprocessingPipeline() {
         const rawData = await fetchAPI('/api/servers/realtime?limit=5');
         if (rawData.success && rawData.data) {
             analysis.rawDataSources.push({
-                name: 'RealServerDataGenerator',
+                name: 'GCPRealDataService',
                 status: 'active',
                 dataPoints: rawData.data.length,
                 fields: Object.keys(rawData.data[0] || {}),

@@ -5,7 +5,7 @@
  */
 
 import { detectEnvironment } from '@/config/environment';
-import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 
 // 🔧 환경변수 안전 모킹 함수
@@ -44,7 +44,7 @@ describe('환경별 통합 테스트', () => {
     });
 
     test('로컬 환경에서 목업 데이터 생성기 정상 동작', async () => {
-      const generator = RealServerDataGenerator.getInstance();
+      const generator = GCPRealDataService.getInstance();
       await generator.initialize();
 
       const servers = await generator.getAllServers();
@@ -63,7 +63,7 @@ describe('환경별 통합 테스트', () => {
     });
 
     test('로컬 환경에서 대시보드 요약 데이터 생성', async () => {
-      const generator = RealServerDataGenerator.getInstance();
+      const generator = GCPRealDataService.getInstance();
       await generator.initialize();
 
       const summary = await generator.getDashboardSummary();
@@ -77,7 +77,7 @@ describe('환경별 통합 테스트', () => {
     });
 
     test('로컬 환경에서 서버 메트릭 조회', async () => {
-      const generator = RealServerDataGenerator.getInstance();
+      const generator = GCPRealDataService.getInstance();
       await generator.initialize();
 
       const metrics = await generator.getMetrics();
@@ -208,7 +208,7 @@ describe('환경별 통합 테스트', () => {
     test('로컬 환경에서 서버 API 응답 구조', async () => {
       setTestEnv({ NODE_ENV: 'development' });
 
-      const generator = RealServerDataGenerator.getInstance();
+      const generator = GCPRealDataService.getInstance();
       await generator.initialize();
 
       const servers = await generator.getAllServers();
@@ -249,7 +249,7 @@ describe('환경별 통합 테스트', () => {
     test('로컬 환경에서 서버 데이터 생성 성능', async () => {
       setTestEnv({ NODE_ENV: 'development' });
 
-      const generator = RealServerDataGenerator.getInstance();
+      const generator = GCPRealDataService.getInstance();
       await generator.initialize();
 
       const startTime = Date.now();
@@ -283,7 +283,7 @@ describe('환경별 통합 테스트', () => {
       const initialMemory = process.memoryUsage();
 
       setTestEnv({ NODE_ENV: 'development' });
-      const generator = RealServerDataGenerator.getInstance();
+      const generator = GCPRealDataService.getInstance();
       await generator.initialize();
       await generator.getAllServers();
 

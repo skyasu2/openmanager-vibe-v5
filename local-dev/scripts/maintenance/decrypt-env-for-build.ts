@@ -1,5 +1,6 @@
 import { ENCRYPTED_ENV_CONFIG } from '../../../config/encrypted-env-config';
 import { enhancedCryptoManager } from '@/lib/crypto/EnhancedEnvCryptoManager';
+import { adaptEncryptedEnvVarToEnvData } from '@/utils/encryption-adapter';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -29,7 +30,8 @@ async function decryptForBuild() {
                     if (varInfo) {
                         // EnhancedEnvCryptoManager는 동기 함수이므로 await 제거
                         cryptoManager.initializeMasterKey(password);
-                        const decrypted = cryptoManager.decryptVariable(varInfo, password);
+                        const adaptedData = adaptEncryptedEnvVarToEnvData(varInfo);
+                        const decrypted = cryptoManager.decryptVariable(adaptedData, password);
                         tempRecovered[key] = decrypted;
                     }
                 }

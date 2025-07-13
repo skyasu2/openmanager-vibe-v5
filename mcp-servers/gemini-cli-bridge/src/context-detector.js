@@ -9,6 +9,13 @@ export class ContextDetector {
   }
 
   /**
+   * 공개 메서드: 컨텍스트 감지
+   */
+  detectContext() {
+    return this.context;
+  }
+
+  /**
    * 환경 컨텍스트 감지
    */
   _detectContext() {

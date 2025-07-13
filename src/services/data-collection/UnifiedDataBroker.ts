@@ -290,15 +290,18 @@ export class UnifiedDataBroker {
 
         const metricsResponse = await gcpDataService.getRealServerMetrics();
         const servers = metricsResponse.data;
-        const summary = { summary: metricsResponse.success ? 'Available' : 'Error' };
+        const summary = { 
+          servers: metricsResponse.success ? 'Available' : 'Error',
+          clusters: metricsResponse.isErrorState ? 'Error' : 'Healthy'
+        };
 
         const serversWithMetrics = servers.map((s: any) => ({
           ...s,
           metrics: {
-            cpu: s.cpu,
-            memory: s.memory,
-            disk: s.disk,
-            network: s.network,
+            cpu: s.metrics?.cpu?.usage || s.cpu || 0,
+            memory: s.metrics?.memory?.usage || s.memory || 0,
+            disk: s.metrics?.disk?.usage || s.disk || 0,
+            network: s.metrics?.network?.rx || s.network || 0,
           },
         }));
 

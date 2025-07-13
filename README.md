@@ -313,7 +313,7 @@ npm run ai-engine:test
 - [📖 AI 완전 가이드](./docs/ai-complete-guide.md)
 - [🎯 MCP 완전 가이드](./docs/mcp-complete-guide.md)
 - [🔐 인증 설정 가이드](./docs/auth-setup-guide.md)
-- [📊 Claude Monitor 가이드](./docs/claude-monitor-guide.md)
+
 - [🤖 Gemini 사용 가이드](./docs/gemini-usage-guide.md)
 - [🚀 배포 완전 가이드](./docs/deployment-complete-guide.md)
 - [🧪 테스트 가이드](./docs/testing-guide.md)
@@ -615,7 +615,7 @@ openmanager-vibe-v5/
 │   ├── gcp-quota-alert.js        # 🆕 알림 시스템
 │   ├── gcp-console-helper.js     # 🆕 콘솔 접속 도구
 │   ├── gcp-quota-report.js       # 🆕 보고서 생성기
-│   ├── claude-monitor-tmux.sh    # 🆕 Claude 모니터
+
 │   └── github-auth-helper.cjs    # 🆕 Git 인증 도구
 ├── gcp-functions/                # GCP Functions
 ├── vm-context-api/               # VM Context API

@@ -16,6 +16,7 @@ import fs from 'fs';
 import path from 'path';
 import { ENCRYPTED_ENV_CONFIG } from '../config/encrypted-env-config';
 import { enhancedCryptoManager } from '../src/lib/crypto/EnhancedEnvCryptoManager';
+import { adaptEncryptedEnvVarToEnvData } from '../src/utils/encryption-adapter';
 
 // 터미널 입력 도구
 const rl = readline.createInterface({
@@ -93,7 +94,8 @@ async function decryptKeys(targetKey?: string, exportToFile = false) {
       }
       
       try {
-        const decrypted = enhancedCryptoManager.decryptVariable(encryptedData);
+        const adaptedData = adaptEncryptedEnvVarToEnvData(encryptedData);
+        const decrypted = enhancedCryptoManager.decryptVariable(adaptedData);
         decryptedValues[key] = decrypted;
         successCount++;
         
@@ -146,8 +148,8 @@ async function updateMCPConfig() {
     const githubKey = ENCRYPTED_ENV_CONFIG.variables.GITHUB_TOKEN;
     const googleAIKey = ENCRYPTED_ENV_CONFIG.variables.GOOGLE_AI_API_KEY;
     
-    const decryptedGithub = githubKey ? enhancedCryptoManager.decryptVariable(githubKey) : null;
-    const decryptedGoogleAI = googleAIKey ? enhancedCryptoManager.decryptVariable(googleAIKey) : null;
+    const decryptedGithub = githubKey ? enhancedCryptoManager.decryptVariable(adaptEncryptedEnvVarToEnvData(githubKey)) : null;
+    const decryptedGoogleAI = googleAIKey ? enhancedCryptoManager.decryptVariable(adaptEncryptedEnvVarToEnvData(googleAIKey)) : null;
     
     // MCP 설정 파일 업데이트
     const mcpConfigPath = path.join('C:\\Users\\skyasu-pc\\AppData\\Roaming\\Claude', 'claude_desktop_config.json');

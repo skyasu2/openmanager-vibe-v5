@@ -69,7 +69,7 @@ function printServiceStatus(service) {
   if (service.name.includes('Supabase')) serviceIcon = icons.database;
   else if (service.name.includes('Redis')) serviceIcon = icons.cache;
   else if (service.name.includes('Google AI')) serviceIcon = icons.ai;
-  else if (service.name.includes('Render')) serviceIcon = icons.server;
+  else if (service.name.includes('GCP')) serviceIcon = icons.server;
   else if (service.name.includes('Vercel')) serviceIcon = icons.cloud;
 
   console.log(`${serviceIcon} ${colorize(service.name, 'bright')}`);

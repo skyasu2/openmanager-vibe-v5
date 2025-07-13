@@ -64,8 +64,7 @@ unified-monitoring.js             # 모니터링 도구 통합
 #### 2.1 완전 삭제 대상 (15개 파일)
 ```bash
 # 현재 문서로 대체된 과거 버전
-CLAUDE_MONITOR_GUIDE.md          # → claude-monitor-complete-guide.md로 대체
-CLAUDE_MONITOR_SETUP.md          # → claude-monitor-new-guide.md로 대체
+
 ENV_ENCRYPTION_GUIDE.md          # → security-complete-guide.md로 대체
 # ... 기타 대체된 가이드들
 ```

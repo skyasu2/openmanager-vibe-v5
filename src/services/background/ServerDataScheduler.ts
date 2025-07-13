@@ -15,7 +15,7 @@ import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 
 import { calculateOptimalUpdateInterval } from '@/config/serverConfig';
 import { getRedisClient } from '@/lib/redis';
-// RealServerDataGenerator import 제거 - GCPRealDataService로 대체됨
+// GCPRealDataService 사용
 
 interface StoredServerData {
   servers: any[];

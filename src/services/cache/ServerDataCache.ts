@@ -1,4 +1,5 @@
 import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
 /**
  * 🚀 Server Data Cache Service
  *
@@ -133,7 +134,7 @@ export class ServerDataCache {
     this.isUpdating = true;
 
     try {
-      // 🚀 RealServerDataGenerator 직접 사용
+      // 🚀 GCPRealDataService 직접 사용
       const generator = GCPRealDataService.getInstance();
 
       // 생성기가 초기화되지 않았으면 초기화
@@ -144,7 +145,8 @@ export class ServerDataCache {
       }
 
       // 서버 데이터 가져오기 (비동기 메서드들)
-      const servers = await generator.getRealServerMetrics().then(response => response.data);
+      const gcpServerData = await generator.getRealServerMetrics().then(response => response.data);
+      const servers = adaptGCPMetricsToServerInstances(gcpServerData);
       // summary는 서버 데이터에서 직접 계산
 
       if (!Array.isArray(servers)) {
@@ -169,10 +171,10 @@ export class ServerDataCache {
               s.status === 'offline'
             ).length,
             avgCpu: Math.round(
-              servers.reduce((sum, s) => sum + (s.metrics?.cpu?.usage || 0), 0) / servers.length * 100
+              servers.reduce((sum, s) => sum + (s.cpu || 0), 0) / servers.length * 100
             ) / 100,
             avgMemory: Math.round(
-              servers.reduce((sum, s) => sum + (s.metrics?.memory?.usage || 0), 0) / servers.length * 100  
+              servers.reduce((sum, s) => sum + (s.memory || 0), 0) / servers.length * 100  
             ) / 100,
           },
           lastUpdated: Date.now(),

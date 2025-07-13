@@ -1,4 +1,5 @@
 import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
 /**
  * 🚀 WebSocket Manager v2.0
  *
@@ -12,7 +13,7 @@ import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
 import { BehaviorSubject, interval, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, throttleTime } from 'rxjs/operators';
 import { Server as SocketIOServer } from 'socket.io';
-// RealServerDataGenerator import 제거 - GCPRealDataService로 대체됨
+// GCPRealDataService 사용
 // lightweight-anomaly-detector removed - using AnomalyDetectionService instead
 
 // 🎯 타입 정의
@@ -51,7 +52,7 @@ export class WebSocketManager {
   private streams: Map<string, Subject<MetricStream>> = new Map();
   private connectionCount$ = new BehaviorSubject<number>(0);
   private isActive = false;
-  private dataGenerator: RealServerDataGeneratorType;
+  private dataGenerator: GCPRealDataService;
 
   // 스트림 데이터 소스
   private dataSubject = new Subject<MetricStream>();
@@ -186,42 +187,21 @@ export class WebSocketManager {
   private startDataGeneration(): void {
     // 실시간 서버 데이터 브로드캐스트 (20초마다)
     interval(20000).subscribe(async () => {
-      const allServers = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
+      const gcpServerData = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
+      const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
+      
       const serverMetrics = allServers.map(server => {
-        // 🔧 network 타입 안전 처리
-        const networkMetrics = server.metrics?.network;
-        let bytesIn = 0;
-        let bytesOut = 0;
-
-        try {
-          if (
-            networkMetrics &&
-            typeof networkMetrics === 'object' &&
-            'in' in (networkMetrics as any)
-          ) {
-            bytesIn = (networkMetrics as { in: number; out: number }).in || 0;
-            bytesOut = (networkMetrics as { in: number; out: number }).out || 0;
-          } else if (typeof networkMetrics === 'number') {
-            bytesIn = networkMetrics;
-            bytesOut = networkMetrics;
-          }
-        } catch {
-          // 타입 에러 방지용 fallback
-          bytesIn = 0;
-          bytesOut = 0;
-        }
-
         return {
           id: server.id,
           name: server.name,
           status: server.status,
           metrics: {
-            cpu: server.metrics?.cpu || 0,
-            memory: server.metrics?.memory || 0,
-            disk: server.metrics?.disk || 0,
+            cpu: server.cpu,
+            memory: server.memory,
+            disk: server.disk,
             network: {
-              bytesIn,
-              bytesOut,
+              bytesIn: server.network || 0,
+              bytesOut: server.network || 0,
             },
           },
           timestamp: new Date().toISOString(),
@@ -265,12 +245,13 @@ export class WebSocketManager {
       if (!this.isActive || this.clients.size === 0) return;
 
       try {
-        const allServers = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
+        const gcpServerData = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
+        const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
         const testMetrics = allServers.slice(0, 10).map(server => ({
           timestamp: Date.now(),
-          cpu: server.metrics?.cpu || 0,
-          memory: server.metrics?.memory || 0,
-          disk: server.metrics?.disk || 0,
+          cpu: server.cpu,
+          memory: server.memory,
+          disk: server.disk,
         }));
 
         // Simple anomaly detection replacement (lightweight-anomaly-detector removed)

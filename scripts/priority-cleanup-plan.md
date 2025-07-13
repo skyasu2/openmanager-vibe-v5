@@ -60,7 +60,7 @@
 ```
 🧪 우선순위 테스트 대상:
 • 핵심 AI 엔진 (UnifiedAIEngineRouter)
-• 데이터 생성기 (RealServerDataGenerator)
+• 데이터 생성기 (GCPRealDataService)
 • MCP 클라이언트 (real-mcp-client)
 • API 라우트 핵심 기능
 ```

@@ -1,8 +1,9 @@
 import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
 /**
  * 🧠 Enhanced Data Analyzer v2.0
  *
- * 새로운 RealServerDataGenerator와 완전 호환되는 고도화된 분석 엔진
+ * 새로운 GCPRealDataService와 완전 호환되는 고도화된 분석 엔진
  * - 다층적 서버 아키텍처 분석 (Single → Microservices)
  * - 실시간 성능 최적화 권장사항
  * - 한국어 자연어 처리 및 인사이트 생성
@@ -161,7 +162,8 @@ export class EnhancedDataAnalyzer {
    * 📊 종합 시스템 분석
    */
   public async analyzeSystem(): Promise<EnhancedAnalysisResult> {
-    const servers = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
+    const gcpServerData = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
+    const servers = adaptGCPMetricsToServerInstances(gcpServerData);
     const clusters = await this.dataGenerator.getRealServerMetrics().then(r => []);
     const applications = await this.dataGenerator.getRealServerMetrics().then(r => []);
 
@@ -618,7 +620,8 @@ export class EnhancedDataAnalyzer {
    * ⚡ 쿼리 실행
    */
   private async executeQuery(intent: string, context: any, query: string) {
-    const servers = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
+    const gcpServerData = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
+    const servers = adaptGCPMetricsToServerInstances(gcpServerData);
     const clusters = await this.dataGenerator.getRealServerMetrics().then(r => []);
 
     switch (intent) {

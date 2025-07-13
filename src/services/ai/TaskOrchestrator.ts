@@ -57,16 +57,8 @@ export class TaskOrchestrator {
   private dataGenerator: any;
 
   constructor() {
-    // RealServerDataGenerator import 수정 필요
-    try {
-      const {
-        RealServerDataGenerator,
-      } = require('@/services/data-generator/RealServerDataGenerator');
-      this.dataGenerator = GCPRealDataService.getInstance();
-    } catch (error) {
-      console.warn('RealServerDataGenerator 로드 실패, 기본값 사용');
-      this.dataGenerator = null;
-    }
+    // GCPRealDataService 사용
+    this.dataGenerator = GCPRealDataService.getInstance();
     // lightweight-anomaly-detector removed - using simple detection instead
   }
 
