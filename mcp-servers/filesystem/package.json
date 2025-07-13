@@ -1,0 +1,20 @@
+{
+  "name": "mcp-filesystem-server",
+  "version": "1.0.0",
+  "description": "MCP Filesystem Server for OpenManager Vibe V5",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo 'MCP Server - Build completed successfully!' && node --check server.js",
+    "dev": "node --watch server.js",
+    "health": "node health-check.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@modelcontextprotocol/server-filesystem": "^2025.3.28",
+    "@modelcontextprotocol/server-github": "^2025.4.8"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

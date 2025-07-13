@@ -1,5 +1,31 @@
 # Changelog
 
+## [5.46.24] - 2025-07-13
+
+### 🏗️ MCP 서버 구조 통합 및 정리
+
+#### 핵심 변경사항
+- **mcp-server → mcp-servers/filesystem**: 단일 서버 폴더를 통합 구조로 이동
+- **통합 모노레포 구조**: 모든 MCP 서버를 mcp-servers/ 아래로 일원화
+- **명확한 역할 분리**: 각 서버의 목적과 사용처 문서화
+
+#### 구조 개선
+```
+mcp-servers/
+├── filesystem/       # 파일시스템 서버 (HTTP 헬스체크 지원)
+├── gemini-cli-bridge/  # Gemini CLI 브릿지 v3.0
+└── README.md        # 통합 문서
+```
+
+#### 추가 문서
+- `mcp-servers/README.md`: MCP 서버 통합 가이드
+- `mcp-servers/filesystem/README.md`: 파일시스템 서버 상세 문서
+
+#### 이점
+- 일관된 구조로 관리 용이성 향상
+- 새 MCP 서버 추가 시 명확한 가이드라인
+- 각 서버의 독립성 유지하면서 통합 관리
+
 ## [5.46.23] - 2025-07-13
 
 ### 🚀 Gemini CLI Bridge v3.0 - 성능 및 지능형 개선
