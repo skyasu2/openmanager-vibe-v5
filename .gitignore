@@ -85,6 +85,11 @@ docs/environment-variables-production.md
 production-env.md
 sensitive-env.md
 
+# 🔐 Secure token storage
+.secure-tokens.json
+.secure-tokens.json.backup*
+.secure-tokens-export.sh
+
 # vercel
 .vercel
 
@@ -95,7 +100,16 @@ next-env.d.ts
 # cursor IDE configuration (contains sensitive data)
 .cursor/
 
-# MCP configuration files (contains tokens and sensitive data)
+# 🔐 MCP 민감한 정보 포함 파일들 (GitHub 완전 차단)
+.mcp.json
+.claude/claude_workspace.json
+
+# MCP 개발용 설정 파일들 (GitHub 허용, Vercel 배포 제외)
+# cursor.mcp.json
+# .claude/settings.local.json
+# MCP-QUICK-FIX.md
+
+# MCP 레거시 설정 파일들 (GitHub 차단)
 mcp.json
 cursor-mcp-config.json
 corrected-cursor-mcp.json
@@ -158,3 +172,5 @@ COMMIT_MSG.tmp
 
 # 정체불명 파일
 50%
+
+*storybook.log

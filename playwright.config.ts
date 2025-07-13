@@ -115,7 +115,7 @@ export default defineConfig({
     },
   },
 
-  // 전역 설정 파일
-  globalSetup: require.resolve('./tests/e2e/global-setup.ts'),
-  globalTeardown: require.resolve('./tests/e2e/global-teardown.ts'),
+  // 전역 설정 파일 - ES 모듈 호환성 수정
+  globalSetup: './tests/e2e/global-setup.ts',
+  globalTeardown: './tests/e2e/global-teardown.ts',
 });

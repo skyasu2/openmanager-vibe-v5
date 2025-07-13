@@ -4,17 +4,17 @@
 
 Claude Code v1.0.51에서 MCP 서버가 성공적으로 설정되었습니다.
 
-## ✅ 현재 설정된 MCP 서버 목록
+## ✅ 현재 설정된 MCP 서버 목록 (7개)
 
 | 서버 이름 | 설명 | 용도 |
 |-----------|------|------|
-| **filesystem** | 파일 시스템 접근 | `/mnt/d/cursor` 디렉토리 파일 읽기/쓰기 |
-| **github** | GitHub API 통합 | 레포지토리 관리, 이슈/PR 작업 |
-| **memory** | 컨텍스트 기억 | 대화 내용 및 작업 기록 저장 |
-| **brave-search** | 웹 검색 | 최신 정보 및 문서 검색 |
+| **filesystem** | 파일 시스템 접근 | 프로젝트 파일 읽기/쓰기/검색 |
+| **github** | GitHub API 통합 | 이슈/PR 관리, 저장소 작업 |
+| **brave-search** | 웹 검색 | 최신 기술 정보 및 문서 검색 |
+| **memory** | 컨텍스트 메모리 | 프로젝트 지식 저장 및 검색 |
 | **supabase** | 데이터베이스 통합 | Supabase DB 쿼리 및 관리 |
-| **playwright** | 브라우저 자동화 | E2E 테스트 및 웹 스크래핑 |
-| **context7** | 컨텍스트 관리 | Upstash 기반 고급 컨텍스트 |
+| **context7** | 문서 검색 | 라이브러리 문서 및 API 참조 |
+| **gemini-cli-bridge** | Gemini CLI 브릿지 v2.0 | 양방향 Claude ↔ Gemini 통합 |
 
 ## 📝 MCP 설정 방법
 
@@ -97,14 +97,20 @@ claude mcp add -s project ...
 "supabase MCP로 users 테이블의 데이터를 조회해줘"
 ```
 
-### 5. 브라우저 자동화
-```
-"playwright MCP로 웹사이트 스크린샷을 찍어줘"
-```
-
-### 6. 컨텍스트 관리
+### 5. 컨텍스트 관리
 ```
 "memory MCP에 프로젝트 정보를 저장해줘: AI 기반 서버 모니터링 플랫폼"
+```
+
+### 6. 문서 검색
+```
+"context7 MCP로 Next.js Image 컴포넌트 사용법을 찾아주세요"
+```
+
+### 7. Gemini CLI 브릿지
+```
+"Gemini CLI로 코드 리뷰를 요청해주세요"
+"현재 호출 컨텍스트 정보를 확인해주세요"
 ```
 
 ## 📍 설정 파일 위치
@@ -141,7 +147,9 @@ claude mcp add -s project ...
 
 - [MCP 공식 문서](https://github.com/modelcontextprotocol)
 - [Claude Code 문서](https://docs.anthropic.com/en/docs/claude-code)
-- 프로젝트 MCP 설정 예시: `.claude/mcp.json`
+- [MCP 완전 가이드](./mcp-complete-guide.md)
+- [Gemini CLI 브릿지 v2.0 가이드](./gemini-cli-bridge-v2-guide.md)
+- 프로젝트 MCP 설정 파일: `.claude/claude_workspace.json`
 
 ---
 

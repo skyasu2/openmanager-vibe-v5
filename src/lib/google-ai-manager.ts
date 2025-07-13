@@ -1,5 +1,5 @@
 import { ENCRYPTED_GOOGLE_AI_CONFIG } from '@/config/google-ai-config';
-import { unifiedCrypto } from '@/lib/crypto/UnifiedEnvCryptoManager';
+import { enhancedCryptoManager } from '@/lib/crypto/EnhancedEnvCryptoManager';
 import { getSecureGoogleAIKey } from '@/utils/encryption';
 
 /**
@@ -112,15 +112,16 @@ class GoogleAIManager {
         encrypted: ENCRYPTED_GOOGLE_AI_CONFIG.encryptedKey,
         salt: ENCRYPTED_GOOGLE_AI_CONFIG.salt,
         iv: ENCRYPTED_GOOGLE_AI_CONFIG.iv,
-        timestamp: ENCRYPTED_GOOGLE_AI_CONFIG.createdAt,
+        authTag: ENCRYPTED_GOOGLE_AI_CONFIG.authTag || '',  // 이전 버전 호환성
+        algorithm: 'aes-256-gcm' as const,
+        iterations: 100000,
+        timestamp: Date.parse(ENCRYPTED_GOOGLE_AI_CONFIG.createdAt),
         version: ENCRYPTED_GOOGLE_AI_CONFIG.version,
       };
 
-      // Node.js crypto 모듈로 복호화
-      const decryptedText = await unifiedCrypto.decrypt(
-        encryptedData,
-        password
-      );
+      // EnhancedEnvCryptoManager로 복호화 (동기 함수)
+      enhancedCryptoManager.initializeMasterKey(password);
+      const decryptedText = enhancedCryptoManager.decryptVariable(encryptedData, password);
 
       if (!decryptedText || !decryptedText.startsWith('AIza')) {
         return {

@@ -53,7 +53,7 @@
 1. src/app/api/gcp/server-data/route.ts         (미구현 TODO)
 2. src/services/distributed/DistributedDataManager.ts (Firestore 대체 로직)
 3. src/services/gcp/BaselineStorageService.ts   (주석 처리된 import)
-4. gcp-cloud-functions/health/package-lock.json (의존성만 존재)
+4. gcp-functions/health/package.json (의존성만 존재)
 5. tests/unit/distributed-data-manager.test.ts  (마이그레이션 테스트)
 ```
 

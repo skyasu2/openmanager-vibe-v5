@@ -96,7 +96,7 @@ function createMCPConfig() {
             },
             "openmanager-local": {
                 "command": "node",
-                "args": ["./mcp-server/server.js"],
+                "args": ["./mcp-servers/gemini-cli-bridge/src/index.js"],
                 "cwd": "/d:/cursor/openmanager-vibe-v5"
             }
         }

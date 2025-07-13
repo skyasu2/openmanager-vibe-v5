@@ -6,7 +6,7 @@
 - scripts: 137개 파일, 30-40% 축소 가능
 - docs/archive: 31개 파일, 선택적 정리 필요
 - development vs local-dev: 중복 없음
-- gcp-functions vs gcp-cloud-functions: 서로 다른 용도
+- gcp-functions: 통합된 GCP Functions 디렉터리
 - config 폴더들: 각각 다른 역할
 
 ## 🎯 정리 우선순위 및 실행 계획

@@ -1,5 +1,5 @@
-import { ENCRYPTED_ENV_CONFIG } from '@/config/encrypted-env-config';
-import { UnifiedEnvCryptoManager } from '@/lib/crypto/UnifiedEnvCryptoManager';
+import { ENCRYPTED_ENV_CONFIG } from '../../../config/encrypted-env-config';
+import { enhancedCryptoManager } from '@/lib/crypto/EnhancedEnvCryptoManager';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -16,7 +16,7 @@ const teamPasswords = [
 async function decryptForBuild() {
     console.log('🔧 [TSX] 빌드 환경을 위해 암호화된 환경변수 복호화를 시작합니다...');
     try {
-        const cryptoManager = UnifiedEnvCryptoManager.getInstance();
+        const cryptoManager = enhancedCryptoManager;
 
         let recoveredVars: { [key: string]: string } = {};
 
@@ -27,7 +27,9 @@ async function decryptForBuild() {
                 for (const key in ENCRYPTED_ENV_CONFIG.variables) {
                     const varInfo = ENCRYPTED_ENV_CONFIG.variables[key as keyof typeof ENCRYPTED_ENV_CONFIG.variables];
                     if (varInfo) {
-                        const decrypted = await cryptoManager.decrypt(varInfo, password);
+                        // EnhancedEnvCryptoManager는 동기 함수이므로 await 제거
+                        cryptoManager.initializeMasterKey(password);
+                        const decrypted = cryptoManager.decryptVariable(varInfo, password);
                         tempRecovered[key] = decrypted;
                     }
                 }

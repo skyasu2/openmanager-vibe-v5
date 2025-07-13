@@ -1,5 +1,41 @@
 # MCP 문제 해결 완전 가이드
 
+## 🔥 최신 해결사례 (2025-07-13)
+
+### Filesystem MCP Server 실패 문제 해결
+
+**문제**: Filesystem MCP Server가 시작되지 않음
+```
+Filesystem MCP Server
+Status: ✘ failed
+Usage: mcp-server-filesystem <allowed-directory> [additional-directories...]
+```
+
+**원인**: Filesystem 서버는 **명령줄 인자**로 허용된 디렉터리를 받아야 하는데, 환경 변수(ALLOWED_DIRECTORIES)로만 전달하면 실패합니다.
+
+**해결방법**: `.mcp.json` 파일 수정
+```json
+// ❌ 잘못된 설정
+"filesystem": {
+  "command": "node",
+  "args": [
+    "./node_modules/@modelcontextprotocol/server-filesystem/dist/index.js"
+  ],
+  "env": {
+    "ALLOWED_DIRECTORIES": "D:/cursor/openmanager-vibe-v5"
+  }
+}
+
+// ✅ 올바른 설정
+"filesystem": {
+  "command": "node",
+  "args": [
+    "./node_modules/@modelcontextprotocol/server-filesystem/dist/index.js",
+    "D:/cursor/openmanager-vibe-v5"  // 디렉터리를 args로 전달
+  ]
+}
+```
+
 ## 🆕 Claude Code v1.0.51 업데이트 사항
 
 Claude Code v1.0.51부터 MCP 서버 설정 방식이 변경되었습니다:
@@ -98,7 +134,7 @@ claude mcp list
 # 파일시스템 MCP
 claude mcp add filesystem node \
   "/mnt/d/cursor/openmanager-vibe-v5/node_modules/@modelcontextprotocol/server-filesystem/dist/index.js" \
-  -e ALLOWED_DIRECTORIES="/mnt/d/cursor/openmanager-vibe-v5"
+  "/mnt/d/cursor/openmanager-vibe-v5"
 
 # GitHub MCP
 claude mcp add github node \

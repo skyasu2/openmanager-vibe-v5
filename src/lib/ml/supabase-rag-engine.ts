@@ -386,7 +386,7 @@ export class SupabaseRAGEngine {
 
     // MCP 관련 키워드
     if (lowerQuery.includes('mcp') || lowerQuery.includes('파일시스템')) {
-      paths.push('./mcp-server/server.js', './mcp-server/package.json');
+      paths.push('./mcp-servers/gemini-cli-bridge/src/index.js', './mcp-servers/gemini-cli-bridge/package.json');
     }
 
     // AI 관련 키워드

@@ -55,7 +55,7 @@ export class MCPConfigManager {
       mcpServers: {
         'local-filesystem': {
           command: 'node',
-          args: ['./mcp-server/server.js'],
+          args: ['./mcp-servers/gemini-cli-bridge/src/index.js'],
           cwd: process.cwd(),
           env: {
             PROJECT_ROOT: process.cwd(),

@@ -20,13 +20,13 @@ function startLocalMCPServer() {
         // 서버가 실행되지 않음, 시작
     }
     
-    if (!fs.existsSync('./mcp-server/server.js')) {
-        console.log('❌ 로컬 MCP 서버 파일이 없습니다.');
-        return;
+    if (!fs.existsSync('./mcp-servers/gemini-cli-bridge/src/index.js')) {
+        console.error('❌ MCP 서버 파일을 찾을 수 없습니다.');
+        process.exit(1);
     }
     
     try {
-        const serverProcess = spawn('node', ['./mcp-server/server.js'], {
+        const serverProcess = spawn('node', ['./mcp-servers/gemini-cli-bridge/src/index.js'], {
             detached: true,
             stdio: ['ignore', 'pipe', 'pipe'],
             cwd: process.cwd()

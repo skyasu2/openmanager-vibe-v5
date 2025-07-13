@@ -111,8 +111,8 @@ class EncryptedEnvLoader {
   private async loadEncryptedConfig(): Promise<EncryptedEnvConfig | null> {
     try {
       // 동적 import로 설정 파일 로드
-      const configModule = await import('@/config/encrypted-env-config');
-      return configModule.ENCRYPTED_ENV_CONFIG as EncryptedEnvConfig;
+      const configModule = await import('../../../config/encrypted-env-config');
+      return configModule.ENCRYPTED_ENV_CONFIG as unknown as EncryptedEnvConfig;
     } catch (error) {
       // 파일이 없거나 import 실패
       return null;

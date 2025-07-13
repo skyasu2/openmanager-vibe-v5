@@ -9,7 +9,7 @@
  */
 
 import { ENCRYPTED_GOOGLE_AI_CONFIG } from '@/config/google-ai-config';
-import { unifiedCrypto } from '@/lib/crypto/UnifiedEnvCryptoManager';
+import { enhancedCryptoManager } from '@/lib/crypto/EnhancedEnvCryptoManager';
 
 export interface GoogleAIKeyResult {
   success: boolean;
@@ -54,14 +54,15 @@ export async function resolveGoogleAIKey(): Promise<GoogleAIKeyResult> {
           encrypted: envEncrypted,
           salt: envSalt,
           iv: envIV,
-          timestamp: new Date().toISOString(),
-          version: '1.0.0',
+          authTag: '',  // 이전 버전 호환성
+          algorithm: 'aes-256-gcm' as const,
+          iterations: 100000,
+          timestamp: Date.now(),
+          version: '2.0',
         };
 
-        const decryptedKey = await unifiedCrypto.decrypt(
-          encryptedData,
-          envPassword
-        );
+        enhancedCryptoManager.initializeMasterKey(envPassword);
+        const decryptedKey = enhancedCryptoManager.decryptVariable(encryptedData, envPassword);
         if (decryptedKey && decryptedKey.startsWith('AIza')) {
           console.log('✅ 환경변수 암호화된 키 복호화 성공');
           return {
@@ -92,14 +93,15 @@ export async function resolveGoogleAIKey(): Promise<GoogleAIKeyResult> {
             encrypted: ENCRYPTED_GOOGLE_AI_CONFIG.encryptedKey,
             salt: ENCRYPTED_GOOGLE_AI_CONFIG.salt,
             iv: ENCRYPTED_GOOGLE_AI_CONFIG.iv,
-            timestamp: ENCRYPTED_GOOGLE_AI_CONFIG.createdAt,
+            authTag: ENCRYPTED_GOOGLE_AI_CONFIG.authTag || '',  // 이전 버전 호환성
+            algorithm: 'aes-256-gcm' as const,
+            iterations: 100000,
+            timestamp: Date.parse(ENCRYPTED_GOOGLE_AI_CONFIG.createdAt),
             version: ENCRYPTED_GOOGLE_AI_CONFIG.version,
           };
 
-          const decryptedKey = await unifiedCrypto.decrypt(
-            encryptedData,
-            password
-          );
+          enhancedCryptoManager.initializeMasterKey(password);
+          const decryptedKey = enhancedCryptoManager.decryptVariable(encryptedData, password);
           if (decryptedKey && decryptedKey.startsWith('AIza')) {
             console.log(
               `✅ 팀 설정 복호화 성공: ${password.substring(0, 3)}***`

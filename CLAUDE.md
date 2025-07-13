@@ -402,22 +402,28 @@ Claude Code에는 7개의 MCP 서버가 설정되어 프로젝트 개발을 강�
 "Supabase Auth 가이드를 검색해주세요"
 ```
 
-#### Gemini CLI 브릿지 (gemini-cli-bridge v2.0)
+#### Gemini CLI 브릿지 (gemini-cli-bridge v3.0)
 ```
 "Gemini CLI로 코드 리뷰를 요청해주세요"
 "현재 호출 컨텍스트 정보를 확인해주세요"
+
+# v3.0 새로운 기능 - 작업별 최적화
+"Python 정렬 방법?" → gemini_quick_answer (Flash + 헤드리스)
+"이 함수 성능 분석해줘" → gemini_code_review (Pro 모델)
+"복잡한 아키텍처 분석" → gemini_analyze (깊이 선택 가능)
 ```
 
-## Gemini CLI 브릿지 v2.0 - 양방향 통합
+## Gemini CLI 브릿지 v3.0 - 성능 및 지능형 개선
 
-**새로운 기능**: Claude Code ↔ Gemini CLI 양방향 호출 문제가 해결되었습니다.
+**v3.0 핵심**: 34% 성능 향상, 자동 모델 선택, 작업별 최적화 도구
 
 ### 🚀 주요 개선사항
 
-- **스마트 컨텍스트 감지**: 호출 방향을 자동으로 감지
-- **적응적 실행 전략**: WSL/PowerShell 환경에 맞춰 최적화
-- **자동 폴백 체인**: 한 방법 실패 시 다른 방법 자동 시도
-- **디버깅 도구**: 현재 컨텍스트 상태 실시간 확인
+- **--prompt 플래그**: echo 파이프 대신 직접 명령으로 성능 향상
+- **지능형 모델 선택**: 프롬프트 분석으로 최적 모델 자동 선택
+- **Pro → Flash 폴백**: 지연이나 실패 시 자동 전환 (95% 성공률)
+- **작업별 도구**: quick_answer, code_review, analyze 특화 도구
+- **배치 처리**: 여러 프롬프트 순차 실행 지원
 
 ### 💡 사용법
 
@@ -544,6 +550,7 @@ npx ccusage@latest session         # 현재 세션
 ### 📚 관련 문서
 
 - **MCP 완전 가이드**: `docs/mcp-complete-guide.md`
+- **Gemini CLI 브릿지 v3.0 개선사항**: `docs/gemini-cli-bridge-v3-improvements.md`
 - **Gemini CLI 브릿지 v2.0**: `docs/gemini-cli-bridge-v2-guide.md`
 - **Claude Code MCP 설정**: `docs/claude-code-mcp-setup.md`
 - **개발 도구 통합**: `docs/development-tools.md`

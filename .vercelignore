@@ -74,4 +74,30 @@ tsconfig.tsbuildinfo
 
 # 개발 파일 (로컬 전용)
 **/*.dev.*
-**/*-dev.* 
+**/*-dev.*
+
+# MCP 서버 (개발 전용, 배포 제외)
+mcp-servers/
+mcp-server/
+**/mcp-servers/
+.claude/
+claude-monitor-standalone/
+fetch-mcp/
+fetch-mcp-server/
+mcp.json
+.mcp.json
+*-mcp-config.json
+cursor-mcp-config.json
+cursor.mcp.json
+corrected-cursor-mcp.json
+mcp-memory/
+.ai-cache/
+MCP-*.md
+*-MCP-*.md
+
+# Claude 개발 도구
+CLAUDE.md
+claude-monitor.py
+scripts/test-gemini-mcp.js
+scripts/test-adaptive-gemini.js
+scripts/mcp-secure-loader.ts

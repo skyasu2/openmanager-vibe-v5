@@ -60,7 +60,7 @@ class DevWorkflow {
         console.log('🤖 MCP 서버 시작...');
 
         return new Promise((resolve) => {
-            this.mcpServer = spawn('node', ['mcp-server/server.js'], {
+            this.mcpServer = spawn('node', ['mcp-servers/gemini-cli-bridge/src/index.js'], {
                 stdio: 'pipe',
                 shell: true,
                 env: {

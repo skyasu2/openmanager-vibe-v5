@@ -677,36 +677,42 @@ Storybook:
 
 ```
 
-### fetch-mcp-integration-guide 요약
+### 🛠️ **현재 설정된 MCP 도구 생태계 (8개)**
 
-# 🌐 Fetch MCP Server 통합 가이드
-OpenManager Vibe v5에서 공식 Fetch MCP Server를 개발 도구로 활용하는 방법을 설명합니다.
-## 📖 개요
-공식 Fetch MCP Server는 웹 콘텐츠를 가져오는 표준 MCP 서버입니다:
-- **fetch_html**: HTML 페이지 가져오기
-- **fetch_json**: JSON 데이터 가져오기
-- **fetch_txt**: 텍스트 파일 가져오기
-- **fetch_markdown**: Markdown 파일 가져오기
+OpenManager Vibe v5에 통합된 전문화된 MCP 서버들:
 
-### fetch-mcp-development-guide 요약
+#### 1. **Filesystem MCP** - 파일시스템 접근
+- 프로젝트 파일 읽기/쓰기/검색
+- 표준 MCP 프로토콜 100% 준수
+- 보안 강화: 허용된 디렉토리만 접근
 
-# 🌐 독립형 Fetch MCP 개발 도구 가이드
-## 📋 개요
-OpenManager Vibe v5에서 개발한 독립형 웹 콘텐츠 가져오기 도구입니다.
-표준 fetch API만 사용하여 의존성 없이 분리 가능하도록 설계되었습니다.
-## 🎯 핵심 기능
-### ✅ 지원 콘텐츠 타입
-- **HTML**: 웹페이지 콘텐츠, 제목, 메타데이터 추출
-- **JSON**: API 응답 데이터 파싱
+#### 2. **GitHub MCP** - GitHub API 통합  
+- 이슈/PR 관리, 저장소 작업
+- GITHUB_PERSONAL_ACCESS_TOKEN 환경변수 사용
+- 브랜치 생성, 코드 검색, 컬래버레이션 지원
 
-### mcp-filesystem-server-guide 요약
+#### 3. **Brave Search MCP** - 웹 검색
+- 최신 기술 정보 및 문서 검색
+- BRAVE_API_KEY 환경변수 사용
+- 개발 중 실시간 정보 수집
 
-# 🗂️ Anthropic 권장 순수 공식 MCP 파일시스템 서버 가이드
-> **OpenManager Vibe v5**에서 Anthropic이 권장하는 순수한 공식 MCP 파일시스템 서버 구현 및 설정 가이드
-## 📋 **개요**
-OpenManager Vibe v5는 **Anthropic에서 권장하는 방식**에 따라 순수한 공식 MCP 파일시스템 서버를 구현했습니다. 커스텀 기능을 모두 제거하고 표준 MCP 프로토콜만 사용하여 안전하고 표준화된 파일 접근을 제공합니다.
-### ✅ **핵심 특징**
-- **순수 표준 MCP**: 커스텀 기능 0개, 표준 프로토콜 100% 준수
-- **보안 강화**: 허용된 디렉토리만 접근 가능
-- **stdio 전송만 지원**: HTTP 엔드포인트 완전 제거
+#### 4. **Memory MCP** - 컨텍스트 메모리
+- 프로젝트 지식 저장 및 검색
+- 대화 컨텍스트 유지
+- 지식 그래프 기반 메모리 관리
+
+#### 5. **Supabase MCP** - 데이터베이스 통합
+- Supabase DB 쿼리 및 관리
+- SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY 사용
+- 실시간 데이터베이스 작업
+
+#### 6. **Context7 MCP** - 문서 검색
+- 라이브러리 문서 및 API 참조
+- 실시간 기술 문서 검색
+- Upstash 기반 컨텍스트 관리
+
+#### 7. **Gemini CLI Bridge v2.0** - AI 통합
+- 양방향 Claude ↔ Gemini 통합
+- 스마트 컨텍스트 감지 시스템
+- 적응적 실행 전략 (WSL/PowerShell 자동 최적화)
 ```

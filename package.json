@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.46.22",
+  "version": "5.46.23",
   "description": "🚀 OpenManager Vibe v5 - 무료티어 최적화로 월 사용량 90% 절약하는 실시간 서버 관리 플랫폼. Docker 제거, Vitest 기반 TDD, Google AI 연동으로 차세대 서버 모니터링 시스템을 제공합니다.",
   "private": true,
   "type": "module",
@@ -84,6 +84,8 @@
     "gemini:stats": "gemini /stats",
     "gemini:test-mcp": "node scripts/test-mcp-gemini.js",
     "gemini:collab": "echo '🤝 Claude-Gemini 협업 가이드' && echo '1. \"이 코드 Gemini랑 리뷰해줘\"' && echo '2. \"이 에러 Gemini랑 분석해줘\"' && echo '3. \"이 설계 Gemini랑 검증해줘\"'",
+    "gemini:migrate-v3": "powershell -ExecutionPolicy Bypass -File scripts/migrate-gemini-bridge-v3.ps1",
+    "gemini:test-v3": "node scripts/test-gemini-v3.js",
     "ccusage:live": "npx ccusage@latest blocks --live",
     "ccusage:blocks": "npx ccusage@latest blocks --active",
     "ccusage:daily": "npx ccusage@latest daily",

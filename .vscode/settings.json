@@ -1,79 +1,4 @@
 {
-  "mcp.configPath": ".cursor/mcp.json",
-  "mcp.useProjectConfig": true,
-  "mcp.enabled": true,
-  "mcp.preferProjectConfig": true,
-  "mcp.projectConfigPath": "cursor.mcp.json",
-  "mcp.autoStart": true,
-  "mcp.logging.enabled": true,
-  "mcp.logging.level": "info",
-  "typescript.preferences.includePackageJsonAutoImports": "off",
-  "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "never",
-    "source.organizeImports": "explicit"
-  },
-  "files.associations": {
-    "*.json": "jsonc",
-    "*.css": "tailwindcss",
-    "*.test.ts": "typescript",
-    "*.test.tsx": "typescriptreact",
-    "*.stories.ts": "typescript",
-    "*.stories.tsx": "typescriptreact"
-  },
-  "json.schemas": [
-    {
-      "fileMatch": [".cursor/mcp.json"],
-      "schema": {
-        "type": "object",
-        "properties": {
-          "mcpServers": {
-            "type": "object"
-          }
-        }
-      }
-    }
-  ],
-  "files.exclude": {
-    "**/node_modules": true,
-    "**/.git": true,
-    "**/.svn": true,
-    "**/.hg": true,
-    "**/CVS": true,
-    "**/.DS_Store": true,
-    "**/Thumbs.db": true,
-    "**/.next": true,
-    "**/dist": true,
-    "**/build": true,
-    "**/coverage": true,
-    "**/storybook-static": true,
-    "**/test-results.json": true,
-    "**/cursor-test-report.json": true,
-    "**/eslint-report.json": true,
-    "**/storybook-validation-report.json": true
-  },
-  "search.exclude": {
-    "**/node_modules": true,
-    "**/bower_components": true,
-    "**/*.code-search": true,
-    "**/.next": true,
-    "**/dist": true,
-    "**/build": true,
-    "**/coverage": true,
-    "**/storybook-static": true,
-    "**/cursor-test-report.json": true,
-    "**/eslint-report.json": true,
-    "**/storybook-validation-report.json": true,
-    "node_modules": true,
-    "out": true,
-    ".cache": true,
-    "logs": true,
-    ".vercel": true
-  },
-  "emmet.includeLanguages": {
-    "typescript": "html",
-    "typescriptreact": "html"
-  },
   "typescript.preferences.quoteStyle": "single",
   "javascript.preferences.quoteStyle": "single",
   "prettier.singleQuote": true,
@@ -99,21 +24,16 @@
   "npm.enableScriptExplorer": true,
   "npm.scriptExplorerAction": "run",
   "testing.automaticallyOpenTestResults": "neverOpen",
-  // 🐧 WSL Ubuntu 터미널 설정
-  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  // 🪟 Windows PowerShell 터미널 설정
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
   "terminal.integrated.profiles.windows": {
-    "Git Bash": {
-      "path": "C:\\Program Files\\Git\\bin\\bash.exe",
-      "args": []
-    },
-    "Ubuntu (WSL)": {
-      "path": "C:\\Windows\\System32\\wsl.exe",
-      "args": ["-d", "Ubuntu"],
-      "icon": "terminal-ubuntu"
-    },
     "PowerShell": {
       "source": "PowerShell",
       "icon": "terminal-powershell"
+    },
+    "Git Bash": {
+      "path": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "args": []
     },
     "Command Prompt": {
       "path": [
@@ -124,7 +44,7 @@
       "icon": "terminal-cmd"
     }
   },
-  // 🔧 WSL 터미널 최적화 설정
+  // 🔧 PowerShell 터미널 최적화 설정
   "terminal.integrated.enableMultiLinePasteWarning": false,
   "terminal.integrated.copyOnSelection": true,
   "terminal.integrated.rightClickBehavior": "copyPaste",
@@ -135,14 +55,12 @@
   "terminal.integrated.scrollback": 10000,
   "terminal.integrated.fastScrollSensitivity": 5,
   "terminal.integrated.mouseWheelScrollSensitivity": 3,
-  // 🚀 WSL 개발 환경 최적화
-  "remote.WSL.fileWatcher.polling": true,
-  "remote.WSL.useShellEnvironment": true,
+  // 🚀 Windows 개발 환경 최적화
   "git.useIntegratedTerminal": true,
   "git.terminalAuthentication": true,
   "terminal.integrated.inheritEnv": true,
   "terminal.integrated.allowChords": false,
-  // 📁 파일 감시 최적화 (WSL 성능 향상)
+  // 📁 파일 감시 최적화 (Windows 성능 향상)
   "files.watcherExclude": {
     "**/.git/objects/**": true,
     "**/.git/subtree-cache/**": true,

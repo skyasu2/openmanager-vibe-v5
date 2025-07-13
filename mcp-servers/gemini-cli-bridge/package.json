@@ -1,7 +1,7 @@
 {
-  "name": "gemini-cli-bridge",
-  "version": "1.0.0",
-  "description": "MCP server bridge for Windows Gemini CLI from WSL",
+  "name": "gemini-cli-bridge-powershell",
+  "version": "3.0.0",
+  "description": "PowerShell MCP 서버 브릿지 v3 - --prompt 최적화, 자동 모델 선택, 폴백 체인",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
@@ -13,7 +13,9 @@
     "gemini",
     "cli",
     "bridge",
-    "wsl"
+    "powershell",
+    "windows",
+    "claude"
   ],
   "author": "",
   "license": "MIT",

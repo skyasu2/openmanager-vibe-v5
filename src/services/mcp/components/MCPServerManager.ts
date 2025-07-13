@@ -92,7 +92,7 @@ export class MCPServerManager {
       {
         name: 'openmanager-docs',
         command: 'node',
-        args: ['mcp-server/server.js'],
+        args: ['mcp-servers/gemini-cli-bridge/src/index.js'],
         enabled: true,
       },
     ];

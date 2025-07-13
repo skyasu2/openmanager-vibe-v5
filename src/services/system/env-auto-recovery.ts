@@ -8,7 +8,7 @@
  * - 실시간 모니터링 및 알림
  */
 
-import { UnifiedEnvCryptoManager } from '@/lib/crypto/UnifiedEnvCryptoManager';
+import { enhancedCryptoManager } from '@/lib/crypto/EnhancedEnvCryptoManager';
 import { EnvBackupManager } from '@/lib/env-backup-manager';
 import { AILogger, LogCategory } from '@/services/ai/logging/AILogger';
 
@@ -31,7 +31,7 @@ export interface EnvValidationResult {
 export class EnvAutoRecoveryService {
   private static instance: EnvAutoRecoveryService | null = null;
   private envBackupManager: EnvBackupManager;
-  private envCryptoManager: UnifiedEnvCryptoManager;
+  private envCryptoManager = enhancedCryptoManager;
   private logger: AILogger;
   private isInitialized: boolean = false;
   private lastRecoveryAttempt: number = 0;
@@ -81,7 +81,7 @@ export class EnvAutoRecoveryService {
 
   private constructor() {
     this.envBackupManager = EnvBackupManager.getInstance();
-    this.envCryptoManager = UnifiedEnvCryptoManager.getInstance();
+    // envCryptoManager는 이미 클래스 속성에서 초기화됨
     this.logger = AILogger.getInstance();
     this.detectExecutionContext();
     console.log(
@@ -285,10 +285,30 @@ export class EnvAutoRecoveryService {
         'development-mock-password',
       ];
 
-      // UnifiedEnvCryptoManager의 자동 복구 기능 사용
+      // EnhancedEnvCryptoManager를 사용한 자동 복구
       try {
-        const recoveredVars =
-          await this.envCryptoManager.autoRecoverEnvVars(defaultPasswords);
+        const recoveredVars: Record<string, string> = {};
+        
+        // 각 비밀번호로 복구 시도
+        for (const password of defaultPasswords) {
+          try {
+            this.envCryptoManager.initializeMasterKey(password);
+            // config 파일에서 암호화된 환경변수 로드 시도
+            const configModule = await import('../../../config/encrypted-env-config');
+            const config = configModule.ENCRYPTED_ENV_CONFIG;
+            
+            if (config && config.variables) {
+              const decrypted = this.envCryptoManager.decryptEnvironment(config, password);
+              Object.assign(recoveredVars, decrypted);
+              if (Object.keys(recoveredVars).length > 0) {
+                break; // 성공하면 중단
+              }
+            }
+          } catch (e) {
+            // 다음 비밀번호로 시도
+            continue;
+          }
+        }
 
         // 누락된 변수들 중에서 복구된 것들 확인
         for (const varName of missingVars) {

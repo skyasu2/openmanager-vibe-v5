@@ -19,7 +19,7 @@ OpenManager Vibe v5는 **Google Cloud → Redis → Vercel** 아키텍처를 통
 - **통합 AI 시스템**: Google AI (Gemini) + Supabase RAG + 로컬 NLP 엔진 통합
 - **실시간 모니터링**: Redis Pipeline으로 초고속 데이터 조회
 - **강력한 인증**: Supabase Auth 기반 GitHub OAuth 지원
-- **MCP 아키텍처**: 개발-배포 환경별 최적화된 컨텍스트 관리
+- **MCP 도구 통합**: 7개 MCP 서버로 강력한 개발 지원 (filesystem, github, brave-search, memory, supabase, context7, gemini-cli-bridge)
 - **비용 최적화**: Vercel 무료 티어로 월 90% 이상 비용 절감
 - **Node.js v22**: 최신 LTS 버전으로 30% 성능 향상
 
@@ -34,9 +34,9 @@ OpenManager Vibe v5는 **Google Cloud → Redis → Vercel** 아키텍처를 통
 - **🚫 파일 저장 기능 제거**: 베르셀 환경 완전 호환 및 무료티어 최적화
 - **🤖 AI 엔진 모드 시스템**: 로컬 엔진 우선 + 선택적 고급 AI 사용
 - **🔐 Supabase Auth 도입**: NextAuth에서 완전 마이그레이션 완료
-- **🎯 MCP 서버 통합**: 3단계 MCP 아키텍처로 개발-배포 통합
+- **🎯 MCP 서버 통합**: 7개 전문화된 MCP 도구로 개발 생산성 극대화
 - **🚀 Node.js v22 업그레이드**: 최신 LTS로 성능 30% 향상
-- **🤝 AI 도구 협업**: Claude + Gemini CLI 효율적 조합
+- **🤝 AI 도구 협업**: Claude + Gemini CLI v2.0 양방향 통합 (컨텍스트 감지 시스템)
 
 ## 🏗️ **시스템 아키텍처**
 
@@ -66,7 +66,7 @@ graph LR
 7. **🤖 AI 엔진**: 로컬 엔진 우선 + 선택적 고급 AI 모드
 8. **🚫 파일 저장 무력화**: 베르셀 환경 완전 호환
 9. **🔐 인증 플로우**: Supabase Auth로 GitHub OAuth 처리
-10. **🎯 MCP 통합**: 개발/프로덕션 환경별 컨텍스트 관리
+10. **🎯 MCP 통합**: 7개 도구로 파일시스템, GitHub, 검색, 메모리, DB, 문서, AI 통합
 
 ## 🚀 **주요 기능**
 
@@ -97,7 +97,7 @@ graph LR
 - **선택적 고급 AI**: GOOGLE_ONLY 모드 (자연어 질의 전용)
 - **베르셀 환경 최적화**: 파일 저장 기능 완전 제거
 - **메모리 기반 관리**: 설정 저장 없이 런타임 관리
-- **MCP 컨텍스트 어시스턴트**: GCP VM 기반 실시간 컨텍스트 분석
+- **MCP 도구 생태계**: filesystem, github, search, memory, supabase, context7, gemini-cli-bridge
 - **Supabase RAG 엔진**: 벡터 검색 기반 지능형 응답
 - **통합 AI 라우터**: 다중 AI 엔진 폴백 전략
 
@@ -136,7 +136,7 @@ graph LR
 - **정적 분석**: 코드 품질 자동 검증
 - **Playwright**: E2E 테스트
 - **Claude Monitor**: 실시간 Claude AI 사용량 모니터링
-- **Gemini CLI**: 효율적인 AI 협업 도구
+- **Gemini CLI Bridge v2.0**: 양방향 호출 최적화 (Claude ↔ Gemini)
 
 ### **최적화 기술**
 
@@ -147,7 +147,7 @@ graph LR
 - **파일 시스템 보호**: 베르셀 환경 완전 호환
 - **메모리 기반 관리**: 실행 시간 중 설정 관리
 - **Node.js v22 최적화**: 메모리 효율성 및 성능 향상
-- **MCP 캐싱**: 컨텍스트 기반 지능형 캐싱
+- **MCP 도구 캐싱**: 8개 전문 도구의 컨텍스트 지능형 캐싱
 
 ## 🚀 **빠른 시작**
 
@@ -372,9 +372,9 @@ node scripts/unified-env-manager.mjs backup  # 백업 생성
 node scripts/unified-monitoring.js start     # 실시간 모니터링
 node scripts/unified-monitoring.js report    # 상세 리포트
 
-# 🚀 배포 도구 통합
-bash scripts/unified-deployment-tools.sh deploy    # 일반 배포
-bash scripts/unified-deployment-tools.sh emergency # 응급 배포
+# 🚀 배포 도구 통합 (PowerShell)
+powershell -ExecutionPolicy Bypass -File scripts/unified-deployment-tools.ps1 -deploy    # 일반 배포
+powershell -ExecutionPolicy Bypass -File scripts/unified-deployment-tools.ps1 -emergency # 응급 배포
 
 # 🔧 코드 수정 도구 통합
 node scripts/unified-fix-tools.mjs all       # 모든 수정 실행
@@ -617,7 +617,7 @@ openmanager-vibe-v5/
 │   ├── gcp-quota-report.js       # 🆕 보고서 생성기
 │   ├── claude-monitor-tmux.sh    # 🆕 Claude 모니터
 │   └── github-auth-helper.cjs    # 🆕 Git 인증 도구
-├── gcp-cloud-functions/          # GCP Functions
+├── gcp-functions/                # GCP Functions
 ├── vm-context-api/               # VM Context API
 ├── tests/                        # 테스트 파일
 │   ├── unit/                     # 단위 테스트
@@ -648,8 +648,8 @@ GCP_REGION=asia-northeast3
 
 ```bash
 # 전체 Functions 배포
-cd gcp-cloud-functions
-./deploy-all.sh
+cd gcp-functions
+./deployment/deploy-all.sh
 
 # 개별 Function 배포
 cd ai-gateway
@@ -752,13 +752,17 @@ git diff | gemini -p "변경사항 검토"
 # 4. Claude로 최종 수정 및 커밋
 ```
 
-### MCP 서버 활용
+### MCP 도구 생태계 (7개 통합)
 
-3단계 MCP 아키텍처로 개발-배포 통합:
+전문화된 MCP 서버들로 개발 생산성 극대화:
 
-1. **로컬 개발 MCP**: Cursor IDE, Claude Code 등에서 사용
-2. **Vercel Dev Tools MCP**: 배포된 앱과 로컬 환경 연결
-3. **Production MCP (GCP VM)**: AI 엔진과 실시간 통합
+1. **filesystem**: 프로젝트 파일 읽기/쓰기/검색
+2. **github**: 이슈/PR 관리, 저장소 작업
+3. **brave-search**: 웹 검색 및 최신 기술 정보
+4. **memory**: 프로젝트 컨텍스트 메모리 관리
+5. **supabase**: 데이터베이스 쿼리 및 관리
+6. **context7**: 라이브러리 문서 및 API 참조
+7. **gemini-cli-bridge v2.0**: Claude ↔ Gemini 양방향 통합
 
 ### Claude Monitor 활용
 

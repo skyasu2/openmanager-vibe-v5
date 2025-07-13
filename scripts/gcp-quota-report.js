@@ -261,7 +261,7 @@ class GCPQuotaReport {
                 task: 'Cloud Functions 메모리 최적화',
                 description: '현재 512MB 설정을 256MB로 변경하여 GB-초 사용량 감소',
                 commands: [
-                    'cd gcp-cloud-functions/ai-gateway',
+                    'cd gcp-functions/ai-gateway',
                     'gcloud functions deploy ai-gateway --memory=256MB --runtime=nodejs22'
                 ],
                 estimatedTime: '30분',

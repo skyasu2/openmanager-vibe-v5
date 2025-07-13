@@ -97,34 +97,33 @@ SUPABASE_URL=your-supabase-project-url
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
-### Gemini MCP Tool
+### Gemini CLI Bridge v2.0
 
-`jamubc/gemini-mcp-tool`은 Gemini CLI의 강력한 분석 기능을 Claude Code와 같은 AI 어시스턴트에서 활용할 수 있게 해줍니다.
+`gemini-cli-bridge` v2.0은 Claude Code와 Gemini CLI 간의 양방향 호출 문제를 해결하는 적응적 MCP 서버입니다.
+
+#### 주요 특징
+
+- **스마트 컨텍스트 감지**: 호출 방향을 자동으로 감지 (Claude→Gemini, Gemini→Claude)
+- **적응적 실행 전략**: Windows 네이티브/WSL/PowerShell 환경에 맞춰 최적화
+- **자동 폴백 체인**: 한 방법 실패 시 다른 방법 자동 시도
+- **디버깅 도구**: 현재 컨텍스트 상태 실시간 확인
 
 #### 설정 방법
 
-1. Gemini CLI 설치 및 로그인:
+1. MCP 서버는 이미 설정됨 (`.claude/claude_workspace.json`)
+2. Gemini CLI 로그인만 필요:
 ```bash
-npm install -g @google/gemini-cli
 gemini login
 ```
 
-2. `~/.gemini/settings.json` 생성:
-```json
-{
-  "theme": "Default",
-  "selectedAuthType": "oauth-personal",
-  "authMethod": "oauth",
-  "mcpServers": {
-    "gemini-mcp-tool": {
-      "command": "npx",
-      "args": ["-y", "gemini-mcp-tool"],
-      "timeout": 30000,
-      "trust": false
-    }
-  }
-}
-```
+#### 사용 가능한 도구
+
+- `gemini_chat`: 기본 모델로 채팅
+- `gemini_chat_flash`: Flash 모델 (빠르고 효율적)
+- `gemini_chat_pro`: Pro 모델 (강력한 추론)
+- `gemini_stats`: 사용량 통계 확인
+- `gemini_clear`: 컨텍스트 초기화
+- `gemini_context_info`: 컨텍스트 정보 확인 (디버깅용)
 
 ### 기타 MCP 서버들
 
@@ -204,27 +203,36 @@ WHERE created_at > NOW() - INTERVAL '5 minutes'
 ORDER BY created_at DESC;
 ```
 
-### Gemini MCP Tool 사용 예제
+### Gemini CLI Bridge v2.0 사용 예제
 
-#### 대화형 모드
-```bash
-# Gemini CLI 실행
-gemini
+#### Claude Code에서 MCP 도구 사용
+```typescript
+// 컨텍스트 정보 확인
+mcp_gemini_cli_bridge_gemini_context_info()
 
-# MCP 서버 상태 확인
-> /mcp
+// 기본 채팅
+mcp_gemini_cli_bridge_gemini_chat("코드 리뷰 요청")
 
-# 파일 분석
-> @src/app/page.tsx 이 파일의 구조를 설명해주세요
+// Flash 모델 (빠름)
+mcp_gemini_cli_bridge_gemini_chat_flash("간단한 질문")
+
+// Pro 모델 (고품질)
+mcp_gemini_cli_bridge_gemini_chat_pro("복잡한 분석 요청")
+
+// 사용량 확인
+mcp_gemini_cli_bridge_gemini_stats()
 ```
 
-#### 비대화형 모드
+#### 터미널에서 직접 사용
 ```bash
 # 파일 분석
-cat src/app/page.tsx | gemini -p "@src/app/page.tsx 인증 로직 분석"
+cat src/app/page.tsx | gemini -p "이 코드 리뷰해주세요"
 
 # Git 변경사항 리뷰
-git diff | gemini -p "변경사항 리뷰"
+git diff | gemini -p "변경사항 간단히 요약"
+
+# 사용량 확인
+gemini /stats
 ```
 
 ### Claude Code에서 MCP 테스트
@@ -275,30 +283,36 @@ export SUPABASE_SERVICE_ROLE_KEY="your-supabase-key"
 - 인덱스 추가
 - 페이지네이션 적용
 
-### Gemini MCP Tool 문제
+### Gemini CLI Bridge v2.0 문제 해결
 
-#### 1. "Please set an Auth method" 에러
-**원인**: 인증 설정 누락
+#### 1. 컨텍스트 감지 문제
+**원인**: 호출 환경을 정확히 인식하지 못함
 
 **해결책**:
-```bash
-# settings.json 확인
-cat ~/.gemini/settings.json
+```typescript
+// 컨텍스트 정보 확인
+mcp_gemini_cli_bridge_gemini_context_info()
 
-# authMethod가 "oauth"인지 확인
-# oauth_creds.json 파일 존재 확인
-ls -la ~/.gemini/
+// 디버그 모드 활성화
+process.env.GEMINI_DEBUG = 'true'
 ```
 
-#### 2. WSL 환경에서 인증 실패
-**원인**: Windows와 WSL 간 인증 정보 불일치
+#### 2. Windows/WSL 환경에서 타임아웃 문제
+**원인**: PowerShell 경로 또는 환경 설정 문제
 
 **해결책**:
+- v2.0에서는 자동 폴백 체인으로 해결됨
+- Windows 네이티브 환경 자동 감지
+- 플랫폼별 최적화된 실행 전략
+
+#### 3. 인증 문제
+**해결책**:
 ```bash
-# Windows의 인증 정보를 WSL로 복사
-mkdir -p ~/.gemini
-cp /mnt/c/Users/[사용자명]/.gemini/oauth_creds.json ~/.gemini/
-cp /mnt/c/Users/[사용자명]/.gemini/google_account_id ~/.gemini/
+# Gemini CLI 재인증
+gemini login
+
+# 인증 상태 확인
+gemini --version
 ```
 
 ## 환경별 설정
@@ -387,8 +401,9 @@ gemini /memory add "프로젝트 핵심 정보"
 
 - [MCP 공식 문서](https://modelcontextprotocol.com)
 - [Supabase MCP Server](https://github.com/supabase/mcp-server-supabase)
-- [Gemini MCP Tool](https://github.com/jamubc/gemini-mcp-tool)
+- [Gemini CLI Bridge v2.0 가이드](./gemini-cli-bridge-v2-guide.md)
 - [Google Gemini CLI](https://github.com/google-gemini/gemini-cli)
+- [Claude Code MCP 설정](./claude-code-mcp-setup.md)
 
 ---
 

@@ -44,10 +44,10 @@
 - **local-dev**: 현재 사용 중
 - **결론**: 중복 없음, development는 정리됨
 
-### 5. gcp-functions vs gcp-cloud-functions (완료 ✅)
-- **gcp-functions**: 실제 소스 코드 (9개 파일)
-- **gcp-cloud-functions**: node_modules 포함된 배포 버전
-- **결론**: 서로 다른 용도, 중복 아님
+### 5. gcp-functions 구조 정리 (완료 ✅)
+- **gcp-functions**: 통합된 GCP Functions 소스 코드 (health 포함)
+- **구성**: ai-gateway, korean-nlp, rule-engine, basic-ml, health, shared
+- **결론**: 중복 제거 완료, 통합된 구조로 정리됨
 
 ### 6. Config 폴더들 (완료 ✅)
 - **config/**: 환경 설정 관련
