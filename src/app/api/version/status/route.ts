@@ -17,7 +17,6 @@ let masterAIEngine: any = null;
 let OptimizedDataGenerator: any = null;
 
 try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const versionsModule = require('@/config/versions');
   AI_ENGINE_VERSIONS = versionsModule.AI_ENGINE_VERSIONS;
   DATA_GENERATOR_VERSIONS = versionsModule.DATA_GENERATOR_VERSIONS;
@@ -27,7 +26,6 @@ try {
 }
 
 try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const masterAIEngineModule = require('@/services/ai/MasterAIEngine');
   masterAIEngine = masterAIEngineModule.masterAIEngine;
 } catch (error) {
@@ -35,7 +33,6 @@ try {
 }
 
 try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const optimizedDataGeneratorModule = require('@/services/OptimizedDataGenerator');
   OptimizedDataGenerator = optimizedDataGeneratorModule.OptimizedDataGenerator;
 } catch (error) {
