@@ -1,5 +1,128 @@
 # Changelog
 
+## [5.46.22] - 2025-01-13
+
+### 🤝 Claude-Gemini 협업 시스템 구현
+
+#### 핵심 가치
+- **자동 교차 검증**: Claude가 Gemini와 자동으로 대화하며 문제 해결
+- **인지 부하 감소**: 수동 복사/붙여넣기 없이 AI 간 협업
+- **심층 분석**: 단순 Q&A가 아닌 대화형 검증
+
+#### 주요 추가사항
+- **협업 가치 문서**: `docs/claude-gemini-collaboration-value.md`
+  - MCP 통합의 진짜 의도와 가치 설명
+  - 실제 협업 사례 및 워크플로우
+  
+- **개선된 GoogleAIManager**: `src/lib/google-ai-manager-improved.ts`
+  - Race condition 방지 (Promise 기반 초기화)
+  - API 키 만료 관리 및 자동 갱신
+  - Claude + Gemini 교차 검증 결과 적용
+
+- **Gemini 헬퍼 함수**: `scripts/gemini-helpers.ps1`
+  - `gc`, `gd`, `gf`, `ge`, `gs` 빠른 명령어
+  - PowerShell 프로필 통합 지원
+
+- **테스트 및 가이드**: 
+  - `scripts/test-mcp-gemini.js` - MCP 통합 테스트
+  - `scripts/claude-gemini-collab.md` - 협업 워크플로우 가이드
+
+#### 기술적 수정
+- **MCP 응답 형식 수정**: `mcp-servers/gemini-cli-bridge/src/tools.js`
+  - 문자열 변환 로직 추가로 Zod 에러 해결
+  - `tools-fix.js` 헬퍼 함수 제공
+
+#### 새로운 npm 스크립트
+- `npm run gemini:setup` - 헬퍼 함수 설정
+- `npm run gemini:test-mcp` - MCP 통합 테스트
+- `npm run gemini:collab` - 협업 가이드 표시
+
+#### 사용 예시
+```
+사용자: "이 코드 Gemini랑 교차 검증해줘"
+Claude: [자동으로 Gemini와 대화하며 통합 분석 제공]
+```
+
+## [5.46.21] - 2025-07-13
+
+### 🏗️ GCP Functions 디렉터리 구조 통합 및 최적화
+
+#### 주요 개선사항
+- **디렉터리 구조 통합**: `gcp-cloud-functions/` 제거 및 `gcp-functions/`로 통합
+- **Health Function 통합**: Firebase Functions SDK → Google Cloud Functions SDK로 통일
+- **참조 경로 업데이트**: 전체 프로젝트의 경로 참조 정리 (18개 파일 수정)
+- **문서 동기화**: README.md 및 구조 관련 문서 업데이트
+
+#### 기술적 변경사항
+- **새로운 통합 구조**:
+  ```
+  gcp-functions/
+  ├── ai-gateway/     # 요청 분산 및 조율 (256MB, 60초)
+  ├── korean-nlp/     # 한국어 자연어 처리 (512MB, 180초)
+  ├── rule-engine/    # 규칙 기반 빠른 응답 (256MB, 30초)
+  ├── basic-ml/       # 기본 머신러닝 처리 (512MB, 120초)
+  ├── health/         # 헬스체크 및 상태 모니터링 (128MB, 10초)
+  ├── shared/         # 공통 유틸리티
+  └── deployment/     # 배포 스크립트
+  ```
+
+- **Health Function 개선**:
+  - Firebase Functions SDK → Google Cloud Functions SDK 통일
+  - 메모리 최적화: 128MB, 타임아웃 10초
+  - 전체 Functions 상태 통합 모니터링 지원
+  
+- **경로 참조 정리**:
+  - README.md: 배포 명령어 및 구조도 업데이트
+  - scripts/gcp-quota-report.js: 배포 경로 수정
+  - docs 파일들: 구조 변경 사항 반영
+  - 기타 15개 파일의 경로 참조 수정
+
+#### 배포 최적화
+- **월간 호출 한도**: 90,000회 → 95,000회 (health 함수 5,000회 추가)
+- **무료 티어 사용률**: 4.5% → 4.75% (여전히 안전한 범위)
+- **통합 배포 스크립트**: `./deployment/deploy-all.sh`로 일원화
+
+#### 개발자 경험 개선
+- **명확한 구조**: 단일 GCP Functions 디렉터리로 혼란 제거
+- **일관된 SDK**: 모든 Functions가 동일한 Google Cloud Functions Framework 사용
+- **통합 문서**: README.md 업데이트로 최신 구조 반영
+
+#### 영향 범위
+- **제거된 파일**: `gcp-cloud-functions/` 디렉터리 전체
+- **수정된 파일**: 18개 파일의 경로 참조 업데이트
+- **새로운 파일**: `gcp-functions/health/` 디렉터리 및 파일들
+- **호환성**: 기존 API 엔드포인트 및 서비스 로직 변경 없음
+
+#### 검증 완료
+- ✅ 새로운 구조 정상 동작 확인
+- ✅ Health Function 의존성 설치 성공
+- ✅ 모든 참조 경로 업데이트 완료
+- ✅ gcp-cloud-functions 참조 완전 제거
+
+## [5.46.20] - 2025-07-13
+
+### 🔧 MCP Filesystem Server 문제 해결
+
+#### 주요 수정사항
+- **Filesystem MCP Server 실패 문제 해결**: args로 허용된 디렉터리 전달하도록 수정
+- **설정 방식 개선**: ALLOWED_DIRECTORIES 환경 변수 → args 배열로 변경
+- **문서 업데이트**: mcp-troubleshooting-guide.md에 해결사례 추가
+
+#### 기술적 변경사항
+- `.mcp.json`에서 filesystem 서버 설정 수정:
+  - 제거: `"env": {"ALLOWED_DIRECTORIES": "..."}`
+  - 추가: args 배열에 허용된 디렉터리 경로 포함
+- **검증 스크립트 추가**: `npm run mcp:verify` 명령어로 MCP 서버 상태 확인
+
+#### 근본 원인
+- MCP filesystem 서버는 명령줄 인자로 허용된 디렉터리를 받아야 함
+- 환경 변수 방식은 지원되지 않음
+- 공식 README 문서의 정확한 설정 방법 확인
+
+#### 예방 조치
+- 정기적인 MCP 서버 검증 스크립트 실행
+- 설정 변경 시 문서화 및 테스트
+
 ## [5.46.19] - 2025-07-12
 
 ### 🔧 Husky Git Hooks 에러 수정

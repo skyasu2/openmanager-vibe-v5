@@ -348,14 +348,102 @@ When working with AI engines:
 
 This project demonstrates advanced Next.js patterns with AI integration, optimized for production deployment with comprehensive testing and monitoring capabilities.
 
-## Gemini CLI Collaboration
+## MCP (Model Context Protocol) 도구 통합
 
-Gemini CLI는 로컬 개발용 도구로, Google AI API와는 완전히 별개입니다. 상세 가이드는 `development/gemini-local/`을 참조하세요.
+Claude Code에는 7개의 MCP 서버가 설정되어 프로젝트 개발을 강력하게 지원합니다.
+
+### 🛠️ 설정된 MCP 도구 목록
+
+| 도구 | 설명 | 주요 기능 |
+|------|------|-----------|
+| **filesystem** | 파일시스템 접근 | 프로젝트 파일 읽기/쓰기/검색 |
+| **github** | GitHub API 통합 | 이슈/PR 관리, 저장소 작업 |
+| **brave-search** | 웹 검색 | 최신 기술 정보 및 문서 검색 |
+| **memory** | 컨텍스트 메모리 | 프로젝트 지식 저장 및 검색 |
+| **supabase** | 데이터베이스 통합 | Supabase DB 쿼리 및 관리 |
+| **context7** | 문서 검색 | 라이브러리 문서 및 API 참조 |
+| **gemini-cli-bridge** | Gemini CLI 브릿지 | 양방향 Claude ↔ Gemini 통합 |
+
+### 🎯 MCP 도구 사용법
+
+#### 파일 작업 (filesystem)
+```
+"src/app/page.tsx 파일의 인증 로직을 분석해주세요"
+"components 폴더에 새로운 Button 컴포넌트를 만들어주세요"
+```
+
+#### GitHub 연동 (github)
+```
+"현재 프로젝트의 열린 이슈 목록을 가져와주세요"
+"새로운 feature 브랜치를 만들고 PR을 생성해주세요"
+```
+
+#### 웹 검색 (brave-search)
+```
+"Next.js 15 App Router 최신 문서를 검색해주세요"
+"TypeScript 5.6 새로운 기능을 찾아주세요"
+```
+
+#### 프로젝트 메모리 (memory)
+```
+"이 프로젝트는 AI 기반 서버 모니터링 플랫폼입니다"
+"Vercel 무료 티어 최적화가 핵심 목표입니다"
+```
+
+#### 데이터베이스 (supabase)
+```
+"users 테이블의 구조를 확인해주세요"
+"최근 7일간의 서버 메트릭을 조회해주세요"
+```
+
+#### 문서 검색 (context7)
+```
+"Next.js Image 컴포넌트 사용법을 찾아주세요"
+"Supabase Auth 가이드를 검색해주세요"
+```
+
+#### Gemini CLI 브릿지 (gemini-cli-bridge v2.0)
+```
+"Gemini CLI로 코드 리뷰를 요청해주세요"
+"현재 호출 컨텍스트 정보를 확인해주세요"
+```
+
+## Gemini CLI 브릿지 v2.0 - 양방향 통합
+
+**새로운 기능**: Claude Code ↔ Gemini CLI 양방향 호출 문제가 해결되었습니다.
+
+### 🚀 주요 개선사항
+
+- **스마트 컨텍스트 감지**: 호출 방향을 자동으로 감지
+- **적응적 실행 전략**: WSL/PowerShell 환경에 맞춰 최적화
+- **자동 폴백 체인**: 한 방법 실패 시 다른 방법 자동 시도
+- **디버깅 도구**: 현재 컨텍스트 상태 실시간 확인
+
+### 💡 사용법
+
+#### MCP를 통한 Gemini CLI 사용
+```typescript
+// 컨텍스트 정보 확인
+mcp_gemini_cli_bridge_gemini_context_info()
+
+// 기본 채팅
+mcp_gemini_cli_bridge_gemini_chat("코드 리뷰 요청")
+
+// Flash 모델 (빠름)
+mcp_gemini_cli_bridge_gemini_chat_flash("간단한 질문")
+
+// Pro 모델 (고품질)
+mcp_gemini_cli_bridge_gemini_chat_pro("복잡한 분석 요청")
+
+// 사용량 확인
+mcp_gemini_cli_bridge_gemini_stats()
+```
 
 ### 중요 차이점
 
 - **Gemini CLI**: 로그인만 필요 (API 키 불필요), 로컬 개발 전용
 - **Google AI API**: 프로덕션 AI 기능용, `GOOGLE_AI_API_KEY` 필요
+- **MCP 브릿지**: Claude Code에서 Gemini CLI 기능을 직접 사용 가능
 
 ### 빠른 사용법
 
@@ -381,45 +469,59 @@ gemini /clear     # 컨텍스트 초기화
 
 ## Claude Code 사용량 모니터링
 
-### ccusage 명령어 (설치 없이 사용)
+### claude-monitor (Windows PowerShell/Python 호환)
 
-Claude Code의 토큰 사용량을 확인하는 공식 도구입니다:
+Windows PowerShell과 Python에서 모두 동작하는 통합 모니터링 도구입니다:
 
-```bash
-# 🎯 빠른 실행 (명령어 가이드 포함)
-npm run ccusage
+#### PowerShell 사용법 (Windows 권장)
+```powershell
+# 🎯 빠른 실행 - 현재 사용량 요약
+npm run cm
 
-# 또는 alias 설정 후
-ccusage  # (alias 설정: bash scripts/setup-ccusage-alias.sh)
+# 실시간 대시보드
+npm run cm:live
 
-# 개별 명령어 실행
-npx ccusage@latest blocks --live    # 🆕 실시간 대시보드로 라이브 모니터링
-npx ccusage@latest blocks --active  # 현재 과금 블록과 예상 사용량 확인
-npx ccusage@latest daily           # 일별 사용량 세부 분석
-npx ccusage@latest session         # 현재 세션 분석
-npx ccusage@latest blocks          # 5시간 블록 단위 사용량 전체 보기
+# 활성 블록만 보기
+npm run cm:active
 
-# 고급 옵션
-npx ccusage@latest blocks --since 20250701    # 특정 날짜부터
-npx ccusage@latest blocks --until 20250731    # 특정 날짜까지
-npx ccusage@latest blocks --json              # JSON 출력
-npx ccusage@latest blocks --breakdown         # 상세 분석
+# 일별 사용량
+npm run cm:daily
+
+# 현재 세션 통계
+npm run cm:session
+
+# 도움말
+npm run cm:help
+
+# 직접 실행
+.\scripts\claude-monitor.ps1 -Live
+.\scripts\claude-monitor.ps1 blocks -Since 20250701 -Until 20250731
 ```
 
-### claude-monitor (커스텀 모니터)
+#### Python 사용법 (크로스 플랫폼)
+```bash
+# Python 스크립트 직접 실행
+python scripts/claude-monitor.py           # 빠른 통계
+python scripts/claude-monitor.py --live    # 실시간 대시보드
+python scripts/claude-monitor.py daily     # 일별 분석
+python scripts/claude-monitor.py session   # 세션 분석
 
-프로젝트에 포함된 한국어 최적화 모니터링 도구:
+# 고급 옵션
+python scripts/claude-monitor.py blocks --since 20250701 --until 20250731
+python scripts/claude-monitor.py --json    # JSON 출력
+python scripts/claude-monitor.py --help    # 모든 옵션 보기
+```
+
+### ccusage 직접 사용
+
+claude-monitor는 내부적으로 ccusage를 사용합니다. 직접 사용도 가능합니다:
 
 ```bash
-# claude-monitor 실행 (화면 지우지 않음)
-cd claude-monitor-standalone
-python3 claude-monitor.py --plan max20 --timezone Asia/Seoul --no-clear --once
-
-# 연속 모니터링 (5초마다 새로고침)
-python3 claude-monitor.py --plan max20 --no-clear
-
-# npm 스크립트 사용
-npm run cm:simple  # 간단한 정보만 출력
+# ccusage 직접 실행
+npx ccusage@latest blocks --live    # 실시간 대시보드
+npx ccusage@latest blocks --active  # 현재 과금 블록
+npx ccusage@latest daily           # 일별 사용량
+npx ccusage@latest session         # 현재 세션
 ```
 
 ### 모니터링 도구 비교
@@ -439,8 +541,12 @@ npm run cm:simple  # 간단한 정보만 출력
 - **Vercel 최적화**: Edge Runtime, 최소 메모리 사용
 - **AI 도구 협업**: Claude (유료) + Gemini CLI (무료) 효율적 조합
 
-자세한 협업 패턴과 예시는 `development/gemini-local/`을 참조하세요.
-MCP 서버 설정 가이드는 `docs/gemini-cli-mcp-setup.md`를 참조하세요.
+### 📚 관련 문서
+
+- **MCP 완전 가이드**: `docs/mcp-complete-guide.md`
+- **Gemini CLI 브릿지 v2.0**: `docs/gemini-cli-bridge-v2-guide.md`
+- **Claude Code MCP 설정**: `docs/claude-code-mcp-setup.md`
+- **개발 도구 통합**: `docs/development-tools.md`
 
 ## AI 도구 협업 전략
 
@@ -512,17 +618,21 @@ echo "변경사항" | gemini -p "@docs/ 관련 문서 찾기"
 
 #### 📋 기본 사용법
 ```bash
-# 사용법 안내
-npm run gemini:guide
+# 헬퍼 함수 설정 (최초 1회)
+npm run gemini:setup
 
-# 직접 질문
-gemini -p "TypeScript 에러 해결 방법"
+# 빠른 명령어들 (설정 후)
+gc "TypeScript 에러 해결법"        # 빠른 채팅
+gd                                  # git diff 자동 리뷰
+gf src/app/page.tsx                # 파일 분석
+ge "에러 메시지"                   # 에러 해결
+gs                                  # 사용량 확인
+gemini-daily                        # 일일 리포트
 
-# 파일 분석
-cat src/app/page.tsx | gemini -p "이 코드 리뷰해주세요"
-
-# Git 변경사항 리뷰
-git diff | gemini -p "변경사항 간단히 요약"
+# npm 스크립트
+npm run gemini:review              # Git 변경사항 리뷰
+npm run gemini:stats               # 사용량 확인
+npm run gemini:guide               # 사용법 안내
 ```
 
 #### 🐧 WSL 환경에서 Windows Gemini CLI 사용
