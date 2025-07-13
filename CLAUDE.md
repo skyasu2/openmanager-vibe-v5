@@ -350,7 +350,7 @@ This project demonstrates advanced Next.js patterns with AI integration, optimiz
 
 ## MCP (Model Context Protocol) 도구 통합
 
-Claude Code에는 7개의 MCP 서버가 설정되어 프로젝트 개발을 강력하게 지원합니다.
+Claude Code에는 6개의 MCP 서버가 설정되어 프로젝트 개발을 강력하게 지원합니다.
 
 ### 🛠️ 설정된 MCP 도구 목록
 
@@ -358,10 +358,10 @@ Claude Code에는 7개의 MCP 서버가 설정되어 프로젝트 개발을 강�
 |------|------|-----------|
 | **filesystem** | 파일시스템 접근 | 프로젝트 파일 읽기/쓰기/검색 |
 | **github** | GitHub API 통합 | 이슈/PR 관리, 저장소 작업 |
-| **brave-search** | 웹 검색 | 최신 기술 정보 및 문서 검색 |
 | **memory** | 컨텍스트 메모리 | 프로젝트 지식 저장 및 검색 |
 | **supabase** | 데이터베이스 통합 | Supabase DB 쿼리 및 관리 |
 | **context7** | 문서 검색 | 라이브러리 문서 및 API 참조 |
+| **tavily** | AI 웹 검색 | 실시간 웹 검색, 컨텐츠 추출, 사이트 크롤링 |
 | **gemini-cli-bridge** | Gemini CLI 브릿지 | 양방향 Claude ↔ Gemini 통합 |
 
 ### 🎯 MCP 도구 사용법
@@ -376,12 +376,6 @@ Claude Code에는 7개의 MCP 서버가 설정되어 프로젝트 개발을 강�
 ```
 "현재 프로젝트의 열린 이슈 목록을 가져와주세요"
 "새로운 feature 브랜치를 만들고 PR을 생성해주세요"
-```
-
-#### 웹 검색 (brave-search)
-```
-"Next.js 15 App Router 최신 문서를 검색해주세요"
-"TypeScript 5.6 새로운 기능을 찾아주세요"
 ```
 
 #### 프로젝트 메모리 (memory)
