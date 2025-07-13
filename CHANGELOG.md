@@ -20,6 +20,7 @@ mcp-servers/
 #### 추가 문서
 - `mcp-servers/README.md`: MCP 서버 통합 가이드
 - `mcp-servers/filesystem/README.md`: 파일시스템 서버 상세 문서
+- `docs/mcp-server-architecture.md`: MCP 서버 아키텍처 상세 설명
 
 #### 이점
 - 일관된 구조로 관리 용이성 향상
