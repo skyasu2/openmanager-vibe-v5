@@ -50,11 +50,22 @@ export function useSession(): UseSessionReturn {
             // 게스트 사용자를 Supabase User 형태로 변환
             setUser({
               id: guestUserData.id,
+              aud: 'guest',
               email: guestUserData.email || null,
+              created_at: guestUserData.created_at || new Date().toISOString(),
+              updated_at: guestUserData.updated_at || new Date().toISOString(),
+              last_sign_in_at: guestUserData.last_sign_in_at || new Date().toISOString(),
+              app_metadata: {
+                provider: 'guest',
+                providers: ['guest']
+              },
               user_metadata: {
                 name: guestUserData.name,
                 auth_type: 'guest'
-              }
+              },
+              identities: [],
+              factors: [],
+              role: 'authenticated'
             } as User);
             setStatus('authenticated');
           } else {

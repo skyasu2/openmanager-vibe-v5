@@ -105,6 +105,8 @@ export default function AuthStatusChecker() {
       const interval = setInterval(checkAuthStatus, 3000); // 3초마다
       return () => clearInterval(interval);
     }
+    // autoRefresh가 false인 경우 cleanup 함수 없음
+    return undefined;
   }, [autoRefresh]);
 
   // 초기 로드

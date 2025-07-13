@@ -6,7 +6,7 @@
  */
 
 import { supabase } from './supabase';
-import type { Session, User } from '@supabase/supabase-js';
+import type { Session, User, AuthError } from '@supabase/supabase-js';
 
 export interface AuthUser {
   id: string;
@@ -14,6 +14,18 @@ export interface AuthUser {
   name?: string;
   avatar?: string;
   provider?: 'github' | 'guest';
+}
+
+export interface AuthCallbackResult {
+  session: Session | null;
+  error: AuthError | Error | null;
+}
+
+/**
+ * 에러 객체가 message 속성을 가지고 있는지 확인하는 타입 가드
+ */
+function hasMessageProperty(error: any): error is { message: string } {
+  return error && typeof error === 'object' && 'message' in error && typeof error.message === 'string';
 }
 
 /**
@@ -163,7 +175,7 @@ export function onAuthStateChange(callback: (session: Session | null) => void) {
 /**
  * 인증 콜백 처리 (OAuth 리다이렉트 후)
  */
-export async function handleAuthCallback() {
+export async function handleAuthCallback(): Promise<AuthCallbackResult> {
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
     
@@ -179,7 +191,10 @@ export async function handleAuthCallback() {
     return { session, error: null };
   } catch (error) {
     console.error('❌ Auth 콜백 처리 에러:', error);
-    return { session: null, error };
+    return { 
+      session: null, 
+      error: error instanceof Error ? error : new Error(String(error))
+    };
   }
 }
 

@@ -52,7 +52,10 @@
       "mcp__supabase__search_docs",
       "Bash(npx ccusage@latest:*)",
       "Bash(npx tsc:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "mcp__supabase__execute_sql",
+      "Bash(curl:*)",
+      "WebFetch(domain:openmanager-vibe-v5.vercel.app)"
     ],
     "deny": []
   },

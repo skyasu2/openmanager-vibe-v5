@@ -8,8 +8,15 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { handleAuthCallback } from '@/lib/supabase-auth';
+import { handleAuthCallback, type AuthCallbackResult } from '@/lib/supabase-auth';
 import { Loader2 } from 'lucide-react';
+
+/**
+ * 에러 객체가 message 속성을 가지고 있는지 확인하는 타입 가드
+ */
+function hasMessage(error: any): error is { message: string } {
+  return error && typeof error === 'object' && 'message' in error && typeof error.message === 'string';
+}
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -24,13 +31,18 @@ export default function AuthCallbackPage() {
         if (error) {
           console.error('❌ Auth 콜백 에러:', error);
           
-          // 에러 타입에 따른 상세 처리
-          if (error.message?.includes('Invalid code')) {
-            router.push('/login?error=invalid_code&message=인증 코드가 유효하지 않습니다');
-          } else if (error.message?.includes('provider')) {
-            router.push('/login?error=provider_error&message=GitHub OAuth 설정을 확인해주세요');
+          // 에러 타입에 따른 상세 처리 (타입 가드 사용)
+          if (hasMessage(error)) {
+            if (error.message.includes('Invalid code')) {
+              router.push('/login?error=invalid_code&message=인증 코드가 유효하지 않습니다');
+            } else if (error.message.includes('provider')) {
+              router.push('/login?error=provider_error&message=GitHub OAuth 설정을 확인해주세요');
+            } else {
+              router.push('/login?error=auth_callback_failed&message=인증 처리 중 오류가 발생했습니다');
+            }
           } else {
-            router.push('/login?error=auth_callback_failed&message=인증 처리 중 오류가 발생했습니다');
+            // message 속성이 없는 에러의 경우
+            router.push('/login?error=auth_callback_failed&message=인증 처리 중 예상치 못한 오류가 발생했습니다');
           }
           return;
         }
