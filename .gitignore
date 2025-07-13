@@ -90,6 +90,10 @@ sensitive-env.md
 .secure-tokens.json.backup*
 .secure-tokens-export.sh
 
+# 🔍 Tavily MCP 보안 파일
+.env.tavily
+config/tavily-encrypted.json
+
 # vercel
 .vercel
 
