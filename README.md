@@ -2,6 +2,8 @@
 
 > **AI 기반 통합 서버 관리 플랫폼** - 월 사용량 90% 절약하면서도 실시간 모니터링 제공
 
+<!-- ESLint 설정 개선으로 Pre-push 검증 정상화 -->
+
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
