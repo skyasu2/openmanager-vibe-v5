@@ -54,10 +54,16 @@ export async function signOut() {
       throw error;
     }
 
-    // 게스트 세션 정리
+    // 게스트 세션 정리 (localStorage + 쿠키)
     localStorage.removeItem('auth_session_id');
     localStorage.removeItem('auth_type');
     localStorage.removeItem('auth_user');
+    
+    // 🍪 게스트 세션 쿠키 정리
+    if (typeof document !== 'undefined') {
+      document.cookie = 'guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+      document.cookie = 'auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+    }
 
     console.log('✅ 로그아웃 성공');
     return { error: null };
