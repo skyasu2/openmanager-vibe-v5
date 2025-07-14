@@ -57,7 +57,23 @@
       "Bash(curl:*)",
       "WebFetch(domain:openmanager-vibe-v5.vercel.app)",
       "Bash(git fetch:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(git check-attr:*)",
+      "Bash(npm:*)",
+      "Bash(pnpm:*)",
+      "Bash(yarn --version)",
+      "Bash(npx:*)",
+      "Bash(where pnpm)",
+      "Bash(nvm install:*)",
+      "Bash(where node)",
+      "Bash(choco:*)",
+      "WebFetch(domain:nodejs.org)",
+      "Bash(cat:*)",
+      "Bash(env)",
+      "Bash(chmod:*)",
+      "Bash(bash:*)",
+      "Bash(timeout:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   },
@@ -70,6 +86,7 @@
     "supabase",
     "context7",
     "gemini-cli-bridge",
-    "tavily"
+    "tavily",
+    "redis"
   ]
 }

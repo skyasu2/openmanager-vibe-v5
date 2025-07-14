@@ -222,7 +222,12 @@ User Query → AI Agent Engine → Intent Classifier → Response Generator
 - **Liskov Substitution**: 하위 타입은 상위 타입을 대체 가능
 - **Interface Segregation**: 인터페이스는 최소한으로 분리
 - **Dependency Inversion**: 추상화에 의존, 구체화에 의존 X
-- **1500줄 규칙**: 파일이 1500줄을 넘으면 의도적인 분리 필수
+- **파일 길이 가이드라인**: 
+  - 🟢 권장: 500줄 이하 (최적의 가독성과 유지보수성)
+  - 🟡 주의: 800줄 이하 (ESLint 경고 발생)
+  - 🔴 필수 분리: 1500줄 초과 시 즉시 리팩토링
+  - 테스트 파일: 1000줄까지 허용
+  - 함수당 100줄 제한 (복잡한 로직은 분리)
 
 #### 2. 기존 코드 우선 원칙
 - 새 기능 개발 전 **반드시** 기존 코드 분석

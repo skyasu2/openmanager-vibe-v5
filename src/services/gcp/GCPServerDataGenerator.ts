@@ -6,7 +6,6 @@
  */
 
 import {
-  BaselineDataset,
   CustomMetricDefinition,
   ExtendedTimeSeriesMetrics,
   GCPCloudStorageClient,
@@ -15,7 +14,6 @@ import {
   GenerationLog,
   GenerationOptions,
   ScenarioContext,
-  ServerData,
   TimeSeriesMetrics,
 } from '@/types/gcp-data-generator';
 
@@ -43,6 +41,31 @@ interface LocalServerData {
   environment: string;
   specs: any;
   baseline: any;
+  status: 'online' | 'offline' | 'warning' | 'critical';
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: number;
+  location: string;
+  uptime: string;
+  ip: string;
+  os: string;
+  alerts: number;
+  lastUpdate: Date;
+  services: { name: string; status: string; port: number }[];
+}
+
+interface BaselineDataset {
+  servers: LocalServerData[];
+  summary: {
+    total: number;
+    online: number;
+    warning: number;
+    offline: number;
+    alerts: number;
+  };
+  timestamp: string;
+  version: number;
 }
 
 export class GCPServerDataGenerator {
@@ -67,13 +90,107 @@ export class GCPServerDataGenerator {
     this.cloudStorage = cloudStorage;
   }
 
+  async initialize(): Promise<boolean> {
+    try {
+      // 기본 데이터셋 초기화
+      this.baselineDataset = {
+        servers: [
+          {
+            id: 'server-001',
+            name: 'Web Server 1',
+            type: 'web',
+            environment: 'production',
+            specs: {
+              cpu: { cores: 4, model: 'Intel Xeon' },
+              memory: { total: 8192, type: 'DDR4' },
+              disk: { total: 500, type: 'SSD' },
+              network: { bandwidth: 1000, type: 'Ethernet' }
+            },
+            baseline: {
+              cpu: { usage: 45, load1: 2.1 },
+              memory: { used: 67, available: 33 },
+              disk: { utilization: 23, io: { read: 150, write: 80 } },
+              network: { io: { rx: 89, tx: 45 } }
+            },
+            status: 'online',
+            cpu: 45,
+            memory: 67,
+            disk: 23,
+            network: 89,
+            location: 'Seoul DC1',
+            uptime: '15d 4h 23m',
+            ip: '192.168.1.100',
+            os: 'Ubuntu 22.04 LTS',
+            alerts: 2,
+            lastUpdate: new Date(),
+            services: [
+              { name: 'nginx', status: 'running', port: 80 },
+              { name: 'mysql', status: 'running', port: 3306 },
+              { name: 'redis', status: 'stopped', port: 6379 },
+            ],
+          },
+          {
+            id: 'server-002',
+            name: 'Database Server',
+            type: 'db',
+            environment: 'production',
+            specs: {
+              cpu: { cores: 8, model: 'Intel Xeon' },
+              memory: { total: 16384, type: 'DDR4' },
+              disk: { total: 1000, type: 'SSD' },
+              network: { bandwidth: 1000, type: 'Ethernet' }
+            },
+            baseline: {
+              cpu: { usage: 78, load1: 3.2 },
+              memory: { used: 89, available: 74 },
+              disk: { utilization: 45, io: { read: 200, write: 120 } },
+              network: { io: { rx: 56, tx: 32 } }
+            },
+            status: 'warning',
+            cpu: 78,
+            memory: 89,
+            disk: 45,
+            network: 56,
+            location: 'Seoul DC2',
+            uptime: '8d 12h 45m',
+            ip: '192.168.1.101',
+            os: 'CentOS 8',
+            alerts: 5,
+            lastUpdate: new Date(),
+            services: [
+              { name: 'postgresql', status: 'running', port: 5432 },
+              { name: 'mongodb', status: 'running', port: 27017 },
+            ],
+          },
+        ],
+        summary: {
+          total: 2,
+          online: 1,
+          warning: 1,
+          offline: 0,
+          alerts: 7,
+        },
+        timestamp: new Date().toISOString(),
+        version: 1,
+      };
+
+      this.isInitialized = true;
+      console.log('✅ GCP Server Data Generator 초기화 완료');
+      return true;
+    } catch (error) {
+      console.error('❌ GCP Server Data Generator 초기화 실패:', error);
+      this.isInitialized = false;
+      return false;
+    }
+  }
+
   /**
    * 🏗️ 10개 서버 기본 데이터셋 생성 (초기 1회만)
    */
   async generateBaselineDataset(): Promise<BaselineDataset> {
     console.log('🏗️ GCP 기본 데이터셋 생성 시작...');
 
-    const servers: ServerData[] = [
+    const servers: LocalServerData[] = [
       // 웹서버 (3대)
       this.createServerData(
         'srv-web-01',
@@ -144,13 +261,15 @@ export class GCPServerDataGenerator {
     ];
 
     const dataset: BaselineDataset = {
-      dataset_version: '1.0',
-      generated_at: new Date().toISOString(),
+      version: 1,
+      timestamp: new Date().toISOString(),
       servers,
-      scenarios: {
-        normal: { probability: 0.5, load_multiplier: 1.0 },
-        warning: { probability: 0.3, load_multiplier: 1.4 },
-        critical: { probability: 0.2, load_multiplier: 1.8 },
+      summary: {
+        total: servers.length,
+        online: servers.filter(s => s.status === 'online').length,
+        warning: servers.filter(s => s.status === 'warning').length,
+        offline: servers.filter(s => s.status === 'offline').length,
+        alerts: servers.reduce((acc, s) => acc + (s.alerts || 0), 0),
       },
     };
 
@@ -170,7 +289,7 @@ export class GCPServerDataGenerator {
     name: string,
     type: string,
     environment: string
-  ): ServerData {
+  ): LocalServerData {
     const specs = this.getServerSpecs(type);
     const baselineMetrics = this.getBaselineMetrics(type);
     const historicalPatterns = this.generateHistoricalPatterns(type);
@@ -179,9 +298,21 @@ export class GCPServerDataGenerator {
       id,
       name,
       type: type as any,
+      environment: environment as any,
       specs,
-      baseline_metrics: baselineMetrics,
-      historical_patterns: historicalPatterns,
+      baseline: baselineMetrics,
+      status: 'online', // 기본값 설정
+      cpu: 0, // 실제 값은 생성 시 결정
+      memory: 0, // 실제 값은 생성 시 결정
+      disk: 0, // 실제 값은 생성 시 결정
+      network: 0, // 실제 값은 생성 시 결정
+      location: 'Seoul DC1', // 기본값
+      uptime: '0d 0h 0m', // 기본값
+      ip: '192.168.1.100', // 기본값
+      os: 'Ubuntu 22.04 LTS', // 기본값
+      alerts: 0, // 기본값
+      lastUpdate: new Date(), // 기본값
+      services: [], // 기본값
     };
   }
 
@@ -461,7 +592,7 @@ export class GCPServerDataGenerator {
    * 🖥️ 개별 서버 메트릭 생성
    */
   private async generateServerMetrics(
-    server: ServerData,
+    server: LocalServerData,
     scenario: ScenarioContext,
     timeMultiplier: number,
     timestamp: Date,
@@ -523,7 +654,7 @@ export class GCPServerDataGenerator {
    * 🔧 시스템 메트릭 생성
    */
   private generateSystemMetrics(
-    server: ServerData,
+    server: LocalServerData,
     baseline: any,
     multiplier: number,
     scenario: ScenarioContext
@@ -618,7 +749,7 @@ export class GCPServerDataGenerator {
    * 📱 애플리케이션 메트릭 생성
    */
   private generateApplicationMetrics(
-    server: ServerData,
+    server: LocalServerData,
     baseline: any,
     multiplier: number,
     scenario: ScenarioContext
@@ -671,7 +802,7 @@ export class GCPServerDataGenerator {
    * 🏗️ 인프라 메트릭 생성
    */
   private generateInfrastructureMetrics(
-    server: ServerData,
+    server: LocalServerData,
     multiplier: number,
     scenario: ScenarioContext
   ) {
@@ -903,7 +1034,7 @@ export class GCPServerDataGenerator {
     }
   }
 
-  private generateProcessList(server: ServerData): ProcessInfo[] {
+  private generateProcessList(server: LocalServerData): ProcessInfo[] {
     const processCount = Math.floor(20 + Math.random() * 30);
     const processes: ProcessInfo[] = [];
 

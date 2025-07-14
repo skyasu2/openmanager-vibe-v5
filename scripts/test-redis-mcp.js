@@ -23,7 +23,13 @@ console.log(`  기본 URL: ${REDIS_MCP_INFO.defaultUrl}`);
 // 패키지 설치 확인
 console.log('\n📦 패키지 설치 확인...');
 try {
-  const packageInfo = require('../node_modules/@gongrzhe/server-redis-mcp/package.json');
+  const fs = await import('fs');
+  const path = await import('path');
+  const url = await import('url');
+  
+  const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+  const packagePath = path.join(__dirname, '../node_modules/@gongrzhe/server-redis-mcp/package.json');
+  const packageInfo = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
   console.log(`✅ Redis MCP Server v${packageInfo.version} 설치됨`);
 } catch (error) {
   console.error('❌ Redis MCP Server가 설치되지 않았습니다.');

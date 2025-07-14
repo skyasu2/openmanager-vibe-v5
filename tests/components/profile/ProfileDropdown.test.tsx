@@ -4,6 +4,7 @@
  * 프로필 드롭다운 메뉴 컴포넌트 테스트
  */
 
+import React from 'react';
 import { ProfileDropdown } from '@/components/profile/ProfileDropdown';
 import { useAuth } from '@/hooks/useAuth';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';

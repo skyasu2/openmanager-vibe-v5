@@ -12,6 +12,7 @@
  * - 업타임 표시
  */
 
+import React from 'react';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

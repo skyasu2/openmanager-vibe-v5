@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 // Process 호환성 테스트 (Edge Runtime 대신)
 describe('Process compatibility', () => {
@@ -13,7 +13,8 @@ describe('Process compatibility', () => {
 
   it('process.env가 정상 작동한다', () => {
     expect(process.env).toBeDefined();
-    expect(process.env.NODE_ENV).toBe('test');
-    expect(process.env.FORCE_MOCK_REDIS).toBe('true');
+    // vi.stubEnv로 설정된 환경변수는 import.meta.env로 접근
+    expect(import.meta.env.NODE_ENV || process.env.NODE_ENV).toBe('test');
+    expect(import.meta.env.FORCE_MOCK_REDIS || process.env.FORCE_MOCK_REDIS).toBe('true');
   });
 });

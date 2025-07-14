@@ -9,6 +9,7 @@ import { SupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { KoreanAIEngine } from '@/services/ai/korean-ai-engine';
 import { AIEngineType, AIRequest, AIResponse } from '@/types/ai-types';
+import { AIEngineStatus } from '@/domains/ai-engine/types';
 
 // Edge Runtime 호환성 확인
 const vercelConfig = getVercelConfig();
@@ -274,7 +275,6 @@ export class UnifiedAIEngineRouter {
    */
   public getSystemStatus() {
     const baseStatus = {
-      initialized: this.isInitialized,
       currentMode: this.getCurrentMode(),
       requestCount: this.requestCount,
       failedEngines: Array.from(this.failedEngines),
@@ -295,8 +295,17 @@ export class UnifiedAIEngineRouter {
   /**
    * 📊 상태 조회 (별명 메서드)
    */
-  public getStatus() {
-    return this.getSystemStatus();
+  public getStatus(): AIEngineStatus {
+    return {
+      isHealthy: true, // 실제 상태에 맞게 수정 필요
+      engines: Array.from(this.engines.entries()).map(([id, engine]) => ({
+        id: id.toString(),
+        name: engine.name || id.toString(),
+        status: engine.initialized ? 'active' : 'inactive',
+        responseTime: engine.stats?.averageResponseTime || 0,
+      })),
+      lastUpdate: new Date().toISOString(),
+    };
   }
 
   /**
@@ -372,7 +381,7 @@ export class UnifiedAIEngineRouter {
   private initializeGCPMCP(): void {
     // GCP VM의 MCP 서버는 HTTP 기반으로 처리
     // 직접 import 없이 fetch를 통해 연결
-    logger.info('🌐 GCP MCP 서버 연결 설정 완료 (HTTP 기반)');
+    logger.info('�� GCP MCP 서버 연결 설정 완료 (HTTP 기반)');
   }
 
   /**

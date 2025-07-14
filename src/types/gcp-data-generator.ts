@@ -22,6 +22,7 @@ export interface ServerData {
   id: string;
   name: string;
   type: string;
+  status?: string; // 상태 정보 추가
   specs: ServerSpecs;
   baseline_metrics: BaselineMetrics;
   historical_patterns?: {

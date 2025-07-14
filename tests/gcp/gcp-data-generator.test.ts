@@ -57,11 +57,16 @@ describe('🌐 GCP 서버 데이터 생성기', () => {
       limit: vi.fn().mockReturnThis(),
     } as any;
 
+    const mockExists = vi.fn();
+    mockExists.mockImplementation(() => Promise.resolve([true]));
+
     mockCloudStorage = {
       bucket: vi.fn().mockReturnThis(),
-      file: vi.fn().mockReturnThis(),
-      download: mockDownload,
-      save: mockSave,
+      file: vi.fn().mockImplementation(() => ({
+        exists: mockExists,
+        download: mockDownload,
+        save: mockSave,
+      })),
     } as any;
 
     generator = new GCPServerDataGenerator(mockFirestore, mockCloudStorage);
