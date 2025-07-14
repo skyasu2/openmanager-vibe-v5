@@ -922,10 +922,14 @@ export class GCPServerDataGenerator {
         .get();
 
       const metrics: TimeSeriesMetrics[] = [];
-      metricsSnapshot.docs.forEach(doc => {
-        const data = doc.data();
-        metrics.push(...data.metrics);
-      });
+      if (metricsSnapshot && metricsSnapshot.docs) {
+        metricsSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          if (data && data.metrics) {
+            metrics.push(...data.metrics);
+          }
+        });
+      }
 
       return {
         success: true,
@@ -1009,11 +1013,20 @@ export class GCPServerDataGenerator {
 
   private async getSessionInfo(sessionId: string): Promise<any> {
     try {
-      const doc = await this.firestore
-        .collection('sessions')
-        .doc(sessionId)
-        .get();
-      return doc.exists ? doc.data() : null;
+      // Firestore 초기화 확인
+      if (!this.firestore || !this.firestore.collection) {
+        console.error('Firestore가 초기화되지 않았습니다');
+        return null;
+      }
+
+      const sessionsRef = this.firestore.collection('sessions');
+      if (!sessionsRef || typeof sessionsRef.doc !== 'function') {
+        console.error('Firestore collection 메서드를 사용할 수 없습니다');
+        return null;
+      }
+
+      const doc = await sessionsRef.doc(sessionId).get();
+      return doc && doc.exists ? doc.data() : null;
     } catch (error) {
       console.error('세션 정보 조회 실패:', error);
       return null;
@@ -1022,7 +1035,18 @@ export class GCPServerDataGenerator {
 
   private async stopSession(sessionId: string): Promise<void> {
     try {
-      await this.firestore.collection('sessions').doc(sessionId).set(
+      if (!this.firestore || !this.firestore.collection) {
+        console.error('Firestore가 초기화되지 않았습니다');
+        return;
+      }
+
+      const sessionsRef = this.firestore.collection('sessions');
+      if (!sessionsRef || typeof sessionsRef.doc !== 'function') {
+        console.error('Firestore collection 메서드를 사용할 수 없습니다');
+        return;
+      }
+
+      await sessionsRef.doc(sessionId).set(
         {
           status: 'stopped',
           endTime: Date.now(),

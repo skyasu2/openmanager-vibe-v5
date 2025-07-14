@@ -339,13 +339,19 @@ describe('🔄 TDD Refactor Phase: 고급 기능 및 최적화', () => {
     const sessions = Array.from({ length: 50 }, (_, i) => `session-${i}`);
     const metrics = generateMockServerMetrics(100);
 
+    // mockRedisManager가 정상적으로 동작하도록 설정
+    mockRedisManager.saveRealtimeMetrics.mockResolvedValue(undefined);
+    mockSupabaseManager.batchInsertMetrics.mockResolvedValue(undefined);
+
     for (const sessionId of sessions) {
       await manager.saveDistributedMetrics(sessionId, metrics);
     }
 
     const status = await manager.getLoadBalancingStatus();
 
-    expect(status.activeSessions).toBeGreaterThan(0);
+    expect(status.activeSessions).toBe(50); // 50개 세션이 추가되어야 함
+    expect(Array.isArray(status.recommendations)).toBe(true);
+    // 권장사항은 조건에 따라 없을 수 있음
     expect(status.recommendations.length).toBeGreaterThanOrEqual(0);
   });
 });

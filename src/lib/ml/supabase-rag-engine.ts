@@ -796,6 +796,21 @@ export class SupabaseRAGEngine {
   }
 
   /**
+   * processQuery 메서드 (searchSimilar의 별칭)
+   */
+  async processQuery(
+    query: string,
+    options: {
+      maxResults?: number;
+      threshold?: number;
+      category?: string;
+      enableMCP?: boolean;
+    } = {}
+  ): Promise<RAGSearchResult> {
+    return this.searchSimilar(query, options);
+  }
+
+  /**
    * 벡터 유사도 검색 (코사인 유사도) - 캐싱 최적화
    */
   async searchSimilar(

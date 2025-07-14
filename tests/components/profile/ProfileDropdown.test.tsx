@@ -25,6 +25,7 @@ describe('ProfileDropdown', () => {
   const mockPush = vi.fn();
   const mockLogout = vi.fn();
   const mockLoginAsGuest = vi.fn();
+  const mockHasPermission = vi.fn();
 
   beforeEach(() => {
     (useRouter as any).mockReturnValue({
@@ -39,8 +40,9 @@ describe('ProfileDropdown', () => {
       (useAuth as any).mockReturnValue({
         isAuthenticated: false,
         user: null,
-        login: { asGuest: mockLoginAsGuest },
+        login: mockLoginAsGuest,
         logout: mockLogout,
+        hasPermission: mockHasPermission,
       });
     });
 
@@ -274,6 +276,7 @@ describe('ProfileDropdown', () => {
         isAuthenticated: true,
         user: { id: '123', name: 'Test User', type: 'google' },
         logout: mockLogout,
+        hasPermission: mockHasPermission,
       });
 
       render(<ProfileDropdown />);
@@ -290,11 +293,21 @@ describe('ProfileDropdown', () => {
   });
 
   describe('Accessibility', () => {
+    beforeEach(() => {
+      (useAuth as any).mockReturnValue({
+        isAuthenticated: false,
+        user: null,
+        login: mockLoginAsGuest,
+        logout: mockLogout,
+        hasPermission: mockHasPermission,
+      });
+    });
+
     it('should have proper ARIA attributes', () => {
       render(<ProfileDropdown />);
 
       const profileButton = screen.getByRole('button');
-      expect(profileButton).toHaveAttribute('aria-haspopup', 'true');
+      expect(profileButton).toHaveAttribute('aria-haspopup', 'menu');
       expect(profileButton).toHaveAttribute('aria-expanded', 'false');
     });
 
@@ -323,6 +336,16 @@ describe('ProfileDropdown', () => {
   });
 
   describe('Performance', () => {
+    beforeEach(() => {
+      (useAuth as any).mockReturnValue({
+        isAuthenticated: false,
+        user: null,
+        login: mockLoginAsGuest,
+        logout: mockLogout,
+        hasPermission: mockHasPermission,
+      });
+    });
+
     it('should not re-render unnecessarily', () => {
       const { rerender } = render(<ProfileDropdown />);
 

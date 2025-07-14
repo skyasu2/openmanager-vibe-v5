@@ -177,7 +177,7 @@ export class DistributedDataManager {
         const hotMetrics = await this.redisManager.getSessionMetrics(
           query.sessionId
         );
-        if (hotMetrics.length > 0) {
+        if (hotMetrics && hotMetrics.length > 0) {
           this.updatePerformanceMetrics('read', Date.now() - startTime, true);
           this.performanceMetrics.cacheHitRate += 1;
           return hotMetrics;
@@ -192,7 +192,7 @@ export class DistributedDataManager {
           query.timeRange.end
         );
         this.updatePerformanceMetrics('read', Date.now() - startTime, true);
-        return warmMetrics;
+        return warmMetrics || [];
       }
 
       // 기본: Hot Layer 시도 후 Warm Layer 폴백
@@ -202,13 +202,13 @@ export class DistributedDataManager {
         );
         this.updatePerformanceMetrics('read', Date.now() - startTime, true);
         this.performanceMetrics.cacheHitRate += 1;
-        return hotMetrics;
+        return hotMetrics || [];
       } catch {
         const warmMetrics = await this.supabaseManager.getSessionMetricsHistory(
           query.sessionId
         );
         this.updatePerformanceMetrics('read', Date.now() - startTime, true);
-        return warmMetrics;
+        return warmMetrics || [];
       }
     } catch (error) {
       this.updatePerformanceMetrics('read', Date.now() - startTime, false);
