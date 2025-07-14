@@ -1,5 +1,70 @@
 # Changelog
 
+## [5.46.32] - 2025-07-14
+
+### 🔧 Redis MCP Server 안정화 완료
+
+#### mcp.json 설정 수정 및 Redis 연결 문제 해결
+- **문제 해결**: `@gongrzhe/server-redis-mcp` 실행 실패 → 커스텀 래퍼로 전환
+- **설정 변경**: `mcp.json`에서 `scripts/upstash-redis-mcp-wrapper-final.mjs` 사용
+- **연결 확인**: Upstash Redis REST API 정상 동작 검증 (`{"result":"PONG"}`)
+- **MCP 서버 시작**: "Upstash Redis MCP server running..." 메시지 확인
+
+#### 기술적 개선사항
+- MCP 서버 실행 방식 변경: `npx @gongrzhe/server-redis-mcp` → `node ./scripts/upstash-redis-mcp-wrapper-final.mjs`
+- 환경변수 설정 최적화: `.env.local`에서 자동 로드
+- Redis 도구 안정성 향상: `set`, `get`, `delete`, `list` 명령어 정상 동작
+
+#### 트러블슈팅 과정
+1. **문제 진단**: Redis MCP 서버 실행 실패 로그 분석
+2. **연결 테스트**: Upstash Redis REST API 직접 호출 검증
+3. **대안 검토**: 기존 커스텀 래퍼 활용 결정
+4. **설정 적용**: mcp.json 수정 및 동작 확인
+
+## [5.46.31] - 2025-07-14
+
+### 🔧 Upstash Redis MCP 통합 완료
+
+#### Redis MCP Server 문제 해결
+- **문제**: `@gongrzhe/server-redis-mcp`가 일반 Redis만 지원하고 Upstash REST API 미지원
+- **해결**: Upstash Redis REST API 전용 MCP 래퍼 개발
+- **기술적 세부사항**:
+  - MCP SDK v0.4.0과 호환되는 커스텀 래퍼 구현
+  - Upstash REST API 직접 호출하여 Redis 명령어 처리
+  - `set`, `get`, `delete`, `list` 도구 완벽 지원
+
+#### 새로운 파일
+- `scripts/upstash-redis-mcp-wrapper-final.mjs`: Upstash Redis MCP 래퍼
+- `scripts/test-upstash-mcp-wrapper.js`: MCP 래퍼 테스트 스크립트
+
+#### 사용 방법
+```bash
+# Claude Code에서 Redis 도구 사용
+mcp__redis__set("key", "value")
+mcp__redis__get("key") 
+mcp__redis__list("pattern")
+mcp__redis__delete("key")
+```
+
+## [5.46.30] - 2025-07-14
+
+### 📚 MCP 문서 개선 및 Redis MCP 트러블슈팅 가이드 추가
+
+#### MCP 완전 정복 가이드 업데이트
+- **MCP 3단계 구조 설명 추가**: 글로벌 정의 → 프로젝트별 등록 → 활성화 설정
+- **Redis MCP 상세 설정 가이드**: `.mcp.json`과 `.claude/settings.local.json` 설정 방법
+- **실제 문제 해결 사례**: Redis MCP가 리스트에 나타나지 않는 문제와 해결 과정
+- **트러블슈팅 섹션 강화**: ESM 모듈 에러, MCP 설정 파일 검증 방법 추가
+
+#### 코드 개선
+- **ESM 호환성 수정**: Redis 헬스 체크 스크립트 CommonJS → ESM 변환
+- **MCP 설정 파일 정리**: `.mcp.json`과 `mcp.json` 경로 통일
+
+#### Redis MCP 활성화 방법
+1. `.mcp.json`에 Redis 서버 정의 추가
+2. `.claude/settings.local.json`의 `enabledMcpjsonServers`에 "redis" 추가
+3. Claude Code 재시작으로 활성화 완료
+
 ## [5.46.29] - 2025-07-13
 
 ### 🔧 Redis MCP Server 통합
