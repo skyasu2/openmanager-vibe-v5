@@ -55,7 +55,9 @@
       "Bash(git stash:*)",
       "mcp__supabase__execute_sql",
       "Bash(curl:*)",
-      "WebFetch(domain:openmanager-vibe-v5.vercel.app)"
+      "WebFetch(domain:openmanager-vibe-v5.vercel.app)",
+      "Bash(git fetch:*)",
+      "Bash(git config:*)"
     ],
     "deny": []
   },
@@ -67,6 +69,7 @@
     "memory",
     "supabase",
     "context7",
-    "gemini-cli-bridge"
+    "gemini-cli-bridge",
+    "tavily"
   ]
 }

@@ -1,21 +1,22 @@
-# 기본 설정
+# 기본 텍스트 파일은 자동 감지
 * text=auto
 
-# Windows 스크립트
-*.ps1 text eol=crlf
-*.bat text eol=crlf
-*.cmd text eol=crlf
+# 스크립트 파일은 LF 고정 (Windows에서도)
+*.sh text eol=lf
 
-# 소스 코드 (LF 유지)
-*.js text eol=lf
-*.ts text eol=lf
-*.tsx text eol=lf
+# 패키지 매니페스트나 설정 파일도 LF 고정
 *.json text eol=lf
-*.md text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
 
-# 바이너리 파일
+# 소스 코드 파일도 LF 고정
+*.js text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.jsx text eol=lf
+*.md text eol=lf
+
+# 바이너리 파일은 제외
 *.png binary
 *.jpg binary
 *.jpeg binary
