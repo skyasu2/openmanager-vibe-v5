@@ -1,5 +1,27 @@
 # Changelog
 
+## [5.46.36] - 2025-07-15
+
+### 🔧 MCP 도구 복구 및 문서 개선
+
+#### MCP 도구 복구 (npx 기반)
+- **filesystem MCP 복구**: `@modelcontextprotocol/server-filesystem` npx 기반 설정
+- **supabase MCP 복구**: `@supabase/mcp-server-supabase` npx 기반 설정
+- **tavily MCP 복구**: 기존 wrapper 스크립트 방식 유지 (API 키 관리)
+- **MCP 설정 파일 업데이트**: 6개 공식 MCP 서버 모두 활성화
+
+#### 문서 정확성 향상
+- **MCP 도구 목록 수정**: 실제 사용 가능한 6개 도구로 정확히 업데이트
+  - 공식 MCP 도구: Filesystem, GitHub, Memory, Supabase, Context7, Tavily
+  - Gemini CLI Bridge는 사용자 요청에 따라 제외
+- **정확한 함수명 제공**: `mcp__` 프리픽스가 포함된 실제 함수명 문서화
+- **상세한 사용 예시**: 각 MCP 도구별 구체적인 코드 예시 추가
+
+#### 개발자 경험 개선
+- 공식 MCP 도구와 기본 도구 병행 사용 가능함을 명시
+- 각 도구별 함수 시그니처와 파라미터 설명 추가
+- npx 기반 실행과 wrapper 스크립트 실행 방식 구분
+
 ## [5.46.35] - 2025-07-15
 
 ### 🔐 환경변수 보안 및 시스템 안정성 개선

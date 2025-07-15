@@ -44,6 +44,160 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 임시 해결책과 장기적 해결책 구분 제시
 - 빠른 조치 후 후속 개선 계획 제안
 
+#### 📦 실제 MCP 도구 함수 상세
+
+#### 📁 Filesystem MCP 도구
+```typescript
+// 파일 읽기/쓰기
+mcp__filesystem__read_file({ path: "src/app/page.tsx" })
+mcp__filesystem__write_file({ path: "src/new-file.ts", content: "..." })
+
+// 디렉토리 탐색
+mcp__filesystem__list_directory({ path: "src" })
+mcp__filesystem__create_directory({ path: "src/components" })
+
+// 파일 검색
+mcp__filesystem__search_files({ pattern: "*.tsx", path: "src" })
+mcp__filesystem__get_file_info({ path: "package.json" })
+```
+
+#### 🐙 GitHub MCP 도구
+```typescript
+// 저장소 검색
+mcp__github__search_repositories({ query: "Next.js", page: 1 })
+
+// 저장소 생성
+mcp__github__create_repository({ name: "my-app", private: false })
+
+// 파일 가져오기/수정
+mcp__github__get_file_contents({ owner: "user", repo: "repo", path: "README.md" })
+mcp__github__create_or_update_file({ owner, repo, path, content, message, branch })
+
+// 이슈/PR 관리
+mcp__github__create_issue({ owner, repo, title, body })
+mcp__github__create_pull_request({ owner, repo, title, head, base })
+mcp__github__list_issues({ owner, repo, state: "open" })
+
+// 코드 검색
+mcp__github__search_code({ q: "function authenticate" })
+```
+
+#### 🧠 Memory MCP 도구
+```typescript
+// 엔티티 생성
+mcp__memory__create_entities({
+  entities: [{
+    name: "OpenManager VIBE",
+    entityType: "Project",
+    observations: ["AI 서버 모니터링 플랫폼"]
+  }]
+})
+
+// 관계 생성
+mcp__memory__create_relations({
+  relations: [{
+    from: "OpenManager VIBE",
+    to: "Next.js 15",
+    relationType: "uses"
+  }]
+})
+
+// 검색 및 읽기
+mcp__memory__search_nodes({ query: "프로젝트 구조" })
+mcp__memory__read_graph()  // 전체 그래프 보기
+```
+
+#### 🗄️ Supabase MCP 도구
+```typescript
+// 데이터 조회
+mcp__supabase__select({
+  table: "users",
+  columns: ["id", "email", "created_at"],
+  filter: { created_at: { gte: "2025-01-01" } }
+})
+
+// 데이터 삽입
+mcp__supabase__insert({
+  table: "server_metrics",
+  data: { server_id: "123", cpu_usage: 75.5 }
+})
+
+// 데이터 업데이트
+mcp__supabase__update({
+  table: "users",
+  data: { status: "active" },
+  filter: { id: "user123" }
+})
+
+// 스키마 확인
+mcp__supabase__get_schema({ table: "users" })
+```
+
+#### 📚 Context7 MCP 도구
+```typescript
+// 1단계: 라이브러리 ID 찾기
+mcp__context7__resolve-library-id({ libraryName: "next.js" })
+// 결과: "/vercel/next.js" 반환
+
+// 2단계: 문서 가져오기
+mcp__context7__get-library-docs({
+  context7CompatibleLibraryID: "/vercel/next.js",
+  topic: "app router",  // 선택사항
+  tokens: 10000        // 선택사항
+})
+```
+
+#### 🔍 Tavily MCP 도구
+```typescript
+// 웹 검색
+mcp__tavily__search({
+  query: "Next.js 15 new features",
+  max_results: 10,
+  search_depth: "advanced"
+})
+
+// 뉴스 검색
+mcp__tavily__search_news({
+  query: "AI development tools",
+  days: 7
+})
+
+// 컨텍스트 검색
+mcp__tavily__search_context({
+  query: "React hooks",
+  domains: ["reactjs.org", "beta.reactjs.org"]
+})
+
+// 페이지 컨텐츠 추출
+mcp__tavily__extract({
+  url: "https://example.com/article",
+  include_images: true
+})
+```
+
+### 🛡️ 일반 도구 (대체 항목)
+
+#### 파일 시스템 도구
+```typescript
+// 파일 읽기/쓰기
+Read({ file_path: "/path/to/file.ts" })
+Write({ file_path: "/path/to/file.ts", content: "..." })
+Edit({ file_path, old_string, new_string })
+MultiEdit({ file_path, edits: [...] })
+
+// 파일 검색
+Glob({ pattern: "**/*.ts" })
+Grep({ pattern: "function", path: "src/" })
+LS({ path: "/absolute/path" })
+```
+
+#### 웹 검색 도구
+```typescript
+// 웹 검색 (tavily 대체)
+WebSearch({ query: "Next.js 15 새로운 기능" })
+WebFetch({ url: "https://...", prompt: "요약해주세요" })
+```
+
 ## 언어 설정
 
 - 모든 응답은 한국어로 제공해주세요
@@ -355,62 +509,73 @@ This project demonstrates advanced Next.js patterns with AI integration, optimiz
 
 ## MCP (Model Context Protocol) 도구 통합
 
-Claude Code에는 7개의 MCP 서버가 설정되어 프로젝트 개발을 강력하게 지원합니다.
+Claude Code에는 6개의 공식 MCP 서버가 설정되어 프로젝트 개발을 강력하게 지원합니다.
 
 ### 🛠️ 설정된 MCP 도구 목록
 
-| 도구 | 설명 | 주요 기능 |
+| 도구 | 설명 | 주요 기능 | 함수명 프리픽스 | 실행 방식 |
+|------|------|-----------|----------------|----------|
+| **filesystem** | 파일시스템 접근 | 프로젝트 파일 읽기/쓰기/검색 | `mcp__filesystem__*` | npx |
+| **github** | GitHub API 통합 | 이슈/PR 관리, 저장소 작업 | `mcp__github__*` | npx |
+| **memory** | 컨텍스트 메모리 | 프로젝트 지식 저장 및 검색 | `mcp__memory__*` | npx |
+| **supabase** | 데이터베이스 통합 | Supabase DB 쿼리 및 관리 | `mcp__supabase__*` | npx |
+| **context7** | 문서 검색 | 라이브러리 문서 및 API 참조 | `mcp__context7__*` | npx |
+| **tavily** | AI 웹 검색 | 실시간 웹 검색, 컨텐츠 추출, 사이트 크롤링 | `mcp__tavily__*` | node wrapper |
+
+### 🔍 추가 제공되는 도구
+
+| 도구 | 설명 | 사용 방법 |
 |------|------|-----------|
-| **filesystem** | 파일시스템 접근 | 프로젝트 파일 읽기/쓰기/검색 |
-| **github** | GitHub API 통합 | 이슈/PR 관리, 저장소 작업 |
-| **memory** | 컨텍스트 메모리 | 프로젝트 지식 저장 및 검색 |
-| **supabase** | 데이터베이스 통합 | Supabase DB 쿼리 및 관리 |
-| **context7** | 문서 검색 | 라이브러리 문서 및 API 참조 |
-| **tavily** | AI 웹 검색 | 실시간 웹 검색, 컨텐츠 추출, 사이트 크롤링 |
-| **gemini-cli-bridge** | Gemini CLI 브릿지 | 양방향 Claude ↔ Gemini 통합 |
+| **기본 파일 도구** | Read, Write, Edit, MultiEdit, LS, Glob, Grep | MCP와 병행 사용 가능 |
+| **웹 검색 도구** | WebSearch, WebFetch | Tavily MCP와 병행 사용 가능 |
 
 ### 🎯 MCP 도구 사용법
 
-#### 파일 작업 (filesystem)
+#### 파일 작업 (filesystem) - MCP 도구
 ```
-"src/app/page.tsx 파일의 인증 로직을 분석해주세요"
-"components 폴더에 새로운 Button 컴포넌트를 만들어주세요"
-```
-
-#### GitHub 연동 (github)
-```
-"현재 프로젝트의 열린 이슈 목록을 가져와주세요"
-"새로운 feature 브랜치를 만들고 PR을 생성해주세요"
+"src/app/page.tsx 파일의 인증 로직을 분석해주세요"  # mcp__filesystem__read_file
+"components 폴더에 새로운 Button 컴포넌트를 만들어주세요"  # mcp__filesystem__write_file
+"프로젝트 구조를 보여주세요"  # mcp__filesystem__list_directory
+"파일을 검색해주세요"  # mcp__filesystem__search_files
 ```
 
-#### 프로젝트 메모리 (memory)
+#### GitHub 연동 (github) - MCP 도구
 ```
-"이 프로젝트는 AI 기반 서버 모니터링 플랫폼입니다"
-"Vercel 무료 티어 최적화가 핵심 목표입니다"
-```
-
-#### 데이터베이스 (supabase)
-```
-"users 테이블의 구조를 확인해주세요"
-"최근 7일간의 서버 메트릭을 조회해주세요"
+"현재 프로젝트의 열린 이슈 목록을 가져와주세요"  # mcp__github__list_issues
+"새로운 feature 브랜치를 만들고 PR을 생성해주세요"  # mcp__github__create_branch, mcp__github__create_pull_request
+"최근 커밋 목록을 보여주세요"  # mcp__github__list_commits
 ```
 
-#### 문서 검색 (context7)
+#### 프로젝트 메모리 (memory) - MCP 도구
 ```
-"Next.js Image 컴포넌트 사용법을 찾아주세요"
-"Supabase Auth 가이드를 검색해주세요"
+"이 프로젝트는 AI 기반 서버 모니터링 플랫폼입니다"  # mcp__memory__create_entities
+"Vercel 무료 티어 최적화가 핵심 목표입니다"  # mcp__memory__add_observations
+"프로젝트 관련 정보를 검색해주세요"  # mcp__memory__search_nodes
+"저장된 지식 그래프를 보여주세요"  # mcp__memory__read_graph
+```
+
+#### 데이터베이스 (supabase) - MCP 도구
+```
+"users 테이블의 구조를 확인해주세요"  # mcp__supabase__select
+"최근 7일간의 서버 메트릭을 조회해주세요"  # mcp__supabase__query
+"데이터를 삽입해주세요"  # mcp__supabase__insert
+"데이터를 업데이트해주세요"  # mcp__supabase__update
+```
+
+#### 문서 검색 (context7) - MCP 도구
+```
+"Next.js Image 컴포넌트 사용법을 찾아주세요"  # mcp__context7__resolve-library-id → mcp__context7__get-library-docs
+"Supabase Auth 가이드를 검색해주세요"  # mcp__context7__resolve-library-id('supabase') → mcp__context7__get-library-docs
+# 주의: 먼저 resolve-library-id로 라이브러리 ID를 찾은 후 get-library-docs 사용
 ```
 
 
-#### Gemini CLI 브릿지 (gemini-cli-bridge v3.0)
+#### 웹 검색 (tavily) - MCP 도구
 ```
-"Gemini CLI로 코드 리뷰를 요청해주세요"
-"현재 호출 컨텍스트 정보를 확인해주세요"
-
-# v3.0 새로운 기능 - 작업별 최적화
-"Python 정렬 방법?" → gemini_quick_answer (Flash + 헤드리스)
-"이 함수 성능 분석해줘" → gemini_code_review (Pro 모델)
-"복잡한 아키텍처 분석" → gemini_analyze (깊이 선택 가능)
+"Next.js 15 최신 기능을 검색해주세요"  # mcp__tavily__search
+"실시간 뉴스를 검색해주세요"  # mcp__tavily__search_news
+"특정 사이트에서 검색해주세요"  # mcp__tavily__search_context
+"페이지 내용을 추출해주세요"  # mcp__tavily__extract
 ```
 
 ## Gemini CLI 브릿지 v3.0 - 성능 및 지능형 개선
@@ -427,22 +592,26 @@ Claude Code에는 7개의 MCP 서버가 설정되어 프로젝트 개발을 강�
 
 ### 💡 사용법
 
-#### MCP를 통한 Gemini CLI 사용
+#### MCP를 통한 Gemini CLI 사용 (실제 함수명)
 ```typescript
 // 컨텍스트 정보 확인
-mcp_gemini_cli_bridge_gemini_context_info()
+mcp__gemini-cli-bridge__gemini_context_info()
 
-// 기본 채팅
-mcp_gemini_cli_bridge_gemini_chat("코드 리뷰 요청")
-
-// Flash 모델 (빠름)
-mcp_gemini_cli_bridge_gemini_chat_flash("간단한 질문")
-
-// Pro 모델 (고품질)
-mcp_gemini_cli_bridge_gemini_chat_pro("복잡한 분석 요청")
+// 기본 채팅 (모델 선택 가능)
+mcp__gemini-cli-bridge__gemini_chat({
+  prompt: "코드 리뷰 요청",
+  model: "gemini-2.5-pro",  // 선택사항: "gemini-2.0-flash" 가능
+  headless: true            // 선택사항: UI 없이 실행
+})
 
 // 사용량 확인
-mcp_gemini_cli_bridge_gemini_stats()
+mcp__gemini-cli-bridge__gemini_stats()
+
+// 컨텍스트 초기화
+mcp__gemini-cli-bridge__gemini_clear()
+
+// 대화 압축
+mcp__gemini-cli-bridge__gemini_compress()
 ```
 
 ### 중요 차이점
