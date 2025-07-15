@@ -42,7 +42,6 @@
       "mcp__memory__create_entities",
       "mcp__memory__search_nodes",
       "mcp__memory__delete_entities",
-      "mcp__brave-search__brave_web_search",
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
       "mcp__supabase__list_projects",
@@ -81,12 +80,10 @@
   "enabledMcpjsonServers": [
     "filesystem",
     "github",
-    "brave-search",
     "memory",
     "supabase",
     "context7",
     "gemini-cli-bridge",
-    "tavily",
-    "redis"
+    "tavily"
   ]
 }

@@ -355,7 +355,7 @@ This project demonstrates advanced Next.js patterns with AI integration, optimiz
 
 ## MCP (Model Context Protocol) 도구 통합
 
-Claude Code에는 6개의 MCP 서버가 설정되어 프로젝트 개발을 강력하게 지원합니다.
+Claude Code에는 7개의 MCP 서버가 설정되어 프로젝트 개발을 강력하게 지원합니다.
 
 ### 🛠️ 설정된 MCP 도구 목록
 
@@ -367,7 +367,6 @@ Claude Code에는 6개의 MCP 서버가 설정되어 프로젝트 개발을 강�
 | **supabase** | 데이터베이스 통합 | Supabase DB 쿼리 및 관리 |
 | **context7** | 문서 검색 | 라이브러리 문서 및 API 참조 |
 | **tavily** | AI 웹 검색 | 실시간 웹 검색, 컨텐츠 추출, 사이트 크롤링 |
-| **redis** | Redis 데이터베이스 | 키-값 저장소 관리, 캐시 데이터 조작 (✅ v5.46.32 안정화) |
 | **gemini-cli-bridge** | Gemini CLI 브릿지 | 양방향 Claude ↔ Gemini 통합 |
 
 ### 🎯 MCP 도구 사용법
@@ -402,12 +401,6 @@ Claude Code에는 6개의 MCP 서버가 설정되어 프로젝트 개발을 강�
 "Supabase Auth 가이드를 검색해주세요"
 ```
 
-#### Redis 데이터베이스 (redis)
-```
-"사용자 세션을 Redis에 저장해주세요"
-"캐시된 서버 상태를 Redis에서 조회해주세요"
-"임시 데이터를 Redis에 1시간 TTL로 저장해주세요"
-```
 
 #### Gemini CLI 브릿지 (gemini-cli-bridge v3.0)
 ```
