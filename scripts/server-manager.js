@@ -81,7 +81,7 @@ class ServerManager {
                     const commandLine = parts[1] || '';
                     const pid = parts[2] || '';
 
-                    if (commandLine.includes('mcp') || commandLine.includes('duckduckgo') || commandLine.includes('brave-search')) {
+                    if (commandLine.includes('mcp') || commandLine.includes('duckduckgo') || commandLine.includes('tavily')) {
                         return {
                             pid,
                             type: this.identifyMCPType(commandLine),
@@ -99,7 +99,7 @@ class ServerManager {
     identifyMCPType(commandLine) {
         if (commandLine.includes('duckduckgo')) return 'DuckDuckGo MCP';
         if (commandLine.includes('postgres')) return 'PostgreSQL MCP';
-        if (commandLine.includes('brave-search')) return 'Brave Search MCP';
+        if (commandLine.includes('tavily')) return 'Tavily MCP';
         if (commandLine.includes('github')) return 'GitHub MCP';
         if (commandLine.includes('memory')) return 'Memory MCP';
         return 'Unknown MCP';

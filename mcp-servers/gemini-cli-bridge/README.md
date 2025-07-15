@@ -1,6 +1,15 @@
-# Gemini CLI Bridge for PowerShell (v4.0.0)
+# Gemini CLI Bridge for MCP (v4.0.0-dev) 🚧
 
-단순화된 PowerShell 전용 Gemini CLI MCP 브릿지입니다.
+⚠️ **개발 및 디버깅 전용 도구입니다.**
+
+프로덕션 환경에서는 [Gemini v5.0 직접 실행 도구](../../tools/g)를 사용하세요.
+
+## 📌 중요 안내
+
+이 도구는 MCP 프로토콜 테스트 및 디버깅을 위한 브릿지입니다.
+- **개발 전용**: MCP 통합 테스트용
+- **성능 오버헤드**: stdio 통신으로 인한 지연
+- **권장 대안**: `./tools/g` 직접 실행 도구 (70% 더 빠름)
 
 ## 🚀 주요 개선사항
 

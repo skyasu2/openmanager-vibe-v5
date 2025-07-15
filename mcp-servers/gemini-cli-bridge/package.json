@@ -1,7 +1,7 @@
 {
-  "name": "gemini-cli-bridge-powershell",
-  "version": "3.0.0",
-  "description": "PowerShell MCP 서버 브릿지 v3 - --prompt 최적화, 자동 모델 선택, 폴백 체인",
+  "name": "gemini-cli-bridge-dev-only",
+  "version": "4.0.0-dev",
+  "description": "개발/디버깅 전용 MCP 브릿지 - 프로덕션 환경에서는 Gemini v5.0 직접 실행 도구 사용 권장",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
@@ -13,9 +13,10 @@
     "gemini",
     "cli",
     "bridge",
-    "powershell",
-    "windows",
-    "claude"
+    "development",
+    "debugging",
+    "dev-only",
+    "test"
   ],
   "author": "",
   "license": "MIT",

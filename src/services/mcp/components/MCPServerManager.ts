@@ -89,12 +89,13 @@ export class MCPServerManager {
         args: ['-y', '@modelcontextprotocol/server-github'],
         enabled: true,
       },
-      {
-        name: 'openmanager-docs',
-        command: 'node',
-        args: ['mcp-servers/gemini-cli-bridge/src/index.js'],
-        enabled: true,
-      },
+      // gemini-cli-bridge는 MCP 지원 중단
+      // {
+      //   name: 'openmanager-docs',
+      //   command: 'node',
+      //   args: ['mcp-servers/gemini-cli-bridge/src/index.js'],
+      //   enabled: true,
+      // },
     ];
 
     servers.forEach(server => {

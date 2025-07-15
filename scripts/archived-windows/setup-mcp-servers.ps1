@@ -82,17 +82,8 @@ $mcpConfig = @{
                 "$PROJECT_DIR\node_modules\@supabase\mcp-server-supabase\dist\index.js"
             )
             env     = @{
-                SUPABASE_URL              = "https://vnswjnltnhpsueosfhmw.supabase.co"
-                SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8"
-            }
-        }
-        "brave-search"      = @{
-            command = "node"
-            args    = @(
-                "$PROJECT_DIR\node_modules\@modelcontextprotocol\server-brave-search\dist\index.js"
-            )
-            env     = @{
-                BRAVE_API_KEY = "`${BRAVE_API_KEY}"
+                SUPABASE_URL              = "`${SUPABASE_URL}"
+                SUPABASE_SERVICE_ROLE_KEY = "`${SUPABASE_SERVICE_ROLE_KEY}"
             }
         }
         context7            = @{
@@ -100,6 +91,15 @@ $mcpConfig = @{
             args    = @(
                 "$PROJECT_DIR\node_modules\@upstash\context7-mcp\dist\index.js"
             )
+        }
+        tavily              = @{
+            command = "node"
+            args    = @(
+                "$PROJECT_DIR\node_modules\tavily-mcp\dist\index.js"
+            )
+            env     = @{
+                TAVILY_API_KEY = "`${TAVILY_API_KEY}"
+            }
         }
         "gemini-cli-bridge" = @{
             command = "node"
@@ -267,6 +267,7 @@ $settingsConfig = @{
             "memory",
             "supabase",
             "context7",
+            "tavily",
             "gemini-cli-bridge"
         )
     }

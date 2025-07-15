@@ -56,16 +56,14 @@ async function securityAudit(code: string) {
   // 1. Claude 초기 분석
   const risks = analyzeSecurityRisks(code);
   
-  // 2. Gemini 검증 (자동)
-  const geminiAudit = await mcp_gemini_cli_bridge_gemini_chat(
-    `보안 관점에서 이 코드 분석: ${code}`
-  );
+  // 2. Gemini 검증 (터미널에서 직접 실행)
+  // MCP 브릿지 대신 개발 도구 사용: ./tools/g "보안 관점에서 이 코드 분석"
+  const geminiAudit = "터미널에서 직접 실행: ./tools/g";
   
   // 3. 차이점 발견 시 추가 질의
   if (risks.xss === false && geminiAudit.includes("XSS")) {
-    const detail = await mcp_gemini_cli_bridge_gemini_chat(
-      "XSS 취약점이 어디에 있는지 구체적으로 설명"
-    );
+    // ./tools/g "XSS 취약점이 어디에 있는지 구체적으로 설명"
+    const detail = "터미널에서 직접 실행";
   }
   
   // 4. 통합 보고서

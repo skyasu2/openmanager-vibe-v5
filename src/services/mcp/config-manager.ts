@@ -53,9 +53,11 @@ export class MCPConfigManager {
   private getDefaultConfig(): MCPConfig {
     this.config = {
       mcpServers: {
+        // gemini-cli-bridge는 MCP 지원 중단
+        // 필요시 다른 MCP 서버로 대체
         'local-filesystem': {
-          command: 'node',
-          args: ['./mcp-servers/gemini-cli-bridge/src/index.js'],
+          command: 'npx',
+          args: ['-y', '@modelcontextprotocol/server-filesystem', process.cwd()],
           cwd: process.cwd(),
           env: {
             PROJECT_ROOT: process.cwd(),

@@ -46,16 +46,14 @@ async function crossValidateWithGemini(code: string) {
   // 1. Claude 분석
   const claudeAnalysis = analyzeCode(code);
   
-  // 2. Gemini 검증
-  const geminiReview = await mcp_gemini_cli_bridge_gemini_chat(
-    `다음 코드 리뷰: ${code}\n잠재적 문제점과 개선사항 제시`
-  );
+  // 2. Gemini 검증 (터미널에서 직접 실행)
+  // MCP 대신 사용: ./tools/g "다음 코드 리뷰: ${code}\n잠재적 문제점과 개선사항 제시"
+  const geminiReview = "터미널에서 직접 실행";
   
   // 3. 의견 차이 분석
   if (hasConflictingOpinions(claudeAnalysis, geminiReview)) {
-    const clarification = await mcp_gemini_cli_bridge_gemini_chat(
-      `이 부분에 대해 더 설명해줘: ${conflicts}`
-    );
+    // ./tools/g "이 부분에 대해 더 설명해줘: ${conflicts}"
+    const clarification = "터미널에서 직접 실행";
   }
   
   // 4. 통합 결과

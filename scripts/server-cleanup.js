@@ -87,11 +87,11 @@ class SimpleServerCleanup {
                     const commandLine = parts[1] || '';
                     const pid = parts[2] || '';
 
-                    if (commandLine.includes('mcp') || commandLine.includes('duckduckgo') || commandLine.includes('brave-search')) {
+                    if (commandLine.includes('mcp') || commandLine.includes('duckduckgo') || commandLine.includes('tavily')) {
                         let type = 'Unknown MCP';
                         if (commandLine.includes('duckduckgo')) type = 'DuckDuckGo MCP';
                         else if (commandLine.includes('postgres')) type = 'PostgreSQL MCP';
-                        else if (commandLine.includes('brave-search')) type = 'Brave Search MCP';
+                        else if (commandLine.includes('tavily')) type = 'Tavily MCP';
                         else if (commandLine.includes('github')) type = 'GitHub MCP';
                         else if (commandLine.includes('memory')) type = 'Memory MCP';
 

@@ -11,7 +11,7 @@ const path = require('path');
 
 // 프로젝트 루트 경로
 const projectRoot = path.join(__dirname, '..');
-const mcpConfigPath = path.join(projectRoot, 'mcp.json');
+const mcpConfigPath = path.join(projectRoot, '.claude', 'mcp.json');
 
 // 색상 헬퍼 (간단한 대체)
 const success = '✓';

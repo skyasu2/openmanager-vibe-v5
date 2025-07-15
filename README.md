@@ -21,7 +21,7 @@ OpenManager Vibe v5는 **Google Cloud → Redis → Vercel** 아키텍처를 통
 - **통합 AI 시스템**: Google AI (Gemini) + Supabase RAG + 로컬 NLP 엔진 통합
 - **실시간 모니터링**: Redis Pipeline으로 초고속 데이터 조회
 - **강력한 인증**: Supabase Auth 기반 GitHub OAuth 지원
-- **MCP 도구 통합**: 7개 MCP 서버로 강력한 개발 지원 (filesystem, github, brave-search, memory, supabase, context7, gemini-cli-bridge)
+- **MCP 도구 통합**: 6개 MCP 서버로 강력한 개발 지원 (filesystem, github, memory, supabase, context7, tavily)
 - **비용 최적화**: Vercel 무료 티어로 월 90% 이상 비용 절감
 - **Node.js v22**: 최신 LTS 버전으로 30% 성능 향상
 
@@ -36,7 +36,7 @@ OpenManager Vibe v5는 **Google Cloud → Redis → Vercel** 아키텍처를 통
 - **🚫 파일 저장 기능 제거**: 베르셀 환경 완전 호환 및 무료티어 최적화
 - **🤖 AI 엔진 모드 시스템**: 로컬 엔진 우선 + 선택적 고급 AI 사용
 - **🔐 Supabase Auth 도입**: NextAuth에서 완전 마이그레이션 완료
-- **🎯 MCP 서버 통합**: 7개 전문화된 MCP 도구로 개발 생산성 극대화
+- **🎯 MCP 서버 통합**: 7개 전문화된 MCP 도구로 개발 생산성 극대화 (stdio 방식, npx 패키지 실행)
 - **🚀 Node.js v22 업그레이드**: 최신 LTS로 성능 30% 향상
 - **🤝 AI 도구 협업**: Claude + Gemini CLI v2.0 양방향 통합 (컨텍스트 감지 시스템)
 
@@ -68,7 +68,7 @@ graph LR
 7. **🤖 AI 엔진**: 로컬 엔진 우선 + 선택적 고급 AI 모드
 8. **🚫 파일 저장 무력화**: 베르셀 환경 완전 호환
 9. **🔐 인증 플로우**: Supabase Auth로 GitHub OAuth 처리
-10. **🎯 MCP 통합**: 7개 도구로 파일시스템, GitHub, 검색, 메모리, DB, 문서, AI 통합
+10. **🎯 MCP 통합**: 7개 도구로 파일시스템, GitHub, 메모리, DB, 문서, 웹검색, AI 통합 (stdio 방식)
 
 ## 🚀 **주요 기능**
 
@@ -99,7 +99,7 @@ graph LR
 - **선택적 고급 AI**: GOOGLE_ONLY 모드 (자연어 질의 전용)
 - **베르셀 환경 최적화**: 파일 저장 기능 완전 제거
 - **메모리 기반 관리**: 설정 저장 없이 런타임 관리
-- **MCP 도구 생태계**: filesystem, github, search, memory, supabase, context7, gemini-cli-bridge
+- **MCP 도구 생태계**: filesystem, github, memory, supabase, context7, tavily (stdio 방식)
 - **Supabase RAG 엔진**: 벡터 검색 기반 지능형 응답
 - **통합 AI 라우터**: 다중 AI 엔진 폴백 전략
 
@@ -149,7 +149,7 @@ graph LR
 - **파일 시스템 보호**: 베르셀 환경 완전 호환
 - **메모리 기반 관리**: 실행 시간 중 설정 관리
 - **Node.js v22 최적화**: 메모리 효율성 및 성능 향상
-- **MCP 도구 캐싱**: 8개 전문 도구의 컨텍스트 지능형 캐싱
+- **MCP 도구 캐싱**: 7개 전문 도구의 컨텍스트 지능형 캐싱 (stdio 방식)
 
 ## 🚀 **빠른 시작**
 
@@ -764,7 +764,7 @@ git diff | gemini -p "변경사항 검토"
 4. **memory**: 프로젝트 컨텍스트 메모리 관리
 5. **supabase**: 데이터베이스 쿼리 및 관리
 6. **context7**: 라이브러리 문서 및 API 참조
-7. **gemini-cli-bridge v2.0**: Claude ↔ Gemini 양방향 통합
+~~7. **gemini-cli-bridge**: MCP 지원 중단~~ → 대신 Gemini v5.0 개발 도구 사용 (`./tools/g`)
 
 ### Claude Monitor 활용
 

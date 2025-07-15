@@ -20,6 +20,12 @@ function startLocalMCPServer() {
         // 서버가 실행되지 않음, 시작
     }
     
+    // gemini-cli-bridge는 MCP 지원 중단
+    console.log('⚠️  gemini-cli-bridge는 MCP 지원이 중단되었습니다.');
+    console.log('📌 대신 ./tools/g 사용을 권장합니다.');
+    process.exit(0);
+    
+    /* 기존 코드 (참고용)
     if (!fs.existsSync('./mcp-servers/gemini-cli-bridge/src/index.js')) {
         console.error('❌ MCP 서버 파일을 찾을 수 없습니다.');
         process.exit(1);
@@ -60,6 +66,7 @@ function startLocalMCPServer() {
     } catch (error) {
         console.error('❌ 로컬 MCP 서버 시작 실패:', error.message);
     }
+    */
 }
 
 // NPM 패키지 기반 MCP 서버들 상태 확인

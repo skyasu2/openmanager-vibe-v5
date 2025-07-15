@@ -520,7 +520,7 @@ Claude Code에는 6개의 공식 MCP 서버가 설정되어 프로젝트 개발�
 | **memory** | 컨텍스트 메모리 | 프로젝트 지식 저장 및 검색 | `mcp__memory__*` | npx |
 | **supabase** | 데이터베이스 통합 | Supabase DB 쿼리 및 관리 | `mcp__supabase__*` | npx |
 | **context7** | 문서 검색 | 라이브러리 문서 및 API 참조 | `mcp__context7__*` | npx |
-| **tavily** | AI 웹 검색 | 실시간 웹 검색, 컨텐츠 추출, 사이트 크롤링 | `mcp__tavily__*` | node wrapper |
+| **tavily** | AI 웹 검색 | 실시간 웹 검색, 컨텐츠 추출, 사이트 크롤링 | `mcp__tavily__*` | npx |
 
 ### 🔍 추가 제공되는 도구
 
@@ -528,6 +528,34 @@ Claude Code에는 6개의 공식 MCP 서버가 설정되어 프로젝트 개발�
 |------|------|-----------|
 | **기본 파일 도구** | Read, Write, Edit, MultiEdit, LS, Glob, Grep | MCP와 병행 사용 가능 |
 | **웹 검색 도구** | WebSearch, WebFetch | Tavily MCP와 병행 사용 가능 |
+
+### ✅ WSL 전용 설정 완료 (2025-07-15)
+
+**Claude Code를 WSL에서만 사용하도록 완전 통합:**
+
+1. **통합 설정 스크립트**: 
+   ```bash
+   ./scripts/setup-claude-code-wsl.sh
+   ```
+   - 환경변수 자동 설정 (`.env.local` → `~/.bashrc`)
+   - Gemini CLI 별칭 설정
+   - npm 의존성 설치
+   - Git 설정 확인
+
+2. **MCP 서버 설정**:
+   - 모든 경로가 WSL 형식 (`/mnt/d/...`)
+   - 6개 MCP 서버 활성화 (gemini-cli-bridge 제외)
+   - 환경변수 자동 매핑
+
+3. **Gemini CLI WSL 별칭**:
+   ```bash
+   gemini      # Windows gemini.exe 실행
+   gp          # gemini -p 단축키
+   gs          # gemini /stats
+   gc          # gemini /clear
+   gcomp       # gemini /compress
+   gemini-pipe # 파이프 입력 지원
+   ```
 
 ### 🎯 MCP 도구 사용법
 
@@ -578,47 +606,50 @@ Claude Code에는 6개의 공식 MCP 서버가 설정되어 프로젝트 개발�
 "페이지 내용을 추출해주세요"  # mcp__tavily__extract
 ```
 
-## Gemini CLI 브릿지 v3.0 - 성능 및 지능형 개선
+## Gemini 개발 도구 v5.0 - 고성능 직접 실행 도구 (권장)
 
-**v3.0 핵심**: 34% 성능 향상, 자동 모델 선택, 작업별 최적화 도구
+**v5.0 핵심**: MCP 오버헤드 제거, 70% 성능 향상, 캐싱 시스템, 배치 처리
 
 ### 🚀 주요 개선사항
 
-- **--prompt 플래그**: echo 파이프 대신 직접 명령으로 성능 향상
-- **지능형 모델 선택**: 프롬프트 분석으로 최적 모델 자동 선택
-- **Pro → Flash 폴백**: 지연이나 실패 시 자동 전환 (95% 성공률)
-- **작업별 도구**: quick_answer, code_review, analyze 특화 도구
+- **MCP 브릿지 제거**: 직접 gemini CLI 실행으로 성능 향상
+- **5분 캐싱 시스템**: 반복 질문 즉시 응답 (읽기 전용)
+- **Rate Limiting**: 1초 간격으로 API 호출 제한
 - **배치 처리**: 여러 프롬프트 순차 실행 지원
+- **Git 통합**: diff 자동 분석 기능
+
+⚠️ **중요**: Gemini Bridge MCP는 개발/디버깅 전용입니다. 일반 사용 시 v5.0 직접 실행 도구를 사용하세요.
 
 ### 💡 사용법
 
-#### MCP를 통한 Gemini CLI 사용 (실제 함수명)
-```typescript
-// 컨텍스트 정보 확인
-mcp__gemini-cli-bridge__gemini_context_info()
+#### npm 스크립트로 사용 (권장)
+```bash
+# 🎯 가장 많이 사용할 명령어
+npm run gemini:chat "TypeScript 에러 해결법"
+npm run gemini:analyze src/app/page.tsx
+npm run gemini:diff "SOLID 원칙 관점에서 리뷰"
+npm run gemini:stats
+npm run gemini:health
 
-// 기본 채팅 (모델 선택 가능)
-mcp__gemini-cli-bridge__gemini_chat({
-  prompt: "코드 리뷰 요청",
-  model: "gemini-2.5-pro",  // 선택사항: "gemini-2.0-flash" 가능
-  headless: true            // 선택사항: UI 없이 실행
-})
+# 📁 직접 실행 (더 빠름)
+./tools/g "질문내용"
+./tools/g file src/app/page.tsx
+./tools/g diff
+./tools/g stats
+./tools/g health
 
-// 사용량 확인
-mcp__gemini-cli-bridge__gemini_stats()
-
-// 컨텍스트 초기화
-mcp__gemini-cli-bridge__gemini_clear()
-
-// 대화 압축
-mcp__gemini-cli-bridge__gemini_compress()
+# 💻 PowerShell 환경
+.\tools\g.ps1 "질문내용"
+.\tools\g.ps1 file src\app\page.tsx
+.\tools\g.ps1 diff "변경사항 리뷰"
 ```
 
 ### 중요 차이점
 
-- **Gemini CLI**: 로그인만 필요 (API 키 불필요), 로컬 개발 전용
-- **Google AI API**: 프로덕션 AI 기능용, `GOOGLE_AI_API_KEY` 필요
-- **MCP 브릿지**: Claude Code에서 Gemini CLI 기능을 직접 사용 가능
+- **기존 MCP 브릿지**: stdio 통신으로 성능 저하
+- **새로운 v5.0**: 직접 gemini CLI 실행으로 빠른 응답
+- **캐싱 시스템**: 반복 질문 즉시 응답 (5분 TTL)
+- **배치 처리**: 여러 파일 동시 분석 가능
 
 ### 빠른 사용법
 
@@ -782,9 +813,11 @@ npm run gemini:stats               # 사용량 확인
 npm run gemini:guide               # 사용법 안내
 ```
 
-#### 🐧 WSL 환경에서 Windows Gemini CLI 사용
+#### 🐧 WSL 환경에서 Gemini CLI 사용 (설정 완료)
+
+**자동 설정됨** (setup-claude-code-wsl.sh 실행 시):
 ```bash
-# ~/.bashrc에 추가된 별칭 사용
+# 별칭이 자동으로 ~/.bashrc에 추가됨
 gemini --version         # 버전 확인
 gp "안녕하세요"         # gemini -p 단축키
 gs                      # gemini /stats 단축키  
@@ -796,7 +829,15 @@ cat file.ts | gemini-pipe -p "코드 리뷰"
 git diff | gemini-pipe -p "변경사항 요약"
 ```
 
-⚠️ **WSL 주의사항**: Claude Code의 Bash 환경에서는 Gemini CLI 호출이 타임아웃될 수 있습니다. 사용자가 직접 터미널에서 실행하세요.
+**개발 도구 사용 (권장)**:
+```bash
+# Gemini v5.0 직접 실행 도구 사용
+./tools/g "질문"
+npm run gemini:chat "질문"
+
+# MCP 브릿지는 더 이상 제공하지 않습니다
+# 개발/디버깅은 tools 폴더의 gemini-dev-tools.js 사용
+```
 
 #### 📈 사용량 관리
 ```bash

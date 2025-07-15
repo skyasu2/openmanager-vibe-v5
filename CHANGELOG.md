@@ -13,7 +13,7 @@
 #### 문서 정확성 향상
 - **MCP 도구 목록 수정**: 실제 사용 가능한 6개 도구로 정확히 업데이트
   - 공식 MCP 도구: Filesystem, GitHub, Memory, Supabase, Context7, Tavily
-  - Gemini CLI Bridge는 사용자 요청에 따라 제외
+  - Gemini CLI Bridge는 MCP 지원 중단, 대신 Gemini v5.0 개발 도구 사용 (`./tools/g`)
 - **정확한 함수명 제공**: `mcp__` 프리픽스가 포함된 실제 함수명 문서화
 - **상세한 사용 예시**: 각 MCP 도구별 구체적인 코드 예시 추가
 
@@ -151,7 +151,7 @@ mcp__redis__delete("key")
 
 ### 아카이브된 문서
 - claude-code-mcp-setup.md → archive/
-- gemini-cli-bridge-v2-guide.md → archive/
+- gemini-cli-bridge-v2-guide.md → archive/ (MCP 지원 중단)
 - mcp-server-architecture.md → archive/
 - secure-token-guide.md → archive/
 - 기타 중복 문서들 archive 폴더로 이동
@@ -220,7 +220,7 @@ npm run tavily:test
 ```
 mcp-servers/
 ├── filesystem/       # 파일시스템 서버 (HTTP 헬스체크 지원)
-├── gemini-cli-bridge/  # Gemini CLI 브릿지 v3.0
+├── gemini-cli-bridge/  # (개발 전용, MCP 지원 중단)
 └── README.md        # 통합 문서
 ```
 
@@ -236,7 +236,7 @@ mcp-servers/
 
 ## [5.46.23] - 2025-07-13
 
-### 🚀 Gemini CLI Bridge v3.0 - 성능 및 지능형 개선
+### 🚀 Gemini CLI Bridge v3.0 - (MCP 지원 중단, 개발 도구로 대체)
 
 #### 핵심 개선사항
 - **--prompt 플래그 활용**: echo 파이프 대신 직접 명령으로 34% 성능 향상
@@ -248,7 +248,7 @@ mcp-servers/
 - `model-strategies.js`: 모델별 최적화 전략 정의
 - `adaptive-gemini-bridge-v3.js`: 개선된 브릿지 구현
 - `tools-v3.js`: 작업별 특화 도구 세트
-- `docs/gemini-cli-bridge-v3-improvements.md`: 상세 개선 문서
+- `docs/gemini-cli-bridge-v3-improvements.md`: 상세 개선 문서 (아카이브)
 
 #### 기술적 변경
 - **명령 구성 개선**:
@@ -305,8 +305,8 @@ mcp-servers/
   - `scripts/claude-gemini-collab.md` - 협업 워크플로우 가이드
 
 #### 기술적 수정
-- **MCP 응답 형식 수정**: `mcp-servers/gemini-cli-bridge/src/tools.js`
-  - 문자열 변환 로직 추가로 Zod 에러 해결
+- **MCP 응답 형식 수정**: `mcp-servers/gemini-cli-bridge/src/tools.js` (현재 미사용)
+  - 문자열 변환 로직 추가로 Zod 에러 해결 (참고용)
   - `tools-fix.js` 헬퍼 함수 제공
 
 #### 새로운 npm 스크립트

@@ -57,9 +57,15 @@ class DevWorkflow {
     }
 
     async startMCPServer() {
-        console.log('🤖 MCP 서버 시작...');
+        console.log('🤖 MCP 서버 시작... (gemini-cli-bridge 제외됨)');
+        console.log('ℹ️  Gemini 기능은 ./tools/g 사용 권장');
 
         return new Promise((resolve) => {
+            // gemini-cli-bridge는 MCP 지원 중단됨
+            // 다른 MCP 서버만 시작하거나 스킵
+            resolve();
+            
+            /* 기존 코드 (참고용)
             this.mcpServer = spawn('node', ['mcp-servers/gemini-cli-bridge/src/index.js'], {
                 stdio: 'pipe',
                 shell: true,
@@ -75,6 +81,7 @@ class DevWorkflow {
             });
 
             setTimeout(resolve, 5000); // 5초 후 resolve
+            */
         });
     }
 

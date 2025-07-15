@@ -173,12 +173,8 @@ async function updateMCPSettings(): Promise<void> {
     console.log('✅ GitHub 토큰 업데이트됨');
   }
   
-  // Brave API 키 업데이트
-  if (tokens.BRAVE_API_KEY && settings.mcpServers?.['brave-search']) {
-    settings.mcpServers['brave-search'].env = settings.mcpServers['brave-search'].env || {};
-    settings.mcpServers['brave-search'].env.BRAVE_API_KEY = tokens.BRAVE_API_KEY;
-    console.log('✅ Brave API 키 업데이트됨');
-  }
+  // Brave Search MCP는 더 이상 사용하지 않음 (Tavily로 대체됨)
+  // 레거시 코드 제거
   
   // 백업 생성
   const backupPath = `${MCP_SETTINGS_PATH}.backup-${Date.now()}`;

@@ -94,11 +94,11 @@ function createMCPConfig() {
                 "command": "npx",
                 "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
             },
-            "openmanager-local": {
-                "command": "node",
-                "args": ["./mcp-servers/gemini-cli-bridge/src/index.js"],
-                "cwd": "/d:/cursor/openmanager-vibe-v5"
-            }
+            // "openmanager-local": { // gemini-cli-bridge MCP 지원 중단
+            //     "command": "node",
+            //     "args": ["./mcp-servers/gemini-cli-bridge/src/index.js"],
+            //     "cwd": "/d:/cursor/openmanager-vibe-v5"
+            // }
         }
     };
 

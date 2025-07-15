@@ -1,0 +1,93 @@
+#!/usr/bin/env node
+
+/**
+ * 🚀 g - Gemini 개발 도구 빠른 실행기
+ * 
+ * 사용법:
+ *   ./tools/g "질문내용"                     # 빠른 채팅
+ *   ./tools/g file src/app/page.tsx          # 파일 분석
+ *   ./tools/g diff                           # Git diff 리뷰
+ *   ./tools/g stats                          # 사용량 확인
+ *   ./tools/g health                         # 헬스체크
+ */
+
+import GeminiDevTools from './gemini-dev-tools.js';
+
+const tool = new GeminiDevTools();
+const args = process.argv.slice(2);
+
+if (args.length === 0) {
+  console.log(`
+🚀 g - Gemini 개발 도구 빠른 실행기
+
+사용법:
+  ./tools/g "질문내용"              빠른 채팅
+  ./tools/g file <파일경로>         파일 분석
+  ./tools/g diff                    Git diff 리뷰
+  ./tools/g stats                   사용량 확인
+  ./tools/g health                  헬스체크
+  ./tools/g clear                   컨텍스트 초기화
+  ./tools/g compress                대화 압축
+
+예시:
+  ./tools/g "TypeScript 에러 해결법"
+  ./tools/g file src/app/page.tsx
+  ./tools/g diff "SOLID 원칙 관점에서"
+  `);
+  process.exit(0);
+}
+
+const command = args[0];
+
+async function run() {
+  try {
+    switch (command) {
+      case 'file':
+        if (args.length < 2) {
+          console.error('❌ 파일 경로를 입력해주세요');
+          process.exit(1);
+        }
+        const filePath = args[1];
+        const question = args.slice(2).join(' ') || "이 파일을 분석해주세요";
+        const result = await tool.analyzeFile(filePath, question);
+        console.log(result);
+        break;
+        
+      case 'diff':
+        const diffMessage = args.slice(1).join(' ') || "변경사항을 리뷰해주세요";
+        const diffResult = await tool.analyzeGitDiff(diffMessage);
+        console.log(diffResult);
+        break;
+        
+      case 'stats':
+        const stats = await tool.getStats();
+        console.log(stats);
+        break;
+        
+      case 'health':
+        const health = await tool.healthCheck();
+        console.log(JSON.stringify(health, null, 2));
+        break;
+        
+      case 'clear':
+        const clearResult = await tool.clearContext();
+        console.log(clearResult);
+        break;
+        
+      case 'compress':
+        const compressResult = await tool.compressContext();
+        console.log(compressResult);
+        break;
+        
+      default:
+        // 기본적으로 채팅으로 처리
+        const chatResult = await tool.quickChat(args.join(' '));
+        console.log(chatResult);
+    }
+  } catch (error) {
+    console.error('❌ 오류:', error.message);
+    process.exit(1);
+  }
+}
+
+run();

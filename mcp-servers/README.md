@@ -13,14 +13,14 @@
 - **사용처**: GCP 배포 시 파일시스템 접근이 필요한 경우
 - **참고**: Claude Code는 공식 `@modelcontextprotocol/server-filesystem` 패키지 사용
 
-### 2. **gemini-cli-bridge** (v3.0)
-- **목적**: Claude ↔ Gemini CLI 양방향 통합
-- **특징**:
+### 2. ~~**gemini-cli-bridge**~~ (v3.0 - MCP 지원 중단)
+- **상태**: ⚠️ MCP 지원 중단, 개발 전용 아카이브
+- **대체**: Gemini v5.0 개발 도구 사용 권장 (`./tools/g`)
+- **이전 특징** (참고용):
   - PowerShell 최적화
   - 자동 모델 선택 (Pro/Flash)
   - 작업별 최적화 도구
   - 사용량 추적
-- **사용처**: Claude Code에서 Gemini CLI 기능 활용
 
 ## 🔧 구조
 
@@ -31,7 +31,7 @@ mcp-servers/
 │   ├── health-check.js # 헬스체크 스크립트
 │   └── package.json    # 의존성
 │
-└── gemini-cli-bridge/   # Gemini CLI 브릿지
+└── gemini-cli-bridge/   # (아카이브 - MCP 지원 중단)
     ├── src/            # 소스 코드
     │   ├── index.js    # 진입점
     │   ├── adaptive-gemini-bridge-v3.js
@@ -50,10 +50,10 @@ mcp-servers/
       "command": "node",
       "args": ["node_modules/@modelcontextprotocol/server-filesystem/dist/index.js"]
     },
-    "gemini-cli": {
-      "command": "node",
-      "args": ["mcp-servers/gemini-cli-bridge/src/index.js"]
-    }
+    // "gemini-cli": { // MCP 지원 중단
+    //   "command": "node",
+    //   "args": ["mcp-servers/gemini-cli-bridge/src/index.js"]
+    // }
   }
 }
 ```
@@ -75,5 +75,6 @@ npm start
 ## 📚 참고 문서
 
 - [MCP 완전 가이드](../docs/mcp-complete-guide.md)
-- [Gemini CLI 브릿지 v3.0](../docs/gemini-cli-bridge-v3-improvements.md)
+- ~~[Gemini CLI 브릿지 v3.0](../docs/gemini-cli-bridge-v3-improvements.md)~~ (MCP 지원 중단)
+- [Gemini 개발 도구 v5.0](../docs/gemini-dev-tools-v5-guide.md) (권장)
 - [Claude Code MCP 설정](../docs/claude-code-mcp-setup.md)

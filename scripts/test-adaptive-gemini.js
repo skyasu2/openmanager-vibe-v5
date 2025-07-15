@@ -1,6 +1,14 @@
 #!/usr/bin/env node
 
 /**
+ * ⚠️ 이 테스트는 더 이상 유효하지 않습니다.
+ * Gemini CLI Bridge MCP가 지원 중단되었습니다.
+ * 
+ * 대신 다음을 사용하세요:
+ * - 개발 도구: ./tools/g "질문"
+ * - npm 스크립트: npm run gemini:chat "질문"
+ * 
+ * [아카이브 - 참고용으로만 유지]
  * 적응적 Gemini CLI Bridge 테스트 스크립트
  * 양방향 호출 문제 해결 검증
  */
@@ -8,7 +16,8 @@
 import { AdaptiveGeminiBridge } from '../mcp-servers/gemini-cli-bridge/src/adaptive-gemini-bridge.js';
 
 async function testAdaptiveGeminiBridge() {
-  console.log('🧪 적응적 Gemini CLI Bridge 테스트 시작\n');
+  console.log('⚠️ 이 테스트는 더 이상 유효하지 않습니다.');
+  console.log('🧪 적응적 Gemini CLI Bridge 테스트 시작 (아카이브)\n');
 
   try {
     // 1. 초기화 및 컨텍스트 감지 테스트

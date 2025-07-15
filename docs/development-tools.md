@@ -711,8 +711,8 @@ OpenManager Vibe v5에 통합된 전문화된 MCP 서버들:
 - 실시간 기술 문서 검색
 - Upstash 기반 컨텍스트 관리
 
-#### 7. **Gemini CLI Bridge v2.0** - AI 통합
-- 양방향 Claude ↔ Gemini 통합
-- 스마트 컨텍스트 감지 시스템
-- 적응적 실행 전략 (WSL/PowerShell 자동 최적화)
+#### 7. ~~**Gemini CLI Bridge v2.0**~~ - MCP 지원 중단
+- 대신 Gemini v5.0 개발 도구 사용: `./tools/g`
+- 더 빠른 성능과 캐싱 시스템
+- 직접 실행 방식으로 70% 성능 향상
 ```

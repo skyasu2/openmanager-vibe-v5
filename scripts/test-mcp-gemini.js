@@ -1,5 +1,13 @@
 #!/usr/bin/env node
 /**
+ * ⚠️ 이 테스트는 더 이상 유효하지 않습니다.
+ * Gemini CLI Bridge MCP가 지원 중단되었습니다.
+ * 
+ * 대신 다음을 사용하세요:
+ * - 개발 도구: ./tools/g "질문"
+ * - npm 스크립트: npm run gemini:chat "질문"
+ * 
+ * [아카이브 - 참고용으로만 유지]
  * MCP Gemini 통합 테스트 스크립트
  * Claude Code 재시작 후 실행하세요
  */

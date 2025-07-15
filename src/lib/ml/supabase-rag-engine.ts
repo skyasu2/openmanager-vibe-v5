@@ -386,7 +386,8 @@ export class SupabaseRAGEngine {
 
     // MCP 관련 키워드
     if (lowerQuery.includes('mcp') || lowerQuery.includes('파일시스템')) {
-      paths.push('./mcp-servers/gemini-cli-bridge/src/index.js', './mcp-servers/gemini-cli-bridge/package.json');
+      // gemini-cli-bridge는 MCP 지원 중단, 대신 개발 도구 사용
+      paths.push('./tools/gemini-dev-tools.js', './docs/mcp-complete-guide.md');
     }
 
     // AI 관련 키워드

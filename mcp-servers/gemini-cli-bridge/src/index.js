@@ -1,4 +1,14 @@
 #!/usr/bin/env node
+/**
+ * Gemini CLI Bridge MCP Server
+ * 
+ * ⚠️ 개발 및 디버깅 전용 도구입니다.
+ * 프로덕션 환경에서는 Gemini v5.0 직접 실행 도구를 사용하세요.
+ * 
+ * 이 도구는 MCP 테스트 및 디버깅을 위한 브릿지 역할만 합니다.
+ * 일반적인 사용에는 성능 오버헤드가 있으므로 권장하지 않습니다.
+ */
+
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
@@ -10,8 +20,8 @@ import { SimplePowerShellBridge } from './simple-powershell-bridge.js';
 // 서버 인스턴스 생성
 const server = new Server(
   {
-    name: 'gemini-cli-bridge-powershell-simple',
-    version: '4.0.0'  // 단순화된 버전
+    name: 'gemini-cli-bridge-dev-only',  // 개발 전용 명시
+    version: '4.0.0-dev'  // 개발 버전 명시
   },
   {
     capabilities: {
