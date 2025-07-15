@@ -313,7 +313,8 @@ npm run ai-engine:test
 ## 📚 **문서**
 
 - [📖 AI 완전 가이드](./docs/ai-complete-guide.md)
-- [🎯 MCP 완전 가이드](./docs/mcp-complete-guide.md)
+- [🚀 Claude Code MCP 설정 2025 (최신)](./docs/claude-code-mcp-setup-2025.md)
+- [🎯 MCP 완전 가이드 (구 버전)](./docs/mcp-complete-guide.md)
 - [🔐 인증 설정 가이드](./docs/auth-setup-guide.md)
 
 - [🤖 Gemini 사용 가이드](./docs/gemini-usage-guide.md)

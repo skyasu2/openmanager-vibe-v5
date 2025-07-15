@@ -1,0 +1,67 @@
+name: Security Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check-secrets:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Check for hardcoded secrets
+      run: |
+        echo "🔍 하드코딩된 시크릿 검사 중..."
+        
+        # 검사할 패턴들
+        patterns=(
+          "AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA"
+          "charming-condor-46598.upstash.io"
+          "redis://default:"
+          "postgresql://postgres:"
+          "ghp_"
+          "ghs_"
+          "sk-"
+          "pk_"
+          "api_key"
+          "secret_key"
+        )
+        
+        found=0
+        for pattern in "${patterns[@]}"; do
+          echo "검사 중: $pattern"
+          if grep -r "$pattern" . \
+            --exclude-dir=node_modules \
+            --exclude-dir=.git \
+            --exclude-dir=.next \
+            --exclude-dir=coverage \
+            --exclude-dir=dist \
+            --exclude="*.lock" \
+            --exclude="*.log" \
+            --exclude=".env.example" \
+            --exclude="security-check.yml" \
+            2>/dev/null; then
+            echo "⚠️ 경고: '$pattern' 패턴이 발견되었습니다!"
+            found=1
+          fi
+        done
+        
+        if [ $found -eq 1 ]; then
+          echo "❌ 하드코딩된 시크릿이 발견되었습니다!"
+          echo "📝 환경변수를 사용하도록 코드를 수정하세요."
+          exit 1
+        else
+          echo "✅ 하드코딩된 시크릿이 발견되지 않았습니다."
+        fi
+    
+    - name: Run TruffleHog
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: ${{ github.event.repository.default_branch }}
+        head: HEAD
+        extra_args: --debug --only-verified

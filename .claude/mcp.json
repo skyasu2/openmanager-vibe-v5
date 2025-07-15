@@ -3,7 +3,7 @@
     "filesystem": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/mnt/d/cursor/openmanager-vibe-v5"],
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
       "env": {}
     },
     "github": {
@@ -11,7 +11,7 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"],
       "env": {
-        "GITHUB_TOKEN": "ghp_7En1INzQKlDXjt7OQUlK8q9uo9xBGV15yJXA"
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
       }
     },
     "memory": {
@@ -25,8 +25,8 @@
       "command": "npx",
       "args": ["-y", "@supabase/mcp-server-supabase"],
       "env": {
-        "SUPABASE_URL": "https://vnswjnltnhpsueosfhmw.supabase.co",
-        "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8"
+        "SUPABASE_URL": "${SUPABASE_URL}",
+        "SUPABASE_SERVICE_ROLE_KEY": "${SUPABASE_SERVICE_ROLE_KEY}"
       }
     },
     "context7": {
@@ -40,8 +40,9 @@
       "command": "npx",
       "args": ["-y", "tavily-mcp@0.2.8"],
       "env": {
-        "TAVILY_API_KEY": "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"
+        "TAVILY_API_KEY": "${TAVILY_API_KEY}"
       }
+
     }
   }
 }

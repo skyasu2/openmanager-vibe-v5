@@ -122,6 +122,12 @@ cursor-mcp-config.json
 corrected-cursor-mcp.json
 *-mcp-config.json
 
+# 🔐 Supabase MCP 보안 파일들 (Personal Access Token 포함)
+.claude/supabase-mcp-config*.json
+.claude/*.pat
+.claude/*.token
+.claude/*-secure.md
+
 # AI Engine Context and Logs (not development artifacts)
 logs/ai-context/
 logs/ai-analysis/

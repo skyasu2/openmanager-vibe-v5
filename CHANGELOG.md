@@ -1,5 +1,71 @@
 # Changelog
 
+## [5.46.38] - 2025-07-15
+
+### 🚀 Upstash MCP 통합
+
+#### 새로운 MCP 서버 추가
+- **Upstash MCP 공식 지원**: `@upstash/mcp-server` 통합
+  - Upstash Redis 데이터베이스 자연어 관리
+  - 백업/복원, 사용량 모니터링, Redis 명령 실행
+  - Management API 토큰 기반 인증
+
+#### 설정 도구 및 문서
+- **설정 자동화 스크립트**:
+  - `.claude/setup-upstash-mcp.sh`: Linux/Mac 자동 설정
+  - `.claude/setup-upstash-mcp.ps1`: Windows PowerShell 자동 설정
+  - 환경변수 및 설정 파일 자동 생성
+- **테스트 스크립트**: `scripts/test-upstash-mcp.js`
+  - MCP 서버 연결 테스트
+  - 인증 검증 및 기능 확인
+- **상세 가이드**: `.claude/setup-upstash-mcp.md`
+  - Upstash Management API 키 생성 방법
+  - 단계별 설정 가이드
+  - 문제 해결 방법
+
+#### MCP 도구 타입 분석
+- **일반 Redis MCP vs Upstash MCP**:
+  - 일반 Redis MCP: TCP 소켓 기반, 연결 유지 필요
+  - Upstash MCP: HTTP/REST API 기반, 서버리스 최적화
+  - Upstash는 전용 MCP를 사용해야 함 (호환 불가)
+
+#### npm 스크립트 추가
+- `npm run test:upstash-mcp`: Upstash MCP 테스트
+- `npm run setup:upstash-mcp`: Linux/Mac 설정
+- `npm run setup:upstash-mcp:windows`: Windows 설정
+
+#### 문서 업데이트
+- **MCP-GUIDE.md**: Upstash MCP 추가 (7개 MCP 서버)
+- **사용 예시**: Upstash 특화 기능 코드 예시
+- **환경변수 설명**: Management API vs Redis REST Token 차이
+
+## [5.46.37] - 2025-07-15
+
+### 🔧 MCP 설정 방법 통합 및 최신화
+
+#### MCP 설정 정리
+- **구 방식 제거**: JSON 파일 직접 편집 방식 완전 제거
+  - `.claude/mcp.json`, `.claude/mcp-*.json` 파일 삭제
+  - 관련 임시 스크립트 제거 (`fix-mcp.sh` 등)
+- **Claude Code CLI 방식 통합**: `claude mcp add` 명령 사용
+  - 설정이 `~/.claude.json`에 자동 저장
+  - 프로젝트별 설정 관리
+
+#### 문서 개선
+- **새로운 통합 가이드**: `docs/MCP-GUIDE.md` 작성
+  - 현재 방식(CLI) 상세 설명
+  - 6개 MCP 서버 설정 명령어
+  - 문제 해결 가이드
+- **CLAUDE.md 간소화**: MCP 섹션을 간략하게 정리
+- **구 문서 업데이트**: `docs/mcp-complete-guide.md`를 리다이렉트 문서로 변경
+
+#### 코드 업데이트
+- **test-mcp-servers.mjs**: Claude Code CLI 방식에 맞게 재작성
+  - `claude mcp list` 명령으로 서버 목록 가져오기
+  - 환경변수 자동 로드 기능 추가
+- **소스 코드 주석**: deprecated 주석 추가
+  - `src/services/mcp/config-manager.ts`: 구 방식 관련 메서드에 주석 추가
+
 ## [5.46.36] - 2025-07-15
 
 ### 🔧 MCP 도구 복구 및 문서 개선

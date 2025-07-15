@@ -709,7 +709,7 @@ OpenManager Vibe v5에 통합된 전문화된 MCP 서버들:
 #### 6. **Context7 MCP** - 문서 검색
 - 라이브러리 문서 및 API 참조
 - 실시간 기술 문서 검색
-- Upstash 기반 컨텍스트 관리
+- MCP 기반 컨텍스트 관리
 
 #### 7. ~~**Gemini CLI Bridge v2.0**~~ - MCP 지원 중단
 - 대신 Gemini v5.0 개발 도구 사용: `./tools/g`

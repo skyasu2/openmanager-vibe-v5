@@ -439,7 +439,6 @@ Key environment variables for development:
 
 - `GOOGLE_AI_API_KEY` - Google AI Studio API key
 - `SUPABASE_*` - Supabase database credentials
-- `UPSTASH_REDIS_*` - Redis caching credentials
 - `GOOGLE_OAUTH_*` - Google OAuth configuration
 
 ### Memory Management
@@ -509,102 +508,67 @@ This project demonstrates advanced Next.js patterns with AI integration, optimiz
 
 ## MCP (Model Context Protocol) 도구 통합
 
-Claude Code에는 6개의 공식 MCP 서버가 설정되어 프로젝트 개발을 강력하게 지원합니다.
+Claude Code에는 6개의 공식 MCP 서버가 설정되어 있습니다. MCP 도구들은 `mcp__서버명__함수명` 형식으로 사용 가능합니다.
 
-### 🛠️ 설정된 MCP 도구 목록
+### 🛠️ MCP 서버 목록
+- **filesystem** - 파일 시스템 접근
+- **github** - GitHub API 통합
+- **memory** - 컨텍스트 메모리
+- **supabase** - 데이터베이스 통합
+- **context7** - 문서 검색
+- **tavily** - AI 웹 검색
 
-| 도구 | 설명 | 주요 기능 | 함수명 프리픽스 | 실행 방식 |
-|------|------|-----------|----------------|----------|
-| **filesystem** | 파일시스템 접근 | 프로젝트 파일 읽기/쓰기/검색 | `mcp__filesystem__*` | npx |
-| **github** | GitHub API 통합 | 이슈/PR 관리, 저장소 작업 | `mcp__github__*` | npx |
-| **memory** | 컨텍스트 메모리 | 프로젝트 지식 저장 및 검색 | `mcp__memory__*` | npx |
-| **supabase** | 데이터베이스 통합 | Supabase DB 쿼리 및 관리 | `mcp__supabase__*` | npx |
-| **context7** | 문서 검색 | 라이브러리 문서 및 API 참조 | `mcp__context7__*` | npx |
-| **tavily** | AI 웹 검색 | 실시간 웹 검색, 컨텐츠 추출, 사이트 크롤링 | `mcp__tavily__*` | npx |
+### 🚀 MCP 설정 및 사용법
 
-### 🔍 추가 제공되는 도구
+**최신 Claude Code MCP 설정 가이드**: `docs/claude-code-mcp-setup-2025.md`
 
-| 도구 | 설명 | 사용 방법 |
-|------|------|-----------|
-| **기본 파일 도구** | Read, Write, Edit, MultiEdit, LS, Glob, Grep | MCP와 병행 사용 가능 |
-| **웹 검색 도구** | WebSearch, WebFetch | Tavily MCP와 병행 사용 가능 |
+#### 기본 MCP 서버 추가
+```bash
+# 로컬 MCP 서버 추가
+claude mcp add <서버이름> <명령> [인수...]
 
-### ✅ WSL 전용 설정 완료 (2025-07-15)
+# 환경변수와 함께
+claude mcp add my-server -e API_KEY=123 -- /path/to/server
 
-**Claude Code를 WSL에서만 사용하도록 완전 통합:**
+# Remote MCP 서버 (신기능)
+claude mcp add --transport sse remote-server https://vendor.com/mcp-endpoint
 
-1. **통합 설정 스크립트**: 
-   ```bash
-   ./scripts/setup-claude-code-wsl.sh
-   ```
-   - 환경변수 자동 설정 (`.env.local` → `~/.bashrc`)
-   - Gemini CLI 별칭 설정
-   - npm 의존성 설치
-   - Git 설정 확인
-
-2. **MCP 서버 설정**:
-   - 모든 경로가 WSL 형식 (`/mnt/d/...`)
-   - 6개 MCP 서버 활성화 (gemini-cli-bridge 제외)
-   - 환경변수 자동 매핑
-
-3. **Gemini CLI WSL 별칭**:
-   ```bash
-   gemini      # Windows gemini.exe 실행
-   gp          # gemini -p 단축키
-   gs          # gemini /stats
-   gc          # gemini /clear
-   gcomp       # gemini /compress
-   gemini-pipe # 파이프 입력 지원
-   ```
-
-### 🎯 MCP 도구 사용법
-
-#### 파일 작업 (filesystem) - MCP 도구
-```
-"src/app/page.tsx 파일의 인증 로직을 분석해주세요"  # mcp__filesystem__read_file
-"components 폴더에 새로운 Button 컴포넌트를 만들어주세요"  # mcp__filesystem__write_file
-"프로젝트 구조를 보여주세요"  # mcp__filesystem__list_directory
-"파일을 검색해주세요"  # mcp__filesystem__search_files
+# 스코프 설정 (local/project/user)
+claude mcp add my-server -s project /path/to/server
 ```
 
-#### GitHub 연동 (github) - MCP 도구
-```
-"현재 프로젝트의 열린 이슈 목록을 가져와주세요"  # mcp__github__list_issues
-"새로운 feature 브랜치를 만들고 PR을 생성해주세요"  # mcp__github__create_branch, mcp__github__create_pull_request
-"최근 커밋 목록을 보여주세요"  # mcp__github__list_commits
+#### 주요 MCP 서버 설치 예시
+```bash
+# Filesystem
+claude mcp add filesystem npx -y @modelcontextprotocol/server-filesystem .
+
+# GitHub (토큰 필요)
+claude mcp add github -e GITHUB_TOKEN="YOUR_TOKEN" npx -y @modelcontextprotocol/server-github
+
+# Supabase (토큰 필요)
+claude mcp add supabase npx -y @supabase/mcp-server-supabase --project-ref=YOUR_REF -e SUPABASE_ACCESS_TOKEN=YOUR_TOKEN
+
+# Memory
+claude mcp add memory npx -y @modelcontextprotocol/server-memory
+
+# Context7
+claude mcp add context7 npx -y @context7/mcp-server
+
+# Tavily (키 필요)
+claude mcp add tavily -e TAVILY_API_KEY=YOUR_KEY npx -y @tavily/mcp-server
 ```
 
-#### 프로젝트 메모리 (memory) - MCP 도구
-```
-"이 프로젝트는 AI 기반 서버 모니터링 플랫폼입니다"  # mcp__memory__create_entities
-"Vercel 무료 티어 최적화가 핵심 목표입니다"  # mcp__memory__add_observations
-"프로젝트 관련 정보를 검색해주세요"  # mcp__memory__search_nodes
-"저장된 지식 그래프를 보여주세요"  # mcp__memory__read_graph
+#### OAuth 인증 (신기능)
+```bash
+# 대화형 메뉴로 OAuth 관리
+/mcp
+
+# Remote MCP 서버 OAuth 인증
+claude mcp add linear-server https://api.linear.app/mcp
+# → /mcp 명령으로 OAuth 인증 진행
 ```
 
-#### 데이터베이스 (supabase) - MCP 도구
-```
-"users 테이블의 구조를 확인해주세요"  # mcp__supabase__select
-"최근 7일간의 서버 메트릭을 조회해주세요"  # mcp__supabase__query
-"데이터를 삽입해주세요"  # mcp__supabase__insert
-"데이터를 업데이트해주세요"  # mcp__supabase__update
-```
-
-#### 문서 검색 (context7) - MCP 도구
-```
-"Next.js Image 컴포넌트 사용법을 찾아주세요"  # mcp__context7__resolve-library-id → mcp__context7__get-library-docs
-"Supabase Auth 가이드를 검색해주세요"  # mcp__context7__resolve-library-id('supabase') → mcp__context7__get-library-docs
-# 주의: 먼저 resolve-library-id로 라이브러리 ID를 찾은 후 get-library-docs 사용
-```
-
-
-#### 웹 검색 (tavily) - MCP 도구
-```
-"Next.js 15 최신 기능을 검색해주세요"  # mcp__tavily__search
-"실시간 뉴스를 검색해주세요"  # mcp__tavily__search_news
-"특정 사이트에서 검색해주세요"  # mcp__tavily__search_context
-"페이지 내용을 추출해주세요"  # mcp__tavily__extract
-```
+상세한 설정 및 사용법은 `docs/claude-code-mcp-setup-2025.md`를 참조하세요.
 
 ## Gemini 개발 도구 v5.0 - 고성능 직접 실행 도구 (권장)
 
@@ -720,10 +684,11 @@ npx ccusage@latest blocks --active
 
 ### 📚 관련 문서
 
-- **MCP 완전 가이드**: `docs/mcp-complete-guide.md`
+- **🚀 Claude Code MCP 설정 2025 (최신)**: `docs/claude-code-mcp-setup-2025.md`
+- **MCP 통합 가이드 (기존 참조용)**: `docs/MCP-GUIDE.md`
+- **MCP 완전 가이드 (구 버전)**: `docs/mcp-complete-guide.md`
 - **Gemini CLI 브릿지 v3.0 개선사항**: `docs/gemini-cli-bridge-v3-improvements.md`
 - **Gemini CLI 브릿지 v2.0**: `docs/gemini-cli-bridge-v2-guide.md`
-- **Claude Code MCP 설정**: `docs/claude-code-mcp-setup.md`
 - **개발 도구 통합**: `docs/development-tools.md`
 
 ## AI 도구 협업 전략

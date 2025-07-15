@@ -74,7 +74,8 @@ npm start
 
 ## 📚 참고 문서
 
-- [MCP 완전 가이드](../docs/mcp-complete-guide.md)
+- [🚀 Claude Code MCP 설정 2025 (최신)](../docs/claude-code-mcp-setup-2025.md)
+- [MCP 통합 가이드 (기존 참조용)](../docs/MCP-GUIDE.md)
+- [MCP 완전 가이드 (구 버전)](../docs/mcp-complete-guide.md)
 - ~~[Gemini CLI 브릿지 v3.0](../docs/gemini-cli-bridge-v3-improvements.md)~~ (MCP 지원 중단)
 - [Gemini 개발 도구 v5.0](../docs/gemini-dev-tools-v5-guide.md) (권장)
-- [Claude Code MCP 설정](../docs/claude-code-mcp-setup.md)

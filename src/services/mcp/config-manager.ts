@@ -16,7 +16,11 @@ export class MCPConfigManager {
   }
 
   /**
-   * 환경에 따라 적절한 MCP 설정 파일을 로드합니다.
+   * 환경에 따라 적절한 MCP 설정을 로드합니다.
+   * 
+   * @deprecated 이 메서드는 구 방식(JSON 파일)을 사용합니다.
+   * 실제 MCP 설정은 Claude Code CLI (`claude mcp add`)를 통해 관리되며
+   * ~/.claude.json에 저장됩니다. 자세한 내용은 docs/MCP-GUIDE.md 참조
    */
   async loadConfig(): Promise<MCPConfig> {
     if (this.config) {
@@ -91,6 +95,10 @@ export class MCPConfigManager {
 
   /**
    * 환경에 따른 설정 파일 경로를 반환합니다.
+   * 
+   * @deprecated JSON 파일 방식은 더 이상 사용되지 않습니다.
+   * MCP 설정은 Claude Code CLI를 통해 관리됩니다.
+   * 참조: docs/MCP-GUIDE.md
    */
   private getConfigFile(environment: string): string {
     switch (environment) {
