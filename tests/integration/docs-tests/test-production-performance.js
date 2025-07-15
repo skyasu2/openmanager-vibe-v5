@@ -6,7 +6,7 @@
  * 베르셀 프로덕션 환경에서 시스템 전체 성능을 종합적으로 테스트합니다.
  */
 
-const BYPASS_SECRET = 'ee2aGggamAVy7ti2iycFOXamwgjIhuhr';
+const BYPASS_SECRET = process.env.VERCEL_AUTOMATION_BYPASS_SECRET || 'test-bypass-secret';
 const BASE_URL = 'https://openmanager-vibe-v5.vercel.app';
 
 // 테스트할 API 엔드포인트들

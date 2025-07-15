@@ -1,5 +1,32 @@
 # Changelog
 
+## [5.46.35] - 2025-07-15
+
+### 🔐 환경변수 보안 및 시스템 안정성 개선
+
+#### 보안 강화
+- **환경변수 중앙화**: 모든 민감한 정보를 `.env.local`로 통합
+- **GitHub 노출 위험 제거**: 하드코딩된 API 키 및 시크릿 완전 제거
+  - `scripts/vercel-env-setup.sh`: 환경변수 참조로 변경
+  - 6개 테스트 파일: `VERCEL_AUTOMATION_BYPASS_SECRET` 환경변수화
+  - `public/` HTML 파일: 플레이스홀더로 교체
+
+#### 시스템 안정성
+- **의존성 문제 해결**: @rollup/rollup-linux-x64-gnu 누락 해결
+- **TypeScript 에러 수정**: `src/types/ai-agent-input-schema.ts` 구문 오류 해결
+- **암호화된 Redis 설정**: 타입 안전성 개선
+
+#### 기술적 개선사항
+- 모든 환경변수가 `.env.local`에서 중앙 관리
+- 배포 스크립트 보안 강화 (하드코딩 값 제거)
+- 테스트 파일 보안 강화 (환경변수 참조)
+- 문서화 보안 개선 (민감한 값 플레이스홀더화)
+
+#### 검증된 기능
+- ✅ TypeScript 컴파일 통과
+- ✅ ESLint 검사 통과 (일부 React Hook 경고만 존재)
+- ✅ 핵심 테스트 통과 (환경변수 및 기본 API 기능)
+
 ## [5.46.32] - 2025-07-14
 
 ### 🔧 Redis MCP Server 안정화 완료

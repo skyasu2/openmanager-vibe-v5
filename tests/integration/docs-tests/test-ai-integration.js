@@ -12,7 +12,7 @@
 const fetch = require('node-fetch');
 
 const BASE_URL = 'http://localhost:3000';
-const BYPASS_SECRET = 'ee2aGggamAVy7ti2iycFOXamwgjIhuhr';
+const BYPASS_SECRET = process.env.VERCEL_AUTOMATION_BYPASS_SECRET || 'test-bypass-secret';
 
 const headers = {
   'Content-Type': 'application/json',

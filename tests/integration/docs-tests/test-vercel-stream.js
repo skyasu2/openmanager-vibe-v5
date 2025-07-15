@@ -6,7 +6,7 @@
  * OpenManager Vibe v5의 AI 스트림 API가 베르셀에서 정상 작동하는지 테스트합니다.
  */
 
-const BYPASS_SECRET = 'ee2aGggamAVy7ti2iycFOXamwgjIhuhr';
+const BYPASS_SECRET = process.env.VERCEL_AUTOMATION_BYPASS_SECRET || 'test-bypass-secret';
 const BASE_URL = 'https://openmanager-vibe-v5.vercel.app';
 
 async function testStreamAPI() {
