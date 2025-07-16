@@ -3,6 +3,7 @@
 
 # 스크립트 파일은 LF 고정 (Windows에서도)
 *.sh text eol=lf
+.husky/* text eol=lf
 
 # 패키지 매니페스트나 설정 파일도 LF 고정
 *.json text eol=lf
