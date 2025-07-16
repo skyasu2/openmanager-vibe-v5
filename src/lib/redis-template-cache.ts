@@ -29,11 +29,11 @@ const REDIS_KEYS = {
 } as const;
 
 const CACHE_TTL = {
-  SERVERS: 300,      // 5분 (기존과 동일)
-  DASHBOARD: 30,     // 30초 (기존과 동일)
-  METRICS: 60,       // 1분
-  AI_DATA: 120,      // 2분
-  METADATA: 3600,    // 1시간
+  SERVERS: 600,      // 10분 (무료티어 최적화: 2배 증가)
+  DASHBOARD: 60,     // 1분 (무료티어 최적화: 2배 증가)
+  METRICS: 180,      // 3분 (무료티어 최적화: 3배 증가)
+  AI_DATA: 300,      // 5분 (무료티어 최적화: 2.5배 증가)
+  METADATA: 7200,    // 2시간 (무료티어 최적화: 2배 증가)
 } as const;
 
 // ==============================================
@@ -313,13 +313,13 @@ export class RedisTemplateCache {
           serversToBackup.push(template);
         }
         
-        // Supabase 백업 (5분마다)
+        // Supabase 백업 (무료티어 최적화: 15분마다로 조정)
         const now = Date.now();
-        if (now - this.lastBackupTime > 300000) { // 5분
+        if (now - this.lastBackupTime > 900000) { // 15분
           dynamicTemplateManager.backupToSupabase(serversToBackup)
             .then(() => {
               this.lastBackupTime = now;
-              console.log('✅ Supabase 백업 완료');
+              console.log('✅ Supabase 백업 완료 (무료티어 최적화)');
             })
             .catch(err => console.error('❌ Supabase 백업 실패:', err));
         }
@@ -365,18 +365,18 @@ export class RedisTemplateCache {
   }
 
   /**
-   * ⏰ 자동 업데이트 시작
+   * ⏰ 자동 업데이트 시작 (무료티어 최적화)
    */
   private startAutoUpdate(): void {
-    // 30초마다 미세 조정 (실시간 느낌)
+    // 60초마다 미세 조정 (무료티어 최적화: 30초→60초)
     this.updateInterval = setInterval(async () => {
       try {
         await this.generateAndStoreTemplates();
-        console.log('🔄 Redis 템플릿 자동 업데이트 완료');
+        console.log('🔄 Redis 템플릿 자동 업데이트 완료 (무료티어 최적화)');
       } catch (error) {
         console.error('❌ Redis 템플릿 자동 업데이트 실패:', error);
       }
-    }, 30000);
+    }, 60000);
   }
 
   /**

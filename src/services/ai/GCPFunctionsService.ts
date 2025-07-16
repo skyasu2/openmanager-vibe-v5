@@ -91,13 +91,13 @@ export class GCPFunctionsService {
           'https://asia-northeast3-openmanager-ai.cloudfunctions.net/ai-gateway',
         koreanNLP:
           process.env.GCP_KOREAN_NLP_URL ||
-          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/korean-nlp',
+          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/korean-nlp-python',
         ruleEngine:
           process.env.GCP_RULE_ENGINE_URL ||
           'https://asia-northeast3-openmanager-ai.cloudfunctions.net/rule-engine',
         basicML:
           process.env.GCP_BASIC_ML_URL ||
-          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/basic-ml',
+          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/basic-ml-python',
       },
       vmContext: {
         enabled: process.env.GCP_VM_CONTEXT_ENABLED === 'true',

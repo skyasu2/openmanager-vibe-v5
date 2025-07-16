@@ -14,10 +14,13 @@
 import { useToast } from '@/components/ui/ToastNotification';
 import { useSystemState } from '@/hooks/useSystemState';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
   AlertTriangle,
+  Bot,
+  BotOff,
   ChevronDown,
   Lock,
   LogOut,
@@ -58,6 +61,24 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
   const [isPositionCalculated, setIsPositionCalculated] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // 🔐 사용자 권한 시스템 (오류 처리 포함)
+  const permissions = useUserPermissions();
+
+  // 개발 환경에서 권한 디버깅 및 테스트
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      // 권한 디버깅
+      import('@/hooks/useUserPermissions').then(({ PermissionUtils }) => {
+        PermissionUtils.debugPermissions(permissions);
+      });
+
+      // 권한 시스템 자동 테스트
+      import('@/utils/permissionTestUtils').then(({ runFullPermissionTest }) => {
+        runFullPermissionTest(permissions);
+      });
+    }
+  }, [permissions]);
+
   // 상태는 선택적으로 구독하여 불필요한 리렌더링 방지
   const store = useUnifiedAdminStore();
   const isSystemStarted = store.isSystemStarted;
@@ -74,18 +95,24 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
   } = useSystemState();
 
   // 액션들 (안정적이므로 한 번만 가져오기)
-  const { startSystem, stopSystem, logout, authenticateAdmin, logoutAdmin } =
+  const { startSystem, stopSystem, logout, authenticateAdmin, logoutAdmin, toggleAI } =
     store;
 
   const { success, info, error } = useToast();
 
-  // 🎯 개선된 드롭다운 위치 계산 (단순화)
+  // 🎯 개선된 드롭다운 위치 계산 (사용자 유형별 최적화)
   const calculateDropdownPosition = useCallback(() => {
     if (!buttonRef.current) return;
 
     const buttonRect = buttonRef.current.getBoundingClientRect();
     const dropdownWidth = 384; // w-96
-    const dropdownHeight = 500; // 예상 높이
+    
+    // 사용자 유형에 따른 동적 높이 계산
+    const estimatedMenuItems = permissions.isAdmin ? 8 : 3; // 관리자: 8개, 일반: 3개 메뉴
+    const baseHeight = 200; // 헤더 + 시스템 상태 섹션
+    const itemHeight = 60; // 메뉴 아이템당 높이
+    const dropdownHeight = baseHeight + (estimatedMenuItems * itemHeight);
+    
     const gap = 8; // 간격
 
     // 기본 위치: 버튼 아래, 오른쪽 정렬
@@ -251,6 +278,43 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
     setPasswordError('');
   };
 
+  // 🤖 AI 토글 핸들러 (오류 처리 강화)
+  const handleAIToggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      // 권한 확인 (추가 안전장치)
+      if (!permissions.canToggleAI) {
+        console.warn('🔐 [AI] AI 토글 권한 없음');
+        error('AI 토글 권한이 없습니다');
+        return;
+      }
+
+      // 현재 AI 상태 확인 (안전한 체크)
+      const currentState = aiAgent?.isEnabled ?? false;
+      
+      // AI 상태 토글 (안전한 호출)
+      if (typeof toggleAI === 'function') {
+        toggleAI();
+        
+        // 토글 후 상태에 따른 메시지 표시
+        if (currentState) {
+          success('AI가 중지되었습니다');
+        } else {
+          success('AI가 활성화되었습니다');
+        }
+      } else {
+        throw new Error('AI 토글 함수를 사용할 수 없습니다');
+      }
+      
+      onClick({} as React.MouseEvent); // 드롭다운 닫기
+    } catch (err) {
+      console.error('🤖 [AI] AI 토글 실패:', err);
+      error('AI 상태 변경 중 오류가 발생했습니다');
+    }
+  };
+
   // 🎯 유틸리티 함수들 (기존 로직 유지)
   const getModeDisplayText = () => {
     if (isLocked) return '잠금 상태';
@@ -366,9 +430,11 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
 
                   {/* 사용자 정보 */}
                   <div className='flex-1'>
-                    <h3 className='font-medium text-gray-900'>{userName}</h3>
+                    <h3 className='font-medium text-gray-900'>
+                      {permissions.userName || userName}
+                    </h3>
                     <p className={`text-sm ${getModeStatusColor()}`}>
-                      {getModeDisplayText()}
+                      {permissions.isAdmin ? '관리자' : '일반 사용자'} - {getModeDisplayText()}
                     </p>
                   </div>
 
@@ -435,112 +501,146 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                 </div>
               </div>
 
-              {/* 메뉴 아이템들 */}
-              <div className='p-2'>
-                {/* 관리자 모드 토글 */}
-                {!showPasswordInput ? (
-                  <motion.button
-                    whileHover={{ backgroundColor: 'rgba(255,165,0,0.1)' }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleAdminModeToggle}
-                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 mb-2'
-                  >
-                    <div
-                      className={`p-2 rounded-lg ${
-                        adminMode.isAuthenticated
-                          ? 'bg-orange-500/20'
-                          : 'bg-gray-500/20'
-                      }`}
+              {/* 메뉴 아이템들 - 사용자 유형별 최적화 */}
+              <div className={`p-2 ${permissions.isGeneralUser ? 'space-y-1' : 'space-y-2'}`}>
+                {/* 관리자 모드 토글 - 관리자만 표시 */}
+                {permissions.canToggleAdminMode && (
+                  !showPasswordInput ? (
+                    <motion.button
+                      whileHover={{ backgroundColor: 'rgba(255,165,0,0.1)' }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleAdminModeToggle}
+                      className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 mb-2'
                     >
-                      {adminMode.isAuthenticated ? (
-                        <Unlock className='w-4 h-4 text-orange-600' />
-                      ) : (
-                        <Lock className='w-4 h-4 text-gray-600' />
-                      )}
-                    </div>
-                    <div>
-                      <div className='text-gray-900 font-medium'>
-                        {adminMode.isAuthenticated
-                          ? '관리자 모드 해제'
-                          : '관리자 모드'}
-                      </div>
-                      <div className='text-gray-600 text-xs'>
-                        {adminMode.isAuthenticated
-                          ? '관리자 권한을 해제합니다'
-                          : '관리자 권한을 획득합니다'}
-                      </div>
-                    </div>
-                  </motion.button>
-                ) : (
-                  // 패스워드 입력 폼
-                  <div className='p-3 mb-2'>
-                    <form onSubmit={handlePasswordSubmit}>
-                      <div className='space-y-2'>
-                        <input
-                          type='password'
-                          value={password}
-                          onChange={e => setPassword(e.target.value)}
-                          placeholder='관리자 비밀번호'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500'
-                          autoFocus
-                        />
-                        {passwordError && (
-                          <p className='text-red-500 text-xs'>
-                            {passwordError}
-                          </p>
+                      <div
+                        className={`p-2 rounded-lg ${
+                          adminMode.isAuthenticated
+                            ? 'bg-orange-500/20'
+                            : 'bg-gray-500/20'
+                        }`}
+                      >
+                        {adminMode.isAuthenticated ? (
+                          <Unlock className='w-4 h-4 text-orange-600' />
+                        ) : (
+                          <Lock className='w-4 h-4 text-gray-600' />
                         )}
-                        <div className='flex gap-2'>
-                          <button
-                            type='submit'
-                            className='flex-1 px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors'
-                          >
-                            확인
-                          </button>
-                          <button
-                            type='button'
-                            onClick={handlePasswordCancel}
-                            className='flex-1 px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors'
-                          >
-                            취소
-                          </button>
+                      </div>
+                      <div>
+                        <div className='text-gray-900 font-medium'>
+                          {adminMode.isAuthenticated
+                            ? '관리자 모드 해제'
+                            : '관리자 모드'}
+                        </div>
+                        <div className='text-gray-600 text-xs'>
+                          {adminMode.isAuthenticated
+                            ? '관리자 권한을 해제합니다'
+                            : '관리자 권한을 획득합니다'}
                         </div>
                       </div>
-                    </form>
-                  </div>
+                    </motion.button>
+                  ) : (
+                    // 패스워드 입력 폼
+                    <div className='p-3 mb-2'>
+                      <form onSubmit={handlePasswordSubmit}>
+                        <div className='space-y-2'>
+                          <input
+                            type='password'
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                            placeholder='관리자 비밀번호'
+                            className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500'
+                            autoFocus
+                          />
+                          {passwordError && (
+                            <p className='text-red-500 text-xs'>
+                              {passwordError}
+                            </p>
+                          )}
+                          <div className='flex gap-2'>
+                            <button
+                              type='submit'
+                              className='flex-1 px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors'
+                            >
+                              확인
+                            </button>
+                            <button
+                              type='button'
+                              onClick={handlePasswordCancel}
+                              className='flex-1 px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors'
+                            >
+                              취소
+                            </button>
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+                  )
                 )}
 
-                {/* 시스템 제어 */}
+                {/* AI 토글 버튼 */}
                 <motion.button
-                  whileHover={{ backgroundColor: 'rgba(34, 197, 94, 0.1)' }}
+                  whileHover={{ backgroundColor: 'rgba(147, 51, 234, 0.1)' }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={handleSystemToggle}
-                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 mb-2'
+                  onClick={handleAIToggle}
+                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 mb-2'
                 >
                   <div
                     className={`p-2 rounded-lg ${
-                      isSystemStarted ? 'bg-red-500/20' : 'bg-green-500/20'
+                      aiAgent.isEnabled ? 'bg-purple-500/20' : 'bg-gray-500/20'
                     }`}
                   >
-                    {isSystemStarted ? (
-                      <Square className='w-4 h-4 text-red-600' />
+                    {aiAgent.isEnabled ? (
+                      <BotOff className='w-4 h-4 text-purple-600' />
                     ) : (
-                      <Play className='w-4 h-4 text-green-600' />
+                      <Bot className='w-4 h-4 text-gray-600' />
                     )}
                   </div>
                   <div>
                     <div className='text-gray-900 font-medium'>
-                      {isSystemStarted ? '시스템 정지' : '시스템 시작'}
+                      {aiAgent.isEnabled ? 'AI 중지' : 'AI 활성화'}
                     </div>
                     <div className='text-gray-600 text-xs'>
-                      {isSystemStarted
-                        ? '실행 중인 시스템을 정지합니다'
-                        : '시스템을 시작합니다'}
+                      {aiAgent.isEnabled
+                        ? 'AI 에이전트를 중지합니다'
+                        : 'AI 에이전트를 활성화합니다'}
                     </div>
                   </div>
                 </motion.button>
 
-                {/* 시스템 재시작 */}
-                {isSystemStarted && (
+                {/* 시스템 제어 - 관리자만 표시 */}
+                {permissions.canControlSystem && (
+                  <motion.button
+                    whileHover={{ backgroundColor: 'rgba(34, 197, 94, 0.1)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleSystemToggle}
+                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 mb-2'
+                  >
+                    <div
+                      className={`p-2 rounded-lg ${
+                        isSystemStarted ? 'bg-red-500/20' : 'bg-green-500/20'
+                      }`}
+                    >
+                      {isSystemStarted ? (
+                        <Square className='w-4 h-4 text-red-600' />
+                      ) : (
+                        <Play className='w-4 h-4 text-green-600' />
+                      )}
+                    </div>
+                    <div>
+                      <div className='text-gray-900 font-medium'>
+                        {isSystemStarted ? '시스템 정지' : '시스템 시작'}
+                      </div>
+                      <div className='text-gray-600 text-xs'>
+                        {isSystemStarted
+                          ? '실행 중인 시스템을 정지합니다'
+                          : '시스템을 시작합니다'}
+                      </div>
+                    </div>
+                  </motion.button>
+                )}
+
+                {/* 시스템 재시작 - 관리자만 표시 */}
+                {permissions.canControlSystem && isSystemStarted && (
                   <motion.button
                     whileHover={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
                     whileTap={{ scale: 0.98 }}
@@ -599,8 +699,8 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                   </Link>
                 )}
 
-                {/* 설정 버튼 */}
-                {!adminMode.isAuthenticated && (
+                {/* 설정 버튼 - 관리자만 표시 */}
+                {permissions.canAccessSettings && !adminMode.isAuthenticated && (
                   <motion.button
                     whileHover={{ backgroundColor: 'rgba(128, 90, 213, 0.1)' }}
                     whileTap={{ scale: 0.98 }}
@@ -619,23 +719,25 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                   </motion.button>
                 )}
 
-                {/* 로그아웃 버튼 */}
-                <motion.button
-                  whileHover={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleLogout}
-                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-red-500'
-                >
-                  <div className='p-2 rounded-lg bg-red-500/20'>
-                    <LogOut className='w-4 h-4 text-red-600' />
-                  </div>
-                  <div>
-                    <div className='text-gray-900 font-medium'>로그아웃</div>
-                    <div className='text-gray-600 text-xs'>
-                      현재 세션을 종료합니다
+                {/* 로그아웃 버튼 - 관리자만 표시 */}
+                {permissions.canLogout && (
+                  <motion.button
+                    whileHover={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleLogout}
+                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-red-500'
+                  >
+                    <div className='p-2 rounded-lg bg-red-500/20'>
+                      <LogOut className='w-4 h-4 text-red-600' />
                     </div>
-                  </div>
-                </motion.button>
+                    <div>
+                      <div className='text-gray-900 font-medium'>로그아웃</div>
+                      <div className='text-gray-600 text-xs'>
+                        현재 세션을 종료합니다
+                      </div>
+                    </div>
+                  </motion.button>
+                )}
               </div>
             </motion.div>
           </>

@@ -12,10 +12,22 @@
  * 목표: Firestore 120% → 0% (완전 대체)
  */
 
-import { TDDGCPDataGenerator } from '@/services/gcp/TDDGCPDataGenerator';
 import { RedisMetricsManager } from '@/services/redis/RedisMetricsManager';
 import { SupabaseTimeSeriesManager } from '@/services/supabase/SupabaseTimeSeriesManager';
-import { ServerMetric } from '@/types/gcp-data-generator';
+
+// 기본 서버 메트릭 타입 정의
+export interface ServerMetric {
+  timestamp: Date;
+  serverId: string;
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: { in: number; out: number };
+  response_time: number;
+  request_count: number;
+  error_rate: number;
+  uptime: number;
+}
 
 export interface DataLayer {
   name: 'hot' | 'warm' | 'cold';
@@ -71,8 +83,7 @@ export class DistributedDataManager {
 
   constructor(
     private redisManager: RedisMetricsManager,
-    private supabaseManager: SupabaseTimeSeriesManager,
-    private gcpDataGenerator: TDDGCPDataGenerator
+    private supabaseManager: SupabaseTimeSeriesManager
   ) {
     this.loadBalancingStrategy = {
       algorithm: 'adaptive',
@@ -235,10 +246,10 @@ export class DistributedDataManager {
         this.markLayerUnhealthy('hot');
         console.log('Failover to Warm Layer successful');
       } catch (warmError) {
-        // Warm Layer도 실패 시 Cold Layer로 폴백
-        await this.gcpDataGenerator.flushBatchToCloudStorage(sessionId);
+        // Warm Layer도 실패 시 Cold Layer로 폴백 (로깅만 수행)
+        console.warn('Warm Layer도 실패, Cold Layer 폴백 필요:', warmError);
         this.markLayerUnhealthy('warm');
-        console.log('Failover to Cold Layer successful');
+        console.log('Cold Layer 폴백 시도 필요');
       }
     }
 

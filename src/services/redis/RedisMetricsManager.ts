@@ -11,7 +11,7 @@
  * - Pipeline 배치 처리로 성능 최적화
  */
 
-import { ServerMetric } from '@/types/gcp-data-generator';
+import { ServerMetric } from '@/services/distributed/DistributedDataManager';
 
 export interface RedisClient {
   setex(key: string, seconds: number, value: string): Promise<string>;

@@ -230,22 +230,46 @@ export class DynamicTemplateManager {
     }
 
     try {
-      const backupData = templates.map(template => ({
-        server_id: template.id,
-        template_data: template,
-        schema_version: this.schema.version,
-        created_at: new Date().toISOString(),
-      }));
-
-      const { error } = await this.supabase
-        .from(this.BACKUP_TABLE)
-        .insert(backupData);
-
-      if (error) {
-        console.error('❌ Supabase 백업 실패:', error);
-      } else {
-        console.log(`✅ ${templates.length}개 템플릿 Supabase 백업 완료`);
+      // 무료티어 최적화: 배치 크기를 5개로 제한
+      const BATCH_SIZE = 5;
+      const batches = [];
+      
+      for (let i = 0; i < templates.length; i += BATCH_SIZE) {
+        batches.push(templates.slice(i, i + BATCH_SIZE));
       }
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const batch of batches) {
+        try {
+          const backupData = batch.map(template => ({
+            server_id: template.id,
+            template_data: template,
+            schema_version: this.schema.version,
+            created_at: new Date().toISOString(),
+          }));
+
+          const { error } = await this.supabase
+            .from(this.BACKUP_TABLE)
+            .insert(backupData);
+
+          if (error) {
+            console.error(`❌ Supabase 백업 배치 실패 (${batch.length}개):`, error);
+            errorCount += batch.length;
+          } else {
+            successCount += batch.length;
+          }
+
+          // 무료티어 최적화: 배치 간 100ms 대기
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (batchError) {
+          console.error(`❌ Supabase 백업 배치 오류 (${batch.length}개):`, batchError);
+          errorCount += batch.length;
+        }
+      }
+
+      console.log(`✅ Supabase 백업 완료 (성공: ${successCount}, 실패: ${errorCount})`);
     } catch (error) {
       console.error('❌ Supabase 백업 중 오류:', error);
     }
@@ -447,6 +471,123 @@ export class DynamicTemplateManager {
     };
     
     return defaults[serverType] || defaults.General;
+  }
+
+  /**
+   * 🔍 백업 데이터 무결성 검증 (가벼운 방식)
+   * 시스템 시작 시에만 실행되는 최소한의 검증
+   */
+  async validateBackupIntegrity(): Promise<{
+    success: boolean;
+    message: string;
+    details: {
+      totalBackups: number;
+      validBackups: number;
+      schemaVersion: string;
+      lastBackupTime: string | null;
+    };
+  }> {
+    if (!this.supabase) {
+      return {
+        success: false,
+        message: 'Supabase 클라이언트가 초기화되지 않았습니다',
+        details: {
+          totalBackups: 0,
+          validBackups: 0,
+          schemaVersion: 'unknown',
+          lastBackupTime: null,
+        },
+      };
+    }
+
+    try {
+      // 1. 최근 백업 데이터 조회 (최대 10개만)
+      const { data: backups, error } = await this.supabase
+        .from(this.BACKUP_TABLE)
+        .select('id, server_id, template_data, schema_version, created_at')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('❌ 백업 데이터 조회 실패:', error);
+        return {
+          success: false,
+          message: `백업 데이터 조회 실패: ${error.message}`,
+          details: {
+            totalBackups: 0,
+            validBackups: 0,
+            schemaVersion: 'unknown',
+            lastBackupTime: null,
+          },
+        };
+      }
+
+      const totalBackups = backups?.length || 0;
+      let validBackups = 0;
+      let latestSchemaVersion = 'unknown';
+      let lastBackupTime: string | null = null;
+
+      // 2. 각 백업 데이터 간단 검증
+      if (backups && backups.length > 0) {
+        lastBackupTime = backups[0].created_at;
+        latestSchemaVersion = backups[0].schema_version;
+
+        for (const backup of backups) {
+          try {
+            const templateData = backup.template_data;
+            
+            // 필수 필드 검증
+            if (
+              templateData &&
+              templateData.id &&
+              templateData.name &&
+              templateData.metrics &&
+              typeof templateData.metrics === 'object' &&
+              templateData.version
+            ) {
+              // 기본 메트릭 존재 확인
+              const hasBasicMetrics = 
+                templateData.metrics.cpu &&
+                templateData.metrics.memory &&
+                templateData.metrics.disk;
+              
+              if (hasBasicMetrics) {
+                validBackups++;
+              }
+            }
+          } catch (parseError) {
+            console.warn(`백업 데이터 검증 실패 (ID: ${backup.id}):`, parseError);
+          }
+        }
+      }
+
+      const isValid = validBackups > 0 && validBackups >= totalBackups * 0.8; // 80% 이상 유효
+
+      return {
+        success: isValid,
+        message: isValid 
+          ? `백업 무결성 검증 완료 (${validBackups}/${totalBackups} 유효)`
+          : `백업 무결성 문제 발견 (${validBackups}/${totalBackups} 유효)`,
+        details: {
+          totalBackups,
+          validBackups,
+          schemaVersion: latestSchemaVersion,
+          lastBackupTime,
+        },
+      };
+    } catch (error) {
+      console.error('❌ 백업 무결성 검증 실패:', error);
+      return {
+        success: false,
+        message: `백업 무결성 검증 실패: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: {
+          totalBackups: 0,
+          validBackups: 0,
+          schemaVersion: 'unknown',
+          lastBackupTime: null,
+        },
+      };
+    }
   }
 }
 

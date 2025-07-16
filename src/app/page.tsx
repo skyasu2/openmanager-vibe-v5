@@ -291,12 +291,31 @@ export default function Home() {
       // 1. 다중 사용자 상태 업데이트
       await startMultiUserSystem();
 
-      // 2. 기존 시스템 시작 로직 실행
+      // 2. 데이터 동기화 및 백업 체크 (시스템 시작 시에만)
+      console.log('🔄 시스템 시작 시 데이터 동기화 중...');
+      try {
+        const syncResponse = await fetch('/api/system/sync-data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ triggerType: 'system-start' }),
+        });
+        
+        if (syncResponse.ok) {
+          const syncResult = await syncResponse.json();
+          console.log('✅ 데이터 동기화 완료:', syncResult);
+        } else {
+          console.warn('⚠️ 데이터 동기화 실패, 시스템 계속 진행');
+        }
+      } catch (syncError) {
+        console.warn('⚠️ 데이터 동기화 중 오류:', syncError);
+      }
+
+      // 3. 기존 시스템 시작 로직 실행
       await startSystem();
 
       console.log('✅ 시스템 시작 완료');
 
-      // 3. system-boot 페이지로 이동하여 로딩 애니메이션 표시
+      // 4. system-boot 페이지로 이동하여 로딩 애니메이션 표시
       router.push('/system-boot');
     } catch (error) {
       console.error('❌ 시스템 시작 실패:', error);
@@ -580,22 +599,7 @@ export default function Home() {
           {!isSystemStarted ? (
             /* 시스템 중지 상태 - 대시보드 버튼 중심으로 변경 */
             <div className='max-w-2xl mx-auto text-center'>
-              {/* 시스템 종료 상태 안내 */}
-              <div className='mb-6 p-4 rounded-xl border bg-red-500/20 border-red-400/30'>
-                <div className='flex items-center justify-center gap-2 mb-2'>
-                  <div className='w-3 h-3 bg-red-500 rounded-full animate-pulse'></div>
-                  <span className='font-semibold text-red-200'>
-                    시스템 종료됨
-                  </span>
-                </div>
-                <p className='text-sm text-red-100'>
-                  모든 서비스가 중지되었습니다.
-                  <br />
-                  <strong>
-                    시스템 시작 버튼으로 전체 서비스를 활성화할 수 있습니다.
-                  </strong>
-                </p>
-              </div>
+
 
               {/* 메인 제어 버튼들 */}
               <div className='flex flex-col items-center mb-6 space-y-4'>
@@ -701,19 +705,7 @@ export default function Home() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
             >
-              {/* 시스템 활성 상태 안내 */}
-              <div className='mb-6 p-4 rounded-xl border bg-green-500/20 border-green-400/30'>
-                <div className='flex items-center justify-center gap-2 mb-2'>
-                  <div className='w-3 h-3 bg-green-500 rounded-full animate-pulse'></div>
-                  <span className='font-semibold text-green-200'>
-                    시스템 활성 - 남은 시간: {formatTime(systemTimeRemaining)}
-                  </span>
-                </div>
-                <p className='text-sm text-green-100'>
-                  모든 서비스가 정상 동작 중입니다. 대시보드에서 상세 정보를
-                  확인하세요.
-                </p>
-              </div>
+
 
               {/* 대시보드 버튼 - 중앙 배치 */}
               <div className='flex justify-center mb-6'>

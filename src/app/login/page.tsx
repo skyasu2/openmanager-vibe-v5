@@ -160,6 +160,16 @@ export default function LoginPage() {
               <p className='text-red-300 text-sm'>
                 ❌ {errorMessage}
               </p>
+              {errorMessage.includes('OAuth') && (
+                <>
+                  <p className='text-red-300 text-xs mt-2'>
+                    GitHub OAuth 앱의 콜백 URL이 현재 도메인과 일치하는지 확인하세요.
+                  </p>
+                  <p className='text-yellow-300 text-xs mt-1'>
+                    현재 도메인: {typeof window !== 'undefined' ? window.location.origin : '확인 중...'}
+                  </p>
+                </>
+              )}
             </div>
           )}
 
@@ -225,33 +235,6 @@ export default function LoginPage() {
             <p className='text-xs text-gray-500 mt-4'>
               모든 로그인 방식은 OpenManager 메인 페이지로 이동합니다
             </p>
-            
-            {/* Supabase GitHub OAuth 설정 안내 */}
-            <div className='mt-4 p-3 bg-blue-900/20 border border-blue-600/30 rounded-lg text-left'>
-              <p className='text-blue-300 text-xs font-semibold mb-2'>
-                🔧 GitHub OAuth 설정 가이드
-              </p>
-              <div className='space-y-2 text-xs'>
-                <div>
-                  <p className='text-blue-200/90 font-medium'>1. Supabase Dashboard 설정:</p>
-                  <ul className='text-blue-200/70 mt-1 ml-4 list-disc space-y-1'>
-                    <li>Authentication → Providers → GitHub 활성화</li>
-                    <li>GitHub App 생성 후 Client ID/Secret 입력</li>
-                    <li>Redirect URL: https://[프로젝트].supabase.co/auth/v1/callback</li>
-                  </ul>
-                </div>
-                <div>
-                  <p className='text-blue-200/90 font-medium'>2. 환경변수 설정:</p>
-                  <ul className='text-blue-200/70 mt-1 ml-4 list-disc'>
-                    <li>NEXT_PUBLIC_SUPABASE_URL</li>
-                    <li>NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
-                  </ul>
-                </div>
-                <p className='text-blue-200/60 text-[11px] mt-2'>
-                  💡 설정 완료 전에는 게스트 모드를 사용하세요
-                </p>
-              </div>
-            </div>
           </div>
         </div>
 

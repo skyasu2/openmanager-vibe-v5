@@ -11,7 +11,7 @@
  * - 집계 통계 및 분석 기능
  */
 
-import { ServerMetric } from '@/types/gcp-data-generator';
+import { ServerMetric } from '@/services/distributed/DistributedDataManager';
 
 export interface SupabaseClient {
   from(table: string): SupabaseQueryBuilder;

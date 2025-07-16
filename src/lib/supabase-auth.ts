@@ -33,10 +33,14 @@ function hasMessageProperty(error: any): error is { message: string } {
  */
 export async function signInWithGitHub() {
   try {
+    // 동적으로 리다이렉트 URL 설정 (로컬/프로덕션 자동 감지)
+    const redirectUrl = `${window.location.origin}/auth/callback`;
+    console.log('🔗 OAuth 리다이렉트 URL:', redirectUrl);
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: redirectUrl,
         scopes: 'read:user user:email',
       },
     });

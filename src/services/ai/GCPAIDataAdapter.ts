@@ -10,7 +10,14 @@ import {
   ServerMetadata,
   TimeSeriesMetrics,
 } from '@/types/ai-agent-input-schema';
-import { GCPDataResponse } from '@/types/gcp-data-generator';
+// GCP 데이터 응답 타입 정의
+export interface GCPDataResponse {
+  success: boolean;
+  data?: any;
+  error?: string;
+  timestamp: string;
+  totalMetrics: number;
+}
 
 interface GCPAIAdapterOptions {
   sessionId?: string;
