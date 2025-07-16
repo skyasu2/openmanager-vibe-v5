@@ -11,7 +11,7 @@
  * - 집계 통계 및 분석 기능
  */
 
-import { ServerMetric } from '@/services/distributed/DistributedDataManager';
+import { ServerMetric } from '@/types/server-metrics';
 
 export interface SupabaseClient {
   from(table: string): SupabaseQueryBuilder;
@@ -63,7 +63,7 @@ export interface TimeSeriesRecord {
   network_usage: number;
   request_count: number;
   error_rate: number;
-  response_time: number;
+  response_time: number; // DB column name
   created_at: string;
 }
 
@@ -437,13 +437,13 @@ export class SupabaseTimeSeriesManager {
       session_id: sessionId,
       server_id: metric.serverId,
       timestamp: metric.timestamp.toISOString(),
-      cpu_usage: metric.systemMetrics.cpuUsage,
-      memory_usage: metric.systemMetrics.memoryUsage,
-      disk_usage: metric.systemMetrics.diskUsage,
-      network_usage: metric.systemMetrics.networkUsage,
-      request_count: metric.applicationMetrics.requestCount,
-      error_rate: metric.applicationMetrics.errorRate,
-      response_time: metric.applicationMetrics.responseTime,
+      cpu_usage: metric.cpu,
+      memory_usage: metric.memory,
+      disk_usage: metric.disk,
+      network_usage: (metric.network.in + metric.network.out) / 2,
+      request_count: (metric as any).activeConnections || 0,
+      error_rate: 0,
+      response_time: (metric as any).responseTime || 0, // DB column name
       created_at: new Date().toISOString(),
     }));
   }
@@ -457,6 +457,17 @@ export class SupabaseTimeSeriesManager {
     return records.map(record => ({
       timestamp: new Date(record.timestamp),
       serverId: record.server_id,
+      cpu: record.cpu_usage,
+      memory: record.memory_usage,
+      disk: record.disk_usage,
+      network: {
+        in: record.network_usage / 2,
+        out: record.network_usage / 2
+      },
+      status: 'healthy' as const,
+      responseTime: record.response_time,
+      activeConnections: record.request_count,
+      // 선택적 필드들
       systemMetrics: {
         cpuUsage: record.cpu_usage,
         memoryUsage: record.memory_usage,

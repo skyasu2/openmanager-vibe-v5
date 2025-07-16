@@ -11,7 +11,7 @@
 
 import { systemLogger } from '../../lib/logger';
 import type { EnhancedServerMetrics } from '../../types/server';
-import { BaselineStorageService } from '../gcp/BaselineStorageService';
+// BaselineStorageService removed - using FixedDataSystem instead
 import { EnrichedMetricsGenerator } from '../metrics/EnrichedMetricsGenerator';
 
 interface BaselineSnapshot {
@@ -44,7 +44,8 @@ export class BaselineContinuityManager {
 
   // 핵심 컴포넌트
   private enrichedMetricsGenerator = EnrichedMetricsGenerator.getInstance();
-  private baselineStorage = BaselineStorageService.getInstance();
+  // private baselineStorage = BaselineStorageService.getInstance(); // BaselineStorageService removed
+  private baselineStorage: any = null;
 
   // 연속성 데이터
   private snapshots: BaselineSnapshot[] = [];

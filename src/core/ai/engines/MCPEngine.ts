@@ -1,4 +1,4 @@
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+// GCPRealDataService removed - using FixedDataSystem instead
 /**
  * 🎯 MCP Engine - 완전 독립 동작 AI 엔진
  *
@@ -40,12 +40,12 @@ export class MCPEngine {
   private mcpClient: RealMCPClient;
   private contextManager: ContextManager;
   private mlToolkit: UnifiedMLToolkit;
-  private serverDataGenerator: GCPRealDataService;
+  private serverDataGenerator: any // GCPRealDataService removed;
   private independentCache: Map<string, any> = new Map();
   private initialized = false;
   private lastQueryTime = 0;
 
-  constructor(serverDataGenerator: GCPRealDataService) {
+  constructor(serverDataGenerator: any) { // GCPRealDataService removed
     this.mcpClient = RealMCPClient.getInstance();
     this.contextManager = ContextManager.getInstance();
     this.mlToolkit = new UnifiedMLToolkit();
@@ -56,7 +56,7 @@ export class MCPEngine {
   static getInstance(): MCPEngine {
     if (!MCPEngine.instance) {
       MCPEngine.instance = new MCPEngine(
-        GCPRealDataService.getInstance()
+        { getRealServerMetrics: async () => ({ data: [] }) }
       );
     }
     return MCPEngine.instance;

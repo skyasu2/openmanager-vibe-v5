@@ -1,4 +1,4 @@
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+// GCPRealDataService removed - using FixedDataSystem instead
 /**
  * 🤖 통합 AI 쿼리 API - Edge Runtime 최적화 버전
  * Vercel Pro/Hobby 플랜 지원
@@ -72,8 +72,9 @@ export async function POST(request: NextRequest) {
     if (env.IS_VERCEL) {
       console.log('🌐 Vercel AI 쿼리:', query);
 
-      const gcpService = GCPRealDataService.getInstance();
-      const serverData = await gcpService.getRealServerMetrics();
+      // const gcpService = GCPRealDataService.getInstance(); // Removed
+      // const serverData = await gcpService.getRealServerMetrics(); // GCP service removed
+      const serverData = { data: [] }; // 임시 빈 데이터
 
       // 간단한 AI 응답 생성 (실제로는 더 복잡한 AI 엔진 사용)
       const aiResponse = generateAIResponse(query, serverData.data);
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
         query,
         response: aiResponse,
         dataSource: 'gcp-real-data',
-        serverCount: serverData.totalServers,
+        serverCount: serverData.data?.length || 0,
         timestamp: new Date().toISOString(),
         environment: 'vercel',
       }, {

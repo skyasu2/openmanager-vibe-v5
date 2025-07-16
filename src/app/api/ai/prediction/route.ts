@@ -1,4 +1,4 @@
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+// GCPRealDataService removed - using FixedDataSystem instead
 /**
  * 🔮 AI 예측 API - 실제 구현
  *
@@ -54,10 +54,10 @@ async function executeRealPrediction(
 
   try {
     // 1. 실제 서버 데이터 가져오기
-    const gcpService = GCPRealDataService.getInstance();
-    const response = await gcpService.getRealServerMetrics();
-    const servers = response.data;
-    const server = servers.find(s => s.id === serverId);
+    // const gcpService = GCPRealDataService.getInstance(); // Removed
+    // const response = await gcpService.getRealServerMetrics(); // GCP service removed
+    const servers: any[] = []; // 임시 빈 배열
+    const server = servers.find((s: any) => s.id === serverId);
 
     if (!server) {
       throw new Error(`서버를 찾을 수 없습니다: ${serverId}`);
@@ -325,7 +325,7 @@ function generatePredictionResults(filters?: {
   timeRange?: string;
 }): PredictionResult[] {
   // 실제 서버에서 데이터 가져오기
-  const generator = GCPRealDataService.getInstance();
+  // const gcpService = GCPRealDataService.getInstance(); // Removed
   // 비동기 호출을 동기적으로 처리하기 위해 임시로 빈 배열 반환
   const servers: any[] = [];
   const targetServer = filters?.serverId

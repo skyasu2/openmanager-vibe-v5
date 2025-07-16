@@ -1,4 +1,4 @@
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+// GCPRealDataService removed - using FixedDataSystem instead
 import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
 /**
  * 🚀 WebSocket Manager v2.0
@@ -52,14 +52,15 @@ export class WebSocketManager {
   private streams: Map<string, Subject<MetricStream>> = new Map();
   private connectionCount$ = new BehaviorSubject<number>(0);
   private isActive = false;
-  private dataGenerator: GCPRealDataService;
+  private dataGenerator: any; // GCPRealDataService removed
 
   // 스트림 데이터 소스
   private dataSubject = new Subject<MetricStream>();
   private alertSubject = new Subject<any>();
 
   constructor() {
-    this.dataGenerator = GCPRealDataService.getInstance();
+    // this.dataGenerator = GCPRealDataService.getInstance(); // GCPRealDataService removed
+    this.dataGenerator = { getRealServerMetrics: async () => ({ data: [] }) };
     this.initializeStreams();
     this.startDataGeneration();
   }
@@ -187,7 +188,7 @@ export class WebSocketManager {
   private startDataGeneration(): void {
     // 실시간 서버 데이터 브로드캐스트 (20초마다)
     interval(20000).subscribe(async () => {
-      const gcpServerData = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
+      const gcpServerData = await this.dataGenerator.getRealServerMetrics().then((response: any) => response.data);
       const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
       
       const serverMetrics = allServers.map(server => {
@@ -245,7 +246,7 @@ export class WebSocketManager {
       if (!this.isActive || this.clients.size === 0) return;
 
       try {
-        const gcpServerData = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
+        const gcpServerData = await this.dataGenerator.getRealServerMetrics().then((response: any) => response.data);
         const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
         const testMetrics = allServers.slice(0, 10).map(server => ({
           timestamp: Date.now(),

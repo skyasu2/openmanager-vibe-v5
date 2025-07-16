@@ -11,7 +11,7 @@
  * - Pipeline 배치 처리로 성능 최적화
  */
 
-import { ServerMetric } from '@/services/distributed/DistributedDataManager';
+import { ServerMetric } from '@/types/server-metrics';
 
 export interface RedisClient {
   setex(key: string, seconds: number, value: string): Promise<string>;
@@ -156,13 +156,13 @@ export class RedisMetricsManager {
       };
     }
 
-    const cpuUsages = metrics.map(m => m.systemMetrics.cpuUsage);
-    const memoryUsages = metrics.map(m => m.systemMetrics.memoryUsage);
-    const diskUsages = metrics.map(m => m.systemMetrics.diskUsage);
-    const networkUsages = metrics.map(m => m.systemMetrics.networkUsage);
-    const requestCounts = metrics.map(m => m.applicationMetrics.requestCount);
-    const responseTimes = metrics.map(m => m.applicationMetrics.responseTime);
-    const errorRates = metrics.map(m => m.applicationMetrics.errorRate);
+    const cpuUsages = metrics.map(m => m.cpu);
+    const memoryUsages = metrics.map(m => m.memory);
+    const diskUsages = metrics.map(m => m.disk);
+    const networkUsages = metrics.map(m => (m.network.in + m.network.out) / 2);
+    const requestCounts = metrics.map(m => m.activeConnections);
+    const responseTimes = metrics.map(m => m.responseTime);
+    const errorRates = metrics.map(m => 0); // 기본값
 
     return {
       averageCpuUsage: cpuUsages.reduce((a, b) => a + b, 0) / cpuUsages.length,

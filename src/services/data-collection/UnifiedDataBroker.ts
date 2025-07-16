@@ -1,4 +1,4 @@
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+// GCPRealDataService removed - using FixedDataSystem instead
 /**
  * 🎯 통합 데이터 브로커
  *
@@ -285,10 +285,11 @@ export class UnifiedDataBroker {
       if (key.includes('metrics')) {
         // 서버 메트릭 데이터 집계
         // 🌐 GCP 실제 데이터 서비스 사용
-        const gcpDataService = GCPRealDataService.getInstance();
-        await gcpDataService.initialize();
+        // const gcpService = GCPRealDataService.getInstance(); // Removed
+        // await gcpDataService.initialize(); // gcpDataService removed
 
-        const metricsResponse = await gcpDataService.getRealServerMetrics();
+        // const metricsResponse = await gcpDataService.getRealServerMetrics(); // gcpDataService removed
+        const metricsResponse = { data: [], success: false, isErrorState: true }; // gcpDataService removed
         const servers = metricsResponse.data;
         const summary = { 
           servers: metricsResponse.success ? 'Available' : 'Error',
@@ -320,12 +321,12 @@ export class UnifiedDataBroker {
           timestamp: new Date(),
         };
       } else {
-        const generator = GCPRealDataService.getInstance();
+        // const gcpService = GCPRealDataService.getInstance(); // Removed
         return {
-          servers: await generator.getRealServerMetrics().then(response => response.data),
-          clusters: await generator.getRealServerMetrics().then(r => []),
-          applications: await generator.getRealServerMetrics().then(r => []),
-          summary: await generator.getRealServerMetrics().then(r => ({ summary: 'Available' })),
+          servers: [], // generator removed
+          clusters: [], // generator removed
+          applications: [], // generator removed
+          summary: { summary: 'Unavailable' }, // generator removed
           timestamp: new Date(),
         };
       }

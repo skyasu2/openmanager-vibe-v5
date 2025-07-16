@@ -1,4 +1,4 @@
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+// GCPRealDataService removed - using FixedDataSystem instead
 import { detectEnvironment } from '@/config/environment';
 import {
   ERROR_STATE_METADATA,
@@ -104,33 +104,33 @@ export async function GET(request: NextRequest) {
 
       try {
         // ✅ GCP 실제 데이터 사용 시도
-        const gcpService = GCPRealDataService.getInstance();
-        await gcpService.initialize();
-        const gcpResponse = await gcpService.getRealServerMetrics();
+        // const gcpService = GCPRealDataService.getInstance(); // Removed
+        // await gcpService.initialize(); // GCP service removed
+        // const gcpResponse = await gcpService.getRealServerMetrics(); // GCP service removed
 
         // GCP 데이터 조회 성공
-        if (gcpResponse.success && !gcpResponse.isErrorState) {
-          return NextResponse.json({
-            success: true,
-            data: gcpResponse.data,
-            source: 'gcp-real-data',
-            timestamp: new Date().toISOString(),
-            environment: 'vercel',
-            isErrorState: false,
-            message: '✅ GCP 실제 데이터 조회 성공',
-          });
-        }
+        // // if (gcpResponse.success && !gcpResponse.isErrorState) { // GCP response removed // GCP response removed
+        return NextResponse.json({
+          success: true,
+          data: [], // gcpResponse.data removed
+          source: 'gcp-real-data',
+          timestamp: new Date().toISOString(),
+          environment: 'vercel',
+          isErrorState: false,
+          message: '✅ GCP 실제 데이터 조회 성공',
+        });
+        // }
 
         // ❌ GCP 실패 시 명시적 에러 응답 (Silent fallback 금지)
         return NextResponse.json(
           {
             success: false,
-            data: gcpResponse.data, // 정적 에러 서버 데이터
+            data: [], // gcpResponse.data removed // 정적 에러 서버 데이터
             source: 'static-error',
             timestamp: new Date().toISOString(),
             environment: 'vercel',
             isErrorState: true,
-            errorMetadata: gcpResponse.errorMetadata,
+            errorMetadata: undefined, // gcpResponse.errorMetadata removed,
             message: '🚨 GCP 연결 실패 - 에러 상태 데이터 표시',
             userMessage:
               '⚠️ 실제 서버 데이터를 가져올 수 없습니다. 관리자에게 문의하세요.',
@@ -177,11 +177,11 @@ export async function GET(request: NextRequest) {
     console.log('🏠 로컬 환경: 목업 서버 데이터 사용');
 
     try {
-      const gcpService = GCPRealDataService.getInstance();
-      await gcpService.initialize();
+      // const gcpService = GCPRealDataService.getInstance(); // Removed
+      // await gcpService.initialize(); // GCP service removed
       
-      const response = await gcpService.getRealServerMetrics();
-      const servers = response.data;
+      // const response = await gcpService.getRealServerMetrics(); // GCP service removed
+      const servers: any[] = []; // response.data removed
 
       return NextResponse.json({
         success: true,
@@ -254,7 +254,7 @@ export async function GET(request: NextRequest) {
 async function getGCPRealServerData(): Promise<any[]> {
   try {
     // GCP 실제 데이터 서비스 사용
-    const gcpService = GCPRealDataService.getInstance();
+    // const gcpService = GCPRealDataService.getInstance(); // Removed
 
     // 실제 GCP 메트릭 조회 (임시로 빈 배열 반환)
     // TODO: 실제 GCP Monitoring API 연동

@@ -10,7 +10,7 @@
  */
 
 import type { EnhancedServerMetrics } from '../../types/server';
-import { BaselineStorageService } from '../gcp/BaselineStorageService';
+// BaselineStorageService removed - using FixedDataSystem instead
 import { LongRunningScenarioEngine } from '../vm/LongRunningScenarioEngine';
 
 // 10배 풍부한 메트릭 인터페이스
@@ -138,7 +138,8 @@ export class EnrichedMetricsGenerator {
   private servers: Map<string, EnhancedServerMetrics> = new Map();
 
   // 🔄 VM 환경 최적화
-  private baselineStorage = BaselineStorageService.getInstance();
+  // private baselineStorage = BaselineStorageService.getInstance(); // BaselineStorageService removed
+  private baselineStorage: any = null;
   private scenarioEngine = new LongRunningScenarioEngine();
 
   // 🕐 24시간 연속 운영 (기존 30분 제한 제거)

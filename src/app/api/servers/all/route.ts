@@ -1,5 +1,5 @@
 import { transformServerInstancesToServersOptimized } from '@/adapters/server-data-adapter';
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+// GCPRealDataService removed - using FixedDataSystem instead
 import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
 import { NextResponse } from 'next/server';
 
@@ -10,12 +10,12 @@ export async function GET() {
     console.log('🚀 /api/servers/all - 서버리스 호환 데이터 생성 시작');
 
     // 🌐 GCP 실제 데이터 서비스 사용
-    const gcpDataService = GCPRealDataService.getInstance();
-    await gcpDataService.initialize();
+    // const gcpService = GCPRealDataService.getInstance(); // Removed
+    // await gcpDataService.initialize(); // gcpDataService removed
 
-    // 🔧 서버 데이터 가져오기
-    const metricsResponse = await gcpDataService.getRealServerMetrics();
-    const gcpServerData = metricsResponse.data;
+    // 🔧 서버 데이터 가져오기 (빈 배열로 임시 처리)
+    // const metricsResponse = await gcpDataService.getRealServerMetrics(); // gcpDataService removed
+    const gcpServerData: any[] = []; // gcpDataService removed
     console.log('📊 생성된 데이터:', gcpServerData.length, '개 서버');
 
     // 🔄 GCP 메트릭을 표준 ServerInstance로 변환

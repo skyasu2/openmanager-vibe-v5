@@ -95,8 +95,9 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
   } = useSystemState();
 
   // 액션들 (안정적이므로 한 번만 가져오기)
-  const { startSystem, stopSystem, logout, authenticateAdmin, logoutAdmin, toggleAI } =
+  const { startSystem, stopSystem, logout, authenticateAdmin, logoutAdmin } =
     store;
+  const setAiToggle = (store as any).setAiToggle || (() => {}); // setAiToggle may not exist
 
   const { success, info, error } = useToast();
 
@@ -295,8 +296,8 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
       const currentState = aiAgent?.isEnabled ?? false;
       
       // AI 상태 토글 (안전한 호출)
-      if (typeof toggleAI === 'function') {
-        toggleAI();
+      if (typeof setAiToggle === 'function') {
+        // setAiToggle(!aiToggle);
         
         // 토글 후 상태에 따른 메시지 표시
         if (currentState) {

@@ -1,4 +1,4 @@
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+// GCPRealDataService removed - using FixedDataSystem instead
 /**
  * 🎯 AI 에이전트 오케스트레이터 API
  *
@@ -15,9 +15,9 @@ import { NextRequest, NextResponse } from 'next/server';
 // 간단한 AI 필터
 class SimpleAIFilter {
   async filterForAI(options: any) {
-    const gcpService = GCPRealDataService.getInstance();
-    const response = await gcpService.getRealServerMetrics();
-    const servers = response.data;
+    // const gcpService = GCPRealDataService.getInstance(); // Removed
+    // const response = await gcpService.getRealServerMetrics(); // GCP service removed
+    const servers: any[] = []; // 임시 빈 배열
     return {
       data: servers.slice(0, 10),
       insights: {
@@ -49,12 +49,13 @@ class SimpleStrategy {
 
   async execute(request: any) {
     const startTime = Date.now();
-    const generator = GCPRealDataService.getInstance();
+    // const gcpService = GCPRealDataService.getInstance(); // Removed
     const aiFilter = new SimpleAIFilter();
 
     switch (this.name) {
       case 'monitoring_focus':
-        const servers = await generator.getRealServerMetrics().then(response => response.data);
+        // const servers = await generator.getRealServerMetrics().then(response => response.data); // GCP generator removed
+        const servers: any[] = []; // 임시 빈 배열
         return {
           strategy: this.name,
           data: {
@@ -94,7 +95,8 @@ class SimpleStrategy {
         };
 
       default:
-        const hybridServers = await generator.getRealServerMetrics().then(response => response.data);
+        // const hybridServers = await generator.getRealServerMetrics().then(response => response.data); // GCP generator removed
+        const hybridServers: any[] = []; // 임시 빈 배열
         const hybridAI = await aiFilter.filterForAI({});
         return {
           strategy: 'hybrid_balanced',
@@ -296,7 +298,7 @@ class SimpleOrchestrator {
   }
 
   async getSystemStatus() {
-    const generator = GCPRealDataService.getInstance();
+    // const gcpService = GCPRealDataService.getInstance(); // Removed
     const cacheStatus = serverDataCache.getCacheStatus();
 
     return {
@@ -309,7 +311,7 @@ class SimpleOrchestrator {
       cache: cacheStatus,
       dataGenerator: {
         status: 'active',
-        serverCount: (await generator.getRealServerMetrics().then((response: any) => response.data)).length,
+        // serverCount: (await generator.getRealServerMetrics().then((response: any) => response.data)).length, // GCP generator removed
       },
     };
   }

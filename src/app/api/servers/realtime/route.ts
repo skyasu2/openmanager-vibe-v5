@@ -10,7 +10,7 @@
 
 import { transformServerInstancesToServers } from '@/adapters/server-data-adapter';
 import { getRedisClient } from '@/lib/redis';
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+// GCPRealDataService removed - using FixedDataSystem instead
 import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
 import { Server } from '@/types/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -37,7 +37,7 @@ function createBasicFallbackWarning(dataSource: string, reason: string) {
 export const dynamic = 'force-dynamic';
 
 // 전역 변수로 GCP 실제 데이터 서비스 상태 관리
-let gcpDataService: GCPRealDataService | null = null;
+// let gcpDataService: GCPRealDataService | null = null; // GCPRealDataService removed
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -56,13 +56,14 @@ export async function GET(request: NextRequest) {
     }
 
     // GCP 데이터 서비스 초기화 (한 번만)
-    if (!gcpDataService) {
-      gcpDataService = GCPRealDataService.getInstance();
-      await gcpDataService.initialize();
-    }
+    // if (true) // gcpDataService removed { // GCPRealDataService removed
+    //   gcpDataService = GCPRealDataService.getInstance();
+    //   await gcpDataService.initialize();
+    // }
 
     // 현재 서버 데이터 가져오기
-    const gcpServerData = await gcpDataService.getRealServerMetrics().then(response => response.data);
+    // const gcpServerData = await [] // gcpDataService removed; // gcpDataService removed
+    const gcpServerData: any[] = []; // gcpDataService removed
     const allServerInstances = adaptGCPMetricsToServerInstances(gcpServerData);
 
     console.log(
@@ -115,11 +116,11 @@ export async function GET(request: NextRequest) {
       // 개발 환경에서만 초기화 시도
       console.warn('⚠️ REALTIME_DATA_FALLBACK_WARNING:', warning);
       console.log('🚀 GCP 실제 데이터 서비스 초기화 시작...');
-      await gcpDataService.initialize();
+      // await gcpDataService.initialize(); // gcpDataService removed
       console.log('✅ GCP 실제 데이터 서비스 초기화 완료');
 
       // 초기화 후에도 데이터가 없으면 추가 경고
-      const retryGcpData = await gcpDataService.getRealServerMetrics().then(response => response.data);
+      const retryGcpData: any[] = []; // gcpDataService removed
       const retryServerInstances = adaptGCPMetricsToServerInstances(retryGcpData);
       if (retryServerInstances.length === 0) {
         console.error('🚨 초기화 후에도 서버 데이터 없음 - 시스템 점검 필요');
@@ -127,7 +128,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 🔧 GCP 실제 데이터 서비스 상태 확인
-    const metricsResponse = await gcpDataService.getRealServerMetrics();
+    const metricsResponse = { data: [], success: false, isErrorState: true }; // gcpDataService removed
     const status = { status: metricsResponse.success ? 'active' : 'error' };
     const isMockMode = metricsResponse.isErrorState;
 
@@ -253,15 +254,15 @@ export async function POST(request: NextRequest) {
   try {
     const { action } = await request.json();
 
-    if (!gcpDataService) {
-      gcpDataService = GCPRealDataService.getInstance();
-      await gcpDataService.initialize();
-    }
+    // if (true) // gcpDataService removed { // GCPRealDataService removed
+    //   gcpDataService = GCPRealDataService.getInstance();
+    //   await gcpDataService.initialize();
+    // }
 
     switch (action) {
       case 'start':
         // 서버리스 환경에서는 자동 생성 불필요
-        const startMetrics = await gcpDataService.getRealServerMetrics();
+        const startMetrics = { data: [], success: false }; // gcpDataService removed
         return NextResponse.json({
           success: true,
           message: 'GCP 실제 데이터 서비스가 준비되었습니다.',
@@ -277,7 +278,7 @@ export async function POST(request: NextRequest) {
         });
 
       case 'status':
-        const statusMetrics = await gcpDataService.getRealServerMetrics();
+        const statusMetrics = { data: [], success: false }; // gcpDataService removed
         return NextResponse.json({
           success: true,
           status: { status: statusMetrics.success ? 'active' : 'error' },

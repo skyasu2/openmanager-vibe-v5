@@ -155,6 +155,8 @@ export class GCPAIDataAdapter {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'GCP 연결 실패',
+        timestamp: new Date().toISOString(),
+        totalMetrics: 0
       };
     }
   }

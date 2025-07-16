@@ -5,7 +5,7 @@
  * Render.com → GCP 마이그레이션 과정에서 발생한 타입 불일치 해결
  */
 
-import { GCPServerMetrics } from '@/services/gcp/GCPRealDataService';
+// GCPRealDataService removed - using FixedDataSystem instead
 import { ServerInstance, ServerStatus } from '@/types/server';
 
 /**
@@ -51,9 +51,9 @@ function convertGCPTypeToEnvironment(gcpType: string): string {
  * @returns ServerInstance 배열
  */
 export function adaptGCPMetricsToServerInstances(
-  gcpMetrics: GCPServerMetrics[]
+  gcpMetrics: any // GCPServerMetrics removed[]
 ): ServerInstance[] {
-  return gcpMetrics.map((gcp): ServerInstance => {
+  return gcpMetrics.map((gcp: any): ServerInstance => {
     // 기본 속성들 매핑
     const baseInstance: ServerInstance = {
       id: gcp.id,
@@ -126,7 +126,7 @@ export function adaptGCPMetricsToServerInstances(
  * 단일 GCPServerMetrics를 ServerInstance로 변환
  */
 export function adaptSingleGCPMetricToServerInstance(
-  gcpMetric: GCPServerMetrics
+  gcpMetric: any // GCPServerMetrics removed
 ): ServerInstance {
   return adaptGCPMetricsToServerInstances([gcpMetric])[0];
 }
@@ -136,7 +136,7 @@ export function adaptSingleGCPMetricToServerInstance(
  */
 export function adaptServerInstanceToGCPMetrics(
   serverInstance: ServerInstance
-): GCPServerMetrics {
+): any { // GCPServerMetrics removed
   return {
     id: serverInstance.id,
     name: serverInstance.name,

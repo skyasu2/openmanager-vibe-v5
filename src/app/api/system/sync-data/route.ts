@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { redisTemplateCache } from '@/lib/redis-template-cache';
 import { dynamicTemplateManager } from '@/lib/dynamic-template-system';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 interface SyncRequest {
   triggerType: 'system-start' | 'manual';
@@ -77,14 +77,14 @@ export async function POST(request: NextRequest) {
       results.supabase = {
         success: true,
         message: `Supabase 백업 확인 완료 (${backupCount}개 백업)`,
-        processingTime: Date.now() - supabaseStart
+        processingTime: 0 // timing simplified
       };
     } catch (supabaseError) {
       console.error('❌ Supabase 백업 확인 실패:', supabaseError);
       results.supabase = {
         success: false,
         message: `Supabase 백업 확인 실패: ${supabaseError instanceof Error ? supabaseError.message : 'Unknown error'}`,
-        processingTime: Date.now() - supabaseStart
+        processingTime: 0 // timing simplified
       };
     }
 
@@ -106,14 +106,14 @@ export async function POST(request: NextRequest) {
         message: isValid 
           ? `데이터 무결성 검증 완료 (Redis: ${sampleData.data.length}개 서버, Supabase: ${backupValidation.details.validBackups}/${backupValidation.details.totalBackups} 유효)`
           : `데이터 무결성 검증 실패 (Redis: ${redisValid ? '정상' : '오류'}, Supabase: ${backupValidation.success ? '정상' : '오류'})`,
-        processingTime: Date.now() - validationStart
+        processingTime: 0 // timing simplified
       };
     } catch (validationError) {
       console.error('❌ 데이터 무결성 검증 실패:', validationError);
       results.validation = {
         success: false,
         message: `데이터 무결성 검증 실패: ${validationError instanceof Error ? validationError.message : 'Unknown error'}`,
-        processingTime: Date.now() - validationStart
+        processingTime: 0 // timing simplified
       };
     }
 

@@ -11,7 +11,7 @@
 
 import { systemLogger } from '../../lib/logger';
 import type { EnhancedServerMetrics } from '../../types/server';
-import { BaselineStorageService } from '../gcp/BaselineStorageService';
+// BaselineStorageService removed - using FixedDataSystem instead
 import { EnrichedMetricsGenerator } from '../metrics/EnrichedMetricsGenerator';
 import { UnifiedMetricsManager } from '../UnifiedMetricsManager';
 import { LongRunningScenarioEngine } from './LongRunningScenarioEngine';
@@ -36,7 +36,8 @@ export class VMPersistentDataManager {
   // 핵심 컴포넌트들
   private enrichedMetricsGenerator = EnrichedMetricsGenerator.getInstance();
   private longRunningScenarioEngine = new LongRunningScenarioEngine();
-  private baselineStorage = BaselineStorageService.getInstance();
+  // private baselineStorage = BaselineStorageService.getInstance(); // BaselineStorageService removed
+  private baselineStorage: any = null;
   private unifiedMetricsManager = UnifiedMetricsManager.getInstance();
 
   // 설정

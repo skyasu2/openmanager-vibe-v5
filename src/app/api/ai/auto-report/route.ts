@@ -1,4 +1,4 @@
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+// GCPRealDataService removed - using FixedDataSystem instead
 /**
  * 📄 자동 장애 보고서 API
  *
@@ -142,9 +142,9 @@ async function generateReport(type: ReportData['type']): Promise<ReportData> {
   console.log(`🤖 ${type} 보고서 생성 시작...`);
 
   // 실제 서버 데이터 가져오기
-  const gcpService = GCPRealDataService.getInstance();
-    const response = await gcpService.getRealServerMetrics();
-    const servers = response.data;
+  // const gcpService = GCPRealDataService.getInstance(); // Removed
+    // const response = await gcpService.getRealServerMetrics(); // GCP service removed
+    const servers: any[] = []; // 임시 빈 배열
 
   // 서버 상태 분석
   const healthyServers = servers.filter((s: any) => s.status === 'healthy').length;

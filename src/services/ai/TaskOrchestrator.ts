@@ -1,4 +1,4 @@
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+// GCPRealDataService removed - using FixedDataSystem instead
 /**
  * 🎯 Task Orchestrator v3.0
  *
@@ -58,7 +58,8 @@ export class TaskOrchestrator {
 
   constructor() {
     // GCPRealDataService 사용
-    this.dataGenerator = GCPRealDataService.getInstance();
+    // this.dataGenerator = GCPRealDataService.getInstance(); // GCPRealDataService removed
+    this.dataGenerator = { getRealServerMetrics: async () => ({ data: [] }) };
     // lightweight-anomaly-detector removed - using simple detection instead
   }
 

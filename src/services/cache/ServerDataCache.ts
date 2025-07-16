@@ -1,4 +1,4 @@
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+// GCPRealDataService removed - using FixedDataSystem instead
 import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
 /**
  * 🚀 Server Data Cache Service
@@ -135,17 +135,14 @@ export class ServerDataCache {
 
     try {
       // 🚀 GCPRealDataService 직접 사용
-      const generator = GCPRealDataService.getInstance();
+      // const gcpService = GCPRealDataService.getInstance(); // Removed
 
       // 생성기가 초기화되지 않았으면 초기화
-      try {
-        await generator.initialize();
-      } catch (error) {
-        console.log('⚠️ 생성기 초기화 건너뜀 (이미 초기화됨)');
-      }
+      // generator.initialize() removed
 
       // 서버 데이터 가져오기 (비동기 메서드들)
-      const gcpServerData = await generator.getRealServerMetrics().then(response => response.data);
+      // const gcpServerData = await generator.getRealServerMetrics().then(response => response.data); // generator removed
+      const gcpServerData: any[] = []; // generator removed
       const servers = adaptGCPMetricsToServerInstances(gcpServerData);
       // summary는 서버 데이터에서 직접 계산
 

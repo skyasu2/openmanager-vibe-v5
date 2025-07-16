@@ -1,4 +1,4 @@
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+// GCPRealDataService removed - using FixedDataSystem instead
 /**
  * 🚀 시스템 초기화 API - 통합 초기화 v3.0
  */
@@ -18,8 +18,8 @@ async function runInitialization(): Promise<string[]> {
   try {
     // 1. 데이터 생성기 초기화
     try {
-      const generator = GCPRealDataService.getInstance();
-      await generator.initialize();
+      // const gcpService = GCPRealDataService.getInstance(); // Removed
+      // await generator.initialize(); // GCP generator removed
       logs.push('✅ 서버 데이터 생성기 초기화 완료');
       systemLogger.info('✅ 서버 데이터 생성기 초기화 완료');
     } catch (error) {

@@ -136,7 +136,7 @@ export async function GET(request: NextRequest) {
  */
 async function handleLegacyRequest(request: NextRequest, env: any): Promise<NextResponse> {
   // 기존 /api/servers/route.ts의 로직을 그대로 재사용
-  const { GCPRealDataService } = await import('@/services/gcp/GCPRealDataService');
+  // GCPRealDataService import removed
   const { ERROR_STATE_METADATA, STATIC_ERROR_SERVERS } = await import('@/config/fallback-data');
 
   try {
@@ -145,32 +145,32 @@ async function handleLegacyRequest(request: NextRequest, env: any): Promise<Next
       console.log('🌐 Vercel 환경: GCP 실제 서버 데이터 요청 (Legacy)');
 
       try {
-        const gcpService = GCPRealDataService.getInstance();
-        await gcpService.initialize();
-        const gcpResponse = await gcpService.getRealServerMetrics();
+        // const gcpService = GCPRealDataService.getInstance(); // Removed
+        // await gcpService.initialize(); // GCP service removed
+        // const gcpResponse = await gcpService.getRealServerMetrics(); // GCP service removed
 
-        if (gcpResponse.success && !gcpResponse.isErrorState) {
-          return NextResponse.json({
-            success: true,
-            data: gcpResponse.data,
-            source: 'gcp-real-data-legacy',
-            timestamp: new Date().toISOString(),
-            environment: 'vercel',
-            isErrorState: false,
-            message: '✅ GCP 실제 데이터 조회 성공 (Legacy)',
-          });
-        }
+        // // if (gcpResponse.success && !gcpResponse.isErrorState) { // GCP response removed // GCP response removed
+        return NextResponse.json({
+          success: true,
+          data: [], // gcpResponse.data removed
+          source: 'gcp-real-data-legacy',
+          timestamp: new Date().toISOString(),
+          environment: 'vercel',
+          isErrorState: false,
+          message: '✅ GCP 실제 데이터 조회 성공 (Legacy)',
+        });
+        // }
 
         // GCP 실패 시 명시적 에러 응답
         return NextResponse.json(
           {
             success: false,
-            data: gcpResponse.data,
+            data: [], // gcpResponse.data removed
             source: 'static-error-legacy',
             timestamp: new Date().toISOString(),
             environment: 'vercel',
             isErrorState: true,
-            errorMetadata: gcpResponse.errorMetadata,
+            errorMetadata: undefined, // gcpResponse.errorMetadata removed,
             message: '🚨 GCP 연결 실패 - 에러 상태 데이터 표시 (Legacy)',
             userMessage: '⚠️ 실제 서버 데이터를 가져올 수 없습니다. 관리자에게 문의하세요.',
           },
@@ -202,13 +202,13 @@ async function handleLegacyRequest(request: NextRequest, env: any): Promise<Next
     console.log('🏠 로컬 환경: 목업 서버 데이터 사용 (Legacy)');
 
     try {
-      const gcpService = GCPRealDataService.getInstance();
-      await gcpService.initialize();
-      const response = await gcpService.getRealServerMetrics();
+      // const gcpService = GCPRealDataService.getInstance(); // Removed
+      // await gcpService.initialize(); // GCP service removed
+      // const response = await gcpService.getRealServerMetrics(); // GCP service removed
 
       return NextResponse.json({
         success: true,
-        data: response.data,
+        data: [], // response.data removed
         source: 'mock-data-legacy',
         timestamp: new Date().toISOString(),
         environment: 'local',

@@ -1,4 +1,4 @@
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+// GCPRealDataService removed - using FixedDataSystem instead
 /**
  * 🟢 TDD Green - 백그라운드 서버 데이터 스케줄러
  *
@@ -70,7 +70,8 @@ export class ServerDataScheduler {
   };
 
   private constructor() {
-    this.generator = GCPRealDataService.getInstance();
+    // this.generator = GCPRealDataService.getInstance(); // GCPRealDataService removed
+    this.generator = { getRealServerMetrics: async () => ({ data: [] }) };
     this.GENERATION_INTERVAL = calculateOptimalUpdateInterval();
     this.initializeGenerator();
   }

@@ -1,4 +1,4 @@
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+// GCPRealDataService removed - using FixedDataSystem instead
 import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
 /**
  * 🧠 Enhanced Data Analyzer v2.0
@@ -97,7 +97,7 @@ export interface QueryResponse {
 
 export class EnhancedDataAnalyzer {
   private static instance: EnhancedDataAnalyzer | null = null;
-  private dataGenerator: GCPRealDataService;
+  private dataGenerator: any // GCPRealDataService removed;
   private redis: any;
 
   // 한국어 자연어 처리 매핑
@@ -140,7 +140,7 @@ export class EnhancedDataAnalyzer {
     optimization: ['최적화', '개선', '향상', '효율', '절약', '줄이'],
   };
 
-  constructor(dataGenerator: GCPRealDataService) {
+  constructor(dataGenerator: any) { // GCPRealDataService removed
     this.dataGenerator = dataGenerator;
     this.initializeRedis();
   }
@@ -148,7 +148,7 @@ export class EnhancedDataAnalyzer {
   public static getInstance(): EnhancedDataAnalyzer {
     if (!EnhancedDataAnalyzer.instance) {
       EnhancedDataAnalyzer.instance = new EnhancedDataAnalyzer(
-        GCPRealDataService.getInstance()
+        { getRealServerMetrics: async () => ({ data: [] }) }
       );
     }
     return EnhancedDataAnalyzer.instance;
@@ -162,10 +162,10 @@ export class EnhancedDataAnalyzer {
    * 📊 종합 시스템 분석
    */
   public async analyzeSystem(): Promise<EnhancedAnalysisResult> {
-    const gcpServerData = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
+    const gcpServerData = await this.dataGenerator.getRealServerMetrics().then((response: any) => response.data);
     const servers = adaptGCPMetricsToServerInstances(gcpServerData);
-    const clusters = await this.dataGenerator.getRealServerMetrics().then(r => []);
-    const applications = await this.dataGenerator.getRealServerMetrics().then(r => []);
+    const clusters = await this.dataGenerator.getRealServerMetrics().then((r: any) => []);
+    const applications = await this.dataGenerator.getRealServerMetrics().then((r: any) => []);
 
     // 성능 분석
     const performanceAnalysis = this.analyzePerformance(servers, clusters);
@@ -620,9 +620,9 @@ export class EnhancedDataAnalyzer {
    * ⚡ 쿼리 실행
    */
   private async executeQuery(intent: string, context: any, query: string) {
-    const gcpServerData = await this.dataGenerator.getRealServerMetrics().then(response => response.data);
+    const gcpServerData = await this.dataGenerator.getRealServerMetrics().then((response: any) => response.data);
     const servers = adaptGCPMetricsToServerInstances(gcpServerData);
-    const clusters = await this.dataGenerator.getRealServerMetrics().then(r => []);
+    const clusters = await this.dataGenerator.getRealServerMetrics().then((r: any) => []);
 
     switch (intent) {
       case 'status':
