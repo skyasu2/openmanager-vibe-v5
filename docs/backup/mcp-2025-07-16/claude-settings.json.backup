@@ -122,7 +122,15 @@
       "mcp__supabase__get_anon_key",
       "mcp__supabase__list_extensions",
       "mcp__supabase__list_migrations",
-      "mcp__tavily-mcp__tavily-search"
+      "mcp__tavily-mcp__tavily-search",
+      "Bash(git rev-list:*)",
+      "Bash(source:*)",
+      "Bash(./scripts/fix-mcp-servers.sh:*)",
+      "Bash(TAVILY_API_KEY=\"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\" timeout 5s npx tavily-mcp)",
+      "Bash(SUPABASE_URL=\"https://vnswjnltnhpsueosfhmw.supabase.co\" SUPABASE_SERVICE_ROLE_KEY=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8\" timeout 10s npx @supabase/mcp-server-supabase)",
+      "Bash(TAVILY_API_KEY=\"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\" timeout 10s npx -y @tavily/mcp-server)",
+      "Bash(TAVILY_API_KEY=\"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\" timeout 10s npx -y tavily-mcp)",
+      "mcp__tavily__tavily-search"
     ],
     "deny": []
   },

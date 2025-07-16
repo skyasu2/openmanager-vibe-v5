@@ -1,8 +1,9 @@
 # 🚀 Claude Code MCP 설정 가이드 2025
 
-> **최종 업데이트**: 2025년 7월 15일  
-> **문서 버전**: v2.0 - 최신 Claude Code 기능 반영  
-> **적용 대상**: Claude Code 2025년 최신 버전
+> **최종 업데이트**: 2025년 7월 16일  
+> **문서 버전**: v2.1 - 최신 상태 확인 및 백업 정보 추가  
+> **적용 대상**: Claude Code 2025년 최신 버전  
+> **현재 상태**: ✅ 모든 MCP 서버 정상 작동 (6개 서버 활성)
 
 ## 🆕 주요 변화사항
 
@@ -238,8 +239,11 @@ claude mcp add context7 npx -y @context7/mcp-server
 ### Tavily MCP 설정
 
 ```bash
-# AI 웹 검색
-claude mcp add tavily npx -y @tavily/mcp-server -e TAVILY_API_KEY=YOUR_KEY
+# AI 웹 검색 (올바른 패키지명: tavily-mcp)
+claude mcp add tavily npx -y tavily-mcp -e TAVILY_API_KEY=YOUR_KEY
+
+# 또는 환경 변수와 함께
+claude mcp add tavily -e TAVILY_API_KEY=YOUR_KEY -- npx -y tavily-mcp
 ```
 
 ---
@@ -422,7 +426,46 @@ claude config show
 
 ---
 
-## 📚 12. 추가 리소스
+## 📦 12. 백업 및 복원
+
+### 백업 위치
+MCP 설정 백업은 다음 위치에 저장됩니다:
+```
+docs/backup/mcp-2025-07-16/
+├── mcp.json.backup          # 프로젝트 MCP 설정
+├── claude-mcp.json.backup   # Claude MCP 설정
+├── claude-settings.json.backup # 권한 설정
+└── README.md               # 백업 가이드
+```
+
+### 복원 방법
+```bash
+# 전체 설정 복원
+cp docs/backup/mcp-2025-07-16/*.backup .
+cp docs/backup/mcp-2025-07-16/claude-*.backup .claude/
+```
+
+---
+
+## 📊 13. 현재 상태 (2025-07-16)
+
+### 활성 MCP 서버
+| 서버 | 상태 | 용도 |
+|-----|------|-----|
+| filesystem | ✅ | 파일 시스템 접근 |
+| memory | ✅ | 컨텍스트 메모리 |
+| github | ✅ | GitHub API 통합 |
+| supabase | ✅ | 데이터베이스 통합 |
+| context7 | ✅ | 문서 검색 |
+| tavily | ✅ | AI 웹 검색 |
+
+### 상태 확인 문서
+- [MCP 현재 상태 보고서](./mcp-current-status-2025-07-16.md)
+- [MCP 설정 백업](./backup/mcp-2025-07-16/)
+
+---
+
+## 📚 14. 추가 리소스
 
 ### 공식 문서
 - [Claude Code MCP 공식 문서](https://docs.anthropic.com/en/docs/claude-code/mcp)
@@ -437,9 +480,13 @@ claude config show
 - [MCP SDK](https://github.com/modelcontextprotocol/typescript-sdk)
 - [DXT Tools](https://github.com/anthropics/dxt)
 
+### 프로젝트 문서
+- [MCP 설정 가이드](./mcp-setup-instructions.md)
+- [MCP 통합 가이드](./mcp-unified-guide.md)
+
 ---
 
 **문서 작성**: Claude AI Assistant  
-**최신 업데이트**: 2025년 7월 15일  
-**다음 리뷰**: 2025년 10월 15일  
-**문서 버전**: v2.0 - 2025년 최신 기능 반영
+**최신 업데이트**: 2025년 7월 16일  
+**다음 리뷰**: 2025년 10월 16일  
+**문서 버전**: v2.1 - 상태 확인 및 백업 정보 추가

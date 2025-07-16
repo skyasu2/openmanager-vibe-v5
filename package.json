@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.46.35",
+  "version": "5.46.40",
   "description": "🚀 OpenManager Vibe v5 - 무료티어 최적화로 월 사용량 90% 절약하는 실시간 서버 관리 플랫폼. Docker 제거, Vitest 기반 TDD, Google AI 연동으로 차세대 서버 모니터링 시스템을 제공합니다.",
   "private": true,
   "type": "module",

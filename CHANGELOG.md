@@ -1,5 +1,39 @@
 # Changelog
 
+## [5.46.40] - 2025-07-16
+
+### 🔐 긴급 보안 수정
+
+#### 환경변수 보안 강화
+- **하드코딩된 토큰 제거**:
+  - `.mcp.json`에서 GitHub 토큰 제거
+  - 환경변수 참조 방식으로 변경
+  - 백업 파일의 민감한 정보 마스킹
+  
+#### 보안 문서 및 도구
+- **보안 경고 문서**: `docs/SECURITY-ALERT-2025-07-16.md`
+  - 노출된 토큰 목록 및 즉시 조치사항
+  - 토큰 재생성 가이드
+- **환경변수 가이드**: `docs/env-security-guide.md`
+  - 올바른 환경변수 관리 방법
+  - 보안 모범 사례
+- **보안 수정 스크립트**:
+  - `scripts/secure-env-fix.sh`: Linux/Mac용
+  - `scripts/secure-env-fix.ps1`: Windows PowerShell용
+  - Git 캐시 정리 및 환경변수 검증
+
+#### MCP 설정 백업 및 문서화
+- **MCP 상태 보고서**: `docs/mcp-current-status-2025-07-16.md`
+  - 6개 MCP 서버 정상 작동 확인
+  - 현재 설정 상태 문서화
+- **설정 백업**: `docs/backup/mcp-2025-07-16/`
+  - MCP 설정 파일 백업 (민감정보 제거)
+  - 복원 가이드 포함
+
+#### 기타 개선사항
+- `.env.example` 파일 생성 (안전한 템플릿)
+- `claude-code-mcp-setup-2025.md` v2.1 업데이트
+
 ## [5.46.39] - 2025-07-16
 
 ### 📚 문서 정리 및 최적화
