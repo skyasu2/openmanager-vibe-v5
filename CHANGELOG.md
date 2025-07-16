@@ -1,5 +1,32 @@
 # Changelog
 
+## [5.46.39] - 2025-07-16
+
+### 📚 문서 정리 및 최적화
+
+#### README 포트폴리오 최적화
+- **README.md 대폭 간소화**: 794줄 → 90줄 (89% 감소)
+  - 핵심 성과와 기능만 포함
+  - 포트폴리오 목적에 최적화
+  - 상세 내용은 `/docs`로 이동
+
+#### 문서 구조 개선
+- **루트 경로 정리**:
+  - `MCP-QUICK-FIX.md` → `/docs/MCP-QUICK-FIX.md`
+  - `node_version_backup.txt` → `/docs/node_version_backup.txt`
+  - 기존 README 백업: `/docs/README-legacy.md`
+
+#### MCP 문서 통합
+- **중복 문서 통합**: `mcp-unified-guide.md` 생성
+  - MCP-GUIDE.md, mcp-complete-guide.md 등 통합
+  - 중복 문서들은 `/docs/archive/mcp/`로 이동
+  - 하나의 통합된 가이드로 정리
+
+#### 성능 최적화 시스템 문서화
+- **동적 템플릿 시스템**: 완전한 가이드 작성
+- **API 최적화**: 90% 성능 향상 달성
+- **레거시 API 제거**: GCP 의존성 완전 제거
+
 ## [5.46.38] - 2025-07-15
 
 ### 🚀 Upstash MCP 통합
