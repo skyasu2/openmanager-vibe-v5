@@ -7,7 +7,8 @@ function getSupabaseUrl() {
   // 빌드 타임에 환경변수가 없으면 최소 유효 URL 반환
   const url = env.NEXT_PUBLIC_SUPABASE_URL;
   if (
-    !url &&
+    !url ||
+    url === '' ||
     (process.env.NODE_ENV === undefined ||
       process.env.npm_lifecycle_event === 'build')
   ) {
@@ -24,7 +25,8 @@ function getSupabaseUrl() {
 function getSupabaseAnonKey() {
   const key = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (
-    !key &&
+    !key ||
+    key === '' ||
     (process.env.NODE_ENV === undefined ||
       process.env.npm_lifecycle_event === 'build')
   ) {

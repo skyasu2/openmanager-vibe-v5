@@ -14,20 +14,7 @@
 
 import { RedisMetricsManager } from '@/services/redis/RedisMetricsManager';
 import { SupabaseTimeSeriesManager } from '@/services/supabase/SupabaseTimeSeriesManager';
-
-// 기본 서버 메트릭 타입 정의
-export interface ServerMetric {
-  timestamp: Date;
-  serverId: string;
-  cpu: number;
-  memory: number;
-  disk: number;
-  network: { in: number; out: number };
-  response_time: number;
-  request_count: number;
-  error_rate: number;
-  uptime: number;
-}
+import { ServerMetric } from '@/types/server-metrics';
 
 export interface DataLayer {
   name: 'hot' | 'warm' | 'cold';
