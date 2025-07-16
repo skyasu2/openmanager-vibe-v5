@@ -17,7 +17,7 @@ if ($Arguments.Count -eq 0) {
     Write-Host ""
     Write-Host "사용법:" -ForegroundColor Yellow
     Write-Host "  .\tools\g.ps1 `"질문내용`"              빠른 채팅" -ForegroundColor Green
-    Write-Host "  .\tools\g.ps1 file <파일경로>         파일 분석" -ForegroundColor Green
+    Write-Host "  .\tools\g.ps1 file 파일경로           파일 분석" -ForegroundColor Green
     Write-Host "  .\tools\g.ps1 diff                    Git diff 리뷰" -ForegroundColor Green
     Write-Host "  .\tools\g.ps1 stats                   사용량 확인" -ForegroundColor Green
     Write-Host "  .\tools\g.ps1 health                  헬스체크" -ForegroundColor Green

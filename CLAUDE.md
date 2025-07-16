@@ -570,19 +570,58 @@ claude mcp add linear-server https://api.linear.app/mcp
 
 상세한 설정 및 사용법은 `docs/claude-code-mcp-setup-2025.md`를 참조하세요.
 
-## Gemini 개발 도구 v5.0 - 고성능 직접 실행 도구 (권장)
+## 🚀 AI 도구 v2.0 - 차세대 통합 시스템 (최신)
 
-**v5.0 핵심**: MCP 오버헤드 제거, 70% 성능 향상, 캐싱 시스템, 배치 처리
+**v2.0 핵심**: Claude와 Gemini의 지능형 협업, 자동 fallback, 실시간 모니터링
 
-### 🚀 주요 개선사항
+### 🎯 새로운 AI 도구 소개
 
-- **MCP 브릿지 제거**: 직접 gemini CLI 실행으로 성능 향상
-- **5분 캐싱 시스템**: 반복 질문 즉시 응답 (읽기 전용)
-- **Rate Limiting**: 1초 간격으로 API 호출 제한
-- **배치 처리**: 여러 프롬프트 순차 실행 지원
-- **Git 통합**: diff 자동 분석 기능
+#### 1. **Smart Gemini Wrapper** - 지능형 자동 전환 시스템
+- Pro 모델 한도 초과 시 자동으로 Flash 모델로 전환
+- 캐싱 시스템으로 응답 속도 향상
+- 사용량 추적 및 비용 분석
 
-⚠️ **중요**: Gemini Bridge MCP는 개발/디버깅 전용입니다. 일반 사용 시 v5.0 직접 실행 도구를 사용하세요.
+#### 2. **AI Orchestrator** - Claude와 Gemini 협업 도구
+- 다각도 분석: 기술, 사용자, 비즈니스, 보안 관점
+- 단계별 솔루션 자동 생성
+- 컨텍스트 누적 및 보존
+
+#### 3. **AI Usage Dashboard** - 실시간 모니터링
+- 모델별 사용량 통계 및 트렌드
+- 비용 예측 및 최적화 제안
+- 실시간 대시보드 (터미널)
+
+### 💡 빠른 사용법 (WSL 최적화)
+
+```bash
+# WSL 환경 설정 (최초 1회)
+npm run ai:setup
+
+# 일상적인 사용
+ai chat "질문"              # 스마트 채팅
+ai analyze "복잡한 문제"     # 협업 분석
+ai quick "빠른 해결"         # 즉시 해답
+ai stats                     # 사용량 확인
+
+# npm 스크립트
+npm run ai:usage            # 대시보드 보기
+npm run ai:live             # 실시간 모니터링
+```
+
+### 📊 사용 시나리오
+
+1. **버그 해결**: `ai analyze "로그인이 간헐적으로 실패"`
+2. **코드 리뷰**: `git diff | ai diff "SOLID 원칙 검토"`
+3. **성능 최적화**: `ai file src/app/page.tsx "최적화 방법"`
+4. **사용량 관리**: `ai stats` 또는 `npm run ai:live`
+
+### ⚠️ 기존 도구와의 관계
+
+- **기존 v5.0 도구**: 계속 사용 가능 (`./tools/g`, `npm run gemini:*`)
+- **새로운 v2.0 도구**: 더 강력한 기능 제공 (권장)
+- **마이그레이션**: 기존 명령어와 100% 호환
+
+상세 가이드: `docs/ai-tools-guide-v2.md`
 
 ### 💡 사용법
 

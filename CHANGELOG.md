@@ -1,5 +1,60 @@
 # Changelog
 
+## [5.46.41] - 2025-07-16
+
+### 🤖 AI 도구 v2.0 - 차세대 통합 시스템
+
+#### 새로운 AI 도구
+- **Smart Gemini Wrapper** (`tools/smart-gemini-wrapper.ts`):
+  - Pro → Flash 자동 fallback 시스템
+  - 지능형 에러 분석 및 재시도
+  - 캐싱 시스템으로 응답 속도 향상
+  - 사용량 추적 및 비용 분석
+  
+- **AI Orchestrator** (`tools/ai-orchestrator.ts`):
+  - Claude와 Gemini의 체계적 협업
+  - 다각도 분석: 기술, 사용자, 비즈니스, 보안
+  - 단계별 솔루션 자동 생성
+  - 자동 리포트 생성 (`/reports/ai-analysis/`)
+  
+- **AI Usage Dashboard** (`tools/ai-usage-dashboard.ts`):
+  - 실시간 사용량 모니터링
+  - 모델별 통계 및 트렌드 분석
+  - 비용 예측 (30일/90일)
+  - CSV 내보내기 기능
+  
+- **WSL AI Wrapper** (`tools/wsl-ai-wrapper.sh`):
+  - WSL 환경 자동 감지 및 최적화
+  - Windows ↔ WSL 경로 자동 변환
+  - 통합 명령어 인터페이스
+  - 별칭 설정 (`ai`, `aic`, `aia`, `aiq`)
+
+#### npm 스크립트 추가
+```json
+"ai:smart": "tsx tools/smart-gemini-wrapper.ts",
+"ai:orchestrator": "tsx tools/ai-orchestrator.ts",
+"ai:dashboard": "tsx tools/ai-usage-dashboard.ts",
+"ai:analyze": "tsx tools/ai-orchestrator.ts analyze",
+"ai:quick": "tsx tools/ai-orchestrator.ts quick",
+"ai:usage": "tsx tools/ai-usage-dashboard.ts show",
+"ai:live": "tsx tools/ai-usage-dashboard.ts live",
+"ai:setup": "bash tools/wsl-ai-wrapper.sh setup",
+"ai:help": "bash tools/wsl-ai-wrapper.sh"
+```
+
+#### 문서 업데이트
+- **새 가이드**: `docs/ai-tools-guide-v2.md`
+  - 전체 기능 설명
+  - 사용 시나리오
+  - 문제 해결 가이드
+- **CLAUDE.md 업데이트**: AI 도구 v2.0 섹션 추가
+
+#### 주요 개선사항
+- **자동 모델 전환**: Pro 한도 초과 시 Flash로 자동 전환
+- **사용량 최적화**: 캐싱과 rate limiting으로 효율성 향상
+- **협업 분석**: Claude의 초기 분석 + Gemini의 다각도 검토
+- **실시간 모니터링**: 터미널 기반 대시보드
+
 ## [5.46.40] - 2025-07-16
 
 ### 🔐 긴급 보안 수정
