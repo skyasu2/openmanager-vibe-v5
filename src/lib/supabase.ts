@@ -1,55 +1,50 @@
 import { getVercelOptimizedConfig } from '@/config/environment';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { env } from './env';
+import { safeEnv, getSupabaseConfig } from './env';
 
-// 빌드 타임에는 최소 유효한 URL, 런타임에는 실제 환경변수 사용
+// 🔐 안전한 환경변수 접근을 통한 Supabase URL 가져오기
 function getSupabaseUrl() {
-  // 빌드 타임에 환경변수가 없으면 최소 유효 URL 반환
-  const url = env.NEXT_PUBLIC_SUPABASE_URL;
-  if (
-    !url ||
-    url === '' ||
-    (process.env.NODE_ENV === undefined ||
-      process.env.npm_lifecycle_event === 'build')
-  ) {
+  const config = getSupabaseConfig();
+  
+  // 빌드 타임이나 설정되지 않은 경우 임시 URL 반환
+  if (safeEnv.isBuildTime() || !config.isConfigured) {
     return 'https://temp.supabase.co'; // 빌드만 통과하는 임시 URL
   }
 
-  if (!url) {
+  if (!config.url) {
     throw new Error('❌ NEXT_PUBLIC_SUPABASE_URL is required');
   }
 
-  return url;
+  return config.url;
 }
 
+// 🔐 안전한 환경변수 접근을 통한 Supabase Anon Key 가져오기
 function getSupabaseAnonKey() {
-  const key = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (
-    !key ||
-    key === '' ||
-    (process.env.NODE_ENV === undefined ||
-      process.env.npm_lifecycle_event === 'build')
-  ) {
+  const config = getSupabaseConfig();
+  
+  // 빌드 타임이나 설정되지 않은 경우 임시 키 반환
+  if (safeEnv.isBuildTime() || !config.isConfigured) {
     return 'temp-anon-key'; // 빌드만 통과하는 임시 키
   }
 
-  if (!key) {
+  if (!config.anonKey) {
     throw new Error('❌ NEXT_PUBLIC_SUPABASE_ANON_KEY is required');
   }
 
-  return key;
+  return config.anonKey;
 }
 
 // 실제 Supabase 클라이언트 생성 (클라이언트 안전)
 export const supabase = createClient(getSupabaseUrl(), getSupabaseAnonKey());
 
-if (process.env.NODE_ENV === 'development') {
-  console.log('✅ Supabase 클라이언트 초기화됨:', env.NEXT_PUBLIC_SUPABASE_URL);
+if (safeEnv.isDevelopment() && !safeEnv.isBuildTime()) {
+  const config = getSupabaseConfig();
+  console.log('✅ Supabase 클라이언트 초기화됨:', config.url);
 }
 
 export async function checkSupabaseConnection() {
   try {
-    if (env.NODE_ENV === 'development') {
+    if (safeEnv.isDevelopment()) {
       // 개발 환경에서는 항상 연결된 것으로 시뮬레이션
       return {
         status: 'connected' as 'error' | 'connected',

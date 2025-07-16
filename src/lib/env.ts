@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { safeEnv, getFullEnvironmentConfig } from '@/utils/safe-environment';
+import type { EnvironmentConfig } from '@/types/environment';
 
 const EnvironmentSchema = z.object({
   NODE_ENV: z
@@ -14,36 +16,27 @@ const EnvironmentSchema = z.object({
   KV_REST_API_TOKEN: z.string().min(1).optional(),
 });
 
-// 빌드 타임 체크 함수 (더 강화)
+// 🔄 레거시 호환성: 기존 isBuildTime 함수 (새로운 시스템으로 위임)
 function isBuildTime() {
-  return (
-    process.env.NODE_ENV === undefined ||
-    process.env.npm_lifecycle_event === 'build' ||
-    process.env.SKIP_ENV_VALIDATION === 'true' ||
-    (typeof window === 'undefined' && process.env.VERCEL_ENV === undefined)
-  );
+  return safeEnv.isBuildTime();
 }
 
-// 안전한 기본 환경변수 반환
+// 🔄 레거시 호환성: 기존 getDefaultEnvironment 함수 (새로운 시스템으로 위임)
 function getDefaultEnvironment() {
+  const deploymentConfig = safeEnv.getDeploymentConfig();
+  const supabaseConfig = safeEnv.getSupabaseConfig();
+  const redisConfig = safeEnv.getRedisConfig();
+  
   return {
-    NODE_ENV:
-      (process.env.NODE_ENV as 'development' | 'production' | 'test') ||
-      'development',
-    NEXT_PUBLIC_APP_URL:
-      process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    NEXT_PUBLIC_SUPABASE_ANON_KEY:
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+    NODE_ENV: deploymentConfig.environment,
+    NEXT_PUBLIC_APP_URL: deploymentConfig.appUrl,
+    NEXT_PUBLIC_SUPABASE_URL: supabaseConfig.url,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseConfig.anonKey,
     // SUPABASE_SERVICE_ROLE_KEY removed - use env-server.ts for server-only env vars
-    UPSTASH_REDIS_REST_URL:
-      process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '',
-    UPSTASH_REDIS_REST_TOKEN:
-      process.env.UPSTASH_REDIS_REST_TOKEN ||
-      process.env.KV_REST_API_TOKEN ||
-      '',
-    KV_REST_API_URL: process.env.KV_REST_API_URL || '',
-    KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN || '',
+    UPSTASH_REDIS_REST_URL: redisConfig.url,
+    UPSTASH_REDIS_REST_TOKEN: redisConfig.token,
+    KV_REST_API_URL: redisConfig.url,
+    KV_REST_API_TOKEN: redisConfig.token,
   };
 }
 
@@ -136,55 +129,61 @@ export function validateRuntimeEnvironment() {
   }
 }
 
-// 안전한 환경변수 접근 함수들
+// 🔄 레거시 호환성: 기존 getSupabaseConfig 함수 (새로운 시스템으로 위임)
 export function getSupabaseConfig() {
-  return {
-    url: env.NEXT_PUBLIC_SUPABASE_URL || '',
-    anonKey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-    // serviceRoleKey removed - use getSupabaseServiceRoleKey() from env-server.ts
-    isConfigured: !!(
-      env.NEXT_PUBLIC_SUPABASE_URL && env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    ),
-  };
+  return safeEnv.getSupabaseConfig();
 }
 
+// 🔄 레거시 호환성: 기존 getRedisConfig 함수 (새로운 시스템으로 위임)
 export function getRedisConfig() {
-  // 🔧 Vercel 환경에서 안전한 Redis 설정
-  const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
-
-  if (isVercel) {
-    // 🔍 Vercel 환경변수 디버깅
-    const redisUrl =
-      process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-    const redisToken =
-      process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-
+  const config = safeEnv.getRedisConfig();
+  
+  // 🔍 Vercel 환경에서 디버깅 정보 표시
+  if (safeEnv.isVercel() && !safeEnv.isBuildTime()) {
     console.log('🔍 Vercel Redis 환경변수 상태:', {
-      hasUrl: !!redisUrl,
-      hasToken: !!redisToken,
-      urlPrefix: redisUrl ? redisUrl.substring(0, 20) + '...' : 'undefined',
-      tokenPrefix: redisToken
-        ? redisToken.substring(0, 10) + '...'
+      hasUrl: !!config.url,
+      hasToken: !!config.token,
+      urlPrefix: config.url ? config.url.substring(0, 20) + '...' : 'undefined',
+      tokenPrefix: config.token
+        ? config.token.substring(0, 10) + '...'
         : 'undefined',
       vercelEnv: process.env.VERCEL_ENV,
       nodeEnv: process.env.NODE_ENV,
     });
-
-    // Vercel 환경에서는 직접 환경변수 사용
-    return {
-      url: redisUrl || '',
-      token: redisToken || '',
-      isConfigured: !!(redisUrl && redisToken),
-    };
   }
-
-  // 로컬 환경에서는 기존 로직 사용
-  return {
-    url: env.UPSTASH_REDIS_REST_URL || env.KV_REST_API_URL || '',
-    token: env.UPSTASH_REDIS_REST_TOKEN || env.KV_REST_API_TOKEN || '',
-    isConfigured: !!(
-      (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN) ||
-      (env.KV_REST_API_URL && env.KV_REST_API_TOKEN)
-    ),
-  };
+  
+  return config;
 }
+
+// 🌟 새로운 환경변수 시스템으로의 마이그레이션을 위한 추가 export
+export { 
+  safeEnv, 
+  getFullEnvironmentConfig,
+  getSupabaseConfig as getSupabaseConfigNew,
+  getRedisConfig as getRedisConfigNew,
+  getGoogleAIConfig,
+  getDeploymentConfig,
+  getSecurityConfig,
+  getMonitoringConfig,
+  logEnvironmentStatus,
+  checkEnvironmentSecurity,
+  isBuildTime as isBuildTimeNew,
+  isServer,
+  isVercel,
+  isProduction,
+  isDevelopment,
+  isTest
+} from '@/utils/safe-environment';
+
+// 🎯 타입 재export
+export type { 
+  EnvironmentConfig,
+  SupabaseEnvConfig,
+  RedisEnvConfig,
+  GoogleAIEnvConfig,
+  DeploymentEnvConfig,
+  SecurityEnvConfig,
+  MonitoringEnvConfig,
+  EnvironmentValidationResult,
+  SafeEnvironmentAccess
+} from '@/types/environment';

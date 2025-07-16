@@ -19,8 +19,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
   AlertTriangle,
-  Bot,
-  BotOff,
   ChevronDown,
   Lock,
   LogOut,
@@ -97,7 +95,6 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
   // 액션들 (안정적이므로 한 번만 가져오기)
   const { startSystem, stopSystem, logout, authenticateAdmin, logoutAdmin } =
     store;
-  const setAiToggle = (store as any).setAiToggle || (() => {}); // setAiToggle may not exist
 
   const { success, info, error } = useToast();
 
@@ -279,48 +276,22 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
     setPasswordError('');
   };
 
-  // 🤖 AI 토글 핸들러 (오류 처리 강화)
-  const handleAIToggle = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
 
-    try {
-      // 권한 확인 (추가 안전장치)
-      if (!permissions.canToggleAI) {
-        console.warn('🔐 [AI] AI 토글 권한 없음');
-        error('AI 토글 권한이 없습니다');
-        return;
-      }
 
-      // 현재 AI 상태 확인 (안전한 체크)
-      const currentState = aiAgent?.isEnabled ?? false;
-      
-      // AI 상태 토글 (안전한 호출)
-      if (typeof setAiToggle === 'function') {
-        // setAiToggle(!aiToggle);
-        
-        // 토글 후 상태에 따른 메시지 표시
-        if (currentState) {
-          success('AI가 중지되었습니다');
-        } else {
-          success('AI가 활성화되었습니다');
-        }
-      } else {
-        throw new Error('AI 토글 함수를 사용할 수 없습니다');
-      }
-      
-      onClick({} as React.MouseEvent); // 드롭다운 닫기
-    } catch (err) {
-      console.error('🤖 [AI] AI 토글 실패:', err);
-      error('AI 상태 변경 중 오류가 발생했습니다');
-    }
-  };
-
-  // 🎯 유틸리티 함수들 (기존 로직 유지)
+  // 🎯 유틸리티 함수들 (사용자 유형별 최적화)
   const getModeDisplayText = () => {
     if (isLocked) return '잠금 상태';
     if (adminMode.isAuthenticated) return '관리자 모드';
-    if (aiAgent.isEnabled) return 'AI 활성화';
+    
+    // 사용자 유형에 따른 상태 표시
+    if (permissions.isGeneralUser) {
+      // 일반 사용자: 항상 AI 비활성화 상태로 표시
+      return 'AI 비활성화';
+    } else if (permissions.isGitHubAuthenticated) {
+      // GitHub 로그인 사용자: 항상 AI 활성화로 표시 (기존처럼)
+      return 'AI 활성화';
+    }
+    
     return '일반 모드';
   };
 
@@ -435,7 +406,7 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                       {permissions.userName || userName}
                     </h3>
                     <p className={`text-sm ${getModeStatusColor()}`}>
-                      {permissions.isAdmin ? '관리자' : '일반 사용자'} - {getModeDisplayText()}
+                      {permissions.isGitHubAuthenticated ? '로그인 사용자' : '일반 사용자'} - {getModeDisplayText()}
                     </p>
                   </div>
 
@@ -504,8 +475,8 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
 
               {/* 메뉴 아이템들 - 사용자 유형별 최적화 */}
               <div className={`p-2 ${permissions.isGeneralUser ? 'space-y-1' : 'space-y-2'}`}>
-                {/* 관리자 모드 토글 - 관리자만 표시 */}
-                {permissions.canToggleAdminMode && (
+                {/* 관리자 모드 인증 - GitHub 로그인 사용자만 표시 */}
+                {permissions.canToggleAdminMode && !adminMode.isAuthenticated && (
                   !showPasswordInput ? (
                     <motion.button
                       whileHover={{ backgroundColor: 'rgba(255,165,0,0.1)' }}
@@ -513,29 +484,15 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                       onClick={handleAdminModeToggle}
                       className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 mb-2'
                     >
-                      <div
-                        className={`p-2 rounded-lg ${
-                          adminMode.isAuthenticated
-                            ? 'bg-orange-500/20'
-                            : 'bg-gray-500/20'
-                        }`}
-                      >
-                        {adminMode.isAuthenticated ? (
-                          <Unlock className='w-4 h-4 text-orange-600' />
-                        ) : (
-                          <Lock className='w-4 h-4 text-gray-600' />
-                        )}
+                      <div className='p-2 rounded-lg bg-gray-500/20'>
+                        <Lock className='w-4 h-4 text-gray-600' />
                       </div>
                       <div>
                         <div className='text-gray-900 font-medium'>
-                          {adminMode.isAuthenticated
-                            ? '관리자 모드 해제'
-                            : '관리자 모드'}
+                          관리자 모드
                         </div>
                         <div className='text-gray-600 text-xs'>
-                          {adminMode.isAuthenticated
-                            ? '관리자 권한을 해제합니다'
-                            : '관리자 권한을 획득합니다'}
+                          관리자 권한을 획득합니다
                         </div>
                       </div>
                     </motion.button>
@@ -578,35 +535,35 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                   )
                 )}
 
-                {/* AI 토글 버튼 */}
-                <motion.button
-                  whileHover={{ backgroundColor: 'rgba(147, 51, 234, 0.1)' }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleAIToggle}
-                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 mb-2'
-                >
-                  <div
-                    className={`p-2 rounded-lg ${
-                      aiAgent.isEnabled ? 'bg-purple-500/20' : 'bg-gray-500/20'
-                    }`}
+                {/* 관리자 페이지 버튼 - PIN 인증 후에만 표시 */}
+                {permissions.canToggleAdminMode && adminMode.isAuthenticated && (
+                  <motion.button
+                    whileHover={{ backgroundColor: 'rgba(255,165,0,0.1)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      // 관리자 페이지로 이동하는 로직 (나중에 구현)
+                      info('관리자 페이지로 이동합니다');
+                      onClick({} as React.MouseEvent);
+                    }}
+                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 mb-2'
                   >
-                    {aiAgent.isEnabled ? (
-                      <BotOff className='w-4 h-4 text-purple-600' />
-                    ) : (
-                      <Bot className='w-4 h-4 text-gray-600' />
-                    )}
-                  </div>
-                  <div>
-                    <div className='text-gray-900 font-medium'>
-                      {aiAgent.isEnabled ? 'AI 중지' : 'AI 활성화'}
+                    <div className='p-2 rounded-lg bg-orange-500/20'>
+                      <Unlock className='w-4 h-4 text-orange-600' />
                     </div>
-                    <div className='text-gray-600 text-xs'>
-                      {aiAgent.isEnabled
-                        ? 'AI 에이전트를 중지합니다'
-                        : 'AI 에이전트를 활성화합니다'}
+                    <div>
+                      <div className='text-gray-900 font-medium'>
+                        관리자 페이지
+                      </div>
+                      <div className='text-gray-600 text-xs'>
+                        관리자 전용 페이지로 이동합니다
+                      </div>
                     </div>
-                  </div>
-                </motion.button>
+                  </motion.button>
+                )}
+
+
 
                 {/* 시스템 제어 - 관리자만 표시 */}
                 {permissions.canControlSystem && (
