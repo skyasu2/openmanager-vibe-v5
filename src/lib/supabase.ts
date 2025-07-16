@@ -4,34 +4,56 @@ import { safeEnv, getSupabaseConfig } from './env';
 
 // 🔐 안전한 환경변수 접근을 통한 Supabase URL 가져오기
 function getSupabaseUrl() {
+  // 1차: 환경변수 직접 확인 (가장 신뢰할 수 있는 방법)
+  const directUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (directUrl && directUrl !== '' && directUrl !== 'https://temp.supabase.co') {
+    console.log('✅ Supabase URL (직접):', directUrl.substring(0, 30) + '...');
+    return directUrl;
+  }
+  
+  // 2차: safeEnv를 통한 확인
   const config = getSupabaseConfig();
   
-  // 빌드 타임이나 설정되지 않은 경우 임시 URL 반환
-  if (safeEnv.isBuildTime() || !config.isConfigured) {
-    return 'https://temp.supabase.co'; // 빌드만 통과하는 임시 URL
+  // 설정이 되어 있고 임시 URL이 아닌 경우
+  if (config.isConfigured && config.url && config.url !== 'https://temp.supabase.co') {
+    console.log('✅ Supabase URL (safeEnv):', config.url.substring(0, 30) + '...');
+    return config.url;
+  }
+  
+  // 3차: 빌드 타임인 경우에만 임시 URL 반환
+  if (safeEnv.isBuildTime() && process.env.npm_lifecycle_event === 'build') {
+    console.warn('⚠️ 빌드 타임 - 임시 Supabase URL 사용');
+    return 'https://temp.supabase.co';
   }
 
-  if (!config.url) {
-    throw new Error('❌ NEXT_PUBLIC_SUPABASE_URL is required');
-  }
-
-  return config.url;
+  // 런타임인데 URL이 없는 경우 에러
+  throw new Error('❌ NEXT_PUBLIC_SUPABASE_URL is required');
 }
 
 // 🔐 안전한 환경변수 접근을 통한 Supabase Anon Key 가져오기
 function getSupabaseAnonKey() {
+  // 1차: 환경변수 직접 확인
+  const directKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (directKey && directKey !== '' && directKey !== 'temp-anon-key') {
+    return directKey;
+  }
+  
+  // 2차: safeEnv를 통한 확인
   const config = getSupabaseConfig();
   
-  // 빌드 타임이나 설정되지 않은 경우 임시 키 반환
-  if (safeEnv.isBuildTime() || !config.isConfigured) {
-    return 'temp-anon-key'; // 빌드만 통과하는 임시 키
+  // 설정이 되어 있고 임시 키가 아닌 경우
+  if (config.isConfigured && config.anonKey && config.anonKey !== 'temp-anon-key') {
+    return config.anonKey;
+  }
+  
+  // 3차: 빌드 타임인 경우에만 임시 키 반환
+  if (safeEnv.isBuildTime() && process.env.npm_lifecycle_event === 'build') {
+    console.warn('⚠️ 빌드 타임 - 임시 Supabase Anon Key 사용');
+    return 'temp-anon-key';
   }
 
-  if (!config.anonKey) {
-    throw new Error('❌ NEXT_PUBLIC_SUPABASE_ANON_KEY is required');
-  }
-
-  return config.anonKey;
+  // 런타임인데 키가 없는 경우 에러
+  throw new Error('❌ NEXT_PUBLIC_SUPABASE_ANON_KEY is required');
 }
 
 // 실제 Supabase 클라이언트 생성 (클라이언트 안전)

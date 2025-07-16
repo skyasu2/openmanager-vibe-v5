@@ -32,10 +32,15 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
 
   // 🔍 환경 감지 메서드들
   private detectBuildTime(): boolean {
+    // Vercel 런타임에서는 절대 빌드 타임으로 인식하지 않음
+    if (process.env.VERCEL === '1' && typeof window === 'undefined') {
+      // Vercel 서버사이드 실행 중 - 빌드 타임이 아님
+      return false;
+    }
+    
+    // 실제 빌드 중일 때만 true
     return (
-      process.env.NODE_ENV === undefined ||
       process.env.npm_lifecycle_event === 'build' ||
-      process.env.SKIP_ENV_VALIDATION === 'true' ||
       process.env.NEXT_PHASE === 'phase-production-build'
     );
   }
@@ -129,6 +134,22 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
 
   // 🌟 특화된 환경변수 구성 getter들
   getSupabaseConfig(): SupabaseEnvConfig {
+    // 환경변수 직접 확인 (빌드 타임 체크 전에)
+    const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const envAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    // 환경변수가 실제로 설정되어 있으면 사용
+    if (envUrl && envAnonKey) {
+      const serviceRoleKey = this._isServer ? this.get('SUPABASE_SERVICE_ROLE_KEY', '') : '';
+      return {
+        url: envUrl,
+        anonKey: envAnonKey,
+        serviceRoleKey,
+        isConfigured: true
+      };
+    }
+    
+    // 빌드 타임이거나 환경변수가 없는 경우에만 임시값 반환
     if (this._isBuildTime) {
       return {
         url: 'https://temp.supabase.co',
@@ -138,6 +159,7 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
       };
     }
 
+    // 런타임이지만 환경변수가 없는 경우
     const url = this.get('NEXT_PUBLIC_SUPABASE_URL', '');
     const anonKey = this.get('NEXT_PUBLIC_SUPABASE_ANON_KEY', '');
     const serviceRoleKey = this._isServer ? this.get('SUPABASE_SERVICE_ROLE_KEY', '') : '';

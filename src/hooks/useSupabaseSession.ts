@@ -168,10 +168,19 @@ export async function signIn(provider: string, options?: { callbackUrl?: string 
   
   try {
     if (provider === 'github') {
+      // 리다이렉트 URL 디버깅
+      const baseUrl = window.location.origin;
+      const redirectUrl = `${baseUrl}/auth/callback?redirect=${options?.callbackUrl || '/dashboard'}`;
+      console.log('🔍 GitHub OAuth 리다이렉트 설정:', {
+        baseUrl,
+        redirectUrl,
+        window_location: window.location.href,
+      });
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?redirect=${options?.callbackUrl || '/dashboard'}`,
+          redirectTo: redirectUrl,
         },
       });
       
