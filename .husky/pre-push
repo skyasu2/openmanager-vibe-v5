@@ -1,35 +1,35 @@
 #!/bin/sh
-echo "🚀 Pre-push 검증 시작..."
-echo "🔍 전체 품질 검사..."
+echo "Pre-push verification starting..."
+echo "Running quality checks..."
 
-# 환경 변수로 스킵 가능
+# Skip if HUSKY is disabled
 if [ "$HUSKY" = "0" ]; then
-    echo "⏭️  Husky가 비활성화되어 있습니다. 검증을 건너뜁니다."
+    echo "Husky is disabled. Skipping verification."
     exit 0
 fi
 
-# 타입 체크
-echo "📝 타입 체크 중..."
+# Type check
+echo "Type checking..."
 npm run type-check
 if [ $? -ne 0 ]; then
-    echo "❌ 타입 체크 실패!"
+    echo "Type check failed!"
     exit 1
 fi
 
-# 린트
-echo "🧹 린트 검사 중..."
+# Lint
+echo "Linting..."
 npm run lint
 if [ $? -ne 0 ]; then
-    echo "❌ 린트 검사 실패!"
+    echo "Lint check failed!"
     exit 1
 fi
 
-# 테스트 (빠른 테스트만)
-echo "🧪 테스트 실행 중..."
+# Tests (quick tests only)
+echo "Running tests..."
 npm run test:quick
 if [ $? -ne 0 ]; then
-    echo "❌ 테스트 실패!"
+    echo "Tests failed!"
     exit 1
 fi
 
-echo "✅ 모든 검증 통과! Push를 진행합니다."
+echo "All verifications passed! Proceeding with push."
