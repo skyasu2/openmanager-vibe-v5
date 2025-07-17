@@ -637,8 +637,6 @@ npm run docs:cleanup:archive
             ],
             '개발 도구.md': [
                 'storybook-management-guide.md',
-                'fetch-mcp-integration-guide.md',
-                'fetch-mcp-development-guide.md',
                 'mcp-filesystem-server-guide.md'
             ],
             'AI 시스템 아키텍처.md': [

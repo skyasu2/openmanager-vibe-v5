@@ -2,6 +2,17 @@
 
 ## [5.46.42] - 2025-07-17
 
+### 🧹 코드 정리 및 사용하지 않는 파일 제거
+
+#### Fetch MCP Client 제거
+- **삭제된 파일**:
+  - `src/utils/dev-tools/fetch-mcp-client.ts` - 사용되지 않는 개발자 도구
+  - dev-tools 디렉토리가 빈 디렉토리로 남음
+  
+- **문서 업데이트**:
+  - `scripts/docs-management.mjs`에서 fetch-mcp 관련 문서 참조 제거
+  - fetch-mcp-integration-guide.md, fetch-mcp-development-guide.md 참조 제거
+
 ### 📚 MCP (Model Context Protocol) 업데이트
 
 #### Sequential-Thinking MCP 서버 추가
