@@ -463,7 +463,7 @@ fi
 
 # 3. Redis 상태 확인
 echo -n "🔴 Redis 상태: "
-REDIS_STATUS=$(curl -X POST 'https://charming-condor-46598.upstash.io/ping' -H 'Authorization: Bearer AbYGAAIjcDE5MjNmYjhiZDkwOGQ0ITUyOGFiZjUyMmQ0YTkyMzIwM3AxMA' -s 2>/dev/null | grep -o '"result":"[^"]*"' | cut -d'"' -f4)
+REDIS_STATUS=$(curl -X POST 'https://${UPSTASH_REDIS_HOST:-your_redis_host_here}/ping' -H 'Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}' -s 2>/dev/null | grep -o '"result":"[^"]*"' | cut -d'"' -f4)
 if [ "$REDIS_STATUS" = "PONG" ]; then
     echo -e "${GREEN}✅ 정상 (PONG)${NC}"
 else
@@ -486,7 +486,7 @@ echo "📊 상세 메트릭:"
 # 응답시간 측정
 VERCEL_TIME=$(curl -s -w "%{time_total}" -o /dev/null https://openmanager-vibe-v5.vercel.app/api/health 2>/dev/null)
 MCP_TIME=$(curl -s -w "%{time_total}" -o /dev/null http://104.154.205.25:10000/health 2>/dev/null)  
-REDIS_TIME=$(curl -X POST 'https://charming-condor-46598.upstash.io/ping' -H 'Authorization: Bearer AbYGAAIjcDE5MjNmYjhiZDkwOGQ0ITUyOGFiZjUyMmQ0YTkyMzIwM3AxMA' -s -w "%{time_total}" -o /dev/null 2>/dev/null)
+REDIS_TIME=$(curl -X POST 'https://${UPSTASH_REDIS_HOST:-your_redis_host_here}/ping' -H 'Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}' -s -w "%{time_total}" -o /dev/null 2>/dev/null)
 
 echo "   Vercel 응답시간: ${VERCEL_TIME}초"
 echo "   MCP 응답시간: ${MCP_TIME}초" 

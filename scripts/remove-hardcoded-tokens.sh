@@ -14,7 +14,7 @@ NC='\033[0m'
 
 # 제거할 토큰들
 OLD_TOKEN="AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA"
-OLD_HOST="charming-condor-46598.upstash.io"
+OLD_HOST="your_redis_host_here"
 
 # 1. 토큰이 포함된 파일 찾기
 echo -e "${YELLOW}🔍 하드코딩된 토큰을 포함한 파일 검색 중...${NC}"
@@ -103,9 +103,9 @@ echo "1. Upstash 콘솔에서 Redis 비밀번호 재설정:"
 echo "   https://console.upstash.com"
 echo ""
 echo "2. .env.local 파일에 새 인증 정보 추가:"
-echo "   UPSTASH_REDIS_HOST=charming-condor-46598.upstash.io"
+echo "   UPSTASH_REDIS_HOST=your_redis_host_here"
 echo "   UPSTASH_REDIS_PASSWORD=새로운_비밀번호"
-echo "   KV_REST_API_URL=https://charming-condor-46598.upstash.io"
+echo "   KV_REST_API_URL=https://your_redis_host_here"
 echo "   KV_REST_API_TOKEN=새로운_API_토큰"
 echo ""
 echo "3. Git 기록에서 민감한 정보 제거 (선택사항):"

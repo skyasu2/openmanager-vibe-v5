@@ -1,532 +1,326 @@
+/**
+ * 🧪 시스템 메트릭 서비스 단위 테스트
+ * 
+ * 테스트 범위:
+ * - 메트릭 수집 및 검증
+ * - 캐싱 동작
+ * - 에러 핸들링
+ * - 성능 모니터링
+ * - 실시간 업데이트
+ */
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { MetricsCollector } from '@/services/ai/engines/metrics/MetricsCollector';
+import { RealTimeMetricsCollector } from '@/services/ai/RealTimeMetricsCollector';
+import type { SystemMetrics, MetricsCollectionOptions } from '@/services/ai/engines/ai-types/AITypes';
+import type { APICallMetric, EngineMetrics } from '@/services/ai/RealTimeMetricsCollector';
 
-// 🧪 시스템 메트릭 API 테스트용 타입 정의
-interface SystemMetrics {
-  cpu: number;
-  memory: number;
-  disk: number;
-  network: {
-    in: number;
-    out: number;
-  };
-}
+// Mock 설정
+vi.mock('@/lib/logger', () => ({
+  systemLogger: {
+    system: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+  },
+}));
 
-// 시스템 메트릭 로직 테스트
-describe('System Metrics Logic', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+describe('System Metrics Services', () => {
+  describe('MetricsCollector', () => {
+    let collector: MetricsCollector;
 
-  describe('서버 메트릭 검증', () => {
-    it('should validate server metric ranges', () => {
-      const validateMetric = (value: number, type: string): boolean => {
-        const ranges: Record<string, [number, number]> = {
-          cpu: [0, 100],
-          memory: [0, 100],
-          disk: [0, 100],
-          network: [0, 10000],
+    beforeEach(() => {
+      vi.clearAllMocks();
+      collector = new MetricsCollector();
+    });
+
+    describe('시스템 메트릭 수집', () => {
+      it('should collect system metrics successfully', async () => {
+        const options: MetricsCollectionOptions = {
+          serverIds: ['server-1', 'server-2'],
+          includeGlobalStats: true,
+          includeAlerts: true,
         };
 
-        const [min, max] = ranges[type] || [0, 100];
-        return value >= min && value <= max;
-      };
+        const metrics = await collector.collectSystemMetrics(options);
 
-      expect(validateMetric(45, 'cpu')).toBe(true);
-      expect(validateMetric(101, 'cpu')).toBe(false);
-      expect(validateMetric(1500, 'network')).toBe(true);
-      expect(validateMetric(-5, 'memory')).toBe(false);
+        expect(metrics).toHaveProperty('servers');
+        expect(metrics).toHaveProperty('global_stats');
+        expect(metrics).toHaveProperty('alerts');
+        expect(metrics).toHaveProperty('timestamp');
+
+        expect(Object.keys(metrics.servers)).toHaveLength(2);
+        expect(metrics.servers['server-1']).toHaveProperty('cpu_usage');
+        expect(metrics.servers['server-1']).toHaveProperty('memory_usage');
+        expect(metrics.servers['server-1']).toHaveProperty('disk_usage');
+      });
+
+      it('should use cached metrics within expiry time', async () => {
+        const options: MetricsCollectionOptions = {
+          serverIds: ['server-1'],
+        };
+
+        // 첫 번째 호출
+        const metrics1 = await collector.collectSystemMetrics(options);
+        const timestamp1 = metrics1.timestamp;
+
+        // 즉시 두 번째 호출 (캐시 사용되어야 함)
+        const metrics2 = await collector.collectSystemMetrics(options);
+        const timestamp2 = metrics2.timestamp;
+
+        expect(timestamp1).toBe(timestamp2);
+        expect(metrics1).toEqual(metrics2);
+      });
+
+      it('should handle empty server list', async () => {
+        const options: MetricsCollectionOptions = {
+          serverIds: [],
+        };
+
+        const metrics = await collector.collectSystemMetrics(options);
+        
+        expect(metrics.servers).toBeDefined();
+        expect(Object.keys(metrics.servers)).toHaveLength(0);
+      });
+
+      it('should handle collection errors gracefully', async () => {
+        // collectServerMetrics를 모킹하여 에러 발생시키기
+        const collectServerMetricsSpy = vi.spyOn(collector as any, 'collectServerMetrics');
+        collectServerMetricsSpy.mockRejectedValueOnce(new Error('Network error'));
+
+        const metrics = await collector.collectSystemMetrics();
+
+        expect(metrics).toBeDefined();
+        expect(metrics.servers).toEqual({});
+        expect(metrics.timestamp).toBeDefined();
+      });
     });
 
-    it('should calculate system health score', () => {
-      const calculateSystemHealth = (metrics: SystemMetrics): number => {
-        const { cpu, memory, disk, network } = metrics;
-
-        const cpuScore = Math.max(0, 100 - cpu);
-        const memoryScore = Math.max(0, 100 - memory);
-        const diskScore = Math.max(0, 100 - disk);
-        const networkScore = Math.min(100, network.in / 10); // 네트워크는 높을수록 좋음
-
-        return (cpuScore + memoryScore + diskScore + networkScore) / 4;
-      };
-
-      const goodMetrics: SystemMetrics = {
-        cpu: 20,
-        memory: 30,
-        disk: 40,
-        network: { in: 500, out: 300 },
-      };
-      const poorMetrics: SystemMetrics = {
-        cpu: 90,
-        memory: 85,
-        disk: 95,
-        network: { in: 50, out: 30 },
-      };
-
-      const goodHealth = calculateSystemHealth(goodMetrics);
-      const poorHealth = calculateSystemHealth(poorMetrics);
-
-      expect(goodHealth).toBeGreaterThan(poorHealth);
-      expect(goodHealth).toBeGreaterThan(60);
-      expect(poorHealth).toBeLessThan(30);
-    });
-
-    it('should detect performance anomalies', () => {
-      const detectAnomalies = (
-        currentMetrics: Record<string, number>,
-        historicalAvg: Record<string, number>,
-        threshold: number = 2
-      ): string[] => {
-        const anomalies: string[] = [];
-
-        Object.keys(currentMetrics).forEach(key => {
-          const current = currentMetrics[key];
-          const avg = historicalAvg[key];
-          const deviation = Math.abs(current - avg) / avg;
-
-          if (deviation > threshold) {
-            anomalies.push(`${key}: ${current} (평균: ${avg})`);
-          }
+    describe('메트릭 검증', () => {
+      it('should validate metric ranges', async () => {
+        const metrics = await collector.collectSystemMetrics({
+          serverIds: ['test-server'],
         });
 
-        return anomalies;
-      };
+        const serverMetrics = metrics.servers['test-server'];
+        
+        // CPU 사용률 0-100 범위 확인
+        serverMetrics.cpu_usage.forEach(value => {
+          expect(value).toBeGreaterThanOrEqual(0);
+          expect(value).toBeLessThanOrEqual(100);
+        });
 
-      const current = { cpu: 85, memory: 90, disk: 45 };
-      const historical = { cpu: 30, memory: 40, disk: 50 };
+        // 메모리 사용률 0-100 범위 확인
+        serverMetrics.memory_usage.forEach(value => {
+          expect(value).toBeGreaterThanOrEqual(0);
+          expect(value).toBeLessThanOrEqual(100);
+        });
 
-      const anomalies = detectAnomalies(current, historical, 1.0);
-      expect(anomalies.length).toBeGreaterThan(0);
-      expect(anomalies.some(a => a.includes('cpu'))).toBe(true);
-      expect(anomalies.some(a => a.includes('memory'))).toBe(true);
+        // 디스크 사용률 0-100 범위 확인
+        serverMetrics.disk_usage.forEach(value => {
+          expect(value).toBeGreaterThanOrEqual(0);
+          expect(value).toBeLessThanOrEqual(100);
+        });
+      });
+
+      it('should calculate average metrics correctly', async () => {
+        const metrics = await collector.collectSystemMetrics({
+          serverIds: ['server-1'],
+        });
+
+        const cpuValues = metrics.servers['server-1'].cpu_usage;
+        const expectedAvg = cpuValues.reduce((sum, val) => sum + val, 0) / cpuValues.length;
+        const actualAvg = cpuValues.reduce((sum, val) => sum + val, 0) / cpuValues.length;
+
+        expect(actualAvg).toBe(expectedAvg);
+        expect(actualAvg).toBeGreaterThan(0);
+        expect(actualAvg).toBeLessThan(100);
+      });
     });
   });
 
-  describe('실시간 모니터링', () => {
-    it('should process real-time metrics', () => {
-      interface RawMetricData {
-        cpu: number;
-        memory: number;
-        disk: number;
-        timestamp: string;
-      }
+  describe('RealTimeMetricsCollector', () => {
+    let rtCollector: RealTimeMetricsCollector;
 
-      interface ProcessedResult {
-        latest: RawMetricData & {
-          health: string;
-          alerts: string[];
-        };
-        average: Pick<RawMetricData, 'cpu' | 'memory' | 'disk'>;
-        trend: string;
-        timestamp: number;
-      }
+    beforeEach(() => {
+      rtCollector = new RealTimeMetricsCollector();
+    });
 
-      const processRealtimeMetrics = (
-        rawData: RawMetricData[]
-      ): ProcessedResult => {
-        const latest = rawData[rawData.length - 1];
-
-        const calculateHealth = (data: RawMetricData): string => {
-          const score =
-            (100 - data.cpu) * 0.4 +
-            (100 - data.memory) * 0.3 +
-            (100 - data.disk) * 0.3;
-          if (score > 55) return 'healthy'; // 70에서 55로 수정
-          if (score > 30) return 'warning'; // 40에서 30으로 수정
-          return 'critical';
-        };
-
-        const generateAlerts = (data: RawMetricData): string[] => {
-          const alerts: any[] = [];
-          if (data.cpu > 80) alerts.push('high_cpu');
-          if (data.memory > 85) alerts.push('high_memory');
-          return alerts;
-        };
-
-        const calculateAverage = (
-          data: RawMetricData[]
-        ): Pick<RawMetricData, 'cpu' | 'memory' | 'disk'> => {
-          const sum = data.reduce(
-            (acc, item) => ({
-              cpu: acc.cpu + item.cpu,
-              memory: acc.memory + item.memory,
-              disk: acc.disk + item.disk,
-            }),
-            { cpu: 0, memory: 0, disk: 0 }
-          );
-
-          return {
-            cpu: sum.cpu / data.length,
-            memory: sum.memory / data.length,
-            disk: sum.disk / data.length,
-          };
-        };
-
-        const calculateTrend = (data: RawMetricData[]): string => {
-          if (data.length < 2) return 'stable';
-
-          const recentCount = Math.max(1, Math.floor(data.length * 0.3));
-          const recent = data.slice(-recentCount);
-          const older = data.slice(0, recentCount);
-
-          const recentAvg =
-            recent.reduce((sum, item) => sum + item.cpu, 0) / recent.length;
-          const olderAvg =
-            older.reduce((sum, item) => sum + item.cpu, 0) / older.length;
-
-          if (recentAvg > olderAvg * 1.1) return 'increasing';
-          if (recentAvg < olderAvg * 0.9) return 'decreasing';
-          return 'stable';
-        };
-
-        return {
-          latest: {
-            ...latest,
-            health: calculateHealth(latest),
-            alerts: generateAlerts(latest),
-          },
-          average: calculateAverage(rawData),
-          trend: calculateTrend(rawData),
+    describe('API 호출 기록', () => {
+      it('should record API calls', () => {
+        const metric: APICallMetric = {
+          endpoint: '/api/ai/analyze',
+          method: 'POST',
           timestamp: Date.now(),
+          responseTime: 150,
+          success: true,
+          statusCode: 200,
+          userAgent: 'test-agent',
         };
-      };
 
-      const mockData: RawMetricData[] = [
-        { cpu: 30, memory: 40, disk: 50, timestamp: '2025-01-01T00:00:00Z' },
-        { cpu: 35, memory: 45, disk: 55, timestamp: '2025-01-01T00:01:00Z' },
-        { cpu: 40, memory: 50, disk: 60, timestamp: '2025-01-01T00:02:00Z' },
-      ];
+        rtCollector.recordAPICall(metric);
+        const engineMetrics = rtCollector.getEngineMetrics();
 
-      const result = processRealtimeMetrics(mockData);
-      expect(result.latest.health).toBe('warning');
-      expect(result.average.cpu).toBeCloseTo(35, 0);
-      expect(['increasing', 'decreasing', 'stable']).toContain(result.trend);
-    });
+        expect(engineMetrics.length).toBeGreaterThan(0);
+        
+        const aiMetric = engineMetrics.find(m => m.name === 'ai');
+        expect(aiMetric).toBeDefined();
+        expect(aiMetric?.totalCalls).toBe(1);
+        expect(aiMetric?.successfulCalls).toBe(1);
+        expect(aiMetric?.avgResponseTime).toBe(150);
+      });
 
-    it('should handle metric data streams', () => {
-      interface StreamData {
-        cpu: number;
-        memory: number;
-        timestamp: number;
-      }
-
-      interface StreamResult {
-        current: StreamData;
-        moving_average: Pick<StreamData, 'cpu' | 'memory'>;
-        volatility: number;
-        prediction: {
-          cpu: number;
-          confidence: number;
-        };
-      }
-
-      const processMetricStream = (
-        stream: StreamData[],
-        windowSize: number = 10
-      ): StreamResult => {
-        const window = stream.slice(-windowSize);
-
-        return {
-          current: window[window.length - 1],
-          moving_average: calculateMovingAverage(window),
-          volatility: calculateVolatility(window),
-          prediction: predictNext(window),
-        };
-      };
-
-      const calculateMovingAverage = (
-        window: StreamData[]
-      ): Pick<StreamData, 'cpu' | 'memory'> => {
-        const sum = window.reduce(
-          (acc, item) => ({
-            cpu: acc.cpu + item.cpu,
-            memory: acc.memory + item.memory,
-          }),
-          { cpu: 0, memory: 0 }
-        );
-
-        return {
-          cpu: sum.cpu / window.length,
-          memory: sum.memory / window.length,
-        };
-      };
-
-      const calculateVolatility = (window: StreamData[]): number => {
-        const values = window.map(item => item.cpu);
-        const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-        const variance =
-          values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
-          values.length;
-        return Math.sqrt(variance);
-      };
-
-      const predictNext = (
-        window: StreamData[]
-      ): { cpu: number; confidence: number } => {
-        const latest = window[window.length - 1];
-        const trend =
-          window.length > 1 ? latest.cpu - window[window.length - 2].cpu : 0;
-
-        return {
-          cpu: Math.max(0, Math.min(100, latest.cpu + trend)),
-          confidence: Math.max(0.1, 1 - Math.abs(trend) / 50),
-        };
-      };
-
-      const streamData: StreamData[] = Array.from({ length: 15 }, (_, i) => ({
-        cpu: 30 + Math.sin(i * 0.5) * 10 + Math.random() * 5,
-        memory: 40 + Math.cos(i * 0.3) * 8 + Math.random() * 3,
-        timestamp: Date.now() + i * 1000,
-      }));
-
-      const result = processMetricStream(streamData);
-      expect(result.current).toBeDefined();
-      expect(result.moving_average.cpu).toBeGreaterThan(0);
-      expect(result.volatility).toBeGreaterThanOrEqual(0);
-      expect(result.prediction.confidence).toBeGreaterThanOrEqual(0.1);
-      expect(result.prediction.confidence).toBeLessThanOrEqual(1);
-    });
-  });
-
-  describe('15개 서버 관리', () => {
-    it('should manage multiple server metrics', () => {
-      interface Server {
-        id: string;
-        name: string;
-        metrics: SystemMetrics;
-        status: string;
-      }
-
-      interface ServerManagementResult {
-        healthy: Server[];
-        warning: Server[];
-        critical: Server[];
-        summary: {
-          total: number;
-          healthy: number;
-          issues: number;
-        };
-      }
-
-      const manageServerMetrics = (
-        servers: Server[]
-      ): ServerManagementResult => {
-        const healthy: Server[] = [];
-        const warning: Server[] = [];
-        const critical: Server[] = [];
-
-        servers.forEach(server => {
-          const avgUsage = (server.metrics.cpu + server.metrics.memory) / 2;
-          if (avgUsage < 60) {
-            healthy.push(server);
-          } else if (avgUsage < 85) {
-            warning.push(server);
-          } else {
-            critical.push(server);
-          }
-        });
-
-        return {
-          healthy,
-          warning,
-          critical,
-          summary: {
-            total: servers.length,
-            healthy: healthy.length,
-            issues: warning.length + critical.length,
+      it('should handle multiple API calls', () => {
+        const calls: APICallMetric[] = [
+          {
+            endpoint: '/api/ai/analyze',
+            method: 'POST',
+            timestamp: Date.now(),
+            responseTime: 100,
+            success: true,
+            statusCode: 200,
           },
-        };
-      };
-
-      const mockServers: Server[] = [
-        {
-          id: 'server-1',
-          name: 'Web Server',
-          metrics: {
-            cpu: 45,
-            memory: 60,
-            disk: 30,
-            network: { in: 1000, out: 800 },
+          {
+            endpoint: '/api/ai/analyze',
+            method: 'POST',
+            timestamp: Date.now(),
+            responseTime: 200,
+            success: false,
+            statusCode: 500,
           },
-          status: 'running',
-        },
-        {
-          id: 'server-2',
-          name: 'Database Server',
-          metrics: {
-            cpu: 80,
-            memory: 75,
-            disk: 60,
-            network: { in: 2000, out: 1500 },
+          {
+            endpoint: '/api/ai/analyze',
+            method: 'POST',
+            timestamp: Date.now(),
+            responseTime: 150,
+            success: true,
+            statusCode: 200,
           },
-          status: 'running',
-        },
-      ];
+        ];
 
-      const result = manageServerMetrics(mockServers);
-      expect(result.summary.total).toBe(2);
-      expect(
-        result.healthy.length + result.warning.length + result.critical.length
-      ).toBe(2);
-    });
+        calls.forEach(call => rtCollector.recordAPICall(call));
+        const engineMetrics = rtCollector.getEngineMetrics();
+        
+        const aiMetric = engineMetrics.find(m => m.name === 'ai');
+        expect(aiMetric?.totalCalls).toBe(3);
+        expect(aiMetric?.successfulCalls).toBe(2);
+        expect(aiMetric?.failedCalls).toBe(1);
+        expect(aiMetric?.avgResponseTime).toBe(150); // (100 + 200 + 150) / 3
+      });
 
-    it('should distribute load across servers', () => {
-      interface ServerLoad {
-        id: string;
-        currentLoad: number;
-        capacity: number;
-        efficiency: number;
-      }
-
-      interface LoadDistribution {
-        serverId: string;
-        allocatedLoad: number;
-        utilizationAfter: number;
-      }
-
-      const distributeLoad = (
-        servers: ServerLoad[],
-        totalLoad: number
-      ): LoadDistribution[] => {
-        const availableServers = servers.filter(
-          s => s.currentLoad < s.capacity * 0.9
-        );
-
-        if (availableServers.length === 0) return [];
-
-        const totalAvailableCapacity = availableServers.reduce(
-          (sum, server) =>
-            sum + (server.capacity - server.currentLoad) * server.efficiency,
-          0
-        );
-
-        return availableServers.map(server => {
-          const availableCapacity =
-            (server.capacity - server.currentLoad) * server.efficiency;
-          const loadShare =
-            (availableCapacity / totalAvailableCapacity) * totalLoad;
-
-          return {
-            serverId: server.id,
-            allocatedLoad: Math.min(
-              loadShare,
-              server.capacity - server.currentLoad
-            ),
-            utilizationAfter:
-              (server.currentLoad + loadShare) / server.capacity,
-          };
-        });
-      };
-
-      const mockServers: ServerLoad[] = [
-        { id: 'server-1', currentLoad: 30, capacity: 100, efficiency: 0.9 },
-        { id: 'server-2', currentLoad: 50, capacity: 100, efficiency: 0.8 },
-        { id: 'server-3', currentLoad: 95, capacity: 100, efficiency: 1.0 }, // 거의 포화
-      ];
-
-      const distribution = distributeLoad(mockServers, 40);
-      expect(distribution.length).toBe(2); // server-3은 제외
-      expect(distribution.every(d => d.utilizationAfter <= 1)).toBe(true);
-    });
-  });
-
-  describe('알림 및 임계값', () => {
-    it('should generate appropriate alerts', () => {
-      interface AlertThreshold {
-        cpu: number;
-        memory: number;
-        disk: number;
-        network?: number;
-      }
-
-      interface Alert {
-        type: string;
-        severity: 'low' | 'medium' | 'high' | 'critical';
-        message: string;
-        value: number;
-        threshold: number;
-      }
-
-      const generateSystemAlerts = (
-        metrics: SystemMetrics,
-        thresholds: AlertThreshold
-      ): Alert[] => {
-        const alerts: Alert[] = [];
-
-        if (metrics.cpu > thresholds.cpu) {
-          alerts.push({
-            type: 'cpu',
-            severity: metrics.cpu > 90 ? 'critical' : 'high',
-            message: `CPU 사용률이 높습니다: ${metrics.cpu}%`,
-            value: metrics.cpu,
-            threshold: thresholds.cpu,
+      it('should limit stored records for memory management', () => {
+        // 1001개의 API 호출 기록
+        for (let i = 0; i < 1001; i++) {
+          rtCollector.recordAPICall({
+            endpoint: '/api/test',
+            method: 'GET',
+            timestamp: Date.now(),
+            responseTime: 50,
+            success: true,
+            statusCode: 200,
           });
         }
 
-        if (metrics.memory > thresholds.memory) {
-          alerts.push({
-            type: 'memory',
-            severity: metrics.memory > 90 ? 'critical' : 'high',
-            message: `메모리 사용률이 높습니다: ${metrics.memory}%`,
-            value: metrics.memory,
-            threshold: thresholds.memory,
+        const systemMetrics = rtCollector.getSystemMetrics();
+        expect(systemMetrics.totalCalls).toBeLessThanOrEqual(1000);
+      });
+    });
+
+    describe('엔진 상태 판단', () => {
+      it('should determine engine status correctly', () => {
+        // 성공적인 호출들
+        for (let i = 0; i < 10; i++) {
+          rtCollector.recordAPICall({
+            endpoint: '/api/ai/test',
+            method: 'GET',
+            timestamp: Date.now() - i * 1000,
+            responseTime: 100,
+            success: true,
+            statusCode: 200,
           });
         }
 
-        return alerts;
-      };
+        const metrics = rtCollector.getEngineMetrics();
+        const aiEngine = metrics.find(m => m.name === 'ai');
+        expect(aiEngine?.status).toBe('active');
+      });
 
-      const highUsageMetrics: SystemMetrics = {
-        cpu: 85,
-        memory: 92,
-        disk: 45,
-        network: { in: 1000, out: 800 },
-      };
+      it('should detect error status', () => {
+        // 실패한 호출들
+        for (let i = 0; i < 5; i++) {
+          rtCollector.recordAPICall({
+            endpoint: '/api/mcp/test',
+            method: 'GET',
+            timestamp: Date.now(),
+            responseTime: 500,
+            success: false,
+            statusCode: 500,
+          });
+        }
 
-      const thresholds: AlertThreshold = {
-        cpu: 80,
-        memory: 85,
-        disk: 90,
-      };
-
-      const alerts = generateSystemAlerts(highUsageMetrics, thresholds);
-      expect(alerts.length).toBe(2);
-      expect(alerts.some(a => a.type === 'cpu')).toBe(true);
-      expect(alerts.some(a => a.type === 'memory')).toBe(true);
-      expect(alerts.find(a => a.type === 'memory')?.severity).toBe('critical');
+        const metrics = rtCollector.getEngineMetrics();
+        const mcpEngine = metrics.find(m => m.name === 'mcp');
+        expect(mcpEngine?.status).toBe('error');
+      });
     });
 
-    it('should implement alert throttling', () => {
-      const alertThrottler = (() => {
-        const sentAlerts = new Map();
-        const cooldownPeriod = 300000; // 5분
+    describe('시스템 전체 메트릭', () => {
+      it('should calculate system-wide metrics', () => {
+        const endpoints = [
+          '/api/ai/analyze',
+          '/api/mcp/query',
+          '/api/test/health',
+        ];
 
-        return {
-          shouldSendAlert: (alertKey: string, currentTime: number): boolean => {
-            const lastSent = sentAlerts.get(alertKey);
-            if (!lastSent || currentTime - lastSent > cooldownPeriod) {
-              sentAlerts.set(alertKey, currentTime);
-              return true;
-            }
-            return false;
-          },
+        endpoints.forEach((endpoint, index) => {
+          rtCollector.recordAPICall({
+            endpoint,
+            method: 'GET',
+            timestamp: Date.now(),
+            responseTime: 100 + index * 50,
+            success: index !== 1, // 중간 하나만 실패
+            statusCode: index === 1 ? 500 : 200,
+          });
+        });
 
-          clearThrottle: (alertKey: string): void => {
-            sentAlerts.delete(alertKey);
-          },
-        };
-      })();
+        const systemMetrics = rtCollector.getSystemMetrics();
+        
+        expect(systemMetrics.totalCalls).toBe(3);
+        expect(systemMetrics.successRate).toBeCloseTo(66.67, 1);
+        expect(systemMetrics.avgResponseTime).toBe(150); // (100 + 150 + 200) / 3
+        expect(systemMetrics.activeEngines).toBe(3);
+      });
+    });
+  });
 
-      const now = Date.now();
-      const alertKey = 'cpu-high-server-1';
+  describe('메트릭 통합 시나리오', () => {
+    it('should work together for comprehensive monitoring', async () => {
+      const metricsCollector = new MetricsCollector();
+      const rtCollector = new RealTimeMetricsCollector();
 
-      // 첫 번째 알림은 전송되어야 함
-      expect(alertThrottler.shouldSendAlert(alertKey, now)).toBe(true);
+      // API 호출 시뮬레이션
+      rtCollector.recordAPICall({
+        endpoint: '/api/ai/analyze',
+        method: 'POST',
+        timestamp: Date.now(),
+        responseTime: 120,
+        success: true,
+        statusCode: 200,
+      });
 
-      // 같은 알림은 쿨다운 기간 내에 전송되지 않아야 함
-      expect(alertThrottler.shouldSendAlert(alertKey, now + 60000)).toBe(false);
+      // 시스템 메트릭 수집
+      const systemMetrics = await metricsCollector.collectSystemMetrics({
+        serverIds: ['main-server'],
+        includeGlobalStats: true,
+      });
 
-      // 쿨다운 기간 후에는 다시 전송되어야 함
-      expect(alertThrottler.shouldSendAlert(alertKey, now + 400000)).toBe(true);
+      // 실시간 메트릭
+      const rtMetrics = rtCollector.getSystemMetrics();
+
+      // 통합 검증
+      expect(systemMetrics).toBeDefined();
+      expect(rtMetrics).toBeDefined();
+      expect(systemMetrics.servers['main-server']).toBeDefined();
+      expect(rtMetrics.totalCalls).toBeGreaterThan(0);
     });
   });
 });

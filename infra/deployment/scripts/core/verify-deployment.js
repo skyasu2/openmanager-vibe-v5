@@ -17,10 +17,10 @@ const REQUIRED_ENV_VARS = {
   'SUPABASE_SERVICE_ROLE_KEY': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
   
   // Redis (둘 중 하나만 있으면 됨)
-  'UPSTASH_REDIS_REST_URL': 'https://charming-condor-46598.upstash.io',
-  'KV_REST_API_URL': 'https://charming-condor-46598.upstash.io',
-  'UPSTASH_REDIS_REST_TOKEN': 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
-  'KV_REST_API_TOKEN': 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA'
+      'UPSTASH_REDIS_REST_URL': 'https://your_redis_host_here',
+    'KV_REST_API_URL': 'https://your_redis_host_here',
+      'UPSTASH_REDIS_REST_TOKEN': 'your_redis_token_here',
+    'KV_REST_API_TOKEN': 'your_redis_token_here'
 };
 
 // API 엔드포인트 체크 리스트

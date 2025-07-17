@@ -705,11 +705,9 @@ export function getRedis(): Redis {
       enableReadyCheck: true,
       keepAlive: 30000,
       family: 4,
-      host: process.env.GCP_REDIS_HOST || 'charming-condor-46598.upstash.io',
-      port: parseInt(process.env.GCP_REDIS_PORT || '6379'),
-      password:
-        process.env.GCP_REDIS_PASSWORD ||
-        'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
+      host: process.env.GCP_REDIS_HOST || process.env.REDIS_HOST || process.env.UPSTASH_REDIS_HOST,
+      port: parseInt(process.env.GCP_REDIS_PORT || process.env.REDIS_PORT || '6379'),
+      password: process.env.GCP_REDIS_PASSWORD || process.env.REDIS_PASSWORD || process.env.UPSTASH_REDIS_REST_TOKEN,
       maxRetriesPerRequest: 3,
       connectTimeout: 10000,
       commandTimeout: 5000,

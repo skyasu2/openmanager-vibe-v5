@@ -25,9 +25,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMzM2MDM2MiwiZXhwIjoyMDQ4OTM2MzYyfQ.zJnAUZUxcQwHPW2A3Ku8K_3kB_c3TCPU_LlhGaKf0RQ
 
 # 🔄 Redis 설정 (Upstash)
-REDIS_URL=rediss://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA@charming-condor-46598.upstash.io:6379
-UPSTASH_REDIS_REST_URL=https://charming-condor-46598.upstash.io
-UPSTASH_REDIS_REST_TOKEN=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+REDIS_URL=rediss://default:your_redis_token_here@your_redis_host_here:6379
+UPSTASH_REDIS_REST_URL=https://your_redis_host_here
+UPSTASH_REDIS_REST_TOKEN=your_redis_token_here
 
 # 🛡️ Next.js 보안 설정
 NEXTAUTH_SECRET=openmanager-vibe-v5-auth-secret-key-2024

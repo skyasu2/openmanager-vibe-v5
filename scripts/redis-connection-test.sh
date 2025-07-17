@@ -50,7 +50,7 @@ const Redis = require('ioredis');
 
 async function testRedisConnection() {
     const redis = new Redis({
-        host: process.env.REDIS_HOST || 'charming-condor-46598.upstash.io',
+        host: process.env.REDIS_HOST || 'your_redis_host_here',
         port: parseInt(process.env.REDIS_PORT || '6379'),
         password: process.env.UPSTASH_REDIS_REST_TOKEN,
         connectTimeout: 10000,

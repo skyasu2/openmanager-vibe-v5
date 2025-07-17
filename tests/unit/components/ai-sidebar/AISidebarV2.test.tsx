@@ -1,19 +1,20 @@
 /**
- * 🧪 AISidebarV2 TDD 테스트 - 컴포넌트 분리 검증
+ * 🧪 AISidebarV2 컴포넌트 단위 테스트
  *
- * 목표: 1462줄 → 4개 컴포넌트로 분리
- * - AISidebarV2 (메인 컨테이너, ~400줄)
- * - AIEnhancedChat (~400줄)
- * - AIFunctionPages (~300줄)
- * - AIPresetQuestions (~200줄)
+ * 테스트 범위:
+ * - 사이드바 열기/닫기 동작
+ * - AI 채팅 기능
+ * - 사전 정의된 질문 표시
+ * - 실시간 로그 표시
+ * - 접근성 기능
  */
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import fs from 'fs';
-import path from 'path';
-import { describe, expect, it, vi } from 'vitest';
-import AISidebarV2 from '../../../../src/domains/ai-sidebar/components/AISidebarV2';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
+import AISidebarV2 from '@/domains/ai-sidebar/components/AISidebarV2';
+import type { AIMessage } from '@/types/ai-types';
 
 // Mock DOM methods
 Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
@@ -22,32 +23,38 @@ Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
 });
 
 // Mock stores
+const mockSetOpen = vi.fn();
+const mockSendMessage = vi.fn();
+const mockClearMessages = vi.fn();
+const mockSetThinking = vi.fn();
+const mockAddLog = vi.fn();
+
 vi.mock('@/stores/useAISidebarStore', () => ({
   useAISidebarStore: () => ({
-    setOpen: vi.fn(),
+    setOpen: mockSetOpen,
   }),
   useAIChat: () => ({
-    messages: [] as any[],
-    sendMessage: vi.fn(),
-    clearMessages: vi.fn(),
+    messages: [] as AIMessage[],
+    sendMessage: mockSendMessage,
+    clearMessages: mockClearMessages,
     isLoading: false,
-    error: null as any,
+    error: null,
     sessionId: 'test-session',
   }),
   useAIThinking: () => ({
     isThinking: false,
     currentQuestion: '',
-    logs: [] as any[],
-    setThinking: vi.fn(),
+    logs: [],
+    setThinking: mockSetThinking,
     setCurrentQuestion: vi.fn(),
-    addLog: vi.fn(),
+    addLog: mockAddLog,
     clearLogs: vi.fn(),
   }),
 }));
 
 vi.mock('@/hooks/useRealTimeAILogs', () => ({
   useRealTimeAILogs: () => ({
-    logs: [] as any[],
+    logs: [],
     isConnected: false,
     isProcessing: false,
     currentEngine: 'LOCAL',
@@ -56,112 +63,219 @@ vi.mock('@/hooks/useRealTimeAILogs', () => ({
   }),
 }));
 
-describe('AISidebarV2 Component Separation - TDD', () => {
+describe('AISidebarV2 Component', () => {
   const defaultProps = {
     isOpen: true,
     onClose: vi.fn(),
   };
 
-  describe('1. 메인 컨테이너 (AISidebarV2)', () => {
-    it('should render main container with basic structure', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('기본 렌더링 및 상호작용', () => {
+    it('should render when open', () => {
       render(<AISidebarV2 {...defaultProps} />);
-
-      // 기본 컨테이너 구조 확인
-      const container = screen.getByRole('dialog');
-      expect(container).toBeInTheDocument();
+      
+      const sidebar = screen.getByRole('dialog');
+      expect(sidebar).toBeInTheDocument();
     });
 
-    it('should have manageable file size (< 500 lines)', () => {
-      // 이 테스트는 실제 파일 크기를 검증
-      // 분리 후 메인 컴포넌트가 500줄 이하여야 함
-      const filePath = path.join(
-        __dirname,
-        '../../../../src/domains/ai-sidebar/components/AISidebarV2.tsx'
-      );
+    it('should not render when closed', () => {
+      render(<AISidebarV2 {...defaultProps} isOpen={false} />);
+      
+      const sidebar = screen.queryByRole('dialog');
+      expect(sidebar).not.toBeInTheDocument();
+    });
 
-      if (fs.existsSync(filePath)) {
-        const content = fs.readFileSync(filePath, 'utf8');
-        const lineCount = content.split('\n').length;
+    it('should call onClose when close button is clicked', async () => {
+      const user = userEvent.setup();
+      render(<AISidebarV2 {...defaultProps} />);
+      
+      const closeButton = screen.getByRole('button', { name: /닫기|close/i });
+      await user.click(closeButton);
+      
+      expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
+    });
 
-        // 현재는 분리 진행 중이므로 1000줄 이하로 줄어들었는지 확인
-        console.log(`현재 AISidebarV2.tsx 라인 수: ${lineCount}`);
-        expect(lineCount).toBeLessThan(1500); // 분리 진행 중 상태 확인
+    it('should call onClose when overlay is clicked', async () => {
+      const user = userEvent.setup();
+      render(<AISidebarV2 {...defaultProps} />);
+      
+      const overlay = screen.getByTestId('sidebar-overlay');
+      await user.click(overlay);
+      
+      expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('AI 채팅 기능', () => {
+    it('should display chat input', () => {
+      render(<AISidebarV2 {...defaultProps} />);
+      
+      const chatInput = screen.getByPlaceholderText(/질문|메시지|ask/i);
+      expect(chatInput).toBeInTheDocument();
+    });
+
+    it('should send message when submit button is clicked', async () => {
+      const user = userEvent.setup();
+      render(<AISidebarV2 {...defaultProps} />);
+      
+      const chatInput = screen.getByPlaceholderText(/질문|메시지|ask/i);
+      await user.type(chatInput, 'Test message');
+      
+      const submitButton = screen.getByRole('button', { name: /전송|send/i });
+      await user.click(submitButton);
+      
+      expect(mockSendMessage).toHaveBeenCalledWith('Test message');
+    });
+
+    it('should send message when Enter key is pressed', async () => {
+      const user = userEvent.setup();
+      render(<AISidebarV2 {...defaultProps} />);
+      
+      const chatInput = screen.getByPlaceholderText(/질문|메시지|ask/i);
+      await user.type(chatInput, 'Test message{Enter}');
+      
+      expect(mockSendMessage).toHaveBeenCalledWith('Test message');
+    });
+
+    it('should display loading state', () => {
+      vi.mocked(useAIChat).mockReturnValueOnce({
+        messages: [],
+        sendMessage: mockSendMessage,
+        clearMessages: mockClearMessages,
+        isLoading: true,
+        error: null,
+        sessionId: 'test-session',
+      });
+      
+      render(<AISidebarV2 {...defaultProps} />);
+      
+      const loadingIndicator = screen.getByTestId('loading-indicator');
+      expect(loadingIndicator).toBeInTheDocument();
+    });
+  });
+
+  describe('메시지 표시', () => {
+    it('should display messages', () => {
+      const testMessages: AIMessage[] = [
+        {
+          id: '1',
+          role: 'user',
+          content: 'Hello AI',
+          timestamp: new Date().toISOString(),
+        },
+        {
+          id: '2',
+          role: 'assistant',
+          content: 'Hello! How can I help you?',
+          timestamp: new Date().toISOString(),
+        },
+      ];
+      
+      vi.mocked(useAIChat).mockReturnValueOnce({
+        messages: testMessages,
+        sendMessage: mockSendMessage,
+        clearMessages: mockClearMessages,
+        isLoading: false,
+        error: null,
+        sessionId: 'test-session',
+      });
+      
+      render(<AISidebarV2 {...defaultProps} />);
+      
+      expect(screen.getByText('Hello AI')).toBeInTheDocument();
+      expect(screen.getByText('Hello! How can I help you?')).toBeInTheDocument();
+    });
+
+    it('should display error message', () => {
+      vi.mocked(useAIChat).mockReturnValueOnce({
+        messages: [],
+        sendMessage: mockSendMessage,
+        clearMessages: mockClearMessages,
+        isLoading: false,
+        error: { message: 'Connection failed' },
+        sessionId: 'test-session',
+      });
+      
+      render(<AISidebarV2 {...defaultProps} />);
+      
+      expect(screen.getByText(/Connection failed/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('사전 정의된 질문', () => {
+    it('should display preset questions', () => {
+      render(<AISidebarV2 {...defaultProps} />);
+      
+      const presetQuestions = screen.getAllByTestId(/preset-question/i);
+      expect(presetQuestions.length).toBeGreaterThan(0);
+    });
+
+    it('should send preset question when clicked', async () => {
+      const user = userEvent.setup();
+      render(<AISidebarV2 {...defaultProps} />);
+      
+      const presetQuestion = screen.getAllByTestId(/preset-question/i)[0];
+      await user.click(presetQuestion);
+      
+      expect(mockSendMessage).toHaveBeenCalled();
+    });
+  });
+
+  describe('접근성', () => {
+    it('should have proper ARIA labels', () => {
+      render(<AISidebarV2 {...defaultProps} />);
+      
+      const sidebar = screen.getByRole('dialog');
+      expect(sidebar).toHaveAttribute('aria-label');
+      
+      const closeButton = screen.getByRole('button', { name: /닫기|close/i });
+      expect(closeButton).toHaveAttribute('aria-label');
+    });
+
+    it('should trap focus within sidebar', async () => {
+      const user = userEvent.setup();
+      render(<AISidebarV2 {...defaultProps} />);
+      
+      const firstFocusable = screen.getByRole('button', { name: /닫기|close/i });
+      const lastFocusable = screen.getByRole('button', { name: /전송|send/i });
+      
+      firstFocusable.focus();
+      await user.tab();
+      
+      // Focus should move to next focusable element
+      expect(document.activeElement).not.toBe(firstFocusable);
+      
+      // Tab through all elements and verify focus returns to first
+      for (let i = 0; i < 10; i++) {
+        await user.tab();
       }
+      
+      // Focus should eventually return to first element
+      expect(document.activeElement).toBe(firstFocusable);
+    });
+
+    it('should close on Escape key', async () => {
+      const user = userEvent.setup();
+      render(<AISidebarV2 {...defaultProps} />);
+      
+      await user.keyboard('{Escape}');
+      
+      expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('2. 컴포넌트 분리 목표 검증', () => {
-    it('should identify components that need to be separated', () => {
-      const componentsToSeparate = [
-        'AIPresetQuestions',
-        'AIFunctionPages',
-        'AIEnhancedChat',
-      ];
-
-      componentsToSeparate.forEach(componentName => {
-        const filePath = path.join(
-          __dirname,
-          `../../../../src/domains/ai-sidebar/components/${componentName}.tsx`
-        );
-
-        // 분리된 컴포넌트 파일이 존재하는지 확인
-        const exists = fs.existsSync(filePath);
-        console.log(
-          `${componentName}: ${exists ? '✅ 분리됨' : '❌ 분리 필요'}`
-        );
-        expect(exists).toBe(true); // 모든 컴포넌트가 분리되었어야 함
-      });
-    });
-  });
-
-  describe('3. 파일 크기 검증', () => {
-    it('should verify target file sizes after separation', () => {
-      const targetSizes = {
-        'AISidebarV2.tsx': 1000, // 현실적인 목표로 조정
-        'AIEnhancedChat.tsx': 500,
-        'AIFunctionPages.tsx': 300,
-        'AIPresetQuestions.tsx': 200,
-      };
-
-      Object.entries(targetSizes).forEach(([filename, maxLines]) => {
-        const filePath = path.join(
-          __dirname,
-          `../../../../src/domains/ai-sidebar/components/${filename}`
-        );
-
-        if (fs.existsSync(filePath)) {
-          const content = fs.readFileSync(filePath, 'utf8');
-          const lineCount = content.split('\n').length;
-
-          console.log(`${filename}: ${lineCount}줄 (목표: ${maxLines}줄 이하)`);
-
-          // 분리된 컴포넌트들은 모두 목표 달성
-          if (filename !== 'AISidebarV2.tsx') {
-            expect(lineCount).toBeLessThan(maxLines);
-          }
-        }
-      });
-    });
-  });
-
-  describe('4. TDD 프로세스 검증', () => {
-    it('should demonstrate TDD Red-Green-Refactor cycle', () => {
-      // Red: 실패하는 테스트 작성 ✅
-      // Green: 테스트를 통과시키는 최소한의 코드 작성 ✅ (진행 중)
-      // Refactor: 코드 품질 개선 (다음 단계)
-
-      const tddSteps = [
-        '1. Red: 실패하는 테스트 작성',
-        '2. Green: 컴포넌트 분리 구현',
-        '3. Refactor: 코드 품질 개선',
-      ];
-
-      console.log('🟢 TDD 진행 상황 (Green 단계):');
-      tddSteps.forEach((step, index) => {
-        console.log(`  ${index + 1}. ${step} ${index < 2 ? '✅' : '🔄'}`);
-      });
-
-      expect(tddSteps).toHaveLength(3);
+  describe('반응형 디자인', () => {
+    it('should have mobile-friendly styles', () => {
+      render(<AISidebarV2 {...defaultProps} />);
+      
+      const sidebar = screen.getByRole('dialog');
+      const styles = window.getComputedStyle(sidebar);
+      
+      // 모바일에서 전체 너비
+      expect(styles.width).toBe('100%');
     });
   });
 });

@@ -120,7 +120,7 @@ async function checkRedis(): Promise<ServiceStatus> {
       details: {
         url: redisUrl,
         testResult: testValue === 'test-value' ? 'passed' : 'failed',
-        host: 'charming-condor-46598.upstash.io',
+        host: process.env.UPSTASH_REDIS_HOST || 'upstash-redis-host',
         keyManager: 'DevKeyManager v1.0',
       },
     };

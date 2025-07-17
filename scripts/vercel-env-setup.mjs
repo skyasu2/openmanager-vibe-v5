@@ -30,9 +30,9 @@ const requiredEnvVars = {
 
     // 🔴 Redis 설정 (Upstash - 로컬에서 검증됨)
     'REDIS_URL': process.env.REDIS_URL || '',
-    'UPSTASH_REDIS_REST_URL': process.env.UPSTASH_REDIS_REST_URL || 'https://charming-condor-46598.upstash.io',
+    'UPSTASH_REDIS_REST_URL': process.env.UPSTASH_REDIS_REST_URL || 'https://your_redis_host_here',
     'UPSTASH_REDIS_REST_TOKEN': process.env.UPSTASH_REDIS_REST_TOKEN || '',
-    'KV_REST_API_URL': process.env.KV_REST_API_URL || 'https://charming-condor-46598.upstash.io',
+    'KV_REST_API_URL': process.env.KV_REST_API_URL || 'https://your_redis_host_here',
     'KV_REST_API_TOKEN': process.env.KV_REST_API_TOKEN || '',
 
     // 🤖 AI 엔진 설정 (자연어 질의 핵심)

@@ -28,13 +28,14 @@ POSTGRES_HOST=db.vnswjnltnhpsueosfhmw.supabase.co
 POSTGRES_DATABASE=postgres
 
 # Redis Configuration (Updated)
-KV_URL=rediss://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA@charming-condor-46598.upstash.io:6379
-KV_REST_API_URL=https://charming-condor-46598.upstash.io
-KV_REST_API_TOKEN=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
-KV_REST_API_READ_ONLY_TOKEN=ArYGAAIgcDEJt2OXeBDen9ob7LlHXZiPD3cWjKXjdo0GT-jFZwW1lw
-REDIS_URL=rediss://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA@charming-condor-46598.upstash.io:6379
-UPSTASH_REDIS_REST_URL=https://charming-condor-46598.upstash.io
-UPSTASH_REDIS_REST_TOKEN=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+# Redis 설정
+export KV_URL="rediss://default:${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}@${UPSTASH_REDIS_HOST:-your_redis_host_here}:6379"
+export KV_REST_API_URL="https://${UPSTASH_REDIS_HOST:-your_redis_host_here}"
+export KV_REST_API_TOKEN="${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}"
+export KV_REST_API_READ_ONLY_TOKEN=ArYGAAIgcDEJt2OXeBDen9ob7LlHXZiPD3cWjKXjdo0GT-jFZwW1lw
+export REDIS_URL="rediss://default:${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}@${UPSTASH_REDIS_HOST:-your_redis_host_here}:6379"
+export UPSTASH_REDIS_REST_URL="https://${UPSTASH_REDIS_HOST:-your_redis_host_here}"
+export UPSTASH_REDIS_REST_TOKEN="${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}"
 
 # Development Configuration
 NODE_ENV=development

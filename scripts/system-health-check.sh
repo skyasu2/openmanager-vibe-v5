@@ -12,8 +12,23 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# Redis 인증 토큰
-REDIS_TOKEN="AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA"
+# 시스템 헬스체크 스크립트
+echo "🔍 시스템 헬스체크 시작..."
+
+# Redis 연결 테스트
+REDIS_TOKEN="${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}"
+REDIS_HOST="${UPSTASH_REDIS_HOST:-your_redis_host_here}"
+
+echo "📊 Redis 상태 확인 중..."
+REDIS_STATUS=$(curl -X POST "https://${REDIS_HOST}/ping" -H "Authorization: Bearer ${REDIS_TOKEN}" -s 2>/dev/null | grep -o '"result":"[^"]*"' | cut -d'"' -f4)
+REDIS_TIME=$(curl -X POST "https://${REDIS_HOST}/ping" -H "Authorization: Bearer ${REDIS_TOKEN}" -s -w "%{time_total}" -o /dev/null 2>/dev/null)
+REDIS_KEYS=$(curl -X POST "https://${REDIS_HOST}/dbsize" -H "Authorization: Bearer ${REDIS_TOKEN}" -s 2>/dev/null | grep -o '"result":[0-9]*' | cut -d':' -f2)
+
+if [ "$REDIS_STATUS" = "PONG" ]; then
+    echo "✅ Redis 연결 성공 (응답시간: ${REDIS_TIME}s, 키 개수: ${REDIS_KEYS})"
+else
+    echo "❌ Redis 연결 실패"
+fi
 
 # 1. Vercel 상태 확인
 echo -n "🌐 Vercel 앱 상태: "
@@ -33,30 +48,15 @@ else
     echo -e "${RED}❌ 이상 ($MCP_STATUS)${NC}"
 fi
 
-# 3. Redis 상태 확인
-echo -n "🔴 Redis 상태: "
-REDIS_STATUS=$(curl -X POST 'https://charming-condor-46598.upstash.io/ping' -H "Authorization: Bearer $REDIS_TOKEN" -s 2>/dev/null | grep -o '"result":"[^"]*"' | cut -d'"' -f4)
-if [ "$REDIS_STATUS" = "PONG" ]; then
-    echo -e "${GREEN}✅ 정상 (PONG)${NC}"
-else
-    echo -e "${RED}❌ 이상 ($REDIS_STATUS)${NC}"
-fi
-
 echo ""
 echo "📊 상세 메트릭:"
 
 # 응답시간 측정
 VERCEL_TIME=$(curl -s -w "%{time_total}" -o /dev/null https://openmanager-vibe-v5.vercel.app/api/health 2>/dev/null)
 MCP_TIME=$(curl -s -w "%{time_total}" -o /dev/null http://104.154.205.25:10000/health 2>/dev/null)
-REDIS_TIME=$(curl -X POST 'https://charming-condor-46598.upstash.io/ping' -H "Authorization: Bearer $REDIS_TOKEN" -s -w "%{time_total}" -o /dev/null 2>/dev/null)
 
 echo "   Vercel 응답시간: ${VERCEL_TIME}초"
 echo "   MCP 응답시간: ${MCP_TIME}초"
-echo "   Redis 응답시간: ${REDIS_TIME}초"
-
-# Redis 메트릭
-REDIS_KEYS=$(curl -X POST 'https://charming-condor-46598.upstash.io/dbsize' -H "Authorization: Bearer $REDIS_TOKEN" -s 2>/dev/null | grep -o '"result":[0-9]*' | cut -d':' -f2)
-echo "   Redis 키 개수: ${REDIS_KEYS}개"
 
 # Vercel 버전 정보
 VERCEL_VERSION=$(curl -s https://openmanager-vibe-v5.vercel.app/api/health 2>/dev/null | grep -o '"version":"[^"]*"' | cut -d'"' -f4)

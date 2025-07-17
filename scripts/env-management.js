@@ -87,13 +87,13 @@ class EnvSecurityManager {
       UPSTASH_REDIS_REST_URL: {
         required: true,
         public: false,
-        value: 'https://charming-condor-46598.upstash.io',
+        value: 'https://your_redis_host_here',
         encrypt: true,
       },
       UPSTASH_REDIS_REST_TOKEN: {
         required: true,
         public: false,
-        value: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
+        value: '${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}',
         rotate: 'quarterly',
         encrypt: true,
       },
@@ -595,8 +595,12 @@ GCP_MCP_SERVER_IPS=104.154.205.25,34.150.123.45,35.247.178.92
 # =============================================================================
 # 🔴 Upstash Redis (2025년 메모리 저장소)
 # =============================================================================
-UPSTASH_REDIS_REST_URL=https://charming-condor-46598.upstash.io
-UPSTASH_REDIS_REST_TOKEN=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+# UPSTASH_REDIS_REST_URL=https://your_redis_host_here
+# UPSTASH_REDIS_REST_TOKEN=your_redis_token_here
+
+# Redis Configuration (환경변수로 설정)
+# UPSTASH_REDIS_REST_URL=https://your_redis_host_here
+# UPSTASH_REDIS_REST_TOKEN=your_redis_token_here
 
 # =============================================================================
 # 🤖 Google AI (개인 설정 필요)

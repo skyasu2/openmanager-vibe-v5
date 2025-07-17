@@ -30,7 +30,7 @@ function getDatabaseStatus() {
     },
     redis: {
       status: 'online',
-      host: 'charming-condor-46598.upstash.io',
+      host: process.env.UPSTASH_REDIS_HOST || process.env.REDIS_HOST || 'redis-host',
       port: 6379,
       memory: {
         used: '2.5MB',

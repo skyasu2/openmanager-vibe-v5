@@ -3,20 +3,20 @@
 # Settings > Environment Variables에서 아래 모든 환경변수를 추가하세요
 
 # === Upstash Redis (주요) ===
-UPSTASH_REDIS_REST_URL=https://charming-condor-46598.upstash.io
-UPSTASH_REDIS_REST_TOKEN=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+UPSTASH_REDIS_REST_URL=https://${UPSTASH_REDIS_HOST:-your_redis_host_here}
+UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}
 
 # === Vercel KV 호환 ===
-KV_REST_API_URL=https://charming-condor-46598.upstash.io
-KV_REST_API_TOKEN=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+KV_REST_API_URL=https://${UPSTASH_REDIS_HOST:-your_redis_host_here}
+KV_REST_API_TOKEN=${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}
 KV_REST_API_READ_ONLY_TOKEN=ArYGAAIgcDEJt2OXeBDen9ob7LlHXZiPD3cWjKXjdo0GT-jFZwW1lw
 
 # === ioredis 호환 (중요!) ===
-REDIS_HOST=charming-condor-46598.upstash.io
+REDIS_HOST=${UPSTASH_REDIS_HOST:-your_redis_host_here}
 REDIS_PORT=6379
-REDIS_PASSWORD=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+REDIS_PASSWORD=${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}
 REDIS_DB=0
-REDIS_URL=rediss://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA@charming-condor-46598.upstash.io:6379
+REDIS_URL=rediss://default:${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}@${UPSTASH_REDIS_HOST:-your_redis_host_here}:6379
 
 # === Supabase 설정 ===
 NEXT_PUBLIC_SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co

@@ -1,101 +1,127 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import { UnifiedAIEngineRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
+import type { AIEngineType, AIRequest, AIResponse } from '@/types/ai-types';
 
-// AI 엔진 상태 검증 로직
-describe('AI Engines Logic', () => {
-  describe('엔진 상태 검증', () => {
-    it('should validate engine status types', () => {
-      const validStatuses = ['active', 'inactive', 'error', 'maintenance'];
-      const testStatus = 'active';
+// Mock 필요한 의존성
+vi.mock('@/services/ai/GoogleAIService', () => ({
+  GoogleAIService: {
+    getInstance: vi.fn(() => ({
+      processQuery: vi.fn().mockResolvedValue({
+        content: 'Google AI response',
+        success: true,
+        enginePath: ['google-ai'],
+      }),
+    })),
+  },
+}));
 
-      expect(validStatuses).toContain(testStatus);
-      expect(typeof testStatus).toBe('string');
-    });
+vi.mock('@/services/ai/SupabaseRAGEngine', () => ({
+  SupabaseRAGEngine: {
+    getInstance: vi.fn(() => ({
+      search: vi.fn().mockResolvedValue({
+        content: 'RAG response',
+        success: true,
+        enginePath: ['rag'],
+      }),
+    })),
+  },
+}));
 
-    it('should calculate engine health score', () => {
-      const calculateEngineHealth = (
-        responseTime: number,
-        errorRate: number,
-        uptime: number
-      ): number => {
-        const responseScore = Math.max(0, 100 - (responseTime - 100) / 10);
-        const errorScore = Math.max(0, 100 - errorRate * 500);
-        const uptimeScore = uptime;
+describe('AI Engines - Real Implementation Tests', () => {
+  let router: UnifiedAIEngineRouter;
 
-        return (responseScore + errorScore + uptimeScore) / 3;
+  beforeEach(() => {
+    router = new UnifiedAIEngineRouter();
+  });
+
+  describe('Engine Router Functionality', () => {
+    it('should route requests to appropriate engine', async () => {
+      const request: AIRequest = {
+        query: 'Test query',
+        mode: 'normal',
+        context: {},
       };
 
-      const goodHealth = calculateEngineHealth(50, 0.01, 99);
-      const poorHealth = calculateEngineHealth(500, 0.15, 70);
-
-      expect(goodHealth).toBeGreaterThan(poorHealth);
-      expect(goodHealth).toBeGreaterThan(80);
-      expect(poorHealth).toBeLessThan(75);
+      const response = await router.processQuery(request);
+      
+      expect(response).toBeDefined();
+      expect(response.success).toBe(true);
+      expect(response.enginePath).toBeDefined();
+      expect(Array.isArray(response.enginePath)).toBe(true);
     });
 
-    it('should determine engine priority', () => {
-      const determineEnginePriority = (
-        type: string,
-        performance: number
-      ): number => {
-        const basePriority =
-          {
-            'google-ai': 10,
-            mcp: 8,
-            rag: 7,
-            custom: 5,
-            opensource: 3,
-          }[type] || 1;
-
-        return Math.min(10, basePriority + Math.floor(performance / 20));
+    it('should handle engine-specific routing', async () => {
+      const googleRequest: AIRequest = {
+        query: 'Google AI specific query',
+        mode: 'normal',
+        engineType: 'google-ai' as AIEngineType,
+        context: {},
       };
 
-      expect(determineEnginePriority('google-ai', 90)).toBe(10);
-      expect(determineEnginePriority('mcp', 80)).toBe(10);
-      expect(determineEnginePriority('rag', 60)).toBe(10);
-      expect(determineEnginePriority('custom', 40)).toBe(7);
+      const response = await router.processQuery(googleRequest);
+      
+      expect(response.enginePath).toContain('google-ai');
+    });
+
+    it('should handle errors gracefully', async () => {
+      const invalidRequest: AIRequest = {
+        query: '',
+        mode: 'normal',
+        context: {},
+      };
+
+      const response = await router.processQuery(invalidRequest);
+      
+      expect(response.success).toBe(false);
+      expect(response.error).toBeDefined();
     });
   });
 
-  describe('14개 AI 엔진 관리', () => {
-    it('should validate all 14 engine types', () => {
-      const engineTypes = [
-        'google-ai',
-        'mcp',
-        'rag',
-        'custom-intent',
-        'custom-analysis',
-        'custom-recommendation',
-        'opensource-nlp',
-        'opensource-sentiment',
-        'opensource-classification',
-        'opensource-summarization',
-        'opensource-qa',
-        'anomaly',
-        'prediction',
-        'correlation',
-      ];
-
-      expect(engineTypes.length).toBe(14);
-      engineTypes.forEach(type => {
-        expect(typeof type).toBe('string');
-        expect(type.length).toBeGreaterThan(0);
-      });
-    });
-
-    it('should categorize engines by type', () => {
-      const categorizeEngine = (engineType: string): string => {
-        if (engineType.startsWith('google-')) return 'external';
-        if (engineType.startsWith('custom-')) return 'custom';
-        if (engineType.startsWith('opensource-')) return 'opensource';
-        if (['mcp', 'rag'].includes(engineType)) return 'infrastructure';
-        return 'analytics';
+  describe('Engine Performance and Health', () => {
+    it('should track engine response times', async () => {
+      const startTime = Date.now();
+      const request: AIRequest = {
+        query: 'Performance test query',
+        mode: 'fast',
+        context: {},
       };
 
-      expect(categorizeEngine('google-ai')).toBe('external');
-      expect(categorizeEngine('custom-intent')).toBe('custom');
-      expect(categorizeEngine('opensource-nlp')).toBe('opensource');
-      expect(categorizeEngine('mcp')).toBe('infrastructure');
-      expect(categorizeEngine('anomaly')).toBe('analytics');
+      const response = await router.processQuery(request);
+      const endTime = Date.now();
+      const responseTime = endTime - startTime;
+
+      expect(responseTime).toBeLessThan(5000); // 5초 이내 응답
+      expect(response.metadata?.responseTime).toBeDefined();
+    });
+
+    it('should implement fallback strategies', async () => {
+      // Google AI 실패 시뮬레이션
+      vi.mocked(GoogleAIService.getInstance).mockImplementationOnce(() => ({
+        processQuery: vi.fn().mockRejectedValue(new Error('Google AI unavailable')),
+      }));
+
+      const request: AIRequest = {
+        query: 'Fallback test query',
+        mode: 'normal',
+        context: {},
+      };
+
+      const response = await router.processQuery(request);
+      
+      // Fallback으로 다른 엔진 사용
+      expect(response.success).toBe(true);
+      expect(response.enginePath).not.toContain('google-ai');
+    });
+
+    it('should validate supported engine types', () => {
+      const supportedEngines = router.getSupportedEngines();
+      
+      expect(supportedEngines).toContain('google-ai');
+      expect(supportedEngines).toContain('rag');
+      expect(supportedEngines).toContain('mcp-context');
+      expect(supportedEngines).toContain('korean-nlp');
+      expect(supportedEngines).toContain('ai-agent');
+      expect(supportedEngines.length).toBeGreaterThan(0);
     });
 
     it('should calculate engine load distribution', () => {

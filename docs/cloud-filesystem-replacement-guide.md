@@ -209,9 +209,9 @@ NLP_CONTEXT_ENABLED=true
 CLOUD_FILESYSTEM_ENABLED=true
 
 # Redis (캐싱)
-GCP_REDIS_HOST=charming-condor-46598.upstash.io
+GCP_REDIS_HOST=${UPSTASH_REDIS_HOST:-your_redis_host_here}
 GCP_REDIS_PORT=6379
-GCP_REDIS_PASSWORD=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+GCP_REDIS_PASSWORD=${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}
 
 # Supabase (Firestore 대체)
 SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
