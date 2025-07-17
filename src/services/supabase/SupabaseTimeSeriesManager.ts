@@ -433,19 +433,34 @@ export class SupabaseTimeSeriesManager {
     sessionId: string,
     metrics: ServerMetric[]
   ): TimeSeriesRecord[] {
-    return metrics.map(metric => ({
-      session_id: sessionId,
-      server_id: metric.serverId,
-      timestamp: metric.timestamp.toISOString(),
-      cpu_usage: metric.cpu,
-      memory_usage: metric.memory,
-      disk_usage: metric.disk,
-      network_usage: (metric.network.in + metric.network.out) / 2,
-      request_count: (metric as any).activeConnections || 0,
-      error_rate: 0,
-      response_time: (metric as any).responseTime || 0, // DB column name
-      created_at: new Date().toISOString(),
-    }));
+    return metrics.map(metric => {
+      // 레거시 형식과 새 형식 모두 지원
+      const cpu = metric.cpu ?? metric.systemMetrics?.cpuUsage ?? 0;
+      const memory = metric.memory ?? metric.systemMetrics?.memoryUsage ?? 0;
+      const disk = metric.disk ?? metric.systemMetrics?.diskUsage ?? 0;
+      const networkUsage = metric.network 
+        ? (metric.network.in + metric.network.out) / 2
+        : metric.systemMetrics?.networkUsage ?? 0;
+      const requestCount = metric.activeConnections ?? 
+        metric.applicationMetrics?.requestCount ?? 0;
+      const errorRate = metric.applicationMetrics?.errorRate ?? 0;
+      const responseTime = metric.responseTime ?? 
+        metric.applicationMetrics?.responseTime ?? 0;
+      
+      return {
+        session_id: sessionId,
+        server_id: metric.serverId,
+        timestamp: metric.timestamp.toISOString(),
+        cpu_usage: cpu,
+        memory_usage: memory,
+        disk_usage: disk,
+        network_usage: networkUsage,
+        request_count: requestCount,
+        error_rate: errorRate,
+        response_time: responseTime,
+        created_at: new Date().toISOString(),
+      };
+    });
   }
 
   /**

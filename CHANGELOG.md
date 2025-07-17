@@ -1,5 +1,43 @@
 # Changelog
 
+## [5.46.42] - 2025-07-17
+
+### 🔐 인증 중심 라우팅 구조 변경
+
+#### 라우팅 아키텍처 개선
+- **루트 페이지(/) 변경**:
+  - 이제 자동으로 `/login`으로 리다이렉션
+  - 인증이 필요한 폐쇄형 시스템으로 전환
+  
+- **메인 페이지 이동**:
+  - 기존 `/` → `/main`으로 이동
+  - `src/app/page.tsx` → `src/app/main/page.tsx`
+  
+- **로그인 플로우 개선**:
+  - GitHub OAuth 로그인 후 `/main`으로 이동
+  - 게스트 로그인 후 `/main`으로 이동
+  - 로그아웃 시 `/login`으로 이동
+
+#### 관련 파일 업데이트
+- 에러 페이지들의 홈 링크 경로 수정 (`/` → `/main`)
+- 모든 컴포넌트의 네비게이션 경로 업데이트
+- ProfileDropdown의 로그아웃 경로 수정 (`/` → `/login`)
+
+### 🧪 테스트 수정 및 개선
+
+#### React Testing 개선
+- **act() 경고 해결**: 상태 변경 작업을 act()로 래핑
+- **ProfileDropdown 테스트**: 비동기 상태 업데이트 처리 개선
+
+#### 타입 호환성 수정
+- **SupabaseTimeSeriesManager**: 레거시/신규 ServerMetric 형식 모두 지원
+- **UnifiedAIEngineRouter**: Vitest 모킹 이슈 해결 및 응답 형식 정규화
+
+#### 모듈 경로 수정
+- `UnifiedEnvCryptoManager` → `EnhancedEnvCryptoManager`
+- `GCPRealDataService` → `OptimizedDataGenerator`
+- AISidebarV2 경로 수정
+
 ## [5.46.41] - 2025-07-16
 
 ### 🤖 AI 도구 v2.0 - 차세대 통합 시스템

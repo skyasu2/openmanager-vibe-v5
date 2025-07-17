@@ -94,7 +94,7 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
       setIsLoading(true);
       await logout();
       setIsOpen(false);
-      router.push('/');
+      router.push('/login');
       console.log('🚪 로그아웃 완료');
     } catch (error) {
       console.error('로그아웃 실패:', error);
@@ -210,7 +210,7 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
 
           {renderMenuItem('👤', '일반사용자로 사용', handleGuestLogin)}
 
-          {renderMenuItem('🔐', 'Google로 로그인', () => router.push('/'))}
+          {renderMenuItem('🔐', 'Google로 로그인', () => router.push('/login'))}
         </>
       ) : user?.type === 'guest' ? (
         // 게스트 사용자 메뉴
@@ -227,7 +227,7 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
           {renderMenuItem(
             '🔐',
             'Google로 로그인하여 더 많은 기능 이용하기',
-            () => router.push('/')
+            () => router.push('/login')
           )}
 
           <div className='border-t border-gray-200 dark:border-gray-700 mt-2 pt-2'>

@@ -190,7 +190,7 @@ export default function NotesPage() {
               🔄 새로고침
             </button>
             <Link
-              href='/'
+              href='/main'
               className='bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm'
             >
               🏠 홈으로

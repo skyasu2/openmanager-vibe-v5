@@ -136,7 +136,7 @@ export default function DashboardError({ error, reset }: DashboardErrorProps) {
                                 다시 시도
                             </Button>
                             <Button
-                                onClick={() => (window.location.href = '/')}
+                                onClick={() => (window.location.href = '/main')}
                                 variant="outline"
                                 className="w-full"
                             >

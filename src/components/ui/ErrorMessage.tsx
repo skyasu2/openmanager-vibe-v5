@@ -135,7 +135,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
     },
     {
       label: '홈으로',
-      onClick: () => (window.location.href = '/'),
+      onClick: () => (window.location.href = '/main'),
       variant: 'secondary' as const,
       icon: <Home className='w-4 h-4' />,
     },

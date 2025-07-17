@@ -32,7 +32,7 @@ export default function Custom500() {
           </button>
 
           <Link
-            href='/'
+            href='/main'
             className='block w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded transition-colors'
           >
             홈으로 이동

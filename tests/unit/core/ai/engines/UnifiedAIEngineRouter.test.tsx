@@ -9,14 +9,80 @@ import { AIRequest } from '@/types/ai-types';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 // Vitest Mock 설정
-vi.mock('@/services/ai/GoogleAIService');
-vi.mock('@/services/ai/korean-ai-engine');
+vi.mock('@/services/ai/GoogleAIService', () => {
+  class MockGoogleAIService {
+    initialized = true;
+    stats = { averageResponseTime: 100 };
+    
+    async initialize() {}
+    
+    async processQuery() {
+      return {
+        success: true,
+        response: 'Google AI response',
+        confidence: 0.9,
+        metadata: {
+          engine: 'google-ai',
+          processingTime: 100
+        }
+      };
+    }
+  }
+  
+  return { GoogleAIService: MockGoogleAIService };
+});
+
+vi.mock('@/lib/ml/supabase-rag-engine', () => {
+  class MockSupabaseRAGEngine {
+    initialized = true;
+    stats = { averageResponseTime: 150 };
+    
+    async initialize() {}
+    
+    async processQuery() {
+      return {
+        success: true,
+        response: 'Supabase RAG response',
+        confidence: 0.85,
+        metadata: {
+          engine: 'supabase-rag',
+          processingTime: 150
+        }
+      };
+    }
+  }
+  
+  return { SupabaseRAGEngine: MockSupabaseRAGEngine };
+});
+
+vi.mock('@/services/ai/korean-ai-engine', () => {
+  class MockKoreanAIEngine {
+    initialized = true;
+    stats = { averageResponseTime: 200 };
+    
+    async initialize() {}
+    
+    async processQuery() {
+      return {
+        success: true,
+        response: 'Korean AI response',
+        confidence: 0.8,
+        metadata: {
+          engine: 'korean-ai',
+          processingTime: 200
+        }
+      };
+    }
+  }
+  
+  return { KoreanAIEngine: MockKoreanAIEngine };
+});
+
 vi.mock('@/services/ai/transformers-engine');
 vi.mock('@/services/ai/engines/OpenSourceEngines');
 vi.mock('@/services/ai/engines/CustomEngines');
 vi.mock('@/core/ai/context/MCPContextCollector');
 vi.mock('@/core/ai/handlers/AIFallbackHandler');
-vi.mock('@/lib/ml/supabase-rag-engine');
 
 describe('UnifiedAIEngineRouter 통합 테스트', () => {
   let router: UnifiedAIEngineRouter;

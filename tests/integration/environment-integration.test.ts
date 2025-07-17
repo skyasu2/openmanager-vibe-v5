@@ -5,8 +5,8 @@
  */
 
 import { detectEnvironment } from '@/config/environment';
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
-import { GCPRealDataService } from '@/services/gcp/GCPRealDataService';
+import { OptimizedDataGenerator } from '@/services/OptimizedDataGenerator';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 // 🔧 환경변수 안전 모킹 함수
 function setTestEnv(envVars: Record<string, string | undefined>) {
@@ -44,7 +44,7 @@ describe('환경별 통합 테스트', () => {
     });
 
     test('로컬 환경에서 목업 데이터 생성기 정상 동작', async () => {
-      const generator = GCPRealDataService.getInstance();
+      const generator = OptimizedDataGenerator.getInstance();
       await generator.initialize();
 
       const servers = await generator.getAllServers();
@@ -63,7 +63,7 @@ describe('환경별 통합 테스트', () => {
     });
 
     test('로컬 환경에서 대시보드 요약 데이터 생성', async () => {
-      const generator = GCPRealDataService.getInstance();
+      const generator = OptimizedDataGenerator.getInstance();
       await generator.initialize();
 
       const summary = await generator.getDashboardSummary();
@@ -77,7 +77,7 @@ describe('환경별 통합 테스트', () => {
     });
 
     test('로컬 환경에서 서버 메트릭 조회', async () => {
-      const generator = GCPRealDataService.getInstance();
+      const generator = OptimizedDataGenerator.getInstance();
       await generator.initialize();
 
       const metrics = await generator.getMetrics();
@@ -104,7 +104,7 @@ describe('환경별 통합 테스트', () => {
     });
 
     test('Vercel 환경에서 GCP 데이터 서비스 초기화', async () => {
-      const gcpService = GCPRealDataService.getInstance();
+      const gcpService = OptimizedDataGenerator.getInstance();
 
       // Vercel 환경에서는 실제 GCP 연결을 시도하지만,
       // 테스트에서는 목업으로 처리
@@ -208,7 +208,7 @@ describe('환경별 통합 테스트', () => {
     test('로컬 환경에서 서버 API 응답 구조', async () => {
       setTestEnv({ NODE_ENV: 'development' });
 
-      const generator = GCPRealDataService.getInstance();
+      const generator = OptimizedDataGenerator.getInstance();
       await generator.initialize();
 
       const servers = await generator.getAllServers();
@@ -249,7 +249,7 @@ describe('환경별 통합 테스트', () => {
     test('로컬 환경에서 서버 데이터 생성 성능', async () => {
       setTestEnv({ NODE_ENV: 'development' });
 
-      const generator = GCPRealDataService.getInstance();
+      const generator = OptimizedDataGenerator.getInstance();
       await generator.initialize();
 
       const startTime = Date.now();
@@ -283,7 +283,7 @@ describe('환경별 통합 테스트', () => {
       const initialMemory = process.memoryUsage();
 
       setTestEnv({ NODE_ENV: 'development' });
-      const generator = GCPRealDataService.getInstance();
+      const generator = OptimizedDataGenerator.getInstance();
       await generator.initialize();
       await generator.getAllServers();
 

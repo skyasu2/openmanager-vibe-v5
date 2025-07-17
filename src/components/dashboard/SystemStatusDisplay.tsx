@@ -106,7 +106,7 @@ const SystemStatusDisplay = memo(function SystemStatusDisplay({
 
       {/* 시작 버튼 */}
       <button
-        onClick={() => (window.location.href = '/')}
+        onClick={() => (window.location.href = '/main')}
         className='px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 transform shadow-md hover:shadow-lg'
         title='랜딩페이지에서 시스템 시작'
       >

@@ -235,7 +235,7 @@ function DashboardPageContent() {
     >
       <div className='flex-1 flex flex-col min-h-0'>
         <DashboardHeader
-          onNavigateHome={() => (window.location.href = '/')}
+          onNavigateHome={() => (window.location.href = '/main')}
           onToggleAgent={toggleAgent}
           isAgentOpen={isAgentOpen}
         />

@@ -13,7 +13,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import fs from 'fs';
 import path from 'path';
 import { describe, expect, it, vi } from 'vitest';
-import AISidebarV2 from '../../../src/domains/ai-sidebar/components/AISidebarV2';
+import AISidebarV2 from '../../../../src/domains/ai-sidebar/components/AISidebarV2';
 
 // Mock DOM methods
 Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {

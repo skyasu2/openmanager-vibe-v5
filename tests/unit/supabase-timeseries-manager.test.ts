@@ -300,6 +300,10 @@ describe('🔄 TDD Refactor Phase: 고급 기능 및 최적화', () => {
     const sessionId = 'performance-session';
     const largeMetrics = generateMockServerMetrics(2500); // 2500개 메트릭
 
+    // 배치 처리를 위한 Mock 설정
+    const mockBatchBuilder = createMockQueryBuilder();
+    mockSupabase.from = vi.fn().mockReturnValue(mockBatchBuilder);
+
     const startTime = Date.now();
     await manager.batchInsertMetrics(sessionId, largeMetrics);
     const endTime = Date.now();

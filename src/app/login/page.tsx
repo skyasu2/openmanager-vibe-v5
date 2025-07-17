@@ -71,7 +71,7 @@ export default function LoginPage() {
       document.cookie = `auth_type=guest; path=/; max-age=${2 * 60 * 60}; SameSite=Lax`;
 
       console.log('✅ 게스트 세션 저장 완료 (localStorage + 쿠키), 페이지 이동:', guestSession.user.name);
-      router.push('/');
+      router.push('/main');
     }
   }, [guestSession, router]);
 
@@ -233,7 +233,7 @@ export default function LoginPage() {
               👤 <strong>게스트 모드</strong>: 인증 없이 기본 기능 사용
             </p>
             <p className='text-xs text-gray-500 mt-4'>
-              모든 로그인 방식은 OpenManager 메인 페이지로 이동합니다
+              모든 로그인 방식은 OpenManager 메인 페이지(/main)로 이동합니다
             </p>
           </div>
         </div>

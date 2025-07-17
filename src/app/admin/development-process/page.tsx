@@ -67,7 +67,7 @@ function useAdminAuth() {
             localStorage.setItem('admin_access', 'vibe_admin_2025');
             setIsAdmin(true);
           } else {
-            router.push('/');
+            router.push('/main');
           }
         }
       } catch (error) {
@@ -107,7 +107,7 @@ export default function DevelopmentProcessPage() {
           <Lock className='w-12 h-12 text-red-400 mx-auto mb-4' />
           <p className='text-gray-400 mb-4'>접근 권한이 없습니다.</p>
           <button
-            onClick={() => (window.location.href = '/')}
+            onClick={() => (window.location.href = '/main')}
             className='text-purple-400 hover:text-purple-300 transition-colors'
           >
             메인 페이지로 돌아가기

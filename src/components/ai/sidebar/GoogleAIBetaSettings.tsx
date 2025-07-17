@@ -258,7 +258,7 @@ export default function GoogleAIBetaSettings({
           Google AI 베타 설정을 변경하려면 관리자 로그인이 필요합니다.
         </p>
         <button
-          onClick={() => (window.location.href = '/')}
+          onClick={() => (window.location.href = '/login')}
           className='text-sm text-red-600 underline hover:text-red-800'
         >
           관리자 로그인하러 가기

@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  UnifiedEnvCryptoManager,
-  type EncryptedData,
-} from '../../../src/lib/crypto/UnifiedEnvCryptoManager';
+  EnhancedEnvCryptoManager as UnifiedEnvCryptoManager,
+  type EncryptedEnvData,
+} from '../../../src/lib/crypto/EnhancedEnvCryptoManager';
 
 describe('UnifiedEnvCryptoManager', () => {
   let cryptoManager: UnifiedEnvCryptoManager;
@@ -14,7 +14,11 @@ describe('UnifiedEnvCryptoManager', () => {
   });
 
   afterEach(() => {
-    cryptoManager.clearSensitiveData();
+    // EnhancedEnvCryptoManager doesn't have clearSensitiveData method
+    // Using reflection to clear cache if needed
+    if ((cryptoManager as any).decryptedCache) {
+      (cryptoManager as any).decryptedCache.clear();
+    }
   });
 
   describe('싱글톤 패턴', () => {
@@ -27,7 +31,7 @@ describe('UnifiedEnvCryptoManager', () => {
 
   describe('암호화 기능', () => {
     it('값을 성공적으로 암호화해야 함', async () => {
-      const encrypted = await cryptoManager.encrypt(testValue, testPassword);
+      const encrypted = cryptoManager.encryptVariable('TEST_KEY', testValue, testPassword);
 
       expect(encrypted).toBeDefined();
       expect(encrypted.encrypted).toBeDefined();
@@ -38,8 +42,8 @@ describe('UnifiedEnvCryptoManager', () => {
     });
 
     it('같은 값도 매번 다른 암호화 결과를 생성해야 함', async () => {
-      const encrypted1 = await cryptoManager.encrypt(testValue, testPassword);
-      const encrypted2 = await cryptoManager.encrypt(testValue, testPassword);
+      const encrypted1 = cryptoManager.encryptVariable('TEST_KEY', testValue, testPassword);
+      const encrypted2 = cryptoManager.encryptVariable('TEST_KEY', testValue, testPassword);
 
       expect(encrypted1.encrypted).not.toBe(encrypted2.encrypted);
       expect(encrypted1.salt).not.toBe(encrypted2.salt);
@@ -47,11 +51,11 @@ describe('UnifiedEnvCryptoManager', () => {
     });
 
     it('빈 값 암호화 시 오류를 발생시켜야 함', async () => {
-      await expect(cryptoManager.encrypt('', testPassword)).rejects.toThrow();
+      expect(() => cryptoManager.encryptVariable('TEST_KEY', '', testPassword)).toThrow();
     });
 
     it('빈 비밀번호로 암호화 시 오류를 발생시켜야 함', async () => {
-      await expect(cryptoManager.encrypt(testValue, '')).rejects.toThrow();
+      expect(() => cryptoManager.encryptVariable('TEST_KEY', testValue, '')).toThrow();
     });
   });
 
@@ -64,25 +68,28 @@ describe('UnifiedEnvCryptoManager', () => {
     });
 
     it('잘못된 비밀번호로 복호화 시 오류를 발생시켜야 함', async () => {
-      const encrypted = await cryptoManager.encrypt(testValue, testPassword);
+      const encrypted = cryptoManager.encryptVariable('TEST_KEY', testValue, testPassword);
 
-      await expect(
-        cryptoManager.decrypt(encrypted, 'wrong-password')
-      ).rejects.toThrow();
+      expect(() =>
+        cryptoManager.decryptVariable(encrypted, 'wrong-password')
+      ).toThrow();
     });
 
-    it('잘못된 암호화 데이터로 복호화 시 오류를 발생시켜야 함', async () => {
-      const invalidData: EncryptedData = {
+    it('잘못된 암호화 데이터로 복호화 시 오류를 발생시켜야 핈', async () => {
+      const invalidData: EncryptedEnvData = {
         encrypted: 'invalid',
         salt: 'invalid',
         iv: 'invalid',
-        timestamp: new Date().toISOString(),
-        version: '1.0.0',
+        authTag: 'invalid',
+        algorithm: 'aes-256-gcm',
+        iterations: 100000,
+        timestamp: Date.now(),
+        version: '2.0',
       };
 
-      await expect(
-        cryptoManager.decrypt(invalidData, testPassword)
-      ).rejects.toThrow();
+      expect(() =>
+        cryptoManager.decryptVariable(invalidData, testPassword)
+      ).toThrow();
     });
   });
 

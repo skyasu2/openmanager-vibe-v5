@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  const redirect = requestUrl.searchParams.get('redirect') || '/dashboard';
+  const redirect = requestUrl.searchParams.get('redirect') || '/main';
 
   console.log('🔐 Auth 콜백 처리:', {
     code: code ? 'exists' : 'missing',

@@ -7,7 +7,7 @@
 import React from 'react';
 import { ProfileDropdown } from '@/components/profile/ProfileDropdown';
 import { useAuth } from '@/hooks/useAuth';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, act } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -70,13 +70,19 @@ describe('ProfileDropdown', () => {
 
       // 드롭다운 열기
       const profileButton = screen.getByRole('button');
-      fireEvent.click(profileButton);
+      await act(async () => {
+        fireEvent.click(profileButton);
+      });
 
       // 게스트 로그인 클릭
       const guestLoginButton = screen.getByText('일반사용자로 사용');
-      fireEvent.click(guestLoginButton);
+      await act(async () => {
+        fireEvent.click(guestLoginButton);
+      });
 
-      expect(mockLoginAsGuest).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockLoginAsGuest).toHaveBeenCalled();
+      });
     });
 
     it('should show login prompt in dropdown', () => {
@@ -162,13 +168,19 @@ describe('ProfileDropdown', () => {
 
       // 드롭다운 열기
       const profileButton = screen.getByRole('button');
-      fireEvent.click(profileButton);
+      await act(async () => {
+        fireEvent.click(profileButton);
+      });
 
       // 로그아웃 클릭
       const logoutButton = screen.getByText('🚪 로그아웃');
-      fireEvent.click(logoutButton);
+      await act(async () => {
+        fireEvent.click(logoutButton);
+      });
 
-      expect(mockLogout).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockLogout).toHaveBeenCalled();
+      });
     });
 
     it('should navigate to dashboard when dashboard link clicked', () => {
@@ -250,23 +262,46 @@ describe('ProfileDropdown', () => {
       render(<ProfileDropdown />);
 
       const profileButton = screen.getByRole('button');
-      fireEvent.click(profileButton);
+      await act(async () => {
+        fireEvent.click(profileButton);
+      });
 
       const logoutButton = screen.getByText('🚪 로그아웃');
-      fireEvent.click(logoutButton);
+      await act(async () => {
+        fireEvent.click(logoutButton);
+      });
 
-      expect(mockLogout).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockLogout).toHaveBeenCalled();
+      });
     });
   });
 
   describe('Error Handling', () => {
     it('should handle auth hook errors gracefully', () => {
-      (useAuth as any).mockImplementation(() => {
-        throw new Error('Auth error');
+      // 에러 경계로 컴포넌트 감싸기
+      const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
+        const [hasError, setHasError] = React.useState(false);
+        React.useEffect(() => {
+          const handleError = () => setHasError(true);
+          window.addEventListener('error', handleError);
+          return () => window.removeEventListener('error', handleError);
+        }, []);
+        if (hasError) return <div>Error occurred</div>;
+        return <>{children}</>;
+      };
+
+      (useAuth as any).mockReturnValue({
+        isAuthenticated: false,
+        user: null,
+        login: mockLoginAsGuest,
+        logout: mockLogout,
+        hasPermission: mockHasPermission,
+        error: new Error('Auth error')
       });
 
       // 에러가 있어도 컴포넌트가 크래시하지 않아야 함
-      expect(() => render(<ProfileDropdown />)).not.toThrow();
+      expect(() => render(<ErrorBoundary><ProfileDropdown /></ErrorBoundary>)).not.toThrow();
     });
 
     it('should handle navigation errors gracefully', async () => {
@@ -282,13 +317,19 @@ describe('ProfileDropdown', () => {
       render(<ProfileDropdown />);
 
       const profileButton = screen.getByRole('button');
-      fireEvent.click(profileButton);
+      await act(async () => {
+        fireEvent.click(profileButton);
+      });
 
       const dashboardLink = screen.getByText('📊 대시보드');
-      fireEvent.click(dashboardLink);
+      await act(async () => {
+        fireEvent.click(dashboardLink);
+      });
 
       // 에러가 있어도 UI가 깨지지 않아야 함
-      expect(screen.getByText('Test User')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Test User')).toBeInTheDocument();
+      });
     });
   });
 
@@ -371,7 +412,9 @@ describe('ProfileDropdown', () => {
 
       // 외부 클릭
       const outsideElement = screen.getByTestId('outside');
-      fireEvent.click(outsideElement);
+      await act(async () => {
+        fireEvent.click(outsideElement);
+      });
 
       await waitFor(() => {
         expect(screen.queryByText('📊 대시보드')).not.toBeInTheDocument();

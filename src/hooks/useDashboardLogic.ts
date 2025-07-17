@@ -132,7 +132,7 @@ export const useDashboardLogic = () => {
   }, []);
 
   const handleNavigateHome = useCallback(() => {
-    router.push('/');
+    router.push('/main');
   }, [router]);
 
   const handleSystemStop = useCallback(async () => {
