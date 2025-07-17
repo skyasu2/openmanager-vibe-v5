@@ -150,7 +150,7 @@ mcp__context7__get-library-docs({
 #### 🔍 Tavily MCP 도구
 ```typescript
 // 웹 검색
-mcp__tavily__search({
+mcp__tavily-mcp__tavily-search({
   query: "Next.js 15 new features",
   max_results: 10,
   search_depth: "advanced"
@@ -169,10 +169,71 @@ mcp__tavily__search_context({
 })
 
 // 페이지 컨텐츠 추출
-mcp__tavily__extract({
+mcp__tavily-mcp__tavily-extract({
   url: "https://example.com/article",
+  extract_depth: "advanced",
   include_images: true
 })
+
+// 웹 크롤링
+mcp__tavily-mcp__tavily-crawl({
+  url: "https://example.com",
+  max_depth: 2,
+  limit: 50
+})
+
+// 사이트맵 생성
+mcp__tavily-mcp__tavily-map({
+  url: "https://example.com",
+  max_depth: 2
+})
+```
+
+#### 🧠 Sequential-Thinking MCP 도구
+```typescript
+// 복잡한 문제를 단계별로 분석하고 해결
+mcp__sequential-thinking__sequentialthinking({
+  thought: "사용자 인증 시스템의 보안 취약점을 분석해보자",
+  nextThoughtNeeded: true,
+  thoughtNumber: 1,
+  totalThoughts: 5,  // 예상 단계 수 (동적으로 조정 가능)
+  isRevision: false,
+  needsMoreThoughts: false
+})
+
+// 사용 예시: 복잡한 버그 분석
+// 1단계: 문제 정의 및 초기 분석
+mcp__sequential-thinking__sequentialthinking({
+  thought: "로그인 후 간헐적으로 세션이 만료되는 문제 분석",
+  nextThoughtNeeded: true,
+  thoughtNumber: 1,
+  totalThoughts: 4
+})
+
+// 2단계: 가능한 원인 탐색
+mcp__sequential-thinking__sequentialthinking({
+  thought: "세션 타임아웃, 토큰 검증, 네트워크 이슈 등을 검토",
+  nextThoughtNeeded: true,
+  thoughtNumber: 2,
+  totalThoughts: 4
+})
+
+// 3단계: 이전 생각 수정 (필요시)
+mcp__sequential-thinking__sequentialthinking({
+  thought: "토큰 검증 로직에 race condition 발견",
+  nextThoughtNeeded: true,
+  thoughtNumber: 3,
+  totalThoughts: 5,  // 더 많은 분석 필요
+  isRevision: true,
+  revisesThought: 2
+})
+
+// 활용 시나리오:
+// - 복잡한 알고리즘 설계
+// - 시스템 아키텍처 개선
+// - 성능 병목 현상 분석
+// - 보안 취약점 탐색
+// - 다단계 리팩토링 계획
 ```
 
 ### 🛡️ 일반 도구 (대체 항목)
@@ -508,7 +569,7 @@ This project demonstrates advanced Next.js patterns with AI integration, optimiz
 
 ## MCP (Model Context Protocol) 도구 통합
 
-Claude Code에는 6개의 공식 MCP 서버가 설정되어 있습니다. MCP 도구들은 `mcp__서버명__함수명` 형식으로 사용 가능합니다.
+Claude Code에는 7개의 공식 MCP 서버가 설정되어 있습니다. MCP 도구들은 `mcp__서버명__함수명` 형식으로 사용 가능합니다.
 
 ### 🛠️ MCP 서버 목록
 - **filesystem** - 파일 시스템 접근
@@ -517,6 +578,7 @@ Claude Code에는 6개의 공식 MCP 서버가 설정되어 있습니다. MCP �
 - **supabase** - 데이터베이스 통합
 - **context7** - 문서 검색
 - **tavily** - AI 웹 검색
+- **sequential-thinking** - 복잡한 문제의 단계별 분석 및 해결
 
 ### 🚀 MCP 설정 및 사용법
 
@@ -556,6 +618,9 @@ claude mcp add context7 npx -y @context7/mcp-server
 
 # Tavily (키 필요)
 claude mcp add tavily -e TAVILY_API_KEY=YOUR_KEY npx -y @tavily/mcp-server
+
+# Sequential-Thinking
+claude mcp add sequential-thinking npx -y @modelcontextprotocol/server-sequential-thinking
 ```
 
 #### OAuth 인증 (신기능)

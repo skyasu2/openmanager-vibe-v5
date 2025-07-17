@@ -2,6 +2,25 @@
 
 ## [5.46.42] - 2025-07-17
 
+### 📚 MCP (Model Context Protocol) 업데이트
+
+#### Sequential-Thinking MCP 서버 추가
+- **새로운 MCP 서버 통합**:
+  - `sequential-thinking` 서버 추가 (7번째 공식 MCP 서버)
+  - 복잡한 문제의 단계별 분석 및 해결 기능
+  - 다각도 검토 및 솔루션 설계 지원
+
+#### 문서 업데이트
+- **CLAUDE.md**:
+  - Sequential-Thinking MCP 도구 사용 예시 추가
+  - MCP 서버 개수 6개 → 7개로 업데이트
+  - Tavily MCP 함수명 수정 (`mcp__tavily-mcp__*`)
+  
+- **claude-code-mcp-setup-2025.md**:
+  - Sequential-Thinking MCP 설정 방법 추가
+  - 활성 MCP 서버 목록 업데이트
+  - 문서 버전 v2.1 → v2.2
+
 ### 🔐 인증 중심 라우팅 구조 변경
 
 #### 라우팅 아키텍처 개선
