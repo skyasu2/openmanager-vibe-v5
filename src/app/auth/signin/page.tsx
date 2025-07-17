@@ -9,12 +9,13 @@
 
 import { useSession, signIn } from '@/hooks/useSupabaseSession';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 
 // 🚫 정적 생성 완전 비활성화 (동적 렌더링만 사용)
 export const dynamic = 'force-dynamic';
 
-export default function AuthSignInPage() {
+// Suspense boundary를 위한 클라이언트 컴포넌트
+function AuthSignInContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
@@ -195,5 +196,23 @@ export default function AuthSignInPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// 메인 페이지 컴포넌트 - Suspense로 래핑
+export default function AuthSignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className='min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center'>
+          <div className='text-white'>
+            <div className='w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4'></div>
+            <p>페이지 로딩 중...</p>
+          </div>
+        </div>
+      }
+    >
+      <AuthSignInContent />
+    </Suspense>
   );
 }
