@@ -1,40 +1,52 @@
 /**
- * 🔐 NextAuth Sign In Page - GitHub OAuth
+ * 🔐 Supabase Auth Sign In Page - GitHub OAuth
  *
- * OpenManager Vibe v5 - NextAuth 기반 GitHub OAuth 로그인 페이지
- * 별도 GitHub OAuth 로그인 페이지 (선택적 사용)
+ * OpenManager Vibe v5 - Supabase Auth 기반 GitHub OAuth 로그인 페이지
+ * GitHub OAuth 전용 로그인 페이지
  */
 
 'use client';
 
-import { getSession, signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useSession, signIn } from '@/hooks/useSupabaseSession';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 // 🚫 정적 생성 완전 비활성화 (동적 렌더링만 사용)
 export const dynamic = 'force-dynamic';
 
-export default function NextAuthSignInPage() {
+export default function AuthSignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
+    
+    // URL 파라미터에서 에러 메시지 확인
+    const errorParam = searchParams.get('error');
+    const messageParam = searchParams.get('message');
+    
+    if (errorParam) {
+      console.error('🚨 Auth error from URL:', errorParam, messageParam);
+      setError(messageParam || '인증 중 오류가 발생했습니다.');
+    }
+    
     // 이미 로그인된 사용자인지 확인
     checkExistingSession();
-  }, []);
+  }, [searchParams, status, session, router]);
 
   /**
    * 🔍 기존 세션 확인
    */
   const checkExistingSession = async () => {
     try {
-      const session = await getSession();
-      if (session) {
-        console.log('✅ 기존 NextAuth 세션 감지:', session.user);
-        router.push('/');
+      if (status === 'authenticated' && session) {
+        console.log('✅ 기존 Supabase 세션 감지:', session.user);
+        const redirectTo = searchParams.get('redirectTo') || '/';
+        router.push(redirectTo);
       }
     } catch (error) {
       console.error('세션 확인 중 오류:', error);
@@ -49,28 +61,20 @@ export default function NextAuthSignInPage() {
       setIsLoading(true);
       setError(null);
 
-      console.log('🔐 NextAuth GitHub OAuth 로그인 시작...');
+      console.log('🔐 Supabase GitHub OAuth 로그인 시작...');
 
-      // NextAuth signIn 호출
-      const result = await signIn('github', {
-        callbackUrl: '/',
-        redirect: false,
+      const redirectTo = searchParams.get('redirectTo') || '/dashboard';
+      
+      // Supabase signIn 호출
+      await signIn('github', {
+        callbackUrl: redirectTo,
       });
 
-      if (result?.error) {
-        console.error('GitHub OAuth 로그인 실패:', result.error);
-        setError(`GitHub 로그인 실패: ${result.error}`);
-        return;
-      }
-
-      if (result?.url) {
-        console.log('✅ GitHub OAuth 로그인 성공, 리다이렉팅...');
-        window.location.href = result.url;
-      }
+      // signIn이 성공하면 자동으로 GitHub OAuth 페이지로 리다이렉트됨
+      console.log('✅ GitHub OAuth 페이지로 이동 중...');
     } catch (error) {
       console.error('GitHub OAuth 로그인 중 오류:', error);
       setError('GitHub 로그인 중 오류가 발생했습니다.');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -82,11 +86,14 @@ export default function NextAuthSignInPage() {
     router.push('/login');
   };
 
-  // 클라이언트 렌더링이 준비되지 않았으면 로딩 표시
-  if (!isClient) {
+  // 클라이언트 렌더링이 준비되지 않았거나 세션 체크 중이면 로딩 표시
+  if (!isClient || status === 'loading') {
     return (
       <div className='min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center'>
-        <div className='text-white'>Loading...</div>
+        <div className='text-white'>
+          <div className='w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4'></div>
+          <p>인증 확인 중...</p>
+        </div>
       </div>
     );
   }
@@ -110,7 +117,7 @@ export default function NextAuthSignInPage() {
             </svg>
           </div>
           <h1 className='text-2xl font-bold text-white mb-2'>GitHub OAuth</h1>
-          <p className='text-gray-400'>NextAuth 기반 GitHub 로그인</p>
+          <p className='text-gray-400'>Supabase Auth 기반 GitHub 로그인</p>
         </div>
 
         {/* 로그인 폼 */}
@@ -182,8 +189,8 @@ export default function NextAuthSignInPage() {
         {/* 정보 표시 */}
         <div className='text-center mt-8'>
           <div className='text-xs text-gray-500 space-y-1'>
-            <p>🔐 NextAuth 기반 GitHub OAuth</p>
-            <p>🔒 안전한 JWT 토큰 기반 인증</p>
+            <p>🔐 Supabase Auth 기반 GitHub OAuth</p>
+            <p>🔒 안전한 세션 기반 인증</p>
           </div>
         </div>
       </div>
