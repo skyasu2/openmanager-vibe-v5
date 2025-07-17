@@ -26,8 +26,8 @@ export default function AuthSignInPage() {
     setIsClient(true);
     
     // URL 파라미터에서 에러 메시지 확인
-    const errorParam = searchParams.get('error');
-    const messageParam = searchParams.get('message');
+    const errorParam = searchParams?.get('error');
+    const messageParam = searchParams?.get('message');
     
     if (errorParam) {
       console.error('🚨 Auth error from URL:', errorParam, messageParam);
@@ -45,7 +45,7 @@ export default function AuthSignInPage() {
     try {
       if (status === 'authenticated' && session) {
         console.log('✅ 기존 Supabase 세션 감지:', session.user);
-        const redirectTo = searchParams.get('redirectTo') || '/';
+        const redirectTo = searchParams?.get('redirectTo') || '/';
         router.push(redirectTo);
       }
     } catch (error) {
@@ -63,7 +63,7 @@ export default function AuthSignInPage() {
 
       console.log('🔐 Supabase GitHub OAuth 로그인 시작...');
 
-      const redirectTo = searchParams.get('redirectTo') || '/dashboard';
+      const redirectTo = searchParams?.get('redirectTo') || '/dashboard';
       
       // Supabase signIn 호출
       await signIn('github', {
