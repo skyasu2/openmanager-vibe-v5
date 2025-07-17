@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🚀 Pre-push 검증 시작..."
+echo "🔍 전체 품질 검사..."
+npm run type-check && npm run lint && npm run test:quick 
