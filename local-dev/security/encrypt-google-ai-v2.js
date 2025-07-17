@@ -63,7 +63,7 @@ async function main() {
 
     try {
         // 새로운 API 키
-        const newApiKey = 'AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY';
+        const newApiKey = 'SENSITIVE_INFO_REMOVED';
 
         // 팀 비밀번호
         const teamPassword = 'team2025secure';

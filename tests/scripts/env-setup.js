@@ -20,9 +20,9 @@ GEMINI_LEARNING_ENABLED=true
 # 브라우저 알림만 사용
 
 # 🗄️ Supabase 설정 (기존 환경변수 유지)
-NEXT_PUBLIC_SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzMzNjAzNjIsImV4cCI6MjA0ODkzNjM2Mn0.gL_xJ3BqcK3gBGcxrxQbROcf3JMN_Ov7L9D4qJ5n1ps
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMzM2MDM2MiwiZXhwIjoyMDQ4OTM2MzYyfQ.zJnAUZUxcQwHPW2A3Ku8K_3kB_c3TCPU_LlhGaKf0RQ
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=SENSITIVE_INFO_REMOVED
+SUPABASE_SERVICE_ROLE_KEY=SENSITIVE_INFO_REMOVED
 
 # 🔄 Redis 설정 (Upstash)
 REDIS_URL=rediss://default:your_redis_token_here@your_redis_host_here:6379

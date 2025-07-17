@@ -214,8 +214,8 @@ GCP_REDIS_PORT=6379
 GCP_REDIS_PASSWORD=${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}
 
 # Supabase (Firestore 대체)
-SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_URL=your_supabase_url_here
+SUPABASE_ANON_KEY=your_jwt_token_here...
 ```
 
 ## 🔧 사용법

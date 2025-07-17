@@ -126,7 +126,7 @@ export async function resolveGoogleAIKey(): Promise<GoogleAIKeyResult> {
       console.log('🚧 개발 환경: 기본 키 사용');
       return {
         success: true,
-        key: 'AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY', // 새로운 키
+        key: 'SENSITIVE_INFO_REMOVED', // 새로운 키
         source: 'development',
       };
     }
@@ -162,7 +162,7 @@ export function getGoogleAIKey(): string | null {
 
   // 개발 환경 기본값
   if (process.env.NODE_ENV === 'development') {
-    return 'AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY';
+    return 'SENSITIVE_INFO_REMOVED';
   }
 
   return null;

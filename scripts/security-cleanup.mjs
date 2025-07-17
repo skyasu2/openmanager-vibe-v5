@@ -11,7 +11,7 @@ const projectRoot = path.join(__dirname, '..');
 // 🚨 민감한 정보 패턴들
 const SENSITIVE_PATTERNS = [
     // Supabase JWT 토큰들
-    /eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,
+    /your_jwt_token_here\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,
 
     // Google API 키들
     /AIzaSy[A-Za-z0-9_-]{33}/g,
@@ -20,34 +20,34 @@ const SENSITIVE_PATTERNS = [
     /GOCSPX-[A-Za-z0-9_-]{28}/g,
 
     // Redis 패스워드들
-    /AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA/g,
+    /SENSITIVE_INFO_REMOVED/g,
 
     // 기타 민감한 키들
     /qNzA4\/WgbksJU3xxkQJcfbCRkXhgBR7TVmI4y2XKRy59BwtRk6iuUSdkRNNQN1Yud3PGsGLTcZkdHSTZL0mhug==/g,
-    /2D3DWhSl8HBlgYIm/g,
+    /SENSITIVE_INFO_REMOVED/g,
 ];
 
 // 🔄 대체할 플레이스홀더들
 const REPLACEMENTS = {
     // JWT 토큰들
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9': 'your_jwt_token_here',
+    'your_jwt_token_here': 'your_jwt_token_here',
 
     // Google API 키
-    'AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY': 'your_google_ai_api_key_here',
+    'SENSITIVE_INFO_REMOVED': 'your_google_ai_api_key_here',
 
     // Google OAuth
-    'GOCSPX-abcdefghijklmnopqrstuvwxyz123456': 'your_google_oauth_client_secret_here',
-    '1234567890-abcdefghijklmnopqrstuvwxyz123456.apps.googleusercontent.com': 'your_google_oauth_client_id_here',
+    'SENSITIVE_INFO_REMOVED3456': 'your_google_oauth_client_secret_here',
+    'your_google_oauth_client_id_here': 'your_google_oauth_client_id_here',
 
     // Redis
-    'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA': 'your_redis_password_here',
-    'charming-condor-46598.upstash.io': 'your_redis_host_here',
+    'SENSITIVE_INFO_REMOVED': 'your_redis_password_here',
+    'your_redis_host_here': 'your_redis_host_here',
 
     // Supabase
-    'https://vnswjnltnhpsueosfhmw.supabase.co': 'your_supabase_url_here',
-    'vnswjnltnhpsueosfhmw': 'your_supabase_project_id_here',
-    'qNzA4/WgbksJU3xxkQJcfbCRkXhgBR7TVmI4y2XKRy59BwtRk6iuUSdkRNNQN1Yud3PGsGLTcZkdHSTZL0mhug==': 'your_supabase_jwt_secret_here',
-    '2D3DWhSl8HBlgYIm': 'your_supabase_db_password_here',
+    'your_supabase_url_here': 'your_supabase_url_here',
+    'your_supabase_project_id_here': 'your_supabase_project_id_here',
+    'SENSITIVE_INFO_REMOVED': 'your_supabase_jwt_secret_here',
+    'SENSITIVE_INFO_REMOVED': 'your_supabase_db_password_here',
 };
 
 // 🚫 제외할 디렉토리들

@@ -17,19 +17,19 @@ const ENCRYPTION_KEY = 'openmanager2025';
 // 암호화할 환경변수들 (중복 제거됨)
 const supabaseEnvVars = {
   // 🚨 매우 민감한 변수들
-  SUPABASE_JWT_SECRET: "qNzA4/WgbksJU3xxkQJcfbCRkXhgBR7TVmI4y2XKRy59BwtRk6iuUSdkRNNQN1Yud3PGsGLTcZkdHSTZL0mhug==",
-  POSTGRES_PASSWORD: "2D3DWhSl8HBlgYIm",
+  SUPABASE_JWT_SECRET: "your_supabase_jwt_secret_here",
+  POSTGRES_PASSWORD: "your_postgres_password_here",
   
   // 🔗 연결 URL들 
-  POSTGRES_URL: "postgres://postgres.vnswjnltnhpsueosfhmw:2D3DWhSl8HBlgYIm@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x",
-  POSTGRES_PRISMA_URL: "postgres://postgres.vnswjnltnhpsueosfhmw:2D3DWhSl8HBlgYIm@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x",
+  POSTGRES_URL: "postgres://postgres.your_project_id:your_postgres_password_here@pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x",
+  POSTGRES_PRISMA_URL: "postgres://postgres.your_project_id:your_postgres_password_here@pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x",
   
   // 📋 기본 설정들
   POSTGRES_USER: "postgres",
-  POSTGRES_HOST: "db.vnswjnltnhpsueosfhmw.supabase.co",
+  POSTGRES_HOST: "db.your_project_id.supabase.co",
   POSTGRES_DATABASE: "postgres",
-  SUPABASE_URL: "https://vnswjnltnhpsueosfhmw.supabase.co",
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU"
+  SUPABASE_URL: "https://your_project_id.supabase.co",
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: "your_supabase_anon_key_here"
 };
 
 // 민감도별 분류

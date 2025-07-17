@@ -203,14 +203,14 @@ export async function POST(request: Request) {
 
 ### **Upstash Redis**
 
-- **엔드포인트**: `charming-condor-46598.upstash.io:6379`
+- **엔드포인트**: `your_redis_host_here:6379`
 - **메모리 사용률**: 39%
 - **커맨드 사용률**: 30%
 - **연결 사용률**: 25%
 
 ### **Supabase**
 
-- **프로젝트**: `vnswjnltnhpsueosfhmw`
+- **프로젝트**: `your_supabase_project_id_here`
 - **데이터베이스 사용률**: 40%
 - **API 요청 사용률**: 30%
 - **스토리지 사용률**: 30%

@@ -100,8 +100,8 @@ npm install tavily-mcp@latest @supabase/mcp-server-supabase@latest
 TAVILY_API_KEY=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 npx -y tavily-mcp --version
 
 # Supabase MCP 테스트
-SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co \
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... \
+SUPABASE_URL=your_supabase_url_here \
+SUPABASE_SERVICE_ROLE_KEY=your_jwt_token_here... \
 npx -y @supabase/mcp-server-supabase --version
 ```
 

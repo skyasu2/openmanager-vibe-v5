@@ -5,8 +5,8 @@
 echo "🔧 MCP 환경 변수 설정 중..."
 
 # Supabase 환경 변수
-export SUPABASE_URL="https://vnswjnltnhpsueosfhmw.supabase.co"
-export SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8"
+export SUPABASE_URL="your_supabase_url_here"
+export SUPABASE_SERVICE_ROLE_KEY="SENSITIVE_INFO_REMOVED"
 
 # GitHub 토큰 (이미 설정되어 있음)
 # export GITHUB_TOKEN="your-github-token"

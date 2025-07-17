@@ -11,13 +11,13 @@ KV_REST_API_TOKEN=${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}
 KV_REST_API_READ_ONLY_TOKEN=ArYGAAIgcDEJt2OXeBDen9ob7LlHXZiPD3cWjKXjdo0GT-jFZwW1lw
 
 # === Supabase 설정 ===
-NEXT_PUBLIC_SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=SENSITIVE_INFO_REMOVED
+SUPABASE_SERVICE_ROLE_KEY=SENSITIVE_INFO_REMOVED
 
 # === 추가 설정 ===
-POSTGRES_URL=postgres://postgres.vnswjnltnhpsueosfhmw:2D3DWhSl8HBlgYIm@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x
-POSTGRES_PRISMA_URL=postgres://postgres.vnswjnltnhpsueosfhmw:2D3DWhSl8HBlgYIm@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x
-POSTGRES_URL_NON_POOLING=postgres://postgres.vnswjnltnhpsueosfhmw:2D3DWhSl8HBlgYIm@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
+POSTGRES_URL=postgres://postgres.your_supabase_project_id_here:SENSITIVE_INFO_REMOVED@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x
+POSTGRES_PRISMA_URL=postgres://postgres.your_supabase_project_id_here:SENSITIVE_INFO_REMOVED@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x
+POSTGRES_URL_NON_POOLING=postgres://postgres.your_supabase_project_id_here:SENSITIVE_INFO_REMOVED@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
 REDIS_URL=rediss://default:${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}@${UPSTASH_REDIS_HOST:-your_redis_host_here}:6379
 NODE_ENV=production REDIS_URL=rediss://default:${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}@${UPSTASH_REDIS_HOST:-your_redis_host_here}:6379

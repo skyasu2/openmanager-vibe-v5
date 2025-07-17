@@ -78,9 +78,9 @@ export class SupabaseRAGMainEngine {
 
         // 암호화된 설정 로드
         const encryptedConfig = {
-          supabaseUrl: 'https://vnswjnltnhpsueosfhmw.supabase.co',
+          supabaseUrl: 'your_supabase_url_here',
           supabaseKey:
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU',
+            'SENSITIVE_INFO_REMOVED',
         };
 
         supabaseUrl = encryptedConfig.supabaseUrl;

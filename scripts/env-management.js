@@ -45,27 +45,27 @@ class EnvSecurityManager {
       NEXT_PUBLIC_SUPABASE_URL: {
         required: true,
         public: true,
-        value: 'https://vnswjnltnhpsueosfhmw.supabase.co',
+        value: 'your_supabase_url_here',
         encrypt: true,
       },
       NEXT_PUBLIC_SUPABASE_ANON_KEY: {
         required: true,
         public: true,
         value:
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU',
+          'SENSITIVE_INFO_REMOVED',
         encrypt: true,
       },
       SUPABASE_SERVICE_ROLE_KEY: {
         required: false,
         public: false,
         value:
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8',
+          'SENSITIVE_INFO_REMOVED',
         encrypt: true,
       },
       SUPABASE_DB_PASSWORD: {
         required: false,
         public: false,
-        value: '2D3DWhSl8HBlgYIm',
+        value: 'SENSITIVE_INFO_REMOVED',
         encrypt: true,
       },
 
@@ -358,7 +358,7 @@ export const DEPLOYMENT_CONFIG = {
   supabase: {
     enabled: true,
     region: 'ap-southeast-1',
-    project: 'vnswjnltnhpsueosfhmw'
+    project: 'your_supabase_project_id_here'
   },
   gcpMCP: {
     enabled: true,
@@ -412,10 +412,10 @@ export const DEPLOYMENT_CONFIG = {
     console.log('🗄️ Supabase 설정 중...');
 
     const supabaseConfig = {
-      project_url: 'https://vnswjnltnhpsueosfhmw.supabase.co',
-      project_id: 'vnswjnltnhpsueosfhmw',
+      project_url: 'your_supabase_url_here',
+      project_id: 'your_supabase_project_id_here',
       region: 'ap-southeast-1',
-      database_host: 'db.vnswjnltnhpsueosfhmw.supabase.co',
+      database_host: 'db.your_supabase_project_id_here.supabase.co',
       pooler_port: 6543,
       direct_port: 5432,
       ssl_mode: 'require',
@@ -581,10 +581,10 @@ NODE_ENV=development
 # =============================================================================
 # 🗄️ Supabase 데이터베이스 (2025년 메모리 저장소)
 # =============================================================================
-NEXT_PUBLIC_SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8
-SUPABASE_DB_PASSWORD=2D3DWhSl8HBlgYIm
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=SENSITIVE_INFO_REMOVED
+SUPABASE_SERVICE_ROLE_KEY=SENSITIVE_INFO_REMOVED
+SUPABASE_DB_PASSWORD=SENSITIVE_INFO_REMOVED
 
 # =============================================================================
 # 📡 GCP VM MCP 서버 (2025년 메모리 저장소)

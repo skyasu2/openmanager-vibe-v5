@@ -13,7 +13,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 # 제거할 토큰들
-OLD_TOKEN="AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA"
+OLD_TOKEN="SENSITIVE_INFO_REMOVED"
 OLD_HOST="your_redis_host_here"
 
 # 1. 토큰이 포함된 파일 찾기

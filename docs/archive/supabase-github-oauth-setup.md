@@ -1,9 +1,9 @@
 # 🔐 Supabase GitHub OAuth 설정 가이드
 
 ## 📋 현재 프로젝트 정보
-- **Supabase URL**: https://vnswjnltnhpsueosfhmw.supabase.co
-- **Project Ref**: vnswjnltnhpsueosfhmw
-- **GitHub Client ID**: Ov23liFnUsRO0ttNegju (이미 설정됨)
+- **Supabase URL**: your_supabase_url_here
+- **Project Ref**: your_supabase_project_id_here
+- **GitHub Client ID**: your_github_client_id_here (이미 설정됨)
 
 ## 🚀 즉시 해결 방법
 
@@ -11,7 +11,7 @@
 
 1. **Supabase Dashboard 접속**
    ```
-   https://supabase.com/dashboard/project/vnswjnltnhpsueosfhmw
+   https://supabase.com/dashboard/project/your_supabase_project_id_here
    ```
 
 2. **Authentication 설정**
@@ -21,13 +21,13 @@
 
 3. **GitHub OAuth 정보 입력**
    ```
-   Client ID: Ov23liFnUsRO0ttNegju
+   Client ID: your_github_client_id_here
    Client Secret: e696b1911a31d283d829aca73eb3fea8abbe7291
    ```
 
 4. **Redirect URL 확인**
    ```
-   https://vnswjnltnhpsueosfhmw.supabase.co/auth/v1/callback
+   your_supabase_url_here/auth/v1/callback
    ```
 
 5. **저장 클릭**
@@ -36,12 +36,12 @@
 
 ```bash
 # Supabase Access Token이 필요함
-curl -X PATCH "https://api.supabase.com/v1/projects/vnswjnltnhpsueosfhmw/config/auth" \
+curl -X PATCH "https://api.supabase.com/v1/projects/your_supabase_project_id_here/config/auth" \
   -H "Authorization: Bearer YOUR_SUPABASE_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "external_github_enabled": true,
-    "external_github_client_id": "Ov23liFnUsRO0ttNegju",
+    "external_github_client_id": "your_github_client_id_here",
     "external_github_secret": "e696b1911a31d283d829aca73eb3fea8abbe7291"
   }'
 ```
@@ -52,7 +52,7 @@ curl -X PATCH "https://api.supabase.com/v1/projects/vnswjnltnhpsueosfhmw/config/
 1. **GitHub → Settings → Developer settings → OAuth Apps**
 2. **Authorization callback URL 확인**:
    ```
-   https://vnswjnltnhpsueosfhmw.supabase.co/auth/v1/callback
+   your_supabase_url_here/auth/v1/callback
    ```
 
 ### 테스트 방법

@@ -19,17 +19,17 @@ REDIS_DB=0
 REDIS_URL=rediss://default:${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}@${UPSTASH_REDIS_HOST:-your_redis_host_here}:6379
 
 # === Supabase 설정 ===
-NEXT_PUBLIC_SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=SENSITIVE_INFO_REMOVED
+SUPABASE_SERVICE_ROLE_KEY=SENSITIVE_INFO_REMOVED
 
 # === PostgreSQL 설정 ===
-POSTGRES_URL=postgres://postgres.vnswjnltnhpsueosfhmw:2D3DWhSl8HBlgYIm@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x
-POSTGRES_PRISMA_URL=postgres://postgres.vnswjnltnhpsueosfhmw:2D3DWhSl8HBlgYIm@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x
-POSTGRES_URL_NON_POOLING=postgres://postgres.vnswjnltnhpsueosfhmw:2D3DWhSl8HBlgYIm@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
+POSTGRES_URL=postgres://postgres.your_supabase_project_id_here:SENSITIVE_INFO_REMOVED@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x
+POSTGRES_PRISMA_URL=postgres://postgres.your_supabase_project_id_here:SENSITIVE_INFO_REMOVED@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x
+POSTGRES_URL_NON_POOLING=postgres://postgres.your_supabase_project_id_here:SENSITIVE_INFO_REMOVED@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
 POSTGRES_USER=postgres
-POSTGRES_HOST=db.vnswjnltnhpsueosfhmw.supabase.co
-POSTGRES_PASSWORD=2D3DWhSl8HBlgYIm
+POSTGRES_HOST=db.your_supabase_project_id_here.supabase.co
+POSTGRES_PASSWORD=SENSITIVE_INFO_REMOVED
 POSTGRES_DATABASE=postgres
 
 # === 애플리케이션 설정 ===
@@ -37,7 +37,7 @@ NODE_ENV=production
 NEXT_PUBLIC_APP_URL=https://openmanager-vibe-v5.vercel.app
 
 # === JWT 시크릿 ===
-SUPABASE_JWT_SECRET=qNzA4/WgbksJU3xxkQJcfbCRkXhgBR7TVmI4y2XKRy59BwtRk6iuUSdkRNNQN1Yud3PGsGLTcZkdHSTZL0mhug==
+SUPABASE_JWT_SECRET=SENSITIVE_INFO_REMOVED
 
 # === 선택적 설정 ===
 # SLACK_WEBHOOK_URL=your-slack-webhook-url-if-needed

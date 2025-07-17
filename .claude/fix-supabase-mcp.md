@@ -46,7 +46,7 @@ mkdir -p ~/.config/claude-code
         "-y",
         "@supabase/mcp-server-supabase@latest",
         "--read-only",
-        "--project-ref=vnswjnltnhpsueosfhmw"
+        "--project-ref=your_supabase_project_id_here"
       ],
       "env": {
         "SUPABASE_ACCESS_TOKEN": "YOUR_PERSONAL_ACCESS_TOKEN_HERE"
@@ -71,7 +71,7 @@ Windows에서는 `cmd` 래퍼가 필요합니다:
         "-y",
         "@supabase/mcp-server-supabase@latest",
         "--read-only",
-        "--project-ref=vnswjnltnhpsueosfhmw"
+        "--project-ref=your_supabase_project_id_here"
       ],
       "env": {
         "SUPABASE_ACCESS_TOKEN": "YOUR_PERSONAL_ACCESS_TOKEN_HERE"
@@ -131,6 +131,6 @@ source ~/.bashrc
 
 ## 📝 추가 정보
 
-- **프로젝트 ID**: `vnswjnltnhpsueosfhmw`
+- **프로젝트 ID**: `your_supabase_project_id_here`
 - **공식 문서**: [Supabase MCP Server](https://github.com/supabase-community/supabase-mcp)
 - **보안 주의**: Personal Access Token을 절대 커밋하지 마세요!

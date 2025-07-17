@@ -6,8 +6,8 @@
 
 const { createClient } = require('@supabase/supabase-js');
 
-const SUPABASE_URL = 'https://vnswjnltnhpsueosfhmw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU';
+const SUPABASE_URL = 'your_supabase_url_here';
+const SUPABASE_ANON_KEY = 'SENSITIVE_INFO_REMOVED';
 
 async function testSupabaseConnection() {
     console.log('🔍 Supabase 기본 연결 테스트...\n');

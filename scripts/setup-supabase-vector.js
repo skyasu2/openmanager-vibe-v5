@@ -8,8 +8,8 @@
 const { createClient } = require('@supabase/supabase-js');
 
 // 환경 변수 설정
-const SUPABASE_URL = 'https://vnswjnltnhpsueosfhmw.supabase.co';
-const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8'; // service_role 키 사용
+const SUPABASE_URL = 'your_supabase_url_here';
+const SUPABASE_SERVICE_KEY = 'SENSITIVE_INFO_REMOVED'; // service_role 키 사용
 
 async function setupSupabaseVector() {
     console.log('🚀 Supabase 벡터 테이블 설정 시작...\n');

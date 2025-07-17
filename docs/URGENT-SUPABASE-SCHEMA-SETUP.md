@@ -11,7 +11,7 @@
 ### 1단계: Supabase Dashboard 접속
 ```
 1. https://supabase.com/dashboard 접속
-2. vnswjnltnhpsueosfhmw 프로젝트 선택
+2. your_supabase_project_id_here 프로젝트 선택
 3. 왼쪽 메뉴에서 "SQL Editor" 클릭
 ```
 

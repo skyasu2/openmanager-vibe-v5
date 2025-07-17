@@ -528,10 +528,10 @@ export class SupabaseRAGEngine {
       // 암호화된 환경변수에서 복원
       supabaseUrl =
         process.env.ENCRYPTED_SUPABASE_URL ||
-        'https://vnswjnltnhpsueosfhmw.supabase.co';
+        'your_supabase_url_here';
       supabaseKey =
         process.env.ENCRYPTED_SUPABASE_KEY ||
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU';
+        'SENSITIVE_INFO_REMOVED';
     }
 
     if (!supabaseUrl || !supabaseKey) {

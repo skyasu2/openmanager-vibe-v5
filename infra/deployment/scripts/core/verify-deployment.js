@@ -12,9 +12,9 @@ const { URL } = require('url');
 // 환경변수 체크 리스트
 const REQUIRED_ENV_VARS = {
   // Supabase
-  'NEXT_PUBLIC_SUPABASE_URL': 'https://vnswjnltnhpsueosfhmw.supabase.co',
-  'NEXT_PUBLIC_SUPABASE_ANON_KEY': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-  'SUPABASE_SERVICE_ROLE_KEY': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  'NEXT_PUBLIC_SUPABASE_URL': 'your_supabase_url_here',
+  'NEXT_PUBLIC_SUPABASE_ANON_KEY': 'your_jwt_token_here...',
+  'SUPABASE_SERVICE_ROLE_KEY': 'your_jwt_token_here...',
   
   // Redis (둘 중 하나만 있으면 됨)
       'UPSTASH_REDIS_REST_URL': 'https://your_redis_host_here',

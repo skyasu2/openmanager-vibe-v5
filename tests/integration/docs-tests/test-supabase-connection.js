@@ -1,9 +1,9 @@
 const { createClient } = require('@supabase/supabase-js');
 
 // Supabase 클라이언트 생성
-const supabaseUrl = 'https://vnswjnltnhpsueosfhmw.supabase.co';
+const supabaseUrl = 'your_supabase_url_here';
 const supabaseKey =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8';
+  'SENSITIVE_INFO_REMOVED';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 

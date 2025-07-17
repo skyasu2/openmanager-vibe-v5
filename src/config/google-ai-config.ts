@@ -1,7 +1,7 @@
 /**
  * 🔐 Google AI API 암호화된 설정 v3.0
  *
- * 새로운 API 키: AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY
+ * 새로운 API 키: SENSITIVE_INFO_REMOVED
  * 팀 비밀번호: team2025secure
  * 암호화 알고리즘: AES-256-GCM
  * 솔트: 128bit 랜덤, IV: 96bit 랜덤
@@ -29,7 +29,7 @@ export interface EncryptedGoogleAIConfig {
  * 복호화 방법:
  * 1. 팀 비밀번호: team2025secure
  * 2. UnifiedEnvCryptoManager.decrypt() 사용
- * 3. 결과: AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY
+ * 3. 결과: SENSITIVE_INFO_REMOVED
  */
 export const ENCRYPTED_GOOGLE_AI_CONFIG: EncryptedGoogleAIConfig = {
   // 🔐 새로운 API 키 암호화 결과

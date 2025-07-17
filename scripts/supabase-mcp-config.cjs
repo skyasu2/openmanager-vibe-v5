@@ -12,7 +12,7 @@ console.log('🔧 Supabase MCP 설정 개선 중...\n');
 
 // 현재 사용 가능한 공개 환경변수들
 const publicEnvVars = {
-  SUPABASE_URL: "https://vnswjnltnhpsueosfhmw.supabase.co",
+  SUPABASE_URL: "https://your_project_id.supabase.co",
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU"
 };
 

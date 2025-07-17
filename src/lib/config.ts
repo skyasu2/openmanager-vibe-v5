@@ -93,7 +93,7 @@ const parseSupabaseConfig = () => {
   let host = 'aws-0-ap-southeast-1.pooler.supabase.com';
   let port = 6543;
   let database = 'postgres';
-  let user = 'postgres.vnswjnltnhpsueosfhmw';
+  let user = 'postgres.your_supabase_project_id_here';
 
   try {
     if (supabaseUrl && supabaseUrl !== 'https://temp.supabase.co') {

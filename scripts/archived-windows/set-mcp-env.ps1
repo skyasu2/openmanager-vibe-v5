@@ -4,7 +4,7 @@
 Write-Host "🔧 MCP 환경변수 설정 시작..." -ForegroundColor Cyan
 
 # Supabase 환경변수 설정 (시스템 환경변수로 설정)
-[System.Environment]::SetEnvironmentVariable('SUPABASE_URL', 'https://vnswjnltnhpsueosfhmw.supabase.co', [System.EnvironmentVariableTarget]::User)
+[System.Environment]::SetEnvironmentVariable('SUPABASE_URL', 'https://your_project_id.supabase.co', [System.EnvironmentVariableTarget]::User)
 [System.Environment]::SetEnvironmentVariable('SUPABASE_SERVICE_ROLE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8', [System.EnvironmentVariableTarget]::User)
 
 # 다른 MCP 서버 환경변수 확인 및 설정

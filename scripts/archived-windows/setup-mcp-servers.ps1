@@ -237,7 +237,7 @@ $settingsConfig = @{
             "PowerShell($env:BRAVE_API_KEY='$env:BRAVE_API_KEY'; node node_modules/@modelcontextprotocol/server-brave-search/dist/index.js)",
             "PowerShell($env:GITHUB_TOKEN=dummy; $env:BRAVE_API_KEY=dummy; node node_modules/@modelcontextprotocol/server-supabase/dist/index.js --help)",
             "PowerShell(nvm use:*)",
-            "PowerShell($env:SUPABASE_URL='https://vnswjnltnhpsueosfhmw.supabase.co'; $env:SUPABASE_SERVICE_ROLE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8'; node node_modules/@supabase/mcp-server-supabase/dist/index.js --help)",
+            "PowerShell($env:SUPABASE_URL='https://your_project_id.supabase.co'; $env:SUPABASE_SERVICE_ROLE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8'; node node_modules/@supabase/mcp-server-supabase/dist/index.js --help)",
             "PowerShell($env:SUPABASE_URL='dummy'; $env:SUPABASE_SERVICE_ROLE_KEY='dummy'; node node_modules/@supabase/mcp-server-supabase/dist/index.js)",
             "PowerShell($env:SUPABASE_URL='https://test.supabase.co'; $env:SUPABASE_SERVICE_ROLE_KEY='test_key'; Start-Sleep 5; node node_modules/@supabase/mcp-server-supabase/dist/index.js)",
             "mcp__filesystem__list_directory",
@@ -253,9 +253,9 @@ $settingsConfig = @{
             "PowerShell(Move-Item:*)",
             "PowerShell(Rename-Item:*)",
             "PowerShell(Remove-Item scriptsverify-mcp-servers.js)",
-            "PowerShell($env:SUPABASE_URL='https://vnswjnltnhpsueosfhmw.supabase.co')",
+            "PowerShell($env:SUPABASE_URL='https://your_project_id.supabase.co')",
             "PowerShell($env:* = *)",
-            "PowerShell($env:SUPABASE_URL='https://vnswjnltnhpsueosfhmw.supabase.co'; $env:SUPABASE_SERVICE_ROLE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8'; Start-Sleep 10; node 'D:\cursor\openmanager-vibe-v5\node_modules\@supabase\mcp-server-supabase\dist\index.js' --help)"
+            "PowerShell($env:SUPABASE_URL='https://your_project_id.supabase.co'; $env:SUPABASE_SERVICE_ROLE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8'; Start-Sleep 10; node 'D:\cursor\openmanager-vibe-v5\node_modules\@supabase\mcp-server-supabase\dist\index.js' --help)"
             ]
             deny = @()
         }

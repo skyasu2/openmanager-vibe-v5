@@ -11,12 +11,12 @@
 `.env.local` 생성:
 ```bash
 # Upstash Redis
-KV_REST_API_URL=https://charming-condor-46598.upstash.io
-KV_REST_API_TOKEN=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+KV_REST_API_URL=https://your_redis_host_here
+KV_REST_API_TOKEN=SENSITIVE_INFO_REMOVED
 
 # 또는 ioredis용
-UPSTASH_REDIS_HOST=charming-condor-46598.upstash.io
-UPSTASH_REDIS_PASSWORD=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+UPSTASH_REDIS_HOST=your_redis_host_here
+UPSTASH_REDIS_PASSWORD=SENSITIVE_INFO_REMOVED
 ```
 
 ### 2. **코드 수정**
@@ -48,7 +48,7 @@ git remote -v
 // 개발 환경에서만 기본값 사용
 const isDev = process.env.NODE_ENV === 'development';
 const redisHost = process.env.UPSTASH_REDIS_HOST || 
-  (isDev ? 'charming-condor-46598.upstash.io' : undefined);
+  (isDev ? 'your_redis_host_here' : undefined);
 ```
 
 2. **환경별 설정 파일**

@@ -19,8 +19,8 @@ jobs:
         
         # 검사할 패턴들
         patterns=(
-          "AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA"
-          "charming-condor-46598.upstash.io"
+          "your_specific_redis_token_pattern_here"
+          "your-specific-redis-host.upstash.io"
           "redis://default:"
           "postgresql://postgres:"
           "ghp_"

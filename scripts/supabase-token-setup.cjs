@@ -59,7 +59,7 @@ console.log(`
 📋 Supabase 액세스 토큰 생성 방법:
 
 1. https://supabase.com/dashboard 접속
-2. vnswjnltnhpsueosfhmw 프로젝트 선택  
+2. your_project_id 프로젝트 선택  
 3. Settings → API → Project API keys
 4. "service_role" 키 복사 (⚠️ 매우 민감함)
 

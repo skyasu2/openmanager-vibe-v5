@@ -535,10 +535,10 @@ https://upstash.com/
 # 2. Redis 인스턴스 생성
 - 리전: Asia Pacific (Seoul)
 - 플랜: Free Tier
-- 엔드포인트: charming-condor-46598.upstash.io:6379
+- 엔드포인트: your_redis_host_here:6379
 
 # 3. 환경 변수 설정
-UPSTASH_REDIS_REST_URL=https://charming-condor-46598.upstash.io
+UPSTASH_REDIS_REST_URL=https://your_redis_host_here
 UPSTASH_REDIS_REST_TOKEN=your-token
 ```
 
@@ -554,7 +554,7 @@ https://supabase.com/
 - 플랜: Free Tier
 
 # 3. 환경 변수 설정
-NEXT_PUBLIC_SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
@@ -619,9 +619,9 @@ MCP_SERVER_URL=http://104.154.205.25:10000
 MCP_SERVER_ENABLED=true
 
 # 외부 서비스
-SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
+SUPABASE_URL=your_supabase_url_here
 SUPABASE_ANON_KEY=your-anon-key
-UPSTASH_REDIS_REST_URL=https://charming-condor-46598.upstash.io
+UPSTASH_REDIS_REST_URL=https://your_redis_host_here
 GOOGLE_AI_API_KEY=your-api-key
 ```
 

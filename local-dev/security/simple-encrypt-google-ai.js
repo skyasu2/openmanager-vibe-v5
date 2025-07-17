@@ -19,7 +19,7 @@ const colors = {
 };
 
 // 새로운 Google AI API 키와 팀 비밀번호
-const NEW_API_KEY = 'AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY';
+const NEW_API_KEY = 'SENSITIVE_INFO_REMOVED';
 const TEAM_PASSWORD = 'team2025secure';
 
 // API 키 유효성 검사

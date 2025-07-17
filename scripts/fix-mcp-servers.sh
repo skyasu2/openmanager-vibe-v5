@@ -21,8 +21,8 @@ if [ "$1" == "--diagnose" ]; then
 fi
 
 # Supabase Project Reference 추출
-SUPABASE_PROJECT_REF="vnswjnltnhpsueosfhmw"
-SUPABASE_SERVICE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8"
+SUPABASE_PROJECT_REF="your_supabase_project_id_here"
+SUPABASE_SERVICE_KEY="SENSITIVE_INFO_REMOVED"
 TAVILY_API_KEY="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"
 
 # MCP 서버 제거

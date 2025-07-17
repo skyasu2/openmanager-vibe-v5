@@ -8,8 +8,8 @@
 const { createClient } = require('@supabase/supabase-js');
 
 // 환경 변수 설정 (메모리에서 확인된 값들)
-const SUPABASE_URL = 'https://vnswjnltnhpsueosfhmw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU';
+const SUPABASE_URL = 'your_supabase_url_here';
+const SUPABASE_ANON_KEY = 'SENSITIVE_INFO_REMOVED';
 
 async function testSupabaseRAG() {
     console.log('🚀 Supabase RAG Engine 테스트 시작...\n');

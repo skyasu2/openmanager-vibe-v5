@@ -22,9 +22,9 @@ const requiredEnvVars = {
     'SKIP_ENV_VALIDATION': 'true',
 
     // 🗄️ Supabase 설정 (필수 - 로컬에서 검증됨)
-    'NEXT_PUBLIC_SUPABASE_URL': process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vnswjnltnhpsueosfhmw.supabase.co',
+    'NEXT_PUBLIC_SUPABASE_URL': process.env.NEXT_PUBLIC_SUPABASE_URL || 'your_supabase_url_here',
     'NEXT_PUBLIC_SUPABASE_ANON_KEY': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-    'SUPABASE_URL': process.env.SUPABASE_URL || 'https://vnswjnltnhpsueosfhmw.supabase.co',
+    'SUPABASE_URL': process.env.SUPABASE_URL || 'your_supabase_url_here',
     'SUPABASE_SERVICE_ROLE_KEY': process.env.SUPABASE_SERVICE_ROLE_KEY || '',
     'SUPABASE_JWT_SECRET': process.env.SUPABASE_JWT_SECRET || '',
 

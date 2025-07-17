@@ -9,7 +9,7 @@ echo "이 스크립트는 수파베이스 MCP 연결 문제를 해결하는 방�
 echo ""
 
 # 프로젝트 참조 ID 추출
-PROJECT_REF="vnswjnltnhpsueosfhmw"
+PROJECT_REF="your_supabase_project_id_here"
 
 echo "📌 필요한 작업:"
 echo ""
@@ -33,7 +33,7 @@ cat << 'EOF' > .claude/supabase-mcp-config.json
         "-y",
         "@supabase/mcp-server-supabase@latest",
         "--read-only",
-        "--project-ref=vnswjnltnhpsueosfhmw"
+        "--project-ref=your_supabase_project_id_here"
       ],
       "env": {
         "SUPABASE_ACCESS_TOKEN": "YOUR_PERSONAL_ACCESS_TOKEN_HERE"
@@ -59,7 +59,7 @@ cat << 'EOF' > .claude/supabase-mcp-config-windows.json
         "-y",
         "@supabase/mcp-server-supabase@latest",
         "--read-only",
-        "--project-ref=vnswjnltnhpsueosfhmw"
+        "--project-ref=your_supabase_project_id_here"
       ],
       "env": {
         "SUPABASE_ACCESS_TOKEN": "YOUR_PERSONAL_ACCESS_TOKEN_HERE"

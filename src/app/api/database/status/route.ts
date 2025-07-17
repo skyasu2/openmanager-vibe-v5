@@ -8,7 +8,7 @@ function getDatabaseStatus() {
   return {
     primary: {
       status: 'online',
-      host: 'db.vnswjnltnhpsueosfhmw.supabase.co',
+      host: 'db.your_supabase_project_id_here.supabase.co',
       port: 5432,
       database: 'postgres',
       connectionPool: {
