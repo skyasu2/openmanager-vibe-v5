@@ -57,8 +57,7 @@ const requiredEnvVars = {
     'GOOGLE_AI_ENABLED': 'false', // 무료 모델 전용 모드
     'GOOGLE_AI_MODEL': 'gemini-1.5-flash',
 
-    // 📧 알림 설정 (Slack)
-    'SLACK_WEBHOOK_URL': process.env.SLACK_WEBHOOK_URL || '',
+
 
     // 🔄 MCP 서버
     'MCP_REMOTE_URL': process.env.MCP_REMOTE_URL || 'https://openmanager-vibe-v5.gcp.run'

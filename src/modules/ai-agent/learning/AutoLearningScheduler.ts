@@ -436,7 +436,7 @@ export class AutoLearningScheduler {
           [],
       });
 
-      // Slack 알림 기능 제거됨 (포트폴리오용)
+      // 알림 기능은 웹소켓을 통한 실시간 알림으로 대체됨
     } catch (error) {
       console.error('❌ 개선 제안 보고서 전송 실패:', error);
     }

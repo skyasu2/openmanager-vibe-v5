@@ -599,7 +599,7 @@ export class AutoScalingEngine {
         duration,
       });
 
-      // Slack 알림
+      // 스케일링 알림
       await this.sendScalingNotification(decision, true);
 
       console.log(`✅ 스케일링 완료: ${duration}ms`);

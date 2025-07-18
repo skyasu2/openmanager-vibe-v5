@@ -157,13 +157,7 @@ class EnvSecurityManager {
         default: 'false',
       },
 
-      // 📢 Slack
-      SLACK_WEBHOOK_URL: {
-        required: true,
-        public: false,
-        rotate: 'on-demand',
-        encrypt: true,
-      },
+
 
       // ⏰ Cron 보안
       CRON_SECRET: {
@@ -319,7 +313,6 @@ class EnvSecurityManager {
  * - GCP VM MCP 서버 정보  
  * - Redis 인증 토큰
  * - Google AI API 키
- * - Slack Webhook URL
  * - 기타 보안 토큰들
  */
 
@@ -609,10 +602,7 @@ GCP_MCP_SERVER_IPS=104.154.205.25,34.150.123.45,35.247.178.92
 GOOGLE_AI_MODEL=gemini-1.5-flash
 GOOGLE_AI_BETA_MODE=true
 
-# =============================================================================
-# 📢 Slack (선택사항)
-# =============================================================================
-# SLACK_WEBHOOK_URL=your_slack_webhook_url_here
+
 
 # =============================================================================
 # 🔐 보안 토큰 (선택사항)
@@ -691,12 +681,7 @@ NEXTAUTH_URL=http://localhost:3000
         risk: '낮',
         reason: '서버 재배포 시만',
       },
-      {
-        service: 'Slack Webhook URL',
-        frequency: '필요시',
-        risk: '낮',
-        reason: '보안 이슈 발생 시만',
-      },
+
       {
         service: 'Cron Secret',
         frequency: '매월',

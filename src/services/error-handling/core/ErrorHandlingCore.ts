@@ -211,7 +211,7 @@ export class ErrorHandlingCore implements IErrorHandler {
      * 모니터링 시스템 알림
      */
     private notifyMonitoringSystem(error: ServiceError): void {
-        // 실제 환경에서는 AlertManager, Slack, PagerDuty 등으로 알림
+        // 실제 환경에서는 AlertManager, PagerDuty 등으로 알림
         try {
             // 메트릭 전송 (Prometheus 등)
             if (typeof window === 'undefined') {

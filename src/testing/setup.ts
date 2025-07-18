@@ -16,7 +16,7 @@ import { afterEach, vi } from 'vitest';
 (process.env as any).UPSTASH_REDIS_REST_URL = 'https://test-redis.upstash.io';
 (process.env as any).UPSTASH_REDIS_REST_TOKEN = 'test-redis-token';
 (process.env as any).GOOGLE_AI_API_KEY = 'test-google-ai-key';
-// Slack 환경변수 제거됨
+
 (process.env as any).GCP_MCP_SERVER_URL = 'http://104.154.205.25:10000';
 
 // DOM 정리
@@ -147,7 +147,7 @@ const testEnvVars = {
   UPSTASH_REDIS_REST_URL: 'https://test-redis.upstash.io',
   UPSTASH_REDIS_REST_TOKEN: 'test-redis-token',
   GOOGLE_AI_API_KEY: 'test-google-ai-key',
-  // SLACK_WEBHOOK_URL 제거됨
+
   GCP_MCP_SERVER_URL: 'http://104.154.205.25:10000',
   // 🛡️ 테스트용 Redis 설정 (사용되지 않음)
   REDIS_URL: '', // 빈 값으로 설정하여 목업 모드 강제
@@ -158,7 +158,7 @@ const testEnvVars = {
 // 환경 변수 적용
 Object.assign(process.env, testEnvVars);
 
-// 실제 fetch를 사용하도록 설정 (Slack 테스트를 위해)
+// 실제 fetch를 사용하도록 설정
 if (!globalThis.fetch) {
   globalThis.fetch = fetch as any;
 }

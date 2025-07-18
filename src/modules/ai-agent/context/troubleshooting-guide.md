@@ -236,10 +236,7 @@ CPU 사용률: 80% 이상시 warning
 ### **알림 채널 설정**
 
 ```bash
-# Slack 알림 테스트
-curl -X POST http://localhost:3000/api/notifications/test \
-  -H "Content-Type: application/json" \
-  -d '{"channel": "slack", "message": "테스트 알림"}'
+
 
 # 이메일 알림 테스트
 curl -X POST http://localhost:3000/api/notifications/test \

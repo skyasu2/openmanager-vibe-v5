@@ -3,7 +3,7 @@ import path from 'path';
 
 /**
  * 🔧 환경변수 설정 스크립트
- * Google AI API 키와 Slack 웹훅을 포함한 완전한 환경변수 파일을 생성합니다.
+ * Google AI API 키를 포함한 완전한 환경변수 파일을 생성합니다.
  */
 function createEnvFile() {
   const envContent = `# OpenManager Vibe v5 - Local Environment Variables
@@ -16,7 +16,7 @@ GOOGLE_AI_MODEL=gemini-1.5-flash
 GOOGLE_AI_BETA_MODE=true
 GEMINI_LEARNING_ENABLED=true
 
-# 📢 알림 설정 (Slack 제거됨)
+# 📢 알림 설정
 # 브라우저 알림만 사용
 
 # 🗄️ Supabase 설정 (기존 환경변수 유지)

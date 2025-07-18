@@ -59,7 +59,6 @@ export class EnvBackupManager {
       'POSTGRES_URL',
     ],
     optional: [
-      'SLACK_WEBHOOK_URL',
       'GOOGLE_AI_DAILY_LIMIT',
       'GOOGLE_AI_RPM_LIMIT',
       'CRON_SECRET',

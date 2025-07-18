@@ -70,7 +70,7 @@ export class DevKeyManager {
     },
   ];
 
-  // 키 그룹 정의 (Slack 제거됨)
+  // 키 그룹 정의
   private keyGroups: Record<string, string[]> = {
     ai: ['GOOGLE_AI_API_KEY'],
   };
@@ -133,7 +133,7 @@ export class DevKeyManager {
         if (isValid) {
           status = 'active';
           // 기본값 사용 여부 확인
-          // 기본값 체크 제거됨 (Slack 관련 코드 정리)
+
         } else {
           status = 'invalid';
         }

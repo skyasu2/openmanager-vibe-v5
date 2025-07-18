@@ -58,7 +58,6 @@ export const TEST_ENV_CONFIG = {
   // ===============================
   // 📡 외부 서비스 Mock 설정
   // ===============================
-  SLACK_WEBHOOK_URL: 'https://mock-slack-webhook.test',
   WEBHOOK_SECRET: 'mock-webhook-secret',
 
   // ===============================

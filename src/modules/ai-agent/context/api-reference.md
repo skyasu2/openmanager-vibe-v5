@@ -75,7 +75,7 @@ POST /api/alerts/config
 
 POST /api/notifications/test
 - 용도: 알림 테스트 발송
-- 지원: 이메일, Slack, 웹훅
+- 지원: 이메일, 웹훅
 ```
 
 ## 🔧 환경별 API 동작

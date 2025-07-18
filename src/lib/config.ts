@@ -43,7 +43,7 @@ interface EnvironmentConfig {
     enabled: boolean;
   };
 
-  // Slack 설정 제거됨
+
 
   // API 설정
   api: {
@@ -139,15 +139,7 @@ const parseRedisConfig = () => {
   };
 };
 
-// Slack 설정 검증
-const parseSlackConfig = () => {
-  const webhookUrl = validateEnvVar('SLACK_WEBHOOK_URL', false);
 
-  return {
-    webhookUrl,
-    enabled: !!webhookUrl && !isBuildTime(),
-  };
-};
 
 // 메인 설정 생성 함수
 const createConfig = (): EnvironmentConfig => {
@@ -173,7 +165,7 @@ const createConfig = (): EnvironmentConfig => {
       // Redis 설정
       redis: parseRedisConfig(),
 
-      // Slack 설정 제거됨
+
 
       // API 설정
       api: {
@@ -219,7 +211,7 @@ const createConfig = (): EnvironmentConfig => {
         user: 'postgres.temp',
       },
       redis: { url: undefined, token: undefined, enabled: false },
-      // slack 설정 제거됨
+
       api: {
         timeout: 30000,
         maxRetries: 1,
@@ -342,4 +334,4 @@ export const isDevelopment = () => config.isDevelopment;
 export const getApiTimeout = () => config.api.timeout;
 export const getSupabaseConfig = () => config.supabase;
 export const getRedisConfig = () => config.redis;
-// getSlackConfig 제거됨
+

@@ -1,5 +1,42 @@
 # Changelog
 
+## [5.47.0] - 2025-07-18
+
+### 🤖 AI 엔진 대규모 리팩토링 - SimplifiedQueryEngine 통합
+
+#### 주요 변경사항
+- **AI 엔진 단순화**:
+  - 100개 이상의 AI 관련 파일을 SimplifiedQueryEngine 하나로 통합
+  - 2모드 시스템으로 간소화: 로컬(NLP + RAG + MCP) / Google AI
+  - 핵심 기능만 유지: 자연어 질의-응답 서버 모니터링 도우미
+  
+- **TDD 방식 개발**:
+  - SimplifiedQueryEngine 테스트 작성 완료
+  - RAG 엔진 단위 테스트 작성
+  - MCP 컨텍스트 통합 테스트 작성
+  - vitest로 테스트 검증
+
+- **새로운 컴포넌트 및 훅**:
+  - `/api/ai/query` - 새로운 통합 AI 엔드포인트
+  - `useAIQuery` - React Query 기반 AI 질의 훅
+  - `EnhancedThinkingView` - AI 사고 과정 시각화 컴포넌트
+  - `SimplifiedAISidebar` - 간소화된 AI 사이드바 (UI/UX 99% 유지)
+
+#### 기술적 개선
+- Vercel Edge Runtime 최적화
+- 생각 과정(Thinking Steps) 실시간 표시
+- 신뢰도 및 처리 시간 모니터링
+- 캐싱 및 폴백 전략 구현
+
+#### 예시 질의
+- "현재 문제있는 cpu가 어떤것이고 확인 하는명령어는?"
+- "메모리가 부족한 서버 목록"
+- "서버 상태 전체 요약"
+
+#### 제거 예정 파일 (약 80개)
+- 기존 AI 엔진 파일들 (UnifiedAIEngineRouter, EngineOrchestrator 등)
+- 중복되거나 사용되지 않는 AI 관련 컴포넌트들
+
 ## [5.46.50] - 2025-07-18
 
 ### 🚀 ServerDashboard.tsx any 타입 완전 제거 (37개)

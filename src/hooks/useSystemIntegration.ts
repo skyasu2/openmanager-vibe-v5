@@ -7,7 +7,7 @@
  * - DataRetentionScheduler: 자동 데이터 정리
  *
  * ✅ Phase 2.1 모듈들:
- * - NotificationHub: Slack/Discord 알림
+ * - NotificationHub: 알림 시스템
  *
  * 🔄 통합 기능:
  * - 실시간 이벤트 연동
@@ -60,7 +60,6 @@ interface DataRetentionStatus {
 interface NotificationStatus {
   isEnabled: boolean;
   channels: {
-    slack: boolean;
     discord: boolean;
     email: boolean;
   };
@@ -199,7 +198,6 @@ export const useSystemIntegration = () => {
       notifications: {
         isEnabled: false,
         channels: {
-          slack: false,
           discord: false,
           email: false,
         },
@@ -356,7 +354,6 @@ export const useSystemIntegration = () => {
           notifications: {
             isEnabled: notificationData.success,
             channels: (notificationData.data as any)?.channels || {
-              slack: false,
               discord: false,
               email: false,
             },
