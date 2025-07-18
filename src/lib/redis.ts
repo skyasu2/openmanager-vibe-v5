@@ -17,7 +17,7 @@ import { env } from './env';
  */
 
 // Redis 클라이언트 인터페이스 확장
-interface RedisClientInterface {
+export interface RedisClientInterface {
   get(key: string): Promise<string | null>;
   set(key: string, value: any, options?: { ex?: number }): Promise<'OK'>;
   setex(key: string, seconds: number, value: string): Promise<'OK'>;
@@ -699,6 +699,15 @@ let redisStatus: RedisStatus = {
 };
 
 export function getRedis(): Redis {
+  // 🚫 테스트 환경에서 FORCE_MOCK_REDIS 체크
+  if (process.env.FORCE_MOCK_REDIS === 'true') {
+    console.log('🎭 FORCE_MOCK_REDIS=true - Mock Redis 사용');
+    if (!mockRedis) {
+      mockRedis = new EnhancedMockRedis();
+    }
+    return mockRedis as any;
+  }
+
   if (!redis) {
     redis = new Redis({
       lazyConnect: true,

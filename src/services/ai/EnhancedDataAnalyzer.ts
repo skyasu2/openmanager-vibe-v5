@@ -11,11 +11,25 @@ import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter
  */
 
 import { smartRedis } from '@/lib/redis';
+import type { RedisClientInterface } from '@/lib/redis';
 import {
   type ApplicationMetrics,
   type ServerCluster,
   type ServerInstance,
 } from '@/types/data-generator';
+import type {
+  DataGeneratorService,
+  ServerMetricsResponse,
+  ServerAnalysisData,
+  ClusterAnalysisData,
+  ApplicationAnalysisData,
+  PerformanceAnalysis,
+  ReliabilityAnalysis,
+  EfficiencyAnalysis,
+  Correlation,
+  QueryResponseData,
+  AnalysisInsight
+} from './types/enhanced-data-analyzer.types';
 
 // 분석 결과 인터페이스
 export interface EnhancedAnalysisResult {
@@ -62,15 +76,10 @@ export interface EnhancedAnalysisResult {
 
   // 상세 분석 데이터
   details: {
-    serverAnalysis: Record<string, any>;
-    clusterAnalysis: Record<string, any>;
-    applicationAnalysis: Record<string, any>;
-    correlations: Array<{
-      factor1: string;
-      factor2: string;
-      strength: number;
-      description: string;
-    }>;
+    serverAnalysis: Record<string, ServerAnalysisData>;
+    clusterAnalysis: Record<string, ClusterAnalysisData>;
+    applicationAnalysis: Record<string, ApplicationAnalysisData>;
+    correlations: Correlation[];
   };
 }
 
@@ -90,15 +99,15 @@ export interface QueryResponse {
   query: string;
   intent: string;
   response: string;
-  data: any;
+  data: QueryResponseData;
   confidence: number;
   suggestions: string[];
 }
 
 export class EnhancedDataAnalyzer {
   private static instance: EnhancedDataAnalyzer | null = null;
-  private dataGenerator: any // GCPRealDataService removed;
-  private redis: any;
+  private dataGenerator: DataGeneratorService;
+  private redis!: RedisClientInterface;
 
   // 한국어 자연어 처리 매핑
   private koreanTermMapping = {
@@ -140,9 +149,9 @@ export class EnhancedDataAnalyzer {
     optimization: ['최적화', '개선', '향상', '효율', '절약', '줄이'],
   };
 
-  constructor(dataGenerator: any) { // GCPRealDataService removed
+  constructor(dataGenerator: DataGeneratorService) {
     this.dataGenerator = dataGenerator;
-    this.initializeRedis();
+    this.initializeRedis().catch(console.error);
   }
 
   public static getInstance(): EnhancedDataAnalyzer {
@@ -154,18 +163,18 @@ export class EnhancedDataAnalyzer {
     return EnhancedDataAnalyzer.instance;
   }
 
-  private initializeRedis() {
-    this.redis = smartRedis;
+  private async initializeRedis() {
+    this.redis = await smartRedis.getClient();
   }
 
   /**
    * 📊 종합 시스템 분석
    */
   public async analyzeSystem(): Promise<EnhancedAnalysisResult> {
-    const gcpServerData = await this.dataGenerator.getRealServerMetrics().then((response: any) => response.data);
+    const gcpServerData = await this.dataGenerator.getRealServerMetrics().then((response) => response.data);
     const servers = adaptGCPMetricsToServerInstances(gcpServerData);
-    const clusters = await this.dataGenerator.getRealServerMetrics().then((r: any) => []);
-    const applications = await this.dataGenerator.getRealServerMetrics().then((r: any) => []);
+    const clusters: ServerCluster[] = await this.dataGenerator.getRealServerMetrics().then(() => []);
+    const applications: ApplicationMetrics[] = await this.dataGenerator.getRealServerMetrics().then(() => []);
 
     // 성능 분석
     const performanceAnalysis = this.analyzePerformance(servers, clusters);
@@ -199,9 +208,18 @@ export class EnhancedDataAnalyzer {
       },
       insights,
       details: {
-        serverAnalysis: this.getServerAnalysisDetails(servers),
-        clusterAnalysis: this.getClusterAnalysisDetails(clusters),
-        applicationAnalysis: this.getApplicationAnalysisDetails(applications),
+        serverAnalysis: this.getServerAnalysisDetails(servers).reduce((acc, item) => {
+          acc[item.serverId] = item;
+          return acc;
+        }, {} as Record<string, ServerAnalysisData>),
+        clusterAnalysis: this.getClusterAnalysisDetails(clusters).reduce((acc, item) => {
+          acc[item.clusterId] = item;
+          return acc;
+        }, {} as Record<string, ClusterAnalysisData>),
+        applicationAnalysis: this.getApplicationAnalysisDetails(applications).reduce((acc, item) => {
+          acc[item.applicationName] = item;
+          return acc;
+        }, {} as Record<string, ApplicationAnalysisData>),
         correlations,
       },
     };
@@ -251,12 +269,12 @@ export class EnhancedDataAnalyzer {
 
     // CPU, 메모리, 응답시간 분석 - 안전 접근 패턴 적용
     const avgCpu =
-      servers.reduce((sum: number, s: any) => sum + (s.metrics?.cpu || 0), 0) / totalServers;
+      servers.reduce((sum: number, s) => sum + (s.metrics?.cpu || 0), 0) / totalServers;
     const avgMemory =
-      servers.reduce((sum: number, s: any) => sum + (s.metrics?.memory || 0), 0) /
+      servers.reduce((sum: number, s) => sum + (s.metrics?.memory || 0), 0) /
       totalServers;
     const avgErrors =
-      servers.reduce((sum: number, s: any) => sum + (s.errors?.count || 0), 0) /
+      servers.reduce((sum: number, s) => sum + (s.errors?.count || 0), 0) /
       totalServers;
 
     // 성능 점수 계산 (0-100)
@@ -289,13 +307,13 @@ export class EnhancedDataAnalyzer {
       return { score: 0, uptime: 0, incidents: 0, mttr: 0 };
 
     // 서버 상태
-    const healthyCount = servers.filter((s: any) => (s.health?.score || 0) > 80
+    const healthyCount = servers.filter((s: ServerInstance) => (s.health?.score || 0) > 80
     ).length;
     const avgUptime =
-      servers.reduce((sum: number, s: any) => sum + (s.metrics?.uptime || s.uptime || 0),
+      servers.reduce((sum: number, s: ServerInstance) => sum + (s.metrics?.uptime || s.uptime || 0),
         0
       ) / totalServers;
-    const totalIncidents = servers.reduce((sum: number, s: any) => sum + (s.health?.issues?.length || 0),
+    const totalIncidents = servers.reduce((sum: number, s: ServerInstance) => sum + (s.health?.issues?.length || 0),
       0
     );
 
@@ -323,7 +341,7 @@ export class EnhancedDataAnalyzer {
 
     // 리소스 활용률 - 안전 접근 패턴 적용
     const avgUtilization =
-      servers.reduce((sum: number, s: any) => {
+      servers.reduce((sum: number, s: ServerInstance) => {
         const cpu = s.metrics?.cpu || s.cpu || 0;
         const memory = s.metrics?.memory || s.memory || 0;
         return sum + (cpu + memory) / 2;
@@ -331,7 +349,7 @@ export class EnhancedDataAnalyzer {
 
     // 비용 최적화 점수 (리소스 대비 처리량)
     const avgRequests =
-      servers.reduce((sum: number, s: any) => sum + (s.requests?.total || 0), 0) /
+      servers.reduce((sum: number, s: ServerInstance) => sum + (s.requests?.total || 0), 0) /
       totalServers;
     const costOptimization =
       avgRequests > 0 ? Math.min(100, (avgRequests / avgUtilization) * 10) : 0;
@@ -350,14 +368,14 @@ export class EnhancedDataAnalyzer {
   /**
    * 🔗 상관관계 분석
    */
-  private analyzeCorrelations(servers: ServerInstance[]) {
-    const correlations: any[] = [];
+  private analyzeCorrelations(servers: ServerInstance[]): Correlation[] {
+    const correlations: Correlation[] = [];
 
     if (servers.length > 1) {
       // CPU와 응답시간 상관관계 - 안전 접근 패턴 적용
       const cpuResponseCorr = this.calculateCorrelation(
-        servers.map((s: any) => s.metrics?.cpu || s.cpu || 0),
-        servers.map((s: any) => s.requests?.total || 0)
+        servers.map((s) => s.metrics?.cpu || 0),
+        servers.map((s) => s.requests?.total || 0)
       );
 
       if (Math.abs(cpuResponseCorr) > 0.3) {
@@ -374,8 +392,8 @@ export class EnhancedDataAnalyzer {
 
       // 메모리와 오류율 상관관계 - 안전 접근 패턴 적용
       const memoryErrorCorr = this.calculateCorrelation(
-        servers.map((s: any) => s.metrics?.memory || s.memory || 0),
-        servers.map((s: any) => s.errors?.count || 0)
+        servers.map((s) => s.metrics?.memory || 0),
+        servers.map((s) => s.errors?.count || 0)
       );
 
       if (Math.abs(memoryErrorCorr) > 0.3) {
@@ -398,12 +416,12 @@ export class EnhancedDataAnalyzer {
    * 🇰🇷 한국어 인사이트 생성
    */
   private generateKoreanInsights(
-    performance: any,
-    reliability: any,
-    efficiency: any,
+    performance: PerformanceAnalysis,
+    reliability: ReliabilityAnalysis,
+    efficiency: EfficiencyAnalysis,
     servers: ServerInstance[],
     clusters: ServerCluster[]
-  ) {
+  ): EnhancedAnalysisResult['insights'] {
     // 요약 생성
     const summary = this.generateSummary(performance, reliability, efficiency);
 
@@ -434,9 +452,9 @@ export class EnhancedDataAnalyzer {
   }
 
   private generateSummary(
-    performance: any,
-    reliability: any,
-    efficiency: any
+    performance: PerformanceAnalysis,
+    reliability: ReliabilityAnalysis,
+    efficiency: EfficiencyAnalysis
   ): string {
     const avgScore = Math.round(
       (performance.score + reliability.score + efficiency.score) / 3
@@ -454,13 +472,13 @@ export class EnhancedDataAnalyzer {
   private generateKeyFindings(
     servers: ServerInstance[],
     clusters: ServerCluster[],
-    performance: any,
-    reliability: any
+    performance: PerformanceAnalysis,
+    reliability: ReliabilityAnalysis
   ): string[] {
     const findings: string[] = [];
 
     // 서버 상태
-    const healthyCount = servers.filter((s: any) => (s.health?.score || 0) > 80
+    const healthyCount = servers.filter((s) => (s.health?.score || 0) > 80
     ).length;
     findings.push(
       `전체 ${servers.length}대 서버 중 ${healthyCount}대가 정상 상태입니다.`
@@ -487,9 +505,9 @@ export class EnhancedDataAnalyzer {
   }
 
   private generateRecommendations(
-    performance: any,
-    reliability: any,
-    efficiency: any
+    performance: PerformanceAnalysis,
+    reliability: ReliabilityAnalysis,
+    efficiency: EfficiencyAnalysis
   ) {
     const recommendations: Array<{
       priority: 'low' | 'medium' | 'high';
@@ -542,7 +560,7 @@ export class EnhancedDataAnalyzer {
     return recommendations;
   }
 
-  private generateAlerts(servers: ServerInstance[], performance: any) {
+  private generateAlerts(servers: ServerInstance[], performance: PerformanceAnalysis) {
     const alerts: Array<{
       level: 'critical' | 'warning' | 'info';
       message: string;
@@ -550,12 +568,12 @@ export class EnhancedDataAnalyzer {
     }> = [];
 
     // 임계 상태 서버
-    const criticalServers = servers.filter((s: any) => (s.health?.score || 0) < 30);
+    const criticalServers = servers.filter((s) => (s.health?.score || 0) < 30);
     if (criticalServers.length > 0) {
       alerts.push({
         level: 'critical' as const,
         message: `${criticalServers.length}대 서버가 임계 상태입니다.`,
-        affectedComponents: criticalServers.map((s: any) => s.name),
+        affectedComponents: criticalServers.map((s) => s.name),
       });
     }
 
@@ -569,12 +587,12 @@ export class EnhancedDataAnalyzer {
     }
 
     // 리소스 부족 경고
-    const highCpuServers = servers.filter((s: any) => (s.metrics?.cpu || 0) > 85);
+    const highCpuServers = servers.filter((s) => (s.metrics?.cpu || 0) > 85);
     if (highCpuServers.length > 0) {
       alerts.push({
         level: 'warning' as const,
         message: 'CPU 사용률이 높은 서버가 있습니다.',
-        affectedComponents: highCpuServers.map((s: any) => s.name),
+        affectedComponents: highCpuServers.map((s) => s.name),
       });
     }
 
@@ -600,7 +618,7 @@ export class EnhancedDataAnalyzer {
    * 📝 컨텍스트 추출
    */
   private extractContext(query: string) {
-    const context: any = {};
+    const context: Record<string, unknown> = {};
 
     // 서버 ID 추출
     const serverMatch = query.match(/서버[^\s]*[0-9]+|server[^\s]*[0-9]+/gi);
@@ -619,10 +637,10 @@ export class EnhancedDataAnalyzer {
   /**
    * ⚡ 쿼리 실행
    */
-  private async executeQuery(intent: string, context: any, query: string) {
-    const gcpServerData = await this.dataGenerator.getRealServerMetrics().then((response: any) => response.data);
+  private async executeQuery(intent: string, context: Record<string, unknown>, query: string): Promise<QueryResponseData> {
+    const gcpServerData = await this.dataGenerator.getRealServerMetrics().then((response) => response.data);
     const servers = adaptGCPMetricsToServerInstances(gcpServerData);
-    const clusters = await this.dataGenerator.getRealServerMetrics().then((r: any) => []);
+    const clusters: ServerCluster[] = await this.dataGenerator.getRealServerMetrics().then(() => []);
 
     switch (intent) {
       case 'status':
@@ -640,70 +658,83 @@ export class EnhancedDataAnalyzer {
     }
   }
 
-  private getStatusData(servers: ServerInstance[], clusters: ServerCluster[]) {
+  private getStatusData(servers: ServerInstance[], clusters: ServerCluster[]): QueryResponseData {
     return {
-      totalServers: servers.length,
-      healthyServers: servers.filter((s: any) => (s.health?.score || 0) > 80).length,
-      clusters: clusters.length,
-      avgHealth:
-        servers.length > 0
-          ? Math.round(
-              servers.reduce((sum: number, s: any) => sum + (s.health?.score || 0), 0) /
-                servers.length
-            )
-          : 0,
+      metrics: {
+        totalServers: servers.length,
+        healthyServers: servers.filter((s) => (s.health?.score || 0) > 80).length,
+        clusters: clusters.length,
+        avgHealth:
+          servers.length > 0
+            ? Math.round(
+                servers.reduce((sum: number, s) => sum + (s.health?.score || 0), 0) /
+                  servers.length
+              )
+            : 0,
+      },
+      servers: servers.slice(0, 10), // Include top 10 servers
     };
   }
 
-  private getPerformanceData(servers: ServerInstance[]) {
+  private getPerformanceData(servers: ServerInstance[]): QueryResponseData {
     return {
-      avgCpu:
-        servers.length > 0
-          ? Math.round(
-              servers.reduce((sum: number, s: any) => sum + (s.metrics?.cpu || 0), 0) /
-                servers.length
-            )
+      metrics: {
+        avgCpu:
+          servers.length > 0
+            ? Math.round(
+                servers.reduce((sum: number, s) => sum + (s.metrics?.cpu || 0), 0) /
+                  servers.length
+              )
+            : 0,
+        avgMemory:
+          servers.length > 0
+            ? Math.round(
+                servers.reduce((sum: number, s) => sum + (s.metrics?.memory || 0), 0) /
+                  servers.length
+              )
           : 0,
-      avgMemory:
-        servers.length > 0
-          ? Math.round(
-              servers.reduce((sum: number, s: any) => sum + (s.metrics?.memory || 0), 0) /
-                servers.length
-            )
-          : 0,
-      avgRequests:
-        servers.length > 0
-          ? Math.round(
-              servers.reduce((sum: number, s: any) => sum + (s.requests?.total || 0), 0) /
-                servers.length
-            )
-          : 0,
-      topPerformers: servers
-        .sort((a, b) => (b.health?.score || 0) - (a.health?.score || 0))
-        .slice(0, 3)
-        .map((s: any) => ({ name: s.name, score: s.health?.score || 0 })),
+        avgRequests:
+          servers.length > 0
+            ? Math.round(
+                servers.reduce((sum: number, s) => sum + (s.requests?.total || 0), 0) /
+                  servers.length
+              )
+            : 0,
+        topPerformers: JSON.stringify(servers
+          .sort((a, b) => (b.health?.score || 0) - (a.health?.score || 0))
+          .slice(0, 3)
+          .map((s) => ({ name: s.name, score: s.health?.score || 0 }))),
+      },
+      servers: servers.slice(0, 5),
     };
   }
 
-  private getIssuesData(servers: ServerInstance[]) {
-    const issueServers = servers.filter((s: any) => (s.health?.issues?.length || 0) > 0
+  private getIssuesData(servers: ServerInstance[]): QueryResponseData {
+    const issueServers = servers.filter((s) => (s.health?.issues?.length || 0) > 0
     );
     return {
-      totalIssues: issueServers.reduce((sum: number, s: any) => sum + (s.health?.issues?.length || 0),
-        0
-      ),
-      affectedServers: issueServers.length,
-      criticalServers: servers.filter((s: any) => (s.health?.score || 0) < 30).length,
-      issues: issueServers.map((s: any) => ({
-        server: s.name,
-        issues: s.health?.issues || [],
-      })),
+      metrics: {
+        totalIssues: issueServers.reduce((sum: number, s) => sum + (s.health?.issues?.length || 0),
+          0
+        ),
+        affectedServers: issueServers.length,
+        criticalServers: servers.filter((s) => (s.health?.score || 0) < 30).length,
+      },
+      analysis: {
+        summary: `Found ${issueServers.length} servers with issues`,
+        details: {
+          issues: issueServers.map((s) => ({
+            server: s.name,
+            issues: s.health?.issues || [],
+          })),
+        },
+      },
     };
   }
 
-  private getPredictionData(servers: ServerInstance[]) {
+  private getPredictionData(servers: ServerInstance[]): QueryResponseData {
     // 간단한 예측 로직
-    const trends = servers.map((s: any) => {
+    const trends = servers.map((s) => {
       const cpuTrend = (s.metrics?.cpu || 0) > 70 ? 'increasing' : 'stable';
       const memoryTrend =
         (s.metrics?.memory || 0) > 80 ? 'increasing' : 'stable';
@@ -711,29 +742,43 @@ export class EnhancedDataAnalyzer {
     });
 
     return {
-      trends,
-      predictions: [
-        '다음 1시간 내 CPU 사용률 추가 상승 예상',
-        '메모리 사용률 안정적 유지 예상',
-        '오류율 감소 추세 지속 예상',
-      ],
+      analysis: {
+        summary: 'System prediction analysis',
+        details: {
+          trends,
+          predictions: [
+            '다음 1시간 내 CPU 사용률 추가 상승 예상',
+            '메모리 사용률 안정적 유지 예상',
+            '오류율 감소 추세 지속 예상',
+          ],
+        },
+      },
     };
   }
 
-  private getOptimizationData(servers: ServerInstance[]) {
-    const underutilized = servers.filter((s: any) => (s.metrics?.cpu || 0) < 30 && (s.metrics?.memory || 0) < 40
+  private getOptimizationData(servers: ServerInstance[]): QueryResponseData {
+    const underutilized = servers.filter((s) => (s.metrics?.cpu || 0) < 30 && (s.metrics?.memory || 0) < 40
     );
-    const overutilized = servers.filter((s: any) => (s.metrics?.cpu || 0) > 80 || (s.metrics?.memory || 0) > 85
+    const overutilized = servers.filter((s) => (s.metrics?.cpu || 0) > 80 || (s.metrics?.memory || 0) > 85
     );
 
     return {
-      underutilized: underutilized.map((s: any) => s.name),
-      overutilized: overutilized.map((s: any) => s.name),
-      recommendations: [
-        '저사용률 서버의 워크로드 통합 고려',
-        '고사용률 서버의 부하 분산 검토',
-        '자동 스케일링 정책 조정 필요',
-      ],
+      metrics: {
+        underutilizedCount: underutilized.length,
+        overutilizedCount: overutilized.length,
+      },
+      analysis: {
+        summary: 'Optimization recommendations',
+        details: {
+          underutilized: underutilized.map((s) => s.name),
+          overutilized: overutilized.map((s) => s.name),
+          recommendations: [
+            '저사용률 서버의 워크로드 통합 고려',
+            '고사용률 서버의 부하 분산 검토',
+            '자동 스케일링 정책 조정 필요',
+          ],
+        },
+      },
     };
   }
 
@@ -742,37 +787,45 @@ export class EnhancedDataAnalyzer {
    */
   private generateKoreanResponse(
     intent: string,
-    data: any,
+    data: QueryResponseData,
     query: string
   ): string {
     switch (intent) {
       case 'status':
         return (
-          `현재 전체 ${data.totalServers}대 서버 중 ${data.healthyServers}대가 정상 상태입니다. ` +
-          `평균 건강도는 ${data.avgHealth}점이며, ${data.clusters}개의 클러스터가 운영 중입니다.`
+          `현재 전체 ${data.metrics?.totalServers || 0}대 서버 중 ${data.metrics?.healthyServers || 0}대가 정상 상태입니다. ` +
+          `평균 건강도는 ${data.metrics?.avgHealth || 0}점이며, ${data.metrics?.clusters || 0}개의 클러스터가 운영 중입니다.`
         );
 
-      case 'performance':
+      case 'performance': {
+        const topPerformers = data.metrics?.topPerformers 
+          ? JSON.parse(data.metrics.topPerformers as string) 
+          : [];
         return (
-          `시스템 성능 현황: CPU 평균 ${data.avgCpu}%, 메모리 평균 ${data.avgMemory}%, ` +
-          `평균 요청 처리량 ${data.avgRequests}건/분입니다. ` +
-          `최고 성능 서버는 ${data.topPerformers[0]?.name} (${data.topPerformers[0]?.score}점)입니다.`
+          `시스템 성능 현황: CPU 평균 ${data.metrics?.avgCpu || 0}%, 메모리 평균 ${data.metrics?.avgMemory || 0}%, ` +
+          `평균 요청 처리량 ${data.metrics?.avgRequests || 0}건/분입니다. ` +
+          (topPerformers[0] ? `최고 성능 서버는 ${topPerformers[0].name} (${topPerformers[0].score}점)입니다.` : '')
         );
+      }
 
       case 'issues':
         return (
-          `현재 ${data.totalIssues}건의 이슈가 ${data.affectedServers}대 서버에서 발생했습니다. ` +
-          `${data.criticalServers}대 서버가 임계 상태입니다.`
+          `현재 ${data.metrics?.totalIssues || 0}건의 이슈가 ${data.metrics?.affectedServers || 0}대 서버에서 발생했습니다. ` +
+          `${data.metrics?.criticalServers || 0}대 서버가 임계 상태입니다.`
         );
 
-      case 'prediction':
-        return `시스템 예측 분석 결과: ${data.predictions.join(', ')}`;
+      case 'prediction': {
+        const predictions = ((data.analysis?.details as Record<string, unknown>)?.predictions as string[]) || [];
+        return `시스템 예측 분석 결과: ${predictions.join(', ')}`;
+      }
 
-      case 'optimization':
+      case 'optimization': {
+        const details = data.analysis?.details as Record<string, unknown>;
         return (
-          `최적화 권장사항: 저사용률 서버 ${data.underutilized.length}대, ` +
-          `고사용률 서버 ${data.overutilized.length}대 발견. ${data.recommendations[0]}`
+          `최적화 권장사항: 저사용률 서버 ${data.metrics?.underutilizedCount || 0}대, ` +
+          `고사용률 서버 ${data.metrics?.overutilizedCount || 0}대 발견. ${(details?.recommendations as string[])?.[0] || ''}`
         );
+      }
 
       default:
         return '요청하신 정보를 분석 중입니다. 좀 더 구체적인 질문을 해주시면 더 정확한 답변을 드릴 수 있습니다.';
@@ -782,7 +835,7 @@ export class EnhancedDataAnalyzer {
   /**
    * 💡 제안사항 생성
    */
-  private generateSuggestions(intent: string, data: any): string[] {
+  private generateSuggestions(intent: string, data: QueryResponseData): string[] {
     const suggestions: string[] = [];
 
     switch (intent) {
@@ -806,7 +859,7 @@ export class EnhancedDataAnalyzer {
   /**
    * 🎯 신뢰도 계산
    */
-  private calculateConfidence(intent: string, context: any): number {
+  private calculateConfidence(intent: string, context: Record<string, unknown>): number {
     let confidence = 0.7; // 기본 신뢰도
 
     // 컨텍스트가 명확할수록 신뢰도 증가
@@ -857,7 +910,7 @@ export class EnhancedDataAnalyzer {
         };
         return acc;
       },
-      {} as Record<string, any>
+      {} as Record<string, unknown>
     );
   }
 
@@ -873,7 +926,7 @@ export class EnhancedDataAnalyzer {
         };
         return acc;
       },
-      {} as Record<string, any>
+      {} as Record<string, unknown>
     );
   }
 
@@ -892,7 +945,7 @@ export class EnhancedDataAnalyzer {
         };
         return acc;
       },
-      {} as Record<string, any>
+      {} as Record<string, unknown>
     );
   }
 
