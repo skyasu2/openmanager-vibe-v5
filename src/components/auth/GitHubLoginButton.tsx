@@ -64,7 +64,7 @@ export default function GitHubLoginButton({
       console.log('🔐 Supabase Auth GitHub 로그아웃...');
 
       await signOut({
-        callbackUrl: '/auth/signin',
+        callbackUrl: '/login',
       });
 
       console.log('✅ GitHub 로그아웃 완료');

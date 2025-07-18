@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
   }
 
   // 로그인 페이지로 리다이렉트 (에러 메시지 포함)
-  const redirectUrl = new URL('/auth/signin', request.url);
+  const redirectUrl = new URL('/login', request.url);
   redirectUrl.searchParams.set('error', error || 'unknown_error');
   redirectUrl.searchParams.set('message', userMessage);
 

@@ -140,7 +140,7 @@ export default function Home() {
     // 인증 체크 완료 후 사용자가 없으면 즉시 리다이렉션
     if (authChecked && !currentUser) {
       console.log('🚨 인증 정보 없음 - 로그인 페이지로 이동');
-      router.replace('/auth/signin');  // 실제 로그인 페이지 경로로 수정
+      router.replace('/login');
     }
   }, [isMounted, authLoading, authChecked, currentUser, router]);
 

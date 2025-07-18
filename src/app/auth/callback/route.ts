@@ -30,17 +30,17 @@ export async function GET(request: NextRequest) {
       
       if (error) {
         console.error('❌ 세션 교환 실패:', error);
-        return NextResponse.redirect(`${requestUrl.origin}/auth/signin?error=auth_failed`);
+        return NextResponse.redirect(`${requestUrl.origin}/login?error=auth_failed`);
       }
       
       console.log('✅ 세션 교환 성공, 리다이렉트:', redirect);
     } catch (error) {
       console.error('❌ 콜백 처리 중 오류:', error);
-      return NextResponse.redirect(`${requestUrl.origin}/auth/signin?error=callback_error`);
+      return NextResponse.redirect(`${requestUrl.origin}/login?error=callback_error`);
     }
   } else {
     console.warn('⚠️ 인증 코드가 없습니다');
-    return NextResponse.redirect(`${requestUrl.origin}/auth/signin?error=no_code`);
+    return NextResponse.redirect(`${requestUrl.origin}/login?error=no_code`);
   }
 
   // 성공 시 지정된 페이지로 리다이렉트

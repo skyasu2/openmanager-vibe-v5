@@ -14,7 +14,6 @@ const DEV_ONLY_PATTERNS = [
 // 인증이 필요 없는 경로들
 const PUBLIC_PATHS = [
   '/login',
-  '/auth/signin',  // 실제 로그인 페이지 경로 추가
   '/auth',
   '/api/auth',
   '/_next',
@@ -97,12 +96,12 @@ export async function middleware(request: NextRequest) {
 
       if (error || !session) {
         // 이미 로그인 페이지에 있다면 리디렉션하지 않음 (무한 루프 방지)
-        if (pathname === '/auth/signin') {
+        if (pathname === '/login') {
           return response;
         }
         
         // GitHub 인증이 없으면 로그인 페이지로 리다이렉트
-        const redirectUrl = new URL('/auth/signin', request.url);
+        const redirectUrl = new URL('/login', request.url);
         redirectUrl.searchParams.set('redirectTo', pathname);
         return NextResponse.redirect(redirectUrl);
       }
@@ -110,12 +109,12 @@ export async function middleware(request: NextRequest) {
       console.error('Middleware auth check error:', error);
       
       // 이미 로그인 페이지에 있다면 리디렉션하지 않음 (무한 루프 방지)
-      if (pathname === '/auth/signin') {
+      if (pathname === '/login') {
         return response;
       }
       
       // 에러 발생 시 안전하게 로그인 페이지로
-      return NextResponse.redirect(new URL('/auth/signin', request.url));
+      return NextResponse.redirect(new URL('/login', request.url));
     }
   }
 
