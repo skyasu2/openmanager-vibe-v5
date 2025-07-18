@@ -105,7 +105,7 @@ export class CustomEngines {
 
     // 안전한 서버 ID 추출
     const relatedServers =
-      context?.servers?.length > 0
+      context?.servers && Array.isArray(context.servers) && context.servers.length > 0
         ? context.servers
             .slice(0, 3)
             .map((s) => s?.id || s?.name || 'unknown')
@@ -157,8 +157,12 @@ export class CustomEngines {
 
     // OpenSourceAnalysisData 형식으로 변환 (실제 반환값에 맞게 조정 필요)
     const openSourceData: OpenSourceAnalysisData = {
-      intent: opensourceAnalysis.intent || 'general',
-      entities: opensourceAnalysis.entities || [],
+      intent: 'general', // AdvancedNLPResult에 intent 속성이 없음
+      entities: opensourceAnalysis.entities.map(entity => ({
+        type: entity.type,
+        value: entity.text, // text를 value로 매핑
+        confidence: entity.confidence
+      })),
       sentiment: 'neutral',
       language: 'ko',
       processed_at: new Date().toISOString()
@@ -296,7 +300,7 @@ export class CustomEngines {
 
   // Private helper methods
   private analyzeContext(query: string, context?: Partial<UnifiedAnalysisContext> & { user_session?: string }): boolean {
-    return (
+    return Boolean(
       context && (context.servers || context.metrics || context.user_session)
     );
   }
@@ -475,8 +479,12 @@ export class CustomEngines {
 
     // OpenSourceAnalysisData 형식으로 변환
     const openSourceData: OpenSourceAnalysisData = {
-      intent: nlpResult.intent || 'general',
-      entities: nlpResult.entities || [],
+      intent: 'general', // AdvancedNLPResult에 intent 속성이 없음
+      entities: nlpResult.entities.map(entity => ({
+        type: entity.type,
+        value: entity.text, // text를 value로 매핑
+        confidence: entity.confidence
+      })),
       sentiment: 'neutral',
       language: 'ko',
       processed_at: new Date().toISOString()
