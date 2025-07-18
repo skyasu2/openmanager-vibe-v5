@@ -129,15 +129,34 @@ class GeminiDevTools {
         console.error(`[GeminiDevTools] 실행: gemini ${args.join(' ')}`);
       }
 
-      // Windows에서 직접 실행
-      const child = spawn('gemini', args, {
-        stdio: ['inherit', 'pipe', 'pipe'],
-        windowsHide: true,
-        shell: true
-      });
-
+      // 인터랙티브 명령 확인
+      const interactiveCommands = ['/stats', '/clear', '/memory'];
+      const isInteractive = args.some(arg => interactiveCommands.includes(arg));
+      
+      let child;
       let stdout = '';
       let stderr = '';
+      
+      // 인터랙티브 명령은 stdin을 통해 전달
+      if (isInteractive) {
+        const command = args.find(arg => interactiveCommands.includes(arg));
+        child = spawn('gemini', ['-p'], {
+          stdio: ['pipe', 'pipe', 'pipe'],
+          windowsHide: true,
+          shell: true
+        });
+        
+        // stdin으로 명령 전달
+        child.stdin.write(command + '\n');
+        child.stdin.end();
+      } else {
+        // 일반 명령은 기존 방식대로
+        child = spawn('gemini', args, {
+          stdio: ['inherit', 'pipe', 'pipe'],
+          windowsHide: true,
+          shell: true
+        });
+      }
 
       child.stdout.on('data', (data) => {
         stdout += data.toString();
@@ -190,7 +209,7 @@ class GeminiDevTools {
    * 읽기 전용 명령인지 확인
    */
   isReadOnlyCommand(args) {
-    const writeCommands = ['/clear', '/compress', '/memory'];
+    const writeCommands = ['/clear', '/memory'];
     return !args.some(arg => writeCommands.includes(arg));
   }
 
@@ -227,9 +246,9 @@ class GeminiDevTools {
   async getStats() {
     try {
       const result = await this.executeGemini(['/stats'], { noCache: true });
-      return result.stdout;
+      return this.cleanOutput(result.stdout);
     } catch (error) {
-      return `❌ 사용량 확인 실패: ${error.message}\n💡 인터랙티브 모드에서 'gemini /stats' 명령을 사용하세요.`;
+      return `❌ 사용량 확인 실패: ${error.message}\n💡 대안: 터미널에서 직접 'gemini /stats' 명령을 사용하세요.`;
     }
   }
 
@@ -239,22 +258,23 @@ class GeminiDevTools {
   async clearContext() {
     try {
       const result = await this.executeGemini(['/clear'], { noCache: true });
-      return '✅ 컨텍스트가 초기화되었습니다.';
+      const output = this.cleanOutput(result.stdout);
+      if (output.includes('cleared') || output.includes('Context cleared')) {
+        return '✅ 컨텍스트가 초기화되었습니다.';
+      }
+      return output || '✅ 컨텍스트가 초기화되었습니다.';
     } catch (error) {
-      return `❌ 컨텍스트 초기화 실패: ${error.message}\n💡 인터랙티브 모드에서 'gemini /clear' 명령을 사용하세요.`;
+      return `❌ 컨텍스트 초기화 실패: ${error.message}\n💡 대안: 터미널에서 직접 'gemini /clear' 명령을 사용하세요.`;
     }
   }
 
   /**
-   * 📦 대화 압축
+   * 📦 대화 압축 (지원 중단)
+   * @deprecated Gemini CLI에서 /compress 명령을 더 이상 지원하지 않습니다.
+   * 대신 /clear를 사용하여 컨텍스트를 초기화하거나 /memory를 사용하세요.
    */
   async compressContext() {
-    try {
-      const result = await this.executeGemini(['/compress'], { noCache: true });
-      return '✅ 대화가 압축되었습니다.';
-    } catch (error) {
-      return `❌ 대화 압축 실패: ${error.message}\n💡 인터랙티브 모드에서 'gemini /compress' 명령을 사용하세요.`;
-    }
+    return `⚠️ Gemini CLI에서 /compress 명령을 더 이상 지원하지 않습니다.\n\n💡 대안:\n- 컨텍스트 초기화: gemini /clear\n- 메모리 관리: gemini /memory\n- 사용량 확인: gemini /stats`;
   }
 
   /**
@@ -413,6 +433,7 @@ if (process.argv[1] === __filename) {
           break;
           
         case 'compress':
+          // 지원 중단된 명령
           const compressResult = await tool.compressContext();
           console.log(compressResult);
           break;
@@ -448,7 +469,6 @@ if (process.argv[1] === __filename) {
   node tools/gemini-dev-tools.js chat "질문내용"     빠른 채팅
   node tools/gemini-dev-tools.js stats              사용량 확인
   node tools/gemini-dev-tools.js clear              컨텍스트 초기화
-  node tools/gemini-dev-tools.js compress           대화 압축
   node tools/gemini-dev-tools.js analyze <file>     파일 분석
   node tools/gemini-dev-tools.js diff               Git 변경사항 리뷰
   node tools/gemini-dev-tools.js health             헬스 체크

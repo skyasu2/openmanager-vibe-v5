@@ -123,8 +123,9 @@ npm run gemini:health
 # 컨텍스트 초기화
 ./tools/g clear
 
-# 대화 압축
-./tools/g compress
+# 메모리 관리 (대화 압축 대체)
+# Gemini CLI에서 /compress 명령이 제거됨
+# 대신 /clear 또는 /memory 사용 권장
 ```
 
 ## 고급 기능

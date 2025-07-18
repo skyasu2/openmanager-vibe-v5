@@ -599,6 +599,41 @@ claude mcp add --transport sse remote-server https://vendor.com/mcp-endpoint
 claude mcp add my-server -s project /path/to/server
 ```
 
+#### 스코프 상세 설명
+- **local** (기본값): 현재 프로젝트에서만 사용
+- **project**: 프로젝트 팀원들과 공유 (.mcp.json 파일을 통해)
+- **user**: 모든 프로젝트에서 전역적으로 사용
+
+#### 설정 파일 위치 및 직접 편집 (권장)
+- **로컬/프로젝트**: `.mcp.json` (프로젝트 디렉토리)
+- **유저(전역)**: `~/.claude.json` (홈 디렉토리)
+
+#### 설정 파일 예시
+```json
+{
+  "mcpServers": {
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "env": {
+        "DISABLE_THOUGHT_LOGGING": "true"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "~/Documents", "~/Projects"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "your_token_here"
+      }
+    }
+  }
+}
+```
+
 #### 주요 MCP 서버 설치 예시
 ```bash
 # Filesystem
@@ -623,6 +658,29 @@ claude mcp add tavily -e TAVILY_API_KEY=YOUR_KEY npx -y @tavily/mcp-server
 claude mcp add sequential-thinking npx -y @modelcontextprotocol/server-sequential-thinking
 ```
 
+#### MCP 서버 관리
+```bash
+# 등록된 모든 MCP 서버 확인
+claude mcp list
+
+# 특정 서버 상세 정보 확인
+claude mcp get server-name
+
+# Claude Code 내에서 확인
+/mcp
+```
+
+#### MCP 서버 삭제
+⚠️ **주의**: 현재 `claude mcp remove` 명령어에 버그가 있어 설정 파일 직접 편집을 권장합니다.
+
+```bash
+# CLI 시도 (버그 가능성)
+claude mcp remove server-name -s [local|project|user]
+
+# 권장: 설정 파일 직접 편집
+# .mcp.json 또는 ~/.claude.json에서 해당 서버 블록 삭제
+```
+
 #### OAuth 인증 (신기능)
 ```bash
 # 대화형 메뉴로 OAuth 관리
@@ -632,6 +690,41 @@ claude mcp add sequential-thinking npx -y @modelcontextprotocol/server-sequentia
 claude mcp add linear-server https://api.linear.app/mcp
 # → /mcp 명령으로 OAuth 인증 진행
 ```
+
+#### 문제 해결
+```bash
+# MCP 디버그 모드
+claude --mcp-debug
+
+# 설정 파일 구문 검증
+cat ~/.claude.json | python -m json.tool
+
+# Node.js 캐시 정리
+npx clear-npx-cache
+
+# 로그 확인 (macOS/Linux)
+tail -f ~/.claude/logs/mcp-server-*.log
+```
+
+#### 권장 MCP 서버
+**개발 필수 도구**
+1. **Sequential Thinking**: 복잡한 문제 해결 과정 구조화
+2. **Filesystem**: 로컬 파일 읽기/쓰기/편집
+3. **GitHub**: Git 저장소 관리 및 이슈 추적
+4. **Puppeteer**: 웹 자동화 및 테스팅
+
+**생산성 도구**
+1. **Notion**: 문서 및 프로젝트 관리
+2. **Brave Search**: 웹 검색 기능
+3. **Memory Bank**: 세션 간 컨텍스트 유지
+4. **PostgreSQL**: 데이터베이스 쿼리
+
+#### 보안 고려사항
+1. **MCP 서버 신뢰성 검증**: 공식/검증된 서버만 사용
+2. **환경 변수 보안**: API 키는 환경 변수로 관리
+3. **파일 시스템 접근 제한**: 필요한 디렉토리만 지정
+4. **프로젝트 공유시 주의**: 민감한 정보는 환경 변수 사용
+5. **권한 관리**: 새 MCP 서버 발견시 신중히 승인
 
 상세한 설정 및 사용법은 `docs/claude-code-mcp-setup-2025.md`를 참조하세요.
 
