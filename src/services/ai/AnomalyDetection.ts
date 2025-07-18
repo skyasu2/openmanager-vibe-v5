@@ -11,7 +11,7 @@
  * - 자동 임계값 학습
  */
 
-interface ServerMetrics {
+export interface ServerMetrics {
   id: string;
   hostname: string;
   cpu_usage: number;
@@ -23,7 +23,7 @@ interface ServerMetrics {
   timestamp: string;
 }
 
-interface AnomalyAlert {
+export interface AnomalyAlert {
   id: string;
   timestamp: number;
   serverId: string;

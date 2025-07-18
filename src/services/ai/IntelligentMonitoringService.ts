@@ -62,6 +62,24 @@ import { AnomalyDetection } from './AnomalyDetection';
 import { incidentReportService } from './IncidentReportService';
 import { KoreanAIEngine } from './korean-ai-engine';
 import { aiLogger, LogCategory } from './logging/AILogger';
+import { LightweightMLEngine } from '@/lib/ml/LightweightMLEngine';
+import { PerformanceMonitor } from './PerformanceMonitor';
+import { UnifiedLogger } from './UnifiedLogger';
+import type {
+  Anomaly,
+  Prediction,
+  PerformanceIssue,
+  ResourceOptimization,
+  AnomalyPrediction,
+  MLOptimizationResult,
+  RootCause,
+  SupportingData,
+  AnalysisState,
+  UnifiedRecommendation
+} from './types/intelligent-monitoring.types';
+import { logError } from '@/utils/type-guards';
+import type { ServerMetrics } from './AnomalyDetection';
+import type { PredictionResult } from '@/lib/ml/LightweightMLEngine';
 
 // 🤖 경량 ML 엔진 통합
 
@@ -90,7 +108,7 @@ export interface IntelligentAnalysisResult {
   // 1단계: 이상 탐지 결과
   anomalyDetection: {
     status: 'completed' | 'failed' | 'skipped';
-    anomalies: any[];
+    anomalies: Anomaly[];
     summary: string;
     confidence: number;
     processingTime: number;
@@ -109,7 +127,7 @@ export interface IntelligentAnalysisResult {
   // 3단계: 예측적 모니터링 결과
   predictiveMonitoring: {
     status: 'completed' | 'failed' | 'skipped';
-    predictions: any[];
+    predictions: Prediction[];
     recommendations: string[];
     summary: string;
     confidence: number;
@@ -120,9 +138,9 @@ export interface IntelligentAnalysisResult {
   mlOptimization: {
     status: 'completed' | 'failed' | 'skipped';
     predictions: {
-      performanceIssues: any[];
-      resourceOptimization: any[];
-      anomalyPredictions: any[];
+      performanceIssues: PerformanceIssue[];
+      resourceOptimization: ResourceOptimization[];
+      anomalyPredictions: AnomalyPrediction[];
     };
     learningInsights: {
       patternsLearned: number;
@@ -165,7 +183,7 @@ export interface AIInsight {
   engine: string;
   insight: string;
   confidence: number;
-  supportingData: any;
+  supportingData: SupportingData;
 }
 
 export class IntelligentMonitoringService {
@@ -179,9 +197,9 @@ export class IntelligentMonitoringService {
   private koreanAI: KoreanAIEngine;
 
   // 🤖 ML 엔진 및 모니터링 시스템 (NEW!)
-  private mlEngine: any; // LightweightMLEngine;
-  private performanceMonitor: any; // PerformanceMonitor;
-  private unifiedLogger: any; // UnifiedLogger;
+  private mlEngine: LightweightMLEngine | null = null;
+  private performanceMonitor: PerformanceMonitor | null = null;
+  private unifiedLogger: UnifiedLogger | null = null;
 
   // 분석 상태 관리
   private activeAnalyses: Map<
@@ -398,7 +416,7 @@ export class IntelligentMonitoringService {
       );
 
       return result;
-    } catch (error: any) {
+    } catch (error) {
       this.activeAnalyses.set(analysisId, {
         status: 'failed',
         progress: 0,
@@ -406,10 +424,11 @@ export class IntelligentMonitoringService {
         startTime,
       });
 
+      logError('IntelligentMonitoringService.runIntelligentAnalysis', error);
       aiLogger.logError(
         'IntelligentMonitoringService',
         LogCategory.AI_ENGINE,
-        error,
+        error instanceof Error ? error : new Error(String(error)),
         { analysisId },
         analysisId
       );
@@ -423,7 +442,13 @@ export class IntelligentMonitoringService {
    */
   private async runAnomalyDetection(
     request: IntelligentAnalysisRequest
-  ): Promise<any> {
+  ): Promise<{
+    status: 'completed' | 'failed' | 'skipped';
+    anomalies: Anomaly[];
+    summary: string;
+    confidence: number;
+    processingTime: number;
+  }> {
     const stepStartTime = Date.now();
 
     try {
@@ -462,8 +487,15 @@ export class IntelligentMonitoringService {
    */
   private async runRootCauseAnalysis(
     request: IntelligentAnalysisRequest,
-    anomalies: any[]
-  ): Promise<any> {
+    anomalies: Anomaly[]
+  ): Promise<{
+    status: 'completed' | 'failed' | 'skipped';
+    causes: RootCause[];
+    aiInsights: AIInsight[];
+    summary: string;
+    confidence: number;
+    processingTime: number;
+  }> {
     const startTime = Date.now();
     const insights: AIInsight[] = [];
     let causes: RootCause[] = [];
@@ -550,8 +582,8 @@ export class IntelligentMonitoringService {
         confidence: this.calculateRootCauseConfidence(causes, insights),
         processingTime: Date.now() - startTime,
       };
-    } catch (error: any) {
-      console.error('근본 원인 분석 실패:', error);
+    } catch (error) {
+      logError('근본 원인 분석 실패', error);
 
       // 완전 폴백: 기본 분석만으로도 결과 제공
       return {
@@ -571,7 +603,7 @@ export class IntelligentMonitoringService {
    * 🤖 로컬 AI 분석 (Google AI 대안)
    */
   private async runLocalAIAnalysis(
-    anomalies: any[],
+    anomalies: Anomaly[],
     request: IntelligentAnalysisRequest
   ): Promise<AIInsight> {
     // 로컬 규칙 기반 AI 분석
@@ -589,7 +621,7 @@ export class IntelligentMonitoringService {
   /**
    * 📊 이상 징후 패턴 분석
    */
-  private analyzeAnomalyPatterns(anomalies: any[]): any {
+  private analyzeAnomalyPatterns(anomalies: Anomaly[]): Record<string, number> {
     const patterns = {
       cpuSpikes: anomalies.filter(a => a.metric?.includes('cpu')).length,
       memoryLeaks: anomalies.filter(a => a.metric?.includes('memory')).length,
@@ -609,7 +641,7 @@ export class IntelligentMonitoringService {
    * 🧠 로컬 인사이트 생성
    */
   private generateLocalInsights(
-    patterns: any,
+    patterns: Record<string, number>,
     request: IntelligentAnalysisRequest
   ): string {
     const insights: string[] = [];
@@ -666,7 +698,7 @@ export class IntelligentMonitoringService {
   /**
    * 📅 시간 분포 분석
    */
-  private analyzeTimeDistribution(anomalies: any[]): any {
+  private analyzeTimeDistribution(anomalies: Anomaly[]): Record<string, number> {
     const hours = anomalies.map(a =>
       new Date(a.timestamp || Date.now()).getHours()
     );
@@ -684,7 +716,7 @@ export class IntelligentMonitoringService {
   /**
    * 📊 심각도 분포 분석
    */
-  private analyzeSeverityDistribution(anomalies: any[]): any {
+  private analyzeSeverityDistribution(anomalies: Anomaly[]): Record<string, number> {
     const distribution: { [key: string]: number } = {};
 
     anomalies.forEach(a => {
@@ -698,7 +730,7 @@ export class IntelligentMonitoringService {
   /**
    * 🔄 기본 원인 생성 (AI 엔진 실패 시 기본 분석)
    */
-  private generateFallbackCauses(anomalies: any[]): RootCause[] {
+  private generateFallbackCauses(anomalies: Anomaly[]): RootCause[] {
     if (anomalies.length === 0) {
       return [
         {
@@ -750,7 +782,7 @@ export class IntelligentMonitoringService {
     }
   }
 
-  private async collectServerMetrics(serverId?: string): Promise<any[]> {
+  private async collectServerMetrics(serverId?: string): Promise<ServerMetrics[]> {
     // 실제 서버 메트릭 수집 로직
     // 현재는 목업 데이터 반환
     return [
@@ -768,7 +800,7 @@ export class IntelligentMonitoringService {
     ];
   }
 
-  private generateAnomalyDetectionSummary(anomalies: any[]): string {
+  private generateAnomalyDetectionSummary(anomalies: Anomaly[]): string {
     if (anomalies.length === 0) {
       return '현재 시스템에서 이상 징후가 감지되지 않았습니다.';
     }
@@ -781,7 +813,7 @@ export class IntelligentMonitoringService {
     return `총 ${anomalies.length}개의 이상 징후가 감지되었습니다. (위험: ${criticalCount}개, 높음: ${highCount}개)`;
   }
 
-  private calculateAnomalyConfidence(anomalies: any[]): number {
+  private calculateAnomalyConfidence(anomalies: Anomaly[]): number {
     if (anomalies.length === 0) return 0.95;
 
     const avgConfidence =
@@ -791,7 +823,7 @@ export class IntelligentMonitoringService {
   }
 
   private async runBasicRootCauseAnalysis(
-    anomalies: any[]
+    anomalies: Anomaly[]
   ): Promise<{ causes: RootCause[] }> {
     const causes: RootCause[] = [];
 
@@ -812,7 +844,7 @@ export class IntelligentMonitoringService {
   }
 
   private async runKoreanAIAnalysis(
-    anomalies: any[],
+    anomalies: Anomaly[],
     request: IntelligentAnalysisRequest
   ): Promise<AIInsight> {
     const query = `시스템에서 ${anomalies.length}개의 이상 징후가 발견되었습니다. 
@@ -837,9 +869,9 @@ export class IntelligentMonitoringService {
         confidence: response.understanding?.confidence || 0.7,
         supportingData: response.analysis || {},
       };
-    } catch (error: any) {
+    } catch (error) {
       // Korean AI 실패 시 에러를 다시 던져서 다음 엔진으로 폴백
-      throw new Error(`Korean AI 분석 실패: ${error.message}`);
+      throw new Error(`Korean AI 분석 실패: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -892,11 +924,18 @@ export class IntelligentMonitoringService {
 
   private async runPredictiveMonitoring(
     request: IntelligentAnalysisRequest
-  ): Promise<any> {
+  ): Promise<{
+    status: 'completed' | 'failed' | 'skipped';
+    predictions: Prediction[];
+    recommendations: string[];
+    summary: string;
+    confidence: number;
+    processingTime: number;
+  }> {
     const stepStartTime = Date.now();
 
     try {
-      const predictions: any[] = [];
+      const predictions: Prediction[] = [];
       const recommendations: string[] = [];
 
       // 서버별 장애 예측
@@ -946,10 +985,10 @@ export class IntelligentMonitoringService {
     }
   }
 
-  private async runSystemWidePrediction(): Promise<any[]> {
+  private async runSystemWidePrediction(): Promise<Prediction[]> {
     // 시스템 전체 예측 로직 (간단한 구현)
     const serverIds = ['web-server-01', 'web-server-02', 'db-server-01'];
-    const predictions: any[] = [];
+    const predictions: Prediction[] = [];
 
     for (const serverId of serverIds) {
       try {
@@ -965,7 +1004,7 @@ export class IntelligentMonitoringService {
     return predictions;
   }
 
-  private generateSystemRecommendations(predictions: any[]): string[] {
+  private generateSystemRecommendations(predictions: Prediction[]): string[] {
     const recommendations: string[] = [];
     const highRiskServers = predictions.filter(p => p.failureProbability > 70);
 
@@ -984,7 +1023,7 @@ export class IntelligentMonitoringService {
   }
 
   private generatePredictiveSummary(
-    predictions: any[],
+    predictions: Prediction[],
     recommendations: string[]
   ): string {
     if (predictions.length === 0) {
@@ -1001,7 +1040,7 @@ export class IntelligentMonitoringService {
     return `${predictions.length}개 서버 분석 결과, 평균 장애 위험도: ${Math.round(avgRisk)}%, 고위험 서버: ${highRiskCount}개`;
   }
 
-  private calculatePredictiveConfidence(predictions: any[]): number {
+  private calculatePredictiveConfidence(predictions: Prediction[]): number {
     if (predictions.length === 0) return 0.5;
 
     const avgConfidence =
@@ -1012,7 +1051,7 @@ export class IntelligentMonitoringService {
 
   private async generateOverallResult(
     result: IntelligentAnalysisResult
-  ): Promise<any> {
+  ): Promise<IntelligentAnalysisResult['overallResult']> {
     const anomalyCount = result.anomalyDetection.anomalies?.length || 0;
     const criticalCauses =
       result.rootCauseAnalysis.causes?.filter(c => c.probability > 0.7)
@@ -1131,7 +1170,7 @@ export class IntelligentMonitoringService {
   private async runMLOptimization(
     request: IntelligentAnalysisRequest,
     analysisResult: IntelligentAnalysisResult
-  ): Promise<any> {
+  ): Promise<IntelligentAnalysisResult['mlOptimization']> {
     const startTime = Date.now();
 
     // ML 엔진 지연 초기화
@@ -1241,8 +1280,16 @@ export class IntelligentMonitoringService {
    * 🤖 ML 기반 추천 생성
    */
   private generateMLRecommendations(
-    predictions: any,
-    learningResults: any
+    predictions: {
+      performanceIssues: PerformanceIssue[];
+      resourceOptimization: ResourceOptimization[];
+      anomalyPredictions: AnomalyPrediction[];
+    },
+    learningResults: {
+      patternsLearned: number;
+      accuracyImprovement: number;
+      recommendedActions: string[];
+    }
   ): string[] {
     const recommendations: string[] = [];
 
@@ -1275,7 +1322,18 @@ export class IntelligentMonitoringService {
   /**
    * 🤖 ML 결과 요약 생성
    */
-  private generateMLSummary(predictions: any, learningResults: any): string {
+  private generateMLSummary(
+    predictions: {
+      performanceIssues: PerformanceIssue[];
+      resourceOptimization: ResourceOptimization[];
+      anomalyPredictions: AnomalyPrediction[];
+    },
+    learningResults: {
+      patternsLearned: number;
+      accuracyImprovement: number;
+      recommendedActions: string[];
+    }
+  ): string {
     const issues = predictions.performanceIssues?.length || 0;
     const optimizations = predictions.resourceOptimization?.length || 0;
     const patterns = learningResults.patternsLearned || 0;
@@ -1287,8 +1345,16 @@ export class IntelligentMonitoringService {
    * 🤖 ML 신뢰도 계산
    */
   private calculateMLConfidence(
-    predictions: any,
-    learningResults: any
+    predictions: {
+      performanceIssues: PerformanceIssue[];
+      resourceOptimization: ResourceOptimization[];
+      anomalyPredictions: AnomalyPrediction[];
+    },
+    learningResults: {
+      patternsLearned: number;
+      accuracyImprovement: number;
+      recommendedActions: string[];
+    }
   ): number {
     let confidence = 0.5; // 기본 신뢰도
 

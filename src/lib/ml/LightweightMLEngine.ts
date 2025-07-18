@@ -27,7 +27,7 @@ interface MLModel {
   trainingData: DataPoint[];
 }
 
-interface PredictionResult {
+export interface PredictionResult {
   prediction: number | string;
   confidence: number;
   explanation?: string;
