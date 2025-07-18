@@ -22,7 +22,7 @@ if ($Arguments.Count -eq 0) {
     Write-Host "  .\tools\g.ps1 stats                   사용량 확인" -ForegroundColor Green
     Write-Host "  .\tools\g.ps1 health                  헬스체크" -ForegroundColor Green
     Write-Host "  .\tools\g.ps1 clear                   컨텍스트 초기화" -ForegroundColor Green
-    Write-Host "  .\tools\g.ps1 compress                대화 압축" -ForegroundColor Green
+    Write-Host "  .\tools\g.ps1 memory [cmd]            메모리 관리" -ForegroundColor Green
     Write-Host ""
     Write-Host "예시:" -ForegroundColor Yellow
     Write-Host "  .\tools\g.ps1 `"TypeScript 에러 해결법`"" -ForegroundColor Magenta

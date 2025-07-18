@@ -18,6 +18,7 @@ import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { createHash } from 'crypto';
+import GeminiSystemCommands from './gemini-system-commands.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -30,6 +31,9 @@ class GeminiDevTools {
     this.maxCacheAge = 1000 * 60 * 5; // 5분
     this.rateLimitDelay = 1000; // 1초 간격
     this.lastRequestTime = 0;
+    
+    // 시스템 명령 처리기 초기화
+    this.systemCommands = new GeminiSystemCommands();
     
     // 캐시 디렉토리 생성
     this.ensureCacheDir();
@@ -122,41 +126,36 @@ class GeminiDevTools {
       }
     }
 
+    const startTime = Date.now();
+    
+    // 시스템 명령은 자체 처리기로 라우팅
+    const systemCommand = args.find(arg => arg.startsWith('/'));
+    if (systemCommand) {
+      // 자체 시스템 명령 처리기 사용
+      const result = await this.handleSystemCommand(systemCommand, args);
+      return {
+        success: true,
+        stdout: result,
+        stderr: '',
+        duration: Date.now() - startTime,
+        timestamp: new Date().toISOString()
+      };
+    }
+
     return new Promise((resolve, reject) => {
-      const startTime = Date.now();
-      
       if (this.debug) {
         console.error(`[GeminiDevTools] 실행: gemini ${args.join(' ')}`);
       }
-
-      // 인터랙티브 명령 확인
-      const interactiveCommands = ['/stats', '/clear', '/memory'];
-      const isInteractive = args.some(arg => interactiveCommands.includes(arg));
       
-      let child;
+      // 일반 명령은 기존 방식대로
+      const child = spawn('gemini', args, {
+        stdio: ['inherit', 'pipe', 'pipe'],
+        windowsHide: true,
+        shell: true
+      });
+      
       let stdout = '';
       let stderr = '';
-      
-      // 인터랙티브 명령은 stdin을 통해 전달
-      if (isInteractive) {
-        const command = args.find(arg => interactiveCommands.includes(arg));
-        child = spawn('gemini', ['-p'], {
-          stdio: ['pipe', 'pipe', 'pipe'],
-          windowsHide: true,
-          shell: true
-        });
-        
-        // stdin으로 명령 전달
-        child.stdin.write(command + '\n');
-        child.stdin.end();
-      } else {
-        // 일반 명령은 기존 방식대로
-        child = spawn('gemini', args, {
-          stdio: ['inherit', 'pipe', 'pipe'],
-          windowsHide: true,
-          shell: true
-        });
-      }
 
       child.stdout.on('data', (data) => {
         stdout += data.toString();
@@ -206,6 +205,26 @@ class GeminiDevTools {
   }
 
   /**
+   * 시스템 명령 처리
+   */
+  async handleSystemCommand(command, args) {
+    switch (command) {
+      case '/stats':
+        return await this.systemCommands.getStats();
+      case '/clear':
+        return await this.systemCommands.clearContext();
+      case '/memory':
+        const subCommand = args[1] || 'list';
+        const memoryArgs = args.slice(2);
+        return await this.systemCommands.memoryCommand(subCommand, ...memoryArgs);
+      case '/help':
+        return this.systemCommands.getHelp();
+      default:
+        return `❌ 알 수 없는 명령: ${command}\n💡 /help를 입력하여 사용 가능한 명령을 확인하세요.`;
+    }
+  }
+
+  /**
    * 읽기 전용 명령인지 확인
    */
   isReadOnlyCommand(args) {
@@ -229,6 +248,11 @@ class GeminiDevTools {
 
     try {
       const result = await this.executeGemini(args, options);
+      
+      // 사용량 기록 (토큰 수는 추정치)
+      const estimatedTokens = Math.floor((prompt.length + result.stdout.length) / 4);
+      await this.systemCommands.recordUsage(estimatedTokens);
+      
       return this.cleanOutput(result.stdout);
     } catch (error) {
       // 간단한 재시도 (한 번만)
@@ -244,28 +268,16 @@ class GeminiDevTools {
    * 📊 사용량 확인
    */
   async getStats() {
-    try {
-      const result = await this.executeGemini(['/stats'], { noCache: true });
-      return this.cleanOutput(result.stdout);
-    } catch (error) {
-      return `❌ 사용량 확인 실패: ${error.message}\n💡 대안: 터미널에서 직접 'gemini /stats' 명령을 사용하세요.`;
-    }
+    // 자체 시스템 명령 사용
+    return await this.systemCommands.getStats();
   }
 
   /**
    * 🧹 컨텍스트 초기화
    */
   async clearContext() {
-    try {
-      const result = await this.executeGemini(['/clear'], { noCache: true });
-      const output = this.cleanOutput(result.stdout);
-      if (output.includes('cleared') || output.includes('Context cleared')) {
-        return '✅ 컨텍스트가 초기화되었습니다.';
-      }
-      return output || '✅ 컨텍스트가 초기화되었습니다.';
-    } catch (error) {
-      return `❌ 컨텍스트 초기화 실패: ${error.message}\n💡 대안: 터미널에서 직접 'gemini /clear' 명령을 사용하세요.`;
-    }
+    // 자체 시스템 명령 사용
+    return await this.systemCommands.clearContext();
   }
 
   /**
@@ -438,6 +450,12 @@ if (process.argv[1] === __filename) {
           console.log(compressResult);
           break;
           
+        case 'memory':
+          const memoryArgs = args.slice(0);
+          const memoryResult = await tool.systemCommands.memoryCommand(...memoryArgs);
+          console.log(memoryResult);
+          break;
+          
         case 'analyze':
           const filePath = args[0];
           const question = args.slice(1).join(' ') || "이 파일을 분석해주세요";
@@ -469,6 +487,7 @@ if (process.argv[1] === __filename) {
   node tools/gemini-dev-tools.js chat "질문내용"     빠른 채팅
   node tools/gemini-dev-tools.js stats              사용량 확인
   node tools/gemini-dev-tools.js clear              컨텍스트 초기화
+  node tools/gemini-dev-tools.js memory [cmd]       메모리 관리
   node tools/gemini-dev-tools.js analyze <file>     파일 분석
   node tools/gemini-dev-tools.js diff               Git 변경사항 리뷰
   node tools/gemini-dev-tools.js health             헬스 체크

@@ -189,10 +189,10 @@ mcp__tavily-mcp__tavily-map({
 })
 ```
 
-#### 🧠 Sequential-Thinking MCP 도구
+#### 🧠 Sequential-Thinking MCP 도구 (단축명: st)
 ```typescript
 // 복잡한 문제를 단계별로 분석하고 해결
-mcp__sequential-thinking__sequentialthinking({
+mcp__st__sequentialthinking({
   thought: "사용자 인증 시스템의 보안 취약점을 분석해보자",
   nextThoughtNeeded: true,
   thoughtNumber: 1,
@@ -203,7 +203,7 @@ mcp__sequential-thinking__sequentialthinking({
 
 // 사용 예시: 복잡한 버그 분석
 // 1단계: 문제 정의 및 초기 분석
-mcp__sequential-thinking__sequentialthinking({
+mcp__st__sequentialthinking({
   thought: "로그인 후 간헐적으로 세션이 만료되는 문제 분석",
   nextThoughtNeeded: true,
   thoughtNumber: 1,
@@ -211,7 +211,7 @@ mcp__sequential-thinking__sequentialthinking({
 })
 
 // 2단계: 가능한 원인 탐색
-mcp__sequential-thinking__sequentialthinking({
+mcp__st__sequentialthinking({
   thought: "세션 타임아웃, 토큰 검증, 네트워크 이슈 등을 검토",
   nextThoughtNeeded: true,
   thoughtNumber: 2,
@@ -219,7 +219,7 @@ mcp__sequential-thinking__sequentialthinking({
 })
 
 // 3단계: 이전 생각 수정 (필요시)
-mcp__sequential-thinking__sequentialthinking({
+mcp__st__sequentialthinking({
   thought: "토큰 검증 로직에 race condition 발견",
   nextThoughtNeeded: true,
   thoughtNumber: 3,
@@ -578,7 +578,7 @@ Claude Code에는 7개의 공식 MCP 서버가 설정되어 있습니다. MCP �
 - **supabase** - 데이터베이스 통합
 - **context7** - 문서 검색
 - **tavily** - AI 웹 검색
-- **sequential-thinking** - 복잡한 문제의 단계별 분석 및 해결
+- **st** (sequential-thinking) - 복잡한 문제의 단계별 분석 및 해결
 
 ### 🚀 MCP 설정 및 사용법
 
@@ -1001,11 +1001,24 @@ npm run gemini:chat "질문"
 # 개발/디버깅은 tools 폴더의 gemini-dev-tools.js 사용
 ```
 
-#### 📈 사용량 관리
+#### 📈 사용량 관리 (v5.1 업데이트)
+
+**시스템 명령 자체 구현** - TTY 환경 없이도 작동:
 ```bash
-gemini /stats      # 현재 사용량 확인 (일일 1,000회 제한)
-gemini /compress   # 대화 압축으로 토큰 절약
-gemini /clear      # 컨텍스트 초기화
+# 🚀 개발 도구 시스템 명령 (권장)
+./tools/g stats                    # 사용량 통계 (자체 구현)
+./tools/g clear                    # 컨텍스트 초기화 (자체 구현)
+./tools/g memory list              # 저장된 메모리 보기
+./tools/g memory add "정보"        # 메모리에 정보 저장
+./tools/g memory remove 3          # 특정 메모리 삭제
+
+# 💾 데이터 저장 위치
+# ~/.gemini-dev-tools/usage.json    # 사용량 통계
+# ~/.gemini-dev-tools/memory.json   # 저장된 메모리
+
+# ⚠️ 터미널에서 직접 사용 시 (TTY 환경 필요)
+gemini /stats      # 인터랙티브 모드에서만 작동
+gemini /clear      # 인터랙티브 모드에서만 작동
 ```
 
 #### 💡 효율적 사용 팁

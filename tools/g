@@ -27,7 +27,7 @@ if (args.length === 0) {
   ./tools/g stats                   사용량 확인
   ./tools/g health                  헬스체크
   ./tools/g clear                   컨텍스트 초기화
-  ./tools/g compress                대화 압축
+  ./tools/g memory [cmd]            메모리 관리
 
 예시:
   ./tools/g "TypeScript 에러 해결법"
@@ -77,6 +77,12 @@ async function run() {
       case 'compress':
         const compressResult = await tool.compressContext();
         console.log(compressResult);
+        break;
+        
+      case 'memory':
+        const memoryArgs = args.slice(1);
+        const memoryResult = await tool.systemCommands.memoryCommand(...memoryArgs);
+        console.log(memoryResult);
         break;
         
       default:

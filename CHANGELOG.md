@@ -1,5 +1,40 @@
 # Changelog
 
+## [5.46.44] - 2025-07-18
+
+### 🚀 Gemini CLI 개발 도구 대규모 리팩토링
+
+#### 시스템 명령 자체 구현
+- **근본적 문제 해결**:
+  - Gemini CLI의 인터랙티브 명령(/stats, /clear, /memory)이 TTY 환경에서만 작동하는 문제 발견
+  - Node.js spawn은 TTY 환경이 아니므로 시스템 명령 실행 불가
+  
+- **새로운 구현**:
+  - `GeminiSystemCommands` 클래스 생성 - 시스템 명령 자체 구현
+  - 사용량 추적 시스템 구축 (로컬 JSON 파일 기반)
+  - 메모리 관리 시스템 구현 (저장, 조회, 삭제)
+  - 컨텍스트 초기화 기능 자체 구현
+  
+- **주요 기능**:
+  - `stats` - 일일/월간 사용량 통계 (요청 횟수, 토큰 사용량)
+  - `clear` - 대화 컨텍스트 초기화
+  - `memory list/add/remove/clear` - 정보 저장 및 관리
+  - 모든 AI 프롬프트에 대해 자동 사용량 기록
+
+#### 파일 변경사항
+- **새로 생성**: `tools/gemini-system-commands.js`
+  - 시스템 명령 처리기 구현
+  - 사용량 추적 및 메모리 관리 로직
+  
+- **수정**: `tools/gemini-dev-tools.js`
+  - GeminiSystemCommands 통합
+  - 시스템 명령 라우팅 로직 추가
+  - 사용량 자동 기록 기능 추가
+  
+- **수정**: `tools/g`, `tools/g.ps1`
+  - memory 명령 지원 추가
+  - 사용법 설명 업데이트
+
 ## [5.46.43] - 2025-07-18
 
 ### 🛠️ Gemini CLI 개발 도구 개선

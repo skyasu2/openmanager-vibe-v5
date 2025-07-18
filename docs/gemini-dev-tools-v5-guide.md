@@ -128,6 +128,69 @@ npm run gemini:health
 # 대신 /clear 또는 /memory 사용 권장
 ```
 
+## 🎯 시스템 명령 (v5.1 신기능)
+
+### 자체 구현 시스템 명령
+
+Gemini CLI의 인터랙티브 명령이 TTY 환경에서만 작동하는 한계를 극복하기 위해 자체 시스템 명령을 구현했습니다.
+
+#### 1. 사용량 통계 (`stats`)
+```bash
+./tools/g stats
+
+# 출력 예시:
+# 📊 **Gemini 사용량 통계**
+# 
+# 🗓️ 오늘 (2025-07-18)
+# - 요청 횟수: 15회
+# - 토큰 사용량: 3,250 토큰
+# - 남은 요청: 985회
+# 
+# 📈 이번 달 총계
+# - 총 요청: 250회
+# - 총 토큰: 52,100 토큰
+```
+
+#### 2. 메모리 관리 (`memory`)
+```bash
+# 메모리 목록 보기
+./tools/g memory list
+
+# 새 정보 저장
+./tools/g memory add "프로젝트는 Next.js 15를 사용합니다"
+./tools/g memory add "주요 AI 엔진은 Google Generative AI입니다"
+
+# 특정 메모리 제거
+./tools/g memory remove 2
+
+# 전체 메모리 초기화
+./tools/g memory clear
+```
+
+#### 3. 컨텍스트 초기화 (`clear`)
+```bash
+./tools/g clear
+
+# 출력:
+# ✅ 컨텍스트가 초기화되었습니다.
+# 
+# 🧹 초기화된 항목:
+# - 대화 기록
+# - 임시 컨텍스트
+# - 캐시된 응답
+```
+
+### 데이터 저장 위치
+
+시스템 명령의 데이터는 다음 위치에 저장됩니다:
+- **Linux/Mac**: `~/.gemini-dev-tools/`
+- **Windows**: `%USERPROFILE%\.gemini-dev-tools\`
+
+저장되는 파일:
+- `usage.json` - 사용량 통계
+- `memory.json` - 저장된 메모리
+- `context.json` - 컨텍스트 정보
+
 ## 고급 기능
 
 ### 🔄 배치 처리
