@@ -287,7 +287,7 @@ describe('System Metrics Services', () => {
         expect(systemMetrics.totalCalls).toBe(3);
         expect(systemMetrics.successRate).toBeCloseTo(66.67, 1);
         expect(systemMetrics.avgResponseTime).toBe(150); // (100 + 150 + 200) / 3
-        expect(systemMetrics.activeEngines).toBe(3);
+        expect(systemMetrics.activeEngines).toBe(2); // ai와 test만 active (mcp는 실패)
       });
     });
   });

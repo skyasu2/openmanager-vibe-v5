@@ -109,6 +109,10 @@ export class RealTimeMetricsCollector {
         ? recent.reduce((sum, c) => sum + c.responseTime, 0) / totalCalls
         : 0;
 
+    // 활성 엔진 수 계산
+    const engineMetrics = this.getEngineMetrics();
+    const activeEngines = engineMetrics.filter(e => e.status === 'active').length;
+
     return {
       totalCalls,
       successfulCalls,
@@ -116,6 +120,7 @@ export class RealTimeMetricsCollector {
       successRate: totalCalls > 0 ? (successfulCalls / totalCalls) * 100 : 0,
       avgResponseTime: Math.round(avgResponseTime),
       last24hCalls: totalCalls,
+      activeEngines,
       timestamp: now,
     };
   }
@@ -138,8 +143,9 @@ export class RealTimeMetricsCollector {
     if (endpoint.includes('/ai/anomaly')) return 'AnomalyDetection';
     if (endpoint.includes('/ai/unified')) return 'UnifiedEngine';
     if (endpoint.includes('/ai/hybrid')) return 'HybridEngine';
-    if (endpoint.includes('/mcp/')) return 'MCPEngine';
-    if (endpoint.includes('/test/')) return 'TestEngine';
+    if (endpoint.includes('/ai/')) return 'ai'; // 기본 AI 엔진
+    if (endpoint.includes('/mcp/')) return 'mcp';
+    if (endpoint.includes('/test/')) return 'test';
 
     return 'Unknown';
   }

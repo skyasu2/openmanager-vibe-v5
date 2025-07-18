@@ -147,8 +147,17 @@ class GeminiDevTools {
         console.error(`[GeminiDevTools] 실행: gemini ${args.join(' ')}`);
       }
       
-      // 일반 명령은 기존 방식대로
-      const child = spawn('gemini', args, {
+      // shell: true를 사용할 때는 인자를 올바르게 전달
+      // 한글이 포함된 인자는 따옴표로 감싸기
+      const escapedArgs = args.map(arg => {
+        // 공백이나 특수문자가 포함된 경우 따옴표로 감싸기
+        if (arg.includes(' ') || /[^\x00-\x7F]/.test(arg)) {
+          return `"${arg.replace(/"/g, '\\"')}"`;
+        }
+        return arg;
+      });
+      
+      const child = spawn('gemini', escapedArgs, {
         stdio: ['inherit', 'pipe', 'pipe'],
         windowsHide: true,
         shell: true
