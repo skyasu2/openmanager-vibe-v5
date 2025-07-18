@@ -299,12 +299,15 @@ export default function ServerDashboard({
             specs: getServerSpecs(selectedServer),
             os: selectedServer.os || 'Ubuntu 22.04',
             ip: selectedServer.ip || '192.168.1.100',
-            networkStatus: (
-              selectedServer.networkStatus === 'excellent' ||
-              selectedServer.networkStatus === 'good' ||
-              selectedServer.networkStatus === 'poor' ||
-              selectedServer.networkStatus === 'offline'
-            ) ? selectedServer.networkStatus : 'good',
+            networkStatus: (() => {
+              // Server 타입의 networkStatus를 ServerDashboardData 타입으로 매핑
+              const status = selectedServer.networkStatus;
+              if (status === 'healthy') return 'excellent';
+              if (status === 'warning') return 'good';
+              if (status === 'critical' || status === 'maintenance') return 'poor';
+              if (status === 'offline') return 'offline';
+              return 'good'; // 기본값
+            })(),
             health: selectedServer.health || {
               score: 85,
               trend: [80, 82, 85, 87, 85],

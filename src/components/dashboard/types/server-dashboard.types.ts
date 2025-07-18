@@ -40,15 +40,17 @@ export interface ExtendedServer extends Omit<Server, 'networkStatus'> {
 }
 
 // 서버 타입 가드
-export function isExtendedServer(server: Server): server is ExtendedServer {
+export function isExtendedServer(server: unknown): server is ExtendedServer {
+  const s = server as any;
   return (
-    server &&
-    'cpu' in server &&
-    'memory' in server &&
-    'disk' in server &&
-    typeof server.cpu === 'number' &&
-    typeof server.memory === 'number' &&
-    typeof server.disk === 'number'
+    s &&
+    typeof s === 'object' &&
+    'cpu' in s &&
+    'memory' in s &&
+    'disk' in s &&
+    typeof s.cpu === 'number' &&
+    typeof s.memory === 'number' &&
+    typeof s.disk === 'number'
   );
 }
 
