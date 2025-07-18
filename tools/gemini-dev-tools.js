@@ -157,11 +157,24 @@ class GeminiDevTools {
         return arg;
       });
       
+      // stdin 입력이 있는지 확인
+      const hasStdinInput = options.stdin || options.pipeInput;
+      
       const child = spawn('gemini', escapedArgs, {
-        stdio: ['inherit', 'pipe', 'pipe'],
+        stdio: [hasStdinInput ? 'pipe' : 'inherit', 'pipe', 'pipe'],
         windowsHide: true,
         shell: true
       });
+      
+      // stdin 입력이 있으면 전달
+      if (hasStdinInput) {
+        const input = options.stdin || options.pipeInput;
+        if (this.debug) {
+          console.error(`[GeminiDevTools] stdin 입력 전달: ${input.substring(0, 100)}...`);
+        }
+        child.stdin.write(input);
+        child.stdin.end();
+      }
       
       let stdout = '';
       let stderr = '';
@@ -435,12 +448,80 @@ if (process.argv[1] === __filename) {
   const command = process.argv[2];
   const args = process.argv.slice(3);
 
+  // stdin 입력 감지 및 읽기
+  async function readStdin() {
+    // TTY가 아니거나 readable이면 파이프 입력 가능성이 있음
+    if (process.stdin.isTTY === true) {
+      return null; // 파이프 입력이 없음
+    }
+    
+    // stdin이 readable한 상태인지 확인
+    if (!process.stdin.readable) {
+      return null;
+    }
+    
+    return new Promise((resolve, reject) => {
+      let data = '';
+      let resolved = false;
+      const chunks = [];
+      
+      process.stdin.setEncoding('utf8');
+      
+      // 데이터가 있는지 즉시 확인
+      process.stdin.on('readable', () => {
+        let chunk;
+        while (null !== (chunk = process.stdin.read())) {
+          chunks.push(chunk);
+        }
+      });
+      
+      process.stdin.on('end', () => {
+        if (!resolved) {
+          resolved = true;
+          data = chunks.join('');
+          resolve(data.trim() || null);
+        }
+      });
+      
+      process.stdin.on('error', (err) => {
+        if (!resolved) {
+          resolved = true;
+          resolve(null);
+        }
+      });
+      
+      // 타임아웃 설정
+      setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          data = chunks.join('');
+          resolve(data.trim() || null);
+        }
+      }, 100);
+    });
+  }
+
   async function runCLI() {
     try {
+      // stdin 입력 확인
+      const stdinInput = await readStdin();
+      
       switch (command) {
         case 'chat':
-          const result = await tool.quickChat(args.join(' '));
-          console.log(result);
+          const prompt = args.join(' ');
+          let result;
+          
+          if (stdinInput) {
+            // 파이프 입력이 있으면 직접 전달 (프롬프트 없이)
+            result = await tool.executeGemini([], { 
+              pipeInput: stdinInput 
+            });
+            console.log(result.stdout);
+          } else {
+            // 파이프 입력이 없으면 일반 채팅
+            result = await tool.quickChat(prompt);
+            console.log(result);
+          }
           break;
           
         case 'stats':
@@ -489,8 +570,18 @@ if (process.argv[1] === __filename) {
           break;
           
         default:
-          console.log(`
-🚀 Gemini 개발 도구 v5.0 사용법
+          // 파이프 입력이 있으면 자동으로 chat 명령으로 처리
+          if (stdinInput) {
+            // 파이프 입력과 프롬프트를 합쳐서 전달
+            const prompt = command ? [command, ...args].join(' ') : '';
+            const combinedInput = prompt ? `${stdinInput}\n\n${prompt}` : stdinInput;
+            const result = await tool.executeGemini([], { 
+              pipeInput: combinedInput 
+            });
+            console.log(result.stdout);
+          } else {
+            console.log(`
+🚀 Gemini 개발 도구 v5.1 사용법
 
 기본 명령어:
   node tools/gemini-dev-tools.js chat "질문내용"     빠른 채팅
@@ -502,11 +593,17 @@ if (process.argv[1] === __filename) {
   node tools/gemini-dev-tools.js health             헬스 체크
   node tools/gemini-dev-tools.js version            버전 확인
 
+파이프 입력:
+  echo "코드" | node tools/gemini-dev-tools.js "분석해주세요"
+  cat file.txt | node tools/gemini-dev-tools.js chat "요약해주세요"
+  git diff | node tools/gemini-dev-tools.js "리뷰해주세요"
+
 예시:
   node tools/gemini-dev-tools.js chat "TypeScript 에러 해결법"
   node tools/gemini-dev-tools.js analyze src/app/page.tsx "이 컴포넌트 최적화 방법"
   node tools/gemini-dev-tools.js diff "SOLID 원칙 관점에서 리뷰"
-          `);
+            `);
+          }
       }
     } catch (error) {
       console.error('❌ 오류:', error.message);
