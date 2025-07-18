@@ -1,5 +1,39 @@
 # Changelog
 
+## [5.46.50] - 2025-07-18
+
+### 🚀 ServerDashboard.tsx any 타입 완전 제거 (37개)
+
+#### 주요 변경사항
+- **ServerDashboard 컨포넌트 타입 안전성 강화**:
+  - 37개 any 타입 모두 제거 (as any 타입 단언 포함)
+  - server-dashboard.types.ts 타입 정의 파일 생성
+  - ExtendedServer 인터페이스로 타입 확장
+  - 타입 가드 함수들 추가 (getServerCpu, getServerMemory 등)
+  
+- **타입 안전 헬퍼 함수 구현**:
+  - formatUptime: uptime 포맷팅 통합
+  - getAlertsCount: alerts 카운트 로직 통합
+  - getServerStatus: 상태 변환 로직 안전하게 처리
+  - hasProperty: 속성 존재 확인 타입 가드
+
+- **useServerDashboard 훅 타입 개선**:
+  - onStatsUpdate 파라미터의 any 타입 제거
+  - 명확한 통계 타입 정의 (total, online, warning, offline)
+
+#### 기술적 개선
+- Server 타입과 EnhancedServerModal props 타입 호환성 보장
+- 타입 변환 시 안전한 기본값 제공
+- networkStatus 타입 호환성 문제 해결
+
+#### 완료된 파일 리스트
+1. ✅ IntelligentMonitoringService.ts (81개 any 제거)
+2. ✅ EnhancedDataAnalyzer.ts (73개 any 제거)  
+3. ✅ CustomEngines.ts (60개 any 제거)
+4. ✅ ServerDashboard.tsx (37개 any 제거) - 이번 작업
+
+총 251개의 any 타입 제거 완료! 🎉
+
 ## [5.46.49] - 2025-07-18
 
 ### 🚀 TypeScript Any 타입 대규모 제거 프로젝트 진행

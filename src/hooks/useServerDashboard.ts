@@ -17,7 +17,12 @@ export type ViewMode = 'grid' | 'list';
 
 // 🎯 기존 useServerDashboard 인터페이스 유지
 interface UseServerDashboardOptions {
-  onStatsUpdate?: (stats: any) => void;
+  onStatsUpdate?: (stats: {
+    total: number;
+    online: number;
+    warning: number;
+    offline: number;
+  }) => void;
 }
 
 // 🆕 새로운 Enhanced 훅 인터페이스

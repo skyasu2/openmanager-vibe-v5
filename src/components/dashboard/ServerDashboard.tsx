@@ -13,6 +13,12 @@ import {
 import { DashboardTab, useServerDashboard } from '@/hooks/useServerDashboard';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import {
+  toExtendedServer,
+  formatUptime,
+  getAlertsCount,
+} from './types/server-dashboard.types';
+import { Server } from '@/types/server';
 interface ServerDashboardProps {
   onStatsUpdate?: (stats: {
     total: number;
@@ -20,6 +26,39 @@ interface ServerDashboardProps {
     warning: number;
     offline: number;
   }) => void;
+}
+
+// 타입 가드 함수들
+function getServerCpu(server: Server): number {
+  return typeof server.cpu === 'number' ? server.cpu : 0;
+}
+
+function getServerMemory(server: Server): number {
+  return typeof server.memory === 'number' ? server.memory : 0;
+}
+
+function getServerDisk(server: Server): number {
+  return typeof server.disk === 'number' ? server.disk : 0;
+}
+
+function getServerNetwork(server: Server): number {
+  return typeof server.network === 'number' ? server.network : 25;
+}
+
+function getServerSpecs(server: Server): NonNullable<Server['specs']> {
+  return server.specs || {
+    cpu_cores: 4,
+    memory_gb: 8,
+    disk_gb: 250,
+    network_speed: '1Gbps',
+  };
+}
+
+function getServerStatus(status: Server['status']): 'healthy' | 'warning' | 'critical' | 'offline' {
+  if (status === 'online' || status === 'healthy') return 'healthy';
+  if (status === 'warning') return 'warning';
+  if (status === 'critical') return 'critical';
+  return 'offline';
 }
 
 export default function ServerDashboard({
@@ -172,32 +211,22 @@ export default function ServerDashboard({
                     name: server.name,
                     status:
                       server.status === 'online' ? 'online' : server.status,
-                    cpu: (server as any).cpu || 0,
-                    memory: (server as any).memory || 0,
-                    disk: (server as any).disk || 0,
-                    network: (server as any).network || 25,
+                    cpu: getServerCpu(server),
+                    memory: getServerMemory(server),
+                    disk: getServerDisk(server),
+                    network: getServerNetwork(server),
                     location: server.location || 'unknown',
-                    uptime:
-                      typeof (server as any).uptime === 'string'
-                        ? (server as any).uptime
-                        : typeof (server as any).uptime === 'number'
-                          ? `${Math.floor((server as any).uptime / 3600)}h ${Math.floor(((server as any).uptime % 3600) / 60)}m`
-                          : '0h 0m',
-                    ip: (server as any).ip || '192.168.1.100',
-                    os: (server as any).os || 'Ubuntu 22.04',
-                    alerts:
-                      typeof (server as any).alerts === 'number'
-                        ? (server as any).alerts
-                        : Array.isArray((server as any).alerts)
-                          ? (server as any).alerts.length
-                          : 0,
-                    lastUpdate: (server as any).lastUpdate || new Date(),
-                    services: (server as any).services || [],
+                    uptime: formatUptime(server.uptime),
+                    ip: server.ip || '192.168.1.100',
+                    os: server.os || 'Ubuntu 22.04',
+                    alerts: getAlertsCount(server.alerts),
+                    lastUpdate: server.lastUpdate || new Date(),
+                    services: server.services || [],
                   }}
                   variant='compact'
                   showRealTimeUpdates={true}
                   index={index}
-                  onClick={() => handleServerSelect(server as any)}
+                  onClick={() => handleServerSelect(server)}
                 />
               ))}
             </div>
@@ -254,49 +283,36 @@ export default function ServerDashboard({
             id: selectedServer.id,
             hostname: selectedServer.hostname || selectedServer.name,
             name: selectedServer.name,
-            type: (selectedServer as any).type || 'api',
-            environment: (selectedServer as any).environment || 'prod',
+            type: selectedServer.type || 'api',
+            environment: selectedServer.environment || 'prod',
             location: selectedServer.location || 'unknown',
-            provider: (selectedServer as any).provider || 'Unknown',
-            status:
-              selectedServer.status === 'online'
-                ? 'healthy'
-                : (selectedServer.status as any),
-            cpu: (selectedServer as any).cpu || 0,
-            memory: (selectedServer as any).memory || 0,
-            disk: (selectedServer as any).disk || 0,
-            network: (selectedServer as any).network || 25,
-            uptime:
-              typeof (selectedServer as any).uptime === 'string'
-                ? (selectedServer as any).uptime
-                : typeof (selectedServer as any).uptime === 'number'
-                  ? `${Math.floor((selectedServer as any).uptime / 3600)}h ${Math.floor(((selectedServer as any).uptime % 3600) / 60)}m`
-                  : '0h 0m',
-            lastUpdate: (selectedServer as any).lastUpdate || new Date(),
-            alerts:
-              typeof (selectedServer as any).alerts === 'number'
-                ? (selectedServer as any).alerts
-                : Array.isArray((selectedServer as any).alerts)
-                  ? (selectedServer as any).alerts.length
-                  : 0,
-            services: (selectedServer as any).services || [],
-            specs: (selectedServer as any).specs || {
-              cpu_cores: 4,
-              memory_gb: 8,
-              disk_gb: 250,
-              network_speed: '1Gbps',
-            },
-            os: (selectedServer as any).os || 'Ubuntu 22.04',
-            ip: (selectedServer as any).ip || '192.168.1.100',
-            networkStatus: (selectedServer as any).networkStatus || 'good',
-            health: (selectedServer as any).health || {
+            provider: selectedServer.provider || 'Unknown',
+            status: getServerStatus(selectedServer.status),
+            cpu: getServerCpu(selectedServer),
+            memory: getServerMemory(selectedServer),
+            disk: getServerDisk(selectedServer),
+            network: getServerNetwork(selectedServer),
+            uptime: formatUptime(selectedServer.uptime),
+            lastUpdate: selectedServer.lastUpdate || new Date(),
+            alerts: getAlertsCount(selectedServer.alerts),
+            services: selectedServer.services || [],
+            specs: getServerSpecs(selectedServer),
+            os: selectedServer.os || 'Ubuntu 22.04',
+            ip: selectedServer.ip || '192.168.1.100',
+            networkStatus: (
+              selectedServer.networkStatus === 'excellent' ||
+              selectedServer.networkStatus === 'good' ||
+              selectedServer.networkStatus === 'poor' ||
+              selectedServer.networkStatus === 'offline'
+            ) ? selectedServer.networkStatus : 'good',
+            health: selectedServer.health || {
               score: 85,
               trend: [80, 82, 85, 87, 85],
             },
-            alertsSummary: (selectedServer as any).alertsSummary || {
-              total: (selectedServer as any).alerts || 0,
+            alertsSummary: selectedServer.alertsSummary || {
+              total: getAlertsCount(selectedServer.alerts),
               critical: 0,
-              warning: (selectedServer as any).alerts || 0,
+              warning: getAlertsCount(selectedServer.alerts),
             },
           }}
           onClose={handleModalClose}
