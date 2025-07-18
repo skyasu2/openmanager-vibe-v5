@@ -208,18 +208,9 @@ export class EnhancedDataAnalyzer {
       },
       insights,
       details: {
-        serverAnalysis: this.getServerAnalysisDetails(servers).reduce((acc, item) => {
-          acc[item.serverId] = item;
-          return acc;
-        }, {} as Record<string, ServerAnalysisData>),
-        clusterAnalysis: this.getClusterAnalysisDetails(clusters).reduce((acc, item) => {
-          acc[item.clusterId] = item;
-          return acc;
-        }, {} as Record<string, ClusterAnalysisData>),
-        applicationAnalysis: this.getApplicationAnalysisDetails(applications).reduce((acc, item) => {
-          acc[item.applicationName] = item;
-          return acc;
-        }, {} as Record<string, ApplicationAnalysisData>),
+        serverAnalysis: this.getServerAnalysisDetails(servers),
+        clusterAnalysis: this.getClusterAnalysisDetails(clusters),
+        applicationAnalysis: this.getApplicationAnalysisDetails(applications),
         correlations,
       },
     };
@@ -893,59 +884,110 @@ export class EnhancedDataAnalyzer {
   /**
    * 📈 상세 분석 데이터 생성
    */
-  private getServerAnalysisDetails(servers: ServerInstance[]) {
+  private getServerAnalysisDetails(servers: ServerInstance[]): Record<string, ServerAnalysisData> {
     return servers.reduce(
       (acc, server) => {
         const cpu = server.metrics?.cpu || 0;
         const memory = server.metrics?.memory || 0;
+        const disk = server.metrics?.disk || 0;
+        const network = typeof server.metrics?.network === 'object' 
+          ? (server.metrics.network.in + server.metrics.network.out) / 2
+          : server.metrics?.network || 0;
         const requests = server.requests?.total || 0;
         const healthScore = server.health?.score || 0;
-        const issuesLength = server.health?.issues?.length || 0;
+        const issues = server.health?.issues || [];
 
         acc[server.id] = {
-          performance: (100 - cpu - memory) / 2,
-          efficiency: requests / Math.max(1, cpu),
-          stability: healthScore,
-          issues: issuesLength,
+          serverId: server.id,
+          performanceScore: healthScore,
+          resourceUtilization: {
+            cpu,
+            memory,
+            disk,
+            network
+          },
+          issues: issues.map((issue: any) => issue.message || String(issue)),
+          recommendations: []
         };
         return acc;
       },
-      {} as Record<string, unknown>
+      {} as Record<string, ServerAnalysisData>
     );
   }
 
-  private getClusterAnalysisDetails(clusters: ServerCluster[]) {
+  private getClusterAnalysisDetails(clusters: ServerCluster[]): Record<string, ClusterAnalysisData> {
     return clusters.reduce(
       (acc, cluster) => {
+        const healthScore = cluster.servers.reduce((sum, s) => {
+          const health = typeof s.health === 'object' ? s.health.score : s.health;
+          return sum + (health || 85);
+        }, 0) / cluster.servers.length;
+        const loadVariance = this.calculateLoadVariance(cluster.servers);
+        
         acc[cluster.id] = {
-          loadBalancing: cluster.loadBalancer.algorithm,
-          activeConnections: cluster.loadBalancer.activeConnections,
-          scalingStatus: `${cluster.scaling.current}/${cluster.scaling.max}`,
-          efficiency:
-            cluster.loadBalancer.totalRequests / cluster.servers.length,
+          clusterId: cluster.id,
+          serverCount: cluster.servers.length,
+          healthScore,
+          loadBalance: {
+            isBalanced: loadVariance < 20,
+            variance: loadVariance,
+            hotspots: cluster.servers
+              .filter(s => (s.metrics?.cpu || 0) > 80)
+              .map(s => s.id)
+          },
+          scalingStatus: {
+            current: cluster.scaling.current,
+            max: cluster.scaling.max,
+            autoScalingEnabled: true // scaling 객체에 enabled 속성이 없으므로 기본값 설정
+          }
         };
         return acc;
       },
-      {} as Record<string, unknown>
+      {} as Record<string, ClusterAnalysisData>
     );
   }
+  
+  private calculateLoadVariance(servers: any[]): number {
+    if (servers.length === 0) return 0;
+    const loads = servers.map(s => s.metrics?.cpu || 0);
+    const avg = loads.reduce((sum, load) => sum + load, 0) / loads.length;
+    const variance = loads.reduce((sum, load) => sum + Math.pow(load - avg, 2), 0) / loads.length;
+    return Math.sqrt(variance);
+  }
 
-  private getApplicationAnalysisDetails(applications: ApplicationMetrics[]) {
+  private getApplicationAnalysisDetails(applications: ApplicationMetrics[]): Record<string, ApplicationAnalysisData> {
     return applications.reduce(
       (acc, app) => {
+        const overallHealth = (
+          app.deployments.production.health +
+          app.deployments.staging.health +
+          app.deployments.development.health
+        ) / 3;
+        
         acc[app.name] = {
-          availability: app.performance.availability,
-          responseTime: app.performance.responseTime,
-          costEfficiency: app.performance.throughput / app.resources.cost,
-          healthScore:
-            (app.deployments.production.health +
-              app.deployments.staging.health +
-              app.deployments.development.health) /
-            3,
+          applicationName: app.name,
+          version: app.version,
+          performanceMetrics: {
+            availability: app.performance.availability,
+            responseTime: app.performance.responseTime,
+            throughput: app.performance.throughput,
+            errorRate: app.performance.errorRate
+          },
+          resourceUsage: {
+            cpu: app.resources.totalCpu,
+            memory: app.resources.totalMemory,
+            cost: app.resources.cost
+          },
+          deploymentStatus: {
+            production: app.deployments.production,
+            staging: app.deployments.staging,
+            development: app.deployments.development
+          },
+          healthScore: overallHealth
         };
         return acc;
       },
-      {} as Record<string, unknown>
+      {} as Record<string, ApplicationAnalysisData>
     );
   }
 

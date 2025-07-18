@@ -49,19 +49,39 @@ export interface ClusterAnalysisData {
     variance: number;
     hotspots: string[];
   };
-  redundancy: {
+  redundancy?: {
     level: number;
     failoverReady: boolean;
+  };
+  scalingStatus?: {
+    current: number;
+    max: number;
+    autoScalingEnabled: boolean;
   };
 }
 
 export interface ApplicationAnalysisData {
   applicationName: string;
-  responseTime: number;
-  throughput: number;
-  errorRate: number;
-  dependencies: string[];
-  bottlenecks: string[];
+  version?: string;
+  performanceMetrics: {
+    availability: number;
+    responseTime: number;
+    throughput: number;
+    errorRate: number;
+  };
+  resourceUsage: {
+    cpu: number;
+    memory: number;
+    cost: number;
+  };
+  deploymentStatus: {
+    production: any;
+    staging: any;
+    development: any;
+  };
+  healthScore: number;
+  dependencies?: string[];
+  bottlenecks?: string[];
 }
 
 // 성능 분석 결과 타입
