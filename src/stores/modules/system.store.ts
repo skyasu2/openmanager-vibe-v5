@@ -10,7 +10,7 @@ import {
  * 시스템 상태 관리 전용 스토어
  */
 
-const SYSTEM_AUTO_SHUTDOWN_TIME = 30 * 60 * 1000; // 30분
+const SYSTEM_AUTO_SHUTDOWN_TIME = 20 * 60 * 1000; // 20분
 
 export interface SystemState {
   // 상태
@@ -61,7 +61,7 @@ export const useSystemStore = create<SystemState>()(
 
             // 자동 종료 타이머 설정
             const shutdownTimer = setTimeout(() => {
-              console.log('⏰ [System] 30분 경과 - 자동 시스템 종료');
+              console.log('⏰ [System] 20분 경과 - 자동 시스템 종료');
               get().stop();
             }, SYSTEM_AUTO_SHUTDOWN_TIME);
 

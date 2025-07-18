@@ -164,7 +164,7 @@ mcp__tavily__extract({
 ### .env.local 파일
 ```bash
 # GitHub
-GITHUB_TOKEN=ghp_xxxxxxxxxxxxx
+GITHUB_TOKEN=[YOUR_GITHUB_TOKEN_HERE]
 
 # Supabase (Personal Access Token 필요)
 # 환경변수 대신 MCP 설정에 직접 추가하는 것을 권장

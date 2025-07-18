@@ -170,7 +170,7 @@ async function main() {
   node github-auth-helper.js push [branch] - 안전한 git push
 
 예시:
-  node github-auth-helper.js setup ghp_xxxxx
+  node github-auth-helper.js setup [YOUR_GITHUB_TOKEN_HERE]
   node github-auth-helper.js push main
       `);
   }

@@ -35,9 +35,9 @@ export interface ServerGenerationConfig {
 }
 
 /**
- * 🎯 기본 서버 개수 (15개 유지 - 30-40초 갱신 주기)
+ * 🎯 기본 서버 개수 (10개 유지 - 30-60초 갱신 주기)
  */
-export const DEFAULT_SERVER_COUNT = 15;
+export const DEFAULT_SERVER_COUNT = 10;
 
 /**
  * 🧮 서버 개수에 따른 자동 설정 계산

@@ -128,7 +128,7 @@ echo $BRAVE_API_KEY
 # 1. GitHub 토큰 추가
 npm run secure:add GITHUB_TOKEN
 # 마스터 비밀번호: ********
-# GITHUB_TOKEN 값: ghp_xxxxxxxxxxxxx
+# GITHUB_TOKEN 값: [YOUR_GITHUB_TOKEN_HERE]
 
 # 2. Brave API 키 추가
 npm run secure:add BRAVE_API_KEY

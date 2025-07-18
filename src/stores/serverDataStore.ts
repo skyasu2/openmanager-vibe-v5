@@ -12,6 +12,7 @@ import { createStore } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type { ServerStatus } from '../types/common';
 import type { EnhancedServerMetrics } from '../types/server';
+import { calculateOptimalUpdateInterval } from '../config/serverConfig';
 
 // ✅ 클라이언트 전용 타입 정의 (UI 표시용)
 interface ClientServerMetrics {
@@ -70,6 +71,10 @@ export interface ServerDataState {
   unifiedManagerStatus: any;
   prometheusHubStatus: any;
 
+  // 자동 갱신 관련
+  autoRefreshIntervalId: NodeJS.Timeout | null;
+  isAutoRefreshEnabled: boolean;
+
   // 성능 메트릭
   performance: {
     totalRequests: number;
@@ -83,6 +88,10 @@ export interface ServerDataState {
   refreshData: () => Promise<void>;
   startRealTimeUpdates: () => void;
   stopRealTimeUpdates: () => void;
+
+  // 자동 갱신 액션 (30-60초 주기)
+  startAutoRefresh: () => void;
+  stopAutoRefresh: () => void;
 
   // 통합 시스템 제어
   startUnifiedSystem: () => Promise<void>;
@@ -120,6 +129,8 @@ export const createServerDataStore = (
         lastUpdate: null,
         unifiedManagerStatus: null,
         prometheusHubStatus: null,
+        autoRefreshIntervalId: null,
+        isAutoRefreshEnabled: false,
         performance: {
           totalRequests: 0,
           avgResponseTime: 0,
@@ -200,9 +211,55 @@ export const createServerDataStore = (
             method: 'POST',
           });
           if (!response.ok) throw new Error('통합 시스템 중지에 실패했습니다.');
+          // 자동 갱신도 함께 중지
+          get().stopAutoRefresh();
           set({ servers: [] });
         } catch (e: any) {
           console.error(e.message);
+        }
+      },
+
+      // 자동 갱신 시작 (30-60초 주기)
+      startAutoRefresh: () => {
+        const state = get();
+        
+        // 이미 자동 갱신 중이면 중복 실행 방지
+        if (state.isAutoRefreshEnabled && state.autoRefreshIntervalId) {
+          console.log('⚠️ 자동 갱신이 이미 실행 중입니다.');
+          return;
+        }
+
+        // 동적 갱신 주기 계산 (30-35초)
+        const refreshInterval = calculateOptimalUpdateInterval();
+        console.log(`🔄 서버 자동 갱신 시작 (${refreshInterval / 1000}초 주기)`);
+
+        // 즉시 한 번 실행
+        get().fetchServers();
+
+        // 주기적 갱신 설정
+        const intervalId = setInterval(() => {
+          console.log('🔄 서버 데이터 자동 갱신 중...');
+          get().fetchServers();
+        }, refreshInterval);
+
+        set({ 
+          autoRefreshIntervalId: intervalId,
+          isAutoRefreshEnabled: true 
+        });
+      },
+
+      // 자동 갱신 중지
+      stopAutoRefresh: () => {
+        const state = get();
+        
+        if (state.autoRefreshIntervalId) {
+          clearInterval(state.autoRefreshIntervalId);
+          console.log('⏹️ 서버 자동 갱신 중지됨');
+          
+          set({ 
+            autoRefreshIntervalId: null,
+            isAutoRefreshEnabled: false 
+          });
         }
       },
 

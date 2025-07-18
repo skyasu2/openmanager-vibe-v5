@@ -1,14 +1,17 @@
 /**
  * 💾 관리자 백업 상태 API
  * 시스템 백업 상태를 관리하고 모니터링하는 엔드포인트
+ * 
+ * 🔐 인증 필요: Bearer 토큰 또는 API 키
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { withAdminAuth, type AuthenticatedRequest } from '@/lib/api/auth-middleware';
 
 /**
- * 🔄 관리자 백업 상태 API
+ * 🔄 관리자 백업 상태 API (인증 필요)
  */
-export async function GET(request: NextRequest) {
+async function getBackupStatus(request: AuthenticatedRequest) {
   try {
     // 백업 상태 확인
     const backupStatus = {
@@ -23,6 +26,7 @@ export async function GET(request: NextRequest) {
       location: 'cloud-storage',
     };
 
+    console.log(`💾 Backup status requested by ${request.auth?.userId}`);
     return NextResponse.json({
       success: true,
       data: backupStatus,
@@ -41,13 +45,17 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export const GET = withAdminAuth(getBackupStatus);
+
 /**
- * POST 요청으로 백업 관리 작업 수행
+ * POST 요청으로 백업 관리 작업 수행 (인증 필요)
  */
-export async function POST(request: NextRequest) {
+async function manageBackup(request: AuthenticatedRequest) {
   try {
     const body = await request.json();
     const { action, backupId, settings } = body;
+
+    console.log(`💾 Backup action '${action}' requested by ${request.auth?.userId}`);
 
     switch (action) {
       case 'start':
@@ -56,6 +64,7 @@ export async function POST(request: NextRequest) {
           message: '백업이 시작되었습니다',
           backupId: `backup_${new Date().toISOString().replace(/[:.]/g, '').substring(0, 15)}`,
           estimatedDuration: 45, // minutes
+          startedBy: request.auth?.userId,
           timestamp: new Date().toISOString(),
         });
 
@@ -125,3 +134,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withAdminAuth(manageBackup);

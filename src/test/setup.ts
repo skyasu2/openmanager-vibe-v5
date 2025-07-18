@@ -5,13 +5,19 @@
 
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
-import { setupTestEnvironment } from './env.test';
-import './mocks';
+import * as React from 'react';
+import { setupTestEnvironment } from './env.config';
+// import './mocks'; // 타임아웃 문제 디버깅을 위해 임시 비활성화
 
 // ===============================
 // 🔧 환경변수 통합 설정
 // ===============================
 setupTestEnvironment();
+
+// ===============================
+// ⚛️ React 전역 설정
+// ===============================
+global.React = React;
 
 // ===============================
 // 🌐 브라우저 API Mock (전역)
@@ -215,19 +221,19 @@ global.console = {
 };
 
 // 타이머 Mock (테스트 속도 향상)
-vi.useFakeTimers();
+// vi.useFakeTimers(); // 타임아웃 문제로 임시 비활성화
 
 // ===============================
 // 🧹 테스트 정리
 // ===============================
 afterEach(() => {
   vi.clearAllMocks();
-  vi.clearAllTimers();
+  // vi.clearAllTimers(); // 타이머 Mock 비활성화로 인해 주석처리
 });
 
 afterAll(() => {
   vi.restoreAllMocks();
-  vi.useRealTimers();
+  // vi.useRealTimers(); // 타이머 Mock 비활성화로 인해 주석처리
 });
 
 // ===============================

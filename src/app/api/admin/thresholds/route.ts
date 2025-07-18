@@ -2,9 +2,12 @@
  * Admin Thresholds API Endpoint
  *
  * 시스템 임계값 설정을 관리합니다.
+ * 
+ * 🔐 인증 필요: Bearer 토큰 또는 API 키
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { withAdminAuth, withConditionalAuth, type AuthenticatedRequest } from '@/lib/api/auth-middleware';
 
 // 임계값 설정 기본값
 const defaultThresholds = {
@@ -66,7 +69,8 @@ const defaultThresholds = {
   },
 };
 
-export async function GET(request: NextRequest) {
+// GET 핸들러 - 임계값 조회 (인증 필요)
+async function getThresholds(request: AuthenticatedRequest) {
   try {
     const thresholds = {
       cpu: {
@@ -91,6 +95,8 @@ export async function GET(request: NextRequest) {
       },
     };
 
+    console.log(`📊 Admin thresholds requested by: ${request.auth?.userId}`);
+
     return NextResponse.json({
       success: true,
       data: thresholds,
@@ -110,16 +116,20 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export const GET = withAdminAuth(getThresholds);
+
+// POST 핸들러 - 임계값 업데이트 (인증 필요)
+async function updateThresholds(request: AuthenticatedRequest) {
   try {
     const body = await request.json();
 
     // 임계값 업데이트 로직 (여기서는 시뮬레이션)
-    console.log('Updating thresholds:', body);
+    console.log(`🔧 Thresholds update by ${request.auth?.userId}:`, body);
 
     return NextResponse.json({
       success: true,
       message: 'Thresholds updated successfully',
+      updatedBy: request.auth?.userId,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -136,7 +146,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest) {
+export const POST = withAdminAuth(updateThresholds);
+
+// PUT 핸들러 - 특정 임계값 업데이트 (인증 필요)
+async function updateSpecificThreshold(request: AuthenticatedRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
@@ -155,7 +168,7 @@ export async function PUT(request: NextRequest) {
 
     // 실제 환경에서는 특정 카테고리/메트릭만 업데이트
     console.log(
-      `💾 Admin threshold ${category}.${metric} updated:`,
+      `💾 Admin threshold ${category}.${metric} updated by ${request.auth?.userId}:`,
       updatedData
     );
 
@@ -163,6 +176,7 @@ export async function PUT(request: NextRequest) {
       success: true,
       message: `Threshold for ${category}.${metric} updated successfully`,
       data: updatedData,
+      updatedBy: request.auth?.userId,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -176,3 +190,5 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+export const PUT = withAdminAuth(updateSpecificThreshold);

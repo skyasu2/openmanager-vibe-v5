@@ -86,7 +86,7 @@ VITEST_POOL_THREADS=false
 VITEST_DISABLE_COVERAGE=true
 
 # Cron 작업 보안
-CRON_SECRET=your_secure_cron_secret_key
+CRON_SECRET=[YOUR_SECURE_CRON_SECRET_KEY]
 
 # 🤖 AI 엔진 모드 설정
 AI_ENGINE_MODE=LOCAL          # 기본값: LOCAL 모드

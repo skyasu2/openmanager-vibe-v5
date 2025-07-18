@@ -151,6 +151,8 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const isLoading = useServerDataStore(state => state.isLoading);
   const error = useServerDataStore(state => state.error);
   const fetchServers = useServerDataStore(state => state.fetchServers);
+  const startAutoRefresh = useServerDataStore(state => state.startAutoRefresh);
+  const stopAutoRefresh = useServerDataStore(state => state.stopAutoRefresh);
 
   // 페이지네이션 상태 - 설정 기반으로 동적 조정
   const [currentPage, setCurrentPage] = useState(1);
@@ -199,18 +201,24 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   // 서버 메트릭 훅
   const { metricsHistory } = useServerMetrics();
 
-  // 🚀 최적화된 서버 데이터 로드 - 즉시 실행
+  // 🚀 최적화된 서버 데이터 로드 및 자동 갱신 설정
   useEffect(() => {
-    // 이미 데이터가 있으면 다시 로드하지 않음
-    if (servers && servers.length > 0) {
-      console.log('✅ 기존 서버 데이터 사용 (재로드 생략)');
-      return;
+    // 데이터가 없을 때 최초 로드
+    if (!servers || servers.length === 0) {
+      console.log('📊 서버 데이터 최초 로드');
+      fetchServers();
     }
 
-    // 데이터가 없을 때만 로드
-    console.log('📊 서버 데이터 최초 로드');
-    fetchServers();
-  }, [fetchServers, servers]);
+    // 자동 갱신 시작 (30-60초 주기)
+    console.log('🔄 서버 데이터 자동 갱신 활성화');
+    startAutoRefresh();
+
+    // 컴포넌트 언마운트 시 자동 갱신 중지
+    return () => {
+      console.log('🛑 서버 데이터 자동 갱신 중지');
+      stopAutoRefresh();
+    };
+  }, [fetchServers, startAutoRefresh, stopAutoRefresh]); // servers 의존성 제거로 무한 루프 방지
 
   // 실제 서버 데이터 또는 폴백 데이터 사용 (메모이제이션)
   const actualServers = useMemo(() => {

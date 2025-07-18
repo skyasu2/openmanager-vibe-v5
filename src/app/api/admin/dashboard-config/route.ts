@@ -1,8 +1,11 @@
 /**
  * 📊 대시보드 설정 API
+ * 
+ * 🔐 인증 필요: Bearer 토큰 또는 API 키 (GET 제외)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { withAdminAuth, type AuthenticatedRequest } from '@/lib/api/auth-middleware';
 
 // 대시보드 설정 타입
 interface DashboardConfig {
@@ -168,28 +171,32 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * ⚙️ 대시보드 설정 업데이트
+ * ⚙️ 대시보드 설정 업데이트 (인증 필요)
  */
-export async function POST(request: NextRequest) {
+async function updateDashboardConfig(request: AuthenticatedRequest) {
   try {
     const body = await request.json();
     const { config, section } = body;
 
     if (section) {
       // 특정 섹션 업데이트
+      console.log(`📊 Dashboard section ${section} updated by ${request.auth?.userId}`);
       return NextResponse.json({
         success: true,
         message: `${section} 설정이 업데이트되었습니다.`,
         section,
         config: config[section] || config,
+        updatedBy: request.auth?.userId,
         timestamp: new Date().toISOString(),
       });
     } else {
       // 전체 설정 업데이트
+      console.log(`📊 Dashboard config updated by ${request.auth?.userId}`);
       return NextResponse.json({
         success: true,
         message: '대시보드 설정이 업데이트되었습니다.',
         config: { ...DEFAULT_CONFIG, ...config },
+        updatedBy: request.auth?.userId,
         timestamp: new Date().toISOString(),
       });
     }
@@ -202,20 +209,23 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export const POST = withAdminAuth(updateDashboardConfig);
+
 /**
- * 🔄 대시보드 설정 초기화
+ * 🔄 대시보드 설정 초기화 (인증 필요)
  */
-export async function DELETE(request: NextRequest) {
+async function resetDashboardConfig(request: AuthenticatedRequest) {
   try {
     // 기본 설정으로 초기화
     const resetConfig = DEFAULT_CONFIG;
 
-    console.log('🔄 대시보드 설정 초기화');
+    console.log(`🔄 Dashboard config reset by ${request.auth?.userId}`);
 
     return NextResponse.json({
       success: true,
       data: resetConfig,
       message: '대시보드 설정이 기본값으로 초기화되었습니다.',
+      resetBy: request.auth?.userId,
       resetAt: new Date().toISOString(),
     });
   } catch (error) {
@@ -230,14 +240,18 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest) {
+export const DELETE = withAdminAuth(resetDashboardConfig);
+
+async function replaceDashboardConfig(request: AuthenticatedRequest) {
   try {
     const body = await request.json();
 
+    console.log(`📊 Dashboard config replaced by ${request.auth?.userId}`);
     return NextResponse.json({
       success: true,
       message: '대시보드 설정이 완전히 교체되었습니다.',
       config: body,
+      replacedBy: request.auth?.userId,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -248,3 +262,5 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+export const PUT = withAdminAuth(replaceDashboardConfig);

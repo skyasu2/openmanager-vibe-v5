@@ -10,6 +10,19 @@
  */
 
 import { OpenSourceEngines } from './OpenSourceEngines';
+import type {
+  MCPAnalysisData,
+  OpenSourceAnalysisData,
+  ServerAnalysisData,
+  LogAnalysisData,
+  MetricAnalysisData,
+  AlertAnalysisData,
+  ServerContext,
+  LogEntry,
+  MetricEntry,
+  AlertEntry,
+  UnifiedAnalysisContext,
+} from './types/custom-engines.types';
 
 export interface MCPQueryResult {
   answer: string;
@@ -33,18 +46,18 @@ export interface MCPTestResult {
 }
 
 export interface HybridAnalysisResult {
-  mcp_analysis: any;
-  opensource_analysis: any;
+  mcp_analysis: MCPAnalysisData;
+  opensource_analysis: OpenSourceAnalysisData;
   combined_confidence: number;
   recommendation: string;
   fallback_used: boolean;
 }
 
 export interface UnifiedAnalysisResult {
-  server_analysis: any;
-  log_analysis: any;
-  metric_analysis: any;
-  alert_analysis: any;
+  server_analysis: ServerAnalysisData;
+  log_analysis: LogAnalysisData;
+  metric_analysis: MetricAnalysisData;
+  alert_analysis: AlertAnalysisData;
   unified_score: number;
   priority_actions: string[];
 }
@@ -82,7 +95,7 @@ export class CustomEngines {
   /**
    * 🎯 MCP Query 엔진 (핵심 - 유일한 실제 작동 AI)
    */
-  async mcpQuery(query: string, context?: any): Promise<MCPQueryResult> {
+  async mcpQuery(query: string, context?: { servers?: ServerContext[] }): Promise<MCPQueryResult> {
     const reasoning_steps = [
       '질의 분석',
       '컨텍스트 로드',
@@ -95,7 +108,7 @@ export class CustomEngines {
       context?.servers?.length > 0
         ? context.servers
             .slice(0, 3)
-            .map((s: any) => s?.id || s?.name || 'unknown')
+            .map((s) => s?.id || s?.name || 'unknown')
             .filter(Boolean)
         : [];
 
@@ -127,14 +140,33 @@ export class CustomEngines {
    */
   async hybridAnalysis(
     query: string,
-    data: any
+    data: ServerContext
   ): Promise<HybridAnalysisResult> {
     const mcpAnalysis = await this.mcpQuery(query, { servers: [data] });
     const opensourceAnalysis = await this.openSourceEngines.advancedNLP(query);
 
+    // MCPAnalysisData 형식으로 변환
+    const mcpAnalysisData: MCPAnalysisData = {
+      query,
+      answer: mcpAnalysis.answer,
+      confidence: mcpAnalysis.confidence,
+      reasoning_steps: mcpAnalysis.reasoning_steps,
+      processing_time: 0,
+      engine_version: '1.0.0'
+    };
+
+    // OpenSourceAnalysisData 형식으로 변환 (실제 반환값에 맞게 조정 필요)
+    const openSourceData: OpenSourceAnalysisData = {
+      intent: opensourceAnalysis.intent || 'general',
+      entities: opensourceAnalysis.entities || [],
+      sentiment: 'neutral',
+      language: 'ko',
+      processed_at: new Date().toISOString()
+    };
+
     return {
-      mcp_analysis: mcpAnalysis,
-      opensource_analysis: opensourceAnalysis,
+      mcp_analysis: mcpAnalysisData,
+      opensource_analysis: openSourceData,
       combined_confidence: 0.8,
       recommendation: 'MCP와 오픈소스 분석 결과 일치',
       fallback_used: false,
@@ -144,12 +176,7 @@ export class CustomEngines {
   /**
    * 🎯 통합 분석 엔진 (모든 데이터 소스 통합)
    */
-  async unifiedAnalysis(context: {
-    servers: any[];
-    logs: any[];
-    metrics: any[];
-    alerts: any[];
-  }): Promise<UnifiedAnalysisResult> {
+  async unifiedAnalysis(context: UnifiedAnalysisContext): Promise<UnifiedAnalysisResult> {
     try {
       // 서버 상태 분석
       const serverAnalysis = await this.analyzeServers(context.servers);
@@ -189,11 +216,44 @@ export class CustomEngines {
       };
     } catch (error) {
       console.error('통합 분석 오류:', error);
+      
+      // 에러 시 기본값 반환
+      const defaultServerAnalysis: ServerAnalysisData = {
+        server_count: 0,
+        health_summary: { healthy: 0, warning: 0, critical: 0 },
+        performance_metrics: { avg_cpu: 0, avg_memory: 0, avg_response_time: 0 },
+        top_issues: []
+      };
+      
+      const defaultLogAnalysis: LogAnalysisData = {
+        total_logs: 0,
+        error_count: 0,
+        warning_count: 0,
+        patterns_detected: [],
+        time_range: { start: '', end: '' }
+      };
+      
+      const defaultMetricAnalysis: MetricAnalysisData = {
+        metrics_processed: 0,
+        anomalies_detected: [],
+        trends: { cpu: 'stable', memory: 'stable', traffic: 'stable' },
+        forecast: { next_hour: {}, next_day: {} }
+      };
+      
+      const defaultAlertAnalysis: AlertAnalysisData = {
+        total_alerts: 0,
+        active_alerts: 0,
+        resolved_alerts: 0,
+        alert_distribution: {},
+        priority_breakdown: { critical: 0, high: 0, medium: 0, low: 0 },
+        affected_services: []
+      };
+      
       return {
-        server_analysis: { status: 'error' },
-        log_analysis: { status: 'error' },
-        metric_analysis: { status: 'error' },
-        alert_analysis: { status: 'error' },
+        server_analysis: defaultServerAnalysis,
+        log_analysis: defaultLogAnalysis,
+        metric_analysis: defaultMetricAnalysis,
+        alert_analysis: defaultAlertAnalysis,
         unified_score: 0,
         priority_actions: ['시스템 점검 필요'],
       };
@@ -235,13 +295,13 @@ export class CustomEngines {
   }
 
   // Private helper methods
-  private analyzeContext(query: string, context?: any): boolean {
+  private analyzeContext(query: string, context?: Partial<UnifiedAnalysisContext> & { user_session?: string }): boolean {
     return (
       context && (context.servers || context.metrics || context.user_session)
     );
   }
 
-  private generateReasoningSteps(query: string, context?: any): string[] {
+  private generateReasoningSteps(query: string, context?: Partial<UnifiedAnalysisContext>): string[] {
     const steps = ['질의 분석 완료'];
 
     if (context?.servers) steps.push('서버 컨텍스트 로드');
@@ -253,7 +313,7 @@ export class CustomEngines {
     return steps;
   }
 
-  private findRelatedServers(query: string, servers: any[]): string[] {
+  private findRelatedServers(query: string, servers: ServerContext[]): string[] {
     return servers
       .filter(
         server =>
@@ -266,7 +326,7 @@ export class CustomEngines {
 
   private async generateMCPResponse(
     query: string,
-    context?: any,
+    context?: Partial<UnifiedAnalysisContext>,
     steps?: string[]
   ): Promise<string> {
     // MCP 기반 응답 생성 시뮬레이션
@@ -287,7 +347,7 @@ export class CustomEngines {
     return `"${query}"에 대한 분석을 완료했습니다. 추가 정보가 필요하시면 구체적으로 문의해주세요.`;
   }
 
-  private generateRecommendations(query: string, context?: any): string[] {
+  private generateRecommendations(query: string, context?: Partial<UnifiedAnalysisContext>): string[] {
     const recommendations: string[] = [];
 
     if (context?.servers) {
@@ -324,7 +384,7 @@ export class CustomEngines {
 
   private calculateMCPConfidence(
     query: string,
-    context?: any,
+    context?: Partial<UnifiedAnalysisContext>,
     steps?: string[]
   ): number {
     let confidence = 0.7; // 기본 신뢰도
@@ -339,7 +399,7 @@ export class CustomEngines {
 
   private async fallbackMCPResponse(
     query: string,
-    context?: any
+    context?: Partial<UnifiedAnalysisContext>
   ): Promise<MCPQueryResult> {
     // MCP 실패 시 오픈소스 조합으로 응답 생성
     const nlpResult = await this.openSourceEngines.advancedNLP(query);
@@ -365,7 +425,7 @@ export class CustomEngines {
   > {
     const testQueries = ['서버 상태 확인', '성능 지표 조회', '최근 알림 내역'];
 
-    const results: any[] = [];
+    const results: Array<{ query: string; success: boolean; response_time: number }> = [];
 
     for (const query of testQueries) {
       const startTime = Date.now();
@@ -401,7 +461,11 @@ export class CustomEngines {
     return capabilities;
   }
 
-  private async analyzeWithOpenSource(query: string, data: any): Promise<any> {
+  private async analyzeWithOpenSource(query: string, data: ServerContext): Promise<{
+    nlp_analysis: OpenSourceAnalysisData;
+    search_results: unknown;
+    confidence: number;
+  }> {
     // 오픈소스 엔진 조합으로 분석
     const nlpResult = await this.openSourceEngines.advancedNLP(query);
     const searchResult = await this.openSourceEngines.hybridSearch(
@@ -409,16 +473,25 @@ export class CustomEngines {
       query
     );
 
+    // OpenSourceAnalysisData 형식으로 변환
+    const openSourceData: OpenSourceAnalysisData = {
+      intent: nlpResult.intent || 'general',
+      entities: nlpResult.entities || [],
+      sentiment: 'neutral',
+      language: 'ko',
+      processed_at: new Date().toISOString()
+    };
+
     return {
-      nlp_analysis: nlpResult,
+      nlp_analysis: openSourceData,
       search_results: searchResult,
       confidence: 0.7,
     };
   }
 
   private calculateHybridConfidence(
-    mcpAnalysis: any,
-    opensourceAnalysis: any
+    mcpAnalysis: { confidence: number } | null,
+    opensourceAnalysis: { confidence: number } | null
   ): number {
     if (mcpAnalysis && opensourceAnalysis) {
       return (mcpAnalysis.confidence + opensourceAnalysis.confidence) / 2;
@@ -429,8 +502,8 @@ export class CustomEngines {
   }
 
   private generateHybridRecommendation(
-    mcpAnalysis: any,
-    opensourceAnalysis: any
+    mcpAnalysis: { confidence: number } | null,
+    opensourceAnalysis: { confidence: number } | null
   ): string {
     if (mcpAnalysis && opensourceAnalysis) {
       return 'MCP와 오픈소스 분석 결과가 일치합니다. 높은 신뢰도로 권장사항을 제공합니다.';
@@ -442,104 +515,211 @@ export class CustomEngines {
   }
 
   // Unified Analysis helpers
-  private async analyzeServers(servers: any[]): Promise<any> {
-    const healthyCount = servers.filter((s: any) => s.status === 'running').length;
+  private async analyzeServers(servers: ServerContext[]): Promise<ServerAnalysisData> {
+    const healthyCount = servers.filter((s) => s.status === 'running').length;
+    const warningCount = servers.filter((s) => s.status === 'warning').length;
+    const errorCount = servers.filter((s) => s.status === 'error').length;
     const totalCount = servers.length;
 
+    const avgCpu = servers.reduce((sum, s) => sum + (s.cpu_usage || 0), 0) / totalCount || 0;
+    const avgMemory = servers.reduce((sum, s) => sum + (s.memory_usage || 0), 0) / totalCount || 0;
+    const avgResponseTime = servers.reduce((sum, s) => sum + (s.response_time || 0), 0) / totalCount || 0;
+
+    const criticalServers = servers.filter((s) => 
+      (s.cpu_usage && s.cpu_usage > 90) || (s.memory_usage && s.memory_usage > 90)
+    );
+
     return {
-      total_servers: totalCount,
-      healthy_servers: healthyCount,
-      health_ratio: totalCount > 0 ? healthyCount / totalCount : 0,
-      critical_servers: servers.filter((s: any) => s.cpu_usage > 90 || s.memory_usage > 90
-      ),
+      server_count: totalCount,
+      health_summary: {
+        healthy: healthyCount,
+        warning: warningCount,
+        critical: errorCount
+      },
+      performance_metrics: {
+        avg_cpu: avgCpu,
+        avg_memory: avgMemory,
+        avg_response_time: avgResponseTime
+      },
+      top_issues: criticalServers.map(s => ({
+        server_id: s.id,
+        issue_type: 'high_resource_usage',
+        severity: 'critical' as const
+      }))
     };
   }
 
-  private async analyzeLogs(logs: any[]): Promise<any> {
-    const errorLogs = logs.filter(log => log.level === 'ERROR');
-    const warningLogs = logs.filter(log => log.level === 'WARN');
+  private async analyzeLogs(logs: LogEntry[]): Promise<LogAnalysisData> {
+    const errorLogs = logs.filter(log => log.level === 'error');
+    const warningLogs = logs.filter(log => log.level === 'warn');
+
+    // 패턴 분석 (예시)
+    const patterns = new Map<string, number>();
+    logs.forEach(log => {
+      const pattern = log.message.split(' ')[0]; // 간단한 패턴 추출
+      patterns.set(pattern, (patterns.get(pattern) || 0) + 1);
+    });
+
+    const patternsDetected = Array.from(patterns.entries())
+      .map(([pattern, frequency]) => ({
+        pattern,
+        frequency,
+        severity: frequency > 10 ? 'high' : 'medium'
+      }))
+      .sort((a, b) => b.frequency - a.frequency)
+      .slice(0, 5);
+
+    const timestamps = logs.map(log => log.timestamp).sort();
+    const timeRange = {
+      start: timestamps[0] || '',
+      end: timestamps[timestamps.length - 1] || ''
+    };
 
     return {
       total_logs: logs.length,
       error_count: errorLogs.length,
       warning_count: warningLogs.length,
-      error_rate: logs.length > 0 ? errorLogs.length / logs.length : 0,
+      patterns_detected: patternsDetected,
+      time_range: timeRange
     };
   }
 
-  private async analyzeMetrics(metrics: any[]): Promise<any> {
-    if (metrics.length === 0) return { trend: 'no_data' };
+  private async analyzeMetrics(metrics: MetricEntry[]): Promise<MetricAnalysisData> {
+    const cpuMetrics = metrics.filter(m => m.name === 'cpu_usage');
+    const memoryMetrics = metrics.filter(m => m.name === 'memory_usage');
+    const trafficMetrics = metrics.filter(m => m.name === 'network_traffic');
 
-    const avgCpu =
-      metrics.reduce((sum, m) => sum + (m.cpu_usage || 0), 0) / metrics.length;
-    const avgMemory =
-      metrics.reduce((sum, m) => sum + (m.memory_usage || 0), 0) /
-      metrics.length;
+    // 트렌드 분석
+    const cpuTrend = this.analyzeTrend(cpuMetrics.map(m => m.value));
+    const memoryTrend = this.analyzeTrend(memoryMetrics.map(m => m.value));
+    const trafficTrend = this.analyzeTrend(trafficMetrics.map(m => m.value));
+
+    // 이상치 탐지 (간단한 예시)
+    const anomalies = metrics
+      .filter(m => {
+        const threshold = m.name === 'cpu_usage' ? 90 : 
+                        m.name === 'memory_usage' ? 90 : 1000;
+        return m.value > threshold;
+      })
+      .map(m => ({
+        metric_name: m.name,
+        value: m.value,
+        threshold: m.name === 'cpu_usage' ? 90 : 
+                   m.name === 'memory_usage' ? 90 : 1000,
+        timestamp: m.timestamp
+      }));
 
     return {
-      avg_cpu: avgCpu,
-      avg_memory: avgMemory,
-      trend: avgCpu > 70 ? 'high_load' : avgCpu < 30 ? 'low_load' : 'normal',
+      metrics_processed: metrics.length,
+      anomalies_detected: anomalies,
+      trends: {
+        cpu: cpuTrend,
+        memory: memoryTrend,
+        traffic: trafficTrend
+      },
+      forecast: {
+        next_hour: {},
+        next_day: {}
+      }
     };
   }
 
-  private async analyzeAlerts(alerts: any[]): Promise<any> {
-    const criticalAlerts = alerts.filter(a => a.severity === 'critical');
-    const recentAlerts = alerts.filter(
-      a => Date.now() - new Date(a.timestamp).getTime() < 3600000
-    );
+  private async analyzeAlerts(alerts: AlertEntry[]): Promise<AlertAnalysisData> {
+    const activeAlerts = alerts.filter(a => a.status === 'active');
+    const resolvedAlerts = alerts.filter(a => a.status === 'resolved');
+    
+    const priorityBreakdown = {
+      critical: alerts.filter(a => a.severity === 'critical').length,
+      high: alerts.filter(a => a.severity === 'high').length,
+      medium: alerts.filter(a => a.severity === 'medium').length,
+      low: alerts.filter(a => a.severity === 'low').length
+    };
+
+    // 알림 분포 계산
+    const alertDistribution: Record<string, number> = {};
+    alerts.forEach(alert => {
+      const key = alert.title.split(' ')[0]; // 간단한 분류
+      alertDistribution[key] = (alertDistribution[key] || 0) + 1;
+    });
+
+    // 영향받는 서비스 추출
+    const affectedServices = new Set<string>();
+    alerts.forEach(alert => {
+      alert.affected_resources.forEach(resource => {
+        affectedServices.add(resource.split('/')[0]); // 서비스 이름 추출
+      });
+    });
 
     return {
       total_alerts: alerts.length,
-      critical_count: criticalAlerts.length,
-      recent_count: recentAlerts.length,
+      active_alerts: activeAlerts.length,
+      resolved_alerts: resolvedAlerts.length,
+      alert_distribution: alertDistribution,
+      priority_breakdown: priorityBreakdown,
+      affected_services: Array.from(affectedServices)
     };
   }
 
   private calculateUnifiedScore(
-    serverAnalysis: any,
-    logAnalysis: any,
-    metricAnalysis: any,
-    alertAnalysis: any
+    serverAnalysis: ServerAnalysisData,
+    logAnalysis: LogAnalysisData,
+    metricAnalysis: MetricAnalysisData,
+    alertAnalysis: AlertAnalysisData
   ): number {
     let score = 100;
 
     // 서버 건강도 반영
-    score -= (1 - serverAnalysis.health_ratio) * 30;
+    const healthRatio = serverAnalysis.server_count > 0 
+      ? serverAnalysis.health_summary.healthy / serverAnalysis.server_count 
+      : 0;
+    score -= (1 - healthRatio) * 30;
 
     // 로그 에러율 반영
-    score -= logAnalysis.error_rate * 25;
+    const errorRate = logAnalysis.total_logs > 0 
+      ? logAnalysis.error_count / logAnalysis.total_logs 
+      : 0;
+    score -= errorRate * 25;
 
     // 메트릭 부하 반영
-    if (metricAnalysis.trend === 'high_load') score -= 20;
+    if (metricAnalysis.trends.cpu === 'increasing') score -= 10;
+    if (metricAnalysis.trends.memory === 'increasing') score -= 10;
 
     // 알림 심각도 반영
-    score -= alertAnalysis.critical_count * 10;
+    score -= alertAnalysis.priority_breakdown.critical * 10;
 
     return Math.max(0, Math.min(100, score));
   }
 
   private generatePriorityActions(
-    serverAnalysis: any,
-    logAnalysis: any,
-    metricAnalysis: any,
-    alertAnalysis: any
+    serverAnalysis: ServerAnalysisData,
+    logAnalysis: LogAnalysisData,
+    metricAnalysis: MetricAnalysisData,
+    alertAnalysis: AlertAnalysisData
   ): string[] {
     const actions: string[] = [];
 
-    if (serverAnalysis.health_ratio < 0.8) {
+    const healthRatio = serverAnalysis.server_count > 0 
+      ? serverAnalysis.health_summary.healthy / serverAnalysis.server_count 
+      : 0;
+      
+    if (healthRatio < 0.8) {
       actions.push('서버 상태 점검 필요');
     }
 
-    if (logAnalysis.error_rate > 0.1) {
+    const errorRate = logAnalysis.total_logs > 0 
+      ? logAnalysis.error_count / logAnalysis.total_logs 
+      : 0;
+      
+    if (errorRate > 0.1) {
       actions.push('에러 로그 분석 및 해결');
     }
 
-    if (metricAnalysis.trend === 'high_load') {
+    if (metricAnalysis.trends.cpu === 'increasing' || 
+        metricAnalysis.trends.memory === 'increasing') {
       actions.push('리소스 확장 검토');
     }
 
-    if (alertAnalysis.critical_count > 0) {
+    if (alertAnalysis.priority_breakdown.critical > 0) {
       actions.push('중요 알림 즉시 처리');
     }
 
@@ -614,7 +794,28 @@ export class CustomEngines {
     return entities;
   }
 
-  private selectResponseTemplate(intent: string, entities: any[]): string {
+  private analyzeTrend(values: number[]): 'increasing' | 'stable' | 'decreasing' {
+    if (values.length < 2) return 'stable';
+    
+    const firstHalf = values.slice(0, Math.floor(values.length / 2));
+    const secondHalf = values.slice(Math.floor(values.length / 2));
+    
+    const avgFirst = firstHalf.reduce((sum, v) => sum + v, 0) / firstHalf.length;
+    const avgSecond = secondHalf.reduce((sum, v) => sum + v, 0) / secondHalf.length;
+    
+    const diff = avgSecond - avgFirst;
+    const threshold = avgFirst * 0.1; // 10% 변화를 임계값으로
+    
+    if (diff > threshold) return 'increasing';
+    if (diff < -threshold) return 'decreasing';
+    return 'stable';
+  }
+
+  private selectResponseTemplate(intent: string, entities: Array<{
+    type: 'server' | 'metric' | 'action' | 'time' | 'condition';
+    value: string;
+    confidence: number;
+  }>): string {
     const templates = {
       status_check: 'server_status_template',
       performance_analysis: 'performance_report_template',

@@ -18,6 +18,16 @@ import {
   thought,
 } from '@/modules/ai-agent/core/LangGraphThinkingProcessor';
 import { simulationEngine } from '@/services/simulationEngine';
+import type { ServerInstance } from '@/types/data-generator';
+import { logError } from '@/utils/type-guards';
+import type {
+  ContextData,
+  ServerAnalysisSummary,
+  AnalysisResult,
+  MetricsSnapshot,
+  PredictionData,
+  IncidentData,
+} from './types/mcp-langgraph-types';
 
 export interface MCPQuery {
   id: string;
@@ -166,7 +176,7 @@ export class MCPLangGraphAgent {
   /**
    * 📊 2단계: 컨텍스트 수집
    */
-  private async gatherContext(query: MCPQuery, intent: string): Promise<any> {
+  private async gatherContext(query: MCPQuery, intent: string): Promise<ContextData> {
     const stepId = logStep(
       '관련 데이터를 수집 중...',
       `의도: ${intent}`,
@@ -237,9 +247,9 @@ export class MCPLangGraphAgent {
    * 🔧 서버 데이터 처리 및 분석
    */
   private async processServerData(
-    servers: any[],
+    servers: ServerInstance[],
     intent: string
-  ): Promise<any> {
+  ): Promise<ServerAnalysisSummary> {
     // 의도에 따른 관련 서버 필터링 및 분석
     const relevantServers = servers.filter(server => {
       if (intent === 'server_status_check') return true;
@@ -252,21 +262,24 @@ export class MCPLangGraphAgent {
 
     // 상태별 분류
     const statusSummary = {
-      healthy: relevantServers.filter((s: any) => s.status === 'healthy').length,
-      warning: relevantServers.filter((s: any) => s.status === 'warning').length,
-      critical: relevantServers.filter((s: any) => s.status === 'critical').length,
+      healthy: relevantServers.filter((s) => s.status === 'running').length,
+      warning: relevantServers.filter((s) => s.status === 'warning').length,
+      critical: relevantServers.filter((s) => s.status === 'error').length,
       total: relevantServers.length,
     };
 
     // 성능 메트릭 요약
     const performanceSummary = {
       avg_cpu:
-        relevantServers.reduce((sum: number, s: any) => sum + (s.cpu_usage || 0), 0) /
+        relevantServers.reduce((sum: number, s) => sum + (s.cpu || 0), 0) /
         relevantServers.length,
       avg_memory:
-        relevantServers.reduce((sum: number, s: any) => sum + (s.memory_usage || 0), 0) /
+        relevantServers.reduce((sum: number, s) => sum + (s.memory || 0), 0) /
         relevantServers.length,
       max_response_time: Math.max(
+        ...relevantServers.map(s => s.responseTime || 0)
+      ),
+      total_requests: relevantServers.reduce((sum, s) => sum + (s.requests?.total || 0), 0)
         ...relevantServers.map((s: any) => s.response_time || 0)
       ),
       total_alerts: relevantServers.reduce((sum: number, s: any) => sum + (s.alerts?.length || 0),

@@ -130,6 +130,13 @@ export async function GET(
           timestamp: new Date().toISOString(),
           processing_time_ms: Date.now() - startTime,
         },
+      }, {
+        headers: {
+          // Legacy 형식도 30초 캐싱
+          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+          'CDN-Cache-Control': 'public, s-maxage=30',
+          'Vercel-CDN-Cache-Control': 'public, s-maxage=30',
+        },
       });
     } else {
       // Enhanced 형식 (기본)
@@ -209,6 +216,10 @@ export async function GET(
           'X-Hostname': server.hostname,
           'X-Server-Status': server.status,
           'X-Processing-Time-Ms': (Date.now() - startTime).toString(),
+          // 개별 서버 정보는 30초 캐싱
+          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+          'CDN-Cache-Control': 'public, s-maxage=30',
+          'Vercel-CDN-Cache-Control': 'public, s-maxage=30',
         },
       });
     }

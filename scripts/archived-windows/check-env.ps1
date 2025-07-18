@@ -37,5 +37,5 @@ if ($foundCount -lt $envVars.Count) {
     Write-Host '   setx VARIABLE_NAME "your-value-here"' -ForegroundColor Gray
     Write-Host ""
     Write-Host "   예시:" -ForegroundColor DarkGray
-    Write-Host '   setx GITHUB_TOKEN "ghp_xxxxxxxxxxxx"' -ForegroundColor DarkGray
+    Write-Host '   setx GITHUB_TOKEN "[YOUR_GITHUB_TOKEN_HERE]"' -ForegroundColor DarkGray
 }

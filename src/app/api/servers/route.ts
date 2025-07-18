@@ -118,6 +118,12 @@ export async function GET(request: NextRequest) {
           environment: 'vercel',
           isErrorState: false,
           message: '✅ GCP 실제 데이터 조회 성공',
+        }, {
+          headers: {
+            'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+            'CDN-Cache-Control': 'public, s-maxage=30',
+            'Vercel-CDN-Cache-Control': 'public, s-maxage=30',
+          },
         });
         // }
 

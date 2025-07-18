@@ -19,6 +19,7 @@ export default defineConfig(({ mode }) => {
         'tests/integration/**/*.test.{ts,tsx}',
         'tests/components/**/*.test.{ts,tsx}',
         'tests/gcp/**/*.test.{ts,tsx}',
+        'tests/api/**/*.test.{ts,tsx}',
       ],
 
       // 🚫 제거된 기능들 테스트 제외

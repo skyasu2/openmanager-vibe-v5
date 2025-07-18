@@ -42,7 +42,7 @@
 1. **Google AI Studio 접속**: https://makersuite.google.com/app/apikey
 2. **API 키 생성/확인**:
    ```bash
-   GOOGLE_AI_API_KEY=your_google_ai_api_key_here
+   GOOGLE_AI_API_KEY=[YOUR_GOOGLE_AI_API_KEY_HERE]
    ```
 
 ## 🔧 2단계: .env.local 파일 업데이트
@@ -73,7 +73,7 @@ GITHUB_CLIENT_ID=your_client_id_here
 GITHUB_CLIENT_SECRET=your_client_secret_here
 
 # Google AI
-GOOGLE_AI_API_KEY=your_google_ai_api_key_here
+GOOGLE_AI_API_KEY=[YOUR_GOOGLE_AI_API_KEY_HERE]
 ```
 
 ## 🚀 3단계: Vercel 환경변수 설정
