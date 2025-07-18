@@ -7,11 +7,7 @@ import type { AnomalyAlert } from '../AnomalyDetection';
 import type { PredictionResult } from '@/lib/ml/LightweightMLEngine';
 
 // 이상 탐지 관련 타입
-export interface Anomaly extends AnomalyAlert {
-  // AnomalyAlert를 확장하여 추가 필드 정의 가능
-  detectedBy?: string;
-  relatedAnomalies?: string[];
-}
+export type Anomaly = AnomalyAlert;
 
 // 예측 관련 타입
 export interface Prediction {
@@ -19,6 +15,7 @@ export interface Prediction {
   type: 'performance' | 'failure' | 'resource' | 'anomaly';
   prediction: string;
   probability: number;
+  failureProbability?: number;
   timeframe: {
     start: Date;
     end: Date;
@@ -100,12 +97,19 @@ export interface MLOptimizationResult {
 // 근본 원인 분석 타입
 export interface RootCause {
   id: string;
-  probability: number;
-  category: string;
+  category:
+    | 'system'
+    | 'application'
+    | 'network'
+    | 'infrastructure'
+    | 'external';
   description: string;
+  probability: number;
   evidence: string[];
-  suggestedFixes: string[];
-  relatedIncidents: string[];
+  recommendations: string[];
+  aiEngine?: string;
+  suggestedFixes?: string[];
+  relatedIncidents?: string[];
 }
 
 // 지원 데이터 타입
@@ -126,6 +130,7 @@ export interface SupportingData {
     message: string;
   }[];
   metadata: Record<string, unknown>;
+  patterns?: AnomalyPatterns | Record<string, number>;
 }
 
 // 분석 상태 타입
@@ -136,6 +141,17 @@ export interface AnalysisState {
   progress: number;
   errors: string[];
   warnings: string[];
+}
+
+// 이상 패턴 분석 결과 타입
+export interface AnomalyPatterns {
+  cpuSpikes: number;
+  memoryLeaks: number;
+  networkIssues: number;
+  diskIssues: number;
+  responseTimeIssues: number;
+  timeDistribution: Record<string, number>;
+  severityDistribution: Record<string, number>;
 }
 
 // 통합 권장사항 타입
