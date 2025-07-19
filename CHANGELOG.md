@@ -1,5 +1,23 @@
 # Changelog
 
+## [5.48.2] - 2025-01-19
+
+### 🔐 보안 검사 스크립트 개선
+
+#### Improved
+- **하드코딩된 시크릿 검사 정확도 향상**
+  - 실제 소스 코드만 검사 (src/ 디렉토리의 주요 폴더)
+  - 테스트, 문서, 스크립트 파일 제외
+  - .env 파일 제외 (정상적인 환경변수 저장소)
+  - 더 엄격한 패턴으로 실제 시크릿만 탐지
+
+#### Changed
+- `scripts/check-hardcoded-secrets.sh`: v3.0으로 업그레이드
+  - 예제 패턴 제거 (your_specific_redis_token_pattern_here 등)
+  - 소스 디렉토리 지정 검사 (src/app, src/components, src/services 등)
+  - 더 구체적인 시크릿 패턴 (실제 형식과 일치하는 것만)
+  - 검사 결과에 대상 디렉토리와 제외 항목 표시
+
 ## [5.48.1] - 2025-01-19
 
 ### 🐛 GitHub OAuth 로그인 수정
