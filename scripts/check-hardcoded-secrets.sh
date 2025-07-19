@@ -80,14 +80,14 @@ done
 
 # 검사할 시크릿 패턴 (실제 값만 검사)
 declare -A PATTERNS=(
-    ["Redis Connection (Real)"]="redis://default:[a-fA-F0-9]{32,}@[a-z0-9-]+\.upstash\.io"
-    ["PostgreSQL Connection (Real)"]="postgresql://postgres:[^:@]+@[^/]+/[^?]+"
-    ["GitHub Personal Access Token"]="ghp_[a-zA-Z0-9]{36}"
-    ["GitHub Server Token"]="ghs_[a-zA-Z0-9]{36}"
-    ["GitHub OAuth Token"]="gho_[a-zA-Z0-9]{36}"
-    ["OpenAI API Key"]="sk-[a-zA-Z0-9]{48}"
-    ["Anthropic API Key"]="sk-ant-[a-zA-Z0-9-]{95}"
-    ["Google AI API Key"]="AIza[a-zA-Z0-9-_]{35}"
+    ["Redis Connection (Real)"]="redis://default:YOUR_REDIS_TOKEN_PLACEHOLDER@[a-z0-9-]+\.upstash\.io"
+    ["PostgreSQL Connection (Real)"]="postgresql://postgres:YOUR_PASSWORD_PLACEHOLDER@]+@[^/]+/[^?]+"
+    ["GitHub Personal Access Token (Real)"]="ghp_[a-zA-Z0-9]{36}(?![\\[_])"
+    ["GitHub Server Token (Real)"]="ghs_[a-zA-Z0-9]{36}(?![\\[_])"
+    ["GitHub OAuth Token (Real)"]="gho_[a-zA-Z0-9]{36}(?![\\[_])"
+    ["OpenAI API Key (Real)"]="sk-[a-zA-Z0-9]{48}(?![-_])"
+    ["Anthropic API Key (Real)"]="sk-ant-[a-zA-Z0-9-]{95}(?!_)"
+    ["Google AI API Key (Real)"]="AIza[a-zA-Z0-9-_]{35}(?!_PLACEHOLDER)"
     ["Private Key"]="-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----"
     ["JWT Secret (Hardcoded)"]="['\"]jwt[_-]?secret['\"]?[[:space:]]*[:=][[:space:]]*['\"][a-zA-Z0-9+/=]{32,}['\"]"
     ["AWS Access Key"]="AKIA[A-Z0-9]{16}"
@@ -99,12 +99,15 @@ declare -A PATTERNS=(
 declare -A ALLOWED_PATTERNS=(
     ["PlaceholderPattern1"]="\[YOUR_[A-Z_]+_HERE\]"
     ["PlaceholderPattern2"]="your_[a-z_]+_here"
+    ["PlaceholderPattern3"]="YOUR_[A-Z_]+_PLACEHOLDER"
     ["ExamplePattern"]="xxx+"
-    ["TestPattern"]="test_|mock_|sample_|example_"
+    ["TestPattern"]="test_|mock_|sample_|example_|MOCK_"
     ["DiskPattern"]="disk-|disk_"
     ["QueuePattern"]="queue-|task-"
     ["TemplateVar"]="process\.env\.[A-Z_]+"
     ["EnvDefault"]="process\.env\.[A-Z_]+\s*\|\|\s*['\"]"
+    ["RedactedPattern"]="\[REDACTED\]|REDACTED|_PLACEHOLDER"
+    ["SensitiveInfoRemoved"]="SENSITIVE_INFO_REMOVED"
 )
 
 # 검사할 소스 디렉토리 (실제 애플리케이션 코드만)

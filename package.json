@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.48.4",
+  "version": "5.48.7",
   "description": "🚀 OpenManager Vibe v5 - 무료티어 최적화로 월 사용량 90% 절약하는 실시간 서버 관리 플랫폼. Docker 제거, Vitest 기반 TDD, Google AI 연동으로 차세대 서버 모니터링 시스템을 제공합니다.",
   "private": true,
   "type": "module",
@@ -23,6 +23,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "lint:cache": "eslint . --cache --ext .js,.jsx,.ts,.tsx",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -36,11 +38,6 @@
     "test:tdd-safe": "vitest run --reporter=basic --exclude='**/refactoring/**'",
     "test:tsx": "tsx scripts/test-safeformat.ts",
     "test:simple": "node scripts/simple-test-runner.js",
-    "test:e2e": "node node_modules/@playwright/test/cli.js test",
-    "test:e2e:ui": "node node_modules/@playwright/test/cli.js test --ui",
-    "test:e2e:debug": "node node_modules/@playwright/test/cli.js test --debug",
-    "test:e2e:headed": "node node_modules/@playwright/test/cli.js test --headed",
-    "test:e2e:report": "node node_modules/@playwright/test/cli.js show-report",
     "redis:test": "node scripts/redis-simple-test.js",
     "redis:cli": "node scripts/redis-direct-cli.js",
     "analyze": "npm run analyze:free-tier && npm run analyze:bundle",
@@ -56,6 +53,9 @@
     "env:verify": "node scripts/verify-env.cjs",
     "env:guide": "cat setup-env-guide.md",
     "env:vercel": "./scripts/setup-vercel-env.sh",
+    "env:backup-secure": "tsx scripts/env-backup-manager.ts backup",
+    "env:restore-secure": "tsx scripts/env-backup-manager.ts restore",
+    "env:validate-secure": "tsx scripts/env-backup-manager.ts validate",
     "prepare": "husky",
     "pre-commit": "npm run type-check && npm run lint && npm run security:secrets",
     "pre-push": "npm run type-check && npm run lint && npm run test:tdd-safe",
@@ -144,8 +144,7 @@
     "env:github-workflow": "tsx scripts/auto-env-manager.ts github-workflow",
     "env:docker-compose": "tsx scripts/auto-env-manager.ts docker-compose",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "storybook:test": "test-storybook"
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -269,14 +268,12 @@
     "vitest": "^2.1.8"
   },
   "lint-staged": {
-    "src/**/*.{js,jsx,ts,tsx}": [
-      "eslint --fix"
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix --cache --max-warnings=0",
+      "prettier --write"
     ],
-    "components/**/*.{js,jsx,ts,tsx}": [
-      "eslint --fix"
-    ],
-    "tests/**/*.{js,jsx,ts,tsx}": [
-      "eslint --fix"
+    "*.{json,md,css}": [
+      "prettier --write"
     ]
   },
   "browserslist": {

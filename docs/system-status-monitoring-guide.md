@@ -18,8 +18,8 @@ graph TB
     
     subgraph "Backend Services"
         B[GCP MCP Server<br/>104.154.205.25:10000]
-        C[Upstash Redis<br/>your_redis_host_here]
-        D[Supabase Database<br/>your_supabase_project_id_here.supabase.co]
+        C[Upstash Redis<br/>YOUR_PLACEHOLDER]
+        D[Supabase Database<br/>YOUR_PLACEHOLDER.supabase.co]
     end
     
     subgraph "AI Services"
@@ -46,7 +46,7 @@ curl -s https://openmanager-vibe-v5.vercel.app/api/health | grep -o '"status":"[
 curl -s http://104.154.205.25:10000/health | grep -o '"status":"[^"]*"'
 
 # 3. Redis 연결 상태
-curl -X POST 'https://your_redis_host_here/ping' \
+curl -X POST 'https://YOUR_PLACEHOLDER/ping' \
      -H 'Authorization: Bearer SENSITIVE_INFO_REMOVED' \
      -s | grep -o '"result":"[^"]*"'
 
@@ -57,7 +57,7 @@ curl -X POST 'https://your_redis_host_here/ping' \
 echo "=== 시스템 상태 요약 ==="
 echo "Vercel: $(curl -s https://openmanager-vibe-v5.vercel.app/api/health | grep -o '"status":"[^"]*"' | cut -d'"' -f4)"
 echo "MCP Server: $(curl -s http://104.154.205.25:10000/health | grep -o '"status":"[^"]*"' | cut -d'"' -f4)"
-echo "Redis: $(curl -X POST 'https://your_redis_host_here/ping' -H 'Authorization: Bearer SENSITIVE_INFO_REMOVED' -s | grep -o '"result":"[^"]*"' | cut -d'"' -f4)"
+echo "Redis: $(curl -X POST 'https://YOUR_PLACEHOLDER/ping' -H 'Authorization: Bearer SENSITIVE_INFO_REMOVED' -s | grep -o '"result":"[^"]*"' | cut -d'"' -f4)"
 ```
 
 ### ✅ 정상 상태 기준값
@@ -199,7 +199,7 @@ gcloud compute firewall-rules list --filter="name:mcp*"
 
 ```bash
 # 기본 PING 테스트
-curl -X POST 'https://your_redis_host_here/ping' \
+curl -X POST 'https://YOUR_PLACEHOLDER/ping' \
      -H 'Authorization: Bearer AbYGAAIjcDE5MjNmYjhiZDkwOGQ0İUyOGFiZjUyMmQ0YTkyMzIwM3AxMA' \
      -s
 
@@ -210,7 +210,7 @@ curl -X POST 'https://your_redis_host_here/ping' \
 
 ```bash
 # 서버 상세 정보
-curl -X POST 'https://your_redis_host_here/info' \
+curl -X POST 'https://YOUR_PLACEHOLDER/info' \
      -H 'Authorization: Bearer AbYGAAIjcDE5MjNmYjhiZDkwOGQ0ITUyOGFiZjUyMmQ0YTkyMzIwM3AxMA' \
      -s | grep -E "(redis_version|used_memory|total_keys|maxmemory)"
 ```
@@ -224,12 +224,12 @@ curl -X POST 'https://your_redis_host_here/info' \
 
 ```bash
 # 모든 키 목록
-curl -X POST 'https://your_redis_host_here/keys/*' \
+curl -X POST 'https://YOUR_PLACEHOLDER/keys/*' \
      -H 'Authorization: Bearer AbYGAAIjcDE5MjNmYjhiZDkwOGQ0ITUyOGFiZjUyMmQ0YTkyMzIwM3AxMA' \
      -s
 
 # 데이터베이스 크기
-curl -X POST 'https://your_redis_host_here/dbsize' \
+curl -X POST 'https://YOUR_PLACEHOLDER/dbsize' \
      -H 'Authorization: Bearer SENSITIVE_INFO_REMOVED' \
      -s
 ```
@@ -238,19 +238,19 @@ curl -X POST 'https://your_redis_host_here/dbsize' \
 
 ```bash
 # 쓰기 성능 테스트
-curl -X POST 'https://your_redis_host_here/set/test:perf' \
+curl -X POST 'https://YOUR_PLACEHOLDER/set/test:perf' \
      -H 'Authorization: Bearer AbYGAAIjcDE5MjNmYjhiZDkwOGQ0ITUyOGFiZjUyMmQ0YTkyMzIwM3AxMA' \
      -H 'Content-Type: application/json' \
      -d '{"value": "performance test", "ex": 60}' \
      -w "\nResponse Time: %{time_total}s\n"
 
 # 읽기 성능 테스트
-curl -X GET 'https://your_redis_host_here/get/test:perf' \
+curl -X GET 'https://YOUR_PLACEHOLDER/get/test:perf' \
      -H 'Authorization: Bearer AbYGAAIjcDE5MjNmYjhiZDkwOGQ0ITUyOGFiZjUyMmQ0YTkyMzIwM3AxMA' \
      -w "\nResponse Time: %{time_total}s\n"
 
 # 정리
-curl -X POST 'https://your_redis_host_here/del/test:perf' \
+curl -X POST 'https://YOUR_PLACEHOLDER/del/test:perf' \
      -H 'Authorization: Bearer AbYGAAIjcDE5MjNmYjhiZDkwOGQ0ITUyOGFiZjUyMmQ0YTkyMzIwM3AxMA' \
      -s
 ```
@@ -263,14 +263,14 @@ curl -X POST 'https://your_redis_host_here/del/test:perf' \
 
 ```bash
 # Supabase 프로젝트 URL 확인
-echo "Supabase URL: your_supabase_url_here"
+echo "Supabase URL: YOUR_PLACEHOLDER"
 
 # MCP를 통한 연결 테스트는 Claude Code MCP 도구로만 가능
 # 직접 curl 접근은 보안상 제한됨
 ```
 
 **✅ 정상 연결 상태:**
-- **프로젝트 URL**: `your_supabase_url_here`
+- **프로젝트 URL**: `YOUR_PLACEHOLDER`
 - **MCP 연결**: 활성화됨
 - **테이블 개수**: 7개 테이블
 - **확장 기능**: vector, uuid-ossp, pgcrypto 등 설치됨
@@ -463,7 +463,7 @@ fi
 
 # 3. Redis 상태 확인
 echo -n "🔴 Redis 상태: "
-REDIS_STATUS=$(curl -X POST 'https://${UPSTASH_REDIS_HOST:-your_redis_host_here}/ping' -H 'Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}' -s 2>/dev/null | grep -o '"result":"[^"]*"' | cut -d'"' -f4)
+REDIS_STATUS=$(curl -X POST 'https://${UPSTASH_REDIS_HOST:-YOUR_PLACEHOLDER}/ping' -H 'Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN:-YOUR_PLACEHOLDER}' -s 2>/dev/null | grep -o '"result":"[^"]*"' | cut -d'"' -f4)
 if [ "$REDIS_STATUS" = "PONG" ]; then
     echo -e "${GREEN}✅ 정상 (PONG)${NC}"
 else
@@ -473,7 +473,7 @@ fi
 # 4. Supabase 상태 확인
 echo -n "🗄️  Supabase 상태: "
 # MCP 도구를 통한 연결만 가능하므로 연결 활성화 여부만 표시
-SUPABASE_URL="your_supabase_url_here"
+SUPABASE_URL="YOUR_PLACEHOLDER"
 if curl -s --connect-timeout 5 "$SUPABASE_URL" >/dev/null 2>&1; then
     echo -e "${GREEN}✅ MCP 연결 가능${NC}"
 else
@@ -486,14 +486,14 @@ echo "📊 상세 메트릭:"
 # 응답시간 측정
 VERCEL_TIME=$(curl -s -w "%{time_total}" -o /dev/null https://openmanager-vibe-v5.vercel.app/api/health 2>/dev/null)
 MCP_TIME=$(curl -s -w "%{time_total}" -o /dev/null http://104.154.205.25:10000/health 2>/dev/null)  
-REDIS_TIME=$(curl -X POST 'https://${UPSTASH_REDIS_HOST:-your_redis_host_here}/ping' -H 'Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}' -s -w "%{time_total}" -o /dev/null 2>/dev/null)
+REDIS_TIME=$(curl -X POST 'https://${UPSTASH_REDIS_HOST:-YOUR_PLACEHOLDER}/ping' -H 'Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN:-YOUR_PLACEHOLDER}' -s -w "%{time_total}" -o /dev/null 2>/dev/null)
 
 echo "   Vercel 응답시간: ${VERCEL_TIME}초"
 echo "   MCP 응답시간: ${MCP_TIME}초" 
 echo "   Redis 응답시간: ${REDIS_TIME}초"
 
 # Redis 메트릭
-REDIS_KEYS=$(curl -X POST 'https://your_redis_host_here/dbsize' -H 'Authorization: Bearer AbYGAAIjcDE5MjNmYjhiZDkwOGQ0ITUyOGFiZjUyMmQ0YTkyMzIwM3AxMA' -s 2>/dev/null | grep -o '"result":[0-9]*' | cut -d':' -f2)
+REDIS_KEYS=$(curl -X POST 'https://YOUR_PLACEHOLDER/dbsize' -H 'Authorization: Bearer AbYGAAIjcDE5MjNmYjhiZDkwOGQ0ITUyOGFiZjUyMmQ0YTkyMzIwM3AxMA' -s 2>/dev/null | grep -o '"result":[0-9]*' | cut -d':' -f2)
 echo "   Redis 키 개수: ${REDIS_KEYS}개"
 
 # Supabase 메트릭 (MCP 접근 필요)
@@ -565,7 +565,7 @@ echo "========================================"
 
 2. **네트워크 연결 확인**
    ```bash
-   curl -I https://your_redis_host_here
+   curl -I https://YOUR_PLACEHOLDER
    ```
 
 3. **사용량 한도 확인**
@@ -633,7 +633,7 @@ vercel logs
 gcloud logging read "resource.type=gce_instance" --limit=50
 
 # Redis 사용량 확인
-curl -X POST 'https://your_redis_host_here/info' \
+curl -X POST 'https://YOUR_PLACEHOLDER/info' \
      -H 'Authorization: Bearer [TOKEN]' -s | grep -E "total_commands|used_memory"
 ```
 

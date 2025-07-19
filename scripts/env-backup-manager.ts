@@ -8,7 +8,7 @@
  * - 복구 로깅 및 알림
  */
 
-import { AILogger, LogCategory } from '@/services/ai/logging/AILogger';
+// Note: AILogger removed - using console for script logging
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
@@ -38,7 +38,7 @@ export interface EnvBackupData {
 
 export class EnvBackupManager {
   private static instance: EnvBackupManager;
-  private logger: AILogger;
+  // Logger removed - using console directly
   private backupPath: string;
   private encryptionKey: string;
 
@@ -77,7 +77,7 @@ export class EnvBackupManager {
   };
 
   private constructor() {
-    this.logger = AILogger.getInstance();
+    // Logger initialization removed - using console directly
     this.backupPath = path.join(
       this.getSafeWorkingDirectory(),
       'config',
@@ -143,10 +143,8 @@ export class EnvBackupManager {
       decrypted += decipher.final('utf8');
       return decrypted;
     } catch (error) {
-      this.logger.logError(
-        'EnvBackupManager',
-        LogCategory.SYSTEM,
-        `복호화 실패: ${(error as Error).message}`,
+      console.error(
+        'EnvBackupManager', `복호화 실패: ${(error as Error).message}`,
         { encryptedText }
       );
       return '';
@@ -178,9 +176,8 @@ export class EnvBackupManager {
     try {
       // 🚨 베르셀 환경에서 파일 저장 건너뛰기
       if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-        await this.logger.info(
-          LogCategory.SYSTEM,
-          '⚠️ 베르셀 환경에서 환경변수 백업 파일 저장 무력화',
+        await console.log(
+                    '⚠️ 베르셀 환경에서 환경변수 백업 파일 저장 무력화',
           { reason: 'vercel-file-system-protection' }
         );
         return true;
@@ -240,9 +237,8 @@ export class EnvBackupManager {
 
       fs.writeFileSync(this.backupPath, JSON.stringify(backupData, null, 2));
 
-      await this.logger.info(
-        LogCategory.SYSTEM,
-        `✅ 환경변수 백업 완료: ${entries.length}개 변수 저장`,
+      await console.log(
+                `✅ 환경변수 백업 완료: ${entries.length}개 변수 저장`,
         {
           backupPath: this.backupPath,
           entriesCount: entries.length,
@@ -254,10 +250,8 @@ export class EnvBackupManager {
 
       return true;
     } catch (error) {
-      await this.logger.logError(
-        'EnvBackupManager',
-        LogCategory.SYSTEM,
-        `백업 생성 실패: ${(error as Error).message}`,
+      await console.error(
+        'EnvBackupManager', `백업 생성 실패: ${(error as Error).message}`,
         { backupPath: this.backupPath }
       );
       return false;
@@ -385,10 +379,8 @@ export class EnvBackupManager {
           }
         } catch (error) {
           failed.push(entry.key);
-          await this.logger.logError(
-            'EnvBackupManager',
-            LogCategory.SYSTEM,
-            `환경변수 복구 실패: ${entry.key}`,
+          await console.error(
+                            `환경변수 복구 실패: ${entry.key}`,
             { error: (error as Error).message }
           );
         }
@@ -405,9 +397,8 @@ export class EnvBackupManager {
 
       const message = `복구 완료: ${restored.length}개 성공, ${failed.length}개 실패`;
 
-      await this.logger.info(
-        LogCategory.SYSTEM,
-        `🚨 긴급 환경변수 복구 실행: ${message}`,
+      await console.log(
+                `🚨 긴급 환경변수 복구 실행: ${message}`,
         {
           priority,
           restored,
@@ -424,10 +415,8 @@ export class EnvBackupManager {
       };
     } catch (error) {
       const errorMessage = `긴급 복구 실패: ${(error as Error).message}`;
-      await this.logger.logError(
-        'EnvBackupManager',
-        LogCategory.SYSTEM,
-        errorMessage
+      await console.error(
+        'EnvBackupManager', errorMessage
       );
       return {
         success: false,
@@ -446,9 +435,8 @@ export class EnvBackupManager {
     try {
       // 🚨 베르셀 환경에서 파일 쓰기 건너뛰기
       if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-        await this.logger.info(
-          LogCategory.SYSTEM,
-          `⚠️ 베르셀 환경에서 .env.local 파일 쓰기 무력화: ${key}`,
+        await console.log(
+                    `⚠️ 베르셀 환경에서 .env.local 파일 쓰기 무력화: ${key}`,
           { reason: 'vercel-file-system-protection' }
         );
         return;
@@ -474,10 +462,8 @@ export class EnvBackupManager {
       // 새 환경변수 추가
       fs.appendFileSync(envPath, envLine);
     } catch (error) {
-      await this.logger.logError(
-        'EnvBackupManager',
-        LogCategory.SYSTEM,
-        `환경변수 파일 쓰기 실패: ${key}`,
+      await console.error(
+        'EnvBackupManager', `환경변수 파일 쓰기 실패: ${key}`,
         { error: (error as Error).message }
       );
     }
@@ -541,3 +527,55 @@ export class EnvBackupManager {
 }
 
 export default EnvBackupManager;
+
+// CLI Interface for Script Usage
+if (require.main === module) {
+  const command = process.argv[2];
+  const manager = EnvBackupManager.getInstance();
+
+  async function runCommand() {
+    switch (command) {
+      case 'backup':
+        console.log('🔧 환경변수 백업 시작...');
+        const backupResult = await manager.createBackup();
+        if (backupResult) {
+          console.log('✅ 백업 완료!');
+        } else {
+          console.error('❌ 백업 실패');
+          process.exit(1);
+        }
+        break;
+
+      case 'restore':
+        console.log('🔄 환경변수 복구 시작...');
+        const restoreResult = await manager.emergencyRestore('all');
+        if (restoreResult.success) {
+          console.log('✅ 복구 완료!');
+        } else {
+          console.error('❌ 복구 실패:', restoreResult.message);
+          process.exit(1);
+        }
+        break;
+
+      case 'validate':
+        console.log('🔍 환경변수 검증 시작...');
+        const validateResult = await manager.validateEnvironment();
+        console.log(`검증 결과: ${validateResult.isValid ? '✅ 유효' : '❌ 무효'}`);
+        if (!validateResult.isValid) {
+          console.log('누락된 변수:', validateResult.missing);
+          console.log('무효한 변수:', validateResult.invalid);
+          process.exit(1);
+        }
+        break;
+
+      default:
+        console.log('사용법: tsx scripts/env-backup-manager.ts [backup|restore|validate]');
+        process.exit(1);
+    }
+  }
+
+  runCommand().catch(error => {
+    console.error('❌ 명령 실행 실패:', error);
+    process.exit(1);
+  });
+}

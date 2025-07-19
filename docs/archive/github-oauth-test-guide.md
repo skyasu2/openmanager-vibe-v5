@@ -6,15 +6,15 @@ Supabase에서 GitHub OAuth Provider를 활성화한 후, 실제로 GitHub 로�
 ## 📋 사전 확인사항
 
 ### ✅ Supabase Dashboard 설정 완료 여부
-1. **Project**: `your_supabase_project_id_here.supabase.co`
+1. **Project**: `YOUR_PLACEHOLDER.supabase.co`
 2. **Authentication → Providers → GitHub**: **활성화됨** ✅
-3. **Client ID**: `your_github_client_id_here` ✅
+3. **Client ID**: `YOUR_PLACEHOLDER` ✅
 4. **Client Secret**: 설정됨 ✅
-5. **Redirect URL**: `your_supabase_url_here/auth/v1/callback` ✅
+5. **Redirect URL**: `YOUR_PLACEHOLDER/auth/v1/callback` ✅
 
 ### ✅ GitHub OAuth App 설정 확인
 1. **GitHub → Settings → Developer settings → OAuth Apps**
-2. **Authorization callback URL**: `your_supabase_url_here/auth/v1/callback`
+2. **Authorization callback URL**: `YOUR_PLACEHOLDER/auth/v1/callback`
 
 ## 🚀 실제 테스트 단계
 
@@ -87,7 +87,7 @@ https://openmanager-vibe-v5.vercel.app/login
 **해결책:**
 1. GitHub OAuth App → Authorization callback URL 확인:
    ```
-   your_supabase_url_here/auth/v1/callback
+   YOUR_PLACEHOLDER/auth/v1/callback
    ```
 2. Supabase의 정확한 콜백 URL 복사해서 사용
 

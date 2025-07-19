@@ -940,3 +940,5 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     </AnimatePresence>
   );
 };
+
+export default AISidebarV2;

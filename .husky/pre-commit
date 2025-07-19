@@ -8,20 +8,23 @@ if [ "$HUSKY" = "0" ]; then
     exit 0
 fi
 
-# 타입 체크
-echo "📝 타입 체크 중..."
-npm run type-check
+# lint-staged 실행 (변경된 파일만 검사)
+echo "🧹 변경된 파일 검사 중..."
+npx lint-staged
+
 if [ $? -ne 0 ]; then
-    echo "❌ 타입 체크 실패!"
+    echo "❌ Pre-commit 검증 실패!"
     exit 1
 fi
 
-# 린트
-echo "🧹 린트 검사 중..."
-npm run lint
-if [ $? -ne 0 ]; then
-    echo "❌ 린트 검사 실패!"
-    exit 1
+# 보안 검사 (하드코딩된 시크릿 검사)
+echo "🔒 보안 검사 중..."
+if [ -f "scripts/check-hardcoded-secrets.sh" ]; then
+    bash scripts/check-hardcoded-secrets.sh
+    if [ $? -ne 0 ]; then
+        echo "❌ 보안 검사 실패! 하드코딩된 시크릿이 발견되었습니다."
+        exit 1
+    fi
 fi
 
 echo "✅ Pre-commit 검증 통과!"

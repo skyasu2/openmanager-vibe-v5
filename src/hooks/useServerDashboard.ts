@@ -82,54 +82,7 @@ interface UseEnhancedServerDashboardReturn {
   isLoading: boolean;
 }
 
-// 🎯 폴백 서버 데이터
-const fallbackServers: Server[] = Array.from({ length: 15 }, (_, i) => ({
-  id: `server-${i + 1}`,
-  name: `Server-${String(i + 1).padStart(2, '0')}`,
-  hostname: `srv-${String(i + 1).padStart(2, '0')}.example.com`,
-  status: ['healthy', 'warning', 'critical'][
-    Math.floor(Math.random() * 3)
-  ] as any,
-  cpu: Math.floor(Math.random() * 100),
-  memory: Math.floor(Math.random() * 100),
-  disk: Math.floor(Math.random() * 100),
-  network: Math.floor(Math.random() * 1000),
-  uptime: Math.floor(Math.random() * 10000),
-  location: ['Seoul', 'Tokyo', 'Singapore', 'Sydney'][
-    Math.floor(Math.random() * 4)
-  ],
-  alerts: Math.floor(Math.random() * 5),
-  ip: `192.168.1.${i + 10}`,
-  os: 'Ubuntu 22.04 LTS',
-  type: 'worker',
-  environment: 'production',
-  provider: 'AWS',
-  specs: {
-    cpu_cores: 4,
-    memory_gb: 8,
-    disk_gb: 250,
-    network_speed: '1Gbps',
-  },
-  lastUpdate: new Date(),
-  services: [] as any[],
-  networkStatus: 'healthy',
-  systemInfo: {
-    os: 'Ubuntu 22.04 LTS',
-    uptime: `${Math.floor(Math.random() * 100)}h`,
-    processes: Math.floor(Math.random() * 200) + 50,
-    zombieProcesses: Math.floor(Math.random() * 5),
-    loadAverage: '1.23, 1.45, 1.67',
-    lastUpdate: new Date().toISOString(),
-  },
-  networkInfo: {
-    interface: 'eth0',
-    receivedBytes: `${Math.floor(Math.random() * 1000)} MB`,
-    sentBytes: `${Math.floor(Math.random() * 1000)} MB`,
-    receivedErrors: Math.floor(Math.random() * 10),
-    sentErrors: Math.floor(Math.random() * 10),
-    status: 'healthy',
-  },
-}));
+// 🎯 폴백 서버 데이터 제거 - 목업 시스템 사용
 
 // 업타임 포맷팅 유틸리티
 const formatUptime = (uptime: number): string => {
@@ -220,73 +173,71 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     };
   }, [fetchServers, startAutoRefresh, stopAutoRefresh]); // servers 의존성 제거로 무한 루프 방지
 
-  // 실제 서버 데이터 또는 폴백 데이터 사용 (메모이제이션)
+  // 실제 서버 데이터 사용 (메모이제이션)
   const actualServers = useMemo(() => {
-    if (servers && servers.length > 0) {
-      // EnhancedServerMetrics를 Server 타입으로 변환
-      return servers.map(
-        (server: any): Server => ({
-          id: server.id,
-          name: server.name || server.hostname,
-          hostname: server.hostname || server.name,
-          status: server.status,
-          cpu: server.cpu_usage || 0,
-          memory: server.memory_usage || 0,
-          disk: server.disk_usage || 0,
-          network: server.network_in + server.network_out || 0,
-          uptime: server.uptime || 0,
-          location: server.location || 'Unknown',
-          alerts: server.alerts || 0,
-          ip: server.ip || '192.168.1.1',
+    if (!servers || servers.length === 0) {
+      return [];
+    }
+
+    // EnhancedServerMetrics를 Server 타입으로 변환
+    return servers.map(
+      (server: any): Server => ({
+        id: server.id,
+        name: server.name || server.hostname,
+        hostname: server.hostname || server.name,
+        status: server.status,
+        cpu: server.cpu || server.cpu_usage || 0,
+        memory: server.memory || server.memory_usage || 0,
+        disk: server.disk || server.disk_usage || 0,
+        network: server.network || (server.network_in + server.network_out) || 0,
+        uptime: server.uptime || 0,
+        location: server.location || 'Unknown',
+        alerts: server.alerts?.length || server.alerts || 0,
+        ip: server.ip || '192.168.1.1',
+        os: server.os || 'Ubuntu 22.04 LTS',
+        type: server.type || server.role || 'worker',
+        environment: server.environment || 'production',
+        provider: server.provider || 'On-Premise',
+        specs: server.specs || {
+          cpu_cores: 4,
+          memory_gb: 8,
+          disk_gb: 250,
+          network_speed: '1Gbps',
+        },
+        lastUpdate: server.lastUpdate || new Date(),
+        services: server.services || ([] as any[]),
+        networkStatus:
+          server.status === 'online'
+            ? 'healthy'
+            : server.status === 'warning'
+              ? 'warning'
+              : 'critical',
+        systemInfo: server.systemInfo || {
           os: server.os || 'Ubuntu 22.04 LTS',
-          type: server.role || 'worker',
-          environment: server.environment || 'production',
-          provider: server.provider || 'AWS',
-          specs: {
-            cpu_cores: 4,
-            memory_gb: 8,
-            disk_gb: 250,
-            network_speed: '1Gbps',
-          },
-          lastUpdate: server.lastUpdate || new Date(),
-          services: server.services || ([] as any[]),
-          networkStatus:
-            server.status === 'healthy'
+          uptime:
+            typeof server.uptime === 'string'
+              ? server.uptime
+              : `${Math.floor(server.uptime / 3600)}h`,
+          processes: Math.floor(Math.random() * 200) + 50,
+          zombieProcesses: Math.floor(Math.random() * 5),
+          loadAverage: '1.23, 1.45, 1.67',
+          lastUpdate: server.lastUpdate || new Date().toISOString(),
+        },
+        networkInfo: server.networkInfo || {
+          interface: 'eth0',
+          receivedBytes: `${Math.floor(server.network_in || 0)} MB`,
+          sentBytes: `${Math.floor(server.network_out || 0)} MB`,
+          receivedErrors: Math.floor(Math.random() * 10),
+          sentErrors: Math.floor(Math.random() * 10),
+          status:
+            server.status === 'online'
               ? 'healthy'
               : server.status === 'warning'
                 ? 'warning'
                 : 'critical',
-          systemInfo: {
-            os: server.os || 'Ubuntu 22.04 LTS',
-            uptime:
-              typeof server.uptime === 'string'
-                ? server.uptime
-                : `${Math.floor(server.uptime / 3600)}h`,
-            processes: Math.floor(Math.random() * 200) + 50,
-            zombieProcesses: Math.floor(Math.random() * 5),
-            loadAverage: '1.23, 1.45, 1.67',
-            lastUpdate: server.lastUpdate || new Date().toISOString(),
-          },
-          networkInfo: {
-            interface: 'eth0',
-            receivedBytes: `${Math.floor(server.network_in || 0)} MB`,
-            sentBytes: `${Math.floor(server.network_out || 0)} MB`,
-            receivedErrors: Math.floor(Math.random() * 10),
-            sentErrors: Math.floor(Math.random() * 10),
-            status:
-              server.status === 'healthy'
-                ? 'healthy'
-                : server.status === 'warning'
-                  ? 'warning'
-                  : 'critical',
-          },
-        })
-      );
-    }
-
-    // 🚀 폴백 데이터 즉시 반환 (로딩 시간 단축)
-    console.log('📊 폴백 서버 데이터 사용');
-    return fallbackServers;
+        },
+      })
+    );
   }, [servers]);
 
   // 페이지네이션된 서버 데이터 (메모이제이션)
@@ -314,31 +265,70 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   // 통계 계산 (메모이제이션)
   const stats = useMemo(() => {
     const total = actualServers.length;
-    const online = actualServers.filter(
-      (s: any) => s.status === 'healthy' || s.status === 'online'
-    ).length;
-    const offline = actualServers.filter(
-      (s: any) => s.status === 'critical' || s.status === 'offline'
-    ).length;
-    const warning = actualServers.filter((s: any) => s.status === 'warning').length;
+    
+    if (total === 0) {
+      return {
+        total: 0,
+        online: 0,
+        offline: 0,
+        warning: 0,
+        avgCpu: 0,
+        avgMemory: 0,
+        avgDisk: 0,
+      };
+    }
+    
+    let online = 0;
+    let offline = 0;
+    let warning = 0;
+    
+    actualServers.forEach((server: any) => {
+      // 목업 시스템의 상태 그대로 사용
+      switch (server.status) {
+        case 'online':
+          online += 1;
+          break;
+        case 'warning':
+          warning += 1;
+          break;
+        case 'critical':
+          offline += 1; // critical을 offline으로 매핑
+          break;
+        default:
+          // 알 수 없는 상태는 경고로 분류
+          warning += 1;
+      }
+    });
 
-    const avgCpu =
-      actualServers.reduce((sum: number, s: any) => sum + (s.cpu || 0), 0) / total;
-    const avgMemory =
-      actualServers.reduce((sum: number, s: any) => sum + (s.memory || 0), 0) /
-      total;
-    const avgDisk =
-      actualServers.reduce((sum: number, s: any) => sum + (s.disk || 0), 0) / total;
+    const avgCpu = Math.round(
+      actualServers.reduce((sum: number, s: any) => sum + (s.cpu || 0), 0) / total
+    );
+    const avgMemory = Math.round(
+      actualServers.reduce((sum: number, s: any) => sum + (s.memory || 0), 0) / total
+    );
+    const avgDisk = Math.round(
+      actualServers.reduce((sum: number, s: any) => sum + (s.disk || 0), 0) / total
+    );
 
-    return {
+    const result = {
       total,
       online,
       offline,
       warning,
-      avgCpu: Math.round(avgCpu),
-      avgMemory: Math.round(avgMemory),
-      avgDisk: Math.round(avgDisk),
+      avgCpu,
+      avgMemory,
+      avgDisk,
     };
+
+    console.log('📊 useServerDashboard 통계:', {
+      ...result,
+      서버_상태_분포: actualServers.map(s => ({ 
+        이름: s.name || s.id, 
+        상태: s.status
+      }))
+    });
+
+    return result;
   }, [actualServers]);
 
   // 🚀 통계 업데이트 콜백 호출 (디바운싱 적용)

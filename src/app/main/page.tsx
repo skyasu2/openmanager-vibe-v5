@@ -15,7 +15,7 @@ import { BarChart3, Bot, Loader2, Play, X, Zap, LogIn } from 'lucide-react';
 import { getCurrentUser, isGitHubAuthenticated, signOut as supabaseSignOut, onAuthStateChange } from '@/lib/supabase-auth';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 
 const FeatureCardsGrid = dynamic(
   () => import('@/components/home/FeatureCardsGrid'),
@@ -68,6 +68,7 @@ export default function Home() {
   const [countdownTimer, setCountdownTimer] = useState<NodeJS.Timeout | null>(
     null
   );
+  const [isSystemStarting, setIsSystemStarting] = useState(false); // 시스템 시작 중 상태 추가
 
   // 🔄 클라이언트 마운트 상태 (hydration 문제 방지)
   const [isMounted, setIsMounted] = useState(false);
@@ -188,13 +189,14 @@ export default function Home() {
     }
   }, [isMounted, isSystemStarted, getSystemRemainingTime]);
 
-  // 카운트다운 중지 함수 (useEffect보다 먼저 정의)
+  // 카운트다운 중지 함수 (깜빡임 방지 개선)
   const stopSystemCountdown = useCallback(() => {
     if (countdownTimer) {
       clearInterval(countdownTimer);
       setCountdownTimer(null);
     }
     setSystemStartCountdown(0);
+    setIsSystemStarting(false); // 시스템 시작 상태도 초기화
   }, [countdownTimer]);
 
   // 컴포넌트 언마운트 시 카운트다운 정리
@@ -260,27 +262,34 @@ export default function Home() {
     });
   };
 
-  // 🚀 시스템 시작 카운트다운 함수
-  const startSystemCountdown = () => {
+  // 🚀 시스템 시작 카운트다운 함수 (바로 로딩 페이지 이동)
+  const startSystemCountdown = useCallback(() => {
     setSystemStartCountdown(3); // 3초 카운트다운
+    setIsSystemStarting(false); // 카운트다운 시작 시 시스템 시작 상태 초기화
+    
     const timer = setInterval(() => {
       setSystemStartCountdown(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          handleSystemStart(); // 기존 시스템 시작 함수 호출
+          console.log('🚀 카운트다운 완료 - 로딩 페이지로 이동');
+          
+          // 백그라운드에서 시스템 시작 프로세스 실행 (비동기)
+          handleSystemStartBackground();
+          
+          // 즉시 로딩 페이지로 이동
+          router.push('/system-boot');
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     setCountdownTimer(timer);
-  };
+  }, [router]);
 
-  // 🚀 시스템 시작 함수 (다중 사용자 기능 통합)
-  const handleSystemStart = async () => {
-    if (isLoading) return;
-
-    setIsLoading(true);
+  // 🚀 백그라운드 시스템 시작 함수 (사용자는 로딩 페이지에서 대기)
+  const handleSystemStartBackground = useCallback(async () => {
+    console.log('🔄 백그라운드에서 시스템 시작 프로세스 실행');
+    
     try {
       // 1. 다중 사용자 상태 업데이트
       await startMultiUserSystem();
@@ -307,21 +316,41 @@ export default function Home() {
       // 3. 기존 시스템 시작 로직 실행
       await startSystem();
 
-      console.log('✅ 시스템 시작 완료');
+      console.log('✅ 백그라운드 시스템 시작 완료');
+      
+    } catch (error) {
+      console.error('❌ 백그라운드 시스템 시작 실패:', error);
+      // 실패해도 로딩 페이지에서 처리하므로 여기서는 로그만 남김
+    }
+  }, [startMultiUserSystem, startSystem]);
 
-      // 4. system-boot 페이지로 이동하여 로딩 애니메이션 표시
-      router.push('/system-boot');
+  // 🚀 기존 시스템 시작 함수 (직접 호출용 - 호환성 유지)
+  const handleSystemStart = useCallback(async () => {
+    if (isLoading || isSystemStarting) return;
+
+    console.log('🚀 직접 시스템 시작 프로세스 시작');
+    setIsSystemStarting(true);
+    
+    try {
+      await handleSystemStartBackground();
+      
+      // 성공 시 대시보드로 이동
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 500);
+      
     } catch (error) {
       console.error('❌ 시스템 시작 실패:', error);
-    } finally {
-      setIsLoading(false);
+      setIsSystemStarting(false); // 실패 시 상태 초기화
     }
-  };
+  }, [isLoading, isSystemStarting, handleSystemStartBackground, router]);
 
-  // 시스템 토글 함수 (18a89a4 스타일로 복원)
-  const handleSystemToggle = async () => {
-    if (isLoading) return;
+  // 시스템 토글 함수 (깜빡임 방지 개선)
+  const handleSystemToggle = useCallback(async () => {
+    // 로딩 중이거나 시스템 시작 중이면 무시
+    if (isLoading || isSystemStarting) return;
 
+    // 카운트다운 중이면 취소
     if (systemStartCountdown > 0) {
       stopSystemCountdown();
       return;
@@ -335,15 +364,24 @@ export default function Home() {
       // 시스템이 정지 상태면 카운트다운 시작
       startSystemCountdown();
     }
-  };
+  }, [
+    isLoading,
+    isSystemStarting,
+    systemStartCountdown,
+    multiUserStatus.isRunning,
+    isSystemStarted,
+    stopSystemCountdown,
+    startSystemCountdown,
+  ]);
 
   // 대시보드 클릭 핸들러
   const handleDashboardClick = () => {
     router.push('/dashboard');
   };
 
-  // 📊 버튼 텍스트와 상태 결정 (18a89a4 스타일로 복원)
-  const getButtonConfig = () => {
+  // 📊 버튼 텍스트와 상태 결정 (깜빡임 방지 개선)
+  const getButtonConfig = useMemo(() => () => {
+    // 1. 카운트다운 중 (최우선)
     if (systemStartCountdown > 0) {
       return {
         text: `시작 취소 (${systemStartCountdown}초)`,
@@ -353,6 +391,17 @@ export default function Home() {
       };
     }
 
+    // 2. 시스템 시작 중 (카운트다운 완료 후)
+    if (isSystemStarting) {
+      return {
+        text: '시스템 시작 중...',
+        icon: <Loader2 className='w-5 h-5 animate-spin' />,
+        className:
+          'bg-gradient-to-r from-purple-500 to-blue-600 text-white border-purple-400/50 cursor-not-allowed',
+      };
+    }
+
+    // 3. 일반 로딩 상태
     if (isLoading || statusLoading) {
       return {
         text: '시스템 초기화 중...',
@@ -362,7 +411,7 @@ export default function Home() {
       };
     }
 
-    // 다중 사용자 상태 우선 확인
+    // 4. 시스템 실행 중 (대시보드 이동)
     if (multiUserStatus.isRunning || isSystemStarted) {
       return {
         text: `📊 대시보드 이동 (사용자: ${multiUserStatus.userCount}명)`,
@@ -372,13 +421,22 @@ export default function Home() {
       };
     }
 
+    // 5. 기본 상태 (시스템 시작 대기)
     return {
       text: '🚀 시스템 시작',
       icon: <Play className='w-5 h-5' />,
       className:
         'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-blue-400/50',
     };
-  };
+  }, [
+    systemStartCountdown,
+    isSystemStarting,
+    isLoading,
+    statusLoading,
+    multiUserStatus.isRunning,
+    multiUserStatus.userCount,
+    isSystemStarted,
+  ]);
 
   // 로그아웃 처리
   const handleLogout = async () => {
@@ -602,8 +660,8 @@ export default function Home() {
                     {/* GitHub 인증 사용자 - 시스템 시작 버튼 표시 */}
                     <motion.button
                       onClick={handleSystemToggle}
-                      disabled={isLoading}
-                      className={`w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-200 border shadow-xl ${buttonConfig.className}`}
+                      disabled={isLoading || isSystemStarting}
+                      className={`w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-300 border shadow-xl ${buttonConfig.className}`}
                       whileHover={!isLoading ? { scale: 1.05 } : {}}
                       whileTap={!isLoading ? { scale: 0.95 } : {}}
                     >
@@ -614,9 +672,11 @@ export default function Home() {
                     {/* 상태 안내 */}
                     <div className='mt-2 flex flex-col items-center gap-1'>
                       <span
-                        className={`text-sm font-medium opacity-80 ${
+                        className={`text-sm font-medium opacity-80 transition-all duration-300 ${
                           systemStartCountdown > 0
                             ? 'text-orange-300 animate-pulse'
+                            : isSystemStarting
+                              ? 'text-purple-300'
                             : multiUserStatus.isRunning
                               ? 'text-green-300'
                               : 'text-white'
@@ -624,6 +684,8 @@ export default function Home() {
                       >
                         {systemStartCountdown > 0
                           ? '⚠️ 시작 예정 - 취소하려면 클릭'
+                          : isSystemStarting
+                            ? '🚀 시스템 부팅 중...'
                           : multiUserStatus.isRunning
                             ? `✅ 시스템 가동 중 (${multiUserStatus.userCount}명 접속)`
                             : '클릭하여 시작하기'}
@@ -636,7 +698,7 @@ export default function Home() {
                     </div>
 
                     {/* 시작 버튼 안내 아이콘 - 시스템 정지 상태일 때만 표시 */}
-                    {!systemStartCountdown && !multiUserStatus.isRunning && (
+                    {!systemStartCountdown && !isSystemStarting && !multiUserStatus.isRunning && (
                       <div className='mt-2 flex justify-center'>
                         <span className='finger-pointer-primary'>👆</span>
                       </div>

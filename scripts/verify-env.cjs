@@ -41,17 +41,17 @@ const REQUIRED_ENV_VARS = [
 
 // 플레이스홀더 패턴
 const PLACEHOLDER_PATTERNS = [
-    'your_supabase_url_here',
-    'your_supabase_anon_key_here',
-    'your_supabase_service_role_key_here',
-    'your_upstash_redis_url_here',
-    'your_upstash_redis_token_here',
-    'your_redis_host_here',
-    'your_redis_token_here',
-    'your_github_client_id_here',
-    'your_github_client_secret_here',
-    'your_nextauth_secret_here_generate_random_string',
-    'your_google_ai_api_key_here'
+    'YOUR_PLACEHOLDER',
+    'YOUR_PLACEHOLDER',
+    'YOUR_PLACEHOLDER',
+    'YOUR_PLACEHOLDER',
+    'YOUR_PLACEHOLDER',
+    'YOUR_PLACEHOLDER',
+    'YOUR_PLACEHOLDER',
+    'YOUR_PLACEHOLDER',
+    'YOUR_PLACEHOLDER',
+    'YOUR_PLACEHOLDER_generate_random_string',
+    'YOUR_GOOGLE_AI_API_KEY_PLACEHOLDER'
 ];
 
 // 검증 결과

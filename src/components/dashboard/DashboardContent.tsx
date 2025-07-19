@@ -1,7 +1,6 @@
 'use client';
 
 import InfrastructureOverviewPage from '@/components/ai/pages/InfrastructureOverviewPage';
-import SystemAlertsPage from '@/components/ai/pages/SystemAlertsPage';
 import dynamic from 'next/dynamic';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 
@@ -74,37 +73,95 @@ export default function DashboardContent({
     const stats = servers.reduce(
       (acc, server) => {
         acc.total += 1;
-        switch (server.status) {
+        
+        // 서버 상태 정규화 및 매핑
+        const normalizedStatus = server.status?.toLowerCase() || 'unknown';
+        
+        switch (normalizedStatus) {
           case 'online':
           case 'healthy':
+          case 'running':
+          case 'active':
             acc.online += 1;
             break;
           case 'warning':
+          case 'degraded':
+          case 'unstable':
             acc.warning += 1;
             break;
           case 'offline':
           case 'critical':
+          case 'error':
+          case 'failed':
+          case 'down':
             acc.offline += 1;
             break;
           default:
-            acc.online += 1; // 기본값은 온라인으로 처리
+            // 알 수 없는 상태는 경고로 분류
+            console.warn(`⚠️ 알 수 없는 서버 상태: ${server.status} (서버: ${server.name || server.id})`);
+            acc.warning += 1;
         }
         return acc;
       },
       { total: 0, online: 0, warning: 0, offline: 0 }
     );
 
-    console.log('📊 실제 서버 통계:', stats);
+    console.log('📊 실제 서버 통계:', {
+      ...stats,
+      서버_목록: servers.map(s => ({ 
+        이름: s.name || s.id, 
+        상태: s.status,
+        정규화된_상태: s.status?.toLowerCase() 
+      }))
+    });
     return stats;
   }, [servers]);
 
   // 🚀 에러 상태 추가
   const [renderError, setRenderError] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [screenSize, setScreenSize] = useState<string>('알 수 없음');
 
-  // 🛡️ 클라이언트 사이드 확인
+  // 🛡️ 클라이언트 사이드 확인 및 실시간 업데이트
   useEffect(() => {
     setIsClient(true);
+
+    // 화면 크기 감지 함수
+    const updateScreenSize = () => {
+      const width = window.innerWidth;
+      if (width >= 1536) {
+        setScreenSize('2K 최적화');
+      } else if (width >= 1280) {
+        setScreenSize('XL 최적화');
+      } else if (width >= 1024) {
+        setScreenSize('LG 최적화');
+      } else if (width >= 768) {
+        setScreenSize('태블릿 최적화');
+      } else {
+        setScreenSize('모바일 최적화');
+      }
+    };
+
+    // 초기 화면 크기 설정
+    updateScreenSize();
+
+    // 실시간 시간 업데이트 (1초마다)
+    const timeInterval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    // 화면 크기 변경 감지
+    const resizeHandler = () => {
+      updateScreenSize();
+    };
+
+    window.addEventListener('resize', resizeHandler);
+
+    return () => {
+      clearInterval(timeInterval);
+      window.removeEventListener('resize', resizeHandler);
+    };
   }, []);
 
   useEffect(() => {
@@ -189,42 +246,72 @@ export default function DashboardContent({
         className='h-full w-full'
       >
         <div className='h-full max-w-none 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6 overflow-y-auto'>
-          {/* 🎯 실제 서버 데이터 연결 상태 표시 */}
+          {/* 🎯 목업 데이터 모드 표시 */}
           {servers && servers.length > 0 && (
-            <div className='bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200 p-4 mb-4'>
+            <div className='bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200 p-4 mb-4'>
               <div className='flex items-center justify-between'>
                 <div className='flex items-center gap-3'>
-                  <div className='w-3 h-3 bg-green-500 rounded-full animate-pulse'></div>
-                  <span className='text-green-800 font-medium'>
-                    🎯 실제 서버 데이터 생성기 연결됨
+                  <div className='w-3 h-3 bg-purple-500 rounded-full animate-pulse'></div>
+                  <span className='text-purple-800 font-medium'>
+                    🎭 DEMO MODE - 온프레미스 서버 시뮬레이션
+                  </span>
+                  <span className='text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded-full'>
+                    목업 데이터
+                  </span>
+                  <span className='text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full'>
+                    24시간 시나리오
                   </span>
                 </div>
                 <div className='flex items-center gap-4 text-sm'>
-                  <span className='text-green-700'>
-                    총 {serverStats.total}대
-                  </span>
-                  <span className='text-green-600'>
-                    정상 {serverStats.online}대
-                  </span>
-                  {serverStats.warning > 0 && (
-                    <span className='text-yellow-600'>
-                      경고 {serverStats.warning}대
+                  <div className='flex items-center gap-1'>
+                    <div className='w-2 h-2 bg-gray-400 rounded-full'></div>
+                    <span className='text-gray-700'>
+                      총 {serverStats.total}대
                     </span>
+                  </div>
+                  <div className='flex items-center gap-1'>
+                    <div className='w-2 h-2 bg-green-500 rounded-full'></div>
+                    <span className='text-green-600'>
+                      정상 {serverStats.online}대
+                    </span>
+                  </div>
+                  {serverStats.warning > 0 && (
+                    <div className='flex items-center gap-1'>
+                      <div className='w-2 h-2 bg-yellow-500 rounded-full animate-pulse'></div>
+                      <span className='text-yellow-600'>
+                        경고 {serverStats.warning}대
+                      </span>
+                    </div>
                   )}
                   {serverStats.offline > 0 && (
-                    <span className='text-red-600'>
-                      오프라인 {serverStats.offline}대
-                    </span>
+                    <div className='flex items-center gap-1'>
+                      <div className='w-2 h-2 bg-red-500 rounded-full animate-pulse'></div>
+                      <span className='text-red-600'>
+                        오프라인 {serverStats.offline}대
+                      </span>
+                    </div>
                   )}
+                </div>
+              </div>
+              
+              {/* 📊 상세 통계 정보 */}
+              <div className='mt-2 pt-2 border-t border-green-200/50'>
+                <div className='flex items-center justify-between text-xs text-green-700'>
+                  <span>
+                    마지막 업데이트: {new Date().toLocaleTimeString('ko-KR')}
+                  </span>
+                  <span>
+                    정상 비율: {serverStats.total > 0 ? Math.round((serverStats.online / serverStats.total) * 100) : 0}%
+                  </span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* 🎯 상단 섹션: 인프라 현황 + 실시간 알림 */}
-          <div className='grid grid-cols-1 xl:grid-cols-3 2xl:grid-cols-4 gap-6'>
-            {/* 🎛️ 인프라 전체 현황 - 2칸 차지 */}
-            <div className='xl:col-span-2 2xl:col-span-2'>
+          {/* 🎯 상단 섹션: 인프라 현황 + 시스템 모니터링 */}
+          <div className='grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3 gap-6'>
+            {/* 🎛️ 인프라 전체 현황 - 큰 화면에서 2칸, 작은 화면에서 전체 */}
+            <div className='lg:col-span-2 xl:col-span-2 2xl:col-span-2'>
               <Suspense
                 fallback={
                   <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
@@ -268,81 +355,44 @@ export default function DashboardContent({
               </Suspense>
             </div>
 
-            {/* 🚨 실시간 시스템 알림 - 1칸 차지 */}
-            <div className='xl:col-span-1 2xl:col-span-1'>
-              <Suspense
-                fallback={
-                  <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
-                    <div className='animate-pulse'>
-                      <div className='h-6 bg-gray-200 rounded w-1/3 mb-4'></div>
-                      <div className='space-y-3'>
-                        <div className='h-4 bg-gray-200 rounded'></div>
-                        <div className='h-4 bg-gray-200 rounded w-5/6'></div>
-                      </div>
-                    </div>
-                  </div>
-                }
-              >
-                {(() => {
-                  try {
-                    return (
-                      <div className='bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden'>
-                        <SystemAlertsPage className='h-80 lg:h-96' />
-                      </div>
-                    );
-                  } catch (error) {
-                    console.error('❌ SystemAlertsPage 렌더링 에러:', error);
-                    return (
-                      <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
-                        <div className='text-center text-gray-500'>
-                          <p>시스템 알림을 불러올 수 없습니다.</p>
-                          <button
-                            onClick={() => window.location.reload()}
-                            className='mt-2 px-3 py-1 bg-blue-500 text-white rounded text-sm'
-                          >
-                            새로고침
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  }
-                })()}
-              </Suspense>
-            </div>
-
-            {/* 🎯 추가 모니터링 패널 (2K 화면에서만 표시) */}
-            <div className='hidden 2xl:block 2xl:col-span-1'>
-              <div className='bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-lg border border-gray-200 p-6 h-80 lg:h-96'>
+            {/* 🎯 시스템 모니터링 패널 - 반응형 개선 */}
+            <div className='lg:col-span-1 xl:col-span-1 2xl:col-span-1'>
+              <div className='bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-lg border border-gray-200 p-4 lg:p-6 h-80 lg:h-96'>
                 <div className='flex items-center justify-between mb-4'>
-                  <h3 className='text-lg font-semibold text-gray-800'>
+                  <h3 className='text-base lg:text-lg font-semibold text-gray-800'>
                     📊 시스템 모니터링
                   </h3>
                   <div className='w-2 h-2 bg-green-500 rounded-full animate-pulse'></div>
                 </div>
-                <div className='space-y-4'>
-                  <div className='bg-white/70 rounded-lg p-4'>
-                    <div className='text-sm text-gray-600 mb-1'>
+                <div className='space-y-3 lg:space-y-4'>
+                  <div className='bg-white/70 rounded-lg p-3 lg:p-4'>
+                    <div className='text-xs lg:text-sm text-gray-600 mb-1'>
                       실시간 업데이트
                     </div>
-                    <div className='text-2xl font-bold text-green-600'>
-                      {new Date().toLocaleTimeString()}
+                    <div className='text-lg lg:text-2xl font-bold text-green-600'>
+                      오후 {currentTime.toLocaleTimeString('ko-KR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                      })}
                     </div>
                   </div>
-                  <div className='bg-white/70 rounded-lg p-4'>
-                    <div className='text-sm text-gray-600 mb-1'>연결 상태</div>
+                  <div className='bg-white/70 rounded-lg p-3 lg:p-4'>
+                    <div className='text-xs lg:text-sm text-gray-600 mb-1'>연결 상태</div>
                     <div className='flex items-center gap-2'>
                       <div className='w-3 h-3 bg-green-500 rounded-full'></div>
-                      <span className='text-sm font-medium text-gray-800'>
+                      <span className='text-xs lg:text-sm font-medium text-gray-800'>
                         정상 연결
                       </span>
                     </div>
                   </div>
-                  <div className='bg-white/70 rounded-lg p-4'>
-                    <div className='text-sm text-gray-600 mb-1'>
+                  <div className='bg-white/70 rounded-lg p-3 lg:p-4'>
+                    <div className='text-xs lg:text-sm text-gray-600 mb-1'>
                       화면 해상도
                     </div>
-                    <div className='text-lg font-semibold text-gray-800'>
-                      2K 최적화
+                    <div className='text-sm lg:text-lg font-semibold text-gray-800'>
+                      {screenSize}
                     </div>
                   </div>
                 </div>

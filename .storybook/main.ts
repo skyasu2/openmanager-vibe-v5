@@ -20,6 +20,10 @@ const config: StorybookConfig = {
     },
   },
 
+  features: {
+    experimentalRSC: true, // React Server Components 지원
+  },
+
   typescript: {
     check: true,
     reactDocgen: 'react-docgen-typescript',

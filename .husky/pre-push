@@ -1,35 +1,42 @@
 #!/bin/sh
-echo "Pre-push verification starting..."
-echo "Running quality checks..."
+
+echo "🚀 Pre-push 검증 시작..."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # Skip if HUSKY is disabled
 if [ "$HUSKY" = "0" ]; then
-    echo "Husky is disabled. Skipping verification."
+    echo "⏭️  Husky가 비활성화되어 있습니다. 검증을 건너뜁니다."
     exit 0
 fi
 
 # Type check
-echo "Type checking..."
+echo "📝 TypeScript 타입 체크 중..."
 npm run type-check
 if [ $? -ne 0 ]; then
-    echo "Type check failed!"
+    echo "❌ TypeScript 타입 체크 실패!"
+    echo ""
+    echo "💡 팁: 타입 에러를 수정하거나 다음 명령으로 푸시할 수 있습니다:"
+    echo "   HUSKY=0 git push"
     exit 1
 fi
 
-# Lint
-echo "Linting..."
-npm run lint
+echo "✅ TypeScript 타입 체크 통과"
+echo ""
+
+# Unit tests - 빠른 테스트만 실행
+echo "🧪 단위 테스트 실행 중..."
+npm run test:unit -- --reporter=basic --no-coverage
 if [ $? -ne 0 ]; then
-    echo "Lint check failed!"
+    echo "❌ 단위 테스트 실패!"
+    echo ""
+    echo "💡 팁: 테스트를 수정하거나 다음 명령으로 푸시할 수 있습니다:"
+    echo "   HUSKY=0 git push"
     exit 1
 fi
 
-# Tests (quick tests only)
-echo "Running tests..."
-npm run test:quick
-if [ $? -ne 0 ]; then
-    echo "Tests failed!"
-    exit 1
-fi
+echo "✅ 단위 테스트 통과"
+echo ""
 
-echo "All verifications passed! Proceeding with push."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "✅ 모든 Pre-push 검증 통과!"
+echo "🚀 Push를 진행합니다..."

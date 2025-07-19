@@ -127,26 +127,26 @@ case $choice in
         cp .env.local .env.local.backup
         
         # 실제 값으로 교체
-        sed -i "s|SUPABASE_URL=your_supabase_url_here|SUPABASE_URL=$supabase_url|g" .env.local
-        sed -i "s|NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here|NEXT_PUBLIC_SUPABASE_URL=$supabase_url|g" .env.local
-        sed -i "s|NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here|NEXT_PUBLIC_SUPABASE_ANON_KEY=$supabase_anon_key|g" .env.local
-        sed -i "s|SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here|SUPABASE_SERVICE_ROLE_KEY=$supabase_service_key|g" .env.local
+        sed -i "s|SUPABASE_URL=YOUR_PLACEHOLDER|SUPABASE_URL=$supabase_url|g" .env.local
+        sed -i "s|NEXT_PUBLIC_SUPABASE_URL=YOUR_PLACEHOLDER|NEXT_PUBLIC_SUPABASE_URL=$supabase_url|g" .env.local
+        sed -i "s|NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_PLACEHOLDER|NEXT_PUBLIC_SUPABASE_ANON_KEY=$supabase_anon_key|g" .env.local
+        sed -i "s|SUPABASE_SERVICE_ROLE_KEY=YOUR_PLACEHOLDER|SUPABASE_SERVICE_ROLE_KEY=$supabase_service_key|g" .env.local
         
-        sed -i "s|UPSTASH_REDIS_REST_URL=your_upstash_redis_url_here|UPSTASH_REDIS_REST_URL=$redis_url|g" .env.local
-        sed -i "s|UPSTASH_REDIS_REST_TOKEN=your_upstash_redis_token_here|UPSTASH_REDIS_REST_TOKEN=$redis_token|g" .env.local
-        sed -i "s|KV_REST_API_URL=https://your_redis_host_here|KV_REST_API_URL=$redis_url|g" .env.local
-        sed -i "s|KV_REST_API_TOKEN=your_redis_token_here|KV_REST_API_TOKEN=$redis_token|g" .env.local
+        sed -i "s|UPSTASH_REDIS_REST_URL=YOUR_PLACEHOLDER|UPSTASH_REDIS_REST_URL=$redis_url|g" .env.local
+        sed -i "s|UPSTASH_REDIS_REST_TOKEN=YOUR_PLACEHOLDER|UPSTASH_REDIS_REST_TOKEN=$redis_token|g" .env.local
+        sed -i "s|KV_REST_API_URL=https://YOUR_PLACEHOLDER|KV_REST_API_URL=$redis_url|g" .env.local
+        sed -i "s|KV_REST_API_TOKEN=YOUR_PLACEHOLDER|KV_REST_API_TOKEN=$redis_token|g" .env.local
         
         # Redis URL 구성
         redis_host=$(echo $redis_url | sed 's|https://||')
         redis_connection_url="rediss://default:$redis_token@$redis_host:6379"
-        sed -i "s|KV_URL=rediss://default:your_redis_password_here@your_redis_host_here:6379|KV_URL=$redis_connection_url|g" .env.local
+        sed -i "s|KV_URL=rediss://default:YOUR_PLACEHOLDER@YOUR_PLACEHOLDER:6379|KV_URL=$redis_connection_url|g" .env.local
         
-        sed -i "s|GITHUB_CLIENT_ID=your_github_client_id_here|GITHUB_CLIENT_ID=$github_client_id|g" .env.local
-        sed -i "s|GITHUB_CLIENT_SECRET=your_github_client_secret_here|GITHUB_CLIENT_SECRET=$github_client_secret|g" .env.local
-        sed -i "s|NEXTAUTH_SECRET=your_nextauth_secret_here_generate_random_string|NEXTAUTH_SECRET=$nextauth_secret|g" .env.local
+        sed -i "s|GITHUB_CLIENT_ID=YOUR_PLACEHOLDER|GITHUB_CLIENT_ID=$github_client_id|g" .env.local
+        sed -i "s|GITHUB_CLIENT_SECRET=YOUR_PLACEHOLDER|GITHUB_CLIENT_SECRET=$github_client_secret|g" .env.local
+        sed -i "s|NEXTAUTH_SECRET=YOUR_PLACEHOLDER_generate_random_string|NEXTAUTH_SECRET=$nextauth_secret|g" .env.local
         
-        sed -i "s|GOOGLE_AI_API_KEY=your_google_ai_api_key_here|GOOGLE_AI_API_KEY=$google_ai_key|g" .env.local
+        sed -i "s|GOOGLE_AI_API_KEY=YOUR_GOOGLE_AI_API_KEY_PLACEHOLDER|GOOGLE_AI_API_KEY=$google_ai_key|g" .env.local
         
         echo -e "${GREEN}✅ .env.local 파일 업데이트 완료${NC}"
         echo ""

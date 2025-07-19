@@ -285,9 +285,9 @@ claude mcp add sequential-thinking npx -y @modelcontextprotocol/server-sequentia
 
 ```bash
 # .env.local 파일에 API 키 저장
-GITHUB_TOKEN=your_github_token_here
-SUPABASE_ACCESS_TOKEN=your_supabase_token_here
-TAVILY_API_KEY=your_tavily_key_here
+GITHUB_TOKEN=YOUR_PLACEHOLDER
+SUPABASE_ACCESS_TOKEN=YOUR_PLACEHOLDER
+TAVILY_API_KEY=YOUR_PLACEHOLDER
 ```
 
 ### OAuth 인증 서비스

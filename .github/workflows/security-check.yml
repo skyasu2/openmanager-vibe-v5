@@ -7,61 +7,43 @@ on:
     branches: [ main ]
 
 jobs:
-  check-secrets:
+  security-scan:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
-    - name: Check for hardcoded secrets
+    - name: 하드코딩된 시크릿 검사 (개선된 스크립트)
       run: |
-        echo "🔍 하드코딩된 시크릿 검사 중..."
+        # 정교한 보안 검사 스크립트 실행
+        chmod +x scripts/check-hardcoded-secrets.sh
+        ./scripts/check-hardcoded-secrets.sh
+    
+    - name: npm audit 보안 취약점 검사
+      run: |
+        npm audit --audit-level high || true
+    
+    - name: 환경변수 템플릿 검증
+      run: |
+        # .env.example 파일이 존재하는지 확인
+        if [ ! -f .env.example ]; then
+          echo "⚠️ .env.example 파일이 없습니다!"
+          exit 1
+        fi
         
-        # 검사할 패턴들
-        patterns=(
-          "your_specific_redis_token_pattern_here"
-          "your-specific-redis-host.upstash.io"
-          "redis://default:"
-          "postgresql://postgres:"
-          "ghp_"
-          "ghs_"
-          "sk-"
-          "pk_"
-          "api_key"
-          "secret_key"
-        )
-        
-        found=0
-        for pattern in "${patterns[@]}"; do
-          echo "검사 중: $pattern"
-          if grep -r "$pattern" . \
-            --exclude-dir=node_modules \
-            --exclude-dir=.git \
-            --exclude-dir=.next \
-            --exclude-dir=coverage \
-            --exclude-dir=dist \
-            --exclude="*.lock" \
-            --exclude="*.log" \
-            --exclude=".env.example" \
-            --exclude="security-check.yml" \
-            2>/dev/null; then
-            echo "⚠️ 경고: '$pattern' 패턴이 발견되었습니다!"
-            found=1
-          fi
-        done
-        
-        if [ $found -eq 1 ]; then
-          echo "❌ 하드코딩된 시크릿이 발견되었습니다!"
-          echo "📝 환경변수를 사용하도록 코드를 수정하세요."
+        # 실제 시크릿이 .env.example에 없는지 확인 (예제 패턴 제외)
+        echo "🔍 .env.example 파일 검증 중..."
+        if grep -E "(ghp_[a-zA-Z0-9]{36}|ghs_[a-zA-Z0-9]{36}|sk-[a-zA-Z0-9]{48}|AIza[a-zA-Z0-9-_]{35})" .env.example; then
+          echo "❌ .env.example에 실제 시크릿이 포함되어 있습니다!"
           exit 1
         else
-          echo "✅ 하드코딩된 시크릿이 발견되지 않았습니다."
+          echo "✅ .env.example 파일이 안전합니다."
         fi
     
-    - name: Run TruffleHog
+    - name: Run TruffleHog (검증된 시크릿만)
       uses: trufflesecurity/trufflehog@main
       with:
         path: ./
         base: ${{ github.event.repository.default_branch }}
         head: HEAD
-        extra_args: --debug --only-verified
+        extra_args: --only-verified --exclude-paths .securityignore

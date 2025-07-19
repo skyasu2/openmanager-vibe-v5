@@ -67,25 +67,25 @@
 ### 방법 1: Claude Code 재시작 시 환경변수 전달
 ```bash
 # Windows PowerShell
-$env:GITHUB_TOKEN="your_new_token_here"; claude
+$env:GITHUB_TOKEN="YOUR_PLACEHOLDER"; claude
 
 # macOS/Linux
-GITHUB_TOKEN="your_new_token_here" claude
+GITHUB_TOKEN="YOUR_PLACEHOLDER" claude
 ```
 
 ### 방법 2: Claude MCP 명령어로 추가
 ```bash
 claude mcp remove github
-claude mcp add github -e GITHUB_TOKEN="your_new_token_here" -- npx -y @modelcontextprotocol/server-github
+claude mcp add github -e GITHUB_TOKEN="YOUR_PLACEHOLDER" -- npx -y @modelcontextprotocol/server-github
 ```
 
 ### 방법 3: 시스템 환경변수 설정
 ```bash
 # Windows
-setx GITHUB_TOKEN "your_new_token_here"
+setx GITHUB_TOKEN "YOUR_PLACEHOLDER"
 
 # macOS/Linux (.bashrc 또는 .zshrc에 추가)
-export GITHUB_TOKEN="your_new_token_here"
+export GITHUB_TOKEN="YOUR_PLACEHOLDER"
 ```
 
 ## 🚫 향후 예방 조치

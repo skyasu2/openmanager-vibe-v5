@@ -327,13 +327,15 @@ describe('Utils Functions', () => {
       const failFn = vi.fn().mockRejectedValue(new Error('always fail'));
 
       // 🔧 수정: Promise rejection을 즉시 처리하여 unhandled rejection 방지
-      const failPromise = retry(failFn, 2, 10);
+      const failPromise = retry(failFn, 2, 10).catch(err => err);
 
       // 재시도 지연 시간을 빠르게 진행 (10ms * 1회)
       await vi.runAllTimersAsync();
 
       // 에러가 제대로 던져졌는지 확인
-      await expect(failPromise).rejects.toThrow('always fail');
+      const result = await failPromise;
+      expect(result).toBeInstanceOf(Error);
+      expect(result.message).toBe('always fail');
       expect(failFn).toHaveBeenCalledTimes(2);
 
       vi.useRealTimers();

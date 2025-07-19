@@ -9,11 +9,11 @@
  * - ✅ 반응형 디자인 완전 지원
  */
 
-import { AlertCircle, CheckCircle2, Clock, MapPin, Server } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, MapPin, Server, Database, Globe, HardDrive, Archive } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import React, { memo, useCallback, useEffect, useState } from 'react';
 import { Server as ServerType } from '../../types/server';
-import { ServerCardGauge } from '../shared/UnifiedCircularGauge';
+import { ServerCardBarChart } from '../shared/ServerMetricsBarChart';
 
 // framer-motion을 동적 import로 처리
 const MotionButton = dynamic(
@@ -148,6 +148,37 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
           };
       }
     };
+    
+    // 서버 타입별 아이콘 가져오기
+    const getServerIcon = () => {
+      switch (server.type) {
+        case 'web':
+          return <Globe className='w-5 h-5' />;
+        case 'database':
+          return <Database className='w-5 h-5' />;
+        case 'storage':
+          return <HardDrive className='w-5 h-5' />;
+        case 'backup':
+          return <Archive className='w-5 h-5' />;
+        case 'app':
+        default:
+          return <Server className='w-5 h-5' />;
+      }
+    };
+    
+    // OS별 아이콘/이모지 가져오기
+    const getOSIcon = () => {
+      const os = server.os?.toLowerCase() || '';
+      
+      if (os.includes('ubuntu') || os.includes('debian') || os.includes('linux')) {
+        return <span className='text-base' title={server.os}>🐧</span>;
+      } else if (os.includes('centos') || os.includes('red hat') || os.includes('rhel')) {
+        return <span className='text-base' title={server.os}>🎩</span>;
+      } else if (os.includes('windows')) {
+        return <span className='text-base' title={server.os}>🪟</span>;
+      }
+      return null;
+    };
 
     // 메트릭 색상 결정 (통합 컴포넌트로 이동됨)
     const getMetricColor = (
@@ -201,40 +232,40 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
       }
     };
 
-    // 배리언트별 스타일
+    // 배리언트별 스타일 (막대 그래프에 맞게 높이 조정)
     const getVariantStyles = () => {
       switch (variant) {
         case 'compact':
           return {
-            container: 'p-4 min-h-[200px]', // 기존 180px → 200px로 증가
+            container: 'p-4 min-h-[280px]', // 막대 그래프를 위해 280px로 증가
             titleSize: 'text-sm font-semibold',
             metricSize: 'text-xs',
-            progressHeight: 'h-2', // 기존 h-1 → h-2로 증가
-            spacing: 'space-y-3',
+            progressHeight: 'h-2',
+            spacing: 'space-y-4',
             showServices: true,
-            maxServices: 3, // 기존 2개 → 3개로 증가
+            maxServices: 2, // 공간 절약을 위해 2개로 조정
             showDetails: false,
           };
         case 'detailed':
           return {
-            container: 'p-6 min-h-[280px]', // 기존 250px → 280px로 증가
+            container: 'p-6 min-h-[360px]', // 막대 그래프를 위해 360px로 증가
             titleSize: 'text-lg font-bold',
             metricSize: 'text-sm',
-            progressHeight: 'h-3', // 기존 h-2 → h-3로 증가
-            spacing: 'space-y-4',
+            progressHeight: 'h-3',
+            spacing: 'space-y-5',
             showServices: true,
-            maxServices: 5, // 기존 4개 → 5개로 증가
+            maxServices: 4,
             showDetails: true,
           };
         default: // standard
           return {
-            container: 'p-5 min-h-[240px]', // 기존 220px → 240px로 증가
+            container: 'p-5 min-h-[320px]', // 막대 그래프를 위해 320px로 증가
             titleSize: 'text-base font-semibold',
             metricSize: 'text-sm',
-            progressHeight: 'h-2.5', // 기존 h-1.5 → h-2.5로 증가
-            spacing: 'space-y-3',
+            progressHeight: 'h-2.5',
+            spacing: 'space-y-4',
             showServices: true,
-            maxServices: 4, // 기존 3개 → 4개로 증가
+            maxServices: 3,
             showDetails: true,
           };
       }
@@ -295,14 +326,17 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
               whileHover={{ rotate: 5, scale: 1.1 }}
               transition={{ duration: 0.2 }}
             >
-              <Server className='w-5 h-5' />
+              {getServerIcon()}
             </MotionDiv>
             <div className='flex-1 min-w-0'>
-              <h3
-                className={`${getVariantStyles().titleSize} text-gray-900 truncate mb-1`}
-              >
-                {server.name}
-              </h3>
+              <div className='flex items-center gap-2 mb-1'>
+                <h3
+                  className={`${getVariantStyles().titleSize} text-gray-900 truncate`}
+                >
+                  {server.name}
+                </h3>
+                {getOSIcon()}
+              </div>
               <div className='flex items-center gap-2 text-xs text-gray-500'>
                 <MapPin className='w-3 h-3' />
                 <span>{server.location || 'Seoul DC1'}</span>
@@ -329,34 +363,30 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
           </MotionDiv>
         </div>
 
-        {/* 메트릭 섹션 - 통합 컴포넌트 사용 */}
+        {/* 메트릭 섹션 - 막대 그래프로 최근 5분간 데이터 표시 */}
         <div className={`grid grid-cols-2 gap-4 ${getVariantStyles().spacing}`}>
-          <ServerCardGauge
+          <ServerCardBarChart
             label='CPU'
             value={realtimeMetrics.cpu}
             type='cpu'
-            size={60}
             showRealTimeUpdates={showRealTimeUpdates}
           />
-          <ServerCardGauge
+          <ServerCardBarChart
             label='메모리'
             value={realtimeMetrics.memory}
             type='memory'
-            size={60}
             showRealTimeUpdates={showRealTimeUpdates}
           />
-          <ServerCardGauge
+          <ServerCardBarChart
             label='디스크'
             value={realtimeMetrics.disk}
             type='disk'
-            size={60}
             showRealTimeUpdates={showRealTimeUpdates}
           />
-          <ServerCardGauge
+          <ServerCardBarChart
             label='네트워크'
             value={realtimeMetrics.network}
             type='network'
-            size={60}
             showRealTimeUpdates={showRealTimeUpdates}
           />
         </div>

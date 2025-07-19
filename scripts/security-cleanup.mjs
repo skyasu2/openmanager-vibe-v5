@@ -11,7 +11,7 @@ const projectRoot = path.join(__dirname, '..');
 // 🚨 민감한 정보 패턴들
 const SENSITIVE_PATTERNS = [
     // Supabase JWT 토큰들
-    /your_jwt_token_here\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,
+    /YOUR_PLACEHOLDER\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,
 
     // Google API 키들
     /AIzaSy[A-Za-z0-9_-]{33}/g,
@@ -30,24 +30,24 @@ const SENSITIVE_PATTERNS = [
 // 🔄 대체할 플레이스홀더들
 const REPLACEMENTS = {
     // JWT 토큰들
-    'your_jwt_token_here': 'your_jwt_token_here',
+    'YOUR_PLACEHOLDER': 'YOUR_PLACEHOLDER',
 
     // Google API 키
-    'SENSITIVE_INFO_REMOVED': 'your_google_ai_api_key_here',
+    'SENSITIVE_INFO_REMOVED': 'YOUR_GOOGLE_AI_API_KEY_PLACEHOLDER',
 
     // Google OAuth
-    'SENSITIVE_INFO_REMOVED3456': 'your_google_oauth_client_secret_here',
-    'your_google_oauth_client_id_here': 'your_google_oauth_client_id_here',
+    'SENSITIVE_INFO_REMOVED3456': 'YOUR_PLACEHOLDER',
+    'YOUR_PLACEHOLDER': 'YOUR_PLACEHOLDER',
 
     // Redis
-    'SENSITIVE_INFO_REMOVED': 'your_redis_password_here',
-    'your_redis_host_here': 'your_redis_host_here',
+    'SENSITIVE_INFO_REMOVED': 'YOUR_PLACEHOLDER',
+    'YOUR_PLACEHOLDER': 'YOUR_PLACEHOLDER',
 
     // Supabase
-    'your_supabase_url_here': 'your_supabase_url_here',
-    'your_supabase_project_id_here': 'your_supabase_project_id_here',
-    'SENSITIVE_INFO_REMOVED': 'your_supabase_jwt_secret_here',
-    'SENSITIVE_INFO_REMOVED': 'your_supabase_db_password_here',
+    'YOUR_PLACEHOLDER': 'YOUR_PLACEHOLDER',
+    'YOUR_PLACEHOLDER': 'YOUR_PLACEHOLDER',
+    'SENSITIVE_INFO_REMOVED': 'YOUR_PLACEHOLDER',
+    'SENSITIVE_INFO_REMOVED': 'YOUR_PLACEHOLDER',
 };
 
 // 🚫 제외할 디렉토리들

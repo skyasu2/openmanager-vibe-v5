@@ -1,45 +1,51 @@
-import { transformServerInstancesToServersOptimized } from '@/adapters/server-data-adapter';
-// GCPRealDataService removed - using FixedDataSystem instead
-import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
 import { NextResponse } from 'next/server';
+import { getMockSystem } from '@/mock';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    console.log('🚀 /api/servers/all - 서버리스 호환 데이터 생성 시작');
+    console.log('🚀 /api/servers/all - 목업 서버 데이터 가져오기');
 
-    // 🌐 GCP 실제 데이터 서비스 사용
-    // const gcpService = GCPRealDataService.getInstance(); // Removed
-    // await gcpDataService.initialize(); // gcpDataService removed
+    // 🎯 목업 시스템에서 8개 온프레미스 서버 데이터 가져오기
+    const mockSystem = getMockSystem();
+    const servers = mockSystem.getServers();
+    const systemInfo = mockSystem.getSystemInfo();
+    
+    console.log('📊 목업 데이터:', servers.length, '개 서버');
+    console.log('🎭 시나리오:', systemInfo.scenario.description);
 
-    // 🔧 서버 데이터 가져오기 (빈 배열로 임시 처리)
-    // const metricsResponse = await gcpDataService.getRealServerMetrics(); // gcpDataService removed
-    const gcpServerData: any[] = []; // gcpDataService removed
-    console.log('📊 생성된 데이터:', gcpServerData.length, '개 서버');
+    // 📊 통계 정보 계산
+    const stats = {
+      total: servers.length,
+      online: servers.filter(s => s.status === 'online').length,
+      warning: servers.filter(s => s.status === 'warning').length,
+      critical: servers.filter(s => s.status === 'critical').length,
+    };
 
-    // 🔄 GCP 메트릭을 표준 ServerInstance로 변환
-    const serverData = adaptGCPMetricsToServerInstances(gcpServerData);
-    console.log('🔄 타입 변환 완료:', serverData.length, '개 서버');
-
-    // 🚀 배치 최적화 변환 사용
-    const servers = transformServerInstancesToServersOptimized(serverData);
-
-    console.log('✅ 최적화된 변환 완료:', servers.length, '개 서버');
+    console.log('📈 서버 통계:', stats);
+    console.log('⏱️ 시뮬레이션 시간:', systemInfo.rotatorStatus?.simulationTime || '시작 전');
 
     return NextResponse.json({
       success: true,
       data: servers,
       count: servers.length,
+      stats,
       timestamp: Date.now(),
       optimized: true,
       serverless: true,
-      dataSource: 'request-scoped',
+      dataSource: 'mock-onpremise',
+      scenario: {
+        name: systemInfo.scenario.scenario,
+        description: systemInfo.scenario.description,
+        startHour: systemInfo.scenario.startHour
+      },
+      simulationTime: systemInfo.rotatorStatus?.simulationTime,
     }, {
       headers: {
-        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=240',
-        'CDN-Cache-Control': 'public, s-maxage=120',
-        'Vercel-CDN-Cache-Control': 'public, s-maxage=120',
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+        'CDN-Cache-Control': 'public, s-maxage=30',
+        'Vercel-CDN-Cache-Control': 'public, s-maxage=30',
       },
     });
   } catch (error) {

@@ -12,14 +12,14 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.ts'],
 
-      // 🎯 핵심 테스트만 실행 (불필요한 테스트 제거 후)
+      // 🎯 핵심 테스트만 실행
       include: [
         'src/test/**/*.test.{ts,tsx}',
         'tests/unit/**/*.test.{ts,tsx}',
         'tests/integration/**/*.test.{ts,tsx}',
         'tests/components/**/*.test.{ts,tsx}',
-        'tests/gcp/**/*.test.{ts,tsx}',
         'tests/api/**/*.test.{ts,tsx}',
+        'tests/dev-integration/**/*.test.{ts,tsx}',
       ],
 
       // 🚫 제거된 기능들 테스트 제외
@@ -29,15 +29,10 @@ export default defineConfig(({ mode }) => {
         '**/.next/**',
         '**/build/**',
         '**/coverage/**',
-        // 제거된 기능들 (더 이상 존재하지 않는 디렉토리)
-        'tests/redis/**',
-        'tests/health-check/**',
-        'tests/monitoring/**',
-        'tests/cleanup/**',
-        // 제거된 AI 모드 관련 테스트
-        'tests/integration/three-tier-router.test.ts',
-        'tests/**/auto-mode/**',
-        'tests/**/fallback-system/**',
+        // 제거된 기능들
+        'tests/unit/distributed-data-manager.test.ts',
+        'tests/unit/natural-language-query-cache.test.ts',
+        'tests/unit/natural-language-unifier.test.ts',
       ],
 
       // 🎯 테스트 실행 최적화

@@ -8,10 +8,9 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
-    // Temporarily relaxed for commit - TODO: Fix and re-enable
-    // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
-    // "exactOptionalPropertyTypes": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    // "exactOptionalPropertyTypes": true, // 이것은 너무 엄격할 수 있어서 일단 비활성화
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -59,6 +58,7 @@
     "out",
     "build",
     "backups/**/*",
+    "backup-removed-features/**/*",
     "development/**/*",
     "src/stories/**",
     "**/*.stories.tsx",

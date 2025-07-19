@@ -192,3 +192,6 @@ COMMIT_MSG.tmp
 50%
 
 *storybook.log
+
+# ESLint cache
+.eslintcache

@@ -21,11 +21,11 @@ const SmoothLoadingSpinner = () => {
   return (
     <div className='relative w-20 h-20 mx-auto mb-8'>
       {/* 외부 링 - 더 부드러운 애니메이션 */}
-      <div className='absolute inset-0 border-4 border-transparent border-t-blue-500 border-r-purple-500 rounded-full animate-spin' 
+      <div className='absolute inset-0 border-4 border-transparent border-t-blue-500 border-r-purple-500 rounded-full animate-spin'
         style={{ animationDuration: '3s' }}
       />
       {/* 내부 링 - 더 부드러운 애니메이션 */}
-      <div className='absolute inset-2 border-3 border-transparent border-b-purple-400 border-l-pink-400 rounded-full animate-reverse-spin' 
+      <div className='absolute inset-2 border-3 border-transparent border-b-purple-400 border-l-pink-400 rounded-full animate-reverse-spin'
         style={{ animationDuration: '2.5s' }}
       />
       {/* 중앙 아이콘 - 부드러운 펄스 */}
@@ -147,38 +147,76 @@ export default function SystemBootPage() {
     },
   ];
 
-  // 🚀 실제 제품 로딩 애니메이션
+  // 🚀 실제 제품 로딩 애니메이션 (백그라운드 초기화와 동기화)
   useEffect(() => {
     if (!isClient) return;
 
     console.log('🚀 OpenManager 시스템 로딩 시작');
 
+    // 실제 시스템 상태를 주기적으로 체크
+    const checkSystemStatus = async () => {
+      try {
+        const response = await fetch('/api/system/status');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.isRunning) {
+            console.log('✅ 시스템이 준비되었습니다 - 대시보드로 이동');
+            handleBootComplete();
+            return true;
+          }
+        }
+      } catch (error) {
+        console.log('🔄 시스템 상태 체크 중...');
+      }
+      return false;
+    };
+
+    // 로딩 애니메이션과 실제 시스템 체크를 병렬로 실행
+    let systemReady = false;
+
     stages.forEach(({ name, delay, icon, description }, index) => {
       setTimeout(() => {
+        if (systemReady) return; // 시스템이 이미 준비되면 스킵
+
         // 페이드 트랜지션 시작
         setIsTransitioning(true);
-        
+
         setTimeout(() => {
           setCurrentStage(name);
           setCurrentIcon(icon);
           setProgress(((index + 1) / stages.length) * 100);
-          
+
           // 페이드 트랜지션 종료
           setTimeout(() => {
             setIsTransitioning(false);
           }, 150);
         }, 150);
 
-        // 마지막 단계에서 완료 처리
+        // 각 단계에서 시스템 상태 체크
+        setTimeout(async () => {
+          if (!systemReady) {
+            systemReady = await checkSystemStatus();
+          }
+        }, delay + 200);
+
+        // 마지막 단계에서 완료 처리 (시스템이 아직 준비되지 않은 경우)
         if (index === stages.length - 1) {
-          setTimeout(() => {
-            handleBootComplete();
-          }, 1500); // 1.5초 후 대시보드로 이동
+          setTimeout(async () => {
+            if (!systemReady) {
+              // 마지막으로 한 번 더 체크
+              systemReady = await checkSystemStatus();
+              if (!systemReady) {
+                // 시스템이 아직 준비되지 않았어도 대시보드로 이동
+                console.log('⏰ 로딩 시간 완료 - 대시보드로 이동');
+                handleBootComplete();
+              }
+            }
+          }, 1500);
         }
       }, delay);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isClient]); // handleBootComplete과 stages는 stable
+  }, [isClient]);
 
   // 부팅 완료 - 즉시 대시보드로 이동
   const handleBootComplete = () => {
@@ -235,7 +273,7 @@ export default function SystemBootPage() {
             <div className='absolute inset-0'>
               <div className='w-full h-full rounded-2xl flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 text-white shadow-2xl'>
                 {/* 아이콘 - 페이드 트랜지션 추가 */}
-                <div 
+                <div
                   className={`transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
                 >
                   <CurrentIconComponent className='w-10 h-10' />
@@ -245,14 +283,14 @@ export default function SystemBootPage() {
           </div>
 
           {/* 현재 단계명 - 페이드 트랜지션 추가 */}
-          <h2 
+          <h2
             className={`text-2xl font-semibold text-white mb-4 transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
           >
             {currentStage}
           </h2>
 
           {/* 단계 설명 - 페이드 트랜지션 추가 */}
-          <p 
+          <p
             className={`text-white/70 mb-8 font-light transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
           >
             {currentStageData.description}
@@ -273,11 +311,10 @@ export default function SystemBootPage() {
                   <div key={index} className='relative'>
                     {/* 메인 아이콘 컨테이너 */}
                     <div
-                      className={`w-12 h-12 rounded-xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${
-                        isActive
-                          ? 'bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 text-white shadow-lg'
-                          : 'bg-white/10 text-white/40 border border-white/20'
-                      }`}
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${isActive
+                        ? 'bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 text-white shadow-lg'
+                        : 'bg-white/10 text-white/40 border border-white/20'
+                        }`}
                     >
                       {/* 아이콘 */}
                       <div

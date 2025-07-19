@@ -184,6 +184,7 @@ export type ServerEnvironment =
   | 'azure';
 export type ServerRole =
   | 'web'
+  | 'app'
   | 'api'
   | 'database'
   | 'cache'
@@ -304,6 +305,20 @@ export const SERVER_TYPE_DEFINITIONS: Record<ServerRole, ServerTypeDefinition> =
       failureProne: ['high_traffic', 'ssl_issues', 'frontend_errors'],
       dependencies: ['api', 'cache'],
     },
+    app: {
+      type: 'app',
+      tags: ['node', 'java', 'dotnet', 'application', 'business-logic'],
+      characteristics: {
+        cpuWeight: 0.9,
+        memoryWeight: 0.8,
+        diskWeight: 0.5,
+        networkWeight: 0.9,
+        responseTimeBase: 150,
+        stabilityFactor: 0.75,
+      },
+      failureProne: ['memory_leak', 'thread_pool_exhausted', 'gc_pressure'],
+      dependencies: ['database', 'cache', 'api'],
+    },
     api: {
       type: 'api',
       tags: ['node', 'express', 'fastapi', 'rest', 'graphql'],
@@ -415,11 +430,12 @@ export interface RealisticFailureScenario {
 }
 
 export const FAILURE_IMPACT_GRAPH: Record<ServerRole, ServerRole[]> = {
+  app: ['database', 'cache', 'api'],
   api: ['database', 'cache'],
   web: ['api', 'load-balancer'],
   storage: ['database', 'backup'],
-  database: ['api', 'backup'],
-  cache: ['api'],
+  database: ['api', 'backup', 'app'],
+  cache: ['api', 'app'],
   'load-balancer': ['web'],
   backup: ['storage'],
 };

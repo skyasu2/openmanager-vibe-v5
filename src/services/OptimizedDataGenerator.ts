@@ -123,6 +123,14 @@ const HIGH_LOAD_CONFIGS: Record<ServerRole, BaseLoadConfig> = {
     networkOut: 150,
     responseTime: 120,
   },
+  app: {
+    cpu: 65,
+    memory: 70,
+    disk: 45,
+    networkIn: 180,
+    networkOut: 160,
+    responseTime: 200,
+  },
 };
 
 export class OptimizedDataGenerator {
@@ -324,6 +332,14 @@ export class OptimizedDataGenerator {
         networkIn: 30,
         networkOut: 150,
         responseTime: 120,
+      },
+      app: {
+        cpu: 55,
+        memory: 60,
+        disk: 40,
+        networkIn: 130,
+        networkOut: 140,
+        responseTime: 100,
       },
     };
 

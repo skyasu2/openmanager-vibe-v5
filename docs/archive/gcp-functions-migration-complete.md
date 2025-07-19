@@ -365,7 +365,7 @@ class ThreeTierAIRouter {
 
 ```json
 {
-  "endpoint": "your_redis_host_here:6379",
+  "endpoint": "YOUR_PLACEHOLDER:6379",
   "memoryUsage": "39%",
   "commandUsage": "30%",
   "connectionUsage": "25%",
@@ -377,7 +377,7 @@ class ThreeTierAIRouter {
 
 ```json
 {
-  "project": "your_supabase_project_id_here",
+  "project": "YOUR_PLACEHOLDER",
   "databaseUsage": "40%",
   "apiRequestUsage": "30%",
   "storageUsage": "30%",

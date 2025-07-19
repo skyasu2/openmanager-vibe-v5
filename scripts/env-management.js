@@ -45,7 +45,7 @@ class EnvSecurityManager {
       NEXT_PUBLIC_SUPABASE_URL: {
         required: true,
         public: true,
-        value: 'your_supabase_url_here',
+        value: 'YOUR_SUPABASE_URL_PLACEHOLDER',
         encrypt: true,
       },
       NEXT_PUBLIC_SUPABASE_ANON_KEY: {
@@ -87,13 +87,13 @@ class EnvSecurityManager {
       UPSTASH_REDIS_REST_URL: {
         required: true,
         public: false,
-        value: 'https://your_redis_host_here',
+        value: 'https://YOUR_REDIS_HOST_PLACEHOLDER',
         encrypt: true,
       },
       UPSTASH_REDIS_REST_TOKEN: {
         required: true,
         public: false,
-        value: '${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}',
+        value: '${UPSTASH_REDIS_REST_TOKEN:-YOUR_REDIS_TOKEN_PLACEHOLDER}',
         rotate: 'quarterly',
         encrypt: true,
       },
@@ -598,7 +598,7 @@ GCP_MCP_SERVER_IPS=104.154.205.25,34.150.123.45,35.247.178.92
 # =============================================================================
 # 🤖 Google AI (개인 설정 필요)
 # =============================================================================
-# GOOGLE_AI_API_KEY=your_google_ai_api_key_here
+# GOOGLE_AI_API_KEY=YOUR_GOOGLE_AI_API_KEY_PLACEHOLDER
 GOOGLE_AI_MODEL=gemini-1.5-flash
 GOOGLE_AI_BETA_MODE=true
 
