@@ -41,6 +41,39 @@ export default function LoginPage() {
   useEffect(() => {
     setIsClient(true);
     
+    // Fragment에서 토큰 감지 및 처리 (Implicit Grant Flow)
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token')) {
+      console.log('🔐 Fragment에서 토큰 감지됨, 세션 설정 시작...');
+      
+      // Fragment에서 파라미터 추출
+      const params = new URLSearchParams(hash.substring(1));
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+      
+      if (accessToken && refreshToken) {
+        // Supabase 세션 직접 설정
+        import('@supabase/auth-helpers-nextjs').then(({ createClientComponentClient }) => {
+          const supabase = createClientComponentClient();
+          
+          supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          }).then(({ error }) => {
+            if (!error) {
+              console.log('✅ Supabase 세션 설정 성공, 대시보드로 이동...');
+              router.push('/dashboard');
+            } else {
+              console.error('❌ 세션 설정 실패:', error);
+              setErrorMessage('세션 설정에 실패했습니다. 다시 시도해주세요.');
+            }
+          });
+        });
+        
+        return; // Fragment 처리 후 나머지 로직 스킵
+      }
+    }
+    
     // URL 파라미터에서 에러 메시지 확인
     const searchParams = new URLSearchParams(window.location.search);
     const error = searchParams.get('error');
@@ -56,7 +89,7 @@ export default function LoginPage() {
     } else if (warning === 'no_session') {
       setSuccessMessage('인증이 완료되었지만 세션이 생성되지 않았습니다. 게스트 모드를 이용해주세요.');
     }
-  }, []);
+  }, [router]);
 
   // guestSession 상태가 변경되면 localStorage와 쿠키에 저장하고 페이지 이동
   useEffect(() => {

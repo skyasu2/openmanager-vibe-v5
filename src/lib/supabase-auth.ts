@@ -35,36 +35,28 @@ export async function signInWithGitHub() {
   try {
     // 동적으로 리다이렉트 URL 설정 (로컬/베르셀 자동 감지)
     const origin = window.location.origin;
-    const redirectUrl = `${origin}/auth/callback`;
+    
+    // Implicit Grant Flow를 처리하기 위해 로그인 페이지로 리다이렉트
+    const redirectUrl = `${origin}/login`;
     
     console.log('🔗 OAuth 리다이렉트 URL:', redirectUrl);
     console.log('🌍 현재 환경:', {
       origin,
       isVercel: origin.includes('vercel.app'),
       isLocal: origin.includes('localhost'),
-      fullRedirectUrl: `${redirectUrl}?redirect=/main`,
+      redirectUrl,
     });
     
     // GitHub OAuth App 설정 확인을 위한 로그
-    console.log('⚠️ GitHub OAuth App 콜백 URL이 다음과 일치하는지 확인하세요:', redirectUrl);
-    
-    // 환경별 리다이렉트 URL 설정
-    const isProduction = origin.includes('vercel.app') || origin.includes('openmanager');
-    const finalRedirectUrl = `${redirectUrl}?redirect=/main`;
-    
-    console.log('🎯 최종 리다이렉트 URL:', finalRedirectUrl);
-    console.log('🌍 환경 감지:', {
-      origin,
-      isProduction,
-      redirectUrl,
-      finalRedirectUrl
-    });
+    console.log('⚠️ Supabase 대시보드의 Redirect URLs에 다음을 추가하세요:', redirectUrl);
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: finalRedirectUrl,
+        redirectTo: redirectUrl,
         scopes: 'read:user user:email',
+        // skipBrowserRedirect를 false로 설정하여 브라우저 리다이렉트 허용
+        skipBrowserRedirect: false,
       },
     });
 

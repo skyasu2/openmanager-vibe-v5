@@ -1,5 +1,27 @@
 # Changelog
 
+## [5.48.1] - 2025-01-19
+
+### 🐛 GitHub OAuth 로그인 수정
+
+#### Fixed
+- **Implicit Grant Flow 처리**: 로그인 페이지에서 URL Fragment (#access_token) 감지 및 처리 로직 추가
+  - Fragment에서 access_token과 refresh_token 추출
+  - Supabase 세션 자동 설정
+  - 인증 성공 시 대시보드로 자동 리다이렉트
+- **OAuth 리다이렉트 URL 수정**: /auth/callback 대신 /login으로 리다이렉트하도록 변경
+  - Implicit Grant Flow와 호환되는 클라이언트 사이드 처리 구현
+  - error=no_code 문제 해결
+
+#### Changed
+- `src/app/login/page.tsx`: Fragment 토큰 처리를 위한 useEffect 로직 추가
+- `src/lib/supabase-auth.ts`: GitHub OAuth 리다이렉트 URL을 /login으로 변경
+
+#### 필요한 설정
+- Supabase Dashboard → Authentication → URL Configuration → Redirect URLs에 추가:
+  - `https://openmanager-vibe-v5.vercel.app/login`
+  - `http://localhost:3000/login`
+
 ## [5.48.0] - 2025-01-18
 
 ### 🧠 ML 시스템 대규모 강화 완료
