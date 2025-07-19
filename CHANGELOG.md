@@ -1,5 +1,26 @@
 # Changelog
 
+## [5.48.4] - 2025-01-19
+
+### 🧹 프로젝트 정리 및 최적화
+
+#### Removed
+- **백업 폴더 완전 삭제**
+  - `/backup/legacy-ai-engines/` 디렉토리 삭제 (28개 레거시 파일)
+  - `/src/_backup/unused-ai-sidebar-implementations/` 디렉토리 삭제
+  - 사용하지 않는 레거시 AI 엔진 및 UI 컴포넌트 코드 제거
+
+#### Changed
+- `tsconfig.json`: 백업 폴더 관련 exclude 항목 제거
+  - "backup/**/*" 항목 삭제
+  - "src/_backup/**/*" 항목 삭제
+
+#### Impact
+- 프로젝트 크기 감소
+- 빌드 및 검색 성능 향상
+- 더 깔끔한 프로젝트 구조
+- 사이드 이펙트 없음 (사용하지 않는 코드였음)
+
 ## [5.48.3] - 2025-01-19
 
 ### 🎯 React Hooks 의존성 경고 개선
