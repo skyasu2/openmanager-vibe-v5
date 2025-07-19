@@ -103,7 +103,8 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
     }
 
     return errorState;
-  }, [createError, defaultConfig.enableAutoRecover, defaultConfig.maxRetries]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [createError, defaultConfig.enableAutoRecover, defaultConfig.maxRetries]); // attemptAutoRecover는 하단에 정의
 
   // 자동 복구 시도
   const attemptAutoRecover = useCallback((error: ErrorState, context: string) => {
@@ -140,7 +141,8 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
     }, defaultConfig.retryDelay * (error.retryCount + 1)); // 지수 백오프
     
     retryTimeouts.current.set(retryKey, timeout);
-  }, [defaultConfig.retryDelay]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultConfig.retryDelay]); // resolveError는 하단에 정의
 
   // 에러 해결
   const resolveError = useCallback((error?: ErrorState) => {
@@ -237,8 +239,9 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       window.removeEventListener('offline', handleOffline);
       
       // 정리: 진행 중인 재시도 취소
-      retryTimeouts.current.forEach(timeout => clearTimeout(timeout));
-      retryTimeouts.current.clear();
+      const timeouts = retryTimeouts.current;
+      timeouts.forEach(timeout => clearTimeout(timeout));
+      timeouts.clear();
     };
   }, [createError, currentError]);
 

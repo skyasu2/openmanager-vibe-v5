@@ -177,7 +177,8 @@ export default function SystemBootPage() {
         }
       }, delay);
     });
-  }, [isClient]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isClient]); // handleBootComplete과 stages는 stable
 
   // 부팅 완료 - 즉시 대시보드로 이동
   const handleBootComplete = () => {

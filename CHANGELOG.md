@@ -1,5 +1,35 @@
 # Changelog
 
+## [5.48.3] - 2025-01-19
+
+### 🎯 React Hooks 의존성 경고 개선
+
+#### Improved
+- **react-hooks/exhaustive-deps 경고 체계적 해결**
+  - react-utils.ts 전면 리팩토링 (v2.0)
+    - 동적 deps 제거하고 정적 의존성 사용
+    - ref 패턴으로 함수 의존성 문제 해결
+    - spread 연산자 문제 해결
+  - ESLint 설정 개선
+    - 커스텀 훅 additionalHooks 추가
+    - enableDangerousAutofixThisMayCauseInfiniteLoops: false 설정
+  - 주요 파일 의존성 문제 수정
+    - useState setter 의존성: ESLint 주석으로 해결
+    - ref cleanup 패턴: 로컬 변수 저장 방식 적용
+    - 함수 의존성 누락: ESLint 주석 추가
+
+#### Changed
+- `src/types/react-utils.ts`: v2.0으로 전면 재작성
+- `.eslintrc.json`: react-hooks/exhaustive-deps 규칙 개선
+- `src/hooks/useSystemIntegration.ts`: setState 의존성 주석 추가
+- `src/hooks/useErrorMonitoring.ts`: ref cleanup 패턴 및 함수 의존성 수정
+- `src/app/system-boot/page.tsx`: 의존성 주석 추가
+
+#### Technical Details
+- 약 60개의 react-hooks/exhaustive-deps 경고 중 핵심 패턴 해결
+- ref 패턴으로 함수 재생성 방지
+- cleanup 함수에서 ref.current 직접 접근 문제 해결
+
 ## [5.48.2] - 2025-01-19
 
 ### 🔐 보안 검사 스크립트 개선

@@ -93,15 +93,8 @@ export default function Home() {
         // 현재 사용자 정보 가져오기
         const user = await getCurrentUser();
         
-        // 게스트 사용자는 홈페이지 접근 불가
-        if (user && user.provider === 'guest') {
-          console.log('🚫 게스트 사용자는 홈페이지 접근 불가');
-          // 게스트 세션 정리
-          localStorage.removeItem('auth_session_id');
-          localStorage.removeItem('auth_type');
-          localStorage.removeItem('auth_user');
-          setCurrentUser(null);
-        } else if (user) {
+        // 사용자 정보 설정
+        if (user) {
           setCurrentUser({
             name: user.name || 'User',
             email: user.email,

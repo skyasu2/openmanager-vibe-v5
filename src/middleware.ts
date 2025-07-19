@@ -35,6 +35,7 @@ function isExactPathMatch(pathname: string, paths: string[]): boolean {
 // GitHub 인증이 필요한 경로들
 const PROTECTED_PATHS = [
   '/',  // 홈페이지도 인증 필요
+  '/main',  // 메인 페이지도 인증 필요
   '/dashboard',
   '/admin',
   '/system-boot',

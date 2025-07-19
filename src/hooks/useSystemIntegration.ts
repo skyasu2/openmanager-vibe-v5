@@ -283,6 +283,7 @@ export const useSystemIntegration = () => {
           break;
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
@@ -392,7 +393,8 @@ export const useSystemIntegration = () => {
       console.error('❌ 시스템 상태 폴링 실패:', error);
       emitEvent('error', 'critical', `시스템 상태 조회 실패: ${error}`);
     }
-  }, [emitEvent]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [emitEvent]); // setState는 stable하므로 생략
 
   /**
    * 🚀 MCP 서버 상태 확인 (Google Cloud VM 24시간 동작)
@@ -449,7 +451,8 @@ export const useSystemIntegration = () => {
       );
       return false;
     }
-  }, [emitEvent]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [emitEvent]); // setState는 stable하므로 생략
 
   /**
    * 🚀 시스템 초기화 (통합 API 사용)

@@ -13,6 +13,10 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
   const redirect = requestUrl.searchParams.get('redirect') || '/main';
+  
+  // 리다이렉트 URL 검증 (보안)
+  const allowedRedirects = ['/main', '/dashboard', '/'];
+  const finalRedirect = allowedRedirects.includes(redirect) ? redirect : '/main';
 
   console.log('🔐 Auth 콜백 처리:', {
     code: code ? 'exists' : 'missing',
@@ -55,5 +59,6 @@ export async function GET(request: NextRequest) {
   }
 
   // 성공 시 지정된 페이지로 리다이렉트
-  return NextResponse.redirect(`${requestUrl.origin}${redirect}`);
+  console.log('🎯 최종 리다이렉트:', finalRedirect);
+  return NextResponse.redirect(`${requestUrl.origin}${finalRedirect}`);
 }
