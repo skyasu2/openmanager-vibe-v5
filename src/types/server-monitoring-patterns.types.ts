@@ -246,7 +246,9 @@ export interface BatchProcessingResult {
 }
 
 // 클래스만 default export (런타임에 존재하는 것들만)
-export default {
+const ServerMonitoringErrors = {
     PatternMatchingError,
     NLPProcessingError
-}; 
+};
+
+export default ServerMonitoringErrors; 

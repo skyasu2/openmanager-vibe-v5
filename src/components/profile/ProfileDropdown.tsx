@@ -9,6 +9,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 
 export interface ProfileDropdownProps {
   className?: string;
@@ -127,9 +128,11 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
       aria-label={user ? `${user.name} 프로필 메뉴` : '프로필 메뉴'}
     >
       {user && user.picture ? (
-        <img
+        <Image
           src={user.picture}
           alt={user.name}
+          width={32}
+          height={32}
           className='w-8 h-8 rounded-full object-cover border-2 border-gray-200'
         />
       ) : (

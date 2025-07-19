@@ -10,6 +10,7 @@
 import { motion } from 'framer-motion';
 import { useSession, signIn, signOut } from '@/hooks/useSupabaseSession';
 import { useState } from 'react';
+import Image from 'next/image';
 
 export interface GitHubLoginButtonProps {
   onLoginSuccess?: (user: any) => void;
@@ -98,9 +99,11 @@ export default function GitHubLoginButton({
           >
             <div className='flex items-center space-x-3'>
               {session.user?.image && (
-                <img
+                <Image
                   src={session.user.image}
                   alt={session.user?.name || 'User'}
+                  width={40}
+                  height={40}
                   className='w-10 h-10 rounded-full'
                 />
               )}

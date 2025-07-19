@@ -279,9 +279,7 @@ export class MCPLangGraphAgent {
       max_response_time: Math.max(
         ...relevantServers.map(s => s.responseTime || 0)
       ),
-      total_requests: relevantServers.reduce((sum, s) => sum + (s.requests?.total || 0), 0)
-        ...relevantServers.map((s: any) => s.response_time || 0)
-      ),
+      total_requests: relevantServers.reduce((sum, s) => sum + (s.requests?.total || 0), 0),
       total_alerts: relevantServers.reduce((sum: number, s: any) => sum + (s.alerts?.length || 0),
         0
       ),

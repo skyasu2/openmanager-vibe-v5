@@ -15,7 +15,7 @@ import { BarChart3, Bot, Loader2, Play, X, Zap, LogIn } from 'lucide-react';
 import { getCurrentUser, isGitHubAuthenticated, signOut as supabaseSignOut, onAuthStateChange } from '@/lib/supabase-auth';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 const FeatureCardsGrid = dynamic(
   () => import('@/components/home/FeatureCardsGrid'),
@@ -195,6 +195,15 @@ export default function Home() {
     }
   }, [isMounted, isSystemStarted, getSystemRemainingTime]);
 
+  // 카운트다운 중지 함수 (useEffect보다 먼저 정의)
+  const stopSystemCountdown = useCallback(() => {
+    if (countdownTimer) {
+      clearInterval(countdownTimer);
+      setCountdownTimer(null);
+    }
+    setSystemStartCountdown(0);
+  }, [countdownTimer]);
+
   // 컴포넌트 언마운트 시 카운트다운 정리
   useEffect(() => {
     return () => {
@@ -219,7 +228,7 @@ export default function Home() {
     
     // 모든 코드 경로에서 값을 반환해야 함
     return undefined;
-  }, [systemStartCountdown]);
+  }, [systemStartCountdown, stopSystemCountdown]);
 
   // 시간 포맷 함수
   const formatTime = (ms: number) => {
@@ -272,14 +281,6 @@ export default function Home() {
       });
     }, 1000);
     setCountdownTimer(timer);
-  };
-
-  const stopSystemCountdown = () => {
-    if (countdownTimer) {
-      clearInterval(countdownTimer);
-      setCountdownTimer(null);
-    }
-    setSystemStartCountdown(0);
   };
 
   // 🚀 시스템 시작 함수 (다중 사용자 기능 통합)
