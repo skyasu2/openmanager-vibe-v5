@@ -56,36 +56,13 @@ function getSupabaseAnonKey() {
   throw new Error('❌ NEXT_PUBLIC_SUPABASE_ANON_KEY is required');
 }
 
-// 실제 Supabase 클라이언트 생성 (클라이언트 안전)
-export const supabase = createClient(getSupabaseUrl(), getSupabaseAnonKey());
+// Supabase 싱글톤 사용으로 전환
+import { getSupabaseClient, checkSupabaseConnection as checkConnection } from './supabase-singleton';
+export const supabase = getSupabaseClient();
 
-if (safeEnv.isDevelopment() && !safeEnv.isBuildTime()) {
-  const config = getSupabaseConfig();
-  console.log('✅ Supabase 클라이언트 초기화됨:', config.url);
-}
+// 기존 checkSupabaseConnection을 싱글톤 버전으로 대체
+export { checkConnection as checkSupabaseConnection };
 
-export async function checkSupabaseConnection() {
-  try {
-    if (safeEnv.isDevelopment()) {
-      // 개발 환경에서는 항상 연결된 것으로 시뮬레이션
-      return {
-        status: 'connected' as 'error' | 'connected',
-        message: 'Supabase connected successfully (development mode)',
-      };
-    }
-
-    const { error } = await supabase.from('servers').select('count').limit(1);
-    return {
-      status: error ? 'error' : ('connected' as 'error' | 'connected'),
-      message: error?.message || 'Supabase connected successfully',
-    };
-  } catch (error) {
-    return {
-      status: 'error' as const,
-      message: error instanceof Error ? error.message : 'Connection failed',
-    };
-  }
-}
 
 // 스마트 Supabase 클라이언트 래퍼
 class SmartSupabaseClient {

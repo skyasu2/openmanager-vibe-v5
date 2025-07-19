@@ -70,8 +70,13 @@ export class ServerDataScheduler {
   };
 
   private constructor() {
-    // this.generator = GCPRealDataService.getInstance(); // GCPRealDataService removed
-    this.generator = { getRealServerMetrics: async () => ({ data: [] }) };
+    // Mock generator with required methods
+    this.generator = { 
+      getRealServerMetrics: async () => ({ data: [] }),
+      initialize: async () => {
+        console.log('🚀 Mock generator initialized');
+      }
+    };
     this.GENERATION_INTERVAL = calculateOptimalUpdateInterval();
     this.initializeGenerator();
   }

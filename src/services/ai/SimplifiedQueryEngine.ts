@@ -11,6 +11,7 @@
 import { SupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { RequestScopedGoogleAIService } from './GoogleAIService';
 import { ServerMonitoringAgent } from '../mcp/ServerMonitoringAgent';
+import { getMCPAdapter, isMCPEnabled } from '@/services/mcp/environment-adapter';
 import type { ServerInstance } from '@/types/data-generator';
 import { systemLogger as logger } from '@/lib/logger';
 import { AnomalyDetection } from './AnomalyDetection';
@@ -62,7 +63,7 @@ export interface QueryResponse {
 export class SimplifiedQueryEngine {
   private ragEngine: SupabaseRAGEngine;
   private googleAI?: RequestScopedGoogleAIService;
-  private mcpAgent: ServerMonitoringAgent;
+  private mcpAgent?: ServerMonitoringAgent;
   private anomalyDetection: AnomalyDetection;
   private mlEngine: LightweightMLEngine;
   private mlDataManager: MLDataManager;
@@ -90,7 +91,17 @@ export class SimplifiedQueryEngine {
 
   constructor() {
     this.ragEngine = new SupabaseRAGEngine();
-    this.mcpAgent = ServerMonitoringAgent.getInstance();
+    
+    // MCP는 환경에 따라 조건부 초기화
+    if (isMCPEnabled()) {
+      this.mcpAgent = ServerMonitoringAgent.getInstance();
+      logger.info('MCP 에이전트 활성화됨', { 
+        adapter: getMCPAdapter().type 
+      });
+    } else {
+      logger.info('MCP 에이전트 비활성화됨 (환경: ' + getMCPAdapter().type + ')');
+    }
+    
     this.anomalyDetection = AnomalyDetection.getInstance();
     this.mlEngine = new LightweightMLEngine();
     this.mlDataManager = MLDataManager.getInstance();
@@ -205,7 +216,7 @@ export class SimplifiedQueryEngine {
       const mcpStep = thinkingSteps[thinkingSteps.length - 1];
       
       // MCP 에이전트에 질의 전달
-      const mcpResponse = await this.mcpAgent.processQuery({
+      const mcpResponse = this.mcpAgent ? await this.mcpAgent.processQuery({
         id: `mcp_${Date.now()}`,
         query: request.query,
         timestamp: new Date(),
@@ -213,7 +224,7 @@ export class SimplifiedQueryEngine {
           timeRange: request.context.timeRange,
           priority: 'medium' as const,
         } : undefined,
-      });
+      }) : null;
       mcpContext = mcpResponse;
       
       mcpStep.status = 'completed';
@@ -285,7 +296,7 @@ export class SimplifiedQueryEngine {
       
       try {
         // MCP 에이전트에 질의 전달
-        const mcpResponse = await this.mcpAgent.processQuery({
+        const mcpResponse = this.mcpAgent ? await this.mcpAgent.processQuery({
           id: `mcp_${Date.now()}`,
           query: request.query,
           timestamp: new Date(),
@@ -293,7 +304,7 @@ export class SimplifiedQueryEngine {
             timeRange: request.context.timeRange,
             priority: 'medium' as const,
           } : undefined,
-        });
+        }) : null;
         mcpContext = mcpResponse;
         mcpUsed = true;
         
