@@ -12,6 +12,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 전체 히스토리 가져오기 (TruffleHog 스캔을 위해)
     
     - name: 하드코딩된 시크릿 검사 (개선된 스크립트)
       run: |
@@ -40,10 +42,23 @@ jobs:
           echo "✅ .env.example 파일이 안전합니다."
         fi
     
+    - name: TruffleHog 스캔 설정
+      id: trufflehog-config
+      run: |
+        if [ "${{ github.event_name }}" == "push" ]; then
+          echo "🔍 Push 이벤트 감지 - 전체 브랜치 스캔 모드"
+          echo "base=" >> $GITHUB_OUTPUT
+          echo "head=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+        elif [ "${{ github.event_name }}" == "pull_request" ]; then
+          echo "🔍 PR 이벤트 감지 - 변경사항만 스캔 모드"
+          echo "base=${{ github.event.repository.default_branch }}" >> $GITHUB_OUTPUT
+          echo "head=HEAD" >> $GITHUB_OUTPUT
+        fi
+    
     - name: Run TruffleHog (검증된 시크릿만)
       uses: trufflesecurity/trufflehog@main
       with:
         path: ./
-        base: ${{ github.event.repository.default_branch }}
-        head: HEAD
+        base: ${{ steps.trufflehog-config.outputs.base }}
+        head: ${{ steps.trufflehog-config.outputs.head }}
         extra_args: --only-verified --exclude-paths .securityignore
