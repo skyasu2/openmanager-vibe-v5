@@ -7,7 +7,6 @@
  * - TXT 파일 다운로드 지원
  */
 
-'use client';
 
 import type { ServerMetrics } from '../../types/common';
 import { mlDataManager } from '../ml/MLDataManager';

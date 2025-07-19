@@ -13,7 +13,6 @@
  * - 다중 엔진 결과 통합
  */
 
-'use client';
 
 // 통합 타입 정의
 export interface UnifiedResponseRequest {
