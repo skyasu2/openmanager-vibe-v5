@@ -12,8 +12,7 @@ import { NotificationToast } from '@/components/system/NotificationToast';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { cn } from '@/lib/utils';
-// import { AISidebar } from '@/presentation/ai-sidebar';
-import { SimplifiedAISidebar } from '@/components/ai/SimplifiedAISidebar';
+import { AISidebar } from '@/presentation/ai-sidebar';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
@@ -269,7 +268,7 @@ function DashboardPageContent() {
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               className='fixed inset-y-0 right-0 w-96 z-40'
             >
-              <SimplifiedAISidebar onClose={closeAgent} isOpen={isAgentOpen} />
+              <AISidebar onClose={closeAgent} isOpen={isAgentOpen} />
             </motion.div>
           )}
         </AnimatePresence>

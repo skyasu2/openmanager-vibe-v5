@@ -18,6 +18,9 @@ export async function GET(request: NextRequest) {
     code: code ? 'exists' : 'missing',
     redirect,
     origin: requestUrl.origin,
+    fullUrl: request.url,
+    isVercel: requestUrl.origin.includes('vercel.app'),
+    timestamp: new Date().toISOString(),
   });
 
   if (code) {
@@ -34,6 +37,14 @@ export async function GET(request: NextRequest) {
       }
       
       console.log('✅ 세션 교환 성공, 리다이렉트:', redirect);
+      
+      // 세션 정보 확인
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔐 생성된 세션:', {
+        userId: session?.user?.id,
+        email: session?.user?.email,
+        provider: session?.user?.app_metadata?.provider,
+      });
     } catch (error) {
       console.error('❌ 콜백 처리 중 오류:', error);
       return NextResponse.redirect(`${requestUrl.origin}/login?error=callback_error`);

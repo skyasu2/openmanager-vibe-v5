@@ -14,21 +14,59 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
-// modules/ai-sidebar의 발전된 훅들과 타입들 재사용
-export {
-  useAIThinking,
-  type AIThinkingStep,
-  type AgentLog,
-} from '@/modules/ai-sidebar/hooks/useAIThinking';
+// 임시 타입 정의 (modules/ai-sidebar가 제거됨)
+export interface AIThinkingStep {
+  id: string;
+  step: string;
+  status: 'thinking' | 'complete' | 'error';
+  description?: string;
+  timestamp: Date;
+}
 
-export { useAIChat } from '@/modules/ai-sidebar/hooks/useAIChat';
+export interface AgentLog {
+  id: string;
+  timestamp: Date;
+  level: 'info' | 'warn' | 'error';
+  message: string;
+  context?: any;
+}
 
-// modules/ai-sidebar의 타입들 사용
-export {
-  type ChatMessage,
-  type AIResponse,
-  type ChatHookOptions,
-} from '@/modules/ai-sidebar/types';
+export interface ChatMessage {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant' | 'system';
+  timestamp: Date;
+}
+
+export interface AIResponse {
+  content: string;
+  thinkingSteps?: AIThinkingStep[];
+  metadata?: Record<string, any>;
+}
+
+export interface ChatHookOptions {
+  autoScroll?: boolean;
+  maxMessages?: number;
+}
+
+// 임시 훅 구현
+export const useAIThinking = () => {
+  return {
+    steps: [] as AIThinkingStep[],
+    isThinking: false,
+    addStep: () => {},
+    clearSteps: () => {},
+  };
+};
+
+export const useAIChat = () => {
+  return {
+    messages: [] as ChatMessage[],
+    sendMessage: async () => {},
+    clearMessages: () => {},
+    isLoading: false,
+  };
+};
 
 // 🔧 타입 정의 (기존 호환성 유지)
 export interface PresetQuestion {

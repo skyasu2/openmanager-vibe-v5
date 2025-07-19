@@ -3,9 +3,48 @@
  * 간단한 통합 테스트로 기본 기능 검증
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { SimplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
 import type { ServerInstance } from '@/types/data-generator';
+
+// Mock dependencies
+vi.mock('@/lib/ml/supabase-rag-engine', () => ({
+  SupabaseRAGEngine: class {
+    async searchSimilar() {
+      return {
+        results: [],
+        cached: false,
+      };
+    }
+  }
+}));
+
+vi.mock('@/services/ai/GoogleAIService', () => ({
+  GoogleAIService: class {
+    async processQuery() {
+      return {
+        text: 'Google AI response',
+        confidence: 0.9,
+      };
+    }
+  },
+  RequestScopedGoogleAIService: class {
+    async processQuery() {
+      return {
+        text: 'Google AI response',
+        confidence: 0.9,
+      };
+    }
+  }
+}));
+
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  }
+}));
 
 describe('SimplifiedQueryEngine 기본 동작', () => {
   let engine: SimplifiedQueryEngine;
@@ -41,8 +80,7 @@ describe('SimplifiedQueryEngine 기본 동작', () => {
 
   beforeAll(async () => {
     engine = new SimplifiedQueryEngine();
-    // 초기화는 스킵 (Supabase 연결 필요)
-    // await engine.initialize();
+    // Mocks가 설정되어 있으므로 초기화 스킵
   });
 
   it('엔진이 생성되어야 함', () => {

@@ -10,7 +10,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Send, User, Bot, Sparkles } from 'lucide-react';
 import { useAIChat, useAIThinking } from '@/stores/useAISidebarStore';
-import ThinkingView from '../ThinkingView';
+// import ThinkingView from '../ThinkingView'; // 백업됨
 
 interface Message {
   id: string;
@@ -155,7 +155,10 @@ export default function AIChatPage() {
                 <Sparkles className='w-4 h-4 text-white animate-pulse' />
               </div>
               <div className='bg-white border border-gray-200 rounded-lg p-3'>
-                <ThinkingView isThinking={true} logs={[]} />
+                {/* <ThinkingView isThinking={true} logs={[]} /> */}
+                <div className="text-center text-gray-500 py-4">
+                  AI가 생각하고 있습니다...
+                </div>
               </div>
             </div>
           </div>

@@ -77,11 +77,11 @@ fi
 
 echo ""
 echo "📁 4. 파일 구조 확인..."
-echo "   MCP 시스템 파일들:"
-if [ -f "src/services/ai/MCPAIRouter.ts" ]; then
-    echo "   ✅ MCPAIRouter.ts"
+echo "   AI 시스템 파일들:"
+if [ -f "src/services/ai/SimplifiedQueryEngine.ts" ]; then
+    echo "   ✅ SimplifiedQueryEngine.ts"
 else
-    echo "   ❌ MCPAIRouter.ts 없음"
+    echo "   ❌ SimplifiedQueryEngine.ts 없음"
 fi
 
 if [ -f "src/services/ai/IntentClassifier.ts" ]; then
@@ -90,10 +90,10 @@ else
     echo "   ❌ IntentClassifier.ts 없음"
 fi
 
-if [ -f "src/services/ai/TaskOrchestrator.ts" ]; then
-    echo "   ✅ TaskOrchestrator.ts"
+if [ -f "src/services/ml/MLDataManager.ts" ]; then
+    echo "   ✅ MLDataManager.ts"
 else
-    echo "   ❌ TaskOrchestrator.ts 없음"
+    echo "   ❌ MLDataManager.ts 없음"
 fi
 
 if [ -f "src/app/api/ai/mcp/route.ts" ]; then

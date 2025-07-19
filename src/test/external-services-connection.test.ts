@@ -407,7 +407,7 @@ describe('🔗 실제 외부 서비스 연결 테스트', () => {
       console.log('\n🎭 목업 시스템 검증...');
 
       // 목업 시스템 테스트
-      const { setupTestEnvironment } = await import('./env.test');
+      const { setupTestEnvironment } = await import('./env.config');
       setupTestEnvironment();
 
       // 실제 목업 함수들이 올바른 응답 형식을 반환하는지 확인

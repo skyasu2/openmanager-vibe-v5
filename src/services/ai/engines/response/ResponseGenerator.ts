@@ -11,7 +11,6 @@ import {
   AIQueryRequest,
   ResponseGeneratorConfig
 } from '../ai-types/AITypes';
-import { autoReportGenerator } from '../../report-generator';
 import {
   unifiedResponseGenerator,
   UnifiedResponseRequest

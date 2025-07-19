@@ -63,8 +63,7 @@ import { incidentReportService } from './IncidentReportService';
 import { KoreanAIEngine } from './korean-ai-engine';
 import { aiLogger, LogCategory } from './logging/AILogger';
 import { LightweightMLEngine } from '@/lib/ml/LightweightMLEngine';
-import { PerformanceMonitor } from './PerformanceMonitor';
-import { UnifiedLogger } from './UnifiedLogger';
+// PerformanceMonitor 및 UnifiedLogger 제거 (레거시 코드)
 import type {
   Anomaly,
   Prediction,
@@ -185,8 +184,7 @@ export class IntelligentMonitoringService {
 
   // 🤖 ML 엔진 및 모니터링 시스템 (NEW!)
   private mlEngine: LightweightMLEngine | null = null;
-  private performanceMonitor: PerformanceMonitor | null = null;
-  private unifiedLogger: UnifiedLogger | null = null;
+  // performanceMonitor 및 unifiedLogger 제거 (레거시)
 
   // 분석 상태 관리
   private activeAnalyses: Map<
@@ -209,8 +207,7 @@ export class IntelligentMonitoringService {
 
     // 🤖 ML 엔진 및 모니터링 시스템 초기화 (지연 로딩)
     this.mlEngine = null;
-    this.performanceMonitor = null;
-    this.unifiedLogger = null;
+    // performanceMonitor 및 unifiedLogger 제거
 
     console.log(
       '✅ IntelligentMonitoringService: Google AI 싱글톤 + ML 엔진 연결됨'
@@ -227,21 +224,13 @@ export class IntelligentMonitoringService {
       const { LightweightMLEngine } = await import(
         '@/lib/ml/LightweightMLEngine'
       );
-      const { PerformanceMonitor } = await import(
-        '@/services/ai/PerformanceMonitor'
-      );
-      const { UnifiedLogger } = await import('@/services/ai/UnifiedLogger');
-
       this.mlEngine = new LightweightMLEngine();
-      this.performanceMonitor = PerformanceMonitor.getInstance();
-      this.unifiedLogger = UnifiedLogger.getInstance();
 
       console.log('✅ ML 엔진 지연 초기화 완료');
     } catch (error) {
       console.warn('⚠️ ML 엔진 초기화 실패, 기본 모드로 동작:', error);
       this.mlEngine = null;
-      this.performanceMonitor = null;
-      this.unifiedLogger = null;
+      // performanceMonitor 및 unifiedLogger 제거
     }
   }
 
@@ -1267,14 +1256,11 @@ export class IntelligentMonitoringService {
       };
 
       // 학습 결과 로깅
-      if (this.unifiedLogger) {
-        // logMLOptimization 메서드가 없으므로 일반 로그 사용
-        console.log('ML 최적화 완료:', {
-          analysisId: analysisResult.analysisId,
-          performanceData: performanceData.length,
-          anomaliesProcessed: anomalies.length,
-        });
-      }
+      console.log('ML 최적화 완료:', {
+        analysisId: analysisResult.analysisId,
+        performanceData: performanceData.length,
+        anomaliesProcessed: anomalies.length,
+      });
 
       return result;
     } catch (error) {

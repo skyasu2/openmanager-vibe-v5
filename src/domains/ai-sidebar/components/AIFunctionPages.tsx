@@ -14,6 +14,7 @@ import AIAgentIconPanel, {
 } from '@/components/ai/AIAgentIconPanel';
 import AutoReportPage from '@/components/ai/pages/AutoReportPage';
 import IntelligentMonitoringPage from '@/components/ai/pages/IntelligentMonitoringPage';
+import { MLLearningCenter } from '@/components/ai/pages/MLLearningCenter';
 import React from 'react';
 
 interface AIFunctionPagesProps {
@@ -57,15 +58,8 @@ export const AIFunctionPages: React.FC<AIFunctionPagesProps> = ({
 
       case 'advanced-management':
         return (
-          <div
-            className='p-4 text-center text-white/70'
-            data-testid='advanced-management-page'
-          >
-            ⚙️ AI 고급 관리 기능
-            <br />
-            <span className='text-sm'>
-              AI 시스템 고급 설정 및 관리 기능입니다.
-            </span>
+          <div data-testid='advanced-management-page'>
+            <MLLearningCenter />
           </div>
         );
 

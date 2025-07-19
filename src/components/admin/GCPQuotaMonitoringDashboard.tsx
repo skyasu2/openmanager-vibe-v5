@@ -169,17 +169,43 @@ export const GCPQuotaMonitoringDashboard: React.FC = () => {
       const gcpResponse = await fetch('/api/ai/gcp-functions/stats');
       const gcpData = await gcpResponse.json();
 
-      // 3-Tier Router 통계 로드
-      const threeTierResponse = await fetch('/api/ai/three-tier/stats');
-      const threeTierData = await threeTierResponse.json();
+      // 3-Tier Router 통계 로드 - 레거시 API 비활성화
+      // Three-tier API는 더 이상 사용되지 않으므로 기본값 설정
+      const threeTierData: ThreeTierStats = {
+        totalRequests: 0,
+        routingDecisions: {
+          local: 0,
+          gcp: 0,
+          google: 0,
+        },
+        fallbackTriggers: {
+          localToGcp: 0,
+          gcpToLocal: 0,
+          toGoogle: 0,
+        },
+        averageResponseTimes: {
+          local: 0,
+          gcp: 0,
+          google: 0,
+        },
+        performanceMetrics: {
+          vercelLoadReduction: 0,
+          aiPerformanceImprovement: 0,
+        },
+      };
 
-      // Router 상태 로드
-      const statusResponse = await fetch('/api/ai/three-tier/status');
-      const statusData = await statusResponse.json();
+      const statusData: RouterStatus = {
+        enabled: false,
+        initialized: false,
+        strategy: 'performance',
+        services: {
+          gcp: null,
+          google: 'inactive',
+          local: 'inactive',
+        },
+      };
 
-      // 히스토리 데이터 로드
-      const historyResponse = await fetch('/api/ai/three-tier/history');
-      const historyData = await historyResponse.json();
+      const historyData: any[] = [];
 
       setGCPStats(gcpData);
       setThreeTierStats(threeTierData);

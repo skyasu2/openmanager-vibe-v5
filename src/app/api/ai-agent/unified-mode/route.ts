@@ -11,7 +11,7 @@
 import { AutoIncidentReportSystem } from '@/core/ai/systems/AutoIncidentReportSystem';
 import { LightweightMLEngine } from '@/lib/ml/LightweightMLEngine';
 import { IntelligentMonitoringService } from '@/services/ai/IntelligentMonitoringService';
-import { SimplifiedNaturalLanguageEngine } from '@/services/ai/SimplifiedNaturalLanguageEngine';
+import { simplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
 import { NextRequest, NextResponse } from 'next/server';
 
 // 타입 정의
@@ -128,16 +128,14 @@ export async function POST(request: NextRequest) {
 
     // 1️⃣ 자연어 처리 + ML 질의 최적화
     if (includeNaturalLanguage && query) {
-      const nlEngine = SimplifiedNaturalLanguageEngine.getInstance();
-      const nlResult = await nlEngine.processQuery(
+      const nlResult = await simplifiedQueryEngine.query({
         query,
-        {},
-        {
-          mode: mode.toLowerCase(),
-          enableMLOptimization,
-          timeout: 5000,
+        mode: mode.toLowerCase() as 'local' | 'google-ai',
+        context: {},
+        options: {
+          maxResponseTime: 5000,
         }
-      );
+      });
 
       results.components.naturalLanguage = nlResult;
       results.metadata.componentsUsed.push('natural-language');
@@ -148,10 +146,10 @@ export async function POST(request: NextRequest) {
           await mlEngine.learnFromQueryLogs([
             {
               query,
-              response: nlResult.response,
-              engine: nlResult.engine,
+              response: nlResult.answer,
+              engine: nlResult.engine || 'unknown',
               confidence: nlResult.confidence,
-              responseTime: nlResult.responseTime,
+              responseTime: nlResult.metadata?.processingTime || 0,
             },
           ]);
           results.metadata.mlOptimizations.push('query-learning');

@@ -42,9 +42,10 @@ import { AISidebarHeader } from './AISidebarHeader';
 // 타입 정의 import
 import type {
   AISidebarV2Props,
-  ChatMessage,
+  ChatMessage as LocalChatMessage,
   ThinkingStep,
 } from '../types/ai-sidebar-types';
+import type { ChatMessage } from '@/stores/useAISidebarStore';
 
 // 새로 분리된 컴포넌트들 import
 
@@ -98,24 +99,27 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   const { setOpen } = useAISidebarStore();
   const {
     isThinking,
-    currentQuestion,
-    logs,
-    setThinking,
-    setCurrentQuestion,
-    addLog,
-    clearLogs,
+    steps,
+    addStep,
+    clearSteps,
   } = useAIThinking();
+  
+  // 로컬 상태로 관리
+  const [currentQuestion, setCurrentQuestion] = useState('');
+  const [logs, setLogs] = useState<any[]>([]);
 
   // 새로운 useAIChat 훅 사용
   const {
     messages: hookMessages,
-    responses,
+    sendMessage: hookSendMessage,
+    clearMessages,
     isLoading,
-    error: chatError,
-    sessionId: chatSessionId,
-  } = useAIChat({
-    apiEndpoint: '/api/ai/smart-fallback',
-  });
+  } = useAIChat();
+  
+  // 로컬 상태로 관리
+  const [responses, setResponses] = useState<any[]>([]);
+  const [chatError, setChatError] = useState<string | null>(null);
+  const [chatSessionId] = useState(`session-${Date.now()}`);
 
   // 🧠 실제 생각하기 기능 상태
   const [realThinking, setRealThinking] = useState<{
@@ -441,11 +445,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         // 보고서를 AI 메시지로 추가
         const reportMessage: ChatMessage = {
           id: `auto-report-${Date.now()}`,
-          type: 'ai',
+          role: 'assistant',
           content: `📊 **자동 장애 분석 보고서**\n\n${reportData.report}`,
           timestamp: new Date(),
-          engine: 'auto-report',
-          confidence: 0.9,
         };
 
         // 채팅에 추가하는 대신 별도 알림으로 처리
@@ -475,11 +477,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       // 성공 메시지 추가
       const message: ChatMessage = {
         id: Date.now().toString(),
-        type: 'ai',
+        role: 'assistant',
         content: `AI 모드가 ${newMode === 'LOCAL' ? '로컬' : 'Google AI'}로 변경되었습니다.`,
         timestamp: new Date(),
-        engine: newMode,
-        processingTime: 0
       };
 
       setLocalChatMessages(prev => [...prev, message]);
@@ -490,11 +490,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       // 에러 메시지 추가
       const errorMessage: ChatMessage = {
         id: Date.now().toString(),
-        type: 'ai',
+        role: 'assistant',
         content: `AI 모드 변경에 실패했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`,
         timestamp: new Date(),
-        engine: selectedEngine,
-        processingTime: 0
       };
 
       setLocalChatMessages(prev => [...prev, errorMessage]);
@@ -513,7 +511,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     // 사용자 메시지 추가
     const userMessage: ChatMessage = {
       id: `user_${Date.now()}`,
-      type: 'user',
+      role: 'user',
       content: question,
       timestamp: new Date(),
     };
@@ -536,7 +534,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     // 사용자 메시지 추가
     const userMessage: ChatMessage = {
       id: `user_${Date.now()}`,
-      type: 'user',
+      role: 'user',
       content: query,
       timestamp: new Date(),
     };
@@ -559,12 +557,12 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   // 응답 재생성
   const regenerateResponse = (messageId: string) => {
     const messageToRegenerate = allMessages.find(
-      msg => msg.id === messageId && msg.type === 'ai'
+      msg => msg.id === messageId && msg.role === 'assistant'
     );
     if (!messageToRegenerate) return;
 
     // 마지막 사용자 메시지 찾아서 재처리
-    const lastUserMessage = allMessages.find(msg => msg.type === 'user');
+    const lastUserMessage = allMessages.find(msg => msg.role === 'user');
     if (lastUserMessage) {
       // 기존 AI 메시지 이후의 새로운 응답 생성
       processRealAIQuery(lastUserMessage.content, selectedEngine);
@@ -757,22 +755,22 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             key={message.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${message.type === 'user'
+              className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${message.role === 'user'
                 ? 'flex-row-reverse space-x-reverse'
                 : ''
                 }`}
             >
               {/* 아바타 */}
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${message.type === 'user'
+                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === 'user'
                   ? 'bg-blue-500 text-white'
                   : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
                   }`}
               >
-                {message.type === 'user' ? (
+                {message.role === 'user' ? (
                   <User className='w-3 h-3' />
                 ) : (
                   <Bot className='w-3 h-3' />
@@ -782,7 +780,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
               {/* 메시지 콘텐츠 */}
               <div className='flex-1'>
                 <div
-                  className={`rounded-lg p-3 ${message.type === 'user'
+                  className={`rounded-lg p-3 ${message.role === 'user'
                     ? 'bg-blue-500 text-white'
                     : 'bg-white border border-gray-200'
                     }`}
@@ -794,7 +792,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
                 {/* 타임스탬프 */}
                 <div
-                  className={`mt-1 ${message.type === 'user' ? 'text-right' : 'text-left'}`}
+                  className={`mt-1 ${message.role === 'user' ? 'text-right' : 'text-left'}`}
                 >
                   <p className='text-xs text-gray-500'>
                     {typeof message.timestamp === 'string'

@@ -47,6 +47,25 @@ interface GCPResponse {
   results?: any[];
 }
 
+// ML 학습 관련 타입 추가
+interface MLLearningRequest {
+  type: 'pattern' | 'anomaly' | 'incident' | 'prediction';
+  data: any;
+  modelId?: string;
+  timestamp: Date;
+}
+
+interface MLLearningResponse {
+  success: boolean;
+  modelId: string;
+  improvements: {
+    accuracy?: number;
+    patterns?: number;
+    insights?: string[];
+  };
+  nextSteps?: string[];
+}
+
 interface UsageStats {
   totalRequests: number;
   successRate: number;
@@ -496,5 +515,176 @@ export class GCPFunctionsService {
       },
     };
     systemLogger.info('GCP Functions Service 통계 초기화');
+  }
+
+  /**
+   * 🧠 ML 학습 결과 전송
+   */
+  public async sendMLLearningResult(
+    request: MLLearningRequest
+  ): Promise<MLLearningResponse> {
+    if (!this.config.enabled) {
+      systemLogger.warn('GCP Functions Service 비활성화 상태');
+      return {
+        success: false,
+        modelId: 'local-only',
+        improvements: {},
+      };
+    }
+
+    const startTime = Date.now();
+
+    try {
+      const response = await fetch(`${this.config.endpoints.basicML}/learning`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-ML-Type': request.type,
+        },
+        body: JSON.stringify({
+          type: request.type,
+          data: request.data,
+          modelId: request.modelId || `model-${Date.now()}`,
+          timestamp: request.timestamp,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`ML Learning API Error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      // 통계 업데이트
+      this.updateFunctionStats('basic-ml');
+
+      return {
+        success: true,
+        modelId: result.modelId,
+        improvements: {
+          accuracy: result.accuracy,
+          patterns: result.patternsLearned,
+          insights: result.insights,
+        },
+        nextSteps: result.recommendations,
+      };
+    } catch (error) {
+      systemLogger.error('ML 학습 결과 전송 실패:', error);
+      
+      return {
+        success: false,
+        modelId: 'error',
+        improvements: {},
+      };
+    }
+  }
+
+  /**
+   * 📊 백엔드 장애 보고서 생성
+   */
+  public async generateIncidentReportOnBackend(
+    incidentData: any
+  ): Promise<any> {
+    if (!this.config.enabled) {
+      return null;
+    }
+
+    try {
+      const response = await fetch(`${this.config.endpoints.ruleEngine}/incident-report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          incident: incidentData,
+          timestamp: new Date().toISOString(),
+          requestAnalysis: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Incident Report API Error: ${response.status}`);
+      }
+
+      const report = await response.json();
+      systemLogger.info('✅ 백엔드에서 장애 보고서 생성 완료');
+      
+      return report;
+    } catch (error) {
+      systemLogger.error('백엔드 장애 보고서 생성 실패:', error);
+      return null;
+    }
+  }
+
+  /**
+   * 🔍 이상감지 패턴 백엔드 저장
+   */
+  public async saveAnomalyPatterns(
+    patterns: any[]
+  ): Promise<boolean> {
+    if (!this.config.enabled || patterns.length === 0) {
+      return false;
+    }
+
+    try {
+      const response = await fetch(`${this.config.endpoints.basicML}/anomaly-patterns`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          patterns,
+          timestamp: new Date().toISOString(),
+          source: 'vercel-frontend',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Anomaly Pattern API Error: ${response.status}`);
+      }
+
+      systemLogger.info(`✅ ${patterns.length}개 이상감지 패턴 백엔드 저장 완료`);
+      return true;
+    } catch (error) {
+      systemLogger.error('이상감지 패턴 저장 실패:', error);
+      return false;
+    }
+  }
+
+  /**
+   * 🎯 예측 모델 백엔드 동기화
+   */
+  public async syncPredictionModels(
+    models: any[]
+  ): Promise<boolean> {
+    if (!this.config.enabled) {
+      return false;
+    }
+
+    try {
+      const response = await fetch(`${this.config.endpoints.basicML}/sync-models`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          models,
+          timestamp: new Date().toISOString(),
+          version: '1.0',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Model Sync API Error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      systemLogger.info(`✅ ${result.synced} 예측 모델 백엔드 동기화 완료`);
+      
+      return true;
+    } catch (error) {
+      systemLogger.error('예측 모델 동기화 실패:', error);
+      return false;
+    }
   }
 }

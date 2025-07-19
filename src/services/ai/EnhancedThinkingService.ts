@@ -467,38 +467,23 @@ export class EnhancedThinkingService extends EventEmitter {
     if (!session) return [];
 
     return session.steps.map(step => {
-      // 타입 매핑
-      const mappedType: AgentLog['type'] =
-        step.type === 'analyzing'
-          ? 'analysis'
-          : step.type === 'processing'
-            ? 'data_processing'
-            : step.type === 'searching'
-              ? 'pattern_matching'
-              : step.type === 'generating'
-                ? 'response_generation'
-                : 'info';
+      // 모든 사고 단계는 정상적인 정보이므로 'info' 레벨로 설정
+      const mappedLevel: AgentLog['level'] = 'info';
 
       return {
         id: step.id,
         message: step.content,
-        type: mappedType,
+        level: mappedLevel,
         timestamp: step.timestamp,
-        // 확장 필드 (타입 어설션 사용)
-        step: step.type,
-        engine: step.engine,
-        progress: step.progress || 0,
-        duration: step.duration,
-        content: step.content,
-        metadata: step.progress ? { confidence: step.progress } : undefined,
-      } as AgentLog & {
-        step: string;
-        engine: string;
-        progress: number;
-        duration?: number;
-        content: string;
-        metadata?: any;
-      };
+        context: {
+          // 확장 필드를 context에 저장
+          step: step.type,
+          engine: step.engine,
+          progress: step.progress || 0,
+          duration: step.duration,
+          metadata: step.progress ? { confidence: step.progress } : undefined,
+        },
+      } as AgentLog;
     });
   }
 

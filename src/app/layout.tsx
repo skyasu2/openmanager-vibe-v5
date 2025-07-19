@@ -12,6 +12,7 @@ import { EmergencyBanner } from '@/components/emergency/EmergencyBanner';
 
 import { SystemBootstrap } from '@/components/system/SystemBootstrap';
 import { Toaster } from '@/components/ui/toaster';
+import { AuthTokenHandler } from '@/components/auth/AuthTokenHandler';
 
 // Keep-alive 스케줄러 초기화
 // keep-alive-scheduler 제거됨 (사용량 모니터링 간소화)
@@ -170,6 +171,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <EmergencyBanner />
         <ClientProviders>
+          <AuthTokenHandler />
           <SystemBootstrap />
           <Toaster />
           {children}

@@ -237,8 +237,12 @@ describe('DynamicTimestampManager', () => {
   });
 
   describe('실시간 타임스탬프 생성', () => {
-    it('타임스탬프가 실시간으로 생성되어야 함', () => {
+    it('타임스탬프가 실시간으로 생성되어야 함', async () => {
       const timestamp1 = manager.generateRealtimeTimestamp();
+      
+      // 타임스탬프 차이를 보장하기 위해 1ms 대기
+      await new Promise(resolve => setTimeout(resolve, 1));
+      
       const timestamp2 = manager.generateRealtimeTimestamp();
       
       expect(new Date(timestamp1).getTime()).toBeLessThan(
@@ -249,8 +253,11 @@ describe('DynamicTimestampManager', () => {
 
   describe('시간대별 가중치 적용', () => {
     it('업무시간(9-17시)에는 메트릭이 더 높아야 함', () => {
-      const businessTime = new Date('2024-01-15T14:00:00Z'); // 오후 2시
-      const nightTime = new Date('2024-01-15T02:00:00Z'); // 새벽 2시
+      // UTC로 표현된 한국 업무시간과 새벽시간
+      // 한국 오후 2시 (14:00 KST) = 05:00 UTC
+      const businessTime = new Date('2024-01-15T05:00:00Z');
+      // 한국 새벽 2시 (02:00 KST) = 17:00 UTC (전날)
+      const nightTime = new Date('2024-01-14T17:00:00Z');
       
       const businessMetrics = manager.applyTimeBasedWeights(
         mockBaselineMetrics,

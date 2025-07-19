@@ -26,10 +26,10 @@ try {
 }
 
 try {
-  const masterAIEngineModule = require('@/services/ai/MasterAIEngine');
-  masterAIEngine = masterAIEngineModule.masterAIEngine;
+  const simplifiedQueryEngineModule = require('@/services/ai/SimplifiedQueryEngine');
+  masterAIEngine = simplifiedQueryEngineModule.simplifiedQueryEngine;
 } catch (error) {
-  console.warn('MasterAIEngine import 실패:', (error as Error).message);
+  console.warn('SimplifiedQueryEngine import 실패:', (error as Error).message);
 }
 
 try {

@@ -1,14 +1,14 @@
 /**
- * 🎯 OpenManager Vibe v5 - 통합 MCP AI 엔진
+ * 🎯 OpenManager Vibe v5 - MCP API 엔드포인트
  *
- * MasterAIEngine 기반 MCP 통합 인터페이스
- * - 커스텀 MCP 엔진 + 오픈소스 폴백
- * - 컨텍스트 인식 및 추론 단계 제공
- * - 하이브리드 분석 및 자동 폴백
+ * SimplifiedQueryEngine 기반 MCP 통합 인터페이스
+ * - Local 모드에서 MCP 컨텍스트 수집
+ * - 컨텍스트 인식 쿼리 처리
+ * - 로컬 환경 전용 (Vercel에서는 비활성화)
  */
 
 import { detectEnvironment } from '@/config/environment';
-import { masterAIEngine } from '@/services/ai/MasterAIEngine';
+import { simplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -56,10 +56,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🎯 MasterAIEngine MCP 쿼리 실행');
+    console.log('🎯 SimplifiedQueryEngine MCP 쿼리 실행');
 
     const body = await request.json().catch(() => ({}));
-    const { query, context, use_hybrid = false } = body;
+    const { query, context } = body;
 
     if (!query) {
       return NextResponse.json(
@@ -71,18 +71,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 하이브리드 분석 사용 여부에 따라 엔진 선택
-    const engineType = use_hybrid ? 'hybrid' : 'mcp';
-
-    // MasterAIEngine을 통한 쿼리 처리
-    const result = await masterAIEngine.query({
-      engine: engineType,
+    // SimplifiedQueryEngine을 통한 쿼리 처리 (local 모드 + MCP)
+    const result = await simplifiedQueryEngine.query({
       query,
-      data: context?.servers || [],
+      mode: 'local',
       context: context,
       options: {
-        use_cache: true,
-        fallback_enabled: true,
+        includeMCPContext: true,
       },
     });
 
@@ -101,27 +96,23 @@ export async function POST(request: NextRequest) {
       data: {
         query_info: {
           original_query: query,
-          engine_used: result.engine_used,
-          response_time: result.response_time,
+          mode: result.engine || 'local',
+          response_time: result.metadata?.processingTime || 0,
           confidence: result.confidence,
-          fallback_used: result.fallback_used,
-          cache_hit: result.cache_hit,
-          hybrid_mode: use_hybrid,
+          mcp_used: result.metadata?.mcpUsed || false,
           timestamp: new Date().toISOString(),
         },
-        mcp_result: result.result,
+        mcp_result: result.answer,
         performance: {
-          processing_method: result.fallback_used
-            ? 'opensource_fallback'
-            : 'custom_mcp',
+          processing_method: result.metadata?.mcpUsed ? 'mcp_context' : 'local_only',
           optimization: {
-            cached: result.cache_hit,
+            cached: false,
             memory_efficient: true,
             context_aware: !!context,
           },
         },
       },
-      message: `MCP 쿼리 완료 - ${result.engine_used} 엔진 사용`,
+      message: `MCP 쿼리 완료 - ${result.engine || 'local'} 모드 사용`,
     });
   } catch (error) {
     console.error('❌ MCP 쿼리 오류:', error);

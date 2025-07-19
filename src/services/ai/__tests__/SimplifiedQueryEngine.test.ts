@@ -7,6 +7,45 @@ import { describe, it, expect, beforeAll, vi } from 'vitest';
 import type { ServerInstance } from '@/types/data-generator';
 import { SimplifiedQueryEngine } from '../SimplifiedQueryEngine';
 
+// Mock dependencies
+vi.mock('@/lib/ml/supabase-rag-engine', () => ({
+  SupabaseRAGEngine: class {
+    async searchSimilar() {
+      return {
+        results: [],
+        cached: false,
+      };
+    }
+  }
+}));
+
+vi.mock('@/services/ai/GoogleAIService', () => ({
+  GoogleAIService: class {
+    async processQuery() {
+      return {
+        text: 'Google AI response',
+        confidence: 0.9,
+      };
+    }
+  },
+  RequestScopedGoogleAIService: class {
+    async processQuery() {
+      return {
+        text: 'Google AI response',
+        confidence: 0.9,
+      };
+    }
+  }
+}));
+
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  }
+}));
+
 describe('SimplifiedQueryEngine - 자연어 질의 응답', () => {
   let engine: SimplifiedQueryEngine;
   
@@ -42,7 +81,7 @@ describe('SimplifiedQueryEngine - 자연어 질의 응답', () => {
 
   beforeAll(async () => {
     engine = new SimplifiedQueryEngine();
-    await engine.initialize();
+    // Mocks가 설정되어 있으므로 초기화 스킵
   });
 
   describe('로컬 모드 (룰 기반 + RAG)', () => {

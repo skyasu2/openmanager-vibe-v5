@@ -1,5 +1,5 @@
 /**
- * 📝 로깅 시스템 API v1.0
+ * 📝 로깅 시스템 API v1.0 (간소화 버전)
  * 
  * ✅ 로그 조회 및 검색
  * ✅ 로그 통계
@@ -7,10 +7,45 @@
  * ✅ 로그 설정 관리
  */
 
-import { UnifiedLogger, type LogCategory, type LogLevel, type LogQuery } from '@/services/ai/UnifiedLogger';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
-const logger = UnifiedLogger.getInstance();
+// 타입 정의
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogCategory = 'system' | 'api' | 'ai' | 'security' | 'performance';
+
+interface LogEntry {
+  id: string;
+  timestamp: string;
+  level: LogLevel;
+  category: LogCategory;
+  message: string;
+  source?: string;
+  context?: any;
+}
+
+// 간단한 인메모리 로그 저장소
+const logs: LogEntry[] = [];
+const MAX_LOGS = 1000;
+
+// 로그 추가 함수
+function addLog(level: LogLevel, category: LogCategory, message: string, context?: any) {
+  const entry: LogEntry = {
+    id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    timestamp: new Date().toISOString(),
+    level,
+    category,
+    message,
+    context
+  };
+  
+  logs.unshift(entry);
+  if (logs.length > MAX_LOGS) {
+    logs.pop();
+  }
+  
+  return entry;
+}
 
 /**
  * 📝 GET - 로그 조회 및 검색
@@ -19,282 +54,119 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
-    // 쿼리 파라미터 파싱
-    const query: LogQuery = {};
+    // 필터링
+    let filteredLogs = [...logs];
 
     // 레벨 필터
     const levels = searchParams.get('levels');
     if (levels) {
-      query.level = levels.split(',') as LogLevel[];
+      const levelArray = levels.split(',') as LogLevel[];
+      filteredLogs = filteredLogs.filter(log => levelArray.includes(log.level));
     }
 
     // 카테고리 필터
     const categories = searchParams.get('categories');
     if (categories) {
-      query.category = categories.split(',') as LogCategory[];
+      const categoryArray = categories.split(',') as LogCategory[];
+      filteredLogs = filteredLogs.filter(log => categoryArray.includes(log.category));
     }
 
-    // 소스 필터
-    const source = searchParams.get('source');
-    if (source) {
-      query.source = source;
+    // 검색어
+    const searchTerm = searchParams.get('search');
+    if (searchTerm) {
+      filteredLogs = filteredLogs.filter(log => 
+        log.message.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
-    // 시간 범위 필터
-    const startTime = searchParams.get('startTime');
-    const endTime = searchParams.get('endTime');
-    if (startTime && endTime) {
-      query.timeRange = {
-        start: startTime,
-        end: endTime
-      };
-    }
+    // 페이지네이션
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const offset = parseInt(searchParams.get('offset') || '0');
+    
+    const paginatedLogs = filteredLogs.slice(offset, offset + limit);
 
-    // 제한
-    const limit = searchParams.get('limit');
-    if (limit) {
-      query.limit = parseInt(limit);
-    }
-
-    // 태그 필터
-    const tags = searchParams.get('tags');
-    if (tags) {
-      query.tags = tags.split(',');
-    }
-
-    // 텍스트 검색
-    const searchText = searchParams.get('search');
-    if (searchText) {
-      query.searchText = searchText;
-    }
-
-    // 특별 요청들
-    const includeStats = searchParams.get('includeStats') === 'true';
-    const includeStatus = searchParams.get('includeStatus') === 'true';
-    const export_format = searchParams.get('export');
-
-    // 로그 조회
-    const logs = logger.queryLogs(query);
-
-    const response: any = {
+    return NextResponse.json({
       success: true,
       data: {
-        logs,
-        count: logs.length,
-        query,
-        timestamp: new Date().toISOString()
+        logs: paginatedLogs,
+        total: filteredLogs.length,
+        limit,
+        offset
       }
-    };
-
-    // 통계 포함
-    if (includeStats) {
-      response.data.stats = logger.getLogStats();
-    }
-
-    // 상태 포함
-    if (includeStatus) {
-      response.data.status = { status: 'active' };
-    }
-
-    // 내보내기 형식
-    if (export_format === 'json') {
-      const exportData = logger.exportLogs(query);
-      return new NextResponse(exportData, {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Disposition': `attachment; filename="logs_${new Date().toISOString().split('T')[0]}.json"`
-        }
-      });
-    }
-
-    // 로그 조회 기록
-    logger.debug(
-      'system',
-      'LogAPI',
-      'Logs retrieved',
-      {
-        query,
-        resultCount: logs.length,
-        includeStats,
-        includeStatus
-      }
-    );
-
-    return NextResponse.json(response, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
-        'CDN-Cache-Control': 'public, s-maxage=60',
-      },
     });
-
   } catch (error) {
-    console.error('❌ 로그 조회 실패:', error);
-
-    logger.error(
-      'system',
-      'LogAPI',
-      'Failed to retrieve logs',
-      error instanceof Error ? error : new Error(String(error))
-    );
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: '로그 조회에 실패했습니다.',
-        details: error instanceof Error ? error.message : String(error)
-      },
-      { status: 500 }
-    );
+    logger.error('로그 조회 오류:', error);
+    return NextResponse.json({
+      success: false,
+      error: '로그 조회 중 오류가 발생했습니다.',
+      details: error instanceof Error ? error.message : '알 수 없는 오류'
+    }, { status: 500 });
   }
 }
 
 /**
- * 📝 POST - 로그 기록
+ * 📊 POST - 로그 추가
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { level, category, source, message, data, metadata, tags } = body;
+    const { level = 'info', category = 'system', message, context } = body;
 
-    // 필수 필드 검증
-    if (!level || !category || !source || !message) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: '필수 필드가 누락되었습니다. (level, category, source, message)'
-        },
-        { status: 400 }
-      );
+    if (!message) {
+      return NextResponse.json({
+        success: false,
+        error: '메시지가 필요합니다.'
+      }, { status: 400 });
     }
 
-    // 로그 기록
-    logger.log(level, category, source, message, data, metadata, tags);
+    const logEntry = addLog(level, category, message, context);
 
     return NextResponse.json({
       success: true,
-      message: '로그가 기록되었습니다.'
+      data: logEntry
     });
-
   } catch (error) {
-    console.error('❌ 로그 기록 실패:', error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: '로그 기록에 실패했습니다.',
-        details: error instanceof Error ? error.message : String(error)
-      },
-      { status: 500 }
-    );
+    logger.error('로그 추가 오류:', error);
+    return NextResponse.json({
+      success: false,
+      error: '로그 추가 중 오류가 발생했습니다.',
+      details: error instanceof Error ? error.message : '알 수 없는 오류'
+    }, { status: 500 });
   }
 }
 
 /**
- * 🔧 PUT - 로그 설정 업데이트
- */
-export async function PUT(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { action, config } = body;
-
-    switch (action) {
-      case 'updateConfig':
-        if (!config) {
-          return NextResponse.json(
-            { success: false, error: 'config 필드가 필요합니다.' },
-            { status: 400 }
-          );
-        }
-        logger.updateConfig(config);
-        break;
-
-      case 'enable':
-        logger.enable();
-        break;
-
-      case 'disable':
-        logger.disable();
-        break;
-
-      default:
-        return NextResponse.json(
-          { success: false, error: '지원하지 않는 액션입니다.' },
-          { status: 400 }
-        );
-    }
-
-    logger.info(
-      'system',
-      'LogAPI',
-      `Log configuration updated: ${action}`,
-      { action, config }
-    );
-
-    return NextResponse.json({
-      success: true,
-      message: `로그 설정이 업데이트되었습니다: ${action}`
-    });
-
-  } catch (error) {
-    console.error('❌ 로그 설정 업데이트 실패:', error);
-
-    logger.error(
-      'system',
-      'LogAPI',
-      'Failed to update log configuration',
-      error instanceof Error ? error : new Error(String(error))
-    );
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: '로그 설정 업데이트에 실패했습니다.',
-        details: error instanceof Error ? error.message : String(error)
-      },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * 🗑️ DELETE - 로그 삭제
+ * 🗑️ DELETE - 로그 정리
  */
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const confirm = searchParams.get('confirm');
-
-    if (confirm !== 'true') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: '로그 삭제를 확인하려면 confirm=true 파라미터를 추가하세요.'
-        },
-        { status: 400 }
-      );
-    }
-
-    logger.clearLogs();
-
-    // 시스템 로그로 기록 (로그가 삭제된 후이므로 콘솔에만 출력됨)
-    console.log('📝 모든 로그가 삭제되었습니다.');
+    const keepDays = parseInt(searchParams.get('keepDays') || '7');
+    
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - keepDays);
+    
+    const beforeCount = logs.length;
+    logs.splice(0, logs.length, ...logs.filter(log => 
+      new Date(log.timestamp) > cutoffDate
+    ));
+    
+    const deletedCount = beforeCount - logs.length;
 
     return NextResponse.json({
       success: true,
-      message: '모든 로그가 삭제되었습니다.'
+      data: {
+        deletedCount,
+        remainingCount: logs.length,
+        message: `${deletedCount}개의 로그가 삭제되었습니다.`
+      }
     });
-
   } catch (error) {
-    console.error('❌ 로그 삭제 실패:', error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: '로그 삭제에 실패했습니다.',
-        details: error instanceof Error ? error.message : String(error)
-      },
-      { status: 500 }
-    );
+    logger.error('로그 정리 오류:', error);
+    return NextResponse.json({
+      success: false,
+      error: '로그 정리 중 오류가 발생했습니다.',
+      details: error instanceof Error ? error.message : '알 수 없는 오류'
+    }, { status: 500 });
   }
 }

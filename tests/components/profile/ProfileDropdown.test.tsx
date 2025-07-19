@@ -309,9 +309,16 @@ describe('ProfileDropdown', () => {
 
       (useAuth as any).mockReturnValue({
         isAuthenticated: true,
-        user: { id: '123', name: 'Test User', type: 'google' },
+        user: { 
+          id: '123', 
+          name: 'Test User', 
+          type: 'google',
+          permissions: ['dashboard:access', 'settings:view']
+        },
         logout: mockLogout,
-        hasPermission: mockHasPermission,
+        hasPermission: vi.fn((permission: string) => 
+          ['dashboard:access', 'settings:view'].includes(permission)
+        ),
       });
 
       render(<ProfileDropdown />);
@@ -368,11 +375,11 @@ describe('ProfileDropdown', () => {
 
       // Enter 키로 드롭다운 열기
       fireEvent.keyDown(profileButton, { key: 'Enter' });
-      expect(screen.getByText('📊 대시보드')).toBeInTheDocument();
+      expect(screen.getByText('일반사용자로 사용')).toBeInTheDocument();
 
       // Escape 키로 드롭다운 닫기
       fireEvent.keyDown(profileButton, { key: 'Escape' });
-      expect(screen.queryByText('📊 대시보드')).not.toBeInTheDocument();
+      expect(screen.queryByText('일반사용자로 사용')).not.toBeInTheDocument();
     });
   });
 
@@ -408,7 +415,7 @@ describe('ProfileDropdown', () => {
       const profileButton = screen.getByRole('button');
       fireEvent.click(profileButton);
 
-      expect(screen.getByText('📊 대시보드')).toBeInTheDocument();
+      expect(screen.getByText('일반사용자로 사용')).toBeInTheDocument();
 
       // 외부 클릭
       const outsideElement = screen.getByTestId('outside');
@@ -417,7 +424,7 @@ describe('ProfileDropdown', () => {
       });
 
       await waitFor(() => {
-        expect(screen.queryByText('📊 대시보드')).not.toBeInTheDocument();
+        expect(screen.queryByText('일반사용자로 사용')).not.toBeInTheDocument();
       });
     });
   });

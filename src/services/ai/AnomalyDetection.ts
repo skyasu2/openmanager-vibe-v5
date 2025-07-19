@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * 🤖 머신러닝 이상 탐지 시스템 v1.0
+ * 🤖 머신러닝 이상 탐지 시스템 v1.1 (ML 강화)
  *
  * OpenManager AI v5.12.0 - 지능형 이상 탐지
  * - 통계적 이상 탐지 (Z-Score, IQR)
@@ -9,7 +9,13 @@
  * - 시계열 분석
  * - 실시간 모니터링
  * - 자동 임계값 학습
+ * - MLDataManager 통합 캐싱
+ * - GCP 백엔드 패턴 동기화
  */
+
+import { mlDataManager } from '@/services/ml/MLDataManager';
+import { GCPFunctionsService } from './GCPFunctionsService';
+import { systemLogger as logger } from '@/lib/logger';
 
 export interface ServerMetrics {
   id: string;
@@ -85,6 +91,13 @@ export class AnomalyDetection {
   private isLearningMode: boolean = true;
   private learningPeriod: number = 7 * 24 * 60; // 7일 (분)
   private maxHistorySize = 10000;
+  private gcpService: GCPFunctionsService;
+  private lastPatternSync: number = 0;
+  private syncInterval: number = 30 * 60 * 1000; // 30분
+
+  constructor() {
+    this.gcpService = new GCPFunctionsService();
+  }
 
   static getInstance(): AnomalyDetection {
     if (!this.instance) {
@@ -152,7 +165,7 @@ export class AnomalyDetection {
       },
     ];
 
-    console.log(`🎯 ${this.patterns.length}개 이상 탐지 패턴 초기화 완료`);
+    logger.info(`🎯 ${this.patterns.length}개 이상 탐지 패턴 초기화 완료`);
   }
 
   /**
@@ -162,7 +175,16 @@ export class AnomalyDetection {
     const detectedAnomalies: AnomalyAlert[] = [];
 
     try {
-      console.log(`🔍 ${servers.length}개 서버 이상 탐지 시작`);
+      logger.info(`🔍 ${servers.length}개 서버 이상 탐지 시작`);
+      
+      // 캐싱된 서버 메트릭 확인
+      const cachedMetrics = await mlDataManager.getCachedData<ServerMetrics[]>(
+        'ml:server-metrics:latest'
+      );
+      
+      if (cachedMetrics && servers.length === 0) {
+        servers = cachedMetrics;
+      }
 
       // 새로운 lightweight-ml-engine 사용 시도
       try {
@@ -188,12 +210,12 @@ export class AnomalyDetection {
           );
           detectedAnomalies.push(...convertedAnomalies);
 
-          console.log(
+          logger.info(
             `🤖 ML 엔진으로 ${convertedAnomalies.length}개 이상 탐지`
           );
         }
       } catch (mlError) {
-        console.warn(
+        logger.warn(
           '⚠️ ML 엔진 이상 탐지 실패, 기존 방식으로 fallback:',
           mlError
         );
@@ -218,12 +240,23 @@ export class AnomalyDetection {
         await this.sendAnomalyNotification(anomaly);
       }
 
-      console.log(
+      logger.info(
         `✅ 이상 탐지 완료: ${detectedAnomalies.length}개 발견, ${newAnomalies.length}개 신규`
       );
+      
+      // 이상감지 결과 캐싱
+      if (detectedAnomalies.length > 0) {
+        await this.cacheAnomalyResults(detectedAnomalies);
+      }
+      
+      // GCP 백엔드로 패턴 동기화 (비동기)
+      this.syncPatternsToGCP().catch(error => {
+        logger.error('GCP 패턴 동기화 실패:', error);
+      });
+      
       return detectedAnomalies;
     } catch (error) {
-      console.error('❌ 이상 탐지 실행 실패:', error);
+      logger.error('❌ 이상 탐지 실행 실패:', error);
       throw error;
     }
   }
@@ -271,7 +304,7 @@ export class AnomalyDetection {
 
       return anomalies;
     } catch (error) {
-      console.error(`❌ 서버 ${server.id} 이상 탐지 실패:`, error);
+      logger.error(`❌ 서버 ${server.id} 이상 탐지 실패:`, error);
       return [];
     }
   }
@@ -659,12 +692,12 @@ export class AnomalyDetection {
       if (anomaly.severity === 'critical' || anomaly.severity === 'high') {
         // 이상 탐지 알림 (콘솔 로그)
         const logLevel = anomaly.severity === 'critical' ? 'error' : 'warn';
-        console[logLevel](
+        logger[logLevel](
           `🔍 이상 탐지: ${anomaly.metric} - ${anomaly.description} (현재값: ${anomaly.currentValue}, 예상값: ${anomaly.expectedValue})`
         );
       }
     } catch (error) {
-      console.error('❌ 이상 알림 발송 실패:', error);
+      logger.error('❌ 이상 알림 발송 실패:', error);
     }
   }
 
@@ -749,7 +782,7 @@ export class AnomalyDetection {
    */
   setLearningMode(enabled: boolean): void {
     this.isLearningMode = enabled;
-    console.log(`🎓 학습 모드: ${enabled ? '활성화' : '비활성화'}`);
+    logger.info(`🎓 학습 모드: ${enabled ? '활성화' : '비활성화'}`);
   }
 
   /**
@@ -759,7 +792,7 @@ export class AnomalyDetection {
     const pattern = this.patterns.find(p => p.id === patternId);
     if (pattern) {
       pattern.enabled = enabled;
-      console.log(
+      logger.info(
         `🎯 패턴 '${pattern.name}': ${enabled ? '활성화' : '비활성화'}`
       );
     }
@@ -840,6 +873,136 @@ export class AnomalyDetection {
     }
 
     return alerts;
+  }
+
+  /**
+   * 💾 이상감지 결과 캐싱
+   */
+  private async cacheAnomalyResults(anomalies: AnomalyAlert[]): Promise<void> {
+    try {
+      // 서버별로 이상감지 결과 캐싱
+      const groupedByServer = new Map<string, AnomalyAlert[]>();
+      
+      for (const anomaly of anomalies) {
+        if (!groupedByServer.has(anomaly.serverId)) {
+          groupedByServer.set(anomaly.serverId, []);
+        }
+        groupedByServer.get(anomaly.serverId)!.push(anomaly);
+      }
+      
+      // 각 서버의 이상감지 결과 캐싱
+      for (const [serverId, serverAnomalies] of groupedByServer) {
+        await mlDataManager.cacheAnomalyDetection(serverId, serverAnomalies);
+      }
+      
+      logger.info(`✅ ${anomalies.length}개 이상감지 결과 캐싱 완료`);
+    } catch (error) {
+      logger.error('이상감지 결과 캐싱 실패:', error);
+    }
+  }
+
+  /**
+   * 🚀 GCP 백엔드로 패턴 동기화
+   */
+  private async syncPatternsToGCP(): Promise<void> {
+    // 30분마다 한 번만 동기화
+    if (Date.now() - this.lastPatternSync < this.syncInterval) {
+      return;
+    }
+    
+    try {
+      // 현재 활성화된 패턴들만 동기화
+      const activePatterns = this.patterns.filter(p => p.enabled);
+      
+      const success = await this.gcpService.saveAnomalyPatterns(activePatterns);
+      
+      if (success) {
+        this.lastPatternSync = Date.now();
+        logger.info(`✅ ${activePatterns.length}개 이상감지 패턴 GCP 동기화 완료`);
+      }
+    } catch (error) {
+      logger.error('GCP 패턴 동기화 실패:', error);
+    }
+  }
+
+  /**
+   * 🔄 학습된 패턴 불러오기
+   */
+  async loadLearnedPatterns(): Promise<void> {
+    try {
+      // 캐시된 패턴 확인
+      const cachedPatterns = await mlDataManager.getCachedData<AnomalyPattern[]>(
+        'ml:anomaly:patterns'
+      );
+      
+      if (cachedPatterns && cachedPatterns.length > 0) {
+        // 기존 패턴과 병합
+        const patternMap = new Map(this.patterns.map(p => [p.id, p]));
+        
+        for (const learnedPattern of cachedPatterns) {
+          if (!patternMap.has(learnedPattern.id)) {
+            this.patterns.push(learnedPattern);
+          } else {
+            // 정확도 업데이트
+            const existing = patternMap.get(learnedPattern.id)!;
+            existing.accuracy = learnedPattern.accuracy;
+            existing.falsePositiveRate = learnedPattern.falsePositiveRate;
+          }
+        }
+        
+        logger.info(`✅ ${cachedPatterns.length}개 학습된 패턴 로드 완료`);
+      }
+    } catch (error) {
+      logger.error('학습된 패턴 로드 실패:', error);
+    }
+  }
+
+  /**
+   * 🌟 예측 모델 통합
+   */
+  async predictAnomalies(
+    servers: ServerMetrics[],
+    hoursAhead: number = 1
+  ): Promise<AnomalyAlert[]> {
+    const predictions: AnomalyAlert[] = [];
+    
+    try {
+      // 임시로 간단한 예측 로직 사용
+      for (const server of servers) {
+        const avgCpu = server.cpu_usage;
+        const avgMemory = server.memory_usage;
+        
+        if (avgCpu > 70 || avgMemory > 75) {
+          predictions.push({
+            id: `predict_${server.id}_${Date.now()}`,
+            timestamp: Date.now() + hoursAhead * 3600 * 1000,
+            serverId: server.id,
+            metric: 'predicted_load',
+            currentValue: (avgCpu + avgMemory) / 2,
+            expectedValue: 50,
+            severity: avgCpu > 80 || avgMemory > 85 ? 'high' : 'medium',
+            confidence: 0.75,
+            description: `${hoursAhead}시간 후 부하 예측: CPU ${avgCpu.toFixed(1)}%, Memory ${avgMemory.toFixed(1)}%`,
+            recommendations: [
+              '📊 사전 스케일링 준비',
+              '⚡ 리소스 최적화 계획',
+              '🔄 예비 서버 준비',
+            ],
+            historicalContext: {
+              average: avgCpu,
+              standardDeviation: 0,
+              recentTrend: 'stable',
+            },
+          });
+        }
+      }
+      
+      logger.info(`🌟 ${predictions.length}개 예측 이상 생성`);
+    } catch (error) {
+      logger.error('예측 이상 생성 실패:', error);
+    }
+    
+    return predictions;
   }
 }
 

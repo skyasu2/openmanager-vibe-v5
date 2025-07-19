@@ -10,6 +10,9 @@
 'use client';
 
 import type { ServerMetrics } from '../../types/common';
+import { mlDataManager } from '../ml/MLDataManager';
+import { GCPFunctionsService } from './GCPFunctionsService';
+import { systemLogger as logger } from '@/lib/logger';
 
 export interface IncidentReport {
   id: string;
@@ -65,6 +68,12 @@ export interface ServerChange {
 class IncidentReportService {
   private static instance: IncidentReportService;
   private reports: IncidentReport[] = [];
+  private gcpService: GCPFunctionsService;
+  private learningPatterns: Map<string, any> = new Map();
+
+  constructor() {
+    this.gcpService = new GCPFunctionsService();
+  }
 
   static getInstance(): IncidentReportService {
     if (!IncidentReportService.instance) {
@@ -188,12 +197,20 @@ class IncidentReportService {
   }
 
   /**
-   * 🚨 자동 장애보고서 생성
+   * 🚨 자동 장애보고서 생성 (ML 캐싱 및 백엔드 통합)
    */
   async generateIncidentReport(
     serverComparison: ServerStateComparison,
     context?: string
   ): Promise<IncidentReport> {
+    // 캐시된 서버 상태 확인
+    const cacheKey = `incident:analysis:${Date.now()}`;
+    const cachedAnalysis = await mlDataManager.getCachedData<IncidentReport>(cacheKey);
+    if (cachedAnalysis) {
+      logger.info('✅ 캐시된 장애 분석 사용');
+      return cachedAnalysis;
+    }
+
     const changes = this.analyzeServerChanges(
       serverComparison.current,
       serverComparison.previous
@@ -248,6 +265,17 @@ class IncidentReportService {
 
     // 보고서 저장
     this.reports.push(report);
+
+    // ML 캐싱
+    await mlDataManager.cacheIncidentReport(report.id, report);
+
+    // GCP 백엔드로 보고서 전송 (비동기)
+    this.sendToGCPBackend(report).catch(error => {
+      logger.error('GCP 백엔드 전송 실패:', error);
+    });
+
+    // 학습 패턴 업데이트
+    await this.updateLearningPatterns(report);
 
     return report;
   }
@@ -381,18 +409,25 @@ class IncidentReportService {
   }
 
   /**
-   * 🔍 근본 원인 분석
+   * 🔍 근본 원인 분석 (ML 학습 패턴 활용)
    */
   private analyzeRootCause(changes: ServerChange[]): string {
     // 패턴 분석을 통한 근본 원인 추정
     const patterns = this.detectPatterns(changes);
+    
+    // 학습된 패턴과 비교
+    const learnedPatterns = this.findSimilarLearnedPatterns(changes);
+    if (learnedPatterns.length > 0) {
+      patterns.push(...learnedPatterns);
+    }
+    
     return patterns.length > 0
       ? patterns.join(', ')
       : '추가 분석이 필요합니다.';
   }
 
   /**
-   * 🛠️ 해결 방안 생성
+   * 🛠️ 해결 방안 생성 (ML 기반 개선)
    */
   private generateResolution(changes: ServerChange[]): string {
     const resolutions: string[] = [];
@@ -419,8 +454,30 @@ class IncidentReportService {
     }
 
     resolutions.push('7. 실시간 모니터링을 통한 지속적인 상태 확인');
+    
+    // 학습된 패턴에서 해결책 추가
+    const learnedSolutions = this.getLearnedSolutions(changes);
+    if (learnedSolutions.length > 0) {
+      resolutions.push('\n[과거 유사 사례 기반 추천]');
+      resolutions.push(...learnedSolutions);
+    }
 
     return resolutions.join('\n');
+  }
+
+  /**
+   * 🎯 학습된 해결책 가져오기
+   */
+  private getLearnedSolutions(changes: ServerChange[]): string[] {
+    const solutions: string[] = [];
+    
+    for (const [_, pattern] of this.learningPatterns) {
+      if (this.isPatternMatch(changes, pattern) && pattern.resolution) {
+        solutions.push(`- ${pattern.resolution}`);
+      }
+    }
+    
+    return solutions.slice(0, 3); // 최대 3개까지
   }
 
   /**
@@ -467,7 +524,7 @@ class IncidentReportService {
   }
 
   /**
-   * 🔍 패턴 감지
+   * 🔍 패턴 감지 (ML 강화)
    */
   private detectPatterns(changes: ServerChange[]): string[] {
     const patterns: string[] = [];
@@ -488,7 +545,110 @@ class IncidentReportService {
       );
     }
 
+    // 응답 시간 지연 패턴
+    const responseSpikes = changes.filter(c => c.description.includes('응답시간'));
+    if (responseSpikes.length > 0 && cpuSpikes.length > 0) {
+      patterns.push(
+        '응답시간 증가와 CPU 사용률 상승 동시 발생 - 애플리케이션 병목 현상'
+      );
+    }
+
+    // 연쇄 장애 패턴
+    if (changes.length > 5 && this.detectCascadingFailure(changes)) {
+      patterns.push(
+        '연쇄 장애 패턴 감지 - 하나의 서버 장애가 다른 서버로 전파'
+      );
+    }
+
     return patterns;
+  }
+
+  /**
+   * 🔄 연쇄 장애 감지
+   */
+  private detectCascadingFailure(changes: ServerChange[]): boolean {
+    // 시간순 정렬하여 연쇄적 발생 여부 확인
+    const criticalChanges = changes.filter(c => c.severity === 'critical');
+    if (criticalChanges.length < 2) return false;
+    
+    // 5분 이내 다수 서버 장애 발생 시 연쇄 장애로 판단
+    return criticalChanges.length >= 3;
+  }
+
+  /**
+   * 🧠 학습된 패턴과 비교
+   */
+  private findSimilarLearnedPatterns(changes: ServerChange[]): string[] {
+    const similarPatterns: string[] = [];
+    
+    // 학습된 패턴과 현재 상황 비교
+    for (const [patternId, pattern] of this.learningPatterns) {
+      if (this.isPatternMatch(changes, pattern)) {
+        similarPatterns.push(`과거 유사 장애 패턴 발견: ${pattern.description}`);
+      }
+    }
+    
+    return similarPatterns;
+  }
+
+  /**
+   * 📊 패턴 매칭 확인
+   */
+  private isPatternMatch(changes: ServerChange[], learnedPattern: any): boolean {
+    // 간단한 유사도 검사 (실제로는 더 복잡한 ML 알고리즘 사용)
+    const changeTypes = changes.map(c => c.changeType);
+    const severities = changes.map(c => c.severity);
+    
+    return (
+      learnedPattern.changeTypes?.some((type: string) => changeTypes.includes(type as any)) &&
+      learnedPattern.severities?.some((sev: string) => severities.includes(sev as any))
+    );
+  }
+
+  /**
+   * 🚀 GCP 백엔드로 보고서 전송
+   */
+  private async sendToGCPBackend(report: IncidentReport): Promise<void> {
+    try {
+      const gcpReport = await this.gcpService.generateIncidentReportOnBackend({
+        report,
+        serverCount: report.affectedServers.length,
+        patterns: this.detectPatterns([]), // 패턴 정보 포함
+        timestamp: new Date(),
+      });
+      
+      if (gcpReport) {
+        logger.info('✅ 장애 보고서 GCP 백엔드 전송 완료');
+      }
+    } catch (error) {
+      logger.error('장애 보고서 백엔드 전송 실패:', error);
+    }
+  }
+
+  /**
+   * 🧠 학습 패턴 업데이트
+   */
+  private async updateLearningPatterns(report: IncidentReport): Promise<void> {
+    const patternKey = `pattern:${report.severity}:${Date.now()}`;
+    const pattern = {
+      id: patternKey,
+      timestamp: report.timestamp,
+      description: report.rootCause,
+      changeTypes: ['status_change', 'metric_spike'],
+      severities: [report.severity],
+      resolution: report.resolution,
+      affectedCount: report.affectedServers.length,
+    };
+    
+    this.learningPatterns.set(patternKey, pattern);
+    
+    // 패턴 수 제한 (최대 100개)
+    if (this.learningPatterns.size > 100) {
+      const oldestKey = Array.from(this.learningPatterns.keys())[0];
+      this.learningPatterns.delete(oldestKey);
+    }
+    
+    logger.info(`✅ 장애 패턴 학습 완료: ${patternKey}`);
   }
 
   /**
@@ -603,13 +763,24 @@ ${report.timeline
   }
 
   /**
-   * 📋 모든 보고서 조회
+   * 📋 모든 보고서 조회 (캐시 활용)
    */
-  getAllReports(): IncidentReport[] {
-    return [...this.reports].sort(
+  async getAllReports(): Promise<IncidentReport[]> {
+    // 캐시된 보고서 확인
+    const cachedReports = await mlDataManager.getCachedData<IncidentReport[]>('incident:reports:all');
+    if (cachedReports) {
+      return cachedReports;
+    }
+    
+    const reports = [...this.reports].sort(
       (a, b) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
+    
+    // 캐싱
+    await mlDataManager.setCachedData('incident:reports:all', reports, 300); // 5분 캐시
+    
+    return reports;
   }
 
   /**

@@ -62,7 +62,7 @@ const AI_AGENT_ICONS: AIAgentIcon[] = [
   {
     id: 'intelligent-monitoring',
     icon: Monitor,
-    label: '지능형 모니터링',
+    label: '이상감지/예측',
     description:
       '🧠 통합 AI 분석: 이상탐지→근본원인→예측모니터링→AI인사이트 (자동분석)',
     color: 'text-emerald-600',
@@ -75,7 +75,7 @@ const AI_AGENT_ICONS: AIAgentIcon[] = [
     id: 'advanced-management',
     icon: Settings,
     label: 'AI 고급관리',
-    description: '통합 AI 시스템 관리 및 설정',
+    description: 'ML 학습 기능 및 AI 시스템 관리',
     color: 'text-gray-600',
     bgColor: 'bg-gray-50 hover:bg-gray-100',
     gradient: 'from-gray-500 to-slate-500',
