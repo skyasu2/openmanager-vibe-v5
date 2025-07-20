@@ -10,6 +10,7 @@
 import { getDecryptedRedisConfig } from '@/lib/config/runtime-env-decryptor';
 import Redis from 'ioredis';
 import { env } from './env';
+import { DevMockRedis, getDevMockRedis } from './redis/dev-mock-redis';
 
 /**
  * 🚀 스마트 Redis 클라이언트
@@ -37,6 +38,7 @@ export interface RedisClientInterface {
 // Redis 클라이언트 인스턴스들
 let realRedis: RedisClientInterface | null = null;
 let mockRedis: EnhancedMockRedis | null = null;
+let devMockRedis: DevMockRedis | null = null;
 let isInitializing = false;
 
 // 🎯 하이브리드 전략 설정
@@ -299,23 +301,29 @@ let redisConnectionCache: {
 /**
  * 🎯 하이브리드 전략 결정 함수 - 환경변수 우선 체크
  */
-function shouldUseMockRedis(context?: string, dataSize?: number): boolean {
+function shouldUseMockRedis(context?: string, dataSize?: number): 'dev' | 'mock' | 'real' {
   // 🚫 최우선: FORCE_MOCK_REDIS 환경변수 체크
   if (process.env.FORCE_MOCK_REDIS === 'true') {
     console.log('🎭 FORCE_MOCK_REDIS=true - Redis 연결 완전 차단');
-    return true;
+    return 'mock';
   }
 
-  // 🧪 2순위: 개발 도구 환경
+  // 🧪 개발 환경 - 향상된 Dev Mock Redis 사용
+  if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_REDIS) {
+    console.log('🚀 개발 환경 - Dev Mock Redis 사용 (영속성 지원)');
+    return 'dev';
+  }
+
+  // 🧪 테스트/스토리북 환경
   if (process.env.STORYBOOK === 'true' || process.env.NODE_ENV === 'test') {
-    console.log('🧪 개발/테스트 환경 - Mock Redis 사용');
-    return true;
+    console.log('🧪 테스트 환경 - Mock Redis 사용');
+    return 'mock';
   }
 
-  // 🔨 3순위: 빌드 환경
+  // 🔨 빌드 환경
   if (process.env.NEXT_PHASE === 'phase-production-build') {
     console.log('🔨 빌드 환경 - Mock Redis 사용');
-    return true;
+    return 'mock';
   }
 
   // 4. 기존 빌드/CI 환경 체크
@@ -323,33 +331,33 @@ function shouldUseMockRedis(context?: string, dataSize?: number): boolean {
     typeof window === 'undefined' &&
     (process.env.VERCEL_ENV || process.env.CI || process.env.GITHUB_ACTIONS)
   ) {
-    return true;
+    return 'mock';
   }
 
   // 5. 명시적 Mock 모드
   if (process.env.USE_MOCK_REDIS === 'true') {
-    return true;
+    return 'mock';
   }
 
   // 6. 컨텍스트 기반 판단
   if (context) {
     if (HYBRID_STRATEGY.useMockFor.some(pattern => context.includes(pattern))) {
-      return true;
+      return 'mock';
     }
     if (HYBRID_STRATEGY.useRealFor.some(pattern => context.includes(pattern))) {
-      return false;
+      return 'real';
     }
   }
 
   // 7. 데이터 크기 기반 판단
   if (dataSize && dataSize > HYBRID_STRATEGY.thresholds.maxDataSizeKB * 1024) {
-    return true;
+    return 'mock';
   }
 
   // 8. 기본적으로 Redis 사용 허용 (사용량 모니터링 제거됨)
 
   // 9. 기본값: 실제 Redis 사용
-  return false;
+  return 'real';
 }
 
 // 🚀 스마트 하이브리드 Redis 클라이언트
@@ -357,34 +365,44 @@ async function getHybridRedisClient(
   context?: string,
   dataSize?: number
 ): Promise<RedisClientInterface> {
-  const useMock = shouldUseMockRedis(context, dataSize);
+  const redisType = shouldUseMockRedis(context, dataSize);
 
-  if (useMock) {
-    // Mock Redis 사용
-    if (!mockRedis) {
-      mockRedis = new EnhancedMockRedis();
-      console.log(`🧠 Mock Redis 활성화 (컨텍스트: ${context || 'unknown'})`);
-    }
-    return mockRedis;
-  } else {
-    // 실제 Redis 사용
-    if (!realRedis && !isInitializing) {
-      try {
-        isInitializing = true;
-        realRedis = await initializeRedis();
-        isInitializing = false;
-        console.log(`🌐 Real Redis 활성화 (컨텍스트: ${context || 'unknown'})`);
-      } catch (error) {
-        isInitializing = false;
-        console.log(`⚠️ Real Redis 실패, Mock으로 폴백 (컨텍스트: ${context})`);
-        if (!mockRedis) {
-          mockRedis = new EnhancedMockRedis();
-        }
-        return mockRedis;
+  switch (redisType) {
+    case 'dev':
+      // 개발용 향상된 Mock Redis 사용
+      if (!devMockRedis) {
+        devMockRedis = getDevMockRedis() as any;
+        console.log(`🚀 Dev Mock Redis 활성화 (컨텍스트: ${context || 'unknown'})`);
       }
-    }
+      return devMockRedis as any;
+      
+    case 'mock':
+      // 기본 Mock Redis 사용
+      if (!mockRedis) {
+        mockRedis = new EnhancedMockRedis();
+        console.log(`🧠 Mock Redis 활성화 (컨텍스트: ${context || 'unknown'})`);
+      }
+      return mockRedis;
+      
+    case 'real':
+      // 실제 Redis 사용
+      if (!realRedis && !isInitializing) {
+        try {
+          isInitializing = true;
+          realRedis = await initializeRedis();
+          isInitializing = false;
+          console.log(`🌐 Real Redis 활성화 (컨텍스트: ${context || 'unknown'})`);
+        } catch (error) {
+          isInitializing = false;
+          console.log(`⚠️ Real Redis 실패, Mock으로 폴백 (컨텍스트: ${context})`);
+          if (!mockRedis) {
+            mockRedis = new EnhancedMockRedis();
+          }
+          return mockRedis;
+        }
+      }
 
-    return realRedis || (mockRedis = new EnhancedMockRedis());
+      return realRedis || (mockRedis = new EnhancedMockRedis());
   }
 }
 
@@ -706,6 +724,15 @@ export function getRedis(): Redis {
       mockRedis = new EnhancedMockRedis();
     }
     return mockRedis as any;
+  }
+
+  // 🚀 개발 환경에서 Dev Mock Redis 사용
+  if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_REDIS) {
+    console.log('🚀 개발 환경 - Dev Mock Redis 사용');
+    if (!devMockRedis) {
+      devMockRedis = getDevMockRedis() as any;
+    }
+    return devMockRedis as any;
   }
 
   if (!redis) {

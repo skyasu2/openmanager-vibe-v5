@@ -22,7 +22,7 @@ import {
   BarChart3,
   Monitor
 } from 'lucide-react';
-// useSystemIntegration은 GCP Functions로 이관됨
+import { useSystemIntegration } from '@/hooks/useSystemIntegration';
 
 interface CompactMonitoringHeaderProps {
   serverStats: {
@@ -66,16 +66,7 @@ export const CompactMonitoringHeader: React.FC<CompactMonitoringHeaderProps> = (
   onSettingsClick,
   className = ''
 }) => {
-  // 시스템 통합 기능은 GCP Functions로 이관됨
-  const systemIntegration = { 
-    isHealthy: true, 
-    status: 'online',
-    realTimeHub: { isConnected: true, connectionCount: 12 },
-    patternMatcher: { isActive: true, activeRules: 8, averageProcessingTime: 45 },
-    dataRetention: { isRunning: true, activePolicies: 5 },
-    moduleCount: { active: 8, total: 10 },
-    eventStats: { total: 1245, critical: 3 }
-  };
+  const systemIntegration = useSystemIntegration();
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
   // 5초마다 새로고침

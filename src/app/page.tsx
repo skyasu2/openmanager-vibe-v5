@@ -1,7 +1,7 @@
 /**
  * 🔐 루트 페이지 - 스마트 리다이렉션
- *
- * 인증된 사용자는 메인 페이지로,
+ * 
+ * 인증된 사용자는 메인 페이지로, 
  * 미인증 사용자는 로그인 페이지로 보냅니다.
  */
 
@@ -14,24 +14,16 @@ import { getCurrentUser, isAuthenticated } from '@/lib/supabase-auth';
 export default function RootRedirect() {
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
-  const [isClientMounted, setIsClientMounted] = useState(false);
-
-  // 클라이언트 마운트 감지
-  useEffect(() => {
-    setIsClientMounted(true);
-  }, []);
 
   useEffect(() => {
-    if (!isClientMounted) return;
-
     const checkAuthAndRedirect = async () => {
       try {
         // 인증 상태 확인
         const authenticated = await isAuthenticated();
         const user = await getCurrentUser();
-
+        
         console.log('🔍 루트 페이지 인증 체크:', { authenticated, user });
-
+        
         if (authenticated && user) {
           // 인증된 사용자는 메인 페이지로
           console.log('✅ 인증된 사용자 - 메인 페이지로 이동');
@@ -50,17 +42,14 @@ export default function RootRedirect() {
       }
     };
 
-    // 약간의 지연 후 체크 (hydration 문제 방지)
-    const timer = setTimeout(checkAuthAndRedirect, 100);
-
-    return () => clearTimeout(timer);
-  }, [router, isClientMounted]);
+    checkAuthAndRedirect();
+  }, [router]);
 
   // 리다이렉션 중 로딩 화면 표시
   return (
-    <div className='min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center'>
-      <div className='text-white flex items-center space-x-2'>
-        <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin'></div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center">
+      <div className="text-white flex items-center space-x-2">
+        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
         <span>{isChecking ? '인증 확인 중...' : '리다이렉션 중...'}</span>
       </div>
     </div>

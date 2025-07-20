@@ -2,12 +2,13 @@
 
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { Bot, Clock, LogOut, Settings, User, ChevronDown, Shield, UserCheck } from 'lucide-react';
-import { useSession, signOut } from '@/hooks/useSupabaseSession';
+import { Bot, Clock } from 'lucide-react';
+import { useSession } from '@/hooks/useSupabaseSession';
 import { getCurrentUser, isGitHubAuthenticated, isGuestUser } from '@/lib/supabase-auth';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
 
 // framer-motion을 동적 import로 처리
 const MotionButton = dynamic(
@@ -97,7 +98,6 @@ const DashboardHeader = React.memo(function DashboardHeader({
   const { aiAgent, ui } = useUnifiedAdminStore();
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [userInfo, setUserInfo] = useState<any>(null);
   const [isGitHubUser, setIsGitHubUser] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
@@ -145,32 +145,6 @@ const DashboardHeader = React.memo(function DashboardHeader({
     onToggleAgent?.();
   };
 
-  const handleLogout = async () => {
-    try {
-      console.log('🚪 로그아웃 시작:', { isGitHubUser, isGuest });
-      setShowProfileMenu(false);
-      
-      if (isGitHubUser) {
-        // GitHub OAuth 로그아웃
-        await signOut({ callbackUrl: '/login' });
-      } else {
-        // 게스트 모드 로그아웃 - localStorage 정리
-        localStorage.removeItem('auth_session_id');
-        localStorage.removeItem('auth_type');
-        localStorage.removeItem('auth_user');
-        
-        // 쿠키 정리
-        document.cookie = 'guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        document.cookie = 'auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        
-        router.push('/login');
-      }
-    } catch (error) {
-      console.error('❌ 로그아웃 실패:', error);
-      // 실패해도 로그인 페이지로 이동
-      router.push('/login');
-    }
-  };
 
   const getUserName = () => {
     if (userInfo) {
@@ -179,30 +153,8 @@ const DashboardHeader = React.memo(function DashboardHeader({
     return status === 'loading' ? '로딩 중...' : '사용자';
   };
 
-  const getUserEmail = () => {
-    return userInfo?.email || null;
-  };
-
-  const getUserType = () => {
-    if (status === 'loading') return '확인 중...';
-    if (isGitHubUser) return 'GitHub';
-    if (isGuest) return '게스트';
-    return '알 수 없음';
-  };
-
   const getUserAvatar = () => {
     return userInfo?.avatar || null;
-  };
-
-  const getUserInitials = () => {
-    const name = getUserName();
-    if (name === '로딩 중...' || name === '사용자') return '?';
-    
-    const words = name.split(' ');
-    if (words.length >= 2) {
-      return (words[0][0] + words[1][0]).toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
   };
 
   return (
@@ -354,198 +306,18 @@ const DashboardHeader = React.memo(function DashboardHeader({
               )}
           </div>
 
-          {/* 🎯 개선된 프로필 드롭다운 */}
-          <div className='relative'>
-            <MotionButton
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className='flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 group'
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {/* 프로필 아바타 */}
-              <div className='relative'>
-                {getUserAvatar() ? (
-                  <img
-                    src={getUserAvatar()}
-                    alt={getUserName()}
-                    className='w-8 h-8 rounded-full object-cover border-2 border-gray-200'
-                  />
-                ) : (
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold ${
-                    isGitHubUser ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 
-                    isGuest ? 'bg-gradient-to-r from-blue-500 to-cyan-500' : 
-                    'bg-gray-500'
-                  }`}>
-                    {getUserInitials()}
-                  </div>
-                )}
-                
-                {/* 사용자 타입 표시 배지 */}
-                <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
-                  isGitHubUser ? 'bg-green-500' : 
-                  isGuest ? 'bg-blue-500' : 
-                  'bg-gray-400'
-                }`} title={`${getUserType()} 사용자`} />
-              </div>
-
-              {/* 사용자 정보 */}
-              <div className='hidden sm:block text-left'>
-                <div className='text-sm font-medium text-gray-900 flex items-center gap-1'>
-                  {getUserName()}
-                  {isGitHubUser && <span title='GitHub 인증'><Shield className='w-3 h-3 text-green-600' /></span>}
-                  {isGuest && <span title='게스트 모드'><UserCheck className='w-3 h-3 text-blue-600' /></span>}
-                </div>
-                <div className='text-xs text-gray-500 flex items-center gap-1'>
-                  {getUserType()} 로그인
-                  {status === 'loading' && (
-                    <div className='w-2 h-2 bg-gray-400 rounded-full animate-pulse' />
-                  )}
-                </div>
-              </div>
-
-              {/* 드롭다운 화살표 */}
-              <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
-                showProfileMenu ? 'rotate-180' : ''
-              }`} />
-            </MotionButton>
-
-            {/* 🎯 개선된 프로필 드롭다운 메뉴 */}
-            {showProfileMenu && (
-              <MotionDiv
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className='absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg py-2 z-50 border border-gray-200'
-              >
-                {/* 사용자 정보 헤더 */}
-                <div className='px-4 py-3 border-b border-gray-100'>
-                  <div className='flex items-center gap-3'>
-                    {getUserAvatar() ? (
-                      <img
-                        src={getUserAvatar()}
-                        alt={getUserName()}
-                        className='w-10 h-10 rounded-full object-cover'
-                      />
-                    ) : (
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${
-                        isGitHubUser ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 
-                        isGuest ? 'bg-gradient-to-r from-blue-500 to-cyan-500' : 
-                        'bg-gray-500'
-                      }`}>
-                        {getUserInitials()}
-                      </div>
-                    )}
-                    <div className='flex-1 min-w-0'>
-                      <div className='font-medium text-gray-900 truncate flex items-center gap-2'>
-                        {getUserName()}
-                        {isGitHubUser && <Shield className='w-4 h-4 text-green-600' />}
-                        {isGuest && <UserCheck className='w-4 h-4 text-blue-600' />}
-                      </div>
-                      {getUserEmail() && (
-                        <div className='text-sm text-gray-500 truncate'>
-                          {getUserEmail()}
-                        </div>
-                      )}
-                      <div className={`text-xs px-2 py-1 rounded-full inline-block mt-1 ${
-                        isGitHubUser ? 'bg-green-100 text-green-700' : 
-                        isGuest ? 'bg-blue-100 text-blue-700' : 
-                        'bg-gray-100 text-gray-700'
-                      }`}>
-                        {getUserType()} 계정
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 메뉴 항목들 */}
-                <div className='py-1'>
-                  {/* 프로필 설정 - GitHub 사용자만 */}
-                  {isGitHubUser && (
-                    <button
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        router.push('/profile');
-                      }}
-                      className='flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors'
-                    >
-                      <User className='w-4 h-4 mr-3 text-gray-400' />
-                      프로필 설정
-                    </button>
-                  )}
-
-                  {/* 시스템 설정 */}
-                  <button
-                    onClick={() => {
-                      setShowProfileMenu(false);
-                      router.push('/settings');
-                    }}
-                    className='flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors'
-                  >
-                    <Settings className='w-4 h-4 mr-3 text-gray-400' />
-                    시스템 설정
-                  </button>
-
-                  {/* 구분선 */}
-                  <div className='border-t border-gray-100 my-1' />
-
-                  {/* 계정 전환 - 게스트 사용자만 */}
-                  {isGuest && (
-                    <button
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        router.push('/login');
-                      }}
-                      className='flex items-center w-full px-4 py-2 text-sm text-blue-700 hover:bg-blue-50 transition-colors'
-                    >
-                      <Shield className='w-4 h-4 mr-3 text-blue-500' />
-                      GitHub로 로그인
-                    </button>
-                  )}
-
-                  {/* 로그아웃 */}
-                  <button
-                    onClick={handleLogout}
-                    className='flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors'
-                  >
-                    <LogOut className='w-4 h-4 mr-3 text-red-500' />
-                    로그아웃
-                  </button>
-                </div>
-              </MotionDiv>
-            )}
-
-            {/* 클릭 외부 영역 감지 */}
-            {showProfileMenu && (
-              <div
-                className='fixed inset-0 z-40'
-                onClick={() => setShowProfileMenu(false)}
-              />
-            )}
-          </div>
+          {/* 🎯 UnifiedProfileComponent 사용 */}
+          <UnifiedProfileComponent 
+            userName={getUserName()} 
+            userAvatar={getUserAvatar()}
+          />
         </div>
       </div>
 
-      {/* 모바일용 실시간 정보 및 사용자 정보 */}
+      {/* 모바일용 실시간 정보 */}
       <div className='md:hidden px-6 py-2 bg-gray-50 border-t border-gray-200'>
-        <div className='flex items-center justify-between'>
+        <div className='flex items-center justify-center'>
           <RealTimeDisplay />
-          
-          {/* 모바일용 간단한 사용자 정보 */}
-          <div className='flex items-center gap-2 text-sm'>
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold ${
-              isGitHubUser ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 
-              isGuest ? 'bg-gradient-to-r from-blue-500 to-cyan-500' : 
-              'bg-gray-500'
-            }`}>
-              {getUserInitials()}
-            </div>
-            <span className='text-gray-600 font-medium'>
-              {getUserName().length > 10 ? getUserName().substring(0, 10) + '...' : getUserName()}
-            </span>
-            {isGitHubUser && <Shield className='w-3 h-3 text-green-600' />}
-            {isGuest && <UserCheck className='w-3 h-3 text-blue-600' />}
-          </div>
         </div>
       </div>
     </header>
