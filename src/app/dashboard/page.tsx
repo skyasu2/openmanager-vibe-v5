@@ -40,6 +40,18 @@ const EnhancedServerModalDynamic = dynamic(
   }
 );
 
+const AIInsightsCard = dynamic(
+  () => import('../../components/dashboard/AIInsightsCard'),
+  {
+    loading: () => (
+      <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6 animate-pulse'>
+        <div className='h-4 bg-gray-200 rounded w-1/2 mb-4'></div>
+        <div className='h-20 bg-gray-200 rounded'></div>
+      </div>
+    ),
+  }
+);
+
 const ContentLoadingSkeleton = () => (
   <div className='min-h-screen bg-gray-100 dark:bg-gray-900 p-6'>
     <div className='space-y-6'>
@@ -122,7 +134,7 @@ function DashboardPageContent() {
   // 🔒 자동 로그아웃 시스템 - 베르셀 사용량 최적화
   const { remainingTime, isWarning, resetTimer, forceLogout } = useAutoLogout({
     timeoutMinutes: 10, // 10분 비활성 시 로그아웃
-    warningMinutes: 1,  // 1분 전 경고
+    warningMinutes: 1, // 1분 전 경고
     onWarning: () => {
       setShowLogoutWarning(true);
       console.log('⚠️ 자동 로그아웃 경고 표시 - 베르셀 사용량 최적화');
@@ -130,7 +142,7 @@ function DashboardPageContent() {
     onLogout: () => {
       console.log('🔒 자동 로그아웃 실행 - 베르셀 사용량 최적화');
       systemInactivityService.pauseSystem();
-    }
+    },
   });
 
   // 🎯 실제 서버 데이터 생성기 데이터 사용 - 즉시 로드
@@ -246,12 +258,12 @@ function DashboardPageContent() {
               showSequentialGeneration={false}
               servers={realServers}
               status={{ type: 'idle' }}
-              actions={{ start: () => { }, stop: () => { } }}
+              actions={{ start: () => {}, stop: () => {} }}
               selectedServer={selectedServer || dashboardSelectedServer}
               onServerClick={handleServerClick}
               onServerModalClose={handleServerModalClose}
-              onStatsUpdate={() => { }}
-              onShowSequentialChange={() => { }}
+              onStatsUpdate={() => {}}
+              onShowSequentialChange={() => {}}
               mainContentVariants={{}}
               isAgentOpen={isAgentOpen}
             />
@@ -269,9 +281,43 @@ function DashboardPageContent() {
               className='fixed inset-y-0 right-0 w-96 z-40'
             >
               {isAgentOpen && (
-                <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-lg z-50 p-4">
-                  <button onClick={closeAgent} className="absolute top-4 right-4">✕</button>
-                  <p className="text-center text-gray-600 mt-8">🚀 AI 기능이 GCP Functions로 이관되었습니다</p>
+                <div className='fixed inset-y-0 right-0 w-96 bg-white shadow-lg z-50 p-4 overflow-y-auto'>
+                  <button
+                    onClick={closeAgent}
+                    className='absolute top-4 right-4 z-10 text-gray-500 hover:text-gray-700 transition-colors'
+                  >
+                    ✕
+                  </button>
+
+                  <div className='pt-12'>
+                    <h2 className='text-lg font-semibold text-gray-800 mb-4'>
+                      AI 어시스턴트
+                    </h2>
+
+                    {/* AI 인사이트 카드 */}
+                    <AIInsightsCard className='mb-6' />
+
+                    {/* 추가 AI 기능들 */}
+                    <div className='space-y-4'>
+                      <div className='bg-gray-50 rounded-lg p-4'>
+                        <h3 className='font-medium text-gray-800 mb-2'>
+                          빠른 분석
+                        </h3>
+                        <p className='text-sm text-gray-600'>
+                          현재 시스템 상태를 AI가 실시간으로 분석하고 있습니다.
+                        </p>
+                      </div>
+
+                      <div className='bg-blue-50 rounded-lg p-4'>
+                        <h3 className='font-medium text-blue-800 mb-2'>
+                          최적화 제안
+                        </h3>
+                        <p className='text-sm text-blue-600'>
+                          서버 성능 최적화를 위한 AI 추천사항을 확인하세요.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </motion.div>

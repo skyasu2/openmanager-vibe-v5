@@ -12,7 +12,12 @@ import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
 import { BarChart3, Bot, Loader2, Play, X, Zap, LogIn } from 'lucide-react';
-import { getCurrentUser, isGitHubAuthenticated, signOut as supabaseSignOut, onAuthStateChange } from '@/lib/supabase-auth';
+import {
+  getCurrentUser,
+  isGitHubAuthenticated,
+  signOut as supabaseSignOut,
+  onAuthStateChange,
+} from '@/lib/supabase-auth';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo } from 'react';
@@ -93,18 +98,18 @@ export default function Home() {
 
         // 현재 사용자 정보 가져오기
         const user = await getCurrentUser();
-        
+
         // 사용자 정보 설정
         if (user) {
           setCurrentUser({
             name: user.name || 'User',
             email: user.email,
-            avatar: user.avatar
+            avatar: user.avatar,
           });
         } else {
           setCurrentUser(null);
         }
-        
+
         console.log('🔐 인증 상태:', { isGitHub, user });
         setAuthChecked(true);
       } catch (error) {
@@ -117,7 +122,7 @@ export default function Home() {
     checkAuth();
 
     // 인증 상태 변경 리스너
-    authListener = onAuthStateChange(async (session) => {
+    authListener = onAuthStateChange(async session => {
       console.log('🔄 Auth 상태 변경 감지');
       await checkAuth();
     });
@@ -130,14 +135,13 @@ export default function Home() {
   // 즉시 리다이렉션 체크
   useEffect(() => {
     if (!isMounted || authLoading) return;
-    
+
     // 인증 체크 완료 후 사용자가 없으면 즉시 리다이렉션
     if (authChecked && !currentUser) {
       console.log('🚨 인증 정보 없음 - 로그인 페이지로 이동');
       router.replace('/login');
     }
   }, [isMounted, authLoading, authChecked, currentUser, router]);
-
 
   // 🔧 상태 변화 디버깅 (클라이언트에서만)
   useEffect(() => {
@@ -220,7 +224,7 @@ export default function Home() {
       window.addEventListener('keydown', handleEscKey);
       return () => window.removeEventListener('keydown', handleEscKey);
     }
-    
+
     // 모든 코드 경로에서 값을 반환해야 함
     return undefined;
   }, [systemStartCountdown, stopSystemCountdown]);
@@ -266,16 +270,16 @@ export default function Home() {
   const startSystemCountdown = useCallback(() => {
     setSystemStartCountdown(3); // 3초 카운트다운
     setIsSystemStarting(false); // 카운트다운 시작 시 시스템 시작 상태 초기화
-    
+
     const timer = setInterval(() => {
       setSystemStartCountdown(prev => {
         if (prev <= 1) {
           clearInterval(timer);
           console.log('🚀 카운트다운 완료 - 로딩 페이지로 이동');
-          
+
           // 백그라운드에서 시스템 시작 프로세스 실행 (비동기)
           handleSystemStartBackground();
-          
+
           // 즉시 로딩 페이지로 이동
           router.push('/system-boot');
           return 0;
@@ -289,7 +293,7 @@ export default function Home() {
   // 🚀 백그라운드 시스템 시작 함수 (사용자는 로딩 페이지에서 대기)
   const handleSystemStartBackground = useCallback(async () => {
     console.log('🔄 백그라운드에서 시스템 시작 프로세스 실행');
-    
+
     try {
       // 1. 다중 사용자 상태 업데이트
       await startMultiUserSystem();
@@ -302,7 +306,7 @@ export default function Home() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ triggerType: 'system-start' }),
         });
-        
+
         if (syncResponse.ok) {
           const syncResult = await syncResponse.json();
           console.log('✅ 데이터 동기화 완료:', syncResult);
@@ -317,7 +321,6 @@ export default function Home() {
       await startSystem();
 
       console.log('✅ 백그라운드 시스템 시작 완료');
-      
     } catch (error) {
       console.error('❌ 백그라운드 시스템 시작 실패:', error);
       // 실패해도 로딩 페이지에서 처리하므로 여기서는 로그만 남김
@@ -330,15 +333,14 @@ export default function Home() {
 
     console.log('🚀 직접 시스템 시작 프로세스 시작');
     setIsSystemStarting(true);
-    
+
     try {
       await handleSystemStartBackground();
-      
+
       // 성공 시 대시보드로 이동
       setTimeout(() => {
         router.push('/dashboard');
       }, 500);
-      
     } catch (error) {
       console.error('❌ 시스템 시작 실패:', error);
       setIsSystemStarting(false); // 실패 시 상태 초기화
@@ -379,64 +381,75 @@ export default function Home() {
     router.push('/dashboard');
   };
 
-  // 📊 버튼 텍스트와 상태 결정 (깜빡임 방지 개선)
-  const getButtonConfig = useMemo(() => () => {
+  // 📊 버튼 상태 우선순위 (깜빡임 방지 개선)
+  const buttonState = useMemo(() => {
     // 1. 카운트다운 중 (최우선)
-    if (systemStartCountdown > 0) {
-      return {
-        text: `시작 취소 (${systemStartCountdown}초)`,
-        icon: <X className='w-5 h-5' />,
-        className:
-          'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50 animate-pulse',
-      };
-    }
+    if (systemStartCountdown > 0) return 'countdown';
 
     // 2. 시스템 시작 중 (카운트다운 완료 후)
-    if (isSystemStarting) {
-      return {
-        text: '시스템 시작 중...',
-        icon: <Loader2 className='w-5 h-5 animate-spin' />,
-        className:
-          'bg-gradient-to-r from-purple-500 to-blue-600 text-white border-purple-400/50 cursor-not-allowed',
-      };
-    }
+    if (isSystemStarting) return 'starting';
 
     // 3. 일반 로딩 상태
-    if (isLoading || statusLoading) {
-      return {
-        text: '시스템 초기화 중...',
-        icon: <Loader2 className='w-5 h-5 animate-spin' />,
-        className:
-          'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed',
-      };
-    }
+    if (isLoading || statusLoading) return 'loading';
 
     // 4. 시스템 실행 중 (대시보드 이동)
-    if (multiUserStatus.isRunning || isSystemStarted) {
-      return {
-        text: `📊 대시보드 이동 (사용자: ${multiUserStatus.userCount}명)`,
-        icon: <BarChart3 className='w-5 h-5' />,
-        className:
-          'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50',
-      };
-    }
+    if (multiUserStatus.isRunning || isSystemStarted) return 'running';
 
     // 5. 기본 상태 (시스템 시작 대기)
-    return {
-      text: '🚀 시스템 시작',
-      icon: <Play className='w-5 h-5' />,
-      className:
-        'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-blue-400/50',
-    };
+    return 'idle';
   }, [
     systemStartCountdown,
     isSystemStarting,
     isLoading,
     statusLoading,
     multiUserStatus.isRunning,
-    multiUserStatus.userCount,
     isSystemStarted,
   ]);
+
+  // 📊 버튼 설정 (상태별로 안정화)
+  const getButtonConfig = useMemo(() => {
+    switch (buttonState) {
+      case 'countdown':
+        return {
+          text: `시작 취소 (${systemStartCountdown}초)`,
+          icon: <X className='w-5 h-5' />,
+          className:
+            'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50 animate-pulse',
+        };
+
+      case 'starting':
+        return {
+          text: '시스템 시작 중...',
+          icon: <Loader2 className='w-5 h-5 animate-spin' />,
+          className:
+            'bg-gradient-to-r from-purple-500 to-blue-600 text-white border-purple-400/50 cursor-not-allowed',
+        };
+
+      case 'loading':
+        return {
+          text: '시스템 초기화 중...',
+          icon: <Loader2 className='w-5 h-5 animate-spin' />,
+          className:
+            'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed',
+        };
+
+      case 'running':
+        return {
+          text: `📊 대시보드 이동 (사용자: ${multiUserStatus.userCount || 0}명)`,
+          icon: <BarChart3 className='w-5 h-5' />,
+          className:
+            'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50',
+        };
+
+      default:
+        return {
+          text: '🚀 시스템 시작',
+          icon: <Play className='w-5 h-5' />,
+          className:
+            'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-blue-400/50',
+        };
+    }
+  }, [buttonState, systemStartCountdown, multiUserStatus.userCount]);
 
   // 로그아웃 처리
   const handleLogout = async () => {
@@ -507,7 +520,6 @@ export default function Home() {
   }
 
   const userInfo = getUserInfo();
-  const buttonConfig = getButtonConfig();
 
   return (
     <div
@@ -651,8 +663,6 @@ export default function Home() {
           {!isSystemStarted ? (
             /* 시스템 중지 상태 - 대시보드 버튼 중심으로 변경 */
             <div className='max-w-2xl mx-auto text-center'>
-
-
               {/* 메인 제어 버튼들 */}
               <div className='flex flex-col items-center mb-6 space-y-4'>
                 {isGitHubUser ? (
@@ -661,12 +671,12 @@ export default function Home() {
                     <motion.button
                       onClick={handleSystemToggle}
                       disabled={isLoading || isSystemStarting}
-                      className={`w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-300 border shadow-xl ${buttonConfig.className}`}
+                      className={`w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-300 border shadow-xl ${getButtonConfig.className}`}
                       whileHover={!isLoading ? { scale: 1.05 } : {}}
                       whileTap={!isLoading ? { scale: 0.95 } : {}}
                     >
-                      {buttonConfig.icon}
-                      <span className='text-lg'>{buttonConfig.text}</span>
+                      {getButtonConfig.icon}
+                      <span className='text-lg'>{getButtonConfig.text}</span>
                     </motion.button>
 
                     {/* 상태 안내 */}
@@ -677,18 +687,18 @@ export default function Home() {
                             ? 'text-orange-300 animate-pulse'
                             : isSystemStarting
                               ? 'text-purple-300'
-                            : multiUserStatus.isRunning
-                              ? 'text-green-300'
-                              : 'text-white'
+                              : multiUserStatus.isRunning
+                                ? 'text-green-300'
+                                : 'text-white'
                         }`}
                       >
                         {systemStartCountdown > 0
                           ? '⚠️ 시작 예정 - 취소하려면 클릭'
                           : isSystemStarting
                             ? '🚀 시스템 부팅 중...'
-                          : multiUserStatus.isRunning
-                            ? `✅ 시스템 가동 중 (${multiUserStatus.userCount}명 접속)`
-                            : '클릭하여 시작하기'}
+                            : multiUserStatus.isRunning
+                              ? `✅ 시스템 가동 중 (${multiUserStatus.userCount}명 접속)`
+                              : '클릭하여 시작하기'}
                       </span>
                       {systemStartCountdown > 0 && (
                         <span className='text-xs text-white/60'>
@@ -698,11 +708,13 @@ export default function Home() {
                     </div>
 
                     {/* 시작 버튼 안내 아이콘 - 시스템 정지 상태일 때만 표시 */}
-                    {!systemStartCountdown && !isSystemStarting && !multiUserStatus.isRunning && (
-                      <div className='mt-2 flex justify-center'>
-                        <span className='finger-pointer-primary'>👆</span>
-                      </div>
-                    )}
+                    {!systemStartCountdown &&
+                      !isSystemStarting &&
+                      !multiUserStatus.isRunning && (
+                        <div className='mt-2 flex justify-center'>
+                          <span className='finger-pointer-primary'>👆</span>
+                        </div>
+                      )}
                   </>
                 ) : (
                   /* 게스트 사용자 - 안내 메시지 표시 */
@@ -713,7 +725,8 @@ export default function Home() {
                         GitHub 로그인이 필요합니다
                       </h3>
                       <p className='text-sm text-blue-100 mb-4'>
-                        시스템 시작 기능은 GitHub 인증된 사용자만 사용할 수 있습니다.
+                        시스템 시작 기능은 GitHub 인증된 사용자만 사용할 수
+                        있습니다.
                       </p>
                       <motion.button
                         onClick={() => router.push('/login')}
@@ -761,8 +774,6 @@ export default function Home() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
             >
-
-
               {/* 대시보드 버튼 - 중앙 배치 */}
               <div className='flex justify-center mb-6'>
                 <div className='flex flex-col items-center'>

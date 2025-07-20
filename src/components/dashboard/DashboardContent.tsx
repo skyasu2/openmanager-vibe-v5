@@ -41,6 +41,17 @@ const ServerDashboardDynamic = dynamic(() => import('./ServerDashboard'), {
   ),
 });
 
+const InfrastructureOverviewDynamic = dynamic(
+  () => import('./monitoring/InfrastructureOverview'),
+  {
+    loading: () => (
+      <div className='flex items-center justify-center p-8'>
+        <div className='w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin'></div>
+      </div>
+    ),
+  }
+);
+
 export default function DashboardContent({
   showSequentialGeneration,
   servers,
@@ -73,10 +84,10 @@ export default function DashboardContent({
     const stats = servers.reduce(
       (acc, server) => {
         acc.total += 1;
-        
+
         // 서버 상태 정규화 및 매핑
         const normalizedStatus = server.status?.toLowerCase() || 'unknown';
-        
+
         switch (normalizedStatus) {
           case 'online':
           case 'healthy':
@@ -98,7 +109,9 @@ export default function DashboardContent({
             break;
           default:
             // 알 수 없는 상태는 경고로 분류
-            console.warn(`⚠️ 알 수 없는 서버 상태: ${server.status} (서버: ${server.name || server.id})`);
+            console.warn(
+              `⚠️ 알 수 없는 서버 상태: ${server.status} (서버: ${server.name || server.id})`
+            );
             acc.warning += 1;
         }
         return acc;
@@ -108,11 +121,11 @@ export default function DashboardContent({
 
     console.log('📊 실제 서버 통계:', {
       ...stats,
-      서버_목록: servers.map(s => ({ 
-        이름: s.name || s.id, 
+      서버_목록: servers.map(s => ({
+        이름: s.name || s.id,
         상태: s.status,
-        정규화된_상태: s.status?.toLowerCase() 
-      }))
+        정규화된_상태: s.status?.toLowerCase(),
+      })),
     });
     return stats;
   }, [servers]);
@@ -293,7 +306,7 @@ export default function DashboardContent({
                   )}
                 </div>
               </div>
-              
+
               {/* 📊 상세 통계 정보 */}
               <div className='mt-2 pt-2 border-t border-green-200/50'>
                 <div className='flex items-center justify-between text-xs text-green-700'>
@@ -301,7 +314,13 @@ export default function DashboardContent({
                     마지막 업데이트: {new Date().toLocaleTimeString('ko-KR')}
                   </span>
                   <span>
-                    정상 비율: {serverStats.total > 0 ? Math.round((serverStats.online / serverStats.total) * 100) : 0}%
+                    정상 비율:{' '}
+                    {serverStats.total > 0
+                      ? Math.round(
+                          (serverStats.online / serverStats.total) * 100
+                        )
+                      : 0}
+                    %
                   </span>
                 </div>
               </div>
@@ -329,9 +348,7 @@ export default function DashboardContent({
                   try {
                     return (
                       <div className='bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden'>
-                        <div className="h-80 lg:h-96 flex items-center justify-center bg-gray-50 rounded-lg">
-                        <p className="text-gray-600">🚀 AI 기능이 GCP Functions로 이관되었습니다</p>
-                      </div>
+                        <InfrastructureOverviewDynamic stats={serverStats} />
                       </div>
                     );
                   } catch (error) {
@@ -372,16 +389,19 @@ export default function DashboardContent({
                       실시간 업데이트
                     </div>
                     <div className='text-lg lg:text-2xl font-bold text-green-600'>
-                      오후 {currentTime.toLocaleTimeString('ko-KR', {
+                      오후{' '}
+                      {currentTime.toLocaleTimeString('ko-KR', {
                         hour: '2-digit',
                         minute: '2-digit',
                         second: '2-digit',
-                        hour12: false
+                        hour12: false,
                       })}
                     </div>
                   </div>
                   <div className='bg-white/70 rounded-lg p-3 lg:p-4'>
-                    <div className='text-xs lg:text-sm text-gray-600 mb-1'>연결 상태</div>
+                    <div className='text-xs lg:text-sm text-gray-600 mb-1'>
+                      연결 상태
+                    </div>
                     <div className='flex items-center gap-2'>
                       <div className='w-3 h-3 bg-green-500 rounded-full'></div>
                       <span className='text-xs lg:text-sm font-medium text-gray-800'>
