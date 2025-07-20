@@ -15,6 +15,10 @@ import {
   User,
   Settings2,
   Crown,
+  Power,
+  BarChart3,
+  Clock,
+  Activity,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState, useCallback, useRef } from 'react';
@@ -48,6 +52,10 @@ export default function UnifiedProfileHeader({
   const [lockEndTime, setLockEndTime] = useState<number | null>(null);
   const [remainingLockTime, setRemainingLockTime] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // 시스템 상태 관리
+  const [isSystemActive, setIsSystemActive] = useState(false);
+  const [systemTimeRemaining, setSystemTimeRemaining] = useState(0);
 
   // 드롭다운 외부 클릭 감지를 위한 ref
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -84,6 +92,38 @@ export default function UnifiedProfileHeader({
       loadUserInfo();
     }
   }, [session, status]);
+
+  // � 시안스템 상태 확인
+  useEffect(() => {
+    const checkSystemStatus = async () => {
+      try {
+        const response = await fetch('/api/system/status');
+        const data = await response.json();
+
+        setIsSystemActive(data.isRunning || false);
+
+        // 자동 종료 시간 확인
+        const shutdownTime = localStorage.getItem('system_auto_shutdown');
+        if (shutdownTime && data.isRunning) {
+          const timeLeft = Math.max(
+            0,
+            Math.floor((parseInt(shutdownTime) - Date.now()) / 60000)
+          );
+          setSystemTimeRemaining(timeLeft);
+        }
+      } catch (error) {
+        console.error('시스템 상태 확인 실패:', error);
+        setIsSystemActive(false);
+      }
+    };
+
+    checkSystemStatus();
+
+    // 30초마다 시스템 상태 확인
+    const interval = setInterval(checkSystemStatus, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // 🔒 보안: 잠금 상태 확인 및 초기화
   useEffect(() => {
@@ -271,6 +311,40 @@ export default function UnifiedProfileHeader({
   const handleAdminPage = useCallback(() => {
     setShowProfileMenu(false);
     router.push('/admin');
+  }, [router]);
+
+  // 시스템 종료 핸들러
+  const handleSystemStop = useCallback(async () => {
+    try {
+      setShowProfileMenu(false);
+      console.log('🛑 시스템 종료 요청 (프로필에서)');
+
+      const response = await fetch('/api/system/stop', { method: 'POST' });
+
+      if (response.ok) {
+        console.log('✅ 시스템 종료 성공');
+        setIsSystemActive(false);
+        setSystemTimeRemaining(0);
+
+        // 자동 종료 타이머 제거
+        localStorage.removeItem('system_auto_shutdown');
+
+        // 성공 알림 (선택적)
+        // alert('시스템이 성공적으로 종료되었습니다.');
+      } else {
+        console.error('❌ 시스템 종료 실패');
+        alert('시스템 종료에 실패했습니다. 다시 시도해주세요.');
+      }
+    } catch (error) {
+      console.error('❌ 시스템 종료 오류:', error);
+      alert('시스템 종료 중 오류가 발생했습니다.');
+    }
+  }, []);
+
+  // 대시보드 이동 핸들러
+  const handleDashboardClick = useCallback(() => {
+    setShowProfileMenu(false);
+    router.push('/dashboard');
   }, [router]);
 
   // 로그아웃 처리 - 개선된 버전
@@ -657,6 +731,85 @@ export default function UnifiedProfileHeader({
                   <Crown className='w-4 h-4 mr-3 text-red-500' />
                   관리자 페이지
                 </button>
+              )}
+
+              {/* 🎯 시스템 관리 섹션 - GitHub 사용자만 */}
+              {isGitHubUser && (
+                <>
+                  <div className='border-t border-gray-100 my-1' />
+
+                  {/* 시스템 상태 표시 */}
+                  <div className='px-4 py-2 bg-gray-50'>
+                    <div className='flex items-center justify-between'>
+                      <div className='flex items-center gap-2'>
+                        <Activity
+                          className={`w-4 h-4 ${isSystemActive ? 'text-green-500' : 'text-gray-400'}`}
+                        />
+                        <span className='text-sm font-medium text-gray-700'>
+                          시스템 상태
+                        </span>
+                      </div>
+                      <div className='flex items-center gap-1'>
+                        <div
+                          className={`w-2 h-2 rounded-full ${isSystemActive ? 'bg-green-500' : 'bg-gray-400'}`}
+                        />
+                        <span
+                          className={`text-xs font-medium ${isSystemActive ? 'text-green-700' : 'text-gray-500'}`}
+                        >
+                          {isSystemActive ? '실행 중' : '중지됨'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 자동 종료 타이머 표시 */}
+                    {isSystemActive && systemTimeRemaining > 0 && (
+                      <div className='flex items-center gap-1 mt-1'>
+                        <Clock className='w-3 h-3 text-orange-500' />
+                        <span className='text-xs text-orange-600'>
+                          {systemTimeRemaining}분 후 자동 종료
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 시스템 관리 버튼들 */}
+                  {isSystemActive ? (
+                    <>
+                      {/* 대시보드 이동 */}
+                      <button
+                        onClick={handleDashboardClick}
+                        className='flex items-center w-full px-4 py-2 text-sm text-green-700 hover:bg-green-50 transition-colors'
+                      >
+                        <BarChart3 className='w-4 h-4 mr-3 text-green-500' />
+                        대시보드 열기
+                        <span className='ml-auto text-xs text-green-500'>
+                          모니터링
+                        </span>
+                      </button>
+
+                      {/* 시스템 종료 */}
+                      <button
+                        onClick={handleSystemStop}
+                        className='flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors'
+                      >
+                        <Power className='w-4 h-4 mr-3 text-red-500' />
+                        시스템 종료
+                        <span className='ml-auto text-xs text-red-500'>
+                          즉시 종료
+                        </span>
+                      </button>
+                    </>
+                  ) : (
+                    <div className='px-4 py-2 text-center'>
+                      <p className='text-xs text-gray-500'>
+                        시스템이 중지되어 있습니다.
+                      </p>
+                      <p className='text-xs text-gray-400 mt-1'>
+                        메인 페이지에서 시스템을 시작하세요.
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
 
               {/* 구분선 */}
