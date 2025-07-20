@@ -7,7 +7,7 @@
 
 // 서버 사이드 설정 - 서버 컴포넌트에서만 사용 가능
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = false;
 
 import DashboardClient from './DashboardClient';
 
