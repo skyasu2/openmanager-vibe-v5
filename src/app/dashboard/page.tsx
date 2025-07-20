@@ -20,20 +20,20 @@ import AISidebarV2 from '@/domains/ai-sidebar/components/AISidebarV2';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
-import dynamicImport from 'next/dynamic';
+import dynamicLoader from 'next/dynamic';
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
 
 // --- Dynamic Imports ---
-const DashboardHeader = dynamicImport(
+const DashboardHeader = dynamicLoader(
   () => import('../../components/dashboard/DashboardHeader')
 );
-const DashboardContent = dynamicImport(
+const DashboardContent = dynamicLoader(
   () => import('../../components/dashboard/DashboardContent')
 );
-const FloatingSystemControl = dynamicImport(
+const FloatingSystemControl = dynamicLoader(
   () => import('../../components/system/FloatingSystemControl')
 );
-const EnhancedServerModalDynamic = dynamicImport(
+const EnhancedServerModalDynamic = dynamicLoader(
   () => import('../../components/dashboard/EnhancedServerModal'),
   {
     loading: () => (
