@@ -27,7 +27,7 @@ import {
   Server,
   Target,
   User,
-  Zap
+  Zap,
 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RealAISidebarService } from '../services/RealAISidebarService';
@@ -69,7 +69,8 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   const aiService = new RealAISidebarService();
 
   // 🔧 상태 관리 (8개 그룹)
-  const [selectedFunction, setSelectedFunction] = useState<AIAgentFunction>('chat');
+  const [selectedFunction, setSelectedFunction] =
+    useState<AIAgentFunction>('chat');
   const [selectedEngine, setSelectedEngine] = useState<AIMode>('LOCAL');
   const [inputValue, setInputValue] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -97,13 +98,8 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
   // 도메인 훅들 사용
   const { setOpen } = useAISidebarStore();
-  const {
-    isThinking,
-    steps,
-    addStep,
-    clearSteps,
-  } = useAIThinking();
-  
+  const { isThinking, steps, addStep, clearSteps } = useAIThinking();
+
   // 로컬 상태로 관리
   const [currentQuestion, setCurrentQuestion] = useState('');
   const [logs, setLogs] = useState<any[]>([]);
@@ -115,7 +111,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     clearMessages,
     isLoading,
   } = useAIChat();
-  
+
   // 로컬 상태로 관리
   const [responses, setResponses] = useState<any[]>([]);
   const [chatError, setChatError] = useState<string | null>(null);
@@ -176,13 +172,12 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   useEffect(() => {
     const initializeRouter = async () => {
       try {
-        await unifiedAIRouter.initialize();
-        // TDD 안전 모드: 타입 캐시 문제 해결을 위한 임시 방법
-        const currentMode = unifiedAIRouter.getCurrentMode();
-        setSelectedEngine(currentMode as AIMode);
-        console.log(`🎯 AI 사이드바 초기화 - 현재 모드: ${currentMode}`);
+        // 더미 구현으로 인해 initialize 메서드가 없음
+        // 기본값으로 LOCAL 설정
+        setSelectedEngine('LOCAL');
+        console.log('🎯 AI 사이드바 초기화 - 기본 모드: LOCAL');
       } catch (error) {
-        console.error('UnifiedAIEngineRouter 초기화 실패:', error);
+        console.error('AI 사이드바 초기화 실패:', error);
       }
     };
 
@@ -376,30 +371,22 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       console.log(`🤖 실제 AI 쿼리 처리 시작: ${query} (엔진: ${engine})`);
 
       // UnifiedAIEngineRouter 직접 사용
-      const response = await unifiedAIRouter.processQuery({
-        query,
-        mode: engine,
-      });
+      const response = await unifiedAIRouter.query(query, { mode: engine });
 
-      if (response.success) {
+      if (response && response.content) {
         const processingTime = Date.now() - startTime;
 
         // 성공 시 생각 과정을 저장하고 실시간 표시 중단
         setTimeout(
-          () =>
-            stopThinking(
-              query,
-              response.enginePath?.[0] || engine,
-              processingTime
-            ),
+          () => stopThinking(query, response.engine || engine, processingTime),
           500
         );
 
         return {
           success: true,
-          content: response.response,
+          content: response.content,
           confidence: response.confidence,
-          engine: response.enginePath?.[0] || engine,
+          engine: response.engine || engine,
           processingTime,
           metadata: response.metadata,
         };
@@ -468,10 +455,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       setSelectedEngine(newMode);
 
       // Unified AI Engine Router 모드 변경
-      await unifiedAIRouter.processQuery({
-        query: '모드 변경 테스트',
+      await unifiedAIRouter.query('모드 변경 테스트', {
         mode: newMode,
-        context: { modeChange: true }
+        context: { modeChange: true },
       });
 
       // 성공 메시지 추가
@@ -483,7 +469,6 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       };
 
       setLocalChatMessages(prev => [...prev, message]);
-
     } catch (error) {
       console.error('AI 모드 변경 실패:', error);
 
@@ -593,7 +578,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             >
               {React.createElement(
                 availableEngines.find(e => e.id === selectedEngine)?.icon ||
-                Zap,
+                  Zap,
                 {
                   className: `w-3 h-3 ${availableEngines.find(e => e.id === selectedEngine)?.color}`,
                 }
@@ -636,16 +621,11 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                             `🔧 AI 모드 변경: ${selectedEngine} → ${engine.id}`
                           );
                           setSelectedEngine(engine.id as AIMode);
-                          // UnifiedAIEngineRouter 모드도 동기화
-                          const normalizedMode =
-                            engine.id === 'GOOGLE_AI'
-                              ? 'GOOGLE_ONLY'
-                              : (engine.id as 'LOCAL' | 'GOOGLE_ONLY');
-                          unifiedAIRouter.setMode(normalizedMode);
                           setShowEngineInfo(false);
                         }}
-                        className={`w-full p-2 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${selectedEngine === engine.id ? 'bg-blue-50' : ''
-                          }`}
+                        className={`w-full p-2 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
+                          selectedEngine === engine.id ? 'bg-blue-50' : ''
+                        }`}
                       >
                         <div className='flex items-start space-x-2'>
                           <div
@@ -758,17 +738,19 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${message.role === 'user'
-                ? 'flex-row-reverse space-x-reverse'
-                : ''
-                }`}
+              className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${
+                message.role === 'user'
+                  ? 'flex-row-reverse space-x-reverse'
+                  : ''
+              }`}
             >
               {/* 아바타 */}
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === 'user'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                  }`}
+                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  message.role === 'user'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                }`}
               >
                 {message.role === 'user' ? (
                   <User className='w-3 h-3' />
@@ -780,10 +762,11 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
               {/* 메시지 콘텐츠 */}
               <div className='flex-1'>
                 <div
-                  className={`rounded-lg p-3 ${message.role === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-white border border-gray-200'
-                    }`}
+                  className={`rounded-lg p-3 ${
+                    message.role === 'user'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-white border border-gray-200'
+                  }`}
                 >
                   <div className='text-sm whitespace-pre-wrap break-words'>
                     {message.content}
