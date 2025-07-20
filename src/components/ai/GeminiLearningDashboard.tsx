@@ -17,6 +17,7 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { GeminiLearningEngine } from '@/modules/ai-agent/learning/GeminiLearningEngine';
 
 interface GeminiLearningStatus {
   enabled: boolean;
@@ -108,9 +109,6 @@ export default function GeminiLearningDashboard() {
     setIsExecuting(true);
     try {
       // API 삭제됨 - 로컬 학습 엔진 사용
-      const { GeminiLearningEngine } = await import(
-        '@/modules/ai-agent/learning/GeminiLearningEngine'
-      );
       const learningEngine = GeminiLearningEngine.getInstance();
 
       // 로컬 실패 로그 분석 실행

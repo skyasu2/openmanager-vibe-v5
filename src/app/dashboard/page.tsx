@@ -7,6 +7,10 @@
  * 기존 백엔드 API 구조 유지하면서 UI만 복원
  */
 
+// 인증이 필요한 페이지이므로 정적 생성 비활성화
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
 import { NotificationToast } from '@/components/system/NotificationToast';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
@@ -16,20 +20,20 @@ import AISidebarV2 from '@/domains/ai-sidebar/components/AISidebarV2';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
 
 // --- Dynamic Imports ---
-const DashboardHeader = dynamic(
+const DashboardHeader = dynamicImport(
   () => import('../../components/dashboard/DashboardHeader')
 );
-const DashboardContent = dynamic(
+const DashboardContent = dynamicImport(
   () => import('../../components/dashboard/DashboardContent')
 );
-const FloatingSystemControl = dynamic(
+const FloatingSystemControl = dynamicImport(
   () => import('../../components/system/FloatingSystemControl')
 );
-const EnhancedServerModalDynamic = dynamic(
+const EnhancedServerModalDynamic = dynamicImport(
   () => import('../../components/dashboard/EnhancedServerModal'),
   {
     loading: () => (
@@ -122,7 +126,7 @@ function DashboardPageContent() {
   // 🔒 자동 로그아웃 시스템 - 베르셀 사용량 최적화
   const { remainingTime, isWarning, resetTimer, forceLogout } = useAutoLogout({
     timeoutMinutes: 10, // 10분 비활성 시 로그아웃
-    warningMinutes: 1,  // 1분 전 경고
+    warningMinutes: 1, // 1분 전 경고
     onWarning: () => {
       setShowLogoutWarning(true);
       console.log('⚠️ 자동 로그아웃 경고 표시 - 베르셀 사용량 최적화');
@@ -130,7 +134,7 @@ function DashboardPageContent() {
     onLogout: () => {
       console.log('🔒 자동 로그아웃 실행 - 베르셀 사용량 최적화');
       systemInactivityService.pauseSystem();
-    }
+    },
   });
 
   // 🎯 실제 서버 데이터 생성기 데이터 사용 - 즉시 로드
@@ -246,12 +250,12 @@ function DashboardPageContent() {
               showSequentialGeneration={false}
               servers={realServers}
               status={{ type: 'idle' }}
-              actions={{ start: () => { }, stop: () => { } }}
+              actions={{ start: () => {}, stop: () => {} }}
               selectedServer={selectedServer || dashboardSelectedServer}
               onServerClick={handleServerClick}
               onServerModalClose={handleServerModalClose}
-              onStatsUpdate={() => { }}
-              onShowSequentialChange={() => { }}
+              onStatsUpdate={() => {}}
+              onShowSequentialChange={() => {}}
               mainContentVariants={{}}
               isAgentOpen={isAgentOpen}
             />
