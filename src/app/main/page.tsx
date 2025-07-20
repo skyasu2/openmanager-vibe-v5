@@ -11,7 +11,16 @@ import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
-import { BarChart3, Bot, Loader2, Play, X, Zap, LogIn } from 'lucide-react';
+import {
+  BarChart3,
+  Bot,
+  Loader2,
+  Play,
+  StopCircle,
+  X,
+  Zap,
+  LogIn,
+} from 'lucide-react';
 import {
   getCurrentUser,
   isGitHubAuthenticated,
@@ -397,8 +406,33 @@ export default function Home() {
 
     // 다중 사용자 상태에 따른 동작 결정
     if (multiUserStatus.isRunning || isSystemStarted) {
-      // 시스템이 이미 실행 중이면 대시보드로 이동
-      handleDashboardClick();
+      // 시스템이 실행 중이면 종료 처리
+      try {
+        setIsLoading(true);
+        console.log('🛑 시스템 종료 요청');
+
+        // 시스템 종료 API 호출
+        const response = await fetch('/api/system/stop', { method: 'POST' });
+
+        if (response.ok) {
+          console.log('✅ 시스템 종료 성공');
+          stopSystem();
+
+          // 자동 종료 타이머 제거
+          localStorage.removeItem('system_auto_shutdown');
+
+          // 상태 업데이트
+          setTimeout(() => {
+            setIsLoading(false);
+          }, 1000);
+        } else {
+          console.error('❌ 시스템 종료 실패');
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('❌ 시스템 종료 오류:', error);
+        setIsLoading(false);
+      }
     } else {
       // 시스템이 정지 상태면 카운트다운 시작
       startSystemCountdown();
@@ -451,13 +485,25 @@ export default function Home() {
         };
       }
 
-      // 4. 시스템 실행 중 (대시보드 이동)
+      // 4. 시스템 실행 중 (종료 버튼)
       if (multiUserStatus.isRunning || isSystemStarted) {
+        // 자동 종료 시간 계산
+        const shutdownTime = localStorage.getItem('system_auto_shutdown');
+        let timeLeftText = '';
+
+        if (shutdownTime) {
+          const timeLeft = Math.max(
+            0,
+            Math.floor((parseInt(shutdownTime) - Date.now()) / 60000)
+          );
+          timeLeftText = ` (${timeLeft}분 후 자동 종료)`;
+        }
+
         return {
-          text: `📊 대시보드 이동 (사용자: ${multiUserStatus.userCount}명)`,
-          icon: <BarChart3 className='w-5 h-5' />,
+          text: `🛑 시스템 종료${timeLeftText}`,
+          icon: <StopCircle className='w-5 h-5' />,
           className:
-            'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50',
+            'bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white border-red-400/50',
         };
       }
 
@@ -701,8 +747,24 @@ export default function Home() {
                           ? '⚠️ 시작 예정 - 취소하려면 클릭'
                           : isSystemStarting
                             ? '🚀 시스템 부팅 중...'
-                            : multiUserStatus.isRunning
-                              ? `✅ 시스템 가동 중 (${multiUserStatus.userCount}명 접속)`
+                            : multiUserStatus.isRunning || isSystemStarted
+                              ? (() => {
+                                  // 자동 종료 시간 계산
+                                  const shutdownTime = localStorage.getItem(
+                                    'system_auto_shutdown'
+                                  );
+                                  if (shutdownTime) {
+                                    const timeLeft = Math.max(
+                                      0,
+                                      Math.floor(
+                                        (parseInt(shutdownTime) - Date.now()) /
+                                          60000
+                                      )
+                                    );
+                                    return `✅ 시스템 가동 중 (${timeLeft}분 후 자동 종료)`;
+                                  }
+                                  return `✅ 시스템 가동 중 - 종료하려면 위 버튼 클릭`;
+                                })()
                               : '클릭하여 시작하기'}
                       </span>
                       {systemStartCountdown > 0 && (
@@ -715,11 +777,27 @@ export default function Home() {
                     {/* 시작 버튼 안내 아이콘 - 시스템 정지 상태일 때만 표시 */}
                     {!systemStartCountdown &&
                       !isSystemStarting &&
-                      !multiUserStatus.isRunning && (
+                      !multiUserStatus.isRunning &&
+                      !isSystemStarted && (
                         <div className='mt-2 flex justify-center'>
                           <span className='finger-pointer-primary'>👆</span>
                         </div>
                       )}
+
+                    {/* 시스템 실행 중일 때 대시보드 이동 버튼 */}
+                    {(multiUserStatus.isRunning || isSystemStarted) && (
+                      <div className='mt-4'>
+                        <motion.button
+                          onClick={handleDashboardClick}
+                          className='w-64 h-12 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center justify-center gap-2 shadow-md font-semibold'
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <BarChart3 className='w-5 h-5' />
+                          📊 대시보드 열기
+                        </motion.button>
+                      </div>
+                    )}
                   </>
                 ) : (
                   /* 게스트 사용자 - 안내 메시지 표시 */
