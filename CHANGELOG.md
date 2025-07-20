@@ -65,7 +65,6 @@
 
 - **프로젝트 구조 개선**
   - `/gcp-functions/`: GCP Functions 전용 디렉토리
-  - `/backup-removed-features/`: 제거된 기능 백업
   - 도메인 기반 아키텍처 강화
 
 - **tsconfig.json 설정**

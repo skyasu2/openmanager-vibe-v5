@@ -90,7 +90,6 @@
 ```json
 "exclude": [
   "node_modules",
-  "backup-removed-features/**/*",
   "**/*.test.ts",
   "**/*.stories.tsx"
 ]

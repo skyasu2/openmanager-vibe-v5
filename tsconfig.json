@@ -8,9 +8,9 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
-    "noUnusedLocals": false,  // Phase 2에서 활성화 예정
-    "noUnusedParameters": false,  // Phase 2에서 활성화 예정
-    "noUncheckedIndexedAccess": false,  // TODO: Phase 4에서 true로 변경 예정
+    "noUnusedLocals": false, // Phase 2에서 활성화 예정
+    "noUnusedParameters": false, // Phase 2에서 활성화 예정
+    "noUncheckedIndexedAccess": false, // TODO: Phase 4에서 true로 변경 예정
     "strictNullChecks": true,
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
@@ -61,8 +61,6 @@
     ".next",
     "out",
     "build",
-    "backups/**/*",
-    "backup-removed-features/**/*",
     "development/**/*",
     "src/stories/**",
     "**/*.stories.tsx",

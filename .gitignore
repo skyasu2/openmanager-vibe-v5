@@ -138,10 +138,7 @@ data/vector-cache/
 mcp-memory/
 .ai-cache/
 
-# backup and dev sandbox
-backup/dev-sandbox/
-backup/legacy-stores/
-*.backup.*
+# dev sandbox
 temp-*
 test2-*
 debug-*
@@ -176,7 +173,6 @@ commit/
 
 # Claude Code settings
 .claude/settings.local.json
-.claude/mcp.json.backup*
 .claude/mcp-*.json
 
 # 실행 파일들
