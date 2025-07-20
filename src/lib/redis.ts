@@ -10,7 +10,7 @@
 import { getDecryptedRedisConfig } from '@/lib/config/runtime-env-decryptor';
 import Redis from 'ioredis';
 import { env } from './env';
-import { DevMockRedis, getDevMockRedis } from './redis/dev-mock-redis';
+import { DevMockRedis } from './redis/dev-mock-redis';
 
 /**
  * 🚀 스마트 Redis 클라이언트
@@ -37,8 +37,7 @@ export interface RedisClientInterface {
 
 // Redis 클라이언트 인스턴스들
 let realRedis: RedisClientInterface | null = null;
-let mockRedis: EnhancedMockRedis | null = null;
-let devMockRedis: DevMockRedis | null = null;
+let unifiedMockRedis: UnifiedMockRedis | null = null;
 let isInitializing = false;
 
 // 🎯 하이브리드 전략 설정
@@ -73,217 +72,132 @@ const HYBRID_STRATEGY = {
   },
 };
 
-// 🧠 Enhanced Memory-only Redis 구현 (성능 최적화)
-class EnhancedMockRedis implements RedisClientInterface {
-  private store = new Map<string, { value: any; expiry?: number }>();
-  private stats = { hits: 0, misses: 0, sets: 0, deletes: 0, operations: 0 };
-  private lastCleanup = Date.now();
+// 🧠 통합 Mock Redis 구현 (Dev Mock Redis 기반)
+class UnifiedMockRedis implements RedisClientInterface {
+  private devMockRedis: DevMockRedis;
 
-  async set(key: string, value: any, options?: { ex?: number }): Promise<any> {
-    const expiry = options?.ex ? Date.now() + options.ex * 1000 : undefined;
-    this.store.set(key, { value, expiry });
-    this.stats.sets++;
-    this.stats.operations++;
-    this.periodicCleanup();
+  constructor(options?: {
+    enablePersistence?: boolean;
+    enableDevTools?: boolean;
+  }) {
+    this.devMockRedis = new DevMockRedis({
+      enablePersistence:
+        options?.enablePersistence ?? process.env.NODE_ENV === 'development',
+      enableDevTools:
+        options?.enableDevTools ?? process.env.NODE_ENV === 'development',
+      maxMemoryMB: 100,
+      persistPath: '.redis-mock-data',
+    });
+  }
+
+  // RedisClientInterface 구현 - DevMockRedis 메서드 위임
+  async get(key: string): Promise<string | null> {
+    return this.devMockRedis.get(key);
+  }
+
+  async set(key: string, value: any, options?: { ex?: number }): Promise<'OK'> {
+    await this.devMockRedis.set(key, value, options);
     return 'OK';
   }
 
-  async get(key: string): Promise<any> {
-    this.stats.operations++;
-    const item = this.store.get(key);
-    if (!item) {
-      this.stats.misses++;
-      return null;
-    }
-
-    if (item.expiry && Date.now() > item.expiry) {
-      this.store.delete(key);
-      this.stats.misses++;
-      return null;
-    }
-
-    this.stats.hits++;
-    return item.value;
+  async setex(key: string, seconds: number, value: string): Promise<'OK'> {
+    await this.devMockRedis.set(key, value, { ex: seconds });
+    return 'OK';
   }
 
   async del(key: string): Promise<number> {
-    this.stats.operations++;
-    const hadKey = this.store.has(key);
-    this.store.delete(key);
-    if (hadKey) this.stats.deletes++;
-    return hadKey ? 1 : 0;
-  }
-
-  async hset(key: string, field: string, value: any): Promise<number> {
-    this.stats.operations++;
-    let hash = this.store.get(key)?.value || {};
-    if (typeof hash !== 'object') hash = {};
-    hash[field] = value;
-    this.store.set(key, { value: hash });
-    return 1;
-  }
-
-  async hget(key: string, field: string): Promise<any> {
-    this.stats.operations++;
-    const hash = this.store.get(key)?.value || {};
-    return hash[field];
-  }
-
-  async hgetall(key: string): Promise<any> {
-    this.stats.operations++;
-    return this.store.get(key)?.value || {};
-  }
-
-  async publish(channel: string, message: string): Promise<number> {
-    this.stats.operations++;
-    return 0; // 구독자 없음
-  }
-
-  // RedisClientInterface 필수 메서드 구현
-  async setex(key: string, seconds: number, value: any): Promise<any> {
-    return this.set(key, value, { ex: seconds });
+    return this.devMockRedis.del(key);
   }
 
   async exists(key: string): Promise<number> {
-    this.stats.operations++;
-    const item = this.store.get(key);
-    if (!item) return 0;
-
-    if (item.expiry && Date.now() > item.expiry) {
-      this.store.delete(key);
-      return 0;
-    }
-
-    return 1;
+    return this.devMockRedis.exists(key);
   }
 
   async incr(key: string): Promise<number> {
-    this.stats.operations++;
-    const current = await this.get(key);
-    const value = (parseInt(current) || 0) + 1;
-    await this.set(key, value.toString());
-    return value;
+    return this.devMockRedis.incr(key);
   }
 
   async ping(): Promise<string> {
-    this.stats.operations++;
-    return 'PONG';
+    const result = await this.devMockRedis.ping();
+    return result;
   }
 
-  pipeline(): any {
-    return {
-      setex: (key: string, seconds: number, value: any) => {
-        this.setex(key, seconds, value);
-        return this;
-      },
-      exec: async (): Promise<any[]> => [],
-    };
-  }
-
-  // Set 관련 메서드 구현
   async sadd(key: string, ...members: string[]): Promise<number> {
-    this.stats.operations++;
-    let set = this.store.get(key)?.value;
-    if (!set || !Array.isArray(set)) {
-      set = [];
-    }
-
-    let added = 0;
-    for (const member of members) {
-      if (!set.includes(member)) {
-        set.push(member);
-        added++;
-      }
-    }
-
-    this.store.set(key, { value: set });
-    return added;
+    return this.devMockRedis.sadd(key, ...members);
   }
 
   async srem(key: string, ...members: string[]): Promise<number> {
-    this.stats.operations++;
-    const set = this.store.get(key)?.value;
-    if (!set || !Array.isArray(set)) {
-      return 0;
-    }
-
-    let removed = 0;
-    for (const member of members) {
-      const index = set.indexOf(member);
-      if (index !== -1) {
-        set.splice(index, 1);
-        removed++;
-      }
-    }
-
-    this.store.set(key, { value: set });
-    return removed;
+    return this.devMockRedis.srem(key, ...members);
   }
 
   async scard(key: string): Promise<number> {
-    this.stats.operations++;
-    const set = this.store.get(key)?.value;
-    if (!set || !Array.isArray(set)) {
-      return 0;
-    }
-    return set.length;
+    const members = await this.devMockRedis.smembers(key);
+    return members.length;
   }
 
   async smembers(key: string): Promise<string[]> {
-    this.stats.operations++;
-    const set = this.store.get(key)?.value;
-    if (!set || !Array.isArray(set)) {
-      return [];
-    }
-    return [...set]; // 복사본 반환
+    return this.devMockRedis.smembers(key);
   }
 
   async expire(key: string, seconds: number): Promise<number> {
-    this.stats.operations++;
-    const item = this.store.get(key);
-    if (!item) {
-      return 0;
-    }
-
-    const expiry = Date.now() + seconds * 1000;
-    this.store.set(key, { ...item, expiry });
-    return 1;
+    return this.devMockRedis.expire(key, seconds);
   }
 
-  // 🧹 주기적 정리 (성능 최적화)
-  private periodicCleanup(): void {
-    const now = Date.now();
-    // 5분마다 정리
-    if (now - this.lastCleanup > 300000) {
-      this.cleanupExpired();
-      this.lastCleanup = now;
-    }
-  }
+  pipeline(): any {
+    // 간단한 파이프라인 구현
+    const commands: Array<() => Promise<any>> = [];
 
-  private cleanupExpired(): void {
-    const now = Date.now();
-    let cleaned = 0;
-    for (const [key, item] of this.store.entries()) {
-      if (item.expiry && now > item.expiry) {
-        this.store.delete(key);
-        cleaned++;
-      }
-    }
-    if (cleaned > 0) {
-      console.log(`🧹 Mock Redis: ${cleaned}개 만료 키 정리`);
-    }
-  }
-
-  // 📊 통계 정보
-  getStats() {
     return {
-      ...this.stats,
-      size: this.store.size,
-      hitRate: this.stats.hits / (this.stats.hits + this.stats.misses) || 0,
-      memoryUsageKB: Math.round(
-        JSON.stringify([...this.store.entries()]).length / 1024
-      ),
+      setex: (key: string, seconds: number, value: any) => {
+        commands.push(() => this.setex(key, seconds, value));
+        return this;
+      },
+      set: (key: string, value: any, options?: { ex?: number }) => {
+        commands.push(() => this.set(key, value, options));
+        return this;
+      },
+      get: (key: string) => {
+        commands.push(() => this.get(key));
+        return this;
+      },
+      exec: async (): Promise<any[]> => {
+        const results = await Promise.all(commands.map(cmd => cmd()));
+        commands.length = 0; // 명령어 배열 초기화
+        return results;
+      },
     };
+  }
+
+  // 추가 유틸리티 메서드
+  async hset(key: string, field: string, value: any): Promise<number> {
+    return this.devMockRedis.hset(key, field, value);
+  }
+
+  async hget(key: string, field: string): Promise<string | null> {
+    return this.devMockRedis.hget(key, field);
+  }
+
+  async hgetall(key: string): Promise<Record<string, string>> {
+    return this.devMockRedis.hgetall(key);
+  }
+
+  // 통계 정보
+  getStats() {
+    const devStats = this.devMockRedis.getStats();
+    return {
+      ...devStats,
+      type: 'unified-mock-redis',
+      persistence: process.env.NODE_ENV === 'development',
+    };
+  }
+
+  // 개발자 도구
+  async dump(): Promise<Record<string, any>> {
+    return this.devMockRedis.dump();
+  }
+
+  async restore(data: Record<string, any>): Promise<void> {
+    return this.devMockRedis.restore(data);
   }
 }
 
@@ -299,68 +213,55 @@ let redisConnectionCache: {
 };
 
 /**
- * 🎯 하이브리드 전략 결정 함수 - 환경변수 우선 체크
+ * 🎯 단순화된 Redis 전략 결정 함수
  */
-function shouldUseMockRedis(context?: string, dataSize?: number): 'dev' | 'mock' | 'real' {
+function shouldUseMockRedis(
+  context?: string,
+  dataSize?: number
+): 'mock' | 'real' {
   // 🚫 최우선: FORCE_MOCK_REDIS 환경변수 체크
   if (process.env.FORCE_MOCK_REDIS === 'true') {
     console.log('🎭 FORCE_MOCK_REDIS=true - Redis 연결 완전 차단');
     return 'mock';
   }
 
-  // 🧪 개발 환경 - 향상된 Dev Mock Redis 사용
-  if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_REDIS) {
-    console.log('🚀 개발 환경 - Dev Mock Redis 사용 (영속성 지원)');
-    return 'dev';
-  }
-
-  // 🧪 테스트/스토리북 환경
-  if (process.env.STORYBOOK === 'true' || process.env.NODE_ENV === 'test') {
-    console.log('🧪 테스트 환경 - Mock Redis 사용');
-    return 'mock';
-  }
-
-  // 🔨 빌드 환경
-  if (process.env.NEXT_PHASE === 'phase-production-build') {
-    console.log('🔨 빌드 환경 - Mock Redis 사용');
-    return 'mock';
-  }
-
-  // 4. 기존 빌드/CI 환경 체크
+  // 🧪 개발/테스트/빌드 환경 - 통합 Mock Redis 사용
   if (
-    typeof window === 'undefined' &&
-    (process.env.VERCEL_ENV || process.env.CI || process.env.GITHUB_ACTIONS)
+    process.env.NODE_ENV === 'development' ||
+    process.env.NODE_ENV === 'test' ||
+    process.env.STORYBOOK === 'true' ||
+    process.env.NEXT_PHASE === 'phase-production-build' ||
+    process.env.CI ||
+    process.env.GITHUB_ACTIONS
   ) {
-    return 'mock';
+    if (!process.env.USE_REAL_REDIS) {
+      console.log('🧠 개발/테스트 환경 - 통합 Mock Redis 사용 (영속성 지원)');
+      return 'mock';
+    }
   }
 
-  // 5. 명시적 Mock 모드
+  // 명시적 Mock 모드
   if (process.env.USE_MOCK_REDIS === 'true') {
     return 'mock';
   }
 
-  // 6. 컨텍스트 기반 판단
+  // 컨텍스트 기반 판단 (대량 작업은 Mock 사용)
   if (context) {
     if (HYBRID_STRATEGY.useMockFor.some(pattern => context.includes(pattern))) {
       return 'mock';
     }
-    if (HYBRID_STRATEGY.useRealFor.some(pattern => context.includes(pattern))) {
-      return 'real';
-    }
   }
 
-  // 7. 데이터 크기 기반 판단
+  // 데이터 크기 기반 판단
   if (dataSize && dataSize > HYBRID_STRATEGY.thresholds.maxDataSizeKB * 1024) {
     return 'mock';
   }
 
-  // 8. 기본적으로 Redis 사용 허용 (사용량 모니터링 제거됨)
-
-  // 9. 기본값: 실제 Redis 사용
+  // 기본값: 실제 Redis 사용
   return 'real';
 }
 
-// 🚀 스마트 하이브리드 Redis 클라이언트
+// 🚀 단순화된 하이브리드 Redis 클라이언트
 async function getHybridRedisClient(
   context?: string,
   dataSize?: number
@@ -368,22 +269,19 @@ async function getHybridRedisClient(
   const redisType = shouldUseMockRedis(context, dataSize);
 
   switch (redisType) {
-    case 'dev':
-      // 개발용 향상된 Mock Redis 사용
-      if (!devMockRedis) {
-        devMockRedis = getDevMockRedis() as any;
-        console.log(`🚀 Dev Mock Redis 활성화 (컨텍스트: ${context || 'unknown'})`);
-      }
-      return devMockRedis as any;
-      
     case 'mock':
-      // 기본 Mock Redis 사용
-      if (!mockRedis) {
-        mockRedis = new EnhancedMockRedis();
-        console.log(`🧠 Mock Redis 활성화 (컨텍스트: ${context || 'unknown'})`);
+      // 통합 Mock Redis 사용
+      if (!unifiedMockRedis) {
+        unifiedMockRedis = new UnifiedMockRedis({
+          enablePersistence: process.env.NODE_ENV === 'development',
+          enableDevTools: process.env.NODE_ENV === 'development',
+        });
+        console.log(
+          `🧠 통합 Mock Redis 활성화 (컨텍스트: ${context || 'unknown'})`
+        );
       }
-      return mockRedis;
-      
+      return unifiedMockRedis;
+
     case 'real':
       // 실제 Redis 사용
       if (!realRedis && !isInitializing) {
@@ -391,18 +289,22 @@ async function getHybridRedisClient(
           isInitializing = true;
           realRedis = await initializeRedis();
           isInitializing = false;
-          console.log(`🌐 Real Redis 활성화 (컨텍스트: ${context || 'unknown'})`);
+          console.log(
+            `🌐 Real Redis 활성화 (컨텍스트: ${context || 'unknown'})`
+          );
         } catch (error) {
           isInitializing = false;
-          console.log(`⚠️ Real Redis 실패, Mock으로 폴백 (컨텍스트: ${context})`);
-          if (!mockRedis) {
-            mockRedis = new EnhancedMockRedis();
+          console.log(
+            `⚠️ Real Redis 실패, Mock으로 폴백 (컨텍스트: ${context})`
+          );
+          if (!unifiedMockRedis) {
+            unifiedMockRedis = new UnifiedMockRedis();
           }
-          return mockRedis;
+          return unifiedMockRedis;
         }
       }
 
-      return realRedis || (mockRedis = new EnhancedMockRedis());
+      return realRedis || (unifiedMockRedis = new UnifiedMockRedis());
   }
 }
 
@@ -423,8 +325,8 @@ async function initializeRedis(): Promise<RedisClientInterface> {
   }
 
   if (!redisUrl || !redisToken) {
-    console.log('⚠️ Redis 환경변수 누락 → Enhanced Mock Redis로 자동 전환');
-    return new EnhancedMockRedis();
+    console.log('⚠️ Redis 환경변수 누락 → 통합 Mock Redis로 자동 전환');
+    return new UnifiedMockRedis();
   }
 
   // ➡️ 실제 Redis 연결 시도 (빠른 폴백)
@@ -447,8 +349,8 @@ async function initializeRedis(): Promise<RedisClientInterface> {
     console.log('✅ Real Redis 연결 성공');
     return redisClient;
   } catch (error: any) {
-    console.log(`⚠️ Real Redis 연결 실패 → Mock Redis로 전환`);
-    return new EnhancedMockRedis();
+    console.log(`⚠️ Real Redis 연결 실패 → 통합 Mock Redis로 전환`);
+    return new UnifiedMockRedis();
   }
 }
 
@@ -495,7 +397,7 @@ const smartRedis = {
   // 통계 정보
   async getStats(): Promise<any> {
     const stats = {
-      mockRedis: mockRedis?.getStats() || null,
+      unifiedMockRedis: unifiedMockRedis?.getStats() || null,
       realRedis: realRedis
         ? { status: 'connected' }
         : { status: 'disconnected' },
@@ -548,9 +450,9 @@ export async function closeRedisConnection() {
     }
   }
 
-  if (mockRedis) {
-    mockRedis = null;
-    console.log('✅ Mock Redis 정리됨');
+  if (unifiedMockRedis) {
+    unifiedMockRedis = null;
+    console.log('✅ 통합 Mock Redis 정리됨');
   }
 }
 
@@ -620,15 +522,15 @@ export async function getAllRealtime(): Promise<any[]> {
   const client = await getHybridRedisClient('realtime-cache');
 
   // Mock Redis인 경우 직접 접근
-  if (client instanceof EnhancedMockRedis) {
+  if (client instanceof UnifiedMockRedis) {
     const allData: any[] = [];
-    // Mock Redis의 store에서 realtime: 접두사로 시작하는 모든 키 조회
-    for (const [key, item] of (client as any).store.entries()) {
-      if (
-        key.startsWith('realtime:') &&
-        (!item.expiry || Date.now() < item.expiry)
-      ) {
-        allData.push(item.value);
+    // Mock Redis의 dump에서 realtime: 접두사로 시작하는 모든 키 조회
+    const dump = await client.dump();
+    for (const [key, item] of Object.entries(dump)) {
+      if (key.startsWith('realtime:')) {
+        allData.push(
+          typeof item.value === 'string' ? JSON.parse(item.value) : item.value
+        );
       }
     }
     return allData;
@@ -689,7 +591,7 @@ export async function getRedisStats(): Promise<any> {
   const stats = await smartRedis.getStats();
   return {
     connected: await isRedisConnected(),
-    mockRedis: stats.mockRedis,
+    unifiedMockRedis: stats.unifiedMockRedis,
     realRedis: stats.realRedis,
     strategy: stats.strategy,
   };
@@ -719,20 +621,23 @@ let redisStatus: RedisStatus = {
 export function getRedis(): Redis {
   // 🚫 테스트 환경에서 FORCE_MOCK_REDIS 체크
   if (process.env.FORCE_MOCK_REDIS === 'true') {
-    console.log('🎭 FORCE_MOCK_REDIS=true - Mock Redis 사용');
-    if (!mockRedis) {
-      mockRedis = new EnhancedMockRedis();
+    console.log('🎭 FORCE_MOCK_REDIS=true - 통합 Mock Redis 사용');
+    if (!unifiedMockRedis) {
+      unifiedMockRedis = new UnifiedMockRedis();
     }
-    return mockRedis as any;
+    return unifiedMockRedis as any;
   }
 
-  // 🚀 개발 환경에서 Dev Mock Redis 사용
+  // 🚀 개발 환경에서 통합 Mock Redis 사용
   if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_REDIS) {
-    console.log('🚀 개발 환경 - Dev Mock Redis 사용');
-    if (!devMockRedis) {
-      devMockRedis = getDevMockRedis() as any;
+    console.log('🚀 개발 환경 - 통합 Mock Redis 사용');
+    if (!unifiedMockRedis) {
+      unifiedMockRedis = new UnifiedMockRedis({
+        enablePersistence: true,
+        enableDevTools: true,
+      });
     }
-    return devMockRedis as any;
+    return unifiedMockRedis as any;
   }
 
   if (!redis) {
@@ -741,9 +646,17 @@ export function getRedis(): Redis {
       enableReadyCheck: true,
       keepAlive: 30000,
       family: 4,
-      host: process.env.GCP_REDIS_HOST || process.env.REDIS_HOST || process.env.UPSTASH_REDIS_HOST,
-      port: parseInt(process.env.GCP_REDIS_PORT || process.env.REDIS_PORT || '6379'),
-      password: process.env.GCP_REDIS_PASSWORD || process.env.REDIS_PASSWORD || process.env.UPSTASH_REDIS_REST_TOKEN,
+      host:
+        process.env.GCP_REDIS_HOST ||
+        process.env.REDIS_HOST ||
+        process.env.UPSTASH_REDIS_HOST,
+      port: parseInt(
+        process.env.GCP_REDIS_PORT || process.env.REDIS_PORT || '6379'
+      ),
+      password:
+        process.env.GCP_REDIS_PASSWORD ||
+        process.env.REDIS_PASSWORD ||
+        process.env.UPSTASH_REDIS_REST_TOKEN,
       maxRetriesPerRequest: 3,
       connectTimeout: 10000,
       commandTimeout: 5000,
