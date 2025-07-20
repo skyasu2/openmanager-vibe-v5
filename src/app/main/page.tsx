@@ -96,7 +96,6 @@ export default function Home() {
       setIsSystemStarting(multiUserStatus.isStarting);
     }
   }, [
-    isMounted,
     multiUserStatus.isRunning,
     multiUserStatus.isStarting,
     isSystemStarted,

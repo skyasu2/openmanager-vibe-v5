@@ -24,9 +24,9 @@ interface UnifiedProfileHeaderProps {
 }
 
 interface UserInfo {
-  name: string;
+  name?: string;
   email?: string;
-  avatar?: string;
+  avatar?: string | null;
 }
 
 export default function UnifiedProfileHeader({
@@ -144,7 +144,7 @@ export default function UnifiedProfileHeader({
 
   // 🎯 외부 클릭 감지로 드롭다운 닫기
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: Event) => {
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
@@ -273,6 +273,41 @@ export default function UnifiedProfileHeader({
     router.push('/admin');
   }, [router]);
 
+  // 로그아웃 처리 - 개선된 버전
+  const handleLogout = useCallback(async () => {
+    try {
+      console.log('🚪 로그아웃 시작:', { isGitHubUser, isGuest });
+      setShowProfileMenu(false);
+
+      // 관리자 모드 해제
+      localStorage.removeItem('admin_mode');
+      setIsAdminMode(false);
+
+      // 모든 인증 관련 데이터 정리
+      localStorage.removeItem('auth_session_id');
+      localStorage.removeItem('auth_type');
+      localStorage.removeItem('auth_user');
+
+      // 쿠키 정리
+      document.cookie =
+        'guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie =
+        'auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+
+      if (isGitHubUser) {
+        // GitHub OAuth 로그아웃 - 로그인 페이지로 리다이렉트
+        await signOut({ callbackUrl: '/login' });
+      } else {
+        // 게스트 모드 로그아웃 - 직접 로그인 페이지로 이동
+        window.location.href = '/login';
+      }
+    } catch (error) {
+      console.error('❌ 로그아웃 실패:', error);
+      // 실패해도 로그인 페이지로 강제 이동
+      window.location.href = '/login';
+    }
+  }, [isGitHubUser, isGuest]);
+
   // 20분 타이머 자동 정지 기능
   useEffect(() => {
     let inactivityTimer: NodeJS.Timeout;
@@ -318,41 +353,6 @@ export default function UnifiedProfileHeader({
     };
   }, [handleLogout]);
 
-  // 로그아웃 처리 - 개선된 버전
-  const handleLogout = useCallback(async () => {
-    try {
-      console.log('🚪 로그아웃 시작:', { isGitHubUser, isGuest });
-      setShowProfileMenu(false);
-
-      // 관리자 모드 해제
-      localStorage.removeItem('admin_mode');
-      setIsAdminMode(false);
-
-      // 모든 인증 관련 데이터 정리
-      localStorage.removeItem('auth_session_id');
-      localStorage.removeItem('auth_type');
-      localStorage.removeItem('auth_user');
-
-      // 쿠키 정리
-      document.cookie =
-        'guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      document.cookie =
-        'auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-
-      if (isGitHubUser) {
-        // GitHub OAuth 로그아웃 - 로그인 페이지로 리다이렉트
-        await signOut({ callbackUrl: '/login' });
-      } else {
-        // 게스트 모드 로그아웃 - 직접 로그인 페이지로 이동
-        window.location.href = '/login';
-      }
-    } catch (error) {
-      console.error('❌ 로그아웃 실패:', error);
-      // 실패해도 로그인 페이지로 강제 이동
-      window.location.href = '/login';
-    }
-  }, [isGitHubUser, isGuest]);
-
   const getUserName = () => {
     if (userInfo) {
       return (
@@ -376,8 +376,8 @@ export default function UnifiedProfileHeader({
     return '알 수 없음';
   };
 
-  const getUserAvatar = () => {
-    return userInfo?.avatar || null;
+  const getUserAvatar = (): string | undefined => {
+    return userInfo?.avatar || undefined;
   };
 
   const getUserInitials = () => {
@@ -444,16 +444,19 @@ export default function UnifiedProfileHeader({
           <div className='text-sm font-medium text-gray-900 flex items-center gap-1'>
             {getUserName()}
             {isAdminMode && (
-              <Crown className='w-3 h-3 text-red-600' title='관리자 모드' />
+              <div title='관리자 모드'>
+                <Crown className='w-3 h-3 text-red-600' />
+              </div>
             )}
             {isGitHubUser && !isAdminMode && (
-              <Shield className='w-3 h-3 text-green-600' title='GitHub 인증' />
+              <div title='GitHub 인증'>
+                <Shield className='w-3 h-3 text-green-600' />
+              </div>
             )}
             {isGuest && !isAdminMode && (
-              <UserCheck
-                className='w-3 h-3 text-blue-600'
-                title='게스트 모드'
-              />
+              <div title='게스트 모드'>
+                <UserCheck className='w-3 h-3 text-blue-600' />
+              </div>
             )}
           </div>
           <div className='text-xs text-gray-500 flex items-center gap-1'>
