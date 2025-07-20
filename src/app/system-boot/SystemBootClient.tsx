@@ -147,36 +147,57 @@ export default function SystemBootClient() {
     },
   ];
 
-  // 🚀 실제 제품 로딩 애니메이션 (백그라운드 초기화와 동기화)
+  // 🚀 개선된 시스템 로딩 로직 (실제 시스템 상태와 동기화)
   useEffect(() => {
     if (!isClient) return;
 
     console.log('🚀 OpenManager 시스템 로딩 시작');
 
+    let systemReady = false;
+    let animationCompleted = false;
+    let statusCheckInterval: NodeJS.Timeout;
+
     // 실제 시스템 상태를 주기적으로 체크
     const checkSystemStatus = async () => {
       try {
-        const response = await fetch('/api/system/status');
+        const response = await fetch('/api/system/status?source=boot-check');
         if (response.ok) {
           const data = await response.json();
-          if (data.isRunning) {
-            console.log('✅ 시스템이 준비되었습니다 - 대시보드로 이동');
-            handleBootComplete();
+          console.log('🔍 시스템 상태 체크:', {
+            isRunning: data.isRunning,
+            activeUsers: data.activeUsers,
+            success: data.success,
+          });
+
+          if (data.success && data.isRunning && !systemReady) {
+            console.log('✅ 시스템이 준비되었습니다!');
+            systemReady = true;
+
+            // 애니메이션이 완료되었거나 최소 50% 진행되었으면 즉시 이동
+            if (animationCompleted || progress >= 50) {
+              handleBootComplete();
+            }
             return true;
           }
+        } else {
+          console.log('⚠️ 시스템 상태 API 응답 오류:', response.status);
         }
       } catch (error) {
-        console.log('🔄 시스템 상태 체크 중...');
+        console.log('🔄 시스템 상태 체크 중... (네트워크 오류)');
       }
       return false;
     };
 
-    // 로딩 애니메이션과 실제 시스템 체크를 병렬로 실행
-    let systemReady = false;
+    // 시스템 상태를 1초마다 체크 (API 호출 최적화)
+    statusCheckInterval = setInterval(checkSystemStatus, 1000);
 
+    // 초기 즉시 체크
+    checkSystemStatus();
+
+    // 로딩 애니메이션 실행
     stages.forEach(({ name, delay, icon, description }, index) => {
       setTimeout(() => {
-        if (systemReady) return; // 시스템이 이미 준비되면 스킵
+        if (systemReady && animationCompleted) return; // 이미 완료되면 스킵
 
         // 페이드 트랜지션 시작
         setIsTransitioning(true);
@@ -184,45 +205,62 @@ export default function SystemBootClient() {
         setTimeout(() => {
           setCurrentStage(name);
           setCurrentIcon(icon);
-          setProgress(((index + 1) / stages.length) * 100);
+          const newProgress = ((index + 1) / stages.length) * 100;
+          setProgress(newProgress);
 
           // 페이드 트랜지션 종료
           setTimeout(() => {
             setIsTransitioning(false);
           }, 150);
-        }, 150);
 
-        // 각 단계에서 시스템 상태 체크
-        setTimeout(async () => {
-          if (!systemReady) {
-            systemReady = await checkSystemStatus();
-          }
-        }, delay + 200);
+          // 마지막 단계 완료
+          if (index === stages.length - 1) {
+            animationCompleted = true;
+            console.log('🎬 로딩 애니메이션 완료');
 
-        // 마지막 단계에서 완료 처리 (시스템이 아직 준비되지 않은 경우)
-        if (index === stages.length - 1) {
-          setTimeout(async () => {
-            if (!systemReady) {
-              // 마지막으로 한 번 더 체크
-              systemReady = await checkSystemStatus();
-              if (!systemReady) {
-                // 시스템이 아직 준비되지 않았어도 대시보드로 이동
-                console.log('⏰ 로딩 시간 완료 - 대시보드로 이동');
+            // 시스템이 준비되었으면 즉시 이동, 아니면 추가 대기
+            if (systemReady) {
+              setTimeout(() => handleBootComplete(), 500);
+            } else {
+              // 최대 5초 추가 대기 후 강제 이동 (시스템 시작에 더 많은 시간 제공)
+              setTimeout(async () => {
+                // 마지막으로 한 번 더 체크
+                const finalCheck = await checkSystemStatus();
+                if (!finalCheck) {
+                  console.log('⏰ 최대 대기 시간 초과 - 대시보드로 이동');
+                }
                 handleBootComplete();
-              }
+              }, 5000);
             }
-          }, 1500);
-        }
+          }
+        }, 150);
       }, delay);
     });
+
+    // 컴포넌트 언마운트 시 정리
+    return () => {
+      if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isClient]);
 
-  // 부팅 완료 - 즉시 대시보드로 이동
+  // 부팅 완료 - 부드러운 전환 후 대시보드로 이동
   const handleBootComplete = () => {
     console.log('🎉 시스템 로딩 완료 - 대시보드로 이동');
     setBootState('completed');
-    router.push('/dashboard');
+
+    // 완료 상태 표시
+    setCurrentStage('시스템 준비 완료');
+    setCurrentIcon(CheckCircle);
+    setProgress(100);
+    setIsTransitioning(false);
+
+    // 부드러운 전환을 위해 잠시 대기 후 이동
+    setTimeout(() => {
+      router.push('/dashboard');
+    }, 1000);
   };
 
   const currentStageData = stages.find(s => s.name === currentStage) ||
@@ -366,6 +404,11 @@ export default function SystemBootClient() {
             <p>
               잠시만 기다려주세요. 최고의 모니터링 경험을 준비하고 있습니다.
             </p>
+            {bootState === 'completed' && (
+              <p className='text-green-400 mt-2 animate-pulse'>
+                🎉 시스템 준비 완료! 대시보드로 이동 중...
+              </p>
+            )}
           </div>
         </div>
       </div>

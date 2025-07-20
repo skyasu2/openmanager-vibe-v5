@@ -1,86 +1,28 @@
 /**
- * 🎯 Unified Profile Component (Refactored)
+ * 🎯 Unified Profile Component (통합 버전)
  *
- * 완전히 모듈화된 통합 프로필 컴포넌트
- * 오케스트레이터 역할만 수행
+ * UnifiedProfileHeader를 사용하여 모든 페이지에서 동일한 로직 사용
+ * 설정 버튼 제거, 관리자 모드 통합
  *
- * @created 2025-06-09
+ * @created 2025-07-20
  * @author AI Assistant
- * @version 2.0.0 (모듈화 완성)
+ * @version 3.0.0 (통합 완성)
  */
 
 'use client';
 
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { AnimatePresence } from 'framer-motion';
-import { useCallback, useRef, useState } from 'react';
-import { UnifiedProfileComponentProps } from './unified-profile/types/ProfileTypes';
-import { UnifiedProfileButton } from './unified-profile/UnifiedProfileButton';
-import { UnifiedSettingsPanel } from './unified-profile/UnifiedSettingsPanel';
+import UnifiedProfileHeader from './shared/UnifiedProfileHeader';
+
+interface UnifiedProfileComponentProps {
+  userName?: string;
+  userAvatar?: string | null;
+  className?: string;
+}
 
 export default function UnifiedProfileComponent({
-  userName = '사용자',
+  userName,
   userAvatar,
+  className = '',
 }: UnifiedProfileComponentProps) {
-  // 상태 관리
-  const [isOpen, setIsOpen] = useState(false);
-  const { ui, setSettingsPanelOpen } = useUnifiedAdminStore();
-  const showSettingsPanel = ui.isSettingsPanelOpen;
-
-  // 참조
-  const profileButtonRef = useRef<HTMLButtonElement | null>(null);
-
-  // 드롭다운 토글 핸들러 (단순화된 버전)
-  const handleToggleDropdown = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      // 설정 패널이 열려있으면 먼저 닫기
-      if (showSettingsPanel) {
-        setSettingsPanelOpen(false);
-        return;
-      }
-
-      // 드롭다운 토글 (즉시 실행, 지연 없음)
-      setIsOpen(prev => !prev);
-    },
-    [showSettingsPanel, setSettingsPanelOpen]
-  );
-
-  // 설정 패널 열기 핸들러
-  const handleSettingsClick = useCallback(() => {
-    setSettingsPanelOpen(true);
-    setIsOpen(false); // 드롭다운 닫기
-  }, [setSettingsPanelOpen]);
-
-  // 설정 패널 닫기 핸들러
-  const handleSettingsClose = useCallback(() => {
-    setSettingsPanelOpen(false);
-  }, [setSettingsPanelOpen]);
-
-  return (
-    <>
-      {/* 프로필 버튼 (드롭다운 포함) */}
-      <UnifiedProfileButton
-        userName={userName}
-        userAvatar={userAvatar}
-        isOpen={isOpen}
-        onClick={handleToggleDropdown}
-        buttonRef={profileButtonRef as React.RefObject<HTMLButtonElement>}
-        onSettingsClick={handleSettingsClick}
-      />
-
-      {/* 통합 설정 패널 */}
-      <AnimatePresence>
-        {showSettingsPanel && (
-          <UnifiedSettingsPanel
-            isOpen={showSettingsPanel}
-            onClose={handleSettingsClose}
-            buttonRef={profileButtonRef as React.RefObject<HTMLButtonElement>}
-          />
-        )}
-      </AnimatePresence>
-    </>
-  );
+  return <UnifiedProfileHeader className={className} />;
 }

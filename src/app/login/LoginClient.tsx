@@ -228,11 +228,11 @@ export default function LoginClient() {
           )}
 
           <div className='space-y-4'>
-            {/* GitHub OAuth 로그인 */}
+            {/* GitHub OAuth 로그인 - 업계 표준 스타일 */}
             <button
               onClick={handleGitHubLogin}
               disabled={isLoading}
-              className='w-full flex items-center justify-center gap-3 px-4 py-3 bg-gray-900 hover:bg-gray-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group border border-gray-600'
+              className='w-full flex items-center justify-center gap-3 px-4 py-3 bg-[#24292e] hover:bg-[#1a1e22] text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group border border-gray-600 shadow-lg hover:shadow-xl'
             >
               <svg className='w-5 h-5' fill='currentColor' viewBox='0 0 20 20'>
                 <path
@@ -241,8 +241,10 @@ export default function LoginClient() {
                   clipRule='evenodd'
                 />
               </svg>
-              <span className='font-medium'>
-                {loadingType === 'github' ? '로그인 중...' : 'GitHub로 로그인'}
+              <span className='font-semibold'>
+                {loadingType === 'github'
+                  ? 'GitHub에 연결 중...'
+                  : 'GitHub로 계속하기'}
               </span>
               {loadingType === 'github' && (
                 <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
@@ -259,15 +261,17 @@ export default function LoginClient() {
               </div>
             </div>
 
-            {/* 게스트 로그인 */}
+            {/* 게스트 로그인 - 개선된 스타일 */}
             <button
               onClick={handleGuestLogin}
               disabled={isLoading}
-              className='w-full flex items-center justify-center gap-3 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group'
+              className='w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group shadow-lg hover:shadow-xl'
             >
               <User className='w-5 h-5' />
-              <span className='font-medium'>
-                {loadingType === 'guest' ? '로그인 중...' : '게스트로 시작하기'}
+              <span className='font-semibold'>
+                {loadingType === 'guest'
+                  ? '게스트 세션 생성 중...'
+                  : '게스트로 체험하기'}
               </span>
               {loadingType === 'guest' && (
                 <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />

@@ -3,12 +3,11 @@
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { Bot, Clock } from 'lucide-react';
-import { useSession } from '@/hooks/useSupabaseSession';
-import { getCurrentUser, isGitHubAuthenticated, isGuestUser } from '@/lib/supabase-auth';
+// 사용자 정보 관련 import는 UnifiedProfileHeader에서 처리됨
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
-import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
+import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 
 // framer-motion을 동적 import로 처리
 const MotionButton = dynamic(
@@ -96,43 +95,9 @@ const DashboardHeader = React.memo(function DashboardHeader({
   title = 'OpenManager Dashboard',
 }: DashboardHeaderProps) {
   const { aiAgent, ui } = useUnifiedAdminStore();
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const [userInfo, setUserInfo] = useState<any>(null);
-  const [isGitHubUser, setIsGitHubUser] = useState(false);
-  const [isGuest, setIsGuest] = useState(false);
-
   // 새로운 AI 사이드바 상태
   const { isOpen: isSidebarOpen, setOpen: setSidebarOpen } =
     useAISidebarStore();
-
-  // 🔄 사용자 정보 초기화 및 업데이트
-  useEffect(() => {
-    const loadUserInfo = async () => {
-      try {
-        const user = await getCurrentUser();
-        const isGitHub = await isGitHubAuthenticated();
-        const isGuestMode = isGuestUser();
-        
-        setUserInfo(user);
-        setIsGitHubUser(isGitHub);
-        setIsGuest(isGuestMode);
-        
-        console.log('👤 사용자 정보 로드:', {
-          user,
-          isGitHub,
-          isGuest: isGuestMode,
-          sessionStatus: status
-        });
-      } catch (error) {
-        console.error('❌ 사용자 정보 로드 실패:', error);
-      }
-    };
-
-    if (status !== 'loading') {
-      loadUserInfo();
-    }
-  }, [session, status]);
 
   // AI 에이전트 토글 핸들러 (새로운 사이드바 연동)
   const handleAIAgentToggle = () => {
@@ -145,17 +110,7 @@ const DashboardHeader = React.memo(function DashboardHeader({
     onToggleAgent?.();
   };
 
-
-  const getUserName = () => {
-    if (userInfo) {
-      return userInfo.name || userInfo.email || (isGitHubUser ? 'GitHub 사용자' : '게스트 사용자');
-    }
-    return status === 'loading' ? '로딩 중...' : '사용자';
-  };
-
-  const getUserAvatar = () => {
-    return userInfo?.avatar || null;
-  };
+  // 사용자 정보는 UnifiedProfileHeader에서 처리됨
 
   return (
     <header className='bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40'>
@@ -306,11 +261,8 @@ const DashboardHeader = React.memo(function DashboardHeader({
               )}
           </div>
 
-          {/* 🎯 UnifiedProfileComponent 사용 */}
-          <UnifiedProfileComponent 
-            userName={getUserName()} 
-            userAvatar={getUserAvatar()}
-          />
+          {/* 🎯 UnifiedProfileHeader 사용 - 통합된 프로필 헤더 */}
+          <UnifiedProfileHeader />
         </div>
       </div>
 

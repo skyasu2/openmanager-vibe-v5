@@ -20,6 +20,7 @@ const PUBLIC_PATHS = [
   '/favicon.ico',
   '/api/health',
   '/api/ping',
+  '/api/servers/all', // 대시보드 서버 데이터 공개 접근 허용
   '/about',
   '/notes',
 ];
@@ -34,15 +35,15 @@ function isExactPathMatch(pathname: string, paths: string[]): boolean {
 
 // GitHub 인증이 필요한 경로들
 const PROTECTED_PATHS = [
-  '/',  // 홈페이지도 인증 필요
-  '/main',  // 메인 페이지도 인증 필요
+  '/', // 홈페이지도 인증 필요
+  '/main', // 메인 페이지도 인증 필요
   '/dashboard',
   '/admin',
   '/system-boot',
   '/api/dashboard',
   '/api/admin',
-  '/api/ai',  // AI 기능은 인증 필요
-  '/api/servers',  // 서버 관리 API
+  '/api/ai', // AI 기능은 인증 필요
+  '/api/servers', // 서버 관리 API
 ];
 
 export async function middleware(request: NextRequest) {
@@ -83,24 +84,30 @@ export async function middleware(request: NextRequest) {
       // 🎯 게스트 세션 쿠키 확인 (우선순위)
       const guestSessionCookie = request.cookies.get('guest_session_id');
       const authTypeCookie = request.cookies.get('auth_type');
-      
+
       if (guestSessionCookie && authTypeCookie?.value === 'guest') {
-        console.log('✅ 게스트 세션 확인됨, 접근 허용:', guestSessionCookie.value);
+        console.log(
+          '✅ 게스트 세션 확인됨, 접근 허용:',
+          guestSessionCookie.value
+        );
         return response;
       }
 
       // Supabase 클라이언트 생성
       const supabase = createMiddlewareClient({ req: request, res: response });
-      
+
       // 세션 확인
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
 
       if (error || !session) {
         // 이미 로그인 페이지에 있다면 리디렉션하지 않음 (무한 루프 방지)
         if (pathname === '/login') {
           return response;
         }
-        
+
         // GitHub 인증이 없으면 로그인 페이지로 리다이렉트
         const redirectUrl = new URL('/login', request.url);
         redirectUrl.searchParams.set('redirectTo', pathname);
@@ -108,12 +115,12 @@ export async function middleware(request: NextRequest) {
       }
     } catch (error) {
       console.error('Middleware auth check error:', error);
-      
+
       // 이미 로그인 페이지에 있다면 리디렉션하지 않음 (무한 루프 방지)
       if (pathname === '/login') {
         return response;
       }
-      
+
       // 에러 발생 시 안전하게 로그인 페이지로
       return NextResponse.redirect(new URL('/login', request.url));
     }
