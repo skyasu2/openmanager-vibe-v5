@@ -58,8 +58,9 @@ export default function OptimizedDashboard({
 
   // 시스템 통합 상태
   const systemStatus = useSystemIntegration();
-  const isConnected = systemStatus.isHealthy;
-  const healthStatus = systemStatus.isHealthy ? 'healthy' : 'critical';
+  const isConnected = systemStatus.systemStatus === 'running';
+  const healthStatus =
+    systemStatus.systemStatus === 'running' ? 'healthy' : 'critical';
 
   // 서버 데이터 (prop 우선, 없으면 hook 사용)
   const {
