@@ -300,7 +300,7 @@ export class AdvancedContextManager {
   private extractTitle(content: string, fileName: string): string {
     // 첫 번째 # 헤딩 찾기
     const headingMatch = content.match(/^#\s+(.+)$/m);
-    if (headingMatch) {
+    if (headingMatch && headingMatch[1]) {
       return headingMatch[1].trim();
     }
 
@@ -445,14 +445,16 @@ export class AdvancedContextManager {
     let match;
 
     while ((match = qaPattern.exec(content)) !== null) {
-      const question = match[1].trim();
-      const answer = match[2].trim();
+      const question = match[1]?.trim() ?? '';
+      const answer = match[2]?.trim() ?? '';
+      
+      if (!question || !answer) continue;
 
       faqs.push({
         id: `faq_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         question,
         answer,
-        category: doc.metadata.tags[0] || 'general',
+        category: doc.metadata.tags[0] ?? 'general',
         frequency: 1,
         lastAccessed: Date.now(),
         relatedDocs: [doc.id],
@@ -488,7 +490,8 @@ export class AdvancedContextManager {
     for (const errorPattern of errorPatterns) {
       let match;
       while ((match = errorPattern.pattern.exec(logDoc.content)) !== null) {
-        const issue = match[1].trim();
+        const issue = match[1]?.trim() ?? '';
+        if (!issue) continue;
 
         faqs.push({
           id: `faq_log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -614,9 +617,11 @@ export class AdvancedContextManager {
     let norm2 = 0;
 
     for (let i = 0; i < vec1.length; i++) {
-      dotProduct += vec1[i] * vec2[i];
-      norm1 += vec1[i] * vec1[i];
-      norm2 += vec2[i] * vec2[i];
+      const v1 = vec1[i] ?? 0;
+      const v2 = vec2[i] ?? 0;
+      dotProduct += v1 * v2;
+      norm1 += v1 * v1;
+      norm2 += v2 * v2;
     }
 
     if (norm1 === 0 || norm2 === 0) return 0;

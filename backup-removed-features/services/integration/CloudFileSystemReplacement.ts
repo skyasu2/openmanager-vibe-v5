@@ -10,7 +10,7 @@
  * - 마이그레이션 도구 제공
  */
 
-import { CloudLogSaver } from '@/services/ai-agent/CloudLogSaver';
+// CloudLogSaver는 GCP Functions로 이관됨
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import { CloudLoggingService } from '@/services/system/CloudLoggingService';
 import { CloudVersionManager } from '@/services/system/CloudVersionManager';
@@ -36,7 +36,7 @@ export class CloudFileSystemReplacement {
   private config: CloudFileSystemConfig;
 
   // 클라우드 서비스 인스턴스
-  private logSaver: CloudLogSaver;
+  // 로깅은 표준 console로 대체
   private contextLoader: CloudContextLoader;
   private loggingService: CloudLoggingService;
   private versionManager: CloudVersionManager;
@@ -56,7 +56,7 @@ export class CloudFileSystemReplacement {
     };
 
     // 클라우드 서비스 초기화
-    this.logSaver = CloudLogSaver.getInstance();
+    // 로깅 초기화는 console로 대체
     this.contextLoader = CloudContextLoader.getInstance();
     this.loggingService = CloudLoggingService.getInstance();
     this.versionManager = CloudVersionManager.getInstance();

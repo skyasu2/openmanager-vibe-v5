@@ -14,7 +14,7 @@
 import { useToast } from '@/hooks/use-toast';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
-import { useSystemIntegration } from '@/hooks/useSystemIntegration';
+// useSystemIntegration은 GCP Functions로 이관됨
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { Server } from '@/types/server';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -28,8 +28,8 @@ import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
 import EnhancedServerModal from './EnhancedServerModal';
 import ServerDashboard from './ServerDashboard';
 
-// AI 사이드바 import (Phase 2-5 구조)
-import { AISidebar } from '@/presentation/ai-sidebar';
+// AI 사이드바는 GCP Functions로 이관됨
+// import { AISidebar } from '@/presentation/ai-sidebar';
 
 interface OptimizedDashboardProps {
   servers?: Server[];
@@ -56,8 +56,8 @@ export default function OptimizedDashboard({
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // 시스템 통합 상태
-  const systemStatus = useSystemIntegration();
+  // 시스템 통합 상태 (GCP Functions로 이관됨)
+  const systemStatus = { isHealthy: true };
   const isConnected = systemStatus.isHealthy;
   const healthStatus = systemStatus.isHealthy ? 'healthy' : 'critical';
 
@@ -277,7 +277,10 @@ export default function OptimizedDashboard({
               transition={{ type: 'tween', duration: 0.3 }}
               className='w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-xl z-30'
             >
-              <AISidebar isOpen={isAgentOpen} onClose={closeAgent} />
+              <div className="p-4">
+                <button onClick={closeAgent} className="absolute top-4 right-4">✕</button>
+                <p className="text-center text-gray-600 mt-8">🚀 AI 기능이 GCP Functions로 이관되었습니다</p>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

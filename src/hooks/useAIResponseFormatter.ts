@@ -199,7 +199,7 @@ export const useAIResponseFormatter = () => {
 
     const extract = (pattern: RegExp, fallback: string) => {
       const match = response.match(pattern);
-      return match ? match[1].trim() : fallback;
+      return match && match[1] ? match[1].trim() : fallback;
     };
 
     return {

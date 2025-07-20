@@ -312,9 +312,12 @@ const insertData = async (metrics: DailyMetric[], batchSize: number = 100): Prom
   console.log(`📦 총 ${batches.length}개 배치로 분할`);
 
   for (let i = 0; i < batches.length; i++) {
+    const batch = batches[i];
+    if (!batch) continue;
+    
     try {
-      await insertMetrics(batches[i]);
-      console.log(`✅ 배치 ${i + 1}/${batches.length} 완료 (${batches[i].length}개 레코드)`);
+      await insertMetrics(batch);
+      console.log(`✅ 배치 ${i + 1}/${batches.length} 완료 (${batch.length}개 레코드)`);
 
       // API 제한 방지를 위한 딜레이
       if (i < batches.length - 1) {

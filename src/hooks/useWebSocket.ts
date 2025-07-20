@@ -27,9 +27,19 @@ export interface ConnectionState {
   error: string | null;
 }
 
+export interface MetricsData {
+  cpu?: number;
+  memory?: number;
+  disk?: number;
+  network?: number;
+  requests?: number;
+  errors?: number;
+  [key: string]: number | undefined;
+}
+
 export interface StreamData {
   serverId: string;
-  data: any;
+  data: MetricsData;
   timestamp: string;
   type: string;
   priority: 'low' | 'medium' | 'high' | 'critical';
@@ -41,6 +51,19 @@ export interface AlertData {
   message: string;
   priority: 'low' | 'medium' | 'high' | 'critical';
   timestamp: string;
+}
+
+export interface SystemStatus {
+  overall: 'healthy' | 'warning' | 'critical';
+  activeServers: number;
+  totalAlerts: number;
+  timestamp: string;
+  services?: {
+    [key: string]: {
+      status: 'up' | 'down' | 'degraded';
+      responseTime?: number;
+    };
+  };
 }
 
 export const useWebSocket = (config: WebSocketConfig = {}) => {
@@ -65,7 +88,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
   const [serverMetrics, setServerMetrics] = useState<StreamData[]>([]);
   const [alerts, setAlerts] = useState<AlertData[]>([]);
   const [latestMetric, setLatestMetric] = useState<StreamData | null>(null);
-  const [systemStatus, setSystemStatus] = useState<any>(null);
+  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
 
   // 🔗 Socket 참조
   const socketRef = useRef<Socket | null>(null);
@@ -183,13 +206,13 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
 
         // 실시간 알림만 처리 (브라우저 웹 알림 제거됨)
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ WebSocket 연결 중 오류:', error);
       setConnectionState(prev => ({
         ...prev,
         isConnected: false,
         isConnecting: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
       }));
     }
   }, [url, debug, reconnectAttempts]);

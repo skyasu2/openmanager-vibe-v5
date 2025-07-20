@@ -226,7 +226,12 @@ export default function SystemBootPage() {
   };
 
   const currentStageData =
-    stages.find(s => s.name === currentStage) || stages[0];
+    stages.find(s => s.name === currentStage) || stages[0] || {
+      name: '초기화 중',
+      delay: 500,
+      icon: Loader2,
+      description: '시스템을 초기화하고 있습니다...',
+    };
   const CurrentIconComponent = currentIcon;
 
   // 클라이언트 렌더링이 준비되지 않았으면 로딩 표시

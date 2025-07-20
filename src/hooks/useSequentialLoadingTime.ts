@@ -169,7 +169,7 @@ export const useSequentialLoadingTime = ({
     isLoading,
     progress,
     currentStage: currentStage < phases.length ? phases[currentStage] : null,
-    stageDescription: currentStage < phases.length ? phases[currentStage].description : '완료',
+    stageDescription: currentStage < phases.length ? phases[currentStage]?.description ?? '처리중' : '완료',
     totalStages: phases.length,
     currentStageIndex: currentStage,
   };

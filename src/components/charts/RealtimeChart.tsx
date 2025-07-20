@@ -307,9 +307,9 @@ export default function RealtimeChart({
             const futureTime = new Date();
             futureTime.setMinutes(futureTime.getMinutes() + (i * 5));
             
-            // 선형 보간으로 중간값들 계산
+            // 선형 보간으로 중간값들 계산 (lastDataPoint는 이미 체크됨)
             const progress = i / 6;
-            const currentValue = lastDataPoint.value;
+            const currentValue = lastDataPoint?.value ?? 0;
             const targetValue = prediction.predicted_value;
             const interpolatedValue = currentValue + (targetValue - currentValue) * progress;
             
@@ -380,12 +380,13 @@ export default function RealtimeChart({
     // 라벨 생성 (실제 + 예측 시간)
     const labels: string[] = [];
     
-    if (chartData[metrics[0]]) {
-      labels.push(...chartData[metrics[0]].map(point => point.timestamp));
+    const firstMetric = metrics[0];
+    if (firstMetric && chartData[firstMetric]) {
+      labels.push(...chartData[firstMetric].map(point => point.timestamp));
     }
     
-    if (predictions && predictionData[metrics[0]]) {
-      labels.push(...predictionData[metrics[0]].map(point => point.timestamp));
+    if (predictions && firstMetric && predictionData[firstMetric]) {
+      labels.push(...predictionData[firstMetric].map(point => point.timestamp));
     }
     
     return { labels, datasets };
@@ -495,10 +496,11 @@ export default function RealtimeChart({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm">
         {metrics.map(metric => {
           const data = chartData[metric];
-          const latestValue = data && data.length > 0 ? data[data.length - 1].value : 0;
-          const predValue = predictionData[metric] && predictionData[metric].length > 0 
-            ? predictionData[metric][predictionData[metric].length - 1].value 
-            : null;
+          const lastDataPoint = data && data.length > 0 ? data[data.length - 1] : undefined;
+          const latestValue = lastDataPoint?.value ?? 0;
+          const predData = predictionData[metric];
+          const lastPredPoint = predData && predData.length > 0 ? predData[predData.length - 1] : undefined;
+          const predValue = lastPredPoint?.value ?? null;
           
           return (
             <div key={metric} className="bg-gray-700 rounded p-3">

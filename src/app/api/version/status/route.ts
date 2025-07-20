@@ -25,11 +25,13 @@ try {
   console.warn('versions 모듈 import 실패:', (error as Error).message);
 }
 
+// SimplifiedQueryEngine은 GCP Functions로 이관됨
 try {
-  const simplifiedQueryEngineModule = require('@/services/ai/SimplifiedQueryEngine');
-  masterAIEngine = simplifiedQueryEngineModule.simplifiedQueryEngine;
+  // const simplifiedQueryEngineModule = require('@/services/ai/SimplifiedQueryEngine');
+  // masterAIEngine = simplifiedQueryEngineModule.simplifiedQueryEngine;
+  masterAIEngine = null; // GCP Functions로 이관됨
 } catch (error) {
-  console.warn('SimplifiedQueryEngine import 실패:', (error as Error).message);
+  console.warn('SimplifiedQueryEngine import 실패 (GCP Functions로 이관됨):', (error as Error).message);
 }
 
 try {

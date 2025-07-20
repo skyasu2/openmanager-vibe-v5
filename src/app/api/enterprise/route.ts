@@ -51,35 +51,49 @@ export async function GET(request: NextRequest) {
     const currentHour = kstTime.getHours();
     const currentPattern =
       BUSINESS_HOURS_PATTERNS.find(pattern => {
-        const [start, end] = pattern.timeRange
-          .split('-')
-          .map(time => parseInt(time.split(':')[0]));
+        const timeParts = pattern.timeRange?.split('-') ?? [];
+        if (timeParts.length !== 2) return false;
+        
+        const startStr = timeParts[0]?.split(':')[0];
+        const endStr = timeParts[1]?.split(':')[0];
+        
+        if (!startStr || !endStr) return false;
+        
+        const start = parseInt(startStr);
+        const end = parseInt(endStr);
+        
         if (start <= end) {
           return currentHour >= start && currentHour < end;
         } else {
           // 야간 시간 (18:00-09:00)
           return currentHour >= start || currentHour < end;
         }
-      }) || BUSINESS_HOURS_PATTERNS[4]; // 기본값: 야간 배치
+      }) ?? BUSINESS_HOURS_PATTERNS[4] ?? {
+        pattern: 'night-batch',
+        description: '야간 배치 시간',
+        expectedLoad: '낮음',
+        criticalSystems: ['모니터링'],
+        timeRange: '18:00-09:00'
+      }; // 기본값 보장
 
     // 서버 상태별 분류
     const serversByStatus = {
-      critical: ENTERPRISE_SERVERS.filter((s: any) => s.status === 'error'),
-      warning: ENTERPRISE_SERVERS.filter((s: any) => s.status === 'warning'),
-      healthy: ENTERPRISE_SERVERS.filter((s: any) => s.status === 'online'),
+      critical: ENTERPRISE_SERVERS.filter(s => s.status === 'error'),
+      warning: ENTERPRISE_SERVERS.filter(s => s.status === 'warning'),
+      healthy: ENTERPRISE_SERVERS.filter(s => s.status === 'online'),
     };
 
     // IDC별 서버 분류
     const serversByLocation = Object.entries(IDC_LOCATIONS).map(
       ([location, serverIds]) => ({
         location,
-        servers: ENTERPRISE_SERVERS.filter((s: any) => serverIds.includes(s.id)),
+        servers: ENTERPRISE_SERVERS.filter(s => serverIds.includes(s.id)),
         totalServers: serverIds.length,
-        healthyServers: ENTERPRISE_SERVERS.filter((s: any) => serverIds.includes(s.id) && s.status === 'online'
+        healthyServers: ENTERPRISE_SERVERS.filter(s => serverIds.includes(s.id) && s.status === 'online'
         ).length,
-        warningServers: ENTERPRISE_SERVERS.filter((s: any) => serverIds.includes(s.id) && s.status === 'warning'
+        warningServers: ENTERPRISE_SERVERS.filter(s => serverIds.includes(s.id) && s.status === 'warning'
         ).length,
-        criticalServers: ENTERPRISE_SERVERS.filter((s: any) => serverIds.includes(s.id) && s.status === 'error'
+        criticalServers: ENTERPRISE_SERVERS.filter(s => serverIds.includes(s.id) && s.status === 'error'
         ).length,
       })
     );

@@ -1,6 +1,6 @@
 'use client';
 
-import InfrastructureOverviewPage from '@/components/ai/pages/InfrastructureOverviewPage';
+// AI 컴포넌트는 GCP Functions로 이관됨
 import dynamic from 'next/dynamic';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 
@@ -329,7 +329,9 @@ export default function DashboardContent({
                   try {
                     return (
                       <div className='bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden'>
-                        <InfrastructureOverviewPage className='h-80 lg:h-96' />
+                        <div className="h-80 lg:h-96 flex items-center justify-center bg-gray-50 rounded-lg">
+                        <p className="text-gray-600">🚀 AI 기능이 GCP Functions로 이관되었습니다</p>
+                      </div>
                       </div>
                     );
                   } catch (error) {

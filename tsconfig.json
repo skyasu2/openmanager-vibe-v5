@@ -8,8 +8,13 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    "noUnusedLocals": false,  // Phase 2에서 활성화 예정
+    "noUnusedParameters": false,  // Phase 2에서 활성화 예정
+    "noUncheckedIndexedAccess": false,  // TODO: Phase 4에서 true로 변경 예정
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
     // "exactOptionalPropertyTypes": true, // 이것은 너무 엄격할 수 있어서 일단 비활성화
     "noEmit": true,
     "esModuleInterop": true,
@@ -21,7 +26,6 @@
     "incremental": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    "noUncheckedIndexedAccess": false,
     "plugins": [
       {
         "name": "next"

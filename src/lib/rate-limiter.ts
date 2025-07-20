@@ -67,7 +67,7 @@ class RateLimiter {
   private getClientIP(request: NextRequest): string {
     const forwarded = request.headers.get('x-forwarded-for');
     const realIp = request.headers.get('x-real-ip');
-    const ip = forwarded?.split(',')[0] || realIp || 'unknown';
+    const ip = forwarded?.split(',')[0] ?? realIp ?? 'unknown';
     return ip;
   }
 
@@ -75,7 +75,8 @@ class RateLimiter {
   cleanup() {
     const now = Date.now();
     Object.keys(this.store).forEach(key => {
-      if (this.store[key].resetTime <= now) {
+      const entry = this.store[key];
+      if (entry && entry.resetTime <= now) {
         delete this.store[key];
       }
     });

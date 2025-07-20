@@ -281,25 +281,25 @@ export function ServerDetailMetrics({
                   />
 
                   {/* 데이터 포인트 표시 */}
-                  {metricsHistory.map((_, index) => {
+                  {metricsHistory.map((metric, index) => {
                     const x = (index / Math.max(metricsHistory.length - 1, 1)) * 100;
                     return (
                       <g key={index}>
                         <circle
                           cx={`${x}%`}
-                          cy={140 - (metricsHistory[index].cpu / 100) * 140}
+                          cy={140 - (metric.cpu / 100) * 140}
                           r='2'
                           fill='#ef4444'
                         />
                         <circle
                           cx={`${x}%`}
-                          cy={140 - (metricsHistory[index].memory / 100) * 140}
+                          cy={140 - (metric.memory / 100) * 140}
                           r='2'
                           fill='#3b82f6'
                         />
                         <circle
                           cx={`${x}%`}
-                          cy={140 - (metricsHistory[index].disk / 100) * 140}
+                          cy={140 - (metric.disk / 100) * 140}
                           r='2'
                           fill='#8b5cf6'
                         />

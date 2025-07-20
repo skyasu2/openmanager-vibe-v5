@@ -41,8 +41,33 @@ export interface PerformanceBenchmark {
   engineType: string;
 }
 
+// 타입 정의 추가
+interface PerformanceSummary {
+  avgResponseTime: string;
+  avgMemoryUsage: string;
+  avgAccuracy: string;
+  totalMeasurements: number;
+  period: string;
+  message?: string;
+}
+
+interface PerformanceImprovements {
+  responseTime: string;
+  memory: string;
+  accuracy: string;
+  message?: string;
+}
+
+interface PerformanceReport {
+  summary: PerformanceSummary;
+  detailed: PerformanceBenchmark[];
+  improvements: PerformanceImprovements;
+}
+
+type BaselineValue = number | string;
+
 export class PerformanceMonitor {
-  private static baselines: Map<string, any> = new Map();
+  private static baselines: Map<string, BaselineValue> = new Map();
   private static measurements: PerformanceBenchmark[] = [];
 
   /**
@@ -150,7 +175,7 @@ export class PerformanceMonitor {
 
     // 정확도 계산 (status 기준)
     const correctPredictions = validPredictions.filter(
-      (p, i) => p.status === validActuals[i].status
+      (p, i) => p.status === validActuals[i]?.status
     );
     const accuracy = Math.round((correctPredictions.length / minLength) * 100);
 
@@ -162,15 +187,15 @@ export class PerformanceMonitor {
 
     statuses.forEach(status => {
       const tp = validPredictions.filter(
-        (p, i) => p.status === status && validActuals[i].status === status
+        (p, i) => p.status === status && validActuals[i]?.status === status
       ).length;
 
       const fp = validPredictions.filter(
-        (p, i) => p.status === status && validActuals[i].status !== status
+        (p, i) => p.status === status && validActuals[i]?.status !== status
       ).length;
 
       const fn = validPredictions.filter(
-        (p, i) => p.status !== status && validActuals[i].status === status
+        (p, i) => p.status !== status && validActuals[i]?.status === status
       ).length;
 
       if (tp + fp > 0) {
@@ -232,10 +257,10 @@ export class PerformanceMonitor {
   /**
    * 📈 종합 성능 벤치마크 실행
    */
-  static async runBenchmark(
+  static async runBenchmark<T = unknown>(
     engineType: string,
-    testFunction: () => Promise<any>,
-    expectedResults?: any[]
+    testFunction: () => Promise<T>,
+    expectedResults?: T[]
   ): Promise<PerformanceBenchmark> {
     console.log(`🔍 ${engineType} 성능 벤치마크 시작...`);
 
@@ -259,7 +284,10 @@ export class PerformanceMonitor {
       sampleSize: 0,
     };
     if (expectedResults && Array.isArray(result)) {
-      accuracy = this.calculateAccuracy(result, expectedResults);
+      // Type assertion for compatibility with calculateAccuracy
+      const predictions = result as Array<{ status: string; confidence?: number; value?: number }>;
+      const actuals = expectedResults as Array<{ status: string; value?: number }>;
+      accuracy = this.calculateAccuracy(predictions, actuals);
     }
 
     const benchmark: PerformanceBenchmark = {
@@ -310,7 +338,8 @@ export class PerformanceMonitor {
    * 📋 기준값 관리
    */
   private static getBaseline(engineType: string, metric: string): number {
-    return this.baselines.get(`${engineType}.${metric}`) || 0;
+    const value = this.baselines.get(`${engineType}.${metric}`);
+    return typeof value === 'number' ? value : 0;
   }
 
   private static updateBaselines(
@@ -328,18 +357,25 @@ export class PerformanceMonitor {
   /**
    * 📈 성능 리포트 생성
    */
-  static generatePerformanceReport(): {
-    summary: any;
-    detailed: PerformanceBenchmark[];
-    improvements: any;
-  } {
+  static generatePerformanceReport(): PerformanceReport {
     const recent = this.measurements.slice(-10); // 최근 10개
 
     if (recent.length === 0) {
       return {
-        summary: { message: '성능 측정 데이터가 없습니다.' },
+        summary: {
+          avgResponseTime: '0ms',
+          avgMemoryUsage: '0MB',
+          avgAccuracy: '0%',
+          totalMeasurements: 0,
+          period: 'No data',
+          message: '성능 측정 데이터가 없습니다.'
+        },
         detailed: [],
-        improvements: {},
+        improvements: {
+          responseTime: '0%',
+          memory: '0%',
+          accuracy: '0%'
+        },
       };
     }
 
@@ -365,7 +401,7 @@ export class PerformanceMonitor {
         avgMemoryUsage: `${avgMemory}MB`,
         avgAccuracy: `${avgAccuracy}%`,
         totalMeasurements: this.measurements.length,
-        period: `${recent[0].timestamp} ~ ${recent[recent.length - 1].timestamp}`,
+        period: recent.length > 0 ? `${recent[0]?.timestamp ?? 'N/A'} ~ ${recent[recent.length - 1]?.timestamp ?? 'N/A'}` : 'No data',
       },
       detailed: recent,
       improvements,
@@ -377,9 +413,14 @@ export class PerformanceMonitor {
    */
   private static calculateImprovements(
     measurements: PerformanceBenchmark[]
-  ): any {
+  ): PerformanceImprovements {
     if (measurements.length < 2)
-      return { message: '비교할 데이터가 부족합니다.' };
+      return { 
+        responseTime: '0%',
+        memory: '0%',
+        accuracy: '0%',
+        message: '비교할 데이터가 부족합니다.' 
+      };
 
     const first = measurements[0];
     const last = measurements[measurements.length - 1];
@@ -402,11 +443,6 @@ export class PerformanceMonitor {
       responseTime: `${responseTimeImprovement > 0 ? '+' : ''}${responseTimeImprovement}%`,
       memory: `${memoryImprovement > 0 ? '+' : ''}${memoryImprovement}%`,
       accuracy: `${accuracyImprovement > 0 ? '+' : ''}${accuracyImprovement}%`,
-      trend: {
-        responseTime: responseTimeImprovement > 0 ? '개선' : '악화',
-        memory: memoryImprovement > 0 ? '개선' : '악화',
-        accuracy: accuracyImprovement > 0 ? '개선' : '악화',
-      },
     };
   }
 

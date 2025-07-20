@@ -162,13 +162,17 @@ export class VersionManager {
   ): string {
     const parts = currentVersion.split('.').map(Number);
 
+    const major = parts[0] ?? 0;
+    const minor = parts[1] ?? 0;
+    const patch = parts[2] ?? 0;
+
     switch (changeType) {
       case 'major':
-        return `${parts[0] + 1}.0.0`;
+        return `${major + 1}.0.0`;
       case 'minor':
-        return `${parts[0]}.${parts[1] + 1}.0`;
+        return `${major}.${minor + 1}.0`;
       case 'patch':
-        return `${parts[0]}.${parts[1]}.${parts[2] + 1}`;
+        return `${major}.${minor}.${patch + 1}`;
       default:
         return currentVersion;
     }

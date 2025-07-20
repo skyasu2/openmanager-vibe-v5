@@ -22,31 +22,34 @@ function normalizeUTF8(text: string): string {
     }
 }
 
+// 로그 파라미터 타입 정의
+type LogParameters = Array<string | number | boolean | object | null | undefined>;
+
 /**
  * 한국어 안전 출력을 위한 로그 함수들
  */
 export const utf8Logger = {
-    log: (message: string, ...args: any[]) => {
+    log: (message: string, ...args: LogParameters) => {
         const normalizedMessage = normalizeUTF8(message);
         console.log(normalizedMessage, ...args);
     },
 
-    info: (message: string, ...args: any[]) => {
+    info: (message: string, ...args: LogParameters) => {
         const normalizedMessage = normalizeUTF8(message);
         console.info(normalizedMessage, ...args);
     },
 
-    warn: (message: string, ...args: any[]) => {
+    warn: (message: string, ...args: LogParameters) => {
         const normalizedMessage = normalizeUTF8(message);
         console.warn(normalizedMessage, ...args);
     },
 
-    error: (message: string, ...args: any[]) => {
+    error: (message: string, ...args: LogParameters) => {
         const normalizedMessage = normalizeUTF8(message);
         console.error(normalizedMessage, ...args);
     },
 
-    debug: (message: string, ...args: any[]) => {
+    debug: (message: string, ...args: LogParameters) => {
         const normalizedMessage = normalizeUTF8(message);
         console.debug(normalizedMessage, ...args);
     },
@@ -54,7 +57,7 @@ export const utf8Logger = {
     /**
      * 한국어 쿼리 전용 로그 (이모지 포함)
      */
-    korean: (emoji: string, message: string, data?: any) => {
+    korean: (emoji: string, message: string, data?: unknown) => {
         const normalizedMessage = normalizeUTF8(`${emoji} ${message}`);
         if (data) {
             console.log(normalizedMessage, data);
@@ -80,7 +83,7 @@ export const utf8Logger = {
     /**
      * 성능 메트릭 로그
      */
-    performance: (operation: string, duration: number, details?: any) => {
+    performance: (operation: string, duration: number, details?: Record<string, unknown>) => {
         const normalizedMessage = normalizeUTF8(`⏱️ ${operation}: ${duration}ms`);
         if (details) {
             console.log(normalizedMessage, details);
@@ -98,7 +101,7 @@ export function enableUTF8Console() {
         // 서버 사이드에서만 실행
         const originalConsole = { ...console };
 
-        console.log = (message: any, ...args: any[]) => {
+        console.log = (message: unknown, ...args: LogParameters) => {
             if (typeof message === 'string') {
                 const normalized = normalizeUTF8(message);
                 originalConsole.log(normalized, ...args);
@@ -107,7 +110,7 @@ export function enableUTF8Console() {
             }
         };
 
-        console.info = (message: any, ...args: any[]) => {
+        console.info = (message: unknown, ...args: LogParameters) => {
             if (typeof message === 'string') {
                 const normalized = normalizeUTF8(message);
                 originalConsole.info(normalized, ...args);
@@ -116,7 +119,7 @@ export function enableUTF8Console() {
             }
         };
 
-        console.warn = (message: any, ...args: any[]) => {
+        console.warn = (message: unknown, ...args: LogParameters) => {
             if (typeof message === 'string') {
                 const normalized = normalizeUTF8(message);
                 originalConsole.warn(normalized, ...args);
@@ -125,7 +128,7 @@ export function enableUTF8Console() {
             }
         };
 
-        console.error = (message: any, ...args: any[]) => {
+        console.error = (message: unknown, ...args: LogParameters) => {
             if (typeof message === 'string') {
                 const normalized = normalizeUTF8(message);
                 originalConsole.error(normalized, ...args);

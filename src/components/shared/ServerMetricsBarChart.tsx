@@ -127,7 +127,8 @@ export default function ServerMetricsBarChart({
       setHistoricalData(prev => {
         // 기존 데이터를 한 칸씩 뒤로 밀고 새 데이터 추가
         const newData = [...prev.slice(1)];
-        const lastValue = prev[prev.length - 1].value;
+        const lastDataPoint = prev[prev.length - 1];
+        const lastValue = lastDataPoint?.value ?? 50;
         
         // 새로운 현재값 생성 (기존값 기준 ±5% 변동)
         const variation = (Math.random() - 0.5) * 10;

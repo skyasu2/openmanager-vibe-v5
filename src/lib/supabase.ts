@@ -92,7 +92,7 @@ class SmartSupabaseClient {
   }
 
   // INSERT 작업
-  async insert(table: string, data: any) {
+  async insert<T = Record<string, unknown>>(table: string, data: T) {
     try {
       const result = await supabase.from(table).insert(data);
       return result;
@@ -106,33 +106,40 @@ class SmartSupabaseClient {
   }
 
   // UPDATE 작업
-  async update(table: string, data: any, match: any) {
+  async update<T = Record<string, unknown>>(
+    table: string, 
+    data: Partial<T>, 
+    match: Partial<T>
+  ) {
     try {
       return await supabase.from(table).update(data).match(match);
     } catch (error) {
       console.warn('Supabase UPDATE error:', error);
       return {
-        data: [] as any[],
+        data: [] as T[],
         error,
       };
     }
   }
 
   // DELETE 작업
-  async delete(table: string, match: any) {
+  async delete<T = Record<string, unknown>>(table: string, match: Partial<T>) {
     try {
       return await supabase.from(table).delete().match(match);
     } catch (error) {
       console.warn('Supabase DELETE error:', error);
       return {
-        data: [] as any[],
+        data: [] as T[],
         error,
       };
     }
   }
 
   // RPC 호출
-  async rpc(functionName: string, params?: any) {
+  async rpc<TParams = Record<string, unknown>, TResult = unknown>(
+    functionName: string, 
+    params?: TParams
+  ) {
     const cacheKey = `rpc_${functionName}_${JSON.stringify(params)}`;
 
     try {

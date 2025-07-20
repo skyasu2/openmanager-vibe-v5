@@ -67,20 +67,27 @@ function compressTimeSeriesData(data: ScenarioPoint[]): any {
   if (data.length === 0) return [];
 
   // 첫 번째 값은 그대로 저장
+  const firstData = data[0];
+  if (!firstData) return [];
+  
   const compressed: any[] = [{
-    c: Math.round(data[0].cpu),
-    m: Math.round(data[0].memory),
-    d: Math.round(data[0].disk),
-    n: Math.round(data[0].network)
+    c: Math.round(firstData.cpu),
+    m: Math.round(firstData.memory),
+    d: Math.round(firstData.disk),
+    n: Math.round(firstData.network)
   }];
 
   // 나머지는 이전 값과의 차이만 저장
   for (let i = 1; i < data.length; i++) {
+    const curr = data[i];
+    const prev = data[i - 1];
+    if (!curr || !prev) continue;
+    
     compressed.push({
-      c: Math.round(data[i].cpu - data[i-1].cpu),
-      m: Math.round(data[i].memory - data[i-1].memory),
-      d: Math.round(data[i].disk - data[i-1].disk),
-      n: Math.round(data[i].network - data[i-1].network)
+      c: Math.round(curr.cpu - prev.cpu),
+      m: Math.round(curr.memory - prev.memory),
+      d: Math.round(curr.disk - prev.disk),
+      n: Math.round(curr.network - prev.network)
     });
   }
 

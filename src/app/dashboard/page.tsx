@@ -12,7 +12,7 @@ import { NotificationToast } from '@/components/system/NotificationToast';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { cn } from '@/lib/utils';
-import { AISidebar } from '@/presentation/ai-sidebar';
+// AISidebar는 GCP Functions로 이관됨
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
@@ -268,7 +268,12 @@ function DashboardPageContent() {
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               className='fixed inset-y-0 right-0 w-96 z-40'
             >
-              <AISidebar onClose={closeAgent} isOpen={isAgentOpen} />
+              {isAgentOpen && (
+                <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-lg z-50 p-4">
+                  <button onClick={closeAgent} className="absolute top-4 right-4">✕</button>
+                  <p className="text-center text-gray-600 mt-8">🚀 AI 기능이 GCP Functions로 이관되었습니다</p>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

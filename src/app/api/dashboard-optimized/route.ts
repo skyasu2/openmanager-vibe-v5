@@ -228,7 +228,9 @@ async function handleLegacyDashboard(request: NextRequest) {
     results?.forEach(([err, data], index) => {
       if (!err && data && typeof data === 'string') {
         try {
-          const serverId = keys[index].replace('openmanager:gcp:servers:', '');
+          const key = keys[index];
+          if (!key) return;
+          const serverId = key.replace('openmanager:gcp:servers:', '');
           const parsedData = JSON.parse(data);
 
           serverData[serverId] = {

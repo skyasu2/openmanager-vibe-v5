@@ -19,7 +19,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Bot, Database, Monitor, Settings, X, Zap } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AISettingsTab } from './components/AISettingsTab';
+// AISettingsTab은 GCP Functions로 이관됨
 import { GeneralSettingsTab } from './components/GeneralSettingsTab';
 import { GeneratorSettingsTab } from './components/GeneratorSettingsTab';
 import { MonitorSettingsTab } from './components/MonitorSettingsTab';
@@ -349,6 +349,12 @@ export function UnifiedSettingsPanel({
     switch (activeTab) {
       case 'ai':
         return (
+          <div className="p-4 text-center text-gray-600">
+            🚀 AI 설정은 GCP Functions로 이관되었습니다
+          </div>
+        );
+        {/*
+        return (
           <AISettingsTab
             authState={authState}
             aiPassword={aiPassword}
@@ -358,6 +364,7 @@ export function UnifiedSettingsPanel({
             onSystemDiagnosis={handleSystemDiagnosis}
           />
         );
+        */}
 
       case 'generator':
         return (

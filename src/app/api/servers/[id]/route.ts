@@ -370,7 +370,7 @@ function generateSpecs(serverId: string): {
     'RHEL 8',
     'Amazon Linux 2',
   ];
-  const os = osOptions[Math.abs(hash >> 12) % osOptions.length];
+  const os = osOptions[Math.abs(hash >> 12) % osOptions.length] ?? 'Ubuntu 20.04';
 
   return { cpu_cores: cpuCores, memory_gb: memoryGb, disk_gb: diskGb, os };
 }

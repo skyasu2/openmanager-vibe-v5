@@ -57,10 +57,10 @@ function generateMockErrorReports(count: number = 20): ErrorReport[] {
   return Array.from({ length: count }, (_, i) => ({
     id: `err_${Date.now()}_${i}`,
     timestamp: new Date(Date.now() - i * 3600000).toISOString(),
-    severity: severities[Math.floor(Math.random() * severities.length)],
-    type: types[Math.floor(Math.random() * types.length)],
-    message: messages[Math.floor(Math.random() * messages.length)],
-    source: sources[Math.floor(Math.random() * sources.length)],
+    severity: severities[Math.floor(Math.random() * severities.length)] ?? 'medium',
+    type: types[Math.floor(Math.random() * types.length)] ?? 'system_error',
+    message: messages[Math.floor(Math.random() * messages.length)] ?? 'Unknown error',
+    source: sources[Math.floor(Math.random() * sources.length)] ?? 'unknown',
     stackTrace:
       i % 3 === 0
         ? `Error at line ${Math.floor(Math.random() * 100) + 1}`

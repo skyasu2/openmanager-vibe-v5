@@ -26,6 +26,15 @@ export interface ServerSpecs {
   network_speed?: string;
 }
 
+export interface ServerAlert {
+  id: string;
+  type: 'cpu' | 'memory' | 'disk' | 'network' | 'health' | 'custom';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  message: string;
+  timestamp: string;
+  resolved?: boolean;
+}
+
 export interface ServerMetrics {
   cpu: number;
   memory: number;
@@ -45,10 +54,10 @@ export interface ServerMetrics {
   network_out?: number;
   response_time?: number;
   last_updated?: string;
-  alerts?: any[];
+  alerts?: ServerAlert[];
 
   // 🔧 korean-ai-engine 호환성을 위한 추가 속성들
   requests?: number;
   errors?: number;
-  customMetrics?: Record<string, any>;
+  customMetrics?: Record<string, string | number | boolean>;
 }

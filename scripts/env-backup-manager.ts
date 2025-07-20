@@ -132,7 +132,15 @@ export class EnvBackupManager {
    */
   private decrypt(encryptedText: string): string {
     try {
-      const [ivHex, encrypted] = encryptedText.split(':');
+      const parts = encryptedText.split(':');
+      if (parts.length !== 2) {
+        throw new Error('Invalid encrypted format');
+      }
+      const ivHex = parts[0];
+      const encrypted = parts[1];
+      if (!ivHex || !encrypted) {
+        throw new Error('Invalid encrypted parts');
+      }
       const iv = Buffer.from(ivHex, 'hex');
       const decipher = crypto.createDecipheriv(
         'aes-256-cbc',
