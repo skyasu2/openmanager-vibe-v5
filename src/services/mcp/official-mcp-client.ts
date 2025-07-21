@@ -9,11 +9,12 @@
  */
 
 import { RealMCPClient } from './real-mcp-client';
+import type { MCPTool } from '@/types/mcp';
 
 export interface CallToolResult {
   content: Array<{ type: string; text: string }>;
   isError?: boolean;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -52,7 +53,7 @@ export class OfficialMCPClient {
   /**
    * 🔧 도구 목록 조회 (RealMCPClient 위임)
    */
-  async listTools(serverName?: string): Promise<any[]> {
+  async listTools(serverName?: string): Promise<MCPTool[]> {
     if (!this.isConnected) {
       await this.connect();
     }
@@ -63,7 +64,7 @@ export class OfficialMCPClient {
       } else {
         // 모든 서버의 도구 목록 통합
         const servers = ['filesystem', 'github', 'web-search', 'database'];
-        const allTools: any[] = [];
+        const allTools: MCPTool[] = [];
 
         for (const server of servers) {
           try {
@@ -88,7 +89,7 @@ export class OfficialMCPClient {
   async callTool(
     serverName: string,
     toolName: string,
-    arguments_: Record<string, any>
+    arguments_: Record<string, unknown>
   ): Promise<CallToolResult> {
     if (!this.isConnected) {
       await this.connect();
@@ -147,10 +148,8 @@ export class OfficialMCPClient {
     const status: Record<string, boolean> = {};
 
     if (connectionInfo.servers) {
-      for (const [serverName, serverInfo] of Object.entries(
-        connectionInfo.servers
-      )) {
-        status[serverName] = (serverInfo as any).connected || false;
+      for (const server of connectionInfo.servers) {
+        status[server.name] = server.status === 'connected';
       }
     }
 

@@ -11,15 +11,20 @@
 
 import { unifiedDataBroker } from '@/services/data-collection/UnifiedDataBroker';
 import type { ServerInstance } from '@/types/data-generator';
+import type {
+  MCPQueryIntent,
+  MCPMonitoringData,
+  MCPPatternAnalysis,
+} from '@/types/mcp';
 
-// 🧠 AI 생각과정 단계
+// 🧠 AI 생각과정 단계 (로컬 인터페이스)
 export interface ThinkingStep {
   id: string;
   step: number;
   title: string;
   description: string;
   status: 'thinking' | 'processing' | 'completed' | 'error';
-  result?: any;
+  result?: unknown;
   timestamp: Date;
   duration?: number;
 }
@@ -307,7 +312,7 @@ export class ServerMonitoringAgent {
           severity: analysis.severity,
           timestamp: Date.now(),
         });
-      } catch (e) {
+      } catch {
         /* noop - serverless edge 환경에서 import 실패 가능 */
       }
 
@@ -343,7 +348,7 @@ export class ServerMonitoringAgent {
   /**
    * 🎯 질의 의도 분석 (MCP 패턴 매칭)
    */
-  private async analyzeQueryIntent(query: string): Promise<any> {
+  private async analyzeQueryIntent(query: string): Promise<MCPQueryIntent> {
     // 딜레이 시뮬레이션 (생각하는 시간)
     await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -372,7 +377,7 @@ export class ServerMonitoringAgent {
    */
   private async gatherCurrentData(
     context?: QueryRequest['context']
-  ): Promise<any> {
+  ): Promise<MCPMonitoringData> {
     await new Promise(resolve => setTimeout(resolve, 300));
 
     return new Promise(resolve => {
@@ -415,7 +420,10 @@ export class ServerMonitoringAgent {
   /**
    * 🔍 패턴 분석 및 이상 탐지
    */
-  private async analyzePatterns(data: any, intent: any): Promise<any> {
+  private async analyzePatterns(
+    data: MCPMonitoringData,
+    _intent: MCPQueryIntent
+  ): Promise<MCPPatternAnalysis> {
     await new Promise(resolve => setTimeout(resolve, 800));
 
     const analysis = {
@@ -505,9 +513,9 @@ export class ServerMonitoringAgent {
    * 💬 답변 생성 (의도별 핸들러)
    */
   private async generateAnswer(
-    intent: any,
-    data: any,
-    analysis: any
+    intent: MCPQueryIntent,
+    data: MCPMonitoringData,
+    analysis: MCPPatternAnalysis
   ): Promise<string> {
     await new Promise(resolve => setTimeout(resolve, 600));
 
@@ -532,7 +540,10 @@ export class ServerMonitoringAgent {
   /**
    * 🔍 서버 상태 조회 핸들러
    */
-  private handleServerStatusQuery(data: any, analysis: any): string {
+  private handleServerStatusQuery(
+    data: MCPMonitoringData,
+    analysis: MCPPatternAnalysis
+  ): string {
     const { servers, summary } = data;
     const runningServers = servers.filter(
       (s: ServerInstance) => s.status === 'running'
@@ -561,7 +572,10 @@ export class ServerMonitoringAgent {
   /**
    * 🚨 장애 분석 핸들러
    */
-  private handleIncidentQuery(data: any, analysis: any): string {
+  private handleIncidentQuery(
+    _data: MCPMonitoringData,
+    analysis: MCPPatternAnalysis
+  ): string {
     if (analysis.issues.length === 0) {
       return `✅ **장애 상황 없음**\n\n현재 시스템에서 감지된 장애나 심각한 문제는 없습니다. 모든 서버가 정상 범위 내에서 운영되고 있습니다.`;
     }
@@ -588,7 +602,10 @@ export class ServerMonitoringAgent {
   /**
    * 🚀 성능 분석 핸들러
    */
-  private handlePerformanceQuery(data: any, analysis: any): string {
+  private handlePerformanceQuery(
+    data: MCPMonitoringData,
+    _analysis: MCPPatternAnalysis
+  ): string {
     const { summary } = data;
 
     let response = `🚀 **성능 분석 보고서**\n\n`;
@@ -630,7 +647,10 @@ export class ServerMonitoringAgent {
   /**
    * 💡 권장사항 핸들러
    */
-  private handleRecommendationQuery(data: any, analysis: any): string {
+  private handleRecommendationQuery(
+    data: MCPMonitoringData,
+    analysis: MCPPatternAnalysis
+  ): string {
     let response = `💡 **시스템 개선 권장사항**\n\n`;
 
     if (analysis.recommendations.length > 0) {
@@ -654,7 +674,10 @@ export class ServerMonitoringAgent {
   /**
    * 💰 비용 분석 핸들러
    */
-  private handleCostQuery(data: any, analysis: any): string {
+  private handleCostQuery(
+    data: MCPMonitoringData,
+    _analysis: MCPPatternAnalysis
+  ): string {
     const { summary } = data;
 
     let response = `💰 **비용 분석 보고서**\n\n`;
@@ -683,7 +706,10 @@ export class ServerMonitoringAgent {
   /**
    * 🔮 예측 분석 핸들러
    */
-  private handlePredictionQuery(data: any, analysis: any): string {
+  private handlePredictionQuery(
+    data: MCPMonitoringData,
+    _analysis: MCPPatternAnalysis
+  ): string {
     let response = `🔮 **시스템 예측 분석**\n\n`;
 
     // 간단한 트렌드 분석 (실제로는 더 복잡한 ML 알고리즘 필요)
@@ -712,7 +738,10 @@ export class ServerMonitoringAgent {
   /**
    * 🤖 일반 질의 핸들러
    */
-  private handleGeneralQuery(data: any, analysis: any): string {
+  private handleGeneralQuery(
+    _data: MCPMonitoringData,
+    _analysis: MCPPatternAnalysis
+  ): string {
     return `🤖 **AI 어시스턴트 응답**\n\n안녕하세요! 서버 모니터링 AI 어시스턴트입니다.\n\n다음과 같은 질문을 도와드릴 수 있습니다:\n• 서버 상태 조회\n• 장애 분석\n• 성능 분석\n• 비용 분석\n• 시스템 권장사항\n• 미래 예측\n\n구체적인 질문을 해주시면 더 정확한 답변을 드릴 수 있습니다.`;
   }
 
@@ -720,8 +749,8 @@ export class ServerMonitoringAgent {
    * 💡 스마트 인사이트 생성
    */
   private async generateInsights(
-    data: any,
-    analysis: any
+    data: MCPMonitoringData,
+    _analysis: MCPPatternAnalysis
   ): Promise<MonitoringInsight[]> {
     await new Promise(resolve => setTimeout(resolve, 400));
 
@@ -926,7 +955,7 @@ export class ServerMonitoringAgent {
   /**
    * ✅ 생각과정 단계 완료
    */
-  private completeThinkingStep(step: ThinkingStep, result?: any): void {
+  private completeThinkingStep(step: ThinkingStep, result?: unknown): void {
     step.status = 'completed';
     step.result = result;
     step.duration = Date.now() - step.timestamp.getTime();

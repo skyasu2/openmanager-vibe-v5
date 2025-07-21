@@ -8,16 +8,21 @@
  */
 
 import { RealMCPClient } from './real-mcp-client';
+import type {
+  MCPQueryContext,
+  MCPMetadata,
+  MCPConnectionInfo,
+} from '@/types/mcp';
 
 export interface MCPRequest {
   query: string;
-  context?: any;
+  context?: MCPQueryContext;
 }
 
 export interface MCPResponse {
   success: boolean;
   response?: string;
-  data?: any;
+  data?: Record<string, unknown>;
   error?: string;
   confidence: number;
 }
@@ -36,7 +41,13 @@ export interface MCPContextResponse {
     content: string;
     type: 'file' | 'directory';
   }>;
-  systemContext?: any;
+  systemContext?: {
+    platform?: string;
+    nodeVersion?: string;
+    memory?: Record<string, number>;
+    environment?: string;
+    metadata?: MCPMetadata;
+  };
   error?: string;
 }
 
@@ -101,7 +112,7 @@ export class MCPProcessor {
       // 문서 검색
       const searchResults = await this.realClient.searchDocuments(query);
       if (searchResults.success && searchResults.results) {
-        searchResults.results.forEach((result: any) => {
+        searchResults.results.forEach(result => {
           if (result.path && result.content) {
             files.push({
               path: result.path,
@@ -119,7 +130,7 @@ export class MCPProcessor {
           if (content) {
             files.push({ path, content, type: 'file' });
           }
-        } catch (error) {
+        } catch {
           console.warn(`파일 읽기 실패: ${path}`);
         }
       }
@@ -217,7 +228,7 @@ export class MCPProcessor {
   /**
    * 연결 정보 (RealMCPClient 위임)
    */
-  getConnectionInfo(): any {
+  getConnectionInfo(): MCPConnectionInfo {
     return this.realClient.getConnectionInfo();
   }
 }

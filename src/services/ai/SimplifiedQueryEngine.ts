@@ -14,10 +14,9 @@ import type {
   AIQueryContext,
   AIQueryOptions,
   MCPContext,
-  RAGQueryResult,
   RAGSearchResult,
   AIMetadata,
-  ServerArray
+  ServerArray,
 } from '@/types/ai-service-types';
 
 export interface QueryRequest {
@@ -203,7 +202,7 @@ export class SimplifiedQueryEngine {
     const ragResult = await this.ragEngine.searchSimilar(query, {
       maxResults: 5,
       threshold: 0.5,
-      category: options.category,
+      category: options?.category,
       enableMCP: false, // MCP는 이미 별도로 처리
     });
 
@@ -271,8 +270,8 @@ export class SimplifiedQueryEngine {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt,
-          temperature: options.temperature || 0.7,
-          maxTokens: options.maxTokens || 1000,
+          temperature: options?.temperature || 0.7,
+          maxTokens: options?.maxTokens || 1000,
         }),
       });
 
@@ -323,7 +322,7 @@ export class SimplifiedQueryEngine {
    */
   private generateLocalResponse(
     query: string,
-    ragResult: RAGQueryResult,
+    ragResult: any, // RAGSearchResult from supabase-rag-engine
     mcpContext: MCPContext | null,
     userContext: AIQueryContext | undefined
   ): string {
@@ -345,15 +344,17 @@ export class SimplifiedQueryEngine {
     // 추가 정보가 있으면 포함
     if (ragResult.results.length > 1) {
       response += '\n\n추가 정보:\n';
-      ragResult.results.slice(1, 3).forEach((result: RAGSearchResult, idx: number) => {
-        response += `${idx + 1}. ${result.content.substring(0, 100)}...\n`;
-      });
+      ragResult.results
+        .slice(1, 3)
+        .forEach((result: RAGSearchResult, idx: number) => {
+          response += `${idx + 1}. ${result.content.substring(0, 100)}...\n`;
+        });
     }
 
     // MCP 컨텍스트가 있으면 추가
     if (mcpContext && mcpContext.files.length > 0) {
       response += '\n\n프로젝트 파일 참고:\n';
-      mcpContext.files.slice(0, 2).forEach((file) => {
+      mcpContext.files.slice(0, 2).forEach(file => {
         response += `- ${file.path}\n`;
       });
     }
@@ -415,7 +416,7 @@ export class SimplifiedQueryEngine {
     // MCP 컨텍스트 추가
     if (mcpContext && mcpContext.files.length > 0) {
       prompt += '관련 파일 내용:\n';
-      mcpContext.files.forEach((file) => {
+      mcpContext.files.forEach(file => {
         prompt += `\n파일: ${file.path}\n`;
         prompt += `${file.content.substring(0, 500)}...\n`;
       });
@@ -430,7 +431,8 @@ export class SimplifiedQueryEngine {
   /**
    * 📊 신뢰도 계산
    */
-  private calculateConfidence(ragResult: RAGQueryResult): number {
+  private calculateConfidence(ragResult: any): number {
+    // RAGSearchResult from supabase-rag-engine
     if (ragResult.results.length === 0) return 0.1;
 
     // 최고 유사도 점수 기반 신뢰도

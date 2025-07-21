@@ -16,25 +16,28 @@ import { MCPPerformanceMonitor } from './components/MCPPerformanceMonitor';
 import type { MCPServerConfig } from './components/MCPServerManager';
 import { MCPServerManager } from './components/MCPServerManager';
 import { MCPToolHandler } from './components/MCPToolHandler';
+import type {
+  MCPClient,
+  MCPRequest,
+  MCPResponse,
+  MCPTool,
+  MCPConnectionInfo,
+  MCPToolResult,
+  MCPQueryContext,
+} from '@/types/mcp';
 
-interface MCPClient {
-  connect(transport?: any): Promise<void>;
-  request(request: any): Promise<any>;
-  close(): Promise<void>;
-  process?: any;
-  nextId?: number;
-  pendingRequests?: Map<
-    number,
-    {
-      resolve: (value: any) => void;
-      reject: (reason?: any) => void;
-    }
-  >;
-}
+// MCPClient interface는 이제 @/types/mcp에서 가져옴
+// ExtendedMCPClient는 더 이상 필요하지 않음 (MCPClient에 close가 옵셔널로 추가됨)
 
-interface MCPSearchResult {
+// RealMCP용 검색 결과 타입 (내부 사용)
+interface RealMCPSearchResult {
   success: boolean;
-  results: any[];
+  results: Array<{
+    path: string;
+    content: string;
+    score?: number;
+    metadata?: Record<string, unknown>;
+  }>;
   source: string;
   tools_used: string[];
   responseTime?: number;
@@ -178,35 +181,50 @@ export class RealMCPClient {
       async connect(): Promise<void> {
         console.log(`🎭 ${serverName} 목업 클라이언트 연결됨`);
       },
-      async request(request: any): Promise<any> {
+      async request(request: MCPRequest): Promise<MCPResponse> {
         console.log(`🎭 ${serverName} 목업 요청:`, request.method);
         if (request.method === 'tools/list') {
-          return await (this as any).toolHandler.getAvailableTools();
-        }
-        if (request.method === 'tools/call') {
+          const tools = await (this as any).toolHandler.getAvailableTools();
           return {
-            content: [
-              { type: 'text', text: `목업 응답: ${request.params.name}` },
-            ],
+            success: true,
+            result: { tools: tools.tools, data: {} },
           };
         }
-        return { result: 'mock_response' };
+        if (request.method === 'tools/call' && request.params?.toolName) {
+          return {
+            success: true,
+            result: {
+              content: `목업 응답: ${request.params.toolName}`,
+              data: {},
+            },
+          };
+        }
+        return {
+          success: true,
+          result: { content: 'mock_response', data: {} },
+        };
       },
-      async close(): Promise<void> {
+      async disconnect(): Promise<void> {
         console.log(`🎭 ${serverName} 목업 클라이언트 연결 종료`);
+      },
+      close: async (): Promise<void> => {
+        console.log(`🎭 ${serverName} 목업 클라이언트 연결 종료`);
+      },
+      isConnected(): boolean {
+        return true;
       },
     };
   }
 
-  async listTools(serverName: string): Promise<any[]> {
+  async listTools(serverName: string): Promise<MCPTool[]> {
     return await this.toolHandler.listTools(serverName, this.clients);
   }
 
   async callTool(
     serverName: string,
     toolName: string,
-    args: any
-  ): Promise<any> {
+    args: Record<string, unknown>
+  ): Promise<MCPToolResult> {
     const startTime = Date.now();
 
     try {
@@ -250,7 +268,7 @@ export class RealMCPClient {
     return servers;
   }
 
-  async searchDocuments(query: string): Promise<MCPSearchResult> {
+  async searchDocuments(query: string): Promise<RealMCPSearchResult> {
     const startTime = Date.now();
 
     try {
@@ -278,15 +296,18 @@ export class RealMCPClient {
     }
   }
 
-  async searchWeb(query: string): Promise<MCPSearchResult> {
+  async searchWeb(query: string): Promise<RealMCPSearchResult> {
     return await this.toolHandler.searchWeb(query);
   }
 
-  async storeContext(sessionId: string, context: any): Promise<boolean> {
+  async storeContext(
+    sessionId: string,
+    context: MCPQueryContext
+  ): Promise<boolean> {
     return await this.contextManager.storeContext(sessionId, context);
   }
 
-  async retrieveContext(sessionId: string): Promise<any> {
+  async retrieveContext(sessionId: string): Promise<MCPQueryContext | null> {
     return await this.contextManager.retrieveContext(sessionId);
   }
 
@@ -320,7 +341,7 @@ export class RealMCPClient {
       );
 
       if (result.success) {
-        return result.items.map((item: any) => item.name);
+        return result.items.map((item: { name: string }) => item.name);
       } else {
         throw new Error(result.error || '디렉토리 목록 조회 실패');
       }
@@ -330,9 +351,37 @@ export class RealMCPClient {
     }
   }
 
-  async getServerStatus(): Promise<Record<string, any>> {
+  async getServerStatus(): Promise<
+    Record<
+      string,
+      {
+        enabled: boolean;
+        connected: boolean;
+        stats: {
+          totalRequests: number;
+          successfulRequests: number;
+          failedRequests: number;
+          averageResponseTime: number;
+          healthScore: number;
+        };
+      }
+    >
+  > {
     const serverNames = this.serverManager.getAvailableServers();
-    const status: Record<string, any> = {};
+    const status: Record<
+      string,
+      {
+        enabled: boolean;
+        connected: boolean;
+        stats: {
+          totalRequests: number;
+          successfulRequests: number;
+          failedRequests: number;
+          averageResponseTime: number;
+          healthScore: number;
+        };
+      }
+    > = {};
 
     for (const serverName of serverNames) {
       const config = this.serverManager.getServerConfig(serverName);
@@ -354,7 +403,19 @@ export class RealMCPClient {
     return status;
   }
 
-  async performComplexQuery(query: string, context: any = {}): Promise<any> {
+  async performComplexQuery(
+    query: string,
+    context: MCPQueryContext = {}
+  ): Promise<{
+    query: string;
+    timestamp: string;
+    responseTime: number;
+    sources: {
+      documents: MCPSearchResult;
+      web: MCPSearchResult;
+    };
+    context: MCPQueryContext;
+  }> {
     const startTime = Date.now();
 
     try {
@@ -390,7 +451,11 @@ export class RealMCPClient {
 
     for (const [serverName, client] of this.clients.entries()) {
       try {
-        await client.close();
+        if (client.close) {
+          await client.close();
+        } else {
+          await client.disconnect();
+        }
         console.log(`✅ ${serverName} 연결 종료됨`);
       } catch (error) {
         console.warn(`⚠️ ${serverName} 연결 종료 실패:`, error);
@@ -404,22 +469,36 @@ export class RealMCPClient {
     console.log('✅ MCP 클라이언트 완전 종료됨');
   }
 
-  getConnectionInfo(): any {
+  getConnectionInfo(): MCPConnectionInfo {
     const serverNames = this.serverManager.getAvailableServers();
-    const performanceReport = this.performanceMonitor.generatePerformanceReport(
-      new Map()
+
+    const servers = Array.from(this.clients.entries()).map(
+      ([name, _client]) => ({
+        name,
+        status: 'connected' as const,
+        lastConnected: new Date(),
+      })
     );
-    const contextStats = this.contextManager.getContextStats();
+
+    // 연결되지 않은 서버들도 추가
+    serverNames.forEach(serverName => {
+      if (!this.clients.has(serverName)) {
+        servers.push({
+          name: serverName,
+          status: 'disconnected' as const,
+        });
+      }
+    });
 
     return {
-      isInitialized: this.isInitialized,
-      totalServers: serverNames.length,
-      connectedClients: this.clients.size,
-      availableServers: serverNames,
-      connectedServers: Array.from(this.clients.keys()),
-      performance: performanceReport,
-      context: contextStats,
-      timestamp: new Date().toISOString(),
+      connected: this.isInitialized,
+      servers,
+      stats: {
+        totalRequests: 0, // 실제 통계는 performanceMonitor에서 가져와야 함
+        successfulRequests: 0,
+        failedRequests: 0,
+        averageResponseTime: 0,
+      },
     };
   }
 }

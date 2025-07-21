@@ -6,7 +6,6 @@ import type {
   ServiceError,
   RecoveryStrategy,
   RecoveryConfig,
-  ErrorCode,
 } from '../types/ErrorTypes';
 import { ERROR_CODES } from '../types/ErrorTypes';
 
@@ -28,7 +27,7 @@ export class NetworkRecoveryStrategy implements RecoveryStrategy {
       ERROR_CODES.NETWORK_ERROR,
       ERROR_CODES.CONNECTION_TIMEOUT,
       ERROR_CODES.DNS_RESOLUTION_FAILED,
-    ].includes(error.code as ErrorCode);
+    ].some(code => code === error.code);
   }
 
   async recover(error: ServiceError): Promise<boolean> {
@@ -96,7 +95,7 @@ export class DatabaseRecoveryStrategy implements RecoveryStrategy {
       ERROR_CODES.DATABASE_ERROR,
       ERROR_CODES.DATABASE_CONNECTION_LOST,
       ERROR_CODES.QUERY_TIMEOUT,
-    ].includes(error.code as ErrorCode);
+    ].some(code => code === error.code);
   }
 
   async recover(error: ServiceError): Promise<boolean> {
@@ -277,7 +276,7 @@ export class SystemRecoveryStrategy implements RecoveryStrategy {
       ERROR_CODES.MEMORY_EXHAUSTED,
       ERROR_CODES.DISK_FULL,
       ERROR_CODES.SYSTEM_OVERLOAD,
-    ].includes(error.code as ErrorCode);
+    ].some(code => code === error.code);
   }
 
   async recover(error: ServiceError): Promise<boolean> {

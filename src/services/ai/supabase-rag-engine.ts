@@ -11,12 +11,7 @@
 import { PostgresVectorDB } from './postgres-vector-db';
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import { getRedis } from '@/lib/redis';
-import type {
-  AIMetadata,
-  MCPContext,
-  RAGSearchResult as AIRAGSearchResult,
-  RAGQueryResult
-} from '@/types/ai-service-types';
+import type { AIMetadata, MCPContext } from '@/types/ai-service-types';
 import type { RedisClientInterface } from '@/lib/redis';
 
 interface RAGSearchOptions {
@@ -44,7 +39,7 @@ interface RAGSearchResult {
   mcpContext?: MCPContext;
 }
 
-interface EmbeddingResult {
+interface _EmbeddingResult {
   embedding: number[];
   tokens: number;
   model: string;
@@ -172,7 +167,7 @@ export class SupabaseRAGEngine {
         totalResults: searchResults.length,
         processingTime: Date.now() - startTime,
         cached: false,
-        mcpContext,
+        mcpContext: mcpContext || undefined,
       };
 
       // 캐시 저장
@@ -436,9 +431,11 @@ export class SupabaseRAGEngine {
     if (this.redis) {
       try {
         // RAG 관련 캐시 키 패턴으로 삭제
-        const keys = await this.redis.keys('rag:search:*');
+        // Redis keys 메서드는 RedisClientInterface에 정의되어 있지 않으므로 타입 단언 사용
+        const redisClient = this.redis as any;
+        const keys = await redisClient.keys('rag:search:*');
         if (keys.length > 0) {
-          await this.redis.del(...keys);
+          await Promise.all(keys.map((key: string) => this.redis!.del(key)));
         }
       } catch (error) {
         console.error('Redis 캐시 무효화 오류:', error);
@@ -464,7 +461,7 @@ export class SupabaseRAGEngine {
         totalDocuments: stats.total_documents,
         cacheSize: this.searchCache.size,
       };
-    } catch (error) {
+    } catch {
       return {
         status: 'unhealthy',
         vectorDB: false,

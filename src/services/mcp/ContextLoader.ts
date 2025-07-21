@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import type { MCPContextPatterns } from '@/types/mcp';
 
 export interface ContextBundle {
   metadata: {
@@ -11,13 +12,13 @@ export interface ContextBundle {
   };
   documents: {
     markdown: Record<string, string>;
-    patterns: any;
+    patterns: MCPContextPatterns;
   };
 }
 
 export interface MergedContext {
   knowledgeBase: string;
-  patterns: any;
+  patterns: MCPContextPatterns;
   templates: Record<string, string>;
   intentMappings: Record<string, string>;
   metadata: {
@@ -63,11 +64,11 @@ export class ContextLoader {
 
       const sources: string[] = [];
       let mergedKnowledge = '';
-      const mergedPatterns: any = {
-        intentPatterns: {},
-        responseTemplates: {},
-        keywordExtraction: {},
-        validationRules: {},
+      const mergedPatterns: MCPContextPatterns = {
+        intents: [],
+        responses: {},
+        templates: {},
+        rules: [],
       };
       const mergedTemplates: Record<string, string> = {};
       const mergedIntentMappings: Record<string, string> = {};
@@ -209,36 +210,37 @@ export class ContextLoader {
   /**
    * 패턴 병합 (우선순위: custom > advanced > base)
    */
-  private mergePatterns(target: any, source: any): void {
+  private mergePatterns(
+    target: MCPContextPatterns,
+    source: MCPContextPatterns
+  ): void {
     if (!source) return;
 
-    // intentPatterns 병합
-    if (source.intentPatterns) {
-      Object.assign(target.intentPatterns, source.intentPatterns);
+    // intents 병합
+    if (source.intents && target.intents) {
+      target.intents.push(...source.intents);
     }
 
-    // responseTemplates 병합
-    if (source.responseTemplates) {
-      Object.assign(target.responseTemplates, source.responseTemplates);
+    // responses 병합
+    if (source.responses && target.responses) {
+      Object.assign(target.responses, source.responses);
     }
 
-    // keywordExtraction 병합
-    if (source.keywordExtraction) {
-      for (const [key, value] of Object.entries(source.keywordExtraction)) {
-        if (Array.isArray(value)) {
-          target.keywordExtraction[key] = [
-            ...(target.keywordExtraction[key] || []),
-            ...value,
-          ];
-        } else {
-          target.keywordExtraction[key] = value;
-        }
+    // templates 병합
+    if (source.templates && target.templates) {
+      Object.assign(target.templates, source.templates);
+    }
+
+    // rules 병합
+    if (source.rules && target.rules) {
+      target.rules.push(...source.rules);
+    }
+
+    // 기타 속성 병합 (호환성을 위해)
+    for (const [key, value] of Object.entries(source)) {
+      if (!['intents', 'responses', 'templates', 'rules'].includes(key)) {
+        (target as Record<string, unknown>)[key] = value;
       }
-    }
-
-    // validationRules 병합
-    if (source.validationRules) {
-      Object.assign(target.validationRules, source.validationRules);
     }
   }
 
@@ -246,27 +248,33 @@ export class ContextLoader {
    * 템플릿 및 인텐트 매핑 추출
    */
   private extractTemplatesAndIntents(
-    patterns: any,
+    patterns: MCPContextPatterns,
     templates: Record<string, string>,
     intents: Record<string, string>
   ): void {
-    // 응답 템플릿 추출
-    if (patterns.responseTemplates) {
-      for (const [key, template] of Object.entries(
-        patterns.responseTemplates
-      )) {
-        templates[key] = (template as any).template;
+    // 템플릿 추출
+    if (patterns.templates) {
+      Object.assign(templates, patterns.templates);
+    }
+
+    // responses에서 템플릿 추출
+    if (patterns.responses) {
+      for (const [key, response] of Object.entries(patterns.responses)) {
+        if (typeof response === 'string') {
+          templates[key] = response;
+        }
       }
     }
 
     // 인텐트 매핑 추출
-    if (patterns.intentPatterns) {
-      for (const [intent, config] of Object.entries(patterns.intentPatterns)) {
-        const patterns_list = (config as any).patterns || [];
-        for (const pattern of patterns_list) {
-          intents[pattern] = intent;
+    if (patterns.intents) {
+      patterns.intents.forEach(intentPattern => {
+        if (intentPattern.examples) {
+          intentPattern.examples.forEach(example => {
+            intents[example] = intentPattern.intent;
+          });
         }
-      }
+      });
     }
   }
 
@@ -293,7 +301,7 @@ export class ContextLoader {
    */
   async uploadContextBundle(
     bundleType: 'base' | 'advanced' | 'custom',
-    bundleData: any,
+    bundleData: ContextBundle,
     clientId?: string
   ): Promise<boolean> {
     try {

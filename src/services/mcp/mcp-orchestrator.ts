@@ -26,7 +26,7 @@ export interface MCPQuery {
   context?: {
     sessionId?: string;
     previousQueries?: string[];
-    userPreferences?: Record<string, any>;
+    userPreferences?: Record<string, unknown>;
   };
   timestamp: number;
 }
@@ -62,7 +62,7 @@ export interface ResponseSource {
 export interface ResponseAction {
   type: 'tool_execution' | 'alert' | 'recommendation' | 'follow_up';
   description: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   priority: 'low' | 'medium' | 'high';
 }
 
@@ -72,7 +72,7 @@ export interface ProcessingStep {
   startTime: number;
   endTime?: number;
   status: 'running' | 'completed' | 'error';
-  result?: any;
+  result?: unknown;
 }
 
 export interface QueryIntent {
@@ -447,7 +447,14 @@ export class MCPOrchestrator {
   private async generateResponse(
     query: MCPQuery,
     queryIntent: QueryIntent,
-    contextData: any
+    contextData: {
+      basic: BasicContextCache | null;
+      advanced: DocumentEmbedding[];
+      custom: {
+        settings: OrganizationSettings | null;
+        rules: CustomRule[];
+      };
+    }
   ): Promise<MCPResponse> {
     const sources: ResponseSource[] = [];
     let answer = '';
@@ -628,7 +635,14 @@ export class MCPOrchestrator {
    */
   private generateRecommendations(
     queryIntent: QueryIntent,
-    contextData: any
+    contextData: {
+      basic: BasicContextCache | null;
+      advanced: DocumentEmbedding[];
+      custom: {
+        settings: OrganizationSettings | null;
+        rules: CustomRule[];
+      };
+    }
   ): string[] {
     const recommendations: string[] = [];
 
@@ -664,7 +678,14 @@ export class MCPOrchestrator {
    */
   private async generateActions(
     queryIntent: QueryIntent,
-    contextData: any,
+    contextData: {
+      basic: BasicContextCache | null;
+      advanced: DocumentEmbedding[];
+      custom: {
+        settings: OrganizationSettings | null;
+        rules: CustomRule[];
+      };
+    },
     organizationId?: string
   ): Promise<ResponseAction[]> {
     const actions: ResponseAction[] = [];
@@ -766,7 +787,7 @@ export class MCPOrchestrator {
   /**
    * ✅ 처리 단계 완료
    */
-  private completeProcessingStep(step: ProcessingStep, result?: any): void {
+  private completeProcessingStep(step: ProcessingStep, result?: unknown): void {
     step.endTime = Date.now();
     step.status = 'completed';
     step.result = result;

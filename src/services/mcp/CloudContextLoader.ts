@@ -13,8 +13,10 @@
  * - 실시간 컨텍스트 업데이트
  */
 
+import type { MCPContextPatterns } from '@/types/mcp';
+
 // Edge Runtime 호환성을 위해 동적 import 사용
-let getRedis: any = null;
+let getRedis: (() => any) | null = null;
 try {
   if (
     typeof process !== 'undefined' &&
@@ -23,7 +25,7 @@ try {
   ) {
     getRedis = require('@/lib/redis').getRedis;
   }
-} catch (error) {
+} catch {
   console.warn('⚠️ Redis 기능을 사용할 수 없는 환경입니다 (Edge Runtime)');
 }
 
@@ -33,7 +35,7 @@ interface ContextDocument {
   clientId?: string;
   documents: {
     markdown: Record<string, string>;
-    patterns: Record<string, any>;
+    patterns: MCPContextPatterns;
   };
   metadata: {
     version: string;
@@ -57,7 +59,13 @@ interface RAGEngineContext {
   query: string;
   contextType: 'mcp' | 'local' | 'hybrid';
   relevantPaths: string[];
-  systemContext: any;
+  systemContext: {
+    platform?: string;
+    nodeVersion?: string;
+    memory?: Record<string, number>;
+    environment?: string;
+    metadata?: Record<string, unknown>;
+  };
   files: Array<{
     path: string;
     content: string;
@@ -82,7 +90,7 @@ interface CloudContextLoaderConfig {
 export class CloudContextLoader {
   private static instance: CloudContextLoader;
   private config: CloudContextLoaderConfig;
-  private redis: any;
+  private redis: unknown | null = null;
   private contextCache: Map<string, ContextDocument> = new Map();
   private mcpServerInfo: MCPServerInfo;
   private healthCheckTimer: NodeJS.Timeout | null = null;
@@ -642,7 +650,13 @@ export class CloudContextLoader {
    */
   async uploadContextBundle(
     bundleType: 'base' | 'advanced' | 'custom',
-    bundleData: any,
+    bundleData: {
+      documents: {
+        markdown: Record<string, string>;
+        patterns: MCPContextPatterns;
+      };
+      version?: string;
+    },
     clientId?: string
   ): Promise<boolean> {
     try {
@@ -929,7 +943,7 @@ export class CloudContextLoader {
   /**
    * 🔐 체크섬 생성
    */
-  private generateChecksum(data: any): string {
+  private generateChecksum(data: Record<string, unknown>): string {
     // 간단한 해시 생성 (실제로는 crypto 라이브러리 사용 권장)
     const str = JSON.stringify(data);
     let hash = 0;

@@ -9,6 +9,10 @@
  */
 
 import type { ILogger } from '@/interfaces/services';
+import type {
+  ErrorContext,
+  MonitoringEventData,
+} from '@/types/ai-service-types';
 
 export interface ServiceError extends Error {
   code: string;
