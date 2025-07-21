@@ -4,7 +4,8 @@
  * 활성화된 GitHub OAuth가 올바르게 작동하는지 검증
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 export async function GET(request: NextRequest) {

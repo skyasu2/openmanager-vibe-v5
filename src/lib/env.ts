@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { safeEnv, getFullEnvironmentConfig } from '@/utils/safe-environment';
-import type { EnvironmentConfig } from '@/types/environment';
+import { safeEnv } from '@/utils/safe-environment';
 
 const EnvironmentSchema = z.object({
   NODE_ENV: z

@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import React, { memo, useCallback, useEffect, useState } from 'react';
-import { Server as ServerType } from '../../types/server';
+import type { Server as ServerType } from '../../types/server';
 import { ServerCardBarChart } from '../shared/ServerMetricsBarChart';
 
 // framer-motion을 동적 import로 처리

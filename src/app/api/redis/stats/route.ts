@@ -9,7 +9,8 @@
 
 import smartRedis from '@/lib/redis';
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // Next.js App Router 런타임 설정
 export const runtime = 'nodejs';

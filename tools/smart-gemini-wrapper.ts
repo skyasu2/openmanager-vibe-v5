@@ -13,7 +13,8 @@
  * @version 1.0.0
  */
 
-import { spawn, SpawnOptionsWithoutStdio } from 'child_process';
+import type { SpawnOptionsWithoutStdio } from 'child_process';
+import { spawn } from 'child_process';
 import { promises as fs } from 'fs';
 import { join, dirname } from 'path';
 import { createHash } from 'crypto';

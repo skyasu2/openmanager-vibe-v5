@@ -4,7 +4,8 @@
  * Admin API 엔드포인트 보호를 위한 Next.js API 미들웨어
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { authManager } from '../auth';
 
 export interface AuthenticatedRequest extends NextRequest {

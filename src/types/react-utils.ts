@@ -3,14 +3,9 @@
  * v2.0 - react-hooks/exhaustive-deps 경고 해결 버전
  */
 
-import React, {
-  DependencyList,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import type { DependencyList } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // 컴포넌트 마운트 상태 확인
 export function useMountedRef(): React.MutableRefObject<boolean> {

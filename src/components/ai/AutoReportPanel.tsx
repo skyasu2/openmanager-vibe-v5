@@ -21,7 +21,6 @@ import {
   Activity,
 } from 'lucide-react';
 import BasePanelLayout from './shared/BasePanelLayout';
-import { useDataLoader } from '@/hooks/useDataLoader';
 
 interface ReportData {
   id: string;

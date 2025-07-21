@@ -1,6 +1,6 @@
 'use client';
 
-import { ProcessInfo } from '@/types/ai-agent-input-schema'; // 실제 데이터 타입 임포트
+import type { ProcessInfo } from '@/types/ai-agent-input-schema'; // 실제 데이터 타입 임포트
 import { useEffect, useState } from 'react';
 
 interface ServerDetailProcessesProps {

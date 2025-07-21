@@ -5,7 +5,8 @@
  * POST /api/ai/query
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getSimplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
 
 export const runtime = 'nodejs';

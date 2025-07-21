@@ -12,7 +12,7 @@
 import React, { useState, useCallback, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Server } from '../../../types/server';
+import type { Server } from '../../../types/server';
 
 interface SystemBootSequenceProps {
   servers: Server[];

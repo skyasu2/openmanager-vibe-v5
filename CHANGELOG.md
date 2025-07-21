@@ -1,5 +1,36 @@
 # Changelog
 
+## [5.57.0] - 2025-07-21
+
+### 🚀 대규모 리팩토링 및 코드 품질 개선
+
+#### Changed
+
+- **UnifiedAdminDashboard 컴포넌트 모듈화**
+  - 1,308줄의 거대한 컴포넌트를 모듈화된 구조로 분리
+  - 타입 정의 분리: `UnifiedAdminDashboard.types.ts`
+  - 커스텀 훅으로 로직 분리: `useAdminDashboard`, `useSystemMetrics`, `useAIEngineStatus`
+  - UI 섹션별 컴포넌트 분리: HeaderSection, SystemHealthCard, PerformanceMetrics 등
+  - SOLID 원칙 준수 및 파일당 300줄 이하로 관리
+
+#### Fixed
+
+- **ESLint v9 호환성 문제 해결**
+  - `eslint-plugin-unused-imports` 제거 (ESLint v9.30+ 비호환)
+  - TypeScript ESLint의 기본 `no-unused-vars` 규칙으로 대체
+  - VS Code 설정에 `source.organizeImports` 추가
+
+- **TypeScript 미사용 변수 정리**
+  - `server-data-adapter.ts`: 검증 함수들에 `_` prefix 추가
+  - API 라우트 파일들의 미사용 파라미터 정리
+
+#### Improved
+
+- **프로젝트 구조 개선**
+  - 도메인 기반 컴포넌트 구조 강화
+  - 관심사 분리 (SoC) 원칙 적용
+  - 코드 재사용성 향상
+
 ## [5.56.0] - 2025-07-21
 
 ### 🔧 개발 환경 개선 및 ESLint v9 마이그레이션

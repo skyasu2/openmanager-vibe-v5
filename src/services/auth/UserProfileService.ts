@@ -5,20 +5,15 @@
  * GitHub OAuth + 게스트 사용자 통합 관리
  */
 
-import { User as SupabaseUser } from '@supabase/supabase-js';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import type {
-  AppUser,
   GitHubUser,
-  GuestUser,
   DatabaseUser,
   UserProfileUpdate,
   UserSettings,
   UserActivity,
-  AuthResult,
-  DEFAULT_GITHUB_PERMISSIONS,
-  DEFAULT_GUEST_PERMISSIONS,
 } from '@/types/auth.types';
 
 export class UserProfileService {

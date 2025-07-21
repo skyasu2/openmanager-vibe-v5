@@ -6,11 +6,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import {
-  TechCategory,
-  TechItem,
-  generateTechStackSummary,
-} from '../../utils/TechStackAnalyzer';
+import type { TechCategory } from '../../utils/TechStackAnalyzer';
+import { generateTechStackSummary } from '../../utils/TechStackAnalyzer';
 
 interface TechStackDisplayProps {
   categories: TechCategory[];

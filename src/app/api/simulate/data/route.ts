@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // 이 라우트는 동적이므로 정적 생성을 비활성화
 export const dynamic = 'force-dynamic';

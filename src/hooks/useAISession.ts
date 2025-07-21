@@ -7,11 +7,8 @@
  * ✅ 로컬 스토리지 + Supabase 하이브리드
  */
 
-import {
-  AISessionData,
-  AISessionSummary,
-  getAISessionStorage,
-} from '@/lib/ai-session-storage';
+import type { AISessionData, AISessionSummary } from '@/lib/ai-session-storage';
+import { getAISessionStorage } from '@/lib/ai-session-storage';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 // ==============================================

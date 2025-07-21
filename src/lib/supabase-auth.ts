@@ -6,7 +6,7 @@
  */
 
 import { supabase } from './supabase';
-import type { Session, User, AuthError } from '@supabase/supabase-js';
+import type { Session, AuthError } from '@supabase/supabase-js';
 
 export interface AuthUser {
   id: string;

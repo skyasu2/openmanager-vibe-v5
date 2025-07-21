@@ -8,7 +8,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { ErrorState } from '@/types/ai-thinking';
+import type { ErrorState } from '@/types/ai-thinking';
 
 interface PerformanceMetric {
   operation: string;
@@ -115,7 +115,6 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       }
 
       return errorState;
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
     [createError, defaultConfig.enableAutoRecover, defaultConfig.maxRetries]
   ); // attemptAutoRecover는 하단에 정의
@@ -161,7 +160,6 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       ); // 지수 백오프
 
       retryTimeouts.current.set(retryKey, timeout);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
     [defaultConfig.retryDelay]
   ); // resolveError는 하단에 정의

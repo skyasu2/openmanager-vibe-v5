@@ -8,8 +8,6 @@
  * - 리소스 제한 자동 적응
  */
 
-import { cacheService } from './cacheService';
-
 // Vercel 계정 타입 정의
 export type VercelPlan = 'hobby' | 'pro' | 'enterprise';
 

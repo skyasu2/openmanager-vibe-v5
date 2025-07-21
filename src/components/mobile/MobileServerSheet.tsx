@@ -12,9 +12,8 @@ import {
   ServerIcon,
   ClockIcon,
   ExclamationTriangleIcon,
-  CheckCircleIcon,
 } from '@heroicons/react/24/outline';
-import { Server } from '../../types/server';
+import type { Server } from '../../types/server';
 import { safeFormatUptime } from '../../utils/safeFormat';
 
 interface MobileServerSheetProps {

@@ -34,7 +34,10 @@ import Link from 'next/link';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CountdownTimer } from '@/components/system/CountdownTimer';
-import { DropdownPosition, ProfileButtonProps } from './types/ProfileTypes';
+import type {
+  DropdownPosition,
+  ProfileButtonProps,
+} from './types/ProfileTypes';
 
 interface UnifiedProfileButtonProps extends ProfileButtonProps {
   onSettingsClick: () => void;

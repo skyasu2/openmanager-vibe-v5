@@ -2,12 +2,11 @@
  * 📊 에러 통계 관리
  */
 
-import {
-  ErrorSeverity,
+import type {
   ErrorStatistics as ErrorStatsInterface,
-  getErrorSeverity,
   ServiceError,
 } from '../types/ErrorTypes';
+import { ErrorSeverity, getErrorSeverity } from '../types/ErrorTypes';
 
 export class ErrorStatistics {
   private errorHistory: ServiceError[] = [];

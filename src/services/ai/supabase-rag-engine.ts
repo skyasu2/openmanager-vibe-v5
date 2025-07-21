@@ -11,7 +11,6 @@
 import { PostgresVectorDB } from './postgres-vector-db';
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import { getRedis } from '@/lib/redis';
-import { generateId } from '@/lib/utils-functions';
 
 interface RAGSearchOptions {
   maxResults?: number;

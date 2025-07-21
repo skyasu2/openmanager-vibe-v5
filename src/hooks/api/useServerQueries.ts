@@ -12,7 +12,6 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
-  useInfiniteQuery,
   keepPreviousData,
 } from '@tanstack/react-query';
 import { useState, useEffect, useCallback, useRef } from 'react';

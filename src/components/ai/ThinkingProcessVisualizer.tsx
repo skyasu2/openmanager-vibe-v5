@@ -23,7 +23,7 @@ import {
   Zap,
   Eye,
 } from 'lucide-react';
-import { AIThinkingStep, ThinkingProcessState } from '@/types/ai-thinking';
+import type { AIThinkingStep, ThinkingProcessState } from '@/types/ai-thinking';
 
 interface ThinkingProcessVisualizerProps {
   thinkingState: ThinkingProcessState;

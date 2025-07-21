@@ -8,7 +8,7 @@
  * - 복구 성공률 추적
  */
 
-import {
+import type {
   ServiceError,
   RecoveryConfig,
   RecoveryResult,

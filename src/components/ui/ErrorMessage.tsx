@@ -6,13 +6,7 @@
  */
 
 import React from 'react';
-import {
-  AlertTriangle,
-  RefreshCw,
-  Home,
-  Settings,
-  HelpCircle,
-} from 'lucide-react';
+import { RefreshCw, Home, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export interface ErrorMessageProps {

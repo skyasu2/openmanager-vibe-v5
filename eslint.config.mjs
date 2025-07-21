@@ -5,7 +5,6 @@ import typescriptParser from '@typescript-eslint/parser';
 import prettierPlugin from 'eslint-plugin-prettier';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import storybook from 'eslint-plugin-storybook';
-import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -103,7 +102,6 @@ export default [
     files: ['**/*.{js,jsx,ts,tsx}'],
     plugins: {
       '@typescript-eslint': typescriptPlugin,
-      'unused-imports': unusedImports,
       prettier: prettierPlugin,
       'react-hooks': reactHooksPlugin,
     },
@@ -116,9 +114,36 @@ export default [
         },
       ],
 
+      // 📏 파일 크기 제한
+      'max-lines': [
+        'warn',
+        {
+          max: 800,
+          skipBlankLines: true,
+          skipComments: true,
+        },
+      ],
+      'max-lines-per-function': [
+        'warn',
+        {
+          max: 100,
+          skipBlankLines: true,
+          skipComments: true,
+        },
+      ],
+
       // 🔧 TypeScript 타입 안전성
       '@typescript-eslint/no-explicit-any': 'off', // Phase 1: 점진적 개선
-      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          vars: 'all',
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
       '@typescript-eslint/no-unsafe-assignment': 'off', // 기존 코드베이스 호환
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
@@ -129,16 +154,6 @@ export default [
       '@typescript-eslint/ban-ts-comment': 'off', // @ts-ignore 허용
 
       // 📦 Import 관리
-      'unused-imports/no-unused-imports': 'error',
-      'unused-imports/no-unused-vars': [
-        'warn',
-        {
-          vars: 'all',
-          varsIgnorePattern: '^_',
-          args: 'after-used',
-          argsIgnorePattern: '^_',
-        },
-      ],
       '@typescript-eslint/consistent-type-imports': [
         'warn',
         {

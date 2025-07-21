@@ -11,7 +11,7 @@ import { Bot, RotateCcw, User } from 'lucide-react';
 import React from 'react';
 
 // 타입 임포트
-import { ChatMessage } from '../types/ai-sidebar-types';
+import type { ChatMessage } from '../types/ai-sidebar-types';
 
 interface ChatMessageItemProps {
   message: ChatMessage;

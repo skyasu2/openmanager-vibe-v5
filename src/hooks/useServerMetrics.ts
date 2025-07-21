@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { MetricsHistory } from '../types/server';
+import type { MetricsHistory } from '../types/server';
 
 export interface MetricsStats {
   cpuAvg: number;

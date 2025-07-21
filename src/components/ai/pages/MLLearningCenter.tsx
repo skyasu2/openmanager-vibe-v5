@@ -13,10 +13,8 @@ import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Brain,
-  TrendingUp,
   FileSearch,
   Target,
-  Play,
   Loader2,
   CheckCircle,
   AlertCircle,

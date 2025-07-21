@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { RealTimeMetrics } from '../../../hooks/useRealTimeMetrics';
+import type { RealTimeMetrics } from '../../../hooks/useRealTimeMetrics';
 
 interface ServerDetailNetworkProps {
   realTimeMetrics: RealTimeMetrics | null;

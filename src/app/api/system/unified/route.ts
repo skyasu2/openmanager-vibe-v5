@@ -18,7 +18,8 @@ import {
 } from '@/core/system/process-configs';
 import { ProcessManager } from '@/core/system/ProcessManager';
 import { systemLogger } from '@/lib/logger';
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // 싱글톤 ProcessManager 인스턴스
 let processManager: ProcessManager | null = null;

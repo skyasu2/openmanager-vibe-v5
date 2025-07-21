@@ -5,7 +5,8 @@
  * GitHub OAuth 실패 시 이 경로로 리다이렉트됩니다.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;

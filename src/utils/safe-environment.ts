@@ -4,11 +4,10 @@
  * 모든 환경변수 접근을 이 클래스를 통해 수행하여 보안과 일관성 보장
  */
 
-import {
+import type {
   SafeEnvironmentAccess,
   EnvironmentValidationResult,
   EnvironmentName,
-  DeploymentPlatform,
   SupabaseEnvConfig,
   RedisEnvConfig,
   GoogleAIEnvConfig,
@@ -16,8 +15,8 @@ import {
   SecurityEnvConfig,
   MonitoringEnvConfig,
   EnvironmentConfig,
-  isValidEnvironmentName,
 } from '@/types/environment';
+import { isValidEnvironmentName } from '@/types/environment';
 
 class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
   private readonly _isBuildTime: boolean;

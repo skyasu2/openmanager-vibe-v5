@@ -13,10 +13,8 @@
 
 import { MCPContextManager } from './components/MCPContextManager';
 import { MCPPerformanceMonitor } from './components/MCPPerformanceMonitor';
-import {
-  MCPServerConfig,
-  MCPServerManager,
-} from './components/MCPServerManager';
+import type { MCPServerConfig } from './components/MCPServerManager';
+import { MCPServerManager } from './components/MCPServerManager';
 import { MCPToolHandler } from './components/MCPToolHandler';
 
 interface MCPClient {

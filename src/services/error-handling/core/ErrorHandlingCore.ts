@@ -8,8 +8,8 @@
  * - 심각한 에러 감지
  */
 
-import { ILogger } from '@/interfaces/services';
-import {
+import type { ILogger } from '@/interfaces/services';
+import type {
   ServiceError,
   IErrorHandler,
   ErrorHandlerFunction,

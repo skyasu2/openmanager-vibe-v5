@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { UserFeedback } from '@/types/ai-learning';
+import type { UserFeedback } from '@/types/ai-learning';
 import { InteractionLogger } from '@/services/ai-agent/logging/InteractionLogger';
 
 interface FeedbackButtonsProps {

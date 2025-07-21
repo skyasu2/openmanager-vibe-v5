@@ -2,7 +2,8 @@ import {
   MemoryMonitor,
   QuotaProtector,
 } from '@/config/free-tier-emergency-fix';
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 /**
  * 🧹 무료티어 최적화 Cron 청소 작업

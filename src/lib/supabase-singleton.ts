@@ -5,7 +5,8 @@
  * 전역적으로 단일 인스턴스만 사용하도록 보장합니다.
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 import { safeEnv, getSupabaseConfig } from './env';
 
 // 전역 싱글톤 인스턴스

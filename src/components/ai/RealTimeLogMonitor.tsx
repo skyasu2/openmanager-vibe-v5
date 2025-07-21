@@ -14,12 +14,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
-  Filter,
   Play,
   Pause,
   Trash2,
   Download,
-  Settings,
   Activity,
   AlertCircle,
   CheckCircle,

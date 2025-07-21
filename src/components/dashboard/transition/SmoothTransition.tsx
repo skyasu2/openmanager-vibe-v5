@@ -7,7 +7,8 @@
  * - 로딩 상태 관리
  */
 
-import React, { memo, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React, { memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface SmoothTransitionProps {

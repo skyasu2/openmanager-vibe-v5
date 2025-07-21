@@ -5,7 +5,7 @@
  * 레거시 암호화 형식을 새로운 Enhanced 형식으로 변환
  */
 
-import {
+import type {
   EncryptedEnvData,
   EncryptedEnvConfig,
 } from '@/lib/crypto/EnhancedEnvCryptoManager';

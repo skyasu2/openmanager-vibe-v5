@@ -7,7 +7,8 @@
  * ✅ 동적 규칙 엔진
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 
 export interface CustomRule {
   id: string;

@@ -4,11 +4,8 @@
  */
 
 import { mockServers, serverInitialStates } from './mockServerConfig';
-import {
-  generate24HourData,
-  ScenarioPoint,
-  scenarioAlerts,
-} from './mockScenarios';
+import type { ScenarioPoint } from './mockScenarios';
+import { generate24HourData, scenarioAlerts } from './mockScenarios';
 export type { ScenarioPoint };
 import type { Server } from '@/types/server';
 

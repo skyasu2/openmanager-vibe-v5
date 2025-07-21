@@ -5,11 +5,7 @@
  */
 
 import { useCallback, useState, useMemo } from 'react';
-import {
-  SixWPrincipleResponse,
-  AIThinkingStep,
-  ErrorState,
-} from '@/types/ai-thinking';
+import type { SixWPrincipleResponse, ErrorState } from '@/types/ai-thinking';
 
 interface FormatOptions {
   language: 'ko' | 'en';

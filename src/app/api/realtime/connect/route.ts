@@ -8,7 +8,8 @@
  * DELETE: 연결 해제
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getRealTimeHub } from '@/core/realtime/RealTimeHub';
 
 export const runtime = 'nodejs';

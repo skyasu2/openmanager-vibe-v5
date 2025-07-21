@@ -7,7 +7,7 @@
  * - 구현체 교체 용이성
  */
 
-import { ServerMetrics, SystemStatus, ServerStatus } from '@/types/common';
+import type { ServerMetrics } from '@/types/common';
 
 // ============================================================================
 // 로깅 서비스 인터페이스

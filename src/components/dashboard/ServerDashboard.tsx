@@ -10,15 +10,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { DashboardTab, useServerDashboard } from '@/hooks/useServerDashboard';
+import type { DashboardTab } from '@/hooks/useServerDashboard';
+import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import {
-  toExtendedServer,
-  formatUptime,
-  getAlertsCount,
-} from './types/server-dashboard.types';
-import { Server } from '@/types/server';
+import { formatUptime, getAlertsCount } from './types/server-dashboard.types';
+import type { Server } from '@/types/server';
 interface ServerDashboardProps {
   onStatsUpdate?: (stats: {
     total: number;

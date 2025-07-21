@@ -4,7 +4,6 @@ import React from 'react';
 import {
   Server,
   Monitor,
-  AlertTriangle,
   Activity,
   HardDrive,
   Cpu,

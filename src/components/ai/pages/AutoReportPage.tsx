@@ -16,8 +16,6 @@ import {
   CheckCircle,
   Clock,
   Server,
-  Cpu,
-  HardDrive,
 } from 'lucide-react';
 
 interface IncidentReport {

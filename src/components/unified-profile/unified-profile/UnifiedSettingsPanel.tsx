@@ -26,7 +26,10 @@ import { MonitorSettingsTab } from './components/MonitorSettingsTab';
 import { OptimizationSettingsTab } from './components/OptimizationSettingsTab';
 import { useAuthentication } from './hooks/useAuthentication';
 import { useSettingsData } from './hooks/useSettingsData';
-import { SettingsTab, UnifiedSettingsPanelProps } from './types/ProfileTypes';
+import type {
+  SettingsTab,
+  UnifiedSettingsPanelProps,
+} from './types/ProfileTypes';
 
 export function UnifiedSettingsPanel({
   isOpen,

@@ -9,7 +9,7 @@
  * - 자동화된 테스트 리포트
  */
 
-import { ILogger, IErrorHandler } from '@/interfaces/services';
+import type { ILogger, IErrorHandler } from '@/interfaces/services';
 import { getService } from '@/lib/service-registry';
 import { SERVICE_TOKENS } from '@/lib/di-container';
 

@@ -15,7 +15,8 @@ import { useEffect, useState } from 'react';
 import { signInWithGitHub } from '@/lib/supabase-auth';
 
 // 게스트 로그인 관련 임포트
-import { AuthStateManager, AuthUser } from '@/services/auth/AuthStateManager';
+import type { AuthUser } from '@/services/auth/AuthStateManager';
+import { AuthStateManager } from '@/services/auth/AuthStateManager';
 
 interface GuestSessionData {
   sessionId: string;

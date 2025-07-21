@@ -8,7 +8,11 @@
  */
 
 import { ConfigLoader } from '@/config';
-import { IConfigLoader, IErrorHandler, ILogger } from '@/interfaces/services';
+import type {
+  IConfigLoader,
+  IErrorHandler,
+  ILogger,
+} from '@/interfaces/services';
 import { LoggingService } from '@/services/LoggingService';
 import { EnhancedCacheService } from '@/services/cacheService';
 import { ErrorHandlingService } from '@/services/error-handling/ErrorHandlingService';

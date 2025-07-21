@@ -22,8 +22,8 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Server } from '../../../types/server';
-import { ServerAction } from '../types/dashboard.types';
+import type { Server } from '../../../types/server';
+import type { ServerAction } from '../types/dashboard.types';
 
 export const useServerActions = () => {
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);

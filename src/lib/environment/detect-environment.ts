@@ -1,4 +1,4 @@
-import { EnvironmentConfig } from '../../config/environment';
+import type { EnvironmentConfig } from '../../config/environment';
 
 function getEnvVar(key: string, defaultValue: string = ''): string {
   if (typeof window !== 'undefined') {

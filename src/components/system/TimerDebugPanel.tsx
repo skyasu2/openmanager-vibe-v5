@@ -6,9 +6,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { timerManager } from '../../utils/TimerManager';
+import type React from 'react';
 
 interface TimerStatus {
   id: string;

@@ -8,7 +8,8 @@
  * - 설정 업데이트
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // 서버 사이드에서는 브라우저 알림 직접 관리 불가
 // 클라이언트 상태 정보만 제공

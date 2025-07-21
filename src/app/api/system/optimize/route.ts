@@ -9,7 +9,7 @@
  * - 최적화 결과 반환
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import {
   createSuccessResponse,
   createErrorResponse,

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Monitor, Network, Database, BarChart3 } from 'lucide-react';
-import { DashboardTab } from '../../../hooks/useServerDashboard';
+import type { DashboardTab } from '../../../hooks/useServerDashboard';
 
 interface ServerDashboardTabsProps {
   activeTab: DashboardTab;

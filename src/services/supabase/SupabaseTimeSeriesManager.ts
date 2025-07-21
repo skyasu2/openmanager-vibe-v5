@@ -11,7 +11,7 @@
  * - 집계 통계 및 분석 기능
  */
 
-import { ServerMetric } from '@/types/server-metrics';
+import type { ServerMetric } from '@/types/server-metrics';
 
 export interface SupabaseClient {
   from(table: string): SupabaseQueryBuilder;

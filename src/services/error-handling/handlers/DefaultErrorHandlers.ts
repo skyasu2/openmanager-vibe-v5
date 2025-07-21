@@ -7,8 +7,8 @@
  * - 로깅 및 알림
  */
 
-import { ErrorHandlingCore } from '../core/ErrorHandlingCore';
-import { ServiceError } from '../types/ErrorTypes';
+import type { ErrorHandlingCore } from '../core/ErrorHandlingCore';
+import type { ServiceError } from '../types/ErrorTypes';
 
 export class DefaultErrorHandlers {
   constructor(private core: ErrorHandlingCore) {

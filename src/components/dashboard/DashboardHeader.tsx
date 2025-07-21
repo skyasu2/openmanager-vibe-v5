@@ -5,7 +5,6 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { Bot, Clock } from 'lucide-react';
 // 사용자 정보 관련 import는 UnifiedProfileHeader에서 처리됨
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 

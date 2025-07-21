@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // 연결 풀 재설정 시뮬레이션
 async function resetConnectionPool(config?: any) {

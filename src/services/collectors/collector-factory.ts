@@ -1,7 +1,7 @@
 // import { PrometheusCollector } from './prometheus-collector'; // 🗑️ 프로메테우스 제거
 import { CloudWatchCollector } from './cloudwatch-collector';
 import { CustomAPICollector } from './custom-api-collector';
-import { MetricCollector, CollectorConfig } from '@/types/collector';
+import type { MetricCollector, CollectorConfig } from '@/types/collector';
 
 /**
  * 실제 컬렉터 팩토리 (프로메테우스 제거됨)

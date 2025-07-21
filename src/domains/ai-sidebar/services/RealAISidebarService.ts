@@ -8,7 +8,7 @@
  * - 실시간 데이터 스트리밍
  */
 
-import {
+import type {
   AIResponse,
   ChatMessage,
   SystemAlert,

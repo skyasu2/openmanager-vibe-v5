@@ -8,7 +8,7 @@
  * @author AI Assistant
  */
 
-import {
+import type {
   SettingsData,
   GeneratorConfig,
   ApiResponse,

@@ -8,7 +8,7 @@ import {
   XCircleIcon,
   ClockIcon,
 } from '@heroicons/react/24/outline';
-import { Server } from '../../types/server';
+import type { Server } from '../../types/server';
 
 interface MobileSummaryCardProps {
   servers: Server[];

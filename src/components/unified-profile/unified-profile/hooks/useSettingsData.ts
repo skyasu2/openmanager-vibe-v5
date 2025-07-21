@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import {
+import type {
   SettingsData,
   GeneratorConfig,
   ApiResponse,

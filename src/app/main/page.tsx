@@ -11,16 +11,7 @@ import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
-import {
-  BarChart3,
-  Bot,
-  Loader2,
-  Play,
-  StopCircle,
-  X,
-  Zap,
-  LogIn,
-} from 'lucide-react';
+import { BarChart3, Bot, Loader2, Play, X, Zap, LogIn } from 'lucide-react';
 import {
   getCurrentUser,
   isGitHubAuthenticated,

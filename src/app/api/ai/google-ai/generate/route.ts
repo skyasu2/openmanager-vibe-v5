@@ -5,7 +5,8 @@
  * POST /api/ai/google-ai/generate
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export const runtime = 'nodejs';
@@ -159,7 +160,7 @@ export async function POST(request: NextRequest) {
  *
  * GET /api/ai/google-ai/generate
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const apiKey =
       process.env.GOOGLE_AI_API_KEY ||

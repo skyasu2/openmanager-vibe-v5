@@ -4,7 +4,7 @@
  * Supabase Auth와 게스트 로그인을 위한 통합 타입 정의
  */
 
-import { User as SupabaseUser } from '@supabase/supabase-js';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 // 기본 사용자 타입
 export interface BaseUser {

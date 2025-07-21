@@ -8,7 +8,7 @@
  * - 트렌드 분석
  */
 
-import {
+import type {
   ServiceError,
   ErrorStats,
   MonitoringEvent,

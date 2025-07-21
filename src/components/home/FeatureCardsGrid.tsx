@@ -19,7 +19,6 @@ import {
   Wrench,
   Zap,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 // 토스트 알림 제거됨
 import FeatureCardModal from '@/components/shared/FeatureCardModal';

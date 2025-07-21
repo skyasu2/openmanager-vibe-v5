@@ -8,7 +8,7 @@
  * - 성능 기반 서버 선택
  */
 
-import { MCPServerConfig } from './MCPServerManager';
+import type { MCPServerConfig } from './MCPServerManager';
 
 interface PerformanceMetrics {
   totalRequests: number;

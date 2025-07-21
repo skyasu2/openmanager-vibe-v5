@@ -9,7 +9,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Send, User, Bot, Sparkles } from 'lucide-react';
-import { useAIChat, useAIThinking } from '@/stores/useAISidebarStore';
+import { useAIThinking } from '@/stores/useAISidebarStore';
 // import ThinkingView from '../ThinkingView'; // 백업됨
 
 interface Message {

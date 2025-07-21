@@ -19,7 +19,8 @@ import {
   generateAnonymousId,
   systemStateManager,
 } from '@/lib/redis/SystemStateManager';
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // 🚨 응급 조치: Edge Runtime 완전 비활성화 (Vercel Pro 사용량 위기)
 // export const runtime = 'edge'; // DISABLED - 사용량 급증 원인

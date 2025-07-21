@@ -22,8 +22,8 @@
  */
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { Server } from '../../../types/server';
-import { ServerFilters, ViewMode } from '../types/dashboard.types';
+import type { Server } from '../../../types/server';
+import type { ServerFilters, ViewMode } from '../types/dashboard.types';
 
 // 간단한 디바운스 훅 구현
 function useDebounce<T>(value: T, delay: number): T {

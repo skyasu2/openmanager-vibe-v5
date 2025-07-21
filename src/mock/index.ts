@@ -11,7 +11,8 @@ import {
   generateMockServerData,
   selectRandomScenario,
 } from './mockDataGenerator';
-import { getRotatorInstance, MockDataRotator } from './mockDataRotator';
+import type { MockDataRotator } from './mockDataRotator';
+import { getRotatorInstance } from './mockDataRotator';
 import type { Server } from '@/types/server';
 
 export interface MockSystemConfig {

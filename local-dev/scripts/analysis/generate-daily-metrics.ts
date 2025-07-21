@@ -10,13 +10,11 @@
  */
 
 import * as dotenv from 'dotenv';
-import {
+import type {
   DailyMetric,
   ServerConfig,
-  ServerType,
-  insertMetrics,
-  clearMetrics,
 } from '../../../src/lib/supabase-metrics';
+import { insertMetrics, clearMetrics } from '../../../src/lib/supabase-metrics';
 
 // 환경 변수 로드
 dotenv.config({ path: '.env.local' });

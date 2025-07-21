@@ -23,7 +23,7 @@ import {
 import React from 'react';
 
 // 타입 임포트
-import { AutoReportTrigger, ChatMessage } from '../types/ai-sidebar-types';
+import type { AutoReportTrigger, ChatMessage } from '../types/ai-sidebar-types';
 
 // 컴포넌트 임포트
 import { AIEngineSelector } from './AIEngineSelector';

@@ -8,8 +8,8 @@
  * - 실시간 검증 및 폴백 메커니즘
  */
 
-import { ServerInstance } from '@/types/data-generator';
-import { Server } from '@/types/server';
+import type { ServerInstance } from '@/types/data-generator';
+import type { Server } from '@/types/server';
 
 // ============================================================================
 // 🎯 타입 안전성 검증 시스템
@@ -18,31 +18,48 @@ import { Server } from '@/types/server';
 /**
  * ServerInstance 유효성 검증
  */
-function validateServerInstance(instance: any): instance is ServerInstance {
+function _validateServerInstance(
+  instance: unknown
+): instance is ServerInstance {
+  if (!instance || typeof instance !== 'object') {
+    return false;
+  }
+
+  const obj = instance as Record<string, unknown>;
+
   return (
-    instance &&
-    typeof instance.id === 'string' &&
-    typeof instance.name === 'string' &&
-    instance.metrics &&
-    typeof instance.metrics.cpu === 'number' &&
-    typeof instance.metrics.memory === 'number' &&
-    typeof instance.metrics.disk === 'number'
+    typeof obj.id === 'string' &&
+    typeof obj.name === 'string' &&
+    obj.metrics !== null &&
+    typeof obj.metrics === 'object' &&
+    'cpu' in obj.metrics &&
+    'memory' in obj.metrics &&
+    'disk' in obj.metrics &&
+    typeof (obj.metrics as Record<string, unknown>).cpu === 'number' &&
+    typeof (obj.metrics as Record<string, unknown>).memory === 'number' &&
+    typeof (obj.metrics as Record<string, unknown>).disk === 'number'
   );
 }
 
 /**
  * Server 유효성 검증
  */
-function validateServer(server: any): server is Server {
+function _validateServer(server: unknown): server is Server {
+  if (!server || typeof server !== 'object') {
+    return false;
+  }
+
+  const obj = server as Record<string, unknown>;
+
   return (
-    server &&
-    typeof server.id === 'string' &&
-    typeof server.name === 'string' &&
-    ['online', 'offline', 'warning'].includes(server.status) &&
-    typeof server.cpu === 'number' &&
-    typeof server.memory === 'number' &&
-    typeof server.disk === 'number' &&
-    Array.isArray(server.services)
+    typeof obj.id === 'string' &&
+    typeof obj.name === 'string' &&
+    typeof obj.status === 'string' &&
+    ['online', 'offline', 'warning'].includes(obj.status) &&
+    typeof obj.cpu === 'number' &&
+    typeof obj.memory === 'number' &&
+    typeof obj.disk === 'number' &&
+    Array.isArray(obj.services)
   );
 }
 
@@ -204,7 +221,7 @@ export function transformServerInstanceToServerOptimized(
 // 🚀 최적화된 유틸리티 함수들
 // ============================================================================
 
-function formatUptimeOptimized(uptimeSeconds: number): string {
+function _formatUptimeOptimized(uptimeSeconds: number): string {
   const days = Math.floor(uptimeSeconds / 86400);
   const hours = Math.floor((uptimeSeconds % 86400) / 3600);
 
@@ -213,7 +230,7 @@ function formatUptimeOptimized(uptimeSeconds: number): string {
   return `${Math.floor(uptimeSeconds / 60)}m`;
 }
 
-function calculateAlertsOptimized(
+function _calculateAlertsOptimized(
   cpu: number,
   memory: number,
   disk: number
@@ -225,7 +242,7 @@ function calculateAlertsOptimized(
   return alertCount;
 }
 
-function generateIPOptimized(serverId: string): string {
+function _generateIPOptimized(serverId: string): string {
   // 서버 ID 기반 일관된 IP 생성
   const hash = serverId.split('').reduce((a, b) => {
     a = (a << 5) - a + b.charCodeAt(0);
@@ -236,7 +253,7 @@ function generateIPOptimized(serverId: string): string {
   return `192.168.1.${octet}`;
 }
 
-function transformServicesOptimized(
+function _transformServicesOptimized(
   serverType: string
 ): Array<{ name: string; status: 'running' | 'stopped'; port: number }> {
   const serviceMap: Record<string, { name: string; port: number }> = {
@@ -251,7 +268,7 @@ function transformServicesOptimized(
   return [{ ...service, status: 'running' as const }];
 }
 
-function mapNetworkStatusOptimized(
+function _mapNetworkStatusOptimized(
   totalTraffic: number
 ): 'healthy' | 'warning' | 'critical' | 'offline' | 'maintenance' {
   if (totalTraffic > 100) return 'healthy';

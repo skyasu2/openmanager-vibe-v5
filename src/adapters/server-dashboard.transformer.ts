@@ -1,9 +1,7 @@
-import { RawServerData } from '@/types/raw/RawServerData';
-import { Server } from '@/types/server';
-import {
-  determineServerStatus,
-  ServerMetrics,
-} from '@/config/server-status-thresholds';
+import type { RawServerData } from '@/types/raw/RawServerData';
+import type { Server } from '@/types/server';
+import type { ServerMetrics } from '@/config/server-status-thresholds';
+import { determineServerStatus } from '@/config/server-status-thresholds';
 
 // 🎯 상태 매핑 헬퍼 (API → UI 상태 변환)
 export const mapStatus = (

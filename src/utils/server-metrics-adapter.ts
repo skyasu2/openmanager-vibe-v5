@@ -6,7 +6,7 @@
  */
 
 // Using mock system for server metrics
-import { ServerInstance, ServerStatus } from '@/types/server';
+import type { ServerInstance, ServerStatus } from '@/types/server';
 
 /**
  * GCP 서버 상태를 표준 서버 상태로 변환

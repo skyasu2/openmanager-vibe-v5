@@ -1,4 +1,4 @@
-import { CollectorConfig } from '@/types/collector';
+import type { CollectorConfig } from '@/types/collector';
 
 /**
  * 수집기 설정 중앙 관리

@@ -9,7 +9,7 @@
  * - ✅ 24시간 연속 운영 (Vercel 제약 없음)
  */
 
-import { ChildProcess } from 'child_process';
+import type { ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 import { systemLogger } from '../../lib/logger';
 import { VMPersistentDataManager } from './VMPersistentDataManager';

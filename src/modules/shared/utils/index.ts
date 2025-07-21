@@ -4,7 +4,7 @@
  * 🔧 모든 모듈에서 공통으로 사용하는 유틸리티 함수들
  */
 
-import { BaseConfig } from '../types';
+import type { BaseConfig } from '../types';
 
 /**
  * 고유 ID 생성

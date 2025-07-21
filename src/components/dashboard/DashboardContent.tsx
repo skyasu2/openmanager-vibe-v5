@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 
 import { safeConsoleError, safeErrorMessage } from '../../lib/utils-functions';
-import { Server } from '../../types/server';
+import type { Server } from '../../types/server';
 
 // framer-motion을 동적 import로 처리
 const MotionDiv = dynamic(

@@ -8,7 +8,8 @@
  * - 24/7 지속적 메트릭 생성
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getMockSystem } from '@/mock';
 
 /**

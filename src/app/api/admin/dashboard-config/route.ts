@@ -4,7 +4,8 @@
  * 🔐 인증 필요: Bearer 토큰 또는 API 키 (GET 제외)
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   withAdminAuth,
   type AuthenticatedRequest,

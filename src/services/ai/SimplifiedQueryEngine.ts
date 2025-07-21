@@ -7,9 +7,9 @@
  * ✅ API 사용량 최적화
  */
 
-import { getSupabaseRAGEngine, SupabaseRAGEngine } from './supabase-rag-engine';
+import type { SupabaseRAGEngine } from './supabase-rag-engine';
+import { getSupabaseRAGEngine } from './supabase-rag-engine';
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
-import { generateId } from '@/lib/utils-functions';
 
 export interface QueryRequest {
   query: string;

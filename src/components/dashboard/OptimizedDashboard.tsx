@@ -16,7 +16,7 @@ import { useAutoLogout } from '@/hooks/useAutoLogout';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { useSystemIntegration } from '@/hooks/useSystemIntegration';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
-import { Server } from '@/types/server';
+import type { Server } from '@/types/server';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Bot, Clock, LogOut, User } from 'lucide-react';
 import { useSession, signOut } from '@/hooks/useSupabaseSession';

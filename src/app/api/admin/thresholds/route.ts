@@ -6,10 +6,9 @@
  * 🔐 인증 필요: Bearer 토큰 또는 API 키
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   withAdminAuth,
-  withConditionalAuth,
   type AuthenticatedRequest,
 } from '@/lib/api/auth-middleware';
 

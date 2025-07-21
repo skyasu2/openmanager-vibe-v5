@@ -1,12 +1,8 @@
 import { getVercelOptimizedConfig } from '@/config/environment';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { safeEnv, getSupabaseConfig } from './env';
 import type { ServerMetrics } from '@/types/common';
-import type {
-  AIAnalysisResponse,
-  AIAnalysisRequest,
-} from '@/types/ai-analysis';
-import type { Server } from '@/types/server';
+import type { AIAnalysisResponse } from '@/types/ai-analysis';
 
 // 🔐 안전한 환경변수 접근을 통한 Supabase URL 가져오기
 function getSupabaseUrl() {

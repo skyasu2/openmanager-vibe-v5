@@ -8,7 +8,7 @@
 import { useSession } from '@/hooks/useSupabaseSession';
 import { useAuth } from '@/hooks/useAuth';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { UserPermissions, UserType } from '@/types/permissions.types';
+import type { UserPermissions, UserType } from '@/types/permissions.types';
 import { useMemo } from 'react';
 
 /**

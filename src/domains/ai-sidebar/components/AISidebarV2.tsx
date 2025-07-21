@@ -39,19 +39,14 @@ import { AIPresetQuestions } from './AIPresetQuestions';
 import { AISidebarHeader } from './AISidebarHeader';
 
 // 타입 정의 import
-import type {
-  AISidebarV2Props,
-  ChatMessage as LocalChatMessage,
-  ThinkingStep,
-} from '../types/ai-sidebar-types';
+import type { AISidebarV2Props, ThinkingStep } from '../types/ai-sidebar-types';
 import type { ChatMessage } from '@/stores/useAISidebarStore';
 
 // 새로 분리된 컴포넌트들 import
 
 // AI 기능 아이콘 패널 및 페이지 컴포넌트들
-import AIAgentIconPanel, {
-  AIAgentFunction,
-} from '@/components/ai/AIAgentIconPanel';
+import type { AIAgentFunction } from '@/components/ai/AIAgentIconPanel';
+import AIAgentIconPanel from '@/components/ai/AIAgentIconPanel';
 
 // 🎯 AI 타입 및 모드 선택기 추가
 import { AIModeSelector } from '@/components/ai/AIModeSelector';

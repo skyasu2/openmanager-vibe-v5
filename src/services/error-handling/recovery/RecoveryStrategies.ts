@@ -2,12 +2,12 @@
  * 🔄 복구 전략 구현
  */
 
-import {
+import type {
   ServiceError,
   RecoveryStrategy,
   RecoveryConfig,
-  ERROR_CODES,
 } from '../types/ErrorTypes';
+import { ERROR_CODES } from '../types/ErrorTypes';
 
 export class NetworkRecoveryStrategy implements RecoveryStrategy {
   private readonly config: RecoveryConfig;

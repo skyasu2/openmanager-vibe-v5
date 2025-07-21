@@ -13,8 +13,8 @@ import {
   List,
   Search,
 } from 'lucide-react';
-import { ViewMode } from '../../../hooks/useServerDashboard';
-import { Server } from '../../../types/server';
+import type { ViewMode } from '../../../hooks/useServerDashboard';
+import type { Server } from '../../../types/server';
 import ImprovedServerCard from '../ImprovedServerCard';
 
 interface ServerDashboardServersProps {

@@ -9,7 +9,8 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
 
 // 🎯 타입 정의
 export interface WebSocketConfig {

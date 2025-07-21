@@ -3,7 +3,8 @@
  * 🚀 시스템 초기화 API - 통합 초기화 v3.0
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 // MCP 웜업 서비스 제거됨 - Google Cloud VM 24시간 동작
 import { systemLogger } from '@/lib/logger';
 

@@ -9,7 +9,7 @@
 
 import React, { useState, useEffect, memo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Server } from '../../../types/server';
+import type { Server } from '../../../types/server';
 
 interface ServerCardSpawnerProps {
   servers: Server[];

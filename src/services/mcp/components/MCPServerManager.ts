@@ -7,7 +7,7 @@
  * - 연결 테스트 및 헬스체크
  */
 
-import { ChildProcess } from 'child_process';
+import type { ChildProcess } from 'child_process';
 
 export interface MCPServerConfig {
   name: string;

@@ -12,6 +12,7 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import type { TooltipItem } from 'chart.js';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -22,7 +23,6 @@ import {
   Tooltip,
   Legend,
   Filler,
-  TooltipItem,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { motion } from 'framer-motion';

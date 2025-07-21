@@ -1,7 +1,7 @@
 'use client';
 
 import CollapsibleCard from '@/components/shared/CollapsibleCard';
-import { SystemAlert } from '@/domains/ai-sidebar/types';
+import type { SystemAlert } from '@/domains/ai-sidebar/types';
 import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
 import { AnimatePresence, motion } from 'framer-motion';
 import {

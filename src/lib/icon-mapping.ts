@@ -5,7 +5,6 @@ import React from 'react';
 import {
   // 시스템 관련
   Settings,
-  Cog,
   Bot,
   Brain,
   Database,
@@ -43,7 +42,6 @@ import {
   Check,
   Timer,
   Loader,
-  Edit,
   PenTool,
   type LucideIcon,
 } from 'lucide-react';

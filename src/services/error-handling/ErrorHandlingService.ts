@@ -8,14 +8,14 @@
  * - 기존 API 호환성 유지
  */
 
-import { ILogger } from '@/interfaces/services';
-import {
+import type { ILogger } from '@/interfaces/services';
+import type {
   ServiceError,
   IErrorHandler,
   ErrorStats,
   ErrorHandlingConfig,
-  createServiceError as createServiceErrorUtil,
 } from './types/ErrorTypes';
+import { createServiceError as createServiceErrorUtil } from './types/ErrorTypes';
 import { ErrorHandlingCore } from './core/ErrorHandlingCore';
 import { DefaultErrorHandlers } from './handlers/DefaultErrorHandlers';
 import { RecoveryService } from './recovery/RecoveryService';

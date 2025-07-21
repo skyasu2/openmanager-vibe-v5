@@ -11,21 +11,16 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Wifi,
   Globe,
-  Activity,
-  TrendingUp,
-  TrendingDown,
   AlertTriangle,
   CheckCircle,
   Clock,
   Download,
   Upload,
   Signal,
-  Users,
   XCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';

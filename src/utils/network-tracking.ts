@@ -7,7 +7,6 @@
  * @author AI Assistant
  */
 
-import { safeErrorLog } from '../lib/error-handler';
 import type { NetworkRequestInfo } from '../types/system-checklist';
 
 /**

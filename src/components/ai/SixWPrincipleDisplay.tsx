@@ -22,13 +22,12 @@ import {
   Copy,
   CheckCircle,
   BarChart3,
-  ExternalLink,
   Info,
   Shield,
   Star,
   AlertTriangle,
 } from 'lucide-react';
-import { SixWPrincipleResponse } from '@/types/ai-thinking';
+import type { SixWPrincipleResponse } from '@/types/ai-thinking';
 
 interface SixWPrincipleDisplayProps {
   response: SixWPrincipleResponse;

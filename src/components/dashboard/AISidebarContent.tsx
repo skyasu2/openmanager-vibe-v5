@@ -11,7 +11,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Send,
   Bot,
@@ -26,10 +26,7 @@ import {
   Search,
   Lightbulb,
 } from 'lucide-react';
-import {
-  PRESET_QUESTIONS,
-  useAISidebarStore,
-} from '@/stores/useAISidebarStore';
+import { PRESET_QUESTIONS } from '@/stores/useAISidebarStore';
 import AIInsightsCard from './AIInsightsCard';
 
 interface AISidebarContentProps {

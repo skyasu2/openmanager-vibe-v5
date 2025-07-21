@@ -9,6 +9,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { LucideIcon } from 'lucide-react';
 import {
   Loader2,
   CheckCircle,
@@ -25,7 +26,6 @@ import {
   Shield,
   CheckSquare,
   Sparkles,
-  LucideIcon,
 } from 'lucide-react';
 
 interface StatusIconProps {

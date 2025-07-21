@@ -9,7 +9,7 @@
  */
 
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
-import { ServerInstance } from '@/types/data-generator';
+import type { ServerInstance } from '@/types/data-generator';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface CachedServerData {

@@ -8,7 +8,7 @@
  * - 복구 정책
  */
 
-import { ProcessConfig } from './ProcessManager';
+import type { ProcessConfig } from './ProcessManager';
 import { systemLogger } from '../../lib/logger';
 
 /**

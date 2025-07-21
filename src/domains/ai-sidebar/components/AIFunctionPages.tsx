@@ -9,9 +9,8 @@
 
 'use client';
 
-import AIAgentIconPanel, {
-  AIAgentFunction,
-} from '@/components/ai/AIAgentIconPanel';
+import type { AIAgentFunction } from '@/components/ai/AIAgentIconPanel';
+import AIAgentIconPanel from '@/components/ai/AIAgentIconPanel';
 import AutoReportPage from '@/components/ai/pages/AutoReportPage';
 import IntelligentMonitoringPage from '@/components/ai/pages/IntelligentMonitoringPage';
 import { MLLearningCenter } from '@/components/ai/pages/MLLearningCenter';

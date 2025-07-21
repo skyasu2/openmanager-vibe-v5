@@ -1,6 +1,6 @@
 // 🔄 중복 제거: common.ts의 타입들 재사용
-import { AlertSeverity } from './common';
-import {
+import type { AlertSeverity } from './common';
+import type {
   ServerHealth,
   ServerMetrics,
   ServerSpecs,

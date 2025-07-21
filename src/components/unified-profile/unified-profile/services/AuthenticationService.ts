@@ -7,7 +7,7 @@
  * @author AI Assistant
  */
 
-import { ApiResponse, AuthenticationState } from '../types/ProfileTypes';
+import type { ApiResponse, AuthenticationState } from '../types/ProfileTypes';
 
 // 개발 환경 설정
 const DEVELOPMENT_MODE =

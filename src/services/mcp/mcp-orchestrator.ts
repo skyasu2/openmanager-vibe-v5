@@ -8,19 +8,15 @@
  */
 
 // import { MCPStandardConfig } from './official-mcp-client'; // 타입 오류로 임시 비활성화
-import {
-  AdvancedContextManager,
-  DocumentEmbedding,
-} from '../../context/advanced-context-manager';
-import {
-  BasicContextCache,
-  BasicContextManager,
-} from '../../context/basic-context-manager';
-import {
-  CustomContextManager,
+import type { DocumentEmbedding } from '../../context/advanced-context-manager';
+import { AdvancedContextManager } from '../../context/advanced-context-manager';
+import type { BasicContextCache } from '../../context/basic-context-manager';
+import { BasicContextManager } from '../../context/basic-context-manager';
+import type {
   CustomRule,
   OrganizationSettings,
 } from '../../context/custom-context-manager';
+import { CustomContextManager } from '../../context/custom-context-manager';
 
 export interface MCPQuery {
   id: string;

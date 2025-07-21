@@ -7,7 +7,8 @@
  * - 업그레이드 권장사항
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // 안전한 import 처리
 let AI_ENGINE_VERSIONS: any = null;

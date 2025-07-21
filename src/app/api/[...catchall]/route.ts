@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 /**
  * 🚫 Catch-all API Route
@@ -51,7 +52,6 @@ async function handleRequest(
   method: string
 ) {
   const requestedPath = `/api/${params.catchall.join('/')}`;
-  const { searchParams } = new URL(request.url);
 
   // 로깅
   console.warn(`🚫 존재하지 않는 API 요청: ${method} ${requestedPath}`, {

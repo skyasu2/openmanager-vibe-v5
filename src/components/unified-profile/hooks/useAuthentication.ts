@@ -9,7 +9,7 @@
 
 import { useState, useCallback } from 'react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { AuthenticationState, ApiResponse } from '../types/ProfileTypes';
+import type { AuthenticationState, ApiResponse } from '../types/ProfileTypes';
 
 interface UseAuthenticationReturn {
   // 인증 상태

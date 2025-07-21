@@ -9,7 +9,8 @@
  */
 
 import { getMockSystem } from '@/mock';
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // 기본 경고 생성 함수 (폴백용)
 function createBasicFallbackWarning(dataSource: string, reason: string) {

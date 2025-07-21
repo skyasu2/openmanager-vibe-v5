@@ -5,7 +5,7 @@
  * 개발 환경에서만 사용
  */
 
-import { UserPermissions } from '@/types/permissions.types';
+import type { UserPermissions } from '@/types/permissions.types';
 
 export interface PermissionTestScenario {
   name: string;

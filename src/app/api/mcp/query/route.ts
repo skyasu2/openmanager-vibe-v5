@@ -5,7 +5,8 @@
  * POST /api/mcp/query
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getSimplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 

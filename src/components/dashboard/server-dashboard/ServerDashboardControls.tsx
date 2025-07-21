@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Search, Filter, LayoutGrid, List } from 'lucide-react';
-import { ViewMode } from '@/types/dashboard';
+import { Search, LayoutGrid, List } from 'lucide-react';
+import type { ViewMode } from '@/types/dashboard';
 
 interface ServerDashboardControlsProps {
   viewMode: ViewMode;

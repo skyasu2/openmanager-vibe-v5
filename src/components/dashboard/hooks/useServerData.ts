@@ -25,7 +25,7 @@ import { STATIC_ERROR_SERVERS } from '@/config/fallback-data';
 import { useRealtimeServers } from '@/hooks/api/useRealtimeServers';
 import type { Server } from '@/types/server';
 import { useCallback, useEffect, useState } from 'react';
-import { DashboardStats, ServerFilters } from '../types/dashboard.types';
+import type { DashboardStats, ServerFilters } from '../types/dashboard.types';
 
 // 🎯 통합된 폴백 서버 데이터 사용 (하드코딩 제거)
 const fallbackServers: Server[] = STATIC_ERROR_SERVERS;

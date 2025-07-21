@@ -8,7 +8,7 @@
  * - 모니터링 타입들
  */
 
-import { ILogger } from '@/interfaces/services';
+import type { ILogger } from '@/interfaces/services';
 
 export interface ServiceError extends Error {
   code: string;
