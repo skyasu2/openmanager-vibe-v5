@@ -171,6 +171,7 @@
     "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-toast": "^1.2.14",
     "@radix-ui/react-tooltip": "^1.2.7",
+    "@rollup/rollup-linux-x64-gnu": "^4.45.1",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/mcp-server-supabase": "^0.4.5",
     "@supabase/ssr": "^0.6.1",
