@@ -52,12 +52,17 @@ export async function POST(request: NextRequest) {
     const result = await queryEngine.query({
       query,
       mode,
-      context: { type: context },
+      context: {
+        metadata: {
+          category: context,
+        },
+      },
       options: {
         temperature,
         maxTokens,
         includeThinking,
         includeMCPContext: false, // AI 쿼리에서는 MCP 컨텍스트 비활성화
+        category: context,
       },
     });
 
@@ -115,7 +120,7 @@ export async function POST(request: NextRequest) {
  *
  * GET /api/ai/query
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     console.log('📊 AI 쿼리 시스템 상태 조회...');
 
