@@ -1,0 +1,64 @@
+# TruffleHog 제외 경로 목록
+# 정규식 패턴 (한 줄에 하나씩)
+
+# 문서 파일들
+docs/.*
+.*\.md$
+README.*
+CHANGELOG.*
+LICENSE.*
+
+# 테스트 파일들
+tests/.*
+.*\.test\.(ts|js)$
+.*\.spec\.(ts|js)$
+__tests__/.*
+test/.*
+
+# 개발 도구 설정
+\.vscode/.*
+\.idea/.*
+\.env\.example$
+\.env\.template$
+.*\.template$
+.*\.example$
+
+# 빌드 결과물
+\.next/.*
+out/.*
+dist/.*
+build/.*
+node_modules/.*
+coverage/.*
+\.turbo/.*
+
+# 설정 파일들
+package-lock\.json$
+yarn\.lock$
+pnpm-lock\.yaml$
+.*\.lock$
+
+# 정적 자원
+public/.*
+.*\.(svg|png|jpg|jpeg|gif|ico|webp)$
+
+# 스토리북
+\.storybook/.*
+storybook-static/.*
+
+# 백업 및 임시 파일
+backup/.*
+.*\.(backup|bak|tmp|temp)$
+\.DS_Store$
+
+# GitHub Actions
+\.github/.*
+
+# 기타
+archive/.*
+deprecated/.*
+playwright-report/.*
+playwright/.*
+e2e/.*
+\.cache/.*
+.*\.cache$

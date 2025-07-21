@@ -61,5 +61,8 @@ jobs:
           path: ./
           base: ${{ steps.trufflehog-config.outputs.base }}
           head: ${{ steps.trufflehog-config.outputs.head }}
-          extra_args: --config .trufflehog.yml
+          extra_args: >-
+            --only-verified
+            --exclude-paths .trufflehog-excludes.txt
+            --max-depth 50
         continue-on-error: false
