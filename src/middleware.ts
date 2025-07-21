@@ -8,7 +8,6 @@ const DEV_ONLY_PATTERNS = [
   '/api/dev/',
   '/api/debug/',
   '/api/ai/test-',
-  '/api/dev-tools/',
 ];
 
 // 인증이 필요 없는 경로들
@@ -21,8 +20,6 @@ const PUBLIC_PATHS = [
   '/api/health',
   '/api/ping',
   '/api/servers/all', // 대시보드 서버 데이터 공개 접근 허용
-  '/about',
-  '/notes',
 ];
 
 // 정확한 경로 매칭을 위한 헬퍼 함수
