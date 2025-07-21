@@ -174,7 +174,7 @@ export const createStoryMeta = <T extends React.ComponentType<any>>(
 // 🎭 글로벌 데코레이터 (모든 스토리에 적용)
 export const withAIContext = (Story: any, context: any) => {
   return (
-    <div data-testid="ai-monitoring-context" className="storybook-ai-context">
+    <div data-testid='ai-monitoring-context' className='storybook-ai-context'>
       <Story />
     </div>
   );
@@ -184,12 +184,23 @@ export const withAIContext = (Story: any, context: any) => {
 export type StoryType<T> = StoryObj<Meta<T>>;
 
 // 🚀 서버 메트릭 생성기
-export const generateServerMetrics = (baseValues?: Partial<typeof mockServerStates.online>) => ({
+export const generateServerMetrics = (
+  baseValues?: Partial<typeof mockServerStates.online>
+) => ({
   ...mockServerStates.online,
   ...baseValues,
-  cpu: Math.max(0, Math.min(100, (baseValues?.cpu ?? 45) + (Math.random() - 0.5) * 10)),
-  memory: Math.max(0, Math.min(100, (baseValues?.memory ?? 67) + (Math.random() - 0.5) * 10)),
-  network: Math.max(0, (baseValues?.network ?? 89) + (Math.random() - 0.5) * 50),
+  cpu: Math.max(
+    0,
+    Math.min(100, (baseValues?.cpu ?? 45) + (Math.random() - 0.5) * 10)
+  ),
+  memory: Math.max(
+    0,
+    Math.min(100, (baseValues?.memory ?? 67) + (Math.random() - 0.5) * 10)
+  ),
+  network: Math.max(
+    0,
+    (baseValues?.network ?? 89) + (Math.random() - 0.5) * 50
+  ),
   lastUpdate: new Date(),
 });
 
@@ -206,7 +217,7 @@ export const storyTitles = {
 export const a11yLabels = {
   server: {
     online: '서버 온라인 상태',
-    offline: '서버 오프라인 상태', 
+    offline: '서버 오프라인 상태',
     warning: '서버 경고 상태',
     maintenance: '서버 유지보수 상태',
   },

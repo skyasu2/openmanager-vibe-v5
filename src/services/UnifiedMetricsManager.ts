@@ -666,12 +666,18 @@ export class UnifiedMetricsManager {
   private performBasicAnalysis(servers: UnifiedServerMetrics[]): any {
     const totalServers = servers.length;
     const avgCpu =
-      servers.reduce((sum: number, s: any) => sum + s.node_cpu_usage_percent, 0) /
-      totalServers;
+      servers.reduce(
+        (sum: number, s: any) => sum + s.node_cpu_usage_percent,
+        0
+      ) / totalServers;
     const avgMemory =
-      servers.reduce((sum: number, s: any) => sum + s.node_memory_usage_percent, 0) /
-      totalServers;
-    const criticalServers = servers.filter((s: any) => s.status === 'critical').length;
+      servers.reduce(
+        (sum: number, s: any) => sum + s.node_memory_usage_percent,
+        0
+      ) / totalServers;
+    const criticalServers = servers.filter(
+      (s: any) => s.status === 'critical'
+    ).length;
 
     return {
       analysis: 'typescript_basic',
@@ -710,8 +716,10 @@ export class UnifiedMetricsManager {
     servers: UnifiedServerMetrics[]
   ): Promise<void> {
     const avgCpu =
-      servers.reduce((sum: number, s: any) => sum + s.node_cpu_usage_percent, 0) /
-      servers.length;
+      servers.reduce(
+        (sum: number, s: any) => sum + s.node_cpu_usage_percent,
+        0
+      ) / servers.length;
     const currentCount = servers.length;
 
     let action = 'maintain';

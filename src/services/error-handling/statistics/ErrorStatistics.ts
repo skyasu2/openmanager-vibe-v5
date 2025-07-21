@@ -2,7 +2,12 @@
  * 📊 에러 통계 관리
  */
 
-import { ErrorSeverity, ErrorStatistics as ErrorStatsInterface, getErrorSeverity, ServiceError } from '../types/ErrorTypes';
+import {
+  ErrorSeverity,
+  ErrorStatistics as ErrorStatsInterface,
+  getErrorSeverity,
+  ServiceError,
+} from '../types/ErrorTypes';
 
 export class ErrorStatistics {
   private errorHistory: ServiceError[] = [];
@@ -62,8 +67,10 @@ export class ErrorStatistics {
     const recentCritical = this.errorHistory.filter(error => {
       const severity = getErrorSeverity(error);
       const errorTimestamp = error.timestamp || new Date();
-      return errorTimestamp > oneHourAgo &&
-        (severity === ErrorSeverity.CRITICAL || severity === ErrorSeverity.HIGH);
+      return (
+        errorTimestamp > oneHourAgo &&
+        (severity === ErrorSeverity.CRITICAL || severity === ErrorSeverity.HIGH)
+      );
     });
 
     // 에러율 계산 (최근 5분간)
@@ -92,7 +99,9 @@ export class ErrorStatistics {
     codes: Record<string, number>;
     severity: Record<ErrorSeverity, number>;
   } {
-    const serviceErrors = this.errorHistory.filter(error => error.service === service);
+    const serviceErrors = this.errorHistory.filter(
+      error => error.service === service
+    );
 
     // 최근 1시간 에러
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
@@ -137,12 +146,22 @@ export class ErrorStatistics {
     critical: number;
     high: number;
   }> {
-    const trend: Array<{ hour: string; total: number; critical: number; high: number }> = [];
+    const trend: Array<{
+      hour: string;
+      total: number;
+      critical: number;
+      high: number;
+    }> = [];
     const now = new Date();
 
     for (let i = 0; i < timeWindow; i++) {
       const hour = new Date(now.getTime() - i * 60 * 60 * 1000);
-      const hourStart = new Date(hour.getFullYear(), hour.getMonth(), hour.getDate(), hour.getHours());
+      const hourStart = new Date(
+        hour.getFullYear(),
+        hour.getMonth(),
+        hour.getDate(),
+        hour.getHours()
+      );
       const hourEnd = new Date(hourStart.getTime() + 60 * 60 * 1000);
 
       const hourErrors = this.errorHistory.filter(error => {
@@ -150,12 +169,12 @@ export class ErrorStatistics {
         return errorTimestamp >= hourStart && errorTimestamp < hourEnd;
       });
 
-      const criticalCount = hourErrors.filter(error =>
-        getErrorSeverity(error) === ErrorSeverity.CRITICAL
+      const criticalCount = hourErrors.filter(
+        error => getErrorSeverity(error) === ErrorSeverity.CRITICAL
       ).length;
 
-      const highCount = hourErrors.filter(error =>
-        getErrorSeverity(error) === ErrorSeverity.HIGH
+      const highCount = hourErrors.filter(
+        error => getErrorSeverity(error) === ErrorSeverity.HIGH
       ).length;
 
       trend.unshift({
@@ -179,13 +198,16 @@ export class ErrorStatistics {
     lastOccurrence: Date;
     severity: ErrorSeverity;
   }> {
-    const errorFrequency = new Map<string, {
-      code: string;
-      service: string;
-      count: number;
-      lastOccurrence: Date;
-      severity: ErrorSeverity;
-    }>();
+    const errorFrequency = new Map<
+      string,
+      {
+        code: string;
+        service: string;
+        count: number;
+        lastOccurrence: Date;
+        severity: ErrorSeverity;
+      }
+    >();
 
     this.errorHistory.forEach(error => {
       const key = `${error.service}:${error.code}`;
@@ -232,7 +254,10 @@ export class ErrorStatistics {
     const recentErrors = this.getRecentErrors(15); // 최근 15분
 
     // 1. 동일한 에러의 급증 패턴
-    const errorFreq = new Map<string, { count: number; services: Set<string> }>();
+    const errorFreq = new Map<
+      string,
+      { count: number; services: Set<string> }
+    >();
     recentErrors.forEach(error => {
       const key = error.code;
       const existing = errorFreq.get(key);
@@ -245,7 +270,8 @@ export class ErrorStatistics {
     });
 
     errorFreq.forEach((freq, code) => {
-      if (freq.count > 10) { // 15분에 10회 이상
+      if (freq.count > 10) {
+        // 15분에 10회 이상
         patterns.push({
           pattern: 'error_spike',
           description: `에러 ${code}가 15분간 ${freq.count}회 발생`,
@@ -259,8 +285,14 @@ export class ErrorStatistics {
     const serviceFailures = new Map<string, number>();
     recentErrors.forEach(error => {
       const severity = getErrorSeverity(error);
-      if (severity === ErrorSeverity.CRITICAL || severity === ErrorSeverity.HIGH) {
-        serviceFailures.set(error.service, (serviceFailures.get(error.service) || 0) + 1);
+      if (
+        severity === ErrorSeverity.CRITICAL ||
+        severity === ErrorSeverity.HIGH
+      ) {
+        serviceFailures.set(
+          error.service,
+          (serviceFailures.get(error.service) || 0) + 1
+        );
       }
     });
 
@@ -290,4 +322,4 @@ export class ErrorStatistics {
       return errorTimestamp > cutoff;
     });
   }
-} 
+}

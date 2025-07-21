@@ -20,12 +20,12 @@ export class PowerShellStrategy {
     if (process.platform === 'win32') {
       return 'powershell.exe';
     }
-    
+
     // WSL 환경에서 PowerShell 브릿지 사용
     const possiblePaths = [
       '/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/powershell.exe',
       '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe',
-      'powershell.exe'
+      'powershell.exe',
     ];
 
     for (const path of possiblePaths) {
@@ -39,7 +39,7 @@ export class PowerShellStrategy {
 
   async execute(command, timeout, context) {
     console.error('[PowerShell] PowerShell 전략 실행');
-    
+
     return new Promise((resolve, reject) => {
       let stdout = '';
       let stderr = '';
@@ -47,10 +47,10 @@ export class PowerShellStrategy {
 
       // PowerShell 명령 이스케이프 처리
       const escapedCommand = this._escapePowerShellCommand(command);
-      
+
       const child = spawn(this.powershellPath, ['-Command', escapedCommand], {
         windowsHide: true,
-        shell: false
+        shell: false,
       });
 
       const timer = setTimeout(() => {
@@ -59,21 +59,23 @@ export class PowerShellStrategy {
         reject(new Error(`PowerShell 전략 타임아웃 (${timeout}ms)`));
       }, timeout);
 
-      child.stdout.on('data', (data) => stdout += data.toString());
-      child.stderr.on('data', (data) => stderr += data.toString());
+      child.stdout.on('data', data => (stdout += data.toString()));
+      child.stderr.on('data', data => (stderr += data.toString()));
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         clearTimeout(timer);
         if (killed) return;
 
         if (code !== 0) {
-          reject(new Error(`PowerShell 명령 실행 실패 (코드: ${code}): ${stderr}`));
+          reject(
+            new Error(`PowerShell 명령 실행 실패 (코드: ${code}): ${stderr}`)
+          );
         } else {
           resolve(stdout.trim());
         }
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         clearTimeout(timer);
         reject(new Error(`PowerShell 실행 오류: ${error.message}`));
       });
@@ -86,7 +88,7 @@ export class PowerShellStrategy {
   _escapePowerShellCommand(command) {
     // PowerShell 특수 문자 이스케이프
     return command
-      .replace(/"/g, '`"')  // 큰따옴표를 백틱으로 이스케이프
+      .replace(/"/g, '`"') // 큰따옴표를 백틱으로 이스케이프
       .replace(/\$/g, '`$') // 달러 기호 이스케이프
       .replace(/\`/g, '``'); // 백틱 이스케이프
   }
@@ -114,12 +116,12 @@ export class PowerShellFallbackStrategy extends PowerShellStrategy {
 
   async execute(command, timeout, context) {
     console.error('[PowerShellFallback] PowerShell 폴백 전략 실행');
-    
+
     // 여러 방법으로 시도
     const methods = [
       () => this._executeWithRetry(command, timeout, context),
       () => this._executeWithAlternative(command, timeout, context),
-      () => this._executeWithErrorHandling(command, timeout, context)
+      () => this._executeWithErrorHandling(command, timeout, context),
     ];
 
     for (const method of methods) {
@@ -169,7 +171,7 @@ export class UniversalFallbackStrategy {
 
   async execute(command, timeout, context) {
     console.error('[UniversalFallback] 범용 폴백 전략 실행');
-    
+
     // 시도 1: 직접 실행
     try {
       return await this._directExecution(command, timeout);
@@ -204,7 +206,7 @@ export class UniversalFallbackStrategy {
     return new Promise((resolve, reject) => {
       const [cmd, ...args] = command.split(' ');
       const child = spawn(cmd, args, { shell: false });
-      
+
       let stdout = '';
       let stderr = '';
       let killed = false;
@@ -215,13 +217,13 @@ export class UniversalFallbackStrategy {
         reject(new Error('직접 실행 타임아웃'));
       }, timeout);
 
-      child.stdout.on('data', (data) => stdout += data.toString());
-      child.stderr.on('data', (data) => stderr += data.toString());
+      child.stdout.on('data', data => (stdout += data.toString()));
+      child.stderr.on('data', data => (stderr += data.toString()));
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         clearTimeout(timer);
         if (killed) return;
-        
+
         if (code !== 0) {
           reject(new Error(`직접 실행 실패: ${stderr}`));
         } else {
@@ -235,11 +237,11 @@ export class UniversalFallbackStrategy {
 
   async _shellExecution(command, timeout) {
     return new Promise((resolve, reject) => {
-      const child = spawn(command, [], { 
+      const child = spawn(command, [], {
         shell: true,
-        windowsHide: true
+        windowsHide: true,
       });
-      
+
       let stdout = '';
       let stderr = '';
       let killed = false;
@@ -250,13 +252,13 @@ export class UniversalFallbackStrategy {
         reject(new Error('shell 실행 타임아웃'));
       }, timeout);
 
-      child.stdout.on('data', (data) => stdout += data.toString());
-      child.stderr.on('data', (data) => stderr += data.toString());
+      child.stdout.on('data', data => (stdout += data.toString()));
+      child.stderr.on('data', data => (stderr += data.toString()));
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         clearTimeout(timer);
         if (killed) return;
-        
+
         if (code !== 0) {
           reject(new Error(`shell 실행 실패: ${stderr}`));
         } else {
@@ -272,9 +274,9 @@ export class UniversalFallbackStrategy {
     return new Promise((resolve, reject) => {
       const child = spawn('cmd.exe', ['/c', command], {
         windowsHide: true,
-        shell: false
+        shell: false,
       });
-      
+
       let stdout = '';
       let stderr = '';
       let killed = false;
@@ -285,13 +287,13 @@ export class UniversalFallbackStrategy {
         reject(new Error('cmd 실행 타임아웃'));
       }, timeout);
 
-      child.stdout.on('data', (data) => stdout += data.toString());
-      child.stderr.on('data', (data) => stderr += data.toString());
+      child.stdout.on('data', data => (stdout += data.toString()));
+      child.stderr.on('data', data => (stderr += data.toString()));
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         clearTimeout(timer);
         if (killed) return;
-        
+
         if (code !== 0) {
           reject(new Error(`cmd 실행 실패: ${stderr}`));
         } else {

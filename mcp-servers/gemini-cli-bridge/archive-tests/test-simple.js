@@ -4,7 +4,7 @@ console.log('=== PowerShell Gemini Bridge 테스트 ===\n');
 
 const bridge = new SimplePowerShellBridge({
   timeout: 30000,
-  debug: true
+  debug: true,
 });
 
 async function runTests() {

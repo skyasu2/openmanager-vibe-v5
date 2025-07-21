@@ -1,435 +1,529 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vercel AI 상태 확인 테스트</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            min-height: 100vh;
-        }
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        min-height: 100vh;
+      }
 
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-        }
+      .container {
+        background: rgba(255, 255, 255, 0.1);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      }
 
-        .test-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+      .test-section {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 20px 0;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
 
-        .status {
-            padding: 10px 20px;
-            border-radius: 25px;
-            margin: 10px 0;
-            font-weight: bold;
-            text-align: center;
-        }
+      .status {
+        padding: 10px 20px;
+        border-radius: 25px;
+        margin: 10px 0;
+        font-weight: bold;
+        text-align: center;
+      }
 
-        .success {
-            background: rgba(76, 175, 80, 0.3);
-            border: 2px solid #4CAF50;
-        }
+      .success {
+        background: rgba(76, 175, 80, 0.3);
+        border: 2px solid #4caf50;
+      }
 
-        .error {
-            background: rgba(244, 67, 54, 0.3);
-            border: 2px solid #f44336;
-        }
+      .error {
+        background: rgba(244, 67, 54, 0.3);
+        border: 2px solid #f44336;
+      }
 
-        .warning {
-            background: rgba(255, 193, 7, 0.3);
-            border: 2px solid #FFC107;
-            color: #333;
-        }
+      .warning {
+        background: rgba(255, 193, 7, 0.3);
+        border: 2px solid #ffc107;
+        color: #333;
+      }
 
-        .info {
-            background: rgba(33, 150, 243, 0.3);
-            border: 2px solid #2196F3;
-        }
+      .info {
+        background: rgba(33, 150, 243, 0.3);
+        border: 2px solid #2196f3;
+      }
 
-        button {
-            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 10px;
-            transition: transform 0.2s;
-        }
+      button {
+        background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 10px;
+        transition: transform 0.2s;
+      }
 
-        button:hover {
-            transform: translateY(-2px);
-        }
+      button:hover {
+        transform: translateY(-2px);
+      }
 
-        .result-box {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            margin: 10px 0;
-            font-family: 'Courier New', monospace;
-            white-space: pre-wrap;
-            max-height: 400px;
-            overflow-y: auto;
-        }
+      .result-box {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px 0;
+        font-family: 'Courier New', monospace;
+        white-space: pre-wrap;
+        max-height: 400px;
+        overflow-y: auto;
+      }
 
-        h1,
-        h2 {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+      h1,
+      h2 {
+        text-align: center;
+        margin-bottom: 30px;
+      }
 
-        .url-display {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 10px;
-            border-radius: 10px;
-            font-family: monospace;
-            word-break: break-all;
-            margin: 10px 0;
-        }
+      .url-display {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        border-radius: 10px;
+        font-family: monospace;
+        word-break: break-all;
+        margin: 10px 0;
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="container">
-        <h1>🚀 Vercel AI 상태 확인 테스트</h1>
-        <div class="info status">
-            <strong>새로운 배포 URL:</strong>
-            <div class="url-display">openmanager-vibe-v5-l1mk1fdy5-skyasus-projects.vercel.app</div>
+      <h1>🚀 Vercel AI 상태 확인 테스트</h1>
+      <div class="info status">
+        <strong>새로운 배포 URL:</strong>
+        <div class="url-display">
+          openmanager-vibe-v5-l1mk1fdy5-skyasus-projects.vercel.app
         </div>
+      </div>
 
-        <div class="test-section">
-            <h2>📡 1. 기본 연결 및 헬스체크</h2>
-            <button onclick="testBasicConnection()">기본 연결 확인</button>
-            <div id="basic-result" class="result-box"></div>
-        </div>
+      <div class="test-section">
+        <h2>📡 1. 기본 연결 및 헬스체크</h2>
+        <button onclick="testBasicConnection()">기본 연결 확인</button>
+        <div id="basic-result" class="result-box"></div>
+      </div>
 
-        <div class="test-section">
-            <h2>🤖 2. AI 엔진 상태 확인</h2>
-            <button onclick="testAIEngineStatus()">AI 엔진 상태 확인</button>
-            <div id="ai-engine-result" class="result-box"></div>
-        </div>
+      <div class="test-section">
+        <h2>🤖 2. AI 엔진 상태 확인</h2>
+        <button onclick="testAIEngineStatus()">AI 엔진 상태 확인</button>
+        <div id="ai-engine-result" class="result-box"></div>
+      </div>
 
-        <div class="test-section">
-            <h2>🔧 3. Smart Fallback API 테스트</h2>
-            <button onclick="testSmartFallbackAPI()">Smart Fallback 테스트</button>
-            <div id="fallback-result" class="result-box"></div>
-        </div>
+      <div class="test-section">
+        <h2>🔧 3. Smart Fallback API 테스트</h2>
+        <button onclick="testSmartFallbackAPI()">Smart Fallback 테스트</button>
+        <div id="fallback-result" class="result-box"></div>
+      </div>
 
-        <div class="test-section">
-            <h2>💬 4. AI 자연어 질의 테스트</h2>
-            <button onclick="testNaturalLanguageQueries()">자연어 질의 테스트</button>
-            <div id="ai-query-result" class="result-box"></div>
-        </div>
+      <div class="test-section">
+        <h2>💬 4. AI 자연어 질의 테스트</h2>
+        <button onclick="testNaturalLanguageQueries()">
+          자연어 질의 테스트
+        </button>
+        <div id="ai-query-result" class="result-box"></div>
+      </div>
 
-        <div class="test-section">
-            <h2>🎯 5. 대시보드 서버 모달 테스트</h2>
-            <button onclick="testDashboardModal()">대시보드 모달 테스트</button>
-            <div id="modal-result" class="result-box"></div>
-        </div>
+      <div class="test-section">
+        <h2>🎯 5. 대시보드 서버 모달 테스트</h2>
+        <button onclick="testDashboardModal()">대시보드 모달 테스트</button>
+        <div id="modal-result" class="result-box"></div>
+      </div>
 
-        <div class="test-section">
-            <h2>📊 6. 종합 결과</h2>
-            <div id="summary-result" class="result-box">테스트를 실행하면 여기에 결과가 표시됩니다.</div>
+      <div class="test-section">
+        <h2>📊 6. 종합 결과</h2>
+        <div id="summary-result" class="result-box">
+          테스트를 실행하면 여기에 결과가 표시됩니다.
         </div>
+      </div>
     </div>
 
     <script>
-        const BASE_URL = 'https://openmanager-vibe-v5-l1mk1fdy5-skyasus-projects.vercel.app';
-        let testResults = {
-            basic: null,
-            aiEngine: null,
-            fallback: null,
-            aiQuery: null,
-            modal: null
+      const BASE_URL =
+        'https://openmanager-vibe-v5-l1mk1fdy5-skyasus-projects.vercel.app';
+      let testResults = {
+        basic: null,
+        aiEngine: null,
+        fallback: null,
+        aiQuery: null,
+        modal: null,
+      };
+
+      function log(elementId, message, type = 'info') {
+        const element = document.getElementById(elementId);
+        const timestamp = new Date().toLocaleTimeString();
+        const typeIcon = {
+          success: '✅',
+          error: '❌',
+          warning: '⚠️',
+          info: 'ℹ️',
         };
+        element.innerHTML += `[${timestamp}] ${typeIcon[type]} ${message}\n`;
+        element.scrollTop = element.scrollHeight;
+      }
 
-        function log(elementId, message, type = 'info') {
-            const element = document.getElementById(elementId);
-            const timestamp = new Date().toLocaleTimeString();
-            const typeIcon = {
-                'success': '✅',
-                'error': '❌',
-                'warning': '⚠️',
-                'info': 'ℹ️'
-            };
-            element.innerHTML += `[${timestamp}] ${typeIcon[type]} ${message}\n`;
-            element.scrollTop = element.scrollHeight;
+      function clearLog(elementId) {
+        document.getElementById(elementId).innerHTML = '';
+      }
+
+      async function testBasicConnection() {
+        clearLog('basic-result');
+        log('basic-result', '기본 연결 테스트 시작...', 'info');
+
+        try {
+          // 1. 메인 페이지 접근
+          log('basic-result', '1. 메인 페이지 접근 테스트...', 'info');
+          const mainResponse = await fetch(`${BASE_URL}/`);
+          log(
+            'basic-result',
+            `메인 페이지: ${mainResponse.status} ${mainResponse.statusText}`,
+            mainResponse.ok ? 'success' : 'warning'
+          );
+
+          // 2. 헬스체크 API
+          log('basic-result', '2. 헬스체크 API 테스트...', 'info');
+          const healthResponse = await fetch(`${BASE_URL}/api/health`);
+          if (healthResponse.ok) {
+            const healthData = await healthResponse.json();
+            log(
+              'basic-result',
+              `헬스체크 성공: ${JSON.stringify(healthData, null, 2)}`,
+              'success'
+            );
+            testResults.basic = true;
+          } else {
+            log(
+              'basic-result',
+              `헬스체크 실패: ${healthResponse.status}`,
+              'error'
+            );
+            testResults.basic = false;
+          }
+
+          // 3. 대시보드 페이지 접근
+          log('basic-result', '3. 대시보드 페이지 접근 테스트...', 'info');
+          const dashboardResponse = await fetch(`${BASE_URL}/dashboard`);
+          log(
+            'basic-result',
+            `대시보드: ${dashboardResponse.status} ${dashboardResponse.statusText}`,
+            dashboardResponse.ok ? 'success' : 'warning'
+          );
+        } catch (error) {
+          log('basic-result', `연결 오류: ${error.message}`, 'error');
+          testResults.basic = false;
         }
+        updateSummary();
+      }
 
-        function clearLog(elementId) {
-            document.getElementById(elementId).innerHTML = '';
-        }
+      async function testAIEngineStatus() {
+        clearLog('ai-engine-result');
+        log('ai-engine-result', 'AI 엔진 상태 확인 시작...', 'info');
 
-        async function testBasicConnection() {
-            clearLog('basic-result');
-            log('basic-result', '기본 연결 테스트 시작...', 'info');
+        const aiEndpoints = [
+          '/api/ai/engines/status',
+          '/api/ai/unified/status',
+          '/api/ai/google-ai/status',
+          '/api/ai/health',
+        ];
 
-            try {
-                // 1. 메인 페이지 접근
-                log('basic-result', '1. 메인 페이지 접근 테스트...', 'info');
-                const mainResponse = await fetch(`${BASE_URL}/`);
-                log('basic-result', `메인 페이지: ${mainResponse.status} ${mainResponse.statusText}`,
-                    mainResponse.ok ? 'success' : 'warning');
+        let successCount = 0;
 
-                // 2. 헬스체크 API
-                log('basic-result', '2. 헬스체크 API 테스트...', 'info');
-                const healthResponse = await fetch(`${BASE_URL}/api/health`);
-                if (healthResponse.ok) {
-                    const healthData = await healthResponse.json();
-                    log('basic-result', `헬스체크 성공: ${JSON.stringify(healthData, null, 2)}`, 'success');
-                    testResults.basic = true;
-                } else {
-                    log('basic-result', `헬스체크 실패: ${healthResponse.status}`, 'error');
-                    testResults.basic = false;
-                }
+        for (const endpoint of aiEndpoints) {
+          try {
+            log('ai-engine-result', `테스트: ${endpoint}`, 'info');
+            const response = await fetch(`${BASE_URL}${endpoint}`);
 
-                // 3. 대시보드 페이지 접근
-                log('basic-result', '3. 대시보드 페이지 접근 테스트...', 'info');
-                const dashboardResponse = await fetch(`${BASE_URL}/dashboard`);
-                log('basic-result', `대시보드: ${dashboardResponse.status} ${dashboardResponse.statusText}`,
-                    dashboardResponse.ok ? 'success' : 'warning');
-
-            } catch (error) {
-                log('basic-result', `연결 오류: ${error.message}`, 'error');
-                testResults.basic = false;
+            if (response.ok) {
+              const data = await response.json();
+              log(
+                'ai-engine-result',
+                `✅ ${endpoint}: ${JSON.stringify(data, null, 2)}`,
+                'success'
+              );
+              successCount++;
+            } else {
+              log(
+                'ai-engine-result',
+                `❌ ${endpoint}: ${response.status} ${response.statusText}`,
+                'error'
+              );
             }
-            updateSummary();
+          } catch (error) {
+            log(
+              'ai-engine-result',
+              `❌ ${endpoint}: ${error.message}`,
+              'error'
+            );
+          }
+
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
 
-        async function testAIEngineStatus() {
-            clearLog('ai-engine-result');
-            log('ai-engine-result', 'AI 엔진 상태 확인 시작...', 'info');
+        testResults.aiEngine = successCount > 0;
+        log(
+          'ai-engine-result',
+          `\n📊 AI 엔진 상태: ${successCount}/${aiEndpoints.length} 성공`,
+          successCount > 0 ? 'success' : 'error'
+        );
+        updateSummary();
+      }
 
-            const aiEndpoints = [
-                '/api/ai/engines/status',
-                '/api/ai/unified/status',
-                '/api/ai/google-ai/status',
-                '/api/ai/health'
-            ];
+      async function testSmartFallbackAPI() {
+        clearLog('fallback-result');
+        log('fallback-result', 'Smart Fallback API 테스트 시작...', 'info');
 
-            let successCount = 0;
+        try {
+          // GET 요청 테스트
+          log('fallback-result', '1. GET 요청 테스트...', 'info');
+          const getResponse = await fetch(`${BASE_URL}/api/ai/smart-fallback`);
+          log(
+            'fallback-result',
+            `GET 응답: ${getResponse.status} ${getResponse.statusText}`,
+            getResponse.ok ? 'success' : 'warning'
+          );
 
-            for (const endpoint of aiEndpoints) {
-                try {
-                    log('ai-engine-result', `테스트: ${endpoint}`, 'info');
-                    const response = await fetch(`${BASE_URL}${endpoint}`);
+          if (getResponse.ok) {
+            const getData = await getResponse.json();
+            log(
+              'fallback-result',
+              `GET 데이터: ${JSON.stringify(getData, null, 2)}`,
+              'success'
+            );
+          }
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        log('ai-engine-result', `✅ ${endpoint}: ${JSON.stringify(data, null, 2)}`, 'success');
-                        successCount++;
-                    } else {
-                        log('ai-engine-result', `❌ ${endpoint}: ${response.status} ${response.statusText}`, 'error');
-                    }
-                } catch (error) {
-                    log('ai-engine-result', `❌ ${endpoint}: ${error.message}`, 'error');
-                }
-
-                await new Promise(resolve => setTimeout(resolve, 500));
+          // POST 요청 테스트
+          log('fallback-result', '2. POST 요청 테스트...', 'info');
+          const postResponse = await fetch(
+            `${BASE_URL}/api/ai/smart-fallback`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                query: '현재 시스템 상태를 확인해주세요',
+                context: 'dashboard',
+              }),
             }
+          );
 
-            testResults.aiEngine = successCount > 0;
-            log('ai-engine-result', `\n📊 AI 엔진 상태: ${successCount}/${aiEndpoints.length} 성공`,
-                successCount > 0 ? 'success' : 'error');
-            updateSummary();
+          if (postResponse.ok) {
+            const postData = await postResponse.json();
+            log(
+              'fallback-result',
+              `POST 성공: ${JSON.stringify(postData, null, 2)}`,
+              'success'
+            );
+            testResults.fallback = true;
+          } else {
+            const errorText = await postResponse.text();
+            log(
+              'fallback-result',
+              `POST 실패 (${postResponse.status}): ${errorText}`,
+              'error'
+            );
+            testResults.fallback = false;
+          }
+        } catch (error) {
+          log('fallback-result', `오류: ${error.message}`, 'error');
+          testResults.fallback = false;
         }
+        updateSummary();
+      }
 
-        async function testSmartFallbackAPI() {
-            clearLog('fallback-result');
-            log('fallback-result', 'Smart Fallback API 테스트 시작...', 'info');
+      async function testNaturalLanguageQueries() {
+        clearLog('ai-query-result');
+        log('ai-query-result', 'AI 자연어 질의 테스트 시작...', 'info');
 
-            try {
-                // GET 요청 테스트
-                log('fallback-result', '1. GET 요청 테스트...', 'info');
-                const getResponse = await fetch(`${BASE_URL}/api/ai/smart-fallback`);
-                log('fallback-result', `GET 응답: ${getResponse.status} ${getResponse.statusText}`,
-                    getResponse.ok ? 'success' : 'warning');
+        const testQueries = [
+          '현재 서버 상태는 어떤가요?',
+          'CPU 사용률이 높은 서버를 찾아주세요',
+          '메모리 부족 경고가 있는 서버는?',
+          '네트워크 상태를 확인해주세요',
+        ];
 
-                if (getResponse.ok) {
-                    const getData = await getResponse.json();
-                    log('fallback-result', `GET 데이터: ${JSON.stringify(getData, null, 2)}`, 'success');
-                }
+        let successCount = 0;
 
-                // POST 요청 테스트
-                log('fallback-result', '2. POST 요청 테스트...', 'info');
-                const postResponse = await fetch(`${BASE_URL}/api/ai/smart-fallback`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        query: '현재 시스템 상태를 확인해주세요',
-                        context: 'dashboard'
-                    })
-                });
+        for (let i = 0; i < testQueries.length; i++) {
+          const query = testQueries[i];
+          log('ai-query-result', `\n테스트 ${i + 1}: "${query}"`, 'info');
 
-                if (postResponse.ok) {
-                    const postData = await postResponse.json();
-                    log('fallback-result', `POST 성공: ${JSON.stringify(postData, null, 2)}`, 'success');
-                    testResults.fallback = true;
-                } else {
-                    const errorText = await postResponse.text();
-                    log('fallback-result', `POST 실패 (${postResponse.status}): ${errorText}`, 'error');
-                    testResults.fallback = false;
-                }
-            } catch (error) {
-                log('fallback-result', `오류: ${error.message}`, 'error');
-                testResults.fallback = false;
+          try {
+            const response = await fetch(`${BASE_URL}/api/ai/smart-fallback`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                query: query,
+                context: 'dashboard',
+                timestamp: new Date().toISOString(),
+              }),
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              log(
+                'ai-query-result',
+                `✅ 성공: ${JSON.stringify(data, null, 2)}`,
+                'success'
+              );
+              successCount++;
+            } else {
+              const errorText = await response.text();
+              log(
+                'ai-query-result',
+                `❌ 실패 (${response.status}): ${errorText}`,
+                'error'
+              );
             }
-            updateSummary();
+          } catch (error) {
+            log('ai-query-result', `❌ 오류: ${error.message}`, 'error');
+          }
+
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
-        async function testNaturalLanguageQueries() {
-            clearLog('ai-query-result');
-            log('ai-query-result', 'AI 자연어 질의 테스트 시작...', 'info');
+        testResults.aiQuery = successCount === testQueries.length;
+        log(
+          'ai-query-result',
+          `\n📊 자연어 질의 결과: ${successCount}/${testQueries.length} 성공`,
+          successCount === testQueries.length ? 'success' : 'warning'
+        );
+        updateSummary();
+      }
 
-            const testQueries = [
-                '현재 서버 상태는 어떤가요?',
-                'CPU 사용률이 높은 서버를 찾아주세요',
-                '메모리 부족 경고가 있는 서버는?',
-                '네트워크 상태를 확인해주세요'
-            ];
+      async function testDashboardModal() {
+        clearLog('modal-result');
+        log('modal-result', '대시보드 서버 모달 테스트 시작...', 'info');
 
-            let successCount = 0;
+        try {
+          // 서버 데이터 API 테스트
+          log('modal-result', '1. 서버 데이터 API 테스트...', 'info');
+          const serversResponse = await fetch(`${BASE_URL}/api/servers`);
 
-            for (let i = 0; i < testQueries.length; i++) {
-                const query = testQueries[i];
-                log('ai-query-result', `\n테스트 ${i + 1}: "${query}"`, 'info');
+          if (serversResponse.ok) {
+            const serversData = await serversResponse.json();
+            log(
+              'modal-result',
+              `서버 데이터 로드 성공: ${serversData.length || 0}개 서버`,
+              'success'
+            );
 
-                try {
-                    const response = await fetch(`${BASE_URL}/api/ai/smart-fallback`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            query: query,
-                            context: 'dashboard',
-                            timestamp: new Date().toISOString()
-                        })
-                    });
+            // 서버 상세 정보 API 테스트 (첫 번째 서버)
+            if (serversData.length > 0) {
+              const firstServer = serversData[0];
+              log('modal-result', '2. 서버 상세 정보 API 테스트...', 'info');
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        log('ai-query-result', `✅ 성공: ${JSON.stringify(data, null, 2)}`, 'success');
-                        successCount++;
-                    } else {
-                        const errorText = await response.text();
-                        log('ai-query-result', `❌ 실패 (${response.status}): ${errorText}`, 'error');
-                    }
-                } catch (error) {
-                    log('ai-query-result', `❌ 오류: ${error.message}`, 'error');
-                }
-
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-
-            testResults.aiQuery = successCount === testQueries.length;
-            log('ai-query-result', `\n📊 자연어 질의 결과: ${successCount}/${testQueries.length} 성공`,
-                successCount === testQueries.length ? 'success' : 'warning');
-            updateSummary();
-        }
-
-        async function testDashboardModal() {
-            clearLog('modal-result');
-            log('modal-result', '대시보드 서버 모달 테스트 시작...', 'info');
-
-            try {
-                // 서버 데이터 API 테스트
-                log('modal-result', '1. 서버 데이터 API 테스트...', 'info');
-                const serversResponse = await fetch(`${BASE_URL}/api/servers`);
-
-                if (serversResponse.ok) {
-                    const serversData = await serversResponse.json();
-                    log('modal-result', `서버 데이터 로드 성공: ${serversData.length || 0}개 서버`, 'success');
-
-                    // 서버 상세 정보 API 테스트 (첫 번째 서버)
-                    if (serversData.length > 0) {
-                        const firstServer = serversData[0];
-                        log('modal-result', '2. 서버 상세 정보 API 테스트...', 'info');
-
-                        const serverDetailResponse = await fetch(`${BASE_URL}/api/servers/${firstServer.id}`);
-                        if (serverDetailResponse.ok) {
-                            const serverDetail = await serverDetailResponse.json();
-                            log('modal-result', `서버 상세 정보 로드 성공: ${JSON.stringify(serverDetail, null, 2)}`, 'success');
-                            testResults.modal = true;
-                        } else {
-                            log('modal-result', `서버 상세 정보 로드 실패: ${serverDetailResponse.status}`, 'warning');
-                            testResults.modal = false;
-                        }
-                    } else {
-                        log('modal-result', '테스트할 서버가 없습니다', 'warning');
-                        testResults.modal = false;
-                    }
-                } else {
-                    log('modal-result', `서버 데이터 로드 실패: ${serversResponse.status}`, 'error');
-                    testResults.modal = false;
-                }
-
-                // 실시간 메트릭 API 테스트
-                log('modal-result', '3. 실시간 메트릭 API 테스트...', 'info');
-                const metricsResponse = await fetch(`${BASE_URL}/api/metrics/performance`);
-                if (metricsResponse.ok) {
-                    const metricsData = await metricsResponse.json();
-                    log('modal-result', `실시간 메트릭 로드 성공`, 'success');
-                } else {
-                    log('modal-result', `실시간 메트릭 로드 실패: ${metricsResponse.status}`, 'warning');
-                }
-
-            } catch (error) {
-                log('modal-result', `오류: ${error.message}`, 'error');
+              const serverDetailResponse = await fetch(
+                `${BASE_URL}/api/servers/${firstServer.id}`
+              );
+              if (serverDetailResponse.ok) {
+                const serverDetail = await serverDetailResponse.json();
+                log(
+                  'modal-result',
+                  `서버 상세 정보 로드 성공: ${JSON.stringify(serverDetail, null, 2)}`,
+                  'success'
+                );
+                testResults.modal = true;
+              } else {
+                log(
+                  'modal-result',
+                  `서버 상세 정보 로드 실패: ${serverDetailResponse.status}`,
+                  'warning'
+                );
                 testResults.modal = false;
+              }
+            } else {
+              log('modal-result', '테스트할 서버가 없습니다', 'warning');
+              testResults.modal = false;
             }
-            updateSummary();
+          } else {
+            log(
+              'modal-result',
+              `서버 데이터 로드 실패: ${serversResponse.status}`,
+              'error'
+            );
+            testResults.modal = false;
+          }
+
+          // 실시간 메트릭 API 테스트
+          log('modal-result', '3. 실시간 메트릭 API 테스트...', 'info');
+          const metricsResponse = await fetch(
+            `${BASE_URL}/api/metrics/performance`
+          );
+          if (metricsResponse.ok) {
+            const metricsData = await metricsResponse.json();
+            log('modal-result', `실시간 메트릭 로드 성공`, 'success');
+          } else {
+            log(
+              'modal-result',
+              `실시간 메트릭 로드 실패: ${metricsResponse.status}`,
+              'warning'
+            );
+          }
+        } catch (error) {
+          log('modal-result', `오류: ${error.message}`, 'error');
+          testResults.modal = false;
+        }
+        updateSummary();
+      }
+
+      function updateSummary() {
+        const summaryElement = document.getElementById('summary-result');
+        let summary = '📊 종합 테스트 결과\n\n';
+
+        summary += `🔗 기본 연결: ${testResults.basic === null ? '미실행' : testResults.basic ? '✅ 성공' : '❌ 실패'}\n`;
+        summary += `🤖 AI 엔진: ${testResults.aiEngine === null ? '미실행' : testResults.aiEngine ? '✅ 정상' : '❌ 문제있음'}\n`;
+        summary += `🔧 Smart Fallback: ${testResults.fallback === null ? '미실행' : testResults.fallback ? '✅ 수정됨' : '❌ 문제있음'}\n`;
+        summary += `💬 AI 자연어 질의: ${testResults.aiQuery === null ? '미실행' : testResults.aiQuery ? '✅ 정상작동' : '❌ 문제있음'}\n`;
+        summary += `🎯 대시보드 모달: ${testResults.modal === null ? '미실행' : testResults.modal ? '✅ 안정화됨' : '❌ 문제있음'}\n\n`;
+
+        const allPassed = Object.values(testResults).every(
+          result => result === true
+        );
+        const anyTested = Object.values(testResults).some(
+          result => result !== null
+        );
+
+        if (anyTested) {
+          if (allPassed) {
+            summary +=
+              '🎉 모든 테스트 통과! AI 시스템과 대시보드가 정상 작동합니다.';
+          } else {
+            summary += '⚠️ 일부 테스트 실패. 추가 확인이 필요할 수 있습니다.';
+          }
         }
 
-        function updateSummary() {
-            const summaryElement = document.getElementById('summary-result');
-            let summary = '📊 종합 테스트 결과\n\n';
+        summaryElement.textContent = summary;
+      }
 
-            summary += `🔗 기본 연결: ${testResults.basic === null ? '미실행' : testResults.basic ? '✅ 성공' : '❌ 실패'}\n`;
-            summary += `🤖 AI 엔진: ${testResults.aiEngine === null ? '미실행' : testResults.aiEngine ? '✅ 정상' : '❌ 문제있음'}\n`;
-            summary += `🔧 Smart Fallback: ${testResults.fallback === null ? '미실행' : testResults.fallback ? '✅ 수정됨' : '❌ 문제있음'}\n`;
-            summary += `💬 AI 자연어 질의: ${testResults.aiQuery === null ? '미실행' : testResults.aiQuery ? '✅ 정상작동' : '❌ 문제있음'}\n`;
-            summary += `🎯 대시보드 모달: ${testResults.modal === null ? '미실행' : testResults.modal ? '✅ 안정화됨' : '❌ 문제있음'}\n\n`;
-
-            const allPassed = Object.values(testResults).every(result => result === true);
-            const anyTested = Object.values(testResults).some(result => result !== null);
-
-            if (anyTested) {
-                if (allPassed) {
-                    summary += '🎉 모든 테스트 통과! AI 시스템과 대시보드가 정상 작동합니다.';
-                } else {
-                    summary += '⚠️ 일부 테스트 실패. 추가 확인이 필요할 수 있습니다.';
-                }
-            }
-
-            summaryElement.textContent = summary;
-        }
-
-        // 페이지 로드 시 자동으로 기본 연결 테스트
-        window.onload = function () {
-            log('summary-result', '🚀 새로운 Vercel 배포 테스트 준비 완료\n클릭하여 각 기능을 테스트하세요.', 'info');
-            setTimeout(testBasicConnection, 1000);
-        };
+      // 페이지 로드 시 자동으로 기본 연결 테스트
+      window.onload = function () {
+        log(
+          'summary-result',
+          '🚀 새로운 Vercel 배포 테스트 준비 완료\n클릭하여 각 기능을 테스트하세요.',
+          'info'
+        );
+        setTimeout(testBasicConnection, 1000);
+      };
     </script>
-</body>
-
+  </body>
 </html>

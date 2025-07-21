@@ -60,19 +60,21 @@ export default function TestAIPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className='min-h-screen bg-gray-950 text-white p-8'>
+      <div className='max-w-4xl mx-auto'>
         {/* 헤더 */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-            <Brain className="w-8 h-8 text-purple-400" />
+        <div className='mb-8'>
+          <h1 className='text-3xl font-bold mb-2 flex items-center gap-2'>
+            <Brain className='w-8 h-8 text-purple-400' />
             AI 엔진 테스트
           </h1>
-          <p className="text-gray-400">SimplifiedQueryEngine 자연어 질의 응답 테스트</p>
+          <p className='text-gray-400'>
+            SimplifiedQueryEngine 자연어 질의 응답 테스트
+          </p>
         </div>
 
         {/* 모드 선택 */}
-        <div className="mb-6 flex gap-4">
+        <div className='mb-6 flex gap-4'>
           <button
             onClick={() => setMode('local')}
             className={`px-4 py-2 rounded-lg transition-colors ${
@@ -96,25 +98,25 @@ export default function TestAIPage() {
         </div>
 
         {/* 질의 입력 폼 */}
-        <form onSubmit={handleSubmit} className="mb-8">
-          <div className="flex gap-2">
+        <form onSubmit={handleSubmit} className='mb-8'>
+          <div className='flex gap-2'>
             <input
-              type="text"
+              type='text'
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="질문을 입력하세요..."
-              className="flex-1 px-4 py-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={e => setQuery(e.target.value)}
+              placeholder='질문을 입력하세요...'
+              className='flex-1 px-4 py-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
               disabled={loading}
             />
             <button
-              type="submit"
+              type='submit'
               disabled={loading || !query.trim()}
-              className="px-6 py-3 bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className='px-6 py-3 bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'
             >
               {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className='w-5 h-5 animate-spin' />
               ) : (
-                <Send className="w-5 h-5" />
+                <Send className='w-5 h-5' />
               )}
               전송
             </button>
@@ -122,14 +124,14 @@ export default function TestAIPage() {
         </form>
 
         {/* 예시 질의 버튼들 */}
-        <div className="mb-8">
-          <p className="text-sm text-gray-400 mb-2">예시 질의:</p>
-          <div className="flex flex-wrap gap-2">
+        <div className='mb-8'>
+          <p className='text-sm text-gray-400 mb-2'>예시 질의:</p>
+          <div className='flex flex-wrap gap-2'>
             {exampleQueries.map((example, idx) => (
               <button
                 key={idx}
                 onClick={() => setQuery(example)}
-                className="px-3 py-1 text-sm bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+                className='px-3 py-1 text-sm bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors'
               >
                 {example}
               </button>
@@ -142,23 +144,27 @@ export default function TestAIPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
+            className='space-y-4'
           >
             {/* 상태 표시 */}
-            <div className={`p-4 rounded-lg ${
-              response.success ? 'bg-green-900/20 border border-green-800' : 'bg-red-900/20 border border-red-800'
-            }`}>
-              <div className="flex items-center gap-2">
+            <div
+              className={`p-4 rounded-lg ${
+                response.success
+                  ? 'bg-green-900/20 border border-green-800'
+                  : 'bg-red-900/20 border border-red-800'
+              }`}
+            >
+              <div className='flex items-center gap-2'>
                 {response.success ? (
-                  <CheckCircle className="w-5 h-5 text-green-400" />
+                  <CheckCircle className='w-5 h-5 text-green-400' />
                 ) : (
-                  <AlertCircle className="w-5 h-5 text-red-400" />
+                  <AlertCircle className='w-5 h-5 text-red-400' />
                 )}
-                <span className="font-semibold">
+                <span className='font-semibold'>
                   {response.success ? '성공' : '실패'}
                 </span>
                 {response.engine && (
-                  <span className="text-sm text-gray-400">
+                  <span className='text-sm text-gray-400'>
                     (엔진: {response.engine})
                   </span>
                 )}
@@ -168,23 +174,29 @@ export default function TestAIPage() {
             {/* 응답 내용 */}
             {response.success ? (
               <>
-                <div className="p-4 bg-gray-800 rounded-lg">
-                  <h3 className="font-semibold mb-2">응답:</h3>
-                  <pre className="whitespace-pre-wrap text-gray-300">
+                <div className='p-4 bg-gray-800 rounded-lg'>
+                  <h3 className='font-semibold mb-2'>응답:</h3>
+                  <pre className='whitespace-pre-wrap text-gray-300'>
                     {response.response}
                   </pre>
                 </div>
 
                 {/* 메타데이터 */}
-                <div className="p-4 bg-gray-800 rounded-lg">
-                  <h3 className="font-semibold mb-2">메타데이터:</h3>
-                  <div className="space-y-1 text-sm text-gray-400">
+                <div className='p-4 bg-gray-800 rounded-lg'>
+                  <h3 className='font-semibold mb-2'>메타데이터:</h3>
+                  <div className='space-y-1 text-sm text-gray-400'>
                     <div>신뢰도: {(response.confidence * 100).toFixed(1)}%</div>
                     {response.metadata && (
                       <>
                         <div>처리 시간: {response.metadata.totalTime}ms</div>
-                        <div>캐시 사용: {response.metadata.cacheHit ? '예' : '아니오'}</div>
-                        <div>MCP 사용: {response.metadata.mcpUsed ? '예' : '아니오'}</div>
+                        <div>
+                          캐시 사용:{' '}
+                          {response.metadata.cacheHit ? '예' : '아니오'}
+                        </div>
+                        <div>
+                          MCP 사용:{' '}
+                          {response.metadata.mcpUsed ? '예' : '아니오'}
+                        </div>
                       </>
                     )}
                   </div>
@@ -192,19 +204,30 @@ export default function TestAIPage() {
 
                 {/* 생각 과정 */}
                 {response.thinkingSteps && (
-                  <div className="p-4 bg-gray-800 rounded-lg">
-                    <h3 className="font-semibold mb-2">생각 과정:</h3>
-                    <div className="space-y-2">
+                  <div className='p-4 bg-gray-800 rounded-lg'>
+                    <h3 className='font-semibold mb-2'>생각 과정:</h3>
+                    <div className='space-y-2'>
                       {response.thinkingSteps.map((step: any, idx: number) => (
-                        <div key={idx} className="flex items-center gap-2 text-sm">
-                          <div className={`w-2 h-2 rounded-full ${
-                            step.status === 'completed' ? 'bg-green-400' :
-                            step.status === 'error' ? 'bg-red-400' :
-                            'bg-yellow-400'
-                          }`} />
-                          <span>{idx + 1}. {step.step}</span>
+                        <div
+                          key={idx}
+                          className='flex items-center gap-2 text-sm'
+                        >
+                          <div
+                            className={`w-2 h-2 rounded-full ${
+                              step.status === 'completed'
+                                ? 'bg-green-400'
+                                : step.status === 'error'
+                                  ? 'bg-red-400'
+                                  : 'bg-yellow-400'
+                            }`}
+                          />
+                          <span>
+                            {idx + 1}. {step.step}
+                          </span>
                           {step.duration && (
-                            <span className="text-gray-500">({step.duration}ms)</span>
+                            <span className='text-gray-500'>
+                              ({step.duration}ms)
+                            </span>
                           )}
                         </div>
                       ))}
@@ -213,21 +236,25 @@ export default function TestAIPage() {
                 )}
               </>
             ) : (
-              <div className="p-4 bg-gray-800 rounded-lg">
-                <h3 className="font-semibold mb-2 text-red-400">에러:</h3>
-                <p className="text-gray-300">{response.error || '알 수 없는 오류'}</p>
+              <div className='p-4 bg-gray-800 rounded-lg'>
+                <h3 className='font-semibold mb-2 text-red-400'>에러:</h3>
+                <p className='text-gray-300'>
+                  {response.error || '알 수 없는 오류'}
+                </p>
                 {response.message && (
-                  <p className="text-sm text-gray-400 mt-2">{response.message}</p>
+                  <p className='text-sm text-gray-400 mt-2'>
+                    {response.message}
+                  </p>
                 )}
               </div>
             )}
 
             {/* 원본 응답 (디버그용) */}
-            <details className="p-4 bg-gray-900 rounded-lg">
-              <summary className="cursor-pointer text-sm text-gray-400">
+            <details className='p-4 bg-gray-900 rounded-lg'>
+              <summary className='cursor-pointer text-sm text-gray-400'>
                 원본 응답 데이터
               </summary>
-              <pre className="mt-2 text-xs overflow-auto">
+              <pre className='mt-2 text-xs overflow-auto'>
                 {JSON.stringify(response, null, 2)}
               </pre>
             </details>

@@ -1,11 +1,14 @@
 /**
  * 🔄 암호화 타입 어댑터 유틸리티
- * 
+ *
  * EncryptedEnvVar와 EncryptedEnvData 간의 타입 호환성 문제 해결
  * 레거시 암호화 형식을 새로운 Enhanced 형식으로 변환
  */
 
-import { EncryptedEnvData, EncryptedEnvConfig } from '@/lib/crypto/EnhancedEnvCryptoManager';
+import {
+  EncryptedEnvData,
+  EncryptedEnvConfig,
+} from '@/lib/crypto/EnhancedEnvCryptoManager';
 
 /**
  * 레거시 EncryptedEnvVar 타입 정의
@@ -34,7 +37,7 @@ export interface EncryptedEnvironmentConfig {
 
 /**
  * EncryptedEnvVar를 EncryptedEnvData로 변환하는 어댑터 함수
- * 
+ *
  * @param envVar 레거시 형식의 암호화 변수
  * @returns Enhanced 형식의 암호화 데이터
  */
@@ -59,13 +62,13 @@ export function adaptEncryptedEnvVarToEnvData(
     algorithm: envVar.algorithm || 'aes-256-gcm', // 기본값
     iterations: envVar.iterations || 100000, // 기본값
     timestamp: timestamp,
-    version: envVar.version || '1.0.0' // 기본값
+    version: envVar.version || '1.0.0', // 기본값
   };
 }
 
 /**
  * 역방향 어댑터: EncryptedEnvData를 EncryptedEnvVar로 변환
- * 
+ *
  * @param envData Enhanced 형식의 암호화 데이터
  * @returns 레거시 형식의 암호화 변수
  */
@@ -80,7 +83,7 @@ export function adaptEncryptedEnvDataToEnvVar(
     algorithm: envData.algorithm,
     iterations: envData.iterations,
     timestamp: envData.timestamp,
-    version: envData.version
+    version: envData.version,
   };
 }
 
@@ -100,11 +103,11 @@ export function adaptEncryptedEnvVarRecordToEnvDataRecord(
   envVarRecord: Record<string, EncryptedEnvVar>
 ): Record<string, EncryptedEnvData> {
   const result: Record<string, EncryptedEnvData> = {};
-  
+
   for (const [key, envVar] of Object.entries(envVarRecord)) {
     result[key] = adaptEncryptedEnvVarToEnvData(envVar);
   }
-  
+
   return result;
 }
 
@@ -132,14 +135,14 @@ export function safeAdaptToEncryptedEnvData(
   if (isCompleteEncryptedEnvData(envVar)) {
     return envVar as EncryptedEnvData;
   }
-  
+
   // 불완전한 형식이면 어댑터를 통해 변환
   return adaptEncryptedEnvVarToEnvData(envVar);
 }
 
 /**
  * EncryptedEnvironmentConfig를 EncryptedEnvConfig로 변환하는 어댑터 함수
- * 
+ *
  * @param envConfig 레거시 형식의 환경 설정
  * @returns Enhanced 형식의 환경 설정
  */
@@ -147,16 +150,18 @@ export function adaptEncryptedEnvironmentConfigToEnvConfig(
   envConfig: EncryptedEnvironmentConfig
 ): EncryptedEnvConfig {
   // 변수들을 EncryptedEnvData 형식으로 변환
-  const adaptedVariables = adaptEncryptedEnvVarRecordToEnvDataRecord(envConfig.variables);
-  
+  const adaptedVariables = adaptEncryptedEnvVarRecordToEnvDataRecord(
+    envConfig.variables
+  );
+
   // 체크섬 생성 (간단한 해시)
   const checksum = generateSimpleChecksum(JSON.stringify(adaptedVariables));
-  
+
   return {
     version: envConfig.version,
     environment: 'production', // 기본값
     variables: adaptedVariables,
-    checksum: checksum
+    checksum: checksum,
   };
 }
 
@@ -167,7 +172,7 @@ function generateSimpleChecksum(data: string): string {
   let hash = 0;
   for (let i = 0; i < data.length; i++) {
     const char = data.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // 32bit integer로 변환
   }
   return hash.toString(16);

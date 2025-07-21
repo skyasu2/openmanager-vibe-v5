@@ -30,7 +30,7 @@ export class MockDataRotator {
       intervalMs: 30000, // 30초
       startOffset: Math.floor(Math.random() * 2880), // 랜덤 시작점
       speed: 1,
-      ...config
+      ...config,
     };
 
     this.currentIndex = this.config.startOffset;
@@ -46,7 +46,9 @@ export class MockDataRotator {
    */
   private decompressAllData() {
     Object.entries(this.timeSeries).forEach(([serverId, data]) => {
-      this.decompressedData[serverId] = decompressTimeSeriesData(data.data as any);
+      this.decompressedData[serverId] = decompressTimeSeriesData(
+        data.data as any
+      );
     });
   }
 
@@ -55,7 +57,9 @@ export class MockDataRotator {
    */
   private calculateCurrentIndex(): number {
     const elapsed = Date.now() - this.startTime;
-    const intervals = Math.floor(elapsed / (this.config.intervalMs / this.config.speed));
+    const intervals = Math.floor(
+      elapsed / (this.config.intervalMs / this.config.speed)
+    );
     return (this.config.startOffset + intervals) % 2880;
   }
 
@@ -70,24 +74,27 @@ export class MockDataRotator {
 
     this.currentIndex = this.calculateCurrentIndex();
     const current = data[this.currentIndex];
-    
+
     // 다음 포인트와 보간하여 부드러운 전환
     const nextIndex = (this.currentIndex + 1) % data.length;
     const next = data[nextIndex];
-    
+
     // 시간 내 위치 계산 (0-1)
     const elapsed = Date.now() - this.startTime;
-    const intervalProgress = (elapsed % (this.config.intervalMs / this.config.speed)) / 
-                           (this.config.intervalMs / this.config.speed);
-    
+    const intervalProgress =
+      (elapsed % (this.config.intervalMs / this.config.speed)) /
+      (this.config.intervalMs / this.config.speed);
+
     // 선형 보간
     return {
       cpu: current.cpu + (next.cpu - current.cpu) * intervalProgress,
-      memory: current.memory + (next.memory - current.memory) * intervalProgress,
+      memory:
+        current.memory + (next.memory - current.memory) * intervalProgress,
       disk: current.disk + (next.disk - current.disk) * intervalProgress,
-      network: current.network + (next.network - current.network) * intervalProgress,
+      network:
+        current.network + (next.network - current.network) * intervalProgress,
       responseTime: current.responseTime,
-      errorRate: current.errorRate
+      errorRate: current.errorRate,
     };
   }
 
@@ -98,7 +105,7 @@ export class MockDataRotator {
     return servers.map(server => {
       const metrics = this.getCurrentMetrics(server.id);
       const scenario = this.timeSeries[server.id]?.scenario || 'normal';
-      
+
       // 메트릭 기반 상태 결정
       let status: 'online' | 'warning' | 'critical' = 'online';
       if (metrics.cpu > 85 || metrics.memory > 90 || metrics.disk > 90) {
@@ -115,7 +122,7 @@ export class MockDataRotator {
         network: Math.round(metrics.network),
         status,
         lastUpdate: new Date(),
-        alerts: this.timeSeries[server.id]?.alerts || []
+        alerts: this.timeSeries[server.id]?.alerts || [],
       };
     });
   }
@@ -125,10 +132,10 @@ export class MockDataRotator {
    */
   startRotation(callback: (servers: Server[]) => void, servers: Server[]) {
     this.updateCallback = callback;
-    
+
     // 즉시 한 번 업데이트
     callback(this.updateServers(servers));
-    
+
     // 주기적 업데이트
     this.rotationTimer = setInterval(() => {
       callback(this.updateServers(servers));
@@ -153,7 +160,7 @@ export class MockDataRotator {
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
-    
+
     return { hour: hours, minute: minutes, second: seconds };
   }
 
@@ -163,8 +170,10 @@ export class MockDataRotator {
   jumpToTime(hour: number, minute: number = 0) {
     const targetIndex = Math.floor((hour * 60 + minute) * 2); // 30초 간격이므로 *2
     this.currentIndex = Math.min(2879, Math.max(0, targetIndex));
-    this.startTime = Date.now() - (this.currentIndex * this.config.intervalMs / this.config.speed);
-    
+    this.startTime =
+      Date.now() -
+      (this.currentIndex * this.config.intervalMs) / this.config.speed;
+
     // 콜백이 있으면 즉시 업데이트
     if (this.updateCallback) {
       const servers = this.updateServers([]); // 빈 배열 전달, 실제로는 외부에서 관리
@@ -177,7 +186,7 @@ export class MockDataRotator {
    */
   setSpeed(speed: number) {
     this.config.speed = Math.max(0.1, Math.min(10, speed)); // 0.1x ~ 10x
-    
+
     // 타이머 재시작
     if (this.rotationTimer && this.updateCallback) {
       this.stopRotation();
@@ -197,7 +206,7 @@ export class MockDataRotator {
       progress: (this.currentIndex / 2880) * 100,
       simulationTime: `${String(simTime.hour).padStart(2, '0')}:${String(simTime.minute).padStart(2, '0')}:${String(simTime.second).padStart(2, '0')}`,
       speed: this.config.speed,
-      isRunning: !!this.rotationTimer
+      isRunning: !!this.rotationTimer,
     };
   }
 }
@@ -212,11 +221,11 @@ export function getRotatorInstance(
   if (!rotatorInstance && timeSeries) {
     rotatorInstance = new MockDataRotator(timeSeries, config);
   }
-  
+
   if (!rotatorInstance) {
     throw new Error('MockDataRotator not initialized');
   }
-  
+
   return rotatorInstance;
 }
 

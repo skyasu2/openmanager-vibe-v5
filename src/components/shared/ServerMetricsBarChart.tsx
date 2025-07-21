@@ -29,29 +29,29 @@ const getMetricConfig = (
 
   // 기본 색상 설정
   const baseColors = {
-    cpu: { 
-      color: '#3b82f6', 
+    cpu: {
+      color: '#3b82f6',
       bgColor: 'bg-blue-50',
       barColor: 'bg-blue-500',
-      textColor: 'text-blue-700'
+      textColor: 'text-blue-700',
     },
-    memory: { 
-      color: '#8b5cf6', 
+    memory: {
+      color: '#8b5cf6',
       bgColor: 'bg-purple-50',
       barColor: 'bg-purple-500',
-      textColor: 'text-purple-700'
+      textColor: 'text-purple-700',
     },
-    disk: { 
-      color: '#06b6d4', 
+    disk: {
+      color: '#06b6d4',
       bgColor: 'bg-cyan-50',
       barColor: 'bg-cyan-500',
-      textColor: 'text-cyan-700'
+      textColor: 'text-cyan-700',
     },
-    network: { 
-      color: '#22c55e', 
+    network: {
+      color: '#22c55e',
       bgColor: 'bg-green-50',
       barColor: 'bg-green-500',
-      textColor: 'text-green-700'
+      textColor: 'text-green-700',
     },
   };
 
@@ -84,25 +84,25 @@ const getMetricConfig = (
 const generateHistoricalData = (currentValue: number, type: string) => {
   const data = [];
   const now = Date.now();
-  
+
   // 5분간 1분 간격으로 5개 데이터 포인트 생성
   for (let i = 4; i >= 0; i--) {
-    const timestamp = now - (i * 60 * 1000); // 1분 간격
+    const timestamp = now - i * 60 * 1000; // 1분 간격
     let value = currentValue;
-    
+
     // 과거 데이터는 현재값 기준으로 약간의 변동 추가
     if (i > 0) {
       const variation = (Math.random() - 0.5) * 20; // ±10% 변동
       value = Math.max(0, Math.min(100, currentValue + variation));
     }
-    
+
     data.push({
       timestamp,
       value: Math.round(value),
-      label: i === 0 ? '현재' : `${i}분 전`
+      label: i === 0 ? '현재' : `${i}분 전`,
     });
   }
-  
+
   return data;
 };
 
@@ -113,10 +113,10 @@ export default function ServerMetricsBarChart({
   showRealTimeUpdates = false,
   className = '',
 }: ServerMetricsBarChartProps) {
-  const [historicalData, setHistoricalData] = useState(() => 
+  const [historicalData, setHistoricalData] = useState(() =>
     generateHistoricalData(value, type)
   );
-  
+
   const config = getMetricConfig(value, type);
 
   // 실시간 업데이트 시뮬레이션
@@ -129,21 +129,21 @@ export default function ServerMetricsBarChart({
         const newData = [...prev.slice(1)];
         const lastDataPoint = prev[prev.length - 1];
         const lastValue = lastDataPoint?.value ?? 50;
-        
+
         // 새로운 현재값 생성 (기존값 기준 ±5% 변동)
         const variation = (Math.random() - 0.5) * 10;
         const newValue = Math.max(0, Math.min(100, lastValue + variation));
-        
+
         newData.push({
           timestamp: Date.now(),
           value: Math.round(newValue),
-          label: '현재'
+          label: '현재',
         });
-        
+
         // 라벨 업데이트
         return newData.map((item, index) => ({
           ...item,
-          label: index === 4 ? '현재' : `${4 - index}분 전`
+          label: index === 4 ? '현재' : `${4 - index}분 전`,
         }));
       });
     }, 30000); // 30초마다 업데이트
@@ -157,33 +157,36 @@ export default function ServerMetricsBarChart({
   return (
     <div className={`${className}`}>
       {/* 라벨과 현재값 */}
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-gray-600">{label}</span>
+      <div className='flex items-center justify-between mb-2'>
+        <span className='text-xs font-medium text-gray-600'>{label}</span>
         <span className={`text-sm font-bold ${config.textColor}`}>
           {Math.round(value)}%
         </span>
       </div>
 
       {/* 막대 그래프 */}
-      <div className="space-y-1">
-        <div className="flex items-end justify-between h-20 gap-1 px-1">
+      <div className='space-y-1'>
+        <div className='flex items-end justify-between h-20 gap-1 px-1'>
           {historicalData.map((dataPoint, index) => {
             const height = Math.max(8, (dataPoint.value / 100) * 100);
             const isCurrentValue = index === historicalData.length - 1;
-            
+
             return (
-              <div key={index} className="flex-1 flex flex-col items-center max-w-[20px]">
+              <div
+                key={index}
+                className='flex-1 flex flex-col items-center max-w-[20px]'
+              >
                 {/* 막대 */}
                 <motion.div
-                  className="w-full relative"
+                  className='w-full relative'
                   style={{ height: '80px' }}
                   initial={{ height: 0 }}
                   animate={{ height: '80px' }}
                   transition={{ delay: index * 0.05, duration: 0.3 }}
                 >
                   {/* 배경 막대 */}
-                  <div className="absolute bottom-0 w-full h-full bg-gray-100 rounded-sm opacity-30" />
-                  
+                  <div className='absolute bottom-0 w-full h-full bg-gray-100 rounded-sm opacity-30' />
+
                   {/* 실제 데이터 막대 */}
                   <motion.div
                     className={`
@@ -191,28 +194,28 @@ export default function ServerMetricsBarChart({
                       ${config.barColor}
                       ${isCurrentValue ? 'opacity-100 shadow-md' : 'opacity-80'}
                     `}
-                    style={{ 
+                    style={{
                       height: `${height}%`,
                       position: 'absolute',
-                      bottom: 0
+                      bottom: 0,
                     }}
                     initial={{ height: 0 }}
                     animate={{ height: `${height}%` }}
-                    transition={{ 
-                      delay: index * 0.05, 
+                    transition={{
+                      delay: index * 0.05,
                       duration: 0.6,
                       type: 'spring',
                       stiffness: 120,
-                      damping: 15
+                      damping: 15,
                     }}
                   >
                     {/* 그라데이션 효과 */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-white/20" />
-                    
+                    <div className='absolute inset-0 bg-gradient-to-t from-black/10 to-white/20' />
+
                     {/* 현재값 강조 효과 */}
                     {isCurrentValue && showRealTimeUpdates && (
                       <motion.div
-                        className="absolute inset-0 bg-white/40"
+                        className='absolute inset-0 bg-white/40'
                         animate={{
                           opacity: [0, 0.6, 0],
                         }}
@@ -224,9 +227,11 @@ export default function ServerMetricsBarChart({
                       />
                     )}
                   </motion.div>
-                  
+
                   {/* 값 표시 (현재값과 최고값만) */}
-                  {(isCurrentValue || dataPoint.value === Math.max(...historicalData.map(d => d.value))) && (
+                  {(isCurrentValue ||
+                    dataPoint.value ===
+                      Math.max(...historicalData.map(d => d.value))) && (
                     <motion.div
                       className={`
                         absolute -top-7 left-1/2 transform -translate-x-1/2
@@ -248,39 +253,46 @@ export default function ServerMetricsBarChart({
         </div>
 
         {/* 시간 라벨 */}
-        <div className="flex justify-between text-xs text-gray-400 mt-2 px-1">
+        <div className='flex justify-between text-xs text-gray-400 mt-2 px-1'>
           {historicalData.map((dataPoint, index) => (
-            <span 
-              key={index} 
+            <span
+              key={index}
               className={`flex-1 text-center font-medium ${
                 index === historicalData.length - 1 ? 'text-gray-600' : ''
               }`}
             >
-              {index === 0 ? '-4분' : 
-               index === 1 ? '-3분' :
-               index === 2 ? '-2분' :
-               index === 3 ? '-1분' : '현재'}
+              {index === 0
+                ? '-4분'
+                : index === 1
+                  ? '-3분'
+                  : index === 2
+                    ? '-2분'
+                    : index === 3
+                      ? '-1분'
+                      : '현재'}
             </span>
           ))}
         </div>
       </div>
 
       {/* 상태 표시 */}
-      <div className="flex items-center justify-between mt-2">
-        <div className="flex items-center gap-1">
-          <div 
+      <div className='flex items-center justify-between mt-2'>
+        <div className='flex items-center gap-1'>
+          <div
             className={`w-2 h-2 rounded-full ${
-              config.status === '위험' ? 'bg-red-500' :
-              config.status === '주의' ? 'bg-amber-500' :
-              config.barColor.replace('bg-', 'bg-')
+              config.status === '위험'
+                ? 'bg-red-500'
+                : config.status === '주의'
+                  ? 'bg-amber-500'
+                  : config.barColor.replace('bg-', 'bg-')
             }`}
           />
-          <span className="text-xs text-gray-500">{config.status}</span>
+          <span className='text-xs text-gray-500'>{config.status}</span>
         </div>
-        
+
         {showRealTimeUpdates && (
           <motion.div
-            className="text-xs text-gray-400"
+            className='text-xs text-gray-400'
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
@@ -293,6 +305,6 @@ export default function ServerMetricsBarChart({
 }
 
 // 편의를 위한 사전 정의된 변형들
-export const ServerCardBarChart = (props: Omit<ServerMetricsBarChartProps, 'variant'>) => (
-  <ServerMetricsBarChart {...props} />
-);
+export const ServerCardBarChart = (
+  props: Omit<ServerMetricsBarChartProps, 'variant'>
+) => <ServerMetricsBarChart {...props} />;

@@ -93,7 +93,9 @@ function moveFile(source, destination) {
       }
       fs.renameSync(source, destination);
       const stats = fs.statSync(destination);
-      console.log(`✅ ${source} → ${destination} (${(stats.size / 1024).toFixed(1)}KB)`);
+      console.log(
+        `✅ ${source} → ${destination} (${(stats.size / 1024).toFixed(1)}KB)`
+      );
       return true;
     } else {
       console.log(`⚠️ ${source} (이미 없음)`);
@@ -137,7 +139,9 @@ function cleanupCodebase() {
     }
   });
 
-  console.log(`\n📊 정리 완료: ${totalMoved}개 파일, ${(totalSize / 1024 / 1024).toFixed(2)}MB 절약\n`);
+  console.log(
+    `\n📊 정리 완료: ${totalMoved}개 파일, ${(totalSize / 1024 / 1024).toFixed(2)}MB 절약\n`
+  );
 
   return { moved: totalMoved, size: totalSize };
 }
@@ -219,8 +223,7 @@ ${unusedFiles.map(f => `- ${f}`).join('\n')}
   console.log('\n🎉 정리 완료!');
   console.log(`📄 리포트: ${reportPath}`);
   console.log('📁 백업: archive/cleanup-2025-06-08/');
-
 } catch (error) {
   console.error('❌ 정리 중 오류:', error.message);
   process.exit(1);
-} 
+}

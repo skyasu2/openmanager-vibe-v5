@@ -11,10 +11,10 @@ const fs = require('fs');
 
 // 포트 대역대 정의
 const PORT_RANGES = {
-  MAIN: 3000,           // Next.js 메인 서버
-  MCP: 3100,            // 독립 MCP 서버  
-  TEST: [3200, 3299],   // 테스트 서버 대역
-  BACKUP: [3300, 3399]  // 백업/대체 서버 대역
+  MAIN: 3000, // Next.js 메인 서버
+  MCP: 3100, // 독립 MCP 서버
+  TEST: [3200, 3299], // 테스트 서버 대역
+  BACKUP: [3300, 3399], // 백업/대체 서버 대역
 };
 
 const SERVERS = {
@@ -23,14 +23,14 @@ const SERVERS = {
     port: PORT_RANGES.MAIN,
     command: 'npm run dev',
     healthCheck: `http://localhost:${PORT_RANGES.MAIN}/api/health`,
-    cwd: process.cwd()
+    cwd: process.cwd(),
   },
   mcp: {
     name: 'MCP Server',
     port: PORT_RANGES.MCP,
     command: 'npm start',
     healthCheck: `http://localhost:${PORT_RANGES.MCP}/health`,
-    cwd: path.join(process.cwd(), 'mcp-server')
+    cwd: path.join(process.cwd(), 'mcp-server'),
   },
   test: {
     name: 'Test Server',
@@ -38,8 +38,8 @@ const SERVERS = {
     command: 'npm run dev:standalone',
     healthCheck: `http://localhost:${PORT_RANGES.TEST[0]}/api/health`,
     cwd: process.cwd(),
-    env: { PORT: PORT_RANGES.TEST[0].toString() }
-  }
+    env: { PORT: PORT_RANGES.TEST[0].toString() },
+  },
 };
 
 class ServerManager {
@@ -49,11 +49,11 @@ class ServerManager {
   }
 
   async checkPortInUse(port) {
-    return new Promise((resolve) => {
-      const command = this.isWindows 
+    return new Promise(resolve => {
+      const command = this.isWindows
         ? `netstat -ano | findstr ":${port}"`
         : `lsof -i :${port}`;
-      
+
       exec(command, (error, stdout) => {
         resolve(!!stdout.trim());
       });
@@ -61,11 +61,13 @@ class ServerManager {
   }
 
   async killProcessOnPort(port) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       if (this.isWindows) {
         exec(`netstat -ano | findstr ":${port}"`, (error, stdout) => {
           if (stdout) {
-            const lines = stdout.split('\n').filter(line => line.includes('LISTENING'));
+            const lines = stdout
+              .split('\n')
+              .filter(line => line.includes('LISTENING'));
             lines.forEach(line => {
               const pid = line.trim().split(/\s+/).pop();
               if (pid && pid !== '0') {
@@ -84,7 +86,7 @@ class ServerManager {
   }
 
   async healthCheck(url) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       exec(`curl -f ${url}`, (error, stdout) => {
         resolve(!error && stdout);
       });
@@ -102,7 +104,7 @@ class ServerManager {
 
     // 포트 사용 중인지 확인
     const portInUse = await this.checkPortInUse(server.port);
-    
+
     if (portInUse) {
       if (force) {
         console.log(`🔧 포트 ${server.port}에서 기존 프로세스 종료 중...`);
@@ -112,10 +114,14 @@ class ServerManager {
         // 헬스체크로 서버가 정상 동작하는지 확인
         const isHealthy = await this.healthCheck(server.healthCheck);
         if (isHealthy) {
-          console.log(`✅ ${server.name} 이미 정상 동작 중 (포트: ${server.port})`);
+          console.log(
+            `✅ ${server.name} 이미 정상 동작 중 (포트: ${server.port})`
+          );
           return true;
         } else {
-          console.log(`⚠️ 포트 ${server.port} 사용 중이지만 헬스체크 실패 - 재시작 중...`);
+          console.log(
+            `⚠️ 포트 ${server.port} 사용 중이지만 헬스체크 실패 - 재시작 중...`
+          );
           await this.killProcessOnPort(server.port);
           await new Promise(resolve => setTimeout(resolve, 2000));
         }
@@ -124,10 +130,10 @@ class ServerManager {
 
     console.log(`🚀 ${server.name} 시작 중... (포트: ${server.port})`);
 
-    const env = { 
-      ...process.env, 
+    const env = {
+      ...process.env,
       PORT: server.port.toString(),
-      ...(server.env || {})
+      ...(server.env || {}),
     };
 
     const child = spawn('cmd', ['/c', server.command], {
@@ -135,21 +141,21 @@ class ServerManager {
       env,
       stdio: 'pipe',
       shell: true,
-      detached: false
+      detached: false,
     });
 
     this.runningProcesses.set(serverKey, child);
 
     // 로그 출력
-    child.stdout.on('data', (data) => {
+    child.stdout.on('data', data => {
       console.log(`[${server.name}] ${data}`);
     });
 
-    child.stderr.on('data', (data) => {
+    child.stderr.on('data', data => {
       console.error(`[${server.name}] ${data}`);
     });
 
-    child.on('exit', (code) => {
+    child.on('exit', code => {
       console.log(`[${server.name}] 프로세스 종료됨 (코드: ${code})`);
       this.runningProcesses.delete(serverKey);
     });
@@ -173,24 +179,32 @@ class ServerManager {
     console.log('포트 대역대 분리:');
     console.log(`  - 메인 서버: ${PORT_RANGES.MAIN}`);
     console.log(`  - MCP 서버: ${PORT_RANGES.MCP}`);
-    console.log(`  - 테스트 서버: ${PORT_RANGES.TEST[0]}-${PORT_RANGES.TEST[1]}`);
-    console.log(`  - 백업 서버: ${PORT_RANGES.BACKUP[0]}-${PORT_RANGES.BACKUP[1]}\n`);
+    console.log(
+      `  - 테스트 서버: ${PORT_RANGES.TEST[0]}-${PORT_RANGES.TEST[1]}`
+    );
+    console.log(
+      `  - 백업 서버: ${PORT_RANGES.BACKUP[0]}-${PORT_RANGES.BACKUP[1]}\n`
+    );
 
     const results = {};
-    
+
     for (const [key, server] of Object.entries(SERVERS)) {
       const portInUse = await this.checkPortInUse(server.port);
-      const isHealthy = portInUse ? await this.healthCheck(server.healthCheck) : false;
-      
+      const isHealthy = portInUse
+        ? await this.healthCheck(server.healthCheck)
+        : false;
+
       results[key] = {
         name: server.name,
         port: server.port,
         portInUse,
         isHealthy,
-        status: isHealthy ? '✅ 정상' : portInUse ? '⚠️ 응답없음' : '❌ 중지됨'
+        status: isHealthy ? '✅ 정상' : portInUse ? '⚠️ 응답없음' : '❌ 중지됨',
       };
 
-      console.log(`${results[key].status} ${server.name} (포트: ${server.port})`);
+      console.log(
+        `${results[key].status} ${server.name} (포트: ${server.port})`
+      );
     }
 
     return results;
@@ -207,7 +221,7 @@ class ServerManager {
 
     console.log(`🛑 ${server.name} 중지 중...`);
     await this.killProcessOnPort(server.port);
-    
+
     if (this.runningProcesses.has(serverKey)) {
       const process = this.runningProcesses.get(serverKey);
       process.kill();
@@ -234,7 +248,7 @@ async function main() {
     case 'check':
       await manager.checkAllServers();
       break;
-      
+
     case 'start':
       if (serverKey && SERVERS[serverKey]) {
         await manager.startServer(serverKey);
@@ -242,7 +256,7 @@ async function main() {
         console.log('사용법: node server-manager.js start [main|mcp|test]');
       }
       break;
-      
+
     case 'restart':
       if (serverKey && SERVERS[serverKey]) {
         await manager.restartServer(serverKey);
@@ -250,7 +264,7 @@ async function main() {
         console.log('사용법: node server-manager.js restart [main|mcp|test]');
       }
       break;
-      
+
     case 'stop':
       if (serverKey && SERVERS[serverKey]) {
         await manager.stopServer(serverKey);
@@ -260,23 +274,23 @@ async function main() {
         console.log('사용법: node server-manager.js stop [main|mcp|test|all]');
       }
       break;
-      
+
     case 'auto':
       console.log('🤖 자동 서버 관리 모드');
       const status = await manager.checkAllServers();
-      
+
       // 메인 서버가 중지되었거나 응답없으면 재시작
       if (!status.main.isHealthy) {
         await manager.restartServer('main');
       }
-      
+
       // MCP 서버 상태 확인 및 재시작
       if (!status.mcp.isHealthy) {
         await manager.restartServer('mcp');
       }
-      
+
       break;
-      
+
     default:
       console.log(`
 OpenManager Vibe V5 서버 관리 도구
@@ -303,4 +317,4 @@ if (require.main === module) {
   main().catch(console.error);
 }
 
-module.exports = ServerManager; 
+module.exports = ServerManager;

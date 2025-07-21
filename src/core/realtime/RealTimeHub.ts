@@ -1,6 +1,6 @@
 /**
  * 🔄 RealTimeHub v1.0
- * 
+ *
  * OpenManager v5.21.0 - 실시간 통신 허브
  * - WebSocket 기반 실시간 데이터 전송
  * - 메모리 기반 연결 관리 (무설정 배포)
@@ -43,9 +43,9 @@ class RealTimeHub {
     groupConnections: new Map(),
     messagesSent: 0,
     messagesReceived: 0,
-    lastActivity: Date.now()
+    lastActivity: Date.now(),
   };
-  
+
   private readonly MAX_HISTORY = 1000;
   private readonly CONNECTION_TIMEOUT = 5 * 60 * 1000; // 5분
   private cleanupInterval: NodeJS.Timeout | null = null;
@@ -58,23 +58,29 @@ class RealTimeHub {
   /**
    * 🔗 새 연결 등록
    */
-  registerConnection(connectionId: string, socket: WebSocket | null = null, metadata: Record<string, any> = {}): RealTimeConnection {
+  registerConnection(
+    connectionId: string,
+    socket: WebSocket | null = null,
+    metadata: Record<string, any> = {}
+  ): RealTimeConnection {
     const connection: RealTimeConnection = {
       id: connectionId,
       socket,
       groups: new Set(['default']),
       lastActivity: Date.now(),
-      metadata
+      metadata,
     };
 
     this.connections.set(connectionId, connection);
     this.addToGroup('default', connectionId);
-    
+
     this.stats.totalConnections++;
     this.updateActiveConnections();
-    
-    console.log(`🔗 새 연결 등록: ${connectionId} (총 ${this.connections.size}개)`);
-    
+
+    console.log(
+      `🔗 새 연결 등록: ${connectionId} (총 ${this.connections.size}개)`
+    );
+
     return connection;
   }
 
@@ -98,7 +104,9 @@ class RealTimeHub {
     this.connections.delete(connectionId);
     this.updateActiveConnections();
 
-    console.log(`🚪 연결 해제: ${connectionId} (남은 ${this.connections.size}개)`);
+    console.log(
+      `🚪 연결 해제: ${connectionId} (남은 ${this.connections.size}개)`
+    );
     return true;
   }
 
@@ -128,7 +136,7 @@ class RealTimeHub {
     if (!group) return false;
 
     group.delete(connectionId);
-    
+
     const connection = this.connections.get(connectionId);
     if (connection) {
       connection.groups.delete(groupName);
@@ -149,15 +157,17 @@ class RealTimeHub {
   broadcast(message: Omit<RealTimeMessage, 'timestamp'>): number {
     const fullMessage: RealTimeMessage = {
       ...message,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     let sentCount = 0;
 
     // 대상이 지정된 경우
     if (message.target) {
-      const targets = Array.isArray(message.target) ? message.target : [message.target];
-      
+      const targets = Array.isArray(message.target)
+        ? message.target
+        : [message.target];
+
       targets.forEach(target => {
         // 그룹 대상
         if (this.groups.has(target)) {
@@ -190,29 +200,36 @@ class RealTimeHub {
     this.stats.messagesSent += sentCount;
     this.stats.lastActivity = Date.now();
 
-    console.log(`📢 메시지 브로드캐스트: ${message.type} → ${sentCount}개 연결`);
+    console.log(
+      `📢 메시지 브로드캐스트: ${message.type} → ${sentCount}개 연결`
+    );
     return sentCount;
   }
 
   /**
    * 📤 개별 연결에 메시지 전송
    */
-  private sendToConnection(connectionId: string, message: RealTimeMessage): boolean {
+  private sendToConnection(
+    connectionId: string,
+    message: RealTimeMessage
+  ): boolean {
     const connection = this.connections.get(connectionId);
     if (!connection) return false;
 
     try {
       // WebSocket이 있고 연결된 경우
-      if (connection.socket && connection.socket.readyState === WebSocket.OPEN) {
+      if (
+        connection.socket &&
+        connection.socket.readyState === WebSocket.OPEN
+      ) {
         connection.socket.send(JSON.stringify(message));
         connection.lastActivity = Date.now();
         return true;
       }
-      
+
       // WebSocket이 없는 경우 (polling 등 다른 방식)
       console.log(`📤 메시지 대기열에 추가: ${connectionId} → ${message.type}`);
       return true;
-      
     } catch (error) {
       console.error(`❌ 메시지 전송 실패: ${connectionId}`, error);
       return false;
@@ -224,7 +241,7 @@ class RealTimeHub {
    */
   private addToHistory(message: RealTimeMessage): void {
     this.messageHistory.push(message);
-    
+
     // 히스토리 크기 제한
     if (this.messageHistory.length > this.MAX_HISTORY) {
       this.messageHistory = this.messageHistory.slice(-this.MAX_HISTORY);
@@ -349,4 +366,4 @@ export function resetRealTimeHub(): void {
   }
 }
 
-export default RealTimeHub; 
+export default RealTimeHub;

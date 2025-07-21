@@ -2,11 +2,11 @@
 
 /**
  * 🛠️ DevKeyManager CLI - 개발용 키 관리 터미널 도구
- * 
+ *
  * 사용법:
  *   node scripts/dev-key-manager.js [action]
  *   npm run dev:keys [action]
- * 
+ *
  * 액션:
  *   status      - 키 상태 확인
  *   report      - 상세 리포트
@@ -26,7 +26,7 @@ const colors = {
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
   magenta: '\x1b[35m',
-  cyan: '\x1b[36m'
+  cyan: '\x1b[36m',
 };
 
 const icons = {
@@ -36,7 +36,7 @@ const icons = {
   info: 'ℹ️',
   key: '🔑',
   setup: '🚀',
-  report: '📊'
+  report: '📊',
 };
 
 function colorize(text, color) {
@@ -47,7 +47,9 @@ function printHeader(title) {
   console.log('\n' + '='.repeat(60));
   console.log(colorize(`🛠️ DevKeyManager - ${title}`, 'cyan'));
   console.log('='.repeat(60));
-  console.log(colorize(`📅 실행 시간: ${new Date().toLocaleString('ko-KR')}`, 'blue'));
+  console.log(
+    colorize(`📅 실행 시간: ${new Date().toLocaleString('ko-KR')}`, 'blue')
+  );
   console.log('='.repeat(60) + '\n');
 }
 
@@ -55,10 +57,10 @@ async function makeRequest(url) {
   return new Promise((resolve, reject) => {
     const protocol = url.startsWith('https:') ? https : http;
 
-    const req = protocol.get(url, (res) => {
+    const req = protocol.get(url, res => {
       let data = '';
 
-      res.on('data', (chunk) => {
+      res.on('data', chunk => {
         data += chunk;
       });
 
@@ -72,7 +74,7 @@ async function makeRequest(url) {
       });
     });
 
-    req.on('error', (error) => {
+    req.on('error', error => {
       reject(error);
     });
 
@@ -99,24 +101,48 @@ async function showKeyStatus() {
 
     // 요약 정보
     console.log(colorize('📊 요약 정보', 'cyan'));
-    console.log(`${icons.info} 총 서비스: ${colorize(data.summary.total, 'bright')}`);
-    console.log(`${icons.success} 활성화: ${colorize(data.summary.valid, 'green')}`);
-    console.log(`${icons.warning} 비활성화: ${colorize(data.summary.missing, 'yellow')}`);
-    console.log(`${icons.error} 오류: ${colorize(data.summary.invalid, 'red')}`);
-    console.log(`📈 성공률: ${colorize(`${data.summary.successRate}%`, data.summary.successRate >= 80 ? 'green' : 'yellow')}`);
+    console.log(
+      `${icons.info} 총 서비스: ${colorize(data.summary.total, 'bright')}`
+    );
+    console.log(
+      `${icons.success} 활성화: ${colorize(data.summary.valid, 'green')}`
+    );
+    console.log(
+      `${icons.warning} 비활성화: ${colorize(data.summary.missing, 'yellow')}`
+    );
+    console.log(
+      `${icons.error} 오류: ${colorize(data.summary.invalid, 'red')}`
+    );
+    console.log(
+      `📈 성공률: ${colorize(`${data.summary.successRate}%`, data.summary.successRate >= 80 ? 'green' : 'yellow')}`
+    );
     console.log('');
 
     // 서비스별 상태
     console.log(colorize('🔑 서비스별 상태', 'cyan'));
     data.services.forEach(service => {
-      const statusIcon = service.status === 'active' ? icons.success :
-        service.status === 'invalid' ? icons.warning : icons.error;
-      const statusColor = service.status === 'active' ? 'green' :
-        service.status === 'invalid' ? 'yellow' : 'red';
-      const sourceIcon = service.source === 'default' ? '🔧' :
-        service.source === 'encrypted' ? '🔐' : '📝';
+      const statusIcon =
+        service.status === 'active'
+          ? icons.success
+          : service.status === 'invalid'
+            ? icons.warning
+            : icons.error;
+      const statusColor =
+        service.status === 'active'
+          ? 'green'
+          : service.status === 'invalid'
+            ? 'yellow'
+            : 'red';
+      const sourceIcon =
+        service.source === 'default'
+          ? '🔧'
+          : service.source === 'encrypted'
+            ? '🔐'
+            : '📝';
 
-      console.log(`${statusIcon} ${colorize(service.service.padEnd(25), 'bright')} ${sourceIcon} ${service.preview}`);
+      console.log(
+        `${statusIcon} ${colorize(service.service.padEnd(25), 'bright')} ${sourceIcon} ${service.preview}`
+      );
     });
 
     console.log('');
@@ -127,11 +153,14 @@ async function showKeyStatus() {
       console.log('   • npm run dev:keys generate # .env.local 생성');
       console.log('   • npm run check-services    # 서비스 상태 확인');
     } else {
-      console.log(colorize(`${icons.success} 모든 키가 정상 설정되었습니다!`, 'green'));
+      console.log(
+        colorize(`${icons.success} 모든 키가 정상 설정되었습니다!`, 'green')
+      );
     }
-
   } catch (error) {
-    console.log(colorize(`${icons.error} 키 상태 확인 실패: ${error.message}`, 'red'));
+    console.log(
+      colorize(`${icons.error} 키 상태 확인 실패: ${error.message}`, 'red')
+    );
     process.exit(1);
   }
 }
@@ -148,9 +177,10 @@ async function showDetailedReport() {
     const data = await makeRequest(apiUrl);
 
     console.log(data.report);
-
   } catch (error) {
-    console.log(colorize(`${icons.error} 리포트 생성 실패: ${error.message}`, 'red'));
+    console.log(
+      colorize(`${icons.error} 리포트 생성 실패: ${error.message}`, 'red')
+    );
     process.exit(1);
   }
 }
@@ -159,7 +189,9 @@ async function quickSetup() {
   try {
     printHeader('빠른 설정');
 
-    console.log(colorize(`${icons.setup} 자동 키 설정을 시작합니다...`, 'yellow'));
+    console.log(
+      colorize(`${icons.setup} 자동 키 설정을 시작합니다...`, 'yellow')
+    );
     console.log('');
 
     const baseUrl = process.env.VERCEL_URL
@@ -180,9 +212,10 @@ async function quickSetup() {
       console.log(colorize(`${icons.error} ${data.message}`, 'red'));
       process.exit(1);
     }
-
   } catch (error) {
-    console.log(colorize(`${icons.error} 빠른 설정 실패: ${error.message}`, 'red'));
+    console.log(
+      colorize(`${icons.error} 빠른 설정 실패: ${error.message}`, 'red')
+    );
     process.exit(1);
   }
 }
@@ -191,7 +224,9 @@ async function generateEnvFile() {
   try {
     printHeader('.env.local 생성');
 
-    console.log(colorize(`${icons.setup} .env.local 파일을 생성합니다...`, 'yellow'));
+    console.log(
+      colorize(`${icons.setup} .env.local 파일을 생성합니다...`, 'yellow')
+    );
     console.log('');
 
     const baseUrl = process.env.VERCEL_URL
@@ -208,9 +243,10 @@ async function generateEnvFile() {
       console.log(colorize(`${icons.error} ${data.message}`, 'red'));
       process.exit(1);
     }
-
   } catch (error) {
-    console.log(colorize(`${icons.error} 파일 생성 실패: ${error.message}`, 'red'));
+    console.log(
+      colorize(`${icons.error} 파일 생성 실패: ${error.message}`, 'red')
+    );
     process.exit(1);
   }
 }
@@ -220,10 +256,18 @@ function showHelp() {
 
   console.log(colorize('📖 사용 가능한 명령어:', 'cyan'));
   console.log('');
-  console.log(`${icons.key} ${colorize('npm run dev:keys status', 'green')}    # 키 상태 확인`);
-  console.log(`${icons.report} ${colorize('npm run dev:keys report', 'green')}    # 상세 리포트`);
-  console.log(`${icons.setup} ${colorize('npm run dev:keys setup', 'green')}     # 빠른 설정`);
-  console.log(`${icons.info} ${colorize('npm run dev:keys generate', 'green')}  # .env.local 생성`);
+  console.log(
+    `${icons.key} ${colorize('npm run dev:keys status', 'green')}    # 키 상태 확인`
+  );
+  console.log(
+    `${icons.report} ${colorize('npm run dev:keys report', 'green')}    # 상세 리포트`
+  );
+  console.log(
+    `${icons.setup} ${colorize('npm run dev:keys setup', 'green')}     # 빠른 설정`
+  );
+  console.log(
+    `${icons.info} ${colorize('npm run dev:keys generate', 'green')}  # .env.local 생성`
+  );
   console.log('');
   console.log(colorize('💡 추천 워크플로우:', 'yellow'));
   console.log('   1. npm run dev:keys setup    # 처음 설정');
@@ -258,7 +302,9 @@ async function main() {
 
 if (require.main === module) {
   main().catch(error => {
-    console.error(colorize(`${icons.error} 실행 오류: ${error.message}`, 'red'));
+    console.error(
+      colorize(`${icons.error} 실행 오류: ${error.message}`, 'red')
+    );
     process.exit(1);
   });
 }

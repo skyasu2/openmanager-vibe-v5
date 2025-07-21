@@ -43,8 +43,6 @@ interface EnvironmentConfig {
     enabled: boolean;
   };
 
-
-
   // API 설정
   api: {
     timeout: number;
@@ -139,8 +137,6 @@ const parseRedisConfig = () => {
   };
 };
 
-
-
 // 메인 설정 생성 함수
 const createConfig = (): EnvironmentConfig => {
   const nodeEnv = (process.env.NODE_ENV || 'development') as
@@ -164,8 +160,6 @@ const createConfig = (): EnvironmentConfig => {
 
       // Redis 설정
       redis: parseRedisConfig(),
-
-
 
       // API 설정
       api: {
@@ -334,4 +328,3 @@ export const isDevelopment = () => config.isDevelopment;
 export const getApiTimeout = () => config.api.timeout;
 export const getSupabaseConfig = () => config.supabase;
 export const getRedisConfig = () => config.redis;
-

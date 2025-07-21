@@ -3,11 +3,11 @@
 /**
  * ⚠️ 이 테스트는 더 이상 유효하지 않습니다.
  * Gemini CLI Bridge MCP가 지원 중단되었습니다.
- * 
+ *
  * 대신 다음을 사용하세요:
  * - 개발 도구: ./tools/g "질문"
  * - npm 스크립트: npm run gemini:chat "질문"
- * 
+ *
  * [아카이브 - 참고용으로만 유지]
  * 적응적 Gemini CLI Bridge 테스트 스크립트
  * 양방향 호출 문제 해결 검증
@@ -24,11 +24,11 @@ async function testAdaptiveGeminiBridge() {
     console.log('1️⃣ 컨텍스트 감지 테스트...');
     const bridge = new AdaptiveGeminiBridge({
       timeout: 15000,
-      maxRetries: 2
+      maxRetries: 2,
     });
 
     const context = await bridge.initialize();
-    
+
     console.log(`✅ 컨텍스트 감지 성공:`);
     console.log(`   호출자: ${context.caller}`);
     console.log(`   대상: ${context.target}`);
@@ -48,11 +48,16 @@ async function testAdaptiveGeminiBridge() {
     // 3. 간단한 채팅 테스트
     console.log('3️⃣ 간단한 채팅 테스트...');
     try {
-      const response = await bridge.chat('안녕하세요! 간단히 인사만 해주세요.', {
-        timeout: 10000
-      });
+      const response = await bridge.chat(
+        '안녕하세요! 간단히 인사만 해주세요.',
+        {
+          timeout: 10000,
+        }
+      );
       console.log(`✅ 채팅 테스트 성공:`);
-      console.log(`응답: ${response.substring(0, 100)}${response.length > 100 ? '...' : ''}\n`);
+      console.log(
+        `응답: ${response.substring(0, 100)}${response.length > 100 ? '...' : ''}\n`
+      );
     } catch (error) {
       console.log(`❌ 채팅 테스트 실패: ${error.message}\n`);
     }
@@ -62,10 +67,12 @@ async function testAdaptiveGeminiBridge() {
     try {
       const flashResponse = await bridge.chat('Hello! Just say hi briefly.', {
         model: 'gemini-2.5-flash',
-        timeout: 8000
+        timeout: 8000,
       });
       console.log(`✅ Flash 모델 테스트 성공:`);
-      console.log(`응답: ${flashResponse.substring(0, 100)}${flashResponse.length > 100 ? '...' : ''}\n`);
+      console.log(
+        `응답: ${flashResponse.substring(0, 100)}${flashResponse.length > 100 ? '...' : ''}\n`
+      );
     } catch (error) {
       console.log(`❌ Flash 모델 테스트 실패: ${error.message}\n`);
     }
@@ -75,7 +82,9 @@ async function testAdaptiveGeminiBridge() {
     try {
       const stats = await bridge.getStats();
       console.log(`✅ 통계 조회 성공:`);
-      console.log(`통계: ${stats.substring(0, 200)}${stats.length > 200 ? '...' : ''}\n`);
+      console.log(
+        `통계: ${stats.substring(0, 200)}${stats.length > 200 ? '...' : ''}\n`
+      );
     } catch (error) {
       console.log(`❌ 통계 조회 실패: ${error.message}\n`);
     }
@@ -85,7 +94,6 @@ async function testAdaptiveGeminiBridge() {
     console.log(`호출 컨텍스트: ${context.caller} → ${context.target}`);
     console.log(`실행 전략: ${context.executionStrategy}`);
     console.log(`권장사항: ${context.recommendations.join(', ')}`);
-
   } catch (error) {
     console.error('❌ 테스트 중 치명적 오류 발생:', error);
     process.exit(1);

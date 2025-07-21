@@ -49,31 +49,31 @@ export async function GET(request: NextRequest) {
 
     // 현재 비즈니스 시간 패턴 확인
     const currentHour = kstTime.getHours();
-    const currentPattern =
-      BUSINESS_HOURS_PATTERNS.find(pattern => {
-        const timeParts = pattern.timeRange?.split('-') ?? [];
-        if (timeParts.length !== 2) return false;
-        
-        const startStr = timeParts[0]?.split(':')[0];
-        const endStr = timeParts[1]?.split(':')[0];
-        
-        if (!startStr || !endStr) return false;
-        
-        const start = parseInt(startStr);
-        const end = parseInt(endStr);
-        
-        if (start <= end) {
-          return currentHour >= start && currentHour < end;
-        } else {
-          // 야간 시간 (18:00-09:00)
-          return currentHour >= start || currentHour < end;
-        }
-      }) ?? BUSINESS_HOURS_PATTERNS[4] ?? {
+    const currentPattern = BUSINESS_HOURS_PATTERNS.find(pattern => {
+      const timeParts = pattern.timeRange?.split('-') ?? [];
+      if (timeParts.length !== 2) return false;
+
+      const startStr = timeParts[0]?.split(':')[0];
+      const endStr = timeParts[1]?.split(':')[0];
+
+      if (!startStr || !endStr) return false;
+
+      const start = parseInt(startStr);
+      const end = parseInt(endStr);
+
+      if (start <= end) {
+        return currentHour >= start && currentHour < end;
+      } else {
+        // 야간 시간 (18:00-09:00)
+        return currentHour >= start || currentHour < end;
+      }
+    }) ??
+      BUSINESS_HOURS_PATTERNS[4] ?? {
         pattern: 'night-batch',
         description: '야간 배치 시간',
         expectedLoad: '낮음',
         criticalSystems: ['모니터링'],
-        timeRange: '18:00-09:00'
+        timeRange: '18:00-09:00',
       }; // 기본값 보장
 
     // 서버 상태별 분류
@@ -89,11 +89,14 @@ export async function GET(request: NextRequest) {
         location,
         servers: ENTERPRISE_SERVERS.filter(s => serverIds.includes(s.id)),
         totalServers: serverIds.length,
-        healthyServers: ENTERPRISE_SERVERS.filter(s => serverIds.includes(s.id) && s.status === 'online'
+        healthyServers: ENTERPRISE_SERVERS.filter(
+          s => serverIds.includes(s.id) && s.status === 'online'
         ).length,
-        warningServers: ENTERPRISE_SERVERS.filter(s => serverIds.includes(s.id) && s.status === 'warning'
+        warningServers: ENTERPRISE_SERVERS.filter(
+          s => serverIds.includes(s.id) && s.status === 'warning'
         ).length,
-        criticalServers: ENTERPRISE_SERVERS.filter(s => serverIds.includes(s.id) && s.status === 'error'
+        criticalServers: ENTERPRISE_SERVERS.filter(
+          s => serverIds.includes(s.id) && s.status === 'error'
         ).length,
       })
     );
@@ -185,18 +188,24 @@ export async function GET(request: NextRequest) {
       serverDetails: {
         byStatus: serversByStatus,
         kubernetes: {
-          masters: ENTERPRISE_SERVERS.filter((s: any) => s.id.includes('master')),
-          workers: ENTERPRISE_SERVERS.filter((s: any) => s.id.includes('worker')),
+          masters: ENTERPRISE_SERVERS.filter((s: any) =>
+            s.id.includes('master')
+          ),
+          workers: ENTERPRISE_SERVERS.filter((s: any) =>
+            s.id.includes('worker')
+          ),
         },
         onPremise: {
           web: ENTERPRISE_SERVERS.filter((s: any) => s.id.includes('web-')),
           database: ENTERPRISE_SERVERS.filter((s: any) => s.id.includes('db-')),
-          storage: ENTERPRISE_SERVERS.filter((s: any) =>
+          storage: ENTERPRISE_SERVERS.filter(
+            (s: any) =>
               s.id.includes('storage-') ||
               s.id.includes('file-') ||
               s.id.includes('backup-')
           ),
-          infrastructure: ENTERPRISE_SERVERS.filter((s: any) =>
+          infrastructure: ENTERPRISE_SERVERS.filter(
+            (s: any) =>
               s.id.includes('monitor-') ||
               s.id.includes('log-') ||
               s.id.includes('proxy-') ||

@@ -30,6 +30,7 @@ OpenManager Vibe v5.45.0은 **Edge Runtime 최적화된 2-Mode AI 시스템**으
 ### 1. LOCAL 모드 (기본값) 🏠
 
 **특징:**
+
 - ✅ Supabase RAG 우선 처리
 - ✅ Korean AI Engine 폴백
 - ✅ MCP Context 지원
@@ -38,6 +39,7 @@ OpenManager Vibe v5.45.0은 **Edge Runtime 최적화된 2-Mode AI 시스템**으
 - ✅ 오프라인 부분 지원
 
 **처리 순서:**
+
 1. Supabase RAG Engine (벡터 검색)
 2. Korean AI Engine (한국어 특화)
 3. MCP Context (컨텍스트 기반)
@@ -45,6 +47,7 @@ OpenManager Vibe v5.45.0은 **Edge Runtime 최적화된 2-Mode AI 시스템**으
 ### 2. GOOGLE_ONLY 모드 🚀
 
 **특징:**
+
 - ✅ 자연어 질의 전용
 - ✅ Gemini 2.0 Flash 모델
 - ✅ 고급 추론 능력
@@ -52,6 +55,7 @@ OpenManager Vibe v5.45.0은 **Edge Runtime 최적화된 2-Mode AI 시스템**으
 - ⚠️ 환경변수 의존성
 
 **처리 순서:**
+
 1. Google AI Service (Gemini)
 2. 폴백 없음 (명확한 에러 반환)
 
@@ -66,8 +70,8 @@ OpenManager Vibe v5.45.0은 **Edge Runtime 최적화된 2-Mode AI 시스템**으
 ```typescript
 // src/core/ai/engines/UnifiedAIEngineRouter.ts
 export class UnifiedAIEngineRouter {
-  private processWithGoogleAI(request: AIRequest): Promise<AIResponse>
-  private processWithLocalEngines(request: AIRequest): Promise<AIResponse>
+  private processWithGoogleAI(request: AIRequest): Promise<AIResponse>;
+  private processWithLocalEngines(request: AIRequest): Promise<AIResponse>;
 }
 ```
 
@@ -82,7 +86,7 @@ export const getVercelConfig = () => ({
   enableGoogleAI: process.env.GOOGLE_AI_ENABLED === 'true',
   maxTimeout: 8000, // Vercel 8초 제한
   enableCaching: true,
-  logLevel: 'warn'
+  logLevel: 'warn',
 });
 ```
 
@@ -122,8 +126,8 @@ const response = await fetch('/api/ai/unified-query', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     query: '서버 CPU 사용률이 높은데 어떻게 해결하나요?',
-    mode: 'LOCAL'
-  })
+    mode: 'LOCAL',
+  }),
 });
 
 // GOOGLE_ONLY 모드
@@ -132,8 +136,8 @@ const response = await fetch('/api/ai/unified-query', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     query: '복잡한 시스템 아키텍처에 대한 분석을 해주세요',
-    mode: 'GOOGLE_ONLY'
-  })
+    mode: 'GOOGLE_ONLY',
+  }),
 });
 ```
 
@@ -158,12 +162,12 @@ if (result.success) {
 
 ### 현재 성능 (v5.45.0)
 
-| 지표 | LOCAL 모드 | GOOGLE_ONLY 모드 |
-|------|------------|------------------|
-| 평균 응답 시간 | 100-300ms | 500-2000ms |
-| 정확도 | 95% | 98% |
-| 가동률 | 99.9% | 99.5% |
-| 비용 | 무료 | 할당량 제한 |
+| 지표           | LOCAL 모드 | GOOGLE_ONLY 모드 |
+| -------------- | ---------- | ---------------- |
+| 평균 응답 시간 | 100-300ms  | 500-2000ms       |
+| 정확도         | 95%        | 98%              |
+| 가동률         | 99.9%      | 99.5%            |
+| 비용           | 무료       | 할당량 제한      |
 
 ### 최적화 성과
 

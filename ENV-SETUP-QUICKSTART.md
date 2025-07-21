@@ -1,11 +1,13 @@
 # 🚀 환경변수 설정 빠른 시작 가이드
 
 ## 📋 개요
+
 하드코딩된 시크릿이 성공적으로 제거되었습니다. 이제 3단계로 환경변수를 설정하세요.
 
 ## ⚡ 빠른 설정 (3단계)
 
 ### 1️⃣ 로컬 환경변수 설정
+
 ```bash
 # 대화형 설정 (권장)
 npm run env:setup
@@ -15,6 +17,7 @@ npm run env:setup
 ```
 
 ### 2️⃣ Vercel 환경변수 설정
+
 ```bash
 # Vercel 로그인
 vercel login
@@ -24,6 +27,7 @@ npm run env:vercel
 ```
 
 ### 3️⃣ 배포 및 테스트
+
 ```bash
 # 변경사항 커밋
 git add .
@@ -37,11 +41,13 @@ npm run deploy
 ## 🔍 설정 검증
 
 ### 로컬 환경변수 확인
+
 ```bash
 npm run env:check
 ```
 
 ### Vercel 환경변수 확인
+
 ```bash
 vercel env ls
 ```
@@ -49,24 +55,29 @@ vercel env ls
 ## 📝 필요한 정보
 
 ### 🗄️ Supabase
+
 - **URL**: `https://supabase.com/dashboard` → 프로젝트 선택 → Settings → API
 - **필요 정보**: Project URL, Anon Key, Service Role Key
 
 ### 🔴 Redis (Upstash)
+
 - **URL**: `https://console.upstash.com/`
 - **필요 정보**: REST URL, REST Token
 
 ### 🔐 GitHub OAuth
+
 - **URL**: `https://github.com/settings/developers`
 - **필요 정보**: Client ID, Client Secret
 
 ### 🤖 Google AI
+
 - **URL**: `https://makersuite.google.com/app/apikey`
 - **필요 정보**: API Key
 
 ## 🚨 문제 해결
 
 ### 일반적인 오류
+
 ```bash
 # 1. 환경변수 플레이스홀더 오류
 npm run env:setup  # 다시 설정
@@ -79,6 +90,7 @@ npm run env:check  # 환경변수 확인
 ```
 
 ### 도움말 명령어
+
 ```bash
 npm run env:guide    # 상세 가이드
 npm run env:check    # 환경변수 검증
@@ -88,12 +100,14 @@ npm run env:vercel   # Vercel 설정
 ## ✅ 성공 확인
 
 ### 로컬 테스트
+
 ```bash
 npm run dev
 # http://localhost:3000 접속
 ```
 
 ### 프로덕션 테스트
+
 ```bash
 # 배포 후 확인
 # https://openmanager-vibe-v5.vercel.app

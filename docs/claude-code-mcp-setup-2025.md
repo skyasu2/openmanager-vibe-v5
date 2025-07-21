@@ -8,6 +8,7 @@
 ## 🆕 주요 변화사항
 
 ### 새로운 기능들
+
 - **Remote MCP 지원** - 로컬 서버 관리 불필요
 - **Desktop Extensions (DXT)** - 원클릭 설치 방식
 - **OAuth 인증** - 네이티브 지원으로 보안 강화
@@ -15,6 +16,7 @@
 - **SSE 전송** - 서버측 이벤트 지원
 
 ### 기존 대비 개선점
+
 - 설정 복잡도 70% 감소
 - 팀 협업 기능 강화
 - 원격 서버 지원으로 유지보수 부담 제거
@@ -33,7 +35,7 @@ claude mcp add <서버이름> <명령> [인수...]
 # 환경변수와 함께
 claude mcp add my-server -e API_KEY=123 -- /path/to/server arg1 arg2
 
-# SSE 서버 추가  
+# SSE 서버 추가
 claude mcp add --transport sse <서버이름> <URL>
 
 # 사용자 정의 헤더와 함께
@@ -144,13 +146,8 @@ dxt pack
 ```json
 {
   "permissions": {
-    "allow": [
-      "Bash(npm run lint)",
-      "Bash(npm run test:*)"
-    ],
-    "deny": [
-      "Bash(curl:*)"
-    ]
+    "allow": ["Bash(npm run lint)", "Bash(npm run test:*)"],
+    "deny": ["Bash(curl:*)"]
   },
   "env": {
     "CLAUDE_CODE_ENABLE_TELEMETRY": "1"
@@ -292,26 +289,20 @@ TAVILY_API_KEY=YOUR_PLACEHOLDER
 
 ### OAuth 인증 서비스
 
-| 서비스 | OAuth 지원 | 설정 방법 |
-|--------|-----------|-----------|
-| Linear | ✅ 지원 | `/mcp` 메뉴에서 인증 |
-| Sentry | ✅ 지원 | `/mcp` 메뉴에서 인증 |
-| GitHub | 🔑 토큰 | `GITHUB_TOKEN` 환경변수 |
-| Supabase | 🔑 토큰 | `SUPABASE_ACCESS_TOKEN` 환경변수 |
+| 서비스   | OAuth 지원 | 설정 방법                        |
+| -------- | ---------- | -------------------------------- |
+| Linear   | ✅ 지원    | `/mcp` 메뉴에서 인증             |
+| Sentry   | ✅ 지원    | `/mcp` 메뉴에서 인증             |
+| GitHub   | 🔑 토큰    | `GITHUB_TOKEN` 환경변수          |
+| Supabase | 🔑 토큰    | `SUPABASE_ACCESS_TOKEN` 환경변수 |
 
 ### 권한 관리
 
 ```json
 {
   "permissions": {
-    "allow": [
-      "mcp__github__*",
-      "mcp__supabase__read_*"
-    ],
-    "deny": [
-      "mcp__filesystem__delete_*",
-      "mcp__supabase__delete_*"
-    ]
+    "allow": ["mcp__github__*", "mcp__supabase__read_*"],
+    "deny": ["mcp__filesystem__delete_*", "mcp__supabase__delete_*"]
   }
 }
 ```
@@ -384,6 +375,7 @@ claude mcp add temp-tools -s local npx -y @temp/tools
 ### 일반적인 문제들
 
 **1. MCP 서버 연결 실패**
+
 ```bash
 # 서버 상태 확인
 claude mcp list
@@ -394,6 +386,7 @@ claude mcp add problematic-server [설정]
 ```
 
 **2. 환경변수 인식 불가**
+
 ```bash
 # .env.local 파일 확인
 cat .env.local | grep API_KEY
@@ -403,6 +396,7 @@ claude mcp add server -e API_KEY=value -- command
 ```
 
 **3. OAuth 인증 실패**
+
 ```bash
 # OAuth 재인증
 /mcp
@@ -410,6 +404,7 @@ claude mcp add server -e API_KEY=value -- command
 ```
 
 **4. 프로젝트 스코프 설정 충돌**
+
 ```bash
 # 프로젝트 선택 초기화
 claude mcp reset-project-choices
@@ -436,7 +431,9 @@ claude config show
 ## 📦 12. 백업 및 복원
 
 ### 백업 위치
+
 MCP 설정 백업은 다음 위치에 저장됩니다:
+
 ```
 docs/backup/mcp-2025-07-16/
 ├── mcp.json.backup          # 프로젝트 MCP 설정
@@ -446,6 +443,7 @@ docs/backup/mcp-2025-07-16/
 ```
 
 ### 복원 방법
+
 ```bash
 # 전체 설정 복원
 cp docs/backup/mcp-2025-07-16/*.backup .
@@ -457,17 +455,19 @@ cp docs/backup/mcp-2025-07-16/claude-*.backup .claude/
 ## 📊 13. 현재 상태 (2025-07-17)
 
 ### 활성 MCP 서버
-| 서버 | 상태 | 용도 |
-|-----|------|-----|
-| filesystem | ✅ | 파일 시스템 접근 |
-| memory | ✅ | 컨텍스트 메모리 |
-| github | ✅ | GitHub API 통합 |
-| supabase | ✅ | 데이터베이스 통합 |
-| context7 | ✅ | 문서 검색 |
-| tavily | ✅ | AI 웹 검색 |
-| sequential-thinking | ✅ | 복잡한 문제의 단계별 분석 |
+
+| 서버                | 상태 | 용도                      |
+| ------------------- | ---- | ------------------------- |
+| filesystem          | ✅   | 파일 시스템 접근          |
+| memory              | ✅   | 컨텍스트 메모리           |
+| github              | ✅   | GitHub API 통합           |
+| supabase            | ✅   | 데이터베이스 통합         |
+| context7            | ✅   | 문서 검색                 |
+| tavily              | ✅   | AI 웹 검색                |
+| sequential-thinking | ✅   | 복잡한 문제의 단계별 분석 |
 
 ### 상태 확인 문서
+
 - [MCP 현재 상태 보고서](./mcp-current-status-2025-07-16.md)
 - [MCP 설정 백업](./backup/mcp-2025-07-16/)
 
@@ -476,19 +476,23 @@ cp docs/backup/mcp-2025-07-16/claude-*.backup .claude/
 ## 📚 14. 추가 리소스
 
 ### 공식 문서
+
 - [Claude Code MCP 공식 문서](https://docs.anthropic.com/en/docs/claude-code/mcp)
 - [MCP 프로토콜 명세](https://modelcontextprotocol.io/)
 - [MCP 서버 목록](https://github.com/modelcontextprotocol/servers)
 
 ### 커뮤니티 서버
+
 - [Awesome MCP Servers](https://github.com/modelcontextprotocol/awesome-mcp)
 - [Community Examples](https://github.com/modelcontextprotocol/examples)
 
 ### 개발 도구
+
 - [MCP SDK](https://github.com/modelcontextprotocol/typescript-sdk)
 - [DXT Tools](https://github.com/anthropics/dxt)
 
 ### 프로젝트 문서
+
 - [MCP 설정 가이드](./mcp-setup-instructions.md)
 - [MCP 통합 가이드](./mcp-unified-guide.md)
 

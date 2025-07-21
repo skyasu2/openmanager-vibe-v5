@@ -6,6 +6,7 @@
 ## 🔒 환경변수 플레이스홀더 규칙
 
 ### 1. 대문자 플레이스홀더 패턴
+
 `YOUR_SERVICE_NAME_PLACEHOLDER` 형식을 사용합니다.
 
 ```env
@@ -22,6 +23,7 @@ GITHUB_TOKEN=ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ### 2. 서비스별 안전한 예제 패턴
 
 #### GitHub 토큰
+
 ```env
 # Personal Access Token
 GITHUB_TOKEN=YOUR_GITHUB_PERSONAL_ACCESS_TOKEN_PLACEHOLDER
@@ -32,6 +34,7 @@ GITHUB_CLIENT_SECRET=YOUR_GITHUB_CLIENT_SECRET_PLACEHOLDER
 ```
 
 #### API 키들
+
 ```env
 # Google AI
 GOOGLE_AI_API_KEY=YOUR_GOOGLE_AI_API_KEY_PLACEHOLDER
@@ -47,6 +50,7 @@ TAVILY_API_KEY=YOUR_TAVILY_API_KEY_PLACEHOLDER
 ```
 
 #### 데이터베이스 연결
+
 ```env
 # Supabase
 SUPABASE_URL=YOUR_SUPABASE_URL_PLACEHOLDER
@@ -78,23 +82,26 @@ const secret = 'super_secret_api_key_12345';
 
 ### 4. 문서화 시 안전한 예제
 
-```markdown
+````markdown
 ## 환경변수 설정
 
 1. `.env.example`을 `.env.local`로 복사합니다:
    ```bash
    cp .env.example .env.local
    ```
+````
 
 2. 각 환경변수를 실제 값으로 교체합니다:
+
    ```env
    # 변경 전
    GOOGLE_AI_API_KEY=YOUR_GOOGLE_AI_API_KEY_PLACEHOLDER
-   
+
    # 변경 후 (실제 키는 표시하지 않음)
    GOOGLE_AI_API_KEY=[실제 API 키 입력]
    ```
-```
+
+````
 
 ## 🚫 절대 사용하면 안 되는 패턴
 
@@ -110,12 +117,12 @@ AIzaSyA1234567890abcdef1234567890abcdef
 YOUR_API_KEY_PLACEHOLDER
 YOUR_TOKEN_PLACEHOLDER
 xxx_xxx_xxx
-```
+````
 
 ## ✅ 권장 사항
 
 1. **명확한 플레이스홀더 사용**: `YOUR_SERVICE_NAME_PLACEHOLDER` 형식
-2. **테스트 값은 MOCK_ 접두사**: `MOCK_API_KEY_FOR_TESTING`
+2. **테스트 값은 MOCK\_ 접두사**: `MOCK_API_KEY_FOR_TESTING`
 3. **민감한 정보는 REDACTED**: `[REDACTED]` 또는 `SENSITIVE_INFO_REMOVED`
 4. **실제 형식 설명 추가**: 주석으로 실제 값의 형식 설명
 

@@ -71,9 +71,11 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
       });
 
       // 권한 시스템 자동 테스트
-      import('@/utils/permissionTestUtils').then(({ runFullPermissionTest }) => {
-        runFullPermissionTest(permissions);
-      });
+      import('@/utils/permissionTestUtils').then(
+        ({ runFullPermissionTest }) => {
+          runFullPermissionTest(permissions);
+        }
+      );
     }
   }, [permissions]);
 
@@ -104,13 +106,13 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
 
     const buttonRect = buttonRef.current.getBoundingClientRect();
     const dropdownWidth = 384; // w-96
-    
+
     // 사용자 유형에 따른 동적 높이 계산
     const estimatedMenuItems = permissions.isAdmin ? 8 : 3; // 관리자: 8개, 일반: 3개 메뉴
     const baseHeight = 200; // 헤더 + 시스템 상태 섹션
     const itemHeight = 60; // 메뉴 아이템당 높이
-    const dropdownHeight = baseHeight + (estimatedMenuItems * itemHeight);
-    
+    const dropdownHeight = baseHeight + estimatedMenuItems * itemHeight;
+
     const gap = 8; // 간격
 
     // 기본 위치: 버튼 아래, 오른쪽 정렬
@@ -276,13 +278,11 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
     setPasswordError('');
   };
 
-
-
   // 🎯 유틸리티 함수들 (사용자 유형별 최적화)
   const getModeDisplayText = () => {
     if (isLocked) return '잠금 상태';
     if (adminMode.isAuthenticated) return '관리자 모드';
-    
+
     // 사용자 유형에 따른 상태 표시
     if (permissions.isGeneralUser) {
       // 일반 사용자: 항상 AI 비활성화 상태로 표시
@@ -291,7 +291,7 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
       // GitHub 로그인 사용자: 항상 AI 활성화로 표시 (기존처럼)
       return 'AI 활성화';
     }
-    
+
     return '일반 모드';
   };
 
@@ -406,7 +406,10 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                       {permissions.userName || userName}
                     </h3>
                     <p className={`text-sm ${getModeStatusColor()}`}>
-                      {permissions.isGitHubAuthenticated ? '로그인 사용자' : '일반 사용자'} - {getModeDisplayText()}
+                      {permissions.isGitHubAuthenticated
+                        ? '로그인 사용자'
+                        : '일반 사용자'}{' '}
+                      - {getModeDisplayText()}
                     </p>
                   </div>
 
@@ -474,10 +477,13 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
               </div>
 
               {/* 메뉴 아이템들 - 사용자 유형별 최적화 */}
-              <div className={`p-2 ${permissions.isGeneralUser ? 'space-y-1' : 'space-y-2'}`}>
+              <div
+                className={`p-2 ${permissions.isGeneralUser ? 'space-y-1' : 'space-y-2'}`}
+              >
                 {/* 관리자 모드 인증 - GitHub 로그인 사용자만 표시 */}
-                {permissions.canToggleAdminMode && !adminMode.isAuthenticated && (
-                  !showPasswordInput ? (
+                {permissions.canToggleAdminMode &&
+                  !adminMode.isAuthenticated &&
+                  (!showPasswordInput ? (
                     <motion.button
                       whileHover={{ backgroundColor: 'rgba(255,165,0,0.1)' }}
                       whileTap={{ scale: 0.98 }}
@@ -532,38 +538,36 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                         </div>
                       </form>
                     </div>
-                  )
-                )}
+                  ))}
 
                 {/* 관리자 페이지 버튼 - PIN 인증 후에만 표시 */}
-                {permissions.canToggleAdminMode && adminMode.isAuthenticated && (
-                  <motion.button
-                    whileHover={{ backgroundColor: 'rgba(255,165,0,0.1)' }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      // 관리자 페이지로 이동하는 로직 (나중에 구현)
-                      info('관리자 페이지로 이동합니다');
-                      onClick({} as React.MouseEvent);
-                    }}
-                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 mb-2'
-                  >
-                    <div className='p-2 rounded-lg bg-orange-500/20'>
-                      <Unlock className='w-4 h-4 text-orange-600' />
-                    </div>
-                    <div>
-                      <div className='text-gray-900 font-medium'>
-                        관리자 페이지
+                {permissions.canToggleAdminMode &&
+                  adminMode.isAuthenticated && (
+                    <motion.button
+                      whileHover={{ backgroundColor: 'rgba(255,165,0,0.1)' }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // 관리자 페이지로 이동하는 로직 (나중에 구현)
+                        info('관리자 페이지로 이동합니다');
+                        onClick({} as React.MouseEvent);
+                      }}
+                      className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 mb-2'
+                    >
+                      <div className='p-2 rounded-lg bg-orange-500/20'>
+                        <Unlock className='w-4 h-4 text-orange-600' />
                       </div>
-                      <div className='text-gray-600 text-xs'>
-                        관리자 전용 페이지로 이동합니다
+                      <div>
+                        <div className='text-gray-900 font-medium'>
+                          관리자 페이지
+                        </div>
+                        <div className='text-gray-600 text-xs'>
+                          관리자 전용 페이지로 이동합니다
+                        </div>
                       </div>
-                    </div>
-                  </motion.button>
-                )}
-
-
+                    </motion.button>
+                  )}
 
                 {/* 시스템 제어 - 관리자만 표시 */}
                 {permissions.canControlSystem && (
@@ -658,24 +662,27 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                 )}
 
                 {/* 설정 버튼 - 관리자만 표시 */}
-                {permissions.canAccessSettings && !adminMode.isAuthenticated && (
-                  <motion.button
-                    whileHover={{ backgroundColor: 'rgba(128, 90, 213, 0.1)' }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleSettingsClick}
-                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 mb-2'
-                  >
-                    <div className='p-2 rounded-lg bg-purple-500/20'>
-                      <Settings className='w-4 h-4 text-purple-600' />
-                    </div>
-                    <div>
-                      <div className='text-gray-900 font-medium'>설정</div>
-                      <div className='text-gray-600 text-xs'>
-                        AI 모드, 데이터 생성기, 모니터링 제어
+                {permissions.canAccessSettings &&
+                  !adminMode.isAuthenticated && (
+                    <motion.button
+                      whileHover={{
+                        backgroundColor: 'rgba(128, 90, 213, 0.1)',
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleSettingsClick}
+                      className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 mb-2'
+                    >
+                      <div className='p-2 rounded-lg bg-purple-500/20'>
+                        <Settings className='w-4 h-4 text-purple-600' />
                       </div>
-                    </div>
-                  </motion.button>
-                )}
+                      <div>
+                        <div className='text-gray-900 font-medium'>설정</div>
+                        <div className='text-gray-600 text-xs'>
+                          AI 모드, 데이터 생성기, 모니터링 제어
+                        </div>
+                      </div>
+                    </motion.button>
+                  )}
 
                 {/* 로그아웃 버튼 - 관리자만 표시 */}
                 {permissions.canLogout && (

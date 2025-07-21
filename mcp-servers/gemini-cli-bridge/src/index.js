@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
  * Gemini CLI Bridge MCP Server
- * 
+ *
  * ⚠️ 개발 및 디버깅 전용 도구입니다.
  * 프로덕션 환경에서는 Gemini v5.0 직접 실행 도구를 사용하세요.
- * 
+ *
  * 이 도구는 MCP 테스트 및 디버깅을 위한 브릿지 역할만 합니다.
  * 일반적인 사용에는 성능 오버헤드가 있으므로 권장하지 않습니다.
  */
@@ -20,20 +20,20 @@ import { SimplePowerShellBridge } from './simple-powershell-bridge.js';
 // 서버 인스턴스 생성
 const server = new Server(
   {
-    name: 'gemini-cli-bridge-dev-only',  // 개발 전용 명시
-    version: '4.0.0-dev'  // 개발 버전 명시
+    name: 'gemini-cli-bridge-dev-only', // 개발 전용 명시
+    version: '4.0.0-dev', // 개발 버전 명시
   },
   {
     capabilities: {
-      tools: {}
-    }
+      tools: {},
+    },
   }
 );
 
 // PowerShell 전용 Gemini Bridge 초기화
 const geminiBridge = new SimplePowerShellBridge({
   timeout: parseInt(process.env.GEMINI_TIMEOUT || '30000'),
-  debug: process.env.GEMINI_DEBUG === 'true'
+  debug: process.env.GEMINI_DEBUG === 'true',
 });
 
 // 도구들 설정
@@ -48,59 +48,59 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {
             prompt: {
               type: 'string',
-              description: 'Gemini에게 전송할 프롬프트'
+              description: 'Gemini에게 전송할 프롬프트',
             },
             model: {
               type: 'string',
               description: '사용할 모델 (선택사항)',
-              enum: ['gemini-2.5-pro', 'gemini-2.0-flash']
+              enum: ['gemini-2.5-pro', 'gemini-2.0-flash'],
             },
             headless: {
               type: 'boolean',
-              description: '헤드리스 모드 사용 여부'
-            }
+              description: '헤드리스 모드 사용 여부',
+            },
           },
-          required: ['prompt']
-        }
+          required: ['prompt'],
+        },
       },
       {
         name: 'gemini_stats',
         description: 'Gemini CLI 사용량 확인',
         inputSchema: {
           type: 'object',
-          properties: {}
-        }
+          properties: {},
+        },
       },
       {
         name: 'gemini_clear',
         description: 'Gemini 컨텍스트 초기화',
         inputSchema: {
           type: 'object',
-          properties: {}
-        }
+          properties: {},
+        },
       },
       {
         name: 'gemini_compress',
         description: 'Gemini 대화 압축',
         inputSchema: {
           type: 'object',
-          properties: {}
-        }
+          properties: {},
+        },
       },
       {
         name: 'gemini_context_info',
         description: '현재 실행 환경 정보 확인',
         inputSchema: {
           type: 'object',
-          properties: {}
-        }
-      }
-    ]
+          properties: {},
+        },
+      },
+    ],
   };
 });
 
 // 도구 실행 핸들러
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
+server.setRequestHandler(CallToolRequestSchema, async request => {
   const { name, arguments: args } = request.params;
 
   try {
@@ -108,35 +108,41 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'gemini_chat':
         const result = await geminiBridge.chat(args.prompt, {
           model: args.model,
-          headless: args.headless
+          headless: args.headless,
         });
         return {
-          content: [{ type: 'text', text: result }]
+          content: [{ type: 'text', text: result }],
         };
 
       case 'gemini_stats':
         const stats = await geminiBridge.getStats();
         return {
-          content: [{ type: 'text', text: JSON.stringify(stats, null, 2) }]
+          content: [{ type: 'text', text: JSON.stringify(stats, null, 2) }],
         };
 
       case 'gemini_clear':
         await geminiBridge.clearContext();
         return {
-          content: [{ type: 'text', text: '✅ 컨텍스트가 초기화되었습니다.' }]
+          content: [{ type: 'text', text: '✅ 컨텍스트가 초기화되었습니다.' }],
         };
 
       case 'gemini_compress':
         const compressResult = await geminiBridge.compressContext();
         return {
-          content: [{ type: 'text', text: compressResult.message || '✅ 대화가 압축되었습니다.' }]
+          content: [
+            {
+              type: 'text',
+              text: compressResult.message || '✅ 대화가 압축되었습니다.',
+            },
+          ],
         };
 
       case 'gemini_context_info':
         return {
-          content: [{
-            type: 'text',
-            text: `=== PowerShell Gemini CLI Bridge 정보 ===
+          content: [
+            {
+              type: 'text',
+              text: `=== PowerShell Gemini CLI Bridge 정보 ===
 
 🔍 실행 환경:
   - 플랫폼: Windows PowerShell
@@ -148,8 +154,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   - --prompt 플래그 최적화
   - 최소한의 오버헤드
 
-💡 이 버전은 PowerShell 환경에 최적화되어 있습니다.`
-          }]
+💡 이 버전은 PowerShell 환경에 최적화되어 있습니다.`,
+            },
+          ],
         };
 
       default:
@@ -158,30 +165,35 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   } catch (error) {
     console.error(`[도구 실행 오류] ${name}:`, error);
     return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify({ error: error.message }, null, 2)
-      }]
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({ error: error.message }, null, 2),
+        },
+      ],
     };
   }
 });
 
 // 에러 핸들러
-server.onerror = (error) => {
+server.onerror = error => {
   console.error('[SimplePowerShellBridge] 서버 에러:', error);
 };
 
 // 서버 시작
 async function main() {
   console.error('[SimplePowerShellBridge] 서버 시작 중...');
-  
+
   try {
     // 초기화 테스트
     const initResult = await geminiBridge.initialize();
     if (initResult.success) {
       console.error('[SimplePowerShellBridge] ✅ 초기화 성공');
     } else {
-      console.error('[SimplePowerShellBridge] ⚠️ 초기화 실패:', initResult.error);
+      console.error(
+        '[SimplePowerShellBridge] ⚠️ 초기화 실패:',
+        initResult.error
+      );
     }
   } catch (error) {
     console.error('[SimplePowerShellBridge] ⚠️ 초기화 중 오류:', error.message);
@@ -189,7 +201,7 @@ async function main() {
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  
+
   console.error('[SimplePowerShellBridge] MCP 서버가 실행 중입니다.');
 }
 
@@ -201,7 +213,7 @@ process.on('SIGINT', async () => {
 });
 
 // 서버 실행
-main().catch((error) => {
+main().catch(error => {
   console.error('[SimplePowerShellBridge] 치명적 오류:', error);
   process.exit(1);
 });

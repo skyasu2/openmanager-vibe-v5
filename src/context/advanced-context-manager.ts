@@ -447,7 +447,7 @@ export class AdvancedContextManager {
     while ((match = qaPattern.exec(content)) !== null) {
       const question = match[1]?.trim() ?? '';
       const answer = match[2]?.trim() ?? '';
-      
+
       if (!question || !answer) continue;
 
       faqs.push({

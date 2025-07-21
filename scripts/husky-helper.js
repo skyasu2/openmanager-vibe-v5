@@ -15,13 +15,13 @@ const huskyDir = path.join(process.cwd(), '.husky');
 
 function disableHooks() {
   console.log('🔒 Husky 훅 비활성화 중...');
-  
+
   const hooks = ['pre-commit', 'pre-push'];
-  
+
   hooks.forEach(hook => {
     const hookPath = path.join(huskyDir, hook);
     const backupPath = path.join(huskyDir, `${hook}.backup`);
-    
+
     if (fs.existsSync(hookPath)) {
       fs.renameSync(hookPath, backupPath);
       console.log(`✅ ${hook} 훅 비활성화됨`);
@@ -31,13 +31,13 @@ function disableHooks() {
 
 function enableHooks() {
   console.log('🔓 Husky 훅 활성화 중...');
-  
+
   const hooks = ['pre-commit', 'pre-push'];
-  
+
   hooks.forEach(hook => {
     const hookPath = path.join(huskyDir, hook);
     const backupPath = path.join(huskyDir, `${hook}.backup`);
-    
+
     if (fs.existsSync(backupPath)) {
       fs.renameSync(backupPath, hookPath);
       console.log(`✅ ${hook} 훅 활성화됨`);
@@ -47,13 +47,13 @@ function enableHooks() {
 
 function showStatus() {
   console.log('📊 Husky 훅 상태:');
-  
+
   const hooks = ['pre-commit', 'pre-push'];
-  
+
   hooks.forEach(hook => {
     const hookPath = path.join(huskyDir, hook);
     const backupPath = path.join(huskyDir, `${hook}.backup`);
-    
+
     if (fs.existsSync(hookPath)) {
       console.log(`✅ ${hook}: 활성화됨`);
     } else if (fs.existsSync(backupPath)) {
@@ -82,4 +82,4 @@ switch (command) {
     console.log('  node scripts/husky-helper.js enable   # 훅 활성화');
     console.log('  node scripts/husky-helper.js status   # 상태 확인');
     break;
-} 
+}

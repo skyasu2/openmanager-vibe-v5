@@ -1,6 +1,6 @@
 /**
  * 🔗 useSystemIntegration - 시스템 통합 훅
- * 
+ *
  * f129a18fb 커밋 복구를 위한 더미 구현
  */
 
@@ -47,28 +47,28 @@ export function useSystemIntegration() {
     metrics: {
       cpu: 45,
       memory: 60,
-      network: 30
+      network: 30,
     },
     patternMatcher: {
       status: 'running',
       patternsDetected: 5,
-      lastCheck: new Date()
+      lastCheck: new Date(),
     },
     realTimeHub: {
       status: 'connected',
       latency: 50,
-      messages: 1234
+      messages: 1234,
     },
     dataRetention: {
       status: 'active',
-      usage: 65
+      usage: 65,
     },
     moduleCount: 12,
     eventStats: {
       total: 5000,
       processed: 4800,
-      failed: 200
-    }
+      failed: 200,
+    },
   });
 
   const checkConnection = useCallback(async () => {
@@ -82,13 +82,13 @@ export function useSystemIntegration() {
       metrics: {
         cpu: Math.random() * 100,
         memory: Math.random() * 100,
-        network: Math.random() * 100
+        network: Math.random() * 100,
       },
       eventStats: {
         total: prev.eventStats.total + Math.floor(Math.random() * 10),
         processed: prev.eventStats.processed + Math.floor(Math.random() * 8),
-        failed: prev.eventStats.failed + Math.floor(Math.random() * 2)
-      }
+        failed: prev.eventStats.failed + Math.floor(Math.random() * 2),
+      },
     }));
   }, []);
 
@@ -107,6 +107,6 @@ export function useSystemIntegration() {
     ...state,
     checkConnection,
     updateMetrics,
-    initializeSystem
+    initializeSystem,
   };
 }

@@ -10,12 +10,13 @@ export class UsageTracker {
   constructor(options = {}) {
     this.dailyLimit = options.dailyLimit || 1000;
     this.warningThresholds = options.warningThresholds || [0.8, 0.9, 1.0]; // 80%, 90%, 100%
-    this.dataFile = options.dataFile || join(homedir(), '.gemini-cli-bridge', 'usage.json');
+    this.dataFile =
+      options.dataFile || join(homedir(), '.gemini-cli-bridge', 'usage.json');
     this.notifiedThresholds = new Set();
-    
+
     // 데이터 파일 디렉토리 생성
     this._ensureDataDirectory();
-    
+
     // 사용량 데이터 로드
     this.loadUsageData();
   }
@@ -38,7 +39,7 @@ export class UsageTracker {
       if (existsSync(this.dataFile)) {
         const data = JSON.parse(readFileSync(this.dataFile, 'utf8'));
         const today = this._getTodayKey();
-        
+
         // 오늘 날짜 데이터만 유지
         if (data.date === today) {
           this.currentUsage = data.usage || 0;
@@ -68,11 +69,14 @@ export class UsageTracker {
         lastReset: this.lastReset.toISOString(),
         history: this.history.slice(-100), // 최근 100개만 유지
         stats: {
-          peakUsage: Math.max(...this.history.map(h => h.usage), this.currentUsage),
-          averageResponseTime: this._calculateAverageResponseTime()
-        }
+          peakUsage: Math.max(
+            ...this.history.map(h => h.usage),
+            this.currentUsage
+          ),
+          averageResponseTime: this._calculateAverageResponseTime(),
+        },
       };
-      
+
       writeFileSync(this.dataFile, JSON.stringify(data, null, 2));
     } catch (error) {
       console.error('[UsageTracker] 데이터 저장 실패:', error);
@@ -127,28 +131,28 @@ export class UsageTracker {
    */
   async incrementUsage(metadata = {}) {
     this._checkDailyReset();
-    
+
     this.currentUsage++;
-    
+
     // 사용 이력 추가
     this.history.push({
       timestamp: new Date().toISOString(),
       usage: this.currentUsage,
       model: metadata.model || 'default',
       responseTime: metadata.responseTime || 0,
-      success: metadata.success !== false
+      success: metadata.success !== false,
     });
-    
+
     // 임계값 확인 및 알림
     this._checkThresholds();
-    
+
     // 데이터 저장
     this.saveUsageData();
-    
+
     return {
       current: this.currentUsage,
       remaining: this.getRemainingQuota(),
-      percent: this.getUsagePercent()
+      percent: this.getUsagePercent(),
     };
   }
 
@@ -158,7 +162,7 @@ export class UsageTracker {
   _checkDailyReset() {
     const today = this._getTodayKey();
     const lastResetDay = this.lastReset.toISOString().split('T')[0];
-    
+
     if (today !== lastResetDay) {
       this._resetDaily();
     }
@@ -169,9 +173,12 @@ export class UsageTracker {
    */
   _checkThresholds() {
     const usagePercent = this.getUsagePercent() / 100; // 0-1 범위로 변환
-    
+
     for (const threshold of this.warningThresholds) {
-      if (usagePercent >= threshold && !this.notifiedThresholds.has(threshold)) {
+      if (
+        usagePercent >= threshold &&
+        !this.notifiedThresholds.has(threshold)
+      ) {
         this.notifiedThresholds.add(threshold);
         this._sendNotification(threshold);
       }
@@ -184,22 +191,26 @@ export class UsageTracker {
   _sendNotification(threshold) {
     const percent = Math.round(threshold * 100);
     const remaining = this.getRemainingQuota();
-    
+
     let message = `⚠️ Gemini CLI 사용량 ${percent}% 도달!`;
-    
+
     if (remaining > 0) {
       message += ` (남은 횟수: ${remaining}회)`;
     } else {
       message += ' 🔴 일일 한도 초과!';
     }
-    
+
     console.warn(`[UsageTracker] ${message}`);
-    
+
     // 추가 알림 로직 (예: 시스템 알림, 이메일 등)
     if (threshold >= 1.0) {
-      console.error('[UsageTracker] 💥 일일 사용 한도에 도달했습니다. 내일까지 사용이 제한됩니다.');
+      console.error(
+        '[UsageTracker] 💥 일일 사용 한도에 도달했습니다. 내일까지 사용이 제한됩니다.'
+      );
     } else if (threshold >= 0.9) {
-      console.warn('[UsageTracker] ⚡ 곧 일일 한도에 도달합니다. 사용에 주의하세요.');
+      console.warn(
+        '[UsageTracker] ⚡ 곧 일일 한도에 도달합니다. 사용에 주의하세요.'
+      );
     }
   }
 
@@ -208,13 +219,13 @@ export class UsageTracker {
    */
   _calculateAverageResponseTime() {
     if (this.history.length === 0) return 0;
-    
+
     const validTimes = this.history
       .filter(h => h.responseTime > 0)
       .map(h => h.responseTime);
-    
+
     if (validTimes.length === 0) return 0;
-    
+
     return validTimes.reduce((a, b) => a + b, 0) / validTimes.length;
   }
 
@@ -223,16 +234,16 @@ export class UsageTracker {
    */
   getDetailedStats() {
     this._checkDailyReset();
-    
+
     const successCount = this.history.filter(h => h.success).length;
     const failureCount = this.history.filter(h => !h.success).length;
     const modelUsage = {};
-    
+
     // 모델별 사용량 집계
     this.history.forEach(h => {
       modelUsage[h.model] = (modelUsage[h.model] || 0) + 1;
     });
-    
+
     return {
       current: this.currentUsage,
       limit: this.dailyLimit,
@@ -242,7 +253,7 @@ export class UsageTracker {
       averageResponseTime: this._calculateAverageResponseTime(),
       modelBreakdown: modelUsage,
       lastReset: this.lastReset.toISOString(),
-      nextReset: this._getNextResetTime()
+      nextReset: this._getNextResetTime(),
     };
   }
 
@@ -263,27 +274,27 @@ export class UsageTracker {
     if (this.history.length < 10) {
       return { prediction: 'insufficient_data', estimatedTotal: null };
     }
-    
+
     const now = new Date();
     const dayStart = new Date(now);
     dayStart.setHours(0, 0, 0, 0);
-    
+
     const elapsedHours = (now - dayStart) / (1000 * 60 * 60);
     const currentRate = this.currentUsage / elapsedHours;
     const estimatedTotal = Math.round(currentRate * 24);
-    
+
     let status = 'normal';
     if (estimatedTotal > this.dailyLimit * 1.2) {
       status = 'critical';
     } else if (estimatedTotal > this.dailyLimit) {
       status = 'warning';
     }
-    
+
     return {
       prediction: status,
       estimatedTotal,
       currentRate: Math.round(currentRate),
-      recommendation: this._getUsageRecommendation(status)
+      recommendation: this._getUsageRecommendation(status),
     };
   }
 

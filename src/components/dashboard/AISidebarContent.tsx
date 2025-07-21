@@ -2,7 +2,7 @@
 
 /**
  * 🤖 AI 사이드바 전체 기능 통합 컴포넌트
- * 
+ *
  * - 자연어 질의 입력
  * - 프리셋 질문 버튼들
  * - 채팅 인터페이스
@@ -12,21 +12,24 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Send, 
-  Bot, 
-  User, 
-  AlertTriangle, 
-  Brain, 
-  FileText, 
+import {
+  Send,
+  Bot,
+  User,
+  AlertTriangle,
+  Brain,
+  FileText,
   Zap,
   Clock,
   TrendingUp,
   Shield,
   Search,
-  Lightbulb
+  Lightbulb,
 } from 'lucide-react';
-import { PRESET_QUESTIONS, useAISidebarStore } from '@/stores/useAISidebarStore';
+import {
+  PRESET_QUESTIONS,
+  useAISidebarStore,
+} from '@/stores/useAISidebarStore';
 import AIInsightsCard from './AIInsightsCard';
 
 interface AISidebarContentProps {
@@ -45,14 +48,17 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
-      content: '안녕하세요! 시스템 모니터링과 관련된 질문을 해주세요. 아래 프리셋 질문을 클릭하거나 직접 입력하실 수 있습니다.',
+      content:
+        '안녕하세요! 시스템 모니터링과 관련된 질문을 해주세요. 아래 프리셋 질문을 클릭하거나 직접 입력하실 수 있습니다.',
       role: 'assistant',
       timestamp: new Date(),
-    }
+    },
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'reports' | 'insights'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'reports' | 'insights'>(
+    'chat'
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -99,7 +105,11 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
   const generateAIResponse = (userInput: string): string => {
     const lowerInput = userInput.toLowerCase();
 
-    if (lowerInput.includes('성능') || lowerInput.includes('cpu') || lowerInput.includes('메모리')) {
+    if (
+      lowerInput.includes('성능') ||
+      lowerInput.includes('cpu') ||
+      lowerInput.includes('메모리')
+    ) {
       return `현재 시스템 성능 분석 결과:
 
 📊 **전체 현황**
@@ -117,7 +127,11 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
 3. 자동 스케일링 고려`;
     }
 
-    if (lowerInput.includes('보안') || lowerInput.includes('위험') || lowerInput.includes('취약점')) {
+    if (
+      lowerInput.includes('보안') ||
+      lowerInput.includes('위험') ||
+      lowerInput.includes('취약점')
+    ) {
       return `🔒 **보안 상태 분석**
 
 ✅ **정상 항목**
@@ -135,7 +149,11 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
 3. 비밀번호 정책 강화 검토`;
     }
 
-    if (lowerInput.includes('장애') || lowerInput.includes('보고서') || lowerInput.includes('리포트')) {
+    if (
+      lowerInput.includes('장애') ||
+      lowerInput.includes('보고서') ||
+      lowerInput.includes('리포트')
+    ) {
       return `📋 **자동 장애 보고서 생성**
 
 🕐 **분석 기간**: ${new Date().toLocaleDateString('ko-KR')} 00:00 ~ 현재
@@ -158,7 +176,11 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
 - 네트워크 안정성 지속 관찰`;
     }
 
-    if (lowerInput.includes('예측') || lowerInput.includes('미래') || lowerInput.includes('전망')) {
+    if (
+      lowerInput.includes('예측') ||
+      lowerInput.includes('미래') ||
+      lowerInput.includes('전망')
+    ) {
       return `🔮 **AI 예측 분석**
 
 📈 **다음 24시간 예측**
@@ -209,7 +231,9 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
               <Bot className='w-4 h-4 text-white' />
             </div>
             <div>
-              <h2 className='text-lg font-semibold text-gray-800'>AI 어시스턴트</h2>
+              <h2 className='text-lg font-semibold text-gray-800'>
+                AI 어시스턴트
+              </h2>
               <p className='text-xs text-gray-500'>실시간 모니터링 분석</p>
             </div>
           </div>
@@ -227,7 +251,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
             { id: 'chat', label: '채팅', icon: Bot },
             { id: 'reports', label: '보고서', icon: FileText },
             { id: 'insights', label: '인사이트', icon: Brain },
-          ].map((tab) => (
+          ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
@@ -250,9 +274,11 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
           <>
             {/* 프리셋 질문 */}
             <div className='p-4 border-b border-gray-100'>
-              <h3 className='text-sm font-medium text-gray-700 mb-3'>빠른 질문</h3>
+              <h3 className='text-sm font-medium text-gray-700 mb-3'>
+                빠른 질문
+              </h3>
               <div className='grid grid-cols-2 gap-2'>
-                {PRESET_QUESTIONS.slice(0, 4).map((preset) => (
+                {PRESET_QUESTIONS.slice(0, 4).map(preset => (
                   <button
                     key={preset.id}
                     onClick={() => handlePresetClick(preset.question)}
@@ -260,11 +286,21 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                     disabled={isLoading}
                   >
                     <div className='flex items-center gap-1 mb-1'>
-                      {preset.category === 'performance' && <TrendingUp className='w-3 h-3 text-green-500' />}
-                      {preset.category === 'security' && <Shield className='w-3 h-3 text-red-500' />}
-                      {preset.category === 'prediction' && <Brain className='w-3 h-3 text-purple-500' />}
-                      {preset.category === 'analysis' && <Search className='w-3 h-3 text-blue-500' />}
-                      <span className='font-medium capitalize'>{preset.category}</span>
+                      {preset.category === 'performance' && (
+                        <TrendingUp className='w-3 h-3 text-green-500' />
+                      )}
+                      {preset.category === 'security' && (
+                        <Shield className='w-3 h-3 text-red-500' />
+                      )}
+                      {preset.category === 'prediction' && (
+                        <Brain className='w-3 h-3 text-purple-500' />
+                      )}
+                      {preset.category === 'analysis' && (
+                        <Search className='w-3 h-3 text-blue-500' />
+                      )}
+                      <span className='font-medium capitalize'>
+                        {preset.category}
+                      </span>
                     </div>
                     <div className='text-gray-600'>{preset.question}</div>
                   </button>
@@ -285,37 +321,49 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
 
             {/* 채팅 메시지 */}
             <div className='flex-1 overflow-y-auto p-4 space-y-4'>
-              {messages.map((message) => (
+              {messages.map(message => (
                 <motion.div
                   key={message.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`max-w-[80%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}>
+                  <div
+                    className={`max-w-[80%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}
+                  >
                     <div
                       className={`p-3 rounded-lg ${
                         message.role === 'user'
                           ? 'bg-blue-500 text-white'
                           : message.type === 'report'
-                          ? 'bg-purple-50 border border-purple-200'
-                          : 'bg-gray-100 text-gray-800'
+                            ? 'bg-purple-50 border border-purple-200'
+                            : 'bg-gray-100 text-gray-800'
                       }`}
                     >
-                      <div className='whitespace-pre-wrap text-sm'>{message.content}</div>
-                      <div className={`text-xs mt-1 opacity-70 ${
-                        message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
-                      }`}>
-                        {message.timestamp.toLocaleTimeString('ko-KR', { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
+                      <div className='whitespace-pre-wrap text-sm'>
+                        {message.content}
+                      </div>
+                      <div
+                        className={`text-xs mt-1 opacity-70 ${
+                          message.role === 'user'
+                            ? 'text-blue-100'
+                            : 'text-gray-500'
+                        }`}
+                      >
+                        {message.timestamp.toLocaleTimeString('ko-KR', {
+                          hour: '2-digit',
+                          minute: '2-digit',
                         })}
                       </div>
                     </div>
                   </div>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    message.role === 'user' ? 'order-1 mr-2 bg-blue-500' : 'order-2 ml-2 bg-gray-300'
-                  }`}>
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      message.role === 'user'
+                        ? 'order-1 mr-2 bg-blue-500'
+                        : 'order-2 ml-2 bg-gray-300'
+                    }`}
+                  >
                     {message.role === 'user' ? (
                       <User className='w-4 h-4 text-white' />
                     ) : (
@@ -334,8 +382,14 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                   <div className='bg-gray-100 p-3 rounded-lg'>
                     <div className='flex items-center gap-2 text-gray-600'>
                       <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce'></div>
-                      <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce' style={{ animationDelay: '0.1s' }}></div>
-                      <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce' style={{ animationDelay: '0.2s' }}></div>
+                      <div
+                        className='w-2 h-2 bg-gray-400 rounded-full animate-bounce'
+                        style={{ animationDelay: '0.1s' }}
+                      ></div>
+                      <div
+                        className='w-2 h-2 bg-gray-400 rounded-full animate-bounce'
+                        style={{ animationDelay: '0.2s' }}
+                      ></div>
                       <span className='text-sm'>분석 중...</span>
                     </div>
                   </div>
@@ -352,8 +406,10 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                   ref={inputRef}
                   type='text'
                   value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(inputValue)}
+                  onChange={e => setInputValue(e.target.value)}
+                  onKeyPress={e =>
+                    e.key === 'Enter' && handleSendMessage(inputValue)
+                  }
                   placeholder='자연어로 질문하세요...'
                   disabled={isLoading}
                   className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50'
@@ -376,13 +432,17 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
               <div className='bg-gray-50 rounded-lg p-4'>
                 <div className='flex items-center gap-2 mb-3'>
                   <Clock className='w-5 h-5 text-blue-500' />
-                  <h3 className='font-medium text-gray-800'>실시간 시스템 리포트</h3>
+                  <h3 className='font-medium text-gray-800'>
+                    실시간 시스템 리포트
+                  </h3>
                 </div>
                 <div className='text-sm text-gray-600 space-y-2'>
                   <div>• 전체 서버 상태: 정상</div>
                   <div>• 평균 응답시간: 120ms</div>
                   <div>• 에러율: 0.08%</div>
-                  <div>• 마지막 업데이트: {new Date().toLocaleTimeString('ko-KR')}</div>
+                  <div>
+                    • 마지막 업데이트: {new Date().toLocaleTimeString('ko-KR')}
+                  </div>
                 </div>
               </div>
 
@@ -417,7 +477,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
         {activeTab === 'insights' && (
           <div className='p-4 overflow-y-auto'>
             <AIInsightsCard className='mb-4' />
-            
+
             <div className='space-y-3'>
               <div className='bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200'>
                 <div className='flex items-center gap-2 mb-2'>
@@ -425,7 +485,8 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                   <h3 className='font-medium text-purple-800'>AI 추천</h3>
                 </div>
                 <p className='text-sm text-purple-700'>
-                  서버 #3의 CPU 사용률이 85%에 도달했습니다. 프로세스 최적화를 권장합니다.
+                  서버 #3의 CPU 사용률이 85%에 도달했습니다. 프로세스 최적화를
+                  권장합니다.
                 </p>
               </div>
 
@@ -435,7 +496,8 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                   <h3 className='font-medium text-yellow-800'>주의 사항</h3>
                 </div>
                 <p className='text-sm text-yellow-700'>
-                  네트워크 트래픽이 평소보다 20% 증가했습니다. 모니터링을 강화하세요.
+                  네트워크 트래픽이 평소보다 20% 증가했습니다. 모니터링을
+                  강화하세요.
                 </p>
               </div>
 

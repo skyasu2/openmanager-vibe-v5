@@ -51,15 +51,13 @@ class EnvSecurityManager {
       NEXT_PUBLIC_SUPABASE_ANON_KEY: {
         required: true,
         public: true,
-        value:
-          'SENSITIVE_INFO_REMOVED',
+        value: 'SENSITIVE_INFO_REMOVED',
         encrypt: true,
       },
       SUPABASE_SERVICE_ROLE_KEY: {
         required: false,
         public: false,
-        value:
-          'SENSITIVE_INFO_REMOVED',
+        value: 'SENSITIVE_INFO_REMOVED',
         encrypt: true,
       },
       SUPABASE_DB_PASSWORD: {
@@ -156,8 +154,6 @@ class EnvSecurityManager {
         public: false,
         default: 'false',
       },
-
-
 
       // ⏰ Cron 보안
       CRON_SECRET: {

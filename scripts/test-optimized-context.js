@@ -19,12 +19,12 @@ function makeRequest(url, options = {}) {
       port: urlObj.port || 80,
       path: urlObj.pathname + urlObj.search,
       method: options.method || 'GET',
-      headers: options.headers || {}
+      headers: options.headers || {},
     };
 
-    const req = http.request(requestOptions, (res) => {
+    const req = http.request(requestOptions, res => {
       let data = '';
-      res.on('data', chunk => data += chunk);
+      res.on('data', chunk => (data += chunk));
       res.on('end', () => {
         try {
           const jsonData = data ? JSON.parse(data) : {};
@@ -32,14 +32,14 @@ function makeRequest(url, options = {}) {
             ok: res.statusCode >= 200 && res.statusCode < 300,
             status: res.statusCode,
             statusText: res.statusMessage,
-            json: () => Promise.resolve(jsonData)
+            json: () => Promise.resolve(jsonData),
           });
         } catch (error) {
           resolve({
             ok: res.statusCode >= 200 && res.statusCode < 300,
             status: res.statusCode,
             statusText: res.statusMessage,
-            text: () => Promise.resolve(data)
+            text: () => Promise.resolve(data),
           });
         }
       });
@@ -65,46 +65,60 @@ async function testOptimizedContext() {
     performance: {
       memoryUsage: 0,
       responseTime: 0,
-      cacheHitRate: 0
-    }
+      cacheHitRate: 0,
+    },
   };
 
   try {
     // 1. 컨텍스트 관리자 상태 확인
     console.log('📋 1. 컨텍스트 관리자 상태 확인...');
-    const contextResponse = await makeRequest(`${BASE_URL}/api/ai/unified/status`);
+    const contextResponse = await makeRequest(
+      `${BASE_URL}/api/ai/unified/status`
+    );
     if (contextResponse.ok) {
       const contextData = await contextResponse.json();
       results.contextManager = {
         status: '✅ 정상',
         patterns: contextData.patterns || 'N/A',
         queries: contextData.queries || 'N/A',
-        results: contextData.results || 'N/A'
+        results: contextData.results || 'N/A',
       };
       console.log(`   패턴 저장소: ${contextData.patterns || 'N/A'}개`);
       console.log(`   쿼리 히스토리: ${contextData.queries || 'N/A'}개`);
       console.log(`   결과 저장소: ${contextData.results || 'N/A'}개`);
     } else {
-      results.contextManager = { status: '❌ 오류', error: contextResponse.statusText };
+      results.contextManager = {
+        status: '❌ 오류',
+        error: contextResponse.statusText,
+      };
     }
 
     // 2. 통합 캐시 성능 확인
     console.log('\n💾 2. 통합 캐시 성능 확인...');
-    const cacheResponse = await makeRequest(`${BASE_URL}/api/system/unified/status`);
+    const cacheResponse = await makeRequest(
+      `${BASE_URL}/api/system/unified/status`
+    );
     if (cacheResponse.ok) {
       const cacheData = await cacheResponse.json();
       results.unifiedCache = {
         status: '✅ 정상',
         hitRate: cacheData.cacheStats?.hitRate || 0,
         memoryUsage: cacheData.cacheStats?.memoryUsage || 'N/A',
-        entries: cacheData.cacheStats?.totalEntries || 0
+        entries: cacheData.cacheStats?.totalEntries || 0,
       };
       results.performance.cacheHitRate = cacheData.cacheStats?.hitRate || 0;
-      console.log(`   캐시 히트율: ${(cacheData.cacheStats?.hitRate || 0).toFixed(1)}%`);
-      console.log(`   메모리 사용량: ${cacheData.cacheStats?.memoryUsage || 'N/A'}`);
+      console.log(
+        `   캐시 히트율: ${(cacheData.cacheStats?.hitRate || 0).toFixed(1)}%`
+      );
+      console.log(
+        `   메모리 사용량: ${cacheData.cacheStats?.memoryUsage || 'N/A'}`
+      );
       console.log(`   총 엔트리: ${cacheData.cacheStats?.totalEntries || 0}개`);
     } else {
-      results.unifiedCache = { status: '❌ 오류', error: cacheResponse.statusText };
+      results.unifiedCache = {
+        status: '❌ 오류',
+        error: cacheResponse.statusText,
+      };
     }
 
     // 3. AI 대화 시스템 테스트
@@ -116,9 +130,10 @@ async function testOptimizedContext() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'send',
-        message: '현재 시스템의 무료 티어 최적화 상태를 분석해주세요. 메모리 사용량, 캐시 효율성, 응답 속도를 중심으로 평가해주세요.',
-        sessionId: `optimization_test_${Date.now()}`
-      })
+        message:
+          '현재 시스템의 무료 티어 최적화 상태를 분석해주세요. 메모리 사용량, 캐시 효율성, 응답 속도를 중심으로 평가해주세요.',
+        sessionId: `optimization_test_${Date.now()}`,
+      }),
     });
 
     const responseTime = Date.now() - startTime;
@@ -130,7 +145,7 @@ async function testOptimizedContext() {
         status: '✅ 정상',
         responseTime: `${responseTime}ms`,
         provider: aiData.provider || 'Unknown',
-        tokens: aiData.usage?.total_tokens || 'N/A'
+        tokens: aiData.usage?.total_tokens || 'N/A',
       };
       console.log(`   응답 시간: ${responseTime}ms`);
       console.log(`   AI 제공자: ${aiData.provider || 'Unknown'}`);
@@ -154,13 +169,14 @@ async function testOptimizedContext() {
     console.log('\n📈 5. 종합 성능 평가...');
     const overallScore = calculateOverallScore(results);
     console.log(`   전체 성능 점수: ${overallScore}/100`);
-    console.log(`   무료 티어 적합성: ${overallScore >= 80 ? '✅ 우수' : overallScore >= 60 ? '⚠️ 보통' : '❌ 개선 필요'}`);
+    console.log(
+      `   무료 티어 적합성: ${overallScore >= 80 ? '✅ 우수' : overallScore >= 60 ? '⚠️ 보통' : '❌ 개선 필요'}`
+    );
 
     // 6. 최적화 권장사항
     console.log('\n💡 6. 최적화 권장사항:');
     const recommendations = generateRecommendations(results);
     recommendations.forEach(rec => console.log(`   • ${rec}`));
-
   } catch (error) {
     console.error('❌ 테스트 중 오류 발생:', error.message);
     results.error = error.message;
@@ -170,7 +186,9 @@ async function testOptimizedContext() {
   console.log('\n' + '='.repeat(60));
   console.log('📋 테스트 결과 요약');
   console.log('='.repeat(60));
-  console.log(`컨텍스트 관리자: ${results.contextManager?.status || '❌ 테스트 실패'}`);
+  console.log(
+    `컨텍스트 관리자: ${results.contextManager?.status || '❌ 테스트 실패'}`
+  );
   console.log(`통합 캐시: ${results.unifiedCache?.status || '❌ 테스트 실패'}`);
   console.log(`AI 대화 시스템: ${results.aiChat?.status || '❌ 테스트 실패'}`);
   console.log(`캐시 히트율: ${results.performance.cacheHitRate.toFixed(1)}%`);
@@ -237,11 +255,15 @@ function generateRecommendations(results) {
   }
 
   if (results.contextManager?.patterns > 20) {
-    recommendations.push('패턴 저장소 크기 조정 고려 (현재 무료 티어 최적화: 15개)');
+    recommendations.push(
+      '패턴 저장소 크기 조정 고려 (현재 무료 티어 최적화: 15개)'
+    );
   }
 
   if (results.contextManager?.results > 40) {
-    recommendations.push('결과 저장소 크기 조정 고려 (현재 무료 티어 최적화: 35개)');
+    recommendations.push(
+      '결과 저장소 크기 조정 고려 (현재 무료 티어 최적화: 35개)'
+    );
   }
 
   if (recommendations.length === 0) {

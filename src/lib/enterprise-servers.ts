@@ -1,11 +1,11 @@
-import type { ServerStatus } from '../types/index'
+import type { ServerStatus } from '../types/index';
 
 // 🏢 기업 통합 IDC 인프라 - 30개 서버 구성
 // 쿠버네티스 15대 + 온프레미스 15대
 
 export const ENTERPRISE_SERVERS: ServerStatus[] = [
   // 🐳 === KUBERNETES 클러스터 (15대) ===
-  
+
   // K8s Control Plane - 마스터 노드 (3대 - HA 구성)
   {
     id: 'k8s-master-01',
@@ -19,16 +19,16 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
       memory: 87.8,
       disk: 45.2,
       network: {
-        bytesIn: 8388608,   // 8MB/s
+        bytesIn: 8388608, // 8MB/s
         bytesOut: 12582912, // 12MB/s
         packetsIn: 1500,
         packetsOut: 1200,
-        latency: 85,        // etcd 응답 지연
-        connections: 245
+        latency: 85, // etcd 응답 지연
+        connections: 245,
       },
       processes: 178,
-      loadAverage: [2.15, 2.08, 1.95] as const
-    }
+      loadAverage: [2.15, 2.08, 1.95] as const,
+    },
   },
   {
     id: 'k8s-master-02',
@@ -47,11 +47,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 980,
         packetsOut: 850,
         latency: 12,
-        connections: 156
+        connections: 156,
       },
       processes: 145,
-      loadAverage: [0.65, 0.58, 0.42] as const
-    }
+      loadAverage: [0.65, 0.58, 0.42] as const,
+    },
   },
   {
     id: 'k8s-master-03',
@@ -70,11 +70,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 1100,
         packetsOut: 950,
         latency: 15,
-        connections: 189
+        connections: 189,
       },
       processes: 152,
-      loadAverage: [0.78, 0.65, 0.48] as const
-    }
+      loadAverage: [0.78, 0.65, 0.48] as const,
+    },
   },
 
   // K8s Worker 노드 - 프론트엔드 워크로드 (4대)
@@ -90,16 +90,16 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
       memory: 73.8,
       disk: 28.4,
       network: {
-        bytesIn: 20971520,  // 20MB/s
+        bytesIn: 20971520, // 20MB/s
         bytesOut: 15728640, // 15MB/s
         packetsIn: 3200,
         packetsOut: 2800,
         latency: 8,
-        connections: 324
+        connections: 324,
       },
       processes: 198,
-      loadAverage: [1.12, 0.98, 0.85] as const
-    }
+      loadAverage: [1.12, 0.98, 0.85] as const,
+    },
   },
   {
     id: 'k8s-worker-02',
@@ -118,11 +118,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 2900,
         packetsOut: 2500,
         latency: 10,
-        connections: 287
+        connections: 287,
       },
       processes: 185,
-      loadAverage: [0.89, 0.76, 0.62] as const
-    }
+      loadAverage: [0.89, 0.76, 0.62] as const,
+    },
   },
   {
     id: 'k8s-worker-03',
@@ -141,11 +141,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 3400,
         packetsOut: 3000,
         latency: 7,
-        connections: 356
+        connections: 356,
       },
       processes: 203,
-      loadAverage: [1.05, 0.92, 0.78] as const
-    }
+      loadAverage: [1.05, 0.92, 0.78] as const,
+    },
   },
   {
     id: 'k8s-worker-04',
@@ -164,11 +164,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 2700,
         packetsOut: 2300,
         latency: 9,
-        connections: 267
+        connections: 267,
       },
       processes: 172,
-      loadAverage: [0.72, 0.65, 0.58] as const
-    }
+      loadAverage: [0.72, 0.65, 0.58] as const,
+    },
   },
 
   // K8s Worker 노드 - 백엔드 API 워크로드 (4대)
@@ -184,16 +184,16 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
       memory: 84.7,
       disk: 56.3,
       network: {
-        bytesIn: 31457280,  // 30MB/s
+        bytesIn: 31457280, // 30MB/s
         bytesOut: 26214400, // 25MB/s
         packetsIn: 4800,
         packetsOut: 4200,
-        latency: 45,        // Pod 재시작으로 인한 지연
-        connections: 412
+        latency: 45, // Pod 재시작으로 인한 지연
+        connections: 412,
       },
       processes: 267,
-      loadAverage: [1.78, 1.65, 1.52] as const
-    }
+      loadAverage: [1.78, 1.65, 1.52] as const,
+    },
   },
   {
     id: 'k8s-worker-06',
@@ -212,11 +212,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 4300,
         packetsOut: 3800,
         latency: 38,
-        connections: 378
+        connections: 378,
       },
       processes: 245,
-      loadAverage: [1.56, 1.42, 1.28] as const
-    }
+      loadAverage: [1.56, 1.42, 1.28] as const,
+    },
   },
   {
     id: 'k8s-worker-07',
@@ -235,11 +235,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 3900,
         packetsOut: 3400,
         latency: 18,
-        connections: 334
+        connections: 334,
       },
       processes: 218,
-      loadAverage: [1.15, 1.02, 0.88] as const
-    }
+      loadAverage: [1.15, 1.02, 0.88] as const,
+    },
   },
   {
     id: 'k8s-worker-08',
@@ -258,11 +258,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 3600,
         packetsOut: 3100,
         latency: 22,
-        connections: 298
+        connections: 298,
       },
       processes: 201,
-      loadAverage: [1.08, 0.95, 0.82] as const
-    }
+      loadAverage: [1.08, 0.95, 0.82] as const,
+    },
   },
 
   // K8s Worker 노드 - 데이터 처리 및 배치 워크로드 (4대)
@@ -282,12 +282,12 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         bytesOut: 12582912,
         packetsIn: 2400,
         packetsOut: 2000,
-        latency: 52,        // 스케줄링 지연
-        connections: 198
+        latency: 52, // 스케줄링 지연
+        connections: 198,
       },
       processes: 234,
-      loadAverage: [1.89, 1.76, 1.63] as const
-    }
+      loadAverage: [1.89, 1.76, 1.63] as const,
+    },
   },
   {
     id: 'k8s-worker-10',
@@ -306,11 +306,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 2100,
         packetsOut: 1800,
         latency: 25,
-        connections: 167
+        connections: 167,
       },
       processes: 198,
-      loadAverage: [1.34, 1.21, 1.08] as const
-    }
+      loadAverage: [1.34, 1.21, 1.08] as const,
+    },
   },
   {
     id: 'k8s-worker-11',
@@ -329,11 +329,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 1800,
         packetsOut: 1500,
         latency: 19,
-        connections: 145
+        connections: 145,
       },
       processes: 176,
-      loadAverage: [1.18, 1.05, 0.92] as const
-    }
+      loadAverage: [1.18, 1.05, 0.92] as const,
+    },
   },
   {
     id: 'k8s-worker-12',
@@ -352,15 +352,15 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 1600,
         packetsOut: 1300,
         latency: 16,
-        connections: 123
+        connections: 123,
       },
       processes: 158,
-      loadAverage: [1.02, 0.89, 0.76] as const
-    }
+      loadAverage: [1.02, 0.89, 0.76] as const,
+    },
   },
 
   // 🏢 === 온프레미스 서버 (15대) ===
-  
+
   // 웹 서비스 계층 (4대)
   {
     id: 'web-lb-01',
@@ -374,16 +374,16 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
       memory: 38.7,
       disk: 15.6,
       network: {
-        bytesIn: 41943040,  // 40MB/s
+        bytesIn: 41943040, // 40MB/s
         bytesOut: 52428800, // 50MB/s
         packetsIn: 6400,
         packetsOut: 8000,
         latency: 5,
-        connections: 1024
+        connections: 1024,
       },
       processes: 89,
-      loadAverage: [0.68, 0.52, 0.38] as const
-    }
+      loadAverage: [0.68, 0.52, 0.38] as const,
+    },
   },
   {
     id: 'web-lb-02',
@@ -402,11 +402,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 6100,
         packetsOut: 7300,
         latency: 6,
-        connections: 987
+        connections: 987,
       },
       processes: 85,
-      loadAverage: [0.62, 0.48, 0.35] as const
-    }
+      loadAverage: [0.62, 0.48, 0.35] as const,
+    },
   },
   {
     id: 'web-app-01',
@@ -425,11 +425,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 4000,
         packetsOut: 3200,
         latency: 150, // DB 대기로 인한 응답 지연
-        connections: 456
+        connections: 456,
       },
       processes: 234,
-      loadAverage: [1.45, 1.32, 1.18] as const
-    }
+      loadAverage: [1.45, 1.32, 1.18] as const,
+    },
   },
   {
     id: 'web-app-02',
@@ -448,11 +448,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 3500,
         packetsOut: 2900,
         latency: 25,
-        connections: 389
+        connections: 389,
       },
       processes: 198,
-      loadAverage: [1.12, 0.98, 0.85] as const
-    }
+      loadAverage: [1.12, 0.98, 0.85] as const,
+    },
   },
 
   // 데이터베이스 계층 (4대)
@@ -464,20 +464,20 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
     location: 'IDC-F 랙-01 (PostgreSQL Master)',
     uptime: 5184000, // 60일
     metrics: {
-      cpu: 96.8,      // CPU 과부하
-      memory: 94.2,   // 메모리 거의 가득
-      disk: 89.7,     // 디스크 I/O 100%
+      cpu: 96.8, // CPU 과부하
+      memory: 94.2, // 메모리 거의 가득
+      disk: 89.7, // 디스크 I/O 100%
       network: {
-        bytesIn: 67108864,  // 64MB/s - 과도한 쿼리
+        bytesIn: 67108864, // 64MB/s - 과도한 쿼리
         bytesOut: 31457280, // 30MB/s
         packetsIn: 10240,
         packetsOut: 4800,
-        latency: 350,   // 긴 쿼리 응답 시간
-        connections: 850 // 커넥션 풀 거의 고갈
+        latency: 350, // 긴 쿼리 응답 시간
+        connections: 850, // 커넥션 풀 거의 고갈
       },
       processes: 456,
-      loadAverage: [3.45, 3.28, 3.15] as const
-    }
+      loadAverage: [3.45, 3.28, 3.15] as const,
+    },
   },
   {
     id: 'db-slave-01',
@@ -487,7 +487,7 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
     location: 'IDC-F 랙-02 (PostgreSQL Slave #1)',
     uptime: 4320000, // 50일
     metrics: {
-      cpu: 87.3,      // 읽기 부하 집중
+      cpu: 87.3, // 읽기 부하 집중
       memory: 79.6,
       disk: 67.4,
       network: {
@@ -496,11 +496,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 2400,
         packetsOut: 8000,
         latency: 85,
-        connections: 567
+        connections: 567,
       },
       processes: 298,
-      loadAverage: [1.89, 1.76, 1.63] as const
-    }
+      loadAverage: [1.89, 1.76, 1.63] as const,
+    },
   },
   {
     id: 'db-slave-02',
@@ -519,11 +519,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 1900,
         packetsOut: 6400,
         latency: 35,
-        connections: 445
+        connections: 445,
       },
       processes: 234,
-      loadAverage: [1.34, 1.21, 1.08] as const
-    }
+      loadAverage: [1.34, 1.21, 1.08] as const,
+    },
   },
   {
     id: 'db-cache-01',
@@ -542,11 +542,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 3200,
         packetsOut: 3800,
         latency: 8,
-        connections: 234
+        connections: 234,
       },
       processes: 67,
-      loadAverage: [0.52, 0.48, 0.35] as const
-    }
+      loadAverage: [0.52, 0.48, 0.35] as const,
+    },
   },
 
   // 파일 및 스토리지 계층 (3대)
@@ -560,18 +560,18 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
     metrics: {
       cpu: 58.2,
       memory: 67.9,
-      disk: 78.4,     // 파일 시스템 부하
+      disk: 78.4, // 파일 시스템 부하
       network: {
         bytesIn: 8388608,
         bytesOut: 16777216,
         packetsIn: 1300,
         packetsOut: 2600,
-        latency: 45,    // NFS 응답 지연
-        connections: 167
+        latency: 45, // NFS 응답 지연
+        connections: 167,
       },
       processes: 123,
-      loadAverage: [1.15, 1.02, 0.88] as const
-    }
+      loadAverage: [1.15, 1.02, 0.88] as const,
+    },
   },
   {
     id: 'backup-server-01',
@@ -583,18 +583,18 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
     metrics: {
       cpu: 72.6,
       memory: 84.1,
-      disk: 92.3,     // 백업 데이터 급증
+      disk: 92.3, // 백업 데이터 급증
       network: {
         bytesIn: 104857600, // 100MB/s - 백업 시도
-        bytesOut: 2097152,  // 2MB/s
+        bytesOut: 2097152, // 2MB/s
         packetsIn: 16000,
         packetsOut: 320,
-        latency: 120,   // 백업 실패로 인한 재시도
-        connections: 45
+        latency: 120, // 백업 실패로 인한 재시도
+        connections: 45,
       },
       processes: 89,
-      loadAverage: [1.67, 1.54, 1.41] as const
-    }
+      loadAverage: [1.67, 1.54, 1.41] as const,
+    },
   },
   {
     id: 'storage-server-01',
@@ -606,18 +606,18 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
     metrics: {
       cpu: 91.4,
       memory: 88.7,
-      disk: 96.8,     // 디스크 거의 가득
+      disk: 96.8, // 디스크 거의 가득
       network: {
-        bytesIn: 125829120,  // 120MB/s - I/O 병목
-        bytesOut: 41943040,  // 40MB/s
+        bytesIn: 125829120, // 120MB/s - I/O 병목
+        bytesOut: 41943040, // 40MB/s
         packetsIn: 19200,
         packetsOut: 6400,
-        latency: 280,   // 파일 시스템 오류
-        connections: 234
+        latency: 280, // 파일 시스템 오류
+        connections: 234,
       },
       processes: 167,
-      loadAverage: [2.78, 2.65, 2.52] as const
-    }
+      loadAverage: [2.78, 2.65, 2.52] as const,
+    },
   },
 
   // 인프라 서비스 계층 (4대)
@@ -638,11 +638,11 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
         packetsIn: 4800,
         packetsOut: 2400,
         latency: 12,
-        connections: 198
+        connections: 198,
       },
       processes: 145,
-      loadAverage: [0.89, 0.76, 0.62] as const
-    }
+      loadAverage: [0.89, 0.76, 0.62] as const,
+    },
   },
   {
     id: 'log-server-01',
@@ -656,16 +656,16 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
       memory: 81.7,
       disk: 67.9,
       network: {
-        bytesIn: 62914560,  // 60MB/s - 로그 수집
+        bytesIn: 62914560, // 60MB/s - 로그 수집
         bytesOut: 10485760, // 10MB/s
         packetsIn: 9600,
         packetsOut: 1600,
         latency: 18,
-        connections: 89
+        connections: 89,
       },
       processes: 198,
-      loadAverage: [1.08, 0.95, 0.82] as const
-    }
+      loadAverage: [1.08, 0.95, 0.82] as const,
+    },
   },
   {
     id: 'proxy-server-01',
@@ -679,16 +679,16 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
       memory: 42.6,
       disk: 22.4,
       network: {
-        bytesIn: 52428800,  // 50MB/s
+        bytesIn: 52428800, // 50MB/s
         bytesOut: 62914560, // 60MB/s
         packetsIn: 8000,
         packetsOut: 9600,
         latency: 7,
-        connections: 567
+        connections: 567,
       },
       processes: 78,
-      loadAverage: [0.58, 0.45, 0.32] as const
-    }
+      loadAverage: [0.58, 0.45, 0.32] as const,
+    },
   },
   {
     id: 'dns-server-01',
@@ -702,28 +702,28 @@ export const ENTERPRISE_SERVERS: ServerStatus[] = [
       memory: 28.7,
       disk: 8.9,
       network: {
-        bytesIn: 1048576,   // 1MB/s
-        bytesOut: 2097152,  // 2MB/s
+        bytesIn: 1048576, // 1MB/s
+        bytesOut: 2097152, // 2MB/s
         packetsIn: 1600,
         packetsOut: 3200,
         latency: 3,
-        connections: 234
+        connections: 234,
       },
       processes: 45,
-      loadAverage: [0.18, 0.15, 0.12] as const
-    }
-  }
-]
+      loadAverage: [0.18, 0.15, 0.12] as const,
+    },
+  },
+];
 
 // 서버 상태 통계
 export const SERVER_STATS = {
   total: 30,
-  critical: 3,   // 10%
-  warning: 6,    // 20%
-  healthy: 21,   // 70%
+  critical: 3, // 10%
+  warning: 6, // 20%
+  healthy: 21, // 70%
   kubernetes: 15,
-  onpremise: 15
-}
+  onpremise: 15,
+};
 
 // IDC 위치별 분류
 export const IDC_LOCATIONS = {
@@ -734,5 +734,10 @@ export const IDC_LOCATIONS = {
   'IDC-E': ['web-lb-01', 'web-lb-02', 'web-app-01', 'web-app-02'],
   'IDC-F': ['db-master-01', 'db-slave-01', 'db-slave-02', 'db-cache-01'],
   'IDC-G': ['file-server-01', 'backup-server-01', 'storage-server-01'],
-  'IDC-H': ['monitor-server-01', 'log-server-01', 'proxy-server-01', 'dns-server-01']
-} 
+  'IDC-H': [
+    'monitor-server-01',
+    'log-server-01',
+    'proxy-server-01',
+    'dns-server-01',
+  ],
+};

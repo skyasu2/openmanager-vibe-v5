@@ -27,7 +27,15 @@ export interface ExtendedServer extends Omit<Server, 'networkStatus'> {
     disk_gb: number;
     network_speed?: string;
   };
-  networkStatus: 'excellent' | 'good' | 'poor' | 'offline' | 'healthy' | 'warning' | 'critical' | 'maintenance';
+  networkStatus:
+    | 'excellent'
+    | 'good'
+    | 'poor'
+    | 'offline'
+    | 'healthy'
+    | 'warning'
+    | 'critical'
+    | 'maintenance';
   health: {
     score: number;
     trend: number[];
@@ -57,30 +65,32 @@ export function isExtendedServer(server: unknown): server is ExtendedServer {
 // uptime 포매팅 헬퍼
 export function formatUptime(uptime: string | number | undefined): string {
   if (!uptime) return 'N/A';
-  
+
   if (typeof uptime === 'string') {
     return uptime;
   }
-  
+
   if (typeof uptime === 'number') {
     const hours = Math.floor(uptime / 3600);
     const minutes = Math.floor((uptime % 3600) / 60);
     return `${hours}h ${minutes}m`;
   }
-  
+
   return 'N/A';
 }
 
 // alerts 카운트 헬퍼
-export function getAlertsCount(alerts: number | ServerAlert[] | undefined): number {
+export function getAlertsCount(
+  alerts: number | ServerAlert[] | undefined
+): number {
   if (typeof alerts === 'number') {
     return alerts;
   }
-  
+
   if (Array.isArray(alerts)) {
     return alerts.length;
   }
-  
+
   return 0;
 }
 
@@ -97,32 +107,58 @@ export function toExtendedServer(server: Server): ExtendedServer {
   return {
     ...server,
     hostname: server.hostname || server.name,
-    cpu: hasProperty(server, 'cpu') && typeof server.cpu === 'number' ? server.cpu : 0,
-    memory: hasProperty(server, 'memory') && typeof server.memory === 'number' ? server.memory : 0,
-    disk: hasProperty(server, 'disk') && typeof server.disk === 'number' ? server.disk : 0,
-    network: hasProperty(server, 'network') && typeof server.network === 'number' ? server.network : 25,
+    cpu:
+      hasProperty(server, 'cpu') && typeof server.cpu === 'number'
+        ? server.cpu
+        : 0,
+    memory:
+      hasProperty(server, 'memory') && typeof server.memory === 'number'
+        ? server.memory
+        : 0,
+    disk:
+      hasProperty(server, 'disk') && typeof server.disk === 'number'
+        ? server.disk
+        : 0,
+    network:
+      hasProperty(server, 'network') && typeof server.network === 'number'
+        ? server.network
+        : 25,
     uptime: server.uptime || 'N/A',
     ip: server.ip || '192.168.1.100',
     os: server.os || 'Ubuntu 22.04',
     type: server.type || 'api',
     environment: server.environment || 'prod',
     provider: server.provider || 'Unknown',
-    lastUpdate: hasProperty(server, 'lastUpdate') && server.lastUpdate instanceof Date
-      ? server.lastUpdate
-      : new Date(),
+    lastUpdate:
+      hasProperty(server, 'lastUpdate') && server.lastUpdate instanceof Date
+        ? server.lastUpdate
+        : new Date(),
     alerts: server.alerts || 0,
     services: server.services || [],
-    specs: hasProperty(server, 'specs') && typeof server.specs === 'object' && server.specs !== null
-      ? server.specs as ExtendedServer['specs']
-      : {
-          cpu_cores: 4,
-          memory_gb: 16,
-          disk_gb: 500,
-        },
-    networkStatus: hasProperty(server, 'networkStatus') && 
-      ['excellent', 'good', 'poor', 'offline', 'healthy', 'warning', 'critical', 'maintenance'].includes(String(server.networkStatus))
-      ? server.networkStatus as ExtendedServer['networkStatus']
-      : 'good',
+    specs:
+      hasProperty(server, 'specs') &&
+      typeof server.specs === 'object' &&
+      server.specs !== null
+        ? (server.specs as ExtendedServer['specs'])
+        : {
+            cpu_cores: 4,
+            memory_gb: 16,
+            disk_gb: 500,
+          },
+    networkStatus:
+      hasProperty(server, 'networkStatus') &&
+      [
+        'excellent',
+        'good',
+        'poor',
+        'offline',
+        'healthy',
+        'warning',
+        'critical',
+        'maintenance',
+      ].includes(String(server.networkStatus))
+        ? (server.networkStatus as ExtendedServer['networkStatus'])
+        : 'good',
     health: server.health || {
       score: 85,
       trend: [],

@@ -82,7 +82,9 @@ export class RealMCPClient {
   public static getAIInstance(): RealMCPClient {
     if (!RealMCPClient.aiInstance) {
       RealMCPClient.aiInstance = new RealMCPClient('ai-production');
-      console.log('🤖 AI 전용 MCP 클라이언트 생성 (GCP VM MCP 서버 - 컨텍스트 분석 전용)');
+      console.log(
+        '🤖 AI 전용 MCP 클라이언트 생성 (GCP VM MCP 서버 - 컨텍스트 분석 전용)'
+      );
     }
     return RealMCPClient.aiInstance;
   }
@@ -121,7 +123,9 @@ export class RealMCPClient {
       // 용도별 설정 로그
       switch (this.purpose) {
         case 'ai-production':
-          console.log('🤖 AI 프로덕션 MCP 설정 로드 (GCP VM MCP 서버 - 컨텍스트 분석)');
+          console.log(
+            '🤖 AI 프로덕션 MCP 설정 로드 (GCP VM MCP 서버 - 컨텍스트 분석)'
+          );
           break;
         case 'development':
         case 'monitoring':

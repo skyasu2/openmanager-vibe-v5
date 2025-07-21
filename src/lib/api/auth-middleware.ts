@@ -1,6 +1,6 @@
 /**
  * API 라우트 인증 미들웨어
- * 
+ *
  * Admin API 엔드포인트 보호를 위한 Next.js API 미들웨어
  */
 
@@ -18,7 +18,7 @@ export interface AuthenticatedRequest extends NextRequest {
 
 /**
  * Admin API 인증 미들웨어
- * 
+ *
  * @param handler - 보호할 API 핸들러
  * @param requiredPermission - 필요한 권한 (기본값: system:admin)
  * @returns 인증된 요청만 처리하는 핸들러
@@ -172,17 +172,18 @@ export function withRateLimit(
   windowMs: number = 60000 // 1분
 ) {
   return async (req: NextRequest): Promise<Response> => {
-    const clientId = req.headers.get('x-forwarded-for') || 
-                    req.headers.get('x-real-ip') || 
-                    'unknown';
-    
+    const clientId =
+      req.headers.get('x-forwarded-for') ||
+      req.headers.get('x-real-ip') ||
+      'unknown';
+
     const now = Date.now();
     const clientData = requestCounts.get(clientId);
 
     if (!clientData || now > clientData.resetTime) {
       requestCounts.set(clientId, {
         count: 1,
-        resetTime: now + windowMs
+        resetTime: now + windowMs,
       });
     } else if (clientData.count >= limit) {
       return NextResponse.json(

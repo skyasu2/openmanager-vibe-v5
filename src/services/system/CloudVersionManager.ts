@@ -302,7 +302,9 @@ export class CloudVersionManager {
   private async getLatestFromFirestore(): Promise<VersionRecord | null> {
     try {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-      const response = await fetch(`${appUrl}/api/firestore/version-history/latest`);
+      const response = await fetch(
+        `${appUrl}/api/firestore/version-history/latest`
+      );
 
       if (response.ok) {
         return await response.json();

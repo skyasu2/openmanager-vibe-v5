@@ -26,7 +26,7 @@ function getDefaultEnvironment() {
   const deploymentConfig = safeEnv.getDeploymentConfig();
   const supabaseConfig = safeEnv.getSupabaseConfig();
   const redisConfig = safeEnv.getRedisConfig();
-  
+
   return {
     NODE_ENV: deploymentConfig.environment,
     NEXT_PUBLIC_APP_URL: deploymentConfig.appUrl,
@@ -137,7 +137,7 @@ export function getSupabaseConfig() {
 // 🔄 레거시 호환성: 기존 getRedisConfig 함수 (새로운 시스템으로 위임)
 export function getRedisConfig() {
   const config = safeEnv.getRedisConfig();
-  
+
   // 🔍 Vercel 환경에서 디버깅 정보 표시
   if (safeEnv.isVercel() && !safeEnv.isBuildTime()) {
     console.log('🔍 Vercel Redis 환경변수 상태:', {
@@ -151,13 +151,13 @@ export function getRedisConfig() {
       nodeEnv: process.env.NODE_ENV,
     });
   }
-  
+
   return config;
 }
 
 // 🌟 새로운 환경변수 시스템으로의 마이그레이션을 위한 추가 export
-export { 
-  safeEnv, 
+export {
+  safeEnv,
   getFullEnvironmentConfig,
   getSupabaseConfig as getSupabaseConfigNew,
   getRedisConfig as getRedisConfigNew,
@@ -172,11 +172,11 @@ export {
   isVercel,
   isProduction,
   isDevelopment,
-  isTest
+  isTest,
 } from '@/utils/safe-environment';
 
 // 🎯 타입 재export
-export type { 
+export type {
   EnvironmentConfig,
   SupabaseEnvConfig,
   RedisEnvConfig,
@@ -185,5 +185,5 @@ export type {
   SecurityEnvConfig,
   MonitoringEnvConfig,
   EnvironmentValidationResult,
-  SafeEnvironmentAccess
+  SafeEnvironmentAccess,
 } from '@/types/environment';

@@ -1,6 +1,6 @@
 /**
  * 🧪 A/B 테스트 관리 API v1.0
- * 
+ *
  * 점진적 API 교체를 위한 A/B 테스트 관리 엔드포인트
  * - 실시간 성능 메트릭 조회
  * - 트래픽 분할 조정
@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/ab-test
- * 
+ *
  * A/B 테스트 현재 상태 및 결과 조회
  */
 export async function GET(request: NextRequest) {
@@ -25,18 +25,21 @@ export async function GET(request: NextRequest) {
     switch (action) {
       case 'status':
         return await getABTestStatus();
-      
+
       case 'results':
         return await getABTestResults();
-      
+
       case 'metrics':
         return await getDetailedMetrics();
-      
+
       case 'assign_group':
         const userKey = searchParams.get('user_key') || 'anonymous';
         const forceGroup = searchParams.get('group') as ABTestGroup;
-        const assignedGroup = await abTestManager.assignUserToGroup(userKey, forceGroup);
-        
+        const assignedGroup = await abTestManager.assignUserToGroup(
+          userKey,
+          forceGroup
+        );
+
         return NextResponse.json({
           success: true,
           data: {
@@ -71,7 +74,7 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/ab-test
- * 
+ *
  * A/B 테스트 설정 및 제어
  */
 export async function POST(request: NextRequest) {
@@ -82,16 +85,16 @@ export async function POST(request: NextRequest) {
     switch (action) {
       case 'update_traffic':
         return await updateTrafficSplit(params);
-      
+
       case 'emergency_rollback':
         return await emergencyRollback(params);
-      
+
       case 'record_metric':
         return await recordMetric(params);
-      
+
       case 'update_config':
         return await updateConfig(params);
-      
+
       case 'cleanup':
         await abTestManager.cleanup();
         return NextResponse.json({
@@ -106,11 +109,11 @@ export async function POST(request: NextRequest) {
             success: false,
             error: '지원하지 않는 액션',
             availableActions: [
-              'update_traffic', 
-              'emergency_rollback', 
-              'record_metric', 
-              'update_config', 
-              'cleanup'
+              'update_traffic',
+              'emergency_rollback',
+              'record_metric',
+              'update_config',
+              'cleanup',
             ],
           },
           { status: 400 }
@@ -135,7 +138,7 @@ export async function POST(request: NextRequest) {
 async function getABTestStatus() {
   try {
     await abTestManager.initialize();
-    
+
     // 간단한 상태 정보
     const [legacyGroup, optimizedGroup] = await Promise.all([
       abTestManager.assignUserToGroup('status-check-legacy', 'legacy'),
@@ -155,11 +158,14 @@ async function getABTestStatus() {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: '상태 조회 실패',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '상태 조회 실패',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -190,11 +196,14 @@ async function getABTestResults() {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: '결과 조회 실패',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '결과 조회 실패',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -214,16 +223,32 @@ async function getDetailedMetrics() {
       reliabilityAnalysis: {
         legacyErrorRate: results.legacy.errorRate,
         optimizedErrorRate: results.optimized.errorRate,
-        errorRateImprovement: ((results.legacy.errorRate - results.optimized.errorRate) / Math.max(results.legacy.errorRate, 0.001)) * 100,
+        errorRateImprovement:
+          ((results.legacy.errorRate - results.optimized.errorRate) /
+            Math.max(results.legacy.errorRate, 0.001)) *
+          100,
         reliabilityTarget: results.optimized.errorRate < 0.01, // 1% 목표
       },
       trafficAnalysis: {
         legacyRequests: results.legacy.requestCount,
         optimizedRequests: results.optimized.requestCount,
-        totalRequests: results.legacy.requestCount + results.optimized.requestCount,
+        totalRequests:
+          results.legacy.requestCount + results.optimized.requestCount,
         trafficSplit: {
-          legacy: Math.round((results.legacy.requestCount / (results.legacy.requestCount + results.optimized.requestCount)) * 100) || 0,
-          optimized: Math.round((results.optimized.requestCount / (results.legacy.requestCount + results.optimized.requestCount)) * 100) || 0,
+          legacy:
+            Math.round(
+              (results.legacy.requestCount /
+                (results.legacy.requestCount +
+                  results.optimized.requestCount)) *
+                100
+            ) || 0,
+          optimized:
+            Math.round(
+              (results.optimized.requestCount /
+                (results.legacy.requestCount +
+                  results.optimized.requestCount)) *
+                100
+            ) || 0,
         },
       },
     };
@@ -238,11 +263,14 @@ async function getDetailedMetrics() {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: '상세 메트릭 조회 실패',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '상세 메트릭 조회 실패',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -250,11 +278,17 @@ async function updateTrafficSplit(params: any) {
   try {
     const { legacyPercent, optimizedPercent } = params;
 
-    if (typeof legacyPercent !== 'number' || typeof optimizedPercent !== 'number') {
-      return NextResponse.json({
-        success: false,
-        error: '유효한 퍼센트 값이 필요합니다',
-      }, { status: 400 });
+    if (
+      typeof legacyPercent !== 'number' ||
+      typeof optimizedPercent !== 'number'
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: '유효한 퍼센트 값이 필요합니다',
+        },
+        { status: 400 }
+      );
     }
 
     await abTestManager.adjustTrafficSplit(legacyPercent, optimizedPercent);
@@ -271,23 +305,29 @@ async function updateTrafficSplit(params: any) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: '트래픽 분할 업데이트 실패',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '트래픽 분할 업데이트 실패',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }
 
 async function emergencyRollback(params: any) {
   try {
     const { reason } = params;
-    
+
     if (!reason || typeof reason !== 'string') {
-      return NextResponse.json({
-        success: false,
-        error: '롤백 사유가 필요합니다',
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: '롤백 사유가 필요합니다',
+        },
+        { status: 400 }
+      );
     }
 
     await abTestManager.emergencyRollback(reason);
@@ -306,11 +346,14 @@ async function emergencyRollback(params: any) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: '긴급 롤백 실패',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '긴급 롤백 실패',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -318,11 +361,18 @@ async function recordMetric(params: any) {
   try {
     const { group, responseTime, success, error } = params;
 
-    if (!group || typeof responseTime !== 'number' || typeof success !== 'boolean') {
-      return NextResponse.json({
-        success: false,
-        error: '필수 메트릭 데이터가 누락되었습니다',
-      }, { status: 400 });
+    if (
+      !group ||
+      typeof responseTime !== 'number' ||
+      typeof success !== 'boolean'
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: '필수 메트릭 데이터가 누락되었습니다',
+        },
+        { status: 400 }
+      );
     }
 
     await abTestManager.recordMetric(group, responseTime, success, error);
@@ -338,11 +388,14 @@ async function recordMetric(params: any) {
       },
     });
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: '메트릭 기록 실패',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '메트릭 기록 실패',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -351,10 +404,13 @@ async function updateConfig(params: any) {
     const { config } = params;
 
     if (!config || typeof config !== 'object') {
-      return NextResponse.json({
-        success: false,
-        error: '유효한 설정 객체가 필요합니다',
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: '유효한 설정 객체가 필요합니다',
+        },
+        { status: 400 }
+      );
     }
 
     await abTestManager.updateConfig(config);
@@ -368,11 +424,14 @@ async function updateConfig(params: any) {
       },
     });
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: '설정 업데이트 실패',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '설정 업데이트 실패',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -402,7 +461,9 @@ function generateRecommendations(analysis: any): string[] {
   // 트래픽 기반 추천
   const totalRequests = analysis.trafficAnalysis.totalRequests;
   if (totalRequests < 100) {
-    recommendations.push('📈 더 많은 테스트 데이터 수집 필요 (현재: ' + totalRequests + '개 요청)');
+    recommendations.push(
+      '📈 더 많은 테스트 데이터 수집 필요 (현재: ' + totalRequests + '개 요청)'
+    );
   } else if (totalRequests > 1000) {
     recommendations.push('📊 충분한 테스트 데이터 확보: 신뢰할 수 있는 결과');
   }

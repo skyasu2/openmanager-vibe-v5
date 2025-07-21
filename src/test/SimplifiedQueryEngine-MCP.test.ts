@@ -5,7 +5,10 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SimplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
-import type { QueryRequest, QueryResponse } from '@/services/ai/SimplifiedQueryEngine';
+import type {
+  QueryRequest,
+  QueryResponse,
+} from '@/services/ai/SimplifiedQueryEngine';
 
 // Mock dependencies
 vi.mock('@/lib/ml/supabase-rag-engine');
@@ -16,7 +19,7 @@ vi.mock('@/lib/logger');
 // MCP 통합이 아직 구현되지 않아 테스트를 일시적으로 스킵합니다
 describe.skip('SimplifiedQueryEngine - MCP Integration', () => {
   let engine: SimplifiedQueryEngine;
-  
+
   beforeEach(() => {
     vi.clearAllMocks();
     engine = new SimplifiedQueryEngine();
@@ -33,12 +36,14 @@ describe.skip('SimplifiedQueryEngine - MCP Integration', () => {
       };
 
       const response = await engine.query(request);
-      
+
       expect(response.success).toBe(true);
       expect(response.metadata?.mcpUsed).toBe(true);
-      expect(response.thinkingSteps.some(step => 
-        step.step.includes('MCP') || step.description?.includes('MCP')
-      )).toBe(true);
+      expect(
+        response.thinkingSteps.some(
+          step => step.step.includes('MCP') || step.description?.includes('MCP')
+        )
+      ).toBe(true);
     });
 
     it('MCP 컨텍스트가 Google AI 응답에 포함되어야 함', async () => {
@@ -64,13 +69,13 @@ describe.skip('SimplifiedQueryEngine - MCP Integration', () => {
       };
 
       const response = await engine.query(request);
-      
+
       expect(response.success).toBe(true);
       expect(response.engine).toBe('google-ai');
       expect(response.metadata?.mcpUsed).toBe(true);
-      
+
       // MCP 단계가 thinkingSteps에 포함되어야 함
-      const mcpStep = response.thinkingSteps.find(step => 
+      const mcpStep = response.thinkingSteps.find(step =>
         step.description?.includes('MCP 컨텍스트')
       );
       expect(mcpStep).toBeDefined();
@@ -87,12 +92,15 @@ describe.skip('SimplifiedQueryEngine - MCP Integration', () => {
       };
 
       const response = await engine.query(request);
-      
+
       expect(response.success).toBe(true);
       expect(response.metadata?.mcpUsed).toBe(false);
-      expect(response.thinkingSteps.every(step => 
-        !step.step.includes('MCP') && !step.description?.includes('MCP')
-      )).toBe(true);
+      expect(
+        response.thinkingSteps.every(
+          step =>
+            !step.step.includes('MCP') && !step.description?.includes('MCP')
+        )
+      ).toBe(true);
     });
 
     it('MCP 오류 시에도 Google AI가 정상 작동해야 함', async () => {
@@ -100,7 +108,10 @@ describe.skip('SimplifiedQueryEngine - MCP Integration', () => {
       const mockMCPAgent = {
         processQuery: vi.fn().mockRejectedValue(new Error('MCP Error')),
       };
-      vi.mocked((await import('@/services/mcp/ServerMonitoringAgent')).ServerMonitoringAgent.getInstance).mockReturnValue(mockMCPAgent as any);
+      vi.mocked(
+        (await import('@/services/mcp/ServerMonitoringAgent'))
+          .ServerMonitoringAgent.getInstance
+      ).mockReturnValue(mockMCPAgent as any);
 
       const request: QueryRequest = {
         query: '서버 문제 진단',
@@ -111,14 +122,16 @@ describe.skip('SimplifiedQueryEngine - MCP Integration', () => {
       };
 
       const response = await engine.query(request);
-      
+
       // MCP 오류에도 불구하고 응답은 성공해야 함
       expect(response.success).toBe(true);
       expect(response.engine).toBe('google-ai');
       // MCP는 사용 시도했지만 실패
-      expect(response.thinkingSteps.some(step => 
-        step.status === 'error' && step.description?.includes('MCP')
-      )).toBe(true);
+      expect(
+        response.thinkingSteps.some(
+          step => step.status === 'error' && step.description?.includes('MCP')
+        )
+      ).toBe(true);
     });
   });
 
@@ -146,14 +159,18 @@ describe.skip('SimplifiedQueryEngine - MCP Integration', () => {
       // 두 모드 모두 MCP를 사용해야 함
       expect(localResponse.metadata?.mcpUsed).toBe(true);
       expect(googleResponse.metadata?.mcpUsed).toBe(true);
-      
+
       // 두 모드 모두 MCP 단계를 포함해야 함
-      expect(localResponse.thinkingSteps.some(step => 
-        step.description?.includes('MCP')
-      )).toBe(true);
-      expect(googleResponse.thinkingSteps.some(step => 
-        step.description?.includes('MCP')
-      )).toBe(true);
+      expect(
+        localResponse.thinkingSteps.some(step =>
+          step.description?.includes('MCP')
+        )
+      ).toBe(true);
+      expect(
+        googleResponse.thinkingSteps.some(step =>
+          step.description?.includes('MCP')
+        )
+      ).toBe(true);
     });
   });
 });

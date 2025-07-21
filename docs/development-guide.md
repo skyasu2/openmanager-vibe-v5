@@ -370,23 +370,72 @@ FORCE_GARBAGE_COLLECTION=true
 
 ## 🔧 코드 품질 관리
 
-### ESLint 설정
+### ESLint 설정 (v9 Flat Config)
+
+> **중요**: OpenManager VIBE v5는 ESLint v9의 새로운 flat config 형식을 사용합니다.
 
 ```javascript
-// .eslintrc.js
-module.exports = {
-  extends: [
-    'next/core-web-vitals',
-    '@typescript-eslint/recommended',
-    'prettier',
-  ],
-  rules: {
-    '@typescript-eslint/no-unused-vars': 'error',
-    '@typescript-eslint/explicit-function-return-type': 'warn',
-    'prefer-const': 'error',
-    'no-var': 'error',
+// eslint.config.mjs
+import js from '@eslint/js';
+import typescriptPlugin from '@typescript-eslint/eslint-plugin';
+import typescriptParser from '@typescript-eslint/parser';
+import prettierPlugin from 'eslint-plugin-prettier';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
+import unusedImports from 'eslint-plugin-unused-imports';
+import globals from 'globals';
+
+export default [
+  // 전역 무시 설정
+  {
+    ignores: ['**/.next/**', '**/node_modules/**', '**/coverage/**'],
   },
-};
+
+  // JavaScript 권장 규칙
+  js.configs.recommended,
+
+  // TypeScript/JavaScript 파일 설정
+  {
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.node },
+      parser: typescriptParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        project: './tsconfig.json',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': typescriptPlugin,
+      'unused-imports': unusedImports,
+      prettier: prettierPlugin,
+      'react-hooks': reactHooksPlugin,
+    },
+    rules: {
+      // Prettier 통합
+      'prettier/prettier': ['error', { printWidth: 100 }],
+
+      // React Hooks 규칙
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+
+      // Import 관리
+      'unused-imports/no-unused-imports': 'error',
+
+      // TypeScript 규칙 (Phase 1: 점진적 개선)
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
+];
+```
+
+#### ESLint 실행
+
+```bash
+npm run lint         # 린트 검사
+npm run lint:fix     # 자동 수정
+npm run lint:cache   # 캐시 사용 (빠른 실행)
 ```
 
 ### Prettier 설정
@@ -397,9 +446,14 @@ module.exports = {
   "semi": true,
   "trailingComma": "es5",
   "singleQuote": true,
-  "printWidth": 80,
+  "printWidth": 100,
   "tabWidth": 2,
-  "useTabs": false
+  "useTabs": false,
+  "endOfLine": "lf",
+  "arrowParens": "always",
+  "bracketSpacing": true,
+  "jsxBracketSameLine": false,
+  "proseWrap": "preserve"
 }
 ```
 
@@ -611,6 +665,6 @@ export interface ServerData {
 
 ---
 
-**마지막 업데이트**: 2025년 1월 15일  
-**버전**: v5.48.0  
-**상태**: Jest → Vitest 완전 마이그레이션 + 정적 분석 강화 완료
+**마지막 업데이트**: 2025년 7월 21일  
+**버전**: v5.56.0  
+**상태**: ESLint v9 마이그레이션 + React Hooks 플러그인 통합 완료

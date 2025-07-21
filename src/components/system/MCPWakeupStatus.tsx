@@ -16,7 +16,7 @@ import {
   Loader2,
   Server,
   Wifi,
-  XCircle
+  XCircle,
 } from 'lucide-react';
 
 interface MCPWakeupProgress {

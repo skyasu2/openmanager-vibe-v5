@@ -112,7 +112,7 @@ class GoogleAIManager {
         encrypted: ENCRYPTED_GOOGLE_AI_CONFIG.encryptedKey,
         salt: ENCRYPTED_GOOGLE_AI_CONFIG.salt,
         iv: ENCRYPTED_GOOGLE_AI_CONFIG.iv,
-        authTag: ENCRYPTED_GOOGLE_AI_CONFIG.authTag || '',  // 이전 버전 호환성
+        authTag: ENCRYPTED_GOOGLE_AI_CONFIG.authTag || '', // 이전 버전 호환성
         algorithm: 'aes-256-gcm' as const,
         iterations: 100000,
         timestamp: Date.parse(ENCRYPTED_GOOGLE_AI_CONFIG.createdAt),
@@ -121,7 +121,10 @@ class GoogleAIManager {
 
       // EnhancedEnvCryptoManager로 복호화 (동기 함수)
       enhancedCryptoManager.initializeMasterKey(password);
-      const decryptedText = enhancedCryptoManager.decryptVariable(encryptedData, password);
+      const decryptedText = enhancedCryptoManager.decryptVariable(
+        encryptedData,
+        password
+      );
 
       if (!decryptedText || !decryptedText.startsWith('AIza')) {
         return {

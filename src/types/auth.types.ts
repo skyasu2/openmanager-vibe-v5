@@ -1,6 +1,6 @@
 /**
  * 🔐 Authentication & User Types
- * 
+ *
  * Supabase Auth와 게스트 로그인을 위한 통합 타입 정의
  */
 
@@ -101,7 +101,7 @@ export interface SignUpOptions {
 }
 
 // 사용자 권한 타입
-export type UserPermission = 
+export type UserPermission =
   | 'dashboard:view'
   | 'dashboard:edit'
   | 'admin:access'
@@ -226,13 +226,13 @@ export const hasPermission = (
   if (isGuestUser(user)) {
     return user.permissions.includes(permission);
   }
-  
+
   if (isGitHubUser(user)) {
     // GitHub 사용자는 기본적으로 모든 권한 (guest 제외)
     const guestOnlyPermissions: UserPermission[] = ['basic_interaction'];
     return !guestOnlyPermissions.includes(permission);
   }
-  
+
   return false;
 };
 
@@ -242,7 +242,7 @@ export const DEFAULT_GUEST_PERMISSIONS: UserPermission[] = [
   'system:start',
   'basic_interaction',
   'metrics:view',
-  'logs:view'
+  'logs:view',
 ];
 
 export const DEFAULT_GITHUB_PERMISSIONS: UserPermission[] = [
@@ -254,10 +254,10 @@ export const DEFAULT_GITHUB_PERMISSIONS: UserPermission[] = [
   'api:write',
   'logs:view',
   'metrics:view',
-  'settings:edit'
+  'settings:edit',
 ];
 
 export const DEFAULT_ADMIN_PERMISSIONS: UserPermission[] = [
   ...DEFAULT_GITHUB_PERMISSIONS,
-  'admin:access'
+  'admin:access',
 ];

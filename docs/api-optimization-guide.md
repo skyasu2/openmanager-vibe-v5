@@ -15,12 +15,14 @@
 ## 🎯 시스템 개요
 
 ### 기존 시스템의 문제점
+
 - **복잡한 실시간 계산**: GCP + Firestore + Cloud Functions
 - **높은 응답 시간**: 65-250ms
 - **AI 엔진 부하**: 5개 엔진이 동일한 복잡한 데이터 요청
 - **Vercel Function 비용**: 실행 시간이 길어 비용 증가
 
 ### 최적화 솔루션
+
 - **고정 데이터 템플릿**: 복잡한 계산을 사전에 완료된 템플릿으로 교체
 - **Redis 캐싱**: 1-5ms 초고속 응답
 - **실시간 느낌 유지**: 현재 시간 + 미세 변동으로 실시간 효과
@@ -28,12 +30,12 @@
 
 ## 📊 성능 개선 목표
 
-| 항목 | 기존 | 목표 | 개선율 |
-|------|------|------|--------|
-| **응답 시간** | 65-250ms | 1-5ms | **90%+** |
-| **서버 비용** | 높음 | 낮음 | **60-80%** |
-| **AI 엔진 성능** | 느림 | 빠름 | **동일 데이터, 더 빠른 제공** |
-| **사용자 경험** | 보통 | 뛰어남 | **기존과 동일하거나 향상** |
+| 항목             | 기존     | 목표   | 개선율                        |
+| ---------------- | -------- | ------ | ----------------------------- |
+| **응답 시간**    | 65-250ms | 1-5ms  | **90%+**                      |
+| **서버 비용**    | 높음     | 낮음   | **60-80%**                    |
+| **AI 엔진 성능** | 느림     | 빠름   | **동일 데이터, 더 빠른 제공** |
+| **사용자 경험**  | 보통     | 뛰어남 | **기존과 동일하거나 향상**    |
 
 ## 🔧 설치 및 설정
 
@@ -94,7 +96,9 @@ const data = await response.json();
 const legacyResponse = await fetch('/api/servers-optimized?ab_test=legacy');
 
 // 시나리오 변경
-const scenarioResponse = await fetch('/api/servers-optimized?scenario=critical');
+const scenarioResponse = await fetch(
+  '/api/servers-optimized?scenario=critical'
+);
 ```
 
 #### 2. 최적화된 대시보드 API
@@ -119,8 +123,8 @@ await fetch('/api/servers-optimized', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     action: 'set_scenario',
-    scenario: 'warning' // 'normal', 'warning', 'critical', 'mixed'
-  })
+    scenario: 'warning', // 'normal', 'warning', 'critical', 'mixed'
+  }),
 });
 ```
 
@@ -133,8 +137,8 @@ await fetch('/api/servers-optimized', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     action: 'clear_cache',
-    clearCache: true
-  })
+    clearCache: true,
+  }),
 });
 
 // 캐시 상태 확인
@@ -142,8 +146,8 @@ const statusResponse = await fetch('/api/servers-optimized', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    action: 'cache_status'
-  })
+    action: 'cache_status',
+  }),
 });
 ```
 
@@ -161,10 +165,14 @@ console.log('A/B 테스트 상태:', status);
 
 ```javascript
 // 자동 할당 (50/50 분할)
-const assignResponse = await fetch('/api/ab-test?action=assign_group&user_key=user123');
+const assignResponse = await fetch(
+  '/api/ab-test?action=assign_group&user_key=user123'
+);
 
 // 강제 그룹 할당
-const forceResponse = await fetch('/api/ab-test?action=assign_group&user_key=user123&group=optimized');
+const forceResponse = await fetch(
+  '/api/ab-test?action=assign_group&user_key=user123&group=optimized'
+);
 ```
 
 ### 3. 트래픽 분할 조정
@@ -175,9 +183,9 @@ await fetch('/api/ab-test', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     action: 'update_traffic',
-    legacyPercent: 30,      // 30% Legacy
-    optimizedPercent: 70    // 70% Optimized
-  })
+    legacyPercent: 30, // 30% Legacy
+    optimizedPercent: 70, // 70% Optimized
+  }),
 });
 ```
 
@@ -199,8 +207,8 @@ await fetch('/api/ab-test', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     action: 'emergency_rollback',
-    reason: '최적화 API에서 오류 발생'
-  })
+    reason: '최적화 API에서 오류 발생',
+  }),
 });
 ```
 
@@ -210,21 +218,31 @@ await fetch('/api/ab-test', {
 
 ```javascript
 // 10회 반복 벤치마크
-const benchmarkResponse = await fetch('/api/performance-test?action=benchmark&iterations=10&endpoint=servers');
+const benchmarkResponse = await fetch(
+  '/api/performance-test?action=benchmark&iterations=10&endpoint=servers'
+);
 const benchmark = await benchmarkResponse.json();
 
-console.log('성능 개선:', benchmark.data.benchmark.comparison.performanceGain + '%');
+console.log(
+  '성능 개선:',
+  benchmark.data.benchmark.comparison.performanceGain + '%'
+);
 console.log('추천사항:', benchmark.data.benchmark.comparison.recommendation);
 ```
 
 ### 2. 단일 성능 테스트
 
 ```javascript
-const singleTestResponse = await fetch('/api/performance-test?action=single_test&endpoint=dashboard');
+const singleTestResponse = await fetch(
+  '/api/performance-test?action=single_test&endpoint=dashboard'
+);
 const singleTest = await singleTestResponse.json();
 
 console.log('Legacy 응답시간:', singleTest.data.legacy.responseTime + 'ms');
-console.log('Optimized 응답시간:', singleTest.data.optimized.responseTime + 'ms');
+console.log(
+  'Optimized 응답시간:',
+  singleTest.data.optimized.responseTime + 'ms'
+);
 console.log('속도 향상:', singleTest.data.comparison.speedup + 'x');
 ```
 
@@ -232,11 +250,13 @@ console.log('속도 향상:', singleTest.data.comparison.speedup + 'x');
 
 ```javascript
 // 5개 동시 요청, 20회 반복
-const loadTestResponse = await fetch('/api/performance-test?action=load_test&iterations=20&concurrent=5&endpoint=servers');
+const loadTestResponse = await fetch(
+  '/api/performance-test?action=load_test&iterations=20&concurrent=5&endpoint=servers'
+);
 const loadTest = await loadTestResponse.json();
 
 console.log('초당 요청 처리:', loadTest.data.analysis.requestsPerSecond);
-console.log('성공률:', (loadTest.data.analysis.successRate * 100) + '%');
+console.log('성공률:', loadTest.data.analysis.successRate * 100 + '%');
 ```
 
 ### 4. 성능 분석 대시보드
@@ -245,19 +265,24 @@ console.log('성공률:', (loadTest.data.analysis.successRate * 100) + '%');
 const analysisResponse = await fetch('/api/performance-test?action=analysis');
 const analysis = await analysisResponse.json();
 
-console.log('현재 개선율:', analysis.data.performanceMetrics.currentImprovement + '%');
+console.log(
+  '현재 개선율:',
+  analysis.data.performanceMetrics.currentImprovement + '%'
+);
 console.log('시스템 상태:', analysis.data.systemHealth);
 ```
 
 ## 🔄 점진적 전환 전략
 
 ### 1단계: 테스트 환경 (1-3일)
+
 ```javascript
 // 개발자만 최적화 API 사용
 const testResponse = await fetch('/api/servers-optimized?ab_test=optimized');
 ```
 
 ### 2단계: 소규모 사용자 (1주)
+
 ```javascript
 // 10% 사용자에게 최적화 API 제공
 await fetch('/api/ab-test', {
@@ -265,12 +290,13 @@ await fetch('/api/ab-test', {
   body: JSON.stringify({
     action: 'update_traffic',
     legacyPercent: 90,
-    optimizedPercent: 10
-  })
+    optimizedPercent: 10,
+  }),
 });
 ```
 
 ### 3단계: 확대 적용 (2주)
+
 ```javascript
 // 50% 사용자로 확대
 await fetch('/api/ab-test', {
@@ -278,12 +304,13 @@ await fetch('/api/ab-test', {
   body: JSON.stringify({
     action: 'update_traffic',
     legacyPercent: 50,
-    optimizedPercent: 50
-  })
+    optimizedPercent: 50,
+  }),
 });
 ```
 
 ### 4단계: 완전 전환 (목표 달성 시)
+
 ```javascript
 // 100% 최적화 API 사용
 await fetch('/api/ab-test', {
@@ -291,8 +318,8 @@ await fetch('/api/ab-test', {
   body: JSON.stringify({
     action: 'update_traffic',
     legacyPercent: 0,
-    optimizedPercent: 100
-  })
+    optimizedPercent: 100,
+  }),
 });
 ```
 
@@ -301,6 +328,7 @@ await fetch('/api/ab-test', {
 ### 자주 발생하는 문제들
 
 #### 1. Redis 연결 실패
+
 ```bash
 # Redis 상태 확인
 curl https://your-app.vercel.app/api/servers-optimized \
@@ -310,11 +338,13 @@ curl https://your-app.vercel.app/api/servers-optimized \
 ```
 
 **해결책:**
+
 - `UPSTASH_REDIS_REST_URL` 환경변수 확인
 - `UPSTASH_REDIS_REST_TOKEN` 환경변수 확인
 - Redis 서비스 상태 확인
 
 #### 2. 성능 개선이 기대보다 낮음
+
 ```javascript
 // 상세 성능 분석
 const detailResponse = await fetch('/api/ab-test?action=metrics');
@@ -323,28 +353,31 @@ console.log('상세 분석:', details.data.analysis);
 ```
 
 **해결책:**
+
 - 네트워크 지연 확인
 - Redis 응답 시간 확인
 - 캐시 히트율 확인
 
 #### 3. A/B 테스트 데이터 불일치
+
 ```javascript
 // A/B 테스트 데이터 정리 후 재시작
 await fetch('/api/ab-test', {
   method: 'POST',
-  body: JSON.stringify({ action: 'cleanup' })
+  body: JSON.stringify({ action: 'cleanup' }),
 });
 ```
 
 #### 4. 긴급 상황 대응
+
 ```javascript
 // 즉시 Legacy API로 롤백
 await fetch('/api/ab-test', {
   method: 'POST',
   body: JSON.stringify({
     action: 'emergency_rollback',
-    reason: '긴급 상황으로 인한 롤백'
-  })
+    reason: '긴급 상황으로 인한 롤백',
+  }),
 });
 ```
 
@@ -391,13 +424,13 @@ await fetch('/api/ab-test', {
     action: 'update_config',
     config: {
       criteria: {
-        maxResponseTime: 100,      // 100ms 초과 시 롤백
-        maxErrorRate: 0.05,        // 5% 초과 시 롤백
-        minSuccessRate: 0.95,      // 95% 미만 시 롤백
-        autoRollbackEnabled: true  // 자동 롤백 활성화
-      }
-    }
-  })
+        maxResponseTime: 100, // 100ms 초과 시 롤백
+        maxErrorRate: 0.05, // 5% 초과 시 롤백
+        minSuccessRate: 0.95, // 95% 미만 시 롤백
+        autoRollbackEnabled: true, // 자동 롤백 활성화
+      },
+    },
+  }),
 });
 ```
 
@@ -406,11 +439,13 @@ await fetch('/api/ab-test', {
 ### 일일 체크리스트
 
 1. **성능 모니터링** (5분)
+
    ```bash
    curl https://your-app.vercel.app/api/ab-test?action=results
    ```
 
 2. **시스템 상태 확인** (2분)
+
    ```bash
    curl https://your-app.vercel.app/api/performance-test?action=analysis
    ```

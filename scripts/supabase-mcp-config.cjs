@@ -12,14 +12,20 @@ console.log('🔧 Supabase MCP 설정 개선 중...\n');
 
 // 현재 사용 가능한 공개 환경변수들
 const publicEnvVars = {
-  SUPABASE_URL: "https://your_project_id.supabase.co",
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU"
+  SUPABASE_URL: 'https://your_project_id.supabase.co',
+  NEXT_PUBLIC_SUPABASE_ANON_KEY:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU',
 };
 
 // Claude 설정 파일에서 Supabase MCP 환경변수 설정
 function updateClaudeSettings() {
-  const settingsPath = path.join(__dirname, '..', '.claude', 'settings.local.json');
-  
+  const settingsPath = path.join(
+    __dirname,
+    '..',
+    '.claude',
+    'settings.local.json'
+  );
+
   if (!fs.existsSync(settingsPath)) {
     console.error('❌ Claude 설정 파일을 찾을 수 없습니다');
     return false;
@@ -27,23 +33,23 @@ function updateClaudeSettings() {
 
   try {
     const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-    
+
     // Supabase MCP에 환경변수 추가 권한 부여
     const supabasePermissions = [
       'mcp__supabase__list_projects',
       'mcp__supabase__execute_sql',
       'mcp__supabase__search_docs',
       'mcp__supabase__get_project',
-      'mcp__supabase__list_tables'
+      'mcp__supabase__list_tables',
     ];
-    
+
     // 권한이 없으면 추가
     supabasePermissions.forEach(permission => {
       if (!settings.permissions.allow.includes(permission)) {
         settings.permissions.allow.push(permission);
       }
     });
-    
+
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
     console.log('✅ Claude 설정이 업데이트되었습니다');
     return true;

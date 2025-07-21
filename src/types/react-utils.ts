@@ -3,7 +3,14 @@
  * v2.0 - react-hooks/exhaustive-deps 경고 해결 버전
  */
 
-import React, { DependencyList, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  DependencyList,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 // 컴포넌트 마운트 상태 확인
 export function useMountedRef(): React.MutableRefObject<boolean> {
@@ -39,10 +46,7 @@ export function useSafeSetState<T>(
 }
 
 // 타이머 기반 useEffect (자동 정리)
-export function useTimeout(
-  callback: () => void,
-  delay: number | null
-): void {
+export function useTimeout(callback: () => void, delay: number | null): void {
   const savedCallback = useRef(callback);
 
   // callback이 변경되면 ref 업데이트
@@ -64,10 +68,7 @@ export function useTimeout(
 }
 
 // 인터벌 기반 useEffect (자동 정리)
-export function useInterval(
-  callback: () => void,
-  delay: number | null
-): void {
+export function useInterval(callback: () => void, delay: number | null): void {
   const savedCallback = useRef(callback);
 
   // callback이 변경되면 ref 업데이트
@@ -138,10 +139,7 @@ export function useElementEvent<K extends keyof HTMLElementEventMap>(
 }
 
 // 디바운스된 값
-export function useDebouncedValue<T>(
-  value: T,
-  delay: number
-): T {
+export function useDebouncedValue<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
@@ -253,9 +251,14 @@ export function usePrevious<T>(value: T): T | undefined {
 }
 
 // 배열 안전 접근을 위한 hook
-export function useSafeArrayAccess<T>(array: T[], index: number): T | undefined {
+export function useSafeArrayAccess<T>(
+  array: T[],
+  index: number
+): T | undefined {
   return useMemo(() => {
-    return array && array.length > index && index >= 0 ? array[index] : undefined;
+    return array && array.length > index && index >= 0
+      ? array[index]
+      : undefined;
   }, [array, index]);
 }
 
@@ -290,9 +293,10 @@ export function useLocalStorage<T>(
   const setValue = useCallback(
     (value: T | ((prev: T) => T)) => {
       try {
-        const valueToStore = value instanceof Function ? value(storedValue) : value;
+        const valueToStore =
+          value instanceof Function ? value(storedValue) : value;
         setStoredValue(valueToStore);
-        
+
         if (typeof window !== 'undefined') {
           window.localStorage.setItem(key, JSON.stringify(valueToStore));
         }
@@ -327,9 +331,10 @@ export function useSessionStorage<T>(
   const setValue = useCallback(
     (value: T | ((prev: T) => T)) => {
       try {
-        const valueToStore = value instanceof Function ? value(storedValue) : value;
+        const valueToStore =
+          value instanceof Function ? value(storedValue) : value;
         setStoredValue(valueToStore);
-        
+
         if (typeof window !== 'undefined') {
           window.sessionStorage.setItem(key, JSON.stringify(valueToStore));
         }

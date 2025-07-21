@@ -7,6 +7,7 @@
 ## 📌 중요 안내
 
 이 도구는 MCP 프로토콜 테스트 및 디버깅을 위한 브릿지입니다.
+
 - **개발 전용**: MCP 통합 테스트용
 - **성능 오버헤드**: stdio 통신으로 인한 지연
 - **권장 대안**: `./tools/g` 직접 실행 도구 (70% 더 빠름)
@@ -14,6 +15,7 @@
 ## 🚀 주요 개선사항
 
 ### v4.0.0 - 코드 단순화
+
 - ✨ 복잡한 컨텍스트 감지 제거
 - 🎯 PowerShell 직접 실행만 지원
 - 📦 코드 크기 70% 감소
@@ -41,22 +43,27 @@ gemini-cli-bridge/
 ## 사용 방법
 
 Claude Code에서 자동으로 로드됩니다:
+
 - "2+2는 얼마야?"
 - "Python 리스트 정렬 방법은?"
 
 ## 지원 기능
 
 ### gemini_chat
+
 Gemini와 대화합니다.
+
 ```
 프롬프트: "안녕하세요"
 응답: Gemini의 답변
 ```
 
 ### gemini_stats
+
 API 모드에서는 제한적인 정보만 제공됩니다.
 
 ### gemini_context_info
+
 현재 실행 환경 정보를 표시합니다.
 
 ## 환경 변수
@@ -67,6 +74,7 @@ API 모드에서는 제한적인 정보만 제공됩니다.
 ## 문제 해결
 
 ### Gemini CLI를 찾을 수 없는 경우
+
 ```powershell
 # Gemini CLI 설치 확인
 gemini --version
@@ -76,7 +84,9 @@ gemini --prompt "테스트"
 ```
 
 ### Claude Code 재시작 필요
+
 설정 변경 후에는 Claude Code를 재시작해야 합니다:
+
 1. Ctrl+C로 종료
 2. `claude` 명령으로 재시작
 

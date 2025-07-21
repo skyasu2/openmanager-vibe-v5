@@ -8,6 +8,7 @@ AES-256-GCM 암호화와 PBKDF2 100,000회 반복으로 강력한 보안을 제�
 ## 🚀 빠른 시작
 
 ### 1. GitHub 토큰 추가
+
 ```bash
 # GitHub 토큰 추가
 npm run secure:add GITHUB_TOKEN
@@ -17,6 +18,7 @@ npm run secure:add GITHUB_TOKEN
 ```
 
 ### 2. MCP 설정에 적용
+
 ```bash
 # MCP 설정 파일에 토큰 자동 적용
 npm run secure:mcp-update
@@ -25,6 +27,7 @@ npm run secure:mcp-update
 ```
 
 ### 3. Claude Code 시작
+
 ```bash
 # 토큰을 환경변수로 로드
 npm run mcp:secure-load
@@ -39,6 +42,7 @@ claude
 ## 📋 명령어 상세
 
 ### 토큰 추가
+
 ```bash
 npm run secure:add TOKEN_NAME
 # 예: npm run secure:add GITHUB_TOKEN
@@ -46,22 +50,26 @@ npm run secure:add TOKEN_NAME
 ```
 
 ### 토큰 조회
+
 ```bash
 npm run secure:get TOKEN_NAME
 # 예: npm run secure:get GITHUB_TOKEN
 ```
 
 ### 토큰 목록
+
 ```bash
 npm run secure:list
 ```
 
 ### 토큰 삭제
+
 ```bash
 npm run secure:token remove TOKEN_NAME
 ```
 
 ### MCP 설정 업데이트
+
 ```bash
 npm run secure:mcp-update
 ```
@@ -98,6 +106,7 @@ npm run secure:mcp-update
 ## 🔧 문제 해결
 
 ### 토큰 로드 실패
+
 ```bash
 # 파일 존재 확인
 ls -la .secure-tokens.json
@@ -107,6 +116,7 @@ chmod 600 .secure-tokens.json
 ```
 
 ### MCP 서버 연결 실패
+
 ```bash
 # MCP 상태 확인
 /mcp
@@ -116,6 +126,7 @@ npm run secure:mcp-update
 ```
 
 ### 환경변수 확인
+
 ```bash
 # 로드된 환경변수 확인
 echo $GITHUB_TOKEN
@@ -161,6 +172,7 @@ claude
 ## 🌟 팁
 
 1. **일괄 처리**
+
    ```bash
    # 여러 토큰을 한 번에 추가
    npm run secure:add GITHUB_TOKEN && \
@@ -169,6 +181,7 @@ claude
    ```
 
 2. **별칭 설정**
+
    ```bash
    # ~/.bashrc 또는 ~/.zshrc에 추가
    alias mcp-load="npm run mcp:secure-load && source .secure-tokens-export.sh"

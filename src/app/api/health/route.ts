@@ -1,8 +1,8 @@
 /**
  * 🏥 기본 헬스체크 API
- * 
+ *
  * E2E 테스트 및 기본 시스템 상태 확인용
- * 
+ *
  * GET /api/health
  */
 
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
         memory: 'ok',
         disk: 'ok',
         network: 'ok',
-      }
+      },
     };
 
     return NextResponse.json(health, {
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('❌ Health check failed:', error);
-    
+
     return NextResponse.json(
       {
         status: 'unhealthy',
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
         error: 'Health check failed',
         message: error instanceof Error ? error.message : 'Unknown error',
       },
-      { 
+      {
         status: 503,
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',

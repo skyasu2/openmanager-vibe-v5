@@ -331,7 +331,8 @@ export async function GET(request: NextRequest) {
       connected: services.filter((s: any) => s.status === 'connected').length,
       errors: services.filter((s: any) => s.status === 'error').length,
       averageResponseTime: Math.round(
-        services.reduce((sum: number, s: any) => sum + s.responseTime, 0) / services.length
+        services.reduce((sum: number, s: any) => sum + s.responseTime, 0) /
+          services.length
       ),
     };
 

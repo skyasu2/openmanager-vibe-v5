@@ -1,6 +1,6 @@
 /**
  * 🚨 Auth Error Handler API
- * 
+ *
  * Supabase Auth 에러 처리를 위한 엔드포인트
  * GitHub OAuth 실패 시 이 경로로 리다이렉트됩니다.
  */
@@ -22,12 +22,15 @@ export async function GET(request: NextRequest) {
 
   // 에러 타입에 따른 사용자 친화적 메시지
   let userMessage = '인증 중 오류가 발생했습니다.';
-  
+
   if (error === 'access_denied') {
     userMessage = 'GitHub 로그인이 취소되었습니다.';
   } else if (error === 'server_error') {
     userMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-  } else if (error_description?.includes('Email address') && error_description?.includes('already registered')) {
+  } else if (
+    error_description?.includes('Email address') &&
+    error_description?.includes('already registered')
+  ) {
     userMessage = '이미 등록된 이메일 주소입니다.';
   } else if (error_description) {
     userMessage = error_description;

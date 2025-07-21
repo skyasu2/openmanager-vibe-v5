@@ -285,8 +285,15 @@ export class PerformanceMonitor {
     };
     if (expectedResults && Array.isArray(result)) {
       // Type assertion for compatibility with calculateAccuracy
-      const predictions = result as Array<{ status: string; confidence?: number; value?: number }>;
-      const actuals = expectedResults as Array<{ status: string; value?: number }>;
+      const predictions = result as Array<{
+        status: string;
+        confidence?: number;
+        value?: number;
+      }>;
+      const actuals = expectedResults as Array<{
+        status: string;
+        value?: number;
+      }>;
       accuracy = this.calculateAccuracy(predictions, actuals);
     }
 
@@ -368,13 +375,13 @@ export class PerformanceMonitor {
           avgAccuracy: '0%',
           totalMeasurements: 0,
           period: 'No data',
-          message: '성능 측정 데이터가 없습니다.'
+          message: '성능 측정 데이터가 없습니다.',
         },
         detailed: [],
         improvements: {
           responseTime: '0%',
           memory: '0%',
-          accuracy: '0%'
+          accuracy: '0%',
         },
       };
     }
@@ -401,7 +408,10 @@ export class PerformanceMonitor {
         avgMemoryUsage: `${avgMemory}MB`,
         avgAccuracy: `${avgAccuracy}%`,
         totalMeasurements: this.measurements.length,
-        period: recent.length > 0 ? `${recent[0]?.timestamp ?? 'N/A'} ~ ${recent[recent.length - 1]?.timestamp ?? 'N/A'}` : 'No data',
+        period:
+          recent.length > 0
+            ? `${recent[0]?.timestamp ?? 'N/A'} ~ ${recent[recent.length - 1]?.timestamp ?? 'N/A'}`
+            : 'No data',
       },
       detailed: recent,
       improvements,
@@ -415,11 +425,11 @@ export class PerformanceMonitor {
     measurements: PerformanceBenchmark[]
   ): PerformanceImprovements {
     if (measurements.length < 2)
-      return { 
+      return {
         responseTime: '0%',
         memory: '0%',
         accuracy: '0%',
-        message: '비교할 데이터가 부족합니다.' 
+        message: '비교할 데이터가 부족합니다.',
       };
 
     const first = measurements[0];

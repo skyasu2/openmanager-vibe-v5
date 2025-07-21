@@ -2,13 +2,13 @@
 
 /**
  * 📊 AI Usage Dashboard v1.0 - 사용량 모니터링 및 리포팅 시스템
- * 
+ *
  * 주요 기능:
  * - 실시간 사용량 추적
  * - 모델별 통계 및 비용 분석
  * - 시각적 대시보드
  * - 사용 패턴 분석
- * 
+ *
  * @author Claude Code
  * @version 1.0.0
  */
@@ -68,8 +68,8 @@ interface CostEstimate {
 
 // 모델별 가격 정보 (추정치)
 const MODEL_COSTS = {
-  'pro': { perRequest: 0.01, dailyLimit: 50 },
-  'flash': { perRequest: 0.001, dailyLimit: 1500 }
+  pro: { perRequest: 0.01, dailyLimit: 50 },
+  flash: { perRequest: 0.001, dailyLimit: 1500 },
 };
 
 /**
@@ -80,15 +80,18 @@ export class AIUsageDashboard {
   private cacheDir: string;
   private debug: boolean;
 
-  constructor(options: {
-    logDir?: string;
-    cacheDir?: string;
-    debug?: boolean;
-  } = {}) {
+  constructor(
+    options: {
+      logDir?: string;
+      cacheDir?: string;
+      debug?: boolean;
+    } = {}
+  ) {
     this.logDir = options.logDir || join(__dirname, '..', '.logs', 'gemini');
-    this.cacheDir = options.cacheDir || join(__dirname, '..', '.cache', 'dashboard');
+    this.cacheDir =
+      options.cacheDir || join(__dirname, '..', '.cache', 'dashboard');
     this.debug = options.debug || false;
-    
+
     this.ensureDirectories();
   }
 
@@ -112,7 +115,7 @@ export class AIUsageDashboard {
   private async readDailyLog(date: Date): Promise<UsageEntry[]> {
     const dateStr = date.toISOString().split('T')[0];
     const logFile = join(this.logDir, `usage_${dateStr}.json`);
-    
+
     try {
       const content = await fs.readFile(logFile, 'utf8');
       return JSON.parse(content);
@@ -127,7 +130,7 @@ export class AIUsageDashboard {
   async getDailyStats(date?: Date): Promise<DailyStats> {
     const targetDate = date || new Date();
     const logs = await this.readDailyLog(targetDate);
-    
+
     const stats: DailyStats = {
       date: targetDate.toISOString().split('T')[0],
       totalRequests: logs.length,
@@ -136,7 +139,7 @@ export class AIUsageDashboard {
       modelUsage: {},
       peakHour: 0,
       averageResponseTime: 0,
-      errorBreakdown: {}
+      errorBreakdown: {},
     };
 
     // 시간별 사용량 추적
@@ -161,13 +164,13 @@ export class AIUsageDashboard {
           fallbacks: 0,
           averageResponseTime: 0,
           estimatedCost: 0,
-          limitUtilization: 0
+          limitUtilization: 0,
         };
       }
 
       const modelStat = stats.modelUsage[log.model];
       modelStat.requests++;
-      
+
       if (log.success) {
         modelStat.successful++;
       } else {
@@ -190,14 +193,16 @@ export class AIUsageDashboard {
 
       // 에러 타입 집계
       if (log.errorType) {
-        stats.errorBreakdown[log.errorType] = (stats.errorBreakdown[log.errorType] || 0) + 1;
+        stats.errorBreakdown[log.errorType] =
+          (stats.errorBreakdown[log.errorType] || 0) + 1;
       }
     }
 
     // 평균 응답 시간
-    stats.averageResponseTime = responseTimeCount > 0 
-      ? Math.round(totalResponseTime / responseTimeCount)
-      : 0;
+    stats.averageResponseTime =
+      responseTimeCount > 0
+        ? Math.round(totalResponseTime / responseTimeCount)
+        : 0;
 
     // 피크 시간 찾기
     let maxUsage = 0;
@@ -213,7 +218,8 @@ export class AIUsageDashboard {
       const modelCost = MODEL_COSTS[model as keyof typeof MODEL_COSTS];
       if (modelCost) {
         modelStat.estimatedCost = modelStat.requests * modelCost.perRequest;
-        modelStat.limitUtilization = (modelStat.requests / modelCost.dailyLimit) * 100;
+        modelStat.limitUtilization =
+          (modelStat.requests / modelCost.dailyLimit) * 100;
       }
     }
 
@@ -226,7 +232,7 @@ export class AIUsageDashboard {
   async getWeeklyTrend(): Promise<UsageTrend> {
     const today = new Date();
     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-    
+
     let totalThisWeek = 0;
     let totalLastWeek = 0;
 
@@ -244,9 +250,10 @@ export class AIUsageDashboard {
       totalLastWeek += stats.totalRequests;
     }
 
-    const percentageChange = totalLastWeek > 0
-      ? ((totalThisWeek - totalLastWeek) / totalLastWeek) * 100
-      : 0;
+    const percentageChange =
+      totalLastWeek > 0
+        ? ((totalThisWeek - totalLastWeek) / totalLastWeek) * 100
+        : 0;
 
     let trend: 'increasing' | 'stable' | 'decreasing';
     if (percentageChange > 10) {
@@ -260,7 +267,7 @@ export class AIUsageDashboard {
     return {
       period: 'weekly',
       trend,
-      percentageChange: Math.round(percentageChange)
+      percentageChange: Math.round(percentageChange),
     };
   }
 
@@ -276,7 +283,7 @@ export class AIUsageDashboard {
     for (let i = 0; i < Math.min(days, 7); i++) {
       const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
       const stats = await this.getDailyStats(date);
-      
+
       if (stats.totalRequests > 0) {
         totalDays++;
         for (const [model, modelStat] of Object.entries(stats.modelUsage)) {
@@ -290,13 +297,13 @@ export class AIUsageDashboard {
       const dailyAverage = total / totalDays;
       const projectedRequests = Math.round(dailyAverage * days);
       const modelCost = MODEL_COSTS[model as keyof typeof MODEL_COSTS];
-      
+
       if (modelCost) {
         estimates.push({
           model,
           requests: projectedRequests,
           estimatedCost: projectedRequests * modelCost.perRequest,
-          costPerRequest: modelCost.perRequest
+          costPerRequest: modelCost.perRequest,
         });
       }
     }
@@ -352,18 +359,22 @@ ${this.generateRecommendations(stats)}
    */
   private renderModelStats(modelUsage: Record<string, ModelStats>): string {
     const lines: string[] = [];
-    
+
     for (const [model, stats] of Object.entries(modelUsage)) {
       const successRate = this.getPercentage(stats.successful, stats.requests);
       const limitBar = this.renderProgressBar(stats.limitUtilization);
-      
+
       lines.push(`${model.toUpperCase()} 모델:`);
-      lines.push(`  요청: ${stats.requests} | 성공률: ${successRate}% | Fallback: ${stats.fallbacks}`);
-      lines.push(`  일일 한도: ${limitBar} ${Math.round(stats.limitUtilization)}%`);
+      lines.push(
+        `  요청: ${stats.requests} | 성공률: ${successRate}% | Fallback: ${stats.fallbacks}`
+      );
+      lines.push(
+        `  일일 한도: ${limitBar} ${Math.round(stats.limitUtilization)}%`
+      );
       lines.push(`  예상 비용: $${stats.estimatedCost.toFixed(3)}`);
       lines.push('');
     }
-    
+
     return lines.join('\n');
   }
 
@@ -373,15 +384,17 @@ ${this.generateRecommendations(stats)}
   private renderCostForecast(forecast: CostEstimate[]): string {
     const lines: string[] = [];
     let totalCost = 0;
-    
+
     for (const estimate of forecast) {
-      lines.push(`${estimate.model.toUpperCase()}: ${estimate.requests}회 × $${estimate.costPerRequest} = $${estimate.estimatedCost.toFixed(2)}`);
+      lines.push(
+        `${estimate.model.toUpperCase()}: ${estimate.requests}회 × $${estimate.costPerRequest} = $${estimate.estimatedCost.toFixed(2)}`
+      );
       totalCost += estimate.estimatedCost;
     }
-    
+
     lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
     lines.push(`총 예상 비용: $${totalCost.toFixed(2)}`);
-    
+
     return lines.join('\n');
   }
 
@@ -389,12 +402,15 @@ ${this.generateRecommendations(stats)}
    * 에러 분석 렌더링
    */
   private renderErrorBreakdown(errors: Record<string, number>): string {
-    const lines = ['🚨 에러 분석', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'];
-    
+    const lines = [
+      '🚨 에러 분석',
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    ];
+
     for (const [type, count] of Object.entries(errors)) {
       lines.push(`${type}: ${count}회`);
     }
-    
+
     lines.push('');
     return lines.join('\n');
   }
@@ -420,9 +436,12 @@ ${this.generateRecommendations(stats)}
    */
   private getTrendEmoji(trend: string): string {
     switch (trend) {
-      case 'increasing': return '📈';
-      case 'decreasing': return '📉';
-      default: return '📊';
+      case 'increasing':
+        return '📈';
+      case 'decreasing':
+        return '📉';
+      default:
+        return '📊';
     }
   }
 
@@ -431,9 +450,12 @@ ${this.generateRecommendations(stats)}
    */
   private getTrendText(trend: string): string {
     switch (trend) {
-      case 'increasing': return '증가 추세';
-      case 'decreasing': return '감소 추세';
-      default: return '안정적';
+      case 'increasing':
+        return '증가 추세';
+      case 'decreasing':
+        return '감소 추세';
+      default:
+        return '안정적';
     }
   }
 
@@ -446,26 +468,37 @@ ${this.generateRecommendations(stats)}
     // Pro 모델 한도 체크
     const proStats = stats.modelUsage['pro'];
     if (proStats && proStats.limitUtilization > 80) {
-      recommendations.push('• Pro 모델 사용량이 80%를 초과했습니다. Flash 모델 사용을 고려하세요.');
+      recommendations.push(
+        '• Pro 모델 사용량이 80%를 초과했습니다. Flash 모델 사용을 고려하세요.'
+      );
     }
 
     // 실패율 체크
-    const failureRate = this.getPercentage(stats.failedRequests, stats.totalRequests);
+    const failureRate = this.getPercentage(
+      stats.failedRequests,
+      stats.totalRequests
+    );
     if (failureRate > 20) {
-      recommendations.push('• 실패율이 높습니다. 에러 로그를 확인하고 재시도 로직을 개선하세요.');
+      recommendations.push(
+        '• 실패율이 높습니다. 에러 로그를 확인하고 재시도 로직을 개선하세요.'
+      );
     }
 
     // 피크 시간 체크
     if (stats.peakHour >= 9 && stats.peakHour <= 18) {
-      recommendations.push(`• 피크 시간(${stats.peakHour}시)이 업무 시간입니다. 배치 작업은 야간에 수행하세요.`);
+      recommendations.push(
+        `• 피크 시간(${stats.peakHour}시)이 업무 시간입니다. 배치 작업은 야간에 수행하세요.`
+      );
     }
 
     // 응답 시간 체크
     if (stats.averageResponseTime > 5000) {
-      recommendations.push('• 평균 응답 시간이 5초를 초과합니다. 캐싱 전략을 검토하세요.');
+      recommendations.push(
+        '• 평균 응답 시간이 5초를 초과합니다. 캐싱 전략을 검토하세요.'
+      );
     }
 
-    return recommendations.length > 0 
+    return recommendations.length > 0
       ? recommendations.join('\n')
       : '• 모든 지표가 정상 범위 내에 있습니다.';
   }
@@ -473,27 +506,42 @@ ${this.generateRecommendations(stats)}
   /**
    * CSV 내보내기
    */
-  async exportToCSV(startDate: Date, endDate: Date, outputPath: string): Promise<void> {
-    const headers = ['Date', 'Model', 'Total Requests', 'Successful', 'Failed', 'Fallbacks', 'Avg Response Time (ms)', 'Estimated Cost ($)'];
+  async exportToCSV(
+    startDate: Date,
+    endDate: Date,
+    outputPath: string
+  ): Promise<void> {
+    const headers = [
+      'Date',
+      'Model',
+      'Total Requests',
+      'Successful',
+      'Failed',
+      'Fallbacks',
+      'Avg Response Time (ms)',
+      'Estimated Cost ($)',
+    ];
     const rows: string[] = [headers.join(',')];
 
     const currentDate = new Date(startDate);
     while (currentDate <= endDate) {
       const stats = await this.getDailyStats(currentDate);
-      
+
       for (const [model, modelStats] of Object.entries(stats.modelUsage)) {
-        rows.push([
-          stats.date,
-          model,
-          modelStats.requests,
-          modelStats.successful,
-          modelStats.failed,
-          modelStats.fallbacks,
-          Math.round(modelStats.averageResponseTime),
-          modelStats.estimatedCost.toFixed(3)
-        ].join(','));
+        rows.push(
+          [
+            stats.date,
+            model,
+            modelStats.requests,
+            modelStats.successful,
+            modelStats.failed,
+            modelStats.fallbacks,
+            Math.round(modelStats.averageResponseTime),
+            modelStats.estimatedCost.toFixed(3),
+          ].join(',')
+        );
       }
-      
+
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
@@ -505,7 +553,7 @@ ${this.generateRecommendations(stats)}
    */
   async startLiveMonitoring(intervalMs: number = 5000): Promise<void> {
     console.clear();
-    
+
     const update = async () => {
       console.clear();
       const dashboard = await this.renderDashboard();
@@ -551,9 +599,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         case 'export':
           const days = parseInt(args[0]) || 7;
           const endDate = new Date();
-          const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
-          const outputPath = args[1] || `ai_usage_${startDate.toISOString().split('T')[0]}_to_${endDate.toISOString().split('T')[0]}.csv`;
-          
+          const startDate = new Date(
+            endDate.getTime() - days * 24 * 60 * 60 * 1000
+          );
+          const outputPath =
+            args[1] ||
+            `ai_usage_${startDate.toISOString().split('T')[0]}_to_${endDate.toISOString().split('T')[0]}.csv`;
+
           await dashboard.exportToCSV(startDate, endDate, outputPath);
           console.log(`✅ CSV 파일로 내보내기 완료: ${outputPath}`);
           break;
@@ -562,17 +614,21 @@ if (import.meta.url === `file://${process.argv[1]}`) {
           const trend = await dashboard.getWeeklyTrend();
           console.log(`\n📈 주간 트렌드 분석`);
           console.log(`상태: ${trend.trend}`);
-          console.log(`변화율: ${trend.percentageChange > 0 ? '+' : ''}${trend.percentageChange}%`);
+          console.log(
+            `변화율: ${trend.percentageChange > 0 ? '+' : ''}${trend.percentageChange}%`
+          );
           break;
 
         case 'cost':
           const days2 = parseInt(args[0]) || 30;
           const forecast = await dashboard.getCostForecast(days2);
           console.log(`\n💰 ${days2}일 비용 예측`);
-          
+
           let totalCost = 0;
           for (const estimate of forecast) {
-            console.log(`${estimate.model}: $${estimate.estimatedCost.toFixed(2)} (${estimate.requests}회)`);
+            console.log(
+              `${estimate.model}: $${estimate.estimatedCost.toFixed(2)} (${estimate.requests}회)`
+            );
             totalCost += estimate.estimatedCost;
           }
           console.log(`총 예상 비용: $${totalCost.toFixed(2)}`);

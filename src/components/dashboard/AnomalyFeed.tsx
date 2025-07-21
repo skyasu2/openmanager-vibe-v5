@@ -10,13 +10,8 @@ interface DashboardAnomalyFeedProps {
   refreshInterval?: number;
 }
 
-export const AnomalyFeed: React.FC<DashboardAnomalyFeedProps> = (props) => {
-  return (
-    <UnifiedAnomalyFeed
-      {...props}
-      variant="dashboard"
-    />
-  );
+export const AnomalyFeed: React.FC<DashboardAnomalyFeedProps> = props => {
+  return <UnifiedAnomalyFeed {...props} variant='dashboard' />;
 };
 
 export default AnomalyFeed;

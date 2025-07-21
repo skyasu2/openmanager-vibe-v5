@@ -1,6 +1,7 @@
 # 🔥 Redis 설정 가이드 - OpenManager Vibe v5
 
 ## 📋 목차
+
 1. [개요](#개요)
 2. [환경별 Redis 설정](#환경별-redis-설정)
 3. [하이브리드 Redis 시스템](#하이브리드-redis-시스템)
@@ -13,6 +14,7 @@
 ## 개요
 
 OpenManager Vibe v5는 **하이브리드 Redis 시스템**을 사용합니다:
+
 - **Dev Mock Redis**: 개발 환경 전용 (영속성 지원)
 - **Mock Redis**: 테스트/빌드용 (메모리만)
 - **Real Redis (Upstash)**: 프로덕션용
@@ -23,12 +25,12 @@ OpenManager Vibe v5는 **하이브리드 Redis 시스템**을 사용합니다:
 
 시스템은 자동으로 환경을 감지하여 적절한 Redis를 선택합니다:
 
-| 환경 | Redis 타입 | 특징 |
-|-----|----------|-----|
-| 개발 (`NODE_ENV=development`) | Dev Mock Redis | 영속성 지원, 개발자 도구 |
-| 테스트 (`NODE_ENV=test`) | Mock Redis | 메모리 전용, 빠른 초기화 |
-| 빌드 시 | Mock Redis | 외부 연결 차단 |
-| 프로덕션 | Real Redis (Upstash) | 실제 Redis 서비스 |
+| 환경                          | Redis 타입           | 특징                     |
+| ----------------------------- | -------------------- | ------------------------ |
+| 개발 (`NODE_ENV=development`) | Dev Mock Redis       | 영속성 지원, 개발자 도구 |
+| 테스트 (`NODE_ENV=test`)      | Mock Redis           | 메모리 전용, 빠른 초기화 |
+| 빌드 시                       | Mock Redis           | 외부 연결 차단           |
+| 프로덕션                      | Real Redis (Upstash) | 실제 Redis 서비스        |
 
 ## 하이브리드 Redis 시스템
 
@@ -36,22 +38,32 @@ OpenManager Vibe v5는 **하이브리드 Redis 시스템**을 사용합니다:
 
 ```javascript
 // Mock Redis 사용 (대용량 작업)
-- build
-- ci
-- test
-- bulk-data
-- data-generation
-- server-simulation
-- ai-training
-- vector-processing
-
-// Real Redis 사용 (가벼운 작업)
-- keep-alive
-- simple-cache
-- user-session
-- api-response
-- metrics-cache
-- status-check
+-build -
+  ci -
+  test -
+  bulk -
+  data -
+  data -
+  generation -
+  server -
+  simulation -
+  ai -
+  training -
+  vector -
+  processing -
+  // Real Redis 사용 (가벼운 작업)
+  keep -
+  alive -
+  simple -
+  cache -
+  user -
+  session -
+  api -
+  response -
+  metrics -
+  cache -
+  status -
+  check;
 ```
 
 ### 자동 전환 임계값
@@ -226,17 +238,20 @@ DEBUG=redis:* npm run dev
 ## 권장사항
 
 ### 개발 환경
+
 1. **기본적으로 Dev Mock Redis 사용** (외부 의존성 없음)
 2. 실제 Redis 테스트 필요시에만 `USE_REAL_REDIS=true`
 3. 영속성이 필요없으면 `.redis-mock-data` 주기적 삭제
 
 ### 프로덕션 환경
+
 1. **반드시 실제 Redis (Upstash) 사용**
 2. `FORCE_MOCK_REDIS` 환경변수 제거 확인
 3. 연결 풀 설정 최적화
 4. 모니터링 설정 활성화
 
 ### 보안
+
 1. Redis 토큰을 코드에 하드코딩하지 않기
 2. `.env.local` 파일을 Git에 커밋하지 않기
 3. 프로덕션 환경변수는 Vercel 대시보드에서 관리

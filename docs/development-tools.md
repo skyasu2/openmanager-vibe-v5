@@ -686,7 +686,7 @@ OpenManager Vibe v5에 통합된 전문화된 MCP 서버들:
 - 표준 MCP 프로토콜 100% 준수
 - 보안 강화: 허용된 디렉토리만 접근
 
-#### 2. **GitHub MCP** - GitHub API 통합  
+#### 2. **GitHub MCP** - GitHub API 통합
 - 이슈/PR 관리, 저장소 작업
 - GITHUB_PERSONAL_ACCESS_TOKEN 환경변수 사용
 - 브랜치 생성, 코드 검색, 컬래버레이션 지원

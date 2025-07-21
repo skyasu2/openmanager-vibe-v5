@@ -1,636 +1,843 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>🔍 Vercel 배포 실시간 디버깅</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            color: #333;
-            min-height: 100vh;
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        color: #333;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+      }
+
+      .urgent-notice {
+        background: linear-gradient(45deg, #ff4757, #ff3838);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.2em;
+      }
+
+      .test-section {
+        margin: 30px 0;
+        padding: 20px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        background: #f9f9f9;
+      }
+
+      .test-section h2 {
+        color: #34495e;
+        margin-bottom: 15px;
+        font-size: 1.5em;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 15px;
+        margin: 15px 0;
+        flex-wrap: wrap;
+      }
+
+      button {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        min-width: 150px;
+      }
+
+      .btn-danger {
+        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        color: white;
+      }
+
+      .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+      }
+
+      .btn-warning {
+        background: linear-gradient(45deg, #f39c12, #e67e22);
+        color: white;
+      }
+
+      .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(243, 156, 18, 0.4);
+      }
+
+      .btn-info {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        color: white;
+      }
+
+      .btn-info:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+      }
+
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+
+      .result.success {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+
+      .result.error {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
+
+      .result.info {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+      }
+
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #e74c3c;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 10px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        100% {
+          transform: rotate(360deg);
         }
+      }
 
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 30px;
-            font-size: 2.5em;
-        }
+      .status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+      }
 
-        .urgent-notice {
-            background: linear-gradient(45deg, #ff4757, #ff3838);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.2em;
-        }
+      .status-card {
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+      }
 
-        .test-section {
-            margin: 30px 0;
-            padding: 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            background: #f9f9f9;
-        }
+      .status-card.error {
+        border-color: #e74c3c;
+        background: #fdf2f2;
+      }
 
-        .test-section h2 {
-            color: #34495e;
-            margin-bottom: 15px;
-            font-size: 1.5em;
-        }
+      .status-card.success {
+        border-color: #27ae60;
+        background: #f2fdf2;
+      }
 
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin: 15px 0;
-            flex-wrap: wrap;
-        }
+      .status-card.warning {
+        border-color: #f39c12;
+        background: #fdf9f2;
+      }
 
-        button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            min-width: 150px;
-        }
+      .deployment-info {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+      }
 
-        .btn-danger {
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
-        }
-
-        .btn-warning {
-            background: linear-gradient(45deg, #f39c12, #e67e22);
-            color: white;
-        }
-
-        .btn-warning:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.4);
-        }
-
-        .btn-info {
-            background: linear-gradient(45deg, #3498db, #2980b9);
-            color: white;
-        }
-
-        .btn-info:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
-        }
-
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            max-height: 500px;
-            overflow-y: auto;
-        }
-
-        .result.success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-
-        .result.error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-
-        .result.info {
-            background: #d1ecf1;
-            border: 1px solid #bee5eb;
-            color: #0c5460;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #e74c3c;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .status-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin: 20px 0;
-        }
-
-        .status-card {
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .status-card.error {
-            border-color: #e74c3c;
-            background: #fdf2f2;
-        }
-
-        .status-card.success {
-            border-color: #27ae60;
-            background: #f2fdf2;
-        }
-
-        .status-card.warning {
-            border-color: #f39c12;
-            background: #fdf9f2;
-        }
-
-        .deployment-info {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-        }
-
-        .real-time-log {
-            background: #1e1e1e;
-            color: #00ff00;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            max-height: 300px;
-            overflow-y: auto;
-            margin: 15px 0;
-        }
+      .real-time-log {
+        background: #1e1e1e;
+        color: #00ff00;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        max-height: 300px;
+        overflow-y: auto;
+        margin: 15px 0;
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="container">
-        <h1>🔍 Vercel 배포 실시간 디버깅</h1>
+      <h1>🔍 Vercel 배포 실시간 디버깅</h1>
 
-        <div class="urgent-notice">
-            🚨 긴급: AI 사이드바 오류가 여전히 발생 중입니다. 실시간 디버깅을 시작합니다.
+      <div class="urgent-notice">
+        🚨 긴급: AI 사이드바 오류가 여전히 발생 중입니다. 실시간 디버깅을
+        시작합니다.
+      </div>
+
+      <div class="deployment-info">
+        <h3>📦 현재 배포 정보</h3>
+        <p><strong>메인 URL:</strong> https://openmanager-vibe-v5.vercel.app</p>
+        <p>
+          <strong>최신 배포:</strong>
+          <span id="latest-deployment">확인 중...</span>
+        </p>
+        <p><strong>Git 커밋:</strong> b8aec31 (AI 사이드바 오류 수정)</p>
+        <p>
+          <strong>배포 시간:</strong> <span id="deploy-time">확인 중...</span>
+        </p>
+      </div>
+
+      <div class="test-section">
+        <h2>🚨 실시간 오류 재현</h2>
+        <p>사용자가 보고한 정확한 오류들을 실시간으로 재현합니다.</p>
+
+        <div class="button-group">
+          <button class="btn-danger" onclick="reproduceLogStreamError()">
+            <span
+              class="loading"
+              id="stream-error-loading"
+              style="display: none"
+            ></span>
+            로그 스트림 500 오류 재현
+          </button>
+          <button class="btn-danger" onclick="reproduceSmartFallbackError()">
+            <span
+              class="loading"
+              id="fallback-error-loading"
+              style="display: none"
+            ></span>
+            Smart Fallback 405 오류 재현
+          </button>
+          <button class="btn-danger" onclick="reproduceJSONParsingError()">
+            <span
+              class="loading"
+              id="json-error-loading"
+              style="display: none"
+            ></span>
+            JSON 파싱 오류 재현
+          </button>
+        </div>
+        <div
+          id="error-reproduction-result"
+          class="result"
+          style="display: none"
+        ></div>
+      </div>
+
+      <div class="test-section">
+        <h2>🔧 수정된 API 검증</h2>
+        <p>수정된 코드가 실제로 배포되었는지 확인합니다.</p>
+
+        <div class="button-group">
+          <button class="btn-warning" onclick="verifyAPIChanges()">
+            <span
+              class="loading"
+              id="verify-loading"
+              style="display: none"
+            ></span>
+            API 변경사항 검증
+          </button>
+          <button class="btn-warning" onclick="checkDeploymentStatus()">
+            <span
+              class="loading"
+              id="deploy-status-loading"
+              style="display: none"
+            ></span>
+            배포 상태 확인
+          </button>
+        </div>
+        <div
+          id="verification-result"
+          class="result"
+          style="display: none"
+        ></div>
+      </div>
+
+      <div class="test-section">
+        <h2>🔄 실시간 모니터링</h2>
+        <p>AI 사이드바 동작을 실시간으로 모니터링합니다.</p>
+
+        <div class="button-group">
+          <button class="btn-info" onclick="startRealTimeMonitoring()">
+            <span
+              class="loading"
+              id="monitor-loading"
+              style="display: none"
+            ></span>
+            실시간 모니터링 시작
+          </button>
+          <button class="btn-info" onclick="stopRealTimeMonitoring()">
+            모니터링 중지
+          </button>
         </div>
 
-        <div class="deployment-info">
-            <h3>📦 현재 배포 정보</h3>
-            <p><strong>메인 URL:</strong> https://openmanager-vibe-v5.vercel.app</p>
-            <p><strong>최신 배포:</strong> <span id="latest-deployment">확인 중...</span></p>
-            <p><strong>Git 커밋:</strong> b8aec31 (AI 사이드바 오류 수정)</p>
-            <p><strong>배포 시간:</strong> <span id="deploy-time">확인 중...</span></p>
+        <div class="real-time-log" id="real-time-log" style="display: none">
+          실시간 로그가 여기에 표시됩니다...
         </div>
 
-        <div class="test-section">
-            <h2>🚨 실시간 오류 재현</h2>
-            <p>사용자가 보고한 정확한 오류들을 실시간으로 재현합니다.</p>
-
-            <div class="button-group">
-                <button class="btn-danger" onclick="reproduceLogStreamError()">
-                    <span class="loading" id="stream-error-loading" style="display: none;"></span>
-                    로그 스트림 500 오류 재현
-                </button>
-                <button class="btn-danger" onclick="reproduceSmartFallbackError()">
-                    <span class="loading" id="fallback-error-loading" style="display: none;"></span>
-                    Smart Fallback 405 오류 재현
-                </button>
-                <button class="btn-danger" onclick="reproduceJSONParsingError()">
-                    <span class="loading" id="json-error-loading" style="display: none;"></span>
-                    JSON 파싱 오류 재현
-                </button>
-            </div>
-            <div id="error-reproduction-result" class="result" style="display: none;"></div>
+        <div class="status-grid">
+          <div class="status-card" id="stream-status">
+            <h4>로그 스트림 상태</h4>
+            <p id="stream-status-text">확인 중...</p>
+          </div>
+          <div class="status-card" id="fallback-status">
+            <h4>Smart Fallback 상태</h4>
+            <p id="fallback-status-text">확인 중...</p>
+          </div>
+          <div class="status-card" id="ai-query-status">
+            <h4>AI 질의 상태</h4>
+            <p id="ai-query-status-text">확인 중...</p>
+          </div>
         </div>
+      </div>
 
-        <div class="test-section">
-            <h2>🔧 수정된 API 검증</h2>
-            <p>수정된 코드가 실제로 배포되었는지 확인합니다.</p>
+      <div class="test-section">
+        <h2>🛠️ 긴급 수정 방안</h2>
+        <p>즉시 적용 가능한 수정 방안들을 테스트합니다.</p>
 
-            <div class="button-group">
-                <button class="btn-warning" onclick="verifyAPIChanges()">
-                    <span class="loading" id="verify-loading" style="display: none;"></span>
-                    API 변경사항 검증
-                </button>
-                <button class="btn-warning" onclick="checkDeploymentStatus()">
-                    <span class="loading" id="deploy-status-loading" style="display: none;"></span>
-                    배포 상태 확인
-                </button>
-            </div>
-            <div id="verification-result" class="result" style="display: none;"></div>
+        <div class="button-group">
+          <button class="btn-info" onclick="testHotfix()">
+            <span
+              class="loading"
+              id="hotfix-loading"
+              style="display: none"
+            ></span>
+            핫픽스 테스트
+          </button>
+          <button class="btn-info" onclick="testFallbackMode()">
+            <span
+              class="loading"
+              id="fallback-mode-loading"
+              style="display: none"
+            ></span>
+            폴백 모드 테스트
+          </button>
         </div>
-
-        <div class="test-section">
-            <h2>🔄 실시간 모니터링</h2>
-            <p>AI 사이드바 동작을 실시간으로 모니터링합니다.</p>
-
-            <div class="button-group">
-                <button class="btn-info" onclick="startRealTimeMonitoring()">
-                    <span class="loading" id="monitor-loading" style="display: none;"></span>
-                    실시간 모니터링 시작
-                </button>
-                <button class="btn-info" onclick="stopRealTimeMonitoring()">
-                    모니터링 중지
-                </button>
-            </div>
-
-            <div class="real-time-log" id="real-time-log" style="display: none;">
-                실시간 로그가 여기에 표시됩니다...
-            </div>
-
-            <div class="status-grid">
-                <div class="status-card" id="stream-status">
-                    <h4>로그 스트림 상태</h4>
-                    <p id="stream-status-text">확인 중...</p>
-                </div>
-                <div class="status-card" id="fallback-status">
-                    <h4>Smart Fallback 상태</h4>
-                    <p id="fallback-status-text">확인 중...</p>
-                </div>
-                <div class="status-card" id="ai-query-status">
-                    <h4>AI 질의 상태</h4>
-                    <p id="ai-query-status-text">확인 중...</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="test-section">
-            <h2>🛠️ 긴급 수정 방안</h2>
-            <p>즉시 적용 가능한 수정 방안들을 테스트합니다.</p>
-
-            <div class="button-group">
-                <button class="btn-info" onclick="testHotfix()">
-                    <span class="loading" id="hotfix-loading" style="display: none;"></span>
-                    핫픽스 테스트
-                </button>
-                <button class="btn-info" onclick="testFallbackMode()">
-                    <span class="loading" id="fallback-mode-loading" style="display: none;"></span>
-                    폴백 모드 테스트
-                </button>
-            </div>
-            <div id="hotfix-result" class="result" style="display: none;"></div>
-        </div>
+        <div id="hotfix-result" class="result" style="display: none"></div>
+      </div>
     </div>
 
     <script>
-        const VERCEL_URL = 'https://openmanager-vibe-v5.vercel.app';
-        let monitoringInterval = null;
-        let logCounter = 0;
+      const VERCEL_URL = 'https://openmanager-vibe-v5.vercel.app';
+      let monitoringInterval = null;
+      let logCounter = 0;
 
-        function showLoading(elementId, show = true) {
-            const element = document.getElementById(elementId);
-            if (element) {
-                element.style.display = show ? 'inline-block' : 'none';
-            }
+      function showLoading(elementId, show = true) {
+        const element = document.getElementById(elementId);
+        if (element) {
+          element.style.display = show ? 'inline-block' : 'none';
         }
+      }
 
-        function showResult(elementId, content, type = 'info') {
-            const element = document.getElementById(elementId);
-            element.style.display = 'block';
-            element.textContent = content;
-            element.className = `result ${type}`;
-        }
+      function showResult(elementId, content, type = 'info') {
+        const element = document.getElementById(elementId);
+        element.style.display = 'block';
+        element.textContent = content;
+        element.className = `result ${type}`;
+      }
 
-        function appendResult(elementId, content, type = 'info') {
-            const element = document.getElementById(elementId);
-            element.style.display = 'block';
-            element.textContent += content + '\n';
-            element.className = `result ${type}`;
-        }
+      function appendResult(elementId, content, type = 'info') {
+        const element = document.getElementById(elementId);
+        element.style.display = 'block';
+        element.textContent += content + '\n';
+        element.className = `result ${type}`;
+      }
 
-        function updateStatusCard(cardId, status, message) {
-            const card = document.getElementById(cardId);
-            const text = document.getElementById(cardId + '-text');
+      function updateStatusCard(cardId, status, message) {
+        const card = document.getElementById(cardId);
+        const text = document.getElementById(cardId + '-text');
 
-            card.className = `status-card ${status}`;
-            text.textContent = message;
-        }
+        card.className = `status-card ${status}`;
+        text.textContent = message;
+      }
 
-        function addRealTimeLog(message) {
-            const logElement = document.getElementById('real-time-log');
-            const timestamp = new Date().toLocaleTimeString();
-            logCounter++;
+      function addRealTimeLog(message) {
+        const logElement = document.getElementById('real-time-log');
+        const timestamp = new Date().toLocaleTimeString();
+        logCounter++;
 
-            logElement.textContent += `[${timestamp}] ${logCounter}: ${message}\n`;
-            logElement.scrollTop = logElement.scrollHeight;
-        }
+        logElement.textContent += `[${timestamp}] ${logCounter}: ${message}\n`;
+        logElement.scrollTop = logElement.scrollHeight;
+      }
 
-        async function reproduceLogStreamError() {
-            showLoading('stream-error-loading', true);
-            showResult('error-reproduction-result', '🚨 로그 스트림 500 오류 재현 시작...\n', 'info');
+      async function reproduceLogStreamError() {
+        showLoading('stream-error-loading', true);
+        showResult(
+          'error-reproduction-result',
+          '🚨 로그 스트림 500 오류 재현 시작...\n',
+          'info'
+        );
 
+        try {
+          const response = await fetch(
+            `${VERCEL_URL}/api/ai/logging/stream?mode=sidebar`
+          );
+
+          appendResult(
+            'error-reproduction-result',
+            `응답 상태: ${response.status} ${response.statusText}`,
+            response.status === 500 ? 'error' : 'success'
+          );
+
+          if (response.status === 500) {
+            appendResult(
+              'error-reproduction-result',
+              '❌ 500 오류 재현됨! 수정이 배포되지 않았습니다.',
+              'error'
+            );
+            updateStatusCard('stream-status', 'error', '500 오류 발생');
+
+            // 응답 본문 확인
             try {
-                const response = await fetch(`${VERCEL_URL}/api/ai/logging/stream?mode=sidebar`);
-
-                appendResult('error-reproduction-result', `응답 상태: ${response.status} ${response.statusText}`,
-                    response.status === 500 ? 'error' : 'success');
-
-                if (response.status === 500) {
-                    appendResult('error-reproduction-result', '❌ 500 오류 재현됨! 수정이 배포되지 않았습니다.', 'error');
-                    updateStatusCard('stream-status', 'error', '500 오류 발생');
-
-                    // 응답 본문 확인
-                    try {
-                        const errorText = await response.text();
-                        appendResult('error-reproduction-result', `오류 내용: ${errorText}`, 'error');
-                    } catch (e) {
-                        appendResult('error-reproduction-result', '오류 내용을 읽을 수 없습니다.', 'error');
-                    }
-                } else {
-                    appendResult('error-reproduction-result', '✅ 로그 스트림 정상 작동! 수정이 적용되었습니다.', 'success');
-                    updateStatusCard('stream-status', 'success', '정상 작동');
-                }
-
-            } catch (error) {
-                appendResult('error-reproduction-result', `❌ 네트워크 오류: ${error.message}`, 'error');
-                updateStatusCard('stream-status', 'error', '네트워크 오류');
-            } finally {
-                showLoading('stream-error-loading', false);
+              const errorText = await response.text();
+              appendResult(
+                'error-reproduction-result',
+                `오류 내용: ${errorText}`,
+                'error'
+              );
+            } catch (e) {
+              appendResult(
+                'error-reproduction-result',
+                '오류 내용을 읽을 수 없습니다.',
+                'error'
+              );
             }
+          } else {
+            appendResult(
+              'error-reproduction-result',
+              '✅ 로그 스트림 정상 작동! 수정이 적용되었습니다.',
+              'success'
+            );
+            updateStatusCard('stream-status', 'success', '정상 작동');
+          }
+        } catch (error) {
+          appendResult(
+            'error-reproduction-result',
+            `❌ 네트워크 오류: ${error.message}`,
+            'error'
+          );
+          updateStatusCard('stream-status', 'error', '네트워크 오류');
+        } finally {
+          showLoading('stream-error-loading', false);
         }
+      }
 
-        async function reproduceSmartFallbackError() {
-            showLoading('fallback-error-loading', true);
-            appendResult('error-reproduction-result', '\n🚨 Smart Fallback 405 오류 재현 시작...', 'info');
+      async function reproduceSmartFallbackError() {
+        showLoading('fallback-error-loading', true);
+        appendResult(
+          'error-reproduction-result',
+          '\n🚨 Smart Fallback 405 오류 재현 시작...',
+          'info'
+        );
 
+        try {
+          const response = await fetch(`${VERCEL_URL}/api/ai/smart-fallback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: '테스트 질의',
+              context: { sessionId: `error_test_${Date.now()}` },
+              options: { fastMode: true },
+            }),
+          });
+
+          appendResult(
+            'error-reproduction-result',
+            `응답 상태: ${response.status} ${response.statusText}`,
+            response.status === 405 ? 'error' : 'success'
+          );
+
+          if (response.status === 405) {
+            appendResult(
+              'error-reproduction-result',
+              '❌ 405 오류 재현됨! Method Not Allowed',
+              'error'
+            );
+            updateStatusCard('fallback-status', 'error', '405 오류 발생');
+          } else if (response.ok) {
+            const data = await response.json();
+            appendResult(
+              'error-reproduction-result',
+              '✅ Smart Fallback 정상 작동!',
+              'success'
+            );
+            appendResult(
+              'error-reproduction-result',
+              `응답: ${data.response?.substring(0, 100)}...`,
+              'success'
+            );
+            updateStatusCard('fallback-status', 'success', '정상 작동');
+          } else {
+            appendResult(
+              'error-reproduction-result',
+              `⚠️ 다른 오류: ${response.status}`,
+              'warning'
+            );
+            updateStatusCard(
+              'fallback-status',
+              'warning',
+              `${response.status} 오류`
+            );
+          }
+        } catch (error) {
+          appendResult(
+            'error-reproduction-result',
+            `❌ 네트워크 오류: ${error.message}`,
+            'error'
+          );
+          updateStatusCard('fallback-status', 'error', '네트워크 오류');
+        } finally {
+          showLoading('fallback-error-loading', false);
+        }
+      }
+
+      async function reproduceJSONParsingError() {
+        showLoading('json-error-loading', true);
+        appendResult(
+          'error-reproduction-result',
+          '\n🚨 JSON 파싱 오류 재현 시작...',
+          'info'
+        );
+
+        try {
+          const response = await fetch(`${VERCEL_URL}/api/ai/smart-fallback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: 'JSON 파싱 테스트',
+              context: { sessionId: `json_test_${Date.now()}` },
+            }),
+          });
+
+          appendResult(
+            'error-reproduction-result',
+            `응답 상태: ${response.status}`,
+            'info'
+          );
+
+          // 응답 텍스트 직접 확인
+          const responseText = await response.text();
+          appendResult(
+            'error-reproduction-result',
+            `응답 길이: ${responseText.length} 문자`,
+            'info'
+          );
+
+          if (!responseText.trim()) {
+            appendResult(
+              'error-reproduction-result',
+              '❌ 빈 응답! JSON 파싱 오류 원인 발견',
+              'error'
+            );
+          } else {
             try {
-                const response = await fetch(`${VERCEL_URL}/api/ai/smart-fallback`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        query: '테스트 질의',
-                        context: { sessionId: `error_test_${Date.now()}` },
-                        options: { fastMode: true }
-                    })
-                });
-
-                appendResult('error-reproduction-result', `응답 상태: ${response.status} ${response.statusText}`,
-                    response.status === 405 ? 'error' : 'success');
-
-                if (response.status === 405) {
-                    appendResult('error-reproduction-result', '❌ 405 오류 재현됨! Method Not Allowed', 'error');
-                    updateStatusCard('fallback-status', 'error', '405 오류 발생');
-                } else if (response.ok) {
-                    const data = await response.json();
-                    appendResult('error-reproduction-result', '✅ Smart Fallback 정상 작동!', 'success');
-                    appendResult('error-reproduction-result', `응답: ${data.response?.substring(0, 100)}...`, 'success');
-                    updateStatusCard('fallback-status', 'success', '정상 작동');
-                } else {
-                    appendResult('error-reproduction-result', `⚠️ 다른 오류: ${response.status}`, 'warning');
-                    updateStatusCard('fallback-status', 'warning', `${response.status} 오류`);
-                }
-
-            } catch (error) {
-                appendResult('error-reproduction-result', `❌ 네트워크 오류: ${error.message}`, 'error');
-                updateStatusCard('fallback-status', 'error', '네트워크 오류');
-            } finally {
-                showLoading('fallback-error-loading', false);
+              const data = JSON.parse(responseText);
+              appendResult(
+                'error-reproduction-result',
+                '✅ JSON 파싱 성공!',
+                'success'
+              );
+              appendResult(
+                'error-reproduction-result',
+                `파싱된 데이터: ${JSON.stringify(data, null, 2).substring(0, 200)}...`,
+                'success'
+              );
+            } catch (parseError) {
+              appendResult(
+                'error-reproduction-result',
+                '❌ JSON 파싱 오류 재현됨!',
+                'error'
+              );
+              appendResult(
+                'error-reproduction-result',
+                `파싱 오류: ${parseError.message}`,
+                'error'
+              );
+              appendResult(
+                'error-reproduction-result',
+                `응답 내용: ${responseText.substring(0, 200)}...`,
+                'error'
+              );
             }
+          }
+        } catch (error) {
+          appendResult(
+            'error-reproduction-result',
+            `❌ 네트워크 오류: ${error.message}`,
+            'error'
+          );
+        } finally {
+          showLoading('json-error-loading', false);
         }
+      }
 
-        async function reproduceJSONParsingError() {
-            showLoading('json-error-loading', true);
-            appendResult('error-reproduction-result', '\n🚨 JSON 파싱 오류 재현 시작...', 'info');
+      async function verifyAPIChanges() {
+        showLoading('verify-loading', true);
+        showResult(
+          'verification-result',
+          '🔧 API 변경사항 검증 시작...\n',
+          'info'
+        );
 
-            try {
-                const response = await fetch(`${VERCEL_URL}/api/ai/smart-fallback`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        query: 'JSON 파싱 테스트',
-                        context: { sessionId: `json_test_${Date.now()}` }
-                    })
-                });
+        try {
+          // 1. 헬스체크
+          appendResult('verification-result', '1️⃣ 헬스체크...', 'info');
+          const healthResponse = await fetch(`${VERCEL_URL}/api/health`);
+          appendResult(
+            'verification-result',
+            `헬스체크: ${healthResponse.status} ${healthResponse.ok ? '✅' : '❌'}`,
+            healthResponse.ok ? 'success' : 'error'
+          );
 
-                appendResult('error-reproduction-result', `응답 상태: ${response.status}`, 'info');
+          // 2. 버전 확인
+          appendResult('verification-result', '\n2️⃣ 버전 확인...', 'info');
+          const versionResponse = await fetch(
+            `${VERCEL_URL}/api/version/status`
+          );
+          if (versionResponse.ok) {
+            const versionData = await versionResponse.json();
+            appendResult(
+              'verification-result',
+              `버전: ${versionData.version || 'N/A'}`,
+              'success'
+            );
+            appendResult(
+              'verification-result',
+              `빌드 시간: ${versionData.buildTime || 'N/A'}`,
+              'success'
+            );
+          }
 
-                // 응답 텍스트 직접 확인
-                const responseText = await response.text();
-                appendResult('error-reproduction-result', `응답 길이: ${responseText.length} 문자`, 'info');
+          // 3. AI 엔진 상태
+          appendResult('verification-result', '\n3️⃣ AI 엔진 상태...', 'info');
+          const aiStatusResponse = await fetch(
+            `${VERCEL_URL}/api/ai/engines/status`
+          );
+          appendResult(
+            'verification-result',
+            `AI 엔진: ${aiStatusResponse.status} ${aiStatusResponse.ok ? '✅' : '❌'}`,
+            aiStatusResponse.ok ? 'success' : 'error'
+          );
 
-                if (!responseText.trim()) {
-                    appendResult('error-reproduction-result', '❌ 빈 응답! JSON 파싱 오류 원인 발견', 'error');
-                } else {
-                    try {
-                        const data = JSON.parse(responseText);
-                        appendResult('error-reproduction-result', '✅ JSON 파싱 성공!', 'success');
-                        appendResult('error-reproduction-result', `파싱된 데이터: ${JSON.stringify(data, null, 2).substring(0, 200)}...`, 'success');
-                    } catch (parseError) {
-                        appendResult('error-reproduction-result', '❌ JSON 파싱 오류 재현됨!', 'error');
-                        appendResult('error-reproduction-result', `파싱 오류: ${parseError.message}`, 'error');
-                        appendResult('error-reproduction-result', `응답 내용: ${responseText.substring(0, 200)}...`, 'error');
-                    }
-                }
-
-            } catch (error) {
-                appendResult('error-reproduction-result', `❌ 네트워크 오류: ${error.message}`, 'error');
-            } finally {
-                showLoading('json-error-loading', false);
-            }
+          appendResult(
+            'verification-result',
+            '\n✅ API 변경사항 검증 완료',
+            'success'
+          );
+        } catch (error) {
+          appendResult(
+            'verification-result',
+            `❌ 검증 오류: ${error.message}`,
+            'error'
+          );
+        } finally {
+          showLoading('verify-loading', false);
         }
+      }
 
-        async function verifyAPIChanges() {
-            showLoading('verify-loading', true);
-            showResult('verification-result', '🔧 API 변경사항 검증 시작...\n', 'info');
+      async function checkDeploymentStatus() {
+        showLoading('deploy-status-loading', true);
+        appendResult(
+          'verification-result',
+          '\n📦 배포 상태 확인 시작...',
+          'info'
+        );
 
-            try {
-                // 1. 헬스체크
-                appendResult('verification-result', '1️⃣ 헬스체크...', 'info');
-                const healthResponse = await fetch(`${VERCEL_URL}/api/health`);
-                appendResult('verification-result', `헬스체크: ${healthResponse.status} ${healthResponse.ok ? '✅' : '❌'}`,
-                    healthResponse.ok ? 'success' : 'error');
+        try {
+          // Git 커밋 정보 확인
+          appendResult('verification-result', '현재 Git 커밋: b8aec31', 'info');
+          appendResult(
+            'verification-result',
+            '커밋 메시지: AI 사이드바 오류 수정 완료',
+            'info'
+          );
 
-                // 2. 버전 확인
-                appendResult('verification-result', '\n2️⃣ 버전 확인...', 'info');
-                const versionResponse = await fetch(`${VERCEL_URL}/api/version/status`);
-                if (versionResponse.ok) {
-                    const versionData = await versionResponse.json();
-                    appendResult('verification-result', `버전: ${versionData.version || 'N/A'}`, 'success');
-                    appendResult('verification-result', `빌드 시간: ${versionData.buildTime || 'N/A'}`, 'success');
-                }
+          // 배포 시간 업데이트
+          const now = new Date();
+          document.getElementById('deploy-time').textContent =
+            now.toLocaleString();
+          document.getElementById('latest-deployment').textContent =
+            'https://openmanager-vibe-v5.vercel.app';
 
-                // 3. AI 엔진 상태
-                appendResult('verification-result', '\n3️⃣ AI 엔진 상태...', 'info');
-                const aiStatusResponse = await fetch(`${VERCEL_URL}/api/ai/engines/status`);
-                appendResult('verification-result', `AI 엔진: ${aiStatusResponse.status} ${aiStatusResponse.ok ? '✅' : '❌'}`,
-                    aiStatusResponse.ok ? 'success' : 'error');
-
-                appendResult('verification-result', '\n✅ API 변경사항 검증 완료', 'success');
-
-            } catch (error) {
-                appendResult('verification-result', `❌ 검증 오류: ${error.message}`, 'error');
-            } finally {
-                showLoading('verify-loading', false);
-            }
+          appendResult(
+            'verification-result',
+            '\n배포 상태: 활성화됨',
+            'success'
+          );
+          appendResult(
+            'verification-result',
+            '도메인: openmanager-vibe-v5.vercel.app',
+            'success'
+          );
+          appendResult('verification-result', '환경: Production', 'success');
+        } catch (error) {
+          appendResult(
+            'verification-result',
+            `❌ 배포 상태 확인 오류: ${error.message}`,
+            'error'
+          );
+        } finally {
+          showLoading('deploy-status-loading', false);
         }
+      }
 
-        async function checkDeploymentStatus() {
-            showLoading('deploy-status-loading', true);
-            appendResult('verification-result', '\n📦 배포 상태 확인 시작...', 'info');
+      async function startRealTimeMonitoring() {
+        showLoading('monitor-loading', true);
+        document.getElementById('real-time-log').style.display = 'block';
 
-            try {
-                // Git 커밋 정보 확인
-                appendResult('verification-result', '현재 Git 커밋: b8aec31', 'info');
-                appendResult('verification-result', '커밋 메시지: AI 사이드바 오류 수정 완료', 'info');
+        addRealTimeLog('실시간 모니터링 시작...');
 
-                // 배포 시간 업데이트
-                const now = new Date();
-                document.getElementById('deploy-time').textContent = now.toLocaleString();
-                document.getElementById('latest-deployment').textContent = 'https://openmanager-vibe-v5.vercel.app';
+        monitoringInterval = setInterval(async () => {
+          try {
+            // 로그 스트림 상태 확인
+            const streamResponse = await fetch(
+              `${VERCEL_URL}/api/ai/logging/stream?mode=sidebar`
+            );
+            addRealTimeLog(`로그 스트림: ${streamResponse.status}`);
 
-                appendResult('verification-result', '\n배포 상태: 활성화됨', 'success');
-                appendResult('verification-result', '도메인: openmanager-vibe-v5.vercel.app', 'success');
-                appendResult('verification-result', '환경: Production', 'success');
+            // Smart Fallback 상태 확인
+            const fallbackResponse = await fetch(
+              `${VERCEL_URL}/api/ai/smart-fallback`
+            );
+            addRealTimeLog(`Smart Fallback: ${fallbackResponse.status}`);
+          } catch (error) {
+            addRealTimeLog(`모니터링 오류: ${error.message}`);
+          }
+        }, 5000);
 
-            } catch (error) {
-                appendResult('verification-result', `❌ 배포 상태 확인 오류: ${error.message}`, 'error');
-            } finally {
-                showLoading('deploy-status-loading', false);
-            }
+        showLoading('monitor-loading', false);
+      }
+
+      function stopRealTimeMonitoring() {
+        if (monitoringInterval) {
+          clearInterval(monitoringInterval);
+          monitoringInterval = null;
+          addRealTimeLog('실시간 모니터링 중지됨');
         }
+      }
 
-        async function startRealTimeMonitoring() {
-            showLoading('monitor-loading', true);
-            document.getElementById('real-time-log').style.display = 'block';
+      async function testHotfix() {
+        showLoading('hotfix-loading', true);
+        showResult('hotfix-result', '🛠️ 핫픽스 테스트 시작...\n', 'info');
 
-            addRealTimeLog('실시간 모니터링 시작...');
+        try {
+          // 간단한 API 테스트
+          appendResult('hotfix-result', '1️⃣ 기본 API 테스트...', 'info');
+          const basicTest = await fetch(`${VERCEL_URL}/api/health`);
+          appendResult(
+            'hotfix-result',
+            `기본 API: ${basicTest.status} ${basicTest.ok ? '✅' : '❌'}`,
+            basicTest.ok ? 'success' : 'error'
+          );
 
-            monitoringInterval = setInterval(async () => {
-                try {
-                    // 로그 스트림 상태 확인
-                    const streamResponse = await fetch(`${VERCEL_URL}/api/ai/logging/stream?mode=sidebar`);
-                    addRealTimeLog(`로그 스트림: ${streamResponse.status}`);
-
-                    // Smart Fallback 상태 확인
-                    const fallbackResponse = await fetch(`${VERCEL_URL}/api/ai/smart-fallback`);
-                    addRealTimeLog(`Smart Fallback: ${fallbackResponse.status}`);
-
-                } catch (error) {
-                    addRealTimeLog(`모니터링 오류: ${error.message}`);
-                }
-            }, 5000);
-
-            showLoading('monitor-loading', false);
+          // 핫픽스 제안
+          appendResult('hotfix-result', '\n🔧 핫픽스 제안:', 'info');
+          appendResult('hotfix-result', '1. Vercel 강제 재배포 실행', 'info');
+          appendResult('hotfix-result', '2. 환경 변수 재설정', 'info');
+          appendResult('hotfix-result', '3. 캐시 무효화', 'info');
+          appendResult('hotfix-result', '4. 폴백 모드 활성화', 'info');
+        } catch (error) {
+          appendResult(
+            'hotfix-result',
+            `❌ 핫픽스 테스트 오류: ${error.message}`,
+            'error'
+          );
+        } finally {
+          showLoading('hotfix-loading', false);
         }
+      }
 
-        function stopRealTimeMonitoring() {
-            if (monitoringInterval) {
-                clearInterval(monitoringInterval);
-                monitoringInterval = null;
-                addRealTimeLog('실시간 모니터링 중지됨');
-            }
+      async function testFallbackMode() {
+        showLoading('fallback-mode-loading', true);
+        appendResult('hotfix-result', '\n🔄 폴백 모드 테스트...', 'info');
+
+        try {
+          // 폴백 모드로 AI 질의 테스트
+          const fallbackQuery = {
+            query: '폴백 모드 테스트',
+            context: { sessionId: `fallback_${Date.now()}`, mode: 'fallback' },
+            options: { fastMode: false, enableFallback: true },
+          };
+
+          const response = await fetch(`${VERCEL_URL}/api/ai/smart-fallback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(fallbackQuery),
+          });
+
+          if (response.ok) {
+            appendResult('hotfix-result', '✅ 폴백 모드 정상 작동!', 'success');
+            updateStatusCard('ai-query-status', 'success', '폴백 모드 작동');
+          } else {
+            appendResult(
+              'hotfix-result',
+              `❌ 폴백 모드 실패: ${response.status}`,
+              'error'
+            );
+            updateStatusCard('ai-query-status', 'error', '폴백 모드 실패');
+          }
+        } catch (error) {
+          appendResult(
+            'hotfix-result',
+            `❌ 폴백 모드 오류: ${error.message}`,
+            'error'
+          );
+        } finally {
+          showLoading('fallback-mode-loading', false);
         }
+      }
 
-        async function testHotfix() {
-            showLoading('hotfix-loading', true);
-            showResult('hotfix-result', '🛠️ 핫픽스 테스트 시작...\n', 'info');
+      // 페이지 로드 시 자동 실행
+      window.onload = function () {
+        setTimeout(() => {
+          reproduceLogStreamError();
+        }, 1000);
 
-            try {
-                // 간단한 API 테스트
-                appendResult('hotfix-result', '1️⃣ 기본 API 테스트...', 'info');
-                const basicTest = await fetch(`${VERCEL_URL}/api/health`);
-                appendResult('hotfix-result', `기본 API: ${basicTest.status} ${basicTest.ok ? '✅' : '❌'}`,
-                    basicTest.ok ? 'success' : 'error');
-
-                // 핫픽스 제안
-                appendResult('hotfix-result', '\n🔧 핫픽스 제안:', 'info');
-                appendResult('hotfix-result', '1. Vercel 강제 재배포 실행', 'info');
-                appendResult('hotfix-result', '2. 환경 변수 재설정', 'info');
-                appendResult('hotfix-result', '3. 캐시 무효화', 'info');
-                appendResult('hotfix-result', '4. 폴백 모드 활성화', 'info');
-
-            } catch (error) {
-                appendResult('hotfix-result', `❌ 핫픽스 테스트 오류: ${error.message}`, 'error');
-            } finally {
-                showLoading('hotfix-loading', false);
-            }
-        }
-
-        async function testFallbackMode() {
-            showLoading('fallback-mode-loading', true);
-            appendResult('hotfix-result', '\n🔄 폴백 모드 테스트...', 'info');
-
-            try {
-                // 폴백 모드로 AI 질의 테스트
-                const fallbackQuery = {
-                    query: '폴백 모드 테스트',
-                    context: { sessionId: `fallback_${Date.now()}`, mode: 'fallback' },
-                    options: { fastMode: false, enableFallback: true }
-                };
-
-                const response = await fetch(`${VERCEL_URL}/api/ai/smart-fallback`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(fallbackQuery)
-                });
-
-                if (response.ok) {
-                    appendResult('hotfix-result', '✅ 폴백 모드 정상 작동!', 'success');
-                    updateStatusCard('ai-query-status', 'success', '폴백 모드 작동');
-                } else {
-                    appendResult('hotfix-result', `❌ 폴백 모드 실패: ${response.status}`, 'error');
-                    updateStatusCard('ai-query-status', 'error', '폴백 모드 실패');
-                }
-
-            } catch (error) {
-                appendResult('hotfix-result', `❌ 폴백 모드 오류: ${error.message}`, 'error');
-            } finally {
-                showLoading('fallback-mode-loading', false);
-            }
-        }
-
-        // 페이지 로드 시 자동 실행
-        window.onload = function () {
-            setTimeout(() => {
-                reproduceLogStreamError();
-            }, 1000);
-
-            setTimeout(() => {
-                reproduceSmartFallbackError();
-            }, 3000);
-        };
+        setTimeout(() => {
+          reproduceSmartFallbackError();
+        }, 3000);
+      };
     </script>
-</body>
-
+  </body>
 </html>

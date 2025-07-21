@@ -14,37 +14,37 @@ const duplicateGroups = [
     name: 'AISidebar',
     files: [
       'src/components/ai/AISidebar.tsx',
-      'src/modules/ai-sidebar/components/AISidebar.tsx'
-    ]
+      'src/modules/ai-sidebar/components/AISidebar.tsx',
+    ],
   },
   {
     name: 'MessageBubble',
     files: [
       'src/components/ai/MessageBubble.tsx',
-      'src/modules/ai-sidebar/components/MessageBubble.tsx'
-    ]
+      'src/modules/ai-sidebar/components/MessageBubble.tsx',
+    ],
   },
   {
     name: 'ServerCard',
     files: [
       'src/components/dashboard/ServerCard/ServerCard.tsx',
-      'src/components/dashboard/ServerCard.tsx'
-    ]
+      'src/components/dashboard/ServerCard.tsx',
+    ],
   },
   {
     name: 'ActionButtons',
     files: [
       'src/components/dashboard/ServerCard/ActionButtons.tsx',
-      'src/modules/ai-sidebar/components/ActionButtons.tsx'
-    ]
+      'src/modules/ai-sidebar/components/ActionButtons.tsx',
+    ],
   },
   {
     name: 'ContextManager',
     files: [
       'src/modules/ai-agent/processors/ContextManager.ts',
-      'src/services/ai-agent/ContextManager.ts'
-    ]
-  }
+      'src/services/ai-agent/ContextManager.ts',
+    ],
+  },
 ];
 
 // 파일 분석 함수
@@ -65,17 +65,28 @@ function analyzeFile(filePath) {
 
     // 코드 품질 지표
     hasDefaultExport: content.includes('export default'),
-    hasNamedExport: /export\s+(const|function|class|interface|type)\s+\w+/.test(content),
+    hasNamedExport: /export\s+(const|function|class|interface|type)\s+\w+/.test(
+      content
+    ),
     importsCount: (content.match(/^import.*from/gm) || []).length,
-    hasTypeScript: content.includes(': ') || content.includes('interface ') || content.includes('type '),
+    hasTypeScript:
+      content.includes(': ') ||
+      content.includes('interface ') ||
+      content.includes('type '),
     hasComments: content.includes('//') || content.includes('/*'),
-    hasPropTypes: content.includes('Props') || content.includes('interface') && content.includes('props'),
-    hasTests: content.includes('test(') || content.includes('it(') || content.includes('describe('),
+    hasPropTypes:
+      content.includes('Props') ||
+      (content.includes('interface') && content.includes('props')),
+    hasTests:
+      content.includes('test(') ||
+      content.includes('it(') ||
+      content.includes('describe('),
 
     // React 특화 분석
     hasHooks: /use[A-Z]/.test(content),
     hasState: content.includes('useState') || content.includes('useReducer'),
-    hasEffects: content.includes('useEffect') || content.includes('useLayoutEffect'),
+    hasEffects:
+      content.includes('useEffect') || content.includes('useLayoutEffect'),
     hasMemo: content.includes('useMemo') || content.includes('useCallback'),
 
     // UI/스타일 분석
@@ -84,12 +95,17 @@ function analyzeFile(filePath) {
     hasInlineStyles: content.includes('style='),
 
     // 기능 복잡성
-    functionCount: (content.match(/function\s+\w+|const\s+\w+\s*=\s*\(/g) || []).length,
-    componentCount: (content.match(/const\s+\w*Component|function\s+\w*Component/g) || []).length,
+    functionCount: (content.match(/function\s+\w+|const\s+\w+\s*=\s*\(/g) || [])
+      .length,
+    componentCount: (
+      content.match(/const\s+\w*Component|function\s+\w*Component/g) || []
+    ).length,
 
     // 의존성 분석
-    externalImports: (content.match(/from\s+['"](?!\.)[^'"]+['"]/g) || []).length,
-    relativeImports: (content.match(/from\s+['"][.\/][^'"]+['"]/g) || []).length
+    externalImports: (content.match(/from\s+['"](?!\.)[^'"]+['"]/g) || [])
+      .length,
+    relativeImports: (content.match(/from\s+['"][.\/][^'"]+['"]/g) || [])
+      .length,
   };
 }
 
@@ -107,7 +123,7 @@ function countUsageInCodebase(fileName, excludePaths = []) {
       const patterns = [
         new RegExp(`from\\s+['"\`].*${fileName}['"\`]`, 'g'),
         new RegExp(`import.*${fileName}`, 'g'),
-        new RegExp(`${fileName}`, 'g')
+        new RegExp(`${fileName}`, 'g'),
       ];
 
       patterns.forEach(pattern => {
@@ -208,7 +224,7 @@ function compareAndDecide(group) {
       file: analysis.path,
       score,
       reasons,
-      analysis
+      analysis,
     };
   });
 
@@ -217,7 +233,9 @@ function compareAndDecide(group) {
     console.log(`   ${index + 1}. ${result.file}`);
     console.log(`      점수: ${result.score}점`);
     console.log(`      이유: ${result.reasons.join(', ')}`);
-    console.log(`      크기: ${(result.analysis.size / 1024).toFixed(1)}KB (${result.analysis.lines}줄)`);
+    console.log(
+      `      크기: ${(result.analysis.size / 1024).toFixed(1)}KB (${result.analysis.lines}줄)`
+    );
   });
 
   // 결정
@@ -235,7 +253,7 @@ function compareAndDecide(group) {
     winner: winner.file,
     losers: losers.map(l => l.file),
     winnerScore: winner.score,
-    reasoning: winner.reasons.join(', ')
+    reasoning: winner.reasons.join(', '),
   };
 }
 
@@ -280,7 +298,7 @@ function cleanupUnusedFiles() {
     'src/hooks/usePreloadComponents.ts',
     'src/hooks/useServerQueries.test.tsx',
     'src/hooks/useSmartQuery.ts',
-    'src/hooks/useSystemStatus.ts'
+    'src/hooks/useSystemStatus.ts',
   ];
 
   const cleanupResults = [];
@@ -291,7 +309,7 @@ function cleanupUnusedFiles() {
       cleanupResults.push({
         file,
         size: stats.size,
-        moved: true
+        moved: true,
       });
       console.log(`   🗑️ ${file} (${(stats.size / 1024).toFixed(1)}KB)`);
     } else {
@@ -354,7 +372,10 @@ function generateDecisionLog(decisions, cleanupResults) {
   if (cleanupResults.length === 0) {
     log += `정리할 미사용 파일이 없습니다.\n\n`;
   } else {
-    const totalSize = cleanupResults.reduce((sum, result) => sum + result.size, 0);
+    const totalSize = cleanupResults.reduce(
+      (sum, result) => sum + result.size,
+      0
+    );
     log += `**총 ${cleanupResults.length}개 파일 정리 (${(totalSize / 1024).toFixed(1)}KB 절약)**\n\n`;
 
     cleanupResults.forEach(result => {
@@ -366,7 +387,7 @@ function generateDecisionLog(decisions, cleanupResults) {
   log += `- **중복 제거:** ${decisions.length}개 그룹\n`;
   log += `- **미사용 파일 정리:** ${cleanupResults.length}개\n`;
   log += `- **예상 빌드 시간 단축:** 2-3초\n`;
-  log += `- **번들 크기 감소:** 약 ${((cleanupResults.reduce((sum, r) => sum + r.size, 0)) / 1024 / 1024).toFixed(1)}MB\n\n`;
+  log += `- **번들 크기 감소:** 약 ${(cleanupResults.reduce((sum, r) => sum + r.size, 0) / 1024 / 1024).toFixed(1)}MB\n\n`;
 
   log += `## 📌 권장사항\n\n`;
   log += `1. 선택되지 않은 파일들은 \`archive/duplicates/\`에 백업됨\n`;
@@ -412,4 +433,4 @@ async function main() {
   console.log('4. 테스트 실행');
 }
 
-main().catch(console.error); 
+main().catch(console.error);

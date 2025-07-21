@@ -438,15 +438,17 @@ export class SupabaseTimeSeriesManager {
       const cpu = metric.cpu ?? metric.systemMetrics?.cpuUsage ?? 0;
       const memory = metric.memory ?? metric.systemMetrics?.memoryUsage ?? 0;
       const disk = metric.disk ?? metric.systemMetrics?.diskUsage ?? 0;
-      const networkUsage = metric.network 
+      const networkUsage = metric.network
         ? (metric.network.in + metric.network.out) / 2
-        : metric.systemMetrics?.networkUsage ?? 0;
-      const requestCount = metric.activeConnections ?? 
-        metric.applicationMetrics?.requestCount ?? 0;
+        : (metric.systemMetrics?.networkUsage ?? 0);
+      const requestCount =
+        metric.activeConnections ??
+        metric.applicationMetrics?.requestCount ??
+        0;
       const errorRate = metric.applicationMetrics?.errorRate ?? 0;
-      const responseTime = metric.responseTime ?? 
-        metric.applicationMetrics?.responseTime ?? 0;
-      
+      const responseTime =
+        metric.responseTime ?? metric.applicationMetrics?.responseTime ?? 0;
+
       return {
         session_id: sessionId,
         server_id: metric.serverId,
@@ -477,7 +479,7 @@ export class SupabaseTimeSeriesManager {
       disk: record.disk_usage,
       network: {
         in: record.network_usage / 2,
-        out: record.network_usage / 2
+        out: record.network_usage / 2,
       },
       status: 'healthy' as const,
       responseTime: record.response_time,

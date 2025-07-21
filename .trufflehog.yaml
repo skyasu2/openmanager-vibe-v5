@@ -3,16 +3,16 @@ sources:
   - type: filesystem
     path: .
     exclude:
-      - "**/node_modules/**"
-      - "**/vendor/**"
-      - "**/dist/**"
-      - "**/build/**"
-      - "**/.git/**"
-      - "**/.github/**"
-      - "**/.idea/**"
-      - "**/__pycache__/**"
-      - "**/*.min.js"
-      - "**/*.min.css"
+      - '**/node_modules/**'
+      - '**/vendor/**'
+      - '**/dist/**'
+      - '**/build/**'
+      - '**/.git/**'
+      - '**/.github/**'
+      - '**/.idea/**'
+      - '**/__pycache__/**'
+      - '**/*.min.js'
+      - '**/*.min.css'
 
 detectors:
   # 비활성화할 검출기 목록 (필요시 주석 해제)

@@ -366,35 +366,35 @@ export async function GET(request: NextRequest) {
               event: string;
               handler: (...args: any[]) => void;
             }> = [
-                {
-                  event: 'system:started',
-                  handler: (data: any) => sendEvent('system-started', data),
-                },
-                {
-                  event: 'system:stopped',
-                  handler: (data: any) => sendEvent('system-stopped', data),
-                },
-                {
-                  event: 'system:health-update',
-                  handler: (data: any) => sendEvent('health-update', data),
-                },
-                {
-                  event: 'process:started',
-                  handler: (data: any) => sendEvent('process-started', data),
-                },
-                {
-                  event: 'process:stopped',
-                  handler: (data: any) => sendEvent('process-stopped', data),
-                },
-                {
-                  event: 'process:unhealthy',
-                  handler: (data: any) => sendEvent('process-unhealthy', data),
-                },
-                {
-                  event: 'system:stable',
-                  handler: (data: any) => sendEvent('system-stable', data),
-                },
-              ];
+              {
+                event: 'system:started',
+                handler: (data: any) => sendEvent('system-started', data),
+              },
+              {
+                event: 'system:stopped',
+                handler: (data: any) => sendEvent('system-stopped', data),
+              },
+              {
+                event: 'system:health-update',
+                handler: (data: any) => sendEvent('health-update', data),
+              },
+              {
+                event: 'process:started',
+                handler: (data: any) => sendEvent('process-started', data),
+              },
+              {
+                event: 'process:stopped',
+                handler: (data: any) => sendEvent('process-stopped', data),
+              },
+              {
+                event: 'process:unhealthy',
+                handler: (data: any) => sendEvent('process-unhealthy', data),
+              },
+              {
+                event: 'system:stable',
+                handler: (data: any) => sendEvent('system-stable', data),
+              },
+            ];
 
             listeners.forEach(({ event, handler }) => {
               manager.on(event, handler);

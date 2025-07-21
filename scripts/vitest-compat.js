@@ -20,7 +20,7 @@ global.it = global.test = (name, fn) => {
     if (result && typeof result.then === 'function') {
       result
         .then(() => console.log(`  ✅ ${name}`))
-        .catch((err) => {
+        .catch(err => {
           console.error(`  ❌ ${name}`, err.message);
           process.exit(1);
         });
@@ -34,15 +34,15 @@ global.it = global.test = (name, fn) => {
 };
 
 // beforeEach, afterEach 등 라이프사이클 훅
-global.beforeEach = (fn) => {
+global.beforeEach = fn => {
   // 간단한 구현을 위해 무시
 };
 
-global.afterEach = (fn) => {
+global.afterEach = fn => {
   // 간단한 구현을 위해 무시
 };
 
-global.beforeAll = (fn) => {
+global.beforeAll = fn => {
   try {
     fn();
   } catch (err) {
@@ -51,7 +51,7 @@ global.beforeAll = (fn) => {
   }
 };
 
-global.afterAll = (fn) => {
+global.afterAll = fn => {
   // 테스트 종료 시 실행
   process.on('exit', () => {
     try {
@@ -63,16 +63,18 @@ global.afterAll = (fn) => {
 };
 
 // expect 구현 (간단한 버전)
-global.expect = (actual) => {
+global.expect = actual => {
   return {
-    toBe: (expected) => {
+    toBe: expected => {
       if (actual !== expected) {
         throw new Error(`Expected ${actual} to be ${expected}`);
       }
     },
-    toEqual: (expected) => {
+    toEqual: expected => {
       if (JSON.stringify(actual) !== JSON.stringify(expected)) {
-        throw new Error(`Expected ${JSON.stringify(actual)} to equal ${JSON.stringify(expected)}`);
+        throw new Error(
+          `Expected ${JSON.stringify(actual)} to equal ${JSON.stringify(expected)}`
+        );
       }
     },
     toBeTruthy: () => {
@@ -100,7 +102,7 @@ global.expect = (actual) => {
         throw new Error(`Expected ${actual} to be defined`);
       }
     },
-    toContain: (item) => {
+    toContain: item => {
       if (typeof actual === 'string') {
         if (!actual.includes(item)) {
           throw new Error(`Expected "${actual}" to contain "${item}"`);
@@ -113,7 +115,7 @@ global.expect = (actual) => {
         throw new Error('toContain can only be used with strings or arrays');
       }
     },
-    toHaveLength: (length) => {
+    toHaveLength: length => {
       if (actual.length !== length) {
         throw new Error(`Expected length ${actual.length} to be ${length}`);
       }
@@ -133,14 +135,16 @@ global.expect = (actual) => {
       }
     },
     not: {
-      toBe: (expected) => {
+      toBe: expected => {
         if (actual === expected) {
           throw new Error(`Expected ${actual} not to be ${expected}`);
         }
       },
-      toEqual: (expected) => {
+      toEqual: expected => {
         if (JSON.stringify(actual) === JSON.stringify(expected)) {
-          throw new Error(`Expected ${JSON.stringify(actual)} not to equal ${JSON.stringify(expected)}`);
+          throw new Error(
+            `Expected ${JSON.stringify(actual)} not to equal ${JSON.stringify(expected)}`
+          );
         }
       },
       toBeTruthy: () => {
@@ -152,19 +156,19 @@ global.expect = (actual) => {
         if (!actual) {
           throw new Error(`Expected ${actual} not to be falsy`);
         }
-      }
-    }
+      },
+    },
   };
 };
 
 // vi mock 객체
 global.vi = {
-  fn: (implementation) => {
+  fn: implementation => {
     const mockFn = implementation || (() => {});
-    mockFn.mockReturnValue = (value) => {
+    mockFn.mockReturnValue = value => {
       return () => value;
     };
-    mockFn.mockResolvedValue = (value) => {
+    mockFn.mockResolvedValue = value => {
       return () => Promise.resolve(value);
     };
     return mockFn;
@@ -177,7 +181,7 @@ global.vi = {
   },
   unstubAllEnvs: () => {
     // 환경변수 복원 로직
-  }
+  },
 };
 
 // 모듈 export
@@ -190,5 +194,5 @@ module.exports = {
   afterEach: global.afterEach,
   beforeAll: global.beforeAll,
   afterAll: global.afterAll,
-  vi: global.vi
+  vi: global.vi,
 };

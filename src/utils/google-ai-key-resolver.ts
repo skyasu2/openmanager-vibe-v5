@@ -54,7 +54,7 @@ export async function resolveGoogleAIKey(): Promise<GoogleAIKeyResult> {
           encrypted: envEncrypted,
           salt: envSalt,
           iv: envIV,
-          authTag: '',  // 이전 버전 호환성
+          authTag: '', // 이전 버전 호환성
           algorithm: 'aes-256-gcm' as const,
           iterations: 100000,
           timestamp: Date.now(),
@@ -62,7 +62,10 @@ export async function resolveGoogleAIKey(): Promise<GoogleAIKeyResult> {
         };
 
         enhancedCryptoManager.initializeMasterKey(envPassword);
-        const decryptedKey = enhancedCryptoManager.decryptVariable(encryptedData, envPassword);
+        const decryptedKey = enhancedCryptoManager.decryptVariable(
+          encryptedData,
+          envPassword
+        );
         if (decryptedKey && decryptedKey.startsWith('AIza')) {
           console.log('✅ 환경변수 암호화된 키 복호화 성공');
           return {
@@ -93,7 +96,7 @@ export async function resolveGoogleAIKey(): Promise<GoogleAIKeyResult> {
             encrypted: ENCRYPTED_GOOGLE_AI_CONFIG.encryptedKey,
             salt: ENCRYPTED_GOOGLE_AI_CONFIG.salt,
             iv: ENCRYPTED_GOOGLE_AI_CONFIG.iv,
-            authTag: ENCRYPTED_GOOGLE_AI_CONFIG.authTag || '',  // 이전 버전 호환성
+            authTag: ENCRYPTED_GOOGLE_AI_CONFIG.authTag || '', // 이전 버전 호환성
             algorithm: 'aes-256-gcm' as const,
             iterations: 100000,
             timestamp: Date.parse(ENCRYPTED_GOOGLE_AI_CONFIG.createdAt),
@@ -101,7 +104,10 @@ export async function resolveGoogleAIKey(): Promise<GoogleAIKeyResult> {
           };
 
           enhancedCryptoManager.initializeMasterKey(password);
-          const decryptedKey = enhancedCryptoManager.decryptVariable(encryptedData, password);
+          const decryptedKey = enhancedCryptoManager.decryptVariable(
+            encryptedData,
+            password
+          );
           if (decryptedKey && decryptedKey.startsWith('AIza')) {
             console.log(
               `✅ 팀 설정 복호화 성공: ${password.substring(0, 3)}***`

@@ -1,6 +1,6 @@
 /**
  * 🎯 Optimized Realtime Hook v1.0
- * 
+ *
  * 최적화된 실시간 데이터 훅
  * - 중앙화된 데이터 관리자 사용
  * - 가시성 기반 업데이트
@@ -65,23 +65,29 @@ export function useOptimizedRealtime<T = any>({
   });
 
   // 데이터 업데이트 콜백
-  const handleDataUpdate = useCallback((newData: T) => {
-    try {
-      setData(newData);
-      setLastUpdate(new Date());
-      setUpdateCount(prev => prev + 1);
-      setIsLoading(false);
-      setError(null);
+  const handleDataUpdate = useCallback(
+    (newData: T) => {
+      try {
+        setData(newData);
+        setLastUpdate(new Date());
+        setUpdateCount(prev => prev + 1);
+        setIsLoading(false);
+        setError(null);
 
-      // 외부 콜백 호출
-      onUpdate?.(newData);
+        // 외부 콜백 호출
+        onUpdate?.(newData);
 
-      console.log(`📊 데이터 업데이트: ${subscriberIdRef.current}`, newData);
-    } catch (err) {
-      console.error(`❌ 데이터 업데이트 실패: ${subscriberIdRef.current}`, err);
-      setError(err instanceof Error ? err.message : '데이터 업데이트 실패');
-    }
-  }, [onUpdate]);
+        console.log(`📊 데이터 업데이트: ${subscriberIdRef.current}`, newData);
+      } catch (err) {
+        console.error(
+          `❌ 데이터 업데이트 실패: ${subscriberIdRef.current}`,
+          err
+        );
+        setError(err instanceof Error ? err.message : '데이터 업데이트 실패');
+      }
+    },
+    [onUpdate]
+  );
 
   // 강제 업데이트
   const forceUpdate = useCallback(() => {
@@ -154,7 +160,11 @@ export function useOptimizedRealtime<T = any>({
 /**
  * 서버 메트릭 전용 훅
  */
-export function useServerMetrics(options?: Omit<UseOptimizedRealtimeOptions, 'dataType'> & { serverId?: string }) {
+export function useServerMetrics(
+  options?: Omit<UseOptimizedRealtimeOptions, 'dataType'> & {
+    serverId?: string;
+  }
+) {
   // ✅ 서버별 고유 구독 ID 생성 (중복 구독 방지)
   const serverId = options?.serverId || 'default';
   const subscriberId = `server-metrics-${serverId}`;
@@ -176,7 +186,9 @@ export function useServerMetrics(options?: Omit<UseOptimizedRealtimeOptions, 'da
 /**
  * 네트워크 메트릭 전용 훅
  */
-export function useNetworkMetrics(options?: Omit<UseOptimizedRealtimeOptions, 'dataType'>) {
+export function useNetworkMetrics(
+  options?: Omit<UseOptimizedRealtimeOptions, 'dataType'>
+) {
   return useOptimizedRealtime<{
     bandwidth: number;
     latency: number;
@@ -194,7 +206,9 @@ export function useNetworkMetrics(options?: Omit<UseOptimizedRealtimeOptions, 'd
 /**
  * 시스템 메트릭 전용 훅
  */
-export function useSystemMetrics(options?: Omit<UseOptimizedRealtimeOptions, 'dataType'>) {
+export function useSystemMetrics(
+  options?: Omit<UseOptimizedRealtimeOptions, 'dataType'>
+) {
   return useOptimizedRealtime<{
     uptime: string;
     processes: number;
@@ -210,7 +224,9 @@ export function useSystemMetrics(options?: Omit<UseOptimizedRealtimeOptions, 'da
 /**
  * 성능 메트릭 전용 훅
  */
-export function usePerformanceMetrics(options?: Omit<UseOptimizedRealtimeOptions, 'dataType'>) {
+export function usePerformanceMetrics(
+  options?: Omit<UseOptimizedRealtimeOptions, 'dataType'>
+) {
   return useOptimizedRealtime<{
     responseTime: number;
     throughput: number;
@@ -221,4 +237,4 @@ export function usePerformanceMetrics(options?: Omit<UseOptimizedRealtimeOptions
     dataType: 'metrics',
     frequency: options?.frequency || 'medium',
   });
-} 
+}

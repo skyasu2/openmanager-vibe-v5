@@ -8,7 +8,7 @@
 
 ```
 ❌ /api/gcp/real-servers
-❌ /api/gcp/server-data  
+❌ /api/gcp/server-data
 ❌ /api/gcp/data-generator
 ```
 
@@ -151,7 +151,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
 # 서버 데이터 조회 테스트
 curl http://localhost:3000/api/servers-optimized
 
-# AI 이상징후 감지 테스트  
+# AI 이상징후 감지 테스트
 curl http://localhost:3000/api/ai/anomaly
 
 # 대시보드 데이터 테스트
@@ -175,7 +175,7 @@ curl http://localhost:3000/api/performance-test?action=load_test&concurrent=5
 curl -I http://localhost:3000/api/gcp/real-servers
 # Expected: 301 Moved Permanently
 
-curl -I http://localhost:3000/api/servers/realtime  
+curl -I http://localhost:3000/api/servers/realtime
 # Expected: 301 Moved Permanently
 ```
 
@@ -200,12 +200,12 @@ curl -X POST http://localhost:3000/api/ab-test \
 
 ## 📊 예상 효과
 
-| 항목 | 제거 전 | 제거 후 | 개선 |
-|------|---------|---------|------|
-| API 엔드포인트 수 | 15개 | 8개 | -47% |
-| 코드 복잡도 | 높음 | 낮음 | - |
-| 유지보수 부담 | 높음 | 낮음 | - |
-| 빌드 크기 | 큼 | 작음 | -20% |
+| 항목              | 제거 전 | 제거 후 | 개선 |
+| ----------------- | ------- | ------- | ---- |
+| API 엔드포인트 수 | 15개    | 8개     | -47% |
+| 코드 복잡도       | 높음    | 낮음    | -    |
+| 유지보수 부담     | 높음    | 낮음    | -    |
+| 빌드 크기         | 큼      | 작음    | -20% |
 
 ## ✅ 제거 체크리스트
 
@@ -213,7 +213,7 @@ curl -X POST http://localhost:3000/api/ab-test \
 - [ ] 리다이렉트 설정 추가
 - [ ] 백업 생성
 - [ ] 파일 제거
-- [ ] 환경 변수 정리  
+- [ ] 환경 변수 정리
 - [ ] 기능 테스트 통과
 - [ ] 성능 테스트 통과
 - [ ] 배포 전 최종 확인

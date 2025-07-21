@@ -156,7 +156,7 @@ export default function AIChatPage() {
               </div>
               <div className='bg-white border border-gray-200 rounded-lg p-3'>
                 {/* <ThinkingView isThinking={true} logs={[]} /> */}
-                <div className="text-center text-gray-500 py-4">
+                <div className='text-center text-gray-500 py-4'>
                   AI가 생각하고 있습니다...
                 </div>
               </div>

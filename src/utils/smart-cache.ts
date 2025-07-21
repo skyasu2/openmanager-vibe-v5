@@ -1,6 +1,6 @@
 /**
  * 🧠 요청별 캐싱 시스템 (서버리스 호환)
- * 
+ *
  * 서버리스 환경에서 요청 범위 내에서만 동작하는 캐싱 솔루션
  * 싱글톤 패턴 제거, 전역 상태 제거
  */
@@ -39,7 +39,7 @@ export class RequestScopedCache {
     refetchOnWindowFocus: false, // 서버 환경에서는 기본 false
     retry: 3,
     retryDelay: 1000,
-    dedupeTime: 2000
+    dedupeTime: 2000,
   };
 
   constructor() {
@@ -136,7 +136,7 @@ export class RequestScopedCache {
       freshEntries: freshCount,
       staleEntries: staleCount,
       totalSize: this.calculateCacheSize(),
-      hitRate: 0.85 // 임시값, 실제로는 히트/미스 카운터 필요
+      hitRate: 0.85, // 임시값, 실제로는 히트/미스 카운터 필요
     };
   }
 
@@ -159,7 +159,7 @@ export class RequestScopedCache {
         refetchOnWindowFocus: options.refetchOnWindowFocus,
         retryCount: 0,
         isStale: false,
-        isLoading: false
+        isLoading: false,
       };
 
       this.cache.set(key, entry);
@@ -178,7 +178,7 @@ export class RequestScopedCache {
       this.updateCacheEntry(key, {
         isLoading: false,
         error: error as Error,
-        retryCount
+        retryCount,
       });
 
       throw error;
@@ -202,7 +202,7 @@ export class RequestScopedCache {
         retryCount: 0,
         isStale: false,
         isLoading: false,
-        ...updates
+        ...updates,
       } as CacheEntry);
     }
   }
@@ -233,7 +233,9 @@ export function createRequestCache(): RequestScopedCache {
  */
 export const SmartCache = {
   getInstance: () => {
-    console.warn('⚠️ SmartCache.getInstance()는 서버리스에서 사용 금지. createRequestCache() 사용하세요.');
+    console.warn(
+      '⚠️ SmartCache.getInstance()는 서버리스에서 사용 금지. createRequestCache() 사용하세요.'
+    );
     return new RequestScopedCache();
-  }
-}; 
+  },
+};

@@ -12,7 +12,7 @@ global.fetch = vi.fn();
 
 describe('MCP 컨텍스트 통합', () => {
   let agent: ServerMonitoringAgent;
-  
+
   // 테스트용 서버 데이터
   const mockServerContext = {
     servers: [
@@ -21,19 +21,19 @@ describe('MCP 컨텍스트 통합', () => {
         name: 'web-server-01',
         cpu: 75,
         memory: 60,
-        status: 'healthy'
+        status: 'healthy',
       },
       {
-        id: 'srv-002', 
+        id: 'srv-002',
         name: 'db-server-01',
         cpu: 90,
         memory: 85,
-        status: 'warning'
-      }
+        status: 'warning',
+      },
     ],
     totalServers: 2,
     healthyCount: 1,
-    warningCount: 1
+    warningCount: 1,
   };
 
   beforeAll(() => {
@@ -49,11 +49,11 @@ describe('MCP 컨텍스트 통합', () => {
       // Mock successful MCP connection
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ status: 'connected', version: '1.0.0' })
+        json: async () => ({ status: 'connected', version: '1.0.0' }),
       } as Response);
 
       const status = await agent.checkMCPConnection();
-      
+
       expect(status.connected).toBe(true);
       expect(status.version).toBe('1.0.0');
     });
@@ -63,7 +63,7 @@ describe('MCP 컨텍스트 통합', () => {
       vi.mocked(fetch).mockRejectedValueOnce(new Error('Connection refused'));
 
       const status = await agent.checkMCPConnection();
-      
+
       expect(status.connected).toBe(false);
       expect(status.fallbackMode).toBe(true);
     });
@@ -76,12 +76,12 @@ describe('MCP 컨텍스트 통합', () => {
         ok: true,
         json: async () => ({
           context: mockServerContext,
-          timestamp: new Date().toISOString()
-        })
+          timestamp: new Date().toISOString(),
+        }),
       } as Response);
 
       const context = await agent.collectContext();
-      
+
       expect(context).toBeDefined();
       expect(context.servers).toHaveLength(2);
       expect(context.totalServers).toBe(2);
@@ -96,16 +96,20 @@ describe('MCP 컨텍스트 통합', () => {
           server: mockServerContext.servers[1],
           metrics: {
             cpu: { current: 90, average: 85, peak: 95 },
-            memory: { current: 85, average: 80, peak: 90 }
+            memory: { current: 85, average: 80, peak: 90 },
           },
           logs: [
-            { timestamp: new Date(), level: 'warn', message: 'High CPU usage detected' }
-          ]
-        })
+            {
+              timestamp: new Date(),
+              level: 'warn',
+              message: 'High CPU usage detected',
+            },
+          ],
+        }),
       } as Response);
 
       const context = await agent.collectServerContext('srv-002');
-      
+
       expect(context.server.name).toBe('db-server-01');
       expect(context.metrics.cpu.current).toBe(90);
       expect(context.logs).toHaveLength(1);
@@ -118,7 +122,7 @@ describe('MCP 컨텍스트 통합', () => {
         id: 'q-001',
         query: 'CPU 사용률이 높은 서버는?',
         timestamp: new Date(),
-        context: {}
+        context: {},
       };
 
       // Mock MCP enhanced response
@@ -128,13 +132,13 @@ describe('MCP 컨텍스트 통합', () => {
           context: mockServerContext,
           analysis: {
             highCPUServers: ['db-server-01'],
-            recommendations: ['CPU 최적화 필요']
-          }
-        })
+            recommendations: ['CPU 최적화 필요'],
+          },
+        }),
       } as Response);
 
       const response = await agent.processQuery(request);
-      
+
       expect(response.answer).toContain('db-server-01');
       expect(response.answer).toContain('90%');
       expect(response.confidence).toBeGreaterThan(0.8);
@@ -149,11 +153,11 @@ describe('MCP 컨텍스트 통합', () => {
         id: 'q-002',
         query: '서버 상태 요약',
         timestamp: new Date(),
-        context: {}
+        context: {},
       };
 
       const response = await agent.processQuery(request);
-      
+
       expect(response.answer).toBeDefined();
       expect(response.metadata.mcpUsed).toBe(false);
       expect(response.metadata.fallbackUsed).toBe(true);
@@ -165,26 +169,26 @@ describe('MCP 컨텍스트 통합', () => {
       const request: QueryRequest = {
         id: 'q-003',
         query: '메모리 사용량 상위 서버',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       // Mock MCP context collection steps
       vi.mocked(fetch)
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ status: 'connected' })
+          json: async () => ({ status: 'connected' }),
         } as Response)
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ context: mockServerContext })
+          json: async () => ({ context: mockServerContext }),
         } as Response);
 
       const response = await agent.processQuery(request);
-      
-      const mcpSteps = response.thinkingSteps.filter(s => 
-        s.title.includes('MCP') || s.description.includes('컨텍스트')
+
+      const mcpSteps = response.thinkingSteps.filter(
+        s => s.title.includes('MCP') || s.description.includes('컨텍스트')
       );
-      
+
       expect(mcpSteps.length).toBeGreaterThan(0);
       expect(mcpSteps[0].status).toBe('completed');
       expect(mcpSteps[0].duration).toBeGreaterThan(0);
@@ -196,23 +200,25 @@ describe('MCP 컨텍스트 통합', () => {
       // Mock real-time update stream
       const mockStream = new ReadableStream({
         start(controller) {
-          controller.enqueue(JSON.stringify({
-            type: 'update',
-            server: 'srv-001',
-            cpu: 85,
-            timestamp: new Date()
-          }));
+          controller.enqueue(
+            JSON.stringify({
+              type: 'update',
+              server: 'srv-001',
+              cpu: 85,
+              timestamp: new Date(),
+            })
+          );
           controller.close();
-        }
+        },
       });
 
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
-        body: mockStream
+        body: mockStream,
       } as Response);
 
       const updates: any[] = [];
-      await agent.subscribeToUpdates((update) => {
+      await agent.subscribeToUpdates(update => {
         updates.push(update);
       });
 
@@ -229,13 +235,14 @@ describe('MCP 컨텍스트 통합', () => {
     it('MCP 타임아웃 시 적절히 처리해야 함', async () => {
       // Mock timeout
       vi.mocked(fetch).mockImplementationOnce(
-        () => new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 100)
-        )
+        () =>
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout')), 100)
+          )
       );
 
       const context = await agent.collectContext({ timeout: 50 });
-      
+
       expect(context).toBeDefined();
       expect(context.error).toContain('Timeout');
       expect(context.fallback).toBe(true);
@@ -245,11 +252,11 @@ describe('MCP 컨텍스트 통합', () => {
       // Mock invalid response
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ invalid: 'response' })
+        json: async () => ({ invalid: 'response' }),
       } as Response);
 
       const context = await agent.collectContext();
-      
+
       expect(context.error).toBeDefined();
       expect(context.error).toContain('Invalid response format');
     });
@@ -260,7 +267,7 @@ describe('MCP 컨텍스트 통합', () => {
       // First call - fetch from MCP
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ context: mockServerContext })
+        json: async () => ({ context: mockServerContext }),
       } as Response);
 
       const context1 = await agent.collectContext();
@@ -278,7 +285,7 @@ describe('MCP 컨텍스트 통합', () => {
 
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ context: mockServerContext })
+        json: async () => ({ context: mockServerContext }),
       } as Response);
 
       const context = await agent.collectContext();

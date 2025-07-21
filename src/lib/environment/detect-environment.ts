@@ -19,7 +19,8 @@ function getEnvVar(key: string, defaultValue: string = ''): string {
 }
 
 export function detectEnvironment(): EnvironmentConfig {
-  const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV === 'production';
+  const isVercel =
+    process.env.VERCEL === '1' || process.env.VERCEL_ENV === 'production';
   const isLocal = process.env.NODE_ENV === 'development' && !isVercel;
   const isTest = process.env.NODE_ENV === 'test';
   const isProduction = process.env.NODE_ENV === 'production' || isVercel;
@@ -40,14 +41,30 @@ export function detectEnvironment(): EnvironmentConfig {
       supabase: {
         url: getEnvVar('NEXT_PUBLIC_SUPABASE_URL'),
         key: getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
-        enabled: !!(getEnvVar('NEXT_PUBLIC_SUPABASE_URL') && getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY')),
-        connectionStatus: getEnvVar('NEXT_PUBLIC_SUPABASE_URL') && getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY') ? 'connected' : 'disabled',
+        enabled: !!(
+          getEnvVar('NEXT_PUBLIC_SUPABASE_URL') &&
+          getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+        ),
+        connectionStatus:
+          getEnvVar('NEXT_PUBLIC_SUPABASE_URL') &&
+          getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+            ? 'connected'
+            : 'disabled',
       },
       redis: {
         url: getEnvVar('UPSTASH_REDIS_REST_URL'),
         token: getEnvVar('UPSTASH_REDIS_REST_TOKEN'),
-        enabled: !!(getEnvVar('UPSTASH_REDIS_REST_URL') && getEnvVar('UPSTASH_REDIS_REST_TOKEN')) && !isTest,
-        connectionStatus: getEnvVar('UPSTASH_REDIS_REST_URL') && getEnvVar('UPSTASH_REDIS_REST_TOKEN') && !isTest ? 'connected' : 'disabled',
+        enabled:
+          !!(
+            getEnvVar('UPSTASH_REDIS_REST_URL') &&
+            getEnvVar('UPSTASH_REDIS_REST_TOKEN')
+          ) && !isTest,
+        connectionStatus:
+          getEnvVar('UPSTASH_REDIS_REST_URL') &&
+          getEnvVar('UPSTASH_REDIS_REST_TOKEN') &&
+          !isTest
+            ? 'connected'
+            : 'disabled',
       },
     },
     updateInterval: isProduction ? 30000 : 15000,
@@ -78,4 +95,4 @@ export function detectEnvironment(): EnvironmentConfig {
       enableOptimizations: isProduction || isVercel,
     },
   };
-} 
+}

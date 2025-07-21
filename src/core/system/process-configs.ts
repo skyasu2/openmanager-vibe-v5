@@ -1,6 +1,6 @@
 /**
  * 🔧 시스템 프로세스 설정
- * 
+ *
  * 모든 시스템 프로세스의 설정 정의:
  * - 의존성 관계
  * - 시작/중지 명령
@@ -39,7 +39,7 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     criticalLevel: 'high',
     autoRestart: true,
     maxRestarts: 3,
-    startupDelay: 100
+    startupDelay: 100,
   },
 
   // 2. 캐시 서비스
@@ -61,13 +61,16 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
       }
     },
     healthCheck: async () => {
-      return typeof global !== 'undefined' && (global as any).systemCache instanceof Map;
+      return (
+        typeof global !== 'undefined' &&
+        (global as any).systemCache instanceof Map
+      );
     },
     criticalLevel: 'medium',
     autoRestart: true,
     maxRestarts: 5,
     dependencies: ['system-logger'],
-    startupDelay: 500
+    startupDelay: 500,
   },
 
   // 3. 순차 서버 생성 엔진
@@ -76,13 +79,13 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     name: '순차 서버 생성 엔진',
     startCommand: async () => {
       systemLogger.system('🖥️ 서버 생성 엔진 시작');
-      
+
       try {
         // 서버 생성 시스템 초기화 (리셋)
         const response = await fetch('/api/servers/next', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reset: true })
+          body: JSON.stringify({ reset: true }),
         });
 
         if (!response.ok) {
@@ -90,8 +93,9 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
         }
 
         const result = await response.json();
-        systemLogger.system(`✅ 서버 생성 엔진 초기화 완료: ${result.message || '준비됨'}`);
-
+        systemLogger.system(
+          `✅ 서버 생성 엔진 초기화 완료: ${result.message || '준비됨'}`
+        );
       } catch (error) {
         systemLogger.error('서버 생성 엔진 초기화 실패:', error);
         throw error;
@@ -99,17 +103,16 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     },
     stopCommand: async () => {
       systemLogger.system('🖥️ 서버 생성 엔진 중지');
-      
+
       try {
         // 진행 중인 서버 생성 중지
         const response = await fetch('/api/servers/next', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'stop' })
+          body: JSON.stringify({ action: 'stop' }),
         });
 
         systemLogger.system('✅ 서버 생성 엔진 중지 완료');
-
       } catch (error) {
         systemLogger.warn('서버 생성 엔진 중지 중 오류 (무시됨):', error);
       }
@@ -117,7 +120,7 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     healthCheck: async () => {
       try {
         const response = await fetch('/api/servers/next?action=health', {
-          method: 'GET'
+          method: 'GET',
         });
         return response.ok;
       } catch {
@@ -128,7 +131,7 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     autoRestart: true,
     maxRestarts: 3,
     dependencies: ['cache-service'],
-    startupDelay: 1000
+    startupDelay: 1000,
   },
 
   // 4. AI 분석 엔진 (MCP 오케스트레이터)
@@ -137,11 +140,11 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     name: 'AI 분석 엔진',
     startCommand: async () => {
       systemLogger.system('🧠 AI 분석 엔진 시작');
-      
+
       try {
         // MCP 오케스트레이터 초기화 확인
         const response = await fetch('/api/ai/mcp?action=health', {
-          method: 'GET'
+          method: 'GET',
         });
 
         if (!response.ok) {
@@ -149,10 +152,10 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
           const initResponse = await fetch('/api/ai/mcp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
               query: '시스템 초기화',
-              context: { action: 'initialize' }
-            })
+              context: { action: 'initialize' },
+            }),
           });
 
           if (!initResponse.ok) {
@@ -161,7 +164,6 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
         }
 
         systemLogger.system('✅ AI 분석 엔진 시작 완료');
-
       } catch (error) {
         systemLogger.error('AI 분석 엔진 시작 실패:', error);
         throw error;
@@ -169,20 +171,19 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     },
     stopCommand: async () => {
       systemLogger.system('🧠 AI 분석 엔진 중지');
-      
+
       try {
         // AI 에이전트 비활성화 시도
         const response = await fetch('/api/ai/mcp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             query: '시스템 종료',
-            context: { action: 'shutdown' }
-          })
+            context: { action: 'shutdown' },
+          }),
         });
 
         systemLogger.system('✅ AI 분석 엔진 중지 완료');
-
       } catch (error) {
         systemLogger.warn('AI 분석 엔진 중지 중 오류 (무시됨):', error);
       }
@@ -190,7 +191,7 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     healthCheck: async () => {
       try {
         const response = await fetch('/api/ai/mcp?action=health', {
-          method: 'GET'
+          method: 'GET',
         });
         return response.ok;
       } catch {
@@ -201,7 +202,7 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     autoRestart: true,
     maxRestarts: 5,
     dependencies: ['server-generator'],
-    startupDelay: 2000
+    startupDelay: 2000,
   },
 
   // 5. 시뮬레이션 엔진
@@ -210,23 +211,24 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     name: '시뮬레이션 엔진',
     startCommand: async () => {
       systemLogger.system('⚙️ 시뮬레이션 엔진 시작');
-      
+
       try {
         // 기존 useSystemControl과 연동하여 시스템 시작
         const response = await fetch('/api/system/start', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mode: 'fast' })
+          body: JSON.stringify({ mode: 'fast' }),
         });
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(`시뮬레이션 엔진 시작 실패: ${errorData.message || response.statusText}`);
+          throw new Error(
+            `시뮬레이션 엔진 시작 실패: ${errorData.message || response.statusText}`
+          );
         }
 
         const result = await response.json();
         systemLogger.system(`✅ 시뮬레이션 엔진 시작: ${result.message}`);
-
       } catch (error) {
         systemLogger.error('시뮬레이션 엔진 시작 실패:', error);
         throw error;
@@ -234,11 +236,11 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     },
     stopCommand: async () => {
       systemLogger.system('⚙️ 시뮬레이션 엔진 중지');
-      
+
       try {
         const response = await fetch('/api/system/stop', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         });
 
         if (response.ok) {
@@ -249,9 +251,10 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
           systemLogger.system('ℹ️ 시뮬레이션 엔진 이미 중지됨');
         } else {
           const errorData = await response.json();
-          systemLogger.warn(`⚠️ 시뮬레이션 엔진 중지 경고: ${errorData.message}`);
+          systemLogger.warn(
+            `⚠️ 시뮬레이션 엔진 중지 경고: ${errorData.message}`
+          );
         }
-
       } catch (error) {
         systemLogger.warn('시뮬레이션 엔진 중지 중 오류 (무시됨):', error);
       }
@@ -259,9 +262,9 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     healthCheck: async () => {
       try {
         const response = await fetch('/api/system/status', {
-          method: 'GET'
+          method: 'GET',
         });
-        
+
         if (response.ok) {
           const status = await response.json();
           return status.isRunning === true;
@@ -275,7 +278,7 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     autoRestart: true,
     maxRestarts: 3,
     dependencies: ['ai-engine'],
-    startupDelay: 1500
+    startupDelay: 1500,
   },
 
   // 6. API 서버 (가장 마지막)
@@ -285,10 +288,10 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     startCommand: async () => {
       systemLogger.system('🌐 API 서버 체크');
       // Next.js API 서버는 이미 실행 중이므로 헬스체크만 수행
-      
+
       try {
         const response = await fetch('/api/health', {
-          method: 'GET'
+          method: 'GET',
         });
 
         if (!response.ok) {
@@ -296,7 +299,6 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
         }
 
         systemLogger.system('✅ API 서버 정상 동작 확인');
-
       } catch (error) {
         systemLogger.error('API 서버 체크 실패:', error);
         throw error;
@@ -310,7 +312,7 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     healthCheck: async () => {
       try {
         const response = await fetch('/api/health', {
-          method: 'GET'
+          method: 'GET',
         });
         return response.ok;
       } catch {
@@ -321,8 +323,8 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
     autoRestart: false, // API 서버는 외부에서 관리
     maxRestarts: 0,
     dependencies: ['simulation-engine'],
-    startupDelay: 500
-  }
+    startupDelay: 500,
+  },
 ];
 
 /**
@@ -334,26 +336,26 @@ export const DEVELOPMENT_PROCESS_CONFIGS: ProcessConfig[] = [
     name: '개발 모드 시스템',
     startCommand: async () => {
       systemLogger.system('🔧 개발 모드 시작');
-      
+
       // 🚀 개발 모드 상태를 전역에 저장
       if (typeof global !== 'undefined') {
         (global as any).devModeActive = true;
         (global as any).devModeStartTime = Date.now();
       }
-      
+
       // 개발 모드에서는 기본 헬스체크만 수행
       await new Promise(resolve => setTimeout(resolve, 100)); // 짧은 지연
       systemLogger.system('✅ 개발 모드 시작 완료');
     },
     stopCommand: async () => {
       systemLogger.system('🔧 개발 모드 중지');
-      
+
       // 🚀 개발 모드 상태 정리
       if (typeof global !== 'undefined') {
         (global as any).devModeActive = false;
         delete (global as any).devModeStartTime;
       }
-      
+
       await new Promise(resolve => setTimeout(resolve, 50)); // 짧은 지연
       systemLogger.system('✅ 개발 모드 중지 완료');
     },
@@ -362,13 +364,13 @@ export const DEVELOPMENT_PROCESS_CONFIGS: ProcessConfig[] = [
       if (typeof global !== 'undefined') {
         const isActive = (global as any).devModeActive === true;
         const hasStartTime = (global as any).devModeStartTime > 0;
-        
+
         if (isActive && hasStartTime) {
           systemLogger.system('💓 개발 모드 헬스체크 통과');
           return true;
         }
       }
-      
+
       // fallback: 기본적으로 개발 모드는 건강한 상태로 반환
       systemLogger.system('💓 개발 모드 헬스체크 기본 통과 (fallback)');
       return true;
@@ -376,8 +378,8 @@ export const DEVELOPMENT_PROCESS_CONFIGS: ProcessConfig[] = [
     criticalLevel: 'medium',
     autoRestart: true,
     maxRestarts: 2,
-    startupDelay: 500
-  }
+    startupDelay: 500,
+  },
 ];
 
 /**
@@ -455,6 +457,6 @@ export function validateProcessConfigs(configs: ProcessConfig[]): {
   return {
     isValid: errors.length === 0,
     errors,
-    warnings
+    warnings,
   };
-} 
+}

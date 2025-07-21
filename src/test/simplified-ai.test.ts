@@ -8,14 +8,14 @@ import { describe, it, expect } from 'vitest';
 // 간단한 의도 분석 함수
 function analyzeIntent(query: string): string {
   const lowerQuery = query.toLowerCase();
-  
+
   if (/cpu|프로세서|사용률/.test(lowerQuery)) return 'cpu';
   if (/memory|메모리|ram/.test(lowerQuery)) return 'memory';
   if (/disk|디스크|storage|저장/.test(lowerQuery)) return 'disk';
   if (/요약|summary|전체/.test(lowerQuery)) return 'summary';
   if (/상태|status|health/.test(lowerQuery)) return 'status';
   if (/명령어|command|cmd/.test(lowerQuery)) return 'command';
-  
+
   return 'general';
 }
 
@@ -34,7 +34,7 @@ function generateResponse(intent: string, servers: any[]): string {
           .join('\n')}`;
       }
       return 'CPU 사용률이 높은 서버가 없습니다.';
-      
+
     case 'memory':
       const highMemServers = servers.filter(s => s.memory > 80);
       if (highMemServers.length > 0) {
@@ -43,12 +43,12 @@ function generateResponse(intent: string, servers: any[]): string {
           .join('\n')}`;
       }
       return '메모리 사용률이 높은 서버가 없습니다.';
-      
+
     case 'summary':
       const healthy = servers.filter(s => s.status === 'healthy').length;
       const warning = servers.filter(s => s.status === 'warning').length;
       return `서버 상태 요약:\n✅ 정상: ${healthy}대\n⚠️ 주의: ${warning}대`;
-      
+
     default:
       return '서버 모니터링 시스템이 정상 작동 중입니다.';
   }
@@ -114,7 +114,7 @@ describe('AI 엔진 기본 로직', () => {
       const query = 'CPU 사용률이 높은 서버를 확인해주세요';
       const intent = analyzeIntent(query);
       const response = generateResponse(intent, mockServers);
-      
+
       expect(intent).toBe('cpu');
       expect(response).toContain('web-01');
       expect(response).toContain('db-01');

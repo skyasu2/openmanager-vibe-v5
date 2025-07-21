@@ -83,21 +83,20 @@ export default defineConfig({
     ...(process.env.CI
       ? []
       : [
-        {
-          name: 'firefox',
-          use: { ...devices['Desktop Firefox'] },
-        },
-        {
-          name: 'webkit',
-          use: { ...devices['Desktop Safari'] },
-        },
-        // 모바일 테스트 (로컬에서만)
-        {
-          name: 'Mobile Chrome',
-          use: { ...devices['Pixel 5'] },
-        },
-      ]
-    ),
+          {
+            name: 'firefox',
+            use: { ...devices['Desktop Firefox'] },
+          },
+          {
+            name: 'webkit',
+            use: { ...devices['Desktop Safari'] },
+          },
+          // 모바일 테스트 (로컬에서만)
+          {
+            name: 'Mobile Chrome',
+            use: { ...devices['Pixel 5'] },
+          },
+        ]),
   ],
 
   // 개발 서버 설정 - 안정성 대폭 개선

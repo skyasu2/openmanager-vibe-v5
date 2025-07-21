@@ -18,6 +18,7 @@ source ~/.bashrc
 - `README.md` - 이 문서 ✅
 
 ### 🗑️ 제거된 중복 파일들
+
 - ~~`mcp-windows.json`~~ - `mcp.json`과 동일하여 제거됨
 - ~~`mcp-minimal.json`~~ - 빈 설정 파일로 제거됨
 - ~~`mcp.json.backup*`~~ - 불필요한 백업 파일 제거됨
@@ -33,31 +34,37 @@ source ~/.bashrc
 ## 🛠️ 활성화된 MCP 도구 (6개)
 
 ### 1. **filesystem** - 파일 시스템 접근
+
 - 프로젝트 파일 읽기/쓰기/검색
 - 디렉토리: `/mnt/d/cursor/openmanager-vibe-v5`
 - 함수 프리픽스: `mcp__filesystem__*`
 
 ### 2. **github** - GitHub API 통합
+
 - 이슈, PR, 커밋 관리
 - 환경변수: `GITHUB_TOKEN`
 - 함수 프리픽스: `mcp__github__*`
 
 ### 3. **memory** - 프로젝트 메모리
+
 - 프로젝트 컨텍스트 저장/검색
 - 지식 그래프 관리
 - 함수 프리픽스: `mcp__memory__*`
 
 ### 4. **supabase** - 데이터베이스 통합
+
 - Supabase DB 쿼리 및 관리
 - 환경변수: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
 - 함수 프리픽스: `mcp__supabase__*`
 
 ### 5. **context7** - 문서 검색
+
 - 라이브러리 문서 검색
 - API 레퍼런스 조회
 - 함수 프리픽스: `mcp__context7__*`
 
 ### 6. **tavily-mcp** - AI 웹 검색
+
 - 실시간 웹 검색
 - npx 실행 방식: `npx -y tavily-mcp@0.2.8`
 - 환경변수: `TAVILY_API_KEY`
@@ -73,10 +80,12 @@ source ~/.bashrc
 ## ⚙️ WSL 환경 전용 설정
 
 ### 환경변수 설정 (자동화됨)
+
 - `.env.local`에서 자동으로 읽어 `~/.bashrc`에 추가
 - `GITHUB_TOKEN`, `SUPABASE_URL`, `TAVILY_API_KEY` 등
 
 ### Gemini CLI WSL 별칭
+
 ```bash
 gemini     # Windows gemini.exe 실행
 gp         # gemini -p 단축키
@@ -87,6 +96,7 @@ gemini-pipe # 파이프 입력 지원
 ```
 
 ### 경로 설정
+
 - Windows 경로 사용 (`/mnt/d/` 형식)
 - `npx` 명령어로 패키지 자동 설치
 - 프로젝트별 독립적인 MCP 서버 실행
@@ -118,12 +128,14 @@ mcp__memory__read_graph()
 ## 🔄 최근 업데이트 (2025-07-15)
 
 ### WSL 전용 설정 완료
+
 - **통합 설정 스크립트**: `setup-claude-code-wsl.sh` 생성
 - **환경변수 자동화**: `.env.local`에서 자동으로 읽어 `~/.bashrc`에 설정
 - **Gemini CLI 별칭**: WSL에서 Windows gemini.exe 사용을 위한 별칭 추가
 - **Gemini 개발 도구**: MCP 대신 `./tools/g` 직접 실행 도구 사용
 
 ### settings.local.json 권한 추가
+
 - **Supabase MCP**: `select`, `insert`, `update`, `get_schema` 권한 추가
 - **Tavily MCP**: `search`, `search_news`, `search_context`, `extract` 권한 추가
 - **Filesystem MCP**: `create_directory`, `search_files` 권한 추가

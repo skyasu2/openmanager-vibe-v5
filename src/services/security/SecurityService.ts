@@ -260,7 +260,8 @@ export class SecurityService {
     totalEvents: number;
     systemStatus: 'secure' | 'warning';
   } {
-    const activeSessions = Array.from(this.sessions.values()).filter((s: any) => s.isValid
+    const activeSessions = Array.from(this.sessions.values()).filter(
+      (s: any) => s.isValid
     ).length;
     const recentEvents = this.securityEvents.filter(
       e => Date.now() - e.timestamp.getTime() < 60 * 60 * 1000 // 1시간 내

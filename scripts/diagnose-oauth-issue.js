@@ -2,7 +2,7 @@
 
 /**
  * 🔍 GitHub OAuth 문제 진단 도구
- * 
+ *
  * 현재 환경 설정을 확인하고 문제를 진단합니다.
  */
 
@@ -40,7 +40,8 @@ for (const envFile of envFiles) {
 console.log(chalk.yellow('\n2. GitHub OAuth 설정:'));
 
 const githubClientId = envVars.GITHUB_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
-const githubClientSecret = envVars.GITHUB_CLIENT_SECRET || process.env.GITHUB_CLIENT_SECRET;
+const githubClientSecret =
+  envVars.GITHUB_CLIENT_SECRET || process.env.GITHUB_CLIENT_SECRET;
 const nextAuthUrl = envVars.NEXTAUTH_URL || process.env.NEXTAUTH_URL;
 
 if (githubClientId) {
@@ -50,7 +51,11 @@ if (githubClientId) {
 }
 
 if (githubClientSecret) {
-  console.log(chalk.green(`✅ GITHUB_CLIENT_SECRET: ${githubClientSecret.slice(0, 10)}...`));
+  console.log(
+    chalk.green(
+      `✅ GITHUB_CLIENT_SECRET: ${githubClientSecret.slice(0, 10)}...`
+    )
+  );
 } else {
   console.log(chalk.red('❌ GITHUB_CLIENT_SECRET이 설정되지 않음'));
 }
@@ -58,14 +63,19 @@ if (githubClientSecret) {
 if (nextAuthUrl) {
   console.log(chalk.green(`✅ NEXTAUTH_URL: ${nextAuthUrl}`));
 } else {
-  console.log(chalk.yellow('⚠️  NEXTAUTH_URL이 설정되지 않음 (동적으로 감지됨)'));
+  console.log(
+    chalk.yellow('⚠️  NEXTAUTH_URL이 설정되지 않음 (동적으로 감지됨)')
+  );
 }
 
 // 3. Supabase 설정 확인
 console.log(chalk.yellow('\n3. Supabase 설정:'));
 
-const supabaseUrl = envVars.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = envVars.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseUrl =
+  envVars.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey =
+  envVars.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (supabaseUrl && supabaseUrl !== 'your_supabase_project_url_here') {
   console.log(chalk.green(`✅ SUPABASE_URL: ${supabaseUrl}`));
@@ -74,7 +84,9 @@ if (supabaseUrl && supabaseUrl !== 'your_supabase_project_url_here') {
 }
 
 if (supabaseAnonKey && supabaseAnonKey !== 'your_supabase_anon_key_here') {
-  console.log(chalk.green(`✅ SUPABASE_ANON_KEY: ${supabaseAnonKey.slice(0, 20)}...`));
+  console.log(
+    chalk.green(`✅ SUPABASE_ANON_KEY: ${supabaseAnonKey.slice(0, 20)}...`)
+  );
 } else {
   console.log(chalk.red('❌ SUPABASE_ANON_KEY가 설정되지 않음'));
 }
@@ -107,7 +119,7 @@ console.log(chalk.yellow('\n5. 권장 해결 방법:'));
 if (problems.length > 0) {
   console.log(chalk.red('\n발견된 문제:'));
   problems.forEach((p, i) => console.log(`  ${i + 1}. ${p}`));
-  
+
   console.log(chalk.green('\n해결 방법:'));
   solutions.forEach((s, i) => console.log(`  ${i + 1}. ${s}`));
 } else {
@@ -125,5 +137,9 @@ console.log(`OAuth 콜백 URL: ${testOrigin}/auth/callback`);
 console.log(`로그인 페이지: ${testOrigin}/login`);
 
 console.log(chalk.cyan('\n' + '━'.repeat(80)));
-console.log(chalk.green.bold('💡 추가 도움이 필요하면 /docs/fix-github-oauth-error.md 참조'));
+console.log(
+  chalk.green.bold(
+    '💡 추가 도움이 필요하면 /docs/fix-github-oauth-error.md 참조'
+  )
+);
 console.log(chalk.cyan('━'.repeat(80)));

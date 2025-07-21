@@ -30,8 +30,12 @@ export class RequestScopedCacheService {
   private initialized: boolean = false;
 
   constructor() {
-    console.warn('⚠️ 캐시 서비스 비활성화 - 서버리스에서는 Vercel Edge Cache 사용');
-    console.warn('📊 Vercel Edge Cache: https://vercel.com/docs/concepts/edge-network/caching');
+    console.warn(
+      '⚠️ 캐시 서비스 비활성화 - 서버리스에서는 Vercel Edge Cache 사용'
+    );
+    console.warn(
+      '📊 Vercel Edge Cache: https://vercel.com/docs/concepts/edge-network/caching'
+    );
   }
 
   /**
@@ -72,7 +76,9 @@ export class RequestScopedCacheService {
   /**
    * 🚫 개별 서버 조회 비활성화
    */
-  async getCachedServer(serverId: string): Promise<EnhancedServerMetrics | null> {
+  async getCachedServer(
+    serverId: string
+  ): Promise<EnhancedServerMetrics | null> {
     console.warn(`⚠️ 캐시된 서버 조회 무시됨: ${serverId} - 서버리스 환경`);
     return null;
   }
@@ -150,10 +156,12 @@ export function createCacheService(): RequestScopedCacheService {
  */
 export const EnhancedCacheService = {
   getInstance: () => {
-    console.warn('⚠️ EnhancedCacheService.getInstance()는 서버리스에서 사용 금지.');
+    console.warn(
+      '⚠️ EnhancedCacheService.getInstance()는 서버리스에서 사용 금지.'
+    );
     console.warn('🔧 대신 createCacheService()를 사용하세요.');
     return new RequestScopedCacheService();
-  }
+  },
 };
 
 /**

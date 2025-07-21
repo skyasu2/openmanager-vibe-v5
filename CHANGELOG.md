@@ -1,5 +1,44 @@
 # Changelog
 
+## [5.56.0] - 2025-07-21
+
+### 🔧 개발 환경 개선 및 ESLint v9 마이그레이션
+
+#### Added
+
+- **개발 환경 문서** (`docs/development-environment.md`)
+  - ESLint v9 flat config 설정 가이드
+  - React Hooks 플러그인 통합 가이드
+  - VS Code 설정 최적화
+  - 일반적인 문제 해결 방법
+
+#### Changed
+
+- **ESLint v8 → v9 업그레이드**
+  - Flat config 형식으로 완전 마이그레이션
+  - `eslint.config.mjs` 새로운 설정 파일 생성
+  - React Hooks 플러그인 v5.2.0 통합 (ESLint v9 호환)
+  - VS Code 설정에 `eslint.experimental.useFlatConfig` 추가
+
+#### Fixed
+
+- **ESLint 설정 충돌 해결**
+  - 3개의 충돌하는 설정 파일 정리 (`.eslintrc.js`, `.eslintrc.json` 삭제)
+  - React Hooks 플러그인 호환성 문제 해결 (canary → stable v5.2.0)
+  - `context.getScope is not a function` 에러 해결
+
+#### Updated
+
+- **문서 업데이트**
+  - `docs/development-guide.md`: ESLint 섹션 최신화
+  - Prettier 설정 문서화 (printWidth: 100 반영)
+
+#### Dependencies
+
+- `eslint`: 8.57.1 → 9.31.0
+- `eslint-plugin-react-hooks`: 5.0.0-canary → 5.2.0
+- `globals`: 신규 추가 (ESLint v9 필수)
+
 ## [5.55.0] - 2025-07-21
 
 ### 🧹 코드 정리 및 테스트 개선

@@ -222,7 +222,7 @@ export const createServerDataStore = (
       // 자동 갱신 시작 (30-60초 주기)
       startAutoRefresh: () => {
         const state = get();
-        
+
         // 이미 자동 갱신 중이면 중복 실행 방지
         if (state.isAutoRefreshEnabled && state.autoRefreshIntervalId) {
           console.log('⚠️ 자동 갱신이 이미 실행 중입니다.');
@@ -231,7 +231,9 @@ export const createServerDataStore = (
 
         // 동적 갱신 주기 계산 (30-35초)
         const refreshInterval = calculateOptimalUpdateInterval();
-        console.log(`🔄 서버 자동 갱신 시작 (${refreshInterval / 1000}초 주기)`);
+        console.log(
+          `🔄 서버 자동 갱신 시작 (${refreshInterval / 1000}초 주기)`
+        );
 
         // 즉시 한 번 실행
         get().fetchServers();
@@ -242,23 +244,23 @@ export const createServerDataStore = (
           get().fetchServers();
         }, refreshInterval);
 
-        set({ 
+        set({
           autoRefreshIntervalId: intervalId,
-          isAutoRefreshEnabled: true 
+          isAutoRefreshEnabled: true,
         });
       },
 
       // 자동 갱신 중지
       stopAutoRefresh: () => {
         const state = get();
-        
+
         if (state.autoRefreshIntervalId) {
           clearInterval(state.autoRefreshIntervalId);
           console.log('⏹️ 서버 자동 갱신 중지됨');
-          
-          set({ 
+
+          set({
             autoRefreshIntervalId: null,
-            isAutoRefreshEnabled: false 
+            isAutoRefreshEnabled: false,
           });
         }
       },
@@ -267,9 +269,12 @@ export const createServerDataStore = (
         const { servers, isLoading, error, lastUpdate } = get();
         return {
           totalServers: servers.length,
-          healthyServers: servers.filter((s: any) => s.status === 'healthy').length,
-          warningServers: servers.filter((s: any) => s.status === 'warning').length,
-          criticalServers: servers.filter((s: any) => s.status === 'critical').length,
+          healthyServers: servers.filter((s: any) => s.status === 'healthy')
+            .length,
+          warningServers: servers.filter((s: any) => s.status === 'warning')
+            .length,
+          criticalServers: servers.filter((s: any) => s.status === 'critical')
+            .length,
           isLoading,
           error,
           lastUpdate,

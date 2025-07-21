@@ -34,6 +34,7 @@ OpenManager Vibe v5는 보안을 최우선으로 하는 AI 기반 서버 모니�
 ### 3. 환경별 보안 전략
 
 #### 개발 환경
+
 ```bash
 # .env.local 파일 사용 (Git에서 자동 제외)
 ENCRYPTION_KEY=dev-only-encryption-key
@@ -41,6 +42,7 @@ GOOGLE_AI_API_KEY_ENCRYPTED=암호화된_키
 ```
 
 #### 프로덕션 환경
+
 ```bash
 # Vercel 환경변수로만 관리
 ENV_MASTER_PASSWORD=프로덕션_마스터_비밀번호
@@ -84,6 +86,7 @@ OpenManager Vibe v5는 3개의 핵심 모듈로 구성된 통합 암호화 시�
 ### 1. 빠른 시작
 
 #### 마스터 비밀번호 설정
+
 ```bash
 # 강력한 비밀번호 생성 (32자 이상 권장)
 echo "MyS3cur3P@ssw0rd!2024#OpenManager$Vibe" > .env.key
@@ -93,6 +96,7 @@ echo ".env.key" >> .gitignore
 ```
 
 #### 환경변수 암호화
+
 ```bash
 # 통합 CLI 도구 사용
 node scripts/encryption-manager.js --encrypt-google-ai
@@ -102,6 +106,7 @@ node scripts/unified-env-crypto.mjs encrypt --password-file=.env.key
 ```
 
 #### 암호화 검증
+
 ```bash
 # 암호화 테스트
 node scripts/encryption-manager.js --test-encryption
@@ -113,6 +118,7 @@ node scripts/unified-env-crypto.mjs verify --password-file=.env.key
 ### 2. 코드에서 사용하기
 
 #### TypeScript 통합
+
 ```typescript
 // 기본 암호화/복호화
 import { encrypt, decrypt } from '@/utils/encryption';
@@ -130,12 +136,13 @@ const apiKey = secureEnv.GOOGLE_AI_API_KEY();
 ```
 
 #### 상태 확인
+
 ```typescript
 import { getEncryptionStatus } from '@/utils/encryption';
 
 const status = getEncryptionStatus();
-console.log(status.enabled);        // 암호화 활성화 여부
-console.log(status.testPassed);     // 테스트 통과 여부
+console.log(status.enabled); // 암호화 활성화 여부
+console.log(status.testPassed); // 테스트 통과 여부
 console.log(status.googleAI.hasKey); // Google AI 키 존재 여부
 ```
 
@@ -201,12 +208,14 @@ git filter-branch --force --index-filter \
 ### Vercel 배포 설정
 
 1. **환경변수 설정**
+
    ```bash
    # Vercel 대시보드에서 설정
    ENV_MASTER_PASSWORD=프로덕션_마스터_비밀번호
    ```
 
 2. **암호화된 설정 커밋**
+
    ```bash
    git add config/encrypted-env-config.ts
    git commit -m "🔐 Update encrypted environment variables"
@@ -220,11 +229,13 @@ git filter-branch --force --index-filter \
 ### 보안 감사
 
 #### 월간 검토
+
 - [ ] 사용하지 않는 API 키 제거
 - [ ] 접근 로그 검토
 - [ ] 보안 업데이트 적용
 
 #### 분기별 검토
+
 - [ ] 마스터 비밀번호 변경
 - [ ] API 키 로테이션
 - [ ] 보안 취약점 스캔
@@ -236,6 +247,7 @@ git filter-branch --force --index-filter \
 ### 일반적인 문제
 
 #### "환경변수 미설정" 오류
+
 ```bash
 # 1. 로컬 환경 확인
 cat .env.local | grep ENCRYPTION_KEY
@@ -248,6 +260,7 @@ vercel env pull
 ```
 
 #### 복호화 실패
+
 ```bash
 # 1. 비밀번호 검증
 node scripts/unified-env-crypto.mjs verify --password-file=.env.key
@@ -260,6 +273,7 @@ node scripts/unified-env-crypto.mjs encrypt --force
 ```
 
 #### 메모리 누수
+
 ```typescript
 // 암호화 매니저 초기화 확인
 import { enhancedCrypto } from '@/lib/crypto/EnhancedEnvCryptoManager';
@@ -309,12 +323,14 @@ node scripts/encryption-manager.js --debug
 ### 복구 절차 (1-24시간)
 
 1. **새 키 생성**
+
    ```bash
    # 새 API 키 생성 후 암호화
    node scripts/encryption-manager.js --encrypt-google-ai
    ```
 
 2. **Git 히스토리 정리**
+
    ```bash
    # 민감한 정보 제거
    git filter-branch --force --index-filter \
@@ -338,16 +354,19 @@ node scripts/encryption-manager.js --debug
 ## 📚 참고 자료
 
 ### 프로젝트 문서
+
 - [아키텍처 개요](./architecture/README.md)
 - [API 보안 가이드](./api-security.md)
 - [Vercel 배포 가이드](./vercel-deployment-guide.md)
 
 ### 외부 자료
+
 - [OWASP 암호화 가이드](https://owasp.org/www-project-cryptographic-storage-cheat-sheet/)
 - [Node.js 보안 모범 사례](https://nodejs.org/en/docs/guides/security/)
 - [Vercel 보안 문서](https://vercel.com/docs/security)
 
 ### 보안 도구
+
 - [BFG Repo-Cleaner](https://rtyley.github.io/bfg-repo-cleaner/)
 - [GitGuardian](https://www.gitguardian.com/)
 - [Snyk](https://snyk.io/)

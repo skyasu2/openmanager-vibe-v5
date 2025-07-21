@@ -2,7 +2,7 @@
 export function createMCPResponse(result) {
   // 안전한 문자열 변환
   let textContent = '';
-  
+
   if (typeof result === 'string') {
     textContent = result;
   } else if (result === null || result === undefined) {
@@ -16,12 +16,14 @@ export function createMCPResponse(result) {
   } else {
     textContent = String(result);
   }
-  
+
   return {
-    content: [{
-      type: 'text',
-      text: textContent
-    }]
+    content: [
+      {
+        type: 'text',
+        text: textContent,
+      },
+    ],
   };
 }
 

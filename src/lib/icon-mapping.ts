@@ -4,20 +4,48 @@
 import React from 'react';
 import {
   // 시스템 관련
-  Settings, Cog, Bot, Brain, Database, 
+  Settings,
+  Cog,
+  Bot,
+  Brain,
+  Database,
   // UI/UX 관련
-  ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, Send,
+  ChevronUp,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Send,
   // 상태 관련
-  AlertTriangle, AlertCircle, CheckCircle, Lightbulb, Info,
+  AlertTriangle,
+  AlertCircle,
+  CheckCircle,
+  Lightbulb,
+  Info,
   // 기타
-  History, Search, Eye, HelpCircle, Circle, 
+  History,
+  Search,
+  Eye,
+  HelpCircle,
+  Circle,
   // 프로세스 관련
-  Zap, Play, Square, RotateCcw, Activity,
+  Zap,
+  Play,
+  Square,
+  RotateCcw,
+  Activity,
   // 화살표
-  ArrowUp, ArrowDown, ArrowRight, ArrowLeft,
+  ArrowUp,
+  ArrowDown,
+  ArrowRight,
+  ArrowLeft,
   // 툴팁/UI
-  Check, Timer, Loader, Edit, PenTool,
-  type LucideIcon
+  Check,
+  Timer,
+  Loader,
+  Edit,
+  PenTool,
+  type LucideIcon,
 } from 'lucide-react';
 
 // Font Awesome → Lucide React 매핑 테이블
@@ -29,7 +57,7 @@ export const iconMapping: Record<string, LucideIcon> = {
   'fas fa-brain': Brain,
   'fas fa-database': Database,
   'fas fa-bolt': Zap,
-  
+
   // === 상태 아이콘 ===
   'fas fa-exclamation-triangle': AlertTriangle,
   'fas fa-exclamation-circle': AlertCircle,
@@ -37,7 +65,7 @@ export const iconMapping: Record<string, LucideIcon> = {
   'fas fa-lightbulb': Lightbulb,
   'fas fa-info-circle': Info,
   'fas fa-check': Check,
-  
+
   // === 네비게이션 아이콘 ===
   'fas fa-chevron-up': ChevronUp,
   'fas fa-chevron-down': ChevronDown,
@@ -47,7 +75,7 @@ export const iconMapping: Record<string, LucideIcon> = {
   'fas fa-arrow-down': ArrowDown,
   'fas fa-arrow-right': ArrowRight,
   'fas fa-arrow-left': ArrowLeft,
-  
+
   // === 일반 UI ===
   'fas fa-times': X,
   'fas fa-paper-plane': Send,
@@ -58,7 +86,7 @@ export const iconMapping: Record<string, LucideIcon> = {
   'fas fa-question-circle': HelpCircle,
   'fas fa-circle': Circle,
   'fas fa-spinner': Loader,
-  
+
   // === 프로젝트 관련 ===
   'fas fa-project-diagram': Activity,
   'fas fa-pen': PenTool,
@@ -67,33 +95,36 @@ export const iconMapping: Record<string, LucideIcon> = {
 // 아이콘 타입별 매핑
 export const getIconByType = (type: string): LucideIcon => {
   const typeMapping: Record<string, LucideIcon> = {
-    'analysis': Search,
-    'reasoning': Brain,
-    'data_processing': Database,
-    'pattern_matching': Activity,
-    'response_generation': PenTool,
-    'question': HelpCircle,
-    'function': Settings,
-    'history': History,
+    analysis: Search,
+    reasoning: Brain,
+    data_processing: Database,
+    pattern_matching: Activity,
+    response_generation: PenTool,
+    question: HelpCircle,
+    function: Settings,
+    history: History,
   };
-  
+
   return typeMapping[type] || Circle;
 };
 
 // 심각도별 아이콘 매핑
 export const getSeverityIcon = (severity: string): LucideIcon => {
   const severityMapping: Record<string, LucideIcon> = {
-    'critical': AlertTriangle,
-    'warning': AlertCircle,
-    'success': CheckCircle,
-    'info': Lightbulb,
+    critical: AlertTriangle,
+    warning: AlertCircle,
+    success: CheckCircle,
+    info: Lightbulb,
   };
-  
+
   return severityMapping[severity] || Info;
 };
 
 // 동적 아이콘 렌더링 유틸리티
-export const renderIcon = (iconName: string, className?: string): React.ReactElement => {
+export const renderIcon = (
+  iconName: string,
+  className?: string
+): React.ReactElement => {
   const IconComponent = iconMapping[iconName] || Circle;
   return React.createElement(IconComponent, { className });
 };
@@ -117,4 +148,4 @@ export const extendedIconMapping: Record<string, LucideIcon> = {
 export const allIconMapping = {
   ...iconMapping,
   ...extendedIconMapping,
-}; 
+};

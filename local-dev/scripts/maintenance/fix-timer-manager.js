@@ -14,7 +14,7 @@ console.log('🔧 TimerManager.register 호출 수정 시작...\n');
 const filesToFix = [
   'src/services/simulationEngine.ts',
   'src/services/UnifiedMetricsManager.ts',
-  'src/stores/serverDataStore.ts'
+  'src/stores/serverDataStore.ts',
 ];
 
 let totalFixed = 0;
@@ -26,19 +26,20 @@ filesToFix.forEach(filePath => {
   }
 
   console.log(`📝 수정 중: ${filePath}`);
-  
+
   let content = fs.readFileSync(filePath, 'utf8');
   let fixCount = 0;
 
   // timerManager.register 패턴 찾기 및 수정
-  const registerPattern = /(timerManager\.register\(\{[^}]*priority:\s*['"][^'"]*['"][^}]*)\}/g;
-  
+  const registerPattern =
+    /(timerManager\.register\(\{[^}]*priority:\s*['"][^'"]*['"][^}]*)\}/g;
+
   content = content.replace(registerPattern, (match, beforeClosing) => {
     // enabled 속성이 이미 있는지 확인
     if (beforeClosing.includes('enabled:')) {
       return match; // 이미 있으면 수정하지 않음
     }
-    
+
     fixCount++;
     return beforeClosing + ',\n      enabled: true\n    })';
   });
@@ -59,4 +60,4 @@ if (totalFixed > 0) {
   console.log('- 누락된 enabled: true 속성 추가');
   console.log('- TypeScript 타입 오류 해결');
   console.log('\n✅ 이제 npm run build를 다시 실행해보세요.');
-} 
+}

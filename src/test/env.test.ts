@@ -4,7 +4,12 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { TEST_ENV_CONFIG, setupTestEnvironment, setupEnvironmentGroup, ENV_GROUPS } from './env.config';
+import {
+  TEST_ENV_CONFIG,
+  setupTestEnvironment,
+  setupEnvironmentGroup,
+  ENV_GROUPS,
+} from './env.config';
 
 // ===============================
 // 🧪 실제 테스트 케이스들

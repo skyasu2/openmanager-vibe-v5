@@ -189,7 +189,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
         cpu: server.cpu || server.cpu_usage || 0,
         memory: server.memory || server.memory_usage || 0,
         disk: server.disk || server.disk_usage || 0,
-        network: server.network || (server.network_in + server.network_out) || 0,
+        network: server.network || server.network_in + server.network_out || 0,
         uptime: server.uptime || 0,
         location: server.location || 'Unknown',
         alerts: server.alerts?.length || server.alerts || 0,
@@ -265,7 +265,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   // 통계 계산 (메모이제이션)
   const stats = useMemo(() => {
     const total = actualServers.length;
-    
+
     if (total === 0) {
       return {
         total: 0,
@@ -277,11 +277,11 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
         avgDisk: 0,
       };
     }
-    
+
     let online = 0;
     let offline = 0;
     let warning = 0;
-    
+
     actualServers.forEach((server: any) => {
       // 목업 시스템의 상태 그대로 사용
       switch (server.status) {
@@ -301,13 +301,16 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     });
 
     const avgCpu = Math.round(
-      actualServers.reduce((sum: number, s: any) => sum + (s.cpu || 0), 0) / total
+      actualServers.reduce((sum: number, s: any) => sum + (s.cpu || 0), 0) /
+        total
     );
     const avgMemory = Math.round(
-      actualServers.reduce((sum: number, s: any) => sum + (s.memory || 0), 0) / total
+      actualServers.reduce((sum: number, s: any) => sum + (s.memory || 0), 0) /
+        total
     );
     const avgDisk = Math.round(
-      actualServers.reduce((sum: number, s: any) => sum + (s.disk || 0), 0) / total
+      actualServers.reduce((sum: number, s: any) => sum + (s.disk || 0), 0) /
+        total
     );
 
     const result = {
@@ -322,10 +325,10 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
     console.log('📊 useServerDashboard 통계:', {
       ...result,
-      서버_상태_분포: actualServers.map(s => ({ 
-        이름: s.name || s.id, 
-        상태: s.status
-      }))
+      서버_상태_분포: actualServers.map(s => ({
+        이름: s.name || s.id,
+        상태: s.status,
+      })),
     });
 
     return result;

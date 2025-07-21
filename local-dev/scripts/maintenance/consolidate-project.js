@@ -17,7 +17,7 @@ function cleanupBackupFiles() {
     '.github/workflows/security-audit.yml.backup',
     '.github/workflows/test-and-coverage.yml.backup',
   ];
-  
+
   let cleaned = 0;
   backupFiles.forEach(file => {
     if (fs.existsSync(file)) {
@@ -26,7 +26,7 @@ function cleanupBackupFiles() {
       cleaned++;
     }
   });
-  
+
   console.log(`  📊 ${cleaned}개 백업 파일 정리 완료\n`);
 }
 
@@ -38,9 +38,9 @@ function cleanupBuildArtifacts() {
     'coverage',
     'playwright-report',
     'test-results',
-    'storybook-static'
+    'storybook-static',
   ];
-  
+
   let cleaned = 0;
   buildDirs.forEach(dir => {
     if (fs.existsSync(dir)) {
@@ -48,40 +48,40 @@ function cleanupBuildArtifacts() {
       cleaned++;
     }
   });
-  
+
   console.log(`  📊 ${cleaned}개 빌드 디렉토리 확인 완료\n`);
 }
 
 // 3. 프로젝트 구조 분석
 function analyzeProjectStructure() {
   console.log('📊 프로젝트 구조 분석...');
-  
+
   const analysis = {
     workflows: fs.readdirSync('.github/workflows').length,
     docs: fs.readdirSync('docs').length,
     srcFiles: countFiles('src'),
-    totalFiles: countFiles('.', ['.git', 'node_modules', '.next'])
+    totalFiles: countFiles('.', ['.git', 'node_modules', '.next']),
   };
-  
+
   console.log(`  📄 워크플로우: ${analysis.workflows}개`);
   console.log(`  📚 문서: ${analysis.docs}개`);
   console.log(`  💻 소스 파일: ${analysis.srcFiles}개`);
   console.log(`  📂 전체 파일: ${analysis.totalFiles}개\n`);
-  
+
   return analysis;
 }
 
 // 4. 파일 개수 계산 헬퍼
 function countFiles(dir, excludeDirs = []) {
   let count = 0;
-  
+
   function traverse(currentDir) {
     const files = fs.readdirSync(currentDir);
-    
+
     files.forEach(file => {
       const filePath = path.join(currentDir, file);
       const stat = fs.statSync(filePath);
-      
+
       if (stat.isDirectory()) {
         if (!excludeDirs.includes(file) && !file.startsWith('.')) {
           traverse(filePath);
@@ -91,20 +91,20 @@ function countFiles(dir, excludeDirs = []) {
       }
     });
   }
-  
+
   try {
     traverse(dir);
   } catch (err) {
     // 디렉토리가 없으면 0 반환
   }
-  
+
   return count;
 }
 
 // 5. 통합 최적화 보고서 생성
 function generateConsolidationReport() {
   console.log('📋 통합 최적화 보고서 생성...');
-  
+
   const report = `# 🎯 OpenManager v5 - 프로젝트 통합 보고서
 
 ## ✅ 완료된 최적화
@@ -160,14 +160,13 @@ async function main() {
     cleanupBuildArtifacts();
     const analysis = analyzeProjectStructure();
     generateConsolidationReport();
-    
+
     console.log('🎉 프로젝트 통합 최적화 완료!');
     console.log('📋 상세 내용은 CONSOLIDATION_REPORT.md 참조');
-    
   } catch (error) {
     console.error('❌ 오류 발생:', error.message);
     process.exit(1);
   }
 }
 
-main(); 
+main();

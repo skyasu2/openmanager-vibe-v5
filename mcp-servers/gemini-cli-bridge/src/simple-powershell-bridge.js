@@ -19,7 +19,7 @@ export class SimplePowerShellBridge {
     if (this.debug) {
       console.error('[SimplePowerShellBridge] 초기화 시작...');
     }
-    
+
     try {
       const version = await this.getVersion();
       console.error(`[SimplePowerShellBridge] Gemini CLI 버전: ${version}`);
@@ -36,10 +36,10 @@ export class SimplePowerShellBridge {
   async executeCommand(command, args = []) {
     return new Promise((resolve, reject) => {
       const startTime = Date.now();
-      
+
       // PowerShell 명령 구성
       const fullCommand = `${command} ${args.join(' ')}`;
-      
+
       if (this.debug) {
         console.error(`[SimplePowerShellBridge] 실행: ${fullCommand}`);
       }
@@ -47,29 +47,31 @@ export class SimplePowerShellBridge {
       // PowerShell에서 직접 실행
       const child = spawn('powershell.exe', ['-Command', fullCommand], {
         windowsHide: true,
-        encoding: 'utf8'
+        encoding: 'utf8',
       });
 
       let stdout = '';
       let stderr = '';
 
-      child.stdout.on('data', (data) => {
+      child.stdout.on('data', data => {
         stdout += data.toString();
       });
 
-      child.stderr.on('data', (data) => {
+      child.stderr.on('data', data => {
         stderr += data.toString();
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         reject(new Error(`실행 실패: ${error.message}`));
       });
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         const duration = Date.now() - startTime;
-        
+
         if (this.debug) {
-          console.error(`[SimplePowerShellBridge] 완료 (${duration}ms) - 코드: ${code}`);
+          console.error(
+            `[SimplePowerShellBridge] 완료 (${duration}ms) - 코드: ${code}`
+          );
         }
 
         if (code !== 0 && stderr) {
@@ -104,15 +106,15 @@ export class SimplePowerShellBridge {
    */
   async chat(prompt, options = {}) {
     const args = [];
-    
+
     // --prompt 플래그 사용 (따옴표 처리 개선)
     args.push('--prompt', `"${prompt.replace(/"/g, '\\"')}"`);
-    
+
     // 모델 지정
     if (options.model) {
       args.push('-m', options.model);
     }
-    
+
     // YOLO 모드
     if (options.yolo) {
       args.push('-y');
@@ -120,17 +122,19 @@ export class SimplePowerShellBridge {
 
     try {
       const output = await this.executeCommand('gemini', args);
-      
+
       // 불필요한 메시지 필터링
       const lines = output.split('\n');
       const filteredLines = lines.filter(line => {
         const trimmed = line.trim();
-        return trimmed && 
-               !trimmed.startsWith('Loaded cached credentials') &&
-               !trimmed.startsWith('Loading') &&
-               !trimmed.startsWith('Starting');
+        return (
+          trimmed &&
+          !trimmed.startsWith('Loaded cached credentials') &&
+          !trimmed.startsWith('Loading') &&
+          !trimmed.startsWith('Starting')
+        );
       });
-      
+
       return filteredLines.join('\n').trim();
     } catch (error) {
       // 간단한 재시도 로직
@@ -149,8 +153,8 @@ export class SimplePowerShellBridge {
     // Gemini CLI는 API 모드에서 /stats를 지원하지 않음
     // 대신 더미 데이터 반환
     return {
-      message: "Gemini CLI API 모드에서는 사용량 확인이 지원되지 않습니다.",
-      tip: "인터랙티브 모드에서 /stats 명령을 사용하세요."
+      message: 'Gemini CLI API 모드에서는 사용량 확인이 지원되지 않습니다.',
+      tip: '인터랙티브 모드에서 /stats 명령을 사용하세요.',
     };
   }
 
@@ -159,9 +163,9 @@ export class SimplePowerShellBridge {
    */
   async clearContext() {
     // Gemini CLI는 API 모드에서 /clear를 지원하지 않음
-    return { 
-      success: false, 
-      message: "API 모드에서는 컨텍스트 초기화가 지원되지 않습니다." 
+    return {
+      success: false,
+      message: 'API 모드에서는 컨텍스트 초기화가 지원되지 않습니다.',
     };
   }
 
@@ -170,9 +174,9 @@ export class SimplePowerShellBridge {
    */
   async compressContext() {
     // Gemini CLI는 API 모드에서 /compress를 지원하지 않음
-    return { 
-      success: false, 
-      message: "API 모드에서는 대화 압축이 지원되지 않습니다." 
+    return {
+      success: false,
+      message: 'API 모드에서는 대화 압축이 지원되지 않습니다.',
     };
   }
 }

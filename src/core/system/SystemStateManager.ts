@@ -138,23 +138,23 @@ export class SystemStateManager extends EventEmitter {
       const averageResponseTime =
         this.performanceMetrics.lastResponseTimes.length > 0
           ? this.performanceMetrics.lastResponseTimes.reduce(
-            (sum, time) => sum + time,
-            0
-          ) / this.performanceMetrics.lastResponseTimes.length
+              (sum, time) => sum + time,
+              0
+            ) / this.performanceMetrics.lastResponseTimes.length
           : 0;
 
       const cacheHitRate =
         this.performanceMetrics.cacheRequests > 0
           ? (this.performanceMetrics.cacheHits /
-            this.performanceMetrics.cacheRequests) *
-          100
+              this.performanceMetrics.cacheRequests) *
+            100
           : 0;
 
       const errorRate =
         this.performanceMetrics.apiCalls > 0
           ? (this.performanceMetrics.errors /
-            this.performanceMetrics.apiCalls) *
-          100
+              this.performanceMetrics.apiCalls) *
+            100
           : 0;
 
       // 헬스 상태 결정
@@ -191,7 +191,8 @@ export class SystemStateManager extends EventEmitter {
         },
         health,
         services: {
-          simulation: simulationState.status === 'running' ? 'online' : 'offline',
+          simulation:
+            simulationState.status === 'running' ? 'online' : 'offline',
           cache: 'online', // 캐시는 항상 사용 가능
           prometheus: 'disabled', // 기본값 사용
           vercel: vercelStatus ? 'online' : 'unknown',

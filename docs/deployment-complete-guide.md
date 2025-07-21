@@ -29,7 +29,7 @@ graph TB
     B --> C[Vercel Next.js App]
     C --> D[GCP Functions]
     D --> E[GCP VM - MCP Server]
-    
+
     F[Upstash Redis] --> C
     G[Supabase] --> C
     H[Google AI] --> D
@@ -497,14 +497,14 @@ app.get('/health', (req, res) => {
 // MCP 컨텍스트 처리
 app.post('/mcp/context', (req, res) => {
   const { query, context } = req.body;
-  
+
   const response = {
     success: true,
     result: `MCP 처리 완료: ${query}`,
     context: context || {},
     timestamp: new Date().toISOString()
   };
-  
+
   res.json(response);
 });
 
@@ -614,14 +614,14 @@ export const safeWriteFile = (
 export const detectFreeTier = () => {
   const isVercelHobby = process.env.VERCEL_HOBBY_PLAN === 'true';
   const freeTierMode = process.env.NEXT_PUBLIC_FREE_TIER_MODE === 'true';
-  
+
   return isVercelHobby || freeTierMode;
 };
 
 export const initializeFreeTierProtection = async () => {
   if (detectFreeTier()) {
     console.log('🛡️ 무료티어 보호 시스템 활성화');
-    
+
     await enableQuotaProtection();
     startMemoryMonitoring();
     disableBackgroundJobs();
@@ -641,7 +641,7 @@ export class UsageMonitor {
       redis: await this.checkRedisUsage(),
       googleAI: await this.checkGoogleAIUsage(),
     };
-    
+
     return quotas;
   }
 }
@@ -695,7 +695,7 @@ export class SystemMonitor {
       this.checkRedis(),
       this.checkSupabase(),
     ]);
-    
+
     return {
       overall: checks.every(check => check.healthy),
       services: checks,

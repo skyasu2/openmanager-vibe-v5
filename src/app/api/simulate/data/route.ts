@@ -12,15 +12,18 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action') || 'current';
-    
+
     // 시뮬레이션 단계 정의
     const totalSteps = 12;
-    
+
     // 시간 기반 단계 계산 (더 현실적인 진행)
     const baseTime = Date.now() - 180000; // 3분 전에 시작
     const elapsedSeconds = Math.floor((Date.now() - baseTime) / 1000);
-    const currentStep = Math.min(Math.floor(elapsedSeconds / 15), totalSteps - 1); // 15초마다 단계 진행
-    
+    const currentStep = Math.min(
+      Math.floor(elapsedSeconds / 15),
+      totalSteps - 1
+    ); // 15초마다 단계 진행
+
     const isActive = currentStep < totalSteps;
     const progress = Math.round(((currentStep + 1) / totalSteps) * 100);
 
@@ -36,15 +39,17 @@ export async function GET(request: NextRequest) {
             description: getStepDescription(currentStep),
             icon: getStepIcon(currentStep),
             category: getStepCategory(currentStep),
-            duration: getDurationForStep(currentStep)
+            duration: getDurationForStep(currentStep),
           },
           timing: {
             startTime: new Date(baseTime).toISOString(),
             elapsedSeconds,
             nextStepETA: isActive ? 15 - (elapsedSeconds % 15) : 0,
-            estimatedCompletion: new Date(baseTime + (totalSteps * 15 * 1000)).toISOString()
-          }
-        }
+            estimatedCompletion: new Date(
+              baseTime + totalSteps * 15 * 1000
+            ).toISOString(),
+          },
+        },
       });
     }
 
@@ -57,21 +62,23 @@ export async function GET(request: NextRequest) {
         isActive,
         progress,
         stepDescription: getStepDescription(currentStep),
-        stepIcon: getStepIcon(currentStep)
-      }
+        stepIcon: getStepIcon(currentStep),
+      },
     });
-
   } catch (error) {
     console.error('❌ 시뮬레이션 데이터 조회 실패:', error);
-    return NextResponse.json({
-      success: false,
-      error: '시뮬레이션 데이터 조회 실패',
-      data: {
-        currentStep: 0,
-        totalSteps: 12,
-        isActive: false
-      }
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '시뮬레이션 데이터 조회 실패',
+        data: {
+          currentStep: 0,
+          totalSteps: 12,
+          isActive: false,
+        },
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -91,9 +98,9 @@ function getStepDescription(step: number): string {
     '⚡ 성능 최적화 알고리즘 적용',
     '🛡️ 보안 정책 및 방화벽 설정',
     '✅ 종합 헬스체크 및 검증',
-    '🎉 시뮬레이션 완료 - 서비스 준비'
+    '🎉 시뮬레이션 완료 - 서비스 준비',
   ];
-  
+
   return descriptions[step] || '❓ 알 수 없는 단계';
 }
 
@@ -102,11 +109,20 @@ function getStepDescription(step: number): string {
  */
 function getStepIcon(step: number): string {
   const icons = [
-    '🚀', '🔍', '📊', '🔧', '🌐', 
-    '🤖', '📈', '🔄', '⚡', '🛡️', 
-    '✅', '🎉'
+    '🚀',
+    '🔍',
+    '📊',
+    '🔧',
+    '🌐',
+    '🤖',
+    '📈',
+    '🔄',
+    '⚡',
+    '🛡️',
+    '✅',
+    '🎉',
   ];
-  
+
   return icons[step] || '❓';
 }
 
@@ -115,11 +131,20 @@ function getStepIcon(step: number): string {
  */
 function getStepCategory(step: number): string {
   const categories = [
-    'initialization', 'discovery', 'monitoring', 'database', 'network',
-    'ai', 'metrics', 'optimization', 'performance', 'security',
-    'validation', 'completion'
+    'initialization',
+    'discovery',
+    'monitoring',
+    'database',
+    'network',
+    'ai',
+    'metrics',
+    'optimization',
+    'performance',
+    'security',
+    'validation',
+    'completion',
   ];
-  
+
   return categories[step] || 'unknown';
 }
 
@@ -128,10 +153,19 @@ function getStepCategory(step: number): string {
  */
 function getDurationForStep(step: number): number {
   const durations = [
-    20, 15, 10, 25, 15,  // 초기화, 스캔, 메트릭, DB, 네트워크
-    30, 20, 15, 25, 20,  // AI, Prometheus, Timer, 성능, 보안
-    15, 5                // 검증, 완료
+    20,
+    15,
+    10,
+    25,
+    15, // 초기화, 스캔, 메트릭, DB, 네트워크
+    30,
+    20,
+    15,
+    25,
+    20, // AI, Prometheus, Timer, 성능, 보안
+    15,
+    5, // 검증, 완료
   ];
-  
+
   return durations[step] || 15;
-} 
+}

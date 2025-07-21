@@ -44,7 +44,7 @@ export class GeminiBridge {
 
       const child = spawn(this.powerShellPath, ['-Command', command], {
         shell: false,
-        windowsHide: true
+        windowsHide: true,
       });
 
       // 타임아웃 설정
@@ -54,27 +54,29 @@ export class GeminiBridge {
         reject(new Error(`PowerShell 명령 실행 시간 초과 (${timeout}ms)`));
       }, timeout);
 
-      child.stdout.on('data', (data) => {
+      child.stdout.on('data', data => {
         stdout += data.toString();
       });
 
-      child.stderr.on('data', (data) => {
+      child.stderr.on('data', data => {
         stderr += data.toString();
       });
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         clearTimeout(timer);
 
         if (killed) return;
 
         if (code !== 0) {
-          reject(new Error(`PowerShell 명령 실행 실패 (코드: ${code}): ${stderr}`));
+          reject(
+            new Error(`PowerShell 명령 실행 실패 (코드: ${code}): ${stderr}`)
+          );
         } else {
           resolve(stdout.trim());
         }
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         clearTimeout(timer);
         reject(new Error(`PowerShell 실행 오류: ${error.message}`));
       });

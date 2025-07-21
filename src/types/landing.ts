@@ -41,4 +41,4 @@ export interface LandingPageState {
   isLoaded: boolean;
   isAnimating: boolean;
   currentSection: string;
-} 
+}

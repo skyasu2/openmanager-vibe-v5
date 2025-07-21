@@ -18,7 +18,9 @@ try {
   if (apiKey) {
     console.log('✅ API 키 로드 성공');
     console.log(`   - 키 길이: ${apiKey.length}자`);
-    console.log(`   - 키 형식: ${apiKey.startsWith('tvly-') ? 'Tavily 표준 형식' : '비표준 형식'}`);
+    console.log(
+      `   - 키 형식: ${apiKey.startsWith('tvly-') ? 'Tavily 표준 형식' : '비표준 형식'}`
+    );
   } else {
     console.log('❌ API 키 로드 실패');
   }
@@ -56,10 +58,16 @@ if (fs.existsSync(wrapperPath)) {
 
 // 4. Tavily MCP 패키지 확인
 console.log('\n4️⃣ Tavily MCP 패키지 확인');
-const tavilyMcpPath = path.join(__dirname, '../node_modules/tavily-mcp/build/index.js');
+const tavilyMcpPath = path.join(
+  __dirname,
+  '../node_modules/tavily-mcp/build/index.js'
+);
 if (fs.existsSync(tavilyMcpPath)) {
   console.log('✅ Tavily MCP 패키지 설치됨');
-  const packageJsonPath = path.join(__dirname, '../node_modules/tavily-mcp/package.json');
+  const packageJsonPath = path.join(
+    __dirname,
+    '../node_modules/tavily-mcp/package.json'
+  );
   if (fs.existsSync(packageJsonPath)) {
     const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
     console.log('   - 버전:', pkg.version);
@@ -88,8 +96,14 @@ if (fs.existsSync(mcpConfigPath)) {
 
 // 6. 환경 변수 확인
 console.log('\n6️⃣ 환경 변수 확인');
-console.log('   - TAVILY_API_KEY:', process.env.TAVILY_API_KEY ? '✅ 설정됨' : '❌ 없음');
-console.log('   - TAVILY_API_KEY_ENCRYPTED:', process.env.TAVILY_API_KEY_ENCRYPTED ? '✅ 설정됨' : '❌ 없음');
+console.log(
+  '   - TAVILY_API_KEY:',
+  process.env.TAVILY_API_KEY ? '✅ 설정됨' : '❌ 없음'
+);
+console.log(
+  '   - TAVILY_API_KEY_ENCRYPTED:',
+  process.env.TAVILY_API_KEY_ENCRYPTED ? '✅ 설정됨' : '❌ 없음'
+);
 
 // 7. 최종 상태 요약
 console.log('\n=== 📊 최종 상태 요약 ===');
@@ -98,7 +112,9 @@ const checks = {
   '설정 파일': fs.existsSync(configPath),
   'MCP 래퍼': fs.existsSync(wrapperPath),
   'Tavily 패키지': fs.existsSync(tavilyMcpPath),
-  'MCP 설정': fs.existsSync(mcpConfigPath) && JSON.parse(fs.readFileSync(mcpConfigPath, 'utf8')).mcpServers?.tavily
+  'MCP 설정':
+    fs.existsSync(mcpConfigPath) &&
+    JSON.parse(fs.readFileSync(mcpConfigPath, 'utf8')).mcpServers?.tavily,
 };
 
 const passedChecks = Object.values(checks).filter(v => v).length;
@@ -107,7 +123,9 @@ const totalChecks = Object.keys(checks).length;
 console.log(`\n전체 ${totalChecks}개 중 ${passedChecks}개 통과`);
 if (passedChecks === totalChecks) {
   console.log('\n✅ Tavily MCP 설정이 완료되었습니다!');
-  console.log('📌 Claude Code를 재시작하면 Tavily 검색 기능을 사용할 수 있습니다.');
+  console.log(
+    '📌 Claude Code를 재시작하면 Tavily 검색 기능을 사용할 수 있습니다.'
+  );
 } else {
   console.log('\n⚠️ 일부 설정이 누락되었습니다:');
   Object.entries(checks).forEach(([name, passed]) => {

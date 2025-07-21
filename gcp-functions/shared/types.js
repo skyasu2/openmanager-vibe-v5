@@ -1,6 +1,6 @@
 /**
  * 🔷 GCP Functions 공통 타입 정의
- * 
+ *
  * OpenManager AI 엔진 이전을 위한 타입 정의
  */
 
@@ -76,18 +76,18 @@
  * @returns {AIResponse}
  */
 function createErrorResponse(message, engine = 'unknown', processingTime = 0) {
-    return {
-        success: false,
-        response: `처리 중 오류가 발생했습니다: ${message}`,
-        confidence: 0,
-        engine,
-        processingTime,
-        error: message,
-        metadata: {
-            errorCode: 'PROCESSING_ERROR',
-            timestamp: Date.now()
-        }
-    };
+  return {
+    success: false,
+    response: `처리 중 오류가 발생했습니다: ${message}`,
+    confidence: 0,
+    engine,
+    processingTime,
+    error: message,
+    metadata: {
+      errorCode: 'PROCESSING_ERROR',
+      timestamp: Date.now(),
+    },
+  };
 }
 
 /**
@@ -99,20 +99,26 @@ function createErrorResponse(message, engine = 'unknown', processingTime = 0) {
  * @param {Object} [metadata] - 추가 메타데이터
  * @returns {AIResponse}
  */
-function createSuccessResponse(response, engine, confidence, processingTime, metadata = {}) {
-    return {
-        success: true,
-        response,
-        confidence,
-        engine,
-        processingTime,
-        sources: [`gcp-${engine}`],
-        metadata: {
-            timestamp: Date.now(),
-            gcpFunction: engine,
-            ...metadata
-        }
-    };
+function createSuccessResponse(
+  response,
+  engine,
+  confidence,
+  processingTime,
+  metadata = {}
+) {
+  return {
+    success: true,
+    response,
+    confidence,
+    engine,
+    processingTime,
+    sources: [`gcp-${engine}`],
+    metadata: {
+      timestamp: Date.now(),
+      gcpFunction: engine,
+      ...metadata,
+    },
+  };
 }
 
 /**
@@ -121,20 +127,20 @@ function createSuccessResponse(response, engine, confidence, processingTime, met
  * @returns {AIRequest|null}
  */
 function validateRequest(req) {
-    const { query, mode, context, sessionId } = req.body || {};
+  const { query, mode, context, sessionId } = req.body || {};
 
-    if (!query || typeof query !== 'string' || query.trim().length === 0) {
-        return null;
-    }
+  if (!query || typeof query !== 'string' || query.trim().length === 0) {
+    return null;
+  }
 
-    return {
-        query: query.trim(),
-        mode: mode || 'auto',
-        context: context || {},
-        sessionId: sessionId || `gcp_${Date.now()}`,
-        requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        timestamp: Date.now()
-    };
+  return {
+    query: query.trim(),
+    mode: mode || 'auto',
+    context: context || {},
+    sessionId: sessionId || `gcp_${Date.now()}`,
+    requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    timestamp: Date.now(),
+  };
 }
 
 /**
@@ -143,8 +149,8 @@ function validateRequest(req) {
  * @returns {boolean}
  */
 function isKorean(text) {
-    const koreanRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
-    return koreanRegex.test(text);
+  const koreanRegex = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/;
+  return koreanRegex.test(text);
 }
 
 /**
@@ -153,13 +159,13 @@ function isKorean(text) {
  * @returns {number}
  */
 function calculateProcessingTime(startTime) {
-    return Date.now() - startTime;
+  return Date.now() - startTime;
 }
 
 module.exports = {
-    createErrorResponse,
-    createSuccessResponse,
-    validateRequest,
-    isKorean,
-    calculateProcessingTime
-}; 
+  createErrorResponse,
+  createSuccessResponse,
+  validateRequest,
+  isKorean,
+  calculateProcessingTime,
+};

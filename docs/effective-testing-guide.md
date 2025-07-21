@@ -9,6 +9,7 @@
 ### 🚫 문제가 있는 테스트 패턴
 
 #### 1. 테스트 내부에 로직 정의
+
 ```typescript
 // ❌ 나쁜 예: tests/unit/api/health-logic.test.ts
 describe('Health Check Logic', () => {
@@ -18,13 +19,14 @@ describe('Health Check Logic', () => {
       const cpuScore = Math.max(0, 100 - cpu);
       // ...
     };
-    
+
     expect(calculateHealthScore(30, 40, 0.01)).toBeGreaterThan(70);
   });
 });
 ```
 
 #### 2. 과도한 모킹
+
 ```typescript
 // ❌ 나쁜 예: tests/unit/components/ai-sidebar/AISidebarV2.test.tsx
 vi.mock('@/stores/useAISidebarStore', () => ({
@@ -36,6 +38,7 @@ vi.mock('@/stores/useAISidebarStore', () => ({
 ```
 
 #### 3. 파일 크기만 확인하는 테스트
+
 ```typescript
 // ❌ 나쁜 예: 파일 라인 수만 세는 테스트
 it('should have manageable file size (< 500 lines)', () => {
@@ -48,6 +51,7 @@ it('should have manageable file size (< 500 lines)', () => {
 ### ✅ 좋은 테스트 패턴
 
 #### 1. 실제 서비스 테스트
+
 ```typescript
 // ✅ 좋은 예: tests/unit/crypto/UnifiedEnvCryptoManager.test.ts
 import { UnifiedEnvCryptoManager } from '@/services/crypto/UnifiedEnvCryptoManager';
@@ -56,10 +60,10 @@ describe('UnifiedEnvCryptoManager', () => {
   it('should encrypt and decrypt data correctly', async () => {
     const manager = UnifiedEnvCryptoManager.getInstance();
     const originalData = 'sensitive-data';
-    
+
     const encrypted = await manager.encrypt(originalData);
     const decrypted = await manager.decrypt(encrypted);
-    
+
     expect(decrypted).toBe(originalData);
     expect(encrypted).not.toBe(originalData);
   });
@@ -67,14 +71,15 @@ describe('UnifiedEnvCryptoManager', () => {
 ```
 
 #### 2. 사용자 시나리오 테스트
+
 ```typescript
 // ✅ 좋은 예: tests/components/profile/ProfileDropdown.test.tsx
 it('should show sign out button for authenticated users', async () => {
   render(<ProfileDropdown user={mockUser} />);
-  
+
   const trigger = screen.getByRole('button');
   await userEvent.click(trigger);
-  
+
   const signOutButton = screen.getByText('Sign Out');
   expect(signOutButton).toBeInTheDocument();
 });
@@ -83,16 +88,17 @@ it('should show sign out button for authenticated users', async () => {
 ## 🎯 효과적인 테스트 작성 원칙
 
 ### 1. AAA 패턴 사용
+
 ```typescript
 describe('서비스 테스트', () => {
   it('should handle error gracefully', async () => {
     // Arrange: 준비
     const service = new MyService();
     const invalidInput = null;
-    
+
     // Act: 실행
     const result = await service.process(invalidInput);
-    
+
     // Assert: 검증
     expect(result.error).toBeDefined();
     expect(result.status).toBe('error');
@@ -101,17 +107,18 @@ describe('서비스 테스트', () => {
 ```
 
 ### 2. 실제 시나리오 테스트
+
 ```typescript
 describe('인증 플로우', () => {
   it('should redirect to main page after successful login', async () => {
     // 실제 로그인 플로우 시뮬레이션
     const { router } = render(<LoginPage />);
-    
+
     // 사용자 행동 시뮬레이션
     await userEvent.type(screen.getByLabelText('Email'), 'user@example.com');
     await userEvent.type(screen.getByLabelText('Password'), 'password123');
     await userEvent.click(screen.getByRole('button', { name: 'Login' }));
-    
+
     // 실제 결과 검증
     await waitFor(() => {
       expect(router.push).toHaveBeenCalledWith('/main');
@@ -121,6 +128,7 @@ describe('인증 플로우', () => {
 ```
 
 ### 3. 엣지 케이스 테스트
+
 ```typescript
 describe('데이터 처리', () => {
   it.each([
@@ -139,6 +147,7 @@ describe('데이터 처리', () => {
 ## 🔧 개선이 필요한 테스트 목록
 
 ### 높은 우선순위
+
 1. **health-logic.test.ts**
    - 실제 health check 서비스 import
    - 실제 API 응답 시뮬레이션
@@ -155,6 +164,7 @@ describe('데이터 처리', () => {
    - 에러 처리 시나리오
 
 ### 중간 우선순위
+
 4. **AI 엔진 통합 테스트**
    - 실제 AI 요청/응답 플로우
    - 폴백 전략 검증
@@ -168,16 +178,17 @@ describe('데이터 처리', () => {
 ## 📝 TDD 프로세스 적용
 
 ### 1. Red: 실패하는 테스트 먼저 작성
+
 ```typescript
 // 새 기능: 서버 상태 알림
 describe('ServerStatusNotifier', () => {
   it('should notify when server goes down', async () => {
     const notifier = new ServerStatusNotifier();
     const mockCallback = vi.fn();
-    
+
     notifier.onStatusChange(mockCallback);
     await notifier.updateStatus('server-1', 'down');
-    
+
     expect(mockCallback).toHaveBeenCalledWith({
       serverId: 'server-1',
       status: 'down',
@@ -188,27 +199,29 @@ describe('ServerStatusNotifier', () => {
 ```
 
 ### 2. Green: 최소한의 구현
+
 ```typescript
 export class ServerStatusNotifier {
   private callbacks: Array<(status: any) => void> = [];
-  
+
   onStatusChange(callback: (status: any) => void) {
     this.callbacks.push(callback);
   }
-  
+
   async updateStatus(serverId: string, status: string) {
     const update = {
       serverId,
       status,
       timestamp: new Date(),
     };
-    
+
     this.callbacks.forEach(cb => cb(update));
   }
 }
 ```
 
 ### 3. Refactor: 테스트가 보장된 상태에서 개선
+
 ```typescript
 // 타입 추가, 에러 처리, 최적화 등
 export interface ServerStatus {
@@ -226,11 +239,13 @@ export class ServerStatusNotifier {
 ## 🚀 Husky 훅 테스트 전략
 
 ### Pre-commit: 빠른 검증
+
 - TypeScript 타입 체크
 - ESLint 린트
 - 변경된 파일의 단위 테스트만
 
 ### Pre-push: 전체 검증
+
 ```bash
 #!/bin/sh
 # .husky/pre-push
@@ -255,12 +270,14 @@ echo "✅ 모든 검증 통과!"
 ## 📊 테스트 품질 지표
 
 ### 측정 기준
+
 1. **코드 커버리지**: 70% 이상
 2. **실제 로직 테스트 비율**: 80% 이상
 3. **모킹 비율**: 20% 이하
 4. **테스트 실행 시간**: 30초 이내
 
 ### 모니터링 스크립트
+
 ```json
 {
   "scripts": {
@@ -271,6 +288,7 @@ echo "✅ 모든 검증 통과!"
 ```
 
 ## 🔗 관련 문서
+
 - [TDD 개발 프로세스](./tdd-process.md)
 - [Husky Hooks 가이드](./husky-hooks-guide.md)
 - [CI/CD 파이프라인](./ci-cd-pipeline.md)

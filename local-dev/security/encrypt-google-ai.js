@@ -90,7 +90,7 @@ function hiddenQuestion(query) {
 function question(query) {
   return new Promise(resolve => {
     const rl = createInterface();
-    rl.question(query, (answer) => {
+    rl.question(query, answer => {
       rl.close();
       resolve(answer);
     });

@@ -1,6 +1,6 @@
 /**
  * 🏗️ 베이스 패널 레이아웃 컴포넌트
- * 
+ *
  * - 모든 AI 패널의 공통 레이아웃
  * - 헤더, 필터, 콘텐츠 영역 표준화
  * - 로딩 상태 및 새로고침 버튼 통합
@@ -25,28 +25,28 @@ interface BasePanelLayoutProps {
   subtitle: string;
   icon: ReactNode;
   iconGradient: string;
-  
+
   // 액션 버튼들
   onRefresh?: () => void;
   isLoading?: boolean;
   adminPath?: string;
   adminLabel?: string;
-  
+
   // 필터 관련
   filters?: FilterItem[];
   selectedFilter?: string;
   onFilterChange?: (filterId: string) => void;
   showFilters?: boolean;
-  
+
   // 콘텐츠
   children: ReactNode;
-  
+
   // 하단 정보
   bottomInfo?: {
     primary: string;
     secondary: string;
   };
-  
+
   className?: string;
 }
 
@@ -65,48 +65,52 @@ const BasePanelLayout: React.FC<BasePanelLayoutProps> = ({
   showFilters = true,
   children,
   bottomInfo,
-  className = ''
+  className = '',
 }) => {
   return (
     <div className={`flex flex-col h-full bg-gray-900/50 ${className}`}>
       {/* 헤더 */}
-      <div className="p-4 border-b border-gray-700/50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg ${iconGradient} flex items-center justify-center`}>
+      <div className='p-4 border-b border-gray-700/50'>
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center gap-3'>
+            <div
+              className={`w-8 h-8 rounded-lg ${iconGradient} flex items-center justify-center`}
+            >
               {icon}
             </div>
             <div>
-              <h3 className="text-white font-medium">{title}</h3>
-              <p className="text-gray-400 text-sm">{subtitle}</p>
+              <h3 className='text-white font-medium'>{title}</h3>
+              <p className='text-gray-400 text-sm'>{subtitle}</p>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
+
+          <div className='flex items-center gap-2'>
             {/* 새로고침 버튼 */}
             {onRefresh && (
               <motion.button
                 onClick={onRefresh}
                 disabled={isLoading}
-                className="p-2 bg-gray-700/50 hover:bg-gray-600/70 border border-gray-600/30 
-                           rounded-lg text-gray-300 transition-colors disabled:opacity-50"
+                className='p-2 bg-gray-700/50 hover:bg-gray-600/70 border border-gray-600/30 
+                           rounded-lg text-gray-300 transition-colors disabled:opacity-50'
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`}
+                />
               </motion.button>
             )}
-            
+
             {/* 관리 페이지 링크 */}
             {adminPath && (
-              <Link href={adminPath} target="_blank">
+              <Link href={adminPath} target='_blank'>
                 <motion.button
-                  className="flex items-center gap-1 px-2 py-1 bg-blue-500/20 hover:bg-blue-500/30 
-                             border border-blue-500/30 rounded-lg text-blue-300 text-xs transition-colors"
+                  className='flex items-center gap-1 px-2 py-1 bg-blue-500/20 hover:bg-blue-500/30 
+                             border border-blue-500/30 rounded-lg text-blue-300 text-xs transition-colors'
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <ExternalLink className="w-3 h-3" />
+                  <ExternalLink className='w-3 h-3' />
                   {adminLabel}
                 </motion.button>
               </Link>
@@ -117,9 +121,9 @@ const BasePanelLayout: React.FC<BasePanelLayoutProps> = ({
 
       {/* 필터 영역 */}
       {showFilters && filters.length > 0 && (
-        <div className="p-4 border-b border-gray-700/30">
-          <div className="flex flex-wrap gap-2">
-            {filters.map((filter) => (
+        <div className='p-4 border-b border-gray-700/30'>
+          <div className='flex flex-wrap gap-2'>
+            {filters.map(filter => (
               <motion.button
                 key={filter.id}
                 onClick={() => onFilterChange?.(filter.id)}
@@ -140,20 +144,14 @@ const BasePanelLayout: React.FC<BasePanelLayoutProps> = ({
       )}
 
       {/* 메인 콘텐츠 */}
-      <div className="flex-1 overflow-y-auto">
-        {children}
-      </div>
+      <div className='flex-1 overflow-y-auto'>{children}</div>
 
       {/* 하단 정보 */}
       {bottomInfo && (
-        <div className="p-4 border-t border-gray-700/50">
-          <div className="text-center">
-            <p className="text-gray-400 text-xs">
-              {bottomInfo.primary}
-            </p>
-            <p className="text-gray-500 text-xs mt-1">
-              {bottomInfo.secondary}
-            </p>
+        <div className='p-4 border-t border-gray-700/50'>
+          <div className='text-center'>
+            <p className='text-gray-400 text-xs'>{bottomInfo.primary}</p>
+            <p className='text-gray-500 text-xs mt-1'>{bottomInfo.secondary}</p>
           </div>
         </div>
       )}
@@ -161,4 +159,4 @@ const BasePanelLayout: React.FC<BasePanelLayoutProps> = ({
   );
 };
 
-export default BasePanelLayout; 
+export default BasePanelLayout;

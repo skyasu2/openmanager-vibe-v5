@@ -18,16 +18,18 @@ async function loadDecryptionModule() {
   try {
     // CommonJS 모듈 로드
     const keyLoaderPath = join(__dirname, 'tavily-key-loader.cjs');
-    const { loadTavilyApiKey } = await import(`file:///${keyLoaderPath.replace(/\\/g, '/')}`);
+    const { loadTavilyApiKey } = await import(
+      `file:///${keyLoaderPath.replace(/\\/g, '/')}`
+    );
     return loadTavilyApiKey;
   } catch (error) {
     console.error('❌ 키 로더 모듈 로드 실패:', error);
-    
+
     // 대체 방법: 직접 암호화된 설정 파일 읽기
     try {
       const configPath = join(__dirname, '../config/tavily-encrypted.json');
       const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-      
+
       // 간단한 복호화 로직
       const CryptoJS = await import('crypto-js');
       const bytes = CryptoJS.AES.decrypt(config.apiKey, 'openmanager2025');
@@ -58,29 +60,32 @@ async function main() {
   console.error('[Tavily MCP Wrapper] ✅ API 키 로드 성공');
 
   // Tavily MCP 서버 경로
-  const tavilyMcpPath = join(__dirname, '../node_modules/tavily-mcp/build/index.js');
+  const tavilyMcpPath = join(
+    __dirname,
+    '../node_modules/tavily-mcp/build/index.js'
+  );
 
   // 환경 변수 설정
   const env = {
     ...process.env,
     TAVILY_API_KEY: apiKey,
-    NODE_ENV: 'production'
+    NODE_ENV: 'production',
   };
 
   // Tavily MCP 서버 시작
   console.error('[Tavily MCP Wrapper] Tavily MCP 서버 시작 중...');
-  
+
   const tavilyProcess = spawn('node', [tavilyMcpPath], {
     env,
-    stdio: 'inherit'
+    stdio: 'inherit',
   });
 
-  tavilyProcess.on('error', (error) => {
+  tavilyProcess.on('error', error => {
     console.error('[Tavily MCP Wrapper] ❌ 서버 시작 실패:', error);
     process.exit(1);
   });
 
-  tavilyProcess.on('exit', (code) => {
+  tavilyProcess.on('exit', code => {
     console.error(`[Tavily MCP Wrapper] 서버 종료 (코드: ${code})`);
     process.exit(code || 0);
   });

@@ -2,13 +2,13 @@
 
 /**
  * 🚀 Smart Gemini Wrapper v1.0 - 지능형 AI 협업 도구
- * 
+ *
  * 주요 기능:
  * - 자동 fallback 시스템 (pro → flash)
  * - Claude와 Gemini 협업 orchestration
  * - 사용량 모니터링 및 리포팅
  * - WSL 환경 최적화
- * 
+ *
  * @author Claude Code
  * @version 1.0.0
  */
@@ -67,7 +67,7 @@ enum ErrorType {
   RATE_LIMIT = 'RATE_LIMIT',
   TIMEOUT = 'TIMEOUT',
   NETWORK = 'NETWORK',
-  UNKNOWN = 'UNKNOWN'
+  UNKNOWN = 'UNKNOWN',
 }
 
 /**
@@ -75,8 +75,18 @@ enum ErrorType {
  */
 export class SmartGeminiWrapper {
   private models: GeminiModel[] = [
-    { name: 'pro', model: 'gemini-1.5-pro-latest', priority: 1, dailyLimit: 50 },
-    { name: 'flash', model: 'gemini-1.5-flash-latest', priority: 2, dailyLimit: 1500 }
+    {
+      name: 'pro',
+      model: 'gemini-1.5-pro-latest',
+      priority: 1,
+      dailyLimit: 50,
+    },
+    {
+      name: 'flash',
+      model: 'gemini-1.5-flash-latest',
+      priority: 2,
+      dailyLimit: 1500,
+    },
   ];
 
   private cacheDir: string;
@@ -87,17 +97,20 @@ export class SmartGeminiWrapper {
   private debug: boolean;
   private timeout: number;
 
-  constructor(options: {
-    debug?: boolean;
-    timeout?: number;
-    cacheDir?: string;
-    logDir?: string;
-  } = {}) {
+  constructor(
+    options: {
+      debug?: boolean;
+      timeout?: number;
+      cacheDir?: string;
+      logDir?: string;
+    } = {}
+  ) {
     this.debug = options.debug || process.env.GEMINI_DEBUG === 'true';
     this.timeout = options.timeout || 30000;
-    this.cacheDir = options.cacheDir || join(__dirname, '..', '.cache', 'gemini');
+    this.cacheDir =
+      options.cacheDir || join(__dirname, '..', '.cache', 'gemini');
     this.logDir = options.logDir || join(__dirname, '..', '.logs', 'gemini');
-    
+
     this.ensureDirectories();
   }
 
@@ -127,32 +140,32 @@ export class SmartGeminiWrapper {
       maxRetries?: number;
     } = {}
   ): Promise<ExecutionResult> {
-    const fullPrompt = options.context 
-      ? `${options.context}\n\n${prompt}` 
+    const fullPrompt = options.context
+      ? `${options.context}\n\n${prompt}`
       : prompt;
 
     const preferredModel = options.preferredModel || 'pro';
     const modelIndex = this.models.findIndex(m => m.name === preferredModel);
-    
+
     if (modelIndex === -1) {
       return {
         success: false,
         error: `알 수 없는 모델: ${preferredModel}`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }
 
     // 모델 우선순위에 따라 시도
     for (let i = modelIndex; i < this.models.length; i++) {
       const model = this.models[i];
-      
+
       if (this.debug) {
         console.log(`🎯 ${model.name} 모델로 시도 중...`);
       }
 
       const result = await this.executeWithModel(fullPrompt, model, {
         noCache: options.noCache,
-        isRetry: i > modelIndex
+        isRetry: i > modelIndex,
       });
 
       if (result.success) {
@@ -161,25 +174,28 @@ export class SmartGeminiWrapper {
           model: model.name,
           command: 'execute',
           success: true,
-          fallback: i > modelIndex
+          fallback: i > modelIndex,
         });
-        
+
         return result;
       }
 
       // 에러 타입 분석
       const errorType = this.analyzeError(result.error || '');
-      
+
       // 사용량 초과가 아닌 경우 재시도하지 않음
-      if (errorType !== ErrorType.QUOTA_EXCEEDED && errorType !== ErrorType.RATE_LIMIT) {
+      if (
+        errorType !== ErrorType.QUOTA_EXCEEDED &&
+        errorType !== ErrorType.RATE_LIMIT
+      ) {
         await this.logUsage({
           timestamp: result.timestamp,
           model: model.name,
           command: 'execute',
           success: false,
-          errorType
+          errorType,
         });
-        
+
         return result;
       }
 
@@ -192,7 +208,7 @@ export class SmartGeminiWrapper {
     return {
       success: false,
       error: '모든 모델에서 실행 실패',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -217,17 +233,18 @@ export class SmartGeminiWrapper {
 
     try {
       const args = ['--prompt', prompt, '--model', model.model];
-      
+
       // WSL 환경 최적화
       const spawnOptions: SpawnOptionsWithoutStdio = {
         windowsHide: true,
-        shell: process.platform === 'linux' && process.env.WSL_DISTRO_NAME 
-          ? false  // WSL에서는 shell 사용 안 함
-          : true
+        shell:
+          process.platform === 'linux' && process.env.WSL_DISTRO_NAME
+            ? false // WSL에서는 shell 사용 안 함
+            : true,
       };
 
       const result = await this.runGeminiCommand(args, spawnOptions);
-      
+
       if (result.success && !options.noCache) {
         await this.setCachedResult(prompt, model.name, result);
       }
@@ -235,15 +252,14 @@ export class SmartGeminiWrapper {
       return {
         ...result,
         modelUsed: model.name,
-        fallback: options.isRetry
+        fallback: options.isRetry,
       };
-
     } catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
         modelUsed: model.name,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }
   }
@@ -257,43 +273,43 @@ export class SmartGeminiWrapper {
   ): Promise<ExecutionResult> {
     return new Promise((resolve, reject) => {
       const startTime = Date.now();
-      
+
       const child = spawn('gemini', args, {
         ...options,
-        stdio: ['inherit', 'pipe', 'pipe']
+        stdio: ['inherit', 'pipe', 'pipe'],
       });
 
       let stdout = '';
       let stderr = '';
 
-      child.stdout?.on('data', (data) => {
+      child.stdout?.on('data', data => {
         stdout += data.toString();
       });
 
-      child.stderr?.on('data', (data) => {
+      child.stderr?.on('data', data => {
         stderr += data.toString();
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         reject(error);
       });
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         const duration = Date.now() - startTime;
-        
+
         if (code === 0) {
           resolve({
             success: true,
             output: this.cleanOutput(stdout),
             duration,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           });
         } else {
           resolve({
             success: false,
             error: stderr || `종료 코드: ${code}`,
             duration,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           });
         }
       });
@@ -311,13 +327,17 @@ export class SmartGeminiWrapper {
    */
   private analyzeError(error: string): ErrorType {
     const errorLower = error.toLowerCase();
-    
+
     const quotaKeywords = [
-      'quota exceeded', 'rate limit', 'usage limit',
-      'daily limit', 'limit reached', '429',
-      'try again tomorrow'
+      'quota exceeded',
+      'rate limit',
+      'usage limit',
+      'daily limit',
+      'limit reached',
+      '429',
+      'try again tomorrow',
     ];
-    
+
     if (quotaKeywords.some(keyword => errorLower.includes(keyword))) {
       return ErrorType.QUOTA_EXCEEDED;
     }
@@ -339,12 +359,12 @@ export class SmartGeminiWrapper {
   private async applyRateLimit(): Promise<void> {
     const now = Date.now();
     const timeSinceLastRequest = now - this.lastRequestTime;
-    
+
     if (timeSinceLastRequest < this.rateLimitDelay) {
       const delay = this.rateLimitDelay - timeSinceLastRequest;
       await new Promise(resolve => setTimeout(resolve, delay));
     }
-    
+
     this.lastRequestTime = Date.now();
   }
 
@@ -356,12 +376,15 @@ export class SmartGeminiWrapper {
     return createHash('md5').update(content).digest('hex');
   }
 
-  private async getCachedResult(prompt: string, model: string): Promise<ExecutionResult | null> {
+  private async getCachedResult(
+    prompt: string,
+    model: string
+  ): Promise<ExecutionResult | null> {
     try {
       const cacheKey = this.getCacheKey(prompt, model);
       const cacheFile = join(this.cacheDir, `${cacheKey}.json`);
       const stats = await fs.stat(cacheFile);
-      
+
       if (Date.now() - stats.mtime.getTime() < this.maxCacheAge) {
         const cached = await fs.readFile(cacheFile, 'utf8');
         return JSON.parse(cached);
@@ -369,11 +392,15 @@ export class SmartGeminiWrapper {
     } catch {
       return null;
     }
-    
+
     return null;
   }
 
-  private async setCachedResult(prompt: string, model: string, result: ExecutionResult): Promise<void> {
+  private async setCachedResult(
+    prompt: string,
+    model: string,
+    result: ExecutionResult
+  ): Promise<void> {
     try {
       const cacheKey = this.getCacheKey(prompt, model);
       const cacheFile = join(this.cacheDir, `${cacheKey}.json`);
@@ -393,10 +420,12 @@ export class SmartGeminiWrapper {
       .split('\n')
       .filter(line => {
         const trimmed = line.trim();
-        return trimmed && 
-               !trimmed.startsWith('Loaded cached credentials') &&
-               !trimmed.startsWith('Loading') &&
-               !trimmed.startsWith('Starting');
+        return (
+          trimmed &&
+          !trimmed.startsWith('Loaded cached credentials') &&
+          !trimmed.startsWith('Loading') &&
+          !trimmed.startsWith('Starting')
+        );
       })
       .join('\n')
       .trim();
@@ -407,8 +436,11 @@ export class SmartGeminiWrapper {
    */
   private async logUsage(log: UsageLog): Promise<void> {
     try {
-      const logFile = join(this.logDir, `usage_${new Date().toISOString().split('T')[0]}.json`);
-      
+      const logFile = join(
+        this.logDir,
+        `usage_${new Date().toISOString().split('T')[0]}.json`
+      );
+
       let logs: UsageLog[] = [];
       try {
         const existing = await fs.readFile(logFile, 'utf8');
@@ -431,12 +463,15 @@ export class SmartGeminiWrapper {
    */
   async getUsageReport(date?: Date): Promise<{
     date: string;
-    models: Record<string, {
-      total: number;
-      successful: number;
-      failed: number;
-      fallbacks: number;
-    }>;
+    models: Record<
+      string,
+      {
+        total: number;
+        successful: number;
+        failed: number;
+        fallbacks: number;
+      }
+    >;
     errorTypes: Record<string, number>;
   }> {
     const targetDate = date || new Date();
@@ -446,7 +481,7 @@ export class SmartGeminiWrapper {
     const report: any = {
       date: dateStr,
       models: {},
-      errorTypes: {}
+      errorTypes: {},
     };
 
     try {
@@ -459,12 +494,12 @@ export class SmartGeminiWrapper {
             total: 0,
             successful: 0,
             failed: 0,
-            fallbacks: 0
+            fallbacks: 0,
           };
         }
 
         report.models[log.model].total++;
-        
+
         if (log.success) {
           report.models[log.model].successful++;
         } else {
@@ -476,7 +511,8 @@ export class SmartGeminiWrapper {
         }
 
         if (log.errorType) {
-          report.errorTypes[log.errorType] = (report.errorTypes[log.errorType] || 0) + 1;
+          report.errorTypes[log.errorType] =
+            (report.errorTypes[log.errorType] || 0) + 1;
         }
       }
     } catch {
@@ -493,24 +529,22 @@ export class SmartGeminiWrapper {
     const result: HealthCheckResult = {
       status: 'healthy',
       models: {},
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     const todayReport = await this.getUsageReport();
 
     for (const model of this.models) {
-      const testResult = await this.executeWithModel(
-        '안녕하세요',
-        model,
-        { noCache: true }
-      );
+      const testResult = await this.executeWithModel('안녕하세요', model, {
+        noCache: true,
+      });
 
       const todayUsage = todayReport.models[model.name]?.total || 0;
 
       result.models[model.name] = {
         available: testResult.success,
         lastUsed: testResult.timestamp,
-        todayUsage
+        todayUsage,
       };
 
       if (!testResult.success) {
@@ -519,7 +553,9 @@ export class SmartGeminiWrapper {
     }
 
     // 모든 모델이 사용 불가능하면 unhealthy
-    const allUnavailable = Object.values(result.models).every(m => !m.available);
+    const allUnavailable = Object.values(result.models).every(
+      m => !m.available
+    );
     if (allUnavailable) {
       result.status = 'unhealthy';
     }
@@ -577,7 +613,7 @@ ${geminiResult.output}
     `;
 
     const synthesisResult = await this.execute(synthesisPrompt, {
-      preferredModel: 'flash' // 통합은 flash 모델로도 충분
+      preferredModel: 'flash', // 통합은 flash 모델로도 충분
     });
 
     const result = {
@@ -585,7 +621,7 @@ ${geminiResult.output}
       geminiPerspective: geminiResult.output || '',
       synthesizedSolution: synthesisResult.output || '',
       modelUsed: geminiResult.modelUsed || 'unknown',
-      timestamp
+      timestamp,
     };
 
     // 리포트 저장
@@ -594,7 +630,7 @@ ${geminiResult.output}
         this.logDir,
         `collaborative_analysis_${timestamp.replace(/[:.]/g, '-')}.md`
       );
-      
+
       const report = `# 🔧 협업 분석 리포트
 
 **생성일:** ${timestamp}
@@ -640,7 +676,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
           const report = await wrapper.getUsageReport();
           console.log('\n📊 오늘의 사용량 리포트');
           console.log('='.repeat(40));
-          
+
           for (const [model, stats] of Object.entries(report.models)) {
             console.log(`\n${model.toUpperCase()} 모델:`);
             console.log(`  총 사용: ${stats.total}회`);
@@ -648,7 +684,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
             console.log(`  실패: ${stats.failed}회`);
             console.log(`  Fallback: ${stats.fallbacks}회`);
           }
-          
+
           if (Object.keys(report.errorTypes).length > 0) {
             console.log('\n에러 타입:');
             for (const [type, count] of Object.entries(report.errorTypes)) {
@@ -663,13 +699,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
             console.error('❌ 문제 설명을 입력해주세요');
             process.exit(1);
           }
-          
+
           console.log('🔍 협업 분석 시작...');
           const collabResult = await wrapper.collaborativeAnalysis({
             problem,
-            saveReport: true
+            saveReport: true,
           });
-          
+
           console.log('\n📄 분석 결과:');
           console.log(collabResult.synthesizedSolution);
           break;

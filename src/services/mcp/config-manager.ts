@@ -17,7 +17,7 @@ export class MCPConfigManager {
 
   /**
    * 환경에 따라 적절한 MCP 설정을 로드합니다.
-   * 
+   *
    * @deprecated 이 메서드는 구 방식(JSON 파일)을 사용합니다.
    * 실제 MCP 설정은 Claude Code CLI (`claude mcp add`)를 통해 관리되며
    * ~/.claude.json에 저장됩니다. 자세한 내용은 docs/MCP-GUIDE.md 참조
@@ -61,7 +61,11 @@ export class MCPConfigManager {
         // 필요시 다른 MCP 서버로 대체
         'local-filesystem': {
           command: 'npx',
-          args: ['-y', '@modelcontextprotocol/server-filesystem', process.cwd()],
+          args: [
+            '-y',
+            '@modelcontextprotocol/server-filesystem',
+            process.cwd(),
+          ],
           cwd: process.cwd(),
           env: {
             PROJECT_ROOT: process.cwd(),
@@ -75,11 +79,7 @@ export class MCPConfigManager {
   /**
    * 현재 환경을 감지합니다.
    */
-  private detectEnvironment():
-    | 'cursor'
-    | 'development'
-    | 'production' {
-
+  private detectEnvironment(): 'cursor' | 'development' | 'production' {
     // Cursor IDE 환경 감지
     if (process.env.CURSOR_IDE || process.env.VSCODE_PID) {
       return 'cursor';
@@ -95,7 +95,7 @@ export class MCPConfigManager {
 
   /**
    * 환경에 따른 설정 파일 경로를 반환합니다.
-   * 
+   *
    * @deprecated JSON 파일 방식은 더 이상 사용되지 않습니다.
    * MCP 설정은 Claude Code CLI를 통해 관리됩니다.
    * 참조: docs/MCP-GUIDE.md

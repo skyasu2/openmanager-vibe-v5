@@ -36,6 +36,7 @@ src/app/
 ## 🔄 로그인 플로우
 
 ### GitHub OAuth 로그인
+
 ```mermaid
 graph LR
     A[/] --> B[/login]
@@ -45,6 +46,7 @@ graph LR
 ```
 
 ### 게스트 로그인
+
 ```mermaid
 graph LR
     A[/] --> B[/login]
@@ -53,6 +55,7 @@ graph LR
 ```
 
 ### 로그아웃
+
 ```mermaid
 graph LR
     A[/main] --> B[로그아웃]
@@ -107,6 +110,7 @@ router.push('/login');
 ### 기존 프로젝트 업데이트
 
 1. **메인 페이지 이동**
+
    ```bash
    mkdir -p src/app/main
    mv src/app/page.tsx src/app/main/page.tsx

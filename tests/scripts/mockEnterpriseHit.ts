@@ -184,4 +184,3 @@ if (require.main === module) {
 }
 
 export { runEnterpriseTests, testEndpoint };
-

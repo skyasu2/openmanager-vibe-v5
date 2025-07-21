@@ -198,7 +198,7 @@ const GCP_CONSOLE_URLS = {
   12: 'https://console.cloud.google.com/apis/api/cloudfunctions.googleapis.com/quotas',
   13: 'https://console.cloud.google.com/billing/linkedaccount',
   14: 'https://console.cloud.google.com/apis/api/cloudfunctions.googleapis.com/overview',
-  15: 'https://console.cloud.google.com/monitoring/dashboards'
+  15: 'https://console.cloud.google.com/monitoring/dashboards',
 };
 
 function openGCPConsole(page = 1) {
@@ -223,17 +223,22 @@ async function checkGCPStatus() {
     console.log(`📋 프로젝트: ${projectInfo}`);
 
     // 리전 정보 확인
-    const regionInfo = await execCommand('gcloud config get-value compute/region');
+    const regionInfo = await execCommand(
+      'gcloud config get-value compute/region'
+    );
     console.log(`🌍 리전: ${regionInfo}`);
 
     // Functions 상태 확인
-    const functionsStatus = await execCommand('gcloud functions list --region=asia-northeast3 --format="table(name,status,memory,timeout)"');
+    const functionsStatus = await execCommand(
+      'gcloud functions list --region=asia-northeast3 --format="table(name,status,memory,timeout)"'
+    );
     console.log(`⚡ Cloud Functions:\n${functionsStatus}`);
 
     // VM 상태 확인
-    const vmStatus = await execCommand('gcloud compute instances list --filter="name:mcp-server" --format="table(name,status,zone,externalIP)"');
+    const vmStatus = await execCommand(
+      'gcloud compute instances list --filter="name:mcp-server" --format="table(name,status,zone,externalIP)"'
+    );
     console.log(`🖥️ Compute Engine:\n${vmStatus}`);
-
   } catch (error) {
     console.error('❌ GCP 상태 확인 실패:', error.message);
   }
@@ -579,4 +584,4 @@ gcloud version
 
 **문서 생성 날짜**: 2025년 7월 2일  
 **최종 업데이트**: 2025년 7월 2일  
-**버전**: v5.48.0 
+**버전**: v5.48.0

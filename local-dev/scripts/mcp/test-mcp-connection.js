@@ -34,34 +34,38 @@ console.log('\n2️⃣ MCP 패키지 설치 상태 테스트');
 
 const testPackages = [
   '@modelcontextprotocol/server-filesystem',
-  '@modelcontextprotocol/server-duckduckgo-search', 
-  '@modelcontextprotocol/server-sequential-thinking'
+  '@modelcontextprotocol/server-duckduckgo-search',
+  '@modelcontextprotocol/server-sequential-thinking',
 ];
 
 testPackages.forEach((pkg, index) => {
   console.log(`\n${index + 1}. ${pkg} 테스트 중...`);
-  
+
   const child = spawn('npx.cmd', ['-y', pkg, '--help'], {
     stdio: 'pipe',
-    timeout: 10000
+    timeout: 10000,
   });
-  
+
   let hasOutput = false;
-  
-  child.stdout.on('data', (data) => {
+
+  child.stdout.on('data', data => {
     hasOutput = true;
     console.log(`   ✅ ${pkg} 설치됨`);
   });
-  
-  child.stderr.on('data', (data) => {
+
+  child.stderr.on('data', data => {
     const output = data.toString();
-    if (output.includes('help') || output.includes('usage') || output.includes('options')) {
+    if (
+      output.includes('help') ||
+      output.includes('usage') ||
+      output.includes('options')
+    ) {
       hasOutput = true;
       console.log(`   ✅ ${pkg} 설치됨`);
     }
   });
-  
-  child.on('close', (code) => {
+
+  child.on('close', code => {
     if (!hasOutput) {
       if (code === 0) {
         console.log(`   ✅ ${pkg} 설치됨`);
@@ -70,8 +74,8 @@ testPackages.forEach((pkg, index) => {
       }
     }
   });
-  
-  child.on('error', (error) => {
+
+  child.on('error', error => {
     console.log(`   ❌ ${pkg} 실행 오류: ${error.message}`);
   });
 });
@@ -79,11 +83,7 @@ testPackages.forEach((pkg, index) => {
 // 3. 설정 파일 검증
 console.log('\n3️⃣ MCP 설정 파일 검증');
 
-const configFiles = [
-  '.cursor/mcp.json',
-  'mcp.dev.json', 
-  'mcp-cursor.json'
-];
+const configFiles = ['.cursor/mcp.json', 'mcp.dev.json', 'mcp-cursor.json'];
 
 configFiles.forEach(file => {
   try {
@@ -91,7 +91,9 @@ configFiles.forEach(file => {
     const config = JSON.parse(fs.readFileSync(file, 'utf8'));
     console.log(`✅ ${file} - 유효한 JSON`);
     console.log(`   - 서버 수: ${Object.keys(config.mcpServers || {}).length}`);
-    console.log(`   - 서버 목록: ${Object.keys(config.mcpServers || {}).join(', ')}`);
+    console.log(
+      `   - 서버 목록: ${Object.keys(config.mcpServers || {}).join(', ')}`
+    );
   } catch (error) {
     console.log(`❌ ${file} - ${error.message}`);
   }
@@ -114,4 +116,4 @@ setTimeout(() => {
   console.log('   - 설정 오류면: JSON 문법 확인');
 }, 5000);
 
-console.log('\n⏳ 테스트 진행 중... (5초 후 가이드 출력)\n'); 
+console.log('\n⏳ 테스트 진행 중... (5초 후 가이드 출력)\n');

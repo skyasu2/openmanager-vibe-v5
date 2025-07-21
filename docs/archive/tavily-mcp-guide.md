@@ -5,12 +5,14 @@
 Tavily MCP는 RAG(Retrieval-Augmented Generation) 워크플로우에 특화된 실시간 웹 검색 및 페이지 추출 기능을 제공하는 Model Context Protocol 서버입니다.
 
 ### 주요 기능
+
 - **🔎 웹 검색** (`tavily-search`): 실시간 웹 검색
 - **📄 콘텐츠 추출** (`tavily-extract`): 웹 페이지에서 구조화된 데이터 추출
 - **🗺️ 사이트 매핑** (`tavily-map`): 웹사이트 구조 매핑
 - **🕷️ 웹 크롤링** (`tavily-crawl`): 체계적인 웹사이트 탐색
 
 ### 무료 한도
+
 - 월 1,000회 조회 무료
 - 일일 약 33회 사용 가능
 - 초당 1회 요청 제한
@@ -40,24 +42,28 @@ API 키는 평문으로 노출되지 않도록 암호화되어 저장됩니다:
 Claude Code를 재시작한 후 다음과 같이 사용할 수 있습니다:
 
 ### 1. 웹 검색
+
 ```
 "Next.js 15의 최신 기능에 대해 검색해주세요"
 "2025년 AI 트렌드를 Tavily로 검색해주세요"
 ```
 
 ### 2. 페이지 콘텐츠 추출
+
 ```
 "이 URL에서 주요 내용을 추출해주세요: https://example.com/article"
 "Tavily extract를 사용해서 이 페이지의 핵심 정보를 가져와주세요"
 ```
 
 ### 3. 웹사이트 구조 매핑
+
 ```
 "docs.example.com의 사이트맵을 만들어주세요"
 "이 웹사이트의 전체 구조를 Tavily map으로 분석해주세요"
 ```
 
 ### 4. 웹 크롤링
+
 ```
 "이 블로그의 모든 포스트를 크롤링해주세요"
 "특정 키워드가 포함된 페이지들을 찾아주세요"
@@ -78,15 +84,17 @@ Claude Code를 재시작한 후 다음과 같이 사용할 수 있습니다:
 ### API 키 관련 오류
 
 1. 암호화된 키 확인:
+
    ```bash
    node scripts/tavily-key-loader.cjs
    ```
 
 2. 새로운 API 키로 재설정:
+
    ```bash
    # 1. 새 API 키로 암호화 파일 재생성
    node scripts/encrypt-tavily-key.cjs
-   
+
    # 2. 설정 검증
    npm run tavily:test
    ```
@@ -119,4 +127,4 @@ Claude Code를 재시작한 후 다음과 같이 사용할 수 있습니다:
 
 ---
 
-*이 문서는 OpenManager VIBE v5 프로젝트의 Tavily MCP 통합을 위한 가이드입니다.*
+_이 문서는 OpenManager VIBE v5 프로젝트의 Tavily MCP 통합을 위한 가이드입니다._

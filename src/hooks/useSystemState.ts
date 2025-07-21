@@ -250,7 +250,7 @@ export const useSystemState = (): UseSystemStateReturn => {
   useEffect(() => {
     // 초기 상태 확인만 수행
     fetchSystemState('page-load');
-    
+
     // 🚨 페이지 포커스/가시성 이벤트 리스너 제거 - 과도한 API 호출 방지
   }, []); // 빈 배열로 변경 - 마운트 시 한 번만 실행
 

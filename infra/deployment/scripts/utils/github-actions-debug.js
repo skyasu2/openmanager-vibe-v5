@@ -15,22 +15,21 @@ const path = require('path');
 const workflowPath = '.github/workflows/ci.yml';
 if (fs.existsSync(workflowPath)) {
   const content = fs.readFileSync(workflowPath, 'utf8');
-  
+
   console.log('✅ 워크플로우 파일 존재');
   console.log('📄 파일 크기:', fs.statSync(workflowPath).size, 'bytes');
-  
+
   // 트리거 조건 확인
   if (content.includes('push:') && content.includes('branches: [ main')) {
     console.log('✅ main 브랜치 push 트리거 설정됨');
   } else {
     console.log('❌ main 브랜치 트리거 설정 문제');
   }
-  
+
   // 시크릿 사용 확인
   if (content.includes('secrets.VERCEL_TOKEN')) {
     console.log('⚠️  VERCEL_TOKEN 시크릿 필요 (GitHub 저장소 설정 확인 필요)');
   }
-  
 } else {
   console.log('❌ 워크플로우 파일 없음');
 }
@@ -39,24 +38,31 @@ console.log('\n📋 2. Git 저장소 상태 확인');
 const { execSync } = require('child_process');
 
 try {
-  const branch = execSync('git branch --show-current', { encoding: 'utf8' }).trim();
+  const branch = execSync('git branch --show-current', {
+    encoding: 'utf8',
+  }).trim();
   console.log('🌿 현재 브랜치:', branch);
-  
-  const remoteUrl = execSync('git remote get-url origin', { encoding: 'utf8' }).trim();
+
+  const remoteUrl = execSync('git remote get-url origin', {
+    encoding: 'utf8',
+  }).trim();
   console.log('🔗 원격 저장소:', remoteUrl);
-  
+
   // 최근 커밋 확인
-  const lastCommit = execSync('git log -1 --format="%H %s"', { encoding: 'utf8' }).trim();
+  const lastCommit = execSync('git log -1 --format="%H %s"', {
+    encoding: 'utf8',
+  }).trim();
   console.log('📝 최근 커밋:', lastCommit);
-  
+
   // origin/main과의 동기화 상태
-  const status = execSync('git status --porcelain', { encoding: 'utf8' }).trim();
+  const status = execSync('git status --porcelain', {
+    encoding: 'utf8',
+  }).trim();
   if (status === '') {
     console.log('✅ 로컬 변경사항 없음');
   } else {
     console.log('⚠️  로컬에 커밋되지 않은 변경사항 있음');
   }
-  
 } catch (error) {
   console.log('❌ Git 상태 확인 실패:', error.message);
 }
@@ -88,7 +94,9 @@ console.log(`
 `);
 
 console.log('\n🚀 4. 간단한 테스트 워크플로우 생성');
-console.log('복잡한 Vercel 배포 대신 기본 테스트를 위한 워크플로우를 생성할까요?');
+console.log(
+  '복잡한 Vercel 배포 대신 기본 테스트를 위한 워크플로우를 생성할까요?'
+);
 
 const simpleWorkflow = `name: 🧪 Simple Test
 
@@ -122,10 +130,12 @@ jobs:
 
 // 간단한 워크플로우 백업 생성
 fs.writeFileSync('.github/workflows/simple-test.yml', simpleWorkflow);
-console.log('✅ 간단한 테스트 워크플로우 생성됨: .github/workflows/simple-test.yml');
+console.log(
+  '✅ 간단한 테스트 워크플로우 생성됨: .github/workflows/simple-test.yml'
+);
 
 console.log('\n🎯 다음 단계:');
 console.log('1. 위의 GitHub 설정들을 확인하세요');
 console.log('2. 간단한 워크플로우가 실행되는지 테스트하세요');
 console.log('3. 성공하면 원래 워크플로우에 VERCEL_TOKEN을 추가하세요');
-console.log('\n✅ 진단 완료!'); 
+console.log('\n✅ 진단 완료!');

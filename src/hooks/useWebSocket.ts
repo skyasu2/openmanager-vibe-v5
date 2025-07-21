@@ -212,7 +212,10 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
         ...prev,
         isConnected: false,
         isConnecting: false,
-        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
+        error:
+          error instanceof Error
+            ? error.message
+            : '알 수 없는 오류가 발생했습니다',
       }));
     }
   }, [url, debug, reconnectAttempts]);

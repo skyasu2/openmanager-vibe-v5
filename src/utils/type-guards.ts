@@ -85,16 +85,21 @@ export function isString(value: unknown): value is string {
 // 🖥️ 서버 관련 타입 가드
 // ============================================
 
-import type { ServerInstance, ServerMetrics, ServerStatus, ServerAlert } from '@/types/unified';
+import type {
+  ServerInstance,
+  ServerMetrics,
+  ServerStatus,
+  ServerAlert,
+} from '@/types/unified';
 
 /**
  * ServerInstance 타입 가드
  */
 export function isServerInstance(value: unknown): value is ServerInstance {
   if (!isObject(value)) return false;
-  
+
   const server = value as Record<string, unknown>;
-  
+
   return (
     isString(server.id) &&
     isString(server.name) &&
@@ -111,9 +116,9 @@ export function isServerInstance(value: unknown): value is ServerInstance {
  */
 export function isServerMetrics(value: unknown): value is ServerMetrics {
   if (!isObject(value)) return false;
-  
+
   const metrics = value as Record<string, unknown>;
-  
+
   return (
     isNumber(metrics.cpu) &&
     isNumber(metrics.memory) &&
@@ -127,10 +132,19 @@ export function isServerMetrics(value: unknown): value is ServerMetrics {
  */
 export function isValidServerStatus(value: unknown): value is ServerStatus {
   const validStatuses: ServerStatus[] = [
-    'online', 'offline', 'running', 'stopped', 'healthy',
-    'warning', 'critical', 'error', 'maintenance', 'active', 'inactive'
+    'online',
+    'offline',
+    'running',
+    'stopped',
+    'healthy',
+    'warning',
+    'critical',
+    'error',
+    'maintenance',
+    'active',
+    'inactive',
   ];
-  
+
   return isString(value) && validStatuses.includes(value as ServerStatus);
 }
 
@@ -139,9 +153,9 @@ export function isValidServerStatus(value: unknown): value is ServerStatus {
  */
 export function isServerAlert(value: unknown): value is ServerAlert {
   if (!isObject(value)) return false;
-  
+
   const alert = value as Record<string, unknown>;
-  
+
   return (
     isString(alert.id) &&
     isString(alert.type) &&
@@ -224,7 +238,9 @@ export function safePropertyAccess<T, K extends keyof T>(
 /**
  * 널리시 병합 체인
  */
-export function coalesce<T>(...values: (T | undefined | null)[]): T | undefined {
+export function coalesce<T>(
+  ...values: (T | undefined | null)[]
+): T | undefined {
   for (const value of values) {
     if (isDefined(value)) {
       return value;

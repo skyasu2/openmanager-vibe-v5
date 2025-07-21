@@ -18,7 +18,7 @@ const DIRECTORIES = [
   path.join(DOCUMENTS_DIR, 'base'),
   path.join(DOCUMENTS_DIR, 'advanced'),
   path.join(DOCUMENTS_DIR, 'custom'),
-  
+
   // 로그 디렉토리
   path.join(LOGS_DIR, 'failures'),
   path.join(LOGS_DIR, 'improvements'),
@@ -26,13 +26,14 @@ const DIRECTORIES = [
   path.join(LOGS_DIR, 'interactions'),
   path.join(LOGS_DIR, 'patterns'),
   path.join(LOGS_DIR, 'summaries'),
-  path.join(LOGS_DIR, 'backups')
+  path.join(LOGS_DIR, 'backups'),
 ];
 
 // 샘플 컨텍스트 파일들
 const SAMPLE_FILES = {
   // Base 컨텍스트
-  [path.join(DOCUMENTS_DIR, 'base', 'troubleshooting.md')]: `# 서버 트러블슈팅 가이드
+  [path.join(DOCUMENTS_DIR, 'base', 'troubleshooting.md')]:
+    `# 서버 트러블슈팅 가이드
 
 ## 일반적인 서버 문제 해결
 
@@ -88,54 +89,54 @@ const SAMPLE_FILES = {
 `,
 
   // Advanced 컨텍스트
-  [path.join(DOCUMENTS_DIR, 'advanced', 'patterns.json')]: JSON.stringify({
-    intentPatterns: {
-      server_status: {
-        patterns: [
-          "서버.*상태",
-          "서버.*확인",
-          "시스템.*상태",
-          "서비스.*상태"
-        ],
-        confidence: 0.9,
-        examples: [
-          "서버 상태를 확인해주세요",
-          "시스템 상태가 어떤가요?",
-          "서비스 상태 확인"
-        ]
+  [path.join(DOCUMENTS_DIR, 'advanced', 'patterns.json')]: JSON.stringify(
+    {
+      intentPatterns: {
+        server_status: {
+          patterns: [
+            '서버.*상태',
+            '서버.*확인',
+            '시스템.*상태',
+            '서비스.*상태',
+          ],
+          confidence: 0.9,
+          examples: [
+            '서버 상태를 확인해주세요',
+            '시스템 상태가 어떤가요?',
+            '서비스 상태 확인',
+          ],
+        },
+        performance_check: {
+          patterns: [
+            'cpu.*사용률',
+            '메모리.*사용량',
+            '디스크.*용량',
+            '성능.*확인',
+          ],
+          confidence: 0.85,
+          examples: [
+            'CPU 사용률이 높아요',
+            '메모리 사용량 확인',
+            '디스크 용량 부족',
+          ],
+        },
+        error_analysis: {
+          patterns: ['에러.*분석', '오류.*해결', '문제.*진단', '장애.*원인'],
+          confidence: 0.8,
+          examples: [
+            '에러 로그 분석해주세요',
+            '오류 원인을 찾아주세요',
+            '장애 진단 필요',
+          ],
+        },
       },
-      performance_check: {
-        patterns: [
-          "cpu.*사용률",
-          "메모리.*사용량",
-          "디스크.*용량",
-          "성능.*확인"
-        ],
-        confidence: 0.85,
-        examples: [
-          "CPU 사용률이 높아요",
-          "메모리 사용량 확인",
-          "디스크 용량 부족"
-        ]
-      },
-      error_analysis: {
-        patterns: [
-          "에러.*분석",
-          "오류.*해결",
-          "문제.*진단",
-          "장애.*원인"
-        ],
-        confidence: 0.8,
-        examples: [
-          "에러 로그 분석해주세요",
-          "오류 원인을 찾아주세요",
-          "장애 진단 필요"
-        ]
-      }
-    }
-  }, null, 2),
+    },
+    null,
+    2
+  ),
 
-  [path.join(DOCUMENTS_DIR, 'advanced', 'failure-cases.md')]: `# 고급 장애 사례 분석
+  [path.join(DOCUMENTS_DIR, 'advanced', 'failure-cases.md')]:
+    `# 고급 장애 사례 분석
 
 ## 복합적 장애 상황
 
@@ -177,7 +178,8 @@ const SAMPLE_FILES = {
 `,
 
   // Custom 샘플 (ACME 회사용)
-  [path.join(DOCUMENTS_DIR, 'custom', 'acme', 'acme-server-guides.md')]: `# ACME 회사 서버 관리 가이드
+  [path.join(DOCUMENTS_DIR, 'custom', 'acme', 'acme-server-guides.md')]:
+    `# ACME 회사 서버 관리 가이드
 
 ## ACME 특화 설정
 
@@ -206,30 +208,35 @@ const SAMPLE_FILES = {
 `,
 
   // 로그 샘플
-  [path.join(LOGS_DIR, 'summaries', 'summary-intent-analysis.json')]: JSON.stringify({
-    metadata: {
-      type: 'summary_log',
-      summaryType: 'intent-analysis',
-      savedAt: new Date().toISOString(),
-      version: '1.0.0'
-    },
-    data: {
-      totalQueries: 1250,
-      classifiedQueries: 1100,
-      unclassifiedQueries: 150,
-      topIntents: [
-        { intent: 'server_status', count: 450, percentage: 36 },
-        { intent: 'performance_check', count: 320, percentage: 25.6 },
-        { intent: 'error_analysis', count: 230, percentage: 18.4 },
-        { intent: 'general_inquiry', count: 100, percentage: 8 }
-      ],
-      improvementSuggestions: [
-        '미분류 질의에 대한 새로운 인텐트 패턴 추가 필요',
-        'server_status 인텐트의 세분화 고려',
-        '성능 관련 질의의 자동 분류 정확도 개선'
-      ]
-    }
-  }, null, 2)
+  [path.join(LOGS_DIR, 'summaries', 'summary-intent-analysis.json')]:
+    JSON.stringify(
+      {
+        metadata: {
+          type: 'summary_log',
+          summaryType: 'intent-analysis',
+          savedAt: new Date().toISOString(),
+          version: '1.0.0',
+        },
+        data: {
+          totalQueries: 1250,
+          classifiedQueries: 1100,
+          unclassifiedQueries: 150,
+          topIntents: [
+            { intent: 'server_status', count: 450, percentage: 36 },
+            { intent: 'performance_check', count: 320, percentage: 25.6 },
+            { intent: 'error_analysis', count: 230, percentage: 18.4 },
+            { intent: 'general_inquiry', count: 100, percentage: 8 },
+          ],
+          improvementSuggestions: [
+            '미분류 질의에 대한 새로운 인텐트 패턴 추가 필요',
+            'server_status 인텐트의 세분화 고려',
+            '성능 관련 질의의 자동 분류 정확도 개선',
+          ],
+        },
+      },
+      null,
+      2
+    ),
 };
 
 /**
@@ -237,7 +244,7 @@ const SAMPLE_FILES = {
  */
 function createDirectories() {
   console.log('📁 디렉토리 구조 생성 중...');
-  
+
   DIRECTORIES.forEach(dir => {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
@@ -253,14 +260,14 @@ function createDirectories() {
  */
 function createSampleFiles() {
   console.log('\n📄 샘플 파일 생성 중...');
-  
+
   Object.entries(SAMPLE_FILES).forEach(([filePath, content]) => {
     // 파일의 디렉토리가 존재하는지 확인
     const dir = path.dirname(filePath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    
+
     if (!fs.existsSync(filePath)) {
       fs.writeFileSync(filePath, content, 'utf-8');
       console.log(`✅ 생성: ${filePath}`);
@@ -275,16 +282,16 @@ function createSampleFiles() {
  */
 function createGitkeepFiles() {
   console.log('\n📌 .gitkeep 파일 생성 중...');
-  
+
   const emptyDirs = [
     path.join(LOGS_DIR, 'failures'),
     path.join(LOGS_DIR, 'improvements'),
     path.join(LOGS_DIR, 'analysis'),
     path.join(LOGS_DIR, 'interactions'),
     path.join(LOGS_DIR, 'patterns'),
-    path.join(LOGS_DIR, 'backups')
+    path.join(LOGS_DIR, 'backups'),
   ];
-  
+
   emptyDirs.forEach(dir => {
     const gitkeepPath = path.join(dir, '.gitkeep');
     if (!fs.existsSync(gitkeepPath)) {
@@ -351,13 +358,13 @@ function createReadme() {
  */
 function main() {
   console.log('🚀 AI 컨텍스트 관리 시스템 초기화 시작\n');
-  
+
   try {
     createDirectories();
     createSampleFiles();
     createGitkeepFiles();
     createReadme();
-    
+
     console.log('\n🎉 초기화 완료!');
     console.log('\n📋 생성된 구조:');
     console.log(`📁 ${DOCUMENTS_DIR}`);
@@ -387,7 +394,6 @@ function main() {
     console.log('2. http://localhost:3000/admin/ai-analysis 접속');
     console.log('3. "컨텍스트 관리" 탭에서 파일 확인');
     console.log('4. 필요에 따라 컨텍스트 수정 및 버전 관리');
-    
   } catch (error) {
     console.error('❌ 초기화 실패:', error);
     process.exit(1);
@@ -403,5 +409,5 @@ module.exports = {
   createDirectories,
   createSampleFiles,
   createGitkeepFiles,
-  createReadme
-}; 
+  createReadme,
+};

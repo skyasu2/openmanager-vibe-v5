@@ -5,20 +5,27 @@ console.log('🧪 MCP 서버 직접 테스트');
 console.log('========================');
 
 // Filesystem MCP 테스트
-const fsServer = spawn('node', [
-  path.join(__dirname, '../node_modules/@modelcontextprotocol/server-filesystem/dist/index.js')
-], {
-  env: {
-    ...process.env,
-    ALLOWED_DIRECTORIES: '/mnt/d/cursor/openmanager-vibe-v5'
+const fsServer = spawn(
+  'node',
+  [
+    path.join(
+      __dirname,
+      '../node_modules/@modelcontextprotocol/server-filesystem/dist/index.js'
+    ),
+  ],
+  {
+    env: {
+      ...process.env,
+      ALLOWED_DIRECTORIES: '/mnt/d/cursor/openmanager-vibe-v5',
+    },
   }
-});
+);
 
-fsServer.stdout.on('data', (data) => {
+fsServer.stdout.on('data', data => {
   console.log(`[FS MCP] ${data}`);
 });
 
-fsServer.stderr.on('data', (data) => {
+fsServer.stderr.on('data', data => {
   console.error(`[FS MCP Error] ${data}`);
 });
 
@@ -29,11 +36,11 @@ setTimeout(() => {
     method: 'initialize',
     params: {
       protocolVersion: '1.0.0',
-      capabilities: {}
+      capabilities: {},
     },
-    id: 1
+    id: 1,
   });
-  
+
   console.log('테스트 메시지 전송:', testMessage);
   fsServer.stdin.write(testMessage + '\n');
 }, 1000);

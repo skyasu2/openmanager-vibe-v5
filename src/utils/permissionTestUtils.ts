@@ -1,6 +1,6 @@
 /**
  * 🧪 Permission Test Utils
- * 
+ *
  * 권한 시스템 테스트를 위한 유틸리티 함수들
  * 개발 환경에서만 사용
  */
@@ -73,14 +73,19 @@ export function testPermissions(
   expectedPermissions: Partial<UserPermissions>,
   scenarioName: string
 ): boolean {
-  const results: Array<{ key: string; expected: any; actual: any; passed: boolean }> = [];
+  const results: Array<{
+    key: string;
+    expected: any;
+    actual: any;
+    passed: boolean;
+  }> = [];
   let allPassed = true;
 
   // 각 권한 항목 테스트
   Object.entries(expectedPermissions).forEach(([key, expectedValue]) => {
     const actualValue = actualPermissions[key as keyof UserPermissions];
     const passed = actualValue === expectedValue;
-    
+
     results.push({
       key,
       expected: expectedValue,
@@ -95,7 +100,7 @@ export function testPermissions(
 
   // 테스트 결과 출력
   console.group(`🧪 [Permission Test] ${scenarioName}`);
-  
+
   if (allPassed) {
     console.log('✅ 모든 권한 테스트 통과');
   } else {
@@ -117,18 +122,34 @@ export function testPermissions(
  */
 export function testMenuItemVisibility(permissions: UserPermissions): void {
   console.group('🎯 [Menu Visibility Test]');
-  
+
   const menuItems = [
     { name: 'AI 토글', visible: permissions.canToggleAI, expectedForAll: true },
-    { name: '시스템 제어', visible: permissions.canControlSystem, expectedForAdmin: true },
-    { name: '설정', visible: permissions.canAccessSettings, expectedForAdmin: true },
-    { name: '관리자 모드', visible: permissions.canToggleAdminMode, expectedForAdmin: true },
-    { name: '로그아웃', visible: permissions.canLogout, expectedForAdmin: true },
+    {
+      name: '시스템 제어',
+      visible: permissions.canControlSystem,
+      expectedForAdmin: true,
+    },
+    {
+      name: '설정',
+      visible: permissions.canAccessSettings,
+      expectedForAdmin: true,
+    },
+    {
+      name: '관리자 모드',
+      visible: permissions.canToggleAdminMode,
+      expectedForAdmin: true,
+    },
+    {
+      name: '로그아웃',
+      visible: permissions.canLogout,
+      expectedForAdmin: true,
+    },
   ];
 
   menuItems.forEach(({ name, visible, expectedForAll, expectedForAdmin }) => {
     let shouldBeVisible = false;
-    
+
     if (expectedForAll) {
       shouldBeVisible = true; // 모든 사용자에게 표시되어야 함
     } else if (expectedForAdmin) {
@@ -137,8 +158,10 @@ export function testMenuItemVisibility(permissions: UserPermissions): void {
 
     const testPassed = visible === shouldBeVisible;
     const icon = testPassed ? '✅' : '❌';
-    
-    console.log(`${icon} ${name}: ${visible ? '표시됨' : '숨김'} (예상: ${shouldBeVisible ? '표시' : '숨김'})`);
+
+    console.log(
+      `${icon} ${name}: ${visible ? '표시됨' : '숨김'} (예상: ${shouldBeVisible ? '표시' : '숨김'})`
+    );
   });
 
   console.groupEnd();
@@ -153,7 +176,7 @@ export function runFullPermissionTest(permissions: UserPermissions): void {
   }
 
   console.group('🔐 [Full Permission System Test]');
-  
+
   // 현재 사용자 유형 확인
   const currentScenario = PERMISSION_TEST_SCENARIOS.find(
     scenario => scenario.userType === permissions.userType

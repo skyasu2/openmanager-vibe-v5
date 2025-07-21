@@ -2,7 +2,7 @@
 
 /**
  * 🔐 통합 환경변수 암호화 스크립트
- * 
+ *
  * 사용법:
  * node scripts/unified-encrypt-env.mjs --password=<master-password>
  * node scripts/unified-encrypt-env.mjs --password-file=.env.key
@@ -24,7 +24,7 @@ const CONFIG = {
   keyLength: 32,
   ivLength: 16,
   saltLength: 32,
-  version: '2.0.0'
+  version: '2.0.0',
 };
 
 // CLI 인자 파싱
@@ -62,7 +62,9 @@ function getMasterPassword(options) {
     return process.env.ENV_MASTER_PASSWORD;
   }
 
-  throw new Error('Master password not provided. Use --password or --password-file');
+  throw new Error(
+    'Master password not provided. Use --password or --password-file'
+  );
 }
 
 // 환경변수 로드
@@ -100,7 +102,7 @@ function loadEnvironmentVariables() {
   ];
 
   const envVars = {};
-  
+
   varsToEncrypt.forEach(key => {
     if (process.env[key]) {
       envVars[key] = process.env[key];
@@ -114,7 +116,7 @@ function loadEnvironmentVariables() {
 function encryptValue(value, password) {
   const salt = randomBytes(CONFIG.saltLength);
   const iv = randomBytes(CONFIG.ivLength);
-  
+
   const key = pbkdf2Sync(
     password,
     salt,
@@ -124,7 +126,7 @@ function encryptValue(value, password) {
   );
 
   const cipher = createCipheriv(CONFIG.algorithm, key, iv);
-  
+
   const encrypted = Buffer.concat([
     cipher.update(value, 'utf8'),
     cipher.final(),
@@ -149,7 +151,9 @@ async function main() {
 
     const options = parseArgs();
     const masterPassword = getMasterPassword(options);
-    const passwordHash = createHash('sha256').update(masterPassword).digest('hex');
+    const passwordHash = createHash('sha256')
+      .update(masterPassword)
+      .digest('hex');
 
     console.log('✅ 마스터 비밀번호 확인됨');
 
@@ -167,7 +171,7 @@ async function main() {
 
     // 암호화 진행
     const encryptedVars = {};
-    
+
     for (const [key, value] of Object.entries(envVars)) {
       try {
         const encrypted = encryptValue(value, masterPassword);
@@ -177,7 +181,7 @@ async function main() {
           isPublic: key.startsWith('NEXT_PUBLIC_'),
           category: getCategoryForVar(key),
         };
-        
+
         console.log(`✅ ${key}: 암호화 완료`);
       } catch (error) {
         console.error(`❌ ${key}: 암호화 실패 - ${error.message}`);
@@ -186,8 +190,12 @@ async function main() {
 
     // TypeScript 설정 파일 생성
     const configContent = generateConfigFile(passwordHash, encryptedVars);
-    const configPath = path.join(process.cwd(), 'config', 'encrypted-env-config.ts');
-    
+    const configPath = path.join(
+      process.cwd(),
+      'config',
+      'encrypted-env-config.ts'
+    );
+
     // 백업 생성
     if (fs.existsSync(configPath)) {
       const backupPath = configPath.replace('.ts', `.backup.${Date.now()}.ts`);
@@ -207,7 +215,6 @@ async function main() {
     console.log('   ENV_MASTER_PASSWORD = <your-master-password>');
     console.log('2. 암호화된 설정 파일은 Git에 커밋 가능');
     console.log('3. 배포 시 자동으로 복호화되어 사용됨');
-
   } catch (error) {
     console.error('\n❌ 오류 발생:', error.message);
     process.exit(1);
@@ -256,12 +263,16 @@ export interface EncryptedEnvironmentConfig {
   variables: { [key: string]: EncryptedEnvVar };
 }
 
-export const ENCRYPTED_ENV_CONFIG: EncryptedEnvironmentConfig = ${JSON.stringify({
-    version: CONFIG.version,
-    createdAt: new Date().toISOString(),
-    teamPasswordHash: passwordHash,
-    variables: encryptedVars
-  }, null, 2)};
+export const ENCRYPTED_ENV_CONFIG: EncryptedEnvironmentConfig = ${JSON.stringify(
+    {
+      version: CONFIG.version,
+      createdAt: new Date().toISOString(),
+      teamPasswordHash: passwordHash,
+      variables: encryptedVars,
+    },
+    null,
+    2
+  )};
 
 // 배포 설정
 export const DEPLOYMENT_CONFIG = {

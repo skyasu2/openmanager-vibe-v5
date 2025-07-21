@@ -83,7 +83,7 @@ const getEnvVar = (key: string, defaultValue: string = ''): string => {
     }
     return defaultValue;
   }
-  
+
   if (typeof process === 'undefined' || !process.env) {
     console.warn(`⚠️ 환경변수 접근 불가: ${key}`);
     return defaultValue;

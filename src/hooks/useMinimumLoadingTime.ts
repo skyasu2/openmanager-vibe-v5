@@ -237,7 +237,14 @@ export const useNaturalLoadingTime = ({
     }, 5000);
 
     return cleanup;
-  }, [skipCondition, isCompleted, startTime, phase, actualLoadingPromise, handleComplete]);
+  }, [
+    skipCondition,
+    isCompleted,
+    startTime,
+    phase,
+    actualLoadingPromise,
+    handleComplete,
+  ]);
 
   // 클릭으로 스킵 기능 (3초 후 활성화)
   useEffect(() => {

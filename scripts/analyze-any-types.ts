@@ -2,7 +2,7 @@
 
 /**
  * 🔍 TypeScript Any 타입 자동 분석 도구
- * 
+ *
  * 프로젝트 전체의 any 타입 사용을 분석하고 리포트를 생성합니다.
  * - 파일별 any 사용 통계
  * - 패턴별 분류 (함수 파라미터, 반환값, 변수 등)
@@ -48,7 +48,7 @@ class AnyTypeAnalyzer {
     fileAnalysis: [],
     topFiles: [],
     byTypeDistribution: {},
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   };
 
   async analyze(targetDir: string = 'src'): Promise<void> {
@@ -73,7 +73,13 @@ class AnyTypeAnalyzer {
   private async getTypeScriptFiles(dir: string): Promise<string[]> {
     const pattern = path.join(dir, '**/*.{ts,tsx}');
     const files = await glob(pattern, {
-      ignore: ['**/node_modules/**', '**/dist/**', '**/*.d.ts', '**/*.test.ts', '**/*.spec.ts']
+      ignore: [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/*.d.ts',
+        '**/*.test.ts',
+        '**/*.spec.ts',
+      ],
     });
     return files;
   }
@@ -91,7 +97,7 @@ class AnyTypeAnalyzer {
       file: filePath,
       totalCount: 0,
       byType: {},
-      usages: []
+      usages: [],
     };
 
     const visit = (node: ts.Node) => {
@@ -108,8 +114,12 @@ class AnyTypeAnalyzer {
       // 암시적 any 검사 (타입 주석이 없는 파라미터)
       if (ts.isParameter(node) && !node.type) {
         const parent = node.parent;
-        if (ts.isFunctionDeclaration(parent) || ts.isMethodDeclaration(parent) || 
-            ts.isArrowFunction(parent) || ts.isFunctionExpression(parent)) {
+        if (
+          ts.isFunctionDeclaration(parent) ||
+          ts.isMethodDeclaration(parent) ||
+          ts.isArrowFunction(parent) ||
+          ts.isFunctionExpression(parent)
+        ) {
           // noImplicitAny가 false인 경우 암시적 any
           this.recordImplicitAny(node, sourceFile, analysis);
         }
@@ -122,23 +132,36 @@ class AnyTypeAnalyzer {
     return analysis;
   }
 
-  private recordAnyUsage(node: ts.Node, sourceFile: ts.SourceFile, analysis: FileAnalysis): void {
-    const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+  private recordAnyUsage(
+    node: ts.Node,
+    sourceFile: ts.SourceFile,
+    analysis: FileAnalysis
+  ): void {
+    const { line, character } = sourceFile.getLineAndCharacterOfPosition(
+      node.getStart()
+    );
     const parent = node.parent;
-    
+
     let type: AnyUsage['type'] = 'other';
     let context = '';
 
     if (ts.isParameter(parent)) {
       type = 'parameter';
       context = `Parameter in ${this.getFunctionName(parent.parent)}`;
-    } else if (ts.isTypeNode(node) && parent && ts.isFunctionLike(parent.parent)) {
+    } else if (
+      ts.isTypeNode(node) &&
+      parent &&
+      ts.isFunctionLike(parent.parent)
+    ) {
       type = 'return';
       context = `Return type of ${this.getFunctionName(parent.parent)}`;
     } else if (ts.isVariableDeclaration(parent)) {
       type = 'variable';
       context = `Variable: ${parent.name.getText()}`;
-    } else if (ts.isPropertyDeclaration(parent) || ts.isPropertySignature(parent)) {
+    } else if (
+      ts.isPropertyDeclaration(parent) ||
+      ts.isPropertySignature(parent)
+    ) {
       type = 'property';
       context = `Property: ${parent.name?.getText() || 'unknown'}`;
     } else if (ts.isAsExpression(parent)) {
@@ -152,7 +175,7 @@ class AnyTypeAnalyzer {
       column: character + 1,
       code: this.getCodeContext(node, sourceFile),
       type,
-      context
+      context,
     };
 
     analysis.usages.push(usage);
@@ -160,16 +183,22 @@ class AnyTypeAnalyzer {
     analysis.byType[type] = (analysis.byType[type] || 0) + 1;
   }
 
-  private recordImplicitAny(node: ts.ParameterDeclaration, sourceFile: ts.SourceFile, analysis: FileAnalysis): void {
-    const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
-    
+  private recordImplicitAny(
+    node: ts.ParameterDeclaration,
+    sourceFile: ts.SourceFile,
+    analysis: FileAnalysis
+  ): void {
+    const { line, character } = sourceFile.getLineAndCharacterOfPosition(
+      node.getStart()
+    );
+
     const usage: AnyUsage = {
       file: analysis.file,
       line: line + 1,
       column: character + 1,
       code: node.getText(),
       type: 'parameter',
-      context: `Implicit any in ${this.getFunctionName(node.parent)}`
+      context: `Implicit any in ${this.getFunctionName(node.parent)}`,
     };
 
     analysis.usages.push(usage);
@@ -196,10 +225,10 @@ class AnyTypeAnalyzer {
     const end = node.getEnd();
     const lineStart = sourceFile.getLineAndCharacterOfPosition(start).line;
     const lineEnd = sourceFile.getLineAndCharacterOfPosition(end).line;
-    
+
     const lines = sourceFile.text.split('\n');
     const contextLines = lines.slice(Math.max(0, lineStart - 1), lineEnd + 2);
-    
+
     return contextLines.join('\n').trim();
   }
 
@@ -214,7 +243,7 @@ class AnyTypeAnalyzer {
     this.report.byTypeDistribution = {};
     for (const analysis of this.report.fileAnalysis) {
       for (const [type, count] of Object.entries(analysis.byType)) {
-        this.report.byTypeDistribution[type] = 
+        this.report.byTypeDistribution[type] =
           (this.report.byTypeDistribution[type] || 0) + count;
       }
     }
@@ -230,12 +259,16 @@ class AnyTypeAnalyzer {
     console.log(chalk.bold('🔝 Any 사용 상위 10개 파일:'));
     this.report.topFiles.forEach((file, index) => {
       const relativePath = path.relative(process.cwd(), file.file);
-      console.log(`  ${index + 1}. ${chalk.cyan(relativePath)} - ${chalk.red(file.count + '개')}`);
+      console.log(
+        `  ${index + 1}. ${chalk.cyan(relativePath)} - ${chalk.red(file.count + '개')}`
+      );
     });
 
     // 타입별 분포
     console.log(chalk.bold('\n📈 타입별 분포:'));
-    for (const [type, count] of Object.entries(this.report.byTypeDistribution)) {
+    for (const [type, count] of Object.entries(
+      this.report.byTypeDistribution
+    )) {
       const percentage = ((count / this.report.totalAnyCount) * 100).toFixed(1);
       console.log(`  ${type}: ${count}개 (${percentage}%)`);
     }
@@ -267,7 +300,9 @@ class AnyTypeAnalyzer {
     markdown += `\n## 📈 타입별 분포\n\n`;
     markdown += `| 타입 | 개수 | 비율 |\n`;
     markdown += `|------|------|------|\n`;
-    for (const [type, count] of Object.entries(this.report.byTypeDistribution)) {
+    for (const [type, count] of Object.entries(
+      this.report.byTypeDistribution
+    )) {
       const percentage = ((count / this.report.totalAnyCount) * 100).toFixed(1);
       markdown += `| ${type} | ${count} | ${percentage}% |\n`;
     }
@@ -281,7 +316,7 @@ class AnyTypeAnalyzer {
     priorityFiles.forEach(file => {
       const relativePath = path.relative(process.cwd(), file.file);
       markdown += `### ${relativePath} (${file.totalCount}개)\n\n`;
-      
+
       // 샘플 사용 예시 (최대 3개)
       const samples = file.usages.slice(0, 3);
       samples.forEach(usage => {

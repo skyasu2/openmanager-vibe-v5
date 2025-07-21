@@ -1,6 +1,6 @@
 /**
  * 🎯 OpenManager VIBE v5 - 통합 타입 정의
- * 
+ *
  * 모든 타입을 중앙 집중화하여 일관성과 재사용성 확보
  * TypeScript strict 모드 완전 준수
  */
@@ -83,7 +83,7 @@ export interface ServerMetrics {
   memory: number;
   disk: number;
   network: number;
-  
+
   // 추가 정보
   timestamp?: string;
   uptime?: number;
@@ -92,7 +92,7 @@ export interface ServerMetrics {
   environment?: string;
   role?: string;
   status?: ServerStatus;
-  
+
   // 상세 메트릭
   cpu_usage?: number;
   memory_usage?: number;
@@ -101,7 +101,7 @@ export interface ServerMetrics {
   network_out?: number;
   response_time?: number;
   last_updated?: string;
-  
+
   // 관련 데이터
   alerts?: ServerAlert[];
   requests?: number;
@@ -117,18 +117,18 @@ export interface ServerInstance {
   id: string;
   name: string;
   status: ServerStatus;
-  
+
   // 메트릭
   cpu: number;
   memory: number;
   disk: number;
   network: number;
-  
+
   // 시간 정보
   uptime: number;
   lastCheck: string;
   lastUpdated: string;
-  
+
   // 분류 정보
   type: string;
   environment: string;
@@ -136,13 +136,13 @@ export interface ServerInstance {
   version: string;
   location: string;
   provider: string;
-  
+
   // 추가 정보
   tags: string[];
   alerts: number;
   health?: ServerHealth;
   specs?: ServerSpecs;
-  
+
   // 요청 정보
   requests?: {
     total: number;
@@ -150,7 +150,7 @@ export interface ServerInstance {
     errors: number;
     averageTime: number;
   };
-  
+
   // 부가 정보
   ip?: string;
   isSSL?: boolean;
@@ -180,7 +180,8 @@ export type RequireFields<T, K extends keyof T> = T & Required<Pick<T, K>>;
 /**
  * 선택적 필드 지정
  */
-export type PartialFields<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+export type PartialFields<T, K extends keyof T> = Omit<T, K> &
+  Partial<Pick<T, K>>;
 
 /**
  * 안전한 인덱스 접근
@@ -331,9 +332,9 @@ export interface SortOptions<T> {
 
 // Export all types from other files for backward compatibility
 export type { AlertSeverity } from './common';
-export type { 
+export type {
   ServerStatus as ServerStatusLegacy,
   ServerHealth as ServerHealthLegacy,
   ServerMetrics as ServerMetricsLegacy,
-  ServerSpecs as ServerSpecsLegacy 
+  ServerSpecs as ServerSpecsLegacy,
 } from './server-common';

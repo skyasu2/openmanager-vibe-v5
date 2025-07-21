@@ -40,7 +40,7 @@ export function useSystemAlerts() {
               type: 'error',
               message: `서버 ${server.name}에 심각한 문제가 발생했습니다`,
               timestamp: new Date().toISOString(),
-              serverId: server.id
+              serverId: server.id,
             });
           } else if (server.status === 'warning') {
             extractedAlerts.push({
@@ -48,7 +48,7 @@ export function useSystemAlerts() {
               type: 'warning',
               message: `서버 ${server.name}에 주의가 필요합니다`,
               timestamp: new Date().toISOString(),
-              serverId: server.id
+              serverId: server.id,
             });
           }
         });
@@ -76,6 +76,6 @@ export function useSystemAlerts() {
     alerts,
     loading,
     error,
-    refetch: fetchAlerts
+    refetch: fetchAlerts,
   };
 }

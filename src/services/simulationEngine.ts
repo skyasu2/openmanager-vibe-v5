@@ -206,8 +206,12 @@ export class SimulationEngine {
   getSimulationSummary() {
     const servers = this.getServers();
     const totalServers = servers.length;
-    const criticalServers = servers.filter((s: any) => s.status === 'critical').length;
-    const warningServers = servers.filter((s: any) => s.status === 'warning').length;
+    const criticalServers = servers.filter(
+      (s: any) => s.status === 'critical'
+    ).length;
+    const warningServers = servers.filter(
+      (s: any) => s.status === 'warning'
+    ).length;
     const healthyServers = totalServers - criticalServers - warningServers;
 
     return {
@@ -217,13 +221,16 @@ export class SimulationEngine {
       criticalServers,
       healthPercentage: Math.round((healthyServers / totalServers) * 100),
       averageCpu: Math.round(
-        servers.reduce((sum: number, s: any) => sum + s.cpu_usage, 0) / totalServers
+        servers.reduce((sum: number, s: any) => sum + s.cpu_usage, 0) /
+          totalServers
       ),
       averageMemory: Math.round(
-        servers.reduce((sum: number, s: any) => sum + s.memory_usage, 0) / totalServers
+        servers.reduce((sum: number, s: any) => sum + s.memory_usage, 0) /
+          totalServers
       ),
       averageResponseTime: Math.round(
-        servers.reduce((sum: number, s: any) => sum + s.response_time, 0) / totalServers
+        servers.reduce((sum: number, s: any) => sum + s.response_time, 0) /
+          totalServers
       ),
       timestamp: new Date().toISOString(),
       // 추가 속성들

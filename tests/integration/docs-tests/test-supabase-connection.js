@@ -2,8 +2,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 // Supabase 클라이언트 생성
 const supabaseUrl = 'your_supabase_url_here';
-const supabaseKey =
-  'SENSITIVE_INFO_REMOVED';
+const supabaseKey = 'SENSITIVE_INFO_REMOVED';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 

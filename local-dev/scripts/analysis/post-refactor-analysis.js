@@ -15,56 +15,56 @@ const analysisResult = {
   orphanedFiles: [],
   circularDependencies: [],
   importErrors: [],
-  architectureHealth: {}
+  architectureHealth: {},
 };
 
 // 핵심 모듈 정의
 const coreModules = {
-  'dashboard': {
+  dashboard: {
     path: 'src/app/dashboard',
     type: 'application',
-    role: '메인 대시보드 애플리케이션'
+    role: '메인 대시보드 애플리케이션',
   },
-  'components': {
+  components: {
     path: 'src/components',
     type: 'ui',
-    role: 'UI 컴포넌트 라이브러리'
+    role: 'UI 컴포넌트 라이브러리',
   },
   'ai-sidebar': {
     path: 'src/modules/ai-sidebar',
     type: 'feature',
-    role: 'AI 사이드바 기능 모듈'
+    role: 'AI 사이드바 기능 모듈',
   },
   'ai-agent': {
     path: 'src/modules/ai-agent',
     type: 'feature',
-    role: 'AI 에이전트 처리 모듈'
+    role: 'AI 에이전트 처리 모듈',
   },
-  'services': {
+  services: {
     path: 'src/services',
     type: 'business',
-    role: '비즈니스 로직 서비스'
+    role: '비즈니스 로직 서비스',
   },
-  'api': {
+  api: {
     path: 'src/app/api',
     type: 'api',
-    role: 'API 라우트 핸들러'
+    role: 'API 라우트 핸들러',
   },
-  'lib': {
+  lib: {
     path: 'src/lib',
     type: 'utility',
-    role: '공통 라이브러리 및 유틸리티'
+    role: '공통 라이브러리 및 유틸리티',
   },
-  'hooks': {
+  hooks: {
     path: 'src/hooks',
     type: 'logic',
-    role: 'React 훅 및 상태 관리'
+    role: 'React 훅 및 상태 관리',
   },
-  'stores': {
+  stores: {
     path: 'src/stores',
     type: 'state',
-    role: '전역 상태 관리'
-  }
+    role: '전역 상태 관리',
+  },
 };
 
 // 파일 스캔 함수
@@ -82,10 +82,12 @@ function scanDirectory(dir, extensions = ['.ts', '.tsx', '.js', '.jsx']) {
 
       if (stat.isDirectory()) {
         // archive, node_modules, .next 등 제외
-        if (!item.startsWith('.') &&
+        if (
+          !item.startsWith('.') &&
           item !== 'node_modules' &&
           item !== 'archive' &&
-          !fullPath.includes('archive')) {
+          !fullPath.includes('archive')
+        ) {
           scan(fullPath);
         }
       } else if (extensions.some(ext => item.endsWith(ext))) {
@@ -108,7 +110,7 @@ function analyzeImports(filePath) {
     const importRegexes = [
       /import\s+.*?from\s+['"`]([^'"`]+)['"`]/g,
       /require\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g,
-      /import\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g
+      /import\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g,
     ];
 
     importRegexes.forEach(regex => {
@@ -118,7 +120,7 @@ function analyzeImports(filePath) {
           path: match[1],
           isRelative: match[1].startsWith('.'),
           isAbsolute: match[1].startsWith('@/'),
-          isExternal: !match[1].startsWith('.') && !match[1].startsWith('@/')
+          isExternal: !match[1].startsWith('.') && !match[1].startsWith('@/'),
         });
       }
     });
@@ -140,7 +142,7 @@ function classifyFile(filePath) {
         module: moduleKey,
         type: moduleInfo.type,
         role: moduleInfo.role,
-        subPath: relativePath.replace(moduleInfo.path.replace('src/', ''), '')
+        subPath: relativePath.replace(moduleInfo.path.replace('src/', ''), ''),
       };
     }
   }
@@ -149,7 +151,7 @@ function classifyFile(filePath) {
     module: 'unknown',
     type: 'misc',
     role: '분류되지 않은 파일',
-    subPath: relativePath
+    subPath: relativePath,
   };
 }
 
@@ -167,10 +169,10 @@ function buildDependencyGraph(files) {
       classification,
       imports: imports.map(imp => ({
         ...imp,
-        resolvedPath: resolveImportPath(imp.path, file)
+        resolvedPath: resolveImportPath(imp.path, file),
       })),
       size: fs.statSync(file).size,
-      lines: fs.readFileSync(file, 'utf8').split('\n').length
+      lines: fs.readFileSync(file, 'utf8').split('\n').length,
     };
 
     // 모듈간 연결 집계
@@ -180,7 +182,7 @@ function buildDependencyGraph(files) {
         internal: new Set(),
         external: new Set(),
         totalImports: 0,
-        files: []
+        files: [],
       };
     }
 
@@ -206,8 +208,12 @@ function buildDependencyGraph(files) {
 
   // Set을 Array로 변환
   Object.keys(moduleConnections).forEach(module => {
-    moduleConnections[module].internal = Array.from(moduleConnections[module].internal);
-    moduleConnections[module].external = Array.from(moduleConnections[module].external);
+    moduleConnections[module].internal = Array.from(
+      moduleConnections[module].internal
+    );
+    moduleConnections[module].external = Array.from(
+      moduleConnections[module].external
+    );
   });
 
   return { graph, moduleConnections };
@@ -251,7 +257,10 @@ function detectCircularDependencies(graph) {
     const nodeData = graph[node];
     if (nodeData && nodeData.imports) {
       nodeData.imports.forEach(imp => {
-        if (imp.resolvedPath && graph[path.relative(process.cwd(), imp.resolvedPath)]) {
+        if (
+          imp.resolvedPath &&
+          graph[path.relative(process.cwd(), imp.resolvedPath)]
+        ) {
           dfs(path.relative(process.cwd(), imp.resolvedPath), [...path]);
         }
       });
@@ -289,7 +298,7 @@ function detectOrphanedFiles(graph) {
   const entryPoints = new Set([
     'src/app/layout.tsx',
     'src/app/page.tsx',
-    'src/app/dashboard/page.tsx'
+    'src/app/dashboard/page.tsx',
   ]);
 
   const orphaned = [];
@@ -303,12 +312,17 @@ function detectOrphanedFiles(graph) {
 }
 
 // 아키텍처 건강도 평가
-function evaluateArchitectureHealth(moduleConnections, graph, cycles, orphaned) {
+function evaluateArchitectureHealth(
+  moduleConnections,
+  graph,
+  cycles,
+  orphaned
+) {
   const health = {
     overall: 'good',
     scores: {},
     issues: [],
-    recommendations: []
+    recommendations: [],
   };
 
   // 모듈별 점수 계산
@@ -318,21 +332,27 @@ function evaluateArchitectureHealth(moduleConnections, graph, cycles, orphaned) 
     // 너무 많은 외부 의존성 (-5점씩)
     if (data.external.length > 5) {
       score -= (data.external.length - 5) * 5;
-      health.issues.push(`${module}: 과도한 외부 의존성 (${data.external.length}개)`);
+      health.issues.push(
+        `${module}: 과도한 외부 의존성 (${data.external.length}개)`
+      );
     }
 
     // 파일 수 대비 import 비율
     const avgImports = data.totalImports / data.files.length;
     if (avgImports > 10) {
       score -= 10;
-      health.issues.push(`${module}: 높은 결합도 (평균 ${avgImports.toFixed(1)}개 import/파일)`);
+      health.issues.push(
+        `${module}: 높은 결합도 (평균 ${avgImports.toFixed(1)}개 import/파일)`
+      );
     }
 
     health.scores[module] = Math.max(0, score);
   });
 
   // 전체 점수
-  const avgScore = Object.values(health.scores).reduce((a, b) => a + b, 0) / Object.keys(health.scores).length;
+  const avgScore =
+    Object.values(health.scores).reduce((a, b) => a + b, 0) /
+    Object.keys(health.scores).length;
 
   // 순환 의존성 패널티
   if (cycles.length > 0) {
@@ -399,7 +419,12 @@ async function main() {
   analysisResult.orphanedFiles = orphaned;
 
   console.log('🏥 아키텍처 건강도 평가 중...');
-  const health = evaluateArchitectureHealth(moduleConnections, graph, cycles, orphaned);
+  const health = evaluateArchitectureHealth(
+    moduleConnections,
+    graph,
+    cycles,
+    orphaned
+  );
   analysisResult.architectureHealth = health;
 
   // 연결도 매트릭스
@@ -420,17 +445,23 @@ async function main() {
   console.log('\n🔗 모듈 연결 매트릭스:');
   console.log('=====================');
   const modules = Object.keys(connectionMatrix);
-  console.log('        ' + modules.map(m => m.substring(0, 8).padEnd(8)).join(' '));
+  console.log(
+    '        ' + modules.map(m => m.substring(0, 8).padEnd(8)).join(' ')
+  );
   modules.forEach(fromModule => {
     const row = fromModule.substring(0, 8).padEnd(8);
-    const connections = modules.map(toModule =>
-      connectionMatrix[fromModule][toModule].toString().padEnd(8)
-    ).join(' ');
+    const connections = modules
+      .map(toModule =>
+        connectionMatrix[fromModule][toModule].toString().padEnd(8)
+      )
+      .join(' ');
     console.log(row + connections);
   });
 
   console.log(`\n🏥 전체 아키텍처 건강도: ${health.overall.toUpperCase()}`);
-  console.log(`📊 평균 점수: ${Object.values(health.scores).reduce((a, b) => a + b, 0) / Object.keys(health.scores).length}점`);
+  console.log(
+    `📊 평균 점수: ${Object.values(health.scores).reduce((a, b) => a + b, 0) / Object.keys(health.scores).length}점`
+  );
 
   if (health.issues.length > 0) {
     console.log('\n⚠️ 발견된 문제점:');
@@ -460,14 +491,21 @@ async function main() {
   }
 
   // 결과를 JSON 파일로 저장
-  fs.writeFileSync('development/scripts/codebase-analysis-result.json', JSON.stringify(analysisResult, null, 2));
+  fs.writeFileSync(
+    'development/scripts/codebase-analysis-result.json',
+    JSON.stringify(analysisResult, null, 2)
+  );
 
   // 보고서 생성
   generateAnalysisReport(analysisResult, connectionMatrix);
 
   console.log('\n✅ 분석 완료!');
-  console.log('📄 상세 결과: development/scripts/codebase-analysis-result.json');
-  console.log('📋 분석 보고서: development/scripts/post-refactor-analysis-report.md');
+  console.log(
+    '📄 상세 결과: development/scripts/codebase-analysis-result.json'
+  );
+  console.log(
+    '📋 분석 보고서: development/scripts/post-refactor-analysis-report.md'
+  );
 }
 
 // 분석 보고서 생성
@@ -550,7 +588,10 @@ function generateAnalysisReport(result, connectionMatrix) {
   report += `3. **순환 의존성 해결:** 발견된 순환 의존성 구조 개선\n`;
   report += `4. **코드 응집도 향상:** 모듈 내부 구조 최적화\n\n`;
 
-  fs.writeFileSync('development/scripts/post-refactor-analysis-report.md', report);
+  fs.writeFileSync(
+    'development/scripts/post-refactor-analysis-report.md',
+    report
+  );
 }
 
-main().catch(console.error); 
+main().catch(console.error);

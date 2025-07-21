@@ -364,16 +364,20 @@ export default function IntelligentMonitoringPage() {
                 <X className='w-4 h-4 text-gray-500' />
               </button>
             </div>
-            
+
             <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
               {/* 학습된 패턴 */}
               <div className='bg-purple-50 rounded-lg p-3'>
                 <div className='flex items-center justify-between mb-2'>
-                  <h4 className='text-sm font-medium text-purple-800'>학습된 패턴</h4>
+                  <h4 className='text-sm font-medium text-purple-800'>
+                    학습된 패턴
+                  </h4>
                   <Activity className='w-4 h-4 text-purple-600' />
                 </div>
                 <div className='space-y-1'>
-                  <p className='text-xs text-purple-700'>메모리 누수 패턴: 3개</p>
+                  <p className='text-xs text-purple-700'>
+                    메모리 누수 패턴: 3개
+                  </p>
                   <p className='text-xs text-purple-700'>CPU 급증 패턴: 5개</p>
                   <p className='text-xs text-purple-700'>연쇄 장애 패턴: 2개</p>
                 </div>
@@ -382,7 +386,9 @@ export default function IntelligentMonitoringPage() {
               {/* 예측 정확도 */}
               <div className='bg-indigo-50 rounded-lg p-3'>
                 <div className='flex items-center justify-between mb-2'>
-                  <h4 className='text-sm font-medium text-indigo-800'>예측 정확도</h4>
+                  <h4 className='text-sm font-medium text-indigo-800'>
+                    예측 정확도
+                  </h4>
                   <Zap className='w-4 h-4 text-indigo-600' />
                 </div>
                 <div className='space-y-1'>
@@ -395,7 +401,9 @@ export default function IntelligentMonitoringPage() {
               {/* ML 캐시 상태 */}
               <div className='bg-green-50 rounded-lg p-3'>
                 <div className='flex items-center justify-between mb-2'>
-                  <h4 className='text-sm font-medium text-green-800'>캐시 최적화</h4>
+                  <h4 className='text-sm font-medium text-green-800'>
+                    캐시 최적화
+                  </h4>
                   <Database className='w-4 h-4 text-green-600' />
                 </div>
                 <div className='space-y-1'>
@@ -405,15 +413,18 @@ export default function IntelligentMonitoringPage() {
                   <p className='text-xs text-green-700'>
                     메모리 사용: {mlCacheStats.memorySize} 항목
                   </p>
-                  <p className='text-xs text-green-700'>절약된 연산: ~{Math.round(mlCacheStats.hitRate * 1000)}ms</p>
+                  <p className='text-xs text-green-700'>
+                    절약된 연산: ~{Math.round(mlCacheStats.hitRate * 1000)}ms
+                  </p>
                 </div>
               </div>
             </div>
 
             <div className='mt-3 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-2'>
               <p className='text-xs text-purple-800'>
-                <strong>💪 ML 강화:</strong> 학습된 패턴을 활용하여 더 정확한 이상감지와 예측이 가능합니다.
-                캐싱으로 응답 속도가 크게 향상되었습니다.
+                <strong>💪 ML 강화:</strong> 학습된 패턴을 활용하여 더 정확한
+                이상감지와 예측이 가능합니다. 캐싱으로 응답 속도가 크게
+                향상되었습니다.
               </p>
             </div>
           </div>
@@ -883,9 +894,7 @@ export function IntelligentMonitoringModal({
               <Monitor className='w-5 h-5 text-white' />
             </div>
             <div>
-              <h2 className='text-xl font-bold text-gray-900'>
-                이상감지/예측
-              </h2>
+              <h2 className='text-xl font-bold text-gray-900'>이상감지/예측</h2>
               <p className='text-sm text-gray-600'>
                 통합 AI 분석: 이상탐지 → 근본원인 → 예측모니터링
               </p>

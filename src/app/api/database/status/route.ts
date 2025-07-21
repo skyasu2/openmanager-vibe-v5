@@ -30,7 +30,10 @@ function getDatabaseStatus() {
     },
     redis: {
       status: 'online',
-      host: process.env.UPSTASH_REDIS_HOST || process.env.REDIS_HOST || 'redis-host',
+      host:
+        process.env.UPSTASH_REDIS_HOST ||
+        process.env.REDIS_HOST ||
+        'redis-host',
       port: 6379,
       memory: {
         used: '2.5MB',
@@ -81,17 +84,20 @@ export async function GET(request: NextRequest) {
     // 특정 컴포넌트만 요청된 경우
     if (component && status[component as keyof typeof status]) {
       const componentData = status[component as keyof typeof status];
-      return NextResponse.json({
-        success: true,
-        component,
-        data: componentData,
-        timestamp: new Date().toISOString(),
-      }, {
-        headers: {
-          'Cache-Control': 'public, s-maxage=180, stale-while-revalidate=360',
-          'CDN-Cache-Control': 'public, s-maxage=180',
+      return NextResponse.json(
+        {
+          success: true,
+          component,
+          data: componentData,
+          timestamp: new Date().toISOString(),
         },
-      });
+        {
+          headers: {
+            'Cache-Control': 'public, s-maxage=180, stale-while-revalidate=360',
+            'CDN-Cache-Control': 'public, s-maxage=180',
+          },
+        }
+      );
     }
 
     // 간단한 상태만 요청된 경우
@@ -103,29 +109,35 @@ export async function GET(request: NextRequest) {
         overall: status.overall.status,
       };
 
-      return NextResponse.json({
+      return NextResponse.json(
+        {
+          success: true,
+          data: simpleStatus,
+          timestamp: new Date().toISOString(),
+        },
+        {
+          headers: {
+            'Cache-Control': 'public, s-maxage=180, stale-while-revalidate=360',
+            'CDN-Cache-Control': 'public, s-maxage=180',
+          },
+        }
+      );
+    }
+
+    // 전체 상세 상태 반환
+    return NextResponse.json(
+      {
         success: true,
-        data: simpleStatus,
+        data: status,
         timestamp: new Date().toISOString(),
-      }, {
+      },
+      {
         headers: {
           'Cache-Control': 'public, s-maxage=180, stale-while-revalidate=360',
           'CDN-Cache-Control': 'public, s-maxage=180',
         },
-      });
-    }
-
-    // 전체 상세 상태 반환
-    return NextResponse.json({
-      success: true,
-      data: status,
-      timestamp: new Date().toISOString(),
-    }, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=180, stale-while-revalidate=360',
-        'CDN-Cache-Control': 'public, s-maxage=180',
-      },
-    });
+      }
+    );
   } catch (error) {
     console.error('❌ Database status GET error:', error);
     return NextResponse.json(

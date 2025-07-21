@@ -14,8 +14,8 @@ export class AdaptiveGeminiBridge {
   constructor() {
     this.contextDetector = new ContextDetector();
     this.strategies = {
-      'powershell': new PowerShellStrategy(),
-      'powershell-fallback': new PowerShellFallbackStrategy()
+      powershell: new PowerShellStrategy(),
+      'powershell-fallback': new PowerShellFallbackStrategy(),
     };
   }
 
@@ -27,7 +27,9 @@ export class AdaptiveGeminiBridge {
     const strategy = context.strategy;
 
     console.error(`[AdaptiveBridge] 실행 전략: ${strategy}`);
-    console.error(`[AdaptiveBridge] 권장사항: ${context.recommendations.join(', ')}`);
+    console.error(
+      `[AdaptiveBridge] 권장사항: ${context.recommendations.join(', ')}`
+    );
 
     // 전략별 실행
     const strategyInstance = this.strategies[strategy];
@@ -44,7 +46,11 @@ export class AdaptiveGeminiBridge {
       const fallbackStrategy = this._getFallbackStrategy(strategy);
       if (fallbackStrategy) {
         console.error(`[AdaptiveBridge] 폴백 전략 시도: ${fallbackStrategy}`);
-        return await this.strategies[fallbackStrategy].execute(command, timeout, context.context);
+        return await this.strategies[fallbackStrategy].execute(
+          command,
+          timeout,
+          context.context
+        );
       }
 
       throw error;
@@ -56,8 +62,8 @@ export class AdaptiveGeminiBridge {
    */
   _getFallbackStrategy(strategy) {
     const fallbackMap = {
-      'powershell': 'powershell-fallback',
-      'powershell-fallback': null // 최종 폴백
+      powershell: 'powershell-fallback',
+      'powershell-fallback': null, // 최종 폴백
     };
 
     return fallbackMap[strategy];
@@ -87,12 +93,12 @@ class PowerShellStrategy {
     if (process.platform === 'win32') {
       return 'powershell.exe';
     }
-    
+
     // WSL 환경에서 PowerShell 브릿지 사용
     const possiblePaths = [
       '/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/powershell.exe',
       '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe',
-      'powershell.exe'
+      'powershell.exe',
     ];
 
     for (const path of possiblePaths) {
@@ -117,7 +123,7 @@ class PowerShellStrategy {
 
       const child = spawn(this.powerShellPath, ['-Command', escapedCommand], {
         shell: false,
-        windowsHide: true
+        windowsHide: true,
       });
 
       const timer = setTimeout(() => {
@@ -126,21 +132,23 @@ class PowerShellStrategy {
         reject(new Error(`PowerShell 기본 전략 타임아웃 (${timeout}ms)`));
       }, timeout);
 
-      child.stdout.on('data', (data) => stdout += data.toString());
-      child.stderr.on('data', (data) => stderr += data.toString());
+      child.stdout.on('data', data => (stdout += data.toString()));
+      child.stderr.on('data', data => (stderr += data.toString()));
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         clearTimeout(timer);
         if (killed) return;
 
         if (code !== 0) {
-          reject(new Error(`PowerShell 기본 전략 실패 (코드: ${code}): ${stderr}`));
+          reject(
+            new Error(`PowerShell 기본 전략 실패 (코드: ${code}): ${stderr}`)
+          );
         } else {
           resolve(stdout.trim());
         }
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         clearTimeout(timer);
         reject(new Error(`PowerShell 기본 전략 오류: ${error.message}`));
       });
@@ -153,14 +161,17 @@ class PowerShellStrategy {
   _escapePowerShellCommand(command) {
     // PowerShell 특수 문자 이스케이프
     return command
-      .replace(/"/g, '`"')  // 큰따옴표를 백틱으로 이스케이프
+      .replace(/"/g, '`"') // 큰따옴표를 백틱으로 이스케이프
       .replace(/\$/g, '`$') // 달러 기호 이스케이프
       .replace(/\`/g, '``'); // 백틱 이스케이프
   }
 
   async checkAvailability(context) {
     try {
-      const result = await this.execute('Get-Command gemini -ErrorAction SilentlyContinue', 5000);
+      const result = await this.execute(
+        'Get-Command gemini -ErrorAction SilentlyContinue',
+        5000
+      );
       return result && !result.includes('Get-Command');
     } catch (error) {
       return false;
@@ -184,7 +195,7 @@ class PowerShellFallbackStrategy extends PowerShellStrategy {
     const methods = [
       () => this._executeWithRetry(command, timeout, context),
       () => this._executeWithAlternative(command, timeout, context),
-      () => this._executeWithErrorHandling(command, timeout, context)
+      () => this._executeWithErrorHandling(command, timeout, context),
     ];
 
     for (const method of methods) {

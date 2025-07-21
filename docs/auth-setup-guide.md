@@ -214,7 +214,9 @@ const PROTECTED_PATHS = [
 
 // Supabase 세션 확인
 const supabase = createMiddlewareClient({ req: request, res: response });
-const { data: { session } } = await supabase.auth.getSession();
+const {
+  data: { session },
+} = await supabase.auth.getSession();
 
 if (!session) {
   // 로그인 페이지로 리다이렉트
@@ -230,12 +232,14 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 
 export async function GET(request: Request) {
   const supabase = createRouteHandlerClient({ cookies });
-  const { data: { session } } = await supabase.auth.getSession();
-  
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  
+
   // 인증된 사용자만 접근 가능한 로직
 }
 ```
@@ -281,7 +285,7 @@ export async function GET(request: Request) {
 
 ```typescript
 // 세션 상태 변경 감지
-const authListener = onAuthStateChange((session) => {
+const authListener = onAuthStateChange(session => {
   if (session) {
     console.log('사용자 로그인:', session.user.email);
   } else {
@@ -307,12 +311,12 @@ localStorage.setItem('auth_user', JSON.stringify(user));
 ```typescript
 const handleLogout = async () => {
   await signOut(); // Supabase 로그아웃
-  
+
   // 게스트 세션 정리
   localStorage.removeItem('auth_session_id');
   localStorage.removeItem('auth_type');
   localStorage.removeItem('auth_user');
-  
+
   router.push('/login');
 };
 ```
@@ -324,12 +328,14 @@ const handleLogout = async () => {
 ### 1. GitHub 로그인이 작동하지 않는 경우
 
 **확인 사항:**
+
 - [ ] Supabase Dashboard에서 GitHub Provider 활성화 확인
 - [ ] GitHub OAuth App의 Callback URL이 정확한지 확인
 - [ ] Client ID와 Client Secret이 올바르게 입력되었는지 확인
 - [ ] 환경변수 `NEXT_PUBLIC_SUPABASE_URL`과 `NEXT_PUBLIC_SUPABASE_ANON_KEY` 설정 확인
 
 **디버깅:**
+
 ```javascript
 // 브라우저 콘솔에서 확인
 console.log(process.env.NEXT_PUBLIC_SUPABASE_URL);
@@ -339,14 +345,18 @@ console.log(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 ### 2. 세션이 유지되지 않는 경우
 
 **확인 사항:**
+
 - [ ] 브라우저 쿠키가 차단되어 있지 않은지 확인
 - [ ] Supabase Dashboard의 Auth 설정에서 세션 만료 시간 확인
 - [ ] 미들웨어가 올바르게 설정되어 있는지 확인
 
 **해결 방법:**
+
 ```typescript
 // 세션 상태 확인
-const { data: { session } } = await supabase.auth.getSession();
+const {
+  data: { session },
+} = await supabase.auth.getSession();
 console.log('현재 세션:', session);
 
 // 강제 세션 새로고침
@@ -358,6 +368,7 @@ await supabase.auth.refreshSession();
 **증상:** 로그인 후 홈페이지로 이동하지 않음
 
 **해결:**
+
 1. `/auth/callback` 페이지가 존재하는지 확인
 2. Supabase Dashboard에서 Redirect URLs 설정 확인
 3. 로그인 성공 후 리다이렉트 로직 확인
@@ -365,12 +376,14 @@ await supabase.auth.refreshSession();
 ### 4. 환경별 설정
 
 **개발 환경:**
+
 ```bash
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 # Redirect URL: http://localhost:3000/auth/callback
 ```
 
 **프로덕션 환경 (Vercel):**
+
 ```bash
 NEXT_PUBLIC_APP_URL=https://openmanager-vibe-v5.vercel.app
 # Redirect URL: https://openmanager-vibe-v5.vercel.app/auth/callback
@@ -385,6 +398,7 @@ NEXT_PUBLIC_APP_URL=https://openmanager-vibe-v5.vercel.app
 프로젝트에는 NextAuth 관련 코드가 일부 남아있으나, 현재는 Supabase Auth로 완전히 전환되었습니다.
 
 **레거시 파일들:**
+
 - `/src/app/auth/signin/page.tsx` - NextAuth 로그인 페이지 (사용 안 함)
 - `/src/lib/auth.ts` - 관리자 전용 인증 시스템 (독립적)
 
@@ -404,6 +418,7 @@ NEXT_PUBLIC_APP_URL=https://openmanager-vibe-v5.vercel.app
 ## 🚀 빠른 시작 가이드
 
 1. **환경 변수 설정**
+
    ```bash
    cp .env.example .env.local
    # NEXT_PUBLIC_SUPABASE_URL과 NEXT_PUBLIC_SUPABASE_ANON_KEY 입력
@@ -414,6 +429,7 @@ NEXT_PUBLIC_APP_URL=https://openmanager-vibe-v5.vercel.app
 3. **GitHub OAuth App 생성 및 연동**
 
 4. **개발 서버 시작**
+
    ```bash
    npm run dev
    ```

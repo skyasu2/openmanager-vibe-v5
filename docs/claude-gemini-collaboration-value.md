@@ -7,6 +7,7 @@
 ## 💡 MCP 통합의 핵심 가치
 
 ### 1. 자동 교차 검증
+
 ```
 기존 방식:
 1. Claude에게 질문
@@ -23,26 +24,30 @@ MCP 통합:
 ### 2. 실제 협업 사례: GoogleAIManager 개선
 
 #### 원본 코드 문제점
+
 - Race condition 가능성
 - 에러 처리 부족
 - 키 만료 관리 없음
 
 #### Claude 단독 분석
+
 - 싱글톤 패턴 확인 ✓
 - 보안 고려사항 확인 ✓
 - 하지만 동시성 문제 놓침 ✗
 
 #### Gemini 교차 검증 (시뮬레이션)
+
 ```javascript
 // Gemini가 지적한 시나리오
 Promise.all([
-  getInstance(),  // 요청 1
-  getInstance()   // 요청 2
-])
+  getInstance(), // 요청 1
+  getInstance(), // 요청 2
+]);
 // 두 인스턴스가 생성될 가능성!
 ```
 
 #### 통합 해결책 (google-ai-manager-improved.ts)
+
 - Promise 기반 초기화 (race condition 방지)
 - 키 만료 및 자동 갱신
 - 에러 처리 및 헬스 체크
@@ -55,17 +60,17 @@ Promise.all([
 async function securityAudit(code: string) {
   // 1. Claude 초기 분석
   const risks = analyzeSecurityRisks(code);
-  
+
   // 2. Gemini 검증 (터미널에서 직접 실행)
   // MCP 브릿지 대신 개발 도구 사용: ./tools/g "보안 관점에서 이 코드 분석"
-  const geminiAudit = "터미널에서 직접 실행: ./tools/g";
-  
+  const geminiAudit = '터미널에서 직접 실행: ./tools/g';
+
   // 3. 차이점 발견 시 추가 질의
-  if (risks.xss === false && geminiAudit.includes("XSS")) {
+  if (risks.xss === false && geminiAudit.includes('XSS')) {
     // ./tools/g "XSS 취약점이 어디에 있는지 구체적으로 설명"
-    const detail = "터미널에서 직접 실행";
+    const detail = '터미널에서 직접 실행';
   }
-  
+
   // 4. 통합 보고서
   return mergeSecurityReports(risks, geminiAudit);
 }
@@ -74,16 +79,19 @@ async function securityAudit(code: string) {
 ## 📈 투자 대비 효과
 
 ### 시간 절약
+
 - 수동 복사/붙여넣기: 회당 2-3분
 - MCP 자동화: 즉시
 - 일일 10회 사용 시: 20-30분 절약
 
 ### 품질 향상
+
 - 편향 제거: 두 AI의 다른 관점
 - 심층 분석: 자동 추가 질의
 - 일관성: 표준화된 검증 프로세스
 
 ### 인지 부하 감소
+
 - 컨텍스트 스위칭 제거
 - 전체 대화 흐름 유지
 - 복잡한 검증 자동화
@@ -104,6 +112,7 @@ async function securityAudit(code: string) {
 ## 🎬 실제 사용 예시
 
 ### 코드 리뷰 협업
+
 ```
 사용자: "이 PR Gemini랑 리뷰해줘"
 
@@ -116,6 +125,7 @@ Claude 프로세스:
 ```
 
 ### 버그 해결 협업
+
 ```
 사용자: "이 에러 Gemini랑 같이 해결해줘"
 

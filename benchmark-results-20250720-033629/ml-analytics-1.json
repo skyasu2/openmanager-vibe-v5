@@ -1,1 +1,30 @@
-{"success": true, "data": {"anomalies": [], "trend": {"direction": "decreasing", "rate_of_change": -0.10472989195678367, "prediction_24h": 62.486482593037195, "confidence": 0.75}, "patterns": [{"type": "peak_hour", "description": "Peak usage typically occurs at 11:00", "confidence": 0.8}], "recommendations": ["\ud83d\udca1 Peak usage typically occurs at 11:00. \uc774 \uc2dc\uac04\ub300\uc5d0 \ub9ac\uc18c\uc2a4\ub97c \uc9d1\uc911 \ubc30\uce58\ud558\uc138\uc694."]}, "function_name": "ml-analytics-engine", "source": "gcp-functions", "timestamp": "2025-07-19T18:36:47.616455", "performance": {"processing_time_ms": 76.29609107971191, "metrics_analyzed": 50, "anomalies_found": 0}}
+{
+  "success": true,
+  "data": {
+    "anomalies": [],
+    "trend": {
+      "direction": "decreasing",
+      "rate_of_change": -0.10472989195678367,
+      "prediction_24h": 62.486482593037195,
+      "confidence": 0.75
+    },
+    "patterns": [
+      {
+        "type": "peak_hour",
+        "description": "Peak usage typically occurs at 11:00",
+        "confidence": 0.8
+      }
+    ],
+    "recommendations": [
+      "\ud83d\udca1 Peak usage typically occurs at 11:00. \uc774 \uc2dc\uac04\ub300\uc5d0 \ub9ac\uc18c\uc2a4\ub97c \uc9d1\uc911 \ubc30\uce58\ud558\uc138\uc694."
+    ]
+  },
+  "function_name": "ml-analytics-engine",
+  "source": "gcp-functions",
+  "timestamp": "2025-07-19T18:36:47.616455",
+  "performance": {
+    "processing_time_ms": 76.29609107971191,
+    "metrics_analyzed": 50,
+    "anomalies_found": 0
+  }
+}

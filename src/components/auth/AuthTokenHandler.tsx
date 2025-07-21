@@ -16,20 +16,24 @@ export function AuthTokenHandler() {
     const handleAuthToken = async () => {
       // URL 해시에서 토큰 확인
       const hash = window.location.hash;
-      
+
       if (hash && hash.includes('access_token=')) {
         console.log('🔐 URL 해시에서 인증 토큰 발견');
-        
+
         try {
           // Supabase에서 세션 처리
           const { data, error } = await supabase.auth.getSession();
-          
+
           if (data.session) {
             console.log('✅ 세션 생성 성공:', data.session.user.email);
-            
+
             // URL 해시 제거
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
+            window.history.replaceState(
+              {},
+              document.title,
+              window.location.pathname
+            );
+
             // 메인 페이지로 리다이렉트
             router.push('/main');
           } else if (error) {

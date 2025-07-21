@@ -12,7 +12,9 @@ console.log(chalk.cyan('🔍 AI 로깅 시스템 고도화 - 스탠드얼론 테
 console.log(chalk.yellow('📊 1. 런타임 구성 확인'));
 console.log(chalk.green('   ✅ Node.js Runtime 감지 (winston, pino 지원)'));
 console.log(chalk.gray('   📋 Edge Runtime: /api/edge/ping만 사용'));
-console.log(chalk.gray('   📋 대부분 API: Node.js Runtime (고도화 로깅 가능)\n'));
+console.log(
+  chalk.gray('   📋 대부분 API: Node.js Runtime (고도화 로깅 가능)\n')
+);
 
 // 로깅 시스템 기능 확인
 console.log(chalk.yellow('🔧 2. 로깅 시스템 기능'));
@@ -28,10 +30,16 @@ console.log(chalk.green('   ✅ 개발/프로덕션 모드 분리\n'));
 console.log(chalk.yellow('🌐 3. 새로 추가된 로깅 API'));
 console.log(chalk.white('   📝 POST /api/ai/logging - 로그 생성'));
 console.log(chalk.white('   📋 GET /api/ai/logging?type=recent - 로그 조회'));
-console.log(chalk.white('   📊 GET /api/ai/logging?type=metrics - 성능 메트릭'));
-console.log(chalk.white('   🧠 GET /api/ai/logging?type=thinking - AI 사고 과정'));
+console.log(
+  chalk.white('   📊 GET /api/ai/logging?type=metrics - 성능 메트릭')
+);
+console.log(
+  chalk.white('   🧠 GET /api/ai/logging?type=thinking - AI 사고 과정')
+);
 console.log(chalk.white('   🌊 GET /api/ai/logging/stream - 실시간 스트리밍'));
-console.log(chalk.white('   🧹 DELETE /api/ai/logging?action=clear - 로그 정리\n'));
+console.log(
+  chalk.white('   🧹 DELETE /api/ai/logging?action=clear - 로그 정리\n')
+);
 
 // 통합 상태
 console.log(chalk.yellow('🔗 4. AI 엔진 통합 상태'));
@@ -45,8 +53,16 @@ console.log(chalk.yellow('⚡ 5. 즉시 확인 방법'));
 console.log(chalk.cyan('   개발 서버 시작 후:'));
 console.log(chalk.white('   1. npm run dev'));
 console.log(chalk.white('   2. npm run test:ai-logging (별도 터미널)'));
-console.log(chalk.white('   3. 브라우저: http://localhost:3000/api/ai/logging?type=recent'));
-console.log(chalk.white('   4. SSE 스트리밍: http://localhost:3000/api/ai/logging/stream\n'));
+console.log(
+  chalk.white(
+    '   3. 브라우저: http://localhost:3000/api/ai/logging?type=recent'
+  )
+);
+console.log(
+  chalk.white(
+    '   4. SSE 스트리밍: http://localhost:3000/api/ai/logging/stream\n'
+  )
+);
 
 // 성능 개선 사항
 console.log(chalk.yellow('📈 6. 성능 개선 사항'));
@@ -58,7 +74,8 @@ console.log(chalk.green('   ✅ 개발 환경 콘솔, 프로덕션 파일 로깅
 
 // 사용 예시
 console.log(chalk.yellow('💻 7. 코드 사용 예시'));
-console.log(chalk.gray(`   // AI 로거 임포트
+console.log(
+  chalk.gray(`   // AI 로거 임포트
    import { aiLogger, LogLevel, LogCategory } from '@/services/ai/logging/AILogger';
 
    // 기본 로깅
@@ -78,7 +95,12 @@ console.log(chalk.gray(`   // AI 로거 임포트
      steps,
      reasoning,
      conclusions
-   );`));
+   );`)
+);
 
 console.log(chalk.green('\n🎉 AI 로깅 시스템 고도화 완료!'));
-console.log(chalk.cyan('개발 서버를 시작하고 npm run test:ai-logging으로 전체 테스트를 실행하세요.\n')); 
+console.log(
+  chalk.cyan(
+    '개발 서버를 시작하고 npm run test:ai-logging으로 전체 테스트를 실행하세요.\n'
+  )
+);

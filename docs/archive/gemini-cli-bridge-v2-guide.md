@@ -41,13 +41,13 @@ v2.0에서는 **컨텍스트 감지 시스템**으로 호출 방향을 자동 �
 
 ### 실행 전략들
 
-| 전략 | 사용 조건 | 설명 |
-|------|-----------|------|
-| `wsl-optimized` | Claude Code → Gemini (WSL) | WSL 환경 최적화된 bash 실행 |
-| `powershell-direct` | Claude Code → Gemini (Windows) | 직접 PowerShell 실행 |
-| `reverse-compatible` | Gemini → Claude | 역방향 호환 모드 |
-| `wsl-fallback` | 불확실한 WSL 환경 | WSL 폴백 전략 |
-| `powershell-fallback` | 불확실한 Windows 환경 | PowerShell 폴백 전략 |
+| 전략                  | 사용 조건                      | 설명                        |
+| --------------------- | ------------------------------ | --------------------------- |
+| `wsl-optimized`       | Claude Code → Gemini (WSL)     | WSL 환경 최적화된 bash 실행 |
+| `powershell-direct`   | Claude Code → Gemini (Windows) | 직접 PowerShell 실행        |
+| `reverse-compatible`  | Gemini → Claude                | 역방향 호환 모드            |
+| `wsl-fallback`        | 불확실한 WSL 환경              | WSL 폴백 전략               |
+| `powershell-fallback` | 불확실한 Windows 환경          | PowerShell 폴백 전략        |
 
 ## 🔧 설치 및 설정
 
@@ -100,6 +100,7 @@ const contextInfo = await mcp_gemini_cli_bridge_gemini_context_info();
 ```
 
 출력 예시:
+
 ```
 === Gemini CLI Bridge 컨텍스트 정보 ===
 
@@ -141,6 +142,7 @@ node src/index.js
 ### 일반적인 문제들
 
 1. **타임아웃 오류**
+
    ```bash
    export GEMINI_TIMEOUT=60000  # 60초로 증가
    ```
@@ -150,6 +152,7 @@ node src/index.js
    - 수동 설정이 필요 없습니다
 
 3. **컨텍스트 감지 오류**
+
    ```bash
    export GEMINI_DEBUG=true  # 상세 로그 활성화
    ```
@@ -192,6 +195,7 @@ node src/index.js
 ## 📝 변경 로그
 
 ### v2.0.0
+
 - ✅ 양방향 호출 컨텍스트 감지 시스템 구현
 - ✅ 적응적 실행 전략 선택
 - ✅ 자동 폴백 체인
@@ -199,6 +203,7 @@ node src/index.js
 - ✅ 향상된 오류 처리 및 로깅
 
 ### v1.0.0
+
 - 기본 Claude → Gemini 단방향 호출 지원
 - PowerShell 브릿지 구현
 - 기본 MCP 도구들 제공

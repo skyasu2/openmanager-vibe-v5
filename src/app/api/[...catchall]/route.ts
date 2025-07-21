@@ -5,32 +5,51 @@ import { NextRequest, NextResponse } from 'next/server';
  * 존재하지 않는 API 엔드포인트에 대한 요청을 처리
  */
 
-export async function GET(request: NextRequest, context: { params: Promise<{ catchall: string[] }> }) {
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ catchall: string[] }> }
+) {
   const params = await context.params;
   return handleRequest(request, params, 'GET');
 }
 
-export async function POST(request: NextRequest, context: { params: Promise<{ catchall: string[] }> }) {
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ catchall: string[] }> }
+) {
   const params = await context.params;
   return handleRequest(request, params, 'POST');
 }
 
-export async function PUT(request: NextRequest, context: { params: Promise<{ catchall: string[] }> }) {
+export async function PUT(
+  request: NextRequest,
+  context: { params: Promise<{ catchall: string[] }> }
+) {
   const params = await context.params;
   return handleRequest(request, params, 'PUT');
 }
 
-export async function DELETE(request: NextRequest, context: { params: Promise<{ catchall: string[] }> }) {
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ catchall: string[] }> }
+) {
   const params = await context.params;
   return handleRequest(request, params, 'DELETE');
 }
 
-export async function PATCH(request: NextRequest, context: { params: Promise<{ catchall: string[] }> }) {
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<{ catchall: string[] }> }
+) {
   const params = await context.params;
   return handleRequest(request, params, 'PATCH');
 }
 
-async function handleRequest(request: NextRequest, params: { catchall: string[] }, method: string) {
+async function handleRequest(
+  request: NextRequest,
+  params: { catchall: string[] },
+  method: string
+) {
   const requestedPath = `/api/${params.catchall.join('/')}`;
   const { searchParams } = new URL(request.url);
 
@@ -38,41 +57,47 @@ async function handleRequest(request: NextRequest, params: { catchall: string[] 
   console.warn(`🚫 존재하지 않는 API 요청: ${method} ${requestedPath}`, {
     userAgent: request.headers.get('user-agent'),
     referer: request.headers.get('referer'),
-    ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+    ip:
+      request.headers.get('x-forwarded-for') ||
+      request.headers.get('x-real-ip') ||
+      'unknown',
   });
 
   // 일반적인 API 경로 제안
   const suggestions = getSuggestions(requestedPath);
 
-  return NextResponse.json({
-    error: 'Not Found',
-    message: `API 엔드포인트를 찾을 수 없습니다: ${method} ${requestedPath}`,
-    statusCode: 404,
-    path: requestedPath,
-    method,
-    timestamp: new Date().toISOString(),
-    suggestions: suggestions.length > 0 ? suggestions : null,
-    availableEndpoints: [
-      'GET /api/health',
-      'GET /api/dashboard',
-      'POST /api/dashboard',
-      'GET /api/servers',
-      'POST /api/servers',
-      'GET /api/servers/next',
-      'POST /api/servers/next',
-      'GET /api/ai/prediction',
-      'POST /api/ai/auto-report',
-      'GET /api/ai-agent',
-      'POST /api/ai-agent'
-    ]
-  }, {
-    status: 404,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-API-Error': 'endpoint-not-found',
-      'Cache-Control': 'no-cache, no-store, must-revalidate'
+  return NextResponse.json(
+    {
+      error: 'Not Found',
+      message: `API 엔드포인트를 찾을 수 없습니다: ${method} ${requestedPath}`,
+      statusCode: 404,
+      path: requestedPath,
+      method,
+      timestamp: new Date().toISOString(),
+      suggestions: suggestions.length > 0 ? suggestions : null,
+      availableEndpoints: [
+        'GET /api/health',
+        'GET /api/dashboard',
+        'POST /api/dashboard',
+        'GET /api/servers',
+        'POST /api/servers',
+        'GET /api/servers/next',
+        'POST /api/servers/next',
+        'GET /api/ai/prediction',
+        'POST /api/ai/auto-report',
+        'GET /api/ai-agent',
+        'POST /api/ai-agent',
+      ],
+    },
+    {
+      status: 404,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Error': 'endpoint-not-found',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      },
     }
-  });
+  );
 }
 
 function getSuggestions(requestedPath: string): string[] {
@@ -83,7 +108,7 @@ function getSuggestions(requestedPath: string): string[] {
     '/api/servers/next',
     '/api/ai/prediction',
     '/api/ai/auto-report',
-    '/api/ai-agent'
+    '/api/ai-agent',
   ];
 
   const suggestions: string[] = [];
@@ -159,4 +184,4 @@ function levenshteinDistance(str1: string, str2: string): number {
   }
 
   return matrix[str2.length]?.[str1.length] ?? 0;
-} 
+}

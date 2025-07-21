@@ -28,7 +28,7 @@ npm uninstall next-auth
 4. 다음 정보 입력:
    - **Application name**: OpenManager Vibe v5
    - **Homepage URL**: https://your-app-domain.com
-   - **Authorization callback URL**: 
+   - **Authorization callback URL**:
      ```
      https://[YOUR-PROJECT-REF].supabase.co/auth/v1/callback
      ```
@@ -52,7 +52,7 @@ NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-> **참고**: GitHub Client ID/Secret은 Supabase Dashboard에서 관리되므로 
+> **참고**: GitHub Client ID/Secret은 Supabase Dashboard에서 관리되므로
 > 애플리케이션 환경변수에 별도로 설정할 필요 없습니다.
 
 ## 🚀 사용 방법

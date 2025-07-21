@@ -4,9 +4,10 @@
 
 ## 📁 서버 목록
 
-### 1. **filesystem** 
+### 1. **filesystem**
+
 - **목적**: 파일시스템 작업을 위한 MCP 서버
-- **특징**: 
+- **특징**:
   - HTTP 헬스체크 지원 (GCP 배포용)
   - 보안 경로 검증
   - 캐싱 시스템
@@ -14,6 +15,7 @@
 - **참고**: Claude Code는 공식 `@modelcontextprotocol/server-filesystem` 패키지 사용
 
 ### 2. ~~**gemini-cli-bridge**~~ (v3.0 - MCP 지원 중단)
+
 - **상태**: ⚠️ MCP 지원 중단, 개발 전용 아카이브
 - **대체**: Gemini v5.0 개발 도구 사용 권장 (`./tools/g`)
 - **이전 특징** (참고용):
@@ -42,14 +44,18 @@ mcp-servers/
 ## 📝 사용법
 
 ### 로컬 개발 (Claude Code)
+
 `.claude/mcp.json`에서 각 서버 설정:
+
 ```json
 {
   "mcpServers": {
     "filesystem": {
       "command": "node",
-      "args": ["node_modules/@modelcontextprotocol/server-filesystem/dist/index.js"]
-    },
+      "args": [
+        "node_modules/@modelcontextprotocol/server-filesystem/dist/index.js"
+      ]
+    }
     // "gemini-cli": { // MCP 지원 중단
     //   "command": "node",
     //   "args": ["mcp-servers/gemini-cli-bridge/src/index.js"]
@@ -59,6 +65,7 @@ mcp-servers/
 ```
 
 ### GCP 배포 (filesystem 서버)
+
 ```bash
 cd mcp-servers/filesystem
 npm install

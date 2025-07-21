@@ -85,7 +85,7 @@ export const systemKeys = {
 const fetchSystemHealth = async (): Promise<SystemHealth> => {
   // health API 제거로 인한 모킹 (Vercel 무료 티어 최적화)
   await new Promise(resolve => setTimeout(resolve, 100)); // 네트워크 지연 시뮬레이션
-  
+
   return {
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -240,11 +240,14 @@ export const useSystemStatus = (options?: {
       ...data,
       servicesCount: {
         total: Object.keys(data.services).length,
-        online: Object.values(data.services).filter((s: any) => s === 'online').length,
-        degraded: Object.values(data.services).filter((s: any) => s === 'degraded')
+        online: Object.values(data.services).filter((s: any) => s === 'online')
           .length,
-        offline: Object.values(data.services).filter((s: any) => s === 'offline')
-          .length,
+        degraded: Object.values(data.services).filter(
+          (s: any) => s === 'degraded'
+        ).length,
+        offline: Object.values(data.services).filter(
+          (s: any) => s === 'offline'
+        ).length,
       },
       performanceGrade: getPerformanceGrade(data.performance),
     }),

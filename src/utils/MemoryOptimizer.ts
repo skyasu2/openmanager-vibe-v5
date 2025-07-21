@@ -28,7 +28,9 @@ interface OptimizationResult {
  */
 export class ServerlessMemoryManager {
   constructor() {
-    console.warn('⚠️ 서버리스 환경에서는 메모리 최적화가 비활성화됩니다. Vercel이 자동 관리합니다.');
+    console.warn(
+      '⚠️ 서버리스 환경에서는 메모리 최적화가 비활성화됩니다. Vercel이 자동 관리합니다.'
+    );
   }
 
   /**
@@ -126,9 +128,11 @@ export function createServerlessMemoryManager(): ServerlessMemoryManager {
 export const MemoryOptimizer = {
   getInstance: () => {
     console.warn('⚠️ MemoryOptimizer.getInstance()는 서버리스에서 사용 금지.');
-    console.warn('📊 대신 Vercel Analytics를 사용하세요: https://vercel.com/analytics');
+    console.warn(
+      '📊 대신 Vercel Analytics를 사용하세요: https://vercel.com/analytics'
+    );
     return new ServerlessMemoryManager();
-  }
+  },
 };
 
 /**

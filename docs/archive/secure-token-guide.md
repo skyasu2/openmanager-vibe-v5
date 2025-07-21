@@ -20,6 +20,7 @@ bash scripts/setup-github-token.sh
 ```
 
 스크립트 기능:
+
 - 토큰 입력 시 화면에 표시 안 됨
 - GitHub API로 토큰 유효성 검증
 - 3가지 저장 옵션 제공
@@ -58,6 +59,7 @@ export GITHUB_TOKEN=$(powershell.exe -Command "
 ## MCP 설정 개선
 
 현재 `~/.claude/settings.json`:
+
 ```json
 "github": {
   "env": {
@@ -107,6 +109,7 @@ bash scripts/set-supabase-key.sh
 ```
 
 스크립트 기능:
+
 - JWT 형식 검증
 - 3가지 저장 옵션 제공
 - 자동으로 Claude 설정 업데이트 안내

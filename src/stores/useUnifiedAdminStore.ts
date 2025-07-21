@@ -315,7 +315,9 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
           }));
 
           const newState = get().aiAgent.isEnabled;
-          console.log(`🤖 [AI] AI 에이전트 ${newState ? '활성화' : '비활성화'}`);
+          console.log(
+            `🤖 [AI] AI 에이전트 ${newState ? '활성화' : '비활성화'}`
+          );
         } catch (error) {
           console.error('❌ [AI] AI 토글 실패:', error);
         }

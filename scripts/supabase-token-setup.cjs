@@ -24,32 +24,37 @@ function encrypt(text) {
 
 function addSupabaseAccessToken(token) {
   // 기존 암호화 파일 읽기
-  const encryptedFilePath = path.join(__dirname, '..', 'config', 'supabase-encrypted.json');
-  
+  const encryptedFilePath = path.join(
+    __dirname,
+    '..',
+    'config',
+    'supabase-encrypted.json'
+  );
+
   if (!fs.existsSync(encryptedFilePath)) {
     console.error('❌ 기존 암호화 파일을 찾을 수 없습니다:', encryptedFilePath);
     return;
   }
 
   const existingData = JSON.parse(fs.readFileSync(encryptedFilePath, 'utf8'));
-  
+
   // 액세스 토큰 암호화 및 추가
   const encryptedToken = encrypt(token);
   existingData.variables.SUPABASE_ACCESS_TOKEN = encryptedToken;
-  
+
   // 파일 업데이트
   fs.writeFileSync(encryptedFilePath, JSON.stringify(existingData, null, 2));
-  
+
   console.log('✅ Supabase 액세스 토큰이 암호화되어 저장되었습니다');
-  
+
   // .env.production 파일도 업데이트
   const envPath = path.join(__dirname, '..', '.env.production');
   let envContent = fs.readFileSync(envPath, 'utf8');
-  
+
   // 새 토큰 라인 추가
   const tokenLine = `SUPABASE_ACCESS_TOKEN_ENCRYPTED="${encryptedToken}"`;
   envContent += `\n${tokenLine}\n`;
-  
+
   fs.writeFileSync(envPath, envContent);
   console.log('✅ .env.production 파일도 업데이트되었습니다');
 }
@@ -76,7 +81,9 @@ if (token) {
   if (token.startsWith('sbp_') || token.startsWith('eyJ')) {
     addSupabaseAccessToken(token);
   } else {
-    console.error('❌ 유효하지 않은 토큰 형식입니다. "sbp_" 또는 JWT 형식이어야 합니다.');
+    console.error(
+      '❌ 유효하지 않은 토큰 형식입니다. "sbp_" 또는 JWT 형식이어야 합니다.'
+    );
   }
 } else {
   console.log('💡 토큰을 인수로 제공하지 않았습니다. 위의 안내를 참고하세요.');

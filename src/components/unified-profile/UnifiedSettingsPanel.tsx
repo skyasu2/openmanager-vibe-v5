@@ -349,11 +349,12 @@ export function UnifiedSettingsPanel({
     switch (activeTab) {
       case 'ai':
         return (
-          <div className="p-4 text-center text-gray-600">
+          <div className='p-4 text-center text-gray-600'>
             🚀 AI 설정은 GCP Functions로 이관되었습니다
           </div>
         );
-        {/*
+        {
+          /*
         return (
           <AISettingsTab
             authState={authState}
@@ -364,7 +365,8 @@ export function UnifiedSettingsPanel({
             onSystemDiagnosis={handleSystemDiagnosis}
           />
         );
-        */}
+        */
+        }
 
       case 'generator':
         return (

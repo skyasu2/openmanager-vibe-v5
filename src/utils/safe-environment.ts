@@ -1,11 +1,11 @@
 /**
  * 🔐 안전한 환경변수 접근 유틸리티
- * 
+ *
  * 모든 환경변수 접근을 이 클래스를 통해 수행하여 보안과 일관성 보장
  */
 
-import { 
-  SafeEnvironmentAccess, 
+import {
+  SafeEnvironmentAccess,
   EnvironmentValidationResult,
   EnvironmentName,
   DeploymentPlatform,
@@ -16,7 +16,7 @@ import {
   SecurityEnvConfig,
   MonitoringEnvConfig,
   EnvironmentConfig,
-  isValidEnvironmentName
+  isValidEnvironmentName,
 } from '@/types/environment';
 
 class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
@@ -37,7 +37,7 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
       // Vercel 서버사이드 실행 중 - 빌드 타임이 아님
       return false;
     }
-    
+
     // 실제 빌드 중일 때만 true
     return (
       process.env.npm_lifecycle_event === 'build' ||
@@ -52,56 +52,66 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
   // 🛡️ 기본 환경변수 접근 메서드들
   get<T = string>(key: keyof NodeJS.ProcessEnv, defaultValue?: T): T {
     const value = process.env[key];
-    
+
     if (value === undefined) {
       if (defaultValue !== undefined) {
         return defaultValue;
       }
-      throw new Error(`Environment variable ${String(key)} is not set and no default value provided`);
+      throw new Error(
+        `Environment variable ${String(key)} is not set and no default value provided`
+      );
     }
-    
+
     return value as T;
   }
 
   getRequired<T = string>(key: keyof NodeJS.ProcessEnv): T {
     const value = process.env[key];
-    
+
     if (!value) {
-      throw new Error(`Required environment variable ${String(key)} is not set`);
+      throw new Error(
+        `Required environment variable ${String(key)} is not set`
+      );
     }
-    
+
     return value as T;
   }
 
-  getBoolean(key: keyof NodeJS.ProcessEnv, defaultValue: boolean = false): boolean {
+  getBoolean(
+    key: keyof NodeJS.ProcessEnv,
+    defaultValue: boolean = false
+  ): boolean {
     const value = process.env[key];
-    
+
     if (!value) {
       return defaultValue;
     }
-    
+
     return value.toLowerCase() === 'true' || value === '1';
   }
 
   getNumber(key: keyof NodeJS.ProcessEnv, defaultValue: number = 0): number {
     const value = process.env[key];
-    
+
     if (!value) {
       return defaultValue;
     }
-    
+
     const parsed = parseInt(value, 10);
     return isNaN(parsed) ? defaultValue : parsed;
   }
 
   getArray(key: keyof NodeJS.ProcessEnv, separator: string = ','): string[] {
     const value = process.env[key];
-    
+
     if (!value) {
       return [];
     }
-    
-    return value.split(separator).map(item => item.trim()).filter(Boolean);
+
+    return value
+      .split(separator)
+      .map(item => item.trim())
+      .filter(Boolean);
   }
 
   validate(keys: (keyof NodeJS.ProcessEnv)[]): EnvironmentValidationResult {
@@ -115,7 +125,7 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
 
     for (const key of keys) {
       const value = process.env[key];
-      
+
       if (!value) {
         missing.push(String(key));
       } else if (value.length === 0) {
@@ -128,7 +138,7 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
       missing: missing.length > 0 ? missing : undefined,
       errors: errors.length > 0 ? errors : undefined,
       warnings: warnings.length > 0 ? warnings : undefined,
-      reason: missing.length > 0 ? `Missing: ${missing.join(', ')}` : undefined
+      reason: missing.length > 0 ? `Missing: ${missing.join(', ')}` : undefined,
     };
   }
 
@@ -137,38 +147,42 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
     // 환경변수 직접 확인 (빌드 타임 체크 전에)
     const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const envAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
+
     // 환경변수가 실제로 설정되어 있으면 사용
     if (envUrl && envAnonKey) {
-      const serviceRoleKey = this._isServer ? this.get('SUPABASE_SERVICE_ROLE_KEY', '') : '';
+      const serviceRoleKey = this._isServer
+        ? this.get('SUPABASE_SERVICE_ROLE_KEY', '')
+        : '';
       return {
         url: envUrl,
         anonKey: envAnonKey,
         serviceRoleKey,
-        isConfigured: true
+        isConfigured: true,
       };
     }
-    
+
     // 빌드 타임이거나 환경변수가 없는 경우에만 임시값 반환
     if (this._isBuildTime) {
       return {
         url: 'https://temp.supabase.co',
         anonKey: 'temp-anon-key',
         serviceRoleKey: 'temp-service-key',
-        isConfigured: false
+        isConfigured: false,
       };
     }
 
     // 런타임이지만 환경변수가 없는 경우
     const url = this.get('NEXT_PUBLIC_SUPABASE_URL', '');
     const anonKey = this.get('NEXT_PUBLIC_SUPABASE_ANON_KEY', '');
-    const serviceRoleKey = this._isServer ? this.get('SUPABASE_SERVICE_ROLE_KEY', '') : '';
+    const serviceRoleKey = this._isServer
+      ? this.get('SUPABASE_SERVICE_ROLE_KEY', '')
+      : '';
 
     return {
       url,
       anonKey,
       serviceRoleKey,
-      isConfigured: !!(url && anonKey)
+      isConfigured: !!(url && anonKey),
     };
   }
 
@@ -177,17 +191,20 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
       return {
         url: '',
         token: '',
-        isConfigured: false
+        isConfigured: false,
       };
     }
 
-    const url = this.get('UPSTASH_REDIS_REST_URL', '') || this.get('KV_REST_API_URL', '');
-    const token = this.get('UPSTASH_REDIS_REST_TOKEN', '') || this.get('KV_REST_API_TOKEN', '');
+    const url =
+      this.get('UPSTASH_REDIS_REST_URL', '') || this.get('KV_REST_API_URL', '');
+    const token =
+      this.get('UPSTASH_REDIS_REST_TOKEN', '') ||
+      this.get('KV_REST_API_TOKEN', '');
 
     return {
       url,
       token,
-      isConfigured: !!(url && token)
+      isConfigured: !!(url && token),
     };
   }
 
@@ -198,7 +215,7 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
         enabled: false,
         quotaProtection: true,
         forceMock: false,
-        isConfigured: false
+        isConfigured: false,
       };
     }
 
@@ -212,19 +229,21 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
       enabled,
       quotaProtection,
       forceMock,
-      isConfigured: !!apiKey
+      isConfigured: !!apiKey,
     };
   }
 
   getDeploymentConfig(): DeploymentEnvConfig {
     const nodeEnv = this.get('NODE_ENV', 'development');
-    const environment: EnvironmentName = isValidEnvironmentName(nodeEnv) ? nodeEnv : 'development';
-    
+    const environment: EnvironmentName = isValidEnvironmentName(nodeEnv)
+      ? nodeEnv
+      : 'development';
+
     // 타입 안전성을 위한 명시적 비교
     const isProduction = (environment as string) === 'production';
     const isDevelopment = (environment as string) === 'development';
     const isTest = (environment as string) === 'test';
-    
+
     return {
       environment,
       isVercel: this._isVercel,
@@ -233,7 +252,7 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
       isTest,
       appUrl: this.get('NEXT_PUBLIC_APP_URL', 'http://localhost:3000'),
       appName: this.get('NEXT_PUBLIC_APP_NAME', 'OpenManager VIBE'),
-      appVersion: this.get('NEXT_PUBLIC_APP_VERSION', '1.0.0')
+      appVersion: this.get('NEXT_PUBLIC_APP_VERSION', '1.0.0'),
     };
   }
 
@@ -243,7 +262,7 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
         adminPassword: '',
         jwtSecret: '',
         encryptionKey: '',
-        isConfigured: false
+        isConfigured: false,
       };
     }
 
@@ -255,13 +274,17 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
       adminPassword,
       jwtSecret,
       encryptionKey,
-      isConfigured: !!(adminPassword && jwtSecret && encryptionKey)
+      isConfigured: !!(adminPassword && jwtSecret && encryptionKey),
     };
   }
 
   getMonitoringConfig(): MonitoringEnvConfig {
     const enableLogging = this.getBoolean('ENABLE_LOGGING', true);
-    const logLevel = this.get('LOG_LEVEL', 'info') as 'debug' | 'info' | 'warn' | 'error';
+    const logLevel = this.get('LOG_LEVEL', 'info') as
+      | 'debug'
+      | 'info'
+      | 'warn'
+      | 'error';
     const sentryDsn = this.get('SENTRY_DSN', '');
     const analyticsId = this.get('ANALYTICS_ID', '');
 
@@ -270,7 +293,7 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
       logLevel,
       sentryDsn,
       analyticsId,
-      isConfigured: enableLogging
+      isConfigured: enableLogging,
     };
   }
 
@@ -282,7 +305,7 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
       googleAI: this.getGoogleAIConfig(),
       deployment: this.getDeploymentConfig(),
       security: this.getSecurityConfig(),
-      monitoring: this.getMonitoringConfig()
+      monitoring: this.getMonitoringConfig(),
     };
   }
 
@@ -294,14 +317,26 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
     }
 
     const config = this.getFullConfig();
-    
+
     console.log('🌍 Environment Configuration Status:');
-    console.log(`  🚀 Deployment: ${config.deployment.environment} (${config.deployment.isVercel ? 'Vercel' : 'Local'})`);
-    console.log(`  🔐 Supabase: ${config.supabase.isConfigured ? '✅ Configured' : '❌ Not configured'}`);
-    console.log(`  🗄️ Redis: ${config.redis.isConfigured ? '✅ Configured' : '❌ Not configured'}`);
-    console.log(`  🤖 Google AI: ${config.googleAI.isConfigured ? '✅ Configured' : '❌ Not configured'}`);
-    console.log(`  🔒 Security: ${config.security.isConfigured ? '✅ Configured' : '❌ Not configured'}`);
-    console.log(`  📊 Monitoring: ${config.monitoring.isConfigured ? '✅ Configured' : '❌ Not configured'}`);
+    console.log(
+      `  🚀 Deployment: ${config.deployment.environment} (${config.deployment.isVercel ? 'Vercel' : 'Local'})`
+    );
+    console.log(
+      `  🔐 Supabase: ${config.supabase.isConfigured ? '✅ Configured' : '❌ Not configured'}`
+    );
+    console.log(
+      `  🗄️ Redis: ${config.redis.isConfigured ? '✅ Configured' : '❌ Not configured'}`
+    );
+    console.log(
+      `  🤖 Google AI: ${config.googleAI.isConfigured ? '✅ Configured' : '❌ Not configured'}`
+    );
+    console.log(
+      `  🔒 Security: ${config.security.isConfigured ? '✅ Configured' : '❌ Not configured'}`
+    );
+    console.log(
+      `  📊 Monitoring: ${config.monitoring.isConfigured ? '✅ Configured' : '❌ Not configured'}`
+    );
   }
 
   // 🛡️ 환경변수 보안 체크
@@ -310,11 +345,16 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
 
     if (!this._isBuildTime) {
       // 빈 필수 환경변수 체크
-      const requiredVars = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY'];
+      const requiredVars = [
+        'NEXT_PUBLIC_SUPABASE_URL',
+        'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+      ];
       for (const key of requiredVars) {
         const value = process.env[key];
         if (!value || value.length === 0) {
-          vulnerabilities.push(`Required environment variable ${key} is missing or empty`);
+          vulnerabilities.push(
+            `Required environment variable ${key} is missing or empty`
+          );
         }
       }
 
@@ -323,8 +363,13 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
       if (deploymentConfig.isDevelopment) {
         const prodPatterns = ['prod', 'production', 'live'];
         for (const [key, value] of Object.entries(process.env)) {
-          if (value && prodPatterns.some(pattern => value.toLowerCase().includes(pattern))) {
-            vulnerabilities.push(`Development environment using production-like value for ${key}`);
+          if (
+            value &&
+            prodPatterns.some(pattern => value.toLowerCase().includes(pattern))
+          ) {
+            vulnerabilities.push(
+              `Development environment using production-like value for ${key}`
+            );
           }
         }
       }
@@ -373,7 +418,8 @@ export const getFullEnvironmentConfig = () => safeEnv.getFullConfig();
 
 // 🔍 디버깅 편의 함수
 export const logEnvironmentStatus = () => safeEnv.logEnvironmentStatus();
-export const checkEnvironmentSecurity = () => safeEnv.checkSecurityVulnerabilities();
+export const checkEnvironmentSecurity = () =>
+  safeEnv.checkSecurityVulnerabilities();
 
 // 🛡️ 타입 가드 편의 함수들
 export const isBuildTime = () => safeEnv.isBuildTime();

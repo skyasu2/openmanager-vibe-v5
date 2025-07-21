@@ -2,13 +2,13 @@
 
 /**
  * 🤝 AI Orchestrator v1.0 - Claude와 Gemini의 지능형 협업 도구
- * 
+ *
  * 주요 기능:
  * - 단계적 문제 분석 및 해결
  * - 컨텍스트 보존 및 누적
  * - 다각도 분석 (기술, 사용자, 비즈니스, 보안)
  * - 자동 리포트 생성
- * 
+ *
  * @author Claude Code
  * @version 1.0.0
  */
@@ -68,14 +68,17 @@ export class AIOrchestrator {
   private reportDir: string;
   private debug: boolean;
 
-  constructor(options: {
-    debug?: boolean;
-    reportDir?: string;
-  } = {}) {
+  constructor(
+    options: {
+      debug?: boolean;
+      reportDir?: string;
+    } = {}
+  ) {
     this.debug = options.debug || process.env.AI_DEBUG === 'true';
-    this.reportDir = options.reportDir || join(__dirname, '..', 'reports', 'ai-analysis');
+    this.reportDir =
+      options.reportDir || join(__dirname, '..', 'reports', 'ai-analysis');
     this.gemini = new SmartGeminiWrapper({ debug: this.debug });
-    
+
     this.ensureReportDir();
   }
 
@@ -128,7 +131,7 @@ ${context.additionalContext ? `추가 컨텍스트: ${context.additionalContext}
       technical: '',
       user: '',
       business: '',
-      security: ''
+      security: '',
     };
 
     // 기술적 관점
@@ -167,7 +170,9 @@ ${claudeAnalysis}
 사용자 중심의 해결 방안을 제시해주세요.
     `;
 
-    const userResult = await this.gemini.execute(userPrompt, { preferredModel: 'flash' });
+    const userResult = await this.gemini.execute(userPrompt, {
+      preferredModel: 'flash',
+    });
     perspectives.user = userResult.output || '분석 실패';
 
     // 비즈니스 관점
@@ -185,7 +190,9 @@ ${claudeAnalysis}
 비즈니스 영향을 고려한 해결책을 제시해주세요.
     `;
 
-    const businessResult = await this.gemini.execute(businessPrompt, { preferredModel: 'flash' });
+    const businessResult = await this.gemini.execute(businessPrompt, {
+      preferredModel: 'flash',
+    });
     perspectives.business = businessResult.output || '분석 실패';
 
     // 보안 관점
@@ -203,7 +210,9 @@ ${claudeAnalysis}
 보안을 강화하는 해결 방안을 제시해주세요.
     `;
 
-    const securityResult = await this.gemini.execute(securityPrompt, { preferredModel: 'flash' });
+    const securityResult = await this.gemini.execute(securityPrompt, {
+      preferredModel: 'flash',
+    });
     perspectives.security = securityResult.output || '분석 실패';
 
     return perspectives;
@@ -247,7 +256,7 @@ JSON 형식으로 응답해주세요.
     `;
 
     const synthesisResult = await this.gemini.execute(synthesisPrompt);
-    
+
     // 여기서는 간단한 파싱을 시도
     try {
       const output = synthesisResult.output || '';
@@ -269,19 +278,19 @@ JSON 형식으로 응답해주세요.
         {
           step: 1,
           description: '문제 분석 및 요구사항 정의',
-          implementation: '상세 분석 수행'
+          implementation: '상세 분석 수행',
         },
         {
           step: 2,
           description: '솔루션 구현',
-          implementation: '단계별 구현'
+          implementation: '단계별 구현',
         },
         {
           step: 3,
           description: '테스트 및 검증',
-          implementation: '품질 보증'
-        }
-      ]
+          implementation: '품질 보증',
+        },
+      ],
     };
   }
 
@@ -305,8 +314,8 @@ JSON 형식으로 응답해주세요.
 권장사항을 우선순위 순으로 나열해주세요.
     `;
 
-    const recommendResult = await this.gemini.execute(recommendPrompt, { 
-      preferredModel: 'flash' 
+    const recommendResult = await this.gemini.execute(recommendPrompt, {
+      preferredModel: 'flash',
     });
 
     // 간단한 라인 파싱
@@ -316,8 +325,8 @@ JSON 형식으로 응답해주세요.
       .map(line => line.replace(/^\d+\.|^-|^•/, '').trim())
       .filter(line => line.length > 0);
 
-    return recommendations.length > 0 
-      ? recommendations 
+    return recommendations.length > 0
+      ? recommendations
       : ['문제 해결을 위한 단계적 접근', '지속적인 모니터링 및 개선'];
   }
 
@@ -375,7 +384,9 @@ ${result.synthesizedSolution.summary}
 
 ### 단계별 실행 계획
 
-${result.synthesizedSolution.steps.map(step => `
+${result.synthesizedSolution.steps
+  .map(
+    step => `
 #### ${step.step}단계: ${step.description}
 
 **구현 방법:**
@@ -384,7 +395,9 @@ ${step.implementation}
 ${step.risks ? `**잠재적 리스크:**\n${step.risks.map(r => `- ${r}`).join('\n')}` : ''}
 
 ${step.alternatives ? `**대안:**\n${step.alternatives.map(a => `- ${a}`).join('\n')}` : ''}
-`).join('\n')}
+`
+  )
+  .join('\n')}
 
 ${result.synthesizedSolution.estimatedTime ? `### 예상 소요 시간\n${result.synthesizedSolution.estimatedTime}` : ''}
 
@@ -419,12 +432,13 @@ ${result.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join('\n')}
       problem: options.problem,
       projectPath: options.projectPath,
       additionalContext: options.additionalContext,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     // 1단계: Claude 분석 (제공되지 않았다면 프롬프트 생성)
     console.log('📝 1단계: 초기 분석...');
-    const claudeAnalysis = options.claudeAnalysis || await this.getClaudeAnalysis(context);
+    const claudeAnalysis =
+      options.claudeAnalysis || (await this.getClaudeAnalysis(context));
 
     // 2단계: 다각도 분석
     console.log('🔍 2단계: 다각도 분석 수행...');
@@ -455,7 +469,7 @@ ${result.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join('\n')}
       geminiPerspectives: perspectives,
       synthesizedSolution,
       recommendations,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     // 5단계: 리포트 저장
@@ -474,7 +488,7 @@ ${result.recommendations.map((rec, idx) => `${idx + 1}. ${rec}`).join('\n')}
   async quickSolve(problem: string): Promise<string> {
     const result = await this.orchestrate({
       problem,
-      saveReport: false
+      saveReport: false,
     });
 
     return `
@@ -511,11 +525,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
           const result = await orchestrator.orchestrate({
             problem,
-            saveReport: true
+            saveReport: true,
           });
 
           console.log('\n✅ 분석 완료!');
-          console.log(`\n📊 통합 솔루션:\n${result.synthesizedSolution.summary}`);
+          console.log(
+            `\n📊 통합 솔루션:\n${result.synthesizedSolution.summary}`
+          );
           console.log(`\n📄 상세 리포트: ${result.reportPath}`);
           break;
 

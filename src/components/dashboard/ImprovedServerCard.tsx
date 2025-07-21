@@ -9,7 +9,17 @@
  * - ✅ 반응형 디자인 완전 지원
  */
 
-import { AlertCircle, CheckCircle2, Clock, MapPin, Server, Database, Globe, HardDrive, Archive } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  MapPin,
+  Server,
+  Database,
+  Globe,
+  HardDrive,
+  Archive,
+} from 'lucide-react';
 import dynamic from 'next/dynamic';
 import React, { memo, useCallback, useEffect, useState } from 'react';
 import { Server as ServerType } from '../../types/server';
@@ -148,7 +158,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
           };
       }
     };
-    
+
     // 서버 타입별 아이콘 가져오기
     const getServerIcon = () => {
       switch (server.type) {
@@ -165,17 +175,37 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
           return <Server className='w-5 h-5' />;
       }
     };
-    
+
     // OS별 아이콘/이모지 가져오기
     const getOSIcon = () => {
       const os = server.os?.toLowerCase() || '';
-      
-      if (os.includes('ubuntu') || os.includes('debian') || os.includes('linux')) {
-        return <span className='text-base' title={server.os}>🐧</span>;
-      } else if (os.includes('centos') || os.includes('red hat') || os.includes('rhel')) {
-        return <span className='text-base' title={server.os}>🎩</span>;
+
+      if (
+        os.includes('ubuntu') ||
+        os.includes('debian') ||
+        os.includes('linux')
+      ) {
+        return (
+          <span className='text-base' title={server.os}>
+            🐧
+          </span>
+        );
+      } else if (
+        os.includes('centos') ||
+        os.includes('red hat') ||
+        os.includes('rhel')
+      ) {
+        return (
+          <span className='text-base' title={server.os}>
+            🎩
+          </span>
+        );
       } else if (os.includes('windows')) {
-        return <span className='text-base' title={server.os}>🪟</span>;
+        return (
+          <span className='text-base' title={server.os}>
+            🪟
+          </span>
+        );
       }
       return null;
     };

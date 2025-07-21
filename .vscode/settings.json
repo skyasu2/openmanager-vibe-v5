@@ -85,5 +85,34 @@
   "typescript.validate.enable": false,
   "typescript.suggest.includeCompletionsForImportStatements": false,
   "typescript.suggest.includeCompletionsForModuleExports": false,
-  "eslint.enable": false
+
+  // 🎯 ESLint v9 Flat Config 설정
+  "eslint.enable": true,
+  "eslint.experimental.useFlatConfig": true,
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+
+  // 🔍 ESLint 디버깅 (필요시 활성화)
+  // "eslint.debug": true,
+  // "eslint.trace.server": "verbose"
 }

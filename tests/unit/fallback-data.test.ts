@@ -185,7 +185,7 @@ describe('Fallback Data Configuration', () => {
       delete testEnv.UPSTASH_REDIS_REST_URL;
 
       (process as any).env = testEnv;
-      
+
       // INFRASTRUCTURE_CONFIG에서 값을 가져옴 ('' 또는 설정된 값)
       const redisUrl = getInfrastructureUrl('redis');
       // 빈 문자열이거나 INFRASTRUCTURE_CONFIG.redis.url 값

@@ -4,9 +4,12 @@ import { mockServers } from '@/mock/mockServerConfig';
 import { generate24HourData } from '@/mock/mockScenarios';
 
 // 목업 서버 데이터를 ImprovedServerCard용으로 변환
-const createMockServerData = (mockServer: typeof mockServers[0], scenario: string = 'normal') => {
+const createMockServerData = (
+  mockServer: (typeof mockServers)[0],
+  scenario: string = 'normal'
+) => {
   const currentMetrics = generate24HourData(scenario)[0];
-  
+
   return {
     id: mockServer.id,
     name: mockServer.hostname,
@@ -19,8 +22,12 @@ const createMockServerData = (mockServer: typeof mockServers[0], scenario: strin
     uptime: '99.99%',
     ip: mockServer.ip,
     os: mockServer.os,
-    alerts: mockServer.status === 'critical' ? 3 : 
-            mockServer.status === 'warning' ? 1 : 0,
+    alerts:
+      mockServer.status === 'critical'
+        ? 3
+        : mockServer.status === 'warning'
+          ? 1
+          : 0,
     lastUpdate: new Date(),
     services: [],
   };
@@ -113,16 +120,15 @@ export const StaticCard: Story = {
 // 모든 서버 타입 그리드
 export const ServerGrid: Story = {
   render: () => (
-    <div className="grid grid-cols-2 gap-4 p-4">
+    <div className='grid grid-cols-2 gap-4 p-4'>
       {mockServers.slice(0, 4).map((server, index) => (
         <ImprovedServerCard
           key={server.id}
           server={createMockServerData(
-            server, 
-            index === 1 ? 'cpu_spike' : 
-            index === 2 ? 'memory_leak' : 'normal'
+            server,
+            index === 1 ? 'cpu_spike' : index === 2 ? 'memory_leak' : 'normal'
           )}
-          variant="compact"
+          variant='compact'
           showRealTimeUpdates={true}
           index={index}
         />

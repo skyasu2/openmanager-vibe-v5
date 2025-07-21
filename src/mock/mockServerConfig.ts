@@ -39,7 +39,7 @@ export const mockServers: MockServerInfo[] = [
     memory: { total: 16 },
     disk: { total: 500 },
     status: 'online',
-    description: '프로덕션 웹 서버 #1 - 로드밸런서 Primary'
+    description: '프로덕션 웹 서버 #1 - 로드밸런서 Primary',
   },
   {
     id: 'web-prd-02',
@@ -53,7 +53,7 @@ export const mockServers: MockServerInfo[] = [
     memory: { total: 16 },
     disk: { total: 500 },
     status: 'warning',
-    description: '프로덕션 웹 서버 #2 - 로드밸런서 Secondary (CPU 높음)'
+    description: '프로덕션 웹 서버 #2 - 로드밸런서 Secondary (CPU 높음)',
   },
 
   // 애플리케이션 서버 (2대)
@@ -69,7 +69,7 @@ export const mockServers: MockServerInfo[] = [
     memory: { total: 32 },
     disk: { total: 1000 },
     status: 'critical',
-    description: 'Java 애플리케이션 서버 #1 - 메모리 누수 발생'
+    description: 'Java 애플리케이션 서버 #1 - 메모리 누수 발생',
   },
   {
     id: 'app-prd-02',
@@ -83,7 +83,7 @@ export const mockServers: MockServerInfo[] = [
     memory: { total: 32 },
     disk: { total: 1000 },
     status: 'online',
-    description: 'Node.js 애플리케이션 서버 #2 - API 서비스'
+    description: 'Node.js 애플리케이션 서버 #2 - API 서비스',
   },
 
   // 데이터베이스 서버 (2대)
@@ -99,7 +99,7 @@ export const mockServers: MockServerInfo[] = [
     memory: { total: 128 },
     disk: { total: 4000 },
     status: 'critical',
-    description: '메인 데이터베이스 서버 - 디스크 용량 95% 초과'
+    description: '메인 데이터베이스 서버 - 디스크 용량 95% 초과',
   },
   {
     id: 'db-repl-01',
@@ -113,7 +113,7 @@ export const mockServers: MockServerInfo[] = [
     memory: { total: 128 },
     disk: { total: 4000 },
     status: 'online',
-    description: '읽기 전용 복제 데이터베이스 서버'
+    description: '읽기 전용 복제 데이터베이스 서버',
   },
 
   // 파일/스토리지 서버
@@ -129,7 +129,7 @@ export const mockServers: MockServerInfo[] = [
     memory: { total: 64 },
     disk: { total: 20000 }, // 20TB
     status: 'warning',
-    description: 'NAS 파일 서버 - 백업 작업 지연 중'
+    description: 'NAS 파일 서버 - 백업 작업 지연 중',
   },
 
   // 백업 서버
@@ -145,8 +145,8 @@ export const mockServers: MockServerInfo[] = [
     memory: { total: 96 },
     disk: { total: 50000 }, // 50TB
     status: 'warning',
-    description: '중앙 백업 서버 - 스토리지 용량 85% 경고'
-  }
+    description: '중앙 백업 서버 - 스토리지 용량 85% 경고',
+  },
 ];
 
 // 서버 상태별 색상 및 아이콘 매핑
@@ -156,31 +156,31 @@ export const serverStatusConfig = {
     bgColor: 'bg-green-100',
     borderColor: 'border-green-400',
     icon: '✓',
-    label: '정상'
+    label: '정상',
   },
   warning: {
     color: 'text-amber-700',
     bgColor: 'bg-amber-100',
     borderColor: 'border-amber-400',
     icon: '⚠',
-    label: '경고'
+    label: '경고',
   },
   critical: {
     color: 'text-red-700',
     bgColor: 'bg-red-100',
     borderColor: 'border-red-400',
     icon: '✕',
-    label: '심각'
-  }
+    label: '심각',
+  },
 };
 
 // OS별 아이콘 매핑
 export const osIcons: Record<string, string> = {
-  'Ubuntu': '🐧',
-  'CentOS': '🎩',
+  Ubuntu: '🐧',
+  CentOS: '🎩',
   'Red Hat': '🎩',
   'Windows Server': '🪟',
-  'Debian': '🐧'
+  Debian: '🐧',
 };
 
 // 서버 타입별 아이콘 매핑
@@ -189,27 +189,27 @@ export const serverTypeIcons = {
   app: '⚙️',
   database: '🗄️',
   storage: '💾',
-  backup: '📦'
+  backup: '📦',
 };
 
 // 서버 타입별 메트릭 임계값
 export const metricThresholds = {
   cpu: {
     warning: 70,
-    critical: 85
+    critical: 85,
   },
   memory: {
     warning: 75,
-    critical: 90
+    critical: 90,
   },
   disk: {
     warning: 80,
-    critical: 90
+    critical: 90,
   },
   network: {
     warning: 80,
-    critical: 95
-  }
+    critical: 95,
+  },
 };
 
 // 서버별 초기 상태 정의
@@ -221,5 +221,5 @@ export const serverInitialStates = {
   'db-main-01': { scenario: 'disk_full' },
   'db-repl-01': { scenario: 'normal' },
   'file-nas-01': { scenario: 'backup_delay' },
-  'backup-01': { scenario: 'storage_warning' }
+  'backup-01': { scenario: 'storage_warning' },
 };

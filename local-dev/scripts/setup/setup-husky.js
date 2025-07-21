@@ -2,7 +2,7 @@
 
 /**
  * 🔧 Husky 조건부 설치 스크립트
- * 
+ *
  * Vercel이나 다른 CI/CD 환경에서는 husky 설치를 스킵합니다.
  * 로컬 개발 환경에서만 Git hooks를 설정합니다.
  */
@@ -53,4 +53,4 @@ try {
 } catch (error) {
   console.log('⚠️ Husky 설치 실패 (무시됨):', error.message);
   // 실패해도 종료하지 않음
-} 
+}

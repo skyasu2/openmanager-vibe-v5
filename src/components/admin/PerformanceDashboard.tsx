@@ -223,23 +223,23 @@ export default function PerformanceDashboard() {
           errorRate: (Math.random() * 3) / 100,
           fallbackRate: (Math.random() * 10) / 100,
           engineStats: {
-            'google-ai': { 
-              requests: 150, 
-              averageResponseTime: 250, 
+            'google-ai': {
+              requests: 150,
+              averageResponseTime: 250,
               successRate: 0.98,
-              confidence: 0.95
+              confidence: 0.95,
             },
-            'mcp': { 
-              requests: 200, 
-              averageResponseTime: 180, 
+            mcp: {
+              requests: 200,
+              averageResponseTime: 180,
               successRate: 0.96,
-              confidence: 0.93
+              confidence: 0.93,
             },
-            'rag': { 
-              requests: 120, 
-              averageResponseTime: 200, 
+            rag: {
+              requests: 120,
+              averageResponseTime: 200,
               successRate: 0.94,
-              confidence: 0.89
+              confidence: 0.89,
             },
           },
           modeStats: {
@@ -253,14 +253,16 @@ export default function PerformanceDashboard() {
               averageResponseTime: 280,
               successRate: 0.98,
             },
-            'hybrid': {
+            hybrid: {
               requests: 20,
               averageResponseTime: 195,
               successRate: 0.97,
             },
           },
           hourlyStats: Array.from({ length: 24 }, (_, i) => ({
-            hour: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
+            hour: new Date(
+              Date.now() - (23 - i) * 60 * 60 * 1000
+            ).toISOString(),
             requests: Math.floor(Math.random() * 100) + 50,
             averageResponseTime: Math.floor(Math.random() * 200) + 150,
             successRate: 0.95 + Math.random() * 0.05,
@@ -416,7 +418,7 @@ export default function PerformanceDashboard() {
         data: data,
         source: 'portfolio-demo',
       };
-      
+
       const blob = new Blob([JSON.stringify(exportData, null, 2)], {
         type: 'application/json',
       });

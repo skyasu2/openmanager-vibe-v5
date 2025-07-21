@@ -1,24 +1,28 @@
 # 🔧 환경변수 설정 가이드
 
 ## 📋 개요
+
 하드코딩된 시크릿이 성공적으로 제거되었습니다. 이제 실제 환경변수를 설정해야 합니다.
 
 ## 🚀 1단계: 실제 환경변수 값 확인
 
 ### 🔴 Redis (Upstash) 설정
+
 1. **Upstash 콘솔 접속**: https://console.upstash.com/
 2. **Redis 인스턴스 선택**: 기존 Redis DB 선택
 3. **연결 정보 복사**:
+
    ```bash
    # REST API 정보
    UPSTASH_REDIS_REST_URL=https://your-instance.upstash.io
    UPSTASH_REDIS_REST_TOKEN=your_token_here
-   
+
    # Connection String
    KV_URL=rediss://default:your_password@your-instance.upstash.io:6379
    ```
 
 ### 🗄️ Supabase 설정
+
 1. **Supabase 대시보드 접속**: https://supabase.com/dashboard
 2. **프로젝트 선택**: OpenManager Vibe v5
 3. **Settings → API** 이동
@@ -30,6 +34,7 @@
    ```
 
 ### 🔐 GitHub OAuth 설정
+
 1. **GitHub → Settings → Developer settings → OAuth Apps**
 2. **기존 OAuth 앱 확인**: OpenManager Vibe v5
 3. **클라이언트 정보 복사**:
@@ -39,6 +44,7 @@
    ```
 
 ### 🤖 Google AI API 설정
+
 1. **Google AI Studio 접속**: https://makersuite.google.com/app/apikey
 2. **API 키 생성/확인**:
    ```bash
@@ -79,21 +85,24 @@ GOOGLE_AI_API_KEY=[YOUR_GOOGLE_AI_API_KEY_HERE]
 ## 🚀 3단계: Vercel 환경변수 설정
 
 ### A. Vercel CLI 로그인
+
 ```bash
 vercel login
 ```
 
 ### B. 프로젝트 연결 확인
+
 ```bash
 vercel link --yes
 # 프로젝트 선택: skyasus-projects/openmanager-vibe-v5
 ```
 
 ### C. 환경변수 추가
+
 ```bash
 # Supabase 환경변수
 vercel env add SUPABASE_URL
-vercel env add NEXT_PUBLIC_SUPABASE_URL  
+vercel env add NEXT_PUBLIC_SUPABASE_URL
 vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
 vercel env add SUPABASE_SERVICE_ROLE_KEY
 
@@ -114,6 +123,7 @@ vercel env add GOOGLE_AI_API_KEY
 ```
 
 ### D. 환경변수 확인
+
 ```bash
 vercel env ls
 ```
@@ -131,6 +141,7 @@ npm run dev
 ## 🚀 5단계: 배포 및 테스트
 
 ### A. 변경사항 커밋
+
 ```bash
 git add .
 git commit -m "🔐 보안: 하드코딩된 시크릿 제거 및 환경변수 시스템 적용"
@@ -138,11 +149,13 @@ git push origin main
 ```
 
 ### B. 배포 상태 확인
+
 ```bash
 vercel --prod
 ```
 
 ### C. 프로덕션 테스트
+
 - **메인 사이트**: https://openmanager-vibe-v5.vercel.app
 - **로그인 테스트**: GitHub OAuth 동작 확인
 - **AI 기능 테스트**: Google AI API 연결 확인
@@ -166,11 +179,13 @@ vercel --prod
 ## 🆘 트러블슈팅
 
 ### 일반적인 문제
+
 1. **Vercel 연결 오류**: `vercel link --yes` 재실행
 2. **환경변수 누락**: `vercel env ls`로 확인
 3. **API 키 오류**: 각 서비스 콘솔에서 키 유효성 확인
 
 ### 빠른 해결책
+
 ```bash
 # 환경변수 검증 스크립트
 npm run verify:env

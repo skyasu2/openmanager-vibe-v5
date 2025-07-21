@@ -7,7 +7,8 @@
  * 인증 없이 접근할 수 있는지 테스트합니다.
  */
 
-const BYPASS_SECRET = process.env.VERCEL_AUTOMATION_BYPASS_SECRET || 'test-bypass-secret';
+const BYPASS_SECRET =
+  process.env.VERCEL_AUTOMATION_BYPASS_SECRET || 'test-bypass-secret';
 
 // 테스트할 URL들
 const TEST_URLS = [

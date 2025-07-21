@@ -7,14 +7,21 @@ export * from './mockScenarios';
 export * from './mockDataGenerator';
 export * from './mockDataRotator';
 
-import { generateMockServerData, selectRandomScenario } from './mockDataGenerator';
+import {
+  generateMockServerData,
+  selectRandomScenario,
+} from './mockDataGenerator';
 import { getRotatorInstance, MockDataRotator } from './mockDataRotator';
 import type { Server } from '@/types/server';
 
 export interface MockSystemConfig {
   autoRotate?: boolean;
   rotationInterval?: number;
-  startScenario?: 'random' | 'morning_crisis' | 'midnight_maintenance' | 'peak_load';
+  startScenario?:
+    | 'random'
+    | 'morning_crisis'
+    | 'midnight_maintenance'
+    | 'peak_load';
   speed?: number;
 }
 
@@ -26,15 +33,15 @@ class MockSystem {
   constructor(config: MockSystemConfig = {}) {
     // 시나리오 선택
     this.scenario = selectRandomScenario();
-    
+
     // 데이터 생성
     this.data = generateMockServerData();
-    
+
     // 회전 시스템 초기화
     if (config.autoRotate !== false) {
       this.rotator = getRotatorInstance(this.data.timeSeries, {
         intervalMs: config.rotationInterval || 30000,
-        speed: config.speed || 1
+        speed: config.speed || 1,
       });
     }
   }
@@ -75,8 +82,10 @@ class MockSystem {
       metadata: this.data.metadata,
       rotatorStatus: this.rotator?.getStatus() || null,
       serverCount: this.data.servers.length,
-      criticalCount: this.data.servers.filter(s => s.status === 'critical').length,
-      warningCount: this.data.servers.filter(s => s.status === 'warning').length
+      criticalCount: this.data.servers.filter(s => s.status === 'critical')
+        .length,
+      warningCount: this.data.servers.filter(s => s.status === 'warning')
+        .length,
     };
   }
 
@@ -172,5 +181,5 @@ export const mockHelpers = {
     const system = getMockSystem();
     system.setSpeed(1); // 정상 속도
     return '정상 속도 재생';
-  }
+  },
 };

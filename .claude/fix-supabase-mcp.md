@@ -22,6 +22,7 @@
 #### 옵션 A: Claude Code 글로벌 설정 (권장)
 
 **Windows:**
+
 ```powershell
 # PowerShell에서 실행
 $configPath = "$env:APPDATA\claude-code\mcpServers.json"
@@ -29,6 +30,7 @@ New-Item -ItemType Directory -Force -Path (Split-Path $configPath)
 ```
 
 **Linux/Mac:**
+
 ```bash
 mkdir -p ~/.config/claude-code
 ```
@@ -95,11 +97,13 @@ Windows에서는 `cmd` 래퍼가 필요합니다:
 토큰을 환경변수로 설정하면 설정 파일에서 제외할 수 있습니다:
 
 **Windows (PowerShell):**
+
 ```powershell
 [Environment]::SetEnvironmentVariable("SUPABASE_ACCESS_TOKEN", "your-token", "User")
 ```
 
 **Linux/Mac:**
+
 ```bash
 echo 'export SUPABASE_ACCESS_TOKEN="your-token"' >> ~/.bashrc
 source ~/.bashrc
@@ -117,15 +121,18 @@ source ~/.bashrc
 ## 🚨 문제 해결
 
 ### "MCP error -32000: Connection closed" 오류
+
 - Node.js가 설치되어 있는지 확인 (`node -v`)
 - PATH에 Node.js가 있는지 확인
 - Windows: `npx` 경로 확인 (`where npx`)
 
 ### 권한 오류
+
 - Personal Access Token이 올바른지 확인
 - 프로젝트 ID가 정확한지 확인
 
 ### 도구가 보이지 않음
+
 - Claude Code 캐시 정리 후 재시작
 - MCP 서버 로그 확인
 

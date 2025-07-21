@@ -29,7 +29,7 @@ export class ContextDetector {
       isPowerShell: true, // PowerShell 전용
       caller: this._detectCaller(),
       runtime: this._detectRuntime(),
-      recommendations: []
+      recommendations: [],
     };
 
     // PowerShell 환경 확인
@@ -86,7 +86,7 @@ export class ContextDetector {
       isTTY,
       mode: isTTY ? 'interactive' : 'stdio',
       hasColor: env.COLORTERM || env.TERM === 'xterm-256color',
-      shell: 'powershell'
+      shell: 'powershell',
     };
   }
 
@@ -97,12 +97,15 @@ export class ContextDetector {
     const caller = this.context.caller;
     const isPowerShell = this.context.isPowerShell;
 
-    let executionStrategy = this._determineExecutionStrategy(caller, isPowerShell);
+    let executionStrategy = this._determineExecutionStrategy(
+      caller,
+      isPowerShell
+    );
 
     return {
       strategy: executionStrategy,
       context: this.context,
-      recommendations: this._generateRecommendations(caller, isPowerShell)
+      recommendations: this._generateRecommendations(caller, isPowerShell),
     };
   }
 
@@ -126,7 +129,9 @@ export class ContextDetector {
     const recommendations = [];
 
     if (caller === 'claude-code' && isPowerShell) {
-      recommendations.push('Claude Code에서 PowerShell 환경 감지됨 - 최적화된 PowerShell 브릿지 사용');
+      recommendations.push(
+        'Claude Code에서 PowerShell 환경 감지됨 - 최적화된 PowerShell 브릿지 사용'
+      );
     }
 
     if (caller === 'gemini-cli') {

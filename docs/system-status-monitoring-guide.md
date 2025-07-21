@@ -15,18 +15,18 @@ graph TB
     subgraph "Frontend"
         A[Vercel - Next.js App<br/>openmanager-vibe-v5.vercel.app]
     end
-    
+
     subgraph "Backend Services"
         B[GCP MCP Server<br/>104.154.205.25:10000]
         C[Upstash Redis<br/>YOUR_PLACEHOLDER]
         D[Supabase Database<br/>YOUR_PLACEHOLDER.supabase.co]
     end
-    
+
     subgraph "AI Services"
         E[Google AI API<br/>Gemini Models]
         F[Local RAG Engine<br/>Supabase Vector]
     end
-    
+
     A --> B
     A --> C
     A --> D
@@ -42,7 +42,7 @@ graph TB
 # 1. Vercel 앱 상태
 curl -s https://openmanager-vibe-v5.vercel.app/api/health | grep -o '"status":"[^"]*"'
 
-# 2. GCP MCP 서버 상태  
+# 2. GCP MCP 서버 상태
 curl -s http://104.154.205.25:10000/health | grep -o '"status":"[^"]*"'
 
 # 3. Redis 연결 상태
@@ -62,12 +62,12 @@ echo "Redis: $(curl -X POST 'https://YOUR_PLACEHOLDER/ping' -H 'Authorization: B
 
 ### ✅ 정상 상태 기준값
 
-| 서비스 | 상태 | 응답시간 | 기준값 |
-|--------|------|----------|---------|
-| Vercel | `healthy` | < 500ms | 99.9% 가용성 |
-| MCP Server | `healthy` | < 400ms | 24/7 운영 |
-| Redis | `PONG` | < 200ms | 99.9% 가용성 |
-| Supabase | `connected` | < 300ms | 7개 테이블 운영 |
+| 서비스     | 상태        | 응답시간 | 기준값          |
+| ---------- | ----------- | -------- | --------------- |
+| Vercel     | `healthy`   | < 500ms  | 99.9% 가용성    |
+| MCP Server | `healthy`   | < 400ms  | 24/7 운영       |
+| Redis      | `PONG`      | < 200ms  | 99.9% 가용성    |
+| Supabase   | `connected` | < 300ms  | 7개 테이블 운영 |
 
 ---
 
@@ -85,6 +85,7 @@ curl -s https://openmanager-vibe-v5.vercel.app/api/health
 ```
 
 **✅ 정상 응답 예시:**
+
 ```json
 {
   "status": "healthy",
@@ -94,7 +95,7 @@ curl -s https://openmanager-vibe-v5.vercel.app/api/health
   "version": "5.44.3",
   "services": {
     "database": "operational",
-    "cache": "operational", 
+    "cache": "operational",
     "ai": "operational"
   },
   "checks": {
@@ -111,7 +112,7 @@ curl -s https://openmanager-vibe-v5.vercel.app/api/health
 # 대시보드 API
 curl -s https://openmanager-vibe-v5.vercel.app/api/dashboard | head -100
 
-# 서버 목록 API  
+# 서버 목록 API
 curl -s https://openmanager-vibe-v5.vercel.app/api/servers | head -100
 
 # AI 에이전트 API (POST)
@@ -144,6 +145,7 @@ curl -s -w "\nHTTP Status: %{http_code}\nResponse Time: %{time_total}s\n" \
 ```
 
 **✅ 정상 응답 예시:**
+
 ```json
 {
   "status": "healthy",
@@ -165,6 +167,7 @@ gcloud compute instances describe mcp-server \
 ```
 
 **✅ 정상 상태 기준:**
+
 - **STATUS**: `RUNNING`
 - **EXTERNAL_IP**: `104.154.205.25`
 - **MACHINE_TYPE**: `e2-micro`
@@ -216,6 +219,7 @@ curl -X POST 'https://YOUR_PLACEHOLDER/info' \
 ```
 
 **✅ 주요 메트릭 기준값:**
+
 - **메모리 사용량**: < 50MB (64MB 한도)
 - **키 개수**: 현재 4개 (정상)
 - **일일 명령어**: < 8,000회 (10,000회 한도)
@@ -270,6 +274,7 @@ echo "Supabase URL: YOUR_PLACEHOLDER"
 ```
 
 **✅ 정상 연결 상태:**
+
 - **프로젝트 URL**: `YOUR_PLACEHOLDER`
 - **MCP 연결**: 활성화됨
 - **테이블 개수**: 7개 테이블
@@ -279,25 +284,27 @@ echo "Supabase URL: YOUR_PLACEHOLDER"
 
 **📋 테이블 구조 (2025년 7월 15일 기준):**
 
-| 테이블명 | 크기 | 행 수 | 용도 | 상태 |
-|----------|------|-------|------|------|
-| `command_vectors` | 80 kB | 11 | AI 명령어 벡터 저장 | ✅ 활성 |
-| `ai_embeddings` | 1624 kB | 0 | AI 임베딩 데이터 | 🔄 준비됨 |
-| `document_embeddings` | 1624 kB | 0 | 문서 임베딩 | 🔄 준비됨 |
-| `context_embeddings` | 1624 kB | 0 | 컨텍스트 임베딩 | 🔄 준비됨 |
-| `user_profiles` | 24 kB | 0 | 사용자 프로필 | 🔄 준비됨 |
-| `organization_settings` | 24 kB | 0 | 조직 설정 | 🔄 준비됨 |
-| `custom_rules` | 16 kB | 0 | 커스텀 규칙 | 🔄 준비됨 |
+| 테이블명                | 크기    | 행 수 | 용도                | 상태      |
+| ----------------------- | ------- | ----- | ------------------- | --------- |
+| `command_vectors`       | 80 kB   | 11    | AI 명령어 벡터 저장 | ✅ 활성   |
+| `ai_embeddings`         | 1624 kB | 0     | AI 임베딩 데이터    | 🔄 준비됨 |
+| `document_embeddings`   | 1624 kB | 0     | 문서 임베딩         | 🔄 준비됨 |
+| `context_embeddings`    | 1624 kB | 0     | 컨텍스트 임베딩     | 🔄 준비됨 |
+| `user_profiles`         | 24 kB   | 0     | 사용자 프로필       | 🔄 준비됨 |
+| `organization_settings` | 24 kB   | 0     | 조직 설정           | 🔄 준비됨 |
+| `custom_rules`          | 16 kB   | 0     | 커스텀 규칙         | 🔄 준비됨 |
 
 ### 3. 벡터 데이터 분석
 
 **🤖 command_vectors 테이블 현황:**
+
 - **최신 데이터**: 2025년 6월 22일 15:23:53 UTC
 - **카테고리**: kubernetes, network, linux 명령어
 - **벡터 형식**: pgvector 확장 사용
 - **용도**: AI 명령어 추천 시스템
 
 **📊 저장된 명령어 예시:**
+
 ```sql
 -- 최근 추가된 벡터 데이터
 id: test-vector-001
@@ -310,18 +317,19 @@ created_at: 2025-06-22 15:23:53 UTC
 
 **🔧 설치된 주요 확장:**
 
-| 확장명 | 버전 | 상태 | 용도 |
-|--------|------|------|------|
-| `vector` | 0.8.0 | ✅ 설치됨 | 벡터 데이터 처리 |
-| `uuid-ossp` | 1.1 | ✅ 설치됨 | UUID 생성 |
-| `pgcrypto` | 1.3 | ✅ 설치됨 | 암호화 기능 |
-| `pg_graphql` | 1.5.11 | ✅ 설치됨 | GraphQL 지원 |
-| `pg_stat_statements` | 1.10 | ✅ 설치됨 | 쿼리 성능 분석 |
-| `supabase_vault` | 0.3.1 | ✅ 설치됨 | 보안 저장소 |
+| 확장명               | 버전   | 상태      | 용도             |
+| -------------------- | ------ | --------- | ---------------- |
+| `vector`             | 0.8.0  | ✅ 설치됨 | 벡터 데이터 처리 |
+| `uuid-ossp`          | 1.1    | ✅ 설치됨 | UUID 생성        |
+| `pgcrypto`           | 1.3    | ✅ 설치됨 | 암호화 기능      |
+| `pg_graphql`         | 1.5.11 | ✅ 설치됨 | GraphQL 지원     |
+| `pg_stat_statements` | 1.10   | ✅ 설치됨 | 쿼리 성능 분석   |
+| `supabase_vault`     | 0.3.1  | ✅ 설치됨 | 보안 저장소      |
 
 ### 5. 성능 및 용량 모니터링
 
 **📈 현재 상태 (무료 티어 기준):**
+
 - **데이터베이스 크기**: ~2.4MB (500MB 한도)
 - **활성 연결**: MCP 도구를 통한 안전한 연결만
 - **벡터 인덱스**: HNSW 및 IVFFlat 지원
@@ -338,7 +346,7 @@ created_at: 2025-06-22 15:23:53 UTC
 # 1. 테이블 목록 확인
 mcp__supabase__list_tables()
 
-# 2. 확장 기능 확인 
+# 2. 확장 기능 확인
 mcp__supabase__list_extensions()
 
 # 3. 데이터 상태 확인
@@ -354,7 +362,7 @@ mcp__supabase__list_migrations()
 
 ```sql
 -- command_vectors 테이블 상태 확인
-SELECT 
+SELECT
   COUNT(*) as total_records,
   COUNT(DISTINCT metadata->>'category') as categories,
   MAX(created_at) as last_update,
@@ -362,13 +370,13 @@ SELECT
 FROM command_vectors;
 
 -- 임베딩 테이블들의 준비 상태 확인
-SELECT 
+SELECT
   'ai_embeddings' as table_name,
   COUNT(*) as row_count,
   pg_size_pretty(pg_total_relation_size('ai_embeddings')) as size
 FROM ai_embeddings
 UNION ALL
-SELECT 
+SELECT
   'document_embeddings',
   COUNT(*),
   pg_size_pretty(pg_total_relation_size('document_embeddings'))
@@ -378,6 +386,7 @@ FROM document_embeddings;
 ### 8. 보안 및 접근 제어
 
 **🔐 보안 설정 현황:**
+
 - **RLS (Row Level Security)**: 모든 테이블에서 비활성화 (개발 환경)
 - **접근 방식**: MCP 도구를 통한 안전한 접근만
 - **인증**: Supabase anon key 기반
@@ -389,7 +398,7 @@ FROM document_embeddings;
 
 1. **MCP 연결 실패**
    - Claude Code MCP 설정 확인
-   - 환경변수 SUPABASE_* 확인
+   - 환경변수 SUPABASE\_\* 확인
    - 네트워크 연결 상태 확인
 
 2. **벡터 검색 성능 저하**
@@ -414,8 +423,9 @@ npm run vector:check        # 벡터 데이터 확인
 ```
 
 **📋 정기 점검 체크리스트:**
+
 - [ ] 테이블 상태 및 크기 확인
-- [ ] 벡터 데이터 품질 검증  
+- [ ] 벡터 데이터 품질 검증
 - [ ] 확장 기능 정상 동작 확인
 - [ ] 무료 티어 용량 사용량 모니터링
 - [ ] MCP 연결 상태 확인
@@ -485,11 +495,11 @@ echo "📊 상세 메트릭:"
 
 # 응답시간 측정
 VERCEL_TIME=$(curl -s -w "%{time_total}" -o /dev/null https://openmanager-vibe-v5.vercel.app/api/health 2>/dev/null)
-MCP_TIME=$(curl -s -w "%{time_total}" -o /dev/null http://104.154.205.25:10000/health 2>/dev/null)  
+MCP_TIME=$(curl -s -w "%{time_total}" -o /dev/null http://104.154.205.25:10000/health 2>/dev/null)
 REDIS_TIME=$(curl -X POST 'https://${UPSTASH_REDIS_HOST:-YOUR_PLACEHOLDER}/ping' -H 'Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN:-YOUR_PLACEHOLDER}' -s -w "%{time_total}" -o /dev/null 2>/dev/null)
 
 echo "   Vercel 응답시간: ${VERCEL_TIME}초"
-echo "   MCP 응답시간: ${MCP_TIME}초" 
+echo "   MCP 응답시간: ${MCP_TIME}초"
 echo "   Redis 응답시간: ${REDIS_TIME}초"
 
 # Redis 메트릭
@@ -530,6 +540,7 @@ echo "========================================"
    - 빌드 실패 여부
 
 2. **DNS 문제 확인**
+
    ```bash
    nslookup openmanager-vibe-v5.vercel.app
    ping openmanager-vibe-v5.vercel.app
@@ -542,11 +553,13 @@ echo "========================================"
 ### MCP 서버 응답 없음
 
 1. **VM 인스턴스 상태 확인**
+
    ```bash
    gcloud compute instances list --project=openmanager-free-tier
    ```
 
 2. **방화벽 규칙 확인**
+
    ```bash
    gcloud compute firewall-rules list --filter="name:allow-mcp"
    ```
@@ -564,6 +577,7 @@ echo "========================================"
    - 환경변수 업데이트
 
 2. **네트워크 연결 확인**
+
    ```bash
    curl -I https://YOUR_PLACEHOLDER
    ```

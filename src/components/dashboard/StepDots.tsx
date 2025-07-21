@@ -1,6 +1,6 @@
 /**
  * 🔘 StepDots Component
- * 
+ *
  * SimulateProgressBar의 단계 표시점을 담당하는 모듈화된 컴포넌트
  * - 총 단계 수만큼 점 표시
  * - 현재 진행 상태 표시
@@ -27,21 +27,24 @@ const StepDots: React.FC<StepDotsProps> = ({
   showLabels = false,
   orientation = 'horizontal',
   size = 'md',
-  onStepClick
+  onStepClick,
 }) => {
   // 크기별 클래스
   const getSizeClasses = () => {
     switch (size) {
-      case 'sm': return { dot: 'w-1.5 h-1.5', spacing: 'gap-1' };
-      case 'lg': return { dot: 'w-4 h-4', spacing: 'gap-3' };
-      default: return { dot: 'w-2 h-2', spacing: 'gap-2' };
+      case 'sm':
+        return { dot: 'w-1.5 h-1.5', spacing: 'gap-1' };
+      case 'lg':
+        return { dot: 'w-4 h-4', spacing: 'gap-3' };
+      default:
+        return { dot: 'w-2 h-2', spacing: 'gap-2' };
     }
   };
 
   // 방향별 클래스
   const getOrientationClasses = () => {
-    return orientation === 'vertical' 
-      ? 'flex flex-col items-center' 
+    return orientation === 'vertical'
+      ? 'flex flex-col items-center'
       : 'flex flex-row justify-between items-center';
   };
 
@@ -69,21 +72,21 @@ const StepDots: React.FC<StepDotsProps> = ({
   return (
     <div className={`${getOrientationClasses()} ${sizeClasses.spacing} px-1`}>
       {Array.from({ length: totalSteps }, (_, index) => (
-        <div key={index} className="relative flex flex-col items-center">
+        <div key={index} className='relative flex flex-col items-center'>
           {/* 점 */}
           <motion.div
             className={`${sizeClasses.dot} rounded-full transition-all duration-300 cursor-pointer relative ${getDotColor(index)}`}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ 
+            transition={{
               delay: index * 0.1,
-              type: "spring",
+              type: 'spring',
               damping: 15,
-              stiffness: 300
+              stiffness: 300,
             }}
-            whileHover={{ 
+            whileHover={{
               scale: onStepClick ? 1.5 : 1.2,
-              transition: { duration: 0.2 }
+              transition: { duration: 0.2 },
             }}
             whileTap={onStepClick ? { scale: 0.9 } : {}}
             onClick={() => handleDotClick(index)}
@@ -91,15 +94,15 @@ const StepDots: React.FC<StepDotsProps> = ({
             {/* 현재 단계 펄스 효과 */}
             {index === currentStep && !error && (
               <motion.div
-                className="absolute inset-0 rounded-full bg-blue-400"
-                animate={{ 
+                className='absolute inset-0 rounded-full bg-blue-400'
+                animate={{
                   scale: [1, 1.5, 1],
-                  opacity: [0.8, 0.2, 0.8]
+                  opacity: [0.8, 0.2, 0.8],
                 }}
-                transition={{ 
+                transition={{
                   duration: 2,
                   repeat: Infinity,
-                  ease: "easeInOut"
+                  ease: 'easeInOut',
                 }}
               />
             )}
@@ -107,12 +110,12 @@ const StepDots: React.FC<StepDotsProps> = ({
             {/* 완료 체크 표시 */}
             {index < currentStep && (
               <motion.div
-                className="absolute inset-0 flex items-center justify-center"
+                className='absolute inset-0 flex items-center justify-center'
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2 }}
               >
-                <div className="w-1 h-1 bg-white rounded-full" />
+                <div className='w-1 h-1 bg-white rounded-full' />
               </motion.div>
             )}
           </motion.div>
@@ -121,9 +124,11 @@ const StepDots: React.FC<StepDotsProps> = ({
           {showLabels && (
             <motion.span
               className={`text-xs mt-1 ${
-                index === currentStep 
-                  ? error ? 'text-red-400' : 'text-blue-400'
-                  : index < currentStep 
+                index === currentStep
+                  ? error
+                    ? 'text-red-400'
+                    : 'text-blue-400'
+                  : index < currentStep
                     ? 'text-green-400'
                     : 'text-gray-500'
               }`}
@@ -163,4 +168,4 @@ const StepDots: React.FC<StepDotsProps> = ({
   );
 };
 
-export default StepDots; 
+export default StepDots;

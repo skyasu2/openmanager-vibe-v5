@@ -1,22 +1,30 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
   LineChart,
   Line,
-  Legend
+  Legend,
 } from 'recharts';
-import { Activity, Server, AlertTriangle, TrendingUp, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import {
+  Activity,
+  Server,
+  AlertTriangle,
+  TrendingUp,
+  RefreshCw,
+  Wifi,
+  WifiOff,
+} from 'lucide-react';
 import { timerManager } from '../utils/TimerManager';
 
 // 📊 API 응답 타입 정의
@@ -42,11 +50,14 @@ interface SystemHealthAPIResponse {
       providerDistribution: Record<string, number>;
       healthScore: number;
     };
-    trends: Record<string, {
-      trend: 'increasing' | 'decreasing' | 'stable';
-      changeRate: number;
-      volatility: number;
-    }>;
+    trends: Record<
+      string,
+      {
+        trend: 'increasing' | 'decreasing' | 'stable';
+        changeRate: number;
+        volatility: number;
+      }
+    >;
     movingAverages: Record<string, number>;
     predictions: Record<string, { nextValue: number; confidence: number }>;
   };
@@ -96,7 +107,7 @@ const COLORS = {
   info: '#06B6D4',
   purple: '#8B5CF6',
   pink: '#EC4899',
-  indigo: '#6366F1'
+  indigo: '#6366F1',
 };
 
 const STATUS_COLORS = {
@@ -104,14 +115,14 @@ const STATUS_COLORS = {
   warning: COLORS.warning,
   critical: COLORS.danger,
   good: COLORS.success,
-  excellent: COLORS.success
+  excellent: COLORS.success,
 };
 
 const SEVERITY_COLORS = {
   critical: COLORS.danger,
   high: '#FF6B6B',
   medium: COLORS.warning,
-  low: '#FFA726'
+  low: '#FFA726',
 };
 
 export default function AdminDashboardCharts() {
@@ -126,20 +137,22 @@ export default function AdminDashboardCharts() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await fetch('/api/system/health');
       if (!response.ok) {
-        throw new Error(`API 응답 오류: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `API 응답 오류: ${response.status} ${response.statusText}`
+        );
       }
-      
+
       const healthData: SystemHealthAPIResponse = await response.json();
       setData(healthData);
       setLastUpdate(new Date());
-      
+
       console.log('✅ 관리자 대시보드 데이터 업데이트 완료');
-      
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다';
+      const errorMessage =
+        err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다';
       setError(errorMessage);
       console.error('❌ 관리자 대시보드 데이터 로드 실패:', err);
     } finally {
@@ -150,7 +163,7 @@ export default function AdminDashboardCharts() {
   // 🔄 자동 새로고침 (30초 인터벌)
   useEffect(() => {
     fetchHealthData(); // 초기 로드
-    
+
     if (autoRefresh) {
       // TimerManager를 사용한 자동 새로고침
       timerManager.register({
@@ -158,12 +171,12 @@ export default function AdminDashboardCharts() {
         callback: fetchHealthData,
         interval: 30000,
         priority: 'medium',
-        enabled: true
+        enabled: true,
       });
     } else {
       timerManager.unregister('admin-dashboard-charts-refresh');
     }
-    
+
     return () => {
       timerManager.unregister('admin-dashboard-charts-refresh');
     };
@@ -172,58 +185,66 @@ export default function AdminDashboardCharts() {
   // 📊 성능 차트 데이터 변환
   const getPerformanceChartData = () => {
     if (!data?.charts.performanceChart) return [];
-    
+
     const { labels, datasets } = data.charts.performanceChart;
     return labels.map((label, index) => ({
       name: label,
       value: datasets[0]?.data[index] || 0,
-      color: label === 'CPU' ? COLORS.danger :
-             label === 'Memory' ? COLORS.warning :
-             label === 'Disk' ? COLORS.info :
-             COLORS.primary
+      color:
+        label === 'CPU'
+          ? COLORS.danger
+          : label === 'Memory'
+            ? COLORS.warning
+            : label === 'Disk'
+              ? COLORS.info
+              : COLORS.primary,
     }));
   };
 
   // 🥧 가용성 도넛 차트 데이터
   const getAvailabilityChartData = () => {
     if (!data?.charts.availabilityChart) return [];
-    
+
     const { online, total } = data.charts.availabilityChart;
     const offline = total - online;
-    
+
     return [
       { name: '온라인', value: online, color: COLORS.success },
-      { name: '오프라인', value: offline, color: COLORS.danger }
+      { name: '오프라인', value: offline, color: COLORS.danger },
     ];
   };
 
   // 📢 알림 분포 차트 데이터
   const getAlertsChartData = () => {
     if (!data?.charts.alertsChart.bySeverity) return [];
-    
+
     const { bySeverity } = data.charts.alertsChart;
-    
-    return Object.entries(bySeverity).map(([severity, count]) => ({
-      name: severity.charAt(0).toUpperCase() + severity.slice(1),
-      value: count,
-      color: SEVERITY_COLORS[severity as keyof typeof SEVERITY_COLORS] || COLORS.info
-    })).filter(item => item.value > 0);
+
+    return Object.entries(bySeverity)
+      .map(([severity, count]) => ({
+        name: severity.charAt(0).toUpperCase() + severity.slice(1),
+        value: count,
+        color:
+          SEVERITY_COLORS[severity as keyof typeof SEVERITY_COLORS] ||
+          COLORS.info,
+      }))
+      .filter(item => item.value > 0);
   };
 
   // 📈 트렌드 라인 차트 데이터
   const getTrendsChartData = () => {
     if (!data?.charts.trendsChart) return [];
-    
+
     const { timePoints, metrics } = data.charts.trendsChart;
-    
+
     return timePoints.map((timePoint, index) => ({
-      time: new Date(timePoint).toLocaleTimeString('ko-KR', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      time: new Date(timePoint).toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit',
       }),
       CPU: metrics.cpu?.[index] || 0,
       Memory: metrics.memory?.[index] || 0,
-      Alerts: metrics.alerts?.[index] || 0
+      Alerts: metrics.alerts?.[index] || 0,
     }));
   };
 
@@ -231,11 +252,14 @@ export default function AdminDashboardCharts() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-semibold text-gray-800">{label}</p>
+        <div className='bg-white p-3 border border-gray-200 rounded-lg shadow-lg'>
+          <p className='font-semibold text-gray-800'>{label}</p>
           {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }} className="text-sm">
-              {entry.name}: {typeof entry.value === 'number' ? entry.value.toFixed(1) : entry.value}
+            <p key={index} style={{ color: entry.color }} className='text-sm'>
+              {entry.name}:{' '}
+              {typeof entry.value === 'number'
+                ? entry.value.toFixed(1)
+                : entry.value}
               {entry.name !== 'Alerts' && '%'}
             </p>
           ))}
@@ -253,24 +277,27 @@ export default function AdminDashboardCharts() {
   // 로딩 상태
   if (loading && !data) {
     return (
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Activity className="w-6 h-6 text-blue-600" />
+      <div className='p-6 space-y-6'>
+        <div className='flex items-center justify-between mb-6'>
+          <h2 className='text-2xl font-bold text-gray-900 flex items-center gap-2'>
+            <Activity className='w-6 h-6 text-blue-600' />
             시스템 모니터링 대시보드
           </h2>
-          <div className="flex items-center gap-2 text-blue-600">
-            <RefreshCw className="w-4 h-4 animate-spin" />
-            <span className="text-sm">데이터 로딩 중...</span>
+          <div className='flex items-center gap-2 text-blue-600'>
+            <RefreshCw className='w-4 h-4 animate-spin' />
+            <span className='text-sm'>데이터 로딩 중...</span>
           </div>
         </div>
-        
+
         {/* 로딩 스켈레톤 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-white p-6 rounded-lg shadow-sm border animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
-              <div className="h-64 bg-gray-100 rounded"></div>
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+          {[1, 2, 3, 4].map(i => (
+            <div
+              key={i}
+              className='bg-white p-6 rounded-lg shadow-sm border animate-pulse'
+            >
+              <div className='h-4 bg-gray-200 rounded w-1/3 mb-4'></div>
+              <div className='h-64 bg-gray-100 rounded'></div>
             </div>
           ))}
         </div>
@@ -281,16 +308,18 @@ export default function AdminDashboardCharts() {
   // 에러 상태
   if (error) {
     return (
-      <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-red-800 mb-2">데이터 로드 실패</h3>
-          <p className="text-red-600 mb-4">{error}</p>
+      <div className='p-6'>
+        <div className='bg-red-50 border border-red-200 rounded-lg p-6 text-center'>
+          <AlertTriangle className='w-12 h-12 text-red-500 mx-auto mb-4' />
+          <h3 className='text-lg font-semibold text-red-800 mb-2'>
+            데이터 로드 실패
+          </h3>
+          <p className='text-red-600 mb-4'>{error}</p>
           <button
             onClick={handleManualRefresh}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 mx-auto"
+            className='px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 mx-auto'
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className='w-4 h-4' />
             다시 시도
           </button>
         </div>
@@ -306,57 +335,59 @@ export default function AdminDashboardCharts() {
   const trendsData = getTrendsChartData();
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+    <div className='p-6 space-y-6 bg-gray-50 min-h-screen'>
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-6">
+      <div className='flex items-center justify-between mb-6'>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Activity className="w-6 h-6 text-blue-600" />
+          <h2 className='text-2xl font-bold text-gray-900 flex items-center gap-2'>
+            <Activity className='w-6 h-6 text-blue-600' />
             시스템 모니터링 대시보드
           </h2>
-          <p className="text-gray-600 mt-1">
+          <p className='text-gray-600 mt-1'>
             실시간 서버 성능 및 상태 모니터링
           </p>
         </div>
-        
-        <div className="flex items-center gap-4">
+
+        <div className='flex items-center gap-4'>
           {/* 연결 상태 */}
-          <div className="flex items-center gap-2">
+          <div className='flex items-center gap-2'>
             {data.summary.dataSource === 'api' ? (
-              <Wifi className="w-4 h-4 text-green-500" />
+              <Wifi className='w-4 h-4 text-green-500' />
             ) : (
-              <WifiOff className="w-4 h-4 text-red-500" />
+              <WifiOff className='w-4 h-4 text-red-500' />
             )}
-            <span className="text-sm text-gray-600">
-              {data.summary.dataSource === 'api' ? '실시간 연결' : 'Fallback 모드'}
+            <span className='text-sm text-gray-600'>
+              {data.summary.dataSource === 'api'
+                ? '실시간 연결'
+                : 'Fallback 모드'}
             </span>
           </div>
-          
+
           {/* 자동 새로고침 토글 */}
           <button
             onClick={() => setAutoRefresh(!autoRefresh)}
             className={`px-3 py-1 text-xs rounded-full transition-colors ${
-              autoRefresh 
-                ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+              autoRefresh
+                ? 'bg-green-100 text-green-700 hover:bg-green-200'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
             자동 새로고침 {autoRefresh ? 'ON' : 'OFF'}
           </button>
-          
+
           {/* 수동 새로고침 */}
           <button
             onClick={handleManualRefresh}
             disabled={loading}
-            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
-            title="수동 새로고침"
+            className='p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50'
+            title='수동 새로고침'
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
-          
+
           {/* 마지막 업데이트 */}
           {lastUpdate && (
-            <span className="text-xs text-gray-500">
+            <span className='text-xs text-gray-500'>
               {lastUpdate.toLocaleTimeString('ko-KR')} 업데이트
             </span>
           )}
@@ -364,68 +395,80 @@ export default function AdminDashboardCharts() {
       </div>
 
       {/* 요약 카드들 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
+      <div className='grid grid-cols-1 md:grid-cols-4 gap-4 mb-6'>
+        <div className='bg-white p-4 rounded-lg shadow-sm border'>
+          <div className='flex items-center justify-between'>
             <div>
-              <p className="text-sm text-gray-600">헬스 스코어</p>
-              <p className="text-2xl font-bold text-gray-900">{data.summary.healthScore}/100</p>
+              <p className='text-sm text-gray-600'>헬스 스코어</p>
+              <p className='text-2xl font-bold text-gray-900'>
+                {data.summary.healthScore}/100
+              </p>
             </div>
-            <div className={`w-3 h-3 rounded-full ${
-              data.summary.healthScore >= 80 ? 'bg-green-500' :
-              data.summary.healthScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-            }`}></div>
+            <div
+              className={`w-3 h-3 rounded-full ${
+                data.summary.healthScore >= 80
+                  ? 'bg-green-500'
+                  : data.summary.healthScore >= 60
+                    ? 'bg-yellow-500'
+                    : 'bg-red-500'
+              }`}
+            ></div>
           </div>
         </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
+
+        <div className='bg-white p-4 rounded-lg shadow-sm border'>
+          <div className='flex items-center justify-between'>
             <div>
-              <p className="text-sm text-gray-600">서버 수</p>
-              <p className="text-2xl font-bold text-gray-900">{data.summary.serverCount}</p>
+              <p className='text-sm text-gray-600'>서버 수</p>
+              <p className='text-2xl font-bold text-gray-900'>
+                {data.summary.serverCount}
+              </p>
             </div>
-            <Server className="w-5 h-5 text-blue-500" />
+            <Server className='w-5 h-5 text-blue-500' />
           </div>
         </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
+
+        <div className='bg-white p-4 rounded-lg shadow-sm border'>
+          <div className='flex items-center justify-between'>
             <div>
-              <p className="text-sm text-gray-600">심각한 이슈</p>
-              <p className="text-2xl font-bold text-red-600">{data.summary.criticalIssues}</p>
+              <p className='text-sm text-gray-600'>심각한 이슈</p>
+              <p className='text-2xl font-bold text-red-600'>
+                {data.summary.criticalIssues}
+              </p>
             </div>
-            <AlertTriangle className="w-5 h-5 text-red-500" />
+            <AlertTriangle className='w-5 h-5 text-red-500' />
           </div>
         </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
+
+        <div className='bg-white p-4 rounded-lg shadow-sm border'>
+          <div className='flex items-center justify-between'>
             <div>
-              <p className="text-sm text-gray-600">경고</p>
-              <p className="text-2xl font-bold text-yellow-600">{data.summary.warnings}</p>
+              <p className='text-sm text-gray-600'>경고</p>
+              <p className='text-2xl font-bold text-yellow-600'>
+                {data.summary.warnings}
+              </p>
             </div>
-            <AlertTriangle className="w-5 h-5 text-yellow-500" />
+            <AlertTriangle className='w-5 h-5 text-yellow-500' />
           </div>
         </div>
       </div>
 
       {/* 차트 그리드 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
         {/* 1. 실시간 자원 사용률 - BarChart */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-blue-600" />
+        <div className='bg-white p-6 rounded-lg shadow-sm border'>
+          <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2'>
+            <TrendingUp className='w-5 h-5 text-blue-600' />
             실시간 자원 사용률
           </h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className='h-64'>
+            <ResponsiveContainer width='100%' height='100%'>
               <BarChart data={performanceData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
+                <CartesianGrid strokeDasharray='3 3' />
+                <XAxis dataKey='name' />
                 <YAxis domain={[0, 100]} />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="value" fill={COLORS.primary}>
+                <Bar dataKey='value' fill={COLORS.primary}>
                   {performanceData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
@@ -436,22 +479,22 @@ export default function AdminDashboardCharts() {
         </div>
 
         {/* 2. 서버 가용성 - DonutChart */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Server className="w-5 h-5 text-green-600" />
+        <div className='bg-white p-6 rounded-lg shadow-sm border'>
+          <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2'>
+            <Server className='w-5 h-5 text-green-600' />
             서버 가용성
           </h3>
-          <div className="h-64 flex items-center">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className='h-64 flex items-center'>
+            <ResponsiveContainer width='100%' height='100%'>
               <PieChart>
                 <Pie
                   data={availabilityData}
-                  cx="50%"
-                  cy="50%"
+                  cx='50%'
+                  cy='50%'
                   innerRadius={60}
                   outerRadius={100}
                   paddingAngle={5}
-                  dataKey="value"
+                  dataKey='value'
                 >
                   {availabilityData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -462,29 +505,29 @@ export default function AdminDashboardCharts() {
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="text-center mt-2">
-            <p className="text-sm text-gray-600">
+          <div className='text-center mt-2'>
+            <p className='text-sm text-gray-600'>
               가용성: {data.charts.availabilityChart.rate.toFixed(1)}%
             </p>
           </div>
         </div>
 
         {/* 3. 알림 분포 - PieChart */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-yellow-600" />
+        <div className='bg-white p-6 rounded-lg shadow-sm border'>
+          <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2'>
+            <AlertTriangle className='w-5 h-5 text-yellow-600' />
             알림 분포
           </h3>
-          <div className="h-64">
+          <div className='h-64'>
             {alertsData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width='100%' height='100%'>
                 <PieChart>
                   <Pie
                     data={alertsData}
-                    cx="50%"
-                    cy="50%"
+                    cx='50%'
+                    cy='50%'
                     outerRadius={100}
-                    dataKey="value"
+                    dataKey='value'
                   >
                     {alertsData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -495,53 +538,53 @@ export default function AdminDashboardCharts() {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-500">
-                <div className="text-center">
-                  <AlertTriangle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+              <div className='flex items-center justify-center h-full text-gray-500'>
+                <div className='text-center'>
+                  <AlertTriangle className='w-12 h-12 mx-auto mb-2 text-gray-300' />
                   <p>알림 없음</p>
                 </div>
               </div>
             )}
           </div>
-          <div className="text-center mt-2">
-            <p className="text-sm text-gray-600">
+          <div className='text-center mt-2'>
+            <p className='text-sm text-gray-600'>
               총 알림: {data.charts.alertsChart.total}개
             </p>
           </div>
         </div>
 
         {/* 4. 트렌드 변화 - LineChart */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-purple-600" />
+        <div className='bg-white p-6 rounded-lg shadow-sm border'>
+          <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2'>
+            <TrendingUp className='w-5 h-5 text-purple-600' />
             성능 트렌드
           </h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className='h-64'>
+            <ResponsiveContainer width='100%' height='100%'>
               <LineChart data={trendsData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
+                <CartesianGrid strokeDasharray='3 3' />
+                <XAxis dataKey='time' />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="CPU" 
-                  stroke={COLORS.danger} 
+                <Line
+                  type='monotone'
+                  dataKey='CPU'
+                  stroke={COLORS.danger}
                   strokeWidth={2}
                   dot={{ r: 4 }}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="Memory" 
-                  stroke={COLORS.warning} 
+                <Line
+                  type='monotone'
+                  dataKey='Memory'
+                  stroke={COLORS.warning}
                   strokeWidth={2}
                   dot={{ r: 4 }}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="Alerts" 
-                  stroke={COLORS.info} 
+                <Line
+                  type='monotone'
+                  dataKey='Alerts'
+                  stroke={COLORS.info}
                   strokeWidth={2}
                   dot={{ r: 4 }}
                 />
@@ -553,41 +596,48 @@ export default function AdminDashboardCharts() {
 
       {/* 이상 징후 및 권장사항 */}
       {(data.anomalies.length > 0 || data.recommendations.length > 0) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
           {/* 이상 징후 */}
           {data.anomalies.length > 0 && (
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
+            <div className='bg-white p-6 rounded-lg shadow-sm border'>
+              <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2'>
+                <AlertTriangle className='w-5 h-5 text-red-600' />
                 감지된 이상 징후
               </h3>
-              <div className="space-y-3 max-h-48 overflow-y-auto">
-                {data.anomalies.slice(0, 5).map((anomaly) => (
-                  <div 
+              <div className='space-y-3 max-h-48 overflow-y-auto'>
+                {data.anomalies.slice(0, 5).map(anomaly => (
+                  <div
                     key={anomaly.id}
                     className={`p-3 rounded-lg border-l-4 ${
-                      anomaly.severity === 'critical' ? 'border-red-500 bg-red-50' :
-                      anomaly.severity === 'high' ? 'border-orange-500 bg-orange-50' :
-                      anomaly.severity === 'medium' ? 'border-yellow-500 bg-yellow-50' :
-                      'border-blue-500 bg-blue-50'
+                      anomaly.severity === 'critical'
+                        ? 'border-red-500 bg-red-50'
+                        : anomaly.severity === 'high'
+                          ? 'border-orange-500 bg-orange-50'
+                          : anomaly.severity === 'medium'
+                            ? 'border-yellow-500 bg-yellow-50'
+                            : 'border-blue-500 bg-blue-50'
                     }`}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">
+                    <div className='flex items-start justify-between'>
+                      <div className='flex-1'>
+                        <p className='text-sm font-medium text-gray-900'>
                           {anomaly.description}
                         </p>
-                        <p className="text-xs text-gray-600 mt-1">
+                        <p className='text-xs text-gray-600 mt-1'>
                           {anomaly.recommendation}
                         </p>
                       </div>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        anomaly.severity === 'critical' ? 'bg-red-100 text-red-700' :
-                        anomaly.severity === 'high' ? 'bg-orange-100 text-orange-700' :
-                        anomaly.severity === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-blue-100 text-blue-700'
-                      }`}>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          anomaly.severity === 'critical'
+                            ? 'bg-red-100 text-red-700'
+                            : anomaly.severity === 'high'
+                              ? 'bg-orange-100 text-orange-700'
+                              : anomaly.severity === 'medium'
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : 'bg-blue-100 text-blue-700'
+                        }`}
+                      >
                         {anomaly.severity}
                       </span>
                     </div>
@@ -599,21 +649,23 @@ export default function AdminDashboardCharts() {
 
           {/* 권장사항 */}
           {data.recommendations.length > 0 && (
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-blue-600" />
+            <div className='bg-white p-6 rounded-lg shadow-sm border'>
+              <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2'>
+                <TrendingUp className='w-5 h-5 text-blue-600' />
                 시스템 권장사항
               </h3>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {data.recommendations.slice(0, 6).map((recommendation, index) => (
-                  <div 
-                    key={index}
-                    className="flex items-start gap-2 p-2 hover:bg-gray-50 rounded"
-                  >
-                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                    <p className="text-sm text-gray-700">{recommendation}</p>
-                  </div>
-                ))}
+              <div className='space-y-2 max-h-48 overflow-y-auto'>
+                {data.recommendations
+                  .slice(0, 6)
+                  .map((recommendation, index) => (
+                    <div
+                      key={index}
+                      className='flex items-start gap-2 p-2 hover:bg-gray-50 rounded'
+                    >
+                      <div className='w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0'></div>
+                      <p className='text-sm text-gray-700'>{recommendation}</p>
+                    </div>
+                  ))}
               </div>
             </div>
           )}
@@ -621,4 +673,4 @@ export default function AdminDashboardCharts() {
       )}
     </div>
   );
-} 
+}

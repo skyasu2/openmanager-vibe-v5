@@ -2,11 +2,11 @@
 /**
  * ⚠️ 이 테스트는 더 이상 유효하지 않습니다.
  * Gemini CLI Bridge MCP가 지원 중단되었습니다.
- * 
+ *
  * 대신 다음을 사용하세요:
  * - 개발 도구: ./tools/g "질문"
  * - npm 스크립트: npm run gemini:chat "질문"
- * 
+ *
  * [아카이브 - 참고용으로만 유지]
  * MCP Gemini 통합 테스트 스크립트
  * Claude Code 재시작 후 실행하세요
@@ -18,24 +18,25 @@ console.log('🧪 MCP Gemini 통합 테스트 시작...\n');
 const testScenarios = [
   {
     name: '기본 채팅 테스트',
-    prompt: 'mcp_gemini_cli_bridge_gemini_chat("안녕하세요, MCP 테스트입니다")'
+    prompt: 'mcp_gemini_cli_bridge_gemini_chat("안녕하세요, MCP 테스트입니다")',
   },
   {
     name: '코드 리뷰 테스트',
-    prompt: 'mcp_gemini_cli_bridge_gemini_chat("function add(a, b) { return a + b } 이 코드의 개선점은?")'
+    prompt:
+      'mcp_gemini_cli_bridge_gemini_chat("function add(a, b) { return a + b } 이 코드의 개선점은?")',
   },
   {
     name: 'Flash 모델 테스트',
-    prompt: 'mcp_gemini_cli_bridge_gemini_chat_flash("빠른 응답 테스트")'
+    prompt: 'mcp_gemini_cli_bridge_gemini_chat_flash("빠른 응답 테스트")',
   },
   {
     name: '사용량 확인',
-    prompt: 'mcp_gemini_cli_bridge_gemini_stats()'
+    prompt: 'mcp_gemini_cli_bridge_gemini_stats()',
   },
   {
     name: '컨텍스트 정보',
-    prompt: 'mcp_gemini_cli_bridge_gemini_context_info()'
-  }
+    prompt: 'mcp_gemini_cli_bridge_gemini_context_info()',
+  },
 ];
 
 console.log('📋 테스트할 시나리오:');

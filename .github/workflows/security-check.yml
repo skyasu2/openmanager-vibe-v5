@@ -2,64 +2,64 @@ name: Security Check
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   security-scan:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # 전체 히스토리 가져오기 (TruffleHog 스캔을 위해)
-    
-    - name: 하드코딩된 시크릿 검사 (개선된 스크립트)
-      run: |
-        # 정교한 보안 검사 스크립트 실행
-        chmod +x scripts/check-hardcoded-secrets.sh
-        ./scripts/check-hardcoded-secrets.sh
-    
-    - name: npm audit 보안 취약점 검사
-      run: |
-        npm audit --audit-level high || true
-    
-    - name: 환경변수 템플릿 검증
-      run: |
-        # .env.example 파일이 존재하는지 확인
-        if [ ! -f .env.example ]; then
-          echo "⚠️ .env.example 파일이 없습니다!"
-          exit 1
-        fi
-        
-        # 실제 시크릿이 .env.example에 없는지 확인 (예제 패턴 제외)
-        echo "🔍 .env.example 파일 검증 중..."
-        if grep -E "(ghp_[a-zA-Z0-9]{36}|ghs_[a-zA-Z0-9]{36}|sk-[a-zA-Z0-9]{48}|AIza[a-zA-Z0-9-_]{35})" .env.example; then
-          echo "❌ .env.example에 실제 시크릿이 포함되어 있습니다!"
-          exit 1
-        else
-          echo "✅ .env.example 파일이 안전합니다."
-        fi
-    
-    - name: TruffleHog 스캔 설정
-      id: trufflehog-config
-      run: |
-        if [ "${{ github.event_name }}" == "push" ]; then
-          echo "🔍 Push 이벤트 감지 - 전체 브랜치 스캔 모드"
-          echo "base=" >> $GITHUB_OUTPUT
-          echo "head=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-        elif [ "${{ github.event_name }}" == "pull_request" ]; then
-          echo "🔍 PR 이벤트 감지 - 변경사항만 스캔 모드"
-          echo "base=${{ github.event.repository.default_branch }}" >> $GITHUB_OUTPUT
-          echo "head=HEAD" >> $GITHUB_OUTPUT
-        fi
-    
-    - name: Run TruffleHog (검증된 시크릿만)
-      uses: trufflesecurity/trufflehog@main
-      with:
-        path: ./
-        base: ${{ steps.trufflehog-config.outputs.base }}
-        head: ${{ steps.trufflehog-config.outputs.head }}
-        extra_args: --config .trufflehog.yml
-      continue-on-error: false
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 전체 히스토리 가져오기 (TruffleHog 스캔을 위해)
+
+      - name: 하드코딩된 시크릿 검사 (개선된 스크립트)
+        run: |
+          # 정교한 보안 검사 스크립트 실행
+          chmod +x scripts/check-hardcoded-secrets.sh
+          ./scripts/check-hardcoded-secrets.sh
+
+      - name: npm audit 보안 취약점 검사
+        run: |
+          npm audit --audit-level high || true
+
+      - name: 환경변수 템플릿 검증
+        run: |
+          # .env.example 파일이 존재하는지 확인
+          if [ ! -f .env.example ]; then
+            echo "⚠️ .env.example 파일이 없습니다!"
+            exit 1
+          fi
+
+          # 실제 시크릿이 .env.example에 없는지 확인 (예제 패턴 제외)
+          echo "🔍 .env.example 파일 검증 중..."
+          if grep -E "(ghp_[a-zA-Z0-9]{36}|ghs_[a-zA-Z0-9]{36}|sk-[a-zA-Z0-9]{48}|AIza[a-zA-Z0-9-_]{35})" .env.example; then
+            echo "❌ .env.example에 실제 시크릿이 포함되어 있습니다!"
+            exit 1
+          else
+            echo "✅ .env.example 파일이 안전합니다."
+          fi
+
+      - name: TruffleHog 스캔 설정
+        id: trufflehog-config
+        run: |
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "🔍 Push 이벤트 감지 - 전체 브랜치 스캔 모드"
+            echo "base=" >> $GITHUB_OUTPUT
+            echo "head=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "🔍 PR 이벤트 감지 - 변경사항만 스캔 모드"
+            echo "base=${{ github.event.repository.default_branch }}" >> $GITHUB_OUTPUT
+            echo "head=HEAD" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run TruffleHog (검증된 시크릿만)
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ steps.trufflehog-config.outputs.base }}
+          head: ${{ steps.trufflehog-config.outputs.head }}
+          extra_args: --config .trufflehog.yml
+        continue-on-error: false

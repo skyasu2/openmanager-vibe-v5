@@ -1,6 +1,7 @@
 # 🚨 긴급: Supabase 데이터베이스 스키마 설정 가이드
 
 ## 🎯 현재 상황
+
 - ✅ **TypeScript 빌드 에러**: 모두 해결됨
 - ✅ **환경변수 암호화**: 9개 변수 안전하게 처리됨
 - ❌ **Supabase 연결**: `relation 'public._supabase_migrations' does not exist` 에러
@@ -9,6 +10,7 @@
 ## 🔧 즉시 실행해야 할 작업
 
 ### 1단계: Supabase Dashboard 접속
+
 ```
 1. https://supabase.com/dashboard 접속
 2. YOUR_PLACEHOLDER 프로젝트 선택
@@ -16,6 +18,7 @@
 ```
 
 ### 2단계: 데이터베이스 스키마 적용
+
 ```sql
 -- 🗄️ 다음 SQL을 SQL Editor에서 실행:
 -- (docs/supabase-schema.sql 내용 전체)
@@ -185,8 +188,8 @@ ALTER TABLE public.user_activities ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own activities" ON public.user_activities
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM public.users 
-      WHERE users.id = user_activities.user_id 
+      SELECT 1 FROM public.users
+      WHERE users.id = user_activities.user_id
       AND users.auth_user_id = auth.uid()
     )
   );
@@ -212,10 +215,10 @@ ALTER TABLE public.ai_analysis ENABLE ROW LEVEL SECURITY;
 -- 사용자는 자신의 분석 결과만 조회 가능
 CREATE POLICY "Users can view own analysis" ON public.ai_analysis
   FOR SELECT USING (
-    user_id IS NULL OR 
+    user_id IS NULL OR
     EXISTS (
-      SELECT 1 FROM public.users 
-      WHERE users.id = ai_analysis.user_id 
+      SELECT 1 FROM public.users
+      WHERE users.id = ai_analysis.user_id
       AND users.auth_user_id = auth.uid()
     )
   );
@@ -263,7 +266,7 @@ BEGIN
   IF NEW.user_type = 'github' THEN
     NEW.permissions = ARRAY[
       'dashboard:view',
-      'dashboard:edit', 
+      'dashboard:edit',
       'system:start',
       'system:stop',
       'api:read',
@@ -282,7 +285,7 @@ BEGIN
       'logs:view'
     ];
   END IF;
-  
+
   RETURN NEW;
 END;
 $$ language 'plpgsql';
@@ -300,7 +303,7 @@ CREATE TRIGGER set_user_permissions
 
 -- 사용자 통계 뷰
 CREATE OR REPLACE VIEW public.user_stats AS
-SELECT 
+SELECT
   COUNT(*) as total_users,
   COUNT(*) FILTER (WHERE user_type = 'github') as github_users,
   COUNT(*) FILTER (WHERE user_type = 'guest') as guest_users,
@@ -311,7 +314,7 @@ FROM public.users;
 
 -- 최근 활동 뷰
 CREATE OR REPLACE VIEW public.recent_activities AS
-SELECT 
+SELECT
   ua.id,
   ua.action,
   ua.resource,
@@ -325,7 +328,7 @@ ORDER BY ua.created_at DESC;
 
 -- 서버 상태 요약 뷰
 CREATE OR REPLACE VIEW public.server_status_summary AS
-SELECT 
+SELECT
   server_id,
   server_name,
   server_type,
@@ -348,9 +351,9 @@ RETURNS INTEGER AS $$
 DECLARE
   deleted_count INTEGER;
 BEGIN
-  DELETE FROM public.user_activities 
+  DELETE FROM public.user_activities
   WHERE created_at < NOW() - INTERVAL '30 days';
-  
+
   GET DIAGNOSTICS deleted_count = ROW_COUNT;
   RETURN deleted_count;
 END;
@@ -362,9 +365,9 @@ RETURNS INTEGER AS $$
 DECLARE
   deleted_count INTEGER;
 BEGIN
-  DELETE FROM public.server_metrics 
+  DELETE FROM public.server_metrics
   WHERE created_at < NOW() - INTERVAL '7 days';
-  
+
   GET DIAGNOSTICS deleted_count = ROW_COUNT;
   RETURN deleted_count;
 END;
@@ -376,10 +379,10 @@ RETURNS INTEGER AS $$
 DECLARE
   deleted_count INTEGER;
 BEGIN
-  DELETE FROM public.users 
-  WHERE user_type = 'guest' 
+  DELETE FROM public.users
+  WHERE user_type = 'guest'
   AND (last_sign_in_at IS NULL OR last_sign_in_at < NOW() - INTERVAL '24 hours');
-  
+
   GET DIAGNOSTICS deleted_count = ROW_COUNT;
   RETURN deleted_count;
 END;
@@ -390,7 +393,7 @@ $$ language 'plpgsql';
 -- =====================================================
 
 -- 시스템 시작 이벤트 기록
-INSERT INTO public.system_events (event_type, source, message, severity) 
+INSERT INTO public.system_events (event_type, source, message, severity)
 VALUES ('system_init', 'database', 'OpenManager Vibe v5 database schema initialized', 'info')
 ON CONFLICT DO NOTHING;
 
@@ -417,11 +420,13 @@ SELECT 'OpenManager Vibe v5 Database Schema Setup Complete! 🎉' as status;
 ```
 
 ### 3단계: 실행 확인
+
 SQL 실행 후 다음 명령어로 확인:
+
 ```sql
 -- 테이블 생성 확인
-SELECT table_name FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public'
 AND table_name IN ('users', 'user_activities', 'server_metrics', 'ai_analysis', 'system_events');
 
 -- 권한 확인
@@ -429,6 +434,7 @@ SELECT * FROM public.user_stats;
 ```
 
 ### 4단계: 배포된 사이트에서 테스트
+
 ```
 1. https://openmanager-vibe-v5.vercel.app/api/auth/test 접속
 2. "connection": true 확인
@@ -436,6 +442,7 @@ SELECT * FROM public.user_stats;
 ```
 
 ### 5단계: GitHub OAuth 테스트
+
 ```
 1. https://openmanager-vibe-v5.vercel.app/login 접속
 2. "GitHub로 로그인" 버튼 클릭
@@ -443,16 +450,20 @@ SELECT * FROM public.user_stats;
 ```
 
 ## 📊 예상 결과
-✅ **성공 시**: 
+
+✅ **성공 시**:
+
 - `/api/auth/test`에서 `"connection": true`
 - GitHub OAuth 로그인 정상 작동
 - 게스트 로그인도 정상 작동
 
 ❌ **실패 시**:
+
 - SQL 실행 에러 → 문법 확인 후 다시 시도
 - 권한 오류 → Supabase Dashboard에서 Database 권한 확인
 
 ## 🚨 주의사항
+
 1. **SQL 실행 시**: 전체 스크립트를 한 번에 실행하세요
 2. **권한 설정**: RLS 정책이 제대로 적용되는지 확인하세요
 3. **테스트**: 각 단계마다 API 엔드포인트로 상태 확인하세요

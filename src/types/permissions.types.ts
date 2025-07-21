@@ -1,6 +1,6 @@
 /**
  * 🔐 Permission Types
- * 
+ *
  * 사용자 권한 관련 TypeScript 타입 정의
  */
 
@@ -12,15 +12,15 @@ export interface UserPermissions {
   canAccessSettings: boolean;
   canToggleAdminMode: boolean;
   canLogout: boolean;
-  
+
   // 사용자 유형
   isGeneralUser: boolean;
   isAdmin: boolean;
   isGitHubAuthenticated: boolean;
-  
+
   // AI 관련 권한 (모든 사용자 가능)
   canToggleAI: boolean;
-  
+
   // 사용자 정보
   userType: UserType;
   userName: string;

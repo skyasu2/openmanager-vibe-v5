@@ -71,29 +71,32 @@ async function main() {
   console.error('[Tavily MCP Wrapper] ✅ API 키 로드 성공');
 
   // Tavily MCP 서버 경로
-  const tavilyMcpPath = join(__dirname, '../node_modules/tavily-mcp/build/index.js');
+  const tavilyMcpPath = join(
+    __dirname,
+    '../node_modules/tavily-mcp/build/index.js'
+  );
 
   // 환경 변수 설정
   const env = {
     ...process.env,
     TAVILY_API_KEY: apiKey,
-    NODE_ENV: 'production'
+    NODE_ENV: 'production',
   };
 
   // Tavily MCP 서버 시작
   console.error('[Tavily MCP Wrapper] Tavily MCP 서버 시작 중...');
-  
+
   const tavilyProcess = spawn('node', [tavilyMcpPath], {
     env,
-    stdio: 'inherit'
+    stdio: 'inherit',
   });
 
-  tavilyProcess.on('error', (error) => {
+  tavilyProcess.on('error', error => {
     console.error('[Tavily MCP Wrapper] ❌ 서버 시작 실패:', error);
     process.exit(1);
   });
 
-  tavilyProcess.on('exit', (code) => {
+  tavilyProcess.on('exit', code => {
     console.error(`[Tavily MCP Wrapper] 서버 종료 (코드: ${code})`);
     process.exit(code || 0);
   });

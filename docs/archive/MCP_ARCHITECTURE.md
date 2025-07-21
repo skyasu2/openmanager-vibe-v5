@@ -3,9 +3,10 @@
 OpenManager Vibe v5 프로젝트에서는 3가지 타입의 MCP 서버를 사용합니다:
 
 ## 1. 로컬 개발용 MCP (Development MCP)
+
 - **용도**: Cursor IDE 등에서 로컬 개발 시 사용
 - **위치**: 개발자의 로컬 환경
-- **특징**: 
+- **특징**:
   - 코드 자동완성, 리팩토링, 문서 생성 등 개발 도구 기능
   - 로컬 파일 시스템에 직접 접근
   - 개발 생산성 향상을 위한 도구
@@ -19,6 +20,7 @@ OpenManager Vibe v5 프로젝트에서는 3가지 타입의 MCP 서버를 사용
   - supabase: Supabase DB 접근 (NEW)
 
 ## 2. Vercel Dev Tools MCP (@vercel/mcp-adapter)
+
 - **용도**: 로컬에서 Vercel에 배포된 앱의 상태 확인 및 개발
 - **특징**:
   - Vercel에 배포된 애플리케이션과 로컬 개발 환경을 연결
@@ -27,6 +29,7 @@ OpenManager Vibe v5 프로젝트에서는 3가지 타입의 MCP 서버를 사용
   - `VERCEL_AUTOMATION_BYPASS_SECRET`을 통한 보안 접근
 
 ## 3. AI Production MCP (Google Cloud VM)
+
 - **용도**: 프로덕션 환경에서 AI 엔진과 Supabase RAG 엔진 통합
 - **위치**: Google Cloud VM (http://104.154.205.25:10000)
 - **특징**:
@@ -39,11 +42,13 @@ OpenManager Vibe v5 프로젝트에서는 3가지 타입의 MCP 서버를 사용
 ## API 엔드포인트 구조
 
 ### 프로덕션 MCP 관련 엔드포인트
+
 - `GET/POST /api/mcp/context-integration` - MCP + RAG 통합 상태 및 쿼리
 - `GET/POST /api/mcp/context-integration/health` - MCP 서버 헬스체크
 - `GET/POST /api/mcp/context-integration/sync` - RAG 동기화
 
 ### 제한사항
+
 - `/api/ai/mcp` - Vercel 환경에서는 비활성화 (로컬 개발용)
 
 ## 아키텍처 다이어그램
@@ -68,10 +73,12 @@ OpenManager Vibe v5 프로젝트에서는 3가지 타입의 MCP 서버를 사용
 ## 환경별 설정
 
 ### 로컬 개발
+
 - 모든 MCP 타입 사용 가능
 - 개발 효율성 최대화
 
 ### Vercel 배포
+
 - Production MCP만 활성화
 - Vercel Dev Tools MCP로 원격 접근 가능
 - 보안 및 성능 최적화

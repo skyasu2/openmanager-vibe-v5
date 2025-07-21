@@ -1,6 +1,6 @@
 /**
  * 🔐 Supabase Auth 클라이언트 설정
- * 
+ *
  * GitHub OAuth 및 게스트 로그인 지원
  * NextAuth 대체 구현
  */
@@ -25,7 +25,12 @@ export interface AuthCallbackResult {
  * 에러 객체가 message 속성을 가지고 있는지 확인하는 타입 가드
  */
 function hasMessageProperty(error: any): error is { message: string } {
-  return error && typeof error === 'object' && 'message' in error && typeof error.message === 'string';
+  return (
+    error &&
+    typeof error === 'object' &&
+    'message' in error &&
+    typeof error.message === 'string'
+  );
 }
 
 /**
@@ -35,10 +40,10 @@ export async function signInWithGitHub() {
   try {
     // 동적으로 리다이렉트 URL 설정 (로컬/베르셀 자동 감지)
     const origin = window.location.origin;
-    
+
     // Implicit Grant Flow를 처리하기 위해 로그인 페이지로 리다이렉트
     const redirectUrl = `${origin}/login`;
-    
+
     console.log('🔗 OAuth 리다이렉트 URL:', redirectUrl);
     console.log('🌍 현재 환경:', {
       origin,
@@ -46,9 +51,12 @@ export async function signInWithGitHub() {
       isLocal: origin.includes('localhost'),
       redirectUrl,
     });
-    
+
     // GitHub OAuth App 설정 확인을 위한 로그
-    console.log('⚠️ Supabase 대시보드의 Redirect URLs에 다음을 추가하세요:', redirectUrl);
+    console.log(
+      '⚠️ Supabase 대시보드의 Redirect URLs에 다음을 추가하세요:',
+      redirectUrl
+    );
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
@@ -79,7 +87,7 @@ export async function signInWithGitHub() {
 export async function signOut() {
   try {
     const { error } = await supabase.auth.signOut();
-    
+
     if (error) {
       console.error('❌ 로그아웃 실패:', error);
       throw error;
@@ -89,11 +97,13 @@ export async function signOut() {
     localStorage.removeItem('auth_session_id');
     localStorage.removeItem('auth_type');
     localStorage.removeItem('auth_user');
-    
+
     // 🍪 게스트 세션 쿠키 정리
     if (typeof document !== 'undefined') {
-      document.cookie = 'guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
-      document.cookie = 'auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+      document.cookie =
+        'guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+      document.cookie =
+        'auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
     }
 
     console.log('✅ 로그아웃 성공');
@@ -109,8 +119,11 @@ export async function signOut() {
  */
 export async function getSession(): Promise<Session | null> {
   try {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
     if (error) {
       console.error('❌ 세션 가져오기 실패:', error);
       return null;
@@ -129,7 +142,7 @@ export async function getSession(): Promise<Session | null> {
 export async function getCurrentUser(): Promise<AuthUser | null> {
   try {
     const session = await getSession();
-    
+
     if (!session?.user) {
       // 게스트 사용자 확인
       const guestUser = localStorage.getItem('auth_user');
@@ -143,7 +156,11 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     return {
       id: user.id,
       email: user.email,
-      name: user.user_metadata?.full_name || user.user_metadata?.user_name || user.email?.split('@')[0] || 'GitHub User',
+      name:
+        user.user_metadata?.full_name ||
+        user.user_metadata?.user_name ||
+        user.email?.split('@')[0] ||
+        'GitHub User',
       avatar: user.user_metadata?.avatar_url,
       provider: 'github',
     };
@@ -159,7 +176,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 export async function isAuthenticated(): Promise<boolean> {
   const session = await getSession();
   const guestUser = localStorage.getItem('auth_user');
-  
+
   return !!(session || guestUser);
 }
 
@@ -183,10 +200,12 @@ export function isGuestUser(): boolean {
  * 인증 상태 변경 리스너
  */
 export function onAuthStateChange(callback: (session: Session | null) => void) {
-  const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-    console.log('🔄 Auth 상태 변경:', event, session?.user?.email);
-    callback(session);
-  });
+  const { data: authListener } = supabase.auth.onAuthStateChange(
+    (event, session) => {
+      console.log('🔄 Auth 상태 변경:', event, session?.user?.email);
+      callback(session);
+    }
+  );
 
   return authListener;
 }
@@ -196,8 +215,11 @@ export function onAuthStateChange(callback: (session: Session | null) => void) {
  */
 export async function handleAuthCallback(): Promise<AuthCallbackResult> {
   try {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
     if (error) {
       console.error('❌ Auth 콜백 처리 실패:', error);
       return { session: null, error };
@@ -210,9 +232,9 @@ export async function handleAuthCallback(): Promise<AuthCallbackResult> {
     return { session, error: null };
   } catch (error) {
     console.error('❌ Auth 콜백 처리 에러:', error);
-    return { 
-      session: null, 
-      error: error instanceof Error ? error : new Error(String(error))
+    return {
+      session: null,
+      error: error instanceof Error ? error : new Error(String(error)),
     };
   }
 }
@@ -222,8 +244,11 @@ export async function handleAuthCallback(): Promise<AuthCallbackResult> {
  */
 export async function refreshSession() {
   try {
-    const { data: { session }, error } = await supabase.auth.refreshSession();
-    
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.refreshSession();
+
     if (error) {
       console.error('❌ 세션 새로고침 실패:', error);
       return { session: null, error };

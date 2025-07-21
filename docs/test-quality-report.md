@@ -7,6 +7,7 @@
 ## 🎯 개선 요약
 
 ### 완료된 작업
+
 1. **무의미한 테스트 3개 삭제**
    - ❌ `tests/unit/edge-runtime.test.ts` - 단순 Node.js 기능 테스트
    - ❌ `tests/unit/api/health-logic.test.ts` - 테스트 내부 로직 정의
@@ -20,6 +21,7 @@
 ## 📈 테스트 품질 메트릭
 
 ### Before (개선 전)
+
 ```
 총 테스트 파일: 30개
 무의미한 테스트: 3개 (10%)
@@ -28,6 +30,7 @@
 ```
 
 ### After (개선 후)
+
 ```
 총 테스트 파일: 27개
 무의미한 테스트: 0개 (0%)
@@ -40,27 +43,35 @@
 ### 🗑️ 삭제된 테스트 (3개)
 
 #### 1. edge-runtime.test.ts
+
 - **문제점**: process.memoryUsage() 같은 기본 Node.js 기능만 테스트
 - **조치**: 삭제 완료
 
 #### 2. health-logic.test.ts
+
 - **문제점**: 실제 health check 서비스 import 없음
 - **조치**: 삭제 완료
 
 #### 3. rule-based-main-engine.test.ts
+
 - **문제점**: 구현 없는 expect(true).toBe(true) 테스트
 - **조치**: 삭제 완료
 
 ### ⚠️ 개선된 테스트 (3개)
 
 #### 1. ai-engines.test.ts
+
 **Before:**
+
 ```typescript
 // 테스트 내부에 로직 정의
-const calculateEngineHealth = (rt, er, up) => { /* ... */ };
+const calculateEngineHealth = (rt, er, up) => {
+  /* ... */
+};
 ```
 
 **After:**
+
 ```typescript
 import { UnifiedAIEngineRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
 // 실제 라우터 테스트
@@ -69,13 +80,18 @@ const response = await router.processQuery(request);
 ```
 
 #### 2. env-backup-manager.test.ts
+
 **Before:**
+
 ```typescript
 // Mock 구현체 사용
-class MockEnvBackupManager { /* ... */ }
+class MockEnvBackupManager {
+  /* ... */
+}
 ```
 
 **After:**
+
 ```typescript
 import { EnvBackupManager } from '@/lib/env-backup-manager';
 // 실제 매니저 테스트 with fs mocking
@@ -83,7 +99,9 @@ const manager = EnvBackupManager.getInstance();
 ```
 
 #### 3. AISidebarV2.test.tsx
+
 **Before:**
+
 ```typescript
 // 파일 시스템 라인 수 체크
 const lineCount = content.split('\n').length;
@@ -91,6 +109,7 @@ expect(lineCount).toBeLessThan(1500);
 ```
 
 **After:**
+
 ```typescript
 // 실제 컴포넌트 기능 테스트
 it('should send message when Enter key is pressed', async () => {
@@ -119,12 +138,14 @@ it('should send message when Enter key is pressed', async () => {
 ## 🚀 향후 개선 계획
 
 ### 1단계: 추가 개선 필요 테스트 (4개)
+
 - `system-metrics.test.ts` - 실제 메트릭 서비스 연결
 - `enhanced-server-card.test.tsx` - 테스트 케이스 확대
 - `natural-language-query-cache.test.ts` - 실제 캐시 로직 테스트
 - `integrated-prediction-system.test.ts` - 예측 알고리즘 검증
 
 ### 2단계: 새로운 테스트 추가
+
 - **AI 엔진 통합 테스트**
   - Google AI fallback 전략
   - RAG 엔진 검색 정확도
@@ -143,6 +164,7 @@ it('should send message when Enter key is pressed', async () => {
 ## 📋 테스트 작성 체크리스트
 
 ### ✅ 좋은 테스트의 조건
+
 - [ ] 실제 소스 코드 import
 - [ ] 의미있는 시나리오 테스트
 - [ ] 엣지 케이스 처리
@@ -151,6 +173,7 @@ it('should send message when Enter key is pressed', async () => {
 - [ ] AAA 패턴 준수
 
 ### ❌ 피해야 할 패턴
+
 - [ ] 테스트 내부 로직 정의
 - [ ] 과도한 모킹
 - [ ] 의미없는 assertion
@@ -165,6 +188,7 @@ it('should send message when Enter key is pressed', async () => {
 - **유지보수성**: 크게 개선
 
 ## 🔗 관련 문서
+
 - [효과적인 테스트 작성 가이드](./effective-testing-guide.md)
 - [TDD 프로세스](./tdd-process.md)
 - [Husky Hooks 가이드](./husky-hooks-guide.md)

@@ -21,6 +21,7 @@ npm run type-check && npm run lint
 ```
 
 **실행 내용**:
+
 - TypeScript 타입 체크
 - ESLint 코드 품질 검사
 
@@ -35,6 +36,7 @@ npm run type-check && npm run lint && npm run test:quick
 ```
 
 **실행 내용**:
+
 - TypeScript 타입 체크
 - ESLint 코드 품질 검사
 - 빠른 테스트 실행
@@ -63,7 +65,7 @@ git push --no-verify origin main
 
 ## 🐛 문제 해결
 
-### 1. "cannot open .husky/_/husky.sh" 오류
+### 1. "cannot open .husky/\_/husky.sh" 오류
 
 이전 버전의 Husky 구문이 사용되고 있습니다. 다음 라인을 제거하세요:
 

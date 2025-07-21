@@ -1,6 +1,6 @@
 /**
  * Shared Types
- * 
+ *
  * 🔧 모든 모듈에서 공통으로 사용하는 타입 정의
  */
 
@@ -58,4 +58,4 @@ export interface EventEmitter {
   on<T>(event: string, handler: EventHandler<T>): void;
   off<T>(event: string, handler: EventHandler<T>): void;
   emit<T>(event: string, data: T): void;
-} 
+}

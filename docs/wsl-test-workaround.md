@@ -83,6 +83,7 @@ console.log('✅ All tests passed!');
 ## TypeScript 개선 사항
 
 현재 주석 처리된 strict 옵션들:
+
 - `noUnusedLocals`
 - `noUnusedParameters`
 - `exactOptionalPropertyTypes`

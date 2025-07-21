@@ -22,10 +22,10 @@ OpenManager VIBE v5는 **Supabase Auth 기반 GitHub OAuth**와 **게스트 모�
 
 ### 지원하는 인증 방식
 
-| 인증 방식 | 권한 레벨 | 접근 가능 기능 |
-|-----------|-----------|----------------|
+| 인증 방식        | 권한 레벨 | 접근 가능 기능                          |
+| ---------------- | --------- | --------------------------------------- |
 | **GitHub OAuth** | 전체 권한 | 시스템 시작/정지, 대시보드, AI 사이드바 |
-| **게스트 모드** | 읽기 전용 | 메인 페이지 열람, 제한된 기능 |
+| **게스트 모드**  | 읽기 전용 | 메인 페이지 열람, 제한된 기능           |
 
 ### 전체 플로우 차트
 
@@ -34,22 +34,22 @@ graph TD
     A[사용자가 루트 페이지 접속] --> B{인증 상태 확인}
     B -->|인증됨| C[메인 페이지로 리다이렉트]
     B -->|미인증| D[로그인 페이지로 리다이렉트]
-    
+
     D --> E[GitHub 로그인 클릭]
     E --> F[GitHub OAuth 인증]
     F --> G[/auth/callback 처리]
     G --> H[세션 생성 후 /main 리다이렉트]
-    
+
     D --> I[게스트 로그인 클릭]
     I --> J[게스트 세션 생성]
     J --> K[/main 리다이렉트]
-    
+
     C --> L{사용자 타입 확인}
     H --> L
     K --> L
     L -->|GitHub 사용자| M[시스템 시작 버튼 표시]
     L -->|게스트 사용자| N[로그인 안내 메시지]
-    
+
     M --> O[시스템 시작 버튼 클릭]
     O --> P[대시보드로 이동]
     P --> Q[AI 사이드바 토글 버튼 표시]
@@ -63,14 +63,15 @@ graph TD
 ### 루트 페이지부터 AI 사이드바까지의 완전한 여정
 
 #### **1단계: 루트 페이지 접속** (`/`)
+
 ```typescript
 // src/app/page.tsx
 const checkAuthAndRedirect = async () => {
   const authenticated = await isAuthenticated();
   const user = await getCurrentUser();
-  
+
   if (authenticated && user) {
-    router.replace('/main');  // 인증된 사용자
+    router.replace('/main'); // 인증된 사용자
   } else {
     router.replace('/login'); // 미인증 사용자
   }
@@ -80,6 +81,7 @@ const checkAuthAndRedirect = async () => {
 **처리 시간**: ~1초 (리다이렉트)
 
 #### **2단계: 로그인 페이지** (`/login`)
+
 ```typescript
 // src/app/login/page.tsx
 const handleGitHubLogin = async () => {
@@ -95,17 +97,20 @@ const handleGuestLogin = async () => {
 };
 ```
 
-**처리 시간**: 
+**처리 시간**:
+
 - GitHub OAuth: ~3-5초 (사용자 승인)
 - 게스트 로그인: ~1초 (즉시)
 
 #### **3단계: GitHub OAuth 인증**
+
 - GitHub 인증 페이지에서 사용자 승인
 - 콜백 URL로 리다이렉트: `/auth/callback`
 
 **처리 시간**: ~3-5초 (사용자 승인 시간)
 
 #### **4단계: 인증 콜백 처리** (`/auth/callback`)
+
 ```typescript
 // src/app/auth/callback/route.ts
 const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -116,6 +121,7 @@ return NextResponse.redirect(`${requestUrl.origin}/main`);
 **처리 시간**: ~1-2초 (세션 생성)
 
 #### **5단계: 메인 페이지** (`/main`)
+
 ```typescript
 // src/app/main/page.tsx
 const isGitHub = await isGitHubAuthenticated();
@@ -128,6 +134,7 @@ setIsGitHubUser(isGitHub);
 **처리 시간**: ~2-3초 (컴포넌트 렌더링)
 
 #### **6단계: 대시보드 이동** (`/dashboard`)
+
 ```typescript
 // 메인 페이지에서 시스템 시작 또는 대시보드 버튼 클릭
 const handleDashboardClick = () => {
@@ -138,6 +145,7 @@ const handleDashboardClick = () => {
 **처리 시간**: ~1-2초 (페이지 전환)
 
 #### **7단계: AI 사이드바 활성화**
+
 ```typescript
 // src/app/dashboard/page.tsx
 const [isAgentOpen, setIsAgentOpen] = useState(false);
@@ -163,10 +171,12 @@ const toggleAgent = useCallback(() => {
 ### 1. 루트 페이지 (`src/app/page.tsx`)
 
 **역할**: 스마트 리다이렉션
+
 - 인증된 사용자 → `/main`
 - 미인증 사용자 → `/login`
 
 **핵심 로직**:
+
 ```typescript
 const authenticated = await isAuthenticated();
 const user = await getCurrentUser();
@@ -187,6 +197,7 @@ if (authenticated && user) {
 **역할**: 이중 인증 방식 제공
 
 **GitHub OAuth 플로우**:
+
 ```typescript
 const { data, error } = await supabase.auth.signInWithOAuth({
   provider: 'github',
@@ -198,6 +209,7 @@ const { data, error } = await supabase.auth.signInWithOAuth({
 ```
 
 **게스트 로그인 플로우**:
+
 ```typescript
 const result = await authManager.authenticateGuest();
 if (result.success && result.user && result.sessionId) {
@@ -213,6 +225,7 @@ if (result.success && result.user && result.sessionId) {
 **역할**: OAuth 코드를 세션으로 교환
 
 **핵심 처리**:
+
 ```typescript
 const { error } = await supabase.auth.exchangeCodeForSession(code);
 
@@ -221,7 +234,9 @@ if (error) {
 }
 
 // 세션 정보 확인
-const { data: { session } } = await supabase.auth.getSession();
+const {
+  data: { session },
+} = await supabase.auth.getSession();
 console.log('🔐 생성된 세션:', {
   userId: session?.user?.id,
   email: session?.user?.email,
@@ -237,6 +252,7 @@ return NextResponse.redirect(`${requestUrl.origin}/main`);
 **역할**: 사용자 타입별 차별화된 UI 제공
 
 **사용자 타입 감지**:
+
 ```typescript
 const isGitHub = await isGitHubAuthenticated();
 setIsGitHubUser(isGitHub);
@@ -246,12 +262,13 @@ if (user) {
   setCurrentUser({
     name: user.name || 'User',
     email: user.email,
-    avatar: user.avatar
+    avatar: user.avatar,
   });
 }
 ```
 
 **조건부 렌더링**:
+
 ```typescript
 {isGitHubUser ? (
   // GitHub 사용자: 시스템 시작 버튼
@@ -269,6 +286,7 @@ if (user) {
 **역할**: 서버 모니터링 및 AI 사이드바 제공
 
 **AI 사이드바 상태 관리**:
+
 ```typescript
 const [isAgentOpen, setIsAgentOpen] = useState(false);
 
@@ -282,6 +300,7 @@ const closeAgent = useCallback(() => {
 ```
 
 **AI 사이드바 렌더링**:
+
 ```typescript
 <AnimatePresence>
   {isAgentOpen && (
@@ -304,17 +323,18 @@ const closeAgent = useCallback(() => {
 
 ### GitHub 사용자 vs 게스트 사용자
 
-| 기능 | GitHub 사용자 | 게스트 사용자 |
-|------|---------------|---------------|
-| **시스템 시작** | ✅ 가능 | ❌ 불가능 |
-| **대시보드 접근** | ✅ 가능 | ❌ 불가능 |
-| **AI 사이드바** | ✅ 전체 기능 | ❌ 접근 불가 |
-| **서버 관리** | ✅ 전체 권한 | ❌ 읽기 전용 |
-| **시스템 제어** | ✅ 시작/정지 | ❌ 제한됨 |
+| 기능              | GitHub 사용자 | 게스트 사용자 |
+| ----------------- | ------------- | ------------- |
+| **시스템 시작**   | ✅ 가능       | ❌ 불가능     |
+| **대시보드 접근** | ✅ 가능       | ❌ 불가능     |
+| **AI 사이드바**   | ✅ 전체 기능  | ❌ 접근 불가  |
+| **서버 관리**     | ✅ 전체 권한  | ❌ 읽기 전용  |
+| **시스템 제어**   | ✅ 시작/정지  | ❌ 제한됨     |
 
 ### 메인 페이지에서의 차이
 
 **GitHub 사용자 화면**:
+
 ```typescript
 <motion.button
   onClick={handleSystemToggle}
@@ -325,6 +345,7 @@ const closeAgent = useCallback(() => {
 ```
 
 **게스트 사용자 화면**:
+
 ```typescript
 <div className="bg-blue-500/10 border border-blue-400/30">
   <LogIn className="w-12 h-12 text-blue-400" />
@@ -405,6 +426,7 @@ const toggleAgent = useCallback(() => {
 
 **원인**: 콜백 URL 설정 오류
 **해결**:
+
 ```bash
 # GitHub OAuth App 설정 확인
 Authorization callback URL: https://your-domain.com/auth/callback
@@ -418,6 +440,7 @@ Redirect URLs: https://your-domain.com/auth/callback
 
 **원인**: LocalStorage 또는 쿠키 문제
 **해결**:
+
 ```typescript
 // 브라우저 콘솔에서 확인
 console.log(localStorage.getItem('auth_session_id'));
@@ -431,6 +454,7 @@ localStorage.clear();
 
 **원인**: 권한 부족 또는 컴포넌트 로딩 실패
 **해결**:
+
 ```typescript
 // 사용자 타입 확인
 const isGitHub = await isGitHubAuthenticated();
@@ -443,10 +467,13 @@ console.log('AI 사이드바 열림:', isAgentOpen);
 ### 디버깅 도구
 
 #### 인증 상태 확인
+
 ```typescript
 // 브라우저 콘솔에서 실행
 const checkAuth = async () => {
-  const { getCurrentUser, isAuthenticated } = await import('/lib/supabase-auth');
+  const { getCurrentUser, isAuthenticated } = await import(
+    '/lib/supabase-auth'
+  );
   const user = await getCurrentUser();
   const auth = await isAuthenticated();
   console.log({ user, auth });
@@ -455,10 +482,13 @@ checkAuth();
 ```
 
 #### 세션 정보 확인
+
 ```typescript
 // Supabase 세션 확인
 import { supabase } from '/lib/supabase';
-const { data: { session } } = await supabase.auth.getSession();
+const {
+  data: { session },
+} = await supabase.auth.getSession();
 console.log('Supabase 세션:', session);
 ```
 

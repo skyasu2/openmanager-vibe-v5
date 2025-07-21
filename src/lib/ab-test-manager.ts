@@ -1,6 +1,6 @@
 /**
  * 🧪 A/B 테스트 관리자 v1.0
- * 
+ *
  * 안전한 점진적 API 교체를 위한 A/B 테스트 시스템
  * - 기존 API vs 최적화된 API 성능 비교
  * - 트래픽 분할 및 자동 롤백 기능
@@ -19,13 +19,13 @@ export interface ABTestConfig {
   name: string;
   enabled: boolean;
   trafficSplit: {
-    legacy: number;      // 0-100 (기존 API)
-    optimized: number;   // 0-100 (최적화 API)
+    legacy: number; // 0-100 (기존 API)
+    optimized: number; // 0-100 (최적화 API)
   };
   criteria: {
-    maxResponseTime: number;     // ms
-    maxErrorRate: number;        // 0-1
-    minSuccessRate: number;      // 0-1
+    maxResponseTime: number; // ms
+    maxErrorRate: number; // 0-1
+    minSuccessRate: number; // 0-1
     autoRollbackEnabled: boolean;
   };
   duration: {
@@ -79,19 +79,19 @@ export class ABTestManager {
     name: 'api-optimization-test',
     enabled: true,
     trafficSplit: {
-      legacy: 50,      // 50% 기존 API
-      optimized: 50,   // 50% 최적화 API
+      legacy: 50, // 50% 기존 API
+      optimized: 50, // 50% 최적화 API
     },
     criteria: {
-      maxResponseTime: 100,        // 100ms 이하
-      maxErrorRate: 0.05,          // 5% 이하
-      minSuccessRate: 0.95,        // 95% 이상
+      maxResponseTime: 100, // 100ms 이하
+      maxErrorRate: 0.05, // 5% 이하
+      minSuccessRate: 0.95, // 95% 이상
       autoRollbackEnabled: true,
     },
     duration: {
       startTime: Date.now(),
       endTime: Date.now() + 24 * 60 * 60 * 1000, // 24시간
-      maxDurationMs: 7 * 24 * 60 * 60 * 1000,     // 최대 7일
+      maxDurationMs: 7 * 24 * 60 * 60 * 1000, // 최대 7일
     },
   };
 
@@ -110,7 +110,7 @@ export class ABTestManager {
 
     try {
       this.redis = getRedis();
-      
+
       // 기본 설정 로드 또는 생성
       const existingConfig = await this.redis.get(this.REDIS_KEYS.CONFIG);
       if (!existingConfig) {
@@ -151,7 +151,9 @@ export class ABTestManager {
       }
 
       // 기존 그룹 확인
-      const existingGroup = await this.redis.get(`${this.REDIS_KEYS.USER_GROUPS}:${userKey}`);
+      const existingGroup = await this.redis.get(
+        `${this.REDIS_KEYS.USER_GROUPS}:${userKey}`
+      );
       if (existingGroup && ['legacy', 'optimized'].includes(existingGroup)) {
         return existingGroup as ABTestGroup;
       }
@@ -164,7 +166,8 @@ export class ABTestManager {
 
       // 트래픽 분할에 따른 그룹 결정
       const random = Math.random() * 100;
-      const group = random < config.trafficSplit.legacy ? 'legacy' : 'optimized';
+      const group =
+        random < config.trafficSplit.legacy ? 'legacy' : 'optimized';
 
       // Redis에 저장
       await this.redis.setex(
@@ -271,12 +274,15 @@ export class ABTestManager {
       const optimizedResult = this.calculateResult(optimizedMetrics);
 
       // 성능 개선 계산
-      const performanceGain = legacyResult.avgResponseTime > 0 
-        ? ((legacyResult.avgResponseTime - optimizedResult.avgResponseTime) / legacyResult.avgResponseTime) * 100
-        : 0;
+      const performanceGain =
+        legacyResult.avgResponseTime > 0
+          ? ((legacyResult.avgResponseTime - optimizedResult.avgResponseTime) /
+              legacyResult.avgResponseTime) *
+            100
+          : 0;
 
       // 추천 결정
-      const shouldRollout = 
+      const shouldRollout =
         performanceGain > 50 && // 50% 이상 성능 개선
         optimizedResult.errorRate < 0.05 && // 에러율 5% 이하
         optimizedResult.successRate > 0.95; // 성공율 95% 이상
@@ -284,8 +290,8 @@ export class ABTestManager {
       const recommendation = shouldRollout
         ? '최적화된 API로 완전 전환 권장'
         : performanceGain > 20
-        ? '더 많은 테스트 후 전환 고려'
-        : '기존 API 유지 권장';
+          ? '더 많은 테스트 후 전환 고려'
+          : '기존 API 유지 권장';
 
       return {
         legacy: legacyResult,
@@ -328,7 +334,10 @@ export class ABTestManager {
   /**
    * 🔄 트래픽 분할 조정
    */
-  async adjustTrafficSplit(legacyPercent: number, optimizedPercent: number): Promise<void> {
+  async adjustTrafficSplit(
+    legacyPercent: number,
+    optimizedPercent: number
+  ): Promise<void> {
     if (legacyPercent + optimizedPercent !== 100) {
       throw new Error('트래픽 분할 합계는 100%여야 합니다');
     }
@@ -340,7 +349,9 @@ export class ABTestManager {
       },
     });
 
-    console.log(`🔄 트래픽 분할 조정: Legacy ${legacyPercent}%, Optimized ${optimizedPercent}%`);
+    console.log(
+      `🔄 트래픽 분할 조정: Legacy ${legacyPercent}%, Optimized ${optimizedPercent}%`
+    );
   }
 
   /**
@@ -385,16 +396,18 @@ export class ABTestManager {
   private async getMetrics(group: ABTestGroup): Promise<ABTestMetrics> {
     const metricsKey = `${this.REDIS_KEYS.METRICS}:${group}`;
     const metrics = await this.redis.get(metricsKey);
-    
-    return metrics ? JSON.parse(metrics) : {
-      group,
-      requestCount: 0,
-      totalResponseTime: 0,
-      errorCount: 0,
-      successCount: 0,
-      lastUpdated: Date.now(),
-      samples: [],
-    };
+
+    return metrics
+      ? JSON.parse(metrics)
+      : {
+          group,
+          requestCount: 0,
+          totalResponseTime: 0,
+          errorCount: 0,
+          successCount: 0,
+          lastUpdated: Date.now(),
+          samples: [],
+        };
   }
 
   private calculateResult(metrics: ABTestMetrics): ABTestResult {
@@ -410,29 +423,34 @@ export class ABTestManager {
 
     return {
       group: metrics.group,
-      avgResponseTime: Math.round(metrics.totalResponseTime / metrics.requestCount),
+      avgResponseTime: Math.round(
+        metrics.totalResponseTime / metrics.requestCount
+      ),
       errorRate: metrics.errorCount / metrics.requestCount,
       successRate: metrics.successCount / metrics.requestCount,
       requestCount: metrics.requestCount,
     };
   }
 
-  private async checkAutoRollback(group: ABTestGroup, metrics: ABTestMetrics): Promise<void> {
+  private async checkAutoRollback(
+    group: ABTestGroup,
+    metrics: ABTestMetrics
+  ): Promise<void> {
     const config = await this.getConfig();
-    
+
     if (!config.criteria.autoRollbackEnabled || group !== 'optimized') {
       return; // 자동 롤백 비활성화 또는 레거시 그룹
     }
 
     const result = this.calculateResult(metrics);
-    
+
     // 최소 요청 수 확인 (통계적 유의성)
     if (result.requestCount < 20) {
       return;
     }
 
     // 롤백 조건 확인
-    const shouldRollback = 
+    const shouldRollback =
       result.avgResponseTime > config.criteria.maxResponseTime ||
       result.errorRate > config.criteria.maxErrorRate ||
       result.successRate < config.criteria.minSuccessRate;

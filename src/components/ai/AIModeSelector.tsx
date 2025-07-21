@@ -77,10 +77,11 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
       {/* 모드 선택 토글 */}
       <div className='relative bg-gray-100 rounded-lg p-1'>
         <motion.div
-          className={`absolute top-1 bottom-1 rounded-md shadow-sm ${selectedMode === 'LOCAL'
-            ? AI_MODE_CONFIG.LOCAL.selectedBg
-            : AI_MODE_CONFIG.GOOGLE_ONLY.selectedBg
-            }`}
+          className={`absolute top-1 bottom-1 rounded-md shadow-sm ${
+            selectedMode === 'LOCAL'
+              ? AI_MODE_CONFIG.LOCAL.selectedBg
+              : AI_MODE_CONFIG.GOOGLE_ONLY.selectedBg
+          }`}
           initial={false}
           animate={{
             left: selectedMode === 'LOCAL' ? '4px' : 'calc(50% + 2px)',
@@ -103,9 +104,10 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
                 disabled={isDisabled}
                 className={`
                   relative px-3 py-2 rounded-md text-xs font-medium transition-colors
-                  ${isSelected
-                    ? 'text-white'
-                    : 'text-gray-600 hover:text-gray-800'
+                  ${
+                    isSelected
+                      ? 'text-white'
+                      : 'text-gray-600 hover:text-gray-800'
                   }
                   ${isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
                 `}
@@ -137,15 +139,23 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
       >
         <div className='flex items-center space-x-2'>
           <div className='flex items-center space-x-1'>
-            {React.createElement(AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]?.icon || Zap, {
-              className: 'w-3.5 h-3.5',
-            })}
+            {React.createElement(
+              AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]
+                ?.icon || Zap,
+              {
+                className: 'w-3.5 h-3.5',
+              }
+            )}
             <span className='font-medium'>
-              {AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]?.label || selectedMode}
+              {AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]
+                ?.label || selectedMode}
             </span>
           </div>
           <span className='text-gray-500'>•</span>
-          <span>{AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]?.description || '설명 없음'}</span>
+          <span>
+            {AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]
+              ?.description || '설명 없음'}
+          </span>
         </div>
 
         {/* 추가 정보 */}

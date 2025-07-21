@@ -61,8 +61,11 @@
 
 /* AI Assistant Panel Styles */
 .ai-assistant-panel {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.12), -4px 0 16px rgba(0, 0, 0, 0.08);
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  box-shadow:
+    -8px 0 32px rgba(0, 0, 0, 0.12),
+    -4px 0 16px rgba(0, 0, 0, 0.08);
   /* backdrop-filter: blur(10px); */
   border-left: 1px solid rgba(229, 231, 235, 0.8);
   position: fixed;
@@ -165,7 +168,8 @@
 
 /* 성능 최적화된 애니메이션들 */
 @keyframes fingerWiggle {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(-50%) rotate(0deg);
   }
   25% {
@@ -177,7 +181,8 @@
 }
 
 @keyframes fingerWigglePrimary {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(-50%) rotate(0deg) scale(1);
   }
   15% {
@@ -201,7 +206,8 @@
 }
 
 @keyframes fingerWiggleDashboard {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(-50%) rotate(0deg);
   }
   20% {
@@ -219,7 +225,8 @@
 }
 
 @keyframes fingerWiggleAI {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(-50%) rotate(0deg);
   }
   25% {
@@ -287,7 +294,12 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -315,7 +327,6 @@
 }
 
 @keyframes systemPulse {
-
   0%,
   100% {
     box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
@@ -367,7 +378,9 @@
   background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  transition: width 0.4s ease, height 0.4s ease;
+  transition:
+    width 0.4s ease,
+    height 0.4s ease;
 }
 
 .enhanced-button:hover::before {
@@ -449,7 +462,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 70%
+  );
   transform: translateX(-100%);
   transition: transform 0.6s ease;
 }
@@ -534,20 +552,20 @@
   visibility: hidden;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
-  
+
   /* 반응형 최대 너비 */
   max-width: min(240px, calc(100vw - 100px));
   min-width: 120px;
 }
 
 /* 상단 메뉴 아이템들의 툴팁은 상단 정렬 */
-.ai-menu-item:nth-child(-n+3) .ai-menu-tooltip {
+.ai-menu-item:nth-child(-n + 3) .ai-menu-tooltip {
   top: 0;
   transform: translateY(0);
 }
 
 /* 하단 메뉴 아이템들의 툴팁은 하단 정렬 */
-.ai-menu-item:nth-last-child(-n+3) .ai-menu-tooltip {
+.ai-menu-item:nth-last-child(-n + 3) .ai-menu-tooltip {
   top: auto;
   bottom: 0;
   transform: translateY(0);
@@ -580,7 +598,7 @@
   .panel-body {
     padding: 0.5rem;
   }
-  
+
   /* 모바일에서 AI 메뉴 패널 하단 배치 */
   .ai-menu-panel-mobile {
     position: fixed;
@@ -594,7 +612,7 @@
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     z-index: 50;
   }
-  
+
   /* 모바일 툴팁은 위쪽으로 */
   .ai-menu-tooltip-mobile {
     bottom: calc(100% + 8px);
@@ -647,7 +665,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     box-shadow: 0 0 4px rgba(139, 92, 246, 0.5);
   }
@@ -659,12 +678,14 @@
 
 /* 골드 그라데이션 애니메이션 강화 */
 .gold-gradient-animation {
-  background: linear-gradient(135deg,
-      rgba(251, 191, 36, 0.4) 0%,
-      rgba(249, 115, 22, 0.4) 25%,
-      rgba(234, 179, 8, 0.4) 50%,
-      rgba(245, 158, 11, 0.4) 75%,
-      rgba(251, 191, 36, 0.4) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(251, 191, 36, 0.4) 0%,
+    rgba(249, 115, 22, 0.4) 25%,
+    rgba(234, 179, 8, 0.4) 50%,
+    rgba(245, 158, 11, 0.4) 75%,
+    rgba(251, 191, 36, 0.4) 100%
+  );
   background-size: 300% 300%;
   animation: goldFlow 4s ease-in-out infinite;
   border-radius: inherit;
@@ -699,23 +720,26 @@
 
 /* 시스템 상태 그라데이션 */
 .system-active-gradient {
-  background: linear-gradient(135deg,
-      rgba(34, 197, 94, 0.3) 0%,
-      rgba(16, 185, 129, 0.3) 50%,
-      rgba(5, 150, 105, 0.3) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.3) 0%,
+    rgba(16, 185, 129, 0.3) 50%,
+    rgba(5, 150, 105, 0.3) 100%
+  );
   animation: systemPulse 3s ease-in-out infinite;
 }
 
 .system-inactive-gradient {
-  background: linear-gradient(135deg,
-      rgba(239, 68, 68, 0.3) 0%,
-      rgba(220, 38, 38, 0.3) 50%,
-      rgba(185, 28, 28, 0.3) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.3) 0%,
+    rgba(220, 38, 38, 0.3) 50%,
+    rgba(185, 28, 28, 0.3) 100%
+  );
   animation: inactivePulse 2s ease-in-out infinite;
 }
 
 @keyframes inactivePulse {
-
   0%,
   100% {
     opacity: 0.3;
@@ -767,10 +791,12 @@
 
 /* AI 에이전트 활성 상태 그라데이션 */
 .ai-active-gradient {
-  background: linear-gradient(135deg,
-      rgba(168, 85, 247, 0.4) 0%,
-      rgba(236, 72, 153, 0.4) 50%,
-      rgba(6, 182, 212, 0.4) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(168, 85, 247, 0.4) 0%,
+    rgba(236, 72, 153, 0.4) 50%,
+    rgba(6, 182, 212, 0.4) 100%
+  );
   background-size: 200% 200%;
   animation: aiActiveFlow 3s ease infinite;
 }
@@ -828,12 +854,14 @@
 
 /* 다크톤 회색 배경 그라데이션 애니메이션 */
 .dark-gradient-background {
-  background: linear-gradient(-45deg,
-      #0f172a,
-      #1e293b,
-      #0a0f1c,
-      #1a2332,
-      #0d1425);
+  background: linear-gradient(
+    -45deg,
+    #0f172a,
+    #1e293b,
+    #0a0f1c,
+    #1a2332,
+    #0d1425
+  );
   background-size: 400% 400%;
   animation: darkGradientShift 15s ease infinite;
 }
@@ -862,12 +890,14 @@
 
 /* 시스템 활성 시 다크 그라데이션 */
 .dark-gradient-active {
-  background: linear-gradient(-45deg,
-      #0f172a,
-      #1e3a5f,
-      #0a0f1c,
-      #1a2f4a,
-      #0d1829);
+  background: linear-gradient(
+    -45deg,
+    #0f172a,
+    #1e3a5f,
+    #0a0f1c,
+    #1a2f4a,
+    #0d1829
+  );
   background-size: 400% 400%;
   animation: darkActiveShift 12s ease infinite;
 }
@@ -892,12 +922,14 @@
 
 /* AI 활성 시 다크 그라데이션 */
 .dark-gradient-ai {
-  background: linear-gradient(-45deg,
-      #0f172a,
-      #2d1b4e,
-      #0a0f1c,
-      #3b2f6b,
-      #1a0b2e);
+  background: linear-gradient(
+    -45deg,
+    #0f172a,
+    #2d1b4e,
+    #0a0f1c,
+    #3b2f6b,
+    #1a0b2e
+  );
   background-size: 400% 400%;
   animation: darkAIShift 10s ease infinite;
 }
@@ -934,15 +966,22 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 20% 80%,
+  background:
+    radial-gradient(
+      circle at 20% 80%,
       rgba(59, 130, 246, 0.05) 0%,
-      transparent 50%),
-    radial-gradient(circle at 80% 20%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 20%,
       rgba(168, 85, 247, 0.05) 0%,
-      transparent 50%),
-    radial-gradient(circle at 40% 40%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 40% 40%,
       rgba(6, 182, 212, 0.03) 0%,
-      transparent 50%);
+      transparent 50%
+    );
   animation: waveFloat 20s ease-in-out infinite;
 }
 
@@ -953,17 +992,21 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 60% 70%,
+  background:
+    radial-gradient(
+      circle at 60% 70%,
       rgba(236, 72, 153, 0.03) 0%,
-      transparent 50%),
-    radial-gradient(circle at 30% 30%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 30% 30%,
       rgba(34, 197, 94, 0.02) 0%,
-      transparent 50%);
+      transparent 50%
+    );
   animation: waveFloat2 25s ease-in-out infinite reverse;
 }
 
 @keyframes waveFloat {
-
   0%,
   100% {
     transform: translateY(0px) rotate(0deg);
@@ -987,7 +1030,6 @@
 }
 
 @keyframes waveFloat2 {
-
   0%,
   100% {
     transform: translateX(0px) scale(1);
@@ -1008,14 +1050,16 @@
 /* 진한 다크 그라데이션 배경 with 파티클 */
 .enhanced-dark-background {
   position: relative;
-  background: linear-gradient(-45deg,
-      #000000,
-      #111111,
-      #1a1a1a,
-      #0a0a0a,
-      #1f1f1f,
-      #080808,
-      #2a2a2a);
+  background: linear-gradient(
+    -45deg,
+    #000000,
+    #111111,
+    #1a1a1a,
+    #0a0a0a,
+    #1f1f1f,
+    #080808,
+    #2a2a2a
+  );
   background-size: 600% 600%;
   animation: infiniteBlackGradient 20s ease infinite;
 }
@@ -1054,16 +1098,27 @@
   width: 100%;
   height: 100%;
   background:
-    radial-gradient(circle at 25% 25%, rgba(80, 80, 80, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(120, 120, 120, 0.06) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(40, 40, 40, 0.05) 0%, transparent 70%);
+    radial-gradient(
+      circle at 25% 25%,
+      rgba(80, 80, 80, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 75% 75%,
+      rgba(120, 120, 120, 0.06) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(40, 40, 40, 0.05) 0%,
+      transparent 70%
+    );
   animation: slowParticleFloat 40s ease-in-out infinite;
   pointer-events: none;
   z-index: 1;
 }
 
 @keyframes slowParticleFloat {
-
   0%,
   100% {
     transform: scale(1) rotate(0deg);

@@ -26,12 +26,12 @@ OpenManager Vibe v5.45.0은 **Edge Runtime 최적화된 2-Mode AI 시스템**으
 
 ### 성능 지표
 
-| 지표 | LOCAL 모드 | GOOGLE_ONLY 모드 |
-|------|------------|------------------|
-| 평균 응답 시간 | 100-300ms | 500-2000ms |
-| 정확도 | 95% | 98% |
-| 가동률 | 99.9% | 99.5% |
-| 비용 | 무료 | 할당량 제한 |
+| 지표           | LOCAL 모드 | GOOGLE_ONLY 모드 |
+| -------------- | ---------- | ---------------- |
+| 평균 응답 시간 | 100-300ms  | 500-2000ms       |
+| 정확도         | 95%        | 98%              |
+| 가동률         | 99.9%      | 99.5%            |
+| 비용           | 무료       | 할당량 제한      |
 
 ### 아키텍처 다이어그램
 
@@ -61,6 +61,7 @@ OpenManager Vibe v5.45.0은 **Edge Runtime 최적화된 2-Mode AI 시스템**으
 ### 1. LOCAL 모드 (기본값) 🏠
 
 **특징:**
+
 - ✅ Supabase RAG 우선 처리
 - ✅ Korean AI Engine 폴백
 - ✅ MCP Context 지원
@@ -69,6 +70,7 @@ OpenManager Vibe v5.45.0은 **Edge Runtime 최적화된 2-Mode AI 시스템**으
 - ✅ 오프라인 부분 지원
 
 **처리 순서:**
+
 1. Supabase RAG Engine (벡터 검색)
 2. Korean AI Engine (한국어 특화)
 3. MCP Context (컨텍스트 기반)
@@ -76,6 +78,7 @@ OpenManager Vibe v5.45.0은 **Edge Runtime 최적화된 2-Mode AI 시스템**으
 ### 2. GOOGLE_ONLY 모드 🚀
 
 **특징:**
+
 - ✅ 자연어 질의 전용
 - ✅ Gemini 2.0 Flash 모델
 - ✅ 고급 추론 능력
@@ -83,6 +86,7 @@ OpenManager Vibe v5.45.0은 **Edge Runtime 최적화된 2-Mode AI 시스템**으
 - ⚠️ 환경변수 의존성
 
 **처리 순서:**
+
 1. Google AI Service (Gemini)
 2. 폴백 없음 (명확한 에러 반환)
 
@@ -107,8 +111,8 @@ const response = await fetch('/api/ai/unified-query', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     query: '질문',
-    mode: 'LOCAL' // 또는 'GOOGLE_ONLY'
-  })
+    mode: 'LOCAL', // 또는 'GOOGLE_ONLY'
+  }),
 });
 ```
 
@@ -155,8 +159,8 @@ const response = await fetch('/api/ai/unified-query', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     query: '서버 CPU 사용률이 높은데 어떻게 해결하나요?',
-    mode: 'LOCAL'
-  })
+    mode: 'LOCAL',
+  }),
 });
 
 const result = await response.json();
@@ -171,8 +175,8 @@ const response = await fetch('/api/ai/unified-query', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     query: '복잡한 시스템 아키텍처에 대한 분석을 해주세요',
-    mode: 'GOOGLE_ONLY'
-  })
+    mode: 'GOOGLE_ONLY',
+  }),
 });
 
 const result = await response.json();
@@ -186,15 +190,15 @@ try {
   const response = await fetch('/api/ai/unified-query', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query: '질문' })
+    body: JSON.stringify({ query: '질문' }),
   });
-  
+
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
-  
+
   const result = await response.json();
-  
+
   if (!result.success) {
     console.error('AI 처리 실패:', result.error);
   }
@@ -216,7 +220,7 @@ export const getVercelConfig = () => ({
   enableGoogleAI: process.env.GOOGLE_AI_ENABLED === 'true',
   maxTimeout: 8000, // Vercel 8초 제한
   enableCaching: true,
-  logLevel: 'warn'
+  logLevel: 'warn',
 });
 ```
 
@@ -284,8 +288,8 @@ const response = await fetch('/api/ai/unified-query', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     query: '질문',
-    options: { timeout: 5000 } // 5초 타임아웃
-  })
+    options: { timeout: 5000 }, // 5초 타임아웃
+  }),
 });
 ```
 
@@ -324,8 +328,8 @@ const response = await fetch('/api/ai/unified-query', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     query: '질문',
-    options: { useCache: true }
-  })
+    options: { useCache: true },
+  }),
 });
 ```
 
@@ -350,6 +354,7 @@ const response = await fetch('/api/ai/unified-query', {
 #### 마이그레이션 단계
 
 1. **환경변수 업데이트**
+
 ```bash
 # 기존
 THREE_TIER_AI_ENABLED=true
@@ -360,6 +365,7 @@ GOOGLE_AI_ENABLED=true  # Google AI 사용 시
 ```
 
 2. **API 호출 업데이트**
+
 ```typescript
 // 기존
 const response = await fetch('/api/ai/three-tier', { ... });
@@ -369,6 +375,7 @@ const response = await fetch('/api/ai/unified-query', { ... });
 ```
 
 3. **응답 형식 확인**
+
 ```typescript
 // 새로운 응답 형식
 interface AIResponse {
@@ -406,4 +413,4 @@ GOOGLE_AI_API_KEY=your-google-ai-key  # GOOGLE_ONLY 모드 사용 시
 - [AI 시스템 완전 가이드](./ai-complete-guide.md) - 핵심 개념과 개요
 - [시스템 아키텍처](./system-architecture.md) - 전체 시스템 구조
 - [GCP 완전 가이드](./gcp-complete-guide.md) - 클라우드 서비스 활용
-- [배포 완전 가이드](./deployment-complete-guide.md) - 배포 및 운영 
+- [배포 완전 가이드](./deployment-complete-guide.md) - 배포 및 운영

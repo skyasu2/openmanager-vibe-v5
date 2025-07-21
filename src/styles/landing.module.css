@@ -23,10 +23,25 @@
   right: 0;
   bottom: 0;
   background-image:
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-    radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 50px 50px, 100px 100px, 75px 75px;
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(255, 255, 255, 0.1) 1px,
+      transparent 1px
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(255, 255, 255, 0.1) 1px,
+      transparent 1px
+    ),
+    radial-gradient(
+      circle at 40% 40%,
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px
+    );
+  background-size:
+    50px 50px,
+    100px 100px,
+    75px 75px;
   animation: float 20s ease-in-out infinite;
 }
 
@@ -112,9 +127,11 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   border-color: rgba(255, 255, 255, 0.4);
   /* 🔥 배경 그라데이션 강화 */
-  background: linear-gradient(135deg,
-      rgba(139, 92, 246, 0.9) 0%,
-      rgba(79, 70, 229, 0.9) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.9) 0%,
+    rgba(79, 70, 229, 0.9) 100%
+  );
 }
 
 .featureCard:hover::before {
@@ -149,7 +166,7 @@
   color: rgba(255, 255, 255, 0.8);
   line-height: 1.5;
   /* 🆕 가독성 개선 */
-  color: rgba(255, 255, 255, 0.80);
+  color: rgba(255, 255, 255, 0.8);
   line-height: 1.5;
   font-weight: 500;
 }
@@ -185,7 +202,12 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s ease;
 }
 

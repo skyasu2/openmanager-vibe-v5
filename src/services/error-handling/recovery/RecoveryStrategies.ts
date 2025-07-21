@@ -2,7 +2,12 @@
  * 🔄 복구 전략 구현
  */
 
-import { ServiceError, RecoveryStrategy, RecoveryConfig, ERROR_CODES } from '../types/ErrorTypes';
+import {
+  ServiceError,
+  RecoveryStrategy,
+  RecoveryConfig,
+  ERROR_CODES,
+} from '../types/ErrorTypes';
 
 export class NetworkRecoveryStrategy implements RecoveryStrategy {
   private readonly config: RecoveryConfig;
@@ -31,12 +36,15 @@ export class NetworkRecoveryStrategy implements RecoveryStrategy {
     for (let attempt = 1; attempt <= this.config.maxRetries; attempt++) {
       try {
         const delay = Math.min(
-          this.config.baseDelay * Math.pow(this.config.backoffFactor, attempt - 1),
+          this.config.baseDelay *
+            Math.pow(this.config.backoffFactor, attempt - 1),
           this.config.maxDelay
         );
 
         if (attempt > 1) {
-          console.log(`재시도 ${attempt}/${this.config.maxRetries} (${delay}ms 후)`);
+          console.log(
+            `재시도 ${attempt}/${this.config.maxRetries} (${delay}ms 후)`
+          );
           await new Promise(resolve => setTimeout(resolve, delay));
         }
 
@@ -152,7 +160,7 @@ export class WebSocketRecoveryStrategy implements RecoveryStrategy {
     console.log(`🔄 웹소켓 복구 시도: ${error.message}`);
 
     const result = await this.attemptReconnection();
-    
+
     if (result.success) {
       await this.restoreSubscriptions();
       console.log('✅ 웹소켓 복구 완료');
@@ -165,7 +173,10 @@ export class WebSocketRecoveryStrategy implements RecoveryStrategy {
     }
   }
 
-  private async attemptReconnection(): Promise<{ success: boolean; attempts: number }> {
+  private async attemptReconnection(): Promise<{
+    success: boolean;
+    attempts: number;
+  }> {
     this.reconnectAttempts = 0;
 
     while (this.reconnectAttempts < this.config.maxRetries) {
@@ -173,7 +184,8 @@ export class WebSocketRecoveryStrategy implements RecoveryStrategy {
 
       try {
         const delay = Math.min(
-          this.config.baseDelay * Math.pow(this.config.backoffFactor, this.reconnectAttempts - 1),
+          this.config.baseDelay *
+            Math.pow(this.config.backoffFactor, this.reconnectAttempts - 1),
           this.config.maxDelay
         );
 
@@ -188,7 +200,10 @@ export class WebSocketRecoveryStrategy implements RecoveryStrategy {
           return { success: true, attempts: this.reconnectAttempts };
         }
       } catch (error) {
-        console.warn(`웹소켓 재연결 실패 (시도 ${this.reconnectAttempts}):`, error);
+        console.warn(
+          `웹소켓 재연결 실패 (시도 ${this.reconnectAttempts}):`,
+          error
+        );
       }
     }
 
@@ -222,7 +237,11 @@ export class WebSocketRecoveryStrategy implements RecoveryStrategy {
   }
 
   private async restoreSubscriptions(): Promise<void> {
-    const subscriptions = ['server-metrics', 'alert-notifications', 'system-health'];
+    const subscriptions = [
+      'server-metrics',
+      'alert-notifications',
+      'system-health',
+    ];
 
     try {
       const response = await fetch('/api/websocket/restore-subscriptions', {
@@ -266,13 +285,13 @@ export class SystemRecoveryStrategy implements RecoveryStrategy {
     switch (error.code) {
       case ERROR_CODES.MEMORY_EXHAUSTED:
         return await this.handleMemoryExhaustion();
-      
+
       case ERROR_CODES.DISK_FULL:
         return await this.handleDiskSpaceFull();
-      
+
       case ERROR_CODES.SYSTEM_OVERLOAD:
         return await this.handleSystemOverload();
-      
+
       default:
         return false;
     }
@@ -384,4 +403,4 @@ export class RecoveryManager {
       this.strategies.splice(index, 1);
     }
   }
-} 
+}

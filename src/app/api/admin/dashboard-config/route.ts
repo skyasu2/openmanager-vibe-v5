@@ -1,11 +1,14 @@
 /**
  * 📊 대시보드 설정 API
- * 
+ *
  * 🔐 인증 필요: Bearer 토큰 또는 API 키 (GET 제외)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { withAdminAuth, type AuthenticatedRequest } from '@/lib/api/auth-middleware';
+import {
+  withAdminAuth,
+  type AuthenticatedRequest,
+} from '@/lib/api/auth-middleware';
 
 // 대시보드 설정 타입
 interface DashboardConfig {
@@ -180,7 +183,9 @@ async function updateDashboardConfig(request: AuthenticatedRequest) {
 
     if (section) {
       // 특정 섹션 업데이트
-      console.log(`📊 Dashboard section ${section} updated by ${request.auth?.userId}`);
+      console.log(
+        `📊 Dashboard section ${section} updated by ${request.auth?.userId}`
+      );
       return NextResponse.json({
         success: true,
         message: `${section} 설정이 업데이트되었습니다.`,

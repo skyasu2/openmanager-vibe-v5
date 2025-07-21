@@ -28,7 +28,7 @@ console.log('');
 try {
   // 테스트 파일 실행
   require(path.resolve(testFile));
-  
+
   // 모든 테스트가 통과하면 성공
   setTimeout(() => {
     console.log('\n✅ All tests passed!');

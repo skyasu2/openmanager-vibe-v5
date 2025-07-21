@@ -46,15 +46,19 @@ function getServerNetwork(server: Server): number {
 }
 
 function getServerSpecs(server: Server): NonNullable<Server['specs']> {
-  return server.specs || {
-    cpu_cores: 4,
-    memory_gb: 8,
-    disk_gb: 250,
-    network_speed: '1Gbps',
-  };
+  return (
+    server.specs || {
+      cpu_cores: 4,
+      memory_gb: 8,
+      disk_gb: 250,
+      network_speed: '1Gbps',
+    }
+  );
 }
 
-function getServerStatus(status: Server['status']): 'healthy' | 'warning' | 'critical' | 'offline' {
+function getServerStatus(
+  status: Server['status']
+): 'healthy' | 'warning' | 'critical' | 'offline' {
   if (status === 'online' || status === 'healthy') return 'healthy';
   if (status === 'warning') return 'warning';
   if (status === 'critical') return 'critical';
@@ -304,7 +308,8 @@ export default function ServerDashboard({
               const status = selectedServer.networkStatus;
               if (status === 'healthy') return 'excellent';
               if (status === 'warning') return 'good';
-              if (status === 'critical' || status === 'maintenance') return 'poor';
+              if (status === 'critical' || status === 'maintenance')
+                return 'poor';
               if (status === 'offline') return 'offline';
               return 'good'; // 기본값
             })(),

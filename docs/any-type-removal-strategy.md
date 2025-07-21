@@ -3,8 +3,9 @@
 ## 📊 현황 분석 (2025-07-18 업데이트)
 
 ### 전체 통계
+
 - **총 any 사용**: 6,433개 (실제 분석 결과)
-- **주요 파일**: 
+- **주요 파일**:
   - IntelligentMonitoringService.ts: 81개 ✅ (완료)
   - EnhancedDataAnalyzer.ts: 73개 ✅ (완료)
   - modules/ai-agent/plugins/index.ts: 68개
@@ -15,6 +16,7 @@
 ## 🎯 우선순위 전략
 
 ### 1단계: 핵심 서비스 (높음)
+
 - [x] **AI 엔진 관련**
   - [x] EnhancedDataAnalyzer.ts ✅
   - [ ] MCPLangGraphAgent.ts
@@ -23,10 +25,12 @@
   - [ ] NaturalLanguageModeProcessor.ts
 
 ### 2단계: UI 컴포넌트 (중간)
+
 - [x] ServerDashboard.tsx ✅
 - [ ] 기타 대시보드 컴포넌트
 
 ### 3단계: 유틸리티 및 헬퍼 (낮음)
+
 - [ ] logger.ts
 - [ ] redis.ts
 - [ ] polyfills.ts
@@ -34,6 +38,7 @@
 ## 🛠️ 개선 패턴
 
 ### 1. 에러 핸들링
+
 ```typescript
 // Before
 try {
@@ -52,6 +57,7 @@ try {
 ```
 
 ### 2. Redux/상태 관리
+
 ```typescript
 // Before
 const data: any = await fetchData();
@@ -64,6 +70,7 @@ const data: DataResponse = await fetchData();
 ```
 
 ### 3. 동적 객체
+
 ```typescript
 // Before
 const obj: Record<string, any> = {};
@@ -76,6 +83,7 @@ const obj: Record<string, SpecificData> = {};
 ```
 
 ### 4. 함수 파라미터
+
 ```typescript
 // Before
 function process(data: any) {}
@@ -92,6 +100,7 @@ function process(data: unknown) {
 ## 📈 진행 상황
 
 ### 완료된 작업
+
 1. ✅ 타입 가드 유틸리티 생성 (`src/utils/type-guards.ts`)
 2. ✅ EnhancedDataAnalyzer 타입 정의 생성
 3. ✅ Redis 타입 개선 시작
@@ -113,9 +122,11 @@ function process(data: unknown) {
    - useServerDashboard 훅 any 타입 제거
 
 ### 진행 중
+
 - 🔄 공통 타입 정의 라이브러리 구축
 
 ### 예정된 작업
+
 - 📅 modules/ai-agent/plugins/index.ts (68개) - 다음 목표
 - 📅 PredictiveAnalysisEngine.ts (61개)
 - 📅 NaturalLanguageModeProcessor.ts
@@ -124,6 +135,7 @@ function process(data: unknown) {
 - 📅 TypeScript strict 옵션 활성화
 
 ### 현재까지 성과
+
 - **총 any 타입 제거: 251개** 🎉
   - IntelligentMonitoringService.ts: 81개 ✅
   - EnhancedDataAnalyzer.ts: 73개 ✅

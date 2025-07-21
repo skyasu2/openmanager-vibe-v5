@@ -5,9 +5,12 @@ let isInitialized = false;
 
 const initializeCrypto = () => {
   if (isInitialized) return;
-  
+
   // 환경변수에서 마스터 키 가져오기 (또는 기본값 사용)
-  const masterKey = process.env.ENCRYPTION_KEY || process.env.TEAM_DECRYPT_PASSWORD || 'openmanager2025';
+  const masterKey =
+    process.env.ENCRYPTION_KEY ||
+    process.env.TEAM_DECRYPT_PASSWORD ||
+    'openmanager2025';
   enhancedCryptoManager.initializeMasterKey(masterKey);
   isInitialized = true;
 };
@@ -32,7 +35,7 @@ export function encrypt(text: string): string {
 export function decrypt(encryptedText: string): string {
   try {
     initializeCrypto();
-    
+
     // 간단한 base64 문자열을 전체 EncryptedEnvData 형식으로 변환
     // 이전 버전과의 호환성을 위해 임시 데이터 생성
     const encryptedData = {
@@ -43,9 +46,9 @@ export function decrypt(encryptedText: string): string {
       algorithm: 'aes-256-gcm',
       iterations: 100000,
       timestamp: Date.now(),
-      version: '2.0'
+      version: '2.0',
     };
-    
+
     // 기존 암호화된 데이터와의 호환성 문제로 인해 실패할 수 있음
     // 이 경우 원본 텍스트 반환 (개발 환경에서만)
     try {
@@ -114,7 +117,9 @@ export function testEncryption(testValue: string = 'test-encryption-value'): {
     const decrypted = decrypt(encrypted);
 
     return {
-      success: decrypted === testValue || (process.env.NODE_ENV === 'development' && decrypted === encrypted),
+      success:
+        decrypted === testValue ||
+        (process.env.NODE_ENV === 'development' && decrypted === encrypted),
       originalValue: testValue,
       encryptedValue: encrypted.substring(0, 20) + '...',
       decryptedValue: decrypted,

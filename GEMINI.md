@@ -5,6 +5,7 @@
 ## 프로젝트 개요
 
 **OpenManager VIBE v5**는 AI 기반 서버 모니터링 플랫폼입니다.
+
 - 실시간 서버 관리 및 모니터링
 - 다중 AI 엔진 통합 (Google AI, Supabase RAG, Korean NLP)
 - Vercel 무료 티어 최적화 (월 사용량 90% 절감)
@@ -23,7 +24,9 @@
 ## 프로젝트 설정
 
 ### 파일 스캔 제한
+
 이 프로젝트는 TypeScript/React 프로젝트입니다.
+
 - 주요 파일: `src/app/page.tsx`, `src/services/`
 - 불필요한 파일 스캔 경고 무시
 - 필요시 `@` 구문으로 특정 파일만 참조
@@ -31,6 +34,7 @@
 ## MCP 서버 설정
 
 ✅ **MCP 서버 설정 완료**
+
 - 설정 파일: `~/.gemini/settings.json`
 - MCP 도구: `gemini-mcp-tool`
 - 파일 참조: `@파일경로` 구문 사용 가능
@@ -45,6 +49,7 @@ echo "분석 요청" | gemini -p "메인 페이지 파일의 구조를 설명해
 ### 작업 분담 전략
 
 #### Gemini CLI가 효율적인 작업:
+
 - 대용량 파일 분석 (`@` 구문 활용)
 - 코드베이스 전체 구조 파악
 - 간단한 코드 리뷰
@@ -56,6 +61,7 @@ echo "분석 요청" | gemini -p "메인 페이지 파일의 구조를 설명해
 - **문서 업데이트 필요 파일 찾기**
 
 #### Claude가 효율적인 작업:
+
 - 복잡한 코드 작성 및 리팩토링
 - 실시간 디버깅
 - 파일 생성/수정
@@ -65,6 +71,7 @@ echo "분석 요청" | gemini -p "메인 페이지 파일의 구조를 설명해
 ### TDD 협업 워크플로우 (실제 예시: Husky Hook 버그 수정)
 
 #### Gemini의 TDD 역할
+
 1. **Red 단계 (문제 분석)**: 기존 코드 분석으로 문제 원인 파악
 2. **Green 단계 (구현 가이드)**: 테스트를 통과할 최소한의 코드 변경 가이드
 3. **Refactor 단계 (개선 제안)**: 리팩토링 및 사이드 이펙트 검토
@@ -93,10 +100,12 @@ echo "Husky hook 수정 완료" | gemini -p "관련된 문서가 있는지 확�
 ### 💊 사용량 관리
 
 #### 1. 일일 제한
+
 - **무료 제한**: 1,000회/일
 - **리셋 시간**: 태평양 표준시(PST) 자정 = 한국 시간 오후 4-5시경
 
 #### 2. 사용량 명령어
+
 ```bash
 gemini /stats      # 사용량 확인
 gemini /compress   # 대화 압축 (토큰 절약)
@@ -105,6 +114,7 @@ gemini /memory list # 저장된 메모리 확인
 ```
 
 #### 3. 사용량 임계값 가이드
+
 - **0-50%**: Gemini 자유롭게 사용
 - **50-80%**: 중요한 작업 위주
 - **80-100%**: Claude로 전환 권장
@@ -112,6 +122,7 @@ gemini /memory list # 저장된 메모리 확인
 ### 🎯 토큰 절약 전략
 
 #### 1. 효율적 사용 패턴
+
 ```bash
 # ❌ 비효율적 (토큰 낭비)
 gemini  # 장시간 대화형 모드
@@ -122,6 +133,7 @@ cat 파일명.js | gemini -p "핵심만 요약"
 ```
 
 #### 2. 일일 워크플로우 예시
+
 ```bash
 # 아침 (사용량 0%)
 gemini /stats  # 사용량 확인
@@ -140,6 +152,7 @@ gemini /compress  # 대화 압축으로 토큰 절약
 ```
 
 #### 3. 백업 전략
+
 ```bash
 # 중요 대화 내용 저장
 gemini /export > gemini_session_$(date +%Y%m%d).txt
@@ -149,6 +162,7 @@ gemini /memory list > project_memory.txt
 ```
 
 ### 개발 규칙 검토 명령어
+
 ```bash
 # 기존 코드 중복 검사 (토큰 절약형)
 echo "로깅 기능" | gemini -p "기존 로깅 코드 위치만 알려줘"
@@ -183,51 +197,61 @@ src/
 ### 🚀 핵심 개발 규칙
 
 #### 1. TDD (Test-Driven Development) 필수
+
 - Red → Green → Refactor 사이클 준수
 - Gemini로 기존 코드 분석 → Claude로 구현 → Gemini로 리뷰
 
 #### 2. SOLID 원칙 검토
+
 - **1500줄 규칙**: 파일이 1500줄 넘으면 분리 검토
+
 ```bash
 # SOLID 원칙 검토 명령어
 echo "파일 분석" | gemini -p "SOLID 원칙 위반 사항 찾기"
 ```
 
 #### 3. 기존 코드 우선
+
 ```bash
 # 중복 코드 방지
 echo "새 기능: 로깅 시스템" | gemini -p "기존 로깅 관련 코드 모두 찾기"
 ```
 
 #### 4. Next.js 최적화 검토
+
 ```bash
 # 최적화 포인트 찾기
 echo "성능 분석" | gemini -p "Image 컴포넌트 미사용 부분 찾기"
 ```
 
 #### 5. 타입 안전성 검사
+
 ```bash
 # any 타입 사용 검사
 echo "타입 검사" | gemini -p "any 타입 사용 부분 모두 찾기"
 ```
 
 #### 6. 문서화 확인
+
 ```bash
 # 문서 업데이트 필요 부분
 echo "API 변경" | gemini -p "API 문서 업데이트 필요한 파일 목록"
 ```
 
 ### 테스트
+
 - **단위 테스트**: Vitest
 - **통합 테스트**: API 엔드포인트
 - **E2E 테스트**: Playwright
 - **커버리지 목표**: 70% 이상
 
 ### 커밋 메시지
+
 - 한국어 이모지 프리픽스 사용
 - 예: `🔧 설정 업데이트`, `✨ 새 기능 추가`
 
 ### 환경 변수
+
 - `GOOGLE_AI_API_KEY`: Google AI 인증
 - `SUPABASE_*`: Supabase 설정
 - `UPSTASH_REDIS_*`: Redis 설정
@@ -245,6 +269,7 @@ echo "API 변경" | gemini -p "API 문서 업데이트 필요한 파일 목록"
 ## 메모리 저장 권장사항
 
 프로젝트 시작 시 다음 정보를 메모리에 저장하세요:
+
 ```bash
 gemini /memory add "OpenManager VIBE v5 - AI 서버 모니터링"
 gemini /memory add "Next.js 15, TypeScript, Node.js v22.15.1"

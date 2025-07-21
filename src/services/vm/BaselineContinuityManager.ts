@@ -319,7 +319,8 @@ export class BaselineContinuityManager {
 
           // 시간별 평균 CPU 사용률 계산 (예측 모델 예시)
           for (let hour = 0; hour < 24; hour++) {
-            const hourSnapshots = this.snapshots.filter((s: any) => s.hourOfDay === hour
+            const hourSnapshots = this.snapshots.filter(
+              (s: any) => s.hourOfDay === hour
             );
 
             if (hourSnapshots.length > 0) {
@@ -412,7 +413,9 @@ export class BaselineContinuityManager {
     const cutoffTime = new Date(
       now.getTime() - this.config.historyRetention * 60 * 60 * 1000
     );
-    this.snapshots = this.snapshots.filter((s: any) => s.timestamp > cutoffTime);
+    this.snapshots = this.snapshots.filter(
+      (s: any) => s.timestamp > cutoffTime
+    );
 
     systemLogger.info(
       `📸 베이스라인 스냅샷 생성 완료 (${this.snapshots.length}개 유지)`

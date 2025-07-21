@@ -5,22 +5,26 @@
 다음 민감한 정보들이 코드베이스에 노출되어 있습니다:
 
 ### 1. GitHub Personal Access Token
+
 - **위치**: `.mcp.json`, `.env.local`
 - **토큰**: `ghp_[REDACTED]`
 - **위험도**: 🔴 **매우 높음**
 - **즉시 조치 필요**: GitHub에서 노출된 토큰을 즉시 revoke하고 새로 생성하세요!
 
 ### 2. GitHub OAuth Secret
+
 - **위치**: `.env.local`
 - **값**: `[REDACTED]`
 - **위험도**: 🔴 **매우 높음**
 
 ### 3. Upstash Redis Tokens
+
 - **위치**: `.env.local`
 - **토큰들**: KV 관련 여러 토큰
 - **위험도**: 🟡 **높음**
 
 ### 4. Tavily API Key
+
 - **위치**: `.env.local`
 - **키**: `tvly-dev-[REDACTED]`
 - **위험도**: 🟡 **중간** (개발용 키로 보임)
@@ -28,6 +32,7 @@
 ## 🛡️ 즉시 수행해야 할 조치
 
 ### 1. GitHub 토큰 무효화 및 재생성
+
 ```bash
 # 1. GitHub.com 접속
 # 2. Settings → Developer settings → Personal access tokens
@@ -36,6 +41,7 @@
 ```
 
 ### 2. GitHub OAuth App 시크릿 재생성
+
 ```bash
 # 1. GitHub.com 접속
 # 2. Settings → Developer settings → OAuth Apps
@@ -44,6 +50,7 @@
 ```
 
 ### 3. Redis 토큰 재생성
+
 ```bash
 # Upstash 콘솔에서 새 토큰 생성
 # https://console.upstash.com/
@@ -65,6 +72,7 @@
 ## 🔧 올바른 MCP 설정 방법
 
 ### 방법 1: Claude Code 재시작 시 환경변수 전달
+
 ```bash
 # Windows PowerShell
 $env:GITHUB_TOKEN="YOUR_PLACEHOLDER"; claude
@@ -74,12 +82,14 @@ GITHUB_TOKEN="YOUR_PLACEHOLDER" claude
 ```
 
 ### 방법 2: Claude MCP 명령어로 추가
+
 ```bash
 claude mcp remove github
 claude mcp add github -e GITHUB_TOKEN="YOUR_PLACEHOLDER" -- npx -y @modelcontextprotocol/server-github
 ```
 
 ### 방법 3: 시스템 환경변수 설정
+
 ```bash
 # Windows
 setx GITHUB_TOKEN "YOUR_PLACEHOLDER"

@@ -83,9 +83,14 @@ interface ServerlessSystemStore extends ServerlessSystemStatus {
 /**
  * 🚫 서버리스 호환: 모든 전역 상태 관리 비활성화
  */
-export const useGlobalSystemStore = create<ServerlessSystemStore>()((set, get) => {
+export const useGlobalSystemStore = create<ServerlessSystemStore>()((
+  set,
+  get
+) => {
   const logServerlessWarning = (action: string) => {
-    console.warn(`⚠️ ${action} 무시됨 - 서버리스 환경에서는 요청별 처리만 가능`);
+    console.warn(
+      `⚠️ ${action} 무시됨 - 서버리스 환경에서는 요청별 처리만 가능`
+    );
     console.warn('📊 Vercel Dashboard: https://vercel.com/dashboard');
   };
 
@@ -102,7 +107,8 @@ export const useGlobalSystemStore = create<ServerlessSystemStore>()((set, get) =
       logServerlessWarning('전역 세션 시작');
       return {
         success: false,
-        message: '서버리스 환경에서는 세션 관리가 비활성화됩니다. 각 요청은 독립적으로 처리됩니다.',
+        message:
+          '서버리스 환경에서는 세션 관리가 비활성화됩니다. 각 요청은 독립적으로 처리됩니다.',
       };
     },
 
@@ -146,7 +152,9 @@ export const useGlobalSystemStore = create<ServerlessSystemStore>()((set, get) =
      * 🚫 데이터 수집 진행률 업데이트 비활성화
      */
     updateDataCollectionProgress: (progress: number, servers: number) => {
-      logServerlessWarning(`데이터 수집 진행률 업데이트 (${progress}%, ${servers}개 서버)`);
+      logServerlessWarning(
+        `데이터 수집 진행률 업데이트 (${progress}%, ${servers}개 서버)`
+      );
     },
 
     /**
@@ -224,7 +232,9 @@ export const useGlobalSystemStore = create<ServerlessSystemStore>()((set, get) =
       warningServers: number;
       criticalServers: number;
     }) => {
-      logServerlessWarning(`시스템 메트릭 업데이트 (총 ${metrics.totalServers}개 서버)`);
+      logServerlessWarning(
+        `시스템 메트릭 업데이트 (총 ${metrics.totalServers}개 서버)`
+      );
     },
 
     /**
@@ -249,6 +259,5 @@ export const useGlobalSystemStore = create<ServerlessSystemStore>()((set, get) =
         phase: 'inactive' as const,
       };
     },
-
   };
 });

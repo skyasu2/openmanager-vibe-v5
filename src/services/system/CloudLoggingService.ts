@@ -232,17 +232,20 @@ export class CloudLoggingService {
     try {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
       // Firestore 배치 저장
-      const response = await fetch(`${appUrl}/api/firestore/system-logs/batch`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          logs: batch,
-          count: batch.length,
-          timestamp: new Date().toISOString(),
-        }),
-      });
+      const response = await fetch(
+        `${appUrl}/api/firestore/system-logs/batch`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            logs: batch,
+            count: batch.length,
+            timestamp: new Date().toISOString(),
+          }),
+        }
+      );
 
       if (response.ok) {
         console.log(`📦 Firestore 로그 배치 저장 완료: ${batch.length}개`);
@@ -427,7 +430,9 @@ export class CloudLoggingService {
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
 
-      const response = await fetch(`${appUrl}/api/system-logs/search?${params}`);
+      const response = await fetch(
+        `${appUrl}/api/system-logs/search?${params}`
+      );
 
       if (response.ok) {
         return await response.json();

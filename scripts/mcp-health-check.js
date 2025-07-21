@@ -123,7 +123,7 @@ async function main() {
   const total = results.length;
   const avgResponseTime =
     results.filter(r => r.success).reduce((sum, r) => sum + r.responseTime, 0) /
-    successful || 0;
+      successful || 0;
 
   log(
     colors.green,

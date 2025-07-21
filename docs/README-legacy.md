@@ -10,16 +10,19 @@
 ## 🎯 프로젝트 핵심 성과
 
 ### ⚡ 성능 최적화
+
 - **응답 시간**: 200ms → 1-5ms (99% 개선)
 - **월 비용**: $50 → $0 (100% 절감)
 - **처리 용량**: 15대 → 무제한 확장 가능
 
 ### 🤖 AI 엔진 통합
+
 - **다중 AI 모델**: Google Gemini, Claude, Local NLP 통합
 - **실시간 이상 징후 감지**: 패턴 분석 및 예측
 - **자연어 질의**: 대화형 서버 관리 인터페이스
 
 ### 🏗️ 기술 스택
+
 - **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind CSS
 - **Backend**: Edge Runtime, Redis, Supabase
 - **AI/ML**: Google AI Studio, RAG, Vector Search
@@ -47,12 +50,15 @@
 ## 💡 핵심 혁신
 
 ### 1. **템플릿 기반 아키텍처**
+
 실시간 연산을 사전 생성된 템플릿으로 대체하여 99% 성능 향상
 
 ### 2. **동적 메트릭 시스템**
+
 런타임에 메트릭 추가/삭제 가능한 유연한 구조
 
 ### 3. **무료 티어 최적화**
+
 Vercel, Redis, Supabase 무료 티어만으로 완전한 서비스 구현
 
 ## 🛠️ 빠른 시작
@@ -71,6 +77,7 @@ npm run build
 ## 📚 문서
 
 상세한 기술 문서는 [`/docs`](./docs) 디렉토리를 참조하세요:
+
 - [시스템 아키텍처](./docs/system-architecture.md)
 - [API 최적화 가이드](./docs/api-optimization-guide.md)
 - [AI 엔진 통합](./docs/ai-complete-guide.md)

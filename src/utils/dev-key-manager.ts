@@ -133,7 +133,6 @@ export class DevKeyManager {
         if (isValid) {
           status = 'active';
           // 기본값 사용 여부 확인
-
         } else {
           status = 'invalid';
         }

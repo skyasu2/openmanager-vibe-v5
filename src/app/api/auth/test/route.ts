@@ -1,6 +1,6 @@
 /**
  * 🧪 GitHub OAuth 및 Supabase Auth 테스트 API
- * 
+ *
  * 활성화된 GitHub OAuth가 올바르게 작동하는지 검증
  */
 
@@ -16,14 +16,17 @@ export async function GET(request: NextRequest) {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.json({
-        success: false,
-        error: 'Supabase 환경변수가 설정되지 않음',
-        details: {
-          hasUrl: !!supabaseUrl,
-          hasAnonKey: !!supabaseAnonKey,
-        }
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Supabase 환경변수가 설정되지 않음',
+          details: {
+            hasUrl: !!supabaseUrl,
+            hasAnonKey: !!supabaseAnonKey,
+          },
+        },
+        { status: 500 }
+      );
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -40,17 +43,19 @@ export async function GET(request: NextRequest) {
 
     // 2. Auth 설정 확인 (auth.users 테이블 접근 테스트)
     console.log('🔐 Auth 스키마 접근 테스트...');
-    const { data: authTest, error: authError } = await supabase.auth.getSession();
-    
+    const { data: authTest, error: authError } =
+      await supabase.auth.getSession();
+
     // 3. GitHub OAuth URL 생성 테스트
     console.log('🐙 GitHub OAuth URL 생성 테스트...');
-    const { data: oauthData, error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: `${request.nextUrl.origin}/auth/callback`,
-        scopes: 'read:user user:email',
-      }
-    });
+    const { data: oauthData, error: oauthError } =
+      await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${request.nextUrl.origin}/auth/callback`,
+          scopes: 'read:user user:email',
+        },
+      });
 
     const testResults = {
       timestamp: new Date().toISOString(),
@@ -73,40 +78,41 @@ export async function GET(request: NextRequest) {
         nodeEnv: process.env.NODE_ENV,
         vercel: !!process.env.VERCEL,
         domain: request.nextUrl.origin,
-      }
+      },
     };
 
     console.log('🧪 테스트 결과:', testResults);
 
     // 전체 성공 여부 판단
-    const allSystemsOperational = 
-      connectionStatus && 
-      !authError && 
-      !!oauthData?.url && 
-      !oauthError;
+    const allSystemsOperational =
+      connectionStatus && !authError && !!oauthData?.url && !oauthError;
 
     return NextResponse.json({
       success: allSystemsOperational,
-      message: allSystemsOperational 
-        ? '✅ 모든 인증 시스템이 정상 작동합니다!' 
+      message: allSystemsOperational
+        ? '✅ 모든 인증 시스템이 정상 작동합니다!'
         : '⚠️ 일부 시스템에 문제가 발견되었습니다.',
       data: testResults,
-      recommendations: !allSystemsOperational ? [
-        !connectionStatus && '📡 Supabase 연결 확인 필요',
-        authError && '🔐 Auth 설정 확인 필요',
-        oauthError && '🐙 GitHub OAuth Provider 설정 확인 필요',
-      ].filter(Boolean) : ['🎉 모든 시스템이 정상입니다!'],
+      recommendations: !allSystemsOperational
+        ? [
+            !connectionStatus && '📡 Supabase 연결 확인 필요',
+            authError && '🔐 Auth 설정 확인 필요',
+            oauthError && '🐙 GitHub OAuth Provider 설정 확인 필요',
+          ].filter(Boolean)
+        : ['🎉 모든 시스템이 정상입니다!'],
     });
-
   } catch (error) {
     console.error('💥 Auth 테스트 중 예상치 못한 오류:', error);
 
-    return NextResponse.json({
-      success: false,
-      error: 'Auth 테스트 실패',
-      details: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString(),
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Auth 테스트 실패',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -133,19 +139,20 @@ export async function POST(request: NextRequest) {
     // GitHub OAuth 제공자 설정 테스트
     if (testType === 'full' || testType === 'oauth') {
       console.log('🐙 GitHub OAuth 상세 설정 확인...');
-      
+
       try {
         // OAuth URL 생성 및 검증
-        const { data: oauthData, error: oauthError } = await supabase.auth.signInWithOAuth({
-          provider: 'github',
-          options: {
-            redirectTo: `${request.nextUrl.origin}/auth/callback`,
-            scopes: 'read:user user:email',
-            queryParams: {
-              prompt: 'consent'
-            }
-          }
-        });
+        const { data: oauthData, error: oauthError } =
+          await supabase.auth.signInWithOAuth({
+            provider: 'github',
+            options: {
+              redirectTo: `${request.nextUrl.origin}/auth/callback`,
+              scopes: 'read:user user:email',
+              queryParams: {
+                prompt: 'consent',
+              },
+            },
+          });
 
         diagnostics.github = {
           success: !oauthError,
@@ -167,11 +174,13 @@ export async function POST(request: NextRequest) {
             state: url.searchParams.get('state'),
           };
         }
-
       } catch (oauthTestError) {
         diagnostics.github = {
           success: false,
-          error: oauthTestError instanceof Error ? oauthTestError.message : 'Unknown OAuth error'
+          error:
+            oauthTestError instanceof Error
+              ? oauthTestError.message
+              : 'Unknown OAuth error',
         };
       }
     }
@@ -179,7 +188,7 @@ export async function POST(request: NextRequest) {
     // Auth 스키마 및 정책 테스트
     if (testType === 'full' || testType === 'auth') {
       console.log('🔐 Auth 스키마 및 정책 확인...');
-      
+
       try {
         const { data: userCount, error: userError } = await supabase
           .from('auth.users')
@@ -190,11 +199,13 @@ export async function POST(request: NextRequest) {
           error: userError?.message,
           canAccessAuthTable: !userError,
         };
-
       } catch (authSchemaError) {
         diagnostics.authSchema = {
           success: false,
-          error: authSchemaError instanceof Error ? authSchemaError.message : 'Auth schema access error'
+          error:
+            authSchemaError instanceof Error
+              ? authSchemaError.message
+              : 'Auth schema access error',
         };
       }
     }
@@ -204,14 +215,16 @@ export async function POST(request: NextRequest) {
       message: '🔬 GitHub OAuth 상세 진단 완료',
       diagnostics,
     });
-
   } catch (error) {
     console.error('💥 OAuth 진단 중 오류:', error);
 
-    return NextResponse.json({
-      success: false,
-      error: 'OAuth 진단 실패',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'OAuth 진단 실패',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }

@@ -8,7 +8,7 @@ import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import {
   safeErrorLog as coreErrorLog,
-  safeErrorMessage as coreErrorMessage
+  safeErrorMessage as coreErrorMessage,
 } from './error-handler';
 
 /**

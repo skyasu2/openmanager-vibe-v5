@@ -9,6 +9,7 @@ OpenManager VIBE의 TypeScript 타입 안전성을 강화하여 런타임 에러
 ### ✅ Phase 1: 설정 강화 (완료)
 
 #### tsconfig.json 업데이트
+
 ```json
 {
   "compilerOptions": {
@@ -26,6 +27,7 @@ OpenManager VIBE의 TypeScript 타입 안전성을 강화하여 런타임 에러
 ```
 
 #### ESLint TypeScript 규칙 추가
+
 ```json
 {
   "extends": ["plugin:@typescript-eslint/recommended"],
@@ -44,6 +46,7 @@ OpenManager VIBE의 TypeScript 타입 안전성을 강화하여 런타임 에러
 #### 주요 개선 사항
 
 1. **서버 타입 정의 강화**
+
 ```typescript
 // Before
 alerts?: any[];
@@ -64,6 +67,7 @@ customMetrics?: Record<string, string | number | boolean>;
 ```
 
 2. **제네릭 활용**
+
 ```typescript
 // Before
 async insert(table: string, data: any) { }
@@ -73,6 +77,7 @@ async insert<T = Record<string, unknown>>(table: string, data: T) { }
 ```
 
 3. **WebSocket 타입 정의**
+
 ```typescript
 export interface MetricsData {
   cpu?: number;
@@ -93,6 +98,7 @@ export interface SystemStatus {
 ### 🚧 Phase 3: 타입 구조 개선 (진행 예정)
 
 #### 계획된 작업
+
 - [ ] 공통 타입을 types/index.ts로 통합
 - [ ] 도메인별 타입 파일 정리
 - [ ] 유틸리티 타입 활용 확대
@@ -101,6 +107,7 @@ export interface SystemStatus {
 ### 🔮 Phase 4: 자동화 (계획)
 
 #### 목표
+
 - [ ] pre-commit hook에 타입 체크 추가
 - [ ] CI/CD에 strict 타입 체크 통합
 - [ ] 타입 커버리지 모니터링

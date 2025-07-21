@@ -4,7 +4,11 @@
  */
 
 import { mockServers, serverInitialStates } from './mockServerConfig';
-import { generate24HourData, ScenarioPoint, scenarioAlerts } from './mockScenarios';
+import {
+  generate24HourData,
+  ScenarioPoint,
+  scenarioAlerts,
+} from './mockScenarios';
 export type { ScenarioPoint };
 import type { Server } from '@/types/server';
 
@@ -33,9 +37,16 @@ export interface MockServerData {
 /**
  * Server 타입으로 변환
  */
-function convertToServerType(mockServer: typeof mockServers[0], currentMetrics: ScenarioPoint): Server {
-  const status = mockServer.status === 'critical' ? 'critical' : 
-                 mockServer.status === 'warning' ? 'warning' : 'online';
+function convertToServerType(
+  mockServer: (typeof mockServers)[0],
+  currentMetrics: ScenarioPoint
+): Server {
+  const status =
+    mockServer.status === 'critical'
+      ? 'critical'
+      : mockServer.status === 'warning'
+        ? 'warning'
+        : 'online';
 
   return {
     id: mockServer.id,
@@ -49,13 +60,21 @@ function convertToServerType(mockServer: typeof mockServers[0], currentMetrics: 
     lastUpdate: new Date(),
     location: mockServer.location,
     type: mockServer.type,
-    services: [{
-      name: mockServer.service,
-      status: status === 'online' ? 'running' : 'stopped',
-      port: 8080 // 기본 포트
-    }],
-    alerts: status !== 'online' ? 
-      (scenarioAlerts[serverInitialStates[mockServer.id as keyof typeof serverInitialStates].scenario as keyof typeof scenarioAlerts] || []) : []
+    services: [
+      {
+        name: mockServer.service,
+        status: status === 'online' ? 'running' : 'stopped',
+        port: 8080, // 기본 포트
+      },
+    ],
+    alerts:
+      status !== 'online'
+        ? scenarioAlerts[
+            serverInitialStates[
+              mockServer.id as keyof typeof serverInitialStates
+            ].scenario as keyof typeof scenarioAlerts
+          ] || []
+        : [],
   };
 }
 
@@ -69,25 +88,27 @@ function compressTimeSeriesData(data: ScenarioPoint[]): any {
   // 첫 번째 값은 그대로 저장
   const firstData = data[0];
   if (!firstData) return [];
-  
-  const compressed: any[] = [{
-    c: Math.round(firstData.cpu),
-    m: Math.round(firstData.memory),
-    d: Math.round(firstData.disk),
-    n: Math.round(firstData.network)
-  }];
+
+  const compressed: any[] = [
+    {
+      c: Math.round(firstData.cpu),
+      m: Math.round(firstData.memory),
+      d: Math.round(firstData.disk),
+      n: Math.round(firstData.network),
+    },
+  ];
 
   // 나머지는 이전 값과의 차이만 저장
   for (let i = 1; i < data.length; i++) {
     const curr = data[i];
     const prev = data[i - 1];
     if (!curr || !prev) continue;
-    
+
     compressed.push({
       c: Math.round(curr.cpu - prev.cpu),
       m: Math.round(curr.memory - prev.memory),
       d: Math.round(curr.disk - prev.disk),
-      n: Math.round(curr.network - prev.network)
+      n: Math.round(curr.network - prev.network),
     });
   }
 
@@ -100,20 +121,22 @@ function compressTimeSeriesData(data: ScenarioPoint[]): any {
 export function decompressTimeSeriesData(compressed: any[]): ScenarioPoint[] {
   if (compressed.length === 0) return [];
 
-  const decompressed: ScenarioPoint[] = [{
-    cpu: compressed[0].c,
-    memory: compressed[0].m,
-    disk: compressed[0].d,
-    network: compressed[0].n
-  }];
+  const decompressed: ScenarioPoint[] = [
+    {
+      cpu: compressed[0].c,
+      memory: compressed[0].m,
+      disk: compressed[0].d,
+      network: compressed[0].n,
+    },
+  ];
 
   for (let i = 1; i < compressed.length; i++) {
-    const prev = decompressed[i-1];
+    const prev = decompressed[i - 1];
     decompressed.push({
       cpu: prev.cpu + compressed[i].c,
       memory: prev.memory + compressed[i].m,
       disk: prev.disk + compressed[i].d,
-      network: prev.network + compressed[i].n
+      network: prev.network + compressed[i].n,
     });
   }
 
@@ -130,12 +153,14 @@ export function generateMockServerData(): MockServerData {
 
   // 각 서버별로 데이터 생성
   mockServers.forEach(mockServer => {
-    const scenarioId = serverInitialStates[mockServer.id as keyof typeof serverInitialStates].scenario;
+    const scenarioId =
+      serverInitialStates[mockServer.id as keyof typeof serverInitialStates]
+        .scenario;
     scenarios.add(scenarioId);
 
     // 24시간 데이터 생성
     const fullData = generate24HourData(scenarioId);
-    
+
     // 현재 시점의 메트릭 (랜덤 시작점)
     const currentIndex = Math.floor(Math.random() * fullData.length);
     const currentMetrics = fullData[currentIndex];
@@ -145,13 +170,18 @@ export function generateMockServerData(): MockServerData {
 
     // 압축된 시계열 데이터 저장
     const compressedData = compressTimeSeriesData(fullData);
-    
+
     timeSeries[mockServer.id] = {
       serverId: mockServer.id,
       scenario: scenarioId,
       data: compressedData as any, // 실제로는 압축된 형태
-      alerts: mockServer.status !== 'online' ? 
-        (scenarioAlerts[scenarioId as keyof typeof scenarioAlerts]?.slice(0, 3) || []) : []
+      alerts:
+        mockServer.status !== 'online'
+          ? scenarioAlerts[scenarioId as keyof typeof scenarioAlerts]?.slice(
+              0,
+              3
+            ) || []
+          : [],
     };
   });
 
@@ -161,15 +191,19 @@ export function generateMockServerData(): MockServerData {
     metadata: {
       generatedAt: new Date().toISOString(),
       totalDataPoints: 2880 * mockServers.length,
-      scenarios: Array.from(scenarios)
-    }
+      scenarios: Array.from(scenarios),
+    },
   };
 }
 
 /**
  * 시작 시 랜덤 시나리오 선택
  */
-export function selectRandomScenario(): { scenario: string; startHour: number; description: string } {
+export function selectRandomScenario(): {
+  scenario: string;
+  startHour: number;
+  description: string;
+} {
   const scenarioGroups = [
     {
       name: 'morning_crisis',
@@ -178,8 +212,8 @@ export function selectRandomScenario(): { scenario: string; startHour: number; d
       servers: {
         'app-prd-01': 'memory_leak',
         'db-main-01': 'disk_full',
-        'web-prd-02': 'cpu_spike'
-      }
+        'web-prd-02': 'cpu_spike',
+      },
     },
     {
       name: 'midnight_maintenance',
@@ -188,8 +222,8 @@ export function selectRandomScenario(): { scenario: string; startHour: number; d
       servers: {
         'backup-01': 'storage_warning',
         'file-nas-01': 'backup_delay',
-        'db-main-01': 'disk_full'
-      }
+        'db-main-01': 'disk_full',
+      },
     },
     {
       name: 'peak_load',
@@ -198,54 +232,60 @@ export function selectRandomScenario(): { scenario: string; startHour: number; d
       servers: {
         'web-prd-02': 'cpu_spike',
         'app-prd-01': 'memory_leak',
-        'file-nas-01': 'backup_delay'
-      }
-    }
+        'file-nas-01': 'backup_delay',
+      },
+    },
   ];
 
-  const selected = scenarioGroups[Math.floor(Math.random() * scenarioGroups.length)];
-  
+  const selected =
+    scenarioGroups[Math.floor(Math.random() * scenarioGroups.length)];
+
   // 선택된 시나리오 적용
   Object.entries(selected.servers).forEach(([serverId, scenario]) => {
     if (serverInitialStates[serverId as keyof typeof serverInitialStates]) {
-      serverInitialStates[serverId as keyof typeof serverInitialStates].scenario = scenario;
+      serverInitialStates[
+        serverId as keyof typeof serverInitialStates
+      ].scenario = scenario;
     }
   });
 
   return {
     scenario: selected.name,
     startHour: selected.startHour,
-    description: selected.description
+    description: selected.description,
   };
 }
 
 /**
  * 데이터 크기 계산 (디버깅용)
  */
-export function calculateDataSize(data: MockServerData): { 
-  original: number; 
-  compressed: number; 
+export function calculateDataSize(data: MockServerData): {
+  original: number;
+  compressed: number;
   ratio: number;
 } {
   const originalSize = JSON.stringify(data).length;
-  
+
   // 압축 시뮬레이션
   const compressedData = {
     ...data,
-    timeSeries: Object.entries(data.timeSeries).reduce((acc, [key, value]) => {
-      acc[key] = {
-        ...value,
-        data: compressTimeSeriesData(value.data as any)
-      };
-      return acc;
-    }, {} as Record<string, ServerTimeSeriesData>)
+    timeSeries: Object.entries(data.timeSeries).reduce(
+      (acc, [key, value]) => {
+        acc[key] = {
+          ...value,
+          data: compressTimeSeriesData(value.data as any),
+        };
+        return acc;
+      },
+      {} as Record<string, ServerTimeSeriesData>
+    ),
   };
-  
+
   const compressedSize = JSON.stringify(compressedData).length;
-  
+
   return {
     original: originalSize,
     compressed: compressedSize,
-    ratio: (1 - compressedSize / originalSize) * 100
+    ratio: (1 - compressedSize / originalSize) * 100,
   };
 }

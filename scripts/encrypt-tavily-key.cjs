@@ -40,16 +40,16 @@ function decrypt(encryptedText) {
 
 try {
   console.log('🔒 Tavily API 키 암호화 중...');
-  
+
   const encryptedKey = encrypt(TAVILY_API_KEY);
   console.log(`✅ 암호화 완료`);
-  
+
   // config 디렉토리 확인
   const configDir = path.join(__dirname, '../config');
   if (!fs.existsSync(configDir)) {
     fs.mkdirSync(configDir, { recursive: true });
   }
-  
+
   // 암호화된 설정 저장
   const encryptedConfig = {
     version: '1.0',
@@ -60,19 +60,19 @@ try {
     limits: {
       monthly: 1000,
       daily: 33,
-      rateLimit: '1 request per second'
+      rateLimit: '1 request per second',
     },
     features: {
       search: true,
       extract: true,
-      rag: true
-    }
+      rag: true,
+    },
   };
-  
+
   const configPath = path.join(configDir, 'tavily-encrypted.json');
   fs.writeFileSync(configPath, JSON.stringify(encryptedConfig, null, 2));
   console.log(`💾 암호화된 설정 저장: ${configPath}`);
-  
+
   // 복호화 테스트
   console.log('\n🧪 복호화 테스트 중...');
   const decryptedKey = decrypt(encryptedKey);
@@ -81,7 +81,7 @@ try {
   } else {
     throw new Error('복호화된 키가 원본과 일치하지 않습니다');
   }
-  
+
   console.log('\n🎉 Tavily API 키가 성공적으로 암호화되었습니다!');
   console.log('\n📋 다음 단계:');
   console.log('1. MCP 설정에 Tavily 추가');
@@ -91,7 +91,6 @@ try {
   console.log('\n💡 월 1,000회 무료 사용 가능');
   console.log('   - 일일 약 33회');
   console.log('   - RAG 워크플로우에 최적화');
-  
 } catch (error) {
   console.error('❌ 암호화 처리 실패:', error);
   process.exit(1);

@@ -9,7 +9,7 @@ console.log('🔧 MCP 설정 확인\n');
 const configs = [
   { file: '.cursor/mcp.json', desc: 'Cursor MCP 설정' },
   { file: 'mcp.dev.json', desc: '개발환경 MCP 설정' },
-  { file: 'mcp-cursor.json', desc: 'Cursor 통합 설정' }
+  { file: 'mcp-cursor.json', desc: 'Cursor 통합 설정' },
 ];
 
 configs.forEach(({ file, desc }) => {
@@ -36,4 +36,4 @@ console.log('3. Ctrl+Shift+P → "MCP: Restart MCP Servers"');
 console.log('4. 상태바에서 MCP 연결 상태 확인');
 console.log('5. 채팅에서 @openmanager-local 사용');
 
-console.log('\n💡 설정 완료!'); 
+console.log('\n💡 설정 완료!');

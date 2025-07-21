@@ -1,2 +1,2 @@
 export type ViewMode = 'grid' | 'list';
-export type DashboardTab = 'servers' | 'network' | 'clusters' | 'applications'; 
+export type DashboardTab = 'servers' | 'network' | 'clusters' | 'applications';

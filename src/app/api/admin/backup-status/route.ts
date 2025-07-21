@@ -1,12 +1,15 @@
 /**
  * 💾 관리자 백업 상태 API
  * 시스템 백업 상태를 관리하고 모니터링하는 엔드포인트
- * 
+ *
  * 🔐 인증 필요: Bearer 토큰 또는 API 키
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { withAdminAuth, type AuthenticatedRequest } from '@/lib/api/auth-middleware';
+import {
+  withAdminAuth,
+  type AuthenticatedRequest,
+} from '@/lib/api/auth-middleware';
 
 /**
  * 🔄 관리자 백업 상태 API (인증 필요)
@@ -55,7 +58,9 @@ async function manageBackup(request: AuthenticatedRequest) {
     const body = await request.json();
     const { action, backupId, settings } = body;
 
-    console.log(`💾 Backup action '${action}' requested by ${request.auth?.userId}`);
+    console.log(
+      `💾 Backup action '${action}' requested by ${request.auth?.userId}`
+    );
 
     switch (action) {
       case 'start':

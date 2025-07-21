@@ -9,16 +9,19 @@
 ## 🎯 주요 기능
 
 ### 1. **동적 메트릭 관리**
+
 - 런타임에 새로운 메트릭 추가/삭제
 - 커스텀 필드 지원
 - 스키마 버전 관리
 
 ### 2. **Supabase 자동 백업**
+
 - 5분마다 자동 백업
 - 장애 시 자동 복원
 - 30일간 백업 보관
 
 ### 3. **AI 엔진 완벽 호환**
+
 - 기존 AI 엔진과 100% 호환
 - 추가 메트릭도 AI 분석 가능
 
@@ -34,15 +37,12 @@ curl -X POST http://localhost:3000/api/servers-optimized \
 ```
 
 **응답:**
+
 ```json
 {
   "success": true,
   "message": "동적 템플릿 모드 활성화",
-  "features": [
-    "커스텀 메트릭 지원",
-    "Supabase 자동 백업",
-    "유연한 스키마 관리"
-  ]
+  "features": ["커스텀 메트릭 지원", "Supabase 자동 백업", "유연한 스키마 관리"]
 }
 ```
 
@@ -88,6 +88,7 @@ curl http://localhost:3000/api/servers-optimized \
 ```
 
 **응답 예시:**
+
 ```json
 {
   "success": true,
@@ -118,8 +119,8 @@ await fetch('/api/servers-optimized', {
   body: JSON.stringify({
     action: 'add_custom_metric',
     metricName: 'gpu_temperature',
-    defaultValue: 70
-  })
+    defaultValue: 70,
+  }),
 });
 
 // 2. GPU 메모리 사용률 추가
@@ -129,8 +130,8 @@ await fetch('/api/servers-optimized', {
   body: JSON.stringify({
     action: 'add_custom_metric',
     metricName: 'gpu_memory',
-    defaultValue: 80
-  })
+    defaultValue: 80,
+  }),
 });
 
 // 3. 데이터 조회
@@ -139,7 +140,7 @@ const data = await response.json();
 
 // GPU 메트릭이 포함된 서버 데이터
 console.log(data.data[0].metrics.gpu_temperature); // 70±변동
-console.log(data.data[0].metrics.gpu_memory);      // 80±변동
+console.log(data.data[0].metrics.gpu_memory); // 80±변동
 ```
 
 ### 시나리오 2: 데이터베이스 전용 메트릭
@@ -150,7 +151,7 @@ const dbMetrics = [
   { name: 'query_per_second', default: 1000 },
   { name: 'connection_pool_size', default: 100 },
   { name: 'replication_lag', default: 50 },
-  { name: 'cache_hit_ratio', default: 85 }
+  { name: 'cache_hit_ratio', default: 85 },
 ];
 
 for (const metric of dbMetrics) {
@@ -160,8 +161,8 @@ for (const metric of dbMetrics) {
     body: JSON.stringify({
       action: 'add_custom_metric',
       metricName: metric.name,
-      defaultValue: metric.default
-    })
+      defaultValue: metric.default,
+    }),
   });
 }
 ```
@@ -209,7 +210,7 @@ Redis 데이터가 손실된 경우, 시스템이 자동으로 Supabase에서 �
 // 현재 스키마 버전 확인
 const status = await fetch('/api/servers-optimized', {
   method: 'POST',
-  body: JSON.stringify({ action: 'cache_status' })
+  body: JSON.stringify({ action: 'cache_status' }),
 });
 
 const { templateVersion } = await status.json();
@@ -224,8 +225,8 @@ await fetch('/api/servers-optimized', {
   method: 'POST',
   body: JSON.stringify({
     action: 'set_scenario',
-    scenario: 'critical'
-  })
+    scenario: 'critical',
+  }),
 });
 
 // 위험 상황에서 추가 모니터링
@@ -234,20 +235,20 @@ await fetch('/api/servers-optimized', {
   body: JSON.stringify({
     action: 'add_custom_metric',
     metricName: 'emergency_response_time',
-    defaultValue: 500
-  })
+    defaultValue: 500,
+  }),
 });
 ```
 
 ## 📊 성능 영향
 
-| 기능 | 정적 템플릿 | 동적 템플릿 | 차이 |
-|------|-------------|-------------|------|
-| 응답 시간 | 1-3ms | 2-5ms | +1-2ms |
-| 메트릭 유연성 | ❌ | ✅ | - |
-| 백업/복원 | ❌ | ✅ | - |
-| 메모리 사용 | 낮음 | 보통 | +10% |
-| 확장성 | 제한적 | 무제한 | - |
+| 기능          | 정적 템플릿 | 동적 템플릿 | 차이   |
+| ------------- | ----------- | ----------- | ------ |
+| 응답 시간     | 1-3ms       | 2-5ms       | +1-2ms |
+| 메트릭 유연성 | ❌          | ✅          | -      |
+| 백업/복원     | ❌          | ✅          | -      |
+| 메모리 사용   | 낮음        | 보통        | +10%   |
+| 확장성        | 제한적      | 무제한      | -      |
 
 ## ⚠️ 주의사항
 

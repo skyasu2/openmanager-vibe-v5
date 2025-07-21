@@ -2,12 +2,16 @@
  * Admin Thresholds API Endpoint
  *
  * 시스템 임계값 설정을 관리합니다.
- * 
+ *
  * 🔐 인증 필요: Bearer 토큰 또는 API 키
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { withAdminAuth, withConditionalAuth, type AuthenticatedRequest } from '@/lib/api/auth-middleware';
+import {
+  withAdminAuth,
+  withConditionalAuth,
+  type AuthenticatedRequest,
+} from '@/lib/api/auth-middleware';
 
 // 임계값 설정 기본값
 const defaultThresholds = {

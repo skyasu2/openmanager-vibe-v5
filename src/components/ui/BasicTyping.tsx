@@ -1,6 +1,6 @@
 /**
  * 🎯 CSS 타이핑 효과 컴포넌트 - Vercel 안정형
- * 
+ *
  * ✅ 완전 안정적: 서버리스 환경에서 절대 사라지지 않음
  * ✅ 메모리 효율: JavaScript 메모리 누수 없음
  * ✅ 하이드레이션 안전: SSR 이슈 완전 해결
@@ -13,40 +13,40 @@
 import React from 'react';
 
 interface BasicTypingProps {
-    text: string;
-    speed?: 'slow' | 'normal' | 'fast';
-    className?: string;
-    showCursor?: boolean;
-    cursorColor?: string;
-    delay?: number;
+  text: string;
+  speed?: 'slow' | 'normal' | 'fast';
+  className?: string;
+  showCursor?: boolean;
+  cursorColor?: string;
+  delay?: number;
 }
 
 const BasicTyping: React.FC<BasicTypingProps> = ({
-    text,
-    speed = 'normal',
-    className = '',
-    showCursor = true,
-    cursorColor = '#3b82f6',
-    delay = 0
+  text,
+  speed = 'normal',
+  className = '',
+  showCursor = true,
+  cursorColor = '#3b82f6',
+  delay = 0,
 }) => {
-    const speedMap = {
-        slow: '4s',
-        normal: '3s',
-        fast: '2s'
-    };
+  const speedMap = {
+    slow: '4s',
+    normal: '3s',
+    fast: '2s',
+  };
 
-    const animationDelay = `${delay}s`;
+  const animationDelay = `${delay}s`;
 
-    return (
-        <div className={`typing-container ${className}`}>
-            <span className="typing-text">{text}</span>
+  return (
+    <div className={`typing-container ${className}`}>
+      <span className='typing-text'>{text}</span>
 
-            <style jsx>{`
+      <style jsx>{`
         .typing-container {
           display: inline-block;
           position: relative;
         }
-        
+
         .typing-text {
           display: inline-block;
           overflow: hidden;
@@ -54,21 +54,24 @@ const BasicTyping: React.FC<BasicTypingProps> = ({
           white-space: nowrap;
           margin: 0;
           width: 0;
-          animation: 
-            typing ${speedMap[speed]} steps(${text.length}, end) ${animationDelay} forwards
-            ${showCursor ? `, blink-caret 0.75s step-end infinite ${animationDelay}` : ''};
+          animation: typing ${speedMap[speed]} steps(${text.length}, end)
+            ${animationDelay} forwards
+            ${showCursor
+              ? `, blink-caret 0.75s step-end infinite ${animationDelay}`
+              : ''};
         }
-        
+
         @keyframes typing {
-          from { 
-            width: 0; 
+          from {
+            width: 0;
           }
-          to { 
-            width: 100%; 
+          to {
+            width: 100%;
           }
         }
-        
-        ${showCursor ? `
+
+        ${showCursor
+          ? `
         @keyframes blink-caret {
           from, to { 
             border-color: transparent; 
@@ -93,16 +96,17 @@ const BasicTyping: React.FC<BasicTypingProps> = ({
             border-right: none;
           }
         }
-        ` : ''}
-        
+        `
+          : ''}
+
         /* GPU 가속 최적화 */
         .typing-text {
           transform: translateZ(0);
           will-change: width;
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 };
 
-export default BasicTyping; 
+export default BasicTyping;

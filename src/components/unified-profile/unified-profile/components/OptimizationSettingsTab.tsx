@@ -195,10 +195,11 @@ export function OptimizationSettingsTab({
                       performanceMode: key as any,
                     }))
                   }
-                  className={`p-3 rounded-lg border transition-all duration-200 ${settings.performanceMode === key
-                    ? 'border-yellow-500/50 bg-yellow-500/20 text-yellow-400'
-                    : 'border-gray-600 bg-gray-700/50 text-gray-400 hover:border-gray-500'
-                    }`}
+                  className={`p-3 rounded-lg border transition-all duration-200 ${
+                    settings.performanceMode === key
+                      ? 'border-yellow-500/50 bg-yellow-500/20 text-yellow-400'
+                      : 'border-gray-600 bg-gray-700/50 text-gray-400 hover:border-gray-500'
+                  }`}
                 >
                   <Icon className='w-4 h-4 mx-auto mb-1' />
                   <div className='text-xs font-medium'>{label}</div>

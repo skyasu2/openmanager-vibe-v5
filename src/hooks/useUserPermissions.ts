@@ -1,6 +1,6 @@
 /**
  * 🔐 useUserPermissions - 사용자 권한 관리 훅
- * 
+ *
  * Vercel 무료 티어 최적화: 클라이언트 사이드 권한 처리
  * GitHub 인증 사용자 = 관리자, 게스트 사용자 = 일반 사용자
  */
@@ -16,7 +16,7 @@ import { useMemo } from 'react';
  * 오류 발생 시나 인증 상태 불명확 시 사용
  */
 function createSafeDefaultPermissions(
-  userType: UserType, 
+  userType: UserType,
   userName: string,
   userAvatar?: string
 ): UserPermissions {
@@ -26,15 +26,15 @@ function createSafeDefaultPermissions(
     canAccessSettings: false,
     canToggleAdminMode: false,
     canLogout: false,
-    
+
     // 사용자 유형 (일반 사용자로 기본 설정)
     isGeneralUser: true,
     isAdmin: false,
     isGitHubAuthenticated: false,
-    
+
     // AI 권한 (모든 사용자가 사용 가능)
     canToggleAI: true,
-    
+
     // 사용자 정보
     userType,
     userName,
@@ -71,9 +71,10 @@ export function useUserPermissions(): UserPermissions {
 
       if (isGitHubUser && session?.user) {
         // GitHub 사용자 - 안전한 정보 추출
-        userName = session.user.name || 
-                  session.user.email?.split('@')[0] || 
-                  'GitHub 사용자';
+        userName =
+          session.user.name ||
+          session.user.email?.split('@')[0] ||
+          'GitHub 사용자';
         userAvatar = session.user.image || undefined;
         userType = 'github';
       } else if (isGuestUser && guestUser) {
@@ -83,13 +84,15 @@ export function useUserPermissions(): UserPermissions {
         userType = 'guest';
       } else {
         // 인증 상태를 확인할 수 없는 경우 - 일반 사용자로 폴백
-        console.warn('🔐 [Permissions] 사용자 인증 상태 불명확 - 일반 사용자 권한으로 폴백');
+        console.warn(
+          '🔐 [Permissions] 사용자 인증 상태 불명확 - 일반 사용자 권한으로 폴백'
+        );
         return createSafeDefaultPermissions('guest', '일반사용자');
       }
 
       // 권한 매트릭스 적용
       const isAdmin = isGitHubUser; // GitHub 인증 사용자 = 관리자
-      const isGeneral = !isAdmin;   // 게스트 사용자 = 일반 사용자
+      const isGeneral = !isAdmin; // 게스트 사용자 = 일반 사용자
 
       return {
         // 시스템 제어 권한 (관리자만)
@@ -97,15 +100,15 @@ export function useUserPermissions(): UserPermissions {
         canAccessSettings: isAdmin,
         canToggleAdminMode: isAdmin,
         canLogout: isAdmin,
-        
+
         // 사용자 유형
         isGeneralUser: isGeneral,
         isAdmin: isAdmin,
         isGitHubAuthenticated: isGitHubUser,
-        
+
         // AI 권한 (모든 사용자)
         canToggleAI: true,
-        
+
         // 사용자 정보
         userType,
         userName,
@@ -115,7 +118,7 @@ export function useUserPermissions(): UserPermissions {
       // 권한 계산 중 오류 발생 시 안전한 폴백
       console.error('🔐 [Permissions] 권한 계산 중 오류 발생:', error);
       console.warn('🔐 [Permissions] 일반 사용자 권한으로 폴백');
-      
+
       return createSafeDefaultPermissions('guest', '일반사용자');
     }
   }, [session, status, guestUser, isGuestAuth]);
@@ -130,7 +133,10 @@ export const PermissionUtils = {
   /**
    * 특정 권한이 있는지 확인
    */
-  hasPermission: (permissions: UserPermissions, permission: keyof UserPermissions): boolean => {
+  hasPermission: (
+    permissions: UserPermissions,
+    permission: keyof UserPermissions
+  ): boolean => {
     return Boolean(permissions[permission]);
   },
 

@@ -3,7 +3,7 @@
 /**
  * 🔓 단일 환경변수 복호화 스크립트
  * 특정 환경변수만 복호화하여 출력
- * 
+ *
  * 사용법: node scripts/decrypt-single-var.mjs VARIABLE_NAME [password]
  */
 
@@ -17,7 +17,8 @@ const __dirname = path.dirname(__filename);
 
 // CLI 인자 파싱
 const varName = process.argv[2];
-const password = process.argv[3] || process.env.ENV_MASTER_PASSWORD || 'openmanager2025';
+const password =
+  process.argv[3] || process.env.ENV_MASTER_PASSWORD || 'openmanager2025';
 
 if (!varName) {
   console.error('Usage: node decrypt-single-var.mjs VARIABLE_NAME [password]');
@@ -68,32 +69,42 @@ function decryptValue(encryptedData, password) {
 async function main() {
   try {
     // 암호화된 설정 파일 로드
-    const configPath = path.join(__dirname, '..', 'config', 'encrypted-env-config.ts');
-    
+    const configPath = path.join(
+      __dirname,
+      '..',
+      'config',
+      'encrypted-env-config.ts'
+    );
+
     if (!fs.existsSync(configPath)) {
       throw new Error('Encrypted config file not found');
     }
 
     // TypeScript 파일 읽기
     const configContent = fs.readFileSync(configPath, 'utf8');
-    
+
     // ENCRYPTED_ENV_CONFIG JSON 부분만 추출
-    const jsonMatch = configContent.match(/export const ENCRYPTED_ENV_CONFIG[^=]*=\s*({[\s\S]*?})\s*;/);
+    const jsonMatch = configContent.match(
+      /export const ENCRYPTED_ENV_CONFIG[^=]*=\s*({[\s\S]*?})\s*;/
+    );
     if (!jsonMatch) {
       throw new Error('Could not parse config file');
     }
 
     // JSON 파싱
     const configObject = JSON.parse(jsonMatch[1]);
-    
+
     // 요청된 변수 찾기
     if (!configObject.variables[varName]) {
       throw new Error(`Variable ${varName} not found in encrypted config`);
     }
 
     // 복호화
-    const decryptedValue = decryptValue(configObject.variables[varName], password);
-    
+    const decryptedValue = decryptValue(
+      configObject.variables[varName],
+      password
+    );
+
     // stdout으로 출력 (오류 메시지는 stderr로)
     process.stdout.write(decryptedValue);
   } catch (error) {

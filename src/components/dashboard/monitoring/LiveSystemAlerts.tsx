@@ -11,7 +11,7 @@ import {
   CheckCircle,
   Clock,
   Database,
-  XCircle
+  XCircle,
 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -128,7 +128,7 @@ export default function LiveSystemAlerts() {
                   type: 'error',
                   message: `서버 ${server.name}에 심각한 문제가 발생했습니다`,
                   timestamp: new Date().toISOString(),
-                  serverId: server.id
+                  serverId: server.id,
                 });
               } else if (server.status === 'warning') {
                 newAlerts.push({
@@ -136,7 +136,7 @@ export default function LiveSystemAlerts() {
                   type: 'warning',
                   message: `서버 ${server.name}에 주의가 필요합니다`,
                   timestamp: new Date().toISOString(),
-                  serverId: server.id
+                  serverId: server.id,
                 });
               }
             });

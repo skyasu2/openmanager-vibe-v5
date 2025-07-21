@@ -1,6 +1,6 @@
 /**
  * 🧪 ML 강화된 IncidentReportService 테스트
- * 
+ *
  * MLDataManager와 GCPFunctionsService 통합 테스트
  */
 
@@ -18,7 +18,9 @@ describe('IncidentReportService - ML 통합', () => {
     it('ML 캐싱이 적용되어야 함', async () => {
       // MLDataManager 캐싱 모킹
       vi.spyOn(mlDataManager, 'getCachedData').mockResolvedValue(null);
-      vi.spyOn(mlDataManager, 'cacheIncidentReport').mockResolvedValue(undefined);
+      vi.spyOn(mlDataManager, 'cacheIncidentReport').mockResolvedValue(
+        undefined
+      );
 
       const comparison: ServerStateComparison = {
         current: [
@@ -52,12 +54,13 @@ describe('IncidentReportService - ML 통합', () => {
         changes: [],
       };
 
-      const report = await incidentReportService.generateIncidentReport(comparison);
+      const report =
+        await incidentReportService.generateIncidentReport(comparison);
 
       expect(report).toBeDefined();
       expect(report.severity).toBe('critical');
       expect(report.affectedServers).toContain('Server-01');
-      
+
       // 캐싱 호출 확인
       expect(mlDataManager.cacheIncidentReport).toHaveBeenCalledWith(
         report.id,
@@ -146,7 +149,8 @@ describe('IncidentReportService - ML 통합', () => {
         changes: [],
       };
 
-      const report = await incidentReportService.generateIncidentReport(comparison);
+      const report =
+        await incidentReportService.generateIncidentReport(comparison);
 
       // 패턴 기반 분석 확인
       expect(report.rootCause).toContain('메모리 사용량 지속 증가');
@@ -186,7 +190,8 @@ describe('IncidentReportService - ML 통합', () => {
         changes: [],
       };
 
-      const report = await incidentReportService.generateIncidentReport(comparison);
+      const report =
+        await incidentReportService.generateIncidentReport(comparison);
 
       // 기본 해결책 확인
       expect(report.resolution).toContain('CPU 사용률이 높은 프로세스 확인');
@@ -212,7 +217,9 @@ describe('IncidentReportService - ML 통합', () => {
 
       const reports = await incidentReportService.getAllReports();
 
-      expect(mlDataManager.getCachedData).toHaveBeenCalledWith('incident:reports:all');
+      expect(mlDataManager.getCachedData).toHaveBeenCalledWith(
+        'incident:reports:all'
+      );
       expect(reports).toEqual(cachedReports);
     });
   });
@@ -251,7 +258,8 @@ describe('IncidentReportService - ML 통합', () => {
         changes: [],
       };
 
-      const report = await incidentReportService.generateIncidentReport(comparison);
+      const report =
+        await incidentReportService.generateIncidentReport(comparison);
 
       expect(report.severity).toBe('critical');
       expect(report.rootCause).toContain('연쇄 장애 패턴 감지');

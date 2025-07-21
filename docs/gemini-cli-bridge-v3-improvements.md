@@ -5,17 +5,21 @@
 ### 1. **성능 최적화: --prompt 플래그 활용**
 
 #### 기존 방식 (v2)
+
 ```bash
 echo "질문" | gemini -p
 ```
+
 - 파이프 오버헤드 발생
 - PowerShell 이스케이프 문제
 - 추가 프로세스 생성
 
 #### 개선된 방식 (v3)
+
 ```bash
 gemini --prompt "질문"
 ```
+
 - 직접 명령 실행
 - 더 빠른 응답 시간
 - 안정적인 문자 처리
@@ -27,12 +31,12 @@ gemini --prompt "질문"
 const ModelStrategies = {
   'gemini-2.0-flash': {
     timeout: 10000,
-    bestFor: ['간단한 질문', '빠른 검증']
+    bestFor: ['간단한 질문', '빠른 검증'],
   },
   'gemini-2.5-pro': {
     timeout: 30000,
-    bestFor: ['복잡한 분석', '코드 리뷰']
-  }
+    bestFor: ['복잡한 분석', '코드 리뷰'],
+  },
 };
 ```
 
@@ -47,16 +51,19 @@ Pro 모델 시도 → 실패/지연 → Flash 모델 자동 전환
 ### 4. **작업별 최적화 도구**
 
 #### gemini_quick_answer
+
 - Flash 모델 + 헤드리스 모드
 - 10초 타임아웃
 - 간단한 질문에 최적
 
 #### gemini_code_review
+
 - Pro 모델 강제 사용
 - 45초 타임아웃
 - 보안/성능/가독성 포커스
 
 #### gemini_analyze
+
 - 분석 깊이 선택 가능
 - quick/standard/deep
 - 자동 모델 선택
@@ -65,13 +72,9 @@ Pro 모델 시도 → 실패/지연 → Flash 모델 자동 전환
 
 ```javascript
 mcp_gemini_cli_bridge_gemini_batch({
-  prompts: [
-    "첫 번째 질문",
-    "두 번째 질문",
-    "세 번째 질문"
-  ],
-  model: "auto"
-})
+  prompts: ['첫 번째 질문', '두 번째 질문', '세 번째 질문'],
+  model: 'auto',
+});
 ```
 
 ## 💡 사용 예시
@@ -89,7 +92,7 @@ mcp_gemini_cli_bridge_gemini_batch({
 mcp_gemini_cli_bridge_gemini_chat("질문", { model: "gemini-2.5-pro" })
 
 // 코드 리뷰 특화
-mcp_gemini_cli_bridge_gemini_code_review({ 
+mcp_gemini_cli_bridge_gemini_code_review({
   code: "function add(a, b) { return a + b }",
   focus: "performance"
 })
@@ -97,16 +100,17 @@ mcp_gemini_cli_bridge_gemini_code_review({
 
 ## 📊 성능 개선 결과
 
-| 항목 | v2 | v3 | 개선율 |
-|------|----|----|--------|
-| 평균 응답시간 | 3.2초 | 2.1초 | 34% 향상 |
-| 타임아웃 발생률 | 12% | 3% | 75% 감소 |
-| 자동 폴백 성공률 | - | 95% | 신규 기능 |
-| 모델 적합도 | 수동 | 자동 | 품질 향상 |
+| 항목             | v2    | v3    | 개선율    |
+| ---------------- | ----- | ----- | --------- |
+| 평균 응답시간    | 3.2초 | 2.1초 | 34% 향상  |
+| 타임아웃 발생률  | 12%   | 3%    | 75% 감소  |
+| 자동 폴백 성공률 | -     | 95%   | 신규 기능 |
+| 모델 적합도      | 수동  | 자동  | 품질 향상 |
 
 ## 🔧 설정 가능한 옵션
 
 ### 환경 변수
+
 ```bash
 GEMINI_DEBUG=true          # 디버그 모드
 GEMINI_TIMEOUT=45000       # 기본 타임아웃
@@ -114,6 +118,7 @@ GEMINI_MAX_RETRIES=3       # 최대 재시도
 ```
 
 ### MCP 도구 옵션
+
 ```javascript
 {
   model: 'auto|gemini-2.5-pro|gemini-2.0-flash',
@@ -126,11 +131,13 @@ GEMINI_MAX_RETRIES=3       # 최대 재시도
 ## 🎯 모델 선택 가이드
 
 ### 사용량별 추천
+
 - **0-50%**: Pro 모델 자유 사용
 - **50-80%**: 자동 선택 권장
 - **80-100%**: Flash 모델 위주
 
 ### 작업별 추천
+
 - **간단한 질문**: Flash
 - **코드 생성**: Auto
 - **코드 리뷰**: Pro
@@ -141,25 +148,27 @@ GEMINI_MAX_RETRIES=3       # 최대 재시도
 ### v2 → v3 업그레이드
 
 1. **MCP 서버 재시작 필요**
+
    ```bash
    # Claude Code 재시작
    ```
 
 2. **새로운 도구 사용**
+
    ```javascript
    // 기존
-   mcp_gemini_cli_bridge_gemini_chat("질문")
-   
+   mcp_gemini_cli_bridge_gemini_chat('질문');
+
    // 개선 (자동 모델 선택)
-   mcp_gemini_cli_bridge_gemini_chat("질문", { model: "auto" })
-   
+   mcp_gemini_cli_bridge_gemini_chat('질문', { model: 'auto' });
+
    // 작업별 최적화
-   mcp_gemini_cli_bridge_gemini_quick_answer({ question: "빠른 질문" })
+   mcp_gemini_cli_bridge_gemini_quick_answer({ question: '빠른 질문' });
    ```
 
 3. **통계 확인**
    ```javascript
-   mcp_gemini_cli_bridge_gemini_usage_dashboard()
+   mcp_gemini_cli_bridge_gemini_usage_dashboard();
    // 모델 추천 포함된 대시보드
    ```
 

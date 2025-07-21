@@ -1,12 +1,12 @@
 /**
  * 🚫 ModeTimerManager 제거됨
- * 
+ *
  * Vercel 플랫폼 자체 모니터링 사용 권장:
  * - 실시간 함수 상태: Vercel Dashboard > Functions
  * - 성능 분석: Analytics 탭
  * - 에러 추적: Functions > Errors 탭
  * - 배포 모니터링: Deployments 탭
- * 
+ *
  * 제거 이유:
  * 1. Vercel 플랫폼이 모든 모니터링 기능 제공
  * 2. 무료 티어 할당량 절약 (월 100,000회 → 50,000회 이하)

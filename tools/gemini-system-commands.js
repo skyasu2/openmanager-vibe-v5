@@ -2,10 +2,10 @@
 
 /**
  * 🎯 Gemini 시스템 명령 처리기
- * 
+ *
  * Gemini CLI의 인터랙티브 명령(/stats, /clear, /memory 등)을
  * 자체적으로 구현하여 TTY 환경 없이도 동작하도록 함
- * 
+ *
  * @author Claude Code
  * @version 1.0.0
  */
@@ -24,7 +24,7 @@ class GeminiSystemCommands {
     this.usageFile = join(this.dataDir, 'usage.json');
     this.memoryFile = join(this.dataDir, 'memory.json');
     this.contextFile = join(this.dataDir, 'context.json');
-    
+
     // 데이터 디렉토리 생성
     this.ensureDataDir();
   }
@@ -48,7 +48,7 @@ class GeminiSystemCommands {
       const usage = await this.loadUsage();
       const today = new Date().toISOString().split('T')[0];
       const todayUsage = usage.daily[today] || { requests: 0, tokens: 0 };
-      
+
       return `📊 **Gemini 사용량 통계**
       
 🗓️ 오늘 (${today})
@@ -75,14 +75,14 @@ class GeminiSystemCommands {
       const usage = await this.loadUsage();
       const today = new Date().toISOString().split('T')[0];
       const month = today.substring(0, 7);
-      
+
       // 일일 사용량 업데이트
       if (!usage.daily[today]) {
         usage.daily[today] = { requests: 0, tokens: 0 };
       }
       usage.daily[today].requests += 1;
       usage.daily[today].tokens += tokens;
-      
+
       // 월간 사용량 업데이트
       if (usage.currentMonth !== month) {
         usage.monthly = { requests: 0, tokens: 0 };
@@ -90,9 +90,9 @@ class GeminiSystemCommands {
       }
       usage.monthly.requests += 1;
       usage.monthly.tokens += tokens;
-      
+
       usage.lastUpdated = new Date().toISOString();
-      
+
       await this.saveUsage(usage);
     } catch (error) {
       console.error('Failed to record usage:', error.message);
@@ -104,11 +104,18 @@ class GeminiSystemCommands {
    */
   async clearContext() {
     try {
-      await fs.writeFile(this.contextFile, JSON.stringify({
-        messages: [],
-        clearedAt: new Date().toISOString()
-      }, null, 2));
-      
+      await fs.writeFile(
+        this.contextFile,
+        JSON.stringify(
+          {
+            messages: [],
+            clearedAt: new Date().toISOString(),
+          },
+          null,
+          2
+        )
+      );
+
       return `✅ 컨텍스트가 초기화되었습니다.
       
 🧹 초기화된 항목:
@@ -146,16 +153,16 @@ class GeminiSystemCommands {
   async listMemory() {
     try {
       const memory = await this.loadMemory();
-      
+
       if (memory.facts.length === 0) {
         return '📝 저장된 메모리가 없습니다.';
       }
-      
+
       let result = '📝 **저장된 메모리**\n\n';
       memory.facts.forEach((fact, index) => {
         result += `${index + 1}. ${fact.content}\n   📅 ${new Date(fact.createdAt).toLocaleString('ko-KR')}\n\n`;
       });
-      
+
       return result;
     } catch (error) {
       return '❌ 메모리를 불러올 수 없습니다.';
@@ -169,15 +176,15 @@ class GeminiSystemCommands {
     if (!content || content.trim() === '') {
       return '❌ 저장할 내용을 입력해주세요.';
     }
-    
+
     try {
       const memory = await this.loadMemory();
       memory.facts.push({
         id: Date.now().toString(),
         content: content.trim(),
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       });
-      
+
       await this.saveMemory(memory);
       return `✅ 메모리에 저장되었습니다: "${content.trim()}"`;
     } catch (error) {
@@ -192,14 +199,14 @@ class GeminiSystemCommands {
     try {
       const memory = await this.loadMemory();
       const idx = parseInt(index) - 1;
-      
+
       if (isNaN(idx) || idx < 0 || idx >= memory.facts.length) {
         return '❌ 유효하지 않은 번호입니다.';
       }
-      
+
       const removed = memory.facts.splice(idx, 1)[0];
       await this.saveMemory(memory);
-      
+
       return `✅ 메모리에서 제거되었습니다: "${removed.content}"`;
     } catch (error) {
       return `❌ 메모리 제거 실패: ${error.message}`;
@@ -211,11 +218,18 @@ class GeminiSystemCommands {
    */
   async clearMemory() {
     try {
-      await fs.writeFile(this.memoryFile, JSON.stringify({
-        facts: [],
-        clearedAt: new Date().toISOString()
-      }, null, 2));
-      
+      await fs.writeFile(
+        this.memoryFile,
+        JSON.stringify(
+          {
+            facts: [],
+            clearedAt: new Date().toISOString(),
+          },
+          null,
+          2
+        )
+      );
+
       return '✅ 모든 메모리가 초기화되었습니다.';
     } catch (error) {
       return `❌ 메모리 초기화 실패: ${error.message}`;
@@ -273,7 +287,7 @@ class GeminiSystemCommands {
         daily: {},
         monthly: { requests: 0, tokens: 0 },
         currentMonth: new Date().toISOString().substring(0, 7),
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
     }
   }
@@ -296,7 +310,7 @@ class GeminiSystemCommands {
       // 파일이 없으면 초기 데이터 생성
       return {
         facts: [],
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
     }
   }
@@ -315,10 +329,10 @@ export default GeminiSystemCommands;
 if (import.meta.url === `file://${process.argv[1]}`) {
   const commands = new GeminiSystemCommands();
   const [command, ...args] = process.argv.slice(2);
-  
+
   (async () => {
     let result;
-    
+
     switch (command) {
       case 'stats':
         result = await commands.getStats();
@@ -333,7 +347,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       default:
         result = commands.getHelp();
     }
-    
+
     console.log(result);
   })();
 }
