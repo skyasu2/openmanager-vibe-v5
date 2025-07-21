@@ -151,6 +151,11 @@ export default function UnifiedProfileHeader({
     };
   }, [isLocked, lockEndTime]);
 
+  // 드롭다운 상태 변경 디버깅
+  useEffect(() => {
+    console.log('🔄 프로필 드롭다운 상태 변경:', showProfileMenu);
+  }, [showProfileMenu]);
+
   // 🎯 외부 클릭 감지로 드롭다운 닫기
   useEffect(() => {
     const handleClickOutside = (event: Event) => {
@@ -158,6 +163,7 @@ export default function UnifiedProfileHeader({
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
+        console.log('🎯 외부 클릭 감지됨, 드롭다운 닫기');
         setShowProfileMenu(false);
         setShowAdminInput(false);
         setAdminPassword('');
@@ -438,10 +444,15 @@ export default function UnifiedProfileHeader({
     <div ref={dropdownRef} className={`relative ${className}`}>
       {/* 🎯 개선된 프로필 드롭다운 */}
       <motion.button
-        onClick={() => setShowProfileMenu(!showProfileMenu)}
-        className='flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 group'
+        onClick={e => {
+          e.stopPropagation();
+          console.log('👤 프로필 버튼 클릭됨:', { showProfileMenu, event: e });
+          setShowProfileMenu(!showProfileMenu);
+        }}
+        className='flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 group cursor-pointer relative'
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
+        style={{ zIndex: 45 }}
       >
         {/* 프로필 아바타 */}
         <div className='relative'>
@@ -526,7 +537,8 @@ export default function UnifiedProfileHeader({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className='absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg py-2 z-50 border border-gray-200'
+            className='absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg py-2 border border-gray-200'
+            style={{ zIndex: 9999 }}
           >
             {/* 사용자 정보 헤더 */}
             <div className='px-4 py-3 border-b border-gray-100'>
@@ -591,12 +603,16 @@ export default function UnifiedProfileHeader({
               {!isAdminMode ? (
                 <div>
                   <button
-                    onClick={() => setShowAdminInput(!showAdminInput)}
+                    onClick={e => {
+                      e.stopPropagation();
+                      console.log('🔓 관리자 모드 토글 버튼 클릭됨');
+                      setShowAdminInput(!showAdminInput);
+                    }}
                     disabled={isLocked}
                     className={`flex items-center w-full px-4 py-2 text-sm transition-colors ${
                       isLocked
                         ? 'text-gray-400 cursor-not-allowed'
-                        : 'text-gray-700 hover:bg-gray-50'
+                        : 'text-gray-700 hover:bg-gray-50 cursor-pointer'
                     }`}
                   >
                     <Crown
@@ -680,8 +696,12 @@ export default function UnifiedProfileHeader({
                 </div>
               ) : (
                 <button
-                  onClick={handleAdminPage}
-                  className='flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors'
+                  onClick={e => {
+                    e.stopPropagation();
+                    console.log('👑 관리자 페이지 버튼 클릭됨');
+                    handleAdminPage();
+                  }}
+                  className='flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors cursor-pointer'
                 >
                   <Crown className='w-4 h-4 mr-3 text-red-500' />
                   관리자 페이지
@@ -703,8 +723,12 @@ export default function UnifiedProfileHeader({
                     <>
                       {/* 대시보드 이동 */}
                       <button
-                        onClick={handleDashboardClick}
-                        className='flex items-center w-full px-4 py-2 text-sm text-green-700 hover:bg-green-50 transition-colors'
+                        onClick={e => {
+                          e.stopPropagation();
+                          console.log('📊 대시보드 버튼 클릭됨');
+                          handleDashboardClick();
+                        }}
+                        className='flex items-center w-full px-4 py-2 text-sm text-green-700 hover:bg-green-50 transition-colors cursor-pointer'
                       >
                         <BarChart3 className='w-4 h-4 mr-3 text-green-500' />
                         대시보드 열기
@@ -715,8 +739,12 @@ export default function UnifiedProfileHeader({
 
                       {/* 시스템 종료 */}
                       <button
-                        onClick={handleSystemStop}
-                        className='flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors'
+                        onClick={e => {
+                          e.stopPropagation();
+                          console.log('⛔ 시스템 종료 버튼 클릭됨');
+                          handleSystemStop();
+                        }}
+                        className='flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors cursor-pointer'
                       >
                         <Power className='w-4 h-4 mr-3 text-red-500' />
                         시스템 종료
@@ -744,11 +772,13 @@ export default function UnifiedProfileHeader({
               {/* 계정 전환 - 게스트 사용자만 */}
               {isGuest && !isAdminMode && (
                 <button
-                  onClick={() => {
+                  onClick={e => {
+                    e.stopPropagation();
+                    console.log('🐙 GitHub 로그인 버튼 클릭됨');
                     setShowProfileMenu(false);
                     router.push('/login');
                   }}
-                  className='flex items-center w-full px-4 py-2 text-sm text-blue-700 hover:bg-blue-50 transition-colors'
+                  className='flex items-center w-full px-4 py-2 text-sm text-blue-700 hover:bg-blue-50 transition-colors cursor-pointer'
                 >
                   <Shield className='w-4 h-4 mr-3 text-blue-500' />
                   GitHub로 로그인
@@ -757,8 +787,12 @@ export default function UnifiedProfileHeader({
 
               {/* 로그아웃 */}
               <button
-                onClick={handleLogout}
-                className='flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors'
+                onClick={e => {
+                  e.stopPropagation();
+                  console.log('🚪 로그아웃 버튼 클릭됨');
+                  handleLogout();
+                }}
+                className='flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors cursor-pointer'
               >
                 <LogOut className='w-4 h-4 mr-3 text-red-500' />
                 로그아웃
