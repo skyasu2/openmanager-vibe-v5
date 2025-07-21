@@ -8,6 +8,7 @@
  */
 
 import type { ChildProcess } from 'child_process';
+import type { MCPClient } from '@/types/mcp';
 
 export interface MCPServerConfig {
   name: string;
@@ -23,21 +24,6 @@ export interface MCPServerConfig {
     lastUsed: number;
     healthScore: number;
   };
-}
-
-interface MCPClient {
-  connect(transport?: any): Promise<void>;
-  request(request: any): Promise<any>;
-  close(): Promise<void>;
-  process?: ChildProcess;
-  nextId?: number;
-  pendingRequests?: Map<
-    number,
-    {
-      resolve: (value: any) => void;
-      reject: (reason?: any) => void;
-    }
-  >;
 }
 
 export class MCPServerManager {
@@ -226,17 +212,30 @@ export class MCPServerManager {
    * 🎭 목업 클라이언트 생성 (테스트용)
    */
   private createMockClient(serverName: string): MCPClient {
+    let connected = false;
+
     return {
       async connect(): Promise<void> {
         console.log(`🔗 ${serverName} 목업 클라이언트 연결됨`);
+        connected = true;
       },
 
-      async request(request: any): Promise<any> {
+      async request(_request: any): Promise<any> {
         return { result: `Mock response from ${serverName}` };
       },
 
       async close(): Promise<void> {
         console.log(`🔌 ${serverName} 목업 클라이언트 연결 해제됨`);
+        connected = false;
+      },
+
+      async disconnect(): Promise<void> {
+        console.log(`🔌 ${serverName} 목업 클라이언트 연결 해제됨`);
+        connected = false;
+      },
+
+      isConnected(): boolean {
+        return connected;
       },
     };
   }
@@ -286,7 +285,11 @@ export class MCPServerManager {
     const disconnectPromises = Array.from(this.clients.entries()).map(
       async ([name, client]) => {
         try {
-          await client.close();
+          if (client.close) {
+            await client.close();
+          } else if (client.disconnect) {
+            await client.disconnect();
+          }
           console.log(`🔌 ${name} 서버 연결 해제됨`);
         } catch (error) {
           console.warn(`⚠️ ${name} 서버 연결 해제 실패:`, error);

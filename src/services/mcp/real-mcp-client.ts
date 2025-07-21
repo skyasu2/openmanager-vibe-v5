@@ -320,7 +320,7 @@ export class RealMCPClient {
         this.clients
       );
 
-      if (result.success) {
+      if (result.success && result.content) {
         return result.content;
       } else {
         throw new Error(result.error || '파일 읽기 실패');
@@ -340,8 +340,9 @@ export class RealMCPClient {
         this.clients
       );
 
-      if (result.success) {
-        return result.items.map((item: { name: string }) => item.name);
+      if (result.success && result.metadata) {
+        const items = result.metadata.items as Array<{ name: string }>;
+        return items ? items.map(item => item.name) : [];
       } else {
         throw new Error(result.error || '디렉토리 목록 조회 실패');
       }
@@ -436,7 +437,7 @@ export class RealMCPClient {
       };
 
       if (context.sessionId) {
-        await this.storeContext(context.sessionId, combinedResults);
+        await this.storeContext(context.sessionId as string, context);
       }
 
       return combinedResults;
@@ -472,13 +473,13 @@ export class RealMCPClient {
   getConnectionInfo(): MCPConnectionInfo {
     const serverNames = this.serverManager.getAvailableServers();
 
-    const servers = Array.from(this.clients.entries()).map(
-      ([name, _client]) => ({
-        name,
-        status: 'connected' as const,
-        lastConnected: new Date(),
-      })
-    );
+    const servers: MCPConnectionInfo['servers'] = Array.from(
+      this.clients.entries()
+    ).map(([name, _client]) => ({
+      name,
+      status: 'connected' as const,
+      lastConnected: new Date(),
+    }));
 
     // 연결되지 않은 서버들도 추가
     serverNames.forEach(serverName => {

@@ -138,13 +138,23 @@ export class MCPProcessor {
       // 시스템 컨텍스트
       let systemContext = null;
       if (includeSystemContext) {
-        systemContext = await this.realClient.getServerStatus();
+        // 서버 상태를 시스템 컨텍스트로 변환
+        const serverStatus = await this.realClient.getServerStatus();
+        systemContext = {
+          platform: process.platform,
+          nodeVersion: process.version,
+          environment: process.env.NODE_ENV || 'development',
+          metadata: {
+            serverStatus: serverStatus as unknown as Record<string, unknown>,
+            timestamp: new Date().toISOString(),
+          },
+        };
       }
 
       return {
         success: true,
         files: files.slice(0, maxFiles),
-        systemContext,
+        systemContext: systemContext || undefined,
       };
     } catch (error) {
       console.error('컨텍스트 수집 실패:', error);
@@ -175,7 +185,10 @@ export class MCPProcessor {
       success: contextResult.success,
       response:
         '이 메서드는 더 이상 AI 응답을 생성하지 않습니다. SimplifiedQueryEngine을 사용하세요.',
-      data: contextResult,
+      data: {
+        ...contextResult,
+        timestamp: new Date().toISOString(),
+      } as Record<string, unknown>,
       confidence: 0,
     };
   }

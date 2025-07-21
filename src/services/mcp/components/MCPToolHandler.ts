@@ -10,6 +10,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import type { MCPClient, MCPToolResult } from '@/types/mcp';
 
 interface MCPSearchResult {
   success: boolean;
@@ -18,21 +19,6 @@ interface MCPSearchResult {
   tools_used: string[];
   responseTime?: number;
   serverUsed?: string;
-}
-
-interface MCPClient {
-  connect(transport?: any): Promise<void>;
-  request(request: any): Promise<any>;
-  close(): Promise<void>;
-  process?: any;
-  nextId?: number;
-  pendingRequests?: Map<
-    number,
-    {
-      resolve: (value: any) => void;
-      reject: (reason?: any) => void;
-    }
-  >;
 }
 
 export class MCPToolHandler {
@@ -212,7 +198,7 @@ export class MCPToolHandler {
                   preview: this.getContentPreview(fileContent, content),
                 });
               }
-            } catch (error) {
+            } catch {
               // 파일 읽기 실패 시 무시
             }
           }
@@ -353,10 +339,10 @@ export class MCPToolHandler {
 
         console.log(
           `📋 ${serverName} 서버 도구 목록:`,
-          response.tools?.length || 0
+          response.result?.tools?.length || 0
         );
-        return response.tools || [];
-      } catch (error) {
+        return response.result?.tools || [];
+      } catch {
         console.warn(
           `⚠️ ${serverName} 서버 도구 목록 조회 실패, 기본 도구 반환`
         );
@@ -374,9 +360,9 @@ export class MCPToolHandler {
   async callTool(
     serverName: string,
     toolName: string,
-    args: any,
+    args: Record<string, unknown>,
     clients: Map<string, MCPClient>
-  ): Promise<any> {
+  ): Promise<MCPToolResult> {
     const startTime = Date.now();
 
     try {
@@ -401,11 +387,16 @@ export class MCPToolHandler {
         console.log(`✅ 도구 호출 완료: ${toolName} (${responseTime}ms)`);
 
         return {
-          ...response,
-          serverUsed: serverName,
-          responseTime,
+          success: response.success,
+          content: response.result?.content,
+          error: response.error?.message,
+          metadata: {
+            ...response.result?.data,
+            serverUsed: serverName,
+            responseTime,
+          },
         };
-      } catch (error) {
+      } catch {
         console.warn(`⚠️ 서버 도구 호출 실패, 로컬 처리: ${toolName}`);
         return await this.handleToolCall({ name: toolName, arguments: args });
       }

@@ -16,6 +16,20 @@ import type {
   MCPMonitoringData,
   MCPPatternAnalysis,
 } from '@/types/mcp';
+import {
+  createMCPMonitoringData,
+  getHealthScore,
+  serverInstanceToMCPServer,
+} from './adapters/server-type-adapter';
+import {
+  handleServerStatusQuery,
+  handleIncidentQuery,
+  handlePerformanceQuery,
+  handleRecommendationQuery,
+  handleCostQuery,
+  handlePredictionQuery,
+  handleGeneralQuery,
+} from './ServerMonitoringAgentHandlers';
 
 // 🧠 AI 생각과정 단계 (로컬 인터페이스)
 export interface ThinkingStep {
@@ -328,7 +342,12 @@ export class ServerMonitoringAgent {
           processingTime,
           dataPoints: currentData.servers.length,
           pattern: analysis.pattern || 'normal',
-          severity: analysis.severity,
+          severity: analysis.severity as
+            | 'info'
+            | 'warning'
+            | 'error'
+            | 'critical'
+            | undefined,
         },
         timestamp: new Date(),
       };
@@ -392,13 +411,13 @@ export class ServerMonitoringAgent {
               unsubscribe();
               unsubscribeMetrics();
 
+              const mcpData = createMCPMonitoringData(servers, context);
+
               resolve({
-                servers,
+                ...mcpData,
                 clusters: [], // 브로커에서 클러스터 정보 제공 시 업데이트
                 applications: [], // 브로커에서 애플리케이션 정보 제공 시 업데이트
-                summary: metrics.summary || {},
-                context,
-                timestamp: new Date(),
+                summary: metrics.summary || mcpData.summary,
               });
             },
             {
@@ -438,7 +457,10 @@ export class ServerMonitoringAgent {
     // 서버별 이상 탐지
     for (const server of data.servers) {
       // CPU 이상
-      if (server.metrics?.cpu > this.knowledgeBase.thresholds.cpu.critical) {
+      if (
+        server.metrics?.cpu &&
+        server.metrics.cpu > this.knowledgeBase.thresholds.cpu.critical
+      ) {
         analysis.pattern = 'high-cpu';
         analysis.severity = 'critical';
         analysis.issues.push(
@@ -448,7 +470,8 @@ export class ServerMonitoringAgent {
           `${server.name} 서버의 CPU 부하를 줄이거나 스케일링을 고려하세요`
         );
       } else if (
-        server.metrics?.cpu > this.knowledgeBase.thresholds.cpu.warning
+        server.metrics?.cpu &&
+        server.metrics.cpu > this.knowledgeBase.thresholds.cpu.warning
       ) {
         analysis.pattern = 'cpu-warning';
         analysis.severity =
@@ -460,7 +483,8 @@ export class ServerMonitoringAgent {
 
       // 메모리 이상
       if (
-        server.metrics?.memory > this.knowledgeBase.thresholds.memory.critical
+        server.metrics?.memory &&
+        server.metrics.memory > this.knowledgeBase.thresholds.memory.critical
       ) {
         analysis.pattern = 'memory-issue';
         analysis.severity = 'critical';
@@ -473,7 +497,10 @@ export class ServerMonitoringAgent {
       }
 
       // 디스크 이상
-      if (server.metrics?.disk > this.knowledgeBase.thresholds.disk.critical) {
+      if (
+        server.metrics?.disk &&
+        server.metrics.disk > this.knowledgeBase.thresholds.disk.critical
+      ) {
         analysis.pattern = 'disk-full';
         analysis.severity = 'critical';
         analysis.issues.push(
@@ -485,11 +512,12 @@ export class ServerMonitoringAgent {
       }
 
       // 건강도 이상
-      if (server.health.score < this.knowledgeBase.thresholds.health.critical) {
+      const healthScore = getHealthScore(server.health);
+      if (healthScore < this.knowledgeBase.thresholds.health.critical) {
         analysis.pattern = 'health-degraded';
         analysis.severity = 'critical';
         analysis.issues.push(
-          `${server.name}: 시스템 건강도 저하 (${server.health.score.toFixed(1)}점)`
+          `${server.name}: 시스템 건강도 저하 (${healthScore.toFixed(1)}점)`
         );
         analysis.recommendations.push(
           `${server.name}의 상세 진단이 필요합니다`
@@ -544,59 +572,17 @@ export class ServerMonitoringAgent {
     data: MCPMonitoringData,
     analysis: MCPPatternAnalysis
   ): string {
-    const { servers, summary } = data;
-    const runningServers = servers.filter(
-      (s: ServerInstance) => s.status === 'running'
-    ).length;
-    const totalServers = servers.length;
-
-    let response = `📊 **현재 서버 상태 보고**\n\n`;
-    response += `• 전체 서버: ${totalServers}대\n`;
-    response += `• 정상 운영: ${runningServers}대 (${((runningServers / totalServers) * 100).toFixed(1)}%)\n`;
-    response += `• 평균 CPU: ${summary.performance.avgCpu.toFixed(1)}%\n`;
-    response += `• 평균 메모리: ${summary.performance.avgMemory.toFixed(1)}%\n`;
-    response += `• 시스템 건강도: ${summary.health.averageScore.toFixed(1)}점\n\n`;
-
-    if (analysis.issues.length > 0) {
-      response += `⚠️ **주의사항:**\n`;
-      analysis.issues.forEach((issue: string, index: number) => {
-        response += `${index + 1}. ${issue}\n`;
-      });
-    } else {
-      response += `✅ 모든 서버가 정상적으로 운영되고 있습니다.`;
-    }
-
-    return response;
+    return handleServerStatusQuery(data, analysis, getHealthScore);
   }
 
   /**
    * 🚨 장애 분석 핸들러
    */
   private handleIncidentQuery(
-    _data: MCPMonitoringData,
+    data: MCPMonitoringData,
     analysis: MCPPatternAnalysis
   ): string {
-    if (analysis.issues.length === 0) {
-      return `✅ **장애 상황 없음**\n\n현재 시스템에서 감지된 장애나 심각한 문제는 없습니다. 모든 서버가 정상 범위 내에서 운영되고 있습니다.`;
-    }
-
-    let response = `🚨 **장애 분석 보고서**\n\n`;
-    response += `**심각도:** ${analysis.severity.toUpperCase()}\n`;
-    response += `**감지된 문제:** ${analysis.issues.length}개\n\n`;
-
-    response += `**상세 분석:**\n`;
-    analysis.issues.forEach((issue: string, index: number) => {
-      response += `${index + 1}. ${issue}\n`;
-    });
-
-    if (analysis.recommendations.length > 0) {
-      response += `\n**권장 조치사항:**\n`;
-      analysis.recommendations.forEach((rec: string, index: number) => {
-        response += `${index + 1}. ${rec}\n`;
-      });
-    }
-
-    return response;
+    return handleIncidentQuery(data, analysis);
   }
 
   /**
@@ -604,44 +590,9 @@ export class ServerMonitoringAgent {
    */
   private handlePerformanceQuery(
     data: MCPMonitoringData,
-    _analysis: MCPPatternAnalysis
+    analysis: MCPPatternAnalysis
   ): string {
-    const { summary } = data;
-
-    let response = `🚀 **성능 분석 보고서**\n\n`;
-
-    // 성능 지표 분석
-    const cpuStatus =
-      summary.performance.avgCpu > 70
-        ? '높음 ⚠️'
-        : summary.performance.avgCpu > 50
-          ? '보통'
-          : '낮음 ✅';
-    const memoryStatus =
-      summary.performance.avgMemory > 80
-        ? '높음 ⚠️'
-        : summary.performance.avgMemory > 60
-          ? '보통'
-          : '낮음 ✅';
-
-    response += `**CPU 사용률:** ${summary.performance.avgCpu.toFixed(1)}% (${cpuStatus})\n`;
-    response += `**메모리 사용률:** ${summary.performance.avgMemory.toFixed(1)}% (${memoryStatus})\n`;
-    response += `**총 요청 수:** ${summary.performance.totalRequests.toLocaleString()}회\n`;
-    response += `**에러율:** ${((summary.performance.totalErrors / Math.max(1, summary.performance.totalRequests)) * 100).toFixed(2)}%\n\n`;
-
-    // 성능 개선 제안
-    response += `**성능 개선 제안:**\n`;
-    if (summary.performance.avgCpu > 70) {
-      response += `• CPU 부하가 높습니다. 코드 최적화나 서버 증설을 고려하세요\n`;
-    }
-    if (summary.performance.avgMemory > 80) {
-      response += `• 메모리 사용률이 높습니다. 캐싱 전략 검토가 필요합니다\n`;
-    }
-    if (summary.performance.totalErrors > 100) {
-      response += `• 에러 발생률이 높습니다. 로그 분석을 통한 원인 파악이 필요합니다\n`;
-    }
-
-    return response;
+    return handlePerformanceQuery(data, analysis);
   }
 
   /**
@@ -651,24 +602,7 @@ export class ServerMonitoringAgent {
     data: MCPMonitoringData,
     analysis: MCPPatternAnalysis
   ): string {
-    let response = `💡 **시스템 개선 권장사항**\n\n`;
-
-    if (analysis.recommendations.length > 0) {
-      response += `**즉시 조치 권장:**\n`;
-      analysis.recommendations.forEach((rec: string, index: number) => {
-        response += `${index + 1}. ${rec}\n`;
-      });
-      response += `\n`;
-    }
-
-    response += `**일반적인 최적화 제안:**\n`;
-    response += `• 정기적인 로그 정리 및 아카이빙 수행\n`;
-    response += `• 모니터링 알럿 임계값 검토 및 조정\n`;
-    response += `• 자동 스케일링 정책 검토\n`;
-    response += `• 보안 패치 및 업데이트 스케줄 관리\n`;
-    response += `• 백업 및 재해복구 계획 점검\n`;
-
-    return response;
+    return handleRecommendationQuery(data, analysis);
   }
 
   /**
@@ -676,31 +610,9 @@ export class ServerMonitoringAgent {
    */
   private handleCostQuery(
     data: MCPMonitoringData,
-    _analysis: MCPPatternAnalysis
+    analysis: MCPPatternAnalysis
   ): string {
-    const { summary } = data;
-
-    let response = `💰 **비용 분석 보고서**\n\n`;
-    response += `**현재 비용:**\n`;
-    response += `• 시간당 비용: $${summary.cost.total.toFixed(2)}\n`;
-    response += `• 월간 예상 비용: $${summary.cost.monthly.toFixed(2)}\n\n`;
-
-    // 비용 절약 제안
-    response += `**비용 최적화 제안:**\n`;
-    const lowUtilizationServers = data.servers.filter(
-      (s: ServerInstance) =>
-        (s.metrics?.cpu || 0) < 30 && (s.metrics?.memory || 0) < 40
-    );
-
-    if (lowUtilizationServers.length > 0) {
-      response += `• ${lowUtilizationServers.length}대의 서버가 저활용 상태입니다\\n`;
-      response += `• 서버 통합을 통해 월 $${(lowUtilizationServers.length * 50).toFixed(2)} 절약 가능\\n`;
-    }
-
-    response += `• 자동 스케일링을 통한 리소스 효율성 향상\n`;
-    response += `• 예약 인스턴스 활용으로 15-20% 비용 절감\n`;
-
-    return response;
+    return handleCostQuery(data, analysis);
   }
 
   /**
@@ -708,41 +620,19 @@ export class ServerMonitoringAgent {
    */
   private handlePredictionQuery(
     data: MCPMonitoringData,
-    _analysis: MCPPatternAnalysis
+    analysis: MCPPatternAnalysis
   ): string {
-    let response = `🔮 **시스템 예측 분석**\n\n`;
-
-    // 간단한 트렌드 분석 (실제로는 더 복잡한 ML 알고리즘 필요)
-    const { summary } = data;
-
-    response += `**단기 예측 (7일):**\n`;
-    response += `• CPU 사용률: ${(summary.performance.avgCpu * 1.1).toFixed(1)}% 예상 (현재 대비 +10%)\n`;
-    response += `• 메모리 사용률: ${(summary.performance.avgMemory * 1.05).toFixed(1)}% 예상\n`;
-    response += `• 요청량: ${(summary.performance.totalRequests * 1.15).toLocaleString()}회 예상\n\n`;
-
-    response += `**주의사항:**\n`;
-    if (summary.performance.avgCpu > 60) {
-      response += `• CPU 사용률 증가 추세로 인한 성능 저하 우려\n`;
-    }
-    if (summary.performance.avgMemory > 70) {
-      response += `• 메모리 부족 상황 발생 가능성\n`;
-    }
-
-    response += `\n**권장 준비사항:**\n`;
-    response += `• 트래픽 증가에 대비한 스케일링 준비\n`;
-    response += `• 성능 모니터링 강화\n`;
-
-    return response;
+    return handlePredictionQuery(data, analysis);
   }
 
   /**
    * 🤖 일반 질의 핸들러
    */
   private handleGeneralQuery(
-    _data: MCPMonitoringData,
-    _analysis: MCPPatternAnalysis
+    data: MCPMonitoringData,
+    analysis: MCPPatternAnalysis
   ): string {
-    return `🤖 **AI 어시스턴트 응답**\n\n안녕하세요! 서버 모니터링 AI 어시스턴트입니다.\n\n다음과 같은 질문을 도와드릴 수 있습니다:\n• 서버 상태 조회\n• 장애 분석\n• 성능 분석\n• 비용 분석\n• 시스템 권장사항\n• 미래 예측\n\n구체적인 질문을 해주시면 더 정확한 답변을 드릴 수 있습니다.`;
+    return handleGeneralQuery(data, analysis);
   }
 
   /**
@@ -758,7 +648,7 @@ export class ServerMonitoringAgent {
 
     // 성능 인사이트
     const highCpuServers = data.servers.filter(
-      (s: ServerInstance) => (s.metrics?.cpu || 0) > 70
+      s => (s.metrics?.cpu || s.cpu || 0) > 70
     );
     if (highCpuServers.length > 0) {
       insights.push({
@@ -768,15 +658,16 @@ export class ServerMonitoringAgent {
         impact: 'high',
         confidence: 0.85,
         recommendation: '로드 밸런싱 개선 또는 서버 증설을 고려하세요',
-        affectedServers: highCpuServers.map((s: ServerInstance) => s.id),
+        affectedServers: highCpuServers.map(s => s.id),
         automatable: true,
       });
     }
 
     // 비용 인사이트
     const underutilizedServers = data.servers.filter(
-      (s: ServerInstance) =>
-        (s.metrics?.cpu || 0) < 30 && (s.metrics?.memory || 0) < 40
+      s =>
+        (s.metrics?.cpu || s.cpu || 0) < 30 &&
+        (s.metrics?.memory || s.memory || 0) < 40
     );
     if (underutilizedServers.length > 0) {
       insights.push({
@@ -786,7 +677,7 @@ export class ServerMonitoringAgent {
         impact: 'medium',
         confidence: 0.9,
         recommendation: '서버 통합 또는 다운스케일링을 고려하세요',
-        affectedServers: underutilizedServers.map((s: ServerInstance) => s.id),
+        affectedServers: underutilizedServers.map(s => s.id),
         estimatedCost: underutilizedServers.length * 50,
         automatable: false,
       });
@@ -794,7 +685,7 @@ export class ServerMonitoringAgent {
 
     // 가용성 인사이트
     const unhealthyServers = data.servers.filter(
-      (s: ServerInstance) => (s.health?.score || 100) < 80
+      s => getHealthScore(s.health) < 80
     );
     if (unhealthyServers.length > 0) {
       insights.push({
@@ -804,7 +695,7 @@ export class ServerMonitoringAgent {
         impact: 'high',
         confidence: 0.8,
         recommendation: '상세 진단 및 예방적 유지보수를 수행하세요',
-        affectedServers: unhealthyServers.map((s: ServerInstance) => s.id),
+        affectedServers: unhealthyServers.map(s => s.id),
         automatable: false,
       });
     }
@@ -838,10 +729,11 @@ export class ServerMonitoringAgent {
     const server = serverData;
 
     const now = new Date();
+    const mcpServer = serverInstanceToMCPServer(server);
     const report: IncidentReport = {
       id: `incident_${Date.now()}`,
       title: `${server.name} 시스템 이상 감지`,
-      summary: `${server.name}에서 ${server.health?.issues?.join(', ') || '알 수 없는 문제'} 문제가 발생했습니다`,
+      summary: `${server.name}에서 ${(typeof server.health === 'object' && server.health?.issues?.join(', ')) || '알 수 없는 문제'} 문제가 발생했습니다`,
       severity:
         server.status === 'error'
           ? 'critical'
@@ -854,8 +746,9 @@ export class ServerMonitoringAgent {
         duration: 0,
       },
       rootCause: {
-        analysis: this.analyzeRootCause(server),
-        factors: server.health?.issues || [],
+        analysis: this.analyzeRootCause(mcpServer),
+        factors:
+          (typeof server.health === 'object' && server.health?.issues) || [],
         confidence: 0.75,
       },
       impact: {
@@ -864,7 +757,7 @@ export class ServerMonitoringAgent {
         estimatedLoss: Math.floor(Math.random() * 5000),
       },
       resolution: {
-        actions: this.generateResolutionActions(server),
+        actions: this.generateResolutionActions(mcpServer),
         prevention: [
           '모니터링 임계값 조정',
           '예방적 유지보수 스케줄 수립',
@@ -890,8 +783,9 @@ export class ServerMonitoringAgent {
   /**
    * 🔍 근본 원인 분석
    */
-  private analyzeRootCause(server: ServerInstance): string {
-    const issues = server.health?.issues || [];
+  private analyzeRootCause(server: MCPMonitoringData['servers'][0]): string {
+    const issues =
+      (typeof server.health === 'object' && server.health?.issues) || [];
 
     if (issues.includes('High CPU usage detected')) {
       return 'CPU 사용률 급증으로 인한 시스템 과부하. 프로세스 최적화 또는 스케일 아웃 필요.';
@@ -909,7 +803,9 @@ export class ServerMonitoringAgent {
   /**
    * 🛠️ 해결 액션 생성
    */
-  private generateResolutionActions(server: ServerInstance): string[] {
+  private generateResolutionActions(
+    server: MCPMonitoringData['servers'][0]
+  ): string[] {
     const actions: string[] = [];
 
     // 🔧 안전한 metrics 접근
