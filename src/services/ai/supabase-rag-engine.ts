@@ -11,6 +11,13 @@
 import { PostgresVectorDB } from './postgres-vector-db';
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import { getRedis } from '@/lib/redis';
+import type {
+  AIMetadata,
+  MCPContext,
+  RAGSearchResult as AIRAGSearchResult,
+  RAGQueryResult
+} from '@/types/ai-service-types';
+import type { RedisClientInterface } from '@/lib/redis';
 
 interface RAGSearchOptions {
   maxResults?: number;
@@ -27,14 +34,14 @@ interface RAGSearchResult {
     id: string;
     content: string;
     similarity?: number;
-    metadata?: Record<string, any>;
+    metadata?: AIMetadata;
   }>;
   context?: string;
   totalResults: number;
   processingTime: number;
   cached: boolean;
   error?: string;
-  mcpContext?: any;
+  mcpContext?: MCPContext;
 }
 
 interface EmbeddingResult {
@@ -46,7 +53,7 @@ interface EmbeddingResult {
 export class SupabaseRAGEngine {
   private vectorDB: PostgresVectorDB;
   private contextLoader: CloudContextLoader;
-  private redis: any;
+  private redis: RedisClientInterface | null = null;
   private isInitialized = false;
   private embeddingCache = new Map<string, number[]>();
   private searchCache = new Map<string, RAGSearchResult>();
@@ -61,7 +68,7 @@ export class SupabaseRAGEngine {
 
     // Redis 연결 (서버 환경에서만)
     if (typeof window === 'undefined') {
-      this.redis = getRedis();
+      this.redis = getRedis() as RedisClientInterface;
     }
   }
 
@@ -226,7 +233,7 @@ export class SupabaseRAGEngine {
   async indexDocument(
     id: string,
     content: string,
-    metadata?: Record<string, any>
+    metadata?: AIMetadata
   ): Promise<boolean> {
     try {
       await this.initialize();
@@ -262,7 +269,7 @@ export class SupabaseRAGEngine {
     documents: Array<{
       id: string;
       content: string;
-      metadata?: Record<string, any>;
+      metadata?: AIMetadata;
     }>
   ): Promise<{ success: number; failed: number }> {
     const embeddings = await Promise.all(

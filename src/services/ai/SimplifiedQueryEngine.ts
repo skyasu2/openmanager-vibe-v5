@@ -10,14 +10,21 @@
 import type { SupabaseRAGEngine } from './supabase-rag-engine';
 import { getSupabaseRAGEngine } from './supabase-rag-engine';
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
+import type {
+  AIQueryContext,
+  AIQueryOptions,
+  MCPContext,
+  RAGQueryResult,
+  RAGSearchResult,
+  AIMetadata,
+  ServerArray
+} from '@/types/ai-service-types';
 
 export interface QueryRequest {
   query: string;
   mode?: 'local' | 'google-ai';
-  context?: any;
-  options?: {
-    temperature?: number;
-    maxTokens?: number;
+  context?: AIQueryContext;
+  options?: AIQueryOptions & {
     includeThinking?: boolean;
     includeMCPContext?: boolean;
     category?: string;
@@ -35,7 +42,7 @@ export interface QueryResponse {
     status: 'pending' | 'completed' | 'failed';
     timestamp: number;
   }>;
-  metadata?: any;
+  metadata?: AIMetadata;
   error?: string;
   processingTime: number;
 }
@@ -179,9 +186,9 @@ export class SimplifiedQueryEngine {
    */
   private async processLocalQuery(
     query: string,
-    context: any,
-    options: any,
-    mcpContext: any,
+    context: AIQueryContext | undefined,
+    options: QueryRequest['options'],
+    mcpContext: MCPContext | null,
     thinkingSteps: QueryResponse['thinkingSteps'],
     startTime: number
   ): Promise<QueryResponse> {
@@ -241,9 +248,9 @@ export class SimplifiedQueryEngine {
    */
   private async processGoogleAIQuery(
     query: string,
-    context: any,
-    options: any,
-    mcpContext: any,
+    context: AIQueryContext | undefined,
+    options: QueryRequest['options'],
+    mcpContext: MCPContext | null,
     thinkingSteps: QueryResponse['thinkingSteps'],
     startTime: number
   ): Promise<QueryResponse> {
@@ -316,9 +323,9 @@ export class SimplifiedQueryEngine {
    */
   private generateLocalResponse(
     query: string,
-    ragResult: any,
-    mcpContext: any,
-    userContext: any
+    ragResult: RAGQueryResult,
+    mcpContext: MCPContext | null,
+    userContext: AIQueryContext | undefined
   ): string {
     // 서버 관련 쿼리 처리
     if (userContext?.servers && query.toLowerCase().includes('서버')) {
@@ -338,7 +345,7 @@ export class SimplifiedQueryEngine {
     // 추가 정보가 있으면 포함
     if (ragResult.results.length > 1) {
       response += '\n\n추가 정보:\n';
-      ragResult.results.slice(1, 3).forEach((result: any, idx: number) => {
+      ragResult.results.slice(1, 3).forEach((result: RAGSearchResult, idx: number) => {
         response += `${idx + 1}. ${result.content.substring(0, 100)}...\n`;
       });
     }
@@ -346,7 +353,7 @@ export class SimplifiedQueryEngine {
     // MCP 컨텍스트가 있으면 추가
     if (mcpContext && mcpContext.files.length > 0) {
       response += '\n\n프로젝트 파일 참고:\n';
-      mcpContext.files.slice(0, 2).forEach((file: any) => {
+      mcpContext.files.slice(0, 2).forEach((file) => {
         response += `- ${file.path}\n`;
       });
     }
@@ -357,7 +364,7 @@ export class SimplifiedQueryEngine {
   /**
    * 📊 서버 관련 응답 생성
    */
-  private generateServerResponse(query: string, servers: any[]): string {
+  private generateServerResponse(query: string, servers: ServerArray): string {
     const lowerQuery = query.toLowerCase();
 
     // CPU 사용률 관련 쿼리
@@ -394,8 +401,8 @@ export class SimplifiedQueryEngine {
    */
   private buildGoogleAIPrompt(
     query: string,
-    context: any,
-    mcpContext: any
+    context: AIQueryContext | undefined,
+    mcpContext: MCPContext | null
   ): string {
     let prompt = `사용자 질문: ${query}\n\n`;
 
@@ -408,7 +415,7 @@ export class SimplifiedQueryEngine {
     // MCP 컨텍스트 추가
     if (mcpContext && mcpContext.files.length > 0) {
       prompt += '관련 파일 내용:\n';
-      mcpContext.files.forEach((file: any) => {
+      mcpContext.files.forEach((file) => {
         prompt += `\n파일: ${file.path}\n`;
         prompt += `${file.content.substring(0, 500)}...\n`;
       });
@@ -423,7 +430,7 @@ export class SimplifiedQueryEngine {
   /**
    * 📊 신뢰도 계산
    */
-  private calculateConfidence(ragResult: any): number {
+  private calculateConfidence(ragResult: RAGQueryResult): number {
     if (ragResult.results.length === 0) return 0.1;
 
     // 최고 유사도 점수 기반 신뢰도

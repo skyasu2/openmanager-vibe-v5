@@ -15,6 +15,7 @@ import type {
   UserSettings,
   UserActivity,
 } from '@/types/auth.types';
+import type { AIMetadata } from '@/types/ai-service-types';
 
 export class UserProfileService {
   private supabase;
@@ -218,7 +219,7 @@ export class UserProfileService {
     userId: string,
     action: string,
     resource?: string,
-    metadata?: Record<string, any>
+    metadata?: AIMetadata
   ): Promise<boolean> {
     try {
       const activity: Partial<UserActivity> = {

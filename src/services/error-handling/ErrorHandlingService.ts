@@ -16,6 +16,7 @@ import type {
   ErrorHandlingConfig,
 } from './types/ErrorTypes';
 import { createServiceError as createServiceErrorUtil } from './types/ErrorTypes';
+import type { ErrorContext } from '@/types/ai-service-types';
 import { ErrorHandlingCore } from './core/ErrorHandlingCore';
 import { DefaultErrorHandlers } from './handlers/DefaultErrorHandlers';
 import { RecoveryService } from './recovery/RecoveryService';
@@ -226,7 +227,7 @@ export function createServiceError(
   code: string,
   message: string,
   service: string,
-  context?: Record<string, any>,
+  context?: ErrorContext,
   cause?: Error
 ): ServiceError {
   return createServiceErrorUtil(code, message, service, context, cause);

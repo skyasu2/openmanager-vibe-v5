@@ -97,7 +97,7 @@ export interface ErrorHandlerFunction {
 
 export interface MonitoringEvent {
   type: 'error' | 'recovery' | 'fallback' | 'critical';
-  data: Record<string, any>;
+  data: MonitoringEventData;
   timestamp: Date;
 }
 
@@ -298,7 +298,7 @@ export function createServiceError(
   code: string,
   message: string,
   service: string,
-  context?: Record<string, any>,
+  context?: ErrorContext,
   cause?: Error
 ): ServiceError {
   const error = new Error(message) as ServiceError;

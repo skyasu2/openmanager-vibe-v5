@@ -5,6 +5,7 @@
  */
 
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+import type { AIMetadata } from './ai-service-types';
 
 // 기본 사용자 타입
 export interface BaseUser {
@@ -70,7 +71,7 @@ export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 export interface AuthError {
   code: string;
   message: string;
-  details?: any;
+  details?: unknown;
 }
 
 // 인증 결과 타입
@@ -97,7 +98,7 @@ export interface SignUpOptions {
   email: string;
   password: string;
   name: string;
-  metadata?: Record<string, any>;
+  metadata?: AIMetadata;
 }
 
 // 사용자 권한 타입
@@ -135,7 +136,7 @@ export interface UserActivity {
   user_id: string;
   action: string;
   resource?: string;
-  metadata?: Record<string, any>;
+  metadata?: AIMetadata;
   ip_address?: string;
   user_agent?: string;
   created_at: string;
