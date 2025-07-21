@@ -411,8 +411,8 @@ export class RealMCPClient {
     timestamp: string;
     responseTime: number;
     sources: {
-      documents: MCPSearchResult;
-      web: MCPSearchResult;
+      documents: RealMCPSearchResult;
+      web: RealMCPSearchResult;
     };
     context: MCPQueryContext;
   }> {

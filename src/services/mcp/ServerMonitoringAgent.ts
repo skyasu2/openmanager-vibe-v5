@@ -262,8 +262,8 @@ export class ServerMonitoringAgent {
       const currentData = await this.gatherCurrentData(request.context);
       this.completeThinkingStep(dataStep, {
         servers: currentData.servers.length,
-        clusters: currentData.clusters.length,
-        apps: currentData.applications.length,
+        clusters: currentData.clusters?.length || 0,
+        apps: currentData.applications?.length || 0,
       });
 
       // 3단계: 패턴 분석
@@ -307,7 +307,7 @@ export class ServerMonitoringAgent {
         alertsEmitter.emit('alert', {
           id: `alert_${Date.now()}`,
           type: analysis.severity === 'critical' ? 'error' : 'warning',
-          title: `${analysis.issues.length}개 이슈 발견`,
+          title: `${analysis.issues?.length || 0}개 이슈 발견`,
           message: analysis.summary,
           severity: analysis.severity,
           timestamp: Date.now(),
@@ -320,9 +320,9 @@ export class ServerMonitoringAgent {
         id: `response_${Date.now()}`,
         queryId: request.id,
         answer,
-        confidence: analysis.confidence,
+        confidence: analysis.confidence || 0.8,
         thinkingSteps,
-        recommendations: analysis.recommendations,
+        recommendations: analysis.recommendations || [],
         insights,
         metadata: {
           processingTime,

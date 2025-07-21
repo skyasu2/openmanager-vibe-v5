@@ -90,7 +90,7 @@ interface CloudContextLoaderConfig {
 export class CloudContextLoader {
   private static instance: CloudContextLoader;
   private config: CloudContextLoaderConfig;
-  private redis: unknown | null = null;
+  private redis: any | null = null;
   private contextCache: Map<string, ContextDocument> = new Map();
   private mcpServerInfo: MCPServerInfo;
   private healthCheckTimer: NodeJS.Timeout | null = null;
