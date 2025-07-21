@@ -64,8 +64,8 @@ export default function LoginClient() {
               })
               .then(({ error }) => {
                 if (!error) {
-                  console.log('✅ Supabase 세션 설정 성공, 대시보드로 이동...');
-                  router.push('/dashboard');
+                  console.log('✅ Supabase 세션 설정 성공, 메인으로 이동...');
+                  router.push('/main');
                 } else {
                   console.error('❌ 세션 설정 실패:', error);
                   setErrorMessage(
