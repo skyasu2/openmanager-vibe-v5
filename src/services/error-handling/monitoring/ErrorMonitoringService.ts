@@ -9,10 +9,10 @@
  */
 
 import type {
-  ServiceError,
-  ErrorStats,
-  MonitoringEvent,
-  ErrorHandlingConfig,
+    ErrorHandlingConfig,
+    ErrorStats,
+    MonitoringEvent,
+    ServiceError,
 } from '../types/ErrorTypes';
 
 export class ErrorMonitoringService {
@@ -333,7 +333,10 @@ export class ErrorMonitoringService {
   ): void {
     this.monitoringEvents.push({
       type,
-      data,
+      data: {
+        eventName: `monitoring_${type}`,
+        ...data,
+      },
       timestamp: new Date(),
     });
 

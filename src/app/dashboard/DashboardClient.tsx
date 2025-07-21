@@ -8,11 +8,11 @@
 
 import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
 import { NotificationToast } from '@/components/system/NotificationToast';
-import { useAutoLogout } from '@/hooks/useAutoLogout';
-import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
-import { useServerDashboard } from '@/hooks/useServerDashboard';
-import { cn } from '@/lib/utils';
 import AISidebarV2 from '@/domains/ai-sidebar/components/AISidebarV2';
+import { useAutoLogout } from '@/hooks/useAutoLogout';
+import { useServerDashboard } from '@/hooks/useServerDashboard';
+import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
+import { cn } from '@/lib/utils';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
@@ -117,11 +117,11 @@ function DashboardPageContent() {
   const [selectedServer, setSelectedServer] = useState<any>(null);
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
-  const [showSystemWarning, setShowSystemWarning] = useState(false);
+  const [_showSystemWarning, setShowSystemWarning] = useState(false);
   const isResizing = false;
 
   // 🔒 자동 로그아웃 시스템 - 베르셀 사용량 최적화
-  const { remainingTime, isWarning, resetTimer, forceLogout } = useAutoLogout({
+  const { remainingTime, isWarning: _isWarning, resetTimer, forceLogout } = useAutoLogout({
     timeoutMinutes: 10, // 10분 비활성 시 로그아웃
     warningMinutes: 1, // 1분 전 경고
     onWarning: () => {
@@ -139,9 +139,9 @@ function DashboardPageContent() {
     isSystemActive,
     remainingTime: systemRemainingTime,
     remainingTimeFormatted,
-    isWarning: isSystemWarning,
+    isWarning: _isSystemWarning,
     stopSystem,
-    restartSystem,
+    restartSystem: _restartSystem,
   } = useSystemAutoShutdown({
     activeMinutes: 20, // 20분 동안 동작
     warningMinutes: 5, // 5분 전 경고
@@ -176,7 +176,7 @@ function DashboardPageContent() {
     handleServerSelect,
     selectedServer: dashboardSelectedServer,
     handleModalClose: dashboardModalClose,
-    isLoading: serverDataLoading,
+    isLoading: _serverDataLoading,
   } = useServerDashboard({});
 
   // 🚀 대시보드 직접 접속 시 최적화된 초기화
@@ -287,7 +287,7 @@ function DashboardPageContent() {
               showSequentialGeneration={false}
               servers={realServers}
               status={{ type: 'idle' }}
-              actions={{ start: () => {}, stop: () => {} }}
+              actions={{ startSystem: () => {}, stopSystem: () => {} }}
               selectedServer={selectedServer || dashboardSelectedServer}
               onServerClick={handleServerClick}
               onServerModalClose={handleServerModalClose}
