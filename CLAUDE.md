@@ -2,6 +2,30 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🌏 **개발 환경 및 언어 설정**
+
+### 🖥️ 개발 환경
+
+- **운영체제**: Windows 11
+- **실행 환경**: WSL (Windows Subsystem for Linux)
+- **터미널**: Ubuntu on WSL
+- **Node.js**: v22.15.1 (LTS)
+- **패키지 매니저**: npm
+
+### 🗣️ 언어 정책
+
+- **모든 대화 및 응답은 한국어로 진행합니다**
+- 기술적 설명, 코드 주석, 에러 메시지 해석 모두 한국어 우선
+- 영어 용어가 필요한 경우: 한국어 설명 후 괄호에 영어 병기
+- 예시: "속성 (property)", "상태 관리 (state management)"
+
+### 💬 응답 스타일
+
+- 친근하고 이해하기 쉬운 설명
+- 초보자도 이해할 수 있도록 쉽게 풀어서 설명
+- 작업 진행 상황을 단계별로 명확히 안내
+- **항상 깊이 있는 분석을 기반으로 한 통찰력 있는 답변 제공**
+
 ## 🧠 **깊이 있는 사고 모드 (필수 적용)**
 
 **중요: 모든 사용자 명령에 대해 "think hard" 모드가 기본적으로 활성화됩니다.**
