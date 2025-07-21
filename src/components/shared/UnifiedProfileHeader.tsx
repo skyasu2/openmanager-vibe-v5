@@ -35,8 +35,8 @@ interface UserInfo {
 
 export default function UnifiedProfileHeader({
   className = '',
-  onSystemStop,
-  parentSystemActive,
+  onSystemStop: _onSystemStop,
+  parentSystemActive: _parentSystemActive,
 }: UnifiedProfileHeaderProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -158,7 +158,13 @@ export default function UnifiedProfileHeader({
 
   // 🎯 외부 클릭 감지로 드롭다운 닫기
   useEffect(() => {
-    const handleClickOutside = (event: Event) => {
+    // 드롭다운이 닫혀있으면 아무것도 하지 않음
+    if (!showProfileMenu) {
+      return;
+    }
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      // 드롭다운 영역 밖 클릭인지 확인
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
@@ -170,15 +176,16 @@ export default function UnifiedProfileHeader({
       }
     };
 
-    // 드롭다운이 열려있을 때만 이벤트 리스너 등록
-    if (showProfileMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
-    }
+    // 약간의 지연 후 리스너 등록 (드롭다운 열기 클릭과 충돌 방지)
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside as EventListener);
+      document.addEventListener('touchstart', handleClickOutside as EventListener);
+    }, 100);
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleClickOutside as EventListener);
+      document.removeEventListener('touchstart', handleClickOutside as EventListener);
     };
   }, [showProfileMenu]);
 
@@ -446,13 +453,20 @@ export default function UnifiedProfileHeader({
       <motion.button
         onClick={e => {
           e.stopPropagation();
-          console.log('👤 프로필 버튼 클릭됨:', { showProfileMenu, event: e });
+          console.log('👤 프로필 버튼 클릭됨:', { 
+            showProfileMenu, 
+            currentTarget: e.currentTarget,
+            target: e.target,
+            timestamp: new Date().toISOString()
+          });
           setShowProfileMenu(!showProfileMenu);
         }}
-        className='flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 group cursor-pointer relative'
+        className='flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-all duration-200 group cursor-pointer relative z-50 pointer-events-auto'
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        style={{ zIndex: 45 }}
+        aria-label="프로필 메뉴"
+        aria-expanded={showProfileMenu}
+        aria-haspopup="true"
       >
         {/* 프로필 아바타 */}
         <div className='relative'>
@@ -537,8 +551,7 @@ export default function UnifiedProfileHeader({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className='absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg py-2 border border-gray-200'
-            style={{ zIndex: 9999 }}
+            className='absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg py-2 border border-gray-200 z-[9999]'
           >
             {/* 사용자 정보 헤더 */}
             <div className='px-4 py-3 border-b border-gray-100'>

@@ -97,9 +97,9 @@ const RealTimeDisplay = React.memo(function RealTimeDisplay() {
 const DashboardHeader = React.memo(function DashboardHeader({
   onNavigateHome,
   onToggleAgent, // 기존 호환성을 위해 유지
-  isAgentOpen = false, // 기존 호환성을 위해 유지
-  onMenuClick,
-  title = 'OpenManager Dashboard',
+  isAgentOpen: _isAgentOpen = false, // 기존 호환성을 위해 유지
+  onMenuClick: _onMenuClick,
+  title: _title = 'OpenManager Dashboard',
   systemRemainingTime,
   isSystemActive = true,
   onSystemStop,
@@ -287,7 +287,7 @@ const DashboardHeader = React.memo(function DashboardHeader({
                 <MotionDiv
                   className='finger-pointer-ai'
                   style={{
-                    zIndex: isSidebarOpen || ui.isSettingsPanelOpen ? 10 : 45,
+                    zIndex: isSidebarOpen || ui.isSettingsPanelOpen ? 10 : 30,
                   }}
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
