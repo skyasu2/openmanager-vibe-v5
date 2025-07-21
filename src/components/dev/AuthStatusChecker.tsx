@@ -29,6 +29,7 @@ interface GuestUserData {
   email?: string;
   createdAt?: string;
   preferences?: Record<string, unknown>;
+  type?: string;
 }
 
 interface AuthStatus {

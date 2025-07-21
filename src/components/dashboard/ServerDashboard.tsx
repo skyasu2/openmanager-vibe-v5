@@ -17,6 +17,11 @@ import { useEffect, useState } from 'react';
 import { formatUptime, getAlertsCount } from './types/server-dashboard.types';
 import type { Server } from '@/types/server';
 interface ServerDashboardProps {
+  servers?: Server[];
+  onServerClick?: (server: Server) => void;
+  showModal?: boolean;
+  onClose?: () => void;
+  selectedServerId?: string;
   onStatsUpdate?: (stats: {
     total: number;
     online: number;
@@ -63,6 +68,11 @@ function getServerStatus(
 }
 
 export default function ServerDashboard({
+  servers: _externalServers,
+  onServerClick: _onServerClick,
+  showModal: _showModal,
+  onClose: _onClose,
+  selectedServerId: _selectedServerId,
   onStatsUpdate,
 }: ServerDashboardProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('servers');

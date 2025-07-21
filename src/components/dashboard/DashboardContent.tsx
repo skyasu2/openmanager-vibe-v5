@@ -18,6 +18,7 @@ interface DashboardStatus {
   isRunning?: boolean;
   lastUpdate?: string;
   activeConnections?: number;
+  type?: string;
 }
 
 interface DashboardActions {

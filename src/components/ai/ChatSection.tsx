@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Send,
   Loader2,
@@ -17,37 +17,44 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { timerManager } from '../../utils/TimerManager';
-import type { ServerMetrics } from '@/types/unified-server';
+import type { ServerStatusSummary } from '@/types/unified-server';
 
-interface _Message {
-  id: string;
-  type: 'user' | 'assistant' | 'thinking';
-  content: string;
-  thinking?: ThinkingProcess;
-  timestamp: Date;
-}
+// 분리된 유틸 함수들
+const generateQuestions = (metrics: any): string[] => {
+  const questions = [
+    '현재 시스템 전체 상태를 요약해줘',
+    'CPU 사용률이 높은 서버들을 분석해줘',
+    '메모리 최적화 방안을 추천해줘',
+    '서버 성능 트렌드를 분석해줘',
+    '시스템 보안 상태를 점검해줘',
+  ];
 
-interface ThinkingProcess {
-  steps: string[];
-  confidence: number;
-  duration: number;
-}
+  // 서버 메트릭스에 따른 동적 질문 생성
+  if (metrics) {
+    if (metrics.criticalServers > 0) {
+      questions.unshift('⚠️ 위험 상태 서버들을 즉시 점검해줘');
+    }
+    if (metrics.warning > 2) {
+      questions.unshift('📊 경고 상태 서버들의 패턴을 분석해줘');
+    }
+    if (metrics.total > 10) {
+      questions.push('🔄 대규모 인프라 최적화 방안을 제안해줘');
+    }
+  }
 
-interface QAPage {
-  id: string;
-  question: string;
-  answer: string;
-  thinking?: ThinkingProcess;
-  timestamp: Date;
-  confidence?: number;
-}
+  return questions.slice(0, 4); // 최대 4개까지
+};
 
-interface ChatSectionProps {
-  serverMetrics?: ServerMetrics;
-  onClose: () => void;
-}
+const getIconForQuestion = (question: string) => {
+  if (question.includes('위험') || question.includes('⚠️'))
+    return <AlertTriangle className='w-4 h-4 text-red-500' />;
+  if (question.includes('서버') || question.includes('📊'))
+    return <Server className='w-4 h-4 text-blue-500' />;
+  if (question.includes('최적화') || question.includes('트렌드'))
+    return <TrendingUp className='w-4 h-4 text-green-500' />;
+  return <Lightbulb className='w-4 h-4 text-purple-500' />;
+};
 
-// 질문 유사도 계산 함수
 const calculateSimilarity = (str1: string, str2: string): number => {
   const longer = str1.length > str2.length ? str1 : str2;
   const shorter = str1.length > str2.length ? str2 : str1;
@@ -58,7 +65,6 @@ const calculateSimilarity = (str1: string, str2: string): number => {
   return (longer.length - distance) / longer.length;
 };
 
-// 레벤슈타인 거리 계산
 const levenshteinDistance = (str1: string, str2: string): number => {
   const matrix = Array(str2.length + 1)
     .fill(null)
@@ -84,6 +90,36 @@ const levenshteinDistance = (str1: string, str2: string): number => {
   return matrix[str2.length][str1.length];
 };
 
+interface _Message {
+  id: string;
+  type: 'user' | 'assistant' | 'thinking';
+  content: string;
+  thinking?: ThinkingProcess;
+  timestamp: Date;
+}
+
+interface ThinkingProcess {
+  steps: string[];
+  confidence: number;
+  duration: number;
+}
+
+interface QAPage {
+  id: string;
+  question: string;
+  answer: string;
+  thinking?: ThinkingProcess;
+  timestamp: Date;
+  confidence?: number;
+}
+
+interface ChatSectionProps {
+  serverMetrics?: ServerStatusSummary;
+  onClose: () => void;
+}
+
+// 레벤슈타인 거리 및 유사도 계산 함수들을 상단에 분리함
+
 export default function ChatSection({
   serverMetrics,
   onClose,
@@ -96,41 +132,14 @@ export default function ChatSection({
   const [duplicateAlert, setDuplicateAlert] = useState<string | null>(null);
   const [presets, setPresets] = useState<string[]>([]);
 
-  // 동적 프리셋 질문 생성
-  const generateContextualQuestions = (metrics: any): string[] => {
-    const questions = [
-      '현재 시스템 전체 상태를 요약해줘',
-      'CPU 사용률이 높은 서버들을 분석해줘',
-      '메모리 최적화 방안을 추천해줘',
-      '서버 성능 트렌드를 분석해줘',
-      '시스템 보안 상태를 점검해줘',
-    ];
+  // 동적 프리셋 질문 생성 (분리된 유틸 함수)
+  const generateContextualQuestions = useCallback((metrics: any): string[] => {
+    return generateQuestions(metrics);
+  }, []);
 
-    // 서버 메트릭스에 따른 동적 질문 생성
-    if (metrics) {
-      if (metrics.criticalServers > 0) {
-        questions.unshift('⚠️ 위험 상태 서버들을 즉시 점검해줘');
-      }
-      if (metrics.warning > 2) {
-        questions.unshift('📊 경고 상태 서버들의 패턴을 분석해줘');
-      }
-      if (metrics.total > 10) {
-        questions.push('🔄 대규모 인프라 최적화 방안을 제안해줘');
-      }
-    }
-
-    return questions.slice(0, 4); // 최대 4개까지
-  };
-
-  const getQuestionIcon = (question: string) => {
-    if (question.includes('위험') || question.includes('⚠️'))
-      return <AlertTriangle className='w-4 h-4 text-red-500' />;
-    if (question.includes('서버') || question.includes('📊'))
-      return <Server className='w-4 h-4 text-blue-500' />;
-    if (question.includes('최적화') || question.includes('트렌드'))
-      return <TrendingUp className='w-4 h-4 text-green-500' />;
-    return <Lightbulb className='w-4 h-4 text-purple-500' />;
-  };
+  const getQuestionIcon = useCallback((question: string) => {
+    return getIconForQuestion(question);
+  }, []);
 
   // 프리셋 질문 업데이트
   useEffect(() => {
