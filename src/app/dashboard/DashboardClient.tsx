@@ -12,6 +12,7 @@ import AISidebarV2 from '@/domains/ai-sidebar/components/AISidebarV2';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
+import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { cn } from '@/lib/utils';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -119,6 +120,9 @@ function DashboardPageContent() {
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [_showSystemWarning, setShowSystemWarning] = useState(false);
   const isResizing = false;
+
+  // 🔄 실제 시스템 상태 확인
+  const { status: _systemStatus, isLoading: _systemStatusLoading } = useSystemStatus();
 
   // 🔒 자동 로그아웃 시스템 - 베르셀 사용량 최적화
   const { remainingTime, isWarning: _isWarning, resetTimer, forceLogout } = useAutoLogout({

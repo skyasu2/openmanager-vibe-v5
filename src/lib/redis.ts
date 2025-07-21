@@ -50,10 +50,16 @@ export interface RedisClientInterface {
   expire(key: string, seconds: number): Promise<number>;
 }
 
-// Redis 클라이언트 인스턴스들
+// Redis 클라이언트 인스턴스들 (서버리스 환경에서 재사용)
 let realRedis: RedisClientInterface | null = null;
 let unifiedMockRedis: UnifiedMockRedis | null = null;
 let isInitializing = false;
+
+// 글로벌 Redis 클라이언트 캐시 (서버리스 함수 간 공유)
+declare global {
+  var __redis_client_cache: RedisClientInterface | undefined;
+  var __redis_client_type: 'real' | 'mock' | undefined;
+}
 
 // 🎯 하이브리드 전략 설정
 const HYBRID_STRATEGY = {
@@ -77,6 +83,8 @@ const HYBRID_STRATEGY = {
     'api-response',
     'metrics-cache',
     'status-check',
+    'system-control',
+    'system-state',
   ],
 
   // 자동 전환 임계값
@@ -262,6 +270,11 @@ function shouldUseMockRedis(
 
   // 컨텍스트 기반 판단 (대량 작업은 Mock 사용)
   if (context) {
+    // 시스템 상태 관리는 항상 실제 Redis 사용 (Vercel 환경에서 상태 유지 필요)
+    if (context.includes('system-control') || context.includes('system-state')) {
+      return 'real';
+    }
+    
     if (HYBRID_STRATEGY.useMockFor.some(pattern => context.includes(pattern))) {
       return 'mock';
     }
@@ -276,12 +289,17 @@ function shouldUseMockRedis(
   return 'real';
 }
 
-// 🚀 단순화된 하이브리드 Redis 클라이언트
+// 🚀 단순화된 하이브리드 Redis 클라이언트 (서버리스 최적화)
 async function getHybridRedisClient(
   context?: string,
   dataSize?: number
 ): Promise<RedisClientInterface> {
   const redisType = shouldUseMockRedis(context, dataSize);
+
+  // 글로벌 캐시에서 기존 클라이언트 확인
+  if (globalThis.__redis_client_cache && globalThis.__redis_client_type === redisType) {
+    return globalThis.__redis_client_cache;
+  }
 
   switch (redisType) {
     case 'mock':
@@ -295,9 +313,13 @@ async function getHybridRedisClient(
           `🧠 통합 Mock Redis 활성화 (컨텍스트: ${context || 'unknown'})`
         );
       }
+      
+      // 글로벌 캐시에 저장
+      globalThis.__redis_client_cache = unifiedMockRedis;
+      globalThis.__redis_client_type = 'mock';
       return unifiedMockRedis;
 
-    case 'real':
+    case 'real': {
       // 실제 Redis 사용
       if (!realRedis && !isInitializing) {
         try {
@@ -307,6 +329,10 @@ async function getHybridRedisClient(
           console.log(
             `🌐 Real Redis 활성화 (컨텍스트: ${context || 'unknown'})`
           );
+          
+          // 글로벌 캐시에 저장
+          globalThis.__redis_client_cache = realRedis;
+          globalThis.__redis_client_type = 'real';
         } catch {
           isInitializing = false;
           console.log(
@@ -315,11 +341,22 @@ async function getHybridRedisClient(
           if (!unifiedMockRedis) {
             unifiedMockRedis = new UnifiedMockRedis();
           }
+          
+          // 글로벌 캐시에 Mock 저장
+          globalThis.__redis_client_cache = unifiedMockRedis;
+          globalThis.__redis_client_type = 'mock';
           return unifiedMockRedis;
         }
       }
 
-      return realRedis || (unifiedMockRedis = new UnifiedMockRedis());
+      const client = realRedis || (unifiedMockRedis = new UnifiedMockRedis());
+      
+      // 글로벌 캐시에 저장
+      globalThis.__redis_client_cache = client;
+      globalThis.__redis_client_type = realRedis ? 'real' : 'mock';
+      
+      return client;
+    }
   }
 }
 
