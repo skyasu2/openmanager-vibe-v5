@@ -22,7 +22,7 @@ try {
   ) {
     Redis = require('ioredis');
   }
-} catch (error) {
+} catch {
   // Edge Runtime에서는 무시
   console.warn('⚠️ ioredis를 사용할 수 없는 환경입니다 (Edge Runtime)');
 }
@@ -307,7 +307,7 @@ async function getHybridRedisClient(
           console.log(
             `🌐 Real Redis 활성화 (컨텍스트: ${context || 'unknown'})`
           );
-        } catch (error) {
+        } catch {
           isInitializing = false;
           console.log(
             `⚠️ Real Redis 실패, Mock으로 폴백 (컨텍스트: ${context})`
@@ -363,7 +363,7 @@ async function initializeRedis(): Promise<RedisClientInterface> {
     await redisClient.ping();
     console.log('✅ Real Redis 연결 성공');
     return redisClient;
-  } catch (error: any) {
+  } catch {
     console.log(`⚠️ Real Redis 연결 실패 → 통합 Mock Redis로 전환`);
     return new UnifiedMockRedis();
   }
@@ -633,14 +633,14 @@ let redisStatus: RedisStatus = {
   lastError: null,
 };
 
-export function getRedis(): any {
+export function getRedis(): RedisClientInterface {
   // 🚫 테스트 환경에서 FORCE_MOCK_REDIS 체크
   if (process.env.FORCE_MOCK_REDIS === 'true') {
     console.log('🎭 FORCE_MOCK_REDIS=true - 통합 Mock Redis 사용');
     if (!unifiedMockRedis) {
       unifiedMockRedis = new UnifiedMockRedis();
     }
-    return unifiedMockRedis as any;
+    return unifiedMockRedis;
   }
 
   // 🚀 개발 환경에서 통합 Mock Redis 사용
@@ -652,7 +652,7 @@ export function getRedis(): any {
         enableDevTools: true,
       });
     }
-    return unifiedMockRedis as any;
+    return unifiedMockRedis;
   }
 
   // Edge Runtime이나 Redis 클래스가 없는 경우 Mock 사용
@@ -661,7 +661,7 @@ export function getRedis(): any {
     if (!unifiedMockRedis) {
       unifiedMockRedis = new UnifiedMockRedis();
     }
-    return unifiedMockRedis as any;
+    return unifiedMockRedis;
   }
 
   if (!redis) {

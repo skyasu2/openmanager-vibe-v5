@@ -14,9 +14,56 @@
  */
 
 import type { MCPContextPatterns } from '@/types/mcp';
+import type { RedisClientInterface } from '@/lib/redis';
+
+// 🔒 Redis 타입 가드 함수들
+/**
+ * Redis 클라이언트 객체인지 확인하는 타입 가드
+ */
+function isRedisClient(value: unknown): value is RedisClientInterface {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    typeof (value as any).get === 'function' &&
+    typeof (value as any).set === 'function' &&
+    typeof (value as any).setex === 'function' &&
+    typeof (value as any).del === 'function' &&
+    typeof (value as any).ping === 'function'
+  );
+}
+
+/**
+ * Redis가 연결되어 있고 사용 가능한지 확인하는 타입 가드
+ */
+function isRedisConnected(
+  redis: RedisClientInterface | null
+): redis is RedisClientInterface {
+  return redis !== null && isRedisClient(redis);
+}
+
+/**
+ * Redis 연산을 안전하게 실행하는 래퍼 함수
+ */
+async function safeRedisOperation<T>(
+  redis: RedisClientInterface | null,
+  operation: (redis: RedisClientInterface) => Promise<T>,
+  fallback?: T
+): Promise<T | null> {
+  if (!isRedisConnected(redis)) {
+    console.warn('⚠️ Redis가 연결되지 않음 - 연산 건너뜀');
+    return fallback ?? null;
+  }
+
+  try {
+    return await operation(redis);
+  } catch (error) {
+    console.error('❌ Redis 연산 실패:', error);
+    return fallback ?? null;
+  }
+}
 
 // Edge Runtime 호환성을 위해 동적 import 사용
-let getRedis: (() => any) | null = null;
+let getRedis: (() => RedisClientInterface) | null = null;
 try {
   if (
     typeof process !== 'undefined' &&
@@ -90,7 +137,7 @@ interface CloudContextLoaderConfig {
 export class CloudContextLoader {
   private static instance: CloudContextLoader;
   private config: CloudContextLoaderConfig;
-  private redis: any | null = null;
+  private redis: RedisClientInterface | null = null;
   private contextCache: Map<string, ContextDocument> = new Map();
   private mcpServerInfo: MCPServerInfo;
   private healthCheckTimer: NodeJS.Timeout | null = null;
@@ -239,73 +286,16 @@ export class CloudContextLoader {
         pathFilters = [],
       } = options || {};
 
-      // 1. 시스템 컨텍스트 조회 (프로젝트 구조)
-      let systemContext = null;
-      if (includeSystemContext) {
-        try {
-          const systemController = new AbortController();
-          const systemTimeoutId = setTimeout(
-            () => systemController.abort(),
-            10000
-          );
-
-          const systemResponse = await fetch(
-            `${this.config.mcpServerUrl}/mcp/resources/file://project-root`,
-            {
-              method: 'GET',
-              signal: systemController.signal,
-              headers: { 'Content-Type': 'application/json' },
-            }
-          );
-
-          clearTimeout(systemTimeoutId);
-
-          if (systemResponse.ok) {
-            systemContext = await systemResponse.json();
-            console.log('📁 시스템 컨텍스트 조회 완료');
-          }
-        } catch (error) {
-          console.warn('시스템 컨텍스트 조회 실패:', error);
-        }
-      }
+      // 1. 시스템 컨텍스트 조회
+      const systemContext = includeSystemContext
+        ? await this.fetchSystemContext()
+        : null;
 
       // 2. 쿼리 관련 파일 경로 추출
       const relevantPaths = this.extractRelevantPaths(query, pathFilters);
 
-      // 3. MCP 서버에서 관련 파일 내용 조회
-      const files: RAGEngineContext['files'] = [];
-
-      for (const path of relevantPaths.slice(0, maxFiles)) {
-        try {
-          const fileController = new AbortController();
-          const fileTimeoutId = setTimeout(() => fileController.abort(), 8000);
-
-          const fileResponse = await fetch(
-            `${this.config.mcpServerUrl}/mcp/resources/file://${encodeURIComponent(path)}`,
-            {
-              method: 'GET',
-              signal: fileController.signal,
-              headers: { 'Content-Type': 'application/json' },
-            }
-          );
-
-          clearTimeout(fileTimeoutId);
-
-          if (fileResponse.ok) {
-            const fileData = await fileResponse.json();
-            if (fileData.content) {
-              files.push({
-                path,
-                content: fileData.content,
-                type: fileData.type || 'file',
-                lastModified: fileData.lastModified || new Date().toISOString(),
-              });
-            }
-          }
-        } catch (error) {
-          console.warn(`파일 조회 실패: ${path}`, error);
-        }
-      }
+      // 3. 관련 파일들 조회
+      const files = await this.fetchMCPFiles(relevantPaths, maxFiles);
 
       const ragContext: RAGEngineContext = {
         query,
@@ -315,11 +305,8 @@ export class CloudContextLoader {
         files,
       };
 
-      // 4. Redis에 RAG 컨텍스트 캐싱 (15분 TTL)
-      if (this.config.enableRedisCache && this.redis) {
-        const cacheKey = `${this.config.redisPrefix}rag:${this.generateQueryHash(query)}`;
-        await this.redis.setex(cacheKey, 900, JSON.stringify(ragContext)); // 15분 캐시
-      }
+      // 4. Redis 캐싱
+      await this.cacheRAGContext(query, ragContext);
 
       console.log(
         `✅ RAG 컨텍스트 조회 완료: ${files.length}개 파일, ${relevantPaths.length}개 경로`
@@ -328,6 +315,97 @@ export class CloudContextLoader {
     } catch (error) {
       console.error('❌ RAG MCP 컨텍스트 조회 실패:', error);
       return null;
+    }
+  }
+
+  /**
+   * 📁 시스템 컨텍스트 조회
+   */
+  private async fetchSystemContext(): Promise<any> {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const response = await fetch(
+        `${this.config.mcpServerUrl}/mcp/resources/file://project-root`,
+        {
+          method: 'GET',
+          signal: controller.signal,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const systemContext = await response.json();
+        console.log('📁 시스템 컨텍스트 조회 완료');
+        return systemContext;
+      }
+    } catch (error) {
+      console.warn('시스템 컨텍스트 조회 실패:', error);
+    }
+    return null;
+  }
+
+  /**
+   * 📄 MCP 서버에서 파일들 조회
+   */
+  private async fetchMCPFiles(
+    paths: string[],
+    maxFiles: number
+  ): Promise<RAGEngineContext['files']> {
+    const files: RAGEngineContext['files'] = [];
+
+    for (const path of paths.slice(0, maxFiles)) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        const response = await fetch(
+          `${this.config.mcpServerUrl}/mcp/resources/file://${encodeURIComponent(path)}`,
+          {
+            method: 'GET',
+            signal: controller.signal,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const fileData = await response.json();
+          if (fileData.content) {
+            files.push({
+              path,
+              content: fileData.content,
+              type: fileData.type || 'file',
+              lastModified: fileData.lastModified || new Date().toISOString(),
+            });
+          }
+        }
+      } catch (error) {
+        console.warn(`파일 조회 실패: ${path}`, error);
+      }
+    }
+
+    return files;
+  }
+
+  /**
+   * 💾 RAG 컨텍스트 캐싱
+   */
+  private async cacheRAGContext(
+    query: string,
+    ragContext: RAGEngineContext
+  ): Promise<void> {
+    if (this.config.enableRedisCache) {
+      const cacheKey = `${this.config.redisPrefix}rag:${this.generateQueryHash(query)}`;
+      await safeRedisOperation(
+        this.redis,
+        async redis =>
+          await redis.setex(cacheKey, 900, JSON.stringify(ragContext))
+      );
     }
   }
 
@@ -353,45 +431,17 @@ export class CloudContextLoader {
     let combinedContext = '';
 
     // 1. MCP 컨텍스트 조회
-    let mcpContext: RAGEngineContext | null = null;
-    if (this.config.enableMCPIntegration) {
-      mcpContext = await this.queryMCPContextForRAG(query, {
-        maxFiles: 5,
-        includeSystemContext: nlpType === 'command_parsing',
-        pathFilters: this.getNLPRelevantPaths(nlpType),
-      });
-
-      if (mcpContext) {
-        contextSources.push('mcp-server');
-        combinedContext += `[MCP 컨텍스트]\n${mcpContext.files
-          .map(f => `파일: ${f.path}\n내용: ${f.content.substring(0, 200)}...`)
-          .join('\n')}\n\n`;
-      }
+    const mcpContext = await this.fetchMCPContextForNLP(query, nlpType, contextSources);
+    if (mcpContext) {
+      combinedContext += this.formatMCPContextForNLP(mcpContext);
     }
 
-    // 2. 로컬 컨텍스트 조회 (Firestore/Redis)
-    let localContext: ContextDocument[] = [];
-    const relevantBundles = this.getBundlesForNLP(nlpType);
+    // 2. 로컬 컨텍스트 조회
+    const localContext = await this.fetchLocalContextForNLP(nlpType, contextSources);
+    combinedContext += this.formatLocalContextForNLP(localContext);
 
-    for (const bundleType of relevantBundles) {
-      const context = await this.loadContextBundle(bundleType);
-      if (context) {
-        localContext.push(context);
-        contextSources.push(`local-${bundleType}`);
-
-        // 마크다운 문서들을 컨텍스트에 추가
-        const markdownContent = Object.values(context.documents.markdown).join(
-          '\n'
-        );
-        combinedContext += `[로컬 컨텍스트: ${bundleType}]\n${markdownContent.substring(0, 300)}...\n\n`;
-      }
-    }
-
-    // 3. 컨텍스트 최적화 (길이 제한)
-    if (combinedContext.length > 2000) {
-      combinedContext =
-        combinedContext.substring(0, 2000) + '...[더 많은 컨텍스트 사용 가능]';
-    }
+    // 3. 컨텍스트 최적화
+    combinedContext = this.optimizeContextLength(combinedContext);
 
     console.log(
       `✅ NLP 컨텍스트 준비 완료: ${contextSources.length}개 소스, ${combinedContext.length}자`
@@ -403,6 +453,80 @@ export class CloudContextLoader {
       combinedContext,
       contextSources,
     };
+  }
+
+  /**
+   * 🔍 NLP용 MCP 컨텍스트 조회
+   */
+  private async fetchMCPContextForNLP(
+    query: string,
+    nlpType: string,
+    contextSources: string[]
+  ): Promise<RAGEngineContext | null> {
+    if (!this.config.enableMCPIntegration) return null;
+
+    const mcpContext = await this.queryMCPContextForRAG(query, {
+      maxFiles: 5,
+      includeSystemContext: nlpType === 'command_parsing',
+      pathFilters: this.getNLPRelevantPaths(nlpType),
+    });
+
+    if (mcpContext) {
+      contextSources.push('mcp-server');
+    }
+
+    return mcpContext;
+  }
+
+  /**
+   * 📄 NLP용 로컬 컨텍스트 조회
+   */
+  private async fetchLocalContextForNLP(
+    nlpType: string,
+    contextSources: string[]
+  ): Promise<ContextDocument[]> {
+    const localContext: ContextDocument[] = [];
+    const relevantBundles = this.getBundlesForNLP(nlpType);
+
+    for (const bundleType of relevantBundles) {
+      const context = await this.loadContextBundle(bundleType);
+      if (context) {
+        localContext.push(context);
+        contextSources.push(`local-${bundleType}`);
+      }
+    }
+
+    return localContext;
+  }
+
+  /**
+   * 📝 MCP 컨텍스트 포맷팅
+   */
+  private formatMCPContextForNLP(mcpContext: RAGEngineContext): string {
+    return `[MCP 컨텍스트]\n${mcpContext.files
+      .map(f => `파일: ${f.path}\n내용: ${f.content.substring(0, 200)}...`)
+      .join('\n')}\n\n`;
+  }
+
+  /**
+   * 📝 로컬 컨텍스트 포맷팅
+   */
+  private formatLocalContextForNLP(localContext: ContextDocument[]): string {
+    let formatted = '';
+    for (const context of localContext) {
+      const markdownContent = Object.values(context.documents.markdown).join('\n');
+      formatted += `[로컬 컨텍스트: ${context.bundleType}]\n${markdownContent.substring(0, 300)}...\n\n`;
+    }
+    return formatted;
+  }
+
+  /**
+   * ✂️ 컨텍스트 길이 최적화
+   */
+  private optimizeContextLength(context: string): string {
+    return context.length > 2000 
+      ? context.substring(0, 2000) + '...[더 많은 컨텍스트 사용 가능]'
+      : context;
   }
 
   /**
@@ -752,7 +876,10 @@ export class CloudContextLoader {
    * 🔄 Redis 캐싱
    */
   private async saveToRedis(contextDoc: ContextDocument): Promise<void> {
-    if (!this.redis) return;
+    if (!isRedisConnected(this.redis)) {
+      console.warn('⚠️ Redis가 연결되지 않음 - 캐싱 건너뜀');
+      return;
+    }
 
     try {
       const key = `${this.config.redisPrefix}${contextDoc.id}`;
@@ -764,13 +891,14 @@ export class CloudContextLoader {
         console.log(`📦 컨텍스트 압축 적용: ${contextDoc.id}`);
       }
 
-      await this.redis.setex(key, this.config.redisTTL, data);
-
-      // 번들 타입별 인덱스 유지
-      await this.redis.sadd(
-        `${this.config.redisPrefix}bundles:${contextDoc.bundleType}`,
-        contextDoc.id
-      );
+      await safeRedisOperation(this.redis, async redis => {
+        await redis.setex(key, this.config.redisTTL, data);
+        // 번들 타입별 인덱스 유지
+        await redis.sadd(
+          `${this.config.redisPrefix}bundles:${contextDoc.bundleType}`,
+          contextDoc.id
+        );
+      });
 
       console.log(`✅ Redis 컨텍스트 캐싱 완료: ${contextDoc.id}`);
     } catch (error) {
@@ -813,13 +941,18 @@ export class CloudContextLoader {
   private async getFromRedis(
     contextId: string
   ): Promise<ContextDocument | null> {
-    if (!this.redis) return null;
+    if (!isRedisConnected(this.redis)) {
+      return null;
+    }
 
     try {
       const key = `${this.config.redisPrefix}${contextId}`;
-      const data = await this.redis.get(key);
+      const data = await safeRedisOperation(
+        this.redis,
+        async redis => await redis.get(key)
+      );
 
-      if (data) {
+      if (data && typeof data === 'string') {
         return JSON.parse(data);
       }
 
@@ -911,13 +1044,15 @@ export class CloudContextLoader {
       });
 
       // 2. Redis 캐시 삭제
-      if (this.redis) {
+      if (isRedisConnected(this.redis)) {
         const key = `${this.config.redisPrefix}${contextId}`;
-        await this.redis.del(key);
-        await this.redis.srem(
-          `${this.config.redisPrefix}bundles:${bundleType}`,
-          contextId
-        );
+        await safeRedisOperation(this.redis, async redis => {
+          await redis.del(key);
+          await redis.srem(
+            `${this.config.redisPrefix}bundles:${bundleType}`,
+            contextId
+          );
+        });
       }
 
       // 3. 메모리 캐시 삭제
@@ -1008,8 +1143,12 @@ export class CloudContextLoader {
 
       // 캐시 제거
       this.contextCache.delete(contextId);
-      if (this.redis) {
-        await this.redis.del(`${this.config.redisPrefix}${contextId}`);
+      if (isRedisConnected(this.redis)) {
+        await safeRedisOperation(
+          this.redis,
+          async redis =>
+            await redis.del(`${this.config.redisPrefix}${contextId}`)
+        );
       }
 
       // 새로 로드
