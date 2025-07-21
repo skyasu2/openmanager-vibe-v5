@@ -1,5 +1,222 @@
 # Changelog
 
+## [5.55.0] - 2025-07-21
+
+### 🧹 코드 정리 및 테스트 개선
+
+#### Fixed
+
+- **코드 주석 정리**
+  - FixedDataSystem 참조 제거 (7개 파일)
+  - 모든 주석을 Mock System 참조로 업데이트
+  - `/src/utils/server-metrics-adapter.ts`
+  - `/src/services/websocket/WebSocketManager.ts`
+  - `/src/services/data-collection/UnifiedDataBroker.ts`
+  - `/src/app/api/system/initialize/route.ts`
+  - `/src/app/api/servers/realtime/route.ts`
+  - `/src/services/ai/SimplifiedQueryEngine.ts`
+
+- **AI 엔진 테스트 수정**
+  - response 필드 문제 해결 (answer → response)
+  - 빈 쿼리 처리 개선 (에러 대신 안내 메시지 반환)
+  - 서버 관련 쿼리 응답 생성 로직 추가
+  - thinking steps 검증 개선
+
+- **환경 통합 테스트 수정**
+  - Mock System 사용으로 전환
+  - detectEnvironment import 경로 수정
+  - 환경별 enableMockData 동작 수정
+  - 서버 속성 검증 수정 (hostname → name)
+
+- **ProfileDropdown 테스트 수정**
+  - Next.js Image 컴포넌트 URL 변환 처리
+  - 이모지와 텍스트 분리 문제 해결
+  - 외부 클릭 이벤트 처리 (click → mouseDown)
+  - 게스트 사용자 메뉴 검증 개선
+
+#### Removed
+
+- **OptimizedDataGenerator 완전 제거**
+  - `/src/services/OptimizedDataGenerator.ts` 파일 삭제
+  - 모든 참조를 Mock System으로 대체
+  - `/src/app/api/metrics/route.ts`: getMockSystem 사용
+  - `/src/app/api/version/status/route.ts`: import 제거
+  - `/src/utils/TechStackAnalyzer.ts`: 기술 스택 목록 업데이트
+
+#### Verified
+
+- ✅ 모든 테스트 통과
+- ✅ TypeScript 빌드 성공
+- ✅ 불필요한 의존성 제거 완료
+- ✅ Mock System으로 완전 전환
+
+## [5.54.0] - 2025-07-20
+
+### 🔧 RAG 시스템 복원 및 빌드 안정화
+
+#### Fixed
+
+- **RAG 시스템 완전 복원**
+  - PostgresVectorDB: command_vectors 테이블 사용하도록 수정
+  - SupabaseRAGEngine: 기존 지식 베이스(11개 벡터) 활용하도록 최적화
+  - SimplifiedQueryEngine: UnifiedAIEngineRouter 대체하여 API 사용량 절약
+  - 384차원 벡터 시스템으로 성능 최적화
+
+- **TypeScript 빌드 에러 해결**
+  - Edge Runtime 호환성: nodejs runtime으로 변경 (/api/ai/logging/stream, /api/servers/cached)
+  - SmartSupabaseClient import 오류 수정
+  - UnifiedProfileHeader props 타입 정의 완료
+  - Redis 에러 핸들러 타입 명시 (Error 타입)
+  - Map 캐시 타입 안전성 개선 (firstKey undefined 처리)
+
+- **MCP 역할 재정의**
+  - AI 엔진에서 컨텍스트 보조 도구로 완전 전환
+  - processQuery → collectContext로 메서드 변경
+  - API 호출 최소화로 비용 절약
+
+#### Changed
+
+- **시스템 아키텍처 최적화**
+  - UnifiedAIEngineRouter → SimplifiedQueryEngine으로 교체
+  - 2모드 시스템: 로컬 RAG (기본) + Google AI (옵션)
+  - Vercel 무료 티어 최적화 완료
+  - 기존 command_vectors 테이블 활용 (새 테이블 생성 없음)
+
+#### Verified
+
+- ✅ 빌드 성공: 모든 TypeScript 에러 해결
+- ✅ Supabase 연동: command_vectors 테이블 11개 벡터 데이터 확인
+- ✅ 벡터 차원: 384차원 정상 동작
+- ✅ 핵심 클래스: PostgresVectorDB, SupabaseRAGEngine, SimplifiedQueryEngine 정상 export
+
+## [5.53.0] - 2025-07-20
+
+### 🚀 Supabase RAG 엔진 재구축 및 AI 시스템 최적화
+
+#### Added
+
+- **Supabase RAG 엔진 재구축**
+  - `sql/setup-pgvector.sql`: pgvector 기반 벡터 DB 스키마 (384차원 최적화)
+  - `src/services/ai/postgres-vector-db.ts`: PostgreSQL 벡터 DB 구현
+  - `src/services/ai/supabase-rag-engine.ts`: RAG 엔진 구현 (임베딩, 검색, 캐싱)
+  - `src/services/ai/SimplifiedQueryEngine.ts`: 단순화된 쿼리 엔진 (로컬/Google AI 모드)
+  - `src/app/api/ai/google-ai/generate/route.ts`: Google AI 생성 엔드포인트
+
+- **벡터 검색 기능**
+  - 코사인 유사도 기반 검색
+  - 하이브리드 검색 (벡터 + 텍스트)
+  - 카테고리별 필터링
+  - 메타데이터 기반 검색
+
+#### Changed
+
+- **MCP (Model Context Protocol) 역할 변경**
+  - AI 기능 제거, 순수 컨텍스트 제공자로 변경
+  - `src/services/mcp/index.ts`: collectContext 메서드 추가, processQuery deprecated
+
+- **API 엔드포인트 개선**
+  - `/api/mcp/query`: SimplifiedQueryEngine 사용 (로컬 RAG 기본)
+  - `/api/ai/query`: mode 파라미터 추가 (local/google-ai 선택 가능)
+  - UnifiedAIEngineRouter 사용 중단
+
+#### Removed
+
+- **과도한 API 사용 컴포넌트**
+  - UnifiedAIEngineRouter의 3단계 폴백 체인 제거
+  - MCP의 AI 응답 생성 기능 제거
+
+#### Performance
+
+- **API 사용량 최적화**
+  - 로컬 RAG 우선 정책으로 외부 API 호출 최소화
+  - Redis 캐싱으로 중복 쿼리 방지
+  - 임베딩 캐시로 계산 비용 절감
+
+#### Technical
+
+- **데이터베이스**
+  - PostgreSQL pgvector 확장 활용
+  - IVFFlat 인덱스로 빠른 근사 검색
+  - RLS (Row Level Security) 적용
+
+- **캐싱 전략**
+  - 검색 결과: Redis 5분 TTL
+  - 임베딩: 메모리 캐시 (LRU 1000개)
+  - RAG 컨텍스트: Redis 15분 TTL
+
+## [5.52.0] - 2025-07-20
+
+### 🚀 개발 도구 개선 및 레거시 함수 정리
+
+#### Added
+
+- **Gemini 개발 도구 v5.2**
+  - 대화형 모드 (`./tools/g i`) 추가: 복잡한 분석을 위한 깊이 있는 대화
+  - 컨텍스트 저장/복원 기능 추가
+  - 사용 시나리오별 가이드 추가
+
+#### Removed
+
+- **레거시 GCP Functions 제거**
+  - `korean-nlp` (Node.js 구버전) 삭제
+  - `basic-ml` (Node.js 구버전) 삭제
+  - `korean-nlp-python` (중간 버전) 삭제
+  - `basic-ml-python` (중간 버전) 삭제
+  - 모두 `enhanced-korean-nlp`와 `ml-analytics-engine`으로 대체됨
+
+#### Changed
+
+- **배포 및 모니터링 스크립트 업데이트**
+  - `deploy-python-functions.sh` 삭제 (레거시)
+  - `deployment/deploy-all.sh` 수정: 새로운 함수 이름과 런타임 반영
+  - `deployment/monitor-usage.sh` 수정: 새로운 함수에 맞춰 사용량 추정치 업데이트
+  - `ai-gateway/index.js` 수정: 레거시 함수 URL을 새로운 함수로 변경
+  - `health/index.js` 수정: 헬스체크 엔드포인트 업데이트
+
+#### Performance
+
+- **GCP Functions 최적화**
+  - 레거시 함수 제거로 배포 시간 단축
+  - 관리 복잡도 감소
+  - `enhanced-korean-nlp`: 순수 Python으로 10-50배 성능 향상
+  - 콜드 스타트 시간 80% 단축, 배포 패키지 크기 95% 감소
+
+## [5.51.0] - 2025-07-20
+
+### 🕐 20분 시스템 자동 종료 기능 추가
+
+#### Added
+
+- **시스템 자동 종료 시스템**
+  - `useSystemAutoShutdown` 훅 구현: 시스템 시작 후 20분 자동 종료
+  - 5분, 1분 전 경고 알림 표시
+  - 수동 시스템 중지/재시작 기능
+  - Vercel 무료 티어 사용량 88% 절약 예상
+
+- **UI/UX 개선**
+  - DashboardHeader에 실시간 카운트다운 타이머 표시
+  - 5분 미만 시 경고 색상으로 강조
+  - 모바일 화면에도 시스템 상태 표시
+  - UnifiedProfileHeader에 "시스템 중지" 버튼 추가
+
+- **알림 시스템 통합**
+  - CustomEvent 기반 알림 발생
+  - NotificationToast와 연동하여 경고 표시
+  - 5분 전/1분 전 자동 경고 알림
+
+#### Improved
+
+- **포트폴리오 최적화**
+  - 시스템 비활성 시 모든 동적 기능 자동 중지
+  - 서버 데이터 자동 갱신 중지
+  - API 호출 최소화로 사용량 대폭 감소
+  - localStorage 활용하여 세션 간 상태 유지
+
+- **사용자 경험**
+  - 시스템 상태를 한눈에 확인 가능
+  - 수동으로 언제든지 시스템 중지/재시작 가능
+  - 경고 시간에 맞춰 사용자 알림
+
 ## [5.50.1] - 2025-07-20
 
 ### 🔧 핫픽스: AI 서비스 정리 및 최적화

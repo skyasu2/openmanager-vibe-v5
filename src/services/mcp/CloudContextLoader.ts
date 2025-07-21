@@ -13,7 +13,19 @@
  * - 실시간 컨텍스트 업데이트
  */
 
-import { getRedis } from '@/lib/redis';
+// Edge Runtime 호환성을 위해 동적 import 사용
+let getRedis: any = null;
+try {
+  if (
+    typeof process !== 'undefined' &&
+    process.versions &&
+    process.versions.node
+  ) {
+    getRedis = require('@/lib/redis').getRedis;
+  }
+} catch (error) {
+  console.warn('⚠️ Redis 기능을 사용할 수 없는 환경입니다 (Edge Runtime)');
+}
 
 interface ContextDocument {
   id: string;
@@ -99,7 +111,11 @@ export class CloudContextLoader {
     };
 
     // Redis 연결 (서버 환경에서만)
-    if (typeof window === 'undefined' && this.config.enableRedisCache) {
+    if (
+      typeof window === 'undefined' &&
+      this.config.enableRedisCache &&
+      getRedis
+    ) {
       this.redis = getRedis();
     }
 
@@ -755,13 +771,16 @@ export class CloudContextLoader {
   private async saveToFirestore(contextDoc: ContextDocument): Promise<void> {
     try {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-      const response = await fetch(`${appUrl}/api/firestore/context-documents`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(contextDoc),
-      });
+      const response = await fetch(
+        `${appUrl}/api/firestore/context-documents`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(contextDoc),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Firestore 컨텍스트 저장 실패: ${response.status}`);

@@ -31,6 +31,14 @@ interface DashboardHeaderProps {
   isAgentOpen?: boolean;
   onMenuClick?: () => void;
   title?: string;
+  /** 시스템 남은 시간 (밀리초) */
+  systemRemainingTime?: number;
+  /** 시스템 활성 상태 */
+  isSystemActive?: boolean;
+  /** 시스템 중지 핸들러 */
+  onSystemStop?: () => void;
+  /** 포맷된 남은 시간 문자열 */
+  remainingTimeFormatted?: string;
 }
 
 /**
@@ -93,6 +101,10 @@ const DashboardHeader = React.memo(function DashboardHeader({
   isAgentOpen = false, // 기존 호환성을 위해 유지
   onMenuClick,
   title = 'OpenManager Dashboard',
+  systemRemainingTime,
+  isSystemActive = true,
+  onSystemStop,
+  remainingTimeFormatted,
 }: DashboardHeaderProps) {
   const { aiAgent, ui } = useUnifiedAdminStore();
   // 새로운 AI 사이드바 상태
@@ -135,9 +147,36 @@ const DashboardHeader = React.memo(function DashboardHeader({
           </button>
         </div>
 
-        {/* 중앙: 실시간 정보 */}
+        {/* 중앙: 실시간 정보 & 시스템 상태 */}
         <div className='hidden md:flex items-center gap-6'>
           <RealTimeDisplay />
+
+          {/* 🕐 시스템 자동 종료 타이머 표시 */}
+          {isSystemActive && remainingTimeFormatted && (
+            <div className='flex items-center gap-2 px-3 py-1 bg-yellow-50 border border-yellow-200 rounded-lg'>
+              <div className='flex items-center gap-2'>
+                <div className='w-2 h-2 bg-yellow-400 rounded-full animate-pulse' />
+                <span className='text-sm font-medium text-yellow-800'>
+                  시스템 자동 종료: {remainingTimeFormatted}
+                </span>
+              </div>
+              {systemRemainingTime && systemRemainingTime < 5 * 60 * 1000 && (
+                <span className='text-xs text-red-600 font-semibold animate-pulse'>
+                  ⚠️ 곧 종료됨
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* 시스템 종료됨 표시 */}
+          {!isSystemActive && (
+            <div className='flex items-center gap-2 px-3 py-1 bg-gray-100 border border-gray-300 rounded-lg'>
+              <div className='w-2 h-2 bg-gray-400 rounded-full' />
+              <span className='text-sm font-medium text-gray-600'>
+                시스템 종료됨
+              </span>
+            </div>
+          )}
         </div>
 
         {/* 오른쪽: AI 어시스턴트 & 프로필 */}
@@ -262,15 +301,44 @@ const DashboardHeader = React.memo(function DashboardHeader({
           </div>
 
           {/* 🎯 UnifiedProfileHeader 사용 - 통합된 프로필 헤더 */}
-          <UnifiedProfileHeader />
+          <UnifiedProfileHeader
+            onSystemStop={onSystemStop}
+            parentSystemActive={isSystemActive}
+          />
         </div>
       </div>
 
       {/* 모바일용 실시간 정보 */}
-      <div className='md:hidden px-6 py-2 bg-gray-50 border-t border-gray-200'>
+      <div className='md:hidden px-6 py-2 bg-gray-50 border-t border-gray-200 space-y-2'>
         <div className='flex items-center justify-center'>
           <RealTimeDisplay />
         </div>
+
+        {/* 🕐 모바일 시스템 상태 표시 */}
+        {isSystemActive && remainingTimeFormatted && (
+          <div className='flex items-center justify-center'>
+            <div className='flex items-center gap-2 px-3 py-1 bg-yellow-50 border border-yellow-200 rounded-lg text-xs'>
+              <div className='w-2 h-2 bg-yellow-400 rounded-full animate-pulse' />
+              <span className='font-medium text-yellow-800'>
+                자동 종료: {remainingTimeFormatted}
+              </span>
+              {systemRemainingTime && systemRemainingTime < 5 * 60 * 1000 && (
+                <span className='text-red-600 font-semibold animate-pulse'>
+                  ⚠️
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {!isSystemActive && (
+          <div className='flex items-center justify-center'>
+            <div className='flex items-center gap-2 px-3 py-1 bg-gray-100 border border-gray-300 rounded-lg text-xs'>
+              <div className='w-2 h-2 bg-gray-400 rounded-full' />
+              <span className='font-medium text-gray-600'>시스템 종료됨</span>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

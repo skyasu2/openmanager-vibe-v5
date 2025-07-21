@@ -7,7 +7,13 @@
 import React from 'react';
 import { ProfileDropdown } from '@/components/profile/ProfileDropdown';
 import { useAuth } from '@/hooks/useAuth';
-import { fireEvent, render, screen, waitFor, act } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  act,
+} from '@testing-library/react';
 import { useRouter } from 'next/navigation';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -130,7 +136,10 @@ describe('ProfileDropdown', () => {
       render(<ProfileDropdown />);
 
       const avatar = screen.getByRole('img');
-      expect(avatar).toHaveAttribute('src', 'https://example.com/avatar.jpg');
+      // Next.js Image 컴포넌트는 src를 변환하므로 URL이 포함되어 있는지 확인
+      expect(avatar).toHaveAttribute('src');
+      expect(avatar.getAttribute('src')).toContain('example.com');
+      expect(avatar.getAttribute('src')).toContain('avatar.jpg');
       expect(avatar).toHaveAttribute('alt', 'Test User');
     });
 
@@ -140,7 +149,8 @@ describe('ProfileDropdown', () => {
       const profileButton = screen.getByRole('button');
       fireEvent.click(profileButton);
 
-      expect(screen.getByText('🚪 로그아웃')).toBeInTheDocument();
+      // 이모지와 텍스트가 분리되어 있으므로 각각 확인
+      expect(screen.getByText('로그아웃')).toBeInTheDocument();
     });
 
     it('should show dashboard link for authenticated users', () => {
@@ -149,7 +159,8 @@ describe('ProfileDropdown', () => {
       const profileButton = screen.getByRole('button');
       fireEvent.click(profileButton);
 
-      expect(screen.getByText('📊 대시보드')).toBeInTheDocument();
+      // 이모지와 텍스트가 분리되어 있으므로 텍스트만 확인
+      expect(screen.getByText('대시보드')).toBeInTheDocument();
     });
 
     it('should show settings link for authenticated users', () => {
@@ -158,7 +169,7 @@ describe('ProfileDropdown', () => {
       const profileButton = screen.getByRole('button');
       fireEvent.click(profileButton);
 
-      expect(screen.getByText('⚙️ 설정')).toBeInTheDocument();
+      expect(screen.getByText('설정')).toBeInTheDocument();
     });
 
     it('should handle logout when clicked', async () => {
@@ -173,10 +184,17 @@ describe('ProfileDropdown', () => {
       });
 
       // 로그아웃 클릭
-      const logoutButton = screen.getByText('🚪 로그아웃');
-      await act(async () => {
-        fireEvent.click(logoutButton);
-      });
+      // 이모지와 텍스트가 분리되어 있으므로 role로 찾기
+      const menuItems = screen.getAllByRole('menuitem');
+      const logoutButton = menuItems.find(item =>
+        item.textContent?.includes('로그아웃')
+      );
+
+      if (logoutButton) {
+        await act(async () => {
+          fireEvent.click(logoutButton);
+        });
+      }
 
       await waitFor(() => {
         expect(mockLogout).toHaveBeenCalled();
@@ -189,8 +207,15 @@ describe('ProfileDropdown', () => {
       const profileButton = screen.getByRole('button');
       fireEvent.click(profileButton);
 
-      const dashboardLink = screen.getByText('📊 대시보드');
-      fireEvent.click(dashboardLink);
+      // 이모지와 텍스트가 분리되어 있으므로 role로 찾기
+      const menuItems = screen.getAllByRole('menuitem');
+      const dashboardLink = menuItems.find(item =>
+        item.textContent?.includes('대시보드')
+      );
+
+      if (dashboardLink) {
+        fireEvent.click(dashboardLink);
+      }
 
       expect(mockPush).toHaveBeenCalledWith('/dashboard');
     });
@@ -201,7 +226,7 @@ describe('ProfileDropdown', () => {
       const profileButton = screen.getByRole('button');
       fireEvent.click(profileButton);
 
-      const settingsLink = screen.getByText('⚙️ 설정');
+      const settingsLink = screen.getByText('설정');
       fireEvent.click(settingsLink);
 
       expect(mockPush).toHaveBeenCalledWith('/settings');
@@ -241,8 +266,13 @@ describe('ProfileDropdown', () => {
       fireEvent.click(profileButton);
 
       // 게스트는 제한된 메뉴만 보여야 함
-      expect(screen.getByText('📊 대시보드')).toBeInTheDocument();
-      expect(screen.queryByText('⚙️ 설정')).not.toBeInTheDocument();
+      expect(
+        screen.getByText('Google로 로그인하여 더 많은 기능 이용하기')
+      ).toBeInTheDocument();
+      expect(screen.getByText('로그아웃')).toBeInTheDocument();
+      // 게스트는 대시보드와 설정에 접근할 수 없음
+      expect(screen.queryByText('대시보드')).not.toBeInTheDocument();
+      expect(screen.queryByText('설정')).not.toBeInTheDocument();
     });
 
     it('should show upgrade prompt for guest users', () => {
@@ -252,7 +282,7 @@ describe('ProfileDropdown', () => {
       fireEvent.click(profileButton);
 
       expect(
-        screen.getByText('더 많은 기능을 원하시나요?')
+        screen.getByText('Google로 로그인하여 더 많은 기능 이용하기')
       ).toBeInTheDocument();
     });
 
@@ -266,10 +296,17 @@ describe('ProfileDropdown', () => {
         fireEvent.click(profileButton);
       });
 
-      const logoutButton = screen.getByText('🚪 로그아웃');
-      await act(async () => {
-        fireEvent.click(logoutButton);
-      });
+      // 이모지와 텍스트가 분리되어 있으므로 role로 찾기
+      const menuItems = screen.getAllByRole('menuitem');
+      const logoutButton = menuItems.find(item =>
+        item.textContent?.includes('로그아웃')
+      );
+
+      if (logoutButton) {
+        await act(async () => {
+          fireEvent.click(logoutButton);
+        });
+      }
 
       await waitFor(() => {
         expect(mockLogout).toHaveBeenCalled();
@@ -297,11 +334,17 @@ describe('ProfileDropdown', () => {
         login: mockLoginAsGuest,
         logout: mockLogout,
         hasPermission: mockHasPermission,
-        error: new Error('Auth error')
+        error: new Error('Auth error'),
       });
 
       // 에러가 있어도 컴포넌트가 크래시하지 않아야 함
-      expect(() => render(<ErrorBoundary><ProfileDropdown /></ErrorBoundary>)).not.toThrow();
+      expect(() =>
+        render(
+          <ErrorBoundary>
+            <ProfileDropdown />
+          </ErrorBoundary>
+        )
+      ).not.toThrow();
     });
 
     it('should handle navigation errors gracefully', async () => {
@@ -309,14 +352,14 @@ describe('ProfileDropdown', () => {
 
       (useAuth as any).mockReturnValue({
         isAuthenticated: true,
-        user: { 
-          id: '123', 
-          name: 'Test User', 
+        user: {
+          id: '123',
+          name: 'Test User',
           type: 'google',
-          permissions: ['dashboard:access', 'settings:view']
+          permissions: ['dashboard:access', 'settings:view'],
         },
         logout: mockLogout,
-        hasPermission: vi.fn((permission: string) => 
+        hasPermission: vi.fn((permission: string) =>
           ['dashboard:access', 'settings:view'].includes(permission)
         ),
       });
@@ -328,10 +371,17 @@ describe('ProfileDropdown', () => {
         fireEvent.click(profileButton);
       });
 
-      const dashboardLink = screen.getByText('📊 대시보드');
-      await act(async () => {
-        fireEvent.click(dashboardLink);
-      });
+      // 이모지와 텍스트가 분리되어 있으므로 role로 찾기
+      const menuItems = screen.getAllByRole('menuitem');
+      const dashboardItem = menuItems.find(item =>
+        item.textContent?.includes('대시보드')
+      );
+
+      if (dashboardItem) {
+        await act(async () => {
+          fireEvent.click(dashboardItem);
+        });
+      }
 
       // 에러가 있어도 UI가 깨지지 않아야 함
       await waitFor(() => {
@@ -417,14 +467,15 @@ describe('ProfileDropdown', () => {
 
       expect(screen.getByText('일반사용자로 사용')).toBeInTheDocument();
 
-      // 외부 클릭
+      // 외부 클릭 (mousedown 이벤트 사용)
       const outsideElement = screen.getByTestId('outside');
       await act(async () => {
-        fireEvent.click(outsideElement);
+        fireEvent.mouseDown(outsideElement);
       });
 
       await waitFor(() => {
-        expect(screen.queryByText('일반사용자로 사용')).not.toBeInTheDocument();
+        // 드롭다운 메뉴가 닫혔는지 확인 (role="menu"가 없어야 함)
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument();
       });
     });
   });

@@ -6,6 +6,13 @@ import { safeErrorLog, safeErrorMessage } from '../lib/error-handler';
 import { systemLogger } from '../lib/logger';
 import { useGlobalSystemStore } from '../stores/systemStore';
 
+type AIAgentState = {
+  isEnabled: boolean;
+  state?: 'disabled' | 'enabled' | 'processing' | 'idle';
+};
+
+type SystemActionFunction = (...args: any[]) => Promise<any> | any;
+
 interface SystemStatus {
   isRunning: boolean;
   lastStarted?: Date;
@@ -24,19 +31,19 @@ interface UseSystemControlReturn {
   isSystemActive: boolean;
   isSystemPaused: boolean;
   formattedTime: string;
-  aiAgent: any;
+  aiAgent: AIAgentState;
   isPaused: boolean;
   pauseReason?: string;
   isUserSession: boolean;
   shouldAutoStop: boolean;
-  startFullSystem: any;
-  stopFullSystem: any;
-  pauseFullSystem: any;
-  resumeFullSystem: any;
-  startAISession: any;
+  startFullSystem: SystemActionFunction;
+  stopFullSystem: SystemActionFunction;
+  pauseFullSystem: SystemActionFunction;
+  resumeFullSystem: SystemActionFunction;
+  startAISession: SystemActionFunction;
   recordActivity: () => void;
-  enableAIAgent: any;
-  disableAIAgent: any;
+  enableAIAgent: SystemActionFunction;
+  disableAIAgent: SystemActionFunction;
 }
 
 export function useSystemControl(): UseSystemControlReturn {

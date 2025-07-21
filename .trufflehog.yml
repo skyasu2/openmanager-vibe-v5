@@ -69,9 +69,9 @@ exclude-paths:
   - ".*\\.cache$"
 
 # 제외할 디텍터들 (필요시)
-exclude-detectors:
-  - "Generic"
-  - "URI"
+# exclude-detectors:
+#   - "Generic"
+#   - "URI"
 
 # 최대 깊이 설정
 max-depth: 50

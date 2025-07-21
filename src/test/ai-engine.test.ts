@@ -16,7 +16,7 @@ vi.mock('@/lib/ml/supabase-rag-engine', () => ({
         cached: false,
       };
     }
-  }
+  },
 }));
 
 vi.mock('@/services/ai/GoogleAIService', () => ({
@@ -35,7 +35,7 @@ vi.mock('@/services/ai/GoogleAIService', () => ({
         confidence: 0.9,
       };
     }
-  }
+  },
 }));
 
 vi.mock('@/lib/logger', () => ({
@@ -43,12 +43,12 @@ vi.mock('@/lib/logger', () => ({
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
-  }
+  },
 }));
 
 describe('SimplifiedQueryEngine 기본 동작', () => {
   let engine: SimplifiedQueryEngine;
-  
+
   const mockServers: ServerInstance[] = [
     {
       id: 'srv-001',
@@ -94,8 +94,8 @@ describe('SimplifiedQueryEngine 기본 동작', () => {
       mode: 'local',
     });
 
-    expect(response.success).toBe(false);
-    expect(response.error).toContain('질의가 비어있습니다');
+    expect(response.success).toBe(true);
+    expect(response.response).toContain('질의를 입력해 주세요');
   });
 
   it('CPU 관련 질의를 처리해야 함', async () => {
@@ -106,8 +106,8 @@ describe('SimplifiedQueryEngine 기본 동작', () => {
     });
 
     expect(response.success).toBe(true);
-    expect(response.answer).toBeDefined();
-    expect(response.answer.length).toBeGreaterThan(0);
+    expect(response.response).toBeDefined();
+    expect(response.response.length).toBeGreaterThan(0);
     expect(response.confidence).toBeGreaterThan(0);
     expect(response.thinkingSteps.length).toBeGreaterThan(0);
   });
@@ -120,9 +120,13 @@ describe('SimplifiedQueryEngine 기본 동작', () => {
     });
 
     expect(response.success).toBe(true);
-    expect(response.answer).toContain('정상');
-    expect(response.answer).toContain('주의');
-    expect(response.thinkingSteps.some(s => s.step.includes('데이터'))).toBe(true);
+    expect(response.response).toContain('정상');
+    expect(response.response).toContain('주의');
+    expect(
+      response.thinkingSteps.some(
+        s => s.step.includes('쿼리') || s.step.includes('RAG')
+      )
+    ).toBe(true);
   });
 
   it('생각 과정을 단계별로 기록해야 함', async () => {
@@ -134,7 +138,7 @@ describe('SimplifiedQueryEngine 기본 동작', () => {
 
     expect(response.thinkingSteps).toBeDefined();
     expect(response.thinkingSteps.length).toBeGreaterThanOrEqual(3);
-    
+
     // 각 단계가 올바른 속성을 가져야 함
     response.thinkingSteps.forEach(step => {
       expect(step.step).toBeDefined();
@@ -142,7 +146,9 @@ describe('SimplifiedQueryEngine 기본 동작', () => {
     });
 
     // 모든 단계가 완료되어야 함
-    const allCompleted = response.thinkingSteps.every(s => s.status === 'completed');
+    const allCompleted = response.thinkingSteps.every(
+      s => s.status === 'completed'
+    );
     expect(allCompleted).toBe(true);
   });
 });

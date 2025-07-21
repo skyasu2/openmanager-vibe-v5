@@ -1,5 +1,5 @@
 /**
- * 🚀 실시간 서버 데이터 API
+ * 🚀 목업 전용 실시간 서버 데이터 API
  *
  * 기능:
  * - 실시간 서버 메트릭 제공
@@ -8,11 +8,7 @@
  * - 대시보드용 요약 데이터
  */
 
-import { transformServerInstancesToServers } from '@/adapters/server-data-adapter';
-import { getRedisClient } from '@/lib/redis';
-// GCPRealDataService removed - using FixedDataSystem instead
-import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
-import { Server } from '@/types/server';
+import { getMockSystem } from '@/mock';
 import { NextRequest, NextResponse } from 'next/server';
 
 // 기본 경고 생성 함수 (폴백용)
@@ -28,7 +24,7 @@ function createBasicFallbackWarning(dataSource: string, reason: string) {
     actionRequired: '실제 데이터 소스 연결 필요',
     productionImpact:
       process.env.NODE_ENV === 'production' ||
-        process.env.VERCEL_ENV === 'production'
+      process.env.VERCEL_ENV === 'production'
         ? 'CRITICAL'
         : 'LOW',
   };
@@ -37,7 +33,7 @@ function createBasicFallbackWarning(dataSource: string, reason: string) {
 export const dynamic = 'force-dynamic';
 
 // 전역 변수로 GCP 실제 데이터 서비스 상태 관리
-// let gcpDataService: GCPRealDataService | null = null; // GCPRealDataService removed
+// Using mock system for realtime server data
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -45,135 +41,61 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get('limit') || '8', 10);
 
   try {
-    console.log('🔨 빌드 타임: 환경변수 검증 건너뜀');
+    console.log('🚀 실시간 서버 데이터 API - 목업 모드');
 
-    // Redis 클라이언트 초기화 시도
-    try {
-      const redis = await getRedisClient();
-      console.log('✅ Redis 연결 성공 - 서버 데이터 저장 활성화');
-    } catch (redisError) {
-      console.warn('⚠️ Redis 환경변수 누락 → Enhanced Mock Redis로 자동 전환');
-    }
+    // 목업 시스템에서 서버 데이터 가져오기
+    const mockSystem = getMockSystem();
+    const allServers = mockSystem.getServers();
 
-    // GCP 데이터 서비스 초기화 (한 번만)
-    // if (true) // gcpDataService removed { // GCPRealDataService removed
-    //   gcpDataService = GCPRealDataService.getInstance();
-    //   await gcpDataService.initialize();
-    // }
-
-    // 현재 서버 데이터 가져오기
-    // const gcpServerData = await [] // gcpDataService removed; // gcpDataService removed
-    const gcpServerData: any[] = []; // gcpDataService removed
-    const allServerInstances = adaptGCPMetricsToServerInstances(gcpServerData);
-
-    console.log(
-      `초기화 실행 from /api/servers/realtime (서버 ${allServerInstances.length}개 감지)`
-    );
-
-    // 🛡️ 서버 데이터 검증 및 폴백 처리
-    if (allServerInstances.length === 0) {
-      // 경고 생성
-      const warning = createBasicFallbackWarning(
-        'GCPRealDataService',
-        '서버 인스턴스가 존재하지 않음'
-      );
-
-      // 프로덕션 환경에서는 에러 발생
-      if (
-        process.env.NODE_ENV === 'production' ||
-        process.env.VERCEL_ENV === 'production'
-      ) {
-        console.error('💀 PRODUCTION_REALTIME_DATA_ERROR:', warning);
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'PRODUCTION_REALTIME_DATA_ERROR',
-            message: '프로덕션 환경에서 실시간 서버 데이터 필수',
-            warning,
-            actionRequired: '실제 데이터 소스 연결 필요',
-            servers: [],
-            summary: {},
-            pagination: {
-              currentPage: page,
-              totalPages: 0,
-              totalItems: 0,
-              itemsPerPage: limit,
-              hasNextPage: false,
-              hasPrevPage: false,
-            },
-          },
-          {
-            status: 500,
-            headers: {
-              'X-Data-Fallback-Warning': 'true',
-              'X-Production-Error': 'true',
-              'X-Data-Source': 'error',
-            },
-          }
-        );
-      }
-
-      // 개발 환경에서만 초기화 시도
-      console.warn('⚠️ REALTIME_DATA_FALLBACK_WARNING:', warning);
-      console.log('🚀 GCP 실제 데이터 서비스 초기화 시작...');
-      // await gcpDataService.initialize(); // gcpDataService removed
-      console.log('✅ GCP 실제 데이터 서비스 초기화 완료');
-
-      // 초기화 후에도 데이터가 없으면 추가 경고
-      const retryGcpData: any[] = []; // gcpDataService removed
-      const retryServerInstances = adaptGCPMetricsToServerInstances(retryGcpData);
-      if (retryServerInstances.length === 0) {
-        console.error('🚨 초기화 후에도 서버 데이터 없음 - 시스템 점검 필요');
-      }
-    }
-
-    // 🔧 GCP 실제 데이터 서비스 상태 확인
-    const metricsResponse = { data: [], success: false, isErrorState: true }; // gcpDataService removed
-    const status = { status: metricsResponse.success ? 'active' : 'error' };
-    const isMockMode = metricsResponse.isErrorState;
-
-    // 서버리스 환경에서는 자동 생성 개념 없음 (요청 시마다 데이터 가져오기)
-
-    // 🎯 Enhanced v2.0: 완전한 타입 안전 변환
-    const allServers = transformServerInstancesToServers(allServerInstances);
+    // 서버 필터링 및 변환
     const validServers = allServers.filter(
-      server => server !== null
-    ) as Server[];
-
-    // 🔒 변환 품질 검증
-    const validServersFiltered = validServers.filter(
-      server => server && server.id && server.name && server.services
+      server => server && server.id && server.name
     );
 
-    // 🎯 실제 서버 데이터 기반 요약 통계 계산 (수정됨)
+    // 실시간 데이터 시뮬레이션 (약간의 변동 추가)
+    const realtimeServers = validServers.map(server => ({
+      ...server,
+      cpu: Math.min(
+        100,
+        Math.max(0, (server.cpu || 50) + (Math.random() - 0.5) * 10)
+      ),
+      memory: Math.min(
+        100,
+        Math.max(0, (server.memory || 50) + (Math.random() - 0.5) * 5)
+      ),
+      disk: server.disk || 50,
+      network: {
+        in: (server.network || 100) + (Math.random() - 0.5) * 20,
+        out: (server.network || 100) + (Math.random() - 0.5) * 15,
+      },
+      lastUpdate: new Date().toISOString(),
+    }));
+
+    // 요약 통계 계산
     const dashboardSummary = {
-      total: validServersFiltered.length,
-      online: validServersFiltered.filter((s: any) => s.status === 'online' || s.status === 'healthy'
-      ).length,
-      warning: validServersFiltered.filter((s: any) => s.status === 'warning').length,
-      critical: validServersFiltered.filter((s: any) => s.status === 'offline' || s.status === 'critical'
-      ).length,
+      total: realtimeServers.length,
+      online: realtimeServers.filter(s => s.status === 'online').length,
+      warning: realtimeServers.filter(s => s.status === 'warning').length,
+      critical: realtimeServers.filter(s => s.status === 'critical').length,
       lastUpdate: new Date().toISOString(),
       averageCpu:
-        validServersFiltered.reduce((sum: number, s: any) => sum + s.cpu, 0) /
-        Math.max(validServersFiltered.length, 1),
+        realtimeServers.reduce((sum, s) => sum + s.cpu, 0) /
+        Math.max(realtimeServers.length, 1),
       averageMemory:
-        validServersFiltered.reduce((sum: number, s: any) => sum + s.memory, 0) /
-        Math.max(validServersFiltered.length, 1),
+        realtimeServers.reduce((sum, s) => sum + s.memory, 0) /
+        Math.max(realtimeServers.length, 1),
     };
 
-    console.log(
-      `🔄 Enhanced v2.0: ${allServerInstances.length}개 ServerInstance → ${validServersFiltered.length}개 검증된 Server 변환 완료`
-    );
     console.log(
       `📊 요약 통계: 총 ${dashboardSummary.total}개, 온라인 ${dashboardSummary.online}개, 경고 ${dashboardSummary.warning}개, 위험 ${dashboardSummary.critical}개`
     );
 
-    const totalServers = validServersFiltered.length;
+    // 페이지네이션 처리
+    const totalServers = realtimeServers.length;
     const totalPages = Math.ceil(totalServers / limit);
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-    const paginatedServers = validServersFiltered.slice(startIndex, endIndex);
+    const paginatedServers = realtimeServers.slice(startIndex, endIndex);
 
     const responseData = {
       servers: paginatedServers,
@@ -190,34 +112,24 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    // 🛡️ 데이터 소스 추적
-    const dataSource =
-      allServerInstances.length > 0 ? 'GCPRealDataService' : 'initialized';
-
     // 응답 헤더 설정
     const responseHeaders: Record<string, string> = {
-      'X-Data-Source': isMockMode ? 'mock' : 'real',
-      'X-Server-Count': String(validServersFiltered.length),
+      'X-Data-Source': 'mock-realtime',
+      'X-Server-Count': String(realtimeServers.length),
     };
 
-    if (isMockMode) {
-      responseHeaders['X-Data-Fallback-Warning'] = 'true';
-      responseHeaders['X-Warning-Level'] = 'CRITICAL';
-    }
-
-    // For backward compatibility, also add top-level success, data, etc.
     return NextResponse.json(
       {
         ...responseData,
         success: true,
         data: paginatedServers,
-        // 🛡️ 데이터 무결성 정보 추가
+        // 데이터 무결성 정보
         dataIntegrity: {
-          dataSource,
-          isMockData: isMockMode,
+          dataSource: 'mock-realtime',
+          isMockData: true,
           environment: process.env.NODE_ENV,
-          warningLevel: isMockMode ? 'CRITICAL' : 'NONE',
-          serverCount: validServersFiltered.length,
+          warningLevel: 'NONE',
+          serverCount: realtimeServers.length,
           generatorStatus: { status: 'active' },
         },
         timestamp: Date.now(),
@@ -254,35 +166,38 @@ export async function POST(request: NextRequest) {
   try {
     const { action } = await request.json();
 
-    // if (true) // gcpDataService removed { // GCPRealDataService removed
-    //   gcpDataService = GCPRealDataService.getInstance();
-    //   await gcpDataService.initialize();
-    // }
-
     switch (action) {
       case 'start':
-        // 서버리스 환경에서는 자동 생성 불필요
-        const startMetrics = { data: [], success: false }; // gcpDataService removed
+        // 목업 모드에서는 항상 준비 상태
         return NextResponse.json({
           success: true,
-          message: 'GCP 실제 데이터 서비스가 준비되었습니다.',
-          status: { status: startMetrics.success ? 'active' : 'error' },
+          message: '목업 실시간 데이터가 준비되었습니다.',
+          status: { status: 'active' },
         });
 
       case 'stop':
-        // 서버리스 환경에서는 중지 불필요
+        // 목업 모드에서는 중지 불필요
         return NextResponse.json({
           success: true,
-          message: 'GCP 실제 데이터 서비스는 서버리스입니다 (중지 불필요).',
-          status: { status: 'idle' },
+          message: '목업 실시간 데이터는 항상 활성 상태입니다.',
+          status: { status: 'active' },
         });
 
       case 'status':
-        const statusMetrics = { data: [], success: false }; // gcpDataService removed
         return NextResponse.json({
           success: true,
-          status: { status: statusMetrics.success ? 'active' : 'error' },
-          summary: { summary: statusMetrics.success ? 'Available' : 'Error' },
+          status: { status: 'active' },
+          summary: { summary: 'Mock data available' },
+        });
+
+      case 'refresh':
+        // 목업 시스템 리셋
+        const mockSystem = getMockSystem();
+        mockSystem.reset();
+        return NextResponse.json({
+          success: true,
+          message: '목업 시스템이 리셋되었습니다.',
+          status: { status: 'active' },
         });
 
       default:

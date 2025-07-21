@@ -28,7 +28,7 @@ import {
 import { LightweightMLEngine } from '@/lib/ml/LightweightMLEngine';
 // AnomalyDetection 제거 - 클라이언트에서 Redis 사용 불가
 // IncidentReportService 제거 - 클라이언트에서 Redis 사용 불가
-import { GCPFunctionsService } from '@/services/ai/GCPFunctionsService';
+// GCPFunctionsService 제거 - 더 이상 사용하지 않음
 
 // 학습 타입 정의
 type LearningType = 'patterns' | 'anomaly' | 'incident' | 'prediction';
@@ -110,7 +110,6 @@ export const MLLearningCenter: React.FC = () => {
   // ML 엔진 인스턴스
   const mlEngine = new LightweightMLEngine();
   // AnomalyDetection 사용 제거
-  const gcpService = GCPFunctionsService.getInstance();
 
   // 학습 단계별 설명 가져오기
   const getStepDescription = (progress: number, type: LearningType): string => {
@@ -293,24 +292,13 @@ export const MLLearningCenter: React.FC = () => {
         setLearningResults(prev => [result!, ...prev].slice(0, 10)); // 최근 10개만 유지
         setSelectedResult(result!);
 
-        // GCP 백엔드로 학습 결과 전송
-        try {
-          const gcpResponse = await gcpService.sendMLLearningResult({
-            type: type as 'pattern' | 'anomaly' | 'incident' | 'prediction',
-            data: {
-              result,
-              serverCount: 10, // 실제 서버 수로 변경 필요
-              timestamp: new Date(),
-            },
-            timestamp: new Date(),
-          });
-
-          if (gcpResponse.success) {
-            console.log('✅ ML 학습 결과 GCP 백엔드 전송 완료:', gcpResponse);
-          }
-        } catch (gcpError) {
-          console.warn('GCP 백엔드 전송 실패 (로컬 저장됨):', gcpError);
-        }
+        // 학습 결과는 로컬에만 저장
+        console.log('✅ ML 학습 결과 저장 완료:', {
+          type,
+          patternsLearned: result!.patternsLearned,
+          accuracyImprovement: result!.accuracyImprovement,
+          confidence: result!.confidence,
+        });
       } catch (error) {
         // 에러 처리
         clearInterval(progressTimer);

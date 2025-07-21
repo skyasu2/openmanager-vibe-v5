@@ -1,4 +1,4 @@
-// GCPRealDataService removed - using FixedDataSystem instead
+// Using mock system for unified data collection
 /**
  * 🎯 통합 데이터 브로커
  *
@@ -289,11 +289,15 @@ export class UnifiedDataBroker {
         // await gcpDataService.initialize(); // gcpDataService removed
 
         // const metricsResponse = await gcpDataService.getRealServerMetrics(); // gcpDataService removed
-        const metricsResponse = { data: [], success: false, isErrorState: true }; // gcpDataService removed
+        const metricsResponse = {
+          data: [],
+          success: false,
+          isErrorState: true,
+        }; // gcpDataService removed
         const servers = metricsResponse.data;
-        const summary = { 
+        const summary = {
           servers: metricsResponse.success ? 'Available' : 'Error',
-          clusters: metricsResponse.isErrorState ? 'Error' : 'Healthy'
+          clusters: metricsResponse.isErrorState ? 'Error' : 'Healthy',
         };
 
         const serversWithMetrics = servers.map((s: any) => ({

@@ -76,6 +76,18 @@ export const EnhancedProfileStatusDisplay: React.FC<
     );
   }
 
+  // status가 null인 경우 기본 UI 표시
+  if (!status) {
+    return (
+      <div data-testid='no-status' className='p-4 text-gray-500'>
+        <div className='flex items-center gap-2'>
+          <Activity size={16} className='text-gray-400' />
+          <span>시스템 상태를 불러올 수 없습니다</span>
+        </div>
+      </div>
+    );
+  }
+
   // 유틸리티 함수들을 사용하여 상태를 처리합니다
 
   // 컴팩트 레이아웃

@@ -17,7 +17,7 @@ NC='\033[0m' # No Color
 # 프로젝트 설정
 PROJECT_ID="openmanager-ai"
 REGION="asia-northeast3"
-FUNCTIONS=("ai-gateway" "korean-nlp" "rule-engine" "basic-ml")
+FUNCTIONS=("ai-gateway" "enhanced-korean-nlp" "rule-engine" "ml-analytics-engine" "unified-ai-processor")
 
 # 무료 티어 한도
 MAX_INVOCATIONS=2000000  # 2M/월
@@ -119,14 +119,17 @@ for func in "${FUNCTIONS[@]}"; do
             "ai-gateway")
                 daily_calls=1000
                 ;;
-            "korean-nlp")
+            "enhanced-korean-nlp")
                 daily_calls=667
                 ;;
             "rule-engine")
                 daily_calls=833
                 ;;
-            "basic-ml")
+            "ml-analytics-engine")
                 daily_calls=500
+                ;;
+            "unified-ai-processor")
+                daily_calls=300
                 ;;
         esac
         total_invocations=$((total_invocations + daily_calls))
@@ -157,7 +160,7 @@ for func in "${FUNCTIONS[@]}"; do
             avg_duration_ms=2000  # 2초
             daily_calls=1000
             ;;
-        "korean-nlp")
+        "enhanced-korean-nlp")
             memory_mb=512
             avg_duration_ms=5000  # 5초
             daily_calls=667
@@ -167,10 +170,15 @@ for func in "${FUNCTIONS[@]}"; do
             avg_duration_ms=500   # 0.5초
             daily_calls=833
             ;;
-        "basic-ml")
+        "ml-analytics-engine")
             memory_mb=512
             avg_duration_ms=3000  # 3초
             daily_calls=500
+            ;;
+        "unified-ai-processor")
+            memory_mb=1024
+            avg_duration_ms=8000  # 8초
+            daily_calls=300
             ;;
     esac
     

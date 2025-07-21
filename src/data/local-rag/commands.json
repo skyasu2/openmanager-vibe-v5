@@ -21,13 +21,6 @@
     "content": "The top command provides real-time view of running processes, CPU usage, memory consumption, and system load"
   },
   {
-    "id": "local-docker-ps",
-    "command": "docker ps -a",
-    "description": "List all Docker containers",
-    "category": "docker",
-    "content": "Docker ps shows all containers including stopped ones with their status, ports, and names"
-  },
-  {
     "id": "local-kubectl-get",
     "command": "kubectl get pods",
     "description": "List Kubernetes pods",

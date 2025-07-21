@@ -1,34 +1,19 @@
-/**
- * 🌐 통합 대시보드 API (고정 데이터 시스템 v2.0)
- *
- * 고정 데이터 + 타임스탬프 시스템 → Redis → Vercel API → 대시보드
- * 핵심 아키텍처: 5개 장애 시나리오 + 실시간 타임스탬프 + 기존 API 100% 호환
- */
-
 import { NextRequest, NextResponse } from 'next/server';
-import { FixedDataSystem } from '@/lib/fixed-data-system';
+import { getMockSystem } from '@/mock';
 
-interface ServerData {
-  id: string;
-  name: string;
-  status: 'healthy' | 'warning' | 'critical';
-  cpu: number;
-  memory: number;
-  disk: number;
-  network: {
-    in: number;
-    out: number;
-  };
-  uptime: number;
-  lastUpdated: string;
-  source: string;
-  [key: string]: any;
-}
+/**
+ * 📊 목업 데이터 전용 대시보드 API
+ *
+ * FixedDataSystem과 Redis를 제거하고 목업 데이터만 사용
+ * - 빠른 응답 속도
+ * - 외부 의존성 없음
+ * - 간단한 구조
+ */
 
 interface DashboardResponse {
   success: boolean;
-  data?: {
-    servers: Record<string, ServerData>;
+  data: {
+    servers: Record<string, any>;
     stats: {
       total: number;
       healthy: number;
@@ -41,47 +26,17 @@ interface DashboardResponse {
     lastUpdate: string;
     dataSource: string;
   };
-  error?: string;
   metadata?: {
     responseTime: number;
-    cacheHit: boolean;
-    redisKeys: number;
     serversLoaded: number;
+    scenarioActive?: boolean;
   };
-}
-
-// 🏗️ 고정 데이터 시스템 인스턴스 (싱글톤)
-let fixedDataSystem: FixedDataSystem | null = null;
-
-async function getFixedDataSystem(): Promise<FixedDataSystem | null> {
-  if (!fixedDataSystem) {
-    fixedDataSystem = new FixedDataSystem({
-      enableScenarios: true,
-      maxConcurrentScenarios: 3,
-      scenarioRotationInterval: 30,
-      cascadeFailureEnabled: true,
-      redisPrefix: 'openmanager:fixed:',
-      backupToSupabase: false // Vercel 환경에서 비활성화
-    });
-    
-    try {
-      await fixedDataSystem.initialize();
-      console.log('✅ 고정 데이터 시스템 초기화 완료');
-    } catch (error) {
-      console.error('❌ 고정 데이터 시스템 초기화 실패:', error);
-      // 폴백: Redis Template Cache 사용
-      fixedDataSystem = null;
-    }
-  }
-  
-  return fixedDataSystem;
 }
 
 /**
  * GET /api/dashboard
  *
- * 고정 데이터 시스템으로 모든 서버 데이터 가져오기
- * 5개 장애 시나리오 + 실시간 타임스탬프 + 기존 API 100% 호환
+ * 목업 시스템에서 대시보드 데이터 가져오기
  */
 export async function GET(
   request: NextRequest
@@ -89,136 +44,93 @@ export async function GET(
   const startTime = Date.now();
 
   try {
-    console.log('📊 고정 데이터 시스템 대시보드 API 호출 시작...');
+    console.log('📊 목업 대시보드 API 호출...');
 
-    // 🚀 방법 1: 고정 데이터 시스템 사용 (우선)
-    try {
-      const system = await getFixedDataSystem();
-      if (system) {
-        const apiResponse = await system.getDashboardApiResponse();
-        
-        console.log(`✅ 고정 데이터 시스템 응답 완료 (${apiResponse.metadata?.responseTime}ms)`);
-        
-        return NextResponse.json(apiResponse, {
-          status: 200,
-          headers: {
-            'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
-            'X-Data-Source': 'Fixed-Data-System-v2.0',
-            'X-Response-Time': `${apiResponse.metadata?.responseTime || 0}ms`,
-            'X-Server-Count': apiResponse.metadata?.serversLoaded?.toString() || '0',
-            'X-Active-Scenarios': apiResponse.metadata?.activeScenarios?.toString() || '0',
-            'X-System-Health': apiResponse.metadata?.systemHealth || 'unknown',
-          },
-        });
-      }
-    } catch (fixedSystemError) {
-      console.warn('⚠️ 고정 데이터 시스템 사용 실패, Redis 템플릿 캐시로 폴백:', fixedSystemError);
-    }
+    // 목업 시스템에서 서버 데이터 가져오기
+    const mockSystem = getMockSystem();
+    const servers = mockSystem.getServers();
+    const systemInfo = mockSystem.getSystemInfo();
 
-    // 🔄 방법 2: Redis Template Cache 폴백
-    try {
-      const { redisTemplateCache } = await import('@/lib/redis-template-cache');
-      const dashboardData = await redisTemplateCache.getDashboardData();
-      
-      if (dashboardData.success) {
-        // 기존 API 형식으로 변환
-        const convertedResponse: DashboardResponse = {
-          success: true,
-          data: {
-            servers: dashboardData.data.servers || {},
-            stats: {
-              total: Object.keys(dashboardData.data.servers || {}).length,
-              healthy: Object.values(dashboardData.data.servers || {}).filter((s: any) => s.status === 'healthy').length,
-              warning: Object.values(dashboardData.data.servers || {}).filter((s: any) => s.status === 'warning').length,
-              critical: Object.values(dashboardData.data.servers || {}).filter((s: any) => s.status === 'critical').length,
-              avgCpu: Object.values(dashboardData.data.servers || {}).reduce((sum: number, s: any) => sum + (s.cpu || 0), 0) / Object.keys(dashboardData.data.servers || {}).length || 0,
-              avgMemory: Object.values(dashboardData.data.servers || {}).reduce((sum: number, s: any) => sum + (s.memory || 0), 0) / Object.keys(dashboardData.data.servers || {}).length || 0,
-              avgDisk: Object.values(dashboardData.data.servers || {}).reduce((sum: number, s: any) => sum + (s.disk || 0), 0) / Object.keys(dashboardData.data.servers || {}).length || 0,
-            },
-            lastUpdate: new Date().toISOString(),
-            dataSource: 'redis-template-cache-fallback',
-          },
-          metadata: {
-            responseTime: Date.now() - startTime,
-            cacheHit: true,
-            redisKeys: Object.keys(dashboardData.data.servers || {}).length,
-            serversLoaded: Object.keys(dashboardData.data.servers || {}).length,
-          },
-        };
-        
-        console.log(`✅ Redis 템플릿 캐시 폴백 응답 완료 (${convertedResponse.metadata?.responseTime}ms)`);
-        
-        return NextResponse.json(convertedResponse, {
-          status: 200,
-          headers: {
-            'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
-            'X-Data-Source': 'Redis-Template-Cache-Fallback',
-            'X-Response-Time': `${convertedResponse.metadata?.responseTime}ms`,
-            'X-Server-Count': convertedResponse.metadata?.serversLoaded?.toString() || '0',
-          },
-        });
-      }
-    } catch (redisCacheError) {
-      console.warn('⚠️ Redis 템플릿 캐시 폴백도 실패:', redisCacheError);
-    }
+    // 서버 데이터를 객체 형태로 변환 (기존 API 호환성)
+    const serversMap: Record<string, any> = {};
+    servers.forEach(server => {
+      serversMap[server.id] = {
+        ...server,
+        // 대시보드용 추가 필드
+        cpu: server.metrics?.cpu || { usage: 0, cores: 1 },
+        memory: server.metrics?.memory || { usage: 0, total: 1024 },
+        disk: server.metrics?.disk || { usage: 0, total: 100 },
+        network: server.metrics?.network || { rx: 0, tx: 0 },
+        status:
+          server.status === 'online'
+            ? 'healthy'
+            : server.status === 'critical'
+              ? 'critical'
+              : 'warning',
+      };
+    });
 
-    // 🚨 방법 3: 최종 폴백 (빈 응답)
-    const responseTime = Date.now() - startTime;
-    const fallbackResponse: DashboardResponse = {
+    // 통계 계산
+    const stats = calculateServerStats(servers);
+
+    const response: DashboardResponse = {
       success: true,
       data: {
-        servers: {},
-        stats: {
-          total: 0,
-          healthy: 0,
-          warning: 0,
-          critical: 0,
-          avgCpu: 0,
-          avgMemory: 0,
-          avgDisk: 0,
-        },
+        servers: serversMap,
+        stats,
         lastUpdate: new Date().toISOString(),
-        dataSource: 'empty-fallback',
+        dataSource: 'mock-optimized',
       },
       metadata: {
-        responseTime,
-        cacheHit: false,
-        redisKeys: 0,
-        serversLoaded: 0,
+        responseTime: Date.now() - startTime,
+        serversLoaded: servers.length,
+        scenarioActive: !!systemInfo.scenario,
       },
     };
 
-    console.log(`⚠️ 최종 폴백 응답 (${responseTime}ms)`);
+    console.log(
+      `✅ 목업 대시보드 응답 완료 (${response.metadata?.responseTime || 0}ms)`
+    );
 
-    return NextResponse.json(fallbackResponse, {
+    return NextResponse.json(response, {
       status: 200,
       headers: {
-        'Cache-Control': 'public, max-age=10, stale-while-revalidate=30',
-        'X-Data-Source': 'Empty-Fallback',
-        'X-Response-Time': `${responseTime}ms`,
-        'X-Warning': 'All-Systems-Failed',
+        'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
+        'X-Data-Source': 'Mock-System-v3.0',
+        'X-Response-Time': `${response.metadata?.responseTime || 0}ms`,
+        'X-Server-Count': servers.length.toString(),
       },
     });
-
   } catch (error) {
-    console.error('❌ 대시보드 API 치명적 오류:', error);
+    console.error('❌ 대시보드 API 오류:', error);
 
     const responseTime = Date.now() - startTime;
     return NextResponse.json(
       {
         success: false,
-        error: '모든 데이터 시스템 사용 불가',
+        data: {
+          servers: {},
+          stats: {
+            total: 0,
+            healthy: 0,
+            warning: 0,
+            critical: 0,
+            avgCpu: 0,
+            avgMemory: 0,
+            avgDisk: 0,
+          },
+          lastUpdate: new Date().toISOString(),
+          dataSource: 'error',
+        },
         metadata: {
           responseTime,
-          cacheHit: false,
-          redisKeys: 0,
           serversLoaded: 0,
         },
       },
       {
         status: 500,
         headers: {
-          'X-Error': 'All-Data-Systems-Failed',
+          'X-Error': 'Dashboard-Error',
           'X-Response-Time': `${responseTime}ms`,
         },
       }
@@ -242,13 +154,13 @@ function calculateServerStats(servers: any[]): any {
     };
   }
 
-  const healthy = servers.filter((s: any) => s.status === 'healthy').length;
-  const warning = servers.filter((s: any) => s.status === 'warning').length;
-  const critical = servers.filter((s: any) => s.status === 'critical').length;
+  const healthy = servers.filter(s => s.status === 'online').length;
+  const warning = servers.filter(s => s.status === 'warning').length;
+  const critical = servers.filter(s => s.status === 'critical').length;
 
-  const totalCpu = servers.reduce((sum: number, s: any) => sum + (s.cpu || 0), 0);
-  const totalMemory = servers.reduce((sum: number, s: any) => sum + (s.memory || 0), 0);
-  const totalDisk = servers.reduce((sum: number, s: any) => sum + (s.disk || 0), 0);
+  const totalCpu = servers.reduce((sum, s) => sum + (s.cpu || 0), 0);
+  const totalMemory = servers.reduce((sum, s) => sum + (s.memory || 0), 0);
+  const totalDisk = servers.reduce((sum, s) => sum + (s.disk || 0), 0);
 
   return {
     total: servers.length,
@@ -264,87 +176,38 @@ function calculateServerStats(servers: any[]): any {
 /**
  * POST /api/dashboard
  *
- * 고정 데이터 시스템 강제 새로고침 + 시나리오 트리거
+ * 시나리오 트리거 (선택사항)
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    console.log('🔄 고정 데이터 시스템 강제 새로고침 요청...');
+    console.log('🔄 대시보드 액션 요청...');
 
     const body = await request.json().catch(() => ({}));
-    const { action, serverId, scenario } = body;
+    const { action } = body;
 
-    // 🎭 시나리오 트리거 기능
-    if (action === 'trigger_scenario' && serverId && scenario) {
-      try {
-        const system = await getFixedDataSystem();
-        if (system) {
-          await system.triggerScenario(serverId, scenario);
-          
-          return NextResponse.json({
-            success: true,
-            message: `시나리오 '${scenario}' 서버 '${serverId}'에서 트리거됨`,
-            action: 'scenario_triggered',
-            serverId,
-            scenario,
-            timestamp: new Date().toISOString(),
-          });
-        }
-      } catch (scenarioError) {
-        console.error('❌ 시나리오 트리거 실패:', scenarioError);
-        return NextResponse.json(
-          {
-            success: false,
-            error: '시나리오 트리거 실패',
-            details: scenarioError instanceof Error ? scenarioError.message : 'Unknown error',
-          },
-          { status: 500 }
-        );
-      }
-    }
+    // 간단한 새로고침 응답
+    if (action === 'refresh') {
+      const mockSystem = getMockSystem();
+      mockSystem.reset(); // 시스템 리셋
 
-    // 🔄 일반 캐시 무효화 (기본 동작)
-    let invalidatedKeys = 0;
-    let systemRefreshed = false;
-
-    // 고정 데이터 시스템 새로고침
-    try {
-      const system = await getFixedDataSystem();
-      if (system) {
-        // 시스템 상태 강제 업데이트
-        await system.getSystemState();
-        systemRefreshed = true;
-        console.log('✅ 고정 데이터 시스템 새로고침 완료');
-      }
-    } catch (systemError) {
-      console.warn('⚠️ 고정 데이터 시스템 새로고침 실패:', systemError);
-    }
-
-    // Redis 템플릿 캐시 무효화 (폴백)
-    try {
-      const { redisTemplateCache } = await import('@/lib/redis-template-cache');
-      await redisTemplateCache.clearCache();
-      console.log('✅ Redis 템플릿 캐시 무효화 완료');
-    } catch (cacheError) {
-      console.warn('⚠️ Redis 템플릿 캐시 무효화 실패:', cacheError);
+      return NextResponse.json({
+        success: true,
+        message: '목업 시스템 새로고침 완료',
+        timestamp: new Date().toISOString(),
+      });
     }
 
     return NextResponse.json({
       success: true,
-      message: '대시보드 시스템 새로고침 완료',
-      actions: {
-        systemRefreshed,
-        cacheInvalidated: true,
-        timestamp: new Date().toISOString(),
-      },
+      message: '액션 처리 완료',
+      action: action || 'none',
     });
-
   } catch (error) {
-    console.error('❌ 대시보드 새로고침 오류:', error);
+    console.error('❌ 대시보드 POST 오류:', error);
     return NextResponse.json(
       {
         success: false,
-        error: '시스템 새로고침 실패',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: '액션 처리 실패',
       },
       { status: 500 }
     );

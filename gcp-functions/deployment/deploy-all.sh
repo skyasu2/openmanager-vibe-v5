@@ -33,7 +33,7 @@ error() {
 # 프로젝트 설정
 PROJECT_ID="openmanager-ai"
 REGION="asia-northeast3"
-FUNCTIONS=("ai-gateway" "korean-nlp" "rule-engine" "basic-ml")
+FUNCTIONS=("ai-gateway" "enhanced-korean-nlp" "rule-engine" "ml-analytics-engine" "unified-ai-processor")
 
 log "🚀 OpenManager GCP Functions 배포 시작"
 log "프로젝트: $PROJECT_ID"
@@ -93,26 +93,35 @@ deploy_function() {
         "ai-gateway")
             MEMORY="256MB"
             TIMEOUT="60s"
+            RUNTIME="nodejs22"
             ;;
-        "korean-nlp")
+        "enhanced-korean-nlp")
             MEMORY="512MB"
             TIMEOUT="180s"
+            RUNTIME="python310"
             ;;
         "rule-engine")
             MEMORY="256MB"
             TIMEOUT="30s"
+            RUNTIME="nodejs22"
             ;;
-        "basic-ml")
+        "ml-analytics-engine")
             MEMORY="512MB"
             TIMEOUT="120s"
+            RUNTIME="python310"
+            ;;
+        "unified-ai-processor")
+            MEMORY="1GB"
+            TIMEOUT="300s"
+            RUNTIME="python310"
             ;;
     esac
     
     # 배포 실행
-    log "$func_name 배포 중... (메모리: $MEMORY, 타임아웃: $TIMEOUT)"
+    log "$func_name 배포 중... (런타임: $RUNTIME, 메모리: $MEMORY, 타임아웃: $TIMEOUT)"
     
     if gcloud functions deploy $func_name \
-        --runtime nodejs22 \
+        --runtime $RUNTIME \
         --trigger-http \
         --allow-unauthenticated \
         --memory $MEMORY \

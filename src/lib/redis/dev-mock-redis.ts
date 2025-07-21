@@ -1,6 +1,6 @@
 /**
  * 🧪 개발 환경 전용 Mock Redis
- * 
+ *
  * 개발 환경에서 실제 Redis 없이도 완전한 기능을 제공하는 향상된 Mock Redis
  * - 영속성 지원 (localStorage/파일시스템)
  * - Redis 명령어 완벽 지원
@@ -8,8 +8,24 @@
  * - 성능 모니터링
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+// Edge Runtime 호환성을 위해 동적 import 사용
+let fs: any;
+let path: any;
+
+// Node.js 환경에서만 fs와 path 모듈 로드
+if (
+  typeof process !== 'undefined' &&
+  process.versions &&
+  process.versions.node
+) {
+  try {
+    fs = require('fs/promises');
+    path = require('path');
+  } catch (error) {
+    // Edge Runtime에서는 무시
+    console.warn('⚠️ fs/path 모듈을 사용할 수 없는 환경입니다 (Edge Runtime)');
+  }
+}
 
 interface DevMockRedisOptions {
   persistPath?: string;
@@ -19,7 +35,10 @@ interface DevMockRedisOptions {
 }
 
 export class DevMockRedis {
-  private store = new Map<string, { value: any; expiry?: number; type?: string }>();
+  private store = new Map<
+    string,
+    { value: any; expiry?: number; type?: string }
+  >();
   private pubSubChannels = new Map<string, Set<(message: string) => void>>();
   private transactions: Array<() => Promise<any>> = [];
   private options: DevMockRedisOptions;
@@ -53,7 +72,7 @@ export class DevMockRedis {
   async get(key: string): Promise<string | null> {
     this.stats.commands++;
     const item = this.store.get(key);
-    
+
     if (!item || (item.expiry && Date.now() > item.expiry)) {
       this.stats.misses++;
       return null;
@@ -63,16 +82,20 @@ export class DevMockRedis {
     return String(item.value);
   }
 
-  async set(key: string, value: any, options?: { ex?: number; px?: number }): Promise<'OK'> {
+  async set(
+    key: string,
+    value: any,
+    options?: { ex?: number; px?: number }
+  ): Promise<'OK'> {
     this.stats.commands++;
-    
+
     let expiry: number | undefined;
     if (options?.ex) expiry = Date.now() + options.ex * 1000;
     if (options?.px) expiry = Date.now() + options.px;
 
     this.store.set(key, { value: String(value), expiry, type: 'string' });
     this.updateMemoryUsage();
-    
+
     if (this.options.enablePersistence) {
       await this.saveToDisk();
     }
@@ -83,7 +106,7 @@ export class DevMockRedis {
   async del(...keys: string[]): Promise<number> {
     this.stats.commands++;
     let deleted = 0;
-    
+
     for (const key of keys) {
       if (this.store.delete(key)) deleted++;
     }
@@ -98,7 +121,7 @@ export class DevMockRedis {
   async exists(...keys: string[]): Promise<number> {
     this.stats.commands++;
     let count = 0;
-    
+
     for (const key of keys) {
       const item = this.store.get(key);
       if (item && (!item.expiry || Date.now() < item.expiry)) {
@@ -129,7 +152,7 @@ export class DevMockRedis {
   async hset(key: string, field: string, value: any): Promise<number> {
     this.stats.commands++;
     const hash = this.store.get(key);
-    
+
     if (!hash || hash.type !== 'hash') {
       this.store.set(key, { value: { [field]: value }, type: 'hash' });
       return 1;
@@ -137,7 +160,7 @@ export class DevMockRedis {
 
     const isNew = !(field in hash.value);
     hash.value[field] = value;
-    
+
     if (this.options.enablePersistence) {
       await this.saveToDisk();
     }
@@ -148,7 +171,7 @@ export class DevMockRedis {
   async hget(key: string, field: string): Promise<string | null> {
     this.stats.commands++;
     const hash = this.store.get(key);
-    
+
     if (!hash || hash.type !== 'hash') {
       this.stats.misses++;
       return null;
@@ -161,7 +184,7 @@ export class DevMockRedis {
   async hgetall(key: string): Promise<Record<string, string>> {
     this.stats.commands++;
     const hash = this.store.get(key);
-    
+
     if (!hash || hash.type !== 'hash') {
       return {};
     }
@@ -173,14 +196,14 @@ export class DevMockRedis {
   async lpush(key: string, ...values: string[]): Promise<number> {
     this.stats.commands++;
     const list = this.store.get(key);
-    
+
     if (!list || list.type !== 'list') {
       this.store.set(key, { value: [...values], type: 'list' });
       return values.length;
     }
 
     list.value.unshift(...values);
-    
+
     if (this.options.enablePersistence) {
       await this.saveToDisk();
     }
@@ -191,14 +214,14 @@ export class DevMockRedis {
   async rpush(key: string, ...values: string[]): Promise<number> {
     this.stats.commands++;
     const list = this.store.get(key);
-    
+
     if (!list || list.type !== 'list') {
       this.store.set(key, { value: [...values], type: 'list' });
       return values.length;
     }
 
     list.value.push(...values);
-    
+
     if (this.options.enablePersistence) {
       await this.saveToDisk();
     }
@@ -209,7 +232,7 @@ export class DevMockRedis {
   async lrange(key: string, start: number, stop: number): Promise<string[]> {
     this.stats.commands++;
     const list = this.store.get(key);
-    
+
     if (!list || list.type !== 'list') {
       return [];
     }
@@ -226,7 +249,7 @@ export class DevMockRedis {
   async sadd(key: string, ...members: string[]): Promise<number> {
     this.stats.commands++;
     const set = this.store.get(key);
-    
+
     if (!set || set.type !== 'set') {
       this.store.set(key, { value: new Set(members), type: 'set' });
       return members.length;
@@ -250,7 +273,7 @@ export class DevMockRedis {
   async srem(key: string, ...members: string[]): Promise<number> {
     this.stats.commands++;
     const set = this.store.get(key);
-    
+
     if (!set || set.type !== 'set') {
       return 0;
     }
@@ -272,7 +295,7 @@ export class DevMockRedis {
   async smembers(key: string): Promise<string[]> {
     this.stats.commands++;
     const set = this.store.get(key);
-    
+
     if (!set || set.type !== 'set') {
       return [];
     }
@@ -284,7 +307,7 @@ export class DevMockRedis {
   async publish(channel: string, message: string): Promise<number> {
     this.stats.commands++;
     const subscribers = this.pubSubChannels.get(channel);
-    
+
     if (!subscribers) return 0;
 
     subscribers.forEach(callback => {
@@ -298,7 +321,7 @@ export class DevMockRedis {
     if (!this.pubSubChannels.has(channel)) {
       this.pubSubChannels.set(channel, new Set());
     }
-    
+
     this.pubSubChannels.get(channel)!.add(callback);
   }
 
@@ -335,7 +358,7 @@ export class DevMockRedis {
     this.stats.commands++;
     this.store.clear();
     this.pubSubChannels.clear();
-    
+
     if (this.options.enablePersistence) {
       await this.saveToDisk();
     }
@@ -346,7 +369,7 @@ export class DevMockRedis {
   async keys(pattern: string): Promise<string[]> {
     this.stats.commands++;
     const regex = new RegExp(pattern.replace(/\*/g, '.*').replace(/\?/g, '.'));
-    
+
     return Array.from(this.store.keys()).filter(key => {
       const item = this.store.get(key);
       return regex.test(key) && (!item?.expiry || Date.now() < item.expiry);
@@ -356,10 +379,10 @@ export class DevMockRedis {
   async ttl(key: string): Promise<number> {
     this.stats.commands++;
     const item = this.store.get(key);
-    
+
     if (!item) return -2; // 키가 존재하지 않음
     if (!item.expiry) return -1; // 만료 시간이 설정되지 않음
-    
+
     const ttl = Math.floor((item.expiry - Date.now()) / 1000);
     return ttl < 0 ? -2 : ttl;
   }
@@ -367,9 +390,9 @@ export class DevMockRedis {
   async expire(key: string, seconds: number): Promise<number> {
     this.stats.commands++;
     const item = this.store.get(key);
-    
+
     if (!item) return 0;
-    
+
     item.expiry = Date.now() + seconds * 1000;
     return 1;
   }
@@ -387,7 +410,7 @@ export class DevMockRedis {
 
   async dump(): Promise<Record<string, any>> {
     const data: Record<string, any> = {};
-    
+
     for (const [key, item] of this.store.entries()) {
       if (!item.expiry || Date.now() < item.expiry) {
         data[key] = {
@@ -403,7 +426,7 @@ export class DevMockRedis {
 
   async restore(data: Record<string, any>): Promise<void> {
     this.store.clear();
-    
+
     for (const [key, item] of Object.entries(data)) {
       const expiry = item.ttl > 0 ? Date.now() + item.ttl * 1000 : undefined;
       this.store.set(key, {
@@ -421,7 +444,7 @@ export class DevMockRedis {
   // 내부 헬퍼 메서드
   private evictExpired(): void {
     let evicted = 0;
-    
+
     for (const [key, item] of this.store.entries()) {
       if (item.expiry && Date.now() > item.expiry) {
         this.store.delete(key);
@@ -437,18 +460,27 @@ export class DevMockRedis {
 
   private updateMemoryUsage(): void {
     // 간단한 메모리 사용량 추정
-    this.stats.memoryUsage = JSON.stringify(Array.from(this.store.entries())).length;
-    
+    this.stats.memoryUsage = JSON.stringify(
+      Array.from(this.store.entries())
+    ).length;
+
     // 메모리 제한 체크
     const maxMemory = (this.options.maxMemoryMB || 100) * 1024 * 1024;
     if (this.stats.memoryUsage > maxMemory) {
-      console.warn(`⚠️ Dev Mock Redis: 메모리 제한 초과 (${Math.round(this.stats.memoryUsage / 1024 / 1024)}MB)`);
+      console.warn(
+        `⚠️ Dev Mock Redis: 메모리 제한 초과 (${Math.round(this.stats.memoryUsage / 1024 / 1024)}MB)`
+      );
       // TODO: LRU 정책으로 오래된 키 제거
     }
   }
 
   private async saveToDisk(): Promise<void> {
-    if (typeof window !== 'undefined' || !this.options.enablePersistence) {
+    if (
+      typeof window !== 'undefined' ||
+      !this.options.enablePersistence ||
+      !fs ||
+      !path
+    ) {
       return;
     }
 
@@ -462,7 +494,12 @@ export class DevMockRedis {
   }
 
   private async loadFromDisk(): Promise<void> {
-    if (typeof window !== 'undefined' || !this.options.enablePersistence) {
+    if (
+      typeof window !== 'undefined' ||
+      !this.options.enablePersistence ||
+      !fs ||
+      !path
+    ) {
       return;
     }
 
@@ -491,6 +528,6 @@ export function getDevMockRedis(): DevMockRedis {
       maxMemoryMB: 100,
     });
   }
-  
+
   return devMockRedisInstance;
 }

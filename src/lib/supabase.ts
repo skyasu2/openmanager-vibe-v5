@@ -1,25 +1,42 @@
 import { getVercelOptimizedConfig } from '@/config/environment';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { safeEnv, getSupabaseConfig } from './env';
+import type { ServerMetrics } from '@/types/common';
+import type {
+  AIAnalysisResponse,
+  AIAnalysisRequest,
+} from '@/types/ai-analysis';
+import type { Server } from '@/types/server';
 
 // 🔐 안전한 환경변수 접근을 통한 Supabase URL 가져오기
 function getSupabaseUrl() {
   // 1차: 환경변수 직접 확인 (가장 신뢰할 수 있는 방법)
   const directUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (directUrl && directUrl !== '' && directUrl !== 'https://temp.supabase.co') {
+  if (
+    directUrl &&
+    directUrl !== '' &&
+    directUrl !== 'https://temp.supabase.co'
+  ) {
     console.log('✅ Supabase URL (직접):', directUrl.substring(0, 30) + '...');
     return directUrl;
   }
-  
+
   // 2차: safeEnv를 통한 확인
   const config = getSupabaseConfig();
-  
+
   // 설정이 되어 있고 임시 URL이 아닌 경우
-  if (config.isConfigured && config.url && config.url !== 'https://temp.supabase.co') {
-    console.log('✅ Supabase URL (safeEnv):', config.url.substring(0, 30) + '...');
+  if (
+    config.isConfigured &&
+    config.url &&
+    config.url !== 'https://temp.supabase.co'
+  ) {
+    console.log(
+      '✅ Supabase URL (safeEnv):',
+      config.url.substring(0, 30) + '...'
+    );
     return config.url;
   }
-  
+
   // 3차: 빌드 타임인 경우에만 임시 URL 반환
   if (safeEnv.isBuildTime() && process.env.npm_lifecycle_event === 'build') {
     console.warn('⚠️ 빌드 타임 - 임시 Supabase URL 사용');
@@ -37,15 +54,19 @@ function getSupabaseAnonKey() {
   if (directKey && directKey !== '' && directKey !== 'temp-anon-key') {
     return directKey;
   }
-  
+
   // 2차: safeEnv를 통한 확인
   const config = getSupabaseConfig();
-  
+
   // 설정이 되어 있고 임시 키가 아닌 경우
-  if (config.isConfigured && config.anonKey && config.anonKey !== 'temp-anon-key') {
+  if (
+    config.isConfigured &&
+    config.anonKey &&
+    config.anonKey !== 'temp-anon-key'
+  ) {
     return config.anonKey;
   }
-  
+
   // 3차: 빌드 타임인 경우에만 임시 키 반환
   if (safeEnv.isBuildTime() && process.env.npm_lifecycle_event === 'build') {
     console.warn('⚠️ 빌드 타임 - 임시 Supabase Anon Key 사용');
@@ -57,12 +78,14 @@ function getSupabaseAnonKey() {
 }
 
 // Supabase 싱글톤 사용으로 전환
-import { getSupabaseClient, checkSupabaseConnection as checkConnection } from './supabase-singleton';
+import {
+  getSupabaseClient,
+  checkSupabaseConnection as checkConnection,
+} from './supabase-singleton';
 export const supabase = getSupabaseClient();
 
 // 기존 checkSupabaseConnection을 싱글톤 버전으로 대체
 export { checkConnection as checkSupabaseConnection };
-
 
 // 스마트 Supabase 클라이언트 래퍼
 class SmartSupabaseClient {
@@ -107,8 +130,8 @@ class SmartSupabaseClient {
 
   // UPDATE 작업
   async update<T = Record<string, unknown>>(
-    table: string, 
-    data: Partial<T>, 
+    table: string,
+    data: Partial<T>,
     match: Partial<T>
   ) {
     try {
@@ -137,7 +160,7 @@ class SmartSupabaseClient {
 
   // RPC 호출
   async rpc<TParams = Record<string, unknown>, TResult = unknown>(
-    functionName: string, 
+    functionName: string,
     params?: TParams
   ) {
     const cacheKey = `rpc_${functionName}_${JSON.stringify(params)}`;
@@ -246,7 +269,7 @@ class VercelSupabaseClient {
   /**
    * 📊 서버 메트릭 저장
    */
-  async saveServerMetrics(metrics: any[]): Promise<void> {
+  async saveServerMetrics(metrics: ServerMetrics[]): Promise<void> {
     if (!this.isConnected || !this.client) {
       console.log('⚠️ Supabase 미연결 - 메트릭 저장 스킵');
       return;
@@ -278,7 +301,10 @@ class VercelSupabaseClient {
   /**
    * 📖 서버 메트릭 조회
    */
-  async getServerMetrics(serverId?: string, limit = 100): Promise<any[]> {
+  async getServerMetrics(
+    serverId?: string,
+    limit = 100
+  ): Promise<ServerMetrics[]> {
     if (!this.isConnected || !this.client) {
       console.log('⚠️ Supabase 미연결 - 빈 배열 반환');
       return [];
@@ -312,7 +338,7 @@ class VercelSupabaseClient {
   /**
    * 🤖 AI 분석 결과 저장
    */
-  async saveAIAnalysis(analysis: any): Promise<void> {
+  async saveAIAnalysis(analysis: AIAnalysisResponse): Promise<void> {
     if (!this.isConnected || !this.client) {
       console.log('⚠️ Supabase 미연결 - AI 분석 저장 스킵');
       return;
@@ -335,7 +361,10 @@ class VercelSupabaseClient {
   /**
    * 🔍 AI 분석 결과 조회
    */
-  async getAIAnalysis(analysisId?: string, limit = 50): Promise<any[]> {
+  async getAIAnalysis(
+    analysisId?: string,
+    limit = 50
+  ): Promise<AIAnalysisResponse[]> {
     if (!this.isConnected || !this.client) {
       console.log('⚠️ Supabase 미연결 - 빈 배열 반환');
       return [];
@@ -425,15 +454,17 @@ export class VercelDatabase {
   /**
    * 📊 서버 상태 저장 및 조회 통합
    */
-  static async saveServerStatus(serverId: string, status: any): Promise<void> {
+  static async saveServerStatus(
+    serverId: string,
+    status: ServerMetrics
+  ): Promise<void> {
     try {
-      await vercelSupabase.saveServerMetrics([
-        {
-          server_id: serverId,
-          timestamp: new Date().toISOString(),
-          ...status,
-        },
-      ]);
+      const metricsData = {
+        ...status,
+        server_id: serverId,
+        timestamp: new Date(),
+      };
+      await vercelSupabase.saveServerMetrics([metricsData]);
     } catch (error) {
       console.error('❌ 서버 상태 저장 실패:', error);
     }
@@ -443,9 +474,9 @@ export class VercelDatabase {
    * 📈 대시보드 데이터 조회
    */
   static async getDashboardData(): Promise<{
-    servers: any[];
-    metrics: any[];
-    analysis: any[];
+    servers: ServerMetrics[];
+    metrics: ServerMetrics[];
+    analysis: AIAnalysisResponse[];
   }> {
     try {
       const [servers, metrics, analysis] = await Promise.all([

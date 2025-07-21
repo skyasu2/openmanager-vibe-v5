@@ -9,7 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { OptimizedDataGenerator } from '../../../services/OptimizedDataGenerator';
+import { getMockSystem } from '@/mock';
 
 /**
  * 🎯 표준 Prometheus /metrics 엔드포인트
@@ -227,8 +227,8 @@ async function executePromQLQuery(
   query: string,
   time?: number
 ): Promise<any[]> {
-  const generator = OptimizedDataGenerator.getInstance();
-  const servers = await generator.generateRealTimeData();
+  const mockSystem = getMockSystem();
+  const servers = mockSystem.getServers();
 
   // 간단한 PromQL 쿼리 파싱 (실제로는 더 복잡한 파서가 필요)
   if (query.includes('cpu_usage_percent')) {

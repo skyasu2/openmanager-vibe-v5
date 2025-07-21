@@ -72,10 +72,7 @@ export default function Home() {
     isLoading: statusLoading,
     startSystem: startMultiUserSystem,
     refresh: refreshSystemStatus,
-  } = useSystemStatus({
-    pollingInterval: 30000, // 30초마다 상태 체크
-    autoStart: true,
-  });
+  } = useSystemStatus();
 
   const [isLoading, setIsLoading] = useState(false);
   const [systemTimeRemaining, setSystemTimeRemaining] = useState(0);
@@ -92,21 +89,25 @@ export default function Home() {
     if (!isMounted) return;
 
     // 시스템 상태가 변경되면 로컬 상태도 동기화
-    if (multiUserStatus.isRunning && !isSystemStarted) {
+    if (multiUserStatus?.isRunning && !isSystemStarted) {
       console.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 시작됨');
       startSystem(); // 로컬 상태 동기화
-    } else if (!multiUserStatus.isRunning && isSystemStarted) {
+    } else if (
+      multiUserStatus &&
+      !multiUserStatus.isRunning &&
+      isSystemStarted
+    ) {
       console.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 정지됨');
       stopSystem(); // 로컬 상태 동기화
     }
 
     // 시스템 시작 중 상태 동기화
-    if (multiUserStatus.isStarting !== isSystemStarting) {
-      setIsSystemStarting(multiUserStatus.isStarting);
+    if (multiUserStatus?.isStarting !== isSystemStarting) {
+      setIsSystemStarting(multiUserStatus?.isStarting || false);
     }
   }, [
-    multiUserStatus.isRunning,
-    multiUserStatus.isStarting,
+    multiUserStatus?.isRunning,
+    multiUserStatus?.isStarting,
     isSystemStarted,
     isSystemStarting,
     startSystem,
@@ -334,11 +335,7 @@ export default function Home() {
 
     try {
       // 1. 다중 사용자 상태 업데이트
-      const systemStarted = await startMultiUserSystem();
-
-      if (!systemStarted) {
-        throw new Error('다중 사용자 시스템 시작 실패');
-      }
+      await startMultiUserSystem();
 
       // 2. 데이터 동기화 및 백업 체크 (시스템 시작 시에만)
       console.log('🔄 시스템 시작 시 데이터 동기화 중...');
@@ -405,7 +402,7 @@ export default function Home() {
     }
 
     // 다중 사용자 상태에 따른 동작 결정
-    if (multiUserStatus.isRunning || isSystemStarted) {
+    if (multiUserStatus?.isRunning || isSystemStarted) {
       // 시스템이 이미 실행 중이면 대시보드로 이동
       handleDashboardClick();
     } else {
@@ -416,7 +413,7 @@ export default function Home() {
     isLoading,
     isSystemStarting,
     systemStartCountdown,
-    multiUserStatus.isRunning,
+    multiUserStatus?.isRunning,
     isSystemStarted,
     stopSystemCountdown,
     startSystemCountdown,
@@ -461,9 +458,9 @@ export default function Home() {
       }
 
       // 4. 시스템 실행 중 (대시보드 이동)
-      if (multiUserStatus.isRunning || isSystemStarted) {
+      if (multiUserStatus?.isRunning || isSystemStarted) {
         return {
-          text: `📊 대시보드 이동 (사용자: ${multiUserStatus.userCount}명)`,
+          text: `📊 대시보드 이동 (사용자: ${multiUserStatus?.userCount || 0}명)`,
           icon: <BarChart3 className='w-5 h-5' />,
           className:
             'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50',
@@ -483,8 +480,8 @@ export default function Home() {
       isSystemStarting,
       isLoading,
       statusLoading,
-      multiUserStatus.isRunning,
-      multiUserStatus.userCount,
+      multiUserStatus?.isRunning,
+      multiUserStatus?.userCount,
       isSystemStarted,
     ]
   );
@@ -701,7 +698,7 @@ export default function Home() {
                             ? 'text-orange-300 animate-pulse'
                             : isSystemStarting
                               ? 'text-purple-300'
-                              : multiUserStatus.isRunning
+                              : multiUserStatus?.isRunning
                                 ? 'text-green-300'
                                 : 'text-white'
                         }`}
@@ -710,7 +707,7 @@ export default function Home() {
                           ? '⚠️ 시작 예정 - 취소하려면 클릭'
                           : isSystemStarting
                             ? '🚀 시스템 부팅 중...'
-                            : multiUserStatus.isRunning || isSystemStarted
+                            : multiUserStatus?.isRunning || isSystemStarted
                               ? (() => {
                                   // 자동 종료 시간 계산
                                   const shutdownTime = localStorage.getItem(
@@ -740,7 +737,7 @@ export default function Home() {
                     {/* 시작 버튼 안내 아이콘 - 시스템 정지 상태일 때만 표시 */}
                     {!systemStartCountdown &&
                       !isSystemStarting &&
-                      !multiUserStatus.isRunning &&
+                      !multiUserStatus?.isRunning &&
                       !isSystemStarted && (
                         <div className='mt-2 flex justify-center'>
                           <span className='finger-pointer-primary'>👆</span>

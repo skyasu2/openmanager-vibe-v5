@@ -1,27 +1,15 @@
-/**
- * 🔄 다중 사용자 시스템 상태 관리 훅
- *
- * @description
- * 여러 사용자가 동시 접속할 때 시스템 상태를 실시간으로 공유합니다.
- * 기존 코드 구조를 최대한 보존하면서 상태 체크 로직만 추가합니다.
- *
- * @features
- * - Redis 기반 상태 공유
- * - 30초 주기 자동 상태 체크
- * - 시스템 시작/정지 상태 추적
- * - 여러 사용자간 상태 동기화
- */
+'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export interface SystemStatus {
   isRunning: boolean;
   isStarting: boolean;
   lastUpdate: string;
-  userCount?: number;
-  version?: string;
-  environment?: string;
-  uptime?: number;
+  userCount: number;
+  version: string;
+  environment: string;
+  uptime: number; // 초 단위
   services?: {
     database: boolean;
     cache: boolean;
@@ -29,59 +17,24 @@ export interface SystemStatus {
   };
 }
 
-interface UseSystemStatusOptions {
-  pollingInterval?: number;
-  autoStart?: boolean;
-}
-
-interface UseSystemStatusReturn {
-  status: SystemStatus;
+export interface UseSystemStatusReturn {
+  status: SystemStatus | null;
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
-  startSystem: () => Promise<boolean>;
+  startSystem: () => Promise<void>;
 }
 
-export const useSystemStatus = (
-  options: UseSystemStatusOptions = {}
-): UseSystemStatusReturn => {
-  const {
-    pollingInterval = 1800000, // 🚨 응급: 30분으로 대폭 증가 (Vercel 사용량 절약)
-    autoStart = true,
-  } = options;
-
-  // 🚨 비상 모드 체크
-  const isEmergencyMode = process.env.NEXT_PUBLIC_EMERGENCY_MODE === 'true';
-  const actualPollingInterval = isEmergencyMode ? 0 : pollingInterval; // 🚨 비상 시 폴링 완전 차단
-
-  const [status, setStatus] = useState<SystemStatus>({
-    isRunning: false,
-    isStarting: false,
-    lastUpdate: new Date().toISOString(),
-    userCount: 0,
-    version: '5.44.3',
-    environment: 'unknown',
-    uptime: 0,
-    services: {
-      database: true,
-      cache: true,
-      ai: true,
-    },
-  });
-
+export function useSystemStatus(): UseSystemStatusReturn {
+  const [status, setStatus] = useState<SystemStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 시스템 상태 체크 함수
-  const checkStatus = useCallback(async (): Promise<SystemStatus | null> => {
+  const fetchStatus = useCallback(async () => {
     try {
-      const response = await fetch('/api/system/status', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        cache: 'no-store',
-      });
+      setError(null);
+
+      const response = await fetch('/api/system/status');
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -89,108 +42,87 @@ export const useSystemStatus = (
 
       const data = await response.json();
 
-      // 기존 API 구조 활용하면서 새 필드 추가
+      // API 응답을 SystemStatus 형태로 변환
       const systemStatus: SystemStatus = {
-        isRunning: data.isRunning || data.systemActive || false,
-        isStarting: data.isStarting || data.systemStarting || false,
+        isRunning: data.isRunning || false,
+        isStarting: data.isStarting || false,
         lastUpdate: data.lastUpdate || new Date().toISOString(),
-        userCount: data.userCount || 1,
-        version: data.version || '5.44.3',
-        environment: data.environment || 'unknown',
+        userCount: data.userCount || 0,
+        version:
+          data.version || process.env.NEXT_PUBLIC_APP_VERSION || '5.48.0',
+        environment: data.environment || process.env.NODE_ENV || 'development',
         uptime: data.uptime || 0,
-        services: data.services || {
-          database: true,
-          cache: true,
-          ai: true,
+        services: {
+          database: data.services?.database ?? true,
+          cache: data.services?.cache ?? true,
+          ai: data.services?.ai ?? true,
         },
       };
 
       setStatus(systemStatus);
-      setError(null);
-      console.log('🔄 시스템 상태 업데이트:', systemStatus);
-
-      return systemStatus;
-    } catch (err: unknown) {
+    } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : '알 수 없는 오류';
+        err instanceof Error ? err.message : '시스템 상태를 가져올 수 없습니다';
       setError(errorMessage);
-      console.error('❌ 시스템 상태 체크 실패:', errorMessage);
-      return null;
+      console.error('시스템 상태 조회 실패:', err);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // 수동 새로고침
-  const refresh = useCallback(async (): Promise<void> => {
+  const refresh = useCallback(async () => {
     setIsLoading(true);
-    await checkStatus();
-  }, [checkStatus]);
+    await fetchStatus();
+  }, [fetchStatus]);
 
-  // 시스템 시작 함수 (기존 로직 활용)
-  const startSystem = useCallback(async (): Promise<boolean> => {
+  const startSystem = useCallback(async () => {
     try {
-      setStatus(prev => ({ ...prev, isStarting: true }));
+      setError(null);
 
-      // 시스템 시작 API 호출
-      const response = await fetch('/api/system/status', {
+      const response = await fetch('/api/system/start', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'start',
-          timestamp: new Date().toISOString(),
-          initiatedBy: 'user',
-        }),
       });
 
       if (!response.ok) {
-        throw new Error(`시스템 시작 실패: HTTP ${response.status}`);
+        throw new Error(`시스템 시작 실패: ${response.statusText}`);
       }
 
-      const result = await response.json();
-
-      // 즉시 상태 체크하여 업데이트
-      await checkStatus();
-
-      return result.success || true;
-    } catch (err: unknown) {
-      console.error('❌ 시스템 시작 실패:', err);
-      setStatus(prev => ({ ...prev, isStarting: false }));
-      setError(err instanceof Error ? err.message : '시스템 시작 실패');
-      return false;
+      // 시스템 시작 후 상태 새로고침
+      await refresh();
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : '시스템 시작에 실패했습니다';
+      setError(errorMessage);
+      console.error('시스템 시작 실패:', err);
     }
-  }, [checkStatus]);
+  }, [refresh]);
 
-  // 컴포넌트 마운트 시 초기화
+  // 초기 로드 및 주기적 업데이트
   useEffect(() => {
-    if (autoStart) {
-      checkStatus();
-    }
-  }, [checkStatus, autoStart]);
+    fetchStatus();
 
-  // 주기적 상태 체크 - 🚨 시스템 시작된 경우에만 실행
+    // 30초마다 상태 업데이트
+    const interval = setInterval(fetchStatus, 30000);
+
+    return () => clearInterval(interval);
+  }, [fetchStatus]);
+
+  // 페이지 포커스 시 상태 새로고침
   useEffect(() => {
-    if (actualPollingInterval > 0 && !isEmergencyMode && status.isRunning) {
-      const interval = setInterval(() => {
-        if (!status.isStarting) {
-          checkStatus();
-        }
-      }, actualPollingInterval);
+    const handleFocus = () => {
+      if (!document.hidden) {
+        fetchStatus();
+      }
+    };
 
-      return () => clearInterval(interval);
-    }
-    return undefined; // Add explicit return for useEffect cleanup
-  }, [
-    checkStatus,
-    actualPollingInterval,
-    status.isStarting,
-    status.isRunning,
-    isEmergencyMode,
-  ]);
+    document.addEventListener('visibilitychange', handleFocus);
+    window.addEventListener('focus', handleFocus);
 
-  // 🚨 페이지 포커스/가시성 이벤트 기반 상태 체크 제거 - 과도한 API 호출 방지
+    return () => {
+      document.removeEventListener('visibilitychange', handleFocus);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [fetchStatus]);
 
   return {
     status,
@@ -199,4 +131,4 @@ export const useSystemStatus = (
     refresh,
     startSystem,
   };
-};
+}

@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { simulationEngine } from '../../../../services/simulationEngine';
-// import { prometheusFormatter } from '../../../../modules/data-generation/PrometheusMetricsFormatter'; // 🗑️ 프로메테우스 제거
-import type { EnhancedServerMetrics } from '../../../../types/server';
+import { getMockSystem } from '@/mock';
 
 /**
- * 📊 개별 서버 정보 조회 API - Enhanced & Prometheus Compatible
+ * 📊 목업 데이터 전용 개별 서버 정보 조회 API
  * GET /api/servers/[id]
- * 특정 서버의 상세 정보, 히스토리 및 Prometheus 메트릭을 반환합니다
+ * 특정 서버의 상세 정보 및 히스토리를 반환합니다
  */
 export async function GET(
   request: NextRequest,
@@ -27,23 +25,12 @@ export async function GET(
       `📊 서버 [${id}] 정보 조회: history=${includeHistory}, range=${range}, format=${format}`
     );
 
-    // 1. 시뮬레이션 엔진 상태 확인
-    const currentState = simulationEngine.getState();
-    if (currentState.status !== 'running') {
-      console.log('⚠️ 시뮬레이션 엔진이 실행되지 않음. 시작 시도...');
-      simulationEngine.start();
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
+    // 목업 시스템에서 서버 찾기
+    const mockSystem = getMockSystem();
+    const servers = mockSystem.getServers();
 
-    // 2. 서버 찾기
-    let server: EnhancedServerMetrics | undefined =
-      simulationEngine.getServerById(id);
-
-    if (!server) {
-      // hostname으로도 검색
-      const servers = simulationEngine.getServers();
-      server = servers.find(s => s.hostname === id);
-    }
+    // ID 또는 hostname으로 검색
+    let server = servers.find(s => s.id === id || s.hostname === id);
 
     if (!server) {
       return NextResponse.json(
@@ -51,9 +38,10 @@ export async function GET(
           success: false,
           error: 'Server not found',
           message: `서버 '${id}'를 찾을 수 없습니다`,
-          available_servers: simulationEngine
-            .getServers()
-            .map((s: any) => ({ id: s.id, hostname: s.hostname })),
+          available_servers: servers.map((s: any) => ({
+            id: s.id,
+            hostname: s.hostname,
+          })),
           timestamp: new Date().toISOString(),
         },
         { status: 404 }
@@ -83,33 +71,33 @@ export async function GET(
         name: `OpenManager-${server.id}`,
         type: server.role,
         environment: server.environment,
-        location: getLocationByEnvironment(server.environment),
-        provider: getProviderByEnvironment(server.environment),
-        status:
-          server.status === 'healthy'
-            ? 'online'
-            : server.status === 'warning'
-              ? 'warning'
-              : 'offline',
-        cpu: Math.round(server.cpu_usage),
-        memory: Math.round(server.memory_usage),
-        disk: Math.round(server.disk_usage),
-        uptime: formatUptime(server.uptime),
-        lastUpdate: new Date(
-          server.last_updated || server.timestamp || Date.now()
-        ),
-        alerts: server.alerts?.length || 0,
-        services: generateServices(server.role),
+        location: getLocationByEnvironment(server.environment || 'onpremise'),
+        provider: getProviderByEnvironment(server.environment || 'onpremise'),
+        status: server.status,
+        cpu: Math.round(server.cpu || 0),
+        memory: Math.round(server.memory || 0),
+        disk: Math.round(server.disk || 0),
+        uptime:
+          typeof server.uptime === 'number'
+            ? formatUptime(server.uptime)
+            : server.uptime || '0d 0h 0m',
+        lastUpdate: new Date(server.lastUpdate || Date.now()),
+        alerts: Array.isArray(server.alerts)
+          ? server.alerts.length
+          : typeof server.alerts === 'number'
+            ? server.alerts
+            : 0,
+        services: generateServices(server.role || 'web'),
         specs: generateSpecs(server.id),
         os: generateSpecs(server.id).os,
         ip: generateIP(server.id),
         metrics: {
-          cpu: Math.round(server.cpu_usage),
-          memory: Math.round(server.memory_usage),
-          disk: Math.round(server.disk_usage),
-          network_in: Math.round(server.network_in),
-          network_out: Math.round(server.network_out),
-          response_time: Math.round(server.response_time),
+          cpu: Math.round(server.cpu || 0),
+          memory: Math.round(server.memory || 0),
+          disk: Math.round(server.disk || 0),
+          network_in: Math.round(server.network || 0),
+          network_out: Math.round(server.network || 0),
+          response_time: 50,
         },
       };
 
@@ -119,25 +107,28 @@ export async function GET(
         history = generateServerHistory(server, range);
       }
 
-      return NextResponse.json({
-        success: true,
-        server: legacyServer,
-        history,
-        meta: {
-          format: 'legacy',
-          include_history: includeHistory,
-          range,
-          timestamp: new Date().toISOString(),
-          processing_time_ms: Date.now() - startTime,
+      return NextResponse.json(
+        {
+          success: true,
+          server: legacyServer,
+          history,
+          meta: {
+            format: 'legacy',
+            include_history: includeHistory,
+            range,
+            timestamp: new Date().toISOString(),
+            processing_time_ms: Date.now() - startTime,
+          },
         },
-      }, {
-        headers: {
-          // Legacy 형식도 30초 캐싱
-          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
-          'CDN-Cache-Control': 'public, s-maxage=30',
-          'Vercel-CDN-Cache-Control': 'public, s-maxage=30',
-        },
-      });
+        {
+          headers: {
+            // Legacy 형식도 30초 캐싱
+            'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+            'CDN-Cache-Control': 'public, s-maxage=30',
+            'Vercel-CDN-Cache-Control': 'public, s-maxage=30',
+          },
+        }
+      );
     } else {
       // Enhanced 형식 (기본)
       const enhancedResponse = {
@@ -148,18 +139,21 @@ export async function GET(
           environment: server.environment,
           role: server.role,
           status: server.status,
-          uptime: formatUptime(server.uptime),
-          last_updated: server.last_updated,
+          uptime:
+            typeof server.uptime === 'number'
+              ? formatUptime(server.uptime)
+              : server.uptime || '0d 0h 0m',
+          last_updated: server.lastUpdate,
         },
 
         // 현재 메트릭
         current_metrics: {
-          cpu_usage: server.cpu_usage,
-          memory_usage: server.memory_usage,
-          disk_usage: server.disk_usage,
-          network_in: server.network_in,
-          network_out: server.network_out,
-          response_time: server.response_time,
+          cpu_usage: server.cpu || 0,
+          memory_usage: server.memory || 0,
+          disk_usage: server.disk || 0,
+          network_in: server.network || 0,
+          network_out: server.network || 0,
+          response_time: 50,
         },
 
         // 리소스 정보
@@ -174,14 +168,17 @@ export async function GET(
         alerts: server.alerts || [],
 
         // 서비스 정보
-        services: generateServices(server.role),
+        services: generateServices(server.role || 'web'),
       };
 
       // 패턴 정보 포함 (요청시)
-      if (includePatterns && server.pattern_info) {
-        (enhancedResponse as any).pattern_info = server.pattern_info;
-        (enhancedResponse as any).correlation_metrics =
-          server.correlation_metrics;
+      if (includePatterns && 'pattern_info' in server) {
+        (enhancedResponse as any).pattern_info = (server as any).pattern_info;
+        if ('correlation_metrics' in server) {
+          (enhancedResponse as any).correlation_metrics = (
+            server as any
+          ).correlation_metrics;
+        }
       }
 
       // 히스토리 데이터 (요청시)
@@ -205,7 +202,11 @@ export async function GET(
             processing_time_ms: Date.now() - startTime,
             timestamp: new Date().toISOString(),
           },
-          simulation_info: simulationEngine.getSimulationSummary(),
+          dataSource: 'mock-system',
+          scenario:
+            typeof mockSystem.getSystemInfo().scenario === 'string'
+              ? mockSystem.getSystemInfo().scenario
+              : mockSystem.getSystemInfo().scenario?.scenario || 'mixed',
         },
         data: enhancedResponse,
       };
@@ -213,7 +214,7 @@ export async function GET(
       return NextResponse.json(response, {
         headers: {
           'X-Server-Id': server.id,
-          'X-Hostname': server.hostname,
+          'X-Hostname': server.hostname || '',
           'X-Server-Status': server.status,
           'X-Processing-Time-Ms': (Date.now() - startTime).toString(),
           // 개별 서버 정보는 30초 캐싱
@@ -370,7 +371,8 @@ function generateSpecs(serverId: string): {
     'RHEL 8',
     'Amazon Linux 2',
   ];
-  const os = osOptions[Math.abs(hash >> 12) % osOptions.length] ?? 'Ubuntu 20.04';
+  const os =
+    osOptions[Math.abs(hash >> 12) % osOptions.length] ?? 'Ubuntu 20.04';
 
   return { cpu_cores: cpuCores, memory_gb: memoryGb, disk_gb: diskGb, os };
 }
@@ -387,12 +389,9 @@ function formatUptime(uptimeSeconds: number): string {
 }
 
 /**
- * 📈 서버 히스토리 생성 (시뮬레이션)
+ * 📈 서버 히스토리 생성 (목업 데이터 기반)
  */
-function generateServerHistory(
-  server: EnhancedServerMetrics,
-  range: string
-): any {
+function generateServerHistory(server: any, range: string): any {
   const timeRangeMs = parseTimeRange(range);
   const endTime = Date.now();
   const startTime = endTime - timeRangeMs;
@@ -418,31 +417,31 @@ function generateServerHistory(
           0,
           Math.min(
             100,
-            server.cpu_usage + variation * 20 + (Math.random() - 0.5) * 10
+            (server.cpu || 50) + variation * 20 + (Math.random() - 0.5) * 10
           )
         ),
         memory_usage: Math.max(
           0,
           Math.min(
             100,
-            server.memory_usage + variation * 15 + (Math.random() - 0.5) * 8
+            (server.memory || 50) + variation * 15 + (Math.random() - 0.5) * 8
           )
         ),
         disk_usage: Math.max(
           0,
-          Math.min(100, server.disk_usage + (Math.random() - 0.5) * 2)
+          Math.min(100, (server.disk || 50) + (Math.random() - 0.5) * 2)
         ),
         network_in: Math.max(
           0,
-          server.network_in + variation * 50 + (Math.random() - 0.5) * 30
+          (server.network || 100) + variation * 50 + (Math.random() - 0.5) * 30
         ),
         network_out: Math.max(
           0,
-          server.network_out + variation * 40 + (Math.random() - 0.5) * 25
+          (server.network || 100) + variation * 40 + (Math.random() - 0.5) * 25
         ),
         response_time: Math.max(
           0,
-          server.response_time + variation * 100 + (Math.random() - 0.5) * 50
+          50 + variation * 100 + (Math.random() - 0.5) * 50
         ),
       },
     });

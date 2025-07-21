@@ -9,6 +9,7 @@
 import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
 import { NotificationToast } from '@/components/system/NotificationToast';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
+import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { cn } from '@/lib/utils';
 import AISidebarV2 from '@/domains/ai-sidebar/components/AISidebarV2';
@@ -116,6 +117,7 @@ function DashboardPageContent() {
   const [selectedServer, setSelectedServer] = useState<any>(null);
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
+  const [showSystemWarning, setShowSystemWarning] = useState(false);
   const isResizing = false;
 
   // 🔒 자동 로그아웃 시스템 - 베르셀 사용량 최적화
@@ -129,6 +131,42 @@ function DashboardPageContent() {
     onLogout: () => {
       console.log('🔒 자동 로그아웃 실행 - 베르셀 사용량 최적화');
       systemInactivityService.pauseSystem();
+    },
+  });
+
+  // 🕐 20분 시스템 자동 종료 - 포트폴리오 최적화
+  const {
+    isSystemActive,
+    remainingTime: systemRemainingTime,
+    remainingTimeFormatted,
+    isWarning: isSystemWarning,
+    stopSystem,
+    restartSystem,
+  } = useSystemAutoShutdown({
+    activeMinutes: 20, // 20분 동안 동작
+    warningMinutes: 5, // 5분 전 경고
+    onWarning: remainingMinutes => {
+      setShowSystemWarning(true);
+      console.log(`⚠️ 시스템 자동 종료 경고: ${remainingMinutes}분 남음`);
+
+      // 토스트 알림 표시 (CustomEvent 사용)
+      const event = new CustomEvent('system-event', {
+        detail: {
+          type: 'server_alert',
+          level: remainingMinutes === 5 ? 'warning' : 'critical',
+          message:
+            remainingMinutes === 5
+              ? '시스템이 5분 후 자동으로 종료됩니다. 계속 사용하시려면 시스템 중지를 해제해주세요.'
+              : '시스템이 1분 후 자동으로 종료됩니다!',
+        },
+      });
+      window.dispatchEvent(event);
+    },
+    onShutdown: () => {
+      console.log('🛑 시스템 자동 종료 완료');
+      setShowSystemWarning(false);
+
+      // 종료 알림은 콘솔 로그로만 표시 (info 레벨은 NotificationToast에서 필터링됨)
     },
   });
 
@@ -237,6 +275,10 @@ function DashboardPageContent() {
           onNavigateHome={() => (window.location.href = '/main')}
           onToggleAgent={toggleAgent}
           isAgentOpen={isAgentOpen}
+          systemRemainingTime={systemRemainingTime}
+          isSystemActive={isSystemActive}
+          onSystemStop={stopSystem}
+          remainingTimeFormatted={remainingTimeFormatted}
         />
 
         <div className='flex-1 overflow-hidden'>

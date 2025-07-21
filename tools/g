@@ -71,24 +71,33 @@ async function readStdin() {
 
 async function showUsage() {
   console.log(`
-🚀 g - Gemini 개발 도구 빠른 실행기
+🚀 g - Gemini 개발 도구 빠른 실행기 v5.2
 
 사용법:
-  ./tools/g "질문내용"              빠른 채팅
+  ./tools/g "질문내용"              빠른 채팅 (캐싱 활용)
+  ./tools/g i                       대화형 모드 (복잡한 분석)
   ./tools/g file <파일경로>         파일 분석
   ./tools/g diff                    Git diff 리뷰
   ./tools/g stats                   사용량 확인
   ./tools/g health                  헬스체크
   ./tools/g clear                   컨텍스트 초기화
   ./tools/g memory [cmd]            메모리 관리
+  ./tools/g save-context [이름]     컨텍스트 저장
+  ./tools/g list-contexts           저장된 컨텍스트 목록
 
 파이프 입력:
   echo "코드" | ./tools/g
   git diff | ./tools/g "리뷰해주세요"
   cat file.txt | ./tools/g
 
+사용 시나리오:
+  - 간단한 질문: ./tools/g "에러 해결법" (빠른 응답)
+  - 복잡한 분석: ./tools/g i → 대화형 모드
+  - 코드 리뷰: git diff | ./tools/g "SOLID 원칙 검토"
+
 예시:
   ./tools/g "TypeScript 에러 해결법"
+  ./tools/g i  # 깊이 있는 대화 시작
   ./tools/g file src/app/page.tsx
   ./tools/g diff "SOLID 원칙 관점에서"
   `);
@@ -158,6 +167,22 @@ async function run() {
         const memoryArgs = args.slice(1);
         const memoryResult = await tool.systemCommands.memoryCommand(...memoryArgs);
         console.log(memoryResult);
+        break;
+        
+      case 'i':
+      case 'interactive':
+        await tool.interactiveMode();
+        break;
+        
+      case 'save-context':
+        const contextName = args[1] || 'default';
+        const saveResult = await tool.saveContext(contextName);
+        console.log(saveResult);
+        break;
+        
+      case 'list-contexts':
+        const listResult = await tool.listContexts();
+        console.log(listResult);
         break;
         
       default:

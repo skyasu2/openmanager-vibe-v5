@@ -8,9 +8,24 @@
  */
 
 import { getDecryptedRedisConfig } from '@/lib/config/runtime-env-decryptor';
-import Redis from 'ioredis';
 import { env } from './env';
 import { DevMockRedis } from './redis/dev-mock-redis';
+
+// Edge Runtime 호환성을 위해 동적 import 사용
+let Redis: any;
+try {
+  // Node.js 환경에서만 ioredis 로드
+  if (
+    typeof process !== 'undefined' &&
+    process.versions &&
+    process.versions.node
+  ) {
+    Redis = require('ioredis');
+  }
+} catch (error) {
+  // Edge Runtime에서는 무시
+  console.warn('⚠️ ioredis를 사용할 수 없는 환경입니다 (Edge Runtime)');
+}
 
 /**
  * 🚀 스마트 Redis 클라이언트
@@ -611,14 +626,14 @@ interface RedisStatus {
   timestamp?: string;
 }
 
-let redis: Redis | null = null;
+let redis: any | null = null;
 let redisStatus: RedisStatus = {
   status: 'disconnected',
   connectedAt: null,
   lastError: null,
 };
 
-export function getRedis(): Redis {
+export function getRedis(): any {
   // 🚫 테스트 환경에서 FORCE_MOCK_REDIS 체크
   if (process.env.FORCE_MOCK_REDIS === 'true') {
     console.log('🎭 FORCE_MOCK_REDIS=true - 통합 Mock Redis 사용');
@@ -636,6 +651,15 @@ export function getRedis(): Redis {
         enablePersistence: true,
         enableDevTools: true,
       });
+    }
+    return unifiedMockRedis as any;
+  }
+
+  // Edge Runtime이나 Redis 클래스가 없는 경우 Mock 사용
+  if (!Redis) {
+    console.log('⚠️ ioredis가 사용 불가능한 환경 - Mock Redis 사용');
+    if (!unifiedMockRedis) {
+      unifiedMockRedis = new UnifiedMockRedis();
     }
     return unifiedMockRedis as any;
   }
@@ -674,7 +698,7 @@ export function getRedis(): Redis {
       redisStatus.status = 'ready';
     });
 
-    redis.on('error', error => {
+    redis.on('error', (error: Error) => {
       console.error('❌ Redis 오류:', error);
       redisStatus.status = 'error';
       redisStatus.lastError = error.message;

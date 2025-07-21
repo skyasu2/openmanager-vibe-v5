@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.50.1",
+  "version": "5.55.0",
   "description": "🚀 OpenManager Vibe v5 - 무료티어 최적화로 월 사용량 90% 절약하는 실시간 서버 관리 플랫폼. GCP Functions 통합, TypeScript 완전 타입 안전성, Google AI 연동으로 차세대 서버 모니터링 시스템을 제공합니다.",
   "private": true,
   "type": "module",
@@ -145,7 +145,6 @@
     "env:backup": "tsx scripts/auto-env-manager.ts backup",
     "env:rotate": "tsx scripts/auto-env-manager.ts rotate",
     "env:github-workflow": "tsx scripts/auto-env-manager.ts github-workflow",
-    "env:docker-compose": "tsx scripts/auto-env-manager.ts docker-compose",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
@@ -271,7 +270,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
-      "eslint --fix --cache --max-warnings=0",
+      "eslint --fix --cache --max-warnings=0 --no-warn-ignored",
       "prettier --write"
     ],
     "*.{json,md,css}": [

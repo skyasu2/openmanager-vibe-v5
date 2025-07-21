@@ -254,10 +254,10 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
   },
 
   // Server Data Generator Technologies
-  optimizeddatagenerator: {
-    name: 'OptimizedDataGenerator v3.0',
+  mocksystem: {
+    name: 'Mock System',
     category: 'data-generation',
-    description: '24시간 베이스라인 + 실시간 변동으로 메모리 60% 절약',
+    description: 'Mock 데이터를 통한 시스템 시뮬레이션',
     importance: 'high',
     isCore: true,
   },
@@ -268,8 +268,8 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     importance: 'high',
     isCore: true,
   },
-      gcprealdata: {
-      name: 'GCPRealDataService',
+  gcprealdata: {
+    name: 'GCPRealDataService',
     category: 'data-generation',
     description: '환경별(개발/프로덕션) 서버 생성 + 클러스터 관리',
     importance: 'high',
@@ -462,12 +462,6 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     name: 'GitHub Actions',
     category: 'deployment',
     description: 'CI/CD 자동화 워크플로우',
-    importance: 'medium',
-  },
-  docker: {
-    name: 'Docker',
-    category: 'deployment',
-    description: '컨테이너 기반 배포 및 개발 환경',
     importance: 'medium',
   },
 

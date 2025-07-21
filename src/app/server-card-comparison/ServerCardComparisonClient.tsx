@@ -49,7 +49,6 @@ const ServerCardComparisonClient = () => {
         { name: 'nginx', status: 'running', port: 80 },
         { name: 'mysql', status: 'running', port: 3306 },
         { name: 'redis', status: 'running', port: 6379 },
-        { name: 'docker', status: 'running', port: 2375 },
         { name: 'monitoring', status: 'running', port: 9090 },
       ],
       lastUpdate: new Date(),

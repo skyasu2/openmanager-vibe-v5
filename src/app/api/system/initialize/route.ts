@@ -1,4 +1,4 @@
-// GCPRealDataService removed - using FixedDataSystem instead
+// Using mock system for system initialization
 /**
  * 🚀 시스템 초기화 API - 통합 초기화 v3.0
  */

@@ -88,7 +88,16 @@ export class AdvancedSimulationEngine {
         if (!serverMetricsMap.has(serverId)) {
           serverMetricsMap.set(serverId, []);
         }
-        serverMetricsMap.get(serverId)!.push(metric);
+        // common.ts ServerMetrics를 이 파일의 ServerMetrics로 변환
+        const convertedMetric: ServerMetrics = {
+          cpu: metric.cpu_usage || 0,
+          memory: metric.memory_usage || 0,
+          disk: metric.disk_usage || 0,
+          network: metric.network_in || 0,
+          timestamp: metric.timestamp.toISOString(),
+          server_id: metric.server_id,
+        };
+        serverMetricsMap.get(serverId)!.push(convertedMetric);
       });
 
       this.realMetricsCache = serverMetricsMap;
@@ -97,7 +106,11 @@ export class AdvancedSimulationEngine {
       console.log(
         `📊 실제 메트릭 데이터 조회: ${realMetrics.length}개 레코드, ${serverMetricsMap.size}개 서버`
       );
-      return realMetrics;
+
+      // 변환된 메트릭들을 평평하게 만들어서 반환
+      const convertedMetrics: ServerMetrics[] = [];
+      serverMetricsMap.forEach(metrics => convertedMetrics.push(...metrics));
+      return convertedMetrics;
     } catch (error) {
       console.warn('⚠️ 실제 데이터 조회 실패, fallback 사용:', error);
       return this.generateFallbackMetrics(5); // 최소한의 fallback
@@ -429,8 +442,12 @@ export class AdvancedSimulationEngine {
   async getIntegratedAIMetrics(): Promise<any> {
     const targets = await this.getAnalysisTargets();
     const totalServers = targets.length;
-    const criticalServers = targets.filter((s: any) => s.status === 'critical').length;
-    const warningServers = targets.filter((s: any) => s.status === 'warning').length;
+    const criticalServers = targets.filter(
+      (s: any) => s.status === 'critical'
+    ).length;
+    const warningServers = targets.filter(
+      (s: any) => s.status === 'warning'
+    ).length;
 
     return {
       totalServers,
@@ -438,10 +455,12 @@ export class AdvancedSimulationEngine {
       warningServers,
       healthyServers: totalServers - criticalServers - warningServers,
       averageCpu: Math.round(
-        targets.reduce((sum: number, s: any) => sum + s.cpu_usage, 0) / totalServers
+        targets.reduce((sum: number, s: any) => sum + s.cpu_usage, 0) /
+          totalServers
       ),
       averageMemory: Math.round(
-        targets.reduce((sum: number, s: any) => sum + s.memory_usage, 0) / totalServers
+        targets.reduce((sum: number, s: any) => sum + s.memory_usage, 0) /
+          totalServers
       ),
       activeScenarios: this.scenarios.length,
       timestamp: new Date().toISOString(),

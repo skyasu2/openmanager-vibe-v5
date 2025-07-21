@@ -1,5 +1,5 @@
-// GCPRealDataService removed - using FixedDataSystem instead
 import { NextRequest, NextResponse } from 'next/server';
+import { getMockSystem } from '@/mock';
 
 /**
  * 🖥️ Sequential Server Generation API (실제 서버데이터 생성기 연동)
@@ -108,24 +108,29 @@ export async function GET(request: NextRequest) {
     const order = searchParams.get('order') || 'asc';
     const status = searchParams.get('status');
 
-    // 시뮬레이션 서버 데이터
-    const allServers = Array.from({ length: 50 }, (_, i) => ({
-      id: `server-${i + 1}`,
-      name: `Server-${String(i + 1).padStart(3, '0')}`,
-      status: ['healthy', 'warning', 'critical'][Math.floor(Math.random() * 3)],
-      type: ['web', 'database', 'api', 'cache'][Math.floor(Math.random() * 4)],
-      cpu: Math.floor(Math.random() * 100),
-      memory: Math.floor(Math.random() * 100),
-      disk: Math.floor(Math.random() * 100),
-      network: Math.floor(Math.random() * 100),
-      uptime: Math.floor(Math.random() * 365),
-      lastUpdate: new Date(Date.now() - Math.random() * 86400000).toISOString(),
-      location: ['Seoul', 'Tokyo', 'Singapore', 'Mumbai'][
-        Math.floor(Math.random() * 4)
-      ],
-      environment: ['production', 'staging', 'development'][
-        Math.floor(Math.random() * 3)
-      ],
+    // 목업 시스템에서 서버 데이터 가져오기
+    const mockSystem = getMockSystem();
+    const mockServers = mockSystem.getServers();
+
+    // 서버 데이터를 API 형식으로 변환
+    const allServers = mockServers.map(server => ({
+      id: server.id,
+      name: server.name,
+      status:
+        server.status === 'online'
+          ? 'healthy'
+          : server.status === 'critical'
+            ? 'critical'
+            : 'warning',
+      type: server.role,
+      cpu: Math.round(server.cpu || 0),
+      memory: Math.round(server.memory || 0),
+      disk: Math.round(server.disk || 0),
+      network: Math.round(server.network || 0),
+      uptime: server.uptime,
+      lastUpdate: server.lastUpdate || new Date().toISOString(),
+      location: server.location,
+      environment: server.environment,
     }));
 
     // 상태 필터링
@@ -182,9 +187,12 @@ export async function GET(request: NextRequest) {
         },
         summary: {
           total: filteredServers.length,
-          healthy: filteredServers.filter((s: any) => s.status === 'healthy').length,
-          warning: filteredServers.filter((s: any) => s.status === 'warning').length,
-          critical: filteredServers.filter((s: any) => s.status === 'critical').length,
+          healthy: filteredServers.filter((s: any) => s.status === 'healthy')
+            .length,
+          warning: filteredServers.filter((s: any) => s.status === 'warning')
+            .length,
+          critical: filteredServers.filter((s: any) => s.status === 'critical')
+            .length,
         },
       },
       timestamp: new Date().toISOString(),

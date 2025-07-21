@@ -33,7 +33,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RealAISidebarService } from '../services/RealAISidebarService';
 
 // 분리된 컴포넌트들 import
-import { unifiedAIRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
 import { availableEngines } from './AIEngineSelector';
 import { AIFunctionPages } from './AIFunctionPages';
 import { AIPresetQuestions } from './AIPresetQuestions';
@@ -370,29 +369,46 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     try {
       console.log(`🤖 실제 AI 쿼리 처리 시작: ${query} (엔진: ${engine})`);
 
-      // UnifiedAIEngineRouter 직접 사용
-      const response = await unifiedAIRouter.query(query, { mode: engine });
+      // API 엔드포인트 호출
+      const response = await fetch('/api/mcp/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query,
+          context: 'ai-sidebar',
+          includeThinking: true,
+          sessionId: chatSessionId,
+        }),
+      });
 
-      if (response && response.content) {
+      if (!response.ok) {
+        throw new Error(`API 오류: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.response) {
         const processingTime = Date.now() - startTime;
 
         // 성공 시 생각 과정을 저장하고 실시간 표시 중단
         setTimeout(
-          () => stopThinking(query, response.engine || engine, processingTime),
+          () => stopThinking(query, data.engine || engine, processingTime),
           500
         );
 
         return {
           success: true,
-          content: response.content,
-          confidence: response.confidence,
-          engine: response.engine || engine,
+          content: data.response,
+          confidence: data.confidence || 0.8,
+          engine: data.engine || engine,
           processingTime,
-          metadata: response.metadata,
+          metadata: data.metadata,
         };
       } else {
         stopThinking();
-        throw new Error('AI 응답 생성 실패');
+        throw new Error(data.error || 'AI 응답 생성 실패');
       }
     } catch (error) {
       console.error('❌ 실제 AI 쿼리 실패:', error);
@@ -454,11 +470,8 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
       setSelectedEngine(newMode);
 
-      // Unified AI Engine Router 모드 변경
-      await unifiedAIRouter.query('모드 변경 테스트', {
-        mode: newMode,
-        context: { modeChange: true },
-      });
+      // 모드 변경은 로컬 상태만 업데이트
+      console.log(`🔄 AI 모드 변경: ${newMode}`);
 
       // 성공 메시지 추가
       const message: ChatMessage = {

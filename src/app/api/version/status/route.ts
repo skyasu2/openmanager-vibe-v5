@@ -14,7 +14,6 @@ let AI_ENGINE_VERSIONS: any = null;
 let DATA_GENERATOR_VERSIONS: any = null;
 let VersionManager: any = null;
 let masterAIEngine: any = null;
-let OptimizedDataGenerator: any = null;
 
 try {
   const versionsModule = require('@/config/versions');
@@ -31,15 +30,13 @@ try {
   // masterAIEngine = simplifiedQueryEngineModule.simplifiedQueryEngine;
   masterAIEngine = null; // GCP Functions로 이관됨
 } catch (error) {
-  console.warn('SimplifiedQueryEngine import 실패 (GCP Functions로 이관됨):', (error as Error).message);
+  console.warn(
+    'SimplifiedQueryEngine import 실패 (GCP Functions로 이관됨):',
+    (error as Error).message
+  );
 }
 
-try {
-  const optimizedDataGeneratorModule = require('@/services/OptimizedDataGenerator');
-  OptimizedDataGenerator = optimizedDataGeneratorModule.OptimizedDataGenerator;
-} catch (error) {
-  console.warn('OptimizedDataGenerator import 실패:', (error as Error).message);
-}
+// OptimizedDataGenerator는 Mock System으로 대체됨
 
 export async function GET(request: NextRequest) {
   try {
