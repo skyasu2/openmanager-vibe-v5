@@ -176,7 +176,4 @@ export function resetSupabaseClient(): void {
   }
 }
 
-/**
- * 레거시 호환성을 위한 기본 export
- */
-export const supabase = getSupabaseClient();
+// 레거시 호환성을 위한 기본 export는 supabase.ts에서 처리

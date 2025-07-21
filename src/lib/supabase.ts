@@ -234,31 +234,10 @@ class VercelSupabaseClient {
         return;
       }
 
-      this.client = createClient(
-        this.config.database.supabase.url,
-        this.config.database.supabase.key,
-        {
-          auth: {
-            persistSession: false, // Vercel에서는 세션 저장 비활성화
-          },
-          global: {
-            headers: {
-              'x-application-name': 'openmanager-vibe-v5',
-            },
-          },
-          db: {
-            schema: 'public',
-          },
-          realtime: {
-            params: {
-              eventsPerSecond: this.config.IS_VERCEL ? 10 : 50, // Vercel에서 제한
-            },
-          },
-        }
-      );
-
+      // 싱글톤 인스턴스 사용
+      this.client = getSupabaseClient();
       this.isConnected = true;
-      console.log('✅ Supabase 연결 성공');
+      console.log('✅ Supabase 싱글톤 연결 사용');
     } catch (error) {
       console.error('❌ Supabase 연결 실패:', error);
       this.isConnected = false;

@@ -1,35 +1,33 @@
 /**
  * 👤 User Profile Service
- * 
+ *
  * Supabase 기반 사용자 프로필 관리 서비스
  * GitHub OAuth + 게스트 사용자 통합 관리
  */
 
-import { createClient, User as SupabaseUser } from '@supabase/supabase-js';
+import { User as SupabaseUser } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-server';
-import type { 
-  AppUser, 
-  GitHubUser, 
-  GuestUser, 
-  DatabaseUser, 
+import type {
+  AppUser,
+  GitHubUser,
+  GuestUser,
+  DatabaseUser,
   UserProfileUpdate,
   UserSettings,
   UserActivity,
   AuthResult,
   DEFAULT_GITHUB_PERMISSIONS,
-  DEFAULT_GUEST_PERMISSIONS 
+  DEFAULT_GUEST_PERMISSIONS,
 } from '@/types/auth.types';
 
 export class UserProfileService {
   private supabase;
-  
+
   constructor() {
     // 클라이언트 사이드에서 사용할 때
     if (typeof window !== 'undefined') {
-      this.supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
+      this.supabase = supabase;
     } else {
       // 서버 사이드에서 사용할 때
       this.supabase = supabaseAdmin;
@@ -75,7 +73,12 @@ export class UserProfileService {
         id: crypto.randomUUID(),
         auth_user_id: authUser.id,
         email: authUser.email,
-        name: metadata.full_name || metadata.name || metadata.user_name || authUser.email?.split('@')[0] || 'GitHub User',
+        name:
+          metadata.full_name ||
+          metadata.name ||
+          metadata.user_name ||
+          authUser.email?.split('@')[0] ||
+          'GitHub User',
         avatar_url: metadata.avatar_url,
         username: metadata.user_name,
         bio: metadata.bio,
@@ -89,9 +92,25 @@ export class UserProfileService {
         following: metadata.following,
         verified: true, // GitHub OAuth 사용자는 기본적으로 인증됨
         user_type: isGitHubUser ? 'github' : 'guest',
-        permissions: isGitHubUser ? 
-          ['dashboard:view', 'dashboard:edit', 'system:start', 'system:stop', 'api:read', 'api:write', 'logs:view', 'metrics:view', 'settings:edit'] :
-          ['dashboard:view', 'system:start', 'basic_interaction', 'metrics:view', 'logs:view'],
+        permissions: isGitHubUser
+          ? [
+              'dashboard:view',
+              'dashboard:edit',
+              'system:start',
+              'system:stop',
+              'api:read',
+              'api:write',
+              'logs:view',
+              'metrics:view',
+              'settings:edit',
+            ]
+          : [
+              'dashboard:view',
+              'system:start',
+              'basic_interaction',
+              'metrics:view',
+              'logs:view',
+            ],
         settings: {
           user_id: authUser.id,
           theme: 'system',
@@ -128,7 +147,6 @@ export class UserProfileService {
 
       console.log('✅ 사용자 프로필 생성 성공:', data.name);
       return data as DatabaseUser;
-
     } catch (error) {
       console.error('사용자 프로필 생성 중 오류:', error);
       return null;
@@ -160,7 +178,6 @@ export class UserProfileService {
 
       console.log('✅ 사용자 프로필 업데이트 성공:', data.name);
       return data as DatabaseUser;
-
     } catch (error) {
       console.error('사용자 프로필 업데이트 중 오류:', error);
       return null;
@@ -193,7 +210,6 @@ export class UserProfileService {
 
       console.log('✅ 사용자 설정 업데이트 성공');
       return true;
-
     } catch (error) {
       console.error('사용자 설정 업데이트 중 오류:', error);
       return false;
@@ -229,7 +245,6 @@ export class UserProfileService {
       }
 
       return true;
-
     } catch (error) {
       console.error('사용자 활동 기록 중 오류:', error);
       return false;
@@ -258,7 +273,6 @@ export class UserProfileService {
       }
 
       return data as UserActivity[];
-
     } catch (error) {
       console.error('사용자 활동 조회 중 오류:', error);
       return [];
@@ -268,7 +282,9 @@ export class UserProfileService {
   /**
    * 🗂️ Auth User ID로 프로필 조회
    */
-  async getUserProfileByAuthId(authUserId: string): Promise<DatabaseUser | null> {
+  async getUserProfileByAuthId(
+    authUserId: string
+  ): Promise<DatabaseUser | null> {
     try {
       const { data, error } = await this.supabase
         .from('users')
@@ -282,7 +298,6 @@ export class UserProfileService {
       }
 
       return data as DatabaseUser;
-
     } catch (error) {
       console.error('Auth ID로 사용자 프로필 조회 중 오류:', error);
       return null;
@@ -308,7 +323,6 @@ export class UserProfileService {
       }
 
       return true;
-
     } catch (error) {
       console.error('마지막 로그인 시간 업데이트 중 오류:', error);
       return false;
@@ -323,12 +337,17 @@ export class UserProfileService {
     profileData?: DatabaseUser
   ): GitHubUser {
     const metadata = supabaseUser.user_metadata || {};
-    
+
     return {
       id: profileData?.id || crypto.randomUUID(),
       type: 'github',
       email: supabaseUser.email,
-      name: profileData?.name || metadata.full_name || metadata.name || supabaseUser.email?.split('@')[0] || 'GitHub User',
+      name:
+        profileData?.name ||
+        metadata.full_name ||
+        metadata.name ||
+        supabaseUser.email?.split('@')[0] ||
+        'GitHub User',
       avatar: profileData?.avatar_url || metadata.avatar_url,
       github_id: metadata.sub || metadata.provider_id || supabaseUser.id,
       username: profileData?.username || metadata.user_name,
@@ -336,7 +355,8 @@ export class UserProfileService {
       location: profileData?.location || metadata.location,
       company: profileData?.company || metadata.company,
       blog: profileData?.blog || metadata.blog,
-      twitter_username: profileData?.twitter_username || metadata.twitter_username,
+      twitter_username:
+        profileData?.twitter_username || metadata.twitter_username,
       public_repos: profileData?.public_repos || metadata.public_repos || 0,
       followers: profileData?.followers || metadata.followers || 0,
       following: profileData?.following || metadata.following || 0,
@@ -370,7 +390,6 @@ export class UserProfileService {
       const cleanedCount = data?.length || 0;
       console.log(`🧹 ${cleanedCount}명의 비활성 게스트 사용자 정리 완료`);
       return cleanedCount;
-
     } catch (error) {
       console.error('비활성 게스트 사용자 정리 중 오류:', error);
       return 0;

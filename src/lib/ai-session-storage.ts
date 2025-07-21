@@ -7,7 +7,7 @@
  * ✅ Redis 대체 (Vercel 최적화)
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from './supabase-singleton';
 import { EdgeLogger } from './edge-runtime-utils';
 
 // ==============================================
@@ -84,15 +84,15 @@ export class AISessionStorage {
   constructor() {
     this.logger = EdgeLogger.getInstance();
 
-    // Supabase 클라이언트 초기화
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      this.logger.warn('Supabase 환경변수가 설정되지 않음 - 메모리 캐시 사용');
+    // Supabase 싱글톤 클라이언트 사용
+    try {
+      this.supabase = getSupabaseClient();
+    } catch (error) {
+      this.logger.warn(
+        'Supabase 클라이언트 초기화 실패 - 메모리 캐시 사용',
+        error
+      );
       this.supabase = null;
-    } else {
-      this.supabase = createClient(supabaseUrl, supabaseKey);
     }
   }
 

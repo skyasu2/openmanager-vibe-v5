@@ -1,10 +1,10 @@
 /**
  * 🗄️ Supabase Metrics Client
- * 
+ *
  * 서버 메트릭 데이터를 위한 Supabase 클라이언트
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from './supabase-singleton';
 
 // 메트릭 데이터 타입 정의
 export interface DailyMetric {
@@ -39,25 +39,16 @@ export interface ServerConfig {
   };
 }
 
-// Supabase 클라이언트 생성
+// Supabase 싱글톤 클라이언트 사용
 export const createSupabaseClient = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Supabase credentials not found in environment variables');
-  }
-
-  return createClient(supabaseUrl, supabaseKey);
+  return getSupabaseClient();
 };
 
 // 메트릭 데이터 삽입 함수
 export const insertMetrics = async (metrics: DailyMetric[]) => {
   const supabase = createSupabaseClient();
-  
-  const { data, error } = await supabase
-    .from('daily_metrics')
-    .insert(metrics);
+
+  const { data, error } = await supabase.from('daily_metrics').insert(metrics);
 
   if (error) {
     throw new Error(`Failed to insert metrics: ${error.message}`);
@@ -74,7 +65,7 @@ export const getMetrics = async (
   limit?: number
 ) => {
   const supabase = createSupabaseClient();
-  
+
   let query = supabase
     .from('daily_metrics')
     .select('*')
@@ -108,15 +99,12 @@ export const getMetrics = async (
 // 메트릭 데이터 삭제 함수 (개발용)
 export const clearMetrics = async () => {
   const supabase = createSupabaseClient();
-  
-  const { error } = await supabase
-    .from('daily_metrics')
-    .delete()
-    .neq('id', 0); // 모든 레코드 삭제
+
+  const { error } = await supabase.from('daily_metrics').delete().neq('id', 0); // 모든 레코드 삭제
 
   if (error) {
     throw new Error(`Failed to clear metrics: ${error.message}`);
   }
 
   console.log('✅ All metrics data cleared');
-}; 
+};
