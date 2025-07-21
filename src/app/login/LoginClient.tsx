@@ -41,7 +41,7 @@ export default function LoginClient() {
   useEffect(() => {
     setIsClient(true);
 
-    // Fragment에서 토큰 감지 및 처리 (Implicit Grant Flow)
+    // Fragment에서 토큰 감지 및 처리 (레거시 지원 - 현재는 Authorization Code Flow 사용)
     const hash = window.location.hash;
     if (hash && hash.includes('access_token')) {
       console.log('🔐 Fragment에서 토큰 감지됨, 세션 설정 시작...');

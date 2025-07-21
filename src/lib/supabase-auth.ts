@@ -22,18 +22,6 @@ export interface AuthCallbackResult {
 }
 
 /**
- * 에러 객체가 message 속성을 가지고 있는지 확인하는 타입 가드
- */
-function hasMessageProperty(error: any): error is { message: string } {
-  return (
-    error &&
-    typeof error === 'object' &&
-    'message' in error &&
-    typeof error.message === 'string'
-  );
-}
-
-/**
  * GitHub OAuth 로그인
  */
 export async function signInWithGitHub() {
@@ -41,8 +29,8 @@ export async function signInWithGitHub() {
     // 동적으로 리다이렉트 URL 설정 (로컬/베르셀 자동 감지)
     const origin = window.location.origin;
 
-    // Implicit Grant Flow를 처리하기 위해 로그인 페이지로 리다이렉트
-    const redirectUrl = `${origin}/login`;
+    // Authorization Code Flow를 위해 콜백 라우트로 리다이렉트
+    const redirectUrl = `${origin}/auth/callback`;
 
     console.log('🔗 OAuth 리다이렉트 URL:', redirectUrl);
     console.log('🌍 현재 환경:', {
