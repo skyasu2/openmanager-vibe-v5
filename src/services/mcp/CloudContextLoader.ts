@@ -20,7 +20,7 @@ import type { RedisClientInterface } from '@/lib/redis';
 /**
  * Redis 클라이언트 객체인지 확인하는 타입 가드
  */
-function isRedisClient(value: unknown): value is RedisClientInterface {
+export function isRedisClient(value: unknown): value is RedisClientInterface {
   return (
     value !== null &&
     typeof value === 'object' &&
@@ -35,7 +35,7 @@ function isRedisClient(value: unknown): value is RedisClientInterface {
 /**
  * Redis가 연결되어 있고 사용 가능한지 확인하는 타입 가드
  */
-function isRedisConnected(
+export function isRedisConnected(
   redis: RedisClientInterface | null
 ): redis is RedisClientInterface {
   return redis !== null && isRedisClient(redis);
@@ -44,7 +44,7 @@ function isRedisConnected(
 /**
  * Redis 연산을 안전하게 실행하는 래퍼 함수
  */
-async function safeRedisOperation<T>(
+export async function safeRedisOperation<T>(
   redis: RedisClientInterface | null,
   operation: (redis: RedisClientInterface) => Promise<T>,
   fallback?: T
