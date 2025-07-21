@@ -23,6 +23,14 @@ import {
   Clock,
 } from 'lucide-react';
 
+interface GuestUserData {
+  id?: string;
+  name?: string;
+  email?: string;
+  createdAt?: string;
+  preferences?: Record<string, unknown>;
+}
+
 interface AuthStatus {
   timestamp: string;
   supabaseSession: {
@@ -34,7 +42,7 @@ interface AuthStatus {
   guestSession: {
     active: boolean;
     sessionId: string | null;
-    userData: any;
+    userData: GuestUserData | null;
     cookies: {
       sessionId: boolean;
       authType: boolean;

@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
+import type { Variants } from 'framer-motion';
 
 interface FeatureCardProps {
   id: string;
@@ -43,7 +44,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
 
   const completionRate = getCompletionRate(id);
 
-  const cardVariants: any = {
+  const cardVariants: Variants = {
     hidden: {
       opacity: 0,
       y: 50,
@@ -73,14 +74,14 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
     },
   };
 
-  const hoverVariants: any = {
+  const hoverVariants: Variants = {
     hover: {
       boxShadow: '0 25px 50px rgba(0, 0, 0, 0.4)',
       transition: { duration: 0.3 },
     },
   };
 
-  const glowVariants: any = {
+  const glowVariants: Variants = {
     hover: {
       opacity: [0, 0.3, 0],
       scale: [1, 1.05, 1],
@@ -92,7 +93,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
     },
   };
 
-  const iconRotateVariants: any = {
+  const iconRotateVariants: Variants = {
     hover: {
       rotate: [0, 10, -10, 0],
       scale: [1, 1.2, 1],

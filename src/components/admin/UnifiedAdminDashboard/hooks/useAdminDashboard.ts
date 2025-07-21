@@ -226,9 +226,21 @@ function createDefaultInfrastructure() {
   };
 }
 
+interface PerformanceDataInput {
+  performance?: {
+    score?: number;
+  };
+}
+
+interface LoggingDataInput {
+  stats?: {
+    errorRate?: number;
+  };
+}
+
 function calculateOverallStatus(
-  performanceData: any,
-  loggingData: any
+  performanceData: PerformanceDataInput,
+  loggingData: LoggingDataInput
 ): DashboardData['status']['overall'] {
   const perfScore = performanceData?.performance?.score || 0;
   const errorRate = loggingData?.stats?.errorRate || 0;

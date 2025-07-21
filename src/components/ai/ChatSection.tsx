@@ -17,8 +17,9 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { timerManager } from '../../utils/TimerManager';
+import type { ServerMetrics } from '@/types/unified-server';
 
-interface Message {
+interface _Message {
   id: string;
   type: 'user' | 'assistant' | 'thinking';
   content: string;
@@ -42,7 +43,7 @@ interface QAPage {
 }
 
 interface ChatSectionProps {
-  serverMetrics?: any;
+  serverMetrics?: ServerMetrics;
   onClose: () => void;
 }
 
