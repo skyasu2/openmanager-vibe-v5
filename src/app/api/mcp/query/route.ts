@@ -46,7 +46,11 @@ export async function POST(request: NextRequest) {
     const result = await queryEngine.query({
       query,
       mode: 'local',
-      context: { source: context },
+      context: {
+        metadata: {
+          source: context,
+        },
+      },
       options: {
         includeThinking,
         includeMCPContext: true, // MCP 컨텍스트 포함
@@ -105,7 +109,7 @@ export async function POST(request: NextRequest) {
  *
  * GET /api/mcp/query
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     console.log('📊 MCP 쿼리 시스템 상태 조회...');
 
