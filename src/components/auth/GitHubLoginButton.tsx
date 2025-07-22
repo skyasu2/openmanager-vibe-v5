@@ -13,7 +13,6 @@ import { useState } from 'react';
 import Image from 'next/image';
 
 export interface GitHubLoginButtonProps {
-  onLoginSuccess?: (user: any) => void;
   onLoginError?: (error: string) => void;
   className?: string;
   buttonText?: string;
@@ -21,13 +20,13 @@ export interface GitHubLoginButtonProps {
   callbackUrl?: string;
 }
 
+// eslint-disable-next-line max-lines-per-function
 export default function GitHubLoginButton({
-  onLoginSuccess,
   onLoginError,
   className = '',
   buttonText = 'GitHub으로 로그인',
   showUserInfo = true,
-  callbackUrl = '/dashboard',
+  callbackUrl = '/main', // 기본값을 /main으로 변경
 }: GitHubLoginButtonProps) {
   const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(false);

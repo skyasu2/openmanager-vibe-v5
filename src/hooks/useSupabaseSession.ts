@@ -104,7 +104,7 @@ export function useSession(): UseSessionReturn {
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase, router]);
+  }, [router]);
 
   // NextAuth 호환 세션 객체 생성
   const data: Session | null = user
@@ -178,11 +178,22 @@ export async function signIn(
   try {
     if (provider === 'github') {
       const baseUrl = window.location.origin;
+      const finalRedirect = options?.callbackUrl || '/main';
+
+      // Supabase OAuth는 반드시 /auth/callback을 거쳐야 함
+      // 최종 목적지는 URL 파라미터로 전달
+      const callbackUrl = `${baseUrl}/auth/callback?redirect=${encodeURIComponent(finalRedirect)}`;
+
+      console.log('🔐 GitHub OAuth 시작:', {
+        baseUrl,
+        finalRedirect,
+        callbackUrl,
+      });
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${baseUrl}${options?.callbackUrl || '/dashboard'}`,
+          redirectTo: callbackUrl,
         },
       });
 
