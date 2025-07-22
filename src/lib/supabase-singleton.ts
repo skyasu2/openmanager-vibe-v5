@@ -9,12 +9,19 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@supabase/supabase-js';
 import { safeEnv, getSupabaseConfig } from './env';
 
-// 전역 싱글톤 인스턴스
-let supabaseInstance: SupabaseClient | null = null;
+// 전역 싱글톤 인스턴스 - 더 강력한 싱글톤 보장
+declare global {
+  var __supabaseInstance: SupabaseClient | undefined;
 
-// 초기화 상태 추적
-let isInitialized = false;
-let initializationError: Error | null = null;
+  var __supabaseInitialized: boolean | undefined;
+
+  var __supabaseInitError: Error | undefined;
+}
+
+// 전역 변수를 통한 싱글톤 보장 (빌드 시에도 작동)
+let supabaseInstance = global.__supabaseInstance;
+let isInitialized = global.__supabaseInitialized || false;
+let initializationError = global.__supabaseInitError || null;
 
 /**
  * Supabase URL 가져오기 (기존 로직 재사용)
@@ -92,42 +99,60 @@ export function getSupabaseClient(): SupabaseClient {
       const url = getSupabaseUrl();
       const key = getSupabaseAnonKey();
 
+      // 빌드 시간 감지
+      const isBuildTime =
+        process.env.npm_lifecycle_event === 'build' ||
+        process.env.NEXT_PHASE === 'phase-production-build';
+
       // 클라이언트 생성 옵션
       const options = {
         auth: {
-          persistSession: typeof window !== 'undefined', // 서버에서는 세션 유지 비활성화
-          autoRefreshToken: typeof window !== 'undefined', // 서버에서는 자동 갱신 비활성화
-          detectSessionInUrl: typeof window !== 'undefined', // 서버에서는 URL 검출 비활성화
+          persistSession: typeof window !== 'undefined' && !isBuildTime,
+          autoRefreshToken: typeof window !== 'undefined' && !isBuildTime,
+          detectSessionInUrl: typeof window !== 'undefined' && !isBuildTime,
           storage:
-            typeof window !== 'undefined' ? window.localStorage : undefined,
-          // 서버 사이드에서 쿠키 관련 에러 방지
+            typeof window !== 'undefined' && !isBuildTime
+              ? window.localStorage
+              : undefined,
           storageKey:
-            typeof window !== 'undefined' ? 'sb-auth-token' : undefined,
+            typeof window !== 'undefined' && !isBuildTime
+              ? 'sb-auth-token'
+              : undefined,
           cookieOptions: {
-            // 서버 사이드에서는 쿠키 옵션 제공하지 않음
             ...(typeof window !== 'undefined' ? {} : { sameSite: 'lax' }),
           },
+          // 빌드 시 세션 플로우 타입 설정
+          flowType: isBuildTime ? ('implicit' as const) : ('pkce' as const),
         },
         global: {
           headers: {
             'x-openmanager-version': 'v5.0',
           },
         },
-        // 중복 인스턴스 경고 비활성화
-        realtime: {
-          params: {
-            eventsPerSecond: 10,
-          },
-        },
+        // 빌드 시 realtime 비활성화
+        realtime: isBuildTime
+          ? undefined
+          : {
+              params: {
+                eventsPerSecond: 10,
+              },
+            },
+        // 빌드 시 디버그 로그 억제
+        log: isBuildTime ? { level: 'error' } : undefined,
       };
 
       supabaseInstance = createClient(url, key, options);
       isInitialized = true;
 
+      // 전역 변수에 저장하여 빌드 시에도 싱글톤 보장
+      global.__supabaseInstance = supabaseInstance;
+      global.__supabaseInitialized = true;
+
       console.log('✅ Supabase 싱글톤 클라이언트 초기화 완료');
     } catch (error) {
       initializationError =
         error instanceof Error ? error : new Error('Unknown error');
+      global.__supabaseInitError = initializationError;
       throw initializationError;
     }
   }
@@ -171,9 +196,12 @@ export async function checkSupabaseConnection(): Promise<{
  */
 export function resetSupabaseClient(): void {
   if (process.env.NODE_ENV === 'test') {
-    supabaseInstance = null;
+    supabaseInstance = undefined;
     isInitialized = false;
     initializationError = null;
+    global.__supabaseInstance = undefined;
+    global.__supabaseInitialized = undefined;
+    global.__supabaseInitError = undefined;
   }
 }
 

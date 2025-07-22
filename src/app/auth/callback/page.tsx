@@ -7,12 +7,13 @@
 
 'use client';
 
+import { Suspense } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader2 } from 'lucide-react';
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
@@ -94,5 +95,25 @@ export default function AuthCallbackPage() {
         <p className='text-gray-400'>{error || '잠시만 기다려주세요'}</p>
       </div>
     </div>
+  );
+}
+
+// Suspense boundary로 감싸서 useSearchParams 에러 해결
+export default function AuthCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className='min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center'>
+          <div className='text-center'>
+            <div className='mb-8'>
+              <Loader2 className='w-16 h-16 text-blue-500 animate-spin mx-auto' />
+            </div>
+            <h1 className='text-2xl font-bold text-white mb-2'>로딩 중...</h1>
+          </div>
+        </div>
+      }
+    >
+      <AuthCallbackContent />
+    </Suspense>
   );
 }
