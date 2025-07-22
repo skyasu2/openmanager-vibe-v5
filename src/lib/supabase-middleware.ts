@@ -168,9 +168,8 @@ export async function getMiddlewareSession(
 
 /**
  * Middleware 클라이언트 리셋 (테스트용)
+ * @deprecated SSR 방식으로 변경되어 더 이상 싱글톤 인스턴스를 사용하지 않음
  */
 export function resetMiddlewareClient(): void {
-  if (process.env.NODE_ENV === 'test') {
-    middlewareClientInstance = null;
-  }
+  // SSR 방식에서는 리셋이 필요없음
 }
