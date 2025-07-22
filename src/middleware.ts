@@ -95,7 +95,10 @@ export async function middleware(request: NextRequest) {
 
       // 모든 쿠키 로그
       const cookies = request.cookies.getAll();
-      console.log('🍪 미들웨어 쿠키 목록:', cookies.map(c => c.name));
+      console.log(
+        '🍪 미들웨어 쿠키 목록:',
+        cookies.map(c => c.name)
+      );
 
       // 세션 확인
       const {
@@ -113,10 +116,14 @@ export async function middleware(request: NextRequest) {
       // OAuth 콜백 직후인지 확인 (referer 체크)
       const referer = request.headers.get('referer');
       const isFromCallback = referer?.includes('/auth/callback');
-      
+
+      // GitHub OAuth 성공 후 리다이렉트 처리 개선
+      // code 파라미터가 있으면 OAuth 콜백에서 왔음
+      const hasOAuthCode = request.nextUrl.searchParams.has('code');
+
       if (error || !session) {
         // OAuth 콜백에서 온 경우 잠시 대기
-        if (isFromCallback) {
+        if (isFromCallback || hasOAuthCode) {
           console.log('⏳ OAuth 콜백 직후 - 세션 설정 대기');
           // 일단 통과시키고 클라이언트에서 처리하도록 함
           return response;

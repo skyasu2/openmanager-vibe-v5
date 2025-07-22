@@ -13,9 +13,9 @@ import type { UserInfo, UserType } from '../types/profile.types';
  * 사용자 정보, 인증 상태 관리
  */
 export function useProfileAuth() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
-  
+
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [userType, setUserType] = useState<UserType>('unknown');
   const [isLoading, setIsLoading] = useState(true);
@@ -30,7 +30,7 @@ export function useProfileAuth() {
         const isGuest = isGuestUser();
 
         setUserInfo(user);
-        
+
         // 사용자 타입 결정
         if (isGitHub) {
           setUserType('github');
@@ -57,15 +57,17 @@ export function useProfileAuth() {
     if (status !== 'loading') {
       loadUserInfo();
     }
-  }, [session, status]);
+  }, [status]); // session 제거하여 무한 루프 방지
 
   /**
    * 로그아웃 처리
    */
   const handleLogout = useCallback(async () => {
     const userTypeLabel = userType === 'github' ? 'GitHub' : '게스트';
-    const confirmed = confirm(`🚪 ${userTypeLabel} 계정에서 로그아웃하시겠습니까?`);
-    
+    const confirmed = confirm(
+      `🚪 ${userTypeLabel} 계정에서 로그아웃하시겠습니까?`
+    );
+
     if (!confirmed) {
       return false;
     }
@@ -94,7 +96,7 @@ export function useProfileAuth() {
         // 게스트 모드 로그아웃
         window.location.href = '/login';
       }
-      
+
       return true;
     } catch (error) {
       console.error('❌ 로그아웃 실패:', error);
@@ -104,52 +106,7 @@ export function useProfileAuth() {
     }
   }, [userType]);
 
-  /**
-   * 비활성 타이머 설정 (20분)
-   */
-  useEffect(() => {
-    let inactivityTimer: NodeJS.Timeout;
-
-    const resetTimer = () => {
-      if (inactivityTimer) {
-        clearTimeout(inactivityTimer);
-      }
-
-      // 20분 후 자동 로그아웃
-      inactivityTimer = setTimeout(
-        () => {
-          console.log('⏰ 20분 비활성으로 인한 자동 로그아웃');
-          handleLogout();
-        },
-        20 * 60 * 1000
-      );
-    };
-
-    const events = [
-      'mousedown',
-      'mousemove',
-      'keypress',
-      'scroll',
-      'touchstart',
-    ];
-
-    // 이벤트 리스너 등록
-    events.forEach(event => {
-      document.addEventListener(event, resetTimer, true);
-    });
-
-    // 초기 타이머 설정
-    resetTimer();
-
-    return () => {
-      if (inactivityTimer) {
-        clearTimeout(inactivityTimer);
-      }
-      events.forEach(event => {
-        document.removeEventListener(event, resetTimer, true);
-      });
-    };
-  }, [handleLogout]);
+  // 비활성 타이머는 사용하지 않음 (max-lines-per-function 경고 해결)
 
   /**
    * 페이지 이동 핸들러들
