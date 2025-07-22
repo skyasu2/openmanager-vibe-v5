@@ -1,5 +1,74 @@
 # Changelog
 
+## [5.60.0] - 2025-07-22
+
+### 📚 문서 정리 및 갱신
+
+#### Documentation
+
+- **중복 문서 통합 및 정리**
+  - AI 시스템 가이드: `archive/ai-system-guide.md` → `ai-system-unified-guide.md`로 통합
+  - Gemini CLI 브릿지: v2 문서를 archive로 이동, v3 및 v5 최신 버전만 유지
+  - MCP 가이드: 중복된 MCP 문서들을 `claude-code-mcp-setup-2025.md`로 통합
+  - 보안 가이드: 구 버전을 archive로 이동, `security-complete-guide.md` 유지
+
+- **문서 참조 업데이트**
+  - `CLAUDE.md`: 최신 문서 경로로 참조 업데이트
+  - `README.md`: 문서 링크를 카테고리별로 재구성
+  - `docs/README.md`: 현재 문서 구조를 정확히 반영
+
+#### Improved
+
+- **문서 구조 개선**
+  - 최신 가이드와 레거시 문서 명확히 구분
+  - 카테고리별 문서 분류 (아키텍처, 개발, 운영, AI 도구)
+  - 사용자가 쉽게 찾을 수 있도록 문서 구조 단순화
+
+- **버전 일관성**
+  - 모든 문서의 버전 참조를 v5.60.0으로 통일
+  - 오래된 버전 정보 제거 또는 업데이트
+
+## [5.59.0] - 2025-07-22
+
+### 🎨 프로필 드롭다운 컴포넌트 리팩토링
+
+#### Refactored
+
+- **프로필 드롭다운 구조 개선**
+  - 876줄의 단일 컴포넌트를 여러 작은 컴포넌트로 분리
+  - `ProfileAvatar`, `ProfileDropdownMenu`, `ProfileMenuItem`, `AdminAuthModal` 컴포넌트 생성
+  - 컴포넌트별 책임 분리로 유지보수성 대폭 향상
+
+- **커스텀 훅으로 로직 분리**
+  - `useProfileAuth`: 사용자 인증 및 정보 관리
+  - `useProfileSecurity`: 관리자 모드 보안 로직
+  - `useProfileMenu`: 메뉴 상태 및 상호작용 관리
+  - 재사용 가능한 로직 분리로 테스트 용이성 향상
+
+#### Added
+
+- **타입 안전성 강화**
+  - 전용 타입 정의 파일 (`profile.types.ts`) 생성
+  - 모든 컴포넌트와 훅에 강력한 타입 지원
+  - MenuItem 인터페이스로 메뉴 구성 표준화
+
+- **접근성 개선**
+  - ARIA 속성 추가 (role, aria-label, aria-expanded 등)
+  - 키보드 네비게이션 지원 (Enter, Space, Escape)
+  - 포커스 관리 개선
+
+#### Improved
+
+- **성능 최적화**
+  - React.memo로 불필요한 리렌더링 방지
+  - useCallback으로 함수 메모이제이션
+  - useMemo로 메뉴 아이템 계산 최적화
+
+- **개발자 경험 향상**
+  - 명확한 디렉토리 구조 (`components/profile/`)
+  - 중앙 집중식 exports (`index.ts`)
+  - 코드 가독성 및 디버깅 용이성 향상
+
 ## [5.58.0] - 2025-07-22
 
 ### 🔐 인증 시스템 개선 및 문서 업데이트

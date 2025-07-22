@@ -92,11 +92,29 @@ npm run build
 
 상세한 기술 문서는 [`/docs`](./docs) 디렉토리를 참조하세요:
 
+### 🏗️ 아키텍처 및 시스템
+
 - [시스템 아키텍처](./docs/system-architecture.md)
-- [GCP Functions 완전 가이드](./docs/gcp-complete-guide.md) 🚀 NEW
-- [TypeScript 개선 가이드](./docs/typescript-improvement-guide.md) ✨ NEW
-- [AI 엔진 통합](./docs/ai-complete-guide.md)
+- [AI 시스템 통합 가이드](./docs/ai-system-unified-guide.md) ✨ 최신
+- [GCP Functions 완전 가이드](./docs/gcp-complete-guide.md)
+
+### 🔧 개발 가이드
+
 - [개발 가이드](./docs/development-guide.md)
+- [개발 도구 통합](./docs/development-tools.md)
+- [TypeScript 개선 가이드](./docs/typescript-improvement-guide.md)
+- [테스팅 가이드](./docs/testing-guide.md)
+
+### 🔒 보안 및 운영
+
+- [보안 완전 가이드](./docs/security-complete-guide.md)
+- [배포 완전 가이드](./docs/deployment-complete-guide.md)
+- [메모리 최적화 가이드](./docs/memory-optimization-guide.md)
+
+### 🤖 AI 도구 및 통합
+
+- [Gemini 개발 도구 v5](./docs/gemini-dev-tools-v5-guide.md) 🚀 최신
+- [Claude Code MCP 설정 2025](./docs/claude-code-mcp-setup-2025.md) 🆕 최신
 
 ## 🏆 프로젝트 하이라이트
 

@@ -1,6 +1,6 @@
-# 📚 OpenManager Vibe v5.48.7 문서
+# 📚 OpenManager Vibe v5.59.0 문서
 
-> **Edge Runtime 최적화된 2-Mode AI 시스템** - 2025년 1월 최신 버전
+> **Edge Runtime 최적화된 AI 서버 모니터링 플랫폼** - 2025년 1월 최신 버전
 
 ## 🎯 개요
 
@@ -19,24 +19,29 @@ OpenManager Vibe v5.48.7은 **Edge Runtime 최적화된 2-Mode AI 시스템**으
 
 ### 🚀 핵심 가이드
 
-| 문서                                                                 | 설명                  |
-| -------------------------------------------------------------------- | --------------------- |
-| **[AI 시스템 통합 가이드](./ai-system-unified-guide.md)**            | 상세한 사용법과 예시  |
-| **[AI 시스템 완전 가이드](./ai-complete-guide.md)**                  | 핵심 개념과 개요      |
-| **[시스템 아키텍처](./system-architecture.md)**                      | 전체 시스템 구조      |
-| **[React Hooks 최적화](./react-hooks-optimization.md)** ✨           | ESLint 경고 해결 전략 |
-| **[TypeScript 설정 가이드](./typescript-configuration-guide.md)** ✨ | TS 설정 최적화        |
+| 문서                                                                | 설명                       |
+| ------------------------------------------------------------------- | -------------------------- |
+| **[AI 시스템 통합 가이드](./ai-system-unified-guide.md)** ✨        | 통합 AI 시스템 상세 가이드 |
+| **[시스템 아키텍처](./system-architecture.md)**                     | 전체 시스템 구조           |
+| **[Gemini 개발 도구 v5](./gemini-dev-tools-v5-guide.md)** 🚀        | 최신 AI 개발 도구          |
+| **[Claude Code MCP 설정 2025](./claude-code-mcp-setup-2025.md)** 🆕 | Claude Code 통합 가이드    |
 
-### 🔧 운영 가이드
+### 🔧 개발 가이드
 
-| 문서                                                        | 설명                 |
-| ----------------------------------------------------------- | -------------------- |
-| **[배포 완전 가이드](./deployment-complete-guide.md)**      | 배포 및 운영         |
-| **[보안 완전 가이드](./security-complete-guide.md)**        | 보안 및 인증         |
-| **[테스팅 가이드](./testing-guide.md)**                     | 테스트 및 품질 관리  |
-| **[개발 도구](./development-tools.md)**                     | 개발 환경 설정       |
-| **[Husky 최적화 가이드](./husky-optimization-guide.md)** ✨ | Git hooks 성능 개선  |
-| **[MCP 설정 2025](./claude-code-mcp-setup-2025.md)**        | Claude Code MCP 통합 |
+| 문서                                                            | 설명                    |
+| --------------------------------------------------------------- | ----------------------- |
+| **[개발 가이드](./development-guide.md)**                       | 개발 환경 및 워크플로우 |
+| **[개발 도구 통합](./development-tools.md)**                    | 도구 설정 및 사용법     |
+| **[TypeScript 개선 가이드](./typescript-improvement-guide.md)** | TypeScript 최적화       |
+| **[테스팅 가이드](./testing-guide.md)**                         | TDD 및 테스트 전략      |
+
+### 🛡️ 운영 및 보안
+
+| 문서                                                       | 설명                   |
+| ---------------------------------------------------------- | ---------------------- |
+| **[보안 완전 가이드](./security-complete-guide.md)**       | 보안 설정 및 모범 사례 |
+| **[배포 완전 가이드](./deployment-complete-guide.md)**     | Vercel 배포 및 운영    |
+| **[메모리 최적화 가이드](./memory-optimization-guide.md)** | 성능 최적화 전략       |
 
 ### 📊 성능 지표
 
@@ -131,17 +136,20 @@ const response = await fetch('/api/ai/unified-query', { ... });
 ```
 docs/
 ├── README.md                           # 이 파일 (문서 개요)
-├── ai-system-unified-guide.md         # 상세 사용법
-├── ai-complete-guide.md               # 핵심 개념
-├── system-architecture.md             # 시스템 구조
-├── gcp-complete-guide.md             # 클라우드 서비스
-├── deployment-complete-guide.md       # 배포 가이드
+├── ai-system-unified-guide.md         # 통합 AI 시스템 가이드
+├── system-architecture.md             # 시스템 아키텍처
+├── claude-code-mcp-setup-2025.md      # Claude Code MCP 설정
+├── gemini-dev-tools-v5-guide.md       # Gemini 개발 도구
+├── development-guide.md               # 개발 가이드
+├── development-tools.md               # 개발 도구 통합
 ├── security-complete-guide.md         # 보안 가이드
+├── deployment-complete-guide.md       # 배포 가이드
 ├── testing-guide.md                   # 테스트 가이드
-├── development-tools.md               # 개발 도구
-└── archive/
-    └── legacy-3-tier/                 # 레거시 문서
-        └── README.md                  # 마이그레이션 가이드
+└── archive/                           # 이전 버전 문서
+    ├── ai-system-guide.md             # 구 AI 시스템 가이드
+    ├── gemini-cli-bridge-v2-guide.md  # Gemini v2 가이드
+    ├── MCP_ARCHITECTURE.md            # 구 MCP 아키텍처
+    └── security-guide.md              # 구 보안 가이드
 ```
 
 ## 🚀 빠른 시작
@@ -209,4 +217,4 @@ if (result.success) {
 
 ---
 
-> **참고**: 이 문서는 v5.45.0 기준으로 작성되었습니다. 최신 업데이트는 각 문서를 참조하세요.
+> **참고**: 이 문서는 v5.59.0 기준으로 작성되었습니다. 최신 업데이트는 각 문서를 참조하세요.

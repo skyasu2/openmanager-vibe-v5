@@ -876,7 +876,7 @@ npm run ai:live             # 실시간 모니터링
 - **새로운 v2.0 도구**: 더 강력한 기능 제공 (권장)
 - **마이그레이션**: 기존 명령어와 100% 호환
 
-상세 가이드: `docs/ai-tools-guide-v2.md`
+상세 가이드: `docs/gemini-dev-tools-v5-guide.md`
 
 ### 💡 사용법
 
@@ -982,12 +982,18 @@ npx ccusage@latest blocks --active
 
 ### 📚 관련 문서
 
-- **🚀 Claude Code MCP 설정 2025 (최신)**: `docs/claude-code-mcp-setup-2025.md`
-- **MCP 통합 가이드 (기존 참조용)**: `docs/MCP-GUIDE.md`
-- **MCP 완전 가이드 (구 버전)**: `docs/mcp-complete-guide.md`
-- **Gemini CLI 브릿지 v3.0 개선사항**: `docs/gemini-cli-bridge-v3-improvements.md`
-- **Gemini CLI 브릿지 v2.0**: `docs/gemini-cli-bridge-v2-guide.md`
-- **개발 도구 통합**: `docs/development-tools.md`
+#### 🆕 최신 가이드 (권장)
+
+- **🚀 Claude Code MCP 설정 2025**: `docs/claude-code-mcp-setup-2025.md`
+- **🤖 AI 시스템 통합 가이드**: `docs/ai-system-unified-guide.md`
+- **🔧 Gemini 개발 도구 v5**: `docs/gemini-dev-tools-v5-guide.md`
+- **🔒 보안 완전 가이드**: `docs/security-complete-guide.md`
+- **🛠️ 개발 도구 통합**: `docs/development-tools.md`
+
+#### 📋 개선사항 문서
+
+- **Gemini CLI 브릿지 v3 개선사항**: `docs/gemini-cli-bridge-v3-improvements.md`
+- **AI 도구 협업 가치**: `docs/claude-gemini-collaboration-value.md`
 
 ## AI 도구 협업 전략
 
