@@ -29,7 +29,7 @@ async function getBackupStatus(request: AuthenticatedRequest) {
       location: 'cloud-storage',
     };
 
-    console.log(`💾 Backup status requested by ${request.auth?.userId}`);
+    console.log(`💾 Backup status requested by ${request.authInfo?.userId}`);
     return NextResponse.json({
       success: true,
       data: backupStatus,
@@ -59,7 +59,7 @@ async function manageBackup(request: AuthenticatedRequest) {
     const { action, backupId, settings } = body;
 
     console.log(
-      `💾 Backup action '${action}' requested by ${request.auth?.userId}`
+      `💾 Backup action '${action}' requested by ${request.authInfo?.userId}`
     );
 
     switch (action) {
@@ -69,7 +69,7 @@ async function manageBackup(request: AuthenticatedRequest) {
           message: '백업이 시작되었습니다',
           backupId: `backup_${new Date().toISOString().replace(/[:.]/g, '').substring(0, 15)}`,
           estimatedDuration: 45, // minutes
-          startedBy: request.auth?.userId,
+          startedBy: request.authInfo?.userId,
           timestamp: new Date().toISOString(),
         });
 

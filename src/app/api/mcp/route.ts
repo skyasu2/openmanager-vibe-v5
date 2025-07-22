@@ -12,7 +12,7 @@ import { z } from 'zod';
 import { createMcpHandler } from 'mcp-handler';
 
 // 🔍 시스템 상태 확인 함수
-const getSystemStatusHandler = async () => {
+const getSystemStatusHandler = async (_args: any, _extra: any) => {
   const status = {
     environment: process.env.NODE_ENV,
     vercelEnv: process.env.VERCEL_ENV,
@@ -24,7 +24,7 @@ const getSystemStatusHandler = async () => {
   return {
     content: [
       {
-        type: 'text',
+        type: 'text' as const,
         text: `📊 시스템 상태:\n${JSON.stringify(status, null, 2)}`,
       },
     ],
@@ -32,7 +32,7 @@ const getSystemStatusHandler = async () => {
 };
 
 // 🔑 환경변수 확인 함수
-const checkEnvConfigHandler = async () => {
+const checkEnvConfigHandler = async (_args: any, _extra: any) => {
   const safeEnvVars = {
     NODE_ENV: process.env.NODE_ENV,
     VERCEL_ENV: process.env.VERCEL_ENV,
@@ -45,7 +45,7 @@ const checkEnvConfigHandler = async () => {
   return {
     content: [
       {
-        type: 'text',
+        type: 'text' as const,
         text: `🔑 환경변수 설정:\n${JSON.stringify(safeEnvVars, null, 2)}`,
       },
     ],
@@ -53,7 +53,10 @@ const checkEnvConfigHandler = async () => {
 };
 
 // 🧪 헬스체크 함수
-const healthCheckHandler = async ({ endpoint }: { endpoint: string }) => {
+const healthCheckHandler = async (
+  { endpoint }: { endpoint: string },
+  _extra: any
+) => {
   try {
     const baseUrl = process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
@@ -65,7 +68,7 @@ const healthCheckHandler = async ({ endpoint }: { endpoint: string }) => {
     return {
       content: [
         {
-          type: 'text',
+          type: 'text' as const,
           text: `✅ 헬스체크 결과:\nStatus: ${response.status}\nResponse: ${data}`,
         },
       ],
@@ -74,7 +77,7 @@ const healthCheckHandler = async ({ endpoint }: { endpoint: string }) => {
     return {
       content: [
         {
-          type: 'text',
+          type: 'text' as const,
           text: `❌ 헬스체크 실패: ${error}`,
         },
       ],
@@ -83,12 +86,15 @@ const healthCheckHandler = async ({ endpoint }: { endpoint: string }) => {
 };
 
 // 📝 로그 조회 함수
-const getRecentLogsHandler = async ({ limit }: { limit: number }) => {
+const getRecentLogsHandler = async (
+  { limit }: { limit: number },
+  _extra: any
+) => {
   // 실제 구현에서는 Supabase나 로깅 서비스에서 로그를 가져옵니다
   return {
     content: [
       {
-        type: 'text',
+        type: 'text' as const,
         text: `📝 최근 ${limit}개 로그:\n(로그 조회 기능은 추후 구현 예정)`,
       },
     ],
@@ -96,7 +102,7 @@ const getRecentLogsHandler = async ({ limit }: { limit: number }) => {
 };
 
 // 🔍 프로젝트 정보 제공 함수
-const getProjectInfoHandler = async () => {
+const getProjectInfoHandler = async (_args: any, _extra: any) => {
   const projectInfo = {
     name: 'OpenManager VIBE v5',
     description: 'AI 기반 서버 모니터링 플랫폼',
@@ -118,23 +124,16 @@ const getProjectInfoHandler = async () => {
   return {
     content: [
       {
-        type: 'text',
+        type: 'text' as const,
         text: JSON.stringify(projectInfo, null, 2),
-        mimeType: 'application/json',
       },
     ],
   };
 };
 
-// 💡 디버깅 프롬프트 생성 함수
-const getDebugPrompt = async ({ issue }: { issue: string }) => {
-  return {
-    messages: [
-      {
-        role: 'system',
-        content: {
-          type: 'text',
-          text: `OpenManager VIBE v5 배포 환경 디버깅 가이드:
+// 💡 디버깅 가이드 생성 함수
+const getDebugPrompt = async ({ issue }: { issue: string }, _extra: any) => {
+  const guide = `OpenManager VIBE v5 배포 환경 디버깅 가이드:
 
 문제: ${issue}
 
@@ -147,8 +146,13 @@ const getDebugPrompt = async ({ issue }: { issue: string }) => {
 
 주의사항:
 - 프로덕션 AI 기능은 GCP VM MCP를 사용합니다
-- 이 MCP 서버는 개발 도구 전용입니다`,
-        },
+- 이 MCP 서버는 개발 도구 전용입니다`;
+
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: guide,
       },
     ],
   };
@@ -188,18 +192,18 @@ const handler = createMcpHandler(
       getRecentLogsHandler
     );
 
-    // 🔍 프로젝트 정보 제공
-    server.resource(
-      'project_info',
-      'OpenManager VIBE 프로젝트 정보',
-      'application/json',
+    // 🔍 프로젝트 정보 도구
+    server.tool(
+      'get_project_info',
+      'OpenManager VIBE 프로젝트 정보를 조회합니다',
+      {},
       getProjectInfoHandler
     );
 
-    // 💡 개발 프롬프트 제공
-    server.prompt(
+    // 💡 디버깅 도구
+    server.tool(
       'debug_deployment',
-      '배포 환경 디버깅을 위한 프롬프트',
+      '배포 환경 디버깅을 위한 가이드를 제공합니다',
       { issue: z.string().describe('디버깅하려는 문제') },
       getDebugPrompt
     );
@@ -207,8 +211,6 @@ const handler = createMcpHandler(
   {
     capabilities: {
       tools: { listChanged: true },
-      resources: { listChanged: true },
-      prompts: { listChanged: true },
     },
   },
   { basePath: '/api' }

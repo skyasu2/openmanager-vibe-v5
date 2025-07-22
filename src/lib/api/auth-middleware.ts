@@ -9,7 +9,7 @@ import { NextResponse } from 'next/server';
 import { authManager } from '../auth';
 
 export interface AuthenticatedRequest extends NextRequest {
-  auth?: {
+  authInfo?: {
     sessionId: string;
     userId: string;
     userRole: 'admin' | 'viewer' | 'demo';
@@ -72,7 +72,7 @@ export function withAdminAuth(
 
       // 인증 정보를 요청에 추가
       const authenticatedReq = req as AuthenticatedRequest;
-      authenticatedReq.auth = {
+      authenticatedReq.authInfo = {
         sessionId: session.sessionId,
         userId: session.userId,
         userRole: session.userRole,

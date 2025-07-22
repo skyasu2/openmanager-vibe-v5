@@ -13,7 +13,7 @@ import {
 } from '@/lib/api/auth-middleware';
 
 // 임계값 설정 기본값
-const defaultThresholds = {
+const _defaultThresholds = {
   system: {
     cpu: {
       warning: 70,
@@ -98,7 +98,9 @@ async function getThresholds(request: AuthenticatedRequest) {
       },
     };
 
-    console.log(`📊 Admin thresholds requested by: ${request.auth?.userId}`);
+    console.log(
+      `📊 Admin thresholds requested by: ${request.authInfo?.userId}`
+    );
 
     return NextResponse.json({
       success: true,
@@ -127,12 +129,12 @@ async function updateThresholds(request: AuthenticatedRequest) {
     const body = await request.json();
 
     // 임계값 업데이트 로직 (여기서는 시뮬레이션)
-    console.log(`🔧 Thresholds update by ${request.auth?.userId}:`, body);
+    console.log(`🔧 Thresholds update by ${request.authInfo?.userId}:`, body);
 
     return NextResponse.json({
       success: true,
       message: 'Thresholds updated successfully',
-      updatedBy: request.auth?.userId,
+      updatedBy: request.authInfo?.userId,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -171,7 +173,7 @@ async function updateSpecificThreshold(request: AuthenticatedRequest) {
 
     // 실제 환경에서는 특정 카테고리/메트릭만 업데이트
     console.log(
-      `💾 Admin threshold ${category}.${metric} updated by ${request.auth?.userId}:`,
+      `💾 Admin threshold ${category}.${metric} updated by ${request.authInfo?.userId}:`,
       updatedData
     );
 
@@ -179,7 +181,7 @@ async function updateSpecificThreshold(request: AuthenticatedRequest) {
       success: true,
       message: `Threshold for ${category}.${metric} updated successfully`,
       data: updatedData,
-      updatedBy: request.auth?.userId,
+      updatedBy: request.authInfo?.userId,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
