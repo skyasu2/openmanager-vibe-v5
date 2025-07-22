@@ -16,7 +16,6 @@ import type {
 import { LoggingService } from '@/services/LoggingService';
 import { EnhancedCacheService } from '@/services/cacheService';
 import { ErrorHandlingService } from '@/services/error-handling/ErrorHandlingService';
-import { TestFramework } from '@/testing/TestFramework';
 import {
   container,
   registerFactory,
@@ -199,24 +198,6 @@ export class ServiceRegistry {
       'singleton'
     );
 
-    // Test Framework
-    registerFactory(
-      SERVICE_TOKENS.TEST_FRAMEWORK,
-      () => {
-        const logger = container.resolve<ILogger>(SERVICE_TOKENS.LOGGER);
-        const errorHandler = container.resolve<IErrorHandler>(
-          SERVICE_TOKENS.ERROR_HANDLER
-        );
-        const testFramework = new TestFramework(logger, errorHandler);
-
-        // 서비스 테스트 스위트 자동 생성
-        testFramework.createServiceTestSuites();
-
-        return testFramework;
-      },
-      'singleton',
-      [SERVICE_TOKENS.LOGGER, SERVICE_TOKENS.ERROR_HANDLER]
-    );
 
     // Metrics Collector (향후 구현)
     registerFactory(
