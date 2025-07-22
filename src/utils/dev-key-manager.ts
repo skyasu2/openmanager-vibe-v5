@@ -17,14 +17,6 @@
 import fs from 'fs';
 import path from 'path';
 
-interface ServiceConfig {
-  name: string;
-  envKey: string;
-  required: boolean;
-  validator?: (value: string) => boolean;
-  defaultValue?: string;
-}
-
 interface KeyStatus {
   service: string;
   status: 'active' | 'missing' | 'invalid';
@@ -442,7 +434,8 @@ CRON_GEMINI_LEARNING=true
     return (
       this.getKey('MCP_URL') ||
       process.env.MCP_URL ||
-      'http://104.154.205.25:10000'
+      process.env.GCP_MCP_SERVER_URL ||
+      `http://${process.env.GCP_VM_IP || '104.154.205.25'}:${process.env.GCP_MCP_SERVER_PORT || '10000'}`
     );
   }
 }

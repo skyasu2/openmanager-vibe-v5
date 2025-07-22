@@ -152,7 +152,7 @@ export class CloudContextLoader {
       redisTTL: 3600, // 1시간
       maxCacheSize: 50, // 최대 50개 컨텍스트 캐싱
       compressionEnabled: true,
-      mcpServerUrl: 'http://104.154.205.25:10000', // Google Cloud VM
+      mcpServerUrl: process.env.GCP_MCP_SERVER_URL || `http://${process.env.GCP_VM_IP || '104.154.205.25'}:${process.env.GCP_MCP_SERVER_PORT || '10000'}`, // Google Cloud VM
       mcpHealthCheckInterval: 30000, // 30초
       ...config,
     };

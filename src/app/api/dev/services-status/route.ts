@@ -45,7 +45,7 @@ async function checkSupabase(): Promise<ServiceStatus> {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('system_logs')
       .select('count')
       .limit(1);
@@ -181,7 +181,7 @@ async function checkGoogleAI(): Promise<ServiceStatus> {
       };
     }
 
-    const data = await response.json();
+    await response.json();
 
     return {
       name: 'Google AI (Gemini)',
@@ -210,7 +210,17 @@ async function checkGoogleAI(): Promise<ServiceStatus> {
 async function checkGoogleVMMCP(): Promise<ServiceStatus> {
   const startTime = Date.now();
   try {
-    const mcpUrl = devKeyManager.getMCPUrl() || 'http://104.154.205.25:10000';
+    const mcpUrl = devKeyManager.getMCPUrl();
+
+    if (!mcpUrl) {
+      return {
+        name: 'Google VM MCP Server',
+        status: 'error',
+        responseTime: 0,
+        details: null,
+        error: 'MCP URL not configured in environment variables',
+      };
+    }
 
     const response = await fetch(`${mcpUrl}/health`, {
       method: 'GET',
@@ -291,7 +301,7 @@ async function checkVercel(): Promise<ServiceStatus> {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   // 🚫 개발 환경에서만 접근 허용
   const nodeEnv = process.env?.NODE_ENV || 'development';
   if (nodeEnv !== 'development') {
