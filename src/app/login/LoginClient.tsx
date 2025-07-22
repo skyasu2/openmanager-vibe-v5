@@ -43,11 +43,18 @@ export default function LoginClient() {
   useEffect(() => {
     setIsClient(true);
 
-    // URL 파라미터에서 에러 메시지 확인
+    // URL 파라미터에서 에러 메시지와 리다이렉트 URL 확인
     const searchParams = new URLSearchParams(window.location.search);
     const error = searchParams.get('error');
     const message = searchParams.get('message');
     const warning = searchParams.get('warning');
+    const redirectTo = searchParams.get('redirectTo');
+
+    // redirectTo 파라미터가 있으면 세션 스토리지에 저장
+    if (redirectTo && redirectTo !== '/main') {
+      sessionStorage.setItem('auth_redirect_to', redirectTo);
+      console.log('🔗 로그인 후 리다이렉트 URL 저장:', redirectTo);
+    }
 
     if (error && message) {
       setErrorMessage(decodeURIComponent(message));

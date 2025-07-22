@@ -107,7 +107,9 @@ export async function middleware(request: NextRequest) {
 
         // GitHub 인증이 없으면 로그인 페이지로 리다이렉트
         const redirectUrl = new URL('/login', request.url);
-        redirectUrl.searchParams.set('redirectTo', pathname);
+        // 루트 경로(/)는 /main으로 리다이렉트하도록 설정
+        const redirectPath = pathname === '/' ? '/main' : pathname;
+        redirectUrl.searchParams.set('redirectTo', redirectPath);
         return NextResponse.redirect(redirectUrl);
       }
     } catch (error) {

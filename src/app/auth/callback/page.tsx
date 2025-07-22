@@ -23,7 +23,17 @@ function AuthCallbackContent() {
       try {
         // URL에서 코드 추출
         const code = searchParams?.get('code');
-        const redirect = searchParams?.get('redirect') || '/main';
+
+        // 리다이렉트 URL 결정 (우선순위: 세션스토리지 > URL 파라미터 > 기본값)
+        const sessionRedirect = sessionStorage.getItem('auth_redirect_to');
+        const urlRedirect =
+          searchParams?.get('redirectTo') || searchParams?.get('redirect');
+        const redirect = sessionRedirect || urlRedirect || '/main';
+
+        // 사용된 세션스토리지 정리
+        if (sessionRedirect) {
+          sessionStorage.removeItem('auth_redirect_to');
+        }
 
         console.log('🔐 OAuth 콜백 처리:', {
           code: code ? 'exists' : 'missing',
