@@ -986,14 +986,9 @@ npx ccusage@latest blocks --active
 
 - **🚀 Claude Code MCP 설정 2025**: `docs/claude-code-mcp-setup-2025.md`
 - **🤖 AI 시스템 통합 가이드**: `docs/ai-system-unified-guide.md`
-- **🔧 Gemini 개발 도구 v5**: `docs/gemini-dev-tools-v5-guide.md`
 - **🔒 보안 완전 가이드**: `docs/security-complete-guide.md`
 - **🛠️ 개발 도구 통합**: `docs/development-tools.md`
-
-#### 📋 개선사항 문서
-
-- **Gemini CLI 브릿지 v3 개선사항**: `docs/gemini-cli-bridge-v3-improvements.md`
-- **AI 도구 협업 가치**: `docs/claude-gemini-collaboration-value.md`
+- **🤝 AI 도구 협업 가치**: `docs/claude-gemini-collaboration-value.md`
 
 ## AI 도구 협업 전략
 
@@ -1063,77 +1058,59 @@ echo "변경사항" | gemini -p "@docs/ 관련 문서 찾기"
 # Claude가 CHANGELOG.md 및 문서 갱신
 ```
 
-### 🚀 Gemini CLI 직접 사용 (권장)
+### 🚀 Gemini CLI 직접 실행 (권장)
 
-복잡한 도구 없이 터미널에서 바로 사용하세요:
+중간 도구 없이 터미널에서 직접 실행합니다:
 
 #### 📋 기본 사용법
 
 ```bash
-# 헬퍼 함수 설정 (최초 1회)
-npm run gemini:setup
+# 간단한 질문
+echo "TypeScript generic type 사용법" | gemini -p "간단히 설명"
 
-# 빠른 명령어들 (설정 후)
-gc "TypeScript 에러 해결법"        # 빠른 채팅
-gd                                  # git diff 자동 리뷰
-gf src/app/page.tsx                # 파일 분석
-ge "에러 메시지"                   # 에러 해결
-gs                                  # 사용량 확인
-gemini-daily                        # 일일 리포트
+# 파일 분석
+cat src/app/page.tsx | gemini -p "코드 품질 분석"
 
-# npm 스크립트
-npm run gemini:review              # Git 변경사항 리뷰
-npm run gemini:stats               # 사용량 확인
-npm run gemini:guide               # 사용법 안내
+# Git diff 리뷰
+git diff | gemini -p "변경사항 리뷰"
+
+# 에러 해결
+echo "TypeError: Cannot read property..." | gemini -p "해결 방법"
 ```
 
-#### 🐧 WSL 환경에서 Gemini CLI 사용 (설정 완료)
-
-**자동 설정됨** (setup-claude-code-wsl.sh 실행 시):
+#### 🎯 시스템 명령
 
 ```bash
-# 별칭이 자동으로 ~/.bashrc에 추가됨
-gemini --version         # 버전 확인
-gp "안녕하세요"         # gemini -p 단축키
-gs                      # gemini /stats 단축키
-gc                      # gemini /clear 단축키
-gcomp                   # gemini /compress 단축키
+# 대화 초기화
+gemini /clear
 
-# 파이프 사용 (특별 함수)
-cat file.ts | gemini-pipe -p "코드 리뷰"
-git diff | gemini-pipe -p "변경사항 요약"
+# 사용량 확인
+gemini /stats
+
+# 대화 압축
+gemini /compress
 ```
 
-**개발 도구 사용 (권장)**:
+#### 🐧 WSL 환경에서 사용 팁
 
 ```bash
-# Gemini v5.0 직접 실행 도구 사용
-./tools/g "질문"
-npm run gemini:chat "질문"
+# 헬퍼 함수 설정 (선택사항)
+# ~/.bashrc에 추가하면 편리합니다:
 
-# MCP 브릿지는 더 이상 제공하지 않습니다
-# 개발/디버깅은 tools 폴더의 gemini-dev-tools.js 사용
-```
+# 빠른 질문
+gq() {
+    echo "$@" | gemini -p "답변"
+}
 
-#### 📈 사용량 관리 (v5.1 업데이트)
+# 파일 분석
+gf() {
+    cat "$1" | gemini -p "코드 분석"
+}
 
-**시스템 명령 자체 구현** - TTY 환경 없이도 작동:
-
-```bash
-# 🚀 개발 도구 시스템 명령 (권장)
-./tools/g stats                    # 사용량 통계 (자체 구현)
-./tools/g clear                    # 컨텍스트 초기화 (자체 구현)
-./tools/g memory list              # 저장된 메모리 보기
-./tools/g memory add "정보"        # 메모리에 정보 저장
-./tools/g memory remove 3          # 특정 메모리 삭제
-
-# 💾 데이터 저장 위치
-# ~/.gemini-dev-tools/usage.json    # 사용량 통계
-# ~/.gemini-dev-tools/memory.json   # 저장된 메모리
-
-# ⚠️ 터미널에서 직접 사용 시 (TTY 환경 필요)
-gemini /stats      # 인터랙티브 모드에서만 작동
-gemini /clear      # 인터랙티브 모드에서만 작동
+# Git diff 리뷰
+gd() {
+    git diff | gemini -p "변경사항 리뷰"
+}
 ```
 
 #### 💡 효율적 사용 팁
