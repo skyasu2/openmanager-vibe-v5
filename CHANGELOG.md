@@ -1,5 +1,47 @@
 # Changelog
 
+## [5.62.0] - 2025-07-22
+
+### 🎨 프로필 컴포넌트 대규모 리팩토링 완료
+
+#### Refactored
+
+- **UnifiedProfileHeader 컴포넌트 분할 (875줄 → 305줄, 65% 감소)**
+  - 단일 거대 컴포넌트를 4개의 작은 컴포넌트로 분리
+  - `ProfileAvatar`: 아바타 및 사용자 타입 아이콘 표시
+  - `ProfileDropdownMenu`: 드롭다운 메뉴 컨테이너
+  - `ProfileMenuItem`: 개별 메뉴 아이템 컴포넌트
+  - `AdminAuthModal`: 관리자 인증 모달
+
+- **비즈니스 로직 분리 (커스텀 훅 3개 생성)**
+  - `useProfileAuth`: 사용자 인증 및 정보 관리
+  - `useProfileSecurity`: 관리자 모드 보안 로직
+  - `useProfileMenu`: 메뉴 상태 및 상호작용 관리
+
+#### Added
+
+- **전용 타입 정의 파일**
+  - `src/components/profile/types/profile.types.ts`: 모든 프로필 관련 타입 중앙화
+  - 타입 안전성 강화 및 IntelliSense 지원 개선
+
+- **성능 최적화**
+  - React.memo로 불필요한 리렌더링 방지
+  - useCallback/useMemo로 함수 및 값 메모이제이션
+  - 컴포넌트별 책임 분리로 렌더링 최적화
+
+#### Improved
+
+- **코드 품질 향상**
+  - SOLID 원칙 준수 (Single Responsibility, Open/Closed)
+  - 재사용성 증대: 각 컴포넌트와 훅 독립적 사용 가능
+  - 테스트 용이성: 작은 단위로 분리되어 단위 테스트 작성 용이
+  - 유지보수성: 명확한 파일 구조와 책임 분리
+
+- **개발자 경험 개선**
+  - 파일 길이 가이드라인 준수 (500줄 이하)
+  - 명확한 폴더 구조: components/, hooks/, types/
+  - 향후 확장 용이: 새 기능 추가 시 기존 구조 활용
+
 ## [5.61.0] - 2025-07-22
 
 ### 🛠️ 개발 도구 간소화
