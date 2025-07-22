@@ -31,7 +31,6 @@ export default function UnifiedProfileHeader({
   const {
     userInfo,
     userType,
-    isLoading,
     status,
     handleLogout,
     navigateToLogin,

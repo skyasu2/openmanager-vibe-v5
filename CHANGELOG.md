@@ -1,5 +1,15 @@
 # Changelog
 
+## [5.62.1] - 2025-07-22
+
+### 🐛 코드 정리
+
+#### Fixed
+
+- **ESLint 경고 수정**
+  - `ProfileDropdownMenu.tsx`: 사용하지 않는 `MenuDivider` import 제거
+  - `UnifiedProfileHeader.tsx`: 사용하지 않는 `isLoading` 변수 제거
+
 ## [5.62.0] - 2025-07-22
 
 ### 🎨 프로필 컴포넌트 대규모 리팩토링 완료

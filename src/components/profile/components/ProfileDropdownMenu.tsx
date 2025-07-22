@@ -4,7 +4,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Crown } from 'lucide-react';
 import { ProfileAvatar, UserTypeIcon } from './ProfileAvatar';
-import { ProfileMenuItem, MenuDivider } from './ProfileMenuItem';
+import { ProfileMenuItem } from './ProfileMenuItem';
 import { AdminAuthModal } from './AdminAuthModal';
 import type { ProfileDropdownMenuProps } from '../types/profile.types';
 
