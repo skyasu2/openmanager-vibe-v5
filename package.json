@@ -99,6 +99,7 @@
     "ccusage:live": "npx ccusage@latest blocks --live",
     "ccusage:blocks": "npx ccusage@latest blocks --active",
     "ccusage:daily": "npx ccusage@latest daily",
+    "verify:oauth": "node scripts/verify-oauth-setup.js",
     "mcp:check": "powershell -ExecutionPolicy Bypass -File scripts/check-mcp-status.ps1",
     "mcp:fix": "powershell -ExecutionPolicy Bypass -File scripts/fix-global-mcp.ps1",
     "mcp:test-tavily": "node scripts/test-tavily-mcp.mjs",

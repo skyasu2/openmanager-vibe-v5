@@ -13,6 +13,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader2 } from 'lucide-react';
 
+// eslint-disable-next-line max-lines-per-function
 function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -83,7 +84,16 @@ function AuthCallbackContent() {
 
         // 세션이 완전히 저장될 때까지 잠시 대기
         console.log('⏳ 세션 저장 대기 중...');
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        // 세션 강제 새로고침
+        console.log('🔄 세션 강제 새로고침...');
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError) {
+          console.error('❌ 세션 새로고침 실패:', refreshError);
+        } else {
+          console.log('✅ 세션 새로고침 성공');
+        }
 
         // 쿠키가 제대로 설정되었는지 확인
         const cookieStore = document.cookie;
@@ -91,9 +101,17 @@ function AuthCallbackContent() {
 
         // 라우터 캐시 새로고침 (쿠키 업데이트 반영)
         router.refresh();
-        
+
         // 추가 대기 시간
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // 최종 세션 확인
+        const finalSession = await supabase.auth.getSession();
+        if (!finalSession.data.session) {
+          console.error('❌ 최종 세션 확인 실패 - 재시도');
+          // 한 번 더 시도
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
 
         // 성공적으로 로그인되면 리다이렉트
         console.log('🔄 리다이렉트 시도:', redirect);

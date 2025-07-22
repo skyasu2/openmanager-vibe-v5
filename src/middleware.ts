@@ -65,6 +65,12 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // OAuth 콜백 페이지는 항상 통과
+  if (pathname === '/auth/callback') {
+    console.log('✅ OAuth 콜백 페이지 - 미들웨어 통과');
+    return response;
+  }
+
   // 먼저 공개 경로인지 확인 (무한 리디렉션 방지)
   const isPublicPath = isExactPathMatch(pathname, PUBLIC_PATHS);
 
@@ -131,6 +137,13 @@ export async function middleware(request: NextRequest) {
 
         // 이미 로그인 페이지에 있다면 리디렉션하지 않음 (무한 루프 방지)
         if (pathname === '/login') {
+          return response;
+        }
+
+        // 이미 로그인 페이지에서 시도 중이면 리다이렉트하지 않음
+        const fromLogin = referer?.includes('/login');
+        if (fromLogin) {
+          console.log('🔄 로그인 페이지에서 시도 중 - 리다이렉트 건너뜀');
           return response;
         }
 
