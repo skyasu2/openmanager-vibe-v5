@@ -1,5 +1,38 @@
 # Changelog
 
+## [5.63.0] - 2025-07-23
+
+### 🚀 새로운 기능
+
+#### Added
+
+- **베르셀 MCP 서버 구현 - 개발 도구 전용**
+  - `/api/mcp` 엔드포인트 추가
+  - 로컬 개발 도구(Claude Code, WindSurf Kiro 등)가 배포된 환경에 직접 접속 가능
+  - 시스템 상태, 환경변수, 헬스체크 등 개발 도구 제공
+  - 프로덕션 AI 기능은 여전히 GCP VM MCP 사용
+
+### 🔧 코드 개선
+
+#### Refactored
+
+- **하드코딩된 IP 주소 제거 및 환경변수로 대체**
+  - GCP VM MCP 서버 IP (104.154.205.25)를 환경변수로 대체
+  - `.env.example`에 GCP VM MCP 서버 설정 섹션 추가
+  - 모든 GCP VM MCP 서버 접속 정보가 환경변수로 관리됨
+
+#### Removed
+
+- **불필요한 파일 제거**
+  - `tools/wsl-ai-wrapper.sh` 삭제
+  - `src/components/admin/UnifiedAdminDashboard.old.tsx` 삭제
+  - `src/testing/` 폴더 삭제 (vitest는 `src/test/` 사용)
+  - TestFramework 관련 참조 제거
+
+### 📦 Dependencies
+
+- `mcp-handler` 패키지 추가 (MCP 서버 구현용)
+
 ## [5.62.3] - 2025-07-22
 
 ### 🔐 인증 시스템 개선
