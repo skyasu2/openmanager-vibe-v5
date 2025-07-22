@@ -5,6 +5,8 @@
  * 모든 로그인 성공 시 루트 페이지(/)로 리다이렉트
  */
 
+/* eslint-disable max-lines-per-function */
+
 'use client';
 
 import { User } from 'lucide-react';
@@ -126,21 +128,56 @@ export default function LoginClient() {
     try {
       setIsLoading(true);
       setLoadingType('github');
+      setErrorMessage('');
 
       console.log('🔐 GitHub OAuth 로그인 시작 (Supabase Auth)...');
+      console.log('🌍 현재 환경:', {
+        origin: window.location.origin,
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        isLocal: window.location.origin.includes('localhost'),
+        isVercel: window.location.origin.includes('vercel.app'),
+      });
 
       const { error } = await signInWithGitHub();
 
       if (error) {
-        console.error('GitHub 로그인 실패:', error);
-        alert('GitHub 로그인에 실패했습니다. 게스트 모드를 이용해주세요.');
+        console.error('❌ GitHub 로그인 실패:', error);
+
+        // 더 구체적인 에러 메시지
+        let errorMsg = 'GitHub 로그인에 실패했습니다.';
+        const errorMessage = (error as any)?.message || '';
+        const errorCode = (error as any)?.code || '';
+
+        if (errorMessage.includes('Invalid login credentials')) {
+          errorMsg = 'GitHub 인증 정보가 올바르지 않습니다.';
+        } else if (errorMessage.includes('redirect_uri')) {
+          errorMsg = 'OAuth 설정 오류입니다. 관리자에게 문의하세요.';
+        } else if (errorMessage.includes('network')) {
+          errorMsg = '네트워크 오류입니다. 잠시 후 다시 시도해주세요.';
+        } else if (errorMessage.includes('Invalid API key')) {
+          errorMsg = 'Supabase 설정 오류입니다. 환경변수를 확인해주세요.';
+        }
+
+        setErrorMessage(errorMsg);
+        console.log('🔧 디버깅 정보:', {
+          errorMessage: errorMessage,
+          errorCode: errorCode,
+          currentUrl: window.location.href,
+          expectedCallback: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/callback`,
+        });
+
         setIsLoading(false);
         setLoadingType(null);
+        return;
       }
+
+      console.log('✅ GitHub OAuth 로그인 요청 성공 - 리다이렉트 중...');
       // 성공 시 자동으로 OAuth 리다이렉트됨
     } catch (error) {
-      console.error('GitHub 로그인 실패:', error);
-      alert('GitHub 로그인에 실패했습니다. 게스트 모드를 이용해주세요.');
+      console.error('❌ GitHub 로그인 에러:', error);
+      setErrorMessage(
+        '로그인 중 예상치 못한 오류가 발생했습니다. 게스트 모드를 이용해주세요.'
+      );
       setIsLoading(false);
       setLoadingType(null);
     }

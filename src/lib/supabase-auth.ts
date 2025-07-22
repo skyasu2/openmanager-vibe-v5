@@ -5,8 +5,8 @@
  * NextAuth 대체 구현
  */
 
+import type { AuthError, Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
-import type { Session, AuthError } from '@supabase/supabase-js';
 
 export interface AuthUser {
   id: string;
@@ -38,13 +38,31 @@ export async function signInWithGitHub() {
       isVercel: origin.includes('vercel.app'),
       isLocal: origin.includes('localhost'),
       redirectUrl,
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
     });
 
     // GitHub OAuth App 설정 확인을 위한 로그
+    console.log('⚠️ 필요한 설정:');
+    console.log('  Supabase Redirect URLs:', redirectUrl);
     console.log(
-      '⚠️ Supabase 대시보드의 Redirect URLs에 다음을 추가하세요:',
-      redirectUrl
+      '  GitHub OAuth Callback:',
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/callback`
     );
+
+    // 환경변수 검증
+    if (
+      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL.includes('test')
+    ) {
+      throw new Error('Supabase URL이 올바르게 설정되지 않았습니다.');
+    }
+
+    if (
+      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('test')
+    ) {
+      throw new Error('Supabase Anon Key가 올바르게 설정되지 않았습니다.');
+    }
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
@@ -58,6 +76,12 @@ export async function signInWithGitHub() {
 
     if (error) {
       console.error('❌ GitHub OAuth 로그인 실패:', error);
+      console.error('🔧 디버깅 정보:', {
+        errorCode: error.code,
+        errorMessage: error.message,
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        redirectUrl,
+      });
       throw error;
     }
 
