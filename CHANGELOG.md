@@ -1,5 +1,37 @@
 # Changelog
 
+## [5.58.0] - 2025-07-22
+
+### 🔐 인증 시스템 개선 및 문서 업데이트
+
+#### Fixed
+
+- **Multiple GoTrueClient instances 오류 해결**
+  - `@supabase/auth-helpers-nextjs` 패키지 제거
+  - 자체 싱글톤 패턴 구현으로 클라이언트 중복 생성 방지
+  - 전역 변수를 통한 강력한 싱글톤 보장
+  - Middleware 전용 싱글톤 클라이언트 구현
+
+- **Vercel 빌드 오류 해결**
+  - `useSearchParams()` Suspense boundary 추가
+  - 빌드 시간 감지 및 최적화
+
+#### Added
+
+- **인증 설정 가이드 업데이트** (`docs/auth-setup-guide.md`)
+  - 현재 작동하는 설정값으로 전면 개편
+  - Vercel 와일드카드 Redirect URL 설정 가이드
+  - 실제 환경변수 예제 및 주석 추가
+  - Multiple Client 오류 해결 방법 문서화
+  - GitHub OAuth + Supabase 통합 상세 설명
+
+#### Improved
+
+- **인증 시스템 안정성 향상**
+  - 싱글톤 패턴으로 메모리 효율성 개선
+  - 세션 관리 일관성 보장
+  - 빌드/런타임 환경 구분 처리
+
 ## [5.57.0] - 2025-07-21
 
 ### 🚀 대규모 리팩토링 및 코드 품질 개선

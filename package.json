@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.57.0",
+  "version": "5.58.0",
   "description": "🚀 OpenManager Vibe v5 - 무료티어 최적화로 월 사용량 90% 절약하는 실시간 서버 관리 플랫폼. GCP Functions 통합, TypeScript 완전 타입 안전성, Google AI 연동으로 차세대 서버 모니터링 시스템을 제공합니다.",
   "private": true,
   "type": "module",
