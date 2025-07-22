@@ -135,6 +135,7 @@
     "@emotion/styled": "^11.14.1",
     "@google/generative-ai": "^0.16.0",
     "@heroicons/react": "^2.2.0",
+    "@modelcontextprotocol/sdk": "^1.16.0",
     "@modelcontextprotocol/server-filesystem": "^2025.7.1",
     "@modelcontextprotocol/server-github": "^2025.4.8",
     "@modelcontextprotocol/server-memory": "^2025.4.25",
