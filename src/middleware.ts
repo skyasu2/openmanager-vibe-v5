@@ -1,6 +1,9 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
+import {
+  createMiddlewareSupabaseClient,
+  getMiddlewareSession,
+} from '@/lib/supabase-middleware';
 
 // 개발 환경에서만 허용하는 API 패턴들
 const DEV_ONLY_PATTERNS = [
@@ -90,14 +93,11 @@ export async function middleware(request: NextRequest) {
         return response;
       }
 
-      // Supabase 클라이언트 생성
-      const supabase = createMiddlewareClient({ req: request, res: response });
+      // Supabase 싱글톤 클라이언트 사용
+      const supabase = createMiddlewareSupabaseClient(request, response);
 
       // 세션 확인
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
+      const { session, error } = await getMiddlewareSession(supabase, request);
 
       if (error || !session) {
         // 이미 로그인 페이지에 있다면 리디렉션하지 않음 (무한 루프 방지)

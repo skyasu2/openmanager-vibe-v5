@@ -4,16 +4,12 @@
  * 현재 설정 상태와 문제점을 진단합니다.
  */
 
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { supabase } from '@/lib/supabase';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
-
     // 현재 환경 정보
     const debugInfo = {
       timestamp: new Date().toISOString(),
