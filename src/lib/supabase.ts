@@ -5,7 +5,7 @@ import type { ServerMetrics } from '@/types/common';
 import type { AIAnalysisResponse } from '@/types/ai-analysis';
 
 // 🔐 안전한 환경변수 접근을 통한 Supabase URL 가져오기
-function getSupabaseUrl() {
+function _getSupabaseUrl() {
   // 1차: 환경변수 직접 확인 (가장 신뢰할 수 있는 방법)
   const directUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (
@@ -44,7 +44,7 @@ function getSupabaseUrl() {
 }
 
 // 🔐 안전한 환경변수 접근을 통한 Supabase Anon Key 가져오기
-function getSupabaseAnonKey() {
+function _getSupabaseAnonKey() {
   // 1차: 환경변수 직접 확인
   const directKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (directKey && directKey !== '' && directKey !== 'temp-anon-key') {
@@ -155,7 +155,7 @@ class SmartSupabaseClient {
   }
 
   // RPC 호출
-  async rpc<TParams = Record<string, unknown>, TResult = unknown>(
+  async rpc<TParams = Record<string, unknown>, _TResult = unknown>(
     functionName: string,
     params?: TParams
   ) {
@@ -226,7 +226,7 @@ class VercelSupabaseClient {
   private initialize() {
     try {
       if (!this.config.database.supabase.enabled) {
-        console.log('⚠️ Supabase 환경변수가 설정되지 않음');
+        // 조용히 처리 - 이미 다른 곳에서 경고 표시됨
         return;
       }
 
@@ -479,7 +479,7 @@ export class VercelDatabase {
           .select('*')
           .limit(1);
       }
-    } catch (error) {
+    } catch {
       // 무시 - 연결 유지 시도
     }
   }

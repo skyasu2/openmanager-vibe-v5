@@ -1,9 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import {
-  createMiddlewareSupabaseClient,
-  getMiddlewareSession,
-} from '@/lib/supabase-middleware';
+import { createMiddlewareClient } from '@/lib/supabase-ssr';
 
 // 개발 환경에서만 허용하는 API 패턴들
 const DEV_ONLY_PATTERNS = [
@@ -93,11 +90,21 @@ export async function middleware(request: NextRequest) {
         return response;
       }
 
-      // Supabase 싱글톤 클라이언트 사용
-      const supabase = createMiddlewareSupabaseClient(request, response);
+      // Supabase SSR 클라이언트 사용
+      const supabase = createMiddlewareClient(request, response);
 
       // 세션 확인
-      const { session, error } = await getMiddlewareSession(supabase, request);
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      console.log('🔐 미들웨어 세션 체크:', {
+        path: pathname,
+        hasSession: !!session,
+        error: error?.message,
+        userEmail: session?.user?.email,
+      });
 
       if (error || !session) {
         // 이미 로그인 페이지에 있다면 리디렉션하지 않음 (무한 루프 방지)
@@ -105,6 +112,7 @@ export async function middleware(request: NextRequest) {
           return response;
         }
 
+        console.log('❌ 미들웨어: 세션 없음, 로그인 페이지로 리다이렉트');
         // GitHub 인증이 없으면 로그인 페이지로 리다이렉트
         const redirectUrl = new URL('/login', request.url);
         // 루트 경로(/)는 /main으로 리다이렉트하도록 설정
@@ -112,6 +120,8 @@ export async function middleware(request: NextRequest) {
         redirectUrl.searchParams.set('redirectTo', redirectPath);
         return NextResponse.redirect(redirectUrl);
       }
+
+      console.log('✅ 미들웨어: 세션 확인됨, 접근 허용');
     } catch (error) {
       console.error('Middleware auth check error:', error);
 

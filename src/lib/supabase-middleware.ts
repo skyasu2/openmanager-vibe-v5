@@ -10,8 +10,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseConfig } from './env';
 
-// 서버 사이드 전용 싱글톤 인스턴스
-let middlewareClientInstance: SupabaseClient | null = null;
+// 서버 사이드 전용 싱글톤 인스턴스 (제거됨 - SSR 방식 사용)
 
 /**
  * Supabase URL 가져오기
@@ -78,19 +77,14 @@ function getSupabaseAnonKey(): string {
  */
 export function createMiddlewareSupabaseClient(
   request: NextRequest,
-  _response: NextResponse
+  response: NextResponse
 ): SupabaseClient {
-  // 싱글톤 인스턴스가 이미 있으면 재사용
-  if (middlewareClientInstance) {
-    return middlewareClientInstance;
-  }
-
   try {
     const url = getSupabaseUrl();
     const key = getSupabaseAnonKey();
 
-    // 쿠키에서 세션 토큰 추출
-    const supabaseCookie = request.cookies.get('sb-auth-token');
+    // 모든 쿠키를 가져와서 Supabase에 전달
+    const cookieStore = request.cookies;
 
     // Middleware 전용 옵션
     const options = {
@@ -98,28 +92,32 @@ export function createMiddlewareSupabaseClient(
         persistSession: false, // Middleware에서는 세션 유지 불필요
         autoRefreshToken: false, // 자동 갱신 비활성화
         detectSessionInUrl: false, // URL 검출 비활성화
-        // 쿠키에서 초기 세션 설정
-        ...(supabaseCookie
-          ? {
-              initialSession: {
-                access_token: supabaseCookie.value,
-                refresh_token: '',
-              },
-            }
-          : {}),
       },
       global: {
         headers: {
           'x-openmanager-version': 'v5.0-middleware',
         },
       },
+      // 쿠키 어댑터 설정
+      cookies: {
+        get: (name: string) => {
+          return cookieStore.get(name)?.value;
+        },
+        set: (name: string, value: string, options: any) => {
+          // 미들웨어에서는 response에 쿠키 설정
+          response.cookies.set(name, value, options);
+        },
+        remove: (name: string, _options: any) => {
+          response.cookies.delete(name);
+        },
+      },
     };
 
-    middlewareClientInstance = createClient(url, key, options);
+    const client = createClient(url, key, options);
 
-    console.log('✅ Middleware용 Supabase 싱글톤 클라이언트 초기화');
+    console.log('✅ Middleware용 Supabase 클라이언트 생성 (쿠키 지원)');
 
-    return middlewareClientInstance;
+    return client;
   } catch (error) {
     console.error('❌ Middleware Supabase 클라이언트 생성 실패:', error);
     throw error;
@@ -134,17 +132,32 @@ export async function getMiddlewareSession(
   request: NextRequest
 ) {
   try {
-    // 쿠키에서 직접 세션 정보 확인
-    const authCookie = request.cookies.get('sb-auth-token');
+    // Supabase 쿠키 패턴: sb-[project-ref]-auth-token
+    // 모든 sb- 로 시작하는 쿠키를 확인
+    const cookies = request.cookies.getAll();
+    const authCookie = cookies.find(
+      cookie =>
+        cookie.name.startsWith('sb-') &&
+        cookie.name.includes('-auth-token') &&
+        !cookie.name.includes('code-verifier')
+    );
+
     if (!authCookie) {
+      console.log('🔍 Auth 쿠키를 찾을 수 없음');
       return { session: null, error: null };
     }
+
+    console.log('🍪 Auth 쿠키 발견:', authCookie.name);
 
     // getSession을 사용하여 세션 검증
     const {
       data: { session },
       error,
     } = await client.auth.getSession();
+
+    if (session) {
+      console.log('✅ 미들웨어 세션 확인됨:', session.user?.email);
+    }
 
     return { session, error };
   } catch (error) {
