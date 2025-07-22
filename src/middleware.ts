@@ -93,6 +93,10 @@ export async function middleware(request: NextRequest) {
       // Supabase SSR 클라이언트 사용
       const supabase = createMiddlewareClient(request, response);
 
+      // 모든 쿠키 로그
+      const cookies = request.cookies.getAll();
+      console.log('🍪 미들웨어 쿠키 목록:', cookies.map(c => c.name));
+
       // 세션 확인
       const {
         data: { session },
@@ -106,7 +110,18 @@ export async function middleware(request: NextRequest) {
         userEmail: session?.user?.email,
       });
 
+      // OAuth 콜백 직후인지 확인 (referer 체크)
+      const referer = request.headers.get('referer');
+      const isFromCallback = referer?.includes('/auth/callback');
+      
       if (error || !session) {
+        // OAuth 콜백에서 온 경우 잠시 대기
+        if (isFromCallback) {
+          console.log('⏳ OAuth 콜백 직후 - 세션 설정 대기');
+          // 일단 통과시키고 클라이언트에서 처리하도록 함
+          return response;
+        }
+
         // 이미 로그인 페이지에 있다면 리디렉션하지 않음 (무한 루프 방지)
         if (pathname === '/login') {
           return response;

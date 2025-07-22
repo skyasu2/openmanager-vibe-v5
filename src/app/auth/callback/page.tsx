@@ -83,18 +83,30 @@ function AuthCallbackContent() {
 
         // 세션이 완전히 저장될 때까지 잠시 대기
         console.log('⏳ 세션 저장 대기 중...');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // 쿠키가 제대로 설정되었는지 확인
+        const cookieStore = document.cookie;
+        console.log('🍪 현재 쿠키:', cookieStore);
+
+        // 라우터 캐시 새로고침 (쿠키 업데이트 반영)
+        router.refresh();
+        
+        // 추가 대기 시간
         await new Promise(resolve => setTimeout(resolve, 500));
 
         // 성공적으로 로그인되면 리다이렉트
         console.log('🔄 리다이렉트 시도:', redirect);
 
         try {
-          await router.push(redirect);
-          console.log('✅ 리다이렉트 완료:', redirect);
+          // window.location.href 사용 (쿠키가 완전히 반영되도록)
+          window.location.href = redirect;
         } catch (redirectError) {
           console.error('❌ 리다이렉트 실패:', redirectError);
-          // 강제 새로고침으로 대체
-          window.location.href = redirect;
+          // 폴백
+          setTimeout(() => {
+            window.location.href = redirect;
+          }, 1000);
         }
       } catch (error) {
         console.error('❌ 콜백 처리 오류:', error);
