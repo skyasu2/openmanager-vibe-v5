@@ -43,12 +43,7 @@ export function createMiddlewareClient(
         return request.cookies.get(name)?.value;
       },
       set(name: string, value: string, options: CookieOptions) {
-        // 미들웨어에서는 response 객체에 쿠키 설정
-        request.cookies.set({
-          name,
-          value,
-          ...options,
-        });
+        // ✅ response 객체에만 쿠키를 설정합니다 (request는 읽기 전용)
         response.cookies.set({
           name,
           value,
@@ -56,12 +51,7 @@ export function createMiddlewareClient(
         });
       },
       remove(name: string, options: CookieOptions) {
-        // 미들웨어에서 쿠키 제거
-        request.cookies.set({
-          name,
-          value: '',
-          ...options,
-        });
+        // ✅ response 객체에서만 쿠키를 삭제합니다 (request는 읽기 전용)
         response.cookies.set({
           name,
           value: '',

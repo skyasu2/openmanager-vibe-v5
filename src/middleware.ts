@@ -10,25 +10,8 @@ const DEV_ONLY_PATTERNS = [
   '/api/ai/test-',
 ];
 
-// 인증이 필요 없는 경로들
-const PUBLIC_PATHS = [
-  '/login',
-  '/auth',
-  '/api/auth',
-  '/_next',
-  '/favicon.ico',
-  '/api/health',
-  '/api/ping',
-  '/api/servers/all', // 대시보드 서버 데이터 공개 접근 허용
-];
-
-// 정확한 경로 매칭을 위한 헬퍼 함수
-function isExactPathMatch(pathname: string, paths: string[]): boolean {
-  return paths.some(path => {
-    // 정확한 매칭 또는 하위 경로 매칭
-    return pathname === path || pathname.startsWith(path + '/');
-  });
-}
+// 인증이 필요 없는 경로들 (matcher에서 제외되어 더 이상 사용하지 않음)
+// const PUBLIC_PATHS = [...]
 
 // GitHub 인증이 필요한 경로들
 const PROTECTED_PATHS = [
@@ -65,22 +48,16 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // OAuth 콜백 페이지는 항상 통과
-  if (pathname === '/auth/callback') {
-    console.log('✅ OAuth 콜백 페이지 - 미들웨어 통과');
-    return response;
-  }
-
-  // 먼저 공개 경로인지 확인 (무한 리디렉션 방지)
-  const isPublicPath = isExactPathMatch(pathname, PUBLIC_PATHS);
-
-  // 공개 경로는 인증 체크 없이 통과
-  if (isPublicPath) {
+  // 공개 경로는 matcher에서 이미 제외되었으므로 간단히 체크
+  const isPublicAPI = pathname.startsWith('/api/servers/all');
+  if (isPublicAPI) {
     return response;
   }
 
   // 보호된 경로 체크
-  const isProtectedPath = isExactPathMatch(pathname, PROTECTED_PATHS);
+  const isProtectedPath = PROTECTED_PATHS.some(path => {
+    return pathname === path || pathname.startsWith(path + '/');
+  });
 
   if (isProtectedPath) {
     try {
@@ -119,31 +96,9 @@ export async function middleware(request: NextRequest) {
         userEmail: session?.user?.email,
       });
 
-      // OAuth 콜백 직후인지 확인 (referer 체크)
-      const referer = request.headers.get('referer');
-      const isFromCallback = referer?.includes('/auth/callback');
-
-      // GitHub OAuth 성공 후 리다이렉트 처리 개선
-      // code 파라미터가 있으면 OAuth 콜백에서 왔음
-      const hasOAuthCode = request.nextUrl.searchParams.has('code');
-
       if (error || !session) {
-        // OAuth 콜백에서 온 경우 잠시 대기
-        if (isFromCallback || hasOAuthCode) {
-          console.log('⏳ OAuth 콜백 직후 - 세션 설정 대기');
-          // 일단 통과시키고 클라이언트에서 처리하도록 함
-          return response;
-        }
-
         // 이미 로그인 페이지에 있다면 리디렉션하지 않음 (무한 루프 방지)
         if (pathname === '/login') {
-          return response;
-        }
-
-        // 이미 로그인 페이지에서 시도 중이면 리다이렉트하지 않음
-        const fromLogin = referer?.includes('/login');
-        if (fromLogin) {
-          console.log('🔄 로그인 페이지에서 시도 중 - 리다이렉트 건너뜀');
           return response;
         }
 
@@ -176,11 +131,15 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
+     * Match all request paths except for:
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - auth/callback (OAuth callback)
+     * - login (로그인 페이지)
+     * - api/auth (인증 API)
+     * - api/health, api/ping (헬스체크)
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|auth/callback|login|api/auth|api/health|api/ping).*)',
   ],
 };
