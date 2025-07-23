@@ -5,7 +5,11 @@
 // 컴포넌트
 export { ProfileAvatar, UserTypeIcon } from './components/ProfileAvatar';
 export { ProfileDropdownMenu } from './components/ProfileDropdownMenu';
-export { ProfileMenuItem, MenuDivider, MenuSectionHeader } from './components/ProfileMenuItem';
+export {
+  ProfileMenuItem,
+  MenuDivider,
+  MenuSectionHeader,
+} from './components/ProfileMenuItem';
 export { AdminAuthModal } from './components/AdminAuthModal';
 
 // 훅

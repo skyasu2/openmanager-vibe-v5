@@ -70,7 +70,7 @@ export function useProfileSecurity() {
           0,
           Math.ceil((securityState.lockEndTime! - Date.now()) / 1000)
         );
-        
+
         setSecurityState(prev => ({
           ...prev,
           remainingLockTime: remaining,
@@ -97,86 +97,92 @@ export function useProfileSecurity() {
   /**
    * 관리자 인증 처리
    */
-  const authenticateAdmin = useCallback(async (password: string): Promise<boolean> => {
-    // 잠금 상태 확인
-    if (securityState.isLocked) {
-      alert(
-        `🔒 보안상 ${Math.ceil(securityState.remainingLockTime / 60)}분 ${
-          securityState.remainingLockTime % 60
-        }초 후에 다시 시도해주세요.`
-      );
-      return false;
-    }
-
-    // 처리 중 상태 설정
-    if (securityState.isProcessing) return false;
-    
-    setSecurityState(prev => ({ ...prev, isProcessing: true }));
-
-    try {
-      // 브루트포스 공격 방어를 위한 지연
-      const delay = Math.min(securityState.failedAttempts * 1000, 5000);
-      if (delay > 0) {
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-
-      if (password === ADMIN_PASSWORD) {
-        // 인증 성공
-        setIsAdminMode(true);
-        localStorage.setItem('admin_mode', 'true');
-        
-        // 실패 기록 초기화
-        setSecurityState(prev => ({
-          ...prev,
-          failedAttempts: 0,
-          isProcessing: false,
-        }));
-        localStorage.removeItem('admin_failed_attempts');
-        localStorage.removeItem('admin_lock_end_time');
-
-        console.log('🔑 관리자 모드 활성화');
-        return true;
-      } else {
-        // 인증 실패
-        const newFailedAttempts = securityState.failedAttempts + 1;
-        
-        let lockTime: number | null = null;
-        let alertMessage = `❌ 잘못된 관리자 비밀번호입니다. (${newFailedAttempts}/${MAX_ATTEMPTS})`;
-
-        if (newFailedAttempts >= MAX_ATTEMPTS) {
-          // 5회 실패 시 30분 잠금
-          lockTime = Date.now() + LOCKOUT_TIME_MAX;
-          alertMessage = '🚨 5회 연속 실패로 30분간 잠금됩니다.';
-        } else if (newFailedAttempts >= WARNING_ATTEMPTS) {
-          // 3회 실패 시 5분 잠금
-          lockTime = Date.now() + LOCKOUT_TIME_WARNING;
-          alertMessage = '⚠️ 3회 연속 실패로 5분간 잠금됩니다.';
-        }
-
-        setSecurityState(prev => ({
-          ...prev,
-          failedAttempts: newFailedAttempts,
-          isLocked: lockTime !== null,
-          lockEndTime: lockTime,
-          isProcessing: false,
-        }));
-
-        localStorage.setItem('admin_failed_attempts', newFailedAttempts.toString());
-        if (lockTime) {
-          localStorage.setItem('admin_lock_end_time', lockTime.toString());
-        }
-
-        alert(alertMessage);
+  const authenticateAdmin = useCallback(
+    async (password: string): Promise<boolean> => {
+      // 잠금 상태 확인
+      if (securityState.isLocked) {
+        alert(
+          `🔒 보안상 ${Math.ceil(securityState.remainingLockTime / 60)}분 ${
+            securityState.remainingLockTime % 60
+          }초 후에 다시 시도해주세요.`
+        );
         return false;
       }
-    } catch (error) {
-      console.error('관리자 인증 오류:', error);
-      alert('❌ 인증 처리 중 오류가 발생했습니다.');
-      return false;
-    } finally {
-      setSecurityState(prev => ({ ...prev, isProcessing: false }));
-    }
-  }, [securityState]);
+
+      // 처리 중 상태 설정
+      if (securityState.isProcessing) return false;
+
+      setSecurityState(prev => ({ ...prev, isProcessing: true }));
+
+      try {
+        // 브루트포스 공격 방어를 위한 지연
+        const delay = Math.min(securityState.failedAttempts * 1000, 5000);
+        if (delay > 0) {
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+
+        if (password === ADMIN_PASSWORD) {
+          // 인증 성공
+          setIsAdminMode(true);
+          localStorage.setItem('admin_mode', 'true');
+
+          // 실패 기록 초기화
+          setSecurityState(prev => ({
+            ...prev,
+            failedAttempts: 0,
+            isProcessing: false,
+          }));
+          localStorage.removeItem('admin_failed_attempts');
+          localStorage.removeItem('admin_lock_end_time');
+
+          console.log('🔑 관리자 모드 활성화');
+          return true;
+        } else {
+          // 인증 실패
+          const newFailedAttempts = securityState.failedAttempts + 1;
+
+          let lockTime: number | null = null;
+          let alertMessage = `❌ 잘못된 관리자 비밀번호입니다. (${newFailedAttempts}/${MAX_ATTEMPTS})`;
+
+          if (newFailedAttempts >= MAX_ATTEMPTS) {
+            // 5회 실패 시 30분 잠금
+            lockTime = Date.now() + LOCKOUT_TIME_MAX;
+            alertMessage = '🚨 5회 연속 실패로 30분간 잠금됩니다.';
+          } else if (newFailedAttempts >= WARNING_ATTEMPTS) {
+            // 3회 실패 시 5분 잠금
+            lockTime = Date.now() + LOCKOUT_TIME_WARNING;
+            alertMessage = '⚠️ 3회 연속 실패로 5분간 잠금됩니다.';
+          }
+
+          setSecurityState(prev => ({
+            ...prev,
+            failedAttempts: newFailedAttempts,
+            isLocked: lockTime !== null,
+            lockEndTime: lockTime,
+            isProcessing: false,
+          }));
+
+          localStorage.setItem(
+            'admin_failed_attempts',
+            newFailedAttempts.toString()
+          );
+          if (lockTime) {
+            localStorage.setItem('admin_lock_end_time', lockTime.toString());
+          }
+
+          alert(alertMessage);
+          return false;
+        }
+      } catch (error) {
+        console.error('관리자 인증 오류:', error);
+        alert('❌ 인증 처리 중 오류가 발생했습니다.');
+        return false;
+      } finally {
+        setSecurityState(prev => ({ ...prev, isProcessing: false }));
+      }
+    },
+    [securityState]
+  );
 
   /**
    * 관리자 모드 해제

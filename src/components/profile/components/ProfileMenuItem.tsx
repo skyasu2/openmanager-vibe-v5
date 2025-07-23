@@ -31,11 +31,11 @@ export const ProfileMenuItem = React.memo(function ProfileMenuItem({
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     if (onClick) {
       onClick(e);
     }
-    
+
     if (!disabled && action) {
       console.log(`🔘 메뉴 클릭: ${label}`);
       await action();
@@ -69,9 +69,7 @@ export const ProfileMenuItem = React.memo(function ProfileMenuItem({
 
   return (
     <>
-      {dividerBefore && (
-        <div className="border-t border-gray-100 my-1" />
-      )}
+      {dividerBefore && <div className='border-t border-gray-100 my-1' />}
       <motion.button
         id={id}
         onClick={handleClick}
@@ -83,25 +81,29 @@ export const ProfileMenuItem = React.memo(function ProfileMenuItem({
         transition={{ delay: index * 0.05 }}
         whileHover={!disabled ? { x: 2 } : undefined}
         whileTap={!disabled ? { scale: 0.98 } : undefined}
-        role="menuitem"
+        role='menuitem'
         tabIndex={disabled ? -1 : 0}
         aria-disabled={disabled}
       >
-        <Icon className={`w-4 h-4 mr-3 flex-shrink-0 ${getIconColorClasses()}`} />
-        
-        <div className="flex-1 text-left">
-          <span className="block">{label}</span>
+        <Icon
+          className={`w-4 h-4 mr-3 flex-shrink-0 ${getIconColorClasses()}`}
+        />
+
+        <div className='flex-1 text-left'>
+          <span className='block'>{label}</span>
           {description && (
-            <span className="text-xs text-gray-500 mt-0.5 block">
+            <span className='text-xs text-gray-500 mt-0.5 block'>
               {description}
             </span>
           )}
         </div>
-        
+
         {badge && (
-          <span className={`ml-auto text-xs flex-shrink-0 ${
-            danger ? 'text-red-500' : 'text-gray-500'
-          }`}>
+          <span
+            className={`ml-auto text-xs flex-shrink-0 ${
+              danger ? 'text-red-500' : 'text-gray-500'
+            }`}
+          >
             {badge}
           </span>
         )}
@@ -114,7 +116,7 @@ export const ProfileMenuItem = React.memo(function ProfileMenuItem({
  * 메뉴 구분선 컴포넌트
  */
 export const MenuDivider = React.memo(function MenuDivider() {
-  return <div className="border-t border-gray-100 my-1" />;
+  return <div className='border-t border-gray-100 my-1' />;
 });
 
 /**
@@ -126,7 +128,7 @@ export const MenuSectionHeader = React.memo(function MenuSectionHeader({
   title: string;
 }) {
   return (
-    <div className="px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+    <div className='px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider'>
       {title}
     </div>
   );

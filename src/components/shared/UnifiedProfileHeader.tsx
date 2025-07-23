@@ -2,11 +2,21 @@
 
 import React, { useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown, LogOut, Crown, Power, BarChart3, Shield } from 'lucide-react';
+import {
+  ChevronDown,
+  LogOut,
+  Crown,
+  Power,
+  BarChart3,
+  Shield,
+} from 'lucide-react';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 
 // 프로필 컴포넌트 임포트
-import { ProfileAvatar, UserTypeIcon } from '@/components/profile/components/ProfileAvatar';
+import {
+  ProfileAvatar,
+  UserTypeIcon,
+} from '@/components/profile/components/ProfileAvatar';
 import { ProfileDropdownMenu } from '@/components/profile/components/ProfileDropdownMenu';
 import { EnhancedProfileStatusDisplay } from '@/components/unified-profile/EnhancedProfileStatusDisplay';
 
@@ -16,7 +26,10 @@ import { useProfileSecurity } from '@/components/profile/hooks/useProfileSecurit
 import { useProfileMenu } from '@/components/profile/hooks/useProfileMenu';
 
 // 타입 임포트
-import type { UnifiedProfileHeaderProps, MenuItem } from '@/components/profile/types/profile.types';
+import type {
+  UnifiedProfileHeaderProps,
+  MenuItem,
+} from '@/components/profile/types/profile.types';
 
 /**
  * 통합 프로필 헤더 컴포넌트 (리팩토링 버전)
@@ -38,12 +51,8 @@ export default function UnifiedProfileHeader({
     navigateToDashboard,
   } = useProfileAuth();
 
-  const {
-    securityState,
-    isAdminMode,
-    authenticateAdmin,
-    disableAdminMode,
-  } = useProfileSecurity();
+  const { securityState, isAdminMode, authenticateAdmin, disableAdminMode } =
+    useProfileSecurity();
 
   const {
     menuState,
@@ -62,7 +71,7 @@ export default function UnifiedProfileHeader({
     const confirmed = confirm(
       '⚠️ 시스템을 종료하시겠습니까?\n\n종료 후 메인 페이지에서 다시 시작할 수 있습니다.'
     );
-    
+
     if (!confirmed) return;
 
     try {
@@ -103,7 +112,7 @@ export default function UnifiedProfileHeader({
     if (isAdminMode) {
       disableAdminMode();
     }
-    
+
     const success = await handleLogout();
     if (success) {
       closeMenu();
@@ -132,7 +141,7 @@ export default function UnifiedProfileHeader({
     // GitHub 사용자 시스템 관리 메뉴
     if (userType === 'github') {
       // 시스템 상태 표시는 별도로 처리됨
-      
+
       if (systemStatus?.isRunning) {
         items.push({
           id: 'dashboard',
@@ -223,41 +232,41 @@ export default function UnifiedProfileHeader({
     <div ref={dropdownRef} className={`relative ${className}`}>
       {/* 프로필 버튼 */}
       <motion.button
-        onClick={(e) => {
+        onClick={e => {
           e.stopPropagation();
           console.log('👤 프로필 버튼 클릭됨');
           toggleMenu();
         }}
-        className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-all duration-200 group cursor-pointer relative z-50 pointer-events-auto"
+        className='flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-all duration-200 group cursor-pointer relative z-50 pointer-events-auto'
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        aria-label="프로필 메뉴"
+        aria-label='프로필 메뉴'
         aria-expanded={menuState.showProfileMenu}
-        aria-haspopup="true"
-        id="profile-menu-button"
+        aria-haspopup='true'
+        id='profile-menu-button'
       >
         {/* 프로필 아바타 */}
         <ProfileAvatar
           userInfo={userInfo}
           userType={userType}
           isAdminMode={isAdminMode}
-          size="medium"
+          size='medium'
         />
 
         {/* 사용자 정보 */}
-        <div className="hidden sm:block text-left">
-          <div className="text-sm font-medium text-gray-900 flex items-center gap-1">
+        <div className='hidden sm:block text-left'>
+          <div className='text-sm font-medium text-gray-900 flex items-center gap-1'>
             {getUserName()}
             <UserTypeIcon
               userType={userType}
               isAdminMode={isAdminMode}
-              className="w-3 h-3"
+              className='w-3 h-3'
             />
           </div>
-          <div className="text-xs text-gray-500 flex items-center gap-1">
+          <div className='text-xs text-gray-500 flex items-center gap-1'>
             {getUserTypeLabel()} 로그인
             {status === 'loading' && (
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" />
+              <div className='w-2 h-2 bg-gray-400 rounded-full animate-pulse' />
             )}
           </div>
         </div>
@@ -294,8 +303,8 @@ export default function UnifiedProfileHeader({
 
       {/* GitHub 사용자용 시스템 상태 표시 (드롭다운 내부에 위치) */}
       {userType === 'github' && menuState.showProfileMenu && (
-        <div className="absolute right-0 mt-[280px] w-64 z-[9998]">
-          <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3">
+        <div className='absolute right-0 mt-[280px] w-64 z-[9998]'>
+          <div className='bg-white rounded-lg shadow-lg border border-gray-200 p-3'>
             <EnhancedProfileStatusDisplay compact={false} />
           </div>
         </div>

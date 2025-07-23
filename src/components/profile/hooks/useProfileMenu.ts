@@ -87,14 +87,26 @@ export function useProfileMenu() {
 
     // 약간의 지연 후 리스너 등록 (드롭다운 열기 클릭과 충돌 방지)
     const timer = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside as EventListener);
-      document.addEventListener('touchstart', handleClickOutside as EventListener);
+      document.addEventListener(
+        'mousedown',
+        handleClickOutside as EventListener
+      );
+      document.addEventListener(
+        'touchstart',
+        handleClickOutside as EventListener
+      );
     }, 100);
 
     return () => {
       clearTimeout(timer);
-      document.removeEventListener('mousedown', handleClickOutside as EventListener);
-      document.removeEventListener('touchstart', handleClickOutside as EventListener);
+      document.removeEventListener(
+        'mousedown',
+        handleClickOutside as EventListener
+      );
+      document.removeEventListener(
+        'touchstart',
+        handleClickOutside as EventListener
+      );
     };
   }, [menuState.showProfileMenu, closeMenu]);
 
@@ -161,9 +173,8 @@ export function useProfileMenuKeyboard(
           e.preventDefault();
           setFocusedIndex(prev => {
             const currentPos = visibleIndices.indexOf(prev);
-            const nextPos = currentPos <= 0 
-              ? visibleIndices.length - 1 
-              : currentPos - 1;
+            const nextPos =
+              currentPos <= 0 ? visibleIndices.length - 1 : currentPos - 1;
             return visibleIndices[nextPos];
           });
           break;

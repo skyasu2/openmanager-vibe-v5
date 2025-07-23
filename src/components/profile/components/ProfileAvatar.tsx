@@ -56,8 +56,10 @@ export const ProfileAvatar = React.memo(function ProfileAvatar({
   // 배경색 클래스 결정
   const getBackgroundClass = () => {
     if (isAdminMode) return 'bg-gradient-to-r from-red-500 to-pink-500';
-    if (userType === 'github') return 'bg-gradient-to-r from-purple-500 to-pink-500';
-    if (userType === 'guest') return 'bg-gradient-to-r from-blue-500 to-cyan-500';
+    if (userType === 'github')
+      return 'bg-gradient-to-r from-purple-500 to-pink-500';
+    if (userType === 'guest')
+      return 'bg-gradient-to-r from-blue-500 to-cyan-500';
     return 'bg-gray-500';
   };
 
@@ -78,17 +80,21 @@ export const ProfileAvatar = React.memo(function ProfileAvatar({
   };
 
   return (
-    <div 
-      className="relative"
+    <div
+      className='relative'
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
-      onKeyDown={onClick ? (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick();
-        }
-      } : undefined}
+      onKeyDown={
+        onClick
+          ? e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
     >
       {userInfo?.avatar ? (
         <img
@@ -129,27 +135,27 @@ export const UserTypeIcon = React.memo(function UserTypeIcon({
 }) {
   if (isAdminMode) {
     return (
-      <span title="관리자 모드">
+      <span title='관리자 모드'>
         <Crown className={`${className} text-red-600`} />
       </span>
     );
   }
-  
+
   if (userType === 'github') {
     return (
-      <span title="GitHub 인증">
+      <span title='GitHub 인증'>
         <Shield className={`${className} text-green-600`} />
       </span>
     );
   }
-  
+
   if (userType === 'guest') {
     return (
-      <span title="게스트 모드">
+      <span title='게스트 모드'>
         <UserCheck className={`${className} text-blue-600`} />
       </span>
     );
   }
-  
+
   return null;
 });
