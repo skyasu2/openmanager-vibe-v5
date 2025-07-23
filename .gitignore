@@ -192,6 +192,16 @@ COMMIT_MSG.tmp
 # ESLint cache
 .eslintcache
 
+# Backup files
+*.backup
+*.backup.*
+src.backup.*
+eslint.config.mjs.backup
+scripts/fix-case-declarations.cjs
+
+# Serena MCP
+.serena/
+
 # 루트 디렉토리 문서 제한 (4개 필수 파일만 허용)
 /*.md
 !README.md
