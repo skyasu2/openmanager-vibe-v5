@@ -155,6 +155,6 @@ export const config = {
      * - api/auth (인증 API)
      * - api/health, api/ping (헬스체크)
      */
-    '/((?!_next/static|_next/image|favicon.ico|auth/callback|login|api/auth|api/health|api/ping).*)',
+    '/((?!_next/static|_next/image|favicon.ico|auth/callback|auth/success|login|api/auth|api/health|api/ping).*)',
   ],
 };

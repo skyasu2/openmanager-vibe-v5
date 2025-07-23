@@ -13,6 +13,42 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader2 } from 'lucide-react';
 
+// Helper function to check session with retries
+async function checkSessionWithRetries(maxAttempts = 3) {
+  for (let i = 0; i < maxAttempts; i++) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (session) return session;
+
+    if (i < maxAttempts - 1) {
+      console.log(`❌ 최종 세션 확인 실패 - 재시도 ${i + 1}/${maxAttempts}`);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    }
+  }
+  return null;
+}
+
+// Helper function to perform redirect
+function performRedirect(redirect: string, router: any) {
+  console.log('🔄 window.location.replace로 리다이렉트 실행');
+  window.location.replace(redirect);
+
+  // 백업으로 router.push 시도
+  setTimeout(() => {
+    if (window.location.pathname === '/auth/callback') {
+      console.log('🔄 백업: router.push 실행');
+      router.push(redirect);
+    }
+  }, 2000);
+
+  // 최종 폴백
+  setTimeout(() => {
+    console.log('🔄 최종 폴백: window.location.href 실행');
+    window.location.href = redirect;
+  }, 3000);
+}
+
 // eslint-disable-next-line max-lines-per-function
 function AuthCallbackContent() {
   const router = useRouter();
@@ -29,12 +65,15 @@ function AuthCallbackContent() {
         const sessionRedirect = sessionStorage.getItem('auth_redirect_to');
         const urlRedirect =
           searchParams?.get('redirectTo') || searchParams?.get('redirect');
-        const redirect = sessionRedirect || urlRedirect || '/main';
+        const finalRedirect = sessionRedirect || urlRedirect || '/main';
 
-        // 사용된 세션스토리지 정리
-        if (sessionRedirect) {
-          sessionStorage.removeItem('auth_redirect_to');
+        // 세션스토리지에 최종 목적지 저장 (success 페이지에서 사용)
+        if (finalRedirect !== '/main') {
+          sessionStorage.setItem('auth_redirect_to', finalRedirect);
         }
+
+        // 🔧 성공 페이지로 리다이렉트 (세션 안정화를 위해)
+        const redirect = '/auth/success';
 
         console.log('🔐 OAuth 콜백 처리:', {
           code: code ? 'exists' : 'missing',
@@ -106,21 +145,9 @@ function AuthCallbackContent() {
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         // 최종 세션 확인 및 재시도 로직
-        let finalSessionAttempts = 0;
-        let finalSession;
+        const finalSession = await checkSessionWithRetries();
 
-        do {
-          finalSession = await supabase.auth.getSession();
-          if (!finalSession.data.session) {
-            console.log(
-              `❌ 최종 세션 확인 실패 - 재시도 ${finalSessionAttempts + 1}/3`
-            );
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            finalSessionAttempts++;
-          }
-        } while (!finalSession.data.session && finalSessionAttempts < 3);
-
-        if (!finalSession.data.session) {
+        if (!finalSession) {
           console.error('❌ 세션 생성 최종 실패 - 로그인 페이지로 이동');
           setError('세션 생성에 실패했습니다. 다시 시도해주세요.');
           setTimeout(
@@ -130,10 +157,7 @@ function AuthCallbackContent() {
           return;
         }
 
-        console.log(
-          '✅ 최종 세션 확인 성공:',
-          finalSession.data.session.user.email
-        );
+        console.log('✅ 최종 세션 확인 성공:', finalSession.user.email);
 
         // 성공적으로 로그인되면 리다이렉트
         console.log('🔄 리다이렉트 시도:', redirect);
@@ -141,23 +165,21 @@ function AuthCallbackContent() {
         // 미들웨어가 세션을 확실히 인식할 수 있도록 추가 대기
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        try {
-          // Next.js router를 먼저 시도 (더 안정적)
-          router.push(redirect);
+        // 라우터 캐시 갱신
+        console.log('🔄 라우터 캐시 갱신 중...');
+        router.refresh();
 
-          // 폴백으로 window.location 사용
-          setTimeout(() => {
-            if (window.location.pathname !== redirect) {
-              console.log('🔄 폴백 리다이렉트 실행');
-              window.location.href = redirect;
-            }
-          }, 1500);
+        // 추가 대기 시간 (쿠키가 완전히 설정되도록)
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        // 리다이렉트 수행
+        try {
+          performRedirect(redirect, router);
         } catch (redirectError) {
           console.error('❌ 리다이렉트 실패:', redirectError);
-          // 최종 폴백
           setTimeout(() => {
             window.location.href = redirect;
-          }, 2000);
+          }, 3000);
         }
       } catch (error) {
         console.error('❌ 콜백 처리 오류:', error);
