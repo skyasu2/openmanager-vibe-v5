@@ -1,5 +1,24 @@
 # Changelog
 
+## [5.63.1] - 2025-07-23
+
+### 🔒 보안 업데이트
+
+#### Fixed
+
+- **Critical 보안 취약점 해결**
+  - form-data 4.0.3 → 4.0.4 업그레이드
+  - 안전하지 않은 랜덤 함수 사용 문제 해결 (GHSA-fjxv-7rqg-78g4)
+  - axios, jsdom, @modelcontextprotocol/server-github 의존성에 영향
+  - 테스트 완료: 228개 단위 테스트 통과
+
+#### Pending
+
+- **Moderate 보안 취약점 (개발 환경)**
+  - esbuild ≤0.24.2 취약점 4개 발견 (vitest 내부 의존성)
+  - 개발 서버에만 영향, 프로덕션 영향 없음
+  - vitest 2.1.9 → 3.2.4 업그레이드로 해결 가능 (breaking changes 포함)
+
 ## [5.63.0] - 2025-07-23
 
 ### 🚀 새로운 기능

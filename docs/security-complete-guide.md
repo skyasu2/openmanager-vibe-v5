@@ -373,5 +373,48 @@ node scripts/encryption-manager.js --debug
 
 ---
 
-_최종 업데이트: 2025년 7월 11일_
-_OpenManager Vibe v5 - 통합 보안 가이드 v2.0_
+## 🔒 보안 업데이트 이력
+
+### [5.63.1] - 2025-07-23
+
+#### Critical 취약점 해결
+
+- **form-data 4.0.3 → 4.0.4**
+  - CVE: GHSA-fjxv-7rqg-78g4
+  - 설명: 안전하지 않은 랜덤 함수 사용으로 인한 boundary 예측 가능성
+  - 영향받는 의존성: axios, jsdom, @modelcontextprotocol/server-github
+  - 해결: `npm audit fix --production` 실행
+  - 검증: 228개 단위 테스트 통과
+
+#### 남은 취약점 (개발 환경)
+
+- **esbuild ≤0.24.2 (Moderate, 4개)**
+  - 영향: vitest 내부 의존성, 개발 서버에만 영향
+  - 해결방안: vitest 2.1.9 → 3.2.4 업그레이드 (breaking changes 포함)
+  - 프로덕션 영향: 없음
+
+### 보안 업데이트 프로세스
+
+1. **정기 점검**
+
+   ```bash
+   npm audit                    # 전체 취약점 확인
+   npm audit --production      # 프로덕션 의존성만 확인
+   ```
+
+2. **안전한 업데이트**
+
+   ```bash
+   npm audit fix --production  # 프로덕션 의존성만 수정
+   npm test                    # 테스트 실행
+   ```
+
+3. **Breaking Changes 처리**
+   - 먼저 영향도 분석
+   - 테스트 환경에서 검증
+   - 단계적 업그레이드
+
+---
+
+_최종 업데이트: 2025년 7월 23일_
+_OpenManager Vibe v5 - 통합 보안 가이드 v2.1_
