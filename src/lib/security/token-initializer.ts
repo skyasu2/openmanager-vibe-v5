@@ -11,12 +11,12 @@ import { decrypt } from '@/utils/encryption';
  */
 export function initializeGitHubToken(): boolean {
   try {
-    // 이미 평문 토큰이 있다면 건너뛰기
+    // 평문 토큰이 있다면 우선 사용 (개발 편의성)
     if (
       process.env.GITHUB_TOKEN &&
       process.env.GITHUB_TOKEN.startsWith('ghp_')
     ) {
-      console.log('✅ GitHub 토큰이 이미 설정되어 있습니다.');
+      console.log('✅ 평문 GitHub 토큰 사용 중 (암호화 비활성화)');
       return true;
     }
 

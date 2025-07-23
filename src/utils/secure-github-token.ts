@@ -10,9 +10,17 @@ import { decrypt } from './encryption';
  */
 export function getSecureGitHubToken(): string | null {
   try {
-    // 1. 암호화된 토큰 확인
+    // 1. 평문 토큰 우선 확인 (개발 편의성)
+    const plainToken = process.env.GITHUB_TOKEN;
+    if (plainToken && plainToken.startsWith('ghp_')) {
+      console.log('✅ 평문 GitHub 토큰 사용 중');
+      return plainToken;
+    }
+
+    // 2. 암호화된 토큰 확인 (fallback)
     const encryptedToken = process.env.GITHUB_TOKEN_ENCRYPTED;
     if (encryptedToken) {
+      console.log('🔐 암호화된 토큰 복호화 시도...');
       const decryptedToken = decrypt(encryptedToken);
 
       // 토큰 형식 검증
@@ -24,19 +32,10 @@ export function getSecureGitHubToken(): string | null {
       }
     }
 
-    // 2. 평문 토큰 확인 (개발 환경, 레거시)
-    const plainToken = process.env.GITHUB_TOKEN;
-    if (plainToken && plainToken.startsWith('ghp_')) {
-      console.warn(
-        '⚠️ 개발 환경에서 암호화되지 않은 GitHub 토큰을 사용 중입니다.'
-      );
-      return plainToken;
-    }
-
     console.warn('🔑 GitHub PAT 토큰을 찾을 수 없습니다.');
     return null;
   } catch (error) {
-    console.error('🔑 GitHub PAT 토큰 복호화 실패:', error);
+    console.error('🔑 GitHub PAT 토큰 처리 실패:', error);
     return null;
   }
 }
