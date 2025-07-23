@@ -588,6 +588,20 @@ This project demonstrates advanced Next.js patterns with AI integration, optimiz
 
 Claude Code에는 7개의 공식 MCP 서버가 설정되어 있습니다. MCP 도구들은 `mcp__서버명__함수명` 형식으로 사용 가능합니다.
 
+### 🚨 **보안 경고: GitHub Personal Access Token 관리**
+
+**절대로 GitHub Personal Access Token을 채팅이나 코드에 직접 입력하지 마세요!**
+
+- ❌ 채팅에 토큰 붙여넣기
+- ❌ 코드에 토큰 하드코딩
+- ❌ 공개 저장소에 토큰 커밋
+- ✅ 환경 변수로 안전하게 관리
+- ✅ .env.local 파일 사용 (.gitignore 확인 필수)
+
+**토큰이 노출된 경우**: 즉시 GitHub에서 토큰을 revoke하고 새로 생성하세요.
+
+상세 설정 가이드: `docs/setup/github-mcp-token-setup.md`
+
 ### 🛠️ MCP 서버 목록
 
 - **filesystem** - 파일 시스템 접근
