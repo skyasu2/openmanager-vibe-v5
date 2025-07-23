@@ -128,6 +128,9 @@
     "env:backup": "tsx scripts/auto-env-manager.ts backup",
     "env:rotate": "tsx scripts/auto-env-manager.ts rotate",
     "env:github-workflow": "tsx scripts/auto-env-manager.ts github-workflow",
+    "env:backup-simple": "node scripts/env-backup-manager.cjs backup",
+    "env:restore-simple": "node scripts/env-backup-manager.cjs restore",
+    "env:help": "node scripts/env-backup-manager.cjs help",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },

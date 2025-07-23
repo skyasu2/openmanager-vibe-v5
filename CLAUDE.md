@@ -575,6 +575,20 @@ When working with AI engines:
 - **Build failures**: Run `npm run type-check` to identify TypeScript issues
 - **Test failures**: Use `npm run test:watch` for interactive debugging
 
+### Environment Variables Backup/Restore
+
+개발 환경 설정을 쉽게 백업하고 복원할 수 있는 도구가 제공됩니다:
+
+```bash
+# 환경변수 백업 (민감한 정보는 자동 암호화)
+npm run env:backup
+
+# 환경변수 복원 (새 컴퓨터나 환경에서)
+npm run env:restore
+```
+
+상세 가이드: `docs/development/env-backup-restore-guide.md`
+
 ### Performance Optimization
 
 - Monitor AI engine response times
