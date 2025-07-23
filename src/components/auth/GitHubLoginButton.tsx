@@ -20,7 +20,6 @@ export interface GitHubLoginButtonProps {
   callbackUrl?: string;
 }
 
-// eslint-disable-next-line max-lines-per-function
 export default function GitHubLoginButton({
   onLoginError,
   className = '',

@@ -49,7 +49,6 @@ function performRedirect(redirect: string, router: any) {
   }, 3000);
 }
 
-// eslint-disable-next-line max-lines-per-function
 function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();

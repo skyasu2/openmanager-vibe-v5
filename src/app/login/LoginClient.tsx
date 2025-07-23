@@ -5,8 +5,6 @@
  * 모든 로그인 성공 시 루트 페이지(/)로 리다이렉트
  */
 
-/* eslint-disable max-lines-per-function */
-
 'use client';
 
 import { User } from 'lucide-react';

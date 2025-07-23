@@ -368,36 +368,36 @@ export default function DashboardContent({
               </div>
             </div>
           ) : (
-          <Suspense
-            fallback={
-              <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
-                <div className='animate-pulse'>
-                  <div className='h-4 bg-gray-200 rounded mb-4'></div>
-                  <div className='h-4 bg-gray-200 rounded mb-4'></div>
-                  <div className='h-4 bg-gray-200 rounded w-5/6'></div>
+            <Suspense
+              fallback={
+                <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
+                  <div className='animate-pulse'>
+                    <div className='h-4 bg-gray-200 rounded mb-4'></div>
+                    <div className='h-4 bg-gray-200 rounded mb-4'></div>
+                    <div className='h-4 bg-gray-200 rounded w-5/6'></div>
+                  </div>
                 </div>
-              </div>
-            }
-          >
-            <ServerDashboardDynamic
-              servers={servers}
-              onServerClick={server => {
-                try {
-                  console.log('🖱️ 서버 클릭:', server);
-                  // 서버 클릭 처리는 부모에서 관리됨
-                } catch (error) {
-                  safeConsoleError('서버 클릭 처리 오류:', error);
-                }
-              }}
-              showModal={!!selectedServer}
-              onClose={() => {
-                console.log('🔲 서버 모달 닫기');
-              }}
-              onStatsUpdate={onStatsUpdate}
-              selectedServerId={selectedServer?.id}
-            />
-          </Suspense>
-        )}
+              }
+            >
+              <ServerDashboardDynamic
+                servers={servers}
+                onServerClick={server => {
+                  try {
+                    console.log('🖱️ 서버 클릭:', server);
+                    // 서버 클릭 처리는 부모에서 관리됨
+                  } catch (error) {
+                    safeConsoleError('서버 클릭 처리 오류:', error);
+                  }
+                }}
+                showModal={!!selectedServer}
+                onClose={() => {
+                  console.log('🔲 서버 모달 닫기');
+                }}
+                onStatsUpdate={onStatsUpdate}
+                selectedServerId={selectedServer?.id}
+              />
+            </Suspense>
+          )}
         </div>
       </MotionDiv>
     );
