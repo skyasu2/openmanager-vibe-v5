@@ -10,9 +10,9 @@ import './globals.css';
 // 🛡️ Emergency Banner 시스템
 import { EmergencyBanner } from '@/components/emergency/EmergencyBanner';
 
+import { AuthTokenHandler } from '@/components/auth/AuthTokenHandler';
 import { SystemBootstrap } from '@/components/system/SystemBootstrap';
 import { Toaster } from '@/components/ui/toaster';
-import { AuthTokenHandler } from '@/components/auth/AuthTokenHandler';
 
 // Keep-alive 스케줄러 초기화
 // keep-alive-scheduler 제거됨 (사용량 모니터링 간소화)
@@ -24,6 +24,16 @@ import { enableGlobalProtection } from '@/config/free-tier-emergency-fix';
 // 시스템 시작 시 한글 인코딩 자동 설정
 if (typeof window === 'undefined') {
   detectAndFixTerminalEncoding();
+
+  // 🔐 보안 토큰 초기화 (서버 사이드에서만)
+  try {
+    const {
+      initializeSecurityTokens,
+    } = require('@/lib/security/token-initializer');
+    initializeSecurityTokens();
+  } catch (error) {
+    console.warn('⚠️ 보안 토큰 초기화 실패:', error);
+  }
 }
 
 // 🚨 SSR 호환성을 위한 전역 폴리필 강화 (Vercel 빌드 오류 완전 해결)
