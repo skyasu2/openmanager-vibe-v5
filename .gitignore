@@ -191,3 +191,10 @@ COMMIT_MSG.tmp
 
 # ESLint cache
 .eslintcache
+
+# 루트 디렉토리 문서 제한 (4개 필수 파일만 허용)
+/*.md
+!README.md
+!CLAUDE.md
+!CHANGELOG.md
+!GEMINI.md

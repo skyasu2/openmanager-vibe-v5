@@ -2,6 +2,30 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 📑 목차 (Table of Contents)
+
+1. [🌏 개발 환경 및 언어 설정](#-개발-환경-및-언어-설정)
+2. [🧠 깊이 있는 사고 모드 (필수 적용)](#-깊이-있는-사고-모드-필수-적용)
+3. [📦 MCP 도구 함수 상세](#-실제-mcp-도구-함수-상세)
+4. [🛡️ 일반 도구 (대체 항목)](#️-일반-도구-대체-항목)
+5. [📋 Common Commands](#common-commands)
+6. [🏗️ Architecture Overview](#architecture-overview)
+7. [📝 Development Guidelines](#development-guidelines)
+8. [📂 문서 생성 위치 규칙 (필수 준수)](#-문서-생성-위치-규칙-필수-준수)
+9. [🧪 Testing Strategy (TDD 필수)](#testing-strategy-tdd-필수)
+10. [🔧 Environment Variables](#environment-variables)
+11. [💾 Memory Management](#memory-management)
+12. [🤖 AI Engine Development](#ai-engine-development)
+13. [🌐 API Route Patterns](#api-route-patterns)
+14. [🎨 Component Development](#component-development)
+15. [✅ Testing New Features](#testing-new-features)
+16. [🚀 Deployment Notes](#deployment-notes)
+17. [🔍 Troubleshooting](#troubleshooting)
+18. [🛠️ MCP (Model Context Protocol) 도구 통합](#mcp-model-context-protocol-도구-통합)
+19. [🚀 AI 도구 v2.0 - 차세대 통합 시스템](#-ai-도구-v20---차세대-통합-시스템)
+20. [📊 Claude Code 사용량 모니터링](#claude-code-사용량-모니터링)
+21. [🤝 AI 도구 협업 전략](#ai-도구-협업-전략)
+
 ## 🌏 **개발 환경 및 언어 설정**
 
 ### 🖥️ 개발 환경
@@ -77,265 +101,153 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 #### 📁 Filesystem MCP 도구
 
-```typescript
-// 파일 읽기/쓰기
-mcp__filesystem__read_file({ path: 'src/app/page.tsx' });
-mcp__filesystem__write_file({ path: 'src/new-file.ts', content: '...' });
+```
+파일 읽기/쓰기:
+- mcp__filesystem__read_file - 파일 내용 읽기
+- mcp__filesystem__write_file - 파일 생성 또는 덮어쓰기
 
-// 디렉토리 탐색
-mcp__filesystem__list_directory({ path: 'src' });
-mcp__filesystem__create_directory({ path: 'src/components' });
+디렉토리 탐색:
+- mcp__filesystem__list_directory - 디렉토리 내용 조회
+- mcp__filesystem__create_directory - 새 디렉토리 생성
 
-// 파일 검색
-mcp__filesystem__search_files({ pattern: '*.tsx', path: 'src' });
-mcp__filesystem__get_file_info({ path: 'package.json' });
+파일 검색:
+- mcp__filesystem__search_files - 패턴으로 파일 검색
+- mcp__filesystem__get_file_info - 파일 메타데이터 조회
 ```
 
 #### 🐙 GitHub MCP 도구
 
-```typescript
-// 저장소 검색
-mcp__github__search_repositories({ query: 'Next.js', page: 1 });
+```
+저장소 관리:
+- mcp__github__search_repositories - GitHub 저장소 검색
+- mcp__github__create_repository - 새 저장소 생성
 
-// 저장소 생성
-mcp__github__create_repository({ name: 'my-app', private: false });
+파일 작업:
+- mcp__github__get_file_contents - 파일 내용 가져오기
+- mcp__github__create_or_update_file - 파일 생성/수정
 
-// 파일 가져오기/수정
-mcp__github__get_file_contents({
-  owner: 'user',
-  repo: 'repo',
-  path: 'README.md',
-});
-mcp__github__create_or_update_file({
-  owner,
-  repo,
-  path,
-  content,
-  message,
-  branch,
-});
+이슈/PR 관리:
+- mcp__github__create_issue - 새 이슈 생성
+- mcp__github__create_pull_request - PR 생성
+- mcp__github__list_issues - 이슈 목록 조회
 
-// 이슈/PR 관리
-mcp__github__create_issue({ owner, repo, title, body });
-mcp__github__create_pull_request({ owner, repo, title, head, base });
-mcp__github__list_issues({ owner, repo, state: 'open' });
-
-// 코드 검색
-mcp__github__search_code({ q: 'function authenticate' });
+코드 검색:
+- mcp__github__search_code - 코드베이스 검색
 ```
 
 #### 🧠 Memory MCP 도구
 
-```typescript
-// 엔티티 생성
-mcp__memory__create_entities({
-  entities: [
-    {
-      name: 'OpenManager VIBE',
-      entityType: 'Project',
-      observations: ['AI 서버 모니터링 플랫폼'],
-    },
-  ],
-});
+```
+엔티티 관리:
+- mcp__memory__create_entities - 새 엔티티 생성
+- mcp__memory__delete_entities - 엔티티 삭제
+- mcp__memory__add_observations - 관찰 내용 추가
 
-// 관계 생성
-mcp__memory__create_relations({
-  relations: [
-    {
-      from: 'OpenManager VIBE',
-      to: 'Next.js 15',
-      relationType: 'uses',
-    },
-  ],
-});
+관계 관리:
+- mcp__memory__create_relations - 엔티티 간 관계 생성
+- mcp__memory__delete_relations - 관계 삭제
 
-// 검색 및 읽기
-mcp__memory__search_nodes({ query: '프로젝트 구조' });
-mcp__memory__read_graph(); // 전체 그래프 보기
+검색 및 조회:
+- mcp__memory__search_nodes - 노드 검색
+- mcp__memory__open_nodes - 특정 노드 열기
+- mcp__memory__read_graph - 전체 그래프 조회
 ```
 
 #### 🗄️ Supabase MCP 도구
 
-```typescript
-// 데이터 조회
-mcp__supabase__select({
-  table: 'users',
-  columns: ['id', 'email', 'created_at'],
-  filter: { created_at: { gte: '2025-01-01' } },
-});
+```
+데이터베이스 작업:
+- mcp__supabase__execute_sql - SQL 쿼리 실행
+- mcp__supabase__list_tables - 테이블 목록 조회
+- mcp__supabase__list_extensions - 확장 기능 목록
 
-// 데이터 삽입
-mcp__supabase__insert({
-  table: 'server_metrics',
-  data: { server_id: '123', cpu_usage: 75.5 },
-});
+마이그레이션:
+- mcp__supabase__list_migrations - 마이그레이션 목록
+- mcp__supabase__apply_migration - 마이그레이션 적용
 
-// 데이터 업데이트
-mcp__supabase__update({
-  table: 'users',
-  data: { status: 'active' },
-  filter: { id: 'user123' },
-});
+프로젝트 관리:
+- mcp__supabase__get_project_url - 프로젝트 URL 조회
+- mcp__supabase__get_anon_key - 익명 API 키 조회
+- mcp__supabase__generate_typescript_types - TypeScript 타입 생성
 
-// 스키마 확인
-mcp__supabase__get_schema({ table: 'users' });
+문서 검색:
+- mcp__supabase__search_docs - Supabase 문서 검색
 ```
 
 #### 📚 Context7 MCP 도구
 
-```typescript
-// 1단계: 라이브러리 ID 찾기
-mcp__context7__resolve - library - id({ libraryName: 'next.js' });
-// 결과: "/vercel/next.js" 반환
+```
+라이브러리 문서 검색:
+- mcp__context7__resolve-library-id - 라이브러리 ID 검색
+- mcp__context7__get-library-docs - 라이브러리 문서 가져오기
 
-// 2단계: 문서 가져오기
-mcp__context7__get -
-  library -
-  docs({
-    context7CompatibleLibraryID: '/vercel/next.js',
-    topic: 'app router', // 선택사항
-    tokens: 10000, // 선택사항
-  });
+사용 예시:
+1. 먼저 resolve-library-id로 라이브러리 ID 찾기 (예: 'next.js' → '/vercel/next.js')
+2. get-library-docs로 해당 ID의 문서 조회
 ```
 
 #### 🔍 Tavily MCP 도구
 
-```typescript
-// 웹 검색
-mcp__tavily -
-  mcp__tavily -
-  search({
-    query: 'Next.js 15 new features',
-    max_results: 10,
-    search_depth: 'advanced',
-  });
+```
+웹 검색:
+- mcp__tavily-mcp__tavily-search - 웹 검색 (일반 또는 뉴스)
+- mcp__tavily-mcp__tavily-extract - URL 컨텐츠 추출
+- mcp__tavily-mcp__tavily-crawl - 웹사이트 크롤링
+- mcp__tavily-mcp__tavily-map - 사이트맵 생성
 
-// 뉴스 검색
-mcp__tavily__search_news({
-  query: 'AI development tools',
-  days: 7,
-});
-
-// 컨텍스트 검색
-mcp__tavily__search_context({
-  query: 'React hooks',
-  domains: ['reactjs.org', 'beta.reactjs.org'],
-});
-
-// 페이지 컨텐츠 추출
-mcp__tavily -
-  mcp__tavily -
-  extract({
-    url: 'https://example.com/article',
-    extract_depth: 'advanced',
-    include_images: true,
-  });
-
-// 웹 크롤링
-mcp__tavily -
-  mcp__tavily -
-  crawl({
-    url: 'https://example.com',
-    max_depth: 2,
-    limit: 50,
-  });
-
-// 사이트맵 생성
-mcp__tavily -
-  mcp__tavily -
-  map({
-    url: 'https://example.com',
-    max_depth: 2,
-  });
+검색 옵션:
+- topic: 'general' 또는 'news'
+- search_depth: 'basic' 또는 'advanced'
+- max_results: 5-20
+- include_images: 이미지 포함 여부
 ```
 
 #### 🧠 Sequential-Thinking MCP 도구 (단축명: st)
 
-```typescript
-// 복잡한 문제를 단계별로 분석하고 해결
-mcp__st__sequentialthinking({
-  thought: '사용자 인증 시스템의 보안 취약점을 분석해보자',
-  nextThoughtNeeded: true,
-  thoughtNumber: 1,
-  totalThoughts: 5, // 예상 단계 수 (동적으로 조정 가능)
-  isRevision: false,
-  needsMoreThoughts: false,
-});
+```
+단계별 사고 도구:
+- mcp__sequential-thinking__sequentialthinking - 복잡한 문제를 단계별로 분석
 
-// 사용 예시: 복잡한 버그 분석
-// 1단계: 문제 정의 및 초기 분석
-mcp__st__sequentialthinking({
-  thought: '로그인 후 간헐적으로 세션이 만료되는 문제 분석',
-  nextThoughtNeeded: true,
-  thoughtNumber: 1,
-  totalThoughts: 4,
-});
+주요 매개변수:
+- thought: 현재 사고 단계
+- nextThoughtNeeded: 추가 사고 필요 여부
+- thoughtNumber: 현재 단계 번호
+- totalThoughts: 예상 총 단계 수 (동적 조정 가능)
+- isRevision: 이전 사고 수정 여부
+- revisesThought: 수정할 사고 번호
 
-// 2단계: 가능한 원인 탐색
-mcp__st__sequentialthinking({
-  thought: '세션 타임아웃, 토큰 검증, 네트워크 이슈 등을 검토',
-  nextThoughtNeeded: true,
-  thoughtNumber: 2,
-  totalThoughts: 4,
-});
-
-// 3단계: 이전 생각 수정 (필요시)
-mcp__st__sequentialthinking({
-  thought: '토큰 검증 로직에 race condition 발견',
-  nextThoughtNeeded: true,
-  thoughtNumber: 3,
-  totalThoughts: 5, // 더 많은 분석 필요
-  isRevision: true,
-  revisesThought: 2,
-});
-
-// 활용 시나리오:
-// - 복잡한 알고리즘 설계
-// - 시스템 아키텍처 개선
-// - 성능 병목 현상 분석
-// - 보안 취약점 탐색
-// - 다단계 리팩토링 계획
+활용 시나리오:
+- 복잡한 알고리즘 설계
+- 시스템 아키텍처 개선
+- 성능 병목 현상 분석
+- 보안 취약점 탐색
+- 다단계 리팩토링 계획
 ```
 
 ### 🛡️ 일반 도구 (대체 항목)
 
 #### 파일 시스템 도구
 
-```typescript
-// 파일 읽기/쓰기
-Read({ file_path: "/path/to/file.ts" })
-Write({ file_path: "/path/to/file.ts", content: "..." })
-Edit({ file_path, old_string, new_string })
-MultiEdit({ file_path, edits: [...] })
+```
+파일 읽기/쓰기:
+- Read - 파일 내용 읽기
+- Write - 파일 생성 또는 덮어쓰기
+- Edit - 특정 문자열 교체
+- MultiEdit - 여러 부분 동시 편집
 
-// 파일 검색
-Glob({ pattern: "**/*.ts" })
-Grep({ pattern: "function", path: "src/" })
-LS({ path: "/absolute/path" })
+파일 검색:
+- Glob - 패턴으로 파일 찾기 (예: "**/*.ts")
+- Grep - 파일 내용 검색
+- LS - 디렉토리 목록 조회
 ```
 
 #### 웹 검색 도구
 
-```typescript
-// 웹 검색 (tavily 대체)
-WebSearch({ query: 'Next.js 15 새로운 기능' });
-WebFetch({ url: 'https://...', prompt: '요약해주세요' });
 ```
-
-## 언어 설정
-
-- 모든 응답은 한국어로 제공해주세요
-- 기술적 설명도 한국어로 번역해서 설명해주세요
-- 영어 용어가 필요한 경우 한국어 설명 후 괄호에 영어를 병기해주세요
-
-## 응답 스타일
-
-- 친근하고 이해하기 쉬운 설명
-- 코드 주석도 한국어로 작성
-- 에러 메시지 해석 시 한국어로 설명
-- 기술적인 내용도 초보자가 이해할 수 있도록 쉽게 풀어서 설명
-- 작업 진행 상황을 단계별로 명확히 안내
-- **항상 깊이 있는 분석을 기반으로 한 통찰력 있는 답변 제공**
+웹 검색 (MCP 대체):
+- WebSearch - 웹 검색 수행
+- WebFetch - URL 컨텐츠 가져오기 및 분석
+```
 
 ## Common Commands
 
@@ -552,6 +464,30 @@ User Query → AI Agent Engine → Intent Classifier → Response Generator
 - 새로운 기능은 반드시 문서 작성
 - API 변경사항은 상세히 기록
 - 복잡한 로직은 인라인 주석 추가
+
+### 📝 문서 생성 위치 규칙 (필수 준수)
+
+#### 루트 디렉토리 (/) - 4개 파일만 허용
+
+**절대 규칙**: 다음 4개 파일만 루트에 유지
+
+- README.md - 프로젝트 소개
+- CLAUDE.md - AI 지시사항
+- CHANGELOG.md - 버전 이력
+- GEMINI.md - Gemini CLI 가이드
+
+⚠️ **중요**: LICENSE, CONTRIBUTING.md 등 다른 문서는 생성하지 말 것
+
+#### docs 폴더 (/docs) - 모든 기타 문서
+
+- 설정 가이드 → `/docs/setup/`
+- 트러블슈팅 → `/docs/troubleshooting/`
+- 개발 가이드 → `/docs/development/`
+- 보안 문서 → `/docs/security/`
+- API 문서 → `/docs/api/`
+- 기타 모든 문서 → `/docs/`
+
+❌ **절대 금지**: 루트에 임시 문서, 분석 문서, 이슈 문서 생성
 
 ### Testing Strategy (TDD 필수)
 
