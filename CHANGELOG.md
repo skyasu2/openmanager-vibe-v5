@@ -1,5 +1,46 @@
 # Changelog
 
+## [5.63.2] - 2025-07-23
+
+### 🔧 코드 품질 개선
+
+#### Refactored
+
+- **ESLint 설정 간소화**
+  - FlatCompat 및 Storybook 플러그인 제거로 설정 파일 192줄 → 88줄로 축소
+  - 불필요한 의존성 제거로 설정 관리 용이성 향상
+  - package.json 스크립트 중복 제거 및 정리
+
+- **프로필 컴포넌트 리팩토링**
+  - 10개 프로필 관련 컴포넌트 코드 정리
+  - import 문 최적화 및 타입 정의 개선
+  - 코드 포맷팅 일관성 향상
+
+- **대시보드 및 인증 컴포넌트 개선**
+  - DashboardClient, LoginClient 등 5개 컴포넌트 포맷팅
+  - 불필요한 import 제거
+  - 코드 가독성 향상
+
+- **서비스 레이어 및 유틸리티 정리**
+  - AI 서비스 타입 정의 개선
+  - MCP 서버 관리자 코드 최적화
+  - encoding-fix 유틸리티 ESLint 경고 수정
+  - API 라우트 파싱 에러 수정 (case 블록 중괄호 추가)
+
+#### Fixed
+
+- **코드 품질 이슈 해결**
+  - `src/app/api/ai/logging/stream/route.ts`: case 블록 파싱 에러 수정
+  - `src/utils/encoding-fix.ts`: no-control-regex ESLint 경고 해결
+  - 전체 프로젝트 ESLint 오류 0개 달성
+
+#### Added
+
+- **.gitignore 업데이트**
+  - 백업 파일 패턴 추가 (_.backup, _.backup.\*)
+  - 임시 스크립트 파일 제외 (fix-case-declarations.cjs)
+  - Serena MCP 폴더 제외 (.serena/)
+
 ## [5.63.1] - 2025-07-23
 
 ### 🔒 보안 업데이트
