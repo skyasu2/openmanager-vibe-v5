@@ -82,9 +82,9 @@ function AuthCallbackContent() {
           provider: session?.user?.app_metadata?.provider,
         });
 
-        // 세션이 완전히 저장될 때까지 잠시 대기
+        // 세션이 완전히 저장될 때까지 충분히 대기
         console.log('⏳ 세션 저장 대기 중...');
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         // 세션 강제 새로고침
         console.log('🔄 세션 강제 새로고침...');
@@ -102,29 +102,62 @@ function AuthCallbackContent() {
         // 라우터 캐시 새로고침 (쿠키 업데이트 반영)
         router.refresh();
 
-        // 추가 대기 시간
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // 추가 대기 시간 (미들웨어가 세션을 인식할 수 있도록)
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-        // 최종 세션 확인
-        const finalSession = await supabase.auth.getSession();
+        // 최종 세션 확인 및 재시도 로직
+        let finalSessionAttempts = 0;
+        let finalSession;
+
+        do {
+          finalSession = await supabase.auth.getSession();
+          if (!finalSession.data.session) {
+            console.log(
+              `❌ 최종 세션 확인 실패 - 재시도 ${finalSessionAttempts + 1}/3`
+            );
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            finalSessionAttempts++;
+          }
+        } while (!finalSession.data.session && finalSessionAttempts < 3);
+
         if (!finalSession.data.session) {
-          console.error('❌ 최종 세션 확인 실패 - 재시도');
-          // 한 번 더 시도
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          console.error('❌ 세션 생성 최종 실패 - 로그인 페이지로 이동');
+          setError('세션 생성에 실패했습니다. 다시 시도해주세요.');
+          setTimeout(
+            () => router.push('/login?error=session_creation_failed'),
+            2000
+          );
+          return;
         }
+
+        console.log(
+          '✅ 최종 세션 확인 성공:',
+          finalSession.data.session.user.email
+        );
 
         // 성공적으로 로그인되면 리다이렉트
         console.log('🔄 리다이렉트 시도:', redirect);
 
+        // 미들웨어가 세션을 확실히 인식할 수 있도록 추가 대기
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         try {
-          // window.location.href 사용 (쿠키가 완전히 반영되도록)
-          window.location.href = redirect;
+          // Next.js router를 먼저 시도 (더 안정적)
+          router.push(redirect);
+
+          // 폴백으로 window.location 사용
+          setTimeout(() => {
+            if (window.location.pathname !== redirect) {
+              console.log('🔄 폴백 리다이렉트 실행');
+              window.location.href = redirect;
+            }
+          }, 1500);
         } catch (redirectError) {
           console.error('❌ 리다이렉트 실패:', redirectError);
-          // 폴백
+          // 최종 폴백
           setTimeout(() => {
             window.location.href = redirect;
-          }, 1000);
+          }, 2000);
         }
       } catch (error) {
         console.error('❌ 콜백 처리 오류:', error);

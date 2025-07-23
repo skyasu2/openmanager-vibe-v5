@@ -83,20 +83,35 @@ export async function middleware(request: NextRequest) {
         cookies.map(c => c.name)
       );
 
-      // 세션 확인
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
+      // 세션 확인 (재시도 로직 포함)
+      let session = null;
+      let sessionError = null;
+      let attempts = 0;
+      const maxAttempts = 2;
+
+      // 세션 확인을 최대 2번 시도 (OAuth 콜백 직후 타이밍 이슈 해결)
+      do {
+        const result = await supabase.auth.getSession();
+        session = result.data.session;
+        sessionError = result.error;
+
+        if (!session && attempts < maxAttempts - 1) {
+          console.log(`🔄 미들웨어 세션 재시도 ${attempts + 1}/${maxAttempts}`);
+          // 짧은 대기 후 재시도
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        attempts++;
+      } while (!session && !sessionError && attempts < maxAttempts);
 
       console.log('🔐 미들웨어 세션 체크:', {
         path: pathname,
         hasSession: !!session,
-        error: error?.message,
+        error: sessionError?.message,
         userEmail: session?.user?.email,
+        attempts,
       });
 
-      if (error || !session) {
+      if (sessionError || !session) {
         // 이미 로그인 페이지에 있다면 리디렉션하지 않음 (무한 루프 방지)
         if (pathname === '/login') {
           return response;
