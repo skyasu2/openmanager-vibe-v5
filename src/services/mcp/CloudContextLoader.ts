@@ -152,7 +152,9 @@ export class CloudContextLoader {
       redisTTL: 3600, // 1시간
       maxCacheSize: 50, // 최대 50개 컨텍스트 캐싱
       compressionEnabled: true,
-      mcpServerUrl: process.env.GCP_MCP_SERVER_URL || `http://${process.env.GCP_VM_IP || '104.154.205.25'}:${process.env.GCP_MCP_SERVER_PORT || '10000'}`, // Google Cloud VM
+      mcpServerUrl:
+        process.env.GCP_MCP_SERVER_URL ||
+        `http://${process.env.GCP_VM_IP || '104.154.205.25'}:${process.env.GCP_MCP_SERVER_PORT || '10000'}`, // Google Cloud VM
       mcpHealthCheckInterval: 30000, // 30초
       ...config,
     };
@@ -431,13 +433,20 @@ export class CloudContextLoader {
     let combinedContext = '';
 
     // 1. MCP 컨텍스트 조회
-    const mcpContext = await this.fetchMCPContextForNLP(query, nlpType, contextSources);
+    const mcpContext = await this.fetchMCPContextForNLP(
+      query,
+      nlpType,
+      contextSources
+    );
     if (mcpContext) {
       combinedContext += this.formatMCPContextForNLP(mcpContext);
     }
 
     // 2. 로컬 컨텍스트 조회
-    const localContext = await this.fetchLocalContextForNLP(nlpType, contextSources);
+    const localContext = await this.fetchLocalContextForNLP(
+      nlpType,
+      contextSources
+    );
     combinedContext += this.formatLocalContextForNLP(localContext);
 
     // 3. 컨텍스트 최적화
@@ -514,7 +523,9 @@ export class CloudContextLoader {
   private formatLocalContextForNLP(localContext: ContextDocument[]): string {
     let formatted = '';
     for (const context of localContext) {
-      const markdownContent = Object.values(context.documents.markdown).join('\n');
+      const markdownContent = Object.values(context.documents.markdown).join(
+        '\n'
+      );
       formatted += `[로컬 컨텍스트: ${context.bundleType}]\n${markdownContent.substring(0, 300)}...\n\n`;
     }
     return formatted;
@@ -524,7 +535,7 @@ export class CloudContextLoader {
    * ✂️ 컨텍스트 길이 최적화
    */
   private optimizeContextLength(context: string): string {
-    return context.length > 2000 
+    return context.length > 2000
       ? context.substring(0, 2000) + '...[더 많은 컨텍스트 사용 가능]'
       : context;
   }

@@ -198,7 +198,6 @@ export class ServiceRegistry {
       'singleton'
     );
 
-
     // Metrics Collector (향후 구현)
     registerFactory(
       SERVICE_TOKENS.METRICS_COLLECTOR,

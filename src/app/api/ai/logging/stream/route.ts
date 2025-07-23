@@ -298,7 +298,7 @@ export async function POST(request: NextRequest) {
           timestamp: new Date().toISOString(),
         });
 
-      case 'export':
+      case 'export': {
         // 로그 내보내기
         let exportLogs: AILogEntry[] = [];
 
@@ -321,6 +321,7 @@ export async function POST(request: NextRequest) {
           count: exportLogs.length,
           timestamp: new Date().toISOString(),
         });
+      }
 
       default:
         return NextResponse.json(

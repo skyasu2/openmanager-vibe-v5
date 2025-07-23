@@ -9,10 +9,10 @@
  */
 
 import type {
-    ErrorHandlingConfig,
-    ErrorStats,
-    MonitoringEvent,
-    ServiceError,
+  ErrorHandlingConfig,
+  ErrorStats,
+  MonitoringEvent,
+  ServiceError,
 } from '../types/ErrorTypes';
 
 export class ErrorMonitoringService {

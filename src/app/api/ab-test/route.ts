@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       case 'metrics':
         return await getDetailedMetrics();
 
-      case 'assign_group':
+      case 'assign_group': {
         const userKey = searchParams.get('user_key') || 'anonymous';
         const forceGroup = searchParams.get('group') as ABTestGroup;
         const assignedGroup = await abTestManager.assignUserToGroup(
@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
           },
           timestamp: new Date().toISOString(),
         });
+      }
 
       default:
         return NextResponse.json(

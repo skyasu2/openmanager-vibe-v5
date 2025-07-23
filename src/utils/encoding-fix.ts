@@ -95,7 +95,8 @@ export function safeKoreanLog(message: string, data?: any): void {
     safeMessage = safeMessage
       .replace(/�+/g, '') // 깨진 문자 제거
       .replace(/\ufffd+/g, '') // 대체 문자 제거
-      .replace(/[^\u0000-\u007F\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/g, '') // 한글과 ASCII만 유지
+      // eslint-disable-next-line no-control-regex
+      .replace(/[^\u0001-\u007F\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/g, '') // 한글과 ASCII만 유지 (null 문자 제외)
       .trim();
 
     // 빈 문자열이 된 경우 원본 사용

@@ -129,9 +129,10 @@ export class MCPServerManager {
    */
   private setupProductionServers(): void {
     // Google VM 서버 기반 설정
-    const gcpMcpUrl = process.env.GCP_MCP_SERVER_URL || 
+    const gcpMcpUrl =
+      process.env.GCP_MCP_SERVER_URL ||
       `http://${process.env.GCP_VM_IP || '104.154.205.25'}:${process.env.GCP_MCP_SERVER_PORT || '10000'}/mcp`;
-    
+
     this.servers.set('gcp-mcp', {
       name: 'gcp-mcp',
       command: 'curl',

@@ -271,10 +271,13 @@ function shouldUseMockRedis(
   // 컨텍스트 기반 판단 (대량 작업은 Mock 사용)
   if (context) {
     // 시스템 상태 관리는 항상 실제 Redis 사용 (Vercel 환경에서 상태 유지 필요)
-    if (context.includes('system-control') || context.includes('system-state')) {
+    if (
+      context.includes('system-control') ||
+      context.includes('system-state')
+    ) {
       return 'real';
     }
-    
+
     if (HYBRID_STRATEGY.useMockFor.some(pattern => context.includes(pattern))) {
       return 'mock';
     }
@@ -297,7 +300,10 @@ async function getHybridRedisClient(
   const redisType = shouldUseMockRedis(context, dataSize);
 
   // 글로벌 캐시에서 기존 클라이언트 확인
-  if (globalThis.__redis_client_cache && globalThis.__redis_client_type === redisType) {
+  if (
+    globalThis.__redis_client_cache &&
+    globalThis.__redis_client_type === redisType
+  ) {
     return globalThis.__redis_client_cache;
   }
 
@@ -313,7 +319,7 @@ async function getHybridRedisClient(
           `🧠 통합 Mock Redis 활성화 (컨텍스트: ${context || 'unknown'})`
         );
       }
-      
+
       // 글로벌 캐시에 저장
       globalThis.__redis_client_cache = unifiedMockRedis;
       globalThis.__redis_client_type = 'mock';
@@ -329,7 +335,7 @@ async function getHybridRedisClient(
           console.log(
             `🌐 Real Redis 활성화 (컨텍스트: ${context || 'unknown'})`
           );
-          
+
           // 글로벌 캐시에 저장
           globalThis.__redis_client_cache = realRedis;
           globalThis.__redis_client_type = 'real';
@@ -341,7 +347,7 @@ async function getHybridRedisClient(
           if (!unifiedMockRedis) {
             unifiedMockRedis = new UnifiedMockRedis();
           }
-          
+
           // 글로벌 캐시에 Mock 저장
           globalThis.__redis_client_cache = unifiedMockRedis;
           globalThis.__redis_client_type = 'mock';
@@ -350,11 +356,11 @@ async function getHybridRedisClient(
       }
 
       const client = realRedis || (unifiedMockRedis = new UnifiedMockRedis());
-      
+
       // 글로벌 캐시에 저장
       globalThis.__redis_client_cache = client;
       globalThis.__redis_client_type = realRedis ? 'real' : 'mock';
-      
+
       return client;
     }
   }

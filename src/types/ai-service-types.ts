@@ -1,6 +1,6 @@
 /**
  * 🤖 AI 서비스 상세 타입 정의
- * 
+ *
  * AI 서비스에서 사용되는 구체적인 타입들을 정의
  * any 타입 제거를 위한 강타입 시스템
  */
@@ -211,7 +211,10 @@ export type ServerArray = Server[];
 /**
  * 메타데이터 레코드 타입 (any 대체)
  */
-export type MetadataRecord = Record<string, string | number | boolean | Date | string[]>;
+export type MetadataRecord = Record<
+  string,
+  string | number | boolean | Date | string[]
+>;
 
 /**
  * 쿼리 파라미터 타입
@@ -243,10 +246,7 @@ export function isAIQueryContext(obj: unknown): obj is AIQueryContext {
   return (
     typeof obj === 'object' &&
     obj !== null &&
-    (
-      !('user' in obj) || 
-      (typeof (obj as AIQueryContext).user === 'object')
-    )
+    (!('user' in obj) || typeof (obj as AIQueryContext).user === 'object')
   );
 }
 
