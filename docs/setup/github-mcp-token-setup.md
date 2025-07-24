@@ -8,7 +8,7 @@ GitHub Personal Access Token은 매우 민감한 정보입니다. 절대로:
 - 채팅이나 메시지에 공유하지 마세요
 - 공개 저장소에 커밋하지 마세요
 
-## 📌 현재 설정 (2025.07 업데이트)
+## 📌 현재 설정 (2025.01 업데이트)
 
 **개발 편의성을 위한 평문 토큰 사용**:
 
@@ -80,12 +80,43 @@ claude chat
 # GitHub 서버가 목록에 나타나는지 확인
 ```
 
+## 🚀 Git Push 사용법
+
+### 토큰을 사용한 Push
+
+WSL 환경에서는 대화형 인증이 작동하지 않으므로 토큰을 직접 사용합니다:
+
+```bash
+# .env.local에서 토큰 로드 후 push
+source .env.local && git push https://${GITHUB_TOKEN}@github.com/skyasu2/openmanager-vibe-v5.git main
+
+# 또는 npm 스크립트 사용
+npm run git:secure-push
+```
+
+### 자주 사용하는 명령어
+
+```bash
+# 상태 확인
+git status
+
+# 모든 변경사항 추가
+git add -A
+
+# 커밋
+git commit -m "커밋 메시지"
+
+# 토큰으로 푸시
+source .env.local && git push https://${GITHUB_TOKEN}@github.com/skyasu2/openmanager-vibe-v5.git main
+```
+
 ## 🔒 보안 모범 사례
 
 1. **토큰 권한 최소화**: 필요한 권한만 부여
 2. **정기적 갱신**: 3-6개월마다 토큰 재생성
 3. **환경별 분리**: 개발/프로덕션 토큰 구분
 4. **접근 로그 확인**: GitHub 설정에서 토큰 사용 내역 모니터링
+5. **절대 평문 커밋 금지**: `.env.local`은 `.gitignore`에 포함되어야 함
 
 ## ❓ 문제 해결
 
