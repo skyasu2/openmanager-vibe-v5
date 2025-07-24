@@ -259,6 +259,7 @@ const handler = createMcpHandler(
   { basePath: '/api' }
 );
 
-export const runtime = 'edge';
+// Edge Runtime을 사용하지 않음 (mcp-handler가 Node.js 모듈 필요)
+// export const runtime = 'edge';
 
 export { handler as GET, handler as POST };
