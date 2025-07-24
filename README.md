@@ -111,6 +111,11 @@ npm run build
 - [배포 완전 가이드](./docs/deployment-complete-guide.md)
 - [메모리 최적화 가이드](./docs/memory-optimization-guide.md)
 
+### 🔐 인증 및 문제 해결
+
+- [OAuth 성공 사례 분석](./docs/oauth-success-analysis.md) 🎉 최신
+- [OAuth 문제 해결 가이드](./docs/troubleshooting/oauth-issues.md) ✅ 검증됨
+
 ### 🤖 AI 도구 및 통합
 
 - [Gemini 개발 도구 v5](./docs/gemini-dev-tools-v5-guide.md) 🚀 최신
@@ -124,6 +129,7 @@ npm run build
 - **확장성**: GCP Functions 무제한 확장, 실시간 모니터링
 - **비용 효율**: 월 $0 운영비로 엔터프라이즈급 서비스
 - **코드 최적화**: 97% 코드 감소 (45,188줄 → 1,500줄)
+- **OAuth 인증**: GitHub OAuth 완전 구현, Vercel 환경 최적화 🎉
 
 ---
 
