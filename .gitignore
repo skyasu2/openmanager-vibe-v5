@@ -60,6 +60,8 @@ ai-combined.log
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+.env.local.backup
+scripts/quick-push.sh
 # 🔐 복호화된 환경변수 파일들 (절대 커밋 금지)
 .env.decrypted
 .env.local
