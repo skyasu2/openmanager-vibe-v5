@@ -120,8 +120,7 @@
   ],
   "functions": {
     "app/api/mcp/route.ts": {
-      "maxDuration": 30,
-      "runtime": "edge"
+      "maxDuration": 30
     }
   }
 }
