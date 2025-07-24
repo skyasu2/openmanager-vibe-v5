@@ -97,157 +97,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 임시 해결책과 장기적 해결책 구분 제시
 - 빠른 조치 후 후속 개선 계획 제안
 
-#### 📦 실제 MCP 도구 함수 상세
+### 📦 MCP 도구 빠른 참조
 
-#### 📁 Filesystem MCP 도구
+프로젝트에서 사용 가능한 4개의 MCP 도구:
 
-```
-파일 읽기/쓰기:
-- mcp__filesystem__read_file - 파일 내용 읽기
-- mcp__filesystem__write_file - 파일 생성 또는 덮어쓰기
+1. **📁 filesystem** - 파일 읽기/쓰기/검색
+2. **🐙 github** - GitHub 이슈/PR/코드 관리
+3. **🧠 memory** - 컨텍스트 정보 저장/검색
+4. **🤔 sequential-thinking** - 복잡한 문제 단계별 분석
 
-디렉토리 탐색:
-- mcp__filesystem__list_directory - 디렉토리 내용 조회
-- mcp__filesystem__create_directory - 새 디렉토리 생성
-
-파일 검색:
-- mcp__filesystem__search_files - 패턴으로 파일 검색
-- mcp__filesystem__get_file_info - 파일 메타데이터 조회
-```
-
-#### 🐙 GitHub MCP 도구
-
-```
-저장소 관리:
-- mcp__github__search_repositories - GitHub 저장소 검색
-- mcp__github__create_repository - 새 저장소 생성
-
-파일 작업:
-- mcp__github__get_file_contents - 파일 내용 가져오기
-- mcp__github__create_or_update_file - 파일 생성/수정
-
-이슈/PR 관리:
-- mcp__github__create_issue - 새 이슈 생성
-- mcp__github__create_pull_request - PR 생성
-- mcp__github__list_issues - 이슈 목록 조회
-
-코드 검색:
-- mcp__github__search_code - 코드베이스 검색
-```
-
-#### 🧠 Memory MCP 도구
-
-```
-엔티티 관리:
-- mcp__memory__create_entities - 새 엔티티 생성
-- mcp__memory__delete_entities - 엔티티 삭제
-- mcp__memory__add_observations - 관찰 내용 추가
-
-관계 관리:
-- mcp__memory__create_relations - 엔티티 간 관계 생성
-- mcp__memory__delete_relations - 관계 삭제
-
-검색 및 조회:
-- mcp__memory__search_nodes - 노드 검색
-- mcp__memory__open_nodes - 특정 노드 열기
-- mcp__memory__read_graph - 전체 그래프 조회
-```
-
-#### 🗄️ Supabase MCP 도구
-
-```
-데이터베이스 작업:
-- mcp__supabase__execute_sql - SQL 쿼리 실행
-- mcp__supabase__list_tables - 테이블 목록 조회
-- mcp__supabase__list_extensions - 확장 기능 목록
-
-마이그레이션:
-- mcp__supabase__list_migrations - 마이그레이션 목록
-- mcp__supabase__apply_migration - 마이그레이션 적용
-
-프로젝트 관리:
-- mcp__supabase__get_project_url - 프로젝트 URL 조회
-- mcp__supabase__get_anon_key - 익명 API 키 조회
-- mcp__supabase__generate_typescript_types - TypeScript 타입 생성
-
-문서 검색:
-- mcp__supabase__search_docs - Supabase 문서 검색
-```
-
-#### 📚 Context7 MCP 도구
-
-```
-라이브러리 문서 검색:
-- mcp__context7__resolve-library-id - 라이브러리 ID 검색
-- mcp__context7__get-library-docs - 라이브러리 문서 가져오기
-
-사용 예시:
-1. 먼저 resolve-library-id로 라이브러리 ID 찾기 (예: 'next.js' → '/vercel/next.js')
-2. get-library-docs로 해당 ID의 문서 조회
-```
-
-#### 🔍 Tavily MCP 도구
-
-```
-웹 검색:
-- mcp__tavily-mcp__tavily-search - 웹 검색 (일반 또는 뉴스)
-- mcp__tavily-mcp__tavily-extract - URL 컨텐츠 추출
-- mcp__tavily-mcp__tavily-crawl - 웹사이트 크롤링
-- mcp__tavily-mcp__tavily-map - 사이트맵 생성
-
-검색 옵션:
-- topic: 'general' 또는 'news'
-- search_depth: 'basic' 또는 'advanced'
-- max_results: 5-20
-- include_images: 이미지 포함 여부
-```
-
-#### 🧠 Sequential-Thinking MCP 도구 (단축명: st)
-
-```
-단계별 사고 도구:
-- mcp__sequential-thinking__sequentialthinking - 복잡한 문제를 단계별로 분석
-
-주요 매개변수:
-- thought: 현재 사고 단계
-- nextThoughtNeeded: 추가 사고 필요 여부
-- thoughtNumber: 현재 단계 번호
-- totalThoughts: 예상 총 단계 수 (동적 조정 가능)
-- isRevision: 이전 사고 수정 여부
-- revisesThought: 수정할 사고 번호
-
-활용 시나리오:
-- 복잡한 알고리즘 설계
-- 시스템 아키텍처 개선
-- 성능 병목 현상 분석
-- 보안 취약점 탐색
-- 다단계 리팩토링 계획
-```
-
-### 🛡️ 일반 도구 (대체 항목)
-
-#### 파일 시스템 도구
-
-```
-파일 읽기/쓰기:
-- Read - 파일 내용 읽기
-- Write - 파일 생성 또는 덮어쓰기
-- Edit - 특정 문자열 교체
-- MultiEdit - 여러 부분 동시 편집
-
-파일 검색:
-- Glob - 패턴으로 파일 찾기 (예: "**/*.ts")
-- Grep - 파일 내용 검색
-- LS - 디렉토리 목록 조회
-```
-
-#### 웹 검색 도구
-
-```
-웹 검색 (MCP 대체):
-- WebSearch - 웹 검색 수행
-- WebFetch - URL 컨텐츠 가져오기 및 분석
-```
+**빠른 사용법**: `docs/mcp-quick-guide.md` 참조  
+**상세 설정**: `docs/claude-code-mcp-setup-2025.md` 참조
 
 ## Common Commands
 
@@ -613,199 +473,38 @@ npm run env:restore
 
 This project demonstrates advanced Next.js patterns with AI integration, optimized for production deployment with comprehensive testing and monitoring capabilities.
 
-## MCP (Model Context Protocol) 도구 통합
+## 🔧 MCP (Model Context Protocol) 도구 사용
 
-Claude Code에는 7개의 공식 MCP 서버가 설정되어 있습니다. MCP 도구들은 `mcp__서버명__함수명` 형식으로 사용 가능합니다.
+### 📦 MCP 도구 빠른 참조
 
-### 🚨 **보안 경고: GitHub Personal Access Token 관리**
+프로젝트에서 사용 가능한 4개의 MCP 도구:
 
-**절대로 GitHub Personal Access Token을 채팅이나 코드에 직접 입력하지 마세요!**
+1. **📁 filesystem** - 파일 읽기/쓰기/검색
+2. **🐙 github** - GitHub 이슈/PR/코드 관리
+3. **🧠 memory** - 컨텍스트 정보 저장/검색
+4. **🤔 sequential-thinking** - 복잡한 문제 단계별 분석
 
-- ❌ 채팅에 토큰 붙여넣기
-- ❌ 코드에 토큰 하드코딩
-- ❌ 공개 저장소에 토큰 커밋
-- ✅ 환경 변수로 안전하게 관리
-- ✅ .env.local 파일 사용 (.gitignore 확인 필수)
+**빠른 사용법**: `docs/mcp-quick-guide.md` 참조  
+**상세 설정**: `docs/claude-code-mcp-setup-2025.md` 참조
 
-**토큰이 노출된 경우**: 즉시 GitHub에서 토큰을 revoke하고 새로 생성하세요.
-
-상세 설정 가이드: `docs/setup/github-mcp-token-setup.md`
-
-### 🛠️ MCP 서버 목록
-
-- **filesystem** - 파일 시스템 접근
-- **github** - GitHub API 통합
-- **memory** - 컨텍스트 메모리
-- **supabase** - 데이터베이스 통합
-- **context7** - 문서 검색
-- **tavily** - AI 웹 검색
-- **st** (sequential-thinking) - 복잡한 문제의 단계별 분석 및 해결
-
-### 🚀 MCP 설정 및 사용법
-
-**최신 Claude Code MCP 설정 가이드**: `docs/claude-code-mcp-setup-2025.md`
-
-#### 기본 MCP 서버 추가
+### 🔑 기본 사용법
 
 ```bash
-# 로컬 MCP 서버 추가
-claude mcp add <서버이름> <명령> [인수...]
+# MCP 도구 호출 형식
+mcp__서버명__함수명()
 
-# 환경변수와 함께
-claude mcp add my-server -e API_KEY=123 -- /path/to/server
+# 예시: 파일 읽기
+mcp__filesystem__read_file("/path/to/file")
 
-# Remote MCP 서버 (신기능)
-claude mcp add --transport sse remote-server https://vendor.com/mcp-endpoint
-
-# 스코프 설정 (local/project/user)
-claude mcp add my-server -s project /path/to/server
+# 예시: GitHub 이슈 생성
+mcp__github__create_issue("owner", "repo", "title", "body")
 ```
 
-#### 스코프 상세 설명
+### ⚠️ 보안 주의사항
 
-- **local** (기본값): 현재 프로젝트에서만 사용
-- **project**: 프로젝트 팀원들과 공유 (.mcp.json 파일을 통해)
-- **user**: 모든 프로젝트에서 전역적으로 사용
-
-#### 설정 파일 위치 및 직접 편집 (권장)
-
-- **로컬/프로젝트**: `.mcp.json` (프로젝트 디렉토리)
-- **유저(전역)**: `~/.claude.json` (홈 디렉토리)
-
-#### 설정 파일 예시
-
-```json
-{
-  "mcpServers": {
-    "sequential-thinking": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
-      "env": {
-        "DISABLE_THOUGHT_LOGGING": "true"
-      }
-    },
-    "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "~/Documents",
-        "~/Projects"
-      ]
-    },
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "your_token_here"
-      }
-    }
-  }
-}
-```
-
-#### 주요 MCP 서버 설치 예시
-
-```bash
-# Filesystem
-claude mcp add filesystem npx -y @modelcontextprotocol/server-filesystem .
-
-# GitHub (토큰 필요)
-claude mcp add github -e GITHUB_TOKEN="YOUR_TOKEN" npx -y @modelcontextprotocol/server-github
-
-# Supabase (토큰 필요)
-claude mcp add supabase npx -y @supabase/mcp-server-supabase --project-ref=YOUR_REF -e SUPABASE_ACCESS_TOKEN=YOUR_TOKEN
-
-# Memory
-claude mcp add memory npx -y @modelcontextprotocol/server-memory
-
-# Context7
-claude mcp add context7 npx -y @context7/mcp-server
-
-# Tavily (키 필요)
-claude mcp add tavily -e TAVILY_API_KEY=YOUR_KEY npx -y @tavily/mcp-server
-
-# Sequential-Thinking
-claude mcp add sequential-thinking npx -y @modelcontextprotocol/server-sequential-thinking
-```
-
-#### MCP 서버 관리
-
-```bash
-# 등록된 모든 MCP 서버 확인
-claude mcp list
-
-# 특정 서버 상세 정보 확인
-claude mcp get server-name
-
-# Claude Code 내에서 확인
-/mcp
-```
-
-#### MCP 서버 삭제
-
-⚠️ **주의**: 현재 `claude mcp remove` 명령어에 버그가 있어 설정 파일 직접 편집을 권장합니다.
-
-```bash
-# CLI 시도 (버그 가능성)
-claude mcp remove server-name -s [local|project|user]
-
-# 권장: 설정 파일 직접 편집
-# .mcp.json 또는 ~/.claude.json에서 해당 서버 블록 삭제
-```
-
-#### OAuth 인증 (신기능)
-
-```bash
-# 대화형 메뉴로 OAuth 관리
-/mcp
-
-# Remote MCP 서버 OAuth 인증
-claude mcp add linear-server https://api.linear.app/mcp
-# → /mcp 명령으로 OAuth 인증 진행
-```
-
-#### 문제 해결
-
-```bash
-# MCP 디버그 모드
-claude --mcp-debug
-
-# 설정 파일 구문 검증
-cat ~/.claude.json | python -m json.tool
-
-# Node.js 캐시 정리
-npx clear-npx-cache
-
-# 로그 확인 (macOS/Linux)
-tail -f ~/.claude/logs/mcp-server-*.log
-```
-
-#### 권장 MCP 서버
-
-**개발 필수 도구**
-
-1. **Sequential Thinking**: 복잡한 문제 해결 과정 구조화
-2. **Filesystem**: 로컬 파일 읽기/쓰기/편집
-3. **GitHub**: Git 저장소 관리 및 이슈 추적
-4. **Puppeteer**: 웹 자동화 및 테스팅
-
-**생산성 도구**
-
-1. **Notion**: 문서 및 프로젝트 관리
-2. **Brave Search**: 웹 검색 기능
-3. **Memory Bank**: 세션 간 컨텍스트 유지
-4. **PostgreSQL**: 데이터베이스 쿼리
-
-#### 보안 고려사항
-
-1. **MCP 서버 신뢰성 검증**: 공식/검증된 서버만 사용
-2. **환경 변수 보안**: API 키는 환경 변수로 관리
-3. **파일 시스템 접근 제한**: 필요한 디렉토리만 지정
-4. **프로젝트 공유시 주의**: 민감한 정보는 환경 변수 사용
-5. **권한 관리**: 새 MCP 서버 발견시 신중히 승인
-
-상세한 설정 및 사용법은 `docs/claude-code-mcp-setup-2025.md`를 참조하세요.
+- GitHub 토큰은 `.env.local`에 저장 (절대 하드코딩 금지)
+- 파일 경로는 절대 경로 사용
+- MCP 서버 상태 확인: `/mcp` 명령어
 
 ## 🚀 AI 도구 v2.0 - 차세대 통합 시스템 (최신)
 
