@@ -197,12 +197,14 @@ function DashboardPageContent() {
     const initializeDashboard = async () => {
       try {
         // 필요한 경우에만 데이터 생성기 상태 확인
-        const response = await fetch('/api/data-generator/status');
-        const status = await response.json();
+        // API 클라이언트 사용
+        const { apiGet, apiPost } = await import('@/lib/api-client');
+
+        const status = await apiGet('/api/data-generator/status');
 
         if (!status.success || !status.data.isRunning) {
           console.log('📊 데이터 생성기 자동 시작');
-          await fetch('/api/data-generator/start', { method: 'POST' });
+          await apiPost('/api/data-generator/start');
         }
       } catch (error) {
         console.warn('⚠️ 데이터 생성기 초기화 실패 (폴백 데이터 사용):', error);

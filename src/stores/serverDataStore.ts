@@ -10,55 +10,10 @@
 
 import { createStore } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { ServerStatus } from '../types/common';
-import type { EnhancedServerMetrics } from '../types/server';
 import { calculateOptimalUpdateInterval } from '../config/serverConfig';
+import type { EnhancedServerMetrics } from '../types/server';
 
-// ✅ 클라이언트 전용 타입 정의 (UI 표시용)
-interface ClientServerMetrics {
-  cpu: number;
-  memory: number;
-  disk: number;
-  network: number;
-}
-
-interface ClientServer {
-  id: string;
-  name: string;
-  status: ServerStatus;
-  location: string;
-  type: string;
-  metrics: ClientServerMetrics;
-  // 🩺 건강 점수 및 추세 (선택)
-  health: {
-    score: number;
-    trend: number[];
-  };
-  // 🚨 알림 요약 (선택)
-  alertsSummary: {
-    total: number;
-    critical: number;
-    warning: number;
-  };
-  uptime: number;
-  lastUpdate: Date;
-}
-
-interface ChatMessage {
-  id: string;
-  type: 'user' | 'ai';
-  content: string;
-  timestamp: Date;
-}
-
-interface SystemStatus {
-  totalServers: number;
-  healthyServers: number;
-  warningServers: number;
-  criticalServers: number;
-  activeAlerts: number;
-  lastUpdate: Date;
-}
+// 사용하지 않는 인터페이스들 제거
 
 export interface ServerDataState {
   // 데이터 상태
@@ -146,9 +101,10 @@ export const createServerDataStore = (
 
         try {
           console.log('🚀 최적화된 서버 데이터 가져오기 시작');
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-          const response = await fetch(`${appUrl}/api/servers/all`);
-          const result = await response.json();
+
+          // API 클라이언트 사용
+          const { apiGet } = await import('@/lib/api-client');
+          const result = await apiGet('/api/servers/all');
 
           if (result.success && result.data) {
             console.log(

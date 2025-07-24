@@ -182,7 +182,7 @@ export default function SystemBootClient() {
         } else {
           console.log('⚠️ 시스템 상태 API 응답 오류:', response.status);
         }
-      } catch (error) {
+      } catch {
         console.log('🔄 시스템 상태 체크 중... (네트워크 오류)');
       }
       return false;
@@ -195,7 +195,7 @@ export default function SystemBootClient() {
     checkSystemStatus();
 
     // 로딩 애니메이션 실행
-    stages.forEach(({ name, delay, icon, description }, index) => {
+    stages.forEach(({ name, delay, icon }, index) => {
       setTimeout(() => {
         if (systemReady && animationCompleted) return; // 이미 완료되면 스킵
 
