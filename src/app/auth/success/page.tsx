@@ -56,21 +56,29 @@ export default function AuthSuccessPage() {
         // 추가 대기 후 세션 확인
         await new Promise(resolve => setTimeout(resolve, 1500));
 
-        // 세션 확인 (최대 5회 재시도)
+        // 🔐 보안 강화: getUser()로 세션 검증 (최대 5회 재시도)
+        let user = null;
         let session = null;
         let error = null;
-        const maxRetries = isVercel ? 7 : 5;
+        const maxRetries = isVercel ? 5 : 3;
 
         for (let attempt = 0; attempt < maxRetries; attempt++) {
-          const result = await supabase.auth.getSession();
-          session = result.data.session;
-          error = result.error;
+          // 먼저 세션 확인 (쿠키 기반)
+          const sessionResult = await supabase.auth.getSession();
+          session = sessionResult.data.session;
 
           if (session) {
-            console.log(
-              `✅ 세션 확인 성공 (시도 ${attempt + 1}/${maxRetries})`
-            );
-            break;
+            // 세션이 있으면 getUser()로 검증
+            const userResult = await supabase.auth.getUser();
+            user = userResult.data.user;
+            error = userResult.error;
+
+            if (user && !error) {
+              console.log(
+                `✅ 사용자 검증 성공 (시도 ${attempt + 1}/${maxRetries})`
+              );
+              break;
+            }
           }
 
           if (attempt < maxRetries - 1) {
@@ -80,7 +88,7 @@ export default function AuthSuccessPage() {
             setRetryCount(attempt + 1);
 
             // Vercel에서는 더 긴 대기
-            const retryWait = isVercel ? 2000 : 1500;
+            const retryWait = isVercel ? 2500 : 1500;
             await new Promise(resolve => setTimeout(resolve, retryWait));
 
             // 중간에 한 번 더 새로고침 시도
@@ -100,14 +108,14 @@ export default function AuthSuccessPage() {
           return;
         }
 
-        if (!session) {
-          console.error('❌ 세션을 찾을 수 없습니다');
+        if (!user || !session) {
+          console.error('❌ 사용자 인증 실패');
           setStatus('error');
-          setTimeout(() => router.push('/login?error=no_session'), 2000);
+          setTimeout(() => router.push('/login?error=no_user'), 2000);
           return;
         }
 
-        console.log('✅ 세션 확인 완료:', session.user.email);
+        console.log('✅ 사용자 인증 완료:', user.email);
         setStatus('success');
 
         // 라우터 캐시 갱신 여러 번
@@ -123,10 +131,17 @@ export default function AuthSuccessPage() {
 
         console.log('🚀 리다이렉트:', redirectTo);
 
-        // 🔧 Vercel에서는 더 긴 대기 시간
-        const cookieWait = isVercel ? 4000 : 2000;
+        // 🔧 Vercel에서는 더 긴 대기 시간 (쿠키 전파 보장)
+        const cookieWait = isVercel ? 5000 : 2000;
         console.log(`⏳ 쿠키 동기화 대기 중... (${cookieWait}ms)`);
         await new Promise(resolve => setTimeout(resolve, cookieWait));
+
+        // Vercel 환경에서 추가 세션 새로고침
+        if (isVercel) {
+          console.log('🔄 Vercel 환경 - 추가 세션 새로고침');
+          await supabase.auth.refreshSession();
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
 
         // 쿠키 상태 확인 로그
         const cookies = document.cookie;
@@ -139,10 +154,10 @@ export default function AuthSuccessPage() {
           environment: isVercel ? 'Vercel' : 'Local',
         });
 
-        // 최종 세션 확인
-        const finalCheck = await supabase.auth.getSession();
-        if (!finalCheck.data.session) {
-          console.error('❌ 최종 세션 확인 실패');
+        // 최종 사용자 검증 (getUser()로 확실한 검증)
+        const finalUserCheck = await supabase.auth.getUser();
+        if (!finalUserCheck.data.user) {
+          console.error('❌ 최종 사용자 검증 실패');
           setStatus('error');
           setTimeout(
             () => router.push('/login?error=final_check_failed'),
@@ -150,6 +165,11 @@ export default function AuthSuccessPage() {
           );
           return;
         }
+
+        console.log(
+          '✅ 최종 사용자 검증 성공:',
+          finalUserCheck.data.user.email
+        );
 
         // 🔧 Vercel 환경에서 더 안정적인 리다이렉트 방법
         console.log('🔄 리다이렉트 실행:', redirectTo);

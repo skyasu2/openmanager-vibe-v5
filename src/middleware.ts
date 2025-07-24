@@ -1,6 +1,7 @@
 import { createMiddlewareClient } from '@/lib/supabase-ssr';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { getCachedUser, setCachedUser } from '@/lib/auth-cache';
 
 // 개발 환경에서만 허용하는 API 패턴들
 const DEV_ONLY_PATTERNS = [
@@ -106,73 +107,92 @@ export async function middleware(request: NextRequest) {
         isFromAuth: isFromAuthCallback || isFromAuthSuccess,
       });
 
-      // 세션 확인 (재시도 로직 포함)
-      let session = null;
-      let sessionError = null;
+      // 🔐 보안 강화: getUser()를 사용하여 토큰 재검증
+      let user = null;
+      let userError = null;
       let attempts = 0;
 
-      // Vercel 및 OAuth 콜백 직후라면 더 많은 재시도와 긴 대기시간 적용
-      const isAuthFlow = isFromAuthCallback || isFromAuthSuccess;
-      const maxAttempts = isVercel ? (isAuthFlow ? 8 : 5) : isAuthFlow ? 5 : 2;
-      const waitTime = isVercel
-        ? isAuthFlow
-          ? 2000
-          : 1000
-        : isAuthFlow
-          ? 1000
-          : 500;
+      // 먼저 세션 ID로 캐시 확인 (성능 최적화)
+      const sessionResult = await supabase.auth.getSession();
+      const sessionId = sessionResult.data.session?.access_token;
 
-      // 세션 확인을 최대 재시도 (OAuth 콜백 직후 타이밍 이슈 해결)
-      do {
-        const result = await supabase.auth.getSession();
-        session = result.data.session;
-        sessionError = result.error;
+      if (sessionId) {
+        // 캐시된 사용자 정보 확인
+        const cachedUser = getCachedUser(sessionId);
+        if (cachedUser !== undefined) {
+          console.log('✅ 캐시에서 사용자 정보 조회됨');
+          user = cachedUser;
+        } else {
+          // 캐시 미스 - Auth 서버에서 검증
+          console.log('🔍 Auth 서버에서 사용자 정보 검증 중...');
 
-        if (!session && attempts < maxAttempts - 1) {
-          console.log(
-            `🔄 미들웨어 세션 재시도 ${attempts + 1}/${maxAttempts} (Vercel: ${isVercel}, OAuth: ${isAuthFlow})`
-          );
+          // Vercel 및 OAuth 콜백 직후라면 더 많은 재시도와 긴 대기시간 적용
+          const isAuthFlow = isFromAuthCallback || isFromAuthSuccess;
+          const maxAttempts = isVercel
+            ? isAuthFlow
+              ? 5
+              : 3
+            : isAuthFlow
+              ? 3
+              : 1;
+          const waitTime = isVercel
+            ? isAuthFlow
+              ? 1500
+              : 800
+            : isAuthFlow
+              ? 800
+              : 300;
 
-          // 대기
-          await new Promise(resolve => setTimeout(resolve, waitTime));
+          // getUser()로 토큰 검증 (재시도 로직 포함)
+          do {
+            const result = await supabase.auth.getUser();
+            user = result.data.user;
+            userError = result.error;
 
-          // 세션 새로고침 시도 (중간 지점에서)
-          if (attempts === Math.floor(maxAttempts / 2) || attempts === 1) {
-            try {
-              const refreshResult = await supabase.auth.refreshSession();
-              if (refreshResult.data.session) {
-                console.log('✅ 미들웨어에서 세션 새로고침 성공');
-                session = refreshResult.data.session;
-                break;
+            if (!user && attempts < maxAttempts - 1) {
+              console.log(
+                `🔄 미들웨어 사용자 검증 재시도 ${attempts + 1}/${maxAttempts} (Vercel: ${isVercel}, OAuth: ${isAuthFlow})`
+              );
+
+              // 대기
+              await new Promise(resolve => setTimeout(resolve, waitTime));
+
+              // 세션 새로고침 시도 (중간 지점에서)
+              if (attempts === Math.floor(maxAttempts / 2)) {
+                try {
+                  const refreshResult = await supabase.auth.refreshSession();
+                  if (refreshResult.data.session) {
+                    console.log('✅ 미들웨어에서 세션 새로고침 성공');
+                    // 새로고침 후 다시 getUser() 시도
+                    continue;
+                  }
+                } catch (refreshError) {
+                  console.log('⚠️ 세션 새로고침 실패:', refreshError);
+                }
               }
-            } catch (refreshError) {
-              console.log('⚠️ 세션 새로고침 실패:', refreshError);
             }
-          }
+            attempts++;
+          } while (!user && !userError && attempts < maxAttempts);
 
-          // Vercel 환경에서 추가 시도
-          if (isVercel && attempts === maxAttempts - 2) {
-            console.log('🔄 Vercel 환경 - 추가 새로고침 시도');
-            try {
-              await supabase.auth.refreshSession();
-              await new Promise(resolve => setTimeout(resolve, 1000));
-            } catch {
-              // 무시
-            }
+          // 캐시에 저장
+          if (sessionId && !userError) {
+            setCachedUser(sessionId, user);
           }
         }
-        attempts++;
-      } while (!session && !sessionError && attempts < maxAttempts);
+      } else {
+        console.log('❌ 세션 토큰이 없음');
+      }
 
-      console.log('🔐 미들웨어 세션 체크:', {
+      console.log('🔐 미들웨어 사용자 검증:', {
         path: pathname,
-        hasSession: !!session,
-        error: sessionError?.message,
-        userEmail: session?.user?.email,
+        hasUser: !!user,
+        error: userError?.message,
+        userEmail: user?.email,
         attempts,
+        cached: getCachedUser(sessionId || '') !== undefined,
       });
 
-      if (sessionError || !session) {
+      if (userError || !user) {
         // 이미 로그인 페이지에 있다면 리디렉션하지 않음 (무한 루프 방지)
         if (pathname === '/login') {
           return response;

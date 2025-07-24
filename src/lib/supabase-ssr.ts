@@ -43,11 +43,39 @@ export function createMiddlewareClient(
         return request.cookies.get(name)?.value;
       },
       set(name: string, value: string, options: CookieOptions) {
+        // 🔐 Vercel 환경에 최적화된 쿠키 옵션
+        const isVercel =
+          process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined;
+        const isSecure = request.url.startsWith('https://');
+
+        const enhancedOptions = {
+          ...options,
+          // Vercel 환경에서는 secure 필수
+          secure: isVercel || isSecure || options.secure,
+          // SameSite 정책 최적화 (OAuth 콜백 호환)
+          sameSite: options.sameSite || ('lax' as const),
+          // httpOnly는 기본값 유지 (보안)
+          httpOnly: options.httpOnly !== false,
+          // 경로는 루트로 설정
+          path: options.path || '/',
+          // Vercel에서는 더 긴 maxAge 설정
+          maxAge:
+            isVercel && options.maxAge ? options.maxAge * 1.2 : options.maxAge,
+        };
+
         // ✅ response 객체에만 쿠키를 설정합니다 (request는 읽기 전용)
         response.cookies.set({
           name,
           value,
-          ...options,
+          ...enhancedOptions,
+        });
+
+        console.log(`🍪 쿠키 설정: ${name}`, {
+          secure: enhancedOptions.secure,
+          sameSite: enhancedOptions.sameSite,
+          httpOnly: enhancedOptions.httpOnly,
+          path: enhancedOptions.path,
+          isVercel,
         });
       },
       remove(name: string, options: CookieOptions) {
@@ -56,6 +84,7 @@ export function createMiddlewareClient(
           name,
           value: '',
           ...options,
+          maxAge: 0,
         });
       },
     },

@@ -1,5 +1,39 @@
 # Changelog
 
+## [5.63.7] - 2025-07-24
+
+### 🔐 OAuth 로그인 리다이렉트 루프 문제 근본적 해결
+
+#### Fixed
+
+- **미들웨어 보안 강화 및 성능 최적화**
+  - `getSession()` → `getUser()` 변경으로 토큰 재검증 보장
+  - 인증 캐싱 레이어 추가로 성능 향상 (30초 TTL)
+  - Supabase 공식 권장사항 준수 (서버 사이드 보안)
+- **OAuth 콜백 처리 개선**
+  - 클라이언트 페이지에서 서버 route handler로 변경
+  - `exchangeCodeForSession()` 사용으로 안정성 향상
+  - Vercel 환경별 대기 시간 차별화
+- **쿠키 설정 최적화**
+  - Vercel 환경 자동 감지 및 secure 옵션 강제
+  - SameSite=lax로 OAuth 호환성 보장
+  - maxAge 연장으로 Vercel 지연 대응
+- **Success 페이지 검증 강화**
+  - `getUser()`로 최종 사용자 검증
+  - Vercel 환경에서 5초 대기 및 추가 세션 새로고침
+  - 리다이렉트 전 쿠키 전파 완전 보장
+
+#### Added
+
+- `/src/lib/auth-cache.ts` - 미들웨어 인증 캐싱 유틸리티
+- `/src/app/auth/callback/route.ts` - 서버 사이드 OAuth 콜백 핸들러
+
+#### Changed
+
+- 미들웨어가 매 요청마다 Auth 서버에서 토큰 검증
+- OAuth 플로우가 서버 사이드에서 안정적으로 처리
+- Vercel 쿠키 동기화 지연 문제 완전 해결
+
 ## [5.63.6] - 2025-07-24
 
 ### 🧹 환경변수 백업 시스템 정리 및 단순화
