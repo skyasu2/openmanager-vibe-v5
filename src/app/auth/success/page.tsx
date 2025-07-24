@@ -23,8 +23,18 @@ export default function AuthSuccessPage() {
       try {
         console.log('🎉 인증 성공 페이지 - 세션 확인 중...');
 
-        // 세션 안정화 대기
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // 세션 안정화 대기 (증가)
+        await new Promise(resolve => setTimeout(resolve, 2500));
+
+        // 세션 새로고침 먼저 시도
+        console.log('🔄 세션 새로고침 시도...');
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError) {
+          console.warn('⚠️ 세션 새로고침 실패:', refreshError);
+        }
+
+        // 추가 대기 후 세션 확인
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         // 세션 확인
         const {
@@ -72,11 +82,23 @@ export default function AuthSuccessPage() {
 
         console.log('🚀 리다이렉트:', redirectTo);
 
-        // 약간의 지연 후 리다이렉트 (UI 피드백용)
-        setTimeout(() => {
-          // window.location을 사용하여 완전한 페이지 새로고침
-          window.location.href = redirectTo;
-        }, 1500);
+        // 🔧 세션이 완전히 쿠키에 저장될 때까지 충분히 대기
+        console.log('⏳ 쿠키 동기화 대기 중...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // 쿠키 상태 확인 로그
+        const cookies = document.cookie;
+        console.log('🍪 리다이렉트 전 쿠키 상태:', {
+          hasCookies: cookies.length > 0,
+          cookieCount: cookies.split(';').length,
+          supabaseCookies: cookies
+            .split(';')
+            .filter(c => c.includes('supabase')).length,
+        });
+
+        // window.location을 사용하여 완전한 페이지 새로고침
+        console.log('🔄 완전한 페이지 새로고침으로 리다이렉트 실행');
+        window.location.href = redirectTo;
       } catch (error) {
         console.error('❌ 예상치 못한 오류:', error);
         setStatus('error');

@@ -83,22 +83,44 @@ export async function middleware(request: NextRequest) {
         cookies.map(c => c.name)
       );
 
+      // 🔧 OAuth 콜백 직후인지 확인 (세션 안정화 시간 필요)
+      const isFromAuthCallback = request.headers
+        .get('referer')
+        ?.includes('/auth/');
+      const isFromAuthSuccess = request.headers
+        .get('referer')
+        ?.includes('/auth/success');
+
       // 세션 확인 (재시도 로직 포함)
       let session = null;
       let sessionError = null;
       let attempts = 0;
-      const maxAttempts = 2;
+      // OAuth 콜백 직후라면 더 많은 재시도와 긴 대기시간 적용
+      const maxAttempts = isFromAuthCallback || isFromAuthSuccess ? 5 : 2;
+      const waitTime = isFromAuthCallback || isFromAuthSuccess ? 1000 : 500;
 
-      // 세션 확인을 최대 2번 시도 (OAuth 콜백 직후 타이밍 이슈 해결)
+      // 세션 확인을 최대 재시도 (OAuth 콜백 직후 타이밍 이슈 해결)
       do {
         const result = await supabase.auth.getSession();
         session = result.data.session;
         sessionError = result.error;
 
         if (!session && attempts < maxAttempts - 1) {
-          console.log(`🔄 미들웨어 세션 재시도 ${attempts + 1}/${maxAttempts}`);
-          // 짧은 대기 후 재시도
-          await new Promise(resolve => setTimeout(resolve, 500));
+          console.log(
+            `🔄 미들웨어 세션 재시도 ${attempts + 1}/${maxAttempts} (OAuth 콜백: ${isFromAuthCallback || isFromAuthSuccess})`
+          );
+          // OAuth 콜백 직후라면 더 긴 대기
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+
+          // 추가 세션 새로고침 시도
+          if (attempts === 1) {
+            try {
+              await supabase.auth.refreshSession();
+              console.log('🔄 미들웨어에서 세션 새로고침 시도');
+            } catch (refreshError) {
+              console.log('⚠️ 세션 새로고침 실패:', refreshError);
+            }
+          }
         }
         attempts++;
       } while (!session && !sessionError && attempts < maxAttempts);
