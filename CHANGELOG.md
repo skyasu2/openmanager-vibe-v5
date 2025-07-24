@@ -1,5 +1,16 @@
 # Changelog
 
+## [5.63.3] - 2025-07-24
+
+### 🔧 Vercel 배포 최적화
+
+#### Fixed
+
+- **CSS 최적화 비활성화 (critters 의존성 제거)**
+  - next.config.mjs에서 optimizeCss: false로 변경
+  - critters 패키지 의존성 완전 제거로 Vercel 배포 안정성 향상
+  - 빌드 성능 및 배포 성공률 개선
+
 ## [5.63.2] - 2025-07-23
 
 ### 🔧 코드 품질 개선
