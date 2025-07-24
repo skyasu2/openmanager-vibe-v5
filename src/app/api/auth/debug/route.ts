@@ -10,7 +10,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {

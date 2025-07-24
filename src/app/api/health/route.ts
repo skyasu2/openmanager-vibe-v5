@@ -9,10 +9,10 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const health = {
       status: 'healthy',
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
 /**
  * HEAD 요청도 지원 (더 가벼운 헬스체크)
  */
-export async function HEAD(request: NextRequest) {
+export async function HEAD(_request: NextRequest) {
   try {
     return new NextResponse(null, {
       status: 200,
@@ -71,7 +71,7 @@ export async function HEAD(request: NextRequest) {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     });
-  } catch (error) {
+  } catch {
     return new NextResponse(null, { status: 503 });
   }
 }
