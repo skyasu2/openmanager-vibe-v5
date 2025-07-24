@@ -91,13 +91,34 @@ export async function middleware(request: NextRequest) {
         .get('referer')
         ?.includes('/auth/success');
 
+      // Vercel 환경 감지
+      const hostname = request.headers.get('host') || '';
+      const isVercel =
+        hostname.includes('vercel.app') ||
+        process.env.VERCEL === '1' ||
+        process.env.VERCEL_ENV !== undefined;
+
+      console.log('🌍 미들웨어 환경:', {
+        isVercel,
+        hostname,
+        isFromAuth: isFromAuthCallback || isFromAuthSuccess,
+      });
+
       // 세션 확인 (재시도 로직 포함)
       let session = null;
       let sessionError = null;
       let attempts = 0;
-      // OAuth 콜백 직후라면 더 많은 재시도와 긴 대기시간 적용
-      const maxAttempts = isFromAuthCallback || isFromAuthSuccess ? 5 : 2;
-      const waitTime = isFromAuthCallback || isFromAuthSuccess ? 1000 : 500;
+
+      // Vercel 및 OAuth 콜백 직후라면 더 많은 재시도와 긴 대기시간 적용
+      const isAuthFlow = isFromAuthCallback || isFromAuthSuccess;
+      const maxAttempts = isVercel ? (isAuthFlow ? 8 : 5) : isAuthFlow ? 5 : 2;
+      const waitTime = isVercel
+        ? isAuthFlow
+          ? 2000
+          : 1000
+        : isAuthFlow
+          ? 1000
+          : 500;
 
       // 세션 확인을 최대 재시도 (OAuth 콜백 직후 타이밍 이슈 해결)
       do {
@@ -107,18 +128,34 @@ export async function middleware(request: NextRequest) {
 
         if (!session && attempts < maxAttempts - 1) {
           console.log(
-            `🔄 미들웨어 세션 재시도 ${attempts + 1}/${maxAttempts} (OAuth 콜백: ${isFromAuthCallback || isFromAuthSuccess})`
+            `🔄 미들웨어 세션 재시도 ${attempts + 1}/${maxAttempts} (Vercel: ${isVercel}, OAuth: ${isAuthFlow})`
           );
-          // OAuth 콜백 직후라면 더 긴 대기
+
+          // 대기
           await new Promise(resolve => setTimeout(resolve, waitTime));
 
-          // 추가 세션 새로고침 시도
-          if (attempts === 1) {
+          // 세션 새로고침 시도 (중간 지점에서)
+          if (attempts === Math.floor(maxAttempts / 2) || attempts === 1) {
             try {
-              await supabase.auth.refreshSession();
-              console.log('🔄 미들웨어에서 세션 새로고침 시도');
+              const refreshResult = await supabase.auth.refreshSession();
+              if (refreshResult.data.session) {
+                console.log('✅ 미들웨어에서 세션 새로고침 성공');
+                session = refreshResult.data.session;
+                break;
+              }
             } catch (refreshError) {
               console.log('⚠️ 세션 새로고침 실패:', refreshError);
+            }
+          }
+
+          // Vercel 환경에서 추가 시도
+          if (isVercel && attempts === maxAttempts - 2) {
+            console.log('🔄 Vercel 환경 - 추가 새로고침 시도');
+            try {
+              await supabase.auth.refreshSession();
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            } catch {
+              // 무시
             }
           }
         }
