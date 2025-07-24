@@ -7,10 +7,10 @@
 
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -18,40 +18,43 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        console.log('🔐 OAuth 콜백 처리 시작...');
+
         // Supabase SSR이 미들웨어에서 PKCE를 자동으로 처리합니다
         // exchangeCodeForSession을 호출할 필요가 없습니다
 
-        // 잠시 대기하여 미들웨어 처리가 완료되도록 함
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // 미들웨어 처리 완료 대기
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
-        // 세션 확인
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        // 세션 확인 (여러 번 시도)
+        let session = null;
+        let attempts = 0;
+        const maxAttempts = 5;
 
-        if (!session) {
-          console.error('❌ 세션이 아직 생성되지 않음');
-          // 조금 더 기다린 후 재시도
-          await new Promise(resolve => setTimeout(resolve, 2000));
+        while (!session && attempts < maxAttempts) {
+          const { data } = await supabase.auth.getSession();
+          session = data.session;
 
-          const {
-            data: { session: retrySession },
-          } = await supabase.auth.getSession();
-
-          if (!retrySession) {
-            console.error('❌ 세션 생성 실패');
-            router.push('/login?error=no_session');
-            return;
+          if (!session && attempts < maxAttempts - 1) {
+            console.log(`🔄 세션 확인 재시도 ${attempts + 1}/${maxAttempts}`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
           }
+          attempts++;
         }
 
-        console.log('✅ OAuth 세션 확인됨:', session?.user?.email);
+        if (!session) {
+          console.error('❌ 세션 생성 실패');
+          router.push('/login?error=no_session');
+          return;
+        }
 
-        // 성공 페이지로 리다이렉트
+        console.log('✅ OAuth 세션 확인됨:', session.user?.email);
+
+        // 성공 페이지로 리다이렉트 (URL 파라미터 제거)
         router.push('/auth/success');
       } catch (error) {
-        console.error('❌ 예상치 못한 오류:', error);
-        router.push('/login?error=unexpected');
+        console.error('❌ OAuth 콜백 처리 오류:', error);
+        router.push('/login?error=callback_failed');
       }
     };
 

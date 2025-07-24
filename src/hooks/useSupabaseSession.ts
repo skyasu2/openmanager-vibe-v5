@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import type { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 // NextAuth 호환 세션 타입
 interface Session {
@@ -180,20 +180,33 @@ export async function signIn(
       const baseUrl = window.location.origin;
       const finalRedirect = options?.callbackUrl || '/main';
 
-      // Supabase OAuth는 반드시 /auth/callback을 거쳐야 함
-      // 최종 목적지는 URL 파라미터로 전달
-      const callbackUrl = `${baseUrl}/auth/callback?redirect=${encodeURIComponent(finalRedirect)}`;
+      // 최종 목적지를 세션 스토리지에 저장
+      if (finalRedirect) {
+        sessionStorage.setItem('auth_redirect_to', finalRedirect);
+      }
+
+      // Supabase OAuth는 자체 콜백 URL을 사용
+      // redirectTo는 인증 성공 후 리다이렉트될 애플리케이션 URL
+      const redirectTo = `${baseUrl}/auth/success`;
 
       console.log('🔐 GitHub OAuth 시작:', {
         baseUrl,
         finalRedirect,
-        callbackUrl,
+        redirectTo,
+        provider: 'github',
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        environment: process.env.NODE_ENV,
       });
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: callbackUrl,
+          redirectTo,
+          // PKCE 플로우 사용 (보안 강화)
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
@@ -201,6 +214,8 @@ export async function signIn(
         console.error('GitHub 로그인 오류:', error);
         throw error;
       }
+
+      console.log('✅ GitHub OAuth 요청 성공 - 리다이렉트 중...');
     }
   } catch (error) {
     console.error('로그인 오류:', error);
