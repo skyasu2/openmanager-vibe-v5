@@ -49,8 +49,8 @@ const nextConfig = {
       'uuid',
       'crypto-js',
     ],
-    // CSS 최적화 (빌드 시간 단축)
-    optimizeCss: true,
+    // CSS 최적화 비활성화 (critters 의존성 제거)
+    optimizeCss: false,
     // SWC 트랜스폼 강제 사용 (속도 향상)
     forceSwcTransforms: true,
   },
