@@ -1,7 +1,7 @@
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 import { getCachedUser, setCachedUser } from '@/lib/auth-cache';
 import { updateSession } from '@/utils/supabase/middleware';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // 개발 환경에서만 허용하는 API 패턴들
 const DEV_ONLY_PATTERNS = [
@@ -106,12 +106,10 @@ export async function middleware(request: NextRequest) {
       );
 
       // 🔧 OAuth 콜백 직후인지 확인 (세션 안정화 시간 필요)
-      const isFromAuthCallback = request.headers
-        .get('referer')
-        ?.includes('/auth/');
-      const isFromAuthSuccess = request.headers
-        .get('referer')
-        ?.includes('/auth/success');
+      const referer = request.headers.get('referer') || '';
+      const isFromAuthCallback = referer.includes('/auth/callback');
+      const isFromAuthSuccess = referer.includes('/auth/success');
+      const isFromAuth = isFromAuthCallback || isFromAuthSuccess;
 
       // Vercel 환경 감지 (더 정확한 방법)
       const hostname = request.headers.get('host') || '';
@@ -122,10 +120,19 @@ export async function middleware(request: NextRequest) {
         process.env.VERCEL_ENV !== undefined ||
         request.headers.get('x-vercel-id') !== null;
 
+      // 🔄 OAuth 플로우 중인지 확인 (쿠키에서 확인)
+      const hasAuthRedirect = request.cookies.get('auth_redirect_to');
+      const authInProgress = request.cookies.get('auth_in_progress');
+      const isInAuthFlow = isFromAuth || hasAuthRedirect || authInProgress;
+
       console.log('🌍 미들웨어 환경:', {
         isVercel,
         hostname,
-        isFromAuth: isFromAuthCallback || isFromAuthSuccess,
+        isFromAuth,
+        isInAuthFlow,
+        referer: referer.substring(0, 50) + '...',
+        hasAuthRedirect: !!hasAuthRedirect,
+        authInProgress: !!authInProgress,
       });
 
       // 🔐 보안 강화: getUser()를 사용하여 토큰 재검증
@@ -147,21 +154,20 @@ export async function middleware(request: NextRequest) {
           // 캐시 미스 - Auth 서버에서 검증
           console.log('🔍 Auth 서버에서 사용자 정보 검증 중...');
 
-          // Vercel 및 OAuth 콜백 직후라면 더 많은 재시도와 긴 대기시간 적용
-          const isAuthFlow = isFromAuthCallback || isFromAuthSuccess;
+          // Vercel 및 OAuth 플로우 중이라면 더 많은 재시도와 긴 대기시간 적용
           const maxAttempts = isVercel
-            ? isAuthFlow
-              ? 5
+            ? isInAuthFlow
+              ? 8 // Vercel + Auth 플로우: 최대 8회 시도
               : 3
-            : isAuthFlow
-              ? 3
+            : isInAuthFlow
+              ? 5 // 로컬 + Auth 플로우: 최대 5회 시도
               : 1;
           const waitTime = isVercel
-            ? isAuthFlow
-              ? 1500
+            ? isInAuthFlow
+              ? 2000 // Vercel + Auth 플로우: 2초 대기
               : 800
-            : isAuthFlow
-              ? 800
+            : isInAuthFlow
+              ? 1000 // 로컬 + Auth 플로우: 1초 대기
               : 300;
 
           // getUser()로 토큰 검증 (재시도 로직 포함)
@@ -172,7 +178,7 @@ export async function middleware(request: NextRequest) {
 
             if (!user && attempts < maxAttempts - 1) {
               console.log(
-                `🔄 미들웨어 사용자 검증 재시도 ${attempts + 1}/${maxAttempts} (Vercel: ${isVercel}, OAuth: ${isAuthFlow})`
+                `🔄 미들웨어 사용자 검증 재시도 ${attempts + 1}/${maxAttempts} (Vercel: ${isVercel}, AuthFlow: ${isInAuthFlow})`
               );
 
               // 대기
@@ -181,6 +187,7 @@ export async function middleware(request: NextRequest) {
               // 세션 새로고침 시도 (중간 지점에서)
               if (attempts === Math.floor(maxAttempts / 2)) {
                 try {
+                  console.log('🔄 미들웨어에서 세션 새로고침 시도...');
                   const refreshResult = await supabase.auth.refreshSession();
                   if (refreshResult.data.session) {
                     console.log('✅ 미들웨어에서 세션 새로고침 성공');
@@ -189,6 +196,16 @@ export async function middleware(request: NextRequest) {
                   }
                 } catch (refreshError) {
                   console.log('⚠️ 세션 새로고침 실패:', refreshError);
+                }
+              }
+
+              // Auth 플로우 중이라면 추가 세션 확인
+              if (isInAuthFlow && attempts === maxAttempts - 2) {
+                console.log('🔄 Auth 플로우 - 추가 세션 확인...');
+                const additionalSessionCheck = await supabase.auth.getSession();
+                if (additionalSessionCheck.data.session) {
+                  console.log('✅ 추가 세션 확인 성공');
+                  continue;
                 }
               }
             }
@@ -219,7 +236,18 @@ export async function middleware(request: NextRequest) {
           return response;
         }
 
-        console.log('❌ 미들웨어: 세션 없음, 로그인 페이지로 리다이렉트');
+        // Auth 플로우 중이라면 더 관대하게 처리 (한 번 더 기회)
+        if (isInAuthFlow && !userError) {
+          console.log('⚠️ Auth 플로우 중 - 세션 없음이지만 통과 허용');
+          return response;
+        }
+
+        console.log('❌ 미들웨어: 세션 없음, 로그인 페이지로 리다이렉트', {
+          userError: userError?.message,
+          hasUser: !!user,
+          isInAuthFlow,
+        });
+
         // GitHub 인증이 없으면 로그인 페이지로 리다이렉트
         const redirectUrl = new URL('/login', request.url);
         // 루트 경로(/)는 /main으로 리다이렉트하도록 설정

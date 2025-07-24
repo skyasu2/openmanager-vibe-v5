@@ -131,8 +131,12 @@ export default function AuthSuccessPage() {
 
         console.log('🚀 리다이렉트:', redirectTo);
 
+        // 🍪 쿠키에 인증 상태 표시 (미들웨어에서 확인용)
+        document.cookie = `auth_redirect_to=${encodeURIComponent(redirectTo)}; path=/; max-age=60; SameSite=Lax`;
+        document.cookie = `auth_in_progress=true; path=/; max-age=60; SameSite=Lax`;
+
         // 🔧 Vercel에서는 더 긴 대기 시간 (쿠키 전파 보장)
-        const cookieWait = isVercel ? 5000 : 2000;
+        const cookieWait = isVercel ? 6000 : 2500;
         console.log(`⏳ 쿠키 동기화 대기 중... (${cookieWait}ms)`);
         await new Promise(resolve => setTimeout(resolve, cookieWait));
 
@@ -173,6 +177,9 @@ export default function AuthSuccessPage() {
 
         // 🔧 Vercel 환경에서 더 안정적인 리다이렉트 방법
         console.log('🔄 리다이렉트 실행:', redirectTo);
+
+        // 쿠키 정리
+        document.cookie = 'auth_in_progress=; path=/; max-age=0';
 
         if (isVercel) {
           // Vercel에서는 window.location.replace 사용 (히스토리 스택 교체)
