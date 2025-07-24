@@ -55,10 +55,10 @@ git push  # 자동으로 Windows 인증 팝업 또는 브라우저 열림
 
 ```bash
 # 환경변수 설정 (.env.local)
-GITHUB_TOKEN=ghp_새토큰값
+GITHUB_TOKEN=ghp_YOUR_NEW_TOKEN
 
 # 또는 .bashrc에 추가
-export GITHUB_TOKEN="ghp_새토큰값"
+export GITHUB_TOKEN="ghp_YOUR_NEW_TOKEN"
 ```
 
 #### 토큰으로 Push
@@ -179,7 +179,7 @@ await mcp__github__create_issue({
       "command": "node",
       "args": ["path/to/github-mcp-server"],
       "env": {
-        "GITHUB_TOKEN": "ghp_유효한토큰"
+        "GITHUB_TOKEN": "ghp_YOUR_VALID_TOKEN"
       }
     }
   }

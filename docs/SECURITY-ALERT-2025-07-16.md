@@ -7,7 +7,7 @@
 ### 1. GitHub Personal Access Token
 
 - **위치**: `.mcp.json`, `.env.local`
-- **토큰**: `ghp_[REDACTED]`
+- **토큰**: `ghp_[REDACTED_FOR_SECURITY]`
 - **위험도**: 🔴 **매우 높음**
 - **즉시 조치 필요**: GitHub에서 노출된 토큰을 즉시 revoke하고 새로 생성하세요!
 

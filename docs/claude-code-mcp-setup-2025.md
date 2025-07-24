@@ -98,7 +98,7 @@ claude mcp add sequential-thinking -s project npx -y @modelcontextprotocol/serve
 4. `.env.local` 파일에 저장:
 
 ```bash
-GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
+GITHUB_TOKEN=ghp_YOUR_GITHUB_TOKEN_HERE
 ```
 
 ## 🔍 MCP 서버 관리

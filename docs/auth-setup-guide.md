@@ -63,11 +63,11 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 
 # Supabase Anonymous Key (공개 가능한 키)
 # Dashboard → Settings → API → Project API keys → anon public
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 
 # Service Role Key (서버 사이드 전용, 절대 노출 금지!)
 # Dashboard → Settings → API → Project API keys → service_role secret
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
 
 # ========================================
 # 🌐 앱 URL 설정 (필수)

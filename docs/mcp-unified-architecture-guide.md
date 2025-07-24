@@ -183,7 +183,7 @@ claude mcp add memory -s project npx -y @modelcontextprotocol/server-memory
 claude mcp add sequential-thinking -s project npx -y @modelcontextprotocol/server-sequential-thinking
 
 # 환경변수 설정 (.env.local)
-GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
+GITHUB_TOKEN=ghp_YOUR_GITHUB_TOKEN_HERE
 ```
 
 ## 2️⃣ Google Cloud VM 운영용 MCP

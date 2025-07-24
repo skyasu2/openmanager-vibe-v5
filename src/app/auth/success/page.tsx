@@ -7,10 +7,10 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { CheckCircle, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function AuthSuccessPage() {
   const router = useRouter();
@@ -24,9 +24,18 @@ export default function AuthSuccessPage() {
       try {
         console.log('🎉 인증 성공 페이지 - 세션 확인 중...');
 
-        // Vercel 환경 감지
-        const isVercel = window.location.hostname.includes('vercel.app');
-        console.log('🌍 환경:', isVercel ? 'Vercel' : 'Local');
+        // Vercel 환경 감지 (더 정확한 방법)
+        const isVercel =
+          window.location.hostname.includes('vercel.app') ||
+          window.location.hostname.includes('.vercel.app') ||
+          process.env.VERCEL === '1' ||
+          process.env.VERCEL_ENV !== undefined;
+        console.log('🌍 환경:', {
+          isVercel,
+          hostname: window.location.hostname,
+          vercelEnv: process.env.VERCEL_ENV,
+          origin: window.location.origin,
+        });
 
         // Vercel 환경에서는 더 긴 대기 시간
         const initialWait = isVercel ? 4000 : 2500;
@@ -142,9 +151,18 @@ export default function AuthSuccessPage() {
           return;
         }
 
-        // window.location을 사용하여 완전한 페이지 새로고침
-        console.log('🔄 완전한 페이지 새로고침으로 리다이렉트 실행');
-        window.location.href = redirectTo;
+        // 🔧 Vercel 환경에서 더 안정적인 리다이렉트 방법
+        console.log('🔄 리다이렉트 실행:', redirectTo);
+
+        if (isVercel) {
+          // Vercel에서는 window.location.replace 사용 (히스토리 스택 교체)
+          console.log('🌍 Vercel 환경 - window.location.replace 사용');
+          window.location.replace(redirectTo);
+        } else {
+          // 로컬에서는 기존 방식 유지
+          console.log('🏠 로컬 환경 - window.location.href 사용');
+          window.location.href = redirectTo;
+        }
       } catch (error) {
         console.error('❌ 예상치 못한 오류:', error);
         setStatus('error');

@@ -1,6 +1,6 @@
+import { createMiddlewareClient } from '@/lib/supabase-ssr';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createMiddlewareClient } from '@/lib/supabase-ssr';
 
 // 개발 환경에서만 허용하는 API 패턴들
 const DEV_ONLY_PATTERNS = [
@@ -91,12 +91,14 @@ export async function middleware(request: NextRequest) {
         .get('referer')
         ?.includes('/auth/success');
 
-      // Vercel 환경 감지
+      // Vercel 환경 감지 (더 정확한 방법)
       const hostname = request.headers.get('host') || '';
       const isVercel =
         hostname.includes('vercel.app') ||
+        hostname.includes('.vercel.app') ||
         process.env.VERCEL === '1' ||
-        process.env.VERCEL_ENV !== undefined;
+        process.env.VERCEL_ENV !== undefined ||
+        request.headers.get('x-vercel-id') !== null;
 
       console.log('🌍 미들웨어 환경:', {
         isVercel,

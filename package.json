@@ -69,6 +69,7 @@
     "husky:status": "node scripts/husky-helper.js status",
     "deploy": "vercel --prod",
     "deploy:preview": "vercel",
+    "vercel:env": "powershell -ExecutionPolicy Bypass -File scripts/setup-vercel-env.ps1",
     "clean": "rm -rf .next node_modules/.cache coverage",
     "clean:install": "rm -rf node_modules package-lock.json && npm install",
     "security:audit": "npm audit --audit-level=high",
