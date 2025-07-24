@@ -1,5 +1,24 @@
 # Changelog
 
+## [5.63.8] - 2025-07-24
+
+### 🔐 PKCE OAuth 오류 해결
+
+#### Fixed
+
+- **PKCE(Proof Key for Code Exchange) 오류 해결**
+  - "invalid request: both auth code and code verifier should be non-empty" 오류 수정
+  - 서버 사이드 route.ts에서 클라이언트 사이드 page.tsx로 변경
+  - Supabase가 code_verifier를 자동으로 관리하도록 수정
+  - PKCE 플로우가 클라이언트에서 올바르게 처리되도록 개선
+
+#### Changed
+
+- `/src/app/auth/callback/route.ts` → `/src/app/auth/callback/page.tsx`
+  - 서버 사이드 핸들러를 클라이언트 컴포넌트로 변경
+  - `exchangeCodeForSession(window.location.href)`로 전체 URL 전달
+  - PKCE 쿠키가 클라이언트에서 자동 처리되도록 수정
+
 ## [5.63.7] - 2025-07-24
 
 ### 🔐 OAuth 로그인 리다이렉트 루프 문제 근본적 해결
