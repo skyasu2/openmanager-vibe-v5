@@ -1,5 +1,32 @@
 # Changelog
 
+## [5.63.9] - 2025-07-24
+
+### 🔐 OAuth 세션 생성 실패 문제 해결
+
+#### Fixed
+
+- **미들웨어 OAuth 콜백 처리 개선**
+  - `updateSession` 함수에서 `exchangeCodeForSession`을 명시적으로 호출
+  - OAuth 코드를 세션으로 교환하는 로직 추가
+  - 코드 교환 실패 시 적절한 에러 처리
+  - "Auth session missing!" 오류 해결
+
+- **OAuth 콜백 페이지 안정성 향상**
+  - URL에서 OAuth 코드 존재 여부 먼저 확인
+  - `getSession`과 `getUser` 병렬 시도로 세션 감지율 향상
+  - 세션 새로고침 재시도 로직 강화 (최대 8회)
+  - 마지막 수단으로 페이지 새로고침으로 미들웨어 재실행
+
+#### Changed
+
+- `/src/utils/supabase/middleware.ts`
+  - OAuth 콜백 처리를 `getUser()` 호출보다 먼저 수행
+  - 세션 생성 성공/실패 로그 추가
+- `/src/app/auth/callback/page.tsx`
+  - 더 적극적인 세션 확인 로직
+  - 디버깅을 위한 상세 로그 추가
+
 ## [5.63.8] - 2025-07-24
 
 ### 🔐 PKCE OAuth 오류 해결
