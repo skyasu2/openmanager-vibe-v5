@@ -5,7 +5,7 @@
  * Supabase가 자동으로 URL의 코드를 감지하고 세션을 설정
  */
 
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -23,7 +23,29 @@ export async function GET(request: NextRequest) {
   if (code) {
     // Supabase 클라이언트 생성 (쿠키 기반)
     const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+
+    // 환경변수 확인
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('❌ Supabase 환경변수가 설정되지 않음');
+      return NextResponse.redirect(`${requestUrl.origin}/login?error=config`);
+    }
+
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          cookieStore.set({ name, value, ...options });
+        },
+        remove(name: string, options: any) {
+          cookieStore.set({ name, value: '', ...options });
+        },
+      },
+    });
 
     try {
       // 코드를 세션으로 교환
