@@ -1,7 +1,7 @@
-import { createMiddlewareClient } from '@/lib/supabase-ssr';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getCachedUser, setCachedUser } from '@/lib/auth-cache';
+import { updateSession } from '@/utils/supabase/middleware';
 
 // 개발 환경에서만 허용하는 API 패턴들
 const DEV_ONLY_PATTERNS = [
@@ -29,7 +29,9 @@ const PROTECTED_PATHS = [
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const response = NextResponse.next();
+
+  // updateSession을 먼저 호출하여 PKCE 플로우 자동 처리
+  const response = await updateSession(request);
 
   // 프로덕션에서 개발/테스트 API 차단
   if (process.env.NODE_ENV === 'production') {
@@ -74,8 +76,27 @@ export async function middleware(request: NextRequest) {
         return response;
       }
 
-      // Supabase SSR 클라이언트 사용
-      const supabase = createMiddlewareClient(request, response);
+      // updateSession에서 이미 처리된 supabase 클라이언트 재생성
+      // PKCE 플로우는 updateSession에서 자동 처리됨
+      const { createServerClient } = await import('@supabase/ssr');
+
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            get(name: string) {
+              return request.cookies.get(name)?.value;
+            },
+            set() {
+              // Response에서 이미 설정되었으므로 무시
+            },
+            remove() {
+              // Response에서 이미 설정되었으므로 무시
+            },
+          },
+        }
+      );
 
       // 모든 쿠키 로그
       const cookies = request.cookies.getAll();
@@ -231,11 +252,12 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - auth/callback (OAuth callback)
      * - login (로그인 페이지)
      * - api/auth (인증 API)
      * - api/health, api/ping (헬스체크)
+     *
+     * 주의: auth/callback과 auth/success는 PKCE 처리를 위해 미들웨어를 통과해야 함
      */
-    '/((?!_next/static|_next/image|favicon.ico|auth/callback|auth/success|login|api/auth|api/health|api/ping).*)',
+    '/((?!_next/static|_next/image|favicon.ico|login|api/auth|api/health|api/ping).*)',
   ],
 };

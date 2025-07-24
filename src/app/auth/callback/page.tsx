@@ -18,19 +18,11 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        const { error } = await supabase.auth.exchangeCodeForSession(
-          window.location.href
-        );
+        // Supabase SSR이 미들웨어에서 PKCE를 자동으로 처리합니다
+        // exchangeCodeForSession을 호출할 필요가 없습니다
 
-        if (error) {
-          console.error('❌ OAuth 콜백 처리 실패:', error);
-          router.push(
-            `/login?error=auth_callback_failed&message=${encodeURIComponent(error.message)}`
-          );
-          return;
-        }
-
-        console.log('✅ OAuth 콜백 처리 성공');
+        // 잠시 대기하여 미들웨어 처리가 완료되도록 함
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         // 세션 확인
         const {
@@ -38,12 +30,22 @@ export default function AuthCallbackPage() {
         } = await supabase.auth.getSession();
 
         if (!session) {
-          console.error('❌ 세션 생성 실패');
-          router.push('/login?error=no_session');
-          return;
+          console.error('❌ 세션이 아직 생성되지 않음');
+          // 조금 더 기다린 후 재시도
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
+          const {
+            data: { session: retrySession },
+          } = await supabase.auth.getSession();
+
+          if (!retrySession) {
+            console.error('❌ 세션 생성 실패');
+            router.push('/login?error=no_session');
+            return;
+          }
         }
 
-        console.log('✅ 세션 확인됨:', session.user.email);
+        console.log('✅ OAuth 세션 확인됨:', session?.user?.email);
 
         // 성공 페이지로 리다이렉트
         router.push('/auth/success');
