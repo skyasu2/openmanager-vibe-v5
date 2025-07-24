@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 15. [✅ Testing New Features](#testing-new-features)
 16. [🚀 Deployment Notes](#deployment-notes)
 17. [🔍 Troubleshooting](#troubleshooting)
-18. [🛠️ MCP (Model Context Protocol) 도구 통합](#mcp-model-context-protocol-도구-통합)
+18. [🛠️ MCP 3-Tier 아키텍처](#mcp-model-context-protocol-도구-통합)
 19. [🚀 AI 도구 v2.0 - 차세대 통합 시스템](#-ai-도구-v20---차세대-통합-시스템)
 20. [📊 Claude Code 사용량 모니터링](#claude-code-사용량-모니터링)
 21. [🤝 AI 도구 협업 전략](#ai-도구-협업-전략)
@@ -99,15 +99,40 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 📦 MCP 도구 빠른 참조
 
-프로젝트에서 사용 가능한 4개의 MCP 도구:
+프로젝트에서 사용하는 **3-Tier MCP 아키텍처**:
 
-1. **📁 filesystem** - 파일 읽기/쓰기/검색
-2. **🐙 github** - GitHub 이슈/PR/코드 관리
-3. **🧠 memory** - 컨텍스트 정보 저장/검색
-4. **🤔 sequential-thinking** - 복잡한 문제 단계별 분석
+1. **🏠 로컬 개발용 MCP** (Claude Code에서 사용)
+   - filesystem, github, memory, sequential-thinking
 
-**빠른 사용법**: `docs/mcp-quick-guide.md` 참조  
-**상세 설정**: `docs/claude-code-mcp-setup-2025.md` 참조
+2. **☁️ GCP VM 운영용 MCP** (AI 어시스턴트 사용)
+   - 104.154.205.25:10000에서 실행
+   - 컨텍스트 관리, RAG 통합
+
+3. **🚀 Vercel 테스트용 MCP** (배포 환경 테스트)
+   - `/api/mcp` 엔드포인트
+   - 시스템 상태, 환경변수, 헬스체크
+
+   **사용 방법**:
+
+   ```bash
+   # MCP 클라이언트에 Vercel URL 추가
+   https://your-app.vercel.app/api/mcp
+
+   # 도구 호출 (표준 MCP 형식)
+   get_system_status()
+   check_env_config()
+   health_check({ endpoint: "/api/health" })
+   get_recent_logs({ limit: 10 })
+   get_project_info()
+   debug_deployment({ issue: "문제 설명" })
+   ```
+
+**📚 필수 참조 문서**:
+
+- **통합 가이드**: `docs/mcp-unified-architecture-guide.md`
+- **빠른 사용법**: `docs/mcp-quick-guide.md`
+- **Vercel MCP 설정**: `docs/vercel-mcp-setup-guide.md` (신규)
+- **상세 설정**: `docs/claude-code-mcp-setup-2025.md`
 
 ## Common Commands
 
@@ -473,38 +498,35 @@ npm run env:restore
 
 This project demonstrates advanced Next.js patterns with AI integration, optimized for production deployment with comprehensive testing and monitoring capabilities.
 
-## 🔧 MCP (Model Context Protocol) 도구 사용
+## 🎯 MCP 3-Tier 아키텍처
 
-### 📦 MCP 도구 빠른 참조
+### 📍 개요
 
-프로젝트에서 사용 가능한 4개의 MCP 도구:
+OpenManager VIBE v5는 3가지 레벨의 MCP 서버를 운영합니다:
 
-1. **📁 filesystem** - 파일 읽기/쓰기/검색
-2. **🐙 github** - GitHub 이슈/PR/코드 관리
-3. **🧠 memory** - 컨텍스트 정보 저장/검색
-4. **🤔 sequential-thinking** - 복잡한 문제 단계별 분석
+1. **🏠 로컬 개발용 MCP** - Claude Code에서 직접 사용
+2. **☁️ GCP VM 운영용 MCP** - AI 어시스턴트가 프로덕션에서 사용
+3. **🚀 Vercel 테스트용 MCP** - 배포된 환경 직접 테스트
 
-**빠른 사용법**: `docs/mcp-quick-guide.md` 참조  
-**상세 설정**: `docs/claude-code-mcp-setup-2025.md` 참조
+### 🔍 사용 가이드
 
-### 🔑 기본 사용법
+**상황별 MCP 선택:**
 
-```bash
-# MCP 도구 호출 형식
-mcp__서버명__함수명()
+- 로컬 코드 개발 → 로컬 MCP
+- AI 기능 통합 → GCP VM MCP
+- 배포 후 테스트 → Vercel MCP
 
-# 예시: 파일 읽기
-mcp__filesystem__read_file("/path/to/file")
+**필수 참조:**
 
-# 예시: GitHub 이슈 생성
-mcp__github__create_issue("owner", "repo", "title", "body")
-```
+- 📚 [통합 아키텍처 가이드](docs/mcp-unified-architecture-guide.md)
+- 🚀 [빠른 사용 가이드](docs/mcp-quick-guide.md)
+- 🔧 [MCP 설정 상세](docs/claude-code-mcp-setup-2025.md)
 
 ### ⚠️ 보안 주의사항
 
-- GitHub 토큰은 `.env.local`에 저장 (절대 하드코딩 금지)
-- 파일 경로는 절대 경로 사용
-- MCP 서버 상태 확인: `/mcp` 명령어
+- GitHub 토큰: `.env.local` 관리
+- GCP VM MCP: IP 화이트리스트 필수
+- Vercel MCP: 인증된 사용자만 접근
 
 ## 🚀 AI 도구 v2.0 - 차세대 통합 시스템 (최신)
 

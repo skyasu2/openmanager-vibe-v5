@@ -4,6 +4,27 @@
   "name": "openmanager-vibe-v5",
   "headers": [
     {
+      "source": "/api/mcp",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
       "source": "/api/(.*)",
       "headers": [
         {
@@ -96,5 +117,11 @@
       "path": "/api/cron/cleanup",
       "schedule": "0 0 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "app/api/mcp/route.ts": {
+      "maxDuration": 30,
+      "runtime": "edge"
+    }
+  }
 }

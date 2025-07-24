@@ -2,7 +2,7 @@
 
 > Claude Code에서 MCP 도구를 5분 안에 사용하는 방법
 
-## 📋 현재 사용 가능한 MCP 도구 (4개)
+## 📋 현재 사용 가능한 MCP 도구
 
 ### 1. 📁 **filesystem** - 파일 작업
 
@@ -52,6 +52,38 @@ mcp__sequential-thinking__sequentialthinking({
 })
 ```
 
+### 5. 🚀 **Vercel MCP** - 배포 환경 테스트 (별도 설정 필요)
+
+⚠️ **주의**: Vercel MCP는 배포된 환경에서 실행되므로 별도 설정이 필요합니다.
+
+**설정 방법**:
+
+1. Vercel에 배포된 앱의 URL 확인
+2. MCP 클라이언트에서 `https://your-app.vercel.app/api/mcp` 추가
+3. 표준 MCP 도구로 호출 (mcp**vercel** 접두사 사용 안함)
+
+**사용 가능한 도구**:
+
+```bash
+# 시스템 상태 확인
+get_system_status()
+
+# 환경변수 확인
+check_env_config()
+
+# API 헬스체크
+health_check({ endpoint: "/api/health" })
+
+# 로그 조회 (구현 예정)
+get_recent_logs({ limit: 10 })
+
+# 프로젝트 정보
+get_project_info()
+
+# 디버깅 가이드
+debug_deployment({ issue: "문제 설명" })
+```
+
 ## 🎯 실제 사용 시나리오
 
 ### 시나리오 1: 코드베이스 분석
@@ -96,12 +128,33 @@ mcp__sequential-thinking__sequentialthinking({
 })
 ```
 
+### 시나리오 4: 배포 환경 검증 (Vercel MCP)
+
+```bash
+# 1. 배포 상태 확인
+get_system_status()
+# → environment: "production", region: "icn1"
+
+# 2. 환경변수 검증
+check_env_config()
+# → SUPABASE_CONFIGURED: true, REDIS_CONFIGURED: true
+
+# 3. API 헬스체크
+health_check({ endpoint: "/api/auth/session" })
+# → Status: 200
+
+# 4. 문제 발생 시 디버깅
+debug_deployment({ issue: "OAuth 리다이렉트 실패" })
+# → 체크리스트와 해결 방법 제공
+```
+
 ## ⚡ 핵심 팁
 
 1. **파일 경로는 절대 경로 사용**: `/mnt/d/cursor/project/...`
 2. **GitHub 토큰은 환경변수로**: `.env.local`에 저장
 3. **Memory는 세션 간 유지 안됨**: 중요한 정보는 파일로 저장
 4. **Sequential thinking은 복잡한 문제에만**: 단순 작업엔 과도함
+5. **Vercel MCP는 배포 URL 필요**: `https://your-app.vercel.app/api/mcp`
 
 ## ❌ 자주하는 실수
 
@@ -124,3 +177,6 @@ mcp__sequential-thinking__sequentialthinking({
 
 **GitHub 인증 실패**
 → `.env.local`에 `GITHUB_TOKEN` 설정 확인
+
+**Vercel MCP 연결 실패**
+→ 배포 URL 확인, `/api/mcp` 엔드포인트 접근 가능 여부 확인
