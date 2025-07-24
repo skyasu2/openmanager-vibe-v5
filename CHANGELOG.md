@@ -1,5 +1,28 @@
 # Changelog
 
+## [5.63.6] - 2025-07-24
+
+### 🧹 환경변수 백업 시스템 정리 및 단순화
+
+#### Fixed
+
+- **중복된 환경변수 백업 도구 통합**
+  - 3개의 중복된 백업 시스템을 1개(`env-backup-manager.cjs`)로 통합
+  - 혼란을 주던 중복 npm 스크립트 제거
+  - `encrypted-env-config.ts` 헤더 주석 명확화 (런타임 전용임을 명시)
+
+#### Removed
+
+- `scripts/env-backup-manager.ts` - TypeScript 버전 제거
+- `scripts/env-manager.cjs` - 중복 기능 제거
+- 중복 npm 스크립트: `env:manage`, `env:encrypt`, `env:status`, `env:backup-secure`, `env:restore-secure`, `env:validate-secure`, `env:backup-simple`, `env:restore-simple`
+
+#### Improved
+
+- 환경변수 백업 시스템 단순화로 개발자 경험 향상
+- `CLAUDE.md` 문서 업데이트로 명확한 사용법 안내
+- 백업/복원 명령어 통일: `npm run env:backup`, `npm run env:restore`, `npm run env:help`
+
 ## [5.63.5] - 2025-07-24
 
 ### 🔧 Vercel 환경 인증 문제 해결
