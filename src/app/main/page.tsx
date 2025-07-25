@@ -44,16 +44,16 @@ export default function Home() {
     avatar?: string;
   } | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
+  const [_redirecting, _setRedirecting] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
   const {
     isSystemStarted,
     aiAgent,
-    adminMode,
+    adminMode: _adminMode,
     startSystem,
     stopSystem,
-    logout,
+    logout: _logout,
     getSystemRemainingTime,
   } = useUnifiedAdminStore();
 
@@ -65,7 +65,7 @@ export default function Home() {
     refresh: refreshSystemStatus,
   } = useSystemStatus();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, _setIsLoading] = useState(false);
   const [systemTimeRemaining, setSystemTimeRemaining] = useState(0);
 
   // 🚀 시스템 시작 카운트다운 상태
@@ -97,6 +97,8 @@ export default function Home() {
       setIsSystemStarting(multiUserStatus?.isStarting || false);
     }
   }, [
+    isMounted,
+    multiUserStatus,
     multiUserStatus?.isRunning,
     multiUserStatus?.isStarting,
     isSystemStarted,
@@ -152,7 +154,7 @@ export default function Home() {
     checkAuth();
 
     // 인증 상태 변경 리스너
-    authListener = onAuthStateChange(async session => {
+    authListener = onAuthStateChange(async _session => {
       console.log('🔄 Auth 상태 변경 감지');
       await checkAuth();
     });
@@ -260,7 +262,7 @@ export default function Home() {
   }, [systemStartCountdown, stopSystemCountdown]);
 
   // 시간 포맷 함수
-  const formatTime = (ms: number) => {
+  const _formatTime = (ms: number) => {
     const minutes = Math.floor(ms / (1000 * 60));
     const seconds = Math.floor((ms % (1000 * 60)) / 1000);
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -318,7 +320,7 @@ export default function Home() {
       });
     }, 1000);
     setCountdownTimer(timer);
-  }, [router]);
+  }, [router, handleSystemStartBackground]);
 
   // 🚀 백그라운드 시스템 시작 함수 (사용자는 로딩 페이지에서 대기)
   const handleSystemStartBackground = useCallback(async () => {
@@ -362,7 +364,7 @@ export default function Home() {
   }, [startMultiUserSystem, startSystem, refreshSystemStatus]);
 
   // 🚀 기존 시스템 시작 함수 (직접 호출용 - 호환성 유지)
-  const handleSystemStart = useCallback(async () => {
+  const _handleSystemStart = useCallback(async () => {
     if (isLoading || isSystemStarting) return;
 
     console.log('🚀 직접 시스템 시작 프로세스 시작');
@@ -380,6 +382,11 @@ export default function Home() {
       setIsSystemStarting(false); // 실패 시 상태 초기화
     }
   }, [isLoading, isSystemStarting, handleSystemStartBackground, router]);
+
+  // 대시보드 클릭 핸들러
+  const handleDashboardClick = useCallback(() => {
+    router.push('/dashboard');
+  }, [router]);
 
   // 시스템 토글 함수 (깜빡임 방지 개선)
   const handleSystemToggle = useCallback(async () => {
@@ -408,14 +415,10 @@ export default function Home() {
     isSystemStarted,
     stopSystemCountdown,
     startSystemCountdown,
+    handleDashboardClick,
   ]);
 
-  // 대시보드 클릭 핸들러
-  const handleDashboardClick = () => {
-    router.push('/dashboard');
-  };
-
-  // 📊 버튼 텍스트와 상태 결정 (깜빡임 방지 개선)
+  // 📊 버튼 텍스트와 상태 결정 (진행바 효과로 개선)
   const getButtonConfig = useMemo(
     () => () => {
       // 1. 카운트다운 중 (최우선)
@@ -424,7 +427,7 @@ export default function Home() {
           text: `시작 취소 (${systemStartCountdown}초)`,
           icon: <X className='w-5 h-5' />,
           className:
-            'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50 animate-pulse',
+            'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50 relative overflow-hidden',
         };
       }
 
@@ -674,11 +677,42 @@ export default function Home() {
                       onClick={handleSystemToggle}
                       disabled={isLoading || isSystemStarting}
                       className={`w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-300 border shadow-xl ${buttonConfig.className}`}
-                      whileHover={!isLoading ? { scale: 1.05 } : {}}
+                      whileHover={
+                        !isLoading && systemStartCountdown === 0
+                          ? { scale: 1.05 }
+                          : {}
+                      }
                       whileTap={!isLoading ? { scale: 0.95 } : {}}
                     >
-                      {buttonConfig.icon}
-                      <span className='text-lg'>{buttonConfig.text}</span>
+                      {/* 카운트다운 진행바 */}
+                      {systemStartCountdown > 0 && (
+                        <motion.div
+                          className='absolute inset-0 rounded-xl overflow-hidden'
+                          style={{ transformOrigin: 'left' }}
+                        >
+                          <motion.div
+                            className='h-full bg-gradient-to-r from-red-600/40 via-red-500/40 to-red-400/40'
+                            initial={{ width: '0%' }}
+                            animate={{ width: '100%' }}
+                            transition={{ duration: 3, ease: 'linear' }}
+                          />
+                          <motion.div
+                            className='absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/10 to-transparent'
+                            animate={{
+                              x: ['-100%', '100%'],
+                            }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                              ease: 'linear',
+                            }}
+                          />
+                        </motion.div>
+                      )}
+                      <div className='relative z-10 flex items-center gap-3'>
+                        {buttonConfig.icon}
+                        <span className='text-lg'>{buttonConfig.text}</span>
+                      </div>
                     </motion.button>
 
                     {/* 상태 안내 */}
@@ -686,7 +720,7 @@ export default function Home() {
                       <span
                         className={`text-sm font-medium opacity-80 transition-all duration-300 ${
                           systemStartCountdown > 0
-                            ? 'text-orange-300 animate-pulse'
+                            ? 'text-orange-300'
                             : isSystemStarting
                               ? 'text-purple-300'
                               : multiUserStatus?.isRunning
