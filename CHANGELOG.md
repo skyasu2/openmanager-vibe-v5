@@ -1,5 +1,29 @@
 # Changelog
 
+## [5.63.10] - 2025-07-25
+
+### 🔐 GitHub OAuth 로그인 문제 수정
+
+#### Fixed
+
+- **PKCE 플로우 자동 처리 복원**
+  - 미들웨어에서 `exchangeCodeForSession` 명시적 호출 제거
+  - `getUser()` 호출로 PKCE 자동 처리하도록 원복
+  - Supabase SSR이 자동으로 code_verifier를 관리하도록 수정
+- **OAuth 콜백 페이지 단순화**
+  - 불필요한 코드 검증 로직 제거
+  - 세션 확인 로직 단순화
+  - 미들웨어의 PKCE 처리를 신뢰하도록 변경
+
+#### Changed
+
+- `/src/utils/supabase/middleware.ts`
+  - `getUser()` 먼저 호출하여 PKCE 플로우 자동 처리
+  - OAuth 콜백 처리는 단순 리다이렉트만 수행
+- `/src/app/auth/callback/page.tsx`
+  - 복잡한 세션 재시도 로직 단순화
+  - 미들웨어 처리 완료 대기 후 세션 확인
+
 ## [5.63.9] - 2025-07-24
 
 ### 🔐 OAuth 세션 생성 실패 문제 해결
