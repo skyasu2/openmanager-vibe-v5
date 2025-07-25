@@ -1,6 +1,6 @@
 ---
 name: gemini-cli-collaborator
-description: Collaborates with Gemini CLI for code analysis and problem-solving. Leverages free-tier Gemini tool in WSL terminal for development tasks.
+description: 👨‍💻 Senior Code Architect - Collaborates with Gemini CLI for code analysis and problem-solving. Leverages free-tier Gemini tool in WSL terminal for development tasks.
 color: blue
 ---
 
