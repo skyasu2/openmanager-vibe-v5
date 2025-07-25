@@ -58,26 +58,54 @@ export async function updateSession(
     }
   );
 
-  // 이 부분이 중요: getUser()를 호출하면 토큰이 자동으로 새로고침되고
-  // PKCE 플로우가 자동으로 처리됩니다
-  await supabase.auth.getUser();
-
-  // OAuth 콜백 처리
+  // OAuth 콜백 처리를 먼저 수행 (PKCE 자동 처리)
   const pathname = request.nextUrl.pathname;
   if (pathname === '/auth/callback') {
-    // 세션 확인
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const code = request.nextUrl.searchParams.get('code');
+    const error = request.nextUrl.searchParams.get('error');
 
-    if (session) {
-      // 세션이 있으면 성공 페이지로 리다이렉트
-      const redirectTo = request.nextUrl.clone();
-      redirectTo.pathname = '/auth/success';
-      redirectTo.searchParams.delete('code');
+    console.log('🔐 미들웨어: OAuth 콜백 처리', {
+      hasCode: !!code,
+      hasError: !!error,
+    });
 
-      return NextResponse.redirect(redirectTo);
+    if (code && !error) {
+      // getUser()를 호출하여 PKCE 플로우 자동 처리
+      console.log('🔄 미들웨어: PKCE 코드 교환 처리 중...');
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (user && !userError) {
+        console.log('✅ 미들웨어: PKCE 처리 성공', user.email);
+
+        // Phase 3 최적화: 바로 메인으로 리다이렉트 옵션
+        const skipSuccessPage = true;
+
+        if (skipSuccessPage) {
+          const redirectTo = request.nextUrl.clone();
+          redirectTo.pathname = '/main';
+          redirectTo.searchParams.delete('code');
+          redirectTo.searchParams.delete('error');
+          redirectTo.searchParams.delete('error_description');
+
+          return NextResponse.redirect(redirectTo);
+        } else {
+          // 기존 플로우: success 페이지로
+          const redirectTo = request.nextUrl.clone();
+          redirectTo.pathname = '/auth/success';
+          redirectTo.searchParams.delete('code');
+
+          return NextResponse.redirect(redirectTo);
+        }
+      } else {
+        console.log('⚠️ 미들웨어: PKCE 처리 진행 중...', userError?.message);
+      }
     }
+  } else {
+    // 다른 경로에서는 일반적인 세션 업데이트
+    await supabase.auth.getUser();
   }
 
   return supabaseResponse;

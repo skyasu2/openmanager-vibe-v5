@@ -20,29 +20,20 @@ export default function AuthCallbackPage() {
       const startTime = performance.now();
 
       try {
-        console.log('🔐 OAuth 콜백 처리 시작...');
-        console.log('⏱️ Phase 3 최적화: 다이렉트 리다이렉트 모드');
+        console.log('🔐 OAuth 콜백 페이지 로드...');
+        console.log('⚡ 미들웨어가 PKCE 처리를 담당합니다');
 
-        // 즉시 세션 확인 (극도로 빠른 검사)
-        const quickCheck = await Promise.race([
-          supabase.auth.getSession(),
-          new Promise<null>(resolve => setTimeout(() => resolve(null), 100)),
-        ]);
-
-        if (quickCheck && quickCheck.data?.session) {
-          console.log('✅ 기존 세션 발견 (100ms 이내)');
-          console.log(
-            `⏱️ 콜백 처리 시간: ${(performance.now() - startTime).toFixed(0)}ms`
-          );
-
-          // Phase 3: success 페이지 건너뛰고 바로 메인으로
-          router.push('/main');
-          return;
-        }
-
-        // 세션이 없으면 OAuth 코드로 세션 생성 시도
+        // URL에서 파라미터 확인
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
+        const error = urlParams.get('error');
+
+        if (error) {
+          console.error('❌ OAuth 에러:', error);
+          const errorDescription = urlParams.get('error_description');
+          router.push(`/login?error=${error}&description=${errorDescription}`);
+          return;
+        }
 
         if (!code) {
           console.error('❌ OAuth 코드가 없습니다');
@@ -50,57 +41,45 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        console.log('🔑 OAuth 코드 확인됨');
+        console.log('🔑 OAuth 코드 확인됨, 미들웨어가 처리 중...');
 
-        // Phase 3: 코드 교환과 동시에 쿠키 사전 설정
-        const exchangeStart = performance.now();
-
-        // 쿠키 사전 설정 (리다이렉트 준비)
+        // 쿠키 설정 (리다이렉트 준비)
         document.cookie = `auth_in_progress=true; path=/; max-age=60; SameSite=Lax`;
         document.cookie = `auth_redirect_to=/main; path=/; max-age=60; SameSite=Lax`;
 
-        const { data, error } =
-          await supabase.auth.exchangeCodeForSession(code);
+        // 미들웨어가 세션을 처리할 시간을 주기 위해 짧은 대기
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-        console.log(
-          `⏱️ 코드 교환 시간: ${(performance.now() - exchangeStart).toFixed(0)}ms`
-        );
+        // 세션 확인 (미들웨어가 이미 처리했는지 확인)
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
 
-        if (error) {
-          console.error('❌ 코드 교환 실패:', error);
-          router.push('/login?error=code_exchange_failed');
-          return;
-        }
+        console.log('📊 세션 상태:', {
+          hasSession: !!session,
+          sessionError: sessionError?.message,
+          user: session?.user?.email,
+        });
 
-        if (!data.session) {
-          console.error('❌ 세션 생성 실패');
-          router.push('/login?error=no_session');
-          return;
-        }
+        if (session?.user) {
+          console.log('✅ 세션 확인됨:', session.user.email);
+          console.log(
+            `⏱️ 콜백 처리 시간: ${(performance.now() - startTime).toFixed(0)}ms`
+          );
 
-        console.log('✅ OAuth 세션 생성 성공:', data.session.user?.email);
+          // Phase 3 옵션: 바로 메인으로 가기
+          const skipSuccessPage = true;
 
-        // Phase 3: 쿠키가 설정될 때까지 최소 대기
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        console.log(
-          `⏱️ 전체 콜백 처리 시간: ${(performance.now() - startTime).toFixed(0)}ms`
-        );
-
-        // Phase 3 옵션: 바로 메인으로 가기
-        const skipSuccessPage = true; // 설정으로 관리 가능
-
-        if (skipSuccessPage) {
-          console.log('🚀 Phase 3: success 페이지 건너뛰고 메인으로 직행!');
-
-          // 라우터 캐시 갱신
-          router.refresh();
-          await new Promise(resolve => setTimeout(resolve, 200));
-
-          // 메인으로 직접 이동
-          window.location.href = '/main';
+          if (skipSuccessPage) {
+            console.log('🚀 Phase 3: success 페이지 건너뛰고 메인으로!');
+            window.location.href = '/main';
+          } else {
+            router.push('/auth/success');
+          }
         } else {
-          // 기존 플로우 유지 (안전 모드)
+          // 세션이 없으면 success 페이지로 이동 (추가 처리 필요)
+          console.log('⏳ 세션 미확인, success 페이지로 이동...');
           router.push('/auth/success');
         }
       } catch (error) {
