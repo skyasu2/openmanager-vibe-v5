@@ -1,5 +1,52 @@
 # Changelog
 
+## [5.63.23] - 2025-07-25
+
+### 🔧 Fixed
+
+- **시스템 헬스체크 스크립트의 Redis 연결 문제 수정**
+  - UPSTASH_REDIS_HOST → UPSTASH_REDIS_REST_URL 환경변수 수정
+  - Upstash REST API 호출 형식 개선
+  - 환경변수 존재 여부 체크 추가
+
+### ✅ Verified
+
+- **시스템 전체 상태 점검 완료**
+  - 모든 MCP 서버 정상 작동 확인 (8개 서버)
+  - 서브 에이전트 정상 동작 확인
+    - gemini-cli-collaborator: package.json 분석으로 중복 스크립트 20개 발견
+    - issue-summary: 시스템 건강도 70%, 개선 필요사항 식별
+    - planner-spec: Redis 문제 해결을 위한 구조화된 계획 생성
+  - Redis 연결 성공 (환경변수 갱신 후)
+  - 전체 시스템 상태: 모든 서비스 정상 운영 중
+
+### 📦 Added
+
+- **개발용 MCP 서버 추가**
+  - Puppeteer MCP Server → Playwright MCP Server로 대체
+    - Puppeteer가 deprecated되어 Playwright로 변경
+  - `.mcp.json` 파일 업데이트 완료
+
+### 🧹 Improved
+
+- **package.json 스크립트 정리**
+  - 중복 스크립트 5개 제거: `lint:fast`, `env:verify`, `env:check-old` 등
+  - 네이밍 통일: `build-storybook` → `storybook:build`
+  - Redis 스크립트 개선: `redis:check:mock`에 cross-env 추가
+
+- **Sub Agents 직무 역할 재정의**
+  - 실제 개발팀의 직무 역할처럼 직관적으로 변경
+  - 이모지 추가로 시각적 구분 강화
+  - Senior Code Architect, Security & Performance Engineer 등 8개 역할
+  - **새로 추가**: 🎨 Frontend UX Engineer (ux-performance-optimizer)
+  - 각 에이전트의 책임과 역할을 더 명확하게 정의
+
+- **문서 정리 및 최적화**
+  - CLAUDE.md 중복 섹션 제거 (MCP 3-Tier 아키텍처, AI 도구 협업 전략 통합)
+  - GEMINI.md 불필요한 중복 내용 정리 (프로젝트 개요, 기술 스택, 문서 규칙 제거)
+  - 각 문서의 고유 목적에 맞게 내용 최적화
+  - Linear MCP 서버 제거 (요청에 따라)
+
 ## [5.63.21] - 2025-07-25
 
 ### 📝 문서 및 도구 개선

@@ -16,13 +16,18 @@ NC='\033[0m'
 echo "🔍 시스템 헬스체크 시작..."
 
 # Redis 연결 테스트
-REDIS_TOKEN="${UPSTASH_REDIS_REST_TOKEN:-your_redis_token_here}"
-REDIS_HOST="${UPSTASH_REDIS_HOST:-your_redis_host_here}"
+REDIS_URL="${UPSTASH_REDIS_REST_URL:-}"
+REDIS_TOKEN="${UPSTASH_REDIS_REST_TOKEN:-}"
 
 echo "📊 Redis 상태 확인 중..."
-REDIS_STATUS=$(curl -X POST "https://${REDIS_HOST}/ping" -H "Authorization: Bearer ${REDIS_TOKEN}" -s 2>/dev/null | grep -o '"result":"[^"]*"' | cut -d'"' -f4)
-REDIS_TIME=$(curl -X POST "https://${REDIS_HOST}/ping" -H "Authorization: Bearer ${REDIS_TOKEN}" -s -w "%{time_total}" -o /dev/null 2>/dev/null)
-REDIS_KEYS=$(curl -X POST "https://${REDIS_HOST}/dbsize" -H "Authorization: Bearer ${REDIS_TOKEN}" -s 2>/dev/null | grep -o '"result":[0-9]*' | cut -d':' -f2)
+if [ -z "$REDIS_URL" ] || [ -z "$REDIS_TOKEN" ]; then
+    echo "❌ Redis 환경변수 미설정"
+    REDIS_STATUS=""
+else
+    REDIS_STATUS=$(curl -s "${REDIS_URL}/ping" -H "Authorization: Bearer ${REDIS_TOKEN}" 2>/dev/null | grep -o '"result":"[^"]*"' | cut -d'"' -f4)
+    REDIS_TIME=$(curl -s -w "%{time_total}" -o /dev/null "${REDIS_URL}/ping" -H "Authorization: Bearer ${REDIS_TOKEN}" 2>/dev/null)
+    REDIS_KEYS=$(curl -s "${REDIS_URL}/dbsize" -H "Authorization: Bearer ${REDIS_TOKEN}" 2>/dev/null | grep -o '"result":[0-9]*' | cut -d':' -f2)
+fi
 
 if [ "$REDIS_STATUS" = "PONG" ]; then
     echo "✅ Redis 연결 성공 (응답시간: ${REDIS_TIME}s, 키 개수: ${REDIS_KEYS})"
