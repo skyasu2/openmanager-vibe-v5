@@ -99,40 +99,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 📦 MCP 도구 빠른 참조
 
-프로젝트에서 사용하는 **3-Tier MCP 아키텍처**:
+**올바른 3-Tier MCP 아키텍처** (2025.07 업데이트):
 
-1. **🏠 로컬 개발용 MCP** (Claude Code에서 사용)
-   - filesystem, github, memory, sequential-thinking
+- 🏠 **로컬 (개발 도구)**: filesystem, github, memory, sequential-thinking, playwright
+- ☁️ **GCP VM (AI 보조)**: context7, tavily-mcp, supabase, serena - 자연어 질의, RAG, NLP 보조 역할
+- 🚀 **Vercel (API)**: `/api/mcp` 엔드포인트로 GCP MCP 서버 상태 확인
 
-2. **☁️ GCP VM 운영용 MCP** (AI 어시스턴트 사용)
-   - 104.154.205.25:10000에서 실행
-   - 컨텍스트 관리, RAG 통합
+**역할 분리 원칙**:
 
-3. **🚀 Vercel 테스트용 MCP** (배포 환경 테스트)
-   - `/api/mcp` 엔드포인트
-   - 시스템 상태, 환경변수, 헬스체크
+- 개발용 MCP는 로컬에서만 실행 (코딩 작업 지원)
+- AI 보조용 MCP는 GCP VM에서만 실행 (Google AI 모드 지원)
+- CloudContextLoader가 GCP MCP 서버와 원격 통신
 
-   **사용 방법**:
-
-   ```bash
-   # MCP 클라이언트에 Vercel URL 추가
-   https://your-app.vercel.app/api/mcp
-
-   # 도구 호출 (표준 MCP 형식)
-   get_system_status()
-   check_env_config()
-   health_check({ endpoint: "/api/health" })
-   get_recent_logs({ limit: 10 })
-   get_project_info()
-   debug_deployment({ issue: "문제 설명" })
-   ```
-
-**📚 필수 참조 문서**:
-
-- **통합 가이드**: `docs/mcp-unified-architecture-guide.md`
-- **빠른 사용법**: `docs/mcp-quick-guide.md`
-- **Vercel MCP 설정**: `docs/vercel-mcp-setup-guide.md` (신규)
-- **상세 설정**: `docs/claude-code-mcp-setup-2025.md`
+**필수 문서**: `docs/mcp-unified-architecture-guide.md`
 
 ## Common Commands
 
@@ -515,82 +494,73 @@ npm run env:help
 
 This project demonstrates advanced Next.js patterns with AI integration, optimized for production deployment with comprehensive testing and monitoring capabilities.
 
-## 🎯 MCP 3-Tier 아키텍처
-
-### 📍 개요
-
-OpenManager VIBE v5는 3가지 레벨의 MCP 서버를 운영합니다:
-
-1. **🏠 로컬 개발용 MCP** - Claude Code에서 직접 사용
-2. **☁️ GCP VM 운영용 MCP** - AI 어시스턴트가 프로덕션에서 사용
-3. **🚀 Vercel 테스트용 MCP** - 배포된 환경 직접 테스트
-
-### 🔍 사용 가이드
-
-**상황별 MCP 선택:**
-
-- 로컬 코드 개발 → 로컬 MCP
-- AI 기능 통합 → GCP VM MCP
-- 배포 후 테스트 → Vercel MCP
-
-**필수 참조:**
-
-- 📚 [통합 아키텍처 가이드](docs/mcp-unified-architecture-guide.md)
-- 🚀 [빠른 사용 가이드](docs/mcp-quick-guide.md)
-- 🔧 [MCP 설정 상세](docs/claude-code-mcp-setup-2025.md)
-
-### ⚠️ 보안 주의사항
-
-- GitHub 토큰: `.env.local` 관리
-- GCP VM MCP: IP 화이트리스트 필수
-- Vercel MCP: 인증된 사용자만 접근
-
 ## 🤖 Claude Code Sub Agents - 차세대 AI 협업 시스템
 
 ### 🎯 Sub Agents 소개
 
 Claude Code의 Sub Agents는 특정 작업에 특화된 AI 에이전트로, 작업을 효율적으로 위임하여 처리합니다.
 
-#### 현재 활성 Sub Agents
+#### 현재 활성 Sub Agents (개발팀 직무 역할)
 
-1. **gemini-cli-collaborator** - Gemini CLI와 협업하는 전문 에이전트
-   - 코드 분석 및 품질 검토
-   - SOLID 원칙 검사
-   - 타입 안전성 확인
-   - 문서 요약 및 설명
+1. **👨‍💻 Senior Code Architect** (`gemini-cli-collaborator`) - 시니어 코드 아키텍트
+   - 레거시 코드 분석 및 리팩토링 전략 수립
+   - SOLID 원칙 기반 아키텍처 검증
+   - TypeScript 타입 안전성 및 최적화
+   - 기술 문서 검토 및 코드베이스 인사이트 제공
 
-2. **code-review-specialist** - 코드 리뷰 전문가
-   - 코드 품질 및 보안 취약점 검토
-   - 스타일 가이드 준수 확인
-   - 성능 최적화 제안
-   - 리팩토링 기회 식별
+2. **🔍 Security & Performance Engineer** (`code-review-specialist`) - 보안/성능 엔지니어
+   - 보안 취약점 스캐닝 및 패치 제안
+   - 성능 병목 구간 분석 및 최적화
+   - 코딩 컨벤션 및 베스트 프랙티스 검증
+   - 프로덕션 배포 전 최종 검수
 
-3. **test-automation-specialist** - 테스트 자동화 전문가
-   - 테스트 생성 및 실행
-   - 테스트 실패 분석
-   - 커버리지 개선
-   - 코드 변경시 자동 활성화
+3. **🧪 QA Lead Engineer** (`test-automation-specialist`) - QA 리드 엔지니어
+   - 자동화 테스트 스위트 설계 및 구현
+   - 실패한 테스트 근본 원인 분석
+   - 테스트 커버리지 90% 이상 유지
+   - CI/CD 파이프라인 테스트 자동화
 
-4. **doc-structure-guardian** - 문서 구조 관리자
-   - 문서 구조 정책 시행
-   - 마크다운 파일 조직 표준 유지
-   - 문서 생성 및 버전 관리
+4. **📚 Technical Writer Lead** (`doc-structure-guardian`) - 테크니컬 라이터 리드
+   - API 문서 및 개발 가이드 작성
+   - 문서 표준화 및 일관성 유지
+   - 릴리즈 노트 및 마이그레이션 가이드
+   - 개발자 온보딩 문서 관리
 
-5. **planner-spec** - 요구사항 분석 및 작업 계획
-   - 모호한 요구사항을 구조화된 사양으로 변환
-   - 작업 목록 JSON 생성
-   - 구현 가능한 태스크로 분해
+5. **📋 Product Manager** (`planner-spec`) - 프로덕트 매니저
+   - 비즈니스 요구사항을 기술 명세로 변환
+   - 스프린트 계획 및 백로그 관리
+   - 사용자 스토리 및 수락 기준 정의
+   - 개발 우선순위 및 일정 조율
 
-6. **issue-summary** - 시스템 상태 자동 점검
-   - 모든 서비스 상태 모니터링
-   - 오류 패턴 감지 및 분석
-   - 무료 티어 한계 평가
-   - 심각도별 이슈 정리
+6. **🚨 DevOps Engineer** (`issue-summary`) - 데브옵스 엔지니어
+   - 24/7 시스템 모니터링 및 알림 관리
+   - 인시던트 대응 및 사후 분석 리포트
+   - 리소스 사용량 및 비용 최적화
+   - SLA 99.9% 유지 및 장애 대응
 
-7. **mcp-server-admin** - MCP 서버 관리
-   - MCP 서버 목록 확인/추가/제거
-   - WSL 환경에서 Claude Code CLI 관리
-   - 서버 설정 가이드 제공
+7. **🛠️ Infrastructure Engineer** (`mcp-server-admin`) - 인프라 엔지니어
+   - 개발/스테이징/프로덕션 환경 관리
+   - 컨테이너 및 오케스트레이션 설정
+   - CI/CD 파이프라인 구축 및 유지보수
+   - 개발 도구 및 서버 프로비저닝
+
+8. **🎨 Frontend UX Engineer** (`ux-performance-optimizer`) - 프론트엔드 UX 엔지니어
+   - Core Web Vitals 최적화 (LCP, CLS, FID, INP)
+   - 모바일 반응성 및 접근성 개선 (WCAG 2.1 AA)
+   - Next.js 번들 크기 최적화 및 성능 분석
+   - Vercel 무료 티어 최적화 및 사용자 경험 향상
+
+9. **🤖 AI Systems Engineer** (`ai-systems-engineer`) - AI 시스템 엔지니어
+   - AI 아키텍처 설계 및 최적화 (Local AI ↔ Google AI)
+   - 자연어 질의 시스템 성능 최적화
+   - AI 사이드바 엔진 관리 및 통합
+   - Vercel-GCP AI 파이프라인 최적화
+
+10. **🗄️ Database Administrator** (`database-administrator`) - 데이터베이스 관리자
+    - Supabase PostgreSQL 및 pgvector 최적화
+    - Upstash Redis 캐싱 전략 설계
+    - 무료 티어 리소스 최적화
+    - ML/RAG 시스템을 위한 데이터 파이프라인 관리
 
 ### 💡 사용 방법
 
@@ -608,8 +578,8 @@ Claude Code가 작업 내용을 분석해 적절한 sub agent에 자동 할당:
 특정 sub agent를 직접 지정:
 
 ```
-"gemini-cli-collaborator를 사용해서 auth 모듈 검토해줘"
-"gemini-cli-collaborator로 SOLID 원칙 위반 검사해줘"
+"Senior Code Architect를 사용해서 auth 모듈 아키텍처 검토해줘"
+"Senior Code Architect로 SOLID 원칙 위반 검사해줘"
 ```
 
 ### 🔧 Custom Sub Agents 생성
@@ -621,23 +591,63 @@ Claude Code가 작업 내용을 분석해 적절한 sub agent에 자동 할당:
 
 `.claude/agents/` 디렉토리에 저장하여 팀원과 공유 가능합니다.
 
-### 📊 gemini-cli-collaborator 활용 예시
+### 📊 Senior Code Architect 활용 예시
 
-1. **코드 품질 검토**
-
-   ```
-   "src/services 디렉토리의 코드 품질을 분석해줘"
-   ```
-
-2. **SOLID 원칙 검사**
+1. **아키텍처 리뷰**
 
    ```
-   "AI 엔진 통합 코드가 SOLID 원칙을 잘 따르는지 확인해줘"
+   "src/services 디렉토리의 전체 아키텍처를 분석하고 개선점 제안해줘"
    ```
 
-3. **타입 안전성 확인**
+2. **SOLID 원칙 검증**
+
    ```
-   "any 타입 사용 여부 검사하고 개선 방안 제시해줘"
+   "AI 엔진 통합 코드가 SOLID 원칙을 준수하는지 검증하고 리팩토링 방안 제시해줘"
+   ```
+
+3. **기술 부채 분석**
+   ```
+   "레거시 코드의 기술 부채를 분석하고 단계별 개선 로드맵 작성해줘"
+   ```
+
+### 🤖 AI Systems Engineer 활용 예시
+
+1. **자연어 질의 시스템 최적화**
+
+   ```
+   "SimplifiedQueryEngine의 응답 속도가 느린데 성능 최적화 방안 제시해줘"
+   ```
+
+2. **AI 모드 전환 구현**
+
+   ```
+   "Local AI와 Google AI 모드 간 자동 전환 로직을 설계해줘"
+   ```
+
+3. **AI 파이프라인 최적화**
+
+   ```
+   "Vercel-GCP AI 파이프라인의 병목 구간을 분석하고 개선 방안 제시해줘"
+   ```
+
+### 🗄️ Database Administrator 활용 예시
+
+1. **벡터 검색 최적화**
+
+   ```
+   "Supabase의 pgvector 검색이 느린데 인덱스 최적화 방안을 제시해줘"
+   ```
+
+2. **캐싱 전략 설계**
+
+   ```
+   "Redis 캐싱 TTL을 데이터 타입별로 최적화해줘"
+   ```
+
+3. **무료 티어 관리**
+
+   ```
+   "Supabase 스토리지가 한계에 다다랐는데 최적화 전략을 수립해줘"
    ```
 
 ## Claude Code 사용량 모니터링
@@ -698,57 +708,9 @@ npx ccusage@latest blocks --active
 - **🛠️ 개발 도구 통합**: `docs/development-tools.md`
 - **🤝 AI 도구 협업 가치**: `docs/claude-gemini-collaboration-value.md`
 
-## AI 도구 협업 전략
-
-### Claude Code Sub Agents를 통한 효율적 개발
-
-Claude Code의 Sub Agents 기능을 활용하여 특정 작업을 전문 에이전트에 위임:
-
-#### Claude Code가 적합한 작업:
-
-- 복잡한 코드 작성 및 리팩토링
-- 실시간 디버깅 및 문제 해결
-- 프로젝트 아키텍처 설계
-- 파일 생성/수정 작업
-- Git 작업 및 PR 생성
-
-#### Sub Agents가 적합한 작업:
-
-- **gemini-cli-collaborator**: 코드 품질 검토, SOLID 원칙 검사
-- **code-review-specialist**: 보안 취약점 및 성능 문제 검토
-- **test-automation-specialist**: 테스트 실행 및 실패 수정
-- **doc-structure-guardian**: 문서 구조 및 표준 관리
-- **planner-spec**: 요구사항 분석 및 작업 계획 수립
-- **issue-summary**: 시스템 상태 점검 및 이슈 요약
-- **mcp-server-admin**: MCP 서버 설정 및 관리
-
-#### 협업 워크플로우 예시:
-
-**TDD 개발 프로세스에서의 협업**
-
-```
-# 1. gemini-cli-collaborator로 기존 코드 분석 (중복 방지)
-"gemini-cli-collaborator를 사용해서 기존 인증 로직 분석해줘"
-
-# 2. Claude로 테스트 작성 (TDD - Red)
-# 실패하는 테스트 먼저 작성
-
-# 3. Claude로 구현 (TDD - Green)
-# 테스트를 통과하는 최소 구현
-
-# 4. code-reviewer sub agent로 코드 리뷰
-"code-reviewer를 사용해서 SOLID 원칙 관점에서 리뷰해줘"
-
-# 5. Claude로 리팩토링 (TDD - Refactor)
-# Sub agent 피드백 반영하여 고품질 코드로 개선
-
-# 6. 문서 업데이트
-# Claude가 CHANGELOG.md 및 관련 문서 갱신
-```
-
 ### 🔧 Sub Agent 활용 팁
 
-1. **전문성 활용**: 각 Sub Agent의 전문 영역에 맞는 작업 위임
-2. **비동기 처리**: 여러 Sub Agent를 동시에 호출하여 시간 절약
-3. **컨텍스트 유지**: Sub Agent가 프로젝트 컨텍스트를 이해하도록 명확한 지시
-4. **결과 통합**: Sub Agent의 결과를 Claude가 통합하여 최종 솔루션 제공
+1. **전문성 활용**: 각 에이전트의 전문 영역에 맞는 작업 위임
+2. **협업 시너지**: 여러 에이전트를 순차적으로 활용하여 품질 향상
+3. **컨텍스트 공유**: 명확한 지시로 프로젝트 컨텍스트 전달
+4. **결과 통합**: 각 에이전트의 피드백을 종합하여 최종 솔루션 도출
