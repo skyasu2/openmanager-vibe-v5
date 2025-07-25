@@ -9,6 +9,14 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 export async function GET(request: NextRequest) {
+  // 🚫 개발 환경에서만 접근 허용
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { error: 'Test endpoints are not available in production' },
+      { status: 404 }
+    );
+  }
+
   try {
     console.log('🧪 Supabase Auth 설정 테스트 시작...');
 
@@ -34,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     // 1. Supabase 연결 테스트
     console.log('📡 Supabase 연결 테스트...');
-    const { data: connectionTest, error: connectionError } = await supabase
+    const { data: _connectionTest, error: connectionError } = await supabase
       .from('_supabase_migrations')
       .select('version')
       .limit(1);
@@ -191,7 +199,7 @@ export async function POST(request: NextRequest) {
       console.log('🔐 Auth 스키마 및 정책 확인...');
 
       try {
-        const { data: userCount, error: userError } = await supabase
+        const { data: _userCount, error: userError } = await supabase
           .from('auth.users')
           .select('count(*)', { count: 'exact' });
 

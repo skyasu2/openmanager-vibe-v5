@@ -101,7 +101,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **올바른 3-Tier MCP 아키텍처** (2025.07 업데이트):
 
-- 🏠 **로컬 (개발 도구)**: filesystem, github, memory, sequential-thinking, playwright
+- 🏠 **로컬 (개발 도구)**: filesystem, github, memory, sequential-thinking + supabase, context7, tavily-mcp, serena
 - ☁️ **GCP VM (AI 보조)**: context7, tavily-mcp, supabase, serena - 자연어 질의, RAG, NLP 보조 역할
 - 🚀 **Vercel (API)**: `/api/mcp` 엔드포인트로 GCP MCP 서버 상태 확인
 

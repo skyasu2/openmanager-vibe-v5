@@ -203,6 +203,7 @@ scripts/fix-case-declarations.cjs
 
 # Serena MCP
 .serena/
+.serena-mcp/
 
 # 루트 디렉토리 문서 제한 (4개 필수 파일만 허용)
 /*.md

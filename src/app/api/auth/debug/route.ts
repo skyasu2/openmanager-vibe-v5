@@ -13,6 +13,14 @@ import { cookies } from 'next/headers';
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
+  // 🚫 개발 환경에서만 접근 허용
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { error: 'Debug endpoints are not available in production' },
+      { status: 404 }
+    );
+  }
+
   try {
     // 환경 정보
     const hostname = request.headers.get('host') || '';

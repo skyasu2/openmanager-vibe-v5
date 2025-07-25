@@ -1,5 +1,81 @@
 # Changelog
 
+## [5.63.27] - 2025-07-26
+
+### 🔒 Security
+
+- **Vercel 배포 안전성 강화**
+  - `.vercelignore` 파일 대폭 업데이트
+  - 개발 전용 폴더 배포 제외: `.serena-mcp/`, `local-dev/`, `.kiro/`, `.cursor/`
+  - 환경변수 파일 보호: `.env.production`, `.env.development` 등
+  - 보안 파일 제외: `*-auth.json`, `*-token.json`, `*-secret.json`
+  - 백업/임시 파일 제외: `*.backup`, `*.tmp`, `env-backup*`
+  - 개발 문서 제외: `CLAUDE.md`, `GEMINI.md`, `CHANGELOG.md` 등
+
+- **개발 전용 API 엔드포인트 보호**
+  - `/api/auth/debug` - 프로덕션 환경에서 404 반환
+  - `/api/auth/test` - 프로덕션 환경에서 404 반환
+  - NODE_ENV 체크로 개발 API 보호
+
+### 📝 Added
+
+- **배포 안전성 체크리스트 문서**
+  - `docs/deployment-safety-checklist.md` 생성
+  - Vercel 배포 시 점검 사항 정리
+  - 보안 조치 및 권장사항 문서화
+
+## [5.63.26] - 2025-07-26
+
+### ✨ Added
+
+- **serena MCP 서버 로컬 개발 환경에 추가**
+  - Python 기반 코드베이스 분석 도구 serena 설정 완료
+  - uv 패키지 매니저 설치 (v0.8.3)
+  - serena 소스 코드를 `.serena-mcp/serena`에 클론
+  - `.mcp.json`에 serena 서버 설정 추가
+  - 프로젝트 인덱싱 시작 (831개 파일)
+
+### 📝 Updated
+
+- **로컬 개발 환경 MCP 서버 총 8개로 확대**
+  - 기본 개발 도구 4개: filesystem, github, memory, sequential-thinking
+  - AI 보조 도구 4개: supabase, context7, tavily-mcp, serena
+
+## [5.63.25] - 2025-07-26
+
+### 🔧 Fixed
+
+- **AI 보조 MCP 서버 로컬 개발 환경에 복구**
+  - supabase, context7, tavily-mcp 서버를 `.mcp.json`에 추가
+  - `.env.local`에 TAVILY_API_KEY 환경변수 추가
+  - AI 보조 서버들을 로컬 개발 환경에서도 사용 가능하도록 설정
+  - 참고: serena는 Python 기반 도구로 npm 패키지가 아님
+
+### 📝 Added
+
+- **MCP 아키텍처 정리**
+  - 개발용 MCP: GitHub까지만 배포 (Vercel/GCP에는 배포 안 됨)
+  - GCP VM MCP: 테스트하며 무료 티어에 맞게 구성
+  - 개발 MCP와 GCP MCP는 완전히 별개 시스템
+
+## [5.63.24] - 2025-07-26
+
+### 🔧 Fixed
+
+- **MCP 서버 설정 수정**
+  - 잘못 추가된 playwright MCP 서버 제거 (공식 서버가 아님)
+  - CLAUDE.md의 잘못된 MCP 서버 정보 수정
+  - 공식 MCP 서버 4개 유지: filesystem, github, memory, sequential-thinking
+  - @modelcontextprotocol/server-playwright 패키지는 존재하지 않음 확인
+  - @modelcontextprotocol/server-puppeteer는 deprecated 상태 확인
+
+### 📝 Added
+
+- **MCP 서버 현황 문서 추가**
+  - `docs/mcp-server-status-2025.md` 생성
+  - 공식 지원 서버와 지원 중단 서버 명확히 정리
+  - 브라우저 자동화 대안 제시
+
 ## [5.63.23] - 2025-07-25
 
 ### 🔧 Fixed
