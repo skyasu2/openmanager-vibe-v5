@@ -20,37 +20,37 @@ export default function AuthCallbackPage() {
       try {
         console.log('🔐 OAuth 콜백 처리 시작...');
 
-        // Supabase SSR이 미들웨어에서 PKCE를 자동으로 처리합니다
-        // exchangeCodeForSession을 호출할 필요가 없습니다
+        // URL에서 code 파라미터 확인
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
 
-        // 미들웨어 처리 완료 대기
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        // 세션 확인 (여러 번 시도)
-        let session = null;
-        let attempts = 0;
-        const maxAttempts = 5;
-
-        while (!session && attempts < maxAttempts) {
-          const { data } = await supabase.auth.getSession();
-          session = data.session;
-
-          if (!session && attempts < maxAttempts - 1) {
-            console.log(`🔄 세션 확인 재시도 ${attempts + 1}/${maxAttempts}`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-          attempts++;
+        if (!code) {
+          console.error('❌ OAuth 코드가 없습니다');
+          router.push('/login?error=no_code');
+          return;
         }
 
-        if (!session) {
+        console.log('🔑 OAuth 코드 확인됨');
+
+        // exchangeCodeForSession을 직접 호출하여 세션 생성
+        const { data, error } =
+          await supabase.auth.exchangeCodeForSession(code);
+
+        if (error) {
+          console.error('❌ 코드 교환 실패:', error);
+          router.push('/login?error=code_exchange_failed');
+          return;
+        }
+
+        if (!data.session) {
           console.error('❌ 세션 생성 실패');
           router.push('/login?error=no_session');
           return;
         }
 
-        console.log('✅ OAuth 세션 확인됨:', session.user?.email);
+        console.log('✅ OAuth 세션 생성 성공:', data.session.user?.email);
 
-        // 성공 페이지로 리다이렉트 (URL 파라미터 제거)
+        // 성공 페이지로 리다이렉트
         router.push('/auth/success');
       } catch (error) {
         console.error('❌ OAuth 콜백 처리 오류:', error);

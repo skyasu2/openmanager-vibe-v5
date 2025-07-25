@@ -58,25 +58,8 @@ export async function updateSession(
     }
   );
 
-  // 이 부분이 중요: getUser()를 호출하면 토큰이 자동으로 새로고침되고
-  // PKCE 플로우가 자동으로 처리됩니다
+  // 이 부분이 중요: getUser()를 호출하면 토큰이 자동으로 새로고침됩니다
   await supabase.auth.getUser();
-
-  // OAuth 콜백 처리
-  const pathname = request.nextUrl.pathname;
-  if (pathname === '/auth/callback') {
-    const code = request.nextUrl.searchParams.get('code');
-
-    if (code) {
-      // Supabase SSR이 자동으로 PKCE를 처리합니다
-      // exchangeCodeForSession을 명시적으로 호출할 필요가 없습니다
-      const redirectTo = request.nextUrl.clone();
-      redirectTo.pathname = '/auth/success';
-      redirectTo.searchParams.delete('code');
-
-      return NextResponse.redirect(redirectTo);
-    }
-  }
 
   return supabaseResponse;
 }
