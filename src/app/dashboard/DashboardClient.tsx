@@ -15,6 +15,7 @@ import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { cn } from '@/lib/utils';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -125,6 +126,9 @@ function DashboardPageContent() {
   const { status: _systemStatus, isLoading: _systemStatusLoading } =
     useSystemStatus();
 
+  // 🛑 시스템 정지 함수
+  const { stopSystem } = useUnifiedAdminStore();
+
   // 🔒 자동 로그아웃 시스템 - 베르셀 사용량 최적화
   const {
     remainingTime,
@@ -148,12 +152,10 @@ function DashboardPageContent() {
   const {
     isSystemActive,
     remainingTime: systemRemainingTime,
-    remainingTimeFormatted,
+    formatTime,
     isWarning: _isSystemWarning,
-    stopSystem,
     restartSystem: _restartSystem,
   } = useSystemAutoShutdown({
-    activeMinutes: 20, // 20분 동안 동작
     warningMinutes: 5, // 5분 전 경고
     onWarning: remainingMinutes => {
       setShowSystemWarning(true);
@@ -214,6 +216,11 @@ function DashboardPageContent() {
     // 🚀 비동기로 초기화 (블로킹하지 않음)
     initializeDashboard();
   }, []);
+
+  // 🕐 시간 포맷팅
+  const remainingTimeFormatted = formatTime
+    ? formatTime(systemRemainingTime)
+    : '00:00';
 
   const toggleAgent = useCallback(() => {
     setIsAgentOpen(prev => !prev);
