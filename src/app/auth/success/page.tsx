@@ -18,11 +18,25 @@ export default function AuthSuccessPage() {
     'checking'
   );
   const [retryCount, setRetryCount] = useState(0);
+  const [performanceMetrics, setPerformanceMetrics] = useState<{
+    [key: string]: number;
+  }>({});
+
+  // 🚀 성능 측정 헬퍼
+  const measureTime = (label: string, startTime: number) => {
+    const duration = performance.now() - startTime;
+    console.log(`⏱️ ${label}: ${duration.toFixed(0)}ms`);
+    setPerformanceMetrics(prev => ({ ...prev, [label]: duration }));
+    return duration;
+  };
 
   useEffect(() => {
     const checkSessionAndRedirect = async () => {
+      const totalStartTime = performance.now();
+
       try {
         console.log('🎉 인증 성공 페이지 - 세션 확인 중...');
+        console.log('⏱️ 성능 측정 시작');
 
         // Vercel 환경 감지 (더 정확한 방법)
         const isVercel =
@@ -37,79 +51,104 @@ export default function AuthSuccessPage() {
           origin: window.location.origin,
         });
 
-        // 🚀 최적화: 대기 시간 50% 단축
-        const initialWait = isVercel ? 2000 : 1000;
+        // 🚀 Phase 2 최적화: 대기 시간 추가 단축 + 이벤트 기반 처리
+        const initialWait = isVercel ? 500 : 200; // 2000 → 500ms
+        const sessionCheckStart = performance.now();
 
-        // Progressive Enhancement: 세션 확인되면 즉시 진행
-        const checkSessionReady = async () => {
-          const {
-            data: { session },
-          } = await supabase.auth.getSession();
-          return session?.user ? true : false;
-        };
+        // 이벤트 기반 세션 감지
+        const sessionPromise = new Promise<boolean>(resolve => {
+          const unsubscribe = supabase.auth.onAuthStateChange(
+            (event, session) => {
+              if (event === 'SIGNED_IN' && session) {
+                console.log('🎉 이벤트 기반 세션 감지!');
+                unsubscribe.data.subscription.unsubscribe();
+                resolve(true);
+              }
+            }
+          );
 
-        // 세션 준비되면 즉시 진행, 아니면 최대 대기 시간까지만
-        const sessionReady = await Promise.race([
-          checkSessionReady(),
-          new Promise<boolean>(resolve =>
-            setTimeout(() => resolve(false), initialWait)
-          ),
+          // 타임아웃 설정
+          setTimeout(() => {
+            unsubscribe.data.subscription.unsubscribe();
+            resolve(false);
+          }, initialWait);
+        });
+
+        // 즉시 세션 확인과 이벤트 기반 감지를 병렬로
+        const [immediateSession, eventSession] = await Promise.all([
+          supabase.auth.getSession().then(({ data }) => !!data.session?.user),
+          sessionPromise,
         ]);
 
-        if (!sessionReady) {
-          // 세션이 아직 준비되지 않았을 때만 추가 대기
-          await new Promise(resolve => setTimeout(resolve, initialWait));
-        }
+        measureTime('초기 세션 확인', sessionCheckStart);
 
-        // 🚀 최적화: 세션 새로고침 병렬 처리
-        console.log('🔄 세션 새로고침 시도...');
-        const refreshPromise = supabase.auth.refreshSession();
-        const timeoutPromise = new Promise(resolve => setTimeout(resolve, 500));
-
-        await Promise.all([refreshPromise, timeoutPromise]);
-
-        const { error: refreshError } = await refreshPromise;
-        if (refreshError) {
-          console.warn('⚠️ 세션 새로고침 실패:', refreshError);
-          // 실패해도 계속 진행 (세션이 이미 있을 수 있음)
+        if (immediateSession || eventSession) {
+          console.log('✅ 세션 즉시 확인됨!');
+          // 세션이 있으면 바로 진행
         } else {
-          console.log('✅ 세션 새로고침 성공');
+          // 세션이 없을 때만 최소한의 대기
+          await new Promise(resolve => setTimeout(resolve, 200));
         }
 
-        // 🚀 최적화: 세션 검증 재시도 감소 및 시간 단축
+        // 🚀 Phase 2: 조건부 새로고침 (필요한 경우만)
+        const refreshStart = performance.now();
+
+        // 세션이 없거나 만료 임박한 경우만 새로고침
+        const { data: currentSession } = await supabase.auth.getSession();
+        if (
+          !currentSession.session ||
+          (currentSession.session.expires_at &&
+            new Date(currentSession.session.expires_at * 1000).getTime() -
+              Date.now() <
+              60000)
+        ) {
+          console.log('🔄 세션 새로고침 필요함...');
+          const { error: refreshError } = await supabase.auth.refreshSession();
+          if (refreshError) {
+            console.warn('⚠️ 세션 새로고침 실패:', refreshError);
+          }
+        } else {
+          console.log('✅ 세션 새로고침 불필요 (유효한 세션 존재)');
+        }
+
+        measureTime('세션 새로고침', refreshStart);
+
+        // 🚀 Phase 2: 스마트 재시도 (첫 시도에서 성공할 가능성 높음)
+        const validationStart = performance.now();
         let user = null;
         let session = null;
         let error = null;
-        const maxRetries = isVercel ? 3 : 2; // 5 → 3회, 3 → 2회
+        const maxRetries = isVercel ? 2 : 1; // 더 적극적으로 재시도 감소
 
-        for (let attempt = 0; attempt < maxRetries; attempt++) {
-          // 세션과 사용자 정보 병렬 확인
-          const [sessionResult, userResult] = await Promise.all([
-            supabase.auth.getSession(),
-            supabase.auth.getUser(),
-          ]);
+        // 첫 번째 시도는 즉시
+        const [sessionResult, userResult] = await Promise.all([
+          supabase.auth.getSession(),
+          supabase.auth.getUser(),
+        ]);
 
-          session = sessionResult.data.session;
-          user = userResult.data.user;
-          error = userResult.error;
+        session = sessionResult.data.session;
+        user = userResult.data.user;
+        error = userResult.error;
 
-          if (user && !error) {
-            console.log(
-              `✅ 사용자 검증 성공 (시도 ${attempt + 1}/${maxRetries})`
-            );
-            break;
-          }
+        if (!user && !error && maxRetries > 0) {
+          // 첫 시도 실패 시만 재시도
+          console.log('⚠️ 첫 시도 실패, 한 번만 재시도...');
+          setRetryCount(1);
 
-          if (attempt < maxRetries - 1) {
-            console.log(
-              `⏳ 세션 대기 중... (시도 ${attempt + 1}/${maxRetries})`
-            );
-            setRetryCount(attempt + 1);
+          // 짧은 대기 후 재시도
+          await new Promise(resolve =>
+            setTimeout(resolve, isVercel ? 500 : 300)
+          );
 
-            // 🚀 최적화: 대기 시간 단축
-            const retryWait = isVercel ? 1500 : 1000; // 2500 → 1500ms
-            await new Promise(resolve => setTimeout(resolve, retryWait));
-          }
+          const retryResult = await supabase.auth.getUser();
+          user = retryResult.data.user;
+          error = retryResult.error;
+        }
+
+        measureTime('사용자 검증', validationStart);
+
+        if (user && !error) {
+          console.log('✅ 사용자 검증 성공');
         }
 
         if (error) {
@@ -149,12 +188,36 @@ export default function AuthSuccessPage() {
         document.cookie = `auth_redirect_to=${encodeURIComponent(redirectTo)}; path=/; max-age=60; SameSite=Lax`;
         document.cookie = `auth_in_progress=true; path=/; max-age=60; SameSite=Lax`;
 
-        // 🚀 최적화: 쿠키 동기화 시간 단축
-        const cookieWait = isVercel ? 3000 : 1500; // 6000 → 3000ms
-        console.log(`⏳ 쿠키 동기화 대기 중... (${cookieWait}ms)`);
+        // 🚀 Phase 2: 스마트 쿠키 처리 (폴링 방식)
+        const cookieStart = performance.now();
+        const maxCookieWait = isVercel ? 1000 : 500; // 3000 → 1000ms
+        const cookieCheckInterval = 100;
+        let cookieReady = false;
 
-        // 쿠키 설정과 동시에 대기 (병렬 처리)
-        await new Promise(resolve => setTimeout(resolve, cookieWait));
+        // 쿠키가 실제로 설정되었는지 확인하는 폴링
+        for (
+          let elapsed = 0;
+          elapsed < maxCookieWait;
+          elapsed += cookieCheckInterval
+        ) {
+          if (
+            document.cookie.includes('sb-') &&
+            document.cookie.includes('auth_redirect_to')
+          ) {
+            cookieReady = true;
+            console.log(`✅ 쿠키 준비 완료 (${elapsed}ms)`);
+            break;
+          }
+          await new Promise(resolve =>
+            setTimeout(resolve, cookieCheckInterval)
+          );
+        }
+
+        if (!cookieReady) {
+          console.log('⚠️ 쿠키 설정 타임아웃, 계속 진행...');
+        }
+
+        measureTime('쿠키 동기화', cookieStart);
 
         // 쿠키 상태 확인 로그
         const cookies = document.cookie;
@@ -167,22 +230,13 @@ export default function AuthSuccessPage() {
           environment: isVercel ? 'Vercel' : 'Local',
         });
 
-        // 🚀 최적화: 이미 검증된 사용자 정보가 있으면 최종 검증 생략
-        if (!user) {
-          const finalUserCheck = await supabase.auth.getUser();
-          if (!finalUserCheck.data.user) {
-            console.error('❌ 최종 사용자 검증 실패');
-            setStatus('error');
-            setTimeout(
-              () => router.push('/login?error=final_check_failed'),
-              2000
-            );
-            return;
-          }
-          user = finalUserCheck.data.user;
-        }
+        // 🚀 Phase 2: 최종 검증 완전 생략 (이미 검증됨)
+        console.log('✅ 모든 검증 완료, 리다이렉트 준비...');
 
-        console.log('✅ 최종 사용자 검증 완료:', user.email);
+        // 전체 소요 시간 측정
+        const totalTime = measureTime('전체 인증 프로세스', totalStartTime);
+        console.log('📊 성능 요약:', performanceMetrics);
+        console.log(`🎯 총 소요 시간: ${totalTime.toFixed(0)}ms`);
 
         // 🔧 Vercel 환경에서 더 안정적인 리다이렉트 방법
         console.log('🔄 리다이렉트 실행:', redirectTo);
@@ -207,6 +261,8 @@ export default function AuthSuccessPage() {
     };
 
     checkSessionAndRedirect();
+    // performanceMetrics는 의도적으로 의존성에서 제외 (변경될 때마다 재실행 방지)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   return (
@@ -252,6 +308,19 @@ export default function AuthSuccessPage() {
             </div>
           </div>
         )}
+
+        {/* 성능 메트릭 표시 (개발 환경에서만) */}
+        {process.env.NODE_ENV === 'development' &&
+          Object.keys(performanceMetrics).length > 0 && (
+            <div className='mt-6 p-4 bg-gray-800 rounded-lg text-xs text-gray-400'>
+              <h3 className='font-bold mb-2'>성능 메트릭:</h3>
+              {Object.entries(performanceMetrics).map(([key, value]) => (
+                <div key={key}>
+                  {key}: {value.toFixed(0)}ms
+                </div>
+              ))}
+            </div>
+          )}
       </div>
     </div>
   );

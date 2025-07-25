@@ -17,17 +17,26 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const handleCallback = async () => {
+      const startTime = performance.now();
+
       try {
         console.log('🔐 OAuth 콜백 처리 시작...');
+        console.log('⏱️ Phase 3 최적화: 다이렉트 리다이렉트 모드');
 
-        // 먼저 세션 존재 여부 확인 (미들웨어가 이미 처리했을 수 있음)
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        // 즉시 세션 확인 (극도로 빠른 검사)
+        const quickCheck = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise<null>(resolve => setTimeout(() => resolve(null), 100)),
+        ]);
 
-        if (session) {
-          console.log('✅ 이미 인증된 세션 발견:', session.user?.email);
-          router.push('/auth/success');
+        if (quickCheck && quickCheck.data?.session) {
+          console.log('✅ 기존 세션 발견 (100ms 이내)');
+          console.log(
+            `⏱️ 콜백 처리 시간: ${(performance.now() - startTime).toFixed(0)}ms`
+          );
+
+          // Phase 3: success 페이지 건너뛰고 바로 메인으로
+          router.push('/main');
           return;
         }
 
@@ -43,9 +52,19 @@ export default function AuthCallbackPage() {
 
         console.log('🔑 OAuth 코드 확인됨');
 
-        // exchangeCodeForSession을 직접 호출하여 세션 생성
+        // Phase 3: 코드 교환과 동시에 쿠키 사전 설정
+        const exchangeStart = performance.now();
+
+        // 쿠키 사전 설정 (리다이렉트 준비)
+        document.cookie = `auth_in_progress=true; path=/; max-age=60; SameSite=Lax`;
+        document.cookie = `auth_redirect_to=/main; path=/; max-age=60; SameSite=Lax`;
+
         const { data, error } =
           await supabase.auth.exchangeCodeForSession(code);
+
+        console.log(
+          `⏱️ 코드 교환 시간: ${(performance.now() - exchangeStart).toFixed(0)}ms`
+        );
 
         if (error) {
           console.error('❌ 코드 교환 실패:', error);
@@ -61,8 +80,29 @@ export default function AuthCallbackPage() {
 
         console.log('✅ OAuth 세션 생성 성공:', data.session.user?.email);
 
-        // 성공 페이지로 리다이렉트
-        router.push('/auth/success');
+        // Phase 3: 쿠키가 설정될 때까지 최소 대기
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        console.log(
+          `⏱️ 전체 콜백 처리 시간: ${(performance.now() - startTime).toFixed(0)}ms`
+        );
+
+        // Phase 3 옵션: 바로 메인으로 가기
+        const skipSuccessPage = true; // 설정으로 관리 가능
+
+        if (skipSuccessPage) {
+          console.log('🚀 Phase 3: success 페이지 건너뛰고 메인으로 직행!');
+
+          // 라우터 캐시 갱신
+          router.refresh();
+          await new Promise(resolve => setTimeout(resolve, 200));
+
+          // 메인으로 직접 이동
+          window.location.href = '/main';
+        } else {
+          // 기존 플로우 유지 (안전 모드)
+          router.push('/auth/success');
+        }
       } catch (error) {
         console.error('❌ OAuth 콜백 처리 오류:', error);
         router.push('/login?error=callback_failed');
