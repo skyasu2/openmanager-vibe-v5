@@ -1,65 +1,77 @@
 /**
  * 🕐 System Auto Shutdown Hook
  *
- * 포트폴리오 최적화를 위한 20분 자동 종료 시스템
- * - 시스템 시작 후 20분 동안만 동작
- * - 5분, 1분 전 경고 알림
- * - 수동 중지 가능
- * - Vercel 사용량 88% 절약
+ * UI 표시 전용 자동 종료 시스템 훅
+ * - useUnifiedAdminStore의 자동 종료 시간 정보 활용
+ * - 남은 시간 표시 및 경고 알림
+ * - 실제 종료는 useUnifiedAdminStore에서 처리
  */
 
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useServerDataStore } from '@/components/providers/StoreProvider';
-import { systemInactivityService } from '@/services/system/SystemInactivityService';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { SYSTEM_AUTO_SHUTDOWN_TIME } from '@/config/system-constants';
 
 interface UseSystemAutoShutdownOptions {
-  /** 활성 시간 (분) */
-  activeMinutes?: number;
   /** 경고 시간 (분) */
   warningMinutes?: number;
   /** 경고 콜백 */
   onWarning?: (remainingMinutes: number) => void;
-  /** 종료 콜백 */
+  /** 종료 콜백 (UI 업데이트용) */
   onShutdown?: () => void;
 }
 
 export function useSystemAutoShutdown({
-  activeMinutes = 20,
   warningMinutes = 5,
   onWarning,
   onShutdown,
 }: UseSystemAutoShutdownOptions = {}) {
-  const stopAutoRefresh = useServerDataStore(state => state.stopAutoRefresh);
+  // useUnifiedAdminStore에서 시스템 상태 가져오기
+  const { isSystemStarted, getSystemRemainingTime } = useUnifiedAdminStore();
 
   // 상태 관리
-  const [isSystemActive, setIsSystemActive] = useState(true);
-  const [remainingTime, setRemainingTime] = useState(activeMinutes * 60 * 1000); // 밀리초
+  const [remainingTime, setRemainingTime] = useState(0);
   const [isWarning, setIsWarning] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [hasWarned5Min, setHasWarned5Min] = useState(false);
+  const [hasWarned1Min, setHasWarned1Min] = useState(false);
 
-  // 타이머 참조
-  const shutdownTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const warningTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // 업데이트 인터벌 참조
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // 남은 시간 업데이트 (1초마다)
   useEffect(() => {
-    if (!isSystemActive) return;
+    if (!isSystemStarted) {
+      setRemainingTime(0);
+      setIsWarning(false);
+      setHasWarned5Min(false);
+      setHasWarned1Min(false);
+      return;
+    }
 
     updateIntervalRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, activeMinutes * 60 * 1000 - elapsed);
+      const remaining = getSystemRemainingTime();
       setRemainingTime(remaining);
 
       // 경고 시간 체크
       const remainingMinutes = Math.floor(remaining / 60000);
-      if (remainingMinutes === warningMinutes && !isWarning) {
+
+      // 5분 경고
+      if (remainingMinutes <= 5 && remainingMinutes > 4 && !hasWarned5Min) {
         setIsWarning(true);
-        onWarning?.(warningMinutes);
-      } else if (remainingMinutes === 1 && isWarning) {
+        setHasWarned5Min(true);
+        onWarning?.(5);
+      }
+
+      // 1분 경고
+      if (remainingMinutes <= 1 && remainingMinutes > 0 && !hasWarned1Min) {
+        setHasWarned1Min(true);
         onWarning?.(1);
+      }
+
+      // 시간이 다 되면 콜백 호출 (UI 업데이트용)
+      if (remaining <= 0 && isSystemStarted) {
+        onShutdown?.();
       }
     }, 1000);
 
@@ -69,141 +81,69 @@ export function useSystemAutoShutdown({
       }
     };
   }, [
-    isSystemActive,
-    startTime,
-    activeMinutes,
+    isSystemStarted,
     warningMinutes,
-    isWarning,
+    hasWarned5Min,
+    hasWarned1Min,
     onWarning,
+    onShutdown,
+    getSystemRemainingTime,
   ]);
 
-  // 시스템 종료 처리
-  const handleSystemShutdown = useCallback(async () => {
-    console.log('🛑 시스템 자동 종료 시작');
+  // 시간 포맷팅 (MM:SS)
+  const formatTime = useCallback((milliseconds: number) => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }, []);
 
-    try {
-      // 1. 상태 업데이트
-      setIsSystemActive(false);
-      setRemainingTime(0);
+  // 남은 시간 퍼센트 계산
+  const getRemainingPercentage = useCallback(() => {
+    if (!isSystemStarted) return 0;
+    return (remainingTime / SYSTEM_AUTO_SHUTDOWN_TIME) * 100;
+  }, [isSystemStarted, remainingTime]);
 
-      // 2. 서버 데이터 갱신 중지
-      stopAutoRefresh();
-      console.log('✅ 서버 데이터 자동 갱신 중지됨');
-
-      // 3. 시스템 비활성화
-      systemInactivityService.pauseSystem();
-      console.log('✅ 시스템 비활성 상태 설정됨');
-
-      // 4. 콜백 실행
-      onShutdown?.();
-
-      // 5. 로컬 스토리지에 종료 시간 저장
-      localStorage.setItem('system_shutdown_time', new Date().toISOString());
-      localStorage.setItem('system_auto_shutdown', 'true');
-
-      console.log('✅ 시스템 자동 종료 완료 - 모든 동적 기능 중지됨');
-    } catch (error) {
-      console.error('❌ 시스템 종료 중 오류:', error);
-    }
-  }, [stopAutoRefresh, onShutdown]);
-
-  // 수동 시스템 중지
-  const stopSystem = useCallback(() => {
-    console.log('🛑 사용자가 시스템을 수동으로 중지했습니다');
-
-    // 타이머 정리
-    if (shutdownTimerRef.current) {
-      clearTimeout(shutdownTimerRef.current);
-    }
-    if (warningTimerRef.current) {
-      clearTimeout(warningTimerRef.current);
-    }
-    if (updateIntervalRef.current) {
-      clearInterval(updateIntervalRef.current);
-    }
-
-    handleSystemShutdown();
-  }, [handleSystemShutdown]);
-
-  // 시스템 재시작
-  const restartSystem = useCallback(() => {
-    console.log('🔄 시스템 재시작');
-
-    // 상태 초기화
-    setIsSystemActive(true);
-    setRemainingTime(activeMinutes * 60 * 1000);
-    setIsWarning(false);
-
-    // 로컬 스토리지 정리
-    localStorage.removeItem('system_shutdown_time');
-    localStorage.removeItem('system_auto_shutdown');
-
-    // 시스템 재활성화
-    systemInactivityService.resumeSystem();
-
-    // 서버 데이터 갱신 재시작은 컴포넌트에서 처리
-    window.location.reload(); // 간단한 방법으로 전체 재시작
-  }, [activeMinutes]);
-
-  // 타이머 설정
-  useEffect(() => {
-    if (!isSystemActive) return;
-
-    // 경고 타이머 (5분 전)
-    const warningDelay = (activeMinutes - warningMinutes) * 60 * 1000;
-    warningTimerRef.current = setTimeout(() => {
-      console.log(`⚠️ ${warningMinutes}분 후 시스템이 자동 종료됩니다`);
-      setIsWarning(true);
-      onWarning?.(warningMinutes);
-    }, warningDelay);
-
-    // 종료 타이머 (20분)
-    const shutdownDelay = activeMinutes * 60 * 1000;
-    shutdownTimerRef.current = setTimeout(() => {
-      handleSystemShutdown();
-    }, shutdownDelay);
-
-    return () => {
-      if (shutdownTimerRef.current) {
-        clearTimeout(shutdownTimerRef.current);
-      }
-      if (warningTimerRef.current) {
-        clearTimeout(warningTimerRef.current);
-      }
-    };
-  }, [
-    isSystemActive,
-    activeMinutes,
-    warningMinutes,
-    handleSystemShutdown,
-    onWarning,
-  ]);
-
-  // 초기 상태 확인
-  useEffect(() => {
+  // 로컬 스토리지에서 이전 종료 시간 확인
+  const checkPreviousShutdown = useCallback(() => {
     const autoShutdown = localStorage.getItem('system_auto_shutdown');
     const shutdownTime = localStorage.getItem('system_shutdown_time');
 
     if (autoShutdown === 'true' && shutdownTime) {
-      console.log('🔍 이전 세션에서 시스템이 종료되었습니다');
-      setIsSystemActive(false);
-      setRemainingTime(0);
+      const timeSinceShutdown = Date.now() - new Date(shutdownTime).getTime();
+      if (timeSinceShutdown < 60 * 60 * 1000) {
+        // 1시간 이내
+        return timeSinceShutdown;
+      }
     }
+
+    return null;
   }, []);
 
-  // 남은 시간 포맷팅 (MM:SS)
-  const formatRemainingTime = useCallback(() => {
-    const minutes = Math.floor(remainingTime / 60000);
-    const seconds = Math.floor((remainingTime % 60000) / 1000);
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  }, [remainingTime]);
+  // 시스템 재시작 (페이지 새로고침)
+  const restartSystem = useCallback(() => {
+    console.log('🔄 시스템 재시작 요청');
+    window.location.reload();
+  }, []);
+
+  // 초기 로드 시 이전 종료 확인
+  useEffect(() => {
+    const timeSinceShutdown = checkPreviousShutdown();
+    if (timeSinceShutdown !== null) {
+      const minutes = Math.floor(timeSinceShutdown / 60000);
+      console.log(`📊 이전 자동 종료로부터 ${minutes}분 경과`);
+    }
+  }, [checkPreviousShutdown]);
 
   return {
-    isSystemActive,
+    isSystemActive: isSystemStarted,
     remainingTime,
-    remainingTimeFormatted: formatRemainingTime(),
     isWarning,
-    stopSystem,
+    formatTime,
+    getRemainingPercentage,
     restartSystem,
+    // UI 표시용 정보
+    remainingMinutes: Math.floor(remainingTime / 60000),
+    remainingSeconds: Math.floor((remainingTime % 60000) / 1000),
   };
 }

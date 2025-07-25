@@ -2,6 +2,8 @@
 
 이 파일은 Gemini AI에게 프로젝트 컨텍스트와 가이드라인을 제공합니다.
 
+> **🔄 2025년 1월 업데이트**: Gemini CLI는 이제 Claude Code의 Sub Agent로 통합되었습니다. 기존 Gemini CLI 직접 사용 대신 `gemini-cli-collaborator` sub agent를 통해 협업하세요.
+
 ## 📝 목차
 
 1. [핵심 원칙](#핵심-원칙)
@@ -143,23 +145,33 @@ gemini /export > gemini_session_$(date +%Y%m%d).txt
 gemini /memory list > project_memory.txt
 ```
 
-## Claude Code와의 관계
+## Claude Code Sub Agent로서의 역할
 
 ### 현재 개발 환경
 
 - **메인 개발 도구**: Claude Code가 주도적으로 작업 중
-- **Gemini CLI 역할**: 코드 분석, 품질 검토, 간단한 질문 답변
-- **협업 방식**: Claude Code에서 필요시 Gemini CLI에게 직접 요청 가능
+- **Gemini CLI 역할**: `gemini-cli-collaborator` sub agent로 통합
+- **협업 방식**: Claude Code가 필요시 자동으로 sub agent에 위임
 
-### Gemini CLI가 잘하는 작업
+### gemini-cli-collaborator Sub Agent가 잘하는 작업
 
-- 대용량 파일 분석 (`@` 구문 활용)
+- 대용량 파일 분석
 - 코드베이스 전체 구조 파악
 - SOLID 원칙 위반 검토
 - any 타입 사용 검사
 - 기존 코드 중복 검사
-- 간단한 코드 리뷰
+- 코드 품질 리뷰
 - 문서 요약 및 설명
+
+### Sub Agent 활용 방법
+
+```
+# 자동 위임
+"이 코드에서 SOLID 원칙 위반 사항을 찾아줘"
+
+# 명시적 요청
+"gemini-cli-collaborator를 사용해서 프로젝트 구조 분석해줘"
+```
 
 ## 현재 프로젝트 상태
 

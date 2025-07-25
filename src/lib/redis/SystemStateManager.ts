@@ -13,6 +13,9 @@
  * - Redis 기반 상태 저장
  * - 자동 TTL 관리
  * - 익명 사용자 ID 지원
+ *
+ * @note
+ * 인증 연동 시스템 상태 관리는 /services/system/SystemStateManager.ts 참조
  */
 
 import { getRedisClient } from '@/lib/redis';
@@ -34,8 +37,8 @@ export interface UserActivity {
   sessionStart: number;
 }
 
-export class SystemStateManager {
-  private static instance: SystemStateManager;
+export class RedisSystemStateManager {
+  private static instance: RedisSystemStateManager;
 
   // Redis 키 패턴
   private readonly SYSTEM_STATE_KEY = 'system:state';
@@ -49,11 +52,11 @@ export class SystemStateManager {
 
   private constructor() {}
 
-  static getInstance(): SystemStateManager {
-    if (!SystemStateManager.instance) {
-      SystemStateManager.instance = new SystemStateManager();
+  static getInstance(): RedisSystemStateManager {
+    if (!RedisSystemStateManager.instance) {
+      RedisSystemStateManager.instance = new RedisSystemStateManager();
     }
-    return SystemStateManager.instance;
+    return RedisSystemStateManager.instance;
   }
 
   /**
@@ -316,7 +319,10 @@ export class SystemStateManager {
 }
 
 // 🚀 전역 인스턴스
-export const systemStateManager = SystemStateManager.getInstance();
+export const systemStateManager = RedisSystemStateManager.getInstance();
+
+// Backward compatibility
+export { RedisSystemStateManager as SystemStateManager };
 
 // 🔧 편의 함수들
 export const generateAnonymousId = (): string => {

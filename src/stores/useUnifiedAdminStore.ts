@@ -1,13 +1,12 @@
 import { browserNotificationService } from '@/services/notifications/BrowserNotificationService';
-// // 🚫 ModeTimerManager 제거됨 - Vercel 플랫폼 모니터링 사용
-// import { modeTimerManager } from '@/utils/ModeTimerManager';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-const ADMIN_PASSWORD = '4231';
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_DURATION = 10000; // 10초 (UI에서는 10분이라고 표시)
-const SYSTEM_AUTO_SHUTDOWN_TIME = 30 * 60 * 1000; // 30분
+import {
+  SYSTEM_AUTO_SHUTDOWN_TIME,
+  ADMIN_PASSWORD,
+  MAX_LOGIN_ATTEMPTS as MAX_ATTEMPTS,
+  LOCKOUT_DURATION,
+} from '@/config/system-constants';
 
 interface UnifiedAdminState {
   // 시스템 상태

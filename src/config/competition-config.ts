@@ -166,34 +166,11 @@ export class CompetitionConfigManager {
   constructor() {
     this.config = getCompetitionConfig();
     this.startTime = new Date();
-
-    if (this.config.features.autoShutdown) {
-      this.setupAutoShutdown();
-    }
+    // 자동 종료는 useUnifiedAdminStore에서 중앙 관리
   }
 
   /**
-   * ⏰ 자동 종료 설정
-   */
-  private setupAutoShutdown(): void {
-    const shutdownTime = this.config.limits.maxDuration * 60 * 1000; // 밀리초 변환
-
-    setTimeout(() => {
-      console.log('🏁 경연대회 시간 종료 - 자동 종료 실행');
-      this.shutdown();
-    }, shutdownTime);
-
-    // 5분 전 경고
-    const warningTime = shutdownTime - 5 * 60 * 1000;
-    if (warningTime > 0) {
-      setTimeout(() => {
-        console.log('⚠️ 경연대회 종료 5분 전 - 데이터 저장 중...');
-      }, warningTime);
-    }
-  }
-
-  /**
-   * 🛑 시스템 종료
+   * 🛑 시스템 종료 (수동 호출용)
    */
   shutdown(): void {
     this.isActive = false;

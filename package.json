@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.63.12",
+  "version": "5.63.14",
   "description": "🚀 OpenManager Vibe v5 - 무료티어 최적화로 월 사용량 90% 절약하는 실시간 서버 관리 플랫폼. GCP Functions 통합, TypeScript 완전 타입 안전성, Google AI 연동으로 차세대 서버 모니터링 시스템을 제공합니다.",
   "private": true,
   "type": "module",
@@ -91,7 +91,6 @@
     "gcp:quota-report": "node scripts/gcp-quota-report.js",
     "git:push": "powershell -ExecutionPolicy Bypass -File scripts/git-push-helper.ps1",
     "git:secure-push": "node scripts/github-auth-helper.cjs push",
-    "gemini:help": "echo '🤖 Gemini CLI 직접 실행:' && echo '' && echo '📋 사용법:' && echo '  echo \"질문\" | gemini -p \"답변\"' && echo '  cat file.ts | gemini -p \"분석\"' && echo '  git diff | gemini -p \"리뷰\"' && echo '' && echo '📊 시스템 명령:' && echo '  gemini /stats  # 사용량' && echo '  gemini /clear  # 초기화' && echo '' && echo '💡 자세한 내용: .claude/gemini-helper.md'",
     "usage": "echo '🎯 Claude Code 사용량 모니터링' && echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' && echo '💡 명령어:' && echo '  npx ccusage@latest blocks --live    # 실시간 대시보드' && echo '  npx ccusage@latest blocks --active  # 현재 과금 블록' && echo '  npx ccusage@latest daily           # 일별 사용량' && echo '  npx ccusage@latest session         # 현재 세션' && echo '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'",
     "system:health": "bash scripts/system-health-check.sh",
     "system:health:watch": "watch -n 30 'npm run system:health'",

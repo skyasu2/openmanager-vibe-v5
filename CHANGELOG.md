@@ -1,5 +1,64 @@
 # Changelog
 
+## [5.63.14] - 2025-07-25
+
+### 🤖 Claude Code Sub Agents 통합
+
+#### Added
+
+- **gemini-cli-collaborator Sub Agent 생성**
+  - Claude Code의 새로운 Sub Agents 기능 활용
+  - Gemini CLI를 Sub Agent로 통합하여 효율적 협업
+  - 코드 품질 검토, SOLID 원칙 검사, 타입 안전성 확인
+
+#### Changed
+
+- **AI 도구 협업 전략 개선**
+  - 기존 Gemini CLI 직접 실행 방식에서 Sub Agent 방식으로 전환
+  - CLAUDE.md 문서를 Sub Agents 중심으로 재구성
+  - GEMINI.md 문서를 Sub Agent 역할 안내로 업데이트
+
+#### Removed
+
+- **레거시 Gemini 관련 파일 정리**
+  - `scripts/archived-windows/migrate-gemini-bridge-v3.ps1` 삭제
+  - `package.json`의 `gemini:help` 스크립트 제거
+  - 불필요한 Gemini CLI 직접 실행 가이드 제거
+
+## [5.63.13] - 2025-07-25
+
+### 🔧 시스템 시작/종료 및 자동 종료 기능 정리
+
+#### Added
+
+- **공통 시스템 상수 파일 생성**
+  - `/src/config/system-constants.ts` 추가
+  - `SYSTEM_AUTO_SHUTDOWN_TIME` 등 공통 상수 중앙 관리
+  - 시스템 전반 설정값 통일
+
+- **누락된 API 엔드포인트 생성**
+  - `/api/system/start` - 시스템 시작 API
+  - `/api/system/sync-data` - 데이터 동기화 API
+
+#### Changed
+
+- **자동 종료 기능 통합**
+  - `useUnifiedAdminStore`를 중앙 자동 종료 관리자로 유지 (30분)
+  - `system.store.ts`에서 자동 종료 타이머 제거
+  - `useSystemAutoShutdown`을 UI 표시 전용으로 변경
+  - `competition-config.ts`의 자동 종료 제거
+
+- **SystemStateManager 명확화**
+  - Redis 기반 시스템 상태 관리자를 `RedisSystemStateManager`로 이름 변경
+  - 인증 연동 시스템 상태 관리자와 구분
+
+#### Fixed
+
+- **중복 자동 종료 구현 제거**
+  - 3개의 서로 다른 자동 종료 타이머 통합
+  - 시간 설정 불일치 해결 (20분 vs 30분 → 30분으로 통일)
+  - 타이머 cleanup 로직 개선
+
 ## [5.63.12] - 2025-07-25
 
 ### 🔐 OAuth 콜백 페이지 에러 해결

@@ -545,115 +545,67 @@ OpenManager VIBE v5는 3가지 레벨의 MCP 서버를 운영합니다:
 - GCP VM MCP: IP 화이트리스트 필수
 - Vercel MCP: 인증된 사용자만 접근
 
-## 🚀 AI 도구 v2.0 - 차세대 통합 시스템 (최신)
+## 🤖 Claude Code Sub Agents - 차세대 AI 협업 시스템
 
-**v2.0 핵심**: Claude와 Gemini의 지능형 협업, 자동 fallback, 실시간 모니터링
+### 🎯 Sub Agents 소개
 
-### 🎯 새로운 AI 도구 소개
+Claude Code의 Sub Agents는 특정 작업에 특화된 AI 에이전트로, 작업을 효율적으로 위임하여 처리합니다.
 
-#### 1. **Smart Gemini Wrapper** - 지능형 자동 전환 시스템
+#### 현재 활성 Sub Agents
 
-- Pro 모델 한도 초과 시 자동으로 Flash 모델로 전환
-- 캐싱 시스템으로 응답 속도 향상
-- 사용량 추적 및 비용 분석
+1. **gemini-cli-collaborator** - Gemini CLI와 협업하는 전문 에이전트
+   - 코드 분석 및 품질 검토
+   - SOLID 원칙 검사
+   - 타입 안전성 확인
+   - 문서 요약 및 설명
 
-#### 2. **AI Orchestrator** - Claude와 Gemini 협업 도구
+### 💡 사용 방법
 
-- 다각도 분석: 기술, 사용자, 비즈니스, 보안 관점
-- 단계별 솔루션 자동 생성
-- 컨텍스트 누적 및 보존
+#### 1. **자동 위임**
 
-#### 3. **AI Usage Dashboard** - 실시간 모니터링
+Claude Code가 작업 내용을 분석해 적절한 sub agent에 자동 할당:
 
-- 모델별 사용량 통계 및 트렌드
-- 비용 예측 및 최적화 제안
-- 실시간 대시보드 (터미널)
-
-### 💡 빠른 사용법 (WSL 최적화)
-
-```bash
-# WSL 환경 설정 (최초 1회)
-npm run ai:setup
-
-# 일상적인 사용
-ai chat "질문"              # 스마트 채팅
-ai analyze "복잡한 문제"     # 협업 분석
-ai quick "빠른 해결"         # 즉시 해답
-ai stats                     # 사용량 확인
-
-# npm 스크립트
-npm run ai:usage            # 대시보드 보기
-npm run ai:live             # 실시간 모니터링
+```
+"내 코드의 보안 취약점을 검토해줘"
+"모든 테스트 실행하고 실패하는 것들 수정해줘"
 ```
 
-### 📊 사용 시나리오
+#### 2. **명시적 요청**
 
-1. **버그 해결**: `ai analyze "로그인이 간헐적으로 실패"`
-2. **코드 리뷰**: `git diff | ai diff "SOLID 원칙 검토"`
-3. **성능 최적화**: `ai file src/app/page.tsx "최적화 방법"`
-4. **사용량 관리**: `ai stats` 또는 `npm run ai:live`
+특정 sub agent를 직접 지정:
 
-### ⚠️ 기존 도구와의 관계
-
-- **기존 v5.0 도구**: 계속 사용 가능 (`./tools/g`, `npm run gemini:*`)
-- **새로운 v2.0 도구**: 더 강력한 기능 제공 (권장)
-- **마이그레이션**: 기존 명령어와 100% 호환
-
-상세 가이드: `docs/gemini-dev-tools-v5-guide.md`
-
-### 💡 사용법
-
-#### npm 스크립트로 사용 (권장)
-
-```bash
-# 🎯 가장 많이 사용할 명령어
-npm run gemini:chat "TypeScript 에러 해결법"
-npm run gemini:analyze src/app/page.tsx
-npm run gemini:diff "SOLID 원칙 관점에서 리뷰"
-npm run gemini:stats
-npm run gemini:health
-
-# 📁 직접 실행 (더 빠름)
-./tools/g "질문내용"
-./tools/g file src/app/page.tsx
-./tools/g diff
-./tools/g stats
-./tools/g health
-
-# 💻 PowerShell 환경
-.\tools\g.ps1 "질문내용"
-.\tools\g.ps1 file src\app\page.tsx
-.\tools\g.ps1 diff "변경사항 리뷰"
+```
+"gemini-cli-collaborator를 사용해서 auth 모듈 검토해줘"
+"gemini-cli-collaborator로 SOLID 원칙 위반 검사해줘"
 ```
 
-### 중요 차이점
-
-- **기존 MCP 브릿지**: stdio 통신으로 성능 저하
-- **새로운 v5.0**: 직접 gemini CLI 실행으로 빠른 응답
-- **캐싱 시스템**: 반복 질문 즉시 응답 (5분 TTL)
-- **배치 처리**: 여러 파일 동시 분석 가능
-
-### 빠른 사용법
+### 🔧 Custom Sub Agents 생성
 
 ```bash
-# 로그인 (최초 1회)
-gemini login
-
-# 프로젝트 컨텍스트 저장
-gemini /memory add "OpenManager VIBE v5 - AI server monitoring"
-gemini /memory add "Next.js 15, TypeScript, Supabase Auth"
-gemini /memory add "Vercel free tier optimization focus"
-
-# 효율적 사용 (일일 1,000회 제한)
-cat src/app/page.tsx | gemini -p "인증 로직 분석"
-echo "로그인 리다이렉트 문제" | gemini -p "3줄 해결책"
-git diff | gemini -p "변경사항 리뷰"
-
-# 토큰 관리
-gemini /stats     # 사용량 확인
-gemini /compress  # 대화 압축
-gemini /clear     # 컨텍스트 초기화
+# Sub Agents 확인 및 생성
+/agents
 ```
+
+`.claude/agents/` 디렉토리에 저장하여 팀원과 공유 가능합니다.
+
+### 📊 gemini-cli-collaborator 활용 예시
+
+1. **코드 품질 검토**
+
+   ```
+   "src/services 디렉토리의 코드 품질을 분석해줘"
+   ```
+
+2. **SOLID 원칙 검사**
+
+   ```
+   "AI 엔진 통합 코드가 SOLID 원칙을 잘 따르는지 확인해줘"
+   ```
+
+3. **타입 안전성 확인**
+   ```
+   "any 타입 사용 여부 검사하고 개선 방안 제시해줘"
+   ```
 
 ## Claude Code 사용량 모니터링
 
@@ -715,11 +667,11 @@ npx ccusage@latest blocks --active
 
 ## AI 도구 협업 전략
 
-### Claude + Gemini CLI 효율적 사용
+### Claude Code Sub Agents를 통한 효율적 개발
 
-Claude와 Gemini CLI를 상황에 맞게 조합하여 비용 효율적인 개발:
+Claude Code의 Sub Agents 기능을 활용하여 특정 작업을 전문 에이전트에 위임:
 
-#### Claude가 적합한 작업:
+#### Claude Code가 적합한 작업:
 
 - 복잡한 코드 작성 및 리팩토링
 - 실시간 디버깅 및 문제 해결
@@ -727,42 +679,21 @@ Claude와 Gemini CLI를 상황에 맞게 조합하여 비용 효율적인 개발
 - 파일 생성/수정 작업
 - Git 작업 및 PR 생성
 
-#### Gemini CLI가 적합한 작업:
+#### Sub Agents가 적합한 작업:
 
-- 대용량 파일 분석 (`@` 구문 활용)
-- 코드베이스 전체 이해
-- 간단한 코드 리뷰
-- 문서 요약 및 설명
-- 반복적인 질문/답변
-
-#### 💊 Gemini CLI 사용량 관리 (일일 1,000회 제한):
-
-```bash
-# 사용량 확인
-gemini /stats      # 현재 사용량 및 남은 횟수
-gemini /compress   # 대화 압축으로 토큰 절약
-gemini /clear      # 컨텍스트 초기화
-
-# 사용량 임계값 가이드
-# 0-50%: 자유롭게 사용
-# 50-80%: 중요한 작업 위주
-# 80-100%: Claude로 전환 권장
-
-# ✅ 효율적 (토큰 절약)
-echo "질문" | gemini -p "3줄로 답변"
-cat 파일명.js | gemini -p "핵심만 요약"
-
-# ❌ 비효율적 (토큰 낭비)
-gemini  # 장시간 대화형 모드
-```
+- **gemini-cli-collaborator**: 코드 품질 검토, SOLID 원칙 검사
+- **code-reviewer**: 보안 취약점 및 성능 문제 검토
+- **test-runner**: 테스트 실행 및 실패 수정
+- **api-designer**: API 설계 및 문서화
+- **performance-optimizer**: 성능 최적화 및 분석
 
 #### 협업 워크플로우 예시:
 
 **TDD 개발 프로세스에서의 협업**
 
-```bash
-# 1. Gemini로 기존 코드 분석 (중복 방지)
-echo "새 기능: 사용자 인증" | gemini -p "@src/ 기존 인증 로직 분석"
+```
+# 1. gemini-cli-collaborator로 기존 코드 분석 (중복 방지)
+"gemini-cli-collaborator를 사용해서 기존 인증 로직 분석해줘"
 
 # 2. Claude로 테스트 작성 (TDD - Red)
 # 실패하는 테스트 먼저 작성
@@ -770,75 +701,19 @@ echo "새 기능: 사용자 인증" | gemini -p "@src/ 기존 인증 로직 분�
 # 3. Claude로 구현 (TDD - Green)
 # 테스트를 통과하는 최소 구현
 
-# 4. Gemini로 코드 리뷰 및 개선점 제안
-git diff | gemini -p "SOLID 원칙 관점에서 리뷰"
+# 4. code-reviewer sub agent로 코드 리뷰
+"code-reviewer를 사용해서 SOLID 원칙 관점에서 리뷰해줘"
 
 # 5. Claude로 리팩토링 (TDD - Refactor)
-# Gemini 피드백 반영하여 고품질 코드로 개선
+# Sub agent 피드백 반영하여 고품질 코드로 개선
 
 # 6. 문서 업데이트
-echo "변경사항" | gemini -p "@docs/ 관련 문서 찾기"
-# Claude가 CHANGELOG.md 및 문서 갱신
+# Claude가 CHANGELOG.md 및 관련 문서 갱신
 ```
 
-### 🚀 Gemini CLI 직접 실행 (권장)
+### 🔧 Sub Agent 활용 팁
 
-중간 도구 없이 터미널에서 직접 실행합니다:
-
-#### 📋 기본 사용법
-
-```bash
-# 간단한 질문
-echo "TypeScript generic type 사용법" | gemini -p "간단히 설명"
-
-# 파일 분석
-cat src/app/page.tsx | gemini -p "코드 품질 분석"
-
-# Git diff 리뷰
-git diff | gemini -p "변경사항 리뷰"
-
-# 에러 해결
-echo "TypeError: Cannot read property..." | gemini -p "해결 방법"
-```
-
-#### 🎯 시스템 명령
-
-```bash
-# 대화 초기화
-gemini /clear
-
-# 사용량 확인
-gemini /stats
-
-# 대화 압축
-gemini /compress
-```
-
-#### 🐧 WSL 환경에서 사용 팁
-
-```bash
-# 헬퍼 함수 설정 (선택사항)
-# ~/.bashrc에 추가하면 편리합니다:
-
-# 빠른 질문
-gq() {
-    echo "$@" | gemini -p "답변"
-}
-
-# 파일 분석
-gf() {
-    cat "$1" | gemini -p "코드 분석"
-}
-
-# Git diff 리뷰
-gd() {
-    git diff | gemini -p "변경사항 리뷰"
-}
-```
-
-#### 💡 효율적 사용 팁
-
-- **간결한 프롬프트**: "3줄로 요약", "핵심만"
-- **파이프라인 활용**: `echo "질문" | gemini -p "답변"`
-- **사용량 모니터링**: 80% 초과 시 Claude로 전환
-- **WSL 사용자**: PowerShell 래퍼 별칭 활용
+1. **전문성 활용**: 각 Sub Agent의 전문 영역에 맞는 작업 위임
+2. **비동기 처리**: 여러 Sub Agent를 동시에 호출하여 시간 절약
+3. **컨텍스트 유지**: Sub Agent가 프로젝트 컨텍스트를 이해하도록 명확한 지시
+4. **결과 통합**: Sub Agent의 결과를 Claude가 통합하여 최종 솔루션 제공

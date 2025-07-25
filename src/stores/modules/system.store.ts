@@ -8,15 +8,14 @@ import {
 /**
  * 🏗️ System Store Module
  * 시스템 상태 관리 전용 스토어
+ *
+ * 자동 종료는 useUnifiedAdminStore에서 중앙 관리
  */
-
-const SYSTEM_AUTO_SHUTDOWN_TIME = 20 * 60 * 1000; // 20분
 
 export interface SystemState {
   // 상태
   isStarted: boolean;
   startTime: number | null;
-  shutdownTimer: NodeJS.Timeout | null;
 
   // 메트릭
   uptime: number;
@@ -29,7 +28,6 @@ export interface SystemState {
   // 액션
   start: () => void;
   stop: () => void;
-  getRemainingTime: () => number;
   updateMetrics: () => void;
 }
 
@@ -40,7 +38,6 @@ export const useSystemStore = create<SystemState>()(
         // 초기 상태
         isStarted: false,
         startTime: null,
-        shutdownTimer: null,
         uptime: 0,
         memory: {
           used: 0,
@@ -53,22 +50,9 @@ export const useSystemStore = create<SystemState>()(
           try {
             const now = Date.now();
 
-            // 기존 타이머 정리
-            const currentTimer = get().shutdownTimer;
-            if (currentTimer) {
-              clearTimeout(currentTimer);
-            }
-
-            // 자동 종료 타이머 설정
-            const shutdownTimer = setTimeout(() => {
-              console.log('⏰ [System] 20분 경과 - 자동 시스템 종료');
-              get().stop();
-            }, SYSTEM_AUTO_SHUTDOWN_TIME);
-
             set({
               isStarted: true,
               startTime: now,
-              shutdownTimer,
             });
 
             console.log('🚀 [System] 시스템 시작됨');
@@ -92,15 +76,9 @@ export const useSystemStore = create<SystemState>()(
         // 시스템 정지
         stop: () => {
           try {
-            const currentTimer = get().shutdownTimer;
-            if (currentTimer) {
-              clearTimeout(currentTimer);
-            }
-
             set({
               isStarted: false,
               startTime: null,
-              shutdownTimer: null,
               uptime: 0,
             });
 
@@ -117,15 +95,6 @@ export const useSystemStore = create<SystemState>()(
           } catch (error) {
             console.error('❌ [System] 정지 실패:', error);
           }
-        },
-
-        // 남은 시간 계산
-        getRemainingTime: () => {
-          const { isStarted, startTime } = get();
-          if (!isStarted || !startTime) return 0;
-
-          const elapsed = Date.now() - startTime;
-          return Math.max(0, SYSTEM_AUTO_SHUTDOWN_TIME - elapsed);
         },
 
         // 메트릭 업데이트
