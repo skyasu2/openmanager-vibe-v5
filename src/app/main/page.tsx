@@ -46,6 +46,7 @@ export default function Home() {
   const [authChecked, setAuthChecked] = useState(false);
   const [_redirecting, _setRedirecting] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false); // 🔄 클라이언트 마운트 상태 (hydration 문제 방지)
 
   const {
     isSystemStarted,
@@ -106,9 +107,6 @@ export default function Home() {
     startSystem,
     stopSystem,
   ]);
-
-  // 🔄 클라이언트 마운트 상태 (hydration 문제 방지)
-  const [isMounted, setIsMounted] = useState(false);
 
   // 🔄 클라이언트 마운트 감지
   useEffect(() => {
@@ -298,30 +296,6 @@ export default function Home() {
     });
   };
 
-  // 🚀 시스템 시작 카운트다운 함수 (바로 로딩 페이지 이동)
-  const startSystemCountdown = useCallback(() => {
-    setSystemStartCountdown(3); // 3초 카운트다운
-    setIsSystemStarting(false); // 카운트다운 시작 시 시스템 시작 상태 초기화
-
-    const timer = setInterval(() => {
-      setSystemStartCountdown(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          console.log('🚀 카운트다운 완료 - 로딩 페이지로 이동');
-
-          // 백그라운드에서 시스템 시작 프로세스 실행 (비동기)
-          handleSystemStartBackground();
-
-          // 즉시 로딩 페이지로 이동
-          router.push('/system-boot');
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    setCountdownTimer(timer);
-  }, [router, handleSystemStartBackground]);
-
   // 🚀 백그라운드 시스템 시작 함수 (사용자는 로딩 페이지에서 대기)
   const handleSystemStartBackground = useCallback(async () => {
     console.log('🔄 백그라운드에서 시스템 시작 프로세스 실행');
@@ -362,6 +336,30 @@ export default function Home() {
       throw error; // 에러를 다시 던져서 호출자가 처리할 수 있도록
     }
   }, [startMultiUserSystem, startSystem, refreshSystemStatus]);
+
+  // 🚀 시스템 시작 카운트다운 함수 (바로 로딩 페이지 이동)
+  const startSystemCountdown = useCallback(() => {
+    setSystemStartCountdown(3); // 3초 카운트다운
+    setIsSystemStarting(false); // 카운트다운 시작 시 시스템 시작 상태 초기화
+
+    const timer = setInterval(() => {
+      setSystemStartCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          console.log('🚀 카운트다운 완료 - 로딩 페이지로 이동');
+
+          // 백그라운드에서 시스템 시작 프로세스 실행 (비동기)
+          handleSystemStartBackground();
+
+          // 즉시 로딩 페이지로 이동
+          router.push('/system-boot');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    setCountdownTimer(timer);
+  }, [router, handleSystemStartBackground]);
 
   // 🚀 기존 시스템 시작 함수 (직접 호출용 - 호환성 유지)
   const _handleSystemStart = useCallback(async () => {
