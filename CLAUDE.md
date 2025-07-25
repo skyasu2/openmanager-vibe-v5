@@ -559,6 +559,39 @@ Claude Code의 Sub Agents는 특정 작업에 특화된 AI 에이전트로, 작�
    - 타입 안전성 확인
    - 문서 요약 및 설명
 
+2. **code-review-specialist** - 코드 리뷰 전문가
+   - 코드 품질 및 보안 취약점 검토
+   - 스타일 가이드 준수 확인
+   - 성능 최적화 제안
+   - 리팩토링 기회 식별
+
+3. **test-automation-specialist** - 테스트 자동화 전문가
+   - 테스트 생성 및 실행
+   - 테스트 실패 분석
+   - 커버리지 개선
+   - 코드 변경시 자동 활성화
+
+4. **doc-structure-guardian** - 문서 구조 관리자
+   - 문서 구조 정책 시행
+   - 마크다운 파일 조직 표준 유지
+   - 문서 생성 및 버전 관리
+
+5. **planner-spec** - 요구사항 분석 및 작업 계획
+   - 모호한 요구사항을 구조화된 사양으로 변환
+   - 작업 목록 JSON 생성
+   - 구현 가능한 태스크로 분해
+
+6. **issue-summary** - 시스템 상태 자동 점검
+   - 모든 서비스 상태 모니터링
+   - 오류 패턴 감지 및 분석
+   - 무료 티어 한계 평가
+   - 심각도별 이슈 정리
+
+7. **mcp-server-admin** - MCP 서버 관리
+   - MCP 서버 목록 확인/추가/제거
+   - WSL 환경에서 Claude Code CLI 관리
+   - 서버 설정 가이드 제공
+
 ### 💡 사용 방법
 
 #### 1. **자동 위임**
@@ -682,10 +715,12 @@ Claude Code의 Sub Agents 기능을 활용하여 특정 작업을 전문 에이�
 #### Sub Agents가 적합한 작업:
 
 - **gemini-cli-collaborator**: 코드 품질 검토, SOLID 원칙 검사
-- **code-reviewer**: 보안 취약점 및 성능 문제 검토
-- **test-runner**: 테스트 실행 및 실패 수정
-- **api-designer**: API 설계 및 문서화
-- **performance-optimizer**: 성능 최적화 및 분석
+- **code-review-specialist**: 보안 취약점 및 성능 문제 검토
+- **test-automation-specialist**: 테스트 실행 및 실패 수정
+- **doc-structure-guardian**: 문서 구조 및 표준 관리
+- **planner-spec**: 요구사항 분석 및 작업 계획 수립
+- **issue-summary**: 시스템 상태 점검 및 이슈 요약
+- **mcp-server-admin**: MCP 서버 설정 및 관리
 
 #### 협업 워크플로우 예시:
 
