@@ -345,58 +345,71 @@ export default function DashboardContent({
 
           {/* 🎯 메인 컨텐츠 영역 */}
           {servers && servers.length > 0 ? (
-            <div className='grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3 gap-6'>
-              {/* 🎛️ 인프라 전체 현황 - 큰 화면에서 2칸, 작은 화면에서 전체 */}
-              <div className='lg:col-span-2 xl:col-span-2 2xl:col-span-2'>
-                <Suspense
-                  fallback={
-                    <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
-                      <div className='animate-pulse'>
-                        <div className='h-6 bg-gray-200 rounded w-1/3 mb-4'></div>
-                        <div className='space-y-3'>
-                          <div className='h-4 bg-gray-200 rounded'></div>
-                          <div className='h-4 bg-gray-200 rounded w-5/6'></div>
+            <>
+              {/* 인프라 전체 현황 */}
+              <div className='mb-6'>
+                <div className='grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3 gap-6'>
+                  {/* 🎛️ 인프라 전체 현황 - 큰 화면에서 2칸, 작은 화면에서 전체 */}
+                  <div className='lg:col-span-2 xl:col-span-2 2xl:col-span-2'>
+                    <Suspense
+                      fallback={
+                        <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
+                          <div className='animate-pulse'>
+                            <div className='h-6 bg-gray-200 rounded w-1/3 mb-4'></div>
+                            <div className='space-y-3'>
+                              <div className='h-4 bg-gray-200 rounded'></div>
+                              <div className='h-4 bg-gray-200 rounded w-5/6'></div>
+                            </div>
+                          </div>
                         </div>
+                      }
+                    >
+                      <div className='bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden'>
+                        <InfrastructureOverviewPage className='h-80 lg:h-96' />
                       </div>
-                    </div>
-                  }
-                >
-                  <div className='bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden'>
-                    <InfrastructureOverviewPage className='h-80 lg:h-96' />
-                  </div>
-                </Suspense>
-              </div>
-            </div>
-          ) : (
-            <Suspense
-              fallback={
-                <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
-                  <div className='animate-pulse'>
-                    <div className='h-4 bg-gray-200 rounded mb-4'></div>
-                    <div className='h-4 bg-gray-200 rounded mb-4'></div>
-                    <div className='h-4 bg-gray-200 rounded w-5/6'></div>
+                    </Suspense>
                   </div>
                 </div>
-              }
-            >
-              <ServerDashboardDynamic
-                servers={servers}
-                onServerClick={server => {
-                  try {
-                    console.log('🖱️ 서버 클릭:', server);
-                    // 서버 클릭 처리는 부모에서 관리됨
-                  } catch (error) {
-                    safeConsoleError('서버 클릭 처리 오류:', error);
-                  }
-                }}
-                showModal={!!selectedServer}
-                onClose={() => {
-                  console.log('🔲 서버 모달 닫기');
-                }}
-                onStatsUpdate={onStatsUpdate}
-                selectedServerId={selectedServer?.id}
-              />
-            </Suspense>
+              </div>
+
+              {/* 서버 카드 목록 */}
+              <Suspense
+                fallback={
+                  <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
+                    <div className='animate-pulse'>
+                      <div className='h-4 bg-gray-200 rounded mb-4'></div>
+                      <div className='h-4 bg-gray-200 rounded mb-4'></div>
+                      <div className='h-4 bg-gray-200 rounded w-5/6'></div>
+                    </div>
+                  </div>
+                }
+              >
+                <ServerDashboardDynamic
+                  servers={servers}
+                  onServerClick={server => {
+                    try {
+                      console.log('🖱️ 서버 클릭:', server);
+                      // 서버 클릭 처리는 부모에서 관리됨
+                    } catch (error) {
+                      safeConsoleError('서버 클릭 처리 오류:', error);
+                    }
+                  }}
+                  showModal={!!selectedServer}
+                  onClose={() => {
+                    console.log('🔲 서버 모달 닫기');
+                  }}
+                  onStatsUpdate={onStatsUpdate}
+                  selectedServerId={selectedServer?.id}
+                />
+              </Suspense>
+            </>
+          ) : (
+            <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
+              <div className='text-center text-gray-500'>
+                <p className='text-lg mb-2'>등록된 서버가 없습니다</p>
+                <p className='text-sm'>서버를 추가하여 모니터링을 시작하세요</p>
+              </div>
+            </div>
           )}
         </div>
       </MotionDiv>

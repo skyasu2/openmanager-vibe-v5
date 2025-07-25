@@ -1,20 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
-  Clock,
-  Users,
-  Server,
-  Database,
-  Zap,
+  AlertTriangle,
   Brain,
   ChevronDown,
+  Clock,
+  Database,
   RefreshCw,
-  AlertTriangle,
+  Server,
+  Users,
+  Zap,
 } from 'lucide-react';
-import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { useState } from 'react';
 
 interface EnhancedProfileStatusDisplayProps {
   compact?: boolean;
@@ -96,7 +96,10 @@ export function EnhancedProfileStatusDisplay({
 
   const getStatusText = () => {
     if (status?.isStarting) return '시스템 시작 중...';
-    if (status?.isRunning) return '시스템 실행 중';
+    if (status?.isRunning) {
+      const userCount = status.userCount || 1;
+      return `시스템 실행 중 (${userCount}명 접속)`;
+    }
     return '시스템 중지됨';
   };
 
@@ -166,7 +169,7 @@ export function EnhancedProfileStatusDisplay({
           <div className='flex items-center gap-1'>
             <Users className='w-3 h-3 text-blue-500' />
             <span data-testid='user-count-display' className='text-gray-600'>
-              접속자: {status.userCount || 0}명
+              접속자: {status.isRunning ? status.userCount || 1 : 0}명
             </span>
           </div>
 

@@ -1,16 +1,16 @@
 'use client';
 
-import React, { useCallback, useMemo } from 'react';
+import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { motion } from 'framer-motion';
 import {
-  ChevronDown,
-  LogOut,
-  Crown,
-  Power,
   BarChart3,
+  ChevronDown,
+  Crown,
+  LogOut,
+  Power,
   Shield,
 } from 'lucide-react';
-import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { useCallback, useMemo } from 'react';
 
 // 프로필 컴포넌트 임포트
 import {
@@ -22,13 +22,13 @@ import { EnhancedProfileStatusDisplay } from '@/components/unified-profile/Enhan
 
 // 프로필 훅 임포트
 import { useProfileAuth } from '@/components/profile/hooks/useProfileAuth';
-import { useProfileSecurity } from '@/components/profile/hooks/useProfileSecurity';
 import { useProfileMenu } from '@/components/profile/hooks/useProfileMenu';
+import { useProfileSecurity } from '@/components/profile/hooks/useProfileSecurity';
 
 // 타입 임포트
 import type {
-  UnifiedProfileHeaderProps,
   MenuItem,
+  UnifiedProfileHeaderProps,
 } from '@/components/profile/types/profile.types';
 
 /**
@@ -157,7 +157,7 @@ export default function UnifiedProfileHeader({
 
         items.push({
           id: 'system-stop',
-          label: '시스템 종료',
+          label: `시스템 종료 (${systemStatus?.userCount || 1}명 접속 중)`,
           icon: Power,
           action: handleSystemStop,
           visible: true,

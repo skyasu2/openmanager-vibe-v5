@@ -82,8 +82,14 @@ export class RedisSystemStateManager {
         return this.getDefaultState();
       }
 
-      // 활성 사용자 수 업데이트
-      state.activeUsers = await this.getActiveUserCount();
+      // 활성 사용자 수 업데이트 (시스템이 실행 중일 때만)
+      if (state.isRunning) {
+        state.activeUsers = await this.getActiveUserCount();
+        // 최소 1명은 보장 (현재 요청한 사용자)
+        state.activeUsers = Math.max(state.activeUsers, 1);
+      } else {
+        state.activeUsers = 0;
+      }
 
       return state;
     } catch (error) {

@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = getUserId(request);
-    const context = getRequestContext(request);
+    const _context = getRequestContext(request);
 
     console.log(
       `🔄 시스템 상태 확인 - 사용자: ${userId.substring(0, 12)}..., 소스: ${context.source}`
@@ -137,6 +137,7 @@ export async function GET(request: NextRequest) {
           startTime: 0,
           endTime: 0,
           activeUsers: 0,
+          userCount: 0, // userCount 필드 추가 (호환성)
           remainingTime: 0,
           version: '5.44.4',
           environment: 'standby',
@@ -164,6 +165,7 @@ export async function GET(request: NextRequest) {
         startTime: systemState.startTime,
         endTime: systemState.endTime,
         activeUsers: systemState.activeUsers,
+        userCount: systemState.activeUsers, // userCount 필드 추가 (호환성)
         remainingTime:
           systemState.endTime > 0 ? Math.max(0, systemState.endTime - now) : 0,
         version: systemState.version,
@@ -186,7 +188,7 @@ export async function GET(request: NextRequest) {
     // 🚨 무료 티어 절약: 5분 이후에만 실제 Redis 작업 수행
     global.lastStatusCheck[userId] = now;
 
-    const activeUserCount = await systemStateManager.updateUserActivity(userId);
+    await systemStateManager.updateUserActivity(userId);
 
     // 🚨 무료 티어 절약: 30분마다만 정리 작업 수행 (부하 대폭 감소)
     if (now % 1800000 < 300000) {
@@ -207,6 +209,7 @@ export async function GET(request: NextRequest) {
       startTime: systemState.startTime,
       endTime: systemState.endTime,
       activeUsers: systemState.activeUsers,
+      userCount: systemState.activeUsers, // userCount 필드 추가 (호환성)
       remainingTime:
         systemState.endTime > 0
           ? Math.max(0, systemState.endTime - Date.now())
@@ -248,6 +251,7 @@ export async function GET(request: NextRequest) {
           version: '5.44.4',
           environment: 'error',
         },
+        userCount: 0, // userCount 필드 추가 (호환성)
       },
       {
         status: 500,
@@ -269,7 +273,7 @@ export async function POST(request: NextRequest) {
     const { action, userId: bodyUserId } = body;
 
     const userId = bodyUserId || getUserId(request);
-    const context = getRequestContext(request);
+    const _context = getRequestContext(request);
 
     console.log(
       `🎮 시스템 제어 요청 - 액션: ${action}, 사용자: ${userId.substring(0, 12)}...`
@@ -303,6 +307,7 @@ export async function POST(request: NextRequest) {
       startTime: systemState.startTime,
       endTime: systemState.endTime,
       activeUsers: systemState.activeUsers,
+      userCount: systemState.activeUsers, // userCount 필드 추가 (호환성)
       remainingTime:
         systemState.endTime > 0
           ? Math.max(0, systemState.endTime - Date.now())
