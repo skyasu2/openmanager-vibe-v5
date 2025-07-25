@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
     const _context = getRequestContext(request);
 
     console.log(
-      `🔄 시스템 상태 확인 - 사용자: ${userId.substring(0, 12)}..., 소스: ${context.source}`
+      `🔄 시스템 상태 확인 - 사용자: ${userId.substring(0, 12)}..., 소스: ${_context.source}`
     );
 
     // 🚨 응급 조치: Redis 작업 최소화 - 간단한 메모리 캐시 사용
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
         const minimalResponse = {
           success: true,
           timestamp: now,
-          source: context.source + '-minimal',
+          source: _context.source + '-minimal',
           state: {
             isRunning: false,
             startedBy: '',
@@ -147,7 +147,7 @@ export async function GET(request: NextRequest) {
           headers: {
             'Content-Type': 'application/json',
             'X-User-Id': userId,
-            'X-Request-Source': context.source + '-minimal',
+            'X-Request-Source': _context.source + '-minimal',
             'Cache-Control': 'public, max-age=1800, s-maxage=1800', // 🚨 30분 캐싱
             'CDN-Cache-Control': 'max-age=1800',
             'Vercel-CDN-Cache-Control': 'max-age=1800',
@@ -159,7 +159,7 @@ export async function GET(request: NextRequest) {
       const responseData = {
         success: true,
         timestamp: now,
-        source: context.source + '-cached',
+        source: _context.source + '-cached',
         state: systemState,
         isRunning: systemState.isRunning,
         startTime: systemState.startTime,
@@ -176,7 +176,7 @@ export async function GET(request: NextRequest) {
         headers: {
           'Content-Type': 'application/json',
           'X-User-Id': userId,
-          'X-Request-Source': context.source + '-cached',
+          'X-Request-Source': _context.source + '-cached',
           'Cache-Control': 'public, max-age=300, s-maxage=300', // 🚨 5분 캐싱
           'CDN-Cache-Control': 'max-age=300',
           'Vercel-CDN-Cache-Control': 'max-age=300',
@@ -202,7 +202,7 @@ export async function GET(request: NextRequest) {
     const responseData = {
       success: true,
       timestamp: Date.now(),
-      source: context.source,
+      source: _context.source,
       state: systemState,
       // 하위 호환성을 위한 플랫 필드들
       isRunning: systemState.isRunning,
@@ -226,7 +226,7 @@ export async function GET(request: NextRequest) {
       headers: {
         'Content-Type': 'application/json',
         'X-User-Id': userId,
-        'X-Request-Source': context.source,
+        'X-Request-Source': _context.source,
         // 🚨 응급 조치: 60초 캐싱으로 Edge Request 사용량 95% 감소
         'Cache-Control': 'public, max-age=60, s-maxage=60',
         'CDN-Cache-Control': 'max-age=60',
