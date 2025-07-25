@@ -1,5 +1,28 @@
 # Changelog
 
+## [5.63.12] - 2025-07-25
+
+### 🔐 OAuth 콜백 페이지 에러 해결
+
+#### Fixed
+
+- **세션 체크 우선순위 변경**
+  - 콜백 페이지에서 먼저 세션 존재 여부 확인
+  - 미들웨어가 이미 OAuth 처리한 경우 바로 성공 페이지로 이동
+  - "OAuth 코드가 없습니다" 에러 해결
+- **미들웨어 OAuth 처리 복원**
+  - `/auth/callback` 경로에서 세션 확인 후 리다이렉트
+  - PKCE 플로우가 완료된 경우 즉시 성공 페이지로 이동
+
+#### Changed
+
+- `/src/app/auth/callback/page.tsx`
+  - 세션 체크를 최우선으로 수행
+  - 세션이 없을 때만 OAuth 코드 처리
+- `/src/utils/supabase/middleware.ts`
+  - OAuth 콜백 처리 로직 추가
+  - 세션 생성 완료 시 자동 리다이렉트
+
 ## [5.63.11] - 2025-07-25
 
 ### 🔐 Vercel 환경에서 GitHub OAuth 로그인 문제 해결

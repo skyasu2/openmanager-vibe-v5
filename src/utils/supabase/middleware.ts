@@ -58,8 +58,27 @@ export async function updateSession(
     }
   );
 
-  // 이 부분이 중요: getUser()를 호출하면 토큰이 자동으로 새로고침됩니다
+  // 이 부분이 중요: getUser()를 호출하면 토큰이 자동으로 새로고침되고
+  // PKCE 플로우가 자동으로 처리됩니다
   await supabase.auth.getUser();
+
+  // OAuth 콜백 처리
+  const pathname = request.nextUrl.pathname;
+  if (pathname === '/auth/callback') {
+    // 세션 확인
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session) {
+      // 세션이 있으면 성공 페이지로 리다이렉트
+      const redirectTo = request.nextUrl.clone();
+      redirectTo.pathname = '/auth/success';
+      redirectTo.searchParams.delete('code');
+
+      return NextResponse.redirect(redirectTo);
+    }
+  }
 
   return supabaseResponse;
 }

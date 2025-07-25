@@ -20,7 +20,18 @@ export default function AuthCallbackPage() {
       try {
         console.log('🔐 OAuth 콜백 처리 시작...');
 
-        // URL에서 code 파라미터 확인
+        // 먼저 세션 존재 여부 확인 (미들웨어가 이미 처리했을 수 있음)
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session) {
+          console.log('✅ 이미 인증된 세션 발견:', session.user?.email);
+          router.push('/auth/success');
+          return;
+        }
+
+        // 세션이 없으면 OAuth 코드로 세션 생성 시도
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
 
