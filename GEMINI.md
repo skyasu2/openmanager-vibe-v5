@@ -1,24 +1,8 @@
 # GEMINI.md
 
-이 파일은 Gemini AI에게 프로젝트 컨텍스트와 가이드라인을 제공합니다.
+Gemini CLI 사용 가이드 및 Claude Code Sub Agent 협업 방법
 
-> **🔄 2025년 1월 업데이트**: Gemini CLI는 이제 Claude Code의 Sub Agent로 통합되었습니다. 기존 Gemini CLI 직접 사용 대신 `gemini-cli-collaborator` sub agent를 통해 협업하세요.
-
-## 📝 목차
-
-1. [핵심 원칙](#핵심-원칙)
-2. [프로젝트 개요](#프로젝트-개요)
-3. [기술 스택](#기술-스택)
-4. [프로젝트 설정](#프로젝트-설정)
-5. [MCP 서버 설정](#mcp-서버-설정)
-6. [Claude와의 협업 방법](#claude와의-협업-방법)
-7. [효율적인 사용 전략](#효율적인-사용-전략)
-8. [주요 디렉토리 구조](#주요-디렉토리-구조)
-9. [개발 가이드라인](#개발-가이드라인-claude-md와-동일한-규칙-적용)
-10. [현재 프로젝트 상태](#현재-프로젝트-상태)
-11. [메모리 저장 권장사항](#메모리-저장-권장사항)
-12. [문서 생성 위치 규칙](#문서-생성-위치-규칙-필수-준수)
-13. [참고 문서](#참고-문서)
+> **🔄 2025년 7월 업데이트**: Gemini CLI는 Claude Code의 **👨‍💻 Senior Code Architect** Sub Agent로 통합되어 아키텍처 리뷰와 코드 품질 검토를 담당합니다.
 
 ## 🎯 핵심 원칙
 
@@ -39,48 +23,6 @@
 - **Red 단계**: 문제 분석 및 원인 파악
 - **Green 단계**: 최소 구현 가이드
 - **Refactor 단계**: 품질 개선 제안
-
-## 프로젝트 개요
-
-**OpenManager VIBE v5**는 AI 기반 서버 모니터링 플랫폼입니다.
-
-- 실시간 서버 관리 및 모니터링
-- 다중 AI 엔진 통합 (Google AI, Supabase RAG, Korean NLP)
-- Vercel 무료 티어 최적화 (월 사용량 90% 절감)
-
-## 기술 스택
-
-- **프레임워크**: Next.js 15 (App Router)
-- **언어**: TypeScript (strict mode)
-- **런타임**: Node.js v22.15.1
-- **스타일링**: Tailwind CSS
-- **데이터베이스**: Supabase (PostgreSQL)
-- **캐싱**: Upstash Redis
-- **AI**: Google Generative AI (Gemini)
-- **배포**: Vercel (Edge Runtime)
-
-## 프로젝트 설정
-
-### 파일 스캔 제한
-
-이 프로젝트는 TypeScript/React 프로젝트입니다.
-
-- 주요 파일: `src/app/page.tsx`, `src/services/`
-- 불필요한 파일 스캔 경고 무시
-- 필요시 `@` 구문으로 특정 파일만 참조
-
-## MCP 서버 설정
-
-✅ **MCP 서버 설정 완료**
-
-- 설정 파일: `~/.gemini/settings.json`
-- MCP 도구: `gemini-mcp-tool`
-- 파일 참조: `@파일경로` 구문 사용 가능
-
-```bash
-# 파일 분석 예시
-echo "분석 요청" | gemini -p "메인 페이지 파일의 구조를 설명해주세요"
-```
 
 ## 효율적인 사용 전략
 
@@ -145,32 +87,31 @@ gemini /export > gemini_session_$(date +%Y%m%d).txt
 gemini /memory list > project_memory.txt
 ```
 
-## Claude Code Sub Agent로서의 역할
+## 👨‍💻 Senior Code Architect Sub Agent 역할
 
 ### 현재 개발 환경
 
-- **메인 개발 도구**: Claude Code가 주도적으로 작업 중
-- **Gemini CLI 역할**: `gemini-cli-collaborator` sub agent로 통합
-- **협업 방식**: Claude Code가 필요시 자동으로 sub agent에 위임
+- **메인 개발 도구**: Claude Code가 주도적으로 작업
+- **Gemini CLI 역할**: **Senior Code Architect** sub agent로 통합
+- **협업 방식**: 아키텍처 리뷰 및 코드 품질 검토 전담
 
-### gemini-cli-collaborator Sub Agent가 잘하는 작업
+### Senior Code Architect가 전문적으로 담당하는 업무
 
-- 대용량 파일 분석
-- 코드베이스 전체 구조 파악
-- SOLID 원칙 위반 검토
-- any 타입 사용 검사
-- 기존 코드 중복 검사
-- 코드 품질 리뷰
-- 문서 요약 및 설명
+- 레거시 코드 분석 및 리팩토링 전략 수립
+- SOLID 원칙 기반 아키텍처 검증
+- TypeScript 타입 안전성 및 최적화
+- 기술 부채 식별 및 단계별 개선 로드맵
+- 대규모 파일 구조 개선 제안
+- 성능 최적화 및 메모리 사용량 분석
 
-### Sub Agent 활용 방법
+### 활용 방법
 
 ```
 # 자동 위임
-"이 코드에서 SOLID 원칙 위반 사항을 찾아줘"
+"이 코드의 아키텍처 문제점을 분석해줘"
 
 # 명시적 요청
-"gemini-cli-collaborator를 사용해서 프로젝트 구조 분석해줘"
+"Senior Code Architect를 사용해서 기술 부채 분석해줘"
 ```
 
 ## 현재 프로젝트 상태
@@ -226,40 +167,6 @@ gemini /memory add "Supabase Auth: GitHub OAuth 인증"
 gemini /memory add "실시간 서버 모니터링 및 AI 분석"
 ```
 
-## 📝 문서 생성 위치 규칙 (필수 준수)
+---
 
-### 루트 디렉토리 (/) - 4개 파일만 허용
-
-**절대 규칙**: 다음 4개 파일만 루트에 유지
-
-- README.md - 프로젝트 소개
-- CLAUDE.md - Claude Code 지시사항
-- CHANGELOG.md - 버전 이력
-- GEMINI.md - Gemini CLI 가이드
-
-⚠️ **중요**: LICENSE, CONTRIBUTING.md 등 다른 문서는 생성하지 말 것
-
-### docs 폴더 (/docs) - 모든 기타 문서
-
-- 설정 가이드 → `/docs/setup/`
-- 트러블슈팅 → `/docs/troubleshooting/`
-- 개발 가이드 → `/docs/development/`
-- 보안 문서 → `/docs/security/`
-- API 문서 → `/docs/api/`
-- 기타 모든 문서 → `/docs/`
-
-❌ **절대 금지**: 루트에 임시 문서, 분석 문서, 이슈 문서 생성
-
-## 참고 문서
-
-### 필수 문서
-
-- `README.md`: 프로젝트 개요 및 설치 가이드
-- `CLAUDE.md`: Claude Code 지시사항
-- `CHANGELOG.md`: 버전 변경 이력
-
-### 추가 참고 자료
-
-- `docs/gemini-dev-tools-v5-guide.md`: Gemini CLI 상세 사용법
-- `docs/ai-system-unified-guide.md`: AI 시스템 통합 가이드
-- `docs/security-complete-guide.md`: 보안 가이드
+💡 **참고**: 프로젝트 전체 정보는 `CLAUDE.md` 파일을 참조하세요.

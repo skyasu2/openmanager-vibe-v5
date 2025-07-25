@@ -1,0 +1,86 @@
+{
+  "reportId": "issue-summary-20250125-220900",
+  "checkTime": "2025-07-25T13:09:00.000Z",
+  "checkDuration": 120,
+  "servicesChecked": 5,
+  "issueCount": {
+    "critical": 1,
+    "high": 0,
+    "medium": 2,
+    "low": 1,
+    "total": 4
+  },
+  "serviceStatus": {
+    "vercel": {
+      "status": "operational",
+      "health": 100,
+      "issues": []
+    },
+    "redis": {
+      "status": "critical",
+      "health": 20,
+      "issues": ["Real Redis connection failed", "Using Mock Redis fallback"]
+    },
+    "supabase": {
+      "status": "unknown",
+      "health": 70,
+      "issues": ["Usage monitoring unavailable"]
+    },
+    "googleAI": {
+      "status": "operational",
+      "health": 90,
+      "issues": []
+    },
+    "localDev": {
+      "status": "offline",
+      "health": 0,
+      "issues": ["Development server not running"]
+    }
+  },
+  "freeTierUsage": {
+    "redis": {
+      "current": 0,
+      "limit": 10000,
+      "percentage": 0,
+      "risk": "low"
+    },
+    "supabase": {
+      "current": null,
+      "limit": {
+        "storage": "500MB",
+        "bandwidth": "5GB",
+        "mau": 50000
+      },
+      "percentage": null,
+      "risk": "medium"
+    },
+    "googleAI": {
+      "current": null,
+      "limit": {
+        "daily": 10000,
+        "rpm": 10,
+        "tpm": 800000
+      },
+      "percentage": null,
+      "risk": "low"
+    }
+  },
+  "recommendations": {
+    "immediate": [
+      "Fix Redis connection",
+      "Regenerate exposed tokens",
+      "Enable system monitoring"
+    ],
+    "shortTerm": [
+      "Implement usage tracking",
+      "Add automated alerts",
+      "Improve security measures"
+    ],
+    "longTerm": [
+      "Build comprehensive monitoring dashboard",
+      "Implement auto-recovery systems",
+      "Consider paid tiers for critical services"
+    ]
+  },
+  "nextCheckScheduled": "2025-07-26T01:00:00.000Z"
+}
