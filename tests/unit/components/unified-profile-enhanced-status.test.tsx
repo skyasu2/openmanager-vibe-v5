@@ -59,7 +59,7 @@ describe('🧪 TDD - EnhancedProfileStatusDisplay', () => {
       render(<EnhancedProfileStatusDisplay />);
 
       // 시스템 실행 상태 표시 확인
-      expect(screen.getByText('시스템 실행 중')).toBeInTheDocument();
+      expect(screen.getByText(/시스템 실행 중/)).toBeInTheDocument();
       expect(screen.getByTestId('system-status-indicator')).toHaveClass(
         'text-green-500'
       );
@@ -69,7 +69,9 @@ describe('🧪 TDD - EnhancedProfileStatusDisplay', () => {
       render(<EnhancedProfileStatusDisplay />);
 
       // 사용자 수 표시 확인
-      expect(screen.getByText('접속자: 3명')).toBeInTheDocument();
+      expect(screen.getByTestId('user-count-display')).toHaveTextContent(
+        '접속자: 3명'
+      );
       expect(screen.getByTestId('user-count-display')).toBeInTheDocument();
     });
 
