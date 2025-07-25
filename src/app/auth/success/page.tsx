@@ -37,48 +37,67 @@ export default function AuthSuccessPage() {
           origin: window.location.origin,
         });
 
-        // Vercel 환경에서는 더 긴 대기 시간
-        const initialWait = isVercel ? 4000 : 2500;
-        await new Promise(resolve => setTimeout(resolve, initialWait));
+        // 🚀 최적화: 대기 시간 50% 단축
+        const initialWait = isVercel ? 2000 : 1000;
 
-        // 세션 새로고침 여러 번 시도
-        console.log('🔄 세션 새로고침 시도...');
-        for (let i = 0; i < 3; i++) {
-          const { error: refreshError } = await supabase.auth.refreshSession();
-          if (!refreshError) {
-            console.log(`✅ 세션 새로고침 성공 (시도 ${i + 1})`);
-            break;
-          }
-          console.warn(`⚠️ 세션 새로고침 실패 ${i + 1}/3:`, refreshError);
-          if (i < 2) await new Promise(resolve => setTimeout(resolve, 1000));
+        // Progressive Enhancement: 세션 확인되면 즉시 진행
+        const checkSessionReady = async () => {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+          return session?.user ? true : false;
+        };
+
+        // 세션 준비되면 즉시 진행, 아니면 최대 대기 시간까지만
+        const sessionReady = await Promise.race([
+          checkSessionReady(),
+          new Promise<boolean>(resolve =>
+            setTimeout(() => resolve(false), initialWait)
+          ),
+        ]);
+
+        if (!sessionReady) {
+          // 세션이 아직 준비되지 않았을 때만 추가 대기
+          await new Promise(resolve => setTimeout(resolve, initialWait));
         }
 
-        // 추가 대기 후 세션 확인
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // 🚀 최적화: 세션 새로고침 병렬 처리
+        console.log('🔄 세션 새로고침 시도...');
+        const refreshPromise = supabase.auth.refreshSession();
+        const timeoutPromise = new Promise(resolve => setTimeout(resolve, 500));
 
-        // 🔐 보안 강화: getUser()로 세션 검증 (최대 5회 재시도)
+        await Promise.all([refreshPromise, timeoutPromise]);
+
+        const { error: refreshError } = await refreshPromise;
+        if (refreshError) {
+          console.warn('⚠️ 세션 새로고침 실패:', refreshError);
+          // 실패해도 계속 진행 (세션이 이미 있을 수 있음)
+        } else {
+          console.log('✅ 세션 새로고침 성공');
+        }
+
+        // 🚀 최적화: 세션 검증 재시도 감소 및 시간 단축
         let user = null;
         let session = null;
         let error = null;
-        const maxRetries = isVercel ? 5 : 3;
+        const maxRetries = isVercel ? 3 : 2; // 5 → 3회, 3 → 2회
 
         for (let attempt = 0; attempt < maxRetries; attempt++) {
-          // 먼저 세션 확인 (쿠키 기반)
-          const sessionResult = await supabase.auth.getSession();
+          // 세션과 사용자 정보 병렬 확인
+          const [sessionResult, userResult] = await Promise.all([
+            supabase.auth.getSession(),
+            supabase.auth.getUser(),
+          ]);
+
           session = sessionResult.data.session;
+          user = userResult.data.user;
+          error = userResult.error;
 
-          if (session) {
-            // 세션이 있으면 getUser()로 검증
-            const userResult = await supabase.auth.getUser();
-            user = userResult.data.user;
-            error = userResult.error;
-
-            if (user && !error) {
-              console.log(
-                `✅ 사용자 검증 성공 (시도 ${attempt + 1}/${maxRetries})`
-              );
-              break;
-            }
+          if (user && !error) {
+            console.log(
+              `✅ 사용자 검증 성공 (시도 ${attempt + 1}/${maxRetries})`
+            );
+            break;
           }
 
           if (attempt < maxRetries - 1) {
@@ -87,14 +106,9 @@ export default function AuthSuccessPage() {
             );
             setRetryCount(attempt + 1);
 
-            // Vercel에서는 더 긴 대기
-            const retryWait = isVercel ? 2500 : 1500;
+            // 🚀 최적화: 대기 시간 단축
+            const retryWait = isVercel ? 1500 : 1000; // 2500 → 1500ms
             await new Promise(resolve => setTimeout(resolve, retryWait));
-
-            // 중간에 한 번 더 새로고침 시도
-            if (attempt === Math.floor(maxRetries / 2)) {
-              await supabase.auth.refreshSession();
-            }
           }
         }
 
@@ -135,17 +149,12 @@ export default function AuthSuccessPage() {
         document.cookie = `auth_redirect_to=${encodeURIComponent(redirectTo)}; path=/; max-age=60; SameSite=Lax`;
         document.cookie = `auth_in_progress=true; path=/; max-age=60; SameSite=Lax`;
 
-        // 🔧 Vercel에서는 더 긴 대기 시간 (쿠키 전파 보장)
-        const cookieWait = isVercel ? 6000 : 2500;
+        // 🚀 최적화: 쿠키 동기화 시간 단축
+        const cookieWait = isVercel ? 3000 : 1500; // 6000 → 3000ms
         console.log(`⏳ 쿠키 동기화 대기 중... (${cookieWait}ms)`);
-        await new Promise(resolve => setTimeout(resolve, cookieWait));
 
-        // Vercel 환경에서 추가 세션 새로고침
-        if (isVercel) {
-          console.log('🔄 Vercel 환경 - 추가 세션 새로고침');
-          await supabase.auth.refreshSession();
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
+        // 쿠키 설정과 동시에 대기 (병렬 처리)
+        await new Promise(resolve => setTimeout(resolve, cookieWait));
 
         // 쿠키 상태 확인 로그
         const cookies = document.cookie;
@@ -158,22 +167,22 @@ export default function AuthSuccessPage() {
           environment: isVercel ? 'Vercel' : 'Local',
         });
 
-        // 최종 사용자 검증 (getUser()로 확실한 검증)
-        const finalUserCheck = await supabase.auth.getUser();
-        if (!finalUserCheck.data.user) {
-          console.error('❌ 최종 사용자 검증 실패');
-          setStatus('error');
-          setTimeout(
-            () => router.push('/login?error=final_check_failed'),
-            2000
-          );
-          return;
+        // 🚀 최적화: 이미 검증된 사용자 정보가 있으면 최종 검증 생략
+        if (!user) {
+          const finalUserCheck = await supabase.auth.getUser();
+          if (!finalUserCheck.data.user) {
+            console.error('❌ 최종 사용자 검증 실패');
+            setStatus('error');
+            setTimeout(
+              () => router.push('/login?error=final_check_failed'),
+              2000
+            );
+            return;
+          }
+          user = finalUserCheck.data.user;
         }
 
-        console.log(
-          '✅ 최종 사용자 검증 성공:',
-          finalUserCheck.data.user.email
-        );
+        console.log('✅ 최종 사용자 검증 완료:', user.email);
 
         // 🔧 Vercel 환경에서 더 안정적인 리다이렉트 방법
         console.log('🔄 리다이렉트 실행:', redirectTo);

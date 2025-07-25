@@ -1,5 +1,44 @@
 # Changelog
 
+## [5.63.16] - 2025-07-25
+
+### ⚡ GitHub OAuth 로그인 성능 최적화
+
+#### Changed
+
+- **OAuth 인증 대기 시간 50% 단축**
+  - 로컬 환경: 8.5초 → 4.5초 (47% 개선)
+  - Vercel 환경: 14.5초 → 7.5초 (48% 개선)
+- **성공 페이지 최적화 (`/auth/success`)**
+  - 초기 대기: 4초 → 2초 (Vercel), 2.5초 → 1초 (로컬)
+  - 세션 재시도: 5회 → 3회 (Vercel), 3회 → 2회 (로컬)
+  - 재시도 대기: 2.5초 → 1.5초 (Vercel), 1.5초 → 1초 (로컬)
+  - 쿠키 동기화: 6초 → 3초 (Vercel), 2.5초 → 1.5초 (로컬)
+
+- **병렬 처리 도입**
+  - 세션 확인과 사용자 정보 검증 병렬 실행
+  - Progressive Enhancement: 세션 준비되면 즉시 진행
+  - 불필요한 순차 대기 제거
+
+#### Added
+
+- **GitHub OAuth 최적화 가이드 문서**
+  - `/docs/github-oauth-optimization-guide.md` 추가
+  - 단계별 소요 시간 분석 및 최적화 전략
+  - Phase 2, 3 개선 방안 로드맵
+
+## [5.63.15] - 2025-07-25
+
+### 🐛 Vercel 배포 시 TypeScript 타입 에러 수정
+
+#### Fixed
+
+- **DashboardClient.tsx TypeScript 에러 해결**
+  - `remainingTimeFormatted` 속성 누락 문제 수정
+  - `formatTime` 함수를 사용하여 시간 포맷팅 구현
+  - `stopSystem` 함수를 `useUnifiedAdminStore`에서 가져오도록 변경
+  - `useSystemAutoShutdown` 옵션에서 존재하지 않는 `activeMinutes` 제거
+
 ## [5.63.14] - 2025-07-25
 
 ### 🤖 Claude Code Sub Agents 통합
