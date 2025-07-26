@@ -34,7 +34,7 @@ EXCLUDE_DIRS=(
 
 # 제외 파일 패턴 (문서, 템플릿, 테스트 등)
 EXCLUDE_FILES=(
-    "*.md"
+    # "*.md"  # 문서 파일도 검사하도록 주석 처리
     "*.template"
     "*.example"
     "*.test.*"

@@ -27,4 +27,15 @@ if [ -f "scripts/check-hardcoded-secrets.sh" ]; then
     fi
 fi
 
+# 문서 파일 시크릿 검사
+echo "📄 문서 파일 시크릿 검사 중..."
+if [ -f "scripts/check-secrets-in-docs.sh" ]; then
+    bash scripts/check-secrets-in-docs.sh
+    if [ $? -ne 0 ]; then
+        echo "❌ 문서 파일에서 시크릿이 발견되었습니다!"
+        echo "💡 토큰을 [REDACTED]로 교체하거나 예시 형식으로 변경하세요."
+        exit 1
+    fi
+fi
+
 echo "✅ Pre-commit 검증 통과!"

@@ -15,15 +15,15 @@ if [ "$1" == "--diagnose" ]; then
     echo ""
     echo "3. 서버 직접 테스트:"
     echo "- Tavily MCP 테스트..."
-    TAVILY_API_KEY="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" timeout 2s npx -y tavily-mcp 2>&1 | head -n 5
+    TAVILY_API_KEY="${TAVILY_API_KEY:-미설정}" timeout 2s npx -y tavily-mcp 2>&1 | head -n 5
     echo ""
     exit 0
 fi
 
-# Supabase Project Reference 추출
-SUPABASE_PROJECT_REF="your_supabase_project_id_here"
-SUPABASE_SERVICE_KEY="SENSITIVE_INFO_REMOVED"
-TAVILY_API_KEY="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"
+# 환경변수에서 가져오기
+SUPABASE_PROJECT_REF="${SUPABASE_PROJECT_REF:-your_supabase_project_id_here}"
+SUPABASE_SERVICE_KEY="${SUPABASE_SERVICE_ROLE_KEY:-SENSITIVE_INFO_REMOVED}"
+TAVILY_API_KEY="${TAVILY_API_KEY:-YOUR_TAVILY_API_KEY_PLACEHOLDER}"
 
 # MCP 서버 제거
 echo "기존 서버 제거 중..."
