@@ -1,5 +1,23 @@
 # Changelog
 
+## [5.63.58] - 2025-07-26
+
+### 📝 Documentation
+
+- **AI Sub Agent 역할 재정의**:
+  1. **gemini-cli-collaborator**: "Senior Code Architect" → "Gemini CLI 협업 전문가"로 변경
+     - WSL 터미널에서 Gemini CLI와 직접 대화하는 AI 협업 전문가로 역할 변경
+     - Claude가 혼자 해결하기 어려운 복잡한 문제 해결에 특화
+     - 대량의 코드 분석 및 병렬 처리 작업 수행
+     - 무료 티어 Gemini를 활용한 AI 모델 간 시너지 창출
+  2. **planner-spec**: "Product Manager" → "Sub Agent Orchestrator"로 전면 재정의
+     - 사용자 요청에 가장 먼저 반응하는 마스터 플래너 역할
+     - 작업 복잡도 분석 및 실행 계획 수립
+     - 서브 에이전트와 MCP 도구 최적 배치 결정
+     - 순차/병렬 작업 전략 수립 및 전체 워크플로우 지휘
+     - 3초 룰: 초기 분석을 3초 내 제시하는 즉시 반응 시스템
+  - 관련 파일 업데이트: `.claude/agents/` 및 CLAUDE.md
+
 ## [5.63.30] - 2025-07-26
 
 ### ✨ Added
