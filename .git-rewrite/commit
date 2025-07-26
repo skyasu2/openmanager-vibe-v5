@@ -1,6 +1,0 @@
-tree 5574a83ffe9e1bace0ee8526c1af23b7a1d1846c
-parent 99efaaf2033839e5055e871ed08697714baa334c
-author skyasu <skyasu2@gmail.com> 1748060390 +0900
-committer skyasu <skyasu2@gmail.com> 1748060390 +0900
-
-fix: API 라우트 404 문제 완전 해결 및 문서 업데이트 - .vercelignore 파일 생성으로 루트 api/ 디렉토리 충돌 제거 - vercel.json Functions 설정 최적화 - CHANGELOG.md: API 해결 과정 및 새 기능 추가 - README.md: API 엔드포인트 섹션 및 해결 내용 추가 - docs/troubleshooting.md: 상세한 트러블슈팅 가이드 생성
