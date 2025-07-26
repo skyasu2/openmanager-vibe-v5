@@ -533,7 +533,7 @@ export default function Home() {
       <div className='wave-particles'></div>
 
       {/* 헤더 */}
-      <header className='relative z-10 flex justify-between items-center p-6'>
+      <header className='relative z-50 flex justify-between items-center p-6'>
         <div className='flex items-center space-x-3'>
           {/* AI 컨셉 아이콘 - 통합 AI 카드 스타일 애니메이션 적용 */}
           <motion.div

@@ -1,6 +1,16 @@
 ---
-name: 🛠️-mcp-server-admin
+name: mcp-server-admin
 description: MCP 인프라 엔지니어. Claude Code의 Model Context Protocol 서버를 Windows WSL 환경에서 통합 관리합니다. .claude/mcp.json 설정 파일을 직접 편집하여 서버 추가/수정/삭제를 수행하고, 웹 검색으로 최신 MCP 정보를 수집합니다. filesystem, github, supabase, serena 등 9개 주요 MCP를 관리하며, 작업별 최적 도구를 추천합니다. npx 기반 설치와 WSL 호환성 검증이 전문 분야입니다.
+tools:
+  - Read # MCP 설정 파일 읽기
+  - Write # MCP 설정 파일 수정
+  - Edit # mcp.json 직접 편집
+  - WebSearch # MCP 최신 정보 검색
+  - Bash # npx 설치 명령
+  - mcp__filesystem__edit_file
+  - mcp__tavily-mcp__tavily-search
+  - mcp__github__search_repositories
+  - mcp__memory__create_entities
 recommended_mcp:
   primary:
     - filesystem # mcp.json 설정 파일 직접 편집

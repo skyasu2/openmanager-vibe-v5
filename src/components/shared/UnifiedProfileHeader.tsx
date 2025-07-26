@@ -229,11 +229,10 @@ export default function UnifiedProfileHeader({
   };
 
   return (
-    <div ref={dropdownRef} className={`relative ${className}`}>
+    <div ref={dropdownRef} className={`relative z-50 ${className}`}>
       {/* 프로필 버튼 */}
       <motion.button
-        onClick={e => {
-          e.stopPropagation();
+        onClick={() => {
           console.log('👤 프로필 버튼 클릭됨');
           toggleMenu();
         }}
