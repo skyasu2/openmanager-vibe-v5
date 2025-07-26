@@ -84,43 +84,43 @@ src/
 
 ### 에이전트별 추천 MCP 서버 매핑
 
-1. **🤖 ai-systems-engineer** - AI 시스템 아키텍처
+1. **ai-systems-engineer** - AI 시스템 아키텍처
    - 주요: `supabase`, `memory`, `sequential-thinking`, `filesystem`
    - 보조: `tavily-mcp`, `context7`
 
-2. **🛠️ mcp-server-admin** - MCP 인프라 관리
+2. **mcp-server-admin** - MCP 인프라 관리
    - 주요: `filesystem`, `tavily-mcp`, `github`
    - 보조: `memory`, `sequential-thinking`
 
-3. **🚨 issue-summary** - DevOps 모니터링
+3. **issue-summary** - DevOps 모니터링
    - 주요: `supabase`, `filesystem`, `tavily-mcp`
    - 보조: `memory`, `sequential-thinking`
 
-4. **🗄️ database-administrator** - DB 최적화
+4. **database-administrator** - DB 최적화
    - 주요: `supabase`, `filesystem`, `memory`
    - 보조: `context7`, `sequential-thinking`
 
-5. **🔍 code-review-specialist** - 코드 품질 검토
+5. **code-review-specialist** - 코드 품질 검토
    - 주요: `filesystem`, `github`, `serena`
    - 보조: `context7`, `sequential-thinking`
 
-6. **📚 doc-structure-guardian** - 문서 구조 관리
+6. **doc-structure-guardian** - 문서 구조 관리
    - 주요: `filesystem`, `github`, `memory`
    - 보조: `sequential-thinking`
 
-7. **🎨 ux-performance-optimizer** - 프론트엔드 성능
+7. **ux-performance-optimizer** - 프론트엔드 성능
    - 주요: `filesystem`, `playwright`, `tavily-mcp`
    - 보조: `context7`, `memory`
 
-8. **🤖 gemini-cli-collaborator** - AI 협업
+8. **gemini-cli-collaborator** - AI 협업
    - 주요: `filesystem`, `github`, `sequential-thinking`
    - 보조: `memory`, `tavily-mcp`
 
-9. **🧪 test-automation-specialist** - 테스트 자동화
+9. **test-automation-specialist** - 테스트 자동화
    - 주요: `filesystem`, `playwright`, `github`
    - 보조: `context7`, `memory`
 
-10. **🧬 agent-evolution-manager** - 에이전트 진화 관리
+10. **agent-evolution-manager** - 에이전트 진화 관리
     - 주요: `memory`, `filesystem`, `sequential-thinking`, `github`
     - 보조: `tavily-mcp`, `supabase`
 
@@ -129,21 +129,21 @@ src/
 ```bash
 # AI 시스템 최적화 작업
 Task(
-  subagent_type="🤖-ai-systems-engineer",
+  subagent_type="ai-systems-engineer",
   description="SimplifiedQueryEngine 성능 개선",
   prompt="주요 MCP: supabase, memory, sequential-thinking 활용"
 )
 
 # 코드 리뷰 요청
 Task(
-  subagent_type="🔍-code-review-specialist",
+  subagent_type="code-review-specialist",
   description="PR #123 보안 검토",
   prompt="serena와 github MCP를 활용한 취약점 스캔"
 )
 
 # 에이전트 성능 자동 개선 (백그라운드 실행)
 Task(
-  subagent_type="🧬-agent-evolution-manager",
+  subagent_type="agent-evolution-manager",
   description="에이전트 주간 성능 리뷰",
   prompt="모든 에이전트의 성능 메트릭 분석 및 자동 개선"
 )

@@ -1,4 +1,4 @@
-# 🤖 Claude Code Sub Agents 활용 가이드
+# Claude Code Sub Agents 활용 가이드
 
 **작성일**: 2025-01-25  
 **버전**: 1.0  
@@ -41,7 +41,7 @@ Claude Code Sub Agents는 특정 작업에 특화된 AI 에이전트로, 복잡�
 "레거시 서버 모니터링 코드를 모던 아키텍처로 리팩토링하는 전략을 수립해줘"
 ```
 
-### 2. 🔍 Security & Performance Engineer (`code-review-specialist`)
+### 2. Security & Performance Engineer (`code-review-specialist`)
 
 **역할**: 보안/성능 엔지니어  
 **전문 분야**:
@@ -58,7 +58,7 @@ Claude Code Sub Agents는 특정 작업에 특화된 AI 에이전트로, 복잡�
 "API 응답 속도가 느린데 성능 최적화 방안을 제시해줘"
 ```
 
-### 3. 🧪 QA Lead Engineer (`test-automation-specialist`)
+### 3. QA Lead Engineer (`test-automation-specialist`)
 
 **역할**: QA 리드 엔지니어  
 **전문 분야**:
@@ -75,7 +75,7 @@ Claude Code Sub Agents는 특정 작업에 특화된 AI 에이전트로, 복잡�
 "테스트 커버리지가 낮은 모듈을 찾아서 테스트 추가해줘"
 ```
 
-### 4. 📚 Technical Writer Lead (`doc-structure-guardian`)
+### 4. Technical Writer Lead (`doc-structure-guardian`)
 
 **역할**: 테크니컬 라이터 리드  
 **전문 분야**:
@@ -109,7 +109,7 @@ Claude Code Sub Agents는 특정 작업에 특화된 AI 에이전트로, 복잡�
 "다음 스프린트의 작업 우선순위를 정해줘"
 ```
 
-### 6. 🚨 DevOps Engineer (`issue-summary`)
+### 6. DevOps Engineer (`issue-summary`)
 
 **역할**: 데브옵스 엔지니어  
 **전문 분야**:
@@ -126,7 +126,7 @@ Claude Code Sub Agents는 특정 작업에 특화된 AI 에이전트로, 복잡�
 "Vercel 무료 티어 한계에 가까운 리소스를 찾아줘"
 ```
 
-### 7. 🛠️ Infrastructure Engineer (`mcp-server-admin`)
+### 7. Infrastructure Engineer (`mcp-server-admin`)
 
 **역할**: 인프라 엔지니어  
 **전문 분야**:
@@ -143,7 +143,7 @@ Claude Code Sub Agents는 특정 작업에 특화된 AI 에이전트로, 복잡�
 "개발 환경의 인프라 설정을 점검해줘"
 ```
 
-### 8. 🎨 Frontend UX Engineer (`ux-performance-optimizer`)
+### 8. Frontend UX Engineer (`ux-performance-optimizer`)
 
 **역할**: 프론트엔드 UX 엔지니어  
 **전문 분야**:
@@ -160,7 +160,7 @@ Claude Code Sub Agents는 특정 작업에 특화된 AI 에이전트로, 복잡�
 "모바일에서 버튼이 너무 작다는 피드백이 있어. 접근성을 개선해줘"
 ```
 
-### 9. 🤖 AI Systems Engineer (`ai-systems-engineer`)
+### 9. AI Systems Engineer (`ai-systems-engineer`)
 
 **역할**: AI 시스템 엔지니어  
 **전문 분야**:
@@ -177,7 +177,7 @@ Claude Code Sub Agents는 특정 작업에 특화된 AI 에이전트로, 복잡�
 "Local AI와 Google AI 간 자동 전환 로직을 구현해줘"
 ```
 
-### 10. 🗄️ Database Administrator (`database-administrator`)
+### 10. Database Administrator (`database-administrator`)
 
 **역할**: 데이터베이스 관리자  
 **전문 분야**:

@@ -1,4 +1,4 @@
-# 🤖 서브 에이전트 MCP 매핑 가이드
+# 서브 에이전트 MCP 매핑 가이드
 
 ## 📋 개요
 
@@ -7,7 +7,7 @@
 
 ## 🎯 서브 에이전트별 MCP 매핑
 
-### 1. 🤖 AI Systems Engineer (ai-systems-engineer)
+### 1. AI Systems Engineer (ai-systems-engineer)
 
 - **주요 MCP**:
   - `supabase` - AI 모델 데이터 및 설정 관리
@@ -19,7 +19,7 @@
   - `context7` - AI/ML 라이브러리 문서 참조
 - **사용 예시**: AI 듀얼 모드 시스템 설계, NLP 파이프라인 최적화
 
-### 2. 🛠️ MCP Server Admin (mcp-server-admin)
+### 2. MCP Server Admin (mcp-server-admin)
 
 - **주요 MCP**:
   - `filesystem` - mcp.json 설정 파일 직접 편집
@@ -30,7 +30,7 @@
   - `sequential-thinking` - 복잡한 MCP 문제 해결
 - **사용 예시**: 새 MCP 서버 추가, 기존 MCP 설정 최적화
 
-### 3. 🚨 Issue Summary (issue-summary)
+### 3. Issue Summary (issue-summary)
 
 - **주요 MCP**:
   - `supabase` - 서비스 상태 및 로그 데이터 조회
@@ -41,7 +41,7 @@
   - `sequential-thinking` - 복잡한 이슈 근본 원인 분석
 - **사용 예시**: 시스템 헬스 체크, 인시던트 보고서 생성
 
-### 4. 🗄️ Database Administrator (database-administrator)
+### 4. Database Administrator (database-administrator)
 
 - **주요 MCP**:
   - `supabase` - PostgreSQL 스키마 및 쿼리 관리
@@ -52,7 +52,7 @@
   - `sequential-thinking` - 복잡한 쿼리 최적화 전략
 - **사용 예시**: DB 스키마 설계, 인덱스 최적화, 쿼리 성능 개선
 
-### 5. 🔍 Code Review Specialist (code-review-specialist)
+### 5. Code Review Specialist (code-review-specialist)
 
 - **주요 MCP**:
   - `filesystem` - 코드 파일 읽기 및 분석
@@ -63,7 +63,7 @@
   - `sequential-thinking` - 복잡한 코드 로직 분석
 - **사용 예시**: PR 리뷰, 보안 취약점 스캔, 코드 품질 개선
 
-### 6. 📚 Doc Structure Guardian (doc-structure-guardian)
+### 6. Doc Structure Guardian (doc-structure-guardian)
 
 - **주요 MCP**:
   - `filesystem` - 문서 파일 관리 및 이동
@@ -73,7 +73,7 @@
   - `sequential-thinking` - 문서 구조 재설계
 - **사용 예시**: 문서 구조 정리, 중복 문서 제거, 버전 관리
 
-### 7. 🎨 UX Performance Optimizer (ux-performance-optimizer)
+### 7. UX Performance Optimizer (ux-performance-optimizer)
 
 - **주요 MCP**:
   - `filesystem` - 프론트엔드 코드 최적화
@@ -84,7 +84,7 @@
   - `memory` - 성능 메트릭 및 개선 이력
 - **사용 예시**: Lighthouse 점수 개선, Core Web Vitals 최적화
 
-### 8. 🤖 Gemini CLI Collaborator (gemini-cli-collaborator)
+### 8. Gemini CLI Collaborator (gemini-cli-collaborator)
 
 - **주요 MCP**:
   - `filesystem` - 파일 내용을 Gemini에 전달
@@ -95,7 +95,7 @@
   - `tavily-mcp` - Gemini CLI 사용법 검색
 - **사용 예시**: 복잡한 문제 해결, 코드 리뷰 세컨드 오피니언
 
-### 9. 🧪 Test Automation Specialist (test-automation-specialist)
+### 9. Test Automation Specialist (test-automation-specialist)
 
 - **주요 MCP**:
   - `filesystem` - 테스트 코드 생성 및 관리
@@ -106,7 +106,7 @@
   - `memory` - 테스트 패턴 및 커버리지 이력
 - **사용 예시**: 테스트 스위트 생성, 실패 테스트 분석
 
-### 10. 🧬 Agent Evolution Manager (agent-evolution-manager)
+### 10. Agent Evolution Manager (agent-evolution-manager)
 
 - **주요 MCP**:
   - `memory` - 에이전트 성능 이력 및 개선 패턴 저장
@@ -125,7 +125,7 @@
 ```bash
 # AI Systems Engineer를 호출하면서 필요한 MCP 명시
 Task(
-  subagent_type="🤖-ai-systems-engineer",
+  subagent_type="ai-systems-engineer",
   description="AI 듀얼 모드 시스템 최적화",
   prompt="""
   SimplifiedQueryEngine의 성능을 개선하고 Google AI와 Local AI 간
@@ -170,7 +170,7 @@ Task(
 
 ## 🔄 업데이트 이력
 
-- 2025-07-26: 🧬 Agent Evolution Manager 추가로 10개 서브 에이전트로 확장
+- 2025-07-26: Agent Evolution Manager 추가로 10개 서브 에이전트로 확장
 - 2025-07-26: 초기 버전 생성
 - 모든 10개 서브 에이전트 정상 동작 확인
 - MCP 서버별 최적 매핑 정의
