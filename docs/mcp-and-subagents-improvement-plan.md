@@ -75,12 +75,12 @@ echo "GITHUB_PERSONAL_ACCESS_TOKEN=ghp_새로운토큰" >> .env.local
 
 각 작업 유형별 권장 서브 에이전트 매핑:
 
-| 작업 유형    | 권장 서브 에이전트                                                | 사용 시점                                 |
-| ------------ | ----------------------------------------------------------------- | ----------------------------------------- |
-| 새 기능 개발 | planner-spec → gemini-cli-collaborator → code-review-specialist   | 요구사항 정의 → 구현 → 검토               |
-| 버그 수정    | test-automation-specialist → code-review-specialist               | 원인 분석 → 수정 후 검증                  |
-| 성능 최적화  | issue-summary → database-administrator → ux-performance-optimizer | 현황 파악 → DB 최적화 → 프론트엔드 최적화 |
-| 시스템 점검  | issue-summary → mcp-server-admin                                  | 전체 상태 → 상세 진단                     |
+| 작업 유형    | 권장 서브 에이전트                                                            | 사용 시점                                 |
+| ------------ | ----------------------------------------------------------------------------- | ----------------------------------------- |
+| 새 기능 개발 | gemini-cli-collaborator → code-review-specialist → test-automation-specialist | 아키텍처 검토 → 구현 → 테스트             |
+| 버그 수정    | test-automation-specialist → code-review-specialist                           | 원인 분석 → 수정 후 검증                  |
+| 성능 최적화  | issue-summary → database-administrator → ux-performance-optimizer             | 현황 파악 → DB 최적화 → 프론트엔드 최적화 |
+| 시스템 점검  | issue-summary → mcp-server-admin                                              | 전체 상태 → 상세 진단                     |
 
 ### 3. MCP 서버 모니터링 도구 개발
 
