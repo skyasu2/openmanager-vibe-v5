@@ -8,14 +8,13 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
-    "noUnusedLocals": false, // Phase 1: 일시적 비활성화 (underscore prefix 사용)
-    "noUnusedParameters": false, // Phase 1: 일시적 비활성화 (underscore prefix 사용)
-    "noUncheckedIndexedAccess": false, // Phase 4에서 true로 변경 예정
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noUncheckedIndexedAccess": false,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
     "strictPropertyInitialization": true,
-    // "exactOptionalPropertyTypes": true, // 이것은 너무 엄격할 수 있어서 일단 비활성화
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",

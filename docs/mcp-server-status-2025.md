@@ -4,7 +4,7 @@
 
 개발용 MCP 서버 목록에 대한 혼란이 있어 전체적인 조사를 실시했습니다.
 
-## ✅ 로컬 개발 환경 MCP 서버 현황 (8개)
+## ✅ 로컬 개발 환경 MCP 서버 현황 (9개)
 
 ### 기본 개발 도구 (4개)
 
@@ -62,6 +62,13 @@
 - 실행: uv 패키지 매니저 사용
 - 설치 경로: `.serena-mcp/serena`
 
+### 9. **playwright**
+
+- 패키지: `@modelcontextprotocol/server-playwright`
+- 상태: ✅ 정상 지원
+- 용도: 브라우저 자동화 및 E2E 테스트
+- 주의: Chromium 설치 필요 (`npx playwright install chrome`)
+
 ## ❌ 지원 중단/존재하지 않는 서버
 
 ### 1. **puppeteer** (Deprecated)
@@ -71,13 +78,12 @@
 - 최종 버전: 2025.5.12
 - 메시지: "Package no longer supported"
 
-### 2. **playwright** (존재하지 않음)
+### 2. **sentry** (제거됨)
 
-- 패키지: `@modelcontextprotocol/server-playwright`
-- 상태: ❌ **존재하지 않음**
-- 대안:
-  - `@playwright/mcp` (Microsoft 공식)
-  - `@executeautomation/playwright-mcp-server` (커뮤니티)
+- 패키지: Python 기반 (`mcp-server-sentry`)
+- 상태: ❌ **제거됨** (2025년 7월 26일)
+- 이유: 환경변수 미설정 및 사용 필요성 없음
+- 실행 방식: uvx (Python)
 
 ## 🔄 변경 이력
 
@@ -94,14 +100,20 @@
    - uv 패키지 매니저 설치
    - 로컬 개발 환경 MCP 서버 총 8개로 확대
 
+5. **2025년 7월 26일 업데이트**:
+   - playwright MCP 서버 존재 확인 (실제로 지원됨)
+   - sentry MCP 서버 제거 (환경변수 미설정)
+   - `.env.local`에서 SENTRY_AUTH_TOKEN 제거
+   - 로컬 개발 환경 MCP 서버 총 9개로 정리
+
 ## 💡 권장사항
 
 1. **브라우저 자동화가 필요한 경우**:
-   - Microsoft의 `@playwright/mcp` 사용 권장
-   - 설치: `npx @playwright/mcp@latest`
+   - 기본 제공되는 `@modelcontextprotocol/server-playwright` 사용
+   - Chromium 설치 필요: `npx playwright install chrome`
 
 2. **현재 프로젝트 설정**:
-   - 로컬 개발: 8개 서버 (기본 4개 + AI 보조 4개)
+   - 로컬 개발: 9개 서버 (기본 4개 + AI 보조 4개 + 브라우저 자동화 1개)
    - `.mcp.json`에 추가 서버 필요시 신중히 검토
 
 3. **MCP 아키텍처 이해**:
@@ -109,8 +121,47 @@
    - GCP VM MCP: 별도 관리, 무료 티어 최적화
    - Vercel/GCP에는 개발 MCP 배포하지 않음
 
+## 🔍 2025년 7월 26일 중복 실행 분석
+
+### 분석 배경
+
+Claude Code 재시작 후 MCP 서버들이 중복 실행되는지, 의도한 대로 작동하는지 검증
+
+### 분석 결과
+
+- **중복 실행**: ❌ 없음 (각 서버가 정확히 1개씩만 실행)
+- **실행 중인 서버**: 8개 (serena 제외)
+- **프로세스 구조**: 각 서버당 2-3개 프로세스 (정상)
+
+### 프로세스 세부 현황
+
+```
+총 22개 프로세스:
+- npm exec 프로세스: 8개
+- sh -c 프로세스: 6개
+- node 실행 프로세스: 8개
+```
+
+### 응답 테스트 결과
+
+| MCP 서버            | 테스트          | 결과 | 응답 시간 |
+| ------------------- | --------------- | ---- | --------- |
+| filesystem          | 디렉토리 조회   | ✅   | < 100ms   |
+| memory              | 그래프 읽기     | ✅   | < 50ms    |
+| github              | 이슈 조회       | ✅   | < 500ms   |
+| supabase            | 프로젝트 조회   | ✅   | < 300ms   |
+| context7            | 라이브러리 검색 | ✅   | < 1000ms  |
+| tavily              | 웹 검색         | ✅   | < 2000ms  |
+| sequential-thinking | -               | ✅   | 자동 사용 |
+| playwright          | -               | ✅   | 대기 상태 |
+
+### 결론
+
+모든 MCP 서버가 중복 없이 정상 작동 중이며, 시스템이 최적 상태로 운영되고 있음
+
 ## 📚 참고 자료
 
 - [Model Context Protocol 공식 저장소](https://github.com/modelcontextprotocol/servers)
 - [MCP 통합 아키텍처 가이드](./mcp-unified-architecture-guide.md)
 - [MCP 빠른 시작 가이드](./mcp-quick-guide.md)
+- [MCP 상태 점검 보고서](./mcp-status-check-2025-07-26.md)

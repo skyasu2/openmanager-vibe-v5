@@ -176,7 +176,9 @@ debug_deployment({ issue: "OAuth 리다이렉트 실패" })
 → 절대 경로 사용 확인
 
 **GitHub 인증 실패**
-→ `.env.local`에 `GITHUB_TOKEN` 설정 확인
+→ `.env.local`에 `GITHUB_PERSONAL_ACCESS_TOKEN` 설정 확인
+→ 권한: repo, workflow, read:org 필요
+→ Claude Code 재시작 필요
 
 **Vercel MCP 연결 실패**
 → 배포 URL 확인, `/api/mcp` 엔드포인트 접근 가능 여부 확인

@@ -111,6 +111,10 @@ export interface AIQueryOptions {
   model?: string;
   /** 응답 깊이 */
   depth?: 'mini' | 'standard' | 'deep' | 'comprehensive';
+  /** MCP 컨텍스트 포함 여부 */
+  includeMCPContext?: boolean;
+  /** 카테고리 필터 */
+  category?: string;
 }
 
 /**

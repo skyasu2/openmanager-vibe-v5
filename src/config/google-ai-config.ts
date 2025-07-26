@@ -44,9 +44,6 @@ export const ENCRYPTED_GOOGLE_AI_CONFIG: EncryptedGoogleAIConfig = {
   createdAt: '2025-01-30T09:30:00.000Z',
   description: 'Google AI API 키 (새로운 키로 업데이트)',
   keyPrefix: 'AIzaSyABFUH',
-
-  // 🔑 팀 비밀번호 (옵션)
-  teamPassword: 'team2025secure',
 };
 
 /**

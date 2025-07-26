@@ -110,7 +110,7 @@ next-env.d.ts
 .cursor/
 
 # 🔐 MCP 민감한 정보 포함 파일들 (GitHub 완전 차단)
-# .mcp.json은 환경 변수 참조만 포함하므로 커밋 가능
+.mcp.json
 .claude/claude_workspace.json
 
 # MCP 개발용 설정 파일들 (GitHub 허용, Vercel 배포 제외)

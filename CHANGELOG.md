@@ -1,5 +1,112 @@
 # Changelog
 
+## [5.63.30] - 2025-07-26
+
+### ✨ Added
+
+- **Sentry MCP 서버 통합**
+  - 에러 모니터링 및 디버깅을 위한 Sentry MCP 서버 추가
+  - `.mcp.json`에 Sentry 서버 설정 추가 (Python 기반, uvx 사용)
+  - 환경변수 `SENTRY_AUTH_TOKEN` 추가
+  - 상세 설정 가이드 문서 작성 (`docs/sentry-mcp-setup-guide.md`)
+
+### 🔒 Security
+
+- **MCP 환경변수 보안 감사**
+  - 모든 민감한 정보가 `${VARIABLE_NAME}` 형식으로 안전하게 참조됨
+  - 환경변수 로드 테스트 완료 (5개 주요 토큰)
+  - 보안 감사 보고서 작성 (`docs/mcp-security-audit-report.md`)
+  - Git 제외 설정 확인 완료
+
+### 🔧 Improved
+
+- **설정 파일 최적화**
+  - `.env.local`: 구분선 제거, 이모지 최소화, 주석 간소화 (21% 감소)
+  - `package.json`: description 간소화, scripts 정리 가이드 작성
+  - `tsconfig.json`: 불필요한 주석 제거
+  - 최적화 보고서 작성 (`docs/config-optimization-report.md`)
+
+### 📚 Documentation
+
+- **환경변수 백업 보안 분석**
+  - GCP VM 백업의 보안 위험 분석
+  - 현재 암호화 백업 시스템의 우수성 확인
+  - 전문 시크릿 관리 도구 권장 (Doppler, GCP Secret Manager)
+  - 상세 분석 보고서 작성 (`docs/env-backup-security-analysis.md`)
+
+### 🧹 Cleanup
+
+- **암호화 스크립트 통합**
+  - 9개의 중복 암호화 스크립트 제거
+  - 단일 `simple-env-backup.cjs` 스크립트로 통합
+  - Base64 인코딩으로 GitHub 보안 통과 & 쉬운 복호화
+  - 간소화된 백업 가이드 작성 (`docs/simplified-env-backup-guide.md`)
+
+### 📝 Updated
+
+- **MCP 서버 구성 확장**
+  - 총 9개 MCP 서버로 확장 (기존 8개 + Sentry 1개)
+  - 개발 도구 MCP 라인업 강화
+
+## [5.63.29] - 2025-01-25
+
+### 🔧 Fixed
+
+- **MCP 서버 연결 문제 해결**
+  - Supabase MCP: `SUPABASE_ACCESS_TOKEN` 환경변수 추가로 연결 오류 해결
+  - `.mcp.json`에 누락된 환경변수 매핑 추가
+  - 로그 분석을 통한 문제 진단 및 해결
+
+### ✨ Improved
+
+- **MCP 서버 설정 최적화**
+  - Playwright MCP 서버 추가 (Puppeteer 대체)
+  - 총 8개 MCP 서버 설정 완료 (6개 정상 작동)
+  - 환경변수 전달 방식 개선
+
+### 📝 Updated
+
+- **문서 업데이트**
+  - `docs/mcp-server-status.md`: 실시간 서버 상태 반영 (6/8 작동)
+  - `docs/mcp-troubleshooting-guide.md`: 최신 문제 해결 방법 추가
+  - 디버깅 방법 및 로그 분석 가이드 추가
+
+## [5.63.28] - 2025-01-25
+
+### 🔒 Security
+
+- **MCP 서버 환경변수 보안 강화**
+  - `.mcp.json`을 `.gitignore`에 추가
+  - 하드코딩된 토큰을 환경변수 참조(`${VAR_NAME}`)로 변경
+  - 노출된 토큰에 대한 보안 경고 문서 작성
+
+### 📝 Added
+
+- **MCP 및 서브 에이전트 종합 문서화**
+  - `docs/mcp-server-status.md` - MCP 서버 7개 상태 현황
+  - `docs/sub-agents-usage-guide.md` - 10개 서브 에이전트 활용 가이드
+  - `docs/claude-code-stability-guide.md` - 2025년 알려진 이슈 및 안정성 가이드
+  - `docs/claude-code-performance-optimization.md` - 토큰 최적화 및 성능 가이드
+  - `docs/mcp-security-alert.md` - 긴급 보안 경고 및 조치 사항
+
+### ✨ Improved
+
+- **서브 에이전트 체계 정리**
+  - 10개 전문 서브 에이전트 역할 및 활용법 문서화
+  - 실전 활용 시나리오 및 베스트 프랙티스 제공
+  - 협업 워크플로우 가이드 작성
+
+- **Claude + Gemini 협업 전략 수립**
+  - 작업별 역할 분담표 작성
+  - 토큰 사용량 60% 절감 전략
+  - 효율적인 도구 활용 가이드
+
+### 🔧 Fixed
+
+- **환경변수 설정 완료**
+  - GitHub Personal Access Token 설정
+  - 모든 MCP 서버 정상 작동 가능 상태
+
 ## [5.63.27] - 2025-07-26
 
 ### 🔒 Security

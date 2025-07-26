@@ -45,9 +45,9 @@ export async function resolveGoogleAIKey(): Promise<GoogleAIKeyResult> {
     const envEncrypted = process.env.GOOGLE_AI_ENCRYPTED_KEY;
     const envSalt = process.env.GOOGLE_AI_ENCRYPTED_SALT;
     const envIV = process.env.GOOGLE_AI_ENCRYPTED_IV;
-    const envPassword = process.env.GOOGLE_AI_TEAM_PASSWORD || 'team2025secure';
+    const envPassword = process.env.GOOGLE_AI_TEAM_PASSWORD;
 
-    if (envEncrypted && envSalt && envIV) {
+    if (envEncrypted && envSalt && envIV && envPassword) {
       try {
         console.log('🔍 환경변수 암호화된 키 복호화 시도...');
         const encryptedData = {
@@ -79,62 +79,43 @@ export async function resolveGoogleAIKey(): Promise<GoogleAIKeyResult> {
       }
     }
 
-    // 3. 팀 설정 암호화된 키 (자동 복호화)
-    if (ENCRYPTED_GOOGLE_AI_CONFIG) {
-      const defaultPasswords = [
-        'team2025secure',
-        'openmanager2025',
-        'openmanager-vibe-v5-2025',
-        'team-password-2025',
-      ];
+    // 3. 팀 설정 암호화된 키 (환경변수 패스워드로만 복호화)
+    if (ENCRYPTED_GOOGLE_AI_CONFIG && envPassword) {
+      try {
+        console.log(`🔍 팀 설정 복호화 시도`);
 
-      for (const password of defaultPasswords) {
-        try {
-          console.log(`🔍 팀 설정 복호화 시도: ${password.substring(0, 3)}***`);
+        const encryptedData = {
+          encrypted: ENCRYPTED_GOOGLE_AI_CONFIG.encryptedKey,
+          salt: ENCRYPTED_GOOGLE_AI_CONFIG.salt,
+          iv: ENCRYPTED_GOOGLE_AI_CONFIG.iv,
+          authTag: ENCRYPTED_GOOGLE_AI_CONFIG.authTag || '', // 이전 버전 호환성
+          algorithm: 'aes-256-gcm' as const,
+          iterations: 100000,
+          timestamp: Date.parse(ENCRYPTED_GOOGLE_AI_CONFIG.createdAt),
+          version: ENCRYPTED_GOOGLE_AI_CONFIG.version,
+        };
 
-          const encryptedData = {
-            encrypted: ENCRYPTED_GOOGLE_AI_CONFIG.encryptedKey,
-            salt: ENCRYPTED_GOOGLE_AI_CONFIG.salt,
-            iv: ENCRYPTED_GOOGLE_AI_CONFIG.iv,
-            authTag: ENCRYPTED_GOOGLE_AI_CONFIG.authTag || '', // 이전 버전 호환성
-            algorithm: 'aes-256-gcm' as const,
-            iterations: 100000,
-            timestamp: Date.parse(ENCRYPTED_GOOGLE_AI_CONFIG.createdAt),
-            version: ENCRYPTED_GOOGLE_AI_CONFIG.version,
+        enhancedCryptoManager.initializeMasterKey(envPassword);
+        const decryptedKey = enhancedCryptoManager.decryptVariable(
+          encryptedData,
+          envPassword
+        );
+        if (decryptedKey && decryptedKey.startsWith('AIza')) {
+          console.log(`✅ 팀 설정 복호화 성공`);
+          return {
+            success: true,
+            key: decryptedKey,
+            source: 'team_config',
           };
-
-          enhancedCryptoManager.initializeMasterKey(password);
-          const decryptedKey = enhancedCryptoManager.decryptVariable(
-            encryptedData,
-            password
-          );
-          if (decryptedKey && decryptedKey.startsWith('AIza')) {
-            console.log(
-              `✅ 팀 설정 복호화 성공: ${password.substring(0, 3)}***`
-            );
-            return {
-              success: true,
-              key: decryptedKey,
-              source: 'team_config',
-            };
-          }
-        } catch (error) {
-          console.warn(
-            `⚠️ 팀 설정 복호화 실패: ${password.substring(0, 3)}***`
-          );
-          continue;
         }
+      } catch {
+        console.warn(`⚠️ 팀 설정 복호화 실패`);
       }
     }
 
-    // 4. 개발 환경 기본값 (임시)
+    // 4. 개발 환경에서도 환경변수 필요
     if (process.env.NODE_ENV === 'development') {
-      console.log('🚧 개발 환경: 기본 키 사용');
-      return {
-        success: true,
-        key: 'SENSITIVE_INFO_REMOVED', // 새로운 키
-        source: 'development',
-      };
+      console.log('🚧 개발 환경: 환경변수를 설정해주세요');
     }
 
     // 5. 키를 찾을 수 없음
