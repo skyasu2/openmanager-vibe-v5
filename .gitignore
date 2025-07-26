@@ -171,6 +171,9 @@ commit/
 # GitHub 인증 정보
 .github-auth.json
 
+# Git rewrite 임시 파일
+.git-rewrite/
+
 # Claude 세션 정보
 .claude_session.json
 
