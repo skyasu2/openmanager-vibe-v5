@@ -42,7 +42,24 @@
       "env": {
         "TAVILY_API_KEY": "${TAVILY_API_KEY}"
       }
-
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/sequential-thinking"],
+      "env": {}
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/mcp-server-playwright"],
+      "env": {}
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/oraios/serena", "serena-mcp-server"],
+      "env": {}
     }
   }
 }

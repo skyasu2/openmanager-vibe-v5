@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 1. [🌏 개발 환경 및 언어 설정](#-개발-환경-및-언어-설정)
 2. [🧠 깊이 있는 사고 모드 (필수 적용)](#-깊이-있는-사고-모드-필수-적용)
-3. [📦 MCP 도구 함수 상세](#-실제-mcp-도구-함수-상세)
+3. [📦 MCP 아키텍처 및 설정](#-mcp-아키텍처-및-설정)
 4. [🛡️ 일반 도구 (대체 항목)](#️-일반-도구-대체-항목)
 5. [📋 Common Commands](#common-commands)
 6. [🏗️ Architecture Overview](#architecture-overview)
@@ -21,10 +21,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 15. [✅ Testing New Features](#testing-new-features)
 16. [🚀 Deployment Notes](#deployment-notes)
 17. [🔍 Troubleshooting](#troubleshooting)
-18. [🛠️ MCP 3-Tier 아키텍처](#mcp-model-context-protocol-도구-통합)
-19. [🚀 AI 도구 v2.0 - 차세대 통합 시스템](#-ai-도구-v20---차세대-통합-시스템)
-20. [📊 Claude Code 사용량 모니터링](#claude-code-사용량-모니터링)
-21. [🤝 AI 도구 협업 전략](#ai-도구-협업-전략)
+18. [🚀 AI 도구 v2.0 - 차세대 통합 시스템](#-ai-도구-v20---차세대-통합-시스템)
+19. [📊 Claude Code 사용량 모니터링](#claude-code-사용량-모니터링)
+20. [🤝 AI 도구 협업 전략](#ai-도구-협업-전략)
 
 ## 🌏 **개발 환경 및 언어 설정**
 
@@ -97,21 +96,44 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 임시 해결책과 장기적 해결책 구분 제시
 - 빠른 조치 후 후속 개선 계획 제안
 
-### 📦 MCP 도구 빠른 참조
+### 📦 MCP 아키텍처 및 설정
 
-**올바른 3-Tier MCP 아키텍처** (2025.07 업데이트):
+#### 🏠 **로컬 개발용 MCP 서버** (2025.07 업데이트)
 
-- 🏠 **로컬 (개발 도구)**: filesystem, github, memory, sequential-thinking + supabase, context7, tavily-mcp, serena
-- ☁️ **GCP VM (AI 보조)**: context7, tavily-mcp, supabase, serena - 자연어 질의, RAG, NLP 보조 역할
-- 🚀 **Vercel (API)**: `/api/mcp` 엔드포인트로 GCP MCP 서버 상태 확인
+로컬에서 실행되는 개발 지원용 MCP 서버들 (`.claude/mcp.json` 기반):
 
-**역할 분리 원칙**:
+- **filesystem** - 파일 시스템 조작 및 검색
+- **github** - GitHub 저장소 관리 및 PR 생성
+- **memory** - 지식 그래프 기반 메모리 관리
+- **supabase** - Supabase 프로젝트 및 데이터베이스 관리
+- **context7** - 라이브러리 문서 검색 및 참조
+- **tavily-mcp** - 웹 검색 및 크롤링
+- **sequential-thinking** - 체계적 사고 프로세스
+- **playwright** - 브라우저 자동화 및 테스트
+- **serena** - IDE 보조 및 코드 분석
 
-- 개발용 MCP는 로컬에서만 실행 (코딩 작업 지원)
-- AI 보조용 MCP는 GCP VM에서만 실행 (Google AI 모드 지원)
-- CloudContextLoader가 GCP MCP 서버와 원격 통신
+#### ☁️ **GCP VM AI 어시스턴트용 MCP** (프로젝트 런타임용)
 
-**필수 문서**: `docs/mcp-unified-architecture-guide.md`
+**중요**: GCP VM의 MCP는 개발 도구가 아닌 실제 프로젝트의 AI 어시스턴트 기능을 위한 것입니다.
+
+- **용도**: 로컬 AI 모드와 구글 AI 모드에서 자연어 질의 처리
+- **현재 상태**: 파일시스템 MCP만 구현, 추후 필요에 따라 확장 예정
+- **통신 방식**: CloudContextLoader가 원격 MCP 서버와 통신
+- **API 엔드포인트**: `/api/mcp`로 상태 확인 가능
+
+#### 🔄 **MCP 역할 분리 원칙**
+
+1. **개발용 MCP** (로컬 환경)
+   - Claude Code가 코딩 작업 시 사용
+   - npx 기반으로 로컬에서 직접 실행
+   - 파일 편집, GitHub 관리, 데이터베이스 작업 등 지원
+
+2. **AI 어시스턴트용 MCP** (GCP VM)
+   - 프로젝트의 자연어 질의 처리 엔진이 사용
+   - 원격 서버에서 실행되며 API로 접근
+   - 현재는 파일시스템만 구현, 향후 확장 예정
+
+**참고 문서**: `docs/mcp-unified-architecture-guide.md`
 
 ## Common Commands
 
