@@ -1,5 +1,41 @@
 # Changelog
 
+## [5.65.5] - 2025-01-27
+
+### 🚀 AI Agent → AI Assistant 전체 리네이밍
+
+- **용어 통일화**:
+  - 🎯 **목적**: Claude Code 서브 에이전트와의 혼동 방지
+  - 📝 **범위**: 프로젝트 전체의 AI 기능 용어를 "Assistant"로 통일
+  
+- **타입 시스템 업데이트**:
+  - 🔄 **파일명 변경**: `ai-agent.ts` → `ai-assistant.ts`
+  - 🏷️ **타입명 변경**: 
+    - `AIAgentMode` → `AIAssistantMode`
+    - `AIAgentConfig` → `AIAssistantConfig`
+    - `AIAgentFunction` → `AIAssistantFunction`
+  - 🔌 **인터페이스**: `IAIAgentEngine` → `IAIAssistantEngine`
+  
+- **컴포넌트 리네이밍**:
+  - 📂 **관리자 대시보드**: `AIAgentAdminDashboard` → `AIAssistantAdminDashboard`
+  - 🎨 **아이콘 패널**: `AIAgentIconPanel` → `AIAssistantIconPanel`
+  - 📊 **로그 패널**: `AgentLogPanel` → `AssistantLogPanel`
+  - 📈 **통계 카드**: `AIAgentStatsCards` → `AIAssistantStatsCards`
+  
+- **Hook 및 Store 업데이트**:
+  - 🪝 **커스텀 Hook**: `useAIAgentData` → `useAIAssistantData`
+  - 🗂️ **Store 모듈**: 내부 상태 및 로그 메시지 용어 변경
+  - 🌏 **한국어 텍스트**: "AI 에이전트" → "AI 어시스턴트" 일괄 변경
+  
+- **품질 검증**:
+  - ✅ **TypeScript**: 컴파일 오류 0개
+  - ✅ **빌드 테스트**: Production 빌드 성공
+  - ✅ **단위 테스트**: 227개 통과 (100% 성공률)
+  
+- **삭제된 파일**:
+  - 🗑️ 구버전 파일들 제거 (ai-agent.ts, 관련 컴포넌트 등)
+  - 🧹 중복 파일 정리 완료
+
 ## [5.65.4] - 2025-01-27
 
 ### 🚀 서브 에이전트 완전 복구 및 시스템 안정화
