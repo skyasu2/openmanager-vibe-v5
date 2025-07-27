@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
     console.log('🔧 Database action requested:', action);
 
     switch (action) {
-      case 'health_check':
+      case 'health_check': {
         const status = getDatabaseStatus();
         return NextResponse.json({
           success: true,
@@ -172,6 +172,7 @@ export async function POST(request: NextRequest) {
           data: status.overall,
           timestamp: new Date().toISOString(),
         });
+      }
 
       case 'refresh_connections':
         // 연결 풀 새로고침 시뮬레이션
@@ -216,7 +217,7 @@ export async function POST(request: NextRequest) {
  * 🗄️ 데이터베이스 상태 API
  */
 
-export async function GET_NEW(request: NextRequest) {
+export async function GET_NEW(_request: NextRequest) {
   try {
     // 데이터베이스 상태 확인
     const dbStatus = {

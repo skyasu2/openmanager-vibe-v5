@@ -34,7 +34,7 @@ export function useSafeSetState<T>(
         setState(newState);
       }
     },
-    [] // mountedRef는 stable하므로 의존성 배열에서 제외
+    [mountedRef] // mountedRef 의존성 추가
   );
 
   return [state, safeSetState];

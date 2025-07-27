@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const action = searchParams.get('action');
 
     switch (action) {
-      case 'status':
+      case 'status': {
         const validation = devKeyManager.validateAllKeys();
         return NextResponse.json({
           timestamp: new Date().toISOString(),
@@ -32,29 +32,33 @@ export async function GET(request: NextRequest) {
           },
           services: validation.details,
         });
+      }
 
-      case 'report':
+      case 'report': {
         const report = devKeyManager.getStatusReport();
         return NextResponse.json({
           timestamp: new Date().toISOString(),
           report: report,
         });
+      }
 
-      case 'generate-env':
+      case 'generate-env': {
         const envResult = await devKeyManager.generateEnvFile();
         return NextResponse.json({
           timestamp: new Date().toISOString(),
           ...envResult,
         });
+      }
 
-      case 'quick-setup':
+      case 'quick-setup': {
         const setupResult = await devKeyManager.quickSetup();
         return NextResponse.json({
           timestamp: new Date().toISOString(),
           ...setupResult,
         });
+      }
 
-      default:
+      default: {
         // 기본: 상태 정보 반환
         const defaultValidation = devKeyManager.validateAllKeys();
         return NextResponse.json({
@@ -72,6 +76,7 @@ export async function GET(request: NextRequest) {
           },
           availableActions: ['status', 'report', 'generate-env', 'quick-setup'],
         });
+      }
     }
   } catch (error: any) {
     console.error('❌ DevKeyManager API 오류:', error);

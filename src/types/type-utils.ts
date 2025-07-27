@@ -134,12 +134,6 @@ export function safeUseEffectReturn(
 export function getArrayElement<T>(
   array: T[],
   index: number,
-  defaultValue: T
-): T;
-export function getArrayElement<T>(array: T[], index: number): T | undefined;
-export function getArrayElement<T>(
-  array: T[],
-  index: number,
   defaultValue?: T
 ): T | undefined {
   const element = safeArrayAccess(array, index);

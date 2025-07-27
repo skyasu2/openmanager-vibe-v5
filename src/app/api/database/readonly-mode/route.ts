@@ -36,7 +36,7 @@ async function setReadOnlyMode(enabled: boolean, reason?: string) {
   };
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const status = {
       mode: readOnlyMode ? 'readonly' : 'readwrite',
@@ -137,7 +137,7 @@ export async function PUT(request: NextRequest) {
     console.log('🔧 Database readonly mode action requested:', action);
 
     switch (action) {
-      case 'emergency_readonly':
+      case 'emergency_readonly': {
         const result = await setReadOnlyMode(true, 'Emergency activation');
         return NextResponse.json({
           success: true,
@@ -146,8 +146,9 @@ export async function PUT(request: NextRequest) {
           data: result,
           timestamp: new Date().toISOString(),
         });
+      }
 
-      case 'maintenance_readonly':
+      case 'maintenance_readonly': {
         const maintenanceResult = await setReadOnlyMode(
           true,
           'Maintenance mode'
@@ -159,8 +160,9 @@ export async function PUT(request: NextRequest) {
           data: maintenanceResult,
           timestamp: new Date().toISOString(),
         });
+      }
 
-      case 'restore_readwrite':
+      case 'restore_readwrite': {
         const restoreResult = await setReadOnlyMode(false, 'Manual restore');
         return NextResponse.json({
           success: true,
@@ -169,6 +171,7 @@ export async function PUT(request: NextRequest) {
           data: restoreResult,
           timestamp: new Date().toISOString(),
         });
+      }
 
       default:
         return NextResponse.json(

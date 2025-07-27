@@ -211,10 +211,10 @@ function generateDiskGB(type?: string): number {
 }
 
 // 🎯 배열 변환 함수들 (내부 사용을 위해 export 제거)
-function transformArray(rawData: RawServerData[]): Server[] {
+function _transformArray(rawData: RawServerData[]): Server[] {
   return rawData.map((raw, index) => transformRawToServer(raw, index));
 }
 
-function transformArrayForModal(rawData: RawServerData[]): any[] {
+function _transformArrayForModal(rawData: RawServerData[]): any[] {
   return rawData.map((raw, index) => transformRawToEnhancedServer(raw, index));
 }

@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     } else {
       // 일반 컨텍스트 요청 처리
       switch (contextType) {
-        case 'mcp':
+        case 'mcp': {
           console.log('🔗 MCP 서버 컨텍스트 전용 요청');
           const mcpContext = await cloudContextLoader.queryMCPContextForRAG(
             query,
@@ -79,8 +79,9 @@ export async function POST(request: NextRequest) {
           response.data.mcpContext = mcpContext;
           response.data.contextSources = ['mcp-server'];
           break;
+        }
 
-        case 'local':
+        case 'local': {
           console.log('📚 로컬 컨텍스트 전용 요청');
           const localContexts = await Promise.all([
             cloudContextLoader.loadContextBundle('base'),
@@ -90,9 +91,10 @@ export async function POST(request: NextRequest) {
           response.data.localContexts = localContexts.filter(Boolean);
           response.data.contextSources = ['local-base', 'local-advanced'];
           break;
+        }
 
         case 'hybrid':
-        default:
+        default: {
           console.log('🔄 하이브리드 컨텍스트 요청 (MCP + 로컬)');
 
           // MCP 컨텍스트 조회
@@ -118,6 +120,7 @@ export async function POST(request: NextRequest) {
             ),
           ];
           break;
+        }
       }
     }
 
@@ -155,7 +158,7 @@ export async function POST(request: NextRequest) {
  *
  * GET /api/mcp/context-integration
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     console.log('📊 MCP + RAG 통합 상태 조회 시작...');
 
