@@ -44,7 +44,8 @@ interface FeatureCard {
 }
 
 // 기술 카테고리별 데이터
-const techCategories = {
+// 미사용 데이터 - 향후 기술 상세 모달에서 사용 예정
+// const techCategories = {
   'mcp-ai-system': {
     title: '🧠 MCP AI System (GCP 배포)',
     icon: Brain,
@@ -313,15 +314,15 @@ const techCategories = {
 };
 
 // 카드별 기술 카테고리 매핑
-const cardTechMapping = {
+// const cardTechMapping = {
   'mcp-ai-engine': ['mcp-ai-system', 'rag-backup-engine'],
-  'fullstack-ecosystem': ['frontend', 'data-storage', 'monitoring'],
+  'fullstack-ecosystem': ['data-storage', 'monitoring', 'development'],
   'tech-stack': ['frontend', 'visualization'],
-  'cursor-ai': ['mcp-integration', 'ai-development', 'development'],
+  'cursor-ai': ['mcp-integration', 'ai-development'],
 };
 
 // 버전 관리 시스템 - v5.44.0 기준 업데이트
-const COMPONENT_VERSIONS = {
+// const COMPONENT_VERSIONS = {
   'mcp-ai-engine': '5.44.0', // TensorFlow 제거, 경량 ML 통합 완료
   'fullstack-ecosystem': '5.44.0', // Next.js 15.3.2 + React 19.1.0 완성
   'tech-stack': '5.44.0', // 최신 기술 스택 완전 구현
@@ -329,7 +330,7 @@ const COMPONENT_VERSIONS = {
 } as const;
 
 // 버전 히스토리 추적 (v5.44.0 현재 상태)
-const VERSION_HISTORY = {
+// const VERSION_HISTORY = {
   'mcp-ai-engine': [
     {
       version: '5.44.0',
@@ -363,13 +364,13 @@ const VERSION_HISTORY = {
       version: '5.44.0',
       date: KoreanTimeUtil.getVersionDate('5.44.0'),
       changes:
-        'Next.js 15.3.2 + React 19.1.0 완성, Upstash Redis 연동, 완전한 풀스택 생태계 구축',
+        'GCP VM에서 MCP 서버 24시간 운영, Google AI Studio 통합, 6개 클라우드 서비스 완전 통합',
     },
     {
       version: '1.0.0',
       date: KoreanTimeUtil.getVersionDate('1.0.0'),
       changes:
-        '풀스택 개발 생태계 구축 - 프론트엔드, 백엔드, AI 엔진, 배포 인프라 통합',
+        '초기 인프라 구축 - Vercel 배포 + Supabase DB + 기본 CI/CD 설정',
     },
   ],
   'tech-stack': [
@@ -385,12 +386,17 @@ const VERSION_HISTORY = {
       version: '5.44.0',
       date: KoreanTimeUtil.getVersionDate('5.44.0'),
       changes:
-        'Claude Sonnet 3.7 통합, MCP Protocol 완전 구현, GitHub Actions CI/CD 완성',
+        'Claude Code 메인 전환, Gemini CLI 보조 활용, MCP Protocol 완전 통합',
     },
     {
-      version: '2.0.0',
-      date: KoreanTimeUtil.getVersionDate('2.0.0'),
-      changes: 'GitHub + Vercel 배포 통합',
+      version: '3.0.0',
+      date: KoreanTimeUtil.getVersionDate('3.0.0'),
+      changes: 'Cursor AI로 동적 React 앱 개발, Vercel 자동 배포',
+    },
+    {
+      version: '1.0.0',
+      date: KoreanTimeUtil.getVersionDate('1.0.0'),
+      changes: 'ChatGPT로 정적 웹페이지 생성 시작',
     },
   ],
 } as const;
@@ -399,30 +405,26 @@ const VERSION_HISTORY = {
 const cardData: FeatureCard[] = [
   {
     id: 'mcp-ai-engine',
-    title: '🧠 통합 AI 시스템',
+    title: '🧠 AI 시스템',
     description:
-      '📊 서버 상태를 한국어로 질문하세요! "CPU 높은 서버는?" → 즉시 분석 결과 제공. 장애 시 자동 보고서 생성',
+      '한국어로 자연스럽게 질문하세요! "메모리 많이 쓰는 서버?" → 즉시 분석. LOCAL 모드로 무료 사용',
     icon: Bot,
     gradient: 'from-purple-500 via-indigo-500 to-cyan-400',
     detailedContent: {
-      overview: `UnifiedAIEngineRouter v3.3.0 - 11개 통합 AI 컴포넌트를 조합한 차세대 한국어 AI 시스템입니다. 서버 모니터링 전용으로 설계되어 자연어 질의를 통한 실시간 시스템 분석과 장애 예측, 자동 보고서 생성을 지원합니다.`,
+      overview: `2가지 모드로 동작하는 똑똑한 AI 시스템입니다. LOCAL 모드는 무료로 사용 가능하며, 필요시 Google AI로 더 정교한 분석을 제공합니다.`,
       features: [
-        '🇰🇷 완전한 한국어 지원: "CPU 높은 서버는?" → 즉시 분석 결과 제공',
-        '🤖 11개 통합 AI 컴포넌트: Google AI Studio + Korean NLP + MCP Protocol',
-        '⚡ 2가지 성능 모드: LOCAL(정확도 우선) + GOOGLE_ONLY(속도 우선)',
-        '🧠 실시간 시스템 분석: 서버 상태, 성능 메트릭, 장애 패턴 자동 해석',
-        '📋 자동 장애 보고서: 시스템 이상 감지 시 상세 분석 리포트 즉시 생성',
-        '🔄 벡터 검색 시스템: Supabase pgVector 기반 지식 베이스 구축',
-        '🎯 컨텍스트 추론: MCP 프로토콜로 시스템 상태를 정확히 이해',
+        '🇰🇷 한국어 자연어 처리: "CPU 높은 서버?", "메모리 부족한 VM?"',
+        '🆓 LOCAL 모드: Supabase RAG + 한국어 엔진 (무료)',
+        '🚀 GOOGLE 모드: Gemini 2.0 Flash (일 1,000회)',
+        '💾 벡터 검색: 사용할수록 정확해지는 학습 시스템',
+        '⚡ 빠른 응답: LOCAL 100-300ms, 캐싱으로 반복 질의 즉시',
       ],
       technologies: [
-        'UnifiedAIEngineRouter v3.3.0',
-        'Google AI Studio (Gemini)',
-        'OptimizedKoreanNLP Engine',
+        '2-Mode System',
+        'Supabase pgVector',
+        'Korean NLP',
+        'Google Gemini 2.0',
         'MCP Protocol',
-        'Supabase Vector DB',
-        'Natural Language Processing',
-        'Real-time Analytics',
       ],
     },
     requiresAI: true,
@@ -430,62 +432,56 @@ const cardData: FeatureCard[] = [
   },
   {
     id: 'fullstack-ecosystem',
-    title: '🚀 풀스택 개발 생태계',
+    title: '🏗️ 클라우드 개발 환경',
     description:
-      '완전한 서버 모니터링 플랫폼 아키텍처. 프론트엔드부터 AI 백엔드까지 모든 레이어가 유기적으로 연결된 확장 가능한 시스템',
+      'Vercel + Supabase + GCP + GitHub. 프론트엔드부터 AI 서버까지 통합된 현대적 클라우드 개발 플랫폼',
     icon: Database,
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
-      overview: `마이크로서비스 아키텍처 기반의 확장 가능한 서버 모니터링 플랫폼입니다. 603개 파일, 200,081줄 규모로 프론트엔드, 백엔드, 통합 AI 컴포넌트, 데이터베이스가 모두 통합된 완전한 생태계를 구축했습니다.`,
+      overview: `6개의 클라우드 서비스를 하나로 연결한 개발 환경입니다. 코드 작성부터 배포까지 모든 과정이 자동화되어 있습니다.`,
       features: [
-        '🏗️ 마이크로서비스 아키텍처: 독립적인 서비스 단위로 확장성 확보',
-        '🌐 하이브리드 클라우드: Vercel(웹) + Render(AI) 멀티클라우드 전략',
-        '📊 실시간 데이터 파이프라인: PostgreSQL → Redis → WebSocket 스트리밍',
-        '🔄 서버리스 백엔드: Edge Functions 기반 고성능 API 서버',
-        '💾 데이터 레이어 설계: PostgreSQL 주DB + Redis 캐시 + Vector DB',
-        '🛡️ 보안 아키텍처: 환경변수 암호화, API 키 관리, 접근 제어 완성',
-        '📈 모니터링 인프라: 시스템 메트릭 수집, 로그 분석, 알림 시스템',
+        '▲ Vercel: 자동 배포, Edge Functions, Preview URL',
+        '🐘 Supabase: PostgreSQL + 실시간 구독 + RLS',
+        '⚡ Upstash Redis: 캐싱, 세션, Rate Limiting',
+        '☁️ GCP: VM에서 MCP 서버 24/7 운영',
+        '🤖 Google AI Studio: Gemini API 통합',
+        '🐙 GitHub Actions: CI/CD 자동화',
       ],
       technologies: [
-        'Microservices Architecture',
-        'Vercel Edge Runtime',
-        'Render Cloud Platform',
-        'PostgreSQL Database',
+        'Vercel',
+        'Supabase',
         'Upstash Redis',
-        'WebSocket Streaming',
-        'Security Framework',
+        'Google Cloud Platform',
+        'GitHub',
+        'MCP Server (GCP VM)',
       ],
     },
     requiresAI: false,
   },
   {
     id: 'tech-stack',
-    title: '⚡ 적용 기술',
+    title: '⚡ 코드 품질',
     description:
-      '💻 최신 웹 기술 스택의 완벽한 구현. Next.js 15.3.2 + TypeScript로 타입 안전성 100%, 모던 UI/UX 프레임워크 통합',
+      'TypeScript 타입 에러 0개! 100% 타입 안전성 + 자동화된 테스트로 견고한 코드베이스 유지',
     icon: Code,
     gradient: 'from-purple-500 to-indigo-600',
     detailedContent: {
-      overview:
-        '2025년 최신 웹 개발 기술을 완벽하게 구현한 차세대 기술 스택입니다. TypeScript 오류 0개, 완전한 타입 안전성, 모던 UI 컴포넌트, 그리고 개발자 경험을 극대화하는 도구들이 통합되어 있습니다.',
+      overview: `TypeScript 타입 에러 0개를 달성한 프로젝트입니다. 모든 코드가 타입 안전하며, 자동화된 품질 검사로 깨끗한 코드를 유지합니다.`,
       features: [
-        '⚛️ 최신 React 생태계: Next.js 15.3.2 + React 19.1.0 서버 컴포넌트',
-        '🎨 모던 UI 시스템: TailwindCSS 3.4 + Shadcn/ui + Framer Motion',
-        '🔧 완전한 타입 안전성: TypeScript 100% + Zod 스키마 검증',
-        '🎭 상태 관리: Zustand + React Query + 서버 상태 동기화',
-        '📊 데이터 시각화: Chart.js + Recharts + D3.js 반응형 차트',
-        '🧪 품질 보증 도구: Vitest + Playwright + ESLint + Prettier',
-        '🚀 개발 도구: Hot Reload + Fast Refresh + TypeScript 실시간 검사',
+        '✅ TypeScript: 100% 타입 커버리지, any 사용 금지',
+        '⚛️ React 19 + Next.js 15: 최신 서버 컴포넌트',
+        '🎨 TailwindCSS: JIT 컴파일로 빠른 스타일링',
+        '🧪 자동 테스트: Vitest + Playwright E2E',
+        '📏 코드 규칙: ESLint + Prettier 자동 적용',
+        '🚀 CI/CD: GitHub Actions로 PR마다 검증',
       ],
       technologies: [
-        'Next.js 15.3.2',
-        'React 19.1.0',
-        'TypeScript 100%',
-        'TailwindCSS 3.4',
-        'Framer Motion',
-        'Zustand + React Query',
-        'Chart.js + Recharts',
-        'Vitest + Playwright',
+        'TypeScript',
+        'React 19',
+        'Next.js 15',
+        'TailwindCSS',
+        'Vitest',
+        'ESLint',
       ],
     },
     requiresAI: false,
@@ -494,41 +490,24 @@ const cardData: FeatureCard[] = [
     id: 'cursor-ai',
     title: '🔥 Vibe Coding',
     description:
-      '🎯 AI 주도 개발 방법론의 완성체. Cursor + Claude Sonnet으로 자연어 명령만으로 고품질 코드 생성부터 자동 배포까지',
+      '🎯 AI와 함께하는 코딩 진화: ChatGPT(정적) → Cursor AI(동적) → Claude Code(풀스택) + Gemini CLI',
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
-      overview:
-        '차세대 AI 페어 프로그래밍 방법론입니다. 3개의 핵심 AI 에이전트(Cursor+Claude, Jules, Codex)를 조합하여 개발 속도 300% 향상, 코드 품질 A등급(85점) 달성. 자연어 명령으로 전체 개발 사이클을 자동화한 혁신적 워크플로우입니다.',
+      overview: `AI와 함께 코딩하는 방법의 진화입니다. ChatGPT로 시작해 Cursor AI를 거쳐 현재는 Claude Code와 Gemini CLI를 활용합니다.`,
       features: [
-        '🎯 Cursor AI + Claude Sonnet 3.7.2: 메인 AI 페어 프로그래밍 도구',
-        '🔄 아키텍처 설계부터 디버깅까지 AI와 실시간 협업',
-        '📝 자연어 기반 개발: "사용자 인증 시스템 만들어줘" → 완전한 코드 생성',
-        '🤖 Jules (Google): 비동기형 코딩 에이전트',
-        '☁️ GitHub 클론 → Google Cloud VM 백그라운드 독립 실행',
-        '📋 작업 분할: 큰 과제를 서브태스크로 나누어 처리',
-        '📊 완성 후 plan, diff, PR 형태로 결과 제공',
-        '💬 Codex (OpenAI): 대화형·실시간 에이전트',
-        '⚡ ChatGPT/CLI 기반 즉각적인 코드 생성, 수정, 테스트',
-        '🧪 가상 샌드박스: 파일 수정 → 테스트 → PR 병렬 작업 수행',
-        '🔍 MCP 도구 체인: filesystem, web-search, github 완전 자동화',
-        '🚀 무중단 배포: Git 커밋 → 자동 테스트 → 빌드 → 배포 원클릭',
-        '📱 GitHub 워크플로우: 이슈 추적, PR 자동 생성, 코드 리뷰 AI 지원',
-        '⚡ 실시간 최적화: 성능 분석, 보안 검사, 코드 품질 실시간 모니터링',
-        '🎨 AI 개발 방법론: TDD 자동화, 테스트 케이스 자동 생성, 리팩토링 제안',
+        '📄 1단계: ChatGPT로 HTML/CSS 정적 페이지',
+        '⚛️ 2단계: Cursor AI로 React 동적 앱',
+        '🚀 3단계: Claude Code로 풀스택 개발',
+        '🤝 현재: Gemini CLI로 병렬 작업',
+        '🔗 MCP: 파일시스템과 도구 완전 통합',
+        '💡 진화: 각 단계의 경험이 다음 단계의 토대',
       ],
       technologies: [
-        'Cursor AI IDE',
-        'Claude Sonnet 3.7.2',
-        'Jules (Google AI)',
-        'Codex (OpenAI)',
-        'Google Cloud VM',
-        'MCP Protocol Suite',
-        'AI-driven TDD',
-        'GitHub Actions',
-        'Virtual Sandbox',
-        'Automated CI/CD',
-        'Real-time Code Analysis',
+        'ChatGPT → Cursor AI → Claude Code',
+        'Gemini CLI (보조)',
+        'MCP Protocol',
+        'AI Pair Programming',
       ],
     },
     requiresAI: false,
@@ -539,10 +518,10 @@ const cardData: FeatureCard[] = [
 
 export default function FeatureCardsGrid() {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
-  const [showDevModal, setShowDevModal] = useState(false);
+  // const [showDevModal, setShowDevModal] = useState(false);
   const modalRef = useRef<HTMLDivElement | null>(null);
 
-  const { aiAgent, adminMode } = useUnifiedAdminStore();
+  const { aiAgent } = useUnifiedAdminStore();
 
   // 다크모드 상태를 페이지에서 가져오기 (page.tsx에서 사용하는 것과 동일한 로직)
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -626,10 +605,10 @@ export default function FeatureCardsGrid() {
 
   const selectedCardData = cardData.find(card => card.id === selectedCard);
 
-  // 선택된 카드의 기술 스택 분석
-  const analyzedTechStack = selectedCardData
-    ? analyzeTechStack(selectedCardData.detailedContent.technologies)
-    : [];
+  // 선택된 카드의 기술 스택 분석 - 향후 사용 예정
+  // const analyzedTechStack = selectedCardData
+  //   ? analyzeTechStack(selectedCardData.detailedContent.technologies)
+  //   : [];
 
   // AI 단어에 그라데이션 애니메이션 적용하는 함수
   const renderTextWithAIGradient = (text: string) => {
@@ -882,8 +861,8 @@ export default function FeatureCardsGrid() {
         isDarkMode={isDarkMode}
       />
 
-      {/* 개발 중 모달 */}
-      <AnimatePresence>
+      {/* 개발 중 모달 - 향후 사용 예정 */}
+      {/* <AnimatePresence>
         {showDevModal && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8, y: 10 }}
@@ -899,7 +878,7 @@ export default function FeatureCardsGrid() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
     </>
   );
 }

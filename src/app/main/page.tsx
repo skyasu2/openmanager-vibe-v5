@@ -11,7 +11,7 @@ import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
-import { BarChart3, Bot, Loader2, Play, X, Zap, LogIn } from 'lucide-react';
+import { BarChart3, Bot, Loader2, Play, X, LogIn } from 'lucide-react';
 import {
   getCurrentUser,
   isGitHubAuthenticated,
@@ -795,23 +795,14 @@ export default function Home() {
                 )}
               </div>
 
-              {/* 추가 설명 */}
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4 text-sm'>
-                <div className='p-3 rounded-lg bg-white/5'>
-                  <div className='flex items-center gap-2 mb-1'>
-                    <Zap className='w-4 h-4 text-blue-400' />
-                    <span className='font-semibold'>시스템 시작 과정</span>
-                  </div>
-                  <p className='text-white/70'>
-                    MCP 서버 Wake-up → 서버 시딩 → 시뮬레이션 → 대시보드 이동
-                  </p>
-                </div>
-                <div className='p-3 rounded-lg bg-white/5'>
-                  <div className='flex items-center gap-2 mb-1'>
+              {/* AI 어시스턴트 안내 */}
+              <div className='flex justify-center text-sm'>
+                <div className='p-3 rounded-lg bg-white/5 max-w-md'>
+                  <div className='flex items-center gap-2 mb-1 justify-center'>
                     <Bot className='w-4 h-4 text-purple-400' />
                     <span className='font-semibold'>AI 어시스턴트</span>
                   </div>
-                  <p className='text-white/70'>
+                  <p className='text-white/70 text-center'>
                     시스템 시작 후 대시보드에서 AI 사이드바 이용 가능
                   </p>
                 </div>
