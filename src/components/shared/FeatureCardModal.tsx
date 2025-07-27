@@ -1,33 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-  BrainCircuit,
-  Component,
-  Database,
-  Dna,
-  Fingerprint,
-  GitMerge,
-  Globe,
-  Layout,
-  Package,
-  Palette,
-  Play,
-  Rabbit,
-  RefreshCw,
-  Rocket,
-  Search,
-  Shapes,
-  Share2,
-  Shield,
-  Shuffle,
-  Sparkles,
-  TestTube2,
-  ToggleRight,
-  Users,
-  X,
-  Zap,
-} from 'lucide-react';
+import { X } from 'lucide-react';
 import React, { useEffect } from 'react';
 
 interface FeatureCardModalProps {
@@ -36,425 +10,8 @@ interface FeatureCardModalProps {
   renderTextWithAIGradient: (text: string) => React.ReactNode;
   modalRef: React.RefObject<HTMLDivElement>;
   variant?: 'home' | 'landing';
-  isDarkMode?: boolean;
+  _isDarkMode?: boolean;
 }
-
-// 기술 카테고리 타입
-type TechCategory =
-  | 'framework'
-  | 'language'
-  | 'database'
-  | 'ai'
-  | 'opensource'
-  | 'custom'
-  | 'deployment'
-  | 'ui';
-
-// 중요도 레벨 타입
-type ImportanceLevel = 'critical' | 'high' | 'medium' | 'low';
-
-interface TechItem {
-  name: string;
-  category: TechCategory;
-  importance: ImportanceLevel;
-  description: string;
-  version?: string;
-  status: 'active' | 'ready' | 'planned';
-  icon: string;
-  tags: string[];
-}
-
-// 현재 사용 기술 스택 (2025년 7월 실제 구현 기준)
-const getCurrentTechStack = (cardId: string): TechItem[] => {
-  const techStacks: { [key: string]: TechItem[] } = {
-    'mcp-ai-engine': [
-      {
-        name: 'UnifiedAIEngineRouter v3.3.0',
-        category: 'ai',
-        importance: 'critical',
-        description: '2모드 전용 AI 라우터 시스템 (LOCAL/GOOGLE_ONLY)',
-        version: '3.3.0',
-        status: 'active',
-        icon: 'Shuffle',
-        tags: ['AI', 'Router', '2모드'],
-      },
-      {
-        name: 'Google AI Studio (Gemini)',
-        category: 'ai',
-        importance: 'critical',
-        description: 'Gemini 1.5 Pro 기반 GOOGLE_ONLY 모드 핵심 엔진',
-        status: 'active',
-        icon: 'Sparkles',
-        tags: ['AI', 'Gemini', 'Production'],
-      },
-      {
-        name: 'MCP Context Collector',
-        category: 'ai',
-        importance: 'high',
-        description: 'Model Context Protocol 기반 실시간 컨텍스트 수집',
-        status: 'active',
-        icon: 'Share2',
-        tags: ['MCP', 'Context', 'Real-time'],
-      },
-      {
-        name: 'Supabase Vector DB',
-        category: 'database',
-        importance: 'high',
-        description: 'pgvector 확장을 통한 AI 임베딩 벡터 저장소',
-        status: 'active',
-        icon: 'Search',
-        tags: ['Vector', 'PostgreSQL', 'Supabase'],
-      },
-      {
-        name: 'OptimizedKoreanNLP',
-        category: 'language',
-        importance: 'medium',
-        description: '5단계 병렬 처리 한국어 자연어 처리 엔진',
-        status: 'active',
-        icon: 'BrainCircuit',
-        tags: ['Korean', 'NLP', 'Parallel'],
-      },
-      {
-        name: 'Render Deployment',
-        category: 'deployment',
-        importance: 'medium',
-        description: 'MCP 서버 전용 클라우드 배포 환경',
-        status: 'active',
-        icon: 'Rocket',
-        tags: ['Cloud', 'MCP', 'GCP'],
-      },
-    ],
-    'fullstack-ecosystem': [
-      {
-        name: 'Next.js 15.3.2',
-        category: 'framework',
-        importance: 'critical',
-        description: 'React 메타프레임워크 - 94개 페이지 성공적 빌드',
-        version: '15.3.2',
-        status: 'active',
-        icon: 'Component',
-        tags: ['Framework', 'React', 'Production'],
-      },
-      {
-        name: 'Vercel Edge Runtime',
-        category: 'deployment',
-        importance: 'critical',
-        description: '서버리스 엣지 컴퓨팅 - 웹앱 메인 배포 환경',
-        status: 'active',
-        icon: 'Globe',
-        tags: ['Serverless', 'Edge', 'Global'],
-      },
-      {
-        name: 'Supabase PostgreSQL',
-        category: 'database',
-        importance: 'high',
-        description: '실시간 PostgreSQL DB + Auth + Vector 통합',
-        status: 'active',
-        icon: 'Database',
-        tags: ['PostgreSQL', 'Real-time', 'Vector'],
-      },
-      {
-        name: 'Upstash Redis',
-        category: 'database',
-        importance: 'high',
-        description: '서버리스 Redis 캐싱 - AI 응답 최적화',
-        status: 'active',
-        icon: 'Rabbit',
-        tags: ['Redis', 'Serverless', 'Cache'],
-      },
-      {
-        name: 'Faker.js',
-        category: 'opensource',
-        importance: 'medium',
-        description: '현실적 서버 메트릭 시뮬레이션 데이터 생성',
-        status: 'active',
-        icon: 'Play',
-        tags: ['Mock', 'Testing', 'Simulation'],
-      },
-      {
-        name: 'TypeScript 100%',
-        category: 'language',
-        importance: 'medium',
-        description: '0개 타입 오류 달성 - 완전한 타입 안전성',
-        status: 'active',
-        icon: 'Shield',
-        tags: ['Type Safety', 'Quality', 'Zero Errors'],
-      },
-    ],
-    'tech-stack': [
-      {
-        name: 'React 19.1.0',
-        category: 'framework',
-        importance: 'critical',
-        description: '최신 React - 서버 컴포넌트 완전 활용',
-        version: '19.1.0',
-        status: 'active',
-        icon: 'Shapes',
-        tags: ['React', 'Server Components', 'Latest'],
-      },
-      {
-        name: 'TailwindCSS 3.4',
-        category: 'ui',
-        importance: 'critical',
-        description: '유틸리티 CSS - 모든 페이지 완전 스타일링',
-        version: '3.4',
-        status: 'active',
-        icon: 'Palette',
-        tags: ['CSS', 'Utility', 'Responsive'],
-      },
-      {
-        name: 'Framer Motion',
-        category: 'ui',
-        importance: 'high',
-        description: 'React 애니메이션 라이브러리 - 60FPS 보장',
-        status: 'active',
-        icon: 'Zap',
-        tags: ['Animation', '60FPS', 'Smooth'],
-      },
-      {
-        name: 'Zustand',
-        category: 'framework',
-        importance: 'high',
-        description: '경량 상태관리 - 전역 상태 완벽 제어',
-        status: 'active',
-        icon: 'Package',
-        tags: ['State', 'Lightweight', 'Global'],
-      },
-      {
-        name: 'Vitest + Playwright',
-        category: 'opensource',
-        importance: 'medium',
-        description: '482개 테스트 100% 통과 - 완전한 테스트 커버리지',
-        status: 'active',
-        icon: 'TestTube2',
-        tags: ['Testing', '100%', 'E2E'],
-      },
-      {
-        name: 'Chart.js + Recharts',
-        category: 'ui',
-        importance: 'medium',
-        description: '반응형 대시보드 차트 - 실시간 데이터 시각화',
-        status: 'active',
-        icon: 'Layout',
-        tags: ['Chart', 'Dashboard', 'Visualization'],
-      },
-    ],
-    'cursor-ai': [
-      {
-        name: 'Cursor AI IDE',
-        category: 'custom',
-        importance: 'critical',
-        description: 'AI 페어 프로그래밍 IDE - 20일간 200,081줄 코딩',
-        status: 'active',
-        icon: 'Fingerprint',
-        tags: ['IDE', 'AI Coding', 'Productivity'],
-      },
-      {
-        name: 'Claude Sonnet 3.7.2',
-        category: 'ai',
-        importance: 'critical',
-        description: 'Anthropic 최신 모델 - A등급 코드 품질 달성',
-        version: '3.7.2',
-        status: 'active',
-        icon: 'Dna',
-        tags: ['AI', 'Code Quality', 'A-Grade'],
-      },
-      {
-        name: 'MCP Protocol',
-        category: 'custom',
-        importance: 'high',
-        description: 'Model Context Protocol - filesystem, github 도구 활용',
-        status: 'active',
-        icon: 'GitMerge',
-        tags: ['MCP', 'Filesystem', 'GitHub'],
-      },
-      {
-        name: 'TDD Methodology',
-        category: 'framework',
-        importance: 'high',
-        description: '테스트 주도 개발 - 482개 테스트 100% 통과',
-        status: 'active',
-        icon: 'RefreshCw',
-        tags: ['TDD', '482 Tests', '100%'],
-      },
-      {
-        name: 'GitHub Automation',
-        category: 'deployment',
-        importance: 'medium',
-        description: '커밋, PR, 빌드, 배포 완전 자동화',
-        status: 'active',
-        icon: 'ToggleRight',
-        tags: ['Automation', 'CI/CD', 'GitHub'],
-      },
-      {
-        name: 'AI Pair Programming',
-        category: 'custom',
-        importance: 'medium',
-        description: '30분 개발 + 5분 AI 검토 사이클',
-        status: 'active',
-        icon: 'Users',
-        tags: ['Pair Programming', 'Cycle', 'Review'],
-      },
-    ],
-  };
-
-  return techStacks[cardId] || [];
-};
-
-// 중요도별 스타일 정의
-const getImportanceStyle = (importance: ImportanceLevel) => {
-  const styles = {
-    critical: {
-      bg: 'border-red-500/30 bg-red-500/5',
-      badge: 'bg-red-500/20 text-red-300 border border-red-500/30',
-      label: '필수',
-      border: 'border-red-500/30',
-    },
-    high: {
-      bg: 'border-orange-500/30 bg-orange-500/5',
-      badge: 'bg-orange-500/20 text-orange-300 border border-orange-500/30',
-      label: '중요',
-      border: 'border-orange-500/30',
-    },
-    medium: {
-      bg: 'border-blue-500/30 bg-blue-500/5',
-      badge: 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
-      label: '보통',
-      border: 'border-blue-500/30',
-    },
-    low: {
-      bg: 'border-gray-500/30 bg-gray-500/5',
-      badge: 'bg-gray-500/20 text-gray-300 border border-gray-500/30',
-      label: '기타',
-      border: 'border-gray-500/30',
-    },
-  };
-  return styles[importance];
-};
-
-// 카테고리별 스타일 정의
-const getCategoryStyle = (category: TechCategory) => {
-  const styles = {
-    framework: { bg: 'bg-purple-500/20', color: 'text-purple-300' },
-    language: { bg: 'bg-blue-500/20', color: 'text-blue-300' },
-    database: { bg: 'bg-green-500/20', color: 'text-green-300' },
-    ai: { bg: 'bg-pink-500/20', color: 'text-pink-300' },
-    opensource: { bg: 'bg-yellow-500/20', color: 'text-yellow-300' },
-    custom: { bg: 'bg-indigo-500/20', color: 'text-indigo-300' },
-    deployment: { bg: 'bg-orange-500/20', color: 'text-orange-300' },
-    ui: { bg: 'bg-cyan-500/20', color: 'text-cyan-300' },
-  };
-  return styles[category];
-};
-
-// 기술 카드 컴포넌트
-const TechCard = ({ tech, index }: { tech: TechItem; index: number }) => {
-  const importanceStyle = getImportanceStyle(tech.importance);
-  const categoryStyle = getCategoryStyle(tech.category);
-
-  return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, type: 'spring', stiffness: 300 }}
-      className={`group relative p-4 rounded-xl border-t-4 ${importanceStyle.border} bg-gray-800/50 hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer overflow-hidden`}
-    >
-      <div
-        className={`absolute top-0 left-0 h-1 w-full ${importanceStyle.bg} opacity-30 group-hover:opacity-60 transition-opacity duration-300`}
-      />
-      {/* 헤더 섹션 */}
-      <div className='relative flex items-center justify-between mb-3'>
-        <div className='flex items-center gap-3 flex-1 min-w-0'>
-          {/* 개선된 아이콘 컨테이너 */}
-          <div
-            className={`w-10 h-10 ${importanceStyle.bg} rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md`}
-          >
-            {renderIcon(tech.icon)}
-          </div>
-          <div className='flex-1 min-w-0'>
-            <h4 className='font-semibold text-white text-base group-hover:text-blue-300 transition-colors'>
-              {tech.name}
-            </h4>
-            {tech.version && (
-              <span className='text-xs text-gray-400 font-mono'>
-                v{tech.version}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* 설명 섹션 */}
-      <div className='relative mb-3'>
-        <p className='text-gray-300 text-sm leading-relaxed line-clamp-2 group-hover:text-gray-200 transition-colors'>
-          {tech.description}
-        </p>
-      </div>
-
-      {/* 태그 섹션 */}
-      <div className='flex flex-wrap gap-2'>
-        {tech.tags.slice(0, 3).map(tag => (
-          <span
-            key={tag}
-            className='px-2 py-1 text-xs font-medium bg-gray-700/80 text-gray-300 rounded-full'
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
-    </motion.div>
-  );
-};
-
-// icon 안전 렌더링 헬퍼
-const renderIcon = (icon: any) => {
-  if (React.isValidElement(icon)) {
-    return icon;
-  }
-  if (typeof icon === 'function') {
-    const IconComponent = icon;
-    return <IconComponent className='w-5 h-5' />;
-  }
-  if (typeof icon === 'string') {
-    const iconMap: { [key: string]: React.ElementType } = {
-      Shuffle,
-      BrainCircuit,
-      Sparkles,
-      Share2,
-      Search,
-      Rocket,
-      Component,
-      Globe,
-      Database,
-      Rabbit,
-      Play,
-      Shield,
-      Shapes,
-      Palette,
-      Zap,
-      Package,
-      TestTube2,
-      Layout,
-      Fingerprint,
-      Dna,
-      GitMerge,
-      RefreshCw,
-      ToggleRight,
-      Users,
-    };
-    const IconComponent = iconMap[icon];
-    if (IconComponent) {
-      return <IconComponent className='w-5 h-5' />;
-    }
-    return (
-      <span className='text-xl' role='img'>
-        {icon}
-      </span>
-    );
-  }
-  return <Package className='w-full h-full' />;
-};
 
 export default function FeatureCardModal({
   selectedCard,
@@ -462,11 +19,9 @@ export default function FeatureCardModal({
   renderTextWithAIGradient,
   modalRef,
   variant = 'home',
-  isDarkMode = true,
+  _isDarkMode = true,
 }: FeatureCardModalProps) {
-  const [activeCategory, setActiveCategory] = React.useState<
-    TechCategory | 'all'
-  >('all');
+  // 사용하지 않는 상태 제거
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -483,190 +38,308 @@ export default function FeatureCardModal({
   if (!selectedCard) return null;
 
   const { title, icon: Icon, gradient, detailedContent } = selectedCard;
-  const techStack = getCurrentTechStack(selectedCard.id);
 
-  const filteredTechStack =
-    activeCategory === 'all'
-      ? techStack
-      : techStack.filter(t => t.category === activeCategory);
+  // 기술 설명 카드 데이터
+  const getTechCards = (cardId: string) => {
+    const techCardsMap: {
+      [key: string]: Array<{
+        name: string;
+        description: string;
+        category: string;
+        icon: string;
+      }>;
+    } = {
+      'mcp-ai-engine': [
+        {
+          name: 'Google AI',
+          description: 'Gemini 언어모델 - 자연어를 이해하고 답변하는 AI',
+          category: 'AI',
+          icon: '🤖',
+        },
+        {
+          name: 'Supabase',
+          description: '실시간 데이터베이스 - 데이터를 저장하고 즉시 조회',
+          category: 'DB',
+          icon: '🐘',
+        },
+        {
+          name: 'pgVector',
+          description: '벡터 검색 - AI가 의미를 파악해서 관련 정보 찾기',
+          category: 'AI',
+          icon: '🔍',
+        },
+        {
+          name: 'MCP Protocol',
+          description: 'AI 도구 연결 - Claude와 다양한 서비스를 연결',
+          category: '도구',
+          icon: '🔗',
+        },
+      ],
+      'fullstack-ecosystem': [
+        {
+          name: 'Vercel',
+          description: '웹사이트 자동 배포 - 코드를 올리면 즉시 웹사이트로',
+          category: '배포',
+          icon: '▲',
+        },
+        {
+          name: 'GitHub',
+          description: '코드 저장소 - 개발 코드를 안전하게 보관하고 협업',
+          category: '도구',
+          icon: '🐙',
+        },
+        {
+          name: 'GCP',
+          description: '구글 클라우드 - 강력한 서버를 빌려서 24시간 운영',
+          category: '클라우드',
+          icon: '☁️',
+        },
+        {
+          name: 'Redis',
+          description: '고속 캐시 저장소 - 자주 쓰는 데이터를 빠르게 접근',
+          category: 'DB',
+          icon: '⚡',
+        },
+      ],
+      'tech-stack': [
+        {
+          name: 'Next.js',
+          description: 'React 웹 프레임워크 - 빠르고 현대적인 웹앱 제작',
+          category: '프레임워크',
+          icon: '⚛️',
+        },
+        {
+          name: 'TypeScript',
+          description: '타입 안전한 JavaScript - 오류를 미리 잡아주는 언어',
+          category: '언어',
+          icon: '🔷',
+        },
+        {
+          name: 'Tailwind',
+          description: 'CSS 프레임워크 - 빠르고 예쁜 디자인 작업',
+          category: 'UI',
+          icon: '🎨',
+        },
+        {
+          name: 'Vitest',
+          description: '테스트 도구 - 코드가 제대로 작동하는지 자동 검사',
+          category: '테스트',
+          icon: '🧪',
+        },
+      ],
+      'cursor-ai': [
+        {
+          name: 'Claude Code',
+          description: 'AI 코딩 도구 - 인공지능과 함께 프로그래밍',
+          category: 'AI',
+          icon: '🤖',
+        },
+        {
+          name: 'Cursor AI',
+          description: 'AI IDE - 코드 작성을 도와주는 똑똑한 에디터',
+          category: '도구',
+          icon: '💻',
+        },
+        {
+          name: 'Gemini CLI',
+          description: '구글 AI 명령줄 - 터미널에서 바로 AI 활용',
+          category: 'AI',
+          icon: '✨',
+        },
+        {
+          name: 'MCP Server',
+          description: 'AI 도구 서버 - 다양한 개발 도구들을 AI가 사용',
+          category: '인프라',
+          icon: '🔧',
+        },
+      ],
+    };
+    return techCardsMap[cardId] || [];
+  };
 
-  const criticalTech = filteredTechStack.filter(
-    t => t.importance === 'critical'
-  );
-  const highTech = filteredTechStack.filter(t => t.importance === 'high');
-  const mediumTech = filteredTechStack.filter(t => t.importance === 'medium');
-  const lowTech = filteredTechStack.filter(t => t.importance === 'low');
+  // 간소화된 컨텐츠 데이터
+  const getSimplifiedContent = (cardId: string) => {
+    const contentMap: {
+      [key: string]: { highlights: string[]; achievements: string[] };
+    } = {
+      'mcp-ai-engine': {
+        highlights: [
+          '🇰🇷 한국어 질문 → 즉시 답변',
+          '🆓 무료 모드 제공',
+          '🚀 구글 AI 연동',
+          '💾 학습하는 검색',
+        ],
+        achievements: [
+          '0.1초 초고속 응답',
+          '99% 에러 해결 완료',
+          '83% MCP 도구 활용',
+          'v5.65.3 안정화',
+        ],
+      },
+      'fullstack-ecosystem': {
+        highlights: [
+          '▲ 자동 웹사이트 배포',
+          '🐘 실시간 데이터베이스',
+          '⚡ 고속 캐시 시스템',
+          '☁️ 24시간 서버 운영',
+        ],
+        achievements: [
+          '94개 페이지 완성',
+          '100% 타입 안전성',
+          '무료 서비스 최적화',
+          '완전 자동화 배포',
+        ],
+      },
+      'tech-stack': {
+        highlights: [
+          '⚛️ 최신 React 웹앱',
+          '🔷 타입 안전한 코드',
+          '🎨 빠른 디자인 작업',
+          '🧪 자동 테스트 검증',
+        ],
+        achievements: [
+          '482개 테스트 통과',
+          '0개 타입 에러',
+          '60FPS 부드러운 동작',
+          'A급 코드 품질',
+        ],
+      },
+      'cursor-ai': {
+        highlights: [
+          '📄 AI 코딩 진화 과정',
+          '🤝 AI 협업 프로그래밍',
+          '🔗 도구 완전 통합',
+          '💡 지능형 개발 환경',
+        ],
+        achievements: [
+          '20만줄 코딩 완성',
+          '30분 개발+5분 검토',
+          '완전 자동화 워크플로',
+          'A급 협업 품질',
+        ],
+      },
+    };
+    return contentMap[cardId] || { highlights: [], achievements: [] };
+  };
 
-  const allCategories: TechCategory[] = Array.from(
-    new Set(techStack.map(t => t.category))
-  );
+  const simplifiedContent = getSimplifiedContent(selectedCard.id);
+  const techCards = getTechCards(selectedCard.id);
 
   const mainContent = (
-    <div className='p-4 sm:p-6 text-white'>
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-x-8'>
-        {/* 좌측 정보 패널 */}
-        <div className='lg:col-span-1 mb-8 lg:mb-0'>
-          <div className='lg:sticky lg:top-6'>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <h3 className='text-2xl sm:text-3xl font-bold mb-2'>{title}</h3>
-              <p className='text-gray-300 mb-6'>{detailedContent.overview}</p>
-            </motion.div>
+    <div className='p-6 text-white'>
+      {/* 헤더 섹션 */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className='text-center mb-8'
+      >
+        <div
+          className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center`}
+        >
+          <Icon className='w-8 h-8 text-white' />
+        </div>
+        <h3 className='text-2xl font-bold mb-3'>
+          {renderTextWithAIGradient(title)}
+        </h3>
+        <p className='text-gray-300 max-w-2xl mx-auto text-sm'>
+          {detailedContent.overview}
+        </p>
+      </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <h4 className='text-lg sm:text-xl font-semibold text-white mb-4'>
-                주요 기능
-              </h4>
-              <ul className='space-y-3'>
-                {detailedContent.features.map((feature: string, i: number) => (
-                  <motion.li
-                    key={i}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.25 + i * 0.05 }}
-                    className='flex items-start gap-3'
-                  >
-                    <div className='w-4 h-4 mt-1 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0'>
-                      <div className='w-2 h-2 bg-blue-400 rounded-full'></div>
-                    </div>
-                    <span className='text-gray-300 text-sm sm:text-base'>
-                      {feature}
-                    </span>
-                  </motion.li>
-                ))}
-              </ul>
-            </motion.div>
+      {/* 3열 컨텐츠 그리드 */}
+      <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
+        {/* 핵심 기능 */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className='space-y-4'
+        >
+          <h4 className='text-lg font-semibold text-blue-300 flex items-center gap-2'>
+            <div className='w-2 h-2 bg-blue-400 rounded-full'></div>
+            핵심 기능
+          </h4>
+          <div className='space-y-3'>
+            {simplifiedContent.highlights.map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 + i * 0.1 }}
+                className='flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors'
+              >
+                <span className='text-sm'>{item}</span>
+              </motion.div>
+            ))}
           </div>
-        </div>
+        </motion.div>
 
-        {/* 우측 기술 스택 */}
-        <div className='lg:col-span-2'>
-          {/* 기술 스택 섹션 */}
-          {techStack.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className='space-y-5'
-            >
-              <div>
-                <h3 className='text-xl sm:text-2xl font-bold text-white mb-4'>
-                  기술 스택 ({filteredTechStack.length})
-                </h3>
-                <div className='flex flex-wrap gap-2 mb-6'>
-                  <button
-                    onClick={() => setActiveCategory('all')}
-                    className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                      activeCategory === 'all'
-                        ? 'bg-blue-500 text-white font-semibold'
-                        : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                    }`}
-                  >
-                    All ({techStack.length})
-                  </button>
-                  {allCategories.map(category => (
-                    <button
-                      key={category}
-                      onClick={() => setActiveCategory(category)}
-                      className={`px-3 py-1 text-sm rounded-full transition-colors capitalize ${
-                        activeCategory === category
-                          ? 'bg-blue-500 text-white font-semibold'
-                          : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                      }`}
-                    >
-                      {category} (
-                      {techStack.filter(t => t.category === category).length})
-                    </button>
-                  ))}
+        {/* 사용 기술 (새로 추가) */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className='space-y-4'
+        >
+          <h4 className='text-lg font-semibold text-purple-300 flex items-center gap-2'>
+            <div className='w-2 h-2 bg-purple-400 rounded-full'></div>
+            사용 기술
+          </h4>
+          <div className='space-y-3'>
+            {techCards.map((tech, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 + i * 0.1 }}
+                className='p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/10'
+              >
+                <div className='flex items-start gap-3'>
+                  <span className='text-lg'>{tech.icon}</span>
+                  <div className='flex-1 min-w-0'>
+                    <div className='flex items-center gap-2 mb-1'>
+                      <span className='font-medium text-white text-sm'>
+                        {tech.name}
+                      </span>
+                      <span className='px-2 py-0.5 text-xs bg-purple-500/20 text-purple-300 rounded-full'>
+                        {tech.category}
+                      </span>
+                    </div>
+                    <p className='text-xs text-gray-400 leading-relaxed'>
+                      {tech.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
 
-              <AnimatePresence mode='wait'>
-                <motion.div
-                  key={activeCategory}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className='space-y-8'
-                >
-                  {/* 필수 기술 */}
-                  {criticalTech.length > 0 && (
-                    <div>
-                      <h4 className='text-lg font-semibold text-red-300 mb-3'>
-                        필수 기술 ({criticalTech.length})
-                      </h4>
-                      <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-3'>
-                        {criticalTech.map((tech, index) => (
-                          <TechCard key={tech.name} tech={tech} index={index} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 중요 기술 */}
-                  {highTech.length > 0 && (
-                    <div>
-                      <h4 className='text-lg font-semibold text-orange-300 mb-3'>
-                        중요 기술 ({highTech.length})
-                      </h4>
-                      <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-3'>
-                        {highTech.map((tech, index) => (
-                          <TechCard key={tech.name} tech={tech} index={index} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 보통 기술 */}
-                  {mediumTech.length > 0 && (
-                    <div>
-                      <h4 className='text-lg font-semibold text-blue-300 mb-3'>
-                        보통 기술 ({mediumTech.length})
-                      </h4>
-                      <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-3'>
-                        {mediumTech.map((tech, index) => (
-                          <TechCard key={tech.name} tech={tech} index={index} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 낮은 우선순위 기술 */}
-                  {lowTech.length > 0 && (
-                    <div>
-                      <h4 className='text-lg font-semibold text-gray-300 mb-3'>
-                        기타 기술 ({lowTech.length})
-                      </h4>
-                      <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-3'>
-                        {lowTech.map((tech, index) => (
-                          <TechCard key={tech.name} tech={tech} index={index} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {filteredTechStack.length === 0 &&
-                    activeCategory !== 'all' && (
-                      <div className='text-center py-10'>
-                        <p className='text-gray-400'>
-                          &apos;{activeCategory}&apos; 카테고리에는 기술이
-                          없습니다.
-                        </p>
-                      </div>
-                    )}
-                </motion.div>
-              </AnimatePresence>
-            </motion.div>
-          )}
-        </div>
+        {/* 주요 성과 */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className='space-y-4'
+        >
+          <h4 className='text-lg font-semibold text-green-300 flex items-center gap-2'>
+            <div className='w-2 h-2 bg-green-400 rounded-full'></div>
+            주요 성과
+          </h4>
+          <div className='space-y-3'>
+            {simplifiedContent.achievements.map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 + i * 0.1 }}
+                className='flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors'
+              >
+                <span className='text-sm'>{item}</span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </div>
   );
@@ -691,7 +364,7 @@ export default function FeatureCardModal({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className='relative w-full max-w-5xl max-h-[90vh] bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 rounded-2xl border border-gray-600/50 shadow-2xl overflow-hidden'
+          className='relative w-full max-w-3xl max-h-[85vh] bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 rounded-2xl border border-gray-600/50 shadow-2xl overflow-hidden'
           onClick={e => e.stopPropagation()}
           data-modal-content='unified-scroll-v2'
         >
@@ -711,6 +384,7 @@ export default function FeatureCardModal({
                 </div>
                 <h2 className='text-lg font-semibold text-white'>{title}</h2>
               </div>
+
               <motion.button
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
@@ -722,8 +396,8 @@ export default function FeatureCardModal({
               </motion.button>
             </header>
             <div
-              className='overflow-y-auto'
-              style={{ maxHeight: 'calc(90vh - 100px)' }}
+              className='overflow-y-auto scroll-smooth'
+              style={{ maxHeight: 'calc(85vh - 80px)' }}
             >
               {mainContent}
             </div>
