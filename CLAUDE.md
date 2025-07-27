@@ -80,75 +80,223 @@ src/
 - `SUPABASE_*`: Supabase 인증
 - 백업: `npm run env:backup`
 
-## 🤖 Sub Agents (10개) - 정상 동작 확인됨 ✅
+## 🤖 Sub Agents (10개) - 100% 정상 동작 확인됨 ✅
 
 ### ⚠️ 중요: MCP 도구 접근 방식
 
 - **tools 필드에 `mcp__*` 형식의 도구를 명시하지 마세요**
 - 기본 도구(Read, Write, Edit, Bash 등)만 명시하면 MCP 도구는 자동 상속됨
 - recommended_mcp는 가이드라인일 뿐, 모든 MCP 서버 사용 가능
+- **특별**: `central-supervisor`는 유일하게 tools 필드 없음 → **모든 도구 자동 상속**
+- **현재 MCP 활용률**: 42% (목표: 70%)
+
+### 🎯 에이전트 선택 가이드
+
+- **복잡한 작업**: `central-supervisor`로 시작하여 작업 분배
+- **코드 작업**: `code-review-specialist` (검토) / `test-automation-specialist` (테스트)
+- **DB 작업**: `database-administrator` (스키마) / `ai-systems-engineer` (RAG 최적화)
+- **문제 해결**: `issue-summary` (분석) / `gemini-cli-collaborator` (2차 의견)
+- **성능 개선**: `ux-performance-optimizer` (프론트) / `database-administrator` (백엔드)
 
 ### 에이전트별 추천 MCP 서버 매핑
 
-1. **ai-systems-engineer** - AI 시스템 아키텍처
-   - 주요: `supabase`, `memory`, `sequential-thinking`, `filesystem`
-   - 보조: `tavily-mcp`, `context7`
+1. **ai-systems-engineer** - AI 시스템 아키텍처 전문가 🤖
+   - **역할**: Local AI/Google AI 듀얼 모드, SimplifiedQueryEngine 최적화, Vercel-GCP 하이브리드 배포
+   - **특징**: NLP 파이프라인, 인시던트 리포팅 AI, 지능형 폴백 설계
+   - **주요 MCP**: `supabase`, `memory`, `sequential-thinking`, `filesystem`
+   - **보조 MCP**: `tavily-mcp`, `context7`
 
-2. **mcp-server-admin** - MCP 인프라 관리
-   - 주요: `filesystem`, `tavily-mcp`, `github`
-   - 보조: `memory`, `sequential-thinking`
+2. **mcp-server-admin** - MCP 인프라 엔지니어 🔧
+   - **역할**: Claude Code MCP 서버 통합 관리, .claude/mcp.json 설정, WSL 호환성
+   - **특징**: 9개 주요 MCP 관리, npx 기반 설치, 작업별 최적 도구 추천
+   - **주요 MCP**: `filesystem`, `tavily-mcp`, `github`
+   - **보조 MCP**: `memory`, `sequential-thinking`
 
-3. **issue-summary** - DevOps 모니터링
-   - 주요: `supabase`, `filesystem`, `tavily-mcp`
-   - 보조: `memory`, `sequential-thinking`
+3. **issue-summary** - DevOps 모니터링 엔지니어 📡
+   - **역할**: 24/7 시스템 상태 감시, Vercel/Redis/Supabase/GCP 실시간 모니터링
+   - **특징**: 오류 패턴 분석, 무료 티어 사용량 추적, Critical/High/Medium/Low 이슈 분류
+   - **주요 MCP**: `supabase`, `filesystem`, `tavily-mcp`
+   - **보조 MCP**: `memory`, `sequential-thinking`
 
-4. **database-administrator** - DB 최적화
-   - 주요: `supabase`, `filesystem`, `memory`
-   - 보조: `context7`, `sequential-thinking`
+4. **database-administrator** - 데이터베이스 최적화 전문가 🗜️
+   - **역할**: Supabase PostgreSQL/Upstash Redis 최적화, pgvector 검색, RLS 정책 설계
+   - **특징**: 무료 티어(Supabase 500MB, Redis 256MB) 최대 활용, 쿼리/인덱스 최적화
+   - **주요 MCP**: `supabase`, `filesystem`, `memory`
+   - **보조 MCP**: `context7`, `sequential-thinking`
 
-5. **code-review-specialist** - 코드 품질 검토
-   - 주요: `filesystem`, `github`, `serena`
-   - 보조: `context7`, `sequential-thinking`
+5. **code-review-specialist** - 코드 품질 검토 전문가 🔍
+   - **역할**: 중복 코드 탐지, God Class/스파게티 코드 검사, 보안 취약점 스캔
+   - **특징**: DRY/SOLID 위반 감지, 자동 리팩토링 제안, TypeScript 타입 안전성 검증
+   - **주요 MCP**: `filesystem`, `github`, `serena`
+   - **보조 MCP**: `context7`, `sequential-thinking`
 
-6. **doc-structure-guardian** - 문서 구조 관리
-   - 주요: `filesystem`, `github`, `memory`
-   - 보조: `sequential-thinking`
+6. **doc-structure-guardian** - 문서 관리 전문가 📚
+   - **역할**: JBGE 원칙으로 핵심 문서 4-6개만 유지, 30일 이상 미사용 문서 아카이브
+   - **특징**: DRY 원칙 중복 제거, AI 친화적 구조, Vercel 배포 문서 자동 생성
+   - **주요 MCP**: `filesystem`, `github`, `memory`
+   - **보조 MCP**: `sequential-thinking`
 
-7. **ux-performance-optimizer** - 프론트엔드 성능
-   - 주요: `filesystem`, `playwright`, `tavily-mcp`
-   - 보조: `context7`, `memory`
+7. **ux-performance-optimizer** - 프론트엔드 UX 엔지니어 ⚡
+   - **역할**: Next.js 15 성능 최적화, Core Web Vitals 개선, WCAG 2.1 AA 접근성
+   - **특징**: LCP<2.5s, CLS<0.1, FID<100ms 목표, Lighthouse 90+ 점수, Edge Runtime 최적화
+   - **주요 MCP**: `filesystem`, `playwright`, `tavily-mcp`
+   - **보조 MCP**: `context7`, `memory`
 
-8. **gemini-cli-collaborator** - AI 협업
-   - 주요: `filesystem`, `github`, `sequential-thinking`
-   - 보조: `memory`, `tavily-mcp`
+8. **gemini-cli-collaborator** - AI 협업 전문가 🤝
+   - **역할**: WSL 환경에서 Gemini CLI로 Claude와 협업, 대량 코드 병렬 분석
+   - **특징**: 두 번째 의견 제공, echo/cat 파이핑, git diff 분석, AI 모델 간 시너지
+   - **주요 MCP**: `filesystem`, `github`, `sequential-thinking`
+   - **보조 MCP**: `memory`, `tavily-mcp`
 
-9. **test-automation-specialist** - 테스트 자동화
-   - 주요: `filesystem`, `playwright`, `github`
-   - 보조: `context7`, `memory`
+9. **test-automation-specialist** - QA 자동화 엔지니어 🧪
+   - **역할**: Jest/Vitest/Playwright/Cypress 자동 감지 및 실행, 실패 테스트 즉시 수정
+   - **특징**: TDD/BDD 원칙, 80%+ 커버리지, GitHub Actions CI/CD 연동, E2E 자동화
+   - **주요 MCP**: `filesystem`, `playwright`, `github`
+   - **보조 MCP**: `context7`, `memory`
 
-10. **central-supervisor** - 중앙 오케스트레이터
-    - 주요: `filesystem`, `memory`, `sequential-thinking`
-    - 보조: 모든 MCP 서버 (작업별 최적 선택)
+10. **central-supervisor** - 중앙 오케스트레이터 🏼
+    - **역할**: 복잡한 다중 작업 조율, 9개 전문 에이전트 지휘, 전체 스택 작업 분배
+    - **특징**: 에이전트 간 충돌 해결, 애매한 요청 라우팅, 결과 종합 및 일관된 솔루션 제공
+    - **주요 MCP**: `filesystem`, `memory`, `sequential-thinking`
+    - **보조 MCP**: 모든 MCP 서버 (작업별 최적 선택)
 
-### 서브 에이전트 사용 예시
+### 📖 실용적인 사용 예시
 
-```bash
-# AI 시스템 최적화 작업
+#### 1. 복잡한 기능 구현 (중앙 오케스트레이터 활용)
+
+```python
 Task(
-  subagent_type="ai-systems-engineer",
-  description="SimplifiedQueryEngine 성능 개선",
-  prompt="주요 MCP: supabase, memory, sequential-thinking 활용"
-)
-
-# 코드 리뷰 요청
-Task(
-  subagent_type="code-review-specialist",
-  description="PR #123 보안 검토",
-  prompt="serena와 github MCP를 활용한 취약점 스캔"
+  subagent_type="central-supervisor",
+  description="사용자 대시보드 기능 구현",
+  prompt="""다음 작업들을 적절한 에이전트에게 분배하여 처리:
+  1. DB 스키마 설계 (database-administrator)
+  2. API 엔드포인트 구현 (ai-systems-engineer)
+  3. 프론트엔드 컴포넌트 개발 (ux-performance-optimizer)
+  4. 테스트 코드 작성 (test-automation-specialist)
+  5. 코드 리뷰 (code-review-specialist)"""
 )
 ```
 
-💡 **팁**: 각 에이전트는 작업 특성에 맞는 MCP 조합으로 최적화되어 있습니다.
+#### 2. 성능 문제 해결
+
+```python
+# 단계 1: 문제 분석
+Task(
+  subagent_type="issue-summary",
+  description="Next.js 애플리케이션 느린 로딩 분석",
+  prompt="Vercel 로그와 Lighthouse 결과를 분석하여 병목 지점 파악"
+)
+
+# 단계 2: 최적화 실행
+Task(
+  subagent_type="ux-performance-optimizer",
+  description="로딩 성능 개선",
+  prompt="번들 크기 줄이기, 이미지 최적화, 코드 스플리팅 적용"
+)
+```
+
+#### 3. 보안 취약점 검사
+
+```python
+Task(
+  subagent_type="code-review-specialist",
+  description="전체 코드베이스 보안 검사",
+  prompt="""다음 항목 중점 검사:
+  - 하드코딩된 시크릿/토큰
+  - SQL 인젝션 취약점
+  - XSS 가능성
+  - 인증/인가 문제
+  serena MCP로 정적 분석 수행"""
+)
+```
+
+#### 4. AI 시스템 디버깅
+
+```python
+# Gemini와 협업하여 문제 해결
+Task(
+  subagent_type="gemini-cli-collaborator",
+  description="SimplifiedQueryEngine 타임아웃 문제",
+  prompt="echo로 로그 분석 후 Gemini에게 최적화 방안 문의"
+)
+```
+
+#### 5. 자동화된 테스트 구축
+
+```python
+Task(
+  subagent_type="test-automation-specialist",
+  description="E2E 테스트 자동화",
+  prompt="""playwright MCP 활용:
+  - 로그인 플로우 테스트
+  - 주요 사용자 시나리오 테스트
+  - CI/CD 파이프라인 통합"""
+)
+```
+
+### 💡 프로 팁 & 베스트 프랙티스
+
+1. **병렬 처리**: 독립적인 작업은 여러 에이전트를 동시에 실행
+
+   ```python
+   # 동시 실행 예시
+   Task(subagent_type="database-administrator", ...)
+   Task(subagent_type="ux-performance-optimizer", ...)
+   ```
+
+2. **단계적 접근**: 복잡한 작업은 분석 → 구현 → 검증 순서로
+
+   ```
+   issue-summary (분석) → ai-systems-engineer (구현) → test-automation-specialist (검증)
+   ```
+
+3. **MCP 서버 활용**: 각 에이전트의 추천 MCP를 프롬프트에 명시하면 더 효과적
+
+4. **문서화**: `doc-structure-guardian`은 주요 변경사항 후 자동 실행 권장
+
+### 🎯 자주 사용하는 에이전트 조합 패턴
+
+#### 1. 풀스택 기능 개발
+
+```
+central-supervisor (전체 조율)
+├─ database-administrator (DB 스키마)
+├─ ai-systems-engineer (API 개발)
+├─ ux-performance-optimizer (프론트엔드)
+└─ test-automation-specialist (테스트)
+```
+
+#### 2. 긴급 버그 수정
+
+```
+issue-summary (문제 분석)
+└─ gemini-cli-collaborator (2차 의견)
+   └─ code-review-specialist (코드 검토)
+```
+
+#### 3. 성능 최적화
+
+```
+ux-performance-optimizer (프론트 분석)
+├─ database-administrator (쿼리 최적화)
+└─ ai-systems-engineer (캐싱 구현)
+```
+
+### 📄 마밴정리: 언제 어떤 에이전트를 사용해야 하나요?
+
+| 상황               | 추천 에이전트                | 이유                    |
+| ------------------ | ---------------------------- | ----------------------- |
+| 복잡한 멀티 태스크 | `central-supervisor`         | 여러 에이전트 조율 필요 |
+| 코드 품질 개선     | `code-review-specialist`     | DRY/SOLID 위반 감지     |
+| 성능 문제          | `ux-performance-optimizer`   | Core Web Vitals 최적화  |
+| DB 스키마 설계     | `database-administrator`     | RLS 정책, 인덱스 최적화 |
+| 테스트 자동화      | `test-automation-specialist` | E2E/단위 테스트         |
+| AI 시스템 문제     | `ai-systems-engineer`        | NLP/RAG 최적화          |
+| 긴급 장애 대응     | `issue-summary`              | 24/7 모니터링           |
+| MCP 설정           | `mcp-server-admin`           | MCP 서버 통합 관리      |
+| 문서 정리          | `doc-structure-guardian`     | JBGE 원칙 적용          |
+| 디버깅 도움        | `gemini-cli-collaborator`    | 2차 의견, AI 협업       |
+
 상세 가이드: `docs/sub-agents-mcp-mapping-guide.md`
 
 ## 💡 사용 팁

@@ -1,3 +1,11 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+// package.json에서 버전 읽기
+const packageJson = JSON.parse(
+  readFileSync(join(process.cwd(), 'package.json'), 'utf8')
+);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // 🚀 Next.js 15 완전 동적 모드 (정적 생성 완전 비활성화)
@@ -155,6 +163,8 @@ const nextConfig = {
     CUSTOM_KEY: 'openmanager-vibe-v5',
     BUILD_TIME: new Date().toISOString(),
     FORCE_NODE_CRYPTO: 'true',
+    NEXT_PUBLIC_APP_VERSION: packageJson.version,
+    NEXT_PUBLIC_DEPLOYMENT_ENV: process.env.VERCEL_ENV || process.env.NODE_ENV || 'development',
   },
 };
 

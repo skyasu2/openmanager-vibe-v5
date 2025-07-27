@@ -11,7 +11,6 @@ import {
   Database,
   RefreshCw,
   Server,
-  Users,
   Zap,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -96,10 +95,7 @@ export function EnhancedProfileStatusDisplay({
 
   const getStatusText = () => {
     if (status?.isStarting) return '시스템 시작 중...';
-    if (status?.isRunning) {
-      const userCount = status.userCount || 1;
-      return `시스템 실행 중 (${userCount}명 접속)`;
-    }
+    if (status?.isRunning) return '시스템 실행 중';
     return '시스템 중지됨';
   };
 
@@ -166,14 +162,7 @@ export function EnhancedProfileStatusDisplay({
           data-testid='full-layout'
           className='mt-2 grid grid-cols-2 gap-2 text-xs'
         >
-          <div className='flex items-center gap-1'>
-            <Users className='w-3 h-3 text-blue-500' />
-            <span data-testid='user-count-display' className='text-gray-600'>
-              접속자: {status.isRunning ? status.userCount || 1 : 0}명
-            </span>
-          </div>
-
-          <div className='flex items-center gap-1'>
+          <div className='flex items-center gap-1 col-span-2'>
             <Server className='w-3 h-3 text-purple-500' />
             <span data-testid='version-display' className='text-gray-600'>
               v{status.version || '0.0.0'}

@@ -48,9 +48,11 @@ export function useSystemStatus(): UseSystemStatusReturn {
         isStarting: data.isStarting || false,
         lastUpdate: data.lastUpdate || new Date().toISOString(),
         userCount: data.activeUsers || data.userCount || 0, // activeUsers 우선 사용
-        version:
-          data.version || process.env.NEXT_PUBLIC_APP_VERSION || '5.48.0',
-        environment: data.environment || process.env.NODE_ENV || 'development',
+        version: data.version || process.env.NEXT_PUBLIC_APP_VERSION || '0.0.0',
+        environment:
+          data.environment ||
+          process.env.NEXT_PUBLIC_DEPLOYMENT_ENV ||
+          'development',
         uptime: data.uptime || 0,
         services: {
           database: data.services?.database ?? true,

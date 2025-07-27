@@ -1,5 +1,28 @@
 # Changelog
 
+## [5.65.1] - 2025-01-27
+
+### 🔍 분석 및 최적화
+
+- **서브 에이전트 및 MCP 활용도 종합 분석**:
+  - 📊 10개 서브 에이전트 100% 성능 벤치마크 완료
+  - 🎯 MCP 도구 실제 활용률 측정: 42% (목표 70%)
+  - 🌟 `central-supervisor` 특별 기능 확인: tools 필드 없이 모든 도구 자동 상속
+  - 📈 에이전트별 MCP 활용 패턴 분석 및 개선안 도출
+
+### 📝 문서 업데이트
+
+- `docs/sub-agents-mcp-usage-analysis-2025-01-27.md` - MCP 활용도 최종 분석 보고서
+- `CLAUDE.md` - central-supervisor 특별 역할 및 MCP 활용률 현황 추가
+
+### 🚀 성능 개선
+
+- **MCP 활용 최적화**:
+  - 가장 많이 사용된 MCP: memory (70%), filesystem (50%), supabase (40%)
+  - 미사용 MCP 식별: github, serena, playwright (0%)
+  - Central Supervisor 패턴 확대 제안
+  - MCP 우선 사용 가이드라인 수립
+
 ## [5.65.0] - 2025-01-27
 
 ### 🏗️ 구조 개선

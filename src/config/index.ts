@@ -15,7 +15,7 @@ export const ConfigSchema = z.object({
   // 애플리케이션 기본 설정
   app: z.object({
     name: z.string().default('OpenManager Vibe v5'),
-    version: z.string().default('5.6.10'),
+    version: z.string().default(process.env.NEXT_PUBLIC_APP_VERSION || '0.0.0'),
     environment: z
       .enum(['production', 'staging', 'development', 'test'])
       .default('development'),
@@ -139,7 +139,7 @@ export class ConfigLoader {
     const rawConfig = {
       app: {
         name: process.env.NEXT_PUBLIC_APP_NAME || 'OpenManager Vibe v5',
-        version: process.env.NEXT_PUBLIC_APP_VERSION || '5.6.10',
+        version: process.env.NEXT_PUBLIC_APP_VERSION || '0.0.0',
         environment: (process.env.NODE_ENV as Environment) || 'development',
         debug: process.env.NEXT_PUBLIC_DEBUG === 'true',
         port: Number(process.env.PORT) || 3000,

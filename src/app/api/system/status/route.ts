@@ -130,8 +130,9 @@ export async function GET(request: NextRequest) {
             endTime: 0,
             activeUsers: 0,
             lastActivity: now,
-            version: '5.44.4',
-            environment: 'standby',
+            version: process.env.NEXT_PUBLIC_APP_VERSION || '0.0.0',
+            environment:
+              process.env.NEXT_PUBLIC_DEPLOYMENT_ENV || 'development',
           },
           isRunning: false,
           startTime: 0,
@@ -139,8 +140,8 @@ export async function GET(request: NextRequest) {
           activeUsers: 0,
           userCount: 0, // userCount 필드 추가 (호환성)
           remainingTime: 0,
-          version: '5.44.4',
-          environment: 'standby',
+          version: process.env.NEXT_PUBLIC_APP_VERSION || '0.0.0',
+          environment: process.env.NEXT_PUBLIC_DEPLOYMENT_ENV || 'development',
         };
 
         return NextResponse.json(minimalResponse, {
@@ -248,8 +249,8 @@ export async function GET(request: NextRequest) {
           endTime: 0,
           activeUsers: 0,
           lastActivity: Date.now(),
-          version: '5.44.4',
-          environment: 'error',
+          version: process.env.NEXT_PUBLIC_APP_VERSION || '0.0.0',
+          environment: process.env.NEXT_PUBLIC_DEPLOYMENT_ENV || 'development',
         },
         userCount: 0, // userCount 필드 추가 (호환성)
       },

@@ -118,8 +118,8 @@ export class RedisSystemStateManager {
         endTime,
         activeUsers: 1,
         lastActivity: startTime,
-        version: '5.44.4',
-        environment: process.env.NODE_ENV || 'development',
+        version: process.env.NEXT_PUBLIC_APP_VERSION || '0.0.0',
+        environment: process.env.NEXT_PUBLIC_DEPLOYMENT_ENV || 'development',
       };
 
       // 시스템 상태 저장 (35분 TTL)
@@ -294,8 +294,8 @@ export class RedisSystemStateManager {
       endTime: 0,
       activeUsers: 0,
       lastActivity: Date.now(),
-      version: '5.44.4',
-      environment: process.env.NODE_ENV || 'development',
+      version: process.env.NEXT_PUBLIC_APP_VERSION || '0.0.0',
+      environment: process.env.NEXT_PUBLIC_DEPLOYMENT_ENV || 'development',
     };
   }
 
