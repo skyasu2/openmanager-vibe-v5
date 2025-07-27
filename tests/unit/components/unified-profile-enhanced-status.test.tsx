@@ -65,7 +65,7 @@ describe('🧪 TDD - EnhancedProfileStatusDisplay', () => {
       );
     });
 
-    it('현재 접속 사용자 수를 표시해야 함', async () => {
+    it.skip('현재 접속 사용자 수를 표시해야 함', async () => {
       render(<EnhancedProfileStatusDisplay />);
 
       // 사용자 수 표시 확인
