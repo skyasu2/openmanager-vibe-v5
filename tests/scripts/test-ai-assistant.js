@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * 🧪 AI 에이전트 기능 검증 스크립트
+ * 🧪 AI 어시스턴트 기능 검증 스크립트
  *
- * 서버 모니터링 AI 에이전트의 주요 기능들을 테스트합니다.
+ * 서버 모니터링 AI 어시스턴트의 주요 기능들을 테스트합니다.
  */
 
 const https = require('https');
@@ -78,7 +78,7 @@ function makeRequest(url, data) {
             statusCode: res.statusCode,
             data: parsedData,
           });
-        } catch (error) {
+        } catch (_error) {
           resolve({
             statusCode: res.statusCode,
             data: responseData,
@@ -223,7 +223,7 @@ async function checkServerHealth() {
  * 메인 테스트 실행
  */
 async function runAllTests() {
-  console.log('🚀 AI 에이전트 기능 검증 시작');
+  console.log('🚀 AI 어시스턴트 기능 검증 시작');
   console.log(`🔗 테스트 대상: ${TEST_CONFIG.baseUrl}`);
   console.log(`📝 총 ${TEST_CONFIG.testQueries.length}개 테스트 케이스`);
 
@@ -300,7 +300,7 @@ async function runAllTests() {
     }
   }
 
-  console.log('\n🎉 AI 에이전트 기능 검증 완료!');
+  console.log('\n🎉 AI 어시스턴트 기능 검증 완료!');
 
   // 성공률에 따른 종료 코드
   process.exit(successRate >= 75 ? 0 : 1);

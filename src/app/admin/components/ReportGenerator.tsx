@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Modal } from '@/components/shared/Modal'; // 가정: Modal 컴포넌트가 존재
 import { Loader, AlertTriangle, Wand2 } from 'lucide-react';
-import type { AIAnalysisDataset } from '@/types/ai-agent-input-schema';
+import type { AIAnalysisDataset } from '@/types/ai-assistant-input-schema';
 import ReactMarkdown from 'react-markdown';
 
 // 임시 모의 데이터
