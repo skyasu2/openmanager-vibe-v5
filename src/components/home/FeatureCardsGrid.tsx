@@ -475,7 +475,7 @@ export default function FeatureCardsGrid() {
         renderTextWithAIGradient={renderTextWithAIGradient}
         modalRef={modalRef as React.RefObject<HTMLDivElement>}
         variant='home'
-        isDarkMode={isDarkMode}
+        _isDarkMode={isDarkMode}
       />
     </>
   );
