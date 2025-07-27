@@ -57,7 +57,7 @@ const cardData: FeatureCard[] = [
     id: 'fullstack-ecosystem',
     title: '🏗️ 클라우드 개발 환경',
     description:
-      'Vercel + Supabase + GCP + GitHub. 프론트엔드부터 AI 서버까지 통합된 현대적 클라우드 개발 플랫폼',
+      'Vercel + Supabase + GCP + Upstash for Redis. 프론트엔드부터 AI 서버까지 통합된 현대적 클라우드 개발 플랫폼',
     icon: Database,
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
@@ -65,18 +65,18 @@ const cardData: FeatureCard[] = [
       features: [
         '▲ Vercel: 자동 배포, Edge Functions, Preview URL',
         '🐘 Supabase: PostgreSQL + 실시간 구독 + RLS',
-        '⚡ Upstash Redis: 캐싱, 세션, Rate Limiting',
+        '⚡ Upstash for Redis: 고성능 캐싱, 세션 관리, Rate Limiting',
         '☁️ GCP: VM에서 MCP 서버 24/7 운영',
         '🤖 Google AI Studio: Gemini API 통합',
-        '🐙 GitHub Actions: CI/CD 자동화',
+        '🔄 자동화된 CI/CD 파이프라인',
       ],
       technologies: [
         'Vercel',
         'Supabase',
-        'Upstash Redis',
+        'Upstash for Redis',
         'Google Cloud Platform',
-        'GitHub',
         'MCP Server (GCP VM)',
+        'CI/CD Pipeline',
       ],
     },
     requiresAI: false,
@@ -113,7 +113,7 @@ const cardData: FeatureCard[] = [
     id: 'cursor-ai',
     title: '🔥 Vibe Coding',
     description:
-      '🎯 AI와 함께하는 코딩 진화: ChatGPT(정적) → Cursor AI(동적) → Claude Code(풀스택) + Gemini CLI',
+      '🎯 AI 기반 워크플로우 구성: ChatGPT (목업) → Cursor AI (정적 페이지 자동 생성) → Claude Code + Gemini CLI (코드 자동화 및 병렬 분석)',
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
