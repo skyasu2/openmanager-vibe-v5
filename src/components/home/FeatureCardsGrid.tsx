@@ -118,7 +118,7 @@ const cardData: FeatureCard[] = [
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
-      overview: `v5.65.3 - AI 페어 프로그래밍의 혁신! Claude Code + MCP 서버 통합으로 개발 자동화, 10개 전문 AI 에이전트로 모든 개발 작업 지원.`,
+      overview: `v5.65.3 - AI 페어 프로그래밍의 혁신! Claude Code + MCP 서버 통합으로 개발 자동화, 10개 전문 AI 어시스턴트로 모든 개발 작업 지원.`,
       features: [
         '🤖 Claude Code: 9개 MCP 서버 통합 (6개 활성, 3개 구성 중)',
         '🤝 서브 에이전트: 10개 전문 AI로 100% 작업 성공률',
@@ -385,10 +385,10 @@ export default function FeatureCardsGrid() {
                   {renderTextWithAIGradient(card.description)}
                 </p>
 
-                {/* AI 에이전트 필요 표시 */}
+                {/* AI 어시스턴트 필요 표시 */}
                 {card.requiresAI && !aiAgent.isEnabled && (
                   <div className='mt-2 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-300 text-xs text-center'>
-                    AI 에이전트 모드 필요
+                    AI 어시스턴트 모드 필요
                   </div>
                 )}
               </div>

@@ -9,16 +9,16 @@
 
 'use client';
 
-import type { AIAgentFunction } from '@/components/ai/AIAgentIconPanel';
-import AIAgentIconPanel from '@/components/ai/AIAgentIconPanel';
+import type { AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
+import AIAssistantIconPanel from '@/components/ai/AIAssistantIconPanel';
 import AutoReportPage from '@/components/ai/pages/AutoReportPage';
 import IntelligentMonitoringPage from '@/components/ai/pages/IntelligentMonitoringPage';
 import { MLLearningCenter } from '@/components/ai/pages/MLLearningCenter';
 import React from 'react';
 
 interface AIFunctionPagesProps {
-  selectedFunction: AIAgentFunction;
-  onFunctionChange: (func: AIAgentFunction) => void;
+  selectedFunction: AIAssistantFunction;
+  onFunctionChange: (func: AIAssistantFunction) => void;
   className?: string;
 }
 
@@ -78,7 +78,7 @@ export const AIFunctionPages: React.FC<AIFunctionPagesProps> = ({
     <div className={`flex flex-col h-full ${className}`}>
       {/* AI 기능 아이콘 패널 */}
       <div className='flex-shrink-0' data-testid='ai-function-navigation'>
-        <AIAgentIconPanel
+        <AIAssistantIconPanel
           selectedFunction={selectedFunction}
           onFunctionChange={onFunctionChange}
         />

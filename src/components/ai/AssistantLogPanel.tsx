@@ -1,5 +1,5 @@
 /**
- * 🔄 AI 에이전트 로그 조회 패널 컴포넌트 (사이드 패널용)
+ * 🔄 AI 어시스턴트 로그 조회 패널 컴포넌트 (사이드 패널용)
  *
  * - AI 추론 과정 로그 조회
  * - 실시간 활동 상태 확인
@@ -45,7 +45,7 @@ interface LogEntry {
   patternDetected?: boolean;
 }
 
-interface AgentLogPanelProps {
+interface AssistantLogPanelProps {
   className?: string;
 }
 
@@ -152,7 +152,7 @@ const generateMockLogs = (): LogEntry[] => [
   },
 ];
 
-const AgentLogPanel: React.FC<AgentLogPanelProps> = ({ className = '' }) => {
+const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({ className = '' }) => {
   // 🔧 관리자 기능 상태
   const [adminMode, setAdminMode] = useState(false);
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
@@ -350,13 +350,13 @@ const AgentLogPanel: React.FC<AgentLogPanelProps> = ({ className = '' }) => {
 
   return (
     <BasePanelLayout
-      title='AI 에이전트 로그'
+      title='AI 어시스턴트 로그'
       subtitle={`실시간 AI 활동 추적 (${logStats.total}개 로그, ${logStats.sessions}개 세션)`}
       icon={<Brain className='w-4 h-4 text-white' />}
       iconGradient='bg-gradient-to-br from-purple-500 to-pink-600'
       onRefresh={reload}
       isLoading={isLoading}
-      adminPath='/admin/ai-agent'
+      adminPath='/admin/ai-assistant'
       adminLabel='상세 관리'
       filters={logTypes}
       selectedFilter={selectedType}
@@ -582,4 +582,4 @@ const AgentLogPanel: React.FC<AgentLogPanelProps> = ({ className = '' }) => {
   );
 };
 
-export default AgentLogPanel;
+export default AssistantLogPanel;

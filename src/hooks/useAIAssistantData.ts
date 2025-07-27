@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import type {
-  AIAgentFilters,
-  AIAgentStats,
+  AIAssistantFilters,
+  AIAssistantStats,
   ContextDocument,
   PatternSuggestion,
   ResponseLogData,
   SystemHealth,
-} from '../types/ai-agent';
+} from '../types/ai-assistant';
 
-interface UseAIAgentDataReturn {
+interface UseAIAssistantDataReturn {
   // 데이터
   responseLogs: ResponseLogData[];
   patternSuggestions: PatternSuggestion[];
@@ -21,7 +21,7 @@ interface UseAIAgentDataReturn {
 
   // 필터링된 데이터
   filteredLogs: ResponseLogData[];
-  stats: AIAgentStats;
+  stats: AIAssistantStats;
 
   // 액션
   loadAllData: () => Promise<void>;
@@ -31,13 +31,13 @@ interface UseAIAgentDataReturn {
   ) => Promise<void>;
 
   // 필터
-  filters: AIAgentFilters;
-  setFilters: React.Dispatch<React.SetStateAction<AIAgentFilters>>;
+  filters: AIAssistantFilters;
+  setFilters: React.Dispatch<React.SetStateAction<AIAssistantFilters>>;
   searchTerm: string;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export function useAIAgentData(): UseAIAgentDataReturn {
+export function useAIAssistantData(): UseAIAssistantDataReturn {
   // 데이터 상태
   const [responseLogs, setResponseLogs] = useState<ResponseLogData[]>([]);
   const [patternSuggestions, setPatternSuggestions] = useState<
@@ -54,7 +54,7 @@ export function useAIAgentData(): UseAIAgentDataReturn {
   const [searchTerm, setSearchTerm] = useState('');
 
   // 필터 상태
-  const [filters, setFilters] = useState<AIAgentFilters>({
+  const [filters, setFilters] = useState<AIAssistantFilters>({
     dateRange: '24h',
     status: 'all',
     confidence: 'all',
@@ -64,7 +64,7 @@ export function useAIAgentData(): UseAIAgentDataReturn {
   const loadResponseLogs = useCallback(async () => {
     try {
       const response = await fetch(
-        '/api/ai-agent/admin/logs?action=interactions&limit=100'
+        '/api/ai-assistant/admin/logs?action=interactions&limit=100'
       );
       if (response.ok) {
         const data = await response.json();
@@ -101,7 +101,7 @@ export function useAIAgentData(): UseAIAgentDataReturn {
   const loadPatternSuggestions = useCallback(async () => {
     try {
       const response = await fetch(
-        '/api/ai-agent/learning/analysis?action=latest-report'
+        '/api/ai-assistant/learning/analysis?action=latest-report'
       );
       if (response.ok) {
         const data = await response.json();
@@ -183,7 +183,7 @@ export function useAIAgentData(): UseAIAgentDataReturn {
       try {
         const apiAction =
           action === 'approve' ? 'approve-suggestion' : 'reject-suggestion';
-        const response = await fetch('/api/ai-agent/learning/analysis', {
+        const response = await fetch('/api/ai-assistant/learning/analysis', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -242,7 +242,7 @@ export function useAIAgentData(): UseAIAgentDataReturn {
   });
 
   // 통계 계산
-  const stats: AIAgentStats = {
+  const stats: AIAssistantStats = {
     totalLogs: responseLogs.length,
     successRate:
       responseLogs.length > 0
@@ -257,7 +257,7 @@ export function useAIAgentData(): UseAIAgentDataReturn {
     totalWords: Math.round(
       contextDocuments.reduce((sum, doc) => sum + doc.wordCount, 0) / 1000
     ),
-    systemStatus: systemHealth?.aiAgent.status === 'online' ? '정상' : '오류',
+    systemStatus: systemHealth?.aiAssistant.status === 'online' ? '정상' : '오류',
   };
 
   // 초기 데이터 로드
@@ -393,7 +393,7 @@ function generateMockContextDocuments(): ContextDocument[] {
 
 function generateMockSystemHealth(): SystemHealth {
   return {
-    aiAgent: {
+    aiAssistant: {
       status: 'online',
       responseTime: Math.floor(Math.random() * 500 + 200),
       uptime: Math.floor(Math.random() * 30 + 1) * 24 * 60 * 60 * 1000,

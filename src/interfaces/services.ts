@@ -156,7 +156,7 @@ export interface IAIAnalysisService {
   isAnalyzing(): boolean;
 }
 
-export interface IAIAgentEngine {
+export interface IAIAssistantEngine {
   processQuery(query: string, context?: any): Promise<any>;
   startLearning(): void;
   stopLearning(): void;

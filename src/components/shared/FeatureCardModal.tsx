@@ -124,7 +124,7 @@ export default function FeatureCardModal({
           name: '서브 에이전트 시스템',
           category: 'ai',
           importance: 'high',
-          description: '10개 전문 AI 에이전트로 작업 자동화 (100% 성공률)',
+          description: '10개 전문 AI 어시스턴트로 작업 자동화 (100% 성공률)',
           implementation: 'Task 도구로 UX, DB, 테스트, 코드리뷰 등 전문가 호출',
           version: 'v5.65.3',
           status: 'active',

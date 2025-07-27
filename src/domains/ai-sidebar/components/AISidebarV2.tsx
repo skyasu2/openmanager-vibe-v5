@@ -45,8 +45,8 @@ import type { ChatMessage } from '@/stores/useAISidebarStore';
 // 새로 분리된 컴포넌트들 import
 
 // AI 기능 아이콘 패널 및 페이지 컴포넌트들
-import type { AIAgentFunction } from '@/components/ai/AIAgentIconPanel';
-import AIAgentIconPanel from '@/components/ai/AIAgentIconPanel';
+import type { AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
+import AIAssistantIconPanel from '@/components/ai/AIAssistantIconPanel';
 
 // 🎯 AI 타입 및 모드 선택기 추가
 import { AIModeSelector } from '@/components/ai/AIModeSelector';
@@ -64,7 +64,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
   // 🔧 상태 관리 (8개 그룹)
   const [selectedFunction, setSelectedFunction] =
-    useState<AIAgentFunction>('chat');
+    useState<AIAssistantFunction>('chat');
   const [selectedEngine, setSelectedEngine] = useState<AIMode>('LOCAL');
   const [inputValue, setInputValue] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -903,7 +903,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
           {/* 오른쪽 AI 기능 아이콘 패널 - 큰 화면에서만 표시 */}
           <div className='hidden sm:block'>
-            <AIAgentIconPanel
+            <AIAssistantIconPanel
               selectedFunction={selectedFunction}
               onFunctionChange={setSelectedFunction}
               className='w-16 sm:w-20'
@@ -919,7 +919,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
               transform: 'translateZ(0)',
             }}
           >
-            <AIAgentIconPanel
+            <AIAssistantIconPanel
               selectedFunction={selectedFunction}
               onFunctionChange={setSelectedFunction}
               className='w-full'

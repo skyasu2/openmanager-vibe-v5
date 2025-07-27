@@ -22,13 +22,13 @@ import {
 } from 'lucide-react';
 
 // 분리된 컴포넌트들 import
-import { useAIAgentData } from '../../hooks/useAIAgentData';
-import AIAgentStatsCards from './admin/AIAgentStatsCards';
+import { useAIAssistantData } from '../../hooks/useAIAssistantData';
+import AIAssistantStatsCards from './admin/AIAssistantStatsCards';
 import RealTimeLogMonitor from './RealTimeLogMonitor';
 import LogAnalyticsDashboard from '../admin/LogAnalyticsDashboard';
-import type { ResponseLogData, ContextDocument } from '../../types/ai-agent';
+import type { ResponseLogData, ContextDocument } from '../../types/ai-assistant';
 
-export default function AIAgentAdminDashboard() {
+export default function AIAssistantAdminDashboard() {
   const {
     // 데이터
     responseLogs,
@@ -53,7 +53,7 @@ export default function AIAgentAdminDashboard() {
     setFilters,
     searchTerm,
     setSearchTerm,
-  } = useAIAgentData();
+  } = useAIAssistantData();
 
   // UI 상태
   const [selectedTab, setSelectedTab] = useState('logs');
@@ -67,7 +67,7 @@ export default function AIAgentAdminDashboard() {
         <div className='flex items-center gap-3'>
           <RefreshCw className='w-5 h-5 animate-spin text-purple-600' />
           <span className='text-gray-600'>
-            AI 에이전트 데이터를 불러오는 중...
+            AI 어시스턴트 데이터를 불러오는 중...
           </span>
         </div>
       </div>
@@ -95,7 +95,7 @@ export default function AIAgentAdminDashboard() {
   return (
     <div className='p-6 space-y-6 bg-gray-50 min-h-screen'>
       {/* 상단 통계 카드 */}
-      <AIAgentStatsCards stats={stats} />
+      <AIAssistantStatsCards stats={stats} />
 
       {/* 탭 네비게이션 */}
       <Tabs

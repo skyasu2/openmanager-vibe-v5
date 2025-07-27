@@ -139,6 +139,14 @@ npm run build
 
 ---
 
+## 📚 문서화
+
+### 서브 에이전트
+
+- [Claude Sub-agents 공식 문서](https://docs.anthropic.com/en/docs/claude-code/sub-agents) - Claude의 서브 에이전트 기능에 대한 공식 문서입니다. 서브 에이전트를 활용한 협업 워크플로우와 설정 방법을 확인하세요.
+
+## 라이선스
+
 <div align="center">
   <p>Built with ❤️ using cutting-edge technologies</p>
   <p>© 2025 OpenManager VIBE - MIT License</p>

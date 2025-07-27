@@ -1,5 +1,5 @@
 /**
- * AI 에이전트 관리 대시보드 타입 정의
+ * AI 어시스턴트 관리 대시보드 타입 정의
  */
 
 export interface ResponseLogData {
@@ -38,7 +38,7 @@ export interface ContextDocument {
 }
 
 export interface SystemHealth {
-  aiAgent: {
+  aiAssistant: {
     status: 'online' | 'offline' | 'degraded';
     responseTime: number;
     uptime: number;
@@ -56,13 +56,13 @@ export interface SystemHealth {
   };
 }
 
-export interface AIAgentFilters {
+export interface AIAssistantFilters {
   dateRange: string;
   status: string;
   confidence: string;
 }
 
-export interface AIAgentStats {
+export interface AIAssistantStats {
   totalLogs: number;
   successRate: number;
   patternSuggestions: number;

@@ -1,5 +1,5 @@
 /**
- * 🤖 AI 에이전트 기능 아이콘 패널
+ * 🤖 AI 어시스턴트 기능 아이콘 패널
  *
  * 사이드바 오른쪽에 세로로 배치되는 AI 기능 아이콘들
  * - AI 채팅
@@ -22,14 +22,14 @@ import {
 } from 'lucide-react';
 import React from 'react';
 
-export type AIAgentFunction =
+export type AIAssistantFunction =
   | 'chat'
   | 'auto-report'
   | 'intelligent-monitoring'
   | 'advanced-management';
 
-interface AIAgentIcon {
-  id: AIAgentFunction;
+interface AIAssistantIcon {
+  id: AIAssistantFunction;
   icon: React.ComponentType<any>;
   label: string;
   description: string;
@@ -39,7 +39,7 @@ interface AIAgentIcon {
 }
 
 // 🎯 간소화된 AI 기능 메뉴 - AI 사고 제거, 순서 조정
-const AI_AGENT_ICONS: AIAgentIcon[] = [
+const AI_ASSISTANT_ICONS: AIAssistantIcon[] = [
   // === 핵심 기능 (상단) ===
   {
     id: 'chat',
@@ -82,9 +82,9 @@ const AI_AGENT_ICONS: AIAgentIcon[] = [
   },
 ];
 
-interface AIAgentIconPanelProps {
-  selectedFunction: AIAgentFunction;
-  onFunctionChange: (func: AIAgentFunction) => void;
+interface AIAssistantIconPanelProps {
+  selectedFunction: AIAssistantFunction;
+  onFunctionChange: (func: AIAssistantFunction) => void;
   className?: string;
   isMobile?: boolean;
 }
@@ -101,19 +101,19 @@ const getTooltipPosition = (index: number, total: number) => {
   }
 };
 
-export default function AIAgentIconPanel({
+export default function AIAssistantIconPanel({
   selectedFunction,
   onFunctionChange,
   className = '',
   isMobile = false,
-}: AIAgentIconPanelProps) {
+}: AIAssistantIconPanelProps) {
   if (isMobile) {
     return (
       <div
         className={`flex flex-row space-x-2 overflow-x-auto pb-2 ${className}`}
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        {AI_AGENT_ICONS.map((item, index) => {
+        {AI_ASSISTANT_ICONS.map((item, index) => {
           const Icon = item.icon;
           const isSelected = selectedFunction === item.id;
 
@@ -166,7 +166,7 @@ export default function AIAgentIconPanel({
 
       {/* 아이콘 버튼들 */}
       <div className='space-y-1'>
-        {AI_AGENT_ICONS.map((item, index) => {
+        {AI_ASSISTANT_ICONS.map((item, index) => {
           const Icon = item.icon;
           const isSelected = selectedFunction === item.id;
 
@@ -204,7 +204,7 @@ export default function AIAgentIconPanel({
               {/* 호버 툴팁 - 왼쪽으로 위치 변경 */}
               <div
                 className={`
-                absolute right-full mr-3 ${getTooltipPosition(index, AI_AGENT_ICONS.length)}
+                absolute right-full mr-3 ${getTooltipPosition(index, AI_ASSISTANT_ICONS.length)}
                 bg-gray-900 text-white text-xs px-3 py-2 rounded-lg 
                 opacity-0 group-hover:opacity-100 transition-all duration-200 
                 pointer-events-none whitespace-nowrap z-[60] shadow-lg
@@ -237,5 +237,5 @@ export default function AIAgentIconPanel({
   );
 }
 
-export { AI_AGENT_ICONS };
-export type { AIAgentIcon };
+export { AI_ASSISTANT_ICONS };
+export type { AIAssistantIcon };

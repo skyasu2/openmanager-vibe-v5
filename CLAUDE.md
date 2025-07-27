@@ -561,6 +561,12 @@ npm run ccusage:daily               # 일별 사용량
 
 ## 📚 관련 문서
 
+### Claude 서브 에이전트
+
+- [Claude Sub-agents 공식 문서](https://docs.anthropic.com/en/docs/claude-code/sub-agents) - Claude의 서브 에이전트 기능에 대한 공식 문서입니다. 서브 에이전트를 활용한 협업 워크플로우와 설정 방법을 확인하세요.
+
+### 기타 문서
+
 - **MCP 가이드**: `docs/claude-code-mcp-setup-2025.md`
 - **AI 시스템**: `docs/ai-system-unified-guide.md`
 - **보안 가이드**: `docs/security-complete-guide.md`

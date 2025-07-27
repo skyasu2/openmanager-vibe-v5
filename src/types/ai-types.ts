@@ -30,11 +30,11 @@ export type AIEngineType =
   | 'mcp-context';
 
 /**
- * AI 에이전트 모드 (응답 깊이)
+ * AI 어시스턴트 모드 (응답 깊이)
  * - basic: 빠른 응답, 기본 분석
  * - advanced: 심화 분석, 예측 기능
  */
-export type AIAgentMode = 'basic' | 'advanced';
+export type AIAssistantMode = 'basic' | 'advanced';
 
 /**
  * 전원 관리 모드
@@ -62,7 +62,7 @@ export interface AIRequest {
   query: string;
   type?: string; // 요청 타입 (자연어, 명령어, 분석 등)
   mode?: AIMode;
-  agentMode?: AIAgentMode;
+  agentMode?: AIAssistantMode;
   category?: string;
   context?: any;
   priority?: Priority;
@@ -80,7 +80,7 @@ export interface AIResponse {
   data?: any;
   confidence: number;
   mode: AIMode;
-  agentMode?: AIAgentMode;
+  agentMode?: AIAssistantMode;
   enginePath: string[];
   processingTime: number;
   fallbacksUsed: number;
@@ -149,8 +149,8 @@ export interface AIEngineConfig {
   enableCaching: boolean;
 }
 
-export interface AIAgentConfig {
-  responseMode: AIAgentMode;
+export interface AIAssistantConfig {
+  responseMode: AIAssistantMode;
   enableMCP: boolean;
   enableInference: boolean;
   maxContextLength: number;
@@ -219,7 +219,7 @@ export interface ActivityMetrics {
   dataUpdateCount: number;
   alertCount: number;
   powerMode: PowerMode;
-  responseMode: AIAgentMode;
+  responseMode: AIAssistantMode;
 }
 
 export interface AIEngineStats {
@@ -288,8 +288,8 @@ export type PartialAIConfig<T> = {
  * 모드 전환 이벤트
  */
 export interface ModeChangeEvent {
-  from: AIMode | AIAgentMode | PowerMode;
-  to: AIMode | AIAgentMode | PowerMode;
+  from: AIMode | AIAssistantMode | PowerMode;
+  to: AIMode | AIAssistantMode | PowerMode;
   timestamp: number;
   reason?: string;
 }

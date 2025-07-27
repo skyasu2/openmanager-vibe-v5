@@ -3,11 +3,11 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { subscribeWithSelector } from 'zustand/middleware';
 
 /**
- * 🤖 AI Agent Store Module
- * AI 에이전트 상태 관리 전용 스토어
+ * 🤖 AI Assistant Store Module
+ * AI 어시스턴트 상태 관리 전용 스토어
  */
 
-export type AIAgentState =
+export type AIAssistantState =
   | 'disabled'
   | 'enabled'
   | 'processing'
@@ -17,7 +17,7 @@ export type AIAgentState =
 export interface AIState {
   // 상태
   isEnabled: boolean;
-  state: AIAgentState;
+  state: AIAssistantState;
   isProcessing: boolean;
 
   // 설정
@@ -96,7 +96,7 @@ export const useAIStore = create<AIState>()(
               state: 'enabled',
             });
 
-            console.log('🤖 [AI] AI 에이전트 활성화');
+            console.log('🤖 [AI] AI 어시스턴트 활성화');
 
             // AI 활성화 이벤트
             if (typeof window !== 'undefined') {
@@ -120,7 +120,7 @@ export const useAIStore = create<AIState>()(
               isProcessing: false,
             });
 
-            console.log('🤖 [AI] AI 에이전트 비활성화');
+            console.log('🤖 [AI] AI 어시스턴트 비활성화');
 
             // AI 비활성화 이벤트
             if (typeof window !== 'undefined') {

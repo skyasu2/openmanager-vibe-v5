@@ -1,12 +1,12 @@
 import { Activity, FileText, Lightbulb, MessageSquare } from 'lucide-react';
-import type { AIAgentStats } from '../../../types/ai-agent';
+import type { AIAssistantStats } from '../../../types/ai-assistant';
 import { Card, CardContent } from '../../ui/card';
 
-interface AIAgentStatsCardsProps {
-  stats: AIAgentStats;
+interface AIAssistantStatsCardsProps {
+  stats: AIAssistantStats;
 }
 
-export default function AIAgentStatsCards({ stats }: AIAgentStatsCardsProps) {
+export default function AIAssistantStatsCards({ stats }: AIAssistantStatsCardsProps) {
   return (
     <div className='grid grid-cols-1 md:grid-cols-4 gap-6'>
       {/* 총 응답 로그 카드 */}
