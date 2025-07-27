@@ -1,4 +1,4 @@
-# 🚀 GCP 완전 가이드 v5.50.1
+# 🚀 GCP 완전 가이드 v5.65.3
 
 ## 📋 목차
 
@@ -15,7 +15,7 @@
 
 ## 🎯 개요
 
-OpenManager Vibe v5.50.1은 **GCP Functions와 완전히 통합된 고성능 AI 시스템**으로, Python 3.11 기반의 ML 처리와 TypeScript의 완전한 타입 안전성을 제공합니다.
+OpenManager Vibe v5.65.3은 **GCP Functions와 완전히 통합된 고성능 AI 시스템**으로, Python 3.11 기반의 ML 처리와 TypeScript의 완전한 타입 안전성을 제공합니다.
 
 ### 핵심 특징
 

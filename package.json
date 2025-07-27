@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.63.27",
+  "version": "5.65.3",
   "description": "Real-time server monitoring platform optimized for free tier services",
   "private": true,
   "type": "module",

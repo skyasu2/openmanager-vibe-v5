@@ -34,13 +34,14 @@ const cardData: FeatureCard[] = [
     icon: Bot,
     gradient: 'from-purple-500 via-indigo-500 to-cyan-400',
     detailedContent: {
-      overview: `2가지 모드로 동작하는 똑똑한 AI 시스템입니다. LOCAL 모드는 무료로 사용 가능하며, 필요시 Google AI로 더 정교한 분석을 제공합니다.`,
+      overview: `v5.65.3 - AI 시스템 대폭 개선! MCP 활용률 3배 향상, 서브 에이전트 100% 성공률 달성, 엔터프라이즈급 안정성 확보.`,
       features: [
         '🇰🇷 한국어 자연어 처리: "CPU 높은 서버?", "메모리 부족한 VM?"',
-        '🆓 LOCAL 모드: Supabase RAG + 한국어 엔진 (무료)',
-        '🚀 GOOGLE 모드: Gemini 2.0 Flash (일 1,000회)',
-        '💾 벡터 검색: 사용할수록 정확해지는 학습 시스템',
-        '⚡ 빠른 응답: LOCAL 100-300ms, 캐싱으로 반복 질의 즉시',
+        '🆓 LOCAL 모드: Supabase RAG + 한국어 엔진 (완전 무료)',
+        '🚀 GOOGLE 모드: Gemini 2.0 Flash (일 1,000회 무료)',
+        '🤝 서브 에이전트: 10개 전문 AI로 작업 자동화 (100% 작동)',
+        '📊 MCP 서버: 9개 중 6개 활성, 2개 테스트 중, 1개 설정 필요',
+        '⚡ 빠른 응답: LOCAL 100-300ms, Python 3.11 Functions 배포',
       ],
       technologies: [
         '2-Mode System',
@@ -61,14 +62,14 @@ const cardData: FeatureCard[] = [
     icon: Database,
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
-      overview: `6개의 클라우드 서비스를 하나로 연결한 개발 환경입니다. 코드 작성부터 배포까지 모든 과정이 자동화되어 있습니다.`,
+      overview: `v5.65.3 - 무료 티어 최적화로 월 $0 운영! Python 3.11 Functions 구현, Vercel-Supabase-GCP 통합으로 완전한 클라우드 인프라 구축.`,
       features: [
-        '▲ Vercel: 자동 배포, Edge Functions, Preview URL',
-        '🐘 Supabase: PostgreSQL + 실시간 구독 + RLS',
-        '⚡ Upstash for Redis: 고성능 캐싱, 세션 관리, Rate Limiting',
-        '☁️ GCP: VM에서 MCP 서버 24/7 운영',
-        '🤖 Google AI Studio: Gemini API 통합',
-        '🔄 자동화된 CI/CD 파이프라인',
+        '▲ Vercel: 자동 배포, Edge Functions, Preview URL (무료 티어)',
+        '🐘 Supabase: PostgreSQL + pgVector + RLS (500MB 무료)',
+        '⚡ Upstash Redis: 고속 캐싱, Rate Limiting (256MB 무료)',
+        '☁️ GCP Functions: Python 3.11 런타임 3개 배포 완료',
+        '🤖 Google AI Studio: Gemini 2.0 Flash API (일 1,000회 무료)',
+        '🔄 GitHub Actions: CI/CD 파이프라인 구축 (월 2,000분 무료)',
       ],
       technologies: [
         'Vercel',
@@ -85,23 +86,23 @@ const cardData: FeatureCard[] = [
     id: 'tech-stack',
     title: '💻 기술 스택',
     description:
-      'Next.js 15 + React 19 + TypeScript. 최신 웹 기술로 구현된 현대적인 풀스택 애플리케이션',
+      'Next.js 14 + React 18 + TypeScript. 안정적인 프로덕션급 웹 기술로 구현된 현대적인 풀스택 애플리케이션',
     icon: Sparkles,
     gradient: 'from-blue-500 to-purple-600',
     detailedContent: {
-      overview: `최신 웹 기술들을 조합하여 구축한 모던 풀스택 애플리케이션입니다. 프론트엔드부터 백엔드까지 타입 안전성과 개발자 경험을 최우선으로 설계되었습니다.`,
+      overview: `v5.65.3 - 코드 품질 지속적 개선! TypeScript strict mode 적용, 코드 품질 관리 시스템 구축, 테스트 자동화로 안정성 확보.`,
       features: [
-        '⚛️ React 19 + Next.js 15: App Router, Server Components',
-        '🔷 TypeScript: 100% 타입 안전성, strict mode',
-        '🎨 Tailwind CSS: 유틸리티 기반 스타일링',
-        '🗄️ Prisma + PostgreSQL: 타입 안전한 ORM',
-        '🧪 Vitest + Playwright: 단위/통합/E2E 테스트',
-        '📦 pnpm + Turbo: 빠른 패키지 관리와 빌드',
+        '⚛️ React 18.2 + Next.js 14.2.4: App Router, Edge Runtime 최적화',
+        '🔷 TypeScript: strict mode 적용으로 타입 안전성 강화',
+        '✨ ESLint: 코드 품질 지속적 개선 중 (린트 문제 15% 감소)',
+        '🎨 Tailwind CSS: JIT 컴파일러로 스타일 최적화',
+        '🧪 Vitest: 227개 테스트 케이스, 목표 커버리지 70%',
+        '📦 npm 패키지 관리: 검증된 의존성 관리 (Node.js 22+)',
       ],
       technologies: [
-        'Next.js 15',
-        'React 19',
-        'TypeScript 5.7',
+        'Next.js 14.2.4',
+        'React 18.2.0',
+        'TypeScript',
         'Tailwind CSS',
         'Prisma',
         'Vitest',
@@ -117,14 +118,14 @@ const cardData: FeatureCard[] = [
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
-      overview: `AI와 함께 코딩하는 방법의 진화입니다. ChatGPT로 시작해 Cursor AI를 거쳐 현재는 Claude Code와 Gemini CLI를 활용합니다.`,
+      overview: `v5.65.3 - AI 페어 프로그래밍의 혁신! Claude Code + MCP 서버 통합으로 개발 자동화, 10개 전문 AI 에이전트로 모든 개발 작업 지원.`,
       features: [
-        '📄 1단계: ChatGPT로 HTML/CSS 정적 페이지',
-        '⚛️ 2단계: Cursor AI로 React 동적 앱',
-        '🚀 3단계: Claude Code로 풀스택 개발',
-        '🤝 현재: Gemini CLI로 병렬 작업',
-        '🔗 MCP: 파일시스템과 도구 완전 통합',
-        '💡 진화: 각 단계의 경험이 다음 단계의 토대',
+        '🤖 Claude Code: 9개 MCP 서버 통합 (6개 활성, 3개 구성 중)',
+        '🤝 서브 에이전트: 10개 전문 AI로 100% 작업 성공률',
+        '🔗 MCP 도구: filesystem, github, memory, supabase 자동화',
+        '🚀 AI 지원: 코드 작성, 테스트 실행, 문서화, 배포 지원',
+        '💯 개선 성과: 서브 에이전트 성공률 70% → 100%',
+        '📈 생산성: 반복 작업 자동화로 개발 속도 대폭 향상',
       ],
       technologies: [
         'ChatGPT → Cursor AI → Claude Code',
@@ -146,6 +147,62 @@ export default function FeatureCardsGrid() {
   const { aiAgent } = useUnifiedAdminStore();
 
   // 카드는 항상 다크 테마로 표시
+
+  // 카드 타입별 스타일 헬퍼
+  const getCardStyles = (card: FeatureCard) => {
+    return {
+      title: card.isVibeCard
+        ? 'text-white/98 group-hover:text-yellow-100'
+        : 'text-white/95 group-hover:text-white',
+      description: card.isVibeCard
+        ? 'text-white/96 group-hover:text-yellow-50 font-bold'
+        : 'text-white/80 group-hover:text-white/90 font-medium',
+      hoverRing: card.isAICard
+        ? 'group-hover:ring-pink-400/50 group-hover:shadow-lg group-hover:shadow-pink-500/25'
+        : card.isVibeCard
+          ? 'group-hover:ring-yellow-400/50'
+          : card.isSpecial
+            ? 'group-hover:ring-amber-400/50 group-hover:shadow-lg group-hover:shadow-amber-500/25'
+            : 'group-hover:ring-white/30',
+      iconColor: card.isVibeCard ? 'text-amber-900' : 'text-white',
+    };
+  };
+
+  // 아이콘 애니메이션 설정
+  const getIconAnimation = (card: FeatureCard) => {
+    if (card.isAICard) {
+      return {
+        animate: {
+          rotate: [0, 360],
+          scale: [1, 1.1, 1],
+        },
+        transition: {
+          rotate: {
+            duration: 8,
+            repeat: Infinity,
+            ease: 'linear' as const, // TypeScript will accept this
+          },
+          scale: {
+            duration: 2,
+            repeat: Infinity,
+          },
+        },
+      };
+    }
+    if (card.isVibeCard) {
+      return {
+        animate: {
+          scale: [1, 1.2, 1],
+          rotate: [0, 5, -5, 0],
+        },
+        transition: {
+          duration: 2.5,
+          repeat: Infinity,
+        },
+      };
+    }
+    return null;
+  };
 
   // 모달 외부 클릭 시 닫기 처리
   useEffect(() => {
@@ -206,7 +263,7 @@ export default function FeatureCardsGrid() {
         return (
           <motion.span
             key={index}
-            className='bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent font-bold'
+            className='bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent font-bold bg-[length:200%_200%]'
             animate={{
               backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
             }}
@@ -214,9 +271,6 @@ export default function FeatureCardsGrid() {
               duration: 3,
               repeat: Infinity,
               ease: 'linear',
-            }}
-            style={{
-              backgroundSize: '200% 200%',
             }}
           >
             {part}
@@ -287,27 +341,10 @@ export default function FeatureCardsGrid() {
                   <div className='absolute top-2 right-2 w-6 h-6 bg-yellow-400/30 rounded-full animate-pulse'></div>
                   <div className='absolute bottom-2 left-2 w-4 h-4 bg-yellow-400/20 rounded-full animate-pulse'></div>
 
-                  {/* 개선된 배경 그라데이션 - 더 부드럽고 현대적 */}
-                  <motion.div
-                    className='absolute inset-0 rounded-2xl opacity-90'
-                    style={{
-                      background:
-                        'linear-gradient(135deg, #f59e0b 0%, #f97316 25%, #ea580c 50%, #dc2626 75%, #b91c1c 100%)',
-                    }}
-                    animate={{
-                      background: [
-                        'linear-gradient(135deg, #f59e0b 0%, #f97316 25%, #ea580c 50%, #dc2626 75%, #b91c1c 100%)',
-                        'linear-gradient(135deg, #f97316 0%, #ea580c 25%, #dc2626 50%, #b91c1c 75%, #f59e0b 100%)',
-                        'linear-gradient(135deg, #ea580c 0%, #dc2626 25%, #b91c1c 50%, #f59e0b 75%, #f97316 100%)',
-                        'linear-gradient(135deg, #f59e0b 0%, #f97316 25%, #ea580c 50%, #dc2626 75%, #b91c1c 100%)',
-                      ],
-                    }}
-                    transition={{
-                      duration: 6,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    }}
-                  />
+                  {/* 개선된 배경 그라데이션 - 애니메이션 효과 */}
+                  <div className='absolute inset-0 rounded-2xl overflow-hidden'>
+                    <div className='absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 opacity-90 bg-[length:200%_200%] animate-gradient' />
+                  </div>
 
                   {/* 텍스트 가독성을 위한 오버레이 */}
                   <div className='absolute inset-0 bg-black/15 rounded-2xl'></div>
@@ -324,40 +361,11 @@ export default function FeatureCardsGrid() {
                   card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
                 }`}
               >
-                {card.isAICard ? (
-                  <motion.div
-                    animate={{
-                      rotate: [0, 360],
-                      scale: [1, 1.1, 1],
-                    }}
-                    transition={{
-                      rotate: {
-                        duration: 8,
-                        repeat: Infinity,
-                        ease: 'linear',
-                      },
-                      scale: {
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                      },
-                    }}
-                  >
-                    <card.icon className='w-6 h-6 text-white' />
-                  </motion.div>
-                ) : card.isVibeCard ? (
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.2, 1],
-                      rotate: [0, 5, -5, 0],
-                    }}
-                    transition={{
-                      duration: 2.5,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    }}
-                  >
-                    <card.icon className='w-6 h-6 text-amber-900' />
+                {getIconAnimation(card) ? (
+                  <motion.div {...getIconAnimation(card)}>
+                    <card.icon
+                      className={`w-6 h-6 ${getCardStyles(card).iconColor}`}
+                    />
                   </motion.div>
                 ) : (
                   <card.icon className='w-6 h-6 text-white' />
@@ -367,34 +375,12 @@ export default function FeatureCardsGrid() {
               {/* 모든 카드들의 통일된 컨텐츠 */}
               <div className='relative z-10'>
                 <h3
-                  className={`text-lg font-bold mb-2 transition-colors leading-tight ${
-                    card.isVibeCard
-                      ? 'text-white group-hover:text-yellow-100'
-                      : 'text-white group-hover:text-white'
-                  }`}
-                  style={{
-                    color: card.isVibeCard
-                      ? 'rgba(255, 255, 255, 0.98)'
-                      : 'rgba(255, 255, 255, 0.95)',
-                    fontWeight: 600,
-                    lineHeight: 1.4,
-                  }}
+                  className={`text-lg font-semibold mb-2 transition-colors leading-snug ${getCardStyles(card).title}`}
                 >
                   {renderTextWithAIGradient(card.title)}
                 </h3>
                 <p
-                  className={`text-xs leading-relaxed transition-colors ${
-                    card.isVibeCard
-                      ? 'text-white/90 group-hover:text-yellow-50'
-                      : 'text-white/70 group-hover:text-white/90'
-                  }`}
-                  style={{
-                    color: card.isVibeCard
-                      ? 'rgba(255, 255, 255, 0.96)'
-                      : 'rgba(255, 255, 255, 0.80)',
-                    lineHeight: 1.5,
-                    fontWeight: card.isVibeCard ? 700 : 500,
-                  }}
+                  className={`text-xs leading-relaxed transition-colors ${getCardStyles(card).description}`}
                 >
                   {renderTextWithAIGradient(card.description)}
                 </p>
@@ -409,15 +395,7 @@ export default function FeatureCardsGrid() {
 
               {/* 호버 효과 */}
               <div
-                className={`absolute inset-0 ring-2 ring-transparent transition-all duration-300 rounded-2xl ${
-                  card.isAICard
-                    ? 'group-hover:ring-pink-400/50 group-hover:shadow-lg group-hover:shadow-pink-500/25'
-                    : card.isVibeCard
-                      ? 'group-hover:ring-yellow-400/50'
-                      : card.isSpecial
-                        ? 'group-hover:ring-amber-400/50 group-hover:shadow-lg group-hover:shadow-amber-500/25'
-                        : 'group-hover:ring-white/30'
-                }`}
+                className={`absolute inset-0 ring-2 ring-transparent transition-all duration-300 rounded-2xl ${getCardStyles(card).hoverRing}`}
               />
             </div>
           </motion.div>

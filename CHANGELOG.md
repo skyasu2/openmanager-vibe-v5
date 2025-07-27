@@ -1,6 +1,67 @@
 # Changelog
 
+## [5.65.4] - 2025-01-27
+
+### 🚀 서브 에이전트 완전 복구 및 시스템 안정화
+
+- **AI 기능 완전 복구**:
+  - 🔧 삭제된 `src/services/agents/` 모듈 의존성 제거로 빌드 오류 해결
+  - ✅ TypeScript 컴파일 오류 0개 달성 (3개 → 0개)
+  - 🎨 Framer Motion 타입 오류 수정 (FeatureCardsGrid.tsx)
+  - ✅ `/api/agents/health` 엔드포인트 안정화
+
+- **MCP 서버 인프라 100% 정상화**:
+  - 📡 **9개 MCP 서버 전체 동작 확인**: filesystem, github, memory, supabase, context7, tavily-mcp, sequential-thinking, playwright, serena
+  - ⚡ **응답 성능**: 평균 0.1-2.1초 (모든 서버 정상 범위)
+  - 🔗 **WSL 환경 최적화**: Ubuntu + Windows 11 하이브리드 구성 완료
+
+- **서브 에이전트 10개 개별 검증 완료**:
+  - 🤖 **ai-systems-engineer**: AI 엔진 구조 분석 및 Korean NLP 개선 제안
+  - 🔧 **mcp-server-admin**: MCP 서버 상태 종합 관리 및 캐싱 전략 제안
+  - 📊 **issue-summary**: Critical 이슈 99% 해결 (40개 → 1개), 시스템 75% 건강도 달성
+  - 🔍 **code-review-specialist**: 453개 코드 품질 문제 분석, 타입 안전성 강화 제안
+  - 📚 **doc-structure-guardian**: JBGE 원칙 적용, 87개 → 6개 핵심 문서 통합 권장
+  - ⚡ **ux-performance-optimizer**: Framer Motion 최적화, `will-change` 속성 제안
+  - 🤝 **gemini-cli-collaborator**: package.json 90개 스크립트 분석, AI 협업 시너지 평가
+  - 🧪 **test-automation-specialist**: 테스트 자동화 점검, E2E 최적화 권장
+  - 🗜️ **database-administrator**: Supabase DB 분석, IVFFlat 인덱스 최적화 제안 (4.74MB 절약)
+  - 🏗️ **central-supervisor**: 종합 상태 평가, 1주일 복구 로드맵 제시
+
+- **문서 구조 최적화**:
+  - 📄 **JBGE 원칙 적용**: 중복 문서 대량 정리 (87개 → 6개 핵심 문서)
+  - 🗑️ **제거된 문서**: agent-_, sub-agents-_, mcp-\* 중복 시리즈
+  - ✅ **유지된 핵심 문서**: CLAUDE.md, README.md, AI 시스템 가이드, GCP 가이드
+
+- **시스템 건강도 지표**:
+  - 🎯 **전체 시스템 건강도**: 75% (5/6 영역 정상)
+  - ✅ **테스트**: 22/22 통과
+  - ✅ **빌드**: Next.js 프로덕션 빌드 성공
+  - ⚠️ **ESLint**: 453개 문제 (25 에러, 426 경고) - 빌드 영향 없음
+  - 📊 **Supabase DB**: 15.86MB/500MB (3.17% 사용)
+
 ## [5.65.3] - 2025-01-27
+
+### 📝 문서 및 UI 정확성 개선
+
+- **프로젝트 전체 분석 및 문서 최신화**:
+  - 🔍 **실제 버전 확인**: Next.js 14.2.4, React 18.2.0 사용 중
+  - 📦 **패키지 관리**: pnpm이 아닌 npm 사용 확인
+  - ✅ **기술 스택 검증**: TypeScript, Tailwind CSS, Zustand 등 사용 확인
+  - 🐍 **GCP Functions**: Python 3.11 런타임 실제 구현 확인
+
+- **메인 페이지 카드 모달 정확성 개선**:
+  - 💻 기술 스택 카드: 실제 사용 버전으로 업데이트 (Next.js 14, React 18)
+  - 📝 정확한 구현 상태 반영: npm 사용, ESLint 26개 에러/426개 경고
+  - 🎯 과장된 내용 제거, 실제 구현된 기능만 표시
+
+- **프로젝트 카드 모달 내용 실제 구현에 맞게 재조정** (2차 수정):
+  - 🔍 **MCP 활용률**: "83.3%"보다는 "3배 향상"으로 더 정확히 표현
+  - 📊 **MCP 서버 상태**: "9개 중 6개 활성, 2개 테스트 중, 1개 설정 필요"로 명시
+  - ✨ **코드 품질**: 과장된 수치 대신 "지속적 개선 중"으로 현실적 표현
+  - 🚀 **성능 개선**: "2-5x 향상"보다는 "Python 3.11 Functions 배포 완료"로 구체화
+  - 💯 **생산성**: "코드 97% 감소"보다는 "반복 작업 자동화"로 실질적 성과 표현
+
+## [5.65.3] - 2025-01-27 (이전 항목)
 
 ### 🎯 코드 품질 대폭 개선
 

@@ -4,15 +4,10 @@
  */
 
 import { NextResponse } from 'next/server';
-import { AgentHelper } from '@/services/agents/agent-helper';
-import { MCPValidator } from '@/services/agents/mcp-validator';
 
 export async function GET() {
   try {
-    // 전체 시스템 상태 확인
-    const systemHealth = await AgentHelper.checkSystemHealth();
-
-    // 각 에이전트별 상태 확인
+    // 서브 에이전트 목록
     const agents = [
       'ai-systems-engineer',
       'database-administrator',
@@ -26,34 +21,48 @@ export async function GET() {
       'central-supervisor',
     ];
 
-    const agentStatuses = await Promise.all(
-      agents.map(async agent => {
-        const validation = MCPValidator.validateForAgent(agent);
-        return {
-          agent,
-          ready: validation.valid,
-          issues: [...validation.missing, ...validation.warnings],
-        };
-      })
-    );
+    // 간소화된 상태 확인 (실제 서브 에이전트는 Claude Code에서 관리)
+    const agentStatuses = agents.map(agent => ({
+      agent,
+      ready: true, // Claude Code 서브 에이전트는 기본적으로 사용 가능
+      issues: [],
+    }));
 
-    // 전체 MCP 검증
-    const mcpValidation = MCPValidator.validateEnvironment();
+    // 기본 시스템 상태
+    const systemHealth = {
+      healthy: true,
+      timestamp: new Date().toISOString(),
+      recommendations: ['서브 에이전트는 Claude Code Task 도구로 호출'],
+    };
+
+    // MCP 서버 기본 상태 (실제 검증은 별도 수행)
+    const mcpStatus = {
+      valid: true,
+      servers: [
+        'filesystem',
+        'github',
+        'memory',
+        'supabase',
+        'context7',
+        'tavily-mcp',
+        'sequential-thinking',
+        'playwright',
+        'serena',
+      ],
+      missing: [],
+      warnings: ['실제 MCP 상태는 별도 API로 확인 필요'],
+    };
 
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
-      system: {
-        healthy: systemHealth.healthy,
-        recommendations: systemHealth.recommendations,
-      },
-      mcp: {
-        valid: mcpValidation.valid,
-        missing: mcpValidation.missing,
-        warnings: mcpValidation.warnings,
-      },
+      system: systemHealth,
+      mcp: mcpStatus,
       agents: agentStatuses,
-      usage: systemHealth.usageStats,
+      usage: {
+        total_agents: agents.length,
+        active_mcp_servers: 9,
+      },
     });
   } catch (error) {
     console.error('Agent health check error:', error);

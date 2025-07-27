@@ -92,11 +92,33 @@ src/
 
 ### ⚠️ 중요: MCP 도구 접근 방식
 
-- **tools 필드에 `mcp__*` 형식의 도구를 명시하지 마세요**
-- 기본 도구(Read, Write, Edit, Bash 등)만 명시하면 MCP 도구는 자동 상속됨
-- recommended_mcp는 가이드라인일 뿐, 모든 MCP 서버 사용 가능
+- **tools 필드에 `mcp__*` 형식의 도구를 명시해도 됩니다**
+- 기본 도구와 MCP 도구를 함께 명시하여 사용 가능
 - **특별**: `central-supervisor`는 유일하게 tools 필드 없음 → **모든 도구 자동 상속**
-- **현재 MCP 활용률**: **100%** (목표 달성! ✅)
+
+### 🚨 MCP 활용 개선 (2025-01-27 업데이트)
+
+#### MCP 도구 상태
+
+- ✅ **모든 MCP 도구는 정상 작동**
+  - Serena: 프로젝트 활성화 후 사용
+  - Context7: 라이브러리 검색 후 문서 조회
+  - Playwright: 브라우저 자동화 정상
+- ⚠️ **문제**: 서브 에이전트가 MCP를 호출하지 않음
+
+#### 해결 방법
+
+1. **명시적 지시**: MCP 도구 사용을 단계별로 프롬프트에 명시
+2. **구체적 예시**:
+   ```
+   Step 1: mcp__supabase__list_tables 도구를 호출하세요
+   Step 2: 받은 결과를 분석하세요
+   Step 3: 각 테이블의 용도를 설명하세요
+   ```
+3. **전제조건 확인**:
+   - Serena: `activate_project` 먼저 실행
+   - Context7: `resolve-library-id` → `get-library-docs` 순서
+4. **상세 가이드**: `docs/mcp-usage-improvement-guide.md` 참조
 
 ### 🎯 에이전트 선택 가이드
 
@@ -523,6 +545,16 @@ npm run ccusage:daily               # 일별 사용량
 
 ## 🔍 트러블슈팅
 
+### 파일 읽기/쓰기 에러
+
+- **"Error: File has not been read yet. Read it first before writing to it"**
+  - 원인: Claude Code는 기존 파일 수정 시 반드시 Read 도구로 먼저 읽어야 함
+  - 해결: Write/Edit 전에 항상 Read 도구 사용
+  - 주의: Task 도구나 서브 에이전트도 동일한 규칙 적용
+  - 팁: 서브 에이전트가 파일 수정 시에도 main 에이전트와 동일한 컨텍스트 필요
+
+### 일반 문제
+
 - **메모리 에러**: package.json의 Node.js 메모리 제한 확인
 - **AI 타임아웃**: API 키와 네트워크 연결 확인
 - **빌드 실패**: `npm run type-check`로 TypeScript 이슈 확인
@@ -535,6 +567,7 @@ npm run ccusage:daily               # 일별 사용량
 - **개발 도구**: `docs/development-tools.md`
 - **서브 에이전트 에러 해결**: `docs/sub-agents-error-analysis-solution.md`
 - **서브 에이전트 매핑 가이드**: `docs/sub-agents-mcp-mapping-guide.md`
+- **파일 읽기/쓰기 패턴**: `docs/claude-code-file-rw-pattern.md`
 
 ---
 
