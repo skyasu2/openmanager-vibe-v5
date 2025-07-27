@@ -145,37 +145,7 @@ export default function FeatureCardsGrid() {
 
   const { aiAgent } = useUnifiedAdminStore();
 
-  // 다크모드 상태를 페이지에서 가져오기 (page.tsx에서 사용하는 것과 동일한 로직)
-  const [isDarkMode, setIsDarkMode] = useState(true);
-
-  useEffect(() => {
-    // 페이지의 다크모드 상태와 동기화
-    const checkDarkMode = () => {
-      const body = document.body;
-      const isDark =
-        body.classList.contains('dark') ||
-        document.documentElement.style.background?.includes(
-          'rgb(15, 23, 42)'
-        ) ||
-        window.getComputedStyle(body).background?.includes('rgb(15, 23, 42)');
-      setIsDarkMode(isDark);
-    };
-
-    checkDarkMode();
-
-    // 다크모드 변경 감지를 위한 MutationObserver
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ['class', 'style'],
-    });
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style'],
-    });
-
-    return () => observer.disconnect();
-  }, []);
+  // 카드는 항상 다크 테마로 표시
 
   // 모달 외부 클릭 시 닫기 처리
   useEffect(() => {
@@ -279,25 +249,15 @@ export default function FeatureCardsGrid() {
             onClick={() => handleCardClick(card.id)}
           >
             <div
-              className={`relative p-4 ${
-                isDarkMode
-                  ? 'bg-white/10 hover:bg-white/20 border-white/25'
-                  : 'bg-gray-900/90 hover:bg-gray-900/95 border-gray-200/50'
-              } backdrop-blur-sm border rounded-2xl transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) h-full ${
+              className={`relative p-4 bg-white/10 hover:bg-white/20 border-white/25 backdrop-blur-sm border rounded-2xl transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) h-full ${
                 card.isSpecial
-                  ? isDarkMode
-                    ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30'
-                    : 'bg-gradient-to-br from-amber-100/90 to-orange-100/90 border-amber-300/50'
+                  ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30'
                   : ''
               } group-hover:transform group-hover:scale-[1.02] group-hover:shadow-2xl`}
             >
               {/* 그라데이션 배경 */}
               <div
-                className={`absolute inset-0 bg-gradient-to-br ${card.gradient} ${
-                  isDarkMode
-                    ? 'opacity-0 group-hover:opacity-10'
-                    : 'opacity-0 group-hover:opacity-15'
-                } rounded-2xl transition-opacity duration-300`}
+                className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`}
               />
 
               {/* AI 카드 특별 이색 그라데이션 애니메이션 - landing 버전에서 재활용 */}
@@ -410,9 +370,7 @@ export default function FeatureCardsGrid() {
                   className={`text-lg font-bold mb-2 transition-colors leading-tight ${
                     card.isVibeCard
                       ? 'text-white group-hover:text-yellow-100'
-                      : isDarkMode
-                        ? 'text-white group-hover:text-white'
-                        : 'text-white group-hover:text-gray-100'
+                      : 'text-white group-hover:text-white'
                   }`}
                   style={{
                     color: card.isVibeCard
@@ -428,9 +386,7 @@ export default function FeatureCardsGrid() {
                   className={`text-xs leading-relaxed transition-colors ${
                     card.isVibeCard
                       ? 'text-white/90 group-hover:text-yellow-50'
-                      : isDarkMode
-                        ? 'text-white/70 group-hover:text-white/90'
-                        : 'text-white/90 group-hover:text-white'
+                      : 'text-white/70 group-hover:text-white/90'
                   }`}
                   style={{
                     color: card.isVibeCard
@@ -475,7 +431,6 @@ export default function FeatureCardsGrid() {
         renderTextWithAIGradient={renderTextWithAIGradient}
         modalRef={modalRef as React.RefObject<HTMLDivElement>}
         variant='home'
-        _isDarkMode={isDarkMode}
       />
     </>
   );

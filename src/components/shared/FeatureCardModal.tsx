@@ -10,7 +10,6 @@ interface FeatureCardModalProps {
   renderTextWithAIGradient: (text: string) => React.ReactNode;
   modalRef: React.RefObject<HTMLDivElement>;
   variant?: 'home' | 'landing';
-  _isDarkMode?: boolean;
 }
 
 export default function FeatureCardModal({
@@ -19,9 +18,8 @@ export default function FeatureCardModal({
   renderTextWithAIGradient,
   modalRef,
   variant = 'home',
-  _isDarkMode = true,
 }: FeatureCardModalProps) {
-  // 사용하지 않는 상태 제거
+  // 모달은 항상 다크 테마로 고정
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
