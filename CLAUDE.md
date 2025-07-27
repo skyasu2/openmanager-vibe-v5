@@ -80,7 +80,13 @@ src/
 - `SUPABASE_*`: Supabase 인증
 - 백업: `npm run env:backup`
 
-## 🤖 Sub Agents (10개) - 정상 동작 확인됨
+## 🤖 Sub Agents (10개) - 정상 동작 확인됨 ✅
+
+### ⚠️ 중요: MCP 도구 접근 방식
+
+- **tools 필드에 `mcp__*` 형식의 도구를 명시하지 마세요**
+- 기본 도구(Read, Write, Edit, Bash 등)만 명시하면 MCP 도구는 자동 상속됨
+- recommended_mcp는 가이드라인일 뿐, 모든 MCP 서버 사용 가능
 
 ### 에이전트별 추천 MCP 서버 매핑
 
@@ -120,9 +126,9 @@ src/
    - 주요: `filesystem`, `playwright`, `github`
    - 보조: `context7`, `memory`
 
-10. **agent-evolution-manager** - 에이전트 진화 관리
-    - 주요: `memory`, `filesystem`, `sequential-thinking`, `github`
-    - 보조: `tavily-mcp`, `supabase`
+10. **central-supervisor** - 중앙 오케스트레이터
+    - 주요: `filesystem`, `memory`, `sequential-thinking`
+    - 보조: 모든 MCP 서버 (작업별 최적 선택)
 
 ### 서브 에이전트 사용 예시
 
@@ -139,13 +145,6 @@ Task(
   subagent_type="code-review-specialist",
   description="PR #123 보안 검토",
   prompt="serena와 github MCP를 활용한 취약점 스캔"
-)
-
-# 에이전트 성능 자동 개선 (백그라운드 실행)
-Task(
-  subagent_type="agent-evolution-manager",
-  description="에이전트 주간 성능 리뷰",
-  prompt="모든 에이전트의 성능 메트릭 분석 및 자동 개선"
 )
 ```
 

@@ -1,0 +1,36 @@
+# JBGE 핵심 문서 목록
+# 이 파일에 listed된 문서는 자동 아카이브에서 제외됩니다.
+# "Just Barely Good Enough" - 딱 필요한 만큼만!
+
+# 루트 필수 문서 (CLAUDE.md 가이드라인)
+README.md
+CHANGELOG.md
+CLAUDE.md
+
+# 핵심 프로젝트 문서 (4-6개 유지)
+docs/project-overview.md
+docs/api-reference.md
+docs/setup-guide.md
+docs/troubleshooting.md
+docs/architecture.md
+
+# AI 시스템 핵심 (통합본)
+docs/ai-system-unified-guide.md
+
+# 보안 가이드 (필수)
+docs/security-complete-guide.md
+
+# MCP 설정 (통합본)
+docs/claude-code-mcp-setup-2025.md
+
+# 개발 도구 가이드
+docs/development-tools.md
+
+# 배포 가이드
+docs/deployment-complete-guide.md
+
+# 서브 에이전트 통합 가이드
+docs/sub-agents-guide.md
+
+# 중요: 이 목록은 주기적으로 검토하여 실제로 필요한 문서만 유지하세요.
+# 30일 이상 업데이트되지 않은 문서는 핵심 목록에서 제외를 고려하세요.

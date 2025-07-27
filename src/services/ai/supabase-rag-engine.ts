@@ -11,6 +11,7 @@
 import { PostgresVectorDB } from './postgres-vector-db';
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import { getRedis } from '@/lib/redis';
+import { embeddingService } from './embedding-service';
 import type { AIMetadata, MCPContext } from '@/types/ai-service-types';
 import type { RedisClientInterface } from '@/lib/redis';
 
@@ -193,18 +194,19 @@ export class SupabaseRAGEngine {
    * 🧠 임베딩 생성
    */
   async generateEmbedding(text: string): Promise<number[]> {
-    // 캐시 확인
+    // 메모리 캐시 확인 (embeddingService 내부 캐시와 별개)
     const cacheKey = `embed:${text}`;
     if (this.embeddingCache.has(cacheKey)) {
       return this.embeddingCache.get(cacheKey)!;
     }
 
     try {
-      // 실제 환경에서는 OpenAI나 다른 임베딩 API 사용
-      // 여기서는 시뮬레이션용 더미 임베딩 생성
-      const embedding = this.generateDummyEmbedding(text);
+      // 실제 임베딩 서비스 사용
+      const embedding = await embeddingService.createEmbedding(text, {
+        dimension: this.EMBEDDING_DIMENSION,
+      });
 
-      // 캐시 저장
+      // 로컬 캐시 저장 (빠른 접근을 위해)
       this.embeddingCache.set(cacheKey, embedding);
       if (this.embeddingCache.size > 1000) {
         // LRU 방식으로 오래된 항목 제거
@@ -217,7 +219,8 @@ export class SupabaseRAGEngine {
       return embedding;
     } catch (error) {
       console.error('❌ 임베딩 생성 실패:', error);
-      // 폴백: 랜덤 임베딩
+      // 폴백: 더미 임베딩 (서비스 중단 방지)
+      console.warn('⚠️ 더미 임베딩으로 폴백');
       return this.generateDummyEmbedding(text);
     }
   }
@@ -267,22 +270,47 @@ export class SupabaseRAGEngine {
       metadata?: AIMetadata;
     }>
   ): Promise<{ success: number; failed: number }> {
-    const embeddings = await Promise.all(
-      documents.map(doc => this.generateEmbedding(doc.content))
-    );
+    try {
+      // 배치 임베딩 생성 (효율적인 처리)
+      const texts = documents.map(doc => doc.content);
+      const embeddings = await embeddingService.createBatchEmbeddings(texts, {
+        dimension: this.EMBEDDING_DIMENSION,
+      });
 
-    const docsWithEmbeddings = documents.map((doc, i) => ({
-      ...doc,
-      embedding: embeddings[i],
-    }));
+      const docsWithEmbeddings = documents.map((doc, i) => ({
+        ...doc,
+        embedding: embeddings[i],
+      }));
 
-    const result = await this.vectorDB.bulkStore(docsWithEmbeddings);
+      const result = await this.vectorDB.bulkStore(docsWithEmbeddings);
 
-    if (result.success > 0) {
-      await this.invalidateSearchCache();
+      if (result.success > 0) {
+        await this.invalidateSearchCache();
+      }
+
+      return result;
+    } catch (error) {
+      console.error('❌ 대량 인덱싱 실패:', error);
+
+      // 폴백: 개별 처리
+      console.warn('⚠️ 개별 임베딩 생성으로 폴백');
+      const embeddings = await Promise.all(
+        documents.map(doc => this.generateEmbedding(doc.content))
+      );
+
+      const docsWithEmbeddings = documents.map((doc, i) => ({
+        ...doc,
+        embedding: embeddings[i],
+      }));
+
+      const result = await this.vectorDB.bulkStore(docsWithEmbeddings);
+
+      if (result.success > 0) {
+        await this.invalidateSearchCache();
+      }
+
+      return result;
     }
-
-    return result;
   }
 
   /**
