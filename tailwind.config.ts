@@ -139,6 +139,45 @@ export default {
             transform: 'translateY(-2px) scale(1.1)',
           },
         },
+        shimmer: {
+          '0%': {
+            transform: 'translateX(-100%)',
+          },
+          '100%': {
+            transform: 'translateX(100%)',
+          },
+        },
+        progress: {
+          '0%': {
+            width: '0%',
+          },
+          '100%': {
+            width: '100%',
+          },
+        },
+        'pulse-click': {
+          '0%': {
+            opacity: '0',
+            transform: 'scale(0.8)',
+          },
+          '50%': {
+            opacity: '0.5',
+          },
+          '100%': {
+            opacity: '0',
+            transform: 'scale(1.5)',
+          },
+        },
+        fadeIn: {
+          '0%': {
+            opacity: '0',
+            transform: 'translateY(-10px)',
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateY(0)',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -148,6 +187,10 @@ export default {
         'pulse-slow': 'pulse-slow 4s ease-in-out infinite',
         wiggle: 'wiggle 0.8s ease-in-out infinite',
         'point-bounce': 'point-bounce 1s ease-in-out infinite',
+        shimmer: 'shimmer 2s ease-in-out infinite',
+        progress: 'progress 3s ease-in-out',
+        'pulse-click': 'pulse-click 0.6s ease-out',
+        fadeIn: 'fadeIn 0.3s ease-out',
       },
     },
   },

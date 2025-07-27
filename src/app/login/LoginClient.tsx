@@ -35,8 +35,58 @@ export default function LoginClient() {
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [loadingMessage, setLoadingMessage] = useState<string>('');
+  const [showPulse, setShowPulse] = useState<'github' | 'guest' | null>(null);
 
   const authManager = new AuthStateManager();
+
+  // 단계별 로딩 메시지 효과
+  useEffect(() => {
+    if (!loadingType) return;
+
+    const messages = {
+      github: [
+        'GitHub에 연결 중...',
+        'OAuth 인증 대기 중...',
+        '사용자 정보 확인 중...',
+        '리다이렉트 준비 중...',
+      ],
+      guest: [
+        '게스트 세션 생성 중...',
+        '임시 프로필 설정 중...',
+        '시스템 접근 권한 부여 중...',
+        '메인 페이지로 이동 중...',
+      ],
+    };
+
+    const currentMessages = messages[loadingType];
+    let messageIndex = 0;
+    setLoadingMessage(currentMessages[0]);
+
+    const interval = setInterval(() => {
+      messageIndex = (messageIndex + 1) % currentMessages.length;
+      setLoadingMessage(currentMessages[messageIndex]);
+    }, 1500); // 1.5초마다 메시지 변경
+
+    return () => clearInterval(interval);
+  }, [loadingType]);
+
+  // ESC 키로 로딩 취소
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isLoading) {
+        console.log('🛑 로딩 취소됨');
+        setIsLoading(false);
+        setLoadingType(null);
+        setLoadingMessage('');
+        setSuccessMessage('로그인이 취소되었습니다.');
+        setTimeout(() => setSuccessMessage(null), 3000);
+      }
+    };
+
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [isLoading]);
 
   useEffect(() => {
     setIsClient(true);
@@ -92,6 +142,9 @@ export default function LoginClient() {
   // GitHub OAuth 로그인
   const handleGitHubLogin = async () => {
     try {
+      setShowPulse('github');
+      setTimeout(() => setShowPulse(null), 600); // 애니메이션 시간과 동일
+
       setIsLoading(true);
       setLoadingType('github');
       setErrorMessage('');
@@ -152,6 +205,9 @@ export default function LoginClient() {
   // 게스트 로그인
   const handleGuestLogin = async () => {
     try {
+      setShowPulse('guest');
+      setTimeout(() => setShowPulse(null), 600); // 애니메이션 시간과 동일
+
       setIsLoading(true);
       setLoadingType('guest');
 
@@ -236,22 +292,41 @@ export default function LoginClient() {
             <button
               onClick={handleGitHubLogin}
               disabled={isLoading}
-              className='w-full flex items-center justify-center gap-3 px-4 py-3 bg-[#24292e] hover:bg-[#1a1e22] text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group border border-gray-600 shadow-lg hover:shadow-xl'
+              className='w-full flex items-center justify-center gap-3 px-4 py-3 bg-[#24292e] hover:bg-[#1a1e22] text-white rounded-lg transition-all duration-200 disabled:opacity-70 disabled:cursor-progress group border border-gray-600 shadow-lg hover:shadow-xl relative overflow-hidden'
             >
-              <svg className='w-5 h-5' fill='currentColor' viewBox='0 0 20 20'>
+              {/* 로딩 오버레이 */}
+              {loadingType === 'github' && (
+                <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer' />
+              )}
+
+              {/* 프로그레스 바 */}
+              {loadingType === 'github' && (
+                <div className='absolute bottom-0 left-0 h-1 bg-gradient-to-r from-green-500 to-blue-500 animate-progress' />
+              )}
+
+              {/* 클릭 펄스 애니메이션 */}
+              {showPulse === 'github' && (
+                <div className='absolute inset-0 bg-white/20 rounded-lg animate-pulse-click pointer-events-none' />
+              )}
+
+              <svg
+                className='w-5 h-5 relative z-10'
+                fill='currentColor'
+                viewBox='0 0 20 20'
+              >
                 <path
                   fillRule='evenodd'
                   d='M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z'
                   clipRule='evenodd'
                 />
               </svg>
-              <span className='font-semibold'>
+              <span className='font-semibold relative z-10'>
                 {loadingType === 'github'
-                  ? 'GitHub에 연결 중...'
+                  ? loadingMessage
                   : 'GitHub로 계속하기'}
               </span>
               {loadingType === 'github' && (
-                <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
+                <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin relative z-10' />
               )}
             </button>
 
@@ -269,19 +344,42 @@ export default function LoginClient() {
             <button
               onClick={handleGuestLogin}
               disabled={isLoading}
-              className='w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group shadow-lg hover:shadow-xl'
+              className='w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 disabled:opacity-70 disabled:cursor-progress group shadow-lg hover:shadow-xl relative overflow-hidden'
             >
-              <User className='w-5 h-5' />
-              <span className='font-semibold'>
-                {loadingType === 'guest'
-                  ? '게스트 세션 생성 중...'
-                  : '게스트로 체험하기'}
+              {/* 로딩 오버레이 */}
+              {loadingType === 'guest' && (
+                <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer' />
+              )}
+
+              {/* 프로그레스 바 */}
+              {loadingType === 'guest' && (
+                <div className='absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-400 to-purple-500 animate-progress' />
+              )}
+
+              {/* 클릭 펄스 애니메이션 */}
+              {showPulse === 'guest' && (
+                <div className='absolute inset-0 bg-white/20 rounded-lg animate-pulse-click pointer-events-none' />
+              )}
+
+              <User className='w-5 h-5 relative z-10' />
+              <span className='font-semibold relative z-10'>
+                {loadingType === 'guest' ? loadingMessage : '게스트로 체험하기'}
               </span>
               {loadingType === 'guest' && (
-                <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
+                <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin relative z-10' />
               )}
             </button>
           </div>
+
+          {/* 로딩 중 추가 안내 */}
+          {isLoading && (
+            <div className='mt-4 text-center space-y-1 animate-fadeIn'>
+              <p className='text-xs text-gray-400'>예상 소요 시간: 3-5초</p>
+              <p className='text-xs text-gray-500'>
+                ESC 키를 눌러 취소할 수 있습니다
+              </p>
+            </div>
+          )}
 
           {/* 안내 텍스트 */}
           <div className='mt-6 text-center text-sm text-gray-400 space-y-2'>
