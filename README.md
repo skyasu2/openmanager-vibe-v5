@@ -1,4 +1,4 @@
-# 🌐 OpenManager VIBE v5.50.1
+# 🌐 OpenManager VIBE v5.65.2
 
 > **AI 기반 실시간 서버 모니터링 플랫폼** - 97% 비용 절감, 2-5x 성능 향상
 

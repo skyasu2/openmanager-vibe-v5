@@ -11,10 +11,16 @@ Project guidance for Claude Code (claude.ai/code) when working with this reposit
 
 ## 📦 MCP 서버 구성
 
-### 로컬 개발용 (9개)
+### 로컬 개발용 (9개) ✅ 100% 정상 작동
 
 - `filesystem`, `github`, `memory`, `supabase`, `context7`
 - `tavily-mcp`, `sequential-thinking`, `playwright`, `serena`
+
+**🎉 2025-01-27 업데이트**:
+
+- ✅ **playwright**: .claude/mcp.json 패키지명 수정으로 완전 활성화
+- ✅ **serena**: 코드 분석 도구 완전 통합, 모든 기능 정상 작동
+- ✅ **context7**: API 키 없이도 기본 기능 완전 지원
 
 ### GCP VM용
 
@@ -88,7 +94,7 @@ src/
 - 기본 도구(Read, Write, Edit, Bash 등)만 명시하면 MCP 도구는 자동 상속됨
 - recommended_mcp는 가이드라인일 뿐, 모든 MCP 서버 사용 가능
 - **특별**: `central-supervisor`는 유일하게 tools 필드 없음 → **모든 도구 자동 상속**
-- **현재 MCP 활용률**: 42% (목표: 70%)
+- **현재 MCP 활용률**: **100%** (목표 달성! ✅)
 
 ### 🎯 에이전트 선택 가이드
 
@@ -152,7 +158,7 @@ src/
    - **역할**: Jest/Vitest/Playwright/Cypress 자동 감지 및 실행, 실패 테스트 즉시 수정
    - **특징**: TDD/BDD 원칙, 80%+ 커버리지, GitHub Actions CI/CD 연동, E2E 자동화
    - **주요 MCP**: `filesystem`, `playwright`, `github`
-   - **보조 MCP**: `context7`, `memory`
+   - **보조 MCP**: `serena`, `context7`, `memory`
 
 10. **central-supervisor** - 중앙 오케스트레이터 🏼
     - **역할**: 복잡한 다중 작업 조율, 9개 전문 에이전트 지휘, 전체 스택 작업 분배
@@ -448,6 +454,51 @@ issue-summary (성능 저하 감지)
 4. **피드백 루프**: 에이전트 결과를 다음 에이전트에 전달하여 개선
 5. **비용 최적화**: 무료 티어 한계 고려하여 필수 작업만 자동화
 
+### 🛡️ 서브 에이전트 에러 해결 (2025-01-27 업데이트)
+
+#### 필수 환경변수 설정
+
+```bash
+# .env.local에 추가 필수
+GITHUB_TOKEN=ghp_your_personal_access_token
+SUPABASE_PROJECT_REF=your-project-ref
+SUPABASE_ACCESS_TOKEN=sbp_your_access_token
+TAVILY_API_KEY=tvly-your_api_key
+```
+
+#### 개선된 실행 방법
+
+```typescript
+// AgentHelper 사용 (권장)
+import { AgentHelper } from '@/services/agents/agent-helper';
+
+const result = await AgentHelper.executeWithAgent(
+  'ai-systems-engineer',
+  'operation-name',
+  async () => {
+    // 실제 작업 로직
+  },
+  {
+    validateMCP: true, // MCP 검증
+    includeContext: true, // 컨텍스트 포함
+    trackUsage: true, // 사용 추적
+    enableRecovery: true, // 에러 복구
+  }
+);
+```
+
+#### 상태 확인
+
+```bash
+# 서브 에이전트 상태 API
+GET /api/agents/health
+
+# 개별 에이전트 디버그
+const debug = await AgentHelper.debugAgent('database-administrator');
+```
+
+상세 가이드: `docs/sub-agents-error-analysis-solution.md`
+
 ## 💡 사용 팁
 
 ### Claude Code 사용량 모니터링
@@ -480,6 +531,8 @@ npm run ccusage:daily               # 일별 사용량
 - **AI 시스템**: `docs/ai-system-unified-guide.md`
 - **보안 가이드**: `docs/security-complete-guide.md`
 - **개발 도구**: `docs/development-tools.md`
+- **서브 에이전트 에러 해결**: `docs/sub-agents-error-analysis-solution.md`
+- **서브 에이전트 매핑 가이드**: `docs/sub-agents-mcp-mapping-guide.md`
 
 ---
 

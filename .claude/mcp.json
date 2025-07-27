@@ -52,7 +52,7 @@
     "playwright": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/mcp-server-playwright"],
+      "args": ["-y", "@playwright/mcp"],
       "env": {}
     },
     "serena": {
