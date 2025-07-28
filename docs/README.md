@@ -1,220 +1,145 @@
-# 📚 OpenManager Vibe v5.59.0 문서
+# 📚 OpenManager VIBE v5 문서
 
-> **Edge Runtime 최적화된 AI 서버 모니터링 플랫폼** - 2025년 1월 최신 버전
+> **5분 안에 필요한 정보 찾기** - 실무 중심 문서
 
-## 🎯 개요
+## 🎯 문서 철학
 
-OpenManager Vibe v5.48.7은 **Edge Runtime 최적화된 2-Mode AI 시스템**으로, 단순화된 아키텍처를 통해 높은 성능과 안정성을 제공합니다.
+**"모든 것을 문서화하지 말고, 찾는 방법을 문서화하라"**
 
-### 핵심 특징
+- 프로젝트 특화 내용만 문서화
+- 표준 기능은 공식 문서 링크 활용
+- 실제 코드와 설정 예제 중심
 
-- **2-Mode 시스템**: LOCAL (기본) / GOOGLE_ONLY (자연어 전용)
-- **Edge Runtime 최적화**: Vercel 환경에 최적화된 성능
-- **통합 라우터**: UnifiedAIEngineRouter v5.48.7
-- **Supabase RAG 우선**: 벡터 검색 기반 고성능 처리
-- **Google AI 조건부**: 환경변수 기반 선택적 활성화
-- **캐싱 시스템**: Edge Runtime 캐시로 성능 향상
+## 🚀 빠른 시작 (Quick Start)
 
-## 📋 문서 구조
+필수 설정과 실무 코드를 5분 안에 확인하세요.
 
-### 🚀 핵심 가이드
+| 문서                                                     | 설명                                | 공식 문서                                 |
+| -------------------------------------------------------- | ----------------------------------- | ----------------------------------------- |
+| **[Vercel Edge Runtime](./quick-start/vercel-edge.md)**  | Fluid Compute, Active CPU 가격 모델 | [📖](https://vercel.com/docs)             |
+| **[Supabase Auth 설정](./quick-start/supabase-auth.md)** | GitHub OAuth, RLS 보안              | [📖](https://supabase.com/docs)           |
+| **[Upstash Redis 캐싱](./quick-start/redis-cache.md)**   | 5ms 글로벌 레이턴시, Rate Limiting  | [📖](https://upstash.com/docs)            |
+| **[GCP Functions 배포](./quick-start/gcp-functions.md)** | Python 3.11 서버리스                | [📖](https://cloud.google.com/docs)       |
+| **[배포 가이드](./quick-start/deployment-guide.md)**     | Vercel + GCP 통합 배포              | [📖](https://vercel.com/docs/deployments) |
 
-| 문서                                                                | 설명                       |
-| ------------------------------------------------------------------- | -------------------------- |
-| **[AI 시스템 통합 가이드](./ai-system-unified-guide.md)** ✨        | 통합 AI 시스템 상세 가이드 |
-| **[시스템 아키텍처](./system-architecture.md)**                     | 전체 시스템 구조           |
-| **[Gemini 개발 도구 v5](./gemini-dev-tools-v5-guide.md)** 🚀        | 최신 AI 개발 도구          |
-| **[Claude Code MCP 설정 2025](./claude-code-mcp-setup-2025.md)** 🆕 | Claude Code 통합 가이드    |
+## 🤖 AI 시스템
 
-### 🔧 개발 가이드
+2-Mode AI 시스템과 통합 가이드입니다.
 
-| 문서                                                            | 설명                    |
-| --------------------------------------------------------------- | ----------------------- |
-| **[개발 가이드](./development-guide.md)**                       | 개발 환경 및 워크플로우 |
-| **[개발 도구 통합](./development-tools.md)**                    | 도구 설정 및 사용법     |
-| **[TypeScript 개선 가이드](./typescript-improvement-guide.md)** | TypeScript 최적화       |
-| **[테스팅 가이드](./testing-guide.md)**                         | TDD 및 테스트 전략      |
+| 문서                                                          | 설명                              |
+| ------------------------------------------------------------- | --------------------------------- |
+| **[AI 시스템 통합 가이드](./ai/ai-system-unified-guide.md)**  | 2-Mode 시스템 (LOCAL/GOOGLE_ONLY) |
+| **[AI 완전 가이드](./ai/ai-complete-guide.md)**               | AI 엔진 상세 구현                 |
+| **[ML 개선 요약](./ai/ML-ENHANCEMENT-SUMMARY.md)**            | 머신러닝 최적화                   |
+| **[pgvector 마이그레이션](./ai/pgvector-migration-guide.md)** | 벡터 DB 설정                      |
 
-### 🛡️ 운영 및 보안
+## 💡 개발 가이드
 
-| 문서                                                       | 설명                   |
-| ---------------------------------------------------------- | ---------------------- |
-| **[보안 완전 가이드](./security-complete-guide.md)**       | 보안 설정 및 모범 사례 |
-| **[배포 완전 가이드](./deployment-complete-guide.md)**     | Vercel 배포 및 운영    |
-| **[메모리 최적화 가이드](./memory-optimization-guide.md)** | 성능 최적화 전략       |
+개발 환경 설정과 모범 사례입니다.
 
-### 📊 성능 지표
+| 문서                                                                   | 설명              |
+| ---------------------------------------------------------------------- | ----------------- |
+| **[개발 환경](./development/development-environment.md)**              | 환경 설정 가이드  |
+| **[개발 가이드](./development/development-guide.md)**                  | 코딩 표준 및 규칙 |
+| **[TypeScript 설정](./development/typescript-configuration-guide.md)** | 타입 안전성       |
+| **[React Hooks 최적화](./development/react-hooks-optimization.md)**    | 성능 개선         |
 
-| 지표           | LOCAL 모드 | GOOGLE_ONLY 모드 |
-| -------------- | ---------- | ---------------- |
-| 평균 응답 시간 | 100-300ms  | 500-2000ms       |
-| 정확도         | 95%        | 98%              |
-| 가동률         | 99.9%      | 99.5%            |
-| 비용           | 무료       | 할당량 제한      |
+## 🔒 보안 및 성능
 
-### 최적화 성과
+보안 설정과 성능 최적화 가이드입니다.
 
-- **코드 축소**: 85% 감소 (2,790 → 400 라인)
-- **성능 향상**: 50% 개선
-- **복잡도 감소**: 75% 단순화
-- **비용 절약**: 100% 무료 티어
+| 문서                                                                               | 설명           |
+| ---------------------------------------------------------------------------------- | -------------- |
+| **[보안 가이드](./security/security-complete-guide.md)**                           | 전체 보안 설정 |
+| **[환경변수 보안](./security/env-security-guide.md)**                              | 환경변수 관리  |
+| **[성능 최적화 가이드](./performance/performance-optimization-complete-guide.md)** | 전체 성능 개선 |
+| **[API 최적화](./performance/api-optimization-guide.md)**                          | API 성능 개선  |
+| **[Redis 설정](./performance/redis-configuration-guide.md)**                       | 캐싱 최적화    |
 
-## 🔄 아키텍처 변경사항
+## 🔧 기타 주요 문서
 
-### v5.45.0 → v5.48.7 최신 개선사항
+| 문서                                                        | 설명                 |
+| ----------------------------------------------------------- | -------------------- |
+| **[MCP 베스트 프랙티스](./mcp-best-practices-guide.md)**    | MCP 서버 활용법      |
+| **[서브 에이전트 매핑](./sub-agents-mcp-mapping-guide.md)** | 서브 에이전트 가이드 |
+| **[시스템 아키텍처](./system-architecture.md)**             | 전체 구조 설명       |
 
-#### 최근 변경사항 (v5.48.x)
+## 📊 현재 상태
 
-1. **개발자 경험 개선**
-   - Husky hooks 최적화로 빠른 커밋/푸시
-   - ESLint React Hooks 경고 완전 해결
-   - TypeScript 설정 유연성 향상
+### 프로젝트 지표
 
-2. **문서 체계 개선**
-   - 중복 문서 통합 및 정리
-   - 최신 기능 문서화
-   - 일관된 버전 관리
+| 지표                 | 현재                             | 목표    |
+| -------------------- | -------------------------------- | ------- |
+| **응답 시간**        | 152ms                            | < 200ms |
+| **가동률**           | 99.95%                           | 99.9%+  |
+| **무료 티어 사용률** | Vercel 30%, GCP 15%, Supabase 3% | < 80%   |
+| **코드 품질**        | 400개 문제                       | < 100개 |
 
-### v5.44.x → v5.45.0 이전 변경사항
+### 기술 스택
 
-#### 주요 변경사항
+- **Frontend**: Next.js 14.2.4 + React 18.2.0 + TypeScript
+- **Backend**: Vercel Edge Runtime + GCP Functions (Python 3.11)
+- **Database**: Supabase PostgreSQL + pgvector
+- **Cache**: Upstash Redis
+- **AI**: Google AI + Supabase RAG
 
-1. **3-Tier → 2-Mode 시스템**
-   - 복잡한 3단계 폴백 → 단순한 2가지 모드
-   - GCP Functions 제거 → Supabase RAG 우선
-
-2. **UnifiedAIEngineRouter 통합**
-   - 모든 AI 처리를 통합 라우터로
-   - Edge Runtime 최적화
-
-3. **성능 개선**
-   - 코드 85% 축소
-   - 응답 시간 50% 개선
-   - 복잡도 75% 단순화
-
-#### 환경변수 변경
-
-```bash
-# 기존 (3-Tier)
-THREE_TIER_AI_ENABLED=true
-THREE_TIER_STRATEGY=performance
-
-# 새로운 (2-Mode)
-GOOGLE_AI_ENABLED=true  # Google AI 사용 시
-```
-
-#### API 엔드포인트 변경
-
-```typescript
-// 기존 (3-Tier)
-const response = await fetch('/api/ai/three-tier', { ... });
-
-// 새로운 (2-Mode)
-const response = await fetch('/api/ai/unified-query', { ... });
-```
-
-## 📁 문서 정리
-
-### ✅ 완료된 작업
-
-1. **문서 현대화**
-   - 2-Mode 시스템 반영
-   - 3-Tier 시스템 참조 제거
-   - Edge Runtime 최적화 내용 추가
-
-2. **문서 통합**
-   - 중복 내용 제거
-   - 핵심 가이드 간소화
-   - 상세 가이드로 링크 연결
-
-3. **레거시 문서 보관**
-   - 3-Tier 시스템 문서를 `docs/archive/legacy-3-tier/`로 이동
-   - 참고용 README 생성
-
-### 📚 문서 구조
+## 📁 문서 구조
 
 ```
 docs/
-├── README.md                           # 이 파일 (문서 개요)
-├── ai-system-unified-guide.md         # 통합 AI 시스템 가이드
-├── system-architecture.md             # 시스템 아키텍처
-├── claude-code-mcp-setup-2025.md      # Claude Code MCP 설정
-├── gemini-dev-tools-v5-guide.md       # Gemini 개발 도구
-├── development-guide.md               # 개발 가이드
-├── development-tools.md               # 개발 도구 통합
-├── security-complete-guide.md         # 보안 가이드
-├── deployment-complete-guide.md       # 배포 가이드
-├── testing-guide.md                   # 테스트 가이드
-└── archive/                           # 이전 버전 문서
-    ├── ai-system-guide.md             # 구 AI 시스템 가이드
-    ├── gemini-cli-bridge-v2-guide.md  # Gemini v2 가이드
-    ├── MCP_ARCHITECTURE.md            # 구 MCP 아키텍처
-    └── security-guide.md              # 구 보안 가이드
+├── README.md                          # 이 문서
+├── quick-start/                       # 빠른 시작 가이드 (5분)
+│   ├── vercel-edge.md                # Vercel Edge Runtime
+│   ├── supabase-auth.md              # 인증 설정
+│   ├── redis-cache.md                # Redis 캐싱
+│   ├── gcp-functions.md              # GCP Functions
+│   └── deployment-guide.md           # 배포 가이드
+├── ai/                               # AI 시스템 문서
+│   ├── ai-system-unified-guide.md    # 2-Mode 시스템
+│   ├── ai-complete-guide.md          # 상세 구현
+│   ├── ML-ENHANCEMENT-SUMMARY.md     # ML 최적화
+│   └── pgvector-migration-guide.md   # 벡터 DB
+├── development/                      # 개발 가이드 (12개)
+│   ├── development-environment.md    # 환경 설정
+│   ├── development-guide.md          # 코딩 표준
+│   ├── typescript-*.md               # TypeScript 관련
+│   └── ...
+├── security/                         # 보안 가이드 (4개)
+│   ├── security-complete-guide.md
+│   └── env-security-guide.md
+├── performance/                      # 성능 최적화 (5개)
+│   ├── performance-optimization-complete-guide.md
+│   └── api-optimization-guide.md
+├── gcp/                             # GCP 관련 (4개)
+│   └── gcp-complete-guide.md
+├── setup/                           # 설정 가이드
+├── monitoring/                      # 모니터링
+├── testing/                         # 테스트 가이드
+└── reports/                         # 테스트 결과
 ```
 
-## 🚀 빠른 시작
+## 💡 문서 활용 팁
 
-### 1. 환경변수 설정
+1. **5분 룰**: 필요한 정보를 5분 안에 찾을 수 없다면 문서 개선 필요
+2. **공식 문서 우선**: 기본 기능은 공식 문서 링크 참조
+3. **실무 코드 중심**: 복사해서 바로 사용 가능한 예제
+4. **정기 업데이트**: 분기별 공식 문서 변경사항 확인
 
-```bash
-# 기본 설정 (LOCAL 모드만 사용)
-GOOGLE_AI_ENABLED=false
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+## 🔗 주요 링크
 
-# Google AI 사용 시
-GOOGLE_AI_ENABLED=true
-GOOGLE_AI_API_KEY=your-google-ai-key
-```
+### 공식 문서
 
-### 2. API 호출
+- [Vercel Docs](https://vercel.com/docs)
+- [Supabase Docs](https://supabase.com/docs)
+- [Upstash Docs](https://upstash.com/docs)
+- [Google Cloud Docs](https://cloud.google.com/docs)
 
-```typescript
-// LOCAL 모드 (기본)
-const response = await fetch('/api/ai/unified-query', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    query: '서버 CPU 사용률이 높은데 어떻게 해결하나요?',
-    mode: 'LOCAL',
-  }),
-});
+### 프로젝트
 
-// GOOGLE_ONLY 모드
-const response = await fetch('/api/ai/unified-query', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    query: '복잡한 시스템 아키텍처에 대한 분석을 해주세요',
-    mode: 'GOOGLE_ONLY',
-  }),
-});
-```
-
-### 3. 응답 처리
-
-```typescript
-const result = await response.json();
-
-if (result.success) {
-  console.log('응답:', result.response);
-  console.log('모드:', result.mode);
-  console.log('처리 시간:', result.processingTime);
-  console.log('신뢰도:', result.confidence);
-} else {
-  console.error('오류:', result.error);
-}
-```
-
-## 📚 추가 자료
-
-- **[AI 시스템 통합 가이드](./ai-system-unified-guide.md)** - 상세한 사용법과 예시
-- **[AI 시스템 완전 가이드](./ai-complete-guide.md)** - 핵심 개념과 개요
-- **[시스템 아키텍처](./system-architecture.md)** - 전체 시스템 구조
-- **[GCP 완전 가이드](./gcp-complete-guide.md)** - 클라우드 서비스 활용
-- **[배포 완전 가이드](./deployment-complete-guide.md)** - 배포 및 운영
+- [GitHub Repository](https://github.com/[your-org]/openmanager-vibe-v5)
+- [프로덕션 사이트](https://your-app.vercel.app)
+- [개발 환경](http://localhost:3000)
 
 ---
 
-> **참고**: 이 문서는 v5.59.0 기준으로 작성되었습니다. 최신 업데이트는 각 문서를 참조하세요.
+> **마지막 업데이트**: 2025-07-28 | **문서 개선 제안은 이슈로 등록해주세요**

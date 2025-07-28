@@ -37,13 +37,18 @@ MCP(Model Context Protocol)는 LLM이 외부 도구와 데이터 소스에 접�
 파일 시스템 작업에 최적화된 서버입니다.
 
 ```typescript
-// ✅ 좋은 예: 여러 파일 동시 읽기
-const files = await mcp__filesystem__read_multiple_files({
-  paths: [
-    '/src/config/app.ts',
-    '/src/config/database.ts',
-    '/src/config/auth.ts',
-  ],
+// ✅ 좋은 예: 병렬로 여러 파일 읽기
+const [appConfig, dbConfig, authConfig] = await Promise.all([
+  mcp__filesystem__read_file({ path: '/src/config/app.ts' }),
+  mcp__filesystem__read_file({ path: '/src/config/database.ts' }),
+  mcp__filesystem__read_file({ path: '/src/config/auth.ts' }),
+]);
+
+// ✅ 좋은 예: 디렉토리 검색
+const tsFiles = await mcp__filesystem__search_files({
+  path: '/src',
+  pattern: '**/*.ts',
+  exclude_patterns: ['**/*.test.ts', '**/node_modules/**'],
 });
 
 // ❌ 나쁜 예: 개별 파일 순차 읽기
@@ -99,29 +104,27 @@ await mcp__github__create_pull_request({
 
 ```typescript
 // ✅ 좋은 예: 구조화된 지식 저장
-await mcp__memory__create_entities({
-  entities: [
-    {
-      name: 'pgvector_optimization',
-      entityType: 'optimization',
-      observations: [
-        '384차원 임베딩으로 75% 저장 공간 절약',
-        'IVFFlat 인덱스로 100만 벡터에서도 50ms 검색',
-        '하이브리드 검색으로 40% 정확도 향상',
-      ],
-    },
-  ],
+await mcp__memory__add_memory({
+  content:
+    'pgvector 최적화 결과: 384차원 임베딩으로 75% 저장 공간 절약, IVFFlat 인덱스로 100만 벡터에서도 50ms 검색',
+  metadata: {
+    type: 'optimization',
+    date: new Date().toISOString(),
+    impact: 'high',
+  },
 });
 
-// 관계 생성
-await mcp__memory__create_relations({
-  relations: [
-    {
-      from: 'pgvector_optimization',
-      to: 'SimplifiedQueryEngine',
-      relationType: 'improves',
-    },
-  ],
+// 메모리 검색
+const relatedMemories = await mcp__memory__search_memories({
+  query: 'pgvector performance',
+  limit: 5,
+});
+
+// 메모리 업데이트
+await mcp__memory__update_memory({
+  id: 'memory-id',
+  content: '업데이트된 내용',
+  metadata: { updated: true },
 });
 ```
 
@@ -136,19 +139,32 @@ await mcp__memory__create_relations({
 Supabase 데이터베이스 관리를 위한 서버입니다.
 
 ```typescript
-// ✅ 좋은 예: 안전한 마이그레이션
-const migration = await mcp__supabase__apply_migration({
-  project_id: 'your-project-id',
-  name: 'enable_pgvector_extension',
+// ✅ 좋은 예: 안전한 쿼리 실행
+const result = await mcp__supabase__query({
   query: `
-    -- 트랜잭션으로 안전하게 실행
-    BEGIN;
-    CREATE EXTENSION IF NOT EXISTS vector;
-    COMMIT;
+    SELECT s.*, 
+           array_agg(m.created_at ORDER BY m.created_at DESC) as metric_history
+    FROM servers s
+    LEFT JOIN metrics m ON s.id = m.server_id
+    WHERE s.status = $1
+    GROUP BY s.id
+    LIMIT $2
   `,
+  params: ['active', 10],
 });
 
-// ❌ 나쁜 예: 검증 없는 직접 실행
+// ✅ 좋은 예: 트랜잭션 처리
+await mcp__supabase__execute_sql({
+  sql: `
+    BEGIN;
+    UPDATE servers SET last_check = NOW() WHERE id = $1;
+    INSERT INTO metrics (server_id, cpu, memory) VALUES ($1, $2, $3);
+    COMMIT;
+  `,
+  params: [serverId, cpuUsage, memoryUsage],
+});
+
+// ❌ 나쁜 예: SQL 인젝션 위험
 await mcp__supabase__execute_sql({
   query: 'DROP TABLE users;', // 위험!
 });

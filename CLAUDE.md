@@ -87,6 +87,29 @@ npm run health-check                 # API 상태 확인
 6. **사고 모드**: "think hard" 항상 활성화
 7. **SOLID 원칙**: 모든 코드에 적용
 
+### 타입 안전성 유틸리티
+
+프로젝트 전반에서 타입 안전성을 위해 다음 유틸리티 함수들을 사용:
+
+```typescript
+// src/types/type-utils.ts
+getErrorMessage(error); // error.message 대신 사용
+safeArrayAccess(array, index); // array[index] 대신 사용
+safeObjectAccess(obj, key); // obj.key 대신 사용
+safeParseFloat(value); // parseFloat() 대신 사용
+
+// src/types/react-utils.ts
+useSafeEffect(() => {
+  // 안전한 useEffect
+  // cleanup 함수 자동 반환
+}, [deps]);
+
+useAsyncEffect(async () => {
+  // 비동기 useEffect
+  // 안전한 비동기 처리
+}, [deps]);
+```
+
 ## 💡 핵심 시스템
 
 ### AI 엔진
@@ -110,7 +133,10 @@ npm run health-check                 # API 상태 확인
 ### 데이터베이스
 
 - **PostgreSQL**: Supabase (500MB 무료)
+  - 공식 문서: https://supabase.com/docs
 - **Redis**: Upstash (256MB 무료)
+  - Overview & 시작 가이드: https://upstash.com/docs/redis/overall/getstarted
+  - SDK & Quickstart: https://upstash.com/docs/redis/sdks/ts/overview
 - **Vector DB**: pgvector 확장
 
 ## 🔌 주요 API 엔드포인트
@@ -231,12 +257,14 @@ Error: File has not been read yet. Read it first before writing to it
 
 ### Vercel (Frontend)
 
+- **공식 문서**: https://vercel.com/docs
 - **명령어**: `vercel --prod` (main 브랜치 자동 배포)
 - **환경 변수**: Vercel 대시보드에서 설정
 - **무료 한계**: 100GB 대역폭/월, 100시간 빌드/월
 
 ### GCP Functions (Backend API)
 
+- **공식 문서**: https://cloud.google.com/docs
 - **Python 함수**: `gcp-functions/` 디렉토리
 - **배포**: `scripts/deployment/deploy-all.sh`
 - **무료 한계**: 2백만 호출/월, 400,000 GB-초
@@ -247,6 +275,52 @@ Error: File has not been read yet. Read it first before writing to it
 - **Edge Runtime**: Vercel Edge로 서버 부하 감소
 - **요청 배치**: 여러 요청을 하나로 묶어 처리
 - **자동 스케일링**: 트래픽에 따라 자동 조절
+
+### 무료 티어 환경변수 상세 설정
+
+```bash
+# 서버리스 함수 제한
+SERVERLESS_FUNCTION_TIMEOUT=8      # 8초 타임아웃
+MEMORY_LIMIT_MB=40                 # 40MB 메모리 제한
+
+# API 할당량 보호
+GOOGLE_AI_DAILY_LIMIT=1000         # Google AI 일일 1000회
+SUPABASE_MONTHLY_LIMIT=40000       # Supabase 월 40000회
+REDIS_DAILY_LIMIT=8000             # Redis 일일 8000회
+
+# 메모리 관리 강화
+MEMORY_WARNING_THRESHOLD=35        # 35MB 경고 임계값
+FORCE_GARBAGE_COLLECTION=true      # 강제 가비지 컬렉션
+
+# Cron 작업 보안
+CRON_SECRET=[YOUR_SECURE_CRON_SECRET_KEY]  # 크론 작업 인증키
+```
+
+## 💰 Claude + Gemini 협업 전략
+
+토큰 사용량 최적화를 위한 Claude Code와 Gemini CLI 역할 분담:
+
+| 작업 유형   | Claude Code | Gemini CLI | 토큰 절감률 |
+| ----------- | ----------- | ---------- | ----------- |
+| 코드 생성   | ✅ 주력     | 보조       | -           |
+| 코드 분석   | 보조        | ✅ 주력    | 60%         |
+| 문서 작성   | ✅ 주력     | 검토       | -           |
+| 테스트 작성 | ✅ 주력     | 실행       | -           |
+| 리팩토링    | 설계        | ✅ 실행    | 40%         |
+| 디버깅      | 분석        | ✅ 해결    | 50%         |
+
+### 실전 협업 예시
+
+```bash
+# 1단계: Gemini로 코드 분석 (무료)
+gemini analyze src/services --complexity
+
+# 2단계: Claude로 핵심 부분만 개선 (토큰 절약)
+"complexity가 높은 processData 함수만 리팩토링해줘"
+
+# 3단계: Gemini로 결과 검증 (무료)
+gemini review --changes
+```
 
 ## 📚 추가 문서
 
