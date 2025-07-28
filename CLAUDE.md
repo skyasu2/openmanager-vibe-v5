@@ -74,7 +74,7 @@ npm run validate:all     # 린트 + 타입 + 테스트
 
 # 모니터링
 npx ccusage@latest blocks --live    # Claude 사용량 실시간
-npm run health-check                 # API 상태 확인
+npm run health:check                 # API 상태 확인
 ```
 
 ## 📝 개발 규칙 (필수)
@@ -134,10 +134,12 @@ useAsyncEffect(async () => {
 
 - **PostgreSQL**: Supabase (500MB 무료)
   - 공식 문서: https://supabase.com/docs
+  - **전담 관리**: `database-administrator` 서브 에이전트
 - **Redis**: Upstash (256MB 무료)
   - Overview & 시작 가이드: https://upstash.com/docs/redis/overall/getstarted
   - SDK & Quickstart: https://upstash.com/docs/redis/sdks/ts/overview
-- **Vector DB**: pgvector 확장
+  - **전담 관리**: `database-administrator` 서브 에이전트
+- **Vector DB**: pgvector 확장 (Supabase 내)
 
 ## 🔌 주요 API 엔드포인트
 
@@ -161,30 +163,40 @@ useAsyncEffect(async () => {
 
 복잡한 작업 시 Task 도구로 서브 에이전트 활용:
 
-| 작업 유형   | 추천 Agent                   | 용도                  |
-| ----------- | ---------------------------- | --------------------- |
-| 복잡한 작업 | `central-supervisor`         | 작업 분배 및 조율     |
-| 코드 품질   | `code-review-specialist`     | SOLID 원칙, 타입 검사 |
-| DB 최적화   | `database-administrator`     | 쿼리 성능, 인덱스     |
-| 성능 개선   | `ux-performance-optimizer`   | Core Web Vitals       |
-| 테스트      | `test-automation-specialist` | 테스트 작성/수정      |
-| AI 시스템   | `ai-systems-engineer`        | AI 엔진 최적화        |
-| 문서 관리   | `doc-structure-guardian`     | JBGE 원칙 적용        |
+| 작업 유형       | 추천 Agent                   | 용도                          |
+| --------------- | ---------------------------- | ----------------------------- |
+| 복잡한 작업     | `central-supervisor`         | 마스터 오케스트레이터         |
+| 코드 품질       | `code-review-specialist`     | SOLID 원칙, 타입 검사         |
+| DB 최적화       | `database-administrator`     | Upstash Redis + Supabase 전담 |
+| 성능 개선       | `ux-performance-optimizer`   | Core Web Vitals               |
+| 테스트          | `test-automation-specialist` | 테스트 작성/수정              |
+| AI 시스템       | `ai-systems-engineer`        | AI 어시스턴트 개발            |
+| 문서 관리       | `doc-structure-guardian`     | JBGE 원칙 적용                |
+| 시스템 모니터링 | `issue-summary`              | 플랫폼 상태 + 접속 관리       |
+| MCP 관리        | `mcp-server-admin`           | MCP 인프라 관리               |
+| AI 협업         | `gemini-cli-collaborator`    | Gemini CLI 연동               |
 
-### 🚀 서브 에이전트 자율성
+### 📁 서브 에이전트 설정 위치
 
-**중요**: 서브 에이전트는 스스로 판단하여 최적의 도구와 방법을 선택합니다.
+- **설정 파일**: `.claude/agents/` (10개 에이전트)
+- **MCP 서버 설정**: `.claude/mcp.json` (npx/uvx 형식)
+- **매핑 가이드**: `/docs/sub-agents-mcp-mapping-guide.md`
 
-- **central-supervisor**: 유일하게 tools 필드 없음 → **모든 도구 자동 상속**
-- **기타 에이전트**: 필요한 MCP 도구를 스스로 선택하여 사용
-- **프롬프트**: 작업 목표만 제시, 구체적인 방법은 에이전트가 결정
+### 🚀 서브 에이전트 역할 분리 원칙
+
+**중요**: 각 에이전트는 명확한 전문 영역만 담당합니다.
+
+- **central-supervisor**: 오케스트레이션만 - 작업 분배, 모니터링, 결과 통합
+- **issue-summary**: 플랫폼 상태 관리 - 서비스 헬스, 접속 정보, 무료 티어 추적
+- **기타 에이전트**: 각자의 전문 영역에만 집중
+- **협업 원칙**: 에이전트 간 역할 중복 없이 명확한 책임 분리
 
 ```typescript
 // 권장 방식 - 작업 목표만 제시
 Task({
   subagent_type: 'database-administrator',
-  description: 'DB 최적화',
-  prompt: 'Supabase 데이터베이스 성능을 최적화해주세요.',
+  description: 'Redis + DB 최적화',
+  prompt: 'Upstash Redis 캐싱과 Supabase PostgreSQL 성능을 최적화해주세요.',
 });
 
 // 병렬 처리 - 독립적인 작업은 동시 실행
@@ -195,18 +207,21 @@ Task({
 });
 Task({
   subagent_type: 'database-administrator',
-  prompt: '데이터베이스 최적화',
+  prompt: 'Upstash Redis 메모리 사용량 분석 및 Supabase 쿼리 최적화',
 });
 ```
 
 ### 🔗 서브 에이전트 체이닝 패턴
 
-서브 에이전트들은 자동으로 연계하여 복잡한 작업을 처리합니다:
+서브 에이전트들은 central-supervisor의 조율 하에 협업합니다:
 
 ```
-code-review-specialist (문제 발견)
-  └─ 심각도 HIGH 이상 시 → issue-summary (영향 분석)
-      └─ 시스템 전체 영향 시 → central-supervisor (대응 조율)
+사용자 요청 → central-supervisor (작업 분석 및 분배)
+  ├─ ai-systems-engineer (AI 기능 개발)
+  ├─ database-administrator (Upstash Redis + Supabase 최적화)
+  ├─ issue-summary (플랫폼 상태 확인)
+  └─ code-review-specialist (코드 품질 검증)
+      └─ 모든 결과 → central-supervisor (통합 및 보고)
 ```
 
 ### 📊 실전 성공 사례
@@ -220,10 +235,7 @@ code-review-specialist (문제 발견)
 ### 환경 설정
 
 1. **환경 변수**: `.env.local` 필수 (env.local.template 참조)
-2. **무료 티어 한계**:
-   - Vercel: 100GB 대역폭/월
-   - Supabase: 500MB 저장소
-   - GCP: 2백만 요청/월
+2. **무료 티어 한계**: [무료 티어 아키텍처](#무료-티어-아키텍처) 섹션 참조
 3. **Git Hooks**: Husky 자동 실행 (pre-commit, pre-push)
 
 ### 자주 발생하는 문제
@@ -260,14 +272,14 @@ Error: File has not been read yet. Read it first before writing to it
 - **공식 문서**: https://vercel.com/docs
 - **명령어**: `vercel --prod` (main 브랜치 자동 배포)
 - **환경 변수**: Vercel 대시보드에서 설정
-- **무료 한계**: 100GB 대역폭/월, 100시간 빌드/월
+- **무료 한계**: [무료 티어 아키텍처](#무료-티어-아키텍처) 참조
 
 ### GCP Functions (Backend API)
 
 - **공식 문서**: https://cloud.google.com/docs
 - **Python 함수**: `gcp-functions/` 디렉토리
 - **배포**: `scripts/deployment/deploy-all.sh`
-- **무료 한계**: 2백만 호출/월, 400,000 GB-초
+- **무료 한계**: [무료 티어 아키텍처](#무료-티어-아키텍처) 참조
 
 ### 무료 티어 최적화 전략
 
@@ -328,7 +340,6 @@ gemini review --changes
 
 - 상세 가이드: `/docs` 폴더
 - API 문서: `/docs/api`
-- 서브 에이전트: `/docs/sub-agents-mcp-mapping-guide.md`
 - Gemini 협업: `GEMINI.md`
 
 ### Claude Code 공식 문서
