@@ -14,6 +14,7 @@ import { toast } from 'react-hot-toast';
 import { serverKeys } from './useServerQueries';
 import { predictionKeys } from './usePredictionQueries';
 import { systemKeys } from './useSystemQueries';
+import { FREE_TIER_INTERVALS } from '@/config/free-tier-intervals';
 
 // 🌐 WebSocket 연결 상태
 type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
@@ -46,7 +47,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
     url = '/api/websocket/servers',
     reconnectInterval = 3000,
     maxReconnectAttempts = 5,
-    heartbeatInterval = 45000,
+    heartbeatInterval = FREE_TIER_INTERVALS.WEBSOCKET_HEARTBEAT_INTERVAL,
     autoConnect = true,
   } = config;
 
@@ -113,7 +114,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
               });
               break;
 
-            case 'alert':
+            case 'alert': {
               // 실시간 알림
               const { level, title, message: alertMessage } = message.data;
               const toastOptions = {
@@ -132,6 +133,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
                   break;
               }
               break;
+            }
           }
         } catch (error) {
           console.error('❌ WebSocket 메시지 파싱 오류:', error);
@@ -324,7 +326,11 @@ export const useRealtimeData = (
     alerts?: boolean;
   } = {}
 ) => {
-  const { servers = true, predictions = true, alerts = true } = options;
+  const {
+    servers = true,
+    predictions: _predictions = true,
+    alerts: _alerts = true,
+  } = options;
 
   const serverConnection = useRealtimeServers({ autoConnect: servers });
   const predictionConnection = useRealtimePredictions();

@@ -16,6 +16,7 @@ import {
 } from '@tanstack/react-query';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
+import { FREE_TIER_INTERVALS } from '@/config/free-tier-intervals';
 
 // 🎯 타입 정의
 export interface Server {
@@ -138,7 +139,8 @@ export const useServers = (options?: {
   return useQuery({
     queryKey: serverKeys.lists(),
     queryFn: fetchServers,
-    refetchInterval: options?.refetchInterval ?? 30000, // 30초 자동 갱신
+    refetchInterval:
+      options?.refetchInterval ?? FREE_TIER_INTERVALS.API_POLLING_INTERVAL, // 환경변수 기반 자동 갱신
     staleTime: 10000, // 10초 동안 stale하지 않음
     enabled: options?.enabled ?? true,
     retry: (failureCount, error) => {
@@ -163,7 +165,7 @@ export const useServerDetail = (serverId: string, enabled: boolean = true) => {
     queryFn: () => fetchServerDetail(serverId),
     enabled: !!serverId && enabled,
     staleTime: 5000,
-    refetchInterval: 30000, // ✅ 15초 → 30초로 통일 (안정성 향상)
+    refetchInterval: FREE_TIER_INTERVALS.API_POLLING_INTERVAL, // 환경변수 기반 설정
     retry: 2,
     placeholderData: keepPreviousData,
     meta: {
@@ -467,7 +469,7 @@ export const useServerConnection = () => {
         reconnectTimeoutRef.current = setTimeout(() => {
           console.log('🔄 SSE 재연결 시도...');
           connect();
-        }, 5000);
+        }, FREE_TIER_INTERVALS.API_POLLING_INTERVAL);
       };
     } catch (error) {
       console.error('❌ SSE 초기화 실패:', error);

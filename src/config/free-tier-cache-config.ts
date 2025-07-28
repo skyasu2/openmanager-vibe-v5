@@ -13,13 +13,17 @@ export const FREE_TIER_CACHE_CONFIG = {
   ttl: {
     // 자주 사용하는 데이터 (긴 TTL)
     staticData: 24 * 60 * 60, // 24시간
-    serverMetrics: 5 * 60, // 5분
+    serverMetrics: process.env.CACHE_TTL_SECONDS
+      ? parseInt(process.env.CACHE_TTL_SECONDS)
+      : 30 * 60, // 환경변수 우선, 기본값: 30분
     healthCheck: 10 * 60, // 10분
 
     // 실시간성이 중요한 데이터 (짧은 TTL)
     liveStatus: 30, // 30초
     alerts: 1 * 60, // 1분
-    apiResponse: 2 * 60, // 2분
+    apiResponse: process.env.CACHE_TTL_SECONDS
+      ? parseInt(process.env.CACHE_TTL_SECONDS)
+      : 30 * 60, // 환경변수 우선, 기본값: 30분
 
     // AI 관련 캐시
     aiResponse: 15 * 60, // 15분

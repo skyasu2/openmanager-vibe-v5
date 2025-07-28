@@ -1,4 +1,4 @@
-# 🤖 AI 시스템 완전 가이드 v5.45.0
+# 🤖 AI 시스템 완전 가이드 v5.65.11
 
 ## 📋 목차
 
@@ -12,13 +12,13 @@
 
 ## 🎯 개요
 
-OpenManager Vibe v5.45.0은 **Edge Runtime 최적화된 2-Mode AI 시스템**으로, 단순화된 아키텍처를 통해 높은 성능과 안정성을 제공합니다.
+OpenManager Vibe v5.65.11은 **Edge Runtime 최적화된 2-Mode AI 시스템**으로, 단순화된 아키텍처를 통해 높은 성능과 안정성을 제공합니다.
 
 ### 핵심 특징
 
 - **2-Mode 시스템**: LOCAL (기본) / GOOGLE_ONLY (자연어 전용)
 - **Edge Runtime 최적화**: Vercel 환경에 최적화된 성능
-- **통합 라우터**: UnifiedAIEngineRouter v5.45.0
+- **통합 라우터**: UnifiedAIEngineRouter v5.65.11
 - **Supabase RAG 우선**: 벡터 검색 기반 고성능 처리
 - **Google AI 조건부**: 환경변수 기반 선택적 활성화
 - **캐싱 시스템**: Edge Runtime 캐시로 성능 향상
@@ -160,7 +160,7 @@ if (result.success) {
 
 ## 📊 성능 지표
 
-### 현재 성능 (v5.45.0)
+### 현재 성능 (v5.65.11)
 
 | 지표           | LOCAL 모드 | GOOGLE_ONLY 모드 |
 | -------------- | ---------- | ---------------- |
@@ -198,4 +198,4 @@ if (result.success) {
 
 ## 🔄 마이그레이션
 
-v5.44.x에서 v5.45.0으로 마이그레이션하는 방법은 [AI 시스템 통합 가이드](./ai-system-unified-guide.md#마이그레이션-가이드)를 참조하세요.
+v5.64.x에서 v5.65.11으로 마이그레이션하는 방법은 [AI 시스템 통합 가이드](./ai-system-unified-guide.md#마이그레이션-가이드)를 참조하세요.

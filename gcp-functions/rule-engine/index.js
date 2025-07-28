@@ -10,9 +10,9 @@ const {
   createErrorResponse,
   createSuccessResponse,
   validateRequest,
-  isKorean,
+  isKorean: _isKorean,
   calculateProcessingTime,
-} = require('../shared/types');
+} = require('./types');
 
 /**
  * 규칙 데이터베이스 (패턴 매칭 기반)

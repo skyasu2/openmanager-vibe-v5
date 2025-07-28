@@ -1,4 +1,4 @@
-# TypeScript 개선 가이드 v5.49.0
+# TypeScript 개선 가이드 v5.65.11
 
 ## 🎯 목표
 

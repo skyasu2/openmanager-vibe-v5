@@ -176,7 +176,7 @@ export class DashboardService {
 
 ```bash
 # 정적 분석 실행
-npm run static-analysis
+npm run analyze
 
 # 타입 체크
 npm run type-check
@@ -515,11 +515,11 @@ module.exports = {
 
 ```bash
 # 전체 정적 분석
-npm run static-analysis
+npm run analyze
 
 # 특정 영역 분석
-npm run analyze:performance
-npm run analyze:security
+npm run test:performance
+npm run security:check
 npm run analyze:free-tier
 
 # 번들 분석
@@ -568,7 +568,7 @@ npm run analyze:ui-performance
 npm run build
 
 # 빌드 검증
-npm run build:verify
+npm run build
 
 # 타입 체크
 npm run type-check
@@ -611,11 +611,11 @@ vercel --prod
 ### 디버깅
 
 ```bash
-# 개발 서버 디버깅
-npm run dev:debug
+# 개발 서버 (디버그 모드)
+DEBUG=* npm run dev
 
-# 테스트 디버깅
-npm run test:debug
+# 테스트 (디버그 모드)
+npm run test -- --reporter=verbose
 
 # API 디버깅
 DEBUG=api:* npm run dev

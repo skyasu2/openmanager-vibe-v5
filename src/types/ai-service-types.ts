@@ -36,6 +36,8 @@ export interface AIQueryContext {
     content: string;
     timestamp: Date;
   }>;
+  /** 이전 쿼리 목록 (복잡도 분석용) */
+  previousQueries?: string[];
   /** 추가 메타데이터 */
   metadata?: AIMetadata;
 }

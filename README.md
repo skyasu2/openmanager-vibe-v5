@@ -1,22 +1,27 @@
-# 🌐 OpenManager VIBE v5.65.3
+# 🌐 OpenManager VIBE v5
 
-> **AI 기반 실시간 서버 모니터링 플랫폼** - 100% 무료 운영, 2-5x 성능 향상, 엔터프라이즈급 품질
+> **AI 기반 실시간 서버 모니터링 플랫폼** - 포트폴리오 프로젝트 | 바이브 코딩 대회 출품작 (2025.06)
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js%2015-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js%2014.2.4-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![GCP Functions](https://img.shields.io/badge/GCP%20Functions-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com/functions)
 [![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
 
 ## 🎯 프로젝트 개요
 
-**OpenManager VIBE v5**는 AI 기반 실시간 서버 모니터링 플랫폼으로, 100% 무료 운영하면서도 엔터프라이즈급 성능을 제공합니다.
+**OpenManager VIBE v5**는 **1인 개발 포트폴리오 프로젝트**로, 현대적인 기술 스택을 활용한 AI 기반 실시간 서버 모니터링 플랫폼입니다.
 
-### 주요 특징
+### 📚 프로젝트 배경
+- **개발 기간**: 2025년 5월 말 ~ 현재 (약 2개월)
+- **출품 성과**: 사내 바이브 코딩 대회 출품작 (2025년 6월 중순)
+- **목적**: 최신 기술 스택 학습 및 포트폴리오 구축
+- **현재 상태**: 대회 출품 후 지속적인 고도화 진행 중
 
-- **실시간 모니터링**: 15초 간격 자동 업데이트
-- **AI 기반 분석**: 이상 징후 자동 감지 및 예측
-- **무료 운영**: Vercel, GCP, Supabase 무료 티어 활용
-- **높은 성능**: 152ms 응답 시간, 99.95% 가동률
+### 🎯 기술적 성취
+- **무료 티어 최적화**: Vercel, GCP, Supabase 무료 플랜만으로 완전한 시스템 구현
+- **2-Mode AI 시스템**: LOCAL/GOOGLE_ONLY 모드로 효율적인 AI 처리
+- **실시간 모니터링**: 15초 간격 자동 업데이트 및 이상 징후 감지
+- **타입 안전성**: TypeScript strict mode로 런타임 에러 최소화
 
 ### 🏗️ 기술 스택
 

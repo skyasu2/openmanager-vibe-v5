@@ -247,7 +247,7 @@ export class DashboardService {
 
 ```bash
 # 정적 분석 실행
-npm run static-analysis
+npm run analyze
 
 # 타입 체크
 npm run type-check
@@ -592,7 +592,7 @@ jobs:
         run: npm test
 
       - name: Run static analysis
-        run: npm run static-analysis
+        run: npm run analyze
 
       - name: Type check
         run: npm run type-check
@@ -606,7 +606,7 @@ jobs:
 ```json
 // vercel.json
 {
-  "buildCommand": "npm run build && npm test && npm run static-analysis",
+  "buildCommand": "npm run build && npm test && npm run analyze",
   "ignoreCommand": "git diff --quiet HEAD^ HEAD ./src ./tests"
 }
 ```
@@ -689,5 +689,5 @@ describe('DashboardService', () => {
 ---
 
 **마지막 업데이트**: 2025년 1월 15일  
-**버전**: v5.48.0  
+**버전**: v5.65.11 (2025-07-28)  
 **상태**: Jest → Vitest 완전 마이그레이션 + 불필요한 테스트 제거 + 정적 분석 강화 완료

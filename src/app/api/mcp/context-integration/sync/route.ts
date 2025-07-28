@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const {
       ragEngineUrl,
       syncType = 'full', // 'full' | 'incremental' | 'mcp_only' | 'local_only'
-      force = false,
+      force: _force = false,
     } = body;
 
     const cloudContextLoader = CloudContextLoader.getInstance();
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         syncResult = await cloudContextLoader.syncContextWithRAG(ragEngineUrl);
         break;
 
-      case 'mcp_only':
+      case 'mcp_only': {
         console.log('🔗 MCP 서버 컨텍스트만 동기화...');
         const mcpContext = await cloudContextLoader.queryMCPContextForRAG(
           '전체 시스템 컨텍스트',
@@ -71,8 +71,9 @@ export async function POST(request: NextRequest) {
           };
         }
         break;
+      }
 
-      case 'local_only':
+      case 'local_only': {
         console.log('📚 로컬 컨텍스트만 동기화...');
         const localContexts = await Promise.all([
           cloudContextLoader.loadContextBundle('base'),
@@ -106,8 +107,9 @@ export async function POST(request: NextRequest) {
           syncType: 'local_only',
         };
         break;
+      }
 
-      case 'incremental':
+      case 'incremental': {
         console.log('📈 증분 동기화 실행...');
         // 실제 구현에서는 마지막 동기화 시간 이후 변경된 컨텍스트만 동기화
         const incrementalContext =
@@ -141,6 +143,7 @@ export async function POST(request: NextRequest) {
           };
         }
         break;
+      }
 
       default:
         throw new Error(`지원하지 않는 동기화 타입: ${syncType}`);
@@ -189,7 +192,7 @@ export async function POST(request: NextRequest) {
  *
  * GET /api/mcp/context-integration/sync
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     console.log('📊 동기화 상태 조회 시작...');
 

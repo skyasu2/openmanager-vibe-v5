@@ -8,11 +8,11 @@
 const functions = require('@google-cloud/functions-framework');
 const {
   createErrorResponse,
-  createSuccessResponse,
+  createSuccessResponse: _createSuccessResponse,
   validateRequest,
   isKorean,
   calculateProcessingTime,
-} = require('../shared/types');
+} = require('./types');
 
 // 환경 변수 설정
 const ENHANCED_KOREAN_NLP_URL =

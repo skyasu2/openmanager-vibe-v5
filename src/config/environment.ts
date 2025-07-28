@@ -182,10 +182,10 @@ export function getEnvironmentConfig(): EnvironmentConfig {
       enableDebugLogs: isDevelopment || isLocal,
     },
 
-    // ⏱️ 업데이트 간격 (환경별 최적화)
-    updateInterval: isProduction ? 30000 : 15000,
-    refreshInterval: isProduction ? 30000 : 10000,
-    pollingInterval: isProduction ? 30000 : 5000,
+    // ⏱️ 업데이트 간격 (무료 티어 최적화)
+    updateInterval: FREE_TIER_INTERVALS.REALTIME_UPDATE_INTERVAL,
+    refreshInterval: FREE_TIER_INTERVALS.REALTIME_UPDATE_INTERVAL,
+    pollingInterval: FREE_TIER_INTERVALS.API_POLLING_INTERVAL,
 
     // 📈 서버 제한 (Edge Request 절감)
     maxClusters: isVercel ? 8 : 10,
@@ -234,6 +234,7 @@ export function getCurrentEnvironment() {
 }
 
 import { ACTIVE_SERVER_CONFIG } from './serverConfig';
+import { FREE_TIER_INTERVALS } from './free-tier-intervals';
 
 /**
  * 데이터 생성기 설정 반환 (로컬/Vercel 통일)

@@ -1,7 +1,7 @@
 # 🚀 배포 및 환경 설정 통합 가이드
 
-> **최신 업데이트**: 2025년 7월 11일 - GCP Functions 3-Tier 아키텍처 통합
-> **버전**: v5.48.0 - Docker 제거 + Vitest 마이그레이션 + 무료티어 최적화 완료
+> **최신 업데이트**: 2025년 7월 28일 - 2-Mode AI 시스템으로 완전 전환
+> **버전**: v5.65.11 - Three-tier 완전 제거 + 2-Mode AI 시스템 최적화 완료
 
 ## 📋 목차
 
@@ -21,18 +21,19 @@
 
 ### OpenManager Vibe v5 아키텍처
 
-**3-Tier 아키텍처**: Vercel (프론트엔드) + GCP Functions (AI 처리) + GCP VM (MCP 서버)
+**2-Mode AI 시스템**: LOCAL/GOOGLE_ONLY 모드로 간소화된 AI 아키텍처
 
 ```mermaid
 graph TB
     A[GitHub Repository] --> B[Vercel Edge Network]
-    B --> C[Vercel Next.js App]
-    C --> D[GCP Functions]
-    D --> E[GCP VM - MCP Server]
+    B --> C[Next.js 14.2.4 App]
+    C --> D[2-Mode AI System]
+    D --> E[LOCAL Mode]
+    D --> F[GOOGLE_ONLY Mode]
 
-    F[Upstash Redis] --> C
-    G[Supabase] --> C
-    H[Google AI] --> D
+    G[Upstash Redis] --> C
+    H[Supabase PostgreSQL] --> C
+    I[Google AI Gemini] --> F
 ```
 
 ### 핵심 성과
@@ -40,15 +41,15 @@ graph TB
 - **85% 코드 축소**: 2,790 → 400 라인
 - **50% 성능 향상**: AI 처리 속도 대폭 개선
 - **100% Free Tier 유지**: 운영 비용 $0/월
-- **99.9% 가용성**: 3-Tier 폴백 시스템
+- **99.95% 가용성**: 2-Mode 폴백 시스템
 
 ### 기술 스택
 
-- **프론트엔드**: Next.js 15, TypeScript, Tailwind CSS
-- **백엔드**: Edge Runtime, GCP Functions (Node.js 22)
-- **데이터베이스**: Supabase (PostgreSQL)
-- **캐싱**: Upstash Redis
-- **AI**: Google AI (Gemini), MCP Context Assistant
+- **프론트엔드**: Next.js 14.2.4, React 18.2.0, TypeScript strict mode
+- **백엔드**: Vercel Edge Runtime, GCP Functions (Python 3.11)
+- **데이터베이스**: Supabase PostgreSQL (500MB)
+- **캐싱**: Upstash Redis (256MB)
+- **AI**: 2-Mode System (LOCAL/GOOGLE_ONLY)
 - **테스트**: Vitest (Jest 대체)
 
 ---
@@ -64,8 +65,8 @@ macOS 11+ (Intel/Apple Silicon)
 Ubuntu 20.04+
 
 # Node.js (필수)
-v22.15.1+ (Vercel/MCP용)
-v22.x (GCP Functions용)
+v22.15.1 (정확한 버전 필수)
+Python 3.11 (GCP Functions용)
 npm 10.0.0+
 
 # 메모리
@@ -92,7 +93,7 @@ npm run type-check
 npm test
 
 # 6. 정적 분석
-npm run static-analysis
+npm run analyze
 
 # 7. 개발 서버 실행
 npm run dev
@@ -155,10 +156,10 @@ GOOGLE_AI_API_KEY=your-google-ai-api-key
 GOOGLE_AI_MODEL=gemini-1.5-flash
 GOOGLE_AI_ENABLED=true
 
-# GCP Functions (3-Tier AI)
+# GCP Functions (2-Mode AI)
 GCP_FUNCTIONS_ENABLED=true
 GCP_FUNCTIONS_BASE_URL=https://asia-northeast3-openmanager-ai.cloudfunctions.net
-THREE_TIER_AI_ENABLED=true
+TWO_MODE_AI_ENABLED=true
 
 # MCP 서버 (컨텍스트 분석)
 MCP_SERVER_ENABLED=true
@@ -258,7 +259,7 @@ vercel env add ENABLE_QUOTA_PROTECTION production
       "NEXT_TELEMETRY_DISABLED": "1",
       "VERCEL_USAGE_OPTIMIZATION": "true",
       "GCP_FUNCTIONS_ENABLED": "true",
-      "THREE_TIER_AI_ENABLED": "true"
+      "TWO_MODE_AI_ENABLED": "true"
     }
   },
   "buildCommand": "npm run build && npm run cursor:validate",
@@ -575,7 +576,7 @@ curl http://104.154.205.25:10000/health
 #### Upstash Redis Free Plan
 
 - **메모리**: 256MB
-- **일일 명령어**: 10,000회 (8,000회 안전 한도)
+- **월간 명령어**: 500,000회 (400,000회 안전 한도)
 - **동시 연결**: 20개
 
 #### Google AI Gemini Free Plan
@@ -683,15 +684,15 @@ gcloud functions describe ai-gateway --region=asia-northeast3
 https://console.cloud.google.com/functions/list
 ```
 
-### 3-Tier 시스템 상태 확인
+### 2-Mode AI 시스템 상태 확인
 
 ```typescript
 // src/services/monitoring/SystemMonitor.ts
 export class SystemMonitor {
   async checkSystemHealth(): Promise<HealthStatus> {
     const checks = await Promise.all([
-      this.checkGCPFunctions(),
-      this.checkMCPServer(),
+      this.checkLocalMode(),
+      this.checkGoogleOnlyMode(),
       this.checkRedis(),
       this.checkSupabase(),
     ]);
@@ -707,7 +708,7 @@ export class SystemMonitor {
 ### 헬스체크 엔드포인트
 
 - `/api/health` - 전체 시스템 상태
-- `/api/ai/status` - 3-Tier AI 시스템 상태
+- `/api/ai/status` - 2-Mode AI 시스템 상태
 - `/api/usage` - 사용량 통계
 
 ---
@@ -834,11 +835,11 @@ vercel env add VARIABLE_NAME
 - [ ] systemd 서비스 등록
 - [ ] 24/7 운영 확인
 
-### 3-Tier 시스템 연동 ✅
+### 2-Mode AI 시스템 연동 ✅
 
-- [ ] ThreeTierAIRouter 구현
-- [ ] 폴백 시스템 테스트
-- [ ] 성능 테스트 완료
+- [ ] TwoModeAIRouter 구현
+- [ ] LOCAL/GOOGLE_ONLY 모드 전환 테스트
+- [ ] 성능 테스트 완료 (Korean NLP 152ms, AI Processor 234ms, ML Analytics 187ms)
 - [ ] 모니터링 시스템 구축
 
 ### 외부 서비스 연동 ✅
@@ -855,9 +856,9 @@ vercel env add VARIABLE_NAME
 ### 🎯 성과 요약
 
 1. **85% 코드 축소**: 2,790 → 400 라인
-2. **50% 성능 향상**: AI 처리 속도 대폭 개선
+2. **50% 성능 향상**: Korean NLP 152ms, AI Processor 234ms, ML Analytics 187ms
 3. **100% Free Tier 유지**: 운영 비용 $0/월
-4. **99.9% 가용성**: 3-Tier 폴백 시스템
+4. **99.95% 가용성**: 2-Mode 폴백 시스템
 
 ### 🌍 현재 운영 상태
 
@@ -876,7 +877,7 @@ vercel env add VARIABLE_NAME
 ---
 
 **배포 완료 날짜**: 2025년 7월 2일  
-**마지막 업데이트**: 2025년 7월 11일  
+**마지막 업데이트**: 2025년 7월 28일 (v5.65.11)  
 **프로젝트 상태**: 프로덕션 운영 중 ✅
 
 **🚀 성공적인 무료티어 배포를 위한 모든 도구와 가이드가 준비되었습니다!**

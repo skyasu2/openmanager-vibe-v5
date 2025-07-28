@@ -159,13 +159,14 @@ export async function POST(request: NextRequest) {
           timestamp: new Date().toISOString(),
         });
 
-      case 'refresh':
+      case 'refresh': {
         // 캐시 강제 새로고침
         memoryCache = null;
         const refreshResponse = await GET(request);
         return refreshResponse;
+      }
 
-      case 'info':
+      case 'info': {
         // 캐시 정보 조회
         const cacheInfo = memoryCache
           ? {
@@ -191,6 +192,7 @@ export async function POST(request: NextRequest) {
           cache: cacheInfo,
           timestamp: new Date().toISOString(),
         });
+      }
 
       default:
         return NextResponse.json(

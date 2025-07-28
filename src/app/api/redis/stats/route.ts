@@ -136,7 +136,7 @@ export async function GET() {
 /**
  * 🧮 Mock Redis 사용 비율 계산
  */
-function calculateMockUsageRatio(stats: any): string {
+function _calculateMockUsageRatio(stats: any): string {
   const mockOps = (stats.mockRedis?.sets || 0) + (stats.mockRedis?.hits || 0);
   const totalOps = mockOps;
 
@@ -166,7 +166,7 @@ function determineSystemHealth(hybridStats: any, usageStats: any): string {
 /**
  * 📊 상세 통계 수집
  */
-async function collectDetailedStats() {
+async function _collectDetailedStats() {
   const performanceTests = await runPerformanceTests();
 
   return {
@@ -254,7 +254,7 @@ export async function POST(request: NextRequest) {
     const { action, context, dataSize } = body;
 
     switch (action) {
-      case 'test-hybrid':
+      case 'test-hybrid': {
         // 하이브리드 시스템 테스트
         const testResult = await testHybridSystem(context, dataSize);
         return NextResponse.json({
@@ -262,8 +262,9 @@ export async function POST(request: NextRequest) {
           result: testResult,
           timestamp: new Date().toISOString(),
         });
+      }
 
-      case 'benchmark':
+      case 'benchmark': {
         // 벤치마크 실행
         const benchmarkResult = await runBenchmark();
         return NextResponse.json({
@@ -271,6 +272,7 @@ export async function POST(request: NextRequest) {
           benchmark: benchmarkResult,
           timestamp: new Date().toISOString(),
         });
+      }
 
       default:
         return NextResponse.json(

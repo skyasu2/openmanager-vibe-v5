@@ -143,7 +143,9 @@ export function calculateOptimalCollectionInterval(): number {
     return 300000; // 낮은 사용률: 5분
   }
 
-  return 300000; // 기본값: 5분 (무료 티어 최적화)
+  return process.env.DATA_COLLECTION_INTERVAL
+    ? parseInt(process.env.DATA_COLLECTION_INTERVAL)
+    : 300000; // 환경변수 우선, 기본값: 5분
 }
 
 /**

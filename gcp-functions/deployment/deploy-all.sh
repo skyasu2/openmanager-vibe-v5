@@ -6,6 +6,17 @@
 
 set -e  # 오류 발생 시 스크립트 중단
 
+# 스크립트 디렉토리 경로
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/../.." && pwd )"
+
+# 환경변수 로드
+if [ -f "$PROJECT_ROOT/.env.local" ]; then
+    set -a
+    source "$PROJECT_ROOT/.env.local"
+    set +a
+fi
+
 # 색상 코드
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -31,7 +42,7 @@ error() {
 }
 
 # 프로젝트 설정
-PROJECT_ID="openmanager-ai"
+PROJECT_ID="openmanager-free-tier"
 REGION="asia-northeast3"
 FUNCTIONS=("ai-gateway" "enhanced-korean-nlp" "rule-engine" "ml-analytics-engine" "unified-ai-processor")
 
@@ -57,7 +68,7 @@ fi
 # 배포 시작
 deploy_function() {
     local func_name=$1
-    local func_dir="gcp-functions/$func_name"
+    local func_dir="$PROJECT_ROOT/gcp-functions/$func_name"
     
     if [ ! -d "$func_dir" ]; then
         error "디렉토리를 찾을 수 없습니다: $func_dir"
@@ -68,24 +79,38 @@ deploy_function() {
     
     cd "$func_dir"
     
-    # package.json 존재 확인
-    if [ ! -f "package.json" ]; then
-        error "$func_name: package.json을 찾을 수 없습니다"
-        cd - > /dev/null
-        return 1
-    fi
-    
-    # index.js 존재 확인
-    if [ ! -f "index.js" ]; then
-        error "$func_name: index.js를 찾을 수 없습니다"
-        cd - > /dev/null
-        return 1
-    fi
-    
-    # 의존성 설치
-    if [ -f "package.json" ]; then
-        log "의존성 설치 중..."
+    # 런타임별 파일 체크 및 의존성 설치
+    if [[ "$RUNTIME" == nodejs* ]]; then
+        # Node.js 함수
+        if [ ! -f "package.json" ]; then
+            error "$func_name: package.json을 찾을 수 없습니다"
+            cd - > /dev/null
+            return 1
+        fi
+        
+        if [ ! -f "index.js" ]; then
+            error "$func_name: index.js를 찾을 수 없습니다"
+            cd - > /dev/null
+            return 1
+        fi
+        
+        log "Node.js 의존성 설치 중..."
         npm install --silent
+    elif [[ "$RUNTIME" == python* ]]; then
+        # Python 함수
+        if [ ! -f "requirements.txt" ]; then
+            error "$func_name: requirements.txt를 찾을 수 없습니다"
+            cd - > /dev/null
+            return 1
+        fi
+        
+        if [ ! -f "main.py" ]; then
+            error "$func_name: main.py를 찾을 수 없습니다"
+            cd - > /dev/null
+            return 1
+        fi
+        
+        log "Python 함수 준비 완료"
     fi
     
     # Function별 설정
@@ -94,39 +119,57 @@ deploy_function() {
             MEMORY="256MB"
             TIMEOUT="60s"
             RUNTIME="nodejs22"
+            ENTRY_POINT="ai-gateway"
             ;;
         "enhanced-korean-nlp")
             MEMORY="512MB"
             TIMEOUT="180s"
-            RUNTIME="python310"
+            RUNTIME="python311"
+            ENTRY_POINT="enhanced_korean_nlp"
             ;;
         "rule-engine")
             MEMORY="256MB"
             TIMEOUT="30s"
             RUNTIME="nodejs22"
+            ENTRY_POINT="rule-engine"
             ;;
         "ml-analytics-engine")
             MEMORY="512MB"
             TIMEOUT="120s"
-            RUNTIME="python310"
+            RUNTIME="python311"
+            ENTRY_POINT="ml_analytics_engine"
             ;;
         "unified-ai-processor")
             MEMORY="1GB"
             TIMEOUT="300s"
-            RUNTIME="python310"
+            RUNTIME="python311"
+            ENTRY_POINT="unified_ai_processor"
             ;;
     esac
     
     # 배포 실행
     log "$func_name 배포 중... (런타임: $RUNTIME, 메모리: $MEMORY, 타임아웃: $TIMEOUT)"
     
+    # 환경변수 설정
+    ENV_VARS=""
+    ENV_VARS="${ENV_VARS}GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY},"
+    ENV_VARS="${ENV_VARS}SUPABASE_URL=${SUPABASE_URL},"
+    ENV_VARS="${ENV_VARS}SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY},"
+    ENV_VARS="${ENV_VARS}SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY},"
+    ENV_VARS="${ENV_VARS}UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL},"
+    ENV_VARS="${ENV_VARS}UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN},"
+    ENV_VARS="${ENV_VARS}GCP_PROJECT_ID=${GCP_PROJECT_ID}"
+    
     if gcloud functions deploy $func_name \
+        --gen2 \
         --runtime $RUNTIME \
+        --entry-point $ENTRY_POINT \
         --trigger-http \
         --allow-unauthenticated \
         --memory $MEMORY \
         --timeout $TIMEOUT \
         --region $REGION \
+        --set-env-vars="${ENV_VARS}" \
         --quiet; then
         
         success "$func_name Function 배포 완료!"
@@ -134,12 +177,15 @@ deploy_function() {
         # 헬스 체크 Function도 배포
         log "$func_name-health Function 배포 중..."
         if gcloud functions deploy "${func_name}-health" \
+            --gen2 \
             --runtime nodejs22 \
+            --entry-point "${func_name}-health" \
             --trigger-http \
             --allow-unauthenticated \
             --memory 128MB \
             --timeout 10s \
             --region $REGION \
+            --set-env-vars="${ENV_VARS}" \
             --quiet; then
             
             success "$func_name-health Function 배포 완료!"

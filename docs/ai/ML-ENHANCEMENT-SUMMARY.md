@@ -1,4 +1,7 @@
-# 🧠 ML 기능 강화 완료 보고서
+# 🧠 ML 기능 강화 완료 보고서 v5.65.11
+
+**작성일**: 2025-07-28  
+**대상**: OpenManager VIBE v5.65.11
 
 ## 📋 구현 완료 사항
 
@@ -75,7 +78,7 @@
 
 ## 🔧 기술 스택
 
-- **프론트엔드**: Next.js 15, TypeScript, Tailwind CSS
+- **프론트엔드**: Next.js 14.2.4, TypeScript, Tailwind CSS
 - **AI 엔진**: Google AI, Supabase RAG, Local ML
 - **캐싱**: Redis, In-Memory Cache
 - **백엔드**: GCP Functions
