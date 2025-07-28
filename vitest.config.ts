@@ -15,6 +15,8 @@ export default defineConfig(({ mode }) => {
       // 🎯 핵심 테스트만 실행
       include: [
         'src/test/**/*.test.{ts,tsx}',
+        'src/services/**/*.test.{ts,tsx}', // services 하위 테스트 추가
+        'src/**/__tests__/**/*.test.{ts,tsx}', // __tests__ 디렉토리 패턴 추가
         'tests/unit/**/*.test.{ts,tsx}',
         'tests/integration/**/*.test.{ts,tsx}',
         'tests/components/**/*.test.{ts,tsx}',

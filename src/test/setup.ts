@@ -7,7 +7,7 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import * as React from 'react';
 import { setupTestEnvironment } from './env.config';
-// import './mocks'; // 타임아웃 문제 디버깅을 위해 임시 비활성화
+// import './mocks'; // 타임아웃 문제로 임시 비활성화 - 문제 해결 후 재활성화 예정
 
 // ===============================
 // 🔧 환경변수 통합 설정
@@ -69,7 +69,7 @@ Object.defineProperty(window, 'scroll', {
 // ===============================
 global.fetch = vi.fn();
 
-interface MockEventSource extends EventSource {
+interface _MockEventSource extends EventSource {
   close: ReturnType<typeof vi.fn>;
   addEventListener: ReturnType<typeof vi.fn>;
   removeEventListener: ReturnType<typeof vi.fn>;
