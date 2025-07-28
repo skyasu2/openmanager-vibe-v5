@@ -140,6 +140,73 @@ gemini /memory list > project_memory.txt
 - ✅ **CLI 도구** 안정성 개선
 - ✅ **TDD 테스트 환경** 구축
 
+## 📚 실전 협업 워크플로우
+
+### 1. 코드 리뷰 협업
+
+```bash
+# Claude가 작성한 새 기능을 Gemini가 검토
+cat src/services/new-feature.ts | gemini -p "SOLID 원칙 위반 여부와 개선점 3가지"
+
+# 복잡한 로직에 대한 두 번째 의견
+echo "재귀 함수의 성능 문제 해결 방법" | gemini -p "메모이제이션 적용 예시"
+
+# 타입 안전성 검증
+git diff HEAD^ | gemini -p "TypeScript 타입 누락이나 any 사용 확인"
+```
+
+### 2. 아키텍처 결정 협업
+
+```bash
+# 설계 결정 시 두 AI의 의견 수렴
+echo "마이크로서비스 vs 모놀리스 선택 기준" | gemini -p "프로젝트 규모별 장단점 3개씩"
+
+# 기술 스택 선택
+echo "Redis vs PostgreSQL 캐싱 전략" | gemini -p "무료 티어 기준 추천"
+
+# 성능 최적화 전략
+cat performance-report.json | gemini -p "병목 지점 분석과 해결 우선순위"
+```
+
+### 3. 버그 해결 협업
+
+```bash
+# 에러 로그 분석
+tail -n 100 error.log | gemini -p "에러 패턴과 근본 원인 분석"
+
+# 스택 트레이스 해석
+cat stack-trace.txt | gemini -p "메모리 누수 가능성 확인"
+
+# 해결 방안 검증
+echo "useEffect 무한 루프 문제" | gemini -p "의존성 배열 수정 방법"
+```
+
+### 4. 문서화 협업
+
+```bash
+# API 문서 생성
+cat src/api/routes.ts | gemini -p "OpenAPI 스펙 생성"
+
+# README 개선
+echo "프로젝트 소개 문구 개선" | gemini -p "엔터프라이즈 고객 대상 3줄 요약"
+
+# 변경 로그 작성
+git log --oneline -10 | gemini -p "사용자 친화적 변경사항 요약"
+```
+
+### 5. 테스트 전략 협업
+
+```bash
+# 테스트 케이스 생성
+cat src/utils/validator.ts | gemini -p "엣지 케이스 포함 테스트 시나리오 5개"
+
+# 테스트 커버리지 분석
+cat coverage/lcov.info | gemini -p "테스트 부족 영역 우선순위"
+
+# E2E 시나리오 검토
+echo "결제 프로세스 E2E 테스트" | gemini -p "중요 검증 포인트 목록"
+```
+
 ## 메모리 저장 권장사항
 
 ### 프로젝트 기본 정보
