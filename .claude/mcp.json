@@ -99,7 +99,7 @@
       "args": ["-y", "@playwright/mcp@0.1.1"],
       "env": {
         "PLAYWRIGHT_BROWSERS_PATH": "${HOME}/.cache/ms-playwright",
-        "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "false",
+        "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "true",
         "NODE_OPTIONS": "--max-old-space-size=4096",
         "BROWSER_EXECUTABLE_PATH": "/usr/bin/chromium-browser"
       },
