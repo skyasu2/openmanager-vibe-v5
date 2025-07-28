@@ -1,13 +1,13 @@
 /**
  * 🚀 벡터 검색 최적화 서비스
- * 
+ *
  * Supabase pgvector 검색 성능 최적화
  * - IVFFlat 인덱스 생성 및 관리
  * - 카테고리별 파티셔닝
  * - 검색 쿼리 최적화
  */
 
-import { getSupabaseClient } from '@/lib/supabase/client';
+import { getSupabaseClient } from '@/lib/supabase-singleton';
 import { aiLogger } from '@/lib/logger';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -44,7 +44,7 @@ export class VectorSearchOptimizer {
       indexesCreated: 0,
       partitionsCreated: 0,
       functionsOptimized: 0,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -74,7 +74,9 @@ export class VectorSearchOptimizer {
       aiLogger.info('벡터 검색 최적화 완료', result);
     } catch (error) {
       result.success = false;
-      result.errors.push(error instanceof Error ? error.message : '알 수 없는 오류');
+      result.errors.push(
+        error instanceof Error ? error.message : '알 수 없는 오류'
+      );
       aiLogger.error('벡터 검색 최적화 실패', error);
     }
 
@@ -84,7 +86,10 @@ export class VectorSearchOptimizer {
   /**
    * 최적화된 인덱스 생성
    */
-  private async createOptimizedIndexes(): Promise<{ created: number; errors: string[] }> {
+  private async createOptimizedIndexes(): Promise<{
+    created: number;
+    errors: string[];
+  }> {
     let created = 0;
     const errors: string[] = [];
 
@@ -97,8 +102,8 @@ export class VectorSearchOptimizer {
         AND indexname LIKE '%embedding%';
       `;
 
-      const { data: existingIndexes, error: checkError } = await this.supabase
-        .rpc('execute_query', { query: checkIndexSQL });
+      const { data: existingIndexes, error: checkError } =
+        await this.supabase.rpc('execute_query', { query: checkIndexSQL });
 
       if (checkError) {
         errors.push(`인덱스 확인 실패: ${checkError.message}`);
@@ -106,7 +111,7 @@ export class VectorSearchOptimizer {
       }
 
       // 2. IVFFlat 인덱스가 없으면 생성
-      const hasIVFFlat = existingIndexes?.some((idx: any) => 
+      const hasIVFFlat = existingIndexes?.some((idx: any) =>
         idx.indexname.includes('ivfflat')
       );
 
@@ -115,9 +120,11 @@ export class VectorSearchOptimizer {
         const checkExtensionSQL = `
           SELECT * FROM pg_extension WHERE extname = 'vector';
         `;
-        
-        const { data: extensionData } = await this.supabase
-          .rpc('execute_query', { query: checkExtensionSQL });
+
+        const { data: extensionData } = await this.supabase.rpc(
+          'execute_query',
+          { query: checkExtensionSQL }
+        );
 
         if (!extensionData || extensionData.length === 0) {
           errors.push('pgvector 확장이 설치되지 않았습니다');
@@ -132,8 +139,9 @@ export class VectorSearchOptimizer {
           WITH (lists = 100);
         `;
 
-        const { error: createError } = await this.supabase
-          .rpc('execute_sql', { query: createIVFIndexSQL });
+        const { error: createError } = await this.supabase.rpc('execute_sql', {
+          query: createIVFIndexSQL,
+        });
 
         if (createError) {
           errors.push(`IVFFlat 인덱스 생성 실패: ${createError.message}`);
@@ -145,7 +153,7 @@ export class VectorSearchOptimizer {
 
       // 3. 카테고리별 부분 인덱스 생성
       const categories = ['system', 'user', 'admin', 'monitoring'];
-      
+
       for (const category of categories) {
         const indexName = `idx_${category}_embeddings`;
         const checkCategoryIndexSQL = `
@@ -153,8 +161,9 @@ export class VectorSearchOptimizer {
           WHERE indexname = '${indexName}';
         `;
 
-        const { data: hasIndex } = await this.supabase
-          .rpc('execute_query', { query: checkCategoryIndexSQL });
+        const { data: hasIndex } = await this.supabase.rpc('execute_query', {
+          query: checkCategoryIndexSQL,
+        });
 
         if (!hasIndex || hasIndex.length === 0) {
           const createCategoryIndexSQL = `
@@ -163,11 +172,15 @@ export class VectorSearchOptimizer {
             WHERE category = '${category}';
           `;
 
-          const { error: categoryError } = await this.supabase
-            .rpc('execute_sql', { query: createCategoryIndexSQL });
+          const { error: categoryError } = await this.supabase.rpc(
+            'execute_sql',
+            { query: createCategoryIndexSQL }
+          );
 
           if (categoryError) {
-            errors.push(`${category} 카테고리 인덱스 생성 실패: ${categoryError.message}`);
+            errors.push(
+              `${category} 카테고리 인덱스 생성 실패: ${categoryError.message}`
+            );
           } else {
             created++;
             aiLogger.info(`${category} 카테고리 인덱스 생성 완료`);
@@ -181,15 +194,17 @@ export class VectorSearchOptimizer {
         ON command_vectors USING gin (metadata);
       `;
 
-      const { error: metadataError } = await this.supabase
-        .rpc('execute_sql', { query: createMetadataIndexSQL });
+      const { error: metadataError } = await this.supabase.rpc('execute_sql', {
+        query: createMetadataIndexSQL,
+      });
 
       if (!metadataError) {
         created++;
       }
-
     } catch (error) {
-      errors.push(`인덱스 생성 중 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+      errors.push(
+        `인덱스 생성 중 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+      );
     }
 
     return { created, errors };
@@ -198,7 +213,10 @@ export class VectorSearchOptimizer {
   /**
    * 검색 함수 최적화
    */
-  private async optimizeSearchFunctions(): Promise<{ optimized: number; errors: string[] }> {
+  private async optimizeSearchFunctions(): Promise<{
+    optimized: number;
+    errors: string[];
+  }> {
     let optimized = 0;
     const errors: string[] = [];
 
@@ -259,8 +277,9 @@ export class VectorSearchOptimizer {
         $$;
       `;
 
-      const { error: functionError } = await this.supabase
-        .rpc('execute_sql', { query: optimizedSearchFunction });
+      const { error: functionError } = await this.supabase.rpc('execute_sql', {
+        query: optimizedSearchFunction,
+      });
 
       if (functionError) {
         errors.push(`검색 함수 최적화 실패: ${functionError.message}`);
@@ -306,16 +325,18 @@ export class VectorSearchOptimizer {
         $$;
       `;
 
-      const { error: batchError } = await this.supabase
-        .rpc('execute_sql', { query: batchSearchFunction });
+      const { error: batchError } = await this.supabase.rpc('execute_sql', {
+        query: batchSearchFunction,
+      });
 
       if (!batchError) {
         optimized++;
         aiLogger.info('배치 검색 함수 생성 완료');
       }
-
     } catch (error) {
-      errors.push(`함수 최적화 중 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+      errors.push(
+        `함수 최적화 중 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+      );
     }
 
     return { optimized, errors };
@@ -353,19 +374,20 @@ export class VectorSearchOptimizer {
       // 샘플 쿼리 생성
       for (let i = 0; i < sampleSize; i++) {
         const startTime = Date.now();
-        
+
         // 더미 임베딩 생성 (실제로는 실제 임베딩 사용)
-        const dummyEmbedding = new Array(384).fill(0).map(() => Math.random() * 2 - 1);
-        
-        const { error } = await this.supabase
-          .rpc('search_vectors_optimized', {
-            query_embedding: dummyEmbedding,
-            match_threshold: 0.5,
-            match_count: 5
-          });
+        const dummyEmbedding = new Array(384)
+          .fill(0)
+          .map(() => Math.random() * 2 - 1);
+
+        const { error } = await this.supabase.rpc('search_vectors_optimized', {
+          query_embedding: dummyEmbedding,
+          match_threshold: 0.5,
+          match_count: 5,
+        });
 
         const searchTime = Date.now() - startTime;
-        
+
         if (!error) {
           results.push(searchTime);
           successCount++;
@@ -377,7 +399,7 @@ export class VectorSearchOptimizer {
           avgSearchTime: 0,
           minSearchTime: 0,
           maxSearchTime: 0,
-          successRate: 0
+          successRate: 0,
         };
       }
 
@@ -385,7 +407,7 @@ export class VectorSearchOptimizer {
         avgSearchTime: results.reduce((a, b) => a + b, 0) / results.length,
         minSearchTime: Math.min(...results),
         maxSearchTime: Math.max(...results),
-        successRate: successCount / sampleSize
+        successRate: successCount / sampleSize,
       };
     } catch (error) {
       aiLogger.error('벤치마크 실행 실패', error);
@@ -393,7 +415,7 @@ export class VectorSearchOptimizer {
         avgSearchTime: 0,
         minSearchTime: 0,
         maxSearchTime: 0,
-        successRate: 0
+        successRate: 0,
       };
     }
   }
@@ -401,12 +423,14 @@ export class VectorSearchOptimizer {
   /**
    * 인덱스 상태 확인
    */
-  async getIndexStatus(): Promise<Array<{
-    indexName: string;
-    tableName: string;
-    indexType: string;
-    size: string;
-  }>> {
+  async getIndexStatus(): Promise<
+    Array<{
+      indexName: string;
+      tableName: string;
+      indexType: string;
+      size: string;
+    }>
+  > {
     try {
       const indexStatusSQL = `
         SELECT 
@@ -421,8 +445,9 @@ export class VectorSearchOptimizer {
         ORDER BY pg_relation_size(i.indexname::regclass) DESC;
       `;
 
-      const { data, error } = await this.supabase
-        .rpc('execute_query', { query: indexStatusSQL });
+      const { data, error } = await this.supabase.rpc('execute_query', {
+        query: indexStatusSQL,
+      });
 
       if (error) {
         aiLogger.error('인덱스 상태 조회 실패', error);

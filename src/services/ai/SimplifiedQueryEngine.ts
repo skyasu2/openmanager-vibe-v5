@@ -27,13 +27,14 @@ export interface QueryRequest {
     includeThinking?: boolean;
     includeMCPContext?: boolean;
     category?: string;
+    cached?: boolean;
   };
 }
 
 export interface QueryResponse {
   success: boolean;
   response: string;
-  engine: 'local-rag' | 'google-ai';
+  engine: 'local-rag' | 'google-ai' | 'fallback';
   confidence: number;
   thinkingSteps: Array<{
     step: string;
@@ -47,9 +48,9 @@ export interface QueryResponse {
 }
 
 export class SimplifiedQueryEngine {
-  private ragEngine: SupabaseRAGEngine;
-  private contextLoader: CloudContextLoader;
-  private isInitialized = false;
+  protected ragEngine: SupabaseRAGEngine;
+  protected contextLoader: CloudContextLoader;
+  protected isInitialized = false;
 
   constructor() {
     this.ragEngine = getSupabaseRAGEngine();
@@ -320,7 +321,7 @@ export class SimplifiedQueryEngine {
   /**
    * 📝 로컬 응답 생성
    */
-  private generateLocalResponse(
+  protected generateLocalResponse(
     query: string,
     ragResult: any, // RAGSearchResult from supabase-rag-engine
     mcpContext: MCPContext | null,
@@ -400,7 +401,7 @@ export class SimplifiedQueryEngine {
   /**
    * 🏗️ Google AI 프롬프트 생성
    */
-  private buildGoogleAIPrompt(
+  protected buildGoogleAIPrompt(
     query: string,
     context: AIQueryContext | undefined,
     mcpContext: MCPContext | null
@@ -431,7 +432,7 @@ export class SimplifiedQueryEngine {
   /**
    * 📊 신뢰도 계산
    */
-  private calculateConfidence(ragResult: any): number {
+  protected calculateConfidence(ragResult: any): number {
     // RAGSearchResult from supabase-rag-engine
     if (ragResult.results.length === 0) return 0.1;
 

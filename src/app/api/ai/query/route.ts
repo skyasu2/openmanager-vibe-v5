@@ -134,7 +134,7 @@ export async function GET(_request: NextRequest) {
     const queryEngine = getPerformanceOptimizedQueryEngine();
     const [healthStatus, performanceStats] = await Promise.all([
       queryEngine.healthCheck(),
-      queryEngine.getPerformanceStats()
+      queryEngine.getPerformanceStats(),
     ]);
 
     return NextResponse.json(

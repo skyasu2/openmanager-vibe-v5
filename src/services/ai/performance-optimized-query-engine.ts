@@ -1,6 +1,6 @@
 /**
  * 🎯 성능 최적화된 SimplifiedQueryEngine
- * 
+ *
  * 주요 개선사항:
  * - 지연 초기화 및 워밍업 전략
  * - 병렬 처리 및 파이프라이닝
@@ -9,7 +9,11 @@
  * - 회로 차단기 패턴
  */
 
-import { SimplifiedQueryEngine, type QueryRequest, type QueryResponse } from './SimplifiedQueryEngine';
+import {
+  SimplifiedQueryEngine,
+  type QueryRequest,
+  type QueryResponse,
+} from './SimplifiedQueryEngine';
 import { getQueryCacheManager } from './query-cache-manager';
 import { getVectorSearchOptimizer } from './vector-search-optimizer';
 import { aiLogger } from '@/lib/logger';
@@ -51,7 +55,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
 
   constructor(config?: Partial<PerformanceConfig>) {
     super();
-    
+
     this.config = {
       enableParallelProcessing: true,
       enablePredictiveLoading: true,
@@ -59,7 +63,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       warmupOnStart: true,
       cacheStrategy: 'adaptive',
       timeoutMs: 15000,
-      ...config
+      ...config,
     };
 
     this.metrics = {
@@ -68,11 +72,11 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       cacheHitRate: 0,
       optimizationsSaved: 0,
       errorRate: 0,
-      parallelEfficiency: 0
+      parallelEfficiency: 0,
     };
 
     this.circuitBreakers = new Map();
-    
+
     // 워밍업 시작
     if (this.config.warmupOnStart) {
       this.performWarmup().catch(error => {
@@ -100,15 +104,15 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
         'CPU 사용률',
         '메모리 상태',
         '디스크 용량',
-        '네트워크 트래픽'
+        '네트워크 트래픽',
       ];
 
       // 3. 병렬 임베딩 생성
       if (this.config.enablePredictiveLoading) {
         await Promise.allSettled(
-          commonQueries.map(async (query) => {
+          commonQueries.map(async query => {
             try {
-              const embedding = await this.generateEmbedding(query);
+              const embedding = await this.ragEngine.generateEmbedding(query);
               this.preloadedEmbeddings.set(query, embedding);
             } catch (error) {
               aiLogger.warn(`임베딩 예열 실패: ${query}`, error);
@@ -118,21 +122,20 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       }
 
       // 4. 캐시 매니저 초기화
-      const cacheManager = getQueryCacheManager();
-      const vectorOptimizer = getVectorSearchOptimizer();
+      getQueryCacheManager();
+      getVectorSearchOptimizer();
 
       // 5. 헬스체크로 모든 엔진 확인
       await this.healthCheck();
 
       this.warmupCompleted = true;
       const warmupTime = Date.now() - startTime;
-      
+
       aiLogger.info('워밍업 완료', {
         duration: warmupTime,
         preloadedEmbeddings: this.preloadedEmbeddings.size,
-        cacheReady: true
+        cacheReady: true,
       });
-
     } catch (error) {
       aiLogger.error('워밍업 중 오류 발생', error);
       // 워밍업 실패해도 진행
@@ -145,7 +148,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
    */
   async query(request: QueryRequest): Promise<QueryResponse> {
     const startTime = Date.now();
-    
+
     // 워밍업 대기 (한 번만)
     if (!this.warmupCompleted) {
       await this.performWarmup();
@@ -173,15 +176,14 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       if (this.config.enableParallelProcessing) {
         return await this.processQueryParallel(request, startTime);
       } else {
-        return await this.processQuerySequential(request, startTime);
+        return await this.processQuerySequential(request);
       }
-
     } catch (error) {
       this.recordFailure(request.mode || 'local');
       aiLogger.error('최적화된 쿼리 처리 실패', error);
-      
+
       return this.getFallbackResponse(
-        request, 
+        request,
         error instanceof Error ? error.message : '알 수 없는 오류'
       );
     }
@@ -190,7 +192,10 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
   /**
    * 🔄 병렬 쿼리 처리
    */
-  private async processQueryParallel(request: QueryRequest, startTime: number): Promise<QueryResponse> {
+  private async processQueryParallel(
+    request: QueryRequest,
+    startTime: number
+  ): Promise<QueryResponse> {
     const { query, mode = 'local', context, options } = request;
 
     // 병렬로 실행할 작업들 준비
@@ -214,21 +219,41 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     const taskResults = await Promise.allSettled(tasks);
 
     // 4. 결과 처리
-    const mcpContext = mcpContextPromise ? 
-      (taskResults[0].status === 'fulfilled' ? taskResults[0].value : null) : null;
+    const mcpContext = mcpContextPromise
+      ? taskResults[0].status === 'fulfilled'
+        ? taskResults[0].value
+        : null
+      : null;
 
     if (mode === 'local') {
-      const embedding = embeddingPromise && taskResults.find(r => r.status === 'fulfilled')?.value;
-      return await this.processLocalQueryOptimized(query, context, options, mcpContext, embedding, startTime);
+      const embedding =
+        embeddingPromise &&
+        taskResults.find(r => r.status === 'fulfilled')?.value;
+      return await this.processLocalQueryOptimized(
+        query,
+        context,
+        options,
+        mcpContext,
+        embedding,
+        startTime
+      );
     } else {
-      return await this.processGoogleAIQueryOptimized(query, context, options, mcpContext, startTime);
+      return await this.processGoogleAIQueryOptimized(
+        query,
+        context,
+        options,
+        mcpContext,
+        startTime
+      );
     }
   }
 
   /**
    * 📈 순차 쿼리 처리 (기본 방식)
    */
-  private async processQuerySequential(request: QueryRequest, startTime: number): Promise<QueryResponse> {
+  private async processQuerySequential(
+    request: QueryRequest
+  ): Promise<QueryResponse> {
     // 기존 SimplifiedQueryEngine 로직 사용
     return await super.query(request);
   }
@@ -245,20 +270,23 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     }
 
     // 2. 유사한 쿼리 패턴 확인
-    for (const [preloadedQuery, embedding] of this.preloadedEmbeddings.entries()) {
+    for (const [
+      preloadedQuery,
+      embedding,
+    ] of this.preloadedEmbeddings.entries()) {
       const similarity = this.calculateQuerySimilarity(query, preloadedQuery);
       if (similarity > 0.8) {
-        aiLogger.debug('유사 쿼리 임베딩 재사용', { 
+        aiLogger.debug('유사 쿼리 임베딩 재사용', {
           original: preloadedQuery.substring(0, 30),
           current: query.substring(0, 30),
-          similarity 
+          similarity,
         });
         return embedding;
       }
     }
 
     // 3. 새 임베딩 생성
-    return await super.generateEmbedding(query);
+    return await this.ragEngine.generateEmbedding(query);
   }
 
   /**
@@ -267,10 +295,10 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
   private calculateQuerySimilarity(query1: string, query2: string): number {
     const words1 = new Set(query1.toLowerCase().split(/\s+/));
     const words2 = new Set(query2.toLowerCase().split(/\s+/));
-    
+
     const intersection = new Set([...words1].filter(x => words2.has(x)));
     const union = new Set([...words1, ...words2]);
-    
+
     return intersection.size / union.size;
   }
 
@@ -315,14 +343,19 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
         cached: true,
       });
 
-      const response = this.generateLocalResponse(query, ragResult, mcpContext, context);
+      const response = this.generateLocalResponse(
+        query,
+        ragResult,
+        mcpContext,
+        context
+      );
 
       return {
         success: true,
         response,
         engine: 'local-rag',
         confidence: this.calculateConfidence(ragResult),
-        thinkingSteps: this.generateOptimizedThinkingSteps(startTime),
+        thinkingSteps: this.generateOptimizedThinkingSteps(),
         metadata: {
           ragResults: ragResult.totalResults,
           cached: ragResult.cached,
@@ -332,9 +365,10 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
         },
         processingTime: Date.now() - startTime,
       };
-
     } catch (error) {
-      throw new Error(`로컬 쿼리 처리 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+      throw new Error(
+        `로컬 쿼리 처리 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+      );
     }
   }
 
@@ -353,7 +387,10 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
 
       // 타임아웃이 있는 API 호출
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.config.timeoutMs);
+      const timeoutId = setTimeout(
+        () => controller.abort(),
+        this.config.timeoutMs
+      );
 
       const response = await fetch('/api/ai/google-ai/generate', {
         method: 'POST',
@@ -379,7 +416,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
         response: data.response || data.text || '응답을 생성할 수 없습니다.',
         engine: 'google-ai',
         confidence: data.confidence || 0.9,
-        thinkingSteps: this.generateOptimizedThinkingSteps(startTime),
+        thinkingSteps: this.generateOptimizedThinkingSteps(),
         metadata: {
           model: data.model || 'gemini-pro',
           tokensUsed: data.tokensUsed,
@@ -389,37 +426,46 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
         },
         processingTime: Date.now() - startTime,
       };
-
     } catch (error) {
       // 폴백: 로컬 RAG로 전환
       aiLogger.warn('Google AI 실패, 로컬 모드로 폴백', error);
-      return await this.processLocalQueryOptimized(query, context, options, mcpContext, undefined, startTime);
+      return await this.processLocalQueryOptimized(
+        query,
+        context,
+        options,
+        mcpContext,
+        undefined,
+        startTime
+      );
     }
   }
 
   /**
    * 💾 고급 캐시 확인
    */
-  private async getFromAdvancedCache(request: QueryRequest): Promise<QueryResponse | null> {
+  private async getFromAdvancedCache(
+    request: QueryRequest
+  ): Promise<QueryResponse | null> {
     try {
       const cacheManager = getQueryCacheManager();
-      
+
       // 1. 패턴 캐시 확인
-      const patternCached = await cacheManager.getFromPatternCache(request.query);
+      const patternCached = await cacheManager.getFromPatternCache(
+        request.query
+      );
       if (patternCached) {
         return {
           ...patternCached,
           metadata: {
             ...patternCached.metadata,
             cacheHit: true,
-            cacheType: 'pattern'
-          }
+            cacheType: 'pattern',
+          },
         };
       }
 
       // 2. 추가 캐시 전략 (향후 구현)
       return null;
-
     } catch (error) {
       aiLogger.warn('캐시 확인 실패', error);
       return null;
@@ -429,14 +475,14 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
   /**
    * ⚡ 간소화된 thinking steps 생성
    */
-  private generateOptimizedThinkingSteps(startTime: number): QueryResponse['thinkingSteps'] {
+  private generateOptimizedThinkingSteps(): QueryResponse['thinkingSteps'] {
     return [
       {
         step: '최적화된 처리',
         description: `병렬 처리 및 캐싱 적용`,
         status: 'completed',
         timestamp: Date.now(),
-      }
+      },
     ];
   }
 
@@ -478,7 +524,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       breaker.state = 'open';
       aiLogger.warn(`회로 차단기 열림: ${service}`, {
         failures: breaker.failures,
-        threshold: breaker.threshold
+        threshold: breaker.threshold,
       });
     }
   }
@@ -486,10 +532,14 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
   /**
    * 🆘 폴백 응답 생성
    */
-  private getFallbackResponse(request: QueryRequest, reason: string): QueryResponse {
+  private getFallbackResponse(
+    request: QueryRequest,
+    reason: string
+  ): QueryResponse {
     return {
       success: true,
-      response: '현재 시스템이 일시적으로 제한된 모드로 동작중입니다. 기본적인 정보를 제공해드릴 수 있습니다.',
+      response:
+        '현재 시스템이 일시적으로 제한된 모드로 동작중입니다. 기본적인 정보를 제공해드릴 수 있습니다.',
       engine: 'fallback',
       confidence: 0.3,
       thinkingSteps: [
@@ -498,7 +548,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
           description: reason,
           status: 'completed',
           timestamp: Date.now(),
-        }
+        },
       ],
       metadata: {
         fallback: true,
@@ -512,15 +562,19 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
    * 📊 메트릭 업데이트
    */
   private updateMetrics(cacheHit: boolean, responseTime: number): void {
-    this.metrics.avgResponseTime = 
-      (this.metrics.avgResponseTime * (this.metrics.totalQueries - 1) + responseTime) / this.metrics.totalQueries;
+    this.metrics.avgResponseTime =
+      (this.metrics.avgResponseTime * (this.metrics.totalQueries - 1) +
+        responseTime) /
+      this.metrics.totalQueries;
 
     if (cacheHit) {
-      this.metrics.cacheHitRate = 
-        (this.metrics.cacheHitRate * (this.metrics.totalQueries - 1) + 1) / this.metrics.totalQueries;
+      this.metrics.cacheHitRate =
+        (this.metrics.cacheHitRate * (this.metrics.totalQueries - 1) + 1) /
+        this.metrics.totalQueries;
     } else {
-      this.metrics.cacheHitRate = 
-        (this.metrics.cacheHitRate * (this.metrics.totalQueries - 1)) / this.metrics.totalQueries;
+      this.metrics.cacheHitRate =
+        (this.metrics.cacheHitRate * (this.metrics.totalQueries - 1)) /
+        this.metrics.totalQueries;
     }
   }
 
@@ -569,7 +623,9 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
 // 싱글톤 인스턴스
 let performanceEngineInstance: PerformanceOptimizedQueryEngine | null = null;
 
-export function getPerformanceOptimizedQueryEngine(config?: Partial<PerformanceConfig>): PerformanceOptimizedQueryEngine {
+export function getPerformanceOptimizedQueryEngine(
+  config?: Partial<PerformanceConfig>
+): PerformanceOptimizedQueryEngine {
   if (!performanceEngineInstance) {
     performanceEngineInstance = new PerformanceOptimizedQueryEngine(config);
   }

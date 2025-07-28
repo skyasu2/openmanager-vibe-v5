@@ -115,6 +115,8 @@ export interface AIQueryOptions {
   includeMCPContext?: boolean;
   /** 카테고리 필터 */
   category?: string;
+  /** 캐시 사용 여부 */
+  cached?: boolean;
 }
 
 /**

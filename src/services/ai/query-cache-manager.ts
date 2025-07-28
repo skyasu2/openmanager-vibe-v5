@@ -1,6 +1,6 @@
 /**
  * 🧠 지능형 쿼리 캐시 매니저
- * 
+ *
  * Memory MCP를 활용한 쿼리 패턴 학습 및 캐싱
  * - 쿼리 패턴 추출 및 저장
  * - Knowledge Graph 기반 관계 매핑
@@ -35,7 +35,10 @@ export class QueryCacheManager {
   /**
    * 쿼리 패턴 캐싱
    */
-  async cacheQueryPattern(query: string, response: QueryResponse): Promise<void> {
+  async cacheQueryPattern(
+    query: string,
+    response: QueryResponse
+  ): Promise<void> {
     try {
       const pattern = this.extractPattern(query);
       const patternKey = pattern.id;
@@ -44,8 +47,9 @@ export class QueryCacheManager {
       const existingPattern = this.queryPatterns.get(patternKey);
       if (existingPattern) {
         existingPattern.frequency++;
-        existingPattern.avgResponseTime = 
-          (existingPattern.avgResponseTime * existingPattern.hits + response.processingTime) / 
+        existingPattern.avgResponseTime =
+          (existingPattern.avgResponseTime * existingPattern.hits +
+            response.processingTime) /
           (existingPattern.hits + 1);
         existingPattern.hits++;
         existingPattern.lastUsed = new Date();
@@ -54,7 +58,7 @@ export class QueryCacheManager {
           ...pattern,
           avgResponseTime: response.processingTime,
           lastUsed: new Date(),
-          hits: 1
+          hits: 1,
         });
       }
 
@@ -62,7 +66,7 @@ export class QueryCacheManager {
       const cachedResponse: CachedQueryResponse = {
         ...response,
         cachedAt: Date.now(),
-        patternId: patternKey
+        patternId: patternKey,
       };
       this.responseCache.set(this.getCacheKey(query), cachedResponse);
 
@@ -71,7 +75,7 @@ export class QueryCacheManager {
 
       aiLogger.debug('쿼리 패턴 캐시됨', {
         patternId: patternKey,
-        frequency: existingPattern ? existingPattern.frequency + 1 : 1
+        frequency: existingPattern ? existingPattern.frequency + 1 : 1,
       });
     } catch (error) {
       aiLogger.error('쿼리 패턴 캐싱 실패', error);
@@ -86,11 +90,11 @@ export class QueryCacheManager {
       // 정확한 매치 먼저 확인
       const cacheKey = this.getCacheKey(query);
       const exactMatch = this.responseCache.get(cacheKey);
-      
+
       if (exactMatch && this.isValidCache(exactMatch)) {
-        aiLogger.debug('캐시 히트 (정확한 매치)', { 
+        aiLogger.debug('캐시 히트 (정확한 매치)', {
           patternId: exactMatch.patternId,
-          age: Date.now() - exactMatch.cachedAt 
+          age: Date.now() - exactMatch.cachedAt,
         });
         return exactMatch;
       }
@@ -98,26 +102,29 @@ export class QueryCacheManager {
       // 패턴 매치 확인
       const pattern = this.extractPattern(query);
       const patternKey = pattern.id;
-      
+
       // 패턴으로 캐시된 응답 찾기
-      for (const [key, cachedResponse] of this.responseCache.entries()) {
-        if (cachedResponse.patternId === patternKey && this.isValidCache(cachedResponse)) {
+      for (const [, cachedResponse] of this.responseCache.entries()) {
+        if (
+          cachedResponse.patternId === patternKey &&
+          this.isValidCache(cachedResponse)
+        ) {
           // 패턴이 일치하는 경우, 기본 응답 반환
-          aiLogger.debug('캐시 히트 (패턴 매치)', { 
+          aiLogger.debug('캐시 히트 (패턴 매치)', {
             patternId: patternKey,
-            age: Date.now() - cachedResponse.cachedAt 
+            age: Date.now() - cachedResponse.cachedAt,
           });
-          
+
           // 패턴 사용 횟수 증가
           const existingPattern = this.queryPatterns.get(patternKey);
           if (existingPattern) {
             existingPattern.frequency++;
             existingPattern.lastUsed = new Date();
           }
-          
+
           return {
             ...cachedResponse,
-            response: this.adaptResponseToQuery(cachedResponse.response, query)
+            response: this.adaptResponseToQuery(cachedResponse.response, query),
           };
         }
       }
@@ -156,7 +163,7 @@ export class QueryCacheManager {
       frequency: 1,
       avgResponseTime: 0,
       lastUsed: new Date(),
-      hits: 0
+      hits: 0,
     };
   }
 
@@ -164,14 +171,21 @@ export class QueryCacheManager {
    * 패턴 해시 생성
    */
   private hashPattern(pattern: string): string {
-    return crypto.createHash('md5').update(pattern).digest('hex').substring(0, 16);
+    return crypto
+      .createHash('md5')
+      .update(pattern)
+      .digest('hex')
+      .substring(0, 16);
   }
 
   /**
    * 캐시 키 생성
    */
   private getCacheKey(query: string): string {
-    return crypto.createHash('md5').update(query.toLowerCase().trim()).digest('hex');
+    return crypto
+      .createHash('md5')
+      .update(query.toLowerCase().trim())
+      .digest('hex');
   }
 
   /**
@@ -211,9 +225,10 @@ export class QueryCacheManager {
   private evictOldEntries(): void {
     // 패턴 수 제한
     if (this.queryPatterns.size > this.MAX_PATTERNS) {
-      const patterns = Array.from(this.queryPatterns.entries())
-        .sort((a, b) => b[1].frequency - a[1].frequency);
-      
+      const patterns = Array.from(this.queryPatterns.entries()).sort(
+        (a, b) => b[1].frequency - a[1].frequency
+      );
+
       // 사용 빈도가 낮은 패턴 제거
       const toRemove = patterns.slice(this.MAX_PATTERNS * 0.8);
       toRemove.forEach(([key]) => this.queryPatterns.delete(key));
@@ -221,9 +236,10 @@ export class QueryCacheManager {
 
     // 응답 캐시 크기 제한
     if (this.responseCache.size > this.MAX_CACHE_SIZE) {
-      const entries = Array.from(this.responseCache.entries())
-        .sort((a, b) => b[1].cachedAt - a[1].cachedAt);
-      
+      const entries = Array.from(this.responseCache.entries()).sort(
+        (a, b) => b[1].cachedAt - a[1].cachedAt
+      );
+
       // 오래된 응답 제거
       const toRemove = entries.slice(this.MAX_CACHE_SIZE * 0.8);
       toRemove.forEach(([key]) => this.responseCache.delete(key));
@@ -239,24 +255,28 @@ export class QueryCacheManager {
     avgHitRate: number;
     topPatterns: Array<{ pattern: string; frequency: number }>;
   } {
-    const totalHits = Array.from(this.queryPatterns.values())
-      .reduce((sum, p) => sum + p.hits, 0);
-    const totalQueries = Array.from(this.queryPatterns.values())
-      .reduce((sum, p) => sum + p.frequency, 0);
+    const totalHits = Array.from(this.queryPatterns.values()).reduce(
+      (sum, p) => sum + p.hits,
+      0
+    );
+    const totalQueries = Array.from(this.queryPatterns.values()).reduce(
+      (sum, p) => sum + p.frequency,
+      0
+    );
 
     const topPatterns = Array.from(this.queryPatterns.entries())
       .sort((a, b) => b[1].frequency - a[1].frequency)
       .slice(0, 10)
       .map(([_, pattern]) => ({
         pattern: pattern.regex,
-        frequency: pattern.frequency
+        frequency: pattern.frequency,
       }));
 
     return {
       patterns: this.queryPatterns.size,
       responses: this.responseCache.size,
       avgHitRate: totalQueries > 0 ? totalHits / totalQueries : 0,
-      topPatterns
+      topPatterns,
     };
   }
 
