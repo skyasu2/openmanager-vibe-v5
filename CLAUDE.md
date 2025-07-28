@@ -8,9 +8,18 @@ Project guidance for Claude Code (claude.ai/code) when working with this reposit
 
 **OpenManager VIBE v5**: AI 기반 실시간 서버 모니터링 플랫폼
 
+### 핵심 특징
+
 - 100% 무료 티어로 운영 (Vercel + GCP + Supabase)
 - 엔터프라이즈급 성능 (152ms 응답, 99.95% 가동률)
-- Next.js 15 + TypeScript strict mode
+- Next.js 14.2.4 + React 18.2.0 + TypeScript strict mode
+
+### 주요 기능
+
+- 📊 **실시간 모니터링**: CPU, Memory, Disk, Network (15초 간격)
+- 🤖 **AI 분석**: 이상 징후 감지, 성능 예측, 자연어 질의
+- 🔐 **인증**: GitHub OAuth 기반 접근 제어
+- 📈 **대시보드**: 반응형 UI, 실시간 차트, 알림 시스템
 
 ## 🛠️ 개발 환경
 
@@ -18,16 +27,21 @@ Project guidance for Claude Code (claude.ai/code) when working with this reposit
 - **Node.js**: v22.15.1
 - **Package Manager**: npm
 - **언어**: 한국어 우선 (기술 용어는 영어 병기)
+- **Python**: 3.11 (GCP Functions)
 
 ## 📂 프로젝트 구조
 
 ```
-src/
-├── app/         # Next.js 15 App Router
-├── services/    # 비즈니스 로직 (AI, Auth, MCP)
-├── components/  # React 컴포넌트 (UI, 대시보드)
-├── lib/         # 유틸리티 (Supabase, Redis, 환경설정)
-└── types/       # TypeScript 타입 정의
+openmanager-vibe-v5/
+├── src/             # 소스 코드
+│   ├── app/         # Next.js 14 App Router
+│   ├── services/    # 비즈니스 로직 (AI, Auth, MCP)
+│   ├── components/  # React 컴포넌트
+│   └── lib/         # 유틸리티
+├── docs/            # 상세 문서 (100+개)
+├── scripts/         # 자동화 스크립트
+├── gcp-functions/   # Python 서버리스 함수
+└── tests/           # 테스트 코드
 ```
 
 ## 🚀 자주 사용하는 명령어
@@ -74,6 +88,14 @@ npm run validate:all     # 린트 + 타입 + 테스트
 - **Redis**: Upstash (256MB 무료)
 - **Vector DB**: pgvector 확장
 
+## 🔌 주요 API 엔드포인트
+
+- `/api/servers/*` - 서버 메트릭 CRUD
+- `/api/ai/*` - AI 분석 및 예측
+- `/api/auth/*` - 인증/인가
+- `/api/realtime/*` - 실시간 데이터 스트림
+- `/api/admin/*` - 관리자 기능
+
 ## 🔧 MCP 서버 (9개)
 
 현재 사용 가능한 MCP 서버:
@@ -95,15 +117,33 @@ npm run validate:all     # 린트 + 타입 + 테스트
 | DB 최적화   | `database-administrator`     | 쿼리 성능, 인덱스     |
 | 성능 개선   | `ux-performance-optimizer`   | Core Web Vitals       |
 | 테스트      | `test-automation-specialist` | 테스트 작성/수정      |
+| AI 시스템   | `ai-systems-engineer`        | AI 엔진 최적화        |
+| 문서 관리   | `doc-structure-guardian`     | JBGE 원칙 적용        |
 
-## ⚠️ 주의사항
+## ⚠️ 주의사항 및 트러블슈팅
 
-1. **환경 변수**: `.env.local` 필수 (template 참조)
+### 환경 설정
+
+1. **환경 변수**: `.env.local` 필수 (env.local.template 참조)
 2. **무료 티어 한계**:
    - Vercel: 100GB 대역폭/월
    - Supabase: 500MB 저장소
    - GCP: 2백만 요청/월
 3. **Git Hooks**: Husky 자동 실행 (pre-commit, pre-push)
+
+### 자주 발생하는 문제
+
+- **MCP 연결 오류**: `bash scripts/mcp/reset.sh` 실행
+- **타입 에러**: `npm run type-check` → `npm run lint:fix`
+- **OAuth 실패**: `.env.local`의 GitHub 키 확인
+- **빌드 실패**: Node.js 버전 확인 (v22.15.1 필수)
+
+## 🚀 배포
+
+- **Vercel**: `vercel --prod` (main 브랜치 자동 배포)
+- **환경 변수**: Vercel 대시보드에서 설정
+- **도메인**: 커스텀 도메인 설정 가능
+- **GCP Functions**: `scripts/deployment/deploy-all.sh`
 
 ## 📚 추가 문서
 
