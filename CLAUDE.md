@@ -2,6 +2,8 @@
 
 Project guidance for Claude Code (claude.ai/code) when working with this repository.
 
+📚 **Claude Code 공식 문서**: https://docs.anthropic.com/en/docs/claude-code/overview
+
 ## 🎯 프로젝트 개요
 
 **OpenManager VIBE v5**: AI 기반 실시간 서버 모니터링 플랫폼
@@ -105,10 +107,19 @@ npm run validate:all     # 린트 + 타입 + 테스트
 
 ## 📚 추가 문서
 
+### 프로젝트 문서
+
 - 상세 가이드: `/docs` 폴더
 - API 문서: `/docs/api`
 - 서브 에이전트: `/docs/sub-agents-mcp-mapping-guide.md`
 - Gemini 협업: `GEMINI.md`
+
+### Claude Code 공식 문서
+
+- [Claude Code 개요](https://docs.anthropic.com/en/docs/claude-code/overview)
+- [MCP (Model Context Protocol)](https://docs.anthropic.com/en/docs/claude-code/mcp)
+- [서브 에이전트](https://docs.anthropic.com/en/docs/claude-code/sub-agents)
+- [설정 가이드](https://docs.anthropic.com/en/docs/claude-code/settings)
 
 ---
 

@@ -195,10 +195,11 @@ npm run analyze:bundle
 
 ## 📚 문서화
 
-### 서브 에이전트
+### Claude Code 공식 문서
 
-- [Claude Sub-agents 공식 문서](https://docs.anthropic.com/en/docs/claude-code/sub-agents) - Claude의 서브 에이전트 기능에 대한 공식 문서입니다. 서브 에이전트를 활용한 협업 워크플로우와 설정 방법을 확인하세요.
-- [Claude MCP (Model Control Protocol) 문서](https://docs.anthropic.com/en/docs/claude-code/mcp) - Claude의 MCP 기능에 대한 공식 문서입니다. MCP를 통한 모델 제어 및 확장 방법을 확인하세요.
+- [Claude Code 개요](https://docs.anthropic.com/en/docs/claude-code/overview) - Claude Code의 주요 기능과 사용법에 대한 공식 문서입니다.
+- [Claude Sub-agents](https://docs.anthropic.com/en/docs/claude-code/sub-agents) - Claude의 서브 에이전트 기능에 대한 공식 문서입니다. 서브 에이전트를 활용한 협업 워크플로우와 설정 방법을 확인하세요.
+- [Claude MCP (Model Context Protocol)](https://docs.anthropic.com/en/docs/claude-code/mcp) - Claude의 MCP 기능에 대한 공식 문서입니다. MCP를 통한 모델 제어 및 확장 방법을 확인하세요.
 
 ## 라이선스
 
