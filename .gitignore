@@ -48,6 +48,43 @@ yarn-error.log*
 npm-debug.log*
 # log files
 *.log
+
+# 🔐 보안 및 민감한 정보 방지
+# 환경변수 파일
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+.env.backup
+
+# API 키 및 토큰이 포함될 수 있는 파일들
+**/secrets.*
+**/api-keys.*
+**/tokens.*
+**/*secret*
+**/*token*
+**/*credential*
+
+# 이슈 파일에서 실제 키가 노출된 경우 (패턴 기반)
+**/*-issues-with-keys.md
+**/*-api-keys-*.md
+**/*-tokens-*.md
+
+# 백업 파일에서 민감한 정보 방지
+*.backup
+*.bak
+*.tmp
+*_backup
+*_bak
+*.orig
+
+# 개발자 개인 설정 (토큰 포함 가능)
+.vscode/settings.json
+.vscode/launch.json
+.claude/personal/
+.claude/private/
 **/logs/
 dev.log
 combined.log
