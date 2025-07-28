@@ -4,17 +4,46 @@
 
 echo "🔄 MCP 환경변수 export 중..."
 
+# .env.local 파일 확인
+if [ ! -f ".env.local" ]; then
+    echo "❌ 오류: .env.local 파일이 없습니다!"
+    echo "📝 다음 환경변수들을 .env.local에 설정해주세요:"
+    echo "   - NEXT_PUBLIC_SUPABASE_URL"
+    echo "   - SUPABASE_SERVICE_ROLE_KEY"
+    echo "   - SUPABASE_ACCESS_TOKEN"
+    echo "   - GITHUB_PERSONAL_ACCESS_TOKEN"
+    echo "   - TAVILY_API_KEY"
+    exit 1
+fi
+
+# .env.local에서 환경변수 로드
+set -a
+source .env.local
+set +a
+
 # Supabase 환경변수
-export SUPABASE_URL="https://vnswjnltnhpsueosfhmw.supabase.co"
-export SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8"
-export SUPABASE_ACCESS_TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8"
+if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+    echo "⚠️  경고: Supabase 환경변수가 설정되지 않았습니다."
+else
+    export SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL"
+    export SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY"
+    export SUPABASE_ACCESS_TOKEN="${SUPABASE_ACCESS_TOKEN:-$SUPABASE_SERVICE_ROLE_KEY}"
+fi
 
 # GitHub 환경변수  
-export GITHUB_PERSONAL_ACCESS_TOKEN="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"
-export GITHUB_TOKEN="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"
+if [ -z "$GITHUB_PERSONAL_ACCESS_TOKEN" ]; then
+    echo "⚠️  경고: GITHUB_PERSONAL_ACCESS_TOKEN이 설정되지 않았습니다."
+else
+    export GITHUB_PERSONAL_ACCESS_TOKEN="$GITHUB_PERSONAL_ACCESS_TOKEN"
+    export GITHUB_TOKEN="$GITHUB_PERSONAL_ACCESS_TOKEN"
+fi
 
 # Tavily 환경변수
-export TAVILY_API_KEY="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"
+if [ -z "$TAVILY_API_KEY" ]; then
+    echo "⚠️  경고: TAVILY_API_KEY가 설정되지 않았습니다."
+else
+    export TAVILY_API_KEY="$TAVILY_API_KEY"
+fi
 
 echo "✅ MCP 환경변수 export 완료!"
 echo "📝 사용 가능한 MCP 서버 (9개):"
@@ -29,3 +58,4 @@ echo "   - tavily-mcp (TAVILY_API_KEY)"
 echo "   - supabase (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ACCESS_TOKEN)"
 echo ""
 echo "⚠️  주의: 새로운 환경변수가 MCP 서버에 반영되려면 Claude Code를 재시작해야 할 수 있습니다."
+echo "🔒 보안: 절대로 API 키를 하드코딩하지 마세요!"

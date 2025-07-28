@@ -1,26 +1,33 @@
-#!/bin/sh
+#!/bin/bash
+# Git pre-commit hook for secret scanning
+# 설치: cp .githooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
 
-# 📚 커밋 전 문서 자동 갱신 훅
-echo "📚 커밋 전 문서 자동 갱신 중..."
+echo "🔍 Pre-commit: 시크릿 검사 중..."
 
-# Node.js 스크립트 실행
-node scripts/update-docs.mjs
+# 스크립트 실행
+./scripts/security/check-secrets.sh
 
-# 갱신된 문서들을 스테이징에 추가
-if [ -f "docs/ARCHITECTURE.md" ]; then
-    git add docs/ARCHITECTURE.md
-    echo "✅ docs/ARCHITECTURE.md 스테이징 추가"
+# 검사 결과 확인
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "❌ 커밋이 중단되었습니다: 시크릿이 발견되었습니다!"
+    echo "위의 경고를 확인하고 문제를 해결한 후 다시 시도하세요."
+    exit 1
 fi
 
-if [ -f "docs/API.md" ]; then
-    git add docs/API.md
-    echo "✅ docs/API.md 스테이징 추가"
+echo "✅ Pre-commit: 시크릿 검사 통과"
+
+# TypeScript 타입 체크 (선택사항)
+if command -v npm &> /dev/null; then
+    echo "🔍 Pre-commit: TypeScript 타입 체크 중..."
+    npm run type-check --silent
+    
+    if [ $? -ne 0 ]; then
+        echo "❌ 커밋이 중단되었습니다: TypeScript 타입 에러가 있습니다!"
+        exit 1
+    fi
+    
+    echo "✅ Pre-commit: TypeScript 타입 체크 통과"
 fi
 
-if [ -f "docs/environment/vercel.env.template" ]; then
-    git add docs/environment/vercel.env.template
-    echo "✅ docs/environment/vercel.env.template 스테이징 추가"
-fi
-
-echo "📝 문서 갱신 완료!"
-exit 0 
+echo "✅ 모든 검사를 통과했습니다. 커밋을 진행합니다..."
