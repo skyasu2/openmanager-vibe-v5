@@ -1,6 +1,9 @@
-# 🚀 API 성능 최적화 시스템 설치 및 사용 가이드
+# 🚀 API 성능 최적화 가이드
 
-> **OpenManager VIBE v5 - 실시간 데이터를 고정 템플릿으로 변환하여 90% 성능 개선**
+**목적**: Redis 캐싱 기반 API 응답 시간 90% 개선  
+**상위 문서**: [성능 최적화 완전 가이드](/docs/performance-optimization-complete-guide.md)
+
+> **핵심**: 실시간 데이터를 고정 템플릿으로 변환하여 65-250ms → 1-5ms 응답 시간 달성
 
 ## 📋 목차
 

@@ -37,6 +37,33 @@ export interface AdvancedScenario {
   probability: number; // 0.0 - 1.0
 }
 
+export interface AnalysisTarget {
+  id: string;
+  name: string;
+  status: 'critical' | 'warning' | 'healthy';
+  cpu_usage: number;
+  memory_usage: number;
+  disk_usage: number;
+  network_usage: number;
+  timestamp: string;
+  scenario?: AdvancedScenario;
+  predicted_status: 'warning' | 'healthy';
+}
+
+export interface IntegratedAIMetrics {
+  totalServers: number;
+  criticalServers: number;
+  warningServers: number;
+  healthyServers: number;
+  averageCpu: number;
+  averageMemory: number;
+  aiInsights: string[];
+  recommendedActions: string[];
+  predictedTrend: string;
+  confidenceScore: number;
+  dataSource: string;
+}
+
 export class AdvancedSimulationEngine {
   private scenarios: AdvancedScenario[] = [];
   private realMetricsCache: Map<string, ServerMetrics[]> = new Map();
@@ -419,7 +446,7 @@ export class AdvancedSimulationEngine {
   /**
    * 🎯 분석 대상 서버 목록 반환
    */
-  async getAnalysisTargets(): Promise<any[]> {
+  async getAnalysisTargets(): Promise<AnalysisTarget[]> {
     const metrics = await this.generateAdvancedMetrics();
     return metrics.map((metric, index) => ({
       id: `server-${index + 1}`,
@@ -439,15 +466,11 @@ export class AdvancedSimulationEngine {
   /**
    * 🤖 통합 AI 메트릭 반환
    */
-  async getIntegratedAIMetrics(): Promise<any> {
+  async getIntegratedAIMetrics(): Promise<IntegratedAIMetrics> {
     const targets = await this.getAnalysisTargets();
     const totalServers = targets.length;
-    const criticalServers = targets.filter(
-      (s: any) => s.status === 'critical'
-    ).length;
-    const warningServers = targets.filter(
-      (s: any) => s.status === 'warning'
-    ).length;
+    const criticalServers = targets.filter(s => s.status === 'critical').length;
+    const warningServers = targets.filter(s => s.status === 'warning').length;
 
     return {
       totalServers,
@@ -455,15 +478,23 @@ export class AdvancedSimulationEngine {
       warningServers,
       healthyServers: totalServers - criticalServers - warningServers,
       averageCpu: Math.round(
-        targets.reduce((sum: number, s: any) => sum + s.cpu_usage, 0) /
-          totalServers
+        targets.reduce((sum, s) => sum + s.cpu_usage, 0) / totalServers
       ),
       averageMemory: Math.round(
-        targets.reduce((sum: number, s: any) => sum + s.memory_usage, 0) /
-          totalServers
+        targets.reduce((sum, s) => sum + s.memory_usage, 0) / totalServers
       ),
-      activeScenarios: this.scenarios.length,
-      timestamp: new Date().toISOString(),
+      aiInsights: [
+        `현재 ${criticalServers}개의 서버가 위험 상태입니다.`,
+        `평균 CPU 사용률: ${Math.round(targets.reduce((sum, s) => sum + s.cpu_usage, 0) / totalServers)}%`,
+        `${this.scenarios.length}개의 시나리오가 활성화되어 있습니다.`,
+      ],
+      recommendedActions:
+        criticalServers > 0
+          ? ['서버 리소스 확장 권장', '부하 분산 설정 검토']
+          : ['현재 안정적인 상태입니다'],
+      predictedTrend: criticalServers > totalServers * 0.3 ? '상승' : '안정',
+      confidenceScore: 0.85,
+      dataSource: 'real_database_integrated',
     };
   }
 

@@ -39,11 +39,13 @@ const REAL_ENV = {
 /**
  * 📊 Redis 연결 테스트 (Upstash)
  */
-async function testRedisConnection(): Promise<{
+interface TestResult {
   success: boolean;
   message: string;
-  details?: any;
-}> {
+  details?: unknown;
+}
+
+async function testRedisConnection(): Promise<TestResult> {
   try {
     if (
       !REAL_ENV.UPSTASH_REDIS_REST_URL ||
@@ -89,11 +91,7 @@ async function testRedisConnection(): Promise<{
 /**
  * 🗄️ Supabase 연결 테스트
  */
-async function testSupabaseConnection(): Promise<{
-  success: boolean;
-  message: string;
-  details?: any;
-}> {
+async function testSupabaseConnection(): Promise<TestResult> {
   try {
     if (
       !REAL_ENV.NEXT_PUBLIC_SUPABASE_URL ||
@@ -145,11 +143,7 @@ async function testSupabaseConnection(): Promise<{
 /**
  * 🤖 Google AI 연결 테스트
  */
-async function testGoogleAIConnection(): Promise<{
-  success: boolean;
-  message: string;
-  details?: any;
-}> {
+async function testGoogleAIConnection(): Promise<TestResult> {
   try {
     if (!REAL_ENV.GOOGLE_AI_API_KEY) {
       return {
@@ -176,7 +170,7 @@ async function testGoogleAIConnection(): Promise<{
         details: {
           modelsCount: data.models?.length || 0,
           availableModels:
-            data.models?.slice(0, 3).map((m: any) => m.name) || [],
+            data.models?.slice(0, 3).map((m: { name: string }) => m.name) || [],
         },
       };
     } else {
@@ -198,11 +192,7 @@ async function testGoogleAIConnection(): Promise<{
 /**
  * ☁️ Google Cloud 연결 테스트 (메타데이터 서버)
  */
-async function testGoogleCloudConnection(): Promise<{
-  success: boolean;
-  message: string;
-  details?: any;
-}> {
+async function testGoogleCloudConnection(): Promise<TestResult> {
   try {
     // Google Cloud 메타데이터 서버에 연결하여 GCP 환경 확인
     const response = await fetch(
@@ -246,11 +236,7 @@ async function testGoogleCloudConnection(): Promise<{
 /**
  * 🚀 Vercel API 연결 테스트
  */
-async function testVercelConnection(): Promise<{
-  success: boolean;
-  message: string;
-  details?: any;
-}> {
+async function testVercelConnection(): Promise<TestResult> {
   try {
     if (!REAL_ENV.VERCEL_TOKEN) {
       return {

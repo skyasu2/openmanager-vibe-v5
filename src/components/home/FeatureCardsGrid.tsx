@@ -3,7 +3,7 @@
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
 import { Bot, Database, Sparkles, Zap } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo, memo } from 'react';
 import FeatureCardModal from '@/components/shared/FeatureCardModal';
 
 // FeatureCard 타입 정의
@@ -140,69 +140,229 @@ const cardData: FeatureCard[] = [
   },
 ];
 
+// AI 단어에 그라데이션 애니메이션 적용하는 함수 - 컴포넌트 외부로 이동
+const renderTextWithAIGradient = (text: string) => {
+  if (!text.includes('AI')) return text;
+
+  return text.split(/(AI)/g).map((part, index) => {
+    if (part === 'AI') {
+      return (
+        <motion.span
+          key={index}
+          className='bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent font-bold bg-[length:200%_200%]'
+          animate={{
+            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: 'linear',
+          }}
+        >
+          {part}
+        </motion.span>
+      );
+    }
+    return part;
+  });
+};
+
+// 개별 카드 컴포넌트를 메모이제이션
+const FeatureCardItem = memo(
+  ({
+    card,
+    index,
+    onCardClick,
+    isAIDisabled,
+  }: {
+    card: FeatureCard;
+    index: number;
+    onCardClick: (cardId: string) => void;
+    isAIDisabled: boolean;
+  }) => {
+    // 카드 타입별 스타일 헬퍼
+    const getCardStyles = (card: FeatureCard) => {
+      return {
+        title: card.isVibeCard
+          ? 'text-white/98 group-hover:text-yellow-100'
+          : 'text-white/95 group-hover:text-white',
+        description: card.isVibeCard
+          ? 'text-white/96 group-hover:text-yellow-50 font-bold'
+          : 'text-white/80 group-hover:text-white/90 font-medium',
+        hoverRing: card.isAICard
+          ? 'group-hover:ring-pink-400/50 group-hover:shadow-lg group-hover:shadow-pink-500/25'
+          : card.isVibeCard
+            ? 'group-hover:ring-yellow-400/50'
+            : card.isSpecial
+              ? 'group-hover:ring-amber-400/50 group-hover:shadow-lg group-hover:shadow-amber-500/25'
+              : 'group-hover:ring-white/30',
+        iconColor: card.isVibeCard ? 'text-amber-900' : 'text-white',
+      };
+    };
+
+    // 아이콘 애니메이션 설정
+    const getIconAnimation = (card: FeatureCard) => {
+      if (card.isAICard) {
+        return {
+          animate: {
+            rotate: [0, 360],
+            scale: [1, 1.1, 1],
+          },
+          transition: {
+            rotate: {
+              duration: 8,
+              repeat: Infinity,
+              ease: 'linear' as const,
+            },
+            scale: {
+              duration: 2,
+              repeat: Infinity,
+            },
+          },
+        };
+      }
+      if (card.isVibeCard) {
+        return {
+          animate: {
+            scale: [1, 1.2, 1],
+            rotate: [0, 5, -5, 0],
+          },
+          transition: {
+            duration: 2.5,
+            repeat: Infinity,
+          },
+        };
+      }
+      return null;
+    };
+
+    const cardStyles = useMemo(() => getCardStyles(card), [card]);
+    const iconAnimation = useMemo(() => getIconAnimation(card), [card]);
+
+    return (
+      <motion.div
+        key={card.id}
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: index * 0.1 }}
+        whileHover={{
+          scale: card.isVibeCard ? 1.08 : 1.05,
+          y: card.isVibeCard ? -8 : -5,
+          rotateY: card.isVibeCard ? 5 : 0,
+        }}
+        className={`group cursor-pointer relative ${
+          card.isVibeCard
+            ? 'hover:shadow-2xl hover:shadow-yellow-500/30 transform-gpu'
+            : ''
+        }`}
+        onClick={() => onCardClick(card.id)}
+      >
+        <div
+          className={`relative p-4 bg-white/10 hover:bg-white/20 border-white/25 backdrop-blur-sm border rounded-2xl transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) h-full ${
+            card.isSpecial
+              ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30'
+              : ''
+          } group-hover:transform group-hover:scale-[1.02] group-hover:shadow-2xl`}
+        >
+          {/* 그라데이션 배경 */}
+          <div
+            className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`}
+          />
+
+          {/* AI 카드 특별 이색 그라데이션 애니메이션 - landing 버전에서 재활용 */}
+          {card.isAICard && (
+            <motion.div
+              className='absolute inset-0 bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 rounded-2xl'
+              animate={{
+                background: [
+                  'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(236,72,153,0.3) 50%, rgba(34,197,94,0.3) 100%)',
+                  'linear-gradient(135deg, rgba(236,72,153,0.3) 0%, rgba(34,197,94,0.3) 50%, rgba(59,130,246,0.3) 100%)',
+                  'linear-gradient(135deg, rgba(34,197,94,0.3) 0%, rgba(59,130,246,0.3) 50%, rgba(236,72,153,0.3) 100%)',
+                  'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(236,72,153,0.3) 50%, rgba(34,197,94,0.3) 100%)',
+                ],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+          )}
+
+          {/* Vibe Coding 카드 특별 디자인 */}
+          {card.isVibeCard && (
+            <>
+              {/* 장식 요소 */}
+              <div className='absolute top-2 right-2 w-6 h-6 bg-yellow-400/30 rounded-full animate-pulse'></div>
+              <div className='absolute bottom-2 left-2 w-4 h-4 bg-yellow-400/20 rounded-full animate-pulse'></div>
+
+              {/* 개선된 배경 그라데이션 - 애니메이션 효과 */}
+              <div className='absolute inset-0 rounded-2xl overflow-hidden'>
+                <div className='absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 opacity-90 bg-[length:200%_200%] animate-gradient' />
+              </div>
+
+              {/* 텍스트 가독성을 위한 오버레이 */}
+              <div className='absolute inset-0 bg-black/15 rounded-2xl'></div>
+            </>
+          )}
+
+          {/* 일반 카드들의 아이콘 (바이브 코딩 포함) */}
+          <div
+            className={`w-12 h-12 ${
+              card.isVibeCard
+                ? 'bg-gradient-to-br from-yellow-400 to-amber-500'
+                : `bg-gradient-to-br ${card.gradient}`
+            } rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
+              card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
+            }`}
+          >
+            {iconAnimation ? (
+              <motion.div {...iconAnimation}>
+                <card.icon className={`w-6 h-6 ${cardStyles.iconColor}`} />
+              </motion.div>
+            ) : (
+              <card.icon className='w-6 h-6 text-white' />
+            )}
+          </div>
+
+          {/* 모든 카드들의 통일된 컨텐츠 */}
+          <div className='relative z-10'>
+            <h3
+              className={`text-lg font-semibold mb-2 transition-colors leading-snug ${cardStyles.title}`}
+            >
+              {renderTextWithAIGradient(card.title)}
+            </h3>
+            <p
+              className={`text-xs leading-relaxed transition-colors ${cardStyles.description}`}
+            >
+              {renderTextWithAIGradient(card.description)}
+            </p>
+
+            {/* AI 어시스턴트 필요 표시 */}
+            {card.requiresAI && isAIDisabled && (
+              <div className='mt-2 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-300 text-xs text-center'>
+                AI 어시스턴트 모드 필요
+              </div>
+            )}
+          </div>
+
+          {/* 호버 효과 */}
+          <div
+            className={`absolute inset-0 ring-2 ring-transparent transition-all duration-300 rounded-2xl ${cardStyles.hoverRing}`}
+          />
+        </div>
+      </motion.div>
+    );
+  }
+);
+
+FeatureCardItem.displayName = 'FeatureCardItem';
+
 export default function FeatureCardsGrid() {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
 
   const { aiAgent } = useUnifiedAdminStore();
-
-  // 카드는 항상 다크 테마로 표시
-
-  // 카드 타입별 스타일 헬퍼
-  const getCardStyles = (card: FeatureCard) => {
-    return {
-      title: card.isVibeCard
-        ? 'text-white/98 group-hover:text-yellow-100'
-        : 'text-white/95 group-hover:text-white',
-      description: card.isVibeCard
-        ? 'text-white/96 group-hover:text-yellow-50 font-bold'
-        : 'text-white/80 group-hover:text-white/90 font-medium',
-      hoverRing: card.isAICard
-        ? 'group-hover:ring-pink-400/50 group-hover:shadow-lg group-hover:shadow-pink-500/25'
-        : card.isVibeCard
-          ? 'group-hover:ring-yellow-400/50'
-          : card.isSpecial
-            ? 'group-hover:ring-amber-400/50 group-hover:shadow-lg group-hover:shadow-amber-500/25'
-            : 'group-hover:ring-white/30',
-      iconColor: card.isVibeCard ? 'text-amber-900' : 'text-white',
-    };
-  };
-
-  // 아이콘 애니메이션 설정
-  const getIconAnimation = (card: FeatureCard) => {
-    if (card.isAICard) {
-      return {
-        animate: {
-          rotate: [0, 360],
-          scale: [1, 1.1, 1],
-        },
-        transition: {
-          rotate: {
-            duration: 8,
-            repeat: Infinity,
-            ease: 'linear' as const, // TypeScript will accept this
-          },
-          scale: {
-            duration: 2,
-            repeat: Infinity,
-          },
-        },
-      };
-    }
-    if (card.isVibeCard) {
-      return {
-        animate: {
-          scale: [1, 1.2, 1],
-          rotate: [0, 5, -5, 0],
-        },
-        transition: {
-          duration: 2.5,
-          repeat: Infinity,
-        },
-      };
-    }
-    return null;
-  };
 
   // 모달 외부 클릭 시 닫기 처리
   useEffect(() => {
@@ -234,19 +394,23 @@ export default function FeatureCardsGrid() {
     };
   }, [selectedCard]);
 
-  const handleCardClick = (cardId: string) => {
-    const card = cardData.find(c => c.id === cardId);
+  // handleCardClick을 useCallback으로 메모이제이션
+  const handleCardClick = useMemo(
+    () => (cardId: string) => {
+      const card = cardData.find(c => c.id === cardId);
 
-    if (card?.requiresAI && !aiAgent.isEnabled) {
-      // AI 엔진이 필요한 기능에 일반 사용자가 접근할 때
-      console.warn(
-        '🚧 이 기능은 AI 엔진 모드에서만 사용 가능합니다. 홈 화면에서 AI 모드를 활성화해주세요.'
-      );
-      return;
-    }
+      if (card?.requiresAI && !aiAgent.isEnabled) {
+        // AI 엔진이 필요한 기능에 일반 사용자가 접근할 때
+        console.warn(
+          '🚧 이 기능은 AI 엔진 모드에서만 사용 가능합니다. 홈 화면에서 AI 모드를 활성화해주세요.'
+        );
+        return;
+      }
 
-    setSelectedCard(cardId);
-  };
+      setSelectedCard(cardId);
+    },
+    [aiAgent.isEnabled]
+  );
 
   const closeModal = () => {
     setSelectedCard(null);
@@ -254,151 +418,17 @@ export default function FeatureCardsGrid() {
 
   const selectedCardData = cardData.find(card => card.id === selectedCard);
 
-  // AI 단어에 그라데이션 애니메이션 적용하는 함수
-  const renderTextWithAIGradient = (text: string) => {
-    if (!text.includes('AI')) return text;
-
-    return text.split(/(AI)/g).map((part, index) => {
-      if (part === 'AI') {
-        return (
-          <motion.span
-            key={index}
-            className='bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent font-bold bg-[length:200%_200%]'
-            animate={{
-              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: 'linear',
-            }}
-          >
-            {part}
-          </motion.span>
-        );
-      }
-      return part;
-    });
-  };
-
   return (
     <>
       <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-7xl mx-auto'>
         {cardData.map((card, index) => (
-          <motion.div
+          <FeatureCardItem
             key={card.id}
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            whileHover={{
-              scale: card.isVibeCard ? 1.08 : 1.05,
-              y: card.isVibeCard ? -8 : -5,
-              rotateY: card.isVibeCard ? 5 : 0,
-            }}
-            className={`group cursor-pointer relative ${
-              card.isVibeCard
-                ? 'hover:shadow-2xl hover:shadow-yellow-500/30 transform-gpu'
-                : ''
-            }`}
-            onClick={() => handleCardClick(card.id)}
-          >
-            <div
-              className={`relative p-4 bg-white/10 hover:bg-white/20 border-white/25 backdrop-blur-sm border rounded-2xl transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) h-full ${
-                card.isSpecial
-                  ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30'
-                  : ''
-              } group-hover:transform group-hover:scale-[1.02] group-hover:shadow-2xl`}
-            >
-              {/* 그라데이션 배경 */}
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`}
-              />
-
-              {/* AI 카드 특별 이색 그라데이션 애니메이션 - landing 버전에서 재활용 */}
-              {card.isAICard && (
-                <motion.div
-                  className='absolute inset-0 bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 rounded-2xl'
-                  animate={{
-                    background: [
-                      'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(236,72,153,0.3) 50%, rgba(34,197,94,0.3) 100%)',
-                      'linear-gradient(135deg, rgba(236,72,153,0.3) 0%, rgba(34,197,94,0.3) 50%, rgba(59,130,246,0.3) 100%)',
-                      'linear-gradient(135deg, rgba(34,197,94,0.3) 0%, rgba(59,130,246,0.3) 50%, rgba(236,72,153,0.3) 100%)',
-                      'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(236,72,153,0.3) 50%, rgba(34,197,94,0.3) 100%)',
-                    ],
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                />
-              )}
-
-              {/* Vibe Coding 카드 특별 디자인 */}
-              {card.isVibeCard && (
-                <>
-                  {/* 장식 요소 */}
-                  <div className='absolute top-2 right-2 w-6 h-6 bg-yellow-400/30 rounded-full animate-pulse'></div>
-                  <div className='absolute bottom-2 left-2 w-4 h-4 bg-yellow-400/20 rounded-full animate-pulse'></div>
-
-                  {/* 개선된 배경 그라데이션 - 애니메이션 효과 */}
-                  <div className='absolute inset-0 rounded-2xl overflow-hidden'>
-                    <div className='absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 opacity-90 bg-[length:200%_200%] animate-gradient' />
-                  </div>
-
-                  {/* 텍스트 가독성을 위한 오버레이 */}
-                  <div className='absolute inset-0 bg-black/15 rounded-2xl'></div>
-                </>
-              )}
-
-              {/* 일반 카드들의 아이콘 (바이브 코딩 포함) */}
-              <div
-                className={`w-12 h-12 ${
-                  card.isVibeCard
-                    ? 'bg-gradient-to-br from-yellow-400 to-amber-500'
-                    : `bg-gradient-to-br ${card.gradient}`
-                } rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
-                  card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
-                }`}
-              >
-                {getIconAnimation(card) ? (
-                  <motion.div {...getIconAnimation(card)}>
-                    <card.icon
-                      className={`w-6 h-6 ${getCardStyles(card).iconColor}`}
-                    />
-                  </motion.div>
-                ) : (
-                  <card.icon className='w-6 h-6 text-white' />
-                )}
-              </div>
-
-              {/* 모든 카드들의 통일된 컨텐츠 */}
-              <div className='relative z-10'>
-                <h3
-                  className={`text-lg font-semibold mb-2 transition-colors leading-snug ${getCardStyles(card).title}`}
-                >
-                  {renderTextWithAIGradient(card.title)}
-                </h3>
-                <p
-                  className={`text-xs leading-relaxed transition-colors ${getCardStyles(card).description}`}
-                >
-                  {renderTextWithAIGradient(card.description)}
-                </p>
-
-                {/* AI 어시스턴트 필요 표시 */}
-                {card.requiresAI && !aiAgent.isEnabled && (
-                  <div className='mt-2 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-300 text-xs text-center'>
-                    AI 어시스턴트 모드 필요
-                  </div>
-                )}
-              </div>
-
-              {/* 호버 효과 */}
-              <div
-                className={`absolute inset-0 ring-2 ring-transparent transition-all duration-300 rounded-2xl ${getCardStyles(card).hoverRing}`}
-              />
-            </div>
-          </motion.div>
+            card={card}
+            index={index}
+            onCardClick={handleCardClick}
+            isAIDisabled={!aiAgent.isEnabled}
+          />
         ))}
       </div>
 

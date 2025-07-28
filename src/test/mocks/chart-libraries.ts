@@ -38,56 +38,56 @@ vi.mock('react-chartjs-2', () => ({
       children
     );
   },
-  Bar: ({ data, options }: any) => {
+  Bar: ({ data, options }: { data?: unknown; options?: unknown }) => {
     return React.createElement(
       'div',
       { 'data-testid': 'mock-bar-chart' },
       'Bar Chart Mock'
     );
   },
-  Line: ({ data, options }: any) => {
+  Line: ({ data, options }: { data?: unknown; options?: unknown }) => {
     return React.createElement(
       'div',
       { 'data-testid': 'mock-line-chart' },
       'Line Chart Mock'
     );
   },
-  Pie: ({ data, options }: any) => {
+  Pie: ({ data, options }: { data?: unknown; options?: unknown }) => {
     return React.createElement(
       'div',
       { 'data-testid': 'mock-pie-chart' },
       'Pie Chart Mock'
     );
   },
-  Doughnut: ({ data, options }: any) => {
+  Doughnut: ({ data, options }: { data?: unknown; options?: unknown }) => {
     return React.createElement(
       'div',
       { 'data-testid': 'mock-doughnut-chart' },
       'Doughnut Chart Mock'
     );
   },
-  Radar: ({ data, options }: any) => {
+  Radar: ({ data, options }: { data?: unknown; options?: unknown }) => {
     return React.createElement(
       'div',
       { 'data-testid': 'mock-radar-chart' },
       'Radar Chart Mock'
     );
   },
-  PolarArea: ({ data, options }: any) => {
+  PolarArea: ({ data, options }: { data?: unknown; options?: unknown }) => {
     return React.createElement(
       'div',
       { 'data-testid': 'mock-polar-area-chart' },
       'Polar Area Chart Mock'
     );
   },
-  Bubble: ({ data, options }: any) => {
+  Bubble: ({ data, options }: { data?: unknown; options?: unknown }) => {
     return React.createElement(
       'div',
       { 'data-testid': 'mock-bubble-chart' },
       'Bubble Chart Mock'
     );
   },
-  Scatter: ({ data, options }: any) => {
+  Scatter: ({ data, options }: { data?: unknown; options?: unknown }) => {
     return React.createElement(
       'div',
       { 'data-testid': 'mock-scatter-chart' },
@@ -107,28 +107,52 @@ vi.mock('recharts', () => ({
       children
     );
   },
-  LineChart: ({ children, data }: { children: React.ReactNode; data: any }) => {
+  LineChart: ({
+    children,
+    data,
+  }: {
+    children: React.ReactNode;
+    data?: unknown;
+  }) => {
     return React.createElement(
       'div',
       { 'data-testid': 'mock-line-chart' },
       children
     );
   },
-  BarChart: ({ children, data }: { children: React.ReactNode; data: any }) => {
+  BarChart: ({
+    children,
+    data,
+  }: {
+    children: React.ReactNode;
+    data?: unknown;
+  }) => {
     return React.createElement(
       'div',
       { 'data-testid': 'mock-bar-chart' },
       children
     );
   },
-  AreaChart: ({ children, data }: { children: React.ReactNode; data: any }) => {
+  AreaChart: ({
+    children,
+    data,
+  }: {
+    children: React.ReactNode;
+    data?: unknown;
+  }) => {
     return React.createElement(
       'div',
       { 'data-testid': 'mock-area-chart' },
       children
     );
   },
-  PieChart: ({ children, data }: { children: React.ReactNode; data: any }) => {
+  PieChart: ({
+    children,
+    data,
+  }: {
+    children: React.ReactNode;
+    data?: unknown;
+  }) => {
     return React.createElement(
       'div',
       { 'data-testid': 'mock-pie-chart' },
@@ -140,7 +164,7 @@ vi.mock('recharts', () => ({
     data,
   }: {
     children: React.ReactNode;
-    data: any;
+    data?: unknown;
   }) => {
     return React.createElement(
       'div',
@@ -153,7 +177,7 @@ vi.mock('recharts', () => ({
     data,
   }: {
     children: React.ReactNode;
-    data: any;
+    data?: unknown;
   }) => {
     return React.createElement(
       'div',

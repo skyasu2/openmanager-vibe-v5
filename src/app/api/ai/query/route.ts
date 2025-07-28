@@ -1,13 +1,13 @@
 /**
  * 🤖 AI 쿼리 API
  *
- * 통합 AI 엔진을 사용한 쿼리 처리
+ * 향상된 AI 엔진을 사용한 쿼리 처리
  * POST /api/ai/query
  */
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getSimplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
+import { getPerformanceOptimizedQueryEngine } from '@/services/ai/performance-optimized-query-engine';
 
 export const runtime = 'nodejs';
 
@@ -47,8 +47,14 @@ export async function POST(request: NextRequest) {
 
     const startTime = Date.now();
 
-    // SimplifiedQueryEngine 사용
-    const queryEngine = getSimplifiedQueryEngine();
+    // PerformanceOptimizedQueryEngine 사용 (고급 성능 최적화 적용)
+    const queryEngine = getPerformanceOptimizedQueryEngine({
+      enableParallelProcessing: true,
+      enablePredictiveLoading: true,
+      enableCircuitBreaker: true,
+      cacheStrategy: 'adaptive',
+      timeoutMs: 12000, // 12초 타임아웃
+    });
     const result = await queryEngine.query({
       query,
       mode,
@@ -89,7 +95,7 @@ export async function POST(request: NextRequest) {
     };
 
     console.log(
-      `✅ AI 쿼리 처리 완료: ${responseTime}ms, 엔진: ${result.engine}`
+      `✅ AI 쿼리 처리 완료: ${responseTime}ms, 엔진: ${result.engine}, 캐시: ${result.metadata?.cacheHit ? 'HIT' : 'MISS'}`
     );
 
     return NextResponse.json(response, {
@@ -98,6 +104,7 @@ export async function POST(request: NextRequest) {
         'Cache-Control': 'no-store',
         'X-Response-Time': responseTime.toString(),
         'X-AI-Engine': result.engine,
+        'X-Cache-Hit': result.metadata?.cacheHit ? 'true' : 'false',
       },
     });
   } catch (error) {
@@ -124,8 +131,11 @@ export async function GET(_request: NextRequest) {
   try {
     console.log('📊 AI 쿼리 시스템 상태 조회...');
 
-    const queryEngine = getSimplifiedQueryEngine();
-    const healthStatus = await queryEngine.healthCheck();
+    const queryEngine = getPerformanceOptimizedQueryEngine();
+    const [healthStatus, performanceStats] = await Promise.all([
+      queryEngine.healthCheck(),
+      queryEngine.getPerformanceStats()
+    ]);
 
     return NextResponse.json(
       {
@@ -156,6 +166,15 @@ export async function GET(_request: NextRequest) {
           contextAware: true,
           thinkingMode: true,
           mcpIntegration: true,
+          performanceOptimized: true,
+          patternCaching: true,
+          vectorIndexing: true,
+        },
+        performance: {
+          totalQueries: performanceStats.metrics.totalQueries,
+          cacheHitRate: performanceStats.optimization.cacheHitRate,
+          avgResponseTime: Math.round(performanceStats.metrics.avgResponseTime),
+          totalTimeSaved: performanceStats.metrics.optimizationsSaved,
         },
       },
       {

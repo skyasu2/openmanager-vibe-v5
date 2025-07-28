@@ -22,14 +22,34 @@ if (typeof globalThis !== 'undefined') {
   (globalThis as any).getDataGeneratorConfig = getDataGeneratorConfig;
 }
 
+// 서버 환경 타입
+export type ServerEnvironment =
+  | 'production'
+  | 'staging'
+  | 'development'
+  | 'error';
+
+// 서버 역할 타입
+export type ServerRole =
+  | 'web'
+  | 'api'
+  | 'database'
+  | 'cache'
+  | 'worker'
+  | 'error';
+
+// 서버 상태 타입
+export type ServerStatus = 'healthy' | 'warning' | 'critical' | 'offline';
+
 // 통합된 서버 메트릭 인터페이스
 export interface UnifiedServerMetrics {
   // 서버 기본 정보
   id: string;
+  name: string;
   hostname: string;
-  environment: 'production' | 'staging' | 'development';
-  role: 'web' | 'api' | 'database' | 'cache' | 'worker';
-  status: 'healthy' | 'warning' | 'critical';
+  environment: ServerEnvironment;
+  role: ServerRole;
+  status: ServerStatus;
 
   // Prometheus 표준 메트릭
   node_cpu_usage_percent: number;
@@ -429,6 +449,7 @@ export class UnifiedMetricsManager {
 
     return {
       id,
+      name: id,
       hostname: id,
       environment,
       role,
@@ -663,21 +684,23 @@ export class UnifiedMetricsManager {
   /**
    * 📊 기본 분석 수행 (TypeScript 폴백)
    */
-  private performBasicAnalysis(servers: UnifiedServerMetrics[]): any {
+  private performBasicAnalysis(servers: UnifiedServerMetrics[]): {
+    analysis: string;
+    server_count: number;
+    avg_cpu: string;
+    avg_memory: string;
+    critical_servers: number;
+    health_score: string;
+    timestamp: string;
+  } {
     const totalServers = servers.length;
     const avgCpu =
-      servers.reduce(
-        (sum: number, s: any) => sum + s.node_cpu_usage_percent,
-        0
-      ) / totalServers;
+      servers.reduce((sum, s) => sum + s.node_cpu_usage_percent, 0) /
+      totalServers;
     const avgMemory =
-      servers.reduce(
-        (sum: number, s: any) => sum + s.node_memory_usage_percent,
-        0
-      ) / totalServers;
-    const criticalServers = servers.filter(
-      (s: any) => s.status === 'critical'
-    ).length;
+      servers.reduce((sum, s) => sum + s.node_memory_usage_percent, 0) /
+      totalServers;
+    const criticalServers = servers.filter(s => s.status === 'critical').length;
 
     return {
       analysis: 'typescript_basic',
@@ -716,10 +739,8 @@ export class UnifiedMetricsManager {
     servers: UnifiedServerMetrics[]
   ): Promise<void> {
     const avgCpu =
-      servers.reduce(
-        (sum: number, s: any) => sum + s.node_cpu_usage_percent,
-        0
-      ) / servers.length;
+      servers.reduce((sum, s) => sum + s.node_cpu_usage_percent, 0) /
+      servers.length;
     const currentCount = servers.length;
 
     let action = 'maintain';
@@ -857,7 +878,15 @@ export class UnifiedMetricsManager {
   /**
    * 📊 현재 상태 조회
    */
-  getStatus(): any {
+  getStatus(): {
+    isRunning: boolean;
+    servers_count: number;
+    environment?: string;
+    current_config?: any;
+    performance_metrics?: any;
+    last_update?: number;
+    error?: boolean;
+  } {
     // 클라이언트 사이드에서는 기본 상태 반환
     if (typeof window !== 'undefined') {
       return {
@@ -891,7 +920,7 @@ export class UnifiedMetricsManager {
   /**
    * 📋 서버 목록 조회 (ServerDashboard 호환)
    */
-  getServers(): any[] {
+  getServers(): UnifiedServerMetrics[] {
     // 클라이언트 사이드에서는 빈 배열 반환
     if (typeof window !== 'undefined') {
       console.log('⚠️ 클라이언트 환경: 빈 서버 목록 반환');
@@ -931,37 +960,37 @@ export class UnifiedMetricsManager {
    * 🚨 에러 상태 서버 데이터 생성 (fallback 대신)
    * 실제 데이터 조회 실패 시 명시적 에러 상태 반환
    */
-  private generateErrorStateServers(): any[] {
+  private generateErrorStateServers(): UnifiedServerMetrics[] {
     console.log('🚨 에러 상태 서버 데이터 생성 중...');
 
-    const errorServers = Array.from({ length: 3 }, (_, i) => {
-      return {
-        id: `ERROR_SERVER_${i + 1}`,
-        name: `🚨 ERROR_${i + 1}`,
-        hostname: `ERROR: 실제 데이터 연결 실패`,
-        status: 'offline',
-        location: 'ERROR_STATE',
-        type: 'ERROR',
-        environment: 'ERROR',
-        cpu: 0,
-        memory: 0,
-        disk: 0,
-        network: 0,
-        networkStatus: 'offline',
-        uptime: '연결 실패',
-        lastUpdate: new Date(),
-        alerts: 999,
-        services: [
-          { name: 'ERROR', status: 'stopped', port: 0 },
-          { name: '실제_데이터_없음', status: 'stopped', port: 0 },
-        ],
-        isErrorState: true,
-        errorMessage: '실제 서버 데이터를 가져올 수 없습니다',
-        timestamp: new Date().toISOString(),
-        source: 'error-state',
-        error_state: 'true', // fallback 대신 error_state
-      };
-    });
+    const errorServers: UnifiedServerMetrics[] = Array.from(
+      { length: 3 },
+      (_, i) => {
+        const now = new Date();
+        return {
+          id: `ERROR_SERVER_${i + 1}`,
+          name: `🚨 ERROR_${i + 1}`,
+          hostname: `ERROR: 실제 데이터 연결 실패`,
+          environment: 'error' as ServerEnvironment,
+          role: 'error' as ServerRole,
+          status: 'offline' as ServerStatus,
+          node_cpu_usage_percent: 0,
+          node_memory_usage_percent: 0,
+          node_disk_usage_percent: 0,
+          node_network_receive_rate_mbps: 0,
+          node_network_transmit_rate_mbps: 0,
+          node_uptime_seconds: 0,
+          http_requests_total: 0,
+          http_request_duration_seconds: 0,
+          http_requests_errors_total: 0,
+          timestamp: Date.now(),
+          labels: {
+            error: 'true',
+            source: 'error-state',
+          },
+        };
+      }
+    );
 
     console.log(`🚨 에러 상태 서버 데이터 생성 완료: ${errorServers.length}개`);
     return errorServers;

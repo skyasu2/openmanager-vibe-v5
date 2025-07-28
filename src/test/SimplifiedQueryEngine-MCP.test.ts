@@ -60,7 +60,7 @@ describe.skip('SimplifiedQueryEngine - MCP Integration', () => {
               memory: 78,
               disk: 45,
               network: 120,
-            } as any,
+            },
           ],
         },
         options: {
@@ -111,7 +111,7 @@ describe.skip('SimplifiedQueryEngine - MCP Integration', () => {
       vi.mocked(
         (await import('@/services/mcp/ServerMonitoringAgent'))
           .ServerMonitoringAgent.getInstance
-      ).mockReturnValue(mockMCPAgent as any);
+      ).mockReturnValue(mockMCPAgent as unknown as ReturnType<typeof import('@/services/mcp/ServerMonitoringAgent').ServerMonitoringAgent.getInstance>);
 
       const request: QueryRequest = {
         query: '서버 문제 진단',

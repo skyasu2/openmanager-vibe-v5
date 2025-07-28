@@ -20,7 +20,15 @@ function analyzeIntent(query: string): string {
 }
 
 // 간단한 응답 생성 함수
-function generateResponse(intent: string, servers: any[]): string {
+interface Server {
+  name: string;
+  cpu: number;
+  memory: number;
+  disk: number;
+  status: 'healthy' | 'warning' | 'critical';
+}
+
+function generateResponse(intent: string, servers: Server[]): string {
   if (!servers || servers.length === 0) {
     return '서버 데이터가 없습니다.';
   }

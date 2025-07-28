@@ -68,6 +68,20 @@ Object.defineProperty(window, 'scroll', {
 // 📡 WebAPI Mock
 // ===============================
 global.fetch = vi.fn();
+
+interface MockEventSource extends EventSource {
+  close: ReturnType<typeof vi.fn>;
+  addEventListener: ReturnType<typeof vi.fn>;
+  removeEventListener: ReturnType<typeof vi.fn>;
+}
+
+interface EventSourceConstructor {
+  new (url: string | URL, eventSourceInitDict?: EventSourceInit): EventSource;
+  readonly CONNECTING: 0;
+  readonly OPEN: 1;
+  readonly CLOSED: 2;
+}
+
 const EventSourceMock = vi.fn().mockImplementation(() => ({
   close: vi.fn(),
   addEventListener: vi.fn(),
@@ -75,13 +89,13 @@ const EventSourceMock = vi.fn().mockImplementation(() => ({
   readyState: 1,
   url: 'https://mock-sse.test',
   withCredentials: false,
-}));
+})) as unknown as EventSourceConstructor;
 
-(EventSourceMock as any).CONNECTING = 0;
-(EventSourceMock as any).OPEN = 1;
-(EventSourceMock as any).CLOSED = 2;
+(EventSourceMock as EventSourceConstructor).CONNECTING = 0;
+(EventSourceMock as EventSourceConstructor).OPEN = 1;
+(EventSourceMock as EventSourceConstructor).CLOSED = 2;
 
-global.EventSource = EventSourceMock as any;
+global.EventSource = EventSourceMock;
 
 // ===============================
 // 📊 Canvas API Mock (차트 라이브러리용)
@@ -244,7 +258,7 @@ export const testUtils = {
   waitFor: (ms: number = 0) => new Promise(resolve => setTimeout(resolve, ms)),
 
   // Mock 함수 생성
-  createMockFn: <T extends (...args: any[]) => any>(implementation?: T) =>
+  createMockFn: <T extends (...args: never[]) => unknown>(implementation?: T) =>
     vi.fn(implementation),
 
   // 환경변수 임시 설정

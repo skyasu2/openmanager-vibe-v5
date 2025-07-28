@@ -157,8 +157,8 @@ Object.defineProperty(window, 'sessionStorage', {
 // ===============================
 // 🌍 Location Mock
 // ===============================
-delete (window as any).location;
-(window as any).location = {
+delete (window as Window & { location?: Location }).location;
+(window as Window & { location: Location }).location = {
   href: 'http://localhost:3000/',
   origin: 'http://localhost:3000',
   protocol: 'http:',
@@ -172,7 +172,12 @@ delete (window as any).location;
   replace: vi.fn(),
   reload: vi.fn(),
   toString: vi.fn(() => 'http://localhost:3000/'),
-  ancestorOrigins: [] as any,
+  ancestorOrigins: {
+    length: 0,
+    item: () => null,
+    contains: () => false,
+    [Symbol.iterator]: function* () {},
+  } as DOMStringList,
 };
 
 // ===============================
@@ -207,11 +212,18 @@ const EventSourceMock = vi.fn().mockImplementation(() => ({
 }));
 
 // 정적 프로퍼티 추가
-(EventSourceMock as any).CONNECTING = 0;
-(EventSourceMock as any).OPEN = 1;
-(EventSourceMock as any).CLOSED = 2;
+interface EventSourceConstructor {
+  new (url: string | URL, eventSourceInitDict?: EventSourceInit): EventSource;
+  readonly CONNECTING: 0;
+  readonly OPEN: 1;
+  readonly CLOSED: 2;
+}
 
-global.EventSource = EventSourceMock as any;
+(EventSourceMock as unknown as EventSourceConstructor).CONNECTING = 0;
+(EventSourceMock as unknown as EventSourceConstructor).OPEN = 1;
+(EventSourceMock as unknown as EventSourceConstructor).CLOSED = 2;
+
+global.EventSource = EventSourceMock as unknown as EventSourceConstructor;
 
 const WebSocketMock = vi.fn().mockImplementation(() => ({
   close: vi.fn(),
@@ -231,9 +243,17 @@ const WebSocketMock = vi.fn().mockImplementation(() => ({
 }));
 
 // 정적 프로퍼티 추가
-(WebSocketMock as any).CONNECTING = 0;
-(WebSocketMock as any).OPEN = 1;
-(WebSocketMock as any).CLOSING = 2;
-(WebSocketMock as any).CLOSED = 3;
+interface WebSocketConstructor {
+  new (url: string | URL, protocols?: string | string[]): WebSocket;
+  readonly CONNECTING: 0;
+  readonly OPEN: 1;
+  readonly CLOSING: 2;
+  readonly CLOSED: 3;
+}
 
-global.WebSocket = WebSocketMock as any;
+(WebSocketMock as unknown as WebSocketConstructor).CONNECTING = 0;
+(WebSocketMock as unknown as WebSocketConstructor).OPEN = 1;
+(WebSocketMock as unknown as WebSocketConstructor).CLOSING = 2;
+(WebSocketMock as unknown as WebSocketConstructor).CLOSED = 3;
+
+global.WebSocket = WebSocketMock as unknown as WebSocketConstructor;

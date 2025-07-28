@@ -2,6 +2,8 @@
 
 > Claude Code에서 MCP 도구를 5분 안에 사용하는 방법
 
+> **📚 공식 문서**: [Claude MCP (Model Control Protocol) 문서](https://docs.anthropic.com/en/docs/claude-code/mcp) - MCP에 대한 자세한 내용은 공식 문서를 참조하세요.
+
 ## 📋 현재 사용 가능한 MCP 도구
 
 ### 1. 📁 **filesystem** - 파일 작업

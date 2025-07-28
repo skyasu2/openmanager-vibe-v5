@@ -15,6 +15,42 @@ import {
 } from '../config/redis.config';
 
 // Redis 클라이언트 타입 (동적 import)
+interface RedisClient {
+  on(event: string, callback: (error?: Error) => void): void;
+  once(event: string, callback: () => void): void;
+  ping(): Promise<string>;
+  quit(): Promise<string | void>;
+  disconnect(): void;
+  get(key: string): Promise<string | null>;
+  set(
+    key: string,
+    value: string,
+    mode?: string,
+    duration?: number
+  ): Promise<string>;
+  del(key: string): Promise<number>;
+  scan(
+    cursor: string,
+    options?: { match?: string; count?: number }
+  ): Promise<[string, string[]]>;
+  info(section?: string): Promise<string>;
+  zadd(key: string, ...args: Array<number | string>): Promise<number>;
+  zrange(
+    key: string,
+    start: number,
+    stop: number,
+    withScores?: 'WITHSCORES'
+  ): Promise<string[]>;
+  zremrangebylex(key: string, min: string, max: string): Promise<number>;
+  zremrangebyscore(key: string, min: number, max: number): Promise<number>;
+  eval(
+    script: string,
+    numKeys: number,
+    ...args: Array<string | number>
+  ): Promise<unknown>;
+  status?: string;
+}
+
 let Redis: any = null;
 let Cluster: any = null;
 
@@ -37,7 +73,7 @@ interface HealthCheckResult {
 
 export class RedisConnectionManager {
   private static instance: RedisConnectionManager;
-  private redisClient: any = null;
+  private redisClient: RedisClient | null = null;
   private isConnected: boolean = false;
   private connectionAttempts: number = 0;
   private lastHealthCheck: number = 0;
@@ -131,6 +167,10 @@ export class RedisConnectionManager {
 
       console.log(`🔧 Redis 연결 설정: ${config.host}:${config.port}`);
 
+      if (!Redis) {
+        throw new Error('Redis 모듈이 로드되지 않았습니다');
+      }
+
       this.redisClient = new Redis({
         ...config,
         retryDelayOnFailover: config.retryDelayOnFailover,
@@ -165,11 +205,21 @@ export class RedisConnectionManager {
   /**
    * 🔗 클러스터 연결
    */
-  private async initializeCluster(clusterConfig: any): Promise<boolean> {
+  private async initializeCluster(
+    clusterConfig: ReturnType<typeof getRedisClusterConfig>
+  ): Promise<boolean> {
     try {
+      if (!clusterConfig) {
+        throw new Error('클러스터 설정이 없습니다');
+      }
+
       console.log(
         `🔗 Redis 클러스터 연결: ${clusterConfig.nodes.length}개 노드`
       );
+
+      if (!Cluster) {
+        throw new Error('Cluster 모듈이 로드되지 않았습니다');
+      }
 
       this.redisClient = new Cluster(
         clusterConfig.nodes,
@@ -209,8 +259,8 @@ export class RedisConnectionManager {
       console.log('✅ Redis 준비 완료');
     });
 
-    this.redisClient.on('error', (error: Error) => {
-      console.error('❌ Redis 오류:', error.message);
+    this.redisClient.on('error', (error?: Error) => {
+      console.error('❌ Redis 오류:', error?.message || '알 수 없는 오류');
       this.isConnected = false;
       this.stats.failedConnections++;
     });
@@ -241,6 +291,12 @@ export class RedisConnectionManager {
         reject(new Error('Redis 연결 타임아웃'));
       }, timeout);
 
+      if (!this.redisClient) {
+        clearTimeout(timer);
+        reject(new Error('Redis 클라이언트가 없습니다'));
+        return;
+      }
+
       if (this.redisClient.status === 'ready') {
         clearTimeout(timer);
         resolve();
@@ -250,9 +306,9 @@ export class RedisConnectionManager {
           resolve();
         });
 
-        this.redisClient.once('error', (error: Error) => {
+        this.redisClient.once('error', () => {
           clearTimeout(timer);
-          reject(error);
+          reject(new Error('Redis 연결 중 오류 발생'));
         });
       }
     });
@@ -264,7 +320,7 @@ export class RedisConnectionManager {
   isRedisConnected(): boolean {
     return (
       this.isConnected &&
-      this.redisClient &&
+      this.redisClient !== null &&
       this.redisClient.status === 'ready'
     );
   }
@@ -286,11 +342,11 @@ export class RedisConnectionManager {
 
       // 핑 테스트
       const pingStart = Date.now();
-      await this.redisClient.ping();
+      await this.redisClient!.ping();
       const responseTime = Date.now() - pingStart;
 
       // Redis 정보 수집
-      const info = await this.redisClient.info();
+      const info = await this.redisClient!.info();
       const memoryInfo = this.parseRedisInfo(info, 'memory');
       const clientInfo = this.parseRedisInfo(info, 'clients');
 
@@ -368,7 +424,7 @@ export class RedisConnectionManager {
   /**
    * 🔧 Redis 클라이언트 가져오기
    */
-  getClient(): any {
+  getClient(): RedisClient | null {
     if (!this.isRedisConnected()) {
       console.warn('⚠️ Redis가 연결되지 않음');
       return null;

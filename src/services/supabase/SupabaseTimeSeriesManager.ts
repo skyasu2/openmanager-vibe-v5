@@ -15,21 +15,28 @@ import type { ServerMetric } from '@/types/server-metrics';
 
 export interface SupabaseClient {
   from(table: string): SupabaseQueryBuilder;
-  rpc(fn: string, args?: any): Promise<any>;
+  rpc<T = unknown>(
+    fn: string,
+    args?: Record<string, unknown>
+  ): Promise<{ data: T | null; error: Error | null }>;
   storage: {
     from(bucket: string): SupabaseStorageBucket;
   };
 }
 
 export interface SupabaseQueryBuilder {
-  insert(values: any[] | any): Promise<{ data: any; error: any }>;
+  insert<T = unknown>(
+    values: T[] | T
+  ): Promise<{ data: T[] | null; error: Error | null }>;
   select(columns?: string): SupabaseQueryBuilder;
   delete(): SupabaseQueryBuilder;
-  update(values: any): SupabaseQueryBuilder;
-  upsert(values: any[] | any): Promise<{ data: any; error: any }>;
-  eq(column: string, value: any): SupabaseQueryBuilder;
-  gte(column: string, value: any): SupabaseQueryBuilder;
-  lte(column: string, value: any): SupabaseQueryBuilder;
+  update<T = unknown>(values: T): SupabaseQueryBuilder;
+  upsert<T = unknown>(
+    values: T[] | T
+  ): Promise<{ data: T[] | null; error: Error | null }>;
+  eq(column: string, value: unknown): SupabaseQueryBuilder;
+  gte(column: string, value: unknown): SupabaseQueryBuilder;
+  lte(column: string, value: unknown): SupabaseQueryBuilder;
   order(
     column: string,
     options?: { ascending?: boolean }
@@ -38,19 +45,34 @@ export interface SupabaseQueryBuilder {
   range(from: number, to: number): SupabaseQueryBuilder;
 
   // 🔧 Promise를 반환하는 메서드들 추가
-  then<T>(onfulfilled?: (value: { data: any; error: any }) => T): Promise<T>;
-  catch<T>(onrejected?: (reason: any) => T): Promise<T>;
+  then<T>(
+    onfulfilled?: (value: { data: unknown; error: Error | null }) => T
+  ): Promise<T>;
+  catch<T>(onrejected?: (reason: unknown) => T): Promise<T>;
 }
 
 export interface SupabaseStorageBucket {
   upload(
     path: string,
-    file: any,
-    options?: any
-  ): Promise<{ data: any; error: any }>;
-  download(path: string): Promise<{ data: any; error: any }>;
-  remove(paths: string[]): Promise<{ data: any; error: any }>;
-  list(path?: string, options?: any): Promise<{ data: any; error: any }>;
+    file: File | Blob | ArrayBuffer,
+    options?: { contentType?: string; cacheControl?: string; upsert?: boolean }
+  ): Promise<{ data: { path: string } | null; error: Error | null }>;
+  download(path: string): Promise<{ data: Blob | null; error: Error | null }>;
+  remove(
+    paths: string[]
+  ): Promise<{ data: string[] | null; error: Error | null }>;
+  list(
+    path?: string,
+    options?: { limit?: number; offset?: number }
+  ): Promise<{
+    data: Array<{
+      name: string;
+      id: string;
+      updated_at: string;
+      created_at: string;
+    }> | null;
+    error: Error | null;
+  }>;
 }
 
 export interface TimeSeriesRecord {
@@ -177,7 +199,7 @@ export class SupabaseTimeSeriesManager {
       throw new Error(`시계열 데이터 조회 실패: ${error.message}`);
     }
 
-    return data || [];
+    return (data as TimeSeriesRecord[]) || [];
   }
 
   /**
@@ -233,7 +255,7 @@ export class SupabaseTimeSeriesManager {
       throw new Error(`만료 데이터 정리 실패: ${error.message}`);
     }
 
-    return data?.length || 0;
+    return Array.isArray(data) ? data.length : 0;
   }
 
   /**
@@ -281,7 +303,7 @@ export class SupabaseTimeSeriesManager {
       throw new Error(`아카이브 대상 데이터 조회 실패: ${error.message}`);
     }
 
-    if (!oldData || oldData.length === 0) {
+    if (!oldData || !Array.isArray(oldData) || oldData.length === 0) {
       return '아카이브할 데이터가 없습니다.';
     }
 
@@ -313,7 +335,10 @@ export class SupabaseTimeSeriesManager {
 
     await this.supabase.storage
       .from('metrics-archive')
-      .upload(archiveFileName, compressedData);
+      .upload(
+        archiveFileName,
+        new Blob([compressedData], { type: 'application/json' })
+      );
 
     // 원본 데이터 삭제
     await this.supabase

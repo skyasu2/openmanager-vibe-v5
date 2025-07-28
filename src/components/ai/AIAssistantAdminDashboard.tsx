@@ -26,7 +26,10 @@ import { useAIAssistantData } from '../../hooks/useAIAssistantData';
 import AIAssistantStatsCards from './admin/AIAssistantStatsCards';
 import RealTimeLogMonitor from './RealTimeLogMonitor';
 import LogAnalyticsDashboard from '../admin/LogAnalyticsDashboard';
-import type { ResponseLogData, ContextDocument } from '../../types/ai-assistant';
+import type {
+  ResponseLogData,
+  ContextDocument,
+} from '../../types/ai-assistant';
 
 export default function AIAssistantAdminDashboard() {
   const {

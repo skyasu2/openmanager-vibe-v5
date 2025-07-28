@@ -1,8 +1,9 @@
-# 🧠 OpenManager Vibe v5 - 통합 메모리 최적화 가이드
+# 🧠 메모리 최적화 가이드
 
-## 📋 개요
+**목적**: Node.js 및 TypeScript 환경 메모리 최적화  
+**상위 문서**: [성능 최적화 완전 가이드](/docs/performance-optimization-complete-guide.md)
 
-이 문서는 OpenManager Vibe v5 프로젝트의 메모리 사용량 분석, 최적화 전략, 그리고 TypeScript 환경에서의 메모리 관리 방안을 통합하여 제공합니다. 안정적이고 효율적인 개발 및 운영 환경을 구축하는 데 필요한 정보를 담고 있습니다.
+> **요약**: 32GB 환경에서 12GB Node.js 설정 권장, TypeScript 엄격 설정 조정으로 안정성 확보
 
 ---
 

@@ -257,7 +257,8 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
     totalWords: Math.round(
       contextDocuments.reduce((sum, doc) => sum + doc.wordCount, 0) / 1000
     ),
-    systemStatus: systemHealth?.aiAssistant.status === 'online' ? '정상' : '오류',
+    systemStatus:
+      systemHealth?.aiAssistant.status === 'online' ? '정상' : '오류',
   };
 
   // 초기 데이터 로드

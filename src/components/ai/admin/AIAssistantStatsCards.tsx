@@ -6,7 +6,9 @@ interface AIAssistantStatsCardsProps {
   stats: AIAssistantStats;
 }
 
-export default function AIAssistantStatsCards({ stats }: AIAssistantStatsCardsProps) {
+export default function AIAssistantStatsCards({
+  stats,
+}: AIAssistantStatsCardsProps) {
   return (
     <div className='grid grid-cols-1 md:grid-cols-4 gap-6'>
       {/* 총 응답 로그 카드 */}

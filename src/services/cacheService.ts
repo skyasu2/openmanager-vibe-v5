@@ -13,7 +13,12 @@
 import type { EnhancedServerMetrics } from '../types/server';
 
 // 메모리 기반 fallback 캐시
-const memoryCache = new Map<string, { data: any; expires: number }>();
+interface CacheEntry<T = unknown> {
+  data: T;
+  expires: number;
+}
+
+const memoryCache = new Map<string, CacheEntry>();
 
 /**
  * 🚫 서버리스 호환: 캐시 서비스 비활성화
@@ -68,7 +73,7 @@ export class RequestScopedCacheService {
   /**
    * 🚫 서버 요약 정보 조회 비활성화
    */
-  async getCachedSummary(): Promise<any> {
+  async getCachedSummary(): Promise<null> {
     console.warn('⚠️ 캐시된 요약 조회 무시됨 - 서버리스 환경');
     return null;
   }
@@ -93,14 +98,14 @@ export class RequestScopedCacheService {
   /**
    * 🚫 캐시 설정 비활성화
    */
-  async set(key: string, value: any, ttlSeconds: number = 300): Promise<void> {
+  async set<T>(key: string, value: T, ttlSeconds: number = 300): Promise<void> {
     console.warn(`⚠️ 캐시 설정 무시됨: ${key} - 서버리스 환경`);
   }
 
   /**
    * 🚫 캐시 조회 비활성화
    */
-  async get(key: string): Promise<any> {
+  async get<T = unknown>(key: string): Promise<T | null> {
     console.warn(`⚠️ 캐시 조회 무시됨: ${key} - 서버리스 환경`);
     return null;
   }
@@ -110,7 +115,7 @@ export class RequestScopedCacheService {
    */
   getStats(): {
     memoryCache: { size: number; keys: string[] };
-    redis: any;
+    redis: null;
   } {
     console.warn('⚠️ 캐시 통계 조회 무시됨 - 서버리스 환경');
     return {
@@ -125,7 +130,7 @@ export class RequestScopedCacheService {
   async checkRedisStatus(): Promise<{
     connected: boolean;
     message: string;
-    details?: any;
+    details?: Record<string, unknown>;
   }> {
     console.warn('⚠️ Redis 상태 확인 무시됨 - 서버리스 환경');
     return {

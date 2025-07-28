@@ -6,7 +6,7 @@ export interface AIEngine {
   id: string;
   name: string;
   description: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
   bgColor: string;
   features: string[];
@@ -22,7 +22,7 @@ export interface PresetQuestion {
   id: string;
   text: string;
   category: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
 }
 

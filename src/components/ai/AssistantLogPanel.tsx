@@ -152,7 +152,9 @@ const generateMockLogs = (): LogEntry[] => [
   },
 ];
 
-const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({ className = '' }) => {
+const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
+  className = '',
+}) => {
   // 🔧 관리자 기능 상태
   const [adminMode, setAdminMode] = useState(false);
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
