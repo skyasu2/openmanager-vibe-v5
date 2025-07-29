@@ -194,7 +194,7 @@ export class PostgresVectorDB {
       // 클라이언트 사이드에서 코사인 유사도 계산
       const results: SearchResult[] = [];
 
-      for (const row of _data) {
+      for (const row of data) {
         if (!row.embedding) continue;
 
         const similarity = this.cosineSimilarity(queryEmbedding, row.embedding);
