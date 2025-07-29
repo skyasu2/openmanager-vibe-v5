@@ -1,8 +1,66 @@
 # Changelog
 
 > 📌 **참고**: 이전 버전들의 상세한 변경 이력은 [CHANGELOG-LEGACY.md](./CHANGELOG-LEGACY.md)를 참조하세요.
+>
 > - Legacy 파일: v5.0.0 ~ v5.65.6 (2024-05 ~ 2025-01)
 > - 현재 파일: v5.65.7 이후 (2025-01 ~)
+
+## [5.65.18] - 2025-07-29
+
+### 🤖 서브 에이전트 시스템 개선
+
+- **Gemini 분석 기반 개선사항 구현**:
+  - 총 13개 서브 에이전트 시스템 포괄적 개선
+  - Phase 1 우선순위 작업 모두 완료
+
+- **주요 개선 내용**:
+  - ✅ `gemini-cli-collaborator.md`: 코드 리뷰 역할 제거, 대안 관점 제공에 집중
+  - ✅ MCP 서버 활용 업데이트:
+    - `debugger-specialist.md`: Serena MCP 추가 및 활용 예시 추가
+    - `test-automation-specialist.md`: Serena, Context7, Memory MCP 추가
+    - `doc-structure-guardian.md`: Context7 MCP 추가
+  - ✅ 루트 디렉토리 정리: 12개 스크립트 파일 적절한 위치로 이동
+    - Hook 스크립트 → `scripts/hooks/`
+    - 테스트 스크립트 → `scripts/testing/`
+    - SQL 파일 → `infra/database/sql/`
+    - 로그 파일 → `logs/`
+  - ✅ README.md에 서브 에이전트 시스템 섹션 추가
+  - ✅ 새로운 서브 에이전트 생성: `backend-gcp-specialist.md`
+  - ✅ `central-supervisor.md`에 동적 에이전트 선택 가이드 추가
+
+- **문서화 개선**:
+  - 13개 서브 에이전트 개요 테이블 추가
+  - 협업 워크플로우 다이어그램 추가
+  - 사용 예시 및 시나리오별 가이드 추가
+
+## [5.65.17] - 2025-07-29
+
+### 🐛 TypeScript 컴파일 에러 수정
+
+- **Vercel 배포 오류 해결**:
+  - `enhanced-query-engine.ts`에서 ComplexityScore 타입 호환성 문제 수정
+  - AIMetadata 인덱스 시그니처와의 충돌 해결
+  - complexity 속성을 metadata에서 분리하여 JSON 문자열로 처리
+
+- **수정 내용**:
+
+  ```typescript
+  // 이전: AIMetadata와 ComplexityScore 타입 충돌
+  metadata: { ...cachedResponse.metadata, cached: true }
+
+  // 수정: complexity를 별도로 추출하여 처리
+  const { complexity, ...restMetadata } = cachedResponse.metadata || {};
+  metadata: {
+    ...restMetadata,
+    cached: true,
+    ...(complexity && { complexityData: JSON.stringify(complexity) }),
+  }
+  ```
+
+- **테스트 결과**:
+  - ✅ 로컬 타입 체크 통과 (`npm run type-check`)
+  - ✅ 유닛 테스트 227개 모두 통과
+  - ✅ GitHub 푸시 및 Vercel 배포 트리거 완료
 
 ## [5.65.16] - 2025-07-29
 
@@ -61,7 +119,6 @@
 - **CHANGELOG 분리**:
   - CHANGELOG-LEGACY.md 생성 (4,144줄의 이전 기록 복구)
   - 현재 CHANGELOG.md는 최신 변경사항만 유지 (555줄)
-  
 - **루트 문서 정리**:
   - 핵심 문서 5개만 루트에 유지 (README, CHANGELOG, CHANGELOG-LEGACY, CLAUDE, GEMINI)
   - 테스트/리포트 파일 → `reports/` 디렉터리로 이동
@@ -72,7 +129,6 @@
   - Node.js 기반 서버: `npx` 명령어 사용
   - Python 기반 서버: `uvx` 명령어 사용
   - 추가/수정/삭제 가이드 CLAUDE.md에 추가
-  
 - **서브에이전트 MCP 설정 업데이트**:
   - 프로젝트 로컬 설정(.claude/mcp.json) 정보 추가
   - mcp-server-admin에 uvx 명령어 추가

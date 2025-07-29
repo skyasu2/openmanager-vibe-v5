@@ -1,15 +1,21 @@
 # 서브에이전트별 MCP 서버 활용 현황
 
+> **업데이트**: 2025년 7월 29일  
+> **⚠️ 중요**: MCP 설정이 CLI 기반으로 변경되었습니다. 최신 정보는 `/docs/mcp-servers-complete-guide.md` 참조
+
 ## 📊 MCP 서버 활용 현황 요약
 
-### 프로젝트 로컬 설정 반영 상태
-- **설정 위치**: `.claude/mcp.json`
+### MCP 설정 방식 (Claude Code v1.16.0+)
+
+- **설정 방법**: `claude mcp add/remove/list` CLI 명령어
 - **명령어 형식**: Node.js 기반 `npx`, Python 기반 `uvx`
-- **반영 완료**: mcp-server-admin, database-administrator, ai-systems-engineer, central-supervisor
+- **설정 위치**: `~/.claude.json` projects 섹션 (자동 관리)
+- **반영 완료**: 모든 서브에이전트가 CLI 기반 MCP 활용 가능
 
 ### MCP 서버별 사용 서브에이전트
 
 #### 1. filesystem (파일 시스템 작업)
+
 - mcp-server-admin
 - code-review-specialist
 - doc-writer-researcher
@@ -19,34 +25,43 @@
 - debugger-specialist
 
 #### 2. github (GitHub 통합)
+
 - doc-writer-researcher
 - security-auditor
 - debugger-specialist
 
 #### 3. memory (지식 관리)
+
 - mcp-server-admin
 - ai-systems-engineer
 
 #### 4. supabase (데이터베이스)
+
 - database-administrator (전담)
 
 #### 5. context7 (문서 검색)
+
 - doc-writer-researcher
 
 #### 6. tavily-mcp (웹 검색)
+
 - doc-writer-researcher
 
 #### 7. sequential-thinking (복잡한 추론)
+
 - debugger-specialist
 
 #### 8. playwright (브라우저 자동화)
+
 - test-automation-specialist
 - ux-performance-optimizer
 
 #### 9. serena (코드 분석)
+
 - (현재 직접 사용하는 서브에이전트 없음)
 
 ### MCP 미사용 서브에이전트
+
 - **central-supervisor**: 조율 역할 (다른 에이전트들이 사용하는 MCP를 간접 활용)
 - **gemini-cli-collaborator**: Bash 명령어로 Gemini CLI 직접 호출
 - **issue-summary**: 기본 도구만으로 플랫폼 모니터링

@@ -119,6 +119,18 @@
       "priority": 9,
       "healthCheck": true,
       "initCommand": "uvx --from git+https://github.com/oraios/serena@v0.8.0 serena-mcp-server activate_project /mnt/d/cursor/openmanager-vibe-v5"
+    },
+    "time": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["mcp-server-time"],
+      "env": {
+        "PYTHON_PATH": "/usr/bin/python3",
+        "UV_CACHE_DIR": "${HOME}/.cache/uv"
+      },
+      "description": "Time and timezone conversion services",
+      "priority": 10,
+      "healthCheck": true
     }
   },
   "globalSettings": {

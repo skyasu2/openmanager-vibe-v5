@@ -246,7 +246,7 @@ bash scripts/category/script.sh
 # 스크립트 이름: example.sh
 # 목적: 예시 스크립트
 # 사용법: ./scripts/category/example.sh [옵션]
-# 작성일: 2025-01-27
+# 작성일: 2025-07-29
 ```
 
 ---

@@ -10,17 +10,17 @@
 
 ## 🔍 상세 결과
 
-
 ### playwright
 
-| 항목 | 값 |
-|------|-----|
-| 테스트 | Basic Browser Navigation |
-| 상태 | ✅ 성공 |
-| 응답 시간 | 0.3ms |
-| 에러 | N/A |
+| 항목      | 값                       |
+| --------- | ------------------------ |
+| 테스트    | Basic Browser Navigation |
+| 상태      | ✅ 성공                  |
+| 응답 시간 | 0.3ms                    |
+| 에러      | N/A                      |
 
 **세부사항:**
+
 ```json
 {
   "agent": "ux-performance-optimizer",
@@ -35,17 +35,17 @@
 }
 ```
 
-
 ### serena
 
-| 항목 | 값 |
-|------|-----|
-| 테스트 | Code Analysis |
-| 상태 | ✅ 성공 |
-| 응답 시간 | 0.3ms |
-| 에러 | N/A |
+| 항목      | 값            |
+| --------- | ------------- |
+| 테스트    | Code Analysis |
+| 상태      | ✅ 성공       |
+| 응답 시간 | 0.3ms         |
+| 에러      | N/A           |
 
 **세부사항:**
+
 ```json
 {
   "agent": "code-review-specialist",
@@ -60,17 +60,17 @@
 }
 ```
 
-
 ### context7
 
-| 항목 | 값 |
-|------|-----|
-| 테스트 | Library Documentation Search |
-| 상태 | ✅ 성공 |
-| 응답 시간 | 0.1ms |
-| 에러 | N/A |
+| 항목      | 값                           |
+| --------- | ---------------------------- |
+| 테스트    | Library Documentation Search |
+| 상태      | ✅ 성공                      |
+| 응답 시간 | 0.1ms                        |
+| 에러      | N/A                          |
 
 **세부사항:**
+
 ```json
 {
   "agent": "ai-systems-engineer",
@@ -84,20 +84,22 @@
 }
 ```
 
-
 ## 💡 분석 및 권고사항
 
 ### Playwright MCP
+
 - **상태**: 설치됨
 - **문제**: .claude/mcp.json에서 잘못된 패키지명 사용 중
 - **해결책**: `@modelcontextprotocol/mcp-server-playwright` → `@playwright/mcp`로 변경
 
-### Serena MCP  
+### Serena MCP
+
 - **상태**: 설치됨
 - **문제**: Python 기반이므로 uvx 의존성
 - **해결책**: 프로젝트 설정이 필요한지 확인
 
 ### Context7 MCP
+
 - **상태**: 설치됨
 - **문제**: API 키 없이도 기본 기능 동작 여부 확인 필요
 - **해결책**: 무료 사용 가능 범위 확인

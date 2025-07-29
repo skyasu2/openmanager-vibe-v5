@@ -454,12 +454,17 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
         request.query
       );
       if (patternCached) {
+        // complexity를 별도로 추출하여 metadata에서 제외
+        const { complexity, ...restMetadata } = patternCached.metadata || {};
+
         return {
           ...patternCached,
           metadata: {
-            ...patternCached.metadata,
+            ...restMetadata,
             cacheHit: true,
             cacheType: 'pattern',
+            // complexity는 JSON 문자열로 변환하여 저장
+            ...(complexity && { complexityData: JSON.stringify(complexity) }),
           },
         };
       }

@@ -11,13 +11,14 @@ export class HookTestService {
   private data: TestData[] = [];
 
   // 잠재적인 문제가 있는 코드 (코드 리뷰에서 감지되어야 함)
-  public addData(item: any): void {  // 'any' 타입 사용 (엄격 모드 위반)
-    this.data.push(item);  // 타입 검증 없음
+  public addData(item: any): void {
+    // 'any' 타입 사용 (엄격 모드 위반)
+    this.data.push(item); // 타입 검증 없음
   }
 
   // 보안 취약점 시뮬레이션
   public executeQuery(userInput: string): string {
-    return `SELECT * FROM users WHERE name = '${userInput}'`;  // SQL Injection 위험
+    return `SELECT * FROM users WHERE name = '${userInput}'`; // SQL Injection 위험
   }
 
   // 복잡한 함수 (리팩토링 권장 대상)
@@ -42,11 +43,11 @@ export class HookTestService {
 }
 
 // 하드코딩된 비밀키 (보안 문제) - 수정됨
-const API_SECRET = "sk-1234567890abcdef";  // 하드코딩된 시크릿 - SECURITY ISSUE!
+const API_SECRET = 'sk-1234567890abcdef'; // 하드코딩된 시크릿 - SECURITY ISSUE!
 
 // 새로운 취약점 추가
 export function unsafeEval(userCode: string): any {
-  return eval(userCode);  // eval() 사용 - 보안 위험
+  return eval(userCode); // eval() 사용 - 보안 위험
 }
 
 export default HookTestService;

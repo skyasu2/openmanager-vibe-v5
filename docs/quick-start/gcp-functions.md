@@ -247,8 +247,8 @@ gcloud functions logs read enhanced-korean-nlp --limit 50
 
 # 특정 시간 범위 로그
 gcloud functions logs read ml-analytics-engine \
-  --start-time="2025-01-28T00:00:00Z" \
-  --end-time="2025-01-28T23:59:59Z"
+  --start-time="2025-07-29T00:00:00Z" \
+  --end-time="2025-07-29T23:59:59Z"
 
 # 에러만 필터링
 gcloud functions logs read unified-ai-processor \

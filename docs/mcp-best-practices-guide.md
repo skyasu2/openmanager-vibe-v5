@@ -1,7 +1,8 @@
 # MCP (Model Context Protocol) 베스트 프랙티스 가이드
 
 > 작성일: 2025.01.27  
-> 버전: 1.0
+> 버전: 1.0  
+> **⚠️ 중요**: 이 문서는 구버전 MCP 설정을 기반으로 작성되었습니다. 최신 CLI 기반 설정은 `/docs/mcp-servers-complete-guide.md`를 참조하세요.
 
 ## 🎯 개요
 
@@ -21,6 +22,27 @@
 ### MCP란?
 
 MCP(Model Context Protocol)는 LLM이 외부 도구와 데이터 소스에 접근할 수 있게 하는 개방형 프로토콜입니다.
+
+### ⚠️ 설정 충돌 방지 (중요!)
+
+**글로벌 vs 로컬 설정 분리 원칙**:
+
+```bash
+# ❌ 위험: 전역 설정과 프로젝트 설정이 충돌
+~/.claude.json projects 섹션에 mcpServers 정의
++ .claude/mcp.json에도 mcpServers 정의
+= 4개 vs 10개 서버 혼란 발생
+
+# ✅ 올바른 방식: 명확한 분리
+~/.claude.json - 개인 설정, 빈 mcpServers: {}
+.claude/mcp.json - 프로젝트별 10개 MCP 서버 정의
+```
+
+**설정 우선순위**:
+
+1. **프로젝트 로컬**: `.claude/mcp.json` (최우선)
+2. **전역 프로젝트**: `~/.claude.json` projects 섹션 (충돌 시 제거)
+3. **사용자 전역**: `~/.claude/settings.json` (기본값)
 
 ### 핵심 구성요소
 

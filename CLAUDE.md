@@ -118,6 +118,7 @@ useAsyncEffect(async () => {
 ### 프로덕션 최적화 (2024)
 
 #### 1. 캐싱 전략 변경
+
 - **중요**: Next.js 15부터 GET Route Handlers와 Client Router Cache가 기본적으로 **uncached**로 변경
 - **이전**: 기본 캐시 → **현재**: 기본 비캐시
 - **성능 영향**: 명시적 캐싱 전략 필요
@@ -135,24 +136,26 @@ export async function GET() {
 ```
 
 #### 2. Runtime 설정 업데이트
+
 ```typescript
 // ❌ 구버전 (deprecated)
-export const runtime = "experimental-edge";
+export const runtime = 'experimental-edge';
 
 // ✅ Next.js 15
-export const runtime = "edge";
+export const runtime = 'edge';
 ```
 
 #### 3. 번들 최적화
+
 ```javascript
 // next.config.js
 module.exports = {
   // 자동 외부 패키지 번들링 (Pages Router)
   bundlePagesRouterDependencies: true,
-  
+
   // 특정 패키지 번들링 제외
   serverExternalPackages: ['@upstash/redis', 'sharp'],
-  
+
   // ESLint 9 지원
   eslint: {
     ignoreDuringBuilds: false,
@@ -161,6 +164,7 @@ module.exports = {
 ```
 
 #### 4. 성능 모니터링
+
 ```typescript
 // app/layout.tsx - Core Web Vitals 추적
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -184,6 +188,7 @@ export default function RootLayout({
 ```
 
 #### 5. CI/CD 파이프라인
+
 ```yaml
 # .github/workflows/production.yml
 name: Production Deployment
@@ -200,13 +205,13 @@ jobs:
         with:
           node-version: '22.15.1'
           cache: 'npm'
-      
+
       - run: npm ci
       - run: npm run lint
       - run: npm run type-check
       - run: npm run test
       - run: npm run build
-      
+
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
         with:
@@ -281,6 +286,7 @@ export const redisClient = new Redis({
 ### 핵심 사용 패턴
 
 #### 1. 캐싱 전략
+
 ```typescript
 // services/caching.ts
 import redis from '@/lib/redis';
@@ -293,7 +299,7 @@ export async function getCachedData<T>(
   // 캐시에서 조회
   const cached = await redis.get<T>(key);
   if (cached) return cached;
-  
+
   // 데이터 페칭 및 캐싱
   const data = await fetcher();
   await redis.setex(key, ttl, data);
@@ -309,6 +315,7 @@ const serverMetrics = await getCachedData(
 ```
 
 #### 2. 세션 관리
+
 ```typescript
 // services/session.ts
 import redis from '@/lib/redis';
@@ -320,13 +327,13 @@ export class SessionManager {
   static async create(userId: string, data: any) {
     const sessionId = crypto.randomUUID();
     const key = `${this.SESSION_PREFIX}${sessionId}`;
-    
+
     await redis.setex(key, this.TTL, {
       userId,
       ...data,
       createdAt: Date.now(),
     });
-    
+
     return sessionId;
   }
 
@@ -343,6 +350,7 @@ export class SessionManager {
 ```
 
 #### 3. Rate Limiting
+
 ```typescript
 // middleware/rate-limit.ts
 import redis from '@/lib/redis';
@@ -355,25 +363,23 @@ export async function rateLimitMiddleware(
 ) {
   const ip = request.ip ?? '127.0.0.1';
   const key = `rate_limit:${ip}`;
-  
+
   const requests = await redis.incr(key);
-  
+
   if (requests === 1) {
     await redis.expire(key, window);
   }
-  
+
   if (requests > limit) {
-    return NextResponse.json(
-      { error: 'Rate limit exceeded' },
-      { status: 429 }
-    );
+    return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   }
-  
+
   return NextResponse.next();
 }
 ```
 
 #### 4. 실시간 데이터 Pub/Sub
+
 ```typescript
 // services/realtime.ts
 import redis from '@/lib/redis';
@@ -382,8 +388,11 @@ export class RealtimeService {
   static async publishMetrics(serverId: string, metrics: any) {
     await redis.publish(`server:${serverId}:metrics`, JSON.stringify(metrics));
   }
-  
-  static async subscribeToMetrics(serverId: string, callback: (data: any) => void) {
+
+  static async subscribeToMetrics(
+    serverId: string,
+    callback: (data: any) => void
+  ) {
     // WebSocket과 연동하여 실시간 업데이트
     const channel = `server:${serverId}:metrics`;
     // Note: Upstash는 HTTP 기반이므로 polling 방식 사용
@@ -398,6 +407,7 @@ export class RealtimeService {
 ### 성능 최적화
 
 #### 1. 배치 작업
+
 ```typescript
 // 여러 키 동시 처리
 const pipeline = redis.pipeline();
@@ -408,6 +418,7 @@ const results = await pipeline.exec();
 ```
 
 #### 2. 메모리 관리
+
 ```typescript
 // TTL 설정으로 자동 정리
 await redis.setex('temp:data', 300, data); // 5분 후 자동 삭제
@@ -418,6 +429,7 @@ console.log('Redis 메모리 사용량:', info);
 ```
 
 #### 3. 에러 처리
+
 ```typescript
 // 안전한 Redis 작업
 export async function safeRedisOperation<T>(
@@ -447,6 +459,7 @@ ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY;
 ### 보안 정책 패턴
 
 #### 1. 사용자별 데이터 격리
+
 ```sql
 -- 개별 사용자 데이터 접근
 CREATE POLICY "Users can only see own servers" ON servers
@@ -457,13 +470,14 @@ CREATE INDEX idx_servers_user_id ON servers(user_id);
 ```
 
 #### 2. 팀 기반 접근 제어
+
 ```sql
 -- 팀 멤버십 확인
 CREATE POLICY "Team members can access team servers" ON servers
 FOR ALL USING (
   EXISTS (
-    SELECT 1 FROM team_members 
-    WHERE team_id = servers.team_id 
+    SELECT 1 FROM team_members
+    WHERE team_id = servers.team_id
     AND user_id = auth.uid()
   )
 );
@@ -473,6 +487,7 @@ CREATE INDEX idx_team_members_user_team ON team_members(user_id, team_id);
 ```
 
 #### 3. 역할 기반 권한
+
 ```sql
 -- 관리자 권한 확인
 CREATE POLICY "Admins can manage all data" ON servers
@@ -490,6 +505,7 @@ FOR SELECT USING (
 ### 중요 보안 원칙
 
 #### 1. JWT 데이터 검증
+
 ```sql
 -- ❌ 위험: user_metadata 사용 금지
 CREATE POLICY "Unsafe policy" ON servers
@@ -507,6 +523,7 @@ FOR ALL USING (
 ```
 
 #### 2. 성능 고려사항
+
 ```sql
 -- RLS 정책에 사용되는 모든 컬럼에 인덱스 필수
 CREATE INDEX idx_servers_user_id ON servers(user_id);
@@ -518,6 +535,7 @@ CREATE INDEX idx_servers_user_team ON servers(user_id, team_id);
 ```
 
 #### 3. 테스트 자동화
+
 ```sql
 -- pgTAP으로 RLS 정책 테스트
 BEGIN;
@@ -551,6 +569,7 @@ ROLLBACK;
 ```
 
 ### Storage RLS 설정
+
 ```sql
 -- 스토리지 버킷 RLS 활성화
 CREATE POLICY "Users can upload own files" ON storage.objects
@@ -568,84 +587,137 @@ FOR SELECT USING (auth.uid()::text = (storage.foldername(name))[1]);
 - `/api/realtime/*` - 실시간 데이터 스트림
 - `/api/admin/*` - 관리자 기능
 
-## 🔧 MCP 서버 (9개) - 프로젝트 로컬 설정
+## 🕐 Time MCP 활용 (필수)
 
-현재 사용 가능한 MCP 서버:
+**문서 작성 시 정확한 시간 기록:**
 
-- `filesystem`, `github`, `memory`, `supabase`
-- `context7`, `tavily-mcp`, `sequential-thinking`
-- `playwright`, `serena`
+```typescript
+// ❌ 잘못된 방법
+const now = new Date(); // 서버 타임존에 의존
 
-**설정 위치**: 
-- 프로젝트 로컬: `.claude/mcp.json` (현재 프로젝트에서 사용)
-- 글로벌 설정: `~/.claude.json`의 projects 섹션에서 개별 관리
-
-### MCP 서버 등록 방식
-- **Node.js 기반 서버** (8개): `npx` 명령어 사용
-  - 예: `"command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem@0.8.0"]`
-- **Python 기반 서버** (serena): `uvx` 명령어 사용
-  - 예: `"command": "uvx", "args": ["--from", "git+https://github.com/oraios/serena@v0.8.0"]`
-
-⚠️ **중요**: MCP 서버 추가/수정/삭제 시 반드시 이 명령어 형식을 유지해야 함
-
-### MCP 서버 관리 가이드
-
-#### 새 MCP 서버 추가
-```json
-// .claude/mcp.json에 추가
-"서버명": {
-  "type": "stdio",
-  "command": "npx",  // Node.js 패키지는 npx, Python은 uvx
-  "args": ["-y", "@패키지명@버전"],
-  "env": {
-    "필요한_환경변수": "${환경변수명}"
-  },
-  "description": "서버 설명",
-  "priority": 10,
-  "healthCheck": true
-}
+// ✅ 올바른 방법
+const timeInfo = await mcp__time__get_current_time({
+  timezone: 'Asia/Seoul',
+});
 ```
 
-#### MCP 서버 수정
-1. `.claude/mcp.json` 파일 열기
-2. 해당 서버 섹션 찾기
-3. 필요한 속성 수정 (버전, 환경변수 등)
-4. 파일 저장 후 Claude Code 재시작
+**주요 활용처:**
 
-#### MCP 서버 삭제
-1. `.claude/mcp.json`에서 해당 서버 섹션 전체 제거
-2. `.claude/settings.local.json`의 `enabledMcpjsonServers`에서도 제거
-3. Claude Code 재시작
+- 문서 헤더 타임스탬프
+- CHANGELOG 엔트리
+- 이슈 리포트 생성
+- 배포 로그 기록
+- 서버 메트릭 수집
 
-### MCP 서버 활성화 설정
-`.claude/settings.local.json`에서 활성화할 서버 지정:
-```json
-{
-  "enableAllProjectMcpServers": true,  // 모든 프로젝트 MCP 서버 활성화
-  "enabledMcpjsonServers": [
-    "filesystem",
-    "memory",
-    "github",
-    "supabase",
-    "sequential-thinking"
-    // 필요한 서버만 명시적으로 활성화
-  ]
-}
-```
+상세 가이드: [Time MCP 활용 가이드](/docs/time-mcp-usage-guide.md)
 
-### MCP 서버 관리 명령어
+## 🔧 MCP 서버 (10개) - Claude Code CLI 설정
+
+### 현재 활성화된 MCP 서버 (2025.7.29 기준)
+
+| 서버명                | 상태         | 용도                   | 패키지                                                    |
+| --------------------- | ------------ | ---------------------- | --------------------------------------------------------- |
+| `filesystem`          | ✅ Connected | 파일 시스템 작업       | `@modelcontextprotocol/server-filesystem@latest`          |
+| `memory`              | ✅ Connected | 지식 그래프 관리       | `@modelcontextprotocol/server-memory@latest`              |
+| `github`              | ✅ Connected | GitHub 저장소 관리     | `@modelcontextprotocol/server-github@latest`              |
+| `supabase`            | ✅ Connected | 데이터베이스 작업      | `@supabase/mcp-server-supabase@latest`                    |
+| `tavily-mcp`          | ✅ Connected | 웹 검색 및 콘텐츠 추출 | `tavily-mcp@0.2.9`                                        |
+| `sequential-thinking` | ✅ Connected | 복잡한 문제 해결       | `@modelcontextprotocol/server-sequential-thinking@latest` |
+| `playwright`          | ✅ Connected | 브라우저 자동화        | `@playwright/mcp@latest`                                  |
+| `time`                | ✅ Connected | 시간/시간대 변환       | `mcp-server-time` (Python)                                |
+| `context7`            | ✅ Connected | 라이브러리 문서 검색   | `@upstash/context7-mcp@latest`                            |
+| `serena`              | ✅ Connected | 고급 코드 분석         | `git+https://github.com/oraios/serena` (Python)           |
+
+### MCP 서버 설치 방법 (최신)
+
+**중요**: Claude Code v1.16.0부터 MCP 설정이 CLI 기반으로 변경되었습니다.
+
+#### 1. 기본 설치 명령어
+
 ```bash
-# MCP 서버 상태 확인
+# Node.js 기반 서버
+claude mcp add <서버명> npx -- -y <패키지명>@latest
+
+# Python 기반 서버
+claude mcp add <서버명> uvx -- <패키지명 또는 git URL>
+
+# 환경변수가 필요한 경우
+claude mcp add <서버명> npx -e KEY=value -- -y <패키지명>@latest
+```
+
+#### 2. 실제 설치 예시
+
+```bash
+# filesystem 서버 (작업 디렉토리 지정)
+claude mcp add filesystem npx -- -y @modelcontextprotocol/server-filesystem@latest /mnt/d/cursor/openmanager-vibe-v5
+
+# GitHub 서버 (토큰 필요)
+claude mcp add github npx -e GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxxx -- -y @modelcontextprotocol/server-github@latest
+
+# Supabase 서버 (프로젝트 ID 지정)
+claude mcp add supabase npx -e SUPABASE_URL=https://xxx.supabase.co -e SUPABASE_SERVICE_ROLE_KEY=xxx -- -y @supabase/mcp-server-supabase@latest --project-ref=xxx
+
+# Serena 서버 (프로젝트 경로 필요)
+claude mcp add serena uvx -- --from git+https://github.com/oraios/serena serena-mcp-server --context ide-assistant --project /mnt/d/cursor/openmanager-vibe-v5
+```
+
+### MCP 서버 관리
+
+```bash
+# 서버 목록 및 상태 확인
 claude mcp list
 
-# MCP 서버 추가 (대화형)
-claude mcp add
+# 서버 제거
+claude mcp remove <서버명>
 
-# 특정 MCP 서버 정보 보기
-/mcp
+# 서버 상세 정보
+claude mcp get <서버명>
 
-# MCP 서버 건강 상태 확인
-bash .claude/monitor-mcp-health.sh
+# Claude API 재시작 (설정 반영)
+claude api restart
+```
+
+### 설정 위치
+
+- **CLI 설정**: `~/.claude.json`의 projects 섹션
+- **구 파일 설정**: `.claude/mcp.json` (더 이상 사용하지 않음)
+
+⚠️ **중요**:
+
+- MCP 서버 설정 후 Claude Code 재시작 필요
+- 환경변수는 `-e` 옵션으로 전달
+- Python 서버는 `uvx` 명령어 사용
+
+### 문제 해결 가이드
+
+#### MCP 서버 연결 실패 시
+
+1. **패키지 버전 확인**: `@latest` 태그 사용 권장
+2. **환경변수 확인**: 토큰이나 API 키가 올바른지 확인
+3. **Python 서버**: `uvx --version` 확인 (0.8.0+ 필요)
+4. **재시작**: `claude api restart` 실행
+
+#### 자주 발생하는 문제
+
+- **"No MCP servers configured"**: CLI 설정으로 마이그레이션 필요
+- **"Failed to connect"**: 패키지가 npm에 없거나 권한 문제
+- **환경변수 인식 안됨**: `-e` 옵션으로 직접 전달 필요
+
+### 유용한 MCP 서버 추천
+
+```bash
+# 추가 추천 MCP 서버들
+# 1. Brave Search - 웹 검색 (tavily 대안)
+claude mcp add brave-search npx -e BRAVE_API_KEY=your_key -- -y @modelcontextprotocol/server-brave-search@latest
+
+# 2. Slack - 슬랙 통합
+claude mcp add slack npx -e SLACK_BOT_TOKEN=xoxb-xxx -e SLACK_TEAM_ID=xxx -- -y @modelcontextprotocol/server-slack@latest
+
+# 3. Linear - 이슈 트래킹
+claude mcp add linear npx -e LINEAR_API_KEY=xxx -- -y @modelcontextprotocol/server-linear@latest
+
+# 4. Puppeteer - 브라우저 자동화 (Playwright 대안)
+claude mcp add puppeteer npx -- -y @modelcontextprotocol/server-puppeteer@latest
 ```
 
 ## 🤖 유용한 Sub Agents - 프로젝트 로컬 설정
@@ -671,7 +743,7 @@ bash .claude/monitor-mcp-health.sh
 ### 📁 서브 에이전트 설정 위치
 
 - **프로젝트 로컬 설정**: `.claude/agents/` (13개 에이전트 .md 파일)
-- **MCP 서버 설정**: `.claude/mcp.json` (npx/uvx 형식)
+- **MCP 서버 설정**: `~/.claude.json` (CLI로 관리)
 - **매핑 가이드**: `/docs/sub-agents-mcp-mapping-guide.md`
 - **글로벌 설정과의 관계**: 프로젝트별로 독립적으로 관리됨
 
@@ -734,12 +806,14 @@ Task({
 ## 📋 Claude Code 프로젝트 설정 구조
 
 ### 설정 파일 우선순위
+
 1. `.claude/settings.local.json` (개인 로컬 설정)
 2. `.claude/settings.json` (팀 공유 설정)
 3. `~/.claude/settings.json` (사용자 전역 설정)
 
 ### MCP 서버 관리
-- **프로젝트 MCP**: `.claude/mcp.json`에서 정의
+
+- **MCP 설정**: CLI 명령어 (`claude mcp add/remove/list`)로 관리
 - **서브에이전트**: `.claude/agents/*.md` 파일로 관리
 - **독립성**: 각 프로젝트마다 독립적인 설정 유지
 
@@ -863,16 +937,17 @@ DEBUG_MODE=false
    - `JWT_SECRET`, `NEXTAUTH_SECRET`
    - `CRON_SECRET`, `WEBHOOK_SECRET`
 
-2. **공개 가능한 키** (NEXT_PUBLIC_ 접두사):
+2. **공개 가능한 키** (NEXT*PUBLIC* 접두사):
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 3. **환경별 분리**:
+
    ```bash
    # .env.local (개발)
    NODE_ENV=development
    DEBUG_MODE=true
-   
+
    # Vercel 환경변수 (프로덕션)
    NODE_ENV=production
    DEBUG_MODE=false
@@ -911,7 +986,7 @@ gemini review --changes
 - 상세 가이드: `/docs` 폴더
 - API 문서: `/docs/api`
 - Gemini 협업: `GEMINI.md`
-- MCP 서버 설정: `.claude/mcp.json`
+- **MCP 서버 완전 가이드**: `/docs/mcp-servers-complete-guide.md`
 - 서브에이전트 정의: `.claude/agents/`
 
 ### Claude Code 공식 문서
