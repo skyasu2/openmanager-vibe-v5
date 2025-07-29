@@ -2,15 +2,16 @@
  * 에러 처리 및 폴백 메커니즘 검증 테스트
  */
 
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SimplifiedQueryEngine } from '../SimplifiedQueryEngine';
 import { embeddingService } from '../embedding-service';
 import { SupabaseRAGEngine } from '../supabase-rag-engine';
 import { VectorIndexingService } from '../vectorization/VectorIndexingService';
 
 // Mock 설정
-jest.mock('@/utils/supabase/server');
-jest.mock('@/lib/logger');
-jest.mock('@/lib/monitoring/performance');
+vi.mock('@/utils/supabase/server');
+vi.mock('@/lib/logger');
+vi.mock('@/lib/monitoring/performance');
 
 describe('에러 처리 및 폴백 메커니즘', () => {
   let queryEngine: SimplifiedQueryEngine;
@@ -29,7 +30,7 @@ describe('에러 처리 및 폴백 메커니즘', () => {
   describe('임베딩 서비스 폴백', () => {
     it('API 실패 시 빈 임베딩 반환', async () => {
       // API 호출 실패 시뮬레이션
-      global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
       const embedding = await embeddingService.createEmbedding('test text');
 
@@ -39,7 +40,7 @@ describe('에러 처리 및 폴백 메커니즘', () => {
     });
 
     it('잘못된 응답 형식 처리', async () => {
-      global.fetch = jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({ invalid: 'response' }),
       });
@@ -51,7 +52,7 @@ describe('에러 처리 및 폴백 메커니즘', () => {
     });
 
     it('캐시 히트 시 API 호출 없음', async () => {
-      const mockFetch = jest.fn().mockResolvedValue({
+      const mockFetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
           embedding: { values: new Array(384).fill(0.1) },
@@ -108,7 +109,7 @@ describe('에러 처리 및 폴백 메커니즘', () => {
   describe('쿼리 엔진 폴백', () => {
     it('Google AI 실패 시 로컬 RAG로 폴백', async () => {
       // Google AI API 실패
-      global.fetch = jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: false,
         statusText: 'Service Unavailable',
       });
@@ -169,14 +170,14 @@ describe('에러 처리 및 폴백 메커니즘', () => {
 
     it('데이터베이스 오류 처리', async () => {
       const mockSupabase = {
-        from: jest.fn().mockReturnThis(),
-        upsert: jest.fn().mockReturnThis(),
-        select: jest.fn().mockResolvedValue({
+        from: vi.fn().mockReturnThis(),
+        upsert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockResolvedValue({
           error: { message: 'Database error' },
         }),
       };
 
-      jest.mock('@/utils/supabase/server', () => ({
+      vi.mock('@/utils/supabase/server', () => ({
         createClient: () => mockSupabase,
       }));
 
@@ -192,7 +193,7 @@ describe('에러 처리 및 폴백 메커니즘', () => {
   describe('레이트 리미팅 및 재시도', () => {
     it('429 에러 시 지수 백오프', async () => {
       let attempts = 0;
-      global.fetch = jest.fn().mockImplementation(() => {
+      global.fetch = vi.fn().mockImplementation(() => {
         attempts++;
         if (attempts < 3) {
           return Promise.resolve({
@@ -233,7 +234,7 @@ describe('에러 처리 및 폴백 메커니즘', () => {
     });
 
     it('TTL 만료 시 재생성', async () => {
-      const mockFetch = jest.fn().mockResolvedValue({
+      const mockFetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
           embedding: { values: new Array(384).fill(0.1) },

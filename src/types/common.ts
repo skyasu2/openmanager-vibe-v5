@@ -10,11 +10,6 @@
 // 환경변수 타입 정의는 '@/types/environment'에서 관리됩니다.
 import '@/types/environment';
 
-// Jest 환경에서의 stubGlobal 함수 타입 정의 (별도 파일로 분리 권장)
-interface JestGlobal {
-  stubGlobal?: (name: string, value: any) => void;
-}
-
 // 환경변수 모킹을 위한 타입 (새로운 시스템으로 위임)
 export type { MockEnvironmentConfig } from '@/types/environment';
 

@@ -9,7 +9,7 @@
  * 5. 다중 서비스 회로 차단기
  */
 
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getPerformanceOptimizedQueryEngine } from '@/services/ai/performance-optimized-query-engine';
 import type { QueryRequest } from '@/services/ai/SimplifiedQueryEngine';
 
@@ -26,7 +26,7 @@ const CIRCUIT_BREAKER_CONFIG = {
 // 실패를 유발하는 Mock 설정
 const createFailingMock = (failureCount: number) => {
   let callCount = 0;
-  return jest.fn().mockImplementation(() => {
+  return vi.fn().mockImplementation(() => {
     callCount++;
     if (callCount <= failureCount) {
       throw new Error(`Mock failure ${callCount}`);
@@ -58,7 +58,7 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
   afterEach(() => {
     // 테스트 후 정리
     engine.clearOptimizationCache();
-    jest.clearAllTimers();
+    vi.clearAllTimers();
   });
 
   describe('🔄 회로 차단기 기본 상태 전환', () => {
@@ -120,7 +120,7 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
 
       // 정상 동작하는 RAG 엔진 Mock
       const mockRagEngine = {
-        searchSimilar: jest.fn().mockResolvedValue({
+        searchSimilar: vi.fn().mockResolvedValue({
           results: [{ content: 'test result', score: 0.8 }],
           totalResults: 1,
           cached: false
@@ -167,7 +167,7 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
 
       // 정상 동작하는 엔진으로 설정
       const mockRagEngine = {
-        searchSimilar: jest.fn().mockResolvedValue({
+        searchSimilar: vi.fn().mockResolvedValue({
           results: [{ content: 'recovery test', score: 0.9 }],
           totalResults: 1,
           cached: false
@@ -199,7 +199,7 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
 
       // 복구 시도에서 실패하는 엔진
       const mockRagEngine = {
-        searchSimilar: jest.fn().mockRejectedValue(new Error('Recovery attempt failed'))
+        searchSimilar: vi.fn().mockRejectedValue(new Error('Recovery attempt failed'))
       };
 
       engine.ragEngine = mockRagEngine;
@@ -237,13 +237,13 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
 
       // 로컬 서비스만 실패하도록 설정
       const failingLocalMock = {
-        searchSimilar: jest.fn().mockRejectedValue(new Error('Local service down'))
+        searchSimilar: vi.fn().mockRejectedValue(new Error('Local service down'))
       };
 
       engine.ragEngine = failingLocalMock;
 
       // Google AI는 정상 동작하도록 fetch Mock 설정
-      global.fetch = jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({
           response: 'Google AI response',
@@ -402,7 +402,7 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
 
       // 에러율 생성을 위한 테스트
       const mixedResultMock = {
-        searchSimilar: jest.fn().mockImplementation(() => {
+        searchSimilar: vi.fn().mockImplementation(() => {
           totalCount++;
           if (totalCount % 3 === 0) { // 33% 실패율
             errorCount++;

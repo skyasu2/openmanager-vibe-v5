@@ -198,7 +198,6 @@
     "zustand": "^5.0.2"
   },
   "devDependencies": {
-    "@jest/globals": "^30.0.5",
     "@playwright/test": "^1.49.1",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",

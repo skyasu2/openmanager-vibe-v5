@@ -29,6 +29,24 @@
   - ✅ `npm run type-check` 성공
   - ✅ Vercel 배포 가능 상태
 
+### 🧹 Jest 완전 제거
+
+- **Jest → Vitest 마이그레이션 완료**:
+  - ✅ `@jest/globals` 의존성 완전 제거
+  - ✅ 모든 테스트 파일에서 Jest API를 Vitest API로 변경
+    - `jest.fn()` → `vi.fn()`
+    - `jest.mock()` → `vi.mock()`
+    - `jest.spyOn()` → `vi.spyOn()`
+    - `jest.clearAllMocks()` → `vi.clearAllMocks()`
+  - ✅ `types/common.ts`에서 JestGlobal 인터페이스 제거
+  - ✅ 문서에서 Jest 관련 언급 정리
+
+- **완전 제거된 패키지**:
+  - `@jest/globals` (^30.0.5) - 102개 패키지 제거로 번들 크기 감소
+
+- **주의사항**:
+  - `@testing-library/jest-dom`은 Vitest와 호환되므로 유지
+
 - **ESLint 상태**:
   - ⚠️ 다수의 경고 존재 (unused vars, React hooks deps)
   - ✅ 에러는 없음 - 빌드에 영향 없음
@@ -809,7 +827,7 @@
 
 - **테스트 자동화 시스템 강화**:
   - 🧪 `test-automation-specialist` 대폭 개선 - 자동 실행 및 수정 기능
-  - 🔍 모든 주요 테스트 프레임워크 자동 감지 (Jest, Vitest, Playwright, Cypress)
+  - 🔍 모든 주요 테스트 프레임워크 자동 감지 (Vitest, Playwright, Cypress)
   - 🔴 실패한 테스트 자동 분석 및 패턴 인식
   - 🛠️ 자동 수정 제안 및 적용 기능
 
@@ -824,7 +842,7 @@
   - Timeout 에러 → async/await 추가, setTimeout 증가
   - Undefined 에러 → 옵셔널 체이닝, null 체크 추가
   - Import 에러 → 경로 수정, 패키지 설치
-  - Mock 에러 → jest.fn() 사용법 제시
+  - Mock 에러 → vi.fn() 사용법 제시
 
 ### 📚 문서화
 

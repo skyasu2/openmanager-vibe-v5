@@ -9,7 +9,7 @@
  * 5. 병렬 처리 성능 테스트
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { getPerformanceOptimizedQueryEngine, PerformanceOptimizedQueryEngine } from '@/services/ai/performance-optimized-query-engine';
 import { SimplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
 import { aiLogger } from '@/lib/logger';
@@ -38,9 +38,9 @@ describe('🚀 PerformanceOptimizedQueryEngine E2E 테스트', () => {
 
   beforeAll(async () => {
     // 테스트용 로거 설정
-    jest.spyOn(aiLogger, 'info').mockImplementation(() => {});
-    jest.spyOn(aiLogger, 'warn').mockImplementation(() => {});
-    jest.spyOn(aiLogger, 'error').mockImplementation(() => {});
+    vi.spyOn(aiLogger, 'info').mockImplementation(() => {});
+    vi.spyOn(aiLogger, 'warn').mockImplementation(() => {});
+    vi.spyOn(aiLogger, 'error').mockImplementation(() => {});
 
     // 엔진 초기화
     optimizedEngine = getPerformanceOptimizedQueryEngine(E2E_TEST_CONFIG);
@@ -54,11 +54,11 @@ describe('🚀 PerformanceOptimizedQueryEngine E2E 테스트', () => {
   afterAll(() => {
     // 캐시 정리
     optimizedEngine.clearOptimizationCache();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   beforeEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
   });
 
   describe('🔧 엔진 초기화 및 기본 기능', () => {

@@ -8,14 +8,14 @@
  * 4. 에러 처리 및 예외 상황
  */
 
-import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { GET, POST, DELETE } from '@/app/api/ai/performance/route';
 
 // Mock 설정
-jest.mock('@/services/ai/performance-optimized-query-engine');
-jest.mock('@/services/ai/SimplifiedQueryEngine');
-jest.mock('@/lib/logger');
+vi.mock('@/services/ai/performance-optimized-query-engine');
+vi.mock('@/services/ai/SimplifiedQueryEngine');
+vi.mock('@/lib/logger');
 
 // 테스트 헬퍼 함수
 function createMockRequest(method: string, body?: any): NextRequest {
@@ -40,7 +40,7 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
   });
 
   afterAll(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('GET /api/ai/performance - 성능 통계 조회', () => {
@@ -48,7 +48,7 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
     it('정상적인 성능 통계를 반환해야 함', async () => {
       // Mock 성능 엔진 설정
       const mockEngine = {
-        getPerformanceStats: jest.fn().mockReturnValue({
+        getPerformanceStats: vi.fn().mockReturnValue({
           metrics: {
             totalQueries: 150,
             avgResponseTime: 1250,
@@ -64,7 +64,7 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
             cacheHitRate: 0.75
           }
         }),
-        healthCheck: jest.fn().mockResolvedValue({
+        healthCheck: vi.fn().mockResolvedValue({
           status: 'healthy',
           engines: {
             ragEngine: 'operational',
@@ -74,7 +74,7 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       };
 
       const { getPerformanceOptimizedQueryEngine } = await import('@/services/ai/performance-optimized-query-engine');
-      (getPerformanceOptimizedQueryEngine as jest.Mock).mockReturnValue(mockEngine);
+      (getPerformanceOptimizedQueryEngine as vi.Mock).mockReturnValue(mockEngine);
 
       const response = await GET();
       const data = await response.json();
@@ -120,13 +120,13 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
 
     it('엔진 오류 시 500 에러를 반환해야 함', async () => {
       const mockEngine = {
-        getPerformanceStats: jest.fn().mockImplementation(() => {
+        getPerformanceStats: vi.fn().mockImplementation(() => {
           throw new Error('Engine _initialization failed');
         })
       };
 
       const { getPerformanceOptimizedQueryEngine } = await import('@/services/ai/performance-optimized-query-engine');
-      (getPerformanceOptimizedQueryEngine as jest.Mock).mockReturnValue(mockEngine);
+      (getPerformanceOptimizedQueryEngine as vi.Mock).mockReturnValue(mockEngine);
 
       const response = await GET();
       const data = await response.json();
@@ -142,14 +142,14 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
     it('비교 벤치마크를 올바르게 실행해야 함', async () => {
       // Mock 엔진들 설정
       const mockOriginalEngine = {
-        query: jest.fn()
+        query: vi.fn()
           .mockResolvedValueOnce({ success: true, processingTime: 1500 })
           .mockResolvedValueOnce({ success: true, processingTime: 1400 })
           .mockResolvedValueOnce({ success: true, processingTime: 1600 })
       };
 
       const mockOptimizedEngine = {
-        query: jest.fn()
+        query: vi.fn()
           .mockResolvedValueOnce({ success: true, processingTime: 800, metadata: { cacheHit: false } })
           .mockResolvedValueOnce({ success: true, processingTime: 400, metadata: { cacheHit: true } })
           .mockResolvedValueOnce({ success: true, processingTime: 350, metadata: { cacheHit: true } })
@@ -158,8 +158,8 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       const { SimplifiedQueryEngine } = await import('@/services/ai/SimplifiedQueryEngine');
       const { getPerformanceOptimizedQueryEngine } = await import('@/services/ai/performance-optimized-query-engine');
       
-      (SimplifiedQueryEngine as jest.Mock).mockImplementation(() => mockOriginalEngine);
-      (getPerformanceOptimizedQueryEngine as jest.Mock).mockReturnValue(mockOptimizedEngine);
+      (SimplifiedQueryEngine as vi.Mock).mockImplementation(() => mockOriginalEngine);
+      (getPerformanceOptimizedQueryEngine as vi.Mock).mockReturnValue(mockOptimizedEngine);
 
       const requestBody = {
         mode: 'comparison',
@@ -199,7 +199,7 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
 
     it('부하 테스트 벤치마크를 올바르게 실행해야 함', async () => {
       const mockEngine = {
-        query: jest.fn().mockImplementation(() => 
+        query: vi.fn().mockImplementation(() => 
           Promise.resolve({ 
             success: true, 
             processingTime: Math.random() * 1000 + 500,
@@ -209,7 +209,7 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       };
 
       const { getPerformanceOptimizedQueryEngine } = await import('@/services/ai/performance-optimized-query-engine');
-      (getPerformanceOptimizedQueryEngine as jest.Mock).mockReturnValue(mockEngine);
+      (getPerformanceOptimizedQueryEngine as vi.Mock).mockReturnValue(mockEngine);
 
       const requestBody = {
         mode: 'load',
@@ -288,11 +288,11 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
     
     it('캐시를 성공적으로 초기화해야 함', async () => {
       const mockEngine = {
-        clearOptimizationCache: jest.fn()
+        clearOptimizationCache: vi.fn()
       };
 
       const { getPerformanceOptimizedQueryEngine } = await import('@/services/ai/performance-optimized-query-engine');
-      (getPerformanceOptimizedQueryEngine as jest.Mock).mockReturnValue(mockEngine);
+      (getPerformanceOptimizedQueryEngine as vi.Mock).mockReturnValue(mockEngine);
 
       const response = await DELETE();
       const data = await response.json();
@@ -309,13 +309,13 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
 
     it('캐시 초기화 실패 시 500 에러를 반환해야 함', async () => {
       const mockEngine = {
-        clearOptimizationCache: jest.fn().mockImplementation(() => {
+        clearOptimizationCache: vi.fn().mockImplementation(() => {
           throw new Error('Cache clear failed');
         })
       };
 
       const { getPerformanceOptimizedQueryEngine } = await import('@/services/ai/performance-optimized-query-engine');
-      (getPerformanceOptimizedQueryEngine as jest.Mock).mockReturnValue(mockEngine);
+      (getPerformanceOptimizedQueryEngine as vi.Mock).mockReturnValue(mockEngine);
 
       const response = await DELETE();
       const data = await response.json();
@@ -361,7 +361,7 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
 
       for (const scenario of testScenarios) {
         const mockEngine = {
-          getPerformanceStats: jest.fn().mockReturnValue({
+          getPerformanceStats: vi.fn().mockReturnValue({
             metrics: scenario.metrics,
             optimization: {
               warmupCompleted: true,
@@ -370,14 +370,14 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
               cacheHitRate: scenario.metrics.cacheHitRate
             }
           }),
-          healthCheck: jest.fn().mockResolvedValue({
+          healthCheck: vi.fn().mockResolvedValue({
             status: 'healthy',
             engines: { ragEngine: 'operational', contextLoader: 'operational' }
           })
         };
 
         const { getPerformanceOptimizedQueryEngine } = await import('@/services/ai/performance-optimized-query-engine');
-        (getPerformanceOptimizedQueryEngine as jest.Mock).mockReturnValue(mockEngine);
+        (getPerformanceOptimizedQueryEngine as vi.Mock).mockReturnValue(mockEngine);
 
         const response = await GET();
         const data = await response.json();
@@ -396,7 +396,7 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       };
 
       const mockEngine = {
-        getPerformanceStats: jest.fn().mockReturnValue({
+        getPerformanceStats: vi.fn().mockReturnValue({
           metrics: problematicMetrics,
           optimization: {
             warmupCompleted: false,
@@ -405,14 +405,14 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
             cacheHitRate: problematicMetrics.cacheHitRate
           }
         }),
-        healthCheck: jest.fn().mockResolvedValue({
+        healthCheck: vi.fn().mockResolvedValue({
           status: 'degraded',
           engines: { ragEngine: 'operational', contextLoader: 'operational' }
         })
       };
 
       const { getPerformanceOptimizedQueryEngine } = await import('@/services/ai/performance-optimized-query-engine');
-      (getPerformanceOptimizedQueryEngine as jest.Mock).mockReturnValue(mockEngine);
+      (getPerformanceOptimizedQueryEngine as vi.Mock).mockReturnValue(mockEngine);
 
       const response = await GET();
       const data = await response.json();
@@ -437,15 +437,15 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
     
     it('모든 응답에 CORS 헤더가 포함되어야 함', async () => {
       const mockEngine = {
-        getPerformanceStats: jest.fn().mockReturnValue({
+        getPerformanceStats: vi.fn().mockReturnValue({
           metrics: { totalQueries: 0, avgResponseTime: 0, cacheHitRate: 0, errorRate: 0, parallelEfficiency: 0, optimizationsSaved: 0 },
           optimization: { warmupCompleted: true, preloadedEmbeddings: 0, circuitBreakers: 0, cacheHitRate: 0 }
         }),
-        healthCheck: jest.fn().mockResolvedValue({ status: 'healthy', engines: {} })
+        healthCheck: vi.fn().mockResolvedValue({ status: 'healthy', engines: {} })
       };
 
       const { getPerformanceOptimizedQueryEngine } = await import('@/services/ai/performance-optimized-query-engine');
-      (getPerformanceOptimizedQueryEngine as jest.Mock).mockReturnValue(mockEngine);
+      (getPerformanceOptimizedQueryEngine as vi.Mock).mockReturnValue(mockEngine);
 
       const response = await GET();
       
@@ -459,11 +459,11 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
 
     it('Content-Type이 application/json이어야 함', async () => {
       const mockEngine = {
-        clearOptimizationCache: jest.fn()
+        clearOptimizationCache: vi.fn()
       };
 
       const { getPerformanceOptimizedQueryEngine } = await import('@/services/ai/performance-optimized-query-engine');
-      (getPerformanceOptimizedQueryEngine as jest.Mock).mockReturnValue(mockEngine);
+      (getPerformanceOptimizedQueryEngine as vi.Mock).mockReturnValue(mockEngine);
 
       const response = await DELETE();
       

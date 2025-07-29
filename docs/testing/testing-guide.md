@@ -58,9 +58,10 @@
 {
   "jest": "제거됨",
   "@types/jest": "제거됨",
+  "@jest/globals": "제거됨",
   "jest-environment-jsdom": "제거됨",
-  "babel-jest": "제거됨",
-  "@testing-library/jest-dom": "제거됨"
+  "babel-jest": "제거됨"
+  // "@testing-library/jest-dom": Vitest와 호환되므로 유지
 }
 ```
 
