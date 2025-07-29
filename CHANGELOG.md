@@ -12,13 +12,21 @@
 - **TypeScript 컴파일 에러 수정**:
   - ✅ `performance-optimized-query-engine.ts`: `_config` → `config` 변수명 수정
   - ✅ `postgres-vector-db.ts`: `_data` → `data` 변수명 수정
-  - 🔧 전체 코드베이스 변수명 규칙 위반 수정:
+  - 🔧 전체 코드베이스 변수명 규칙 위반 수정 (`_data`):
     - `WebSocketManager.ts`: `_data` → `data` (3곳)
     - `UnifiedDataBroker.ts`: `_data` → `data` (2곳)
     - `supabase-rag-engine.ts`: `_data` → `data` (2곳)
     - `CloudVersionManager.ts`: `_data` → `data` (2곳), `_config` → `config` (1곳)
     - `SupabaseTimeSeriesManager.ts`: `_data` → `data` (1곳)
     - `optimizedMetricsService.ts`: `_data` → `data` (2곳)
+  - 🔧 추가 `_config` 변수명 규칙 위반 수정:
+    - `collector-factory.ts`: `_config` → `config` (3곳)
+    - `dummy-collector.ts`: `_config` → `config` (1곳)
+    - `CloudLoggingService.ts`: `_config` → `config` (1곳)
+    - `SSEConnectionPool.ts`: `_config` → `config` (1곳)
+    - `CloudContextLoader.ts`: `_config` → `config` (1곳)
+    - `MCPServerManager.ts`: `_config` → `config` (2곳)
+    - `MCPPerformanceMonitor.ts`: `_config` → `config` (1곳)
   - 🎯 모든 빌드 에러 해결 완료
 
 - **알려진 경고 사항** (추후 개선 필요):
