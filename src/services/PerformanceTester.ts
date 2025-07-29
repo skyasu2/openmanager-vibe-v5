@@ -162,7 +162,7 @@ export class PerformanceTester {
    * 🚀 부하 테스트 실행
    */
   async runLoadTest(config: LoadTestConfig): Promise<LoadTestResult> {
-    console.log('🚀 부하 테스트 시작:', _config);
+    console.log('🚀 부하 테스트 시작:', config);
 
     this.isRunning = true;
     this.metrics = [];

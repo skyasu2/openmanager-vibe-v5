@@ -290,7 +290,7 @@ export const useDataLoadingPromise = (
         if (error) {
           reject(error);
         } else if (!isLoading && data && data.length > 0) {
-          resolve(_data);
+          resolve(data);
         } else {
           setTimeout(checkDataReady, 100);
         }

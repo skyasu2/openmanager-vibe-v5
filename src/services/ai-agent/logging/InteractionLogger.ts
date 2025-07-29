@@ -17,7 +17,7 @@ export class InteractionLogger {
   }
 
   log(event: string, data?: any): void {
-    console.log(`[InteractionLogger] ${event}`, _data);
+    console.log(`[InteractionLogger] ${event}`, data);
   }
 
   logFeedback(feedback: any): void {

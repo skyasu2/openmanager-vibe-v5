@@ -314,7 +314,7 @@ let config: EnvironmentConfig;
 
 try {
   config = createConfig();
-  printConfig(_config);
+  printConfig(config);
 } catch (error) {
   console.warn('⚠️ 환경설정 초기화 중 경고 발생, 기본값 사용');
   config = createConfig(); // 재시도

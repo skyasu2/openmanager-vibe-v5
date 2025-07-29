@@ -9,7 +9,7 @@
  */
 
 import { z } from 'zod';
-import { createMcpHandler } from 'mcp-handler';
+import { createMcpHandler } from '@/lib/mcp-handler';
 
 // 🔍 시스템 상태 확인 함수
 const getSystemStatusHandler = async (_args: any, _extra: any) => {
@@ -24,8 +24,8 @@ const getSystemStatusHandler = async (_args: any, _extra: any) => {
   return {
     content: [
       {
-        type: 'text' as const,
-        text: `📊 시스템 상태:\n${JSON.stringify(status, null, 2)}`,
+        type: 'text',
+        text: `### 🚀 Vercel 시스템 상태\n\n${JSON.stringify(status, null, 2)}`,
       },
     ],
   };
@@ -33,43 +33,157 @@ const getSystemStatusHandler = async (_args: any, _extra: any) => {
 
 // 🔑 환경변수 확인 함수
 const checkEnvConfigHandler = async (_args: any, _extra: any) => {
-  const safeEnvVars = {
+  const publicEnvs = Object.keys(process.env)
+    .filter(key => key.startsWith('NEXT_PUBLIC_'))
+    .reduce(
+      (acc, key) => {
+        acc[key] = process.env[key]?.substring(0, 10) + '...';
+        return acc;
+      },
+      {} as Record<string, string>
+    );
+
+  const criticalEnvs = {
     NODE_ENV: process.env.NODE_ENV,
     VERCEL_ENV: process.env.VERCEL_ENV,
-    GOOGLE_AI_ENABLED: process.env.GOOGLE_AI_ENABLED,
-    GCP_VM_IP_CONFIGURED: !!process.env.GCP_VM_IP,
-    SUPABASE_CONFIGURED: !!process.env.SUPABASE_URL,
-    REDIS_CONFIGURED: !!process.env.UPSTASH_REDIS_REST_URL,
+    VERCEL_URL: process.env.VERCEL_URL ? '✅ 설정됨' : '❌ 미설정',
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL ? '✅ 설정됨' : '❌ 미설정',
+    SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL
+      ? '✅ 설정됨'
+      : '❌ 미설정',
+    UPSTASH_REDIS: process.env.UPSTASH_REDIS_REST_URL
+      ? '✅ 설정됨'
+      : '❌ 미설정',
   };
 
   return {
     content: [
       {
-        type: 'text' as const,
-        text: `🔑 환경변수 설정:\n${JSON.stringify(safeEnvVars, null, 2)}`,
+        type: 'text',
+        text: `### 🔧 환경변수 설정 상태\n\n**중요 환경변수:**\n${JSON.stringify(
+          criticalEnvs,
+          null,
+          2
+        )}\n\n**공개 환경변수:**\n${JSON.stringify(publicEnvs, null, 2)}`,
       },
     ],
   };
 };
 
-// 🧪 헬스체크 함수
-const healthCheckHandler = async (
-  { endpoint }: { endpoint: string },
-  _extra: any
-) => {
-  try {
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000';
+// 📊 API 헬스 체크 함수
+const checkApiHealthHandler = async (_args: any, _extra: any) => {
+  const endpoints = [
+    '/api/health',
+    '/api/servers',
+    '/api/ai/status',
+    '/api/auth/session',
+  ];
 
-    const response = await fetch(`${baseUrl}${endpoint}`);
-    const data = await response.text();
+  const results = await Promise.all(
+    endpoints.map(async endpoint => {
+      try {
+        const url = process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}${endpoint}`
+          : `http://localhost:3000${endpoint}`;
+
+        const start = Date.now();
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: { 'x-internal-check': 'true' },
+        });
+        const duration = Date.now() - start;
+
+        return {
+          endpoint,
+          status: response.status,
+          ok: response.ok,
+          duration: `${duration}ms`,
+        };
+      } catch (error) {
+        return {
+          endpoint,
+          status: 'error',
+          ok: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
+      }
+    })
+  );
+
+  return {
+    content: [
+      {
+        type: 'text',
+        text: `### 🏥 API 헬스 체크 결과\n\n${JSON.stringify(results, null, 2)}`,
+      },
+    ],
+  };
+};
+
+// 🧪 테스트 메시지 전송 함수
+const sendTestMessageHandler = async (args: any, _extra: any) => {
+  const messageSchema = z.object({
+    message: z.string().describe('전송할 테스트 메시지'),
+    level: z
+      .enum(['info', 'warning', 'error', 'success'])
+      .optional()
+      .default('info'),
+  });
+
+  const { message, level } = messageSchema.parse(args);
+
+  // 실제로는 로그 시스템이나 모니터링 시스템에 메시지를 전송
+  console.log(`[MCP Test ${level.toUpperCase()}] ${message}`);
+
+  return {
+    content: [
+      {
+        type: 'text',
+        text: `✅ 테스트 메시지가 성공적으로 전송되었습니다.\n\n- 메시지: ${message}\n- 레벨: ${level}\n- 타임스탬프: ${new Date().toISOString()}`,
+      },
+    ],
+  };
+};
+
+// 🗄️ 레디스 캐시 상태 확인 함수
+const checkRedisCacheHandler = async (_args: any, _extra: any) => {
+  try {
+    const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL;
+    const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+    if (!REDIS_URL || !REDIS_TOKEN) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: '❌ Redis 설정이 없습니다. UPSTASH_REDIS_REST_URL과 UPSTASH_REDIS_REST_TOKEN을 확인하세요.',
+          },
+        ],
+      };
+    }
+
+    // Upstash Redis REST API로 INFO 커맨드 실행
+    const response = await fetch(`${REDIS_URL}/info`, {
+      headers: {
+        Authorization: `Bearer ${REDIS_TOKEN}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Redis 연결 실패: ${response.status}`);
+    }
+
+    const data = await response.json();
 
     return {
       content: [
         {
-          type: 'text' as const,
-          text: `✅ 헬스체크 결과:\nStatus: ${response.status}\nResponse: ${data}`,
+          type: 'text',
+          text: `### 🗄️ Redis 캐시 상태\n\n✅ 연결 성공\n\n**서버 정보:**\n${JSON.stringify(
+            data.result,
+            null,
+            2
+          )}`,
         },
       ],
     };
@@ -77,58 +191,49 @@ const healthCheckHandler = async (
     return {
       content: [
         {
-          type: 'text' as const,
-          text: `❌ 헬스체크 실패: ${error}`,
+          type: 'text',
+          text: `### 🗄️ Redis 캐시 상태\n\n❌ 연결 실패\n\n에러: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
         },
       ],
     };
   }
 };
 
-// 📝 로그 조회 함수
-const getRecentLogsHandler = async (
-  { limit }: { limit: number },
-  _extra: any
-) => {
+// 📊 데이터베이스 연결 확인 함수
+const checkDatabaseHandler = async (_args: any, _extra: any) => {
   try {
-    // Vercel 환경에서는 실제 로그를 가져올 수 없으므로
-    // 시뮬레이션된 로그 또는 최근 요청 정보를 제공합니다
-    const logs = [
-      {
-        timestamp: new Date().toISOString(),
-        level: 'info',
-        message: 'MCP 서버 상태 조회',
-        endpoint: '/api/mcp',
-      },
-      {
-        timestamp: new Date(Date.now() - 60000).toISOString(),
-        level: 'info',
-        message: '헬스체크 수행',
-        endpoint: '/api/health',
-      },
-      {
-        timestamp: new Date(Date.now() - 120000).toISOString(),
-        level: 'warn',
-        message: '환경변수 미설정 경고',
-        variable: 'REDIS_URL',
-      },
-    ];
+    // Supabase 연결 확인
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    const recentLogs = logs.slice(0, Math.min(limit, logs.length));
-    const logText = recentLogs
-      .map(
-        log =>
-          `[${log.timestamp}] [${log.level.toUpperCase()}] ${log.message}${
-            log.endpoint ? ` - ${log.endpoint}` : ''
-          }${log.variable ? ` - ${log.variable}` : ''}`
-      )
-      .join('\n');
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: '❌ Supabase 설정이 없습니다. 환경변수를 확인하세요.',
+          },
+        ],
+      };
+    }
+
+    // Supabase Health Check
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/`, {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+      },
+    });
 
     return {
       content: [
         {
-          type: 'text' as const,
-          text: `📝 최근 ${limit}개 로그:\n\n${logText}\n\n💡 팁: 실제 로그는 Vercel 대시보드에서 확인하세요.`,
+          type: 'text',
+          text: `### 🗄️ 데이터베이스 상태\n\n${
+            response.ok ? '✅ Supabase 연결 성공' : '❌ Supabase 연결 실패'
+          }\n\n- 상태 코드: ${response.status}\n- URL: ${SUPABASE_URL}`,
         },
       ],
     };
@@ -136,130 +241,71 @@ const getRecentLogsHandler = async (
     return {
       content: [
         {
-          type: 'text' as const,
-          text: `❌ 로그 조회 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+          type: 'text',
+          text: `### 🗄️ 데이터베이스 상태\n\n❌ 연결 실패\n\n에러: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
         },
       ],
     };
   }
 };
 
-// 🔍 프로젝트 정보 제공 함수
-const getProjectInfoHandler = async (_args: any, _extra: any) => {
-  const projectInfo = {
-    name: 'OpenManager VIBE v5',
-    description: 'AI 기반 서버 모니터링 플랫폼',
-    version: process.env.npm_package_version || '5.62.3',
-    techStack: [
-      'Next.js 15',
-      'TypeScript',
-      'Supabase Auth',
-      'Google AI (Gemini)',
-      'Redis (Upstash)',
-      'Vercel Edge Runtime',
-    ],
-    mcpArchitecture: {
-      development: 'Vercel MCP (이 서버)',
-      production: 'GCP VM MCP (104.154.205.25:10000)',
-    },
-  };
+const handler = createMcpHandler((server: any) => {
+  // 🔍 시스템 상태 확인 도구
+  server.tool(
+    'get_system_status',
+    '현재 시스템 상태를 확인합니다',
+    {},
+    getSystemStatusHandler
+  );
 
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: JSON.stringify(projectInfo, null, 2),
+  // 🔑 환경변수 확인 도구
+  server.tool(
+    'check_env_config',
+    '환경변수 설정 상태를 확인합니다',
+    {},
+    checkEnvConfigHandler
+  );
+
+  // 📊 API 헬스 체크 도구
+  server.tool(
+    'check_api_health',
+    'API 엔드포인트 상태를 확인합니다',
+    {},
+    checkApiHealthHandler
+  );
+
+  // 🧪 테스트 메시지 전송 도구
+  server.tool(
+    'send_test_message',
+    '테스트 메시지를 전송합니다',
+    {
+      message: { type: 'string', description: '전송할 테스트 메시지' },
+      level: {
+        type: 'string',
+        enum: ['info', 'warning', 'error', 'success'],
+        description: '메시지 레벨',
       },
-    ],
-  };
-};
-
-// 💡 디버깅 가이드 생성 함수
-const getDebugPrompt = async ({ issue }: { issue: string }, _extra: any) => {
-  const guide = `OpenManager VIBE v5 배포 환경 디버깅 가이드:
-
-문제: ${issue}
-
-체크리스트:
-1. 환경변수 설정 확인 (check_env_config 도구 사용)
-2. 시스템 상태 확인 (get_system_status 도구 사용)
-3. API 헬스체크 (health_check 도구 사용)
-4. Vercel 로그 확인
-5. Edge Runtime 호환성 검토
-
-주의사항:
-- 프로덕션 AI 기능은 GCP VM MCP를 사용합니다
-- 이 MCP 서버는 개발 도구 전용입니다`;
-
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: guide,
-      },
-    ],
-  };
-};
-
-const handler = createMcpHandler(
-  server => {
-    // 🔍 시스템 상태 확인 도구
-    server.tool(
-      'get_system_status',
-      '현재 시스템 상태를 확인합니다',
-      {},
-      getSystemStatusHandler
-    );
-
-    // 🔑 환경변수 확인 도구
-    server.tool(
-      'check_env_config',
-      '환경변수 설정 상태를 확인합니다',
-      {},
-      checkEnvConfigHandler
-    );
-
-    // 🧪 API 헬스체크 도구
-    server.tool(
-      'health_check',
-      'API 헬스체크를 수행합니다',
-      { endpoint: z.string().default('/api/health') },
-      healthCheckHandler
-    );
-
-    // 📝 로그 조회 도구
-    server.tool(
-      'get_recent_logs',
-      '최근 로그를 조회합니다',
-      { limit: z.number().int().min(1).max(100).default(10) },
-      getRecentLogsHandler
-    );
-
-    // 🔍 프로젝트 정보 도구
-    server.tool(
-      'get_project_info',
-      'OpenManager VIBE 프로젝트 정보를 조회합니다',
-      {},
-      getProjectInfoHandler
-    );
-
-    // 💡 디버깅 도구
-    server.tool(
-      'debug_deployment',
-      '배포 환경 디버깅을 위한 가이드를 제공합니다',
-      { issue: z.string().describe('디버깅하려는 문제') },
-      getDebugPrompt
-    );
-  },
-  {
-    capabilities: {
-      tools: { listChanged: true },
     },
-  },
-  { basePath: '/api' }
-);
+    sendTestMessageHandler
+  );
 
-// Edge Runtime을 사용하지 않음 (mcp-handler가 Node.js 모듈 필요)
-// export const runtime = 'edge';
+  // 🗄️ 레디스 캐시 상태 확인 도구
+  server.tool(
+    'check_redis_cache',
+    'Redis 캐시 서버 상태를 확인합니다',
+    {},
+    checkRedisCacheHandler
+  );
 
-export { handler as GET, handler as POST };
+  // 📊 데이터베이스 연결 확인 도구
+  server.tool(
+    'check_database',
+    'Supabase 데이터베이스 연결을 확인합니다',
+    {},
+    checkDatabaseHandler
+  );
+});
+
+export const { GET, POST } = handler;

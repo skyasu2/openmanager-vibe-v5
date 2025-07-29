@@ -158,7 +158,7 @@ export class RedisConnectionManager {
   private async _initializeSingleInstance(): Promise<boolean> {
     try {
       const config = getRedisConfig();
-      const validation = validateRedisConfig(_config);
+      const validation = validateRedisConfig(config);
 
       if (!validation.valid) {
         console.error('❌ Redis 설정 오류:', validation.errors);

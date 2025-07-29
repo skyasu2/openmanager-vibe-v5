@@ -100,7 +100,7 @@ export async function apiPost<T = any>(
 ): Promise<T> {
   return apiRequest<T>(endpoint, {
     method: 'POST',
-    body: data ? JSON.stringify(_data) : undefined,
+    body: data ? JSON.stringify(data) : undefined,
   });
 }
 
@@ -113,7 +113,7 @@ export async function apiPut<T = any>(
 ): Promise<T> {
   return apiRequest<T>(endpoint, {
     method: 'PUT',
-    body: data ? JSON.stringify(_data) : undefined,
+    body: data ? JSON.stringify(data) : undefined,
   });
 }
 

@@ -93,9 +93,7 @@ export const ThinkingProcessVisualizer: React.FC<
             AI 사고 과정
           </span>
         </div>
-        {isActive && (
-          <Loader2 className='w-4 h-4 text-blue-500 animate-spin' />
-        )}
+        {isActive && <Loader2 className='w-4 h-4 text-blue-500 animate-spin' />}
       </div>
 
       {/* 사고 단계 리스트 */}
@@ -186,24 +184,21 @@ export const ThinkingProcessVisualizer: React.FC<
                     )}
 
                     {/* 메타데이터 */}
-                    {step.metadata &&
-                      Object.keys(step.metadata).length > 0 && (
-                        <details className='mt-2'>
-                          <summary className='text-xs text-gray-400 cursor-pointer hover:text-gray-600'>
-                            상세 정보
-                          </summary>
-                          <div className='mt-1 text-xs text-gray-500 bg-white bg-opacity-30 p-2 rounded'>
-                            {Object.entries(step.metadata).map(
-                              ([key, value]) => (
-                                <div key={key} className='flex justify-between'>
-                                  <span className='font-medium'>{key}:</span>
-                                  <span>{String(value)}</span>
-                                </div>
-                              )
-                            )}
-                          </div>
-                        </details>
-                      )}
+                    {step.metadata && Object.keys(step.metadata).length > 0 && (
+                      <details className='mt-2'>
+                        <summary className='text-xs text-gray-400 cursor-pointer hover:text-gray-600'>
+                          상세 정보
+                        </summary>
+                        <div className='mt-1 text-xs text-gray-500 bg-white bg-opacity-30 p-2 rounded'>
+                          {Object.entries(step.metadata).map(([key, value]) => (
+                            <div key={key} className='flex justify-between'>
+                              <span className='font-medium'>{key}:</span>
+                              <span>{String(value)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    )}
                   </div>
                 </div>
               </motion.div>

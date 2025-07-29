@@ -261,7 +261,7 @@ export function calculateDataSize(data: MockServerData): {
   compressed: number;
   ratio: number;
 } {
-  const originalSize = JSON.stringify(_data).length;
+  const originalSize = JSON.stringify(data).length;
 
   // 압축 시뮬레이션
   const compressedData = {

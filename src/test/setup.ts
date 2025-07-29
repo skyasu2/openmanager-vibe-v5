@@ -91,7 +91,6 @@ const EventSourceMock = vi.fn().mockImplementation(() => ({
   withCredentials: false,
 })) as unknown as EventSourceConstructor;
 
-
 global.EventSource = EventSourceMock;
 
 // ===============================

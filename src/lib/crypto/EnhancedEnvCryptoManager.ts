@@ -197,7 +197,7 @@ export class EnhancedEnvCryptoManager {
     };
 
     // 체크섬 생성
-    config.checksum = this.generateChecksum(_config);
+    config.checksum = this.generateChecksum(config);
 
     return config;
   }

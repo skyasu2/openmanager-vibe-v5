@@ -305,8 +305,8 @@ class DataRetentionScheduler {
       for (const key of keys) {
         try {
           const data = localStorage.getItem(key);
-          if (_data) {
-            const parsed = JSON.parse(_data);
+          if (data) {
+            const parsed = JSON.parse(data);
             if (
               parsed.timestamp &&
               Date.now() - parsed.timestamp > policy.maxAge
@@ -344,8 +344,8 @@ class DataRetentionScheduler {
       for (const key of keys) {
         try {
           const data = localStorage.getItem(key);
-          if (_data) {
-            const parsed = JSON.parse(_data);
+          if (data) {
+            const parsed = JSON.parse(data);
             if (
               parsed.timestamp &&
               Date.now() - parsed.timestamp > policy.maxAge
@@ -382,8 +382,8 @@ class DataRetentionScheduler {
       for (const key of keys) {
         try {
           const data = localStorage.getItem(key);
-          if (_data) {
-            const parsed = JSON.parse(_data);
+          if (data) {
+            const parsed = JSON.parse(data);
             if (
               parsed.lastActivity &&
               Date.now() - parsed.lastActivity > policy.maxAge
@@ -421,8 +421,8 @@ class DataRetentionScheduler {
       for (const key of keys) {
         try {
           const data = localStorage.getItem(key);
-          if (_data) {
-            const parsed = JSON.parse(_data);
+          if (data) {
+            const parsed = JSON.parse(data);
             if (
               parsed.timestamp &&
               Date.now() - parsed.timestamp > policy.maxAge
@@ -462,8 +462,8 @@ class DataRetentionScheduler {
       for (const key of keys) {
         try {
           const data = localStorage.getItem(key);
-          if (_data) {
-            const parsed = JSON.parse(_data);
+          if (data) {
+            const parsed = JSON.parse(data);
             if (
               parsed.cacheTime &&
               Date.now() - parsed.cacheTime > policy.maxAge
@@ -503,8 +503,8 @@ class DataRetentionScheduler {
       for (const key of keys) {
         try {
           const data = localStorage.getItem(key);
-          if (_data) {
-            const parsed = JSON.parse(_data);
+          if (data) {
+            const parsed = JSON.parse(data);
             if (
               parsed.lastActivity &&
               Date.now() - parsed.lastActivity > policy.maxAge

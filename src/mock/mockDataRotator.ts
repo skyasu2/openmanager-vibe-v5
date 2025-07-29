@@ -219,7 +219,7 @@ export function getRotatorInstance(
   config?: Partial<RotationConfig>
 ): MockDataRotator {
   if (!rotatorInstance && timeSeries) {
-    rotatorInstance = new MockDataRotator(timeSeries, _config);
+    rotatorInstance = new MockDataRotator(timeSeries, config);
   }
 
   if (!rotatorInstance) {

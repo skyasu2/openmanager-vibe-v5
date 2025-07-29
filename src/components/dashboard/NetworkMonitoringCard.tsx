@@ -90,9 +90,7 @@ export const NetworkMonitoringCard = () => {
   useEffect(() => {
     // 초기 데이터 생성
     const initialData = Array.from({ length: 20 }, (_, i) => {
-      const data = generateNetworkData(
-        i > 0 ? history[i - 1] : undefined
-      );
+      const data = generateNetworkData(i > 0 ? history[i - 1] : undefined);
       return { ...data, timestamp: new Date(Date.now() - (20 - i) * 5000) };
     });
     setHistory(initialData);
@@ -159,8 +157,7 @@ export const NetworkMonitoringCard = () => {
       .map((value, index) => {
         const x = (index / (data.length - 1)) * 100;
         const maxValue = Math.max(...data) || 1; // Prevent division by zero
-        const y =
-          100 - Math.max(0, Math.min(100, (value / maxValue) * 100));
+        const y = 100 - Math.max(0, Math.min(100, (value / maxValue) * 100));
         return `${x},${y}`;
       })
       .join(' ');
@@ -180,7 +177,11 @@ export const NetworkMonitoringCard = () => {
           </span>
         </div>
         <div className='h-16 relative'>
-          <svg className='w-full h-full' viewBox='0 0 100 100' preserveAspectRatio='none'>
+          <svg
+            className='w-full h-full'
+            viewBox='0 0 100 100'
+            preserveAspectRatio='none'
+          >
             <defs>
               <linearGradient id={gradientId} x1='0%' y1='0%' x2='0%' y2='100%'>
                 <stop offset='0%' stopColor={color} stopOpacity='0.8' />
@@ -211,9 +212,13 @@ export const NetworkMonitoringCard = () => {
             <Globe className='h-4 w-4 text-blue-600' />
             네트워크 모니터링
           </CardTitle>
-          <div className={`flex items-center gap-1 ${statusColor[currentData.status]}`}>
+          <div
+            className={`flex items-center gap-1 ${statusColor[currentData.status]}`}
+          >
             {statusIcon[currentData.status]}
-            <span className='text-xs font-medium uppercase'>{currentData.status}</span>
+            <span className='text-xs font-medium uppercase'>
+              {currentData.status}
+            </span>
           </div>
         </div>
       </CardHeader>

@@ -31,21 +31,21 @@ export class LoggingService implements ILogger {
    * 디버그 로그
    */
   debug(message: string, data?: Record<string, any>): void {
-    this.log('debug', message, _data);
+    this.log('debug', message, data);
   }
 
   /**
    * 정보 로그
    */
   info(message: string, data?: Record<string, any>): void {
-    this.log('info', message, _data);
+    this.log('info', message, data);
   }
 
   /**
    * 경고 로그
    */
   warn(message: string, data?: Record<string, any>): void {
-    this.log('warn', message, _data);
+    this.log('warn', message, data);
   }
 
   /**

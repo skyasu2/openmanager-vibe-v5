@@ -239,7 +239,7 @@ export class IntegratedSystemManager {
    * ⚙️ 설정 업데이트
    */
   async updateSystemConfig(config: Partial<SystemConfig>): Promise<void> {
-    console.log('⚙️ 시스템 설정 업데이트:', _config);
+    console.log('⚙️ 시스템 설정 업데이트:', config);
 
     // 설정 업데이트 완료 알림 (콘솔 로그)
     console.log('✅ 시스템 설정이 업데이트되었습니다.');

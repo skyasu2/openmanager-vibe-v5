@@ -4,7 +4,7 @@
  * AI 기반 고급 서버 시뮬레이션 및 시나리오 생성
  */
 
-import { VercelDatabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 export interface ServerMetrics {
   cpu: number;
@@ -103,14 +103,21 @@ export class AdvancedSimulationEngine {
 
     try {
       // 실제 데이터베이스에서 메트릭 조회
-      const dashboardData = await VercelDatabase.getDashboardData();
-      const realMetrics = dashboardData.metrics;
+      // Supabase에서 메트릭 조회
+      const { data: realMetrics, error } = await supabase
+        .from('server_metrics')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      if (!realMetrics) return [];
 
       // 서버별로 캐싱
       this.realMetricsCache.clear();
       const serverMetricsMap = new Map<string, ServerMetrics[]>();
 
-      realMetrics.forEach(metric => {
+      realMetrics.forEach((metric: any) => {
         const serverId = metric.server_id || 'unknown';
         if (!serverMetricsMap.has(serverId)) {
           serverMetricsMap.set(serverId, []);

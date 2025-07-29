@@ -390,7 +390,7 @@ export class ABTestManager {
 
   private async getConfig(): Promise<ABTestConfig> {
     const config = await this.redis.get(this.REDIS_KEYS.CONFIG);
-    return config ? JSON.parse(_config) : this.DEFAULT_CONFIG;
+    return config ? JSON.parse(config) : this.DEFAULT_CONFIG;
   }
 
   private async getMetrics(group: ABTestGroup): Promise<ABTestMetrics> {

@@ -427,7 +427,7 @@ export class DevMockRedis {
   async restore(data: Record<string, any>): Promise<void> {
     this.store.clear();
 
-    for (const [key, item] of Object.entries(_data)) {
+    for (const [key, item] of Object.entries(data)) {
       const expiry = item.ttl > 0 ? Date.now() + item.ttl * 1000 : undefined;
       this.store.set(key, {
         value: item.value,
@@ -506,7 +506,7 @@ export class DevMockRedis {
     try {
       const filePath = path.join(process.cwd(), this.options.persistPath!);
       const data = await fs.readFile(filePath, 'utf-8');
-      await this.restore(JSON.parse(_data));
+      await this.restore(JSON.parse(data));
       console.log(`📂 Dev Mock Redis: ${this.store.size}개 키 로드됨`);
     } catch (error) {
       // 파일이 없는 경우는 정상

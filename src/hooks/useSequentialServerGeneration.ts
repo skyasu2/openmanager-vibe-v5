@@ -123,7 +123,7 @@ export function useSequentialServerGeneration(
       }
 
       const data = await response.json();
-      console.log('📦 서버 생성 API 응답:', _data);
+      console.log('📦 서버 생성 API 응답:', data);
 
       if (data.success && data.server) {
         console.log('✅ 서버 생성 성공:', data.server.hostname);
@@ -137,7 +137,7 @@ export function useSequentialServerGeneration(
           message: data.message || '서버 생성 완료',
         };
       } else {
-        console.error('❌ 서버 생성 실패 - API 응답 형식 오류:', _data);
+        console.error('❌ 서버 생성 실패 - API 응답 형식 오류:', data);
         return {
           success: false,
           currentCount: servers.length,

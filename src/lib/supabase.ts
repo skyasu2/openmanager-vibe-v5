@@ -172,7 +172,7 @@ export class ResilientSupabaseClient {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table },
-        (payload) => {
+        payload => {
           // 실시간 데이터도 캐시에 저장
           const result = payload as unknown as { new: T; old: T };
 
@@ -203,7 +203,11 @@ export class ResilientSupabaseClient {
     };
 
     // 연결 상태 모니터링
-    channel.on('close', handleDisconnect);
+    channel.on('system', {}, payload => {
+      if (payload.status === 'closed') {
+        handleDisconnect();
+      }
+    });
 
     return channel;
   }
