@@ -197,7 +197,7 @@ export class MCPServerManager {
    */
   async connectToServer(serverName: string): Promise<MCPClient> {
     const config = this.servers.get(serverName);
-    if (!_config) {
+    if (!config) {
       throw new Error(`서버 설정을 찾을 수 없습니다: ${serverName}`);
     }
 
@@ -267,7 +267,7 @@ export class MCPServerManager {
    */
   setServerEnabled(serverName: string, enabled: boolean): void {
     const config = this.servers.get(serverName);
-    if (_config) {
+    if (config) {
       config.enabled = enabled;
       console.log(`🔧 ${serverName} 서버 ${enabled ? '활성화' : '비활성화'}`);
     }

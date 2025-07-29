@@ -122,7 +122,7 @@ export class DummyCollector implements MetricCollector {
     ];
 
     serverConfigs.forEach(config => {
-      this.servers.set(config.id, _config);
+      this.servers.set(config.id, config);
     });
   }
 

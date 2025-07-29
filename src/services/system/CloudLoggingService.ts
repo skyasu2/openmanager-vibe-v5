@@ -84,7 +84,7 @@ export class CloudLoggingService {
 
   static getInstance(config?: Partial<LoggingConfig>): CloudLoggingService {
     if (!CloudLoggingService.instance) {
-      CloudLoggingService.instance = new CloudLoggingService(_config);
+      CloudLoggingService.instance = new CloudLoggingService(config);
     }
     return CloudLoggingService.instance;
   }

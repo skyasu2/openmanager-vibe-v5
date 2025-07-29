@@ -94,7 +94,7 @@ export class ServerlessSSEConnectionPool {
 export function createSSEConnectionPool(
   config?: SSEConnectionPoolConfig
 ): ServerlessSSEConnectionPool {
-  return new ServerlessSSEConnectionPool(_config);
+  return new ServerlessSSEConnectionPool(config);
 }
 
 /**

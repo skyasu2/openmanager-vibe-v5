@@ -188,7 +188,7 @@ export class CloudContextLoader {
     config?: Partial<CloudContextLoaderConfig>
   ): CloudContextLoader {
     if (!CloudContextLoader.instance) {
-      CloudContextLoader.instance = new CloudContextLoader(_config);
+      CloudContextLoader.instance = new CloudContextLoader(config);
     }
     return CloudContextLoader.instance;
   }
