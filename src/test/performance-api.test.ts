@@ -80,8 +80,8 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toHaveProperty('success', true);
-      expect(data).toHaveProperty('service', 'ai-performance-monitor');
+      expect(_data).toHaveProperty('success', true);
+      expect(_data).toHaveProperty('service', 'ai-performance-monitor');
       
       // 메트릭 검증
       expect(data.metrics).toEqual({
@@ -121,7 +121,7 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
     it('엔진 오류 시 500 에러를 반환해야 함', async () => {
       const mockEngine = {
         getPerformanceStats: jest.fn().mockImplementation(() => {
-          throw new Error('Engine initialization failed');
+          throw new Error('Engine _initialization failed');
         })
       };
 
@@ -132,8 +132,8 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data).toHaveProperty('success', false);
-      expect(data).toHaveProperty('error');
+      expect(_data).toHaveProperty('success', false);
+      expect(_data).toHaveProperty('error');
     });
   });
 
@@ -172,10 +172,10 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toHaveProperty('success', true);
-      expect(data).toHaveProperty('benchmarkType', 'comparison');
-      expect(data).toHaveProperty('results');
-      expect(data).toHaveProperty('analysis');
+      expect(_data).toHaveProperty('success', true);
+      expect(_data).toHaveProperty('benchmarkType', 'comparison');
+      expect(_data).toHaveProperty('results');
+      expect(_data).toHaveProperty('analysis');
 
       // 결과 구조 검증
       expect(data.results).toHaveProperty('originalEngine');
@@ -222,10 +222,10 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toHaveProperty('success', true);
-      expect(data).toHaveProperty('benchmarkType', 'load');
-      expect(data).toHaveProperty('results');
-      expect(data).toHaveProperty('analysis');
+      expect(_data).toHaveProperty('success', true);
+      expect(_data).toHaveProperty('benchmarkType', 'load');
+      expect(_data).toHaveProperty('results');
+      expect(_data).toHaveProperty('analysis');
 
       // 부하 테스트 결과 검증
       expect(data.results).toHaveProperty('totalTime');
@@ -261,9 +261,9 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toHaveProperty('success', false);
-      expect(data).toHaveProperty('error', 'Invalid benchmark mode');
-      expect(data).toHaveProperty('supportedModes');
+      expect(_data).toHaveProperty('success', false);
+      expect(_data).toHaveProperty('error', 'Invalid benchmark mode');
+      expect(_data).toHaveProperty('supportedModes');
       expect(data.supportedModes).toContain('comparison');
       expect(data.supportedModes).toContain('load');
     });
@@ -279,8 +279,8 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data).toHaveProperty('success', false);
-      expect(data).toHaveProperty('error');
+      expect(_data).toHaveProperty('success', false);
+      expect(_data).toHaveProperty('error');
     });
   });
 
@@ -298,9 +298,9 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toHaveProperty('success', true);
-      expect(data).toHaveProperty('message', 'Performance cache cleared successfully');
-      expect(data).toHaveProperty('timestamp');
+      expect(_data).toHaveProperty('success', true);
+      expect(_data).toHaveProperty('message', 'Performance cache cleared successfully');
+      expect(_data).toHaveProperty('timestamp');
       
       expect(mockEngine.clearOptimizationCache).toHaveBeenCalledTimes(1);
       
@@ -321,9 +321,9 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data).toHaveProperty('success', false);
-      expect(data).toHaveProperty('error', 'Cache clear failed');
-      expect(data).toHaveProperty('timestamp');
+      expect(_data).toHaveProperty('success', false);
+      expect(_data).toHaveProperty('error', 'Cache clear failed');
+      expect(_data).toHaveProperty('timestamp');
     });
   });
 

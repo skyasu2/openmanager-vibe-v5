@@ -11,7 +11,7 @@ export interface AIEngineDetail {
   id: string;
   name: string;
   type: 'google-ai' | 'supabase-rag' | 'korean-nlp' | 'mcp-context';
-  status: 'active' | 'inactive' | 'error' | 'initializing';
+  status: 'active' | 'inactive' | 'error' | '_initializing';
   metrics: {
     totalRequests: number;
     successRate: number;
@@ -91,7 +91,7 @@ export function useAIEngineStatus() {
         const response = await fetch(`/api/ai/engines/${engineId}/config`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(config),
+          body: JSON.stringify(_config),
         });
 
         if (!response.ok) throw new Error('엔진 설정 업데이트 실패');
@@ -119,10 +119,10 @@ export function useAIEngineStatus() {
 
         if (!response.ok) throw new Error('엔진 재시작 실패');
 
-        // 상태를 initializing으로 변경
+        // 상태를 _initializing으로 변경
         setEngines(prev =>
           prev.map(e =>
-            e.id === engineId ? { ...e, status: 'initializing' } : e
+            e.id === engineId ? { ...e, status: '_initializing' } : e
           )
         );
 

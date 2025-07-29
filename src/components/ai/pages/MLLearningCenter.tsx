@@ -167,7 +167,7 @@ export const MLLearningCenter: React.FC = () => {
         let result: LearningResult;
 
         switch (type) {
-          case 'patterns':
+          case 'patterns': {
             // 패턴 학습 로직
             await new Promise(resolve => setTimeout(resolve, 3000)); // 시뮬레이션
             result = {
@@ -184,11 +184,12 @@ export const MLLearningCenter: React.FC = () => {
               timestamp: new Date(),
             };
             break;
+          }
 
-          case 'anomaly':
+          case 'anomaly': {
             // 이상 탐지 학습
             // 임시 이상 탐지 데이터
-            const anomalies = [
+            const _anomalies = [
               { type: 'CPU', severity: 'high', confidence: 0.92 },
               { type: 'Memory', severity: 'medium', confidence: 0.85 },
             ];
@@ -206,8 +207,9 @@ export const MLLearningCenter: React.FC = () => {
               timestamp: new Date(),
             };
             break;
+          }
 
-          case 'incident':
+          case 'incident': {
             // 장애 케이스 학습 (목업 데이터)
             const mockReports = [
               {
@@ -253,8 +255,9 @@ export const MLLearningCenter: React.FC = () => {
               timestamp: new Date(),
             };
             break;
+          }
 
-          case 'prediction':
+          case 'prediction': {
             // 예측 모델 훈련 시뮬레이션
             // LightweightMLEngine에는 predictServerLoad가 없으므로 학습 시뮬레이션
             await new Promise(resolve => setTimeout(resolve, 2500));
@@ -272,6 +275,7 @@ export const MLLearningCenter: React.FC = () => {
               timestamp: new Date(),
             };
             break;
+          }
         }
 
         // 학습 완료
@@ -297,7 +301,7 @@ export const MLLearningCenter: React.FC = () => {
           accuracyImprovement: result!.accuracyImprovement,
           confidence: result!.confidence,
         });
-      } catch (error) {
+      } catch (_error) {
         // 에러 처리
         clearInterval(progressTimer);
         setLearningProgress(prev => ({

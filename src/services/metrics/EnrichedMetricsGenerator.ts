@@ -173,7 +173,7 @@ export class EnrichedMetricsGenerator {
     console.log('🔄 시스템 시작 - 베이스라인 데이터 로드 중...');
 
     // 1️⃣ 서버 목록 초기화 (15개 서버 유지)
-    this.initializeServers(servers);
+    this._initializeServers(servers);
 
     // 2️⃣ 베이스라인 데이터 로드 (GCP Storage에서)
     await this.loadBaselineFromStorage();
@@ -214,7 +214,7 @@ export class EnrichedMetricsGenerator {
   /**
    * 🏗️ 서버 목록 초기화 (기존 방식 유지 - 15개)
    */
-  private initializeServers(servers: EnhancedServerMetrics[]): void {
+  private _initializeServers(servers: EnhancedServerMetrics[]): void {
     this.servers.clear();
 
     servers.forEach(server => {

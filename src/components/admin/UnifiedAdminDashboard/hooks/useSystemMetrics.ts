@@ -35,13 +35,13 @@ export function useSystemMetrics(options: UseSystemMetricsOptions = {}) {
       const response = await fetch('/api/admin/performance/metrics');
       if (!response.ok) throw new Error('메트릭 로드 실패');
 
-      const data = await response.json();
+      const _data = await response.json();
 
       // 차트 데이터 변환
       const transformedData: PerformanceChartData = {
-        responseTime: data.responseTime || [],
-        requestRate: data.requestRate || [],
-        errorRate: data.errorRate || [],
+        responseTime: _data.responseTime || [],
+        requestRate: _data.requestRate || [],
+        errorRate: _data.errorRate || [],
       };
 
       setChartData(transformedData);
@@ -58,8 +58,8 @@ export function useSystemMetrics(options: UseSystemMetricsOptions = {}) {
       const response = await fetch('/api/admin/gcp/quota');
       if (!response.ok) return;
 
-      const data = await response.json();
-      setGcpQuota(data);
+      const _data = await response.json();
+      setGcpQuota(_data);
     } catch (error) {
       console.error('GCP 할당량 정보 로드 실패:', error);
     }

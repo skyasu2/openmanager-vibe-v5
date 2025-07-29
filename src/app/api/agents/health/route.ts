@@ -29,7 +29,7 @@ export async function GET() {
     }));
 
     // 기본 시스템 상태
-    const systemHealth = {
+    const _systemHealth = {
       healthy: true,
       timestamp: new Date().toISOString(),
       recommendations: ['서브 에이전트는 Claude Code Task 도구로 호출'],
@@ -56,7 +56,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
-      system: systemHealth,
+      system: _systemHealth,
       mcp: mcpStatus,
       agents: agentStatuses,
       usage: {

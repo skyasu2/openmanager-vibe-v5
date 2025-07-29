@@ -154,7 +154,7 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               query: '시스템 초기화',
-              context: { action: 'initialize' },
+              context: { action: '_initialize' },
             }),
           });
 

@@ -46,14 +46,14 @@ const ContentLoadingSkeleton = () => (
   <div className='min-h-screen bg-gray-100 dark:bg-gray-900 p-6'>
     <div className='space-y-6'>
       {/* 헤더 스켈레톤 */}
-      <div className='h-16 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse'></div>
+      <div className='h-16 bg-gray-200 dark:bg-gray-800 rounded-lg _animate-pulse'></div>
 
       {/* 통계 카드 스켈레톤 */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
         {[1, 2, 3, 4].map(i => (
           <div
             key={i}
-            className='h-24 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse'
+            className='h-24 bg-gray-200 dark:bg-gray-800 rounded-lg _animate-pulse'
           ></div>
         ))}
       </div>
@@ -63,7 +63,7 @@ const ContentLoadingSkeleton = () => (
         {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
           <div
             key={i}
-            className='h-48 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse'
+            className='h-48 bg-gray-200 dark:bg-gray-800 rounded-lg _animate-pulse'
           ></div>
         ))}
       </div>
@@ -196,7 +196,7 @@ function DashboardPageContent() {
     console.log('🎯 대시보드 직접 접속 - 최적화된 초기화');
 
     // 🔥 즉시 실행 최적화
-    const initializeDashboard = async () => {
+    const _initializeDashboard = async () => {
       try {
         // 필요한 경우에만 데이터 생성기 상태 확인
         // API 클라이언트 사용
@@ -214,7 +214,7 @@ function DashboardPageContent() {
     };
 
     // 🚀 비동기로 초기화 (블로킹하지 않음)
-    initializeDashboard();
+    _initializeDashboard();
   }, []);
 
   // 🕐 시간 포맷팅

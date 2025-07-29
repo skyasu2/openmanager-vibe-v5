@@ -120,7 +120,7 @@ class GoogleAIManager {
       };
 
       // EnhancedEnvCryptoManager로 복호화 (동기 함수)
-      enhancedCryptoManager.initializeMasterKey(password);
+      enhancedCryptoManager._initializeMasterKey(password);
       const decryptedText = enhancedCryptoManager.decryptVariable(
         encryptedData,
         password

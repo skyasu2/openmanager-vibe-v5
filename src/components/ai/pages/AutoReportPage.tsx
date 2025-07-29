@@ -110,11 +110,11 @@ export default function AutoReportPage() {
     switch (status) {
       case 'active':
         return (
-          <div className='w-2 h-2 bg-red-500 rounded-full animate-pulse' />
+          <div className='w-2 h-2 bg-red-500 rounded-full _animate-pulse' />
         );
       case 'investigating':
         return (
-          <div className='w-2 h-2 bg-yellow-500 rounded-full animate-pulse' />
+          <div className='w-2 h-2 bg-yellow-500 rounded-full _animate-pulse' />
         );
       default:
         return <div className='w-2 h-2 bg-green-500 rounded-full' />;

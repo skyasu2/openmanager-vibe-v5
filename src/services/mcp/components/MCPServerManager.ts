@@ -33,13 +33,13 @@ export class MCPServerManager {
   private isInitialized = false;
 
   constructor() {
-    this.initializeServers();
+    this._initializeServers();
   }
 
   /**
    * 🚀 서버 설정 초기화
    */
-  private initializeServers(): void {
+  private _initializeServers(): void {
     console.log('🔧 MCP 서버 초기화 시작...');
 
     const environment = process.env.NODE_ENV || 'development';
@@ -153,7 +153,7 @@ export class MCPServerManager {
   /**
    * 🔌 서버 초기화 및 연결
    */
-  async initialize(): Promise<void> {
+  async _initialize(): Promise<void> {
     if (this.isInitialized) {
       console.log('✅ MCP 서버 관리자 이미 초기화됨');
       return;
@@ -197,7 +197,7 @@ export class MCPServerManager {
    */
   async connectToServer(serverName: string): Promise<MCPClient> {
     const config = this.servers.get(serverName);
-    if (!config) {
+    if (!_config) {
       throw new Error(`서버 설정을 찾을 수 없습니다: ${serverName}`);
     }
 
@@ -267,7 +267,7 @@ export class MCPServerManager {
    */
   setServerEnabled(serverName: string, enabled: boolean): void {
     const config = this.servers.get(serverName);
-    if (config) {
+    if (_config) {
       config.enabled = enabled;
       console.log(`🔧 ${serverName} 서버 ${enabled ? '활성화' : '비활성화'}`);
     }

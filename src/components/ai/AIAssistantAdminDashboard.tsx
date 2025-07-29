@@ -34,10 +34,10 @@ import type {
 export default function AIAssistantAdminDashboard() {
   const {
     // 데이터
-    responseLogs,
-    patternSuggestions,
+    _responseLogs,
+    _patternSuggestions,
     contextDocuments,
-    systemHealth,
+    _systemHealth,
 
     // 상태
     loading,
@@ -49,7 +49,7 @@ export default function AIAssistantAdminDashboard() {
 
     // 액션
     loadAllData,
-    handlePatternAction,
+    _handlePatternAction,
 
     // 필터
     filters,
@@ -61,7 +61,7 @@ export default function AIAssistantAdminDashboard() {
   // UI 상태
   const [selectedTab, setSelectedTab] = useState('logs');
   const [selectedLog, setSelectedLog] = useState<ResponseLogData | null>(null);
-  const [selectedDocument, setSelectedDocument] =
+  const [_selectedDocument, setSelectedDocument] =
     useState<ContextDocument | null>(null);
 
   if (loading) {

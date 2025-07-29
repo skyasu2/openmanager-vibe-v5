@@ -47,7 +47,7 @@ describe('SimplifiedQueryEngine', () => {
     
     // Mock RAG engine
     mockRAGEngine = {
-      initialize: vi.fn().mockResolvedValue(undefined),
+      _initialize: vi.fn().mockResolvedValue(undefined),
       searchSimilar: vi.fn().mockResolvedValue({
         results: [
           {
@@ -128,42 +128,42 @@ describe('SimplifiedQueryEngine', () => {
       expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 5 * 60 * 1000);
     });
 
-    it('should initialize only once', async () => {
-      await engine.initialize();
-      await engine.initialize();
-      await engine.initialize();
+    it('should _initialize only once', async () => {
+      await engine._initialize();
+      await engine._initialize();
+      await engine._initialize();
       
-      expect(mockRAGEngine.initialize).toHaveBeenCalledTimes(1);
+      expect(mockRAGEngine._initialize).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle initialization timeout', async () => {
-      mockRAGEngine.initialize.mockImplementation(() => 
+    it('should handle _initialization timeout', async () => {
+      mockRAGEngine._initialize.mockImplementation(() => 
         new Promise(resolve => setTimeout(resolve, 10000))
       );
       
-      const initPromise = engine.initialize();
+      const initPromise = engine._initialize();
       vi.advanceTimersByTime(5001);
       
       await expect(initPromise).resolves.toBeUndefined();
       expect(engine['isInitialized']).toBe(true);
     });
 
-    it('should handle initialization errors gracefully', async () => {
-      mockRAGEngine.initialize.mockRejectedValue(new Error('Init failed'));
+    it('should handle _initialization errors gracefully', async () => {
+      mockRAGEngine._initialize.mockRejectedValue(new Error('Init failed'));
       
-      await expect(engine.initialize()).resolves.toBeUndefined();
+      await expect(engine._initialize()).resolves.toBeUndefined();
       expect(engine['isInitialized']).toBe(true);
     });
 
-    it('should handle concurrent initialization requests', async () => {
+    it('should handle concurrent _initialization requests', async () => {
       const promises = [
-        engine.initialize(),
-        engine.initialize(),
-        engine.initialize(),
+        engine._initialize(),
+        engine._initialize(),
+        engine._initialize(),
       ];
       
       await Promise.all(promises);
-      expect(mockRAGEngine.initialize).toHaveBeenCalledTimes(1);
+      expect(mockRAGEngine._initialize).toHaveBeenCalledTimes(1);
     });
   });
 

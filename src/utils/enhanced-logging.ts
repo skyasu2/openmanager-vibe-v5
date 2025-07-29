@@ -89,7 +89,7 @@ const formatMessage = (level: string, message: string, data?: any): string => {
 
   // 객체인 경우 안전하게 직렬화
   if (typeof data === 'object') {
-    const serialized = safeStringify(data);
+    const serialized = safeStringify(_data);
     return `${prefix} ${message}\n${serialized}`;
   }
 
@@ -106,35 +106,35 @@ class EnhancedLogger {
   error(message: string, data?: any): void {
     if (!this.shouldLog(LogLevel.ERROR)) return;
 
-    const formattedMessage = formatMessage('ERROR', message, data);
+    const formattedMessage = formatMessage('ERROR', message, _data);
     console.error(formattedMessage);
   }
 
   warn(message: string, data?: any): void {
     if (!this.shouldLog(LogLevel.WARN)) return;
 
-    const formattedMessage = formatMessage('WARN', message, data);
+    const formattedMessage = formatMessage('WARN', message, _data);
     console.warn(formattedMessage);
   }
 
   info(message: string, data?: any): void {
     if (!this.shouldLog(LogLevel.INFO)) return;
 
-    const formattedMessage = formatMessage('INFO', message, data);
+    const formattedMessage = formatMessage('INFO', message, _data);
     console.log(formattedMessage);
   }
 
   debug(message: string, data?: any): void {
     if (!this.shouldLog(LogLevel.DEBUG)) return;
 
-    const formattedMessage = formatMessage('DEBUG', message, data);
+    const formattedMessage = formatMessage('DEBUG', message, _data);
     console.log(formattedMessage);
   }
 
   verbose(message: string, data?: any): void {
     if (!this.shouldLog(LogLevel.VERBOSE)) return;
 
-    const formattedMessage = formatMessage('VERBOSE', message, data);
+    const formattedMessage = formatMessage('VERBOSE', message, _data);
     console.log(formattedMessage);
   }
 
@@ -213,7 +213,7 @@ export const logPerformance = (
   startTime: number,
   data?: any
 ) => {
-  logger.performance(operation, startTime, data);
+  logger.performance(operation, startTime, _data);
 };
 
 // 안전한 콘솔 출력 함수 (기존 코드 호환용)
@@ -224,9 +224,9 @@ export const safeConsoleLog = (message: string, data?: any) => {
   }
 
   if (typeof data === 'object') {
-    console.log(message, safeStringify(data));
+    console.log(message, safeStringify(_data));
   } else {
-    console.log(message, data);
+    console.log(message, _data);
   }
 };
 

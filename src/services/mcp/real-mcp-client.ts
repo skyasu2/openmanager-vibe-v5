@@ -112,7 +112,7 @@ export class RealMCPClient {
   /**
    * 🚀 클라이언트 초기화
    */
-  async initialize(): Promise<void> {
+  async _initialize(): Promise<void> {
     if (this.isInitialized) {
       console.log(`✅ MCP 클라이언트 이미 초기화됨 (용도: ${this.purpose})`);
       return;
@@ -137,7 +137,7 @@ export class RealMCPClient {
           console.log('🔧 기본 MCP 설정 로드');
       }
 
-      await this.serverManager.initialize();
+      await this.serverManager._initialize();
       const serverNames = this.serverManager.getAvailableServers();
 
       for (const serverName of serverNames) {
@@ -170,7 +170,7 @@ export class RealMCPClient {
 
   private async connectToServer(serverName: string): Promise<MCPClient> {
     const config = this.serverManager.getServerConfig(serverName);
-    if (!config) {
+    if (!_config) {
       throw new Error(`서버 설정을 찾을 수 없습니다: ${serverName}`);
     }
     return this.serverManager.connectToServer(serverName);
@@ -261,8 +261,8 @@ export class RealMCPClient {
     const serverNames = this.serverManager.getAvailableServers();
     for (const name of serverNames) {
       const config = this.serverManager.getServerConfig(name);
-      if (config) {
-        servers.set(name, config);
+      if (_config) {
+        servers.set(name, _config);
       }
     }
     return servers;
@@ -340,7 +340,7 @@ export class RealMCPClient {
         this.clients
       );
 
-      if (result.success && result.metadata) {
+      if (result.success && result.meta_data) {
         const items = result.metadata.items as Array<{ name: string }>;
         return items ? items.map(item => item.name) : [];
       } else {

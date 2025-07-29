@@ -166,7 +166,7 @@ export interface IRuleBasedMainEngine {
   ): Promise<RuleBasedResponse>;
 
   // 초기화 및 상태 관리
-  initialize(): Promise<void>;
+  _initialize(): Promise<void>;
   isReady(): boolean;
   getStats(): EngineStats;
 
@@ -193,7 +193,7 @@ export interface INLPProcessor {
 
 export interface IIntentClassifier {
   classify(query: string, context?: any): Promise<IntentClassificationResult>;
-  initialize(): Promise<void>;
+  _initialize(): Promise<void>;
   isReady(): boolean;
 }
 
@@ -205,7 +205,7 @@ export interface IPatternMatcherEngine {
 
 export interface IKoreanNLUProcessor {
   analyzeIntent(text: string): Promise<KoreanNLUResult>;
-  initialize(): Promise<void>;
+  _initialize(): Promise<void>;
   isReady(): boolean;
 }
 

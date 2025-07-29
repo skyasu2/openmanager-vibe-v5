@@ -255,7 +255,7 @@ export class SupabaseTimeSeriesManager {
       throw new Error(`만료 데이터 정리 실패: ${error.message}`);
     }
 
-    return Array.isArray(data) ? data.length : 0;
+    return Array.isArray(_data) ? data.length : 0;
   }
 
   /**

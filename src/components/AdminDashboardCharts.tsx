@@ -110,7 +110,7 @@ const COLORS = {
   indigo: '#6366F1',
 };
 
-const STATUS_COLORS = {
+const _STATUS_COLORS = {
   healthy: COLORS.success,
   warning: COLORS.warning,
   critical: COLORS.danger,
@@ -275,7 +275,7 @@ export default function AdminDashboardCharts() {
   };
 
   // 로딩 상태
-  if (loading && !data) {
+  if (loading && !_data) {
     return (
       <div className='p-6 space-y-6'>
         <div className='flex items-center justify-between mb-6'>
@@ -294,7 +294,7 @@ export default function AdminDashboardCharts() {
           {[1, 2, 3, 4].map(i => (
             <div
               key={i}
-              className='bg-white p-6 rounded-lg shadow-sm border animate-pulse'
+              className='bg-white p-6 rounded-lg shadow-sm border _animate-pulse'
             >
               <div className='h-4 bg-gray-200 rounded w-1/3 mb-4'></div>
               <div className='h-64 bg-gray-100 rounded'></div>
@@ -327,7 +327,7 @@ export default function AdminDashboardCharts() {
     );
   }
 
-  if (!data) return null;
+  if (!_data) return null;
 
   const performanceData = getPerformanceChartData();
   const availabilityData = getAvailabilityChartData();

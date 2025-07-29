@@ -9,13 +9,13 @@ import type { MetricCollector, CollectorConfig } from '@/types/collector';
 export function createCollector(config: CollectorConfig): MetricCollector {
   switch (config.type) {
     // case 'prometheus': // 🗑️ 프로메테우스 제거
-    //   return new PrometheusCollector(config);
+    //   return new PrometheusCollector(_config);
 
     case 'cloudwatch':
-      return new CloudWatchCollector(config);
+      return new CloudWatchCollector(_config);
 
     case 'custom':
-      return new CustomAPICollector(config);
+      return new CustomAPICollector(_config);
 
     default:
       throw new Error(`지원하지 않는 컬렉터 타입: ${config.type}`);
@@ -38,7 +38,7 @@ export class CollectorManager {
       return;
     }
 
-    const collector = createCollector(config);
+    const collector = createCollector(_config);
     this.collectors.set(id, collector);
     console.log(`✅ 컬렉터 추가됨: ${id} (${config.type})`);
   }

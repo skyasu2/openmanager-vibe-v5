@@ -21,7 +21,7 @@ const UnifiedProfileHeader = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className='w-10 h-10 rounded-full bg-white/10 animate-pulse' />
+      <div className='w-10 h-10 rounded-full bg-white/10 _animate-pulse' />
     ),
   }
 );
@@ -32,7 +32,7 @@ const SystemControls = dynamic(
     ssr: false,
     loading: () => (
       <div className='max-w-2xl mx-auto text-center'>
-        <div className='w-64 h-16 bg-white/10 rounded-xl animate-pulse mx-auto' />
+        <div className='w-64 h-16 bg-white/10 rounded-xl _animate-pulse mx-auto' />
       </div>
     ),
   }
@@ -45,7 +45,7 @@ const FeatureCardsGrid = dynamic(
     loading: () => (
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
         {[...Array(4)].map((_, i) => (
-          <div key={i} className='h-32 bg-white/10 rounded-lg animate-pulse' />
+          <div key={i} className='h-32 bg-white/10 rounded-lg _animate-pulse' />
         ))}
       </div>
     ),
@@ -185,7 +185,7 @@ function MainContent() {
 
         <Suspense
           fallback={
-            <div className='w-10 h-10 rounded-full bg-white/10 animate-pulse' />
+            <div className='w-10 h-10 rounded-full bg-white/10 _animate-pulse' />
           }
         >
           <UnifiedProfileHeader />
@@ -215,7 +215,7 @@ function MainContent() {
           <Suspense
             fallback={
               <div className='max-w-2xl mx-auto text-center'>
-                <div className='w-64 h-16 bg-white/10 rounded-xl animate-pulse mx-auto' />
+                <div className='w-64 h-16 bg-white/10 rounded-xl _animate-pulse mx-auto' />
               </div>
             }
           >
@@ -238,7 +238,7 @@ function MainContent() {
                 {[...Array(4)].map((_, i) => (
                   <div
                     key={i}
-                    className='h-32 bg-white/10 rounded-lg animate-pulse'
+                    className='h-32 bg-white/10 rounded-lg _animate-pulse'
                   />
                 ))}
               </div>

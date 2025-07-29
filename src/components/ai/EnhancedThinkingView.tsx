@@ -200,7 +200,7 @@ export const EnhancedThinkingView: React.FC<EnhancedThinkingViewProps> = ({
               className='max-h-48 overflow-y-auto scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-gray-600 p-3 space-y-2'
             >
               <AnimatePresence>
-                {visibleSteps.map((step, index) => (
+                {visibleSteps.map((step, _index) => (
                   <motion.div
                     key={step.id}
                     initial={{ opacity: 0, x: -20, scale: 0.95 }}

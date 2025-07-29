@@ -164,9 +164,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
   // UnifiedAIEngineRouter와 동기화
   useEffect(() => {
-    const initializeRouter = async () => {
+    const _initializeRouter = async () => {
       try {
-        // 더미 구현으로 인해 initialize 메서드가 없음
+        // 더미 구현으로 인해 _initialize 메서드가 없음
         // 기본값으로 LOCAL 설정
         setSelectedEngine('LOCAL');
         console.log('🎯 AI 사이드바 초기화 - 기본 모드: LOCAL');
@@ -176,7 +176,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     };
 
     if (isOpen) {
-      initializeRouter();
+      _initializeRouter();
     }
   }, [isOpen]);
 

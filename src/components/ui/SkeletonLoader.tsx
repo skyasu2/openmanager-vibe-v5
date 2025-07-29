@@ -19,7 +19,7 @@ interface SkeletonProps {
   /** 둥근 모서리 */
   rounded?: boolean;
   /** 애니메이션 여부 */
-  animate?: boolean;
+  _animate?: boolean;
   /** 추가 CSS 클래스 */
   className?: string;
 }
@@ -29,7 +29,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   height = '1rem',
   width = '100%',
   rounded = false,
-  animate = true,
+  _animate = true,
   className = '',
 }) => {
   const style = {
@@ -40,7 +40,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   return (
     <div
       className={`bg-gray-200 dark:bg-gray-700 ${rounded ? 'rounded-full' : 'rounded'} ${
-        animate ? 'animate-pulse' : ''
+        _animate ? '_animate-pulse' : ''
       } ${className}`}
       style={style}
       role='status'

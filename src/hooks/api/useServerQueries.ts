@@ -420,7 +420,7 @@ export const useServerConnection = () => {
 
       eventSourceRef.current.onmessage = event => {
         try {
-          const parsed = JSON.parse(event.data);
+          const parsed = JSON.parse(event._data);
 
           switch (parsed.type) {
             case 'connected':
@@ -429,7 +429,7 @@ export const useServerConnection = () => {
 
             case 'server_update':
               // React Query 캐시 업데이트
-              queryClient.setQueryData(serverKeys.lists(), parsed.data);
+              queryClient.setQueryData(serverKeys.lists(), parsed._data);
               setUpdateCount(parsed.updateCount || 0);
 
               console.log(`📊 서버 데이터 업데이트 #${parsed.updateCount}`);

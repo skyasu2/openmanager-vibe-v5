@@ -121,7 +121,7 @@ class RealtimeDataManager {
     console.log('🚀 RealtimeDataManager 타이머 시작');
 
     // 각 주기별 타이머 설정
-    Object.entries(this.config).forEach(([frequency, interval]) => {
+    Object.entries(this._config).forEach(([frequency, interval]) => {
       const timer = setInterval(() => {
         this.updateByFrequency(frequency as UpdateFrequency);
       }, interval);
@@ -175,7 +175,7 @@ class RealtimeDataManager {
   private updateSubscriber(subscriber: Subscriber): void {
     try {
       const data = this.generateData(subscriber.dataType);
-      subscriber.callback(data);
+      subscriber.callback(_data);
     } catch (error) {
       console.error(`❌ 구독자 업데이트 실패: ${subscriber.id}`, error);
     }

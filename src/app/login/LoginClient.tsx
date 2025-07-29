@@ -296,17 +296,17 @@ export default function LoginClient() {
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'github' && (
-                <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer' />
+                <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent _animate-shimmer' />
               )}
 
               {/* 프로그레스 바 */}
               {loadingType === 'github' && (
-                <div className='absolute bottom-0 left-0 h-1 bg-gradient-to-r from-green-500 to-blue-500 animate-progress' />
+                <div className='absolute bottom-0 left-0 h-1 bg-gradient-to-r from-green-500 to-blue-500 _animate-progress' />
               )}
 
               {/* 클릭 펄스 애니메이션 */}
               {showPulse === 'github' && (
-                <div className='absolute inset-0 bg-white/20 rounded-lg animate-pulse-click pointer-events-none' />
+                <div className='absolute inset-0 bg-white/20 rounded-lg _animate-pulse-click pointer-events-none' />
               )}
 
               <svg
@@ -348,17 +348,17 @@ export default function LoginClient() {
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'guest' && (
-                <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer' />
+                <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent _animate-shimmer' />
               )}
 
               {/* 프로그레스 바 */}
               {loadingType === 'guest' && (
-                <div className='absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-400 to-purple-500 animate-progress' />
+                <div className='absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-400 to-purple-500 _animate-progress' />
               )}
 
               {/* 클릭 펄스 애니메이션 */}
               {showPulse === 'guest' && (
-                <div className='absolute inset-0 bg-white/20 rounded-lg animate-pulse-click pointer-events-none' />
+                <div className='absolute inset-0 bg-white/20 rounded-lg _animate-pulse-click pointer-events-none' />
               )}
 
               <User className='w-5 h-5 relative z-10' />
@@ -373,7 +373,7 @@ export default function LoginClient() {
 
           {/* 로딩 중 추가 안내 */}
           {isLoading && (
-            <div className='mt-4 text-center space-y-1 animate-fadeIn'>
+            <div className='mt-4 text-center space-y-1 _animate-fadeIn'>
               <p className='text-xs text-gray-400'>예상 소요 시간: 3-5초</p>
               <p className='text-xs text-gray-500'>
                 ESC 키를 눌러 취소할 수 있습니다

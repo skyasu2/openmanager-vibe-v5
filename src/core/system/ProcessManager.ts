@@ -76,7 +76,7 @@ export class ProcessManager extends EventEmitter {
    * 프로세스 등록
    */
   registerProcess(config: ProcessConfig): void {
-    this.processes.set(config.id, config);
+    this.processes.set(config.id, _config);
     this.states.set(config.id, {
       id: config.id,
       status: 'stopped',
@@ -412,7 +412,7 @@ export class ProcessManager extends EventEmitter {
 
     this.healthCheckInterval = setInterval(async () => {
       const healthPromises = Array.from(this.processes.entries()).map(
-        ([processId, config]) => this.performHealthCheck(processId, config)
+        ([processId, config]) => this.performHealthCheck(processId, _config)
       );
 
       await Promise.allSettled(healthPromises);
@@ -624,7 +624,7 @@ export class ProcessManager extends EventEmitter {
       (s: any) => s.status === 'running' && s.healthScore >= 70
     ).length;
 
-    let systemHealth: 'healthy' | 'degraded' | 'critical';
+    let _systemHealth: 'healthy' | 'degraded' | 'critical';
 
     // 🔧 더 관대한 헬스 평가 - 핵심 기능 중심
     // 개발 모드에서는 프로세스가 제대로 실행되지 않을 수 있음
@@ -632,24 +632,24 @@ export class ProcessManager extends EventEmitter {
 
     if (totalProcesses === 0) {
       // 등록된 프로세스가 없으면 기본적으로 healthy (개발 모드)
-      systemHealth = 'healthy';
+      _systemHealth = 'healthy';
     } else if (runningCount === 0) {
       // 실행 중인 프로세스가 하나도 없으면 critical
-      systemHealth = 'critical';
+      _systemHealth = 'critical';
     } else if (healthyCount >= Math.max(1, totalProcesses * 0.5)) {
       // 50% 이상 건강하면 healthy (기존 100% → 50%로 완화)
-      systemHealth = 'healthy';
+      _systemHealth = 'healthy';
     } else if (runningCount >= Math.max(1, totalProcesses * 0.3)) {
       // 30% 이상 실행되면 degraded (기존 70% → 30%로 완화)
-      systemHealth = 'degraded';
+      _systemHealth = 'degraded';
     } else {
-      systemHealth = 'critical';
+      _systemHealth = 'critical';
     }
 
     // 🔔 개발 모드에서는 경고만 출력하고 시스템은 정상으로 유지
-    if (process.env.NODE_ENV === 'development' && systemHealth !== 'healthy') {
+    if (process.env.NODE_ENV === 'development' && _systemHealth !== 'healthy') {
       console.warn(
-        `⚠️ [ProcessManager] 개발 모드 - 일부 프로세스 문제 있지만 기본 기능은 동작: ${systemHealth}`
+        `⚠️ [ProcessManager] 개발 모드 - 일부 프로세스 문제 있지만 기본 기능은 동작: ${_systemHealth}`
       );
       console.warn(
         `📊 프로세스 상태: 실행중 ${runningCount}/${totalProcesses}, 건강 ${healthyCount}/${totalProcesses}`
@@ -657,7 +657,7 @@ export class ProcessManager extends EventEmitter {
     }
 
     this.emit('system:health-update', {
-      health: systemHealth,
+      health: _systemHealth,
       runningCount,
       healthyCount,
       totalCount: this.processes.size,

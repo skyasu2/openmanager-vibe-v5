@@ -9,7 +9,7 @@ import { decrypt } from '@/utils/encryption';
  * 🔑 GitHub 토큰 초기화
  * 암호화된 GitHub PAT 토큰을 복호화하여 GITHUB_TOKEN 환경변수에 설정
  */
-export function initializeGitHubToken(): boolean {
+export function _initializeGitHubToken(): boolean {
   try {
     // 평문 토큰이 있다면 우선 사용 (개발 편의성)
     if (
@@ -50,18 +50,18 @@ export function initializeGitHubToken(): boolean {
  * 🔐 모든 보안 토큰 초기화
  * 애플리케이션 시작 시 호출되는 메인 초기화 함수
  */
-export function initializeSecurityTokens(): boolean {
+export function _initializeSecurityTokens(): boolean {
   console.log('🔐 보안 토큰 초기화 시작...');
 
   let success = true;
 
   // GitHub 토큰 초기화
-  if (!initializeGitHubToken()) {
+  if (!_initializeGitHubToken()) {
     success = false;
   }
 
   // 향후 다른 토큰들 추가 가능
-  // if (!initializeOtherToken()) {
+  // if (!_initializeOtherToken()) {
   //   success = false;
   // }
 

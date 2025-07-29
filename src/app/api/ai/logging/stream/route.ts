@@ -22,7 +22,7 @@ interface AILogEntry {
 }
 
 // 로그 레벨별 이모지
-const LOG_EMOJIS = {
+const _LOG_EMOJIS = {
   info: '📘',
   warn: '⚠️',
   error: '❌',
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
         redis = await getRedisClient();
         useRedis = true;
         console.log('✅ Redis 연결 성공 - 실시간 로그 저장 활성화');
-      } catch (error) {
+      } catch {
         console.warn('⚠️ Redis 연결 실패 - 메모리 로그만 사용');
       }
 
@@ -135,12 +135,12 @@ export async function GET(request: NextRequest) {
                 try {
                   const log = JSON.parse(logStr);
                   logs.push(log);
-                } catch (e) {
+                } catch {
                   // 파싱 오류 무시
                 }
               }
-            } catch (error) {
-              console.error('Redis 로그 읽기 오류:', error);
+            } catch {
+              console.error('Redis 로그 읽기 오류');
             }
           }
 
@@ -160,7 +160,7 @@ export async function GET(request: NextRequest) {
               try {
                 await redis.lpush('ai:logs', JSON.stringify(mockLog));
                 await redis.ltrim('ai:logs', 0, 99); // 최대 100개 유지
-              } catch (error) {
+              } catch {
                 // 저장 오류 무시
               }
             }
@@ -206,8 +206,8 @@ export async function GET(request: NextRequest) {
           if (isActive) {
             setTimeout(sendLogs, interval);
           }
-        } catch (error) {
-          console.error('로그 전송 오류:', error);
+        } catch (_error) {
+          console.error('로그 전송 오류:', _error);
 
           // 에러 메시지 전송
           const errorMessage = `data: ${JSON.stringify({
@@ -250,7 +250,7 @@ export async function POST(request: NextRequest) {
     try {
       redis = await getRedisClient();
       useRedis = true;
-    } catch (error) {
+    } catch {
       console.warn('⚠️ Redis 연결 실패');
     }
 
@@ -308,7 +308,7 @@ export async function POST(request: NextRequest) {
             .map((logStr: string) => {
               try {
                 return JSON.parse(logStr);
-              } catch (e) {
+              } catch {
                 return null;
               }
             })
@@ -329,13 +329,13 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
     }
-  } catch (error) {
-    console.error('❌ AI 로그 관리 API 오류:', error);
+  } catch (_error) {
+    console.error('❌ AI 로그 관리 API 오류:', _error);
     return NextResponse.json(
       {
         success: false,
         error: 'Log management failed',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        message: _error instanceof Error ? _error.message : 'Unknown error',
       },
       { status: 500 }
     );

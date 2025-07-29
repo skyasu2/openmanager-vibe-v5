@@ -188,7 +188,7 @@ export class CloudContextLoader {
     config?: Partial<CloudContextLoaderConfig>
   ): CloudContextLoader {
     if (!CloudContextLoader.instance) {
-      CloudContextLoader.instance = new CloudContextLoader(config);
+      CloudContextLoader.instance = new CloudContextLoader(_config);
     }
     return CloudContextLoader.instance;
   }
@@ -903,7 +903,7 @@ export class CloudContextLoader {
       }
 
       await safeRedisOperation(this.redis, async redis => {
-        await redis.setex(key, this.config.redisTTL, data);
+        await redis.setex(key, this.config.redisTTL, _data);
         // 번들 타입별 인덱스 유지
         await redis.sadd(
           `${this.config.redisPrefix}bundles:${contextDoc.bundleType}`,
@@ -964,7 +964,7 @@ export class CloudContextLoader {
       );
 
       if (data && typeof data === 'string') {
-        return JSON.parse(data);
+        return JSON.parse(_data);
       }
 
       return null;
@@ -1091,7 +1091,7 @@ export class CloudContextLoader {
    */
   private generateChecksum(data: Record<string, unknown>): string {
     // 간단한 해시 생성 (실제로는 crypto 라이브러리 사용 권장)
-    const str = JSON.stringify(data);
+    const str = JSON.stringify(_data);
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);

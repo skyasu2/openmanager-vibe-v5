@@ -96,8 +96,8 @@ class SmartSupabaseClient {
       const result = await queryBuilder;
 
       // 성공시 fallback에 저장
-      if (result.data) {
-        this.fallbackStorage.set(cacheKey, result.data);
+      if (result._data) {
+        this.fallbackStorage.set(cacheKey, result._data);
       }
 
       return result;
@@ -113,7 +113,7 @@ class SmartSupabaseClient {
   // INSERT 작업
   async insert<T = Record<string, unknown>>(table: string, data: T) {
     try {
-      const result = await supabase.from(table).insert(data);
+      const result = await supabase.from(table).insert(_data);
       return result;
     } catch (error) {
       console.warn('Supabase INSERT error:', error);
@@ -131,7 +131,7 @@ class SmartSupabaseClient {
     match: Partial<T>
   ) {
     try {
-      return await supabase.from(table).update(data).match(match);
+      return await supabase.from(table).update(_data).match(match);
     } catch (error) {
       console.warn('Supabase UPDATE error:', error);
       return {
@@ -165,8 +165,8 @@ class SmartSupabaseClient {
       const result = await supabase.rpc(functionName, params);
 
       // 성공시 캐시에 저장
-      if (result.data) {
-        this.fallbackStorage.set(cacheKey, result.data);
+      if (result._data) {
+        this.fallbackStorage.set(cacheKey, result._data);
       }
 
       return result;
@@ -220,10 +220,10 @@ class VercelSupabaseClient {
   private config = getVercelOptimizedConfig();
 
   constructor() {
-    this.initialize();
+    this._initialize();
   }
 
-  private initialize() {
+  private _initialize() {
     try {
       if (!this.config.database.supabase.enabled) {
         // 조용히 처리 - 이미 다른 곳에서 경고 표시됨

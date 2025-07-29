@@ -81,7 +81,7 @@ export default function UnifiedAdminDashboard() {
   } = useAIEngineStatus();
 
   // 로딩 상태
-  if (loading && !data) {
+  if (loading && !_data) {
     return (
       <div className='min-h-screen flex items-center justify-center'>
         <LoadingFallback />
@@ -111,7 +111,7 @@ export default function UnifiedAdminDashboard() {
   }
 
   // 데이터가 없는 경우
-  if (!data) {
+  if (!_data) {
     return null;
   }
 

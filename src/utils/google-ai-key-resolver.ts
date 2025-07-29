@@ -61,7 +61,7 @@ export async function resolveGoogleAIKey(): Promise<GoogleAIKeyResult> {
           version: '2.0',
         };
 
-        enhancedCryptoManager.initializeMasterKey(envPassword);
+        enhancedCryptoManager._initializeMasterKey(envPassword);
         const decryptedKey = enhancedCryptoManager.decryptVariable(
           encryptedData,
           envPassword
@@ -95,7 +95,7 @@ export async function resolveGoogleAIKey(): Promise<GoogleAIKeyResult> {
           version: ENCRYPTED_GOOGLE_AI_CONFIG.version,
         };
 
-        enhancedCryptoManager.initializeMasterKey(envPassword);
+        enhancedCryptoManager._initializeMasterKey(envPassword);
         const decryptedKey = enhancedCryptoManager.decryptVariable(
           encryptedData,
           envPassword

@@ -246,7 +246,7 @@ export function AnomalyFeed({
           {isLoading && sortedAnomalies.length === 0 ? (
             <div className='flex items-center justify-center py-8'>
               <div className='flex items-center gap-2 text-muted-foreground'>
-                <Activity className='h-4 w-4 animate-pulse' />
+                <Activity className='h-4 w-4 _animate-pulse' />
                 이상 징후 데이터 로딩 중...
               </div>
             </div>

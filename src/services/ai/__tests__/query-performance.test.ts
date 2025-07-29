@@ -11,7 +11,7 @@ import { QueryComplexityAnalyzer } from '../query-complexity-analyzer';
 // Mock dependencies
 vi.mock('../supabase-rag-engine', () => ({
   getSupabaseRAGEngine: () => ({
-    initialize: vi.fn().mockResolvedValue(undefined),
+    _initialize: vi.fn().mockResolvedValue(undefined),
     searchSimilar: vi.fn().mockResolvedValue({
       results: [
         { content: '테스트 응답', similarity: 0.9 },
@@ -263,7 +263,7 @@ describe('SimplifiedQueryEngine Performance', () => {
       const failEngine = new SimplifiedQueryEngine();
       
       // RAG 엔진 초기화 실패 시뮬레이션
-      vi.mocked(failEngine['ragEngine'].initialize).mockRejectedValueOnce(
+      vi.mocked(failEngine['ragEngine']._initialize).mockRejectedValueOnce(
         new Error('초기화 실패')
       );
 

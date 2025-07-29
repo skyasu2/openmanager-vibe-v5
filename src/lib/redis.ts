@@ -220,7 +220,7 @@ class UnifiedMockRedis implements RedisClientInterface {
   }
 
   async restore(data: Record<string, any>): Promise<void> {
-    return this.devMockRedis.restore(data);
+    return this.devMockRedis.restore(_data);
   }
 }
 
@@ -330,7 +330,7 @@ async function getHybridRedisClient(
       if (!realRedis && !isInitializing) {
         try {
           isInitializing = true;
-          realRedis = await initializeRedis();
+          realRedis = await _initializeRedis();
           isInitializing = false;
           console.log(
             `🌐 Real Redis 활성화 (컨텍스트: ${context || 'unknown'})`
@@ -366,7 +366,7 @@ async function getHybridRedisClient(
   }
 }
 
-async function initializeRedis(): Promise<RedisClientInterface> {
+async function _initializeRedis(): Promise<RedisClientInterface> {
   // ➡️ 환경 변수 검증
   let redisUrl = env.KV_REST_API_URL;
   let redisToken = env.KV_REST_API_TOKEN;
@@ -534,7 +534,7 @@ export async function getMetrics(
     ? `metrics:${serverId}:${timestamp}`
     : `metrics:${serverId}:latest`;
   const data = await client.get(key);
-  return data ? JSON.parse(data) : null;
+  return data ? JSON.parse(_data) : null;
 }
 
 /**
@@ -549,7 +549,7 @@ export async function setMetrics(
   const key = timestamp
     ? `metrics:${serverId}:${timestamp}`
     : `metrics:${serverId}:latest`;
-  await client.set(key, JSON.stringify(data), { ex: 3600 }); // 1시간 만료
+  await client.set(key, JSON.stringify(_data), { ex: 3600 }); // 1시간 만료
 }
 
 /**
@@ -558,7 +558,7 @@ export async function setMetrics(
 export async function getRealtime(key: string): Promise<any> {
   const client = await getHybridRedisClient('realtime-cache');
   const data = await client.get(`realtime:${key}`);
-  return data ? JSON.parse(data) : null;
+  return data ? JSON.parse(_data) : null;
 }
 
 /**
@@ -570,7 +570,7 @@ export async function setRealtime(
   ttl = 300
 ): Promise<void> {
   const client = await getHybridRedisClient('realtime-cache');
-  await client.set(`realtime:${key}`, JSON.stringify(data), { ex: ttl });
+  await client.set(`realtime:${key}`, JSON.stringify(_data), { ex: ttl });
 }
 
 /**
@@ -607,7 +607,7 @@ export async function setBatch(
   ttl = 1800
 ): Promise<void> {
   const client = await getHybridRedisClient('bulk-data');
-  await client.set(`batch:${key}`, JSON.stringify(data), { ex: ttl });
+  await client.set(`batch:${key}`, JSON.stringify(_data), { ex: ttl });
 }
 
 /**

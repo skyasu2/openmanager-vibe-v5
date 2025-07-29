@@ -325,7 +325,7 @@ export const getSecurityService = (): SecurityService => {
 };
 
 // 🚀 간소화된 보안 서비스 초기화
-export const initializeSecurityService = async (): Promise<void> => {
+export const _initializeSecurityService = async (): Promise<void> => {
   const security = getSecurityService();
   console.log('🚀 간소화된 보안 서비스 초기화 완료');
 };

@@ -75,11 +75,11 @@ export class MCPProcessor {
   /**
    * MCP 프로세서 초기화
    */
-  async initialize(): Promise<void> {
+  async _initialize(): Promise<void> {
     if (this.isInitialized) return;
 
     try {
-      await this.realClient.initialize();
+      await this.realClient._initialize();
       this.isInitialized = true;
       console.log('✅ MCP Processor 초기화 완료 (컨텍스트 모드)');
     } catch (error) {
@@ -95,7 +95,7 @@ export class MCPProcessor {
     request: MCPContextRequest
   ): Promise<MCPContextResponse> {
     if (!this.isInitialized) {
-      await this.initialize();
+      await this._initialize();
     }
 
     try {

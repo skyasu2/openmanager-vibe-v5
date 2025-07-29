@@ -24,8 +24,8 @@ export function safeDecodeKorean(input: string): string {
         if (isValidKorean(decoded)) {
           return decoded;
         }
-      } catch (error) {
-        console.warn('URL 디코딩 실패:', (error as Error).message);
+      } catch {
+        console.warn('URL 디코딩 실패:', '알 수 없는 오류');
       }
     }
 
@@ -49,14 +49,14 @@ export function safeDecodeKorean(input: string): string {
       if (isValidKorean(utf8Decoded)) {
         return utf8Decoded;
       }
-    } catch (error) {
-      console.warn('Latin-1 변환 실패:', (error as Error).message);
+    } catch {
+      console.warn('Latin-1 변환 실패:', '알 수 없는 오류');
     }
 
     // 5. 원본 반환 (더 이상 처리할 수 없음)
     return input;
-  } catch (error) {
-    console.error('한글 디코딩 실패:', (error as Error).message);
+  } catch {
+    console.error('한글 디코딩 실패:', '알 수 없는 오류');
     return input;
   }
 }
@@ -82,7 +82,7 @@ export function isValidKorean(text: string): boolean {
  * 🖨️ 안전한 한글 로그 출력
  * Windows 환경에서 한글 깨짐 방지
  */
-export function safeKoreanLog(message: string, data?: any): void {
+export function safeKoreanLog(message: string, _data?: any): void {
   const timestamp = new Date().toISOString();
 
   // 한글 문자열 안전 처리
@@ -103,14 +103,17 @@ export function safeKoreanLog(message: string, data?: any): void {
     if (!safeMessage) {
       safeMessage = message;
     }
-  } catch (error) {
+  } catch {
     // 인코딩 실패 시 원본 사용
     safeMessage = message;
   }
 
   // 콘솔 출력 시 인코딩 명시
-  if (data) {
-    console.log(`[${timestamp}] ${safeMessage}`, JSON.stringify(data, null, 2));
+  if (_data) {
+    console.log(
+      `[${timestamp}] ${safeMessage}`,
+      JSON.stringify(_data, null, 2)
+    );
   } else {
     console.log(`[${timestamp}] ${safeMessage}`);
   }
@@ -134,8 +137,8 @@ export function safeProcessQuery(query: string): string {
     processed = processed.replace(/\s+/g, ' ').trim();
 
     return processed;
-  } catch (error) {
-    console.error('쿼리 처리 실패:', (error as Error).message);
+  } catch {
+    console.error('쿼리 처리 실패:', '알 수 없는 오류');
     return query;
   }
 }
@@ -160,8 +163,8 @@ export async function safeProcessRequestBody(request: Request): Promise<any> {
     }
 
     return body;
-  } catch (error) {
-    console.error('요청 본문 처리 실패:', (error as Error).message);
+  } catch {
+    console.error('요청 본문 처리 실패:', '알 수 없는 오류');
     throw new Error('Invalid request body format');
   }
 }
@@ -184,8 +187,8 @@ export function detectAndFixTerminalEncoding(): void {
 
       console.log('✅ Windows 터미널 UTF-8 인코딩 설정 완료');
     }
-  } catch (error) {
-    console.warn('터미널 인코딩 설정 실패:', (error as Error).message);
+  } catch {
+    console.warn('터미널 인코딩 설정 실패:', '알 수 없는 오류');
   }
 }
 
@@ -219,11 +222,11 @@ export function testKoreanEncoding(): {
         output,
         success,
       };
-    } catch (error) {
+    } catch {
       return {
         name: testCase.name,
         input: testCase.input,
-        output: (error as Error).message,
+        output: '알 수 없는 오류',
         success: false,
       };
     }

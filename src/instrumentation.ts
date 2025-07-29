@@ -12,12 +12,12 @@ export async function register() {
 
     try {
       // 암호화된 환경변수 로더 import
-      const { initializeEncryptedEnv } = await import(
+      const { _initializeEncryptedEnv } = await import(
         '@/lib/environment/encrypted-env-loader'
       );
 
       // 암호화된 환경변수 로드
-      const loaded = await initializeEncryptedEnv();
+      const loaded = await _initializeEncryptedEnv();
 
       if (loaded) {
         console.log('✅ 암호화된 환경변수 로드 성공');

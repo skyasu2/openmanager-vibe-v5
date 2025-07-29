@@ -70,7 +70,7 @@ export class SystemStateManager extends EventEmitter {
 
   private constructor() {
     super();
-    this.initializeStatusTracking();
+    this._initializeStatusTracking();
   }
 
   static getInstance(): SystemStateManager {
@@ -83,7 +83,7 @@ export class SystemStateManager extends EventEmitter {
   /**
    * 🚀 상태 추적 초기화
    */
-  private initializeStatusTracking(): void {
+  private _initializeStatusTracking(): void {
     // 주기적 상태 업데이트
     this.updateTimer = setInterval(() => {
       this.updateSystemStatus();

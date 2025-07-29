@@ -18,7 +18,7 @@ if (typeof window !== 'undefined') {
 /**
  * 🔧 환경변수 자동 초기화 시스템
  */
-export async function initializeEnvironment(): Promise<void> {
+export async function _initializeEnvironment(): Promise<void> {
   // 클라이언트에서는 실행하지 않음
   if (typeof window !== 'undefined') {
     console.log('🌐 클라이언트 사이드 - 환경변수 초기화 건너뜀');
@@ -78,7 +78,7 @@ export async function initializeEnvironment(): Promise<void> {
  * 🔍 환경변수 상태 확인
  */
 export async function checkEnvironmentStatus(): Promise<{
-  initialized: boolean;
+  _initialized: boolean;
   valid: boolean;
   missing: string[];
   message: string;
@@ -87,7 +87,7 @@ export async function checkEnvironmentStatus(): Promise<{
     const validation = await envManagerProxy.validateEnvironment();
 
     return {
-      initialized: true,
+      _initialized: true,
       valid: validation.valid,
       missing: validation.missing,
       message: validation.valid
@@ -96,7 +96,7 @@ export async function checkEnvironmentStatus(): Promise<{
     };
   } catch (error) {
     return {
-      initialized: false,
+      _initialized: false,
       valid: false,
       missing: ['초기화 실패'],
       message: `환경변수 상태 확인 실패: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -151,7 +151,7 @@ export async function manualEnvironmentRecovery(backupId?: string): Promise<{
 // 🚀 자동 초기화 (서버 사이드에서만)
 if (typeof window === 'undefined' && process.env.NODE_ENV !== 'test') {
   // 모듈 로드 시 자동 초기화 (비동기)
-  initializeEnvironment().catch(error => {
+  _initializeEnvironment().catch(error => {
     console.warn('⚠️ 환경변수 자동 초기화 중 오류 발생:', error);
   });
 }

@@ -27,7 +27,7 @@ export function AutoLogoutWarning({
 
   return (
     <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4'>
-      <div className='bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6 animate-in zoom-in-95 duration-300'>
+      <div className='bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6 _animate-in zoom-in-95 duration-300'>
         {/* 헤더 */}
         <div className='flex items-center gap-3 mb-4'>
           <div className='p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg'>

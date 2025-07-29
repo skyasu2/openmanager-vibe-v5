@@ -135,7 +135,7 @@ async function optimizeMemoryHandler(request: NextRequest) {
 /**
  * 📊 메모리 상태 조회 (GET)
  */
-async function getMemoryStatusHandler(request: NextRequest) {
+async function getMemoryStatusHandler(_request: NextRequest) {
   try {
     console.log('📊 메모리 상태 조회 API 호출');
 

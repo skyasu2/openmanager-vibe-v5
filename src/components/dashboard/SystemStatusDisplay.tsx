@@ -29,7 +29,7 @@ const SystemStatusDisplay = memo(function SystemStatusDisplay({
         {/* 상태 카드 */}
         <div className='flex items-center gap-3 px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border-l-4 border-yellow-500 shadow-md'>
           <div className='flex items-center gap-2'>
-            <div className='w-3 h-3 bg-yellow-500 rounded-full animate-pulse'></div>
+            <div className='w-3 h-3 bg-yellow-500 rounded-full _animate-pulse'></div>
             <span className='text-sm font-semibold text-yellow-800 dark:text-yellow-200'>
               시스템 일시정지
             </span>
@@ -59,7 +59,7 @@ const SystemStatusDisplay = memo(function SystemStatusDisplay({
         {/* 상태 카드 */}
         <div className='flex items-center gap-3 px-4 py-2 bg-green-50 dark:bg-green-900/20 rounded-lg border-l-4 border-green-500 shadow-md'>
           <div className='flex items-center gap-2'>
-            <div className='w-3 h-3 bg-green-500 rounded-full animate-pulse'></div>
+            <div className='w-3 h-3 bg-green-500 rounded-full _animate-pulse'></div>
             <span className='text-sm font-semibold text-green-800 dark:text-green-200'>
               {sessionType} 실행 중
             </span>

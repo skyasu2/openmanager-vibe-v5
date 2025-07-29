@@ -25,13 +25,13 @@ export class MCPToolHandler {
   private tools: Map<string, any> = new Map();
 
   constructor() {
-    this.initializeTools();
+    this._initializeTools();
   }
 
   /**
    * 🔧 도구 초기화
    */
-  private initializeTools(): void {
+  private _initializeTools(): void {
     const defaultTools = [
       {
         name: 'read_file',

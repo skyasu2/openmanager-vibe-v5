@@ -8,14 +8,14 @@ export default function MainPageSkeleton() {
       {/* 헤더 스켈레톤 */}
       <header className='relative z-50 flex justify-between items-center p-6'>
         <div className='flex items-center space-x-3'>
-          <div className='w-10 h-10 rounded-lg bg-white/10 animate-pulse' />
+          <div className='w-10 h-10 rounded-lg bg-white/10 _animate-pulse' />
           <div>
-            <div className='h-6 w-32 bg-white/10 rounded animate-pulse mb-1' />
-            <div className='h-4 w-24 bg-white/10 rounded animate-pulse' />
+            <div className='h-6 w-32 bg-white/10 rounded _animate-pulse mb-1' />
+            <div className='h-4 w-24 bg-white/10 rounded _animate-pulse' />
           </div>
         </div>
         <div className='flex items-center gap-3'>
-          <div className='w-10 h-10 rounded-full bg-white/10 animate-pulse' />
+          <div className='w-10 h-10 rounded-full bg-white/10 _animate-pulse' />
         </div>
       </header>
 
@@ -28,8 +28,8 @@ export default function MainPageSkeleton() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
-          <div className='h-12 w-96 bg-white/10 rounded-lg mx-auto mb-4 animate-pulse' />
-          <div className='h-6 w-64 bg-white/10 rounded mx-auto animate-pulse' />
+          <div className='h-12 w-96 bg-white/10 rounded-lg mx-auto mb-4 _animate-pulse' />
+          <div className='h-6 w-64 bg-white/10 rounded mx-auto _animate-pulse' />
         </motion.div>
 
         {/* 제어 패널 스켈레톤 */}
@@ -41,8 +41,8 @@ export default function MainPageSkeleton() {
         >
           <div className='max-w-2xl mx-auto text-center'>
             <div className='flex flex-col items-center mb-6 space-y-4'>
-              <div className='w-64 h-16 bg-white/10 rounded-xl animate-pulse' />
-              <div className='h-4 w-48 bg-white/10 rounded animate-pulse' />
+              <div className='w-64 h-16 bg-white/10 rounded-xl _animate-pulse' />
+              <div className='h-4 w-48 bg-white/10 rounded _animate-pulse' />
             </div>
           </div>
         </motion.div>
@@ -52,7 +52,7 @@ export default function MainPageSkeleton() {
           {[...Array(4)].map((_, i) => (
             <motion.div
               key={i}
-              className='p-4 bg-white/10 rounded-2xl animate-pulse'
+              className='p-4 bg-white/10 rounded-2xl _animate-pulse'
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.2 + i * 0.1 }}

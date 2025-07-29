@@ -157,7 +157,7 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
 }) => {
   // 🔧 관리자 기능 상태
   const [adminMode, setAdminMode] = useState(false);
-  const [selectedSession, setSelectedSession] = useState<string | null>(null);
+  const [_selectedSession, setSelectedSession] = useState<string | null>(null);
   const [exportInProgress, setExportInProgress] = useState(false);
 
   // 데이터 로딩 (10초마다 자동 새로고침)
@@ -218,7 +218,7 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
   }, [logs]);
 
   // 🎯 패턴 감지 로그만 필터링
-  const patternDetectionLogs = useMemo(() => {
+  const _patternDetectionLogs = useMemo(() => {
     if (!logs) return [];
     return logs.filter(log => log.patternDetected);
   }, [logs]);
@@ -344,7 +344,7 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
     }
   };
 
-  const formatDuration = (duration?: number) => {
+  const _formatDuration = (duration?: number) => {
     if (!duration) return '';
     if (duration < 1000) return `${duration}ms`;
     return `${(duration / 1000).toFixed(1)}s`;

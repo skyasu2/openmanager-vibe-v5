@@ -84,7 +84,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
                         step.status === 'completed'
                           ? 'bg-green-500'
                           : step.status === 'processing'
-                            ? 'bg-blue-500 animate-pulse'
+                            ? 'bg-blue-500 _animate-pulse'
                             : 'bg-gray-300'
                       }`}
                     />

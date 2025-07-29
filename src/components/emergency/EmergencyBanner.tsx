@@ -15,11 +15,11 @@ export function EmergencyBanner() {
   return (
     <div className='fixed top-0 left-0 right-0 z-50 bg-red-600 text-white px-4 py-2 text-center'>
       <div className='flex items-center justify-center gap-2'>
-        <span className='animate-pulse'>🚨</span>
+        <span className='_animate-pulse'>🚨</span>
         <span className='font-semibold'>
           {emergencyMode.getEmergencyMessage()}
         </span>
-        <span className='animate-pulse'>🚨</span>
+        <span className='_animate-pulse'>🚨</span>
       </div>
       <button
         onClick={() => setIsVisible(false)}

@@ -11,16 +11,16 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 // 안전한 import 처리
-let AI_ENGINE_VERSIONS: any = null;
-let DATA_GENERATOR_VERSIONS: any = null;
-let VersionManager: any = null;
-let masterAIEngine: any = null;
+let _AI_ENGINE_VERSIONS: any = null;
+let _DATA_GENERATOR_VERSIONS: any = null;
+let _VersionManager: any = null;
+let _masterAIEngine: any = null;
 
 try {
   const versionsModule = require('@/config/versions');
-  AI_ENGINE_VERSIONS = versionsModule.AI_ENGINE_VERSIONS;
-  DATA_GENERATOR_VERSIONS = versionsModule.DATA_GENERATOR_VERSIONS;
-  VersionManager = versionsModule.VersionManager;
+  _AI_ENGINE_VERSIONS = versionsModule.AI_ENGINE_VERSIONS;
+  _DATA_GENERATOR_VERSIONS = versionsModule.DATA_GENERATOR_VERSIONS;
+  _VersionManager = versionsModule.VersionManager;
 } catch (error) {
   console.warn('versions 모듈 import 실패:', (error as Error).message);
 }
@@ -29,7 +29,7 @@ try {
 try {
   // const simplifiedQueryEngineModule = require('@/services/ai/SimplifiedQueryEngine');
   // masterAIEngine = simplifiedQueryEngineModule.simplifiedQueryEngine;
-  masterAIEngine = null; // GCP Functions로 이관됨
+  _masterAIEngine = null; // GCP Functions로 이관됨
 } catch (error) {
   console.warn(
     'SimplifiedQueryEngine import 실패 (GCP Functions로 이관됨):',
@@ -39,7 +39,7 @@ try {
 
 // OptimizedDataGenerator는 Mock System으로 대체됨
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const versionInfo = {
       version: '5.0.0',

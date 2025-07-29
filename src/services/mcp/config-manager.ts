@@ -23,7 +23,7 @@ export class MCPConfigManager {
    * ~/.claude.json에 저장됩니다. 자세한 내용은 docs/MCP-GUIDE.md 참조
    */
   async loadConfig(): Promise<MCPConfig> {
-    if (this.config) {
+    if (this._config) {
       return this.config;
     }
 

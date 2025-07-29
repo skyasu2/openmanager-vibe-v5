@@ -52,11 +52,11 @@ test.describe('🎭 Performance Optimized Query Engine - Playwright E2E', () => 
       const data = await response.json();
 
       // 응답 구조 검증
-      expect(data).toHaveProperty('success', true);
-      expect(data).toHaveProperty('metrics');
-      expect(data).toHaveProperty('optimization');
-      expect(data).toHaveProperty('health');
-      expect(data).toHaveProperty('analysis');
+      expect(_data).toHaveProperty('success', true);
+      expect(_data).toHaveProperty('metrics');
+      expect(_data).toHaveProperty('optimization');
+      expect(_data).toHaveProperty('health');
+      expect(_data).toHaveProperty('analysis');
 
       // 메트릭 데이터 검증
       expect(data.metrics).toHaveProperty('totalQueries');
@@ -89,12 +89,12 @@ test.describe('🎭 Performance Optimized Query Engine - Playwright E2E', () => 
       expect(response.status()).toBe(200);
       
       const data = await response.json();
-      expect(data).toHaveProperty('success', true);
-      expect(data).toHaveProperty('benchmarkType', 'comparison');
-      expect(data).toHaveProperty('results');
+      expect(_data).toHaveProperty('success', true);
+      expect(_data).toHaveProperty('benchmarkType', 'comparison');
+      expect(_data).toHaveProperty('results');
       expect(data.results).toHaveProperty('originalEngine');
       expect(data.results).toHaveProperty('optimizedEngine');
-      expect(data).toHaveProperty('analysis');
+      expect(_data).toHaveProperty('analysis');
 
       // 성능 개선 분석
       const improvement = data.analysis.improvementPercentage;
@@ -221,7 +221,7 @@ test.describe('🎭 Performance Optimized Query Engine - Playwright E2E', () => 
       }
 
       // 실시간 업데이트 테스트 - 새로운 쿼리 실행 후 메트릭 변화 확인
-      const initialQueries = await page.textContent('[data-testid="total-queries"]');
+      const _initialQueries = await page.textContent('[data-testid="total-queries"]');
       
       // AI 어시스턴트로 쿼리 실행
       await page.goto(`${TEST_CONFIG.baseURL}`);
@@ -234,7 +234,7 @@ test.describe('🎭 Performance Optimized Query Engine - Playwright E2E', () => 
       await page.waitForTimeout(2000); // 메트릭 업데이트 대기
       
       const updatedQueries = await page.textContent('[data-testid="total-queries"]');
-      console.log(`📈 쿼리 수 변화: ${initialQueries} → ${updatedQueries}`);
+      console.log(`📈 쿼리 수 변화: ${_initialQueries} → ${updatedQueries}`);
     });
 
     test('성능 차트가 올바른 데이터를 표시해야 함', async ({ page }) => {
@@ -369,7 +369,7 @@ test.describe('🎭 Performance Optimized Query Engine - Playwright E2E', () => 
     
     test('대량 쿼리 처리 시 메모리 누수가 없어야 함', async ({ page }) => {
       // 초기 메모리 사용량 측정 (JavaScript heap)
-      const initialMemory = await page.evaluate(() => {
+      const _initialMemory = await page.evaluate(() => {
         const memory = (performance as any).memory;
         return memory ? memory.usedJSHeapSize : 0;
       });
@@ -394,8 +394,8 @@ test.describe('🎭 Performance Optimized Query Engine - Playwright E2E', () => 
         return memory ? memory.usedJSHeapSize : 0;
       });
 
-      const memoryIncrease = finalMemory - initialMemory;
-      const memoryIncreasePercent = (memoryIncrease / initialMemory) * 100;
+      const memoryIncrease = finalMemory - _initialMemory;
+      const memoryIncreasePercent = (memoryIncrease / _initialMemory) * 100;
       
       console.log(`💾 메모리 사용량 변화: ${(memoryIncrease / 1024 / 1024).toFixed(2)}MB (${memoryIncreasePercent.toFixed(2)}%)`);
       

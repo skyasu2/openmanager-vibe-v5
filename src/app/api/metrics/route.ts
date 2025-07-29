@@ -53,7 +53,7 @@ export async function GET() {
 /**
  * 📊 서버 데이터를 표준 Prometheus 형식으로 변환
  */
-function convertToPrometheusFormat(servers: any[]): string {
+function _convertToPrometheusFormat(servers: any[]): string {
   const timestamp = Math.floor(Date.now() / 1000);
   let output = '';
 
@@ -196,7 +196,7 @@ function convertToPrometheusFormat(servers: any[]): string {
  */
 export async function POST(request: NextRequest) {
   try {
-    const { query, time, timeout } = await request.json();
+    const { query, time, timeout: _timeout } = await request.json();
 
     // PromQL 쿼리 파싱 및 실행 시뮬레이션
     const result = await executePromQLQuery(query, time);

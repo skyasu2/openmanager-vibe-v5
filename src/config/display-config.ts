@@ -148,7 +148,7 @@ export const getDisplayModeConfig = (
         description: '1/3씩 표시',
       };
 
-    case 'SHOW_TWO_ROWS':
+    case 'SHOW_TWO_ROWS': {
       const layout = calculateTwoRowsLayout(screenWidth);
       return {
         cardsPerPage: Math.min(layout.total, actualCount),
@@ -157,6 +157,7 @@ export const getDisplayModeConfig = (
         gridCols: layout.cols,
         gridRows: layout.rows,
       };
+    }
 
     default:
       return {

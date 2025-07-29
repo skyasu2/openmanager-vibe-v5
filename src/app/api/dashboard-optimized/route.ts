@@ -10,7 +10,7 @@ import { getMockSystem } from '@/mock';
  * - 외부 의존성 없음
  * - 기존 API와 100% 호환
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const startTime = Date.now();
 
   try {

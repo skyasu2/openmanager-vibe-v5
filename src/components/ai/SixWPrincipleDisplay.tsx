@@ -173,7 +173,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
     },
   };
 
-  const itemVariants: any = {
+  const _itemVariants: any = {
     hidden: { opacity: 0, x: -20 },
     visible: (index: number) => ({
       opacity: 1,
@@ -228,7 +228,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
       {/* 6W 원칙 카드들 */}
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <AnimatePresence>
-          {principleConfig.map((config, index) => {
+          {principleConfig.map((config, _index) => {
             const {
               key,
               icon: IconComponent,
@@ -246,7 +246,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
                 custom={index}
                 variants={cardVariants}
                 initial='hidden'
-                animate='visible'
+                _animate='visible'
                 whileHover='hover'
                 className={`p-4 rounded-lg border-2 ${color} transition-all duration-200`}
               >
@@ -342,7 +342,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
               </span>
             </div>
             <div className='flex flex-wrap gap-2'>
-              {response.sources.map((source, index) => (
+              {response.sources.map((source, _index) => (
                 <span
                   key={index}
                   className='inline-flex items-center px-2 py-1 bg-white border border-gray-300 rounded-md text-xs text-gray-600'

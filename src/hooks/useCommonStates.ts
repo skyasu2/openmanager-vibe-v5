@@ -4,8 +4,8 @@ import { useState, useCallback } from 'react';
  * 🔧 공통 Toggle 상태 관리 훅
  * isOpen, isVisible, isExpanded 등에 사용
  */
-export function useToggle(initialValue: boolean = false) {
-  const [value, setValue] = useState(initialValue);
+export function useToggle(_initialValue: boolean = false) {
+  const [value, setValue] = useState(_initialValue);
 
   const toggle = useCallback(() => setValue(prev => !prev), []);
   const setTrue = useCallback(() => setValue(true), []);
@@ -24,8 +24,8 @@ export function useToggle(initialValue: boolean = false) {
  * 🔧 공통 Loading 상태 관리 훅
  * API 호출, 비동기 작업 등에 사용
  */
-export function useLoading(initialValue: boolean = false) {
-  const [isLoading, setIsLoading] = useState(initialValue);
+export function useLoading(_initialValue: boolean = false) {
+  const [isLoading, setIsLoading] = useState(_initialValue);
 
   const startLoading = useCallback(() => setIsLoading(true), []);
   const stopLoading = useCallback(() => setIsLoading(false), []);
@@ -94,8 +94,8 @@ export function useIndex(maxIndex: number = 0) {
  * 🔧 공통 배열 상태 관리 훅
  * 목록 데이터 관리에 사용
  */
-export function useArray<T>(initialArray: T[] = []) {
-  const [array, setArray] = useState<T[]>(initialArray);
+export function useArray<T>(_initialArray: T[] = []) {
+  const [array, setArray] = useState<T[]>(_initialArray);
 
   const push = useCallback((item: T) => {
     setArray(prev => [...prev, item]);

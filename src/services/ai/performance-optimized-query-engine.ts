@@ -96,7 +96,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       const startTime = Date.now();
 
       // 1. 기본 초기화
-      await super.initialize();
+      await super._initialize();
 
       // 2. 자주 사용되는 쿼리 패턴 예열
       const commonQueries = [
@@ -632,7 +632,7 @@ export function getPerformanceOptimizedQueryEngine(
   config?: Partial<PerformanceConfig>
 ): PerformanceOptimizedQueryEngine {
   if (!performanceEngineInstance) {
-    performanceEngineInstance = new PerformanceOptimizedQueryEngine(config);
+    performanceEngineInstance = new PerformanceOptimizedQueryEngine(_config);
   }
   return performanceEngineInstance;
 }

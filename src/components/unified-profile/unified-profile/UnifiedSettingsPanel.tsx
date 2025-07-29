@@ -356,8 +356,7 @@ export function UnifiedSettingsPanel({
             🚀 AI 설정은 GCP Functions로 이관되었습니다
           </div>
         );
-        {
-          /*
+        /*
         return (
           <AISettingsTab
             authState={authState}

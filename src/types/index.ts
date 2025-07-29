@@ -105,7 +105,7 @@ export interface SystemOverview {
   readonly onlineServers: number;
   readonly criticalAlerts: number;
   readonly averageResponseTime: number;
-  readonly systemHealth: 'excellent' | 'good' | 'warning' | 'critical';
+  readonly _systemHealth: 'excellent' | 'good' | 'warning' | 'critical';
 }
 
 // 🎯 공통 유틸리티 타입

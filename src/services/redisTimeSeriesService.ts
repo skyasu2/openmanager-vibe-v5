@@ -253,7 +253,7 @@ export class RedisTimeSeriesService {
       const { supabase } = await import('../lib/supabase');
 
       if (!supabase) {
-        console.warn('⚠️ Supabase client not initialized. 백업을 건너뜁니다');
+        console.warn('⚠️ Supabase client not _initialized. 백업을 건너뜁니다');
         return;
       }
 

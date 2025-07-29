@@ -52,7 +52,7 @@ export class EnhancedEnvCryptoManager {
   /**
    * 마스터 키 초기화
    */
-  initializeMasterKey(password: string): void {
+  _initializeMasterKey(password: string): void {
     if (!password) {
       throw new Error('마스터 비밀번호가 필요합니다');
     }
@@ -197,7 +197,7 @@ export class EnhancedEnvCryptoManager {
     };
 
     // 체크섬 생성
-    config.checksum = this.generateChecksum(config);
+    config.checksum = this.generateChecksum(_config);
 
     return config;
   }

@@ -14,7 +14,7 @@ import { memoryOptimizer } from '@/utils/MemoryOptimizer';
 // 타입 정의
 export type SystemState =
   | 'stopped'
-  | 'initializing'
+  | '_initializing'
   | 'running'
   | 'shutting_down'
   | 'error';
@@ -88,18 +88,18 @@ export class IntegratedSystemManager {
   /**
    * 🚀 시스템 초기화
    */
-  async initializeSystem(): Promise<void> {
+  async _initializeSystem(): Promise<void> {
     if (this.isInitialized) {
       console.log('⚠️ 시스템이 이미 초기화되었습니다.');
       return;
     }
 
     console.log('🚀 통합 시스템 초기화 시작...');
-    this.systemState = 'initializing';
+    this.systemState = '_initializing';
 
     try {
       // 핵심 서비스 초기화
-      await this.initializeCoreServices();
+      await this._initializeCoreServices();
 
       // 시스템 상태 업데이트
       this.systemState = 'running';
@@ -150,7 +150,7 @@ export class IntegratedSystemManager {
   /**
    * 🔧 핵심 서비스 초기화
    */
-  private async initializeCoreServices(): Promise<void> {
+  private async _initializeCoreServices(): Promise<void> {
     const services = [
       { name: 'cache', service: cacheService },
       { name: 'memory', service: memoryOptimizer },
@@ -239,7 +239,7 @@ export class IntegratedSystemManager {
    * ⚙️ 설정 업데이트
    */
   async updateSystemConfig(config: Partial<SystemConfig>): Promise<void> {
-    console.log('⚙️ 시스템 설정 업데이트:', config);
+    console.log('⚙️ 시스템 설정 업데이트:', _config);
 
     // 설정 업데이트 완료 알림 (콘솔 로그)
     console.log('✅ 시스템 설정이 업데이트되었습니다.');

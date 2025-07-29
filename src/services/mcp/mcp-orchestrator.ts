@@ -112,7 +112,7 @@ export class MCPOrchestrator {
   /**
    * 🚀 오케스트레이터 초기화
    */
-  async initialize(): Promise<void> {
+  async _initialize(): Promise<void> {
     console.log('🎭 [MCPOrchestrator] 초기화 시작...');
 
     try {

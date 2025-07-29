@@ -73,13 +73,13 @@ export class AdvancedSimulationEngine {
 
   constructor() {
     console.log('🎭 고급 시뮬레이션 엔진 초기화 (실제 데이터 기반)');
-    this.initializeRealDataScenarios();
+    this._initializeRealDataScenarios();
   }
 
   /**
    * 🔍 실제 데이터 기반 시나리오 초기화 (하드코딩 제거)
    */
-  private initializeRealDataScenarios(): void {
+  private _initializeRealDataScenarios(): void {
     // 더 이상 하드코딩된 시나리오 사용하지 않음
     // 실제 데이터 패턴에서 시나리오 추출
     console.log('📊 실제 데이터 패턴 기반 시나리오 분석 준비 완료');

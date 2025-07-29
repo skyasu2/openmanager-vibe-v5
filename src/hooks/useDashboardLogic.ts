@@ -28,7 +28,7 @@ export const useDashboardLogic = () => {
   const [dashboardState, setDashboardState] = useState<DashboardState>({
     isLoading: true,
     progress: 0,
-    phase: 'initializing',
+    phase: '_initializing',
     error: null,
     isReady: false,
   });

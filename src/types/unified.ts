@@ -245,7 +245,7 @@ export interface DashboardData {
     onlineServers: number;
     criticalAlerts: number;
     averageResponseTime: number;
-    systemHealth: 'excellent' | 'good' | 'warning' | 'critical';
+    _systemHealth: 'excellent' | 'good' | 'warning' | 'critical';
   };
   timestamp: string;
 }

@@ -35,7 +35,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
     
     // Mock RAG engine
     mockRAGEngine = {
-      initialize: vi.fn().mockResolvedValue(undefined),
+      _initialize: vi.fn().mockResolvedValue(undefined),
       searchSimilar: vi.fn().mockResolvedValue({
         results: [
           {
@@ -119,7 +119,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
         },
       };
 
-      await engine.initialize();
+      await engine._initialize();
       const response = await engine.query(request);
       
       // Wait for MCP context
@@ -163,7 +163,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
         },
       };
 
-      await engine.initialize();
+      await engine._initialize();
       const response = await engine.query(request);
       
       // Wait for async operations
@@ -198,7 +198,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
         },
       };
 
-      await engine.initialize();
+      await engine._initialize();
       const response = await engine.query(request);
 
       expect(response.success).toBe(true);
@@ -224,7 +224,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
         },
       };
 
-      await engine.initialize();
+      await engine._initialize();
       const response = await engine.query(request);
       
       // Wait for async operations
@@ -250,7 +250,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
         },
       };
 
-      await engine.initialize();
+      await engine._initialize();
 
       // Local 모드
       const localResponse = await engine.query({

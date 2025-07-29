@@ -84,7 +84,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
 
       wsRef.current.onmessage = event => {
         try {
-          const message: RealtimeMessage = JSON.parse(event.data);
+          const message: RealtimeMessage = JSON.parse(event._data);
 
           switch (message.type) {
             case 'server_update':
@@ -264,7 +264,7 @@ export const useRealtimePredictions = () => {
 
     wsRef.current.onmessage = event => {
       try {
-        const message: RealtimeMessage = JSON.parse(event.data);
+        const message: RealtimeMessage = JSON.parse(event._data);
 
         if (message.type === 'prediction_update') {
           // 새로운 예측 결과를 캐시에 추가

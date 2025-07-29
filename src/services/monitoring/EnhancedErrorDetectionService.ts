@@ -78,13 +78,13 @@ export class EnhancedErrorDetectionService {
       },
     };
 
-    this.initializeDefaultPatterns();
+    this._initializeDefaultPatterns();
   }
 
   /**
    * 기본 오류 패턴 초기화
    */
-  private initializeDefaultPatterns(): void {
+  private _initializeDefaultPatterns(): void {
     this.patterns = [
       // CPU 임계값 패턴
       {

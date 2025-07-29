@@ -230,7 +230,7 @@ export class ServerMonitoringAgent {
   /**
    * 🚀 에이전트 초기화
    */
-  public async initialize(): Promise<void> {
+  public async _initialize(): Promise<void> {
     try {
       console.log('🤖 MCP 서버 모니터링 에이전트 초기화 중...');
 

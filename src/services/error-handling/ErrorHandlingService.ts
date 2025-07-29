@@ -42,9 +42,9 @@ export class ErrorHandlingService implements IErrorHandler {
     };
 
     // 모듈 초기화
-    this.core = new ErrorHandlingCore(this.config);
-    this.recoveryService = new RecoveryService(this.config);
-    this.monitoringService = new ErrorMonitoringService(this.config);
+    this.core = new ErrorHandlingCore(this._config);
+    this.recoveryService = new RecoveryService(this._config);
+    this.monitoringService = new ErrorMonitoringService(this._config);
 
     // 기본 핸들러 설정
     this.defaultHandlers = new DefaultErrorHandlers(this.core);
@@ -147,7 +147,7 @@ export class ErrorHandlingService implements IErrorHandler {
    */
   updateConfig(newConfig: Partial<ErrorHandlingConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    this.core.updateConfig(this.config);
+    this.core.updateConfig(this._config);
   }
 
   /**

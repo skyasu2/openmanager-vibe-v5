@@ -57,7 +57,7 @@ class DataRetentionScheduler {
   private static instance: DataRetentionScheduler;
 
   private constructor() {
-    this.initializeDefaultPolicies();
+    this._initializeDefaultPolicies();
     this.startScheduler();
     console.log('🗂️ DataRetentionScheduler 초기화 완료 (2025-07-02 18:10 KST)');
   }
@@ -72,7 +72,7 @@ class DataRetentionScheduler {
   /**
    * 🎯 기본 보존 정책 초기화 - Phase 3 SSE 최적화 반영
    */
-  private initializeDefaultPolicies(): void {
+  private _initializeDefaultPolicies(): void {
     const defaultPolicies: Omit<RetentionPolicy, 'id'>[] = [
       {
         name: '실시간 메트릭 정리',
@@ -305,8 +305,8 @@ class DataRetentionScheduler {
       for (const key of keys) {
         try {
           const data = localStorage.getItem(key);
-          if (data) {
-            const parsed = JSON.parse(data);
+          if (_data) {
+            const parsed = JSON.parse(_data);
             if (
               parsed.timestamp &&
               Date.now() - parsed.timestamp > policy.maxAge
@@ -344,8 +344,8 @@ class DataRetentionScheduler {
       for (const key of keys) {
         try {
           const data = localStorage.getItem(key);
-          if (data) {
-            const parsed = JSON.parse(data);
+          if (_data) {
+            const parsed = JSON.parse(_data);
             if (
               parsed.timestamp &&
               Date.now() - parsed.timestamp > policy.maxAge
@@ -382,8 +382,8 @@ class DataRetentionScheduler {
       for (const key of keys) {
         try {
           const data = localStorage.getItem(key);
-          if (data) {
-            const parsed = JSON.parse(data);
+          if (_data) {
+            const parsed = JSON.parse(_data);
             if (
               parsed.lastActivity &&
               Date.now() - parsed.lastActivity > policy.maxAge
@@ -421,8 +421,8 @@ class DataRetentionScheduler {
       for (const key of keys) {
         try {
           const data = localStorage.getItem(key);
-          if (data) {
-            const parsed = JSON.parse(data);
+          if (_data) {
+            const parsed = JSON.parse(_data);
             if (
               parsed.timestamp &&
               Date.now() - parsed.timestamp > policy.maxAge
@@ -462,8 +462,8 @@ class DataRetentionScheduler {
       for (const key of keys) {
         try {
           const data = localStorage.getItem(key);
-          if (data) {
-            const parsed = JSON.parse(data);
+          if (_data) {
+            const parsed = JSON.parse(_data);
             if (
               parsed.cacheTime &&
               Date.now() - parsed.cacheTime > policy.maxAge
@@ -503,8 +503,8 @@ class DataRetentionScheduler {
       for (const key of keys) {
         try {
           const data = localStorage.getItem(key);
-          if (data) {
-            const parsed = JSON.parse(data);
+          if (_data) {
+            const parsed = JSON.parse(_data);
             if (
               parsed.lastActivity &&
               Date.now() - parsed.lastActivity > policy.maxAge

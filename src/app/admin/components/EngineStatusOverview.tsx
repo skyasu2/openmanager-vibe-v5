@@ -74,7 +74,7 @@ export const EngineStatusOverview: React.FC<EngineStatusOverviewProps> = ({
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
-              className='h-10 bg-slate-700/50 rounded-md animate-pulse'
+              className='h-10 bg-slate-700/50 rounded-md _animate-pulse'
             />
           ))}
         </CardContent>

@@ -72,7 +72,7 @@ export type ServerDataStore = ReturnType<typeof createServerDataStore>;
 // Export hook for component usage will be handled in StoreProvider
 
 export const createServerDataStore = (
-  initialState: Partial<ServerDataState> = {}
+  _initialState: Partial<ServerDataState> = {}
 ) => {
   return createStore<ServerDataState>()(
     devtools((set, get) => ({
@@ -93,7 +93,7 @@ export const createServerDataStore = (
           lastSyncTime: null,
         },
       },
-      ...initialState,
+      ..._initialState,
 
       // 서버 데이터 가져오기 (올바른 API 엔드포인트 사용)
       fetchServers: async () => {
@@ -106,7 +106,7 @@ export const createServerDataStore = (
           const { apiGet } = await import('@/lib/api-client');
           const result = await apiGet('/api/servers/all');
 
-          if (result.success && result.data) {
+          if (result.success && result._data) {
             console.log(
               '✅ 최적화된 서버 데이터 수신:',
               result.data.length,

@@ -152,7 +152,7 @@ export default function AIChatPage() {
           <div className='flex justify-start'>
             <div className='flex items-start space-x-2 max-w-[80%]'>
               <div className='w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center'>
-                <Sparkles className='w-4 h-4 text-white animate-pulse' />
+                <Sparkles className='w-4 h-4 text-white _animate-pulse' />
               </div>
               <div className='bg-white border border-gray-200 rounded-lg p-3'>
                 {/* <ThinkingView isThinking={true} logs={[]} /> */}

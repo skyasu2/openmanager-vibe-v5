@@ -126,7 +126,7 @@ export const DashboardDataSchema = z.object({
     onlineServers: z.number().min(0),
     criticalAlerts: z.number().min(0),
     averageResponseTime: z.number().min(0),
-    systemHealth: z.enum(['excellent', 'good', 'warning', 'critical']),
+    _systemHealth: z.enum(['excellent', 'good', 'warning', 'critical']),
   }),
   timestamp: z.string(),
 });

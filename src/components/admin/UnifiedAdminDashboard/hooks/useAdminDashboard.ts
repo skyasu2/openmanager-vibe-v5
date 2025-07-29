@@ -12,13 +12,13 @@ import type {
 import { REFRESH_INTERVALS } from '../UnifiedAdminDashboard.types';
 
 interface UseAdminDashboardOptions {
-  initialTab?: DashboardTab;
+  _initialTab?: DashboardTab;
   autoRefreshInterval?: number;
 }
 
 export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
   const {
-    initialTab = 'overview',
+    _initialTab = 'overview',
     autoRefreshInterval = REFRESH_INTERVALS.normal,
   } = options;
 
@@ -26,7 +26,7 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTab, setSelectedTab] = useState<DashboardTab>(initialTab);
+  const [selectedTab, setSelectedTab] = useState<DashboardTab>(_initialTab);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [unreadAlerts, setUnreadAlerts] = useState(0);

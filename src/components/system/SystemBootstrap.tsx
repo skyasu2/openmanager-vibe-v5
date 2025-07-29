@@ -133,7 +133,7 @@ export function SystemBootstrap(): React.JSX.Element | null {
             const redisData = await redisResponse.json();
             console.log(
               '✅ Redis 상태 확인 완료:',
-              redisData.systemHealth || '연결됨'
+              redisData._systemHealth || '연결됨'
             );
             setBootstrapStatus(prev => ({ ...prev, redis: 'success' }));
           } else {

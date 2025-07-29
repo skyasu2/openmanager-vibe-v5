@@ -29,10 +29,10 @@ export class LightweightMLEngine {
   private isInitialized = false;
 
   constructor() {
-    this.initialize();
+    this._initialize();
   }
 
-  private initialize(): void {
+  private _initialize(): void {
     // 더미 모델 초기화
     this.models.set('anomaly-detector', {
       id: 'anomaly-detector',
@@ -58,7 +58,7 @@ export class LightweightMLEngine {
 
   async predict(modelId: string, data: any): Promise<MLPrediction> {
     if (!this.isInitialized) {
-      throw new Error('ML Engine not initialized');
+      throw new Error('ML Engine not _initialized');
     }
 
     // 더미 예측 로직

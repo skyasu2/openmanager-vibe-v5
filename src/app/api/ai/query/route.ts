@@ -17,7 +17,7 @@ export const runtime = 'nodejs';
 
 // 엔진 초기화 (서버 시작 시 한 번만)
 const queryEngine = getSimplifiedQueryEngine();
-queryEngine.initialize().catch(console.error);
+queryEngine._initialize().catch(console.error);
 
 interface AIQueryRequest {
   query: string;

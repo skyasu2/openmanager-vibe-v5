@@ -32,13 +32,13 @@ export class ScalingSimulationEngine {
   private minInstances: number = 2;
 
   constructor() {
-    this.initializeScaling();
+    this._initializeScaling();
   }
 
   /**
    * 📊 스케일링 초기화
    */
-  private initializeScaling(): void {
+  private _initializeScaling(): void {
     // 초기 스케일링 이벤트 생성
     this.scalingHistory.push({
       type: 'auto_scale',

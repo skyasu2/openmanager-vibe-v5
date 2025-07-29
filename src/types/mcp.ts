@@ -75,7 +75,7 @@ export type MCPServerStatus =
   | 'connected'
   | 'disconnected'
   | 'error'
-  | 'initializing';
+  | '_initializing';
 
 export interface MCPServerInfo {
   name: string;

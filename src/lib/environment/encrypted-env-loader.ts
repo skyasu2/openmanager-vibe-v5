@@ -13,7 +13,7 @@ import {
 
 class EncryptedEnvLoader {
   private static instance: EncryptedEnvLoader;
-  private initialized = false;
+  private _initialized = false;
   private loadError: Error | null = null;
 
   private constructor() {}
@@ -28,8 +28,8 @@ class EncryptedEnvLoader {
   /**
    * 환경변수 초기화
    */
-  async initialize(): Promise<boolean> {
-    if (this.initialized) {
+  async _initialize(): Promise<boolean> {
+    if (this._initialized) {
       return true;
     }
 
@@ -57,12 +57,12 @@ class EncryptedEnvLoader {
       }
 
       // 마스터 키 초기화
-      enhancedCryptoManager.initializeMasterKey(masterPassword);
+      enhancedCryptoManager._initializeMasterKey(masterPassword);
 
       // 환경변수 복호화 및 로드
       enhancedCryptoManager.loadToProcess(encryptedConfig);
 
-      this.initialized = true;
+      this._initialized = true;
       console.log('✅ 암호화된 환경변수 로드 완료');
 
       // 보안을 위해 마스터 비밀번호 삭제
@@ -123,7 +123,7 @@ class EncryptedEnvLoader {
    * 초기화 상태 확인
    */
   isInitialized(): boolean {
-    return this.initialized;
+    return this._initialized;
   }
 
   /**
@@ -137,7 +137,7 @@ class EncryptedEnvLoader {
    * 안전한 환경변수 접근
    */
   getEnv(key: string): string | undefined {
-    if (!this.initialized && !process.env[key]) {
+    if (!this._initialized && !process.env[key]) {
       console.warn(`⚠️ 환경변수 ${key}에 접근했지만 아직 초기화되지 않음`);
     }
     return process.env[key];
@@ -168,8 +168,8 @@ export const encryptedEnvLoader = EncryptedEnvLoader.getInstance();
 /**
  * 환경변수 초기화 함수 (앱 시작 시 호출)
  */
-export async function initializeEncryptedEnv(): Promise<boolean> {
-  return encryptedEnvLoader.initialize();
+export async function _initializeEncryptedEnv(): Promise<boolean> {
+  return encryptedEnvLoader._initialize();
 }
 
 /**
@@ -236,7 +236,7 @@ if (
   typeof window === 'undefined' &&
   process.env.AUTO_LOAD_ENCRYPTED_ENV !== 'false'
 ) {
-  initializeEncryptedEnv().catch(error => {
+  _initializeEncryptedEnv().catch(error => {
     console.error('환경변수 자동 로드 실패:', error);
   });
 }

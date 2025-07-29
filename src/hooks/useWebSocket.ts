@@ -187,7 +187,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
 
       // 📈 서버 메트릭 스트림
       socket.on('server-metrics', (data: StreamData) => {
-        setLatestMetric(data);
+        setLatestMetric(_data);
         setServerMetrics(prev => {
           const newMetrics = [data, ...prev].slice(0, 100); // 최대 100개만 유지
           return newMetrics;
@@ -352,7 +352,7 @@ export const useServerWebSocket = (
   serverId: string,
   config?: WebSocketConfig
 ) => {
-  const websocket = useWebSocket(config);
+  const websocket = useWebSocket(_config);
 
   // 특정 서버의 메트릭만 필터링
   const serverMetrics = websocket.serverMetrics.filter(

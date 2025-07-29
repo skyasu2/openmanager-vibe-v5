@@ -49,7 +49,7 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
   beforeEach(async () => {
     // 새로운 엔진 인스턴스 생성
     engine = getPerformanceOptimizedQueryEngine(CIRCUIT_BREAKER_CONFIG);
-    await engine.initialize();
+    await engine._initialize();
     
     // 기존 회로 차단기 상태 초기화
     engine.clearOptimizationCache();
@@ -282,8 +282,8 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
       engine.circuitBreakers = circuitBreakers;
 
       // 초기 회로 차단기 수 확인
-      const initialBreakerCount = engine.circuitBreakers.size;
-      expect(initialBreakerCount).toBe(2);
+      const _initialBreakerCount = engine.circuitBreakers.size;
+      expect(_initialBreakerCount).toBe(2);
 
       // 전체 캐시 및 회로 차단기 초기화
       engine.clearOptimizationCache();
@@ -292,7 +292,7 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
       const finalBreakerCount = engine.circuitBreakers.size;
       expect(finalBreakerCount).toBe(0);
 
-      console.log(`🔄 시스템 복구: ${initialBreakerCount}개 → ${finalBreakerCount}개 회로 차단기`);
+      console.log(`🔄 시스템 복구: ${_initialBreakerCount}개 → ${finalBreakerCount}개 회로 차단기`);
     });
   });
 

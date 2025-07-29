@@ -823,7 +823,7 @@ function normalizeTechName(tech: string): string {
  * 중복된 기술 항목을 병합하는 함수
  */
 function mergeDuplicateTechs(techItems: TechItem[]): TechItem[] {
-  const techMap = new Map<string, TechItem>();
+  const _techMap = new Map<string, TechItem>();
 
   techItems.forEach(item => {
     const key = item.name.toLowerCase();
@@ -835,8 +835,8 @@ function mergeDuplicateTechs(techItems: TechItem[]): TechItem[] {
       existing.categories = existing.categories || [existing.category];
 
       // 다른 카테고리에서 사용된 경우 추가
-      if (!existing.categories.includes(item.category)) {
-        existing.categories.push(item.category);
+      if (!existing.categories.includes(item._category)) {
+        existing.categories.push(item._category);
       }
 
       // 더 높은 중요도로 업데이트
@@ -880,7 +880,7 @@ function mergeDuplicateTechs(techItems: TechItem[]): TechItem[] {
  */
 export function analyzeTechStack(technologies: string[]): TechCategory[] {
   const techItems: TechItem[] = [];
-  const techMap = new Map<string, TechItem>();
+  const _techMap = new Map<string, TechItem>();
 
   // 각 기술 문자열을 파싱하고 분석
   technologies.forEach(techString => {

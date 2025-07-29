@@ -75,7 +75,7 @@ export class ServerlessMemoryManager {
   /**
    * 🚫 메모리 모니터링 비활성화
    */
-  startMemoryMonitoring(intervalMs: number = 60000): void {
+  startMemoryMonitoring(_intervalMs: number = 60000): void {
     console.warn('⚠️ 메모리 모니터링 무시됨 - Vercel Dashboard 사용');
     console.warn('📊 Vercel Dashboard: https://vercel.com/dashboard');
   }

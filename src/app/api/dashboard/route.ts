@@ -40,7 +40,7 @@ interface DashboardResponse {
  * 목업 시스템에서 대시보드 데이터 가져오기
  */
 export async function GET(
-  request: NextRequest
+  _request: NextRequest
 ): Promise<NextResponse<DashboardResponse>> {
   const startTime = Date.now();
 
@@ -179,7 +179,7 @@ function calculateServerStats(servers: any[]): any {
  *
  * 시나리오 트리거 (선택사항)
  */
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function POST(_request: NextRequest): Promise<NextResponse> {
   try {
     console.log('🔄 대시보드 액션 요청...');
 

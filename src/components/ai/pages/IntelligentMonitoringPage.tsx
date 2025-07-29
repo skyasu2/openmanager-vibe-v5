@@ -90,7 +90,7 @@ export default function IntelligentMonitoringPage() {
   const [result, setResult] = useState<IntelligentAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showAIInsights, setShowAIInsights] = useState(true);
-  const [lastInsightsRefresh, setLastInsightsRefresh] = useState<number>(0);
+  const [_lastInsightsRefresh, _setLastInsightsRefresh] = useState<number>(0);
   const MIN_INSIGHTS_REFRESH_INTERVAL = 2 * 60 * 1000; // 2분 간격
 
   // ML 강화 상태
@@ -185,11 +185,11 @@ export default function IntelligentMonitoringPage() {
         throw new Error(data.error || '분석 실행 실패');
       }
 
-      setResult(data.data);
+      setResult(data._data);
       setProgress(100);
       setCurrentStep('분석 완료');
 
-      console.log('✅ 이상감지/예측 분석 완료', data.data);
+      console.log('✅ 이상감지/예측 분석 완료', data._data);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : '알 수 없는 오류';
@@ -287,7 +287,7 @@ export default function IntelligentMonitoringPage() {
             >
               {isAnalyzing ? (
                 <>
-                  <Pause className='w-4 h-4 mr-2 inline animate-pulse' />
+                  <Pause className='w-4 h-4 mr-2 inline _animate-pulse' />
                   분석 중...
                 </>
               ) : (

@@ -13,7 +13,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 // 기본 경고 생성 함수 (폴백용)
-function createBasicFallbackWarning(dataSource: string, reason: string) {
+function _createBasicFallbackWarning(dataSource: string, reason: string) {
   return {
     level: 'CRITICAL',
     type: 'DATA_FALLBACK_WARNING',
@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
           summary: { summary: 'Mock data available' },
         });
 
-      case 'refresh':
+      case 'refresh': {
         // 목업 시스템 리셋
         const mockSystem = getMockSystem();
         mockSystem.reset();
@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
           message: '목업 시스템이 리셋되었습니다.',
           status: { status: 'active' },
         });
-
+      }
       default:
         return NextResponse.json(
           { success: false, error: '지원하지 않는 액션입니다.' },

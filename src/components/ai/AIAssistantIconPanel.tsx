@@ -113,7 +113,7 @@ export default function AIAssistantIconPanel({
         className={`flex flex-row space-x-2 overflow-x-auto pb-2 ${className}`}
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        {AI_ASSISTANT_ICONS.map((item, index) => {
+        {AI_ASSISTANT_ICONS.map((item, _index) => {
           const Icon = item.icon;
           const isSelected = selectedFunction === item.id;
 
@@ -166,7 +166,7 @@ export default function AIAssistantIconPanel({
 
       {/* 아이콘 버튼들 */}
       <div className='space-y-1'>
-        {AI_ASSISTANT_ICONS.map((item, index) => {
+        {AI_ASSISTANT_ICONS.map((item, _index) => {
           const Icon = item.icon;
           const isSelected = selectedFunction === item.id;
 
@@ -229,7 +229,7 @@ export default function AIAssistantIconPanel({
       {/* 하단 상태 표시 */}
       <div className='mt-4 pt-2 border-t border-gray-200'>
         <div className='text-center'>
-          <div className='w-2 h-2 bg-green-400 rounded-full mx-auto mb-1 animate-pulse'></div>
+          <div className='w-2 h-2 bg-green-400 rounded-full mx-auto mb-1 _animate-pulse'></div>
           <p className='text-xs text-gray-500'>AI 활성</p>
         </div>
       </div>

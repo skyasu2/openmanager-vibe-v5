@@ -251,7 +251,7 @@ export function useSystemControl(): UseSystemControlReturn {
     errors: string[];
     warnings?: string[];
     recommendations?: string[];
-    isErrorState?: boolean; // fallback 대신 에러 상태 명시
+    isErrorState?: boolean; // fallback 대신 명시적 에러 상태
     mode?: string;
   }> => {
     const errors: string[] = [];

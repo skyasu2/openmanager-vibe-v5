@@ -65,7 +65,7 @@ export class VMMultiServiceOrchestrator extends EventEmitter {
   private constructor() {
     super();
     systemLogger.system('🖥️ VM 다중 서비스 오케스트레이터 초기화');
-    this.initializeServices();
+    this._initializeServices();
     this.setupGracefulShutdown();
   }
 
@@ -414,7 +414,7 @@ export class VMMultiServiceOrchestrator extends EventEmitter {
   /**
    * 🏗️ 서비스 목록 초기화
    */
-  private initializeServices(): void {
+  private _initializeServices(): void {
     this.services.set('mcp', {
       name: 'MCP 서버',
       status: 'stopped',

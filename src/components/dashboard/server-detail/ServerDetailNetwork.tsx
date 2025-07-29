@@ -49,7 +49,7 @@ export function ServerDetailNetwork({
           </div>
           {hasData && (
             <div className='text-xs text-green-600 flex items-center'>
-              <span className='w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse'></span>
+              <span className='w-2 h-2 bg-green-400 rounded-full mr-2 _animate-pulse'></span>
               활성 연결
             </div>
           )}
@@ -66,7 +66,7 @@ export function ServerDetailNetwork({
           </div>
           {hasData && (
             <div className='text-xs text-blue-600 flex items-center'>
-              <span className='w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse'></span>
+              <span className='w-2 h-2 bg-blue-400 rounded-full mr-2 _animate-pulse'></span>
               평균 응답
             </div>
           )}
@@ -82,7 +82,7 @@ export function ServerDetailNetwork({
           </div>
           {hasData && (
             <div className='text-xs text-purple-600 flex items-center'>
-              <span className='w-2 h-2 bg-purple-400 rounded-full mr-2 animate-pulse'></span>
+              <span className='w-2 h-2 bg-purple-400 rounded-full mr-2 _animate-pulse'></span>
               pkt/s
             </div>
           )}
@@ -98,7 +98,7 @@ export function ServerDetailNetwork({
           </div>
           {hasData && (
             <div className='text-xs text-orange-600 flex items-center'>
-              <span className='w-2 h-2 bg-orange-400 rounded-full mr-2 animate-pulse'></span>
+              <span className='w-2 h-2 bg-orange-400 rounded-full mr-2 _animate-pulse'></span>
               pkt/s
             </div>
           )}

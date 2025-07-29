@@ -255,7 +255,7 @@ export function getSystemUpdateStats(): {
 /**
  * 🔧 갱신 방지 시스템 초기화
  */
-export function initializeUpdatePrevention(): void {
+export function _initializeUpdatePrevention(): void {
   console.log('🛡️ 과도한 갱신 방지 시스템 초기화');
 
   // 주기적 정리 작업 (10분마다)

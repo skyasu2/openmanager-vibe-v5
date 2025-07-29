@@ -42,13 +42,13 @@ export class AIConversationManager {
   private currentSessionId: string | null = null;
 
   constructor() {
-    this.initializeProviders();
+    this._initializeProviders();
   }
 
   /**
    * AI 제공자 초기화
    */
-  private initializeProviders() {
+  private _initializeProviders() {
     // Google AI (Gemini)
     this.providers.set('google', {
       name: 'Google AI (Gemini)',

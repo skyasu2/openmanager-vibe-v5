@@ -36,7 +36,7 @@ export default function AIAssistantStatsCards({
             <div>
               <p className='text-sm font-medium text-gray-600'>패턴 제안</p>
               <p className='text-2xl font-bold text-orange-600'>
-                {stats.patternSuggestions}
+                {stats._patternSuggestions}
               </p>
             </div>
             <Lightbulb className='w-8 h-8 text-orange-500' />

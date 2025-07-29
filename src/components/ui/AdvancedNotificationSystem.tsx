@@ -281,10 +281,10 @@ function NotificationItem({
   const getPriorityIndicator = () => {
     switch (notification.priority) {
       case 'critical':
-        return <Zap className='w-3 h-3 text-red-500 animate-pulse' />;
+        return <Zap className='w-3 h-3 text-red-500 _animate-pulse' />;
       case 'high':
         return (
-          <div className='w-2 h-2 bg-orange-500 rounded-full animate-pulse' />
+          <div className='w-2 h-2 bg-orange-500 rounded-full _animate-pulse' />
         );
       case 'low':
         return <div className='w-2 h-2 bg-gray-400 rounded-full' />;

@@ -250,7 +250,7 @@ export interface Database {
         };
       };
 
-      // Archived monitoring logs table (for old data)
+      // Archived monitoring logs table (for old _data)
       archived_monitoring_logs: {
         Row: {
           id: string;

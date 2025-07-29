@@ -97,7 +97,7 @@ export default function RealtimeChart({
   /**
    * 📊 차트 옵션 초기화
    */
-  const initializeChartOptions = useCallback(() => {
+  const _initializeChartOptions = useCallback(() => {
     const options = {
       responsive: true,
       maintainAspectRatio: false,
@@ -396,8 +396,8 @@ export default function RealtimeChart({
 
   // 🎬 초기화 및 이벤트 리스너
   useEffect(() => {
-    initializeChartOptions();
-  }, [initializeChartOptions]);
+    _initializeChartOptions();
+  }, [_initializeChartOptions]);
 
   useEffect(() => {
     if (isConnected) {
@@ -457,7 +457,7 @@ export default function RealtimeChart({
       <div className='flex justify-between items-center mb-4'>
         <div className='flex items-center space-x-3'>
           <div
-            className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}
+            className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} _animate-pulse`}
           />
           <h3 className='text-lg font-semibold text-white'>
             실시간 메트릭 차트

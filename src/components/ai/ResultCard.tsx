@@ -161,7 +161,7 @@ export default function ResultCard({
         {data.metrics && data.metrics.length > 0 && (
           <div className='mb-4'>
             <div className='grid grid-cols-2 md:grid-cols-3 gap-3'>
-              {data.metrics.map((metric, index) => (
+              {data.metrics.map((metric, _index) => (
                 <div
                   key={index}
                   className='bg-white rounded-xl p-3 shadow-sm border border-gray-100'
@@ -273,7 +273,7 @@ export default function ResultCard({
         {data.actions && data.actions.length > 0 && (
           <div className='mt-4 pt-4 border-t border-gray-200'>
             <div className='flex flex-wrap gap-2'>
-              {data.actions.map((action, index) => (
+              {data.actions.map((action, _index) => (
                 <button
                   key={index}
                   onClick={action.action}

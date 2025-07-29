@@ -204,7 +204,7 @@ const FeatureCardItem = memo(
     const getIconAnimation = (card: FeatureCard) => {
       if (card.isAICard) {
         return {
-          animate: {
+          _animate: {
             rotate: [0, 360],
             scale: [1, 1.1, 1],
           },
@@ -223,7 +223,7 @@ const FeatureCardItem = memo(
       }
       if (card.isVibeCard) {
         return {
-          animate: {
+          _animate: {
             scale: [1, 1.2, 1],
             rotate: [0, 5, -5, 0],
           },
@@ -293,12 +293,12 @@ const FeatureCardItem = memo(
           {card.isVibeCard && (
             <>
               {/* 장식 요소 */}
-              <div className='absolute top-2 right-2 w-6 h-6 bg-yellow-400/30 rounded-full animate-pulse'></div>
-              <div className='absolute bottom-2 left-2 w-4 h-4 bg-yellow-400/20 rounded-full animate-pulse'></div>
+              <div className='absolute top-2 right-2 w-6 h-6 bg-yellow-400/30 rounded-full _animate-pulse'></div>
+              <div className='absolute bottom-2 left-2 w-4 h-4 bg-yellow-400/20 rounded-full _animate-pulse'></div>
 
               {/* 개선된 배경 그라데이션 - 애니메이션 효과 */}
               <div className='absolute inset-0 rounded-2xl overflow-hidden'>
-                <div className='absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 opacity-90 bg-[length:200%_200%] animate-gradient' />
+                <div className='absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 opacity-90 bg-[length:200%_200%] _animate-gradient' />
               </div>
 
               {/* 텍스트 가독성을 위한 오버레이 */}

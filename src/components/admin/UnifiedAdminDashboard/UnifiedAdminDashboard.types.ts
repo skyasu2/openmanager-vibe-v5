@@ -31,7 +31,7 @@ export interface SystemStatus {
     total: number;
     engines: Array<{
       name: string;
-      status: 'active' | 'inactive' | 'error' | 'initializing';
+      status: 'active' | 'inactive' | 'error' | '_initializing';
       lastUsed?: string;
       performance?: number;
     }>;

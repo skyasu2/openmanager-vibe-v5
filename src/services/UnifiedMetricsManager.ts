@@ -165,7 +165,7 @@ export class UnifiedMetricsManager {
   };
 
   private constructor() {
-    this.initializeServers();
+    this._initializeServers();
   }
 
   static getInstance(): UnifiedMetricsManager {
@@ -303,7 +303,7 @@ export class UnifiedMetricsManager {
   /**
    * 📊 초기 서버 데이터 생성
    */
-  private initializeServers(): void {
+  private _initializeServers(): void {
     // 🔍 환경별 서버 수 동적 결정
     const dataGeneratorConfig = (
       globalThis as any
@@ -931,7 +931,7 @@ export class UnifiedMetricsManager {
       // 서버가 비어있으면 초기화 재시도
       if (this.servers.size === 0) {
         console.log('📊 서버 목록이 비어있음. 재초기화 시도...');
-        this.initializeServers();
+        this._initializeServers();
       }
 
       const serverList = Array.from(this.servers.values()).map(server => ({

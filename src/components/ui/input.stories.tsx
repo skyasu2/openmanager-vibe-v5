@@ -90,7 +90,7 @@ export const AIQueryInput: Story = {
       <Card className='w-96'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <div className='w-3 h-3 bg-purple-500 rounded-full animate-pulse' />
+            <div className='w-3 h-3 bg-purple-500 rounded-full _animate-pulse' />
             AI 어시스턴트
           </CardTitle>
         </CardHeader>
@@ -442,7 +442,7 @@ export const LoadingState: Story = {
             type='text'
             value='192.168.1.100'
             disabled
-            className='animate-pulse'
+            className='_animate-pulse'
             aria-describedby='loading-message'
           />
           <p

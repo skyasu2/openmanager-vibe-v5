@@ -71,17 +71,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, ...data } = body;
+    const { action, ..._data } = body;
 
     switch (action) {
       case 'test':
-        return handleSendTestNotification(data);
+        return handleSendTestNotification(_data);
       case 'validate':
-        return handleValidateNotification(data);
+        return handleValidateNotification(_data);
       case 'clear-history':
         return handleClearHistory();
       case 'update-settings':
-        return handleUpdateSettings(data);
+        return handleUpdateSettings(_data);
       default:
         return NextResponse.json(
           { success: false, error: '지원하지 않는 액션입니다.' },
@@ -120,7 +120,7 @@ async function handleGetStatus(): Promise<NextResponse> {
 
   return NextResponse.json({
     success: true,
-    data: status,
+    _data: status,
     message:
       '브라우저 알림 상태 조회 완료 (클라이언트에서 실제 상태 확인 필요)',
     timestamp: new Date().toISOString(),
@@ -156,7 +156,7 @@ async function handleGetHistory(
 
   return NextResponse.json({
     success: true,
-    data: history,
+    _data: history,
     message: '알림 히스토리는 클라이언트에서 관리됩니다.',
     timestamp: new Date().toISOString(),
   });
@@ -168,7 +168,7 @@ async function handleGetHistory(
 async function handleTestSupport(): Promise<NextResponse> {
   return NextResponse.json({
     success: true,
-    data: {
+    _data: {
       serverSupport: false, // 서버에서는 브라우저 알림 불가
       requiresClientCheck: true,
       features: {
@@ -186,19 +186,19 @@ async function handleTestSupport(): Promise<NextResponse> {
 /**
  * 🧪 테스트 알림 전송 (클라이언트 지시)
  */
-async function handleSendTestNotification(data: any): Promise<NextResponse> {
+async function handleSendTestNotification(_data: any): Promise<NextResponse> {
   const testNotification: NotificationRequest = {
-    title: data.title || 'OpenManager 테스트 알림',
-    message: data.message || '브라우저 알림이 정상적으로 작동합니다.',
-    severity: data.severity || 'warning',
-    serverId: data.serverId || 'test-server',
+    title: _data.title || 'OpenManager 테스트 알림',
+    message: _data.message || '브라우저 알림이 정상적으로 작동합니다.',
+    severity: _data.severity || 'warning',
+    serverId: _data.serverId || 'test-server',
     type: 'test',
   };
 
   // 서버에서는 알림 데이터만 검증하고 반환
   return NextResponse.json({
     success: true,
-    data: {
+    _data: {
       notification: testNotification,
       instruction: 'client-send-required',
       timestamp: new Date().toISOString(),
@@ -212,29 +212,29 @@ async function handleSendTestNotification(data: any): Promise<NextResponse> {
  * ✅ 알림 데이터 검증
  */
 async function handleValidateNotification(
-  data: NotificationRequest
+  _data: NotificationRequest
 ): Promise<NextResponse> {
   const errors: string[] = [];
 
   // 필수 필드 검증
-  if (!data.title || data.title.trim().length === 0) {
+  if (!_data.title || _data.title.trim().length === 0) {
     errors.push('제목이 필요합니다.');
   }
-  if (!data.message || data.message.trim().length === 0) {
+  if (!_data.message || _data.message.trim().length === 0) {
     errors.push('메시지가 필요합니다.');
   }
   if (
-    !data.severity ||
-    !['info', 'warning', 'critical'].includes(data.severity)
+    !_data.severity ||
+    !['info', 'warning', 'critical'].includes(_data.severity)
   ) {
     errors.push('올바른 심각도를 지정해야 합니다.');
   }
 
   // 길이 제한 검증
-  if (data.title && data.title.length > 100) {
+  if (_data.title && _data.title.length > 100) {
     errors.push('제목은 100자를 초과할 수 없습니다.');
   }
-  if (data.message && data.message.length > 300) {
+  if (_data.message && _data.message.length > 300) {
     errors.push('메시지는 300자를 초과할 수 없습니다.');
   }
 
@@ -242,10 +242,10 @@ async function handleValidateNotification(
 
   return NextResponse.json({
     success: isValid,
-    data: {
+    _data: {
       isValid,
       errors,
-      validatedData: isValid ? data : null,
+      validatedData: isValid ? _data : null,
     },
     message: isValid ? '알림 데이터 검증 성공' : '알림 데이터 검증 실패',
     timestamp: new Date().toISOString(),
@@ -258,7 +258,7 @@ async function handleValidateNotification(
 async function handleClearHistory(): Promise<NextResponse> {
   return NextResponse.json({
     success: true,
-    data: {
+    _data: {
       instruction: 'client-clear-required',
       timestamp: new Date().toISOString(),
     },
@@ -298,7 +298,7 @@ async function handleUpdateSettings(settings: any): Promise<NextResponse> {
 
   return NextResponse.json({
     success: true,
-    data: {
+    _data: {
       validatedSettings: validSettings,
       instruction: 'client-update-required',
       timestamp: new Date().toISOString(),

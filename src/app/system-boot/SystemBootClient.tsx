@@ -24,12 +24,12 @@ const SmoothLoadingSpinner = () => {
       />
       {/* 내부 링 - 더 부드러운 애니메이션 */}
       <div
-        className='absolute inset-2 border-3 border-transparent border-b-purple-400 border-l-pink-400 rounded-full animate-reverse-spin'
+        className='absolute inset-2 border-3 border-transparent border-b-purple-400 border-l-pink-400 rounded-full _animate-reverse-spin'
         style={{ animationDuration: '2.5s' }}
       />
       {/* 중앙 아이콘 - 부드러운 펄스 */}
       <div
-        className='absolute inset-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center animate-pulse'
+        className='absolute inset-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center _animate-pulse'
         style={{ animationDuration: '2s' }}
       >
         <Monitor className='w-4 h-4 text-white' />
@@ -69,7 +69,7 @@ const ProgressBar = ({ progress }: { progress: number }) => {
           }}
         >
           {/* 진행률 바 내부 반짝임 효과 */}
-          <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer' />
+          <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent _animate-shimmer' />
 
           {/* 진행률 바 상단 하이라이트 */}
           <div className='absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-white/30 via-white/50 to-white/30 rounded-full' />
@@ -77,7 +77,7 @@ const ProgressBar = ({ progress }: { progress: number }) => {
 
         {/* 진행률 포인터 - 부드러운 트랜지션 */}
         <div
-          className='absolute top-1/2 transform -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg border-2 border-blue-400 animate-pulse transition-all duration-700 ease-out'
+          className='absolute top-1/2 transform -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg border-2 border-blue-400 _animate-pulse transition-all duration-700 ease-out'
           style={{ left: `${progress}%`, animationDuration: '1.5s' }}
         />
       </div>
@@ -288,9 +288,9 @@ export default function SystemBootClient() {
 
       {/* 부드러운 배경 오버레이 */}
       <div className='absolute inset-0'>
-        <div className='absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse' />
-        <div className='absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse' />
-        <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-500/5 rounded-full blur-3xl animate-pulse' />
+        <div className='absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl _animate-pulse' />
+        <div className='absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl _animate-pulse' />
+        <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-500/5 rounded-full blur-3xl _animate-pulse' />
       </div>
 
       {/* 메인 로딩 화면 */}
@@ -375,7 +375,7 @@ export default function SystemBootClient() {
 
                     {/* 현재 단계 펄스 효과 */}
                     {isCurrentStep && (
-                      <div className='absolute inset-0 border-2 border-white/50 rounded-xl animate-pulse' />
+                      <div className='absolute inset-0 border-2 border-white/50 rounded-xl _animate-pulse' />
                     )}
 
                     {/* 완료 체크 마크 */}
@@ -405,7 +405,7 @@ export default function SystemBootClient() {
               잠시만 기다려주세요. 최고의 모니터링 경험을 준비하고 있습니다.
             </p>
             {bootState === 'completed' && (
-              <p className='text-green-400 mt-2 animate-pulse'>
+              <p className='text-green-400 mt-2 _animate-pulse'>
                 🎉 시스템 준비 완료! 대시보드로 이동 중...
               </p>
             )}

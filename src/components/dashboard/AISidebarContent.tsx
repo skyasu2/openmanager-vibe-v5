@@ -378,13 +378,13 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                 >
                   <div className='bg-gray-100 p-3 rounded-lg'>
                     <div className='flex items-center gap-2 text-gray-600'>
-                      <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce'></div>
+                      <div className='w-2 h-2 bg-gray-400 rounded-full _animate-bounce'></div>
                       <div
-                        className='w-2 h-2 bg-gray-400 rounded-full animate-bounce'
+                        className='w-2 h-2 bg-gray-400 rounded-full _animate-bounce'
                         style={{ animationDelay: '0.1s' }}
                       ></div>
                       <div
-                        className='w-2 h-2 bg-gray-400 rounded-full animate-bounce'
+                        className='w-2 h-2 bg-gray-400 rounded-full _animate-bounce'
                         style={{ animationDelay: '0.2s' }}
                       ></div>
                       <span className='text-sm'>분석 중...</span>

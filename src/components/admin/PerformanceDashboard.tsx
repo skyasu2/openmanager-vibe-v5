@@ -320,8 +320,8 @@ export default function PerformanceDashboard() {
   const getModeDistributionData = () => {
     if (!data?.stats.modeStats) return [];
 
-    return Object.entries(data.stats.modeStats).map(([mode, stats]) => ({
-      name: mode,
+    return Object.entries(data.stats.modeStats).map(([_mode, stats]) => ({
+      name: _mode,
       value: stats.requests,
       successRate: stats.successRate * 100,
     }));

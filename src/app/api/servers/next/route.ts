@@ -21,11 +21,11 @@ import { getMockSystem } from '@/mock';
  */
 
 // 순차 생성을 위한 상태 관리
-let currentServerIndex = 0;
-let isGeneratorInitialized = false;
+let _currentServerIndex = 0;
+let _isGeneratorInitialized = false;
 
 // Uptime 포맷 유틸리티 함수
-function formatUptime(hours: number): string {
+function _formatUptime(hours: number): string {
   const days = Math.floor(hours / 24);
   const remainingHours = Math.floor(hours % 24);
   const minutes = Math.floor((hours % 1) * 60);
@@ -34,22 +34,22 @@ function formatUptime(hours: number): string {
 }
 
 // 🚫 서버 데이터 생성기 초기화 비활성화 (서버리스 호환)
-const initializeGenerator = async () => {
+const __initializeGenerator = async () => {
   console.warn('⚠️ 서버 데이터 생성기 초기화 무시됨 - 서버리스 환경');
   console.warn('📊 요청별 데이터 생성 사용 권장');
 
   // 🚫 전역 상태 관리 비활성화
-  // await GCPRealDataService.getInstance().initialize();
+  // await GCPRealDataService.getInstance()._initialize();
   // await GCPRealDataService.getInstance().startAutoGeneration();
 
   console.log('🚫 서버리스 환경에서는 요청별 처리만 지원');
 };
 
 // 간단한 서버 상태 관리 (실제로는 데이터베이스 사용)
-let serverCount = 0;
-let lastGeneratedTime = Date.now();
+let _serverCount = 0;
+let _lastGeneratedTime = Date.now();
 // 🚀 생성된 서버들을 메모리에 저장 (실제 환경에서는 데이터베이스 사용)
-let generatedServers: ServerInfo[] = [];
+let _generatedServers: ServerInfo[] = [];
 
 interface ServerInfo {
   id: string;
@@ -100,9 +100,9 @@ export const dynamic = 'force-dynamic';
  * 🖥️ 서버 Next API
  * 다음 서버 정보 또는 서버 페이지네이션을 처리하는 엔드포인트
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(_request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const sortBy = searchParams.get('sortBy') || 'name';
@@ -213,9 +213,9 @@ export async function GET(request: NextRequest) {
 /**
  * POST 요청으로 서버 배치 작업 수행
  */
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await _request.json();
     const { action, serverIds, settings } = body;
 
     switch (action) {
@@ -285,7 +285,7 @@ export async function POST(request: NextRequest) {
 /**
  * OPTIONS - CORS 지원
  */
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS(_request: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {

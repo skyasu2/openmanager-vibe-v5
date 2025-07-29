@@ -238,7 +238,7 @@ export class ServerEnvironmentManager {
    * 🧮 체크섬 생성
    */
   private generateChecksum(data: Record<string, EncryptedEnvVar>): string {
-    return createHash('sha256').update(JSON.stringify(data)).digest('hex');
+    return createHash('sha256').update(JSON.stringify(_data)).digest('hex');
   }
 
   /**

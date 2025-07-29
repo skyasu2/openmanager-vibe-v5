@@ -31,21 +31,21 @@ export class LoggingService implements ILogger {
    * 디버그 로그
    */
   debug(message: string, data?: Record<string, any>): void {
-    this.log('debug', message, data);
+    this.log('debug', message, _data);
   }
 
   /**
    * 정보 로그
    */
   info(message: string, data?: Record<string, any>): void {
-    this.log('info', message, data);
+    this.log('info', message, _data);
   }
 
   /**
    * 경고 로그
    */
   warn(message: string, data?: Record<string, any>): void {
-    this.log('warn', message, data);
+    this.log('warn', message, _data);
   }
 
   /**
@@ -143,7 +143,7 @@ export class LoggingService implements ILogger {
           return match[1];
         }
         // 파일 경로에서 모듈명 추출
-        const fileMatch = line.match(/\/([^\/]+)\.ts:/);
+        const fileMatch = line.match(/\/([^/]+)\.ts:/);
         if (fileMatch) {
           return fileMatch[1];
         }
@@ -161,7 +161,7 @@ export class LoggingService implements ILogger {
 
     let output = `${prefix} ${entry.message}`;
 
-    if (entry.data) {
+    if (entry._data) {
       output += `\n  Data: ${JSON.stringify(entry.data, null, 2)}`;
     }
 
@@ -292,7 +292,7 @@ export class LoggingService implements ILogger {
         log.level,
         log.module,
         log.message,
-        log.data ? JSON.stringify(log.data) : '',
+        log.data ? JSON.stringify(log._data) : '',
         log.error ? log.error.message : '',
       ]);
 

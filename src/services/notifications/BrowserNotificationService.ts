@@ -37,13 +37,13 @@ class BrowserNotificationService {
   >();
 
   constructor() {
-    this.initializePermission();
+    this._initializePermission();
   }
 
   /**
    * 🔔 권한 초기화
    */
-  private async initializePermission(): Promise<void> {
+  private async _initializePermission(): Promise<void> {
     // 서버사이드 렌더링 환경 체크
     if (typeof window === 'undefined') {
       // 🚨 빌드 시에는 경고 메시지 출력하지 않음 (Vercel 최적화)

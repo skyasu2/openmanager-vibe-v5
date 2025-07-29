@@ -16,7 +16,7 @@ function normalizeUTF8(text: string): string {
     const normalized = decoder.decode(encoded);
 
     return normalized;
-  } catch (error) {
+  } catch {
     // 정규화 실패 시 원본 반환
     return text;
   }
@@ -59,10 +59,10 @@ export const utf8Logger = {
   /**
    * 한국어 쿼리 전용 로그 (이모지 포함)
    */
-  korean: (emoji: string, message: string, data?: unknown) => {
+  korean: (emoji: string, message: string, _data?: unknown) => {
     const normalizedMessage = normalizeUTF8(`${emoji} ${message}`);
-    if (data) {
-      console.log(normalizedMessage, data);
+    if (_data) {
+      console.log(normalizedMessage, _data);
     } else {
       console.log(normalizedMessage);
     }

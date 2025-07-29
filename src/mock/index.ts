@@ -123,7 +123,7 @@ let mockSystemInstance: MockSystem | null = null;
  */
 export function getMockSystem(config?: MockSystemConfig): MockSystem {
   if (!mockSystemInstance) {
-    mockSystemInstance = new MockSystem(config);
+    mockSystemInstance = new MockSystem(_config);
   }
   return mockSystemInstance;
 }

@@ -24,7 +24,7 @@ export class DummyCollector implements MetricCollector {
 
   constructor(config: CollectorConfig) {
     this.config = config;
-    this.initializeServers();
+    this._initializeServers();
   }
 
   /**
@@ -85,7 +85,7 @@ export class DummyCollector implements MetricCollector {
   /**
    * 30대 서버 초기화 (K8s + 온프레미스 + AWS 혼합)
    */
-  private initializeServers(): void {
+  private _initializeServers(): void {
     const serverConfigs: DummyServerConfig[] = [
       // Kubernetes 클러스터 (10대)
       ...Array.from({ length: 10 }, (_, i) => ({
@@ -122,7 +122,7 @@ export class DummyCollector implements MetricCollector {
     ];
 
     serverConfigs.forEach(config => {
-      this.servers.set(config.id, config);
+      this.servers.set(config.id, _config);
     });
   }
 

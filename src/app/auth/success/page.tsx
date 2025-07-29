@@ -52,7 +52,7 @@ export default function AuthSuccessPage() {
         });
 
         // 🚀 Phase 2 최적화: 대기 시간 추가 단축 + 이벤트 기반 처리
-        const initialWait = isVercel ? 500 : 200; // 2000 → 500ms
+        const _initialWait = isVercel ? 500 : 200; // 2000 → 500ms
         const sessionCheckStart = performance.now();
 
         // 이벤트 기반 세션 감지
@@ -71,7 +71,7 @@ export default function AuthSuccessPage() {
           setTimeout(() => {
             unsubscribe.data.subscription.unsubscribe();
             resolve(false);
-          }, initialWait);
+          }, _initialWait);
         });
 
         // 즉시 세션 확인과 이벤트 기반 감지를 병렬로
@@ -273,7 +273,7 @@ export default function AuthSuccessPage() {
             <Loader2 className='w-16 h-16 text-blue-500 animate-spin mx-auto' />
           )}
           {status === 'success' && (
-            <CheckCircle className='w-16 h-16 text-green-500 mx-auto animate-bounce' />
+            <CheckCircle className='w-16 h-16 text-green-500 mx-auto _animate-bounce' />
           )}
           {status === 'error' && (
             <div className='w-16 h-16 text-red-500 mx-auto'>❌</div>

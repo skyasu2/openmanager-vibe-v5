@@ -31,7 +31,7 @@ const SmoothTransition: React.FC<SmoothTransitionProps> = memo(
   }) => {
     // 페이지 전환 애니메이션 variants
     const pageVariants: any = {
-      initial: {
+      _initial: {
         opacity: 0,
         y: 20,
         scale: 0.98,
@@ -58,7 +58,7 @@ const SmoothTransition: React.FC<SmoothTransitionProps> = memo(
     };
 
     const contentVariants: any = {
-      initial: {
+      _initial: {
         opacity: 0,
         y: 10,
       },
@@ -112,8 +112,8 @@ const SmoothTransition: React.FC<SmoothTransitionProps> = memo(
             <motion.div
               key='loading'
               variants={pageVariants}
-              initial='initial'
-              animate='enter'
+              initial='_initial'
+              _animate='enter'
               exit='exit'
               onAnimationComplete={definition => {
                 if (definition === 'enter') {
@@ -131,8 +131,8 @@ const SmoothTransition: React.FC<SmoothTransitionProps> = memo(
             <motion.div
               key='content'
               variants={pageVariants}
-              initial='initial'
-              animate='enter'
+              initial='_initial'
+              _animate='enter'
               exit='exit'
               onAnimationComplete={definition => {
                 if (definition === 'enter') {

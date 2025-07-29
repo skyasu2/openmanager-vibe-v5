@@ -26,7 +26,7 @@ import {
 export class ServiceRegistry {
   private static instance: ServiceRegistry;
   private isInitialized = false;
-  private initializationPromise?: Promise<void>;
+  private _initializationPromise?: Promise<void>;
 
   static getInstance(): ServiceRegistry {
     if (!ServiceRegistry.instance) {
@@ -43,12 +43,12 @@ export class ServiceRegistry {
       return;
     }
 
-    if (this.initializationPromise) {
-      return this.initializationPromise;
+    if (this._initializationPromise) {
+      return this._initializationPromise;
     }
 
-    this.initializationPromise = this.doRegisterServices();
-    await this.initializationPromise;
+    this._initializationPromise = this.doRegisterServices();
+    await this._initializationPromise;
   }
 
   /**
@@ -244,26 +244,26 @@ export class ServiceRegistry {
   /**
    * 서비스 초기화
    */
-  async initializeServices(): Promise<void> {
+  async _initializeServices(): Promise<void> {
     console.log('🚀 Initializing services...');
 
     try {
       // 1. 로깅 서비스 초기화
       const logger = container.resolve<ILogger>(SERVICE_TOKENS.LOGGER);
-      logger.info('Logging service initialized');
+      logger.info('Logging service _initialized');
 
       // 2. 에러 처리 서비스 초기화
       const errorHandler = container.resolve<IErrorHandler>(
         SERVICE_TOKENS.ERROR_HANDLER
       );
-      logger.info('Error handling service initialized');
+      logger.info('Error handling service _initialized');
 
       // 3. 추가 서비스들 초기화
-      logger.info('Additional services initialized');
+      logger.info('Additional services _initialized');
 
-      console.log('✅ All services initialized successfully');
+      console.log('✅ All services _initialized successfully');
     } catch (error) {
-      console.error('❌ Service initialization failed:', error);
+      console.error('❌ Service _initialization failed:', error);
       throw error;
     }
   }
@@ -292,12 +292,12 @@ export class ServiceRegistry {
    */
   getServiceStatus(): {
     registered: string[];
-    initialized: boolean;
+    _initialized: boolean;
     healthy: boolean;
   } {
     return {
       registered: container.getRegisteredServices().map(token => String(token)),
-      initialized: this.isInitialized,
+      _initialized: this.isInitialized,
       healthy:
         this.isInitialized && container.getRegisteredServices().length > 0,
     };
@@ -321,9 +321,9 @@ export class ServiceRegistry {
 // 편의 함수들
 export const serviceRegistry = ServiceRegistry.getInstance();
 
-export async function initializeApplication(): Promise<void> {
+export async function _initializeApplication(): Promise<void> {
   await serviceRegistry.registerServices();
-  await serviceRegistry.initializeServices();
+  await serviceRegistry._initializeServices();
 }
 
 export async function cleanupApplication(): Promise<void> {

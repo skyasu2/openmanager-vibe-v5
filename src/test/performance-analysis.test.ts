@@ -59,9 +59,9 @@ describe('SimplifiedQueryEngine 성능 분석', () => {
       const startTime = Date.now();
       
       // 여러 번 초기화 호출 (실제 사용 패턴)
-      await originalEngine.initialize();
-      await originalEngine.initialize(); // 중복 호출
-      await originalEngine.initialize(); // 중복 호출
+      await originalEngine._initialize();
+      await originalEngine._initialize(); // 중복 호출
+      await originalEngine._initialize(); // 중복 호출
       
       const initTime = Date.now() - startTime;
       
@@ -73,7 +73,7 @@ describe('SimplifiedQueryEngine 성능 분석', () => {
       const startTime = Date.now();
       
       // 워밍업 수행
-      await optimizedEngine.initialize();
+      await optimizedEngine._initialize();
       
       const warmupTime = Date.now() - startTime;
       const stats = optimizedEngine.getPerformanceStats();

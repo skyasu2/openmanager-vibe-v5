@@ -30,7 +30,7 @@ interface ThinkingProcessVisualizerProps {
   isActive: boolean;
   onStepComplete?: (step: AIThinkingStep) => void;
   showSubSteps?: boolean;
-  animate?: boolean;
+  _animate?: boolean;
 }
 
 const stepIcons = {
@@ -58,7 +58,7 @@ export const ThinkingProcessVisualizer: React.FC<
   isActive,
   onStepComplete,
   showSubSteps = true,
-  animate = true,
+  _animate = true,
 }) => {
   const [visibleSteps, setVisibleSteps] = useState<AIThinkingStep[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -68,7 +68,7 @@ export const ThinkingProcessVisualizer: React.FC<
     if (thinkingState.steps.length > visibleSteps.length) {
       const newSteps = thinkingState.steps.slice(visibleSteps.length);
 
-      newSteps.forEach((step, index) => {
+      newSteps.forEach((step, _index) => {
         setTimeout(() => {
           setVisibleSteps(prev => [...prev, step]);
           if (onStepComplete) {
@@ -200,7 +200,7 @@ export const ThinkingProcessVisualizer: React.FC<
       {/* 단계별 상세 표시 */}
       <div className='space-y-3 max-h-96 overflow-y-auto'>
         <AnimatePresence>
-          {visibleSteps.map((step, index) => {
+          {visibleSteps.map((step, _index) => {
             const StepIcon = stepIcons[step.type] || Brain;
             const isCurrentStep = index === currentStepIndex && isActive;
             const isCompleted =
@@ -272,21 +272,24 @@ export const ThinkingProcessVisualizer: React.FC<
                       )}
 
                     {/* 메타데이터 */}
-                    {step.metadata && Object.keys(step.metadata).length > 0 && (
-                      <details className='mt-2'>
-                        <summary className='text-xs text-gray-400 cursor-pointer hover:text-gray-600'>
-                          상세 정보
-                        </summary>
-                        <div className='mt-1 text-xs text-gray-500 bg-white bg-opacity-30 p-2 rounded'>
-                          {Object.entries(step.metadata).map(([key, value]) => (
-                            <div key={key} className='flex justify-between'>
-                              <span className='font-medium'>{key}:</span>
-                              <span>{String(value)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </details>
-                    )}
+                    {step.metadata &&
+                      Object.keys(step.meta_data).length > 0 && (
+                        <details className='mt-2'>
+                          <summary className='text-xs text-gray-400 cursor-pointer hover:text-gray-600'>
+                            상세 정보
+                          </summary>
+                          <div className='mt-1 text-xs text-gray-500 bg-white bg-opacity-30 p-2 rounded'>
+                            {Object.entries(step.meta_data).map(
+                              ([key, value]) => (
+                                <div key={key} className='flex justify-between'>
+                                  <span className='font-medium'>{key}:</span>
+                                  <span>{String(value)}</span>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        </details>
+                      )}
                   </div>
                 </div>
               </motion.div>

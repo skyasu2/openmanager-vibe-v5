@@ -28,8 +28,8 @@ interface UseServerDashboardOptions {
 // 🆕 새로운 Enhanced 훅 인터페이스
 interface UseEnhancedServerDashboardProps {
   servers: Server[];
-  initialViewMode?: ViewMode;
-  initialDisplayMode?: ServerDisplayMode;
+  _initialViewMode?: ViewMode;
+  _initialDisplayMode?: ServerDisplayMode;
 }
 
 interface UseEnhancedServerDashboardReturn {
@@ -405,13 +405,13 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 // 🆕 새로운 Enhanced 서버 대시보드 훅 (세로 2줄 + UI/UX 개선)
 export function useEnhancedServerDashboard({
   servers,
-  initialViewMode = 'grid',
-  initialDisplayMode = 'SHOW_TWO_ROWS', // 🆕 기본값: 세로 2줄
+  _initialViewMode = 'grid',
+  _initialDisplayMode = 'SHOW_TWO_ROWS', // 🆕 기본값: 세로 2줄
 }: UseEnhancedServerDashboardProps): UseEnhancedServerDashboardReturn {
   // 🎨 뷰 상태
-  const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
+  const [viewMode, setViewMode] = useState<ViewMode>(_initialViewMode);
   const [displayMode, setDisplayMode] =
-    useState<ServerDisplayMode>(initialDisplayMode);
+    useState<ServerDisplayMode>(_initialDisplayMode);
 
   // 🔍 필터 상태
   const [searchTerm, setSearchTerm] = useState('');

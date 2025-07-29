@@ -105,7 +105,7 @@ export class ABTestManager {
   /**
    * 🔧 A/B 테스트 시스템 초기화
    */
-  async initialize(): Promise<void> {
+  async _initialize(): Promise<void> {
     if (this.isInitialized) return;
 
     try {
@@ -137,7 +137,7 @@ export class ABTestManager {
     userKey: string = 'anonymous',
     forceGroup?: ABTestGroup
   ): Promise<ABTestGroup> {
-    if (!this.isInitialized) await this.initialize();
+    if (!this.isInitialized) await this._initialize();
 
     try {
       // 강제 그룹 지정 (URL 파라미터 등)
@@ -193,7 +193,7 @@ export class ABTestManager {
     success: boolean,
     error?: string
   ): Promise<void> {
-    if (!this.isInitialized) await this.initialize();
+    if (!this.isInitialized) await this._initialize();
 
     try {
       const now = Date.now();
@@ -262,7 +262,7 @@ export class ABTestManager {
       shouldRollout: boolean;
     };
   }> {
-    if (!this.isInitialized) await this.initialize();
+    if (!this.isInitialized) await this._initialize();
 
     try {
       const [legacyMetrics, optimizedMetrics] = await Promise.all([
@@ -312,7 +312,7 @@ export class ABTestManager {
    * ⚙️ A/B 테스트 설정 업데이트
    */
   async updateConfig(newConfig: Partial<ABTestConfig>): Promise<void> {
-    if (!this.isInitialized) await this.initialize();
+    if (!this.isInitialized) await this._initialize();
 
     try {
       const currentConfig = await this.getConfig();
@@ -390,7 +390,7 @@ export class ABTestManager {
 
   private async getConfig(): Promise<ABTestConfig> {
     const config = await this.redis.get(this.REDIS_KEYS.CONFIG);
-    return config ? JSON.parse(config) : this.DEFAULT_CONFIG;
+    return config ? JSON.parse(_config) : this.DEFAULT_CONFIG;
   }
 
   private async getMetrics(group: ABTestGroup): Promise<ABTestMetrics> {

@@ -219,11 +219,11 @@ export function getRotatorInstance(
   config?: Partial<RotationConfig>
 ): MockDataRotator {
   if (!rotatorInstance && timeSeries) {
-    rotatorInstance = new MockDataRotator(timeSeries, config);
+    rotatorInstance = new MockDataRotator(timeSeries, _config);
   }
 
   if (!rotatorInstance) {
-    throw new Error('MockDataRotator not initialized');
+    throw new Error('MockDataRotator not _initialized');
   }
 
   return rotatorInstance;

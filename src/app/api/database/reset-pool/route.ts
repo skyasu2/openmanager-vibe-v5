@@ -33,7 +33,7 @@ async function resetConnectionPool(config?: any) {
   };
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
     const { force, config } = body;
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const result = await resetConnectionPool(config);
+    const result = await resetConnectionPool(_config);
 
     return NextResponse.json({
       success: true,
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // 현재 연결 풀 상태 반환
     const poolStatus = {

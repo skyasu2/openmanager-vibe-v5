@@ -142,8 +142,8 @@ export class ContextManager {
 
   constructor() {
     this.contextId = this.generateContextId();
-    this.currentContext = this.initializeDefaultContext();
-    this.sessionContext = this.initializeSession();
+    this.currentContext = this._initializeDefaultContext();
+    this.sessionContext = this._initializeSession();
   }
 
   /**
@@ -156,7 +156,7 @@ export class ContextManager {
   /**
    * 🏗️ 기본 컨텍스트 초기화
    */
-  private initializeDefaultContext(): Context {
+  private _initializeDefaultContext(): Context {
     return {
       system: {
         current_metrics: {
@@ -219,7 +219,7 @@ export class ContextManager {
   /**
    * 🎯 세션 초기화
    */
-  private initializeSession(): SessionContext {
+  private _initializeSession(): SessionContext {
     return {
       sessionId: this.generateContextId(),
       queries: [],

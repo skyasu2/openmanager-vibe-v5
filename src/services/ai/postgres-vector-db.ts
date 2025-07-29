@@ -45,7 +45,7 @@ export class PostgresVectorDB {
   private dimension = 384; // 최적화된 차원
 
   constructor() {
-    this.initialize();
+    this._initialize();
   }
 
   /**
@@ -78,7 +78,7 @@ export class PostgresVectorDB {
   /**
    * 🚀 pgvector 확장 및 테이블 초기화
    */
-  async initialize(): Promise<void> {
+  async _initialize(): Promise<void> {
     if (this.isInitialized) return;
 
     try {
@@ -113,7 +113,7 @@ export class PostgresVectorDB {
     metadata?: Record<string, any>
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      await this.initialize();
+      await this._initialize();
 
       // 임베딩 차원 검증
       if (embedding.length !== this.dimension) {
@@ -155,7 +155,7 @@ export class PostgresVectorDB {
     options: SearchOptions = {}
   ): Promise<SearchResult[]> {
     try {
-      await this.initialize();
+      await this._initialize();
 
       const {
         topK = 10,
@@ -194,7 +194,7 @@ export class PostgresVectorDB {
       // 클라이언트 사이드에서 코사인 유사도 계산
       const results: SearchResult[] = [];
 
-      for (const row of data) {
+      for (const row of _data) {
         if (!row.embedding) continue;
 
         const similarity = this.cosineSimilarity(queryEmbedding, row.embedding);
@@ -227,7 +227,7 @@ export class PostgresVectorDB {
     topK: number = 10
   ): Promise<HybridSearchResult[]> {
     try {
-      await this.initialize();
+      await this._initialize();
 
       // 우선 벡터 검색만 수행
       const vectorResults = await this.search(queryEmbedding, { topK });
@@ -250,7 +250,7 @@ export class PostgresVectorDB {
    */
   async getDocument(id: string): Promise<VectorDocument | null> {
     try {
-      await this.initialize();
+      await this._initialize();
 
       const { data, error } = await supabase
         .from(this.tableName)
@@ -275,7 +275,7 @@ export class PostgresVectorDB {
    */
   async deleteDocument(id: string): Promise<boolean> {
     try {
-      await this.initialize();
+      await this._initialize();
 
       const { error } = await supabase
         .from(this.tableName)
@@ -301,7 +301,7 @@ export class PostgresVectorDB {
     { category: string; document_count: number }[]
   > {
     try {
-      await this.initialize();
+      await this._initialize();
 
       // 직접 카테고리별 count 수행
       const { data, error } = await supabase
@@ -375,7 +375,7 @@ export class PostgresVectorDB {
     last_updated: string;
   }> {
     try {
-      await this.initialize();
+      await this._initialize();
 
       const { data, error } = await supabase
         .from('vector_documents_stats')
@@ -419,7 +419,7 @@ export class PostgresVectorDB {
     metadata: Record<string, any>
   ): Promise<boolean> {
     try {
-      await this.initialize();
+      await this._initialize();
 
       const { error } = await supabase
         .from(this.tableName)
@@ -446,7 +446,7 @@ export class PostgresVectorDB {
     limit: number = 10
   ): Promise<VectorDocument[]> {
     try {
-      await this.initialize();
+      await this._initialize();
 
       let query = supabase.from(this.tableName).select('*');
 

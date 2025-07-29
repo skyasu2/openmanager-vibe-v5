@@ -67,7 +67,7 @@ export async function GET() {
     };
 
     // 🏥 시스템 건강도 판단
-    const systemHealth = determineSystemHealth(hybridStats, usageStats);
+    const _systemHealth = determineSystemHealth(hybridStats, usageStats);
 
     // 📈 성능 메트릭 계산
     const performanceMetrics = {
@@ -79,7 +79,7 @@ export async function GET() {
 
     const responseData = {
       success: true,
-      systemHealth,
+      _systemHealth,
       hybridStats,
       usageStats,
       performance: performanceMetrics,
@@ -105,7 +105,7 @@ export async function GET() {
     }
 
     console.log('✅ Redis 상태 확인 완료:', {
-      systemHealth,
+      _systemHealth,
       mockRedis: !!hybridStats.mockRedis,
       realRedis: hybridStats.realRedis?.status,
     });
@@ -124,7 +124,7 @@ export async function GET() {
       {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
-        systemHealth: '🔴 위험',
+        _systemHealth: '🔴 위험',
         timestamp: new Date().toISOString(),
         responseTime: Date.now() - startTime,
       },

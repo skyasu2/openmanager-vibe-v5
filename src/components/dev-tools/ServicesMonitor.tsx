@@ -109,7 +109,7 @@ export function ServicesMonitor({
         console.error('JSON 파싱 오류:', parseError, 'Response:', text);
         throw new Error('서버 응답을 파싱할 수 없습니다');
       }
-      setServicesData(data);
+      setServicesData(_data);
       setLastUpdated(new Date());
       onRefresh?.();
     } catch (error) {

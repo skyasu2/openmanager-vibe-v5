@@ -47,8 +47,8 @@ describe('🚀 PerformanceOptimizedQueryEngine E2E 테스트', () => {
     originalEngine = new SimplifiedQueryEngine();
 
     // 기본 초기화 대기
-    await optimizedEngine.initialize();
-    await originalEngine.initialize();
+    await optimizedEngine._initialize();
+    await originalEngine._initialize();
   });
 
   afterAll(() => {
@@ -193,8 +193,8 @@ describe('🚀 PerformanceOptimizedQueryEngine E2E 테스트', () => {
       const iterations = 5;
 
       // 초기 캐시 통계
-      const initialStats = optimizedEngine.getPerformanceStats();
-      const initialCacheHitRate = initialStats.metrics.cacheHitRate;
+      const _initialStats = optimizedEngine.getPerformanceStats();
+      const _initialCacheHitRate = _initialStats.metrics.cacheHitRate;
 
       // 동일 쿼리 반복 실행
       const responseTimes: number[] = [];
@@ -222,12 +222,12 @@ describe('🚀 PerformanceOptimizedQueryEngine E2E 테스트', () => {
       const finalStats = optimizedEngine.getPerformanceStats();
       const finalCacheHitRate = finalStats.metrics.cacheHitRate;
 
-      console.log(`초기 캐시 적중률: ${(initialCacheHitRate * 100).toFixed(2)}%`);
+      console.log(`초기 캐시 적중률: ${(_initialCacheHitRate * 100).toFixed(2)}%`);
       console.log(`최종 캐시 적중률: ${(finalCacheHitRate * 100).toFixed(2)}%`);
       console.log(`응답 시간 변화: ${responseTimes[0]}ms → ${responseTimes[iterations-1]}ms`);
 
       // 캐시 적중률이 증가하거나 응답 시간이 개선되어야 함
-      const cacheImproved = finalCacheHitRate >= initialCacheHitRate;
+      const cacheImproved = finalCacheHitRate >= _initialCacheHitRate;
       const timeImproved = responseTimes[iterations-1] <= responseTimes[0] * 1.1; // 10% 여유
       
       expect(cacheImproved || timeImproved).toBe(true);
@@ -367,8 +367,8 @@ describe('🚀 PerformanceOptimizedQueryEngine E2E 테스트', () => {
 
   describe('📈 성능 메트릭 정확성 테스트', () => {
     it('쿼리 실행 후 메트릭이 올바르게 업데이트되어야 함', async () => {
-      const initialStats = optimizedEngine.getPerformanceStats();
-      const initialTotalQueries = initialStats.metrics.totalQueries;
+      const _initialStats = optimizedEngine.getPerformanceStats();
+      const _initialTotalQueries = _initialStats.metrics.totalQueries;
 
       // 테스트 쿼리 실행
       await optimizedEngine.query({
@@ -381,13 +381,13 @@ describe('🚀 PerformanceOptimizedQueryEngine E2E 테스트', () => {
       const finalTotalQueries = finalStats.metrics.totalQueries;
 
       // 쿼리 카운터가 증가해야 함
-      expect(finalTotalQueries).toBeGreaterThan(initialTotalQueries);
+      expect(finalTotalQueries).toBeGreaterThan(_initialTotalQueries);
 
       // 평균 응답 시간이 양수여야 함
       expect(finalStats.metrics.avgResponseTime).toBeGreaterThan(0);
 
       console.log('메트릭 업데이트 확인:', {
-        totalQueries: `${initialTotalQueries} → ${finalTotalQueries}`,
+        totalQueries: `${_initialTotalQueries} → ${finalTotalQueries}`,
         avgResponseTime: `${finalStats.metrics.avgResponseTime}ms`,
         cacheHitRate: `${(finalStats.metrics.cacheHitRate * 100).toFixed(2)}%`
       });

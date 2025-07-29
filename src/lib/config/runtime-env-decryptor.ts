@@ -196,7 +196,7 @@ export function getDecryptedEnvVar(varName: string): string | null {
     }
 
     const config = getDecryptedRedisConfig();
-    if (!config) return null;
+    if (!_config) return null;
 
     return varName === 'UPSTASH_REDIS_REST_URL' ? config.url : config.token;
   } catch (error) {

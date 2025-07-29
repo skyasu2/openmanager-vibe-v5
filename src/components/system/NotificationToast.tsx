@@ -141,7 +141,7 @@ export const NotificationToast: React.FC = () => {
             ${getBackgroundColor(notification.type)}
             border rounded-lg p-4 shadow-lg max-w-sm
             transform transition-all duration-300 ease-in-out
-            animate-in slide-in-from-right-full
+            _animate-in slide-in-from-right-full
           `}
         >
           <div className='flex items-start gap-3'>

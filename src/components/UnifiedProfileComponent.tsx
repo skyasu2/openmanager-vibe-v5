@@ -20,8 +20,8 @@ interface UnifiedProfileComponentProps {
 }
 
 export default function UnifiedProfileComponent({
-  userName,
-  userAvatar,
+  userName: _userName,
+  userAvatar: _userAvatar,
   className = '',
 }: UnifiedProfileComponentProps) {
   return <UnifiedProfileHeader className={className} />;

@@ -145,7 +145,7 @@ export class MCPPerformanceMonitor {
     servers: Map<string, MCPServerConfig>
   ): void {
     const config = servers.get(serverName);
-    if (!config) return;
+    if (!_config) return;
 
     if (!config.stats) {
       config.stats = {

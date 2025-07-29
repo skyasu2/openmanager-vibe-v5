@@ -31,8 +31,8 @@ export const safeWriteFile = (
   try {
     fs.writeFileSync(filePath, data);
     return true;
-  } catch (error) {
-    console.error(`❌ 파일 쓰기 실패: ${operation} (${filePath})`, error);
+  } catch {
+    console.error(`❌ 파일 쓰기 실패: ${operation} (${filePath})`);
     return false;
   }
 };
@@ -55,8 +55,8 @@ export const safeAppendFile = (
   try {
     fs.appendFileSync(filePath, data);
     return true;
-  } catch (error) {
-    console.error(`❌ 파일 추가 실패: ${operation} (${filePath})`, error);
+  } catch {
+    console.error(`❌ 파일 추가 실패: ${operation} (${filePath})`);
     return false;
   }
 };
@@ -78,8 +78,8 @@ export const safeMkdir = (
       fs.mkdirSync(dirPath, options);
     }
     return true;
-  } catch (error) {
-    console.error(`❌ 디렉토리 생성 실패: ${dirPath}`, error);
+  } catch {
+    console.error(`❌ 디렉토리 생성 실패: ${dirPath}`);
     return false;
   }
 };
@@ -102,11 +102,8 @@ export const safeCopyFile = (
   try {
     fs.copyFileSync(srcPath, destPath);
     return true;
-  } catch (error) {
-    console.error(
-      `❌ 파일 복사 실패: ${operation} (${srcPath} → ${destPath})`,
-      error
-    );
+  } catch {
+    console.error(`❌ 파일 복사 실패: ${operation} (${srcPath} → ${destPath})`);
     return false;
   }
 };
@@ -133,8 +130,8 @@ export const safeLogWrite = (
     const logEntry = `[${timestamp}] ${message}\n`;
 
     return safeAppendFile(logFile, logEntry, `log-${logType}`);
-  } catch (error) {
-    console.error(`❌ 로그 쓰기 실패: ${logType}`, error);
+  } catch {
+    console.error(`❌ 로그 쓰기 실패: ${logType}`);
     return false;
   }
 };
@@ -197,8 +194,8 @@ export const safeBackupCreation = (
       return true;
     }
     return false;
-  } catch (error) {
-    console.error(`❌ 백업 생성 실패: ${backupType}`, error);
+  } catch {
+    console.error(`❌ 백업 생성 실패: ${backupType}`);
     return false;
   }
 };

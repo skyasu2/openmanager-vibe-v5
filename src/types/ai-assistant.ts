@@ -65,7 +65,7 @@ export interface AIAssistantFilters {
 export interface AIAssistantStats {
   totalLogs: number;
   successRate: number;
-  patternSuggestions: number;
+  _patternSuggestions: number;
   pendingPatterns: number;
   contextDocuments: number;
   totalWords: number;

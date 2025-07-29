@@ -132,7 +132,7 @@ function getStepIcon(step: number): string {
  */
 function getStepCategory(step: number): string {
   const categories = [
-    'initialization',
+    '_initialization',
     'discovery',
     'monitoring',
     'database',

@@ -21,7 +21,7 @@ declare global {
 // 전역 변수를 통한 싱글톤 보장 (빌드 시에도 작동)
 let supabaseInstance = global.__supabaseInstance;
 let isInitialized = global.__supabaseInitialized || false;
-let initializationError = global.__supabaseInitError || null;
+let _initializationError = global.__supabaseInitError || null;
 
 /**
  * Supabase URL 가져오기 (기존 로직 재사용)
@@ -89,8 +89,8 @@ export function getSupabaseClient(): SupabaseClient {
   }
 
   // 초기화 중 오류가 발생한 경우
-  if (initializationError) {
-    throw initializationError;
+  if (_initializationError) {
+    throw _initializationError;
   }
 
   // 첫 초기화 시도
@@ -150,10 +150,10 @@ export function getSupabaseClient(): SupabaseClient {
 
       console.log('✅ Supabase 싱글톤 클라이언트 초기화 완료');
     } catch (error) {
-      initializationError =
+      _initializationError =
         error instanceof Error ? error : new Error('Unknown error');
-      global.__supabaseInitError = initializationError;
-      throw initializationError;
+      global.__supabaseInitError = _initializationError;
+      throw _initializationError;
     }
   }
 
@@ -198,7 +198,7 @@ export function resetSupabaseClient(): void {
   if (process.env.NODE_ENV === 'test') {
     supabaseInstance = undefined;
     isInitialized = false;
-    initializationError = null;
+    _initializationError = null;
     global.__supabaseInstance = undefined;
     global.__supabaseInitialized = undefined;
     global.__supabaseInitError = undefined;

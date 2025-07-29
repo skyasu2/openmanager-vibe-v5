@@ -141,7 +141,7 @@ interface ThreeTierStats {
 
 interface RouterStatus {
   enabled: boolean;
-  initialized: boolean;
+  _initialized: boolean;
   strategy: 'performance' | 'cost' | 'reliability';
   services: {
     gcp: any;
@@ -196,7 +196,7 @@ export const GCPQuotaMonitoringDashboard: React.FC = () => {
 
       const statusData: RouterStatus = {
         enabled: false,
-        initialized: false,
+        _initialized: false,
         strategy: 'performance',
         services: {
           gcp: null,
@@ -226,7 +226,7 @@ export const GCPQuotaMonitoringDashboard: React.FC = () => {
   }, []);
 
   // 사용량 레벨 계산
-  const getUsageLevel = (percent: number) => {
+  const _getUsageLevel = (percent: number) => {
     if (percent < 50) return { color: 'bg-green-500', level: 'LOW' };
     if (percent < 80) return { color: 'bg-yellow-500', level: 'MEDIUM' };
     return { color: 'bg-red-500', level: 'HIGH' };

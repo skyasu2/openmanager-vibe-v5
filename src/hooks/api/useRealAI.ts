@@ -109,7 +109,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
   const [lastResponse, setLastResponse] = useState<AIAnalysisResponse | null>(
     null
   );
-  const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
+  const [_systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
   const [isHealthChecking, setIsHealthChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -291,16 +291,16 @@ export function useRealAI(options: UseRealAIOptions = {}) {
   }, [lastResponse]);
 
   const getSystemSummary = useCallback(() => {
-    if (!systemHealth) return null;
+    if (!_systemHealth) return null;
     return {
-      overall: systemHealth.overall,
-      services: Object.keys(systemHealth).filter(key => key !== 'overall')
+      overall: _systemHealth.overall,
+      services: Object.keys(_systemHealth).filter(key => key !== 'overall')
         .length,
-      healthy: Object.values(systemHealth).filter(
+      healthy: Object.values(_systemHealth).filter(
         service => typeof service === 'object' && service?.status === 'healthy'
       ).length,
     };
-  }, [systemHealth]);
+  }, [_systemHealth]);
 
   // 관리자가 아니면 제한된 기능만 제공 (모든 훅 호출 이후)
   if (!adminMode && options.adminOnly !== false) {
@@ -317,7 +317,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
       getSystemSummary: (): null => null,
       isAnalyzing: false,
       lastResponse: null as any,
-      systemHealth: null as any,
+      _systemHealth: null as any,
       isHealthChecking: false,
       error: '관리자 권한이 필요합니다.',
     };
@@ -333,7 +333,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
     getSystemSummary,
     isAnalyzing,
     lastResponse,
-    systemHealth,
+    _systemHealth,
     isHealthChecking,
     error,
   };

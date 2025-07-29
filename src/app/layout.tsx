@@ -28,9 +28,9 @@ if (typeof window === 'undefined') {
   // 🔐 보안 토큰 초기화 (서버 사이드에서만)
   try {
     const {
-      initializeSecurityTokens,
-    } = require('@/lib/security/token-initializer');
-    initializeSecurityTokens();
+      _initializeSecurityTokens,
+    } = require('@/lib/security/token-_initializer');
+    _initializeSecurityTokens();
   } catch (error) {
     console.warn('⚠️ 보안 토큰 초기화 실패:', error);
   }

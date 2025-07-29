@@ -76,7 +76,7 @@ export function QueryProvider({ children }: QueryProviderProps) {
         {children}
         {/* 개발 환경에서만 DevTools 표시 */}
         {process.env.NODE_ENV === 'development' && (
-          <ReactQueryDevtools initialIsOpen={false} />
+          <ReactQueryDevtools _initialIsOpen={false} />
         )}
       </QueryClientProvider>
     </QueryErrorBoundary>

@@ -644,31 +644,35 @@ export class DemoScenarioManager {
     const { metricsVariation } = this.currentSession;
 
     switch (type) {
-      case 'cpu':
+      case 'cpu': {
         const cpuBase =
           metricsVariation.cpuRange[0] +
           (metricsVariation.cpuRange[1] - metricsVariation.cpuRange[0]) *
             intensity;
         return Math.round(cpuBase + (Math.random() - 0.5) * 10);
+      }
 
-      case 'memory':
+      case 'memory': {
         const memBase =
           metricsVariation.memoryRange[0] +
           (metricsVariation.memoryRange[1] - metricsVariation.memoryRange[0]) *
             intensity;
         return Math.round(memBase + (Math.random() - 0.5) * 8);
+      }
 
-      case 'response_time':
+      case 'response_time': {
         const rtBase =
           metricsVariation.responseTimeRange[0] +
           (metricsVariation.responseTimeRange[1] -
             metricsVariation.responseTimeRange[0]) *
             intensity;
         return Math.round(rtBase + (Math.random() - 0.5) * 50);
+      }
 
-      case 'network':
+      case 'network': {
         const netIncrease = Math.round((10 + Math.random() * 90) * intensity);
         return `+${netIncrease}`;
+      }
 
       default:
         return Math.round(30 + Math.random() * 40);

@@ -154,13 +154,13 @@ const DashboardHeader = React.memo(function DashboardHeader({
           {isSystemActive && remainingTimeFormatted && (
             <div className='flex items-center gap-2 px-3 py-1 bg-yellow-50 border border-yellow-200 rounded-lg'>
               <div className='flex items-center gap-2'>
-                <div className='w-2 h-2 bg-yellow-400 rounded-full animate-pulse' />
+                <div className='w-2 h-2 bg-yellow-400 rounded-full _animate-pulse' />
                 <span className='text-sm font-medium text-yellow-800'>
                   시스템 자동 종료: {remainingTimeFormatted}
                 </span>
               </div>
               {systemRemainingTime && systemRemainingTime < 5 * 60 * 1000 && (
-                <span className='text-xs text-red-600 font-semibold animate-pulse'>
+                <span className='text-xs text-red-600 font-semibold _animate-pulse'>
                   ⚠️ 곧 종료됨
                 </span>
               )}
@@ -317,12 +317,12 @@ const DashboardHeader = React.memo(function DashboardHeader({
         {isSystemActive && remainingTimeFormatted && (
           <div className='flex items-center justify-center'>
             <div className='flex items-center gap-2 px-3 py-1 bg-yellow-50 border border-yellow-200 rounded-lg text-xs'>
-              <div className='w-2 h-2 bg-yellow-400 rounded-full animate-pulse' />
+              <div className='w-2 h-2 bg-yellow-400 rounded-full _animate-pulse' />
               <span className='font-medium text-yellow-800'>
                 자동 종료: {remainingTimeFormatted}
               </span>
               {systemRemainingTime && systemRemainingTime < 5 * 60 * 1000 && (
-                <span className='text-red-600 font-semibold animate-pulse'>
+                <span className='text-red-600 font-semibold _animate-pulse'>
                   ⚠️
                 </span>
               )}

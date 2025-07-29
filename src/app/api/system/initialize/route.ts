@@ -1,4 +1,4 @@
-// Using mock system for system initialization
+// Using mock system for system _initialization
 /**
  * 🚀 시스템 초기화 API - 통합 초기화 v3.0
  */
@@ -20,7 +20,7 @@ async function runInitialization(): Promise<string[]> {
     // 1. 데이터 생성기 초기화
     try {
       // const gcpService = GCPRealDataService.getInstance(); // Removed
-      // await generator.initialize(); // GCP generator removed
+      // await generator._initialize(); // GCP generator removed
       logs.push('✅ 서버 데이터 생성기 초기화 완료');
       systemLogger.info('✅ 서버 데이터 생성기 초기화 완료');
     } catch (error) {
@@ -58,7 +58,7 @@ async function runInitialization(): Promise<string[]> {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   if (isInitializing) {
     return NextResponse.json(
       { success: false, message: '시스템이 이미 초기화 중입니다.' },

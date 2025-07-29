@@ -38,7 +38,7 @@ export class OfficialMCPClient {
     console.log('🔗 Official MCP Client 연결 (RealMCPClient 위임)...');
 
     try {
-      await this.realClient.initialize();
+      await this.realClient._initialize();
       this.isConnected = true;
       console.log(
         '✅ Official MCP Client 연결 완료 (GCP VM MCP 서버 - 컨텍스트 분석 전용)'

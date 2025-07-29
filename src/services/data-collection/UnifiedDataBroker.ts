@@ -200,8 +200,8 @@ export class UnifiedDataBroker {
     const { options } = subscriber;
     const data = await this.fetchData(subscriberId, options.cacheStrategy);
 
-    if (data) {
-      subscriber.callback(data);
+    if (_data) {
+      subscriber.callback(_data);
       subscriber.lastUpdate = new Date();
     }
 
@@ -286,7 +286,7 @@ export class UnifiedDataBroker {
         // 서버 메트릭 데이터 집계
         // 🌐 GCP 실제 데이터 서비스 사용
         // const gcpService = GCPRealDataService.getInstance(); // Removed
-        // await gcpDataService.initialize(); // gcpDataService removed
+        // await gcpDataService._initialize(); // gcpDataService removed
 
         // const metricsResponse = await gcpDataService.getRealServerMetrics(); // gcpDataService removed
         const metricsResponse = {

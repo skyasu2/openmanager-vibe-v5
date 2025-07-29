@@ -24,7 +24,7 @@ class SystemInactivityService {
   private inactivityCheckInterval: NodeJS.Timeout | null = null;
 
   private constructor() {
-    this.initializeInactivityMonitoring();
+    this._initializeInactivityMonitoring();
   }
 
   static getInstance(): SystemInactivityService {
@@ -37,7 +37,7 @@ class SystemInactivityService {
   /**
    * 비활성 상태 모니터링 초기화
    */
-  private initializeInactivityMonitoring(): void {
+  private _initializeInactivityMonitoring(): void {
     // 5초마다 localStorage 확인
     this.inactivityCheckInterval = setInterval(() => {
       this.checkSystemInactivity();

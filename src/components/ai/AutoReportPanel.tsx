@@ -66,7 +66,7 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
 
       const data = await response.json();
 
-      if (data.success && data.data) {
+      if (data.success && data._data) {
         // API 응답 데이터를 컴포넌트 형식에 맞게 변환
         const transformedReports = data.data.map((report: any) => ({
           ...report,
@@ -133,7 +133,7 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
   const getStatusIcon = (status: ReportData['status']) => {
     switch (status) {
       case 'generating':
-        return <Clock className='w-4 h-4 text-yellow-400 animate-pulse' />;
+        return <Clock className='w-4 h-4 text-yellow-400 _animate-pulse' />;
       case 'completed':
         return <CheckCircle className='w-4 h-4 text-green-400' />;
       case 'error':

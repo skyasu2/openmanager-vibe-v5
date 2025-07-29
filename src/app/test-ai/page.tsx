@@ -13,7 +13,7 @@ export default function TestAIPage() {
   const [query, setQuery] = useState('');
   const [response, setResponse] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<'local' | 'google-ai'>('local');
+  const [_mode, setMode] = useState<'local' | 'google-ai'>('local');
 
   // 예시 질의들
   const exampleQueries = [
@@ -37,7 +37,7 @@ export default function TestAIPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query,
-          mode,
+          mode: _mode,
           includeContext: true,
           options: {
             includeMCPContext: false,
@@ -78,7 +78,7 @@ export default function TestAIPage() {
           <button
             onClick={() => setMode('local')}
             className={`px-4 py-2 rounded-lg transition-colors ${
-              mode === 'local'
+              _mode === 'local'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
             }`}
@@ -88,7 +88,7 @@ export default function TestAIPage() {
           <button
             onClick={() => setMode('google-ai')}
             className={`px-4 py-2 rounded-lg transition-colors ${
-              mode === 'google-ai'
+              _mode === 'google-ai'
                 ? 'bg-purple-600 text-white'
                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
             }`}

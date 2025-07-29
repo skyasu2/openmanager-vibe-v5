@@ -82,7 +82,7 @@ export const useServerData = (): UseServerDataReturn => {
   );
 
   // 데이터 초기화 함수
-  const initializeData = useCallback(async () => {
+  const _initializeData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -220,13 +220,13 @@ export const useServerData = (): UseServerDataReturn => {
 
   // 데이터 새로고침 함수
   const refreshData = useCallback(() => {
-    initializeData();
-  }, [initializeData]);
+    _initializeData();
+  }, [_initializeData]);
 
   // 초기 데이터 로드
   useEffect(() => {
-    initializeData();
-  }, [initializeData]);
+    _initializeData();
+  }, [_initializeData]);
 
   // 정렬된 서버 목록
   const sortedServers = sortServersByPriority(servers);

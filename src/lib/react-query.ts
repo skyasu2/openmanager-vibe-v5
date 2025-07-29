@@ -55,7 +55,7 @@ export const queryKeys = {
 
   // 시스템 상태
   systemStatus: ['system', 'status'] as const,
-  systemHealth: ['system', 'health'] as const,
+  _systemHealth: ['system', 'health'] as const,
   systemMetrics: (period?: string) => ['system', 'metrics', period] as const,
 
   // AI 관련

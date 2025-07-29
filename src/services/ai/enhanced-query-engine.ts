@@ -50,8 +50,8 @@ export class EnhancedSimplifiedQueryEngine extends SimplifiedQueryEngine {
   /**
    * 초기화 확장 - 최적화 기능 포함
    */
-  async initialize(): Promise<void> {
-    await super.initialize();
+  async _initialize(): Promise<void> {
+    await super._initialize();
 
     if (!this.isOptimized) {
       try {
@@ -84,7 +84,7 @@ export class EnhancedSimplifiedQueryEngine extends SimplifiedQueryEngine {
    */
   async query(request: QueryRequest): Promise<QueryResponse> {
     const startTime = Date.now();
-    await this.initialize();
+    await this._initialize();
 
     try {
       // 1. 캐시 확인

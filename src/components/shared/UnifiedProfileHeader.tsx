@@ -265,7 +265,7 @@ export default function UnifiedProfileHeader({
           <div className='text-xs text-gray-500 flex items-center gap-1'>
             {getUserTypeLabel()} 로그인
             {status === 'loading' && (
-              <div className='w-2 h-2 bg-gray-400 rounded-full animate-pulse' />
+              <div className='w-2 h-2 bg-gray-400 rounded-full _animate-pulse' />
             )}
           </div>
         </div>

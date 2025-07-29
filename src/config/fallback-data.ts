@@ -237,13 +237,14 @@ export function getApiKey(service: 'google'): string {
   const isProduction = process.env.NODE_ENV === 'production';
 
   switch (service) {
-    case 'google':
+    case 'google': {
       const googleKey = process.env.GOOGLE_AI_API_KEY;
       if (!googleKey && isProduction) {
         console.warn('⚠️ 프로덕션에서 Google AI API 키가 설정되지 않음');
         throw new Error('Google AI API 키가 필요합니다');
       }
       return googleKey || '';
+    }
     default:
       throw new Error(`지원하지 않는 API 서비스: ${service}`);
   }

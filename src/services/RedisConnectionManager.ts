@@ -96,7 +96,7 @@ export class RedisConnectionManager {
   /**
    * 🚀 Redis 연결 초기화
    */
-  async initialize(): Promise<boolean> {
+  async _initialize(): Promise<boolean> {
     try {
       // 🚫 최우선: 환경변수 체크
       if (process.env.FORCE_MOCK_REDIS === 'true') {
@@ -140,11 +140,11 @@ export class RedisConnectionManager {
       const clusterConfig = getRedisClusterConfig();
       if (clusterConfig) {
         console.log('🔗 Redis 클러스터 모드 감지');
-        return await this.initializeCluster(clusterConfig);
+        return await this._initializeCluster(clusterConfig);
       }
 
       // 단일 인스턴스 모드
-      return await this.initializeSingleInstance();
+      return await this._initializeSingleInstance();
     } catch (error) {
       console.error('❌ Redis 초기화 실패:', error);
       this.stats.failedConnections++;
@@ -155,10 +155,10 @@ export class RedisConnectionManager {
   /**
    * 🔧 단일 인스턴스 연결
    */
-  private async initializeSingleInstance(): Promise<boolean> {
+  private async _initializeSingleInstance(): Promise<boolean> {
     try {
       const config = getRedisConfig();
-      const validation = validateRedisConfig(config);
+      const validation = validateRedisConfig(_config);
 
       if (!validation.valid) {
         console.error('❌ Redis 설정 오류:', validation.errors);
@@ -205,7 +205,7 @@ export class RedisConnectionManager {
   /**
    * 🔗 클러스터 연결
    */
-  private async initializeCluster(
+  private async _initializeCluster(
     clusterConfig: ReturnType<typeof getRedisClusterConfig>
   ): Promise<boolean> {
     try {
@@ -479,7 +479,7 @@ export class RedisConnectionManager {
     // 잠시 대기 후 재연결
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    return await this.initialize();
+    return await this._initialize();
   }
 }
 

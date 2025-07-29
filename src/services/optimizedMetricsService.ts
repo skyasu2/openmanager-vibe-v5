@@ -158,13 +158,13 @@ export async function getOptimizedServerMetrics(
     console.log(`✅ DB 조회 완료: ${queryTime}ms`);
 
     // 4. 캐시 저장
-    if (useCache && data) {
+    if (useCache && _data) {
       // TTL 계산 (짧은 시간 범위는 짧은 TTL)
       const ttl = timeRange === '1h' ? 60 : timeRange === '24h' ? 300 : 600;
 
       // Redis 저장
       try {
-        await redis.set(cacheKey, JSON.stringify(data), { ex: ttl });
+        await redis.set(cacheKey, JSON.stringify(_data), { ex: ttl });
       } catch (error) {
         console.warn('⚠️ Redis 캐시 저장 실패:', error);
       }

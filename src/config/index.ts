@@ -132,7 +132,7 @@ export class ConfigLoader {
   }
 
   load(): AppConfig {
-    if (this.config) {
+    if (this._config) {
       return this.config;
     }
 

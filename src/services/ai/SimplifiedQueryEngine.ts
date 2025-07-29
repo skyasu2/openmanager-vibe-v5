@@ -82,7 +82,7 @@ export class SimplifiedQueryEngine {
   /**
    * 🚀 엔진 초기화 (한 번만 실행)
    */
-  async initialize(): Promise<void> {
+  async _initialize(): Promise<void> {
     if (this.isInitialized) return;
 
     // 이미 초기화 진행 중이면 기다림
@@ -108,7 +108,7 @@ export class SimplifiedQueryEngine {
         setTimeout(() => reject(new Error('초기화 타임아웃')), 5000)
       );
 
-      await Promise.race([this.ragEngine.initialize(), initTimeout]);
+      await Promise.race([this.ragEngine._initialize(), initTimeout]);
 
       this.isInitialized = true;
       console.log('✅ SimplifiedQueryEngine 초기화 완료');
@@ -126,7 +126,7 @@ export class SimplifiedQueryEngine {
     const startTime = Date.now();
 
     // 초기화 병렬 실행
-    const initPromise = this.initialize();
+    const initPromise = this._initialize();
 
     const {
       query,

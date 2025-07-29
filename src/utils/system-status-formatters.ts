@@ -61,10 +61,10 @@ export const getStatusStyle = (
   isStarting: boolean
 ): string => {
   if (isStarting) {
-    return 'text-yellow-500 animate-pulse';
+    return 'text-yellow-500 _animate-pulse';
   }
   if (isRunning) {
-    return 'text-green-500 animate-pulse';
+    return 'text-green-500 _animate-pulse';
   }
   return 'text-red-500';
 };

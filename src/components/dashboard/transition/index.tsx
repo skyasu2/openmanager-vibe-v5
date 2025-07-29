@@ -36,7 +36,7 @@ export interface TransitionConfig {
 }
 
 export type BootPhase =
-  | 'initializing'
+  | '_initializing'
   | 'core-loading'
   | 'server-spawning'
   | 'finalizing'

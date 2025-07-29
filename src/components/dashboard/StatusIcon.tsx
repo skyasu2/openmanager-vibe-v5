@@ -136,7 +136,7 @@ const StatusIcon: React.FC<StatusIconProps> = ({
             ) : (
               <IconComponent
                 className={`${sizeClasses.icon} ${statusClasses.icon} ${
-                  isActive && !isComplete ? 'animate-pulse' : ''
+                  isActive && !isComplete ? '_animate-pulse' : ''
                 }`}
               />
             )}

@@ -23,9 +23,9 @@ export function useMountedRef(): React.MutableRefObject<boolean> {
 
 // 컴포넌트 마운트 상태 확인 후 안전한 상태 업데이트
 export function useSafeSetState<T>(
-  initialState: T
+  _initialState: T
 ): [T, (newState: T | ((prevState: T) => T)) => void] {
-  const [state, setState] = useState(initialState);
+  const [state, setState] = useState(_initialState);
   const mountedRef = useMountedRef();
 
   const safeSetState = useCallback(

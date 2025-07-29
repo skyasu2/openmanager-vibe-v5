@@ -110,7 +110,7 @@ export function validateDataSize(
   data: any,
   type: keyof typeof FREE_TIER_CACHE_CONFIG.maxSize
 ): boolean {
-  const serialized = JSON.stringify(data);
+  const serialized = JSON.stringify(_data);
   const size = new TextEncoder().encode(serialized).length;
   const maxSize = FREE_TIER_CACHE_CONFIG.maxSize[type];
 
@@ -135,6 +135,6 @@ export function getTTL(type: keyof typeof FREE_TIER_CACHE_CONFIG.ttl): number {
 export function shouldCompress(data: any): boolean {
   if (!FREE_TIER_CACHE_CONFIG.compression.enabled) return false;
 
-  const size = new TextEncoder().encode(JSON.stringify(data)).length;
+  const size = new TextEncoder().encode(JSON.stringify(_data)).length;
   return size >= FREE_TIER_CACHE_CONFIG.compression.threshold;
 }

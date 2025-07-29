@@ -131,7 +131,7 @@ export class VercelPlanDetector {
         confidence: 0.0,
         detectionMethods: ['environment_variable_failed'],
       };
-    } catch (error) {
+    } catch {
       return {
         plan: 'unknown',
         confidence: 0.0,
@@ -182,7 +182,7 @@ export class VercelPlanDetector {
         confidence: 0.0,
         detectionMethods: ['memory_analysis_unavailable'],
       };
-    } catch (error) {
+    } catch {
       return {
         plan: 'unknown',
         confidence: 0.0,
@@ -228,7 +228,7 @@ export class VercelPlanDetector {
           detectionMethods: ['function_timeout_test'],
         };
       }
-    } catch (error) {
+    } catch {
       return {
         plan: 'unknown',
         confidence: 0.0,
@@ -278,7 +278,7 @@ export class VercelPlanDetector {
         confidence: 0.0,
         detectionMethods: ['domain_analysis_unavailable'],
       };
-    } catch (error) {
+    } catch {
       return {
         plan: 'unknown',
         confidence: 0.0,
@@ -348,7 +348,7 @@ export class VercelPlanDetector {
    * 📋 플랜별 제한사항 정보
    */
   private getPlanLimitations(plan: string): VercelPlanInfo['limitations'] {
-    const limitations = {
+    const _limitations = {
       hobby: {
         maxMemory: 50, // MB
         maxDuration: 10, // seconds
@@ -371,7 +371,9 @@ export class VercelPlanDetector {
       },
     };
 
-    return limitations[plan as keyof typeof limitations] || limitations.unknown;
+    return (
+      _limitations[plan as keyof typeof _limitations] || _limitations.unknown
+    );
   }
 
   /**

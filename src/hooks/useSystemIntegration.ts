@@ -92,7 +92,7 @@ export function useSystemIntegration() {
     }));
   }, []);
 
-  const initializeSystem = useCallback(async () => {
+  const _initializeSystem = useCallback(async () => {
     console.log('[useSystemIntegration] Initializing system...');
     setState(prev => ({ ...prev, systemStatus: 'running', isHealthy: true }));
     return true;
@@ -107,6 +107,6 @@ export function useSystemIntegration() {
     ...state,
     checkConnection,
     updateMetrics,
-    initializeSystem,
+    _initializeSystem,
   };
 }

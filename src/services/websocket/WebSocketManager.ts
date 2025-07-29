@@ -61,14 +61,14 @@ export class WebSocketManager {
   constructor() {
     // Using mock data generator
     this.dataGenerator = { getRealServerMetrics: async () => ({ data: [] }) };
-    this.initializeStreams();
+    this._initializeStreams();
     this.startDataGeneration();
   }
 
   /**
    * 🔌 Socket.IO 서버 초기화
    */
-  initialize(server: any): void {
+  _initialize(server: any): void {
     this.io = new SocketIOServer(server, {
       cors: {
         origin:
@@ -143,7 +143,7 @@ export class WebSocketManager {
   /**
    * 🔄 스트림 초기화
    */
-  private initializeStreams(): void {
+  private _initializeStreams(): void {
     // 메인 데이터 스트림들
     const streamTypes = [
       'server-metrics',
@@ -167,7 +167,7 @@ export class WebSocketManager {
         )
       )
       .subscribe(data => {
-        this.broadcastToSubscribers('server-metrics', data);
+        this.broadcastToSubscribers('server-metrics', _data);
       });
 
     // 알림 스트림
@@ -190,7 +190,7 @@ export class WebSocketManager {
     interval(20000).subscribe(async () => {
       const gcpServerData = await this.dataGenerator
         .getRealServerMetrics()
-        .then((response: any) => response.data);
+        .then((response: any) => response._data);
       const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
 
       const serverMetrics = allServers.map(server => {
@@ -250,7 +250,7 @@ export class WebSocketManager {
       try {
         const gcpServerData = await this.dataGenerator
           .getRealServerMetrics()
-          .then((response: any) => response.data);
+          .then((response: any) => response._data);
         const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
         const testMetrics = allServers.slice(0, 10).map(server => ({
           timestamp: Date.now(),
@@ -299,7 +299,7 @@ export class WebSocketManager {
     if (subscribedClients.length === 0) return;
 
     subscribedClients.forEach(client => {
-      this.io?.to(client.id).emit(streamType, data);
+      this.io?.to(client.id).emit(streamType, _data);
     });
 
     console.log(
@@ -440,7 +440,7 @@ export class WebSocketManager {
    * 📡 커스텀 브로드캐스트
    */
   broadcast(streamType: string, data: any): void {
-    this.broadcastToSubscribers(streamType, data);
+    this.broadcastToSubscribers(streamType, _data);
   }
 
   /**

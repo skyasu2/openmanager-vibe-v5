@@ -71,7 +71,7 @@ export class SupabaseRAGEngine {
   /**
    * 🚀 엔진 초기화
    */
-  async initialize(): Promise<void> {
+  async _initialize(): Promise<void> {
     if (this.isInitialized) return;
 
     try {
@@ -106,7 +106,7 @@ export class SupabaseRAGEngine {
     options: RAGSearchOptions = {}
   ): Promise<RAGSearchResult> {
     const startTime = Date.now();
-    await this.initialize();
+    await this._initialize();
 
     try {
       const {
@@ -234,7 +234,7 @@ export class SupabaseRAGEngine {
     metadata?: AIMetadata
   ): Promise<boolean> {
     try {
-      await this.initialize();
+      await this._initialize();
 
       // 임베딩 생성
       const embedding = await this.generateEmbedding(content);
@@ -435,7 +435,7 @@ export class SupabaseRAGEngine {
 
   private async saveToCache(key: string, data: any): Promise<void> {
     // 메모리 캐시 저장
-    this.searchCache.set(key, data);
+    this.searchCache.set(key, _data);
     if (this.searchCache.size > 100) {
       const firstKey = this.searchCache.keys().next().value;
       if (firstKey) {
@@ -446,7 +446,7 @@ export class SupabaseRAGEngine {
     // Redis 캐시 저장
     if (this.redis) {
       try {
-        await this.redis.setex(key, this.CACHE_TTL, JSON.stringify(data));
+        await this.redis.setex(key, this.CACHE_TTL, JSON.stringify(_data));
       } catch (error) {
         console.error('Redis 캐시 저장 오류:', error);
       }

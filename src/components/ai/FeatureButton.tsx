@@ -26,7 +26,7 @@ interface FeatureButtonProps {
 const FeatureButton: React.FC<FeatureButtonProps> = ({
   icon,
   tab,
-  tooltip,
+  tooltip: _tooltip,
   isActive,
   onClick,
   className = '',

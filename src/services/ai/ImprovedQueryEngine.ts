@@ -103,8 +103,8 @@ export class ImprovedQueryEngine {
 
       // 병렬 초기화
       const initTasks = [
-        this.initializeRAGEngine(),
-        this.initializeGoogleAI(),
+        this._initializeRAGEngine(),
+        this._initializeGoogleAI(),
         this.loadFrequentQueries(),
       ];
 
@@ -124,9 +124,9 @@ export class ImprovedQueryEngine {
   /**
    * 🧠 RAG 엔진 초기화
    */
-  private async initializeRAGEngine(): Promise<void> {
+  private async _initializeRAGEngine(): Promise<void> {
     try {
-      await this.ragEngine.initialize();
+      await this.ragEngine._initialize();
     } catch (error) {
       console.warn('⚠️ RAG 엔진 초기화 실패, 나중에 재시도:', error);
     }
@@ -135,7 +135,7 @@ export class ImprovedQueryEngine {
   /**
    * 🌐 Google AI 초기화
    */
-  private async initializeGoogleAI(): Promise<void> {
+  private async _initializeGoogleAI(): Promise<void> {
     try {
       const apiKey =
         process.env.GOOGLE_AI_API_KEY ||

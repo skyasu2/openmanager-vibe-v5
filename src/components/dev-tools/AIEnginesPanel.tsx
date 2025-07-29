@@ -312,7 +312,7 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
           {aiTestLoading && (
             <div className='flex items-center justify-center py-8'>
               <div className='flex items-center gap-3'>
-                <Bot className='w-6 h-6 animate-pulse' />
+                <Bot className='w-6 h-6 _animate-pulse' />
                 <span>AI가 분석 중입니다...</span>
               </div>
             </div>

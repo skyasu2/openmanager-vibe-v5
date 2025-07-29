@@ -36,15 +36,15 @@ export const useSystemChecklist = ({
 }: UseSystemChecklistProps): SystemChecklistState => {
   const [components, setComponents] = useState<Record<string, ComponentStatus>>(
     () => {
-      const initial: Record<string, ComponentStatus> = {};
+      const _initial: Record<string, ComponentStatus> = {};
       OPENMANAGER_COMPONENTS.forEach(comp => {
-        initial[comp.id] = {
+        _initial[comp.id] = {
           id: comp.id,
           status: 'pending',
           progress: 0,
         };
       });
-      return initial;
+      return _initial;
     }
   );
 
@@ -72,14 +72,14 @@ export const useSystemChecklist = ({
       let animationFrame: number;
 
       // 프로그레스 애니메이션
-      const animateProgress = () => {
+      const _animateProgress = () => {
         setComponents(prev => {
           const current = prev[componentId];
           if (current.status === 'loading' && current.progress < 90) {
             const increment = Math.random() * 15 + 5; // 5-20% 증가
             const newProgress = Math.min(current.progress + increment, 90);
 
-            animationFrame = requestAnimationFrame(animateProgress);
+            animationFrame = requestAnimationFrame(_animateProgress);
 
             return {
               ...prev,
@@ -94,7 +94,7 @@ export const useSystemChecklist = ({
       };
 
       // 애니메이션 시작
-      animationFrame = requestAnimationFrame(animateProgress);
+      animationFrame = requestAnimationFrame(_animateProgress);
 
       try {
         // 최소 표시 시간과 실제 체크 병렬 실행

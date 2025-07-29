@@ -19,7 +19,7 @@ interface UseOptimizedRealtimeOptions {
   dataType: DataType;
   frequency?: UpdateFrequency;
   enableVisibilityOptimization?: boolean;
-  initialData?: any;
+  _initialData?: any;
   onUpdate?: (data: any) => void;
   subscriberId?: string;
 }
@@ -42,11 +42,11 @@ export function useOptimizedRealtime<T = any>({
   dataType,
   frequency = 'medium',
   enableVisibilityOptimization = true,
-  initialData = null,
+  _initialData = null,
   onUpdate,
   subscriberId: customSubscriberId,
 }: UseOptimizedRealtimeOptions): UseOptimizedRealtimeReturn<T> {
-  const [data, setData] = useState<T>(initialData);
+  const [data, setData] = useState<T>(_initialData);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);

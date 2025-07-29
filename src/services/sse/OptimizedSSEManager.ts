@@ -222,7 +222,7 @@ export class OptimizedSSEManager {
     const listeners = this.eventListeners.get(eventType) || [];
     listeners.forEach(listener => {
       try {
-        (listener as any)(data);
+        (listener as any)(_data);
       } catch (error) {
         console.error(`이벤트 리스너 오류 (${eventType}):`, error);
       }
@@ -268,11 +268,11 @@ export class OptimizedSSEManager {
       connection.lastActivity = new Date();
       try {
         const messageEvent = event as MessageEvent;
-        const data = JSON.parse(messageEvent.data);
-        this.emit('message', data);
+        const data = JSON.parse(messageEvent._data);
+        this.emit('message', _data);
       } catch (error) {
         const messageEvent = event as MessageEvent;
-        this.emit('message', messageEvent.data);
+        this.emit('message', messageEvent._data);
       }
     };
 

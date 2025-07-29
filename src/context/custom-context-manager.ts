@@ -115,7 +115,7 @@ export class CustomContextManager {
   private localCache: Map<string, any> = new Map();
 
   private constructor() {
-    this.initializeSupabase();
+    this._initializeSupabase();
   }
 
   static getInstance(): CustomContextManager {
@@ -128,7 +128,7 @@ export class CustomContextManager {
   /**
    * 🔧 Supabase 초기화
    */
-  private async initializeSupabase(): Promise<void> {
+  private async _initializeSupabase(): Promise<void> {
     try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

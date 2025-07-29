@@ -10,10 +10,10 @@ import type {
 
 interface UseAIAssistantDataReturn {
   // 데이터
-  responseLogs: ResponseLogData[];
-  patternSuggestions: PatternSuggestion[];
+  _responseLogs: ResponseLogData[];
+  _patternSuggestions: PatternSuggestion[];
   contextDocuments: ContextDocument[];
-  systemHealth: SystemHealth | null;
+  _systemHealth: SystemHealth | null;
 
   // 상태
   loading: boolean;
@@ -25,7 +25,7 @@ interface UseAIAssistantDataReturn {
 
   // 액션
   loadAllData: () => Promise<void>;
-  handlePatternAction: (
+  _handlePatternAction: (
     id: string,
     action: 'approve' | 'reject'
   ) => Promise<void>;
@@ -39,14 +39,14 @@ interface UseAIAssistantDataReturn {
 
 export function useAIAssistantData(): UseAIAssistantDataReturn {
   // 데이터 상태
-  const [responseLogs, setResponseLogs] = useState<ResponseLogData[]>([]);
-  const [patternSuggestions, setPatternSuggestions] = useState<
+  const [_responseLogs, setResponseLogs] = useState<ResponseLogData[]>([]);
+  const [_patternSuggestions, setPatternSuggestions] = useState<
     PatternSuggestion[]
   >([]);
   const [contextDocuments, setContextDocuments] = useState<ContextDocument[]>(
     []
   );
-  const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
+  const [_systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
 
   // UI 상태
   const [loading, setLoading] = useState(true);
@@ -178,7 +178,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
   ]);
 
   // 패턴 승인/거부 처리
-  const handlePatternAction = useCallback(
+  const _handlePatternAction = useCallback(
     async (id: string, action: 'approve' | 'reject') => {
       try {
         const apiAction =
@@ -226,7 +226,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
   );
 
   // 필터링된 로그
-  const filteredLogs = responseLogs.filter(log => {
+  const filteredLogs = _responseLogs.filter(log => {
     if (filters.status !== 'all' && log.status !== filters.status) return false;
     if (filters.confidence !== 'all') {
       const confThreshold = filters.confidence === 'high' ? 0.8 : 0.5;
@@ -243,22 +243,22 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
 
   // 통계 계산
   const stats: AIAssistantStats = {
-    totalLogs: responseLogs.length,
+    totalLogs: _responseLogs.length,
     successRate:
-      responseLogs.length > 0
-        ? (responseLogs.filter(l => l.status === 'success').length /
-            responseLogs.length) *
+      _responseLogs.length > 0
+        ? (_responseLogs.filter(l => l.status === 'success').length /
+            _responseLogs.length) *
           100
         : 0,
-    patternSuggestions: patternSuggestions.length,
-    pendingPatterns: patternSuggestions.filter(p => p.status === 'pending')
+    _patternSuggestions: _patternSuggestions.length,
+    pendingPatterns: _patternSuggestions.filter(p => p.status === 'pending')
       .length,
     contextDocuments: contextDocuments.length,
     totalWords: Math.round(
       contextDocuments.reduce((sum, doc) => sum + doc.wordCount, 0) / 1000
     ),
     systemStatus:
-      systemHealth?.aiAssistant.status === 'online' ? '정상' : '오류',
+      _systemHealth?.aiAssistant.status === 'online' ? '정상' : '오류',
   };
 
   // 초기 데이터 로드
@@ -268,10 +268,10 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
 
   return {
     // 데이터
-    responseLogs,
-    patternSuggestions,
+    _responseLogs,
+    _patternSuggestions,
     contextDocuments,
-    systemHealth,
+    _systemHealth,
 
     // 상태
     loading,
@@ -283,7 +283,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
 
     // 액션
     loadAllData,
-    handlePatternAction,
+    _handlePatternAction,
 
     // 필터
     filters,

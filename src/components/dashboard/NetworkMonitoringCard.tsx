@@ -158,7 +158,7 @@ const NetworkMonitoringCard: React.FC<NetworkMonitoringCardProps> = ({
       .map((value, index) => {
         const x = (index / (data.length - 1)) * 100;
         const y =
-          100 - Math.max(0, Math.min(100, (value / Math.max(...data)) * 100));
+          100 - Math.max(0, Math.min(100, (value / Math.max(..._data)) * 100));
         return `${x},${y}`;
       })
       .join(' ');

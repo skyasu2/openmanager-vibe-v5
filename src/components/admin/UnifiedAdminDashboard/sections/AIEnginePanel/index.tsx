@@ -90,7 +90,7 @@ export default function AIEnginePanel({
         {selectedEngine ? (
           <EngineDetails
             engine={engines.find(e => e.id === selectedEngine)!}
-            onUpdateConfig={config => onUpdateConfig(selectedEngine, config)}
+            onUpdateConfig={config => onUpdateConfig(selectedEngine, _config)}
             onRestart={() => onRestartEngine(selectedEngine)}
           />
         ) : (

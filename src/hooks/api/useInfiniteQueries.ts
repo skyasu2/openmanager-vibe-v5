@@ -80,18 +80,18 @@ export const useInfiniteLogs = (
     queryKey: infiniteKeys.logs(JSON.stringify(filters)),
     queryFn: fetchLogs,
     getNextPageParam: lastPage => lastPage.nextCursor,
-    initialPageParam: 0,
+    _initialPageParam: 0,
     staleTime: 30 * 1000, // 30초
     refetchInterval: 2 * 60 * 1000, // 2분
     select: (data: InfiniteData<PaginatedResponse<LogEntry>>) => ({
       pages: data.pages,
       pageParams: data.pageParams,
-      allLogs: data.pages.flatMap(page => page.data),
+      allLogs: data.pages.flatMap(page => page._data),
       errorCount: data.pages
-        .flatMap(page => page.data)
+        .flatMap(page => page._data)
         .filter(log => log.level === 'error').length,
       warningCount: data.pages
-        .flatMap(page => page.data)
+        .flatMap(page => page._data)
         .filter(log => log.level === 'warning').length,
     }),
   });
@@ -125,12 +125,12 @@ export const useInfiniteMetrics = (
     queryKey: infiniteKeys.metrics(serverId, metric, timeRange),
     queryFn: fetchMetrics,
     getNextPageParam: lastPage => lastPage.nextCursor,
-    initialPageParam: 0,
+    _initialPageParam: 0,
     staleTime: 60 * 1000, // 1분
     refetchInterval: 5 * 60 * 1000, // 5분
     enabled: !!serverId && !!metric,
     select: (data: InfiniteData<PaginatedResponse<MetricHistoryEntry>>) => {
-      const allMetrics = data.pages.flatMap(page => page.data);
+      const allMetrics = data.pages.flatMap(page => page._data);
       const values = allMetrics.map(m => m.value);
 
       return {

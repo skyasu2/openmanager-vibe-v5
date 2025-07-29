@@ -3,7 +3,7 @@ import { enhancedCryptoManager } from '@/lib/crypto/EnhancedEnvCryptoManager';
 // 🔐 암호화 마스터 키 초기화
 let isInitialized = false;
 
-const initializeCrypto = () => {
+const _initializeCrypto = () => {
   if (isInitialized) return;
 
   // 환경변수에서 마스터 키 가져오기 (또는 기본값 사용)
@@ -11,7 +11,7 @@ const initializeCrypto = () => {
     process.env.ENCRYPTION_KEY ||
     process.env.TEAM_DECRYPT_PASSWORD ||
     'openmanager2025';
-  enhancedCryptoManager.initializeMasterKey(masterKey);
+  enhancedCryptoManager._initializeMasterKey(masterKey);
   isInitialized = true;
 };
 
@@ -20,7 +20,7 @@ const initializeCrypto = () => {
  */
 export function encrypt(text: string): string {
   try {
-    initializeCrypto();
+    _initializeCrypto();
     const encrypted = enhancedCryptoManager.encryptVariable('temp', text);
     return encrypted.encrypted; // base64 encoded string
   } catch (error) {
@@ -34,7 +34,7 @@ export function encrypt(text: string): string {
  */
 export function decrypt(encryptedText: string): string {
   try {
-    initializeCrypto();
+    _initializeCrypto();
 
     // 간단한 base64 문자열을 전체 EncryptedEnvData 형식으로 변환
     // 이전 버전과의 호환성을 위해 임시 데이터 생성

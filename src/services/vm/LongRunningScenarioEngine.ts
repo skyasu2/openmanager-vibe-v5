@@ -50,7 +50,7 @@ export class LongRunningScenarioEngine extends EventEmitter {
 
   constructor() {
     super();
-    this.initializeScenarioPatterns();
+    this._initializeScenarioPatterns();
     console.log('🎭 장기 실행 시나리오 엔진 초기화 완료');
     console.log(`📊 등록된 시나리오 패턴: ${this.scenarioPatterns.length}개`);
   }
@@ -121,7 +121,7 @@ export class LongRunningScenarioEngine extends EventEmitter {
   /**
    * 🎯 시나리오 패턴 초기화 (현실적 장애 시나리오들)
    */
-  private initializeScenarioPatterns(): void {
+  private _initializeScenarioPatterns(): void {
     // 🔥 점진적 메모리 누수 시나리오 (2-8시간)
     this.scenarioPatterns.push({
       id: 'gradual-memory-leak',

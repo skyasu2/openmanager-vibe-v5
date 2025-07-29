@@ -59,7 +59,7 @@ export class VercelStatusService {
 
   private constructor() {
     this.scalingConfig = this.getDefaultConfig();
-    this.initializeStatusMonitoring();
+    this._initializeStatusMonitoring();
   }
 
   /**
@@ -306,7 +306,7 @@ export class VercelStatusService {
   /**
    * ⏰ 상태 모니터링 초기화
    */
-  private initializeStatusMonitoring(): void {
+  private _initializeStatusMonitoring(): void {
     // 초기 상태 확인
     this.updateScalingConfig();
 

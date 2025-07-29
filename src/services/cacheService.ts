@@ -32,7 +32,7 @@ const memoryCache = new Map<string, CacheEntry>();
  * 전역 상태 없이 각 요청마다 새로운 인스턴스 생성
  */
 export class RequestScopedCacheService {
-  private initialized: boolean = false;
+  private _initialized: boolean = false;
 
   constructor() {
     console.warn(
@@ -46,9 +46,9 @@ export class RequestScopedCacheService {
   /**
    * 🚫 초기화 비활성화
    */
-  async initialize(): Promise<void> {
+  async _initialize(): Promise<void> {
     console.warn('⚠️ 캐시 서비스 초기화 무시됨 - 서버리스 환경');
-    this.initialized = true;
+    this._initialized = true;
   }
 
   /**

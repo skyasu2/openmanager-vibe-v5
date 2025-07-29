@@ -7,7 +7,7 @@
 
 import { create } from 'zustand';
 
-export type SystemState = 'inactive' | 'initializing' | 'active' | 'stopping';
+export type SystemState = 'inactive' | '_initializing' | 'active' | 'stopping';
 export type DataCollectionState =
   | 'waiting'
   | 'collecting'

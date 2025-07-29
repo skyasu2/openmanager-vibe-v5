@@ -84,22 +84,22 @@ describe('SupabaseRAGEngine', () => {
   });
 
   describe('Initialization', () => {
-    it('should initialize successfully', async () => {
-      await engine.initialize();
+    it('should _initialize successfully', async () => {
+      await engine._initialize();
       
       expect(mockVectorDB.getStats).toHaveBeenCalled();
       expect(engine['isInitialized']).toBe(true);
     });
 
-    it('should only initialize once', async () => {
-      await engine.initialize();
-      await engine.initialize();
-      await engine.initialize();
+    it('should only _initialize once', async () => {
+      await engine._initialize();
+      await engine._initialize();
+      await engine._initialize();
       
       expect(mockVectorDB.getStats).toHaveBeenCalledTimes(1);
     });
 
-    it('should load initial knowledge base when empty', async () => {
+    it('should load _initial knowledge base when empty', async () => {
       mockVectorDB.getStats.mockResolvedValue({
         total_documents: 0,
         total_categories: 0,
@@ -108,22 +108,22 @@ describe('SupabaseRAGEngine', () => {
       // Mock loadInitialKnowledgeBase
       engine['loadInitialKnowledgeBase'] = vi.fn().mockResolvedValue(undefined);
       
-      await engine.initialize();
+      await engine._initialize();
       
       expect(engine['loadInitialKnowledgeBase']).toHaveBeenCalled();
     });
 
-    it('should handle initialization errors gracefully', async () => {
+    it('should handle _initialization errors gracefully', async () => {
       mockVectorDB.getStats.mockRejectedValue(new Error('DB error'));
       
-      await expect(engine.initialize()).resolves.toBeUndefined();
+      await expect(engine._initialize()).resolves.toBeUndefined();
       expect(engine['isInitialized']).toBe(true);
     });
   });
 
   describe('Search Similar', () => {
     beforeEach(async () => {
-      await engine.initialize();
+      await engine._initialize();
     });
 
     it('should perform basic search', async () => {
@@ -208,7 +208,7 @@ describe('SupabaseRAGEngine', () => {
 
   describe('Add Document', () => {
     beforeEach(async () => {
-      await engine.initialize();
+      await engine._initialize();
     });
 
     it('should add document successfully', async () => {
@@ -253,7 +253,7 @@ describe('SupabaseRAGEngine', () => {
 
   describe('Health Check', () => {
     it('should return healthy status', async () => {
-      await engine.initialize();
+      await engine._initialize();
       
       const health = await engine.healthCheck();
       
@@ -275,7 +275,7 @@ describe('SupabaseRAGEngine', () => {
 
   describe('Caching', () => {
     beforeEach(async () => {
-      await engine.initialize();
+      await engine._initialize();
     });
 
     it('should cache search results in Redis', async () => {
@@ -310,7 +310,7 @@ describe('SupabaseRAGEngine', () => {
 
   describe('Clear Knowledge Base', () => {
     it('should clear knowledge base and caches', async () => {
-      await engine.initialize();
+      await engine._initialize();
       
       // Add some cache
       engine['embeddingCache'].set('test', []);
@@ -336,7 +336,7 @@ describe('SupabaseRAGEngine', () => {
 
   describe('Edge Cases', () => {
     beforeEach(async () => {
-      await engine.initialize();
+      await engine._initialize();
     });
 
     it('should handle empty search query', async () => {

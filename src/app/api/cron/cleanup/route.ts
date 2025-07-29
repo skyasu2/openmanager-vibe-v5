@@ -13,10 +13,10 @@ import { NextResponse } from 'next/server';
  * - 메모리 정리
  * - 불필요한 데이터 삭제
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Vercel Cron에서만 실행 허용
-    const authHeader = request.headers.get('authorization');
+    const authHeader = _request.headers.get('authorization');
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
 }
 
 // POST 방식도 지원 (수동 청소)
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     console.log('🧹 수동 청소 작업 시작...');
 

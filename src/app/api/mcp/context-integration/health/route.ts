@@ -10,7 +10,7 @@ import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     console.log('🏥 MCP 서버 헬스체크 시작...');
 
@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
  *
  * POST /api/mcp/context-integration/health
  */
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     console.log('🔄 강제 MCP 헬스체크 실행...');
 

@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
 
 async function getABTestStatus() {
   try {
-    await abTestManager.initialize();
+    await abTestManager._initialize();
 
     // 간단한 상태 정보
     const [legacyGroup, optimizedGroup] = await Promise.all([
@@ -173,7 +173,7 @@ async function getABTestStatus() {
 
 async function getABTestResults() {
   try {
-    await abTestManager.initialize();
+    await abTestManager._initialize();
     const results = await abTestManager.getResults();
 
     return NextResponse.json({
@@ -211,7 +211,7 @@ async function getABTestResults() {
 
 async function getDetailedMetrics() {
   try {
-    await abTestManager.initialize();
+    await abTestManager._initialize();
     const results = await abTestManager.getResults();
 
     // 상세 메트릭 분석
@@ -415,7 +415,7 @@ async function updateConfig(params: any) {
       );
     }
 
-    await abTestManager.updateConfig(config);
+    await abTestManager.updateConfig(_config);
 
     return NextResponse.json({
       success: true,

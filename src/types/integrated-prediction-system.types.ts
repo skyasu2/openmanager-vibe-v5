@@ -258,7 +258,7 @@ export type PredictionEventCallback = (event: PredictionEvent) => void;
 
 // 유틸리티 타입
 export type PredictionSystemStatus =
-  | 'initializing'
+  | '_initializing'
   | 'running'
   | 'paused'
   | 'error'

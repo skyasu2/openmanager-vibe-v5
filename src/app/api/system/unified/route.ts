@@ -353,14 +353,14 @@ export async function GET(request: NextRequest) {
 
         const stream = new ReadableStream({
           start(controller) {
-            const sendEvent = (eventType: string, data: any) => {
-              const message = `event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`;
+            const sendEvent = (eventType: string, _data: any) => {
+              const message = `event: ${eventType}\ndata: ${JSON.stringify(_data)}\n\n`;
               controller.enqueue(encoder.encode(message));
             };
 
             // 초기 상태 전송
-            const initialStatus = manager.getSystemStatus();
-            sendEvent('status', initialStatus);
+            const _initialStatus = manager.getSystemStatus();
+            sendEvent('status', _initialStatus);
 
             // 이벤트 리스너 등록
             const listeners: Array<{
@@ -369,31 +369,31 @@ export async function GET(request: NextRequest) {
             }> = [
               {
                 event: 'system:started',
-                handler: (data: any) => sendEvent('system-started', data),
+                handler: (_data: any) => sendEvent('system-started', _data),
               },
               {
                 event: 'system:stopped',
-                handler: (data: any) => sendEvent('system-stopped', data),
+                handler: (_data: any) => sendEvent('system-stopped', _data),
               },
               {
                 event: 'system:health-update',
-                handler: (data: any) => sendEvent('health-update', data),
+                handler: (_data: any) => sendEvent('health-update', _data),
               },
               {
                 event: 'process:started',
-                handler: (data: any) => sendEvent('process-started', data),
+                handler: (_data: any) => sendEvent('process-started', _data),
               },
               {
                 event: 'process:stopped',
-                handler: (data: any) => sendEvent('process-stopped', data),
+                handler: (_data: any) => sendEvent('process-stopped', _data),
               },
               {
                 event: 'process:unhealthy',
-                handler: (data: any) => sendEvent('process-unhealthy', data),
+                handler: (_data: any) => sendEvent('process-unhealthy', _data),
               },
               {
                 event: 'system:stable',
-                handler: (data: any) => sendEvent('system-stable', data),
+                handler: (_data: any) => sendEvent('system-stable', _data),
               },
             ];
 
