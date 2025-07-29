@@ -1,5 +1,125 @@
 # Changelog
 
+> 📌 **참고**: 이전 버전들의 상세한 변경 이력은 [CHANGELOG-LEGACY.md](./CHANGELOG-LEGACY.md)를 참조하세요.
+> - Legacy 파일: v5.0.0 ~ v5.65.6 (2024-05 ~ 2025-01)
+> - 현재 파일: v5.65.7 이후 (2025-01 ~)
+
+## [5.65.16] - 2025-07-29
+
+### 🧹 스크립트 대규모 정리 및 중복 제거 완료
+
+- **스크립트 분석 완료**:
+  - 총 126개 쉘 스크립트 파일 검토
+  - 중복 스크립트 4개 식별 및 삭제
+  - 보안 문제 스크립트 5개 발견, 2개 수정 완료
+
+- **실제 정리 작업 완료**:
+  - ✅ 중복 스크립트 4개 삭제 (백업: `scripts/backup-20250729-manual/`)
+    - `setup-mcp-wsl.sh`, `setup-mcp-wsl-final.sh`
+    - `git-push-helper.sh`, `docs-reorganize.sh`
+  - ✅ 보안 문제 스크립트 2개 수정
+    - `setup-mcp-env.sh`: .env.local에서 환경변수 읽기로 변경
+    - `fix-mcp-servers.sh`: 하드코딩 제거, 환경변수 사용
+
+- **생성된 문서**:
+  - `/scripts/cleanup-duplicate-scripts.sh` - 대화형 정리 도구
+  - `/reports/script-cleanup-analysis-2025-07-29.md` - 상세 분석 보고서
+  - `/scripts/cleanup-summary.md` - 정리 작업 완료 보고서
+
+- **정리 효과**:
+  - 코드 중복 제거: 4개 파일, 약 348줄 삭제
+  - 보안 강화: 하드코딩된 민감 정보 제거
+  - 유지보수성 향상: 환경변수 중앙 관리
+
+## [5.65.15] - 2025-07-29
+
+### 🔍 Serena MCP Server 분석 및 활용 가이드 추가
+
+- **Serena MCP 동작 확인**:
+  - Language Server Protocol(LSP) 기반 코드 분석 도구
+  - 심볼 수준 코드 이해 및 편집 가능
+  - 무료 오픈소스로 Claude 무료 티어에서도 사용 가능
+
+- **문서 추가**:
+  - `/docs/serena-mcp-practical-guide.md` - 실전 활용 가이드
+  - 주요 기능별 사용법 상세 설명
+  - 서브에이전트별 활용 시나리오 포함
+
+- **서브에이전트 업데이트**:
+  - `code-review-specialist`: Serena로 God Class 탐지, 순환 의존성 체크
+  - `debugger-specialist`: 스택 트레이스 분석, 에러 패턴 검색 강화
+  - 구체적인 코드 예제와 활용법 추가
+
+- **메모리 기능 활용**:
+  - `serena-mcp-usage-guide` 메모리 생성
+  - 프로젝트 지식 유지 및 재사용 가능
+
+## [5.65.14] - 2025-07-29
+
+### 📂 루트 경로 문서 대규모 정리
+
+- **CHANGELOG 분리**:
+  - CHANGELOG-LEGACY.md 생성 (4,144줄의 이전 기록 복구)
+  - 현재 CHANGELOG.md는 최신 변경사항만 유지 (555줄)
+  
+- **루트 문서 정리**:
+  - 핵심 문서 5개만 루트에 유지 (README, CHANGELOG, CHANGELOG-LEGACY, CLAUDE, GEMINI)
+  - 테스트/리포트 파일 → `reports/` 디렉터리로 이동
+  - Hook 관련 문서 → `docs/hooks/` 디렉터리로 이동
+  - 시스템/서브에이전트 문서 → `docs/system/` 디렉터리로 이동
+
+- **MCP 서버 설정 문서화**:
+  - Node.js 기반 서버: `npx` 명령어 사용
+  - Python 기반 서버: `uvx` 명령어 사용
+  - 추가/수정/삭제 가이드 CLAUDE.md에 추가
+  
+- **서브에이전트 MCP 설정 업데이트**:
+  - 프로젝트 로컬 설정(.claude/mcp.json) 정보 추가
+  - mcp-server-admin에 uvx 명령어 추가
+  - database-administrator, ai-systems-engineer, central-supervisor에 설정 정보 반영
+  - 서브에이전트별 MCP 활용 현황 문서화 (`docs/subagents-mcp-usage-summary.md`)
+
+## [5.65.13] - 2025-07-28
+
+### 📚 프로젝트 문서 대폭 보강 - Next.js 15, Upstash Redis, Supabase RLS 완벽 가이드
+
+- **문서 연구 기반 업그레이드**:
+  - 🔍 **웹 검색 활용**: 2024년 최신 모범 사례 연구
+  - 📖 **공식 문서 참조**: Next.js 15, Upstash, Supabase 공식 가이드
+  - 🎯 **실전 패턴 수집**: 프로덕션 환경 최적화 전략
+
+- **CLAUDE.md 새로운 섹션 추가**:
+  - 🚀 **Next.js 15 App Router 모범 사례**:
+    - 캐싱 전략 변경 (기본 uncached → 명시적 캐싱)
+    - Runtime 설정 업데이트 (experimental-edge → edge)
+    - 번들 최적화 설정 (ESLint 9 지원)
+    - CI/CD 파이프라인 구성
+    - Core Web Vitals 모니터링
+
+  - 🔴 **Upstash Redis 통합 가이드**:
+    - 환경 설정 및 클라이언트 초기화
+    - 캐싱 전략, 세션 관리, Rate Limiting
+    - 실시간 Pub/Sub, 배치 작업 최적화
+    - 메모리 관리 및 에러 처리 패턴
+
+  - 🟢 **Supabase RLS 보안 모범 사례**:
+    - RLS 정책 패턴 (사용자별, 팀별, 역할별)
+    - JWT 데이터 검증 및 보안 원칙
+    - 성능 최적화 (인덱스 전략)
+    - pgTAP 자동 테스트 구성
+    - Storage RLS 설정
+
+- **환경변수 구성 완벽 가이드**:
+  - Next.js 15 & Vercel, Supabase, Upstash Redis 설정
+  - GitHub OAuth, GCP Functions 연동
+  - 보안 체크리스트 (공개/비공개 키 분리)
+  - 환경별 설정 분리 전략
+
+- **업데이트된 프로젝트 정보**:
+  - Next.js 14.2.4 → Next.js 15 업그레이드 반영
+  - App Router 구조 정확성 개선
+  - 무료 티어 아키텍처 최신화
+
 ## [5.65.12] - 2025-07-28
 
 ### ⚡ SimplifiedQueryEngine 성능 최적화 - 응답 시간 500ms 이하 달성

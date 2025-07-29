@@ -12,7 +12,7 @@ Project guidance for Claude Code (claude.ai/code) when working with this reposit
 
 - 100% 무료 티어로 운영 (Vercel + GCP + Supabase)
 - 엔터프라이즈급 성능 (152ms 응답, 99.95% 가동률)
-- Next.js 14.2.4 + React 18.2.0 + TypeScript strict mode
+- Next.js 15 + App Router + React 18.2.0 + TypeScript strict mode
 
 ### 무료 티어 아키텍처
 
@@ -36,13 +36,14 @@ Project guidance for Claude Code (claude.ai/code) when working with this reposit
 - **Package Manager**: npm
 - **언어**: 한국어 우선 (기술 용어는 영어 병기)
 - **Python**: 3.11 (GCP Functions)
+- **Claude Code**: 프로젝트별 독립 설정 사용
 
 ## 📂 프로젝트 구조
 
 ```
 openmanager-vibe-v5/
 ├── src/             # 소스 코드
-│   ├── app/         # Next.js 14 App Router
+│   ├── app/         # Next.js 15 App Router
 │   ├── services/    # 비즈니스 로직 (AI, Auth, MCP)
 │   ├── components/  # React 컴포넌트
 │   └── lib/         # 유틸리티
@@ -83,7 +84,9 @@ npm run health:check                 # API 상태 확인
 2. **파일 크기**: 500줄 권장, 1500줄 초과 시 분리
 3. **코드 재사용**: 기존 코드 검색 후 작성 (`@codebase` 활용)
 4. **커밋**: 매 커밋마다 CHANGELOG.md 업데이트
-5. **문서**: 루트에는 README, CHANGELOG, CLAUDE, GEMINI만
+5. **문서**: 루트에는 핵심 문서 5개만 유지
+   - README.md, CHANGELOG.md, CHANGELOG-LEGACY.md, CLAUDE.md, GEMINI.md
+   - 기타 문서는 종류별로 분류: `docs/`, `reports/`
 6. **사고 모드**: "think hard" 항상 활성화
 7. **SOLID 원칙**: 모든 코드에 적용
 
@@ -108,6 +111,109 @@ useAsyncEffect(async () => {
   // 비동기 useEffect
   // 안전한 비동기 처리
 }, [deps]);
+```
+
+## 🔧 Next.js 15 App Router 모범 사례
+
+### 프로덕션 최적화 (2024)
+
+#### 1. 캐싱 전략 변경
+- **중요**: Next.js 15부터 GET Route Handlers와 Client Router Cache가 기본적으로 **uncached**로 변경
+- **이전**: 기본 캐시 → **현재**: 기본 비캐시
+- **성능 영향**: 명시적 캐싱 전략 필요
+
+```typescript
+// app/api/servers/route.ts
+export async function GET() {
+  // Next.js 15: 명시적 캐싱 필요
+  return NextResponse.json(data, {
+    headers: {
+      'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+    },
+  });
+}
+```
+
+#### 2. Runtime 설정 업데이트
+```typescript
+// ❌ 구버전 (deprecated)
+export const runtime = "experimental-edge";
+
+// ✅ Next.js 15
+export const runtime = "edge";
+```
+
+#### 3. 번들 최적화
+```javascript
+// next.config.js
+module.exports = {
+  // 자동 외부 패키지 번들링 (Pages Router)
+  bundlePagesRouterDependencies: true,
+  
+  // 특정 패키지 번들링 제외
+  serverExternalPackages: ['@upstash/redis', 'sharp'],
+  
+  // ESLint 9 지원
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+};
+```
+
+#### 4. 성능 모니터링
+```typescript
+// app/layout.tsx - Core Web Vitals 추적
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/react';
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="ko">
+      <body>
+        {children}
+        <SpeedInsights />
+        <Analytics />
+      </body>
+    </html>
+  );
+}
+```
+
+#### 5. CI/CD 파이프라인
+```yaml
+# .github/workflows/production.yml
+name: Production Deployment
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.15.1'
+          cache: 'npm'
+      
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run type-check
+      - run: npm run test
+      - run: npm run build
+      
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.ORG_ID }}
+          vercel-project-id: ${{ secrets.PROJECT_ID }}
+          vercel-args: '--prod'
 ```
 
 ## 💡 핵심 시스템
@@ -141,6 +247,319 @@ useAsyncEffect(async () => {
   - **전담 관리**: `database-administrator` 서브 에이전트
 - **Vector DB**: pgvector 확장 (Supabase 내)
 
+## 🔴 Upstash Redis 통합 가이드
+
+### 환경 설정
+
+```bash
+# 필수 패키지 설치
+npm install @upstash/redis
+
+# 환경 변수 설정 (.env.local)
+UPSTASH_REDIS_REST_URL="https://your-redis-url.upstash.io"
+UPSTASH_REDIS_REST_TOKEN="your-redis-token"
+```
+
+### 클라이언트 초기화
+
+```typescript
+// lib/redis.ts
+import { Redis } from '@upstash/redis';
+
+// 환경 변수에서 자동 초기화
+const redis = Redis.fromEnv();
+
+export default redis;
+
+// 또는 명시적 초기화
+export const redisClient = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
+```
+
+### 핵심 사용 패턴
+
+#### 1. 캐싱 전략
+```typescript
+// services/caching.ts
+import redis from '@/lib/redis';
+
+export async function getCachedData<T>(
+  key: string,
+  fetcher: () => Promise<T>,
+  ttl: number = 300 // 5분
+): Promise<T> {
+  // 캐시에서 조회
+  const cached = await redis.get<T>(key);
+  if (cached) return cached;
+  
+  // 데이터 페칭 및 캐싱
+  const data = await fetcher();
+  await redis.setex(key, ttl, data);
+  return data;
+}
+
+// 사용 예시
+const serverMetrics = await getCachedData(
+  `server:${serverId}:metrics`,
+  () => fetchServerMetrics(serverId),
+  60 // 1분 캐시
+);
+```
+
+#### 2. 세션 관리
+```typescript
+// services/session.ts
+import redis from '@/lib/redis';
+
+export class SessionManager {
+  private static SESSION_PREFIX = 'session:';
+  private static TTL = 24 * 60 * 60; // 24시간
+
+  static async create(userId: string, data: any) {
+    const sessionId = crypto.randomUUID();
+    const key = `${this.SESSION_PREFIX}${sessionId}`;
+    
+    await redis.setex(key, this.TTL, {
+      userId,
+      ...data,
+      createdAt: Date.now(),
+    });
+    
+    return sessionId;
+  }
+
+  static async get(sessionId: string) {
+    const key = `${this.SESSION_PREFIX}${sessionId}`;
+    return await redis.get(key);
+  }
+
+  static async destroy(sessionId: string) {
+    const key = `${this.SESSION_PREFIX}${sessionId}`;
+    await redis.del(key);
+  }
+}
+```
+
+#### 3. Rate Limiting
+```typescript
+// middleware/rate-limit.ts
+import redis from '@/lib/redis';
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function rateLimitMiddleware(
+  request: NextRequest,
+  limit: number = 100,
+  window: number = 3600 // 1시간
+) {
+  const ip = request.ip ?? '127.0.0.1';
+  const key = `rate_limit:${ip}`;
+  
+  const requests = await redis.incr(key);
+  
+  if (requests === 1) {
+    await redis.expire(key, window);
+  }
+  
+  if (requests > limit) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded' },
+      { status: 429 }
+    );
+  }
+  
+  return NextResponse.next();
+}
+```
+
+#### 4. 실시간 데이터 Pub/Sub
+```typescript
+// services/realtime.ts
+import redis from '@/lib/redis';
+
+export class RealtimeService {
+  static async publishMetrics(serverId: string, metrics: any) {
+    await redis.publish(`server:${serverId}:metrics`, JSON.stringify(metrics));
+  }
+  
+  static async subscribeToMetrics(serverId: string, callback: (data: any) => void) {
+    // WebSocket과 연동하여 실시간 업데이트
+    const channel = `server:${serverId}:metrics`;
+    // Note: Upstash는 HTTP 기반이므로 polling 방식 사용
+    setInterval(async () => {
+      const data = await redis.get(`latest:${channel}`);
+      if (data) callback(data);
+    }, 1000);
+  }
+}
+```
+
+### 성능 최적화
+
+#### 1. 배치 작업
+```typescript
+// 여러 키 동시 처리
+const pipeline = redis.pipeline();
+pipeline.set('key1', 'value1');
+pipeline.set('key2', 'value2');
+pipeline.incr('counter');
+const results = await pipeline.exec();
+```
+
+#### 2. 메모리 관리
+```typescript
+// TTL 설정으로 자동 정리
+await redis.setex('temp:data', 300, data); // 5분 후 자동 삭제
+
+// 메모리 사용량 모니터링
+const info = await redis.info('memory');
+console.log('Redis 메모리 사용량:', info);
+```
+
+#### 3. 에러 처리
+```typescript
+// 안전한 Redis 작업
+export async function safeRedisOperation<T>(
+  operation: () => Promise<T>,
+  fallback?: T
+): Promise<T | null> {
+  try {
+    return await operation();
+  } catch (error) {
+    console.error('Redis operation failed:', error);
+    return fallback ?? null;
+  }
+}
+```
+
+## 🟢 Supabase RLS 보안 모범 사례
+
+### RLS 기본 설정
+
+```sql
+-- 테이블에 RLS 활성화 (필수)
+ALTER TABLE servers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE server_metrics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY;
+```
+
+### 보안 정책 패턴
+
+#### 1. 사용자별 데이터 격리
+```sql
+-- 개별 사용자 데이터 접근
+CREATE POLICY "Users can only see own servers" ON servers
+FOR ALL USING (auth.uid() = user_id);
+
+-- 인덱스 최적화 (필수)
+CREATE INDEX idx_servers_user_id ON servers(user_id);
+```
+
+#### 2. 팀 기반 접근 제어
+```sql
+-- 팀 멤버십 확인
+CREATE POLICY "Team members can access team servers" ON servers
+FOR ALL USING (
+  EXISTS (
+    SELECT 1 FROM team_members 
+    WHERE team_id = servers.team_id 
+    AND user_id = auth.uid()
+  )
+);
+
+-- 성능 최적화 인덱스
+CREATE INDEX idx_team_members_user_team ON team_members(user_id, team_id);
+```
+
+#### 3. 역할 기반 권한
+```sql
+-- 관리자 권한 확인
+CREATE POLICY "Admins can manage all data" ON servers
+FOR ALL USING (
+  (auth.jwt() ->> 'role') = 'admin'
+);
+
+-- 읽기 전용 사용자
+CREATE POLICY "Read-only access for viewers" ON servers
+FOR SELECT USING (
+  (auth.jwt() ->> 'role') IN ('viewer', 'admin', 'editor')
+);
+```
+
+### 중요 보안 원칙
+
+#### 1. JWT 데이터 검증
+```sql
+-- ❌ 위험: user_metadata 사용 금지
+CREATE POLICY "Unsafe policy" ON servers
+FOR ALL USING (
+  (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+  -- user_metadata는 사용자가 수정 가능!
+);
+
+-- ✅ 안전: app_metadata 사용
+CREATE POLICY "Safe policy" ON servers
+FOR ALL USING (
+  (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+  -- app_metadata는 서버에서만 수정 가능
+);
+```
+
+#### 2. 성능 고려사항
+```sql
+-- RLS 정책에 사용되는 모든 컬럼에 인덱스 필수
+CREATE INDEX idx_servers_user_id ON servers(user_id);
+CREATE INDEX idx_servers_team_id ON servers(team_id);
+CREATE INDEX idx_servers_created_at ON servers(created_at);
+
+-- 복합 인덱스로 쿼리 최적화
+CREATE INDEX idx_servers_user_team ON servers(user_id, team_id);
+```
+
+#### 3. 테스트 자동화
+```sql
+-- pgTAP으로 RLS 정책 테스트
+BEGIN;
+SELECT plan(3);
+
+-- 테스트 사용자 생성
+SET LOCAL "request.jwt.claims" TO '{"sub": "test-user-id", "role": "user"}';
+
+-- 권한 테스트
+SELECT ok(
+  (SELECT count(*) FROM servers) = 0,
+  'User should not see any servers initially'
+);
+
+-- 데이터 삽입 테스트
+INSERT INTO servers (name, user_id) VALUES ('test-server', 'test-user-id');
+SELECT ok(
+  (SELECT count(*) FROM servers) = 1,
+  'User should see their own server'
+);
+
+-- 다른 사용자 데이터 접근 차단 테스트
+SET LOCAL "request.jwt.claims" TO '{"sub": "other-user-id", "role": "user"}';
+SELECT ok(
+  (SELECT count(*) FROM servers) = 0,
+  'Other user should not see first users servers'
+);
+
+SELECT * FROM finish();
+ROLLBACK;
+```
+
+### Storage RLS 설정
+```sql
+-- 스토리지 버킷 RLS 활성화
+CREATE POLICY "Users can upload own files" ON storage.objects
+FOR INSERT WITH CHECK (auth.uid()::text = (storage.foldername(name))[1]);
+
+CREATE POLICY "Users can view own files" ON storage.objects
+FOR SELECT USING (auth.uid()::text = (storage.foldername(name))[1]);
+```
+
 ## 🔌 주요 API 엔드포인트
 
 - `/api/servers/*` - 서버 메트릭 CRUD
@@ -149,7 +568,7 @@ useAsyncEffect(async () => {
 - `/api/realtime/*` - 실시간 데이터 스트림
 - `/api/admin/*` - 관리자 기능
 
-## 🔧 MCP 서버 (9개)
+## 🔧 MCP 서버 (9개) - 프로젝트 로컬 설정
 
 현재 사용 가능한 MCP 서버:
 
@@ -157,9 +576,79 @@ useAsyncEffect(async () => {
 - `context7`, `tavily-mcp`, `sequential-thinking`
 - `playwright`, `serena`
 
-자세한 설정: `.claude/mcp.json`
+**설정 위치**: 
+- 프로젝트 로컬: `.claude/mcp.json` (현재 프로젝트에서 사용)
+- 글로벌 설정: `~/.claude.json`의 projects 섹션에서 개별 관리
 
-## 🤖 유용한 Sub Agents
+### MCP 서버 등록 방식
+- **Node.js 기반 서버** (8개): `npx` 명령어 사용
+  - 예: `"command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem@0.8.0"]`
+- **Python 기반 서버** (serena): `uvx` 명령어 사용
+  - 예: `"command": "uvx", "args": ["--from", "git+https://github.com/oraios/serena@v0.8.0"]`
+
+⚠️ **중요**: MCP 서버 추가/수정/삭제 시 반드시 이 명령어 형식을 유지해야 함
+
+### MCP 서버 관리 가이드
+
+#### 새 MCP 서버 추가
+```json
+// .claude/mcp.json에 추가
+"서버명": {
+  "type": "stdio",
+  "command": "npx",  // Node.js 패키지는 npx, Python은 uvx
+  "args": ["-y", "@패키지명@버전"],
+  "env": {
+    "필요한_환경변수": "${환경변수명}"
+  },
+  "description": "서버 설명",
+  "priority": 10,
+  "healthCheck": true
+}
+```
+
+#### MCP 서버 수정
+1. `.claude/mcp.json` 파일 열기
+2. 해당 서버 섹션 찾기
+3. 필요한 속성 수정 (버전, 환경변수 등)
+4. 파일 저장 후 Claude Code 재시작
+
+#### MCP 서버 삭제
+1. `.claude/mcp.json`에서 해당 서버 섹션 전체 제거
+2. `.claude/settings.local.json`의 `enabledMcpjsonServers`에서도 제거
+3. Claude Code 재시작
+
+### MCP 서버 활성화 설정
+`.claude/settings.local.json`에서 활성화할 서버 지정:
+```json
+{
+  "enableAllProjectMcpServers": true,  // 모든 프로젝트 MCP 서버 활성화
+  "enabledMcpjsonServers": [
+    "filesystem",
+    "memory",
+    "github",
+    "supabase",
+    "sequential-thinking"
+    // 필요한 서버만 명시적으로 활성화
+  ]
+}
+```
+
+### MCP 서버 관리 명령어
+```bash
+# MCP 서버 상태 확인
+claude mcp list
+
+# MCP 서버 추가 (대화형)
+claude mcp add
+
+# 특정 MCP 서버 정보 보기
+/mcp
+
+# MCP 서버 건강 상태 확인
+bash .claude/monitor-mcp-health.sh
+```
+
+## 🤖 유용한 Sub Agents - 프로젝트 로컬 설정
 
 복잡한 작업 시 Task 도구로 서브 에이전트 활용:
 
@@ -167,28 +656,36 @@ useAsyncEffect(async () => {
 | --------------- | ---------------------------- | ----------------------------- |
 | 복잡한 작업     | `central-supervisor`         | 마스터 오케스트레이터         |
 | 코드 품질       | `code-review-specialist`     | SOLID 원칙, 타입 검사         |
+| 보안 검사       | `security-auditor`           | 취약점 탐지, 보안 감사        |
 | DB 최적화       | `database-administrator`     | Upstash Redis + Supabase 전담 |
 | 성능 개선       | `ux-performance-optimizer`   | Core Web Vitals               |
 | 테스트          | `test-automation-specialist` | 테스트 작성/수정              |
 | AI 시스템       | `ai-systems-engineer`        | AI 어시스턴트 개발            |
-| 문서 관리       | `doc-structure-guardian`     | JBGE 원칙 적용                |
-| 시스템 모니터링 | `issue-summary`              | 플랫폼 상태 + 접속 관리       |
+| 문서 구조       | `doc-structure-guardian`     | JBGE 원칙, 문서 정리          |
+| 문서 작성       | `doc-writer-researcher`      | 문서 작성, 연구, 지식 합성    |
+| 디버깅          | `debugger-specialist`        | 오류 분석, 근본 원인 파악     |
+| 플랫폼 모니터링 | `issue-summary`              | 플랫폼 상태, 무료 티어 추적   |
 | MCP 관리        | `mcp-server-admin`           | MCP 인프라 관리               |
 | AI 협업         | `gemini-cli-collaborator`    | Gemini CLI 연동               |
 
 ### 📁 서브 에이전트 설정 위치
 
-- **설정 파일**: `.claude/agents/` (10개 에이전트)
+- **프로젝트 로컬 설정**: `.claude/agents/` (13개 에이전트 .md 파일)
 - **MCP 서버 설정**: `.claude/mcp.json` (npx/uvx 형식)
 - **매핑 가이드**: `/docs/sub-agents-mcp-mapping-guide.md`
+- **글로벌 설정과의 관계**: 프로젝트별로 독립적으로 관리됨
 
 ### 🚀 서브 에이전트 역할 분리 원칙
 
 **중요**: 각 에이전트는 명확한 전문 영역만 담당합니다.
 
 - **central-supervisor**: 오케스트레이션만 - 작업 분배, 모니터링, 결과 통합
-- **issue-summary**: 플랫폼 상태 관리 - 서비스 헬스, 접속 정보, 무료 티어 추적
-- **기타 에이전트**: 각자의 전문 영역에만 집중
+- **issue-summary**: 플랫폼 모니터링만 - 서비스 헬스, 무료 티어 추적
+- **debugger-specialist**: 디버깅만 - 오류 분석, 가설 수립, 최소 수정
+- **doc-structure-guardian**: 문서 구조만 - JBGE 원칙, 정리, 아카이빙
+- **doc-writer-researcher**: 문서 작성만 - 연구, 지식 합성, 새 문서 생성
+- **code-review-specialist**: 코드 품질만 - SOLID, DRY, 복잡도 분석
+- **security-auditor**: 보안만 - 취약점 탐지, OWASP, 인증/인가
 - **협업 원칙**: 에이전트 간 역할 중복 없이 명확한 책임 분리
 
 ```typescript
@@ -220,7 +717,11 @@ Task({
   ├─ ai-systems-engineer (AI 기능 개발)
   ├─ database-administrator (Upstash Redis + Supabase 최적화)
   ├─ issue-summary (플랫폼 상태 확인)
-  └─ code-review-specialist (코드 품질 검증)
+  ├─ debugger-specialist (오류 분석 및 해결)
+  ├─ code-review-specialist (코드 품질 검증)
+  ├─ security-auditor (보안 취약점 검사)
+  ├─ doc-structure-guardian (문서 구조 정리)
+  └─ doc-writer-researcher (문서 작성 및 연구)
       └─ 모든 결과 → central-supervisor (통합 및 보고)
 ```
 
@@ -229,6 +730,18 @@ Task({
 - **병렬 처리 효과**: 3개 에이전트 동시 실행으로 30-40% 시간 단축
 - **자동 폴백**: AI 엔진 실패 시 200ms 이내 다른 엔진으로 전환
 - **캐싱 최적화**: 반복 쿼리 70-80% 시간 절약
+
+## 📋 Claude Code 프로젝트 설정 구조
+
+### 설정 파일 우선순위
+1. `.claude/settings.local.json` (개인 로컬 설정)
+2. `.claude/settings.json` (팀 공유 설정)
+3. `~/.claude/settings.json` (사용자 전역 설정)
+
+### MCP 서버 관리
+- **프로젝트 MCP**: `.claude/mcp.json`에서 정의
+- **서브에이전트**: `.claude/agents/*.md` 파일로 관리
+- **독립성**: 각 프로젝트마다 독립적인 설정 유지
 
 ## ⚠️ 주의사항 및 트러블슈팅
 
@@ -291,22 +804,79 @@ Error: File has not been read yet. Read it first before writing to it
 ### 무료 티어 환경변수 상세 설정
 
 ```bash
-# 서버리스 함수 제한
+# === Next.js 15 & Vercel 설정 ===
+NEXTAUTH_URL=https://your-domain.vercel.app
+NEXTAUTH_SECRET=[YOUR_32_CHAR_SECRET]
+VERCEL_ENV=production
+
+# === Supabase 설정 ===
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[YOUR_SUPABASE_ANON_KEY]
+SUPABASE_SERVICE_ROLE_KEY=[YOUR_SERVICE_ROLE_KEY]  # 서버 전용
+
+# === Upstash Redis 설정 ===
+UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
+UPSTASH_REDIS_REST_TOKEN=[YOUR_REDIS_TOKEN]
+
+# === GitHub OAuth ===
+GITHUB_CLIENT_ID=[YOUR_GITHUB_CLIENT_ID]
+GITHUB_CLIENT_SECRET=[YOUR_GITHUB_CLIENT_SECRET]
+
+# === GCP Functions ===
+GOOGLE_AI_API_KEY=[YOUR_GOOGLE_AI_KEY]
+GCP_PROJECT_ID=your-project-id
+GCP_REGION=us-central1
+
+# === 서버리스 함수 제한 ===
 SERVERLESS_FUNCTION_TIMEOUT=8      # 8초 타임아웃
 MEMORY_LIMIT_MB=40                 # 40MB 메모리 제한
 
-# API 할당량 보호
+# === API 할당량 보호 ===
 GOOGLE_AI_DAILY_LIMIT=1000         # Google AI 일일 1000회
 SUPABASE_MONTHLY_LIMIT=40000       # Supabase 월 40000회
 REDIS_DAILY_LIMIT=8000             # Redis 일일 8000회
 
-# 메모리 관리 강화
+# === 메모리 관리 강화 ===
 MEMORY_WARNING_THRESHOLD=35        # 35MB 경고 임계값
 FORCE_GARBAGE_COLLECTION=true      # 강제 가비지 컬렉션
 
-# Cron 작업 보안
+# === 보안 설정 ===
 CRON_SECRET=[YOUR_SECURE_CRON_SECRET_KEY]  # 크론 작업 인증키
+JWT_SECRET=[YOUR_JWT_SECRET]               # JWT 토큰 서명
+WEBHOOK_SECRET=[YOUR_WEBHOOK_SECRET]       # GitHub 웹훅
+
+# === 모니터링 ===
+SENTRY_DSN=[YOUR_SENTRY_DSN]              # 에러 추적 (선택사항)
+ANALYTICS_ID=[YOUR_VERCEL_ANALYTICS_ID]   # Vercel Analytics
+
+# === 개발 환경 ===
+NODE_ENV=production
+LOG_LEVEL=info
+DEBUG_MODE=false
 ```
+
+### 환경변수 보안 체크리스트
+
+1. **절대 공개하면 안 되는 키**:
+   - `SUPABASE_SERVICE_ROLE_KEY` (RLS 우회 가능)
+   - `GITHUB_CLIENT_SECRET`
+   - `JWT_SECRET`, `NEXTAUTH_SECRET`
+   - `CRON_SECRET`, `WEBHOOK_SECRET`
+
+2. **공개 가능한 키** (NEXT_PUBLIC_ 접두사):
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+3. **환경별 분리**:
+   ```bash
+   # .env.local (개발)
+   NODE_ENV=development
+   DEBUG_MODE=true
+   
+   # Vercel 환경변수 (프로덕션)
+   NODE_ENV=production
+   DEBUG_MODE=false
+   ```
 
 ## 💰 Claude + Gemini 협업 전략
 
@@ -341,6 +911,8 @@ gemini review --changes
 - 상세 가이드: `/docs` 폴더
 - API 문서: `/docs/api`
 - Gemini 협업: `GEMINI.md`
+- MCP 서버 설정: `.claude/mcp.json`
+- 서브에이전트 정의: `.claude/agents/`
 
 ### Claude Code 공식 문서
 

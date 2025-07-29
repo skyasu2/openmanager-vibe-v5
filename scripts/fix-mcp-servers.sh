@@ -20,10 +20,40 @@ if [ "$1" == "--diagnose" ]; then
     exit 0
 fi
 
-# 환경변수에서 가져오기
-SUPABASE_PROJECT_REF="${SUPABASE_PROJECT_REF:-your_supabase_project_id_here}"
-SUPABASE_SERVICE_KEY="${SUPABASE_SERVICE_ROLE_KEY:-SENSITIVE_INFO_REMOVED}"
-TAVILY_API_KEY="${TAVILY_API_KEY:-YOUR_TAVILY_API_KEY_PLACEHOLDER}"
+# .env.local 파일에서 환경변수 로드
+if [ -f ".env.local" ]; then
+    set -a
+    source .env.local
+    set +a
+else
+    echo "⚠️  .env.local 파일이 없습니다."
+    echo "💡 .env.local.template을 복사하여 설정하세요:"
+    echo "   cp .env.local.template .env.local"
+    exit 1
+fi
+
+# 환경변수 확인
+if [ -z "$SUPABASE_URL" ]; then
+    echo "❌ SUPABASE_URL이 설정되지 않았습니다."
+    exit 1
+fi
+
+# SUPABASE_URL에서 프로젝트 ID 추출
+SUPABASE_PROJECT_REF=$(echo "$SUPABASE_URL" | sed -n 's|https://\([^.]*\)\.supabase\.co.*|\1|p')
+
+if [ -z "$SUPABASE_PROJECT_REF" ]; then
+    echo "❌ Supabase 프로젝트 ID를 추출할 수 없습니다."
+    exit 1
+fi
+
+SUPABASE_SERVICE_KEY="${SUPABASE_SERVICE_ROLE_KEY}"
+TAVILY_API_KEY="${TAVILY_API_KEY}"
+
+# 필수 환경변수 확인
+if [ -z "$SUPABASE_SERVICE_KEY" ]; then
+    echo "❌ SUPABASE_SERVICE_ROLE_KEY가 설정되지 않았습니다."
+    exit 1
+fi
 
 # MCP 서버 제거
 echo "기존 서버 제거 중..."
