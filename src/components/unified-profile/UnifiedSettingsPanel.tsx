@@ -368,7 +368,6 @@ export function UnifiedSettingsPanel({
           />
         );
         */
-        }
 
       case 'generator':
         return (
