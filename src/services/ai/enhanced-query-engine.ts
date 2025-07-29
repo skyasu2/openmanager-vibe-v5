@@ -101,13 +101,18 @@ export class EnhancedSimplifiedQueryEngine extends SimplifiedQueryEngine {
           savedTime: cachedResponse.processingTime - processingTime,
         });
 
+        // complexity를 별도로 추출하여 metadata에서 제외
+        const { complexity, ...restMetadata } = cachedResponse.metadata || {};
+
         return {
           ...cachedResponse,
           processingTime,
           metadata: {
-            ...cachedResponse.metadata,
+            ...restMetadata,
             cached: true,
             cacheHit: true,
+            // complexity는 metadata 외부에서 처리
+            ...(complexity && { complexityData: JSON.stringify(complexity) }),
           },
         };
       }
