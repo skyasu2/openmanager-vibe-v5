@@ -337,7 +337,7 @@ export default function ChatSection({
                 <h3 className='font-semibold text-gray-800 mb-3'>
                   질문 히스토리
                 </h3>
-                {qaPages.map((page, _index) => (
+                {qaPages.map((page, index) => (
                   <motion.button
                     key={page.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -446,7 +446,7 @@ export default function ChatSection({
                       </span>
                     </div>
                     <div className='space-y-1'>
-                      {currentPage.thinking.steps.map((step, _index) => (
+                      {currentPage.thinking.steps.map((step, index) => (
                         <div
                           key={index}
                           className='text-xs text-gray-600 flex items-start gap-2'
@@ -498,7 +498,7 @@ export default function ChatSection({
                 </div>
 
                 <div className='space-y-2'>
-                  {presets.map((preset, _index) => (
+                  {presets.map((preset, index) => (
                     <motion.button
                       key={`${preset}-${index}`}
                       initial={{ opacity: 0, y: 10 }}

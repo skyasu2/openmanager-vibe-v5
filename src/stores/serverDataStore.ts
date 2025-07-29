@@ -106,7 +106,7 @@ export const createServerDataStore = (
           const { apiGet } = await import('@/lib/api-client');
           const result = await apiGet('/api/servers/all');
 
-          if (result.success && result._data) {
+          if (result.success && result.data) {
             console.log(
               '✅ 최적화된 서버 데이터 수신:',
               result.data.length,

@@ -157,7 +157,7 @@ export async function POST(_request: NextRequest) {
 
 export async function GET(_request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
+    const searchParams = _request.nextUrl.searchParams;
     const type = searchParams.get('type') || 'default';
     const user = searchParams.get('user') || 'anonymous';
 
@@ -243,7 +243,7 @@ export async function GET(_request: NextRequest) {
 
 export async function DELETE(_request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
+    const searchParams = _request.nextUrl.searchParams;
     const resetType = searchParams.get('resetType') || 'all';
 
     // 노트 설정 초기화 시뮬레이션

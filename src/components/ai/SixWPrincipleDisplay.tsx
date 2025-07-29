@@ -228,7 +228,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
       {/* 6W 원칙 카드들 */}
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <AnimatePresence>
-          {principleConfig.map((config, _index) => {
+          {principleConfig.map((config, index) => {
             const {
               key,
               icon: IconComponent,
@@ -246,7 +246,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
                 custom={index}
                 variants={cardVariants}
                 initial='hidden'
-                _animate='visible'
+                animate='visible'
                 whileHover='hover'
                 className={`p-4 rounded-lg border-2 ${color} transition-all duration-200`}
               >
@@ -342,7 +342,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
               </span>
             </div>
             <div className='flex flex-wrap gap-2'>
-              {response.sources.map((source, _index) => (
+              {response.sources.map((source, index) => (
                 <span
                   key={index}
                   className='inline-flex items-center px-2 py-1 bg-white border border-gray-300 rounded-md text-xs text-gray-600'

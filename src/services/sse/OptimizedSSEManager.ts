@@ -268,11 +268,11 @@ export class OptimizedSSEManager {
       connection.lastActivity = new Date();
       try {
         const messageEvent = event as MessageEvent;
-        const data = JSON.parse(messageEvent._data);
+        const data = JSON.parse(messageEvent.data);
         this.emit('message', _data);
       } catch (error) {
         const messageEvent = event as MessageEvent;
-        this.emit('message', messageEvent._data);
+        this.emit('message', messageEvent.data);
       }
     };
 

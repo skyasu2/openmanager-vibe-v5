@@ -183,7 +183,7 @@ export async function POST(_request: NextRequest): Promise<NextResponse> {
   try {
     console.log('🔄 대시보드 액션 요청...');
 
-    const body = await request.json().catch(() => ({}));
+    const body = await _request.json().catch(() => ({}));
     const { action } = body;
 
     // 간단한 새로고침 응답

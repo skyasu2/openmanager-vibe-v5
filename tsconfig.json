@@ -51,7 +51,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/test/**/*",
+    "src/**/*",
+    "scripts/**/*",
     "tests/**/*",
     "vitest.config.ts"
   ],
@@ -64,17 +65,13 @@
     "src/stories/**",
     "**/*.stories.tsx",
     "**/*.stories.ts",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/*.spec.ts",
-    "**/*.spec.tsx",
-    "src/testing/**/*",
-    "src/test/**/*",
-    "tests/**/*",
     "src/utils/createTimeoutSignal.ts",
     "src/domains/ai-sidebar/stores/useAISidebarStore.ts",
     "src/services/ai-agent/**",
     "src/services/ai/orchestrator/adapters/RAGAdapter.ts",
-    "commit/**/*"
+    "commit/**/*",
+    "local-dev/**/*",
+    "**/*.mjs",
+    "**/*.cjs"
   ]
 }

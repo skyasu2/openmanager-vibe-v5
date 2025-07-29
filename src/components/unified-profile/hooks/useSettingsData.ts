@@ -68,7 +68,7 @@ export function useSettingsData(): UseSettingsDataReturn {
 
     try {
       const data = await settingsService.loadAllSettings();
-      setSettingsData(_data);
+      setSettingsData(data);
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : '설정 로드 실패';
@@ -88,7 +88,7 @@ export function useSettingsData(): UseSettingsDataReturn {
 
     try {
       const config = await settingsService.loadGeneratorConfig();
-      setGeneratorConfig(_config);
+      setGeneratorConfig(config);
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : '제너레이터 설정 로드 실패';

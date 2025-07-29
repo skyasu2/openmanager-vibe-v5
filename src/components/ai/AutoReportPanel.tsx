@@ -66,7 +66,7 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
 
       const data = await response.json();
 
-      if (data.success && data._data) {
+      if (data.success && data.data) {
         // API 응답 데이터를 컴포넌트 형식에 맞게 변환
         const transformedReports = data.data.map((report: any) => ({
           ...report,

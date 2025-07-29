@@ -87,8 +87,8 @@ export function useCachedServers(
 ): UseCachedServersReturn {
   const {
     page: _initialPage = 1,
-    pageSize: _initialPageSize =
-      ACTIVE_SERVER_CONFIG.pagination.defaultPageSize,
+    pageSize: _initialPageSize = ACTIVE_SERVER_CONFIG.pagination
+      .defaultPageSize,
     status = 'all',
     search = '',
     location = 'all',
@@ -166,7 +166,7 @@ export function useCachedServers(
           throw new Error(result.message || 'API 요청 실패');
         }
 
-        setData(result._data);
+        setData(result.data);
         console.log(
           `✅ 캐시된 서버 데이터 로드: ${result.data.servers.length}개 서버 (v${result.data.cache.version})`
         );

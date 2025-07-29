@@ -60,7 +60,7 @@ class DevLogger {
 
     let formatted = `${levelIcon} [${category.toUpperCase()}] ${message}`;
 
-    if (_data) {
+    if (data) {
       formatted += `\n${JSON.stringify(data, null, 2)}`;
     }
 
@@ -99,27 +99,27 @@ class DevLogger {
   debug(category: string, message: string, data?: any): void {
     if (this.shouldLog(LogLevel.DEBUG, category)) {
       console.debug(
-        this.formatMessage(LogLevel.DEBUG, category, message, _data)
+        this.formatMessage(LogLevel.DEBUG, category, message, data)
       );
     }
   }
 
   info(category: string, message: string, data?: any): void {
     if (this.shouldLog(LogLevel.INFO, category)) {
-      console.info(this.formatMessage(LogLevel.INFO, category, message, _data));
+      console.info(this.formatMessage(LogLevel.INFO, category, message, data));
     }
   }
 
   warn(category: string, message: string, data?: any): void {
     if (this.shouldLog(LogLevel.WARN, category)) {
-      console.warn(this.formatMessage(LogLevel.WARN, category, message, _data));
+      console.warn(this.formatMessage(LogLevel.WARN, category, message, data));
     }
   }
 
   error(category: string, message: string, data?: any): void {
     if (this.shouldLog(LogLevel.ERROR, category)) {
       console.error(
-        this.formatMessage(LogLevel.ERROR, category, message, _data)
+        this.formatMessage(LogLevel.ERROR, category, message, data)
       );
     }
   }
@@ -135,9 +135,9 @@ class DevLogger {
     const data = duration ? { duration: `${duration}ms` } : undefined;
 
     if (level === LogLevel.ERROR) {
-      this.error('test', message, _data);
+      this.error('test', message, data);
     } else {
-      this.info('test', message, _data);
+      this.info('test', message, data);
     }
   }
 
@@ -156,7 +156,7 @@ class DevLogger {
 
   // 성능 측정
   performance(operation: string, duration: number, metadata?: any): void {
-    this.info('performance', `${operation}: ${duration}ms`, meta_data);
+    this.info('performance', `${operation}: ${duration}ms`, metadata);
   }
 
   // AI 관련 로깅
@@ -191,50 +191,48 @@ export const logPerformance = (
   operation: string,
   duration: number,
   metadata?: any
-) => devLogger.performance(operation, duration, meta_data);
+) => devLogger.performance(operation, duration, metadata);
 export const logAI = (query: string, engine: string, confidence?: number) =>
   devLogger.aiQuery(query, engine, confidence);
 
 // 🔄 기존 코드 호환성을 위한 레거시 export
 export const systemLogger = {
   info: (message: string, data?: any) =>
-    devLogger.info('system', message, _data),
+    devLogger.info('system', message, data),
   warn: (message: string, data?: any) =>
-    devLogger.warn('system', message, _data),
+    devLogger.warn('system', message, data),
   error: (message: string, data?: any) =>
-    devLogger.error('system', message, _data),
+    devLogger.error('system', message, data),
   debug: (message: string, data?: any) =>
-    devLogger.debug('system', message, _data),
+    devLogger.debug('system', message, data),
   system: (message: string, data?: any) =>
-    devLogger.info('system', message, _data),
-  ai: (message: string, data?: any) => devLogger.info('ai', message, _data),
+    devLogger.info('system', message, data),
+  ai: (message: string, data?: any) => devLogger.info('ai', message, data),
 };
 
 export const logger = {
   info: (message: string, data?: any) =>
-    devLogger.info('general', message, _data),
+    devLogger.info('general', message, data),
   warn: (message: string, data?: any) =>
-    devLogger.warn('general', message, _data),
+    devLogger.warn('general', message, data),
   error: (message: string, data?: any) =>
-    devLogger.error('general', message, _data),
+    devLogger.error('general', message, data),
   debug: (message: string, data?: any) =>
-    devLogger.debug('general', message, _data),
+    devLogger.debug('general', message, data),
 };
 
 export const apiLogger = {
-  info: (message: string, data?: any) => devLogger.info('api', message, _data),
-  warn: (message: string, data?: any) => devLogger.warn('api', message, _data),
-  error: (message: string, data?: any) =>
-    devLogger.error('api', message, _data),
-  debug: (message: string, data?: any) =>
-    devLogger.debug('api', message, _data),
+  info: (message: string, data?: any) => devLogger.info('api', message, data),
+  warn: (message: string, data?: any) => devLogger.warn('api', message, data),
+  error: (message: string, data?: any) => devLogger.error('api', message, data),
+  debug: (message: string, data?: any) => devLogger.debug('api', message, data),
 };
 
 export const aiLogger = {
-  info: (message: string, data?: any) => devLogger.info('ai', message, _data),
-  warn: (message: string, data?: any) => devLogger.warn('ai', message, _data),
-  error: (message: string, data?: any) => devLogger.error('ai', message, _data),
-  debug: (message: string, data?: any) => devLogger.debug('ai', message, _data),
+  info: (message: string, data?: any) => devLogger.info('ai', message, data),
+  warn: (message: string, data?: any) => devLogger.warn('ai', message, data),
+  error: (message: string, data?: any) => devLogger.error('ai', message, data),
+  debug: (message: string, data?: any) => devLogger.debug('ai', message, data),
 };
 
 // 기본 export

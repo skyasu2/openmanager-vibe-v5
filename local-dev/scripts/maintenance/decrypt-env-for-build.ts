@@ -34,7 +34,7 @@ async function decryptForBuild() {
             ];
           if (varInfo) {
             // EnhancedEnvCryptoManager는 동기 함수이므로 await 제거
-            cryptoManager.initializeMasterKey(password);
+            cryptoManager._initializeMasterKey(password);
             const adaptedData = adaptEncryptedEnvVarToEnvData(varInfo);
             const decrypted = cryptoManager.decryptVariable(
               adaptedData,

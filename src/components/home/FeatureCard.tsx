@@ -109,7 +109,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
       className='relative group'
       variants={cardVariants}
       initial='hidden'
-      _animate='visible'
+      animate='visible'
       whileHover='hover'
       whileTap='tap'
     >

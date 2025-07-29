@@ -78,7 +78,7 @@ async function autoLoadEnvironment() {
 
   try {
     // 마스터 키 초기화
-    enhancedCryptoManager.initializeMasterKey(masterPassword);
+    enhancedCryptoManager._initializeMasterKey(masterPassword);
 
     // 환경변수 복호화 및 로드
     const adaptedConfig =

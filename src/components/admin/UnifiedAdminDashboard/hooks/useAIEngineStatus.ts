@@ -91,7 +91,7 @@ export function useAIEngineStatus() {
         const response = await fetch(`/api/ai/engines/${engineId}/config`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(_config),
+          body: JSON.stringify(config),
         });
 
         if (!response.ok) throw new Error('엔진 설정 업데이트 실패');

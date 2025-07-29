@@ -275,7 +275,7 @@ export default function AdminDashboardCharts() {
   };
 
   // 로딩 상태
-  if (loading && !_data) {
+  if (loading && !data) {
     return (
       <div className='p-6 space-y-6'>
         <div className='flex items-center justify-between mb-6'>
@@ -327,7 +327,7 @@ export default function AdminDashboardCharts() {
     );
   }
 
-  if (!_data) return null;
+  if (!data) return null;
 
   const performanceData = getPerformanceChartData();
   const availabilityData = getAvailabilityChartData();

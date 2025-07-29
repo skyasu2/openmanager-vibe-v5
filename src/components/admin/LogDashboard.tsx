@@ -249,7 +249,7 @@ export default function LogDashboard() {
         throw new Error(result.error || '로그 데이터 로드 실패');
       }
 
-      setData(result._data);
+      setData(result.data);
       console.log('✅ 로그 대시보드 데이터 업데이트 완료');
     } catch (err) {
       const errorMessage =
@@ -424,7 +424,7 @@ export default function LogDashboard() {
   };
 
   // 로딩 상태
-  if (loading && !_data) {
+  if (loading && !data) {
     return (
       <div className='p-6 space-y-6'>
         <div className='flex items-center justify-center h-64'>
@@ -456,7 +456,7 @@ export default function LogDashboard() {
     );
   }
 
-  if (!_data) return null;
+  if (!data) return null;
 
   const levelData = getLevelDistributionData();
   const categoryData = getCategoryDistributionData();
@@ -794,7 +794,7 @@ export default function LogDashboard() {
                                     메타데이터:
                                   </p>
                                   <div className='text-xs text-gray-500 space-y-1'>
-                                    {Object.entries(log.meta_data).map(
+                                    {Object.entries(log.metadata).map(
                                       ([key, value]) => (
                                         <div key={key}>
                                           <span className='font-medium'>

@@ -161,7 +161,7 @@ export class LoggingService implements ILogger {
 
     let output = `${prefix} ${entry.message}`;
 
-    if (entry._data) {
+    if (entry.data) {
       output += `\n  Data: ${JSON.stringify(entry.data, null, 2)}`;
     }
 
@@ -292,7 +292,7 @@ export class LoggingService implements ILogger {
         log.level,
         log.module,
         log.message,
-        log.data ? JSON.stringify(log._data) : '',
+        log.data ? JSON.stringify(log.data) : '',
         log.error ? log.error.message : '',
       ]);
 

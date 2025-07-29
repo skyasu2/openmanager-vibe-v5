@@ -241,7 +241,7 @@ export class MCPContextManager {
         activeSessions++;
       }
 
-      totalSize += JSON.stringify(context._data).length;
+      totalSize += JSON.stringify(context.data).length;
       oldestSession = Math.min(oldestSession, context.timestamp);
       newestSession = Math.max(newestSession, context.timestamp);
     }
@@ -263,7 +263,7 @@ export class MCPContextManager {
     const searchTerm = query.toLowerCase();
 
     for (const context of this.contexts.values()) {
-      const dataStr = JSON.stringify(context._data).toLowerCase();
+      const dataStr = JSON.stringify(context.data).toLowerCase();
 
       if (
         dataStr.includes(searchTerm) ||
@@ -373,7 +373,7 @@ export class MCPContextManager {
     for (const [sessionId, context] of this.contexts.entries()) {
       try {
         // 데이터 압축 시뮬레이션 (실제로는 gzip 등 사용)
-        const originalSize = JSON.stringify(context._data).length;
+        const originalSize = JSON.stringify(context.data).length;
 
         // 불필요한 메타데이터 제거
         if (context.data && typeof context.data === 'object') {
@@ -382,7 +382,7 @@ export class MCPContextManager {
           delete context.data._cache;
         }
 
-        const compressedSize = JSON.stringify(context._data).length;
+        const compressedSize = JSON.stringify(context.data).length;
 
         if (compressedSize < originalSize) {
           this.contexts.set(sessionId, context);

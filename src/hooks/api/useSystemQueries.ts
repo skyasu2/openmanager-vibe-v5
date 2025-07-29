@@ -217,10 +217,10 @@ export const useSystemHealth = (options?: {
     staleTime: 15000, // 15초
     select: (data: SystemHealth) => ({
       ...data,
-      overallHealth: calculateOverallHealth(_data),
-      criticalIssues: getCriticalIssues(_data),
-      healthScore: calculateHealthScore(_data),
-      recommendations: generateHealthRecommendations(_data),
+      overallHealth: calculateOverallHealth(data),
+      criticalIssues: getCriticalIssues(data),
+      healthScore: calculateHealthScore(data),
+      recommendations: generateHealthRecommendations(data),
     }),
   });
 };

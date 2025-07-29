@@ -129,8 +129,8 @@ export function useServerMetrics() {
     (data: number[], maxHeight: number = 140) => {
       if (data.length === 0) return '';
 
-      const max = Math.max(..._data);
-      const min = Math.min(..._data);
+      const max = Math.max(...data);
+      const min = Math.min(...data);
       const range = max - min || 1;
 
       return data

@@ -185,11 +185,11 @@ export default function IntelligentMonitoringPage() {
         throw new Error(data.error || '분석 실행 실패');
       }
 
-      setResult(data._data);
+      setResult(data.data);
       setProgress(100);
       setCurrentStep('분석 완료');
 
-      console.log('✅ 이상감지/예측 분석 완료', data._data);
+      console.log('✅ 이상감지/예측 분석 완료', data.data);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : '알 수 없는 오류';

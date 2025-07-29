@@ -93,7 +93,7 @@ export const FILE_SYSTEM_PROTECTION = {
       if (typeof window !== 'undefined') {
         const logKey = `temp_log_${type}_${Date.now()}`;
         try {
-          localStorage.setItem(logKey, JSON.stringify(_data));
+          localStorage.setItem(logKey, JSON.stringify(data));
           console.log(`📝 임시 로그 저장됨: ${logKey}`);
         } catch (error) {
           console.warn(`⚠️ 브라우저 로그 저장 실패: ${error}`);

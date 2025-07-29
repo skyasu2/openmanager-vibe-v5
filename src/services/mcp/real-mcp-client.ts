@@ -170,7 +170,7 @@ export class RealMCPClient {
 
   private async connectToServer(serverName: string): Promise<MCPClient> {
     const config = this.serverManager.getServerConfig(serverName);
-    if (!_config) {
+    if (!config) {
       throw new Error(`서버 설정을 찾을 수 없습니다: ${serverName}`);
     }
     return this.serverManager.connectToServer(serverName);
@@ -261,8 +261,8 @@ export class RealMCPClient {
     const serverNames = this.serverManager.getAvailableServers();
     for (const name of serverNames) {
       const config = this.serverManager.getServerConfig(name);
-      if (_config) {
-        servers.set(name, _config);
+      if (config) {
+        servers.set(name, config);
       }
     }
     return servers;
@@ -340,7 +340,7 @@ export class RealMCPClient {
         this.clients
       );
 
-      if (result.success && result.meta_data) {
+      if (result.success && result.metadata) {
         const items = result.metadata.items as Array<{ name: string }>;
         return items ? items.map(item => item.name) : [];
       } else {

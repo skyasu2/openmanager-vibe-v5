@@ -189,7 +189,7 @@ export class EdgeHTTPClient {
   }
 
   static async get(url: string, config?: typeof EdgeHTTPClient.baseConfig) {
-    return await EdgeHTTPClient.fetch(url, { method: 'GET' }, _config);
+    return await EdgeHTTPClient.fetch(url, { method: 'GET' }, config);
   }
 
   static async post(
@@ -202,7 +202,7 @@ export class EdgeHTTPClient {
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(_data),
+        body: JSON.stringify(data),
       },
       config
     );

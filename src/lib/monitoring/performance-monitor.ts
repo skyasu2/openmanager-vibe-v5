@@ -44,7 +44,7 @@ class PerformanceMonitor {
     duration: number,
     metadata?: Record<string, any>
   ) {
-    this.recordMetric(this.queryTimes, queryType, duration, meta_data);
+    this.recordMetric(this.queryTimes, queryType, duration, metadata);
   }
 
   /**
@@ -55,7 +55,7 @@ class PerformanceMonitor {
     duration: number,
     metadata?: Record<string, any>
   ) {
-    this.recordMetric(this.apiLatencies, endpoint, duration, meta_data);
+    this.recordMetric(this.apiLatencies, endpoint, duration, metadata);
   }
 
   /**

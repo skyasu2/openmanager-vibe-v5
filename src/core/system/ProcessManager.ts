@@ -76,7 +76,7 @@ export class ProcessManager extends EventEmitter {
    * 프로세스 등록
    */
   registerProcess(config: ProcessConfig): void {
-    this.processes.set(config.id, _config);
+    this.processes.set(config.id, config);
     this.states.set(config.id, {
       id: config.id,
       status: 'stopped',
@@ -412,7 +412,7 @@ export class ProcessManager extends EventEmitter {
 
     this.healthCheckInterval = setInterval(async () => {
       const healthPromises = Array.from(this.processes.entries()).map(
-        ([processId, config]) => this.performHealthCheck(processId, _config)
+        ([processId, config]) => this.performHealthCheck(processId, config)
       );
 
       await Promise.allSettled(healthPromises);

@@ -84,7 +84,7 @@ export default function DynamicPresets({
       </div>
 
       <div className='space-y-2'>
-        {presets.map((preset, _index) => (
+        {presets.map((preset, index) => (
           <motion.button
             key={`${preset}-${index}`}
             initial={{ opacity: 0, y: 10 }}

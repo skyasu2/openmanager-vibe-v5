@@ -133,7 +133,7 @@ export default function GCPMonitoringDashboard() {
       const data = await response.json();
 
       // 데이터 캐싱
-      localStorage.setItem('gcp-monitoring-cache', JSON.stringify(_data));
+      localStorage.setItem('gcp-monitoring-cache', JSON.stringify(data));
       localStorage.setItem('gcp-monitoring-timestamp', now.toString());
 
       setGcpData(data.usage);

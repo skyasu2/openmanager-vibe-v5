@@ -137,7 +137,7 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
 
     eventSource.onmessage = event => {
       try {
-        const logEntry: RealTimeAILog = JSON.parse(event._data);
+        const logEntry: RealTimeAILog = JSON.parse(event.data);
         setLogs(prev => [...prev.slice(-49), logEntry]); // 최대 50개 로그 유지
 
         // 현재 엔진 업데이트

@@ -73,7 +73,7 @@ async function loadSecureTokensToEnv() {
       fs.readFileSync(SECURE_TOKENS_PATH, 'utf-8')
     );
 
-    enhancedCryptoManager.initializeMasterKey(password);
+    enhancedCryptoManager._initializeMasterKey(password);
     const tokens = enhancedCryptoManager.decryptEnvironment(encryptedData);
 
     // 환경 변수로 설정

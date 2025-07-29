@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       process.env.VERCEL_ENV !== undefined;
 
     // 쿠키 정보 수집
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const allCookies = cookieStore.getAll();
     const supabaseCookies = allCookies.filter(
       c => c.name.includes('supabase') || c.name.includes('auth')
@@ -89,8 +89,8 @@ export async function GET(request: NextRequest) {
     }
 
     // 게스트 세션 확인
-    const guestSessionId = cookieStore.get('guest_session_id')?.value;
-    const authType = cookieStore.get('auth_type')?.value;
+    const guestSessionId = (await cookies()).get('guest_session_id')?.value;
+    const authType = (await cookies()).get('auth_type')?.value;
 
     // 현재 환경 정보
     const debugInfo = {

@@ -133,7 +133,7 @@ export async function POST(_request: NextRequest) {
   try {
     console.log('🔄 강제 MCP 헬스체크 실행...');
 
-    const body = await request.json();
+    const body = await _request.json();
     const { includeDetailed = true, testConnectivity = true } = body;
 
     const cloudContextLoader = CloudContextLoader.getInstance();

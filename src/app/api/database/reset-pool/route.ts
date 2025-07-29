@@ -35,7 +35,7 @@ async function resetConnectionPool(config?: any) {
 
 export async function POST(_request: NextRequest) {
   try {
-    const body = await request.json().catch(() => ({}));
+    const body = await _request.json().catch(() => ({}));
     const { force, config } = body;
 
     console.log('🔧 Database connection pool reset requested:', {
@@ -61,7 +61,7 @@ export async function POST(_request: NextRequest) {
       }
     }
 
-    const result = await resetConnectionPool(_config);
+    const result = await resetConnectionPool(config);
 
     return NextResponse.json({
       success: true,

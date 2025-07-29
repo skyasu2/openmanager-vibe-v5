@@ -41,7 +41,7 @@ export default function AIInsightsCard({
       const refreshResult = await refetch();
 
       // 갱신이 실제로 발생했는지 확인
-      if (refreshResult._data) {
+      if (refreshResult.data) {
         console.log('✅ AI 인사이트 갱신 완료');
       } else {
         console.log('⏳ AI 인사이트 갱신 제한됨');

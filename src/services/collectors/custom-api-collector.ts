@@ -99,7 +99,7 @@ export class CustomAPICollector implements MetricCollector {
       }
 
       // API 응답에서 서버 ID 목록 추출
-      if (Array.isArray(response._data)) {
+      if (Array.isArray(response.data)) {
         return response.data.map(
           (server: any) => server.id || server.serverId || server.hostname
         );

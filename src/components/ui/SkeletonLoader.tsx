@@ -236,7 +236,7 @@ export const AnimatedSkeleton: React.FC<SkeletonProps> = props => (
     animate={{ opacity: [0.6, 1, 0.6] }}
     transition={{ duration: 1.5, repeat: Infinity }}
   >
-    <Skeleton {...props} animate={false} />
+    <Skeleton {...props} _animate={false} />
   </motion.div>
 );
 

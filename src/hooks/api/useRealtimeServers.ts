@@ -358,8 +358,8 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
 
       const result = await response.json();
 
-      if (result.success && result._data) {
-        setSummary(result._data);
+      if (result.success && result.data) {
+        setSummary(result.data);
         setLastUpdate(new Date());
         setIsConnected(true);
         setError(null);
@@ -458,8 +458,8 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
 
       const result = await response.json();
 
-      if (result.success && Array.isArray(result._data)) {
-        setClusters(result._data);
+      if (result.success && Array.isArray(result.data)) {
+        setClusters(result.data);
 
         // 선택된 클러스터 업데이트
         if (selectedCluster) {
@@ -515,8 +515,8 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
 
       const result = await response.json();
 
-      if (result.success && Array.isArray(result._data)) {
-        setApplications(result._data);
+      if (result.success && Array.isArray(result.data)) {
+        setApplications(result.data);
         setError(null);
       } else {
         console.warn('실시간 애플리케이션 API 응답 데이터 오류:', result);
@@ -567,7 +567,7 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
       const result = await response.json();
 
       if (result.success) {
-        setSelectedServer(result._data);
+        setSelectedServer(result.data);
       } else {
         throw new Error(result.error || '서버 조회 실패');
       }
@@ -593,7 +593,7 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
       const result = await response.json();
 
       if (result.success) {
-        setSelectedCluster(result._data);
+        setSelectedCluster(result.data);
       } else {
         throw new Error(result.error || '클러스터 조회 실패');
       }

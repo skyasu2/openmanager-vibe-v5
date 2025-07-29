@@ -415,7 +415,7 @@ async function updateConfig(params: any) {
       );
     }
 
-    await abTestManager.updateConfig(_config);
+    await abTestManager.updateConfig(config);
 
     return NextResponse.json({
       success: true,

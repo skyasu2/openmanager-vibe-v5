@@ -113,7 +113,7 @@ const SmoothTransition: React.FC<SmoothTransitionProps> = memo(
               key='loading'
               variants={pageVariants}
               initial='_initial'
-              _animate='enter'
+              animate='enter'
               exit='exit'
               onAnimationComplete={definition => {
                 if (definition === 'enter') {
@@ -132,7 +132,7 @@ const SmoothTransition: React.FC<SmoothTransitionProps> = memo(
               key='content'
               variants={pageVariants}
               initial='_initial'
-              _animate='enter'
+              animate='enter'
               exit='exit'
               onAnimationComplete={definition => {
                 if (definition === 'enter') {

@@ -64,8 +64,8 @@ function generateResponse(intent: string, servers: Server[]): string {
 
 describe('AI 엔진 기본 로직', () => {
   const mockServers = [
-    { name: 'web-01', cpu: 85, memory: 70, status: 'healthy' },
-    { name: 'db-01', cpu: 95, memory: 88, status: 'warning' },
+    { name: 'web-01', cpu: 85, memory: 70, disk: 50, status: 'healthy' as const },
+    { name: 'db-01', cpu: 95, memory: 88, disk: 75, status: 'warning' as const },
   ];
 
   describe('의도 분석', () => {

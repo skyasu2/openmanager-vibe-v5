@@ -24,16 +24,6 @@ import { enableGlobalProtection } from '@/config/free-tier-emergency-fix';
 // 시스템 시작 시 한글 인코딩 자동 설정
 if (typeof window === 'undefined') {
   detectAndFixTerminalEncoding();
-
-  // 🔐 보안 토큰 초기화 (서버 사이드에서만)
-  try {
-    const {
-      _initializeSecurityTokens,
-    } = require('@/lib/security/token-_initializer');
-    _initializeSecurityTokens();
-  } catch (error) {
-    console.warn('⚠️ 보안 토큰 초기화 실패:', error);
-  }
 }
 
 // 🚨 SSR 호환성을 위한 전역 폴리필 강화 (Vercel 빌드 오류 완전 해결)

@@ -190,7 +190,7 @@ export class WebSocketManager {
     interval(20000).subscribe(async () => {
       const gcpServerData = await this.dataGenerator
         .getRealServerMetrics()
-        .then((response: any) => response._data);
+        .then((response: any) => response.data);
       const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
 
       const serverMetrics = allServers.map(server => {
@@ -250,7 +250,7 @@ export class WebSocketManager {
       try {
         const gcpServerData = await this.dataGenerator
           .getRealServerMetrics()
-          .then((response: any) => response._data);
+          .then((response: any) => response.data);
         const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
         const testMetrics = allServers.slice(0, 10).map(server => ({
           timestamp: Date.now(),

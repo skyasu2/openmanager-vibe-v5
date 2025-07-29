@@ -446,13 +446,13 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
       {/* 로그 목록 */}
       <div className='h-96 overflow-y-auto p-4 space-y-2'>
         <AnimatePresence>
-          {filteredLogs.map((log, _index) => (
+          {filteredLogs.map((log, index) => (
             <motion.div
               key={log.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              transition={{ delay: _index * 0.02 }}
+              transition={{ delay: index * 0.02 }}
               className='border dark:border-gray-600 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
             >
               <div className='flex items-start justify-between'>

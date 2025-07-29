@@ -13,34 +13,53 @@ if (typeof window !== 'undefined') {
   window.React = require('react');
 }
 
-// 환경변수 설정
+// 환경변수 설정 - 타입 안전성을 위한 개선된 방법
+const setEnvVar = (key: string, value: string) => {
+  try {
+    process.env[key] = value;
+  } catch {
+    // readonly인 경우 Object.defineProperty 사용
+    Object.defineProperty(process.env, key, {
+      value,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
+  }
+};
+
+// NODE_ENV 설정
 if (!process.env.NODE_ENV) {
-  Object.defineProperty(process.env, 'NODE_ENV', {
-    value: 'test',
-    writable: false,
-    enumerable: true,
-    configurable: true,
-  });
+  setEnvVar('NODE_ENV', 'test');
 }
 
 // 테스트용 환경변수 설정
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test-project.supabase.co';
-process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
-process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
-process.env.REDIS_URL = 'redis://localhost:6379';
-process.env.REDIS_PASSWORD = '';
-process.env.GOOGLE_AI_API_KEY = 'test-google-ai-key';
-process.env.UPSTASH_REDIS_REST_URL = 'https://test-redis.upstash.io';
-process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token';
-process.env.NEXT_PUBLIC_APP_NAME = 'OpenManager Vibe v5';
-process.env.NEXT_PUBLIC_APP_VERSION = '5.44.0';
-process.env.VITEST = 'true';
-process.env.FORCE_MOCK_REDIS = 'true';
-process.env.FORCE_MOCK_GOOGLE_AI = 'true';
-process.env.TEST_ISOLATION = 'true';
-process.env.DISABLE_HEALTH_CHECK = 'true';
-process.env.FORCE_EXIT = 'true';
-process.env.CI = 'true';
+const testEnvVars: Record<string, string> = {
+  NEXT_PUBLIC_SUPABASE_URL: 'https://test-project.supabase.co',
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-anon-key',
+  SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
+  REDIS_URL: 'redis://localhost:6379',
+  REDIS_PASSWORD: '',
+  GOOGLE_AI_API_KEY: 'test-google-ai-key',
+  UPSTASH_REDIS_REST_URL: 'https://test-redis.upstash.io',
+  UPSTASH_REDIS_REST_TOKEN: 'test-token',
+  NEXT_PUBLIC_APP_NAME: 'OpenManager Vibe v5',
+  NEXT_PUBLIC_APP_VERSION: '5.44.0',
+  VITEST: 'true',
+  FORCE_MOCK_REDIS: 'true',
+  FORCE_MOCK_GOOGLE_AI: 'true',
+  TEST_ISOLATION: 'true',
+  DISABLE_HEALTH_CHECK: 'true',
+  FORCE_EXIT: 'true',
+  CI: 'true',
+};
+
+// 환경변수 설정
+Object.entries(testEnvVars).forEach(([key, value]) => {
+  if (!process.env[key]) {
+    setEnvVar(key, value);
+  }
+});
 
 // 🚨 강제 종료 타이머 설정 (30초 후 강제 종료)
 let forceExitTimer: NodeJS.Timeout | null = null;

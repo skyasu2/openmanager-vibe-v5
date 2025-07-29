@@ -88,7 +88,7 @@ async function loadSecureTokens(
       fs.readFileSync(SECURE_TOKENS_PATH, 'utf-8')
     );
 
-    enhancedCryptoManager.initializeMasterKey(password);
+    enhancedCryptoManager._initializeMasterKey(password);
     return enhancedCryptoManager.decryptEnvironment(encryptedData);
   } catch (error) {
     console.error('❌ 토큰 로드 실패:', error);
@@ -101,7 +101,7 @@ async function saveSecureTokens(
   password: string
 ): Promise<void> {
   try {
-    enhancedCryptoManager.initializeMasterKey(password);
+    enhancedCryptoManager._initializeMasterKey(password);
     const encryptedConfig = enhancedCryptoManager.encryptEnvironment(tokens);
 
     fs.writeFileSync(
