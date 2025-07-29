@@ -27,6 +27,7 @@
     - `CloudContextLoader.ts`: `_config` → `config` (1곳)
     - `MCPServerManager.ts`: `_config` → `config` (2곳)
     - `MCPPerformanceMonitor.ts`: `_config` → `config` (1곳)
+    - `ErrorHandlingService.ts`: `this._config` → `this.config` (4곳)
   - 🎯 모든 빌드 에러 해결 완료
 
 - **알려진 경고 사항** (추후 개선 필요):
