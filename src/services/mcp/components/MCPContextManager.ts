@@ -308,7 +308,7 @@ export class MCPContextManager {
   importContexts(data: Record<string, any>): number {
     let importedCount = 0;
 
-    for (const [sessionId, contextData] of Object.entries(_data)) {
+    for (const [sessionId, contextData] of Object.entries(data)) {
       try {
         const sessionContext: SessionContext = {
           sessionId,

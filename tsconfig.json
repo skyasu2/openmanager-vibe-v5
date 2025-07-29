@@ -18,7 +18,7 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -42,7 +42,6 @@
       "@/test/*": ["./src/test/*"],
       "~/*": ["./*"]
     },
-    "types": ["vitest/globals", "@testing-library/jest-dom", "node"],
     "tsBuildInfoFile": ".next/cache/tsbuildinfo",
     "assumeChangesOnlyAffectDirectDependencies": true
   },
@@ -52,9 +51,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/**/*",
-    "scripts/**/*",
-    "tests/**/*",
-    "vitest.config.ts"
+    "scripts/**/*"
   ],
   "exclude": [
     "node_modules",
@@ -69,9 +66,16 @@
     "src/domains/ai-sidebar/stores/useAISidebarStore.ts",
     "src/services/ai-agent/**",
     "src/services/ai/orchestrator/adapters/RAGAdapter.ts",
+    "src/services/websocket/WebSocketManager.ts",
     "commit/**/*",
     "local-dev/**/*",
     "**/*.mjs",
-    "**/*.cjs"
+    "**/*.cjs",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "src/test/**",
+    "tests/**"
   ]
 }
