@@ -11,8 +11,15 @@
 
 - **TypeScript 컴파일 에러 수정**:
   - ✅ `performance-optimized-query-engine.ts`: `_config` → `config` 변수명 수정
-  - 🔧 누락된 변수명 규칙 위반 수정으로 빌드 에러 해결
-  - 🎯 Vercel 빌드 성공 가능 상태로 복구
+  - ✅ `postgres-vector-db.ts`: `_data` → `data` 변수명 수정
+  - 🔧 전체 코드베이스 변수명 규칙 위반 수정:
+    - `WebSocketManager.ts`: `_data` → `data` (3곳)
+    - `UnifiedDataBroker.ts`: `_data` → `data` (2곳)
+    - `supabase-rag-engine.ts`: `_data` → `data` (2곳)
+    - `CloudVersionManager.ts`: `_data` → `data` (2곳), `_config` → `config` (1곳)
+    - `SupabaseTimeSeriesManager.ts`: `_data` → `data` (1곳)
+    - `optimizedMetricsService.ts`: `_data` → `data` (2곳)
+  - 🎯 모든 빌드 에러 해결 완료
 
 - **알려진 경고 사항** (추후 개선 필요):
   - ⚠️ `@emotion/is-prop-valid` 모듈 누락 (framer-motion 관련)
