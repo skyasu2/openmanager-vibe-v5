@@ -632,7 +632,7 @@ export function getPerformanceOptimizedQueryEngine(
   config?: Partial<PerformanceConfig>
 ): PerformanceOptimizedQueryEngine {
   if (!performanceEngineInstance) {
-    performanceEngineInstance = new PerformanceOptimizedQueryEngine(_config);
+    performanceEngineInstance = new PerformanceOptimizedQueryEngine(config);
   }
   return performanceEngineInstance;
 }
