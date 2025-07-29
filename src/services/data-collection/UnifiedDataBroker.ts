@@ -200,8 +200,8 @@ export class UnifiedDataBroker {
     const { options } = subscriber;
     const data = await this.fetchData(subscriberId, options.cacheStrategy);
 
-    if (_data) {
-      subscriber.callback(_data);
+    if (data) {
+      subscriber.callback(data);
       subscriber.lastUpdate = new Date();
     }
 

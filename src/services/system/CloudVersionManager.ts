@@ -92,7 +92,7 @@ export class CloudVersionManager {
     config?: Partial<CloudVersionManagerConfig>
   ): CloudVersionManager {
     if (!CloudVersionManager.instance) {
-      CloudVersionManager.instance = new CloudVersionManager(_config);
+      CloudVersionManager.instance = new CloudVersionManager(config);
     }
     return CloudVersionManager.instance;
   }
@@ -289,7 +289,7 @@ export class CloudVersionManager {
       const currentKey = `${this.config.redisPrefix}current`;
       const data = await this.redis.get(currentKey);
 
-      return data ? JSON.parse(_data) : null;
+      return data ? JSON.parse(data) : null;
     } catch (error) {
       console.error('❌ Redis 버전 조회 실패:', error);
       return null;
@@ -539,7 +539,7 @@ export class CloudVersionManager {
    * 🔐 체크섬 생성
    */
   private generateChecksum(data: any): string {
-    const str = JSON.stringify(_data);
+    const str = JSON.stringify(data);
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);

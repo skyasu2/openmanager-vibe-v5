@@ -167,7 +167,7 @@ export class WebSocketManager {
         )
       )
       .subscribe(data => {
-        this.broadcastToSubscribers('server-metrics', _data);
+        this.broadcastToSubscribers('server-metrics', data);
       });
 
     // 알림 스트림
@@ -299,7 +299,7 @@ export class WebSocketManager {
     if (subscribedClients.length === 0) return;
 
     subscribedClients.forEach(client => {
-      this.io?.to(client.id).emit(streamType, _data);
+      this.io?.to(client.id).emit(streamType, data);
     });
 
     console.log(
@@ -440,7 +440,7 @@ export class WebSocketManager {
    * 📡 커스텀 브로드캐스트
    */
   broadcast(streamType: string, data: any): void {
-    this.broadcastToSubscribers(streamType, _data);
+    this.broadcastToSubscribers(streamType, data);
   }
 
   /**

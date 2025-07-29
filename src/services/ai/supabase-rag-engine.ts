@@ -435,7 +435,7 @@ export class SupabaseRAGEngine {
 
   private async saveToCache(key: string, data: any): Promise<void> {
     // 메모리 캐시 저장
-    this.searchCache.set(key, _data);
+    this.searchCache.set(key, data);
     if (this.searchCache.size > 100) {
       const firstKey = this.searchCache.keys().next().value;
       if (firstKey) {
@@ -446,7 +446,7 @@ export class SupabaseRAGEngine {
     // Redis 캐시 저장
     if (this.redis) {
       try {
-        await this.redis.setex(key, this.CACHE_TTL, JSON.stringify(_data));
+        await this.redis.setex(key, this.CACHE_TTL, JSON.stringify(data));
       } catch (error) {
         console.error('Redis 캐시 저장 오류:', error);
       }
