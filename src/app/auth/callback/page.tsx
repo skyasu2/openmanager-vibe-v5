@@ -1,8 +1,8 @@
 /**
  * 🔐 OAuth 콜백 페이지 (클라이언트 컴포넌트)
  *
- * PKCE를 지원하는 클라이언트 사이드 OAuth 콜백 처리
- * Supabase가 자동으로 code_verifier를 처리합니다
+ * 미들웨어가 PKCE 플로우를 완전히 처리한 후 세션 확인
+ * URL code 파라미터 검증 없이 세션 상태만 확인하여 타이밍 이슈 해결
  */
 
 'use client';
@@ -23,9 +23,8 @@ export default function AuthCallbackPage() {
         console.log('🔐 OAuth 콜백 페이지 로드...');
         console.log('⚡ 미들웨어가 PKCE 처리를 담당합니다');
 
-        // URL에서 파라미터 확인
+        // URL에서 에러 파라미터만 확인 (미들웨어가 PKCE를 이미 처리했으므로 code 검증 불필요)
         const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
         const error = urlParams.get('error');
 
         if (error) {
@@ -35,31 +34,38 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        if (!code) {
-          console.error('❌ OAuth 코드가 없습니다');
-          router.push('/login?error=no_code');
-          return;
-        }
-
-        console.log('🔑 OAuth 코드 확인됨, 미들웨어가 처리 중...');
+        console.log('🔑 미들웨어가 PKCE 처리 완료, 세션 확인 중...');
 
         // 쿠키 설정 (리다이렉트 준비)
         document.cookie = `auth_in_progress=true; path=/; max-age=60; SameSite=Lax`;
         document.cookie = `auth_redirect_to=/main; path=/; max-age=60; SameSite=Lax`;
 
-        // 미들웨어가 세션을 처리할 시간을 주기 위해 짧은 대기
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // 미들웨어가 PKCE 세션 처리할 시간을 충분히 대기
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // 세션 확인 (미들웨어가 이미 처리했는지 확인)
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
+        // 미들웨어가 처리한 세션 확인 (재시도 로직 포함)
+        let session = null;
+        let sessionError = null;
+        let attempts = 0;
+        const maxAttempts = 3;
+
+        do {
+          const result = await supabase.auth.getSession();
+          session = result.data.session;
+          sessionError = result.error;
+
+          if (!session && attempts < maxAttempts - 1) {
+            console.log(`🔄 세션 확인 재시도 ${attempts + 1}/${maxAttempts}`);
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+          attempts++;
+        } while (!session && !sessionError && attempts < maxAttempts);
 
         console.log('📊 세션 상태:', {
           hasSession: !!session,
           sessionError: sessionError?.message,
           user: session?.user?.email,
+          attempts,
         });
 
         if (session?.user) {
@@ -78,9 +84,14 @@ export default function AuthCallbackPage() {
             router.push('/auth/success');
           }
         } else {
-          // 세션이 없으면 success 페이지로 이동 (추가 처리 필요)
-          console.log('⏳ 세션 미확인, success 페이지로 이동...');
-          router.push('/auth/success');
+          // 미들웨어 PKCE 처리가 완료되지 않은 경우
+          if (sessionError) {
+            console.error('❌ 세션 에러:', sessionError.message);
+            router.push('/login?error=session_failed&message=' + encodeURIComponent(sessionError.message));
+          } else {
+            console.log('⏳ 미들웨어 PKCE 처리 미완료, success 페이지에서 추가 처리...');
+            router.push('/auth/success');
+          }
         }
       } catch (error) {
         console.error('❌ OAuth 콜백 처리 오류:', error);
