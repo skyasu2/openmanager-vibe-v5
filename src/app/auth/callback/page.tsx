@@ -87,9 +87,14 @@ export default function AuthCallbackPage() {
           // 미들웨어 PKCE 처리가 완료되지 않은 경우
           if (sessionError) {
             console.error('❌ 세션 에러:', sessionError.message);
-            router.push('/login?error=session_failed&message=' + encodeURIComponent(sessionError.message));
+            router.push(
+              '/login?error=session_failed&message=' +
+                encodeURIComponent(sessionError.message)
+            );
           } else {
-            console.log('⏳ 미들웨어 PKCE 처리 미완료, success 페이지에서 추가 처리...');
+            console.log(
+              '⏳ 미들웨어 PKCE 처리 미완료, success 페이지에서 추가 처리...'
+            );
             router.push('/auth/success');
           }
         }
