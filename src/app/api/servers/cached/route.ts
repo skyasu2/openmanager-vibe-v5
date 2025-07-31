@@ -1,214 +1,254 @@
 /**
- * 💾 목업 전용 캐시된 서버 데이터 API
+ * 🚀 캐시 최적화 서버 API
  *
- * 목업 데이터를 메모리 캐시로 제공
+ * Upstash Redis 캐싱을 활용한 고성능 서버 데이터 API
  * GET /api/servers/cached
  */
 
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getMockSystem } from '@/mock';
+import { cacheOrFetch, createCachedResponse } from '@/lib/cache-helper';
+import { CACHE_KEYS, TTL_STRATEGY } from '@/services/upstashCacheService';
+import type { EnhancedServerMetrics, Server } from '@/types/server';
 
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
-// 간단한 메모리 캐시
-let memoryCache: { data: any; timestamp: number } | null = null;
-const CACHE_TTL_MS = 300000; // 5분
+/**
+ * Server를 EnhancedServerMetrics로 변환
+ */
+function convertToEnhancedServerMetrics(server: Server): EnhancedServerMetrics {
+  const now = new Date().toISOString();
+  return {
+    id: server.id,
+    name: server.name,
+    hostname: `${server.name}.example.com`, // hostname 생성
+    status: server.status === 'healthy' ? 'online' : (server.status as any),
+    environment: 'production' as const,
+    role:
+      server.type === 'database'
+        ? ('database' as const)
+        : server.type === 'web'
+          ? ('web' as const)
+          : server.type === 'api'
+            ? ('api' as const)
+            : server.type === 'cache'
+              ? ('cache' as const)
+              : ('app' as const),
+    cpu_usage: server.metrics?.cpu?.usage || 0,
+    memory_usage: server.metrics?.memory?.usage || 0,
+    disk_usage: server.metrics?.disk?.usage || 0,
+    network_in: server.metrics?.network?.bytesIn || 0,
+    network_out: server.metrics?.network?.bytesOut || 0,
+    response_time: 100, // 기본값 100ms - 실제 구현 시 측정 필요
+    uptime: 99.9, // 기본값 99.9% - 실제 구현 시 계산 필요
+    last_updated: server.lastSeen || now,
+    alerts: Array.isArray(server.alerts)
+      ? server.alerts.map((alert: any) => ({
+          id: alert.id || `alert-${Date.now()}`,
+          server_id: server.id,
+          type: alert.type || 'custom',
+          message: alert.message || 'Unknown alert',
+          severity: alert.severity || 'warning',
+          timestamp: alert.timestamp || now,
+          resolved: alert.resolved || false,
+        }))
+      : [],
+    // 선택적 속성들
+    network_usage:
+      ((server.metrics?.network?.bytesIn || 0) +
+        (server.metrics?.network?.bytesOut || 0)) /
+      2,
+    timestamp: now,
+    patternsEnabled: false,
+    currentLoad: server.metrics?.cpu?.usage || 0,
+    activeFailures: 0,
+    network:
+      ((server.metrics?.network?.bytesIn || 0) +
+        (server.metrics?.network?.bytesOut || 0)) /
+      2,
+  };
+}
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const forceRefresh = searchParams.get('refresh') === 'true';
-
   try {
-    console.log(
-      '💾 캐시된 서버 데이터 요청',
-      forceRefresh ? '(강제 새로고침)' : ''
+    const { searchParams } = new URL(request.url);
+    const forceRefresh = searchParams.get('refresh') === 'true';
+    const includeSummary = searchParams.get('summary') !== 'false';
+
+    console.log('🚀 /api/servers/cached - 캐시 최적화 서버 데이터', {
+      forceRefresh,
+      includeSummary,
+    });
+
+    // 서버 목록 가져오기 (캐시 또는 페칭)
+    const servers = await cacheOrFetch<EnhancedServerMetrics[]>(
+      CACHE_KEYS.SERVER_LIST,
+      async () => {
+        console.log('📊 캐시 미스 - 서버 데이터 페칭');
+        const mockSystem = getMockSystem();
+        const baseServers = mockSystem.getServers();
+        return baseServers.map(convertToEnhancedServerMetrics);
+      },
+      {
+        ttl: TTL_STRATEGY.SERVER_LIST,
+        force: forceRefresh,
+      }
     );
 
-    // 메모리 캐시 확인 (강제 새로고침이 아닌 경우)
-    if (
-      !forceRefresh &&
-      memoryCache &&
-      Date.now() - memoryCache.timestamp < CACHE_TTL_MS
-    ) {
-      console.log('✨ 메모리 캐시 히트');
-
-      return NextResponse.json(
-        {
-          success: true,
-          data: memoryCache.data.servers,
-          stats: memoryCache.data.stats,
-          lastUpdated: memoryCache.data.lastUpdated,
-          source: 'memory-cache',
-          cacheHit: true,
-          timestamp: Date.now(),
+    // 요약 정보 가져오기 (옵션)
+    let summary = null;
+    if (includeSummary) {
+      summary = await cacheOrFetch(
+        CACHE_KEYS.SERVER_SUMMARY,
+        async () => {
+          console.log('📊 캐시 미스 - 요약 정보 생성');
+          return calculateSummary(servers);
         },
         {
-          headers: {
-            'Cache-Control': 'public, s-maxage=60',
-            'X-Cache-Hit': 'true',
-            'X-Data-Source': 'memory-cache',
-          },
+          ttl: TTL_STRATEGY.SERVER_SUMMARY,
+          force: forceRefresh,
         }
       );
     }
 
-    // 캐시 미스 또는 강제 새로고침 - 목업 데이터 가져오기
-    console.log('🔄 목업 데이터 로드');
+    // 개별 서버 정보도 캐싱 (백그라운드)
+    cacheIndividualServers(servers);
 
-    const mockSystem = getMockSystem();
-    const servers = mockSystem.getServers();
-
-    // 통계 계산
-    const stats = {
-      total: servers.length,
-      online: servers.filter(s => s.status === 'online').length,
-      warning: servers.filter(s => s.status === 'warning').length,
-      critical: servers.filter(s => s.status === 'critical').length,
-    };
-
-    // 캐시할 데이터
-    const cacheData = {
-      servers,
-      stats,
-      lastUpdated: new Date().toISOString(),
-      source: 'mock',
-    };
-
-    // 메모리 캐시 저장
-    memoryCache = {
-      data: cacheData,
-      timestamp: Date.now(),
-    };
-    console.log('💾 메모리 캐시 저장 완료');
-
-    return NextResponse.json(
+    // 캐시 헤더가 포함된 응답 생성
+    return createCachedResponse(
       {
         success: true,
         data: servers,
-        stats,
-        lastUpdated: cacheData.lastUpdated,
-        source: 'mock',
-        cacheHit: false,
+        count: servers.length,
+        summary,
         timestamp: Date.now(),
+        cached: !forceRefresh,
+        optimized: true,
+        serverless: true,
+        dataSource: 'upstash-cached',
+        metadata: {
+          cacheStrategy: 'edge-optimized',
+          ttl: TTL_STRATEGY.SERVER_LIST,
+        },
       },
       {
-        headers: {
-          'Cache-Control': 'public, s-maxage=60',
-          'X-Cache-Hit': 'false',
-          'X-Data-Source': 'mock',
-        },
+        maxAge: 0,
+        sMaxAge: 30,
+        staleWhileRevalidate: 60,
       }
     );
   } catch (error) {
-    console.error('❌ 캐시된 서버 데이터 API 오류:', error);
-
-    // 에러 발생 시 목업 데이터 반환
-    const mockSystem = getMockSystem();
-    const fallbackServers = mockSystem.getServers();
+    console.error('❌ /api/servers/cached 오류:', error);
 
     return NextResponse.json(
       {
-        success: true,
-        data: fallbackServers,
-        stats: {
-          total: fallbackServers.length,
-          online: fallbackServers.filter(s => s.status === 'online').length,
-          warning: fallbackServers.filter(s => s.status === 'warning').length,
-          critical: fallbackServers.filter(s => s.status === 'critical').length,
-        },
-        lastUpdated: new Date().toISOString(),
-        source: 'mock-fallback',
-        cacheHit: false,
-        timestamp: Date.now(),
-        error: 'Primary data source failed, using fallback',
+        success: false,
+        error: 'Failed to fetch cached servers',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      {
-        status: 200,
-        headers: {
-          'Cache-Control': 'public, s-maxage=10',
-          'X-Cache-Hit': 'false',
-          'X-Data-Source': 'mock-fallback',
-        },
-      }
+      { status: 500 }
     );
   }
 }
 
 /**
- * 💾 캐시 관리 API
- *
- * POST /api/servers/cached
+ * 서버 요약 정보 계산
  */
-export async function POST(request: NextRequest) {
-  try {
-    const { action } = await request.json();
+function calculateSummary(servers: EnhancedServerMetrics[]) {
+  const stats = {
+    total: servers.length,
+    online: servers.filter(s => s.status === 'online').length,
+    warning: servers.filter(s => s.status === 'warning').length,
+    critical: servers.filter(s => s.status === 'critical').length,
+    offline: servers.filter(s => s.status === 'offline').length,
+  };
 
-    console.log(`💾 캐시 관리 액션: ${action}`);
+  const metrics = {
+    avgCpuUsage:
+      servers.reduce((sum, s) => sum + (s.metrics?.cpu?.usage || 0), 0) /
+      servers.length,
+    avgMemoryUsage:
+      servers.reduce((sum, s) => sum + (s.metrics?.memory?.usage || 0), 0) /
+      servers.length,
+    avgDiskUsage:
+      servers.reduce((sum, s) => sum + (s.metrics?.disk?.usage || 0), 0) /
+      servers.length,
+    totalBandwidth: servers.reduce(
+      (sum, s) =>
+        sum + (s.metrics?.network?.in || 0) + (s.metrics?.network?.out || 0),
+      0
+    ),
+  };
 
-    switch (action) {
-      case 'clear':
-        // 메모리 캐시 삭제
-        memoryCache = null;
-        console.log('✅ 메모리 캐시 삭제 완료');
+  const health = {
+    score: calculateHealthScore(servers),
+    trend: 'stable', // 실제로는 이전 데이터와 비교 필요
+    issues: servers.filter(s => s.status !== 'online').length,
+  };
 
-        return NextResponse.json({
-          success: true,
-          message: 'Cache cleared successfully',
-          timestamp: new Date().toISOString(),
-        });
+  return {
+    stats,
+    metrics,
+    health,
+    timestamp: Date.now(),
+  };
+}
 
-      case 'refresh': {
-        // 캐시 강제 새로고침
-        memoryCache = null;
-        const refreshResponse = await GET(request);
-        return refreshResponse;
-      }
+/**
+ * 전체 시스템 건강 점수 계산
+ */
+function calculateHealthScore(servers: EnhancedServerMetrics[]): number {
+  if (servers.length === 0) return 100;
 
-      case 'info': {
-        // 캐시 정보 조회
-        const cacheInfo = memoryCache
-          ? {
-              exists: true,
-              ttl: Math.max(
-                0,
-                Math.floor(
-                  (CACHE_TTL_MS - (Date.now() - memoryCache.timestamp)) / 1000
-                )
-              ),
-              key: 'memory-cache',
-              maxAge: CACHE_TTL_MS / 1000,
-            }
-          : {
-              exists: false,
-              ttl: 0,
-              key: 'memory-cache',
-              maxAge: CACHE_TTL_MS / 1000,
-            };
+  let score = 100;
+  const weights = {
+    offline: -30,
+    critical: -20,
+    warning: -10,
+    highCpu: -5,
+    highMemory: -5,
+    highDisk: -3,
+  };
 
-        return NextResponse.json({
-          success: true,
-          cache: cacheInfo,
-          timestamp: new Date().toISOString(),
-        });
-      }
+  servers.forEach(server => {
+    // 상태별 감점
+    if (server.status === 'offline') score += weights.offline;
+    else if (server.status === 'critical') score += weights.critical;
+    else if (server.status === 'warning') score += weights.warning;
 
-      default:
-        return NextResponse.json(
-          { success: false, error: 'Invalid action' },
-          { status: 400 }
-        );
+    // 리소스 사용률 감점
+    if (server.metrics?.cpu?.usage && server.metrics.cpu.usage > 80) score += weights.highCpu;
+    if (server.metrics?.memory?.usage && server.metrics.memory.usage > 85) score += weights.highMemory;
+    if (server.metrics?.disk?.usage && server.metrics.disk.usage > 90) score += weights.highDisk;
+  });
+
+  // 0-100 범위로 정규화
+  return Math.max(0, Math.min(100, score));
+}
+
+/**
+ * 개별 서버 정보 백그라운드 캐싱
+ */
+async function cacheIndividualServers(servers: EnhancedServerMetrics[]) {
+  // 비동기로 처리하여 응답 지연 방지
+  Promise.resolve().then(async () => {
+    const { getCacheService } = await import('@/lib/cache-helper');
+    const cache = getCacheService();
+
+    // 상위 10개 서버만 개별 캐싱
+    const topServers = servers.slice(0, 10);
+    const items = topServers.map(server => ({
+      key: CACHE_KEYS.SERVER_DETAIL(server.id),
+      value: server,
+      ttl: TTL_STRATEGY.SERVER_DETAIL,
+    }));
+
+    try {
+      await cache.mset(items);
+      console.log(`✅ ${items.length}개 서버 개별 캐싱 완료`);
+    } catch (error) {
+      console.error('❌ 개별 서버 캐싱 실패:', error);
     }
-  } catch (error) {
-    console.error('❌ 캐시 관리 API 오류:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Cache management failed',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
-  }
+  });
 }

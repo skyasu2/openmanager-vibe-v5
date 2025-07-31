@@ -12,6 +12,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getSimplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
 import type { QueryRequest } from '@/services/ai/SimplifiedQueryEngine';
+import { withAuth } from '@/lib/api-auth';
 
 export const runtime = 'nodejs';
 
@@ -29,7 +30,7 @@ interface AIQueryRequest {
   timeoutMs?: number;
 }
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const _startTime = Date.now();
 
@@ -177,7 +178,7 @@ export async function POST(request: NextRequest) {
  *
  * GET /api/ai/query
  */
-export async function GET(_request: NextRequest) {
+async function getHandler(_request: NextRequest) {
   try {
     const healthStatus = await queryEngine.healthCheck();
 
@@ -262,3 +263,7 @@ export async function OPTIONS(_req: NextRequest) {
     },
   });
 }
+
+// Export with authentication
+export const GET = withAuth(getHandler);
+export const POST = withAuth(postHandler);

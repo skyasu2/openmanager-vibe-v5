@@ -10,7 +10,7 @@ export function isError(error: unknown): error is Error {
 // Error 메시지 안전 추출
 export function getErrorMessage(error: unknown): string {
   if (isError(error)) {
-    return getErrorMessage(error);
+    return error.message;
   }
   if (typeof error === 'string') {
     return error;

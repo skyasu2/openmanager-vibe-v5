@@ -7,7 +7,7 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import * as React from 'react';
 import { setupTestEnvironment } from './env.config';
-// import './mocks'; // 타임아웃 문제로 임시 비활성화 - 문제 해결 후 재활성화 예정
+import './mocks'; // Mock 설정 활성화
 
 // ===============================
 // 🔧 환경변수 통합 설정

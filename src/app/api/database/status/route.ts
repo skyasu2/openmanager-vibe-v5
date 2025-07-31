@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/api-auth';
 
 // 데이터베이스 상태 시뮬레이션
 function getDatabaseStatus() {
@@ -72,7 +73,7 @@ function getDatabaseStatus() {
   };
 }
 
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const component = searchParams.get('component');
@@ -157,7 +158,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const { action } = await request.json();
 
@@ -249,3 +250,7 @@ export async function GET_NEW(_request: NextRequest) {
     );
   }
 }
+
+// Export with authentication
+export const GET = withAuth(getHandler);
+export const POST = withAuth(postHandler);

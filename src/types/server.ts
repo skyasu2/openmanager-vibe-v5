@@ -221,6 +221,35 @@ export interface EnhancedServerMetrics {
 
   // 🔧 호환성을 위한 추가 속성들
   network?: number; // network_in/network_out의 합계 또는 평균
+  
+  // 🔧 기존 Server 타입과의 호환성을 위한 metrics 속성
+  metrics?: {
+    cpu?: {
+      usage: number;
+      cores?: number;
+      temperature?: number;
+    };
+    memory?: {
+      used?: number;
+      total?: number;
+      usage: number;
+    };
+    disk?: {
+      used?: number;
+      total?: number;
+      usage: number;
+    };
+    network?: {
+      bytesIn?: number;
+      bytesOut?: number;
+      packetsIn?: number;
+      packetsOut?: number;
+      in?: number;
+      out?: number;
+    };
+    timestamp?: string;
+    uptime?: number;
+  };
 }
 
 export interface ServerAlert {

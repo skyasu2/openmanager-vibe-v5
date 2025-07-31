@@ -159,6 +159,29 @@ export const ErrorResponseSchema = z.object({
 
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
 
+// 🏥 시스템 헬스 API 응답 타입
+export interface SystemHealthAPIResponse {
+  status: 'healthy' | 'warning' | 'critical';
+  metrics: {
+    cpu: number;
+    memory: number;
+    disk: number;
+    network: number;
+  };
+  services: {
+    database: 'operational' | 'degraded' | 'down';
+    cache: 'operational' | 'degraded' | 'down';
+    ai: 'operational' | 'degraded' | 'down';
+  };
+  timestamp: string;
+  charts?: {
+    performanceChart: Array<{ name: string; value: number; color: string }>;
+    availabilityChart: { online: number; total: number };
+    alertsChart: { bySeverity: Record<string, number> };
+    trendsChart: { timePoints: string[]; metrics: { cpu?: number[]; memory?: number[]; alerts?: number[] } };
+  };
+}
+
 // 🛡️ 타입 가드 함수들
 export function isSuccessResponse<T>(
   response: ApiResponse<T>
