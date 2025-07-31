@@ -5,6 +5,21 @@
 > - Legacy 파일: v5.0.0 ~ v5.65.6 (2024-05 ~ 2025-01)
 > - 현재 파일: v5.65.7 이후 (2025-01 ~)
 
+## [5.66.7] - 2025-08-01 01:55
+
+### 📚 Vercel MCP 상세 가이드 추가
+
+- **vercel-monitor.md 문서 확장**:
+  - ✅ MCP(Model Context Protocol) 개요 및 역할 설명 추가
+  - ✅ Vercel MCP 서버 배포 방법 상세 가이드:
+    - mcp-handler SDK를 사용한 Next.js 통합 방법
+    - vercel-mcp 오픈소스 프로젝트 활용법
+  - ✅ Claude Code/Cursor/Windsurf MCP 서버 등록 방법
+  - ✅ AI 도구에서 Vercel MCP 활용 예시
+  - ✅ 전체 흐름 요약 테이블 추가
+  - ✅ 보안 주의사항 및 API 토큰 관리 가이드
+  - ✅ MCP 대안으로 Playwright 웹 대시보드 접근 방법
+
 ## [5.66.6] - 2025-08-01 01:45
 
 ### 🤖 서브에이전트 역할 및 책임 미세 조정

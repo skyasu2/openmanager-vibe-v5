@@ -320,3 +320,163 @@ const reportSchedule = `
 - 월간 사용량 리포트: 매월 1일 09:00 KST
 `;
 ```
+
+## 🔌 Vercel MCP (Model Context Protocol) 상세 가이드
+
+### MCP 개요 및 역할
+
+**MCP(Model Context Protocol)**는 AI 모델이 외부 시스템이나 도구와 상호작용할 수 있도록 표준화된 인터페이스를 제공하는 프로토콜입니다. Vercel MCP 서버는 Claude Code, Cursor, Windsurf 같은 **MCP 호스트(client)**가 Vercel API를 도구처럼 호출할 수 있게 해줍니다.
+
+이를 통해 AI를 통한 Vercel의:
+
+- 프로젝트 조회 및 관리
+- 배포 생성 및 상태 확인
+- 환경변수 관리
+- DNS/도메인 조작
+- 사용량 모니터링 등이 가능해집니다.
+
+### ⚙️ Vercel MCP 서버 설치 및 구성
+
+#### 1. Vercel MCP 서버 배포 방법
+
+**옵션 A: mcp-handler SDK 사용 (Next.js 앱에 통합)**
+
+```typescript
+// app/api/mcp/route.ts
+import { createMCPHandler } from '@vercel/mcp-handler';
+
+export const POST = createMCPHandler({
+  tools: {
+    'vercel-list-projects': {
+      description: 'List all Vercel projects',
+      handler: async () => {
+        // Vercel API 호출 로직
+      },
+    },
+    'vercel-create-deployment': {
+      description: 'Create a new deployment',
+      handler: async (params) => {
+        // 배포 생성 로직
+      },
+    },
+  },
+});
+```
+
+**옵션 B: vercel-mcp 오픈소스 프로젝트 활용**
+
+```bash
+# 프로젝트 클론
+git clone https://github.com/vercel-community/vercel-mcp
+cd vercel-mcp
+
+# 환경변수 설정
+echo "VERCEL_API_TOKEN=your_token_here" > .env
+
+# 실행
+npm install
+npm start
+```
+
+#### 2. Claude Code에 MCP 서버 등록
+
+```bash
+# HTTP 엔드포인트로 등록 (배포된 MCP 서버)
+claude mcp add --transport http vercel https://your-vercel-mcp-url/api/mcp
+
+# 로컬 Node.js 프로세스로 등록
+claude mcp add vercel-mcp --env VERCEL_API_TOKEN=your_token -- node path/to/main.js
+
+# 또는 /connect 명령어 사용
+/connect mcp --path /path/to/vercel-mcp/main.js
+```
+
+#### 3. 다른 AI 도구 설정
+
+**Cursor 설정 (.cursor/mcp.json):**
+
+```json
+{
+  "servers": {
+    "vercel-mcp": {
+      "command": "node",
+      "args": ["/path/to/vercel-mcp/main.js"],
+      "env": {
+        "VERCEL_API_TOKEN": "your_token_here"
+      }
+    }
+  }
+}
+```
+
+**Windsurf/Codeium 설정 (~/.codeium/windsurf/mcp_config.json):**
+
+```json
+{
+  "servers": [
+    {
+      "name": "vercel-mcp",
+      "transport": "http",
+      "url": "https://your-vercel-mcp-url/api/mcp",
+      "headers": {
+        "Authorization": "Bearer your_token_here"
+      }
+    }
+  ]
+}
+```
+
+### 🧩 사용 예시: AI에서 Vercel MCP 도구 활용
+
+```typescript
+// 프로젝트 조회
+'Please list my Vercel projects using the vercel-list-projects tool';
+
+// 배포 생성
+'Please create a new deployment for openmanager-vibe-v5';
+
+// 환경변수 관리
+'Update the NEXT_PUBLIC_API_URL environment variable in production';
+
+// 도메인 상태 확인
+'Check the SSL certificate status for all custom domains';
+```
+
+### ✅ Vercel MCP 전체 흐름 요약
+
+| 단계                  | 설명                                            |
+| --------------------- | ----------------------------------------------- |
+| ① MCP 서버 배포       | mcp-handler SDK 또는 vercel-mcp 프로젝트 이용   |
+| ② API 토큰 설정       | .env 또는 --env VERCEL_API_TOKEN=...            |
+| ③ AI 도구에 서버 등록 | claude mcp add 또는 config 파일 설정            |
+| ④ MCP 도구 자동 로드  | Claude Code/Cursor/Windsurf에서 즉시 사용 가능  |
+| ⑤ 자연어로 명령 실행  | "list deployments", "create deployment" 등 요청 |
+| ⑥ 보안 관리           | API 토큰은 환경변수로, 하드코딩 금지            |
+
+### 🔒 보안 주의사항
+
+- **API 토큰 관리**: 절대 하드코딩하지 말고 환경변수 사용
+- **권한 범위**: 필요한 최소 권한만 부여된 토큰 사용
+- **접근 제어**: MCP 서버 엔드포인트는 인증된 요청만 허용
+- **로깅**: 모든 MCP 작업은 감사 로그 남기기
+
+### 📊 웹 대시보드 접근 방법 (MCP 대안)
+
+MCP가 사용 불가능한 경우, Claude Code가 직접 Vercel 대시보드에 접근하는 방법:
+
+```typescript
+// Playwright를 통한 대시보드 자동화
+Task({
+  subagent_type: 'vercel-monitor',
+  prompt: `
+    Playwright를 사용하여 Vercel 대시보드에서 정보를 수집해주세요:
+    
+    1. https://vercel.com/dashboard 접속
+    2. 프로젝트 목록 및 상태 스크레이핑
+    3. Analytics 페이지에서 사용량 데이터 추출
+    4. Domains 섹션에서 도메인 상태 확인
+    
+    브라우저 자동화가 필요한 경우 mcp__playwright__* 도구를 활용하세요.
+  `,
+});
+```
