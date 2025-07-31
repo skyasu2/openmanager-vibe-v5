@@ -5,6 +5,33 @@
 > - Legacy 파일: v5.0.0 ~ v5.65.6 (2024-05 ~ 2025-01)
 > - 현재 파일: v5.65.7 이후 (2025-01 ~)
 
+## [5.66.3] - 2025-07-31
+
+### 🤖 feedback-loop-optimizer를 agent-coordinator로 재설계
+
+- **서브에이전트 생태계 관리자로 완전 재설계**:
+  - ✅ 메타-에이전트 패턴 적용 (Claude Code 문서 기반)
+  - ✅ 서브에이전트 라이프사이클 관리 (등록, 활성화, 버전 관리, 폐기)
+  - ✅ 기능 중복 방지 매트릭스 구현
+  - ✅ 성능 모니터링 및 메트릭 수집
+- **학습 및 적응 메커니즘 추가**:
+  - ✅ 실행 피드백 학습 시스템
+  - ✅ 에이전트 성능 예측 모델
+  - ✅ 동적 에이전트 재구성 기능
+  - ✅ 적응형 타임아웃 관리
+- **에이전트 간 통신 프로토콜 구현**:
+  - ✅ 우선순위 기반 메시지 큐
+  - ✅ 에이전트 호환성 검사
+  - ✅ 핸드셰이크 및 프로토콜 협상
+  - ✅ 충돌 해결 전략 (리소스 경쟁, 의견 충돌, 교착 상태)
+- **Central-Supervisor와의 역할 분담 명확화**:
+  - ✅ Agent-Coordinator: 생태계 관리, 성능 모니터링, 시스템 개선
+  - ✅ Central-Supervisor: 실제 작업 오케스트레이션, 작업 분해
+  - ✅ 협업 프로토콜 문서화
+- **문서 추가**:
+  - ✅ `docs/sub-agent-collaboration-guide.md` - 협업 패턴 가이드
+  - ✅ 계층 구조, 협업 패턴, 충돌 해결 방법 문서화
+
 ## [5.66.2] - 2025-07-31
 
 ### 🔧 보안 정책 포트폴리오 수준으로 완화
@@ -13,13 +40,11 @@
   - ✅ `PromptSanitizer` - `enableStrictMode: false`로 변경
   - ✅ `UnifiedAIEngineRouter` - `strictSecurityMode: false`로 변경
   - ✅ 포트폴리오 프로젝트에 적합한 보안 수준으로 조정
-  
 - **유지된 기본 보안**:
   - ✅ 하드코딩된 시크릿 검사 (Husky pre-commit)
   - ✅ 민감한 API 엔드포인트 인증 보호
   - ✅ 환경변수 기반 비밀 관리
   - ✅ Critical 보안 패턴은 계속 차단
-  
 - **개발 효율성 개선**:
   - ✅ 과도한 엔터프라이즈급 보안 제거
   - ✅ 개발 속도 향상을 위한 유연한 입력 허용
@@ -33,17 +58,14 @@
   - ✅ `~/.claude.json`에 하드코딩된 API 키 제거
   - ✅ GitHub, Tavily, Upstash, Supabase 토큰 환경변수화
   - ✅ 노출된 API 키 재발급 권고
-  
 - **중복 설정 정리**:
   - ✅ `.mcp.json` (구버전) → `.claude/legacy-mcp-backup/`로 이동
   - ✅ `~/.claude.json` 백업 후 재구성
   - ✅ CLI 기반 환경변수 참조 방식으로 통일
-  
 - **새 스크립트 추가**:
   - ✅ `scripts/mcp/setup-env.sh` - 환경변수 설정 헬퍼
   - ✅ `scripts/mcp/reset-secure.sh` - 안전한 MCP 재설정
   - ✅ `.claude/MCP-RESET-GUIDE.md` - 상세 재설정 가이드
-  
 - **보안 권장사항**:
   - ✅ 모든 API 키는 환경변수로만 관리
   - ✅ 하드코딩 금지 원칙 문서화
@@ -57,17 +79,14 @@
   - ✅ Invalid settings files 경고 해결
   - ✅ 환경 변수 누락 문제 완전 해결
   - ✅ `.mcp.json` deprecated 방식에서 CLI 기반으로 전환
-  
 - **CLI 기반 마이그레이션**:
   - ✅ 10개 MCP 서버 모두 `claude mcp add` 명령으로 재설정
   - ✅ 환경 변수 `-e` 옵션으로 직접 전달 방식 적용
   - ✅ Python 서버(time, serena) `uvx` 명령어 사용
-  
 - **인프라 개선**:
   - ✅ `scripts/mcp/health-check.sh` 건강 검사 스크립트 생성
   - ✅ `.claude/legacy-mcp-backup/` 레거시 설정 백업
   - ✅ `.claude/MCP-MIGRATION-COMPLETE.md` 상세 보고서 작성
-  
 - **검증 완료**:
   - ✅ 모든 MCP 서버 연결 상태: Connected
   - ✅ 필수 환경 변수 모두 확인됨
@@ -79,16 +98,13 @@
   - ✅ 스크립트 수: 218개 → 114개 (47.7% 감소)
   - ✅ 중복 제거: MCP, 환경변수, 테스트 관련 100개+ 삭제
   - ✅ 일회성 스크립트 60개+ 제거
-  
 - **디렉토리 구조 개선**:
   - ✅ 8개 카테고리로 체계적 분류 (core, utils, emergency, scheduled 등)
   - ✅ 통합 스크립트 core 디렉토리로 이동 및 이름 간소화
   - ✅ 긴급 대응 및 정기 실행 스크립트 분류
-  
 - **보안 개선**:
   - ✅ deprecated `createCipher`/`createDecipher` → `createCipheriv`/`createDecipheriv`
   - ✅ AES-256-GCM 암호화 및 scrypt 키 유도 함수 적용
-  
 - **문서화**:
   - ✅ `scripts/README.md` 사용 가이드 작성
   - ✅ 각 카테고리별 주요 스크립트 사용법 문서화
@@ -162,7 +178,6 @@
   - ✅ types 배열 제거로 타입 자동 감지 활성화
   - ✅ 테스트 파일용 별도 `tsconfig.test.json` 생성
   - ✅ 메인 tsconfig에서 테스트 파일 제외
-  
 - **추가 변수명 수정**:
   - ✅ `CloudContextLoader.ts`: `_data` → `data` (3곳)
   - ✅ `MCPContextManager.ts`: `_data` → `data` (1곳)
@@ -234,17 +249,16 @@
 ### 🔧 타입스크립트 및 린트 에러 대규모 개선
 
 - **TypeScript 에러 해결**:
-  - ✅ **변수명 일관성 확보**: 
+  - ✅ **변수명 일관성 확보**:
     - `initializeMasterKey` vs `_initializeMasterKey` 통일
     - `request` vs `_request`, `config` vs `_config` 정리
     - `_data` vs `data` 변수명 문제 해결 (15개 파일)
-  - ✅ **프로퍼티명 수정**: 
-    - `meta_data` → `metadata` 
+  - ✅ **프로퍼티명 수정**:
+    - `meta_data` → `metadata`
     - `_category` → `category`
     - `_animate` vs `animate` 통일
   - ✅ **map 함수 index 파라미터**: 누락된 index 참조 오류 해결 (20+ 위치)
   - ✅ **null 체크 강화**: 옵셔널 체이닝 및 조기 리턴 패턴 적용
-  
 - **서브에이전트 병렬 활용**:
   - 🤖 **central-supervisor**: 전체 작업 조율 및 작업 분배
   - 🔍 **debugger-specialist**: 타입 에러 근본 원인 분석 및 패턴 파악
