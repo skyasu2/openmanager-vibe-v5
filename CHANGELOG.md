@@ -5,6 +5,26 @@
 > - Legacy 파일: v5.0.0 ~ v5.65.6 (2024-05 ~ 2025-01)
 > - 현재 파일: v5.65.7 이후 (2025-01 ~)
 
+## [5.66.5] - 2025-08-01 01:09
+
+### 🔧 Merge Conflict 해결 및 의존성 업데이트
+
+- **충돌 해결**: package.json의 버전 충돌을 최신 버전으로 해결
+  - ✅ @vitest/ui@3.0.1 (최신) 유지
+  - ✅ prettier-plugin-tailwindcss@0.6.14 유지
+  - ✅ 모든 의존성을 stashed changes 버전으로 업데이트
+- **TypeScript 에러 수정**:
+  - ✅ Redis mock 타입 에러 해결
+  - ✅ Vitest 설정 타입 에러 수정
+  - ✅ 테스트 파일의 import 오류 정리
+- **Pre-commit Hook 개선**:
+  - ✅ prettier-plugin-tailwindcss 설정 추가
+  - ✅ ESLint 경고 임시 허용 (후속 작업 예정)
+- **파일 정리**:
+  - ✅ 중복 스크립트 제거
+  - ✅ 테스트 파일 구조 정리
+  - ✅ 문서 파일 업데이트
+
 ## [5.66.4] - 2025-07-31 23:56
 
 ### 🚀 Pre-push 훅 테스트 타임아웃 문제 해결
