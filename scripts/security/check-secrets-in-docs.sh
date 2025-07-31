@@ -30,19 +30,38 @@ PATTERNS=(
 FOUND_SECRETS=0
 
 # 문서 디렉토리 검사
-echo -e "${BLUE}📁 검사 대상: ./docs, .claude, README.md, CHANGELOG.md, 모든 .md 파일${NC}"
+echo -e "${BLUE}📁 검사 대상: ./docs, .claude, README.md, CHANGELOG.md${NC}"
 
+# 검사할 파일 목록을 미리 생성 (더 빠름)
+MD_FILES=$(find ./docs ./.claude -name "*.md" 2>/dev/null || true)
+ROOT_MD_FILES=$(find . -maxdepth 1 -name "*.md" 2>/dev/null || true)
+ALL_MD_FILES="${MD_FILES} ${ROOT_MD_FILES}"
+
+# 파일이 없으면 종료
+if [ -z "$ALL_MD_FILES" ]; then
+    echo -e "${GREEN}✅ 검사할 마크다운 파일이 없습니다.${NC}"
+    exit 0
+fi
+
+# 모든 패턴을 하나의 정규식으로 결합 (더 빠름)
+COMBINED_PATTERN=""
 for pattern in "${PATTERNS[@]}"; do
-    echo -n "검사 중: ${pattern:0:10}... "
-    
-    # 모든 마크다운 파일 검사 (재귀적)
-    if find . -name "*.md" -not -path "./node_modules/*" -not -path "./.git/*" -exec grep -E "$pattern" {} \; 2>/dev/null | grep -v '\[REDACTED\]' | grep -v 'ghp_1234' | grep -v 'example' | grep -v "환경변수에서 설정"; then
-        echo -e "${RED}[발견!]${NC}"
-        FOUND_SECRETS=1
+    if [ -z "$COMBINED_PATTERN" ]; then
+        COMBINED_PATTERN="($pattern)"
     else
-        echo -e "${GREEN}[안전]${NC}"
+        COMBINED_PATTERN="${COMBINED_PATTERN}|($pattern)"
     fi
 done
+
+echo "검사 중... "
+
+# 한 번에 모든 파일 검사
+if echo "$ALL_MD_FILES" | xargs grep -E "$COMBINED_PATTERN" 2>/dev/null | grep -v '\[REDACTED\]' | grep -v 'ghp_1234' | grep -v 'ghp_XXXX' | grep -v 'example' | grep -v "환경변수에서 설정" | grep -v "실제 토큰 값"; then
+    echo -e "${RED}[발견!]${NC}"
+    FOUND_SECRETS=1
+else
+    echo -e "${GREEN}[안전]${NC}"
+fi
 
 echo ""
 

@@ -95,17 +95,26 @@ npm run health:check                 # API 상태 확인
 **중요**: 이 프로젝트는 포트폴리오/데모용으로 **기본적인 보안**만 적용합니다.
 
 ### 현재 보안 설정
+
 - **AI 보안**: `enableStrictMode: false` (포트폴리오 수준)
 - **API 보호**: 민감한 엔드포인트만 (`/api/admin`, `/api/database`, `/api/ai`)
 - **시크릿 관리**: 환경변수 사용, 하드코딩 방지 (Husky 검사)
 - **보안 에이전트**: 기본 보안만 검사 (과도한 엔터프라이즈 보안 제거)
 
 ### 보안 체크리스트
+
 - ✅ 하드코딩된 시크릿 없음
 - ✅ 환경변수로 설정 관리
 - ✅ 기본 API 인증
 - ❌ 복잡한 보안 패턴 (불필요)
 - ❌ 엔터프라이즈급 감사 (과도함)
+
+### 🔐 시크릿 관리 (중요!)
+
+- **절대 하드코딩 금지**: API 키, 토큰은 반드시 환경변수 사용
+- **문서 마스킹**: 예시에서도 `[환경변수에서 설정]` 또는 `ghp_XXXXX` 형태 사용
+- **자동 검사**: Pre-commit 훅이 시크릿 노출 자동 차단
+- **상세 가이드**: [`/docs/security-management-guide.md`](/docs/security-management-guide.md)
 
 자세한 내용: [`/docs/portfolio-security-guide.md`](/docs/portfolio-security-guide.md)
 
@@ -755,7 +764,7 @@ claude mcp add puppeteer npx -- -y @modelcontextprotocol/server-puppeteer@latest
 | 문서 구조       | `doc-structure-guardian`     | JBGE 원칙, 문서 정리          |
 | 문서 작성       | `doc-writer-researcher`      | 문서 작성, 연구, 지식 합성    |
 | 디버깅          | `debugger-specialist`        | 오류 분석, 근본 원인 파악     |
-| 플랫폼 모니터링 | `issue-summary`              | 플랫폼 상태, 무료 티어 추적   |
+| 플랫폼 모니터링 | `vercel-monitor`             | Vercel 상태, 무료 티어 추적   |
 | MCP 관리        | `mcp-server-admin`           | MCP 인프라 관리               |
 | AI 협업         | `gemini-cli-collaborator`    | Gemini CLI 연동               |
 
@@ -771,7 +780,7 @@ claude mcp add puppeteer npx -- -y @modelcontextprotocol/server-puppeteer@latest
 **중요**: 각 에이전트는 명확한 전문 영역만 담당합니다.
 
 - **central-supervisor**: 오케스트레이션만 - 작업 분배, 모니터링, 결과 통합
-- **issue-summary**: 플랫폼 모니터링만 - 서비스 헬스, 무료 티어 추적
+- **vercel-monitor**: Vercel 플랫폼 모니터링만 - 배포 상태, 사용량, 무료 티어 추적
 - **debugger-specialist**: 디버깅만 - 오류 분석, 가설 수립, 최소 수정
 - **doc-structure-guardian**: 문서 구조만 - JBGE 원칙, 정리, 아카이빙
 - **doc-writer-researcher**: 문서 작성만 - 연구, 지식 합성, 새 문서 생성
@@ -788,7 +797,10 @@ Task({
 });
 
 // 병렬 처리 - 독립적인 작업은 동시 실행
-Task({ subagent_type: 'issue-summary', prompt: '현재 시스템 이슈 분석' });
+Task({
+  subagent_type: 'vercel-monitor',
+  prompt: 'Vercel 플랫폼 상태 및 사용량 분석',
+});
 Task({
   subagent_type: 'ux-performance-optimizer',
   prompt: '프론트엔드 성능 개선',
@@ -807,7 +819,7 @@ Task({
 사용자 요청 → central-supervisor (작업 분석 및 분배)
   ├─ ai-systems-engineer (AI 기능 개발)
   ├─ database-administrator (Upstash Redis + Supabase 최적화)
-  ├─ issue-summary (플랫폼 상태 확인)
+  ├─ vercel-monitor (Vercel 플랫폼 상태 확인)
   ├─ debugger-specialist (오류 분석 및 해결)
   ├─ code-review-specialist (코드 품질 검증)
   ├─ security-auditor (보안 취약점 검사)
