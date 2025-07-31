@@ -623,6 +623,44 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     this.warmupCompleted = false;
     aiLogger.info('최적화 캐시 정리됨');
   }
+
+  /**
+   * 🏥 헬스체크
+   */
+  async healthCheck(): Promise<{
+    status: string;
+    engines: {
+      ragEngine: {
+        status: string;
+        initialized: boolean;
+      };
+    };
+  }> {
+    try {
+      // 부모 클래스의 healthCheck 호출
+      const baseHealth = await super.healthCheck();
+      
+      return {
+        status: baseHealth.status,
+        engines: {
+          ragEngine: {
+            status: baseHealth.engines.localRAG ? 'healthy' : 'degraded',
+            initialized: this.isInitialized
+          }
+        }
+      };
+    } catch (error) {
+      return {
+        status: 'degraded',
+        engines: {
+          ragEngine: {
+            status: 'error',
+            initialized: false
+          }
+        }
+      };
+    }
+  }
 }
 
 // 싱글톤 인스턴스
