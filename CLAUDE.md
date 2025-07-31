@@ -656,6 +656,21 @@ const timeInfo = await mcp__time__get_current_time({
 | `context7`            | ✅ Connected | 라이브러리 문서 검색   | `@upstash/context7-mcp@latest`                            |
 | `serena`              | ✅ Connected | 고급 코드 분석         | `git+https://github.com/oraios/serena` (Python)           |
 
+### MCP 서버별 활용 에이전트 목록
+
+| MCP 서버              | 활용 에이전트                                                                                                                                                                                                                  | 주요 용도                      |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------ |
+| `filesystem`          | 10개: doc-writer-researcher, mcp-server-admin, test-automation-specialist, doc-structure-guardian, security-auditor, debugger-specialist, backend-gcp-specialist, agent-coordinator, execution-tracker, code-review-specialist | 파일 읽기/쓰기, 디렉토리 탐색  |
+| `memory`              | 6개: mcp-server-admin, test-automation-specialist, agent-coordinator, execution-tracker, ai-systems-engineer, gemini-cli-collaborator                                                                                          | 지식 저장 및 검색, 협업 기록   |
+| `github`              | 5개: doc-writer-researcher, security-auditor, debugger-specialist, backend-gcp-specialist, git-cicd-specialist                                                                                                                 | PR/이슈 관리, 저장소 작업      |
+| `supabase`            | 1개: database-administrator                                                                                                                                                                                                    | 데이터베이스 쿼리, 스키마 관리 |
+| `tavily-mcp`          | 3개: doc-writer-researcher, vercel-monitor, backend-gcp-specialist                                                                                                                                                             | 웹 검색, 문서 조사             |
+| `sequential-thinking` | 3개: mcp-server-admin, debugger-specialist, agent-coordinator                                                                                                                                                                  | 복잡한 문제 단계별 해결        |
+| `playwright`          | 2개: test-automation-specialist, ux-performance-optimizer                                                                                                                                                                      | 브라우저 테스트, UI 자동화     |
+| `time`                | 6개: vercel-monitor, doc-writer-researcher, doc-structure-guardian, execution-tracker, debugger-specialist, database-administrator                                                                                             | 정확한 타임스탬프, 시간대 변환 |
+| `context7`            | 7개: doc-writer-researcher, test-automation-specialist, doc-structure-guardian, ux-performance-optimizer, backend-gcp-specialist, database-administrator, ai-systems-engineer                                                  | 라이브러리 문서 검색           |
+| `serena`              | 4개: test-automation-specialist, ux-performance-optimizer, debugger-specialist, ai-systems-engineer                                                                                                                            | 고급 코드 분석, 리팩토링       |
+
 ### MCP 서버 설치 방법 (최신)
 
 **중요**: Claude Code v1.16.0부터 MCP 설정이 CLI 기반으로 변경되었습니다.

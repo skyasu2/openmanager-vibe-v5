@@ -5,6 +5,28 @@
 > - Legacy 파일: v5.0.0 ~ v5.65.6 (2024-05 ~ 2025-01)
 > - 현재 파일: v5.65.7 이후 (2025-01 ~)
 
+## [5.66.9] - 2025-08-01 02:30
+
+### ⚡ MCP 도구 활용 최적화 및 Time MCP 통합
+
+- **Time MCP 통합 (6개 에이전트)**:
+  - ✅ `vercel-monitor`: 리포트 타임스탬프, 글로벌 지역별 모니터링 시간 추적
+  - ✅ `doc-writer-researcher`: 문서 작성일, CHANGELOG 엔트리 타임스탬프
+  - ✅ `doc-structure-guardian`: 문서 아카이빙 날짜 기록
+  - ✅ `execution-tracker`: 실행 시간 추적 및 성능 메트릭 기록
+  - ✅ `debugger-specialist`: 디버깅 세션 시작/종료 시간 기록
+  - ✅ `database-administrator`: 백업 시간 및 성능 추적 타임스탬프
+
+- **MCP 도구 최적화**:
+  - ✅ `git-cicd-specialist`: `mcp__github__*` 추가 (PR/이슈/워크플로우 관리)
+  - ✅ `gemini-cli-collaborator`: `mcp__memory__*` 추가 (AI 협업 기록 저장)
+  - ✅ 모든 MCP 서버가 이제 적절한 에이전트에서 활용됨
+
+- **CLAUDE.md 문서 개선**:
+  - ✅ MCP 서버별 활용 에이전트 목록 테이블 추가
+  - ✅ 각 MCP 서버의 실제 사용 현황 및 주요 용도 명시
+  - ✅ Time MCP가 이제 0개에서 6개 에이전트로 활용 확대
+
 ## [5.66.8] - 2025-08-01 02:10
 
 ### 🔧 서브에이전트 관련 개선 및 문서 정리
