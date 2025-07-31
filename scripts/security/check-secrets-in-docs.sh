@@ -30,13 +30,13 @@ PATTERNS=(
 FOUND_SECRETS=0
 
 # 문서 디렉토리 검사
-echo -e "${BLUE}📁 검사 대상: ./docs, README.md, CHANGELOG.md${NC}"
+echo -e "${BLUE}📁 검사 대상: ./docs, .claude, README.md, CHANGELOG.md, 모든 .md 파일${NC}"
 
 for pattern in "${PATTERNS[@]}"; do
     echo -n "검사 중: ${pattern:0:10}... "
     
-    # docs 디렉토리와 루트의 마크다운 파일 검사
-    if grep -rE "$pattern" ./docs *.md 2>/dev/null | grep -v '\[REDACTED\]' | grep -v 'ghp_1234' | grep -v 'example'; then
+    # 모든 마크다운 파일 검사 (재귀적)
+    if find . -name "*.md" -not -path "./node_modules/*" -not -path "./.git/*" -exec grep -E "$pattern" {} \; 2>/dev/null | grep -v '\[REDACTED\]' | grep -v 'ghp_1234' | grep -v 'example' | grep -v "환경변수에서 설정"; then
         echo -e "${RED}[발견!]${NC}"
         FOUND_SECRETS=1
     else
