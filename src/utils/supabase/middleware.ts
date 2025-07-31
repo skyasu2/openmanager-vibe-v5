@@ -12,13 +12,7 @@ export async function updateSession(
   response?: NextResponse
 ) {
   // response가 없으면 새로 생성
-  const supabaseResponse =
-    response ||
-    NextResponse.next({
-      request: {
-        headers: request.headers,
-      },
-    });
+  const supabaseResponse = response || NextResponse.next();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,33 +20,40 @@ export async function updateSession(
     {
       cookies: {
         get(name: string) {
-          return request.cookies.get(name)?.value;
+          const cookie = request.cookies.get(name);
+          if (!cookie) return undefined;
+          return typeof cookie === 'string'
+            ? cookie
+            : String((cookie as any).value);
         },
         set(name: string, value: string, options: any) {
-          // 요청 쿠키와 응답 쿠키 모두에 설정
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-          supabaseResponse.cookies.set({
-            name,
-            value,
-            ...options,
-          });
+          // 응답 쿠키에만 설정 (request.cookies는 읽기 전용)
+          try {
+            if (supabaseResponse && 'cookies' in supabaseResponse) {
+              (supabaseResponse as any).cookies.set({
+                name,
+                value,
+                ...options,
+              });
+            }
+          } catch (e) {
+            console.warn('Cookie set failed:', e);
+          }
         },
         remove(name: string, options: any) {
-          // 요청 쿠키와 응답 쿠키 모두에서 제거
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
-          supabaseResponse.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
+          // 응답 쿠키에서만 제거 (request.cookies는 읽기 전용)
+          try {
+            if (supabaseResponse && 'cookies' in supabaseResponse) {
+              (supabaseResponse as any).cookies.set({
+                name,
+                value: '',
+                maxAge: 0,
+                ...options,
+              });
+            }
+          } catch (e) {
+            console.warn('Cookie remove failed:', e);
+          }
         },
       },
     }
@@ -84,7 +85,7 @@ export async function updateSession(
         const skipSuccessPage = true;
 
         if (skipSuccessPage) {
-          const redirectTo = request.nextUrl.clone();
+          const redirectTo = new URL(request.nextUrl.href);
           redirectTo.pathname = '/main';
           redirectTo.searchParams.delete('code');
           redirectTo.searchParams.delete('error');
@@ -93,7 +94,7 @@ export async function updateSession(
           return NextResponse.redirect(redirectTo);
         } else {
           // 기존 플로우: success 페이지로
-          const redirectTo = request.nextUrl.clone();
+          const redirectTo = new URL(request.nextUrl.href);
           redirectTo.pathname = '/auth/success';
           redirectTo.searchParams.delete('code');
 

@@ -59,7 +59,7 @@ export default function OptimizedDashboard({
   // 시스템 통합 상태
   const systemStatus = useSystemIntegration();
   const isConnected = systemStatus.systemStatus === 'running';
-  const healthStatus =
+  const _healthStatus =
     systemStatus.systemStatus === 'running' ? 'healthy' : 'critical';
 
   // 서버 데이터 (prop 우선, 없으면 hook 사용)
@@ -69,9 +69,10 @@ export default function OptimizedDashboard({
     error: hookError,
   } = useServerDashboard({});
 
-  const servers = propServers || hookServers;
-  const isLoading = propIsLoading !== undefined ? propIsLoading : hookIsLoading;
-  const error = propError !== undefined ? propError : hookError;
+  const _servers = propServers || hookServers;
+  const _isLoading =
+    propIsLoading !== undefined ? propIsLoading : hookIsLoading;
+  const _error = propError !== undefined ? propError : hookError;
 
   // 자동 로그아웃 훅
   const {
@@ -119,7 +120,7 @@ export default function OptimizedDashboard({
   }, [session, status, router]);
 
   // 서버 선택 핸들러
-  const handleServerSelect = (server: Server) => {
+  const _handleServerSelect = (server: Server) => {
     setSelectedServer(server);
     setIsServerModalOpen(true);
   };
@@ -138,17 +139,17 @@ export default function OptimizedDashboard({
   // 로딩 상태
   if (status === 'loading' || !session) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-violet-900 flex items-center justify-center'>
-        <div className='text-center text-white'>
-          <div className='w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4'></div>
-          <p className='text-lg'>시스템 초기화 중...</p>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-violet-900">
+        <div className="text-center text-white">
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+          <p className="text-lg">시스템 초기화 중...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className='min-h-screen bg-gray-50 dark:bg-gray-900 relative'>
+    <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* 자동 로그아웃 경고 */}
       <AnimatePresence>
         {showLogoutWarning && (
@@ -166,35 +167,35 @@ export default function OptimizedDashboard({
         className={`flex transition-all duration-300 ${isAgentOpen ? 'mr-80' : ''}`}
       >
         {/* 메인 콘텐츠 */}
-        <div className='flex-1 flex flex-col min-h-screen'>
+        <div className="flex min-h-screen flex-1 flex-col">
           {/* 통합 헤더 */}
           <motion.header
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className='bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4'
+            className="border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800"
           >
-            <div className='flex items-center justify-between'>
+            <div className="flex items-center justify-between">
               {/* 브랜드 로고 */}
-              <div className='flex items-center space-x-4'>
-                <div className='w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center'>
-                  <span className='text-white font-bold text-xl'>O</span>
+              <div className="flex items-center space-x-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-purple-600">
+                  <span className="text-xl font-bold text-white">O</span>
                 </div>
                 <div>
-                  <h1 className='text-xl font-bold text-gray-900 dark:text-white'>
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                     OpenManager AI
                   </h1>
-                  <p className='text-sm text-gray-500 dark:text-gray-400'>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     서버 모니터링 시스템
                   </p>
                 </div>
               </div>
 
               {/* 중앙 정보 */}
-              <div className='flex items-center space-x-6'>
+              <div className="flex items-center space-x-6">
                 {/* 실시간 시계 */}
-                <div className='flex items-center space-x-2 text-gray-600 dark:text-gray-300'>
-                  <Clock className='w-5 h-5' />
-                  <span className='font-mono text-sm'>
+                <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
+                  <Clock className="h-5 w-5" />
+                  <span className="font-mono text-sm">
                     {currentTime.toLocaleTimeString('ko-KR')}
                   </span>
                 </div>
@@ -204,41 +205,41 @@ export default function OptimizedDashboard({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={toggleAgent}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                  className={`flex items-center space-x-2 rounded-lg px-4 py-2 transition-all duration-200 ${
                     isAgentOpen
-                      ? 'bg-red-500 hover:bg-red-600 text-white'
-                      : 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white'
+                      ? 'bg-red-500 text-white hover:bg-red-600'
+                      : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700'
                   }`}
                 >
-                  <Bot className='w-4 h-4' />
-                  <span className='text-sm font-medium'>
+                  <Bot className="h-4 w-4" />
+                  <span className="text-sm font-medium">
                     {isAgentOpen ? 'AI 닫기' : 'AI 열기'}
                   </span>
                 </motion.button>
               </div>
 
               {/* 사용자 메뉴 */}
-              <div className='flex items-center space-x-4'>
+              <div className="flex items-center space-x-4">
                 {/* 시스템 상태 */}
                 <div
-                  className={`w-3 h-3 rounded-full ${
+                  className={`h-3 w-3 rounded-full ${
                     isConnected ? 'bg-green-500' : 'bg-red-500'
                   }`}
                   title={isConnected ? '시스템 연결됨' : '시스템 연결 안됨'}
                 />
 
                 {/* 사용자 정보 */}
-                <div className='flex items-center space-x-3'>
-                  <div className='text-right'>
-                    <p className='text-sm font-medium text-gray-900 dark:text-white'>
+                <div className="flex items-center space-x-3">
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
                       {session.user?.name || '사용자'}
                     </p>
-                    <p className='text-xs text-gray-500 dark:text-gray-400'>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       {session.user?.email}
                     </p>
                   </div>
-                  <div className='w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center'>
-                    <User className='w-4 h-4 text-gray-600 dark:text-gray-300' />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 dark:bg-gray-600">
+                    <User className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                   </div>
                 </div>
 
@@ -247,17 +248,17 @@ export default function OptimizedDashboard({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleLogout}
-                  className='p-2 text-gray-500 hover:text-red-600 transition-colors'
-                  title='로그아웃'
+                  className="p-2 text-gray-500 transition-colors hover:text-red-600"
+                  title="로그아웃"
                 >
-                  <LogOut className='w-5 h-5' />
+                  <LogOut className="h-5 w-5" />
                 </motion.button>
               </div>
             </div>
           </motion.header>
 
           {/* 대시보드 콘텐츠 */}
-          <main className='flex-1 p-6'>
+          <main className="flex-1 p-6">
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -269,14 +270,14 @@ export default function OptimizedDashboard({
         </div>
 
         {/* AI 사이드바 */}
-        <AnimatePresence mode='wait'>
+        <AnimatePresence mode="wait">
           {isAgentOpen && (
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'tween', duration: 0.3 }}
-              className='w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-xl z-30'
+              className="z-30 w-80 border-l border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
             >
               <AISidebar isOpen={isAgentOpen} onClose={closeAgent} />
             </motion.div>
@@ -287,44 +288,44 @@ export default function OptimizedDashboard({
       {/* 플로팅 시스템 컨트롤 제거됨 - Vercel 플랫폼 자체 모니터링 사용 */}
 
       {/* AI 에이전트 토글 버튼 (오른쪽 하단) */}
-      <div className='fixed bottom-6 right-6 z-20'>
+      <div className="fixed bottom-6 right-6 z-20">
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={toggleAgent}
-          className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 ${
+          className={`flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 ${
             isAgentOpen
-              ? 'bg-red-500 hover:bg-red-600 text-white'
-              : 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white'
+              ? 'bg-red-500 text-white hover:bg-red-600'
+              : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700'
           }`}
           aria-label={isAgentOpen ? 'AI 에이전트 닫기' : 'AI 에이전트 열기'}
         >
           {isAgentOpen ? (
             <svg
-              className='w-6 h-6'
-              fill='none'
-              stroke='currentColor'
-              viewBox='0 0 24 24'
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 strokeWidth={2}
-                d='M6 18L18 6M6 6l12 12'
+                d="M6 18L18 6M6 6l12 12"
               />
             </svg>
           ) : (
             <svg
-              className='w-6 h-6'
-              fill='none'
-              stroke='currentColor'
-              viewBox='0 0 24 24'
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 strokeWidth={2}
-                d='M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z'
+                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z"
               />
             </svg>
           )}
@@ -338,7 +339,10 @@ export default function OptimizedDashboard({
             server={{
               ...selectedServer,
               id: selectedServer.id || selectedServer.hostname || 'unknown',
-              name: selectedServer.name || selectedServer.hostname || 'Unknown Server',
+              name:
+                selectedServer.name ||
+                selectedServer.hostname ||
+                'Unknown Server',
               hostname:
                 selectedServer.hostname || selectedServer.name || 'Unknown',
               type: selectedServer.type || 'unknown',
@@ -374,6 +378,7 @@ export default function OptimizedDashboard({
               memory: selectedServer.memory || 0,
               disk: selectedServer.disk || 0,
               network: selectedServer.network || 0,
+              services: selectedServer.services || [],
             }}
             onClose={handleServerModalClose}
           />

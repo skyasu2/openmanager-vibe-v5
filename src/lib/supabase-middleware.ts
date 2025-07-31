@@ -101,14 +101,30 @@ export function createMiddlewareSupabaseClient(
       // 쿠키 어댑터 설정
       cookies: {
         get: (name: string) => {
-          return cookieStore.get(name)?.value;
+          const cookie = cookieStore.get(name);
+          if (!cookie) return undefined;
+          return typeof cookie === 'string'
+            ? cookie
+            : String((cookie as any).value);
         },
         set: (name: string, value: string, options: any) => {
           // 미들웨어에서는 response에 쿠키 설정
-          response.cookies.set(name, value, options);
+          try {
+            if (response && 'cookies' in response) {
+              (response as any).cookies.set(name, value, options);
+            }
+          } catch (e) {
+            console.warn('Middleware cookie set failed:', e);
+          }
         },
         remove: (name: string, _options: any) => {
-          response.cookies.delete(name);
+          try {
+            if (response && 'cookies' in response) {
+              (response as any).cookies.delete(name);
+            }
+          } catch (e) {
+            console.warn('Middleware cookie remove failed:', e);
+          }
         },
       },
     };
@@ -134,9 +150,11 @@ export async function getMiddlewareSession(
   try {
     // Supabase 쿠키 패턴: sb-[project-ref]-auth-token
     // 모든 sb- 로 시작하는 쿠키를 확인
-    const cookies = request.cookies.getAll();
+    const cookies = Array.from(request.cookies.entries()).map(
+      ([name, value]) => ({ name, value })
+    );
     const authCookie = cookies.find(
-      cookie =>
+      (cookie) =>
         cookie.name.startsWith('sb-') &&
         cookie.name.includes('-auth-token') &&
         !cookie.name.includes('code-verifier')

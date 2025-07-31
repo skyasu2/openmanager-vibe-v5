@@ -4,7 +4,7 @@
  * Next.js middleware와 서버 컴포넌트에서 사용하기 위한 헬퍼
  */
 
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import type { NextResponse } from 'next/server';
 import { type NextRequest } from 'next/server';
 
@@ -40,9 +40,13 @@ export function createMiddlewareClient(
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
-        return request.cookies.get(name)?.value;
+        const cookie = request.cookies.get(name);
+        if (!cookie) return undefined;
+        return typeof cookie === 'string'
+          ? cookie
+          : String((cookie as any).value);
       },
-      set(name: string, value: string, options: CookieOptions) {
+      set(name: string, value: string, options: any) {
         // 🔐 Vercel 환경에 최적화된 쿠키 옵션
         const isVercel =
           process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined;
@@ -64,11 +68,17 @@ export function createMiddlewareClient(
         };
 
         // ✅ response 객체에만 쿠키를 설정합니다 (request는 읽기 전용)
-        response.cookies.set({
-          name,
-          value,
-          ...enhancedOptions,
-        });
+        try {
+          if (response && 'cookies' in response) {
+            (response as any).cookies.set({
+              name,
+              value,
+              ...enhancedOptions,
+            });
+          }
+        } catch (e) {
+          console.warn('Cookie set failed:', e);
+        }
 
         console.log(`🍪 쿠키 설정: ${name}`, {
           secure: enhancedOptions.secure,
@@ -78,14 +88,20 @@ export function createMiddlewareClient(
           isVercel,
         });
       },
-      remove(name: string, options: CookieOptions) {
+      remove(name: string, options: any) {
         // ✅ response 객체에서만 쿠키를 삭제합니다 (request는 읽기 전용)
-        response.cookies.set({
-          name,
-          value: '',
-          ...options,
-          maxAge: 0,
-        });
+        try {
+          if (response && 'cookies' in response) {
+            (response as any).cookies.set({
+              name,
+              value: '',
+              ...options,
+              maxAge: 0,
+            });
+          }
+        } catch (e) {
+          console.warn('Cookie remove failed:', e);
+        }
       },
     },
   });

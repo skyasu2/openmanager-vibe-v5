@@ -35,7 +35,7 @@ export async function middleware(request: NextRequest) {
 
   // 프로덕션에서 개발/테스트 API 차단
   if (process.env.NODE_ENV === 'production') {
-    const isDevAPI = DEV_ONLY_PATTERNS.some(pattern =>
+    const isDevAPI = DEV_ONLY_PATTERNS.some((pattern) =>
       pathname.startsWith(pattern)
     );
 
@@ -58,7 +58,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // 보호된 경로 체크
-  const isProtectedPath = PROTECTED_PATHS.some(path => {
+  const isProtectedPath = PROTECTED_PATHS.some((path) => {
     return pathname === path || pathname.startsWith(path + '/');
   });
 
@@ -68,10 +68,17 @@ export async function middleware(request: NextRequest) {
       const guestSessionCookie = request.cookies.get('guest_session_id');
       const authTypeCookie = request.cookies.get('auth_type');
 
-      if (guestSessionCookie && authTypeCookie?.value === 'guest') {
+      if (
+        guestSessionCookie &&
+        (typeof authTypeCookie === 'string'
+          ? authTypeCookie
+          : String((authTypeCookie as any)?.value)) === 'guest'
+      ) {
         console.log(
           '✅ 게스트 세션 확인됨, 접근 허용:',
-          guestSessionCookie.value
+          typeof guestSessionCookie === 'string'
+            ? guestSessionCookie
+            : String((guestSessionCookie as any).value)
         );
         return response;
       }
@@ -86,7 +93,11 @@ export async function middleware(request: NextRequest) {
         {
           cookies: {
             get(name: string) {
-              return request.cookies.get(name)?.value;
+              const cookie = request.cookies.get(name);
+              if (!cookie) return undefined;
+              return typeof cookie === 'string'
+                ? cookie
+                : String((cookie as any).value);
             },
             set() {
               // Response에서 이미 설정되었으므로 무시
@@ -99,10 +110,12 @@ export async function middleware(request: NextRequest) {
       );
 
       // 모든 쿠키 로그
-      const cookies = request.cookies.getAll();
+      const cookies = Array.from(request.cookies.entries()).map(
+        ([name, value]) => ({ name, value })
+      );
       console.log(
         '🍪 미들웨어 쿠키 목록:',
-        cookies.map(c => c.name)
+        cookies.map((c) => c.name)
       );
 
       // 🔧 OAuth 콜백 직후인지 확인 (세션 안정화 시간 필요)
@@ -182,7 +195,7 @@ export async function middleware(request: NextRequest) {
               );
 
               // 대기
-              await new Promise(resolve => setTimeout(resolve, waitTime));
+              await new Promise((resolve) => setTimeout(resolve, waitTime));
 
               // 세션 새로고침 시도 (중간 지점에서)
               if (attempts === Math.floor(maxAttempts / 2)) {
