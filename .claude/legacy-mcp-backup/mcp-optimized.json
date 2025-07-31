@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Optimized MCP Server Configuration with Security Enhancements",
+  "version": "2.1.0",
+  "lastUpdated": "2025-07-28T10:00:00+09:00",
+  "mcpServers": {
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem@0.8.0", "."],
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=4096 --enable-source-maps",
+        "NODE_ENV": "development"
+      },
+      "description": "Core filesystem operations - Optimized memory allocation",
+      "priority": 1,
+      "healthCheck": true
+    },
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github@0.8.0"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "NODE_OPTIONS": "--max-old-space-size=3072"
+      },
+      "description": "GitHub repository management - Reduced memory",
+      "priority": 2,
+      "healthCheck": true
+    },
+    "memory": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory@0.8.0"],
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=6144",
+        "MEMORY_STORE_PATH": "${HOME}/.claude/memory",
+        "MEMORY_MAX_SIZE": "100MB"
+      },
+      "description": "Knowledge graph - Increased memory for better performance",
+      "priority": 3,
+      "healthCheck": true
+    },
+    "supabase": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@supabase/mcp-server-supabase@1.0.4"],
+      "env": {
+        "SUPABASE_URL": "${SUPABASE_URL}",
+        "SUPABASE_SERVICE_ROLE_KEY": "${SUPABASE_SERVICE_ROLE_KEY}",
+        "SUPABASE_ANON_KEY": "${SUPABASE_ANON_KEY}",
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}",
+        "NODE_OPTIONS": "--max-old-space-size=3072",
+        "CONNECTION_POOL_SIZE": "10"
+      },
+      "description": "Database operations - Optimized connection pooling",
+      "priority": 4,
+      "healthCheck": true
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@0.2.1"],
+      "env": {
+        "UPSTASH_REDIS_REST_URL": "${UPSTASH_REDIS_REST_URL}",
+        "UPSTASH_REDIS_REST_TOKEN": "${UPSTASH_REDIS_REST_TOKEN}",
+        "GOOGLE_AI_API_KEY": "${GOOGLE_AI_API_KEY}",
+        "NODE_OPTIONS": "--max-old-space-size=2048",
+        "CACHE_TTL": "3600"
+      },
+      "description": "Library documentation with Google AI integration",
+      "priority": 5,
+      "healthCheck": true
+    },
+    "tavily-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "tavily-mcp@0.2.9"],
+      "env": {
+        "TAVILY_API_KEY": "${TAVILY_API_KEY}",
+        "NODE_OPTIONS": "--max-old-space-size=2048",
+        "TAVILY_MAX_RESULTS": "10",
+        "TAVILY_SEARCH_DEPTH": "advanced"
+      },
+      "description": "Web search with advanced depth",
+      "priority": 6,
+      "healthCheck": true
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/sequential-thinking@0.8.0"],
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=2048",
+        "MAX_THINKING_STEPS": "20"
+      },
+      "description": "Complex problem-solving",
+      "priority": 7,
+      "healthCheck": true
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@0.1.1"],
+      "env": {
+        "PLAYWRIGHT_BROWSERS_PATH": "${HOME}/.cache/ms-playwright",
+        "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "false",
+        "NODE_OPTIONS": "--max-old-space-size=4096",
+        "BROWSER_EXECUTABLE_PATH": "/usr/bin/chromium-browser",
+        "PLAYWRIGHT_CHROMIUM_USE_HEADLESS": "true"
+      },
+      "description": "Browser automation with headless mode",
+      "priority": 8,
+      "healthCheck": true,
+      "postInstall": "npx playwright install chromium"
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena@v0.8.0",
+        "serena-mcp-server"
+      ],
+      "env": {
+        "PYTHON_PATH": "/usr/bin/python3",
+        "UV_CACHE_DIR": "${HOME}/.cache/uv",
+        "SERENA_LOG_LEVEL": "INFO"
+      },
+      "description": "Advanced code analysis",
+      "priority": 9,
+      "healthCheck": true,
+      "initCommand": "uvx --from git+https://github.com/oraios/serena@v0.8.0 serena-mcp-server activate_project /mnt/d/cursor/openmanager-vibe-v5"
+    }
+  },
+  "globalSettings": {
+    "timeout": 30000,
+    "retryAttempts": 3,
+    "retryDelay": 1000,
+    "healthCheckInterval": 300000,
+    "logLevel": "info",
+    "enableMetrics": true,
+    "wslOptimizations": {
+      "enableFileWatching": false,
+      "useNativePathSeparators": true,
+      "enableCaching": true,
+      "diskCacheSize": "1GB"
+    },
+    "security": {
+      "validateEnvVars": true,
+      "maskSensitiveData": true,
+      "enforceHttps": true
+    }
+  },
+  "monitoring": {
+    "enabled": true,
+    "endpoints": {
+      "health": "/api/mcp/health",
+      "metrics": "/api/mcp/metrics",
+      "status": "/api/mcp/status"
+    },
+    "alerts": {
+      "memoryThreshold": 80,
+      "errorRateThreshold": 5,
+      "responseTimeThreshold": 5000
+    }
+  }
+}

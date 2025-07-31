@@ -1,6 +1,6 @@
 #!/bin/bash
-# 통합 MCP 서버 설정 스크립트
-# Windows WSL 환경에서 Claude Code MCP 서버 설정
+# MCP 서버 CLI 기반 설정 스크립트
+# Claude Code v1.16.0+ CLI 방식
 
 set -e
 
@@ -14,9 +14,8 @@ NC='\033[0m' # No Color
 # 프로젝트 루트 경로
 PROJECT_ROOT="/mnt/d/cursor/openmanager-vibe-v5"
 ENV_FILE="$PROJECT_ROOT/.env.local"
-MCP_CONFIG="$HOME/.config/claude/claude_desktop_config.json"
 
-echo -e "${BLUE}🚀 MCP 서버 통합 설정 시작${NC}"
+echo -e "${BLUE}🚀 MCP 서버 CLI 기반 설정 시작${NC}"
 echo "================================"
 
 # 1. 환경 확인
@@ -100,138 +99,196 @@ setup_env_variables() {
     fi
 }
 
-# 3. MCP 서버 설치
+# 3. MCP 서버 CLI 설치
 install_mcp_servers() {
-    echo -e "\n${YELLOW}3. MCP 서버 설치${NC}"
+    echo -e "\n${YELLOW}3. MCP 서버 CLI 설정${NC}"
     
-    cd "$PROJECT_ROOT"
+    # 현재 설정된 서버 확인
+    echo -e "\n${BLUE}📋 현재 MCP 서버 상태:${NC}"
+    claude mcp list || echo -e "${YELLOW}⚠️  MCP 서버가 설정되지 않았습니다${NC}"
     
-    # 필수 MCP 서버 목록
-    declare -a mcp_servers=(
-        "@modelcontextprotocol/server-filesystem"
-        "@modelcontextprotocol/server-github" 
-        "@modelcontextprotocol/server-memory"
-        "@supabase/mcp"
-        "@context-labs/context7-mcp"
-        "@tavily/mcp"
-        "@modelcontextprotocol/server-sequential-thinking"
-        "@executeautomation/playwright-mcp-server"
-        "@joshuarileydev/serena"
-    )
-    
-    for server in "${mcp_servers[@]}"; do
-        echo -e "\n${BLUE}📦 설치 중: $server${NC}"
-        if npm list "$server" &>/dev/null; then
-            echo -e "${GREEN}✅ 이미 설치됨${NC}"
-        else
-            npm install -g "$server"
-            echo -e "${GREEN}✅ 설치 완료${NC}"
-        fi
-    done
-}
-
-# 4. Claude 설정 파일 생성
-create_claude_config() {
-    echo -e "\n${YELLOW}4. Claude 설정 파일 생성${NC}"
-    
-    mkdir -p "$(dirname "$MCP_CONFIG")"
-    
-    # 기존 설정 백업
-    if [ -f "$MCP_CONFIG" ]; then
-        cp "$MCP_CONFIG" "$MCP_CONFIG.backup.$(date +%Y%m%d_%H%M%S)"
-        echo -e "${GREEN}✅ 기존 설정 백업 완료${NC}"
+    # 환경변수 로드
+    if [ -f "$ENV_FILE" ]; then
+        set -a
+        source <(grep -v '^#' "$ENV_FILE" | grep -v '^$')
+        set +a
     fi
     
-    # 새 설정 생성
-    cat > "$MCP_CONFIG" << 'EOF'
+    # MCP 서버 설치
+    echo -e "\n${BLUE}🔧 MCP 서버 CLI 설치 시작${NC}"
+    
+    # 1. Filesystem
+    echo -e "\n${BLUE}📦 Filesystem 서버 설정${NC}"
+    claude mcp add filesystem npx -- -y @modelcontextprotocol/server-filesystem@latest "$PROJECT_ROOT"
+    
+    # 2. GitHub
+    if [ -n "$GITHUB_TOKEN" ]; then
+        echo -e "\n${BLUE}📦 GitHub 서버 설정${NC}"
+        claude mcp add github npx -e GITHUB_PERSONAL_ACCESS_TOKEN="$GITHUB_TOKEN" -- -y @modelcontextprotocol/server-github@latest
+    fi
+    
+    # 3. Memory
+    echo -e "\n${BLUE}📦 Memory 서버 설정${NC}"
+    claude mcp add memory npx -- -y @modelcontextprotocol/server-memory@latest
+    
+    # 4. Supabase
+    if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+        echo -e "\n${BLUE}📦 Supabase 서버 설정${NC}"
+        # URL에서 프로젝트 ID 추출
+        PROJECT_REF=$(echo "$SUPABASE_URL" | sed -E 's|https://([^.]+)\.supabase\.co|\1|')
+        claude mcp add supabase npx \
+            -e SUPABASE_URL="$SUPABASE_URL" \
+            -e SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
+            -- -y @supabase/mcp-server-supabase@latest \
+            --project-ref="$PROJECT_REF"
+    fi
+    
+    # 5. Tavily
+    if [ -n "$TAVILY_API_KEY" ]; then
+        echo -e "\n${BLUE}📦 Tavily 서버 설정${NC}"
+        claude mcp add tavily-mcp npx -e TAVILY_API_KEY="$TAVILY_API_KEY" -- -y tavily-mcp@0.2.9
+    fi
+    
+    # 6. Sequential Thinking
+    echo -e "\n${BLUE}📦 Sequential Thinking 서버 설정${NC}"
+    claude mcp add sequential-thinking npx -- -y @modelcontextprotocol/server-sequential-thinking@latest
+    
+    # 7. Playwright
+    echo -e "\n${BLUE}📦 Playwright 서버 설정${NC}"
+    claude mcp add playwright npx -- -y @playwright/mcp@latest
+    
+    # 8. Context7
+    echo -e "\n${BLUE}📦 Context7 서버 설정${NC}"
+    claude mcp add context7 npx -- -y @upstash/context7-mcp@latest
+    
+    # 9. Time (Python)
+    echo -e "\n${BLUE}📦 Time 서버 설정 (Python)${NC}"
+    claude mcp add time uvx -- mcp-server-time
+    
+    # 10. Serena (Python)
+    echo -e "\n${BLUE}📦 Serena 서버 설정 (Python)${NC}"
+    claude mcp add serena uvx -- \
+        --from git+https://github.com/oraios/serena \
+        serena-mcp-server \
+        --context ide-assistant \
+        --project "$PROJECT_ROOT"
+}
+
+# 4. 프로젝트 공유 설정 생성 (선택사항)
+create_project_mcp_config() {
+    echo -e "\n${YELLOW}4. 프로젝트 공유 설정 생성${NC}"
+    
+    # .mcp.json 파일 생성 여부 확인
+    read -p "프로젝트 공유를 위한 .mcp.json 파일을 생성하시겠습니까? (y/N): " -n 1 -r
+    echo
+    
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        # 프로젝트 루트에 .mcp.json 생성
+        cat > "$PROJECT_ROOT/.mcp.json" << 'EOF'
 {
   "mcpServers": {
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/mnt/d/cursor/openmanager-vibe-v5"]
+      "args": ["-y", "@modelcontextprotocol/server-filesystem@latest", "."]
     },
     "github": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "args": ["-y", "@modelcontextprotocol/server-github@latest"],
       "env": {
-        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       }
     },
     "memory": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"]
+      "args": ["-y", "@modelcontextprotocol/server-memory@latest"]
     },
     "supabase": {
       "command": "npx",
-      "args": ["@supabase/mcp"],
+      "args": ["-y", "@supabase/mcp-server-supabase@latest", "--project-ref", "${SUPABASE_PROJECT_ID}"],
       "env": {
         "SUPABASE_URL": "${SUPABASE_URL}",
         "SUPABASE_SERVICE_ROLE_KEY": "${SUPABASE_SERVICE_ROLE_KEY}"
       }
     },
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "@context-labs/context7-mcp"]
-    },
     "tavily-mcp": {
       "command": "npx",
-      "args": ["-y", "@tavily/mcp"],
+      "args": ["-y", "tavily-mcp@0.2.9"],
       "env": {
         "TAVILY_API_KEY": "${TAVILY_API_KEY}"
       }
     },
     "sequential-thinking": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
     },
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@executeautomation/playwright-mcp-server"]
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    },
+    "time": {
+      "command": "uvx",
+      "args": ["mcp-server-time"]
     },
     "serena": {
-      "command": "npx",
-      "args": ["-y", "@joshuarileydev/serena", "config", "/mnt/d/cursor/openmanager-vibe-v5"]
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/oraios/serena", "serena-mcp-server", "--context", "ide-assistant", "--project", "."]
     }
   }
 }
 EOF
-    
-    echo -e "${GREEN}✅ Claude 설정 파일 생성 완료${NC}"
+        echo -e "${GREEN}✅ .mcp.json 파일 생성 완료${NC}"
+    else
+        echo -e "${YELLOW}⏭️  .mcp.json 파일 생성을 건너뜁니다${NC}"
+    fi
 }
 
 # 5. 검증
 validate_setup() {
     echo -e "\n${YELLOW}5. 설정 검증${NC}"
     
-    if [ -f "$MCP_CONFIG" ]; then
-        echo -e "${GREEN}✅ MCP 설정 파일 존재${NC}"
-        
-        # JSON 유효성 검사
-        if python3 -m json.tool "$MCP_CONFIG" > /dev/null 2>&1; then
-            echo -e "${GREEN}✅ 설정 파일 JSON 유효성 확인${NC}"
-        else
-            echo -e "${RED}❌ 설정 파일 JSON 오류${NC}"
-            exit 1
-        fi
+    # MCP 서버 연결 상태 확인
+    echo -e "\n${BLUE}🔍 MCP 서버 연결 상태 확인:${NC}"
+    claude mcp list
+    
+    # 성공적으로 연결된 서버 수 확인
+    connected_count=$(claude mcp list | grep -c "✓ Connected" || true)
+    total_count=$(claude mcp list | grep -c ":" || true)
+    
+    echo -e "\n${BLUE}📊 연결 상태: $connected_count/$total_count 서버 연결됨${NC}"
+    
+    if [ "$connected_count" -eq "$total_count" ] && [ "$total_count" -gt 0 ]; then
+        echo -e "${GREEN}✅ 모든 MCP 서버가 정상적으로 연결되었습니다${NC}"
+    elif [ "$connected_count" -gt 0 ]; then
+        echo -e "${YELLOW}⚠️  일부 MCP 서버가 연결되지 않았습니다${NC}"
     else
-        echo -e "${RED}❌ MCP 설정 파일이 없습니다${NC}"
-        exit 1
+        echo -e "${RED}❌ MCP 서버가 연결되지 않았습니다${NC}"
     fi
 }
 
 # 6. 완료 메시지
 show_completion_message() {
-    echo -e "\n${GREEN}🎉 MCP 서버 설정 완료!${NC}"
+    echo -e "\n${GREEN}🎉 MCP 서버 CLI 설정 완료!${NC}"
     echo "================================"
-    echo -e "${BLUE}다음 단계:${NC}"
-    echo "1. Claude Code를 완전히 종료 (Ctrl+Shift+P → 'Exit')"
-    echo "2. Claude Code 재시작"
-    echo "3. MCP 서버 활성화 확인"
+    echo -e "${BLUE}설정된 내용:${NC}"
+    echo "- CLI 기반 MCP 서버 설정 완료"
+    echo "- 환경변수 자동 적용"
+    if [ -f "$PROJECT_ROOT/.mcp.json" ]; then
+        echo "- 프로젝트 공유용 .mcp.json 파일 생성됨"
+    fi
     echo ""
-    echo -e "${YELLOW}💡 문제 발생 시:${NC}"
-    echo "- 로그 확인: ~/.config/claude/logs/"
-    echo "- 설정 재검증: ./scripts/mcp/validate.sh"
-    echo "- 설정 초기화: ./scripts/mcp/reset.sh"
+    echo -e "${YELLOW}💡 유용한 명령어:${NC}"
+    echo "- 서버 상태 확인: claude mcp list"
+    echo "- 서버 추가: claude mcp add <name> ..."
+    echo "- 서버 제거: claude mcp remove <name>"
+    echo "- API 재시작: claude api restart"
+    echo ""
+    echo -e "${BLUE}문제 해결:${NC}"
+    echo "- 상세 가이드: /docs/mcp-servers-complete-guide.md"
+    echo "- 검증 스크립트: ./scripts/mcp/validate.sh"
 }
 
 # 메인 실행
@@ -239,7 +296,7 @@ main() {
     check_environment
     setup_env_variables
     install_mcp_servers
-    create_claude_config
+    create_project_mcp_config
     validate_setup
     show_completion_message
 }

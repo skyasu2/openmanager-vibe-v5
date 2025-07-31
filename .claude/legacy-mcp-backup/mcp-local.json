@@ -1,0 +1,94 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        ".claude/mcp-servers/filesystem/run-server.js",
+        "D:\\cursor\\openmanager-vibe-v5"
+      ],
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=4096"
+      }
+    },
+    "memory": {
+      "type": "stdio",
+      "command": "node",
+      "args": [".claude/mcp-servers/memory/run-server.js"],
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=4096"
+      }
+    },
+    "github": {
+      "type": "stdio",
+      "command": "node",
+      "args": [".claude/mcp-servers/github/run-server.js"],
+      "env": {
+        "GITHUB_TOKEN": "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",
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "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",
+        "GITHUB_API_URL": "https://api.github.com",
+        "NODE_OPTIONS": "--max-old-space-size=4096"
+      }
+    },
+    "supabase": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        ".claude/mcp-servers/supabase/run-server.js",
+        "vnswjnltnhpsueosfhmw"
+      ],
+      "env": {
+        "SUPABASE_URL": "https://vnswjnltnhpsueosfhmw.supabase.co",
+        "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8",
+        "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU",
+        "SUPABASE_ACCESS_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8",
+        "SUPABASE_PAT": "sbp_90532bce7e5713a964686d52b254175e8c5c32b9",
+        "SUPABASE_PROJECT_ID": "vnswjnltnhpsueosfhmw",
+        "NODE_OPTIONS": "--max-old-space-size=4096"
+      }
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "node",
+      "args": [".claude/mcp-servers/context7/run-server.js"],
+      "env": {
+        "UPSTASH_REDIS_REST_URL": "https://charming-condor-46598.upstash.io",
+        "UPSTASH_REDIS_REST_TOKEN": "AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA",
+        "NODE_OPTIONS": "--max-old-space-size=4096"
+      }
+    },
+    "tavily-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [".claude/mcp-servers/tavily-mcp/run-server.js"],
+      "env": {
+        "TAVILY_API_KEY": "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",
+        "NODE_OPTIONS": "--max-old-space-size=4096"
+      }
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "node",
+      "args": [".claude/mcp-servers/sequential-thinking/run-server.js"],
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=4096"
+      }
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "node",
+      "args": [".claude/mcp-servers/playwright/run-server.js"],
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=4096"
+      }
+    },
+    "time": {
+      "type": "stdio",
+      "command": "node",
+      "args": [".claude/mcp-servers/time/run-server.js"],
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=4096"
+      }
+    }
+  }
+}

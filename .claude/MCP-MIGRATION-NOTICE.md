@@ -38,11 +38,24 @@ claude api restart
 
 ## 현재 활성 서버 (10개)
 
-모든 서버가 정상 연결된 상태입니다:
+2025년 7월 30일 기준 상태:
+
+✅ **모든 서버 정상 연결 (10/10)**:
 
 - filesystem, memory, github, supabase
 - tavily-mcp, sequential-thinking, playwright
 - time, context7, serena
+
+### Supabase 연결 성공
+
+Supabase MCP 서버는 Personal Access Token (PAT)를 사용하여 연결되었습니다:
+
+```bash
+claude mcp add supabase npx \
+  -e SUPABASE_ACCESS_TOKEN=sbp_xxxxx \
+  -- -y @supabase/mcp-server-supabase@latest \
+  --project-ref=vnswjnltnhpsueosfhmw
+```
 
 ## 추가 정보
 
