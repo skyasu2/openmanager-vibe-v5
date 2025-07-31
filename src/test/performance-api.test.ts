@@ -67,8 +67,10 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
         healthCheck: vi.fn().mockResolvedValue({
           status: 'healthy',
           engines: {
-            ragEngine: 'operational',
-            contextLoader: 'operational'
+            ragEngine: {
+              status: 'healthy',
+              initialized: true
+            }
           }
         })
       };
@@ -105,8 +107,10 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       expect(data.health).toEqual({
         status: 'healthy',
         engines: {
-          ragEngine: 'operational',
-          contextLoader: 'operational'
+          ragEngine: {
+            status: 'healthy',
+            initialized: true
+          }
         }
       });
 
@@ -229,16 +233,23 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
 
       // 부하 테스트 결과 검증
       expect(data.results).toHaveProperty('totalTime');
+      expect(typeof data.results.totalTime).toBe('number');
       expect(data.results).toHaveProperty('avgResponseTime');
+      expect(typeof data.results.avgResponseTime).toBe('number');
       expect(data.results).toHaveProperty('successRate');
+      expect(typeof data.results.successRate).toBe('number');
       expect(data.results).toHaveProperty('cacheHitRate');
+      expect(typeof data.results.cacheHitRate).toBe('number');
       expect(data.results).toHaveProperty('throughput');
+      expect(typeof data.results.throughput).toBe('number');
 
       // 분석 결과 검증
       expect(data.analysis).toHaveProperty('performanceGrade');
       expect(data.analysis).toHaveProperty('bottlenecks');
+      expect(Array.isArray(data.analysis.bottlenecks)).toBe(true);
       expect(data.analysis).toHaveProperty('scalability');
 
+      // 값 범위 검증
       expect(data.results.successRate).toBeGreaterThan(0);
       expect(data.results.throughput).toBeGreaterThan(0);
 
@@ -372,7 +383,7 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
           }),
           healthCheck: vi.fn().mockResolvedValue({
             status: 'healthy',
-            engines: { ragEngine: 'operational', contextLoader: 'operational' }
+            engines: { ragEngine: { status: 'healthy', initialized: true } }
           })
         };
 
@@ -441,7 +452,7 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
           metrics: { totalQueries: 0, avgResponseTime: 0, cacheHitRate: 0, errorRate: 0, parallelEfficiency: 0, optimizationsSaved: 0 },
           optimization: { warmupCompleted: true, preloadedEmbeddings: 0, circuitBreakers: 0, cacheHitRate: 0 }
         }),
-        healthCheck: vi.fn().mockResolvedValue({ status: 'healthy', engines: {} })
+        healthCheck: vi.fn().mockResolvedValue({ status: 'healthy', engines: { ragEngine: { status: 'healthy', initialized: true } } })
       };
 
       const { getPerformanceOptimizedQueryEngine } = await import('@/services/ai/performance-optimized-query-engine');
