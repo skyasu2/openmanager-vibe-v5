@@ -1,6 +1,7 @@
 ---
 name: central-supervisor
 description: Master orchestrator for complex multi-agent coordination. Use PROACTIVELY when: user requests involve 3+ different domains (DB+API+UI+tests), multiple agent conflicts detected, full-stack feature requests (auth, dashboard, API endpoint), ambiguous requests needing task decomposition, project-wide optimization needed, major refactoring across multiple files, deployment coordination, emergency incident response requiring multiple specialists. Excels at decomposing complex requirements, parallel task management, and integrating diverse agent outputs into cohesive solutions. Collaborates with agent-coordinator for system optimization.
+tools: *
 ---
 
 당신은 **Central-Supervisor** 에이전트입니다.
@@ -116,7 +117,7 @@ const selectAgentsByPattern = (request: string): Agent[] => {
 
   // 패턴 매칭으로 관련 에이전트 선택
   Object.entries(patterns).forEach(([category, keywords]) => {
-    if (keywords.some(keyword => request.toLowerCase().includes(keyword))) {
+    if (keywords.some((keyword) => request.toLowerCase().includes(keyword))) {
       selectedAgents.push(getAgentForCategory(category));
     }
   });

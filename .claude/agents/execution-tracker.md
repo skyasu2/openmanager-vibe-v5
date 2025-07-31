@@ -1,3 +1,9 @@
+---
+name: execution-tracker
+description: Agent execution performance tracking and metrics analysis. Monitors sub-agent performance, execution patterns, resource usage, and outcomes. Generates insights for agent optimization and debugging. Tracks metrics like execution time, token usage, success rates, and error patterns.
+tools: mcp__filesystem__*, mcp__memory__*, Read, Write, Bash
+---
+
 # 🔍 Agent Execution Tracker
 
 ## Overview
@@ -97,7 +103,7 @@ export async function trackExecution(
 
   try {
     // Monitor tool usage
-    const toolMonitor = monitorToolUsage(tool => {
+    const toolMonitor = monitorToolUsage((tool) => {
       execution.metrics.toolsUsed.push(tool);
     });
 
@@ -153,7 +159,7 @@ export class PerformanceAnalyzer {
         topAgents: getTopAgentsByUsage(executions),
       },
 
-      agentMetrics: groupBy(executions, 'agentType').map(group => ({
+      agentMetrics: groupBy(executions, 'agentType').map((group) => ({
         agent: group.key,
         executions: group.items.length,
         avgDuration: avg(group.items, 'metrics.duration'),

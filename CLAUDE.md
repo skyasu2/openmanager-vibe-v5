@@ -768,10 +768,13 @@ claude mcp add puppeteer npx -- -y @modelcontextprotocol/server-puppeteer@latest
 | MCP 관리        | `mcp-server-admin`           | MCP 인프라 관리               |
 | AI 협업         | `gemini-cli-collaborator`    | Gemini CLI 연동               |
 | 에이전트 관리   | `agent-coordinator`          | 서브에이전트 생태계 관리      |
+| 백엔드 개발     | `backend-gcp-specialist`     | GCP Functions, Python 백엔드  |
+| Git/CI/CD       | `git-cicd-specialist`        | Git 워크플로우, CI/CD 자동화  |
+| 실행 추적       | `execution-tracker`          | 에이전트 실행 메트릭 추적     |
 
 ### 📁 서브 에이전트 설정 위치
 
-- **프로젝트 로컬 설정**: `.claude/agents/` (13개 에이전트 .md 파일)
+- **프로젝트 로컬 설정**: `.claude/agents/` (17개 에이전트 .md 파일)
 - **MCP 서버 설정**: `~/.claude.json` (CLI로 관리)
 - **매핑 가이드**: `/docs/sub-agents-mcp-mapping-guide.md`
 - **글로벌 설정과의 관계**: 프로젝트별로 독립적으로 관리됨
@@ -820,12 +823,20 @@ Task({
 사용자 요청 → central-supervisor (작업 분석 및 분배)
   ├─ ai-systems-engineer (AI 기능 개발)
   ├─ database-administrator (Upstash Redis + Supabase 최적화)
+  ├─ backend-gcp-specialist (GCP Functions, Python 백엔드)
   ├─ vercel-monitor (Vercel 플랫폼 상태 확인)
   ├─ debugger-specialist (오류 분석 및 해결)
+  ├─ git-cicd-specialist (Git 워크플로우, CI/CD)
   ├─ code-review-specialist (코드 품질 검증)
+  ├─ test-automation-specialist (테스트 자동화)
+  ├─ ux-performance-optimizer (프론트엔드 성능)
   ├─ security-auditor (보안 취약점 검사)
   ├─ doc-structure-guardian (문서 구조 정리)
-  └─ doc-writer-researcher (문서 작성 및 연구)
+  ├─ doc-writer-researcher (문서 작성 및 연구)
+  ├─ mcp-server-admin (MCP 서버 관리)
+  ├─ gemini-cli-collaborator (AI 협업)
+  ├─ execution-tracker (실행 메트릭 추적)
+  └─ agent-coordinator (에이전트 최적화)
       └─ 모든 결과 → central-supervisor (통합 및 보고)
 ```
 

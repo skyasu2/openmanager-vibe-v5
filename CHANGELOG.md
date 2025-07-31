@@ -5,6 +5,24 @@
 > - Legacy 파일: v5.0.0 ~ v5.65.6 (2024-05 ~ 2025-01)
 > - 현재 파일: v5.65.7 이후 (2025-01 ~)
 
+## [5.66.8] - 2025-08-01 02:10
+
+### 🔧 서브에이전트 관련 개선 및 문서 정리
+
+- **CLAUDE.md 서브에이전트 목록 업데이트**:
+  - ✅ 서브에이전트 목록을 17개로 정확히 업데이트
+  - ✅ 누락된 에이전트 추가: `backend-gcp-specialist`, `git-cicd-specialist`, `execution-tracker`
+  - ✅ 서브 에이전트 체이닝 패턴 다이어그램을 전체 17개 에이전트로 확장
+
+- **frontmatter tools 설정 표준화**:
+  - ✅ `central-supervisor.md`: tools 필드 추가 (tools: \*)
+  - ✅ `git-cicd-specialist.md`: tools 필드 추가 (tools: \*)
+  - ✅ `execution-tracker.md`: 전체 frontmatter 추가 (name, description, tools)
+
+- **MCP 도구 명명 규칙 검증**:
+  - ✅ 모든 서브에이전트가 `mcp__*__*` 형식을 일관되게 사용함 확인
+  - ✅ 표준화된 MCP 도구: filesystem, memory, github, supabase, context7, playwright, serena, sequential-thinking, tavily-mcp
+
 ## [5.66.7] - 2025-08-01 01:55
 
 ### 📚 Vercel MCP 상세 가이드 추가
