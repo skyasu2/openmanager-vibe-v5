@@ -11,24 +11,48 @@
  */
 
 import { promises as fs } from 'fs';
-import { createCipher, createDecipher, randomBytes } from 'crypto';
+import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'crypto';
 
 class UnifiedEnvManager {
   constructor() {
     this.encryptionKey = process.env.ENCRYPTION_KEY || 'default-key-change-me';
     this.envBackupPath = 'config/env-backups';
+    this.algorithm = 'aes-256-gcm';
+    this.saltLength = 32;
+    this.ivLength = 16;
+    this.tagLength = 16;
   }
 
   encrypt(text, key = this.encryptionKey) {
-    const cipher = createCipher('aes192', key);
+    const salt = randomBytes(this.saltLength);
+    const iv = randomBytes(this.ivLength);
+    const derivedKey = scryptSync(key, salt, 32);
+    const cipher = createCipheriv(this.algorithm, derivedKey, iv);
+    
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    return encrypted;
+    const authTag = cipher.getAuthTag();
+    
+    // Combine salt, iv, authTag, and encrypted data
+    return salt.toString('hex') + ':' + iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted;
   }
 
-  decrypt(encryptedText, key = this.encryptionKey) {
-    const decipher = createDecipher('aes192', key);
-    let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+  decrypt(encryptedData, key = this.encryptionKey) {
+    const parts = encryptedData.split(':');
+    if (parts.length !== 4) {
+      throw new Error('Invalid encrypted data format');
+    }
+    
+    const salt = Buffer.from(parts[0], 'hex');
+    const iv = Buffer.from(parts[1], 'hex');
+    const authTag = Buffer.from(parts[2], 'hex');
+    const encrypted = parts[3];
+    
+    const derivedKey = scryptSync(key, salt, 32);
+    const decipher = createDecipheriv(this.algorithm, derivedKey, iv);
+    decipher.setAuthTag(authTag);
+    
+    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
   }
