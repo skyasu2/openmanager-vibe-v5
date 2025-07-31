@@ -24,7 +24,7 @@ describe('에러 처리 및 폴백 메커니즘', () => {
     indexingService = VectorIndexingService.getInstance();
 
     // 환경 변수 설정
-    process.env.GOOGLE_AI_API_KEY = 'test-key';
+    vi.stubEnv('GOOGLE_AI_API_KEY', 'test-key');
   });
 
   describe('임베딩 서비스 폴백', () => {
@@ -73,9 +73,9 @@ describe('에러 처리 및 폴백 메커니즘', () => {
   describe('RAG 엔진 폴백', () => {
     it('벡터 검색 실패 시 더미 임베딩 사용', async () => {
       // 임베딩 서비스 실패 설정
-      jest
-        .spyOn(embeddingService, 'createEmbedding')
-        .mockRejectedValue(new Error('Embedding failed'));
+      vi.spyOn(embeddingService, 'createEmbedding').mockRejectedValue(
+        new Error('Embedding failed')
+      );
 
       const result = await ragEngine.searchSimilar('test query');
 
@@ -85,14 +85,14 @@ describe('에러 처리 및 폴백 메커니즘', () => {
 
     it('배치 임베딩 실패 시 개별 처리 폴백', async () => {
       // 배치 처리 실패
-      jest
-        .spyOn(embeddingService, 'createBatchEmbeddings')
-        .mockRejectedValue(new Error('Batch failed'));
+      vi.spyOn(embeddingService, 'createBatchEmbeddings').mockRejectedValue(
+        new Error('Batch failed')
+      );
 
       // 개별 처리는 성공
-      jest
-        .spyOn(embeddingService, 'createEmbedding')
-        .mockResolvedValue(new Array(384).fill(0.1));
+      vi.spyOn(embeddingService, 'createEmbedding').mockResolvedValue(
+        new Array(384).fill(0.1)
+      );
 
       const documents = [
         { id: '1', content: 'doc1', metadata: {} },
@@ -137,15 +137,13 @@ describe('에러 처리 및 폴백 메커니즘', () => {
 
     it('타임아웃 처리', async () => {
       // 느린 응답 시뮬레이션
-      jest
-        .spyOn(ragEngine, 'searchSimilar')
-        .mockImplementation(
-          () => new Promise(resolve => setTimeout(resolve, 10000))
-        );
+      vi.spyOn(ragEngine, 'searchSimilar').mockImplementation(
+        () => new Promise(resolve => setTimeout(resolve, 10000))
+      );
 
       const response = await queryEngine.query({
         query: 'slow query',
-        options: { timeout: 100 }, // 100ms 타임아웃
+        options: { timeoutMs: 100 }, // 100ms 타임아웃
       });
 
       expect(response.success).toBe(false);

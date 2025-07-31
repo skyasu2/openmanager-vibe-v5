@@ -1,3 +1,4 @@
+import { SessionData, SessionMetadata } from '@/types/session';
 /**
  * 🎯 MCP 컨텍스트 관리자 v1.0
  *
@@ -310,12 +311,18 @@ export class MCPContextManager {
 
     for (const [sessionId, contextData] of Object.entries(data)) {
       try {
+        const context = contextData as {
+          data: SessionData;
+          timestamp?: number;
+          expiresAt?: number;
+          metadata?: SessionMetadata;
+        };
         const sessionContext: SessionContext = {
           sessionId,
-          data: contextData.data,
-          timestamp: contextData.timestamp || Date.now(),
-          expiresAt: contextData.expiresAt,
-          metadata: contextData.metadata,
+          data: context.data,
+          timestamp: context.timestamp || Date.now(),
+          expiresAt: context.expiresAt,
+          metadata: context.metadata,
         };
 
         this.contexts.set(sessionId, sessionContext);

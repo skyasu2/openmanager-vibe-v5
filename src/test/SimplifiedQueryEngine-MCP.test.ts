@@ -78,7 +78,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
       category: 'medium',
       recommendation: 'google-ai',
       factors: {
-        queryLength: 15,
+        length: 15,
         hasOperators: false,
         hasServerContext: true,
         technicalTerms: 2,

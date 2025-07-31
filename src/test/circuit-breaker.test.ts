@@ -98,8 +98,8 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
             break;
           }
         } catch (error) {
-          console.log(`❌ 실패 ${i + 1}: ${error.message}`);
-          responses.push({ error: error.message, attempt: i + 1 });
+          console.log(`❌ 실패 ${i + 1}: ${(error as Error).message}`);
+          responses.push({ error: (error as Error).message, attempt: i + 1 });
         }
       }
 
@@ -449,7 +449,7 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
           const result = await engine.query(testQuery);
           results.push({ success: true, ...result });
         } catch (error) {
-          results.push({ success: false, error: error.message });
+          results.push({ success: false, error: (error as Error).message });
         }
       }
 

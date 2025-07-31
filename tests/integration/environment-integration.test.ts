@@ -6,37 +6,24 @@
 
 import { detectEnvironment } from '@/lib/environment/detect-environment';
 import { getMockSystem } from '@/mock';
-import { beforeEach, describe, expect, test } from 'vitest';
-
-// 🔧 환경변수 안전 모킹 함수
-function setTestEnv(envVars: Record<string, string | undefined>) {
-  Object.keys(envVars).forEach(key => {
-    if (envVars[key] === undefined) {
-      delete process.env[key];
-    } else {
-      // process.env 직접 설정 (더 간단하고 확실한 방법)
-      process.env[key] = envVars[key];
-    }
-  });
-}
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 describe('환경별 통합 테스트', () => {
   beforeEach(() => {
-    // 테스트 전 기본 환경 설정
-    setTestEnv({
-      NODE_ENV: 'test',
-      ENABLE_MOCK_DATA: 'true',
-      DISABLE_EXTERNAL_CALLS: 'true',
-    });
+    // 테스트 전 모든 환경변수 초기화
+    vi.unstubAllEnvs();
+    
+    // 기본 테스트 환경 설정
+    vi.stubEnv('NODE_ENV', 'test');
+    vi.stubEnv('ENABLE_MOCK_DATA', 'true');
+    vi.stubEnv('DISABLE_EXTERNAL_CALLS', 'true');
   });
 
   describe('로컬 개발 환경 통합 테스트', () => {
     beforeEach(() => {
-      setTestEnv({
-        NODE_ENV: 'development',
-        VERCEL: undefined,
-        RENDER: undefined,
-      });
+      vi.stubEnv('NODE_ENV', 'development');
+      vi.stubEnv('VERCEL', undefined);
+      vi.stubEnv('RENDER', undefined);
     });
 
     test('로컬 환경에서 목업 데이터 생성기 정상 동작', async () => {
@@ -107,11 +94,9 @@ describe('환경별 통합 테스트', () => {
 
   describe('Vercel 환경 통합 테스트', () => {
     beforeEach(() => {
-      setTestEnv({
-        VERCEL: '1',
-        NODE_ENV: 'production',
-        VERCEL_ENV: 'production',
-      });
+      vi.stubEnv('VERCEL', '1');
+      vi.stubEnv('NODE_ENV', 'production');
+      vi.stubEnv('VERCEL_ENV', 'production');
     });
 
     test('Vercel 환경에서 목업 시스템 초기화', async () => {
@@ -143,15 +128,13 @@ describe('환경별 통합 테스트', () => {
 
   describe('테스트 환경 통합 테스트', () => {
     beforeEach(() => {
-      setTestEnv({
-        NODE_ENV: 'test',
-        VERCEL: undefined, // Vercel 환경 변수 명시적으로 제거
-        VERCEL_ENV: undefined,
-        REDIS_CONNECTION_DISABLED: 'true',
-        UPSTASH_REDIS_DISABLED: 'true',
-        DISABLE_HEALTH_CHECK: 'true',
-        FORCE_MOCK_GOOGLE_AI: 'true',
-      });
+      vi.stubEnv('NODE_ENV', 'test');
+      vi.stubEnv('VERCEL', undefined);
+      vi.stubEnv('VERCEL_ENV', undefined);
+      vi.stubEnv('REDIS_CONNECTION_DISABLED', 'true');
+      vi.stubEnv('UPSTASH_REDIS_DISABLED', 'true');
+      vi.stubEnv('DISABLE_HEALTH_CHECK', 'true');
+      vi.stubEnv('FORCE_MOCK_GOOGLE_AI', 'true');
     });
 
     test('테스트 환경에서 외부 연결 차단 확인', () => {
@@ -175,22 +158,18 @@ describe('환경별 통합 테스트', () => {
   describe('환경 전환 테스트', () => {
     test('개발 환경에서 프로덕션 환경으로 전환', () => {
       // 개발 환경 설정
-      setTestEnv({
-        NODE_ENV: 'development',
-        VERCEL: undefined,
-        VERCEL_ENV: undefined,
-      });
+      vi.stubEnv('NODE_ENV', 'development');
+      vi.stubEnv('VERCEL', undefined);
+      vi.stubEnv('VERCEL_ENV', undefined);
 
       const devEnv = detectEnvironment();
       expect(devEnv.IS_LOCAL).toBe(true);
       expect(devEnv.features.enableMockData).toBe(true);
 
       // 프로덕션 환경으로 전환
-      setTestEnv({
-        NODE_ENV: 'production',
-        VERCEL: '1',
-        VERCEL_ENV: 'production',
-      });
+      vi.stubEnv('NODE_ENV', 'production');
+      vi.stubEnv('VERCEL', '1');
+      vi.stubEnv('VERCEL_ENV', 'production');
 
       const prodEnv = detectEnvironment();
       expect(prodEnv.IS_VERCEL).toBe(true);
@@ -199,13 +178,19 @@ describe('환경별 통합 테스트', () => {
 
     test('환경 전환 시 설정 일관성 확인', () => {
       const environments = [
-        { NODE_ENV: 'development', VERCEL: undefined },
+        { NODE_ENV: 'development' },
         { NODE_ENV: 'production', VERCEL: '1' },
-        { NODE_ENV: 'test', VERCEL: undefined },
+        { NODE_ENV: 'test' },
       ];
 
       environments.forEach(envVars => {
-        setTestEnv(envVars);
+        // 기존 환경변수 제거
+        vi.unstubAllEnvs();
+        
+        // 새 환경변수 설정
+        Object.entries(envVars).forEach(([key, value]) => {
+          vi.stubEnv(key, value);
+        });
 
         const env = detectEnvironment();
 
@@ -221,7 +206,7 @@ describe('환경별 통합 테스트', () => {
 
   describe('환경별 API 응답 테스트', () => {
     test('로컬 환경에서 서버 API 응답 구조', async () => {
-      setTestEnv({ NODE_ENV: 'development' });
+      vi.stubEnv('NODE_ENV', 'development');
 
       const mockSystem = getMockSystem();
       const servers = mockSystem.getServers();
@@ -253,9 +238,14 @@ describe('환경별 통합 테스트', () => {
       ];
 
       for (const testCase of testCases) {
+        // 환경 초기화
+        vi.unstubAllEnvs();
+        
         // 환경 설정
         const { expectMockData, ...envVars } = testCase;
-        setTestEnv(envVars);
+        Object.entries(envVars).forEach(([key, value]) => {
+          vi.stubEnv(key, value);
+        });
 
         const env = detectEnvironment();
 
@@ -276,7 +266,7 @@ describe('환경별 통합 테스트', () => {
 
   describe('성능 테스트', () => {
     test('로컬 환경에서 서버 데이터 생성 성능', async () => {
-      setTestEnv({ NODE_ENV: 'development' });
+      vi.stubEnv('NODE_ENV', 'development');
 
       const mockSystem = getMockSystem();
 
@@ -310,7 +300,7 @@ describe('환경별 통합 테스트', () => {
     test('환경별 메모리 사용량 모니터링', async () => {
       const initialMemory = process.memoryUsage();
 
-      setTestEnv({ NODE_ENV: 'development' });
+      vi.stubEnv('NODE_ENV', 'development');
       const mockSystem = getMockSystem();
       const servers = mockSystem.getServers();
 

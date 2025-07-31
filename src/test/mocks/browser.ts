@@ -157,8 +157,7 @@ Object.defineProperty(window, 'sessionStorage', {
 // ===============================
 // 🌍 Location Mock
 // ===============================
-delete (window as Window & { location?: Location }).location;
-(window as Window & { location: Location }).location = {
+const locationMock: Location = {
   href: 'http://localhost:3000/',
   origin: 'http://localhost:3000',
   protocol: 'http:',
@@ -179,6 +178,13 @@ delete (window as Window & { location?: Location }).location;
     [Symbol.iterator]: function* () {},
   } as DOMStringList,
 };
+
+Object.defineProperty(window, 'location', {
+  value: locationMock,
+  writable: true,
+  enumerable: true,
+  configurable: true
+});
 
 // ===============================
 // 📡 Network APIs Mock
@@ -219,9 +225,24 @@ interface EventSourceConstructor {
   readonly CLOSED: 2;
 }
 
-(EventSourceMock as unknown as EventSourceConstructor).CONNECTING = 0;
-(EventSourceMock as unknown as EventSourceConstructor).OPEN = 1;
-(EventSourceMock as unknown as EventSourceConstructor).CLOSED = 2;
+Object.defineProperty(EventSourceMock, 'CONNECTING', {
+  value: 0,
+  writable: false,
+  enumerable: true,
+  configurable: false
+});
+Object.defineProperty(EventSourceMock, 'OPEN', {
+  value: 1,
+  writable: false,
+  enumerable: true,
+  configurable: false
+});
+Object.defineProperty(EventSourceMock, 'CLOSED', {
+  value: 2,
+  writable: false,
+  enumerable: true,
+  configurable: false
+});
 
 global.EventSource = EventSourceMock as unknown as EventSourceConstructor;
 
@@ -251,9 +272,29 @@ interface WebSocketConstructor {
   readonly CLOSED: 3;
 }
 
-(WebSocketMock as unknown as WebSocketConstructor).CONNECTING = 0;
-(WebSocketMock as unknown as WebSocketConstructor).OPEN = 1;
-(WebSocketMock as unknown as WebSocketConstructor).CLOSING = 2;
-(WebSocketMock as unknown as WebSocketConstructor).CLOSED = 3;
+Object.defineProperty(WebSocketMock, 'CONNECTING', {
+  value: 0,
+  writable: false,
+  enumerable: true,
+  configurable: false
+});
+Object.defineProperty(WebSocketMock, 'OPEN', {
+  value: 1,
+  writable: false,
+  enumerable: true,
+  configurable: false
+});
+Object.defineProperty(WebSocketMock, 'CLOSING', {
+  value: 2,
+  writable: false,
+  enumerable: true,
+  configurable: false
+});
+Object.defineProperty(WebSocketMock, 'CLOSED', {
+  value: 3,
+  writable: false,
+  enumerable: true,
+  configurable: false
+});
 
 global.WebSocket = WebSocketMock as unknown as WebSocketConstructor;

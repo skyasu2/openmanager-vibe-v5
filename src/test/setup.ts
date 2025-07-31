@@ -257,14 +257,30 @@ export const testUtils = {
   createMockFn: <T extends (...args: never[]) => unknown>(implementation?: T) =>
     vi.fn(implementation),
 
-  // 환경변수 임시 설정
+  // 환경변수 임시 설정 (vi.stubEnv 사용)
   withEnv: <T>(envVars: Record<string, string>, fn: () => T): T => {
-    const original = { ...process.env };
-    Object.assign(process.env, envVars);
+    // 기존 환경변수 백업
+    const originalEnv: Record<string, string | undefined> = {};
+    Object.keys(envVars).forEach(key => {
+      originalEnv[key] = process.env[key];
+    });
+
+    // vi.stubEnv로 환경변수 설정
+    Object.entries(envVars).forEach(([key, value]) => {
+      vi.stubEnv(key, value);
+    });
+
     try {
       return fn();
     } finally {
-      process.env = original;
+      // 원래 값으로 복원
+      Object.entries(originalEnv).forEach(([key, value]) => {
+        if (value === undefined) {
+          vi.unstubAllEnvs(key);
+        } else {
+          vi.stubEnv(key, value);
+        }
+      });
     }
   },
 

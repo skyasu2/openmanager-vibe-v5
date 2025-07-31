@@ -18,6 +18,7 @@ import type {
 import type { AIQueryContext } from '@/types/ai-service-types';
 import { getSupabaseRAGEngine } from '../supabase-rag-engine';
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
+import { createStandardServerMock } from '@/test/helpers/server-mocks';
 import { QueryComplexityAnalyzer } from '../query-complexity-analyzer';
 import * as cacheConfig from '@/config/free-tier-cache-config';
 
@@ -84,14 +85,14 @@ describe('SimplifiedQueryEngine', () => {
     // Mock complexity analyzer
     vi.mocked(QueryComplexityAnalyzer.analyze).mockReturnValue({
       score: 50,
-      category: 'medium',
       recommendation: 'local',
+      confidence: 0.85,
       factors: {
-        queryLength: 10,
-        hasOperators: false,
-        hasServerContext: false,
-        technicalTerms: 1,
-        multipleTopics: false,
+        length: 10,
+        keywords: 1,
+        patterns: 0,
+        context: 1,
+        language: 0,
       },
     });
     
@@ -240,7 +241,7 @@ describe('SimplifiedQueryEngine', () => {
     it('should handle server context in local mode', async () => {
       const context: AIQueryContext = {
         servers: [
-          {
+          createStandardServerMock({
             id: 'srv-001',
             name: 'test-server',
             status: 'warning',
@@ -248,7 +249,7 @@ describe('SimplifiedQueryEngine', () => {
             memory: 70,
             disk: 50,
             network: 100,
-          },
+          }),
         ],
       };
       
@@ -280,14 +281,14 @@ describe('SimplifiedQueryEngine', () => {
       // Low complexity
       vi.mocked(QueryComplexityAnalyzer.analyze).mockReturnValue({
         score: 20,
-        category: 'simple',
         recommendation: 'local',
+        confidence: 0.95,
         factors: {
-          queryLength: 5,
-          hasOperators: false,
-          hasServerContext: false,
-          technicalTerms: 0,
-          multipleTopics: false,
+          length: 5,
+          keywords: 1,
+          patterns: 0,
+          context: 0,
+          language: 0,
         },
       });
       
@@ -334,7 +335,7 @@ describe('SimplifiedQueryEngine', () => {
 
     it('should include context in Google AI prompt', async () => {
       const context: AIQueryContext = {
-        servers: [{ id: '1', name: 'server1', status: 'healthy' }],
+        servers: [createStandardServerMock({ id: '1', name: 'server1', status: 'healthy' })],
         previousQueries: ['이전 질문'],
       };
       
@@ -387,14 +388,14 @@ describe('SimplifiedQueryEngine', () => {
     it('should adjust parameters based on complexity', async () => {
       vi.mocked(QueryComplexityAnalyzer.analyze).mockReturnValue({
         score: 80,
-        category: 'complex',
         recommendation: 'google-ai',
+        confidence: 0.9,
         factors: {
-          queryLength: 50,
-          hasOperators: true,
-          hasServerContext: true,
-          technicalTerms: 5,
-          multipleTopics: true,
+          length: 50,
+          keywords: 3,
+          patterns: 2,
+          context: 5,
+          language: 1,
         },
       });
       
@@ -615,14 +616,14 @@ describe('SimplifiedQueryEngine', () => {
     it('should handle auto mode with hybrid recommendation', async () => {
       vi.mocked(QueryComplexityAnalyzer.analyze).mockReturnValue({
         score: 60,
-        category: 'medium',
         recommendation: 'hybrid',
+        confidence: 0.8,
         factors: {
-          queryLength: 30,
-          hasOperators: true,
-          hasServerContext: false,
-          technicalTerms: 3,
-          multipleTopics: false,
+          length: 30,
+          keywords: 3,
+          patterns: 0,
+          context: 3,
+          language: 0,
         },
       });
       
@@ -657,10 +658,10 @@ describe('SimplifiedQueryEngine', () => {
     it('should handle server status summary query', async () => {
       const context: AIQueryContext = {
         servers: [
-          { id: '1', name: 'srv1', status: 'healthy' },
-          { id: '2', name: 'srv2', status: 'warning' },
-          { id: '3', name: 'srv3', status: 'critical' },
-          { id: '4', name: 'srv4', status: 'offline' },
+          createStandardServerMock({ id: '1', name: 'srv1', status: 'healthy' }),
+          createStandardServerMock({ id: '2', name: 'srv2', status: 'warning' }),
+          createStandardServerMock({ id: '3', name: 'srv3', status: 'critical' }),
+          createStandardServerMock({ id: '4', name: 'srv4', status: 'offline' }),
         ],
       };
       

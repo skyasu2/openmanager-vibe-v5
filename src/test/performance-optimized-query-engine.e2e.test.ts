@@ -285,7 +285,7 @@ describe.skip('🚀 PerformanceOptimizedQueryEngine E2E 테스트', () => {
             console.log(`반복 ${i + 1}: 회로 차단기 작동 (폴백 응답)`);
           }
         } catch (error) {
-          responses.push({ error: error.message });
+          responses.push({ error: (error as Error).message });
         }
       }
 

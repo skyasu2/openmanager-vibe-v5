@@ -115,8 +115,8 @@ export interface Server {
     disk_gb: number;
     network_speed?: string;
   };
-  lastUpdate: Date;
-  services: Service[];
+  lastUpdate?: Date;
+  services?: Service[];
   logs?: LogEntry[];
   networkInfo?: NetworkInfo;
   networkStatus?:
@@ -336,7 +336,7 @@ export const SERVER_TYPE_DEFINITIONS: Record<ServerRole, ServerTypeDefinition> =
     },
     app: {
       type: 'app',
-      tags: ['node', 'java', 'dotnet', 'application', 'business-logic'],
+      tags: ['node' | 'nginx', 'java', 'dotnet', 'application', 'business-logic'],
       characteristics: {
         cpuWeight: 0.9,
         memoryWeight: 0.8,
@@ -350,7 +350,7 @@ export const SERVER_TYPE_DEFINITIONS: Record<ServerRole, ServerTypeDefinition> =
     },
     api: {
       type: 'api',
-      tags: ['node', 'express', 'fastapi', 'rest', 'graphql'],
+      tags: ['node' | 'nginx', 'express', 'fastapi', 'rest', 'graphql'],
       characteristics: {
         cpuWeight: 0.8,
         memoryWeight: 0.6,
@@ -506,7 +506,7 @@ export interface ProcessInfo {
     | 'System'
     | 'svchost.exe'
     | 'chrome.exe'
-    | 'node'
+    | 'node' | 'nginx'
     | 'python'
     | 'java'
     | 'spindump'

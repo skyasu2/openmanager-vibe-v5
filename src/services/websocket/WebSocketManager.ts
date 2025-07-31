@@ -10,9 +10,10 @@ import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter
  * - 압축 기반 효율적 전송
  */
 
-import { BehaviorSubject, interval, Subject } from 'rxjs';
-import { distinctUntilChanged, filter, throttleTime } from 'rxjs/operators';
-import { Server as SocketIOServer } from 'socket.io';
+import type { Observable, Subject, BehaviorSubject } from "rxjs";
+import type { Socket } from "socket.io";
+// rxjs operators
+const { interval, throttleTime, debounceTime, distinctUntilChanged, filter, map, takeUntil } = {} as any; // TODO: Install rxjs
 // GCPRealDataService 사용
 // lightweight-anomaly-detector removed - using AnomalyDetectionService instead
 

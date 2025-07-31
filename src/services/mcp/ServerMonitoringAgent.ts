@@ -124,6 +124,8 @@ export interface IncidentReport {
 export class ServerMonitoringAgent {
   private static instance: ServerMonitoringAgent | null = null;
   private isRunning = false;
+  private contextCache = new Map<string, any>();
+  private updateCallbacks = new Set<(data: any) => void>();
 
   // 🎭 지식 베이스 (MCP 컨텍스트)
   private knowledgeBase = {
@@ -244,6 +246,84 @@ export class ServerMonitoringAgent {
       console.error('❌ 에이전트 초기화 실패:', error);
       throw error;
     }
+  }
+
+  /**
+   * 🔌 MCP 연결 상태 확인
+   */
+  public async checkMCPConnection(): Promise<boolean> {
+    try {
+      // 통합 데이터 브로커를 통해 연결 상태 확인
+      const metrics = unifiedDataBroker.getMetrics();
+      return metrics !== null && this.isRunning;
+    } catch (error) {
+      console.error('MCP 연결 확인 실패:', error);
+      return false;
+    }
+  }
+
+  /**
+   * 📋 전체 컨텍스트 수집
+   */
+  public async collectContext(): Promise<MCPMonitoringData> {
+    return this.gatherCurrentData();
+  }
+
+  /**
+   * 📋 특정 서버 컨텍스트 수집
+   */
+  public async collectServerContext(serverId: string): Promise<MCPMonitoringData | null> {
+    const cachedContext = this.contextCache.get(serverId);
+    if (cachedContext) {
+      return cachedContext;
+    }
+
+    const context = await this.gatherCurrentData({ serverId });
+    
+    // 특정 서버만 필터링
+    const filteredContext = {
+      ...context,
+      servers: context.servers.filter(s => s.id === serverId),
+    };
+
+    this.contextCache.set(serverId, filteredContext);
+    
+    // 캐시 TTL: 30초
+    setTimeout(() => this.contextCache.delete(serverId), 30000);
+
+    return filteredContext;
+  }
+
+  /**
+   * 🔄 실시간 업데이트 구독
+   */
+  public subscribeToUpdates(callback: (data: MCPMonitoringData) => void): () => void {
+    this.updateCallbacks.add(callback);
+
+    // 초기 데이터 전송
+    this.gatherCurrentData().then(data => callback(data));
+
+    // 주기적 업데이트 (15초)
+    const intervalId = setInterval(async () => {
+      const data = await this.gatherCurrentData();
+      callback(data);
+    }, 15000);
+
+    // 구독 해제 함수 반환
+    return () => {
+      this.updateCallbacks.delete(callback);
+      if (this.updateCallbacks.size === 0) {
+        clearInterval(intervalId);
+      }
+    };
+  }
+
+  /**
+   * 🧹 캐시 초기화
+   */
+  public clearCache(): void {
+    this.contextCache.clear();
+    console.log('🧹 ServerMonitoringAgent 캐시 초기화됨');
   }
 
   /**

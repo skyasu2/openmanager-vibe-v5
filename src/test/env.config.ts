@@ -6,6 +6,8 @@
  * 테스트는 별도의 env.test.ts 파일에 있습니다.
  */
 
+import { vi } from 'vitest';
+
 export const TEST_ENV_CONFIG = {
   // ===============================
   // 🔧 기본 테스트 환경 설정
@@ -105,14 +107,15 @@ export const TEST_ENV_CONFIG = {
 
 /**
  * 환경변수를 일괄 설정하는 함수
+ * Vitest의 vi.stubEnv를 우선 사용
  */
 export function setupTestEnvironment() {
   Object.entries(TEST_ENV_CONFIG).forEach(([key, value]) => {
     if (typeof vi !== 'undefined' && vi?.stubEnv) {
-      // Vitest 환경
+      // Vitest 환경에서 안전하게 환경변수 설정
       vi.stubEnv(key, value);
     } else {
-      // 기타 환경
+      // Fallback (일반적으로 사용되지 않음)
       process.env[key] = value;
     }
   });

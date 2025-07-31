@@ -10,19 +10,19 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Fallback Data Configuration', () => {
-  const originalEnv = process.env;
+  // 환경변수 백업을 위한 변수
+  const originalEnv = { ...process.env };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // 환경변수 초기화 (읽기 전용 문제 해결)
-    vi.resetModules();
-    process.env = { ...originalEnv };
+    // 모든 환경변수 초기화
+    vi.unstubAllEnvs();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    // 환경변수 복원
-    process.env = originalEnv;
+    // 모든 환경변수 복원
+    vi.unstubAllEnvs();
   });
 
   describe('STATIC_ERROR_SERVERS', () => {
@@ -122,16 +122,10 @@ describe('Fallback Data Configuration', () => {
     });
 
     it('필수 환경변수가 있을 때 성공해야 함', () => {
-      // 환경변수 설정 (읽기 전용 문제 해결)
-      const testEnv = {
-        ...originalEnv,
-        NEXT_PUBLIC_SUPABASE_URL: 'https://test.supabase.co',
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-anon-key',
-        NODE_ENV: 'test',
-      };
-
-      // process.env를 완전히 교체
-      (process as any).env = testEnv;
+      // vi.stubEnv로 환경변수 설정
+      vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://test.supabase.co');
+      vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'test-anon-key');
+      vi.stubEnv('NODE_ENV', 'test');
 
       const result = validateEnvironmentVariables(['NEXT_PUBLIC_SUPABASE_URL']);
       expect(result.isValid).toBe(true);
@@ -139,13 +133,8 @@ describe('Fallback Data Configuration', () => {
     });
 
     it('필수 환경변수가 없을 때 실패해야 함', () => {
-      const testEnv = {
-        ...originalEnv,
-        NODE_ENV: 'test',
-      };
-      // MISSING_VAR는 애초에 설정하지 않음
-
-      (process as any).env = testEnv;
+      // MISSING_VAR는 설정하지 않음
+      vi.stubEnv('NODE_ENV', 'test');
 
       const result = validateEnvironmentVariables(['MISSING_VAR']);
       expect(result.isValid).toBe(false);
@@ -153,13 +142,9 @@ describe('Fallback Data Configuration', () => {
     });
 
     it('빈 문자열 환경변수를 누락으로 처리해야 함', () => {
-      const testEnv = {
-        ...originalEnv,
-        EMPTY_VAR: '',
-        NODE_ENV: 'test',
-      };
-
-      (process as any).env = testEnv;
+      // 빈 문자열로 환경변수 설정
+      vi.stubEnv('EMPTY_VAR', '');
+      vi.stubEnv('NODE_ENV', 'test');
 
       const result = validateEnvironmentVariables(['EMPTY_VAR']);
       expect(result.isValid).toBe(false);
@@ -169,26 +154,18 @@ describe('Fallback Data Configuration', () => {
 
   describe('Infrastructure URL Helpers', () => {
     it('인프라 URL을 올바르게 반환해야 함', () => {
-      const testEnv = {
-        ...originalEnv,
-        UPSTASH_REDIS_REST_URL: 'https://test-redis.upstash.io',
-      };
-
-      (process as any).env = testEnv;
+      vi.stubEnv('UPSTASH_REDIS_REST_URL', 'https://test-redis.upstash.io');
 
       const redisUrl = getInfrastructureUrl('redis');
       expect(redisUrl).toBe('https://test-redis.upstash.io');
     });
 
     it('환경변수가 없을 때 설정에서 값을 반환해야 함', () => {
-      const testEnv = { ...originalEnv };
-      delete testEnv.UPSTASH_REDIS_REST_URL;
+      // UPSTASH_REDIS_REST_URL을 명시적으로 제거
+      vi.stubEnv('UPSTASH_REDIS_REST_URL', undefined);
 
-      (process as any).env = testEnv;
-
-      // INFRASTRUCTURE_CONFIG에서 값을 가져옴 ('' 또는 설정된 값)
+      // INFRASTRUCTURE_CONFIG에서 값을 가져옴
       const redisUrl = getInfrastructureUrl('redis');
-      // 빈 문자열이거나 INFRASTRUCTURE_CONFIG.redis.url 값
       expect(typeof redisUrl).toBe('string');
     });
 
@@ -201,22 +178,15 @@ describe('Fallback Data Configuration', () => {
 
   describe('API Key Helpers', () => {
     it('Google AI API 키를 올바르게 반환해야 함', () => {
-      const testEnv = {
-        ...originalEnv,
-        GOOGLE_AI_API_KEY: 'test-google-ai-key',
-      };
-
-      (process as any).env = testEnv;
+      vi.stubEnv('GOOGLE_AI_API_KEY', 'test-google-ai-key');
 
       const apiKey = getApiKey('google');
       expect(apiKey).toBe('test-google-ai-key');
     });
 
     it('환경변수가 없을 때 빈 문자열을 반환해야 함', () => {
-      const testEnv = { ...originalEnv };
-      delete testEnv.GOOGLE_AI_API_KEY;
-
-      (process as any).env = testEnv;
+      // GOOGLE_AI_API_KEY를 명시적으로 제거
+      vi.stubEnv('GOOGLE_AI_API_KEY', undefined);
 
       const apiKey = getApiKey('google');
       expect(apiKey).toBe('');
@@ -225,34 +195,22 @@ describe('Fallback Data Configuration', () => {
 
   describe('Environment Mode Detection', () => {
     it('개발 모드를 올바르게 감지해야 함', () => {
-      const testEnv = {
-        ...originalEnv,
-        NODE_ENV: 'development',
-      };
-
-      (process as any).env = testEnv;
+      vi.stubEnv('NODE_ENV', 'development');
 
       expect(isDevelopmentMode()).toBe(true);
       expect(isProductionMode()).toBe(false);
     });
 
     it('프로덕션 모드를 올바르게 감지해야 함', () => {
-      const testEnv = {
-        ...originalEnv,
-        NODE_ENV: 'production',
-      };
-
-      (process as any).env = testEnv;
+      vi.stubEnv('NODE_ENV', 'production');
 
       expect(isDevelopmentMode()).toBe(false);
       expect(isProductionMode()).toBe(true);
     });
 
     it('NODE_ENV가 없을 때 production 모드로 처리해야 함', () => {
-      const testEnv = { ...originalEnv };
-      delete testEnv.NODE_ENV;
-
-      (process as any).env = testEnv;
+      // NODE_ENV를 명시적으로 제거
+      vi.stubEnv('NODE_ENV', undefined);
 
       // NODE_ENV가 없으면 development가 아니므로 false
       expect(isDevelopmentMode()).toBe(false);
