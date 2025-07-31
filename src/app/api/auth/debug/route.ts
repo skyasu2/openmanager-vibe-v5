@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
         NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
         NEXTAUTH_URL: process.env.NEXTAUTH_URL,
         NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
-        currentOrigin: request.nextUrl.origin,
+        currentOrigin: request.headers.get('origin') || request.headers.get('host') || '',
       },
       github: {
         GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID ? 'SET' : 'MISSING',
@@ -148,9 +148,9 @@ export async function GET(request: NextRequest) {
       },
       expectedUrls: {
         githubCallback: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/callback`,
-        appCallback: `${request.nextUrl.origin}/auth/callback`,
-        loginPage: `${request.nextUrl.origin}/login`,
-        mainPage: `${request.nextUrl.origin}/main`,
+        appCallback: `${request.headers.get('origin') || `https://${request.headers.get('host')}`}/auth/callback`,
+        loginPage: `${request.headers.get('origin') || `https://${request.headers.get('host')}`}/login`,
+        mainPage: `${request.headers.get('origin') || `https://${request.headers.get('host')}`}/main`,
       },
     };
 

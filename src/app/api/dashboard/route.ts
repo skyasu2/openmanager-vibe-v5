@@ -41,7 +41,7 @@ interface DashboardResponse {
  */
 export async function GET(
   _request: NextRequest
-): Promise<NextResponse<DashboardResponse>> {
+): Promise<NextResponse> {
   const startTime = Date.now();
 
   try {

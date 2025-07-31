@@ -336,7 +336,7 @@ export const SERVER_TYPE_DEFINITIONS: Record<ServerRole, ServerTypeDefinition> =
     },
     app: {
       type: 'app',
-      tags: ['node' | 'nginx', 'java', 'dotnet', 'application', 'business-logic'],
+      tags: ['node', 'nginx', 'java', 'dotnet', 'application', 'business-logic'],
       characteristics: {
         cpuWeight: 0.9,
         memoryWeight: 0.8,
@@ -350,7 +350,7 @@ export const SERVER_TYPE_DEFINITIONS: Record<ServerRole, ServerTypeDefinition> =
     },
     api: {
       type: 'api',
-      tags: ['node' | 'nginx', 'express', 'fastapi', 'rest', 'graphql'],
+      tags: ['node', 'nginx', 'express', 'fastapi', 'rest', 'graphql'],
       characteristics: {
         cpuWeight: 0.8,
         memoryWeight: 0.6,

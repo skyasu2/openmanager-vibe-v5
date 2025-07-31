@@ -337,6 +337,8 @@ export default function OptimizedDashboard({
           <EnhancedServerModal
             server={{
               ...selectedServer,
+              id: selectedServer.id || selectedServer.hostname || 'unknown',
+              name: selectedServer.name || selectedServer.hostname || 'Unknown Server',
               hostname:
                 selectedServer.hostname || selectedServer.name || 'Unknown',
               type: selectedServer.type || 'unknown',
@@ -367,6 +369,11 @@ export default function OptimizedDashboard({
                       : selectedServer.networkStatus === 'maintenance'
                         ? 'offline'
                         : selectedServer.networkStatus,
+              lastUpdate: selectedServer.lastUpdate || new Date(),
+              cpu: selectedServer.cpu || 0,
+              memory: selectedServer.memory || 0,
+              disk: selectedServer.disk || 0,
+              network: selectedServer.network || 0,
             }}
             onClose={handleServerModalClose}
           />

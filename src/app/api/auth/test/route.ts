@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
       await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${request.nextUrl.origin}/auth/callback`,
+          redirectTo: `${request.headers.get('origin') || `https://${request.headers.get('host')}`}/auth/callback`,
           scopes: 'read:user user:email',
         },
       });
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
       environment: {
         nodeEnv: process.env.NODE_ENV,
         vercel: !!process.env.VERCEL,
-        domain: request.nextUrl.origin,
+        domain: request.headers.get('origin') || request.headers.get('host') || '',
       },
     };
 
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
           await supabase.auth.signInWithOAuth({
             provider: 'github',
             options: {
-              redirectTo: `${request.nextUrl.origin}/auth/callback`,
+              redirectTo: `${request.headers.get('origin') || `https://${request.headers.get('host')}`}/auth/callback`,
               scopes: 'read:user user:email',
               queryParams: {
                 prompt: 'consent',

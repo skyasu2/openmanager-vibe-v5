@@ -82,7 +82,7 @@ export function createErrorResponse(
 export function createSuccessResponse<T>(
   data: T,
   message?: string
-): NextResponse<StandardApiSuccess<T>> {
+): NextResponse {
   const successResponse: StandardApiSuccess<T> = {
     success: true,
     data,
@@ -167,9 +167,9 @@ export function classifyError(error: unknown): {
  * 🛡️ API 엔드포인트용 에러 핸들러 래퍼
  */
 export function withErrorHandler<T extends any[], R>(
-  handler: (...args: T) => Promise<NextResponse<any>>
+  handler: (...args: T) => Promise<NextResponse>
 ) {
-  return async (...args: T): Promise<NextResponse<any>> => {
+  return async (...args: T): Promise<NextResponse> => {
     try {
       return await handler(...args);
     } catch (error) {

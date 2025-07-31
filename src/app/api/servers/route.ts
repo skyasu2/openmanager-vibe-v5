@@ -12,10 +12,5 @@ export async function GET(request: NextRequest) {
   console.log('🔄 /api/servers -> /api/servers/all 리다이렉트');
 
   // /api/servers/all로 영구 리다이렉트
-  return NextResponse.redirect(new URL('/api/servers/all', request.url), {
-    status: 308, // Permanent Redirect
-    headers: {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-    },
-  });
+  return NextResponse.redirect(new URL('/api/servers/all', request.url), 308);
 }

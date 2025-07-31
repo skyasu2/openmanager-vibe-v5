@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useGesture } from '@use-gesture/react';
+// import { useGesture } from '@use-gesture/react'; // 의존성 설치 필요
 import { Drawer } from 'vaul';
 import { useState } from 'react';
 import {
@@ -42,7 +42,9 @@ export default function MobileServerSheet({
   const hasNext = currentIndex < servers.length - 1;
   const hasPrev = currentIndex > 0;
 
-  // 스와이프 제스처 처리
+  // 스와이프 제스처 처리 - @use-gesture/react 설치 후 활성화
+  const bind = () => {}; // 임시 구현
+  /*
   const bind = useGesture({
     onDrag: ({ direction: [xDir], velocity: [xVel], active }) => {
       if (!active && Math.abs(xVel) > 0.5) {
@@ -62,6 +64,7 @@ export default function MobileServerSheet({
       }
     },
   });
+  */
 
   if (!server) return null;
 
@@ -87,7 +90,7 @@ export default function MobileServerSheet({
         <Drawer.Overlay className='fixed inset-0 bg-black/40 z-[998]' />
         <Drawer.Content className='bg-white flex flex-col rounded-t-[10px] h-[85vh] mt-24 fixed bottom-0 left-0 right-0 z-[999] outline-none'>
           <div
-            {...(bind as any)()}
+            // {...(bind as any)()} // @use-gesture/react 설치 후 활성화
             className='flex-1 overflow-hidden touch-pan-x'
           >
             <motion.div
