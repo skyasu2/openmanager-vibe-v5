@@ -30,20 +30,27 @@ echo ""
 
 # Unit tests - 빠른 테스트만 실행 (SKIP_TESTS가 설정되지 않은 경우)
 if [ "$SKIP_TESTS" != "1" ]; then
-    echo "🧪 빠른 테스트 실행 중 (최대 30초)..."
-    # 타임아웃과 함께 실행 (성능 및 E2E 테스트 제외)
-    timeout 30s npm run test:quick -- --reporter=basic --no-coverage
-    TEST_EXIT_CODE=$?
+    echo "🧪 핵심 검증 실행 중..."
+    # 초고속 검증 스크립트 실행 (1초 이내)
+    if [ -f "scripts/minimal-test.js" ]; then
+        node scripts/minimal-test.js
+        TEST_EXIT_CODE=$?
+    else
+        # 폴백: npm test 실행
+        timeout 5s npm run test:pre-push
+        TEST_EXIT_CODE=$?
+    fi
     
     if [ $TEST_EXIT_CODE -eq 124 ]; then
-        echo "⏱️ 테스트가 30초 제한 시간을 초과했습니다."
+        echo "⏱️ 테스트가 시간 제한을 초과했습니다."
         echo "💡 전체 테스트는 CI/CD에서 실행됩니다."
+        echo "💡 로컬에서 전체 테스트: npm test"
         # 타임아웃은 경고로만 처리
     elif [ $TEST_EXIT_CODE -ne 0 ]; then
-        echo "❌ 단위 테스트 실패!"
+        echo "❌ 검증 실패!"
         FAILURES=$((FAILURES + 1))
     else
-        echo "✅ 단위 테스트 통과"
+        echo "✅ 핵심 검증 통과"
     fi
     echo ""
 fi

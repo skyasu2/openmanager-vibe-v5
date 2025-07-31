@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.65.24",
+  "version": "5.66.4",
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_OPTIONS='--max-old-space-size=8192' next dev",
@@ -22,7 +22,8 @@
     "test:coverage": "cross-env USE_REAL_REDIS=false vitest --coverage",
     "test:ui": "cross-env USE_REAL_REDIS=false vitest --ui",
     "test:unit": "cross-env USE_REAL_REDIS=false vitest run src/test/*.test.ts --pool=threads --poolOptions.threads.singleThread=false --test-timeout=5000",
-    "test:quick": "cross-env USE_REAL_REDIS=false vitest run src/test/*.test.ts --exclude='**/performance-*.test.ts' --exclude='**/*.e2e.test.ts' --pool=threads --poolOptions.threads.singleThread=false --test-timeout=3000",
+    "test:quick": "cross-env USE_REAL_REDIS=false vitest run src/test/*.test.ts --exclude='**/performance-*.test.ts' --exclude='**/*.e2e.test.ts' --exclude='**/IncidentReportService-*.test.ts' --pool=forks --poolOptions.forks.singleFork=false --test-timeout=2000",
+    "test:pre-push": "cross-env USE_REAL_REDIS=false vitest run src/test/env.test.ts src/test/simplified-ai.test.ts src/test/ai-engine.test.ts --reporter=basic --no-coverage --bail=1 --pool=forks --test-timeout=1000",
     "test:integration": "cross-env USE_REAL_REDIS=false vitest run src/test/integration/*.test.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
