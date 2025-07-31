@@ -90,6 +90,25 @@ npm run health:check                 # API 상태 확인
 6. **사고 모드**: "think hard" 항상 활성화
 7. **SOLID 원칙**: 모든 코드에 적용
 
+## 🔒 포트폴리오 보안 정책
+
+**중요**: 이 프로젝트는 포트폴리오/데모용으로 **기본적인 보안**만 적용합니다.
+
+### 현재 보안 설정
+- **AI 보안**: `enableStrictMode: false` (포트폴리오 수준)
+- **API 보호**: 민감한 엔드포인트만 (`/api/admin`, `/api/database`, `/api/ai`)
+- **시크릿 관리**: 환경변수 사용, 하드코딩 방지 (Husky 검사)
+- **보안 에이전트**: 기본 보안만 검사 (과도한 엔터프라이즈 보안 제거)
+
+### 보안 체크리스트
+- ✅ 하드코딩된 시크릿 없음
+- ✅ 환경변수로 설정 관리
+- ✅ 기본 API 인증
+- ❌ 복잡한 보안 패턴 (불필요)
+- ❌ 엔터프라이즈급 감사 (과도함)
+
+자세한 내용: [`/docs/portfolio-security-guide.md`](/docs/portfolio-security-guide.md)
+
 ### 타입 안전성 유틸리티
 
 프로젝트 전반에서 타입 안전성을 위해 다음 유틸리티 함수들을 사용:
@@ -613,7 +632,7 @@ const timeInfo = await mcp__time__get_current_time({
 
 ## 🔧 MCP 서버 (10개) - Claude Code CLI 설정
 
-### 현재 활성화된 MCP 서버 (2025.7.29 기준)
+### 현재 활성화된 MCP 서버 (2025.7.30 기준)
 
 | 서버명                | 상태         | 용도                   | 패키지                                                    |
 | --------------------- | ------------ | ---------------------- | --------------------------------------------------------- |
@@ -654,8 +673,8 @@ claude mcp add filesystem npx -- -y @modelcontextprotocol/server-filesystem@late
 # GitHub 서버 (토큰 필요)
 claude mcp add github npx -e GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxxx -- -y @modelcontextprotocol/server-github@latest
 
-# Supabase 서버 (프로젝트 ID 지정)
-claude mcp add supabase npx -e SUPABASE_URL=https://xxx.supabase.co -e SUPABASE_SERVICE_ROLE_KEY=xxx -- -y @supabase/mcp-server-supabase@latest --project-ref=xxx
+# Supabase 서버 (프로젝트 ID 필수)
+claude mcp add supabase npx -e SUPABASE_URL=https://xxxxx.supabase.co -e SUPABASE_SERVICE_ROLE_KEY=eyJhbGci... -- -y @supabase/mcp-server-supabase@latest --project-ref=xxxxx
 
 # Serena 서버 (프로젝트 경로 필요)
 claude mcp add serena uvx -- --from git+https://github.com/oraios/serena serena-mcp-server --context ide-assistant --project /mnt/d/cursor/openmanager-vibe-v5

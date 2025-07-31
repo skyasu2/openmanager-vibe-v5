@@ -5,6 +5,133 @@
 > - Legacy 파일: v5.0.0 ~ v5.65.6 (2024-05 ~ 2025-01)
 > - 현재 파일: v5.65.7 이후 (2025-01 ~)
 
+## [5.66.2] - 2025-07-31
+
+### 🔧 보안 정책 포트폴리오 수준으로 완화
+
+- **AI 보안 설정 조정**:
+  - ✅ `PromptSanitizer` - `enableStrictMode: false`로 변경
+  - ✅ `UnifiedAIEngineRouter` - `strictSecurityMode: false`로 변경
+  - ✅ 포트폴리오 프로젝트에 적합한 보안 수준으로 조정
+  
+- **유지된 기본 보안**:
+  - ✅ 하드코딩된 시크릿 검사 (Husky pre-commit)
+  - ✅ 민감한 API 엔드포인트 인증 보호
+  - ✅ 환경변수 기반 비밀 관리
+  - ✅ Critical 보안 패턴은 계속 차단
+  
+- **개발 효율성 개선**:
+  - ✅ 과도한 엔터프라이즈급 보안 제거
+  - ✅ 개발 속도 향상을 위한 유연한 입력 허용
+  - ✅ 플랫폼 배포에 영향 없는 수준으로 조정
+
+## [5.66.1] - 2025-07-30
+
+### 🔒 MCP 서버 보안 강화 및 중복 설정 정리
+
+- **보안 문제 해결**:
+  - ✅ `~/.claude.json`에 하드코딩된 API 키 제거
+  - ✅ GitHub, Tavily, Upstash, Supabase 토큰 환경변수화
+  - ✅ 노출된 API 키 재발급 권고
+  
+- **중복 설정 정리**:
+  - ✅ `.mcp.json` (구버전) → `.claude/legacy-mcp-backup/`로 이동
+  - ✅ `~/.claude.json` 백업 후 재구성
+  - ✅ CLI 기반 환경변수 참조 방식으로 통일
+  
+- **새 스크립트 추가**:
+  - ✅ `scripts/mcp/setup-env.sh` - 환경변수 설정 헬퍼
+  - ✅ `scripts/mcp/reset-secure.sh` - 안전한 MCP 재설정
+  - ✅ `.claude/MCP-RESET-GUIDE.md` - 상세 재설정 가이드
+  
+- **보안 권장사항**:
+  - ✅ 모든 API 키는 환경변수로만 관리
+  - ✅ 하드코딩 금지 원칙 문서화
+  - ✅ 정기적인 토큰 갱신 절차 확립
+
+## [5.66.0] - 2025-07-31
+
+### 🔧 MCP 서버 CLI 마이그레이션 완료
+
+- **구버전 문제 해결**:
+  - ✅ Invalid settings files 경고 해결
+  - ✅ 환경 변수 누락 문제 완전 해결
+  - ✅ `.mcp.json` deprecated 방식에서 CLI 기반으로 전환
+  
+- **CLI 기반 마이그레이션**:
+  - ✅ 10개 MCP 서버 모두 `claude mcp add` 명령으로 재설정
+  - ✅ 환경 변수 `-e` 옵션으로 직접 전달 방식 적용
+  - ✅ Python 서버(time, serena) `uvx` 명령어 사용
+  
+- **인프라 개선**:
+  - ✅ `scripts/mcp/health-check.sh` 건강 검사 스크립트 생성
+  - ✅ `.claude/legacy-mcp-backup/` 레거시 설정 백업
+  - ✅ `.claude/MCP-MIGRATION-COMPLETE.md` 상세 보고서 작성
+  
+- **검증 완료**:
+  - ✅ 모든 MCP 서버 연결 상태: Connected
+  - ✅ 필수 환경 변수 모두 확인됨
+  - ✅ `claude mcp list` 정상 작동
+
+### 🧹 Scripts 디렉토리 대규모 정리
+
+- **정리 효과**:
+  - ✅ 스크립트 수: 218개 → 114개 (47.7% 감소)
+  - ✅ 중복 제거: MCP, 환경변수, 테스트 관련 100개+ 삭제
+  - ✅ 일회성 스크립트 60개+ 제거
+  
+- **디렉토리 구조 개선**:
+  - ✅ 8개 카테고리로 체계적 분류 (core, utils, emergency, scheduled 등)
+  - ✅ 통합 스크립트 core 디렉토리로 이동 및 이름 간소화
+  - ✅ 긴급 대응 및 정기 실행 스크립트 분류
+  
+- **보안 개선**:
+  - ✅ deprecated `createCipher`/`createDecipher` → `createCipheriv`/`createDecipheriv`
+  - ✅ AES-256-GCM 암호화 및 scrypt 키 유도 함수 적용
+  
+- **문서화**:
+  - ✅ `scripts/README.md` 사용 가이드 작성
+  - ✅ 각 카테고리별 주요 스크립트 사용법 문서화
+
+## [5.65.25] - 2025-07-30
+
+### 🔧 MCP 서버 완전 정상화 및 CLI 기반 현대화
+
+- **MCP 서버 연결 100% 달성**:
+  - ✅ 10개 MCP 서버 모두 정상 연결 (10/10)
+  - ✅ Supabase 연결 문제 해결 (PAT 사용)
+  - ✅ 모든 서버 헬스체크 통과
+
+- **CLI 기반 설정으로 전면 마이그레이션**:
+  - ✅ Claude Code v1.16.0+ CLI 명령어 기반 설정
+  - ✅ 레거시 파일 기반 설정 완전 제거
+  - ✅ `claude mcp add/remove/list` 명령어 활용
+
+- **문서 및 스크립트 현대화**:
+  - ✅ `/docs/mcp-servers-complete-guide.md` 전면 개편
+  - ✅ `scripts/mcp/setup.sh` CLI 기반으로 재작성
+  - ✅ `scripts/mcp/validate.sh` 검증 로직 현대화
+  - ✅ `CLAUDE.md` MCP 섹션 최신화
+
+- **프로젝트 공유 설정 구축**:
+  - ✅ `.mcp.json` 팀 공유용 설정 파일 생성
+  - ✅ `.env.mcp.template` 환경변수 템플릿 제공
+  - ✅ 프로젝트별 독립적 MCP 설정 지원
+
+- **자동화 도구 추가**:
+  - ✅ `scripts/mcp/health-check.sh` 헬스체크 자동화
+  - ✅ 단일 실행, 모니터링 모드, 크론 설정 지원
+  - ✅ JSON 형식 상태 리포트 생성
+
+- **Supabase 연결 해결책**:
+  ```bash
+  # Personal Access Token (PAT) 사용
+  claude mcp add supabase npx \
+    -e SUPABASE_ACCESS_TOKEN=sbp_xxxxx \
+    -- -y @supabase/mcp-server-supabase@latest \
+    --project-ref=vnswjnltnhpsueosfhmw
+  ```
+
 ## [5.65.24] - 2025-07-29
 
 ### 🔐 GitHub OAuth 로그인 문제 해결
