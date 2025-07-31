@@ -767,6 +767,7 @@ claude mcp add puppeteer npx -- -y @modelcontextprotocol/server-puppeteer@latest
 | 플랫폼 모니터링 | `vercel-monitor`             | Vercel 상태, 무료 티어 추적   |
 | MCP 관리        | `mcp-server-admin`           | MCP 인프라 관리               |
 | AI 협업         | `gemini-cli-collaborator`    | Gemini CLI 연동               |
+| 에이전트 관리   | `agent-coordinator`          | 서브에이전트 생태계 관리      |
 
 ### 📁 서브 에이전트 설정 위치
 
