@@ -630,34 +630,41 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
   async healthCheck(): Promise<{
     status: string;
     engines: {
-      ragEngine: {
-        status: string;
-        initialized: boolean;
-      };
+      localRAG: boolean;
+      googleAI: boolean;
+      mcp: boolean;
     };
   }> {
     try {
       // 부모 클래스의 healthCheck 호출
       const baseHealth = await super.healthCheck();
-      
+
+      // 성능 메트릭과 회로 차단기 상태를 반영한 상태 반환
+      const optimizationHealth =
+        this.circuitBreakers.size > 0 &&
+        Array.from(this.circuitBreakers.values()).every(
+          cb => cb.state !== 'open'
+        );
+
       return {
-        status: baseHealth.status,
+        status:
+          baseHealth.status === 'healthy' && optimizationHealth
+            ? 'healthy'
+            : 'degraded',
         engines: {
-          ragEngine: {
-            status: baseHealth.engines.localRAG ? 'healthy' : 'degraded',
-            initialized: this.isInitialized
-          }
-        }
+          localRAG: baseHealth.engines.localRAG && this.isInitialized,
+          googleAI: baseHealth.engines.googleAI,
+          mcp: baseHealth.engines.mcp,
+        },
       };
-    } catch (error) {
+    } catch {
       return {
         status: 'degraded',
         engines: {
-          ragEngine: {
-            status: 'error',
-            initialized: false
-          }
-        }
+          localRAG: false,
+          googleAI: false,
+          mcp: false,
+        },
       };
     }
   }
