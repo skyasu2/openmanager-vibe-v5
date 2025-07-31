@@ -658,18 +658,18 @@ const timeInfo = await mcp__time__get_current_time({
 
 ### MCP 서버별 활용 에이전트 목록
 
-| MCP 서버              | 활용 에이전트                                                                                                                                                                                                                  | 주요 용도                      |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------ |
-| `filesystem`          | 10개: doc-writer-researcher, mcp-server-admin, test-automation-specialist, doc-structure-guardian, security-auditor, debugger-specialist, backend-gcp-specialist, agent-coordinator, execution-tracker, code-review-specialist | 파일 읽기/쓰기, 디렉토리 탐색  |
-| `memory`              | 6개: mcp-server-admin, test-automation-specialist, agent-coordinator, execution-tracker, ai-systems-engineer, gemini-cli-collaborator                                                                                          | 지식 저장 및 검색, 협업 기록   |
-| `github`              | 5개: doc-writer-researcher, security-auditor, debugger-specialist, backend-gcp-specialist, git-cicd-specialist                                                                                                                 | PR/이슈 관리, 저장소 작업      |
-| `supabase`            | 1개: database-administrator                                                                                                                                                                                                    | 데이터베이스 쿼리, 스키마 관리 |
-| `tavily-mcp`          | 3개: doc-writer-researcher, vercel-monitor, backend-gcp-specialist                                                                                                                                                             | 웹 검색, 문서 조사             |
-| `sequential-thinking` | 3개: mcp-server-admin, debugger-specialist, agent-coordinator                                                                                                                                                                  | 복잡한 문제 단계별 해결        |
-| `playwright`          | 2개: test-automation-specialist, ux-performance-optimizer                                                                                                                                                                      | 브라우저 테스트, UI 자동화     |
-| `time`                | 6개: vercel-monitor, doc-writer-researcher, doc-structure-guardian, execution-tracker, debugger-specialist, database-administrator                                                                                             | 정확한 타임스탬프, 시간대 변환 |
-| `context7`            | 7개: doc-writer-researcher, test-automation-specialist, doc-structure-guardian, ux-performance-optimizer, backend-gcp-specialist, database-administrator, ai-systems-engineer                                                  | 라이브러리 문서 검색           |
-| `serena`              | 4개: test-automation-specialist, ux-performance-optimizer, debugger-specialist, ai-systems-engineer                                                                                                                            | 고급 코드 분석, 리팩토링       |
+| MCP 서버              | 활용 에이전트                                                                                                                                                                                                                  | 주요 용도                         |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------- |
+| `filesystem`          | 10개: doc-writer-researcher, mcp-server-admin, test-automation-specialist, doc-structure-guardian, security-auditor, debugger-specialist, backend-gcp-specialist, agent-coordinator, execution-tracker, code-review-specialist | 파일 읽기/쓰기, 디렉토리 탐색     |
+| `memory`              | 6개: mcp-server-admin, test-automation-specialist, agent-coordinator, execution-tracker, ai-systems-engineer, gemini-cli-collaborator                                                                                          | 지식 저장 및 검색, 분석 결과 공유 |
+| `github`              | 5개: doc-writer-researcher, security-auditor, debugger-specialist, backend-gcp-specialist, git-cicd-specialist                                                                                                                 | PR/이슈 관리, 저장소 작업         |
+| `supabase`            | 1개: database-administrator                                                                                                                                                                                                    | 데이터베이스 쿼리, 스키마 관리    |
+| `tavily-mcp`          | 3개: doc-writer-researcher, vercel-monitor, backend-gcp-specialist                                                                                                                                                             | 웹 검색, 문서 조사                |
+| `sequential-thinking` | 3개: mcp-server-admin, debugger-specialist, agent-coordinator                                                                                                                                                                  | 복잡한 문제 단계별 해결           |
+| `playwright`          | 2개: test-automation-specialist, ux-performance-optimizer                                                                                                                                                                      | 브라우저 테스트, UI 자동화        |
+| `time`                | 6개: vercel-monitor, doc-writer-researcher, doc-structure-guardian, execution-tracker, debugger-specialist, database-administrator                                                                                             | 정확한 타임스탬프, 시간대 변환    |
+| `context7`            | 7개: doc-writer-researcher, test-automation-specialist, doc-structure-guardian, ux-performance-optimizer, backend-gcp-specialist, database-administrator, ai-systems-engineer                                                  | 라이브러리 문서 검색              |
+| `serena`              | 4개: test-automation-specialist, ux-performance-optimizer, debugger-specialist, ai-systems-engineer                                                                                                                            | 고급 코드 분석, 리팩토링          |
 
 ### MCP 서버 설치 방법 (최신)
 
@@ -781,7 +781,7 @@ claude mcp add puppeteer npx -- -y @modelcontextprotocol/server-puppeteer@latest
 | 디버깅          | `debugger-specialist`        | 오류 분석, 근본 원인 파악     |
 | 플랫폼 모니터링 | `vercel-monitor`             | Vercel 상태, 무료 티어 추적   |
 | MCP 관리        | `mcp-server-admin`           | MCP 인프라 관리               |
-| AI 협업         | `gemini-cli-collaborator`    | Gemini CLI 연동               |
+| 코드 분석 보조  | `gemini-cli-collaborator`    | Gemini CLI 일괄 분석          |
 | 에이전트 관리   | `agent-coordinator`          | 서브에이전트 생태계 관리      |
 | 백엔드 개발     | `backend-gcp-specialist`     | GCP Functions, Python 백엔드  |
 | Git/CI/CD       | `git-cicd-specialist`        | Git 워크플로우, CI/CD 자동화  |
@@ -849,10 +849,46 @@ Task({
   ├─ doc-structure-guardian (문서 구조 정리)
   ├─ doc-writer-researcher (문서 작성 및 연구)
   ├─ mcp-server-admin (MCP 서버 관리)
-  ├─ gemini-cli-collaborator (AI 협업)
+  ├─ gemini-cli-collaborator (코드 분석 보조)
   ├─ execution-tracker (실행 메트릭 추적)
   └─ agent-coordinator (에이전트 최적화)
       └─ 모든 결과 → central-supervisor (통합 및 보고)
+```
+
+### 🚀 병렬 처리 최적화 가이드
+
+**독립적인 작업은 반드시 병렬 실행:**
+
+```typescript
+// ❌ 순차 실행 (느림)
+Task({ subagent_type: 'vercel-monitor', prompt: '배포 상태 확인' });
+// 기다림...
+Task({ subagent_type: 'database-administrator', prompt: 'DB 성능 분석' });
+// 기다림...
+Task({ subagent_type: 'security-auditor', prompt: '보안 스캔' });
+
+// ✅ 병렬 실행 (빠름) - 한 메시지에 여러 Task 호출
+Task({ subagent_type: 'vercel-monitor', prompt: '배포 상태 확인' });
+Task({ subagent_type: 'database-administrator', prompt: 'DB 성능 분석' });
+Task({ subagent_type: 'security-auditor', prompt: '보안 스캔' });
+```
+
+### 🔄 Memory MCP를 통한 비동기 협업
+
+**Gemini 분석 결과 공유 패턴:**
+
+```typescript
+// 1. gemini-cli-collaborator가 분석 수행
+Task({
+  subagent_type: 'gemini-cli-collaborator',
+  prompt: 'src/services 폴더의 복잡도 분석 후 Memory에 저장',
+});
+
+// 2. 다른 에이전트가 결과 활용
+Task({
+  subagent_type: 'ai-systems-engineer',
+  prompt: 'Memory에서 복잡도 분석 결과 조회 후 리팩토링 계획 수립',
+});
 ```
 
 ### 📊 실전 성공 사례
@@ -860,6 +896,7 @@ Task({
 - **병렬 처리 효과**: 3개 에이전트 동시 실행으로 30-40% 시간 단축
 - **자동 폴백**: AI 엔진 실패 시 200ms 이내 다른 엔진으로 전환
 - **캐싱 최적화**: 반복 쿼리 70-80% 시간 절약
+- **Memory MCP 활용**: 비동기 정보 공유로 협업 효율 증대
 
 ## 📋 Claude Code 프로젝트 설정 구조
 
