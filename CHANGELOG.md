@@ -5,6 +5,21 @@
 > - Legacy 파일: v5.0.0 ~ v5.65.6 (2024-05 ~ 2025-01)
 > - 현재 파일: v5.65.7 이후 (2025-01 ~)
 
+## [5.66.6] - 2025-08-01 01:45
+
+### 🤖 서브에이전트 역할 및 책임 미세 조정
+
+- **MCP 서버 관리 책임 분리**:
+  - ✅ `mcp-server-admin`: Claude Code 개발용 MCP 서버만 담당
+  - ✅ `vercel-monitor`: Vercel Edge Runtime 내장 MCP 서비스 모니터링 추가
+  - ✅ `backend-gcp-specialist`: GCP VM 기반 MCP 서버 관리 책임 추가
+- **AI 시스템 통합 분석 강화**:
+  - ✅ `ai-systems-engineer`: 분산 서비스(Vercel/Redis/Supabase/GCP) 간 AI 기능 통합 검증 역할 확장
+  - ✅ 서비스 간 데이터 플로우 분석 및 레이턴시 최적화 책임 추가
+- **문서 관리 효율성 개선**:
+  - ✅ `doc-writer-researcher`: 기존 문서 개선 우선 정책 명시, DRY 원칙 강화
+  - ✅ `doc-structure-guardian`: 문서 재활용성 검토 프로세스 추가, 삭제 전 유용한 내용 병합
+
 ## [5.66.5] - 2025-08-01 01:09
 
 ### 🔧 Merge Conflict 해결 및 의존성 업데이트

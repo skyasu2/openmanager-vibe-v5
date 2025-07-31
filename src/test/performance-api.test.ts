@@ -457,10 +457,6 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
 
       const { getPerformanceOptimizedQueryEngine } = await import('@/services/ai/performance-optimized-query-engine');
       (getPerformanceOptimizedQueryEngine as vi.Mock).mockReturnValue(mockEngine);
-        healthCheck: vi.fn().mockResolvedValue({ status: 'healthy', engines: { ragEngine: { status: 'healthy', initialized: true } } })
-      };
-
-      const { getPerformanceOptimizedQueryEngine } = await import('@/services/ai/performance-optimized-query-engine');
 
       const response = await GET();
       
