@@ -23,9 +23,8 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
 
-  // 서버 외부 패키지 설정 (Next.js 14 호환 방식)
-  experimental: {
-    serverComponentsExternalPackages: [
+  // 서버 외부 패키지 설정 (Next.js 15 새로운 방식)
+  serverExternalPackages: [
       '@supabase/supabase-js',
       '@google/generative-ai',
       'ioredis',
@@ -57,6 +56,9 @@ const nextConfig = {
       'uuid',
       'crypto-js',
     ],
+
+  // 실험적 기능들
+  experimental: {
     // CSS 최적화 비활성화 (critters 의존성 제거)
     optimizeCss: false,
     // SWC 트랜스폼 강제 사용 (속도 향상)

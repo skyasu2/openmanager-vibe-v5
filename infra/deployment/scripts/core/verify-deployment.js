@@ -10,17 +10,18 @@ const https = require('https');
 const { URL } = require('url');
 
 // 환경변수 체크 리스트
+// ⚠️ 주의: 이 값들은 예시용 플레이스홀더입니다. 실제 값을 여기에 넣지 마세요!
 const REQUIRED_ENV_VARS = {
   // Supabase
-  NEXT_PUBLIC_SUPABASE_URL: 'your_supabase_url_here',
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: 'your_jwt_token_here...',
-  SUPABASE_SERVICE_ROLE_KEY: 'your_jwt_token_here...',
+  NEXT_PUBLIC_SUPABASE_URL: 'PLACEHOLDER_DO_NOT_USE_IN_PRODUCTION',
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: 'PLACEHOLDER_JWT_TOKEN_EXAMPLE',
+  SUPABASE_SERVICE_ROLE_KEY: 'PLACEHOLDER_SERVICE_ROLE_KEY_EXAMPLE',
 
   // Redis (둘 중 하나만 있으면 됨)
-  UPSTASH_REDIS_REST_URL: 'https://your_redis_host_here',
-  KV_REST_API_URL: 'https://your_redis_host_here',
-  UPSTASH_REDIS_REST_TOKEN: 'your_redis_token_here',
-  KV_REST_API_TOKEN: 'your_redis_token_here',
+  UPSTASH_REDIS_REST_URL: 'https://PLACEHOLDER_REDIS_HOST.upstash.io',
+  KV_REST_API_URL: 'https://PLACEHOLDER_KV_HOST.upstash.io',
+  UPSTASH_REDIS_REST_TOKEN: 'PLACEHOLDER_REDIS_TOKEN',
+  KV_REST_API_TOKEN: 'PLACEHOLDER_KV_TOKEN',
 };
 
 // API 엔드포인트 체크 리스트
