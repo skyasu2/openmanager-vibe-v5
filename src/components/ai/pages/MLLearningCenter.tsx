@@ -23,7 +23,6 @@ import {
   Zap,
   Database,
 } from 'lucide-react';
-import { LightweightMLEngine } from '@/lib/ml/LightweightMLEngine';
 // AnomalyDetection 제거 - 클라이언트에서 Redis 사용 불가
 // IncidentReportService 제거 - 클라이언트에서 Redis 사용 불가
 // GCPFunctionsService 제거 - 더 이상 사용하지 않음
@@ -105,8 +104,7 @@ export const MLLearningCenter: React.FC = () => {
     null
   );
 
-  // ML 엔진 인스턴스
-  const mlEngine = new LightweightMLEngine();
+  // ML 엔진 인스턴스 제거 (사용하지 않음)
   // AnomalyDetection 사용 제거
 
   // 학습 단계별 설명 가져오기
@@ -301,7 +299,7 @@ export const MLLearningCenter: React.FC = () => {
           accuracyImprovement: result!.accuracyImprovement,
           confidence: result!.confidence,
         });
-      } catch (_error) {
+      } catch {
         // 에러 처리
         clearInterval(progressTimer);
         setLearningProgress((prev) => ({
@@ -315,7 +313,7 @@ export const MLLearningCenter: React.FC = () => {
         }));
       }
     },
-    [learningProgress, mlEngine]
+    [learningProgress]
   );
 
   // 시간 포맷팅

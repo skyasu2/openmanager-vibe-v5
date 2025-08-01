@@ -66,14 +66,12 @@ export const ThinkingProcessVisualizer: React.FC<
   ThinkingProcessVisualizerProps
 > = ({ steps, isActive = false, className = '' }) => {
   const [visibleSteps, setVisibleSteps] = useState<AIThinkingStep[]>([]);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
   useEffect(() => {
     // 새로운 단계가 추가될 때 애니메이션
     if (steps.length > visibleSteps.length) {
       const timer = setTimeout(() => {
         setVisibleSteps(steps);
-        setCurrentStepIndex(steps.length - 1);
       }, 100);
       return () => clearTimeout(timer);
     }

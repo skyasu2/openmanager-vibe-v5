@@ -113,7 +113,7 @@ export default function AIAssistantIconPanel({
         className={`flex flex-row space-x-2 overflow-x-auto pb-2 ${className}`}
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        {AI_ASSISTANT_ICONS.map((item, index) => {
+        {AI_ASSISTANT_ICONS.map((item) => {
           const Icon = item.icon;
           const isSelected = selectedFunction === item.id;
 

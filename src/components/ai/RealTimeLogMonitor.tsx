@@ -82,7 +82,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
     sessionId: '',
     search: '',
   });
-  const [_selectedSession, setSelectedSession] = useState<string>('');
+  const [_selectedSession] = useState<string>('');
   const [showDetails, setShowDetails] = useState<{ [key: string]: boolean }>(
     {}
   );
@@ -99,6 +99,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
     return () => {
       stopStreaming();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoStart]);
 
   // 로그 스크롤 자동

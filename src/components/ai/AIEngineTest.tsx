@@ -14,7 +14,7 @@ interface TestResult {
 }
 
 // Replace with simple implementation
-const makeAIRequest = async (query: string, config: any) => {
+const makeAIRequest = async (query: string) => {
   return {
     success: true,
     response: `테스트 응답: ${query}`,
@@ -92,7 +92,7 @@ export const AIEngineTest: React.FC = () => {
     // 4. 폴백 시스템 테스트
     await runTest(3, async () => {
       try {
-        const result = await makeAIRequest('test fallback system', {});
+        const result = await makeAIRequest('test fallback system');
         return { success: true, result };
       } catch (error) {
         // 폴백이 작동하는지 확인

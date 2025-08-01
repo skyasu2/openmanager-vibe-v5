@@ -167,13 +167,13 @@ export default function InfrastructureOverviewPage({
     return () => clearInterval(interval);
   }, []);
 
-  const getStatusColor = (value: number, type: 'cpu' | 'memory' | 'disk') => {
+  const getStatusColor = (value: number) => {
     if (value >= 90) return 'text-red-600';
     if (value >= 70) return 'text-yellow-600';
     return 'text-green-600';
   };
 
-  const getStatusBgColor = (value: number, type: 'cpu' | 'memory' | 'disk') => {
+  const getStatusBgColor = (value: number) => {
     if (value >= 90) return 'bg-red-100';
     if (value >= 70) return 'bg-yellow-100';
     return 'bg-green-100';

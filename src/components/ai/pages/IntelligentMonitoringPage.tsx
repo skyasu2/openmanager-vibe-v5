@@ -91,11 +91,8 @@ export default function IntelligentMonitoringPage() {
   const [error, setError] = useState<string | null>(null);
   const [showAIInsights, setShowAIInsights] = useState(true);
   const [_lastInsightsRefresh, _setLastInsightsRefresh] = useState<number>(0);
-  const MIN_INSIGHTS_REFRESH_INTERVAL = 2 * 60 * 1000; // 2분 간격
 
   // ML 강화 상태
-  const [mlPatterns, setMlPatterns] = useState<any[]>([]);
-  const [predictions, setPredictions] = useState<any[]>([]);
   const [showMLInsights, setShowMLInsights] = useState(true);
   const [mlCacheStats, setMlCacheStats] = useState<{
     hitRate: number;

@@ -162,7 +162,7 @@ export default function ChatSection({
     return () => {
       timerManager.unregister('chat-section-presets-update');
     };
-  }, [serverMetrics]);
+  }, [serverMetrics, generateContextualQuestions]);
 
   // 중복 질문 확인
   const checkDuplicateQuestion = (newQuestion: string): QAPage | null => {

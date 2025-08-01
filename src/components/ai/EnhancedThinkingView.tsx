@@ -122,7 +122,7 @@ export const EnhancedThinkingView: React.FC<EnhancedThinkingViewProps> = ({
       return () => clearTimeout(timer);
     }
     return;
-  }, [steps.length, visibleSteps.length]);
+  }, [steps, steps.length, visibleSteps.length]);
 
   // 자동 스크롤
   useEffect(() => {

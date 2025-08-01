@@ -113,7 +113,6 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
   isExpanded = true,
   onToggle,
   showTechStack = true,
-  mode = 'sidebar',
   className = '',
 }) => {
   // 모든 훅을 먼저 호출 (조건부 반환 전에)
