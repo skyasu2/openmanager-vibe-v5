@@ -295,7 +295,7 @@ const mapStatus = (rawStatus: string): 'online' | 'warning' | 'offline' => {
 export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
   const {
     autoRefresh = true,
-    refreshInterval = 20000, // 20초로 통일 (5초 → 20초)
+    refreshInterval = 30000, // 30초로 최적화 (API 호출 33% 감소)
     enableNotifications = true,
   } = options;
 
