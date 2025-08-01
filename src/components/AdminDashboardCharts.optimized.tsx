@@ -125,7 +125,7 @@ const AdminDashboardCharts = memo(() => {
           COLORS.info,
       }))
       .filter((item) => item.value > 0);
-  }, [data?.charts?.alertsChart?.bySeverity]);
+  }, [data?.charts?.alertsChart]);
 
   // 📈 트렌드 차트 데이터 메모이제이션
   const trendsChartData = useMemo<TrendDataPoint[]>(() => {

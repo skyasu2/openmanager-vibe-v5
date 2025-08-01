@@ -296,7 +296,7 @@ export default function PerformanceDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [selectedTimeRange]);
+  }, []);
 
   // 🔄 자동 새로고침
   useEffect(() => {
