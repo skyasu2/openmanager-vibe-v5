@@ -55,65 +55,71 @@ import type {
 } from 'recharts';
 
 const AreaChart = dynamic(
-  () => import('recharts').then(mod => mod.AreaChart as any),
+  () => import('recharts').then((mod) => mod.AreaChart as any),
   { ssr: false }
 ) as React.ComponentType<React.ComponentProps<typeof AreaChartType>>;
 
 const BarChart = dynamic(
-  () => import('recharts').then(mod => mod.BarChart as any),
+  () => import('recharts').then((mod) => mod.BarChart as any),
   { ssr: false }
 ) as React.ComponentType<React.ComponentProps<typeof BarChartType>>;
 
 const LineChart = dynamic(
-  () => import('recharts').then(mod => mod.LineChart as any),
+  () => import('recharts').then((mod) => mod.LineChart as any),
   { ssr: false }
 ) as React.ComponentType<React.ComponentProps<typeof LineChartType>>;
 
 const PieChart = dynamic(
-  () => import('recharts').then(mod => mod.PieChart as any),
+  () => import('recharts').then((mod) => mod.PieChart as any),
   { ssr: false }
 ) as React.ComponentType<React.ComponentProps<typeof PieChartType>>;
 
 const ResponsiveContainer = dynamic(
-  () => import('recharts').then(mod => mod.ResponsiveContainer as any),
+  () => import('recharts').then((mod) => mod.ResponsiveContainer as any),
   { ssr: false }
 ) as React.ComponentType<React.ComponentProps<typeof ResponsiveContainerType>>;
 
-const XAxis = dynamic(() => import('recharts').then(mod => mod.XAxis as any), {
-  ssr: false,
-}) as React.ComponentType<React.ComponentProps<typeof XAxisType>>;
+const XAxis = dynamic(
+  () => import('recharts').then((mod) => mod.XAxis as any),
+  {
+    ssr: false,
+  }
+) as React.ComponentType<React.ComponentProps<typeof XAxisType>>;
 
-const YAxis = dynamic(() => import('recharts').then(mod => mod.YAxis as any), {
-  ssr: false,
-}) as React.ComponentType<React.ComponentProps<typeof YAxisType>>;
+const YAxis = dynamic(
+  () => import('recharts').then((mod) => mod.YAxis as any),
+  {
+    ssr: false,
+  }
+) as React.ComponentType<React.ComponentProps<typeof YAxisType>>;
 
 const CartesianGrid = dynamic(
-  () => import('recharts').then(mod => mod.CartesianGrid as any),
+  () => import('recharts').then((mod) => mod.CartesianGrid as any),
   { ssr: false }
 ) as React.ComponentType<React.ComponentProps<typeof CartesianGridType>>;
 
 const Tooltip = dynamic(
-  () => import('recharts').then(mod => mod.Tooltip as any),
+  () => import('recharts').then((mod) => mod.Tooltip as any),
   { ssr: false }
 ) as React.ComponentType<React.ComponentProps<typeof TooltipType>>;
 
-const Area = dynamic(() => import('recharts').then(mod => mod.Area as any), {
+const Area = dynamic(() => import('recharts').then((mod) => mod.Area as any), {
   ssr: false,
 }) as React.ComponentType<React.ComponentProps<typeof AreaType>>;
 
-const Bar = dynamic(() => import('recharts').then(mod => mod.Bar as any), {
+const Bar = dynamic(() => import('recharts').then((mod) => mod.Bar as any), {
   ssr: false,
 }) as React.ComponentType<React.ComponentProps<typeof BarType>>;
 
-const Line = dynamic(() => import('recharts').then(mod => mod.Line as any), {
+const Line = dynamic(() => import('recharts').then((mod) => mod.Line as any), {
   ssr: false,
 }) as React.ComponentType<React.ComponentProps<typeof LineType>>;
 
-const Cell = dynamic(() => import('recharts').then(mod => mod.Cell as any), {
+const Cell = dynamic(() => import('recharts').then((mod) => mod.Cell as any), {
   ssr: false,
 }) as React.ComponentType<React.ComponentProps<typeof CellType>>;
 
-const Pie = dynamic(() => import('recharts').then(mod => mod.Pie as any), {
+const Pie = dynamic(() => import('recharts').then((mod) => mod.Pie as any), {
   ssr: false,
 }) as React.ComponentType<React.ComponentProps<typeof PieType>>;
 
@@ -213,7 +219,7 @@ export default function PerformanceDashboard() {
       setError(null);
 
       // performance API 제거로 인한 모킹 (Vercel 무료 티어 최적화)
-      await new Promise(resolve => setTimeout(resolve, 300)); // 네트워크 지연 시뮬레이션
+      await new Promise((resolve) => setTimeout(resolve, 300)); // 네트워크 지연 시뮬레이션
 
       const mockData = {
         stats: {
@@ -330,7 +336,7 @@ export default function PerformanceDashboard() {
   const getHourlyTrendsData = () => {
     if (!data?.stats.hourlyStats) return [];
 
-    return data.stats.hourlyStats.map(stat => ({
+    return data.stats.hourlyStats.map((stat) => ({
       time: new Date(stat.hour).toLocaleTimeString('ko-KR', {
         hour: '2-digit',
         minute: '2-digit',
@@ -348,13 +354,13 @@ export default function PerformanceDashboard() {
     let filtered = data.alerts;
 
     if (filterEngine !== 'all') {
-      filtered = filtered.filter(alert => alert.engine === filterEngine);
+      filtered = filtered.filter((alert) => alert.engine === filterEngine);
     }
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        alert =>
+        (alert) =>
           alert.message.toLowerCase().includes(query) ||
           alert.engine.toLowerCase().includes(query)
       );
@@ -370,10 +376,10 @@ export default function PerformanceDashboard() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className='bg-white p-3 border border-gray-200 rounded-lg shadow-lg'>
-          <p className='font-semibold text-gray-800'>{label}</p>
+        <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
+          <p className="font-semibold text-gray-800">{label}</p>
           {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }} className='text-sm'>
+            <p key={index} style={{ color: entry.color }} className="text-sm">
               {entry.name}:{' '}
               {typeof entry.value === 'number'
                 ? entry.value.toFixed(1)
@@ -438,10 +444,10 @@ export default function PerformanceDashboard() {
   // 로딩 상태
   if (loading && !data) {
     return (
-      <div className='p-6 space-y-6'>
-        <div className='flex items-center justify-center h-64'>
-          <div className='flex items-center gap-2 text-blue-600'>
-            <RefreshCw className='w-6 h-6 animate-spin' />
+      <div className="space-y-6 p-6">
+        <div className="flex h-64 items-center justify-center">
+          <div className="flex items-center gap-2 text-blue-600">
+            <RefreshCw className="h-6 w-6 animate-spin" />
             <span>성능 데이터 로딩 중...</span>
           </div>
         </div>
@@ -452,15 +458,15 @@ export default function PerformanceDashboard() {
   // 에러 상태
   if (error) {
     return (
-      <div className='p-6'>
-        <div className='bg-red-50 border border-red-200 rounded-lg p-6 text-center'>
-          <AlertTriangle className='w-12 h-12 text-red-500 mx-auto mb-4' />
-          <h3 className='text-lg font-semibold text-red-800 mb-2'>
+      <div className="p-6">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+          <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-red-500" />
+          <h3 className="mb-2 text-lg font-semibold text-red-800">
             데이터 로드 실패
           </h3>
-          <p className='text-red-600 mb-4'>{error}</p>
-          <Button onClick={handleManualRefresh} variant='destructive'>
-            <RefreshCw className='w-4 h-4 mr-2' />
+          <p className="mb-4 text-red-600">{error}</p>
+          <Button onClick={handleManualRefresh} variant="destructive">
+            <RefreshCw className="mr-2 h-4 w-4" />
             다시 시도
           </Button>
         </div>
@@ -477,46 +483,46 @@ export default function PerformanceDashboard() {
   const filteredAlerts = getFilteredAlerts();
 
   return (
-    <div className='p-6 space-y-6 bg-gray-50 min-h-screen'>
+    <div className="min-h-screen space-y-6 bg-gray-50 p-6">
       {/* 헤더 */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className='flex items-center justify-between'
+        className="flex items-center justify-between"
       >
         <div>
-          <h1 className='text-3xl font-bold text-gray-900 flex items-center gap-3'>
-            <div className='w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center'>
-              <Activity className='w-6 h-6 text-white' />
+          <h1 className="flex items-center gap-3 text-3xl font-bold text-gray-900">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-purple-600">
+              <Activity className="h-6 w-6 text-white" />
             </div>
             AI 성능 모니터링 대시보드
           </h1>
-          <p className='text-gray-600 mt-1'>실시간 AI 엔진 성능 추적 및 분석</p>
+          <p className="mt-1 text-gray-600">실시간 AI 엔진 성능 추적 및 분석</p>
         </div>
 
-        <div className='flex items-center gap-4'>
+        <div className="flex items-center gap-4">
           {/* 시간 범위 선택 */}
           <select
             value={selectedTimeRange}
-            onChange={e => setSelectedTimeRange(e.target.value)}
-            className='px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
+            onChange={(e) => setSelectedTimeRange(e.target.value)}
+            className="rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
           >
-            <option value='30'>최근 30분</option>
-            <option value='60'>최근 1시간</option>
-            <option value='360'>최근 6시간</option>
-            <option value='1440'>최근 24시간</option>
+            <option value="30">최근 30분</option>
+            <option value="60">최근 1시간</option>
+            <option value="360">최근 6시간</option>
+            <option value="1440">최근 24시간</option>
           </select>
 
           {/* 자동 새로고침 토글 */}
           <Button
             variant={autoRefresh ? 'default' : 'outline'}
-            size='sm'
+            size="sm"
             onClick={() => setAutoRefresh(!autoRefresh)}
           >
             {autoRefresh ? (
-              <Wifi className='w-4 h-4 mr-2' />
+              <Wifi className="mr-2 h-4 w-4" />
             ) : (
-              <WifiOff className='w-4 h-4 mr-2' />
+              <WifiOff className="mr-2 h-4 w-4" />
             )}
             자동 새로고침 {autoRefresh ? 'ON' : 'OFF'}
           </Button>
@@ -524,33 +530,33 @@ export default function PerformanceDashboard() {
           {/* 알림 토글 */}
           <Button
             variant={alertsEnabled ? 'default' : 'outline'}
-            size='sm'
+            size="sm"
             onClick={() => setAlertsEnabled(!alertsEnabled)}
           >
             {alertsEnabled ? (
-              <Bell className='w-4 h-4 mr-2' />
+              <Bell className="mr-2 h-4 w-4" />
             ) : (
-              <BellOff className='w-4 h-4 mr-2' />
+              <BellOff className="mr-2 h-4 w-4" />
             )}
             알림 {alertsEnabled ? 'ON' : 'OFF'}
           </Button>
 
           {/* 수동 새로고침 */}
           <Button
-            variant='outline'
-            size='sm'
+            variant="outline"
+            size="sm"
             onClick={handleManualRefresh}
             disabled={loading}
           >
             <RefreshCw
-              className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`}
+              className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`}
             />
             새로고침
           </Button>
 
           {/* 데이터 내보내기 */}
-          <Button variant='outline' size='sm' onClick={handleExportData}>
-            <Download className='w-4 h-4 mr-2' />
+          <Button variant="outline" size="sm" onClick={handleExportData}>
+            <Download className="mr-2 h-4 w-4" />
             내보내기
           </Button>
         </div>
@@ -561,78 +567,78 @@ export default function PerformanceDashboard() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4'
+        className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5"
       >
         {/* 성능 점수 */}
-        <Card className='bg-gradient-to-r from-blue-500 to-purple-600 text-white'>
-          <CardContent className='p-6'>
-            <div className='flex items-center justify-between'>
+        <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className='text-blue-100 text-sm'>성능 점수</p>
-                <p className='text-3xl font-bold'>{performanceScore}</p>
-                <p className='text-blue-100 text-xs'>/ 100</p>
+                <p className="text-sm text-blue-100">성능 점수</p>
+                <p className="text-3xl font-bold">{performanceScore}</p>
+                <p className="text-xs text-blue-100">/ 100</p>
               </div>
-              <Target className='w-8 h-8 text-blue-200' />
+              <Target className="h-8 w-8 text-blue-200" />
             </div>
           </CardContent>
         </Card>
 
         {/* 총 요청 수 */}
         <Card>
-          <CardContent className='p-6'>
-            <div className='flex items-center justify-between'>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className='text-gray-600 text-sm'>총 요청</p>
-                <p className='text-2xl font-bold text-gray-900'>
+                <p className="text-sm text-gray-600">총 요청</p>
+                <p className="text-2xl font-bold text-gray-900">
                   {data.stats.totalRequests.toLocaleString()}
                 </p>
               </div>
-              <BarChart3 className='w-6 h-6 text-blue-500' />
+              <BarChart3 className="h-6 w-6 text-blue-500" />
             </div>
           </CardContent>
         </Card>
 
         {/* 평균 응답시간 */}
         <Card>
-          <CardContent className='p-6'>
-            <div className='flex items-center justify-between'>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className='text-gray-600 text-sm'>평균 응답시간</p>
-                <p className='text-2xl font-bold text-gray-900'>
+                <p className="text-sm text-gray-600">평균 응답시간</p>
+                <p className="text-2xl font-bold text-gray-900">
                   {Math.round(data.stats.averageResponseTime)}ms
                 </p>
               </div>
-              <Clock className='w-6 h-6 text-orange-500' />
+              <Clock className="h-6 w-6 text-orange-500" />
             </div>
           </CardContent>
         </Card>
 
         {/* 성공률 */}
         <Card>
-          <CardContent className='p-6'>
-            <div className='flex items-center justify-between'>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className='text-gray-600 text-sm'>성공률</p>
-                <p className='text-2xl font-bold text-green-600'>
+                <p className="text-sm text-gray-600">성공률</p>
+                <p className="text-2xl font-bold text-green-600">
                   {(data.stats.successRate * 100).toFixed(1)}%
                 </p>
               </div>
-              <CheckCircle className='w-6 h-6 text-green-500' />
+              <CheckCircle className="h-6 w-6 text-green-500" />
             </div>
           </CardContent>
         </Card>
 
         {/* 폴백률 */}
         <Card>
-          <CardContent className='p-6'>
-            <div className='flex items-center justify-between'>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className='text-gray-600 text-sm'>폴백률</p>
-                <p className='text-2xl font-bold text-yellow-600'>
+                <p className="text-sm text-gray-600">폴백률</p>
+                <p className="text-2xl font-bold text-yellow-600">
                   {(data.stats.fallbackRate * 100).toFixed(1)}%
                 </p>
               </div>
-              <Zap className='w-6 h-6 text-yellow-500' />
+              <Zap className="h-6 w-6 text-yellow-500" />
             </div>
           </CardContent>
         </Card>
@@ -645,34 +651,34 @@ export default function PerformanceDashboard() {
         transition={{ delay: 0.2 }}
       >
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className='grid w-full grid-cols-4'>
-            <TabsTrigger value='overview'>📊 개요</TabsTrigger>
-            <TabsTrigger value='engines'>🤖 엔진 성능</TabsTrigger>
-            <TabsTrigger value='trends'>📈 트렌드</TabsTrigger>
-            <TabsTrigger value='alerts'>🚨 알림</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">📊 개요</TabsTrigger>
+            <TabsTrigger value="engines">🤖 엔진 성능</TabsTrigger>
+            <TabsTrigger value="trends">📈 트렌드</TabsTrigger>
+            <TabsTrigger value="alerts">🚨 알림</TabsTrigger>
           </TabsList>
 
           {/* 개요 탭 */}
-          <TabsContent value='overview' className='space-y-6'>
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               {/* 모드별 분포 */}
               <Card>
                 <CardHeader>
-                  <CardTitle className='flex items-center gap-2'>
-                    <Brain className='w-5 h-5 text-purple-600' />
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="h-5 w-5 text-purple-600" />
                     AI 모드 분포
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className='h-64'>
-                    <ResponsiveContainer width='100%' height='100%'>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
                           data={modeData}
-                          cx='50%'
-                          cy='50%'
+                          cx="50%"
+                          cy="50%"
                           outerRadius={80}
-                          dataKey='value'
+                          dataKey="value"
                           label={({ name, value }) => `${name}: ${value}`}
                         >
                           {modeData.map((entry, index) => (
@@ -696,22 +702,22 @@ export default function PerformanceDashboard() {
               {/* 시간별 요청 트렌드 */}
               <Card>
                 <CardHeader>
-                  <CardTitle className='flex items-center gap-2'>
-                    <TrendingUp className='w-5 h-5 text-blue-600' />
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
                     시간별 요청 트렌드
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className='h-64'>
-                    <ResponsiveContainer width='100%' height='100%'>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={trendsData}>
-                        <CartesianGrid strokeDasharray='3 3' />
-                        <XAxis dataKey='time' />
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="time" />
                         <YAxis />
                         <Tooltip content={<CustomTooltip />} />
                         <Area
-                          type='monotone'
-                          dataKey='requests'
+                          type="monotone"
+                          dataKey="requests"
                           stroke={COLORS.primary}
                           fill={COLORS.primary}
                           fillOpacity={0.3}
@@ -725,40 +731,40 @@ export default function PerformanceDashboard() {
           </TabsContent>
 
           {/* 엔진 성능 탭 */}
-          <TabsContent value='engines' className='space-y-6'>
+          <TabsContent value="engines" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                  <Zap className='w-5 h-5 text-yellow-600' />
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-yellow-600" />
                   엔진별 성능 비교
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className='h-96'>
-                  <ResponsiveContainer width='100%' height='100%'>
+                <div className="h-96">
+                  <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={engineData}>
-                      <CartesianGrid strokeDasharray='3 3' />
-                      <XAxis dataKey='name' />
-                      <YAxis yAxisId='left' />
-                      <YAxis yAxisId='right' orientation='right' />
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis yAxisId="left" />
+                      <YAxis yAxisId="right" orientation="right" />
                       <Tooltip content={<CustomTooltip />} />
                       <Bar
-                        yAxisId='left'
-                        dataKey='requests'
+                        yAxisId="left"
+                        dataKey="requests"
                         fill={COLORS.primary}
-                        name='요청 수'
+                        name="요청 수"
                       />
                       <Bar
-                        yAxisId='left'
-                        dataKey='responseTime'
+                        yAxisId="left"
+                        dataKey="responseTime"
                         fill={COLORS.warning}
-                        name='응답시간(ms)'
+                        name="응답시간(ms)"
                       />
                       <Bar
-                        yAxisId='right'
-                        dataKey='successRate'
+                        yAxisId="right"
+                        dataKey="successRate"
                         fill={COLORS.success}
-                        name='성공률(%)'
+                        name="성공률(%)"
                       />
                     </BarChart>
                   </ResponsiveContainer>
@@ -768,38 +774,38 @@ export default function PerformanceDashboard() {
           </TabsContent>
 
           {/* 트렌드 탭 */}
-          <TabsContent value='trends' className='space-y-6'>
+          <TabsContent value="trends" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                  <TrendingUp className='w-5 h-5 text-green-600' />
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-green-600" />
                   성능 트렌드 분석
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className='h-96'>
-                  <ResponsiveContainer width='100%' height='100%'>
+                <div className="h-96">
+                  <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={trendsData}>
-                      <CartesianGrid strokeDasharray='3 3' />
-                      <XAxis dataKey='time' />
-                      <YAxis yAxisId='left' />
-                      <YAxis yAxisId='right' orientation='right' />
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="time" />
+                      <YAxis yAxisId="left" />
+                      <YAxis yAxisId="right" orientation="right" />
                       <Tooltip content={<CustomTooltip />} />
                       <Line
-                        yAxisId='left'
-                        type='monotone'
-                        dataKey='responseTime'
+                        yAxisId="left"
+                        type="monotone"
+                        dataKey="responseTime"
                         stroke={COLORS.warning}
                         strokeWidth={2}
-                        name='응답시간(ms)'
+                        name="응답시간(ms)"
                       />
                       <Line
-                        yAxisId='right'
-                        type='monotone'
-                        dataKey='successRate'
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="successRate"
                         stroke={COLORS.success}
                         strokeWidth={2}
-                        name='성공률(%)'
+                        name="성공률(%)"
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -809,18 +815,18 @@ export default function PerformanceDashboard() {
           </TabsContent>
 
           {/* 알림 탭 */}
-          <TabsContent value='alerts' className='space-y-6'>
+          <TabsContent value="alerts" className="space-y-6">
             {/* 알림 필터 */}
-            <div className='flex items-center gap-4'>
-              <div className='flex items-center gap-2'>
-                <Filter className='w-4 h-4 text-gray-500' />
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-gray-500" />
                 <select
                   value={filterEngine}
-                  onChange={e => setFilterEngine(e.target.value)}
-                  className='px-3 py-2 border border-gray-300 rounded-lg'
+                  onChange={(e) => setFilterEngine(e.target.value)}
+                  className="rounded-lg border border-gray-300 px-3 py-2"
                 >
-                  <option value='all'>모든 엔진</option>
-                  {Object.keys(ENGINE_COLORS).map(engine => (
+                  <option value="all">모든 엔진</option>
+                  {Object.keys(ENGINE_COLORS).map((engine) => (
                     <option key={engine} value={engine}>
                       {engine}
                     </option>
@@ -828,14 +834,14 @@ export default function PerformanceDashboard() {
                 </select>
               </div>
 
-              <div className='flex items-center gap-2 flex-1'>
-                <Search className='w-4 h-4 text-gray-500' />
+              <div className="flex flex-1 items-center gap-2">
+                <Search className="h-4 w-4 text-gray-500" />
                 <input
-                  type='text'
-                  placeholder='알림 검색...'
+                  type="text"
+                  placeholder="알림 검색..."
                   value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className='flex-1 px-3 py-2 border border-gray-300 rounded-lg'
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2"
                 />
               </div>
             </div>
@@ -843,13 +849,13 @@ export default function PerformanceDashboard() {
             {/* 알림 목록 */}
             <Card>
               <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                  <AlertTriangle className='w-5 h-5 text-red-600' />
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
                   성능 알림 ({filteredAlerts.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className='space-y-3 max-h-96 overflow-y-auto'>
+                <div className="max-h-96 space-y-3 overflow-y-auto">
                   <AnimatePresence>
                     {filteredAlerts.map((alert, index) => (
                       <motion.div
@@ -858,15 +864,15 @@ export default function PerformanceDashboard() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ delay: index * 0.1 }}
-                        className={`p-4 rounded-lg border-l-4 ${
+                        className={`rounded-lg border-l-4 p-4 ${
                           alert.type === 'critical'
-                            ? 'bg-red-50 border-red-500'
-                            : 'bg-yellow-50 border-yellow-500'
+                            ? 'border-red-500 bg-red-50'
+                            : 'border-yellow-500 bg-yellow-50'
                         }`}
                       >
-                        <div className='flex items-start justify-between'>
-                          <div className='flex-1'>
-                            <div className='flex items-center gap-2 mb-1'>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="mb-1 flex items-center gap-2">
                               <Badge
                                 variant={
                                   alert.type === 'critical'
@@ -878,14 +884,14 @@ export default function PerformanceDashboard() {
                                   ? 'CRITICAL'
                                   : 'WARNING'}
                               </Badge>
-                              <span className='text-sm font-medium text-gray-900'>
+                              <span className="text-sm font-medium text-gray-900">
                                 {alert.engine}
                               </span>
                             </div>
-                            <p className='text-sm text-gray-700 mb-2'>
+                            <p className="mb-2 text-sm text-gray-700">
                               {alert.message}
                             </p>
-                            <div className='flex items-center gap-4 text-xs text-gray-500'>
+                            <div className="flex items-center gap-4 text-xs text-gray-500">
                               <span>
                                 {alert.metric}: {alert.value.toFixed(2)}
                                 {alert.metric.includes('Rate')
@@ -910,7 +916,7 @@ export default function PerformanceDashboard() {
                             </div>
                           </div>
                           <AlertTriangle
-                            className={`w-5 h-5 ${
+                            className={`h-5 w-5 ${
                               alert.type === 'critical'
                                 ? 'text-red-500'
                                 : 'text-yellow-500'
@@ -922,8 +928,8 @@ export default function PerformanceDashboard() {
                   </AnimatePresence>
 
                   {filteredAlerts.length === 0 && (
-                    <div className='text-center py-8 text-gray-500'>
-                      <CheckCircle className='w-12 h-12 mx-auto mb-2 text-green-500' />
+                    <div className="py-8 text-center text-gray-500">
+                      <CheckCircle className="mx-auto mb-2 h-12 w-12 text-green-500" />
                       <p>현재 활성 알림이 없습니다.</p>
                     </div>
                   )}
@@ -939,9 +945,9 @@ export default function PerformanceDashboard() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className='flex items-center justify-between text-sm text-gray-500 pt-4 border-t border-gray-200'
+        className="flex items-center justify-between border-t border-gray-200 pt-4 text-sm text-gray-500"
       >
-        <div className='flex items-center gap-4'>
+        <div className="flex items-center gap-4">
           <span>모니터링 상태: {data.status.enabled ? '활성' : '비활성'}</span>
           <span>메트릭 수: {data.status.metricsCount.toLocaleString()}</span>
           <span>알림 수: {data.status.alertsCount}</span>

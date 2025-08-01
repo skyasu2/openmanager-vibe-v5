@@ -47,60 +47,60 @@ export function ServerDetailProcesses({
 
   if (isLoading) {
     return (
-      <div className='text-center p-8'>프로세스 목록을 불러오는 중...</div>
+      <div className="p-8 text-center">프로세스 목록을 불러오는 중...</div>
     );
   }
 
   if (error) {
-    return <div className='text-center p-8 text-red-500'>오류: {error}</div>;
+    return <div className="p-8 text-center text-red-500">오류: {error}</div>;
   }
 
   return (
-    <div className='space-y-6'>
-      <h3 className='text-lg font-semibold text-gray-900'>
+    <div className="space-y-6">
+      <h3 className="text-lg font-semibold text-gray-900">
         실행 중인 프로세스
       </h3>
 
-      <div className='bg-white rounded-xl border border-gray-200 overflow-hidden'>
-        <div className='overflow-x-auto'>
-          <table className='min-w-full divide-y divide-gray-200'>
-            <thead className='bg-gray-50'>
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                   PID
                 </th>
-                <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                   프로세스명
                 </th>
-                <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                   CPU %
                 </th>
-                <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                   메모리 %
                 </th>
-                <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                   상태
                 </th>
               </tr>
             </thead>
-            <tbody className='bg-white divide-y divide-gray-200'>
+            <tbody className="divide-y divide-gray-200 bg-white">
               {processes.length > 0 ? (
-                processes.map(process => (
-                  <tr key={process.pid} className='hover:bg-gray-50'>
-                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900'>
+                processes.map((process) => (
+                  <tr key={process.pid} className="hover:bg-gray-50">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                       {process.pid}
                     </td>
-                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900'>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                       {process.name}
                     </td>
-                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900'>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                       {process.cpuUsage.toFixed(2)}%
                     </td>
-                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900'>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                       {(process.memoryUsage / (1024 * 1024)).toFixed(2)} MB
                     </td>
-                    <td className='px-6 py-4 whitespace-nowrap'>
-                      <span className='inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800'>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <span className="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">
                         {process.status}
                       </span>
                     </td>
@@ -108,7 +108,7 @@ export function ServerDetailProcesses({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className='text-center p-8 text-gray-500'>
+                  <td colSpan={5} className="p-8 text-center text-gray-500">
                     실행 중인 프로세스가 없습니다.
                   </td>
                 </tr>

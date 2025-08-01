@@ -32,31 +32,24 @@ const FeatureButton: React.FC<FeatureButtonProps> = ({
   className = '',
 }) => {
   return (
-    <div className='relative'>
+    <div className="relative">
       <motion.button
         onClick={() => onClick(tab)}
-        className={`
-          relative w-12 h-12 rounded-xl flex items-center justify-center
-          transition-all duration-200 text-xl
-          hover:scale-105 active:scale-95
-          border border-transparent
-          ${
-            isActive
-              ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg border-purple-300/50'
-              : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/70 hover:text-white'
-          }
-          ${className}
-        `}
+        className={`relative flex h-12 w-12 items-center justify-center rounded-xl border border-transparent text-xl transition-all duration-200 hover:scale-105 active:scale-95 ${
+          isActive
+            ? 'border-purple-300/50 bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg'
+            : 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/70 hover:text-white'
+        } ${className} `}
         whileHover={{ y: -2 }}
         whileTap={{ scale: 0.95 }}
       >
         {/* 아이콘 */}
-        <span className='text-lg font-medium'>{icon}</span>
+        <span className="text-lg font-medium">{icon}</span>
 
         {/* 활성 상태 인디케이터 */}
         {isActive && (
           <motion.div
-            className='absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900'
+            className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-gray-900 bg-green-500"
             initial={{ scale: 0 }}
             animate={{
               scale: [1, 1.2, 1],
@@ -71,7 +64,7 @@ const FeatureButton: React.FC<FeatureButtonProps> = ({
 
         {/* 호버 효과 */}
         <motion.div
-          className='absolute inset-0 rounded-xl bg-white/5 opacity-0'
+          className="absolute inset-0 rounded-xl bg-white/5 opacity-0"
           whileHover={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
         />

@@ -26,7 +26,7 @@ export async function POST(_request: NextRequest) {
     };
 
     // 시뮬레이션을 위한 지연
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     systemLogger.info('✅ 데이터 동기화 완료:', syncResult);
 

@@ -53,38 +53,38 @@ export function ServerDetailLogs({ serverId }: ServerDetailLogsProps) {
   }, [serverId]);
 
   if (isLoading) {
-    return <div className='text-center p-8'>로그를 불러오는 중...</div>;
+    return <div className="p-8 text-center">로그를 불러오는 중...</div>;
   }
 
   if (error) {
-    return <div className='text-center p-8 text-red-500'>오류: {error}</div>;
+    return <div className="p-8 text-center text-red-500">오류: {error}</div>;
   }
 
   return (
-    <div className='space-y-6'>
-      <div className='flex items-center justify-between'>
-        <h3 className='text-lg font-semibold text-gray-900'>시스템 로그</h3>
-        <button className='px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm'>
-          <i className='fas fa-download mr-2'></i>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-gray-900">시스템 로그</h3>
+        <button className="rounded-lg bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-600">
+          <i className="fas fa-download mr-2"></i>
           로그 다운로드
         </button>
       </div>
 
-      <div className='bg-gray-900 rounded-xl p-4 text-green-400 font-mono text-sm max-h-96 overflow-y-auto'>
-        <div className='space-y-1'>
+      <div className="max-h-96 overflow-y-auto rounded-xl bg-gray-900 p-4 font-mono text-sm text-green-400">
+        <div className="space-y-1">
           {logs.length > 0 ? (
             logs.map((log, index) => (
-              <div key={index} className='flex'>
+              <div key={index} className="flex">
                 <span
-                  className={`inline-flex px-2 py-1 font-semibold rounded-full text-xs ${getLogLevelClass(log.level)}`}
+                  className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getLogLevelClass(log.level)}`}
                 >
                   {log.level}
                 </span>
-                <span className='ml-2'>{log.message}</span>
+                <span className="ml-2">{log.message}</span>
               </div>
             ))
           ) : (
-            <div className='text-center p-8 text-gray-500'>
+            <div className="p-8 text-center text-gray-500">
               표시할 로그가 없습니다.
             </div>
           )}

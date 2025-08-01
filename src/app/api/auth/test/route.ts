@@ -86,7 +86,8 @@ export async function GET(request: NextRequest) {
       environment: {
         nodeEnv: process.env.NODE_ENV,
         vercel: !!process.env.VERCEL,
-        domain: request.headers.get('origin') || request.headers.get('host') || '',
+        domain:
+          request.headers.get('origin') || request.headers.get('host') || '',
       },
     };
 

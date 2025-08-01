@@ -23,9 +23,9 @@ const CustomTooltip = memo(({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0];
     return (
-      <div className='bg-white p-3 border border-gray-200 rounded-lg shadow-lg'>
-        <p className='font-semibold text-gray-800'>{data.name}</p>
-        <p style={{ color: data.color }} className='text-sm'>
+      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
+        <p className="font-semibold text-gray-800">{data.name}</p>
+        <p style={{ color: data.color }} className="text-sm">
           사용률: {data.value.toFixed(1)}%
         </p>
       </div>
@@ -39,9 +39,9 @@ CustomTooltip.displayName = 'CustomTooltip';
 const PerformanceChart = memo<PerformanceChartProps>(({ data }) => {
   if (!data || data.length === 0) {
     return (
-      <div className='flex items-center justify-center h-64 text-gray-500'>
-        <div className='text-center'>
-          <div className='animate-pulse bg-gray-200 rounded-full h-32 w-32 mx-auto mb-4' />
+      <div className="flex h-64 items-center justify-center text-gray-500">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-32 w-32 animate-pulse rounded-full bg-gray-200" />
           <p>성능 데이터 로딩 중...</p>
         </div>
       </div>
@@ -49,17 +49,17 @@ const PerformanceChart = memo<PerformanceChartProps>(({ data }) => {
   }
 
   return (
-    <div className='h-64'>
-      <ResponsiveContainer width='100%' height='100%'>
+    <div className="h-64">
+      <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={data}
-            cx='50%'
-            cy='50%'
+            cx="50%"
+            cy="50%"
             innerRadius={40}
             outerRadius={80}
             paddingAngle={2}
-            dataKey='value'
+            dataKey="value"
           >
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
@@ -67,7 +67,7 @@ const PerformanceChart = memo<PerformanceChartProps>(({ data }) => {
           </Pie>
           <Tooltip content={<CustomTooltip />} />
           <Legend
-            verticalAlign='bottom'
+            verticalAlign="bottom"
             height={36}
             formatter={(value, entry) => (
               <span style={{ color: entry.color }}>{value}</span>

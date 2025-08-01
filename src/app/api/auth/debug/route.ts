@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const cookieStore = await cookies();
     const allCookies = cookieStore.getAll();
     const supabaseCookies = allCookies.filter(
-      c => c.name.includes('supabase') || c.name.includes('auth')
+      (c) => c.name.includes('supabase') || c.name.includes('auth')
     );
 
     // 세션 확인 (두 가지 방법)
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
       cookies: {
         total: allCookies.length,
         supabaseCount: supabaseCookies.length,
-        supabaseCookies: supabaseCookies.map(c => ({
+        supabaseCookies: supabaseCookies.map((c) => ({
           name: c.name,
           valueLength: c.value.length,
           hasValue: !!c.value,
@@ -133,7 +133,8 @@ export async function GET(request: NextRequest) {
         NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
         NEXTAUTH_URL: process.env.NEXTAUTH_URL,
         NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
-        currentOrigin: request.headers.get('origin') || request.headers.get('host') || '',
+        currentOrigin:
+          request.headers.get('origin') || request.headers.get('host') || '',
       },
       github: {
         GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID ? 'SET' : 'MISSING',

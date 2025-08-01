@@ -272,22 +272,24 @@ export class ServerMonitoringAgent {
   /**
    * 📋 특정 서버 컨텍스트 수집
    */
-  public async collectServerContext(serverId: string): Promise<MCPMonitoringData | null> {
+  public async collectServerContext(
+    serverId: string
+  ): Promise<MCPMonitoringData | null> {
     const cachedContext = this.contextCache.get(serverId);
     if (cachedContext) {
       return cachedContext;
     }
 
     const context = await this.gatherCurrentData({ serverId });
-    
+
     // 특정 서버만 필터링
     const filteredContext = {
       ...context,
-      servers: context.servers.filter(s => s.id === serverId),
+      servers: context.servers.filter((s) => s.id === serverId),
     };
 
     this.contextCache.set(serverId, filteredContext);
-    
+
     // 캐시 TTL: 30초
     setTimeout(() => this.contextCache.delete(serverId), 30000);
 
@@ -297,11 +299,13 @@ export class ServerMonitoringAgent {
   /**
    * 🔄 실시간 업데이트 구독
    */
-  public subscribeToUpdates(callback: (data: MCPMonitoringData) => void): () => void {
+  public subscribeToUpdates(
+    callback: (data: MCPMonitoringData) => void
+  ): () => void {
     this.updateCallbacks.add(callback);
 
     // 초기 데이터 전송
-    this.gatherCurrentData().then(data => callback(data));
+    this.gatherCurrentData().then((data) => callback(data));
 
     // 주기적 업데이트 (15초)
     const intervalId = setInterval(async () => {
@@ -449,7 +453,7 @@ export class ServerMonitoringAgent {
    */
   private async analyzeQueryIntent(query: string): Promise<MCPQueryIntent> {
     // 딜레이 시뮬레이션 (생각하는 시간)
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     for (const pattern of this.queryPatterns) {
       if (pattern.pattern.test(query)) {
@@ -477,17 +481,17 @@ export class ServerMonitoringAgent {
   private async gatherCurrentData(
     context?: QueryRequest['context']
   ): Promise<MCPMonitoringData> {
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       // 통합 데이터 브로커를 통해 데이터 구독
       const unsubscribe = unifiedDataBroker.subscribeToServers(
         'monitoring-agent',
-        servers => {
+        (servers) => {
           // 추가 메트릭 데이터 구독
           const unsubscribeMetrics = unifiedDataBroker.subscribeToMetrics(
             'monitoring-agent',
-            metrics => {
+            (metrics) => {
               unsubscribe();
               unsubscribeMetrics();
 
@@ -523,7 +527,7 @@ export class ServerMonitoringAgent {
     data: MCPMonitoringData,
     _intent: MCPQueryIntent
   ): Promise<MCPPatternAnalysis> {
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 800));
 
     const analysis = {
       pattern: 'normal',
@@ -625,7 +629,7 @@ export class ServerMonitoringAgent {
     data: MCPMonitoringData,
     analysis: MCPPatternAnalysis
   ): Promise<string> {
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await new Promise((resolve) => setTimeout(resolve, 600));
 
     switch (intent.intent) {
       case 'server-status':
@@ -722,13 +726,13 @@ export class ServerMonitoringAgent {
     data: MCPMonitoringData,
     _analysis: MCPPatternAnalysis
   ): Promise<MonitoringInsight[]> {
-    await new Promise(resolve => setTimeout(resolve, 400));
+    await new Promise((resolve) => setTimeout(resolve, 400));
 
     const insights: MonitoringInsight[] = [];
 
     // 성능 인사이트
     const highCpuServers = data.servers.filter(
-      s => (s.metrics?.cpu || s.cpu || 0) > 70
+      (s) => (s.metrics?.cpu || s.cpu || 0) > 70
     );
     if (highCpuServers.length > 0) {
       insights.push({
@@ -738,14 +742,14 @@ export class ServerMonitoringAgent {
         impact: 'high',
         confidence: 0.85,
         recommendation: '로드 밸런싱 개선 또는 서버 증설을 고려하세요',
-        affectedServers: highCpuServers.map(s => s.id),
+        affectedServers: highCpuServers.map((s) => s.id),
         automatable: true,
       });
     }
 
     // 비용 인사이트
     const underutilizedServers = data.servers.filter(
-      s =>
+      (s) =>
         (s.metrics?.cpu || s.cpu || 0) < 30 &&
         (s.metrics?.memory || s.memory || 0) < 40
     );
@@ -757,7 +761,7 @@ export class ServerMonitoringAgent {
         impact: 'medium',
         confidence: 0.9,
         recommendation: '서버 통합 또는 다운스케일링을 고려하세요',
-        affectedServers: underutilizedServers.map(s => s.id),
+        affectedServers: underutilizedServers.map((s) => s.id),
         estimatedCost: underutilizedServers.length * 50,
         automatable: false,
       });
@@ -765,7 +769,7 @@ export class ServerMonitoringAgent {
 
     // 가용성 인사이트
     const unhealthyServers = data.servers.filter(
-      s => getHealthScore(s.health) < 80
+      (s) => getHealthScore(s.health) < 80
     );
     if (unhealthyServers.length > 0) {
       insights.push({
@@ -775,7 +779,7 @@ export class ServerMonitoringAgent {
         impact: 'high',
         confidence: 0.8,
         recommendation: '상세 진단 및 예방적 유지보수를 수행하세요',
-        affectedServers: unhealthyServers.map(s => s.id),
+        affectedServers: unhealthyServers.map((s) => s.id),
         automatable: false,
       });
     }
@@ -790,12 +794,12 @@ export class ServerMonitoringAgent {
     serverId: string
   ): Promise<IncidentReport> {
     // 통합 브로커를 통해 서버 정보 조회
-    const serverData = await new Promise<ServerInstance | null>(resolve => {
+    const serverData = await new Promise<ServerInstance | null>((resolve) => {
       const unsubscribe = unifiedDataBroker.subscribeToServers(
         'incident-report',
-        servers => {
+        (servers) => {
           unsubscribe();
-          const server = servers.find(s => s.id === serverId);
+          const server = servers.find((s) => s.id === serverId);
           resolve(server || null);
         },
         { interval: 1000, priority: 'high', cacheStrategy: 'cache-first' }

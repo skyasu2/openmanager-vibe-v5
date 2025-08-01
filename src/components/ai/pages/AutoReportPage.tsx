@@ -79,7 +79,7 @@ export default function AutoReportPage() {
         status: 'active',
       };
 
-      setReports(prev => [newReport, ...prev]);
+      setReports((prev) => [newReport, ...prev]);
       setIsGenerating(false);
     }, 3000);
   };
@@ -87,11 +87,11 @@ export default function AutoReportPage() {
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
       case 'critical':
-        return <AlertTriangle className='w-4 h-4 text-red-500' />;
+        return <AlertTriangle className="h-4 w-4 text-red-500" />;
       case 'warning':
-        return <AlertTriangle className='w-4 h-4 text-yellow-500' />;
+        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
       default:
-        return <CheckCircle className='w-4 h-4 text-blue-500' />;
+        return <CheckCircle className="h-4 w-4 text-blue-500" />;
     }
   };
 
@@ -110,48 +110,48 @@ export default function AutoReportPage() {
     switch (status) {
       case 'active':
         return (
-          <div className='w-2 h-2 bg-red-500 rounded-full _animate-pulse' />
+          <div className="_animate-pulse h-2 w-2 rounded-full bg-red-500" />
         );
       case 'investigating':
         return (
-          <div className='w-2 h-2 bg-yellow-500 rounded-full _animate-pulse' />
+          <div className="_animate-pulse h-2 w-2 rounded-full bg-yellow-500" />
         );
       default:
-        return <div className='w-2 h-2 bg-green-500 rounded-full' />;
+        return <div className="h-2 w-2 rounded-full bg-green-500" />;
     }
   };
 
   const filteredReports =
     selectedSeverity === 'all'
       ? reports
-      : reports.filter(report => report.severity === selectedSeverity);
+      : reports.filter((report) => report.severity === selectedSeverity);
 
   return (
-    <div className='flex flex-col h-full bg-gradient-to-br from-red-50 to-pink-50'>
+    <div className="flex h-full flex-col bg-gradient-to-br from-red-50 to-pink-50">
       {/* 헤더 */}
-      <div className='p-4 border-b border-red-200 bg-white/80 backdrop-blur-sm'>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center space-x-3'>
-            <div className='w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg flex items-center justify-center'>
-              <FileText className='w-5 h-5 text-white' />
+      <div className="border-b border-red-200 bg-white/80 p-4 backdrop-blur-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-red-500 to-pink-500">
+              <FileText className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h2 className='text-lg font-bold text-gray-800'>
+              <h2 className="text-lg font-bold text-gray-800">
                 자동 장애보고서
               </h2>
-              <p className='text-sm text-gray-600'>실시간 장애 리포트 생성</p>
+              <p className="text-sm text-gray-600">실시간 장애 리포트 생성</p>
             </div>
           </div>
 
           <motion.button
             onClick={handleGenerateReport}
             disabled={isGenerating}
-            className='flex items-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors'
+            className="flex items-center space-x-2 rounded-lg bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600 disabled:opacity-50"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             <RefreshCw
-              className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`}
+              className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`}
             />
             <span>{isGenerating ? '생성 중...' : '새 보고서'}</span>
           </motion.button>
@@ -159,30 +159,30 @@ export default function AutoReportPage() {
       </div>
 
       {/* 필터 */}
-      <div className='p-4 border-b border-red-200 bg-white/50'>
-        <div className='flex space-x-2'>
+      <div className="border-b border-red-200 bg-white/50 p-4">
+        <div className="flex space-x-2">
           {[
             { id: 'all', label: '전체', count: reports.length },
             {
               id: 'critical',
               label: '심각',
-              count: reports.filter(r => r.severity === 'critical').length,
+              count: reports.filter((r) => r.severity === 'critical').length,
             },
             {
               id: 'warning',
               label: '경고',
-              count: reports.filter(r => r.severity === 'warning').length,
+              count: reports.filter((r) => r.severity === 'warning').length,
             },
             {
               id: 'info',
               label: '정보',
-              count: reports.filter(r => r.severity === 'info').length,
+              count: reports.filter((r) => r.severity === 'info').length,
             },
-          ].map(filter => (
+          ].map((filter) => (
             <button
               key={filter.id}
               onClick={() => setSelectedSeverity(filter.id)}
-              className={`px-3 py-1 rounded-full text-sm transition-colors ${
+              className={`rounded-full px-3 py-1 text-sm transition-colors ${
                 selectedSeverity === filter.id
                   ? 'bg-red-500 text-white'
                   : 'bg-white text-gray-600 hover:bg-red-100'
@@ -195,42 +195,42 @@ export default function AutoReportPage() {
       </div>
 
       {/* 보고서 목록 */}
-      <div className='flex-1 overflow-y-auto p-4 space-y-3'>
+      <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {filteredReports.map((report, index) => (
           <motion.div
             key={report.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className={`p-4 rounded-lg border ${getSeverityColor(report.severity)} hover:shadow-md transition-shadow`}
+            className={`rounded-lg border p-4 ${getSeverityColor(report.severity)} transition-shadow hover:shadow-md`}
           >
-            <div className='flex items-start justify-between mb-2'>
-              <div className='flex items-center space-x-2'>
+            <div className="mb-2 flex items-start justify-between">
+              <div className="flex items-center space-x-2">
                 {getSeverityIcon(report.severity)}
-                <h3 className='font-medium text-gray-800'>{report.title}</h3>
+                <h3 className="font-medium text-gray-800">{report.title}</h3>
                 {getStatusIcon(report.status)}
               </div>
-              <div className='flex items-center space-x-2'>
-                <Clock className='w-4 h-4 text-gray-400' />
-                <span className='text-xs text-gray-500'>
+              <div className="flex items-center space-x-2">
+                <Clock className="h-4 w-4 text-gray-400" />
+                <span className="text-xs text-gray-500">
                   {report.timestamp.toLocaleTimeString()}
                 </span>
               </div>
             </div>
 
-            <p className='text-sm text-gray-600 mb-3'>{report.description}</p>
+            <p className="mb-3 text-sm text-gray-600">{report.description}</p>
 
-            <div className='flex items-center justify-between'>
-              <div className='flex items-center space-x-2'>
-                <Server className='w-4 h-4 text-gray-400' />
-                <span className='text-xs text-gray-500'>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Server className="h-4 w-4 text-gray-400" />
+                <span className="text-xs text-gray-500">
                   영향받는 서버: {report.affectedServers.join(', ')}
                 </span>
               </div>
 
-              <div className='flex space-x-2'>
+              <div className="flex space-x-2">
                 <span
-                  className={`px-2 py-1 rounded-full text-xs ${
+                  className={`rounded-full px-2 py-1 text-xs ${
                     report.status === 'active'
                       ? 'bg-red-100 text-red-700'
                       : report.status === 'investigating'
@@ -246,12 +246,12 @@ export default function AutoReportPage() {
                 </span>
 
                 <motion.button
-                  className='p-1 text-gray-400 hover:text-gray-600 transition-colors'
+                  className="p-1 text-gray-400 transition-colors hover:text-gray-600"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  title='보고서 다운로드'
+                  title="보고서 다운로드"
                 >
-                  <Download className='w-4 h-4' />
+                  <Download className="h-4 w-4" />
                 </motion.button>
               </div>
             </div>
@@ -259,33 +259,33 @@ export default function AutoReportPage() {
         ))}
 
         {filteredReports.length === 0 && (
-          <div className='text-center py-8'>
-            <FileText className='w-12 h-12 text-gray-300 mx-auto mb-2' />
-            <p className='text-gray-500'>해당 조건의 보고서가 없습니다.</p>
+          <div className="py-8 text-center">
+            <FileText className="mx-auto mb-2 h-12 w-12 text-gray-300" />
+            <p className="text-gray-500">해당 조건의 보고서가 없습니다.</p>
           </div>
         )}
       </div>
 
       {/* 하단 통계 */}
-      <div className='p-4 border-t border-red-200 bg-white/80 backdrop-blur-sm'>
-        <div className='grid grid-cols-3 gap-4 text-center'>
+      <div className="border-t border-red-200 bg-white/80 p-4 backdrop-blur-sm">
+        <div className="grid grid-cols-3 gap-4 text-center">
           <div>
-            <div className='text-lg font-bold text-red-600'>
-              {reports.filter(r => r.status === 'active').length}
+            <div className="text-lg font-bold text-red-600">
+              {reports.filter((r) => r.status === 'active').length}
             </div>
-            <div className='text-xs text-gray-500'>활성 이슈</div>
+            <div className="text-xs text-gray-500">활성 이슈</div>
           </div>
           <div>
-            <div className='text-lg font-bold text-yellow-600'>
-              {reports.filter(r => r.status === 'investigating').length}
+            <div className="text-lg font-bold text-yellow-600">
+              {reports.filter((r) => r.status === 'investigating').length}
             </div>
-            <div className='text-xs text-gray-500'>조사중</div>
+            <div className="text-xs text-gray-500">조사중</div>
           </div>
           <div>
-            <div className='text-lg font-bold text-green-600'>
-              {reports.filter(r => r.status === 'resolved').length}
+            <div className="text-lg font-bold text-green-600">
+              {reports.filter((r) => r.status === 'resolved').length}
             </div>
-            <div className='text-xs text-gray-500'>해결됨</div>
+            <div className="text-xs text-gray-500">해결됨</div>
           </div>
         </div>
       </div>

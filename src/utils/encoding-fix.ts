@@ -211,7 +211,7 @@ export function testKoreanEncoding(): {
     { name: 'URL 인코딩', input: encodeURIComponent('네트워크 연결 테스트') },
   ];
 
-  const results = testCases.map(testCase => {
+  const results = testCases.map((testCase) => {
     try {
       const output = safeDecodeKorean(testCase.input);
       const success = isValidKorean(output);
@@ -232,7 +232,7 @@ export function testKoreanEncoding(): {
     }
   });
 
-  const success = results.every(result => result.success);
+  const success = results.every((result) => result.success);
 
   return { success, tests: results };
 }

@@ -105,7 +105,7 @@ export const useRealTimeAILogs = (
       console.log('AI 로그 스트림 연결됨');
     };
 
-    eventSource.onmessage = event => {
+    eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
 
@@ -123,7 +123,7 @@ export const useRealTimeAILogs = (
         // 실제 로그 처리
         const log: RealTimeAILog = data;
 
-        setLogs(prev => {
+        setLogs((prev) => {
           const newLogs = [...prev, log];
           return newLogs.slice(-maxLogs); // 최대 로그 수 제한
         });
@@ -133,10 +133,10 @@ export const useRealTimeAILogs = (
 
         // 기술 스택 업데이트
         if (log.metadata?.technology) {
-          setTechStack(prev => new Set([...prev, log.metadata!.technology!]));
+          setTechStack((prev) => new Set([...prev, log.metadata!.technology!]));
         }
         if (log.metadata?.openSource) {
-          setTechStack(prev => new Set([...prev, log.metadata!.openSource!]));
+          setTechStack((prev) => new Set([...prev, log.metadata!.openSource!]));
         }
 
         // 처리 상태 업데이트
@@ -150,7 +150,7 @@ export const useRealTimeAILogs = (
       }
     };
 
-    eventSource.onerror = error => {
+    eventSource.onerror = (error) => {
       console.error('AI 로그 스트림 오류:', error);
       setIsConnected(false);
       setConnectionStatus('error');

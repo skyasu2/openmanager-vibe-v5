@@ -83,7 +83,7 @@ async function handleWarmup(options?: { targets?: string[] }) {
 
         return {
           totalServers: servers.length,
-          onlineServers: servers.filter(s => s.status === 'online').length,
+          onlineServers: servers.filter((s) => s.status === 'online').length,
           avgCpuUsage:
             servers.reduce((sum, s) => {
               const metrics = s.metrics as any;
@@ -126,7 +126,7 @@ async function handleWarmup(options?: { targets?: string[] }) {
   return NextResponse.json({
     success: true,
     message: `${warmupItems.length}개 항목 워밍업 완료`,
-    items: warmupItems.map(item => item.key),
+    items: warmupItems.map((item) => item.key),
   });
 }
 

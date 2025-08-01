@@ -128,7 +128,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
       console.log('🔗 실시간 로그 스트림 연결됨');
     };
 
-    eventSource.onmessage = event => {
+    eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
 
@@ -140,7 +140,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
         if (data.type === 'log' && data.data) {
           const newLog: LogEntry = data.data;
 
-          setLogs(prev => {
+          setLogs((prev) => {
             const updated = [...prev, newLog];
             // 최대 로그 수 제한
             return updated.length > maxLogs ? updated.slice(-maxLogs) : updated;
@@ -154,7 +154,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
       }
     };
 
-    eventSource.onerror = error => {
+    eventSource.onerror = (error) => {
       console.error('실시간 로그 스트림 오류:', error);
       setIsStreaming(false);
 
@@ -185,8 +185,10 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
    * 세션 정보 업데이트
    */
   const updateSessionInfo = (log: LogEntry) => {
-    setSessions(prev => {
-      const existingIndex = prev.findIndex(s => s.sessionId === log.sessionId);
+    setSessions((prev) => {
+      const existingIndex = prev.findIndex(
+        (s) => s.sessionId === log.sessionId
+      );
 
       if (existingIndex !== -1) {
         // 기존 세션 업데이트
@@ -219,7 +221,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
   /**
    * 로그 필터링
    */
-  const filteredLogs = logs.filter(log => {
+  const filteredLogs = logs.filter((log) => {
     if (filter.level && log.level !== filter.level) return false;
     if (filter.module && log.module !== filter.module) return false;
     if (filter.sessionId && log.sessionId !== filter.sessionId) return false;
@@ -264,15 +266,15 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
   const getLogLevelIcon = (level: string) => {
     switch (level) {
       case 'SUCCESS':
-        return <CheckCircle className='w-4 h-4' />;
+        return <CheckCircle className="h-4 w-4" />;
       case 'ERROR':
-        return <XCircle className='w-4 h-4' />;
+        return <XCircle className="h-4 w-4" />;
       case 'WARNING':
-        return <AlertCircle className='w-4 h-4' />;
+        return <AlertCircle className="h-4 w-4" />;
       case 'PROCESSING':
-        return <Activity className='w-4 h-4' />;
+        return <Activity className="h-4 w-4" />;
       default:
-        return <Clock className='w-4 h-4' />;
+        return <Clock className="h-4 w-4" />;
     }
   };
 
@@ -305,7 +307,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
    * 로그 상세 토글
    */
   const toggleDetails = (logId: string) => {
-    setShowDetails(prev => ({
+    setShowDetails((prev) => ({
       ...prev,
       [logId]: !prev[logId],
     }));
@@ -313,111 +315,111 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
 
   return (
     <div
-      className={`bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 shadow-sm ${className}`}
+      className={`rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 ${className}`}
     >
       {/* 헤더 */}
-      <div className='flex items-center justify-between p-4 border-b dark:border-gray-700'>
-        <div className='flex items-center space-x-3'>
-          <div className='flex items-center space-x-2'>
-            <Activity className='w-5 h-5 text-blue-500' />
-            <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>
+      <div className="flex items-center justify-between border-b p-4 dark:border-gray-700">
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
+            <Activity className="h-5 w-5 text-blue-500" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               실시간 AI 로그 모니터
             </h3>
           </div>
           <div
-            className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${
+            className={`flex items-center space-x-1 rounded-full px-2 py-1 text-xs ${
               isStreaming
                 ? 'bg-green-100 text-green-800'
                 : 'bg-gray-100 text-gray-800'
             }`}
           >
             <div
-              className={`w-2 h-2 rounded-full ${isStreaming ? 'bg-green-500' : 'bg-gray-500'}`}
+              className={`h-2 w-2 rounded-full ${isStreaming ? 'bg-green-500' : 'bg-gray-500'}`}
             />
             <span>{isStreaming ? '실시간 연결됨' : '연결 끊김'}</span>
           </div>
         </div>
 
-        <div className='flex items-center space-x-2'>
+        <div className="flex items-center space-x-2">
           <button
             onClick={isStreaming ? stopStreaming : startStreaming}
-            className={`px-3 py-1.5 rounded-lg flex items-center space-x-1 text-sm transition-colors ${
+            className={`flex items-center space-x-1 rounded-lg px-3 py-1.5 text-sm transition-colors ${
               isStreaming
                 ? 'bg-red-100 text-red-700 hover:bg-red-200'
                 : 'bg-green-100 text-green-700 hover:bg-green-200'
             }`}
           >
             {isStreaming ? (
-              <Pause className='w-4 h-4' />
+              <Pause className="h-4 w-4" />
             ) : (
-              <Play className='w-4 h-4' />
+              <Play className="h-4 w-4" />
             )}
             <span>{isStreaming ? '중지' : '시작'}</span>
           </button>
 
           <button
             onClick={() => setLogs([])}
-            className='px-3 py-1.5 rounded-lg flex items-center space-x-1 text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors'
+            className="flex items-center space-x-1 rounded-lg bg-gray-100 px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-200"
           >
-            <Trash2 className='w-4 h-4' />
+            <Trash2 className="h-4 w-4" />
             <span>지우기</span>
           </button>
 
           <button
             onClick={exportLogs}
-            className='px-3 py-1.5 rounded-lg flex items-center space-x-1 text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors'
+            className="flex items-center space-x-1 rounded-lg bg-blue-100 px-3 py-1.5 text-sm text-blue-700 transition-colors hover:bg-blue-200"
           >
-            <Download className='w-4 h-4' />
+            <Download className="h-4 w-4" />
             <span>내보내기</span>
           </button>
         </div>
       </div>
 
       {/* 필터 및 통계 */}
-      <div className='p-4 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-700'>
-        <div className='flex flex-wrap items-center gap-4 mb-4'>
+      <div className="border-b bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700">
+        <div className="mb-4 flex flex-wrap items-center gap-4">
           {/* 검색 */}
-          <div className='relative flex-1 min-w-64'>
-            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400' />
+          <div className="relative min-w-64 flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
             <input
-              aria-label='입력 필드'
-              type='text'
-              placeholder='로그 검색...'
+              aria-label="입력 필드"
+              type="text"
+              placeholder="로그 검색..."
               value={filter.search}
-              onChange={e =>
-                setFilter(prev => ({ ...prev, search: e.target.value }))
+              onChange={(e) =>
+                setFilter((prev) => ({ ...prev, search: e.target.value }))
               }
-              className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+              className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 focus:border-transparent focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           {/* 필터 */}
           <select
             value={filter.level}
-            onChange={e =>
-              setFilter(prev => ({ ...prev, level: e.target.value }))
+            onChange={(e) =>
+              setFilter((prev) => ({ ...prev, level: e.target.value }))
             }
-            className='px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
+            className="rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
           >
-            <option value=''>모든 레벨</option>
-            <option value='INFO'>INFO</option>
-            <option value='DEBUG'>DEBUG</option>
-            <option value='PROCESSING'>PROCESSING</option>
-            <option value='SUCCESS'>SUCCESS</option>
-            <option value='ANALYSIS'>ANALYSIS</option>
-            <option value='WARNING'>WARNING</option>
-            <option value='ERROR'>ERROR</option>
+            <option value="">모든 레벨</option>
+            <option value="INFO">INFO</option>
+            <option value="DEBUG">DEBUG</option>
+            <option value="PROCESSING">PROCESSING</option>
+            <option value="SUCCESS">SUCCESS</option>
+            <option value="ANALYSIS">ANALYSIS</option>
+            <option value="WARNING">WARNING</option>
+            <option value="ERROR">ERROR</option>
           </select>
 
           <select
             value={filter.sessionId}
-            onChange={e =>
-              setFilter(prev => ({ ...prev, sessionId: e.target.value }))
+            onChange={(e) =>
+              setFilter((prev) => ({ ...prev, sessionId: e.target.value }))
             }
-            className='px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
+            className="rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
           >
-            <option value=''>모든 세션</option>
-            {sessions.map(session => (
+            <option value="">모든 세션</option>
+            {sessions.map((session) => (
               <option key={session.sessionId} value={session.sessionId}>
                 {session.sessionId.slice(0, 8)}... ({session.logCount}개)
               </option>
@@ -426,7 +428,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
         </div>
 
         {/* 통계 */}
-        <div className='flex items-center space-x-6 text-sm text-gray-600 dark:text-gray-400'>
+        <div className="flex items-center space-x-6 text-sm text-gray-600 dark:text-gray-400">
           <span>총 로그: {filteredLogs.length}</span>
           <span>
             활성 세션:{' '}
@@ -444,7 +446,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
       </div>
 
       {/* 로그 목록 */}
-      <div className='h-96 overflow-y-auto p-4 space-y-2'>
+      <div className="h-96 space-y-2 overflow-y-auto p-4">
         <AnimatePresence>
           {filteredLogs.map((log, index) => (
             <motion.div
@@ -453,38 +455,38 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ delay: index * 0.02 }}
-              className='border dark:border-gray-600 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
+              className="rounded-lg border p-3 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
             >
-              <div className='flex items-start justify-between'>
-                <div className='flex items-start space-x-3 flex-1'>
+              <div className="flex items-start justify-between">
+                <div className="flex flex-1 items-start space-x-3">
                   {/* 레벨 배지 */}
                   <div
-                    className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium border ${getLogLevelStyle(log.level)}`}
+                    className={`inline-flex items-center space-x-1 rounded-full border px-2 py-1 text-xs font-medium ${getLogLevelStyle(log.level)}`}
                   >
                     {getLogLevelIcon(log.level)}
                     <span>{log.level}</span>
                   </div>
 
                   {/* 로그 내용 */}
-                  <div className='flex-1 min-w-0'>
-                    <div className='flex items-center space-x-2 mb-1'>
-                      <span className='font-mono text-sm font-semibold text-blue-600 dark:text-blue-400'>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex items-center space-x-2">
+                      <span className="font-mono text-sm font-semibold text-blue-600 dark:text-blue-400">
                         [{log.module}]
                       </span>
-                      <span className='text-xs text-gray-500'>
+                      <span className="text-xs text-gray-500">
                         {new Date(log.timestamp).toLocaleTimeString('ko-KR')}
                       </span>
-                      <span className='text-xs text-gray-400'>
+                      <span className="text-xs text-gray-400">
                         세션: {log.sessionId.slice(0, 8)}...
                       </span>
                     </div>
 
-                    <p className='text-sm text-gray-900 dark:text-gray-100 mb-1'>
+                    <p className="mb-1 text-sm text-gray-900 dark:text-gray-100">
                       {log.message}
                     </p>
 
                     {log.details && (
-                      <p className='text-xs text-gray-600 dark:text-gray-400 font-mono'>
+                      <p className="font-mono text-xs text-gray-600 dark:text-gray-400">
                         {log.details}
                       </p>
                     )}
@@ -494,17 +496,17 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
                       <motion.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
-                        className='mt-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs font-mono overflow-hidden'
+                        className="mt-2 overflow-hidden rounded bg-gray-100 p-2 font-mono text-xs dark:bg-gray-600"
                       >
-                        <div className='text-gray-700 dark:text-gray-300'>
+                        <div className="text-gray-700 dark:text-gray-300">
                           <strong>메타데이터:</strong>
                         </div>
                         {Object.entries(log.metadata).map(([key, value]) => (
                           <div
                             key={key}
-                            className='text-gray-600 dark:text-gray-400'
+                            className="text-gray-600 dark:text-gray-400"
                           >
-                            <span className='text-blue-600 dark:text-blue-400'>
+                            <span className="text-blue-600 dark:text-blue-400">
                               {key}:
                             </span>{' '}
                             {JSON.stringify(value)}
@@ -518,13 +520,13 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
                 {/* 상세 보기 토글 */}
                 <button
                   onClick={() => toggleDetails(log.id)}
-                  className='ml-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'
-                  title='상세 정보 보기'
+                  className="ml-2 p-1 text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-gray-300"
+                  title="상세 정보 보기"
                 >
                   {showDetails[log.id] ? (
-                    <EyeOff className='w-4 h-4' />
+                    <EyeOff className="h-4 w-4" />
                   ) : (
-                    <Eye className='w-4 h-4' />
+                    <Eye className="h-4 w-4" />
                   )}
                 </button>
               </div>
@@ -533,7 +535,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
         </AnimatePresence>
 
         {filteredLogs.length === 0 && (
-          <div className='text-center py-8 text-gray-500 dark:text-gray-400'>
+          <div className="py-8 text-center text-gray-500 dark:text-gray-400">
             {isStreaming
               ? '로그를 기다리는 중...'
               : '스트리밍을 시작하여 로그를 확인하세요.'}

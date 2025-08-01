@@ -62,7 +62,7 @@ interface TrendDataPoint {
 
 // 🚀 로딩 스켈레톤 컴포넌트
 const ChartSkeleton = memo(() => (
-  <div className='animate-pulse bg-gray-200 rounded-lg h-64 w-full' />
+  <div className="h-64 w-full animate-pulse rounded-lg bg-gray-200" />
 ));
 
 ChartSkeleton.displayName = 'ChartSkeleton';
@@ -124,7 +124,7 @@ const AdminDashboardCharts = memo(() => {
           SEVERITY_COLORS[severity as keyof typeof SEVERITY_COLORS] ||
           COLORS.info,
       }))
-      .filter(item => item.value > 0);
+      .filter((item) => item.value > 0);
   }, [data?.charts?.alertsChart?.bySeverity]);
 
   // 📈 트렌드 차트 데이터 메모이제이션
@@ -222,20 +222,20 @@ const AdminDashboardCharts = memo(() => {
 
   // 🎛️ 자동 새로고침 토글
   const toggleAutoRefresh = useCallback(() => {
-    setAutoRefresh(prev => !prev);
+    setAutoRefresh((prev) => !prev);
   }, []);
 
   // 🚨 에러 상태 렌더링
   if (error && !data) {
     return (
-      <div className='flex flex-col items-center justify-center p-8 text-center'>
-        <div className='text-red-500 text-lg font-semibold mb-2'>
+      <div className="flex flex-col items-center justify-center p-8 text-center">
+        <div className="mb-2 text-lg font-semibold text-red-500">
           ⚠️ 데이터 로드 실패
         </div>
-        <p className='text-gray-600 mb-4'>{error}</p>
+        <p className="mb-4 text-gray-600">{error}</p>
         <button
           onClick={handleRefresh}
-          className='px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors'
+          className="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
           disabled={loading}
         >
           {loading ? '재시도 중...' : '다시 시도'}
@@ -249,28 +249,28 @@ const AdminDashboardCharts = memo(() => {
       className={`space-y-6 transition-opacity duration-300 ${isPending ? 'opacity-75' : 'opacity-100'}`}
     >
       {/* 헤더 섹션 */}
-      <div className='flex justify-between items-center'>
-        <h2 className='text-2xl font-bold text-gray-900'>시스템 대시보드</h2>
-        <div className='flex items-center gap-4'>
-          <div className='text-sm text-gray-500'>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">시스템 대시보드</h2>
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-gray-500">
             {lastUpdate &&
               `마지막 업데이트: ${lastUpdate.toLocaleTimeString('ko-KR')}`}
           </div>
-          <label className='flex items-center gap-2'>
+          <label className="flex items-center gap-2">
             <input
-              type='checkbox'
+              type="checkbox"
               checked={autoRefresh}
               onChange={toggleAutoRefresh}
-              className='rounded'
+              className="rounded"
             />
-            <span className='text-sm'>자동 새로고침</span>
+            <span className="text-sm">자동 새로고침</span>
           </label>
           <button
             onClick={handleRefresh}
             disabled={loading}
-            className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+            className={`rounded-lg px-3 py-1 text-sm transition-colors ${
               loading
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                ? 'cursor-not-allowed bg-gray-200 text-gray-400'
                 : 'bg-blue-500 text-white hover:bg-blue-600'
             }`}
           >
@@ -280,31 +280,31 @@ const AdminDashboardCharts = memo(() => {
       </div>
 
       {/* 차트 그리드 - Suspense로 래핑하여 LCP 개선 */}
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Suspense fallback={<ChartSkeleton />}>
-          <div className='bg-white rounded-lg shadow-lg p-6'>
-            <h3 className='text-lg font-semibold mb-4'>성능 지표</h3>
+          <div className="rounded-lg bg-white p-6 shadow-lg">
+            <h3 className="mb-4 text-lg font-semibold">성능 지표</h3>
             <PerformanceChart data={performanceChartData} />
           </div>
         </Suspense>
 
         <Suspense fallback={<ChartSkeleton />}>
-          <div className='bg-white rounded-lg shadow-lg p-6'>
-            <h3 className='text-lg font-semibold mb-4'>서버 가용성</h3>
+          <div className="rounded-lg bg-white p-6 shadow-lg">
+            <h3 className="mb-4 text-lg font-semibold">서버 가용성</h3>
             <AvailabilityChart data={availabilityChartData} />
           </div>
         </Suspense>
 
         <Suspense fallback={<ChartSkeleton />}>
-          <div className='bg-white rounded-lg shadow-lg p-6'>
-            <h3 className='text-lg font-semibold mb-4'>알림 분포</h3>
+          <div className="rounded-lg bg-white p-6 shadow-lg">
+            <h3 className="mb-4 text-lg font-semibold">알림 분포</h3>
             <AlertsChart data={alertsChartData} />
           </div>
         </Suspense>
 
         <Suspense fallback={<ChartSkeleton />}>
-          <div className='bg-white rounded-lg shadow-lg p-6'>
-            <h3 className='text-lg font-semibold mb-4'>시간별 트렌드</h3>
+          <div className="rounded-lg bg-white p-6 shadow-lg">
+            <h3 className="mb-4 text-lg font-semibold">시간별 트렌드</h3>
             <TrendsChart data={trendsChartData} />
           </div>
         </Suspense>
@@ -312,10 +312,10 @@ const AdminDashboardCharts = memo(() => {
 
       {/* 로딩 오버레이 */}
       {isPending && (
-        <div className='fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50'>
-          <div className='bg-white rounded-lg p-4 shadow-lg'>
-            <div className='flex items-center gap-3'>
-              <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500'></div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-10">
+          <div className="rounded-lg bg-white p-4 shadow-lg">
+            <div className="flex items-center gap-3">
+              <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-blue-500"></div>
               <span>데이터 업데이트 중...</span>
             </div>
           </div>

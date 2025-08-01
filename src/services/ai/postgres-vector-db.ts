@@ -233,7 +233,7 @@ export class PostgresVectorDB {
       const vectorResults = await this.search(queryEmbedding, { topK });
 
       // HybridSearchResult 형태로 변환
-      return vectorResults.map(result => ({
+      return vectorResults.map((result) => ({
         ...result,
         vector_similarity: result.similarity,
         text_rank: 0, // 텍스트 검색 미구현
@@ -316,7 +316,7 @@ export class PostgresVectorDB {
 
       // 클라이언트 사이드에서 집계
       const categoryCount: Record<string, number> = {};
-      data?.forEach(row => {
+      data?.forEach((row) => {
         const category = row.metadata?.category;
         if (category) {
           categoryCount[category] = (categoryCount[category] || 0) + 1;

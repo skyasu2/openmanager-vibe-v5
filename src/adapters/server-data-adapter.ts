@@ -99,13 +99,13 @@ export function transformServerInstancesToServersOptimized(
   console.log('🔄 배치 변환 시작:', serverInstances.length, '개 서버');
 
   // 🚀 병렬 처리를 위한 배치 변환
-  const transformedServers = serverInstances.map(instance =>
+  const transformedServers = serverInstances.map((instance) =>
     transformServerInstanceToServerOptimized(instance)
   );
 
   // 🎯 캐시 업데이트
   transformCache.data.clear();
-  transformedServers.forEach(server => {
+  transformedServers.forEach((server) => {
     transformCache.data.set(server.id, server);
   });
   transformCache.lastUpdate = now;

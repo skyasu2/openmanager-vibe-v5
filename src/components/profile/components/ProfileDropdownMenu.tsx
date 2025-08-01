@@ -60,40 +60,40 @@ export const ProfileDropdownMenu = React.memo(function ProfileDropdownMenu({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -10, scale: 0.95 }}
           transition={{ duration: 0.2 }}
-          className='absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg py-2 border border-gray-200 z-[9999]'
-          role='menu'
-          aria-orientation='vertical'
-          aria-labelledby='profile-menu-button'
+          className="absolute right-0 z-[9999] mt-2 w-64 rounded-xl border border-gray-200 bg-white py-2 shadow-lg"
+          role="menu"
+          aria-orientation="vertical"
+          aria-labelledby="profile-menu-button"
         >
           {/* 사용자 정보 헤더 */}
-          <div className='px-4 py-3 border-b border-gray-100'>
-            <div className='flex items-center gap-3'>
+          <div className="border-b border-gray-100 px-4 py-3">
+            <div className="flex items-center gap-3">
               <ProfileAvatar
                 userInfo={userInfo}
                 userType={userType}
                 isAdminMode={isAdminMode}
-                size='large'
+                size="large"
                 showBadge={false}
               />
 
-              <div className='flex-1 min-w-0'>
-                <div className='font-medium text-gray-900 truncate flex items-center gap-2'>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 truncate font-medium text-gray-900">
                   {getUserName()}
                   <UserTypeIcon
                     userType={userType}
                     isAdminMode={isAdminMode}
-                    className='w-4 h-4 flex-shrink-0'
+                    className="h-4 w-4 flex-shrink-0"
                   />
                 </div>
 
                 {getUserEmail() && (
-                  <div className='text-sm text-gray-500 truncate'>
+                  <div className="truncate text-sm text-gray-500">
                     {getUserEmail()}
                   </div>
                 )}
 
                 <div
-                  className={`text-xs px-2 py-1 rounded-full inline-block mt-1 ${getUserTypeClass()}`}
+                  className={`mt-1 inline-block rounded-full px-2 py-1 text-xs ${getUserTypeClass()}`}
                 >
                   {getUserTypeLabel()} 계정
                 </div>
@@ -102,13 +102,13 @@ export const ProfileDropdownMenu = React.memo(function ProfileDropdownMenu({
           </div>
 
           {/* 메뉴 아이템들 */}
-          <div className='py-1'>
+          <div className="py-1">
             {/* 관리자 모드 섹션 */}
             {!isAdminMode && (
               <>
                 <ProfileMenuItem
-                  id='admin-toggle'
-                  label='관리자 모드'
+                  id="admin-toggle"
+                  label="관리자 모드"
                   icon={Crown}
                   action={onAdminAuthClick}
                   visible={true}
@@ -136,8 +136,8 @@ export const ProfileDropdownMenu = React.memo(function ProfileDropdownMenu({
           </div>
 
           {/* 하단 정보 */}
-          <div className='px-4 py-2 border-t border-gray-100'>
-            <p className='text-xs text-gray-400 text-center'>
+          <div className="border-t border-gray-100 px-4 py-2">
+            <p className="text-center text-xs text-gray-400">
               {isAdminMode ? '🔒 관리자 권한으로 실행 중' : '🛡️ 보안 연결됨'}
             </p>
           </div>

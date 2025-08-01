@@ -390,7 +390,7 @@ export class RedisConnectionManager {
     section: string
   ): Record<string, string> | null {
     const lines = info.split('\n');
-    const sectionStart = lines.findIndex(line =>
+    const sectionStart = lines.findIndex((line) =>
       line.includes(`# ${section.charAt(0).toUpperCase() + section.slice(1)}`)
     );
 
@@ -477,7 +477,7 @@ export class RedisConnectionManager {
     await this.disconnect();
 
     // 잠시 대기 후 재연결
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     return await this._initialize();
   }

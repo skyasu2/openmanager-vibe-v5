@@ -79,7 +79,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
 
@@ -93,7 +93,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
         type: content.includes('보고서') ? 'report' : 'text',
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages((prev) => [...prev, assistantMessage]);
       setIsLoading(false);
     }, 1500);
   };
@@ -219,46 +219,46 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
   };
 
   return (
-    <div className='fixed inset-y-0 right-0 w-96 bg-white shadow-lg z-50 flex flex-col'>
+    <div className="fixed inset-y-0 right-0 z-50 flex w-96 flex-col bg-white shadow-lg">
       {/* 헤더 */}
-      <div className='p-4 border-b border-gray-200'>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center gap-3'>
-            <div className='w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center'>
-              <Bot className='w-4 h-4 text-white' />
+      <div className="border-b border-gray-200 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-blue-600">
+              <Bot className="h-4 w-4 text-white" />
             </div>
             <div>
-              <h2 className='text-lg font-semibold text-gray-800'>
+              <h2 className="text-lg font-semibold text-gray-800">
                 AI 어시스턴트
               </h2>
-              <p className='text-xs text-gray-500'>실시간 모니터링 분석</p>
+              <p className="text-xs text-gray-500">실시간 모니터링 분석</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className='p-2 hover:bg-gray-100 rounded-lg transition-colors'
+            className="rounded-lg p-2 transition-colors hover:bg-gray-100"
           >
             ✕
           </button>
         </div>
 
         {/* 탭 메뉴 */}
-        <div className='flex gap-1 mt-4'>
+        <div className="mt-4 flex gap-1">
           {[
             { id: 'chat', label: '채팅', icon: Bot },
             { id: 'reports', label: '보고서', icon: FileText },
             { id: 'insights', label: '인사이트', icon: Brain },
-          ].map(tab => (
+          ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? 'bg-blue-100 text-blue-700'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <tab.icon className='w-4 h-4' />
+              <tab.icon className="h-4 w-4" />
               {tab.label}
             </button>
           ))}
@@ -266,40 +266,40 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
       </div>
 
       {/* 콘텐츠 영역 */}
-      <div className='flex-1 flex flex-col overflow-hidden'>
+      <div className="flex flex-1 flex-col overflow-hidden">
         {activeTab === 'chat' && (
           <>
             {/* 프리셋 질문 */}
-            <div className='p-4 border-b border-gray-100'>
-              <h3 className='text-sm font-medium text-gray-700 mb-3'>
+            <div className="border-b border-gray-100 p-4">
+              <h3 className="mb-3 text-sm font-medium text-gray-700">
                 빠른 질문
               </h3>
-              <div className='grid grid-cols-2 gap-2'>
-                {PRESET_QUESTIONS.slice(0, 4).map(preset => (
+              <div className="grid grid-cols-2 gap-2">
+                {PRESET_QUESTIONS.slice(0, 4).map((preset) => (
                   <button
                     key={preset.id}
                     onClick={() => handlePresetClick(preset.question)}
-                    className='p-2 text-xs bg-gray-50 hover:bg-gray-100 rounded-lg text-left transition-colors'
+                    className="rounded-lg bg-gray-50 p-2 text-left text-xs transition-colors hover:bg-gray-100"
                     disabled={isLoading}
                   >
-                    <div className='flex items-center gap-1 mb-1'>
+                    <div className="mb-1 flex items-center gap-1">
                       {preset.category === 'performance' && (
-                        <TrendingUp className='w-3 h-3 text-green-500' />
+                        <TrendingUp className="h-3 w-3 text-green-500" />
                       )}
                       {preset.category === 'security' && (
-                        <Shield className='w-3 h-3 text-red-500' />
+                        <Shield className="h-3 w-3 text-red-500" />
                       )}
                       {preset.category === 'prediction' && (
-                        <Brain className='w-3 h-3 text-purple-500' />
+                        <Brain className="h-3 w-3 text-purple-500" />
                       )}
                       {preset.category === 'analysis' && (
-                        <Search className='w-3 h-3 text-blue-500' />
+                        <Search className="h-3 w-3 text-blue-500" />
                       )}
-                      <span className='font-medium capitalize'>
+                      <span className="font-medium capitalize">
                         {preset.category}
                       </span>
                     </div>
-                    <div className='text-gray-600'>{preset.question}</div>
+                    <div className="text-gray-600">{preset.question}</div>
                   </button>
                 ))}
               </div>
@@ -307,18 +307,18 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
               <button
                 onClick={generateAutoReport}
                 disabled={isLoading}
-                className='w-full mt-3 p-3 bg-gradient-to-r from-purple-500 to-blue-600 text-white rounded-lg font-medium hover:from-purple-600 hover:to-blue-700 transition-all disabled:opacity-50'
+                className="mt-3 w-full rounded-lg bg-gradient-to-r from-purple-500 to-blue-600 p-3 font-medium text-white transition-all hover:from-purple-600 hover:to-blue-700 disabled:opacity-50"
               >
-                <div className='flex items-center justify-center gap-2'>
-                  <Zap className='w-4 h-4' />
+                <div className="flex items-center justify-center gap-2">
+                  <Zap className="h-4 w-4" />
                   자동 장애 보고서 생성
                 </div>
               </button>
             </div>
 
             {/* 채팅 메시지 */}
-            <div className='flex-1 overflow-y-auto p-4 space-y-4'>
-              {messages.map(message => (
+            <div className="flex-1 space-y-4 overflow-y-auto p-4">
+              {messages.map((message) => (
                 <motion.div
                   key={message.id}
                   initial={{ opacity: 0, y: 10 }}
@@ -329,19 +329,19 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                     className={`max-w-[80%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}
                   >
                     <div
-                      className={`p-3 rounded-lg ${
+                      className={`rounded-lg p-3 ${
                         message.role === 'user'
                           ? 'bg-blue-500 text-white'
                           : message.type === 'report'
-                            ? 'bg-purple-50 border border-purple-200'
+                            ? 'border border-purple-200 bg-purple-50'
                             : 'bg-gray-100 text-gray-800'
                       }`}
                     >
-                      <div className='whitespace-pre-wrap text-sm'>
+                      <div className="whitespace-pre-wrap text-sm">
                         {message.content}
                       </div>
                       <div
-                        className={`text-xs mt-1 opacity-70 ${
+                        className={`mt-1 text-xs opacity-70 ${
                           message.role === 'user'
                             ? 'text-blue-100'
                             : 'text-gray-500'
@@ -355,16 +355,16 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                     </div>
                   </div>
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    className={`flex h-8 w-8 items-center justify-center rounded-full ${
                       message.role === 'user'
                         ? 'order-1 mr-2 bg-blue-500'
                         : 'order-2 ml-2 bg-gray-300'
                     }`}
                   >
                     {message.role === 'user' ? (
-                      <User className='w-4 h-4 text-white' />
+                      <User className="h-4 w-4 text-white" />
                     ) : (
-                      <Bot className='w-4 h-4 text-gray-600' />
+                      <Bot className="h-4 w-4 text-gray-600" />
                     )}
                   </div>
                 </motion.div>
@@ -374,20 +374,20 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className='flex justify-start'
+                  className="flex justify-start"
                 >
-                  <div className='bg-gray-100 p-3 rounded-lg'>
-                    <div className='flex items-center gap-2 text-gray-600'>
-                      <div className='w-2 h-2 bg-gray-400 rounded-full _animate-bounce'></div>
+                  <div className="rounded-lg bg-gray-100 p-3">
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <div className="_animate-bounce h-2 w-2 rounded-full bg-gray-400"></div>
                       <div
-                        className='w-2 h-2 bg-gray-400 rounded-full _animate-bounce'
+                        className="_animate-bounce h-2 w-2 rounded-full bg-gray-400"
                         style={{ animationDelay: '0.1s' }}
                       ></div>
                       <div
-                        className='w-2 h-2 bg-gray-400 rounded-full _animate-bounce'
+                        className="_animate-bounce h-2 w-2 rounded-full bg-gray-400"
                         style={{ animationDelay: '0.2s' }}
                       ></div>
-                      <span className='text-sm'>분석 중...</span>
+                      <span className="text-sm">분석 중...</span>
                     </div>
                   </div>
                 </motion.div>
@@ -397,26 +397,26 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
             </div>
 
             {/* 입력 영역 */}
-            <div className='p-4 border-t border-gray-200'>
-              <div className='flex gap-2'>
+            <div className="border-t border-gray-200 p-4">
+              <div className="flex gap-2">
                 <input
                   ref={inputRef}
-                  type='text'
+                  type="text"
                   value={inputValue}
-                  onChange={e => setInputValue(e.target.value)}
-                  onKeyPress={e =>
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={(e) =>
                     e.key === 'Enter' && handleSendMessage(inputValue)
                   }
-                  placeholder='자연어로 질문하세요...'
+                  placeholder="자연어로 질문하세요..."
                   disabled={isLoading}
-                  className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50'
+                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 />
                 <button
                   onClick={() => handleSendMessage(inputValue)}
                   disabled={!inputValue.trim() || isLoading}
-                  className='px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                  className="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <Send className='w-4 h-4' />
+                  <Send className="h-4 w-4" />
                 </button>
               </div>
             </div>
@@ -424,16 +424,16 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
         )}
 
         {activeTab === 'reports' && (
-          <div className='p-4 overflow-y-auto'>
-            <div className='space-y-4'>
-              <div className='bg-gray-50 rounded-lg p-4'>
-                <div className='flex items-center gap-2 mb-3'>
-                  <Clock className='w-5 h-5 text-blue-500' />
-                  <h3 className='font-medium text-gray-800'>
+          <div className="overflow-y-auto p-4">
+            <div className="space-y-4">
+              <div className="rounded-lg bg-gray-50 p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-blue-500" />
+                  <h3 className="font-medium text-gray-800">
                     실시간 시스템 리포트
                   </h3>
                 </div>
-                <div className='text-sm text-gray-600 space-y-2'>
+                <div className="space-y-2 text-sm text-gray-600">
                   <div>• 전체 서버 상태: 정상</div>
                   <div>• 평균 응답시간: 120ms</div>
                   <div>• 에러율: 0.08%</div>
@@ -445,24 +445,24 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
 
               <button
                 onClick={generateAutoReport}
-                className='w-full p-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg font-medium hover:from-green-600 hover:to-emerald-700 transition-all'
+                className="w-full rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 p-3 font-medium text-white transition-all hover:from-green-600 hover:to-emerald-700"
               >
-                <div className='flex items-center justify-center gap-2'>
-                  <FileText className='w-4 h-4' />
+                <div className="flex items-center justify-center gap-2">
+                  <FileText className="h-4 w-4" />
                   상세 보고서 생성
                 </div>
               </button>
 
-              <div className='grid grid-cols-2 gap-2'>
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => handleSendMessage('성능 분석 보고서')}
-                  className='p-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-medium transition-colors'
+                  className="rounded-lg bg-blue-50 p-3 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100"
                 >
                   성능 분석
                 </button>
                 <button
                   onClick={() => handleSendMessage('보안 상태 보고서')}
-                  className='p-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-sm font-medium transition-colors'
+                  className="rounded-lg bg-red-50 p-3 text-sm font-medium text-red-700 transition-colors hover:bg-red-100"
                 >
                   보안 점검
                 </button>
@@ -472,38 +472,38 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
         )}
 
         {activeTab === 'insights' && (
-          <div className='p-4 overflow-y-auto'>
-            <AIInsightsCard className='mb-4' />
+          <div className="overflow-y-auto p-4">
+            <AIInsightsCard className="mb-4" />
 
-            <div className='space-y-3'>
-              <div className='bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200'>
-                <div className='flex items-center gap-2 mb-2'>
-                  <Lightbulb className='w-4 h-4 text-purple-600' />
-                  <h3 className='font-medium text-purple-800'>AI 추천</h3>
+            <div className="space-y-3">
+              <div className="rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4">
+                <div className="mb-2 flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4 text-purple-600" />
+                  <h3 className="font-medium text-purple-800">AI 추천</h3>
                 </div>
-                <p className='text-sm text-purple-700'>
+                <p className="text-sm text-purple-700">
                   서버 #3의 CPU 사용률이 85%에 도달했습니다. 프로세스 최적화를
                   권장합니다.
                 </p>
               </div>
 
-              <div className='bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 border border-yellow-200'>
-                <div className='flex items-center gap-2 mb-2'>
-                  <AlertTriangle className='w-4 h-4 text-yellow-600' />
-                  <h3 className='font-medium text-yellow-800'>주의 사항</h3>
+              <div className="rounded-lg border border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-4">
+                <div className="mb-2 flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                  <h3 className="font-medium text-yellow-800">주의 사항</h3>
                 </div>
-                <p className='text-sm text-yellow-700'>
+                <p className="text-sm text-yellow-700">
                   네트워크 트래픽이 평소보다 20% 증가했습니다. 모니터링을
                   강화하세요.
                 </p>
               </div>
 
-              <div className='bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200'>
-                <div className='flex items-center gap-2 mb-2'>
-                  <TrendingUp className='w-4 h-4 text-green-600' />
-                  <h3 className='font-medium text-green-800'>성능 향상</h3>
+              <div className="rounded-lg border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-4">
+                <div className="mb-2 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                  <h3 className="font-medium text-green-800">성능 향상</h3>
                 </div>
-                <p className='text-sm text-green-700'>
+                <p className="text-sm text-green-700">
                   최근 최적화로 전체 응답시간이 15% 개선되었습니다.
                 </p>
               </div>

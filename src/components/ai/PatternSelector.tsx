@@ -35,47 +35,47 @@ export default function PatternSelector({
 
   return (
     <div
-      className={`bg-white rounded-2xl shadow-lg border border-gray-200 p-4 ${className}`}
+      className={`rounded-2xl border border-gray-200 bg-white p-4 shadow-lg ${className}`}
     >
-      <div className='flex items-center gap-3 mb-4'>
-        <div className='w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center'>
-          <i className='fas fa-cogs text-white text-sm'></i>
+      <div className="mb-4 flex items-center gap-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600">
+          <i className="fas fa-cogs text-sm text-white"></i>
         </div>
         <div>
-          <h3 className='font-bold text-gray-900'>시스템 패턴</h3>
-          <p className='text-sm text-gray-500'>데이터 생성 패턴을 선택하세요</p>
+          <h3 className="font-bold text-gray-900">시스템 패턴</h3>
+          <p className="text-sm text-gray-500">데이터 생성 패턴을 선택하세요</p>
         </div>
       </div>
 
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-3'>
-        {patterns.map(pattern => (
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        {patterns.map((pattern) => (
           <button
             key={pattern.id}
             onClick={() => handlePatternChange(pattern.id)}
             disabled={isChanging === pattern.id}
-            className={`relative p-4 rounded-xl border-2 transition-all duration-300 text-left group ${
+            className={`group relative rounded-xl border-2 p-4 text-left transition-all duration-300 ${
               pattern.active
-                ? `${pattern.color} border-current shadow-lg scale-105`
+                ? `${pattern.color} scale-105 border-current shadow-lg`
                 : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
-            } ${isChanging === pattern.id ? 'opacity-50 cursor-not-allowed' : 'hover:scale-102'}`}
+            } ${isChanging === pattern.id ? 'cursor-not-allowed opacity-50' : 'hover:scale-102'}`}
           >
             {/* 활성 상태 표시 */}
             {pattern.active && (
-              <div className='absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg'>
-                <i className='fas fa-check text-white text-xs'></i>
+              <div className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-green-500 shadow-lg">
+                <i className="fas fa-check text-xs text-white"></i>
               </div>
             )}
 
             {/* 로딩 스피너 */}
             {isChanging === pattern.id && (
-              <div className='absolute inset-0 bg-white/80 rounded-xl flex items-center justify-center'>
-                <div className='w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin'></div>
+              <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/80">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"></div>
               </div>
             )}
 
-            <div className='flex items-center gap-3 mb-2'>
+            <div className="mb-2 flex items-center gap-3">
               <div
-                className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                className={`flex h-10 w-10 items-center justify-center rounded-lg ${
                   pattern.active ? 'bg-white/20' : 'bg-gray-100'
                 }`}
               >
@@ -85,7 +85,7 @@ export default function PatternSelector({
                   }`}
                 ></i>
               </div>
-              <div className='flex-1'>
+              <div className="flex-1">
                 <h4
                   className={`font-semibold ${
                     pattern.active ? 'text-white' : 'text-gray-900'
@@ -106,16 +106,16 @@ export default function PatternSelector({
 
             {/* 호버 효과 */}
             {!pattern.active && (
-              <div className='absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-500/5 to-purple-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
             )}
           </button>
         ))}
       </div>
 
       {/* 패턴 설명 */}
-      <div className='mt-4 p-3 bg-gray-50 rounded-xl'>
-        <div className='flex items-center gap-2 text-sm text-gray-600'>
-          <i className='fas fa-info-circle'></i>
+      <div className="mt-4 rounded-xl bg-gray-50 p-3">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <i className="fas fa-info-circle"></i>
           <span>패턴 변경 시 실시간 데이터 생성 방식이 즉시 적용됩니다.</span>
         </div>
       </div>

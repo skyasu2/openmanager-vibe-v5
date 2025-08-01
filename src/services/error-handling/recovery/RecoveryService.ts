@@ -120,7 +120,7 @@ export class RecoveryService {
     );
 
     console.log(`⏰ 복구 백오프 지연: ${delay}ms (${attempts}번째 시도)`);
-    await new Promise(resolve => setTimeout(resolve, delay));
+    await new Promise((resolve) => setTimeout(resolve, delay));
   }
 
   /**
@@ -472,7 +472,7 @@ export class RecoveryService {
       // 캐시 정리
       if ('caches' in window) {
         const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map(name => caches.delete(name)));
+        await Promise.all(cacheNames.map((name) => caches.delete(name)));
       }
 
       return {
@@ -504,10 +504,10 @@ export class RecoveryService {
       if (typeof window !== 'undefined') {
         // 로컬 스토리지 정리 (중요하지 않은 데이터)
         const keysToRemove = Object.keys(localStorage).filter(
-          key => key.startsWith('temp-') || key.startsWith('cache-')
+          (key) => key.startsWith('temp-') || key.startsWith('cache-')
         );
 
-        keysToRemove.forEach(key => localStorage.removeItem(key));
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
 
         // IndexedDB 정리 (가능한 경우)
         if ('indexedDB' in window) {
@@ -575,7 +575,7 @@ export class RecoveryService {
 
     try {
       // 기본 재시도 로직
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       return {
         success: true,

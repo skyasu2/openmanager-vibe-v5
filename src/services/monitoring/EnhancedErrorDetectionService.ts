@@ -480,7 +480,7 @@ export class EnhancedErrorDetectionService {
 
     // 최근 알림이 스로틀링 시간 내에 있는지 확인
     return history.some(
-      alertTime => now.getTime() - alertTime.getTime() < throttleTime
+      (alertTime) => now.getTime() - alertTime.getTime() < throttleTime
     );
   }
 
@@ -493,7 +493,7 @@ export class EnhancedErrorDetectionService {
 
     // 최근 24시간 기록만 유지
     const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const recentHistory = history.filter(time => time > dayAgo);
+    const recentHistory = history.filter((time) => time > dayAgo);
 
     this.alertHistory.set(patternId, recentHistory);
   }
@@ -600,7 +600,7 @@ export class EnhancedErrorDetectionService {
   private async performMemoryCleanup(): Promise<void> {
     // 실제 환경에서는 가비지 컬렉션, 캐시 정리 등을 수행
     console.log('   메모리 정리 수행 중...');
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   /**
@@ -609,7 +609,7 @@ export class EnhancedErrorDetectionService {
   private async performCPUOptimization(): Promise<void> {
     // 실제 환경에서는 프로세스 우선순위 조정, 스케줄링 최적화 등을 수행
     console.log('   CPU 최적화 수행 중...');
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   /**

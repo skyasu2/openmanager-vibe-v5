@@ -92,7 +92,7 @@ const productionConfigs: CollectorConfig[] = [
  */
 export function getCollectorConfigs(): CollectorConfig[] {
   console.log(`🔧 프로덕션 Collector 모드: ${COLLECTOR_MODE}`);
-  return productionConfigs.filter(config => config.enabled);
+  return productionConfigs.filter((config) => config.enabled);
 }
 
 /**

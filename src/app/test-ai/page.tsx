@@ -60,24 +60,24 @@ export default function TestAIPage() {
   };
 
   return (
-    <div className='min-h-screen bg-gray-950 text-white p-8'>
-      <div className='max-w-4xl mx-auto'>
+    <div className="min-h-screen bg-gray-950 p-8 text-white">
+      <div className="mx-auto max-w-4xl">
         {/* 헤더 */}
-        <div className='mb-8'>
-          <h1 className='text-3xl font-bold mb-2 flex items-center gap-2'>
-            <Brain className='w-8 h-8 text-purple-400' />
+        <div className="mb-8">
+          <h1 className="mb-2 flex items-center gap-2 text-3xl font-bold">
+            <Brain className="h-8 w-8 text-purple-400" />
             AI 엔진 테스트
           </h1>
-          <p className='text-gray-400'>
+          <p className="text-gray-400">
             SimplifiedQueryEngine 자연어 질의 응답 테스트
           </p>
         </div>
 
         {/* 모드 선택 */}
-        <div className='mb-6 flex gap-4'>
+        <div className="mb-6 flex gap-4">
           <button
             onClick={() => setMode('local')}
-            className={`px-4 py-2 rounded-lg transition-colors ${
+            className={`rounded-lg px-4 py-2 transition-colors ${
               _mode === 'local'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
@@ -87,7 +87,7 @@ export default function TestAIPage() {
           </button>
           <button
             onClick={() => setMode('google-ai')}
-            className={`px-4 py-2 rounded-lg transition-colors ${
+            className={`rounded-lg px-4 py-2 transition-colors ${
               _mode === 'google-ai'
                 ? 'bg-purple-600 text-white'
                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
@@ -98,25 +98,25 @@ export default function TestAIPage() {
         </div>
 
         {/* 질의 입력 폼 */}
-        <form onSubmit={handleSubmit} className='mb-8'>
-          <div className='flex gap-2'>
+        <form onSubmit={handleSubmit} className="mb-8">
+          <div className="flex gap-2">
             <input
-              type='text'
+              type="text"
               value={query}
-              onChange={e => setQuery(e.target.value)}
-              placeholder='질문을 입력하세요...'
-              className='flex-1 px-4 py-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="질문을 입력하세요..."
+              className="flex-1 rounded-lg bg-gray-800 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={loading}
             />
             <button
-              type='submit'
+              type="submit"
               disabled={loading || !query.trim()}
-              className='px-6 py-3 bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? (
-                <Loader2 className='w-5 h-5 animate-spin' />
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <Send className='w-5 h-5' />
+                <Send className="h-5 w-5" />
               )}
               전송
             </button>
@@ -124,14 +124,14 @@ export default function TestAIPage() {
         </form>
 
         {/* 예시 질의 버튼들 */}
-        <div className='mb-8'>
-          <p className='text-sm text-gray-400 mb-2'>예시 질의:</p>
-          <div className='flex flex-wrap gap-2'>
+        <div className="mb-8">
+          <p className="mb-2 text-sm text-gray-400">예시 질의:</p>
+          <div className="flex flex-wrap gap-2">
             {exampleQueries.map((example, idx) => (
               <button
                 key={idx}
                 onClick={() => setQuery(example)}
-                className='px-3 py-1 text-sm bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors'
+                className="rounded-lg bg-gray-800 px-3 py-1 text-sm transition-colors hover:bg-gray-700"
               >
                 {example}
               </button>
@@ -144,27 +144,27 @@ export default function TestAIPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className='space-y-4'
+            className="space-y-4"
           >
             {/* 상태 표시 */}
             <div
-              className={`p-4 rounded-lg ${
+              className={`rounded-lg p-4 ${
                 response.success
-                  ? 'bg-green-900/20 border border-green-800'
-                  : 'bg-red-900/20 border border-red-800'
+                  ? 'border border-green-800 bg-green-900/20'
+                  : 'border border-red-800 bg-red-900/20'
               }`}
             >
-              <div className='flex items-center gap-2'>
+              <div className="flex items-center gap-2">
                 {response.success ? (
-                  <CheckCircle className='w-5 h-5 text-green-400' />
+                  <CheckCircle className="h-5 w-5 text-green-400" />
                 ) : (
-                  <AlertCircle className='w-5 h-5 text-red-400' />
+                  <AlertCircle className="h-5 w-5 text-red-400" />
                 )}
-                <span className='font-semibold'>
+                <span className="font-semibold">
                   {response.success ? '성공' : '실패'}
                 </span>
                 {response.engine && (
-                  <span className='text-sm text-gray-400'>
+                  <span className="text-sm text-gray-400">
                     (엔진: {response.engine})
                   </span>
                 )}
@@ -174,17 +174,17 @@ export default function TestAIPage() {
             {/* 응답 내용 */}
             {response.success ? (
               <>
-                <div className='p-4 bg-gray-800 rounded-lg'>
-                  <h3 className='font-semibold mb-2'>응답:</h3>
-                  <pre className='whitespace-pre-wrap text-gray-300'>
+                <div className="rounded-lg bg-gray-800 p-4">
+                  <h3 className="mb-2 font-semibold">응답:</h3>
+                  <pre className="whitespace-pre-wrap text-gray-300">
                     {response.response}
                   </pre>
                 </div>
 
                 {/* 메타데이터 */}
-                <div className='p-4 bg-gray-800 rounded-lg'>
-                  <h3 className='font-semibold mb-2'>메타데이터:</h3>
-                  <div className='space-y-1 text-sm text-gray-400'>
+                <div className="rounded-lg bg-gray-800 p-4">
+                  <h3 className="mb-2 font-semibold">메타데이터:</h3>
+                  <div className="space-y-1 text-sm text-gray-400">
                     <div>신뢰도: {(response.confidence * 100).toFixed(1)}%</div>
                     {response.metadata && (
                       <>
@@ -204,16 +204,16 @@ export default function TestAIPage() {
 
                 {/* 생각 과정 */}
                 {response.thinkingSteps && (
-                  <div className='p-4 bg-gray-800 rounded-lg'>
-                    <h3 className='font-semibold mb-2'>생각 과정:</h3>
-                    <div className='space-y-2'>
+                  <div className="rounded-lg bg-gray-800 p-4">
+                    <h3 className="mb-2 font-semibold">생각 과정:</h3>
+                    <div className="space-y-2">
                       {response.thinkingSteps.map((step: any, idx: number) => (
                         <div
                           key={idx}
-                          className='flex items-center gap-2 text-sm'
+                          className="flex items-center gap-2 text-sm"
                         >
                           <div
-                            className={`w-2 h-2 rounded-full ${
+                            className={`h-2 w-2 rounded-full ${
                               step.status === 'completed'
                                 ? 'bg-green-400'
                                 : step.status === 'error'
@@ -225,7 +225,7 @@ export default function TestAIPage() {
                             {idx + 1}. {step.step}
                           </span>
                           {step.duration && (
-                            <span className='text-gray-500'>
+                            <span className="text-gray-500">
                               ({step.duration}ms)
                             </span>
                           )}
@@ -236,13 +236,13 @@ export default function TestAIPage() {
                 )}
               </>
             ) : (
-              <div className='p-4 bg-gray-800 rounded-lg'>
-                <h3 className='font-semibold mb-2 text-red-400'>에러:</h3>
-                <p className='text-gray-300'>
+              <div className="rounded-lg bg-gray-800 p-4">
+                <h3 className="mb-2 font-semibold text-red-400">에러:</h3>
+                <p className="text-gray-300">
                   {response.error || '알 수 없는 오류'}
                 </p>
                 {response.message && (
-                  <p className='text-sm text-gray-400 mt-2'>
+                  <p className="mt-2 text-sm text-gray-400">
                     {response.message}
                   </p>
                 )}
@@ -250,11 +250,11 @@ export default function TestAIPage() {
             )}
 
             {/* 원본 응답 (디버그용) */}
-            <details className='p-4 bg-gray-900 rounded-lg'>
-              <summary className='cursor-pointer text-sm text-gray-400'>
+            <details className="rounded-lg bg-gray-900 p-4">
+              <summary className="cursor-pointer text-sm text-gray-400">
                 원본 응답 데이터
               </summary>
-              <pre className='mt-2 text-xs overflow-auto'>
+              <pre className="mt-2 overflow-auto text-xs">
                 {JSON.stringify(response, null, 2)}
               </pre>
             </details>

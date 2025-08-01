@@ -72,10 +72,10 @@ const StepDots: React.FC<StepDotsProps> = ({
   return (
     <div className={`${getOrientationClasses()} ${sizeClasses.spacing} px-1`}>
       {Array.from({ length: totalSteps }, (_, index) => (
-        <div key={index} className='relative flex flex-col items-center'>
+        <div key={index} className="relative flex flex-col items-center">
           {/* 점 */}
           <motion.div
-            className={`${sizeClasses.dot} rounded-full transition-all duration-300 cursor-pointer relative ${getDotColor(index)}`}
+            className={`${sizeClasses.dot} relative cursor-pointer rounded-full transition-all duration-300 ${getDotColor(index)}`}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{
@@ -94,7 +94,7 @@ const StepDots: React.FC<StepDotsProps> = ({
             {/* 현재 단계 펄스 효과 */}
             {index === currentStep && !error && (
               <motion.div
-                className='absolute inset-0 rounded-full bg-blue-400'
+                className="absolute inset-0 rounded-full bg-blue-400"
                 animate={{
                   scale: [1, 1.5, 1],
                   opacity: [0.8, 0.2, 0.8],
@@ -110,12 +110,12 @@ const StepDots: React.FC<StepDotsProps> = ({
             {/* 완료 체크 표시 */}
             {index < currentStep && (
               <motion.div
-                className='absolute inset-0 flex items-center justify-center'
+                className="absolute inset-0 flex items-center justify-center"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2 }}
               >
-                <div className='w-1 h-1 bg-white rounded-full' />
+                <div className="h-1 w-1 rounded-full bg-white" />
               </motion.div>
             )}
           </motion.div>
@@ -123,7 +123,7 @@ const StepDots: React.FC<StepDotsProps> = ({
           {/* 라벨 (옵션) */}
           {showLabels && (
             <motion.span
-              className={`text-xs mt-1 ${
+              className={`mt-1 text-xs ${
                 index === currentStep
                   ? error
                     ? 'text-red-400'
@@ -143,7 +143,7 @@ const StepDots: React.FC<StepDotsProps> = ({
           {/* 연결선 (마지막 점 제외) */}
           {orientation === 'horizontal' && index < totalSteps - 1 && (
             <motion.div
-              className={`absolute top-1/2 left-full w-2 h-px -translate-y-1/2 ${
+              className={`absolute left-full top-1/2 h-px w-2 -translate-y-1/2 ${
                 index < currentStep ? 'bg-green-400/50' : 'bg-gray-600/50'
               }`}
               initial={{ scaleX: 0 }}
@@ -154,7 +154,7 @@ const StepDots: React.FC<StepDotsProps> = ({
 
           {orientation === 'vertical' && index < totalSteps - 1 && (
             <motion.div
-              className={`absolute top-full left-1/2 w-px h-2 -translate-x-1/2 ${
+              className={`absolute left-1/2 top-full h-2 w-px -translate-x-1/2 ${
                 index < currentStep ? 'bg-green-400/50' : 'bg-gray-600/50'
               }`}
               initial={{ scaleY: 0 }}

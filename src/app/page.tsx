@@ -49,9 +49,9 @@ export default function RootRedirect() {
 
   // 리다이렉션 중 로딩 화면 표시
   return (
-    <div className='min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center'>
-      <div className='text-white flex items-center space-x-2'>
-        <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin'></div>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      <div className="flex items-center space-x-2 text-white">
+        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
         <span>{isChecking ? '인증 확인 중...' : '리다이렉션 중...'}</span>
       </div>
     </div>

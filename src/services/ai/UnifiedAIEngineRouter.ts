@@ -280,10 +280,11 @@ export class UnifiedAIEngineRouter {
 
       // 7. 토큰 사용량 기록
       if (request.userId && response.metadata?.tokensUsed) {
-        const tokensUsed = typeof response.metadata.tokensUsed === 'number' 
-          ? response.metadata.tokensUsed 
-          : parseInt(String(response.metadata.tokensUsed), 10);
-        
+        const tokensUsed =
+          typeof response.metadata.tokensUsed === 'number'
+            ? response.metadata.tokensUsed
+            : parseInt(String(response.metadata.tokensUsed), 10);
+
         if (!isNaN(tokensUsed)) {
           this.recordTokenUsage(request.userId, tokensUsed);
           tokensCounted = true;
@@ -491,7 +492,7 @@ export class UnifiedAIEngineRouter {
     processingPath: string[]
   ): Promise<QueryResponse | null> {
     const availableEngines = this.config.fallbackChain.filter(
-      engine => engine !== failedEngine
+      (engine) => engine !== failedEngine
     );
 
     for (const engine of availableEngines) {

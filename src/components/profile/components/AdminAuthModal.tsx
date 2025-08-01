@@ -34,7 +34,7 @@ export const AdminAuthModal = React.memo(function AdminAuthModal({
   return (
     <AnimatePresence>
       <motion.div
-        className='px-4 py-3 border-t border-gray-100 bg-gray-50'
+        className="border-t border-gray-100 bg-gray-50 px-4 py-3"
         initial={{ height: 0, opacity: 0 }}
         animate={{ height: 'auto', opacity: 1 }}
         exit={{ height: 0, opacity: 0 }}
@@ -43,10 +43,10 @@ export const AdminAuthModal = React.memo(function AdminAuthModal({
         {/* 보안 상태 표시 */}
         {(failedAttempts > 0 || isLocked) && (
           <motion.div
-            className={`mb-2 p-2 rounded text-xs flex items-center gap-2 ${
+            className={`mb-2 flex items-center gap-2 rounded p-2 text-xs ${
               isLocked
-                ? 'bg-red-100 text-red-700 border border-red-200'
-                : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                ? 'border border-red-200 bg-red-100 text-red-700'
+                : 'border border-yellow-200 bg-yellow-100 text-yellow-700'
             }`}
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -54,12 +54,12 @@ export const AdminAuthModal = React.memo(function AdminAuthModal({
           >
             {isLocked ? (
               <>
-                <Lock className='w-3 h-3' />
+                <Lock className="h-3 w-3" />
                 <span>잠금됨: {formatRemainingTime()} 남음</span>
               </>
             ) : (
               <>
-                <AlertTriangle className='w-3 h-3' />
+                <AlertTriangle className="h-3 w-3" />
                 <span>실패 {failedAttempts}/5회 (3회 실패 시 5분 잠금)</span>
               </>
             )}
@@ -67,43 +67,43 @@ export const AdminAuthModal = React.memo(function AdminAuthModal({
         )}
 
         {/* 비밀번호 입력 필드 */}
-        <div className='space-y-2'>
-          <label className='text-xs text-gray-600 font-medium block'>
+        <div className="space-y-2">
+          <label className="block text-xs font-medium text-gray-600">
             관리자 비밀번호
           </label>
           <input
-            type='password'
+            type="password"
             placeholder={isLocked ? '잠금 상태' : '비밀번호 입력'}
             value={adminPassword}
-            onChange={e => onPasswordChange(e.target.value)}
+            onChange={(e) => onPasswordChange(e.target.value)}
             onKeyPress={handleKeyPress}
-            className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none transition-all ${
+            className={`w-full rounded-md border px-3 py-2 text-sm transition-all focus:outline-none ${
               isLocked
-                ? 'border-red-300 bg-red-50 cursor-not-allowed'
-                : 'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                ? 'cursor-not-allowed border-red-300 bg-red-50'
+                : 'border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500'
             }`}
             disabled={isLocked || isProcessing}
             autoFocus={!isLocked}
             maxLength={4}
-            aria-label='관리자 비밀번호'
+            aria-label="관리자 비밀번호"
             aria-invalid={failedAttempts > 0}
             aria-describedby={failedAttempts > 0 ? 'auth-error' : undefined}
           />
 
           {/* 힌트 텍스트 */}
           {!isLocked && failedAttempts === 0 && (
-            <p className='text-xs text-gray-500'>4자리 숫자를 입력하세요</p>
+            <p className="text-xs text-gray-500">4자리 숫자를 입력하세요</p>
           )}
         </div>
 
         {/* 버튼 그룹 */}
-        <div className='flex gap-2 mt-3'>
+        <div className="mt-3 flex gap-2">
           <motion.button
             onClick={onSubmit}
             disabled={isLocked || isProcessing || !adminPassword}
-            className={`flex-1 px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
+            className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
               isLocked || isProcessing || !adminPassword
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? 'cursor-not-allowed bg-gray-300 text-gray-500'
                 : 'bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700'
             }`}
             whileHover={
@@ -118,8 +118,8 @@ export const AdminAuthModal = React.memo(function AdminAuthModal({
             }
           >
             {isProcessing ? (
-              <span className='flex items-center justify-center gap-1'>
-                <Clock className='w-3 h-3 animate-spin' />
+              <span className="flex items-center justify-center gap-1">
+                <Clock className="h-3 w-3 animate-spin" />
                 처리중...
               </span>
             ) : (
@@ -130,7 +130,7 @@ export const AdminAuthModal = React.memo(function AdminAuthModal({
           <motion.button
             onClick={onCancel}
             disabled={isProcessing}
-            className='flex-1 px-3 py-1.5 text-xs bg-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-400 disabled:opacity-50 transition-all'
+            className="flex-1 rounded-md bg-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition-all hover:bg-gray-400 disabled:opacity-50"
             whileHover={!isProcessing ? { scale: 1.02 } : undefined}
             whileTap={!isProcessing ? { scale: 0.98 } : undefined}
           >
@@ -139,8 +139,8 @@ export const AdminAuthModal = React.memo(function AdminAuthModal({
         </div>
 
         {/* 보안 안내 */}
-        <div className='mt-3 pt-3 border-t border-gray-200'>
-          <p className='text-xs text-gray-500'>
+        <div className="mt-3 border-t border-gray-200 pt-3">
+          <p className="text-xs text-gray-500">
             🔒 보안을 위해 연속 실패 시 계정이 일시적으로 잠깁니다
           </p>
         </div>

@@ -373,7 +373,7 @@ async function performConnectivityTest(cloudContextLoader: any): Promise<{
   tests.push(contextTest);
 
   return {
-    success: tests.every(test => test.status === 'pass'),
+    success: tests.every((test) => test.status === 'pass'),
     tests,
   };
 }

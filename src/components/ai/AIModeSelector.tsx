@@ -69,15 +69,15 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
   return (
     <div className={`space-y-2 ${className}`}>
       {/* 헤더 */}
-      <div className='flex items-center space-x-2 text-sm font-medium text-gray-700'>
-        <Zap className='w-4 h-4' />
+      <div className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+        <Zap className="h-4 w-4" />
         <span>AI 모드 선택</span>
       </div>
 
       {/* 모드 선택 토글 */}
-      <div className='relative bg-gray-100 rounded-lg p-1'>
+      <div className="relative rounded-lg bg-gray-100 p-1">
         <motion.div
-          className={`absolute top-1 bottom-1 rounded-md shadow-sm ${
+          className={`absolute bottom-1 top-1 rounded-md shadow-sm ${
             selectedMode === 'LOCAL'
               ? AI_MODE_CONFIG.LOCAL.selectedBg
               : AI_MODE_CONFIG.GOOGLE_ONLY.selectedBg
@@ -90,8 +90,8 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         />
 
-        <div className='relative grid grid-cols-2 gap-1'>
-          {(Object.keys(AI_MODE_CONFIG) as AIMode[]).map(mode => {
+        <div className="relative grid grid-cols-2 gap-1">
+          {(Object.keys(AI_MODE_CONFIG) as AIMode[]).map((mode) => {
             const config = AI_MODE_CONFIG[mode];
             const Icon = config.icon;
             const isSelected = selectedMode === mode;
@@ -102,20 +102,16 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
                 key={mode}
                 onClick={() => !isDisabled && handleModeChange(mode)}
                 disabled={isDisabled}
-                className={`
-                  relative px-3 py-2 rounded-md text-xs font-medium transition-colors
-                  ${
-                    isSelected
-                      ? 'text-white'
-                      : 'text-gray-600 hover:text-gray-800'
-                  }
-                  ${isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
-                `}
+                className={`relative rounded-md px-3 py-2 text-xs font-medium transition-colors ${
+                  isSelected
+                    ? 'text-white'
+                    : 'text-gray-600 hover:text-gray-800'
+                } ${isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} `}
                 whileHover={!isDisabled ? { scale: 1.02 } : {}}
                 whileTap={!isDisabled ? { scale: 0.98 } : {}}
               >
-                <div className='flex items-center justify-center space-x-1.5'>
-                  <Icon className='w-3.5 h-3.5' />
+                <div className="flex items-center justify-center space-x-1.5">
+                  <Icon className="h-3.5 w-3.5" />
                   <span>{config.label}</span>
                 </div>
               </motion.button>
@@ -130,15 +126,10 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2 }}
-        className={`
-          px-3 py-2 rounded-lg border text-xs
-          ${AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]?.bgColor || 'bg-gray-50'}
-          ${AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]?.borderColor || 'border-gray-200'}
-          ${AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]?.textColor || 'text-gray-700'}
-        `}
+        className={`rounded-lg border px-3 py-2 text-xs ${AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]?.bgColor || 'bg-gray-50'} ${AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]?.borderColor || 'border-gray-200'} ${AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]?.textColor || 'text-gray-700'} `}
       >
-        <div className='flex items-center space-x-2'>
-          <div className='flex items-center space-x-1'>
+        <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1">
             {React.createElement(
               AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]
                 ?.icon || Zap,
@@ -146,12 +137,12 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
                 className: 'w-3.5 h-3.5',
               }
             )}
-            <span className='font-medium'>
+            <span className="font-medium">
               {AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]
                 ?.label || selectedMode}
             </span>
           </div>
-          <span className='text-gray-500'>•</span>
+          <span className="text-gray-500">•</span>
           <span>
             {AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]
               ?.description || '설명 없음'}
@@ -160,12 +151,12 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
 
         {/* 추가 정보 */}
         {selectedMode === 'GOOGLE_ONLY' && (
-          <div className='mt-1 text-xs text-gray-500'>
+          <div className="mt-1 text-xs text-gray-500">
             💡 복잡한 질문이나 자연어 대화에 최적화
           </div>
         )}
         {selectedMode === 'LOCAL' && (
-          <div className='mt-1 text-xs text-gray-500'>
+          <div className="mt-1 text-xs text-gray-500">
             ⚡ 빠른 응답과 기본적인 시스템 질의에 최적화
           </div>
         )}
@@ -173,15 +164,15 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
 
       {/* 사용량 표시 (Google AI인 경우) */}
       {selectedMode === 'GOOGLE_ONLY' && (
-        <div className='px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg'>
-          <div className='flex items-center justify-between text-xs'>
-            <span className='text-amber-700 font-medium'>Google AI 사용량</span>
-            <span className='text-amber-600'>45 / 300 요청</span>
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-medium text-amber-700">Google AI 사용량</span>
+            <span className="text-amber-600">45 / 300 요청</span>
           </div>
-          <div className='mt-1'>
-            <div className='w-full bg-amber-200 rounded-full h-1.5'>
+          <div className="mt-1">
+            <div className="h-1.5 w-full rounded-full bg-amber-200">
               <div
-                className='bg-amber-500 h-1.5 rounded-full transition-all duration-300'
+                className="h-1.5 rounded-full bg-amber-500 transition-all duration-300"
                 style={{ width: '15%' }}
               />
             </div>

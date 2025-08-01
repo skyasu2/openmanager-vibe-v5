@@ -112,15 +112,15 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
     const offset = circumference - (value / 100) * circumference;
 
     return (
-      <div className='relative inline-flex items-center justify-center'>
-        <svg width={size} height={size} className='transform -rotate-90'>
+      <div className="relative inline-flex items-center justify-center">
+        <svg width={size} height={size} className="-rotate-90 transform">
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke='#e5e7eb'
+            stroke="#e5e7eb"
             strokeWidth={strokeWidth}
-            fill='transparent'
+            fill="transparent"
           />
           <circle
             cx={size / 2}
@@ -128,34 +128,34 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
             r={radius}
             stroke={color}
             strokeWidth={strokeWidth}
-            fill='transparent'
+            fill="transparent"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
-            strokeLinecap='round'
-            className='transition-all duration-300 ease-in-out'
+            strokeLinecap="round"
+            className="transition-all duration-300 ease-in-out"
           />
         </svg>
-        <div className='absolute inset-0 flex items-center justify-center'>
-          <span className='text-lg font-bold text-gray-700'>{value}%</span>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-lg font-bold text-gray-700">{value}%</span>
         </div>
       </div>
     );
   };
 
   return (
-    <div className='space-y-6'>
+    <div className="space-y-6">
       {/* 🎯 서버 상태 요약 카드 */}
       <div
-        className={`bg-gradient-to-r ${statusInfo.gradient} text-white rounded-xl p-6 shadow-lg`}
+        className={`bg-gradient-to-r ${statusInfo.gradient} rounded-xl p-6 text-white shadow-lg`}
       >
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center gap-4'>
-            <div className='bg-white bg-opacity-20 rounded-lg p-3'>
-              <StatusIcon className='w-8 h-8 text-white' />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="rounded-lg bg-white bg-opacity-20 p-3">
+              <StatusIcon className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h3 className='text-2xl font-bold'>{statusInfo.text}</h3>
-              <p className='text-white text-opacity-90'>
+              <h3 className="text-2xl font-bold">{statusInfo.text}</h3>
+              <p className="text-white text-opacity-90">
                 마지막 업데이트:{' '}
                 {server.lastSeen
                   ? new Date(server.lastSeen).toLocaleString('ko-KR')
@@ -163,39 +163,39 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
               </p>
             </div>
           </div>
-          <div className='text-right'>
-            <div className='text-white text-opacity-90 text-sm'>업타임</div>
-            <div className='text-2xl font-bold'>{server.uptime || '0h 0m'}</div>
+          <div className="text-right">
+            <div className="text-sm text-white text-opacity-90">업타임</div>
+            <div className="text-2xl font-bold">{server.uptime || '0h 0m'}</div>
           </div>
         </div>
       </div>
 
       {/* 📊 리소스 사용률 - 원형 게이지 */}
-      <div className='bg-white rounded-xl shadow-lg p-6'>
-        <h3 className='text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2'>
-          <Gauge className='w-5 h-5 text-blue-600' />
+      <div className="rounded-xl bg-white p-6 shadow-lg">
+        <h3 className="mb-6 flex items-center gap-2 text-xl font-semibold text-gray-900">
+          <Gauge className="h-5 w-5 text-blue-600" />
           실시간 리소스 모니터링
         </h3>
-        <div className='grid grid-cols-2 md:grid-cols-4 gap-6'>
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
           {/* CPU */}
-          <div className='text-center'>
+          <div className="text-center">
             <CircularProgress
               value={server.metrics?.cpu?.usage || server.cpu || 0}
               color={getResourceStatus(
                 server.metrics?.cpu?.usage || server.cpu || 0
               ).color.replace('text-', '#')}
             />
-            <div className='mt-3'>
-              <div className='flex items-center justify-center gap-1 mb-1'>
-                <Cpu className='w-4 h-4 text-gray-600' />
-                <span className='font-semibold text-gray-900'>CPU</span>
+            <div className="mt-3">
+              <div className="mb-1 flex items-center justify-center gap-1">
+                <Cpu className="h-4 w-4 text-gray-600" />
+                <span className="font-semibold text-gray-900">CPU</span>
               </div>
-              <div className='text-sm text-gray-600'>
+              <div className="text-sm text-gray-600">
                 {server.metrics?.cpu?.cores || 4}코어 •{' '}
                 {server.metrics?.cpu?.temperature || 45}°C
               </div>
               <div
-                className={`text-xs px-2 py-1 rounded-full mt-1 ${getResourceStatus(server.metrics?.cpu?.usage || server.cpu || 0).bg} ${getResourceStatus(server.metrics?.cpu?.usage || server.cpu || 0).color}`}
+                className={`mt-1 rounded-full px-2 py-1 text-xs ${getResourceStatus(server.metrics?.cpu?.usage || server.cpu || 0).bg} ${getResourceStatus(server.metrics?.cpu?.usage || server.cpu || 0).color}`}
               >
                 {
                   getResourceStatus(
@@ -207,19 +207,19 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
           </div>
 
           {/* 메모리 */}
-          <div className='text-center'>
+          <div className="text-center">
             <CircularProgress
               value={server.metrics?.memory?.usage || server.memory || 0}
               color={getResourceStatus(
                 server.metrics?.memory?.usage || server.memory || 0
               ).color.replace('text-', '#')}
             />
-            <div className='mt-3'>
-              <div className='flex items-center justify-center gap-1 mb-1'>
-                <MemoryStick className='w-4 h-4 text-gray-600' />
-                <span className='font-semibold text-gray-900'>메모리</span>
+            <div className="mt-3">
+              <div className="mb-1 flex items-center justify-center gap-1">
+                <MemoryStick className="h-4 w-4 text-gray-600" />
+                <span className="font-semibold text-gray-900">메모리</span>
               </div>
-              <div className='text-sm text-gray-600'>
+              <div className="text-sm text-gray-600">
                 {server.metrics?.memory?.used ||
                   Math.round(
                     ((server.specs?.memory_gb || 8) * (server.memory || 0)) /
@@ -230,7 +230,7 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
                 GB
               </div>
               <div
-                className={`text-xs px-2 py-1 rounded-full mt-1 ${getResourceStatus(server.metrics?.memory?.usage || server.memory || 0).bg} ${getResourceStatus(server.metrics?.memory?.usage || server.memory || 0).color}`}
+                className={`mt-1 rounded-full px-2 py-1 text-xs ${getResourceStatus(server.metrics?.memory?.usage || server.memory || 0).bg} ${getResourceStatus(server.metrics?.memory?.usage || server.memory || 0).color}`}
               >
                 {
                   getResourceStatus(
@@ -242,19 +242,19 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
           </div>
 
           {/* 디스크 */}
-          <div className='text-center'>
+          <div className="text-center">
             <CircularProgress
               value={server.metrics?.disk?.usage || server.disk || 0}
               color={getResourceStatus(
                 server.metrics?.disk?.usage || server.disk || 0
               ).color.replace('text-', '#')}
             />
-            <div className='mt-3'>
-              <div className='flex items-center justify-center gap-1 mb-1'>
-                <HardDrive className='w-4 h-4 text-gray-600' />
-                <span className='font-semibold text-gray-900'>디스크</span>
+            <div className="mt-3">
+              <div className="mb-1 flex items-center justify-center gap-1">
+                <HardDrive className="h-4 w-4 text-gray-600" />
+                <span className="font-semibold text-gray-900">디스크</span>
               </div>
-              <div className='text-sm text-gray-600'>
+              <div className="text-sm text-gray-600">
                 {server.metrics?.disk?.used ||
                   Math.round(
                     ((server.specs?.disk_gb || 250) * (server.disk || 0)) / 100
@@ -263,7 +263,7 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
                 {server.metrics?.disk?.total || server.specs?.disk_gb || 250}GB
               </div>
               <div
-                className={`text-xs px-2 py-1 rounded-full mt-1 ${getResourceStatus(server.metrics?.disk?.usage || server.disk || 0).bg} ${getResourceStatus(server.metrics?.disk?.usage || server.disk || 0).color}`}
+                className={`mt-1 rounded-full px-2 py-1 text-xs ${getResourceStatus(server.metrics?.disk?.usage || server.disk || 0).bg} ${getResourceStatus(server.metrics?.disk?.usage || server.disk || 0).color}`}
               >
                 {
                   getResourceStatus(
@@ -275,7 +275,7 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
           </div>
 
           {/* 네트워크 */}
-          <div className='text-center'>
+          <div className="text-center">
             <CircularProgress
               value={server.network || 0}
               color={getResourceStatus(server.network || 0).color.replace(
@@ -283,16 +283,16 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
                 '#'
               )}
             />
-            <div className='mt-3'>
-              <div className='flex items-center justify-center gap-1 mb-1'>
-                <Wifi className='w-4 h-4 text-gray-600' />
-                <span className='font-semibold text-gray-900'>네트워크</span>
+            <div className="mt-3">
+              <div className="mb-1 flex items-center justify-center gap-1">
+                <Wifi className="h-4 w-4 text-gray-600" />
+                <span className="font-semibold text-gray-900">네트워크</span>
               </div>
-              <div className='text-sm text-gray-600'>
+              <div className="text-sm text-gray-600">
                 {server.specs?.network_speed || '1Gbps'}
               </div>
               <div
-                className={`text-xs px-2 py-1 rounded-full mt-1 ${getResourceStatus(server.network || 0).bg} ${getResourceStatus(server.network || 0).color}`}
+                className={`mt-1 rounded-full px-2 py-1 text-xs ${getResourceStatus(server.network || 0).bg} ${getResourceStatus(server.network || 0).color}`}
               >
                 {getResourceStatus(server.network || 0).status}
               </div>
@@ -302,48 +302,48 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
       </div>
 
       {/* 📋 서버 정보 그리드 */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* 기본 정보 */}
-        <div className='bg-white rounded-xl shadow-lg p-6'>
-          <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2'>
-            <ServerIcon className='w-5 h-5 text-blue-600' />
+        <div className="rounded-xl bg-white p-6 shadow-lg">
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+            <ServerIcon className="h-5 w-5 text-blue-600" />
             기본 정보
           </h3>
-          <div className='space-y-4'>
-            <div className='flex justify-between items-center py-2 border-b border-gray-100'>
-              <span className='text-gray-600 font-medium'>서버 ID</span>
-              <span className='font-mono text-sm bg-gray-100 px-2 py-1 rounded'>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 py-2">
+              <span className="font-medium text-gray-600">서버 ID</span>
+              <span className="rounded bg-gray-100 px-2 py-1 font-mono text-sm">
                 {server.id}
               </span>
             </div>
-            <div className='flex justify-between items-center py-2 border-b border-gray-100'>
-              <span className='text-gray-600 font-medium'>호스트명</span>
-              <span className='font-medium'>
+            <div className="flex items-center justify-between border-b border-gray-100 py-2">
+              <span className="font-medium text-gray-600">호스트명</span>
+              <span className="font-medium">
                 {server.hostname || server.name}
               </span>
             </div>
-            <div className='flex justify-between items-center py-2 border-b border-gray-100'>
-              <span className='text-gray-600 font-medium'>타입</span>
-              <span className='capitalize bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm'>
+            <div className="flex items-center justify-between border-b border-gray-100 py-2">
+              <span className="font-medium text-gray-600">타입</span>
+              <span className="rounded bg-blue-100 px-2 py-1 text-sm capitalize text-blue-800">
                 {server.type}
               </span>
             </div>
-            <div className='flex justify-between items-center py-2 border-b border-gray-100'>
-              <span className='text-gray-600 font-medium'>환경</span>
-              <span className='capitalize bg-green-100 text-green-800 px-2 py-1 rounded text-sm'>
+            <div className="flex items-center justify-between border-b border-gray-100 py-2">
+              <span className="font-medium text-gray-600">환경</span>
+              <span className="rounded bg-green-100 px-2 py-1 text-sm capitalize text-green-800">
                 {server.environment || 'production'}
               </span>
             </div>
-            <div className='flex justify-between items-center py-2 border-b border-gray-100'>
-              <span className='text-gray-600 font-medium'>위치</span>
-              <span className='flex items-center gap-1'>
-                <MapPin className='w-4 h-4 text-gray-500' />
+            <div className="flex items-center justify-between border-b border-gray-100 py-2">
+              <span className="font-medium text-gray-600">위치</span>
+              <span className="flex items-center gap-1">
+                <MapPin className="h-4 w-4 text-gray-500" />
                 {server.location}
               </span>
             </div>
-            <div className='flex justify-between items-center py-2'>
-              <span className='text-gray-600 font-medium'>IP 주소</span>
-              <span className='font-mono text-sm'>
+            <div className="flex items-center justify-between py-2">
+              <span className="font-medium text-gray-600">IP 주소</span>
+              <span className="font-mono text-sm">
                 {server.ip || '192.168.1.100'}
               </span>
             </div>
@@ -351,47 +351,47 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
         </div>
 
         {/* 시스템 정보 */}
-        <div className='bg-white rounded-xl shadow-lg p-6'>
-          <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2'>
-            <Settings className='w-5 h-5 text-green-600' />
+        <div className="rounded-xl bg-white p-6 shadow-lg">
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+            <Settings className="h-5 w-5 text-green-600" />
             시스템 정보
           </h3>
-          <div className='space-y-4'>
-            <div className='flex justify-between items-center py-2 border-b border-gray-100'>
-              <span className='text-gray-600 font-medium'>운영체제</span>
-              <span className='font-medium'>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 py-2">
+              <span className="font-medium text-gray-600">운영체제</span>
+              <span className="font-medium">
                 {server.systemInfo?.os || server.os || 'Ubuntu 22.04 LTS'}
               </span>
             </div>
-            <div className='flex justify-between items-center py-2 border-b border-gray-100'>
-              <span className='text-gray-600 font-medium'>프로세스</span>
-              <span className='font-medium'>
+            <div className="flex items-center justify-between border-b border-gray-100 py-2">
+              <span className="font-medium text-gray-600">프로세스</span>
+              <span className="font-medium">
                 {server.systemInfo?.processes || '150'}개
               </span>
             </div>
-            <div className='flex justify-between items-center py-2 border-b border-gray-100'>
-              <span className='text-gray-600 font-medium'>좀비 프로세스</span>
-              <span className='font-medium text-red-600'>
+            <div className="flex items-center justify-between border-b border-gray-100 py-2">
+              <span className="font-medium text-gray-600">좀비 프로세스</span>
+              <span className="font-medium text-red-600">
                 {server.systemInfo?.zombieProcesses || '0'}개
               </span>
             </div>
-            <div className='flex justify-between items-center py-2 border-b border-gray-100'>
-              <span className='text-gray-600 font-medium'>부하 평균</span>
-              <span className='font-mono text-sm'>
+            <div className="flex items-center justify-between border-b border-gray-100 py-2">
+              <span className="font-medium text-gray-600">부하 평균</span>
+              <span className="font-mono text-sm">
                 {server.systemInfo?.loadAverage || '1.23, 1.45, 1.67'}
               </span>
             </div>
-            <div className='flex justify-between items-center py-2 border-b border-gray-100'>
-              <span className='text-gray-600 font-medium'>알림</span>
+            <div className="flex items-center justify-between border-b border-gray-100 py-2">
+              <span className="font-medium text-gray-600">알림</span>
               <span
                 className={`font-medium ${alertCount > 0 ? 'text-red-600' : 'text-green-600'}`}
               >
                 {alertCount}개
               </span>
             </div>
-            <div className='flex justify-between items-center py-2'>
-              <span className='text-gray-600 font-medium'>공급자</span>
-              <span className='font-medium'>{server.provider || 'AWS'}</span>
+            <div className="flex items-center justify-between py-2">
+              <span className="font-medium text-gray-600">공급자</span>
+              <span className="font-medium">{server.provider || 'AWS'}</span>
             </div>
           </div>
         </div>
@@ -399,36 +399,36 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
 
       {/* 🔧 실행 중인 서비스 */}
       {server.services && server.services.length > 0 && (
-        <div className='bg-white rounded-xl shadow-lg p-6'>
-          <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2'>
-            <Activity className='w-5 h-5 text-purple-600' />
+        <div className="rounded-xl bg-white p-6 shadow-lg">
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+            <Activity className="h-5 w-5 text-purple-600" />
             실행 중인 서비스 ({server.services.length}개)
           </h3>
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {server.services.map((service, index) => (
               <div
                 key={index}
-                className='flex items-center justify-between p-4 bg-gray-50 rounded-lg border hover:border-blue-300 transition-colors'
+                className="flex items-center justify-between rounded-lg border bg-gray-50 p-4 transition-colors hover:border-blue-300"
               >
-                <div className='flex items-center gap-3'>
+                <div className="flex items-center gap-3">
                   <div
-                    className={`w-3 h-3 rounded-full ${
+                    className={`h-3 w-3 rounded-full ${
                       service.status === 'running'
                         ? 'bg-green-500'
                         : 'bg-red-500'
                     }`}
                   />
                   <div>
-                    <div className='font-medium text-gray-900'>
+                    <div className="font-medium text-gray-900">
                       {service.name}
                     </div>
-                    <div className='text-sm text-gray-600'>
+                    <div className="text-sm text-gray-600">
                       포트 :{service.port}
                     </div>
                   </div>
                 </div>
                 <div
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${
                     service.status === 'running'
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
@@ -444,36 +444,36 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
 
       {/* 📊 네트워크 정보 */}
       {server.networkInfo && (
-        <div className='bg-white rounded-xl shadow-lg p-6'>
-          <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2'>
-            <Wifi className='w-5 h-5 text-orange-600' />
+        <div className="rounded-xl bg-white p-6 shadow-lg">
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+            <Wifi className="h-5 w-5 text-orange-600" />
             네트워크 정보
           </h3>
-          <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
-            <div className='text-center p-4 bg-gray-50 rounded-lg'>
-              <div className='text-lg font-semibold text-gray-900'>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div className="rounded-lg bg-gray-50 p-4 text-center">
+              <div className="text-lg font-semibold text-gray-900">
                 {server.networkInfo.interface}
               </div>
-              <div className='text-sm text-gray-600'>인터페이스</div>
+              <div className="text-sm text-gray-600">인터페이스</div>
             </div>
-            <div className='text-center p-4 bg-gray-50 rounded-lg'>
-              <div className='text-lg font-semibold text-gray-900'>
+            <div className="rounded-lg bg-gray-50 p-4 text-center">
+              <div className="text-lg font-semibold text-gray-900">
                 {server.networkInfo.receivedBytes}
               </div>
-              <div className='text-sm text-gray-600'>수신 데이터</div>
+              <div className="text-sm text-gray-600">수신 데이터</div>
             </div>
-            <div className='text-center p-4 bg-gray-50 rounded-lg'>
-              <div className='text-lg font-semibold text-gray-900'>
+            <div className="rounded-lg bg-gray-50 p-4 text-center">
+              <div className="text-lg font-semibold text-gray-900">
                 {server.networkInfo.sentBytes}
               </div>
-              <div className='text-sm text-gray-600'>송신 데이터</div>
+              <div className="text-sm text-gray-600">송신 데이터</div>
             </div>
-            <div className='text-center p-4 bg-gray-50 rounded-lg'>
-              <div className='text-lg font-semibold text-gray-900'>
+            <div className="rounded-lg bg-gray-50 p-4 text-center">
+              <div className="text-lg font-semibold text-gray-900">
                 {server.networkInfo.receivedErrors +
                   server.networkInfo.sentErrors}
               </div>
-              <div className='text-sm text-gray-600'>총 오류</div>
+              <div className="text-sm text-gray-600">총 오류</div>
             </div>
           </div>
         </div>

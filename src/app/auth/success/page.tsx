@@ -26,7 +26,7 @@ export default function AuthSuccessPage() {
   const measureTime = (label: string, startTime: number) => {
     const duration = performance.now() - startTime;
     console.log(`⏱️ ${label}: ${duration.toFixed(0)}ms`);
-    setPerformanceMetrics(prev => ({ ...prev, [label]: duration }));
+    setPerformanceMetrics((prev) => ({ ...prev, [label]: duration }));
     return duration;
   };
 
@@ -56,7 +56,7 @@ export default function AuthSuccessPage() {
         const sessionCheckStart = performance.now();
 
         // 이벤트 기반 세션 감지
-        const sessionPromise = new Promise<boolean>(resolve => {
+        const sessionPromise = new Promise<boolean>((resolve) => {
           const unsubscribe = supabase.auth.onAuthStateChange(
             (event, session) => {
               if (event === 'SIGNED_IN' && session) {
@@ -87,7 +87,7 @@ export default function AuthSuccessPage() {
           // 세션이 있으면 바로 진행
         } else {
           // 세션이 없을 때만 최소한의 대기
-          await new Promise(resolve => setTimeout(resolve, 200));
+          await new Promise((resolve) => setTimeout(resolve, 200));
         }
 
         // 🚀 Phase 2: 조건부 새로고침 (필요한 경우만)
@@ -136,7 +136,7 @@ export default function AuthSuccessPage() {
           setRetryCount(1);
 
           // 짧은 대기 후 재시도
-          await new Promise(resolve =>
+          await new Promise((resolve) =>
             setTimeout(resolve, isVercel ? 500 : 300)
           );
 
@@ -174,7 +174,7 @@ export default function AuthSuccessPage() {
         // 라우터 캐시 갱신 여러 번
         for (let i = 0; i < 3; i++) {
           router.refresh();
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 500));
         }
 
         // 세션 저장 목적지 확인
@@ -208,7 +208,7 @@ export default function AuthSuccessPage() {
             console.log(`✅ 쿠키 준비 완료 (${elapsed}ms)`);
             break;
           }
-          await new Promise(resolve =>
+          await new Promise((resolve) =>
             setTimeout(resolve, cookieCheckInterval)
           );
         }
@@ -226,7 +226,7 @@ export default function AuthSuccessPage() {
           cookieCount: cookies.split(';').length,
           supabaseCookies: cookies
             .split(';')
-            .filter(c => c.includes('supabase')).length,
+            .filter((c) => c.includes('supabase')).length,
           environment: isVercel ? 'Vercel' : 'Local',
         });
 
@@ -266,44 +266,44 @@ export default function AuthSuccessPage() {
   }, [router]);
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center'>
-      <div className='text-center'>
-        <div className='mb-8'>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      <div className="text-center">
+        <div className="mb-8">
           {status === 'checking' && (
-            <Loader2 className='w-16 h-16 text-blue-500 animate-spin mx-auto' />
+            <Loader2 className="mx-auto h-16 w-16 animate-spin text-blue-500" />
           )}
           {status === 'success' && (
-            <CheckCircle className='w-16 h-16 text-green-500 mx-auto _animate-bounce' />
+            <CheckCircle className="_animate-bounce mx-auto h-16 w-16 text-green-500" />
           )}
           {status === 'error' && (
-            <div className='w-16 h-16 text-red-500 mx-auto'>❌</div>
+            <div className="mx-auto h-16 w-16 text-red-500">❌</div>
           )}
         </div>
 
-        <h1 className='text-2xl font-bold text-white mb-2'>
+        <h1 className="mb-2 text-2xl font-bold text-white">
           {status === 'checking' && '인증 확인 중...'}
           {status === 'success' && '인증 성공!'}
           {status === 'error' && '오류 발생'}
         </h1>
 
-        <p className='text-gray-400'>
+        <p className="text-gray-400">
           {status === 'checking' && '잠시만 기다려주세요'}
           {status === 'success' && '메인 페이지로 이동합니다'}
           {status === 'error' && '다시 시도해주세요'}
         </p>
 
         {status === 'checking' && retryCount > 0 && (
-          <div className='mt-4'>
-            <p className='text-sm text-gray-500'>
+          <div className="mt-4">
+            <p className="text-sm text-gray-500">
               세션 확인 중... (재시도 {retryCount}회)
             </p>
           </div>
         )}
 
         {status === 'success' && (
-          <div className='mt-4'>
-            <div className='inline-flex items-center gap-2 text-sm text-gray-500'>
-              <Loader2 className='w-4 h-4 animate-spin' />
+          <div className="mt-4">
+            <div className="inline-flex items-center gap-2 text-sm text-gray-500">
+              <Loader2 className="h-4 w-4 animate-spin" />
               리다이렉트 중...
             </div>
           </div>
@@ -312,8 +312,8 @@ export default function AuthSuccessPage() {
         {/* 성능 메트릭 표시 (개발 환경에서만) */}
         {process.env.NODE_ENV === 'development' &&
           Object.keys(performanceMetrics).length > 0 && (
-            <div className='mt-6 p-4 bg-gray-800 rounded-lg text-xs text-gray-400'>
-              <h3 className='font-bold mb-2'>성능 메트릭:</h3>
+            <div className="mt-6 rounded-lg bg-gray-800 p-4 text-xs text-gray-400">
+              <h3 className="mb-2 font-bold">성능 메트릭:</h3>
               {Object.entries(performanceMetrics).map(([key, value]) => (
                 <div key={key}>
                   {key}: {value.toFixed(0)}ms

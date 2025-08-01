@@ -67,7 +67,7 @@ export class VectorIndexingService {
     const errors: string[] = [];
 
     // 유효한 문서만 필터링
-    const validDocuments = documents.filter(doc => {
+    const validDocuments = documents.filter((doc) => {
       if (!doc.content || doc.content.trim().length < this.MIN_CONTENT_LENGTH) {
         errors.push(`문서 ${doc.id}: 콘텐츠가 너무 짧습니다`);
         failed++;
@@ -92,7 +92,7 @@ export class VectorIndexingService {
 
         // 배치 임베딩 생성
         const embeddings = await embeddingService.createBatchEmbeddings(
-          batch.map(doc => doc.content),
+          batch.map((doc) => doc.content),
           { dimension }
         );
 
@@ -101,7 +101,7 @@ export class VectorIndexingService {
           const doc = batch[j];
           const embedding = embeddings[j];
 
-          if (embedding && !embedding.every(v => v === 0)) {
+          if (embedding && !embedding.every((v) => v === 0)) {
             const { error } = await supabase
               .from('knowledge_base')
               .upsert({
@@ -132,7 +132,7 @@ export class VectorIndexingService {
 
         // 레이트 리미팅
         if (i + batchSize < validDocuments.length) {
-          await new Promise(resolve =>
+          await new Promise((resolve) =>
             setTimeout(resolve, this.RATE_LIMIT_DELAY)
           );
         }
@@ -210,7 +210,7 @@ export class VectorIndexingService {
 
       // 인시던트 테이블의 임베딩 업데이트
       for (const doc of documents) {
-        if (result.errors.some(err => err.includes(doc.id))) {
+        if (result.errors.some((err) => err.includes(doc.id))) {
           continue;
         }
 

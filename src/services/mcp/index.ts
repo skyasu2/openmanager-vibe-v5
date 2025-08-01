@@ -112,7 +112,7 @@ export class MCPProcessor {
       // 문서 검색
       const searchResults = await this.realClient.searchDocuments(query);
       if (searchResults.success && searchResults.results) {
-        searchResults.results.forEach(result => {
+        searchResults.results.forEach((result) => {
           if (result.path && result.content) {
             files.push({
               path: result.path,

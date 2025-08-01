@@ -177,19 +177,19 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
       {/* AI 엔진 상태 */}
       <Card>
         <CardHeader>
-          <div className='flex items-center justify-between'>
-            <CardTitle className='flex items-center gap-2'>
-              <Brain className='w-6 h-6' />
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="h-6 w-6" />
               AI 엔진 상태
             </CardTitle>
             <Button
-              variant='outline'
-              size='sm'
+              variant="outline"
+              size="sm"
               onClick={fetchAIEnginesStatus}
               disabled={aiEnginesLoading}
             >
               <RefreshCw
-                className={`h-4 w-4 mr-2 ${aiEnginesLoading ? 'animate-spin' : ''}`}
+                className={`mr-2 h-4 w-4 ${aiEnginesLoading ? 'animate-spin' : ''}`}
               />
               새로고침
             </Button>
@@ -200,20 +200,20 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
         </CardHeader>
         <CardContent>
           {aiEnginesStatus && aiEnginesStatus.length > 0 ? (
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {aiEnginesStatus.map((engine, index) => (
                 <Card key={index}>
-                  <CardContent className='p-4'>
-                    <div className='flex items-center justify-between mb-2'>
-                      <h4 className='font-medium text-sm'>{engine.name}</h4>
+                  <CardContent className="p-4">
+                    <div className="mb-2 flex items-center justify-between">
+                      <h4 className="text-sm font-medium">{engine.name}</h4>
                       <Badge variant={getStatusBadgeVariant(engine.status)}>
                         {getStatusIcon(engine.status)} {engine.status}
                       </Badge>
                     </div>
-                    <p className='text-xs text-slate-600 dark:text-slate-400 mb-2'>
+                    <p className="mb-2 text-xs text-slate-600 dark:text-slate-400">
                       {engine.description}
                     </p>
-                    <div className='text-xs text-slate-500 space-y-1'>
+                    <div className="space-y-1 text-xs text-slate-500">
                       <div>타입: {engine.type}</div>
                       <div>버전: {engine.version}</div>
                       <div>요청 수: {engine.requests}</div>
@@ -224,9 +224,9 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
               ))}
             </div>
           ) : (
-            <div className='text-center py-8'>
-              <Brain className='w-12 h-12 text-slate-400 mx-auto mb-4' />
-              <p className='text-slate-600 dark:text-slate-400'>
+            <div className="py-8 text-center">
+              <Brain className="mx-auto mb-4 h-12 w-12 text-slate-400" />
+              <p className="text-slate-600 dark:text-slate-400">
                 AI 엔진 상태를 불러오는 중...
               </p>
             </div>
@@ -237,18 +237,18 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
       {/* AI 자연어 쿼리 테스트 */}
       <Card>
         <CardHeader>
-          <CardTitle className='flex items-center gap-2'>
-            <MessageSquare className='w-6 h-6' />
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-6 w-6" />
             AI 자연어 쿼리 테스트
           </CardTitle>
           <CardDescription>
             실제 AI 엔진을 사용하여 자연어 질의를 테스트합니다
           </CardDescription>
         </CardHeader>
-        <CardContent className='space-y-4'>
+        <CardContent className="space-y-4">
           {/* 엔진 모드 선택 */}
           <div>
-            <label className='text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block'>
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
               AI 엔진 모드:
             </label>
             <Select value={aiTestMode} onValueChange={setAiTestMode}>
@@ -256,29 +256,29 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='LOCAL'>LOCAL (로컬)</SelectItem>
-                <SelectItem value='GOOGLE_ONLY'>GOOGLE_ONLY (고급)</SelectItem>
+                <SelectItem value="LOCAL">LOCAL (로컬)</SelectItem>
+                <SelectItem value="GOOGLE_ONLY">GOOGLE_ONLY (고급)</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* 프리셋 질문들 */}
           <div>
-            <label className='text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block'>
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
               빠른 테스트 질문:
             </label>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
               {presetQueries.map((query, index) => (
                 <Button
                   key={index}
-                  variant='outline'
-                  size='sm'
+                  variant="outline"
+                  size="sm"
                   onClick={() => quickTest(query)}
-                  className='text-left justify-start h-auto p-3'
+                  className="h-auto justify-start p-3 text-left"
                   disabled={aiTestLoading}
                 >
-                  <TestTube className='w-4 h-4 mr-2 flex-shrink-0' />
-                  <span className='text-xs'>{query}</span>
+                  <TestTube className="mr-2 h-4 w-4 flex-shrink-0" />
+                  <span className="text-xs">{query}</span>
                 </Button>
               ))}
             </div>
@@ -286,33 +286,33 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
 
           {/* 사용자 정의 질문 */}
           <div>
-            <label className='text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block'>
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
               사용자 정의 질문:
             </label>
-            <div className='flex gap-2'>
+            <div className="flex gap-2">
               <Textarea
-                placeholder='예: CPU 사용률이 높은 서버를 찾아줘'
+                placeholder="예: CPU 사용률이 높은 서버를 찾아줘"
                 value={aiTestQuery}
-                onChange={e => setAiTestQuery(e.target.value)}
-                className='flex-1'
+                onChange={(e) => setAiTestQuery(e.target.value)}
+                className="flex-1"
                 rows={2}
                 disabled={aiTestLoading}
               />
               <Button
                 onClick={testAINaturalQuery}
                 disabled={aiTestLoading || !aiTestQuery.trim()}
-                className='self-end'
+                className="self-end"
               >
-                <Send className='w-4 h-4' />
+                <Send className="h-4 w-4" />
               </Button>
             </div>
           </div>
 
           {/* 테스트 결과 */}
           {aiTestLoading && (
-            <div className='flex items-center justify-center py-8'>
-              <div className='flex items-center gap-3'>
-                <Bot className='w-6 h-6 _animate-pulse' />
+            <div className="flex items-center justify-center py-8">
+              <div className="flex items-center gap-3">
+                <Bot className="_animate-pulse h-6 w-6" />
                 <span>AI가 분석 중입니다...</span>
               </div>
             </div>
@@ -325,8 +325,8 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
               }
             >
               <CardHeader>
-                <div className='flex items-center justify-between'>
-                  <CardTitle className='text-lg'>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">
                     {aiTestResult.success ? '✅ 성공' : '❌ 실패'}
                   </CardTitle>
                   <Badge
@@ -338,13 +338,13 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
                 <CardDescription>엔진: {aiTestResult.engine}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className='space-y-3'>
+                <div className="space-y-3">
                   <div>
-                    <h4 className='text-sm font-medium text-slate-700 dark:text-slate-300 mb-2'>
+                    <h4 className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
                       응답:
                     </h4>
-                    <div className='bg-slate-50 dark:bg-slate-800 p-3 rounded-lg'>
-                      <p className='text-sm whitespace-pre-wrap'>
+                    <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
+                      <p className="whitespace-pre-wrap text-sm">
                         {aiTestResult.response}
                       </p>
                     </div>
@@ -352,11 +352,11 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
 
                   {aiTestResult.error && (
                     <div>
-                      <h4 className='text-sm font-medium text-red-700 dark:text-red-300 mb-2'>
+                      <h4 className="mb-2 text-sm font-medium text-red-700 dark:text-red-300">
                         오류:
                       </h4>
-                      <div className='bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-200 dark:border-red-800'>
-                        <p className='text-sm text-red-600 dark:text-red-400'>
+                      <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
+                        <p className="text-sm text-red-600 dark:text-red-400">
                           {aiTestResult.error}
                         </p>
                       </div>
@@ -365,11 +365,11 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
 
                   {aiTestResult.metadata && (
                     <div>
-                      <h4 className='text-sm font-medium text-slate-700 dark:text-slate-300 mb-2'>
+                      <h4 className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
                         메타데이터:
                       </h4>
-                      <div className='bg-slate-50 dark:bg-slate-800 p-3 rounded-lg'>
-                        <pre className='text-xs text-slate-600 dark:text-slate-400 overflow-x-auto'>
+                      <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
+                        <pre className="overflow-x-auto text-xs text-slate-600 dark:text-slate-400">
                           {JSON.stringify(aiTestResult.metadata, null, 2)}
                         </pre>
                       </div>

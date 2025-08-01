@@ -69,30 +69,30 @@ export const ProfileMenuItem = React.memo(function ProfileMenuItem({
 
   return (
     <>
-      {dividerBefore && <div className='border-t border-gray-100 my-1' />}
+      {dividerBefore && <div className="my-1 border-t border-gray-100" />}
       <motion.button
         id={id}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         disabled={disabled}
-        className={`flex items-center w-full px-4 py-2 text-sm transition-colors cursor-pointer ${getColorClasses()}`}
+        className={`flex w-full cursor-pointer items-center px-4 py-2 text-sm transition-colors ${getColorClasses()}`}
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: index * 0.05 }}
         whileHover={!disabled ? { x: 2 } : undefined}
         whileTap={!disabled ? { scale: 0.98 } : undefined}
-        role='menuitem'
+        role="menuitem"
         tabIndex={disabled ? -1 : 0}
         aria-disabled={disabled}
       >
         <Icon
-          className={`w-4 h-4 mr-3 flex-shrink-0 ${getIconColorClasses()}`}
+          className={`mr-3 h-4 w-4 flex-shrink-0 ${getIconColorClasses()}`}
         />
 
-        <div className='flex-1 text-left'>
-          <span className='block'>{label}</span>
+        <div className="flex-1 text-left">
+          <span className="block">{label}</span>
           {description && (
-            <span className='text-xs text-gray-500 mt-0.5 block'>
+            <span className="mt-0.5 block text-xs text-gray-500">
               {description}
             </span>
           )}
@@ -100,7 +100,7 @@ export const ProfileMenuItem = React.memo(function ProfileMenuItem({
 
         {badge && (
           <span
-            className={`ml-auto text-xs flex-shrink-0 ${
+            className={`ml-auto flex-shrink-0 text-xs ${
               danger ? 'text-red-500' : 'text-gray-500'
             }`}
           >
@@ -116,7 +116,7 @@ export const ProfileMenuItem = React.memo(function ProfileMenuItem({
  * 메뉴 구분선 컴포넌트
  */
 export const MenuDivider = React.memo(function MenuDivider() {
-  return <div className='border-t border-gray-100 my-1' />;
+  return <div className="my-1 border-t border-gray-100" />;
 });
 
 /**
@@ -128,7 +128,7 @@ export const MenuSectionHeader = React.memo(function MenuSectionHeader({
   title: string;
 }) {
   return (
-    <div className='px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider'>
+    <div className="px-4 py-2 text-xs font-medium uppercase tracking-wider text-gray-500">
       {title}
     </div>
   );

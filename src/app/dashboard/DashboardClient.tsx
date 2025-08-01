@@ -35,35 +35,35 @@ const EnhancedServerModalDynamic = dynamic(
   () => import('../../components/dashboard/EnhancedServerModal'),
   {
     loading: () => (
-      <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
-        <div className='w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin'></div>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
       </div>
     ),
   }
 );
 
 const ContentLoadingSkeleton = () => (
-  <div className='min-h-screen bg-gray-100 dark:bg-gray-900 p-6'>
-    <div className='space-y-6'>
+  <div className="min-h-screen bg-gray-100 p-6 dark:bg-gray-900">
+    <div className="space-y-6">
       {/* 헤더 스켈레톤 */}
-      <div className='h-16 bg-gray-200 dark:bg-gray-800 rounded-lg _animate-pulse'></div>
+      <div className="_animate-pulse h-16 rounded-lg bg-gray-200 dark:bg-gray-800"></div>
 
       {/* 통계 카드 스켈레톤 */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
-        {[1, 2, 3, 4].map(i => (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className='h-24 bg-gray-200 dark:bg-gray-800 rounded-lg _animate-pulse'
+            className="_animate-pulse h-24 rounded-lg bg-gray-200 dark:bg-gray-800"
           ></div>
         ))}
       </div>
 
       {/* 서버 카드 그리드 스켈레톤 */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
-        {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
           <div
             key={i}
-            className='h-48 bg-gray-200 dark:bg-gray-800 rounded-lg _animate-pulse'
+            className="_animate-pulse h-48 rounded-lg bg-gray-200 dark:bg-gray-800"
           ></div>
         ))}
       </div>
@@ -89,19 +89,19 @@ class DashboardErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className='min-h-screen bg-red-50 flex items-center justify-center p-4'>
-          <div className='bg-white rounded-lg shadow-lg p-6 max-w-md w-full'>
-            <div className='text-center'>
-              <AlertTriangle className='h-12 w-12 text-red-500 mx-auto mb-4' />
-              <h2 className='text-xl font-semibold text-gray-900 mb-2'>
+        <div className="flex min-h-screen items-center justify-center bg-red-50 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+            <div className="text-center">
+              <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-red-500" />
+              <h2 className="mb-2 text-xl font-semibold text-gray-900">
                 Dashboard Failed to Load
               </h2>
-              <p className='text-gray-600 mb-4'>
+              <p className="mb-4 text-gray-600">
                 {this.state.error?.message || 'Unknown error'}
               </p>
               <button
                 onClick={() => window.location.reload()}
-                className='px-4 py-2 bg-blue-500 text-white rounded-lg'
+                className="rounded-lg bg-blue-500 px-4 py-2 text-white"
               >
                 Reload Page
               </button>
@@ -157,7 +157,7 @@ function DashboardPageContent() {
     restartSystem: _restartSystem,
   } = useSystemAutoShutdown({
     warningMinutes: 5, // 5분 전 경고
-    onWarning: remainingMinutes => {
+    onWarning: (remainingMinutes) => {
       setShowSystemWarning(true);
       console.log(`⚠️ 시스템 자동 종료 경고: ${remainingMinutes}분 남음`);
 
@@ -223,7 +223,7 @@ function DashboardPageContent() {
     : '00:00';
 
   const toggleAgent = useCallback(() => {
-    setIsAgentOpen(prev => !prev);
+    setIsAgentOpen((prev) => !prev);
   }, []);
 
   const closeAgent = useCallback(() => {
@@ -289,7 +289,7 @@ function DashboardPageContent() {
         isResizing && 'cursor-col-resize'
       )}
     >
-      <div className='flex-1 flex flex-col min-h-0'>
+      <div className="flex min-h-0 flex-1 flex-col">
         <DashboardHeader
           onNavigateHome={() => (window.location.href = '/main')}
           onToggleAgent={toggleAgent}
@@ -300,7 +300,7 @@ function DashboardPageContent() {
           remainingTimeFormatted={remainingTimeFormatted}
         />
 
-        <div className='flex-1 overflow-hidden'>
+        <div className="flex-1 overflow-hidden">
           <Suspense fallback={<ContentLoadingSkeleton />}>
             <DashboardContent
               showSequentialGeneration={false}
@@ -326,7 +326,7 @@ function DashboardPageContent() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className='fixed inset-y-0 right-0 w-96 z-40'
+              className="fixed inset-y-0 right-0 z-40 w-96"
             >
               <AISidebarV2 onClose={closeAgent} isOpen={isAgentOpen} />
             </motion.div>

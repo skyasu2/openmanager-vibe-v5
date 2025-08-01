@@ -49,7 +49,7 @@ function validateEnvironment() {
   try {
     // 개발 환경에서는 NEXT_PUBLIC_APP_URL이 없어도 기본값으로 진행
     const requiredVars = ['NEXT_PUBLIC_APP_URL'];
-    const hasMissing = requiredVars.some(varName => !process.env[varName]);
+    const hasMissing = requiredVars.some((varName) => !process.env[varName]);
 
     if (hasMissing) {
       const nodeEnv = process.env.NODE_ENV || 'development';
@@ -110,7 +110,7 @@ export function validateRuntimeEnvironment() {
     const hasRedisToken =
       process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 
-    const missing = requiredVars.filter(varName => !process.env[varName]);
+    const missing = requiredVars.filter((varName) => !process.env[varName]);
 
     if (missing.length > 0 || !hasRedis || !hasRedisToken) {
       const allMissing = [...missing];

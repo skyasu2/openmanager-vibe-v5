@@ -79,7 +79,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
 
     // 워밍업 시작
     if (this.config.warmupOnStart) {
-      this.performWarmup().catch(error => {
+      this.performWarmup().catch((error) => {
         aiLogger.error('워밍업 실패', error);
       });
     }
@@ -110,7 +110,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       // 3. 병렬 임베딩 생성
       if (this.config.enablePredictiveLoading) {
         await Promise.allSettled(
-          commonQueries.map(async query => {
+          commonQueries.map(async (query) => {
             try {
               const embedding = await this.ragEngine.generateEmbedding(query);
               this.preloadedEmbeddings.set(query, embedding);
@@ -228,7 +228,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     if (mode === 'local') {
       const embedding =
         embeddingPromise &&
-        taskResults.find(r => r.status === 'fulfilled')?.value;
+        taskResults.find((r) => r.status === 'fulfilled')?.value;
       return await this.processLocalQueryOptimized(
         query,
         context,
@@ -296,7 +296,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     const words1 = new Set(query1.toLowerCase().split(/\s+/));
     const words2 = new Set(query2.toLowerCase().split(/\s+/));
 
-    const intersection = new Set([...words1].filter(x => words2.has(x)));
+    const intersection = new Set([...words1].filter((x) => words2.has(x)));
     const union = new Set([...words1, ...words2]);
 
     return intersection.size / union.size;
@@ -643,7 +643,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       const optimizationHealth =
         this.circuitBreakers.size > 0 &&
         Array.from(this.circuitBreakers.values()).every(
-          cb => cb.state !== 'open'
+          (cb) => cb.state !== 'open'
         );
 
       return {

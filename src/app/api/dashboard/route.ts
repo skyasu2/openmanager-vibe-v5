@@ -39,9 +39,7 @@ interface DashboardResponse {
  *
  * 목업 시스템에서 대시보드 데이터 가져오기
  */
-export async function GET(
-  _request: NextRequest
-): Promise<NextResponse> {
+export async function GET(_request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
 
   try {
@@ -54,7 +52,7 @@ export async function GET(
 
     // 서버 데이터를 객체 형태로 변환 (기존 API 호환성)
     const serversMap: Record<string, any> = {};
-    servers.forEach(server => {
+    servers.forEach((server) => {
       serversMap[server.id] = {
         ...server,
         // 대시보드용 추가 필드
@@ -155,9 +153,9 @@ function calculateServerStats(servers: any[]): any {
     };
   }
 
-  const healthy = servers.filter(s => s.status === 'online').length;
-  const warning = servers.filter(s => s.status === 'warning').length;
-  const critical = servers.filter(s => s.status === 'critical').length;
+  const healthy = servers.filter((s) => s.status === 'online').length;
+  const warning = servers.filter((s) => s.status === 'warning').length;
+  const critical = servers.filter((s) => s.status === 'critical').length;
 
   const totalCpu = servers.reduce((sum, s) => sum + (s.cpu || 0), 0);
   const totalMemory = servers.reduce((sum, s) => sum + (s.memory || 0), 0);

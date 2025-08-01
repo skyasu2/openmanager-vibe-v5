@@ -217,7 +217,7 @@ export class SecurityService {
    */
   private cleanupUserSessions(userId: string): void {
     const userSessions = Array.from(this.sessions.values())
-      .filter(session => session.userId === userId && session.isValid)
+      .filter((session) => session.userId === userId && session.isValid)
       .sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime());
 
     if (userSessions.length >= this.MAX_SESSIONS) {
@@ -264,7 +264,7 @@ export class SecurityService {
       (s: any) => s.isValid
     ).length;
     const recentEvents = this.securityEvents.filter(
-      e => Date.now() - e.timestamp.getTime() < 60 * 60 * 1000 // 1시간 내
+      (e) => Date.now() - e.timestamp.getTime() < 60 * 60 * 1000 // 1시간 내
     );
 
     return {

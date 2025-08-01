@@ -60,8 +60,8 @@ export function ServerDashboardTabs({
   ];
 
   return (
-    <div className='flex space-x-1 bg-gray-100 rounded-lg p-1'>
-      {tabs.map(tab => {
+    <div className="flex space-x-1 rounded-lg bg-gray-100 p-1">
+      {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
 
@@ -69,17 +69,17 @@ export function ServerDashboardTabs({
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+            className={`flex items-center space-x-2 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 ${
               isActive
-                ? `bg-white ${tab.color} shadow-sm border ${tab.borderColor}`
-                : 'text-gray-600 hover:text-gray-900 hover:bg-white hover:bg-opacity-50'
+                ? `bg-white ${tab.color} border shadow-sm ${tab.borderColor}`
+                : 'text-gray-600 hover:bg-white hover:bg-opacity-50 hover:text-gray-900'
             }`}
           >
             <Icon size={16} />
             <span>{tab.label}</span>
             {tab.count > 0 && (
               <span
-                className={`px-2 py-0.5 text-xs rounded-full ${
+                className={`rounded-full px-2 py-0.5 text-xs ${
                   isActive
                     ? `${tab.bgColor} ${tab.color}`
                     : 'bg-gray-200 text-gray-600'

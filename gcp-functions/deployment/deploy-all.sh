@@ -44,7 +44,7 @@ error() {
 # 프로젝트 설정
 PROJECT_ID="openmanager-free-tier"
 REGION="asia-northeast3"
-FUNCTIONS=("ai-gateway" "enhanced-korean-nlp" "rule-engine" "ml-analytics-engine" "unified-ai-processor")
+FUNCTIONS=("ai-gateway" "enhanced-korean-nlp" "rule-engine" "ml-analytics-engine" "unified-ai-processor" "mcp-metrics-processor")
 
 log "🚀 OpenManager GCP Functions 배포 시작"
 log "프로젝트: $PROJECT_ID"
@@ -144,6 +144,12 @@ deploy_function() {
             TIMEOUT="300s"
             RUNTIME="python311"
             ENTRY_POINT="unified_ai_processor"
+            ;;
+        "mcp-metrics-processor")
+            MEMORY="256MB"
+            TIMEOUT="60s"
+            RUNTIME="python311"
+            ENTRY_POINT="main"
             ;;
     esac
     

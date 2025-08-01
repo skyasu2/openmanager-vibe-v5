@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     // 현재 비즈니스 시간 패턴 확인
     const currentHour = kstTime.getHours();
-    const currentPattern = BUSINESS_HOURS_PATTERNS.find(pattern => {
+    const currentPattern = BUSINESS_HOURS_PATTERNS.find((pattern) => {
       const timeParts = pattern.timeRange?.split('-') ?? [];
       if (timeParts.length !== 2) return false;
 
@@ -79,25 +79,25 @@ export async function GET(request: NextRequest) {
 
     // 서버 상태별 분류
     const serversByStatus = {
-      critical: ENTERPRISE_SERVERS.filter(s => s.status === 'error'),
-      warning: ENTERPRISE_SERVERS.filter(s => s.status === 'warning'),
-      healthy: ENTERPRISE_SERVERS.filter(s => s.status === 'online'),
+      critical: ENTERPRISE_SERVERS.filter((s) => s.status === 'error'),
+      warning: ENTERPRISE_SERVERS.filter((s) => s.status === 'warning'),
+      healthy: ENTERPRISE_SERVERS.filter((s) => s.status === 'online'),
     };
 
     // IDC별 서버 분류
     const serversByLocation = Object.entries(IDC_LOCATIONS).map(
       ([location, serverIds]) => ({
         location,
-        servers: ENTERPRISE_SERVERS.filter(s => serverIds.includes(s.id)),
+        servers: ENTERPRISE_SERVERS.filter((s) => serverIds.includes(s.id)),
         totalServers: serverIds.length,
         healthyServers: ENTERPRISE_SERVERS.filter(
-          s => serverIds.includes(s.id) && s.status === 'online'
+          (s) => serverIds.includes(s.id) && s.status === 'online'
         ).length,
         warningServers: ENTERPRISE_SERVERS.filter(
-          s => serverIds.includes(s.id) && s.status === 'warning'
+          (s) => serverIds.includes(s.id) && s.status === 'warning'
         ).length,
         criticalServers: ENTERPRISE_SERVERS.filter(
-          s => serverIds.includes(s.id) && s.status === 'error'
+          (s) => serverIds.includes(s.id) && s.status === 'error'
         ).length,
       })
     );
@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
 
       // 🚨 현재 장애 상황
       activeIncidents: {
-        critical: CRITICAL_FAILURE_CHAINS.map(chain => ({
+        critical: CRITICAL_FAILURE_CHAINS.map((chain) => ({
           id: chain.id,
           name: chain.name,
           origin: chain.origin,
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
           businessImpact: chain.businessImpact,
           status: 'active',
         })),
-        warning: WARNING_FAILURES.map(failure => ({
+        warning: WARNING_FAILURES.map((failure) => ({
           id: failure.id,
           name: failure.name,
           origin: failure.origin,
@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
       },
 
       // 🔗 장애 상관관계
-      correlationAnalysis: FAILURE_CORRELATIONS.map(corr => ({
+      correlationAnalysis: FAILURE_CORRELATIONS.map((corr) => ({
         primaryServer: corr.primaryFailure,
         affectedServers: corr.secondaryFailures,
         strength: corr.correlationStrength,
@@ -181,7 +181,7 @@ export async function GET(request: NextRequest) {
         longTermPlanning: AI_RECOMMENDATIONS.longTermActions,
         preventiveMeasures: AI_RECOMMENDATIONS.preventiveActions,
         capacityPlanning: CAPACITY_PLANNING.filter(
-          plan => plan.currentUsage > plan.scalingTrigger
+          (plan) => plan.currentUsage > plan.scalingTrigger
         ),
       },
 
@@ -220,12 +220,12 @@ export async function GET(request: NextRequest) {
         (serverId, index) => ({
           priority: index + 1,
           serverId,
-          server: ENTERPRISE_SERVERS.find(s => s.id === serverId),
+          server: ENTERPRISE_SERVERS.find((s) => s.id === serverId),
           estimatedImpact:
-            CRITICAL_FAILURE_CHAINS.find(c => c.origin === serverId)
+            CRITICAL_FAILURE_CHAINS.find((c) => c.origin === serverId)
               ?.businessImpact || 0,
           dependencies:
-            FAILURE_CORRELATIONS.find(c => c.primaryFailure === serverId)
+            FAILURE_CORRELATIONS.find((c) => c.primaryFailure === serverId)
               ?.secondaryFailures || [],
         })
       ),

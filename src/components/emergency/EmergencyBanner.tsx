@@ -13,17 +13,17 @@ export function EmergencyBanner() {
   if (!isVisible) return null;
 
   return (
-    <div className='fixed top-0 left-0 right-0 z-50 bg-red-600 text-white px-4 py-2 text-center'>
-      <div className='flex items-center justify-center gap-2'>
-        <span className='_animate-pulse'>🚨</span>
-        <span className='font-semibold'>
+    <div className="fixed left-0 right-0 top-0 z-50 bg-red-600 px-4 py-2 text-center text-white">
+      <div className="flex items-center justify-center gap-2">
+        <span className="_animate-pulse">🚨</span>
+        <span className="font-semibold">
           {emergencyMode.getEmergencyMessage()}
         </span>
-        <span className='_animate-pulse'>🚨</span>
+        <span className="_animate-pulse">🚨</span>
       </div>
       <button
         onClick={() => setIsVisible(false)}
-        className='absolute right-4 top-1/2 transform -translate-y-1/2 hover:bg-red-700 px-2 py-1 rounded'
+        className="absolute right-4 top-1/2 -translate-y-1/2 transform rounded px-2 py-1 hover:bg-red-700"
       >
         ×
       </button>

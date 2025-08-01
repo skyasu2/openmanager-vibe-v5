@@ -10,7 +10,7 @@ import type { Variants } from 'framer-motion';
 
 // framer-motion을 동적 import로 처리
 const MotionDiv = dynamic(
-  () => import('framer-motion').then(mod => ({ default: mod.motion.div })),
+  () => import('framer-motion').then((mod) => ({ default: mod.motion.div })),
   { ssr: false }
 );
 
@@ -50,8 +50,8 @@ interface DashboardContentProps {
 // 동적 임포트로 성능 최적화
 const ServerDashboardDynamic = dynamic(() => import('./ServerDashboard'), {
   loading: () => (
-    <div className='flex items-center justify-center p-8'>
-      <div className='w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin'></div>
+    <div className="flex items-center justify-center p-8">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
     </div>
   ),
 });
@@ -125,7 +125,7 @@ export default function DashboardContent({
 
     console.log('📊 실제 서버 통계:', {
       ...stats,
-      서버_목록: servers.map(s => ({
+      서버_목록: servers.map((s) => ({
         이름: s.name || s.id,
         상태: s.status,
         정규화된_상태: s.status?.toLowerCase(),
@@ -210,8 +210,8 @@ export default function DashboardContent({
   // 🛡️ 서버 사이드 렌더링 방지
   if (!isClient) {
     return (
-      <div className='flex items-center justify-center p-8'>
-        <div className='w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin'></div>
+      <div className="flex items-center justify-center p-8">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
       </div>
     );
   }
@@ -219,17 +219,17 @@ export default function DashboardContent({
   // 🚀 렌더링 에러 처리
   if (renderError) {
     return (
-      <div className='min-h-screen bg-red-50 flex items-center justify-center p-4'>
-        <div className='bg-white rounded-lg shadow-lg p-6 max-w-md w-full'>
-          <div className='text-center'>
-            <div className='text-red-500 text-4xl mb-4'>⚠️</div>
-            <h2 className='text-xl font-semibold text-gray-900 mb-2'>
+      <div className="flex min-h-screen items-center justify-center bg-red-50 p-4">
+        <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+          <div className="text-center">
+            <div className="mb-4 text-4xl text-red-500">⚠️</div>
+            <h2 className="mb-2 text-xl font-semibold text-gray-900">
               렌더링 오류
             </h2>
-            <p className='text-gray-600 mb-4'>{renderError}</p>
+            <p className="mb-4 text-gray-600">{renderError}</p>
             <button
               onClick={() => window.location.reload()}
-              className='px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600'
+              className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
             >
               새로고침
             </button>
@@ -244,18 +244,18 @@ export default function DashboardContent({
     if (showSequentialGeneration) {
       console.log('🔄 시퀀셜 생성 모드 렌더링');
       return (
-        <div className='min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6'>
-          <div className='max-w-7xl mx-auto'>
-            <div className='bg-white rounded-lg shadow-lg p-6'>
-              <h2 className='text-2xl font-bold text-gray-900 mb-4'>
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6">
+          <div className="mx-auto max-w-7xl">
+            <div className="rounded-lg bg-white p-6 shadow-lg">
+              <h2 className="mb-4 text-2xl font-bold text-gray-900">
                 🔄 서버 생성 중...
               </h2>
-              <p className='text-gray-600'>
+              <p className="text-gray-600">
                 시퀀셜 서버 생성 모드가 활성화되었습니다.
               </p>
               <button
                 onClick={() => onShowSequentialChange(false)}
-                className='mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600'
+                className="mt-4 rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
               >
                 일반 모드로 전환
               </button>
@@ -272,50 +272,50 @@ export default function DashboardContent({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className='h-full w-full'
+        className="h-full w-full"
       >
-        <div className='h-full max-w-none 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6 overflow-y-auto'>
+        <div className="mx-auto h-full max-w-none space-y-6 overflow-y-auto px-4 sm:px-6 lg:px-8 2xl:max-w-[1800px]">
           {/* 🎯 목업 데이터 모드 표시 */}
           {servers && servers.length > 0 && (
-            <div className='bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200 p-4 mb-4'>
-              <div className='flex items-center justify-between'>
-                <div className='flex items-center gap-3'>
-                  <div className='w-3 h-3 bg-purple-500 rounded-full _animate-pulse'></div>
-                  <span className='text-purple-800 font-medium'>
+            <div className="mb-4 rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="_animate-pulse h-3 w-3 rounded-full bg-purple-500"></div>
+                  <span className="font-medium text-purple-800">
                     🎭 DEMO MODE - 온프레미스 서버 시뮬레이션
                   </span>
-                  <span className='text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded-full'>
+                  <span className="rounded-full bg-purple-100 px-2 py-1 text-xs text-purple-600">
                     목업 데이터
                   </span>
-                  <span className='text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full'>
+                  <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-600">
                     24시간 시나리오
                   </span>
                 </div>
-                <div className='flex items-center gap-4 text-sm'>
-                  <div className='flex items-center gap-1'>
-                    <div className='w-2 h-2 bg-gray-400 rounded-full'></div>
-                    <span className='text-gray-700'>
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-1">
+                    <div className="h-2 w-2 rounded-full bg-gray-400"></div>
+                    <span className="text-gray-700">
                       총 {serverStats.total}대
                     </span>
                   </div>
-                  <div className='flex items-center gap-1'>
-                    <div className='w-2 h-2 bg-green-500 rounded-full'></div>
-                    <span className='text-green-600'>
+                  <div className="flex items-center gap-1">
+                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                    <span className="text-green-600">
                       정상 {serverStats.online}대
                     </span>
                   </div>
                   {serverStats.warning > 0 && (
-                    <div className='flex items-center gap-1'>
-                      <div className='w-2 h-2 bg-yellow-500 rounded-full _animate-pulse'></div>
-                      <span className='text-yellow-600'>
+                    <div className="flex items-center gap-1">
+                      <div className="_animate-pulse h-2 w-2 rounded-full bg-yellow-500"></div>
+                      <span className="text-yellow-600">
                         경고 {serverStats.warning}대
                       </span>
                     </div>
                   )}
                   {serverStats.offline > 0 && (
-                    <div className='flex items-center gap-1'>
-                      <div className='w-2 h-2 bg-red-500 rounded-full _animate-pulse'></div>
-                      <span className='text-red-600'>
+                    <div className="flex items-center gap-1">
+                      <div className="_animate-pulse h-2 w-2 rounded-full bg-red-500"></div>
+                      <span className="text-red-600">
                         오프라인 {serverStats.offline}대
                       </span>
                     </div>
@@ -324,8 +324,8 @@ export default function DashboardContent({
               </div>
 
               {/* 📊 상세 통계 정보 */}
-              <div className='mt-2 pt-2 border-t border-green-200/50'>
-                <div className='flex items-center justify-between text-xs text-green-700'>
+              <div className="mt-2 border-t border-green-200/50 pt-2">
+                <div className="flex items-center justify-between text-xs text-green-700">
                   <span>
                     마지막 업데이트: {new Date().toLocaleTimeString('ko-KR')}
                   </span>
@@ -347,25 +347,25 @@ export default function DashboardContent({
           {servers && servers.length > 0 ? (
             <>
               {/* 인프라 전체 현황 */}
-              <div className='mb-6'>
-                <div className='grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3 gap-6'>
+              <div className="mb-6">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3">
                   {/* 🎛️ 인프라 전체 현황 - 큰 화면에서 2칸, 작은 화면에서 전체 */}
-                  <div className='lg:col-span-2 xl:col-span-2 2xl:col-span-2'>
+                  <div className="lg:col-span-2 xl:col-span-2 2xl:col-span-2">
                     <Suspense
                       fallback={
-                        <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
-                          <div className='_animate-pulse'>
-                            <div className='h-6 bg-gray-200 rounded w-1/3 mb-4'></div>
-                            <div className='space-y-3'>
-                              <div className='h-4 bg-gray-200 rounded'></div>
-                              <div className='h-4 bg-gray-200 rounded w-5/6'></div>
+                        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
+                          <div className="_animate-pulse">
+                            <div className="mb-4 h-6 w-1/3 rounded bg-gray-200"></div>
+                            <div className="space-y-3">
+                              <div className="h-4 rounded bg-gray-200"></div>
+                              <div className="h-4 w-5/6 rounded bg-gray-200"></div>
                             </div>
                           </div>
                         </div>
                       }
                     >
-                      <div className='bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden'>
-                        <InfrastructureOverviewPage className='h-80 lg:h-96' />
+                      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
+                        <InfrastructureOverviewPage className="h-80 lg:h-96" />
                       </div>
                     </Suspense>
                   </div>
@@ -375,18 +375,18 @@ export default function DashboardContent({
               {/* 서버 카드 목록 */}
               <Suspense
                 fallback={
-                  <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
-                    <div className='_animate-pulse'>
-                      <div className='h-4 bg-gray-200 rounded mb-4'></div>
-                      <div className='h-4 bg-gray-200 rounded mb-4'></div>
-                      <div className='h-4 bg-gray-200 rounded w-5/6'></div>
+                  <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
+                    <div className="_animate-pulse">
+                      <div className="mb-4 h-4 rounded bg-gray-200"></div>
+                      <div className="mb-4 h-4 rounded bg-gray-200"></div>
+                      <div className="h-4 w-5/6 rounded bg-gray-200"></div>
                     </div>
                   </div>
                 }
               >
                 <ServerDashboardDynamic
                   servers={servers}
-                  onServerClick={server => {
+                  onServerClick={(server) => {
                     try {
                       console.log('🖱️ 서버 클릭:', server);
                       // 서버 클릭 처리는 부모에서 관리됨
@@ -404,10 +404,10 @@ export default function DashboardContent({
               </Suspense>
             </>
           ) : (
-            <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
-              <div className='text-center text-gray-500'>
-                <p className='text-lg mb-2'>등록된 서버가 없습니다</p>
-                <p className='text-sm'>서버를 추가하여 모니터링을 시작하세요</p>
+            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
+              <div className="text-center text-gray-500">
+                <p className="mb-2 text-lg">등록된 서버가 없습니다</p>
+                <p className="text-sm">서버를 추가하여 모니터링을 시작하세요</p>
               </div>
             </div>
           )}
@@ -417,12 +417,12 @@ export default function DashboardContent({
   } catch (renderError) {
     console.error('📱 DashboardContent 렌더링 오류:', renderError);
     return (
-      <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
-        <div className='text-center text-gray-500'>
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
+        <div className="text-center text-gray-500">
           <p>대시보드를 불러올 수 없습니다.</p>
           <button
             onClick={() => window.location.reload()}
-            className='mt-2 px-3 py-1 bg-blue-500 text-white rounded text-sm'
+            className="mt-2 rounded bg-blue-500 px-3 py-1 text-sm text-white"
           >
             새로고침
           </button>

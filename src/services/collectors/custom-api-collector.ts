@@ -314,13 +314,13 @@ export class CustomAPICollector implements MetricCollector {
 
   private extractArray(value: any, defaultValue: number[]): number[] {
     if (Array.isArray(value)) {
-      return value.map(v => this.extractNumber(v, 0));
+      return value.map((v) => this.extractNumber(v, 0));
     }
     if (typeof value === 'string') {
       try {
         const parsed = JSON.parse(value);
         if (Array.isArray(parsed)) {
-          return parsed.map(v => this.extractNumber(v, 0));
+          return parsed.map((v) => this.extractNumber(v, 0));
         }
       } catch {
         // JSON 파싱 실패시 기본값 사용

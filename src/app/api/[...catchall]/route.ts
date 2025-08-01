@@ -124,7 +124,9 @@ function getSuggestions(requestedPath: string): string[] {
   const pathParts = requestedPath.toLowerCase().split('/').filter(Boolean);
   for (const endpoint of knownEndpoints) {
     const endpointParts = endpoint.toLowerCase().split('/').filter(Boolean);
-    const commonParts = pathParts.filter(part => endpointParts.includes(part));
+    const commonParts = pathParts.filter((part) =>
+      endpointParts.includes(part)
+    );
 
     if (commonParts.length > 0 && !suggestions.includes(endpoint)) {
       suggestions.push(endpoint);

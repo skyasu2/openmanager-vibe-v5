@@ -136,7 +136,7 @@ export class RedisTimeSeriesService {
 
       // 오래된 데이터 정리 (24시간 초과)
       const cutoffTime = Date.now() - this.RETENTION_HOURS * 60 * 60 * 1000;
-      storage[key] = storage[key].filter(p => p.timestamp > cutoffTime);
+      storage[key] = storage[key].filter((p) => p.timestamp > cutoffTime);
     }
 
     // 전역 저장소 업데이트
@@ -168,7 +168,7 @@ export class RedisTimeSeriesService {
       const cutoffTime = Date.now() - timeRangeMs;
 
       const filteredPoints = storage[key].filter(
-        point => point.timestamp > cutoffTime
+        (point) => point.timestamp > cutoffTime
       );
 
       // 집계 계산
@@ -225,8 +225,8 @@ export class RedisTimeSeriesService {
 
     for (const metric of metrics) {
       const values = points
-        .map(p => (p.metrics as any)[metric])
-        .filter(v => v !== undefined);
+        .map((p) => (p.metrics as any)[metric])
+        .filter((v) => v !== undefined);
 
       if (values.length > 0) {
         aggregations.avg[metric] =
@@ -257,7 +257,7 @@ export class RedisTimeSeriesService {
         return;
       }
 
-      const backupData = points.map(point => ({
+      const backupData = points.map((point) => ({
         server_id: point.server_id,
         timestamp: new Date(point.timestamp).toISOString(),
         hostname: point.hostname,
@@ -365,8 +365,8 @@ export class RedisTimeSeriesService {
       totalPoints += points.length;
 
       if (points.length > 0) {
-        const serverOldest = Math.min(...points.map(p => p.timestamp));
-        const serverNewest = Math.max(...points.map(p => p.timestamp));
+        const serverOldest = Math.min(...points.map((p) => p.timestamp));
+        const serverNewest = Math.max(...points.map((p) => p.timestamp));
 
         if (oldestPoint === null || serverOldest < oldestPoint) {
           oldestPoint = serverOldest;

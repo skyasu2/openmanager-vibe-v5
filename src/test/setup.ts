@@ -24,7 +24,7 @@ global.React = React;
 // ===============================
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -251,7 +251,8 @@ afterAll(() => {
 // ===============================
 export const testUtils = {
   // 비동기 테스트 헬퍼
-  waitFor: (ms: number = 0) => new Promise(resolve => setTimeout(resolve, ms)),
+  waitFor: (ms: number = 0) =>
+    new Promise((resolve) => setTimeout(resolve, ms)),
 
   // Mock 함수 생성
   createMockFn: <T extends (...args: never[]) => unknown>(implementation?: T) =>
@@ -261,7 +262,7 @@ export const testUtils = {
   withEnv: <T>(envVars: Record<string, string>, fn: () => T): T => {
     // 기존 환경변수 백업
     const originalEnv: Record<string, string | undefined> = {};
-    Object.keys(envVars).forEach(key => {
+    Object.keys(envVars).forEach((key) => {
       originalEnv[key] = process.env[key];
     });
 

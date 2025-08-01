@@ -253,7 +253,7 @@ export class LongRunningScenarioEngine extends EventEmitter {
     }
 
     // 완료된 시나리오 제거
-    toRemove.forEach(id => this.activeScenarios.delete(id));
+    toRemove.forEach((id) => this.activeScenarios.delete(id));
   }
 
   private emitStatusReport(): void {
@@ -263,7 +263,7 @@ export class LongRunningScenarioEngine extends EventEmitter {
       const scenarios = Array.from(this.activeScenarios.values());
       console.log(`📊 활성 시나리오: ${activeCount}개`);
 
-      scenarios.forEach(scenario => {
+      scenarios.forEach((scenario) => {
         const progress = (
           (scenario.elapsedMinutes / scenario.totalDuration) *
           100
@@ -332,7 +332,7 @@ export class LongRunningScenarioEngine extends EventEmitter {
 
   private isPatternActive(patternId: string): boolean {
     return Array.from(this.activeScenarios.values()).some(
-      scenario => scenario.pattern.id === patternId
+      (scenario) => scenario.pattern.id === patternId
     );
   }
 
@@ -387,7 +387,7 @@ export class LongRunningScenarioEngine extends EventEmitter {
    * 🎯 특정 시나리오 강제 활성화 (테스트용)
    */
   async forceActivateScenario(patternId: string): Promise<boolean> {
-    const pattern = this.scenarioPatterns.find(p => p.id === patternId);
+    const pattern = this.scenarioPatterns.find((p) => p.id === patternId);
     if (pattern && !this.isPatternActive(patternId)) {
       await this.activateScenario(pattern);
       return true;

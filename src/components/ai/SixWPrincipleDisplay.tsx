@@ -99,11 +99,11 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
     async (content: string, type: string) => {
       try {
         await navigator.clipboard.writeText(content);
-        setCopiedItems(prev => new Set([...prev, type]));
+        setCopiedItems((prev) => new Set([...prev, type]));
 
         // 2초 후 복사 상태 제거
         setTimeout(() => {
-          setCopiedItems(prev => {
+          setCopiedItems((prev) => {
             const newSet = new Set(prev);
             newSet.delete(type);
             return newSet;
@@ -121,7 +121,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
   // 전체 응답 복사
   const handleCopyAll = useCallback(() => {
     const fullResponse = principleConfig
-      .map(config => `${config.title}: ${response[config.key]}`)
+      .map((config) => `${config.title}: ${response[config.key]}`)
       .join('\n\n');
 
     handleCopy(fullResponse, 'all');
@@ -129,7 +129,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
 
   // 아이템 확장/축소
   const toggleExpanded = useCallback((key: string) => {
-    setExpandedItems(prev => {
+    setExpandedItems((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(key)) {
         newSet.delete(key);
@@ -189,23 +189,23 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
   return (
     <div className={`space-y-4 ${className}`}>
       {/* 헤더 */}
-      <div className='flex items-center justify-between'>
-        <div className='flex items-center space-x-2'>
-          <BarChart3 className='w-5 h-5 text-indigo-600' />
-          <h3 className='font-semibold text-gray-900'>육하원칙 분석 결과</h3>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <BarChart3 className="h-5 w-5 text-indigo-600" />
+          <h3 className="font-semibold text-gray-900">육하원칙 분석 결과</h3>
         </div>
 
-        <div className='flex items-center space-x-2'>
+        <div className="flex items-center space-x-2">
           {/* 전체 복사 버튼 */}
           {showCopyButtons && (
             <button
               onClick={handleCopyAll}
-              className='flex items-center space-x-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors'
+              className="flex items-center space-x-1 rounded-lg px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
             >
               {copiedItems.has('all') ? (
-                <CheckCircle className='w-4 h-4 text-green-500' />
+                <CheckCircle className="h-4 w-4 text-green-500" />
               ) : (
-                <Copy className='w-4 h-4' />
+                <Copy className="h-4 w-4" />
               )}
               <span>{copiedItems.has('all') ? '복사됨' : '전체 복사'}</span>
             </button>
@@ -214,7 +214,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
           {/* 신뢰도 표시 */}
           {showConfidence && (
             <div
-              className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getConfidenceColor(response.confidence)}`}
+              className={`flex items-center space-x-1 rounded-full px-2 py-1 text-xs font-medium ${getConfidenceColor(response.confidence)}`}
             >
               {React.createElement(getConfidenceIcon(response.confidence), {
                 className: 'w-3 h-3',
@@ -226,7 +226,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
       </div>
 
       {/* 6W 원칙 카드들 */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <AnimatePresence>
           {principleConfig.map((config, index) => {
             const {
@@ -245,38 +245,38 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
                 key={key}
                 custom={index}
                 variants={cardVariants}
-                initial='hidden'
-                animate='visible'
-                whileHover='hover'
-                className={`p-4 rounded-lg border-2 ${color} transition-all duration-200`}
+                initial="hidden"
+                animate="visible"
+                whileHover="hover"
+                className={`rounded-lg border-2 p-4 ${color} transition-all duration-200`}
               >
-                <div className='space-y-3'>
+                <div className="space-y-3">
                   {/* 카드 헤더 */}
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center space-x-2'>
-                      <IconComponent className='w-5 h-5' />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <IconComponent className="h-5 w-5" />
                       <div>
-                        <h4 className='font-medium text-sm'>{title}</h4>
-                        <p className='text-xs opacity-70'>{description}</p>
+                        <h4 className="text-sm font-medium">{title}</h4>
+                        <p className="text-xs opacity-70">{description}</p>
                       </div>
                     </div>
 
                     {showCopyButtons && (
                       <button
                         onClick={() => handleCopy(content, key)}
-                        className='p-1.5 hover:bg-white hover:bg-opacity-50 rounded-md transition-colors'
+                        className="rounded-md p-1.5 transition-colors hover:bg-white hover:bg-opacity-50"
                       >
                         {isCopied ? (
-                          <CheckCircle className='w-4 h-4 text-green-600' />
+                          <CheckCircle className="h-4 w-4 text-green-600" />
                         ) : (
-                          <Copy className='w-4 h-4 opacity-60 hover:opacity-100' />
+                          <Copy className="h-4 w-4 opacity-60 hover:opacity-100" />
                         )}
                       </button>
                     )}
                   </div>
 
                   {/* 내용 */}
-                  <div className='relative'>
+                  <div className="relative">
                     <motion.p
                       initial={false}
                       animate={{
@@ -295,7 +295,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
                     {content.length > 100 && (
                       <button
                         onClick={() => toggleExpanded(key)}
-                        className='mt-2 text-xs opacity-70 hover:opacity-100 underline'
+                        className="mt-2 text-xs underline opacity-70 hover:opacity-100"
                       >
                         {isExpanded ? '축소' : '더보기'}
                       </button>
@@ -309,11 +309,11 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9 }}
-                        className='absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 rounded-lg'
+                        className="absolute inset-0 flex items-center justify-center rounded-lg bg-white bg-opacity-90"
                       >
-                        <div className='flex items-center space-x-2 text-green-600'>
-                          <CheckCircle className='w-5 h-5' />
-                          <span className='text-sm font-medium'>복사됨!</span>
+                        <div className="flex items-center space-x-2 text-green-600">
+                          <CheckCircle className="h-5 w-5" />
+                          <span className="text-sm font-medium">복사됨!</span>
                         </div>
                       </motion.div>
                     )}
@@ -326,28 +326,28 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
       </div>
 
       {/* 추가 정보 */}
-      <div className='space-y-3'>
+      <div className="space-y-3">
         {/* 데이터 출처 */}
         {showSources && response.sources && response.sources.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className='p-3 bg-gray-50 rounded-lg border border-gray-200'
+            className="rounded-lg border border-gray-200 bg-gray-50 p-3"
           >
-            <div className='flex items-center space-x-2 mb-2'>
-              <Info className='w-4 h-4 text-gray-600' />
-              <span className='text-sm font-medium text-gray-900'>
+            <div className="mb-2 flex items-center space-x-2">
+              <Info className="h-4 w-4 text-gray-600" />
+              <span className="text-sm font-medium text-gray-900">
                 데이터 출처
               </span>
             </div>
-            <div className='flex flex-wrap gap-2'>
+            <div className="flex flex-wrap gap-2">
               {response.sources.map((source, index) => (
                 <span
                   key={index}
-                  className='inline-flex items-center px-2 py-1 bg-white border border-gray-300 rounded-md text-xs text-gray-600'
+                  className="inline-flex items-center rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-600"
                 >
-                  <Shield className='w-3 h-3 mr-1' />
+                  <Shield className="mr-1 h-3 w-3" />
                   {source}
                 </span>
               ))}
@@ -360,13 +360,13 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className='p-3 bg-blue-50 rounded-lg border border-blue-200'
+          className="rounded-lg border border-blue-200 bg-blue-50 p-3"
         >
-          <div className='flex items-center space-x-2 mb-2'>
-            <BarChart3 className='w-4 h-4 text-blue-600' />
-            <span className='text-sm font-medium text-blue-900'>분석 요약</span>
+          <div className="mb-2 flex items-center space-x-2">
+            <BarChart3 className="h-4 w-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-900">분석 요약</span>
           </div>
-          <p className='text-sm text-blue-800'>
+          <p className="text-sm text-blue-800">
             AI가 제공한 정보를 육하원칙에 따라 구조화하여 표시했습니다. 각
             항목을 개별적으로 복사하거나 전체 내용을 한번에 복사할 수 있습니다.
           </p>

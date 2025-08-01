@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
           {
             error: `지원되지 않는 설정 카테고리: ${category}`,
             availableCategories: Object.keys(adaptiveConfig).filter(
-              key => key !== 'version' && key !== 'lastUpdate'
+              (key) => key !== 'version' && key !== 'lastUpdate'
             ),
           },
           { status: 404 }

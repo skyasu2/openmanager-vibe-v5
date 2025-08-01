@@ -151,7 +151,7 @@ export async function manualEnvironmentRecovery(backupId?: string): Promise<{
 // 🚀 자동 초기화 (서버 사이드에서만)
 if (typeof window === 'undefined' && process.env.NODE_ENV !== 'test') {
   // 모듈 로드 시 자동 초기화 (비동기)
-  _initializeEnvironment().catch(error => {
+  _initializeEnvironment().catch((error) => {
     console.warn('⚠️ 환경변수 자동 초기화 중 오류 발생:', error);
   });
 }

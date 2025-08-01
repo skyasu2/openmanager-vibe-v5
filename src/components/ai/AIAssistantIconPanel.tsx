@@ -121,28 +121,20 @@ export default function AIAssistantIconPanel({
             <motion.button
               key={item.id}
               onClick={() => onFunctionChange(item.id)}
-              className={`
-                flex-shrink-0 w-12 h-12 rounded-xl transition-all duration-200 group relative
-                ${
-                  isSelected
-                    ? `bg-gradient-to-r ${item.gradient} text-white shadow-lg scale-105`
-                    : `${item.bgColor} ${item.color}`
-                }
-              `}
+              className={`group relative h-12 w-12 flex-shrink-0 rounded-xl transition-all duration-200 ${
+                isSelected
+                  ? `bg-gradient-to-r ${item.gradient} scale-105 text-white shadow-lg`
+                  : `${item.bgColor} ${item.color}`
+              } `}
               whileTap={{ scale: 0.95 }}
             >
-              <Icon className='w-5 h-5 mx-auto' />
+              <Icon className="mx-auto h-5 w-5" />
 
               {/* 모바일 툴팁 (상단 표시) */}
-              <div
-                className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 
-                             bg-gray-900 text-white text-xs px-2 py-1 rounded 
-                             opacity-0 group-hover:opacity-100 transition-opacity duration-200 
-                             pointer-events-none whitespace-nowrap z-[60] shadow-lg'
-              >
+              <div className="pointer-events-none absolute bottom-full left-1/2 z-[60] mb-2 -translate-x-1/2 transform whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
                 {item.label}
-                <div className='absolute top-full left-1/2 transform -translate-x-1/2'>
-                  <div className='border-2 border-transparent border-t-gray-900'></div>
+                <div className="absolute left-1/2 top-full -translate-x-1/2 transform">
+                  <div className="border-2 border-transparent border-t-gray-900"></div>
                 </div>
               </div>
             </motion.button>
@@ -154,18 +146,18 @@ export default function AIAssistantIconPanel({
 
   return (
     <div
-      className={`flex flex-col space-y-2 p-3 bg-white border-l border-gray-200 ${className}`}
+      className={`flex flex-col space-y-2 border-l border-gray-200 bg-white p-3 ${className}`}
     >
       {/* 헤더 */}
-      <div className='text-center mb-2'>
-        <div className='w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg mx-auto mb-1 flex items-center justify-center'>
-          <Brain className='w-4 h-4 text-white' />
+      <div className="mb-2 text-center">
+        <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-blue-500">
+          <Brain className="h-4 w-4 text-white" />
         </div>
-        <p className='text-xs font-medium text-gray-600'>AI 기능</p>
+        <p className="text-xs font-medium text-gray-600">AI 기능</p>
       </div>
 
       {/* 아이콘 버튼들 */}
-      <div className='space-y-1'>
+      <div className="space-y-1">
         {AI_ASSISTANT_ICONS.map((item, index) => {
           const Icon = item.icon;
           const isSelected = selectedFunction === item.id;
@@ -174,14 +166,11 @@ export default function AIAssistantIconPanel({
             <motion.button
               key={item.id}
               onClick={() => onFunctionChange(item.id)}
-              className={`
-                relative w-12 h-12 rounded-xl transition-all duration-200 group
-                ${
-                  isSelected
-                    ? `bg-gradient-to-r ${item.gradient} text-white shadow-lg scale-105`
-                    : `${item.bgColor} ${item.color} hover:scale-105`
-                }
-              `}
+              className={`group relative h-12 w-12 rounded-xl transition-all duration-200 ${
+                isSelected
+                  ? `bg-gradient-to-r ${item.gradient} scale-105 text-white shadow-lg`
+                  : `${item.bgColor} ${item.color} hover:scale-105`
+              } `}
               title={`${item.label}\n${item.description}`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -189,12 +178,12 @@ export default function AIAssistantIconPanel({
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Icon className='w-5 h-5 mx-auto' />
+              <Icon className="mx-auto h-5 w-5" />
 
               {/* 선택 표시 */}
               {isSelected && (
                 <motion.div
-                  className='absolute -left-1 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full'
+                  className="absolute -left-1 top-1/2 h-6 w-1 -translate-y-1/2 transform rounded-r-full bg-white"
                   initial={{ scaleY: 0 }}
                   animate={{ scaleY: 1 }}
                   transition={{ duration: 0.2 }}
@@ -203,22 +192,16 @@ export default function AIAssistantIconPanel({
 
               {/* 호버 툴팁 - 왼쪽으로 위치 변경 */}
               <div
-                className={`
-                absolute right-full mr-3 ${getTooltipPosition(index, AI_ASSISTANT_ICONS.length)}
-                bg-gray-900 text-white text-xs px-3 py-2 rounded-lg 
-                opacity-0 group-hover:opacity-100 transition-all duration-200 
-                pointer-events-none whitespace-nowrap z-[60] shadow-lg
-                min-w-max max-w-[200px]
-              `}
+                className={`absolute right-full mr-3 ${getTooltipPosition(index, AI_ASSISTANT_ICONS.length)} pointer-events-none z-[60] min-w-max max-w-[200px] whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs text-white opacity-0 shadow-lg transition-all duration-200 group-hover:opacity-100`}
               >
-                <div className='font-medium'>{item.label}</div>
-                <div className='text-gray-300 text-xs mt-1'>
+                <div className="font-medium">{item.label}</div>
+                <div className="mt-1 text-xs text-gray-300">
                   {item.description}
                 </div>
 
                 {/* 툴팁 화살표 - 왼쪽 표시용으로 변경 */}
-                <div className='absolute left-full top-1/2 transform -translate-y-1/2'>
-                  <div className='border-4 border-transparent border-l-gray-900'></div>
+                <div className="absolute left-full top-1/2 -translate-y-1/2 transform">
+                  <div className="border-4 border-transparent border-l-gray-900"></div>
                 </div>
               </div>
             </motion.button>
@@ -227,10 +210,10 @@ export default function AIAssistantIconPanel({
       </div>
 
       {/* 하단 상태 표시 */}
-      <div className='mt-4 pt-2 border-t border-gray-200'>
-        <div className='text-center'>
-          <div className='w-2 h-2 bg-green-400 rounded-full mx-auto mb-1 _animate-pulse'></div>
-          <p className='text-xs text-gray-500'>AI 활성</p>
+      <div className="mt-4 border-t border-gray-200 pt-2">
+        <div className="text-center">
+          <div className="_animate-pulse mx-auto mb-1 h-2 w-2 rounded-full bg-green-400"></div>
+          <p className="text-xs text-gray-500">AI 활성</p>
         </div>
       </div>
     </div>

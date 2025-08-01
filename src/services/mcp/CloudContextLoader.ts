@@ -405,7 +405,7 @@ export class CloudContextLoader {
       const cacheKey = `${this.config.redisPrefix}rag:${this.generateQueryHash(query)}`;
       await safeRedisOperation(
         this.redis,
-        async redis =>
+        async (redis) =>
           await redis.setex(cacheKey, 900, JSON.stringify(ragContext))
       );
     }
@@ -513,7 +513,7 @@ export class CloudContextLoader {
    */
   private formatMCPContextForNLP(mcpContext: RAGEngineContext): string {
     return `[MCP 컨텍스트]\n${mcpContext.files
-      .map(f => `파일: ${f.path}\n내용: ${f.content.substring(0, 200)}...`)
+      .map((f) => `파일: ${f.path}\n내용: ${f.content.substring(0, 200)}...`)
       .join('\n')}\n\n`;
   }
 
@@ -672,11 +672,11 @@ export class CloudContextLoader {
 
     // 쿼리 키워드 기반 경로 필터링
     const keywords = query.toLowerCase().split(' ');
-    const relevantPaths = basePaths.filter(path => {
+    const relevantPaths = basePaths.filter((path) => {
       return keywords.some(
-        keyword =>
+        (keyword) =>
           path.toLowerCase().includes(keyword) ||
-          this.getPathKeywords(path).some(pathKeyword =>
+          this.getPathKeywords(path).some((pathKeyword) =>
             pathKeyword.includes(keyword)
           )
       );
@@ -902,7 +902,7 @@ export class CloudContextLoader {
         console.log(`📦 컨텍스트 압축 적용: ${contextDoc.id}`);
       }
 
-      await safeRedisOperation(this.redis, async redis => {
+      await safeRedisOperation(this.redis, async (redis) => {
         await redis.setex(key, this.config.redisTTL, data);
         // 번들 타입별 인덱스 유지
         await redis.sadd(
@@ -960,7 +960,7 @@ export class CloudContextLoader {
       const key = `${this.config.redisPrefix}${contextId}`;
       const data = await safeRedisOperation(
         this.redis,
-        async redis => await redis.get(key)
+        async (redis) => await redis.get(key)
       );
 
       if (data && typeof data === 'string') {
@@ -1057,7 +1057,7 @@ export class CloudContextLoader {
       // 2. Redis 캐시 삭제
       if (isRedisConnected(this.redis)) {
         const key = `${this.config.redisPrefix}${contextId}`;
-        await safeRedisOperation(this.redis, async redis => {
+        await safeRedisOperation(this.redis, async (redis) => {
           await redis.del(key);
           await redis.srem(
             `${this.config.redisPrefix}bundles:${bundleType}`,
@@ -1157,7 +1157,7 @@ export class CloudContextLoader {
       if (isRedisConnected(this.redis)) {
         await safeRedisOperation(
           this.redis,
-          async redis =>
+          async (redis) =>
             await redis.del(`${this.config.redisPrefix}${contextId}`)
         );
       }

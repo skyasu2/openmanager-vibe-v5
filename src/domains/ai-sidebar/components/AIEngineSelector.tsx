@@ -64,24 +64,24 @@ export const AIEngineSelector: React.FC<AIEngineSelectorProps> = ({
 
   // 선택된 엔진 데이터 찾기
   const selectedEngineData = availableEngines.find(
-    engine => engine.id === selectedEngine
+    (engine) => engine.id === selectedEngine
   );
 
   if (!selectedEngineData) return null;
 
   return (
-    <div className='relative'>
+    <div className="relative">
       <button
         onClick={() => setShowEngineInfo(!showEngineInfo)}
-        className='flex items-center space-x-2 px-2 py-1 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-xs'
+        className="flex items-center space-x-2 rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs transition-colors hover:bg-gray-50"
       >
         {React.createElement(selectedEngineData.icon, {
           className: `w-3 h-3 ${selectedEngineData.color}`,
         })}
-        <span className='font-medium'>
+        <span className="font-medium">
           {selectedEngineData.name || '엔진 선택'}
         </span>
-        <ChevronDown className='w-3 h-3 text-gray-500' />
+        <ChevronDown className="h-3 w-3 text-gray-500" />
       </button>
 
       {/* 엔진 선택 드롭다운 */}
@@ -91,56 +91,56 @@ export const AIEngineSelector: React.FC<AIEngineSelectorProps> = ({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className='absolute top-full right-0 mt-2 w-60 sm:w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-50'
+            className="absolute right-0 top-full z-50 mt-2 w-60 rounded-lg border border-gray-200 bg-white shadow-lg sm:w-72"
           >
-            <div className='p-3 border-b border-gray-100'>
-              <h4 className='text-xs font-semibold text-gray-800'>
+            <div className="border-b border-gray-100 p-3">
+              <h4 className="text-xs font-semibold text-gray-800">
                 AI 모델 선택
               </h4>
-              <p className='text-xs text-gray-600'>
+              <p className="text-xs text-gray-600">
                 용도에 맞는 AI 엔진을 선택하세요
               </p>
             </div>
 
-            <div className='max-h-48 overflow-y-auto'>
-              {availableEngines.map(engine => (
+            <div className="max-h-48 overflow-y-auto">
+              {availableEngines.map((engine) => (
                 <button
                   key={engine.id}
                   onClick={() => {
                     onEngineChange(engine.id);
                     setShowEngineInfo(false);
                   }}
-                  className={`w-full text-left p-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 ${
+                  className={`w-full border-b border-gray-100 p-3 text-left transition-colors last:border-b-0 hover:bg-gray-50 ${
                     selectedEngine === engine.id ? 'bg-blue-50' : ''
                   }`}
                 >
-                  <div className='flex items-start space-x-3'>
+                  <div className="flex items-start space-x-3">
                     <div
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center ${engine.bgColor}`}
+                      className={`flex h-8 w-8 items-center justify-center rounded-lg ${engine.bgColor}`}
                     >
                       {React.createElement(engine.icon, {
                         className: `w-4 h-4 ${engine.color}`,
                       })}
                     </div>
-                    <div className='flex-1 min-w-0'>
-                      <div className='flex items-center space-x-2'>
-                        <h5 className='text-xs font-semibold text-gray-800'>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center space-x-2">
+                        <h5 className="text-xs font-semibold text-gray-800">
                           {engine.name}
                         </h5>
                         {engine.usage && (
-                          <span className='text-xs text-gray-500'>
+                          <span className="text-xs text-gray-500">
                             {engine.usage.used}/{engine.usage.limit}
                           </span>
                         )}
                       </div>
-                      <p className='text-xs text-gray-600 mt-0.5'>
+                      <p className="mt-0.5 text-xs text-gray-600">
                         {engine.description}
                       </p>
-                      <div className='flex flex-wrap gap-1 mt-1'>
+                      <div className="mt-1 flex flex-wrap gap-1">
                         {engine.features.slice(0, 2).map((feature, idx) => (
                           <span
                             key={idx}
-                            className='text-xs px-1 py-0.5 bg-gray-100 text-gray-600 rounded'
+                            className="rounded bg-gray-100 px-1 py-0.5 text-xs text-gray-600"
                           >
                             {feature}
                           </span>

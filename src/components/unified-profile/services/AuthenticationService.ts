@@ -230,7 +230,7 @@ export class AuthenticationService {
    * 모든 타이머 정리
    */
   clearAllTimers(): void {
-    this.lockTimeouts.forEach(timeoutId => {
+    this.lockTimeouts.forEach((timeoutId) => {
       clearTimeout(timeoutId);
     });
     this.lockTimeouts.clear();

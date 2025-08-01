@@ -36,7 +36,7 @@ export function useProfileSecurity() {
       setIsAdminMode(adminMode);
 
       if (storedLockEndTime > Date.now()) {
-        setSecurityState(prev => ({
+        setSecurityState((prev) => ({
           ...prev,
           failedAttempts: storedFailedAttempts,
           isLocked: true,
@@ -48,7 +48,7 @@ export function useProfileSecurity() {
           localStorage.removeItem('admin_failed_attempts');
           localStorage.removeItem('admin_lock_end_time');
         }
-        setSecurityState(prev => ({
+        setSecurityState((prev) => ({
           ...prev,
           failedAttempts: storedFailedAttempts,
           isLocked: false,
@@ -71,13 +71,13 @@ export function useProfileSecurity() {
           Math.ceil((securityState.lockEndTime! - Date.now()) / 1000)
         );
 
-        setSecurityState(prev => ({
+        setSecurityState((prev) => ({
           ...prev,
           remainingLockTime: remaining,
         }));
 
         if (remaining <= 0) {
-          setSecurityState(prev => ({
+          setSecurityState((prev) => ({
             ...prev,
             isLocked: false,
             lockEndTime: null,
@@ -112,13 +112,13 @@ export function useProfileSecurity() {
       // 처리 중 상태 설정
       if (securityState.isProcessing) return false;
 
-      setSecurityState(prev => ({ ...prev, isProcessing: true }));
+      setSecurityState((prev) => ({ ...prev, isProcessing: true }));
 
       try {
         // 브루트포스 공격 방어를 위한 지연
         const delay = Math.min(securityState.failedAttempts * 1000, 5000);
         if (delay > 0) {
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
 
         if (password === ADMIN_PASSWORD) {
@@ -127,7 +127,7 @@ export function useProfileSecurity() {
           localStorage.setItem('admin_mode', 'true');
 
           // 실패 기록 초기화
-          setSecurityState(prev => ({
+          setSecurityState((prev) => ({
             ...prev,
             failedAttempts: 0,
             isProcessing: false,
@@ -154,7 +154,7 @@ export function useProfileSecurity() {
             alertMessage = '⚠️ 3회 연속 실패로 5분간 잠금됩니다.';
           }
 
-          setSecurityState(prev => ({
+          setSecurityState((prev) => ({
             ...prev,
             failedAttempts: newFailedAttempts,
             isLocked: lockTime !== null,
@@ -178,7 +178,7 @@ export function useProfileSecurity() {
         alert('❌ 인증 처리 중 오류가 발생했습니다.');
         return false;
       } finally {
-        setSecurityState(prev => ({ ...prev, isProcessing: false }));
+        setSecurityState((prev) => ({ ...prev, isProcessing: false }));
       }
     },
     [securityState]

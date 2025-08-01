@@ -14,7 +14,7 @@ async function setReadOnlyMode(enabled: boolean, reason?: string) {
   );
 
   // 시뮬레이션 지연
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   readOnlyMode = enabled;
 

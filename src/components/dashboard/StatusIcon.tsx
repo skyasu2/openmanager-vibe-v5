@@ -100,10 +100,10 @@ const StatusIcon: React.FC<StatusIconProps> = ({
   const IconComponent = customIcon || getStepIconComponent(currentStep);
 
   return (
-    <div className='relative'>
+    <div className="relative">
       {/* 메인 아이콘 컨테이너 */}
       <motion.div
-        className={`${sizeClasses.container} rounded-xl flex items-center justify-center border-2 ${statusClasses.container}`}
+        className={`${sizeClasses.container} flex items-center justify-center rounded-xl border-2 ${statusClasses.container}`}
         animate={
           isActive && !isComplete && !error
             ? {
@@ -121,7 +121,7 @@ const StatusIcon: React.FC<StatusIconProps> = ({
           repeat: isActive && !isComplete && !error ? Infinity : 0,
         }}
       >
-        <AnimatePresence mode='wait'>
+        <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
             initial={{ scale: 0, rotate: -180 }}
@@ -147,7 +147,7 @@ const StatusIcon: React.FC<StatusIconProps> = ({
       {/* 회전 링 (로딩 중일 때) */}
       {isActive && !isComplete && !error && (
         <motion.div
-          className='absolute inset-0 rounded-xl border-2 border-blue-400/30'
+          className="absolute inset-0 rounded-xl border-2 border-blue-400/30"
           animate={{ rotate: 360 }}
           transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
         />

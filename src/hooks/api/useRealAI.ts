@@ -294,10 +294,11 @@ export function useRealAI(options: UseRealAIOptions = {}) {
     if (!_systemHealth) return null;
     return {
       overall: _systemHealth.overall,
-      services: Object.keys(_systemHealth).filter(key => key !== 'overall')
+      services: Object.keys(_systemHealth).filter((key) => key !== 'overall')
         .length,
       healthy: Object.values(_systemHealth).filter(
-        service => typeof service === 'object' && service?.status === 'healthy'
+        (service) =>
+          typeof service === 'object' && service?.status === 'healthy'
       ).length,
     };
   }, [_systemHealth]);

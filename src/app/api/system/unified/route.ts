@@ -43,7 +43,7 @@ function getProcessManager(): ProcessManager {
     }
 
     // 설정 등록
-    configs.forEach(config => {
+    configs.forEach((config) => {
       processManager!.registerProcess(config);
     });
 
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
         }
 
         // 3초 대기
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, 3000));
 
         // 다시 시작
         const startResult = await manager.startSystem(options);
@@ -333,7 +333,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           success: true,
           data: {
-            processes: status.processes.map(process => ({
+            processes: status.processes.map((process) => ({
               id: process.id,
               status: process.status,
               healthScore: process.healthScore,

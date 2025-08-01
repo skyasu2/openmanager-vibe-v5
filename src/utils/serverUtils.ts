@@ -1,6 +1,6 @@
 /**
  * 🛠️ 서버 관련 공통 유틸리티 함수
- * 
+ *
  * 중복 코드 제거 및 번들 크기 최적화
  * - 타입 가드 함수
  * - 서버 데이터 변환 함수
@@ -90,9 +90,11 @@ export const SERVER_STATUS_PRIORITY = {
 export function sortServersByStatus(servers: Server[]): Server[] {
   return [...servers].sort((a, b) => {
     const priorityA =
-      SERVER_STATUS_PRIORITY[a.status as keyof typeof SERVER_STATUS_PRIORITY] ?? 3;
+      SERVER_STATUS_PRIORITY[a.status as keyof typeof SERVER_STATUS_PRIORITY] ??
+      3;
     const priorityB =
-      SERVER_STATUS_PRIORITY[b.status as keyof typeof SERVER_STATUS_PRIORITY] ?? 3;
+      SERVER_STATUS_PRIORITY[b.status as keyof typeof SERVER_STATUS_PRIORITY] ??
+      3;
 
     if (priorityA !== priorityB) {
       return priorityA - priorityB;
@@ -200,9 +202,10 @@ export function calculateServerHealth(server: Server): number {
   const cpu = serverTypeGuards.getCpu(server);
   const memory = serverTypeGuards.getMemory(server);
   const disk = serverTypeGuards.getDisk(server);
-  
+
   // 가중 평균 계산 (CPU: 40%, Memory: 40%, Disk: 20%)
-  const weightedScore = (100 - cpu) * 0.4 + (100 - memory) * 0.4 + (100 - disk) * 0.2;
-  
+  const weightedScore =
+    (100 - cpu) * 0.4 + (100 - memory) * 0.4 + (100 - disk) * 0.2;
+
   return Math.round(Math.max(0, Math.min(100, weightedScore)));
 }

@@ -156,7 +156,7 @@ export class SimulationEngine {
    */
   getServerById(serverId: string): EnhancedServerMetrics | undefined {
     const servers = this.getServers();
-    return servers.find(server => server.id === serverId);
+    return servers.find((server) => server.id === serverId);
   }
 
   /**
@@ -172,7 +172,7 @@ export class SimulationEngine {
       servers = this.getServers();
     }
 
-    return servers.flatMap(server => [
+    return servers.flatMap((server) => [
       {
         name: 'node_cpu_usage_percent',
         type: 'gauge',

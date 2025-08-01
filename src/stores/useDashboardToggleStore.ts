@@ -43,8 +43,8 @@ export const useDashboardToggleStore = create<DashboardToggleState>()(
     (set, get) => ({
       sections: defaultSections,
 
-      toggleSection: sectionKey => {
-        set(state => ({
+      toggleSection: (sectionKey) => {
+        set((state) => ({
           sections: {
             ...state.sections,
             [sectionKey]: !state.sections[sectionKey],
@@ -53,7 +53,7 @@ export const useDashboardToggleStore = create<DashboardToggleState>()(
       },
 
       setSectionState: (sectionKey, isExpanded) => {
-        set(state => ({
+        set((state) => ({
           sections: {
             ...state.sections,
             [sectionKey]: isExpanded,
@@ -62,7 +62,7 @@ export const useDashboardToggleStore = create<DashboardToggleState>()(
       },
 
       expandAll: () => {
-        set(state => ({
+        set((state) => ({
           sections: Object.keys(state.sections).reduce(
             (acc, key) => ({ ...acc, [key]: true }),
             {} as typeof state.sections
@@ -71,7 +71,7 @@ export const useDashboardToggleStore = create<DashboardToggleState>()(
       },
 
       collapseAll: () => {
-        set(state => ({
+        set((state) => ({
           sections: Object.keys(state.sections).reduce(
             (acc, key) => ({ ...acc, [key]: false }),
             {} as typeof state.sections

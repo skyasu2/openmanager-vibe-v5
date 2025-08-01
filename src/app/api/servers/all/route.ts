@@ -22,9 +22,9 @@ export async function GET() {
     // 통계 정보 계산
     const stats = {
       total: servers.length,
-      online: servers.filter(s => s.status === 'online').length,
-      warning: servers.filter(s => s.status === 'warning').length,
-      critical: servers.filter(s => s.status === 'critical').length,
+      online: servers.filter((s) => s.status === 'online').length,
+      warning: servers.filter((s) => s.status === 'warning').length,
+      critical: servers.filter((s) => s.status === 'critical').length,
     };
 
     console.log('📈 서버 통계:', stats);

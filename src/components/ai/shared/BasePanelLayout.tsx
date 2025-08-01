@@ -69,49 +69,47 @@ const BasePanelLayout: React.FC<BasePanelLayoutProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`flex flex-col h-full bg-gray-900/50 ${className}`}>
+    <div className={`flex h-full flex-col bg-gray-900/50 ${className}`}>
       {/* 헤더 */}
-      <div className='p-4 border-b border-gray-700/50'>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center gap-3'>
+      <div className="border-b border-gray-700/50 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <div
-              className={`w-8 h-8 rounded-lg ${iconGradient} flex items-center justify-center`}
+              className={`h-8 w-8 rounded-lg ${iconGradient} flex items-center justify-center`}
             >
               {icon}
             </div>
             <div>
-              <h3 className='text-white font-medium'>{title}</h3>
-              <p className='text-gray-400 text-sm'>{subtitle}</p>
+              <h3 className="font-medium text-white">{title}</h3>
+              <p className="text-sm text-gray-400">{subtitle}</p>
             </div>
           </div>
 
-          <div className='flex items-center gap-2'>
+          <div className="flex items-center gap-2">
             {/* 새로고침 버튼 */}
             {onRefresh && (
               <motion.button
                 onClick={onRefresh}
                 disabled={isLoading}
-                className='p-2 bg-gray-700/50 hover:bg-gray-600/70 border border-gray-600/30 
-                           rounded-lg text-gray-300 transition-colors disabled:opacity-50'
+                className="rounded-lg border border-gray-600/30 bg-gray-700/50 p-2 text-gray-300 transition-colors hover:bg-gray-600/70 disabled:opacity-50"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <RefreshCw
-                  className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`}
+                  className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
                 />
               </motion.button>
             )}
 
             {/* 관리 페이지 링크 */}
             {adminPath && (
-              <Link href={adminPath} target='_blank'>
+              <Link href={adminPath} target="_blank">
                 <motion.button
-                  className='flex items-center gap-1 px-2 py-1 bg-blue-500/20 hover:bg-blue-500/30 
-                             border border-blue-500/30 rounded-lg text-blue-300 text-xs transition-colors'
+                  className="flex items-center gap-1 rounded-lg border border-blue-500/30 bg-blue-500/20 px-2 py-1 text-xs text-blue-300 transition-colors hover:bg-blue-500/30"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <ExternalLink className='w-3 h-3' />
+                  <ExternalLink className="h-3 w-3" />
                   {adminLabel}
                 </motion.button>
               </Link>
@@ -122,16 +120,16 @@ const BasePanelLayout: React.FC<BasePanelLayoutProps> = ({
 
       {/* 필터 영역 */}
       {showFilters && filters.length > 0 && (
-        <div className='p-4 border-b border-gray-700/30'>
-          <div className='flex flex-wrap gap-2'>
-            {filters.map(filter => (
+        <div className="border-b border-gray-700/30 p-4">
+          <div className="flex flex-wrap gap-2">
+            {filters.map((filter) => (
               <motion.button
                 key={filter.id}
                 onClick={() => onFilterChange?.(filter.id)}
-                className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs border transition-all ${
+                className={`flex items-center gap-1 rounded-full border px-3 py-1 text-xs transition-all ${
                   selectedFilter === filter.id
-                    ? 'bg-blue-500/20 border-blue-500/50 text-blue-300'
-                    : 'bg-gray-800/50 border-gray-600/30 text-gray-400 hover:bg-gray-700/70'
+                    ? 'border-blue-500/50 bg-blue-500/20 text-blue-300'
+                    : 'border-gray-600/30 bg-gray-800/50 text-gray-400 hover:bg-gray-700/70'
                 }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -145,14 +143,14 @@ const BasePanelLayout: React.FC<BasePanelLayoutProps> = ({
       )}
 
       {/* 메인 콘텐츠 */}
-      <div className='flex-1 overflow-y-auto'>{children}</div>
+      <div className="flex-1 overflow-y-auto">{children}</div>
 
       {/* 하단 정보 */}
       {bottomInfo && (
-        <div className='p-4 border-t border-gray-700/50'>
-          <div className='text-center'>
-            <p className='text-gray-400 text-xs'>{bottomInfo.primary}</p>
-            <p className='text-gray-500 text-xs mt-1'>{bottomInfo.secondary}</p>
+        <div className="border-t border-gray-700/50 p-4">
+          <div className="text-center">
+            <p className="text-xs text-gray-400">{bottomInfo.primary}</p>
+            <p className="mt-1 text-xs text-gray-500">{bottomInfo.secondary}</p>
           </div>
         </div>
       )}

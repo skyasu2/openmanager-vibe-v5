@@ -26,9 +26,9 @@ const FeatureCardsGrid = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12'>
+      <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className='h-32 bg-white/10 rounded-lg _animate-pulse' />
+          <div key={i} className="_animate-pulse h-32 rounded-lg bg-white/10" />
         ))}
       </div>
     ),
@@ -152,7 +152,7 @@ export default function Home() {
     checkAuth();
 
     // 인증 상태 변경 리스너
-    authListener = onAuthStateChange(async _session => {
+    authListener = onAuthStateChange(async (_session) => {
       console.log('🔄 Auth 상태 변경 감지');
       await checkAuth();
     });
@@ -275,7 +275,7 @@ export default function Home() {
         return (
           <motion.span
             key={index}
-            className='bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent font-bold'
+            className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text font-bold text-transparent"
             animate={{
               backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
             }}
@@ -343,7 +343,7 @@ export default function Home() {
     setIsSystemStarting(false); // 카운트다운 시작 시 시스템 시작 상태 초기화
 
     const timer = setInterval(() => {
-      setSystemStartCountdown(prev => {
+      setSystemStartCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
           console.log('🚀 카운트다운 완료 - 로딩 페이지로 이동');
@@ -423,7 +423,7 @@ export default function Home() {
       if (systemStartCountdown > 0) {
         return {
           text: `시작 취소 (${systemStartCountdown}초)`,
-          icon: <X className='w-5 h-5' />,
+          icon: <X className="h-5 w-5" />,
           className:
             'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50 relative overflow-hidden',
         };
@@ -433,7 +433,7 @@ export default function Home() {
       if (isSystemStarting) {
         return {
           text: '시스템 시작 중...',
-          icon: <Loader2 className='w-5 h-5 animate-spin' />,
+          icon: <Loader2 className="h-5 w-5 animate-spin" />,
           className:
             'bg-gradient-to-r from-purple-500 to-blue-600 text-white border-purple-400/50 cursor-not-allowed',
         };
@@ -443,7 +443,7 @@ export default function Home() {
       if (isLoading || statusLoading) {
         return {
           text: '시스템 초기화 중...',
-          icon: <Loader2 className='w-5 h-5 animate-spin' />,
+          icon: <Loader2 className="h-5 w-5 animate-spin" />,
           className:
             'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed',
         };
@@ -453,7 +453,7 @@ export default function Home() {
       if (multiUserStatus?.isRunning || isSystemStarted) {
         return {
           text: `📊 대시보드 이동 (사용자: ${multiUserStatus?.userCount || 0}명)`,
-          icon: <BarChart3 className='w-5 h-5' />,
+          icon: <BarChart3 className="h-5 w-5" />,
           className:
             'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50',
         };
@@ -462,7 +462,7 @@ export default function Home() {
       // 5. 기본 상태 (시스템 시작 대기)
       return {
         text: '🚀 시스템 시작',
-        icon: <Play className='w-5 h-5' />,
+        icon: <Play className="h-5 w-5" />,
         className:
           'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-blue-400/50',
       };
@@ -483,11 +483,11 @@ export default function Home() {
   // 🔄 클라이언트 마운트 전에는 로딩 표시
   if (!isMounted) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
-        <div className='flex items-center justify-center min-h-screen'>
-          <div className='text-center'>
-            <Loader2 className='w-8 h-8 animate-spin text-white mx-auto mb-4' />
-            <p className='text-white/80'>페이지 로딩 중...</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-white" />
+            <p className="text-white/80">페이지 로딩 중...</p>
           </div>
         </div>
       </div>
@@ -497,11 +497,11 @@ export default function Home() {
   // 인증 로딩 중이고 아직 인증 체크가 안됐으면 대기
   if (authLoading && !authChecked) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
-        <div className='flex items-center justify-center min-h-screen'>
-          <div className='text-center'>
-            <Loader2 className='w-8 h-8 animate-spin text-white mx-auto mb-4' />
-            <p className='text-white/80'>인증 확인 중...</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-white" />
+            <p className="text-white/80">인증 확인 중...</p>
           </div>
         </div>
       </div>
@@ -511,11 +511,11 @@ export default function Home() {
   // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
   if (authChecked && !currentUser) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
-        <div className='flex items-center justify-center min-h-screen'>
-          <div className='text-center'>
-            <Loader2 className='w-8 h-8 animate-spin text-white mx-auto mb-4' />
-            <p className='text-white/80'>로그인 페이지로 이동 중...</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-white" />
+            <p className="text-white/80">로그인 페이지로 이동 중...</p>
           </div>
         </div>
       </div>
@@ -526,18 +526,18 @@ export default function Home() {
 
   return (
     <div
-      className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'
+      className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900"
       data-system-active={isSystemStarted ? 'true' : 'false'}
     >
       {/* 웨이브 파티클 배경 효과 */}
-      <div className='wave-particles'></div>
+      <div className="wave-particles"></div>
 
       {/* 헤더 */}
-      <header className='relative z-50 flex justify-between items-center p-6'>
-        <div className='flex items-center space-x-3'>
+      <header className="relative z-50 flex items-center justify-between p-6">
+        <div className="flex items-center space-x-3">
           {/* AI 컨셉 아이콘 - 통합 AI 카드 스타일 애니메이션 적용 */}
           <motion.div
-            className='w-10 h-10 rounded-lg flex items-center justify-center relative shadow-lg'
+            className="relative flex h-10 w-10 items-center justify-center rounded-lg shadow-lg"
             animate={
               aiAgent.isEnabled
                 ? {
@@ -588,7 +588,7 @@ export default function Home() {
             {/* AI 활성화 시 회전 아이콘 */}
             {aiAgent.isEnabled ? (
               <motion.i
-                className='fas fa-server text-white text-lg'
+                className="fas fa-server text-lg text-white"
                 animate={{
                   rotate: [0, 360],
                   scale: [1, 1.1, 1],
@@ -601,20 +601,20 @@ export default function Home() {
                     ease: 'easeInOut',
                   },
                 }}
-                aria-hidden='true'
+                aria-hidden="true"
               />
             ) : (
               <i
-                className='fas fa-server text-white text-lg'
-                aria-hidden='true'
+                className="fas fa-server text-lg text-white"
+                aria-hidden="true"
               />
             )}
           </motion.div>
 
           {/* 브랜드 텍스트 */}
           <div>
-            <h1 className='text-xl font-bold text-white'>OpenManager</h1>
-            <p className='text-xs text-white/70'>
+            <h1 className="text-xl font-bold text-white">OpenManager</h1>
+            <p className="text-xs text-white/70">
               {aiAgent.isEnabled && !isSystemStarted
                 ? 'AI 독립 모드'
                 : aiAgent.isEnabled && isSystemStarted
@@ -627,30 +627,30 @@ export default function Home() {
         </div>
 
         {/* 오른쪽 헤더 컨트롤 */}
-        <div className='flex items-center gap-3'>
+        <div className="flex items-center gap-3">
           {/* 통합 프로필 헤더 */}
           <UnifiedProfileHeader />
         </div>
       </header>
 
       {/* 메인 콘텐츠 */}
-      <div className='relative z-10 container mx-auto px-6 pt-8'>
+      <div className="container relative z-10 mx-auto px-6 pt-8">
         {/* 타이틀 섹션 */}
         <motion.div
-          className='text-center mb-12'
+          className="mb-12 text-center"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className='text-3xl md:text-5xl font-bold mb-4'>
-            <span className='bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent'>
+          <h1 className="mb-4 text-3xl font-bold md:text-5xl">
+            <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
               {renderTextWithAIGradient('AI')}
             </span>{' '}
-            <span className='font-semibold text-white'>기반</span>{' '}
-            <span className='text-white'>서버 모니터링</span>
+            <span className="font-semibold text-white">기반</span>{' '}
+            <span className="text-white">서버 모니터링</span>
           </h1>
-          <p className='text-lg md:text-xl max-w-3xl mx-auto leading-relaxed text-white/80'>
-            <span className='text-sm text-white/60'>
+          <p className="mx-auto max-w-3xl text-lg leading-relaxed text-white/80 md:text-xl">
+            <span className="text-sm text-white/60">
               완전 독립 동작 AI 엔진 | 향후 개발: 선택적 LLM API 연동 확장
             </span>
           </p>
@@ -658,23 +658,23 @@ export default function Home() {
 
         {/* 제어 패널 */}
         <motion.div
-          className='mb-12'
+          className="mb-12"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
           {!isSystemStarted ? (
             /* 시스템 중지 상태 - 대시보드 버튼 중심으로 변경 */
-            <div className='max-w-2xl mx-auto text-center'>
+            <div className="mx-auto max-w-2xl text-center">
               {/* 메인 제어 버튼들 */}
-              <div className='flex flex-col items-center mb-6 space-y-4'>
+              <div className="mb-6 flex flex-col items-center space-y-4">
                 {isGitHubUser ? (
                   <>
                     {/* GitHub 인증 사용자 - 시스템 시작 버튼 표시 */}
                     <motion.button
                       onClick={handleSystemToggle}
                       disabled={isLoading || isSystemStarting}
-                      className={`w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-300 border shadow-xl ${buttonConfig.className}`}
+                      className={`flex h-16 w-64 items-center justify-center gap-3 rounded-xl border font-semibold shadow-xl transition-all duration-300 ${buttonConfig.className}`}
                       whileHover={
                         !isLoading && systemStartCountdown === 0
                           ? { scale: 1.05 }
@@ -685,17 +685,17 @@ export default function Home() {
                       {/* 카운트다운 진행바 */}
                       {systemStartCountdown > 0 && (
                         <motion.div
-                          className='absolute inset-0 rounded-xl overflow-hidden'
+                          className="absolute inset-0 overflow-hidden rounded-xl"
                           style={{ transformOrigin: 'left' }}
                         >
                           <motion.div
-                            className='h-full bg-gradient-to-r from-red-600/40 via-red-500/40 to-red-400/40'
+                            className="h-full bg-gradient-to-r from-red-600/40 via-red-500/40 to-red-400/40"
                             initial={{ width: '0%' }}
                             animate={{ width: '100%' }}
                             transition={{ duration: 3, ease: 'linear' }}
                           />
                           <motion.div
-                            className='absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/10 to-transparent'
+                            className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"
                             animate={{
                               x: ['-100%', '100%'],
                             }}
@@ -707,14 +707,14 @@ export default function Home() {
                           />
                         </motion.div>
                       )}
-                      <div className='relative z-10 flex items-center gap-3'>
+                      <div className="relative z-10 flex items-center gap-3">
                         {buttonConfig.icon}
-                        <span className='text-lg'>{buttonConfig.text}</span>
+                        <span className="text-lg">{buttonConfig.text}</span>
                       </div>
                     </motion.button>
 
                     {/* 상태 안내 */}
-                    <div className='mt-2 flex flex-col items-center gap-1'>
+                    <div className="mt-2 flex flex-col items-center gap-1">
                       <span
                         className={`text-sm font-medium opacity-80 transition-all duration-300 ${
                           systemStartCountdown > 0
@@ -751,7 +751,7 @@ export default function Home() {
                               : '클릭하여 시작하기'}
                       </span>
                       {systemStartCountdown > 0 && (
-                        <span className='text-xs text-white/60'>
+                        <span className="text-xs text-white/60">
                           또는 ESC 키를 눌러 취소
                         </span>
                       )}
@@ -762,33 +762,33 @@ export default function Home() {
                       !isSystemStarting &&
                       !multiUserStatus?.isRunning &&
                       !isSystemStarted && (
-                        <div className='mt-2 flex justify-center'>
-                          <span className='finger-pointer-primary'>👆</span>
+                        <div className="mt-2 flex justify-center">
+                          <span className="finger-pointer-primary">👆</span>
                         </div>
                       )}
                   </>
                 ) : (
                   /* 게스트 사용자 - 안내 메시지 표시 */
-                  <div className='text-center'>
-                    <div className='mb-4 p-6 rounded-xl border bg-blue-500/10 border-blue-400/30'>
-                      <LogIn className='w-12 h-12 text-blue-400 mx-auto mb-3' />
-                      <h3 className='text-lg font-semibold text-white mb-2'>
+                  <div className="text-center">
+                    <div className="mb-4 rounded-xl border border-blue-400/30 bg-blue-500/10 p-6">
+                      <LogIn className="mx-auto mb-3 h-12 w-12 text-blue-400" />
+                      <h3 className="mb-2 text-lg font-semibold text-white">
                         GitHub 로그인이 필요합니다
                       </h3>
-                      <p className='text-sm text-blue-100 mb-4'>
+                      <p className="mb-4 text-sm text-blue-100">
                         시스템 시작 기능은 GitHub 인증된 사용자만 사용할 수
                         있습니다.
                       </p>
                       <motion.button
                         onClick={() => router.push('/login')}
-                        className='px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors'
+                        className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
                         로그인 페이지로 이동
                       </motion.button>
                     </div>
-                    <p className='text-xs text-gray-400'>
+                    <p className="text-xs text-gray-400">
                       게스트 모드에서는 읽기 전용 기능만 사용 가능합니다
                     </p>
                   </div>
@@ -796,13 +796,13 @@ export default function Home() {
               </div>
 
               {/* AI 어시스턴트 안내 */}
-              <div className='flex justify-center text-sm'>
-                <div className='p-3 rounded-lg bg-white/5 max-w-md'>
-                  <div className='flex items-center gap-2 mb-1 justify-center'>
-                    <Bot className='w-4 h-4 text-purple-400' />
-                    <span className='font-semibold'>AI 어시스턴트</span>
+              <div className="flex justify-center text-sm">
+                <div className="max-w-md rounded-lg bg-white/5 p-3">
+                  <div className="mb-1 flex items-center justify-center gap-2">
+                    <Bot className="h-4 w-4 text-purple-400" />
+                    <span className="font-semibold">AI 어시스턴트</span>
                   </div>
-                  <p className='text-white/70 text-center'>
+                  <p className="text-center text-white/70">
                     시스템 시작 후 대시보드에서 AI 사이드바 이용 가능
                   </p>
                 </div>
@@ -811,48 +811,48 @@ export default function Home() {
           ) : (
             /* 시스템 활성 상태 */
             <motion.div
-              className='max-w-4xl mx-auto text-center'
+              className="mx-auto max-w-4xl text-center"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
             >
               {/* 대시보드 버튼 - 중앙 배치 */}
-              <div className='flex justify-center mb-6'>
-                <div className='flex flex-col items-center'>
+              <div className="mb-6 flex justify-center">
+                <div className="flex flex-col items-center">
                   {isGitHubUser ? (
                     <motion.button
                       onClick={handleDashboardClick}
-                      className='w-64 h-16 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500/50 shadow-xl'
+                      className="flex h-16 w-64 items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <BarChart3 className='w-5 h-5' />
-                      <span className='text-lg'>📊 대시보드 열기</span>
+                      <BarChart3 className="h-5 w-5" />
+                      <span className="text-lg">📊 대시보드 열기</span>
                     </motion.button>
                   ) : (
-                    <div className='text-center'>
-                      <p className='text-sm text-gray-400 mb-2'>
+                    <div className="text-center">
+                      <p className="mb-2 text-sm text-gray-400">
                         시스템이 다른 사용자에 의해 실행 중입니다
                       </p>
-                      <p className='text-xs text-gray-500'>
+                      <p className="text-xs text-gray-500">
                         GitHub 로그인 후 대시보드 접근이 가능합니다
                       </p>
                     </div>
                   )}
 
                   {/* 안내 아이콘 */}
-                  <div className='mt-2 flex justify-center'>
-                    <span className='finger-pointer-dashboard'>👆</span>
+                  <div className="mt-2 flex justify-center">
+                    <span className="finger-pointer-dashboard">👆</span>
                   </div>
-                  <div className='mt-1 flex justify-center'>
-                    <span className='text-xs opacity-70 text-white'>
+                  <div className="mt-1 flex justify-center">
+                    <span className="text-xs text-white opacity-70">
                       클릭하세요
                     </span>
                   </div>
                 </div>
               </div>
 
-              <p className='text-white/60 text-xs mt-4 text-center'>
+              <p className="mt-4 text-center text-xs text-white/60">
                 시스템이 활성화되어 있습니다. 대시보드에서 상세 모니터링을
                 확인하세요.
               </p>
@@ -861,13 +861,13 @@ export default function Home() {
         </motion.div>
 
         {/* 기능 카드 그리드 */}
-        <div className='mb-12'>
+        <div className="mb-12">
           <FeatureCardsGrid />
         </div>
 
         {/* 푸터 */}
-        <div className='mt-8 pt-6 border-t text-center border-white/20'>
-          <p className='text-white/70'>
+        <div className="mt-8 border-t border-white/20 pt-6 text-center">
+          <p className="text-white/70">
             Copyright(c) OpenManager. All rights reserved.
           </p>
         </div>

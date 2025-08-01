@@ -127,7 +127,7 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
       }
 
       // API 실패 시에만 Mock 사용
-      await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5초 로딩 지연
+      await new Promise((resolve) => setTimeout(resolve, 1500)); // 1.5초 로딩 지연
       return generateMockPatterns();
     },
     refreshInterval: 60000, // 1분마다 새로고침
@@ -187,13 +187,13 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
   const getTrendIcon = (trend: string) => {
     switch (trend) {
       case 'increasing':
-        return <TrendingUp className='w-4 h-4 text-red-400' />;
+        return <TrendingUp className="h-4 w-4 text-red-400" />;
       case 'decreasing':
-        return <TrendingDown className='w-4 h-4 text-green-400' />;
+        return <TrendingDown className="h-4 w-4 text-green-400" />;
       case 'stable':
-        return <Activity className='w-4 h-4 text-blue-400' />;
+        return <Activity className="h-4 w-4 text-blue-400" />;
       default:
-        return <Activity className='w-4 h-4 text-gray-400' />;
+        return <Activity className="h-4 w-4 text-gray-400" />;
     }
   };
 
@@ -299,17 +299,17 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
 
   return (
     <BasePanelLayout
-      title='패턴 분석'
-      subtitle='AI가 감지한 시스템 패턴'
-      icon={<BarChart3 className='w-4 h-4 text-white' />}
-      iconGradient='bg-gradient-to-br from-orange-500 to-pink-600'
+      title="패턴 분석"
+      subtitle="AI가 감지한 시스템 패턴"
+      icon={<BarChart3 className="h-4 w-4 text-white" />}
+      iconGradient="bg-gradient-to-br from-orange-500 to-pink-600"
       onRefresh={reload}
       isLoading={isLoading}
-      adminPath='/admin'
-      adminLabel='상세분석'
+      adminPath="/admin"
+      adminLabel="상세분석"
       filters={patternTypes}
       selectedFilter={selectedType}
-      onFilterChange={filterId => setSelectedType(filterId as any)}
+      onFilterChange={(filterId) => setSelectedType(filterId as any)}
       bottomInfo={{
         primary: '🤖 AI가 실시간으로 시스템 패턴을 분석합니다',
         secondary: '상세 패턴 분석 및 대응 전략은 관리자 페이지에서 확인하세요',
@@ -317,44 +317,44 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
       className={className}
     >
       {/* 패턴 목록 */}
-      <div className='p-4'>
-        <div className='space-y-3'>
+      <div className="p-4">
+        <div className="space-y-3">
           {filteredPatterns.map((pattern: PatternData) => (
             <motion.div
               key={pattern.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className='bg-gray-800/50 border border-gray-600/30 rounded-lg p-4 hover:bg-gray-700/30 transition-colors'
+              className="rounded-lg border border-gray-600/30 bg-gray-800/50 p-4 transition-colors hover:bg-gray-700/30"
             >
               {/* 패턴 헤더 */}
-              <div className='flex items-start justify-between mb-3'>
-                <div className='flex-1'>
-                  <div className='flex items-center gap-2 mb-1'>
-                    <span className='text-lg'>{getTypeIcon(pattern.type)}</span>
-                    <h4 className='font-medium text-gray-800'>
+              <div className="mb-3 flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className="text-lg">{getTypeIcon(pattern.type)}</span>
+                    <h4 className="font-medium text-gray-800">
                       {pattern.title}
                     </h4>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full border ${getSeverityColor(
+                      className={`rounded-full border px-2 py-1 text-xs ${getSeverityColor(
                         pattern.severity
                       )}`}
                     >
                       {getSeverityText(pattern.severity)}
                     </span>
                   </div>
-                  <div className='flex items-center gap-3 text-sm text-gray-600'>
-                    <div className='flex items-center gap-1'>
+                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <div className="flex items-center gap-1">
                       {getTrendIcon(pattern.trend)}
-                      <span className='capitalize'>{pattern.trend}</span>
+                      <span className="capitalize">{pattern.trend}</span>
                     </div>
-                    <div className='flex items-center gap-1'>
-                      <Target className='w-4 h-4' />
+                    <div className="flex items-center gap-1">
+                      <Target className="h-4 w-4" />
                       <span>
                         {(pattern.confidence * 100).toFixed(0)}% 신뢰도
                       </span>
                     </div>
-                    <div className='flex items-center gap-1'>
-                      <Clock className='w-4 h-4' />
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
                       <span>
                         {Math.round(
                           (Date.now() - pattern.lastDetected.getTime()) / 60000
@@ -366,7 +366,7 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
                 </div>
 
                 {/* 🤖 자동 장애 보고서 생성 버튼 */}
-                <div className='flex items-center gap-2'>
+                <div className="flex items-center gap-2">
                   {/* 심각도가 medium 이상일 때만 자동 보고서 버튼 표시 */}
                   {(pattern.severity === 'high' ||
                     pattern.severity === 'medium') && (
@@ -376,23 +376,23 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
                         autoReportStatus.isGenerating &&
                         autoReportStatus.lastPatternId === pattern.id
                       }
-                      className={`px-3 py-1 text-xs rounded-lg border transition-colors ${
+                      className={`rounded-lg border px-3 py-1 text-xs transition-colors ${
                         autoReportStatus.isGenerating &&
                         autoReportStatus.lastPatternId === pattern.id
-                          ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
-                          : 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100'
+                          ? 'cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400'
+                          : 'border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100'
                       }`}
-                      title='이 패턴을 기반으로 자동 장애 보고서 생성'
+                      title="이 패턴을 기반으로 자동 장애 보고서 생성"
                     >
                       {autoReportStatus.isGenerating &&
                       autoReportStatus.lastPatternId === pattern.id ? (
-                        <div className='flex items-center gap-1'>
-                          <div className='w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin' />
+                        <div className="flex items-center gap-1">
+                          <div className="h-3 w-3 animate-spin rounded-full border border-gray-400 border-t-transparent" />
                           <span>생성중...</span>
                         </div>
                       ) : (
-                        <div className='flex items-center gap-1'>
-                          <FileText className='w-3 h-3' />
+                        <div className="flex items-center gap-1">
+                          <FileText className="h-3 w-3" />
                           <span>보고서 생성</span>
                         </div>
                       )}
@@ -407,37 +407,37 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
                         `패턴 상세 정보:\n\n${pattern.description}\n\n영향 서버: ${pattern.affectedServers}대\n예상 다음 발생: ${pattern.predictedNext}`
                       );
                     }}
-                    className='p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors'
-                    title='패턴 상세 정보 보기'
+                    className="rounded p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                    title="패턴 상세 정보 보기"
                   >
-                    <BarChart3 className='w-4 h-4' />
+                    <BarChart3 className="h-4 w-4" />
                   </button>
                 </div>
               </div>
 
               {/* 패턴 설명 */}
-              <p className='text-gray-200 text-sm mb-3'>
+              <p className="mb-3 text-sm text-gray-200">
                 {pattern.description}
               </p>
 
               {/* 패턴 상세 정보 */}
-              <div className='grid grid-cols-2 gap-2 text-xs'>
-                <div className='bg-gray-700/30 rounded-lg p-2'>
-                  <div className='flex items-center gap-1 mb-1'>
-                    <Activity className='w-3 h-3 text-blue-400' />
-                    <span className='text-gray-400'>영향 서버</span>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="rounded-lg bg-gray-700/30 p-2">
+                  <div className="mb-1 flex items-center gap-1">
+                    <Activity className="h-3 w-3 text-blue-400" />
+                    <span className="text-gray-400">영향 서버</span>
                   </div>
-                  <span className='text-blue-300 font-medium'>
+                  <span className="font-medium text-blue-300">
                     {pattern.affectedServers}대
                   </span>
                 </div>
 
-                <div className='bg-gray-700/30 rounded-lg p-2'>
-                  <div className='flex items-center gap-1 mb-1'>
-                    <Zap className='w-3 h-3 text-purple-400' />
-                    <span className='text-gray-400'>다음 예측</span>
+                <div className="rounded-lg bg-gray-700/30 p-2">
+                  <div className="mb-1 flex items-center gap-1">
+                    <Zap className="h-3 w-3 text-purple-400" />
+                    <span className="text-gray-400">다음 예측</span>
                   </div>
-                  <span className='text-purple-300 font-medium text-xs'>
+                  <span className="text-xs font-medium text-purple-300">
                     {pattern.predictedNext}
                   </span>
                 </div>
@@ -446,14 +446,14 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
           ))}
 
           {filteredPatterns.length === 0 && (
-            <div className='text-center text-gray-500 mt-8'>
-              <BarChart3 className='w-12 h-12 mx-auto mb-4 opacity-50' />
-              <p className='text-sm'>
+            <div className="mt-8 text-center text-gray-500">
+              <BarChart3 className="mx-auto mb-4 h-12 w-12 opacity-50" />
+              <p className="text-sm">
                 {selectedType === 'all'
                   ? '감지된 패턴이 없습니다'
-                  : `${patternTypes.find(t => t.id === selectedType)?.label} 패턴이 없습니다`}
+                  : `${patternTypes.find((t) => t.id === selectedType)?.label} 패턴이 없습니다`}
               </p>
-              <p className='text-xs text-gray-600 mt-1'>
+              <p className="mt-1 text-xs text-gray-600">
                 AI가 지속적으로 패턴을 분석하고 있습니다
               </p>
             </div>

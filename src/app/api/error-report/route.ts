@@ -93,22 +93,22 @@ export async function GET(request: NextRequest) {
     // 필터링 적용
     if (severity) {
       errorReports = errorReports.filter(
-        report => report.severity === severity
+        (report) => report.severity === severity
       );
     }
 
     if (type) {
-      errorReports = errorReports.filter(report => report.type === type);
+      errorReports = errorReports.filter((report) => report.type === type);
     }
 
     if (source) {
-      errorReports = errorReports.filter(report => report.source === source);
+      errorReports = errorReports.filter((report) => report.source === source);
     }
 
     if (resolved !== null) {
       const isResolved = resolved === 'true';
       errorReports = errorReports.filter(
-        report => report.resolved === isResolved
+        (report) => report.resolved === isResolved
       );
     }
 

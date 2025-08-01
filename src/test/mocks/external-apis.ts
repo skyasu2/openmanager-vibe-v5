@@ -12,15 +12,16 @@ global.fetch = vi.fn().mockImplementation((url: string) => {
       ok: true,
       status: 200,
       statusText: 'OK',
-      json: () => Promise.resolve({
-        success: true,
-        response: 'Mock Google AI response for testing',
-        model: 'gemini-pro',
-        tokensUsed: 100,
-      }),
+      json: () =>
+        Promise.resolve({
+          success: true,
+          response: 'Mock Google AI response for testing',
+          model: 'gemini-pro',
+          tokensUsed: 100,
+        }),
     });
   }
-  
+
   // 기본 응답
   return Promise.resolve({
     ok: true,

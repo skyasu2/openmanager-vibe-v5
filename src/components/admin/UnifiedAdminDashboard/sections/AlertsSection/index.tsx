@@ -33,8 +33,8 @@ export default function AlertsSection({
 
   if (displayAlerts.length === 0) {
     return (
-      <div className='text-center py-8 text-gray-500 dark:text-gray-400'>
-        <CheckCircle className='w-12 h-12 mx-auto mb-3' />
+      <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+        <CheckCircle className="mx-auto mb-3 h-12 w-12" />
         <p>현재 활성 알림이 없습니다</p>
       </div>
     );
@@ -45,23 +45,23 @@ export default function AlertsSection({
       <div
         className={`space-y-3 ${compact ? '' : 'max-h-[600px] overflow-y-auto'}`}
       >
-        {displayAlerts.map(alert => (
+        {displayAlerts.map((alert) => (
           <motion.div
             key={alert.id}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className={`p-4 rounded-lg border ${getAlertStyles(alert.type)} ${
+            className={`rounded-lg border p-4 ${getAlertStyles(alert.type)} ${
               alert.acknowledged ? 'opacity-60' : ''
             }`}
           >
-            <div className='flex items-start justify-between'>
-              <div className='flex items-start gap-3'>
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
                 {getAlertIcon(alert.type)}
-                <div className='flex-1'>
-                  <h4 className='font-medium'>{alert.title}</h4>
-                  <p className='text-sm mt-1'>{alert.message}</p>
-                  <div className='flex items-center gap-4 mt-2 text-xs text-gray-600 dark:text-gray-400'>
+                <div className="flex-1">
+                  <h4 className="font-medium">{alert.title}</h4>
+                  <p className="mt-1 text-sm">{alert.message}</p>
+                  <div className="mt-2 flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
                     <span>{formatTimestamp(alert.timestamp)}</span>
                     <span>출처: {getSourceLabel(alert.source)}</span>
                   </div>
@@ -71,10 +71,10 @@ export default function AlertsSection({
               {!alert.acknowledged && (
                 <button
                   onClick={() => onAcknowledge(alert.id)}
-                  className='p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors'
-                  title='알림 확인'
+                  className="rounded p-1 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+                  title="알림 확인"
                 >
-                  <X className='w-4 h-4' />
+                  <X className="h-4 w-4" />
                 </button>
               )}
             </div>

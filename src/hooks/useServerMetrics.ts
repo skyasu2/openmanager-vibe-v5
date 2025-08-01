@@ -104,11 +104,11 @@ export function useServerMetrics() {
           history.length
       );
 
-      const cpuMax = Math.max(...history.map(m => m.cpu));
-      const memoryMax = Math.max(...history.map(m => m.memory));
-      const diskMax = Math.max(...history.map(m => m.disk));
+      const cpuMax = Math.max(...history.map((m) => m.cpu));
+      const memoryMax = Math.max(...history.map((m) => m.memory));
+      const diskMax = Math.max(...history.map((m) => m.disk));
       const responseTimeMax = Math.max(
-        ...history.map(m => m.responseTime ?? 0)
+        ...history.map((m) => m.responseTime ?? 0)
       );
 
       return {

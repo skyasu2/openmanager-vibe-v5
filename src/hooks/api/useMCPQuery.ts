@@ -76,7 +76,7 @@ export const useMCPQuery = () => {
       queryClient.invalidateQueries({ queryKey: ['mcp-history'] });
     },
     retry: 2,
-    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000),
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
   });
 };
 

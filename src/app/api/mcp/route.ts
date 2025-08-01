@@ -34,7 +34,7 @@ const getSystemStatusHandler = async (_args: any, _extra: any) => {
 // 🔑 환경변수 확인 함수
 const checkEnvConfigHandler = async (_args: any, _extra: any) => {
   const publicEnvs = Object.keys(process.env)
-    .filter(key => key.startsWith('NEXT_PUBLIC_'))
+    .filter((key) => key.startsWith('NEXT_PUBLIC_'))
     .reduce(
       (acc, key) => {
         acc[key] = process.env[key]?.substring(0, 10) + '...';
@@ -80,7 +80,7 @@ const checkApiHealthHandler = async (_args: any, _extra: any) => {
   ];
 
   const results = await Promise.all(
-    endpoints.map(async endpoint => {
+    endpoints.map(async (endpoint) => {
       try {
         const url = process.env.VERCEL_URL
           ? `https://${process.env.VERCEL_URL}${endpoint}`

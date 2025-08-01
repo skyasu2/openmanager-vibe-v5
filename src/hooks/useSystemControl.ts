@@ -112,7 +112,7 @@ export function useSystemControl(): UseSystemControlReturn {
       });
     } catch (error) {
       const safeError = safeErrorLog('❌ 시스템 상태 확인 실패', error);
-      setStatus(prev => ({
+      setStatus((prev) => ({
         ...prev,
         errors: [safeError.message],
       }));
@@ -138,7 +138,7 @@ export function useSystemControl(): UseSystemControlReturn {
       const data = await response.json();
 
       if (data.success) {
-        setStatus(prev => ({
+        setStatus((prev) => ({
           ...prev,
           isRunning: true,
           lastStarted: new Date(),
@@ -149,7 +149,7 @@ export function useSystemControl(): UseSystemControlReturn {
       }
     } catch (error) {
       const safeError = safeErrorLog('❌ 시스템 시작 실패', error);
-      setStatus(prev => ({
+      setStatus((prev) => ({
         ...prev,
         isRunning: false,
         errors: [safeError.message],
@@ -177,7 +177,7 @@ export function useSystemControl(): UseSystemControlReturn {
       const data = await response.json();
 
       if (data.success) {
-        setStatus(prev => ({
+        setStatus((prev) => ({
           ...prev,
           isRunning: false,
           errors: [],
@@ -194,13 +194,13 @@ export function useSystemControl(): UseSystemControlReturn {
         safeError.message.includes('fetch')
       ) {
         console.log('🔍 네트워크 에러 - 시스템이 이미 중지되었을 수 있음');
-        setStatus(prev => ({
+        setStatus((prev) => ({
           ...prev,
           isRunning: false,
           errors: ['시스템이 이미 중지되었을 수 있습니다'],
         }));
       } else {
-        setStatus(prev => ({
+        setStatus((prev) => ({
           ...prev,
           errors: [safeError.message],
         }));
@@ -220,7 +220,7 @@ export function useSystemControl(): UseSystemControlReturn {
       await stopSystem();
 
       // Wait a bit before starting
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Then start it again
       await startSystem();
@@ -228,7 +228,7 @@ export function useSystemControl(): UseSystemControlReturn {
       console.log('✅ 시스템 재시작 완료');
     } catch (error) {
       const safeError = safeErrorLog('❌ 시스템 재시작 실패', error);
-      setStatus(prev => ({
+      setStatus((prev) => ({
         ...prev,
         errors: [safeError.message],
       }));

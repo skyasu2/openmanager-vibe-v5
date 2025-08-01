@@ -221,7 +221,7 @@ export class AuthStateManager {
    */
   getAuthStats() {
     const activeSessions = Array.from(this.sessions.values()).filter(
-      session => Date.now() <= session.expiresAt
+      (session) => Date.now() <= session.expiresAt
     );
 
     return {

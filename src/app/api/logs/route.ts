@@ -67,14 +67,16 @@ export async function GET(request: NextRequest) {
     const levels = searchParams.get('levels');
     if (levels) {
       const levelArray = levels.split(',') as LogLevel[];
-      filteredLogs = filteredLogs.filter(log => levelArray.includes(log.level));
+      filteredLogs = filteredLogs.filter((log) =>
+        levelArray.includes(log.level)
+      );
     }
 
     // 카테고리 필터
     const categories = searchParams.get('categories');
     if (categories) {
       const categoryArray = categories.split(',') as LogCategory[];
-      filteredLogs = filteredLogs.filter(log =>
+      filteredLogs = filteredLogs.filter((log) =>
         categoryArray.includes(log.category)
       );
     }
@@ -82,7 +84,7 @@ export async function GET(request: NextRequest) {
     // 검색어
     const searchTerm = searchParams.get('search');
     if (searchTerm) {
-      filteredLogs = filteredLogs.filter(log =>
+      filteredLogs = filteredLogs.filter((log) =>
         log.message.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -167,7 +169,7 @@ export async function DELETE(request: NextRequest) {
     logs.splice(
       0,
       logs.length,
-      ...logs.filter(log => new Date(log.timestamp) > cutoffDate)
+      ...logs.filter((log) => new Date(log.timestamp) > cutoffDate)
     );
 
     const deletedCount = beforeCount - logs.length;

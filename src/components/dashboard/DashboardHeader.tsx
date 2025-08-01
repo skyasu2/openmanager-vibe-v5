@@ -10,11 +10,11 @@ import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 
 // framer-motion을 동적 import로 처리
 const MotionButton = dynamic(
-  () => import('framer-motion').then(mod => ({ default: mod.motion.button })),
+  () => import('framer-motion').then((mod) => ({ default: mod.motion.button })),
   { ssr: false }
 );
 const MotionDiv = dynamic(
-  () => import('framer-motion').then(mod => ({ default: mod.motion.div })),
+  () => import('framer-motion').then((mod) => ({ default: mod.motion.div })),
   { ssr: false }
 );
 
@@ -57,8 +57,8 @@ const RealTimeDisplay = React.memo(function RealTimeDisplay() {
   }, []);
 
   return (
-    <div className='flex items-center gap-2 text-sm text-gray-600'>
-      <Clock className='w-4 h-4 text-blue-500' />
+    <div className="flex items-center gap-2 text-sm text-gray-600">
+      <Clock className="h-4 w-4 text-blue-500" />
       <span>
         {currentTime.toLocaleTimeString('ko-KR', {
           hour: '2-digit',
@@ -66,7 +66,7 @@ const RealTimeDisplay = React.memo(function RealTimeDisplay() {
           second: '2-digit',
         })}
       </span>
-      <span className='text-gray-400'>|</span>
+      <span className="text-gray-400">|</span>
       <span>
         {currentTime.toLocaleDateString('ko-KR', {
           month: 'short',
@@ -124,43 +124,43 @@ const DashboardHeader = React.memo(function DashboardHeader({
   // 사용자 정보는 UnifiedProfileHeader에서 처리됨
 
   return (
-    <header className='bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40'>
-      <div className='flex items-center justify-between px-6 py-4'>
+    <header className="sticky top-0 z-40 border-b border-gray-200 bg-white shadow-sm">
+      <div className="flex items-center justify-between px-6 py-4">
         {/* 왼쪽: 브랜드 로고 */}
-        <div className='flex items-center gap-4'>
+        <div className="flex items-center gap-4">
           <button
             onClick={onNavigateHome}
-            className='flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer'
-            aria-label='홈으로 이동'
+            className="flex cursor-pointer items-center gap-3 transition-opacity hover:opacity-80"
+            aria-label="홈으로 이동"
           >
-            <div className='w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center'>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-pink-500 to-purple-600">
               <i
-                className='fas fa-server text-white text-sm'
-                aria-hidden='true'
+                className="fas fa-server text-sm text-white"
+                aria-hidden="true"
               ></i>
             </div>
             <div>
-              <h1 className='text-xl font-bold text-gray-900'>OpenManager</h1>
-              <p className='text-xs text-gray-500'>AI 서버 모니터링</p>
+              <h1 className="text-xl font-bold text-gray-900">OpenManager</h1>
+              <p className="text-xs text-gray-500">AI 서버 모니터링</p>
             </div>
           </button>
         </div>
 
         {/* 중앙: 실시간 정보 & 시스템 상태 */}
-        <div className='hidden md:flex items-center gap-6'>
+        <div className="hidden items-center gap-6 md:flex">
           <RealTimeDisplay />
 
           {/* 🕐 시스템 자동 종료 타이머 표시 */}
           {isSystemActive && remainingTimeFormatted && (
-            <div className='flex items-center gap-2 px-3 py-1 bg-yellow-50 border border-yellow-200 rounded-lg'>
-              <div className='flex items-center gap-2'>
-                <div className='w-2 h-2 bg-yellow-400 rounded-full _animate-pulse' />
-                <span className='text-sm font-medium text-yellow-800'>
+            <div className="flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-1">
+              <div className="flex items-center gap-2">
+                <div className="_animate-pulse h-2 w-2 rounded-full bg-yellow-400" />
+                <span className="text-sm font-medium text-yellow-800">
                   시스템 자동 종료: {remainingTimeFormatted}
                 </span>
               </div>
               {systemRemainingTime && systemRemainingTime < 5 * 60 * 1000 && (
-                <span className='text-xs text-red-600 font-semibold _animate-pulse'>
+                <span className="_animate-pulse text-xs font-semibold text-red-600">
                   ⚠️ 곧 종료됨
                 </span>
               )}
@@ -169,9 +169,9 @@ const DashboardHeader = React.memo(function DashboardHeader({
 
           {/* 시스템 종료됨 표시 */}
           {!isSystemActive && (
-            <div className='flex items-center gap-2 px-3 py-1 bg-gray-100 border border-gray-300 rounded-lg'>
-              <div className='w-2 h-2 bg-gray-400 rounded-full' />
-              <span className='text-sm font-medium text-gray-600'>
+            <div className="flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-100 px-3 py-1">
+              <div className="h-2 w-2 rounded-full bg-gray-400" />
+              <span className="text-sm font-medium text-gray-600">
                 시스템 종료됨
               </span>
             </div>
@@ -179,19 +179,16 @@ const DashboardHeader = React.memo(function DashboardHeader({
         </div>
 
         {/* 오른쪽: AI 어시스턴트 & 프로필 */}
-        <div className='flex items-center gap-4'>
+        <div className="flex items-center gap-4">
           {/* AI 어시스턴트 토글 버튼 */}
-          <div className='relative'>
+          <div className="relative">
             <MotionButton
               onClick={handleAIAgentToggle}
-              className={`
-                relative p-3 rounded-xl transition-all duration-300 transform
-                ${
-                  isSidebarOpen || aiAgent.isEnabled
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-105'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900'
-                }
-              `}
+              className={`relative transform rounded-xl p-3 transition-all duration-300 ${
+                isSidebarOpen || aiAgent.isEnabled
+                  ? 'scale-105 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+              } `}
               title={
                 isSidebarOpen ? 'AI 어시스턴트 닫기' : 'AI 어시스턴트 열기'
               }
@@ -205,7 +202,7 @@ const DashboardHeader = React.memo(function DashboardHeader({
               {/* AI 활성화 시 그라데이션 테두리 애니메이션 */}
               {aiAgent.isEnabled && (
                 <MotionDiv
-                  className='absolute inset-0 rounded-xl bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 opacity-75'
+                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 opacity-75"
                   animate={{
                     rotate: [0, 360],
                   }}
@@ -221,13 +218,13 @@ const DashboardHeader = React.memo(function DashboardHeader({
                     borderRadius: '0.75rem',
                   }}
                 >
-                  <div className='w-full h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl' />
+                  <div className="h-full w-full rounded-xl bg-gradient-to-r from-purple-500 to-pink-500" />
                 </MotionDiv>
               )}
 
-              <div className='relative flex items-center gap-2'>
+              <div className="relative flex items-center gap-2">
                 <MotionDiv
-                  className={`w-5 h-5 ${isSidebarOpen || aiAgent.isEnabled ? 'text-white' : 'text-gray-600'}`}
+                  className={`h-5 w-5 ${isSidebarOpen || aiAgent.isEnabled ? 'text-white' : 'text-gray-600'}`}
                   animate={
                     aiAgent.isEnabled
                       ? {
@@ -245,12 +242,12 @@ const DashboardHeader = React.memo(function DashboardHeader({
                     },
                   }}
                 >
-                  <Bot className='w-5 h-5' />
+                  <Bot className="h-5 w-5" />
                 </MotionDiv>
-                <span className='hidden sm:inline text-sm font-medium'>
+                <span className="hidden text-sm font-medium sm:inline">
                   {aiAgent.isEnabled ? (
                     <MotionDiv
-                      className='bg-gradient-to-r from-purple-100 via-pink-100 to-cyan-100 bg-clip-text text-transparent font-bold'
+                      className="bg-gradient-to-r from-purple-100 via-pink-100 to-cyan-100 bg-clip-text font-bold text-transparent"
                       animate={{ opacity: [1, 0.7, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
@@ -265,7 +262,7 @@ const DashboardHeader = React.memo(function DashboardHeader({
               {/* 활성화 상태 표시 */}
               {(isSidebarOpen || aiAgent.isEnabled) && (
                 <MotionDiv
-                  className='absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white'
+                  className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-green-400"
                   animate={{
                     scale: [1, 1.2, 1],
                     opacity: [1, 0.7, 1],
@@ -275,7 +272,7 @@ const DashboardHeader = React.memo(function DashboardHeader({
                     repeat: Infinity,
                     ease: 'easeInOut',
                   }}
-                  aria-hidden='true'
+                  aria-hidden="true"
                 />
               )}
             </MotionButton>
@@ -285,7 +282,7 @@ const DashboardHeader = React.memo(function DashboardHeader({
               !isSidebarOpen &&
               !ui.isSettingsPanelOpen && (
                 <MotionDiv
-                  className='finger-pointer-ai'
+                  className="finger-pointer-ai"
                   style={{
                     zIndex: isSidebarOpen || ui.isSettingsPanelOpen ? 10 : 30,
                   }}
@@ -308,21 +305,21 @@ const DashboardHeader = React.memo(function DashboardHeader({
       </div>
 
       {/* 모바일용 실시간 정보 */}
-      <div className='md:hidden px-6 py-2 bg-gray-50 border-t border-gray-200 space-y-2'>
-        <div className='flex items-center justify-center'>
+      <div className="space-y-2 border-t border-gray-200 bg-gray-50 px-6 py-2 md:hidden">
+        <div className="flex items-center justify-center">
           <RealTimeDisplay />
         </div>
 
         {/* 🕐 모바일 시스템 상태 표시 */}
         {isSystemActive && remainingTimeFormatted && (
-          <div className='flex items-center justify-center'>
-            <div className='flex items-center gap-2 px-3 py-1 bg-yellow-50 border border-yellow-200 rounded-lg text-xs'>
-              <div className='w-2 h-2 bg-yellow-400 rounded-full _animate-pulse' />
-              <span className='font-medium text-yellow-800'>
+          <div className="flex items-center justify-center">
+            <div className="flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-1 text-xs">
+              <div className="_animate-pulse h-2 w-2 rounded-full bg-yellow-400" />
+              <span className="font-medium text-yellow-800">
                 자동 종료: {remainingTimeFormatted}
               </span>
               {systemRemainingTime && systemRemainingTime < 5 * 60 * 1000 && (
-                <span className='text-red-600 font-semibold _animate-pulse'>
+                <span className="_animate-pulse font-semibold text-red-600">
                   ⚠️
                 </span>
               )}
@@ -331,10 +328,10 @@ const DashboardHeader = React.memo(function DashboardHeader({
         )}
 
         {!isSystemActive && (
-          <div className='flex items-center justify-center'>
-            <div className='flex items-center gap-2 px-3 py-1 bg-gray-100 border border-gray-300 rounded-lg text-xs'>
-              <div className='w-2 h-2 bg-gray-400 rounded-full' />
-              <span className='font-medium text-gray-600'>시스템 종료됨</span>
+          <div className="flex items-center justify-center">
+            <div className="flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-100 px-3 py-1 text-xs">
+              <div className="h-2 w-2 rounded-full bg-gray-400" />
+              <span className="font-medium text-gray-600">시스템 종료됨</span>
             </div>
           </div>
         )}

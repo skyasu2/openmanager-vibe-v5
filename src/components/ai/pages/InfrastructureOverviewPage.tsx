@@ -181,25 +181,25 @@ export default function InfrastructureOverviewPage({
 
   if (isLoading) {
     return (
-      <div className={`flex items-center justify-center h-full ${className}`}>
-        <div className='text-center'>
-          <RefreshCw className='w-8 h-8 text-blue-500 animate-spin mx-auto mb-2' />
-          <p className='text-gray-600'>인프라 데이터 로딩 중...</p>
+      <div className={`flex h-full items-center justify-center ${className}`}>
+        <div className="text-center">
+          <RefreshCw className="mx-auto mb-2 h-8 w-8 animate-spin text-blue-500" />
+          <p className="text-gray-600">인프라 데이터 로딩 중...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`p-3 h-full overflow-auto ${className}`}>
+    <div className={`h-full overflow-auto p-3 ${className}`}>
       {/* 헤더 */}
-      <div className='flex items-center justify-between mb-3'>
+      <div className="mb-3 flex items-center justify-between">
         <div>
-          <h2 className='text-lg font-bold text-gray-800 flex items-center gap-2'>
-            <Server className='w-5 h-5 text-blue-600' />
+          <h2 className="flex items-center gap-2 text-lg font-bold text-gray-800">
+            <Server className="h-5 w-5 text-blue-600" />
             🎛️ 인프라 전체 현황
           </h2>
-          <p className='text-xs text-gray-600 mt-1'>
+          <p className="mt-1 text-xs text-gray-600">
             마지막 업데이트: {lastUpdate.toLocaleTimeString()}
           </p>
         </div>
@@ -207,9 +207,9 @@ export default function InfrastructureOverviewPage({
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={fetchServerData}
-          className='flex items-center gap-1 px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm'
+          className="flex items-center gap-1 rounded-lg bg-blue-500 px-3 py-1.5 text-sm text-white transition-colors hover:bg-blue-600"
         >
-          <RefreshCw className='w-3 h-3' />
+          <RefreshCw className="h-3 w-3" />
           새로고침
         </motion.button>
       </div>
@@ -218,47 +218,47 @@ export default function InfrastructureOverviewPage({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className='bg-white rounded-lg border border-gray-200 p-3 shadow-sm mb-3'
+        className="mb-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
       >
-        <h3 className='text-sm font-semibold text-gray-700 mb-2'>
+        <h3 className="mb-2 text-sm font-semibold text-gray-700">
           📊 전체 인프라 현황
         </h3>
 
-        <div className='grid grid-cols-2 lg:grid-cols-4 gap-2'>
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
           {/* 총 서버 수 */}
-          <div className='text-center p-2 bg-blue-50 rounded-lg border border-blue-200'>
-            <Server className='w-5 h-5 text-blue-600 mx-auto mb-1' />
-            <div className='text-lg font-bold text-blue-600'>
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-2 text-center">
+            <Server className="mx-auto mb-1 h-5 w-5 text-blue-600" />
+            <div className="text-lg font-bold text-blue-600">
               {stats.totalServers}
             </div>
-            <div className='text-xs text-blue-500'>Total Servers</div>
+            <div className="text-xs text-blue-500">Total Servers</div>
           </div>
 
           {/* 온라인 서버 */}
-          <div className='text-center p-2 bg-green-50 rounded-lg border border-green-200'>
-            <Activity className='w-5 h-5 text-green-600 mx-auto mb-1' />
-            <div className='text-lg font-bold text-green-600'>
+          <div className="rounded-lg border border-green-200 bg-green-50 p-2 text-center">
+            <Activity className="mx-auto mb-1 h-5 w-5 text-green-600" />
+            <div className="text-lg font-bold text-green-600">
               {stats.onlineServers}
             </div>
-            <div className='text-xs text-green-500'>🟢 Online</div>
+            <div className="text-xs text-green-500">🟢 Online</div>
           </div>
 
           {/* 오프라인 서버 */}
-          <div className='text-center p-2 bg-red-50 rounded-lg border border-red-200'>
-            <Server className='w-5 h-5 text-red-600 mx-auto mb-1' />
-            <div className='text-lg font-bold text-red-600'>
+          <div className="rounded-lg border border-red-200 bg-red-50 p-2 text-center">
+            <Server className="mx-auto mb-1 h-5 w-5 text-red-600" />
+            <div className="text-lg font-bold text-red-600">
               {stats.offlineServers}
             </div>
-            <div className='text-xs text-red-500'>🔴 Offline</div>
+            <div className="text-xs text-red-500">🔴 Offline</div>
           </div>
 
           {/* 알림 수 */}
-          <div className='text-center p-2 bg-yellow-50 rounded-lg border border-yellow-200'>
-            <RefreshCw className='w-5 h-5 text-yellow-600 mx-auto mb-1' />
-            <div className='text-lg font-bold text-yellow-600'>
+          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-2 text-center">
+            <RefreshCw className="mx-auto mb-1 h-5 w-5 text-yellow-600" />
+            <div className="text-lg font-bold text-yellow-600">
               {stats.alertCount}
             </div>
-            <div className='text-xs text-yellow-500'>⚠️ Alerts</div>
+            <div className="text-xs text-yellow-500">⚠️ Alerts</div>
           </div>
         </div>
       </motion.div>
@@ -268,20 +268,20 @@ export default function InfrastructureOverviewPage({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className='bg-white rounded-lg border border-gray-200 p-3 shadow-sm'
+        className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
       >
-        <h3 className='text-sm font-semibold text-gray-700 mb-2'>
+        <h3 className="mb-2 text-sm font-semibold text-gray-700">
           💻 평균 리소스 사용률
         </h3>
 
-        <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-2'>
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-4">
           {/* CPU 사용률 */}
           <div
-            className={`p-2 rounded-lg border ${getStatusBgColor(stats.totalCpu, 'cpu')}`}
+            className={`rounded-lg border p-2 ${getStatusBgColor(stats.totalCpu, 'cpu')}`}
           >
-            <div className='flex items-center justify-between mb-1'>
+            <div className="mb-1 flex items-center justify-between">
               <Cpu
-                className={`w-4 h-4 ${getStatusColor(stats.totalCpu, 'cpu')}`}
+                className={`h-4 w-4 ${getStatusColor(stats.totalCpu, 'cpu')}`}
               />
               <span
                 className={`text-lg font-bold ${getStatusColor(stats.totalCpu, 'cpu')}`}
@@ -289,8 +289,8 @@ export default function InfrastructureOverviewPage({
                 {formatPercentage(stats.totalCpu)}
               </span>
             </div>
-            <div className='text-xs text-gray-600'>💻 Total CPU</div>
-            <div className='w-full bg-gray-200 rounded-full h-1.5 mt-1'>
+            <div className="text-xs text-gray-600">💻 Total CPU</div>
+            <div className="mt-1 h-1.5 w-full rounded-full bg-gray-200">
               <div
                 className={`h-1.5 rounded-full transition-all duration-500 ${
                   stats.totalCpu >= 90
@@ -306,11 +306,11 @@ export default function InfrastructureOverviewPage({
 
           {/* RAM 사용률 */}
           <div
-            className={`p-2 rounded-lg border ${getStatusBgColor(stats.totalRam, 'memory')}`}
+            className={`rounded-lg border p-2 ${getStatusBgColor(stats.totalRam, 'memory')}`}
           >
-            <div className='flex items-center justify-between mb-1'>
+            <div className="mb-1 flex items-center justify-between">
               <MemoryStick
-                className={`w-4 h-4 ${getStatusColor(stats.totalRam, 'memory')}`}
+                className={`h-4 w-4 ${getStatusColor(stats.totalRam, 'memory')}`}
               />
               <span
                 className={`text-lg font-bold ${getStatusColor(stats.totalRam, 'memory')}`}
@@ -318,8 +318,8 @@ export default function InfrastructureOverviewPage({
                 {formatPercentage(stats.totalRam)}
               </span>
             </div>
-            <div className='text-xs text-gray-600'>💾 Total RAM</div>
-            <div className='w-full bg-gray-200 rounded-full h-1.5 mt-1'>
+            <div className="text-xs text-gray-600">💾 Total RAM</div>
+            <div className="mt-1 h-1.5 w-full rounded-full bg-gray-200">
               <div
                 className={`h-1.5 rounded-full transition-all duration-500 ${
                   stats.totalRam >= 90
@@ -335,11 +335,11 @@ export default function InfrastructureOverviewPage({
 
           {/* Disk 사용률 */}
           <div
-            className={`p-2 rounded-lg border ${getStatusBgColor(stats.totalDisk, 'disk')}`}
+            className={`rounded-lg border p-2 ${getStatusBgColor(stats.totalDisk, 'disk')}`}
           >
-            <div className='flex items-center justify-between mb-1'>
+            <div className="mb-1 flex items-center justify-between">
               <HardDrive
-                className={`w-4 h-4 ${getStatusColor(stats.totalDisk, 'disk')}`}
+                className={`h-4 w-4 ${getStatusColor(stats.totalDisk, 'disk')}`}
               />
               <span
                 className={`text-lg font-bold ${getStatusColor(stats.totalDisk, 'disk')}`}
@@ -347,8 +347,8 @@ export default function InfrastructureOverviewPage({
                 {formatPercentage(stats.totalDisk)}
               </span>
             </div>
-            <div className='text-xs text-gray-600'>💿 Total Disk</div>
-            <div className='w-full bg-gray-200 rounded-full h-1.5 mt-1'>
+            <div className="text-xs text-gray-600">💿 Total Disk</div>
+            <div className="mt-1 h-1.5 w-full rounded-full bg-gray-200">
               <div
                 className={`h-1.5 rounded-full transition-all duration-500 ${
                   stats.totalDisk >= 90
@@ -363,17 +363,17 @@ export default function InfrastructureOverviewPage({
           </div>
 
           {/* 네트워크 대역폭 */}
-          <div className='p-2 bg-blue-50 rounded-lg border border-blue-200'>
-            <div className='flex items-center justify-between mb-1'>
-              <Wifi className='w-4 h-4 text-blue-600' />
-              <span className='text-lg font-bold text-blue-600'>
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-2">
+            <div className="mb-1 flex items-center justify-between">
+              <Wifi className="h-4 w-4 text-blue-600" />
+              <span className="text-lg font-bold text-blue-600">
                 {stats.bandwidth}MB
               </span>
             </div>
-            <div className='text-xs text-gray-600'>🌐 Bandwidth</div>
-            <div className='w-full bg-gray-200 rounded-full h-1.5 mt-1'>
+            <div className="text-xs text-gray-600">🌐 Bandwidth</div>
+            <div className="mt-1 h-1.5 w-full rounded-full bg-gray-200">
               <div
-                className='h-1.5 rounded-full bg-blue-500 transition-all duration-500'
+                className="h-1.5 rounded-full bg-blue-500 transition-all duration-500"
                 style={{
                   width: `${Math.min((stats.bandwidth / 1000) * 100, 100)}%`,
                 }}

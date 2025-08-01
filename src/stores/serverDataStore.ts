@@ -239,7 +239,7 @@ export const createServerDataStore = (
 
       // 개별 서버 조회 및 필터링
       getServerById: (id: string) => {
-        return get().servers.find(s => s.id === id);
+        return get().servers.find((s) => s.id === id);
       },
 
       getServersByStatus: (status: 'healthy' | 'warning' | 'critical') => {

@@ -224,7 +224,7 @@ async function runComparisonBenchmark(queries: string[], iterations: number) {
   const improvement = ((originalAvg - optimizedAvg) / originalAvg) * 100;
 
   const cacheHits = results.optimizedEngine.responses.filter(
-    r => r.cached
+    (r) => r.cached
   ).length;
   const cacheHitRate =
     (cacheHits / results.optimizedEngine.responses.length) * 100;
@@ -244,7 +244,7 @@ async function runComparisonBenchmark(queries: string[], iterations: number) {
           avgResponseTime: Math.round(originalAvg),
           totalTime: results.originalEngine.totalTime,
           successRate: Math.round(
-            (results.originalEngine.responses.filter(r => r.success).length /
+            (results.originalEngine.responses.filter((r) => r.success).length /
               results.originalEngine.responses.length) *
               100
           ),
@@ -254,7 +254,7 @@ async function runComparisonBenchmark(queries: string[], iterations: number) {
           avgResponseTime: Math.round(optimizedAvg),
           totalTime: results.optimizedEngine.totalTime,
           successRate: Math.round(
-            (results.optimizedEngine.responses.filter(r => r.success).length /
+            (results.optimizedEngine.responses.filter((r) => r.success).length /
               results.optimizedEngine.responses.length) *
               100
           ),
@@ -298,14 +298,14 @@ async function runLoadBenchmark(queries: string[], iterations: number) {
             mode: 'local',
             options: { includeMCPContext: false },
           })
-          .then(result => ({
+          .then((result) => ({
             iteration: j + 1,
             query: query.substring(0, 20),
             responseTime: result.processingTime,
             success: result.success,
             cached: result.metadata?.cacheHit === true,
           }))
-          .catch(error => ({
+          .catch((error) => ({
             iteration: j + 1,
             query: query.substring(0, 20),
             responseTime: 0,
@@ -324,9 +324,9 @@ async function runLoadBenchmark(queries: string[], iterations: number) {
   const avgResponseTime =
     results.reduce((sum, r) => sum + r.responseTime, 0) / results.length;
   const successRate =
-    (results.filter(r => r.success).length / results.length) * 100;
+    (results.filter((r) => r.success).length / results.length) * 100;
   const cacheHitRate =
-    (results.filter(r => r.cached).length / results.length) * 100;
+    (results.filter((r) => r.cached).length / results.length) * 100;
   const throughput = (results.length / totalTime) * 1000; // queries per second
 
   return NextResponse.json(

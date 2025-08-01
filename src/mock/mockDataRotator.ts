@@ -102,7 +102,7 @@ export class MockDataRotator {
    * 서버 목록 업데이트
    */
   updateServers(servers: Server[]): Server[] {
-    return servers.map(server => {
+    return servers.map((server) => {
       const metrics = this.getCurrentMetrics(server.id);
       const scenario = this.timeSeries[server.id]?.scenario || 'normal';
 

@@ -174,7 +174,7 @@ export function useSequentialServerGeneration(
 
     console.log('🚀 순차 서버 생성 시작...');
 
-    setStatus(prev => ({
+    setStatus((prev) => ({
       ...prev,
       isGenerating: true,
       error: null,
@@ -187,7 +187,7 @@ export function useSequentialServerGeneration(
     if (firstResult.success && firstResult.server) {
       const newServer = firstResult.server;
       setServers([newServer]);
-      setStatus(prev => ({
+      setStatus((prev) => ({
         ...prev,
         currentCount: firstResult.currentCount,
         progress: firstResult.progress || 0,
@@ -200,12 +200,12 @@ export function useSequentialServerGeneration(
       onServerAdded?.(newServer);
 
       if (firstResult.isComplete) {
-        setStatus(prev => ({ ...prev, isGenerating: false }));
+        setStatus((prev) => ({ ...prev, isGenerating: false }));
         onComplete?.([newServer]);
         return;
       }
     } else {
-      setStatus(prev => ({
+      setStatus((prev) => ({
         ...prev,
         isGenerating: false,
         error: firstResult.error || '첫 번째 서버 생성 실패',
@@ -223,8 +223,8 @@ export function useSequentialServerGeneration(
         if (result.success && result.server) {
           const newServer = result.server;
 
-          setServers(prev => [...prev, newServer]);
-          setStatus(prev => ({
+          setServers((prev) => [...prev, newServer]);
+          setStatus((prev) => ({
             ...prev,
             currentCount: result.currentCount,
             progress: result.progress || 0,
@@ -240,7 +240,7 @@ export function useSequentialServerGeneration(
             clearInterval(intervalRef.current!);
             intervalRef.current = null;
 
-            setStatus(prev => ({
+            setStatus((prev) => ({
               ...prev,
               isGenerating: false,
               currentMessage: '🎉 모든 서버 배포 완료!',
@@ -253,7 +253,7 @@ export function useSequentialServerGeneration(
           clearInterval(intervalRef.current!);
           intervalRef.current = null;
 
-          setStatus(prev => ({
+          setStatus((prev) => ({
             ...prev,
             isGenerating: false,
             error: result.error || '서버 생성 중 오류 발생',
@@ -268,7 +268,7 @@ export function useSequentialServerGeneration(
 
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error';
-        setStatus(prev => ({
+        setStatus((prev) => ({
           ...prev,
           isGenerating: false,
           error: errorMessage,
@@ -302,7 +302,7 @@ export function useSequentialServerGeneration(
       abortControllerRef.current = null;
     }
 
-    setStatus(prev => ({
+    setStatus((prev) => ({
       ...prev,
       isGenerating: false,
       currentMessage: '서버 생성 중지됨',
@@ -338,7 +338,7 @@ export function useSequentialServerGeneration(
       });
     } catch (error) {
       console.error('❌ 리셋 실패:', error);
-      setStatus(prev => ({
+      setStatus((prev) => ({
         ...prev,
         error: '리셋 실패',
         currentMessage: '리셋 실패',

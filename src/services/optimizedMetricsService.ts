@@ -295,7 +295,7 @@ export async function* streamServerMetrics(
     }
 
     // 대기
-    await new Promise(resolve => setTimeout(resolve, pollingInterval));
+    await new Promise((resolve) => setTimeout(resolve, pollingInterval));
   }
 }
 
@@ -349,7 +349,7 @@ export async function invalidateMetricsCache(pattern?: string): Promise<void> {
     // Redis 패턴 삭제
     const keys = await redis.keys(pattern || 'metrics:*');
     if (keys.length > 0) {
-      await Promise.all(keys.map(key => redis.del(key)));
+      await Promise.all(keys.map((key) => redis.del(key)));
       console.log(`🧹 ${keys.length}개 캐시 키 삭제됨`);
     }
 

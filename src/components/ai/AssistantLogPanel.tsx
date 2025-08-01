@@ -200,7 +200,7 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
     if (!logs) return new Map();
 
     const groups = new Map<string, LogEntry[]>();
-    logs.forEach(log => {
+    logs.forEach((log) => {
       if (log.sessionId) {
         if (!groups.has(log.sessionId)) {
           groups.set(log.sessionId, []);
@@ -210,7 +210,7 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
     });
 
     // 각 그룹 내에서 시간순 정렬
-    groups.forEach(group => {
+    groups.forEach((group) => {
       group.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
     });
 
@@ -220,7 +220,7 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
   // 🎯 패턴 감지 로그만 필터링
   const _patternDetectionLogs = useMemo(() => {
     if (!logs) return [];
-    return logs.filter(log => log.patternDetected);
+    return logs.filter((log) => log.patternDetected);
   }, [logs]);
 
   // 📊 로그 통계
@@ -230,9 +230,9 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
 
     return {
       total: logs.length,
-      thinking: logs.filter(log => log.type === 'thinking').length,
-      queries: logs.filter(log => log.type === 'user_query').length,
-      patterns: logs.filter(log => log.patternDetected).length,
+      thinking: logs.filter((log) => log.type === 'thinking').length,
+      queries: logs.filter((log) => log.type === 'user_query').length,
+      patterns: logs.filter((log) => log.patternDetected).length,
       sessions: sessionGroups.size,
     };
   }, [logs, sessionGroups]);
@@ -246,7 +246,7 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
     try {
       const csvContent = [
         'ID,Timestamp,Type,Level,Step,Content,Duration,Confidence,SessionID,AIEngine,PatternDetected',
-        ...logs.map(log =>
+        ...logs.map((log) =>
           [
             log.id,
             log.timestamp.toISOString(),
@@ -289,7 +289,7 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
     if (!logs) return [];
     return selectedType === 'all'
       ? logs
-      : logs.filter(log => log.type === selectedType);
+      : logs.filter((log) => log.type === selectedType);
   }, [logs, selectedType]);
 
   // 유틸리티 함수들
@@ -311,15 +311,15 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
   const getLevelIcon = (level: string) => {
     switch (level) {
       case 'success':
-        return <CheckCircle className='w-4 h-4' />;
+        return <CheckCircle className="h-4 w-4" />;
       case 'warning':
-        return <AlertTriangle className='w-4 h-4' />;
+        return <AlertTriangle className="h-4 w-4" />;
       case 'error':
-        return <AlertTriangle className='w-4 h-4' />;
+        return <AlertTriangle className="h-4 w-4" />;
       case 'info':
-        return <Activity className='w-4 h-4' />;
+        return <Activity className="h-4 w-4" />;
       default:
-        return <Clock className='w-4 h-4' />;
+        return <Clock className="h-4 w-4" />;
     }
   };
 
@@ -352,17 +352,17 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
 
   return (
     <BasePanelLayout
-      title='AI 어시스턴트 로그'
+      title="AI 어시스턴트 로그"
       subtitle={`실시간 AI 활동 추적 (${logStats.total}개 로그, ${logStats.sessions}개 세션)`}
-      icon={<Brain className='w-4 h-4 text-white' />}
-      iconGradient='bg-gradient-to-br from-purple-500 to-pink-600'
+      icon={<Brain className="h-4 w-4 text-white" />}
+      iconGradient="bg-gradient-to-br from-purple-500 to-pink-600"
       onRefresh={reload}
       isLoading={isLoading}
-      adminPath='/admin/ai-assistant'
-      adminLabel='상세 관리'
+      adminPath="/admin/ai-assistant"
+      adminLabel="상세 관리"
       filters={logTypes}
       selectedFilter={selectedType}
-      onFilterChange={filterId => setSelectedType(filterId as any)}
+      onFilterChange={(filterId) => setSelectedType(filterId as any)}
       bottomInfo={{
         primary: '🧠 AI 사고 과정과 질의응답 로그를 실시간으로 추적합니다',
         secondary: `🎯 패턴 감지: ${logStats.patterns}건 | 🤔 질의: ${logStats.queries}건 | 🧠 사고: ${logStats.thinking}건`,
@@ -371,31 +371,31 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
     >
       {/* 관리자 기능 패널 */}
       {adminMode && (
-        <div className='p-4 bg-purple-50 border-b border-purple-200'>
-          <div className='flex items-center justify-between mb-3'>
-            <h4 className='font-semibold text-purple-800'>🔧 관리자 기능</h4>
+        <div className="border-b border-purple-200 bg-purple-50 p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h4 className="font-semibold text-purple-800">🔧 관리자 기능</h4>
             <button
               onClick={() => setAdminMode(false)}
-              className='text-purple-600 hover:text-purple-800'
+              className="text-purple-600 hover:text-purple-800"
             >
               ✕
             </button>
           </div>
 
-          <div className='flex items-center gap-3 text-sm'>
+          <div className="flex items-center gap-3 text-sm">
             <button
               onClick={exportLogsToCSV}
               disabled={exportInProgress}
-              className={`px-3 py-1 rounded border ${
+              className={`rounded border px-3 py-1 ${
                 exportInProgress
-                  ? 'bg-gray-100 text-gray-400 border-gray-300'
-                  : 'bg-white text-purple-700 border-purple-300 hover:bg-purple-50'
+                  ? 'border-gray-300 bg-gray-100 text-gray-400'
+                  : 'border-purple-300 bg-white text-purple-700 hover:bg-purple-50'
               }`}
             >
               {exportInProgress ? '내보내는 중...' : '📊 CSV 내보내기'}
             </button>
 
-            <span className='text-purple-600'>
+            <span className="text-purple-600">
               📈 통계: 총 {logStats.total}개 로그, {logStats.sessions}개 세션
             </span>
           </div>
@@ -403,17 +403,17 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
       )}
 
       {/* 로그 목록 */}
-      <div className='p-4'>
+      <div className="p-4">
         {/* 세션 그룹별 표시 (사고 과정 시각화) */}
         {selectedType === 'thinking' || selectedType === 'user_query' ? (
-          <div className='space-y-4'>
-            <div className='flex items-center justify-between mb-4'>
-              <h4 className='font-semibold text-gray-800'>
+          <div className="space-y-4">
+            <div className="mb-4 flex items-center justify-between">
+              <h4 className="font-semibold text-gray-800">
                 🧠 세션별 사고 과정
               </h4>
               <button
                 onClick={() => setAdminMode(!adminMode)}
-                className='text-sm text-purple-600 hover:text-purple-800'
+                className="text-sm text-purple-600 hover:text-purple-800"
               >
                 {adminMode ? '관리 모드 끄기' : '관리 모드 켜기'}
               </button>
@@ -425,54 +425,54 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
                   key={sessionId}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className='bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4'
+                  className="rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4"
                 >
-                  <div className='flex items-center justify-between mb-3'>
+                  <div className="mb-3 flex items-center justify-between">
                     <div>
-                      <h5 className='font-medium text-gray-800'>
+                      <h5 className="font-medium text-gray-800">
                         세션: {sessionId}
                       </h5>
-                      <p className='text-sm text-gray-600'>
+                      <p className="text-sm text-gray-600">
                         {sessionLogs.length}개 로그 |
                         {sessionLogs[0]?.timestamp.toLocaleString()}
                       </p>
                     </div>
                     <button
                       onClick={() => viewSessionDetails(sessionId)}
-                      className='text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200'
+                      className="rounded bg-purple-100 px-2 py-1 text-xs text-purple-700 hover:bg-purple-200"
                     >
                       상세 보기
                     </button>
                   </div>
 
-                  <div className='space-y-2'>
+                  <div className="space-y-2">
                     {sessionLogs.slice(0, 3).map((log: LogEntry) => (
                       <div
                         key={log.id}
-                        className='flex items-center gap-3 p-2 bg-white rounded border'
+                        className="flex items-center gap-3 rounded border bg-white p-2"
                       >
                         <div
-                          className={`w-4 h-4 rounded-full flex items-center justify-center ${getLevelColor(log.level)}`}
+                          className={`flex h-4 w-4 items-center justify-center rounded-full ${getLevelColor(log.level)}`}
                         >
                           {getLevelIcon(log.level)}
                         </div>
-                        <div className='flex-1'>
-                          <div className='flex items-center gap-2'>
-                            <span className='text-sm font-medium'>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">
                               {log.step}
                             </span>
                             {log.aiEngine && (
-                              <span className='text-xs px-1 py-0.5 bg-blue-100 text-blue-700 rounded'>
+                              <span className="rounded bg-blue-100 px-1 py-0.5 text-xs text-blue-700">
                                 {log.aiEngine}
                               </span>
                             )}
                             {log.confidence && (
-                              <span className='text-xs text-green-600'>
+                              <span className="text-xs text-green-600">
                                 {Math.round(log.confidence * 100)}%
                               </span>
                             )}
                           </div>
-                          <p className='text-xs text-gray-600 mt-1'>
+                          <p className="mt-1 text-xs text-gray-600">
                             {log.content}
                           </p>
                         </div>
@@ -480,7 +480,7 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
                     ))}
 
                     {sessionLogs.length > 3 && (
-                      <p className='text-xs text-gray-500 text-center'>
+                      <p className="text-center text-xs text-gray-500">
                         ... 및 {sessionLogs.length - 3}개 더
                       </p>
                     )}
@@ -491,47 +491,47 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
           </div>
         ) : (
           // 기존 로그 목록 표시
-          <div className='space-y-3'>
+          <div className="space-y-3">
             {filteredLogs.map((log: LogEntry) => (
               <motion.div
                 key={log.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className='bg-gray-800/50 border border-gray-600/30 rounded-lg p-4 hover:bg-gray-700/30 transition-colors'
+                className="rounded-lg border border-gray-600/30 bg-gray-800/50 p-4 transition-colors hover:bg-gray-700/30"
               >
                 {/* 로그 헤더 */}
-                <div className='flex items-start justify-between mb-3'>
-                  <div className='flex-1'>
-                    <div className='flex items-center gap-2 mb-1'>
-                      <span className='text-lg'>{getTypeIcon(log.type)}</span>
-                      <h4 className='font-medium text-white'>{log.step}</h4>
+                <div className="mb-3 flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="mb-1 flex items-center gap-2">
+                      <span className="text-lg">{getTypeIcon(log.type)}</span>
+                      <h4 className="font-medium text-white">{log.step}</h4>
                       <span
-                        className={`text-xs px-2 py-1 rounded-full border ${getLevelColor(
+                        className={`rounded-full border px-2 py-1 text-xs ${getLevelColor(
                           log.level
                         )}`}
                       >
                         {log.level.toUpperCase()}
                       </span>
                       {log.patternDetected && (
-                        <span className='text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded-full'>
+                        <span className="rounded-full bg-orange-100 px-2 py-1 text-xs text-orange-700">
                           🎯 패턴 감지
                         </span>
                       )}
                     </div>
-                    <div className='flex items-center gap-3 text-sm text-gray-400'>
-                      <div className='flex items-center gap-1'>
-                        <Clock className='w-4 h-4' />
+                    <div className="flex items-center gap-3 text-sm text-gray-400">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
                         <span>{log.timestamp.toLocaleString()}</span>
                       </div>
                       {log.duration && (
-                        <div className='flex items-center gap-1'>
-                          <Zap className='w-4 h-4' />
+                        <div className="flex items-center gap-1">
+                          <Zap className="h-4 w-4" />
                           <span>{log.duration}ms</span>
                         </div>
                       )}
                       {log.confidence && (
-                        <div className='flex items-center gap-1'>
-                          <Target className='w-4 h-4' />
+                        <div className="flex items-center gap-1">
+                          <Target className="h-4 w-4" />
                           <span>
                             {Math.round(log.confidence * 100)}% 신뢰도
                           </span>
@@ -540,7 +540,7 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
                       {log.sessionId && (
                         <button
                           onClick={() => viewSessionDetails(log.sessionId!)}
-                          className='text-xs text-purple-400 hover:text-purple-300'
+                          className="text-xs text-purple-400 hover:text-purple-300"
                         >
                           세션: {log.sessionId}
                         </button>
@@ -550,18 +550,18 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
                 </div>
 
                 {/* 로그 내용 */}
-                <p className='text-gray-300 text-sm leading-relaxed'>
+                <p className="text-sm leading-relaxed text-gray-300">
                   {log.content}
                 </p>
 
                 {/* AI 엔진 정보 */}
                 {log.aiEngine && (
-                  <div className='mt-2 flex items-center gap-2'>
-                    <span className='text-xs px-2 py-1 bg-blue-500/20 text-blue-300 rounded'>
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="rounded bg-blue-500/20 px-2 py-1 text-xs text-blue-300">
                       🤖 {log.aiEngine}
                     </span>
                     {log.category && (
-                      <span className='text-xs px-2 py-1 bg-green-500/20 text-green-300 rounded'>
+                      <span className="rounded bg-green-500/20 px-2 py-1 text-xs text-green-300">
                         📂 {log.category}
                       </span>
                     )}
@@ -574,8 +574,8 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
 
         {/* 빈 상태 */}
         {filteredLogs.length === 0 && !isLoading && (
-          <div className='text-center py-8 text-gray-500'>
-            <Activity className='w-12 h-12 mx-auto mb-4 opacity-50' />
+          <div className="py-8 text-center text-gray-500">
+            <Activity className="mx-auto mb-4 h-12 w-12 opacity-50" />
             <p>선택한 필터에 해당하는 로그가 없습니다.</p>
           </div>
         )}

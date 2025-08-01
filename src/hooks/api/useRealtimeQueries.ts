@@ -82,7 +82,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
         toast.success('실시간 서버 모니터링 활성화');
       };
 
-      wsRef.current.onmessage = event => {
+      wsRef.current.onmessage = (event) => {
         try {
           const message: RealtimeMessage = JSON.parse(event.data);
 
@@ -91,7 +91,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
               // 서버 상태 업데이트
               queryClient.setQueryData(serverKeys.lists(), (old: any[]) => {
                 if (!old) return old;
-                return old.map(server =>
+                return old.map((server) =>
                   server.id === message.data.id
                     ? { ...server, ...message.data }
                     : server
@@ -140,7 +140,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
         }
       };
 
-      wsRef.current.onerror = error => {
+      wsRef.current.onerror = (error) => {
         console.error('❌ WebSocket 오류:', error);
       };
 
@@ -262,7 +262,7 @@ export const useRealtimePredictions = () => {
       console.log('🔮 AI 예측 WebSocket 연결됨');
     };
 
-    wsRef.current.onmessage = event => {
+    wsRef.current.onmessage = (event) => {
       try {
         const message: RealtimeMessage = JSON.parse(event.data);
 
@@ -284,7 +284,7 @@ export const useRealtimePredictions = () => {
       }
     };
 
-    wsRef.current.onerror = error => {
+    wsRef.current.onerror = (error) => {
       console.error('❌ 예측 WebSocket 오류:', error);
     };
 

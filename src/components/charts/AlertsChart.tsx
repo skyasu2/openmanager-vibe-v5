@@ -25,9 +25,9 @@ const AlertsTooltip = memo(({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0];
     return (
-      <div className='bg-white p-3 border border-gray-200 rounded-lg shadow-lg'>
-        <p className='font-semibold text-gray-800'>{label} 알림</p>
-        <p style={{ color: data.color }} className='text-sm'>
+      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
+        <p className="font-semibold text-gray-800">{label} 알림</p>
+        <p style={{ color: data.color }} className="text-sm">
           개수: {data.value}건
         </p>
       </div>
@@ -41,13 +41,13 @@ AlertsTooltip.displayName = 'AlertsTooltip';
 const AlertsChart = memo<AlertsChartProps>(({ data }) => {
   if (!data || data.length === 0) {
     return (
-      <div className='flex items-center justify-center h-64 text-gray-500'>
-        <div className='text-center'>
-          <div className='w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center'>
-            <span className='text-2xl'>✅</span>
+      <div className="flex h-64 items-center justify-center text-gray-500">
+        <div className="text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+            <span className="text-2xl">✅</span>
           </div>
-          <p className='text-green-600 font-medium'>알림이 없습니다</p>
-          <p className='text-sm text-gray-500'>
+          <p className="font-medium text-green-600">알림이 없습니다</p>
+          <p className="text-sm text-gray-500">
             모든 시스템이 정상 작동 중입니다
           </p>
         </div>
@@ -59,16 +59,16 @@ const AlertsChart = memo<AlertsChartProps>(({ data }) => {
   const totalAlerts = data.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <div className='space-y-4'>
+    <div className="space-y-4">
       {/* 알림 요약 */}
-      <div className='text-center'>
-        <div className='text-2xl font-bold text-orange-600'>{totalAlerts}</div>
-        <div className='text-sm text-gray-600'>총 알림 수</div>
+      <div className="text-center">
+        <div className="text-2xl font-bold text-orange-600">{totalAlerts}</div>
+        <div className="text-sm text-gray-600">총 알림 수</div>
       </div>
 
       {/* 차트 */}
-      <div className='h-48'>
-        <ResponsiveContainer width='100%' height='100%'>
+      <div className="h-48">
+        <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}
             margin={{
@@ -78,19 +78,16 @@ const AlertsChart = memo<AlertsChartProps>(({ data }) => {
               bottom: 5,
             }}
           >
-            <CartesianGrid strokeDasharray='3 3' stroke='#f0f0f0' />
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis
-              dataKey='name'
+              dataKey="name"
               tick={{ fontSize: 12 }}
               tickLine={false}
               axisLine={false}
             />
             <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
             <Tooltip content={<AlertsTooltip />} />
-            <Bar
-              dataKey='value'
-              radius={[4, 4, 0, 0]}
-            >
+            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}

@@ -43,65 +43,71 @@ import type {
 } from 'recharts';
 
 const AreaChart = dynamic(
-  () => import('recharts').then(mod => mod.AreaChart as any),
+  () => import('recharts').then((mod) => mod.AreaChart as any),
   { ssr: false }
 ) as React.ComponentType<React.ComponentProps<typeof AreaChartType>>;
 
 const BarChart = dynamic(
-  () => import('recharts').then(mod => mod.BarChart as any),
+  () => import('recharts').then((mod) => mod.BarChart as any),
   { ssr: false }
 ) as React.ComponentType<React.ComponentProps<typeof BarChartType>>;
 
 const LineChart = dynamic(
-  () => import('recharts').then(mod => mod.LineChart as any),
+  () => import('recharts').then((mod) => mod.LineChart as any),
   { ssr: false }
 ) as React.ComponentType<React.ComponentProps<typeof LineChartType>>;
 
 const PieChart = dynamic(
-  () => import('recharts').then(mod => mod.PieChart as any),
+  () => import('recharts').then((mod) => mod.PieChart as any),
   { ssr: false }
 ) as React.ComponentType<React.ComponentProps<typeof PieChartType>>;
 
 const ResponsiveContainer = dynamic(
-  () => import('recharts').then(mod => mod.ResponsiveContainer as any),
+  () => import('recharts').then((mod) => mod.ResponsiveContainer as any),
   { ssr: false }
 ) as React.ComponentType<React.ComponentProps<typeof ResponsiveContainerType>>;
 
-const XAxis = dynamic(() => import('recharts').then(mod => mod.XAxis as any), {
-  ssr: false,
-}) as React.ComponentType<React.ComponentProps<typeof XAxisType>>;
+const XAxis = dynamic(
+  () => import('recharts').then((mod) => mod.XAxis as any),
+  {
+    ssr: false,
+  }
+) as React.ComponentType<React.ComponentProps<typeof XAxisType>>;
 
-const YAxis = dynamic(() => import('recharts').then(mod => mod.YAxis as any), {
-  ssr: false,
-}) as React.ComponentType<React.ComponentProps<typeof YAxisType>>;
+const YAxis = dynamic(
+  () => import('recharts').then((mod) => mod.YAxis as any),
+  {
+    ssr: false,
+  }
+) as React.ComponentType<React.ComponentProps<typeof YAxisType>>;
 
 const CartesianGrid = dynamic(
-  () => import('recharts').then(mod => mod.CartesianGrid as any),
+  () => import('recharts').then((mod) => mod.CartesianGrid as any),
   { ssr: false }
 ) as React.ComponentType<React.ComponentProps<typeof CartesianGridType>>;
 
 const Tooltip = dynamic(
-  () => import('recharts').then(mod => mod.Tooltip as any),
+  () => import('recharts').then((mod) => mod.Tooltip as any),
   { ssr: false }
 ) as React.ComponentType<React.ComponentProps<typeof TooltipType>>;
 
-const Bar = dynamic(() => import('recharts').then(mod => mod.Bar as any), {
+const Bar = dynamic(() => import('recharts').then((mod) => mod.Bar as any), {
   ssr: false,
 }) as React.ComponentType<React.ComponentProps<typeof BarType>>;
 
-const Line = dynamic(() => import('recharts').then(mod => mod.Line as any), {
+const Line = dynamic(() => import('recharts').then((mod) => mod.Line as any), {
   ssr: false,
 }) as React.ComponentType<React.ComponentProps<typeof LineType>>;
 
-const Cell = dynamic(() => import('recharts').then(mod => mod.Cell as any), {
+const Cell = dynamic(() => import('recharts').then((mod) => mod.Cell as any), {
   ssr: false,
 }) as React.ComponentType<React.ComponentProps<typeof CellType>>;
 
-const Pie = dynamic(() => import('recharts').then(mod => mod.Pie as any), {
+const Pie = dynamic(() => import('recharts').then((mod) => mod.Pie as any), {
   ssr: false,
 }) as React.ComponentType<React.ComponentProps<typeof PieType>>;
 
-const Area = dynamic(() => import('recharts').then(mod => mod.Area as any), {
+const Area = dynamic(() => import('recharts').then((mod) => mod.Area as any), {
   ssr: false,
 }) as React.ComponentType<React.ComponentProps<typeof AreaType>>;
 // Legend는 잠시 제거 (차트 타입 문제로 인해)
@@ -168,25 +174,25 @@ export default function LogAnalyticsDashboard() {
 
   // 실시간 업데이트 토글
   const toggleRealtime = () => {
-    setRefreshInterval(current => (current === 30000 ? 0 : 30000));
+    setRefreshInterval((current) => (current === 30000 ? 0 : 30000));
   };
 
   if (isLoading) {
     return (
-      <div className='flex items-center justify-center h-64'>
-        <RefreshCw className='w-8 h-8 animate-spin text-blue-500' />
-        <span className='ml-2 text-gray-600'>로그 데이터 분석 중...</span>
+      <div className="flex h-64 items-center justify-center">
+        <RefreshCw className="h-8 w-8 animate-spin text-blue-500" />
+        <span className="ml-2 text-gray-600">로그 데이터 분석 중...</span>
       </div>
     );
   }
 
   if (!analyticsData) {
     return (
-      <div className='text-center py-8'>
-        <AlertTriangle className='w-12 h-12 text-yellow-500 mx-auto mb-4' />
-        <p className='text-gray-600'>로그 분석 데이터를 불러올 수 없습니다.</p>
-        <Button onClick={() => refetch()} className='mt-4'>
-          <RefreshCw className='w-4 h-4 mr-2' />
+      <div className="py-8 text-center">
+        <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-yellow-500" />
+        <p className="text-gray-600">로그 분석 데이터를 불러올 수 없습니다.</p>
+        <Button onClick={() => refetch()} className="mt-4">
+          <RefreshCw className="mr-2 h-4 w-4" />
           다시 시도
         </Button>
       </div>
@@ -194,139 +200,139 @@ export default function LogAnalyticsDashboard() {
   }
 
   return (
-    <div className='space-y-6'>
+    <div className="space-y-6">
       {/* 상단 컨트롤 */}
-      <div className='flex items-center justify-between'>
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className='text-2xl font-bold text-gray-900'>
+          <h2 className="text-2xl font-bold text-gray-900">
             📊 로그 분석 대시보드
           </h2>
-          <p className='text-gray-600'>AI 상호작용 로그 및 성능 메트릭 분석</p>
+          <p className="text-gray-600">AI 상호작용 로그 및 성능 메트릭 분석</p>
         </div>
 
-        <div className='flex items-center gap-4'>
+        <div className="flex items-center gap-4">
           <select
             value={selectedTimeRange}
-            onChange={e => setSelectedTimeRange(e.target.value)}
-            className='px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
+            onChange={(e) => setSelectedTimeRange(e.target.value)}
+            className="rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
           >
-            <option value='1h'>최근 1시간</option>
-            <option value='6h'>최근 6시간</option>
-            <option value='24h'>최근 24시간</option>
-            <option value='7d'>최근 7일</option>
+            <option value="1h">최근 1시간</option>
+            <option value="6h">최근 6시간</option>
+            <option value="24h">최근 24시간</option>
+            <option value="7d">최근 7일</option>
           </select>
 
           <Button
             variant={refreshInterval > 0 ? 'default' : 'outline'}
-            size='sm'
+            size="sm"
             onClick={toggleRealtime}
           >
-            <Activity className='w-4 h-4 mr-2' />
+            <Activity className="mr-2 h-4 w-4" />
             {refreshInterval > 0 ? '실시간 ON' : '실시간 OFF'}
           </Button>
         </div>
       </div>
 
       {/* 개요 메트릭 카드 */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4'>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
-          <CardContent className='p-6'>
-            <div className='flex items-center justify-between'>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className='text-sm font-medium text-gray-600'>총 상호작용</p>
-                <p className='text-2xl font-bold text-gray-900'>
+                <p className="text-sm font-medium text-gray-600">총 상호작용</p>
+                <p className="text-2xl font-bold text-gray-900">
                   {analyticsData.overview.totalInteractions.toLocaleString()}
                 </p>
               </div>
-              <Users className='w-8 h-8 text-blue-500' />
+              <Users className="h-8 w-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className='p-6'>
-            <div className='flex items-center justify-between'>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className='text-sm font-medium text-gray-600'>활성 엔진</p>
-                <p className='text-2xl font-bold text-green-600'>
+                <p className="text-sm font-medium text-gray-600">활성 엔진</p>
+                <p className="text-2xl font-bold text-green-600">
                   {analyticsData.overview.activeEngines}
                 </p>
               </div>
-              <Brain className='w-8 h-8 text-green-500' />
+              <Brain className="h-8 w-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className='p-6'>
-            <div className='flex items-center justify-between'>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className='text-sm font-medium text-gray-600'>
+                <p className="text-sm font-medium text-gray-600">
                   평균 응답시간
                 </p>
-                <p className='text-2xl font-bold text-orange-600'>
+                <p className="text-2xl font-bold text-orange-600">
                   {analyticsData.overview.averageResponseTime}ms
                 </p>
               </div>
-              <Clock className='w-8 h-8 text-orange-500' />
+              <Clock className="h-8 w-8 text-orange-500" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className='p-6'>
-            <div className='flex items-center justify-between'>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className='text-sm font-medium text-gray-600'>성공률</p>
-                <p className='text-2xl font-bold text-green-600'>
+                <p className="text-sm font-medium text-gray-600">성공률</p>
+                <p className="text-2xl font-bold text-green-600">
                   {analyticsData.overview.successRate}%
                 </p>
               </div>
-              <CheckCircle className='w-8 h-8 text-green-500' />
+              <CheckCircle className="h-8 w-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className='p-6'>
-            <div className='flex items-center justify-between'>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className='text-sm font-medium text-gray-600'>현재 품질</p>
-                <p className='text-2xl font-bold text-purple-600'>
+                <p className="text-sm font-medium text-gray-600">현재 품질</p>
+                <p className="text-2xl font-bold text-purple-600">
                   {analyticsData.overview.currentQuality}/10
                 </p>
               </div>
-              <TrendingUp className='w-8 h-8 text-purple-500' />
+              <TrendingUp className="h-8 w-8 text-purple-500" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* 상세 분석 탭 */}
-      <Tabs defaultValue='performance' className='space-y-4'>
-        <TabsList className='grid w-full grid-cols-4'>
-          <TabsTrigger value='performance'>엔진 성능</TabsTrigger>
-          <TabsTrigger value='trends'>시간별 트렌드</TabsTrigger>
-          <TabsTrigger value='quality'>품질 메트릭</TabsTrigger>
-          <TabsTrigger value='distribution'>티어 분포</TabsTrigger>
+      <Tabs defaultValue="performance" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="performance">엔진 성능</TabsTrigger>
+          <TabsTrigger value="trends">시간별 트렌드</TabsTrigger>
+          <TabsTrigger value="quality">품질 메트릭</TabsTrigger>
+          <TabsTrigger value="distribution">티어 분포</TabsTrigger>
         </TabsList>
 
         {/* 엔진 성능 탭 */}
-        <TabsContent value='performance' className='space-y-4'>
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+        <TabsContent value="performance" className="space-y-4">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle>엔진별 요청 수</CardTitle>
                 <CardDescription>각 AI 엔진의 처리 요청 수</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width='100%' height={300}>
+                <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={analyticsData.enginePerformance}>
-                    <CartesianGrid strokeDasharray='3 3' />
-                    <XAxis dataKey='engine' />
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="engine" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey='requests' fill='#3b82f6' />
+                    <Bar dataKey="requests" fill="#3b82f6" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -338,13 +344,13 @@ export default function LogAnalyticsDashboard() {
                 <CardDescription>평균 응답 시간 비교</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width='100%' height={300}>
+                <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={analyticsData.enginePerformance}>
-                    <CartesianGrid strokeDasharray='3 3' />
-                    <XAxis dataKey='engine' />
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="engine" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey='avgResponseTime' fill='#f59e0b' />
+                    <Bar dataKey="avgResponseTime" fill="#f59e0b" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -357,28 +363,28 @@ export default function LogAnalyticsDashboard() {
               <CardTitle>엔진 상세 성능</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className='overflow-x-auto'>
-                <table className='w-full text-sm'>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
                   <thead>
-                    <tr className='border-b'>
-                      <th className='text-left p-2'>엔진</th>
-                      <th className='text-right p-2'>요청 수</th>
-                      <th className='text-right p-2'>응답시간 (ms)</th>
-                      <th className='text-right p-2'>성공률</th>
-                      <th className='text-right p-2'>신뢰도</th>
+                    <tr className="border-b">
+                      <th className="p-2 text-left">엔진</th>
+                      <th className="p-2 text-right">요청 수</th>
+                      <th className="p-2 text-right">응답시간 (ms)</th>
+                      <th className="p-2 text-right">성공률</th>
+                      <th className="p-2 text-right">신뢰도</th>
                     </tr>
                   </thead>
                   <tbody>
                     {analyticsData.enginePerformance.map((engine, index) => (
-                      <tr key={index} className='border-b'>
-                        <td className='p-2 font-medium'>{engine.engine}</td>
-                        <td className='p-2 text-right'>
+                      <tr key={index} className="border-b">
+                        <td className="p-2 font-medium">{engine.engine}</td>
+                        <td className="p-2 text-right">
                           {engine.requests.toLocaleString()}
                         </td>
-                        <td className='p-2 text-right'>
+                        <td className="p-2 text-right">
                           {engine.avgResponseTime}
                         </td>
-                        <td className='p-2 text-right'>
+                        <td className="p-2 text-right">
                           <Badge
                             variant={
                               engine.successRate >= 95 ? 'default' : 'secondary'
@@ -387,7 +393,7 @@ export default function LogAnalyticsDashboard() {
                             {engine.successRate}%
                           </Badge>
                         </td>
-                        <td className='p-2 text-right'>
+                        <td className="p-2 text-right">
                           <Badge
                             variant={
                               engine.reliability >= 0.9
@@ -408,25 +414,25 @@ export default function LogAnalyticsDashboard() {
         </TabsContent>
 
         {/* 시간별 트렌드 탭 */}
-        <TabsContent value='trends' className='space-y-4'>
+        <TabsContent value="trends" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>시간별 상호작용 트렌드</CardTitle>
               <CardDescription>시간대별 AI 상호작용 패턴</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width='100%' height={400}>
+              <ResponsiveContainer width="100%" height={400}>
                 <AreaChart data={analyticsData.hourlyTrend}>
-                  <CartesianGrid strokeDasharray='3 3' />
-                  <XAxis dataKey='hour' />
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="hour" />
                   <YAxis />
                   <Tooltip />
                   <Area
-                    type='monotone'
-                    dataKey='interactions'
-                    stackId='1'
-                    stroke='#3b82f6'
-                    fill='#3b82f6'
+                    type="monotone"
+                    dataKey="interactions"
+                    stackId="1"
+                    stroke="#3b82f6"
+                    fill="#3b82f6"
                     fillOpacity={0.6}
                   />
                 </AreaChart>
@@ -434,22 +440,22 @@ export default function LogAnalyticsDashboard() {
             </CardContent>
           </Card>
 
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle>응답시간 트렌드</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width='100%' height={300}>
+                <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={analyticsData.hourlyTrend}>
-                    <CartesianGrid strokeDasharray='3 3' />
-                    <XAxis dataKey='hour' />
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="hour" />
                     <YAxis />
                     <Tooltip />
                     <Line
-                      type='monotone'
-                      dataKey='avgResponseTime'
-                      stroke='#f59e0b'
+                      type="monotone"
+                      dataKey="avgResponseTime"
+                      stroke="#f59e0b"
                       strokeWidth={3}
                     />
                   </LineChart>
@@ -462,16 +468,16 @@ export default function LogAnalyticsDashboard() {
                 <CardTitle>성공률 트렌드</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width='100%' height={300}>
+                <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={analyticsData.hourlyTrend}>
-                    <CartesianGrid strokeDasharray='3 3' />
-                    <XAxis dataKey='hour' />
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="hour" />
                     <YAxis />
                     <Tooltip />
                     <Line
-                      type='monotone'
-                      dataKey='successRate'
-                      stroke='#10b981'
+                      type="monotone"
+                      dataKey="successRate"
+                      stroke="#10b981"
                       strokeWidth={3}
                     />
                   </LineChart>
@@ -482,7 +488,7 @@ export default function LogAnalyticsDashboard() {
         </TabsContent>
 
         {/* 품질 메트릭 탭 */}
-        <TabsContent value='quality' className='space-y-4'>
+        <TabsContent value="quality" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>AI 품질 메트릭 트렌드</CardTitle>
@@ -491,32 +497,32 @@ export default function LogAnalyticsDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width='100%' height={400}>
+              <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={analyticsData.qualityMetrics}>
-                  <CartesianGrid strokeDasharray='3 3' />
-                  <XAxis dataKey='timestamp' />
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="timestamp" />
                   <YAxis />
                   <Tooltip />
                   <Line
-                    type='monotone'
-                    dataKey='confidence'
-                    stroke='#3b82f6'
+                    type="monotone"
+                    dataKey="confidence"
+                    stroke="#3b82f6"
                     strokeWidth={2}
-                    name='신뢰도'
+                    name="신뢰도"
                   />
                   <Line
-                    type='monotone'
-                    dataKey='userSatisfaction'
-                    stroke='#10b981'
+                    type="monotone"
+                    dataKey="userSatisfaction"
+                    stroke="#10b981"
                     strokeWidth={2}
-                    name='사용자 만족도'
+                    name="사용자 만족도"
                   />
                   <Line
-                    type='monotone'
-                    dataKey='accuracyScore'
-                    stroke='#f59e0b'
+                    type="monotone"
+                    dataKey="accuracyScore"
+                    stroke="#f59e0b"
                     strokeWidth={2}
-                    name='정확도'
+                    name="정확도"
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -525,27 +531,27 @@ export default function LogAnalyticsDashboard() {
         </TabsContent>
 
         {/* 티어 분포 탭 */}
-        <TabsContent value='distribution' className='space-y-4'>
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+        <TabsContent value="distribution" className="space-y-4">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle>Graceful Degradation 티어 분포</CardTitle>
                 <CardDescription>AI 처리 단계별 사용 비율</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width='100%' height={300}>
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
                       data={analyticsData.tierDistribution}
-                      cx='50%'
-                      cy='50%'
+                      cx="50%"
+                      cy="50%"
                       labelLine={false}
                       label={({ tier, percentage }) =>
                         `${tier} (${percentage}%)`
                       }
                       outerRadius={80}
-                      fill='#8884d8'
-                      dataKey='count'
+                      fill="#8884d8"
+                      dataKey="count"
                     >
                       {analyticsData.tierDistribution.map((entry, index) => (
                         <Cell
@@ -565,26 +571,26 @@ export default function LogAnalyticsDashboard() {
                 <CardTitle>티어별 상세 정보</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className='space-y-3'>
+                <div className="space-y-3">
                   {analyticsData.tierDistribution.map((tier, index) => (
                     <div
                       key={index}
-                      className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'
+                      className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
                     >
-                      <div className='flex items-center gap-3'>
+                      <div className="flex items-center gap-3">
                         <div
-                          className='w-4 h-4 rounded-full'
+                          className="h-4 w-4 rounded-full"
                           style={{
                             backgroundColor: COLORS[index % COLORS.length],
                           }}
                         />
-                        <span className='font-medium'>{tier.tier}</span>
+                        <span className="font-medium">{tier.tier}</span>
                       </div>
-                      <div className='text-right'>
-                        <div className='font-bold'>
+                      <div className="text-right">
+                        <div className="font-bold">
                           {tier.count.toLocaleString()}
                         </div>
-                        <div className='text-sm text-gray-600'>
+                        <div className="text-sm text-gray-600">
                           {tier.percentage}%
                         </div>
                       </div>

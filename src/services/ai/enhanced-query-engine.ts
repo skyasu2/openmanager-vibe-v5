@@ -60,7 +60,7 @@ export class EnhancedSimplifiedQueryEngine extends SimplifiedQueryEngine {
         // 벡터 검색 최적화 (비동기로 실행)
         this.vectorOptimizer
           .optimizeVectorSearch()
-          .then(result => {
+          .then((result) => {
             if (result.success) {
               aiLogger.info('벡터 검색 최적화 완료', {
                 indexesCreated: result.indexesCreated,
@@ -68,7 +68,7 @@ export class EnhancedSimplifiedQueryEngine extends SimplifiedQueryEngine {
               });
             }
           })
-          .catch(error => {
+          .catch((error) => {
             aiLogger.error('벡터 검색 최적화 실패', error);
           });
 

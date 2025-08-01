@@ -50,11 +50,11 @@ export async function GET(request: NextRequest) {
 
     // 서버 필터링 및 변환
     const validServers = allServers.filter(
-      server => server && server.id && server.name
+      (server) => server && server.id && server.name
     );
 
     // 실시간 데이터 시뮬레이션 (약간의 변동 추가)
-    const realtimeServers = validServers.map(server => ({
+    const realtimeServers = validServers.map((server) => ({
       ...server,
       cpu: Math.min(
         100,
@@ -75,9 +75,9 @@ export async function GET(request: NextRequest) {
     // 요약 통계 계산
     const dashboardSummary = {
       total: realtimeServers.length,
-      online: realtimeServers.filter(s => s.status === 'online').length,
-      warning: realtimeServers.filter(s => s.status === 'warning').length,
-      critical: realtimeServers.filter(s => s.status === 'critical').length,
+      online: realtimeServers.filter((s) => s.status === 'online').length,
+      warning: realtimeServers.filter((s) => s.status === 'warning').length,
+      critical: realtimeServers.filter((s) => s.status === 'critical').length,
       lastUpdate: new Date().toISOString(),
       averageCpu:
         realtimeServers.reduce((sum, s) => sum + s.cpu, 0) /

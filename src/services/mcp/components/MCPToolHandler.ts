@@ -68,7 +68,7 @@ export class MCPToolHandler {
       },
     ];
 
-    defaultTools.forEach(tool => {
+    defaultTools.forEach((tool) => {
       this.tools.set(tool.name, tool);
     });
 
@@ -83,7 +83,7 @@ export class MCPToolHandler {
 
     console.log(
       `📋 사용 가능한 도구 ${toolsList.length}개:`,
-      toolsList.map(t => t.name).join(', ')
+      toolsList.map((t) => t.name).join(', ')
     );
 
     return {
@@ -224,7 +224,7 @@ export class MCPToolHandler {
       '.css',
       '.html',
     ];
-    return textExtensions.some(ext => filename.endsWith(ext));
+    return textExtensions.some((ext) => filename.endsWith(ext));
   }
 
   /**
@@ -287,7 +287,7 @@ export class MCPToolHandler {
       }
 
       const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-      const items = entries.map(entry => ({
+      const items = entries.map((entry) => ({
         name: entry.name,
         type: entry.isDirectory() ? 'directory' : 'file',
         path: path.join(dirPath, entry.name),

@@ -70,7 +70,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
       )}
     >
       {/* 스피너 */}
-      <div className='relative'>
+      <div className="relative">
         {/* 기본 스피너 */}
         <div
           className={cn(
@@ -86,7 +86,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
         {/* 진행률 표시 (선택적) */}
         {showProgress && (
-          <div className='absolute inset-0 flex items-center justify-center'>
+          <div className="absolute inset-0 flex items-center justify-center">
             <span className={cn('text-xs font-medium', colorClasses[color])}>
               {Math.round(progress)}%
             </span>
@@ -96,13 +96,13 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
       {/* 메시지 */}
       {(message || showProgress) && (
-        <div className='text-center'>
-          <p className='text-sm text-gray-600 dark:text-gray-400'>
+        <div className="text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             {getProgressMessage()}
           </p>
           {showProgress && (
-            <div className='mt-1'>
-              <div className='w-32 bg-gray-200 rounded-full h-1.5 dark:bg-gray-700'>
+            <div className="mt-1">
+              <div className="h-1.5 w-32 rounded-full bg-gray-200 dark:bg-gray-700">
                 <div
                   className={cn(
                     'h-1.5 rounded-full transition-all duration-300',
@@ -134,11 +134,11 @@ export const LoadingOverlay: React.FC<{
   if (!isVisible) return null;
 
   return (
-    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center'>
-      <div className='bg-white dark:bg-gray-800 rounded-lg p-6 shadow-xl'>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
         <LoadingSpinner
-          size='lg'
-          color='primary'
+          size="lg"
+          color="primary"
           progress={progress}
           showProgress={true}
           message={message}

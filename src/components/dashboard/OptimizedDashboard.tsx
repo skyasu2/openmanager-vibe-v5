@@ -184,7 +184,7 @@ export default function OptimizedDashboard({
               {/* 중앙 정보 */}
               <div className="flex items-center space-x-6">
                 {/* 실시간 시계 - 최적화된 컴포넌트 사용 */}
-                <RealtimeClock 
+                <RealtimeClock
                   format="24h"
                   showIcon={true}
                   locale="ko-KR"

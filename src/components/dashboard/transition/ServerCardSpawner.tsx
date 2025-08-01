@@ -92,8 +92,8 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
     const groupedServers = React.useMemo(() => {
       const groups: ServerGroup[] = [];
 
-      SERVER_SPAWN_ORDER.forEach(order => {
-        const typeServers = servers.filter(server => {
+      SERVER_SPAWN_ORDER.forEach((order) => {
+        const typeServers = servers.filter((server) => {
           // Server 타입에 맞게 필드 확인
           const serverName = server.name?.toLowerCase() || '';
           const serverLocation = server.location?.toLowerCase() || '';
@@ -142,7 +142,7 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
 
       // 분류되지 않은 서버들을 기타 그룹으로 추가
       const categorizedServerIds = new Set(
-        groups.flatMap(group => group.servers.map((s: any) => s.id))
+        groups.flatMap((group) => group.servers.map((s: any) => s.id))
       );
       const uncategorizedServers = servers.filter(
         (s: any) => !categorizedServerIds.has(s.id)
@@ -175,7 +175,7 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
 
       if (currentServerInGroup >= currentGroup.servers.length) {
         // 현재 그룹 완료, 다음 그룹으로
-        setCurrentGroupIndex(prev => prev + 1);
+        setCurrentGroupIndex((prev) => prev + 1);
         setCurrentServerInGroup(0);
         return;
       }
@@ -183,11 +183,11 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
       const serverToSpawn = currentGroup.servers[currentServerInGroup];
 
       // 서버 스폰 처리
-      setSpawnedServers(prev => new Set([...prev, serverToSpawn.id]));
+      setSpawnedServers((prev) => new Set([...prev, serverToSpawn.id]));
       onServerSpawned?.(serverToSpawn, spawnedServers.size);
 
       // 다음 서버로
-      setCurrentServerInGroup(prev => prev + 1);
+      setCurrentServerInGroup((prev) => prev + 1);
     }, [
       currentGroupIndex,
       currentServerInGroup,
@@ -449,7 +449,7 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
           </div>
 
           {/* 현재 스포닝 타입 표시 */}
-          <AnimatePresence mode='wait'>
+          <AnimatePresence mode="wait">
             {currentGroup && (
               <motion.div
                 key={currentGroup.type}

@@ -5,10 +5,10 @@ interface AdminGoogleAIStatusCardProps {
   className?: string;
 }
 
-export const GoogleAIStatusCard: React.FC<
-  AdminGoogleAIStatusCardProps
-> = props => {
-  return <UnifiedGoogleAIStatusCard {...props} variant='admin' />;
+export const GoogleAIStatusCard: React.FC<AdminGoogleAIStatusCardProps> = (
+  props
+) => {
+  return <UnifiedGoogleAIStatusCard {...props} variant="admin" />;
 };
 
 export default GoogleAIStatusCard;

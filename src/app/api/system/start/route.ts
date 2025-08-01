@@ -12,7 +12,8 @@ export async function POST(request: NextRequest) {
     systemLogger.info('🚀 시스템 시작 API 호출됨');
 
     // 내부적으로 _initialize 엔드포인트 호출
-    const baseUrl = request.headers.get('origin') || `https://${request.headers.get('host')}`;
+    const baseUrl =
+      request.headers.get('origin') || `https://${request.headers.get('host')}`;
     const initResponse = await fetch(`${baseUrl}/api/system/_initialize`, {
       method: 'POST',
       headers: {

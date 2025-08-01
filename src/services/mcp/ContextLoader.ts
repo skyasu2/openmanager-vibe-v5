@@ -178,7 +178,7 @@ export class ContextLoader {
       // Markdown 파일 로드
       const markdownFiles = fs
         .readdirSync(bundlePath)
-        .filter(file => file.endsWith('.md'));
+        .filter((file) => file.endsWith('.md'));
       for (const file of markdownFiles) {
         const filePath = path.join(bundlePath, file);
         const content = fs.readFileSync(filePath, 'utf-8');
@@ -189,7 +189,7 @@ export class ContextLoader {
       // JSON 패턴 파일 로드
       const jsonFiles = fs
         .readdirSync(bundlePath)
-        .filter(file => file.endsWith('.json'));
+        .filter((file) => file.endsWith('.json'));
       for (const file of jsonFiles) {
         const filePath = path.join(bundlePath, file);
         const content = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
@@ -268,9 +268,9 @@ export class ContextLoader {
 
     // 인텐트 매핑 추출
     if (patterns.intents) {
-      patterns.intents.forEach(intentPattern => {
+      patterns.intents.forEach((intentPattern) => {
         if (intentPattern.examples) {
-          intentPattern.examples.forEach(example => {
+          intentPattern.examples.forEach((example) => {
             intents[example] = intentPattern.intent;
           });
         }
@@ -392,7 +392,7 @@ export class ContextLoader {
       if (fs.existsSync(basePath)) {
         result.base = fs
           .readdirSync(basePath)
-          .filter(file => file.endsWith('.md') || file.endsWith('.json'));
+          .filter((file) => file.endsWith('.md') || file.endsWith('.json'));
       }
 
       // Advanced 번들
@@ -400,7 +400,7 @@ export class ContextLoader {
       if (fs.existsSync(advancedPath)) {
         result.advanced = fs
           .readdirSync(advancedPath)
-          .filter(file => file.endsWith('.md') || file.endsWith('.json'));
+          .filter((file) => file.endsWith('.md') || file.endsWith('.json'));
       }
 
       // Custom 번들
@@ -408,7 +408,7 @@ export class ContextLoader {
       if (fs.existsSync(customPath)) {
         const clientDirs = fs
           .readdirSync(customPath)
-          .filter(item =>
+          .filter((item) =>
             fs.statSync(path.join(customPath, item)).isDirectory()
           );
 
@@ -416,7 +416,7 @@ export class ContextLoader {
           const clientPath = path.join(customPath, clientId);
           result.custom[clientId] = fs
             .readdirSync(clientPath)
-            .filter(file => file.endsWith('.md') || file.endsWith('.json'));
+            .filter((file) => file.endsWith('.md') || file.endsWith('.json'));
         }
       }
 

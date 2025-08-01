@@ -89,25 +89,25 @@ export const ReportGenerator: React.FC = () => {
 
   return (
     <>
-      <Card className='bg-slate-800/50 border-slate-700'>
+      <Card className="border-slate-700 bg-slate-800/50">
         <CardHeader>
-          <CardTitle className='text-white flex items-center gap-2'>
-            <Wand2 className='w-6 h-6 text-cyan-400' />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Wand2 className="h-6 w-6 text-cyan-400" />
             자동 장애 보고서
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className='text-slate-400 mb-4'>
+          <p className="mb-4 text-slate-400">
             최근 발생한 장애에 대한 AI 분석 보고서를 생성합니다.
           </p>
           <Button
             onClick={handleGenerateReport}
             disabled={isLoading}
-            className='w-full bg-cyan-600 hover:bg-cyan-700'
+            className="w-full bg-cyan-600 hover:bg-cyan-700"
           >
             {isLoading ? (
               <>
-                <Loader className='w-4 h-4 mr-2 animate-spin' />
+                <Loader className="mr-2 h-4 w-4 animate-spin" />
                 보고서 생성 중...
               </>
             ) : (
@@ -121,20 +121,20 @@ export const ReportGenerator: React.FC = () => {
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          title='AI 장애 분석 보고서'
+          title="AI 장애 분석 보고서"
         >
-          <div className='p-6 max-h-[70vh] overflow-y-auto'>
+          <div className="max-h-[70vh] overflow-y-auto p-6">
             {error && (
-              <div className='bg-red-900/50 border border-red-700 text-red-200 p-4 rounded-lg flex items-start gap-3'>
-                <AlertTriangle className='h-5 w-5 mt-1' />
+              <div className="flex items-start gap-3 rounded-lg border border-red-700 bg-red-900/50 p-4 text-red-200">
+                <AlertTriangle className="mt-1 h-5 w-5" />
                 <div>
-                  <h4 className='font-bold'>오류 발생</h4>
-                  <p className='text-sm'>{error}</p>
+                  <h4 className="font-bold">오류 발생</h4>
+                  <p className="text-sm">{error}</p>
                 </div>
               </div>
             )}
             {report && (
-              <div className='prose prose-invert prose-sm max-w-none'>
+              <div className="prose prose-invert prose-sm max-w-none">
                 <ReactMarkdown>{report}</ReactMarkdown>
               </div>
             )}

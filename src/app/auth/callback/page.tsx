@@ -41,7 +41,7 @@ export default function AuthCallbackPage() {
         document.cookie = `auth_redirect_to=/main; path=/; max-age=60; SameSite=Lax`;
 
         // 미들웨어가 PKCE 세션 처리할 시간을 충분히 대기
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         // 미들웨어가 처리한 세션 확인 (재시도 로직 포함)
         let session = null;
@@ -56,7 +56,7 @@ export default function AuthCallbackPage() {
 
           if (!session && attempts < maxAttempts - 1) {
             console.log(`🔄 세션 확인 재시도 ${attempts + 1}/${maxAttempts}`);
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise((resolve) => setTimeout(resolve, 500));
           }
           attempts++;
         } while (!session && !sessionError && attempts < maxAttempts);
@@ -108,13 +108,13 @@ export default function AuthCallbackPage() {
   }, [router]);
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center'>
-      <div className='text-center'>
-        <div className='mb-8'>
-          <Loader2 className='w-16 h-16 text-blue-500 animate-spin mx-auto' />
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      <div className="text-center">
+        <div className="mb-8">
+          <Loader2 className="mx-auto h-16 w-16 animate-spin text-blue-500" />
         </div>
-        <h1 className='text-2xl font-bold text-white mb-2'>인증 처리 중...</h1>
-        <p className='text-gray-400'>잠시만 기다려주세요</p>
+        <h1 className="mb-2 text-2xl font-bold text-white">인증 처리 중...</h1>
+        <p className="text-gray-400">잠시만 기다려주세요</p>
       </div>
     </div>
   );

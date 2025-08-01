@@ -98,7 +98,7 @@ export const NetworkMonitoringCard = () => {
 
     // 5초마다 데이터 업데이트
     const interval = setInterval(() => {
-      setHistory(prev => {
+      setHistory((prev) => {
         const newData = generateNetworkData(prev[prev.length - 1]);
         setCurrentData(newData);
         return [...prev.slice(-19), newData];
@@ -110,17 +110,17 @@ export const NetworkMonitoringCard = () => {
 
   if (!currentData) {
     return (
-      <Card className='bg-gradient-to-br from-blue-50/50 to-indigo-50/50'>
-        <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-          <CardTitle className='text-base font-medium'>
+      <Card className="bg-gradient-to-br from-blue-50/50 to-indigo-50/50">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-base font-medium">
             네트워크 모니터링
           </CardTitle>
-          <Globe className='h-4 w-4 text-muted-foreground' />
+          <Globe className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className='animate-pulse space-y-2'>
-            <div className='h-4 bg-gray-200 rounded w-3/4' />
-            <div className='h-32 bg-gray-200 rounded' />
+          <div className="animate-pulse space-y-2">
+            <div className="h-4 w-3/4 rounded bg-gray-200" />
+            <div className="h-32 rounded bg-gray-200" />
           </div>
         </CardContent>
       </Card>
@@ -134,9 +134,9 @@ export const NetworkMonitoringCard = () => {
   };
 
   const statusIcon = {
-    online: <Wifi className='h-4 w-4' />,
-    degraded: <Signal className='h-4 w-4' />,
-    offline: <WifiOff className='h-4 w-4' />,
+    online: <Wifi className="h-4 w-4" />,
+    degraded: <Signal className="h-4 w-4" />,
+    offline: <WifiOff className="h-4 w-4" />,
   };
 
   // 메트릭 컴포넌트
@@ -166,32 +166,32 @@ export const NetworkMonitoringCard = () => {
     const gradientId = `network-gradient-${label}-${Math.random()}`;
 
     return (
-      <div className='bg-white/60 rounded-lg p-3 shadow-sm'>
-        <div className='flex items-center justify-between mb-2'>
-          <div className='flex items-center gap-2'>
-            <div className='text-gray-600'>{icon}</div>
-            <span className='text-xs font-medium text-gray-700'>{label}</span>
+      <div className="rounded-lg bg-white/60 p-3 shadow-sm">
+        <div className="mb-2 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="text-gray-600">{icon}</div>
+            <span className="text-xs font-medium text-gray-700">{label}</span>
           </div>
-          <span className='text-sm font-bold text-gray-900'>
+          <span className="text-sm font-bold text-gray-900">
             {currentValue.toFixed(1)} {unit}
           </span>
         </div>
-        <div className='h-16 relative'>
+        <div className="relative h-16">
           <svg
-            className='w-full h-full'
-            viewBox='0 0 100 100'
-            preserveAspectRatio='none'
+            className="h-full w-full"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
           >
             <defs>
-              <linearGradient id={gradientId} x1='0%' y1='0%' x2='0%' y2='100%'>
-                <stop offset='0%' stopColor={color} stopOpacity='0.8' />
-                <stop offset='100%' stopColor={color} stopOpacity='0.1' />
+              <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor={color} stopOpacity="0.8" />
+                <stop offset="100%" stopColor={color} stopOpacity="0.1" />
               </linearGradient>
             </defs>
             <polyline
-              fill='none'
+              fill="none"
               stroke={color}
-              strokeWidth='2'
+              strokeWidth="2"
               points={points}
             />
             <polygon
@@ -205,68 +205,68 @@ export const NetworkMonitoringCard = () => {
   };
 
   return (
-    <Card className='bg-gradient-to-br from-blue-50/50 to-indigo-50/50 backdrop-blur-sm border-blue-200/50'>
-      <CardHeader className='pb-3'>
-        <div className='flex items-center justify-between'>
-          <CardTitle className='text-base font-medium flex items-center gap-2'>
-            <Globe className='h-4 w-4 text-blue-600' />
+    <Card className="border-blue-200/50 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 backdrop-blur-sm">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base font-medium">
+            <Globe className="h-4 w-4 text-blue-600" />
             네트워크 모니터링
           </CardTitle>
           <div
             className={`flex items-center gap-1 ${statusColor[currentData.status]}`}
           >
             {statusIcon[currentData.status]}
-            <span className='text-xs font-medium uppercase'>
+            <span className="text-xs font-medium uppercase">
               {currentData.status}
             </span>
           </div>
         </div>
       </CardHeader>
-      <CardContent className='space-y-3'>
+      <CardContent className="space-y-3">
         {/* 대역폭 차트 */}
-        <div className='grid grid-cols-2 gap-2'>
+        <div className="grid grid-cols-2 gap-2">
           <MetricChart
-            data={history.map(h => h.bandwidthIn)}
-            label='다운로드'
-            unit='MB/s'
-            color='#3B82F6'
-            icon={<ArrowDown className='h-3 w-3' />}
+            data={history.map((h) => h.bandwidthIn)}
+            label="다운로드"
+            unit="MB/s"
+            color="#3B82F6"
+            icon={<ArrowDown className="h-3 w-3" />}
           />
           <MetricChart
-            data={history.map(h => h.bandwidthOut)}
-            label='업로드'
-            unit='MB/s'
-            color='#10B981'
-            icon={<ArrowUp className='h-3 w-3' />}
+            data={history.map((h) => h.bandwidthOut)}
+            label="업로드"
+            unit="MB/s"
+            color="#10B981"
+            icon={<ArrowUp className="h-3 w-3" />}
           />
         </div>
 
         {/* 성능 지표 */}
-        <div className='grid grid-cols-3 gap-2'>
-          <div className='bg-white/60 rounded-lg p-2 text-center'>
-            <p className='text-xs text-gray-600'>레이턴시</p>
-            <p className='text-sm font-bold text-gray-900'>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="rounded-lg bg-white/60 p-2 text-center">
+            <p className="text-xs text-gray-600">레이턴시</p>
+            <p className="text-sm font-bold text-gray-900">
               {currentData.latency.toFixed(0)} ms
             </p>
           </div>
-          <div className='bg-white/60 rounded-lg p-2 text-center'>
-            <p className='text-xs text-gray-600'>패킷 손실</p>
-            <p className='text-sm font-bold text-gray-900'>
+          <div className="rounded-lg bg-white/60 p-2 text-center">
+            <p className="text-xs text-gray-600">패킷 손실</p>
+            <p className="text-sm font-bold text-gray-900">
               {currentData.packetLoss.toFixed(2)}%
             </p>
           </div>
-          <div className='bg-white/60 rounded-lg p-2 text-center'>
-            <p className='text-xs text-gray-600'>연결수</p>
-            <p className='text-sm font-bold text-gray-900'>
+          <div className="rounded-lg bg-white/60 p-2 text-center">
+            <p className="text-xs text-gray-600">연결수</p>
+            <p className="text-sm font-bold text-gray-900">
               {currentData.activeConnections}
             </p>
           </div>
         </div>
 
         {/* 활성 표시 */}
-        <div className='flex items-center justify-center'>
-          <div className='flex items-center gap-2 text-xs text-gray-500'>
-            <Activity className='h-3 w-3 animate-pulse' />
+        <div className="flex items-center justify-center">
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <Activity className="h-3 w-3 animate-pulse" />
             <span>실시간 업데이트 중</span>
           </div>
         </div>

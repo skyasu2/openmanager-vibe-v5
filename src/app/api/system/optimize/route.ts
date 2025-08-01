@@ -154,7 +154,7 @@ async function getMemoryStatusHandler(_request: NextRequest) {
           lastOptimization: memorySummary.lastOptimization,
           totalOptimizations: memorySummary.totalOptimizations,
         },
-        history: optimizationHistory.map(result => ({
+        history: optimizationHistory.map((result) => ({
           timestamp: new Date(result.before.timestamp).toISOString(),
           improvement: {
             before: `${result.before.usagePercent}%`,

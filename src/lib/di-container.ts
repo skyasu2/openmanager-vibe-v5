@@ -158,7 +158,7 @@ export class DIContainer {
     service: ServiceDescriptor<T> | ServiceFactory<T>
   ): T {
     const dependencies = service.dependencies || [];
-    const resolvedDependencies = dependencies.map(dep => this.resolve(dep));
+    const resolvedDependencies = dependencies.map((dep) => this.resolve(dep));
 
     if ('factory' in service) {
       return service.factory(...resolvedDependencies);

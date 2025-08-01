@@ -31,7 +31,7 @@ export async function GET(
     const servers = mockSystem.getServers();
 
     // ID 또는 hostname으로 검색
-    let server = servers.find(s => s.id === id || s.hostname === id);
+    let server = servers.find((s) => s.id === id || s.hostname === id);
 
     if (!server) {
       return NextResponse.json(
@@ -327,7 +327,7 @@ function generateServices(
   const services = serviceMap[role] || [
     { name: 'unknown-service', port: 8080 },
   ];
-  return services.map(service => ({
+  return services.map((service) => ({
     ...service,
     status: Math.random() > 0.05 ? ('running' as const) : ('stopped' as const),
   }));

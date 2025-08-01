@@ -574,12 +574,14 @@ export class CloudVersionManager {
     changes1: VersionRecord['changes'],
     changes2: VersionRecord['changes']
   ): { added: string[]; removed: string[]; modified: string[] } {
-    const added = changes2.added.filter(item => !changes1.added.includes(item));
+    const added = changes2.added.filter(
+      (item) => !changes1.added.includes(item)
+    );
     const removed = changes1.added.filter(
-      item => !changes2.added.includes(item)
+      (item) => !changes2.added.includes(item)
     );
     const modified = changes2.modified.filter(
-      item => !changes1.modified.includes(item)
+      (item) => !changes1.modified.includes(item)
     );
 
     return { added, removed, modified };

@@ -84,7 +84,7 @@ export class MCPServerManager {
       // },
     ];
 
-    servers.forEach(server => {
+    servers.forEach((server) => {
       this.servers.set(server.name, {
         ...server,
         env: {},

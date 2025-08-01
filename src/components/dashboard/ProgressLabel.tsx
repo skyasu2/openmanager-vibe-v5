@@ -68,10 +68,10 @@ const ProgressLabel: React.FC<ProgressLabelProps> = ({
   };
 
   return (
-    <div className='flex-1'>
+    <div className="flex-1">
       {/* 제목 */}
       <motion.h3
-        className='text-lg font-semibold text-white'
+        className="text-lg font-semibold text-white"
         layout
         key={`title-${currentStep}`}
         initial={{ opacity: 0, y: -10 }}
@@ -82,7 +82,7 @@ const ProgressLabel: React.FC<ProgressLabelProps> = ({
       </motion.h3>
 
       {/* 설명 텍스트 */}
-      <AnimatePresence mode='wait'>
+      <AnimatePresence mode="wait">
         <motion.p
           key={stepDescription || currentStep}
           initial={{ opacity: 0, x: -20 }}
@@ -98,12 +98,12 @@ const ProgressLabel: React.FC<ProgressLabelProps> = ({
       {/* 진행률 표시 (옵션) */}
       {showProgress && (
         <motion.div
-          className='flex items-center mt-2 space-x-2'
+          className="mt-2 flex items-center space-x-2"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
         >
-          <div className='flex-1 bg-gray-700/30 rounded-full h-1'>
+          <div className="h-1 flex-1 rounded-full bg-gray-700/30">
             <motion.div
               className={`h-full rounded-full ${
                 error

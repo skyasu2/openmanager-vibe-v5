@@ -61,16 +61,16 @@ export function MCPWakeupStatus({
   const getStageIcon = () => {
     switch (stage) {
       case 'connecting':
-        return <Wifi className='w-5 h-5 text-blue-400' />;
+        return <Wifi className="h-5 w-5 text-blue-400" />;
       case 'waking':
-        return <Loader2 className='w-5 h-5 text-yellow-400 animate-spin' />;
+        return <Loader2 className="h-5 w-5 animate-spin text-yellow-400" />;
       case 'ready':
-        return <CheckCircle className='w-5 h-5 text-green-400' />;
+        return <CheckCircle className="h-5 w-5 text-green-400" />;
       case 'timeout':
       case 'error':
-        return <XCircle className='w-5 h-5 text-red-400' />;
+        return <XCircle className="h-5 w-5 text-red-400" />;
       default:
-        return <Server className='w-5 h-5 text-gray-400' />;
+        return <Server className="h-5 w-5 text-gray-400" />;
     }
   };
 
@@ -108,30 +108,30 @@ export function MCPWakeupStatus({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className={`bg-gray-900/95 backdrop-blur-sm border border-gray-700 rounded-lg p-4 ${className}`}
+      className={`rounded-lg border border-gray-700 bg-gray-900/95 p-4 backdrop-blur-sm ${className}`}
     >
       {/* 헤더 */}
-      <div className='flex items-center justify-between mb-3'>
-        <div className='flex items-center space-x-2'>
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center space-x-2">
           {getStageIcon()}
-          <span className='text-white font-medium'>MCP 서버 Wake-up</span>
+          <span className="font-medium text-white">MCP 서버 Wake-up</span>
         </div>
 
         {/* 경과 시간 */}
-        <div className='flex items-center space-x-1 text-gray-400 text-sm'>
-          <Clock className='w-4 h-4' />
+        <div className="flex items-center space-x-1 text-sm text-gray-400">
+          <Clock className="h-4 w-4" />
           <span>{formatTime(elapsedTime)}</span>
         </div>
       </div>
 
       {/* 진행률 바 */}
-      <div className='mb-3'>
-        <div className='flex justify-between items-center mb-1'>
-          <span className='text-sm text-gray-300'>진행률</span>
-          <span className='text-sm text-gray-300'>{Math.round(progress)}%</span>
+      <div className="mb-3">
+        <div className="mb-1 flex items-center justify-between">
+          <span className="text-sm text-gray-300">진행률</span>
+          <span className="text-sm text-gray-300">{Math.round(progress)}%</span>
         </div>
 
-        <div className='w-full bg-gray-700 rounded-full h-2'>
+        <div className="h-2 w-full rounded-full bg-gray-700">
           <motion.div
             className={`h-2 rounded-full bg-gradient-to-r ${getStageColor()}`}
             initial={{ width: 0 }}
@@ -142,13 +142,13 @@ export function MCPWakeupStatus({
       </div>
 
       {/* 상태 메시지 */}
-      <div className='mb-3'>
-        <p className='text-sm text-gray-300'>{message}</p>
+      <div className="mb-3">
+        <p className="text-sm text-gray-300">{message}</p>
       </div>
 
       {/* 예상 남은 시간 (진행 중일 때만) */}
       {isInProgress && estimatedRemaining && estimatedRemaining > 0 && (
-        <div className='flex items-center justify-between text-xs text-gray-400'>
+        <div className="flex items-center justify-between text-xs text-gray-400">
           <span>예상 남은 시간:</span>
           <span>{formatTime(estimatedRemaining)}</span>
         </div>
@@ -159,7 +159,7 @@ export function MCPWakeupStatus({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className='mt-3 p-2 bg-yellow-900/20 border border-yellow-700/30 rounded text-xs text-yellow-300'
+          className="mt-3 rounded border border-yellow-700/30 bg-yellow-900/20 p-2 text-xs text-yellow-300"
         >
           💡 Render 무료 플랜의 Cold Start로 인해 최대 3분까지 소요될 수
           있습니다.
@@ -171,7 +171,7 @@ export function MCPWakeupStatus({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className='mt-3 p-2 bg-red-900/20 border border-red-700/30 rounded text-xs text-red-300'
+          className="mt-3 rounded border border-red-700/30 bg-red-900/20 p-2 text-xs text-red-300"
         >
           ⚠️ MCP 서버 연결에 실패했지만 로컬 모드로 계속 진행됩니다.
         </motion.div>
@@ -182,7 +182,7 @@ export function MCPWakeupStatus({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className='mt-3 p-2 bg-green-900/20 border border-green-700/30 rounded text-xs text-green-300'
+          className="mt-3 rounded border border-green-700/30 bg-green-900/20 p-2 text-xs text-green-300"
         >
           ✅ MCP 서버가 성공적으로 활성화되었습니다!
         </motion.div>

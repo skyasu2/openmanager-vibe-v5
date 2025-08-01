@@ -363,7 +363,7 @@ export class DemoScenarioManager {
       .slice(0, primaryCount);
 
     const remainingRoles = allRoles.filter(
-      role => !primaryTargets.includes(role)
+      (role) => !primaryTargets.includes(role)
     );
     const secondaryTargets = remainingRoles
       .sort(() => Math.random() - 0.5)
@@ -421,7 +421,7 @@ export class DemoScenarioManager {
       `   🎯 주요 장애: ${this.getFailureDescription(mainFailure)} (${intensity.severity})`
     );
     console.log(
-      `   🔗 연쇄 장애: ${cascadeFailures.map(f => this.getFailureDescription(f)).join(', ')}`
+      `   🔗 연쇄 장애: ${cascadeFailures.map((f) => this.getFailureDescription(f)).join(', ')}`
     );
     console.log(
       `   🏥 복구 방식: ${this.getRecoveryDescription(recoveryType)}`
@@ -530,7 +530,7 @@ export class DemoScenarioManager {
     } else if (cycleMinutes < timeline.cascadeDelay) {
       currentPhase = 'cascade_failure';
       description = `Cascade failures: ${cascadeFailures.join(', ')}`;
-      koreanDescription = `연쇄 장애 확산: ${cascadeFailures.map(f => this.getFailureDescription(f)).join(', ')} 🔥`;
+      koreanDescription = `연쇄 장애 확산: ${cascadeFailures.map((f) => this.getFailureDescription(f)).join(', ')} 🔥`;
       aiAnalysisPoints = ['연쇄 장애 패턴 감지', '장애 전파 경로 분석'];
     } else if (cycleMinutes < timeline.peakCrisis) {
       currentPhase = 'critical_state';
@@ -759,7 +759,7 @@ export class DemoScenarioManager {
 
     // 타겟 서버들에 변화 적용
     if (changes.targetServers) {
-      servers.forEach(server => {
+      servers.forEach((server) => {
         if (changes.targetServers!.includes(server.id)) {
           this.applyMetricChanges(server, changes.metrics);
         }
@@ -768,7 +768,7 @@ export class DemoScenarioManager {
 
     // 서버 타입별 변화 적용
     if (changes.serverTypes) {
-      servers.forEach(server => {
+      servers.forEach((server) => {
         if (changes.serverTypes!.includes(server.role)) {
           this.applyMetricChanges(server, changes.metrics);
         }
@@ -778,7 +778,7 @@ export class DemoScenarioManager {
     // 연쇄 효과 적용
     if (changes.cascadeEffects) {
       setTimeout(() => {
-        servers.forEach(server => {
+        servers.forEach((server) => {
           if (changes.cascadeEffects!.affectedTypes.includes(server.role)) {
             this.applyMetricChanges(server, changes.cascadeEffects!.metrics);
           }

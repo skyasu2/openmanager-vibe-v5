@@ -12,7 +12,7 @@ import type {
   NetworkInfo,
   SystemInfo,
   ProcessInfo,
-  MetricsHistory
+  MetricsHistory,
 } from '@/types/server';
 import type { AlertSeverity } from '@/types/common';
 
@@ -41,60 +41,64 @@ export function createMockServer(overrides?: Partial<Server>): Server {
     lastUpdate: new Date(),
     services: [
       { name: 'nginx', status: 'running', port: 80 },
-      { name: 'node', status: 'running', port: 3000 }
+      { name: 'node', status: 'running', port: 3000 },
     ],
     metrics: {
       cpu: {
         usage: 45.5,
         cores: 8,
-        temperature: 65
+        temperature: 65,
       },
       memory: {
         used: 12589,
         total: 20224,
-        usage: 62.3
+        usage: 62.3,
       },
       disk: {
         used: 352,
         total: 1000,
-        usage: 35.2
+        usage: 35.2,
       },
       network: {
         bytesIn: 1024000,
         bytesOut: 512000,
         packetsIn: 10000,
-        packetsOut: 8000
+        packetsOut: 8000,
       },
       timestamp: new Date().toISOString(),
-      uptime: 8640000
+      uptime: 8640000,
     },
     specs: {
       cpu_cores: 8,
       memory_gb: 20,
       disk_gb: 1000,
-      network_speed: '10Gbps'
+      network_speed: '10Gbps',
     },
     health: {
       score: 92,
-      trend: Array(30).fill(0).map((_, i) => 85 + Math.random() * 15)
+      trend: Array(30)
+        .fill(0)
+        .map((_, i) => 85 + Math.random() * 15),
     },
     alertsSummary: {
       total: 3,
       critical: 0,
-      warning: 3
-    }
+      warning: 3,
+    },
   };
 
   return {
     ...baseServer,
-    ...overrides
+    ...overrides,
   };
 }
 
 /**
  * ServerInstance Mock 생성
  */
-export function createMockServerInstance(overrides?: Partial<ServerInstance>): ServerInstance {
+export function createMockServerInstance(
+  overrides?: Partial<ServerInstance>
+): ServerInstance {
   const baseInstance: ServerInstance = {
     id: 'instance-001',
     name: 'App Server Instance',
@@ -116,40 +120,39 @@ export function createMockServerInstance(overrides?: Partial<ServerInstance>): S
     provider: 'AWS',
     health: {
       score: 88,
-      trend: Array(30).fill(0).map((_, i) => 82 + Math.random() * 12),
+      trend: Array(30)
+        .fill(0)
+        .map((_, i) => 82 + Math.random() * 12),
       status: 'healthy',
-      issues: []
+      issues: [],
     },
     specs: {
       cpu_cores: 4,
       memory_gb: 16,
       disk_gb: 500,
-      network_speed: '5Gbps'
+      network_speed: '5Gbps',
     },
     requests: {
       total: 150000,
       success: 149850,
       errors: 150,
-      averageTime: 125
+      averageTime: 125,
     },
     errors: {
       count: 150,
-      recent: [
-        'Connection timeout',
-        'Database query failed'
-      ],
-      lastError: 'Connection timeout at 2024-01-20T10:30:00Z'
+      recent: ['Connection timeout', 'Database query failed'],
+      lastError: 'Connection timeout at 2024-01-20T10:30:00Z',
     },
     custom: {
       updateInterval: 30000,
-      enableMockData: false
+      enableMockData: false,
     },
     metrics: {
-      id: "instance-001",
-      hostname: "app-instance-01",
-      environment: "production" as ServerEnvironment,
-      role: "app" as ServerRole,
-      status: "healthy",
+      id: 'instance-001',
+      hostname: 'app-instance-01',
+      environment: 'production' as ServerEnvironment,
+      role: 'app' as ServerRole,
+      status: 'healthy',
       cpu_usage: 35.2,
       memory_usage: 58.7,
       disk_usage: 42.1,
@@ -163,20 +166,22 @@ export function createMockServerInstance(overrides?: Partial<ServerInstance>): S
       cpu: 35.2,
       memory: 58.7,
       disk: 42.1,
-      network: 95.3
-    }
+      network: 95.3,
+    },
   };
 
   return {
     ...baseInstance,
-    ...overrides
+    ...overrides,
   };
 }
 
 /**
  * ServerMetrics Mock 생성
  */
-export function createMockServerMetrics(overrides?: Partial<ServerMetrics>): ServerMetrics {
+export function createMockServerMetrics(
+  overrides?: Partial<ServerMetrics>
+): ServerMetrics {
   return {
     id: 'server-001',
     hostname: 'prod-server-01',
@@ -192,16 +197,18 @@ export function createMockServerMetrics(overrides?: Partial<ServerMetrics>): Ser
     uptime: 8640000,
     last_updated: new Date().toISOString(),
     alerts: [],
-    ...overrides
+    ...overrides,
   };
 }
 
 /**
  * EnhancedServerMetrics Mock 생성
  */
-export function createMockEnhancedServerMetrics(overrides?: Partial<EnhancedServerMetrics>): EnhancedServerMetrics {
+export function createMockEnhancedServerMetrics(
+  overrides?: Partial<EnhancedServerMetrics>
+): EnhancedServerMetrics {
   const baseMetrics = createMockServerMetrics();
-  
+
   return {
     ...baseMetrics,
     name: 'Enhanced Production Server',
@@ -209,24 +216,26 @@ export function createMockEnhancedServerMetrics(overrides?: Partial<EnhancedServ
     timestamp: new Date().toISOString(),
     pattern_info: {
       detected_patterns: ['high_traffic', 'memory_spike'],
-      confidence: 0.85
+      confidence: 0.85,
     },
     correlation_metrics: {
       cpu_memory_correlation: 0.72,
-      network_response_correlation: 0.89
+      network_response_correlation: 0.89,
     },
     patternsEnabled: true,
     currentLoad: 65.5,
     activeFailures: 0,
     network: 128.5,
-    ...overrides
+    ...overrides,
   };
 }
 
 /**
  * ServerAlert Mock 생성
  */
-export function createMockServerAlert(overrides?: Partial<ServerAlert>): ServerAlert {
+export function createMockServerAlert(
+  overrides?: Partial<ServerAlert>
+): ServerAlert {
   return {
     id: 'alert-001',
     server_id: 'server-001',
@@ -237,7 +246,7 @@ export function createMockServerAlert(overrides?: Partial<ServerAlert>): ServerA
     resolved: false,
     relatedServers: ['server-002', 'server-003'],
     rootCause: 'High traffic load',
-    ...overrides
+    ...overrides,
   };
 }
 
@@ -246,36 +255,40 @@ export function createMockServerAlert(overrides?: Partial<ServerAlert>): ServerA
  */
 export function createMockMetricsHistory(count: number = 10): MetricsHistory[] {
   const now = Date.now();
-  
+
   return Array.from({ length: count }, (_, i) => ({
-    timestamp: new Date(now - (i * 60000)).toISOString(), // 1분 간격
+    timestamp: new Date(now - i * 60000).toISOString(), // 1분 간격
     cpu: 40 + Math.random() * 20,
     memory: 55 + Math.random() * 15,
     disk: 30 + Math.random() * 10,
     network: 100 + Math.random() * 50,
     responseTime: 100 + Math.random() * 100,
-    connections: Math.floor(800 + Math.random() * 400)
+    connections: Math.floor(800 + Math.random() * 400),
   }));
 }
 
 /**
  * ProcessInfo Mock 생성
  */
-export function createMockProcessInfo(overrides?: Partial<ProcessInfo>): ProcessInfo {
+export function createMockProcessInfo(
+  overrides?: Partial<ProcessInfo>
+): ProcessInfo {
   return {
     pid: 12345,
     name: 'node',
     cpu: 15.5,
     memory: 256,
     user: 'admin',
-    ...overrides
+    ...overrides,
   };
 }
 
 /**
  * NetworkInfo Mock 생성
  */
-export function createMockNetworkInfo(overrides?: Partial<NetworkInfo>): NetworkInfo {
+export function createMockNetworkInfo(
+  overrides?: Partial<NetworkInfo>
+): NetworkInfo {
   return {
     interface: 'eth0',
     receivedBytes: '10.5 GB',
@@ -291,9 +304,9 @@ export function createMockNetworkInfo(overrides?: Partial<NetworkInfo>): Network
     alerts: [],
     processes: [
       createMockProcessInfo({ name: 'nginx', cpu: 5.2 }),
-      createMockProcessInfo({ name: 'node', cpu: 10.3 })
+      createMockProcessInfo({ name: 'node', cpu: 10.3 }),
     ],
-    ...overrides
+    ...overrides,
   };
 }
 
@@ -302,12 +315,13 @@ export function createMockNetworkInfo(overrides?: Partial<NetworkInfo>): Network
  */
 export function createServerArray(
   count: number,
-  createFn: (index: number) => Server = (index) => createMockServer({
-    id: `server-${(index + 1).toString().padStart(3, "0")}`,
-    name: `server-${index + 1}`,
-    hostname: `server-${index + 1}.example.com`,
-    ip: `192.168.1.${100 + index}`
-  })
+  createFn: (index: number) => Server = (index) =>
+    createMockServer({
+      id: `server-${(index + 1).toString().padStart(3, '0')}`,
+      name: `server-${index + 1}`,
+      hostname: `server-${index + 1}.example.com`,
+      ip: `192.168.1.${100 + index}`,
+    })
 ): Server[] {
   return Array.from({ length: count }, (_, index) => createFn(index));
 }
@@ -321,85 +335,94 @@ export function createMixedStatusServerArray(config?: {
   warning?: number;
   critical?: number;
 }): Server[] {
-  const {
-    online = 5,
-    offline = 1,
-    warning = 2,
-    critical = 1
-  } = config || {};
+  const { online = 5, offline = 1, warning = 2, critical = 1 } = config || {};
 
   const servers: Server[] = [];
   let index = 0;
 
   // Online servers
   for (let i = 0; i < online; i++) {
-    servers.push(createMockServer({
-      id: `server-${++index}`,
-      name: `Online Server ${i + 1}`,
-      status: 'online',
-      cpu: 20 + Math.random() * 40,
-      memory: 30 + Math.random() * 40,
-      health: {
-        score: 85 + Math.random() * 15,
-        trend: Array(30).fill(0).map(() => 80 + Math.random() * 20)
-      }
-    }));
+    servers.push(
+      createMockServer({
+        id: `server-${++index}`,
+        name: `Online Server ${i + 1}`,
+        status: 'online',
+        cpu: 20 + Math.random() * 40,
+        memory: 30 + Math.random() * 40,
+        health: {
+          score: 85 + Math.random() * 15,
+          trend: Array(30)
+            .fill(0)
+            .map(() => 80 + Math.random() * 20),
+        },
+      })
+    );
   }
 
   // Offline servers
   for (let i = 0; i < offline; i++) {
-    servers.push(createMockServer({
-      id: `server-${++index}`,
-      name: `Offline Server ${i + 1}`,
-      status: 'offline',
-      cpu: 0,
-      memory: 0,
-      network: 0,
-      health: {
-        score: 0,
-        trend: Array(30).fill(0)
-      }
-    }));
+    servers.push(
+      createMockServer({
+        id: `server-${++index}`,
+        name: `Offline Server ${i + 1}`,
+        status: 'offline',
+        cpu: 0,
+        memory: 0,
+        network: 0,
+        health: {
+          score: 0,
+          trend: Array(30).fill(0),
+        },
+      })
+    );
   }
 
   // Warning servers
   for (let i = 0; i < warning; i++) {
-    servers.push(createMockServer({
-      id: `server-${++index}`,
-      name: `Warning Server ${i + 1}`,
-      status: 'warning',
-      cpu: 70 + Math.random() * 15,
-      memory: 75 + Math.random() * 10,
-      health: {
-        score: 60 + Math.random() * 20,
-        trend: Array(30).fill(0).map(() => 55 + Math.random() * 25)
-      },
-      alertsSummary: {
-        total: 5,
-        critical: 0,
-        warning: 5
-      }
-    }));
+    servers.push(
+      createMockServer({
+        id: `server-${++index}`,
+        name: `Warning Server ${i + 1}`,
+        status: 'warning',
+        cpu: 70 + Math.random() * 15,
+        memory: 75 + Math.random() * 10,
+        health: {
+          score: 60 + Math.random() * 20,
+          trend: Array(30)
+            .fill(0)
+            .map(() => 55 + Math.random() * 25),
+        },
+        alertsSummary: {
+          total: 5,
+          critical: 0,
+          warning: 5,
+        },
+      })
+    );
   }
 
   // Critical servers
   for (let i = 0; i < critical; i++) {
-    servers.push(createMockServer({
-      id: `server-${++index}`,
-      name: `Critical Server ${i + 1}`,
-      status: 'critical',
-      cpu: 85 + Math.random() * 15,
-      memory: 88 + Math.random() * 12,
-      health: {
-        score: 20 + Math.random() * 30,
-        trend: Array(30).fill(0).map(() => 15 + Math.random() * 35)
-      },
-      alertsSummary: {
-        total: 10,
-        critical: 5,
-        warning: 5
-      }
-    }));
+    servers.push(
+      createMockServer({
+        id: `server-${++index}`,
+        name: `Critical Server ${i + 1}`,
+        status: 'critical',
+        cpu: 85 + Math.random() * 15,
+        memory: 88 + Math.random() * 12,
+        health: {
+          score: 20 + Math.random() * 30,
+          trend: Array(30)
+            .fill(0)
+            .map(() => 15 + Math.random() * 35),
+        },
+        alertsSummary: {
+          total: 10,
+          critical: 5,
+          warning: 5,
+        },
+      })
+    );
   }
 
   return servers;
@@ -418,32 +441,38 @@ export const mockDataGenerators = {
   processInfo: createMockProcessInfo,
   networkInfo: createMockNetworkInfo,
   serverArray: createServerArray,
-  mixedStatusServers: createMixedStatusServerArray
+  mixedStatusServers: createMixedStatusServerArray,
 };
 
 /**
  * 테스트용 타입 가드
  */
 export function isServer(obj: any): obj is Server {
-  return obj && 
+  return (
+    obj &&
     typeof obj.id === 'string' &&
     typeof obj.name === 'string' &&
     typeof obj.status === 'string' &&
-    typeof obj.cpu === 'number';
+    typeof obj.cpu === 'number'
+  );
 }
 
 export function isServerInstance(obj: any): obj is ServerInstance {
-  return obj &&
+  return (
+    obj &&
     typeof obj.id === 'string' &&
     typeof obj.lastCheck === 'string' &&
     typeof obj.type === 'string' &&
-    obj.health !== undefined;
+    obj.health !== undefined
+  );
 }
 
 export function isServerMetrics(obj: any): obj is ServerMetrics {
-  return obj &&
+  return (
+    obj &&
     typeof obj.hostname === 'string' &&
     typeof obj.cpu_usage === 'number' &&
     typeof obj.memory_usage === 'number' &&
-    typeof obj.last_updated === 'string';
+    typeof obj.last_updated === 'string'
+  );
 }

@@ -149,7 +149,7 @@ const renderTextWithAIGradient = (text: string) => {
       return (
         <motion.span
           key={index}
-          className='bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent font-bold bg-[length:200%_200%]'
+          className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-[length:200%_200%] bg-clip-text font-bold text-transparent"
           animate={{
             backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
           }}
@@ -250,29 +250,29 @@ const FeatureCardItem = memo(
           y: card.isVibeCard ? -8 : -5,
           rotateY: card.isVibeCard ? 5 : 0,
         }}
-        className={`group cursor-pointer relative ${
+        className={`group relative cursor-pointer ${
           card.isVibeCard
-            ? 'hover:shadow-2xl hover:shadow-yellow-500/30 transform-gpu'
+            ? 'transform-gpu hover:shadow-2xl hover:shadow-yellow-500/30'
             : ''
         }`}
         onClick={() => onCardClick(card.id)}
       >
         <div
-          className={`relative p-4 bg-white/10 hover:bg-white/20 border-white/25 backdrop-blur-sm border rounded-2xl transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) h-full ${
+          className={`cubic-bezier(0.4, 0, 0.2, 1) relative h-full rounded-2xl border border-white/25 bg-white/10 p-4 backdrop-blur-sm transition-all duration-300 hover:bg-white/20 ${
             card.isSpecial
-              ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30'
+              ? 'border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/10'
               : ''
-          } group-hover:transform group-hover:scale-[1.02] group-hover:shadow-2xl`}
+          } group-hover:scale-[1.02] group-hover:transform group-hover:shadow-2xl`}
         >
           {/* 그라데이션 배경 */}
           <div
-            className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`}
+            className={`absolute inset-0 bg-gradient-to-br ${card.gradient} rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-10`}
           />
 
           {/* AI 카드 특별 이색 그라데이션 애니메이션 - landing 버전에서 재활용 */}
           {card.isAICard && (
             <motion.div
-              className='absolute inset-0 bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 rounded-2xl'
+              className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30"
               animate={{
                 background: [
                   'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(236,72,153,0.3) 50%, rgba(34,197,94,0.3) 100%)',
@@ -293,42 +293,42 @@ const FeatureCardItem = memo(
           {card.isVibeCard && (
             <>
               {/* 장식 요소 */}
-              <div className='absolute top-2 right-2 w-6 h-6 bg-yellow-400/30 rounded-full _animate-pulse'></div>
-              <div className='absolute bottom-2 left-2 w-4 h-4 bg-yellow-400/20 rounded-full _animate-pulse'></div>
+              <div className="_animate-pulse absolute right-2 top-2 h-6 w-6 rounded-full bg-yellow-400/30"></div>
+              <div className="_animate-pulse absolute bottom-2 left-2 h-4 w-4 rounded-full bg-yellow-400/20"></div>
 
               {/* 개선된 배경 그라데이션 - 애니메이션 효과 */}
-              <div className='absolute inset-0 rounded-2xl overflow-hidden'>
-                <div className='absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 opacity-90 bg-[length:200%_200%] _animate-gradient' />
+              <div className="absolute inset-0 overflow-hidden rounded-2xl">
+                <div className="_animate-gradient absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 bg-[length:200%_200%] opacity-90" />
               </div>
 
               {/* 텍스트 가독성을 위한 오버레이 */}
-              <div className='absolute inset-0 bg-black/15 rounded-2xl'></div>
+              <div className="absolute inset-0 rounded-2xl bg-black/15"></div>
             </>
           )}
 
           {/* 일반 카드들의 아이콘 (바이브 코딩 포함) */}
           <div
-            className={`w-12 h-12 ${
+            className={`h-12 w-12 ${
               card.isVibeCard
                 ? 'bg-gradient-to-br from-yellow-400 to-amber-500'
                 : `bg-gradient-to-br ${card.gradient}`
-            } rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
+            } relative z-10 mb-3 flex items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 ${
               card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
             }`}
           >
             {iconAnimation ? (
               <motion.div {...iconAnimation}>
-                <card.icon className={`w-6 h-6 ${cardStyles.iconColor}`} />
+                <card.icon className={`h-6 w-6 ${cardStyles.iconColor}`} />
               </motion.div>
             ) : (
-              <card.icon className='w-6 h-6 text-white' />
+              <card.icon className="h-6 w-6 text-white" />
             )}
           </div>
 
           {/* 모든 카드들의 통일된 컨텐츠 */}
-          <div className='relative z-10'>
+          <div className="relative z-10">
             <h3
-              className={`text-lg font-semibold mb-2 transition-colors leading-snug ${cardStyles.title}`}
+              className={`mb-2 text-lg font-semibold leading-snug transition-colors ${cardStyles.title}`}
             >
               {renderTextWithAIGradient(card.title)}
             </h3>
@@ -340,7 +340,7 @@ const FeatureCardItem = memo(
 
             {/* AI 어시스턴트 필요 표시 */}
             {card.requiresAI && isAIDisabled && (
-              <div className='mt-2 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-300 text-xs text-center'>
+              <div className="mt-2 rounded-full border border-orange-500/30 bg-orange-500/20 px-2 py-1 text-center text-xs text-orange-300">
                 AI 어시스턴트 모드 필요
               </div>
             )}
@@ -348,7 +348,7 @@ const FeatureCardItem = memo(
 
           {/* 호버 효과 */}
           <div
-            className={`absolute inset-0 ring-2 ring-transparent transition-all duration-300 rounded-2xl ${cardStyles.hoverRing}`}
+            className={`absolute inset-0 rounded-2xl ring-2 ring-transparent transition-all duration-300 ${cardStyles.hoverRing}`}
           />
         </div>
       </motion.div>
@@ -397,7 +397,7 @@ export default function FeatureCardsGrid() {
   // handleCardClick을 useCallback으로 메모이제이션
   const handleCardClick = useMemo(
     () => (cardId: string) => {
-      const card = cardData.find(c => c.id === cardId);
+      const card = cardData.find((c) => c.id === cardId);
 
       if (card?.requiresAI && !aiAgent.isEnabled) {
         // AI 엔진이 필요한 기능에 일반 사용자가 접근할 때
@@ -416,11 +416,11 @@ export default function FeatureCardsGrid() {
     setSelectedCard(null);
   };
 
-  const selectedCardData = cardData.find(card => card.id === selectedCard);
+  const selectedCardData = cardData.find((card) => card.id === selectedCard);
 
   return (
     <>
-      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-7xl mx-auto'>
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
         {cardData.map((card, index) => (
           <FeatureCardItem
             key={card.id}
@@ -438,7 +438,7 @@ export default function FeatureCardsGrid() {
         onClose={closeModal}
         renderTextWithAIGradient={renderTextWithAIGradient}
         modalRef={modalRef as React.RefObject<HTMLDivElement>}
-        variant='home'
+        variant="home"
       />
     </>
   );

@@ -700,7 +700,9 @@ export class UnifiedMetricsManager {
     const avgMemory =
       servers.reduce((sum, s) => sum + s.node_memory_usage_percent, 0) /
       totalServers;
-    const criticalServers = servers.filter(s => s.status === 'critical').length;
+    const criticalServers = servers.filter(
+      (s) => s.status === 'critical'
+    ).length;
 
     return {
       analysis: 'typescript_basic',
@@ -934,7 +936,7 @@ export class UnifiedMetricsManager {
         this._initializeServers();
       }
 
-      const serverList = Array.from(this.servers.values()).map(server => ({
+      const serverList = Array.from(this.servers.values()).map((server) => ({
         ...server,
         environment: server.environment || 'development',
         // ServerDashboard 호환성을 위한 추가 필드

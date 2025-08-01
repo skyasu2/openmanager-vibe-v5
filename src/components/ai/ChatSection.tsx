@@ -47,12 +47,12 @@ const generateQuestions = (metrics: any): string[] => {
 
 const getIconForQuestion = (question: string) => {
   if (question.includes('위험') || question.includes('⚠️'))
-    return <AlertTriangle className='w-4 h-4 text-red-500' />;
+    return <AlertTriangle className="h-4 w-4 text-red-500" />;
   if (question.includes('서버') || question.includes('📊'))
-    return <Server className='w-4 h-4 text-blue-500' />;
+    return <Server className="h-4 w-4 text-blue-500" />;
   if (question.includes('최적화') || question.includes('트렌드'))
-    return <TrendingUp className='w-4 h-4 text-green-500' />;
-  return <Lightbulb className='w-4 h-4 text-purple-500' />;
+    return <TrendingUp className="h-4 w-4 text-green-500" />;
+  return <Lightbulb className="h-4 w-4 text-purple-500" />;
 };
 
 const calculateSimilarity = (str1: string, str2: string): number => {
@@ -214,7 +214,7 @@ export default function ChatSection({
 
     try {
       // AI 응답 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const thinking: ThinkingProcess = {
         steps: [
@@ -237,7 +237,7 @@ export default function ChatSection({
         confidence: thinking.confidence,
       };
 
-      setQAPages(prev => [...prev, newPage]);
+      setQAPages((prev) => [...prev, newPage]);
       setCurrentPageIndex(qaPages.length); // 새 페이지로 이동
     } catch (error) {
       console.error('AI 응답 오류:', error);
@@ -264,40 +264,40 @@ export default function ChatSection({
   const currentPage = currentPageIndex >= 0 ? qaPages[currentPageIndex] : null;
 
   return (
-    <div className='flex flex-col h-full'>
+    <div className="flex h-full flex-col">
       {/* 헤더 */}
-      <div className='px-4 py-3 border-b bg-white flex items-center justify-between'>
-        <div className='flex items-center gap-2'>
-          <Brain className='w-5 h-5 text-purple-500' />
-          <h2 className='text-lg font-semibold'>AI 어시스턴트</h2>
+      <div className="flex items-center justify-between border-b bg-white px-4 py-3">
+        <div className="flex items-center gap-2">
+          <Brain className="h-5 w-5 text-purple-500" />
+          <h2 className="text-lg font-semibold">AI 어시스턴트</h2>
           {qaPages.length > 0 && (
-            <span className='text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded'>
+            <span className="rounded bg-purple-100 px-2 py-1 text-xs text-purple-600">
               {qaPages.length}개 질문
             </span>
           )}
         </div>
 
-        <div className='flex items-center gap-2'>
+        <div className="flex items-center gap-2">
           {/* 히스토리 버튼 */}
           {qaPages.length > 0 && (
             <button
               onClick={() => setShowHistory(!showHistory)}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+              className={`flex h-8 w-8 items-center justify-center rounded-lg transition-all ${
                 showHistory
                   ? 'bg-purple-500 text-white'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              <History className='w-4 h-4' />
+              <History className="h-4 w-4" />
             </button>
           )}
 
           {/* 닫기 버튼 */}
           <button
             onClick={onClose}
-            className='w-8 h-8 bg-red-500/90 hover:bg-red-600 rounded-full flex items-center justify-center text-white transition-all hover:scale-110'
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500/90 text-white transition-all hover:scale-110 hover:bg-red-600"
           >
-            <X className='w-4 h-4' />
+            <X className="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -309,12 +309,12 @@ export default function ChatSection({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className='mx-4 mt-2 p-3 bg-orange-50 border border-orange-200 rounded-lg'
+            className="mx-4 mt-2 rounded-lg border border-orange-200 bg-orange-50 p-3"
           >
-            <div className='flex items-start gap-2'>
-              <AlertCircle className='w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0' />
-              <div className='flex-1'>
-                <p className='text-sm text-orange-700'>{duplicateAlert}</p>
+            <div className="flex items-start gap-2">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-orange-500" />
+              <div className="flex-1">
+                <p className="text-sm text-orange-700">{duplicateAlert}</p>
               </div>
             </div>
           </motion.div>
@@ -322,19 +322,19 @@ export default function ChatSection({
       </AnimatePresence>
 
       {/* 메인 컨텐츠 */}
-      <div className='flex-1 overflow-hidden'>
-        <AnimatePresence mode='wait'>
+      <div className="flex-1 overflow-hidden">
+        <AnimatePresence mode="wait">
           {showHistory ? (
             // 히스토리 뷰
             <motion.div
-              key='history'
+              key="history"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className='h-full p-4 overflow-y-auto'
+              className="h-full overflow-y-auto p-4"
             >
-              <div className='space-y-2'>
-                <h3 className='font-semibold text-gray-800 mb-3'>
+              <div className="space-y-2">
+                <h3 className="mb-3 font-semibold text-gray-800">
                   질문 히스토리
                 </h3>
                 {qaPages.map((page, index) => (
@@ -344,23 +344,23 @@ export default function ChatSection({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                     onClick={() => goToPage(index)}
-                    className={`w-full text-left p-3 rounded-lg border transition-all ${
+                    className={`w-full rounded-lg border p-3 text-left transition-all ${
                       index === currentPageIndex
-                        ? 'bg-purple-50 border-purple-200'
-                        : 'bg-white hover:bg-gray-50 border-gray-200'
+                        ? 'border-purple-200 bg-purple-50'
+                        : 'border-gray-200 bg-white hover:bg-gray-50'
                     }`}
                   >
-                    <div className='flex items-start justify-between'>
-                      <div className='flex-1'>
-                        <p className='text-sm font-medium text-gray-800 line-clamp-2'>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="line-clamp-2 text-sm font-medium text-gray-800">
                           {page.question}
                         </p>
-                        <p className='text-xs text-gray-500 mt-1'>
+                        <p className="mt-1 text-xs text-gray-500">
                           {page.timestamp.toLocaleString()}
                         </p>
                       </div>
                       {page.confidence && (
-                        <span className='text-xs bg-green-100 text-green-600 px-2 py-1 rounded ml-2'>
+                        <span className="ml-2 rounded bg-green-100 px-2 py-1 text-xs text-green-600">
                           {Math.round(page.confidence * 100)}%
                         </span>
                       )}
@@ -376,29 +376,29 @@ export default function ChatSection({
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className='h-full flex flex-col'
+              className="flex h-full flex-col"
             >
               {/* 네비게이션 */}
-              <div className='px-4 py-2 border-b bg-gray-50 flex items-center justify-between'>
-                <div className='flex items-center gap-2'>
+              <div className="flex items-center justify-between border-b bg-gray-50 px-4 py-2">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={goToHome}
-                    className='text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded'
+                    className="rounded px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-800"
                   >
                     홈으로
                   </button>
-                  <span className='text-xs text-gray-500'>
+                  <span className="text-xs text-gray-500">
                     {currentPageIndex + 1} / {qaPages.length}
                   </span>
                 </div>
 
-                <div className='flex items-center gap-1'>
+                <div className="flex items-center gap-1">
                   <button
                     onClick={() => goToPage(Math.max(0, currentPageIndex - 1))}
                     disabled={currentPageIndex === 0}
-                    className='w-7 h-7 flex items-center justify-center rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed'
+                    className="flex h-7 w-7 items-center justify-center rounded hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <ChevronLeft className='w-4 h-4' />
+                    <ChevronLeft className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() =>
@@ -407,25 +407,25 @@ export default function ChatSection({
                       )
                     }
                     disabled={currentPageIndex === qaPages.length - 1}
-                    className='w-7 h-7 flex items-center justify-center rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed'
+                    className="flex h-7 w-7 items-center justify-center rounded hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <ChevronRight className='w-4 h-4' />
+                    <ChevronRight className="h-4 w-4" />
                   </button>
                 </div>
               </div>
 
               {/* Q&A 컨텐츠 */}
-              <div className='flex-1 overflow-y-auto p-4 space-y-4'>
+              <div className="flex-1 space-y-4 overflow-y-auto p-4">
                 {/* 질문 */}
-                <div className='bg-purple-50 rounded-lg p-4'>
-                  <div className='flex items-start gap-3'>
-                    <div className='w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center'>
-                      <span className='text-white text-sm font-bold'>Q</span>
+                <div className="rounded-lg bg-purple-50 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-500">
+                      <span className="text-sm font-bold text-white">Q</span>
                     </div>
-                    <div className='flex-1'>
-                      <h3 className='font-semibold text-gray-800 mb-2'>질문</h3>
-                      <p className='text-gray-700'>{currentPage.question}</p>
-                      <p className='text-xs text-gray-500 mt-2'>
+                    <div className="flex-1">
+                      <h3 className="mb-2 font-semibold text-gray-800">질문</h3>
+                      <p className="text-gray-700">{currentPage.question}</p>
+                      <p className="mt-2 text-xs text-gray-500">
                         {currentPage.timestamp.toLocaleString()}
                       </p>
                     </div>
@@ -434,45 +434,45 @@ export default function ChatSection({
 
                 {/* AI 생각 과정 */}
                 {currentPage.thinking && (
-                  <div className='bg-blue-50 rounded-lg p-4'>
-                    <div className='flex items-center gap-2 mb-3'>
-                      <Brain className='w-4 h-4 text-blue-600' />
-                      <h4 className='font-medium text-blue-700'>
+                  <div className="rounded-lg bg-blue-50 p-4">
+                    <div className="mb-3 flex items-center gap-2">
+                      <Brain className="h-4 w-4 text-blue-600" />
+                      <h4 className="font-medium text-blue-700">
                         AI 분석 과정
                       </h4>
-                      <span className='text-xs bg-blue-200 text-blue-700 px-2 py-1 rounded'>
+                      <span className="rounded bg-blue-200 px-2 py-1 text-xs text-blue-700">
                         {Math.round(currentPage.thinking.confidence * 100)}%
                         신뢰도
                       </span>
                     </div>
-                    <div className='space-y-1'>
+                    <div className="space-y-1">
                       {currentPage.thinking.steps.map((step, index) => (
                         <div
                           key={index}
-                          className='text-xs text-gray-600 flex items-start gap-2'
+                          className="flex items-start gap-2 text-xs text-gray-600"
                         >
-                          <span className='text-blue-500'>•</span>
+                          <span className="text-blue-500">•</span>
                           <span>{step}</span>
                         </div>
                       ))}
                     </div>
-                    <p className='text-xs text-gray-500 mt-2'>
+                    <p className="mt-2 text-xs text-gray-500">
                       처리 시간: {currentPage.thinking.duration}초
                     </p>
                   </div>
                 )}
 
                 {/* 답변 */}
-                <div className='bg-gray-50 rounded-lg p-4'>
-                  <div className='flex items-start gap-3'>
-                    <div className='w-8 h-8 bg-green-500 rounded-full flex items-center justify-center'>
-                      <span className='text-white text-sm font-bold'>A</span>
+                <div className="rounded-lg bg-gray-50 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500">
+                      <span className="text-sm font-bold text-white">A</span>
                     </div>
-                    <div className='flex-1'>
-                      <h3 className='font-semibold text-gray-800 mb-2'>
+                    <div className="flex-1">
+                      <h3 className="mb-2 font-semibold text-gray-800">
                         AI 답변
                       </h3>
-                      <div className='text-gray-700 whitespace-pre-wrap'>
+                      <div className="whitespace-pre-wrap text-gray-700">
                         {currentPage.answer}
                       </div>
                     </div>
@@ -483,21 +483,21 @@ export default function ChatSection({
           ) : (
             // 홈 화면 - 동적 프리셋 질문
             <motion.div
-              key='home'
+              key="home"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className='h-full overflow-y-auto px-4 py-3'
+              className="h-full overflow-y-auto px-4 py-3"
             >
-              <div className='bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-4 space-y-3'>
-                <div className='flex items-center gap-2'>
-                  <Lightbulb className='w-5 h-5 text-purple-600' />
-                  <p className='text-sm font-medium text-purple-700'>
+              <div className="space-y-3 rounded-lg bg-gradient-to-br from-purple-50 to-blue-50 p-4">
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="h-5 w-5 text-purple-600" />
+                  <p className="text-sm font-medium text-purple-700">
                     💡 상황별 추천 질문
                   </p>
                 </div>
 
-                <div className='space-y-2'>
+                <div className="space-y-2">
                   {presets.map((preset, index) => (
                     <motion.button
                       key={`${preset}-${index}`}
@@ -505,13 +505,11 @@ export default function ChatSection({
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
                       onClick={() => handlePresetSelect(preset)}
-                      className='w-full text-left text-sm px-3 py-3 bg-white rounded-lg border 
-                               hover:bg-purple-50 hover:border-purple-200 transition-all duration-200 
-                               shadow-sm hover:shadow group'
+                      className="group w-full rounded-lg border bg-white px-3 py-3 text-left text-sm shadow-sm transition-all duration-200 hover:border-purple-200 hover:bg-purple-50 hover:shadow"
                     >
-                      <div className='flex items-start gap-2'>
+                      <div className="flex items-start gap-2">
                         {getQuestionIcon(preset)}
-                        <span className='group-hover:text-purple-700 transition-colors'>
+                        <span className="transition-colors group-hover:text-purple-700">
                           {preset}
                         </span>
                       </div>
@@ -519,7 +517,7 @@ export default function ChatSection({
                   ))}
                 </div>
 
-                <div className='text-xs text-gray-500 text-center pt-2 border-t border-purple-100'>
+                <div className="border-t border-purple-100 pt-2 text-center text-xs text-gray-500">
                   💡 질문이 15초마다 서버 상태에 맞춰 업데이트됩니다
                 </div>
               </div>
@@ -530,27 +528,26 @@ export default function ChatSection({
 
       {/* 입력 영역 */}
       {!showHistory && (
-        <div className='border-t px-4 py-3'>
-          <form onSubmit={handleSubmit} className='flex gap-2'>
+        <div className="border-t px-4 py-3">
+          <form onSubmit={handleSubmit} className="flex gap-2">
             <input
-              aria-label='입력 필드'
-              type='text'
+              aria-label="입력 필드"
+              type="text"
               value={input}
-              onChange={e => setInput(e.target.value)}
-              placeholder='질문을 입력하세요...'
-              className='flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500'
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="질문을 입력하세요..."
+              className="flex-1 rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               disabled={isProcessing}
             />
             <button
-              type='submit'
+              type="submit"
               disabled={!input.trim() || isProcessing}
-              className='px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 
-                       disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+              className="rounded-lg bg-purple-500 px-4 py-2 text-white transition-colors hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isProcessing ? (
-                <Loader2 className='w-5 h-5 animate-spin' />
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <Send className='w-5 h-5' />
+                <Send className="h-5 w-5" />
               )}
             </button>
           </form>

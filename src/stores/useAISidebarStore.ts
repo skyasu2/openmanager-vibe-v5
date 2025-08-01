@@ -193,19 +193,19 @@ export const useAISidebarStore = create<AISidebarState>()(
         selectedContext: 'basic',
 
         // UI 액션들
-        setOpen: open =>
-          set(state => ({
+        setOpen: (open) =>
+          set((state) => ({
             isOpen: open,
             isMinimized: open ? false : state.isMinimized,
           })),
 
-        setMinimized: minimized => set({ isMinimized: minimized }),
+        setMinimized: (minimized) => set({ isMinimized: minimized }),
 
-        setActiveTab: tab => set({ activeTab: tab }),
+        setActiveTab: (tab) => set({ activeTab: tab }),
 
-        setFunctionTab: tab => set({ functionTab: tab }),
+        setFunctionTab: (tab) => set({ functionTab: tab }),
 
-        setSelectedContext: context => set({ selectedContext: context }),
+        setSelectedContext: (context) => set({ selectedContext: context }),
 
         reset: () =>
           set({
@@ -218,7 +218,7 @@ export const useAISidebarStore = create<AISidebarState>()(
       }),
       {
         name: 'ai-sidebar-storage',
-        partialize: state => ({
+        partialize: (state) => ({
           // 중요한 상태만 영속화
           isMinimized: state.isMinimized,
           activeTab: state.activeTab,
@@ -235,14 +235,14 @@ export const useAISidebarStore = create<AISidebarState>()(
 
 // 🎛️ 선택적 훅들 (성능 최적화)
 export const useAISidebarUI = () => {
-  const isOpen = useAISidebarStore(state => state.isOpen);
-  const isMinimized = useAISidebarStore(state => state.isMinimized);
-  const activeTab = useAISidebarStore(state => state.activeTab);
-  const functionTab = useAISidebarStore(state => state.functionTab);
-  const setOpen = useAISidebarStore(state => state.setOpen);
-  const setMinimized = useAISidebarStore(state => state.setMinimized);
-  const setActiveTab = useAISidebarStore(state => state.setActiveTab);
-  const setFunctionTab = useAISidebarStore(state => state.setFunctionTab);
+  const isOpen = useAISidebarStore((state) => state.isOpen);
+  const isMinimized = useAISidebarStore((state) => state.isMinimized);
+  const activeTab = useAISidebarStore((state) => state.activeTab);
+  const functionTab = useAISidebarStore((state) => state.functionTab);
+  const setOpen = useAISidebarStore((state) => state.setOpen);
+  const setMinimized = useAISidebarStore((state) => state.setMinimized);
+  const setActiveTab = useAISidebarStore((state) => state.setActiveTab);
+  const setFunctionTab = useAISidebarStore((state) => state.setFunctionTab);
 
   return {
     isOpen,
@@ -257,9 +257,9 @@ export const useAISidebarUI = () => {
 };
 
 export const useAIContext = () => {
-  const selectedContext = useAISidebarStore(state => state.selectedContext);
+  const selectedContext = useAISidebarStore((state) => state.selectedContext);
   const setSelectedContext = useAISidebarStore(
-    state => state.setSelectedContext
+    (state) => state.setSelectedContext
   );
 
   return {
@@ -282,9 +282,9 @@ export const selectQuickQuestions = () => [
 
 // 🎛️ 추가 훅들
 export const useAISettings = () => {
-  const selectedContext = useAISidebarStore(state => state.selectedContext);
+  const selectedContext = useAISidebarStore((state) => state.selectedContext);
   const setSelectedContext = useAISidebarStore(
-    state => state.setSelectedContext
+    (state) => state.setSelectedContext
   );
 
   return {

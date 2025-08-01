@@ -69,7 +69,7 @@ export class OfficialMCPClient {
         for (const server of servers) {
           try {
             const tools = await this.realClient.listTools(server);
-            allTools.push(...tools.map(tool => ({ ...tool, server })));
+            allTools.push(...tools.map((tool) => ({ ...tool, server })));
           } catch (error) {
             console.warn(`⚠️ ${server} 도구 목록 조회 실패:`, error);
           }

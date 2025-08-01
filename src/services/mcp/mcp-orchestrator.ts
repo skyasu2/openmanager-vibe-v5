@@ -345,7 +345,7 @@ export class MCPOrchestrator {
    * 🎯 패턴 매칭
    */
   private matchesPatterns(text: string, patterns: string[]): boolean {
-    return patterns.some(pattern => text.includes(pattern));
+    return patterns.some((pattern) => text.includes(pattern));
   }
 
   /**
@@ -576,9 +576,9 @@ export class MCPOrchestrator {
     const questionWords = question.toLowerCase().split(/\s+/);
     const sentences = doc.content.split(/[.!?]\s+/);
 
-    let relevantSentences = sentences.filter(sentence => {
+    let relevantSentences = sentences.filter((sentence) => {
       const sentenceLower = sentence.toLowerCase();
-      return questionWords.some(word => sentenceLower.includes(word));
+      return questionWords.some((word) => sentenceLower.includes(word));
     });
 
     if (relevantSentences.length === 0) {

@@ -235,41 +235,41 @@ export default function LoginClient() {
   // 클라이언트 렌더링이 준비되지 않았으면 로딩 표시
   if (!isClient) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center'>
-        <div className='text-white'>Loading...</div>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+        <div className="text-white">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4'>
-      <div className='w-full max-w-md'>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4">
+      <div className="w-full max-w-md">
         {/* 헤더 */}
-        <div className='text-center mb-8'>
-          <div className='w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4'>
-            <span className='text-white text-2xl font-bold'>OM</span>
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600">
+            <span className="text-2xl font-bold text-white">OM</span>
           </div>
-          <h1 className='text-3xl font-bold text-white mb-2'>OpenManager</h1>
-          <p className='text-gray-400'>AI 서버 모니터링 시스템</p>
+          <h1 className="mb-2 text-3xl font-bold text-white">OpenManager</h1>
+          <p className="text-gray-400">AI 서버 모니터링 시스템</p>
         </div>
 
         {/* 로그인 폼 */}
-        <div className='bg-gray-800 rounded-xl p-8 shadow-2xl border border-gray-700'>
-          <h2 className='text-xl font-semibold text-white mb-6 text-center'>
+        <div className="rounded-xl border border-gray-700 bg-gray-800 p-8 shadow-2xl">
+          <h2 className="mb-6 text-center text-xl font-semibold text-white">
             로그인 방식을 선택하세요
           </h2>
 
           {/* 🚨 에러 메시지 표시 */}
           {errorMessage && (
-            <div className='mb-4 p-3 bg-red-900/20 border border-red-600/30 rounded-lg'>
-              <p className='text-red-300 text-sm'>❌ {errorMessage}</p>
+            <div className="mb-4 rounded-lg border border-red-600/30 bg-red-900/20 p-3">
+              <p className="text-sm text-red-300">❌ {errorMessage}</p>
               {errorMessage.includes('OAuth') && (
                 <>
-                  <p className='text-red-300 text-xs mt-2'>
+                  <p className="mt-2 text-xs text-red-300">
                     GitHub OAuth 앱의 콜백 URL이 현재 도메인과 일치하는지
                     확인하세요.
                   </p>
-                  <p className='text-yellow-300 text-xs mt-1'>
+                  <p className="mt-1 text-xs text-yellow-300">
                     현재 도메인:{' '}
                     {typeof window !== 'undefined'
                       ? window.location.origin
@@ -282,61 +282,61 @@ export default function LoginClient() {
 
           {/* ✅ 성공 메시지 표시 */}
           {successMessage && (
-            <div className='mb-4 p-3 bg-green-900/20 border border-green-600/30 rounded-lg'>
-              <p className='text-green-300 text-sm'>✅ {successMessage}</p>
+            <div className="mb-4 rounded-lg border border-green-600/30 bg-green-900/20 p-3">
+              <p className="text-sm text-green-300">✅ {successMessage}</p>
             </div>
           )}
 
-          <div className='space-y-4'>
+          <div className="space-y-4">
             {/* GitHub OAuth 로그인 - 업계 표준 스타일 */}
             <button
               onClick={handleGitHubLogin}
               disabled={isLoading}
-              className='w-full flex items-center justify-center gap-3 px-4 py-3 bg-[#24292e] hover:bg-[#1a1e22] text-white rounded-lg transition-all duration-200 disabled:opacity-70 disabled:cursor-progress group border border-gray-600 shadow-lg hover:shadow-xl relative overflow-hidden'
+              className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-lg border border-gray-600 bg-[#24292e] px-4 py-3 text-white shadow-lg transition-all duration-200 hover:bg-[#1a1e22] hover:shadow-xl disabled:cursor-progress disabled:opacity-70"
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'github' && (
-                <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent _animate-shimmer' />
+                <div className="_animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
               )}
 
               {/* 프로그레스 바 */}
               {loadingType === 'github' && (
-                <div className='absolute bottom-0 left-0 h-1 bg-gradient-to-r from-green-500 to-blue-500 _animate-progress' />
+                <div className="_animate-progress absolute bottom-0 left-0 h-1 bg-gradient-to-r from-green-500 to-blue-500" />
               )}
 
               {/* 클릭 펄스 애니메이션 */}
               {showPulse === 'github' && (
-                <div className='absolute inset-0 bg-white/20 rounded-lg _animate-pulse-click pointer-events-none' />
+                <div className="_animate-pulse-click pointer-events-none absolute inset-0 rounded-lg bg-white/20" />
               )}
 
               <svg
-                className='w-5 h-5 relative z-10'
-                fill='currentColor'
-                viewBox='0 0 20 20'
+                className="relative z-10 h-5 w-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
               >
                 <path
-                  fillRule='evenodd'
-                  d='M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z'
-                  clipRule='evenodd'
+                  fillRule="evenodd"
+                  d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z"
+                  clipRule="evenodd"
                 />
               </svg>
-              <span className='font-semibold relative z-10'>
+              <span className="relative z-10 font-semibold">
                 {loadingType === 'github'
                   ? loadingMessage
                   : 'GitHub로 계속하기'}
               </span>
               {loadingType === 'github' && (
-                <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin relative z-10' />
+                <div className="relative z-10 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
               )}
             </button>
 
             {/* 구분선 */}
-            <div className='relative'>
-              <div className='absolute inset-0 flex items-center'>
-                <div className='w-full border-t border-gray-600' />
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-600" />
               </div>
-              <div className='relative flex justify-center text-sm'>
-                <span className='px-2 bg-gray-800 text-gray-400'>또는</span>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-gray-800 px-2 text-gray-400">또는</span>
               </div>
             </div>
 
@@ -344,60 +344,60 @@ export default function LoginClient() {
             <button
               onClick={handleGuestLogin}
               disabled={isLoading}
-              className='w-full flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 disabled:opacity-70 disabled:cursor-progress group shadow-lg hover:shadow-xl relative overflow-hidden'
+              className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 text-white shadow-lg transition-all duration-200 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl disabled:cursor-progress disabled:opacity-70"
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'guest' && (
-                <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent _animate-shimmer' />
+                <div className="_animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
               )}
 
               {/* 프로그레스 바 */}
               {loadingType === 'guest' && (
-                <div className='absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-400 to-purple-500 _animate-progress' />
+                <div className="_animate-progress absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-400 to-purple-500" />
               )}
 
               {/* 클릭 펄스 애니메이션 */}
               {showPulse === 'guest' && (
-                <div className='absolute inset-0 bg-white/20 rounded-lg _animate-pulse-click pointer-events-none' />
+                <div className="_animate-pulse-click pointer-events-none absolute inset-0 rounded-lg bg-white/20" />
               )}
 
-              <User className='w-5 h-5 relative z-10' />
-              <span className='font-semibold relative z-10'>
+              <User className="relative z-10 h-5 w-5" />
+              <span className="relative z-10 font-semibold">
                 {loadingType === 'guest' ? loadingMessage : '게스트로 체험하기'}
               </span>
               {loadingType === 'guest' && (
-                <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin relative z-10' />
+                <div className="relative z-10 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
               )}
             </button>
           </div>
 
           {/* 로딩 중 추가 안내 */}
           {isLoading && (
-            <div className='mt-4 text-center space-y-1 _animate-fadeIn'>
-              <p className='text-xs text-gray-400'>예상 소요 시간: 3-5초</p>
-              <p className='text-xs text-gray-500'>
+            <div className="_animate-fadeIn mt-4 space-y-1 text-center">
+              <p className="text-xs text-gray-400">예상 소요 시간: 3-5초</p>
+              <p className="text-xs text-gray-500">
                 ESC 키를 눌러 취소할 수 있습니다
               </p>
             </div>
           )}
 
           {/* 안내 텍스트 */}
-          <div className='mt-6 text-center text-sm text-gray-400 space-y-2'>
+          <div className="mt-6 space-y-2 text-center text-sm text-gray-400">
             <p>
               🔐 <strong>GitHub 로그인</strong>: 개인화된 설정과 고급 기능
             </p>
             <p>
               👤 <strong>게스트 모드</strong>: 인증 없이 기본 기능 사용
             </p>
-            <p className='text-xs text-gray-500 mt-4'>
+            <p className="mt-4 text-xs text-gray-500">
               모든 로그인 방식은 OpenManager 메인 페이지(/main)로 이동합니다
             </p>
           </div>
         </div>
 
         {/* 푸터 */}
-        <div className='text-center mt-8'>
-          <p className='text-xs text-gray-500'>
+        <div className="mt-8 text-center">
+          <p className="text-xs text-gray-500">
             OpenManager Vibe v5.44.3 • Supabase Auth (GitHub OAuth + 게스트)
           </p>
         </div>

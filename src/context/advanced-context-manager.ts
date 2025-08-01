@@ -403,7 +403,7 @@ export class AdvancedContextManager {
     for (const [docId, doc] of contextCache.documents) {
       if (doc.metadata.category === 'faq') {
         const faqs = this.extractFAQsFromDocument(doc);
-        faqs.forEach(faq => {
+        faqs.forEach((faq) => {
           contextCache.faqs.set(faq.id, faq);
         });
       }
@@ -411,12 +411,12 @@ export class AdvancedContextManager {
 
     // 로그에서 자주 발생하는 질문 패턴 분석
     const logDocs = Array.from(contextCache.documents.values()).filter(
-      doc => doc.metadata.category === 'log'
+      (doc) => doc.metadata.category === 'log'
     );
 
     for (const logDoc of logDocs) {
       const faqs = this.generateFAQsFromLogs(logDoc);
-      faqs.forEach(faq => {
+      faqs.forEach((faq) => {
         const existingFaq = contextCache.faqs.get(faq.question);
         if (existingFaq) {
           existingFaq.frequency++;
@@ -527,18 +527,18 @@ export class AdvancedContextManager {
       doc.title
         .toLowerCase()
         .split(/\s+/)
-        .forEach(word => {
+        .forEach((word) => {
           if (word.length > 2) keywords.add(word);
         });
 
       // 태그 추가
-      doc.metadata.tags.forEach(tag => keywords.add(tag.toLowerCase()));
+      doc.metadata.tags.forEach((tag) => keywords.add(tag.toLowerCase()));
 
       // 내용에서 중요 키워드 추출 (단순화된 방법)
       const words = doc.content.toLowerCase().match(/\b\w{3,}\b/g) || [];
       const wordFreq = new Map<string, number>();
 
-      words.forEach(word => {
+      words.forEach((word) => {
         wordFreq.set(word, (wordFreq.get(word) || 0) + 1);
       });
 
@@ -548,10 +548,10 @@ export class AdvancedContextManager {
         .slice(0, 20)
         .map(([word]) => word);
 
-      topWords.forEach(word => keywords.add(word));
+      topWords.forEach((word) => keywords.add(word));
 
       // 검색 인덱스에 추가
-      keywords.forEach(keyword => {
+      keywords.forEach((keyword) => {
         const existing = contextCache.searchIndex.get(keyword) || [];
         existing.push(docId);
         contextCache.searchIndex.set(keyword, existing);
@@ -579,7 +579,7 @@ export class AdvancedContextManager {
     // 키워드 기반 검색
     for (const word of queryWords) {
       const docIds = contextCache.searchIndex.get(word) || [];
-      docIds.forEach(docId => {
+      docIds.forEach((docId) => {
         scores.set(docId, (scores.get(docId) || 0) + 1);
       });
     }
@@ -601,7 +601,7 @@ export class AdvancedContextManager {
       .sort((a, b) => b[1] - a[1])
       .slice(0, limit)
       .map(([docId]) => contextCache.documents.get(docId)!)
-      .filter(doc => doc !== undefined);
+      .filter((doc) => doc !== undefined);
 
     return sortedResults;
   }

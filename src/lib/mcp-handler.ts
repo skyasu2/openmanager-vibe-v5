@@ -83,7 +83,7 @@ export function createMcpHandler(setupFn: (server: MCPServer) => void) {
 
     async GET() {
       // List available tools
-      const tools = Array.from(server.tools.values()).map(tool => ({
+      const tools = Array.from(server.tools.values()).map((tool) => ({
         name: tool.name,
         description: tool.description,
         parameters: tool.parameters,

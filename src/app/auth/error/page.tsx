@@ -69,32 +69,32 @@ function AuthErrorContent() {
   };
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center p-4'>
-      <div className='w-full max-w-md'>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-50 via-white to-orange-50 p-4">
+      <div className="w-full max-w-md">
         {/* 에러 아이콘 */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.6 }}
-          className='text-center mb-8'
+          className="mb-8 text-center"
         >
-          <div className='w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4'>
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
             <svg
-              className='w-8 h-8 text-red-600'
-              fill='none'
-              stroke='currentColor'
-              viewBox='0 0 24 24'
+              className="h-8 w-8 text-red-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth='2'
-                d='M6 18L18 6M6 6l12 12'
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
               />
             </svg>
           </div>
-          <h1 className='text-2xl font-bold text-gray-900 mb-2'>로그인 실패</h1>
-          <p className='text-gray-600'>GitHub OAuth 인증에 실패했습니다</p>
+          <h1 className="mb-2 text-2xl font-bold text-gray-900">로그인 실패</h1>
+          <p className="text-gray-600">GitHub OAuth 인증에 실패했습니다</p>
         </motion.div>
 
         {/* 에러 메시지 */}
@@ -102,27 +102,27 @@ function AuthErrorContent() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className='bg-white rounded-xl p-6 shadow-lg border border-red-200 mb-6'
+          className="mb-6 rounded-xl border border-red-200 bg-white p-6 shadow-lg"
         >
-          <div className='flex items-start space-x-3'>
-            <div className='w-5 h-5 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5'>
+          <div className="flex items-start space-x-3">
+            <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
               <svg
-                className='w-3 h-3 text-red-600'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'
+                className="h-3 w-3 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth='2'
-                  d='M6 18L18 6M6 6l12 12'
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
                 />
               </svg>
             </div>
-            <div className='flex-1'>
-              <h3 className='font-semibold text-gray-900 mb-1'>오류 내용</h3>
-              <p className='text-sm text-gray-600 leading-relaxed'>{error}</p>
+            <div className="flex-1">
+              <h3 className="mb-1 font-semibold text-gray-900">오류 내용</h3>
+              <p className="text-sm leading-relaxed text-gray-600">{error}</p>
             </div>
           </div>
         </motion.div>
@@ -132,24 +132,24 @@ function AuthErrorContent() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className='bg-blue-50 rounded-xl p-6 mb-6'
+          className="mb-6 rounded-xl bg-blue-50 p-6"
         >
-          <h3 className='font-semibold text-blue-900 mb-3'>해결 방법</h3>
-          <div className='space-y-2 text-sm text-blue-800'>
-            <div className='flex items-start space-x-2'>
-              <span className='text-blue-600'>1.</span>
+          <h3 className="mb-3 font-semibold text-blue-900">해결 방법</h3>
+          <div className="space-y-2 text-sm text-blue-800">
+            <div className="flex items-start space-x-2">
+              <span className="text-blue-600">1.</span>
               <span>GitHub에 로그인되어 있는지 확인하세요</span>
             </div>
-            <div className='flex items-start space-x-2'>
-              <span className='text-blue-600'>2.</span>
+            <div className="flex items-start space-x-2">
+              <span className="text-blue-600">2.</span>
               <span>브라우저 쿠키와 캐시를 지워보세요</span>
             </div>
-            <div className='flex items-start space-x-2'>
-              <span className='text-blue-600'>3.</span>
+            <div className="flex items-start space-x-2">
+              <span className="text-blue-600">3.</span>
               <span>다른 브라우저를 사용해보세요</span>
             </div>
-            <div className='flex items-start space-x-2'>
-              <span className='text-blue-600'>4.</span>
+            <div className="flex items-start space-x-2">
+              <span className="text-blue-600">4.</span>
               <span>문제가 계속되면 게스트 로그인을 사용하세요</span>
             </div>
           </div>
@@ -160,31 +160,31 @@ function AuthErrorContent() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className='space-y-3'
+          className="space-y-3"
         >
-          <div className='grid grid-cols-2 gap-3'>
+          <div className="grid grid-cols-2 gap-3">
             <button
               onClick={handleTryAgain}
-              className='py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors'
+              className="rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700"
             >
               다시 시도
             </button>
             <button
               onClick={handleBackToLogin}
-              className='py-3 px-4 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 rounded-lg font-medium transition-colors'
+              className="rounded-lg border border-gray-300 bg-white px-4 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50"
             >
               로그인 페이지로
             </button>
           </div>
 
           {/* 대안 인증 방법 */}
-          <div className='text-center'>
-            <p className='text-sm text-gray-500 mb-2'>
+          <div className="text-center">
+            <p className="mb-2 text-sm text-gray-500">
               또는 다른 방법으로 로그인
             </p>
             <button
               onClick={() => router.push('/login')}
-              className='w-full text-sm bg-gray-50 text-gray-700 px-3 py-2 rounded hover:bg-gray-100 transition-colors'
+              className="w-full rounded bg-gray-50 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100"
             >
               게스트 모드로 시작하기
             </button>
@@ -196,9 +196,9 @@ function AuthErrorContent() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.5 }}
-          className='text-center mt-8'
+          className="mt-8 text-center"
         >
-          <div className='text-xs text-gray-500 space-y-1'>
+          <div className="space-y-1 text-xs text-gray-500">
             <p>🔐 NextAuth 기반 GitHub OAuth</p>
             <p>🛠️ 문제가 계속되면 관리자에게 문의하세요</p>
             <p>OpenManager Vibe v5.44.3</p>
@@ -212,10 +212,10 @@ function AuthErrorContent() {
 // 로딩 컴포넌트
 function LoadingFallback() {
   return (
-    <div className='min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center p-4'>
-      <div className='w-full max-w-md text-center'>
-        <div className='w-8 h-8 border-4 border-red-200 border-t-red-600 rounded-full animate-spin mx-auto mb-4'></div>
-        <p className='text-gray-600'>로딩 중...</p>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-50 via-white to-orange-50 p-4">
+      <div className="w-full max-w-md text-center">
+        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-red-200 border-t-red-600"></div>
+        <p className="text-gray-600">로딩 중...</p>
       </div>
     </div>
   );

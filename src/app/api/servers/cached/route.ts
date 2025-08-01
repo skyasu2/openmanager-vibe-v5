@@ -158,10 +158,10 @@ export async function GET(request: NextRequest) {
 function calculateSummary(servers: EnhancedServerMetrics[]) {
   const stats = {
     total: servers.length,
-    online: servers.filter(s => s.status === 'online').length,
-    warning: servers.filter(s => s.status === 'warning').length,
-    critical: servers.filter(s => s.status === 'critical').length,
-    offline: servers.filter(s => s.status === 'offline').length,
+    online: servers.filter((s) => s.status === 'online').length,
+    warning: servers.filter((s) => s.status === 'warning').length,
+    critical: servers.filter((s) => s.status === 'critical').length,
+    offline: servers.filter((s) => s.status === 'offline').length,
   };
 
   const metrics = {
@@ -184,7 +184,7 @@ function calculateSummary(servers: EnhancedServerMetrics[]) {
   const health = {
     score: calculateHealthScore(servers),
     trend: 'stable', // 실제로는 이전 데이터와 비교 필요
-    issues: servers.filter(s => s.status !== 'online').length,
+    issues: servers.filter((s) => s.status !== 'online').length,
   };
 
   return {
@@ -211,16 +211,19 @@ function calculateHealthScore(servers: EnhancedServerMetrics[]): number {
     highDisk: -3,
   };
 
-  servers.forEach(server => {
+  servers.forEach((server) => {
     // 상태별 감점
     if (server.status === 'offline') score += weights.offline;
     else if (server.status === 'critical') score += weights.critical;
     else if (server.status === 'warning') score += weights.warning;
 
     // 리소스 사용률 감점
-    if (server.metrics?.cpu?.usage && server.metrics.cpu.usage > 80) score += weights.highCpu;
-    if (server.metrics?.memory?.usage && server.metrics.memory.usage > 85) score += weights.highMemory;
-    if (server.metrics?.disk?.usage && server.metrics.disk.usage > 90) score += weights.highDisk;
+    if (server.metrics?.cpu?.usage && server.metrics.cpu.usage > 80)
+      score += weights.highCpu;
+    if (server.metrics?.memory?.usage && server.metrics.memory.usage > 85)
+      score += weights.highMemory;
+    if (server.metrics?.disk?.usage && server.metrics.disk.usage > 90)
+      score += weights.highDisk;
   });
 
   // 0-100 범위로 정규화
@@ -238,7 +241,7 @@ async function cacheIndividualServers(servers: EnhancedServerMetrics[]) {
 
     // 상위 10개 서버만 개별 캐싱
     const topServers = servers.slice(0, 10);
-    const items = topServers.map(server => ({
+    const items = topServers.map((server) => ({
       key: CACHE_KEYS.SERVER_DETAIL(server.id),
       value: server,
       ttl: TTL_STRATEGY.SERVER_DETAIL,

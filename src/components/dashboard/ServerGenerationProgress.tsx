@@ -57,14 +57,14 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
 
     // 🌐 웹서버
     if (type === 'nginx' || type === 'apache' || type === 'iis')
-      return <Server className='w-4 h-4' />;
+      return <Server className="h-4 w-4" />;
 
     // 🚀 애플리케이션 서버
-    if (type === 'nodejs') return <GitBranch className='w-4 h-4' />;
-    if (type === 'springboot') return <Settings className='w-4 h-4' />;
+    if (type === 'nodejs') return <GitBranch className="h-4 w-4" />;
+    if (type === 'springboot') return <Settings className="h-4 w-4" />;
     if (type === 'django' || type === 'php')
-      return <Code className='w-4 h-4' />;
-    if (type === 'dotnet') return <Box className='w-4 h-4' />;
+      return <Code className="h-4 w-4" />;
+    if (type === 'dotnet') return <Box className="h-4 w-4" />;
 
     // 🗄️ 데이터베이스
     if (
@@ -73,29 +73,29 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
       type === 'oracle' ||
       type === 'mssql'
     )
-      return <Database className='w-4 h-4' />;
-    if (type === 'mongodb') return <FileText className='w-4 h-4' />;
+      return <Database className="h-4 w-4" />;
+    if (type === 'mongodb') return <FileText className="h-4 w-4" />;
 
     // ⚙️ 인프라 서비스
-    if (type === 'redis') return <Zap className='w-4 h-4' />;
+    if (type === 'redis') return <Zap className="h-4 w-4" />;
     if (type === 'rabbitmq' || type === 'kafka')
-      return <Network className='w-4 h-4' />;
-    if (type === 'elasticsearch') return <Search className='w-4 h-4' />;
-    if (type === 'jenkins') return <Cpu className='w-4 h-4' />;
-    if (type === 'prometheus') return <BarChart3 className='w-4 h-4' />;
+      return <Network className="h-4 w-4" />;
+    if (type === 'elasticsearch') return <Search className="h-4 w-4" />;
+    if (type === 'jenkins') return <Cpu className="h-4 w-4" />;
+    if (type === 'prometheus') return <BarChart3 className="h-4 w-4" />;
 
     // 🔄 하위 호환성 (기존 타입)
-    if (type.includes('web')) return <Server className='w-4 h-4' />;
-    if (type.includes('database')) return <Database className='w-4 h-4' />;
-    if (type.includes('kubernetes')) return <Layers className='w-4 h-4' />;
-    if (type.includes('api')) return <GitBranch className='w-4 h-4' />;
-    if (type.includes('analytics')) return <BarChart3 className='w-4 h-4' />;
-    if (type.includes('monitoring')) return <BarChart3 className='w-4 h-4' />;
-    if (type.includes('security')) return <Shield className='w-4 h-4' />;
-    if (type.includes('mail')) return <Mail className='w-4 h-4' />;
-    if (type.includes('ci/cd')) return <GitBranch className='w-4 h-4' />;
+    if (type.includes('web')) return <Server className="h-4 w-4" />;
+    if (type.includes('database')) return <Database className="h-4 w-4" />;
+    if (type.includes('kubernetes')) return <Layers className="h-4 w-4" />;
+    if (type.includes('api')) return <GitBranch className="h-4 w-4" />;
+    if (type.includes('analytics')) return <BarChart3 className="h-4 w-4" />;
+    if (type.includes('monitoring')) return <BarChart3 className="h-4 w-4" />;
+    if (type.includes('security')) return <Shield className="h-4 w-4" />;
+    if (type.includes('mail')) return <Mail className="h-4 w-4" />;
+    if (type.includes('ci/cd')) return <GitBranch className="h-4 w-4" />;
 
-    return <Cloud className='w-4 h-4' />;
+    return <Cloud className="h-4 w-4" />;
   };
 
   // 🎨 실제 기업 환경 기반 서버 타입별 색상 매핑
@@ -146,12 +146,12 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className='bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-lg p-6 mb-6'
+      className="mb-6 rounded-lg border border-gray-700 bg-gray-900/50 p-6 backdrop-blur-sm"
     >
       {/* 헤더 */}
-      <div className='flex items-center justify-between mb-4'>
-        <div className='flex items-center space-x-3'>
-          <div className='relative'>
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="relative">
             <motion.div
               animate={isGenerating ? { rotate: 360 } : {}}
               transition={{
@@ -159,7 +159,7 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
                 repeat: isGenerating ? Infinity : 0,
                 ease: 'linear',
               }}
-              className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${
+              className={`flex h-8 w-8 items-center justify-center rounded-full border-2 ${
                 isComplete
                   ? 'border-green-500 bg-green-500/20'
                   : error
@@ -171,14 +171,14 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className='text-green-400'
+                  className="text-green-400"
                 >
                   ✓
                 </motion.div>
               ) : error ? (
-                <div className='text-red-400'>✗</div>
+                <div className="text-red-400">✗</div>
               ) : (
-                <Cloud className='w-4 h-4 text-blue-400' />
+                <Cloud className="h-4 w-4 text-blue-400" />
               )}
             </motion.div>
 
@@ -186,38 +186,38 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
-                className='absolute inset-0 rounded-full border-2 border-blue-400/30'
+                className="absolute inset-0 rounded-full border-2 border-blue-400/30"
               />
             )}
           </div>
 
           <div>
-            <h3 className='text-lg font-semibold text-white'>
+            <h3 className="text-lg font-semibold text-white">
               인프라 배포 진행률
             </h3>
-            <p className='text-gray-400 text-sm'>
+            <p className="text-sm text-gray-400">
               {currentCount}/{totalServers} 서버 배포됨
             </p>
           </div>
         </div>
 
-        <div className='text-right'>
-          <div className='text-2xl font-bold text-white'>{progress}%</div>
-          <div className='text-xs text-gray-400'>완료율</div>
+        <div className="text-right">
+          <div className="text-2xl font-bold text-white">{progress}%</div>
+          <div className="text-xs text-gray-400">완료율</div>
         </div>
       </div>
 
       {/* 진행률 바 */}
-      <div className='mb-4'>
-        <div className='w-full bg-gray-700 rounded-full h-3 overflow-hidden'>
+      <div className="mb-4">
+        <div className="h-3 w-full overflow-hidden rounded-full bg-gray-700">
           <motion.div
-            className='h-full bg-gradient-to-r from-blue-500 to-green-500 rounded-full relative'
+            className="relative h-full rounded-full bg-gradient-to-r from-blue-500 to-green-500"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
           >
             <motion.div
-              className='absolute inset-0 bg-white/20 rounded-full'
+              className="absolute inset-0 rounded-full bg-white/20"
               animate={{ x: [-100, 100] }}
               transition={{
                 duration: 2,
@@ -228,7 +228,7 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
           </motion.div>
         </div>
 
-        <div className='flex justify-between mt-2 text-xs text-gray-400'>
+        <div className="mt-2 flex justify-between text-xs text-gray-400">
           <span>시작</span>
           <span>
             {currentCount > 0 && currentCount < totalServers
@@ -244,15 +244,15 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
         key={currentMessage}
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        className='flex items-center space-x-3 mb-4'
+        className="mb-4 flex items-center space-x-3"
       >
         <div
-          className={`flex items-center space-x-2 px-3 py-2 rounded-lg ${
+          className={`flex items-center space-x-2 rounded-lg px-3 py-2 ${
             isComplete
-              ? 'bg-green-500/20 border border-green-500/30'
+              ? 'border border-green-500/30 bg-green-500/20'
               : error
-                ? 'bg-red-500/20 border border-red-500/30'
-                : 'bg-blue-500/20 border border-blue-500/30'
+                ? 'border border-red-500/30 bg-red-500/20'
+                : 'border border-blue-500/30 bg-blue-500/20'
           }`}
         >
           {nextServerType && getServerIcon(nextServerType)}
@@ -273,7 +273,7 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className='flex items-center space-x-2 text-gray-400 text-sm'
+            className="flex items-center space-x-2 text-sm text-gray-400"
           >
             <span>다음:</span>
             <div
@@ -294,29 +294,29 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.9 }}
             transition={{ duration: 0.5 }}
-            className='bg-gray-800/50 border border-gray-600 rounded-lg p-4 mb-4'
+            className="mb-4 rounded-lg border border-gray-600 bg-gray-800/50 p-4"
           >
-            <div className='flex items-center justify-between'>
-              <div className='flex items-center space-x-3'>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
                 <div
-                  className={`w-8 h-8 rounded-lg border ${getServerColor(lastGeneratedServer.type)} border-current/30 bg-current/10 flex items-center justify-center`}
+                  className={`h-8 w-8 rounded-lg border ${getServerColor(lastGeneratedServer.type)} border-current/30 bg-current/10 flex items-center justify-center`}
                 >
                   {getServerIcon(lastGeneratedServer.type)}
                 </div>
 
                 <div>
-                  <h4 className='text-white font-medium'>
+                  <h4 className="font-medium text-white">
                     {lastGeneratedServer.hostname}
                   </h4>
-                  <p className='text-gray-400 text-sm'>
+                  <p className="text-sm text-gray-400">
                     {lastGeneratedServer.name} • {lastGeneratedServer.location}
                   </p>
                 </div>
               </div>
 
-              <div className='flex items-center space-x-4 text-sm'>
-                <div className='text-green-400'>✓ 배포 완료</div>
-                <div className='text-gray-400'>
+              <div className="flex items-center space-x-4 text-sm">
+                <div className="text-green-400">✓ 배포 완료</div>
+                <div className="text-gray-400">
                   {lastGeneratedServer.provider?.toUpperCase()}
                 </div>
               </div>
@@ -332,9 +332,9 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className='bg-red-500/20 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm'
+            className="rounded-lg border border-red-500/30 bg-red-500/20 p-3 text-sm text-red-400"
           >
-            <div className='flex items-center space-x-2'>
+            <div className="flex items-center space-x-2">
               <span>⚠️</span>
               <span>{error}</span>
             </div>
@@ -349,20 +349,20 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className='text-center py-4'
+            className="py-4 text-center"
           >
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
-              className='text-4xl mb-2'
+              className="mb-2 text-4xl"
             >
               🎉
             </motion.div>
-            <h4 className='text-green-400 font-medium mb-1'>
+            <h4 className="mb-1 font-medium text-green-400">
               인프라 배포 완료!
             </h4>
-            <p className='text-gray-400 text-sm'>
+            <p className="text-sm text-gray-400">
               총 {totalServers}개 서버가 성공적으로 배포되었습니다
             </p>
           </motion.div>

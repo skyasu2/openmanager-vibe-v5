@@ -89,7 +89,7 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
 
       // 읽지 않은 알림 개수 업데이트
       const unread = dashboardData.alerts.filter(
-        alert => !alert.acknowledged
+        (alert) => !alert.acknowledged
       ).length;
       setUnreadAlerts(unread);
     } catch (err) {
@@ -130,18 +130,18 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
         method: 'POST',
       });
 
-      setData(prev => {
+      setData((prev) => {
         if (!prev) return prev;
 
         return {
           ...prev,
-          alerts: prev.alerts.map(alert =>
+          alerts: prev.alerts.map((alert) =>
             alert.id === alertId ? { ...alert, acknowledged: true } : alert
           ),
         };
       });
 
-      setUnreadAlerts(prev => Math.max(0, prev - 1));
+      setUnreadAlerts((prev) => Math.max(0, prev - 1));
     } catch (err) {
       console.error('알림 확인 실패:', err);
     }

@@ -272,10 +272,10 @@ export class SupabaseTimeSeriesManager {
 
     const timeRange = {
       start: new Date(
-        Math.min(...records.map(r => new Date(r.timestamp).getTime()))
+        Math.min(...records.map((r) => new Date(r.timestamp).getTime()))
       ),
       end: new Date(
-        Math.max(...records.map(r => new Date(r.timestamp).getTime()))
+        Math.max(...records.map((r) => new Date(r.timestamp).getTime()))
       ),
     };
 
@@ -458,7 +458,7 @@ export class SupabaseTimeSeriesManager {
     sessionId: string,
     metrics: ServerMetric[]
   ): TimeSeriesRecord[] {
-    return metrics.map(metric => {
+    return metrics.map((metric) => {
       // 레거시 형식과 새 형식 모두 지원
       const cpu = metric.cpu ?? metric.systemMetrics?.cpuUsage ?? 0;
       const memory = metric.memory ?? metric.systemMetrics?.memoryUsage ?? 0;
@@ -496,7 +496,7 @@ export class SupabaseTimeSeriesManager {
   private transformFromTimeSeriesRecords(
     records: TimeSeriesRecord[]
   ): ServerMetric[] {
-    return records.map(record => ({
+    return records.map((record) => ({
       timestamp: new Date(record.timestamp),
       serverId: record.server_id,
       cpu: record.cpu_usage,
@@ -537,23 +537,23 @@ export class SupabaseTimeSeriesManager {
       throw new Error('집계할 데이터가 없습니다.');
     }
 
-    const cpuUsages = records.map(r => r.cpu_usage);
-    const memoryUsages = records.map(r => r.memory_usage);
-    const diskUsages = records.map(r => r.disk_usage);
-    const networkUsages = records.map(r => r.network_usage);
-    const requestCounts = records.map(r => r.request_count);
-    const responseTimes = records.map(r => r.response_time);
-    const errorRates = records.map(r => r.error_rate);
+    const cpuUsages = records.map((r) => r.cpu_usage);
+    const memoryUsages = records.map((r) => r.memory_usage);
+    const diskUsages = records.map((r) => r.disk_usage);
+    const networkUsages = records.map((r) => r.network_usage);
+    const requestCounts = records.map((r) => r.request_count);
+    const responseTimes = records.map((r) => r.response_time);
+    const errorRates = records.map((r) => r.error_rate);
 
     return {
       sessionId: sessionId || records[0].session_id,
       serverId,
       timeRange: timeRange || {
         start: new Date(
-          Math.min(...records.map(r => new Date(r.timestamp).getTime()))
+          Math.min(...records.map((r) => new Date(r.timestamp).getTime()))
         ),
         end: new Date(
-          Math.max(...records.map(r => new Date(r.timestamp).getTime()))
+          Math.max(...records.map((r) => new Date(r.timestamp).getTime()))
         ),
       },
       metrics: {

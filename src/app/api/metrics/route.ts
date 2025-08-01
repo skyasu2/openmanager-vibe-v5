@@ -67,7 +67,7 @@ function _convertToPrometheusFormat(servers: any[]): string {
   // CPU 사용률 메트릭
   output += '# HELP cpu_usage_percent Current CPU usage percentage\n';
   output += '# TYPE cpu_usage_percent gauge\n';
-  servers.forEach(server => {
+  servers.forEach((server) => {
     output += `cpu_usage_percent{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${server.cpu_usage} ${timestamp}\n`;
   });
   output += '\n';
@@ -75,7 +75,7 @@ function _convertToPrometheusFormat(servers: any[]): string {
   // 메모리 사용률 메트릭
   output += '# HELP memory_usage_percent Current memory usage percentage\n';
   output += '# TYPE memory_usage_percent gauge\n';
-  servers.forEach(server => {
+  servers.forEach((server) => {
     output += `memory_usage_percent{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${server.memory_usage} ${timestamp}\n`;
   });
   output += '\n';
@@ -83,7 +83,7 @@ function _convertToPrometheusFormat(servers: any[]): string {
   // 메모리 사용량 (바이트)
   output += '# HELP memory_usage_bytes Current memory usage in bytes\n';
   output += '# TYPE memory_usage_bytes gauge\n';
-  servers.forEach(server => {
+  servers.forEach((server) => {
     const memoryBytes = Math.round((server.memory_usage / 100) * 17179869184); // 16GB 서버 가정
     output += `memory_usage_bytes{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${memoryBytes} ${timestamp}\n`;
   });
@@ -92,7 +92,7 @@ function _convertToPrometheusFormat(servers: any[]): string {
   // 디스크 사용률 메트릭
   output += '# HELP disk_usage_percent Current disk usage percentage\n';
   output += '# TYPE disk_usage_percent gauge\n';
-  servers.forEach(server => {
+  servers.forEach((server) => {
     output += `disk_usage_percent{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${server.disk_usage} ${timestamp}\n`;
   });
   output += '\n';
@@ -101,7 +101,7 @@ function _convertToPrometheusFormat(servers: any[]): string {
   output +=
     '# HELP network_receive_bytes_total Total bytes received over network\n';
   output += '# TYPE network_receive_bytes_total counter\n';
-  servers.forEach(server => {
+  servers.forEach((server) => {
     const networkBytes = Math.round(server.network_in * 1024 * 1024); // MB to bytes
     output += `network_receive_bytes_total{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${networkBytes} ${timestamp}\n`;
   });
@@ -111,7 +111,7 @@ function _convertToPrometheusFormat(servers: any[]): string {
   output +=
     '# HELP network_transmit_bytes_total Total bytes transmitted over network\n';
   output += '# TYPE network_transmit_bytes_total counter\n';
-  servers.forEach(server => {
+  servers.forEach((server) => {
     const networkBytes = Math.round(server.network_out * 1024 * 1024); // MB to bytes
     output += `network_transmit_bytes_total{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${networkBytes} ${timestamp}\n`;
   });
@@ -120,7 +120,7 @@ function _convertToPrometheusFormat(servers: any[]): string {
   // 응답 시간 메트릭
   output += '# HELP http_request_duration_seconds HTTP request latency\n';
   output += '# TYPE http_request_duration_seconds gauge\n';
-  servers.forEach(server => {
+  servers.forEach((server) => {
     const responseTimeSeconds = server.response_time / 1000; // ms to seconds
     output += `http_request_duration_seconds{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${responseTimeSeconds} ${timestamp}\n`;
   });
@@ -129,7 +129,7 @@ function _convertToPrometheusFormat(servers: any[]): string {
   // 서버 상태 메트릭 (0=maintenance, 1=warning, 2=normal, 3=critical)
   output += '# HELP server_status Current server status\n';
   output += '# TYPE server_status gauge\n';
-  servers.forEach(server => {
+  servers.forEach((server) => {
     let statusValue = 2; // normal
     if (server.status === 'critical') statusValue = 3;
     else if (server.status === 'warning') statusValue = 1;
@@ -142,7 +142,7 @@ function _convertToPrometheusFormat(servers: any[]): string {
   // 업타임 메트릭
   output += '# HELP node_uptime_seconds Total uptime in seconds\n';
   output += '# TYPE node_uptime_seconds counter\n';
-  servers.forEach(server => {
+  servers.forEach((server) => {
     output += `node_uptime_seconds{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${server.uptime} ${timestamp}\n`;
   });
   output += '\n';
@@ -150,7 +150,7 @@ function _convertToPrometheusFormat(servers: any[]): string {
   // 알림 수 메트릭
   output += '# HELP server_alerts_total Total number of active alerts\n';
   output += '# TYPE server_alerts_total gauge\n';
-  servers.forEach(server => {
+  servers.forEach((server) => {
     const alertCount = server.alerts ? server.alerts.length : 0;
     output += `server_alerts_total{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${alertCount} ${timestamp}\n`;
   });

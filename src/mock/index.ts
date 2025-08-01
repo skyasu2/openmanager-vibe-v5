@@ -83,9 +83,9 @@ class MockSystem {
       metadata: this.data.metadata,
       rotatorStatus: this.rotator?.getStatus() || null,
       serverCount: this.data.servers.length,
-      criticalCount: this.data.servers.filter(s => s.status === 'critical')
+      criticalCount: this.data.servers.filter((s) => s.status === 'critical')
         .length,
-      warningCount: this.data.servers.filter(s => s.status === 'warning')
+      warningCount: this.data.servers.filter((s) => s.status === 'warning')
         .length,
     };
   }

@@ -342,7 +342,7 @@ export class RealMCPClient {
 
       if (result.success && result.metadata) {
         const items = result.metadata.items as Array<{ name: string }>;
-        return items ? items.map(item => item.name) : [];
+        return items ? items.map((item) => item.name) : [];
       } else {
         throw new Error(result.error || '디렉토리 목록 조회 실패');
       }
@@ -482,7 +482,7 @@ export class RealMCPClient {
     }));
 
     // 연결되지 않은 서버들도 추가
-    serverNames.forEach(serverName => {
+    serverNames.forEach((serverName) => {
       if (!this.clients.has(serverName)) {
         servers.push({
           name: serverName,

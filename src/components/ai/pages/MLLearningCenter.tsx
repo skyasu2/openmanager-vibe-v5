@@ -127,7 +127,7 @@ export const MLLearningCenter: React.FC = () => {
       if (learningProgress[type].status === 'running') return;
 
       // 진행률 초기화
-      setLearningProgress(prev => ({
+      setLearningProgress((prev) => ({
         ...prev,
         [type]: {
           status: 'running',
@@ -142,7 +142,7 @@ export const MLLearningCenter: React.FC = () => {
 
       // 진행률 업데이트 타이머
       progressTimer = setInterval(() => {
-        setLearningProgress(prev => {
+        setLearningProgress((prev) => {
           const current = prev[type];
           const newProgress = Math.min(current.progress + 10, 90);
           const elapsed = Date.now() - startTime;
@@ -169,7 +169,7 @@ export const MLLearningCenter: React.FC = () => {
         switch (type) {
           case 'patterns': {
             // 패턴 학습 로직
-            await new Promise(resolve => setTimeout(resolve, 3000)); // 시뮬레이션
+            await new Promise((resolve) => setTimeout(resolve, 3000)); // 시뮬레이션
             result = {
               type,
               patternsLearned: 12,
@@ -235,7 +235,7 @@ export const MLLearningCenter: React.FC = () => {
             ];
 
             // 패턴 학습 시뮬레이션
-            await new Promise(resolve => setTimeout(resolve, 2500));
+            await new Promise((resolve) => setTimeout(resolve, 2500));
 
             result = {
               type,
@@ -243,7 +243,7 @@ export const MLLearningCenter: React.FC = () => {
               accuracyImprovement: 15,
               confidence: 0.93,
               insights: [
-                `${mockReports.filter(p => p.severity === 'critical').length}개의 심각한 장애 패턴 학습`,
+                `${mockReports.filter((p) => p.severity === 'critical').length}개의 심각한 장애 패턴 학습`,
                 '연쇄 장애 패턴 식별: DB → API → 웹서버',
                 '평균 복구 시간 단축 방법 학습',
                 '사전 경고 신호 패턴 업데이트',
@@ -260,7 +260,7 @@ export const MLLearningCenter: React.FC = () => {
           case 'prediction': {
             // 예측 모델 훈련 시뮬레이션
             // LightweightMLEngine에는 predictServerLoad가 없으므로 학습 시뮬레이션
-            await new Promise(resolve => setTimeout(resolve, 2500));
+            await new Promise((resolve) => setTimeout(resolve, 2500));
             result = {
               type,
               patternsLearned: 10,
@@ -280,7 +280,7 @@ export const MLLearningCenter: React.FC = () => {
 
         // 학습 완료
         clearInterval(progressTimer);
-        setLearningProgress(prev => ({
+        setLearningProgress((prev) => ({
           ...prev,
           [type]: {
             status: 'completed',
@@ -291,7 +291,7 @@ export const MLLearningCenter: React.FC = () => {
         }));
 
         // 결과 저장
-        setLearningResults(prev => [result!, ...prev].slice(0, 10)); // 최근 10개만 유지
+        setLearningResults((prev) => [result!, ...prev].slice(0, 10)); // 최근 10개만 유지
         setSelectedResult(result!);
 
         // 학습 결과는 로컬에만 저장
@@ -304,7 +304,7 @@ export const MLLearningCenter: React.FC = () => {
       } catch (_error) {
         // 에러 처리
         clearInterval(progressTimer);
-        setLearningProgress(prev => ({
+        setLearningProgress((prev) => ({
           ...prev,
           [type]: {
             status: 'error',
@@ -327,20 +327,20 @@ export const MLLearningCenter: React.FC = () => {
   };
 
   return (
-    <div className='p-6 space-y-6'>
+    <div className="space-y-6 p-6">
       {/* 헤더 */}
-      <div className='text-center mb-8'>
-        <h2 className='text-2xl font-bold text-gray-800 mb-2'>
+      <div className="mb-8 text-center">
+        <h2 className="mb-2 text-2xl font-bold text-gray-800">
           🧠 ML 학습 센터
         </h2>
-        <p className='text-gray-600'>
+        <p className="text-gray-600">
           서버 모니터링 데이터를 학습하여 시스템을 더욱 똑똑하게 만듭니다
         </p>
       </div>
 
       {/* 학습 버튼 그리드 */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-        {LEARNING_BUTTONS.map(button => {
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {LEARNING_BUTTONS.map((button) => {
           const progress = learningProgress[button.id];
           const isRunning = progress.status === 'running';
           const isCompleted = progress.status === 'completed';
@@ -355,9 +355,9 @@ export const MLLearningCenter: React.FC = () => {
               <button
                 onClick={() => startLearning(button.id)}
                 disabled={isRunning}
-                className={`w-full p-6 rounded-xl border-2 transition-all ${
+                className={`w-full rounded-xl border-2 p-6 transition-all ${
                   isRunning
-                    ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
+                    ? 'cursor-not-allowed border-gray-300 bg-gray-50'
                     : isCompleted
                       ? 'border-green-300 bg-green-50 hover:border-green-400'
                       : isError
@@ -365,39 +365,39 @@ export const MLLearningCenter: React.FC = () => {
                         : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-lg'
                 }`}
               >
-                <div className='flex items-start justify-between mb-4'>
+                <div className="mb-4 flex items-start justify-between">
                   <div
-                    className={`p-3 rounded-lg bg-gradient-to-br ${button.color}`}
+                    className={`rounded-lg bg-gradient-to-br p-3 ${button.color}`}
                   >
                     {React.createElement(button.icon, {
                       className: 'w-6 h-6 text-white',
                     })}
                   </div>
                   {isRunning && (
-                    <Loader2 className='w-5 h-5 animate-spin text-blue-500' />
+                    <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
                   )}
                   {isCompleted && (
-                    <CheckCircle className='w-5 h-5 text-green-500' />
+                    <CheckCircle className="h-5 w-5 text-green-500" />
                   )}
-                  {isError && <AlertCircle className='w-5 h-5 text-red-500' />}
+                  {isError && <AlertCircle className="h-5 w-5 text-red-500" />}
                 </div>
 
-                <div className='text-left'>
-                  <h3 className='font-semibold text-gray-800 mb-1'>
+                <div className="text-left">
+                  <h3 className="mb-1 font-semibold text-gray-800">
                     {button.label}
                   </h3>
-                  <p className='text-sm text-gray-600 mb-3'>
+                  <p className="mb-3 text-sm text-gray-600">
                     {button.description}
                   </p>
 
                   {/* 진행률 표시 */}
                   {(isRunning || isCompleted || isError) && (
-                    <div className='space-y-2'>
-                      <div className='flex justify-between text-xs text-gray-500'>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-gray-500">
                         <span>{progress.currentStep}</span>
                         <span>{progress.progress}%</span>
                       </div>
-                      <div className='w-full bg-gray-200 rounded-full h-2 overflow-hidden'>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${progress.progress}%` }}
@@ -411,9 +411,9 @@ export const MLLearningCenter: React.FC = () => {
                           }`}
                         />
                       </div>
-                      <div className='flex justify-between text-xs text-gray-500'>
+                      <div className="flex justify-between text-xs text-gray-500">
                         <span>
-                          <Clock className='w-3 h-3 inline mr-1' />
+                          <Clock className="mr-1 inline h-3 w-3" />
                           {formatTime(progress.timeElapsed)}
                         </span>
                         {progress.estimatedTimeRemaining && isRunning && (
@@ -439,54 +439,54 @@ export const MLLearningCenter: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className='mt-8 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200'
+            className="mt-8 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6"
           >
-            <div className='flex items-center justify-between mb-4'>
-              <h3 className='text-lg font-semibold text-gray-800 flex items-center gap-2'>
-                <BarChart3 className='w-5 h-5 text-blue-600' />
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+                <BarChart3 className="h-5 w-5 text-blue-600" />
                 최근 학습 결과
               </h3>
               <button
                 onClick={() => setSelectedResult(null)}
-                className='text-gray-500 hover:text-gray-700'
+                className="text-gray-500 hover:text-gray-700"
               >
                 ✕
               </button>
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-4'>
-              <div className='bg-white p-4 rounded-lg'>
-                <div className='text-sm text-gray-600 mb-1'>발견한 패턴</div>
-                <div className='text-2xl font-bold text-blue-600'>
+            <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="rounded-lg bg-white p-4">
+                <div className="mb-1 text-sm text-gray-600">발견한 패턴</div>
+                <div className="text-2xl font-bold text-blue-600">
                   {selectedResult.patternsLearned}개
                 </div>
               </div>
-              <div className='bg-white p-4 rounded-lg'>
-                <div className='text-sm text-gray-600 mb-1'>정확도 향상</div>
-                <div className='text-2xl font-bold text-green-600'>
+              <div className="rounded-lg bg-white p-4">
+                <div className="mb-1 text-sm text-gray-600">정확도 향상</div>
+                <div className="text-2xl font-bold text-green-600">
                   +{selectedResult.accuracyImprovement}%
                 </div>
               </div>
-              <div className='bg-white p-4 rounded-lg'>
-                <div className='text-sm text-gray-600 mb-1'>신뢰도</div>
-                <div className='text-2xl font-bold text-purple-600'>
+              <div className="rounded-lg bg-white p-4">
+                <div className="mb-1 text-sm text-gray-600">신뢰도</div>
+                <div className="text-2xl font-bold text-purple-600">
                   {((selectedResult.confidence || 0) * 100).toFixed(0)}%
                 </div>
               </div>
             </div>
 
             {selectedResult.insights && (
-              <div className='mb-4'>
-                <h4 className='font-medium text-gray-700 mb-2'>
+              <div className="mb-4">
+                <h4 className="mb-2 font-medium text-gray-700">
                   주요 인사이트
                 </h4>
-                <ul className='space-y-1'>
+                <ul className="space-y-1">
                   {selectedResult.insights.map((insight, idx) => (
                     <li
                       key={idx}
-                      className='flex items-start gap-2 text-sm text-gray-600'
+                      className="flex items-start gap-2 text-sm text-gray-600"
                     >
-                      <Zap className='w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5' />
+                      <Zap className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
                       {insight}
                     </li>
                   ))}
@@ -495,8 +495,8 @@ export const MLLearningCenter: React.FC = () => {
             )}
 
             {selectedResult.nextRecommendation && (
-              <div className='p-3 bg-blue-100 rounded-lg'>
-                <p className='text-sm text-blue-800'>
+              <div className="rounded-lg bg-blue-100 p-3">
+                <p className="text-sm text-blue-800">
                   <strong>다음 권장사항:</strong>{' '}
                   {selectedResult.nextRecommendation}
                 </p>
@@ -508,46 +508,46 @@ export const MLLearningCenter: React.FC = () => {
 
       {/* 학습 히스토리 */}
       {learningResults.length > 0 && (
-        <div className='mt-8'>
-          <h3 className='text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2'>
-            <Database className='w-5 h-5 text-gray-600' />
+        <div className="mt-8">
+          <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-800">
+            <Database className="h-5 w-5 text-gray-600" />
             학습 히스토리
           </h3>
-          <div className='space-y-2'>
+          <div className="space-y-2">
             {learningResults.map((result, idx) => (
               <button
                 key={idx}
                 onClick={() => setSelectedResult(result)}
-                className='w-full p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-left transition-colors'
+                className="w-full rounded-lg bg-gray-50 p-3 text-left transition-colors hover:bg-gray-100"
               >
-                <div className='flex items-center justify-between'>
-                  <div className='flex items-center gap-3'>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
                     <div
-                      className={`p-2 rounded-lg ${LEARNING_BUTTONS.find(b => b.id === result.type)?.bgColor}`}
+                      className={`rounded-lg p-2 ${LEARNING_BUTTONS.find((b) => b.id === result.type)?.bgColor}`}
                     >
                       {React.createElement(
-                        LEARNING_BUTTONS.find(b => b.id === result.type)
+                        LEARNING_BUTTONS.find((b) => b.id === result.type)
                           ?.icon || Brain,
                         { className: 'w-4 h-4 text-gray-700' }
                       )}
                     </div>
                     <div>
-                      <div className='font-medium text-gray-800'>
+                      <div className="font-medium text-gray-800">
                         {
-                          LEARNING_BUTTONS.find(b => b.id === result.type)
+                          LEARNING_BUTTONS.find((b) => b.id === result.type)
                             ?.label
                         }
                       </div>
-                      <div className='text-xs text-gray-500'>
+                      <div className="text-xs text-gray-500">
                         {result.timestamp.toLocaleString('ko-KR')}
                       </div>
                     </div>
                   </div>
-                  <div className='text-right'>
-                    <div className='text-sm font-medium text-green-600'>
+                  <div className="text-right">
+                    <div className="text-sm font-medium text-green-600">
                       +{result.accuracyImprovement}%
                     </div>
-                    <div className='text-xs text-gray-500'>
+                    <div className="text-xs text-gray-500">
                       {result.patternsLearned} 패턴
                     </div>
                   </div>

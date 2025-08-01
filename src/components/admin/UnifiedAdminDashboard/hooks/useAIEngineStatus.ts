@@ -58,7 +58,7 @@ export function useAIEngineStatus() {
   const toggleEngine = useCallback(
     async (engineId: string) => {
       try {
-        const engine = engines.find(e => e.id === engineId);
+        const engine = engines.find((e) => e.id === engineId);
         if (!engine) return;
 
         const response = await fetch(`/api/ai/engines/${engineId}/toggle`, {
@@ -70,8 +70,8 @@ export function useAIEngineStatus() {
         if (!response.ok) throw new Error('엔진 토글 실패');
 
         // 상태 업데이트
-        setEngines(prev =>
-          prev.map(e =>
+        setEngines((prev) =>
+          prev.map((e) =>
             e.id === engineId
               ? { ...e, config: { ...e.config, enabled: !e.config.enabled } }
               : e
@@ -97,8 +97,8 @@ export function useAIEngineStatus() {
         if (!response.ok) throw new Error('엔진 설정 업데이트 실패');
 
         // 상태 업데이트
-        setEngines(prev =>
-          prev.map(e =>
+        setEngines((prev) =>
+          prev.map((e) =>
             e.id === engineId ? { ...e, config: { ...e.config, ...config } } : e
           )
         );
@@ -120,8 +120,8 @@ export function useAIEngineStatus() {
         if (!response.ok) throw new Error('엔진 재시작 실패');
 
         // 상태를 _initializing으로 변경
-        setEngines(prev =>
-          prev.map(e =>
+        setEngines((prev) =>
+          prev.map((e) =>
             e.id === engineId ? { ...e, status: '_initializing' } : e
           )
         );
@@ -148,12 +148,12 @@ export function useAIEngineStatus() {
 
   // 엔진 요약 정보 계산
   const getEngineSummary = useCallback((): SystemStatus['engines'] => {
-    const activeEngines = engines.filter(e => e.status === 'active');
+    const activeEngines = engines.filter((e) => e.status === 'active');
 
     return {
       active: activeEngines.length,
       total: engines.length,
-      engines: engines.map(e => ({
+      engines: engines.map((e) => ({
         name: e.name,
         status: e.status,
         lastUsed: e.metrics.lastUsed,

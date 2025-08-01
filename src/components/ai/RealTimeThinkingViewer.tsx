@@ -135,10 +135,10 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
       `/api/ai/logs/stream?sessionId=${sessionId}`
     );
 
-    eventSource.onmessage = event => {
+    eventSource.onmessage = (event) => {
       try {
         const logEntry: RealTimeAILog = JSON.parse(event.data);
-        setLogs(prev => [...prev.slice(-49), logEntry]); // 최대 50개 로그 유지
+        setLogs((prev) => [...prev.slice(-49), logEntry]); // 최대 50개 로그 유지
 
         // 현재 엔진 업데이트
         if (logEntry.engine) {
@@ -147,7 +147,7 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
 
         // 기술 스택 추적
         if (logEntry.source) {
-          setTechStack(prev => new Set([...prev, logEntry.source]));
+          setTechStack((prev) => new Set([...prev, logEntry.source]));
         }
 
         // 처리 상태 업데이트
@@ -161,7 +161,7 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
       }
     };
 
-    eventSource.onerror = error => {
+    eventSource.onerror = (error) => {
       console.error('EventSource 오류:', error);
       setIsProcessing(false);
     };
@@ -183,12 +183,12 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
   // 관리자가 아니면 접근 제한 UI 표시
   if (!adminMode) {
     return (
-      <div className='bg-red-900/20 border border-red-700/30 rounded-lg p-4'>
-        <div className='flex items-center gap-2 text-red-300'>
-          <Shield className='w-5 h-5' />
-          <span className='font-medium'>관리자 전용 기능</span>
+      <div className="rounded-lg border border-red-700/30 bg-red-900/20 p-4">
+        <div className="flex items-center gap-2 text-red-300">
+          <Shield className="h-5 w-5" />
+          <span className="font-medium">관리자 전용 기능</span>
         </div>
-        <p className='text-red-400 text-sm mt-1'>
+        <p className="mt-1 text-sm text-red-400">
           실시간 AI 사고 과정 뷰어는 관리자만 접근할 수 있습니다.
         </p>
       </div>
@@ -212,38 +212,38 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
   // 로그 레벨별 아이콘
   const getLogIcon = (level: RealTimeAILog['level']) => {
     const icons = {
-      INFO: <Info className='w-3 h-3' />,
-      DEBUG: <Code className='w-3 h-3' />,
-      PROCESSING: <Loader2 className='w-3 h-3 animate-spin' />,
-      SUCCESS: <CheckCircle className='w-3 h-3' />,
-      ERROR: <AlertTriangle className='w-3 h-3' />,
-      WARNING: <AlertTriangle className='w-3 h-3' />,
-      ANALYSIS: <Brain className='w-3 h-3' />,
+      INFO: <Info className="h-3 w-3" />,
+      DEBUG: <Code className="h-3 w-3" />,
+      PROCESSING: <Loader2 className="h-3 w-3 animate-spin" />,
+      SUCCESS: <CheckCircle className="h-3 w-3" />,
+      ERROR: <AlertTriangle className="h-3 w-3" />,
+      WARNING: <AlertTriangle className="h-3 w-3" />,
+      ANALYSIS: <Brain className="h-3 w-3" />,
     };
-    return icons[level] || <Info className='w-3 h-3' />;
+    return icons[level] || <Info className="h-3 w-3" />;
   };
 
   // 기술 스택 표시
   const renderTechStack = () => {
     const stackIcons: { [key: string]: React.ReactNode } = {
-      'AI Engine': <Brain className='w-4 h-4' />,
-      Database: <Database className='w-4 h-4' />,
-      Cache: <Zap className='w-4 h-4' />,
-      Network: <Network className='w-4 h-4' />,
-      CPU: <Cpu className='w-4 h-4' />,
-      Python: <Code className='w-4 h-4' />,
+      'AI Engine': <Brain className="h-4 w-4" />,
+      Database: <Database className="h-4 w-4" />,
+      Cache: <Zap className="h-4 w-4" />,
+      Network: <Network className="h-4 w-4" />,
+      CPU: <Cpu className="h-4 w-4" />,
+      Python: <Code className="h-4 w-4" />,
     };
 
     return (
-      <div className='flex flex-wrap gap-2 mb-3'>
-        {Array.from(techStack).map(tech => (
+      <div className="mb-3 flex flex-wrap gap-2">
+        {Array.from(techStack).map((tech) => (
           <motion.div
             key={tech}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className='flex items-center gap-1 px-2 py-1 bg-gray-800 rounded-md text-xs text-gray-300'
+            className="flex items-center gap-1 rounded-md bg-gray-800 px-2 py-1 text-xs text-gray-300"
           >
-            {stackIcons[tech] || <Terminal className='w-4 h-4' />}
+            {stackIcons[tech] || <Terminal className="h-4 w-4" />}
             <span>{tech}</span>
           </motion.div>
         ))}
@@ -253,29 +253,29 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
 
   return (
     <div
-      className={`bg-gray-900 border border-gray-700 rounded-lg ${className}`}
+      className={`rounded-lg border border-gray-700 bg-gray-900 ${className}`}
     >
       {/* 헤더 */}
-      <div className='flex items-center justify-between p-3 border-b border-gray-700'>
-        <div className='flex items-center gap-2'>
-          <Terminal className='w-5 h-5 text-green-400' />
-          <span className='text-white font-medium'>실시간 AI 사고 과정</span>
+      <div className="flex items-center justify-between border-b border-gray-700 p-3">
+        <div className="flex items-center gap-2">
+          <Terminal className="h-5 w-5 text-green-400" />
+          <span className="font-medium text-white">실시간 AI 사고 과정</span>
           {isProcessing && (
-            <div className='flex items-center gap-1 text-yellow-400'>
-              <Loader2 className='w-4 h-4 animate-spin' />
-              <span className='text-xs'>처리 중...</span>
+            <div className="flex items-center gap-1 text-yellow-400">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-xs">처리 중...</span>
             </div>
           )}
         </div>
         {onToggle && (
           <button
             onClick={onToggle}
-            className='text-gray-400 hover:text-white transition-colors'
+            className="text-gray-400 transition-colors hover:text-white"
           >
             {isExpanded ? (
-              <ChevronUp className='w-4 h-4' />
+              <ChevronUp className="h-4 w-4" />
             ) : (
-              <ChevronDown className='w-4 h-4' />
+              <ChevronDown className="h-4 w-4" />
             )}
           </button>
         )}
@@ -287,9 +287,9 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className='overflow-hidden'
+            className="overflow-hidden"
           >
-            <div className='p-3'>
+            <div className="p-3">
               {/* 기술 스택 표시 */}
               {showTechStack &&
                 isExpanded &&
@@ -299,45 +299,45 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
               {/* 로그 컨테이너 */}
               <div
                 ref={logContainerRef}
-                className='bg-black rounded-md p-3 h-64 overflow-y-auto font-mono text-sm'
+                className="h-64 overflow-y-auto rounded-md bg-black p-3 font-mono text-sm"
                 style={{ scrollbarWidth: 'thin' }}
               >
                 {logs.length === 0 ? (
-                  <div className='text-gray-500 text-center py-8'>
+                  <div className="py-8 text-center text-gray-500">
                     AI 로그를 기다리는 중...
                   </div>
                 ) : (
-                  logs.map(log => (
+                  logs.map((log) => (
                     <motion.div
                       key={log.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className='mb-2 last:mb-0'
+                      className="mb-2 last:mb-0"
                     >
-                      <div className='flex items-start gap-2'>
-                        <span className='text-gray-500 text-xs mt-0.5'>
+                      <div className="flex items-start gap-2">
+                        <span className="mt-0.5 text-xs text-gray-500">
                           {log.timestamp.toLocaleTimeString()}
                         </span>
                         <div
                           className={`flex items-center gap-1 ${getLogStyle(log.level)}`}
                         >
                           {getLogIcon(log.level)}
-                          <span className='text-xs'>[{log.level}]</span>
+                          <span className="text-xs">[{log.level}]</span>
                         </div>
-                        <span className='text-blue-400 text-xs'>
+                        <span className="text-xs text-blue-400">
                           {log.source}:
                         </span>
-                        <span className='text-white text-xs flex-1'>
+                        <span className="flex-1 text-xs text-white">
                           {log.message}
                         </span>
                         {log.duration && (
-                          <span className='text-gray-500 text-xs'>
+                          <span className="text-xs text-gray-500">
                             {log.duration}ms
                           </span>
                         )}
                       </div>
                       {log.details && showDetails && (
-                        <div className='ml-6 mt-1 text-gray-400 text-xs'>
+                        <div className="ml-6 mt-1 text-xs text-gray-400">
                           {JSON.stringify(log.details, null, 2)}
                         </div>
                       )}
@@ -347,14 +347,14 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
               </div>
 
               {/* 하단 정보 */}
-              <div className='flex items-center justify-between mt-3 text-xs text-gray-400'>
-                <div className='flex items-center gap-4'>
+              <div className="mt-3 flex items-center justify-between text-xs text-gray-400">
+                <div className="flex items-center gap-4">
                   {currentEngine && <span>엔진: {currentEngine}</span>}
                   <span>로그: {logs.length}/50</span>
                 </div>
                 <button
                   onClick={() => setShowDetails(!showDetails)}
-                  className='hover:text-white transition-colors'
+                  className="transition-colors hover:text-white"
                 >
                   {showDetails ? '상세 숨김' : '상세 표시'}
                 </button>

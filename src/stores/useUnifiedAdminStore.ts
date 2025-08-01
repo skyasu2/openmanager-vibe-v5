@@ -103,7 +103,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
             get().stopSystem();
           }, SYSTEM_AUTO_SHUTDOWN_TIME);
 
-          set(state => ({
+          set((state) => ({
             ...state,
             isSystemStarted: true,
             systemStartTime: now,
@@ -126,7 +126,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
           }
 
           // 상태 초기화 (AI 에이전트는 계속 활성화 유지)
-          set(state => ({
+          set((state) => ({
             ...state,
             isSystemStarted: false,
             systemStartTime: null,
@@ -149,7 +149,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         if (isLocked && lockoutEndTime) {
           if (Date.now() >= lockoutEndTime) {
             // 잠금 해제
-            set(state => ({
+            set((state) => ({
               ...state,
               isLocked: false,
               lockoutEndTime: null,
@@ -210,7 +210,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
           // 비밀번호 검증
           if (password === ADMIN_PASSWORD) {
             // 관리자 인증 성공
-            set(state => ({
+            set((state) => ({
               ...state,
               attempts: 0,
               adminMode: {
@@ -236,7 +236,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
             if (newAttempts >= MAX_ATTEMPTS) {
               // 계정 잠금
               const lockoutEnd = Date.now() + LOCKOUT_DURATION;
-              set(state => ({
+              set((state) => ({
                 ...state,
                 attempts: newAttempts,
                 isLocked: true,
@@ -251,7 +251,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
               };
             } else {
               // 시도 횟수 증가
-              set(state => ({
+              set((state) => ({
                 ...state,
                 attempts: newAttempts,
               }));
@@ -275,7 +275,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
       // 관리자 로그아웃
       logoutAdmin: () => {
         try {
-          set(state => ({
+          set((state) => ({
             ...state,
             adminMode: {
               isAuthenticated: false,
@@ -304,7 +304,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
       // AI 에이전트 토글
       toggleAI: () => {
         try {
-          set(state => ({
+          set((state) => ({
             ...state,
             aiAgent: {
               ...state.aiAgent,
@@ -324,7 +324,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
 
       // 설정 패널 상태 관리
       setSettingsPanelOpen: (isOpen: boolean) => {
-        set(state => ({
+        set((state) => ({
           ...state,
           ui: {
             ...state.ui,
@@ -335,7 +335,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
     }),
     {
       name: 'unified-admin-storage',
-      partialize: state => ({
+      partialize: (state) => ({
         // AI 에이전트는 항상 활성화 상태이므로 저장하지 않음
         adminMode: state.adminMode, // 관리자 모드 상태만 저장
         attempts: state.attempts,

@@ -155,7 +155,7 @@ class RealtimeDataManager {
     const now = Date.now();
     let updatedCount = 0;
 
-    this.subscribers.forEach(subscriber => {
+    this.subscribers.forEach((subscriber) => {
       if (subscriber.frequency === frequency && subscriber.isVisible) {
         this.updateSubscriber(subscriber);
         subscriber.lastUpdate = now;
@@ -289,7 +289,7 @@ class RealtimeDataManager {
   public forceUpdate(dataType?: DataType): void {
     console.log(`🔄 강제 업데이트 실행: ${dataType || 'all'}`);
 
-    this.subscribers.forEach(subscriber => {
+    this.subscribers.forEach((subscriber) => {
       if (!dataType || subscriber.dataType === dataType) {
         this.updateSubscriber(subscriber);
       }

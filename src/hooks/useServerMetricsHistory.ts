@@ -26,7 +26,7 @@ export function useServerMetricsHistory(serverId: string) {
       disk: number;
       network: number;
     }) => {
-      setMetricsHistory(prevHistory => ({
+      setMetricsHistory((prevHistory) => ({
         cpu: [...prevHistory.cpu.slice(-MAX_HISTORY_LENGTH + 1), newData.cpu],
         memory: [
           ...prevHistory.memory.slice(-MAX_HISTORY_LENGTH + 1),

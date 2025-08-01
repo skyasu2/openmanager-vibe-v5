@@ -182,7 +182,7 @@ export const useServerData = (): UseServerDataReturn => {
   // 서버 필터링 함수
   const filterServers = useCallback(
     (servers: Server[], filters: ServerFilters): Server[] => {
-      return servers.filter(server => {
+      return servers.filter((server) => {
         // 상태 필터
         if (
           filters.status &&

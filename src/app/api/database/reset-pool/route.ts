@@ -6,7 +6,7 @@ async function resetConnectionPool(config?: any) {
   console.log('🔄 Resetting database connection pool...');
 
   // 시뮬레이션 지연
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   return {
     action: 'reset_pool',

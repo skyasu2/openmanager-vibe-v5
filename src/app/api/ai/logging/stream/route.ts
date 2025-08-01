@@ -185,7 +185,7 @@ export async function GET(request: NextRequest) {
               data: {
                 totalLogs: logBuffer.length,
                 errorRate:
-                  logBuffer.filter(l => l.level === 'error').length /
+                  logBuffer.filter((l) => l.level === 'error').length /
                   Math.max(logBuffer.length, 1),
                 avgProcessingTime: 350 + Math.random() * 200,
                 activeEngines: ['mcp', 'gemini', 'local'].filter(

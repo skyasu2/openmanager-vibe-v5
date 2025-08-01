@@ -16,23 +16,23 @@ import React, { useEffect, useState } from 'react';
 // 부드러운 로딩 인디케이터 컴포넌트
 const SmoothLoadingSpinner = () => {
   return (
-    <div className='relative w-20 h-20 mx-auto mb-8'>
+    <div className="relative mx-auto mb-8 h-20 w-20">
       {/* 외부 링 - 더 부드러운 애니메이션 */}
       <div
-        className='absolute inset-0 border-4 border-transparent border-t-blue-500 border-r-purple-500 rounded-full animate-spin'
+        className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-r-purple-500 border-t-blue-500"
         style={{ animationDuration: '3s' }}
       />
       {/* 내부 링 - 더 부드러운 애니메이션 */}
       <div
-        className='absolute inset-2 border-3 border-transparent border-b-purple-400 border-l-pink-400 rounded-full _animate-reverse-spin'
+        className="border-3 _animate-reverse-spin absolute inset-2 rounded-full border-transparent border-b-purple-400 border-l-pink-400"
         style={{ animationDuration: '2.5s' }}
       />
       {/* 중앙 아이콘 - 부드러운 펄스 */}
       <div
-        className='absolute inset-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center _animate-pulse'
+        className="_animate-pulse absolute inset-6 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600"
         style={{ animationDuration: '2s' }}
       >
-        <Monitor className='w-4 h-4 text-white' />
+        <Monitor className="h-4 w-4 text-white" />
       </div>
     </div>
   );
@@ -41,25 +41,25 @@ const SmoothLoadingSpinner = () => {
 // 진행률 바 컴포넌트
 const ProgressBar = ({ progress }: { progress: number }) => {
   return (
-    <div className='w-96 mx-auto mb-8 relative'>
+    <div className="relative mx-auto mb-8 w-96">
       {/* 진행률 라벨 */}
-      <div className='flex justify-between items-center mb-2'>
-        <span className='text-white/60 text-sm font-medium'>
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-sm font-medium text-white/60">
           시스템 로딩 진행률
         </span>
-        <span className='text-white/80 text-sm font-semibold'>
+        <span className="text-sm font-semibold text-white/80">
           {Math.round(progress)}%
         </span>
       </div>
 
       {/* 진행률 바 컨테이너 */}
-      <div className='bg-white/10 rounded-full h-4 border border-white/20 shadow-lg relative overflow-hidden'>
+      <div className="relative h-4 overflow-hidden rounded-full border border-white/20 bg-white/10 shadow-lg">
         {/* 배경 그라데이션 효과 */}
-        <div className='absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-full' />
+        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10" />
 
         {/* 메인 진행률 바 */}
         <div
-          className='h-full rounded-full relative overflow-hidden transition-all duration-700 ease-out'
+          className="relative h-full overflow-hidden rounded-full transition-all duration-700 ease-out"
           style={{
             width: `${progress}%`,
             background:
@@ -69,15 +69,15 @@ const ProgressBar = ({ progress }: { progress: number }) => {
           }}
         >
           {/* 진행률 바 내부 반짝임 효과 */}
-          <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent _animate-shimmer' />
+          <div className="_animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
 
           {/* 진행률 바 상단 하이라이트 */}
-          <div className='absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-white/30 via-white/50 to-white/30 rounded-full' />
+          <div className="absolute left-0 right-0 top-0 h-1 rounded-full bg-gradient-to-r from-white/30 via-white/50 to-white/30" />
         </div>
 
         {/* 진행률 포인터 - 부드러운 트랜지션 */}
         <div
-          className='absolute top-1/2 transform -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg border-2 border-blue-400 _animate-pulse transition-all duration-700 ease-out'
+          className="_animate-pulse absolute top-1/2 h-3 w-3 -translate-y-1/2 transform rounded-full border-2 border-blue-400 bg-white shadow-lg transition-all duration-700 ease-out"
           style={{ left: `${progress}%`, animationDuration: '1.5s' }}
         />
       </div>
@@ -263,7 +263,7 @@ export default function SystemBootClient() {
     }, 1000);
   };
 
-  const currentStageData = stages.find(s => s.name === currentStage) ||
+  const currentStageData = stages.find((s) => s.name === currentStage) ||
     stages[0] || {
       name: '초기화 중',
       delay: 500,
@@ -275,51 +275,51 @@ export default function SystemBootClient() {
   // 클라이언트 렌더링이 준비되지 않았으면 로딩 표시
   if (!isClient) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center'>
-        <div className='text-white'>Loading...</div>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+        <div className="text-white">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 relative overflow-hidden'>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
       {/* 첫페이지와 동일한 웨이브 파티클 배경 효과 */}
-      <div className='wave-particles'></div>
+      <div className="wave-particles"></div>
 
       {/* 부드러운 배경 오버레이 */}
-      <div className='absolute inset-0'>
-        <div className='absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl _animate-pulse' />
-        <div className='absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl _animate-pulse' />
-        <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-pink-500/5 rounded-full blur-3xl _animate-pulse' />
+      <div className="absolute inset-0">
+        <div className="_animate-pulse absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
+        <div className="_animate-pulse absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-purple-500/10 blur-3xl" />
+        <div className="_animate-pulse absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-pink-500/5 blur-3xl" />
       </div>
 
       {/* 메인 로딩 화면 */}
-      <div className='relative z-10 flex items-center justify-center min-h-screen'>
-        <div className='text-center max-w-2xl px-8'>
+      <div className="relative z-10 flex min-h-screen items-center justify-center">
+        <div className="max-w-2xl px-8 text-center">
           {/* 부드러운 로딩 스피너 */}
           <SmoothLoadingSpinner />
 
           {/* 제품 브랜드 */}
-          <h1 className='text-5xl font-bold mb-4'>
-            <span className='bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent'>
+          <h1 className="mb-4 text-5xl font-bold">
+            <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
               OpenManager
             </span>
           </h1>
 
           {/* 버전 정보 */}
-          <p className='text-xl text-white/80 mb-8 font-light'>
+          <p className="mb-8 text-xl font-light text-white/80">
             AI 기반 서버 모니터링
           </p>
 
           {/* 🎯 부드러운 아이콘 교체 시스템 - 현재 단계 아이콘 */}
-          <div className='relative w-20 h-20 mx-auto mb-6'>
-            <div className='absolute inset-0'>
-              <div className='w-full h-full rounded-2xl flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 text-white shadow-2xl'>
+          <div className="relative mx-auto mb-6 h-20 w-20">
+            <div className="absolute inset-0">
+              <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 text-white shadow-2xl">
                 {/* 아이콘 - 페이드 트랜지션 추가 */}
                 <div
                   className={`transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
                 >
-                  <CurrentIconComponent className='w-10 h-10' />
+                  <CurrentIconComponent className="h-10 w-10" />
                 </div>
               </div>
             </div>
@@ -327,14 +327,14 @@ export default function SystemBootClient() {
 
           {/* 현재 단계명 - 페이드 트랜지션 추가 */}
           <h2
-            className={`text-2xl font-semibold text-white mb-4 transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
+            className={`mb-4 text-2xl font-semibold text-white transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
           >
             {currentStage}
           </h2>
 
           {/* 단계 설명 - 페이드 트랜지션 추가 */}
           <p
-            className={`text-white/70 mb-8 font-light transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
+            className={`mb-8 font-light text-white/70 transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
           >
             {currentStageData.description}
           </p>
@@ -343,7 +343,7 @@ export default function SystemBootClient() {
           <ProgressBar progress={progress} />
 
           {/* 시스템 상태 아이콘들 */}
-          <div className='flex justify-center gap-6 mb-8'>
+          <div className="mb-8 flex justify-center gap-6">
             {[ServerIcon, Database, Brain, Cpu, Zap, CheckCircle].map(
               (Icon, index) => {
                 const isActive = index < Math.floor((progress / 100) * 6);
@@ -351,45 +351,45 @@ export default function SystemBootClient() {
                   index === Math.floor((progress / 100) * 6) - 1;
 
                 return (
-                  <div key={index} className='relative'>
+                  <div key={index} className="relative">
                     {/* 메인 아이콘 컨테이너 */}
                     <div
-                      className={`w-12 h-12 rounded-xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${
+                      className={`relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl transition-all duration-300 ${
                         isActive
                           ? 'bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 text-white shadow-lg'
-                          : 'bg-white/10 text-white/40 border border-white/20'
+                          : 'border border-white/20 bg-white/10 text-white/40'
                       }`}
                     >
                       {/* 아이콘 */}
                       <div
-                        className={`w-6 h-6 ${isActive ? 'text-white' : 'text-white/40'}`}
+                        className={`h-6 w-6 ${isActive ? 'text-white' : 'text-white/40'}`}
                       >
-                        <Icon className='w-6 h-6' />
+                        <Icon className="h-6 w-6" />
                       </div>
                     </div>
 
                     {/* 글로우 효과 */}
                     {isActive && (
-                      <div className='absolute inset-0 bg-gradient-to-br from-blue-500/20 via-purple-600/20 to-pink-500/20 rounded-xl blur-lg' />
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/20 via-purple-600/20 to-pink-500/20 blur-lg" />
                     )}
 
                     {/* 현재 단계 펄스 효과 */}
                     {isCurrentStep && (
-                      <div className='absolute inset-0 border-2 border-white/50 rounded-xl _animate-pulse' />
+                      <div className="_animate-pulse absolute inset-0 rounded-xl border-2 border-white/50" />
                     )}
 
                     {/* 완료 체크 마크 */}
                     {isActive &&
                       index < Math.floor((progress / 100) * 6) - 1 && (
-                        <div className='absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center'>
-                          <CheckCircle className='w-3 h-3 text-white' />
+                        <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500">
+                          <CheckCircle className="h-3 w-3 text-white" />
                         </div>
                       )}
 
                     {/* 연결선 */}
                     {index < 5 && (
                       <div
-                        className='absolute top-1/2 -right-3 w-6 h-0.5 bg-gradient-to-r from-white/30 to-transparent'
+                        className="absolute -right-3 top-1/2 h-0.5 w-6 bg-gradient-to-r from-white/30 to-transparent"
                         style={{ transformOrigin: 'left' }}
                       />
                     )}
@@ -400,12 +400,12 @@ export default function SystemBootClient() {
           </div>
 
           {/* 하단 상태 메시지 */}
-          <div className='text-white/50 text-sm font-light'>
+          <div className="text-sm font-light text-white/50">
             <p>
               잠시만 기다려주세요. 최고의 모니터링 경험을 준비하고 있습니다.
             </p>
             {bootState === 'completed' && (
-              <p className='text-green-400 mt-2 _animate-pulse'>
+              <p className="_animate-pulse mt-2 text-green-400">
                 🎉 시스템 준비 완료! 대시보드로 이동 중...
               </p>
             )}

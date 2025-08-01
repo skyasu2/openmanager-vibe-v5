@@ -154,7 +154,9 @@ export class PerformanceTester {
     const oneSecondAgo = now - 1000;
 
     // 최근 1초간의 요청 수 계산
-    const recentRequests = this.metrics.filter(m => m.timestamp > oneSecondAgo);
+    const recentRequests = this.metrics.filter(
+      (m) => m.timestamp > oneSecondAgo
+    );
     return recentRequests.length;
   }
 
@@ -277,7 +279,7 @@ export class PerformanceTester {
       }
 
       // 요청 간격 조절
-      await new Promise(resolve => setTimeout(resolve, requestInterval));
+      await new Promise((resolve) => setTimeout(resolve, requestInterval));
     }
   }
 
@@ -320,7 +322,7 @@ export class PerformanceTester {
     }
 
     // Redis 성능 분석
-    const redisMetrics = metrics.filter(m => m.redisMetrics?.connected);
+    const redisMetrics = metrics.filter((m) => m.redisMetrics?.connected);
     if (redisMetrics.length > 0) {
       const avgRedisResponseTime =
         redisMetrics.reduce(
@@ -422,7 +424,7 @@ export class PerformanceTester {
 - **처리량**: ${summary.throughput.toFixed(1)} req/s
 
 ## 💡 최적화 권장사항
-${recommendations.map(rec => `- ${rec}`).join('\n')}
+${recommendations.map((rec) => `- ${rec}`).join('\n')}
 
 ## 📈 성능 등급
 ${this.calculatePerformanceGrade(summary)}

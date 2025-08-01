@@ -109,7 +109,7 @@ class TimerManager {
     runCount: number;
     uptime: number;
   }> {
-    return Array.from(this.timers.values()).map(timer => ({
+    return Array.from(this.timers.values()).map((timer) => ({
       id: timer.id,
       interval: timer.interval,
       priority: timer.priority,

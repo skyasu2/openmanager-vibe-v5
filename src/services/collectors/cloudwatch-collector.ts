@@ -506,7 +506,7 @@ export class CloudWatchCollector implements MetricCollector {
   private getEnvironmentFromTags(
     tags: any[]
   ): 'production' | 'staging' | 'development' {
-    const envTag = tags.find(tag => tag.Key.toLowerCase() === 'environment');
+    const envTag = tags.find((tag) => tag.Key.toLowerCase() === 'environment');
     const env = envTag?.Value?.toLowerCase();
 
     if (env === 'production' || env === 'prod') return 'production';

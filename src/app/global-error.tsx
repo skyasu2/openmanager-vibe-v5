@@ -44,61 +44,61 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   return (
     <html>
       <body>
-        <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-red-900 via-gray-900 to-red-900'>
-          <div className='text-center space-y-6 p-8 max-w-md mx-auto'>
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-900 via-gray-900 to-red-900">
+          <div className="mx-auto max-w-md space-y-6 p-8 text-center">
             {/* 에러 아이콘 */}
-            <div className='flex justify-center'>
-              <div className='w-20 h-20 rounded-full bg-red-600/20 flex items-center justify-center'>
+            <div className="flex justify-center">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-600/20">
                 <svg
-                  className='w-10 h-10 text-red-400'
-                  fill='none'
-                  stroke='currentColor'
-                  viewBox='0 0 24 24'
+                  className="h-10 w-10 text-red-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
                   <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     strokeWidth={2}
-                    d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 19c-.77.833.192 2.5 1.732 2.5z'
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 19c-.77.833.192 2.5 1.732 2.5z"
                   />
                 </svg>
               </div>
             </div>
 
             {/* 에러 정보 */}
-            <div className='space-y-2'>
-              <h1 className='text-4xl font-bold text-white'>500</h1>
-              <h2 className='text-xl font-semibold text-red-300'>
+            <div className="space-y-2">
+              <h1 className="text-4xl font-bold text-white">500</h1>
+              <h2 className="text-xl font-semibold text-red-300">
                 서버 오류 발생
               </h2>
-              <p className='text-gray-400 text-sm'>
+              <p className="text-sm text-gray-400">
                 예상치 못한 오류가 발생했습니다. 문제가 자동으로 보고되었습니다.
               </p>
             </div>
 
             {/* 에러 세부사항 (개발 환경에서만) */}
             {envManager.isDevelopment && (
-              <div className='bg-gray-800/50 rounded-lg p-4 text-left'>
-                <h3 className='text-sm font-semibold text-red-400 mb-2'>
+              <div className="rounded-lg bg-gray-800/50 p-4 text-left">
+                <h3 className="mb-2 text-sm font-semibold text-red-400">
                   개발 모드 에러 정보:
                 </h3>
-                <div className='text-xs text-gray-300 space-y-1'>
+                <div className="space-y-1 text-xs text-gray-300">
                   <p>
-                    <span className='text-red-400'>메시지:</span>{' '}
+                    <span className="text-red-400">메시지:</span>{' '}
                     {error.message}
                   </p>
                   {error.digest && (
                     <p>
-                      <span className='text-red-400'>Digest:</span>{' '}
+                      <span className="text-red-400">Digest:</span>{' '}
                       {error.digest}
                     </p>
                   )}
                   <p>
-                    <span className='text-red-400'>환경:</span>{' '}
+                    <span className="text-red-400">환경:</span>{' '}
                     {envManager.environment}
                   </p>
                   <p>
-                    <span className='text-red-400'>플랫폼:</span>{' '}
+                    <span className="text-red-400">플랫폼:</span>{' '}
                     {envManager.platform}
                   </p>
                 </div>
@@ -106,36 +106,36 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             )}
 
             {/* 액션 버튼들 */}
-            <div className='space-y-3'>
-              <div className='flex flex-col sm:flex-row gap-3 justify-center'>
+            <div className="space-y-3">
+              <div className="flex flex-col justify-center gap-3 sm:flex-row">
                 <button
                   onClick={reset}
-                  className='px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium'
+                  className="rounded-lg bg-red-600 px-6 py-3 font-medium text-white transition-colors hover:bg-red-700"
                 >
                   다시 시도
                 </button>
                 <Link
-                  href='/main'
-                  className='px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium inline-block text-center'
+                  href="/main"
+                  className="inline-block rounded-lg bg-gray-600 px-6 py-3 text-center font-medium text-white transition-colors hover:bg-gray-700"
                 >
                   홈으로 돌아가기
                 </Link>
               </div>
 
               <Link
-                href='/main'
-                className='text-sm text-blue-400 hover:text-blue-300 transition-colors'
+                href="/main"
+                className="text-sm text-blue-400 transition-colors hover:text-blue-300"
               >
                 메인으로 이동 →
               </Link>
             </div>
 
             {/* 추가 도움말 */}
-            <div className='text-xs text-gray-500 space-y-1'>
+            <div className="space-y-1 text-xs text-gray-500">
               <p>문제가 지속되면 브라우저를 새로고침하거나</p>
               <p>잠시 후 다시 시도해주세요.</p>
               {envManager.isProduction && (
-                <p className='text-gray-600'>
+                <p className="text-gray-600">
                   에러 ID: {error.digest || 'N/A'}
                 </p>
               )}

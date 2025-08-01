@@ -27,15 +27,16 @@ import { ServerCardBarChart } from '../shared/ServerMetricsBarChart';
 
 // framer-motion을 동적 import로 처리
 const MotionButton = dynamic(
-  () => import('framer-motion').then(mod => ({ default: mod.motion.button })),
+  () => import('framer-motion').then((mod) => ({ default: mod.motion.button })),
   { ssr: false }
 );
 const MotionDiv = dynamic(
-  () => import('framer-motion').then(mod => ({ default: mod.motion.div })),
+  () => import('framer-motion').then((mod) => ({ default: mod.motion.div })),
   { ssr: false }
 );
 const AnimatePresence = dynamic(
-  () => import('framer-motion').then(mod => ({ default: mod.AnimatePresence })),
+  () =>
+    import('framer-motion').then((mod) => ({ default: mod.AnimatePresence })),
   { ssr: false }
 );
 
@@ -70,7 +71,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
 
       const interval = setInterval(
         () => {
-          setRealtimeMetrics(prev => ({
+          setRealtimeMetrics((prev) => ({
             // 더 안정적인 변화량으로 조정 (기존 10 → 3)
             cpu: Math.max(
               0,
@@ -117,7 +118,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
             border: 'border-green-200',
             hoverBorder: 'hover:border-green-300',
             statusColor: 'text-green-700 bg-green-100',
-            statusIcon: <CheckCircle2 className='w-4 h-4' />,
+            statusIcon: <CheckCircle2 className="h-4 w-4" />,
             statusText: '정상',
             pulse: 'bg-green-400',
             accent: 'text-green-600',
@@ -128,7 +129,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
             border: 'border-amber-200',
             hoverBorder: 'hover:border-amber-300',
             statusColor: 'text-amber-700 bg-amber-100',
-            statusIcon: <AlertCircle className='w-4 h-4' />,
+            statusIcon: <AlertCircle className="h-4 w-4" />,
             statusText: '경고',
             pulse: 'bg-amber-400',
             accent: 'text-amber-600',
@@ -139,7 +140,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
             border: 'border-red-200',
             hoverBorder: 'hover:border-red-300',
             statusColor: 'text-red-700 bg-red-100',
-            statusIcon: <AlertCircle className='w-4 h-4' />,
+            statusIcon: <AlertCircle className="h-4 w-4" />,
             statusText: '오프라인',
             pulse: 'bg-red-400',
             accent: 'text-red-600',
@@ -151,7 +152,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
             border: 'border-green-200',
             hoverBorder: 'hover:border-green-300',
             statusColor: 'text-green-700 bg-green-100',
-            statusIcon: <CheckCircle2 className='w-4 h-4' />,
+            statusIcon: <CheckCircle2 className="h-4 w-4" />,
             statusText: '정상',
             pulse: 'bg-green-400',
             accent: 'text-green-600',
@@ -163,16 +164,16 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
     const getServerIcon = () => {
       switch (server.type) {
         case 'web':
-          return <Globe className='w-5 h-5' />;
+          return <Globe className="h-5 w-5" />;
         case 'database':
-          return <Database className='w-5 h-5' />;
+          return <Database className="h-5 w-5" />;
         case 'storage':
-          return <HardDrive className='w-5 h-5' />;
+          return <HardDrive className="h-5 w-5" />;
         case 'backup':
-          return <Archive className='w-5 h-5' />;
+          return <Archive className="h-5 w-5" />;
         case 'app':
         default:
-          return <Server className='w-5 h-5' />;
+          return <Server className="h-5 w-5" />;
       }
     };
 
@@ -186,7 +187,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
         os.includes('linux')
       ) {
         return (
-          <span className='text-base' title={server.os}>
+          <span className="text-base" title={server.os}>
             🐧
           </span>
         );
@@ -196,13 +197,13 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
         os.includes('rhel')
       ) {
         return (
-          <span className='text-base' title={server.os}>
+          <span className="text-base" title={server.os}>
             🎩
           </span>
         );
       } else if (os.includes('windows')) {
         return (
-          <span className='text-base' title={server.os}>
+          <span className="text-base" title={server.os}>
             🪟
           </span>
         );
@@ -307,7 +308,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
 
     return (
       <MotionButton
-        type='button'
+        type="button"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
@@ -317,14 +318,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
           stiffness: 260,
           damping: 20,
         }}
-        className={`
-          relative cursor-pointer rounded-xl border-2 transition-all duration-300
-          ${getStatusTheme().cardBg} ${getStatusTheme().border} ${getStatusTheme().hoverBorder}
-          ${getVariantStyles().container}
-          hover:shadow-lg hover:shadow-black/5
-          group overflow-hidden
-          text-left w-full
-        `}
+        className={`relative cursor-pointer rounded-xl border-2 transition-all duration-300 ${getStatusTheme().cardBg} ${getStatusTheme().border} ${getStatusTheme().hoverBorder} ${getVariantStyles().container} group w-full overflow-hidden text-left hover:shadow-lg hover:shadow-black/5`}
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -332,7 +326,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
       >
         {/* 실시간 활동 인디케이터 */}
         {showRealTimeUpdates && (
-          <div className='absolute top-3 right-3 z-10'>
+          <div className="absolute right-3 top-3 z-10">
             <MotionDiv
               animate={{
                 scale: [1, 1.3, 1],
@@ -343,37 +337,37 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
                 repeat: Infinity,
                 ease: 'easeInOut',
               }}
-              className={`w-2 h-2 ${getStatusTheme().pulse} rounded-full shadow-lg`}
+              className={`h-2 w-2 ${getStatusTheme().pulse} rounded-full shadow-lg`}
             />
           </div>
         )}
 
         {/* 헤더 */}
-        <div className='flex justify-between items-start mb-4'>
-          <div className='flex items-center gap-3 flex-1 min-w-0'>
+        <div className="mb-4 flex items-start justify-between">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <MotionDiv
-              className={`p-2.5 rounded-lg ${getStatusTheme().statusColor} shadow-sm`}
+              className={`rounded-lg p-2.5 ${getStatusTheme().statusColor} shadow-sm`}
               whileHover={{ rotate: 5, scale: 1.1 }}
               transition={{ duration: 0.2 }}
             >
               {getServerIcon()}
             </MotionDiv>
-            <div className='flex-1 min-w-0'>
-              <div className='flex items-center gap-2 mb-1'>
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex items-center gap-2">
                 <h3
-                  className={`${getVariantStyles().titleSize} text-gray-900 truncate`}
+                  className={`${getVariantStyles().titleSize} truncate text-gray-900`}
                 >
                   {server.name}
                 </h3>
                 {getOSIcon()}
               </div>
-              <div className='flex items-center gap-2 text-xs text-gray-500'>
-                <MapPin className='w-3 h-3' />
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <MapPin className="h-3 w-3" />
                 <span>{server.location || 'Seoul DC1'}</span>
                 {getVariantStyles().showDetails && (
                   <>
                     <span>•</span>
-                    <Clock className='w-3 h-3' />
+                    <Clock className="h-3 w-3" />
                     <span>{server.uptime}</span>
                   </>
                 )}
@@ -382,12 +376,12 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
           </div>
 
           <MotionDiv
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${getStatusTheme().statusColor} shadow-sm`}
+            className={`flex items-center gap-2 rounded-full px-3 py-1.5 ${getStatusTheme().statusColor} shadow-sm`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             {getStatusTheme().statusIcon}
-            <span className='text-xs font-semibold'>
+            <span className="text-xs font-semibold">
               {getStatusTheme().statusText}
             </span>
           </MotionDiv>
@@ -396,27 +390,27 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
         {/* 메트릭 섹션 - 막대 그래프로 최근 5분간 데이터 표시 */}
         <div className={`grid grid-cols-2 gap-4 ${getVariantStyles().spacing}`}>
           <ServerCardBarChart
-            label='CPU'
+            label="CPU"
             value={realtimeMetrics.cpu}
-            type='cpu'
+            type="cpu"
             showRealTimeUpdates={showRealTimeUpdates}
           />
           <ServerCardBarChart
-            label='메모리'
+            label="메모리"
             value={realtimeMetrics.memory}
-            type='memory'
+            type="memory"
             showRealTimeUpdates={showRealTimeUpdates}
           />
           <ServerCardBarChart
-            label='디스크'
+            label="디스크"
             value={realtimeMetrics.disk}
-            type='disk'
+            type="disk"
             showRealTimeUpdates={showRealTimeUpdates}
           />
           <ServerCardBarChart
-            label='네트워크'
+            label="네트워크"
             value={realtimeMetrics.network}
-            type='network'
+            type="network"
             showRealTimeUpdates={showRealTimeUpdates}
           />
         </div>
@@ -425,25 +419,25 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
         {getVariantStyles().showServices &&
           server.services &&
           server.services.length > 0 && (
-            <div className='mt-4'>
-              <div className='flex flex-wrap gap-2'>
+            <div className="mt-4">
+              <div className="flex flex-wrap gap-2">
                 {server.services
                   .slice(0, getVariantStyles().maxServices)
                   .map((service, idx) => (
                     <MotionDiv
                       key={idx}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium shadow-sm border transition-colors ${
+                      className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium shadow-sm transition-colors ${
                         service.status === 'running'
-                          ? 'bg-green-50 text-green-700 border-green-200'
+                          ? 'border-green-200 bg-green-50 text-green-700'
                           : service.status === 'stopped'
-                            ? 'bg-red-50 text-red-700 border-red-200'
-                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                            ? 'border-red-200 bg-red-50 text-red-700'
+                            : 'border-amber-200 bg-amber-50 text-amber-700'
                       }`}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       <div
-                        className={`w-1.5 h-1.5 rounded-full ${
+                        className={`h-1.5 w-1.5 rounded-full ${
                           service.status === 'running'
                             ? 'bg-green-500'
                             : service.status === 'stopped'
@@ -455,7 +449,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
                     </MotionDiv>
                   ))}
                 {server.services.length > getVariantStyles().maxServices && (
-                  <div className='flex items-center px-2.5 py-1 text-xs text-gray-500 bg-gray-100 rounded-lg'>
+                  <div className="flex items-center rounded-lg bg-gray-100 px-2.5 py-1 text-xs text-gray-500">
                     +{server.services.length - getVariantStyles().maxServices}{' '}
                     more
                   </div>
@@ -471,14 +465,14 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className='absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-xl pointer-events-none'
+              className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/5 to-purple-500/5"
             />
           )}
         </AnimatePresence>
 
         {/* 클릭 효과 */}
         <MotionDiv
-          className='absolute inset-0 bg-blue-500/10 rounded-xl opacity-0'
+          className="absolute inset-0 rounded-xl bg-blue-500/10 opacity-0"
           whileTap={{ opacity: 1 }}
           transition={{ duration: 0.1 }}
         />

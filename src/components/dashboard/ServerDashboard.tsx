@@ -60,9 +60,9 @@ export default function ServerDashboard({
 
   if (!isClient) {
     return (
-      <div className='flex items-center justify-center h-64'>
-        <Loader2 className='mx-auto h-12 w-12 animate-spin text-blue-600' />
-        <p className='mt-2'>대시보드 로딩 중...</p>
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="mx-auto h-12 w-12 animate-spin text-blue-600" />
+        <p className="mt-2">대시보드 로딩 중...</p>
       </div>
     );
   }
@@ -111,7 +111,7 @@ export default function ServerDashboard({
     const startIndex = (currentPage - 1) * pageSize + 1;
     const endIndex = Math.min(currentPage * pageSize, servers.length);
     const totalServers = servers.length;
-    
+
     return { pageSize, startIndex, endIndex, totalServers };
   }, [servers.length, totalPages, currentPage]);
 
@@ -123,49 +123,50 @@ export default function ServerDashboard({
         stats={serverStats}
       /> */}
 
-      <div className='mt-6'>
+      <div className="mt-6">
         {activeTab === 'servers' && (
-          <div className='space-y-4'>
+          <div className="space-y-4">
             {/* 📊 페이지네이션 정보 헤더 */}
             {totalPages > 1 && (
-              <div className='bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6'>
-                <div className='flex items-center justify-between'>
-                  <div className='flex items-center gap-3'>
-                    <div className='text-blue-600'>
+              <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="text-blue-600">
                       <svg
-                        className='w-5 h-5'
-                        fill='none'
-                        stroke='currentColor'
-                        viewBox='0 0 24 24'
+                        className="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                       >
                         <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                           strokeWidth={2}
-                          d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                         />
                       </svg>
                     </div>
                     <div>
-                      <p className='text-blue-900 font-medium'>
-                        전체 {paginationInfo.totalServers}개 서버 중 {paginationInfo.startIndex}-{paginationInfo.endIndex}
+                      <p className="font-medium text-blue-900">
+                        전체 {paginationInfo.totalServers}개 서버 중{' '}
+                        {paginationInfo.startIndex}-{paginationInfo.endIndex}
                         번째 표시
                       </p>
-                      <p className='text-blue-700 text-sm'>
-                        {paginationInfo.pageSize}개씩 페이지네이션 • {currentPage}/{totalPages}{' '}
-                        페이지
+                      <p className="text-sm text-blue-700">
+                        {paginationInfo.pageSize}개씩 페이지네이션 •{' '}
+                        {currentPage}/{totalPages} 페이지
                       </p>
                     </div>
                   </div>
-                  <div className='flex items-center gap-3'>
+                  <div className="flex items-center gap-3">
                     {/* 페이지 크기 선택 */}
-                    <div className='flex items-center gap-2'>
-                      <span className='text-blue-700 text-sm'>표시 개수:</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-blue-700">표시 개수:</span>
                       <select
                         value={paginationInfo.pageSize}
-                        onChange={e => changePageSize(Number(e.target.value))}
-                        className='text-blue-700 bg-blue-100 border border-blue-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-                        aria-label='페이지당 표시할 서버 개수 선택'
+                        onChange={(e) => changePageSize(Number(e.target.value))}
+                        className="rounded border border-blue-300 bg-blue-100 px-2 py-1 text-sm text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        aria-label="페이지당 표시할 서버 개수 선택"
                       >
                         <option value={4}>4개씩</option>
                         <option value={6}>6개씩</option>
@@ -174,8 +175,9 @@ export default function ServerDashboard({
                         <option value={15}>모두 보기</option>
                       </select>
                     </div>
-                    <div className='text-blue-600 text-sm font-mono bg-blue-100 px-3 py-1 rounded-full'>
-                      {paginationInfo.startIndex}-{paginationInfo.endIndex} / {paginationInfo.totalServers}
+                    <div className="rounded-full bg-blue-100 px-3 py-1 font-mono text-sm text-blue-600">
+                      {paginationInfo.startIndex}-{paginationInfo.endIndex} /{' '}
+                      {paginationInfo.totalServers}
                     </div>
                   </div>
                 </div>
@@ -183,7 +185,7 @@ export default function ServerDashboard({
             )}
 
             {/* 🎯 15개 서버 최적화 그리드 레이아웃 - ImprovedServerCard 사용 */}
-            <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {sortedServers.map((server, index) => (
                 <ImprovedServerCard
                   key={server.id}
@@ -204,7 +206,7 @@ export default function ServerDashboard({
                     lastUpdate: server.lastUpdate || new Date(),
                     services: server.services || [],
                   }}
-                  variant='compact'
+                  variant="compact"
                   showRealTimeUpdates={true}
                   index={index}
                   onClick={() => handleServerSelect(server)}
@@ -217,24 +219,24 @@ export default function ServerDashboard({
       </div>
 
       {totalPages > 1 && activeTab === 'servers' && (
-        <div className='mt-8 flex justify-center'>
+        <div className="mt-8 flex justify-center">
           <Pagination>
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
-                  href='#'
-                  onClick={e => {
+                  href="#"
+                  onClick={(e) => {
                     e.preventDefault();
-                    setCurrentPage(p => Math.max(1, p - 1));
+                    setCurrentPage((p) => Math.max(1, p - 1));
                   }}
                 />
               </PaginationItem>
               {[...Array(totalPages)].map((_, i) => (
                 <PaginationItem key={i}>
                   <PaginationLink
-                    href='#'
+                    href="#"
                     isActive={currentPage === i + 1}
-                    onClick={e => {
+                    onClick={(e) => {
                       e.preventDefault();
                       setCurrentPage(i + 1);
                     }}
@@ -245,10 +247,10 @@ export default function ServerDashboard({
               ))}
               <PaginationItem>
                 <PaginationNext
-                  href='#'
-                  onClick={e => {
+                  href="#"
+                  onClick={(e) => {
                     e.preventDefault();
-                    setCurrentPage(p => Math.min(totalPages, p + 1));
+                    setCurrentPage((p) => Math.min(totalPages, p + 1));
                   }}
                 />
               </PaginationItem>

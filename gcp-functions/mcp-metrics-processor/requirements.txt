@@ -1,0 +1,39 @@
+# GCP Functions MCP 메트릭 처리기 의존성
+# Python 3.11 최적화, 무료 티어 제약 고려
+
+# === Core Dependencies ===
+functions-framework==3.5.0      # GCP Functions 프레임워크
+flask==3.0.0                     # HTTP 서버 (functions-framework 의존성)
+
+# === HTTP & Async ===
+aiohttp==3.9.1                   # 비동기 HTTP 클라이언트
+asyncio-throttle==1.0.2          # 비동기 요청 제한
+
+# === Data Processing ===
+pydantic==2.5.2                  # 데이터 검증 및 직렬화 (선택적)
+dataclasses-json==0.6.3          # 데이터클래스 JSON 직렬화
+
+# === System Monitoring ===
+psutil==5.9.6                    # 시스템 리소스 모니터링
+
+# === Utilities ===
+python-dateutil==2.8.2           # 날짜/시간 처리
+typing-extensions==4.9.0         # 타입 힌트 확장
+
+# === Development & Testing (로컬 테스트용) ===
+pytest==7.4.3                    # 테스트 프레임워크
+pytest-asyncio==0.21.1           # 비동기 테스트 지원
+pytest-cov==4.1.0                # 커버리지 측정
+httpx==0.25.2                    # 테스트용 HTTP 클라이언트
+
+# === Performance Optimization ===
+# 메모리 사용량 최적화를 위해 무거운 라이브러리 제외
+# numpy, pandas 등은 제외 (메모리 256MB 제한)
+
+# === Security ===
+# 민감한 정보 처리 시 필요한 경우에만 사용
+cryptography==41.0.7             # 암호화 (필요시)
+
+# === Monitoring (선택적) ===
+# google-cloud-monitoring==2.16.0  # GCP 모니터링 (필요시)
+# google-cloud-logging==3.8.0      # GCP 로깅 (필요시)

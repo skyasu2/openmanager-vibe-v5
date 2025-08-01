@@ -293,7 +293,7 @@ export function UnifiedSettingsPanel({
   const handleAIOptimization = async () => {
     try {
       info('AI 최적화', 'AI 시스템 성능 최적화를 진행하고 있습니다...');
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       success('최적화 완료', '🤖 AI 시스템이 성공적으로 최적화되었습니다!', {
         duration: 5000,
         persistent: true,
@@ -306,7 +306,7 @@ export function UnifiedSettingsPanel({
   const handleSystemDiagnosis = async () => {
     try {
       info('시스템 진단', '종합적인 시스템 상태 분석을 진행하고 있습니다...');
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       success('진단 완료', '🔍 시스템이 최적 상태로 운영되고 있습니다!', {
         duration: 3000,
         persistent: false,
@@ -320,7 +320,7 @@ export function UnifiedSettingsPanel({
   const handleOptimizationRun = async () => {
     try {
       info('optimization-section', '⚡ 시스템 최적화를 시작합니다...');
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
       success('optimization-section', '🚀 시스템 최적화가 완료되었습니다!');
     } catch (err) {
       error('optimization-section', '최적화 실행 중 오류가 발생했습니다.');
@@ -330,7 +330,7 @@ export function UnifiedSettingsPanel({
   const handlePerformanceAnalysis = async () => {
     try {
       info('optimization-section', '📊 성능 분석을 시작합니다...');
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       success('optimization-section', '✅ 성능 분석이 완료되었습니다!');
     } catch (err) {
       error('optimization-section', '성능 분석 중 오류가 발생했습니다.');
@@ -340,7 +340,7 @@ export function UnifiedSettingsPanel({
   const handleCacheOptimization = async () => {
     try {
       info('optimization-section', '🔧 캐시 최적화를 시작합니다...');
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       success('optimization-section', '💾 캐시 최적화가 완료되었습니다!');
     } catch (err) {
       error('optimization-section', '캐시 최적화 중 오류가 발생했습니다.');
@@ -352,7 +352,7 @@ export function UnifiedSettingsPanel({
     switch (activeTab) {
       case 'ai':
         return (
-          <div className='p-4 text-center text-gray-600'>
+          <div className="p-4 text-center text-gray-600">
             🚀 AI 설정은 GCP Functions로 이관되었습니다
           </div>
         );
@@ -421,10 +421,10 @@ export function UnifiedSettingsPanel({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className='fixed inset-0 bg-black/70 z-[9998]'
+            className="fixed inset-0 z-[9998] bg-black/70"
             onClick={onClose}
-            role='button'
-            aria-label='설정 패널 닫기'
+            role="button"
+            aria-label="설정 패널 닫기"
           />
 
           {/* 설정 패널 - 프로필 버튼 근처에 배치 */}
@@ -434,42 +434,39 @@ export function UnifiedSettingsPanel({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: -20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className='fixed w-[min(95vw,800px)] h-[min(95vh,700px)] 
-                       min-w-[320px] min-h-[400px] max-w-4xl max-h-[95vh]
-                       bg-gray-900/95 backdrop-blur-xl border border-white/20 
-                       rounded-2xl shadow-2xl z-[10000] flex flex-col overflow-hidden'
+            className="fixed z-[10000] flex h-[min(95vh,700px)] max-h-[95vh] min-h-[400px] w-[min(95vw,800px)] min-w-[320px] max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-gray-900/95 shadow-2xl backdrop-blur-xl"
             style={{
               top: `${modalPosition.top}px`,
               left: `${modalPosition.left}px`,
             }}
-            role='dialog'
-            aria-modal='true'
-            aria-labelledby='settings-panel-title'
-            data-testid='unified-settings-modal'
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="settings-panel-title"
+            data-testid="unified-settings-modal"
           >
             {/* 헤더 */}
-            <header className='flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0'>
+            <header className="flex flex-shrink-0 items-center justify-between border-b border-white/10 p-4">
               <h2
-                id='settings-panel-title'
-                className='text-xl font-bold text-white flex items-center gap-2'
+                id="settings-panel-title"
+                className="flex items-center gap-2 text-xl font-bold text-white"
               >
-                <Settings className='w-6 h-6' />
+                <Settings className="h-6 w-6" />
                 설정
               </h2>
               <motion.button
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onClose}
-                className='p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10'
-                aria-label='Close settings panel'
+                className="rounded-full p-2 text-gray-400 hover:bg-white/10 hover:text-white"
+                aria-label="Close settings panel"
               >
-                <X className='w-5 h-5' />
+                <X className="h-5 w-5" />
               </motion.button>
             </header>
 
             {/* 탭 네비게이션 */}
-            <nav className='flex-shrink-0 p-4 border-b border-white/10'>
-              <div className='flex items-center justify-around bg-gray-800/50 p-1 rounded-lg overflow-x-auto'>
+            <nav className="flex-shrink-0 border-b border-white/10 p-4">
+              <div className="flex items-center justify-around overflow-x-auto rounded-lg bg-gray-800/50 p-1">
                 {(
                   [
                     ['ai', 'AI', Bot],
@@ -482,7 +479,7 @@ export function UnifiedSettingsPanel({
                   <button
                     key={tabKey}
                     onClick={() => setActiveTab(tabKey)}
-                    className={`relative flex-shrink-0 px-3 py-2 text-sm font-medium rounded-md transition-colors min-w-0 ${
+                    className={`relative min-w-0 flex-shrink-0 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                       activeTab === tabKey
                         ? 'text-white'
                         : 'text-gray-400 hover:text-white'
@@ -490,8 +487,8 @@ export function UnifiedSettingsPanel({
                   >
                     {activeTab === tabKey && (
                       <motion.div
-                        layoutId='active-tab-indicator'
-                        className='absolute inset-0 bg-purple-500/30 rounded-md z-0'
+                        layoutId="active-tab-indicator"
+                        className="absolute inset-0 z-0 rounded-md bg-purple-500/30"
                         transition={{
                           type: 'spring',
                           damping: 20,
@@ -499,9 +496,9 @@ export function UnifiedSettingsPanel({
                         }}
                       />
                     )}
-                    <div className='relative z-10 flex items-center justify-center gap-1 sm:gap-2'>
-                      <Icon className='w-4 h-4 flex-shrink-0' />
-                      <span className='truncate'>{tabName}</span>
+                    <div className="relative z-10 flex items-center justify-center gap-1 sm:gap-2">
+                      <Icon className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">{tabName}</span>
                     </div>
                   </button>
                 ))}
@@ -509,8 +506,8 @@ export function UnifiedSettingsPanel({
             </nav>
 
             {/* 탭 콘텐츠 */}
-            <main className='flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800'>
-              <AnimatePresence mode='wait'>
+            <main className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800 flex-1 overflow-y-auto p-4">
+              <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
                   initial={{ opacity: 0, y: 10 }}
@@ -524,12 +521,12 @@ export function UnifiedSettingsPanel({
             </main>
 
             {/* 피드백 컨테이너 */}
-            <footer className='p-4 border-t border-white/10 flex-shrink-0'>
-              <InlineFeedbackContainer area='auth-section' />
-              <InlineFeedbackContainer area='generator-section' />
-              <InlineFeedbackContainer area='monitor-section' />
-              <InlineFeedbackContainer area='optimization-section' />
-              <InlineFeedbackContainer area='general-section' />
+            <footer className="flex-shrink-0 border-t border-white/10 p-4">
+              <InlineFeedbackContainer area="auth-section" />
+              <InlineFeedbackContainer area="generator-section" />
+              <InlineFeedbackContainer area="monitor-section" />
+              <InlineFeedbackContainer area="optimization-section" />
+              <InlineFeedbackContainer area="general-section" />
             </footer>
           </motion.div>
         </>

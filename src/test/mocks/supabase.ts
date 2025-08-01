@@ -54,9 +54,9 @@ vi.mock('@supabase/supabase-js', () => ({
               }
               return Promise.resolve(result).then(callback);
             }),
-            single: vi.fn(() => 
+            single: vi.fn(() =>
               Promise.resolve(
-                tableName === 'command_vectors' 
+                tableName === 'command_vectors'
                   ? createMockResponse(mockVectorDocuments[0])
                   : createMockResponse(mockStats)
               )
@@ -83,12 +83,16 @@ vi.mock('@supabase/supabase-js', () => ({
                 single: vi.fn(() =>
                   Promise.resolve(createMockResponse(mockVectorDocuments[0]))
                 ),
-                then: vi.fn((callback) => 
-                  Promise.resolve(createMockResponse([mockVectorDocuments[0]])).then(callback)
+                then: vi.fn((callback) =>
+                  Promise.resolve(
+                    createMockResponse([mockVectorDocuments[0]])
+                  ).then(callback)
                 ),
               };
             }
-            return Promise.resolve(createMockResponse(mockVectorDocuments.slice(0, count)));
+            return Promise.resolve(
+              createMockResponse(mockVectorDocuments.slice(0, count))
+            );
           }
 
           // knowledge_base_stats 테이블 조회 시
@@ -97,7 +101,7 @@ vi.mock('@supabase/supabase-js', () => ({
               single: vi.fn(() =>
                 Promise.resolve(createMockResponse(mockStats))
               ),
-              then: vi.fn((callback) => 
+              then: vi.fn((callback) =>
                 Promise.resolve(createMockResponse([mockStats])).then(callback)
               ),
             };
@@ -115,9 +119,10 @@ vi.mock('@supabase/supabase-js', () => ({
         ),
         // then 메서드 추가 (Promise-like 동작을 위해)
         then: vi.fn((callback) => {
-          const result = tableName === 'command_vectors' 
-            ? createMockResponse(mockVectorDocuments) 
-            : createMockResponse([mockStats]);
+          const result =
+            tableName === 'command_vectors'
+              ? createMockResponse(mockVectorDocuments)
+              : createMockResponse([mockStats]);
           return Promise.resolve(result).then(callback);
         }),
         // RPC 함수들 (pgvector 확장 기능)
@@ -127,10 +132,12 @@ vi.mock('@supabase/supabase-js', () => ({
             funcName === 'similarity_search'
           ) {
             return Promise.resolve(
-              createMockResponse(mockVectorDocuments.map(doc => ({
-                ...doc,
-                similarity: 0.8,
-              })))
+              createMockResponse(
+                mockVectorDocuments.map((doc) => ({
+                  ...doc,
+                  similarity: 0.8,
+                }))
+              )
             );
           }
           if (funcName === 'get_knowledge_stats') {
@@ -168,13 +175,15 @@ vi.mock('@supabase/supabase-js', () => ({
         statusText: 'OK',
         count: null,
       });
-      
+
       if (funcName === 'match_documents' || funcName === 'similarity_search') {
         return Promise.resolve(
-          createMockResponse(mockVectorDocuments.map(doc => ({
-            ...doc,
-            similarity: 0.8,
-          })))
+          createMockResponse(
+            mockVectorDocuments.map((doc) => ({
+              ...doc,
+              similarity: 0.8,
+            }))
+          )
         );
       }
       if (funcName === 'get_knowledge_stats') {
@@ -214,9 +223,9 @@ vi.mock('@/lib/supabase', () => ({
               }
               return Promise.resolve(result).then(callback);
             }),
-            single: vi.fn(() => 
+            single: vi.fn(() =>
               Promise.resolve(
-                tableName === 'command_vectors' 
+                tableName === 'command_vectors'
                   ? createMockResponse(mockVectorDocuments[0])
                   : createMockResponse(mockStats)
               )
@@ -242,20 +251,24 @@ vi.mock('@/lib/supabase', () => ({
                 single: vi.fn(() =>
                   Promise.resolve(createMockResponse(mockVectorDocuments[0]))
                 ),
-                then: vi.fn((callback) => 
-                  Promise.resolve(createMockResponse([mockVectorDocuments[0]])).then(callback)
+                then: vi.fn((callback) =>
+                  Promise.resolve(
+                    createMockResponse([mockVectorDocuments[0]])
+                  ).then(callback)
                 ),
               };
             }
-            return Promise.resolve(createMockResponse(mockVectorDocuments.slice(0, count)));
+            return Promise.resolve(
+              createMockResponse(mockVectorDocuments.slice(0, count))
+            );
           }
-          
+
           if (tableName === 'knowledge_base_stats') {
             return {
               single: vi.fn(() =>
                 Promise.resolve(createMockResponse(mockStats))
               ),
-              then: vi.fn((callback) => 
+              then: vi.fn((callback) =>
                 Promise.resolve(createMockResponse([mockStats])).then(callback)
               ),
             };
@@ -271,9 +284,10 @@ vi.mock('@/lib/supabase', () => ({
           )
         ),
         then: vi.fn((callback) => {
-          const result = tableName === 'command_vectors' 
-            ? createMockResponse(mockVectorDocuments) 
-            : createMockResponse([mockStats]);
+          const result =
+            tableName === 'command_vectors'
+              ? createMockResponse(mockVectorDocuments)
+              : createMockResponse([mockStats]);
           return Promise.resolve(result).then(callback);
         }),
         rpc: vi.fn((funcName: string, _params?: any) => {
@@ -282,10 +296,12 @@ vi.mock('@/lib/supabase', () => ({
             funcName === 'similarity_search'
           ) {
             return Promise.resolve(
-              createMockResponse(mockVectorDocuments.map(doc => ({
-                ...doc,
-                similarity: 0.8,
-              })))
+              createMockResponse(
+                mockVectorDocuments.map((doc) => ({
+                  ...doc,
+                  similarity: 0.8,
+                }))
+              )
             );
           }
           if (funcName === 'get_knowledge_stats') {
@@ -305,13 +321,15 @@ vi.mock('@/lib/supabase', () => ({
         statusText: 'OK',
         count: null,
       });
-      
+
       if (funcName === 'match_documents' || funcName === 'similarity_search') {
         return Promise.resolve(
-          createMockResponse(mockVectorDocuments.map(doc => ({
-            ...doc,
-            similarity: 0.8,
-          })))
+          createMockResponse(
+            mockVectorDocuments.map((doc) => ({
+              ...doc,
+              similarity: 0.8,
+            }))
+          )
         );
       }
       if (funcName === 'get_knowledge_stats') {

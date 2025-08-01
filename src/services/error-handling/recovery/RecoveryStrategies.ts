@@ -27,7 +27,7 @@ export class NetworkRecoveryStrategy implements RecoveryStrategy {
       ERROR_CODES.NETWORK_ERROR,
       ERROR_CODES.CONNECTION_TIMEOUT,
       ERROR_CODES.DNS_RESOLUTION_FAILED,
-    ].some(code => code === error.code);
+    ].some((code) => code === error.code);
   }
 
   async recover(error: ServiceError): Promise<boolean> {
@@ -45,7 +45,7 @@ export class NetworkRecoveryStrategy implements RecoveryStrategy {
           console.log(
             `재시도 ${attempt}/${this.config.maxRetries} (${delay}ms 후)`
           );
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
 
         // 네트워크 연결 테스트
@@ -95,7 +95,7 @@ export class DatabaseRecoveryStrategy implements RecoveryStrategy {
       ERROR_CODES.DATABASE_ERROR,
       ERROR_CODES.DATABASE_CONNECTION_LOST,
       ERROR_CODES.QUERY_TIMEOUT,
-    ].some(code => code === error.code);
+    ].some((code) => code === error.code);
   }
 
   async recover(error: ServiceError): Promise<boolean> {
@@ -190,7 +190,7 @@ export class WebSocketRecoveryStrategy implements RecoveryStrategy {
         );
 
         if (this.reconnectAttempts > 1) {
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
 
         const wsUrl = this.getWebSocketUrl();
@@ -216,7 +216,7 @@ export class WebSocketRecoveryStrategy implements RecoveryStrategy {
   }
 
   private async testWebSocketConnection(url: string): Promise<boolean> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const ws = new WebSocket(url);
       const timeout = setTimeout(() => {
         ws.close();
@@ -276,7 +276,7 @@ export class SystemRecoveryStrategy implements RecoveryStrategy {
       ERROR_CODES.MEMORY_EXHAUSTED,
       ERROR_CODES.DISK_FULL,
       ERROR_CODES.SYSTEM_OVERLOAD,
-    ].some(code => code === error.code);
+    ].some((code) => code === error.code);
   }
 
   async recover(error: ServiceError): Promise<boolean> {

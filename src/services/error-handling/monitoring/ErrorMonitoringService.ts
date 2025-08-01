@@ -182,7 +182,7 @@ export class ErrorMonitoringService {
 
     // 건강 상태 평가
     const criticalErrorsLast24h = this.criticalErrors.filter(
-      error =>
+      (error) =>
         error.timestamp &&
         Date.now() - error.timestamp.getTime() < 24 * 60 * 60 * 1000
     ).length;
@@ -194,7 +194,7 @@ export class ErrorMonitoringService {
 
     // 복구 성공률 계산
     const recoveryEvents = this.monitoringEvents.filter(
-      event => event.type === 'recovery'
+      (event) => event.type === 'recovery'
     );
     const recoverySuccessRate =
       recoveryEvents.length > 0
@@ -241,7 +241,7 @@ export class ErrorMonitoringService {
 
     // 심각한 에러 급증 감지
     const recentCritical = this.criticalErrors.filter(
-      error =>
+      (error) =>
         error.timestamp &&
         Date.now() - error.timestamp.getTime() < 60 * 60 * 1000 // 1시간
     );
@@ -388,8 +388,8 @@ export class ErrorMonitoringService {
     const now = new Date();
 
     this.monitoringEvents
-      .filter(event => event.type === 'error')
-      .forEach(event => {
+      .filter((event) => event.type === 'error')
+      .forEach((event) => {
         const hoursDiff = Math.floor(
           (now.getTime() - event.timestamp.getTime()) / (1000 * 60 * 60)
         );
@@ -406,7 +406,7 @@ export class ErrorMonitoringService {
    */
   private calculateAverageRecoveryTime(): number {
     const recoveryEvents = this.monitoringEvents.filter(
-      event => event.type === 'recovery'
+      (event) => event.type === 'recovery'
     );
 
     if (recoveryEvents.length === 0) return 0;
@@ -482,12 +482,12 @@ export class ErrorMonitoringService {
     // 7일 이상 된 심각한 에러 제거
     const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     this.criticalErrors = this.criticalErrors.filter(
-      error => error.timestamp && error.timestamp.getTime() > sevenDaysAgo
+      (error) => error.timestamp && error.timestamp.getTime() > sevenDaysAgo
     );
 
     // 오래된 모니터링 이벤트 제거
     this.monitoringEvents = this.monitoringEvents.filter(
-      event => event.timestamp.getTime() > sevenDaysAgo
+      (event) => event.timestamp.getTime() > sevenDaysAgo
     );
   }
 

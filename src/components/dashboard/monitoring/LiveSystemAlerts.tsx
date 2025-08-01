@@ -44,15 +44,15 @@ const getAlertColor = (type: SystemAlert['type']) => {
 const getAlertIcon = (type: SystemAlert['type']) => {
   switch (type) {
     case 'error':
-      return <AlertTriangle className='w-5 h-5 text-red-500' />;
+      return <AlertTriangle className="h-5 w-5 text-red-500" />;
     case 'warning':
-      return <AlertOctagon className='w-5 h-5 text-yellow-500' />;
+      return <AlertOctagon className="h-5 w-5 text-yellow-500" />;
     case 'info':
-      return <Activity className='w-5 h-5 text-blue-500' />;
+      return <Activity className="h-5 w-5 text-blue-500" />;
     case 'success':
-      return <CheckCircle className='w-5 h-5 text-green-500' />;
+      return <CheckCircle className="h-5 w-5 text-green-500" />;
     default:
-      return <Activity className='w-5 h-5 text-gray-500' />;
+      return <Activity className="h-5 w-5 text-gray-500" />;
   }
 };
 
@@ -82,28 +82,28 @@ export default function LiveSystemAlerts() {
       time: '15:42',
       action: 'Server restart',
       server: 'WEB-01',
-      icon: <Activity className='w-4 h-4 text-blue-500' />,
+      icon: <Activity className="h-4 w-4 text-blue-500" />,
     },
     {
       id: '2',
       time: '15:38',
       action: 'High memory',
       server: 'DB-02',
-      icon: <AlertTriangle className='w-4 h-4 text-yellow-500' />,
+      icon: <AlertTriangle className="h-4 w-4 text-yellow-500" />,
     },
     {
       id: '3',
       time: '15:35',
       action: 'Service down',
       server: 'API-03',
-      icon: <XCircle className='w-4 h-4 text-red-500' />,
+      icon: <XCircle className="h-4 w-4 text-red-500" />,
     },
     {
       id: '4',
       time: '15:30',
       action: 'Backup started',
       server: 'All servers',
-      icon: <Database className='w-4 h-4 text-green-500' />,
+      icon: <Database className="h-4 w-4 text-green-500" />,
     },
   ]);
 
@@ -166,7 +166,7 @@ export default function LiveSystemAlerts() {
     if (alerts.length === 0) return;
 
     rotationRef.current = setInterval(() => {
-      setCurrentAlertIndex(idx => (idx + 1) % alerts.length);
+      setCurrentAlertIndex((idx) => (idx + 1) % alerts.length);
     }, 5000);
 
     return () => {
@@ -177,22 +177,22 @@ export default function LiveSystemAlerts() {
   const currentAlert = alerts[currentAlertIndex];
 
   return (
-    <div className='h-full flex flex-col space-y-4'>
+    <div className="flex h-full flex-col space-y-4">
       {/* Live System Alerts */}
       <CollapsibleCard
-        title='Live System Alerts'
-        subtitle='실시간 알림'
+        title="Live System Alerts"
+        subtitle="실시간 알림"
         icon={
-          <div className='p-2 bg-red-100 rounded-lg'>
-            <AlertTriangle className='w-6 h-6 text-red-600' />
+          <div className="rounded-lg bg-red-100 p-2">
+            <AlertTriangle className="h-6 w-6 text-red-600" />
           </div>
         }
         isExpanded={sections.liveSystemAlerts}
         onToggle={() => toggleSection('liveSystemAlerts')}
-        variant='bordered'
+        variant="bordered"
       >
-        <div className='h-32 overflow-hidden relative'>
-          <AnimatePresence mode='wait'>
+        <div className="relative h-32 overflow-hidden">
+          <AnimatePresence mode="wait">
             {currentAlert && (
               <motion.div
                 key={currentAlert.id}
@@ -200,31 +200,31 @@ export default function LiveSystemAlerts() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.5, ease: 'easeInOut' }}
-                className={`absolute inset-0 p-4 rounded-lg border ${getAlertColor(currentAlert.type)}`}
+                className={`absolute inset-0 rounded-lg border p-4 ${getAlertColor(currentAlert.type)}`}
               >
-                <div className='flex items-start gap-3 h-full'>
-                  <div className='flex-shrink-0 mt-1'>
+                <div className="flex h-full items-start gap-3">
+                  <div className="mt-1 flex-shrink-0">
                     {getAlertIcon(currentAlert.type)}
                   </div>
-                  <div className='flex-1 min-w-0 flex flex-col justify-between h-full'>
+                  <div className="flex h-full min-w-0 flex-1 flex-col justify-between">
                     <div>
-                      <div className='flex items-center gap-2 mb-1'>
-                        <span className='font-semibold text-sm'>
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="text-sm font-semibold">
                           {currentAlert.type.toUpperCase()}
                         </span>
-                        <span className='text-xs text-gray-600'>•</span>
-                        <span className='text-sm font-medium'>
+                        <span className="text-xs text-gray-600">•</span>
+                        <span className="text-sm font-medium">
                           {(currentAlert as any).server || 'System'}
                         </span>
                       </div>
                       <p
-                        className='text-sm font-medium mb-1 truncate'
+                        className="mb-1 truncate text-sm font-medium"
                         title={currentAlert.title}
                       >
                         {currentAlert.title}
                       </p>
                     </div>
-                    <p className='text-xs text-gray-600 self-end'>
+                    <p className="self-end text-xs text-gray-600">
                       {formatTimeAgo(currentAlert.timestamp)}
                     </p>
                   </div>
@@ -236,23 +236,23 @@ export default function LiveSystemAlerts() {
       </CollapsibleCard>
 
       <CollapsibleCard
-        title='Recent System Events'
-        subtitle='최근 시스템 이벤트'
+        title="Recent System Events"
+        subtitle="최근 시스템 이벤트"
         icon={
-          <div className='p-2 bg-blue-100 rounded-lg'>
-            <Clock className='w-6 h-6 text-blue-600' />
+          <div className="rounded-lg bg-blue-100 p-2">
+            <Clock className="h-6 w-6 text-blue-600" />
           </div>
         }
         isExpanded={sections.recentEvents}
         onToggle={() => toggleSection('recentEvents')}
-        variant='bordered'
+        variant="bordered"
       >
-        <div className='space-y-3'>
-          {events.map(event => (
-            <div key={event.id} className='flex items-center text-sm'>
-              <span className='w-12 text-gray-500'>{event.time}</span>
-              <span className='mr-2'>{event.icon}</span>
-              <span className='flex-1 truncate'>
+        <div className="space-y-3">
+          {events.map((event) => (
+            <div key={event.id} className="flex items-center text-sm">
+              <span className="w-12 text-gray-500">{event.time}</span>
+              <span className="mr-2">{event.icon}</span>
+              <span className="flex-1 truncate">
                 {event.action} on <strong>{event.server}</strong>
               </span>
             </div>

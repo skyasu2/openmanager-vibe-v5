@@ -86,18 +86,18 @@ const SmoothTransition: React.FC<SmoothTransitionProps> = memo(
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className='min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center'
+        className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50"
       >
-        <div className='text-center'>
+        <div className="text-center">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-            className='w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full mx-auto mb-4'
+            className="mx-auto mb-4 h-12 w-12 rounded-full border-4 border-blue-200 border-t-blue-500"
           />
           <motion.p
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
-            className='text-gray-600 font-medium'
+            className="font-medium text-gray-600"
           >
             페이지를 로드하고 있습니다...
           </motion.p>
@@ -107,15 +107,15 @@ const SmoothTransition: React.FC<SmoothTransitionProps> = memo(
 
     return (
       <div className={`relative ${className}`}>
-        <AnimatePresence mode='wait' onExitComplete={onExitComplete}>
+        <AnimatePresence mode="wait" onExitComplete={onExitComplete}>
           {isLoading ? (
             <motion.div
-              key='loading'
+              key="loading"
               variants={pageVariants}
-              initial='_initial'
-              animate='enter'
-              exit='exit'
-              onAnimationComplete={definition => {
+              initial="_initial"
+              animate="enter"
+              exit="exit"
+              onAnimationComplete={(definition) => {
                 if (definition === 'enter') {
                   onEnterComplete?.();
                 }
@@ -129,12 +129,12 @@ const SmoothTransition: React.FC<SmoothTransitionProps> = memo(
             </motion.div>
           ) : (
             <motion.div
-              key='content'
+              key="content"
               variants={pageVariants}
-              initial='_initial'
-              animate='enter'
-              exit='exit'
-              onAnimationComplete={definition => {
+              initial="_initial"
+              animate="enter"
+              exit="exit"
+              onAnimationComplete={(definition) => {
                 if (definition === 'enter') {
                   onEnterComplete?.();
                 }

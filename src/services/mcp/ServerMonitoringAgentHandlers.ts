@@ -16,7 +16,7 @@ export function handleServerStatusQuery(
 ): string {
   const { servers, summary } = data;
   const runningServers = servers.filter(
-    s =>
+    (s) =>
       s.status === 'running' || s.status === 'online' || s.status === 'healthy'
   ).length;
   const totalServers = servers.length;
@@ -173,7 +173,7 @@ export function handleCostQuery(
   // 비용 절약 제안
   response += `**비용 최적화 제안:**\n`;
   const lowUtilizationServers = data.servers.filter(
-    s =>
+    (s) =>
       (s.metrics?.cpu || s.cpu || 0) < 30 &&
       (s.metrics?.memory || s.memory || 0) < 40
   );

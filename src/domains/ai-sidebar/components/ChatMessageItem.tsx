@@ -30,22 +30,22 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
       className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
     >
       <div
-        className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${
+        className={`flex max-w-[90%] items-start space-x-2 sm:max-w-[85%] ${
           message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''
         }`}
       >
         {/* 아바타 */}
         <div
-          className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+          className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full ${
             message.type === 'user'
               ? 'bg-blue-500 text-white'
               : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
           }`}
         >
           {message.type === 'user' ? (
-            <User className='w-3 h-3' />
+            <User className="h-3 w-3" />
           ) : (
-            <Bot className='w-3 h-3' />
+            <Bot className="h-3 w-3" />
           )}
         </div>
 
@@ -54,43 +54,43 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
           className={`rounded-lg px-3 py-2 ${
             message.type === 'user'
               ? 'bg-blue-500 text-white'
-              : 'bg-white border border-gray-200 text-gray-800'
+              : 'border border-gray-200 bg-white text-gray-800'
           }`}
         >
-          <p className='text-sm whitespace-pre-wrap'>{message.content}</p>
+          <p className="whitespace-pre-wrap text-sm">{message.content}</p>
 
           {/* 메타데이터 */}
-          <div className='flex items-center justify-between mt-2 text-xs opacity-70'>
+          <div className="mt-2 flex items-center justify-between text-xs opacity-70">
             <span>
               {message.timestamp.toLocaleTimeString('ko-KR', {
                 hour: '2-digit',
                 minute: '2-digit',
               })}
             </span>
-            {message.engine && <span className='ml-2'>{message.engine}</span>}
+            {message.engine && <span className="ml-2">{message.engine}</span>}
           </div>
 
           {/* 생각 과정 표시 */}
           {message.thinking && message.thinking.length > 0 && (
-            <div className='mt-2 p-2 bg-gray-50 rounded border'>
-              <div className='text-xs font-medium text-gray-700 mb-1'>
+            <div className="mt-2 rounded border bg-gray-50 p-2">
+              <div className="mb-1 text-xs font-medium text-gray-700">
                 💭 생각 과정
               </div>
-              <div className='space-y-1'>
-                {message.thinking.map(step => (
-                  <div key={step.id} className='flex items-center space-x-2'>
+              <div className="space-y-1">
+                {message.thinking.map((step) => (
+                  <div key={step.id} className="flex items-center space-x-2">
                     <div
-                      className={`w-2 h-2 rounded-full ${
+                      className={`h-2 w-2 rounded-full ${
                         step.status === 'completed'
                           ? 'bg-green-500'
                           : step.status === 'processing'
-                            ? 'bg-blue-500 _animate-pulse'
+                            ? '_animate-pulse bg-blue-500'
                             : 'bg-gray-300'
                       }`}
                     />
-                    <span className='text-xs text-gray-600'>{step.title}</span>
+                    <span className="text-xs text-gray-600">{step.title}</span>
                     {step.duration && (
-                      <span className='text-xs text-gray-500'>
+                      <span className="text-xs text-gray-500">
                         ({step.duration}ms)
                       </span>
                     )}
@@ -102,16 +102,16 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
 
           {/* AI 메시지 액션 버튼 */}
           {message.type === 'ai' && (
-            <div className='flex items-center space-x-2 mt-2'>
+            <div className="mt-2 flex items-center space-x-2">
               <button
                 onClick={() => onRegenerateResponse(message.id)}
-                className='flex items-center space-x-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors'
+                className="flex items-center space-x-1 rounded px-2 py-1 text-xs text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-800"
               >
-                <RotateCcw className='w-3 h-3' />
+                <RotateCcw className="h-3 w-3" />
                 <span>재생성</span>
               </button>
               {message.confidence && (
-                <span className='text-xs text-gray-500'>
+                <span className="text-xs text-gray-500">
                   신뢰도: {Math.round(message.confidence * 100)}%
                 </span>
               )}

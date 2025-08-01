@@ -133,11 +133,11 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
   const getStatusIcon = (status: ReportData['status']) => {
     switch (status) {
       case 'generating':
-        return <Clock className='w-4 h-4 text-yellow-400 _animate-pulse' />;
+        return <Clock className="_animate-pulse h-4 w-4 text-yellow-400" />;
       case 'completed':
-        return <CheckCircle className='w-4 h-4 text-green-400' />;
+        return <CheckCircle className="h-4 w-4 text-green-400" />;
       case 'error':
-        return <AlertTriangle className='w-4 h-4 text-red-400' />;
+        return <AlertTriangle className="h-4 w-4 text-red-400" />;
     }
   };
 
@@ -164,17 +164,17 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
 
   return (
     <BasePanelLayout
-      title='자동 보고서'
-      subtitle='AI가 자동 생성한 분석 보고서'
-      icon={<FileText className='w-4 h-4 text-white' />}
-      iconGradient='bg-gradient-to-br from-green-500 to-blue-600'
+      title="자동 보고서"
+      subtitle="AI가 자동 생성한 분석 보고서"
+      icon={<FileText className="h-4 w-4 text-white" />}
+      iconGradient="bg-gradient-to-br from-green-500 to-blue-600"
       onRefresh={reload}
       isLoading={isLoading}
-      adminPath='/admin'
-      adminLabel='관리'
+      adminPath="/admin"
+      adminLabel="관리"
       filters={reportTypes}
       selectedFilter={selectedFilter}
-      onFilterChange={filterId => setSelectedFilter(filterId as any)}
+      onFilterChange={(filterId) => setSelectedFilter(filterId as any)}
       bottomInfo={{
         primary: '🤖 보고서는 AI가 자동으로 분석하여 생성합니다',
         secondary:
@@ -183,29 +183,29 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
       className={className}
     >
       {/* 보고서 목록 */}
-      <div className='p-4'>
-        <div className='space-y-3'>
+      <div className="p-4">
+        <div className="space-y-3">
           {filteredReports.map((report: ReportData) => (
             <motion.div
               key={report.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className='bg-gray-800/50 border border-gray-600/30 rounded-lg p-4 hover:bg-gray-700/30 transition-colors'
+              className="rounded-lg border border-gray-600/30 bg-gray-800/50 p-4 transition-colors hover:bg-gray-700/30"
             >
               {/* 보고서 헤더 */}
-              <div className='flex items-start justify-between mb-3'>
-                <div className='flex-1'>
-                  <div className='flex items-center gap-2 mb-1'>
-                    <span className='text-lg'>{getTypeIcon(report.type)}</span>
-                    <h4 className='text-white font-medium text-sm'>
+              <div className="mb-3 flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className="text-lg">{getTypeIcon(report.type)}</span>
+                    <h4 className="text-sm font-medium text-white">
                       {report.title}
                     </h4>
                     {getStatusIcon(report.status as ReportData['status'])}
-                    <span className='text-xs text-gray-400'>
+                    <span className="text-xs text-gray-400">
                       {getStatusText(report.status as ReportData['status'])}
                     </span>
                   </div>
-                  <p className='text-gray-400 text-xs'>
+                  <p className="text-xs text-gray-400">
                     {report.generatedAt.toLocaleString()}
                   </p>
                 </div>
@@ -213,59 +213,58 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
                 {report.status === 'completed' && (
                   <motion.button
                     onClick={() => downloadReport(report.id)}
-                    className='p-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 
-                               rounded-lg text-green-300 transition-colors'
+                    className="rounded-lg border border-green-500/30 bg-green-500/20 p-2 text-green-300 transition-colors hover:bg-green-500/30"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <Download className='w-4 h-4' />
+                    <Download className="h-4 w-4" />
                   </motion.button>
                 )}
               </div>
 
               {/* 보고서 요약 */}
-              <p className='text-gray-200 text-sm mb-3'>{report.summary}</p>
+              <p className="mb-3 text-sm text-gray-200">{report.summary}</p>
 
               {/* 보고서 상세 통계 (완료된 보고서만) */}
               {report.status === 'completed' && (
-                <div className='grid grid-cols-2 gap-2 text-xs'>
-                  <div className='bg-gray-700/30 rounded-lg p-2'>
-                    <div className='flex items-center gap-1 mb-1'>
-                      <Activity className='w-3 h-3 text-green-400' />
-                      <span className='text-gray-400'>정상 서버</span>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="rounded-lg bg-gray-700/30 p-2">
+                    <div className="mb-1 flex items-center gap-1">
+                      <Activity className="h-3 w-3 text-green-400" />
+                      <span className="text-gray-400">정상 서버</span>
                     </div>
-                    <span className='text-green-300 font-medium'>
+                    <span className="font-medium text-green-300">
                       {report.details.healthyServers}/
                       {report.details.totalServers}
                     </span>
                   </div>
 
-                  <div className='bg-gray-700/30 rounded-lg p-2'>
-                    <div className='flex items-center gap-1 mb-1'>
-                      <AlertTriangle className='w-3 h-3 text-yellow-400' />
-                      <span className='text-gray-400'>경고</span>
+                  <div className="rounded-lg bg-gray-700/30 p-2">
+                    <div className="mb-1 flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3 text-yellow-400" />
+                      <span className="text-gray-400">경고</span>
                     </div>
-                    <span className='text-yellow-300 font-medium'>
+                    <span className="font-medium text-yellow-300">
                       {report.details.warningServers}
                     </span>
                   </div>
 
-                  <div className='bg-gray-700/30 rounded-lg p-2'>
-                    <div className='flex items-center gap-1 mb-1'>
-                      <TrendingUp className='w-3 h-3 text-blue-400' />
-                      <span className='text-gray-400'>CPU</span>
+                  <div className="rounded-lg bg-gray-700/30 p-2">
+                    <div className="mb-1 flex items-center gap-1">
+                      <TrendingUp className="h-3 w-3 text-blue-400" />
+                      <span className="text-gray-400">CPU</span>
                     </div>
-                    <span className='text-blue-300 font-medium'>
+                    <span className="font-medium text-blue-300">
                       {report.details.cpuUsage}%
                     </span>
                   </div>
 
-                  <div className='bg-gray-700/30 rounded-lg p-2'>
-                    <div className='flex items-center gap-1 mb-1'>
-                      <Clock className='w-3 h-3 text-purple-400' />
-                      <span className='text-gray-400'>응답시간</span>
+                  <div className="rounded-lg bg-gray-700/30 p-2">
+                    <div className="mb-1 flex items-center gap-1">
+                      <Clock className="h-3 w-3 text-purple-400" />
+                      <span className="text-gray-400">응답시간</span>
                     </div>
-                    <span className='text-purple-300 font-medium'>
+                    <span className="font-medium text-purple-300">
                       {report.details.avgResponseTime}ms
                     </span>
                   </div>
@@ -275,14 +274,14 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
           ))}
 
           {filteredReports.length === 0 && (
-            <div className='text-center text-gray-500 mt-8'>
-              <FileText className='w-12 h-12 mx-auto mb-4 opacity-50' />
-              <p className='text-sm'>
+            <div className="mt-8 text-center text-gray-500">
+              <FileText className="mx-auto mb-4 h-12 w-12 opacity-50" />
+              <p className="text-sm">
                 {selectedFilter === 'all'
                   ? '생성된 보고서가 없습니다'
-                  : `${reportTypes.find(t => t.id === selectedFilter)?.label} 보고서가 없습니다`}
+                  : `${reportTypes.find((t) => t.id === selectedFilter)?.label} 보고서가 없습니다`}
               </p>
-              <p className='text-xs text-gray-600 mt-1'>
+              <p className="mt-1 text-xs text-gray-600">
                 보고서는 자동으로 주기적으로 생성됩니다
               </p>
             </div>

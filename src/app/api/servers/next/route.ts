@@ -114,7 +114,7 @@ export async function GET(_request: NextRequest) {
     const mockServers = mockSystem.getServers();
 
     // 서버 데이터를 API 형식으로 변환
-    const allServers = mockServers.map(server => ({
+    const allServers = mockServers.map((server) => ({
       id: server.id,
       name: server.name,
       status:
@@ -137,7 +137,7 @@ export async function GET(_request: NextRequest) {
     // 상태 필터링
     let filteredServers = allServers;
     if (status) {
-      filteredServers = allServers.filter(server => server.status === status);
+      filteredServers = allServers.filter((server) => server.status === status);
     }
 
     // 정렬

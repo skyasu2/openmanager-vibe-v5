@@ -132,7 +132,7 @@ export function deepClone<T>(obj: T): T {
   if (obj === null || typeof obj !== 'object') return obj;
   if (obj instanceof Date) return new Date(obj.getTime()) as unknown as T;
   if (obj instanceof Array)
-    return obj.map(item => deepClone(item)) as unknown as T;
+    return obj.map((item) => deepClone(item)) as unknown as T;
   if (typeof obj === 'object') {
     const clonedObj = {} as T;
     for (const key in obj) {
@@ -254,7 +254,7 @@ export function throttle<T extends (...args: any[]) => any>(
  * @returns Promise that resolves after sleep
  */
 export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -297,7 +297,9 @@ export async function hashString(str: string): Promise<string> {
   const msgUint8 = new TextEncoder().encode(str);
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  const hashHex = hashArray
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
   return hashHex;
 }
 
@@ -346,7 +348,7 @@ export function pick<T extends object, K extends keyof T>(
   keys: K[]
 ): Pick<T, K> {
   const result = {} as Pick<T, K>;
-  keys.forEach(key => {
+  keys.forEach((key) => {
     if (key in obj) {
       result[key] = obj[key];
     }
@@ -365,7 +367,7 @@ export function omit<T extends object, K extends keyof T>(
   keys: K[]
 ): Omit<T, K> {
   const result = { ...obj };
-  keys.forEach(key => {
+  keys.forEach((key) => {
     delete result[key];
   });
   return result as Omit<T, K>;

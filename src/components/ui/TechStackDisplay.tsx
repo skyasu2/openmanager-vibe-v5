@@ -53,8 +53,8 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
 
   if (categories.length === 0) {
     return (
-      <div className={`text-center py-8 ${className}`}>
-        <div className='text-gray-400 text-sm'>
+      <div className={`py-8 text-center ${className}`}>
+        <div className="text-sm text-gray-400">
           기술 스택 정보를 분석 중입니다...
         </div>
       </div>
@@ -68,26 +68,26 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className='mb-6'
+          className="mb-6"
         >
-          <div className='flex items-center justify-between mb-4'>
-            <h3 className='text-lg font-semibold text-white flex items-center gap-2'>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
               🧩 기술 스택 분석
             </h3>
-            <div className='flex items-center gap-4 text-xs text-gray-400'>
+            <div className="flex items-center gap-4 text-xs text-gray-400">
               <span>{summary.totalTechs}개 기술</span>
               <span>•</span>
               <span>{summary.categoryCount}개 분야</span>
               <span>•</span>
-              <span className='text-amber-400'>{summary.coreCount}개 핵심</span>
+              <span className="text-amber-400">{summary.coreCount}개 핵심</span>
             </div>
           </div>
 
           {/* 상위 카테고리 요약 */}
-          <div className='flex flex-wrap gap-2 text-xs'>
-            <span className='text-gray-400'>주요 분야:</span>
+          <div className="flex flex-wrap gap-2 text-xs">
+            <span className="text-gray-400">주요 분야:</span>
             {summary.topCategories.map((category, index) => (
-              <span key={category} className='text-blue-300'>
+              <span key={category} className="text-blue-300">
                 {category}
                 {index < summary.topCategories.length - 1 && ', '}
               </span>
@@ -97,27 +97,27 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
       )}
 
       {/* 카테고리별 기술 스택 */}
-      <div className='space-y-6'>
+      <div className="space-y-6">
         {categories.map((category, categoryIndex) => (
           <motion.div
             key={category.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: categoryIndex * 0.1 }}
-            className='bg-gray-800/30 rounded-xl p-4 border border-gray-700/50 backdrop-blur-sm'
+            className="rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 backdrop-blur-sm"
           >
             {/* 카테고리 헤더 */}
-            <div className='flex items-center justify-between mb-4'>
-              <div className='flex items-center gap-3'>
-                <span className='text-xl'>{category.icon}</span>
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">{category.icon}</span>
                 <div>
-                  <h4 className='text-white font-medium'>{category.name}</h4>
-                  <p className='text-xs text-gray-400'>
+                  <h4 className="font-medium text-white">{category.name}</h4>
+                  <p className="text-xs text-gray-400">
                     {category.description}
                   </p>
                 </div>
               </div>
-              <div className='text-xs text-gray-500'>
+              <div className="text-xs text-gray-500">
                 {category.items.length}개
               </div>
             </div>
@@ -136,44 +136,39 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: categoryIndex * 0.1 + techIndex * 0.05 }}
-                  className={`
-                    p-3 rounded-lg border transition-all duration-200 hover:scale-105
-                    ${colorMap[category.color as keyof typeof colorMap] || colorMap.gray}
-                    ${importanceStyles[tech.importance]}
-                    ${tech.isCore ? 'shadow-lg shadow-amber-500/10' : ''}
-                  `}
+                  className={`rounded-lg border p-3 transition-all duration-200 hover:scale-105 ${colorMap[category.color as keyof typeof colorMap] || colorMap.gray} ${importanceStyles[tech.importance]} ${tech.isCore ? 'shadow-lg shadow-amber-500/10' : ''} `}
                 >
-                  <div className='flex items-start justify-between gap-2'>
-                    <div className='min-w-0 flex-1'>
-                      <div className='flex items-center gap-2 mb-1'>
-                        <h5 className='font-medium text-sm truncate'>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex items-center gap-2">
+                        <h5 className="truncate text-sm font-medium">
                           {tech.name}
                         </h5>
                         {tech.isCore && (
-                          <span className='px-1.5 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded text-xs flex-shrink-0'>
+                          <span className="flex-shrink-0 rounded border border-amber-500/30 bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-300">
                             핵심
                           </span>
                         )}
                         {tech.usageCount && tech.usageCount > 1 && (
-                          <span className='px-1.5 py-0.5 bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded text-xs flex-shrink-0'>
+                          <span className="flex-shrink-0 rounded border border-purple-500/30 bg-purple-500/20 px-1.5 py-0.5 text-xs text-purple-300">
                             {tech.usageCount}회 사용
                           </span>
                         )}
                       </div>
                       {tech.categories && tech.categories.length > 1 && (
-                        <div className='mb-2'>
-                          <span className='text-xs text-gray-400'>
+                        <div className="mb-2">
+                          <span className="text-xs text-gray-400">
                             여러 영역:{' '}
                           </span>
-                          <div className='flex flex-wrap gap-1 mt-1'>
+                          <div className="mt-1 flex flex-wrap gap-1">
                             {tech.categories.map((cat, idx) => {
                               const categoryInfo = categories.find(
-                                c => c.id === cat
+                                (c) => c.id === cat
                               );
                               return categoryInfo ? (
                                 <span
                                   key={idx}
-                                  className='px-1 py-0.5 bg-gray-700/50 text-gray-300 rounded text-xs'
+                                  className="rounded bg-gray-700/50 px-1 py-0.5 text-xs text-gray-300"
                                 >
                                   {categoryInfo.icon} {categoryInfo.name}
                                 </span>
@@ -182,22 +177,20 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
                           </div>
                         </div>
                       )}
-                      <p className='text-xs text-gray-300 leading-relaxed mb-2'>
+                      <p className="mb-2 text-xs leading-relaxed text-gray-300">
                         {tech.description}
                       </p>
                       {!compact && tech.usage && (
-                        <div className='text-xs text-gray-400 font-mono bg-gray-900/30 px-2 py-1 rounded'>
+                        <div className="rounded bg-gray-900/30 px-2 py-1 font-mono text-xs text-gray-400">
                           &quot;{tech.usage}&quot;
                         </div>
                       )}
                     </div>
 
                     {/* 중요도 표시 */}
-                    <div className='flex-shrink-0'>
+                    <div className="flex-shrink-0">
                       <div
-                        className={`
-                        w-2 h-2 rounded-full
-                        ${
+                        className={`h-2 w-2 rounded-full ${
                           tech.importance === 'critical'
                             ? 'bg-red-500 shadow-lg shadow-red-500/50'
                             : tech.importance === 'high'
@@ -207,8 +200,7 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
                                 : tech.importance === 'medium'
                                   ? 'bg-blue-400'
                                   : 'bg-green-400'
-                        }
-                      `}
+                        } `}
                         title={`중요도: ${tech.importance}`}
                       />
                     </div>
@@ -218,16 +210,16 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
             </div>
 
             {/* 카테고리 통계 */}
-            <div className='mt-4 pt-3 border-t border-gray-700/30 flex items-center justify-between text-xs text-gray-400'>
-              <div className='flex gap-4'>
+            <div className="mt-4 flex items-center justify-between border-t border-gray-700/30 pt-3 text-xs text-gray-400">
+              <div className="flex gap-4">
                 <span>
-                  핵심: {category.items.filter(item => item.isCore).length}개
+                  핵심: {category.items.filter((item) => item.isCore).length}개
                 </span>
                 <span>
                   고중요도:{' '}
                   {
                     category.items.filter(
-                      item =>
+                      (item) =>
                         item.importance === 'critical' ||
                         item.importance === 'high'
                     ).length
@@ -235,18 +227,18 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
                   개
                 </span>
               </div>
-              <div className='flex items-center gap-1'>
+              <div className="flex items-center gap-1">
                 <span>평균 중요도:</span>
-                <div className='flex gap-0.5'>
+                <div className="flex gap-0.5">
                   {['critical', 'high', 'showcase', 'medium', 'low'].map(
-                    level => {
+                    (level) => {
                       const count = category.items.filter(
-                        item => item.importance === level
+                        (item) => item.importance === level
                       ).length;
                       return count > 0 ? (
                         <div
                           key={level}
-                          className={`w-1.5 h-1.5 rounded-full ${
+                          className={`h-1.5 w-1.5 rounded-full ${
                             level === 'critical'
                               ? 'bg-red-500'
                               : level === 'high'
@@ -277,28 +269,28 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: categories.length * 0.1 }}
-          className='mt-6 p-4 bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-xl border border-blue-500/20'
+          className="mt-6 rounded-xl border border-blue-500/20 bg-gradient-to-r from-blue-900/20 to-purple-900/20 p-4"
         >
-          <div className='text-center text-xs text-gray-300'>
-            <div className='mb-2 font-medium'>🎯 기술 스택 요약</div>
-            <div className='flex justify-center gap-6'>
+          <div className="text-center text-xs text-gray-300">
+            <div className="mb-2 font-medium">🎯 기술 스택 요약</div>
+            <div className="flex justify-center gap-6">
               <span>
                 총{' '}
-                <span className='text-blue-300 font-medium'>
+                <span className="font-medium text-blue-300">
                   {summary.totalTechs}개
                 </span>{' '}
                 기술
               </span>
               <span>•</span>
               <span>
-                <span className='text-amber-300 font-medium'>
+                <span className="font-medium text-amber-300">
                   {summary.coreCount}개
                 </span>{' '}
                 핵심 기술
               </span>
               <span>•</span>
               <span>
-                <span className='text-green-300 font-medium'>
+                <span className="font-medium text-green-300">
                   {summary.categoryCount}개
                 </span>{' '}
                 기술 분야

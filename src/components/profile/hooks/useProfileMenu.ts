@@ -18,7 +18,7 @@ export function useProfileMenu() {
    * 메뉴 토글
    */
   const toggleMenu = useCallback(() => {
-    setMenuState(prev => ({
+    setMenuState((prev) => ({
       ...prev,
       showProfileMenu: !prev.showProfileMenu,
       showAdminInput: false,
@@ -41,7 +41,7 @@ export function useProfileMenu() {
    * 관리자 입력 토글
    */
   const toggleAdminInput = useCallback(() => {
-    setMenuState(prev => ({
+    setMenuState((prev) => ({
       ...prev,
       showAdminInput: !prev.showAdminInput,
       adminPassword: '',
@@ -52,7 +52,7 @@ export function useProfileMenu() {
    * 관리자 비밀번호 변경
    */
   const setAdminPassword = useCallback((password: string) => {
-    setMenuState(prev => ({
+    setMenuState((prev) => ({
       ...prev,
       adminPassword: password,
     }));
@@ -62,7 +62,7 @@ export function useProfileMenu() {
    * 관리자 입력 취소
    */
   const cancelAdminInput = useCallback(() => {
-    setMenuState(prev => ({
+    setMenuState((prev) => ({
       ...prev,
       showAdminInput: false,
       adminPassword: '',
@@ -150,7 +150,7 @@ export function useProfileMenuKeyboard(
   // 표시 가능한 메뉴 아이템 인덱스 계산
   const visibleIndices = menuItems
     .map((item, index) => (item.visible && !item.disabled ? index : -1))
-    .filter(index => index !== -1);
+    .filter((index) => index !== -1);
 
   useEffect(() => {
     if (!isOpen) {
@@ -162,7 +162,7 @@ export function useProfileMenuKeyboard(
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          setFocusedIndex(prev => {
+          setFocusedIndex((prev) => {
             const currentPos = visibleIndices.indexOf(prev);
             const nextPos = (currentPos + 1) % visibleIndices.length;
             return visibleIndices[nextPos];
@@ -171,7 +171,7 @@ export function useProfileMenuKeyboard(
 
         case 'ArrowUp':
           e.preventDefault();
-          setFocusedIndex(prev => {
+          setFocusedIndex((prev) => {
             const currentPos = visibleIndices.indexOf(prev);
             const nextPos =
               currentPos <= 0 ? visibleIndices.length - 1 : currentPos - 1;

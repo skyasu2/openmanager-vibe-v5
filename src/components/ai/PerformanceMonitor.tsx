@@ -44,9 +44,9 @@ export function PerformanceMonitor() {
 
   if (isLoading || !status) {
     return (
-      <div className='p-4 bg-gray-50 rounded-lg _animate-pulse'>
-        <div className='h-4 bg-gray-200 rounded w-1/2 mb-2'></div>
-        <div className='h-4 bg-gray-200 rounded w-3/4'></div>
+      <div className="_animate-pulse rounded-lg bg-gray-50 p-4">
+        <div className="mb-2 h-4 w-1/2 rounded bg-gray-200"></div>
+        <div className="h-4 w-3/4 rounded bg-gray-200"></div>
       </div>
     );
   }
@@ -63,52 +63,52 @@ export function PerformanceMonitor() {
       : '0';
 
   return (
-    <div className='p-6 bg-white rounded-lg shadow-sm border border-gray-200'>
-      <h3 className='text-lg font-semibold mb-4'>AI 엔진 성능 모니터</h3>
+    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <h3 className="mb-4 text-lg font-semibold">AI 엔진 성능 모니터</h3>
 
       {/* 엔진 상태 */}
-      <div className='grid grid-cols-3 gap-4 mb-6'>
+      <div className="mb-6 grid grid-cols-3 gap-4">
         <StatusIndicator
-          label='Local RAG'
+          label="Local RAG"
           status={status.local}
           detail={`${status.metrics.engineUsage.local}회 사용`}
         />
         <StatusIndicator
-          label='Google AI'
+          label="Google AI"
           status={status.googleAI}
           detail={`${status.metrics.engineUsage.googleAI}회 사용`}
         />
         <StatusIndicator
-          label='MCP Context'
+          label="MCP Context"
           status={status.mcp}
-          detail='보조 도구'
+          detail="보조 도구"
         />
       </div>
 
       {/* 성능 메트릭 */}
-      <div className='space-y-3'>
+      <div className="space-y-3">
         <MetricRow
-          label='캐시 적중률'
+          label="캐시 적중률"
           value={`${cacheHitPercentage}%`}
           color={parseFloat(cacheHitPercentage) > 50 ? 'green' : 'yellow'}
         />
         <MetricRow
-          label='평균 응답 시간'
+          label="평균 응답 시간"
           value={`${status.metrics.avgResponseTime.toFixed(0)}ms`}
           color={status.metrics.avgResponseTime < 200 ? 'green' : 'yellow'}
         />
         <MetricRow
-          label='Local 엔진 사용률'
+          label="Local 엔진 사용률"
           value={`${localUsagePercentage}%`}
-          color='blue'
+          color="blue"
         />
         <MetricRow
-          label='자동 전환 횟수'
+          label="자동 전환 횟수"
           value={`${status.metrics.autoSwitchCount}회`}
-          color='purple'
+          color="purple"
         />
         <MetricRow
-          label='캐시 크기'
+          label="캐시 크기"
           value={`${status.cacheSize}/100`}
           color={status.cacheSize < 80 ? 'green' : 'yellow'}
         />
@@ -116,8 +116,8 @@ export function PerformanceMonitor() {
 
       {/* 최적화 제안 */}
       {status.metrics.avgResponseTime > 500 && (
-        <div className='mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded'>
-          <p className='text-sm text-yellow-800'>
+        <div className="mt-4 rounded border border-yellow-200 bg-yellow-50 p-3">
+          <p className="text-sm text-yellow-800">
             💡 평균 응답 시간이 높습니다. 캐시 활용을 늘리거나 쿼리 복잡도를
             낮추는 것을 고려해보세요.
           </p>
@@ -125,8 +125,8 @@ export function PerformanceMonitor() {
       )}
 
       {parseFloat(cacheHitPercentage) < 30 && (
-        <div className='mt-4 p-3 bg-blue-50 border border-blue-200 rounded'>
-          <p className='text-sm text-blue-800'>
+        <div className="mt-4 rounded border border-blue-200 bg-blue-50 p-3">
+          <p className="text-sm text-blue-800">
             💡 캐시 적중률이 낮습니다. 자주 사용되는 쿼리를 분석하여 프리로딩을
             고려해보세요.
           </p>
@@ -146,14 +146,14 @@ function StatusIndicator({
   detail: string;
 }) {
   return (
-    <div className='text-center'>
+    <div className="text-center">
       <div
-        className={`w-3 h-3 rounded-full mx-auto mb-1 ${
+        className={`mx-auto mb-1 h-3 w-3 rounded-full ${
           status ? 'bg-green-500' : 'bg-gray-300'
         }`}
       />
-      <div className='text-sm font-medium'>{label}</div>
-      <div className='text-xs text-gray-500'>{detail}</div>
+      <div className="text-sm font-medium">{label}</div>
+      <div className="text-xs text-gray-500">{detail}</div>
     </div>
   );
 }
@@ -175,8 +175,8 @@ function MetricRow({
   };
 
   return (
-    <div className='flex justify-between items-center'>
-      <span className='text-sm text-gray-600'>{label}</span>
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-gray-600">{label}</span>
       <span
         className={`text-sm font-medium ${colorClasses[color as keyof typeof colorClasses]}`}
       >

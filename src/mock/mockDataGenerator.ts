@@ -149,7 +149,7 @@ export function generateMockServerData(): MockServerData {
   const scenarios = new Set<string>();
 
   // 각 서버별로 데이터 생성
-  mockServers.forEach(mockServer => {
+  mockServers.forEach((mockServer) => {
     const scenarioId =
       serverInitialStates[mockServer.id as keyof typeof serverInitialStates]
         .scenario;

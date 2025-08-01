@@ -45,29 +45,29 @@ export default function CircularGauge({
   const statusText = getStatusText(percentage);
 
   return (
-    <div className='flex flex-col items-center'>
-      <div className='relative' style={{ width: size, height: size }}>
+    <div className="flex flex-col items-center">
+      <div className="relative" style={{ width: size, height: size }}>
         {/* 배경 원 */}
-        <svg width={size} height={size} className='transform -rotate-90'>
+        <svg width={size} height={size} className="-rotate-90 transform">
           <defs>
             <filter
               id={`shadow-${label}`}
-              x='-50%'
-              y='-50%'
-              width='200%'
-              height='200%'
+              x="-50%"
+              y="-50%"
+              width="200%"
+              height="200%"
             >
-              <feDropShadow dx='0' dy='2' stdDeviation='3' floodOpacity='0.3' />
+              <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.3" />
             </filter>
             <linearGradient
               id={`gradient-${label}`}
-              x1='0%'
-              y1='0%'
-              x2='100%'
-              y2='100%'
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="100%"
             >
-              <stop offset='0%' stopColor={statusColor} stopOpacity='0.8' />
-              <stop offset='100%' stopColor={statusColor} stopOpacity='1' />
+              <stop offset="0%" stopColor={statusColor} stopOpacity="0.8" />
+              <stop offset="100%" stopColor={statusColor} stopOpacity="1" />
             </linearGradient>
           </defs>
 
@@ -76,9 +76,9 @@ export default function CircularGauge({
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke='#e5e7eb'
-            strokeWidth='8'
-            fill='none'
+            stroke="#e5e7eb"
+            strokeWidth="8"
+            fill="none"
           />
 
           {/* 진행률 원 */}
@@ -87,9 +87,9 @@ export default function CircularGauge({
             cy={size / 2}
             r={radius}
             stroke={`url(#gradient-${label})`}
-            strokeWidth='8'
-            fill='none'
-            strokeLinecap='round'
+            strokeWidth="8"
+            fill="none"
+            strokeLinecap="round"
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
             filter={`url(#shadow-${label})`}
@@ -100,19 +100,19 @@ export default function CircularGauge({
         </svg>
 
         {/* 중앙 텍스트 */}
-        <div className='absolute inset-0 flex flex-col items-center justify-center'>
-          <div className='text-2xl font-bold' style={{ color: statusColor }}>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="text-2xl font-bold" style={{ color: statusColor }}>
             {formatPercentage(value).replace('%', '')}
-            <span className='text-xl'>%</span>
+            <span className="text-xl">%</span>
           </div>
-          <div className='text-xs text-gray-500 mt-1'>{statusText}</div>
+          <div className="mt-1 text-xs text-gray-500">{statusText}</div>
         </div>
 
         {/* 애니메이션 효과 */}
         {showAnimation && percentage > 75 && (
-          <div className='absolute inset-0 flex items-center justify-center'>
+          <div className="absolute inset-0 flex items-center justify-center">
             <div
-              className='w-3 h-3 rounded-full _animate-pulse'
+              className="_animate-pulse h-3 w-3 rounded-full"
               style={{
                 backgroundColor: statusColor,
                 boxShadow: `0 0 10px ${statusColor}50`,
@@ -123,10 +123,10 @@ export default function CircularGauge({
       </div>
 
       {/* 라벨 */}
-      <div className='mt-2 text-center'>
-        <div className='text-sm font-medium text-gray-700'>{label}</div>
+      <div className="mt-2 text-center">
+        <div className="text-sm font-medium text-gray-700">{label}</div>
         {max !== 100 && (
-          <div className='text-xs text-gray-500'>
+          <div className="text-xs text-gray-500">
             {value.toFixed(2)} / {max}
           </div>
         )}

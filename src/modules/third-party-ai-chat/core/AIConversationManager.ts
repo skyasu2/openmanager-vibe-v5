@@ -313,7 +313,7 @@ export class AIConversationManager {
   }> {
     const url = `${provider.baseUrl}/chat/completions`;
 
-    const openaiMessages = messages.map(msg => ({
+    const openaiMessages = messages.map((msg) => ({
       role: msg.role,
       content: msg.content,
     }));
@@ -489,7 +489,7 @@ export class AIConversationManager {
    * 사용 가능한 AI 제공자 목록
    */
   getAvailableProviders(): AIProvider[] {
-    return Array.from(this.providers.values()).filter(p => p.enabled);
+    return Array.from(this.providers.values()).filter((p) => p.enabled);
   }
 
   /**
@@ -533,7 +533,7 @@ export class AIConversationManager {
       text += `생성일: ${session.createdAt.toLocaleString('ko-KR')}\n`;
       text += `수정일: ${session.updatedAt.toLocaleString('ko-KR')}\n\n`;
 
-      session.messages.forEach(msg => {
+      session.messages.forEach((msg) => {
         const role = msg.role === 'user' ? '👤 사용자' : '🤖 AI';
         text += `${role} [${msg.timestamp.toLocaleTimeString('ko-KR')}]:\n`;
         text += `${msg.content}\n\n`;

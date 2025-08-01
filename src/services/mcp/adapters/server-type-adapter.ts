@@ -117,11 +117,11 @@ function calculateAggregateMetrics(
     avgMemory: servers.reduce((sum, s) => sum + s.memory, 0) / totalServers,
     avgDisk: servers.reduce((sum, s) => sum + s.disk, 0) / totalServers,
     healthyServers: servers.filter(
-      s => s.status === 'online' || s.status === 'healthy'
+      (s) => s.status === 'online' || s.status === 'healthy'
     ).length,
-    warningServers: servers.filter(s => s.status === 'warning').length,
+    warningServers: servers.filter((s) => s.status === 'warning').length,
     criticalServers: servers.filter(
-      s => s.status === 'critical' || s.status === 'offline'
+      (s) => s.status === 'critical' || s.status === 'offline'
     ).length,
   };
 }

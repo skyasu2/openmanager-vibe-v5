@@ -10,7 +10,7 @@ import { vi } from 'vitest';
 // ===============================
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -183,7 +183,7 @@ Object.defineProperty(window, 'location', {
   value: locationMock,
   writable: true,
   enumerable: true,
-  configurable: true
+  configurable: true,
 });
 
 // ===============================
@@ -229,19 +229,19 @@ Object.defineProperty(EventSourceMock, 'CONNECTING', {
   value: 0,
   writable: false,
   enumerable: true,
-  configurable: false
+  configurable: false,
 });
 Object.defineProperty(EventSourceMock, 'OPEN', {
   value: 1,
   writable: false,
   enumerable: true,
-  configurable: false
+  configurable: false,
 });
 Object.defineProperty(EventSourceMock, 'CLOSED', {
   value: 2,
   writable: false,
   enumerable: true,
-  configurable: false
+  configurable: false,
 });
 
 global.EventSource = EventSourceMock as unknown as EventSourceConstructor;
@@ -276,25 +276,25 @@ Object.defineProperty(WebSocketMock, 'CONNECTING', {
   value: 0,
   writable: false,
   enumerable: true,
-  configurable: false
+  configurable: false,
 });
 Object.defineProperty(WebSocketMock, 'OPEN', {
   value: 1,
   writable: false,
   enumerable: true,
-  configurable: false
+  configurable: false,
 });
 Object.defineProperty(WebSocketMock, 'CLOSING', {
   value: 2,
   writable: false,
   enumerable: true,
-  configurable: false
+  configurable: false,
 });
 Object.defineProperty(WebSocketMock, 'CLOSED', {
   value: 3,
   writable: false,
   enumerable: true,
-  configurable: false
+  configurable: false,
 });
 
 global.WebSocket = WebSocketMock as unknown as WebSocketConstructor;

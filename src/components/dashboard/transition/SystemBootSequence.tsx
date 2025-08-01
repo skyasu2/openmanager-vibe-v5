@@ -179,24 +179,24 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
 
     return (
       <div
-        className='fixed inset-0 z-50 bg-black cursor-pointer'
+        className="fixed inset-0 z-50 cursor-pointer bg-black"
         onClick={() => {
           console.log('🖱️ 화면 클릭 - 즉시 완료 처리');
           handleFinalComplete();
         }}
       >
         {/* 배경 효과 */}
-        <div className='absolute inset-0'>
-          <div className='absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl' />
-          <div className='absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl' />
+        <div className="absolute inset-0">
+          <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-purple-500/10 blur-3xl" />
         </div>
 
         {/* 메인 로딩 화면 */}
-        <div className='relative z-10 flex items-center justify-center min-h-screen'>
+        <div className="relative z-10 flex min-h-screen items-center justify-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className='text-center space-y-8'
+            className="space-y-8 text-center"
           >
             {/* 현재 단계 아이콘 */}
             <motion.div
@@ -204,7 +204,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className='text-6xl'
+              className="text-6xl"
             >
               {currentStageData.icon}
             </motion.div>
@@ -214,22 +214,22 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
               key={`title-${currentStage}`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className='text-2xl font-bold text-white'
+              className="text-2xl font-bold text-white"
             >
               {currentStageData.name}
             </motion.h2>
 
             {/* 진행률 바 */}
-            <div className='w-80 mx-auto'>
-              <div className='flex justify-between text-sm text-gray-400 mb-2'>
+            <div className="mx-auto w-80">
+              <div className="mb-2 flex justify-between text-sm text-gray-400">
                 <span>{Math.round(progress)}%</span>
                 <span>
                   {currentStage + 1} / {LOADING_STAGES.length}
                 </span>
               </div>
-              <div className='w-full bg-gray-700 rounded-full h-2'>
+              <div className="h-2 w-full rounded-full bg-gray-700">
                 <motion.div
-                  className='bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full'
+                  className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"
                   initial={{ width: 0 }}
                   animate={{ width: `${progress}%` }}
                   transition={{ duration: 0.3 }}
@@ -238,11 +238,11 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
             </div>
 
             {/* 로딩 점들 */}
-            <div className='flex space-x-2 justify-center'>
-              {[0, 1, 2].map(i => (
+            <div className="flex justify-center space-x-2">
+              {[0, 1, 2].map((i) => (
                 <motion.div
                   key={i}
-                  className='w-2 h-2 bg-white rounded-full'
+                  className="h-2 w-2 rounded-full bg-white"
                   animate={{
                     scale: [1, 1.5, 1],
                     opacity: [0.5, 1, 0.5],
@@ -265,27 +265,27 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
-              className='fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[10000]'
+              className="fixed bottom-6 left-1/2 z-[10000] -translate-x-1/2 transform"
             >
-              <div className='bg-black/90 backdrop-blur-sm text-white p-4 rounded-lg border border-red-500/30 shadow-2xl max-w-sm'>
-                <div className='text-center space-y-3'>
-                  <div className='text-red-400 text-sm font-medium'>
+              <div className="max-w-sm rounded-lg border border-red-500/30 bg-black/90 p-4 text-white shadow-2xl backdrop-blur-sm">
+                <div className="space-y-3 text-center">
+                  <div className="text-sm font-medium text-red-400">
                     🚨 로딩에 문제가 있나요?
                   </div>
-                  <div className='text-gray-300 text-xs leading-relaxed'>
+                  <div className="text-xs leading-relaxed text-gray-300">
                     로딩이 오래 걸리고 있습니다. 아래 버튼으로 바로 이동하세요.
                   </div>
                   <button
-                    onClick={e => {
+                    onClick={(e) => {
                       e.stopPropagation();
                       console.log('🚀 비상 완료 버튼 클릭');
                       handleFinalComplete();
                     }}
-                    className='w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 active:scale-95'
+                    className="w-full transform rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-medium transition-all duration-200 hover:scale-105 hover:from-blue-700 hover:to-purple-700 active:scale-95"
                   >
                     🚀 대시보드로 이동
                   </button>
-                  <div className='text-gray-400 text-xs'>
+                  <div className="text-xs text-gray-400">
                     또는 화면 아무 곳이나 클릭하세요
                   </div>
                 </div>
@@ -299,10 +299,10 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 2 }}
-          className='fixed bottom-4 left-4 text-white text-sm bg-black/50 backdrop-blur-lg p-4 rounded-lg border border-white/30 max-w-xs'
+          className="fixed bottom-4 left-4 max-w-xs rounded-lg border border-white/30 bg-black/50 p-4 text-sm text-white backdrop-blur-lg"
         >
-          <div className='space-y-2'>
-            <div className='text-cyan-300 font-medium'>💡 빠른 완료 방법</div>
+          <div className="space-y-2">
+            <div className="font-medium text-cyan-300">💡 빠른 완료 방법</div>
             <div>🖱️ 화면 아무 곳이나 클릭</div>
             <div>⌨️ Enter, Space, ESC 키</div>
             <div>⏱️ 자동 완료: 약 5초</div>

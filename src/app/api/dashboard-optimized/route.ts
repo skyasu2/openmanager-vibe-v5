@@ -23,7 +23,7 @@ export async function GET(_request: NextRequest) {
 
     // 서버 데이터를 객체 형태로 변환 (기존 API 호환성)
     const serversMap: Record<string, any> = {};
-    servers.forEach(server => {
+    servers.forEach((server) => {
       serversMap[server.id] = {
         ...server,
         cpu: server.cpu || 0,
@@ -42,9 +42,9 @@ export async function GET(_request: NextRequest) {
     // 통계 계산
     const stats = {
       total: servers.length,
-      healthy: servers.filter(s => s.status === 'online').length,
-      warning: servers.filter(s => s.status === 'warning').length,
-      critical: servers.filter(s => s.status === 'critical').length,
+      healthy: servers.filter((s) => s.status === 'online').length,
+      warning: servers.filter((s) => s.status === 'warning').length,
+      critical: servers.filter((s) => s.status === 'critical').length,
       avgCpu: Math.round(
         servers.reduce((sum, s) => sum + (s.cpu || 0), 0) / servers.length
       ),

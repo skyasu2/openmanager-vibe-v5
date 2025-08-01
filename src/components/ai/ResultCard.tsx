@@ -106,20 +106,20 @@ export default function ResultCard({
 
   return (
     <div
-      className={`rounded-2xl shadow-lg border-2 ${styles.border} ${styles.bg} overflow-hidden transition-all duration-300 hover:shadow-xl ${className}`}
+      className={`rounded-2xl border-2 shadow-lg ${styles.border} ${styles.bg} overflow-hidden transition-all duration-300 hover:shadow-xl ${className}`}
     >
       {/* 카드 헤더 */}
-      <div className={`${styles.header} text-white p-4`}>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center gap-3'>
+      <div className={`${styles.header} p-4 text-white`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <div
-              className={`w-10 h-10 rounded-xl ${styles.iconBg} flex items-center justify-center`}
+              className={`h-10 w-10 rounded-xl ${styles.iconBg} flex items-center justify-center`}
             >
               <i className={`${styles.icon} text-lg`}></i>
             </div>
             <div>
-              <h3 className='font-bold text-lg'>{data.title}</h3>
-              <p className='text-sm opacity-90'>
+              <h3 className="text-lg font-bold">{data.title}</h3>
+              <p className="text-sm opacity-90">
                 {data.timestamp.toLocaleString('ko-KR', {
                   month: 'short',
                   day: 'numeric',
@@ -130,11 +130,11 @@ export default function ResultCard({
             </div>
           </div>
 
-          <div className='flex items-center gap-2'>
+          <div className="flex items-center gap-2">
             {data.expandable && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className='w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center hover:bg-white/30 transition-colors'
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 transition-colors hover:bg-white/30"
                 title={isExpanded ? '접기' : '펼치기'}
               >
                 <i
@@ -145,10 +145,10 @@ export default function ResultCard({
             {onRemove && (
               <button
                 onClick={() => onRemove(data.id)}
-                className='w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center hover:bg-red-500/30 transition-colors'
-                title='카드 제거'
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 transition-colors hover:bg-red-500/30"
+                title="카드 제거"
               >
-                <i className='fas fa-times'></i>
+                <i className="fas fa-times"></i>
               </button>
             )}
           </div>
@@ -156,21 +156,21 @@ export default function ResultCard({
       </div>
 
       {/* 카드 내용 */}
-      <div className='p-4'>
+      <div className="p-4">
         {/* 메트릭 정보 */}
         {data.metrics && data.metrics.length > 0 && (
-          <div className='mb-4'>
-            <div className='grid grid-cols-2 md:grid-cols-3 gap-3'>
+          <div className="mb-4">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
               {data.metrics.map((metric, index) => (
                 <div
                   key={index}
-                  className='bg-white rounded-xl p-3 shadow-sm border border-gray-100'
+                  className="rounded-xl border border-gray-100 bg-white p-3 shadow-sm"
                 >
-                  <div className='text-xs text-gray-500 mb-1'>
+                  <div className="mb-1 text-xs text-gray-500">
                     {metric.label}
                   </div>
                   <div
-                    className={`text-lg font-bold px-2 py-1 rounded-lg inline-block ${getMetricStatusColor(metric.status)}`}
+                    className={`inline-block rounded-lg px-2 py-1 text-lg font-bold ${getMetricStatusColor(metric.status)}`}
                   >
                     {metric.value}
                   </div>
@@ -182,27 +182,27 @@ export default function ResultCard({
 
         {/* 주요 내용 */}
         <div
-          className={`text-gray-800 leading-relaxed ${!isExpanded && data.expandable ? 'line-clamp-3' : ''}`}
+          className={`leading-relaxed text-gray-800 ${!isExpanded && data.expandable ? 'line-clamp-3' : ''}`}
         >
           {data.content}
         </div>
 
         {/* 확장 내용 */}
         {isExpanded && data.expandable && (
-          <div className='mt-4 pt-4 border-t border-gray-200'>
-            <div className='text-gray-700 leading-relaxed'>
+          <div className="mt-4 border-t border-gray-200 pt-4">
+            <div className="leading-relaxed text-gray-700">
               {/* 메타데이터 정보 표시 */}
               {data.metadata && (
-                <div className='mb-4 p-3 bg-gray-50 rounded-lg'>
-                  <h4 className='text-sm font-semibold text-gray-600 mb-2'>
+                <div className="mb-4 rounded-lg bg-gray-50 p-3">
+                  <h4 className="mb-2 text-sm font-semibold text-gray-600">
                     분석 정보
                   </h4>
-                  <div className='grid grid-cols-2 gap-2 text-xs'>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
                     {data.metadata.apiUsed && (
                       <div>
-                        <span className='text-gray-500'>API:</span>
+                        <span className="text-gray-500">API:</span>
                         <span
-                          className={`ml-1 px-2 py-1 rounded ${
+                          className={`ml-1 rounded px-2 py-1 ${
                             data.metadata.apiUsed === 'optimized'
                               ? 'bg-green-100 text-green-700'
                               : data.metadata.apiUsed === 'pattern-matching'
@@ -216,9 +216,9 @@ export default function ResultCard({
                     )}
                     {data.metadata.confidence !== undefined && (
                       <div>
-                        <span className='text-gray-500'>신뢰도:</span>
+                        <span className="text-gray-500">신뢰도:</span>
                         <span
-                          className={`ml-1 px-2 py-1 rounded ${
+                          className={`ml-1 rounded px-2 py-1 ${
                             data.metadata.confidence >= 0.8
                               ? 'bg-green-100 text-green-700'
                               : data.metadata.confidence >= 0.5
@@ -232,22 +232,22 @@ export default function ResultCard({
                     )}
                     {data.metadata.method && (
                       <div>
-                        <span className='text-gray-500'>방법:</span>
-                        <span className='ml-1 text-gray-700'>
+                        <span className="text-gray-500">방법:</span>
+                        <span className="ml-1 text-gray-700">
                           {data.metadata.method}
                         </span>
                       </div>
                     )}
                     {data.metadata.patterns &&
                       data.metadata.patterns.length > 0 && (
-                        <div className='col-span-2'>
-                          <span className='text-gray-500'>매칭 패턴:</span>
-                          <div className='mt-1 flex flex-wrap gap-1'>
+                        <div className="col-span-2">
+                          <span className="text-gray-500">매칭 패턴:</span>
+                          <div className="mt-1 flex flex-wrap gap-1">
                             {data.metadata.patterns.map(
                               (pattern: string, index: number) => (
                                 <span
                                   key={index}
-                                  className='px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs'
+                                  className="rounded bg-indigo-100 px-2 py-1 text-xs text-indigo-700"
                                 >
                                   {pattern}
                                 </span>
@@ -261,7 +261,7 @@ export default function ResultCard({
               )}
 
               {/* 기본 상세 정보 */}
-              <p className='text-sm'>
+              <p className="text-sm">
                 상세 분석 결과 및 추가 정보가 여기에 표시됩니다. 서버 로그, 성능
                 지표, 보안 스캔 결과 등의 세부 사항을 포함할 수 있습니다.
               </p>
@@ -271,13 +271,13 @@ export default function ResultCard({
 
         {/* 액션 버튼들 */}
         {data.actions && data.actions.length > 0 && (
-          <div className='mt-4 pt-4 border-t border-gray-200'>
-            <div className='flex flex-wrap gap-2'>
+          <div className="mt-4 border-t border-gray-200 pt-4">
+            <div className="flex flex-wrap gap-2">
               {data.actions.map((action, index) => (
                 <button
                   key={index}
                   onClick={action.action}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105 ${getActionVariantStyles(action.variant)}`}
+                  className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-105 ${getActionVariantStyles(action.variant)}`}
                 >
                   {action.label}
                 </button>

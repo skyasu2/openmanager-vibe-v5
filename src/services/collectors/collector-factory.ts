@@ -69,7 +69,7 @@ export class CollectorManager {
     console.log(`🚀 ${this.collectors.size}개 컬렉터 시작...`);
 
     const startPromises = Array.from(this.collectors.values()).map(
-      async collector => {
+      async (collector) => {
         try {
           await collector.start();
         } catch (error) {
@@ -89,7 +89,7 @@ export class CollectorManager {
   stopAll(): void {
     console.log(`🛑 ${this.collectors.size}개 컬렉터 중지...`);
 
-    this.collectors.forEach(collector => {
+    this.collectors.forEach((collector) => {
       try {
         collector.stop();
       } catch (error) {
@@ -116,7 +116,7 @@ export class CollectorManager {
 
     return {
       total: this.collectors.size,
-      running: collectors.filter(c => c.isRunning).length,
+      running: collectors.filter((c) => c.isRunning).length,
       collectors,
       managerRunning: this.isRunning,
     };

@@ -171,7 +171,7 @@ class UnusedMCPTester {
 
   private generateReport(): void {
     const timestamp = new Date().toLocaleString();
-    const successCount = this.results.filter(r => r.success).length;
+    const successCount = this.results.filter((r) => r.success).length;
     const totalCount = this.results.length;
 
     const report = `# 미사용 MCP 서버 테스트 보고서
@@ -188,7 +188,7 @@ class UnusedMCPTester {
 
 ${this.results
   .map(
-    result => `
+    (result) => `
 ### ${result.mcpServer}
 
 | 항목 | 값 |
@@ -209,17 +209,17 @@ ${JSON.stringify(result.details, null, 2)}
 ## 💡 분석 및 권고사항
 
 ### Playwright MCP
-- **상태**: ${this.results.find(r => r.mcpServer === 'playwright')?.success ? '설치됨' : '문제있음'}
+- **상태**: ${this.results.find((r) => r.mcpServer === 'playwright')?.success ? '설치됨' : '문제있음'}
 - **문제**: .claude/mcp.json에서 잘못된 패키지명 사용 중
 - **해결책**: \`@modelcontextprotocol/mcp-server-playwright\` → \`@playwright/mcp\`로 변경
 
 ### Serena MCP  
-- **상태**: ${this.results.find(r => r.mcpServer === 'serena')?.success ? '설치됨' : '문제있음'}
+- **상태**: ${this.results.find((r) => r.mcpServer === 'serena')?.success ? '설치됨' : '문제있음'}
 - **문제**: Python 기반이므로 uvx 의존성
 - **해결책**: 프로젝트 설정이 필요한지 확인
 
 ### Context7 MCP
-- **상태**: ${this.results.find(r => r.mcpServer === 'context7')?.success ? '설치됨' : '문제있음'}
+- **상태**: ${this.results.find((r) => r.mcpServer === 'context7')?.success ? '설치됨' : '문제있음'}
 - **문제**: API 키 없이도 기본 기능 동작 여부 확인 필요
 - **해결책**: 무료 사용 가능 범위 확인
 

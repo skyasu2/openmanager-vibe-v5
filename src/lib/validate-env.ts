@@ -1,6 +1,6 @@
 /**
  * 🔐 간단한 환경변수 검증
- * 
+ *
  * 앱 시작 시 필수 환경변수만 체크
  * 포트폴리오용 기본 보안
  */
@@ -13,12 +13,12 @@ const REQUIRED_ENV_VARS = [
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_ANON_KEY',
   'SUPABASE_SERVICE_ROLE_KEY',
-  
+
   // GitHub OAuth (필수)
-  'GITHUB_CLIENT_ID', 
+  'GITHUB_CLIENT_ID',
   'GITHUB_CLIENT_SECRET',
   'NEXTAUTH_SECRET',
-  
+
   // Google AI (선택사항이지만 체크)
   'GOOGLE_AI_API_KEY',
 ];
@@ -37,23 +37,23 @@ const REDIS_ENV_VARS = [
  */
 export function validateEnvironmentVariables(): string[] {
   const missing: string[] = [];
-  
+
   // 필수 환경변수 체크
   for (const varName of REQUIRED_ENV_VARS) {
     if (!process.env[varName]) {
       missing.push(varName);
     }
   }
-  
+
   // Redis 환경변수 체크 (둘 중 하나 세트만 있으면 됨)
-  const hasRedis = REDIS_ENV_VARS.some(([url, token]) => 
-    process.env[url] && process.env[token]
+  const hasRedis = REDIS_ENV_VARS.some(
+    ([url, token]) => process.env[url] && process.env[token]
   );
-  
+
   if (!hasRedis) {
     missing.push('Redis 환경변수 (UPSTASH_REDIS_* 또는 KV_*)');
   }
-  
+
   return missing;
 }
 
@@ -62,16 +62,16 @@ export function validateEnvironmentVariables(): string[] {
  */
 export function checkRequiredEnvVars(): void {
   console.log('🔍 환경변수 검증 시작...');
-  
+
   const missing = validateEnvironmentVariables();
-  
+
   if (missing.length > 0) {
     console.error('❌ 필수 환경변수 누락:');
-    missing.forEach(varName => {
+    missing.forEach((varName) => {
       console.error(`   - ${varName}`);
     });
     console.error('\n💡 .env.local 파일을 확인하세요.');
-    
+
     // 개발 환경에서만 경고, 프로덕션에서는 오류
     if (process.env.NODE_ENV === 'production') {
       throw new Error(`필수 환경변수가 누락되었습니다: ${missing.join(', ')}`);
@@ -79,11 +79,11 @@ export function checkRequiredEnvVars(): void {
   } else {
     console.log('✅ 모든 필수 환경변수 확인 완료');
   }
-  
+
   // 선택적: 환경변수 마스킹 출력 (디버깅용)
   if (process.env.NODE_ENV === 'development') {
     console.log('📋 환경변수 상태:');
-    REQUIRED_ENV_VARS.forEach(varName => {
+    REQUIRED_ENV_VARS.forEach((varName) => {
       const value = process.env[varName];
       const masked = value ? `${value.substring(0, 8)}...` : '❌ 누락';
       console.log(`   ${varName}: ${masked}`);

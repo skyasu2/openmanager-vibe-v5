@@ -92,7 +92,7 @@ const getStatusIcon = (status: ComponentStatus) => {
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-        className='w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full'
+        className="h-4 w-4 rounded-full border-2 border-blue-400 border-t-transparent"
       />
     );
   }
@@ -104,45 +104,45 @@ const getStatusIcon = (status: ComponentStatus) => {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          className='w-4 h-4 bg-green-500 rounded-full flex items-center justify-center'
+          className="flex h-4 w-4 items-center justify-center rounded-full bg-green-500"
         >
           <svg
-            className='w-3 h-3 text-white'
-            fill='none'
-            stroke='currentColor'
-            viewBox='0 0 24 24'
+            className="h-3 w-3 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
             <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
+              strokeLinecap="round"
+              strokeLinejoin="round"
               strokeWidth={3}
-              d='M5 13l4 4L19 7'
+              d="M5 13l4 4L19 7"
             />
           </svg>
         </motion.div>
       );
     case 'failed':
       return (
-        <div className='w-4 h-4 bg-red-500 rounded-full flex items-center justify-center'>
+        <div className="flex h-4 w-4 items-center justify-center rounded-full bg-red-500">
           <svg
-            className='w-3 h-3 text-white'
-            fill='none'
-            stroke='currentColor'
-            viewBox='0 0 24 24'
+            className="h-3 w-3 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
             <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
+              strokeLinecap="round"
+              strokeLinejoin="round"
               strokeWidth={3}
-              d='M6 18L18 6M6 6l12 12'
+              d="M6 18L18 6M6 6l12 12"
             />
           </svg>
         </div>
       );
     case 'pending':
-      return <div className='w-4 h-4 bg-gray-600 rounded-full opacity-50' />;
+      return <div className="h-4 w-4 rounded-full bg-gray-600 opacity-50" />;
     default:
-      return <div className='w-4 h-4 bg-gray-600 rounded-full opacity-50' />;
+      return <div className="h-4 w-4 rounded-full bg-gray-600 opacity-50" />;
   }
 };
 
@@ -224,7 +224,7 @@ export default function SystemChecklist({
       error,
     };
 
-    setDebugInfo(prev => ({
+    setDebugInfo((prev) => ({
       ...prev,
       networkRequests: [...prev.networkRequests.slice(-9), request], // 최근 10개만 유지
     }));
@@ -240,7 +240,7 @@ export default function SystemChecklist({
       retryCount: (window as any)[`retry_${component}`] || 0,
     };
 
-    setDebugInfo(prev => ({
+    setDebugInfo((prev) => ({
       ...prev,
       errors: [...prev.errors.slice(-4), errorInfo], // 최근 5개만 유지
     }));
@@ -268,7 +268,7 @@ export default function SystemChecklist({
         const responseTime = status.completedTime - status.startTime;
         responseTimes.push(responseTime);
 
-        const component = componentDefinitions.find(c => c.id === id);
+        const component = componentDefinitions.find((c) => c.id === id);
         const componentName = component?.name || id;
 
         if (responseTime > slowestTime) {
@@ -289,7 +289,7 @@ export default function SystemChecklist({
           responseTimes.length
         : 0;
 
-    setDebugInfo(prev => ({
+    setDebugInfo((prev) => ({
       ...prev,
       performance: {
         ...prev.performance,
@@ -303,7 +303,7 @@ export default function SystemChecklist({
 
   // 🔍 디버깅 정보 실시간 업데이트
   useEffect(() => {
-    setDebugInfo(prev => ({
+    setDebugInfo((prev) => ({
       ...prev,
       timestamp: new Date().toISOString(),
       componentStates: { ...components },
@@ -367,7 +367,9 @@ export default function SystemChecklist({
 
       // 컴포넌트별 상세 분석
       analyzeComponent: (componentId: string) => {
-        const component = componentDefinitions.find(c => c.id === componentId);
+        const component = componentDefinitions.find(
+          (c) => c.id === componentId
+        );
         const status = components[componentId];
 
         console.group(`🔍 컴포넌트 분석: ${component?.name || componentId}`);
@@ -375,18 +377,18 @@ export default function SystemChecklist({
         console.log('현재 상태:', status);
         console.log(
           '에러 히스토리:',
-          debugInfo.errors.filter(e => e.component === componentId)
+          debugInfo.errors.filter((e) => e.component === componentId)
         );
         console.log(
           '네트워크 요청:',
-          debugInfo.networkRequests.filter(r => r.url.includes(componentId))
+          debugInfo.networkRequests.filter((r) => r.url.includes(componentId))
         );
         console.groupEnd();
 
         return {
           component,
           status,
-          errors: debugInfo.errors.filter(e => e.component === componentId),
+          errors: debugInfo.errors.filter((e) => e.component === componentId),
         };
       },
 
@@ -411,7 +413,7 @@ export default function SystemChecklist({
         const networkStats = {
           totalRequests: debugInfo.networkRequests.length,
           successRate:
-            debugInfo.networkRequests.filter(r => r.success).length /
+            debugInfo.networkRequests.filter((r) => r.success).length /
             debugInfo.networkRequests.length,
           averageResponseTime:
             debugInfo.networkRequests.reduce(
@@ -423,7 +425,7 @@ export default function SystemChecklist({
               current.responseTime > slowest.responseTime ? current : slowest,
             debugInfo.networkRequests[0]
           ),
-          failedRequests: debugInfo.networkRequests.filter(r => !r.success),
+          failedRequests: debugInfo.networkRequests.filter((r) => !r.success),
         };
 
         if (process.env.NODE_ENV === 'development') {
@@ -479,7 +481,7 @@ export default function SystemChecklist({
           navigator.clipboard
             .writeText(JSON.stringify(exportData, null, 2))
             .then(() => console.log('📋 클립보드에 복사 완료'))
-            .catch(err => console.error('📋 클립보드 복사 실패:', err));
+            .catch((err) => console.error('📋 클립보드 복사 실패:', err));
         }
 
         return exportData;
@@ -547,41 +549,38 @@ export default function SystemChecklist({
   }
 
   return (
-    <div
-      className='min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 
-                    flex items-center justify-center p-4 relative overflow-hidden'
-    >
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 p-4">
       {/* 배경 애니메이션 */}
-      <div className='absolute inset-0 opacity-10'>
-        <div className='absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500 rounded-full blur-3xl _animate-pulse' />
-        <div className='absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500 rounded-full blur-3xl _animate-pulse delay-1000' />
+      <div className="absolute inset-0 opacity-10">
+        <div className="_animate-pulse absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-blue-500 blur-3xl" />
+        <div className="_animate-pulse absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-purple-500 blur-3xl delay-1000" />
       </div>
 
       {/* 🛠️ 개발자 디버그 패널 */}
       {showDebugPanel && (
-        <div className='fixed top-4 right-4 bg-black/90 backdrop-blur-lg text-white text-xs p-4 rounded-lg border border-cyan-500/50 max-w-md z-50'>
-          <div className='flex items-center justify-between mb-3'>
-            <span className='font-semibold text-cyan-400'>
+        <div className="fixed right-4 top-4 z-50 max-w-md rounded-lg border border-cyan-500/50 bg-black/90 p-4 text-xs text-white backdrop-blur-lg">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="font-semibold text-cyan-400">
               🛠️ 시스템 체크리스트 디버그
             </span>
             <button
               onClick={() => setShowDebugPanel(false)}
-              className='text-gray-400 hover:text-white'
+              className="text-gray-400 hover:text-white"
             >
               ✕
             </button>
           </div>
 
-          <div className='space-y-2 text-xs'>
-            <div className='grid grid-cols-2 gap-2'>
+          <div className="space-y-2 text-xs">
+            <div className="grid grid-cols-2 gap-2">
               <div>진행률: {totalProgress}%</div>
               <div>완료: {completedCount}</div>
               <div>실패: {failedCount}</div>
               <div>로딩: {loadingCount}</div>
             </div>
 
-            <div className='border-t border-gray-600 pt-2'>
-              <div className='text-yellow-300 mb-1'>⚡ 성능:</div>
+            <div className="border-t border-gray-600 pt-2">
+              <div className="mb-1 text-yellow-300">⚡ 성능:</div>
               <div>
                 소요시간:{' '}
                 {Math.round(debugInfo.performance.checklistDuration / 1000)}s
@@ -593,20 +592,20 @@ export default function SystemChecklist({
             </div>
 
             {debugInfo.errors.length > 0 && (
-              <div className='border-t border-gray-600 pt-2'>
-                <div className='text-red-300 mb-1'>
+              <div className="border-t border-gray-600 pt-2">
+                <div className="mb-1 text-red-300">
                   🚨 에러 ({debugInfo.errors.length}):
                 </div>
                 {debugInfo.errors.slice(-2).map((error, idx) => (
-                  <div key={idx} className='text-red-200 text-xs'>
+                  <div key={idx} className="text-xs text-red-200">
                     {error.component}: {error.error.substring(0, 30)}...
                   </div>
                 ))}
               </div>
             )}
 
-            <div className='border-t border-gray-600 pt-2'>
-              <div className='text-green-300 mb-1'>🔧 도구:</div>
+            <div className="border-t border-gray-600 pt-2">
+              <div className="mb-1 text-green-300">🔧 도구:</div>
               <div>• D: 패널 토글</div>
               <div>• R: 재시도</div>
               <div>• systemChecklistDebug.*</div>
@@ -622,38 +621,35 @@ export default function SystemChecklist({
           scale: shouldProceed ? 0.9 : 1,
         }}
         transition={{ duration: 0.3 }}
-        className='relative z-10 w-full max-w-md'
+        className="relative z-10 w-full max-w-md"
       >
         {/* 로고 섹션 */}
         <motion.div
-          className='text-center mb-8'
+          className="mb-8 text-center"
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <div
-            className='inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r 
-                          from-blue-500 to-purple-600 rounded-2xl mb-4 shadow-2xl'
-          >
-            <span className='text-2xl font-bold text-white'>OM</span>
+          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-2xl">
+            <span className="text-2xl font-bold text-white">OM</span>
           </div>
-          <h1 className='text-2xl font-bold text-white mb-2'>OpenManager</h1>
-          <p className='text-sm text-gray-300'>시스템 초기화 중...</p>
+          <h1 className="mb-2 text-2xl font-bold text-white">OpenManager</h1>
+          <p className="text-sm text-gray-300">시스템 초기화 중...</p>
         </motion.div>
 
         {/* 전체 진행률 */}
-        <div className='mb-6'>
-          <div className='flex items-center justify-between mb-2'>
-            <span className='text-sm font-medium text-gray-300'>
+        <div className="mb-6">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-300">
               전체 진행률
             </span>
-            <span className='text-sm font-bold text-white'>
+            <span className="text-sm font-bold text-white">
               {totalProgress}%
             </span>
           </div>
-          <div className='w-full bg-gray-700/50 rounded-full h-2 overflow-hidden'>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-gray-700/50">
             <motion.div
-              className='h-full bg-gradient-to-r from-blue-500 to-green-500 rounded-full'
+              className="h-full rounded-full bg-gradient-to-r from-blue-500 to-green-500"
               initial={{ width: 0 }}
               animate={{ width: `${totalProgress}%` }}
               transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -662,7 +658,7 @@ export default function SystemChecklist({
         </div>
 
         {/* 컴팩트한 체크리스트 */}
-        <div className='space-y-2'>
+        <div className="space-y-2">
           {componentDefinitions.map((component, index) => {
             const status = components[component.id];
             if (!status) return null;
@@ -673,21 +669,15 @@ export default function SystemChecklist({
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className={`
-                  flex items-center p-3 rounded-xl border backdrop-blur-sm
-                  ${getPriorityBorder(component.priority)}
-                  ${
-                    status.status === 'completed'
-                      ? 'bg-green-500/10'
-                      : status.status === 'failed'
-                        ? 'bg-red-500/10'
-                        : status.status === 'loading'
-                          ? 'bg-blue-500/10'
-                          : 'bg-gray-500/10'
-                  }
-                  transition-all duration-300
-                  ${status.status === 'failed' ? 'cursor-pointer hover:bg-red-500/20' : ''}
-                `}
+                className={`flex items-center rounded-xl border p-3 backdrop-blur-sm ${getPriorityBorder(component.priority)} ${
+                  status.status === 'completed'
+                    ? 'bg-green-500/10'
+                    : status.status === 'failed'
+                      ? 'bg-red-500/10'
+                      : status.status === 'loading'
+                        ? 'bg-blue-500/10'
+                        : 'bg-gray-500/10'
+                } transition-all duration-300 ${status.status === 'failed' ? 'cursor-pointer hover:bg-red-500/20' : ''} `}
                 onClick={() => {
                   if (
                     status.status === 'failed' &&
@@ -705,14 +695,14 @@ export default function SystemChecklist({
                 }
               >
                 {/* 컴포넌트 아이콘 */}
-                <span className='text-2xl mr-3'>
+                <span className="mr-3 text-2xl">
                   {getComponentIcon(component.name)}
                 </span>
 
                 {/* 상태 정보 */}
-                <div className='flex-1 min-w-0'>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-sm font-medium text-white truncate'>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="truncate text-sm font-medium text-white">
                       {component.name}
                     </span>
                     {getStatusIcon(status)}
@@ -720,9 +710,9 @@ export default function SystemChecklist({
 
                   {/* 진행률 바 (로딩 중일 때만) */}
                   {status.status === 'loading' && (
-                    <div className='w-full bg-gray-600/30 rounded-full h-1 mt-2 overflow-hidden'>
+                    <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-gray-600/30">
                       <motion.div
-                        className='h-full bg-blue-400 rounded-full'
+                        className="h-full rounded-full bg-blue-400"
                         initial={{ width: 0 }}
                         animate={{ width: `${status.progress}%` }}
                         transition={{ duration: 0.3 }}
@@ -732,7 +722,7 @@ export default function SystemChecklist({
 
                   {/* 에러 메시지 (실패 시) */}
                   {status.status === 'failed' && status.error && (
-                    <div className='mt-1 text-xs text-red-300 truncate'>
+                    <div className="mt-1 truncate text-xs text-red-300">
                       {status.error}
                     </div>
                   )}
@@ -743,14 +733,14 @@ export default function SystemChecklist({
         </div>
 
         {/* 상태 정보 */}
-        <div className='mt-6 flex items-center justify-center space-x-6 text-sm'>
-          <div className='flex items-center space-x-2'>
-            <div className='w-2 h-2 bg-green-500 rounded-full' />
-            <span className='text-gray-300'>완료 {completedCount}</span>
+        <div className="mt-6 flex items-center justify-center space-x-6 text-sm">
+          <div className="flex items-center space-x-2">
+            <div className="h-2 w-2 rounded-full bg-green-500" />
+            <span className="text-gray-300">완료 {completedCount}</span>
           </div>
-          <div className='flex items-center space-x-2'>
-            <div className='w-2 h-2 bg-red-500 rounded-full' />
-            <span className='text-gray-300'>실패 {failedCount}</span>
+          <div className="flex items-center space-x-2">
+            <div className="h-2 w-2 rounded-full bg-red-500" />
+            <span className="text-gray-300">실패 {failedCount}</span>
           </div>
         </div>
 
@@ -759,14 +749,13 @@ export default function SystemChecklist({
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className='mt-4 text-center space-y-2'
+            className="mt-4 space-y-2 text-center"
           >
             <button
               onClick={() =>
                 (window as any).systemChecklistDebug?.retryFailedComponents()
               }
-              className='px-4 py-2 bg-red-500/20 text-red-300 rounded-lg border border-red-500/50 
-                         hover:bg-red-500/30 transition-colors text-sm mr-2'
+              className="mr-2 rounded-lg border border-red-500/50 bg-red-500/20 px-4 py-2 text-sm text-red-300 transition-colors hover:bg-red-500/30"
             >
               재시도 (R)
             </button>
@@ -776,8 +765,7 @@ export default function SystemChecklist({
                 onClick={() =>
                   (window as any).systemChecklistDebug?.diagnoseNetwork()
                 }
-                className='px-4 py-2 bg-yellow-500/20 text-yellow-300 rounded-lg border border-yellow-500/50 
-                           hover:bg-yellow-500/30 transition-colors text-sm'
+                className="rounded-lg border border-yellow-500/50 bg-yellow-500/20 px-4 py-2 text-sm text-yellow-300 transition-colors hover:bg-yellow-500/30"
               >
                 네트워크 진단
               </button>
@@ -792,59 +780,58 @@ export default function SystemChecklist({
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              className='absolute inset-0 flex items-center justify-center 
-                         bg-green-500/20 backdrop-blur-sm rounded-2xl border border-green-500/50'
+              className="absolute inset-0 flex items-center justify-center rounded-2xl border border-green-500/50 bg-green-500/20 backdrop-blur-sm"
               onAnimationComplete={() => {
                 // 애니메이션 완료 즉시 다음 단계로 진행
                 setShouldProceed(true);
                 setTimeout(onComplete, 100);
               }}
             >
-              <div className='text-center'>
+              <div className="text-center">
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-                  className='w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4'
+                  className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500"
                 >
                   <svg
-                    className='w-8 h-8 text-white'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
+                    className="h-8 w-8 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
                     <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                       strokeWidth={3}
-                      d='M5 13l4 4L19 7'
+                      d="M5 13l4 4L19 7"
                     />
                   </svg>
                 </motion.div>
-                <h3 className='text-xl font-bold text-white mb-2'>
+                <h3 className="mb-2 text-xl font-bold text-white">
                   시스템 초기화 완료
                 </h3>
-                <p className='text-sm text-gray-300 mb-3'>
+                <p className="mb-3 text-sm text-gray-300">
                   다음 단계로 진행합니다...
                 </p>
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1 }}
-                  className='inline-flex items-center space-x-2 px-4 py-2 bg-green-500/30 rounded-lg border border-green-400/50'
+                  className="inline-flex items-center space-x-2 rounded-lg border border-green-400/50 bg-green-500/30 px-4 py-2"
                 >
-                  <span className='text-sm text-green-200'>클릭하여 계속</span>
+                  <span className="text-sm text-green-200">클릭하여 계속</span>
                   <svg
-                    className='w-4 h-4 text-green-200'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
+                    className="h-4 w-4 text-green-200"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
                     <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                       strokeWidth={2}
-                      d='M13 7l5 5m0 0l-5 5m5-5H6'
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
                     />
                   </svg>
                 </motion.div>
@@ -860,12 +847,11 @@ export default function SystemChecklist({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className='mt-4 text-center'
+              className="mt-4 text-center"
             >
               <button
                 onClick={onComplete}
-                className='px-4 py-2 bg-blue-500/20 text-blue-300 rounded-lg border border-blue-500/50 
-                           hover:bg-blue-500/30 transition-colors text-sm'
+                className="rounded-lg border border-blue-500/50 bg-blue-500/20 px-4 py-2 text-sm text-blue-300 transition-colors hover:bg-blue-500/30"
               >
                 건너뛰기 (ESC)
               </button>
@@ -874,7 +860,7 @@ export default function SystemChecklist({
         </AnimatePresence>
 
         {/* 단축키 안내 */}
-        <div className='mt-6 text-center text-xs text-gray-500'>
+        <div className="mt-6 text-center text-xs text-gray-500">
           <p>ESC/Space: 건너뛰기 • R: 재시도 • D: 디버그 패널</p>
         </div>
       </motion.div>
@@ -884,7 +870,7 @@ export default function SystemChecklist({
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.5 }}
-        className='absolute bottom-6 left-6 z-20'
+        className="absolute bottom-6 left-6 z-20"
       >
         <button
           onClick={() => {
@@ -892,26 +878,23 @@ export default function SystemChecklist({
               window.history.back();
             }
           }}
-          className='flex items-center space-x-2 px-4 py-2 bg-gray-700/80 backdrop-blur-sm 
-                     text-gray-300 rounded-lg border border-gray-600/50 
-                     hover:bg-gray-600/80 hover:text-white transition-all duration-200
-                     focus:outline-none focus:ring-2 focus:ring-blue-500/50'
-          title='이전 페이지로 돌아가기'
+          className="flex items-center space-x-2 rounded-lg border border-gray-600/50 bg-gray-700/80 px-4 py-2 text-gray-300 backdrop-blur-sm transition-all duration-200 hover:bg-gray-600/80 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+          title="이전 페이지로 돌아가기"
         >
           <svg
-            className='w-4 h-4'
-            fill='none'
-            stroke='currentColor'
-            viewBox='0 0 24 24'
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
             <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
+              strokeLinecap="round"
+              strokeLinejoin="round"
               strokeWidth={2}
-              d='M10 19l-7-7m0 0l7-7m-7 7h18'
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
           </svg>
-          <span className='text-sm'>돌아가기</span>
+          <span className="text-sm">돌아가기</span>
         </button>
       </motion.div>
     </div>

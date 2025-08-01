@@ -22,7 +22,7 @@ export async function GET() {
     ];
 
     // 간소화된 상태 확인 (실제 서브 에이전트는 Claude Code에서 관리)
-    const agentStatuses = agents.map(agent => ({
+    const agentStatuses = agents.map((agent) => ({
       agent,
       ready: true, // Claude Code 서브 에이전트는 기본적으로 사용 가능
       issues: [],

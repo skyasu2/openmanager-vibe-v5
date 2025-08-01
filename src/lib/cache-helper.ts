@@ -56,7 +56,7 @@ export async function cacheOrFetch<T>(
     const data = await fetcher();
 
     // 결과 캐싱 (비동기로 처리하여 응답 지연 방지)
-    cache.set(key, data, options?.ttl).catch(error => {
+    cache.set(key, data, options?.ttl).catch((error) => {
       console.error(`캐시 저장 실패 (${key}):`, error);
     });
 
@@ -78,7 +78,7 @@ export async function cacheOrFetchMany<T>(
   }>
 ): Promise<T[]> {
   const cache = getCacheService();
-  const keys = items.map(item => item.key);
+  const keys = items.map((item) => item.key);
 
   try {
     // 배치로 캐시 조회
@@ -103,7 +103,7 @@ export async function cacheOrFetchMany<T>(
           results[index] = data;
 
           // 비동기 캐싱
-          cache.set(item.key, data, item.ttl).catch(error => {
+          cache.set(item.key, data, item.ttl).catch((error) => {
             console.error(`배치 캐시 저장 실패 (${item.key}):`, error);
           });
 
@@ -121,7 +121,7 @@ export async function cacheOrFetchMany<T>(
   } catch (error) {
     // 캐시 실패 시 모든 항목 페칭
     console.error('배치 캐시 조회 실패, 전체 페칭:', error);
-    return Promise.all(items.map(item => item.fetcher()));
+    return Promise.all(items.map((item) => item.fetcher()));
   }
 }
 

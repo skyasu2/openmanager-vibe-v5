@@ -66,7 +66,7 @@ export const useServerFilters = () => {
   // 서버 필터링 함수
   const filterServers = useCallback(
     (servers: Server[]): Server[] => {
-      return servers.filter(server => {
+      return servers.filter((server) => {
         // 상태 필터
         if (
           currentFilters.status &&
@@ -123,7 +123,7 @@ export const useServerFilters = () => {
 
   // 위치 목록 추출 (서버 목록에서)
   const getUniqueLocations = useCallback((servers: Server[]): string[] => {
-    const locations = servers.map(server => server.location);
+    const locations = servers.map((server) => server.location);
     return Array.from(new Set(locations)).sort();
   }, []);
 

@@ -66,24 +66,24 @@ export default function DynamicPresets({
 
   const getQuestionIcon = (question: string) => {
     if (question.includes('위험') || question.includes('⚠️'))
-      return <AlertTriangle className='w-4 h-4 text-red-500' />;
+      return <AlertTriangle className="h-4 w-4 text-red-500" />;
     if (question.includes('서버') || question.includes('📊'))
-      return <Server className='w-4 h-4 text-blue-500' />;
+      return <Server className="h-4 w-4 text-blue-500" />;
     if (question.includes('최적화') || question.includes('트렌드'))
-      return <TrendingUp className='w-4 h-4 text-green-500' />;
-    return <Lightbulb className='w-4 h-4 text-purple-500' />;
+      return <TrendingUp className="h-4 w-4 text-green-500" />;
+    return <Lightbulb className="h-4 w-4 text-purple-500" />;
   };
 
   return (
-    <div className='bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-4 space-y-3'>
-      <div className='flex items-center gap-2'>
-        <Lightbulb className='w-5 h-5 text-purple-600' />
-        <p className='text-sm font-medium text-purple-700'>
+    <div className="space-y-3 rounded-lg bg-gradient-to-br from-purple-50 to-blue-50 p-4">
+      <div className="flex items-center gap-2">
+        <Lightbulb className="h-5 w-5 text-purple-600" />
+        <p className="text-sm font-medium text-purple-700">
           💡 상황별 추천 질문
         </p>
       </div>
 
-      <div className='space-y-2'>
+      <div className="space-y-2">
         {presets.map((preset, index) => (
           <motion.button
             key={`${preset}-${index}`}
@@ -91,13 +91,11 @@ export default function DynamicPresets({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
             onClick={() => onSelect(preset)}
-            className='w-full text-left text-sm px-3 py-3 bg-white rounded-lg border 
-                     hover:bg-purple-50 hover:border-purple-200 transition-all duration-200 
-                     shadow-sm hover:shadow group'
+            className="group w-full rounded-lg border bg-white px-3 py-3 text-left text-sm shadow-sm transition-all duration-200 hover:border-purple-200 hover:bg-purple-50 hover:shadow"
           >
-            <div className='flex items-start gap-2'>
+            <div className="flex items-start gap-2">
               {getQuestionIcon(preset)}
-              <span className='group-hover:text-purple-700 transition-colors'>
+              <span className="transition-colors group-hover:text-purple-700">
                 {preset}
               </span>
             </div>
@@ -105,7 +103,7 @@ export default function DynamicPresets({
         ))}
       </div>
 
-      <div className='text-xs text-gray-500 text-center pt-2 border-t border-purple-100'>
+      <div className="border-t border-purple-100 pt-2 text-center text-xs text-gray-500">
         💡 질문이 15초마다 서버 상태에 맞춰 업데이트됩니다
       </div>
     </div>
