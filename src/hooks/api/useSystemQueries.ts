@@ -84,7 +84,7 @@ export const systemKeys = {
 // API 함수들 - 포트폴리오 버전에서 헬스체크 모킹
 const fetchSystemHealth = async (): Promise<SystemHealth> => {
   // health API 제거로 인한 모킹 (Vercel 무료 티어 최적화)
-  await new Promise((resolve) => setTimeout(resolve, 100)); // 네트워크 지연 시뮬레이션
+  await new Promise(resolve => setTimeout(resolve, 100)); // 네트워크 지연 시뮬레이션
 
   return {
     status: 'healthy',
@@ -269,12 +269,12 @@ export const useSystemAlerts = (filters?: {
       alerts,
       stats: {
         total: alerts.length,
-        unresolved: alerts.filter((a) => !a.resolved).length,
+        unresolved: alerts.filter(a => !a.resolved).length,
         byLevel: {
-          critical: alerts.filter((a) => a.level === 'critical').length,
-          error: alerts.filter((a) => a.level === 'error').length,
-          warning: alerts.filter((a) => a.level === 'warning').length,
-          info: alerts.filter((a) => a.level === 'info').length,
+          critical: alerts.filter(a => a.level === 'critical').length,
+          error: alerts.filter(a => a.level === 'error').length,
+          warning: alerts.filter(a => a.level === 'warning').length,
+          info: alerts.filter(a => a.level === 'info').length,
         },
       },
     }),
@@ -309,10 +309,10 @@ function calculateOverallHealth(
 ): 'healthy' | 'warning' | 'critical' {
   const checks = Object.values(health.checks);
   const criticalCount = checks.filter(
-    (check) => check.status === 'critical'
+    check => check.status === 'critical'
   ).length;
   const warningCount = checks.filter(
-    (check) => check.status === 'warning'
+    check => check.status === 'warning'
   ).length;
 
   if (criticalCount > 0) return 'critical';
@@ -333,7 +333,7 @@ function getCriticalIssues(health: SystemHealth): string[] {
 function calculateHealthScore(health: SystemHealth): number {
   const checks = Object.values(health.checks);
   const healthyCount = checks.filter(
-    (check) => check.status === 'healthy'
+    check => check.status === 'healthy'
   ).length;
   return (healthyCount / checks.length) * 100;
 }

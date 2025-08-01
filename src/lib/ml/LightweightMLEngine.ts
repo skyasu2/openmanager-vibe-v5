@@ -83,7 +83,7 @@ export class LightweightMLEngine {
       `[LightweightMLEngine] Training model ${modelId} with ${data.length} samples`
     );
     // 더미 트레이닝 로직
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
 
   getModel(modelId: string): MLModel | undefined {

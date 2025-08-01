@@ -9,7 +9,7 @@ import {
 } from '@/config/display-config';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
 import type { Server } from '@/types/server';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
 
 export type DashboardTab = 'servers' | 'network' | 'clusters' | 'applications';
@@ -100,14 +100,12 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const { onStatsUpdate } = options;
 
   // Zustand 스토어에서 서버 데이터 가져오기
-  const servers = useServerDataStore((state) => state.servers);
-  const isLoading = useServerDataStore((state) => state.isLoading);
-  const error = useServerDataStore((state) => state.error);
-  const fetchServers = useServerDataStore((state) => state.fetchServers);
-  const startAutoRefresh = useServerDataStore(
-    (state) => state.startAutoRefresh
-  );
-  const stopAutoRefresh = useServerDataStore((state) => state.stopAutoRefresh);
+  const servers = useServerDataStore(state => state.servers);
+  const isLoading = useServerDataStore(state => state.isLoading);
+  const error = useServerDataStore(state => state.error);
+  const fetchServers = useServerDataStore(state => state.fetchServers);
+  const startAutoRefresh = useServerDataStore(state => state.startAutoRefresh);
+  const stopAutoRefresh = useServerDataStore(state => state.stopAutoRefresh);
 
   // 페이지네이션 상태 - 설정 기반으로 동적 조정
   const [currentPage, setCurrentPage] = useState(1);
@@ -153,18 +151,14 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   // 서버 메트릭 훅
   const { metricsHistory } = useServerMetrics();
 
-  // 🚀 서버 데이터 최초 로드
+  // 🚀 최적화된 서버 데이터 로드 및 자동 갱신 설정
   useEffect(() => {
     // 데이터가 없을 때 최초 로드
-    const hasNoServers = !servers || servers.length === 0;
-    if (hasNoServers) {
+    if (!servers || servers.length === 0) {
       console.log('📊 서버 데이터 최초 로드');
       fetchServers();
     }
-  }, [servers, fetchServers]); // servers와 fetchServers 의존성 추가
 
-  // 🔄 자동 갱신 설정
-  useEffect(() => {
     // 자동 갱신 시작 (30-60초 주기)
     console.log('🔄 서버 데이터 자동 갱신 활성화');
     startAutoRefresh();
@@ -174,7 +168,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       console.log('🛑 서버 데이터 자동 갱신 중지');
       stopAutoRefresh();
     };
-  }, [startAutoRefresh, stopAutoRefresh]);
+  }, [fetchServers, startAutoRefresh, stopAutoRefresh]); // servers 의존성 제거로 무한 루프 방지
 
   // 실제 서버 데이터 사용 (메모이제이션)
   const actualServers = useMemo(() => {
@@ -328,7 +322,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
     console.log('📊 useServerDashboard 통계:', {
       ...result,
-      서버_상태_분포: actualServers.map((s) => ({
+      서버_상태_분포: actualServers.map(s => ({
         이름: s.name || s.id,
         상태: s.status,
       })),
@@ -470,12 +464,12 @@ export function useEnhancedServerDashboard({
 
   // 🌍 고유 위치 목록
   const uniqueLocations = useMemo(() => {
-    return Array.from(new Set(servers.map((server) => server.location))).sort();
+    return Array.from(new Set(servers.map(server => server.location))).sort();
   }, [servers]);
 
   // 🔍 필터링된 서버
   const filteredServers = useMemo(() => {
-    return servers.filter((server) => {
+    return servers.filter(server => {
       const matchesSearch =
         server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         server.location.toLowerCase().includes(searchTerm.toLowerCase());

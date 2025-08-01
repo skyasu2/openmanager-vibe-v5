@@ -14,8 +14,8 @@ export interface IntentResult {
 
 export class IntentClassifier {
   async classify(input: string): Promise<IntentResult> {
-    return {
-      intent: 'unknown',
+    return { 
+      intent: 'unknown', 
       confidence: 0,
       name: 'Unknown Intent',
       category: 'general',
@@ -24,7 +24,7 @@ export class IntentClassifier {
       needsNLP: false,
       needsAnomalyDetection: false,
       needsComplexML: false,
-      urgency: 'low',
+      urgency: 'low'
     };
   }
 }

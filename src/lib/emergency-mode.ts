@@ -36,7 +36,7 @@ export class EmergencyMode {
     // 허용된 필수 엔드포인트만 통과
     const allowedEndpoints = ['/api/health', '/', '/favicon.ico'];
 
-    return !allowedEndpoints.some((allowed) => endpoint.startsWith(allowed));
+    return !allowedEndpoints.some(allowed => endpoint.startsWith(allowed));
   }
 
   /**

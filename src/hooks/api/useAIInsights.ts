@@ -81,7 +81,7 @@ export const useFilteredAIInsights = (
 ) => {
   const { data: insights, ...rest } = useAIInsights();
 
-  const filteredInsights = insights?.filter((insight) => {
+  const filteredInsights = insights?.filter(insight => {
     if (type && insight.type !== type) return false;
     if (severity && insight.severity !== severity) return false;
     return true;

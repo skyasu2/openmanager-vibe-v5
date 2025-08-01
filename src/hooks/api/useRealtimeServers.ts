@@ -746,14 +746,14 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
   // 유틸리티 함수들
   const getServersByStatus = useCallback(
     (status: ServerInstance['status']) => {
-      return servers.filter((server) => server.status === status);
+      return servers.filter(server => server.status === status);
     },
     [servers]
   );
 
   const getServersByType = useCallback(
     (type: ServerInstance['type']) => {
-      return servers.filter((server) => server.type === type);
+      return servers.filter(server => server.type === type);
     },
     [servers]
   );
@@ -761,7 +761,7 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
   const getHealthyServersPercentage = useCallback(() => {
     if (servers.length === 0) return 100;
     const healthyCount = servers.filter(
-      (server) => server.status === 'running'
+      server => server.status === 'running'
     ).length;
     return Math.round((healthyCount / servers.length) * 100);
   }, [servers]);

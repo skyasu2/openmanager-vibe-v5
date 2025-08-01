@@ -77,7 +77,7 @@ export function useSystemIntegration() {
   }, []);
 
   const updateMetrics = useCallback(() => {
-    setState((prev) => ({
+    setState(prev => ({
       ...prev,
       metrics: {
         cpu: Math.random() * 100,
@@ -94,7 +94,7 @@ export function useSystemIntegration() {
 
   const _initializeSystem = useCallback(async () => {
     console.log('[useSystemIntegration] Initializing system...');
-    setState((prev) => ({ ...prev, systemStatus: 'running', isHealthy: true }));
+    setState(prev => ({ ...prev, systemStatus: 'running', isHealthy: true }));
     return true;
   }, []);
 

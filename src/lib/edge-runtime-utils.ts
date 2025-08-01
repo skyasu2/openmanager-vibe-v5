@@ -181,9 +181,7 @@ export class EdgeHTTPClient {
           throw error;
         }
 
-        await new Promise((resolve) =>
-          setTimeout(resolve, retryDelay * attempt)
-        );
+        await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
       }
     }
     // TypeScript를 위한 명시적 throw (실제로는 도달하지 않음)

@@ -193,7 +193,7 @@ export const useAIResponseFormatter = () => {
       const total = 6;
 
       // 6W1H 패턴 매칭 확인
-      Object.values(sixWPatterns).forEach((pattern) => {
+      Object.values(sixWPatterns).forEach(pattern => {
         if (pattern[language].test(text)) {
           matches++;
         }
@@ -409,7 +409,7 @@ export const useAIResponseFormatter = () => {
     (response: SixWPrincipleResponse): boolean => {
       const required = ['who', 'what', 'when', 'where', 'why', 'how'];
       return required.every(
-        (key) =>
+        key =>
           response[key as keyof SixWPrincipleResponse] &&
           (response[key as keyof SixWPrincipleResponse] as string).trim() !== ''
       );
@@ -421,7 +421,7 @@ export const useAIResponseFormatter = () => {
   const retryFormat = useCallback(
     async (rawResponse: string, options?: Partial<FormatOptions>) => {
       if (error && error.retryCount < error.maxRetries) {
-        setError((prev) =>
+        setError(prev =>
           prev ? { ...prev, retryCount: prev.retryCount + 1 } : null
         );
         return formatResponse(rawResponse, options);

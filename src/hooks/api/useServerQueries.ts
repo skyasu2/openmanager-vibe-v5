@@ -150,7 +150,7 @@ export const useServers = (options?: {
       }
       return failureCount < 3;
     },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     placeholderData: keepPreviousData,
     meta: {
       errorMessage: '서버 목록을 불러오는데 실패했습니다.',
@@ -188,14 +188,14 @@ export const useServerMetrics = (
     refetchInterval: 60000, // 1분 간격
     retry: 1,
     placeholderData: keepPreviousData,
-    select: (data) => {
+    select: data => {
       // 데이터 변환 및 정렬
       return data
         .sort(
           (a, b) =>
             new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
         )
-        .map((metric) => ({
+        .map(metric => ({
           ...metric,
           timestamp: new Date(metric.timestamp).toISOString(),
         }));
@@ -214,7 +214,7 @@ export const useServerToggle = () => {
     mutationFn: toggleServerStatus,
 
     // Optimistic Update
-    onMutate: async (serverId) => {
+    onMutate: async serverId => {
       // 진행 중인 쿼리 취소
       await queryClient.cancelQueries({ queryKey: serverKeys.lists() });
       await queryClient.cancelQueries({
@@ -232,7 +232,7 @@ export const useServerToggle = () => {
         serverKeys.lists(),
         (old: Server[] | undefined) => {
           if (!old) return old;
-          return old.map((server) =>
+          return old.map(server =>
             server.id === serverId
               ? {
                   ...server,
@@ -288,13 +288,13 @@ export const useServerRestart = () => {
   return useMutation({
     mutationFn: restartServer,
 
-    onMutate: async (serverId) => {
+    onMutate: async serverId => {
       // 재시작 중 상태로 임시 변경
       queryClient.setQueryData(
         serverKeys.lists(),
         (old: Server[] | undefined) => {
           if (!old) return old;
-          return old.map((server) =>
+          return old.map(server =>
             server.id === serverId
               ? {
                   ...server,
@@ -364,7 +364,7 @@ export const useServerSearch = (
 ) => {
   const { data: servers, ...query } = useServers();
 
-  const filteredServers = servers?.filter((server) => {
+  const filteredServers = servers?.filter(server => {
     const matchesSearch =
       !searchTerm ||
       server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -418,7 +418,7 @@ export const useServerConnection = () => {
         }
       };
 
-      eventSourceRef.current.onmessage = (event) => {
+      eventSourceRef.current.onmessage = event => {
         try {
           const parsed = JSON.parse(event.data);
 
@@ -454,7 +454,7 @@ export const useServerConnection = () => {
         }
       };
 
-      eventSourceRef.current.onerror = (error) => {
+      eventSourceRef.current.onerror = error => {
         console.error('❌ SSE 연결 오류:', error);
         setIsConnected(false);
         setConnectionStatus('error');
@@ -539,12 +539,12 @@ export const useServerQueryStatus = () => {
   const queries = queryClient
     .getQueryCache()
     .getAll()
-    .filter((query) => query.queryKey[0] === 'servers');
+    .filter(query => query.queryKey[0] === 'servers');
 
   return {
     totalQueries: queries.length,
-    loadingQueries: queries.filter((q) => q.state.status === 'pending').length,
-    errorQueries: queries.filter((q) => q.state.status === 'error').length,
-    staleQueries: queries.filter((q) => q.isStale()).length,
+    loadingQueries: queries.filter(q => q.state.status === 'pending').length,
+    errorQueries: queries.filter(q => q.state.status === 'error').length,
+    staleQueries: queries.filter(q => q.isStale()).length,
   };
 };

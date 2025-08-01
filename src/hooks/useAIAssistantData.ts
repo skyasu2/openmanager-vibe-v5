@@ -198,8 +198,8 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
         if (response.ok) {
           const result = await response.json();
           if (result.success) {
-            setPatternSuggestions((prev) =>
-              prev.map((p) =>
+            setPatternSuggestions(prev =>
+              prev.map(p =>
                 p.id === id
                   ? {
                       ...p,
@@ -226,7 +226,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
   );
 
   // 필터링된 로그
-  const filteredLogs = _responseLogs.filter((log) => {
+  const filteredLogs = _responseLogs.filter(log => {
     if (filters.status !== 'all' && log.status !== filters.status) return false;
     if (filters.confidence !== 'all') {
       const confThreshold = filters.confidence === 'high' ? 0.8 : 0.5;
@@ -246,12 +246,12 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
     totalLogs: _responseLogs.length,
     successRate:
       _responseLogs.length > 0
-        ? (_responseLogs.filter((l) => l.status === 'success').length /
+        ? (_responseLogs.filter(l => l.status === 'success').length /
             _responseLogs.length) *
           100
         : 0,
     _patternSuggestions: _patternSuggestions.length,
-    pendingPatterns: _patternSuggestions.filter((p) => p.status === 'pending')
+    pendingPatterns: _patternSuggestions.filter(p => p.status === 'pending')
       .length,
     contextDocuments: contextDocuments.length,
     totalWords: Math.round(

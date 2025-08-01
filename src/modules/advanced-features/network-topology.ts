@@ -91,16 +91,16 @@ export class NetworkTopologyGenerator {
     const connections: NetworkConnection[] = [];
 
     // 각 노드마다 1-3개의 연결 생성
-    nodes.forEach((node) => {
+    nodes.forEach(node => {
       const connectionCount = faker.number.int({ min: 1, max: 3 });
-      const possibleTargets = nodes.filter((n) => n.id !== node.id);
+      const possibleTargets = nodes.filter(n => n.id !== node.id);
 
       for (let i = 0; i < connectionCount && possibleTargets.length > 0; i++) {
         const target = faker.helpers.arrayElement(possibleTargets);
 
         // 중복 연결 방지
         const existingConnection = connections.find(
-          (c) =>
+          c =>
             (c.from === node.id && c.to === target.id) ||
             (c.from === target.id && c.to === node.id)
         );

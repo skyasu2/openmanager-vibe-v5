@@ -217,7 +217,7 @@ export const secureEnv = {
   validate: () => {
     const required = ['GOOGLE_AI_API_KEY', 'NEXTAUTH_SECRET'];
 
-    const missing = required.filter((key) => !encryptedEnvLoader.hasEnv(key));
+    const missing = required.filter(key => !encryptedEnvLoader.hasEnv(key));
 
     if (missing.length > 0) {
       console.error('❌ 필수 환경변수 누락:', missing.join(', '));
@@ -236,7 +236,7 @@ if (
   typeof window === 'undefined' &&
   process.env.AUTO_LOAD_ENCRYPTED_ENV !== 'false'
 ) {
-  _initializeEncryptedEnv().catch((error) => {
+  _initializeEncryptedEnv().catch(error => {
     console.error('환경변수 자동 로드 실패:', error);
   });
 }

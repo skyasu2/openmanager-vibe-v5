@@ -105,11 +105,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
       return;
     }
 
-    setConnectionState((prev) => ({
-      ...prev,
-      isConnecting: true,
-      error: null,
-    }));
+    setConnectionState(prev => ({ ...prev, isConnecting: true, error: null }));
 
     try {
       socketRef.current = io(url, {
@@ -122,7 +118,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
 
       // 연결 성공
       socket.on('connect', () => {
-        setConnectionState((prev) => ({
+        setConnectionState(prev => ({
           ...prev,
           isConnected: true,
           isConnecting: false,
@@ -134,7 +130,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
         if (debug) console.log('✅ WebSocket 연결 성공:', socket.id);
 
         // 기존 구독 복원
-        subscriptionsRef.current.forEach((streamType) => {
+        subscriptionsRef.current.forEach(streamType => {
           socket.emit('subscribe', { streamType, clientId: socket.id });
         });
 
@@ -143,9 +139,9 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
       });
 
       // 연결 실패
-      socket.on('connect_error', (error) => {
+      socket.on('connect_error', error => {
         console.error('❌ WebSocket 연결 실패:', error);
-        setConnectionState((prev) => ({
+        setConnectionState(prev => ({
           ...prev,
           isConnected: false,
           isConnecting: false,
@@ -154,8 +150,8 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
       });
 
       // 연결 해제
-      socket.on('disconnect', (reason) => {
-        setConnectionState((prev) => ({
+      socket.on('disconnect', reason => {
+        setConnectionState(prev => ({
           ...prev,
           isConnected: false,
           isConnecting: false,
@@ -174,14 +170,14 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
       });
 
       // 🎉 환영 메시지
-      socket.on('welcome', (message) => {
+      socket.on('welcome', message => {
         if (debug) console.log('🎉 환영 메시지:', message);
       });
 
       // 📊 현재 상태
-      socket.on('current-status', (status) => {
+      socket.on('current-status', status => {
         setSystemStatus(status);
-        setConnectionState((prev) => ({
+        setConnectionState(prev => ({
           ...prev,
           connectionCount: status.connectionCount,
         }));
@@ -192,7 +188,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
       // 📈 서버 메트릭 스트림
       socket.on('server-metrics', (data: StreamData) => {
         setLatestMetric(data);
-        setServerMetrics((prev) => {
+        setServerMetrics(prev => {
           const newMetrics = [data, ...prev].slice(0, 100); // 최대 100개만 유지
           return newMetrics;
         });
@@ -202,7 +198,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
 
       // 🚨 알림 스트림
       socket.on('alerts', (alert: AlertData) => {
-        setAlerts((prev) => {
+        setAlerts(prev => {
           const newAlerts = [alert, ...prev].slice(0, 50); // 최대 50개만 유지
           return newAlerts;
         });
@@ -213,7 +209,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
       });
     } catch (error) {
       console.error('❌ WebSocket 연결 중 오류:', error);
-      setConnectionState((prev) => ({
+      setConnectionState(prev => ({
         ...prev,
         isConnected: false,
         isConnecting: false,
@@ -234,7 +230,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
       socketRef.current = null;
     }
 
-    setConnectionState((prev) => ({
+    setConnectionState(prev => ({
       ...prev,
       isConnected: false,
       isConnecting: false,
@@ -315,9 +311,9 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
   const stats = {
     totalMetrics: serverMetrics.length,
     totalAlerts: alerts.length,
-    criticalAlerts: alerts.filter((a) => a.priority === 'critical').length,
-    highPriorityAlerts: alerts.filter((a) => a.priority === 'high').length,
-    uniqueServers: new Set(serverMetrics.map((m) => m.serverId)).size,
+    criticalAlerts: alerts.filter(a => a.priority === 'critical').length,
+    highPriorityAlerts: alerts.filter(a => a.priority === 'high').length,
+    uniqueServers: new Set(serverMetrics.map(m => m.serverId)).size,
     lastUpdate: latestMetric?.timestamp
       ? new Date(latestMetric.timestamp)
       : null,
@@ -360,9 +356,9 @@ export const useServerWebSocket = (
 
   // 특정 서버의 메트릭만 필터링
   const serverMetrics = websocket.serverMetrics.filter(
-    (m) => m.serverId === serverId
+    m => m.serverId === serverId
   );
-  const serverAlerts = websocket.alerts.filter((a) => a.serverId === serverId);
+  const serverAlerts = websocket.alerts.filter(a => a.serverId === serverId);
   const latestServerMetric =
     websocket.latestMetric?.serverId === serverId
       ? websocket.latestMetric

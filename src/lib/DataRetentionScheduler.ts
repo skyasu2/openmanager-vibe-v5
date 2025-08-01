@@ -124,7 +124,7 @@ class DataRetentionScheduler {
       },
     ];
 
-    defaultPolicies.forEach((policy) => this.addPolicy(policy));
+    defaultPolicies.forEach(policy => this.addPolicy(policy));
   }
 
   /**
@@ -183,7 +183,7 @@ class DataRetentionScheduler {
     }
 
     this.cleanupInterval = setInterval(() => {
-      this.runCleanup().catch((error) => {
+      this.runCleanup().catch(error => {
         console.error('❌ 자동 정리 실행 중 오류:', error);
       });
     }, this.CLEANUP_INTERVAL);
@@ -204,7 +204,7 @@ class DataRetentionScheduler {
 
     // 우선순위 순으로 정책 정렬
     const sortedPolicies = Array.from(this.policies.values())
-      .filter((p) => p.enabled)
+      .filter(p => p.enabled)
       .sort((a, b) => b.priority - a.priority);
 
     for (const policy of sortedPolicies) {
@@ -299,7 +299,7 @@ class DataRetentionScheduler {
     // localStorage 메트릭 정리
     if (typeof window !== 'undefined' && window.localStorage) {
       const keys = Object.keys(localStorage).filter(
-        (key) => key.includes('metrics') || key.includes('server-data')
+        key => key.includes('metrics') || key.includes('server-data')
       );
 
       for (const key of keys) {
@@ -338,7 +338,7 @@ class DataRetentionScheduler {
 
     if (typeof window !== 'undefined' && window.localStorage) {
       const keys = Object.keys(localStorage).filter(
-        (key) => key.includes('alert') || key.includes('notification')
+        key => key.includes('alert') || key.includes('notification')
       );
 
       for (const key of keys) {
@@ -376,7 +376,7 @@ class DataRetentionScheduler {
 
     if (typeof window !== 'undefined' && window.localStorage) {
       const keys = Object.keys(localStorage).filter(
-        (key) => key.includes('connection') || key.includes('session')
+        key => key.includes('connection') || key.includes('session')
       );
 
       for (const key of keys) {
@@ -414,7 +414,7 @@ class DataRetentionScheduler {
 
     if (typeof window !== 'undefined' && window.localStorage) {
       const keys = Object.keys(localStorage).filter(
-        (key) =>
+        key =>
           key.includes('log') || key.includes('debug') || key.includes('error')
       );
 
@@ -453,7 +453,7 @@ class DataRetentionScheduler {
 
     if (typeof window !== 'undefined' && window.localStorage) {
       const keys = Object.keys(localStorage).filter(
-        (key) =>
+        key =>
           key.includes('cache') ||
           key.includes('temp') ||
           key.includes('buffer')
@@ -494,7 +494,7 @@ class DataRetentionScheduler {
 
     if (typeof window !== 'undefined' && window.localStorage) {
       const keys = Object.keys(localStorage).filter(
-        (key) =>
+        key =>
           key.includes('sse') ||
           key.includes('eventsource') ||
           key.includes('realtime')
@@ -590,7 +590,7 @@ class DataRetentionScheduler {
    */
   private updateActivePolicies(): void {
     this.stats.activePolicies = Array.from(this.policies.values()).filter(
-      (p) => p.enabled
+      p => p.enabled
     ).length;
   }
 
@@ -604,7 +604,7 @@ class DataRetentionScheduler {
     console.log(`🔧 수동 정리 시작${dataType ? ` (${dataType})` : ''}...`);
 
     const policiesToRun = Array.from(this.policies.values())
-      .filter((p) => p.enabled && (!dataType || p.dataType === dataType))
+      .filter(p => p.enabled && (!dataType || p.dataType === dataType))
       .sort((a, b) => b.priority - a.priority);
 
     for (const policy of policiesToRun) {

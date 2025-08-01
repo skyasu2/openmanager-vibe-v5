@@ -97,7 +97,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       const errorState = createError(errorType, message);
 
       setCurrentError(errorState);
-      setErrors((prev) => [...prev, errorState]);
+      setErrors(prev => [...prev, errorState]);
 
       console.error(`🚨 AI Error Monitor [${errorType}]:`, {
         context,
@@ -167,7 +167,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
   // 에러 해결
   const resolveError = useCallback((error?: ErrorState) => {
     if (error) {
-      setErrors((prev) => prev.filter((e) => e.timestamp !== error.timestamp));
+      setErrors(prev => prev.filter(e => e.timestamp !== error.timestamp));
     }
     setCurrentError(null);
     console.log('✅ AI Error 해결됨:', error?.errorType);
@@ -179,7 +179,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
     setCurrentError(null);
 
     // 진행 중인 재시도 취소
-    retryTimeouts.current.forEach((timeout) => clearTimeout(timeout));
+    retryTimeouts.current.forEach(timeout => clearTimeout(timeout));
     retryTimeouts.current.clear();
 
     console.log('🧹 모든 AI 에러 클리어됨');
@@ -221,7 +221,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
         error,
       };
 
-      setPerformanceMetrics((prev) => [...prev.slice(-49), completedMetric]); // 최근 50개만 유지
+      setPerformanceMetrics(prev => [...prev.slice(-49), completedMetric]); // 최근 50개만 유지
       performanceTracker.current.delete(operation);
 
       console.log(
@@ -250,9 +250,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       console.log('🌐 네트워크 연결됨 - 자동 복구 가능');
 
       // 네트워크 에러 자동 해결
-      setErrors((prev) =>
-        prev.filter((error) => error.errorType !== 'network')
-      );
+      setErrors(prev => prev.filter(error => error.errorType !== 'network'));
       if (currentError?.errorType === 'network') {
         setCurrentError(null);
       }
@@ -276,7 +274,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
 
       // 정리: 진행 중인 재시도 취소
       const timeouts = retryTimeouts.current;
-      timeouts.forEach((timeout) => clearTimeout(timeout));
+      timeouts.forEach(timeout => clearTimeout(timeout));
       timeouts.clear();
     };
   }, [createError, currentError]);
@@ -287,11 +285,11 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
 
     const totalOperations = performanceMetrics.length;
     const successfulOperations = performanceMetrics.filter(
-      (m) => m.success
+      m => m.success
     ).length;
     const averageDuration =
       performanceMetrics
-        .filter((m) => m.duration)
+        .filter(m => m.duration)
         .reduce((sum, m) => sum + m.duration!, 0) / totalOperations;
 
     return {

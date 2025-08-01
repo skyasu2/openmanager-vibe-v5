@@ -296,9 +296,7 @@ export class ServiceRegistry {
     healthy: boolean;
   } {
     return {
-      registered: container
-        .getRegisteredServices()
-        .map((token) => String(token)),
+      registered: container.getRegisteredServices().map(token => String(token)),
       _initialized: this.isInitialized,
       healthy:
         this.isInitialized && container.getRegisteredServices().length > 0,

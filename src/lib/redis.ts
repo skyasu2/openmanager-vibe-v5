@@ -184,7 +184,7 @@ class UnifiedMockRedis implements RedisClientInterface {
         return this;
       },
       exec: async (): Promise<any[]> => {
-        const results = await Promise.all(commands.map((cmd) => cmd()));
+        const results = await Promise.all(commands.map(cmd => cmd()));
         commands.length = 0; // 명령어 배열 초기화
         return results;
       },
@@ -278,9 +278,7 @@ function shouldUseMockRedis(
       return 'real';
     }
 
-    if (
-      HYBRID_STRATEGY.useMockFor.some((pattern) => context.includes(pattern))
-    ) {
+    if (HYBRID_STRATEGY.useMockFor.some(pattern => context.includes(pattern))) {
       return 'mock';
     }
   }
@@ -398,7 +396,7 @@ async function _initializeRedis(): Promise<RedisClientInterface> {
       token: redisToken,
       retry: {
         retries: 2,
-        backoff: (retryCount) => Math.min(retryCount * 300, 800),
+        backoff: retryCount => Math.min(retryCount * 300, 800),
       },
       automaticDeserialization: true,
       enableAutoPipelining: false,

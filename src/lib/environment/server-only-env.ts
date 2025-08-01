@@ -251,7 +251,7 @@ export class ServerEnvironmentManager {
       'SUPABASE_ANON_KEY',
     ];
 
-    const missing = requiredVars.filter((varName) => !process.env[varName]);
+    const missing = requiredVars.filter(varName => !process.env[varName]);
 
     if (missing.length > 0) {
       console.warn('⚠️ 누락된 필수 환경변수:', missing.join(', '));

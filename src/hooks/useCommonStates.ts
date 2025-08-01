@@ -7,7 +7,7 @@ import { useState, useCallback } from 'react';
 export function useToggle(_initialValue: boolean = false) {
   const [value, setValue] = useState(_initialValue);
 
-  const toggle = useCallback(() => setValue((prev) => !prev), []);
+  const toggle = useCallback(() => setValue(prev => !prev), []);
   const setTrue = useCallback(() => setValue(true), []);
   const setFalse = useCallback(() => setValue(false), []);
 
@@ -60,11 +60,11 @@ export function useIndex(maxIndex: number = 0) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const next = useCallback(() => {
-    setCurrentIndex((prev) => (prev < maxIndex - 1 ? prev + 1 : prev));
+    setCurrentIndex(prev => (prev < maxIndex - 1 ? prev + 1 : prev));
   }, [maxIndex]);
 
   const prev = useCallback(() => {
-    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : prev));
+    setCurrentIndex(prev => (prev > 0 ? prev - 1 : prev));
   }, []);
 
   const goTo = useCallback(
@@ -98,17 +98,15 @@ export function useArray<T>(_initialArray: T[] = []) {
   const [array, setArray] = useState<T[]>(_initialArray);
 
   const push = useCallback((item: T) => {
-    setArray((prev) => [...prev, item]);
+    setArray(prev => [...prev, item]);
   }, []);
 
   const remove = useCallback((index: number) => {
-    setArray((prev) => prev.filter((_, i) => i !== index));
+    setArray(prev => prev.filter((_, i) => i !== index));
   }, []);
 
   const update = useCallback((index: number, item: T) => {
-    setArray((prev) =>
-      prev.map((oldItem, i) => (i === index ? item : oldItem))
-    );
+    setArray(prev => prev.map((oldItem, i) => (i === index ? item : oldItem)));
   }, []);
 
   const clear = useCallback(() => setArray([]), []);

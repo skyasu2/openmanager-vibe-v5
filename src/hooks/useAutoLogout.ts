@@ -132,7 +132,7 @@ export function useAutoLogout({
     };
 
     // 이벤트 리스너 등록
-    events.forEach((event) => {
+    events.forEach(event => {
       document.addEventListener(event, handleActivity, true);
     });
 
@@ -141,7 +141,7 @@ export function useAutoLogout({
 
     return () => {
       // 이벤트 리스너 제거
-      events.forEach((event) => {
+      events.forEach(event => {
         document.removeEventListener(event, handleActivity, true);
       });
 

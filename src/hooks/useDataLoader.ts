@@ -114,10 +114,10 @@ export const useMockDataLoader = <T>(
 ): DataLoaderResult<T> => {
   return useDataLoader({
     loadData: async () => {
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      await new Promise(resolve => setTimeout(resolve, delay));
       return mockDataGenerator();
     },
     refreshInterval,
-    onError: (error) => console.error('Mock data loading error:', error),
+    onError: error => console.error('Mock data loading error:', error),
   });
 };

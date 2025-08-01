@@ -8,10 +8,7 @@
  * - 자동 구독/구독해제
  */
 
-import {
-  centralDataManager,
-  updateDataVisibility,
-} from '@/services/realtime/CentralizedDataManager';
+import { centralDataManager, updateDataVisibility } from '@/services/realtime/CentralizedDataManager';
 import { useEffect, useRef, useState } from 'react';
 import { useIntersectionObserver } from './useIntersectionObserver';
 
@@ -59,7 +56,7 @@ export function useOptimizedRealtime<T = any>({
     customSubscriberId || `${dataType}-${Date.now()}-${Math.random()}`
   );
   const unsubscribeRef = useRef<(() => void) | null>(null);
-
+  
   // onUpdate를 ref로 저장하여 의존성 문제 해결
   const onUpdateRef = useRef(onUpdate);
   useEffect(() => {
@@ -90,7 +87,7 @@ export function useOptimizedRealtime<T = any>({
       try {
         setData(newData);
         setLastUpdate(new Date());
-        setUpdateCount((prev) => prev + 1);
+        setUpdateCount(prev => prev + 1);
         setIsLoading(false);
         setError(null);
 
@@ -99,7 +96,10 @@ export function useOptimizedRealtime<T = any>({
 
         console.log(`📊 데이터 업데이트: ${subscriberId}`, newData);
       } catch (err) {
-        console.error(`❌ 데이터 업데이트 실패: ${subscriberId}`, err);
+        console.error(
+          `❌ 데이터 업데이트 실패: ${subscriberId}`,
+          err
+        );
         setError(err instanceof Error ? err.message : '데이터 업데이트 실패');
       }
     };

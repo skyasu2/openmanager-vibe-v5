@@ -63,7 +63,7 @@ export const useDashboardLogic = () => {
   // 완료 처리 함수
   const handleLoadingComplete = useCallback(() => {
     console.log('🎯 대시보드 로딩 완료');
-    setDashboardState((prev) => ({
+    setDashboardState(prev => ({
       ...prev,
       isLoading: false,
       progress: 100,
@@ -100,7 +100,7 @@ export const useDashboardLogic = () => {
 
   // 대시보드 상태 업데이트
   useEffect(() => {
-    setDashboardState((prev) => ({
+    setDashboardState(prev => ({
       ...prev,
       isLoading: loadingState.isLoading,
       progress: loadingState.progress,
@@ -111,7 +111,7 @@ export const useDashboardLogic = () => {
   // 에러 처리
   const handleError = useCallback((error: string) => {
     console.error('❌ 대시보드 에러:', error);
-    setDashboardState((prev) => ({
+    setDashboardState(prev => ({
       ...prev,
       error,
       isLoading: false,
@@ -124,7 +124,7 @@ export const useDashboardLogic = () => {
   }, []);
 
   const toggleAgent = useCallback(() => {
-    setIsAgentOpen((prev) => !prev);
+    setIsAgentOpen(prev => !prev);
   }, []);
 
   const closeAgent = useCallback(() => {

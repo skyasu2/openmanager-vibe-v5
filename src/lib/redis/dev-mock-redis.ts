@@ -310,7 +310,7 @@ export class DevMockRedis {
 
     if (!subscribers) return 0;
 
-    subscribers.forEach((callback) => {
+    subscribers.forEach(callback => {
       setTimeout(() => callback(message), 0);
     });
 
@@ -343,7 +343,7 @@ export class DevMockRedis {
   }
 
   async exec(): Promise<any[]> {
-    const results = await Promise.all(this.transactions.map((cmd) => cmd()));
+    const results = await Promise.all(this.transactions.map(cmd => cmd()));
     this.transactions = [];
     return results;
   }
@@ -370,7 +370,7 @@ export class DevMockRedis {
     this.stats.commands++;
     const regex = new RegExp(pattern.replace(/\*/g, '.*').replace(/\?/g, '.'));
 
-    return Array.from(this.store.keys()).filter((key) => {
+    return Array.from(this.store.keys()).filter(key => {
       const item = this.store.get(key);
       return regex.test(key) && (!item?.expiry || Date.now() < item.expiry);
     });

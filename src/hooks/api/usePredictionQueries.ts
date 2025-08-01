@@ -174,9 +174,9 @@ export const usePredictions = (filters?: {
       }
       return false;
     },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     placeholderData: keepPreviousData,
-    select: (data) => {
+    select: data => {
       // 데이터 정렬 및 변환
       return data
         .sort(
@@ -184,7 +184,7 @@ export const usePredictions = (filters?: {
             new Date(b.metadata.created_at).getTime() -
             new Date(a.metadata.created_at).getTime()
         )
-        .map((prediction) => ({
+        .map(prediction => ({
           ...prediction,
           formatted_value: `${prediction.predicted_value.toFixed(2)}%`,
           trend_emoji:
@@ -214,7 +214,7 @@ export const usePredictionMutation = () => {
   return useMutation({
     mutationFn: createPrediction,
 
-    onMutate: async (request) => {
+    onMutate: async request => {
       // 로딩 토스트 표시
       toast.loading(`${request.metric} 예측 생성 중...`, {
         id: `prediction-${request.metric}`,
@@ -269,9 +269,9 @@ export const usePredictionHistory = (
     staleTime: 2 * 60 * 1000, // 2분
     refetchInterval: 5 * 60 * 1000, // 5분 간격
     retry: 1,
-    select: (data) => {
+    select: data => {
       // 정확도 계산 및 통계 추가
-      const withAccuracy = data.map((item) => ({
+      const withAccuracy = data.map(item => ({
         ...item,
         accuracy:
           item.actual_value && item.predicted_value
@@ -283,10 +283,9 @@ export const usePredictionHistory = (
 
       const avgAccuracy =
         withAccuracy
-          .filter((item) => item.accuracy !== undefined)
+          .filter(item => item.accuracy !== undefined)
           .reduce((acc, item) => acc + (item.accuracy || 0), 0) /
-          withAccuracy.filter((item) => item.accuracy !== undefined).length ||
-        0;
+          withAccuracy.filter(item => item.accuracy !== undefined).length || 0;
 
       return {
         history: withAccuracy,
@@ -296,7 +295,7 @@ export const usePredictionHistory = (
           recentAccuracy:
             withAccuracy
               .slice(0, 10)
-              .filter((item) => item.accuracy !== undefined)
+              .filter(item => item.accuracy !== undefined)
               .reduce((acc, item) => acc + (item.accuracy || 0), 0) / 10 || 0,
         },
       };
@@ -315,7 +314,7 @@ export const usePredictionAnalytics = (timeRange: string = '7d') => {
     staleTime: 5 * 60 * 1000, // 5분
     refetchInterval: 10 * 60 * 1000, // 10분 간격
     retry: 2,
-    select: (data) => ({
+    select: data => ({
       ...data,
       performanceGrade:
         data.avgAccuracy >= 0.9
@@ -350,17 +349,17 @@ export const useDemoPredictions = () => {
     staleTime: 10 * 60 * 1000, // 10분
     refetchInterval: false, // 수동 갱신만
     retry: 1,
-    select: (data) => ({
+    select: data => ({
       predictions: data,
       summary: {
         total: data.length,
-        metrics: [...new Set(data.map((p) => p.metric))],
+        metrics: [...new Set(data.map(p => p.metric))],
         avgAccuracy:
           data.reduce((acc, p) => acc + p.accuracy_score, 0) / data.length,
         trends: {
-          increasing: data.filter((p) => p.trend === 'increasing').length,
-          decreasing: data.filter((p) => p.trend === 'decreasing').length,
-          stable: data.filter((p) => p.trend === 'stable').length,
+          increasing: data.filter(p => p.trend === 'increasing').length,
+          decreasing: data.filter(p => p.trend === 'decreasing').length,
+          stable: data.filter(p => p.trend === 'stable').length,
         },
       },
     }),
@@ -409,7 +408,7 @@ export const useRealtimePrediction = (
     refetchInterval: 2 * 60 * 1000, // 2분 간격
     staleTime: 60 * 1000, // 1분
     retry: 2,
-    select: (data) => ({
+    select: data => ({
       ...data,
       isRealtime: true,
       nextUpdate: Date.now() + 2 * 60 * 1000, // 다음 업데이트 시간
@@ -458,11 +457,9 @@ export const usePredictionSummary = () => {
           {} as Record<string, any>
         ),
         trends: {
-          increasing: predictions.filter((p) => p.trend === 'increasing')
-            .length,
-          decreasing: predictions.filter((p) => p.trend === 'decreasing')
-            .length,
-          stable: predictions.filter((p) => p.trend === 'stable').length,
+          increasing: predictions.filter(p => p.trend === 'increasing').length,
+          decreasing: predictions.filter(p => p.trend === 'decreasing').length,
+          stable: predictions.filter(p => p.trend === 'stable').length,
         },
         avgAccuracy:
           predictions.reduce((acc, p) => acc + p.accuracy_score, 0) /
@@ -480,13 +477,13 @@ export const usePredictionQueryStatus = () => {
   const queries = queryClient
     .getQueryCache()
     .getAll()
-    .filter((query) => query.queryKey[0] === 'predictions');
+    .filter(query => query.queryKey[0] === 'predictions');
 
   return {
     totalQueries: queries.length,
-    loadingQueries: queries.filter((q) => q.state.status === 'pending').length,
-    errorQueries: queries.filter((q) => q.state.status === 'error').length,
-    staleQueries: queries.filter((q) => q.isStale()).length,
-    lastUpdate: Math.max(...queries.map((q) => q.state.dataUpdatedAt)),
+    loadingQueries: queries.filter(q => q.state.status === 'pending').length,
+    errorQueries: queries.filter(q => q.state.status === 'error').length,
+    staleQueries: queries.filter(q => q.isStale()).length,
+    lastUpdate: Math.max(...queries.map(q => q.state.dataUpdatedAt)),
   };
 };

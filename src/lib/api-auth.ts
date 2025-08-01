@@ -1,6 +1,6 @@
 /**
  * 🔐 간단한 API 보호 미들웨어
- *
+ * 
  * 포트폴리오용 기본 보안 - 민감한 API만 보호
  */
 
@@ -15,23 +15,22 @@ import { headers } from 'next/headers';
 export async function checkAPIAuth(request: NextRequest) {
   // 세션 쿠키 확인 (NextAuth 사용)
   const cookieHeader = request.headers.get('cookie');
-  const hasAuthSession =
-    cookieHeader?.includes('next-auth.session-token') ||
-    cookieHeader?.includes('__Secure-next-auth.session-token');
-
+  const hasAuthSession = cookieHeader?.includes('next-auth.session-token') || 
+                         cookieHeader?.includes('__Secure-next-auth.session-token');
+  
   if (!hasAuthSession) {
     return NextResponse.json(
       { error: 'Unauthorized - Please login first' },
       { status: 401 }
     );
   }
-
+  
   return null; // 인증 통과
 }
 
 /**
  * 간단한 API 보호 래퍼
- * 사용법:
+ * 사용법: 
  * export const GET = withAuth(async (request) => { ... })
  */
 export function withAuth(
@@ -40,7 +39,7 @@ export function withAuth(
   return async (request: NextRequest) => {
     const authError = await checkAPIAuth(request);
     if (authError) return authError;
-
+    
     return handler(request);
   };
 }
