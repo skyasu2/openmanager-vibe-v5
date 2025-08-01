@@ -12,7 +12,6 @@ import {
   getCacheService,
 } from '@/lib/cache-helper';
 import { supabase as createClient } from '@/lib/supabase';
-import type { EnhancedServerMetrics } from '@/types/server';
 
 export const runtime = 'edge';
 

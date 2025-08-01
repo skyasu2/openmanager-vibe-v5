@@ -322,12 +322,12 @@ async function runLoadBenchmark(queries: string[], iterations: number) {
 
   const totalTime = Date.now() - startTime;
   const avgResponseTime =
-    results.reduce((sum, r) => sum + r.responseTime, 0) / results.length;
+    results.reduce((sum, r) => sum + (r.responseTime || 0), 0) / results.length;
   const successRate =
     (results.filter((r) => r.success).length / results.length) * 100;
   const cacheHitRate =
     (results.filter((r) => r.cached).length / results.length) * 100;
-  const throughput = (results.length / totalTime) * 1000; // queries per second
+  const throughput = totalTime > 0 ? (results.length / totalTime) * 1000 : 0; // queries per second
 
   return NextResponse.json(
     {
@@ -345,7 +345,7 @@ async function runLoadBenchmark(queries: string[], iterations: number) {
         avgResponseTime: Math.round(avgResponseTime),
         successRate: Math.round(successRate),
         cacheHitRate: Math.round(cacheHitRate),
-        throughput: Math.round(throughput * 100) / 100,
+        throughput: isNaN(throughput) ? 0 : Math.round(throughput * 100) / 100,
         responses: results,
       },
       analysis: {
