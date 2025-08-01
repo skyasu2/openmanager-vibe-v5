@@ -13,8 +13,9 @@ import {
 import type { DashboardTab } from '@/hooks/useServerDashboard';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { formatUptime, getAlertsCount } from './types/server-dashboard.types';
+import { serverTypeGuards } from '@/utils/serverUtils';
 import type { Server } from '@/types/server';
 interface ServerDashboardProps {
   servers?: Server[];
@@ -28,43 +29,6 @@ interface ServerDashboardProps {
     warning: number;
     offline: number;
   }) => void;
-}
-
-// 타입 가드 함수들
-function getServerCpu(server: Server): number {
-  return typeof server.cpu === 'number' ? server.cpu : 0;
-}
-
-function getServerMemory(server: Server): number {
-  return typeof server.memory === 'number' ? server.memory : 0;
-}
-
-function getServerDisk(server: Server): number {
-  return typeof server.disk === 'number' ? server.disk : 0;
-}
-
-function getServerNetwork(server: Server): number {
-  return typeof server.network === 'number' ? server.network : 25;
-}
-
-function getServerSpecs(server: Server): NonNullable<Server['specs']> {
-  return (
-    server.specs || {
-      cpu_cores: 4,
-      memory_gb: 8,
-      disk_gb: 250,
-      network_speed: '1Gbps',
-    }
-  );
-}
-
-function getServerStatus(
-  status: Server['status']
-): 'healthy' | 'warning' | 'critical' | 'offline' {
-  if (status === 'online' || status === 'healthy') return 'healthy';
-  if (status === 'warning') return 'warning';
-  if (status === 'critical') return 'critical';
-  return 'offline';
 }
 
 export default function ServerDashboard({
@@ -103,47 +67,53 @@ export default function ServerDashboard({
     );
   }
 
-  // 서버를 심각→주의→정상 순으로 정렬
-  const sortedServers = [...paginatedServers].sort((a, b) => {
-    const statusPriority = {
-      critical: 0,
-      offline: 0,
-      warning: 1,
-      healthy: 2,
-      online: 2,
-    };
+  // 서버를 심각→주의→정상 순으로 정렬 (CLS 방지를 위해 메모이제이션 적용)
+  const sortedServers = useMemo(() => {
+    return [...paginatedServers].sort((a, b) => {
+      const statusPriority = {
+        critical: 0,
+        offline: 0,
+        warning: 1,
+        healthy: 2,
+        online: 2,
+      };
 
-    const priorityA =
-      statusPriority[a.status as keyof typeof statusPriority] ?? 3;
-    const priorityB =
-      statusPriority[b.status as keyof typeof statusPriority] ?? 3;
+      const priorityA =
+        statusPriority[a.status as keyof typeof statusPriority] ?? 3;
+      const priorityB =
+        statusPriority[b.status as keyof typeof statusPriority] ?? 3;
 
-    if (priorityA !== priorityB) {
-      return priorityA - priorityB;
-    }
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
 
-    // 같은 우선순위면 알림 수로 정렬 (많은 순)
-    const alertsA =
-      typeof a.alerts === 'number'
-        ? a.alerts
-        : Array.isArray(a.alerts)
-          ? a.alerts.length
-          : 0;
-    const alertsB =
-      typeof b.alerts === 'number'
-        ? b.alerts
-        : Array.isArray(b.alerts)
-          ? b.alerts.length
-          : 0;
+      // 같은 우선순위면 알림 수로 정렬 (많은 순)
+      const alertsA =
+        typeof a.alerts === 'number'
+          ? a.alerts
+          : Array.isArray(a.alerts)
+            ? a.alerts.length
+            : 0;
+      const alertsB =
+        typeof b.alerts === 'number'
+          ? b.alerts
+          : Array.isArray(b.alerts)
+            ? b.alerts.length
+            : 0;
 
-    return alertsB - alertsA;
-  });
+      return alertsB - alertsA;
+    });
+  }, [paginatedServers]);
 
-  // 페이지네이션 정보 계산
-  const pageSize = Math.ceil(servers.length / totalPages) || 8;
-  const startIndex = (currentPage - 1) * pageSize + 1;
-  const endIndex = Math.min(currentPage * pageSize, servers.length);
-  const totalServers = servers.length;
+  // 페이지네이션 정보 계산 (메모이제이션으로 최적화)
+  const paginationInfo = useMemo(() => {
+    const pageSize = Math.ceil(servers.length / totalPages) || 8;
+    const startIndex = (currentPage - 1) * pageSize + 1;
+    const endIndex = Math.min(currentPage * pageSize, servers.length);
+    const totalServers = servers.length;
+    
+    return { pageSize, startIndex, endIndex, totalServers };
+  }, [servers.length, totalPages, currentPage]);
 
   return (
     <div>
@@ -178,11 +148,11 @@ export default function ServerDashboard({
                     </div>
                     <div>
                       <p className='text-blue-900 font-medium'>
-                        전체 {totalServers}개 서버 중 {startIndex}-{endIndex}
+                        전체 {paginationInfo.totalServers}개 서버 중 {paginationInfo.startIndex}-{paginationInfo.endIndex}
                         번째 표시
                       </p>
                       <p className='text-blue-700 text-sm'>
-                        {pageSize}개씩 페이지네이션 • {currentPage}/{totalPages}{' '}
+                        {paginationInfo.pageSize}개씩 페이지네이션 • {currentPage}/{totalPages}{' '}
                         페이지
                       </p>
                     </div>
@@ -192,7 +162,7 @@ export default function ServerDashboard({
                     <div className='flex items-center gap-2'>
                       <span className='text-blue-700 text-sm'>표시 개수:</span>
                       <select
-                        value={pageSize}
+                        value={paginationInfo.pageSize}
                         onChange={e => changePageSize(Number(e.target.value))}
                         className='text-blue-700 bg-blue-100 border border-blue-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                         aria-label='페이지당 표시할 서버 개수 선택'
@@ -205,7 +175,7 @@ export default function ServerDashboard({
                       </select>
                     </div>
                     <div className='text-blue-600 text-sm font-mono bg-blue-100 px-3 py-1 rounded-full'>
-                      {startIndex}-{endIndex} / {totalServers}
+                      {paginationInfo.startIndex}-{paginationInfo.endIndex} / {paginationInfo.totalServers}
                     </div>
                   </div>
                 </div>
@@ -222,10 +192,10 @@ export default function ServerDashboard({
                     name: server.name,
                     status:
                       server.status === 'online' ? 'online' : server.status,
-                    cpu: getServerCpu(server),
-                    memory: getServerMemory(server),
-                    disk: getServerDisk(server),
-                    network: getServerNetwork(server),
+                    cpu: serverTypeGuards.getCpu(server),
+                    memory: serverTypeGuards.getMemory(server),
+                    disk: serverTypeGuards.getDisk(server),
+                    network: serverTypeGuards.getNetwork(server),
                     location: server.location || 'unknown',
                     uptime: formatUptime(server.uptime),
                     ip: server.ip || '192.168.1.100',
@@ -298,16 +268,16 @@ export default function ServerDashboard({
             environment: selectedServer.environment || 'prod',
             location: selectedServer.location || 'unknown',
             provider: selectedServer.provider || 'Unknown',
-            status: getServerStatus(selectedServer.status),
-            cpu: getServerCpu(selectedServer),
-            memory: getServerMemory(selectedServer),
-            disk: getServerDisk(selectedServer),
-            network: getServerNetwork(selectedServer),
+            status: serverTypeGuards.getStatus(selectedServer.status),
+            cpu: serverTypeGuards.getCpu(selectedServer),
+            memory: serverTypeGuards.getMemory(selectedServer),
+            disk: serverTypeGuards.getDisk(selectedServer),
+            network: serverTypeGuards.getNetwork(selectedServer),
             uptime: formatUptime(selectedServer.uptime),
             lastUpdate: selectedServer.lastUpdate || new Date(),
             alerts: getAlertsCount(selectedServer.alerts),
             services: selectedServer.services || [],
-            specs: getServerSpecs(selectedServer),
+            specs: serverTypeGuards.getSpecs(selectedServer),
             os: selectedServer.os || 'Ubuntu 22.04',
             ip: selectedServer.ip || '192.168.1.100',
             networkStatus: (() => {
