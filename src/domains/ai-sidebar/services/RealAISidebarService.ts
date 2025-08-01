@@ -251,7 +251,7 @@ export class RealAISidebarService {
     ];
 
     for (const [index, step] of steps.entries()) {
-      await new Promise((resolve) =>
+      await new Promise(resolve =>
         setTimeout(resolve, 800 + Math.random() * 400)
       );
 

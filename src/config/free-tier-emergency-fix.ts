@@ -445,7 +445,7 @@ export const enableGlobalProtection = () => {
   }
 
   // 전역 오류 핸들러
-  process.on('uncaughtException', (error) => {
+  process.on('uncaughtException', error => {
     console.error('🚨 무료티어 보호: 치명적 오류 감지', error);
     MemoryMonitor.forceGarbageCollection();
   });

@@ -124,23 +124,23 @@ export const AIPresetQuestions: React.FC<AIPresetQuestionsProps> = ({
   const currentPresets = getCurrentPresets();
 
   return (
-    <div className={`border-t border-gray-200 bg-white p-4 ${className}`}>
+    <div className={`p-4 bg-white border-t border-gray-200 ${className}`}>
       {/* 헤더 */}
-      <div className="mb-3 flex items-center justify-between">
-        <h4 className="text-sm font-semibold text-gray-700">빠른 질문</h4>
-        <div className="flex items-center space-x-2">
+      <div className='flex items-center justify-between mb-3'>
+        <h4 className='text-sm font-semibold text-gray-700'>빠른 질문</h4>
+        <div className='flex items-center space-x-2'>
           <button
             onClick={goToPreviousPresets}
             disabled={currentPage === 0}
-            className="rounded p-1 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-            data-testid="preset-prev-button"
-            aria-label="이전 페이지"
+            className='p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+            data-testid='preset-prev-button'
+            aria-label='이전 페이지'
           >
-            <ChevronLeft className="h-4 w-4 text-gray-600" />
+            <ChevronLeft className='w-4 h-4 text-gray-600' />
           </button>
           <span
-            className="text-xs text-gray-500"
-            data-testid="preset-page-indicator"
+            className='text-xs text-gray-500'
+            data-testid='preset-page-indicator'
           >
             {currentPage + 1}/{totalPages}
           </span>
@@ -149,19 +149,19 @@ export const AIPresetQuestions: React.FC<AIPresetQuestionsProps> = ({
             disabled={
               (currentPage + 1) * PRESETS_PER_PAGE >= PRESET_QUESTIONS.length
             }
-            className="rounded p-1 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-            data-testid="preset-next-button"
-            aria-label="다음 페이지"
+            className='p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+            data-testid='preset-next-button'
+            aria-label='다음 페이지'
           >
-            <ChevronRight className="h-4 w-4 text-gray-600" />
+            <ChevronRight className='w-4 h-4 text-gray-600' />
           </button>
         </div>
       </div>
 
       {/* 질문 그리드 */}
       <div
-        className="relative h-32 overflow-hidden"
-        data-testid="preset-questions-grid"
+        className='relative h-32 overflow-hidden'
+        data-testid='preset-questions-grid'
       >
         <motion.div
           key={currentPage}
@@ -169,30 +169,30 @@ export const AIPresetQuestions: React.FC<AIPresetQuestionsProps> = ({
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.2 }}
-          className="grid h-full grid-cols-2 gap-2"
+          className='grid grid-cols-2 gap-2 h-full'
         >
           {currentPresets.map((question, index) => (
             <motion.button
               key={question.id}
               onClick={() => onQuestionSelect(question.text)}
-              className="group rounded-lg border border-gray-200 p-2 text-left transition-all duration-200 hover:border-blue-300 hover:bg-blue-50"
+              className='p-2 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-left group'
               data-testid={`preset-question-${index}`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <div className="mb-1 flex items-center space-x-1">
+              <div className='flex items-center space-x-1 mb-1'>
                 <div
-                  className={`h-4 w-4 ${question.color} flex items-center justify-center rounded`}
+                  className={`w-4 h-4 ${question.color} rounded flex items-center justify-center`}
                 >
                   {React.createElement(question.icon, {
                     className: 'w-2 h-2 text-white',
                   })}
                 </div>
-                <span className="text-xs text-gray-500">
+                <span className='text-xs text-gray-500'>
                   {question.category}
                 </span>
               </div>
-              <p className="line-clamp-2 text-xs text-gray-800">
+              <p className='text-xs text-gray-800 line-clamp-2'>
                 {question.text}
               </p>
             </motion.button>

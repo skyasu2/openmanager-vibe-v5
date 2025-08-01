@@ -517,17 +517,17 @@ export function logEnvironmentStatus(): void {
   // 🚨 검증 결과 출력
   if (!validation.isValid) {
     console.log('\n🚨 ===== 환경 설정 오류 =====');
-    validation.errors.forEach((error) => console.error(`❌ ${error}`));
+    validation.errors.forEach(error => console.error(`❌ ${error}`));
   }
 
   if (validation.warnings.length > 0) {
     console.log('\n⚠️ ===== 환경 설정 경고 =====');
-    validation.warnings.forEach((warning) => console.warn(`⚠️ ${warning}`));
+    validation.warnings.forEach(warning => console.warn(`⚠️ ${warning}`));
   }
 
   if (validation.recommendations.length > 0) {
     console.log('\n💡 ===== 권장사항 =====');
-    validation.recommendations.forEach((rec) => console.log(`💡 ${rec}`));
+    validation.recommendations.forEach(rec => console.log(`💡 ${rec}`));
   }
 
   console.log('\n✅ 환경 설정 상태 로그 완료\n');

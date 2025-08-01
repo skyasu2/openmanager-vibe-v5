@@ -107,11 +107,9 @@ export class SystemWatchdog {
       // 오래된 데이터 정리 (최근 5분만 유지)
       const cutoffTime = timestamp - 5 * 60 * 1000; // 5분 전
       this.metrics.memory = this.metrics.memory.filter(
-        (m) => m.timestamp > cutoffTime
+        m => m.timestamp > cutoffTime
       );
-      this.metrics.cpu = this.metrics.cpu.filter(
-        (c) => c.timestamp > cutoffTime
-      );
+      this.metrics.cpu = this.metrics.cpu.filter(c => c.timestamp > cutoffTime);
 
       // 시스템 상태에서 오류율 및 재시작 횟수 업데이트
       if (this.processManager?.getSystemStatus) {
@@ -134,7 +132,7 @@ export class SystemWatchdog {
     const startUsage = process.cpuUsage();
 
     // 짧은 작업 시뮬레이션
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     const endTime = process.hrtime.bigint();
     const endUsage = process.cpuUsage(startUsage);
@@ -347,7 +345,7 @@ export class SystemWatchdog {
   private addAlert(type: string, message: string): void {
     // 중복 알림 방지 (최근 5분 내 동일한 타입의 알림 확인)
     const recentSimilar = this.alertsHistory.filter(
-      (alert) =>
+      alert =>
         alert.type === type &&
         Date.now() - alert.timestamp.getTime() < 5 * 60 * 1000
     );
@@ -377,7 +375,7 @@ export class SystemWatchdog {
   ): Array<{ timestamp: Date; type: string; message: string }> {
     const cutoffTime = Date.now() - timeWindowMs;
     return this.alertsHistory.filter(
-      (alert) => alert.timestamp.getTime() > cutoffTime
+      alert => alert.timestamp.getTime() > cutoffTime
     );
   }
 

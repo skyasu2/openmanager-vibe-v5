@@ -443,7 +443,7 @@ export class ContextManager {
    */
   private findApplicableRules(query: string): BusinessRule[] {
     return this.currentContext.domain.rules.filter(
-      (rule) =>
+      rule =>
         rule.active && query.toLowerCase().includes(rule.name.toLowerCase())
     );
   }

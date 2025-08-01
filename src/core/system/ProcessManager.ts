@@ -493,7 +493,7 @@ export class ProcessManager extends EventEmitter {
     } else if (config.criticalLevel === 'medium') {
       // 3회 연속 실패 시 재시작
       const recentErrors = state.errors.filter(
-        (e) => Date.now() - e.timestamp.getTime() < 60000 // 1분 이내
+        e => Date.now() - e.timestamp.getTime() < 60000 // 1분 이내
       ).length;
 
       if (recentErrors >= 3 && config.autoRestart) {
@@ -676,7 +676,7 @@ export class ProcessManager extends EventEmitter {
     this.watchdog?.stop();
 
     // 모든 프로세스 강제 종료
-    const stopPromises = Array.from(this.processes.keys()).map((processId) =>
+    const stopPromises = Array.from(this.processes.keys()).map(processId =>
       this.stopProcess(processId)
     );
 
@@ -690,7 +690,7 @@ export class ProcessManager extends EventEmitter {
   private setupGracefulShutdown(): void {
     const signals = ['SIGTERM', 'SIGINT', 'SIGUSR2'] as const;
 
-    signals.forEach((signal) => {
+    signals.forEach(signal => {
       process.on(signal, async () => {
         systemLogger.system(
           `📡 ${signal} 시그널 수신 - Graceful shutdown 시작`
@@ -789,6 +789,6 @@ export class ProcessManager extends EventEmitter {
   }
 
   private delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }

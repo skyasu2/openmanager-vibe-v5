@@ -344,7 +344,7 @@ export const DEVELOPMENT_PROCESS_CONFIGS: ProcessConfig[] = [
       }
 
       // 개발 모드에서는 기본 헬스체크만 수행
-      await new Promise((resolve) => setTimeout(resolve, 100)); // 짧은 지연
+      await new Promise(resolve => setTimeout(resolve, 100)); // 짧은 지연
       systemLogger.system('✅ 개발 모드 시작 완료');
     },
     stopCommand: async () => {
@@ -356,7 +356,7 @@ export const DEVELOPMENT_PROCESS_CONFIGS: ProcessConfig[] = [
         delete (global as any).devModeStartTime;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 50)); // 짧은 지연
+      await new Promise(resolve => setTimeout(resolve, 50)); // 짧은 지연
       systemLogger.system('✅ 개발 모드 중지 완료');
     },
     healthCheck: async () => {
@@ -438,7 +438,7 @@ export function validateProcessConfigs(configs: ProcessConfig[]): {
     // 의존성 확인
     if (config.dependencies) {
       for (const depId of config.dependencies) {
-        if (!configs.find((c) => c.id === depId)) {
+        if (!configs.find(c => c.id === depId)) {
           warnings.push(`프로세스 ${config.id}: 존재하지 않는 의존성 ${depId}`);
         }
       }

@@ -216,6 +216,6 @@ if (typeof window === 'undefined') {
 
   if (!validation.isValid) {
     console.warn('\n⚠️ 경고:');
-    validation.warnings.forEach((warning) => console.warn(`  - ${warning}`));
+    validation.warnings.forEach(warning => console.warn(`  - ${warning}`));
   }
 }

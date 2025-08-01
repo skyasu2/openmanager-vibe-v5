@@ -85,21 +85,21 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
 
   return (
     <div
-      className={`flex h-full flex-col bg-gray-50 ${className}`}
-      data-testid="ai-enhanced-chat"
+      className={`flex flex-col h-full bg-gray-50 ${className}`}
+      data-testid='ai-enhanced-chat'
     >
       {/* 헤더 */}
-      <div className="flex-shrink-0 border-b border-gray-200 bg-white p-3 sm:p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-blue-600">
-              <Sparkles className="h-4 w-4 text-white" />
+      <div className='flex-shrink-0 p-3 sm:p-4 bg-white border-b border-gray-200'>
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center space-x-2'>
+            <div className='w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center'>
+              <Sparkles className='w-4 h-4 text-white' />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-800">
+              <h3 className='text-sm font-semibold text-gray-800'>
                 자연어 질의
               </h3>
-              <p className="text-xs text-gray-600">
+              <p className='text-xs text-gray-600'>
                 AI와 대화하며 시스템을 관리하세요
               </p>
             </div>
@@ -120,31 +120,31 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="flex-shrink-0 border-b border-amber-200 bg-amber-50 p-3 sm:p-4"
+            className='flex-shrink-0 p-3 sm:p-4 bg-amber-50 border-b border-amber-200'
           >
-            <div className="flex items-start space-x-3">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-amber-100">
-                <FileText className="h-4 w-4 text-amber-600" />
+            <div className='flex items-start space-x-3'>
+              <div className='w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0'>
+                <FileText className='w-4 h-4 text-amber-600' />
               </div>
-              <div className="min-w-0 flex-1">
-                <h4 className="text-sm font-semibold text-amber-800">
+              <div className='flex-1 min-w-0'>
+                <h4 className='text-sm font-semibold text-amber-800'>
                   자동 장애 보고서 생성
                 </h4>
-                <p className="mt-1 text-xs text-amber-700">
+                <p className='text-xs text-amber-700 mt-1'>
                   {autoReportTrigger.severity} 수준의 이슈가 감지되었습니다.
                   {autoReportTrigger.lastQuery &&
                     ` (쿼리: ${autoReportTrigger.lastQuery})`}
                 </p>
-                <div className="mt-2 flex items-center space-x-2">
+                <div className='flex items-center space-x-2 mt-2'>
                   <button
                     onClick={onAutoReportGenerate}
-                    className="rounded bg-amber-500 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-amber-600"
+                    className='px-3 py-1 bg-amber-500 text-white text-xs font-medium rounded hover:bg-amber-600 transition-colors'
                   >
                     자동 생성
                   </button>
                   <button
                     onClick={onAutoReportDismiss}
-                    className="rounded bg-gray-500 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-gray-600"
+                    className='px-3 py-1 bg-gray-500 text-white text-xs font-medium rounded hover:bg-gray-600 transition-colors'
                   >
                     나중에
                   </button>
@@ -156,22 +156,22 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
       </AnimatePresence>
 
       {/* 메시지 영역 */}
-      <div className="flex-1 space-y-4 overflow-y-auto p-3 sm:p-4">
+      <div className='flex-1 overflow-y-auto p-3 sm:p-4 space-y-4'>
         {chatMessages.length === 0 ? (
-          <div className="flex h-full items-center justify-center">
-            <div className="text-center">
-              <Bot className="mx-auto mb-3 h-12 w-12 text-gray-400" />
-              <p className="mb-2 text-sm text-gray-600">
+          <div className='flex items-center justify-center h-full'>
+            <div className='text-center'>
+              <Bot className='w-12 h-12 text-gray-400 mx-auto mb-3' />
+              <p className='text-sm text-gray-600 mb-2'>
                 AI 어시스턴트와 대화를 시작하세요
               </p>
-              <p className="text-xs text-gray-500">
+              <p className='text-xs text-gray-500'>
                 시스템 상태, 로그 분석, 최적화 제안 등을 문의할 수 있습니다
               </p>
             </div>
           </div>
         ) : (
           <>
-            {chatMessages.map((message) => (
+            {chatMessages.map(message => (
               <ChatMessageItem
                 key={message.id}
                 message={message}
@@ -184,26 +184,26 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex justify-start"
+                className='flex justify-start'
               >
-                <div className="flex items-start space-x-2">
-                  <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                    <Bot className="h-3 w-3" />
+                <div className='flex items-start space-x-2'>
+                  <div className='w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center flex-shrink-0'>
+                    <Bot className='w-3 h-3' />
                   </div>
-                  <div className="rounded-lg border border-gray-200 bg-white px-3 py-2">
-                    <div className="flex items-center space-x-2">
-                      <div className="flex space-x-1">
-                        <div className="_animate-bounce h-2 w-2 rounded-full bg-purple-500"></div>
+                  <div className='bg-white border border-gray-200 rounded-lg px-3 py-2'>
+                    <div className='flex items-center space-x-2'>
+                      <div className='flex space-x-1'>
+                        <div className='w-2 h-2 bg-purple-500 rounded-full _animate-bounce'></div>
                         <div
-                          className="_animate-bounce h-2 w-2 rounded-full bg-purple-500"
+                          className='w-2 h-2 bg-purple-500 rounded-full _animate-bounce'
                           style={{ animationDelay: '0.1s' }}
                         ></div>
                         <div
-                          className="_animate-bounce h-2 w-2 rounded-full bg-purple-500"
+                          className='w-2 h-2 bg-purple-500 rounded-full _animate-bounce'
                           style={{ animationDelay: '0.2s' }}
                         ></div>
                       </div>
-                      <span className="text-xs text-gray-600">
+                      <span className='text-xs text-gray-600'>
                         AI가 생각하고 있습니다...
                       </span>
                     </div>
@@ -217,30 +217,30 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
 
       {/* 프리셋 질문 영역 */}
       {showPresets && (
-        <div className="flex-shrink-0 border-t border-gray-200 bg-white p-3 sm:p-4">
-          <div className="mb-2 flex items-center justify-between">
-            <h4 className="text-xs font-semibold text-gray-800">
+        <div className='flex-shrink-0 p-3 sm:p-4 bg-white border-t border-gray-200'>
+          <div className='flex items-center justify-between mb-2'>
+            <h4 className='text-xs font-semibold text-gray-800'>
               💡 추천 질문
             </h4>
-            <div className="flex items-center space-x-2">
+            <div className='flex items-center space-x-2'>
               <button
                 onClick={onPreviousPresets}
                 disabled={!canGoPrevious}
-                className="p-1 text-gray-500 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-                title="이전 프리셋 질문"
+                className='p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                title='이전 프리셋 질문'
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className='w-4 h-4' />
               </button>
-              <span className="text-xs text-gray-500">
+              <span className='text-xs text-gray-500'>
                 {currentPresetIndex + 1}
               </span>
               <button
                 onClick={onNextPresets}
                 disabled={!canGoNext}
-                className="p-1 text-gray-500 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-                title="다음 프리셋 질문"
+                className='p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                title='다음 프리셋 질문'
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className='w-4 h-4' />
               </button>
             </div>
           </div>
@@ -248,17 +248,17 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
       )}
 
       {/* 입력 영역 */}
-      <div className="flex-shrink-0 border-t border-gray-200 bg-white p-3 sm:p-4">
-        <form onSubmit={handleSubmit} className="flex items-end space-x-2">
-          <div className="flex-1">
+      <div className='flex-shrink-0 p-3 sm:p-4 bg-white border-t border-gray-200'>
+        <form onSubmit={handleSubmit} className='flex items-end space-x-2'>
+          <div className='flex-1'>
             <textarea
               value={inputValue}
-              onChange={(e) => onInputChange(e.target.value)}
-              placeholder="질문을 입력하세요... (Shift+Enter로 줄바꿈)"
-              className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500"
+              onChange={e => onInputChange(e.target.value)}
+              placeholder='질문을 입력하세요... (Shift+Enter로 줄바꿈)'
+              className='w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm'
               rows={1}
               style={{ minHeight: '40px', maxHeight: '120px' }}
-              onKeyDown={(e) => {
+              onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleSubmit(e);
@@ -269,9 +269,9 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
           </div>
 
           <button
-            type="button"
+            type='button'
             onClick={onTogglePresets}
-            className={`rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+            className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
               showPresets
                 ? 'bg-purple-100 text-purple-700'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -281,20 +281,20 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
           </button>
           {isGenerating ? (
             <button
-              type="button"
+              type='button'
               onClick={onStopGeneration}
-              className="flex items-center space-x-1 rounded-lg bg-red-500 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-red-600"
+              className='px-3 py-2 bg-red-500 text-white text-xs font-medium rounded-lg hover:bg-red-600 transition-colors flex items-center space-x-1'
             >
-              <StopCircle className="h-3 w-3" />
+              <StopCircle className='w-3 h-3' />
               <span>중지</span>
             </button>
           ) : (
             <button
-              type="submit"
+              type='submit'
               disabled={!inputValue.trim()}
-              className="flex items-center space-x-1 rounded-lg bg-purple-500 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
+              className='px-3 py-2 bg-purple-500 text-white text-xs font-medium rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-1'
             >
-              <Send className="h-3 w-3" />
+              <Send className='w-3 h-3' />
               <span>전송</span>
             </button>
           )}

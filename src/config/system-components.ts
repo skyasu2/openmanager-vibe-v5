@@ -165,7 +165,7 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
     checkFunction: async () => {
       // 캐시 시스템 체크 - 시뮬레이션
       console.log('⚡ 캐시 시스템 체크 시작');
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 300));
       console.log('✅ 캐시 시스템 체크 완료');
       return true;
     },
@@ -180,7 +180,7 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
     checkFunction: async () => {
       // 보안 검증 로직 - 시뮬레이션
       console.log('🔒 보안 검증 시작');
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 500));
       console.log('✅ 보안 검증 완료');
       return true;
     },
@@ -196,7 +196,7 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
     checkFunction: async () => {
       // UI 컴포넌트 준비 체크 - 시뮬레이션
       console.log('🎨 UI 컴포넌트 준비 시작');
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 200));
       console.log('✅ UI 컴포넌트 준비 완료');
       return true;
     },

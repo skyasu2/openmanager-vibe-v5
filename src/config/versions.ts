@@ -215,8 +215,8 @@ export class VersionManager {
 
     try {
       // Node.js 환경에서만 실행
-      import('fs').then((fs) => {
-        import('path').then((path) => {
+      import('fs').then(fs => {
+        import('path').then(path => {
           const logPath = path.join(
             process.cwd(),
             'logs',
