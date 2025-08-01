@@ -49,13 +49,13 @@ interface ServicesMonitorProps {
 }
 
 const getServiceIcon = (serviceName: string) => {
-  if (serviceName.includes('Supabase')) return <Database className="h-5 w-5" />;
-  if (serviceName.includes('Redis')) return <Zap className="h-5 w-5" />;
+  if (serviceName.includes('Supabase')) return <Database className='w-5 h-5' />;
+  if (serviceName.includes('Redis')) return <Zap className='w-5 h-5' />;
   if (serviceName.includes('Google AI'))
-    return <Activity className="h-5 w-5" />;
-  if (serviceName.includes('Render')) return <Server className="h-5 w-5" />;
-  if (serviceName.includes('Vercel')) return <Globe className="h-5 w-5" />;
-  return <Server className="h-5 w-5" />;
+    return <Activity className='w-5 h-5' />;
+  if (serviceName.includes('Render')) return <Server className='w-5 h-5' />;
+  if (serviceName.includes('Vercel')) return <Globe className='w-5 h-5' />;
+  return <Server className='w-5 h-5' />;
 };
 
 const getStatusColor = (status: string) => {
@@ -146,19 +146,19 @@ export function ServicesMonitor({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-6 w-6" />
+        <div className='flex items-center justify-between'>
+          <CardTitle className='flex items-center gap-2'>
+            <Activity className='w-6 h-6' />
             외부 서비스 연결 상태
           </CardTitle>
           <Button
-            variant="outline"
-            size="sm"
+            variant='outline'
+            size='sm'
             onClick={fetchServicesStatus}
             disabled={loading}
           >
             <RefreshCw
-              className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`}
+              className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`}
             />
             새로고침
           </Button>
@@ -170,69 +170,69 @@ export function ServicesMonitor({
       <CardContent>
         {/* 요약 카드 */}
         {servicesData && (
-          <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div className='grid grid-cols-1 md:grid-cols-4 gap-4 mb-6'>
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className='p-4'>
+                <div className='flex items-center justify-between'>
                   <div>
-                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                    <p className='text-sm font-medium text-slate-600 dark:text-slate-400'>
                       총 서비스
                     </p>
-                    <p className="text-2xl font-bold">
+                    <p className='text-2xl font-bold'>
                       {servicesData.summary.total}
                     </p>
                   </div>
-                  <Server className="h-8 w-8 text-slate-400" />
+                  <Server className='w-8 h-8 text-slate-400' />
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className='p-4'>
+                <div className='flex items-center justify-between'>
                   <div>
-                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                    <p className='text-sm font-medium text-slate-600 dark:text-slate-400'>
                       연결됨
                     </p>
-                    <p className="text-2xl font-bold text-green-600">
+                    <p className='text-2xl font-bold text-green-600'>
                       {servicesData.summary.connected}
                     </p>
                   </div>
-                  <CheckCircle className="h-8 w-8 text-green-500" />
+                  <CheckCircle className='w-8 h-8 text-green-500' />
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className='p-4'>
+                <div className='flex items-center justify-between'>
                   <div>
-                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                    <p className='text-sm font-medium text-slate-600 dark:text-slate-400'>
                       오류
                     </p>
-                    <p className="text-2xl font-bold text-red-600">
+                    <p className='text-2xl font-bold text-red-600'>
                       {servicesData.summary.errors}
                     </p>
                   </div>
-                  <XCircle className="h-8 w-8 text-red-500" />
+                  <XCircle className='w-8 h-8 text-red-500' />
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+              <CardContent className='p-4'>
+                <div className='flex items-center justify-between'>
                   <div>
-                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                    <p className='text-sm font-medium text-slate-600 dark:text-slate-400'>
                       평균 응답시간
                     </p>
-                    <p className="text-2xl font-bold">
+                    <p className='text-2xl font-bold'>
                       {formatResponseTime(
                         servicesData.summary.averageResponseTime
                       )}
                     </p>
                   </div>
-                  <Clock className="h-8 w-8 text-blue-500" />
+                  <Clock className='w-8 h-8 text-blue-500' />
                 </div>
               </CardContent>
             </Card>
@@ -241,18 +241,18 @@ export function ServicesMonitor({
 
         {/* 서비스 상태 카드들 */}
         {servicesData && (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
             {servicesData.services.map((service, index) => (
-              <Card key={index} className="relative overflow-hidden">
+              <Card key={index} className='relative overflow-hidden'>
                 <div
-                  className={`absolute left-0 top-0 h-full w-1 ${getStatusColor(service.status)}`}
+                  className={`absolute top-0 left-0 w-1 h-full ${getStatusColor(service.status)}`}
                 />
 
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                <CardHeader className='pb-3'>
+                  <div className='flex items-center justify-between'>
+                    <div className='flex items-center gap-3'>
                       {getServiceIcon(service.name)}
-                      <CardTitle className="text-lg">{service.name}</CardTitle>
+                      <CardTitle className='text-lg'>{service.name}</CardTitle>
                     </div>
                     <Badge variant={getStatusBadgeVariant(service.status)}>
                       {service.status === 'connected'
@@ -269,23 +269,23 @@ export function ServicesMonitor({
 
                 <CardContent>
                   {service.status === 'error' && service.error && (
-                    <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
-                      <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                    <div className='mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg'>
+                      <p className='text-sm text-red-700 dark:text-red-300 font-medium'>
                         오류:
                       </p>
-                      <p className="text-sm text-red-600 dark:text-red-400">
+                      <p className='text-sm text-red-600 dark:text-red-400'>
                         {service.error}
                       </p>
                     </div>
                   )}
 
                   {service.details && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    <div className='space-y-2'>
+                      <p className='text-sm font-medium text-slate-700 dark:text-slate-300'>
                         상세 정보:
                       </p>
-                      <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-                        <pre className="overflow-x-auto text-xs text-slate-600 dark:text-slate-400">
+                      <div className='bg-slate-50 dark:bg-slate-800 p-3 rounded-lg'>
+                        <pre className='text-xs text-slate-600 dark:text-slate-400 overflow-x-auto'>
                           {JSON.stringify(service.details, null, 2)}
                         </pre>
                       </div>
@@ -299,32 +299,32 @@ export function ServicesMonitor({
 
         {/* 마지막 업데이트 시간 */}
         {lastUpdated && (
-          <div className="mt-6 text-center text-sm text-muted-foreground">
+          <div className='text-center text-sm text-muted-foreground mt-6'>
             마지막 업데이트: {lastUpdated.toLocaleString('ko-KR')}
           </div>
         )}
 
-        <Separator className="my-6" />
+        <Separator className='my-6' />
 
         {/* 개발 팁 */}
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">
+        <div className='space-y-3'>
+          <h4 className='text-sm font-medium text-slate-700 dark:text-slate-300'>
             💡 개발 팁
           </h4>
-          <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4 text-sm'>
             <div>
-              <p className="font-medium text-slate-700 dark:text-slate-300">
+              <p className='font-medium text-slate-700 dark:text-slate-300'>
                 터미널에서 상태 확인:
               </p>
-              <code className="rounded bg-slate-100 px-2 py-1 text-xs dark:bg-slate-800">
+              <code className='bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-xs'>
                 curl http://localhost:3000/api/services/status
               </code>
             </div>
             <div>
-              <p className="font-medium text-slate-700 dark:text-slate-300">
+              <p className='font-medium text-slate-700 dark:text-slate-300'>
                 환경변수 확인:
               </p>
-              <code className="rounded bg-slate-100 px-2 py-1 text-xs dark:bg-slate-800">
+              <code className='bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-xs'>
                 .env.local 파일 생성 필요
               </code>
             </div>
