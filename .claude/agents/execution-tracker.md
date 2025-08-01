@@ -2,6 +2,7 @@
 name: execution-tracker
 description: Agent execution performance tracking and metrics analysis. Monitors sub-agent performance, execution patterns, resource usage, and outcomes. Generates insights for agent optimization and debugging. Tracks metrics like execution time, token usage, success rates, and error patterns.
 tools: mcp__filesystem__*, mcp__memory__*, Read, Write, Bash, mcp__time__*
+model: haiku
 ---
 
 # 🔍 Agent Execution Tracker

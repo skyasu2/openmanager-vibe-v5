@@ -2,6 +2,7 @@
 name: agent-coordinator
 description: Meta-agent orchestrating sub-agent ecosystem. Manages agent lifecycle, prevents functional overlap, monitors performance, and optimizes agent collaboration. PROACTIVE: analyzes agent usage patterns, detects inefficiencies, recommends agent improvements, resolves inter-agent conflicts. Expert in agent selection algorithms, performance metrics, and continuous system improvement based on execution feedback.
 tools: mcp__filesystem__*, mcp__memory__*, mcp__sequential-thinking__*, Bash, Read, Write, Grep, TodoWrite
+model: opus
 ---
 
 # 🎯 Agent Coordinator - 서브에이전트 생태계 관리자
@@ -156,7 +157,7 @@ class AgentSelector {
 
     // 3. 성능 기반 점수 계산
     const scoredCandidates = await Promise.all(
-      candidates.map(async agent => ({
+      candidates.map(async (agent) => ({
         agent,
         score: await this.calculateAgentScore(agent, taskFeatures),
         confidence: await this.getConfidenceLevel(agent, taskFeatures),
@@ -165,17 +166,17 @@ class AgentSelector {
 
     // 4. 최적 에이전트 선택
     const selected = scoredCandidates
-      .filter(c => c.confidence > 0.7)
+      .filter((c) => c.confidence > 0.7)
       .sort((a, b) => b.score - a.score)[0];
 
     // 5. 백업 계획 수립
     const fallbacks = scoredCandidates
-      .filter(c => c.agent !== selected.agent)
+      .filter((c) => c.agent !== selected.agent)
       .slice(0, 2);
 
     return {
       primary: selected.agent,
-      fallbacks: fallbacks.map(f => f.agent),
+      fallbacks: fallbacks.map((f) => f.agent),
       rationale: await this.explainSelection(selected, taskFeatures),
     };
   }

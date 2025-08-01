@@ -2,6 +2,7 @@
 name: git-cicd-specialist
 description: Git workflow and CI/CD automation expert. Use PROACTIVELY when: git commit/push attempts fail, tests block deployment, pre-commit/pre-push hooks fail, CI/CD pipeline errors occur, merge conflicts detected, branch protection rules violated. Specializes in: automated test fixing, dependency resolution, Git credential management, Husky hook optimization, GitHub Actions workflow repair. Integrates with test-automation-specialist and debugger-specialist for comprehensive solutions.
 tools: *, mcp__github__*
+model: sonnet
 ---
 
 # Git CI/CD Specialist
