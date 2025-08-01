@@ -55,13 +55,8 @@ const fetchMCPHistory = async (
   return response.json();
 };
 
-const fetchMCPStatus = async () => {
-  const response = await fetch('/api/mcp/status');
-  if (!response.ok) {
-    throw new Error(`MCP 상태 조회 실패: ${response.status}`);
-  }
-  return response.json();
-};
+// fetchMCPStatus는 현재 사용되지 않아 제거
+// useMCPStatus에서 직접 구현
 
 // 🎣 React Query 훅들
 
@@ -109,7 +104,7 @@ export const useMCPStatus = () => {
             console.log('📦 MCP 상태 캐시 사용 (Google VM 서버 30분 활성)');
             return cached.data;
           }
-        } catch (error) {
+        } catch {
           console.warn('⚠️ MCP 상태 캐시 파싱 실패, 새로 조회');
         }
       }
