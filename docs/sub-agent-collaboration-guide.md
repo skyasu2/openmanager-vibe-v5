@@ -11,7 +11,7 @@
 
 ### 2. 플랫폼 관리 계층
 
-- **vercel-monitor**: Vercel 플랫폼 전담
+- **vercel-platform-specialist**: Vercel 플랫폼 아키텍처 전문 분석
 - **mcp-server-admin**: MCP 인프라 전담
 - **database-administrator**: Upstash Redis + Supabase 전담
 
@@ -81,7 +81,7 @@ git-cicd-specialist (배포)
 
 ```
 동시 실행:
-├─ vercel-monitor (플랫폼 상태 확인)
+├─ vercel-platform-specialist (플랫폼 아키텍처 분석)
 ├─ database-administrator (DB 성능 분석)
 └─ ux-performance-optimizer (프론트엔드 성능 분석)
 ```
@@ -92,13 +92,13 @@ git-cicd-specialist (배포)
 
 #### ❌ 피해야 할 패턴
 
-- vercel-monitor가 MCP 서버 관리
+- vercel-platform-specialist가 MCP 서버 관리
 - test-automation-specialist가 CI/CD 파이프라인 수정
 - debugger-specialist가 테스트 작성
 
 #### ✅ 올바른 패턴
 
-- vercel-monitor → MCP 이슈 발견 → mcp-server-admin에게 위임
+- vercel-platform-specialist → MCP 이슈 발견 → mcp-server-admin에게 위임
 - test-automation-specialist → CI/CD 실패 → git-cicd-specialist에게 위임
 - debugger-specialist → 테스트 필요 → test-automation-specialist에게 요청
 
@@ -133,7 +133,7 @@ git-cicd-specialist (배포)
 - ux-performance-optimizer: 프론트엔드 분석
 - database-administrator: DB 쿼리 최적화
 - ai-systems-engineer: AI 응답 시간 개선
-- vercel-monitor: Edge Function 성능 모니터링
+- vercel-platform-specialist: Edge Function 성능 엔지니어링
 ```
 
 ### 4. 문서 업데이트
