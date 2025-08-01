@@ -97,9 +97,7 @@ export class AdvancedSimulationEngine {
       this.realMetricsCache.size > 0
     ) {
       const cachedMetrics: ServerMetrics[] = [];
-      this.realMetricsCache.forEach((metrics) =>
-        cachedMetrics.push(...metrics)
-      );
+      this.realMetricsCache.forEach(metrics => cachedMetrics.push(...metrics));
       return cachedMetrics;
     }
 
@@ -145,7 +143,7 @@ export class AdvancedSimulationEngine {
 
       // 변환된 메트릭들을 평평하게 만들어서 반환
       const convertedMetrics: ServerMetrics[] = [];
-      serverMetricsMap.forEach((metrics) => convertedMetrics.push(...metrics));
+      serverMetricsMap.forEach(metrics => convertedMetrics.push(...metrics));
       return convertedMetrics;
     } catch (error) {
       console.warn('⚠️ 실제 데이터 조회 실패, fallback 사용:', error);
@@ -173,7 +171,7 @@ export class AdvancedSimulationEngine {
       // 실제 데이터 기반 시뮬레이션 메트릭 생성
       const simulationMetrics: SimulationMetrics[] = [];
       const availableServers = [
-        ...new Set(realMetrics.map((m) => m.server_id).filter(Boolean)),
+        ...new Set(realMetrics.map(m => m.server_id).filter(Boolean)),
       ];
 
       for (
@@ -182,9 +180,7 @@ export class AdvancedSimulationEngine {
         i++
       ) {
         const serverId = availableServers[i] || `server-${i + 1}`;
-        const serverMetrics = realMetrics.filter(
-          (m) => m.server_id === serverId
-        );
+        const serverMetrics = realMetrics.filter(m => m.server_id === serverId);
 
         let metrics: SimulationMetrics;
 
@@ -250,7 +246,7 @@ export class AdvancedSimulationEngine {
     // 메모리 누수 패턴 감지
     else if (
       avg.memory > 85 &&
-      this.detectIncreasingTrend(recent.map((m) => m.memory))
+      this.detectIncreasingTrend(recent.map(m => m.memory))
     ) {
       scenarioType = 'memory_leak';
       severity = avg.memory > 95 ? 'critical' : 'high';
@@ -412,7 +408,7 @@ export class AdvancedSimulationEngine {
 
       // 서버별로 패턴 분석
       const serverGroups = new Map<string, ServerMetrics[]>();
-      realMetrics.forEach((metric) => {
+      realMetrics.forEach(metric => {
         const serverId = metric.server_id || 'unknown';
         if (!serverGroups.has(serverId)) {
           serverGroups.set(serverId, []);
@@ -480,10 +476,8 @@ export class AdvancedSimulationEngine {
   async getIntegratedAIMetrics(): Promise<IntegratedAIMetrics> {
     const targets = await this.getAnalysisTargets();
     const totalServers = targets.length;
-    const criticalServers = targets.filter(
-      (s) => s.status === 'critical'
-    ).length;
-    const warningServers = targets.filter((s) => s.status === 'warning').length;
+    const criticalServers = targets.filter(s => s.status === 'critical').length;
+    const warningServers = targets.filter(s => s.status === 'warning').length;
 
     return {
       totalServers,

@@ -174,7 +174,7 @@ export const createStoryMeta = <T extends React.ComponentType<any>>(
 // 🎭 글로벌 데코레이터 (모든 스토리에 적용)
 export const withAIContext = (Story: any, context: any) => {
   return (
-    <div data-testid="ai-monitoring-context" className="storybook-ai-context">
+    <div data-testid='ai-monitoring-context' className='storybook-ai-context'>
       <Story />
     </div>
   );

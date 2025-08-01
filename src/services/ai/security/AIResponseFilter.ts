@@ -343,7 +343,7 @@ export class AIResponseFilter {
     ];
 
     const upperResponse = response.toUpperCase();
-    const sqlCount = sqlKeywords.filter((keyword) =>
+    const sqlCount = sqlKeywords.filter(keyword =>
       upperResponse.includes(keyword)
     ).length;
 

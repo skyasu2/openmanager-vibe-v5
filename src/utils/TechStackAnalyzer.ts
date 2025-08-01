@@ -695,7 +695,7 @@ function parseTechString(techString: string): string[] {
   const techs = new Set<string>();
 
   // 각 패턴으로 기술명 추출
-  patterns.forEach((pattern) => {
+  patterns.forEach(pattern => {
     let match;
     while ((match = pattern.exec(techString)) !== null) {
       const tech = match[1].trim().toLowerCase();
@@ -711,16 +711,16 @@ function parseTechString(techString: string): string[] {
   // 기본 분할 방식도 추가
   const basicSplit = techString
     .split(/[,+&]/)
-    .map((tech) =>
+    .map(tech =>
       tech
         .replace(/[🎯🧠🔍🌐🤖🔄💭]/gu, '')
         .trim()
         .toLowerCase()
     )
-    .filter((tech) => tech.length > 2)
-    .filter((tech) => !['and', 'with', 'using', 'based', 'for'].includes(tech));
+    .filter(tech => tech.length > 2)
+    .filter(tech => !['and', 'with', 'using', 'based', 'for'].includes(tech));
 
-  basicSplit.forEach((tech) => techs.add(tech));
+  basicSplit.forEach(tech => techs.add(tech));
 
   return Array.from(techs);
 }
@@ -825,7 +825,7 @@ function normalizeTechName(tech: string): string {
 function mergeDuplicateTechs(techItems: TechItem[]): TechItem[] {
   const techMap = new Map<string, TechItem>();
 
-  techItems.forEach((item) => {
+  techItems.forEach(item => {
     const key = item.name.toLowerCase();
 
     if (techMap.has(key)) {
@@ -882,10 +882,10 @@ export function analyzeTechStack(technologies: string[]): TechCategory[] {
   const techItems: TechItem[] = [];
 
   // 각 기술 문자열을 파싱하고 분석
-  technologies.forEach((techString) => {
+  technologies.forEach(techString => {
     const parsedTechs = parseTechString(techString);
 
-    parsedTechs.forEach((tech) => {
+    parsedTechs.forEach(tech => {
       const normalizedTech = normalizeTechName(tech);
       const techInfo = TECH_DATABASE[normalizedTech];
 
@@ -909,7 +909,7 @@ export function analyzeTechStack(technologies: string[]): TechCategory[] {
   // 카테고리별로 분류
   const categoryMap = new Map<string, TechItem[]>();
 
-  mergedTechs.forEach((techItem) => {
+  mergedTechs.forEach(techItem => {
     // 메인 카테고리 사용
     const mainCategory = techItem.category;
 
@@ -946,17 +946,17 @@ export function analyzeTechStack(technologies: string[]): TechCategory[] {
 
   // 카테고리를 중요도와 코어 기술 기준으로 정렬
   return categories.sort((a, b) => {
-    const aHasCore = a.items.some((item) => item.isCore);
-    const bHasCore = b.items.some((item) => item.isCore);
+    const aHasCore = a.items.some(item => item.isCore);
+    const bHasCore = b.items.some(item => item.isCore);
 
     if (aHasCore && !bHasCore) return -1;
     if (!aHasCore && bHasCore) return 1;
 
     const aHighImportance = a.items.filter(
-      (item) => item.importance === 'high'
+      item => item.importance === 'high'
     ).length;
     const bHighImportance = b.items.filter(
-      (item) => item.importance === 'high'
+      item => item.importance === 'high'
     ).length;
 
     return bHighImportance - aHighImportance;
@@ -974,14 +974,14 @@ export function generateTechStackSummary(categories: TechCategory[]): {
 } {
   const totalTechs = categories.reduce((sum, cat) => sum + cat.items.length, 0);
   const coreCount = categories.reduce(
-    (sum, cat) => sum + cat.items.filter((item) => item.isCore).length,
+    (sum, cat) => sum + cat.items.filter(item => item.isCore).length,
     0
   );
 
   const topCategories = categories
     .sort((a, b) => b.items.length - a.items.length)
     .slice(0, 3)
-    .map((cat) => cat.name);
+    .map(cat => cat.name);
 
   return {
     totalTechs,

@@ -236,10 +236,10 @@ export class LoggingService implements ILogger {
       total: this.logs.length,
       byLevel: { debug: 0, info: 0, warn: 0, error: 0 },
       byModule: {} as Record<string, number>,
-      recentErrors: this.logs.filter((log) => log.level === 'error').slice(-10),
+      recentErrors: this.logs.filter(log => log.level === 'error').slice(-10),
     };
 
-    this.logs.forEach((log) => {
+    this.logs.forEach(log => {
       stats.byLevel[log.level]++;
       stats.byModule[log.module] = (stats.byModule[log.module] || 0) + 1;
     });
@@ -257,7 +257,7 @@ export class LoggingService implements ILogger {
     startTime?: Date;
     endTime?: Date;
   }): LogEntry[] {
-    return this.logs.filter((log) => {
+    return this.logs.filter(log => {
       if (query.level && log.level !== query.level) return false;
       if (query.module && log.module !== query.module) return false;
       if (
@@ -287,7 +287,7 @@ export class LoggingService implements ILogger {
         'data',
         'error',
       ];
-      const rows = this.logs.map((log) => [
+      const rows = this.logs.map(log => [
         log.timestamp,
         log.level,
         log.module,
@@ -296,7 +296,7 @@ export class LoggingService implements ILogger {
         log.error ? log.error.message : '',
       ]);
 
-      return [headers, ...rows].map((row) => row.join(',')).join('\n');
+      return [headers, ...rows].map(row => row.join(',')).join('\n');
     }
 
     return JSON.stringify(this.logs, null, 2);

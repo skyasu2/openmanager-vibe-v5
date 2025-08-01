@@ -310,7 +310,7 @@ export class VMPersistentDataManager {
       systemLogger.info('📥 베이스라인 데이터 로드 시도...');
 
       // TODO: BaselineStorageService 통합 예정 - 임시 비활성화
-      await new Promise((resolve) => setTimeout(resolve, 100)); // 더미 딜레이
+      await new Promise(resolve => setTimeout(resolve, 100)); // 더미 딜레이
 
       systemLogger.info('✅ 베이스라인 데이터 로드 성공 (더미)');
       return true;
@@ -330,7 +330,7 @@ export class VMPersistentDataManager {
       systemLogger.info('💾 베이스라인 데이터 저장 시도...');
 
       // TODO: BaselineStorageService 통합 예정 - 임시 비활성화
-      await new Promise((resolve) => setTimeout(resolve, 100)); // 더미 딜레이
+      await new Promise(resolve => setTimeout(resolve, 100)); // 더미 딜레이
 
       systemLogger.info('✅ 베이스라인 데이터 저장 성공 (더미)');
       return true;
@@ -365,13 +365,13 @@ export class VMPersistentDataManager {
     process.on('SIGQUIT', () => shutdownHandler('SIGQUIT')); // 종료 시그널
 
     // 예외 핸들러
-    process.on('uncaughtException', async (error) => {
+    process.on('uncaughtException', async error => {
       systemLogger.error('❌ 치명적 오류 발생:', error);
       await this.stopVMSystem();
       process.exit(1);
     });
 
-    process.on('unhandledRejection', async (reason) => {
+    process.on('unhandledRejection', async reason => {
       systemLogger.error('❌ 처리되지 않은 Promise 거부:', reason);
       await this.stopVMSystem();
       process.exit(1);

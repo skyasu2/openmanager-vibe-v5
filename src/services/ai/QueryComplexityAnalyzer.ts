@@ -130,10 +130,10 @@ export class QueryComplexityAnalyzer {
     if (!features.isFactual) score += 1;
 
     // 패턴 매칭
-    if (this.COMPLEXITY_RULES.complex.some((pattern) => pattern.test(query))) {
+    if (this.COMPLEXITY_RULES.complex.some(pattern => pattern.test(query))) {
       score += 3;
     }
-    if (this.COMPLEXITY_RULES.simple.some((pattern) => pattern.test(query))) {
+    if (this.COMPLEXITY_RULES.simple.some(pattern => pattern.test(query))) {
       score -= 2;
     }
 
@@ -154,7 +154,7 @@ export class QueryComplexityAnalyzer {
     let localScore = 0;
     let googleAIScore = 0;
 
-    features.keywords.forEach((keyword) => {
+    features.keywords.forEach(keyword => {
       const lowerKeyword = keyword.toLowerCase();
 
       Object.entries(this.KEYWORD_WEIGHTS.local).forEach(([key, weight]) => {
@@ -191,19 +191,17 @@ export class QueryComplexityAnalyzer {
 
     // 명확한 패턴 매칭
     if (recommendedEngine === 'local-rag') {
-      if (this.COMPLEXITY_RULES.simple.some((pattern) => pattern.test(query))) {
+      if (this.COMPLEXITY_RULES.simple.some(pattern => pattern.test(query))) {
         confidence += 0.3;
       }
-      if (features.keywords.some((k) => k in this.KEYWORD_WEIGHTS.local)) {
+      if (features.keywords.some(k => k in this.KEYWORD_WEIGHTS.local)) {
         confidence += 0.2;
       }
     } else {
-      if (
-        this.COMPLEXITY_RULES.complex.some((pattern) => pattern.test(query))
-      ) {
+      if (this.COMPLEXITY_RULES.complex.some(pattern => pattern.test(query))) {
         confidence += 0.3;
       }
-      if (features.keywords.some((k) => k in this.KEYWORD_WEIGHTS.googleAI)) {
+      if (features.keywords.some(k => k in this.KEYWORD_WEIGHTS.googleAI)) {
         confidence += 0.2;
       }
     }
@@ -235,8 +233,8 @@ export class QueryComplexityAnalyzer {
     // 간단한 키워드 추출 (실제로는 더 정교한 NLP 필요)
     const words = query
       .split(/\s+/)
-      .filter((word) => word.length > 2)
-      .map((word) => word.toLowerCase());
+      .filter(word => word.length > 2)
+      .map(word => word.toLowerCase());
 
     // 중복 제거
     return [...new Set(words)];

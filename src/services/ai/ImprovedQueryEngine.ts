@@ -167,7 +167,7 @@ export class ImprovedQueryEngine {
 
     // 백그라운드에서 로드 (블로킹하지 않음)
     setTimeout(() => {
-      frequentPatterns.forEach((pattern) => {
+      frequentPatterns.forEach(pattern => {
         this.warmupCache(pattern);
       });
     }, 5000);
@@ -220,7 +220,7 @@ export class ImprovedQueryEngine {
     if (this.initPromise && !this.isInitialized) {
       await Promise.race([
         this.initPromise,
-        new Promise((resolve) => setTimeout(resolve, 1000)), // 최대 1초 대기
+        new Promise(resolve => setTimeout(resolve, 1000)), // 최대 1초 대기
       ]);
     }
 
@@ -511,7 +511,7 @@ export class ImprovedQueryEngine {
         }
       });
 
-      keysToDelete.forEach((key) => this.memoryCache.delete(key));
+      keysToDelete.forEach(key => this.memoryCache.delete(key));
     }, 60000); // 1분마다
   }
 

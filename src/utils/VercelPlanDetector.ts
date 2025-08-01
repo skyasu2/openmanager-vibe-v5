@@ -64,8 +64,8 @@ export class VercelPlanDetector {
     ]);
 
     const validResults = detectionResults
-      .filter((result) => result.status === 'fulfilled')
-      .map((result) => (result as PromiseFulfilledResult<any>).value);
+      .filter(result => result.status === 'fulfilled')
+      .map(result => (result as PromiseFulfilledResult<any>).value);
 
     // 투표 시스템으로 최종 플랜 결정
     const finalPlan = this.aggregateResults(validResults);
@@ -199,7 +199,7 @@ export class VercelPlanDetector {
       // 작은 비동기 작업의 성능으로 제한 추정
       const startTime = Date.now();
 
-      await new Promise((resolve) => {
+      await new Promise(resolve => {
         // 1초 대기 후 성능 측정
         setTimeout(resolve, 1000);
       });
@@ -302,7 +302,7 @@ export class VercelPlanDetector {
     };
 
     // 투표 집계
-    results.forEach((result) => {
+    results.forEach(result => {
       if (result.plan && result.confidence && result.detectionMethods) {
         const plan = result.plan;
         planVotes[plan].count++;

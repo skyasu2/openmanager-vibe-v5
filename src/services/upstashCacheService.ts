@@ -175,7 +175,7 @@ export class UpstashCacheService {
       const startTime = Date.now();
       const pipeline = this.redis.pipeline();
 
-      keys.forEach((key) => pipeline.get(key));
+      keys.forEach(key => pipeline.get(key));
       const results = await pipeline.exec();
 
       // 통계 업데이트
@@ -286,13 +286,11 @@ export class UpstashCacheService {
    * 서버 메트릭 캐싱 (최적화 버전)
    */
   async cacheServerMetrics(servers: EnhancedServerMetrics[]): Promise<void> {
-    const items: Array<{ key: string; value: any; ttl?: number }> = servers.map(
-      (server) => ({
-        key: CACHE_KEYS.SERVER_DETAIL(server.id),
-        value: server,
-        ttl: TTL_STRATEGY.SERVER_DETAIL,
-      })
-    );
+    const items: Array<{ key: string; value: any; ttl?: number }> = servers.map(server => ({
+      key: CACHE_KEYS.SERVER_DETAIL(server.id),
+      value: server,
+      ttl: TTL_STRATEGY.SERVER_DETAIL,
+    }));
 
     // 서버 목록도 함께 캐싱
     items.push({
@@ -304,7 +302,7 @@ export class UpstashCacheService {
     // 요약 정보 생성 및 캐싱
     const summary = {
       totalServers: servers.length,
-      onlineServers: servers.filter((s) => s.status === 'online').length,
+      onlineServers: servers.filter(s => s.status === 'online').length,
       avgCpuUsage:
         servers.reduce((sum, s) => sum + (s.metrics?.cpu?.usage || 0), 0) /
         servers.length,
@@ -381,7 +379,7 @@ export class UpstashCacheService {
 
       if (keysToDelete.length > 0) {
         const pipeline = this.redis.pipeline();
-        keysToDelete.forEach((key) => pipeline.del(key));
+        keysToDelete.forEach(key => pipeline.del(key));
         await pipeline.exec();
         this.stats.deletes += keysToDelete.length;
       }

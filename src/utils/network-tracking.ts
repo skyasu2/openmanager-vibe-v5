@@ -113,7 +113,7 @@ export const getNetworkStatsByComponent = (): Record<
   const requests = getNetworkRequests();
   const stats: Record<string, any> = {};
 
-  requests.forEach((request) => {
+  requests.forEach(request => {
     if (!stats[request.component]) {
       stats[request.component] = {
         totalRequests: 0,
@@ -133,7 +133,7 @@ export const getNetworkStatsByComponent = (): Record<
   });
 
   // 평균 응답 시간 계산
-  Object.keys(stats).forEach((component) => {
+  Object.keys(stats).forEach(component => {
     const componentStats = stats[component];
     componentStats.averageResponseTime =
       componentStats.totalResponseTime / componentStats.totalRequests;

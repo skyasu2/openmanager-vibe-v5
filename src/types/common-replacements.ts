@@ -61,9 +61,7 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function isStringArray(value: unknown): value is string[] {
-  return (
-    Array.isArray(value) && value.every((item) => typeof item === 'string')
-  );
+  return Array.isArray(value) && value.every(item => typeof item === 'string');
 }
 
 // 안전한 타입 변환 함수들

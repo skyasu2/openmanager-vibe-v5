@@ -217,7 +217,7 @@ export class EnrichedMetricsGenerator {
   private _initializeServers(servers: EnhancedServerMetrics[]): void {
     this.servers.clear();
 
-    servers.forEach((server) => {
+    servers.forEach(server => {
       this.servers.set(server.id, server);
     });
 
@@ -354,7 +354,7 @@ export class EnrichedMetricsGenerator {
         },
         page_faults: Math.floor(currentLoad * 1000),
         memory_leaks: scenarios.some(
-          (s) => s.pattern?.id === 'gradual-memory-leak'
+          s => s.pattern?.id === 'gradual-memory-leak'
         )
           ? Math.floor(currentLoad * 50)
           : 0,
@@ -504,7 +504,7 @@ export class EnrichedMetricsGenerator {
 
   private calculateScenarioImpact(scenarios: any[]): number {
     let impact = 1.0;
-    scenarios.forEach((scenario) => {
+    scenarios.forEach(scenario => {
       switch (scenario.pattern?.severity) {
         case 'critical':
           impact *= 1.5;

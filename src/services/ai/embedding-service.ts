@@ -103,7 +103,7 @@ class EmbeddingService {
     const model = options.model || 'text-embedding-004';
 
     // 빈 텍스트 필터링
-    const validTexts = texts.filter((text) => text && text.trim().length > 0);
+    const validTexts = texts.filter(text => text && text.trim().length > 0);
 
     if (validTexts.length === 0) {
       return [];
@@ -142,7 +142,7 @@ class EmbeddingService {
               'X-Goog-Api-Key': process.env.GOOGLE_AI_API_KEY!,
             },
             body: JSON.stringify({
-              requests: toProcess.map((item) => ({
+              requests: toProcess.map(item => ({
                 model: `models/${model}`,
                 content: {
                   parts: [{ text: item.text }],
@@ -172,7 +172,7 @@ class EmbeddingService {
       } catch (error) {
         aiLogger.error('배치 임베딩 생성 실패:', error);
         // 실패한 항목들은 빈 임베딩으로 채움
-        toProcess.forEach((item) => {
+        toProcess.forEach(item => {
           results[item.index] = new Array(dimension).fill(0);
         });
       }

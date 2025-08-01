@@ -158,7 +158,7 @@ export class SupabaseRAGEngine {
 
       const result: RAGSearchResult = {
         success: true,
-        results: searchResults.map((r) => ({
+        results: searchResults.map(r => ({
           id: r.id,
           content: r.content,
           similarity: r.similarity,
@@ -272,7 +272,7 @@ export class SupabaseRAGEngine {
   ): Promise<{ success: number; failed: number }> {
     try {
       // 배치 임베딩 생성 (효율적인 처리)
-      const texts = documents.map((doc) => doc.content);
+      const texts = documents.map(doc => doc.content);
       const embeddings = await embeddingService.createBatchEmbeddings(texts, {
         dimension: this.EMBEDDING_DIMENSION,
       });
@@ -295,7 +295,7 @@ export class SupabaseRAGEngine {
       // 폴백: 개별 처리
       console.warn('⚠️ 개별 임베딩 생성으로 폴백');
       const embeddings = await Promise.all(
-        documents.map((doc) => this.generateEmbedding(doc.content))
+        documents.map(doc => this.generateEmbedding(doc.content))
       );
 
       const docsWithEmbeddings = documents.map((doc, i) => ({
@@ -359,7 +359,7 @@ export class SupabaseRAGEngine {
     const magnitude = Math.sqrt(
       embedding.reduce((sum, val) => sum + val * val, 0)
     );
-    return embedding.map((val) => val / magnitude);
+    return embedding.map(val => val / magnitude);
   }
 
   /**

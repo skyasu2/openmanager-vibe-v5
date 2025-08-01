@@ -178,10 +178,7 @@ export interface SystemHealthAPIResponse {
     performanceChart: Array<{ name: string; value: number; color: string }>;
     availabilityChart: { online: number; total: number };
     alertsChart: { bySeverity: Record<string, number> };
-    trendsChart: {
-      timePoints: string[];
-      metrics: { cpu?: number[]; memory?: number[]; alerts?: number[] };
-    };
+    trendsChart: { timePoints: string[]; metrics: { cpu?: number[]; memory?: number[]; alerts?: number[] } };
   };
 }
 

@@ -147,7 +147,7 @@ export class UnifiedDataBroker {
     }
   ): () => void {
     this.subscribers.set(subscriberId, {
-      callback: (data) => callback(data.servers || []),
+      callback: data => callback(data.servers || []),
       options,
       lastUpdate: new Date(),
     });
@@ -177,7 +177,7 @@ export class UnifiedDataBroker {
     }
   ): () => void {
     this.subscribers.set(`${subscriberId}-metrics`, {
-      callback: (data) => callback(data.metrics || {}),
+      callback: data => callback(data.metrics || {}),
       options,
       lastUpdate: new Date(),
     });
@@ -387,7 +387,7 @@ export class UnifiedDataBroker {
 
     const now = Date.now();
     const ages = Array.from(this.cache.values()).map(
-      (entry) => (now - entry.timestamp.getTime()) / 1000
+      entry => (now - entry.timestamp.getTime()) / 1000
     );
 
     return ages.reduce((sum, age) => sum + age, 0) / ages.length;

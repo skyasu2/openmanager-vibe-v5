@@ -10,18 +10,10 @@ import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter
  * - 압축 기반 효율적 전송
  */
 
-import type { Observable, Subject, BehaviorSubject } from 'rxjs';
-import type { Socket } from 'socket.io';
+import type { Observable, Subject, BehaviorSubject } from "rxjs";
+import type { Socket } from "socket.io";
 // rxjs operators
-const {
-  interval,
-  throttleTime,
-  debounceTime,
-  distinctUntilChanged,
-  filter,
-  map,
-  takeUntil,
-} = {} as any; // TODO: Install rxjs
+const { interval, throttleTime, debounceTime, distinctUntilChanged, filter, map, takeUntil } = {} as any; // TODO: Install rxjs
 // GCPRealDataService 사용
 // lightweight-anomaly-detector removed - using AnomalyDetectionService instead
 
@@ -108,7 +100,7 @@ export class WebSocketManager {
   private setupEventHandlers(): void {
     if (!this.io) return;
 
-    this.io.on('connection', (socket) => {
+    this.io.on('connection', socket => {
       const clientId = socket.id;
       const clientInfo: WebSocketClient = {
         id: clientId,
@@ -162,7 +154,7 @@ export class WebSocketManager {
       'performance',
     ];
 
-    streamTypes.forEach((type) => {
+    streamTypes.forEach(type => {
       this.streams.set(type, new Subject<MetricStream>());
     });
 
@@ -175,7 +167,7 @@ export class WebSocketManager {
             prev.serverId === curr.serverId && prev.type === curr.type
         )
       )
-      .subscribe((data) => {
+      .subscribe(data => {
         this.broadcastToSubscribers('server-metrics', data);
       });
 
@@ -183,10 +175,10 @@ export class WebSocketManager {
     this.alertSubject
       .pipe(
         filter(
-          (alert) => alert.priority === 'high' || alert.priority === 'critical'
+          alert => alert.priority === 'high' || alert.priority === 'critical'
         )
       )
-      .subscribe((alert) => {
+      .subscribe(alert => {
         this.broadcastToSubscribers('alerts', alert);
       });
   }
@@ -202,7 +194,7 @@ export class WebSocketManager {
         .then((response: any) => response.data);
       const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
 
-      const serverMetrics = allServers.map((server) => {
+      const serverMetrics = allServers.map(server => {
         return {
           id: server.id,
           name: server.name,
@@ -223,7 +215,7 @@ export class WebSocketManager {
       // 임계값 초과 시 알림 발생
       if (
         serverMetrics.some(
-          (server) => server.metrics.cpu > 85 || server.metrics.memory > 90
+          server => server.metrics.cpu > 85 || server.metrics.memory > 90
         )
       ) {
         this.alertSubject.next({
@@ -236,7 +228,7 @@ export class WebSocketManager {
         });
       }
 
-      serverMetrics.forEach((server) => {
+      serverMetrics.forEach(server => {
         const streamData: MetricStream = {
           serverId: server.id,
           data: server.metrics,
@@ -261,7 +253,7 @@ export class WebSocketManager {
           .getRealServerMetrics()
           .then((response: any) => response.data);
         const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
-        const testMetrics = allServers.slice(0, 10).map((server) => ({
+        const testMetrics = allServers.slice(0, 10).map(server => ({
           timestamp: Date.now(),
           cpu: server.cpu,
           memory: server.memory,
@@ -270,7 +262,7 @@ export class WebSocketManager {
 
         // Simple anomaly detection replacement (lightweight-anomaly-detector removed)
         const anomalies = testMetrics.filter(
-          (metric) => metric.cpu > 90 || metric.memory > 90
+          metric => metric.cpu > 90 || metric.memory > 90
         );
 
         if (anomalies.length > 0) {
@@ -301,13 +293,13 @@ export class WebSocketManager {
   private broadcastToSubscribers(streamType: string, data: any): void {
     if (!this.io) return;
 
-    const subscribedClients = Array.from(this.clients.values()).filter(
-      (client) => client.subscriptions.has(streamType)
+    const subscribedClients = Array.from(this.clients.values()).filter(client =>
+      client.subscriptions.has(streamType)
     );
 
     if (subscribedClients.length === 0) return;
 
-    subscribedClients.forEach((client) => {
+    subscribedClients.forEach(client => {
       this.io?.to(client.id).emit(streamType, data);
     });
 
@@ -464,7 +456,7 @@ export class WebSocketManager {
     }
 
     // 모든 스트림 정리
-    this.streams.forEach((stream) => stream.complete());
+    this.streams.forEach(stream => stream.complete());
     this.streams.clear();
     this.clients.clear();
   }

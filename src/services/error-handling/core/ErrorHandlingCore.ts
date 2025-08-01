@@ -173,7 +173,7 @@ export class ErrorHandlingCore implements IErrorHandler {
 
       // Promise 처리
       if (result instanceof Promise) {
-        result.catch((handlerError) => {
+        result.catch(handlerError => {
           console.error(`에러 핸들러 실행 실패 [${error.code}]:`, handlerError);
         });
       }

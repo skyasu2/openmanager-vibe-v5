@@ -233,7 +233,7 @@ export class QueryComplexityAnalyzer {
     if (hasNumbers) score += 10;
 
     // 문장 구조 복잡도
-    const sentences = query.split(/[.!?]/).filter((s) => s.trim().length > 0);
+    const sentences = query.split(/[.!?]/).filter(s => s.trim().length > 0);
     if (sentences.length > 2) score += 20;
 
     return Math.min(100, score);

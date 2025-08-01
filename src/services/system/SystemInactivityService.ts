@@ -201,7 +201,7 @@ class SystemInactivityService {
     if (!this.isSystemActive) {
       const criticalEndpoints = ['/api/auth', '/api/health', '/api/emergency'];
 
-      return criticalEndpoints.some((critical) => endpoint.includes(critical));
+      return criticalEndpoints.some(critical => endpoint.includes(critical));
     }
 
     return true;
@@ -215,7 +215,7 @@ class SystemInactivityService {
       clearInterval(this.inactivityCheckInterval);
     }
 
-    this.backgroundTasks.forEach((task) => {
+    this.backgroundTasks.forEach(task => {
       if (task.intervalId) {
         clearInterval(task.intervalId);
       }

@@ -454,7 +454,7 @@ export class KoreanTimeUtil {
     ];
 
     const found: string[] = [];
-    wrongPatterns.forEach((pattern) => {
+    wrongPatterns.forEach(pattern => {
       const matches = content.match(pattern);
       if (matches) found.push(...matches);
     });
@@ -474,11 +474,9 @@ export class KoreanTimeUtil {
   } {
     const timeline = this.getProjectTimeline();
     const completed = timeline.filter(
-      (phase) => phase.status === 'completed'
+      phase => phase.status === 'completed'
     ).length;
-    const inProgress = timeline.filter(
-      (phase) => phase.status === 'in-progress'
-    );
+    const inProgress = timeline.filter(phase => phase.status === 'in-progress');
 
     return {
       completedPhases: completed,

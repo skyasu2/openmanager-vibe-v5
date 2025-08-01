@@ -179,7 +179,7 @@ export function runFullPermissionTest(permissions: UserPermissions): void {
 
   // 현재 사용자 유형 확인
   const currentScenario = PERMISSION_TEST_SCENARIOS.find(
-    (scenario) => scenario.userType === permissions.userType
+    scenario => scenario.userType === permissions.userType
   );
 
   if (currentScenario) {

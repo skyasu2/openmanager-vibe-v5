@@ -445,7 +445,7 @@ export class VMMultiServiceOrchestrator extends EventEmitter {
 
     for (const [serviceName, process] of this.processes) {
       terminationPromises.push(
-        new Promise<void>((resolve) => {
+        new Promise<void>(resolve => {
           const timeout = setTimeout(() => {
             systemLogger.warn(`⚠️ ${serviceName} 강제 종료`);
             process.kill('SIGKILL');
@@ -509,7 +509,7 @@ export class VMMultiServiceOrchestrator extends EventEmitter {
       lastUpdate: new Date().toISOString(),
     };
 
-    this.services.forEach((service) => {
+    this.services.forEach(service => {
       switch (service.status) {
         case 'running':
           summary.running++;
@@ -532,7 +532,7 @@ export class VMMultiServiceOrchestrator extends EventEmitter {
       `📊 서비스 현황: 실행 중 ${summary.running}개, 정지 ${summary.stopped}개, 오류 ${summary.error}개`
     );
 
-    this.services.forEach((service) => {
+    this.services.forEach(service => {
       const statusIcon =
         service.status === 'running'
           ? '✅'

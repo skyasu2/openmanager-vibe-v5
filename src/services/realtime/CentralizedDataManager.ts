@@ -1,6 +1,6 @@
 /**
  * 🚀 중앙화된 데이터 관리자 v1.0
- *
+ * 
  * 프로덕션 성능 최적화를 위한 중앙 데이터 관리 시스템
  * - 단일 API 호출로 모든 구독자에게 데이터 전달
  * - 가시성 기반 업데이트 최적화
@@ -33,7 +33,7 @@ class CentralizedDataManager {
   private cache = new Map<DataType, CacheEntry>();
   private updateInterval: NodeJS.Timeout | null = null;
   private isUpdating = false;
-
+  
   // 설정
   private readonly UPDATE_INTERVAL = 30000; // 30초 (서버와 동기화)
   private readonly CACHE_TTL = 25000; // 25초 (약간 짧게 설정)
@@ -68,7 +68,7 @@ class CentralizedDataManager {
     };
 
     this.subscribers.set(id, subscriber);
-
+    
     // 캐시된 데이터가 있으면 즉시 전달
     const cached = this.cache.get(dataType);
     if (cached && cached.expiresAt > Date.now()) {
@@ -79,15 +79,13 @@ class CentralizedDataManager {
       this.fetchDataForType(dataType);
     }
 
-    console.log(
-      `✅ 구독 등록: ${id} (${dataType}), 총 구독자: ${this.subscribers.size}`
-    );
+    console.log(`✅ 구독 등록: ${id} (${dataType}), 총 구독자: ${this.subscribers.size}`);
 
     // 구독 해제 함수 반환
     return () => {
       this.subscribers.delete(id);
       console.log(`📡 구독 해제: ${id}, 남은 구독자: ${this.subscribers.size}`);
-
+      
       // 구독자가 없으면 폴링 중지
       if (this.subscribers.size === 0) {
         this.stopPolling();
@@ -158,11 +156,11 @@ class CentralizedDataManager {
     const response = await fetch('/api/servers/realtime', {
       signal: AbortSignal.timeout(5000),
     });
-
+    
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
-
+    
     const result = await response.json();
     return result.servers || [];
   }
@@ -174,11 +172,11 @@ class CentralizedDataManager {
     const response = await fetch('/api/servers/realtime?type=metrics', {
       signal: AbortSignal.timeout(5000),
     });
-
+    
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
-
+    
     const result = await response.json();
     return result.data || {};
   }
@@ -190,11 +188,11 @@ class CentralizedDataManager {
     const response = await fetch('/api/servers/realtime?type=network', {
       signal: AbortSignal.timeout(5000),
     });
-
+    
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
-
+    
     const result = await response.json();
     return result.data || {};
   }
@@ -206,11 +204,11 @@ class CentralizedDataManager {
     const response = await fetch('/api/servers/realtime?type=system', {
       signal: AbortSignal.timeout(5000),
     });
-
+    
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
-
+    
     const result = await response.json();
     return result.data || {};
   }
@@ -221,14 +219,12 @@ class CentralizedDataManager {
   private distributeToSubscribers(dataType: DataType, data: any): void {
     const now = Date.now();
     const relevantSubscribers = Array.from(this.subscribers.values())
-      .filter((sub) => sub.dataType === dataType && sub.isVisible)
+      .filter(sub => sub.dataType === dataType && sub.isVisible)
       .slice(0, this.BATCH_SIZE); // 배치 크기 제한
 
-    console.log(
-      `📤 데이터 배포: ${dataType}에 ${relevantSubscribers.length}명`
-    );
+    console.log(`📤 데이터 배포: ${dataType}에 ${relevantSubscribers.length}명`);
 
-    relevantSubscribers.forEach((subscriber) => {
+    relevantSubscribers.forEach(subscriber => {
       try {
         subscriber.callback(data);
         subscriber.lastUpdate = now;
@@ -254,13 +250,13 @@ class CentralizedDataManager {
         // 사용 중인 데이터 타입만 업데이트
         const activeDataTypes = new Set(
           Array.from(this.subscribers.values())
-            .filter((sub) => sub.isVisible)
-            .map((sub) => sub.dataType)
+            .filter(sub => sub.isVisible)
+            .map(sub => sub.dataType)
         );
 
         // 병렬로 데이터 페치
         await Promise.all(
-          Array.from(activeDataTypes).map((type) => this.fetchDataForType(type))
+          Array.from(activeDataTypes).map(type => this.fetchDataForType(type))
         );
       } catch (error) {
         console.error('❌ 정기 업데이트 실패:', error);
@@ -287,20 +283,17 @@ class CentralizedDataManager {
    * 통계 정보
    */
   getStats() {
-    const visibleCount = Array.from(this.subscribers.values()).filter(
-      (sub) => sub.isVisible
-    ).length;
+    const visibleCount = Array.from(this.subscribers.values())
+      .filter(sub => sub.isVisible).length;
 
     return {
       totalSubscribers: this.subscribers.size,
       visibleSubscribers: visibleCount,
       cacheSize: this.cache.size,
       isPolling: !!this.updateInterval,
-      dataTypes: Array.from(
-        new Set(
-          Array.from(this.subscribers.values()).map((sub) => sub.dataType)
-        )
-      ),
+      dataTypes: Array.from(new Set(
+        Array.from(this.subscribers.values()).map(sub => sub.dataType)
+      )),
     };
   }
 
@@ -327,10 +320,7 @@ export function useCentralizedData<T = any>(
   return centralDataManager.subscribe(subscriberId, callback, dataType);
 }
 
-export function updateDataVisibility(
-  subscriberId: string,
-  isVisible: boolean
-): void {
+export function updateDataVisibility(subscriberId: string, isVisible: boolean): void {
   centralDataManager.updateVisibility(subscriberId, isVisible);
 }
 

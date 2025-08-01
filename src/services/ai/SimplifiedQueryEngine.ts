@@ -227,7 +227,7 @@ export class SimplifiedQueryEngine {
               maxFiles: 3, // 성능을 위해 파일 수 제한
               includeSystemContext: true,
             })
-            .then((result) => {
+            .then(result => {
               mcpContext = result;
               thinkingSteps[mcpStepIndex].status = 'completed';
               thinkingSteps[mcpStepIndex].description =
@@ -235,7 +235,7 @@ export class SimplifiedQueryEngine {
               thinkingSteps[mcpStepIndex].duration =
                 Date.now() - thinkingSteps[mcpStepIndex].timestamp;
             })
-            .catch((error) => {
+            .catch(error => {
               console.warn('MCP 컨텍스트 수집 실패:', error);
               thinkingSteps[mcpStepIndex].status = 'failed';
               thinkingSteps[mcpStepIndex].duration =
@@ -248,7 +248,7 @@ export class SimplifiedQueryEngine {
       if (processingPromises.length > 0) {
         await Promise.race([
           Promise.all(processingPromises),
-          new Promise((resolve) => setTimeout(resolve, 100)),
+          new Promise(resolve => setTimeout(resolve, 100)),
         ]);
       }
 
@@ -533,7 +533,7 @@ export class SimplifiedQueryEngine {
     // MCP 컨텍스트가 있으면 추가
     if (mcpContext && mcpContext.files.length > 0) {
       response += '\n\n프로젝트 파일 참고:\n';
-      mcpContext.files.slice(0, 2).forEach((file) => {
+      mcpContext.files.slice(0, 2).forEach(file => {
         response += `- ${file.path}\n`;
       });
     }
@@ -549,10 +549,10 @@ export class SimplifiedQueryEngine {
 
     // CPU 사용률 관련 쿼리
     if (lowerQuery.includes('cpu')) {
-      const highCpuServers = servers.filter((s) => s.cpu > 70);
+      const highCpuServers = servers.filter(s => s.cpu > 70);
       if (highCpuServers.length > 0) {
         return `CPU 사용률이 높은 서버:\n${highCpuServers
-          .map((s) => `- ${s.name}: ${s.cpu}%`)
+          .map(s => `- ${s.name}: ${s.cpu}%`)
           .join('\n')}`;
       }
       return 'CPU 사용률이 높은 서버가 없습니다.';
@@ -562,11 +562,11 @@ export class SimplifiedQueryEngine {
     if (lowerQuery.includes('상태') || lowerQuery.includes('요약')) {
       const statusCount = {
         정상: servers.filter(
-          (s) => s.status === 'healthy' || s.status === 'online'
+          s => s.status === 'healthy' || s.status === 'online'
         ).length,
-        주의: servers.filter((s) => s.status === 'warning').length,
+        주의: servers.filter(s => s.status === 'warning').length,
         위험: servers.filter(
-          (s) => s.status === 'critical' || s.status === 'offline'
+          s => s.status === 'critical' || s.status === 'offline'
         ).length,
       };
 
@@ -595,7 +595,7 @@ export class SimplifiedQueryEngine {
     // MCP 컨텍스트 추가
     if (mcpContext && mcpContext.files.length > 0) {
       prompt += '관련 파일 내용:\n';
-      mcpContext.files.forEach((file) => {
+      mcpContext.files.forEach(file => {
         prompt += `\n파일: ${file.path}\n`;
         prompt += `${file.content.substring(0, 500)}...\n`;
       });
