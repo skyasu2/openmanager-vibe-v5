@@ -234,6 +234,8 @@ COMMIT_MSG.tmp
 
 # ESLint cache
 .eslintcache
+.next/cache/eslint/
+eslint-report.json
 
 # Backup files
 *.backup
