@@ -1,0 +1,21 @@
+{
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "off",
+    "no-console": "off"
+  },
+  "ignorePatterns": [
+    "**/.next/**",
+    "**/node_modules/**",
+    "**/coverage/**",
+    "**/dist/**",
+    "**/build/**",
+    "scripts/**",
+    "gcp-functions/**",
+    "docs/**",
+    "**/*.config.*",
+    "**/*.d.ts",
+    "**/*.test.*",
+    "**/*.spec.*"
+  ]
+}
