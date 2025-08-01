@@ -26,7 +26,7 @@ import {
   X,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ServerModal3DGauge } from '../shared/UnifiedCircularGauge';
 
 // framer-motion을 동적 import로 처리
@@ -97,9 +97,9 @@ export default function EnhancedServerModal({
     'overview' | 'metrics' | 'processes' | 'logs' | 'network'
   >('overview');
   const [isRealtime, setIsRealtime] = useState(true);
-  const [timeRange, setTimeRange] = useState<'5m' | '1h' | '6h' | '24h' | '7d'>(
-    '1h'
-  );
+  const [_timeRange, _setTimeRange] = useState<
+    '5m' | '1h' | '6h' | '24h' | '7d'
+  >('1h');
   const [realtimeData, setRealtimeData] = useState({
     cpu: [] as number[],
     memory: [] as number[],
@@ -121,36 +121,40 @@ export default function EnhancedServerModal({
   });
 
   // 🛡️ 서버 데이터 안전성 검증 및 기본값 설정
-  const safeServer = server
-    ? {
-        id: server.id || 'unknown',
-        hostname: server.hostname || 'unknown.local',
-        name: server.name || 'Unknown Server',
-        type: server.type || 'unknown',
-        environment: server.environment || 'unknown',
-        location: server.location || 'Unknown Location',
-        provider: server.provider || 'Unknown Provider',
-        status: server.status || 'offline',
-        cpu: typeof server.cpu === 'number' ? server.cpu : 0,
-        memory: typeof server.memory === 'number' ? server.memory : 0,
-        disk: typeof server.disk === 'number' ? server.disk : 0,
-        network: typeof server.network === 'number' ? server.network : 0,
-        uptime: server.uptime || '0h 0m',
-        lastUpdate: server.lastUpdate || new Date(),
-        alerts: typeof server.alerts === 'number' ? server.alerts : 0,
-        services: Array.isArray(server.services) ? server.services : [],
-        specs: server.specs || { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
-        os: server.os || 'Unknown OS',
-        ip: server.ip || '0.0.0.0',
-        networkStatus: server.networkStatus || 'offline',
-        health: server.health || { score: 0, trend: [] },
-        alertsSummary: server.alertsSummary || {
-          total: 0,
-          critical: 0,
-          warning: 0,
-        },
-      }
-    : null;
+  const safeServer = useMemo(
+    () =>
+      server
+        ? {
+            id: server.id || 'unknown',
+            hostname: server.hostname || 'unknown.local',
+            name: server.name || 'Unknown Server',
+            type: server.type || 'unknown',
+            environment: server.environment || 'unknown',
+            location: server.location || 'Unknown Location',
+            provider: server.provider || 'Unknown Provider',
+            status: server.status || 'offline',
+            cpu: typeof server.cpu === 'number' ? server.cpu : 0,
+            memory: typeof server.memory === 'number' ? server.memory : 0,
+            disk: typeof server.disk === 'number' ? server.disk : 0,
+            network: typeof server.network === 'number' ? server.network : 0,
+            uptime: server.uptime || '0h 0m',
+            lastUpdate: server.lastUpdate || new Date(),
+            alerts: typeof server.alerts === 'number' ? server.alerts : 0,
+            services: Array.isArray(server.services) ? server.services : [],
+            specs: server.specs || { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
+            os: server.os || 'Unknown OS',
+            ip: server.ip || '0.0.0.0',
+            networkStatus: server.networkStatus || 'offline',
+            health: server.health || { score: 0, trend: [] },
+            alertsSummary: server.alertsSummary || {
+              total: 0,
+              critical: 0,
+              warning: 0,
+            },
+          }
+        : null,
+    [server]
+  );
 
   // 실시간 데이터 생성
   useEffect(() => {
@@ -748,7 +752,7 @@ export default function EnhancedServerModal({
                                 return isNaN(date.getTime())
                                   ? new Date().toLocaleTimeString()
                                   : date.toLocaleTimeString();
-                              } catch (error) {
+                              } catch {
                                 return new Date().toLocaleTimeString();
                               }
                             })()}

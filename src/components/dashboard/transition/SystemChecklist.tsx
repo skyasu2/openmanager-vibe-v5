@@ -206,7 +206,7 @@ export default function SystemChecklist({
   );
 
   // 🔍 네트워크 요청 모니터링
-  const trackNetworkRequest = (
+  const _trackNetworkRequest = (
     url: string,
     method: string,
     startTime: number,
@@ -231,7 +231,7 @@ export default function SystemChecklist({
   };
 
   // 🔍 에러 추적
-  const trackError = (component: string, error: string, stack?: string) => {
+  const _trackError = (component: string, error: string, stack?: string) => {
     const errorInfo: ErrorInfo = {
       component,
       error,
@@ -310,6 +310,7 @@ export default function SystemChecklist({
     }));
 
     updatePerformanceInfo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [components, componentDefinitions]);
 
   // ✅ 완료 상태 모니터링 및 자동 전환

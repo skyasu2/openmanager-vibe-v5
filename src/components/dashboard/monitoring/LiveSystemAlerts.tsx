@@ -24,7 +24,7 @@ interface SystemEvent {
 }
 
 // 📦 모의 알림 (SSE 실패 시 폴백)
-const generateMockAlerts = (): SystemAlert[] => [];
+const _generateMockAlerts = (): SystemAlert[] => [];
 
 const getAlertColor = (type: SystemAlert['type']) => {
   switch (type) {
@@ -71,12 +71,12 @@ export default function LiveSystemAlerts() {
   const [alerts, setAlerts] = useState<SystemAlert[]>([]);
   const [currentAlertIndex, setCurrentAlertIndex] = useState(0);
   const rotationRef = useRef<NodeJS.Timeout | null>(null);
-  const esRef = useRef<EventSource | null>(null);
-  const visibilityTimeout = useRef<NodeJS.Timeout | null>(null);
-  const [isConnected, setIsConnected] = useState(true);
+  const _esRef = useRef<EventSource | null>(null);
+  const _visibilityTimeout = useRef<NodeJS.Timeout | null>(null);
+  const [_isConnected, _setIsConnected] = useState(true);
 
   // SystemEvent 상태 추가
-  const [events, setEvents] = useState<SystemEvent[]>([
+  const [events, _setEvents] = useState<SystemEvent[]>([
     {
       id: '1',
       time: '15:42',
@@ -158,7 +158,7 @@ export default function LiveSystemAlerts() {
     return () => {
       clearInterval(pollInterval);
     };
-  }, [isConnected]);
+  }, []);
 
   // 5초마다 알림 로테이션
   useEffect(() => {

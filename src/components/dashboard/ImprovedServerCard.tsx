@@ -212,7 +212,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
     };
 
     // 메트릭 색상 결정 (통합 컴포넌트로 이동됨)
-    const getMetricColor = (
+    const _getMetricColor = (
       value: number,
       type: 'cpu' | 'memory' | 'disk' | 'network'
     ) => {

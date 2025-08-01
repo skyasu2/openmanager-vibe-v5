@@ -39,7 +39,7 @@ export default function ServerDashboard({
   selectedServerId: _selectedServerId,
   onStatsUpdate,
 }: ServerDashboardProps) {
-  const [activeTab, setActiveTab] = useState<DashboardTab>('servers');
+  const [activeTab] = useState<DashboardTab>('servers');
   const {
     paginatedServers,
     servers,
@@ -49,7 +49,7 @@ export default function ServerDashboard({
     changePageSize,
     handleServerSelect,
     selectedServer,
-    selectedServerMetrics,
+    // selectedServerMetrics,
     handleModalClose,
   } = useServerDashboard({ onStatsUpdate });
 
@@ -57,15 +57,6 @@ export default function ServerDashboard({
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  if (!isClient) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="mx-auto h-12 w-12 animate-spin text-blue-600" />
-        <p className="mt-2">대시보드 로딩 중...</p>
-      </div>
-    );
-  }
 
   // 서버를 심각→주의→정상 순으로 정렬 (CLS 방지를 위해 메모이제이션 적용)
   const sortedServers = useMemo(() => {
@@ -114,6 +105,15 @@ export default function ServerDashboard({
 
     return { pageSize, startIndex, endIndex, totalServers };
   }, [servers.length, totalPages, currentPage]);
+
+  if (!isClient) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="mx-auto h-12 w-12 animate-spin text-blue-600" />
+        <p className="mt-2">대시보드 로딩 중...</p>
+      </div>
+    );
+  }
 
   return (
     <div>

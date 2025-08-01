@@ -44,7 +44,7 @@ const SimulateProgressBar: React.FC<SimulateProgressBarProps> = memo(
     progress,
     isActive,
     stepDescription,
-    stepIcon,
+    stepIcon: _stepIcon,
     showDetailed = true,
     onComplete,
     error = null,

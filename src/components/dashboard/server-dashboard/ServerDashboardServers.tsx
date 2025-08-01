@@ -56,7 +56,7 @@ interface ServerDashboardServersProps {
 }
 
 export function ServerDashboardServers({
-  servers,
+  servers: _servers,
   paginatedServers,
   viewMode,
   displayMode = 'SHOW_TWO_ROWS',
@@ -332,7 +332,7 @@ export function ServerDashboardServers({
                   : 'space-y-4'
               }
             >
-              {paginatedServers.map((server, index) => (
+              {paginatedServers.map((server) => (
                 <motion.div
                   key={server.id}
                   layout

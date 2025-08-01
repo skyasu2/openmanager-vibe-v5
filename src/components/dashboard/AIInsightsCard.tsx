@@ -29,7 +29,7 @@ interface AIInsightsCardProps {
 
 export default function AIInsightsCard({
   className = '',
-  showRecommendations = true,
+  showRecommendations: _showRecommendations = true,
 }: AIInsightsCardProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { data: insights, isLoading, error, refetch } = useAIInsights();

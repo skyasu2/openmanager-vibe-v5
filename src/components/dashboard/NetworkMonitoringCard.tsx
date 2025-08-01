@@ -106,6 +106,7 @@ export const NetworkMonitoringCard = () => {
     }, 5000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!currentData) {

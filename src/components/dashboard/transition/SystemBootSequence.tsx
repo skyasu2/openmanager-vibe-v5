@@ -43,20 +43,20 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
   ({
     servers,
     onBootComplete,
-    onServerSpawned,
+    onServerSpawned: _onServerSpawned,
     skipAnimation = false,
     autoStart = true,
-    loadingProgress = 0,
-    loadingPhase = 'system-starting',
-    estimatedTimeRemaining = 0,
-    elapsedTime = 0,
+    loadingProgress: _loadingProgress = 0,
+    loadingPhase: _loadingPhase = 'system-starting',
+    estimatedTimeRemaining: _estimatedTimeRemaining = 0,
+    elapsedTime: _elapsedTime = 0,
   }) => {
     const [currentStage, setCurrentStage] = useState(0);
     const [isComplete, setIsComplete] = useState(false);
     const [showEmergencyButton, setShowEmergencyButton] = useState(false);
     const [progress, setProgress] = useState(0);
 
-    const router = useRouter();
+    const _router = useRouter();
 
     // 최종 완료 처리 함수
     const handleFinalComplete = useCallback(() => {
