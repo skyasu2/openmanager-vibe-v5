@@ -1,6 +1,6 @@
 /**
  * 🎯 에이전트 실행 래퍼
- * 
+ *
  * 타임아웃, 에러 처리, 진행률 보고를 포함한 실행 관리
  */
 
@@ -11,23 +11,11 @@ import type {
   AgentExecutionContext,
   ExecutionResult,
   Checkpoint,
-  LogEntry,
   SubAgentType,
-  AGENT_TIMEOUTS,
 } from '@/types/agent-types';
+import { AGENT_TIMEOUTS } from '@/types/agent-types';
 
-// 모의 Task 함수 타입 (실제 Task 도구의 인터페이스)
-interface TaskFunction {
-  (params: {
-    subagent_type: SubAgentType;
-    prompt: string;
-    description?: string;
-    options?: any;
-  }): Promise<any>;
-}
-
-// 전역 Task 함수 (실제 환경에서는 import)
-declare const Task: TaskFunction;
+// 실제 환경에서는 Task 도구가 제공됨
 
 // 에이전트 실행기
 export class AgentExecutor {
@@ -42,7 +30,7 @@ export class AgentExecutor {
     options?: AgentTaskOptions
   ): Promise<ExecutionResult> {
     const taskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     // 작업 생성
     const task: AgentTask = {
       id: taskId,
@@ -70,7 +58,7 @@ export class AgentExecutor {
       },
       onCheckpoint: async (checkpoint) => {
         progressTracker.addCheckpoint(taskId, checkpoint);
-        
+
         if (checkpoint.requiresConfirmation) {
           console.log(progressTracker.displayCheckpoint(checkpoint));
           // 실제 환경에서는 사용자 입력 대기
@@ -88,20 +76,21 @@ export class AgentExecutor {
     try {
       // 작업 시작
       await this.updateTaskStatus(taskId, 'starting', '작업 초기화 중...');
-      
+
       // 타임아웃 설정
-      const timeout = options?.maxExecutionTime || AGENT_TIMEOUTS[agentType] || 180;
+      const timeout =
+        options?.maxExecutionTime || AGENT_TIMEOUTS[agentType] || 180;
       const timeoutPromise = this.createTimeout(taskId, timeout);
-      
+
       // 실제 작업 실행
       const executionPromise = this.runAgentTask(context);
-      
+
       // 타임아웃과 실행 경쟁
       const result = await Promise.race([executionPromise, timeoutPromise]);
-      
+
       // 성공 처리
       progressTracker.completeTask(taskId, result);
-      
+
       return {
         taskId,
         agentType,
@@ -115,7 +104,7 @@ export class AgentExecutor {
       // 실패 처리
       const err = error as Error;
       progressTracker.failTask(taskId, err);
-      
+
       return {
         taskId,
         agentType,
@@ -141,21 +130,21 @@ export class AgentExecutor {
     }>
   ): Promise<ExecutionResult[]> {
     console.log(`\n🚀 ${tasks.length}개 에이전트 병렬 실행 시작\n`);
-    
+
     // 모든 작업을 병렬로 시작
     const promises = tasks.map(({ agentType, prompt, options }) =>
       this.executeTask(agentType, prompt, options)
     );
-    
+
     // 진행 상황 모니터링 시작
     const monitorInterval = setInterval(() => {
       console.log(progressTracker.getParallelDashboard());
     }, 2000);
-    
+
     try {
       // 모든 작업 완료 대기
       const results = await Promise.allSettled(promises);
-      
+
       // 결과 정리
       return results.map((result, index) => {
         if (result.status === 'fulfilled') {
@@ -191,42 +180,38 @@ export class AgentExecutor {
       streamOutput: true,
       reportProgress: true,
     };
-    
+
     return this.executeTask(agentType, prompt, enhancedOptions);
   }
 
   // Private 메서드들
-  
+
   private async runAgentTask(context: AgentExecutionContext): Promise<any> {
     const { task } = context;
-    
+
     // 진행 중 상태로 업데이트
     await this.updateTaskStatus(task.id, 'in_progress', '작업 실행 중...');
-    
+
     // 진행률 시뮬레이션 (실제 환경에서는 Task 도구에서 콜백)
     if (task.options?.reportProgress) {
       this.simulateProgress(context);
     }
-    
+
     // 실제 Task 도구 호출 (모의)
-    try {
-      // 실제 환경에서는:
-      // const result = await Task({
-      //   subagent_type: task.agentType,
-      //   prompt: task.prompt,
-      //   description: `${task.agentType} 작업 실행`,
-      //   options: task.options
-      // });
-      
-      // 모의 실행
-      const result = await this.mockTaskExecution(task);
-      
-      return result;
-    } catch (error) {
-      throw error;
-    }
+    // 실제 환경에서는:
+    // const result = await Task({
+    //   subagent_type: task.agentType,
+    //   prompt: task.prompt,
+    //   description: `${task.agentType} 작업 실행`,
+    //   options: task.options
+    // });
+
+    // 모의 실행
+    const result = await this.mockTaskExecution(task);
+
+    return result;
   }
-  
+
   private async mockTaskExecution(task: AgentTask): Promise<any> {
     // 실제 환경에서는 이 부분이 Task 도구 호출로 대체됨
     const steps = [
@@ -236,7 +221,7 @@ export class AgentExecutor {
       '실행 중...',
       '결과 검증 중...',
     ];
-    
+
     for (let i = 0; i < steps.length; i++) {
       await this.updateTaskProgress(task.id, {
         percentage: (i + 1) * 20,
@@ -245,7 +230,7 @@ export class AgentExecutor {
         totalSteps: steps.length,
         estimatedTimeLeft: (steps.length - i - 1) * 10,
       });
-      
+
       // 체크포인트 시뮬레이션
       if (i === 2 && task.options?.requireConfirmation) {
         const checkpoint: Checkpoint = {
@@ -256,34 +241,36 @@ export class AgentExecutor {
           nextTasks: steps.slice(i + 1),
           requiresConfirmation: true,
         };
-        
-        const shouldContinue = await this.activeContexts.get(task.id)?.onCheckpoint?.(checkpoint);
+
+        const shouldContinue = await this.activeContexts
+          .get(task.id)
+          ?.onCheckpoint?.(checkpoint);
         if (!shouldContinue) {
           throw new Error('사용자가 작업을 취소했습니다.');
         }
       }
-      
+
       // 스트리밍 출력
       if (task.options?.streamOutput) {
         progressTracker.streamLog(task, steps[i]);
       }
-      
+
       // 모의 지연
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
-    
+
     return {
       success: true,
       message: `${task.agentType} 작업이 성공적으로 완료되었습니다.`,
       data: { mockResult: true },
     };
   }
-  
-  private simulateProgress(context: AgentExecutionContext): void {
+
+  private simulateProgress(_context: AgentExecutionContext): void {
     // 실제 환경에서는 Task 도구에서 진행률 콜백을 호출
     // 여기서는 시뮬레이션을 위한 코드
   }
-  
+
   private async updateTaskStatus(
     taskId: string,
     status: AgentTask['status'],
@@ -291,20 +278,20 @@ export class AgentExecutor {
   ): Promise<void> {
     progressTracker.updateTask(taskId, { status });
     progressTracker.updateProgress(taskId, { currentStep });
-    
+
     const task = progressTracker['tasks'].get(taskId);
     if (task && task.options?.streamOutput) {
       progressTracker.streamLog(task, currentStep);
     }
   }
-  
+
   private async updateTaskProgress(
     taskId: string,
     progress: Partial<AgentTask['progress']>
   ): Promise<void> {
     progressTracker.updateProgress(taskId, progress);
   }
-  
+
   private createTimeout(taskId: string, seconds: number): Promise<never> {
     return new Promise((_, reject) => {
       setTimeout(() => {
@@ -313,23 +300,23 @@ export class AgentExecutor {
       }, seconds * 1000);
     });
   }
-  
+
   /**
    * 작업 취소
    */
   cancelTask(taskId: string): void {
     const context = this.activeContexts.get(taskId);
     if (context) {
-      progressTracker.updateTask(taskId, { 
+      progressTracker.updateTask(taskId, {
         status: 'cancelled',
         endTime: new Date(),
       });
-      
-      // AbortSignal을 통한 취소 (구현 필요)
-      context.signal?.abort();
+
+      // AbortSignal을 통한 취소
+      // 참고: signal은 읽기 전용이며, 취소는 AbortController에서 처리해야 함
     }
   }
-  
+
   /**
    * 모든 활성 작업 취소
    */
