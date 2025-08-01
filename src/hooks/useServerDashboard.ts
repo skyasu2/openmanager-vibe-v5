@@ -135,18 +135,15 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     return pageSize;
   }, [pageSize]);
 
-  // 🎛️ 페이지 크기 변경 함수
-  const changePageSize = useCallback(
-    (newSize: number) => {
-      setPageSize(newSize);
-      setCurrentPage(1); // 페이지 크기 변경 시 첫 페이지로 이동
-      console.log('📊 페이지 크기 변경:', {
-        이전_크기: pageSize,
-        새_크기: newSize,
-      });
-    },
-    [pageSize]
-  );
+  // 🎛️ 페이지 크기 변경 함수 (간단한 함수라 useCallback 불필요)
+  const changePageSize = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(1); // 페이지 크기 변경 시 첫 페이지로 이동
+    console.log('📊 페이지 크기 변경:', {
+      이전_크기: pageSize,
+      새_크기: newSize,
+    });
+  };
 
   // 선택된 서버 상태
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
@@ -347,15 +344,15 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     return undefined;
   }, [stats, onStatsUpdate]);
 
-  // 서버 선택 핸들러
-  const handleServerSelect = useCallback((server: Server) => {
+  // 서버 선택 핸들러 (간단한 상태 업데이트라 useCallback 불필요)
+  const handleServerSelect = (server: Server) => {
     setSelectedServer(server);
-  }, []);
+  };
 
-  // 모달 닫기 핸들러
-  const handleModalClose = useCallback(() => {
+  // 모달 닫기 핸들러 (간단한 상태 리셋이라 useCallback 불필요)
+  const handleModalClose = () => {
     setSelectedServer(null);
-  }, []);
+  };
 
   // 선택된 서버의 메트릭 계산 (메모이제이션)
   const selectedServerMetrics = useMemo(() => {
@@ -511,21 +508,21 @@ export function useEnhancedServerDashboard({
     setCurrentPage(1);
   }, [searchTerm, statusFilter, locationFilter, displayMode]);
 
-  // 🎯 필터 리셋
-  const resetFilters = useCallback(() => {
+  // 🎯 필터 리셋 (간단한 상태 리셋이라 useCallback 불필요)
+  const resetFilters = () => {
     setSearchTerm('');
     setStatusFilter('all');
     setLocationFilter('all');
     setCurrentPage(1);
-  }, []);
+  };
 
-  // 🔄 레이아웃 새로고침
-  const refreshLayout = useCallback(() => {
+  // 🔄 레이아웃 새로고침 (간단한 로딩 토글이라 useCallback 불필요)
+  const refreshLayout = () => {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
     }, 300);
-  }, []);
+  };
 
   // 📊 디버깅 로그
   useEffect(() => {

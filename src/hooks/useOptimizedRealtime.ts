@@ -8,11 +8,11 @@
  * - 자동 구독/구독해제
  */
 
-import { realtimeDataManager } from '@/services/realtime/RealtimeDataManager';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { centralDataManager, updateDataVisibility } from '@/services/realtime/CentralizedDataManager';
+import { useEffect, useRef, useState } from 'react';
 import { useIntersectionObserver } from './useIntersectionObserver';
 
-type DataType = 'server' | 'network' | 'system' | 'metrics';
+type DataType = 'servers' | 'network' | 'system' | 'metrics';
 type UpdateFrequency = 'high' | 'medium' | 'low';
 
 interface UseOptimizedRealtimeOptions {
@@ -56,6 +56,12 @@ export function useOptimizedRealtime<T = any>({
     customSubscriberId || `${dataType}-${Date.now()}-${Math.random()}`
   );
   const unsubscribeRef = useRef<(() => void) | null>(null);
+  
+  // onUpdate를 ref로 저장하여 의존성 문제 해결
+  const onUpdateRef = useRef(onUpdate);
+  useEffect(() => {
+    onUpdateRef.current = onUpdate;
+  }, [onUpdate]);
 
   // 가시성 감지 (옵션)
   const { elementRef, isVisible } = useIntersectionObserver({
@@ -64,36 +70,11 @@ export function useOptimizedRealtime<T = any>({
     // enabled: enableVisibilityOptimization, // 타입 오류로 주석 처리
   });
 
-  // 데이터 업데이트 콜백
-  const handleDataUpdate = useCallback(
-    (newData: T) => {
-      try {
-        setData(newData);
-        setLastUpdate(new Date());
-        setUpdateCount(prev => prev + 1);
-        setIsLoading(false);
-        setError(null);
-
-        // 외부 콜백 호출
-        onUpdate?.(newData);
-
-        console.log(`📊 데이터 업데이트: ${subscriberIdRef.current}`, newData);
-      } catch (err) {
-        console.error(
-          `❌ 데이터 업데이트 실패: ${subscriberIdRef.current}`,
-          err
-        );
-        setError(err instanceof Error ? err.message : '데이터 업데이트 실패');
-      }
-    },
-    [onUpdate]
-  );
-
-  // 강제 업데이트
-  const forceUpdate = useCallback(() => {
+  // 강제 업데이트 (단순 함수 호출이라 useCallback 불필요)
+  const forceUpdate = () => {
     console.log(`🔄 강제 업데이트 요청: ${subscriberIdRef.current}`);
-    realtimeDataManager.forceUpdate(dataType);
-  }, [dataType]);
+    centralDataManager.forceUpdate(dataType);
+  };
 
   // 구독 설정
   useEffect(() => {
@@ -101,18 +82,39 @@ export function useOptimizedRealtime<T = any>({
 
     console.log(`📡 실시간 데이터 구독 시작: ${subscriberId}`);
 
+    // 데이터 업데이트 핸들러 (useEffect 내부에서 정의하여 의존성 문제 해결)
+    const handleDataUpdate = (newData: T) => {
+      try {
+        setData(newData);
+        setLastUpdate(new Date());
+        setUpdateCount(prev => prev + 1);
+        setIsLoading(false);
+        setError(null);
+
+        // 외부 콜백 호출 (ref 사용)
+        onUpdateRef.current?.(newData);
+
+        console.log(`📊 데이터 업데이트: ${subscriberId}`, newData);
+      } catch (err) {
+        console.error(
+          `❌ 데이터 업데이트 실패: ${subscriberId}`,
+          err
+        );
+        setError(err instanceof Error ? err.message : '데이터 업데이트 실패');
+      }
+    };
+
     try {
-      // 데이터 관리자에 구독
-      const unsubscribe = realtimeDataManager.subscribe(
+      // 중앙 데이터 관리자에 구독
+      const unsubscribe = centralDataManager.subscribe(
         subscriberId,
         handleDataUpdate,
-        dataType,
-        frequency
+        dataType
       );
 
       unsubscribeRef.current = unsubscribe;
 
-      console.log(`✅ 구독 완료: ${subscriberId} (${dataType}, ${frequency})`);
+      console.log(`✅ 구독 완료: ${subscriberId} (${dataType})`);
     } catch (err) {
       console.error(`❌ 구독 실패: ${subscriberId}`, err);
       setError(err instanceof Error ? err.message : '구독 실패');
@@ -127,13 +129,13 @@ export function useOptimizedRealtime<T = any>({
         unsubscribeRef.current = null;
       }
     };
-  }, [dataType, frequency, handleDataUpdate]);
+  }, [dataType, frequency]); // handleDataUpdate 의존성 제거
 
   // 가시성 업데이트
   useEffect(() => {
     if (enableVisibilityOptimization) {
       const subscriberId = subscriberIdRef.current;
-      realtimeDataManager.updateVisibility(subscriberId, isVisible);
+      updateDataVisibility(subscriberId, isVisible);
 
       console.log(`👁️ 가시성 업데이트: ${subscriberId} = ${isVisible}`);
     }
@@ -142,7 +144,7 @@ export function useOptimizedRealtime<T = any>({
   // 통계 정보
   const stats = {
     updateCount,
-    subscriberCount: realtimeDataManager.getStats().subscriberCount,
+    subscriberCount: centralDataManager.getStats().totalSubscribers,
   };
 
   return {
@@ -177,7 +179,7 @@ export function useServerMetrics(
     timestamp: number;
   }>({
     ...options,
-    dataType: 'server',
+    dataType: 'servers',
     frequency: options?.frequency || 'high', // 서버 메트릭은 높은 주기
     subscriberId, // ✅ 고유 구독 ID 전달
   });
