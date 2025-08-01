@@ -108,7 +108,7 @@ export default function LiveSystemAlerts() {
   ]);
 
   useEffect(() => {
-    if (!isConnected) return;
+    if (!_isConnected) return;
 
     // 🔄 EventSource 대신 polling 방식으로 변경
     const pollAlerts = async () => {

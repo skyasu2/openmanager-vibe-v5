@@ -277,14 +277,14 @@ export default function InfrastructureOverviewPage({
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-4">
           {/* CPU 사용률 */}
           <div
-            className={`rounded-lg border p-2 ${getStatusBgColor(stats.totalCpu, 'cpu')}`}
+            className={`rounded-lg border p-2 ${getStatusBgColor(stats.totalCpu)}`}
           >
             <div className="mb-1 flex items-center justify-between">
               <Cpu
-                className={`h-4 w-4 ${getStatusColor(stats.totalCpu, 'cpu')}`}
+                className={`h-4 w-4 ${getStatusColor(stats.totalCpu)}`}
               />
               <span
-                className={`text-lg font-bold ${getStatusColor(stats.totalCpu, 'cpu')}`}
+                className={`text-lg font-bold ${getStatusColor(stats.totalCpu)}`}
               >
                 {formatPercentage(stats.totalCpu)}
               </span>
@@ -306,14 +306,14 @@ export default function InfrastructureOverviewPage({
 
           {/* RAM 사용률 */}
           <div
-            className={`rounded-lg border p-2 ${getStatusBgColor(stats.totalRam, 'memory')}`}
+            className={`rounded-lg border p-2 ${getStatusBgColor(stats.totalRam)}`}
           >
             <div className="mb-1 flex items-center justify-between">
               <MemoryStick
-                className={`h-4 w-4 ${getStatusColor(stats.totalRam, 'memory')}`}
+                className={`h-4 w-4 ${getStatusColor(stats.totalRam)}`}
               />
               <span
-                className={`text-lg font-bold ${getStatusColor(stats.totalRam, 'memory')}`}
+                className={`text-lg font-bold ${getStatusColor(stats.totalRam)}`}
               >
                 {formatPercentage(stats.totalRam)}
               </span>
@@ -335,14 +335,14 @@ export default function InfrastructureOverviewPage({
 
           {/* Disk 사용률 */}
           <div
-            className={`rounded-lg border p-2 ${getStatusBgColor(stats.totalDisk, 'disk')}`}
+            className={`rounded-lg border p-2 ${getStatusBgColor(stats.totalDisk)}`}
           >
             <div className="mb-1 flex items-center justify-between">
               <HardDrive
-                className={`h-4 w-4 ${getStatusColor(stats.totalDisk, 'disk')}`}
+                className={`h-4 w-4 ${getStatusColor(stats.totalDisk)}`}
               />
               <span
-                className={`text-lg font-bold ${getStatusColor(stats.totalDisk, 'disk')}`}
+                className={`text-lg font-bold ${getStatusColor(stats.totalDisk)}`}
               >
                 {formatPercentage(stats.totalDisk)}
               </span>
