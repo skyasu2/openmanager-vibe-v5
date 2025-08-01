@@ -124,7 +124,7 @@ export default function ServerMetricsBarChart({
     if (!showRealTimeUpdates) return;
 
     const interval = setInterval(() => {
-      setHistoricalData((prev) => {
+      setHistoricalData(prev => {
         // 기존 데이터를 한 칸씩 뒤로 밀고 새 데이터 추가
         const newData = [...prev.slice(1)];
         const lastDataPoint = prev[prev.length - 1];
@@ -152,21 +152,21 @@ export default function ServerMetricsBarChart({
   }, [showRealTimeUpdates]);
 
   // 최대값 계산 (차트 스케일링용)
-  const maxValue = Math.max(...historicalData.map((d) => d.value), 100);
+  const maxValue = Math.max(...historicalData.map(d => d.value), 100);
 
   return (
     <div className={`${className}`}>
       {/* 라벨과 현재값 */}
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-medium text-gray-600">{label}</span>
+      <div className='flex items-center justify-between mb-2'>
+        <span className='text-xs font-medium text-gray-600'>{label}</span>
         <span className={`text-sm font-bold ${config.textColor}`}>
           {Math.round(value)}%
         </span>
       </div>
 
       {/* 막대 그래프 */}
-      <div className="space-y-1">
-        <div className="flex h-20 items-end justify-between gap-1 px-1">
+      <div className='space-y-1'>
+        <div className='flex items-end justify-between h-20 gap-1 px-1'>
           {historicalData.map((dataPoint, index) => {
             const height = Math.max(8, (dataPoint.value / 100) * 100);
             const isCurrentValue = index === historicalData.length - 1;
@@ -174,22 +174,26 @@ export default function ServerMetricsBarChart({
             return (
               <div
                 key={index}
-                className="flex max-w-[20px] flex-1 flex-col items-center"
+                className='flex-1 flex flex-col items-center max-w-[20px]'
               >
                 {/* 막대 */}
                 <motion.div
-                  className="relative w-full"
+                  className='w-full relative'
                   style={{ height: '80px' }}
                   initial={{ height: 0 }}
                   animate={{ height: '80px' }}
                   transition={{ delay: index * 0.05, duration: 0.3 }}
                 >
                   {/* 배경 막대 */}
-                  <div className="absolute bottom-0 h-full w-full rounded-sm bg-gray-100 opacity-30" />
+                  <div className='absolute bottom-0 w-full h-full bg-gray-100 rounded-sm opacity-30' />
 
                   {/* 실제 데이터 막대 */}
                   <motion.div
-                    className={`relative w-full overflow-hidden rounded-sm shadow-sm ${config.barColor} ${isCurrentValue ? 'opacity-100 shadow-md' : 'opacity-80'} `}
+                    className={`
+                      w-full rounded-sm relative overflow-hidden shadow-sm
+                      ${config.barColor}
+                      ${isCurrentValue ? 'opacity-100 shadow-md' : 'opacity-80'}
+                    `}
                     style={{
                       height: `${height}%`,
                       position: 'absolute',
@@ -206,12 +210,12 @@ export default function ServerMetricsBarChart({
                     }}
                   >
                     {/* 그라데이션 효과 */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-white/20" />
+                    <div className='absolute inset-0 bg-gradient-to-t from-black/10 to-white/20' />
 
                     {/* 현재값 강조 효과 */}
                     {isCurrentValue && showRealTimeUpdates && (
                       <motion.div
-                        className="absolute inset-0 bg-white/40"
+                        className='absolute inset-0 bg-white/40'
                         animate={{
                           opacity: [0, 0.6, 0],
                         }}
@@ -227,9 +231,14 @@ export default function ServerMetricsBarChart({
                   {/* 값 표시 (현재값과 최고값만) */}
                   {(isCurrentValue ||
                     dataPoint.value ===
-                      Math.max(...historicalData.map((d) => d.value))) && (
+                      Math.max(...historicalData.map(d => d.value))) && (
                     <motion.div
-                      className={`absolute -top-7 left-1/2 -translate-x-1/2 transform rounded-full px-1.5 py-0.5 text-xs font-bold ${config.bgColor} ${config.textColor} whitespace-nowrap shadow-sm`}
+                      className={`
+                        absolute -top-7 left-1/2 transform -translate-x-1/2
+                        text-xs font-bold px-1.5 py-0.5 rounded-full
+                        ${config.bgColor} ${config.textColor} shadow-sm
+                        whitespace-nowrap
+                      `}
                       initial={{ opacity: 0, y: 10, scale: 0.8 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       transition={{ delay: 0.3 + index * 0.05 }}
@@ -244,7 +253,7 @@ export default function ServerMetricsBarChart({
         </div>
 
         {/* 시간 라벨 */}
-        <div className="mt-2 flex justify-between px-1 text-xs text-gray-400">
+        <div className='flex justify-between text-xs text-gray-400 mt-2 px-1'>
           {historicalData.map((dataPoint, index) => (
             <span
               key={index}
@@ -267,10 +276,10 @@ export default function ServerMetricsBarChart({
       </div>
 
       {/* 상태 표시 */}
-      <div className="mt-2 flex items-center justify-between">
-        <div className="flex items-center gap-1">
+      <div className='flex items-center justify-between mt-2'>
+        <div className='flex items-center gap-1'>
           <div
-            className={`h-2 w-2 rounded-full ${
+            className={`w-2 h-2 rounded-full ${
               config.status === '위험'
                 ? 'bg-red-500'
                 : config.status === '주의'
@@ -278,12 +287,12 @@ export default function ServerMetricsBarChart({
                   : config.barColor.replace('bg-', 'bg-')
             }`}
           />
-          <span className="text-xs text-gray-500">{config.status}</span>
+          <span className='text-xs text-gray-500'>{config.status}</span>
         </div>
 
         {showRealTimeUpdates && (
           <motion.div
-            className="text-xs text-gray-400"
+            className='text-xs text-gray-400'
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
           >

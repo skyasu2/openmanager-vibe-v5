@@ -98,13 +98,13 @@ export default function RealtimeStatus({
   if (compact) {
     return (
       <div className={`flex items-center space-x-2 ${className}`}>
-        <div className="relative">
+        <div className='relative'>
           <Icon
-            className={`h-4 w-4 ${config.color} ${config.spin ? 'animate-spin' : ''}`}
+            className={`w-4 h-4 ${config.color} ${config.spin ? 'animate-spin' : ''}`}
           />
           {config.pulse && (
             <motion.div
-              className="absolute inset-0 h-4 w-4 rounded-full bg-green-400 opacity-30"
+              className='absolute inset-0 w-4 h-4 rounded-full bg-green-400 opacity-30'
               animate={{ scale: [1, 1.5, 1] }}
               transition={{ repeat: Infinity, duration: 2 }}
             />
@@ -119,21 +119,21 @@ export default function RealtimeStatus({
 
   return (
     <motion.div
-      className={`${config.bgColor} ${config.borderColor} rounded-lg border p-4 ${className}`}
+      className={`${config.bgColor} ${config.borderColor} border rounded-lg p-4 ${className}`}
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
       {/* 헤더 */}
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="relative">
+      <div className='flex items-center justify-between mb-3'>
+        <div className='flex items-center space-x-3'>
+          <div className='relative'>
             <Icon
-              className={`h-5 w-5 ${config.color} ${config.spin ? 'animate-spin' : ''}`}
+              className={`w-5 h-5 ${config.color} ${config.spin ? 'animate-spin' : ''}`}
             />
             {config.pulse && (
               <motion.div
-                className="absolute inset-0 h-5 w-5 rounded-full bg-green-400 opacity-30"
+                className='absolute inset-0 w-5 h-5 rounded-full bg-green-400 opacity-30'
                 animate={{ scale: [1, 1.8, 1] }}
                 transition={{ repeat: Infinity, duration: 2 }}
               />
@@ -141,7 +141,7 @@ export default function RealtimeStatus({
           </div>
           <div>
             <h3 className={`font-semibold ${config.color}`}>실시간 모니터링</h3>
-            <p className="text-sm text-gray-600">{config.text}</p>
+            <p className='text-sm text-gray-600'>{config.text}</p>
           </div>
         </div>
 
@@ -150,7 +150,7 @@ export default function RealtimeStatus({
           {showReconnectButton && !isFullyConnected && (
             <motion.button
               onClick={reconnectAll}
-              className="rounded bg-blue-500 px-3 py-1 text-sm text-white transition-colors hover:bg-blue-600"
+              className='px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors'
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
@@ -165,16 +165,16 @@ export default function RealtimeStatus({
 
       {/* 상세 정보 */}
       {showDetails && (
-        <div className="space-y-2">
+        <div className='space-y-2'>
           {/* 연결 상태 세부사항 */}
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">서버 모니터링:</span>
-              <div className="flex items-center space-x-1">
+          <div className='grid grid-cols-2 gap-4 text-sm'>
+            <div className='flex items-center justify-between'>
+              <span className='text-gray-600'>서버 모니터링:</span>
+              <div className='flex items-center space-x-1'>
                 {servers.isConnected ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className='w-4 h-4 text-green-500' />
                 ) : (
-                  <WifiOff className="h-4 w-4 text-red-500" />
+                  <WifiOff className='w-4 h-4 text-red-500' />
                 )}
                 <span
                   className={
@@ -186,13 +186,13 @@ export default function RealtimeStatus({
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">AI 예측:</span>
-              <div className="flex items-center space-x-1">
+            <div className='flex items-center justify-between'>
+              <span className='text-gray-600'>AI 예측:</span>
+              <div className='flex items-center space-x-1'>
                 {predictions.isConnected ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className='w-4 h-4 text-green-500' />
                 ) : (
-                  <WifiOff className="h-4 w-4 text-red-500" />
+                  <WifiOff className='w-4 h-4 text-red-500' />
                 )}
                 <span
                   className={
@@ -207,8 +207,8 @@ export default function RealtimeStatus({
 
           {/* 마지막 업데이트 시간 */}
           {isFullyConnected && (
-            <div className="border-t border-gray-200 pt-2">
-              <div className="flex items-center justify-between text-xs text-gray-500">
+            <div className='pt-2 border-t border-gray-200'>
+              <div className='flex items-center justify-between text-xs text-gray-500'>
                 <span>마지막 업데이트:</span>
                 <span>{lastUpdateTime.toLocaleTimeString()}</span>
               </div>
@@ -217,7 +217,7 @@ export default function RealtimeStatus({
 
           {/* 재연결 시도 횟수 */}
           {servers.reconnectAttempts > 0 && (
-            <div className="text-xs text-yellow-600">
+            <div className='text-xs text-yellow-600'>
               재연결 시도: {servers.reconnectAttempts}/5
             </div>
           )}
@@ -233,17 +233,17 @@ export function FloatingRealtimeStatus() {
 
   return (
     <motion.div
-      className="fixed bottom-4 right-4 z-50"
+      className='fixed bottom-4 right-4 z-50'
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 1, duration: 0.5 }}
     >
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode='wait'>
         {isMinimized ? (
           <motion.button
-            key="minimized"
+            key='minimized'
             onClick={() => setIsMinimized(false)}
-            className="rounded-full bg-white p-3 shadow-lg transition-all hover:shadow-xl"
+            className='bg-white shadow-lg rounded-full p-3 hover:shadow-xl transition-all'
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
@@ -254,36 +254,36 @@ export function FloatingRealtimeStatus() {
           </motion.button>
         ) : (
           <motion.div
-            key="expanded"
-            className="rounded-lg border bg-white shadow-xl"
+            key='expanded'
+            className='bg-white shadow-xl rounded-lg border'
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
           >
-            <div className="flex items-center justify-between border-b p-2">
-              <span className="text-sm font-medium text-gray-700">
+            <div className='flex items-center justify-between p-2 border-b'>
+              <span className='text-sm font-medium text-gray-700'>
                 실시간 상태
               </span>
               <button
                 onClick={() => setIsMinimized(true)}
-                className="text-gray-400 hover:text-gray-600"
-                title="실시간 상태 최소화"
-                aria-label="실시간 상태 최소화"
+                className='text-gray-400 hover:text-gray-600'
+                title='실시간 상태 최소화'
+                aria-label='실시간 상태 최소화'
               >
                 <svg
-                  className="h-4 w-4"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
+                  className='w-4 h-4'
+                  fill='currentColor'
+                  viewBox='0 0 20 20'
                 >
                   <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
+                    fillRule='evenodd'
+                    d='M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z'
+                    clipRule='evenodd'
                   />
                 </svg>
               </button>
             </div>
-            <div className="p-4">
+            <div className='p-4'>
               <RealtimeStatus compact={false} showDetails />
             </div>
           </motion.div>

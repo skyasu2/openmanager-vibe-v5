@@ -60,7 +60,7 @@ export const NotificationToast: React.FC = () => {
         reportServerNotification(serverId, serverName, status);
       }
 
-      setNotifications((prev) => {
+      setNotifications(prev => {
         const newNotifications = [notification, ...prev].slice(
           0,
           maxNotifications
@@ -99,20 +99,20 @@ export const NotificationToast: React.FC = () => {
   };
 
   const removeNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
   const getIcon = (type: string) => {
     switch (type) {
       case 'success':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
+        return <CheckCircle className='w-5 h-5 text-green-500' />;
       case 'warning':
-        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+        return <AlertTriangle className='w-5 h-5 text-yellow-500' />;
       case 'error':
-        return <AlertTriangle className="h-5 w-5 text-red-500" />;
+        return <AlertTriangle className='w-5 h-5 text-red-500' />;
       case 'info':
       default:
-        return <Info className="h-5 w-5 text-blue-500" />;
+        return <Info className='w-5 h-5 text-blue-500' />;
     }
   };
 
@@ -133,34 +133,39 @@ export const NotificationToast: React.FC = () => {
   if (notifications.length === 0) return null;
 
   return (
-    <div className="fixed right-4 top-4 z-50 space-y-2">
-      {notifications.map((notification) => (
+    <div className='fixed top-4 right-4 z-50 space-y-2'>
+      {notifications.map(notification => (
         <div
           key={notification.id}
-          className={` ${getBackgroundColor(notification.type)} _animate-in max-w-sm transform rounded-lg border p-4 shadow-lg transition-all duration-300 ease-in-out slide-in-from-right-full`}
+          className={`
+            ${getBackgroundColor(notification.type)}
+            border rounded-lg p-4 shadow-lg max-w-sm
+            transform transition-all duration-300 ease-in-out
+            _animate-in slide-in-from-right-full
+          `}
         >
-          <div className="flex items-start gap-3">
+          <div className='flex items-start gap-3'>
             {getIcon(notification.type)}
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-gray-900">
+            <div className='flex-1 min-w-0'>
+              <p className='text-sm font-semibold text-gray-900'>
                 {notification.title}
               </p>
-              <p className="mt-1 text-sm text-gray-700">
+              <p className='text-sm text-gray-700 mt-1'>
                 {notification.message}
               </p>
               {notification.serverName && (
-                <p className="mt-1 text-xs text-gray-500">
+                <p className='text-xs text-gray-500 mt-1'>
                   서버: {notification.serverName}
                 </p>
               )}
             </div>
             <button
               onClick={() => removeNotification(notification.id)}
-              className="text-gray-400 transition-colors hover:text-gray-600"
-              title="알림 닫기"
-              aria-label="알림 닫기"
+              className='text-gray-400 hover:text-gray-600 transition-colors'
+              title='알림 닫기'
+              aria-label='알림 닫기'
             >
-              <X className="h-4 w-4" />
+              <X className='w-4 h-4' />
             </button>
           </div>
         </div>

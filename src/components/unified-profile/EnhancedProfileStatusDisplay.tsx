@@ -54,17 +54,17 @@ export function EnhancedProfileStatusDisplay({
   if (isLoading) {
     return (
       <div
-        data-testid="status-skeleton"
-        className={`${compact ? 'p-2' : 'p-3'} _animate-pulse rounded-lg bg-gray-50`}
+        data-testid='status-skeleton'
+        className={`${compact ? 'p-2' : 'p-3'} bg-gray-50 rounded-lg _animate-pulse`}
       >
-        <div className="flex items-center gap-2">
-          <div className="h-4 w-4 rounded-full bg-gray-300" />
-          <div className="h-4 w-20 rounded bg-gray-300" />
+        <div className='flex items-center gap-2'>
+          <div className='w-4 h-4 bg-gray-300 rounded-full' />
+          <div className='w-20 h-4 bg-gray-300 rounded' />
         </div>
         {!compact && (
-          <div className="mt-2 space-y-1">
-            <div className="h-3 w-16 rounded bg-gray-300" />
-            <div className="h-3 w-24 rounded bg-gray-300" />
+          <div className='mt-2 space-y-1'>
+            <div className='w-16 h-3 bg-gray-300 rounded' />
+            <div className='w-24 h-3 bg-gray-300 rounded' />
           </div>
         )}
       </div>
@@ -75,14 +75,14 @@ export function EnhancedProfileStatusDisplay({
   if (error) {
     return (
       <div
-        data-testid="error-display"
-        className={`${compact ? 'p-2' : 'p-3'} rounded-lg border border-red-200 bg-red-50`}
+        data-testid='error-display'
+        className={`${compact ? 'p-2' : 'p-3'} bg-red-50 rounded-lg border border-red-200`}
       >
-        <div className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-red-500" />
-          <span className="text-sm text-red-700">상태 확인 실패</span>
+        <div className='flex items-center gap-2'>
+          <AlertTriangle className='w-4 h-4 text-red-500' />
+          <span className='text-sm text-red-700'>상태 확인 실패</span>
         </div>
-        {!compact && <p className="mt-1 text-xs text-red-600">{error}</p>}
+        {!compact && <p className='text-xs text-red-600 mt-1'>{error}</p>}
       </div>
     );
   }
@@ -101,53 +101,53 @@ export function EnhancedProfileStatusDisplay({
 
   return (
     <div
-      className={`${compact ? 'p-2' : 'p-3'} rounded-lg bg-gray-50`}
+      className={`${compact ? 'p-2' : 'p-3'} bg-gray-50 rounded-lg`}
       data-testid={compact ? 'compact-layout' : 'full-layout'}
     >
       {/* 기본 상태 표시 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="relative">
+      <div className='flex items-center justify-between'>
+        <div className='flex items-center gap-2'>
+          <div className='relative'>
             <Activity
-              data-testid="system-status-indicator"
-              className={`h-4 w-4 ${getStatusColor()} ${
+              data-testid='system-status-indicator'
+              className={`w-4 h-4 ${getStatusColor()} ${
                 status?.isRunning ? '_animate-pulse' : ''
               }`}
             />
             {status?.isStarting && (
               <div
-                data-testid="loading-spinner"
-                className="absolute inset-0 animate-spin"
+                data-testid='loading-spinner'
+                className='absolute inset-0 animate-spin'
               >
-                <RefreshCw className="h-4 w-4 text-yellow-500" />
+                <RefreshCw className='w-4 h-4 text-yellow-500' />
               </div>
             )}
           </div>
-          <span className="text-sm font-medium text-gray-700">
+          <span className='text-sm font-medium text-gray-700'>
             {getStatusText()}
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className='flex items-center gap-2'>
           {/* 새로고침 버튼 */}
           <button
-            data-testid="refresh-button"
+            data-testid='refresh-button'
             onClick={refresh}
-            className="rounded p-1 transition-colors hover:bg-gray-200"
-            title="상태 새로고침"
+            className='p-1 hover:bg-gray-200 rounded transition-colors'
+            title='상태 새로고침'
           >
-            <RefreshCw className="h-3 w-3 text-gray-500" />
+            <RefreshCw className='w-3 h-3 text-gray-500' />
           </button>
 
           {/* 상세 정보 토글 */}
           {!compact && (
             <button
-              data-testid="detail-toggle"
+              data-testid='detail-toggle'
               onClick={() => setShowDetails(!showDetails)}
-              className="rounded p-1 transition-colors hover:bg-gray-200"
+              className='p-1 hover:bg-gray-200 rounded transition-colors'
             >
               <ChevronDown
-                className={`h-3 w-3 text-gray-500 transition-transform ${
+                className={`w-3 h-3 text-gray-500 transition-transform ${
                   showDetails ? 'rotate-180' : ''
                 }`}
               />
@@ -159,29 +159,29 @@ export function EnhancedProfileStatusDisplay({
       {/* 컴팩트 모드가 아닐 때 기본 정보 표시 */}
       {!compact && status && (
         <div
-          data-testid="full-layout"
-          className="mt-2 grid grid-cols-2 gap-2 text-xs"
+          data-testid='full-layout'
+          className='mt-2 grid grid-cols-2 gap-2 text-xs'
         >
-          <div className="col-span-2 flex items-center gap-1">
-            <Server className="h-3 w-3 text-purple-500" />
-            <span data-testid="version-display" className="text-gray-600">
+          <div className='flex items-center gap-1 col-span-2'>
+            <Server className='w-3 h-3 text-purple-500' />
+            <span data-testid='version-display' className='text-gray-600'>
               v{status.version || '0.0.0'}
             </span>
           </div>
 
           {status.uptime > 0 && (
-            <div className="col-span-2 flex items-center gap-1">
-              <Clock className="h-3 w-3 text-green-500" />
-              <span data-testid="uptime-display" className="text-gray-600">
+            <div className='flex items-center gap-1 col-span-2'>
+              <Clock className='w-3 h-3 text-green-500' />
+              <span data-testid='uptime-display' className='text-gray-600'>
                 가동시간: {formatUptime(status.uptime)}
               </span>
             </div>
           )}
 
-          <div className="col-span-2 flex items-center gap-1">
+          <div className='flex items-center gap-1 col-span-2'>
             <span
-              data-testid="environment-display"
-              className={`rounded-full px-2 py-1 text-xs font-medium ${
+              data-testid='environment-display'
+              className={`px-2 py-1 rounded-full text-xs font-medium ${
                 status.environment === 'production'
                   ? 'bg-green-100 text-green-700'
                   : status.environment === 'development'
@@ -199,55 +199,55 @@ export function EnhancedProfileStatusDisplay({
       <AnimatePresence>
         {showDetails && !compact && (
           <motion.div
-            data-testid="detailed-info"
+            data-testid='detailed-info'
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="mt-3 border-t border-gray-200 pt-3"
+            className='mt-3 pt-3 border-t border-gray-200'
           >
-            <div className="mb-2 text-xs font-medium text-gray-600">
+            <div className='text-xs text-gray-600 mb-2 font-medium'>
               서비스 상태
             </div>
 
-            <div className="space-y-2">
+            <div className='space-y-2'>
               {/* 데이터베이스 상태 */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Database className="h-3 w-3 text-blue-500" />
-                  <span className="text-xs text-gray-700">데이터베이스</span>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-2'>
+                  <Database className='w-3 h-3 text-blue-500' />
+                  <span className='text-xs text-gray-700'>데이터베이스</span>
                 </div>
                 <div
-                  data-testid="database-status"
-                  className={`h-2 w-2 rounded-full ${
+                  data-testid='database-status'
+                  className={`w-2 h-2 rounded-full ${
                     status?.services?.database ? 'bg-green-500' : 'bg-red-500'
                   }`}
                 />
               </div>
 
               {/* 캐시 상태 */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Zap className="h-3 w-3 text-yellow-500" />
-                  <span className="text-xs text-gray-700">캐시</span>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-2'>
+                  <Zap className='w-3 h-3 text-yellow-500' />
+                  <span className='text-xs text-gray-700'>캐시</span>
                 </div>
                 <div
-                  data-testid="cache-status"
-                  className={`h-2 w-2 rounded-full ${
+                  data-testid='cache-status'
+                  className={`w-2 h-2 rounded-full ${
                     status?.services?.cache ? 'bg-green-500' : 'bg-red-500'
                   }`}
                 />
               </div>
 
               {/* AI 서비스 상태 */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Brain className="h-3 w-3 text-purple-500" />
-                  <span className="text-xs text-gray-700">AI 서비스</span>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-2'>
+                  <Brain className='w-3 h-3 text-purple-500' />
+                  <span className='text-xs text-gray-700'>AI 서비스</span>
                 </div>
                 <div
-                  data-testid="ai-status"
-                  className={`h-2 w-2 rounded-full ${
+                  data-testid='ai-status'
+                  className={`w-2 h-2 rounded-full ${
                     status?.services?.ai ? 'bg-green-500' : 'bg-red-500'
                   }`}
                 />
@@ -256,8 +256,8 @@ export function EnhancedProfileStatusDisplay({
 
             {/* 마지막 업데이트 시간 */}
             {status?.lastUpdate && (
-              <div className="mt-3 border-t border-gray-200 pt-2">
-                <div className="text-xs text-gray-500">
+              <div className='mt-3 pt-2 border-t border-gray-200'>
+                <div className='text-xs text-gray-500'>
                   마지막 업데이트:{' '}
                   {new Date(status.lastUpdate).toLocaleTimeString()}
                 </div>

@@ -75,16 +75,16 @@ export function SystemBootstrap(): React.JSX.Element | null {
               '✅ GCP VM 서버 상태:',
               mcpData.mcp?.enabled ? '활성화' : '비활성화'
             );
-            setBootstrapStatus((prev) => ({ ...prev, mcp: 'success' }));
+            setBootstrapStatus(prev => ({ ...prev, mcp: 'success' }));
           } else {
             console.warn('⚠️ GCP VM 서버 상태 확인 실패:', mcpResponse.status);
-            setBootstrapStatus((prev) => ({ ...prev, mcp: 'failed' }));
+            setBootstrapStatus(prev => ({ ...prev, mcp: 'failed' }));
           }
         }
       } catch (error) {
         console.error('❌ GCP VM 서버 상태 확인 오류:', error);
         if (isMounted) {
-          setBootstrapStatus((prev) => ({ ...prev, mcp: 'failed' }));
+          setBootstrapStatus(prev => ({ ...prev, mcp: 'failed' }));
         }
       }
 
@@ -105,16 +105,16 @@ export function SystemBootstrap(): React.JSX.Element | null {
               '✅ Google AI 상태 확인 완료:',
               googleData.enabled ? '활성화' : '비활성화'
             );
-            setBootstrapStatus((prev) => ({ ...prev, googleAI: 'success' }));
+            setBootstrapStatus(prev => ({ ...prev, googleAI: 'success' }));
           } else {
             console.warn('⚠️ Google AI 상태 확인 실패:', googleResponse.status);
-            setBootstrapStatus((prev) => ({ ...prev, googleAI: 'failed' }));
+            setBootstrapStatus(prev => ({ ...prev, googleAI: 'failed' }));
           }
         }
       } catch (error) {
         console.error('❌ Google AI 상태 확인 오류:', error);
         if (isMounted) {
-          setBootstrapStatus((prev) => ({ ...prev, googleAI: 'failed' }));
+          setBootstrapStatus(prev => ({ ...prev, googleAI: 'failed' }));
         }
       }
 
@@ -135,16 +135,16 @@ export function SystemBootstrap(): React.JSX.Element | null {
               '✅ Redis 상태 확인 완료:',
               redisData._systemHealth || '연결됨'
             );
-            setBootstrapStatus((prev) => ({ ...prev, redis: 'success' }));
+            setBootstrapStatus(prev => ({ ...prev, redis: 'success' }));
           } else {
             console.warn('⚠️ Redis 상태 확인 실패:', redisResponse.status);
-            setBootstrapStatus((prev) => ({ ...prev, redis: 'failed' }));
+            setBootstrapStatus(prev => ({ ...prev, redis: 'failed' }));
           }
         }
       } catch (error) {
         console.error('❌ Redis 상태 확인 오류:', error);
         if (isMounted) {
-          setBootstrapStatus((prev) => ({ ...prev, redis: 'failed' }));
+          setBootstrapStatus(prev => ({ ...prev, redis: 'failed' }));
         }
       }
 
@@ -165,19 +165,19 @@ export function SystemBootstrap(): React.JSX.Element | null {
               '✅ Supabase 상태 확인 완료:',
               supabaseData.primary?.status || '연결됨'
             );
-            setBootstrapStatus((prev) => ({ ...prev, supabase: 'success' }));
+            setBootstrapStatus(prev => ({ ...prev, supabase: 'success' }));
           } else {
             console.warn(
               '⚠️ Supabase 상태 확인 실패:',
               supabaseResponse.status
             );
-            setBootstrapStatus((prev) => ({ ...prev, supabase: 'failed' }));
+            setBootstrapStatus(prev => ({ ...prev, supabase: 'failed' }));
           }
         }
       } catch (error) {
         console.error('❌ Supabase 상태 확인 오류:', error);
         if (isMounted) {
-          setBootstrapStatus((prev) => ({ ...prev, supabase: 'failed' }));
+          setBootstrapStatus(prev => ({ ...prev, supabase: 'failed' }));
         }
       }
 

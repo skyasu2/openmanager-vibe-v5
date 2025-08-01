@@ -81,13 +81,13 @@ export const ProfileAvatar = React.memo(function ProfileAvatar({
 
   return (
     <div
-      className="relative"
+      className='relative'
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onKeyDown={
         onClick
-          ? (e) => {
+          ? e => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 onClick();
@@ -100,11 +100,11 @@ export const ProfileAvatar = React.memo(function ProfileAvatar({
         <img
           src={userInfo.avatar}
           alt={getUserName()}
-          className={`${sizeClasses[size]} rounded-full border-2 border-gray-200 object-cover`}
+          className={`${sizeClasses[size]} rounded-full object-cover border-2 border-gray-200`}
         />
       ) : (
         <div
-          className={`${sizeClasses[size]} flex items-center justify-center rounded-full font-semibold text-white ${getBackgroundClass()}`}
+          className={`${sizeClasses[size]} rounded-full flex items-center justify-center text-white font-semibold ${getBackgroundClass()}`}
         >
           {getUserInitials()}
         </div>
@@ -135,7 +135,7 @@ export const UserTypeIcon = React.memo(function UserTypeIcon({
 }) {
   if (isAdminMode) {
     return (
-      <span title="관리자 모드">
+      <span title='관리자 모드'>
         <Crown className={`${className} text-red-600`} />
       </span>
     );
@@ -143,7 +143,7 @@ export const UserTypeIcon = React.memo(function UserTypeIcon({
 
   if (userType === 'github') {
     return (
-      <span title="GitHub 인증">
+      <span title='GitHub 인증'>
         <Shield className={`${className} text-green-600`} />
       </span>
     );
@@ -151,7 +151,7 @@ export const UserTypeIcon = React.memo(function UserTypeIcon({
 
   if (userType === 'guest') {
     return (
-      <span title="게스트 모드">
+      <span title='게스트 모드'>
         <UserCheck className={`${className} text-blue-600`} />
       </span>
     );

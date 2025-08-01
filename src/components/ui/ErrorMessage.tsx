@@ -125,13 +125,13 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
       label: '새로고침',
       onClick: () => window.location.reload(),
       variant: 'primary' as const,
-      icon: <RefreshCw className="h-4 w-4" />,
+      icon: <RefreshCw className='w-4 h-4' />,
     },
     {
       label: '홈으로',
       onClick: () => (window.location.href = '/main'),
       variant: 'secondary' as const,
-      icon: <Home className="h-4 w-4" />,
+      icon: <Home className='w-4 h-4' />,
     },
   ];
 
@@ -142,29 +142,29 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto max-w-md space-y-6 text-center"
+      className='max-w-md mx-auto text-center space-y-6'
     >
       {/* 에러 아이콘 */}
-      <div className="mb-4 text-6xl">{errorInfo.icon}</div>
+      <div className='text-6xl mb-4'>{errorInfo.icon}</div>
 
       {/* 에러 제목 */}
       <div>
-        <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
+        <h2 className='text-2xl font-bold text-gray-900 dark:text-white mb-2'>
           {displayTitle}
         </h2>
-        <p className="text-gray-600 dark:text-gray-300">{displayMessage}</p>
+        <p className='text-gray-600 dark:text-gray-300'>{displayMessage}</p>
       </div>
 
       {/* 해결 방법 제안 */}
-      <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
-        <h3 className="mb-2 flex items-center text-sm font-medium text-blue-900 dark:text-blue-100">
-          <HelpCircle className="mr-2 h-4 w-4" />
+      <div className='bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4'>
+        <h3 className='text-sm font-medium text-blue-900 dark:text-blue-100 mb-2 flex items-center'>
+          <HelpCircle className='w-4 h-4 mr-2' />
           해결 방법
         </h3>
-        <ul className="space-y-1 text-sm text-blue-800 dark:text-blue-200">
+        <ul className='text-sm text-blue-800 dark:text-blue-200 space-y-1'>
           {errorInfo.suggestions.map((suggestion, index) => (
-            <li key={index} className="flex items-start">
-              <span className="mr-2 text-blue-500">•</span>
+            <li key={index} className='flex items-start'>
+              <span className='text-blue-500 mr-2'>•</span>
               {suggestion}
             </li>
           ))}
@@ -172,20 +172,23 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
       </div>
 
       {/* 액션 버튼들 */}
-      <div className="flex flex-col justify-center gap-3 sm:flex-row">
+      <div className='flex flex-col sm:flex-row gap-3 justify-center'>
         {allActions.map((action, index) => (
           <motion.button
             key={index}
             onClick={action.onClick}
-            className={`inline-flex items-center justify-center rounded-lg px-4 py-2 font-medium transition-all ${
-              action.variant === 'primary'
-                ? 'bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl'
-                : 'bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600'
-            } `}
+            className={`
+              inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all
+              ${
+                action.variant === 'primary'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
+                  : 'bg-gray-200 hover:bg-gray-300 text-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white'
+              }
+            `}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            {action.icon && <span className="mr-2">{action.icon}</span>}
+            {action.icon && <span className='mr-2'>{action.icon}</span>}
             {action.label}
           </motion.button>
         ))}
@@ -193,11 +196,11 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
 
       {/* 기술적 세부사항 (개발자용) */}
       {showTechnicalDetails && technicalError && (
-        <details className="text-left">
-          <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
+        <details className='text-left'>
+          <summary className='text-sm text-gray-500 cursor-pointer hover:text-gray-700'>
             기술적 세부사항 보기
           </summary>
-          <div className="mt-2 overflow-auto rounded bg-gray-100 p-3 font-mono text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+          <div className='mt-2 p-3 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono text-gray-700 dark:text-gray-300 overflow-auto'>
             {technicalError}
           </div>
         </details>
@@ -208,7 +211,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   if (fullScreen) {
     return (
       <div
-        className={`fixed inset-0 z-50 flex items-center justify-center bg-white p-6 dark:bg-gray-900 ${className}`}
+        className={`fixed inset-0 z-50 flex items-center justify-center bg-white dark:bg-gray-900 p-6 ${className}`}
       >
         {content}
       </div>
@@ -223,24 +226,24 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
 };
 
 // 특정 에러 타입별 편의 컴포넌트들
-export const NetworkError: React.FC<Omit<ErrorMessageProps, 'type'>> = (
-  props
-) => <ErrorMessage {...props} type="network" />;
+export const NetworkError: React.FC<
+  Omit<ErrorMessageProps, 'type'>
+> = props => <ErrorMessage {...props} type='network' />;
 
-export const ServerError: React.FC<Omit<ErrorMessageProps, 'type'>> = (
-  props
-) => <ErrorMessage {...props} type="server" />;
-
-export const DataError: React.FC<Omit<ErrorMessageProps, 'type'>> = (props) => (
-  <ErrorMessage {...props} type="data" />
+export const ServerError: React.FC<Omit<ErrorMessageProps, 'type'>> = props => (
+  <ErrorMessage {...props} type='server' />
 );
 
-export const AIError: React.FC<Omit<ErrorMessageProps, 'type'>> = (props) => (
-  <ErrorMessage {...props} type="ai" />
+export const DataError: React.FC<Omit<ErrorMessageProps, 'type'>> = props => (
+  <ErrorMessage {...props} type='data' />
 );
 
-export const AuthError: React.FC<Omit<ErrorMessageProps, 'type'>> = (props) => (
-  <ErrorMessage {...props} type="auth" />
+export const AIError: React.FC<Omit<ErrorMessageProps, 'type'>> = props => (
+  <ErrorMessage {...props} type='ai' />
+);
+
+export const AuthError: React.FC<Omit<ErrorMessageProps, 'type'>> = props => (
+  <ErrorMessage {...props} type='auth' />
 );
 
 // 기본 내보내기

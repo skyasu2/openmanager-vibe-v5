@@ -236,43 +236,43 @@ export default function UnifiedProfileHeader({
           console.log('👤 프로필 버튼 클릭됨');
           toggleMenu();
         }}
-        className="group pointer-events-auto relative z-50 flex cursor-pointer items-center space-x-3 rounded-lg p-3 transition-all duration-200 hover:bg-gray-100"
+        className='flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-all duration-200 group cursor-pointer relative z-50 pointer-events-auto'
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        aria-label="프로필 메뉴"
+        aria-label='프로필 메뉴'
         aria-expanded={menuState.showProfileMenu}
-        aria-haspopup="true"
-        id="profile-menu-button"
+        aria-haspopup='true'
+        id='profile-menu-button'
       >
         {/* 프로필 아바타 */}
         <ProfileAvatar
           userInfo={userInfo}
           userType={userType}
           isAdminMode={isAdminMode}
-          size="medium"
+          size='medium'
         />
 
         {/* 사용자 정보 */}
-        <div className="hidden text-left sm:block">
-          <div className="flex items-center gap-1 text-sm font-medium text-gray-900">
+        <div className='hidden sm:block text-left'>
+          <div className='text-sm font-medium text-gray-900 flex items-center gap-1'>
             {getUserName()}
             <UserTypeIcon
               userType={userType}
               isAdminMode={isAdminMode}
-              className="h-3 w-3"
+              className='w-3 h-3'
             />
           </div>
-          <div className="flex items-center gap-1 text-xs text-gray-500">
+          <div className='text-xs text-gray-500 flex items-center gap-1'>
             {getUserTypeLabel()} 로그인
             {status === 'loading' && (
-              <div className="_animate-pulse h-2 w-2 rounded-full bg-gray-400" />
+              <div className='w-2 h-2 bg-gray-400 rounded-full _animate-pulse' />
             )}
           </div>
         </div>
 
         {/* 드롭다운 화살표 */}
         <ChevronDown
-          className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${
+          className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
             menuState.showProfileMenu ? 'rotate-180' : ''
           }`}
         />
@@ -302,8 +302,8 @@ export default function UnifiedProfileHeader({
 
       {/* GitHub 사용자용 시스템 상태 표시 (드롭다운 내부에 위치) */}
       {userType === 'github' && menuState.showProfileMenu && (
-        <div className="absolute right-0 z-[9998] mt-[280px] w-64">
-          <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
+        <div className='absolute right-0 mt-[280px] w-64 z-[9998]'>
+          <div className='bg-white rounded-lg shadow-lg border border-gray-200 p-3'>
             <EnhancedProfileStatusDisplay compact={false} />
           </div>
         </div>

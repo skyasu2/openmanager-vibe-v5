@@ -49,19 +49,19 @@ export default function CollapsibleCard({
       {/* 헤더 */}
       <div
         className={cn(
-          'flex cursor-pointer select-none items-center justify-between',
-          'rounded-lg transition-colors duration-200 hover:bg-gray-50',
+          'flex items-center justify-between cursor-pointer select-none',
+          'hover:bg-gray-50 rounded-lg transition-colors duration-200',
           sizeClasses[size],
           headerClassName
         )}
         onClick={onToggle}
       >
-        <div className="flex items-center gap-3">
-          {icon && <div className="flex-shrink-0">{icon}</div>}
+        <div className='flex items-center gap-3'>
+          {icon && <div className='flex-shrink-0'>{icon}</div>}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+            <h3 className='text-lg font-semibold text-gray-900'>{title}</h3>
             {subtitle && (
-              <p className="mt-0.5 text-sm text-gray-600">{subtitle}</p>
+              <p className='text-sm text-gray-600 mt-0.5'>{subtitle}</p>
             )}
           </div>
         </div>
@@ -70,9 +70,9 @@ export default function CollapsibleCard({
         <motion.div
           animate={{ rotate: isExpanded ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          className="flex-shrink-0 rounded-full p-1 transition-colors hover:bg-gray-100"
+          className='flex-shrink-0 p-1 hover:bg-gray-100 rounded-full transition-colors'
         >
-          <ChevronDown className="h-5 w-5 text-gray-500" />
+          <ChevronDown className='w-5 h-5 text-gray-500' />
         </motion.div>
       </div>
 
@@ -87,11 +87,11 @@ export default function CollapsibleCard({
               duration: 0.3,
               ease: [0.04, 0.62, 0.23, 0.98],
             }}
-            className="overflow-hidden"
+            className='overflow-hidden'
           >
             <div
               className={cn(
-                'mt-2 border-t border-gray-100 pt-4',
+                'border-t border-gray-100 mt-2 pt-4',
                 contentClassName
               )}
             >

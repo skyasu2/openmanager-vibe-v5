@@ -25,7 +25,7 @@ const queryClient = new QueryClient({
         // 최대 3번까지 재시도
         return failureCount < 3;
       },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
 
       // 캐시 설정
       staleTime: 5 * 60 * 1000, // 5분
@@ -54,14 +54,14 @@ function QueryErrorBoundary({ children }: { children: ReactNode }) {
   return (
     <ErrorBoundary
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="text-center">
-            <h2 className="mb-4 text-2xl font-bold text-red-600">
+        <div className='min-h-screen flex items-center justify-center'>
+          <div className='text-center'>
+            <h2 className='text-2xl font-bold text-red-600 mb-4'>
               문제가 발생했습니다
             </h2>
             <button
               onClick={() => window.location.reload()}
-              className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+              className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
             >
               페이지 새로고침
             </button>

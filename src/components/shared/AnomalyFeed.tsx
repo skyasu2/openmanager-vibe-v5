@@ -63,7 +63,7 @@ const fetcher = (url: string) =>
     headers: {
       'Cache-Control': 'no-cache',
     },
-  }).then((res) => {
+  }).then(res => {
     if (!res.ok) {
       throw new Error(`이상 징후 데이터 조회 실패: ${res.status}`);
     }
@@ -75,13 +75,13 @@ const AnomalyIcon: React.FC<{ anomaly: AnomalyData }> = ({ anomaly }) => {
   if (anomaly.source === 'logs') {
     return (
       <ServerCrash
-        className={`h-5 w-5 ${anomaly.severity === 'critical' ? 'text-red-400' : 'text-yellow-400'}`}
+        className={`w-5 h-5 ${anomaly.severity === 'critical' ? 'text-red-400' : 'text-yellow-400'}`}
       />
     );
   }
   return (
     <Zap
-      className={`h-5 w-5 ${anomaly.severity === 'critical' ? 'text-red-400' : 'text-yellow-400'}`}
+      className={`w-5 h-5 ${anomaly.severity === 'critical' ? 'text-red-400' : 'text-yellow-400'}`}
     />
   );
 };
@@ -145,43 +145,43 @@ export function AnomalyFeed({
 
   // 수동 새로고침
   const handleRefresh = () => {
-    setManualRefresh((prev) => prev + 1);
+    setManualRefresh(prev => prev + 1);
     mutate();
   };
 
   // Dashboard 스타일 렌더링
   if (variant === 'dashboard') {
     return (
-      <Card className={`h-full border-slate-700 bg-slate-800/50 ${className}`}>
+      <Card className={`bg-slate-800/50 border-slate-700 h-full ${className}`}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-white">
-            <AlertTriangle className="h-6 w-6 text-yellow-400" />
+          <CardTitle className='text-white flex items-center gap-2'>
+            <AlertTriangle className='w-6 h-6 text-yellow-400' />
             실시간 이상 징후 피드
           </CardTitle>
         </CardHeader>
-        <CardContent className="max-h-[30rem] overflow-y-auto pr-2">
+        <CardContent className='max-h-[30rem] overflow-y-auto pr-2'>
           {isLoading && sortedAnomalies.length === 0 && (
-            <p className="text-slate-400">피드 로딩 중...</p>
+            <p className='text-slate-400'>피드 로딩 중...</p>
           )}
-          {error && <p className="text-red-400">오류: {error.message}</p>}
+          {error && <p className='text-red-400'>오류: {error.message}</p>}
           {sortedAnomalies.length === 0 && !isLoading && (
-            <div className="py-10 text-center text-slate-500">
-              <CheckCircle2 className="mx-auto h-12 w-12" />
-              <p className="mt-4">탐지된 이상 징후가 없습니다.</p>
+            <div className='text-center py-10 text-slate-500'>
+              <CheckCircle2 className='mx-auto h-12 w-12' />
+              <p className='mt-4'>탐지된 이상 징후가 없습니다.</p>
             </div>
           )}
-          <div className="space-y-4">
+          <div className='space-y-4'>
             {sortedAnomalies.map((anomaly, index) => (
               <div
                 key={anomaly.id || index}
-                className="flex items-start gap-4 rounded-lg bg-slate-700/50 p-3"
+                className='flex items-start gap-4 p-3 bg-slate-700/50 rounded-lg'
               >
                 <AnomalyIcon anomaly={anomaly} />
-                <div className="flex-1">
-                  <p className="font-medium text-slate-200">
+                <div className='flex-1'>
+                  <p className='text-slate-200 font-medium'>
                     {anomaly.description || anomaly.message}
                   </p>
-                  <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
+                  <div className='text-xs text-slate-400 flex items-center gap-2 mt-1'>
                     <Badge
                       variant={
                         anomaly.severity === 'critical'
@@ -191,7 +191,7 @@ export function AnomalyFeed({
                       className={
                         anomaly.severity === 'medium' ||
                         anomaly.severity === 'high'
-                          ? 'border-yellow-500 bg-yellow-600/50'
+                          ? 'bg-yellow-600/50 border-yellow-500'
                           : ''
                       }
                     >
@@ -211,22 +211,22 @@ export function AnomalyFeed({
   // Admin 스타일 렌더링 (기본)
   return (
     <Card className={className}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-          <AlertTriangle className="h-5 w-5 text-orange-500" />
+      <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-4'>
+        <CardTitle className='text-lg font-semibold flex items-center gap-2'>
+          <AlertTriangle className='h-5 w-5 text-orange-500' />
           이상 징후 피드
         </CardTitle>
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Clock className="h-3 w-3" />
+        <div className='flex items-center gap-2'>
+          <span className='text-xs text-muted-foreground flex items-center gap-1'>
+            <Clock className='h-3 w-3' />
             {formatTime(new Date().toISOString())}
           </span>
           <Button
-            variant="outline"
-            size="sm"
+            variant='outline'
+            size='sm'
             onClick={handleRefresh}
             disabled={isLoading}
-            className="h-8 w-8 p-0"
+            className='h-8 w-8 p-0'
           >
             <RefreshCw
               className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
@@ -237,64 +237,64 @@ export function AnomalyFeed({
 
       <CardContent>
         {error && (
-          <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-600">
+          <div className='text-sm text-red-600 bg-red-50 p-3 rounded-md mb-4'>
             오류: {error.message}
           </div>
         )}
 
-        <ScrollArea className="h-[400px] pr-4">
+        <ScrollArea className='h-[400px] pr-4'>
           {isLoading && sortedAnomalies.length === 0 ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Activity className="_animate-pulse h-4 w-4" />
+            <div className='flex items-center justify-center py-8'>
+              <div className='flex items-center gap-2 text-muted-foreground'>
+                <Activity className='h-4 w-4 _animate-pulse' />
                 이상 징후 데이터 로딩 중...
               </div>
             </div>
           ) : sortedAnomalies.length === 0 ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-center text-muted-foreground">
-                <AlertTriangle className="mx-auto mb-2 h-8 w-8 opacity-50" />
+            <div className='flex items-center justify-center py-8'>
+              <div className='text-center text-muted-foreground'>
+                <AlertTriangle className='h-8 w-8 mx-auto mb-2 opacity-50' />
                 <p>현재 감지된 이상 징후가 없습니다.</p>
               </div>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className='space-y-3'>
               {sortedAnomalies.map((anomaly, index) => (
                 <div
                   key={anomaly.id || index}
-                  className="rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                  className='border rounded-lg p-3 hover:bg-muted/50 transition-colors'
                 >
-                  <div className="mb-2 flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{typeIcons[anomaly.type]}</span>
+                  <div className='flex items-start justify-between mb-2'>
+                    <div className='flex items-center gap-2'>
+                      <span className='text-lg'>{typeIcons[anomaly.type]}</span>
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className='flex items-center gap-2'>
                           <Badge
-                            variant="outline"
+                            variant='outline'
                             className={severityColors[anomaly.severity]}
                           >
                             {anomaly.severity.toUpperCase()}
                           </Badge>
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant='secondary' className='text-xs'>
                             {anomaly.type}
                           </Badge>
                         </div>
-                        <p className="mt-1 text-sm font-medium">
+                        <p className='text-sm font-medium mt-1'>
                           {anomaly.serverName || `Server ${anomaly.serverId}`}
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs text-muted-foreground">
+                    <span className='text-xs text-muted-foreground'>
                       {formatTime(anomaly.timestamp)}
                     </span>
                   </div>
 
-                  <p className="mb-2 text-sm text-muted-foreground">
+                  <p className='text-sm text-muted-foreground mb-2'>
                     {anomaly.description || anomaly.message}
                   </p>
 
                   {showDetails && (
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <div className='flex items-center gap-4 text-xs text-muted-foreground'>
                       <span>값: {anomaly.value}</span>
                       <span>임계값: {anomaly.threshold}</span>
                       <Badge
@@ -303,7 +303,7 @@ export function AnomalyFeed({
                             ? 'destructive'
                             : 'secondary'
                         }
-                        className="text-xs"
+                        className='text-xs'
                       >
                         {anomaly.status}
                       </Badge>

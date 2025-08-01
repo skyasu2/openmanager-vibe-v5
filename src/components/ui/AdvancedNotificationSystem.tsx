@@ -58,7 +58,7 @@ class AdvancedNotificationManager {
   }
 
   private notify(): void {
-    this.listeners.forEach((listener) => {
+    this.listeners.forEach(listener => {
       listener([...this.notifications]);
     });
   }
@@ -87,7 +87,7 @@ class AdvancedNotificationManager {
     // 우선순위에 따라 정렬하여 삽입
     const priorityOrder = { critical: 0, high: 1, normal: 2, low: 3 };
     const insertIndex = this.notifications.findIndex(
-      (n) =>
+      n =>
         priorityOrder[n.priority || 'normal'] >
         priorityOrder[newNotification.priority || 'normal']
     );
@@ -115,7 +115,7 @@ class AdvancedNotificationManager {
 
   remove(id: string): void {
     const index = this.notifications.findIndex(
-      (notification) => notification.id === id
+      notification => notification.id === id
     );
     if (index > -1) {
       this.notifications.splice(index, 1);
@@ -242,28 +242,28 @@ function NotificationItem({
       case 'success':
         return {
           container: `${baseStyles} bg-green-600/90 border border-green-500/50`,
-          icon: <CheckCircle className="h-5 w-5 text-white" />,
+          icon: <CheckCircle className='w-5 h-5 text-white' />,
           accent: 'bg-green-500',
           textColor: 'text-white',
         };
       case 'error':
         return {
           container: `${baseStyles} bg-red-600/90 border border-red-500/50`,
-          icon: <XCircle className="h-5 w-5 text-white" />,
+          icon: <XCircle className='w-5 h-5 text-white' />,
           accent: 'bg-red-500',
           textColor: 'text-white',
         };
       case 'warning':
         return {
           container: `${baseStyles} bg-yellow-600/90 border border-yellow-500/50`,
-          icon: <AlertTriangle className="h-5 w-5 text-white" />,
+          icon: <AlertTriangle className='w-5 h-5 text-white' />,
           accent: 'bg-yellow-500',
           textColor: 'text-white',
         };
       case 'system':
         return {
           container: `${baseStyles} bg-purple-600/90 border border-purple-500/50`,
-          icon: <Activity className="h-5 w-5 text-white" />,
+          icon: <Activity className='w-5 h-5 text-white' />,
           accent: 'bg-purple-500',
           textColor: 'text-white',
         };
@@ -271,7 +271,7 @@ function NotificationItem({
       default:
         return {
           container: `${baseStyles} bg-blue-600/90 border border-blue-500/50`,
-          icon: <Info className="h-5 w-5 text-white" />,
+          icon: <Info className='w-5 h-5 text-white' />,
           accent: 'bg-blue-500',
           textColor: 'text-white',
         };
@@ -281,13 +281,13 @@ function NotificationItem({
   const getPriorityIndicator = () => {
     switch (notification.priority) {
       case 'critical':
-        return <Zap className="_animate-pulse h-3 w-3 text-red-500" />;
+        return <Zap className='w-3 h-3 text-red-500 _animate-pulse' />;
       case 'high':
         return (
-          <div className="_animate-pulse h-2 w-2 rounded-full bg-orange-500" />
+          <div className='w-2 h-2 bg-orange-500 rounded-full _animate-pulse' />
         );
       case 'low':
-        return <div className="h-2 w-2 rounded-full bg-gray-400" />;
+        return <div className='w-2 h-2 bg-gray-400 rounded-full' />;
       default:
         return null;
     }
@@ -311,7 +311,13 @@ function NotificationItem({
         transition: { duration: 0.3 },
       }}
       layout
-      className={` ${styles.container} min-w-80 max-w-96 transform rounded-xl shadow-md transition-all duration-300 hover:scale-[1.02] ${notification.dismissible ? 'cursor-pointer' : ''} pointer-events-auto mb-4`}
+      className={`
+        ${styles.container}
+        min-w-80 max-w-96 rounded-xl shadow-md
+        transform transition-all duration-300 hover:scale-[1.02]
+        ${notification.dismissible ? 'cursor-pointer' : ''}
+        pointer-events-auto mb-4
+      `}
       style={{
         zIndex: 99990 - index,
         boxShadow: '0 8px 25px -5px rgba(0, 0, 0, 0.2)',
@@ -319,15 +325,15 @@ function NotificationItem({
       onClick={notification.dismissible ? handleDismiss : undefined}
     >
       {/* 우선순위 표시 바 */}
-      <div className={`absolute left-0 right-0 top-0 h-1 ${styles.accent}`} />
+      <div className={`absolute top-0 left-0 right-0 h-1 ${styles.accent}`} />
 
-      <div className="p-4">
+      <div className='p-4'>
         {/* 헤더 */}
-        <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="flex-shrink-0">{styles.icon}</div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center space-x-2">
+        <div className='flex items-center justify-between mb-3'>
+          <div className='flex items-center space-x-3'>
+            <div className='flex-shrink-0'>{styles.icon}</div>
+            <div className='flex-1 min-w-0'>
+              <div className='flex items-center space-x-2'>
                 <h3
                   className={`text-sm font-semibold ${styles.textColor} truncate`}
                 >
@@ -335,7 +341,7 @@ function NotificationItem({
                 </h3>
                 {getPriorityIndicator()}
               </div>
-              <p className={`text-xs ${styles.textColor} mt-1 opacity-90`}>
+              <p className={`text-xs ${styles.textColor} opacity-90 mt-1`}>
                 {notification.message}
               </p>
             </div>
@@ -343,27 +349,27 @@ function NotificationItem({
 
           {notification.dismissible && (
             <button
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 handleDismiss();
               }}
-              className="ml-2 flex-shrink-0 rounded-full p-1 transition-colors hover:bg-white/20"
+              className='flex-shrink-0 p-1 rounded-full hover:bg-white/20 transition-colors ml-2'
             >
-              <X className="h-4 w-4 text-white opacity-70 hover:opacity-100" />
+              <X className='w-4 h-4 text-white opacity-70 hover:opacity-100' />
             </button>
           )}
         </div>
 
         {/* 액션 버튼 */}
         {notification.action && (
-          <div className="mt-3 flex justify-end border-t border-white/20 pt-3">
+          <div className='flex justify-end mt-3 pt-3 border-t border-white/20'>
             <button
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 notification.action!.onClick();
                 handleDismiss();
               }}
-              className="rounded-lg bg-white/20 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/30"
+              className='px-3 py-1.5 text-xs font-medium text-white rounded-lg bg-white/20 hover:bg-white/30 transition-colors'
             >
               {notification.action.label}
             </button>
@@ -372,10 +378,10 @@ function NotificationItem({
 
         {/* 시간 표시 */}
         <div
-          className={`mt-3 flex items-center justify-between text-xs ${styles.textColor} opacity-75`}
+          className={`flex items-center justify-between mt-3 text-xs ${styles.textColor} opacity-75`}
         >
-          <div className="flex items-center space-x-1">
-            <Clock className="h-3 w-3" />
+          <div className='flex items-center space-x-1'>
+            <Clock className='w-3 h-3' />
             <span>
               {notification.timestamp.toLocaleTimeString('ko-KR', {
                 hour: '2-digit',
@@ -384,7 +390,7 @@ function NotificationItem({
             </span>
           </div>
           {notification.priority && notification.priority !== 'normal' && (
-            <span className="font-medium uppercase">
+            <span className='uppercase font-medium'>
               {notification.priority}
             </span>
           )}
@@ -393,7 +399,7 @@ function NotificationItem({
         {/* 자동 닫힘 프로그레스 바 */}
         {notification.duration && notification.duration > 0 && (
           <motion.div
-            className="absolute bottom-0 left-0 h-1 rounded-b-xl bg-white/40"
+            className='absolute bottom-0 left-0 h-1 bg-white/40 rounded-b-xl'
             initial={{ width: '100%' }}
             animate={{ width: '0%' }}
             transition={{
@@ -436,17 +442,19 @@ export function AdvancedNotificationContainer() {
     document.getElementById('advanced-notification-portal') || document.body;
 
   return createPortal(
-    <div className="pointer-events-none fixed right-4 top-4 z-[99999]">
+    <div className='fixed top-4 right-4 z-[99999] pointer-events-none'>
       {/* 전체 알림 제어 */}
       {notifications.length > 1 && (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="pointer-events-auto mb-4"
+          className='mb-4 pointer-events-auto'
         >
           <button
             onClick={handleClearAll}
-            className="rounded-xl border border-gray-700 bg-gray-900 px-4 py-2 text-xs font-medium text-white shadow-2xl backdrop-blur-xl transition-all duration-200 hover:bg-gray-800"
+            className='px-4 py-2 text-xs font-medium rounded-xl bg-gray-900 text-white 
+                       hover:bg-gray-800 transition-all duration-200 shadow-2xl backdrop-blur-xl
+                       border border-gray-700'
           >
             모든 알림 닫기 ({notifications.length})
           </button>
@@ -454,8 +462,8 @@ export function AdvancedNotificationContainer() {
       )}
 
       {/* 알림 목록 */}
-      <div className="pointer-events-auto space-y-2">
-        <AnimatePresence mode="popLayout">
+      <div className='pointer-events-auto space-y-2'>
+        <AnimatePresence mode='popLayout'>
           {notifications.map((notification, index) => (
             <NotificationItem
               key={notification.id}
