@@ -1,11 +1,11 @@
 /**
  * 🔗 Task 도구 통합 레이어
- * 
+ *
  * 기존 Task 도구와 새로운 진행률 시스템 연결
  */
 
 import { agentExecutor } from './agent-executor';
-import { progressTracker } from './agent-progress-tracker';
+import { progressTracker, createProgressBar } from './agent-progress-tracker';
 import type {
   SubAgentType,
   AgentTaskOptions,
@@ -29,41 +29,43 @@ interface ImprovedTaskParams extends LegacyTaskParams {
 
 /**
  * 개선된 Task 함수
- * 
+ *
  * 기존 Task 도구를 래핑하여 진행률 추적 기능 추가
  */
 export async function ImprovedTask(params: ImprovedTaskParams): Promise<any> {
-  const { subagent_type, description, prompt, options, onProgress, onCheckpoint } = params;
-  
+  const { subagent_type, description, prompt, options } = params;
+
   // 타입 검증
   if (!isValidAgentType(subagent_type)) {
     throw new Error(`Invalid agent type: ${subagent_type}`);
   }
-  
+
   // 옵션 병합
   const mergedOptions: AgentTaskOptions = {
     reportProgress: true,
     streamOutput: process.env.VERBOSE === 'true',
     ...options,
   };
-  
+
   try {
     // 실행 시작 로그
     console.log(`\n🚀 ${subagent_type} 작업 시작: ${description}\n`);
-    
+
     // 에이전트 실행
     const result = await agentExecutor.executeTask(
       subagent_type as SubAgentType,
       prompt,
       mergedOptions
     );
-    
+
     // 결과 처리
     if (result.success) {
       console.log(`\n✅ ${subagent_type} 작업 완료\n`);
       return result.result;
     } else {
-      console.error(`\n❌ ${subagent_type} 작업 실패: ${result.error?.message}\n`);
+      console.error(
+        `\n❌ ${subagent_type} 작업 실패: ${result.error?.message}\n`
+      );
       throw result.error;
     }
   } catch (error) {
@@ -74,7 +76,7 @@ export async function ImprovedTask(params: ImprovedTaskParams): Promise<any> {
 
 /**
  * 병렬 Task 실행
- * 
+ *
  * 여러 에이전트를 동시에 실행하고 진행 상황 모니터링
  */
 export async function ParallelTasks(
@@ -86,13 +88,13 @@ export async function ParallelTasks(
   }>
 ): Promise<ExecutionResult[]> {
   console.log(`\n🚀 ${tasks.length}개 에이전트 병렬 실행 시작\n`);
-  
+
   // 타입 검증 및 변환
-  const validatedTasks = tasks.map(task => {
+  const validatedTasks = tasks.map((task) => {
     if (!isValidAgentType(task.subagent_type)) {
       throw new Error(`Invalid agent type: ${task.subagent_type}`);
     }
-    
+
     return {
       agentType: task.subagent_type as SubAgentType,
       prompt: task.prompt,
@@ -103,22 +105,24 @@ export async function ParallelTasks(
       },
     };
   });
-  
+
   // 병렬 실행
   const results = await agentExecutor.executeParallel(validatedTasks);
-  
+
   // 결과 요약
-  const successCount = results.filter(r => r.success).length;
-  const failureCount = results.filter(r => !r.success).length;
-  
-  console.log(`\n📊 병렬 실행 완료: 성공 ${successCount}개, 실패 ${failureCount}개\n`);
-  
+  const successCount = results.filter((r) => r.success).length;
+  const failureCount = results.filter((r) => !r.success).length;
+
+  console.log(
+    `\n📊 병렬 실행 완료: 성공 ${successCount}개, 실패 ${failureCount}개\n`
+  );
+
   return results;
 }
 
 /**
  * 기존 Task 도구를 개선된 버전으로 마이그레이션
- * 
+ *
  * 사용 예시:
  * ```typescript
  * // 기존 방식
@@ -127,7 +131,7 @@ export async function ParallelTasks(
  *   description: 'DB 최적화',
  *   prompt: 'Upstash Redis 최적화'
  * });
- * 
+ *
  * // 개선된 방식
  * await ImprovedTask({
  *   subagent_type: 'database-administrator',
@@ -140,7 +144,9 @@ export async function ParallelTasks(
  * });
  * ```
  */
-export function migrateToImprovedTask(legacyTask: LegacyTaskParams): ImprovedTaskParams {
+export function migrateToImprovedTask(
+  legacyTask: LegacyTaskParams
+): ImprovedTaskParams {
   return {
     ...legacyTask,
     options: {
@@ -152,26 +158,33 @@ export function migrateToImprovedTask(legacyTask: LegacyTaskParams): ImprovedTas
 }
 
 /**
- * 진행 상황 모니터링 헬퍼
+ * 진행 상황 모니터링 헬퍼 (WSL 최적화)
  */
 export function monitorTaskProgress(taskId: string): void {
+  let lastPercentage = -1;
+
   const interval = setInterval(() => {
-    const task = (progressTracker as any).tasks.get(taskId);
+    const task = progressTracker.getTask(taskId);
     if (!task) {
       clearInterval(interval);
       return;
     }
-    
-    if (task.status === 'in_progress') {
+
+    // 진행률이 변경된 경우에만 출력 (WSL 화면 깜빡임 방지)
+    if (
+      task.status === 'in_progress' &&
+      task.progress.percentage !== lastPercentage
+    ) {
+      lastPercentage = task.progress.percentage;
       console.log(
-        `[${task.agentType}] ${progressTracker.createProgressBar(task.progress.percentage)} ${task.progress.currentStep}`
+        `[${task.agentType}] ${createProgressBar(task.progress.percentage)} ${task.progress.currentStep}`
       );
     }
-    
+
     if (['completed', 'failed', 'timeout', 'cancelled'].includes(task.status)) {
       clearInterval(interval);
     }
-  }, 2000);
+  }, 5000); // 5초로 변경
 }
 
 /**
@@ -210,7 +223,7 @@ function isValidAgentType(type: string): boolean {
     'git-cicd-specialist',
     'execution-tracker',
   ];
-  
+
   return validTypes.includes(type as SubAgentType);
 }
 
