@@ -1,16 +1,12 @@
 import type {
   Server,
   ServerInstance,
-  ServerStatus,
   ServerAlert,
   ServerMetrics,
   EnhancedServerMetrics,
   ServerEnvironment,
   ServerRole,
-  Service,
-  LogEntry,
   NetworkInfo,
-  SystemInfo,
   ProcessInfo,
   MetricsHistory,
 } from '@/types/server';
@@ -78,7 +74,7 @@ export function createMockServer(overrides?: Partial<Server>): Server {
       score: 92,
       trend: Array(30)
         .fill(0)
-        .map((_, i) => 85 + Math.random() * 15),
+        .map(() => 85 + Math.random() * 15),
     },
     alertsSummary: {
       total: 3,
@@ -122,7 +118,7 @@ export function createMockServerInstance(
       score: 88,
       trend: Array(30)
         .fill(0)
-        .map((_, i) => 82 + Math.random() * 12),
+        .map(() => 82 + Math.random() * 12),
       status: 'healthy',
       issues: [],
     },

@@ -104,7 +104,6 @@ export class MockDataRotator {
   updateServers(servers: Server[]): Server[] {
     return servers.map((server) => {
       const metrics = this.getCurrentMetrics(server.id);
-      const scenario = this.timeSeries[server.id]?.scenario || 'normal';
 
       // 메트릭 기반 상태 결정
       let status: 'online' | 'warning' | 'critical' = 'online';
