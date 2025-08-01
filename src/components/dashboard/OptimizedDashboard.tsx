@@ -18,7 +18,7 @@ import { useSystemIntegration } from '@/hooks/useSystemIntegration';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import type { Server } from '@/types/server';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bot, Clock, LogOut, User } from 'lucide-react';
+import { Bot, LogOut, User } from 'lucide-react';
 import { useSession, signOut } from '@/hooks/useSupabaseSession';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -27,6 +27,7 @@ import { useEffect, useState } from 'react';
 import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
 import EnhancedServerModal from './EnhancedServerModal';
 import ServerDashboard from './ServerDashboard';
+import { RealtimeClock } from '@/components/shared/RealtimeClock';
 
 // AI 사이드바 import (Phase 2-5 구조)
 import { AISidebar } from '@/presentation/ai-sidebar';
@@ -54,7 +55,6 @@ export default function OptimizedDashboard({
   // 서버 모달 상태
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
-  const [currentTime, setCurrentTime] = useState(new Date());
 
   // 시스템 통합 상태
   const systemStatus = useSystemIntegration();
@@ -102,15 +102,6 @@ export default function OptimizedDashboard({
   const handleExtendSession = () => {
     updateActivity();
   };
-
-  // 실시간 시계
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   // 로그인 상태 확인
   useEffect(() => {
@@ -192,13 +183,13 @@ export default function OptimizedDashboard({
 
               {/* 중앙 정보 */}
               <div className="flex items-center space-x-6">
-                {/* 실시간 시계 */}
-                <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
-                  <Clock className="h-5 w-5" />
-                  <span className="font-mono text-sm">
-                    {currentTime.toLocaleTimeString('ko-KR')}
-                  </span>
-                </div>
+                {/* 실시간 시계 - 최적화된 컴포넌트 사용 */}
+                <RealtimeClock 
+                  format="24h"
+                  showIcon={true}
+                  locale="ko-KR"
+                  className="text-gray-600 dark:text-gray-300"
+                />
 
                 {/* AI 어시스턴트 토글 */}
                 <motion.button
