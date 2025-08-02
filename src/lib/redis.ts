@@ -534,7 +534,14 @@ export async function getMetrics(
     ? `metrics:${serverId}:${timestamp}`
     : `metrics:${serverId}:latest`;
   const data = await client.get(key);
-  return data ? JSON.parse(data) : null;
+  if (!data) return null;
+  
+  try {
+    return JSON.parse(data);
+  } catch (error) {
+    console.error(`Failed to parse metrics for ${serverId}:`, error);
+    return null;
+  }
 }
 
 /**
@@ -558,7 +565,14 @@ export async function setMetrics(
 export async function getRealtime(key: string): Promise<any> {
   const client = await getHybridRedisClient('realtime-cache');
   const data = await client.get(`realtime:${key}`);
-  return data ? JSON.parse(data) : null;
+  if (!data) return null;
+  
+  try {
+    return JSON.parse(data);
+  } catch (error) {
+    console.error(`Failed to parse realtime data for ${key}:`, error);
+    return null;
+  }
 }
 
 /**
@@ -586,9 +600,15 @@ export async function getAllRealtime(): Promise<any[]> {
     const dump = await client.dump();
     for (const [key, item] of Object.entries(dump)) {
       if (key.startsWith('realtime:')) {
-        allData.push(
-          typeof item.value === 'string' ? JSON.parse(item.value) : item.value
-        );
+        try {
+          const value = typeof item.value === 'string' 
+            ? JSON.parse(item.value) 
+            : item.value;
+          allData.push(value);
+        } catch (error) {
+          console.error(`Failed to parse realtime data in dump for ${key}:`, error);
+          // Skip invalid entries
+        }
       }
     }
     return allData;

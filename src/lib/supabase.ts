@@ -4,38 +4,10 @@
  */
 
 import { getErrorMessage } from '@/types/type-utils';
-import { createClient } from '@supabase/supabase-js';
+import { supabase, browserSupabase, getSupabaseUser, signInWithGitHub, signOut } from '@/lib/supabase/supabase-client';
 
-// 환경 변수 가져오기
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  console.warn(
-    'Supabase 환경 변수가 설정되지 않았습니다. .env.local 파일을 확인하세요.'
-  );
-}
-
-// 기본 Supabase 클라이언트
-export const supabase = createClient(
-  supabaseUrl ?? 'https://placeholder.supabase.co',
-  supabaseKey ?? 'placeholder-anon-key',
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-    },
-    global: {
-      headers: {
-        'x-application-name': 'openmanager-vibe-v5',
-      },
-    },
-  }
-);
-
-// 브라우저 전용 Supabase 클라이언트 (SSR 방지)
-export const browserSupabase =
-  typeof window !== 'undefined' ? supabase : undefined;
+// Re-export from supabase-client
+export { supabase, browserSupabase, getSupabaseUser, signInWithGitHub, signOut };
 
 // 타입 정의
 interface FallbackStorage {
@@ -220,47 +192,6 @@ export class ResilientSupabaseClient {
 
 // 싱글톤 인스턴스
 export const resilientSupabase = new ResilientSupabaseClient();
-
-// Helper functions
-export async function getSupabaseUser() {
-  if (typeof window === 'undefined') return null;
-
-  try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    return user;
-  } catch (error) {
-    console.warn('Failed to get Supabase user:', error);
-    return null;
-  }
-}
-
-export async function signInWithGitHub() {
-  try {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (error) throw error;
-  } catch (error) {
-    console.error('GitHub 로그인 실패:', error);
-    throw error;
-  }
-}
-
-export async function signOut() {
-  try {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-  } catch (error) {
-    console.error('로그아웃 실패:', error);
-    throw error;
-  }
-}
 
 // Default export
 export default supabase;

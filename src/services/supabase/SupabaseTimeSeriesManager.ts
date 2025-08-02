@@ -474,10 +474,21 @@ export class SupabaseTimeSeriesManager {
       const responseTime =
         metric.responseTime ?? metric.applicationMetrics?.responseTime ?? 0;
 
+      // Safe timestamp conversion
+      let timestampISO: string;
+      try {
+        timestampISO = metric.timestamp instanceof Date 
+          ? metric.timestamp.toISOString()
+          : new Date(metric.timestamp).toISOString();
+      } catch {
+        // Fallback to current time for invalid timestamps
+        timestampISO = new Date().toISOString();
+      }
+
       return {
         session_id: sessionId,
-        server_id: metric.serverId,
-        timestamp: metric.timestamp.toISOString(),
+        server_id: metric.serverId || 'unknown',
+        timestamp: timestampISO,
         cpu_usage: cpu,
         memory_usage: memory,
         disk_usage: disk,

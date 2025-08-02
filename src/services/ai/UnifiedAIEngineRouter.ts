@@ -25,6 +25,8 @@ import {
   AIResponseFilter,
   filterAIResponse,
 } from './security/AIResponseFilter';
+import type { AIMetadata } from '@/types/ai-service-types';
+import type { ComplexityScore } from './query-complexity-analyzer';
 
 export interface RouterConfig {
   // 보안 설정
@@ -235,10 +237,13 @@ export class UnifiedAIEngineRouter {
             tokensCounted: false,
             processingPath,
           },
-          metadata: {
-            ...cachedResult.metadata,
-            cached: true,
-          },
+          metadata: cachedResult.metadata ? (() => {
+            const { complexity, cacheHit, ...rest } = cachedResult.metadata as any;
+            return {
+              ...rest,
+              cached: true,
+            };
+          })() : undefined,
           processingTime: Date.now() - startTime,
         };
       }
@@ -397,10 +402,13 @@ export class UnifiedAIEngineRouter {
           tokensCounted,
           processingPath,
         },
-        metadata: {
-          ...response.metadata,
-          cached: false, // 새로운 응답이므로 cached = false
-        },
+        metadata: response.metadata ? (() => {
+          const { complexity, cacheHit, ...rest } = response.metadata as any;
+          return {
+            ...rest,
+            cached: false, // 새로운 응답이므로 cached = false
+          };
+        })() : undefined,
       };
     } catch (error) {
       console.error('❌ UnifiedAIEngineRouter 오류:', error);
@@ -971,7 +979,9 @@ export class UnifiedAIEngineRouter {
     // 캐시 크기 제한 (최대 1000개 엔트리)
     if (this.cache.size > 1000) {
       const oldestKey = this.cache.keys().next().value;
-      this.cache.delete(oldestKey);
+      if (oldestKey !== undefined) {
+        this.cache.delete(oldestKey);
+      }
     }
   }
 

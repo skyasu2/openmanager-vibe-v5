@@ -1,9 +1,11 @@
-# Tavily MCP 문제 해결 가이드
+# Tavily Remote MCP 문제 해결 가이드
+
+> **📍 업데이트**: 이제 `tavily-remote` 서버를 사용합니다 (2025.8.2 기준)
 
 ## 🚨 문제 현상
 
 - **에러**: `MCP error -32603: Invalid API key`
-- **발생 시점**: tavily-mcp 도구 사용 시
+- **발생 시점**: tavily-remote 도구 사용 시
 
 ## 🔍 원인 분석
 
@@ -11,10 +13,10 @@
 
 ```bash
 # .env.local 파일의 키
-TAVILY_API_KEY=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
+TAVILY_API_KEY=tvly-dev-xxxxxxxxxxxxxxxxxxxxx
 
 # Claude MCP 설정의 키 (다름!)
-TAVILY_API_KEY=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
+TAVILY_API_KEY=tvly-xxxxxxxxxxxxxxxxxxxxx
 ```
 
 ### 2. API 키 타입 차이
@@ -29,24 +31,17 @@ TAVILY_API_KEY=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
 
 ## 💡 해결 방법
 
-### 방법 1: 로컬 설치 방식
+### 방법 1: Remote MCP 방식 (권장)
 
 ```bash
-# 1. tavily-mcp 제거
+# 1. 기존 tavily-mcp 제거 (있다면)
 claude mcp remove tavily-mcp
 
-# 2. 올바른 API 키로 재설치
-claude mcp add tavily-mcp npx -e TAVILY_API_KEY=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 -- -y tavily-mcp@0.2.9
+# 2. tavily-remote 설치
+claude mcp add tavily-remote npx -- -y mcp-remote https://mcp.tavily.com/mcp/?tavilyApiKey=[YOUR_TAVILY_API_KEY]
 ```
 
-### 방법 2: 원격 MCP 서버 방식 (권장)
-
-```bash
-# 원격 서버 URL 사용
-claude mcp add tavily-remote npx -- -y mcp-remote https://mcp.tavily.com/mcp/?tavilyApiKey=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
-```
-
-### 방법 3: 수동 설정
+### 방법 2: 수동 설정 (고급 사용자용)
 
 ```json
 // ~/.claude.json에 직접 추가
@@ -54,12 +49,9 @@ claude mcp add tavily-remote npx -- -y mcp-remote https://mcp.tavily.com/mcp/?ta
   "projects": {
     "/mnt/d/cursor/openmanager-vibe-v5": {
       "mcpServers": {
-        "tavily-mcp": {
+        "tavily-remote": {
           "command": "npx",
-          "args": ["-y", "tavily-mcp@0.2.9"],
-          "env": {
-            "TAVILY_API_KEY": "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"
-          }
+          "args": ["-y", "mcp-remote", "https://mcp.tavily.com/mcp/?tavilyApiKey=[YOUR_TAVILY_API_KEY]"]
         }
       }
     }
@@ -78,9 +70,11 @@ claude mcp add tavily-remote npx -- -y mcp-remote https://mcp.tavily.com/mcp/?ta
 ### 키 테스트
 
 ```bash
-# 직접 테스트
-export TAVILY_API_KEY="your-key-here"
-npx tavily-mcp@0.2.9 test
+# MCP 서버 상태 확인
+claude mcp list
+
+# 또는 Claude에서 직접 테스트
+mcp__tavily-remote__tavily_search({ query: "test search" })
 ```
 
 ## 🛠️ 추가 트러블슈팅
@@ -117,5 +111,6 @@ WebSearch({ query: '검색어' });
 ## 🔗 관련 링크
 
 - [Tavily 공식 문서](https://docs.tavily.com)
-- [Tavily MCP GitHub](https://github.com/tavily-ai/tavily-mcp)
-- [Claude MCP 문서](https://docs.anthropic.com/claude/docs/model-context-protocol)
+- [Tavily Remote MCP](https://mcp.tavily.com)
+- [Claude MCP 문서](https://docs.anthropic.com/en/docs/claude-code/mcp)
+- [MCP Remote 패키지](https://www.npmjs.com/package/mcp-remote)

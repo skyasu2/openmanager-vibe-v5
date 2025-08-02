@@ -73,7 +73,7 @@ mcp__filesystem__write_file(".claude/mcp-backup.json", content)
 mcp__github__create_commit("feat: MCP 서버 설정 최적화")
 
 # Tavily - 최신 MCP 업데이트 검색
-mcp__tavily-mcp__search("@modelcontextprotocol latest updates")
+mcp__tavily-remote__tavily_search({ query: "@modelcontextprotocol latest updates" })
 ```
 
 #### 설정 검증 스크립트
@@ -103,7 +103,7 @@ mcp__supabase__query(`
 mcp__filesystem__read_file("/logs/application.log")
 
 # Tavily - 외부 서비스 상태 확인
-mcp__tavily-mcp__search("Vercel status page current incidents")
+mcp__tavily-remote__tavily_search({ query: "Vercel status page current incidents" })
 ```
 
 #### 자동 보고서 생성
@@ -204,7 +204,7 @@ const metrics = mcp__playwright__evaluate(`
 `);
 
 // Tavily - 최신 최적화 기법 검색
-mcp__tavily - mcp__search('Next.js 14.2.4 performance optimization 2025');
+mcp__tavily-remote__tavily_search({ query: 'Next.js 14.2.4 performance optimization 2025' });
 ```
 
 ### 8. **gemini-cli-collaborator** - AI 협업 전문가

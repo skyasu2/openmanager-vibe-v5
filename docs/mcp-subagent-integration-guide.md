@@ -82,13 +82,13 @@ mcp__supabase__apply_migration({
 
 **주요 사용자:**
 
-- `doc-writer-researcher` (tavily-mcp, context7)
+- `doc-writer-researcher` (tavily-remote, context7)
 
 **활용 예시:**
 
 ```typescript
 // 웹 검색 및 문서 조회
-mcp__tavily - mcp__tavily - search({ query: 'Next.js 15 best practices' });
+mcp__tavily-remote__tavily_search({ query: 'Next.js 15 best practices' });
 mcp__context7__get -
   library -
   docs({ context7CompatibleLibraryID: '/vercel/next.js' });
@@ -222,13 +222,10 @@ await mcp__filesystem__write_file({
 
 ```typescript
 // 1. 기술 문서 검색
-const docs =
-  (await mcp__tavily) -
-  mcp__tavily -
-  search({
-    query: 'Upstash Redis best practices 2025',
-    max_results: 10,
-  });
+const docs = await mcp__tavily-remote__tavily_search({
+  query: 'Upstash Redis best practices 2025',
+  max_results: 10,
+});
 
 // 2. 라이브러리 문서 조회
 const libDocs =

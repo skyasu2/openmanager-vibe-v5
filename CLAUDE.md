@@ -641,7 +641,7 @@ const timeInfo = await mcp__time__get_current_time({
 
 ## 🔧 MCP 서버 (10개) - Claude Code CLI 설정
 
-### 현재 활성화된 MCP 서버 (2025.7.30 기준)
+### 현재 활성화된 MCP 서버 (2025.8.2 기준)
 
 | 서버명                | 상태         | 용도                   | 패키지                                                    |
 | --------------------- | ------------ | ---------------------- | --------------------------------------------------------- |
@@ -649,7 +649,7 @@ const timeInfo = await mcp__time__get_current_time({
 | `memory`              | ✅ Connected | 지식 그래프 관리       | `@modelcontextprotocol/server-memory@latest`              |
 | `github`              | ✅ Connected | GitHub 저장소 관리     | `@modelcontextprotocol/server-github@latest`              |
 | `supabase`            | ✅ Connected | 데이터베이스 작업      | `@supabase/mcp-server-supabase@latest`                    |
-| `tavily-mcp`          | ✅ Connected | 웹 검색 및 콘텐츠 추출 | `tavily-mcp@0.2.9`                                        |
+| `tavily-remote`       | ✅ Connected | 웹 검색 및 콘텐츠 추출 | `mcp-remote` (URL 기반)                                   |
 | `sequential-thinking` | ✅ Connected | 복잡한 문제 해결       | `@modelcontextprotocol/server-sequential-thinking@latest` |
 | `playwright`          | ✅ Connected | 브라우저 자동화        | `@playwright/mcp@latest`                                  |
 | `time`                | ✅ Connected | 시간/시간대 변환       | `mcp-server-time` (Python)                                |
@@ -664,7 +664,7 @@ const timeInfo = await mcp__time__get_current_time({
 | `memory`              | 4개: mcp-server-admin, test-automation-specialist, ai-systems-engineer, test-first-developer                                                          | 지식 저장 및 공유, 테스트 패턴 |
 | `github`              | 5개: documentation-manager, security-auditor, debugger-specialist, backend-gcp-specialist, git-cicd-specialist                                        | PR/이슈 관리, 저장소 작업      |
 | `supabase`            | 1개: database-administrator                                                                                                                           | DB 전담 관리, 쿼리 최적화      |
-| `tavily-mcp`          | 4개: documentation-manager, vercel-platform-specialist, backend-gcp-specialist, debugger-specialist                                                   | 웹 검색, 문서 조사             |
+| `tavily-remote`       | 4개: documentation-manager, vercel-platform-specialist, backend-gcp-specialist, debugger-specialist                                                   | 웹 검색, 문서 조사             |
 | `sequential-thinking` | 3개: central-supervisor, debugger-specialist, mcp-server-admin                                                                                        | 복잡한 문제 해결, 조율         |
 | `playwright`          | 2개: test-automation-specialist, ux-performance-optimizer                                                                                             | 브라우저 자동화, 성능 테스트   |
 | `time`                | 4개: vercel-platform-specialist, documentation-manager, debugger-specialist, database-administrator                                                   | 타임스탬프, 시간대 변환        |
@@ -702,6 +702,9 @@ claude mcp add supabase npx -e SUPABASE_URL=https://xxxxx.supabase.co -e SUPABAS
 
 # Serena 서버 (프로젝트 경로 필요)
 claude mcp add serena uvx -- --from git+https://github.com/oraios/serena serena-mcp-server --context ide-assistant --project /mnt/d/cursor/openmanager-vibe-v5
+
+# Tavily Remote 서버 (API 키 포함 URL)
+claude mcp add tavily-remote npx -- -y mcp-remote https://mcp.tavily.com/mcp/?tavilyApiKey=tvly-dev-xxxxxx
 ```
 
 ### MCP 서버 관리
@@ -1136,4 +1139,5 @@ gemini "review the implemented changes for architectural consistency"
 - 무료 티어 사용률: Vercel 30%, GCP 15%, Supabase 3%
 - GCP Functions: 3개 배포 완료, Python 3.11 최적화
 - 서브에이전트: 17개 → 17개 최적화 (중복 제거, 역할 명확화, 품질 검증, TDD, 구조 리팩토링 에이전트 추가)
+- MCP 서버: 10개 안정 운영 (tavily-mcp → tavily-remote 업그레이드 완료)
 - Gemini CLI 통합: WSL 터미널 직접 대화 지원, 1M 토큰 활용

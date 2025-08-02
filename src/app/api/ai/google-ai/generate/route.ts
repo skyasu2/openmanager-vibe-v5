@@ -7,7 +7,6 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   GoogleAIGenerateRequestSchema,
@@ -19,6 +18,7 @@ import {
   type GoogleAIErrorResponse,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
+import { getGoogleAIModel, shouldUseMockGoogleAI } from '@/lib/ai/google-ai-client';
 
 export const runtime = 'nodejs';
 
@@ -40,20 +40,15 @@ const postHandler = createApiRoute()
       model,
     } = context.body;
 
-    // API 키 확인
-    const apiKey =
-      process.env.GOOGLE_AI_API_KEY ||
-      process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY;
-    if (!apiKey) {
-      console.error('❌ Google AI API 키가 설정되지 않았습니다.');
-      throw new Error('Google AI service not configured');
-    }
-
     const startTime = Date.now();
 
-    // Google AI 클라이언트 초기화
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const generativeModel = genAI.getGenerativeModel({ model: model || 'gemini-pro' });
+    // Mock 사용 여부 로그
+    if (shouldUseMockGoogleAI) {
+      console.log('🎭 Mock Google AI로 응답 생성 중...');
+    }
+
+    // Google AI 모델 가져오기 (실제 또는 Mock 자동 선택)
+    const generativeModel = getGoogleAIModel(model || 'gemini-pro');
 
     // 생성 설정
     const generationConfig = {
@@ -151,10 +146,11 @@ const getHandler = createApiRoute()
     enableLogging: true,
   })
   .build(async (): Promise<GoogleAIStatusResponse> => {
+    const isUsingMock = shouldUseMockGoogleAI;
     const apiKey =
       process.env.GOOGLE_AI_API_KEY ||
       process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY;
-    const isConfigured = !!apiKey;
+    const isConfigured = isUsingMock || !!apiKey;
 
     return {
       success: true,
@@ -167,6 +163,7 @@ const getHandler = createApiRoute()
         streaming: false,
         multimodal: false, // 현재는 텍스트만 지원
       },
+      ...(isUsingMock && { mockMode: true }),
       timestamp: new Date().toISOString(),
     };
   });

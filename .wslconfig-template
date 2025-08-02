@@ -1,0 +1,30 @@
+# WSL2 메모리 및 CPU 최적화 설정
+# 이 파일을 %USERPROFILE%\.wslconfig로 복사하세요
+# 예: C:\Users\YourName\.wslconfig
+
+[wsl2]
+# 메모리 설정 (현재 8GB → 12GB 권장)
+memory=12GB
+
+# CPU 코어 설정 (현재 4개 → 6개 권장)
+processors=6
+
+# 스왑 파일 크기 (메모리의 25-50% 권장)
+swap=4GB
+
+# 스왑 파일 위치
+swapfile=C:\\temp\\wsl-swap.vhdx
+
+# 가상 하드 디스크 크기
+localhostForwarding=true
+
+# GPU 가속 (선택사항)
+# gpuSupport=true
+
+# 중첩 가상화 활성화
+nestedVirtualization=true
+
+[experimental]
+# 성능 향상을 위한 실험적 기능
+sparseVhd=true
+autoMemoryReclaim=gradual

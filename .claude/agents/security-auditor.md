@@ -2,7 +2,6 @@
 name: security-auditor
 description: Basic security checker for portfolio projects. Use when: hardcoded secrets detected, basic auth needed, or user requests security review. Focuses on: preventing hardcoded secrets, basic API protection, environment variable usage. Portfolio-appropriate security only.
 tools: mcp__filesystem__*, mcp__github__*, Grep, Read, Write, Bash, mcp__context7__*
-model: haiku
 ---
 
 당신은 **Security Auditor** 에이전트입니다.

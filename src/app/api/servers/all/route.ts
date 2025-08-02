@@ -1,15 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getMockSystem } from '@/mock';
-
-// 조건부 Redis import
-let redis: any = null;
-if (process.env.NODE_ENV !== 'test') {
-  // 프로덕션에서는 실제 Redis 사용
-  import('@/lib/upstash-redis').then(module => {
-    redis = module.redis;
-  });
-}
+import { getRedisClient } from '@/lib/redis';
+import type { RedisClientInterface } from '@/lib/redis';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,38 +36,19 @@ export async function GET(request: NextRequest) {
     // Redis 캐시 확인
     let servers = null;
     
-    // 테스트 환경에서는 mock redis 사용
-    if (process.env.NODE_ENV === 'test') {
-      try {
-        const testRedisModule = await import('@/lib/redis/test-redis');
-        const testRedis = testRedisModule.default;
-        if (testRedis) {
-          try {
-            const cached = await testRedis.get(cacheKey);
-            if (cached) {
-              servers = JSON.parse(cached as string);
-              cacheHit = true;
-              console.log('✅ Redis 캐시 히트');
-            }
-          } catch (redisError) {
-            console.error('❌ Redis 에러 (계속 진행):', redisError);
-          }
-        }
-      } catch (importError) {
-        console.error('❌ test-redis import 실패:', importError);
-      }
-    } else if (redis) {
-      try {
+    try {
+      const redis = await getRedisClient('api-response');
+      if (redis) {
         const cached = await redis.get(cacheKey);
         if (cached) {
-          servers = JSON.parse(cached as string);
+          servers = typeof cached === 'string' ? JSON.parse(cached) : cached;
           cacheHit = true;
           console.log('✅ Redis 캐시 히트');
         }
-      } catch (redisError) {
-        console.error('❌ Redis 에러 (계속 진행):', redisError);
-        // Redis 에러는 무시하고 계속 진행
       }
+    } catch (redisError) {
+      console.error('❌ Redis 에러 (계속 진행):', redisError);
+      // Redis 에러는 무시하고 계속 진행
     }
     
     // 캐시가 없으면 데이터 조회
@@ -107,26 +81,13 @@ export async function GET(request: NextRequest) {
       
       // Redis에 캐싱 (실패해도 계속 진행)
       if (!cacheHit) {
-        if (process.env.NODE_ENV === 'test') {
-          try {
-            const testRedisModule = await import('@/lib/redis/test-redis');
-            const testRedis = testRedisModule.default;
-            if (testRedis) {
-              try {
-                await testRedis.setex(cacheKey, 60, JSON.stringify(servers));
-              } catch (redisError) {
-                console.error('❌ Redis 캐싱 실패:', redisError);
-              }
-            }
-          } catch (importError) {
-            console.error('❌ test-redis import 실패:', importError);
-          }
-        } else if (redis) {
-          try {
+        try {
+          const redis = await getRedisClient('api-response');
+          if (redis) {
             await redis.setex(cacheKey, 60, JSON.stringify(servers));
-          } catch (redisError) {
-            console.error('❌ Redis 캐싱 실패:', redisError);
           }
+        } catch (redisError) {
+          console.error('❌ Redis 캐싱 실패:', redisError);
         }
       }
     }
