@@ -74,8 +74,20 @@ export default defineConfig(({ mode }) => {
 
       // 🔄 Watch 모드 설정 (moved to root level)
 
-      // 🎯 성능 최적화
-      testTimeout: 30000,
+      // 🎯 성능 최적화 - 환경별 타임아웃 설정
+      testTimeout: (() => {
+        const base = 30000; // 기본 30초
+        const multiplier = parseFloat(process.env.TIMEOUT_MULTIPLIER || '1');
+        const isCI = process.env.CI === 'true';
+        const isDev = process.env.NODE_ENV === 'development';
+        
+        // CI: 기본값, 개발: 1.5배, 환경변수로 추가 조절
+        let timeout = base;
+        if (isDev && !isCI) timeout *= 1.5; // 개발환경 45초
+        if (isCI) timeout *= 0.8; // CI환경 24초 (빠른 피드백)
+        
+        return Math.round(timeout * multiplier);
+      })(),
       hookTimeout: 10000,
       teardownTimeout: 10000,
 

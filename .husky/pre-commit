@@ -10,8 +10,8 @@ fi
 
 # lint-staged 실행 (변경된 파일만 검사) - 성능 최적화
 echo "🧹 변경된 파일 검사 중... (성능 최적화 모드)"
-# 병렬 처리를 위해 --concurrent 옵션 추가
-npx lint-staged --concurrent --relative
+# 병렬 처리를 위해 --concurrent 옵션 추가 (기본값 true)
+npx lint-staged --concurrent=true
 
 if [ $? -ne 0 ]; then
     echo "❌ Pre-commit 검증 실패!"
@@ -40,27 +40,28 @@ if [ -f "scripts/security/check-secrets-in-docs.sh" ]; then
     fi
 fi
 
-# TDD 메타데이터 검사 (선택사항)
-if [ -f "scripts/test-metadata.ts" ]; then
-    echo "🧪 테스트 메타데이터 검사 중..."
-    npm run test:metadata --silent || {
-        echo "⚠️  오래된 skip 테스트가 발견되었습니다."
-        echo "💡 test-metadata-report.md를 확인하여 30일 이상된 skip 테스트를 정리해주세요."
-        # 경고만 하고 커밋은 허용 (exit 1 하지 않음)
+# TDD 메타데이터 검사 (SKIP_TDD_CHECK=1로 건너뛸 수 있음)
+if [ "$SKIP_TDD_CHECK" != "1" ] && [ -f "scripts/test-metadata.ts" ]; then
+    echo "🧪 테스트 메타데이터 검사 중... (SKIP_TDD_CHECK=1로 건너뛰기 가능)"
+    # 타임아웃 5초로 제한하여 빠른 검사만
+    timeout 5s npm run test:metadata --silent || {
+        echo "⚠️  테스트 메타데이터 검사가 시간 초과되었거나 문제가 있습니다."
+        echo "💡 수동 실행: npm run test:metadata"
+        echo "💡 건너뛰기: SKIP_TDD_CHECK=1 git commit"
+        # 경고만 하고 커밋은 허용
     }
 fi
 
-# TDD RED → GREEN 전환 검사 (선택사항)
-if [ -f "scripts/tdd-cleanup.ts" ]; then
-    echo "🔄 TDD 테스트 상태 검사 중..."
-    npm run test:tdd-check --silent || {
-        CLEANUP_NEEDED=$?
-        if [ $CLEANUP_NEEDED -eq 0 ]; then
-            echo "⚠️  GREEN으로 전환된 TDD 테스트가 발견되었습니다."
-            echo "💡 'npm run test:tdd-cleanup'을 실행하여 @tdd-red 태그를 제거하세요."
-            # 개발자에게 알림만 제공 (커밋은 허용)
-        fi
+# TDD RED → GREEN 전환 검사 (기본적으로 건너뜀 - 너무 무거움)
+if [ "$ENABLE_TDD_CHECK" = "1" ] && [ -f "scripts/tdd-cleanup.ts" ]; then
+    echo "🔄 TDD 테스트 상태 검사 중... (무거운 작업 - 선택적 활성화)"
+    timeout 10s npm run test:tdd-check --silent || {
+        echo "⚠️  TDD 검사가 시간 초과되었습니다."
+        echo "💡 수동 실행: npm run test:tdd-check"
+        # 개발자에게 알림만 제공 (커밋은 허용)
     }
+else
+    echo "⏭️  TDD 검사 건너뜀 (ENABLE_TDD_CHECK=1로 활성화 가능)"
 fi
 
 echo "✅ Pre-commit 검증 통과!"

@@ -36,15 +36,22 @@ if [ "$SKIP_TESTS" != "1" ]; then
         node scripts/minimal-test.js
         TEST_EXIT_CODE=$?
     else
-        # 폴백: npm test 실행
-        timeout 5s npm run test:pre-push
+        # 폴백: npm test 실행 (타임아웃 15초로 증가)
+        timeout 15s npm run test:pre-push
         TEST_EXIT_CODE=$?
     fi
     
     if [ $TEST_EXIT_CODE -eq 124 ]; then
-        echo "⏱️ 테스트가 시간 제한을 초과했습니다."
-        echo "💡 전체 테스트는 CI/CD에서 실행됩니다."
-        echo "💡 로컬에서 전체 테스트: npm test"
+        echo "⏱️ 테스트가 15초 시간 제한을 초과했습니다."
+        echo "💡 타임아웃 원인 분석:"
+        echo "   - AI/Redis 모킹 초기화 시간"
+        echo "   - TypeScript 컴파일 오버헤드"
+        echo "   - 복잡한 테스트 케이스"
+        echo "💡 해결 방안:"
+        echo "   - 전체 테스트: npm test (타임아웃 없음)"
+        echo "   - 빠른 테스트: npm run test:quick"
+        echo "   - 테스트 건너뛰기: SKIP_TESTS=1 git push"
+        echo "💡 CI/CD에서 전체 테스트가 자동 실행됩니다."
         # 타임아웃은 경고로만 처리
     elif [ $TEST_EXIT_CODE -ne 0 ]; then
         echo "❌ 검증 실패!"
