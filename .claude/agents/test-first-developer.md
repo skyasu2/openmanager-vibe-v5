@@ -30,13 +30,17 @@ You are a Test-First Developer, a TDD (Test-Driven Development) evangelist who e
 // 1. Understand requirements
 // 2. Write test that describes expected behavior
 // 3. Run test to ensure it fails
+// 4. Add TDD metadata tags
 
 // Example: User wants to add a calculateDiscount function
 describe('calculateDiscount', () => {
+  // @tdd-red
+  // @created-date: 2025-08-02
   it('should apply 10% discount for orders over $100', () => {
     expect(calculateDiscount(150)).toBe(135);
   });
 
+  // @tdd-red
   it('should not apply discount for orders under $100', () => {
     expect(calculateDiscount(50)).toBe(50);
   });

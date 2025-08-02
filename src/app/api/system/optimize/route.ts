@@ -7,6 +7,7 @@
  * - 캐시 최적화
  * - 가비지 컬렉션
  * - 최적화 결과 반환
+ * - Zod 스키마로 타입 안전성 보장
  */
 
 import type { NextRequest } from 'next/server';
@@ -16,6 +17,12 @@ import {
   withErrorHandler,
 } from '../../../../lib/api/errorHandler';
 import { memoryOptimizer } from '../../../../utils/MemoryOptimizer';
+import { 
+  type SystemOptimizeRequest,
+  type MemorySummary,
+  type SystemOptimizeResponse,
+  type MemoryStatusResponse,
+} from '@/schemas/api.schema';
 
 /**
  * 🚨 즉시 메모리 최적화 실행 (POST)
@@ -107,7 +114,12 @@ async function optimizeMemoryHandler(request: NextRequest) {
             critical: '90%',
           },
         },
-        recommendations: generateMemoryRecommendations(afterStats),
+        recommendations: generateMemoryRecommendations({
+          status: determineMemoryStatus(afterStats.usagePercent),
+          current: afterStats,
+          lastOptimization: new Date().toISOString(),
+          totalOptimizations: 1,
+        }),
         apiMetrics: {
           responseTime: apiResponseTime,
           timestamp: new Date().toISOString(),
@@ -178,9 +190,20 @@ async function getMemoryStatusHandler(_request: NextRequest) {
 }
 
 /**
+ * 🎯 메모리 상태 판단
+ */
+function determineMemoryStatus(usagePercent: number): 'optimal' | 'good' | 'acceptable' | 'warning' | 'critical' {
+  if (usagePercent >= 90) return 'critical';
+  if (usagePercent >= 75) return 'warning';
+  if (usagePercent >= 60) return 'acceptable';
+  if (usagePercent >= 40) return 'good';
+  return 'optimal';
+}
+
+/**
  * 💡 메모리 최적화 권장사항 생성
  */
-function generateMemoryRecommendations(memorySummary: any): string[] {
+function generateMemoryRecommendations(memorySummary: MemorySummary): string[] {
   const recommendations: string[] = [];
   const { current, status } = memorySummary;
 

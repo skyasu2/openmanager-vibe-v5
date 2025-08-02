@@ -3,6 +3,7 @@
  *
  * Upstash Redis 캐싱을 활용한 고성능 서버 데이터 API
  * GET /api/servers/cached
+ * - Zod 스키마로 타입 안전성 보장
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -10,6 +11,13 @@ import { getMockSystem } from '@/mock';
 import { cacheOrFetch, createCachedResponse } from '@/lib/cache-helper';
 import { CACHE_KEYS, TTL_STRATEGY } from '@/services/upstashCacheService';
 import type { EnhancedServerMetrics, Server } from '@/types/server';
+import type { 
+  ServerStatusLiteral, 
+  ServerAlert, 
+  CachedServerSummary,
+  CachedServersResponse,
+} from '@/schemas/api.schema';
+import { getErrorMessage } from '@/types/type-utils';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
@@ -23,7 +31,7 @@ function convertToEnhancedServerMetrics(server: Server): EnhancedServerMetrics {
     id: server.id,
     name: server.name,
     hostname: `${server.name}.example.com`, // hostname 생성
-    status: server.status === 'healthy' ? 'online' : (server.status as any),
+    status: server.status === 'healthy' ? 'online' : (server.status as ServerStatusLiteral),
     environment: 'production' as const,
     role:
       server.type === 'database'
@@ -44,14 +52,14 @@ function convertToEnhancedServerMetrics(server: Server): EnhancedServerMetrics {
     uptime: 99.9, // 기본값 99.9% - 실제 구현 시 계산 필요
     last_updated: server.lastSeen || now,
     alerts: Array.isArray(server.alerts)
-      ? server.alerts.map((alert: any) => ({
-          id: alert.id || `alert-${Date.now()}`,
+      ? server.alerts.map((alert) => ({
+          id: typeof alert === 'object' && alert?.id ? alert.id : `alert-${Date.now()}`,
           server_id: server.id,
-          type: alert.type || 'custom',
-          message: alert.message || 'Unknown alert',
-          severity: alert.severity || 'warning',
-          timestamp: alert.timestamp || now,
-          resolved: alert.resolved || false,
+          type: 'custom' as const,
+          message: typeof alert === 'object' && alert?.message ? alert.message : 'Unknown alert',
+          severity: typeof alert === 'object' && alert?.severity ? alert.severity : 'warning',
+          timestamp: typeof alert === 'object' && alert?.timestamp ? alert.timestamp : now,
+          resolved: typeof alert === 'object' && alert?.resolved ? alert.resolved : false,
         }))
       : [],
     // 선택적 속성들
@@ -145,7 +153,7 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         error: 'Failed to fetch cached servers',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        details: getErrorMessage(error),
       },
       { status: 500 }
     );
@@ -155,7 +163,7 @@ export async function GET(request: NextRequest) {
 /**
  * 서버 요약 정보 계산
  */
-function calculateSummary(servers: EnhancedServerMetrics[]) {
+function calculateSummary(servers: EnhancedServerMetrics[]): CachedServerSummary {
   const stats = {
     total: servers.length,
     online: servers.filter((s) => s.status === 'online').length,

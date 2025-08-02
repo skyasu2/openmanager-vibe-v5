@@ -1,6 +1,15 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getMockSystem } from '@/mock';
+import { createApiRoute } from '@/lib/api/zod-middleware';
+import {
+  DashboardOptimizedResponseSchema,
+  DashboardOptimizedErrorResponseSchema,
+  type DashboardOptimizedResponse,
+  type DashboardOptimizedServer,
+  type DashboardOptimizedErrorResponse,
+} from '@/schemas/api.schema';
+import { getErrorMessage } from '@/types/type-utils';
 
 /**
  * 🚀 최적화된 대시보드 API v2.0
@@ -10,10 +19,15 @@ import { getMockSystem } from '@/mock';
  * - 외부 의존성 없음
  * - 기존 API와 100% 호환
  */
-export async function GET(_request: NextRequest) {
-  const startTime = Date.now();
-
-  try {
+// GET handler
+const getHandler = createApiRoute()
+  .response(DashboardOptimizedResponseSchema)
+  .configure({
+    showDetailedErrors: process.env.NODE_ENV === 'development',
+    enableLogging: true,
+  })
+  .build(async (): Promise<DashboardOptimizedResponse> => {
+    const startTime = Date.now();
     console.log('📊 최적화된 대시보드 API 호출');
 
     // 목업 시스템에서 직접 데이터 가져오기
@@ -22,7 +36,7 @@ export async function GET(_request: NextRequest) {
     const systemInfo = mockSystem.getSystemInfo();
 
     // 서버 데이터를 객체 형태로 변환 (기존 API 호환성)
-    const serversMap: Record<string, any> = {};
+    const serversMap: Record<string, DashboardOptimizedServer> = {};
     servers.forEach((server) => {
       serversMap[server.id] = {
         ...server,
@@ -36,6 +50,9 @@ export async function GET(_request: NextRequest) {
             : server.status === 'critical'
               ? 'critical'
               : 'warning',
+        lastUpdate: server.lastUpdate instanceof Date 
+          ? server.lastUpdate.toISOString() 
+          : server.lastUpdate,
       };
     });
 
@@ -58,43 +75,47 @@ export async function GET(_request: NextRequest) {
 
     const responseTime = Date.now() - startTime;
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: {
-          servers: serversMap,
-          stats,
-          lastUpdate: new Date().toISOString(),
-          dataSource: 'mock-ultra-optimized',
-        },
-        metadata: {
-          responseTime,
-          cacheHit: true, // 목업은 항상 메모리에서 제공
-          redisKeys: servers.length,
-          serversLoaded: servers.length,
-          optimizationType: 'mock-direct',
-          performanceGain: '95%',
-          apiVersion: 'dashboard-optimized-v2.0',
-          scenario:
-            typeof systemInfo.scenario === 'string'
-              ? systemInfo.scenario
-              : systemInfo.scenario?.scenario || 'mixed',
-        },
+    return {
+      success: true,
+      data: {
+        servers: serversMap,
+        stats,
+        lastUpdate: new Date().toISOString(),
+        dataSource: 'mock-ultra-optimized',
       },
-      {
-        status: 200,
-        headers: {
-          'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
-          'X-Data-Source': 'Mock-Ultra-Optimized',
-          'X-Response-Time': `${responseTime}ms`,
-          'X-Server-Count': servers.length.toString(),
-          'X-Performance-Gain': '95%',
-        },
-      }
-    );
+      metadata: {
+        responseTime,
+        cacheHit: true, // 목업은 항상 메모리에서 제공
+        redisKeys: servers.length,
+        serversLoaded: servers.length,
+        optimizationType: 'mock-direct',
+        performanceGain: '95%',
+        apiVersion: 'dashboard-optimized-v2.0',
+        scenario:
+          typeof systemInfo.scenario === 'string'
+            ? systemInfo.scenario
+            : systemInfo.scenario?.scenario || 'mixed',
+      },
+    };
+  });
+
+export async function GET(_request: NextRequest) {
+  try {
+    const response = await getHandler(_request);
+    const responseData = await response.json();
+    return NextResponse.json(responseData, {
+      headers: {
+        'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
+        'X-Data-Source': 'Mock-Ultra-Optimized',
+        'X-Response-Time': `${responseData.metadata?.responseTime || 0}ms`,
+        'X-Server-Count': Object.keys(responseData.data?.servers || {}).length.toString(),
+        'X-Performance-Gain': '95%',
+      },
+    });
   } catch (error) {
     console.error('❌ 최적화된 대시보드 API 오류:', error);
 
+    const startTime = Date.now();
     const responseTime = Date.now() - startTime;
     return NextResponse.json(
       {
@@ -104,7 +125,7 @@ export async function GET(_request: NextRequest) {
           responseTime,
           serversLoaded: 0,
         },
-      },
+      } satisfies DashboardOptimizedErrorResponse,
       {
         status: 500,
         headers: {

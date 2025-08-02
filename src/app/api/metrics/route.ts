@@ -12,6 +12,33 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getMockSystem } from '@/mock';
 
+// 🔒 타입 안전성을 위한 인터페이스 정의
+interface ServerMetrics {
+  id: string;
+  role: string;
+  environment: string;
+  cpu_usage: number;
+  memory_usage: number;
+  disk_usage: number;
+  network_in: number;
+  network_out: number;
+  response_time: number;
+  status: string;
+  uptime: number;
+  alerts?: unknown[];
+}
+
+interface PrometheusMetricResult {
+  metric: {
+    __name__: string;
+    instance: string;
+    job: string;
+    environment: string;
+    status?: string;
+  };
+  value: [number, string];
+}
+
 /**
  * 🎯 표준 Prometheus /metrics 엔드포인트
  * 실제 Prometheus 서버와 100% 호환
@@ -53,7 +80,7 @@ export async function GET() {
 /**
  * 📊 서버 데이터를 표준 Prometheus 형식으로 변환
  */
-function _convertToPrometheusFormat(servers: any[]): string {
+function _convertToPrometheusFormat(servers: ServerMetrics[]): string {
   const timestamp = Math.floor(Date.now() / 1000);
   let output = '';
 
@@ -165,7 +192,7 @@ function _convertToPrometheusFormat(servers: any[]): string {
 
   // 인프라 건강도 메트릭
   const healthyServers = servers.filter(
-    (s: any) => s.status === 'healthy'
+    (s: ServerMetrics) => s.status === 'healthy'
   ).length;
   const healthPercentage = (healthyServers / servers.length) * 100;
 
@@ -227,55 +254,55 @@ export async function POST(request: NextRequest) {
 async function executePromQLQuery(
   query: string,
   time?: number
-): Promise<any[]> {
+): Promise<PrometheusMetricResult[]> {
   const mockSystem = getMockSystem();
   const servers = mockSystem.getServers();
 
   // 간단한 PromQL 쿼리 파싱 (실제로는 더 복잡한 파서가 필요)
   if (query.includes('cpu_usage_percent')) {
-    return servers.map((server: any) => ({
+    return servers.map((server) => ({
       metric: {
         __name__: 'cpu_usage_percent',
         instance: server.id,
-        job: server.role,
-        environment: server.environment,
+        job: server.role || 'unknown',
+        environment: server.environment || 'production',
       },
       value: [
         time || Math.floor(Date.now() / 1000),
-        server.cpu_usage.toString(),
+        (server.cpu || 0).toString(),
       ],
     }));
   }
 
   if (query.includes('memory_usage_percent')) {
-    return servers.map((server: any) => ({
+    return servers.map((server) => ({
       metric: {
         __name__: 'memory_usage_percent',
         instance: server.id,
-        job: server.role,
-        environment: server.environment,
+        job: server.role || 'unknown',
+        environment: server.environment || 'production',
       },
       value: [
         time || Math.floor(Date.now() / 1000),
-        server.memory_usage.toString(),
+        (server.memory || 0).toString(),
       ],
     }));
   }
 
   if (query.includes('server_status')) {
-    return servers.map((server: any) => {
-      let statusValue = 2;
-      if (server.status === 'critical') statusValue = 3;
-      else if (server.status === 'warning') statusValue = 1;
-      else if (server.status === 'maintenance') statusValue = 0;
+    return servers.map((server) => {
+      let statusValue = 2; // normal/healthy
+      if (server.status === 'offline') statusValue = 3;
+      else if (server.status === 'online') statusValue = 2;
+      else statusValue = 1; // any other status (warning, etc.)
 
       return {
         metric: {
           __name__: 'server_status',
           instance: server.id,
-          job: server.role,
-          environment: server.environment,
-          status: server.status,
+          job: server.role || 'unknown',
+          environment: server.environment || 'production',
+          status: server.status || 'unknown',
         },
         value: [time || Math.floor(Date.now() / 1000), statusValue.toString()],
       };

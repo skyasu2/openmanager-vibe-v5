@@ -9,10 +9,19 @@
  */
 
 import { z } from 'zod';
-import { createMcpHandler } from '@/lib/mcp-handler';
+import { createMcpHandler, type MCPServer } from '@/lib/mcp-handler';
+
+// 🔒 타입 안전성을 위한 인터페이스 정의
+interface MCPHandlerArgs {
+  [key: string]: unknown;
+}
+
+interface MCPHandlerExtra {
+  [key: string]: unknown;
+}
 
 // 🔍 시스템 상태 확인 함수
-const getSystemStatusHandler = async (_args: any, _extra: any) => {
+const getSystemStatusHandler = async (_args: MCPHandlerArgs, _extra: MCPHandlerExtra) => {
   const status = {
     environment: process.env.NODE_ENV,
     vercelEnv: process.env.VERCEL_ENV,
@@ -32,7 +41,7 @@ const getSystemStatusHandler = async (_args: any, _extra: any) => {
 };
 
 // 🔑 환경변수 확인 함수
-const checkEnvConfigHandler = async (_args: any, _extra: any) => {
+const checkEnvConfigHandler = async (_args: MCPHandlerArgs, _extra: MCPHandlerExtra) => {
   const publicEnvs = Object.keys(process.env)
     .filter((key) => key.startsWith('NEXT_PUBLIC_'))
     .reduce(
@@ -71,7 +80,7 @@ const checkEnvConfigHandler = async (_args: any, _extra: any) => {
 };
 
 // 📊 API 헬스 체크 함수
-const checkApiHealthHandler = async (_args: any, _extra: any) => {
+const checkApiHealthHandler = async (_args: MCPHandlerArgs, _extra: MCPHandlerExtra) => {
   const endpoints = [
     '/api/health',
     '/api/servers',
@@ -121,7 +130,7 @@ const checkApiHealthHandler = async (_args: any, _extra: any) => {
 };
 
 // 🧪 테스트 메시지 전송 함수
-const sendTestMessageHandler = async (args: any, _extra: any) => {
+const sendTestMessageHandler = async (args: MCPHandlerArgs, _extra: MCPHandlerExtra) => {
   const messageSchema = z.object({
     message: z.string().describe('전송할 테스트 메시지'),
     level: z
@@ -146,7 +155,7 @@ const sendTestMessageHandler = async (args: any, _extra: any) => {
 };
 
 // 🗄️ 레디스 캐시 상태 확인 함수
-const checkRedisCacheHandler = async (_args: any, _extra: any) => {
+const checkRedisCacheHandler = async (_args: MCPHandlerArgs, _extra: MCPHandlerExtra) => {
   try {
     const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL;
     const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -202,7 +211,7 @@ const checkRedisCacheHandler = async (_args: any, _extra: any) => {
 };
 
 // 📊 데이터베이스 연결 확인 함수
-const checkDatabaseHandler = async (_args: any, _extra: any) => {
+const checkDatabaseHandler = async (_args: MCPHandlerArgs, _extra: MCPHandlerExtra) => {
   try {
     // Supabase 연결 확인
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -251,7 +260,7 @@ const checkDatabaseHandler = async (_args: any, _extra: any) => {
   }
 };
 
-const handler = createMcpHandler((server: any) => {
+const handler = createMcpHandler((server: MCPServer) => {
   // 🔍 시스템 상태 확인 도구
   server.tool(
     'get_system_status',

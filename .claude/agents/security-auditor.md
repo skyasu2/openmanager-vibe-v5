@@ -253,6 +253,89 @@ logger.security({
 });
 ```
 
+## 🔍 TypeScript 보안 검사
+
+### Any 타입 검출 및 제거
+
+```typescript
+// ❌ 보안 위험: any 타입 사용
+function processData(data: any) {
+  return data.someProperty; // 런타임 오류 가능
+}
+
+// ✅ 안전: 명시적 타입 정의
+interface UserData {
+  id: string;
+  name: string;
+  email: string;
+}
+
+function processUserData(data: UserData) {
+  return data.name; // 타입 안전성 보장
+}
+```
+
+### ESLint Any 타입 검사
+
+```bash
+# any 타입 검출 명령어
+npx eslint --ext .ts,.tsx --rule '@typescript-eslint/no-explicit-any: error' src/
+
+# any 타입 사용량 리포트
+grep -r ": any" src/ --include="*.ts" --include="*.tsx" | wc -l
+```
+
+### 자동화된 타입 안전성 검사
+
+```typescript
+// Grep을 사용한 any 타입 검출
+Grep({
+  pattern: ':\\s*any\\b|\\bas\\s+any\\b|<any>',
+  path: './src',
+  type: 'typescript',
+  output_mode: 'files_with_matches',
+});
+
+// 위험한 타입 단언 검출
+Grep({
+  pattern: 'as\\s+any|<any>',
+  path: './src',
+  output_mode: 'content',
+});
+```
+
+### 타입 안전성 보안 패턴
+
+```typescript
+// ✅ 안전한 타입 가드 사용
+function isValidUser(data: unknown): data is UserData {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'id' in data &&
+    'name' in data &&
+    'email' in data
+  );
+}
+
+// ✅ Zod를 사용한 런타임 타입 검증
+import { z } from 'zod';
+
+const UserSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+});
+
+function safeProcessUser(data: unknown) {
+  const parsed = UserSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error('Invalid user data');
+  }
+  return parsed.data; // 타입 안전성 보장
+}
+```
+
 **Basic Security Patterns:**
 
 ### Hardcoded Secrets
@@ -391,6 +474,8 @@ if (!input || typeof input !== 'string' || input.length > 1000) {
 - [ ] Security headers configured
 - [ ] Dependencies up to date
 - [ ] Security event logging enabled
+- [ ] TypeScript any types eliminated (타입 안전성)
+- [ ] ESLint security rules enabled
 
 **Basic Platform Security:**
 

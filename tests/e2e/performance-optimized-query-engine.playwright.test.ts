@@ -237,6 +237,8 @@ test.describe('Performance Optimized Query Engine', () => {
 
 // 스트레스 테스트 (선택적)
 test.describe('Stress Tests', () => {
+  // @skip-reason: 스트레스 테스트 - 로컬 개발 환경에서만 수동 실행
+  // @skip-date: 2024-01-01  
   test.skip('대용량 응답 처리', async ({ page }) => {
     // 복잡한 분석 요청
     const complexQuery = '지난 30일간의 모든 서버 메트릭을 상세히 분석하고 리포트를 생성해주세요';
@@ -251,6 +253,8 @@ test.describe('Stress Tests', () => {
     expect(memory).toBeLessThan(50); // 대용량 처리시에도 50MB 이하
   });
 
+  // @skip-reason: 장시간 실행 테스트 - 릴리즈 전 수동 실행
+  // @skip-date: 2024-01-01
   test.skip('장시간 세션 안정성', async ({ page }) => {
     const sessionDuration = 5 * 60 * 1000; // 5분
     const endTime = Date.now() + sessionDuration;

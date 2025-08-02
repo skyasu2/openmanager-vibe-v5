@@ -1,26 +1,28 @@
+/**
+ * 📝 에러 리포트 API
+ *
+ * 에러 리포트 생성 및 조회
+ * Zod 스키마와 타입 안전성 적용
+ *
+ * GET /api/error-report - 에러 리포트 목록 조회
+ * POST /api/error-report - 새 에러 리포트 생성
+ */
+
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-
-interface ErrorReport {
-  id: string;
-  timestamp: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  type: string;
-  message: string;
-  source: string;
-  stackTrace?: string;
-  metadata: Record<string, any>;
-  resolved: boolean;
-}
-
-interface ErrorReportRequest {
-  type: string;
-  message: string;
-  severity?: 'low' | 'medium' | 'high' | 'critical';
-  source?: string;
-  stackTrace?: string;
-  metadata?: Record<string, any>;
-}
+import { createApiRoute } from '@/lib/api/zod-middleware';
+import {
+  ErrorReportSchema,
+  ErrorReportRequestSchema,
+  ErrorReportQuerySchema,
+  ErrorReportListResponseSchema,
+  ErrorReportCreateResponseSchema,
+  type ErrorReport,
+  type ErrorReportListResponse,
+  type ErrorReportCreateResponse,
+  type ErrorSeverity,
+} from '@/schemas/api.schema';
+import { getErrorMessage } from '@/types/type-utils';
 
 // 모의 에러 리포트 데이터 생성
 function generateMockErrorReports(count: number = 20): ErrorReport[] {
@@ -38,7 +40,7 @@ function generateMockErrorReports(count: number = 20): ErrorReport[] {
     'database',
     'cache-manager',
   ];
-  const severities: ErrorReport['severity'][] = [
+  const severities: ErrorSeverity[] = [
     'low',
     'medium',
     'high',
@@ -78,15 +80,16 @@ function generateMockErrorReports(count: number = 20): ErrorReport[] {
   }));
 }
 
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const severity = searchParams.get('severity');
-    const type = searchParams.get('type');
-    const source = searchParams.get('source');
-    const resolved = searchParams.get('resolved');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const page = parseInt(searchParams.get('page') || '1');
+// GET 핸들러
+const getHandler = createApiRoute()
+  .query(ErrorReportQuerySchema)
+  .response(ErrorReportListResponseSchema)
+  .configure({
+    showDetailedErrors: process.env.NODE_ENV === 'development',
+    enableLogging: true,
+  })
+  .build(async (_request, context): Promise<ErrorReportListResponse> => {
+    const { severity, type, source, resolved, limit, page } = context.query;
 
     let errorReports = generateMockErrorReports(100);
 
@@ -105,7 +108,7 @@ export async function GET(request: NextRequest) {
       errorReports = errorReports.filter((report) => report.source === source);
     }
 
-    if (resolved !== null) {
+    if (resolved !== undefined) {
       const isResolved = resolved === 'true';
       errorReports = errorReports.filter(
         (report) => report.resolved === isResolved
@@ -113,47 +116,56 @@ export async function GET(request: NextRequest) {
     }
 
     // 페이지네이션
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
+    const safePage = page ?? 1;
+    const safeLimit = limit ?? 20;
+    const startIndex = (safePage - 1) * safeLimit;
+    const endIndex = startIndex + safeLimit;
     const paginatedReports = errorReports.slice(startIndex, endIndex);
 
-    return NextResponse.json({
+    return {
       reports: paginatedReports,
       pagination: {
-        page,
-        limit,
+        page: safePage,
+        limit: safeLimit,
         total: errorReports.length,
-        totalPages: Math.ceil(errorReports.length / limit),
+        totalPages: Math.ceil(errorReports.length / safeLimit),
       },
       timestamp: new Date().toISOString(),
-    });
+    };
+  });
+
+export async function GET(request: NextRequest) {
+  try {
+    return await getHandler(request);
   } catch (error) {
     console.error('에러 리포트 조회 오류:', error);
     return NextResponse.json(
-      { error: '에러 리포트를 조회할 수 없습니다.' },
+      { 
+        error: '에러 리포트를 조회할 수 없습니다.',
+        message: getErrorMessage(error),
+      },
       { status: 500 }
     );
   }
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const body: ErrorReportRequest = await request.json();
+// POST 핸들러
+const postHandler = createApiRoute()
+  .body(ErrorReportRequestSchema)
+  .response(ErrorReportCreateResponseSchema)
+  .configure({
+    showDetailedErrors: process.env.NODE_ENV === 'development',
+    enableLogging: true,
+  })
+  .build(async (_request, context): Promise<ErrorReportCreateResponse> => {
     const {
       type,
       message,
       severity = 'medium',
       source = 'unknown',
       stackTrace,
-      metadata,
-    } = body;
-
-    if (!type || !message) {
-      return NextResponse.json(
-        { error: '에러 타입과 메시지가 필요합니다.' },
-        { status: 400 }
-      );
-    }
+      metadata = {},
+    } = context.body;
 
     const newReport: ErrorReport = {
       id: `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -171,16 +183,24 @@ export async function POST(request: NextRequest) {
       resolved: false,
     };
 
-    return NextResponse.json({
+    return {
       success: true,
       message: '에러 리포트가 성공적으로 생성되었습니다.',
       report: newReport,
       timestamp: new Date().toISOString(),
-    });
+    };
+  });
+
+export async function POST(request: NextRequest) {
+  try {
+    return await postHandler(request);
   } catch (error) {
     console.error('에러 리포트 생성 오류:', error);
     return NextResponse.json(
-      { error: '에러 리포트를 생성할 수 없습니다.' },
+      { 
+        error: '에러 리포트를 생성할 수 없습니다.',
+        message: getErrorMessage(error),
+      },
       { status: 500 }
     );
   }

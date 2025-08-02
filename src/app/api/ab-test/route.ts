@@ -11,6 +11,57 @@ import { abTestManager, type ABTestGroup } from '@/lib/ab-test-manager';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+// 🔒 타입 안전성을 위한 인터페이스 정의
+interface TrafficSplitParams {
+  legacyPercent: number;
+  optimizedPercent: number;
+}
+
+interface EmergencyRollbackParams {
+  reason: string;
+}
+
+interface RecordMetricParams {
+  group: ABTestGroup;
+  responseTime: number;
+  success: boolean;
+  error?: string;
+}
+
+interface UpdateConfigParams {
+  config: Record<string, unknown>;
+}
+
+interface PerformanceAnalysis {
+  avgResponseTimeImprovement: number;
+  legacyAvgTime: number;
+  optimizedAvgTime: number;
+  targetAchieved: boolean;
+}
+
+interface ReliabilityAnalysis {
+  legacyErrorRate: number;
+  optimizedErrorRate: number;
+  errorRateImprovement: number;
+  reliabilityTarget: boolean;
+}
+
+interface TrafficAnalysis {
+  legacyRequests: number;
+  optimizedRequests: number;
+  totalRequests: number;
+  trafficSplit: {
+    legacy: number;
+    optimized: number;
+  };
+}
+
+interface DetailedAnalysis {
+  performanceAnalysis: PerformanceAnalysis;
+  reliabilityAnalysis: ReliabilityAnalysis;
+  trafficAnalysis: TrafficAnalysis;
+}
+
 export const dynamic = 'force-dynamic';
 
 /**
@@ -276,7 +327,7 @@ async function getDetailedMetrics() {
   }
 }
 
-async function updateTrafficSplit(params: any) {
+async function updateTrafficSplit(params: TrafficSplitParams) {
   try {
     const { legacyPercent, optimizedPercent } = params;
 
@@ -318,7 +369,7 @@ async function updateTrafficSplit(params: any) {
   }
 }
 
-async function emergencyRollback(params: any) {
+async function emergencyRollback(params: EmergencyRollbackParams) {
   try {
     const { reason } = params;
 
@@ -359,7 +410,7 @@ async function emergencyRollback(params: any) {
   }
 }
 
-async function recordMetric(params: any) {
+async function recordMetric(params: RecordMetricParams) {
   try {
     const { group, responseTime, success, error } = params;
 
@@ -401,7 +452,7 @@ async function recordMetric(params: any) {
   }
 }
 
-async function updateConfig(params: any) {
+async function updateConfig(params: UpdateConfigParams) {
   try {
     const { config } = params;
 
@@ -437,7 +488,7 @@ async function updateConfig(params: any) {
   }
 }
 
-function generateRecommendations(analysis: any): string[] {
+function generateRecommendations(analysis: DetailedAnalysis): string[] {
   const recommendations: string[] = [];
 
   // 성능 기반 추천

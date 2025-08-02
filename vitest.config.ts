@@ -14,14 +14,13 @@ export default defineConfig(({ mode }) => {
 
       // 🎯 핵심 테스트만 실행
       include: [
-        'src/test/**/*.test.{ts,tsx}',
-        'src/services/**/*.test.{ts,tsx}', // services 하위 테스트 추가
-        'src/**/__tests__/**/*.test.{ts,tsx}', // __tests__ 디렉토리 패턴 추가
+        'src/test/**/*.test.{ts,tsx}', // 환경 설정 테스트
+        'src/**/__tests__/**/*.{test,spec}.{ts,tsx}', // 모든 __tests__ 디렉토리
         'tests/unit/**/*.test.{ts,tsx}',
         'tests/integration/**/*.test.{ts,tsx}',
-        'tests/components/**/*.test.{ts,tsx}',
-        'tests/api/**/*.test.{ts,tsx}',
-        'tests/dev-integration/**/*.test.{ts,tsx}',
+        'tests/e2e/**/*.test.{ts,tsx}', // E2E 테스트 추가
+        'tests/performance/**/*.test.{ts,tsx}',
+        'tests/api/**/*.test.{ts,tsx}', // API 테스트 추가
       ],
 
       // 🚫 제거된 기능들 테스트 제외

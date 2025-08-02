@@ -21,6 +21,16 @@ import { systemLogger } from '@/lib/logger';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+// 🔒 타입 안전성을 위한 인터페이스 정의
+interface EventData {
+  [key: string]: unknown;
+}
+
+interface EventListener {
+  event: string;
+  handler: (data: EventData) => void;
+}
+
 // 싱글톤 ProcessManager 인스턴스
 let processManager: ProcessManager | null = null;
 
@@ -353,7 +363,7 @@ export async function GET(request: NextRequest) {
 
         const stream = new ReadableStream({
           start(controller) {
-            const sendEvent = (eventType: string, _data: any) => {
+            const sendEvent = (eventType: string, _data: EventData) => {
               const message = `event: ${eventType}\ndata: ${JSON.stringify(_data)}\n\n`;
               controller.enqueue(encoder.encode(message));
             };
@@ -363,37 +373,34 @@ export async function GET(request: NextRequest) {
             sendEvent('status', _initialStatus);
 
             // 이벤트 리스너 등록
-            const listeners: Array<{
-              event: string;
-              handler: (...args: any[]) => void;
-            }> = [
+            const listeners: EventListener[] = [
               {
                 event: 'system:started',
-                handler: (_data: any) => sendEvent('system-started', _data),
+                handler: (_data: EventData) => sendEvent('system-started', _data),
               },
               {
                 event: 'system:stopped',
-                handler: (_data: any) => sendEvent('system-stopped', _data),
+                handler: (_data: EventData) => sendEvent('system-stopped', _data),
               },
               {
                 event: 'system:health-update',
-                handler: (_data: any) => sendEvent('health-update', _data),
+                handler: (_data: EventData) => sendEvent('health-update', _data),
               },
               {
                 event: 'process:started',
-                handler: (_data: any) => sendEvent('process-started', _data),
+                handler: (_data: EventData) => sendEvent('process-started', _data),
               },
               {
                 event: 'process:stopped',
-                handler: (_data: any) => sendEvent('process-stopped', _data),
+                handler: (_data: EventData) => sendEvent('process-stopped', _data),
               },
               {
                 event: 'process:unhealthy',
-                handler: (_data: any) => sendEvent('process-unhealthy', _data),
+                handler: (_data: EventData) => sendEvent('process-unhealthy', _data),
               },
               {
                 event: 'system:stable',
-                handler: (_data: any) => sendEvent('system-stable', _data),
+                handler: (_data: EventData) => sendEvent('system-stable', _data),
               },
             ];
 

@@ -10,11 +10,28 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+// 🔒 타입 안전성을 위한 인터페이스 정의
+interface AIEngineVersions {
+  [key: string]: string | number | unknown;
+}
+
+interface DataGeneratorVersions {
+  [key: string]: string | number | unknown;
+}
+
+interface VersionManager {
+  [key: string]: unknown;
+}
+
+interface MasterAIEngine {
+  [key: string]: unknown;
+}
+
 // 안전한 import 처리
-let _AI_ENGINE_VERSIONS: any = null;
-let _DATA_GENERATOR_VERSIONS: any = null;
-let _VersionManager: any = null;
-let _masterAIEngine: any = null;
+let _AI_ENGINE_VERSIONS: AIEngineVersions | null = null;
+let _DATA_GENERATOR_VERSIONS: DataGeneratorVersions | null = null;
+let _VersionManager: VersionManager | null = null;
+let _masterAIEngine: MasterAIEngine | null = null;
 
 try {
   const versionsModule = require('@/config/versions');

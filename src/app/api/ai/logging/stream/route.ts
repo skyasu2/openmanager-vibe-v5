@@ -3,23 +3,26 @@
  *
  * SSE(Server-Sent Events)를 사용한 AI 로그 실시간 스트리밍
  * GET /api/ai/logging/stream
+ * - Zod 스키마로 타입 안전성 보장
  */
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getRedisClient } from '@/lib/redis';
-
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-
-interface AILogEntry {
-  id: string;
-  timestamp: string;
-  level: 'info' | 'warn' | 'error' | 'debug';
-  source: string;
-  message: string;
-  metadata?: Record<string, any>;
-}
+import { z } from 'zod';
+import { getRedisClient, type RedisClientInterface } from '@/lib/redis';
+import { createApiRoute } from '@/lib/api/zod-middleware';
+import {
+  AILogRequestSchema,
+  AILogWriteResponseSchema,
+  AILogExportResponseSchema,
+  type AILogEntry,
+  type AILogRequest,
+  type AILogWriteResponse,
+  type AILogExportResponse,
+  type AILogLevel,
+  type AILogStreamMessage,
+} from '@/schemas/api.schema';
+import { getErrorMessage } from '@/types/type-utils';
 
 // 로그 레벨별 이모지
 const _LOG_EMOJIS = {
@@ -31,12 +34,7 @@ const _LOG_EMOJIS = {
 
 // 모의 로그 생성기
 function generateMockLog(): AILogEntry {
-  const levels: ('info' | 'warn' | 'error' | 'debug')[] = [
-    'info',
-    'warn',
-    'error',
-    'debug',
-  ];
+  const levels: AILogLevel[] = ['info', 'warn', 'error', 'debug'];
   const sources = [
     'SimplifiedQueryEngine',
     'MCPContextLoader',
@@ -109,13 +107,15 @@ export async function GET(request: NextRequest) {
       });
 
       // Redis 연결 (선택적)
-      let redis: any;
+      let redis: RedisClientInterface | null = null;
       let useRedis = false;
 
       try {
         redis = await getRedisClient();
-        useRedis = true;
-        console.log('✅ Redis 연결 성공 - 실시간 로그 저장 활성화');
+        if (redis) {
+          useRedis = true;
+          console.log('✅ Redis 연결 성공 - 실시간 로그 저장 활성화');
+        }
       } catch {
         console.warn('⚠️ Redis 연결 실패 - 메모리 로그만 사용');
       }
@@ -128,9 +128,9 @@ export async function GET(request: NextRequest) {
           const logs: AILogEntry[] = [];
 
           // Redis에서 실시간 로그 가져오기 (가능한 경우)
-          if (useRedis) {
+          if (useRedis && redis && 'lrange' in redis) {
             try {
-              const redisLogs = await redis.lrange('ai:logs', -10, -1);
+              const redisLogs = await (redis as any).lrange('ai:logs', -10, -1);
               for (const logStr of redisLogs) {
                 try {
                   const log = JSON.parse(logStr);
@@ -156,10 +156,10 @@ export async function GET(request: NextRequest) {
             logs.push(mockLog);
 
             // Redis에 저장 (가능한 경우)
-            if (useRedis) {
+            if (useRedis && redis && 'lpush' in redis) {
               try {
-                await redis.lpush('ai:logs', JSON.stringify(mockLog));
-                await redis.ltrim('ai:logs', 0, 99); // 최대 100개 유지
+                await (redis as any).lpush('ai:logs', JSON.stringify(mockLog));
+                await (redis as any).ltrim('ai:logs', 0, 99); // 최대 100개 유지
               } catch {
                 // 저장 오류 무시
               }
@@ -233,40 +233,38 @@ export async function GET(request: NextRequest) {
   return new Response(stream, { headers });
 }
 
-/**
- * 📊 AI 로그 관리 API
- *
- * POST /api/ai/logging/stream
- */
-export async function POST(request: NextRequest) {
-  try {
-    const { action, logs } = await request.json();
+// POST 핸들러
+const postHandler = createApiRoute()
+  .body(AILogRequestSchema)
+  .response(z.union([AILogWriteResponseSchema, AILogExportResponseSchema]))
+  .configure({
+    showDetailedErrors: process.env.NODE_ENV === 'development',
+    enableLogging: true,
+  })
+  .build(async (_request, context): Promise<AILogWriteResponse | AILogExportResponse> => {
+    const body = context.body;
 
-    console.log(`📊 AI 로그 관리 액션: ${action}`);
+    console.log(`📊 AI 로그 관리 액션: ${body.action}`);
 
-    let redis: any;
+    let redis: RedisClientInterface | null = null;
     let useRedis = false;
 
     try {
       redis = await getRedisClient();
-      useRedis = true;
+      if (redis) {
+        useRedis = true;
+      }
     } catch {
       console.warn('⚠️ Redis 연결 실패');
     }
 
-    switch (action) {
-      case 'write':
-        // 로그 쓰기
-        if (!logs || !Array.isArray(logs)) {
-          return NextResponse.json(
-            { success: false, error: 'Invalid logs data' },
-            { status: 400 }
-          );
-        }
+    switch (body.action) {
+      case 'write': {
+        const { logs } = body;
 
-        if (useRedis) {
+        if (useRedis && redis && 'lpush' in redis) {
           for (const log of logs) {
-            await redis.lpush(
+            await (redis as any).lpush(
               'ai:logs',
               JSON.stringify({
                 ...log,
@@ -277,33 +275,34 @@ export async function POST(request: NextRequest) {
               })
             );
           }
-          await redis.ltrim('ai:logs', 0, 999); // 최대 1000개 유지
+          await (redis as any).ltrim('ai:logs', 0, 999); // 최대 1000개 유지
         }
 
-        return NextResponse.json({
+        return {
           success: true,
           message: `${logs.length} logs written`,
           timestamp: new Date().toISOString(),
-        });
+        };
+      }
 
       case 'clear':
         // 로그 삭제
-        if (useRedis) {
+        if (useRedis && redis) {
           await redis.del('ai:logs');
         }
 
-        return NextResponse.json({
+        return {
           success: true,
           message: 'Logs cleared successfully',
           timestamp: new Date().toISOString(),
-        });
+        };
 
       case 'export': {
         // 로그 내보내기
         let exportLogs: AILogEntry[] = [];
 
-        if (useRedis) {
-          const redisLogs = await redis.lrange('ai:logs', 0, -1);
+        if (useRedis && redis && 'lrange' in redis) {
+          const redisLogs = await (redis as any).lrange('ai:logs', 0, -1);
           exportLogs = redisLogs
             .map((logStr: string) => {
               try {
@@ -315,27 +314,34 @@ export async function POST(request: NextRequest) {
             .filter(Boolean);
         }
 
-        return NextResponse.json({
+        return {
           success: true,
           logs: exportLogs,
           count: exportLogs.length,
           timestamp: new Date().toISOString(),
-        });
+        };
       }
 
       default:
-        return NextResponse.json(
-          { success: false, error: 'Invalid action' },
-          { status: 400 }
-        );
+        throw new Error('Invalid action');
     }
-  } catch (_error) {
-    console.error('❌ AI 로그 관리 API 오류:', _error);
+  });
+
+/**
+ * 📊 AI 로그 관리 API
+ *
+ * POST /api/ai/logging/stream
+ */
+export async function POST(request: NextRequest) {
+  try {
+    return await postHandler(request);
+  } catch (error) {
+    console.error('❌ AI 로그 관리 API 오류:', error);
     return NextResponse.json(
       {
         success: false,
         error: 'Log management failed',
-        message: _error instanceof Error ? _error.message : 'Unknown error',
+        message: getErrorMessage(error),
       },
       { status: 500 }
     );

@@ -32,6 +32,9 @@ const TEST_QUERIES = [
   '네트워크 트래픽을 분석해주세요'
 ];
 
+// @skip-reason: 통합 테스트 - 실제 API 엔드포인트 필요, 로컬 환경에서만 실행
+// @skip-date: 2024-01-01
+// 실행 방법: npm test -- tests/integration/performance-optimized-query-engine.e2e.test.ts --no-skip
 describe.skip('🚀 PerformanceOptimizedQueryEngine E2E 테스트', () => {
   let optimizedEngine: PerformanceOptimizedQueryEngine;
   let originalEngine: SimplifiedQueryEngine;

@@ -1,6 +1,19 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getMockSystem } from '@/mock';
+import { createApiRoute } from '@/lib/api/zod-middleware';
+import {
+  ServerPaginationQuerySchema,
+  ServerPaginatedResponseSchema,
+  ServerBatchRequestSchema,
+  ServerBatchResponseSchema,
+  type ServerPaginationQuery,
+  type ServerPaginatedResponse,
+  type ServerBatchRequest,
+  type ServerBatchResponse,
+  type PaginatedServer,
+} from '@/schemas/api.schema';
+import { getErrorMessage } from '@/types/type-utils';
 
 /**
  * 🖥️ Sequential Server Generation API (실제 서버데이터 생성기 연동)
@@ -96,25 +109,29 @@ interface ServerInfo {
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-/**
- * 🖥️ 서버 Next API
- * 다음 서버 정보 또는 서버 페이지네이션을 처리하는 엔드포인트
- */
-export async function GET(_request: NextRequest) {
-  try {
-    const { searchParams } = new URL(_request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const sortBy = searchParams.get('sortBy') || 'name';
-    const order = searchParams.get('order') || 'asc';
-    const status = searchParams.get('status');
+// GET 핸들러
+const getHandler = createApiRoute()
+  .query(ServerPaginationQuerySchema)
+  .response(ServerPaginatedResponseSchema)
+  .configure({
+    showDetailedErrors: process.env.NODE_ENV === 'development',
+    enableLogging: true,
+  })
+  .build(async (_request, context): Promise<ServerPaginatedResponse> => {
+    const { 
+      page = 1, 
+      limit = 10, 
+      sortBy = 'name', 
+      order = 'asc', 
+      status 
+    } = context.query;
 
     // 목업 시스템에서 서버 데이터 가져오기
     const mockSystem = getMockSystem();
     const mockServers = mockSystem.getServers();
 
     // 서버 데이터를 API 형식으로 변환
-    const allServers = mockServers.map((server) => ({
+    const allServers: PaginatedServer[] = mockServers.map((server) => ({
       id: server.id,
       name: server.name,
       status:
@@ -123,15 +140,15 @@ export async function GET(_request: NextRequest) {
           : server.status === 'critical'
             ? 'critical'
             : 'warning',
-      type: server.role,
+      type: server.role || 'unknown',
       cpu: Math.round(server.cpu || 0),
       memory: Math.round(server.memory || 0),
       disk: Math.round(server.disk || 0),
       network: Math.round(server.network || 0),
-      uptime: server.uptime,
-      lastUpdate: server.lastUpdate || new Date().toISOString(),
-      location: server.location,
-      environment: server.environment,
+      uptime: typeof server.uptime === 'string' ? server.uptime : (typeof server.uptime === 'number' ? _formatUptime(server.uptime) : '0d 0h 0m'),
+      lastUpdate: server.lastUpdate instanceof Date ? server.lastUpdate.toISOString() : (server.lastUpdate || new Date().toISOString()),
+      location: server.location || 'Unknown',
+      environment: server.environment || 'production',
     }));
 
     // 상태 필터링
@@ -142,8 +159,8 @@ export async function GET(_request: NextRequest) {
 
     // 정렬
     filteredServers.sort((a, b) => {
-      const aValue = a[sortBy as keyof typeof a];
-      const bValue = b[sortBy as keyof typeof b];
+      const aValue = a[sortBy as keyof PaginatedServer];
+      const bValue = b[sortBy as keyof PaginatedServer];
 
       if (typeof aValue === 'string' && typeof bValue === 'string') {
         return order === 'asc'
@@ -167,7 +184,7 @@ export async function GET(_request: NextRequest) {
     const hasNext = page < totalPages;
     const hasPrev = page > 1;
 
-    return NextResponse.json({
+    return {
       success: true,
       data: {
         servers: paginatedServers,
@@ -182,100 +199,113 @@ export async function GET(_request: NextRequest) {
           prevPage: hasPrev ? page - 1 : null,
         },
         filters: {
-          status,
+          status: status || null,
           sortBy,
           order,
         },
         summary: {
           total: filteredServers.length,
-          healthy: filteredServers.filter((s: any) => s.status === 'healthy')
-            .length,
-          warning: filteredServers.filter((s: any) => s.status === 'warning')
-            .length,
-          critical: filteredServers.filter((s: any) => s.status === 'critical')
-            .length,
+          healthy: filteredServers.filter((s) => s.status === 'healthy').length,
+          warning: filteredServers.filter((s) => s.status === 'warning').length,
+          critical: filteredServers.filter((s) => s.status === 'critical').length,
         },
       },
       timestamp: new Date().toISOString(),
-    });
+    };
+  });
+
+/**
+ * 🖥️ 서버 Next API
+ * 다음 서버 정보 또는 서버 페이지네이션을 처리하는 엔드포인트
+ */
+export async function GET(request: NextRequest) {
+  try {
+    return await getHandler(request);
   } catch (error) {
     console.error('❌ 서버 Next API 오류:', error);
     return NextResponse.json(
       {
         success: false,
         error: '서버 정보 조회 중 오류가 발생했습니다',
+        details: getErrorMessage(error),
       },
       { status: 500 }
     );
   }
 }
 
-/**
- * POST 요청으로 서버 배치 작업 수행
- */
-export async function POST(_request: NextRequest) {
-  try {
-    const body = await _request.json();
-    const { action, serverIds, settings } = body;
+// POST 핸들러
+const postHandler = createApiRoute()
+  .body(ServerBatchRequestSchema)
+  .response(ServerBatchResponseSchema)
+  .configure({
+    showDetailedErrors: process.env.NODE_ENV === 'development',
+    enableLogging: true,
+  })
+  .build(async (_request, context): Promise<ServerBatchResponse> => {
+    const { action, serverIds, settings } = context.body;
 
     switch (action) {
       case 'batch-restart':
-        return NextResponse.json({
+        return {
           success: true,
           message: `${serverIds.length}개 서버 재시작이 시작되었습니다`,
           serverIds,
           estimatedDuration: serverIds.length * 2, // minutes
           timestamp: new Date().toISOString(),
-        });
+        };
 
       case 'batch-update':
-        return NextResponse.json({
+        return {
           success: true,
           message: `${serverIds.length}개 서버 업데이트가 시작되었습니다`,
           serverIds,
           estimatedDuration: serverIds.length * 5, // minutes
           timestamp: new Date().toISOString(),
-        });
+        };
 
       case 'batch-configure':
-        return NextResponse.json({
+        return {
           success: true,
           message: `${serverIds.length}개 서버 설정이 업데이트되었습니다`,
           serverIds,
           settings,
           timestamp: new Date().toISOString(),
-        });
+        };
 
       case 'health-check':
-        return NextResponse.json({
+        return {
           success: true,
           message: `${serverIds.length}개 서버 헬스체크가 시작되었습니다`,
-          results: serverIds.map((id: string) => ({
+          results: serverIds.map((id) => ({
             serverId: id,
-            status: ['healthy', 'warning', 'critical'][
+            status: (['healthy', 'warning', 'critical'] as const)[
               Math.floor(Math.random() * 3)
             ],
             responseTime: Math.floor(Math.random() * 100) + 10,
             lastCheck: new Date().toISOString(),
           })),
           timestamp: new Date().toISOString(),
-        });
+        };
 
       default:
-        return NextResponse.json(
-          {
-            success: false,
-            error: `지원되지 않는 액션: ${action}`,
-          },
-          { status: 400 }
-        );
+        throw new Error(`지원되지 않는 액션: ${action}`);
     }
+  });
+
+/**
+ * POST 요청으로 서버 배치 작업 수행
+ */
+export async function POST(request: NextRequest) {
+  try {
+    return await postHandler(request);
   } catch (error) {
     console.error('❌ 서버 배치 작업 오류:', error);
     return NextResponse.json(
       {
         success: false,
         error: '서버 배치 작업 중 오류가 발생했습니다',
+        details: getErrorMessage(error),
       },
       { status: 500 }
     );

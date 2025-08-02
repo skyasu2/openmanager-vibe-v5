@@ -1,5 +1,15 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+
+// 🔒 타입 안전성을 위한 인터페이스 정의
+interface EnterpriseServer {
+  id: string;
+  status: 'online' | 'warning' | 'error';
+  name?: string;
+  location?: string;
+  type?: string;
+  [key: string]: unknown;
+}
 import {
   AI_RECOMMENDATIONS,
   CRITICAL_FAILURE_CHAINS,
@@ -189,24 +199,24 @@ export async function GET(request: NextRequest) {
       serverDetails: {
         byStatus: serversByStatus,
         kubernetes: {
-          masters: ENTERPRISE_SERVERS.filter((s: any) =>
+          masters: ENTERPRISE_SERVERS.filter((s) =>
             s.id.includes('master')
           ),
-          workers: ENTERPRISE_SERVERS.filter((s: any) =>
+          workers: ENTERPRISE_SERVERS.filter((s) =>
             s.id.includes('worker')
           ),
         },
         onPremise: {
-          web: ENTERPRISE_SERVERS.filter((s: any) => s.id.includes('web-')),
-          database: ENTERPRISE_SERVERS.filter((s: any) => s.id.includes('db-')),
+          web: ENTERPRISE_SERVERS.filter((s) => s.id.includes('web-')),
+          database: ENTERPRISE_SERVERS.filter((s) => s.id.includes('db-')),
           storage: ENTERPRISE_SERVERS.filter(
-            (s: any) =>
+            (s) =>
               s.id.includes('storage-') ||
               s.id.includes('file-') ||
               s.id.includes('backup-')
           ),
           infrastructure: ENTERPRISE_SERVERS.filter(
-            (s: any) =>
+            (s) =>
               s.id.includes('monitor-') ||
               s.id.includes('log-') ||
               s.id.includes('proxy-') ||

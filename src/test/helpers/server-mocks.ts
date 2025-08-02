@@ -90,6 +90,19 @@ export function createMockServer(overrides?: Partial<Server>): Server {
 }
 
 /**
+ * 표준 Server Mock 생성 (테스트용 간편 함수)
+ */
+export function createStandardServerMock(overrides?: Partial<Server>): Server {
+  return createMockServer({
+    status: 'online',
+    cpu: 45.5,
+    memory: 62.3,
+    disk: 35.2,
+    ...overrides,
+  });
+}
+
+/**
  * ServerInstance Mock 생성
  */
 export function createMockServerInstance(

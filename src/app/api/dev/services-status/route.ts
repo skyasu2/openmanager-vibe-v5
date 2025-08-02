@@ -12,7 +12,7 @@ interface ServiceStatus {
   name: string;
   status: 'connected' | 'error' | 'unknown';
   responseTime: number;
-  details: any;
+  details: Record<string, unknown> | null;
   error?: string;
 }
 
@@ -58,7 +58,7 @@ async function checkSupabase(): Promise<ServiceStatus> {
         status: 'error',
         responseTime,
         details: { error: error.message },
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
 
@@ -74,13 +74,13 @@ async function checkSupabase(): Promise<ServiceStatus> {
         keyManager: 'DevKeyManager v1.0',
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       name: 'Supabase',
       status: 'error',
       responseTime: Date.now() - startTime,
       details: null,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -125,13 +125,13 @@ async function checkRedis(): Promise<ServiceStatus> {
         keyManager: 'DevKeyManager v1.0',
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       name: 'Redis (Upstash)',
       status: 'error',
       responseTime: Date.now() - startTime,
       details: null,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -196,13 +196,13 @@ async function checkGoogleAI(): Promise<ServiceStatus> {
         keyManager: 'DevKeyManager v1.0',
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       name: 'Google AI (Gemini)',
       status: 'error',
       responseTime: Date.now() - startTime,
       details: null,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -254,13 +254,13 @@ async function checkGoogleVMMCP(): Promise<ServiceStatus> {
         keyManager: 'DevKeyManager v1.0',
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       name: 'Google VM MCP Server',
       status: 'error',
       responseTime: Date.now() - startTime,
       details: null,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -290,13 +290,13 @@ async function checkVercel(): Promise<ServiceStatus> {
         region: process.env?.VERCEL_REGION || 'local',
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       name: 'Vercel Deployment',
       status: 'error',
       responseTime: Date.now() - startTime,
       details: null,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -339,10 +339,10 @@ export async function GET(_request: NextRequest) {
 
     const summary = {
       total: services.length,
-      connected: services.filter((s: any) => s.status === 'connected').length,
-      errors: services.filter((s: any) => s.status === 'error').length,
+      connected: services.filter((s: ServiceStatus) => s.status === 'connected').length,
+      errors: services.filter((s: ServiceStatus) => s.status === 'error').length,
       averageResponseTime: Math.round(
-        services.reduce((sum: number, s: any) => sum + s.responseTime, 0) /
+        services.reduce((sum: number, s: ServiceStatus) => sum + s.responseTime, 0) /
           services.length
       ),
     };
@@ -359,7 +359,7 @@ export async function GET(_request: NextRequest) {
     );
 
     return NextResponse.json(response);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ 서비스 상태 확인 중 오류:', error);
 
     return NextResponse.json(
@@ -368,7 +368,7 @@ export async function GET(_request: NextRequest) {
         environment: nodeEnv,
         services: [],
         summary: { total: 0, connected: 0, errors: 1, averageResponseTime: 0 },
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

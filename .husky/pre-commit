@@ -8,12 +8,14 @@ if [ "$HUSKY" = "0" ]; then
     exit 0
 fi
 
-# lint-staged 실행 (변경된 파일만 검사)
-echo "🧹 변경된 파일 검사 중..."
-npx lint-staged
+# lint-staged 실행 (변경된 파일만 검사) - 성능 최적화
+echo "🧹 변경된 파일 검사 중... (성능 최적화 모드)"
+# 병렬 처리를 위해 --concurrent 옵션 추가
+npx lint-staged --concurrent --relative
 
 if [ $? -ne 0 ]; then
     echo "❌ Pre-commit 검증 실패!"
+    echo "💡 성능 최적화된 설정을 사용했습니다. 문제가 있으면 npm run lint:fix 실행 후 다시 시도하세요."
     exit 1
 fi
 
@@ -36,6 +38,29 @@ if [ -f "scripts/security/check-secrets-in-docs.sh" ]; then
         echo "💡 토큰을 [REDACTED]로 교체하거나 예시 형식으로 변경하세요."
         exit 1
     fi
+fi
+
+# TDD 메타데이터 검사 (선택사항)
+if [ -f "scripts/test-metadata.ts" ]; then
+    echo "🧪 테스트 메타데이터 검사 중..."
+    npm run test:metadata --silent || {
+        echo "⚠️  오래된 skip 테스트가 발견되었습니다."
+        echo "💡 test-metadata-report.md를 확인하여 30일 이상된 skip 테스트를 정리해주세요."
+        # 경고만 하고 커밋은 허용 (exit 1 하지 않음)
+    }
+fi
+
+# TDD RED → GREEN 전환 검사 (선택사항)
+if [ -f "scripts/tdd-cleanup.ts" ]; then
+    echo "🔄 TDD 테스트 상태 검사 중..."
+    npm run test:tdd-check --silent || {
+        CLEANUP_NEEDED=$?
+        if [ $CLEANUP_NEEDED -eq 0 ]; then
+            echo "⚠️  GREEN으로 전환된 TDD 테스트가 발견되었습니다."
+            echo "💡 'npm run test:tdd-cleanup'을 실행하여 @tdd-red 태그를 제거하세요."
+            # 개발자에게 알림만 제공 (커밋은 허용)
+        fi
+    }
 fi
 
 echo "✅ Pre-commit 검증 통과!"

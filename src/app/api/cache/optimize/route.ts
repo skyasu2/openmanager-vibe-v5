@@ -3,6 +3,7 @@
  *
  * 캐시 워밍업 및 최적화 작업 실행
  * POST /api/cache/optimize
+ * - Zod 스키마로 타입 안전성 보장
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -12,12 +13,34 @@ import {
   getCacheService,
 } from '@/lib/cache-helper';
 import { supabase as createClient } from '@/lib/supabase';
+import { createApiRoute } from '@/lib/api/zod-middleware';
+import {
+  CacheOptimizeRequestSchema,
+  CacheWarmupResponseSchema,
+  CacheInvalidateResponseSchema,
+  CacheOptimizeResponseSchema,
+  CacheResetStatsResponseSchema,
+  type CacheOptimizeRequest,
+  type CacheWarmupResponse,
+  type CacheInvalidateResponse,
+  type CacheOptimizeResponse,
+  type CacheResetStatsResponse,
+  type CacheStats,
+  type ServerMetricsDetail,
+} from '@/schemas/api.schema';
+import { getErrorMessage } from '@/types/type-utils';
 
 export const runtime = 'edge';
 
-export async function POST(request: NextRequest) {
-  try {
-    const { action, options } = await request.json();
+// POST 핸들러
+const postHandler = createApiRoute()
+  .body(CacheOptimizeRequestSchema)
+  .configure({
+    showDetailedErrors: process.env.NODE_ENV === 'development',
+    enableLogging: true,
+  })
+  .build(async (_request, context) => {
+    const { action, options } = context.body;
 
     switch (action) {
       case 'warmup':
@@ -33,15 +56,17 @@ export async function POST(request: NextRequest) {
         return await handleResetStats();
 
       default:
-        return NextResponse.json(
-          { success: false, error: '알 수 없는 작업' },
-          { status: 400 }
-        );
+        throw new Error('알 수 없는 작업');
     }
+  });
+
+export async function POST(request: NextRequest) {
+  try {
+    return await postHandler(request);
   } catch (error) {
     console.error('❌ 캐시 최적화 실패:', error);
     return NextResponse.json(
-      { success: false, error: '캐시 최적화 실패' },
+      { success: false, error: '캐시 최적화 실패', message: getErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -50,7 +75,7 @@ export async function POST(request: NextRequest) {
 /**
  * 캐시 워밍업 처리
  */
-async function handleWarmup(options?: { targets?: string[] }) {
+async function handleWarmup(options?: { targets?: string[]; pattern?: string }): Promise<CacheWarmupResponse> {
   const supabaseClient = createClient;
   const warmupItems = [];
 
@@ -85,7 +110,7 @@ async function handleWarmup(options?: { targets?: string[] }) {
           onlineServers: servers.filter((s) => s.status === 'online').length,
           avgCpuUsage:
             servers.reduce((sum, s) => {
-              const metrics = s.metrics as any;
+              const metrics = s.metrics as ServerMetricsDetail;
               return sum + (metrics?.cpu?.usage || 0);
             }, 0) / servers.length,
           timestamp: Date.now(),
@@ -122,31 +147,31 @@ async function handleWarmup(options?: { targets?: string[] }) {
 
   await warmupCache(warmupItems);
 
-  return NextResponse.json({
+  return {
     success: true,
     message: `${warmupItems.length}개 항목 워밍업 완료`,
     items: warmupItems.map((item) => item.key),
-  });
+  };
 }
 
 /**
  * 캐시 무효화 처리
  */
-async function handleInvalidate(options?: { pattern?: string }) {
+async function handleInvalidate(options?: { targets?: string[]; pattern?: string }): Promise<CacheInvalidateResponse> {
   await invalidateCache(options?.pattern);
 
-  return NextResponse.json({
+  return {
     success: true,
     message: options?.pattern
       ? `패턴 '${options.pattern}'에 해당하는 캐시 무효화 완료`
       : '전체 캐시 무효화 완료',
-  });
+  };
 }
 
 /**
  * 캐시 최적화 처리
  */
-async function handleOptimize() {
+async function handleOptimize(): Promise<CacheOptimizeResponse> {
   const cache = getCacheService();
   const stats = cache.getStats();
 
@@ -173,24 +198,52 @@ async function handleOptimize() {
     optimizations.push('실시간 데이터 캐시 정리 완료');
   }
 
-  return NextResponse.json({
+  const rawStats = cache.getStats();
+  const { recommendations, ...baseStats } = rawStats;
+  const newStats: CacheStats = {
+    hits: baseStats.hits || 0,
+    misses: baseStats.misses || 0,
+    errors: baseStats.errors || 0,
+    commands: baseStats.sets + baseStats.deletes || 0, // sets + deletes로 총 명령 수 계산
+    memoryUsage: baseStats.memoryUsageMB || 0, // memoryUsage는 memoryUsageMB와 동일하게 설정
+    storeSize: baseStats.hits + baseStats.misses || 0, // 스토어 크기는 총 요청 수로 추정
+    hitRate: baseStats.hitRate || 0,
+    commandsPerSecond: (baseStats.sets + baseStats.deletes) / Math.max(1, (Date.now() - baseStats.lastReset) / 1000) || 0, // 초당 명령 수 계산
+    memoryUsageMB: baseStats.memoryUsageMB || 0,
+  };
+
+  return {
     success: true,
     message: '캐시 최적화 완료',
     optimizations,
-    newStats: cache.getStats(),
-  });
+    newStats,
+  };
 }
 
 /**
  * 통계 리셋 처리
  */
-async function handleResetStats() {
+async function handleResetStats(): Promise<CacheResetStatsResponse> {
   const cache = getCacheService();
   cache.resetStats();
 
-  return NextResponse.json({
+  const rawStats = cache.getStats();
+  const { recommendations, ...baseStats } = rawStats;
+  const newStats: CacheStats = {
+    hits: baseStats.hits || 0,
+    misses: baseStats.misses || 0,
+    errors: baseStats.errors || 0,
+    commands: baseStats.sets + baseStats.deletes || 0, // sets + deletes로 총 명령 수 계산
+    memoryUsage: baseStats.memoryUsageMB || 0, // memoryUsage는 memoryUsageMB와 동일하게 설정
+    storeSize: baseStats.hits + baseStats.misses || 0, // 스토어 크기는 총 요청 수로 추정
+    hitRate: baseStats.hitRate || 0,
+    commandsPerSecond: (baseStats.sets + baseStats.deletes) / Math.max(1, (Date.now() - baseStats.lastReset) / 1000) || 0, // 초당 명령 수 계산
+    memoryUsageMB: baseStats.memoryUsageMB || 0,
+  };
+
+  return {
     success: true,
     message: '캐시 통계 리셋 완료',
-    newStats: cache.getStats(),
-  });
+    newStats,
+  };
 }

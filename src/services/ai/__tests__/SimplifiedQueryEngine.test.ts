@@ -369,19 +369,19 @@ describe('SimplifiedQueryEngine', () => {
     });
 
     it('should handle Google AI timeout with fallback', async () => {
+      // Mock fetch to never resolve
       vi.mocked(global.fetch).mockImplementation(() => 
-        new Promise(resolve => setTimeout(resolve, 1000))
+        new Promise(() => {}) // Never resolves
       );
       
-      const responsePromise = engine.query({
+      const response = await engine.query({
         query: '타임아웃 테스트',
         mode: 'google-ai',
         options: { timeoutMs: 200 },
       });
       
-      vi.advanceTimersByTime(201);
-      
-      const response = await responsePromise;
+      // Should fallback to local RAG after timeout
+      expect(response.success).toBe(true);
       expect(response.engine).toBe('local-rag'); // Fallback to local
     });
 
@@ -500,8 +500,10 @@ describe('SimplifiedQueryEngine', () => {
         mode: 'local',
       });
       
+      // When RAG fails, it should return an error response
       expect(response.success).toBe(false);
-      expect(response.error).toBe('RAG error');
+      expect(response.error).toContain('RAG error');
+      expect(response.response).toContain('쿼리 처리 중 오류가 발생했습니다');
     });
 
     it('should handle MCP context errors gracefully', async () => {

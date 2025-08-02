@@ -9,21 +9,38 @@
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { createApiRoute } from '@/lib/api/zod-middleware';
+import {
+  MCPSyncRequestSchema,
+  MCPSyncResponseSchema,
+  MCPSyncStatusResponseSchema,
+  type MCPSyncRequest,
+  type MCPSyncResponse,
+  type MCPSyncStatusResponse,
+  type MCPSyncResult,
+} from '@/schemas/api.schema';
+import { getErrorMessage } from '@/types/type-utils';
 
-export async function POST(request: NextRequest) {
-  try {
+// POST 핸들러
+const postHandler = createApiRoute()
+  .body(MCPSyncRequestSchema)
+  .response(MCPSyncResponseSchema)
+  .configure({
+    showDetailedErrors: process.env.NODE_ENV === 'development',
+    enableLogging: true,
+  })
+  .build(async (_request, context): Promise<MCPSyncResponse> => {
     console.log('🔄 MCP + RAG 동기화 요청 처리 시작...');
 
-    const body = await request.json();
     const {
       ragEngineUrl,
-      syncType = 'full', // 'full' | 'incremental' | 'mcp_only' | 'local_only'
+      syncType = 'full',
       force: _force = false,
-    } = body;
+    } = context.body;
 
     const cloudContextLoader = CloudContextLoader.getInstance();
 
-    let syncResult: any = {
+    let syncResult: MCPSyncResult = {
       success: false,
       syncedContexts: 0,
       errors: [],
@@ -34,7 +51,12 @@ export async function POST(request: NextRequest) {
     switch (syncType) {
       case 'full':
         console.log('🔄 전체 컨텍스트 동기화 실행...');
-        syncResult = await cloudContextLoader.syncContextWithRAG(ragEngineUrl);
+        const rawSyncResult = await cloudContextLoader.syncContextWithRAG(ragEngineUrl);
+        syncResult = {
+          ...rawSyncResult,
+          timestamp: new Date().toISOString(),
+          syncType: 'full' as const,
+        };
         break;
 
       case 'mcp_only': {
@@ -152,7 +174,11 @@ export async function POST(request: NextRequest) {
     // 동기화 후 통합 상태 조회
     const integratedStatus = await cloudContextLoader.getIntegratedStatus();
 
-    const response = {
+    console.log(
+      `✅ 동기화 완료: ${syncResult.syncedContexts}개 컨텍스트, ${syncResult.errors.length}개 오류`
+    );
+
+    return {
       ...syncResult,
       integratedStatus,
       performance: {
@@ -161,17 +187,11 @@ export async function POST(request: NextRequest) {
         contextCacheSize: integratedStatus.contextCache.size,
       },
     };
+  });
 
-    console.log(
-      `✅ 동기화 완료: ${syncResult.syncedContexts}개 컨텍스트, ${syncResult.errors.length}개 오류`
-    );
-
-    return NextResponse.json(response, {
-      status: 200,
-      headers: {
-        'Cache-Control': 'no-cache', // 동기화 결과는 캐싱하지 않음
-      },
-    });
+export async function POST(request: NextRequest) {
+  try {
+    return await postHandler(request);
   } catch (error) {
     console.error('❌ MCP + RAG 동기화 실패:', error);
 
@@ -179,7 +199,7 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         error: 'Sync processing failed',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        message: getErrorMessage(error),
         timestamp: new Date().toISOString(),
       },
       { status: 500 }
@@ -192,14 +212,24 @@ export async function POST(request: NextRequest) {
  *
  * GET /api/mcp/context-integration/sync
  */
-export async function GET(_request: NextRequest) {
-  try {
+// GET 핸들러
+const getHandler = createApiRoute()
+  .response(MCPSyncStatusResponseSchema)
+  .configure({
+    showDetailedErrors: process.env.NODE_ENV === 'development',
+    enableLogging: true,
+  })
+  .build(async (_request): Promise<MCPSyncStatusResponse> => {
     console.log('📊 동기화 상태 조회 시작...');
 
     const cloudContextLoader = CloudContextLoader.getInstance();
     const integratedStatus = await cloudContextLoader.getIntegratedStatus();
 
-    const response = {
+    console.log(
+      `✅ 동기화 상태 조회 완료: MCP ${integratedStatus.mcpServer.status}`
+    );
+
+    return {
       success: true,
       timestamp: new Date().toISOString(),
       syncStatus: {
@@ -210,35 +240,34 @@ export async function GET(_request: NextRequest) {
       },
       availableSyncTypes: [
         {
-          type: 'full',
+          type: 'full' as const,
           description: '전체 컨텍스트 동기화 (MCP + 로컬)',
           recommendedFor: '초기 설정 또는 대규모 변경 후',
         },
         {
-          type: 'mcp_only',
+          type: 'mcp_only' as const,
           description: 'MCP 서버 컨텍스트만 동기화',
           recommendedFor: 'MCP 서버 데이터 업데이트 후',
         },
         {
-          type: 'local_only',
+          type: 'local_only' as const,
           description: '로컬 컨텍스트만 동기화',
           recommendedFor: '로컬 설정 변경 후',
         },
         {
-          type: 'incremental',
+          type: 'incremental' as const,
           description: '변경된 컨텍스트만 동기화',
           recommendedFor: '일반적인 주기적 동기화',
         },
       ],
       performance: integratedStatus.performance,
     };
+  });
 
-    console.log(
-      `✅ 동기화 상태 조회 완료: MCP ${integratedStatus.mcpServer.status}`
-    );
-
+export async function GET(request: NextRequest) {
+  try {
+    const response = await getHandler(request);
     return NextResponse.json(response, {
-      status: 200,
       headers: {
         'Cache-Control': 'public, max-age=30', // 30초 캐싱
       },
@@ -250,7 +279,7 @@ export async function GET(_request: NextRequest) {
       {
         success: false,
         error: 'Sync status retrieval failed',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        message: getErrorMessage(error),
         timestamp: new Date().toISOString(),
       },
       { status: 500 }

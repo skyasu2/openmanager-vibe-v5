@@ -65,6 +65,9 @@ describe('🧪 TDD - EnhancedProfileStatusDisplay', () => {
       );
     });
 
+    // @todo: user-count-display 기능 구현 필요
+    // @skip-reason: 실시간 사용자 수 표시 기능 미구현
+    // @skip-date: 2024-01-30
     it.skip('현재 접속 사용자 수를 표시해야 함', async () => {
       render(<EnhancedProfileStatusDisplay />);
 
@@ -99,6 +102,9 @@ describe('🧪 TDD - EnhancedProfileStatusDisplay', () => {
       expect(screen.getByTestId('environment-display')).toBeInTheDocument();
     });
 
+    // @todo: 서비스 상태 토글 기능 구현 필요
+    // @skip-reason: 상세 정보 토글 기능 미구현
+    // @skip-date: 2024-01-30
     it.skip('서비스 상태를 표시해야 함', async () => {
       render(<EnhancedProfileStatusDisplay />);
 
@@ -254,8 +260,10 @@ describe('🧪 TDD - EnhancedProfileStatusDisplay', () => {
       expect(mockRefresh).toHaveBeenCalledTimes(1);
     });
 
+    // @todo: 실시간 업데이트 기능 구현 필요
+    // @skip-reason: waitFor 비동기 처리 타임아웃 문제 해결 필요
+    // @skip-date: 2024-01-30
     it.skip('실시간 업데이트 시 상태가 자동으로 갱신되어야 함', async () => {
-      // 🚧 임시 skip: waitFor 비동기 처리와 관련된 타임아웃 문제
       const { rerender } = render(<EnhancedProfileStatusDisplay />);
 
       // 초기 상태 확인

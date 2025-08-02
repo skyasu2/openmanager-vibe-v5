@@ -2,20 +2,49 @@
  * 🚀 캐시 통계 API
  *
  * Upstash Redis 캐시 성능 모니터링
+ * Zod 스키마와 타입 안전성이 적용된 버전
+ * 
  * GET /api/cache/stats
  */
 
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getCacheStats, getCacheService } from '@/lib/cache-helper';
 import { estimateMemoryUsage, getUpstashRedisInfo } from '@/lib/upstash-redis';
+import { createApiRoute } from '@/lib/api/zod-middleware';
+import {
+  CacheStatsResponseSchema,
+  type CacheStatsResponse,
+  type CacheStats,
+  type CachePerformance,
+} from '@/schemas/api.schema';
+import { getErrorMessage } from '@/types/type-utils';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-  try {
+// 캐시 통계 핸들러
+const cacheStatsHandler = createApiRoute()
+  .response(CacheStatsResponseSchema)
+  .configure({
+    showDetailedErrors: process.env.NODE_ENV === 'development',
+    enableLogging: true,
+  })
+  .build(async (_request, _context): Promise<CacheStatsResponse> => {
     // 캐시 통계
-    const stats = getCacheStats();
+    const rawStats = getCacheStats();
+    const { recommendations, ...baseStats } = rawStats;
+    const stats: CacheStats = {
+      hits: baseStats.hits || 0,
+      misses: baseStats.misses || 0,
+      errors: baseStats.errors || 0,
+      commands: baseStats.sets + baseStats.deletes || 0, // sets + deletes로 총 명령 수 계산
+      memoryUsage: baseStats.memoryUsageMB || 0, // memoryUsage는 memoryUsageMB와 동일하게 설정
+      storeSize: baseStats.hits + baseStats.misses || 0, // 스토어 크기는 총 요청 수로 추정
+      hitRate: baseStats.hitRate || 0,
+      commandsPerSecond: (baseStats.sets + baseStats.deletes) / Math.max(1, (Date.now() - baseStats.lastReset) / 1000) || 0, // 초당 명령 수 계산
+      memoryUsageMB: baseStats.memoryUsageMB || 0,
+    };
 
     // Redis 연결 정보
     const redisInfo = await getUpstashRedisInfo();
@@ -26,7 +55,8 @@ export async function GET() {
     // 성능 분석
     const performance = analyzePerformance(stats);
 
-    return NextResponse.json({
+    // 응답 생성
+    const response: CacheStatsResponse = {
       success: true,
       timestamp: new Date().toISOString(),
       stats: {
@@ -35,28 +65,52 @@ export async function GET() {
       },
       redis: redisInfo,
       memory: memoryUsage,
-    });
+    };
+
+    // 검증 (개발 환경에서 유용)
+    if (process.env.NODE_ENV === 'development') {
+      const validation = CacheStatsResponseSchema.safeParse(response);
+      if (!validation.success) {
+        console.error('Cache stats response validation failed:', validation.error);
+      }
+    }
+
+    return response;
+  });
+
+export async function GET(request: NextRequest) {
+  try {
+    return await cacheStatsHandler(request);
   } catch (error) {
-    console.error('❌ 캐시 통계 조회 실패:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: '캐시 통계 조회 실패',
+    console.error('❌ Cache stats failed:', error);
+
+    // 에러 응답도 타입 안전하게
+    const errorResponse = {
+      success: false,
+      timestamp: new Date().toISOString(),
+      error: '캐시 통계 조회 실패',
+      message: getErrorMessage(error),
+    };
+
+    return NextResponse.json(errorResponse, {
+      status: 500,
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Content-Type': 'application/json',
       },
-      { status: 500 }
-    );
+    });
   }
 }
 
 /**
  * 캐시 성능 분석
  */
-function analyzePerformance(stats: any) {
+function analyzePerformance(stats: CacheStats): CachePerformance {
   const totalOps = stats.hits + stats.misses;
   const errorRate = totalOps > 0 ? (stats.errors / totalOps) * 100 : 0;
 
   // 성능 등급 계산
-  let grade = 'A';
+  let grade: 'A' | 'B' | 'C' | 'D' | 'F' = 'A';
   const issues: string[] = [];
 
   if (stats.hitRate < 50) {
@@ -98,7 +152,7 @@ function analyzePerformance(stats: any) {
 /**
  * 개선 권장사항 생성
  */
-function getRecommendations(stats: any, issues: string[]): string[] {
+function getRecommendations(stats: CacheStats, issues: string[]): string[] {
   const recommendations: string[] = [];
 
   if (stats.hitRate < 70) {

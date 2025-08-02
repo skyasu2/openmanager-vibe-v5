@@ -10,6 +10,53 @@ import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+// 🔒 타입 안전성을 위한 인터페이스 정의
+interface MCPServerInfo {
+  url: string;
+  status: 'online' | 'degraded' | 'offline';
+  lastChecked: string;
+  responseTime: number;
+  version: string;
+  capabilities: string[];
+}
+
+interface ContextCacheInfo {
+  hitRate: number;
+}
+
+interface RAGIntegrationInfo {
+  enabled: boolean;
+  syncCount: number;
+}
+
+interface PerformanceInfo {
+  // Add specific performance properties as needed
+  [key: string]: unknown;
+}
+
+interface IntegratedStatus {
+  mcpServer: MCPServerInfo;
+  contextCache: ContextCacheInfo;
+  ragIntegration: RAGIntegrationInfo;
+  performance: PerformanceInfo;
+}
+
+interface ConnectivityTest {
+  success: boolean;
+  tests: Array<{
+    name: string;
+    status: 'pass' | 'fail';
+    duration: number;
+    message?: string;
+  }>;
+}
+
+interface HealthAlert {
+  level: 'info' | 'warning' | 'error';
+  message: string;
+  action?: string;
+}
+
 export async function GET(_request: NextRequest) {
   try {
     console.log('🏥 MCP 서버 헬스체크 시작...');
@@ -18,6 +65,19 @@ export async function GET(_request: NextRequest) {
     const integratedStatus = await cloudContextLoader.getIntegratedStatus();
 
     const mcpServerInfo = integratedStatus.mcpServer;
+    
+    // 안전한 서버 정보 (version과 capabilities가 undefined일 수 있으므로 기본값 제공)
+    const safeServerInfo: MCPServerInfo = {
+      ...mcpServerInfo,
+      version: mcpServerInfo.version ?? 'unknown',
+      capabilities: mcpServerInfo.capabilities ?? [],
+    };
+
+    // 안전한 통합 상태 (safeServerInfo 사용)
+    const safeIntegratedStatus: IntegratedStatus = {
+      ...integratedStatus,
+      mcpServer: safeServerInfo,
+    };
 
     // 상세 헬스 정보 구성
     const healthDetails = {
@@ -43,13 +103,13 @@ export async function GET(_request: NextRequest) {
         performance: integratedStatus.performance,
       },
       recommendations: generateHealthRecommendations(
-        mcpServerInfo,
-        integratedStatus
+        safeServerInfo,
+        safeIntegratedStatus
       ),
     };
 
     // 헬스 점수 계산 (0-100)
-    const healthScore = calculateHealthScore(mcpServerInfo, integratedStatus);
+    const healthScore = calculateHealthScore(safeServerInfo, safeIntegratedStatus);
 
     const response = {
       success: true,
@@ -57,7 +117,7 @@ export async function GET(_request: NextRequest) {
       healthScore,
       status: mcpServerInfo.status,
       details: healthDetails,
-      alerts: generateHealthAlerts(mcpServerInfo, integratedStatus),
+      alerts: generateHealthAlerts(safeServerInfo, safeIntegratedStatus),
       nextCheckIn: getNextCheckTime(),
       troubleshooting: {
         commonIssues: [
@@ -142,7 +202,7 @@ export async function POST(_request: NextRequest) {
     await cloudContextLoader['checkMCPServerHealth']();
 
     // 연결 테스트 추가 실행
-    let connectivityTest: any = null;
+    let connectivityTest: ConnectivityTest | null = null;
     if (testConnectivity) {
       connectivityTest = await performConnectivityTest(cloudContextLoader);
     }
@@ -150,18 +210,30 @@ export async function POST(_request: NextRequest) {
     // 업데이트된 상태 조회
     const integratedStatus = await cloudContextLoader.getIntegratedStatus();
 
+    // 안전한 서버 정보 생성 (이 스코프에서도)
+    const localSafeServerInfo: MCPServerInfo = {
+      ...integratedStatus.mcpServer,
+      version: integratedStatus.mcpServer.version ?? 'unknown',
+      capabilities: integratedStatus.mcpServer.capabilities ?? [],
+    };
+
+    const localSafeIntegratedStatus: IntegratedStatus = {
+      ...integratedStatus,
+      mcpServer: localSafeServerInfo,
+    };
+
     const response = {
       success: true,
       timestamp: new Date().toISOString(),
       forcedCheck: true,
       healthScore: calculateHealthScore(
-        integratedStatus.mcpServer,
-        integratedStatus
+        localSafeServerInfo,
+        localSafeIntegratedStatus
       ),
-      status: integratedStatus.mcpServer.status,
+      status: localSafeServerInfo.status,
       details: includeDetailed
         ? {
-            server: integratedStatus.mcpServer,
+            server: localSafeServerInfo,
             integration: {
               contextCache: integratedStatus.contextCache,
               ragIntegration: integratedStatus.ragIntegration,
@@ -170,10 +242,10 @@ export async function POST(_request: NextRequest) {
             connectivityTest,
           }
         : undefined,
-      summary: generateHealthSummary(integratedStatus.mcpServer),
+      summary: generateHealthSummary(localSafeServerInfo),
     };
 
-    console.log(`✅ 강제 헬스체크 완료: ${integratedStatus.mcpServer.status}`);
+    console.log(`✅ 강제 헬스체크 완료: ${localSafeServerInfo.status}`);
 
     return NextResponse.json(response, {
       status: 200,
@@ -215,8 +287,8 @@ function categorizeResponseTime(responseTime: number): string {
  * 헬스 점수 계산 (0-100)
  */
 function calculateHealthScore(
-  mcpServerInfo: any,
-  integratedStatus: any
+  mcpServerInfo: MCPServerInfo,
+  integratedStatus: IntegratedStatus
 ): number {
   let score = 0;
 
@@ -252,13 +324,9 @@ function calculateHealthScore(
  * 헬스 경고 생성
  */
 function generateHealthAlerts(
-  mcpServerInfo: any,
-  integratedStatus: any
-): Array<{
-  level: 'info' | 'warning' | 'error';
-  message: string;
-  action?: string;
-}> {
+  mcpServerInfo: MCPServerInfo,
+  integratedStatus: IntegratedStatus
+): HealthAlert[] {
   const alerts = [];
 
   if (mcpServerInfo.status === 'offline') {
@@ -308,8 +376,8 @@ function generateHealthAlerts(
  * 헬스 권장사항 생성
  */
 function generateHealthRecommendations(
-  mcpServerInfo: any,
-  integratedStatus: any
+  mcpServerInfo: MCPServerInfo,
+  integratedStatus: IntegratedStatus
 ): string[] {
   const recommendations = [];
 
@@ -353,15 +421,7 @@ function getNextCheckTime(): string {
 /**
  * 연결 테스트 수행
  */
-async function performConnectivityTest(cloudContextLoader: any): Promise<{
-  success: boolean;
-  tests: Array<{
-    name: string;
-    status: 'pass' | 'fail';
-    duration: number;
-    message?: string;
-  }>;
-}> {
+async function performConnectivityTest(cloudContextLoader: CloudContextLoader): Promise<ConnectivityTest> {
   const tests = [];
 
   // 기본 연결 테스트
@@ -378,7 +438,7 @@ async function performConnectivityTest(cloudContextLoader: any): Promise<{
   };
 }
 
-async function testBasicConnection(cloudContextLoader: any) {
+async function testBasicConnection(cloudContextLoader: CloudContextLoader) {
   const startTime = Date.now();
   try {
     // 기본 헬스체크 엔드포인트 테스트
@@ -398,7 +458,7 @@ async function testBasicConnection(cloudContextLoader: any) {
   }
 }
 
-async function testContextQuery(cloudContextLoader: any) {
+async function testContextQuery(cloudContextLoader: CloudContextLoader) {
   const startTime = Date.now();
   try {
     // 간단한 컨텍스트 조회 테스트
@@ -428,7 +488,7 @@ async function testContextQuery(cloudContextLoader: any) {
 /**
  * 헬스 요약 생성
  */
-function generateHealthSummary(mcpServerInfo: any): string {
+function generateHealthSummary(mcpServerInfo: MCPServerInfo): string {
   const status = mcpServerInfo.status;
   const responseTime = mcpServerInfo.responseTime;
 

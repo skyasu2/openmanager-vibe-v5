@@ -23,6 +23,9 @@ interface PerformanceTestResult {
   cacheHitRate?: number;
 }
 
+// @skip-reason: 성능 벤치마크 테스트 - CI/CD에서 제외, 수동 실행용
+// @skip-date: 2024-01-01
+// 실행 방법: npm test -- --run src/services/ai/__tests__/performance-analysis.test.ts --no-skip
 describe.skip('SimplifiedQueryEngine 성능 분석', () => {
   let originalEngine: SimplifiedQueryEngine;
   let optimizedEngine: PerformanceOptimizedQueryEngine;

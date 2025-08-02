@@ -1,6 +1,42 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { getMockSystem } from '@/mock';
+import { createApiRoute } from '@/lib/api/zod-middleware';
+import {
+  ServerDetailQuerySchema,
+  LegacyServerResponseSchema,
+  EnhancedServerResponseSchema,
+  ServerErrorResponseSchema,
+  type ServerDetailQuery,
+  type LegacyServerResponse,
+  type EnhancedServerResponse,
+  type ServerErrorResponse,
+  type ServerService,
+  type ServerSpecs,
+  type ServerHistory,
+  type ServerHistoryDataPoint,
+} from '@/schemas/api.schema';
+import { getErrorMessage } from '@/types/type-utils';
+
+// Mock Server type from the mock system
+interface MockServer {
+  id: string;
+  hostname?: string;
+  name?: string;
+  role?: string;
+  environment?: string;
+  status: string;
+  cpu?: number;
+  memory?: number;
+  disk?: number;
+  network?: number;
+  uptime?: number | string;
+  lastUpdate?: string;
+  alerts?: any[] | number;
+  pattern_info?: any;
+  correlation_metrics?: any;
+}
 
 /**
  * 📊 목업 데이터 전용 개별 서버 정보 조회 API
@@ -31,7 +67,7 @@ export async function GET(
     const servers = mockSystem.getServers();
 
     // ID 또는 hostname으로 검색
-    let server = servers.find((s) => s.id === id || s.hostname === id);
+    let server = servers.find((s) => s.id === id || s.hostname === id) as MockServer | undefined;
 
     if (!server) {
       return NextResponse.json(
@@ -39,7 +75,7 @@ export async function GET(
           success: false,
           error: 'Server not found',
           message: `서버 '${id}'를 찾을 수 없습니다`,
-          available_servers: servers.map((s: any) => ({
+          available_servers: servers.map((s) => ({
             id: s.id,
             hostname: s.hostname,
           })),
@@ -68,10 +104,10 @@ export async function GET(
       // 레거시 형식
       const legacyServer = {
         id: server.id,
-        hostname: server.hostname,
+        hostname: server.hostname || server.id,
         name: `OpenManager-${server.id}`,
-        type: server.role,
-        environment: server.environment,
+        type: server.role || 'web',
+        environment: server.environment || 'onpremise',
         location: getLocationByEnvironment(server.environment || 'onpremise'),
         provider: getProviderByEnvironment(server.environment || 'onpremise'),
         status: server.status,
@@ -173,21 +209,19 @@ export async function GET(
       };
 
       // 패턴 정보 포함 (요청시)
-      if (includePatterns && 'pattern_info' in server) {
-        (enhancedResponse as any).pattern_info = (server as any).pattern_info;
-        if ('correlation_metrics' in server) {
-          (enhancedResponse as any).correlation_metrics = (
-            server as any
-          ).correlation_metrics;
+      let patternInfo = undefined;
+      let correlationMetrics = undefined;
+      if (includePatterns && server.pattern_info) {
+        patternInfo = server.pattern_info;
+        if (server.correlation_metrics) {
+          correlationMetrics = server.correlation_metrics;
         }
       }
 
       // 히스토리 데이터 (요청시)
+      let history: ServerHistory | undefined = undefined;
       if (includeHistory) {
-        (enhancedResponse as any).history = generateServerHistory(
-          server,
-          range
-        );
+        history = generateServerHistory(server, range);
       }
 
       // 메타데이터
@@ -209,13 +243,18 @@ export async function GET(
               ? mockSystem.getSystemInfo().scenario
               : mockSystem.getSystemInfo().scenario?.scenario || 'mixed',
         },
-        data: enhancedResponse,
+        data: {
+          ...enhancedResponse,
+          pattern_info: patternInfo,
+          correlation_metrics: correlationMetrics,
+          history,
+        },
       };
 
       return NextResponse.json(response, {
         headers: {
           'X-Server-Id': server.id,
-          'X-Hostname': server.hostname || '',
+          'X-Hostname': server.hostname || server.id,
           'X-Server-Status': server.status,
           'X-Processing-Time-Ms': (Date.now() - startTime).toString(),
           // 개별 서버 정보는 30초 캐싱
@@ -278,9 +317,7 @@ function getProviderByEnvironment(environment: string): string {
 /**
  * 🔧 역할별 서비스 생성
  */
-function generateServices(
-  role: string
-): Array<{ name: string; status: 'running' | 'stopped'; port: number }> {
+function generateServices(role: string): ServerService[] {
   const serviceMap: Record<string, Array<{ name: string; port: number }>> = {
     web: [
       { name: 'nginx', port: 80 },
@@ -351,12 +388,7 @@ function generateIP(serverId: string): string {
 /**
  * 💻 서버 ID로 스펙 생성
  */
-function generateSpecs(serverId: string): {
-  cpu_cores: number;
-  memory_gb: number;
-  disk_gb: number;
-  os: string;
-} {
+function generateSpecs(serverId: string): ServerSpecs {
   const hash = serverId.split('').reduce((a, b) => {
     a = (a << 5) - a + b.charCodeAt(0);
     return a & a;
@@ -392,7 +424,7 @@ function formatUptime(uptimeSeconds: number): string {
 /**
  * 📈 서버 히스토리 생성 (목업 데이터 기반)
  */
-function generateServerHistory(server: any, range: string): any {
+function generateServerHistory(server: MockServer, range: string): ServerHistory {
   const timeRangeMs = parseTimeRange(range);
   const endTime = Date.now();
   const startTime = endTime - timeRangeMs;
@@ -403,7 +435,7 @@ function generateServerHistory(server: any, range: string): any {
     start_time: new Date(startTime).toISOString(),
     end_time: new Date(endTime).toISOString(),
     interval_ms: intervalMs,
-    data_points: [] as any[],
+    data_points: [] as ServerHistoryDataPoint[],
   };
 
   // 히스토리 데이터 포인트 생성

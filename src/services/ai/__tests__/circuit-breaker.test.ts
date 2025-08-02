@@ -11,7 +11,23 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getPerformanceOptimizedQueryEngine } from '@/services/ai/performance-optimized-query-engine';
-import type { QueryRequest } from '@/services/ai/SimplifiedQueryEngine';
+import type { QueryRequest, QueryResponse } from '@/services/ai/SimplifiedQueryEngine';
+
+// Mock dependencies
+vi.mock('@/services/ai/SimplifiedQueryEngine');
+vi.mock('@/services/ai/supabase-rag-engine');
+vi.mock('@/lib/logger');
+vi.mock('@/services/ai/query-cache-manager', () => ({
+  getQueryCacheManager: vi.fn().mockReturnValue({
+    getFromPatternCache: vi.fn().mockResolvedValue(null),
+    saveToPatternCache: vi.fn(),
+  }),
+}));
+vi.mock('@/services/ai/vector-search-optimizer', () => ({
+  getVectorSearchOptimizer: vi.fn().mockReturnValue({
+    optimizeSearch: vi.fn(),
+  }),
+}));
 
 // 테스트용 설정
 const CIRCUIT_BREAKER_CONFIG = {
@@ -23,25 +39,6 @@ const CIRCUIT_BREAKER_CONFIG = {
   timeoutMs: 5000,
 };
 
-// 실패를 유발하는 Mock 설정
-const createFailingMock = (failureCount: number) => {
-  let callCount = 0;
-  return vi.fn().mockImplementation(() => {
-    callCount++;
-    if (callCount <= failureCount) {
-      throw new Error(`Mock failure ${callCount}`);
-    }
-    return Promise.resolve({
-      success: true,
-      response: 'Mock success response',
-      engine: 'mock',
-      confidence: 0.8,
-      thinkingSteps: [],
-      metadata: {},
-      processingTime: 100
-    });
-  });
-};
 
 describe('⚡ 회로 차단기 패턴 테스트', () => {
   let engine: any;
@@ -64,54 +61,54 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
   describe('🔄 회로 차단기 기본 상태 전환', () => {
     
     it('연속 실패 시 회로가 열려야 함 (Closed → Open)', async () => {
-      const failureThreshold = 5;
       const testQuery: QueryRequest = {
         query: 'test circuit breaker failure',
         mode: 'local',
         options: { includeMCPContext: false }
       };
 
-      // 내부 RAG 엔진을 실패하도록 Mock
-      const mockRagEngine = {
-        searchSimilar: createFailingMock(failureThreshold + 1),
+      // Mock the ragEngine to fail multiple times
+      engine.ragEngine = {
+        searchSimilar: vi.fn()
+          .mockRejectedValueOnce(new Error('Test failure 1'))
+          .mockRejectedValueOnce(new Error('Test failure 2'))
+          .mockRejectedValueOnce(new Error('Test failure 3'))
+          .mockRejectedValueOnce(new Error('Test failure 4'))
+          .mockRejectedValueOnce(new Error('Test failure 5'))
+          .mockResolvedValue({
+            results: [{ content: 'Success after failures', score: 0.8 }],
+            totalResults: 1,
+            cached: false
+          }),
         generateEmbedding: vi.fn().mockResolvedValue([0.1, 0.2, 0.3]),
         _initialize: vi.fn().mockResolvedValue(undefined),
         healthCheck: vi.fn().mockResolvedValue({ status: 'healthy', vectorDB: true })
       };
-      
-      // 엔진 내부 상태 조작 (테스트용)
-      engine.ragEngine = mockRagEngine;
 
-      const responses = [];
-      let circuitOpenDetected = false;
+      const responses: QueryResponse[] = [];
+      let fallbackCount = 0;
 
-      // 실패 임계값을 초과할 때까지 쿼리 실행
-      for (let i = 0; i < failureThreshold + 2; i++) {
-        try {
-          const result = await engine.query(testQuery);
-          responses.push(result);
-          
-          // 폴백 응답이 나타나면 회로 차단기가 작동한 것
-          if (result.metadata?.fallback) {
-            circuitOpenDetected = true;
-            console.log(`🔴 회로 차단기 열림 감지 (${i + 1}번째 시도)`);
-            break;
-          }
-        } catch (error) {
-          console.log(`❌ 실패 ${i + 1}: ${(error as Error).message}`);
-          responses.push({ error: (error as Error).message, attempt: i + 1 });
+      // Test consecutive failures (threshold is 5)
+      for (let i = 0; i < 7; i++) {
+        const result = await engine.query(testQuery);
+        responses.push(result);
+        
+        // Check if circuit breaker opened (fallback response)
+        if (result.engine === 'fallback' || result.metadata?.fallback) {
+          fallbackCount++;
+          console.log(`🔴 Fallback response at attempt ${i + 1}`);
         }
       }
 
-      // 회로 차단기가 작동했거나 안정적인 폴백이 제공되어야 함
-      const hasValidFallback = responses.some(r => 
-        r.metadata?.fallback || (r.success && r.engine === 'fallback')
-      );
+      // After 5 failures, circuit should be open and return fallback responses
+      expect(fallbackCount).toBeGreaterThan(0);
+      expect(responses.some(r => r.engine === 'fallback')).toBe(true);
       
-      expect(circuitOpenDetected || hasValidFallback).toBe(true);
-      expect(responses.length).toBeGreaterThanOrEqual(1);
+      // Check the last responses should be fallback
+      const lastTwo = responses.slice(-2);
+      expect(lastTwo.every(r => r.engine === 'fallback' || r.metadata?.fallback)).toBe(true);
       
-      console.log(`📊 총 ${responses.length}개 응답 중 폴백: ${responses.filter(r => r.metadata?.fallback).length}개`);
+      console.log(`📊 총 ${responses.length}개 응답 중 폴백: ${fallbackCount}개`);
     }, 15000);
 
     it('정상 서비스는 회로 차단기의 영향을 받지 않아야 함', async () => {
@@ -135,6 +132,17 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
 
       engine.ragEngine = mockRagEngine;
 
+      // Mock the generateLocalResponse method
+      engine.generateLocalResponse = vi.fn().mockReturnValue({
+        success: true,
+        response: 'Normal response from RAG engine',
+        engine: 'local',
+        confidence: 0.8,
+        thinkingSteps: [],
+        metadata: {},
+        processingTime: 100
+      });
+
       // 여러 번 정상 쿼리 실행
       const responses = [];
       for (let i = 0; i < 3; i++) {
@@ -144,6 +152,7 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
         expect(result.success).toBe(true);
         expect(result.metadata?.fallback).toBeFalsy();
         expect(result.response).toBeTruthy();
+        expect(result.engine).not.toBe('fallback');
       }
 
       console.log(`✅ 정상 서비스 ${responses.length}번 연속 성공`);
@@ -185,12 +194,24 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
 
       engine.ragEngine = mockRagEngine;
 
+      // Mock the generateLocalResponse method for recovery
+      engine.generateLocalResponse = vi.fn().mockReturnValue({
+        success: true,
+        response: 'Recovery successful - system is back online',
+        engine: 'local',
+        confidence: 0.9,
+        thinkingSteps: [],
+        metadata: {},
+        processingTime: 50
+      });
+
       const result = await engine.query(testQuery);
 
       // Half-Open 상태에서 성공하면 정상 응답을 받아야 함
       expect(result.success).toBe(true);
       expect(result.response).toBeTruthy();
       expect(result.metadata?.fallback).toBeFalsy();
+      expect(result.engine).not.toBe('fallback');
 
       console.log('🟡 Half-Open 상태에서 복구 성공');
     });
@@ -262,9 +283,11 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
         ok: true,
         json: () => Promise.resolve({
           response: 'Google AI response',
-          confidence: 0.9
+          text: 'Google AI response',
+          confidence: 0.9,
+          model: 'gemini-pro'
         })
-      });
+      }) as any;
 
       // 로컬 서비스 실패 테스트
       const localResults = [];
@@ -411,6 +434,9 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
       });
     });
 
+    // @skip-reason: 에러율 기반 회로 차단기는 추가 구현 필요
+    // @skip-date: 2024-01-30
+    // @todo: 에러율 임계값 기반 회로 차단 로직 구현
     it.skip('에러율이 회로 차단기 동작에 반영되어야 함', async () => {
       let errorCount = 0;
       let totalCount = 0;

@@ -22,7 +22,7 @@
         "varsIgnorePattern": "^_"
       }
     ],
-    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-explicit-any": "warn", // 점진적 마이그레이션을 위해 warn으로 시작
     "no-console": "off",
     "react-hooks/exhaustive-deps": "warn"
   },
