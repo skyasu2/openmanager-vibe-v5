@@ -1,11 +1,13 @@
 # 🔐 Supabase OAuth 설정 가이드
 
 ## 문제 상황
+
 GitHub 로그인 후 다시 로그인 화면으로 돌아가는 문제 해결
 
 ## 1. Supabase 대시보드 설정 확인
 
 ### 1.1 Redirect URLs 설정
+
 1. [Supabase 대시보드](https://app.supabase.com) 접속
 2. 프로젝트 선택
 3. **Authentication** → **URL Configuration** 이동
@@ -26,26 +28,32 @@ http://localhost:3000
 ```
 
 ### 1.2 Site URL 설정
+
 - **Site URL**: `https://your-app.vercel.app` (실제 도메인으로 변경)
 - 이 URL은 이메일 템플릿에서 사용됩니다
 
 ## 2. GitHub OAuth App 설정 확인
 
 ### 2.1 GitHub OAuth App 설정
+
 1. GitHub → Settings → Developer settings → OAuth Apps
 2. 해당 OAuth App 선택
 3. **Authorization callback URL** 확인:
+
    ```
    https://[YOUR_SUPABASE_PROJECT_REF].supabase.co/auth/v1/callback
    ```
+
    - `[YOUR_SUPABASE_PROJECT_REF]`는 Supabase 프로젝트 ID
 
 ### 2.2 Homepage URL
+
 - **Homepage URL**: `https://your-app.vercel.app`
 
 ## 3. 환경 변수 확인
 
 ### 3.1 Vercel 환경 변수
+
 Vercel 대시보드에서 다음 환경 변수가 설정되어 있는지 확인:
 
 ```bash
@@ -59,6 +67,7 @@ SUPABASE_SERVICE_ROLE_KEY=[YOUR_SERVICE_ROLE_KEY]
 ```
 
 ### 3.2 로컬 개발 환경 (.env.local)
+
 ```bash
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://[PROJECT_REF].supabase.co
@@ -69,6 +78,7 @@ SUPABASE_SERVICE_ROLE_KEY=[YOUR_SERVICE_ROLE_KEY]
 ## 4. 디버깅 체크리스트
 
 ### 4.1 브라우저 개발자 도구
+
 1. Network 탭에서 OAuth 플로우 확인:
    - `/auth/v1/authorize` 요청
    - GitHub로 리다이렉트
@@ -80,6 +90,7 @@ SUPABASE_SERVICE_ROLE_KEY=[YOUR_SERVICE_ROLE_KEY]
    - 쿠키 도메인과 경로 확인
 
 ### 4.2 콘솔 로그 확인
+
 ```javascript
 // 다음 로그들을 확인:
 🔐 GitHub OAuth 로그인 시작...
@@ -91,16 +102,19 @@ SUPABASE_SERVICE_ROLE_KEY=[YOUR_SERVICE_ROLE_KEY]
 ## 5. 일반적인 문제와 해결 방법
 
 ### 5.1 "Invalid Redirect URL" 에러
+
 - **원인**: Supabase에 Redirect URL이 등록되지 않음
 - **해결**: 위 1.1 섹션의 URL들을 모두 추가
 
 ### 5.2 세션이 생성되지 않음
+
 - **원인**: 쿠키 도메인 불일치
-- **해결**: 
+- **해결**:
   - Vercel 도메인과 Supabase URL이 일치하는지 확인
   - HTTPS 사용 확인 (프로덕션)
 
 ### 5.3 무한 리다이렉트
+
 - **원인**: 미들웨어 세션 검증 실패
 - **해결**: 이 가이드의 코드 수정사항 적용
 

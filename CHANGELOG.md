@@ -74,7 +74,6 @@
 - **서브 에이전트 강화**:
   - ✅ test-first-developer: TDD 메타데이터 태그 추가
   - ✅ test-automation-specialist: TDD 라이프사이클 관리 기능 추가
-  
 - **자동화 도구**:
   - ✅ `npm run test:tdd-cleanup` - TDD 테스트 자동 정리
   - ✅ `npm run test:tdd-check` - TDD 상태 검사

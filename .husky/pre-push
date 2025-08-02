@@ -31,38 +31,11 @@ echo ""
 # Unit tests - 빠른 테스트만 실행 (SKIP_TESTS가 설정되지 않은 경우)
 if [ "$SKIP_TESTS" != "1" ]; then
     echo "🧪 핵심 검증 실행 중..."
-    # 초고속 검증 스크립트 실행 (1초 이내)
-    if [ -f "scripts/minimal-test.js" ]; then
-        node scripts/minimal-test.js
-        TEST_EXIT_CODE=$?
-    else
-        # 폴백: npm test 실행 (FAST_MODE=1로 더 빠른 테스트 가능)
-        if [ "$FAST_MODE" = "1" ]; then
-            echo "⚡ 고속 모드로 최소한의 테스트만 실행..."
-            timeout 8s npm run test:pre-push-fast
-        else
-            timeout 15s npm run test:pre-push
-        fi
-        TEST_EXIT_CODE=$?
-    fi
+    # minimal-test.js만 실행 (1초 이내 완료)
+    node scripts/minimal-test.js
+    TEST_EXIT_CODE=$?
     
-    if [ $TEST_EXIT_CODE -eq 124 ]; then
-        echo "⏱️ 테스트가 시간 제한을 초과했습니다."
-        echo "💡 타임아웃 원인 분석:"
-        echo "   - AI/Redis 모킹 초기화 시간"
-        echo "   - TypeScript 컴파일 오버헤드"
-        echo "   - 복잡한 테스트 케이스"
-        echo "🚀 더 빠른 옵션들:"
-        echo "   - 고속 모드: FAST_MODE=1 git push (8초 제한)"
-        echo "   - 테스트 건너뛰기: SKIP_TESTS=1 git push"
-        echo "   - 모든 훅 비활성화: HUSKY=0 git push"
-        echo "🔧 수동 실행:"
-        echo "   - 전체 테스트: npm test (타임아웃 없음)"
-        echo "   - 빠른 테스트: npm run test:quick"
-        echo "   - 최소 테스트: npm run test:pre-push-fast"
-        echo "💡 CI/CD에서 전체 테스트가 자동 실행됩니다."
-        # 타임아웃은 경고로만 처리
-    elif [ $TEST_EXIT_CODE -ne 0 ]; then
+    if [ $TEST_EXIT_CODE -ne 0 ]; then
         echo "❌ 검증 실패!"
         FAILURES=$((FAILURES + 1))
     else
