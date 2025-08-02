@@ -72,12 +72,34 @@ describe('Utils Functions', () => {
       const id1 = generateSessionId();
       const id2 = generateSessionId();
       expect(id1).not.toBe(id2);
-      expect(id1).toMatch(/^[a-z0-9]+-[a-z0-9]+$/);
+      // 새로운 형식: timestamp.base58string
+      expect(id1).toMatch(/^[a-z0-9]+\.[A-Za-z0-9]+$/);
     });
 
     it('prefix가 있을 때 올바른 형식으로 생성한다', () => {
       const id = generateSessionId('test');
-      expect(id).toMatch(/^test_[a-z0-9]+-[a-z0-9]+$/);
+      // 새로운 형식: prefix_timestamp.base58string
+      expect(id).toMatch(/^test_[a-z0-9]+\.[A-Za-z0-9]+$/);
+    });
+
+    it('타임스탬프 부분이 포함되어야 한다', () => {
+      const id = generateSessionId();
+      const parts = id.split('.');
+      expect(parts).toHaveLength(2);
+      
+      // 타임스탬프 부분이 유효한지 확인
+      const timestamp = parseInt(parts[0], 36);
+      expect(timestamp).toBeGreaterThan(0);
+      expect(timestamp).toBeLessThanOrEqual(Date.now());
+    });
+
+    it('Base58 문자만 사용한다', () => {
+      const id = generateSessionId();
+      const parts = id.split('.');
+      const base58Part = parts[1];
+      
+      // Base58에서 제외되는 문자들 (0, O, I, l)이 없어야 함
+      expect(base58Part).not.toMatch(/[0OIl]/);
     });
   });
 

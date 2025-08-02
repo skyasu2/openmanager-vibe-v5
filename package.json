@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.66.13",
+  "version": "5.66.20",
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_OPTIONS='--max-old-space-size=8192' next dev",
@@ -120,7 +120,10 @@
     "debug:imports": "madge --circular src",
     "update:deps": "npx npm-check-updates -u && npm install",
     "env:check": "node scripts/check-env.js",
-    "env:generate": "node scripts/generate-env.js"
+    "env:generate": "node scripts/generate-env.js",
+    "fix:clock": "bash scripts/fix-clock-sync.sh",
+    "fix:auth": "npm run fix:clock && npm run clean:auth",
+    "clean:auth": "node -e \"if(typeof window !== 'undefined'){localStorage.removeItem('sb-auth-token');localStorage.removeItem('auth_verified');console.log('Auth tokens cleared')}\""
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.3.1",

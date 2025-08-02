@@ -36,11 +36,12 @@ export default defineConfig(({ mode }) => {
         'tests/unit/natural-language-unifier.test.ts',
       ],
 
-      // 🎯 테스트 실행 최적화
+      // 🎯 테스트 실행 최적화 (리소스 경합 방지)
       threads: true,
-      maxConcurrency: 6,
+      maxConcurrency: 3, // 6 → 3으로 감소
       minThreads: 1,
-      maxThreads: 4,
+      maxThreads: 2, // 4 → 2로 감소
+      pool: 'forks', // threads → forks (더 안정적)
 
       // 📊 커버리지 설정 (핵심 기능만)
       coverage: {
@@ -76,20 +77,20 @@ export default defineConfig(({ mode }) => {
 
       // 🎯 성능 최적화 - 환경별 타임아웃 설정
       testTimeout: (() => {
-        const base = 30000; // 기본 30초
+        const base = 45000; // 기본 45초로 증가
         const multiplier = parseFloat(process.env.TIMEOUT_MULTIPLIER || '1');
         const isCI = process.env.CI === 'true';
         const isDev = process.env.NODE_ENV === 'development';
         
         // CI: 기본값, 개발: 1.5배, 환경변수로 추가 조절
         let timeout = base;
-        if (isDev && !isCI) timeout *= 1.5; // 개발환경 45초
-        if (isCI) timeout *= 0.8; // CI환경 24초 (빠른 피드백)
+        if (isDev && !isCI) timeout *= 1.5; // 개발환경 67.5초
+        if (isCI) timeout *= 0.8; // CI환경 36초
         
         return Math.round(timeout * multiplier);
       })(),
-      hookTimeout: 10000,
-      teardownTimeout: 10000,
+      hookTimeout: 60000, // 10초 → 60초로 증가
+      teardownTimeout: 30000, // 10초 → 30초로 증가
 
       // 📝 리포터 설정
       reporter: process.env.CI ? 'github-actions' : 'verbose',

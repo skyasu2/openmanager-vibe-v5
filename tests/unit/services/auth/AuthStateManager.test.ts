@@ -1,7 +1,6 @@
 /**
- * 🔴 TDD RED Phase: AuthStateManager 테스트
+ * AuthStateManager 테스트
  * 
- * @tdd-red
  * @created-date: 2025-08-02
  * 
  * 테스트 대상: AuthStateManager 클래스
@@ -28,8 +27,7 @@ describe('AuthStateManager', () => {
     vi.restoreAllMocks();
   });
 
-  describe('🔴 loginAsGuest', () => {
-    // @tdd-red
+  describe('loginAsGuest', () => {
     it('should successfully create guest user with correct properties', async () => {
       const result = await authManager.loginAsGuest();
 
@@ -43,7 +41,6 @@ describe('AuthStateManager', () => {
       expect(result.sessionId).toBeDefined();
     });
 
-    // @tdd-red
     it('should generate unique guest IDs for multiple logins', async () => {
       const result1 = await authManager.loginAsGuest();
       const result2 = await authManager.loginAsGuest();
@@ -52,7 +49,6 @@ describe('AuthStateManager', () => {
       expect(result1.sessionId).not.toBe(result2.sessionId);
     });
 
-    // @tdd-red
     it('should auto-start system in production environment', async () => {
       process.env.NODE_ENV = 'production';
       mockSystemManager.startSystem.mockResolvedValue({ success: true });
@@ -67,7 +63,6 @@ describe('AuthStateManager', () => {
       expect(result.systemStarted).toBe(true);
     });
 
-    // @tdd-red
     it('should handle system start success in development environment', async () => {
       process.env.NODE_ENV = 'development';
 
@@ -78,7 +73,6 @@ describe('AuthStateManager', () => {
       expect(result.systemError).toBeUndefined();
     });
 
-    // @tdd-red
     it('should handle system start failure gracefully', async () => {
       process.env.NODE_ENV = 'production';
       mockSystemManager.startSystem.mockRejectedValue(new Error('System start failed'));
@@ -90,7 +84,6 @@ describe('AuthStateManager', () => {
       expect(result.systemError).toBe('System start failed');
     });
 
-    // @tdd-red
     it('should handle login failure gracefully', async () => {
       // Force an error by mocking generateGuestId to throw
       vi.spyOn(authManager as any, 'generateGuestId').mockImplementation(() => {
@@ -107,7 +100,6 @@ describe('AuthStateManager', () => {
   });
 
   describe('🔴 authenticateGuest', () => {
-    // @tdd-red
     it('should be an alias for loginAsGuest', async () => {
       const loginSpy = vi.spyOn(authManager, 'loginAsGuest');
 
@@ -118,7 +110,6 @@ describe('AuthStateManager', () => {
   });
 
   describe('🔴 validateSession', () => {
-    // @tdd-red
     it('should return true for valid non-expired session', async () => {
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;
@@ -128,14 +119,12 @@ describe('AuthStateManager', () => {
       expect(isValid).toBe(true);
     });
 
-    // @tdd-red
     it('should return false for non-existent session', () => {
       const isValid = authManager.validateSession('non-existent-session');
 
       expect(isValid).toBe(false);
     });
 
-    // @tdd-red
     it('should return false and remove expired session', async () => {
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;
@@ -152,7 +141,6 @@ describe('AuthStateManager', () => {
       Date.now = originalNow;
     });
 
-    // @tdd-red
     it('should update lastActivity when validating session', async () => {
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;
@@ -170,7 +158,6 @@ describe('AuthStateManager', () => {
   });
 
   describe('🔴 getSession', () => {
-    // @tdd-red
     it('should return session for valid session ID', async () => {
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;
@@ -183,14 +170,12 @@ describe('AuthStateManager', () => {
       expect(session?.user.type).toBe('guest');
     });
 
-    // @tdd-red
     it('should return null for non-existent session', () => {
       const session = authManager.getSession('non-existent-session');
 
       expect(session).toBeNull();
     });
 
-    // @tdd-red
     it('should return null and remove expired session', async () => {
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;
@@ -209,7 +194,6 @@ describe('AuthStateManager', () => {
   });
 
   describe('🔴 hasPermission', () => {
-    // @tdd-red
     it('should return true for guest user with valid permission', async () => {
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;
@@ -219,7 +203,6 @@ describe('AuthStateManager', () => {
       expect(hasPermission).toBe(true);
     });
 
-    // @tdd-red
     it('should return false for guest user without permission', async () => {
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;
@@ -229,14 +212,12 @@ describe('AuthStateManager', () => {
       expect(hasPermission).toBe(false);
     });
 
-    // @tdd-red
     it('should return false for non-existent session', () => {
       const hasPermission = authManager.hasPermission('non-existent', 'dashboard:view');
 
       expect(hasPermission).toBe(false);
     });
 
-    // @tdd-red
     it('should return false for expired session', async () => {
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;
@@ -255,7 +236,6 @@ describe('AuthStateManager', () => {
   });
 
   describe('🔴 logout', () => {
-    // @tdd-red
     it('should successfully logout valid session', async () => {
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;
@@ -267,7 +247,6 @@ describe('AuthStateManager', () => {
       expect(authManager.getSession(sessionId)).toBeNull();
     });
 
-    // @tdd-red
     it('should return error for non-existent session', () => {
       const logoutResult = authManager.logout('non-existent-session');
 
@@ -275,7 +254,6 @@ describe('AuthStateManager', () => {
       expect(logoutResult.error).toBe('Session not found');
     });
 
-    // @tdd-red
     it('should remove session from internal storage', async () => {
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;
@@ -288,7 +266,6 @@ describe('AuthStateManager', () => {
   });
 
   describe('🔴 getAuthStats', () => {
-    // @tdd-red
     it('should return correct stats for no sessions', () => {
       const stats = authManager.getAuthStats();
 
@@ -297,7 +274,6 @@ describe('AuthStateManager', () => {
       expect(stats.guestSessions).toBe(0);
     });
 
-    // @tdd-red
     it('should return correct stats for active guest sessions', async () => {
       await authManager.loginAsGuest();
       await authManager.loginAsGuest();
@@ -309,7 +285,6 @@ describe('AuthStateManager', () => {
       expect(stats.guestSessions).toBe(2);
     });
 
-    // @tdd-red
     it('should exclude expired sessions from active count', async () => {
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;
@@ -328,7 +303,6 @@ describe('AuthStateManager', () => {
       Date.now = originalNow;
     });
 
-    // @tdd-red
     it('should handle mixed active and expired sessions', async () => {
       // Create one session
       await authManager.loginAsGuest();
@@ -355,7 +329,6 @@ describe('AuthStateManager', () => {
   });
 
   describe('🔴 Session Management Integration', () => {
-    // @tdd-red
     it('should maintain session state across multiple operations', async () => {
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;
@@ -378,7 +351,6 @@ describe('AuthStateManager', () => {
       expect(authManager.validateSession(sessionId)).toBe(false);
     });
 
-    // @tdd-red
     it('should handle concurrent guest logins', async () => {
       const promises = Array.from({ length: 5 }, () => authManager.loginAsGuest());
       const results = await Promise.all(promises);
@@ -406,7 +378,6 @@ describe('AuthStateManager', () => {
   });
 
   describe('🔴 Error Handling', () => {
-    // @tdd-red
     it('should handle system manager initialization failure', () => {
       vi.mocked(SystemStateManager).mockImplementation(() => {
         throw new Error('SystemStateManager initialization failed');
@@ -415,7 +386,6 @@ describe('AuthStateManager', () => {
       expect(() => new AuthStateManager()).toThrow('SystemStateManager initialization failed');
     });
 
-    // @tdd-red
     it('should handle system start timeout in production', async () => {
       process.env.NODE_ENV = 'production';
       

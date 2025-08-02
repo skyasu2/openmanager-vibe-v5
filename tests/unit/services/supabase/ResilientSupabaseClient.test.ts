@@ -1,5 +1,5 @@
 /**
- * ✅ TDD RED Phase: ResilientSupabaseClient 테스트
+ * ResilientSupabaseClient 테스트
  * 
  * 테스트 대상: ResilientSupabaseClient 클래스
  * 목표: 완전한 fallback 메커니즘과 resilient 기능 검증

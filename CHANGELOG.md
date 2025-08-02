@@ -5,6 +5,33 @@
 > - Legacy 파일: v5.0.0 ~ v5.65.6 (2024-05 ~ 2025-01)
 > - 현재 파일: v5.65.7 이후 (2025-01 ~)
 
+## [5.66.20] - 2025-08-02
+
+### 🔐 GitHub OAuth 로그인 문제 해결
+
+- **JWT 시간 동기화 오류 수정**:
+  - ✅ "Session was issued in the future" 오류 해결
+  - ✅ WSL 시간 동기화 스크립트 추가 (`scripts/fix-clock-sync.sh`)
+  - ✅ Supabase 클라이언트 시간 검증 개선
+  - 📝 상세 가이드: `/docs/fix-jwt-time-issue.md`
+
+- **OAuth 콜백 플로우 개선**:
+  - ✅ 미들웨어에서 명시적 PKCE 코드 교환 처리
+  - ✅ auth_verified 쿠키로 세션 안정화
+  - ✅ Vercel 환경에서 더 긴 재시도 및 대기시간 적용
+  - ✅ 더 친화적인 에러 메시지 제공
+
+- **Supabase 설정 가이드 추가**:
+  - 📝 `/docs/supabase-oauth-setup-guide.md` 작성
+  - ✅ Redirect URLs 설정 방법
+  - ✅ GitHub OAuth App 설정 확인
+  - ✅ 디버깅 체크리스트
+
+- **새로운 명령어 추가**:
+  - `npm run fix:clock` - WSL 시간 동기화
+  - `npm run fix:auth` - 시간 동기화 + 인증 토큰 정리
+  - `npm run clean:auth` - 인증 토큰만 정리
+
 ## [5.66.19] - 2025-08-02
 
 ### 📈 Phase 3: 테스트 커버리지 80% 달성 - 진행 중

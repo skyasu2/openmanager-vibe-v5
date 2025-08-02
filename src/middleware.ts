@@ -67,6 +67,7 @@ export async function middleware(request: NextRequest) {
       // 🎯 게스트 세션 쿠키 확인 (우선순위)
       const guestSessionCookie = request.cookies.get('guest_session_id');
       const authTypeCookie = request.cookies.get('auth_type');
+      const authVerifiedCookie = request.cookies.get('auth_verified');
 
       if (
         guestSessionCookie &&
@@ -81,6 +82,12 @@ export async function middleware(request: NextRequest) {
             : String((guestSessionCookie as any).value)
         );
         return response;
+      }
+
+      // 🔐 OAuth 인증 직후 확인 (auth_verified 쿠키)
+      if (authVerifiedCookie) {
+        console.log('✅ OAuth 인증 확인됨 (auth_verified 쿠키)');
+        // auth_verified가 있으면 세션이 곧 활성화될 것으로 간주
       }
 
       // updateSession에서 이미 처리된 supabase 클라이언트 재생성
@@ -249,6 +256,12 @@ export async function middleware(request: NextRequest) {
           return response;
         }
 
+        // auth_verified 쿠키가 있다면 세션이 곧 활성화될 것으로 간주
+        if (authVerifiedCookie) {
+          console.log('⚠️ auth_verified 쿠키 있음 - 세션 활성화 대기 중, 통과 허용');
+          return response;
+        }
+
         // Auth 플로우 중이라면 더 관대하게 처리 (한 번 더 기회)
         if (isInAuthFlow && !userError) {
           console.log('⚠️ Auth 플로우 중 - 세션 없음이지만 통과 허용');
@@ -259,6 +272,7 @@ export async function middleware(request: NextRequest) {
           userError: userError?.message,
           hasUser: !!user,
           isInAuthFlow,
+          hasAuthVerified: !!authVerifiedCookie,
         });
 
         // GitHub 인증이 없으면 로그인 페이지로 리다이렉트

@@ -46,7 +46,6 @@ describe('API: /api/ai/query', () => {
   });
 
   describe('GET /api/ai/query', () => {
-    // @tdd-red
     // @created-date: 2025-08-02
     it('should return health status for GET requests', async () => {
       const request = new NextRequest('http://localhost:3000/api/ai/query');
@@ -74,7 +73,6 @@ describe('API: /api/ai/query', () => {
   });
 
   describe('POST /api/ai/query', () => {
-    // @tdd-red
     // @created-date: 2025-08-02
     it('should process AI query successfully with local mode', async () => {
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
@@ -112,7 +110,6 @@ describe('API: /api/ai/query', () => {
       expect(data.metadata.mode).toBe('local');
     });
 
-    // @tdd-red
     // @created-date: 2025-08-02
     it('should select appropriate engine based on query complexity', async () => {
       const complexQuery = 'Analyze the performance trends over the last month and provide optimization recommendations based on machine learning predictions';
@@ -155,7 +152,6 @@ describe('API: /api/ai/query', () => {
       expect(data.metadata.complexity.score).toBe(0.85);
     });
 
-    // @tdd-red
     // @created-date: 2025-08-02
     it('should enforce response time under 500ms', async () => {
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
@@ -191,7 +187,6 @@ describe('API: /api/ai/query', () => {
       expect(Number(response.headers.get('X-Response-Time'))).toBeLessThan(500);
     });
 
-    // @tdd-red
     // @created-date: 2025-08-02
     it('should return 400 for empty query', async () => {
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
@@ -213,7 +208,6 @@ describe('API: /api/ai/query', () => {
       expect(data.error).toBe('Query parameter is required');
     });
 
-    // @tdd-red
     // @created-date: 2025-08-02
     it('should return 400 for excessively long query', async () => {
       const longQuery = 'a'.repeat(1001); // Over 1000 character limit
@@ -237,7 +231,6 @@ describe('API: /api/ai/query', () => {
       expect(data.error).toBe('Query too long (max 1000 characters)');
     });
 
-    // @tdd-red
     // @created-date: 2025-08-02
     it('should handle service unavailable errors gracefully', async () => {
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
@@ -262,7 +255,6 @@ describe('API: /api/ai/query', () => {
       expect(data.message).toBe('Service temporarily unavailable');
     });
 
-    // @tdd-red
     // @created-date: 2025-08-02
     it('should handle X-AI-Mode header when body mode takes precedence', async () => {
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
@@ -305,7 +297,6 @@ describe('API: /api/ai/query', () => {
       expect(data.metadata.mode).toBe('local');
     });
 
-    // @tdd-red
     // @created-date: 2025-08-02
     it('should test different AI modes (local, google-ai, auto)', async () => {
       const modes = ['local', 'google-ai', 'auto'] as const;
@@ -348,7 +339,6 @@ describe('API: /api/ai/query', () => {
       }
     });
 
-    // @tdd-red
     // @created-date: 2025-08-02
     it('should validate request body structure', async () => {
       const invalidRequests = [
@@ -375,7 +365,6 @@ describe('API: /api/ai/query', () => {
       }
     });
 
-    // @tdd-red
     // @created-date: 2025-08-02
     it('should include thinking steps when requested', async () => {
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
@@ -417,7 +406,6 @@ describe('API: /api/ai/query', () => {
       expect(data.metadata.thinkingSteps).toEqual(thinkingSteps);
     });
 
-    // @tdd-red
     // @created-date: 2025-08-02
     it('should handle cache hit scenarios', async () => {
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
@@ -455,7 +443,6 @@ describe('API: /api/ai/query', () => {
   });
 
   describe('OPTIONS /api/ai/query', () => {
-    // @tdd-red
     // @created-date: 2025-08-02
     it('should handle CORS preflight requests', async () => {
       const request = new NextRequest('http://localhost:3000/api/ai/query', {

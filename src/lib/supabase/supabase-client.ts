@@ -51,6 +51,28 @@ export function getSupabaseClient(): SupabaseClient {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce',
+      // 시간 차이 허용을 위한 storage 설정
+      storageKey: 'sb-auth-token',
+      storage: {
+        getItem: (key: string) => {
+          if (typeof window !== 'undefined') {
+            return window.localStorage.getItem(key);
+          }
+          return null;
+        },
+        setItem: (key: string, value: string) => {
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem(key, value);
+          }
+        },
+        removeItem: (key: string) => {
+          if (typeof window !== 'undefined') {
+            window.localStorage.removeItem(key);
+          }
+        },
+      },
     },
     global: {
       headers: {

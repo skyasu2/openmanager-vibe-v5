@@ -1,5 +1,5 @@
 /**
- * ✅ TDD RED Phase: SupabaseTimeSeriesManager 테스트
+ * SupabaseTimeSeriesManager 테스트
  * 
  * 테스트 대상: SupabaseTimeSeriesManager 클래스
  * 목표: 시계열 데이터 관리, 배치 처리, 집계 통계 검증
