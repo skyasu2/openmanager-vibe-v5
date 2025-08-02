@@ -1,0 +1,51 @@
+{
+  "googleAI": {
+    "serverStatus": {
+      "keywords": ["서버", "상태", "status", "health", "정상", "확인"],
+      "responses": [
+        "현재 모든 서버가 정상 작동 중입니다. CPU 사용률 평균 45%, 메모리 사용률 62%로 안정적인 상태입니다.",
+        "8개 서버 중 7개가 정상, 1개 서버(app-prd-01)에서 메모리 누수 경고가 발생했습니다.",
+        "전체 시스템 상태: 양호. 최근 24시간 가동률 99.95%를 기록하고 있습니다."
+      ],
+      "confidence": 0.9
+    },
+    "performance": {
+      "keywords": ["성능", "속도", "performance", "cpu", "memory", "메모리"],
+      "responses": [
+        "CPU 성능 분석: 피크 시간대 평균 72% 사용률, 야간 시간대 15% 사용률. 부하 분산이 필요해 보입니다.",
+        "메모리 사용 패턴: 점진적 증가 추세 확인. 메모리 누수 가능성을 조사해야 합니다.",
+        "응답 시간 분석: 평균 152ms, 95 percentile 320ms로 목표치 내에서 운영되고 있습니다."
+      ],
+      "confidence": 0.88
+    },
+    "anomaly": {
+      "keywords": ["이상", "문제", "오류", "error", "anomaly", "장애"],
+      "responses": [
+        "최근 30분간 db-main-01 서버에서 디스크 I/O 급증이 감지되었습니다. 백업 작업 확인이 필요합니다.",
+        "비정상적인 네트워크 트래픽 패턴 감지: DDoS 공격 가능성은 낮으나 모니터링을 강화하겠습니다.",
+        "애플리케이션 서버에서 간헐적인 타임아웃 발생. 데이터베이스 연결 풀 설정 검토가 필요합니다."
+      ],
+      "confidence": 0.85
+    }
+  },
+  "serverEvents": {
+    "cascadingFailure": {
+      "name": "연쇄 장애",
+      "description": "DB 서버 장애가 API, 웹 서버로 연쇄 전파",
+      "sequence": [
+        { "time": 0, "server": "db-prd-01", "status": "critical", "cpu": 95 },
+        { "time": 60, "server": "api-prd-01", "status": "warning", "cpu": 85 },
+        { "time": 120, "server": "web-prd-01", "status": "warning", "cpu": 78 }
+      ]
+    },
+    "peakLoad": {
+      "name": "피크 부하",
+      "description": "프로모션/이벤트로 인한 트래픽 급증",
+      "sequence": [
+        { "time": 0, "server": "web-prd-01", "cpu": 45, "network": 200 },
+        { "time": 300, "server": "web-prd-01", "cpu": 72, "network": 680 },
+        { "time": 600, "server": "web-prd-01", "cpu": 88, "network": 920 }
+      ]
+    }
+  }
+}

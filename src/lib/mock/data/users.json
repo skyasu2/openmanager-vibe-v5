@@ -1,0 +1,46 @@
+{
+  "users": [
+    {
+      "id": "user-001",
+      "email": "admin@example.com",
+      "name": "관리자",
+      "role": "admin",
+      "app_metadata": {
+        "role": "admin",
+        "permissions": ["read", "write", "delete", "admin"]
+      },
+      "user_metadata": {
+        "theme": "dark",
+        "language": "ko"
+      }
+    },
+    {
+      "id": "user-002",
+      "email": "developer@example.com",
+      "name": "개발자",
+      "role": "developer",
+      "app_metadata": {
+        "role": "developer",
+        "permissions": ["read", "write"]
+      },
+      "user_metadata": {
+        "theme": "light",
+        "language": "ko"
+      }
+    },
+    {
+      "id": "user-003",
+      "email": "viewer@example.com",
+      "name": "뷰어",
+      "role": "viewer",
+      "app_metadata": {
+        "role": "viewer",
+        "permissions": ["read"]
+      },
+      "user_metadata": {
+        "theme": "auto",
+        "language": "en"
+      }
+    }
+  ]
+}

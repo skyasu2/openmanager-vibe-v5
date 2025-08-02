@@ -51,7 +51,11 @@ claude mcp add tavily-remote npx -- -y mcp-remote https://mcp.tavily.com/mcp/?ta
       "mcpServers": {
         "tavily-remote": {
           "command": "npx",
-          "args": ["-y", "mcp-remote", "https://mcp.tavily.com/mcp/?tavilyApiKey=[YOUR_TAVILY_API_KEY]"]
+          "args": [
+            "-y",
+            "mcp-remote",
+            "https://mcp.tavily.com/mcp/?tavilyApiKey=[YOUR_TAVILY_API_KEY]"
+          ]
         }
       }
     }

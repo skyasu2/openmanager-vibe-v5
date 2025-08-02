@@ -11,14 +11,11 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { MockGoogleGenerativeAI, getDevMockGoogleAI } from './dev-mock-google-ai';
 import googleAIManager from '@/lib/google-ai-manager';
 import { scenarioManager } from '@/lib/mock-scenarios';
-
-// 환경 감지
-const isDevelopment = process.env.NODE_ENV === 'development';
-const isTest = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
-const forceMock = process.env.FORCE_MOCK_GOOGLE_AI === 'true';
+import { shouldUseMock, getGoogleAIMock } from '@/lib/mock';
+import { withFallback } from '@/lib/mock/SmartFallback';
 
 // Mock 사용 여부 결정
-export const shouldUseMockGoogleAI = isDevelopment || isTest || forceMock;
+export const shouldUseMockGoogleAI = shouldUseMock('googleAI');
 
 /**
  * Google AI 클라이언트 가져오기
@@ -129,6 +126,6 @@ export function getActiveScenarios(): Record<string, any> | null {
 if (process.env.NODE_ENV === 'development') {
   console.log('🔍 Google AI 환경 설정:');
   console.log(`  - NODE_ENV: ${process.env.NODE_ENV}`);
-  console.log(`  - FORCE_MOCK_GOOGLE_AI: ${forceMock}`);
+  console.log(`  - MOCK_MODE: ${process.env.MOCK_MODE || 'dev'}`);
   console.log(`  - Mock 사용: ${shouldUseMockGoogleAI}`);
 }

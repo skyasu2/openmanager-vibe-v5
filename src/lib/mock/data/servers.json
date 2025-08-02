@@ -1,0 +1,64 @@
+{
+  "servers": [
+    {
+      "id": "srv-001",
+      "name": "web-prd-01",
+      "type": "web",
+      "status": "healthy",
+      "cpu": 45,
+      "memory": 62,
+      "disk": 78,
+      "network": 120,
+      "region": "us-east-1",
+      "tags": ["production", "web", "critical"]
+    },
+    {
+      "id": "srv-002",
+      "name": "api-prd-01",
+      "type": "api",
+      "status": "warning",
+      "cpu": 78,
+      "memory": 85,
+      "disk": 45,
+      "network": 340,
+      "region": "us-east-1",
+      "tags": ["production", "api", "critical"]
+    },
+    {
+      "id": "srv-003",
+      "name": "db-prd-01",
+      "type": "database",
+      "status": "healthy",
+      "cpu": 35,
+      "memory": 72,
+      "disk": 82,
+      "network": 560,
+      "region": "us-east-1",
+      "tags": ["production", "database", "critical"]
+    },
+    {
+      "id": "srv-004",
+      "name": "cache-prd-01",
+      "type": "cache",
+      "status": "healthy",
+      "cpu": 25,
+      "memory": 45,
+      "disk": 30,
+      "network": 890,
+      "region": "us-west-2",
+      "tags": ["production", "cache", "redis"]
+    },
+    {
+      "id": "srv-005",
+      "name": "web-dev-01",
+      "type": "web",
+      "status": "healthy",
+      "cpu": 15,
+      "memory": 32,
+      "disk": 45,
+      "network": 50,
+      "region": "us-west-2",
+      "tags": ["development", "web"]
+    }
+  ]
+}

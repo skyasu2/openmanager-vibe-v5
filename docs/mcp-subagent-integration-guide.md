@@ -88,7 +88,7 @@ mcp__supabase__apply_migration({
 
 ```typescript
 // 웹 검색 및 문서 조회
-mcp__tavily-remote__tavily_search({ query: 'Next.js 15 best practices' });
+mcp__tavily - remote__tavily_search({ query: 'Next.js 15 best practices' });
 mcp__context7__get -
   library -
   docs({ context7CompatibleLibraryID: '/vercel/next.js' });
@@ -222,10 +222,12 @@ await mcp__filesystem__write_file({
 
 ```typescript
 // 1. 기술 문서 검색
-const docs = await mcp__tavily-remote__tavily_search({
-  query: 'Upstash Redis best practices 2025',
-  max_results: 10,
-});
+const docs =
+  (await mcp__tavily) -
+  remote__tavily_search({
+    query: 'Upstash Redis best practices 2025',
+    max_results: 10,
+  });
 
 // 2. 라이브러리 문서 조회
 const libDocs =

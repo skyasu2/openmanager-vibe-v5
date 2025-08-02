@@ -204,7 +204,10 @@ const metrics = mcp__playwright__evaluate(`
 `);
 
 // Tavily - 최신 최적화 기법 검색
-mcp__tavily-remote__tavily_search({ query: 'Next.js 14.2.4 performance optimization 2025' });
+mcp__tavily -
+  remote__tavily_search({
+    query: 'Next.js 14.2.4 performance optimization 2025',
+  });
 ```
 
 ### 8. **gemini-cli-collaborator** - AI 협업 전문가

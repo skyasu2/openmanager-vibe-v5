@@ -461,20 +461,20 @@ async function detectTDDRedTests() {
   for (const file of testFiles) {
     const content = await Read({ file_path: file });
     const lines = content.split('\n');
-    
+
     lines.forEach((line, index) => {
       if (line.includes('@tdd-red')) {
         // 다음 줄에서 테스트 이름 추출
         const nextLine = lines[index + 1] || '';
         const testMatch = nextLine.match(/it\(['"`](.*?)['"`]/);
-        
+
         if (testMatch) {
           // @created-date 찾기
           const dateMatch = lines
             .slice(Math.max(0, index - 3), index + 3)
-            .find(l => l.includes('@created-date'))
+            .find((l) => l.includes('@created-date'))
             ?.match(/@created-date:\s*(\d{4}-\d{2}-\d{2})/);
-          
+
           tddRedTests.push({
             file,
             testName: testMatch[1],
@@ -525,23 +525,25 @@ async function cleanupPassingTDDTests(transitionedTests: any[]) {
   for (const test of transitionedTests) {
     const content = await Read({ file_path: test.file });
     const lines = content.split('\n');
-    
+
     // @tdd-red 태그와 관련 메타데이터 제거
-    const updatedLines = lines.map((line, index) => {
-      // 테스트 위치 근처의 @tdd-red 태그 제거
-      if (Math.abs(index - test.lineNumber) <= 3) {
-        if (line.includes('@tdd-red') || line.includes('@created-date')) {
-          return ''; // 빈 줄로 대체
+    const updatedLines = lines
+      .map((line, index) => {
+        // 테스트 위치 근처의 @tdd-red 태그 제거
+        if (Math.abs(index - test.lineNumber) <= 3) {
+          if (line.includes('@tdd-red') || line.includes('@created-date')) {
+            return ''; // 빈 줄로 대체
+          }
         }
-      }
-      return line;
-    }).filter(line => line !== ''); // 빈 줄 제거
-    
+        return line;
+      })
+      .filter((line) => line !== ''); // 빈 줄 제거
+
     await Write({
       file_path: test.file,
       content: updatedLines.join('\n'),
     });
-    
+
     console.log(`✅ Cleaned up TDD test: ${test.testName} in ${test.file}`);
   }
 }
@@ -566,12 +568,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          
+
       - run: npm ci
       - name: Check TDD test transitions
         run: |
           npm run test:tdd-cleanup
-          
+
       - name: Commit cleanup changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
@@ -603,29 +605,28 @@ export class TDDReporter {
       this.checkForTDDRedTag(test);
     }
   }
-  
+
   async checkForTDDRedTag(test: any) {
-    const hasRedTag = await this.fileHasTDDRedTag(
-      test.file,
-      test.name
-    );
-    
+    const hasRedTag = await this.fileHasTDDRedTag(test.file, test.name);
+
     if (hasRedTag) {
       console.warn(
         `⚠️ TDD test "${test.name}" is passing but still has @tdd-red tag!`
       );
-      
+
       // Memory에 기록
       await mcp__memory__create_entities({
-        entities: [{
-          name: `TDDTransition:${test.name}`,
-          entityType: 'tdd-transition',
-          observations: [
-            `Test passed at ${new Date().toISOString()}`,
-            `File: ${test.file}`,
-            'Needs @tdd-red tag removal',
-          ],
-        }],
+        entities: [
+          {
+            name: `TDDTransition:${test.name}`,
+            entityType: 'tdd-transition',
+            observations: [
+              `Test passed at ${new Date().toISOString()}`,
+              `File: ${test.file}`,
+              'Needs @tdd-red tag removal',
+            ],
+          },
+        ],
       });
     }
   }
@@ -638,34 +639,36 @@ export class TDDReporter {
 // TDD 정리 프로세스
 async function runTDDCleanupWorkflow() {
   console.log('🔍 Scanning for TDD RED tests...');
-  
+
   // 1. @tdd-red 태그된 테스트 찾기
   const tddRedTests = await detectTDDRedTests();
   console.log(`Found ${tddRedTests.length} TDD RED tests`);
-  
+
   // 2. 상태 확인
   const transitionedTests = await checkTDDTestStatus(tddRedTests);
   console.log(`${transitionedTests.length} tests have transitioned to GREEN`);
-  
+
   // 3. 자동 정리
   if (transitionedTests.length > 0) {
     await cleanupPassingTDDTests(transitionedTests);
-    
+
     // 4. 리포트 생성
     await generateTDDCleanupReport(transitionedTests);
   }
-  
+
   // 5. 오래된 TDD RED 테스트 경고
-  const oldRedTests = tddRedTests.filter(test => {
+  const oldRedTests = tddRedTests.filter((test) => {
     if (!test.createdDate) return false;
-    const daysSinceCreation = 
-      (Date.now() - new Date(test.createdDate).getTime()) / 
+    const daysSinceCreation =
+      (Date.now() - new Date(test.createdDate).getTime()) /
       (1000 * 60 * 60 * 24);
     return daysSinceCreation > 7;
   });
-  
+
   if (oldRedTests.length > 0) {
-    console.warn(`⚠️ ${oldRedTests.length} TDD RED tests are older than 7 days!`);
+    console.warn(
+      `⚠️ ${oldRedTests.length} TDD RED tests are older than 7 days!`
+    );
   }
 }
 ```
@@ -675,4 +678,4 @@ async function runTDDCleanupWorkflow() {
 - **test-first-developer**: TDD RED 테스트 생성 시 메타데이터 태그 추가
 - **debugger-specialist**: 실패하는 TDD 테스트 디버깅 지원
 - **code-review-specialist**: TDD 프로세스 준수 검증
-- **mcp__memory__**: TDD 테스트 전환 이력 추적
+- **mcp**memory****: TDD 테스트 전환 이력 추적

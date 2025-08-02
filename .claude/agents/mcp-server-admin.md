@@ -54,7 +54,7 @@ claude mcp add <name> npx -e KEY=value -- -y <package>@latest
 | memory              | @modelcontextprotocol/server-memory@latest              | npx     |
 | github              | @modelcontextprotocol/server-github@latest              | npx     |
 | supabase            | @supabase/mcp-server-supabase@latest                    | npx     |
-| tavily-remote       | mcp-remote (URL 기반)                                    | npx     |
+| tavily-remote       | mcp-remote (URL 기반)                                   | npx     |
 | sequential-thinking | @modelcontextprotocol/server-sequential-thinking@latest | npx     |
 | playwright          | @playwright/mcp@latest                                  | npx     |
 | context7            | @upstash/context7-mcp@latest                            | npx     |
