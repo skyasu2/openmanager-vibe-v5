@@ -28,9 +28,9 @@ interface FeatureCard {
 const cardData: FeatureCard[] = [
   {
     id: 'mcp-ai-engine',
-    title: '🧠 AI 시스템',
+    title: '🧠 AI 어시스턴트',
     description:
-      '한국어로 자연스럽게 질문하세요! "메모리 많이 쓰는 서버?" → 즉시 분석. LOCAL 모드로 무료 사용',
+      'AI로 시스템을 분석하는 도구입니다. 질문하면 답변해주고, 앞일을 예측하며, 보고서까지 자동으로 만들어줍니다.',
     icon: Bot,
     gradient: 'from-purple-500 via-indigo-500 to-cyan-400',
     detailedContent: {
@@ -56,7 +56,7 @@ const cardData: FeatureCard[] = [
   },
   {
     id: 'fullstack-ecosystem',
-    title: '🏗️ 클라우드 개발 환경',
+    title: '🏗️ 클라우드 플랫폼 활용',
     description:
       'Vercel + Supabase + GCP + Upstash for Redis. 프론트엔드부터 AI 서버까지 통합된 현대적 클라우드 개발 플랫폼',
     icon: Database,
@@ -114,7 +114,7 @@ const cardData: FeatureCard[] = [
     id: 'cursor-ai',
     title: '🔥 Vibe Coding',
     description:
-      '🎯 AI 개발 도구의 진화: ChatGPT (초기 목업) → Cursor AI (코드 생성) → Claude Code (완전 자동화). 지금은 Claude Code + 11개 MCP로 개발!',
+      'AI 기반 Vibe Coding으로 Claude Code & Gemini CLI를 활용하여 자연어 프롬프트 기반 UI/기능 프로토타입을 빠르게 구현',
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {

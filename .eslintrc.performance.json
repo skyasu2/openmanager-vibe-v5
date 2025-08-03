@@ -8,7 +8,9 @@
       "jsx": true
     },
     "project": false,
-    "EXPERIMENTAL_useProjectService": false
+    "EXPERIMENTAL_useProjectService": false,
+    "allowImportExportEverywhere": true,
+    "ecmaVersion": 2020
   },
   "plugins": ["@typescript-eslint"],
   "rules": {
@@ -19,9 +21,15 @@
         "varsIgnorePattern": "^_"
       }
     ],
-    "@typescript-eslint/no-explicit-any": "warn", // 보안 강화: any 타입 검사 활성화
+    "@typescript-eslint/no-explicit-any": "warn",
     "no-console": "off",
-    "react-hooks/exhaustive-deps": "warn"
+    "react-hooks/exhaustive-deps": "warn",
+    // 성능 최적화를 위해 무거운 규칙 비활성화
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
+    "@typescript-eslint/no-unsafe-return": "off",
+    "@typescript-eslint/no-unsafe-argument": "off"
   },
   "ignorePatterns": [
     "**/.next/**",

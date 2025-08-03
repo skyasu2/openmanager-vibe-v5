@@ -19,34 +19,18 @@ FAILURES=0
 TYPE_CHECK_FAILED=0
 TEST_FAILED=0
 
-# Type check
-echo "📝 TypeScript 타입 체크 중..."
-npm run type-check
+# 빠른 검증 실행 (타입 체크 + 초고속 테스트)
+echo "⚡ 빠른 검증 실행 중..."
+npm run validate:commit
 if [ $? -ne 0 ]; then
-    echo "❌ TypeScript 타입 체크 실패!"
+    echo "❌ 빠른 검증 실패!"
     FAILURES=$((FAILURES + 1))
     TYPE_CHECK_FAILED=1
+    TEST_FAILED=1
 else
-    echo "✅ TypeScript 타입 체크 통과"
+    echo "✅ 빠른 검증 통과"
 fi
 echo ""
-
-# Unit tests - 빠른 테스트만 실행 (SKIP_TESTS가 설정되지 않은 경우)
-if [ "$SKIP_TESTS" != "1" ]; then
-    echo "🧪 핵심 검증 실행 중..."
-    # minimal-test.js만 실행 (1초 이내 완료)
-    node scripts/minimal-test.js
-    TEST_EXIT_CODE=$?
-    
-    if [ $TEST_EXIT_CODE -ne 0 ]; then
-        echo "❌ 검증 실패!"
-        FAILURES=$((FAILURES + 1))
-        TEST_FAILED=1
-    else
-        echo "✅ 핵심 검증 통과"
-    fi
-    echo ""
-fi
 
 # 하드코딩된 시크릿 검사
 echo "🔒 하드코딩된 시크릿 검사 중..."
