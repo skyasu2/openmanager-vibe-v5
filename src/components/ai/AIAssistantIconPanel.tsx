@@ -30,7 +30,7 @@ export type AIAssistantFunction =
 
 interface AIAssistantIcon {
   id: AIAssistantFunction;
-  icon: React.ComponentType<unknown>;
+  icon: React.ComponentType<any>;
   label: string;
   description: string;
   color: string;

@@ -795,7 +795,7 @@ export default function LogDashboard() {
                               exit={{ opacity: 0, height: 0 }}
                               className="mt-3 border-t border-gray-200 pt-3"
                             >
-                              {log.data && (
+                              {log.data != null && (
                                 <div className="mb-2">
                                   <p className="mb-1 text-xs font-medium text-gray-600">
                                     데이터:
