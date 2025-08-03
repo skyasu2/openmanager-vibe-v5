@@ -21,10 +21,7 @@
     ],
     "@typescript-eslint/no-explicit-any": "warn", // 보안 강화: any 타입 검사 활성화
     "no-console": "off",
-    "react-hooks/exhaustive-deps": "warn",
-    // 성능 최적화를 위한 추가 규칙들
-    "@typescript-eslint/prefer-const": "warn",
-    "@typescript-eslint/no-unnecessary-type-assertion": "warn"
+    "react-hooks/exhaustive-deps": "warn"
   },
   "ignorePatterns": [
     "**/.next/**",

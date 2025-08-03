@@ -7,7 +7,14 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import * as React from 'react';
 import { setupTestEnvironment } from './env.config';
-import './mocks'; // Mock 설정 활성화
+
+// 환경에 따른 Mock 로딩
+// DOM 환경에서만 브라우저 Mock 로드
+if (typeof window !== 'undefined') {
+  await import('./mocks'); // 브라우저 Mock 포함
+} else {
+  await import('./mocks/index-node'); // Node 전용 Mock
+}
 
 // ===============================
 // 🔧 환경변수 통합 설정
@@ -20,121 +27,129 @@ setupTestEnvironment();
 global.React = React;
 
 // ===============================
-// 🌐 브라우저 API Mock (전역)
+// 🌐 브라우저 API Mock (DOM 환경에서만 설정)
 // ===============================
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
-});
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation((query) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
 
-Object.defineProperty(window, 'ResizeObserver', {
-  writable: true,
-  value: vi.fn().mockImplementation(() => ({
-    observe: vi.fn(),
-    unobserve: vi.fn(),
-    disconnect: vi.fn(),
-  })),
-});
+  Object.defineProperty(window, 'ResizeObserver', {
+    writable: true,
+    value: vi.fn().mockImplementation(() => ({
+      observe: vi.fn(),
+      unobserve: vi.fn(),
+      disconnect: vi.fn(),
+    })),
+  });
 
-Object.defineProperty(window, 'IntersectionObserver', {
-  writable: true,
-  value: vi.fn().mockImplementation(() => ({
-    observe: vi.fn(),
-    unobserve: vi.fn(),
-    disconnect: vi.fn(),
-  })),
-});
+  Object.defineProperty(window, 'IntersectionObserver', {
+    writable: true,
+    value: vi.fn().mockImplementation(() => ({
+      observe: vi.fn(),
+      unobserve: vi.fn(),
+      disconnect: vi.fn(),
+    })),
+  });
 
-Object.defineProperty(window, 'scrollTo', {
-  writable: true,
-  value: vi.fn(),
-});
+  Object.defineProperty(window, 'scrollTo', {
+    writable: true,
+    value: vi.fn(),
+  });
 
-Object.defineProperty(window, 'scroll', {
-  writable: true,
-  value: vi.fn(),
-});
+  Object.defineProperty(window, 'scroll', {
+    writable: true,
+    value: vi.fn(),
+  });
+}
 
 // ===============================
 // 📡 WebAPI Mock
 // ===============================
 global.fetch = vi.fn();
 
-interface _MockEventSource extends EventSource {
-  close: ReturnType<typeof vi.fn>;
-  addEventListener: ReturnType<typeof vi.fn>;
-  removeEventListener: ReturnType<typeof vi.fn>;
+if (typeof window !== 'undefined') {
+  interface _MockEventSource extends EventSource {
+    close: ReturnType<typeof vi.fn>;
+    addEventListener: ReturnType<typeof vi.fn>;
+    removeEventListener: ReturnType<typeof vi.fn>;
+  }
+
+  interface EventSourceConstructor {
+    new (url: string | URL, eventSourceInitDict?: EventSourceInit): EventSource;
+    readonly CONNECTING: 0;
+    readonly OPEN: 1;
+    readonly CLOSED: 2;
+  }
+
+  const EventSourceMock = vi.fn().mockImplementation(() => ({
+    close: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    readyState: 1,
+    url: 'https://mock-sse.test',
+    withCredentials: false,
+  })) as unknown as EventSourceConstructor;
+
+  global.EventSource = EventSourceMock;
 }
-
-interface EventSourceConstructor {
-  new (url: string | URL, eventSourceInitDict?: EventSourceInit): EventSource;
-  readonly CONNECTING: 0;
-  readonly OPEN: 1;
-  readonly CLOSED: 2;
-}
-
-const EventSourceMock = vi.fn().mockImplementation(() => ({
-  close: vi.fn(),
-  addEventListener: vi.fn(),
-  removeEventListener: vi.fn(),
-  readyState: 1,
-  url: 'https://mock-sse.test',
-  withCredentials: false,
-})) as unknown as EventSourceConstructor;
-
-global.EventSource = EventSourceMock;
 
 // ===============================
 // 📊 Canvas API Mock (차트 라이브러리용)
 // ===============================
-HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
-  fillRect: vi.fn(),
-  clearRect: vi.fn(),
-  getImageData: vi.fn(() => ({
-    data: new Array(4),
-  })),
-  putImageData: vi.fn(),
-  createImageData: vi.fn(),
-  setTransform: vi.fn(),
-  drawImage: vi.fn(),
-  save: vi.fn(),
-  fillText: vi.fn(),
-  restore: vi.fn(),
-  beginPath: vi.fn(),
-  moveTo: vi.fn(),
-  lineTo: vi.fn(),
-  closePath: vi.fn(),
-  stroke: vi.fn(),
-  translate: vi.fn(),
-  scale: vi.fn(),
-  rotate: vi.fn(),
-  arc: vi.fn(),
-  fill: vi.fn(),
-  measureText: vi.fn(() => ({ width: 0 })),
-  transform: vi.fn(),
-  rect: vi.fn(),
-  clip: vi.fn(),
-});
+if (typeof window !== 'undefined' && HTMLCanvasElement) {
+  HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
+    fillRect: vi.fn(),
+    clearRect: vi.fn(),
+    getImageData: vi.fn(() => ({
+      data: new Array(4),
+    })),
+    putImageData: vi.fn(),
+    createImageData: vi.fn(),
+    setTransform: vi.fn(),
+    drawImage: vi.fn(),
+    save: vi.fn(),
+    fillText: vi.fn(),
+    restore: vi.fn(),
+    beginPath: vi.fn(),
+    moveTo: vi.fn(),
+    lineTo: vi.fn(),
+    closePath: vi.fn(),
+    stroke: vi.fn(),
+    translate: vi.fn(),
+    scale: vi.fn(),
+    rotate: vi.fn(),
+    arc: vi.fn(),
+    fill: vi.fn(),
+    measureText: vi.fn(() => ({ width: 0 })),
+    transform: vi.fn(),
+    rect: vi.fn(),
+    clip: vi.fn(),
+  });
+}
 
 // ===============================
 // 🗺️ Navigator API Mock
 // ===============================
-Object.defineProperty(navigator, 'clipboard', {
-  writable: true,
-  value: {
-    writeText: vi.fn().mockResolvedValue(undefined),
-    readText: vi.fn().mockResolvedValue(''),
-  },
-});
+if (typeof navigator !== 'undefined') {
+  Object.defineProperty(navigator, 'clipboard', {
+    writable: true,
+    value: {
+      writeText: vi.fn().mockResolvedValue(undefined),
+      readText: vi.fn().mockResolvedValue(''),
+    },
+  });
+}
 
 // ===============================
 // 🎭 React Query Mock
@@ -230,8 +245,8 @@ global.console = {
   error: console.error, // 에러는 실제 출력
 };
 
-// 타이머 Mock (테스트 속도 향상)
-// vi.useFakeTimers(); // 타임아웃 문제로 임시 비활성화
+// 타이머 Mock 완전 비활성화 (타임아웃 문제 해결)
+// Vitest의 fake timer는 테스트 실행을 불안정하게 만들 수 있음
 
 // ===============================
 // 🧹 테스트 정리

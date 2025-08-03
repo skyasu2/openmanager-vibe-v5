@@ -16,7 +16,29 @@ npx lint-staged --concurrent=true
 if [ $? -ne 0 ]; then
     echo "❌ Pre-commit 검증 실패!"
     echo "💡 성능 최적화된 설정을 사용했습니다. 문제가 있으면 npm run lint:fix 실행 후 다시 시도하세요."
+    echo ""
+    echo "🤖 서브에이전트 추천:"
+    echo "   - 코드 품질 검토: Task({ subagent_type: 'code-review-specialist', prompt: 'Lint 에러 수정' })"
+    echo "   - 프로젝트 규칙: Task({ subagent_type: 'quality-control-checker', prompt: 'CLAUDE.md 규칙 준수 검증' })"
     exit 1
+fi
+
+# Storybook 스토리 파일 검증 (있는 경우만)
+STORY_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.stories\.(ts|tsx|js|jsx)$' || true)
+if [ -n "$STORY_FILES" ]; then
+    echo "📚 Storybook 스토리 파일 검증 중..."
+    echo "   검사 대상: $(echo "$STORY_FILES" | wc -l)개 파일"
+    
+    # 스토리 파일에 대한 특별한 ESLint 규칙 적용
+    npx eslint --ext .stories.ts,.stories.tsx --plugin storybook --max-warnings 5 $STORY_FILES || {
+        echo "❌ Storybook 스토리 파일 검증 실패!"
+        echo ""
+        echo "🤖 서브에이전트 추천:"
+        echo "   - 코드 품질: Task({ subagent_type: 'code-review-specialist', prompt: 'Storybook 스토리 파일 ESLint 에러 수정' })"
+        echo "   - UI 컴포넌트: Task({ subagent_type: 'ux-performance-optimizer', prompt: 'Storybook 스토리 접근성 검증' })"
+        exit 1
+    }
+    echo "✅ Storybook 스토리 파일 검증 통과"
 fi
 
 # 보안 검사 (하드코딩된 시크릿 검사)
@@ -25,6 +47,9 @@ if [ -f "scripts/check-hardcoded-secrets.sh" ]; then
     bash scripts/check-hardcoded-secrets.sh
     if [ $? -ne 0 ]; then
         echo "❌ 보안 검사 실패! 하드코딩된 시크릿이 발견되었습니다."
+        echo ""
+        echo "🤖 서브에이전트 추천:"
+        echo "   - 보안 감사: Task({ subagent_type: 'security-auditor', prompt: '하드코딩된 시크릿 제거 및 환경변수로 대체' })"
         exit 1
     fi
 fi

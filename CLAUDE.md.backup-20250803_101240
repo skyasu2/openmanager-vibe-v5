@@ -90,48 +90,6 @@ npm run health:check                 # API 상태 확인
 6. **사고 모드**: "think hard" 항상 활성화
 7. **SOLID 원칙**: 모든 코드에 적용
 
-## 🧪 테스트 시스템 (3단계 전략)
-
-### 현재 테스트 구성
-
-- **총 40개 테스트** (이전 204개에서 최적화)
-- **3단계 전략**: minimal(22ms) → smart → full
-- **자동화 도구**: 스마트 선택기, 메타데이터 추적, TDD 자동화
-
-### 핵심 테스트 명령어
-
-```bash
-# 빠른 검증 (22ms)
-npm run test:quick      # 커밋/푸시 전 초고속 검증
-
-# 스마트 선택 (변경 기반)
-npm run test:smart      # 변경된 파일만 테스트
-npm run test:smart:branch  # 브랜치 전체 변경사항
-
-# 전체 테스트
-npm test               # 모든 테스트 실행
-npm run test:coverage  # 커버리지 리포트 (목표: 70%+)
-
-# TDD 워크플로우
-npm run test:tdd-check    # @tdd-red 상태 확인
-npm run test:tdd-cleanup  # RED → GREEN 자동 정리
-```
-
-### 테스트 자동화 도구
-
-- **스마트 테스트 선택기**: Git diff 기반 영향 분석 → 80% 시간 절약
-- **메타데이터 추적**: 실행 시간, 성공률, flakiness 모니터링
-- **서브에이전트 협업**: `test-first-developer`, `test-automation-specialist`
-
-### Vitest 설정 최적화
-
-- **Pool 설정**: `threads` 사용 (vmThreads는 isolate:false와 호환 불가)
-- **환경 분리**: Node 환경과 DOM 환경 테스트 분리
-- **Mock 조건부 로드**: 환경에 따른 브라우저 Mock 선택적 로드
-- **성능**: isolate:false로 4x 성능 향상
-
-상세 가이드: [`/docs/testing-system-guide.md`](/docs/testing-system-guide.md)
-
 ## 🔒 포트폴리오 보안 정책
 
 **중요**: 이 프로젝트는 포트폴리오/데모용으로 **기본적인 보안**만 적용합니다.
@@ -162,7 +120,26 @@ npm run test:tdd-cleanup  # RED → GREEN 자동 정리
 
 ### 타입 안전성 유틸리티
 
-타입 안전성을 위한 유틸리티 함수들이 `src/types/type-utils.ts`와 `src/types/react-utils.ts`에 정의되어 있습니다. getErrorMessage, safeArrayAccess, useSafeEffect 등을 활용하세요.
+프로젝트 전반에서 타입 안전성을 위해 다음 유틸리티 함수들을 사용:
+
+```typescript
+// src/types/type-utils.ts
+getErrorMessage(error); // error.message 대신 사용
+safeArrayAccess(array, index); // array[index] 대신 사용
+safeObjectAccess(obj, key); // obj.key 대신 사용
+safeParseFloat(value); // parseFloat() 대신 사용
+
+// src/types/react-utils.ts
+useSafeEffect(() => {
+  // 안전한 useEffect
+  // cleanup 함수 자동 반환
+}, [deps]);
+
+useAsyncEffect(async () => {
+  // 비동기 useEffect
+  // 안전한 비동기 처리
+}, [deps]);
+```
 
 ## 🔧 Next.js 15 App Router 모범 사례
 
@@ -236,6 +213,40 @@ export default function RootLayout({
     </html>
   );
 }
+```
+
+#### 5. CI/CD 파이프라인
+
+```yaml
+# .github/workflows/production.yml
+name: Production Deployment
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.15.1'
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run type-check
+      - run: npm run test
+      - run: npm run build
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.ORG_ID }}
+          vercel-project-id: ${{ secrets.PROJECT_ID }}
+          vercel-args: '--prod'
 ```
 
 ## 💡 핵심 시스템
@@ -366,24 +377,235 @@ export class SessionManager {
 }
 ```
 
+#### 3. Rate Limiting
+
+```typescript
+// middleware/rate-limit.ts
+import redis from '@/lib/redis';
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function rateLimitMiddleware(
+  request: NextRequest,
+  limit: number = 100,
+  window: number = 3600 // 1시간
+) {
+  const ip = request.ip ?? '127.0.0.1';
+  const key = `rate_limit:${ip}`;
+
+  const requests = await redis.incr(key);
+
+  if (requests === 1) {
+    await redis.expire(key, window);
+  }
+
+  if (requests > limit) {
+    return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+  }
+
+  return NextResponse.next();
+}
+```
+
+#### 4. 실시간 데이터 Pub/Sub
+
+```typescript
+// services/realtime.ts
+import redis from '@/lib/redis';
+
+export class RealtimeService {
+  static async publishMetrics(serverId: string, metrics: any) {
+    await redis.publish(`server:${serverId}:metrics`, JSON.stringify(metrics));
+  }
+
+  static async subscribeToMetrics(
+    serverId: string,
+    callback: (data: any) => void
+  ) {
+    // WebSocket과 연동하여 실시간 업데이트
+    const channel = `server:${serverId}:metrics`;
+    // Note: Upstash는 HTTP 기반이므로 polling 방식 사용
+    setInterval(async () => {
+      const data = await redis.get(`latest:${channel}`);
+      if (data) callback(data);
+    }, 1000);
+  }
+}
+```
+
 ### 성능 최적화
 
-- **배치 작업**: Pipeline으로 여러 명령 동시 처리
-- **메모리 관리**: TTL 설정으로 자동 정리, 256MB 한계 내 최적화
-- **에러 처리**: safeRedisOperation으로 안전한 작업 보장
+#### 1. 배치 작업
 
-상세 패턴: [`/docs/redis-performance-guide.md`](/docs/redis-performance-guide.md)
+```typescript
+// 여러 키 동시 처리
+const pipeline = redis.pipeline();
+pipeline.set('key1', 'value1');
+pipeline.set('key2', 'value2');
+pipeline.incr('counter');
+const results = await pipeline.exec();
+```
 
-## 🟢 Supabase RLS 보안
+#### 2. 메모리 관리
 
-데이터베이스 Row Level Security (RLS) 정책으로 데이터 보안을 강화합니다.
+```typescript
+// TTL 설정으로 자동 정리
+await redis.setex('temp:data', 300, data); // 5분 후 자동 삭제
 
-- **필수 설정**: 모든 테이블에 RLS 활성화
-- **정책 패턴**: 사용자별 격리, 팀 기반 접근, 역할 기반 권한
-- **성능 최적화**: RLS 정책 컬럼에 인덱스 필수
-- **JWT 보안**: `app_metadata` 사용 (서버 전용)
+// 메모리 사용량 모니터링
+const info = await redis.info('memory');
+console.log('Redis 메모리 사용량:', info);
+```
 
-상세 가이드: [`/docs/supabase-rls-security-guide.md`](/docs/supabase-rls-security-guide.md)
+#### 3. 에러 처리
+
+```typescript
+// 안전한 Redis 작업
+export async function safeRedisOperation<T>(
+  operation: () => Promise<T>,
+  fallback?: T
+): Promise<T | null> {
+  try {
+    return await operation();
+  } catch (error) {
+    console.error('Redis operation failed:', error);
+    return fallback ?? null;
+  }
+}
+```
+
+## 🟢 Supabase RLS 보안 모범 사례
+
+### RLS 기본 설정
+
+```sql
+-- 테이블에 RLS 활성화 (필수)
+ALTER TABLE servers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE server_metrics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY;
+```
+
+### 보안 정책 패턴
+
+#### 1. 사용자별 데이터 격리
+
+```sql
+-- 개별 사용자 데이터 접근
+CREATE POLICY "Users can only see own servers" ON servers
+FOR ALL USING (auth.uid() = user_id);
+
+-- 인덱스 최적화 (필수)
+CREATE INDEX idx_servers_user_id ON servers(user_id);
+```
+
+#### 2. 팀 기반 접근 제어
+
+```sql
+-- 팀 멤버십 확인
+CREATE POLICY "Team members can access team servers" ON servers
+FOR ALL USING (
+  EXISTS (
+    SELECT 1 FROM team_members
+    WHERE team_id = servers.team_id
+    AND user_id = auth.uid()
+  )
+);
+
+-- 성능 최적화 인덱스
+CREATE INDEX idx_team_members_user_team ON team_members(user_id, team_id);
+```
+
+#### 3. 역할 기반 권한
+
+```sql
+-- 관리자 권한 확인
+CREATE POLICY "Admins can manage all data" ON servers
+FOR ALL USING (
+  (auth.jwt() ->> 'role') = 'admin'
+);
+
+-- 읽기 전용 사용자
+CREATE POLICY "Read-only access for viewers" ON servers
+FOR SELECT USING (
+  (auth.jwt() ->> 'role') IN ('viewer', 'admin', 'editor')
+);
+```
+
+### 중요 보안 원칙
+
+#### 1. JWT 데이터 검증
+
+```sql
+-- ❌ 위험: user_metadata 사용 금지
+CREATE POLICY "Unsafe policy" ON servers
+FOR ALL USING (
+  (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
+  -- user_metadata는 사용자가 수정 가능!
+);
+
+-- ✅ 안전: app_metadata 사용
+CREATE POLICY "Safe policy" ON servers
+FOR ALL USING (
+  (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+  -- app_metadata는 서버에서만 수정 가능
+);
+```
+
+#### 2. 성능 고려사항
+
+```sql
+-- RLS 정책에 사용되는 모든 컬럼에 인덱스 필수
+CREATE INDEX idx_servers_user_id ON servers(user_id);
+CREATE INDEX idx_servers_team_id ON servers(team_id);
+CREATE INDEX idx_servers_created_at ON servers(created_at);
+
+-- 복합 인덱스로 쿼리 최적화
+CREATE INDEX idx_servers_user_team ON servers(user_id, team_id);
+```
+
+#### 3. 테스트 자동화
+
+```sql
+-- pgTAP으로 RLS 정책 테스트
+BEGIN;
+SELECT plan(3);
+
+-- 테스트 사용자 생성
+SET LOCAL "request.jwt.claims" TO '{"sub": "test-user-id", "role": "user"}';
+
+-- 권한 테스트
+SELECT ok(
+  (SELECT count(*) FROM servers) = 0,
+  'User should not see any servers initially'
+);
+
+-- 데이터 삽입 테스트
+INSERT INTO servers (name, user_id) VALUES ('test-server', 'test-user-id');
+SELECT ok(
+  (SELECT count(*) FROM servers) = 1,
+  'User should see their own server'
+);
+
+-- 다른 사용자 데이터 접근 차단 테스트
+SET LOCAL "request.jwt.claims" TO '{"sub": "other-user-id", "role": "user"}';
+SELECT ok(
+  (SELECT count(*) FROM servers) = 0,
+  'Other user should not see first users servers'
+);
+
+SELECT * FROM finish();
+ROLLBACK;
+```
+
+### Storage RLS 설정
+
+```sql
+-- 스토리지 버킷 RLS 활성화
+CREATE POLICY "Users can upload own files" ON storage.objects
+FOR INSERT WITH CHECK (auth.uid()::text = (storage.foldername(name))[1]);
+
+CREATE POLICY "Users can view own files" ON storage.objects
+FOR SELECT USING (auth.uid()::text = (storage.foldername(name))[1]);
+```
 
 ## 🔌 주요 API 엔드포인트
 
@@ -433,6 +655,21 @@ const timeInfo = await mcp__time__get_current_time({
 | `time`                | ✅ Connected | 시간/시간대 변환       | `mcp-server-time` (Python)                                |
 | `context7`            | ✅ Connected | 라이브러리 문서 검색   | `@upstash/context7-mcp@latest`                            |
 | `serena`              | ✅ Connected | 고급 코드 분석         | `git+https://github.com/oraios/serena` (Python)           |
+
+### MCP 서버별 활용 에이전트 목록 (최적화 버전 - 2025.8.1 업데이트)
+
+| MCP 서버              | 활용 에이전트                                                                                                                                         | 주요 용도                      |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `filesystem`          | 5개: mcp-server-admin, documentation-manager, structure-refactor-agent, git-cicd-specialist, backend-gcp-specialist                                   | 인프라 및 구조 관리, 파일 작업 |
+| `memory`              | 4개: mcp-server-admin, test-automation-specialist, ai-systems-engineer, test-first-developer                                                          | 지식 저장 및 공유, 테스트 패턴 |
+| `github`              | 5개: documentation-manager, security-auditor, debugger-specialist, backend-gcp-specialist, git-cicd-specialist                                        | PR/이슈 관리, 저장소 작업      |
+| `supabase`            | 1개: database-administrator                                                                                                                           | DB 전담 관리, 쿼리 최적화      |
+| `tavily-remote`       | 4개: documentation-manager, vercel-platform-specialist, backend-gcp-specialist, debugger-specialist                                                   | 웹 검색, 문서 조사             |
+| `sequential-thinking` | 3개: central-supervisor, debugger-specialist, mcp-server-admin                                                                                        | 복잡한 문제 해결, 조율         |
+| `playwright`          | 2개: test-automation-specialist, ux-performance-optimizer                                                                                             | 브라우저 자동화, 성능 테스트   |
+| `time`                | 4개: vercel-platform-specialist, documentation-manager, debugger-specialist, database-administrator                                                   | 타임스탬프, 시간대 변환        |
+| `context7`            | 6개: documentation-manager, test-automation-specialist, ux-performance-optimizer, backend-gcp-specialist, database-administrator, ai-systems-engineer | 라이브러리 문서 검색           |
+| `serena`              | 5개: test-automation-specialist, ux-performance-optimizer, debugger-specialist, ai-systems-engineer, code-review-specialist                           | 고급 코드 분석, 리팩토링       |
 
 ### MCP 서버 설치 방법 (최신)
 
@@ -512,6 +749,23 @@ claude api restart
 - **"Failed to connect"**: 패키지가 npm에 없거나 권한 문제
 - **환경변수 인식 안됨**: `-e` 옵션으로 직접 전달 필요
 
+### 유용한 MCP 서버 추천
+
+```bash
+# 추가 추천 MCP 서버들
+# 1. Brave Search - 웹 검색 (tavily 대안)
+claude mcp add brave-search npx -e BRAVE_API_KEY=your_key -- -y @modelcontextprotocol/server-brave-search@latest
+
+# 2. Slack - 슬랙 통합
+claude mcp add slack npx -e SLACK_BOT_TOKEN=xoxb-xxx -e SLACK_TEAM_ID=xxx -- -y @modelcontextprotocol/server-slack@latest
+
+# 3. Linear - 이슈 트래킹
+claude mcp add linear npx -e LINEAR_API_KEY=xxx -- -y @modelcontextprotocol/server-linear@latest
+
+# 4. Puppeteer - 브라우저 자동화 (Playwright 대안)
+claude mcp add puppeteer npx -- -y @modelcontextprotocol/server-puppeteer@latest
+```
+
 ## 🤖 유용한 Sub Agents - 프로젝트 로컬 설정
 
 복잡한 작업 시 Task 도구로 서브 에이전트 활용:
@@ -519,9 +773,7 @@ claude api restart
 | 작업 유형         | 추천 Agent                   | 용도                                 |
 | ----------------- | ---------------------------- | ------------------------------------ |
 | 복잡한 작업       | `central-supervisor`         | 마스터 오케스트레이터                |
-| 코드 로직 품질    | `code-review-specialist`     | 함수 복잡도, 버그 패턴, 성능 이슈    |
-| 프로젝트 규칙     | `quality-control-checker`    | CLAUDE.md 준수, 파일 크기, SOLID     |
-| 구조 설계         | `structure-refactor-agent`   | 중복 검출, 모듈 구조, 리팩토링       |
+| 코드 품질         | `code-review-specialist`     | SOLID 원칙, 타입 검사                |
 | 보안 검사         | `security-auditor`           | 취약점 탐지, 보안 감사               |
 | DB 최적화         | `database-administrator`     | Upstash Redis + Supabase 전담        |
 | 성능 개선         | `ux-performance-optimizer`   | Core Web Vitals                      |
@@ -535,6 +787,8 @@ claude api restart
 | Gemini CLI 전문가 | `gemini-cli-collaborator`    | Gemini CLI 대화형 분석, 1M 토큰 활용 |
 | 백엔드 개발       | `backend-gcp-specialist`     | GCP Functions, Python 백엔드         |
 | Git/CI/CD         | `git-cicd-specialist`        | Git 워크플로우, CI/CD 자동화         |
+| 구조 리팩토링     | `structure-refactor-agent`   | 프로젝트 구조 분석 및 재구성         |
+| 품질 검증         | `quality-control-checker`    | CLAUDE.md 규칙 준수 검증             |
 
 ### 📁 서브 에이전트 설정 위치
 
@@ -547,26 +801,16 @@ claude api restart
 
 **중요**: 각 에이전트는 명확한 전문 영역만 담당합니다.
 
-#### 코드 품질 전문가 그룹 (명확히 구분된 역할)
-
-- **code-review-specialist**: 함수/메서드 레벨 분석 - 복잡도 계산, 버그 패턴, 성능 이슈, 타입 안전성
-- **quality-control-checker**: 프로젝트 규칙 감시 - CLAUDE.md 준수, 파일 크기(500-1500줄), SOLID 원칙, 보안 정책
-- **structure-refactor-agent**: 구조 설계 전문 - 중복 코드 검출/통합, 모듈 의존성, 안전한 리팩토링
-
-#### 기타 전문가 그룹
-
 - **central-supervisor**: 오케스트레이션만 - 작업 분배, 모니터링, 결과 통합
 - **vercel-platform-specialist**: Vercel 플랫폼 아키텍처 전문 분석 - 배포 최적화, 성능 엔지니어링, 인프라 설계
 - **debugger-specialist**: 디버깅만 - 오류 분석, 가설 수립, 최소 수정
-- **documentation-manager**: 문서 관리 - 작성, 구조 관리, JBGE 원칙 (구 doc-structure-guardian + doc-writer-researcher 통합)
+- **doc-structure-guardian**: 문서 구조만 - JBGE 원칙, 정리, 아카이빙
+- **doc-writer-researcher**: 문서 작성만 - 연구, 지식 합성, 새 문서 생성
+- **code-review-specialist**: 코드 품질만 - SOLID, DRY, 복잡도 분석
 - **test-first-developer**: TDD 강제만 - 테스트 우선 작성, RED-GREEN-REFACTOR 사이클
 - **security-auditor**: 보안만 - 취약점 탐지, OWASP, 인증/인가
-
-#### 협업 프로토콜
-
-1. **순차 실행**: structure-refactor-agent → code-review-specialist → quality-control-checker
-2. **병렬 가능**: code-review-specialist + structure-refactor-agent (독립적 분석)
-3. **Memory MCP**: 분석 결과 공유로 중복 작업 방지
+- **structure-refactor-agent**: 구조 리팩토링만 - 프로젝트 구조 분석, 중복 탐지, 재구성
+- **협업 원칙**: 에이전트 간 역할 중복 없이 명확한 책임 분리
 
 ```typescript
 // 권장 방식 - 작업 목표만 제시
@@ -591,12 +835,79 @@ Task({
 });
 ```
 
-### 🚀 서브 에이전트 활용 패턴
+### 🔗 서브 에이전트 체이닝 패턴
 
-- **협업 패턴**: central-supervisor가 작업을 분배하고 조율
-- **병렬 처리**: 독립적인 작업은 동시 실행으로 30-40% 시간 단축
-- **Memory MCP**: 비동기 정보 공유로 협업 효율 증대
-- **서브에이전트 상세**: `.claude/agents/` 디렉토리 참조
+서브 에이전트들은 central-supervisor의 조율 하에 협업합니다:
+
+```
+사용자 요청 → central-supervisor (작업 분석 및 분배)
+  ├─ test-first-developer (TDD 강제, 테스트 우선 작성)
+  ├─ ai-systems-engineer (AI 기능 개발)
+  ├─ database-administrator (Upstash Redis + Supabase 최적화)
+  ├─ backend-gcp-specialist (GCP Functions, Python 백엔드)
+  ├─ vercel-platform-specialist (Vercel 아키텍처 분석 및 최적화)
+  ├─ debugger-specialist (오류 분석 및 해결)
+  ├─ git-cicd-specialist (Git 워크플로우, CI/CD)
+  ├─ structure-refactor-agent (프로젝트 구조 분석 및 리팩토링)
+  ├─ code-review-specialist (코드 품질 검증)
+  ├─ test-automation-specialist (테스트 자동화)
+  ├─ ux-performance-optimizer (프론트엔드 성능)
+  ├─ security-auditor (보안 취약점 검사)
+  ├─ documentation-manager (문서 작성 및 구조 관리)
+  ├─ mcp-server-admin (MCP 서버 관리)
+  ├─ gemini-cli-collaborator (Gemini CLI 대화형 분석)
+  └─ quality-control-checker (CLAUDE.md 규칙 준수 최종 검증)
+      └─ 모든 결과 → central-supervisor (통합 및 보고)
+```
+
+### 🚀 병렬 처리 최적화 가이드
+
+**독립적인 작업은 반드시 병렬 실행:**
+
+```typescript
+// ❌ 순차 실행 (느림)
+Task({
+  subagent_type: 'vercel-platform-specialist',
+  prompt: '배포 아키텍처 분석',
+});
+// 기다림...
+Task({ subagent_type: 'database-administrator', prompt: 'DB 성능 분석' });
+// 기다림...
+Task({ subagent_type: 'security-auditor', prompt: '보안 스캔' });
+
+// ✅ 병렬 실행 (빠름) - 한 메시지에 여러 Task 호출
+Task({
+  subagent_type: 'vercel-platform-specialist',
+  prompt: '배포 아키텍처 분석',
+});
+Task({ subagent_type: 'database-administrator', prompt: 'DB 성능 분석' });
+Task({ subagent_type: 'security-auditor', prompt: '보안 스캔' });
+```
+
+### 🔄 Memory MCP를 통한 비동기 협업
+
+**Gemini 분석 결과 공유 패턴:**
+
+```typescript
+// 1. gemini-cli-collaborator가 분석 수행
+Task({
+  subagent_type: 'gemini-cli-collaborator',
+  prompt: 'src/services 폴더의 복잡도 분석 후 Memory에 저장',
+});
+
+// 2. 다른 에이전트가 결과 활용
+Task({
+  subagent_type: 'ai-systems-engineer',
+  prompt: 'Memory에서 복잡도 분석 결과 조회 후 리팩토링 계획 수립',
+});
+```
+
+### 📊 실전 성공 사례
+
+- **병렬 처리 효과**: 3개 에이전트 동시 실행으로 30-40% 시간 단축
+- **자동 폴백**: AI 엔진 실패 시 200ms 이내 다른 엔진으로 전환
+- **캐싱 최적화**: 반복 쿼리 70-80% 시간 절약
+- **Memory MCP 활용**: 비동기 정보 공유로 협업 효율 증대
 
 ## 📋 Claude Code 프로젝트 설정 구조
 
@@ -670,25 +981,83 @@ Error: File has not been read yet. Read it first before writing to it
 - **요청 배치**: 여러 요청을 하나로 묶어 처리
 - **자동 스케일링**: 트래픽에 따라 자동 조절
 
-### 무료 티어 환경변수 설정
+### 무료 티어 환경변수 상세 설정
 
-환경변수 템플릿은 `.env.local.template` 파일을 참조하세요.
+```bash
+# === Next.js 15 & Vercel 설정 ===
+NEXTAUTH_URL=https://your-domain.vercel.app
+NEXTAUTH_SECRET=[YOUR_32_CHAR_SECRET]
+VERCEL_ENV=production
 
-**필수 환경변수 그룹**:
+# === Supabase 설정 ===
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[YOUR_SUPABASE_ANON_KEY]
+SUPABASE_SERVICE_ROLE_KEY=[YOUR_SERVICE_ROLE_KEY]  # 서버 전용
 
-- Next.js & Vercel 설정
-- Supabase (PostgreSQL + Auth)
-- Upstash Redis (캐싱)
-- GitHub OAuth
-- GCP Functions
+# === Upstash Redis 설정 ===
+UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
+UPSTASH_REDIS_REST_TOKEN=[YOUR_REDIS_TOKEN]
 
-**보안 원칙**:
+# === GitHub OAuth ===
+GITHUB_CLIENT_ID=[YOUR_GITHUB_CLIENT_ID]
+GITHUB_CLIENT_SECRET=[YOUR_GITHUB_CLIENT_SECRET]
 
-- 절대 하드코딩 금지
-- 서버 전용 키는 클라이언트에 노출 금지
-- `NEXT_PUBLIC_` 접두사는 공개 가능한 키만 사용
+# === GCP Functions ===
+GOOGLE_AI_API_KEY=[YOUR_GOOGLE_AI_KEY]
+GCP_PROJECT_ID=your-project-id
+GCP_REGION=us-central1
 
-상세 설정: [`/docs/environment-variables-guide.md`](/docs/environment-variables-guide.md)
+# === 서버리스 함수 제한 ===
+SERVERLESS_FUNCTION_TIMEOUT=8      # 8초 타임아웃
+MEMORY_LIMIT_MB=40                 # 40MB 메모리 제한
+
+# === API 할당량 보호 ===
+GOOGLE_AI_DAILY_LIMIT=1000         # Google AI 일일 1000회
+SUPABASE_MONTHLY_LIMIT=40000       # Supabase 월 40000회
+REDIS_DAILY_LIMIT=8000             # Redis 일일 8000회
+
+# === 메모리 관리 강화 ===
+MEMORY_WARNING_THRESHOLD=35        # 35MB 경고 임계값
+FORCE_GARBAGE_COLLECTION=true      # 강제 가비지 컬렉션
+
+# === 보안 설정 ===
+CRON_SECRET=[YOUR_SECURE_CRON_SECRET_KEY]  # 크론 작업 인증키
+JWT_SECRET=[YOUR_JWT_SECRET]               # JWT 토큰 서명
+WEBHOOK_SECRET=[YOUR_WEBHOOK_SECRET]       # GitHub 웹훅
+
+# === 모니터링 ===
+SENTRY_DSN=[YOUR_SENTRY_DSN]              # 에러 추적 (선택사항)
+ANALYTICS_ID=[YOUR_VERCEL_ANALYTICS_ID]   # Vercel Analytics
+
+# === 개발 환경 ===
+NODE_ENV=production
+LOG_LEVEL=info
+DEBUG_MODE=false
+```
+
+### 환경변수 보안 체크리스트
+
+1. **절대 공개하면 안 되는 키**:
+   - `SUPABASE_SERVICE_ROLE_KEY` (RLS 우회 가능)
+   - `GITHUB_CLIENT_SECRET`
+   - `JWT_SECRET`, `NEXTAUTH_SECRET`
+   - `CRON_SECRET`, `WEBHOOK_SECRET`
+
+2. **공개 가능한 키** (NEXT*PUBLIC* 접두사):
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+3. **환경별 분리**:
+
+   ```bash
+   # .env.local (개발)
+   NODE_ENV=development
+   DEBUG_MODE=true
+
+   # Vercel 환경변수 (프로덕션)
+   NODE_ENV=production
+   DEBUG_MODE=false
+   ```
 
 ## 💰 Claude + Gemini 협업 전략
 

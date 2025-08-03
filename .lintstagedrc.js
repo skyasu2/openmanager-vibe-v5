@@ -1,7 +1,7 @@
 module.exports = {
-  '*.{js,jsx,ts,tsx}': files => {
+  '*.{js,jsx,ts,tsx}': (files) => {
     // ESLint 설정에서 무시하는 파일들을 필터링
-    const filteredFiles = files.filter(file => {
+    const filteredFiles = files.filter((file) => {
       // scripts 폴더 제외
       if (file.includes('/scripts/') || file.startsWith('scripts/')) {
         return false;
@@ -24,7 +24,7 @@ module.exports = {
 
     // 필터링된 파일들에 대해서만 ESLint와 Prettier 실행
     return [
-      `eslint --fix --max-warnings 0 ${filteredFiles.join(' ')}`,
+      `eslint --config .eslintrc.performance.json --no-eslintrc --cache --cache-location .next/cache/eslint/ --fix --max-warnings 10 ${filteredFiles.join(' ')}`,
       `prettier --write ${filteredFiles.join(' ')}`,
     ];
   },

@@ -1,20 +1,23 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 /**
  * 🔄 TDD 테스트 자동 정리 시스템
  * 
  * TDD RED 단계에서 생성된 테스트가 GREEN이 되면 자동으로 정리합니다.
+ * TestMetadataManager와 통합하여 테스트 메타데이터를 추적합니다.
  * 
  * 기능:
  * - @tdd-red 태그된 테스트 감지
  * - 테스트 상태 확인 (RED → GREEN 전환)
  * - 자동 태그 제거
  * - 전환 이력 추적
+ * - 서브 에이전트 연동
  */
 
 import { promises as fs } from 'fs';
 import path from 'path';
 import { glob } from 'glob';
 import { execSync } from 'child_process';
+import { TestMetadataManager } from './test-metadata-manager';
 
 interface TDDTest {
   file: string;
@@ -33,9 +36,13 @@ interface CleanupReport {
 
 class TDDCleanupManager {
   private readonly checkOnly: boolean;
+  private readonly metadataManager: TestMetadataManager;
+  private readonly subAgentIntegration: boolean;
   
-  constructor(checkOnly = false) {
+  constructor(checkOnly = false, subAgentIntegration = true) {
     this.checkOnly = checkOnly;
+    this.subAgentIntegration = subAgentIntegration;
+    this.metadataManager = new TestMetadataManager();
   }
 
   async runCleanup(): Promise<CleanupReport> {
@@ -75,6 +82,9 @@ class TDDCleanupManager {
 
       // 5. 리포트 생성
       await this.generateReport(report);
+
+      // 6. 서브 에이전트 협업
+      await this.coordinateWithSubAgents(report);
 
     } catch (error) {
       report.errors.push(`Error during cleanup: ${error}`);
@@ -140,29 +150,63 @@ class TDDCleanupManager {
     const transitioned: TDDTest[] = [];
     const stillRed: TDDTest[] = [];
 
+    // TestMetadataManager에서 기존 메타데이터 확인
+    const allMetadata = this.metadataManager.getTestsByPriority();
+
     for (const test of tests) {
       try {
+        // 메타데이터 확인
+        const metadata = allMetadata.find(m => m.filePath === test.file);
+        
         // 특정 테스트만 실행
         const command = `npx vitest run "${test.file}" -t "${test.testName}" --reporter=json --no-coverage`;
-        const result = execSync(command, { 
-          encoding: 'utf-8',
-          stdio: ['pipe', 'pipe', 'pipe'] // stdout만 캡처
-        });
+        const startTime = Date.now();
+        
+        try {
+          const result = execSync(command, { 
+            encoding: 'utf-8',
+            stdio: ['pipe', 'pipe', 'pipe']
+          });
 
-        // JSON 결과 파싱
-        const jsonMatch = result.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const testResult = JSON.parse(jsonMatch[0]);
-          const passed = testResult.numPassedTests > 0 && testResult.numFailedTests === 0;
-          
-          if (passed) {
-            transitioned.push({ ...test, status: 'green' });
-          } else {
-            stillRed.push({ ...test, status: 'red' });
+          const runTime = Date.now() - startTime;
+
+          // JSON 결과 파싱
+          const jsonMatch = result.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const testResult = JSON.parse(jsonMatch[0]);
+            const passed = testResult.numPassedTests > 0 && testResult.numFailedTests === 0;
+            
+            // 메타데이터 업데이트
+            this.metadataManager.recordTestRun({
+              filePath: test.file,
+              success: passed,
+              runTime,
+            });
+
+            if (passed) {
+              transitioned.push({ ...test, status: 'green' });
+              // TDD 상태 업데이트
+              this.metadataManager.updateTDDStatus(test.file, 'green');
+            } else {
+              stillRed.push({ ...test, status: 'red' });
+              this.metadataManager.updateTDDStatus(test.file, 'red');
+            }
           }
+        } catch (error) {
+          const runTime = Date.now() - startTime;
+          // 테스트 실패는 정상적인 경우
+          stillRed.push({ ...test, status: 'red' });
+          
+          // 실패도 메타데이터에 기록
+          this.metadataManager.recordTestRun({
+            filePath: test.file,
+            success: false,
+            runTime,
+            error: error instanceof Error ? error.message : 'Test failed',
+          });
         }
       } catch (error) {
-        // 테스트 실패는 정상적인 경우
+        console.warn(`⚠️ Failed to check status for ${test.testName}:`, error);
         stillRed.push({ ...test, status: 'red' });
       }
     }
@@ -217,7 +261,51 @@ class TDDCleanupManager {
     }
   }
 
+  /**
+   * 서브 에이전트와 협업
+   */
+  private async coordinateWithSubAgents(report: CleanupReport): Promise<void> {
+    if (!this.subAgentIntegration) return;
+
+    // 1. 오래된 RED 테스트가 있으면 test-first-developer에게 알림
+    if (report.oldRedTests.length > 0) {
+      console.log('\n🤖 서브 에이전트 협업 시작...');
+      
+      // Memory MCP에 정보 저장
+      const memoryData = {
+        timestamp: new Date().toISOString(),
+        oldRedTests: report.oldRedTests.map(t => ({
+          file: t.file,
+          testName: t.testName,
+          createdDate: t.createdDate,
+        })),
+        recommendation: 'test-first-developer 에이전트가 구현을 도와줄 수 있습니다.',
+      };
+
+      console.log('📝 Memory MCP에 TDD 상태 저장');
+      // 실제로는 Memory MCP 호출이 필요하지만, 스크립트에서는 파일로 저장
+      const memoryPath = '.claude/tdd-memory.json';
+      await fs.writeFile(memoryPath, JSON.stringify(memoryData, null, 2));
+    }
+
+    // 2. 전환된 테스트가 많으면 code-review-specialist 추천
+    if (report.transitionedTests.length > 5) {
+      console.log('💡 많은 테스트가 GREEN으로 전환되었습니다.');
+      console.log('   code-review-specialist로 리팩토링 기회를 확인해보세요.');
+    }
+
+    // 3. 성능 메타데이터 기반 추천
+    const slowTests = this.metadataManager.getSlowTests(1000);
+    if (slowTests.length > 0) {
+      console.log('🐌 느린 테스트가 발견되었습니다.');
+      console.log('   test-automation-specialist로 최적화를 검토해보세요.');
+    }
+  }
+
   private async generateReport(report: CleanupReport): Promise<void> {
+    // 메타데이터 통계 가져오기
+    const metadataReport = this.metadataManager.generateReport();
+    
     const lines: string[] = [
       '# 🔄 TDD 테스트 정리 리포트',
       `생성일: ${new Date().toLocaleDateString('ko-KR')} ${new Date().toLocaleTimeString('ko-KR')}`,
@@ -226,6 +314,9 @@ class TDDCleanupManager {
       `- 스캔된 @tdd-red 테스트: ${report.scannedTests}개`,
       `- GREEN으로 전환된 테스트: ${report.transitionedTests.length}개`,
       `- 7일 이상된 RED 테스트: ${report.oldRedTests.length}개`,
+      '',
+      '## 📈 테스트 메타데이터 인사이트',
+      ...metadataReport.split('\n').filter(line => line.includes('느린 테스트') || line.includes('불안정한 테스트')),
       ''
     ];
 

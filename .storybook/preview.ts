@@ -63,6 +63,30 @@ const preview: Preview = {
       ],
     },
     layout: 'centered',
+    a11y: {
+      // 접근성 검사 설정
+      config: {
+        rules: [
+          // WCAG 2.1 AA 기준 적용
+          { id: 'color-contrast', enabled: true },
+          { id: 'keyboard', enabled: true },
+          { id: 'focus-management', enabled: true },
+          { id: 'forms', enabled: true },
+          { id: 'name-role-value', enabled: true },
+        ],
+      },
+      // 한국어 지원 설정
+      options: {
+        runOnly: {
+          type: 'tag',
+          values: ['wcag2a', 'wcag2aa', 'wcag21aa'],
+        },
+        // 접근성 레포트 언어 (한국어 접근성 레이블 고려)
+        locale: 'ko-KR',
+      },
+      // 수동 검사 가이드 표시
+      manual: false,
+    },
   },
 
   globalTypes: {

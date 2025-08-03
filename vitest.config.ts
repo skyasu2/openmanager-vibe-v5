@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
     plugins: [],
     test: {
       globals: true,
-      environment: 'jsdom',
+      environment: 'node', // jsdom → node로 변경하여 성능 향상 (DOM 테스트는 별도 설정 사용)
       setupFiles: ['./src/test/setup.ts'],
 
       // 🎯 핵심 테스트만 실행
@@ -36,12 +36,26 @@ export default defineConfig(({ mode }) => {
         'tests/unit/natural-language-unifier.test.ts',
       ],
 
-      // 🎯 테스트 실행 최적화 (리소스 경합 방지)
-      threads: true,
-      maxConcurrency: 3, // 6 → 3으로 감소
-      minThreads: 1,
-      maxThreads: 2, // 4 → 2로 감소
-      pool: 'forks', // threads → forks (더 안정적)
+      // 🎯 테스트 실행 최적화 - 웹 검색 기반 최적 설정
+      maxConcurrency: 20, // 병렬 실행 증가
+      pool: 'threads', // threads로 변경 (vmThreads는 isolate: false와 호환 불가)
+      poolOptions: {
+        threads: {
+          singleThread: false, // 멀티 스레드로 성능 향상
+          isolate: false, // 스레드 격리 비활성화
+        }
+      },
+      isolate: false, // 테스트 격리 비활성화로 성능 향상
+      
+      // 🚀 성능 최적화 추가 옵션
+      css: false, // CSS 처리 비활성화
+      deps: {
+        optimizer: {
+          web: {
+            enabled: true, // 의존성 최적화 활성화
+          }
+        }
+      },
 
       // 📊 커버리지 설정 (핵심 기능만)
       coverage: {
@@ -75,25 +89,16 @@ export default defineConfig(({ mode }) => {
 
       // 🔄 Watch 모드 설정 (moved to root level)
 
-      // 🎯 성능 최적화 - 환경별 타임아웃 설정
-      testTimeout: (() => {
-        const base = 45000; // 기본 45초로 증가
-        const multiplier = parseFloat(process.env.TIMEOUT_MULTIPLIER || '1');
-        const isCI = process.env.CI === 'true';
-        const isDev = process.env.NODE_ENV === 'development';
-        
-        // CI: 기본값, 개발: 1.5배, 환경변수로 추가 조절
-        let timeout = base;
-        if (isDev && !isCI) timeout *= 1.5; // 개발환경 67.5초
-        if (isCI) timeout *= 0.8; // CI환경 36초
-        
-        return Math.round(timeout * multiplier);
-      })(),
-      hookTimeout: 60000, // 10초 → 60초로 증가
-      teardownTimeout: 30000, // 10초 → 30초로 증가
+      // 🎯 성능 최적화 - 타임아웃 더 짧게 조정
+      testTimeout: 2000, // 2초로 단축 (빠른 실패)
+      hookTimeout: 1000, // 1초로 단축
+      teardownTimeout: 1000, // 1초로 단축
+      
+      // 개별 테스트 타임아웃 설정
+      bail: 1, // 첫 번째 실패에서 중단
 
-      // 📝 리포터 설정
-      reporter: process.env.CI ? 'github-actions' : 'verbose',
+      // 📝 리포터 설정 - 성능 최적화
+      reporter: process.env.CI ? 'github-actions' : 'default',
       outputFile: {
         json: './test-results/results.json',
         html: './test-results/index.html',

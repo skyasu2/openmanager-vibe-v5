@@ -14,8 +14,10 @@ if [ "$SKIP_TESTS" = "1" ]; then
     echo "⏭️  SKIP_TESTS=1 설정됨. 테스트를 건너뜁니다."
 fi
 
-# 실패 카운터
+# 실패 카운터 및 상태 추적
 FAILURES=0
+TYPE_CHECK_FAILED=0
+TEST_FAILED=0
 
 # Type check
 echo "📝 TypeScript 타입 체크 중..."
@@ -23,6 +25,7 @@ npm run type-check
 if [ $? -ne 0 ]; then
     echo "❌ TypeScript 타입 체크 실패!"
     FAILURES=$((FAILURES + 1))
+    TYPE_CHECK_FAILED=1
 else
     echo "✅ TypeScript 타입 체크 통과"
 fi
@@ -38,6 +41,7 @@ if [ "$SKIP_TESTS" != "1" ]; then
     if [ $TEST_EXIT_CODE -ne 0 ]; then
         echo "❌ 검증 실패!"
         FAILURES=$((FAILURES + 1))
+        TEST_FAILED=1
     else
         echo "✅ 핵심 검증 통과"
     fi
@@ -66,6 +70,29 @@ if [ $FAILURES -eq 0 ]; then
     exit 0
 else
     echo "⚠️  $FAILURES개의 검증이 실패했습니다."
+    echo ""
+    
+    # 서브에이전트 추천
+    echo "🤖 서브에이전트 추천:"
+    
+    # TypeScript 타입 체크 실패 시
+    if [ "$TYPE_CHECK_FAILED" = "1" ]; then
+        echo "   📝 TypeScript 타입 에러 해결:"
+        echo "      Task({ subagent_type: 'code-review-specialist', prompt: 'TypeScript 타입 에러 수정' })"
+    fi
+    
+    # 테스트 실패 시
+    if [ "$TEST_FAILED" = "1" ]; then
+        echo "   🧪 테스트 실패 해결:"
+        echo "      Task({ subagent_type: 'test-automation-specialist', prompt: '실패한 테스트 수정' })"
+        echo "      또는 디버깅이 필요한 경우:"
+        echo "      Task({ subagent_type: 'debugger-specialist', prompt: '테스트 실패 원인 분석' })"
+    fi
+    
+    # Git 관련 문제 시
+    echo "   🔧 Git 워크플로우 문제 해결:"
+    echo "      Task({ subagent_type: 'git-cicd-specialist', prompt: 'Pre-push 검증 실패 해결' })"
+    
     echo ""
     echo "💡 다음 옵션이 있습니다:"
     echo "   1. 문제를 수정하고 다시 시도"
