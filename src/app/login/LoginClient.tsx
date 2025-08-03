@@ -127,9 +127,11 @@ export default function LoginClient() {
       localStorage.setItem('auth_type', 'guest');
       localStorage.setItem('auth_user', JSON.stringify(guestSession.user));
 
-      // 🍪 쿠키 저장 (middleware 인식용)
-      document.cookie = `guest_session_id=${guestSession.sessionId}; path=/; max-age=${2 * 60 * 60}; SameSite=Lax`;
-      document.cookie = `auth_type=guest; path=/; max-age=${2 * 60 * 60}; SameSite=Lax`;
+      // 🍪 쿠키 저장 (middleware 인식용, HTTPS 환경 대응)
+      const isProduction = window.location.protocol === 'https:';
+      const secureFlag = isProduction ? '; Secure' : '';
+      document.cookie = `guest_session_id=${guestSession.sessionId}; path=/; max-age=${2 * 60 * 60}; SameSite=Lax${secureFlag}`;
+      document.cookie = `auth_type=guest; path=/; max-age=${2 * 60 * 60}; SameSite=Lax${secureFlag}`;
 
       console.log(
         '✅ 게스트 세션 저장 완료 (localStorage + 쿠키), 페이지 이동:',

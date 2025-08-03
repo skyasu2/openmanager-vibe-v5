@@ -99,7 +99,10 @@ export async function middleware(request: NextRequest) {
       // 🔐 OAuth 인증 직후 확인 (auth_verified 쿠키)
       if (authVerifiedCookie) {
         console.log('✅ OAuth 인증 확인됨 (auth_verified 쿠키)');
+        console.log('🍪 auth_verified 값:', authVerifiedCookie);
         // auth_verified가 있으면 세션이 곧 활성화될 것으로 간주
+        // OAuth 직후 임시 통과 허용 (세션 동기화 시간 필요)
+        return response;
       }
 
       // updateSession에서 반환된 response의 쿠키를 읽어야 함

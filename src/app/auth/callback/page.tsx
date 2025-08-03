@@ -97,8 +97,9 @@ export default function AuthCallbackPage() {
             `⏱️ 콜백 처리 시간: ${(performance.now() - startTime).toFixed(0)}ms`
           );
 
-          // auth_verified 쿠키 설정
-          document.cookie = `auth_verified=true; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
+          // auth_verified 쿠키 설정 (Vercel HTTPS 환경 대응)
+          const isProduction = window.location.protocol === 'https:';
+          document.cookie = `auth_verified=true; path=/; max-age=${60 * 60 * 24}; SameSite=Lax${isProduction ? '; Secure' : ''}`;
 
           // 바로 메인으로 이동
           console.log('🚀 메인 페이지로 이동!');
