@@ -6,6 +6,10 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
+
+// authManager를 먼저 모킹
+vi.mock('@/lib/auth');
+
 import {
   GET as getThresholds,
   POST as updateThresholds,
@@ -18,10 +22,29 @@ import {
   GET as getBackupStatus,
   POST as manageBackup,
 } from '@/app/api/admin/backup-status/route';
+import { authManager } from '@/lib/auth';
+
+// Mock 타입 정의
+const mockAuthManager = {
+  validateBrowserToken: vi.fn(),
+  hasPermission: vi.fn(),
+  createSession: vi.fn(),
+  validateSession: vi.fn(),
+  destroySession: vi.fn(),
+  updateSessionActivity: vi.fn(),
+  getActiveSessions: vi.fn(),
+  clearExpiredSessions: vi.fn(),
+};
+
+// authManager를 mockAuthManager로 대체
+Object.assign(authManager, mockAuthManager);
 
 describe('🔐 Admin API 인증 테스트', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // 기본적으로 모든 검증 실패로 설정
+    mockAuthManager.validateBrowserToken.mockReturnValue(null);
+    mockAuthManager.hasPermission.mockReturnValue(false);
   });
 
   describe('인증 없이 접근 시 401 반환', () => {
@@ -132,12 +155,16 @@ describe('🔐 Admin API 인증 테스트', () => {
   });
 
   describe('권한이 없는 사용자로 접근 시 403 반환', () => {
-    // 실제 구현에서는 authManager가 토큰을 검증하고 권한을 확인합니다.
-    // 여기서는 모킹이 필요합니다.
-    // @todo: authManager 모킹 구현 필요
-    // @skip-reason: authManager 모킹 구현 대기중
-    // @skip-date: 2024-01-15
-    it.skip('일반 사용자 토큰으로 admin API 접근 시 403', async () => {
+    it('일반 사용자 토큰으로 admin API 접근 시 403', async () => {
+      // 일반 사용자(viewer) 권한으로 모킹 설정
+      mockAuthManager.validateBrowserToken.mockReturnValue({
+        sessionId: 'test-session-id',
+        userId: 'test-user-id',
+        userRole: 'viewer',
+        permissions: ['system:read'],
+      });
+      mockAuthManager.hasPermission.mockReturnValue(false);
+
       const request = new NextRequest(
         'http://localhost:3000/api/admin/thresholds',
         {
@@ -162,11 +189,16 @@ describe('🔐 Admin API 인증 테스트', () => {
   });
 
   describe('성공적인 인증', () => {
-    // 실제 구현에서는 authManager를 모킹하여 유효한 토큰으로 테스트
-    // @todo: authManager 모킹 구현 필요
-    // @skip-reason: authManager 모킹 구현 대기중
-    // @skip-date: 2024-01-15
-    it.skip('유효한 admin 토큰으로 접근 시 정상 응답', async () => {
+    it('유효한 admin 토큰으로 접근 시 정상 응답', async () => {
+      // admin 권한으로 모킹 설정
+      mockAuthManager.validateBrowserToken.mockReturnValue({
+        sessionId: 'test-session-id',
+        userId: 'test-user-id',
+        userRole: 'admin',
+        permissions: ['system:admin', 'system:read', 'system:write'],
+      });
+      mockAuthManager.hasPermission.mockReturnValue(true);
+
       const request = new NextRequest(
         'http://localhost:3000/api/admin/thresholds',
         {

@@ -42,13 +42,26 @@ export class UserProfileService {
         .single();
 
       if (error) {
-        console.error('사용자 프로필 조회 실패:', error);
+        // 에러 타입에 따른 세밀한 처리
+        if (error.code === 'CONNECTION_ERROR') {
+          console.error('⚠️ 데이터베이스 연결 오류:', {
+            userId,
+            error: error.message,
+            timestamp: new Date().toISOString(),
+          });
+        } else {
+          console.error('사용자 프로필 조회 실패:', error);
+        }
         return null;
       }
 
       return data as DatabaseUser;
     } catch (error) {
-      console.error('사용자 프로필 조회 중 오류:', error);
+      console.error('사용자 프로필 조회 중 예외 발생:', {
+        userId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
       return null;
     }
   }

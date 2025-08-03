@@ -30,6 +30,10 @@ export default defineConfig(({ mode }) => {
         '**/.next/**',
         '**/build/**',
         '**/coverage/**',
+        // 성능 테스트 (별도 실행: npm run test:performance)
+        '**/*.perf.test.{ts,tsx}',
+        // E2E 테스트 (별도 실행: npm run test:e2e:vitest)
+        '**/*.e2e.test.{ts,tsx}',
         // 제거된 기능들
         'tests/unit/distributed-data-manager.test.ts',
         'tests/unit/natural-language-query-cache.test.ts',
@@ -89,10 +93,10 @@ export default defineConfig(({ mode }) => {
 
       // 🔄 Watch 모드 설정 (moved to root level)
 
-      // 🎯 성능 최적화 - 타임아웃 더 짧게 조정
-      testTimeout: 2000, // 2초로 단축 (빠른 실패)
-      hookTimeout: 1000, // 1초로 단축
-      teardownTimeout: 1000, // 1초로 단축
+      // 🎯 성능 최적화 - 타임아웃 적절히 조정
+      testTimeout: 10000, // 10초로 증가 (비동기 처리 안정성)
+      hookTimeout: 10000, // 10초로 증가  
+      teardownTimeout: 5000, // 5초로 증가
       
       // 개별 테스트 타임아웃 설정
       bail: 1, // 첫 번째 실패에서 중단
