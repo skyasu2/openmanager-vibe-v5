@@ -1,18 +1,34 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Badge } from './badge';
 import {
-  createStoryMeta,
   mockServerStates,
-  storyTitles,
   a11yLabels,
 } from '../../stories/templates/StoryTemplate';
 import { Card, CardContent } from './card';
 
-const meta = createStoryMeta(
-  storyTitles.ui('Badge'),
-  Badge,
-  '🏷️ 상태 표시용 Badge 컴포넌트입니다. 서버 상태, AI 엔진 상태, 알림 등을 시각적으로 구분하여 표시합니다.'
-);
+const meta = {
+  title: 'UI Components/Badge',
+  component: Badge,
+  parameters: {
+    layout: 'centered',
+    docs: {
+      description: {
+        component: '🏷️ 상태 표시용 Badge 컴포넌트입니다. 서버 상태, AI 엔진 상태, 알림 등을 시각적으로 구분하여 표시합니다.'
+      }
+    }
+  },
+  tags: ['autodocs'],
+  argTypes: {
+    variant: {
+      control: 'select',
+      options: ['default', 'secondary', 'destructive', 'outline']
+    },
+    children: {
+      control: 'text',
+      description: 'Badge 내부에 표시될 내용'
+    }
+  }
+} satisfies Meta<typeof Badge>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

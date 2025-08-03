@@ -4,18 +4,39 @@ import { Button } from './button';
 import { Label } from './label';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 import {
-  createStoryMeta,
-  storyTitles,
   a11yLabels,
 } from '../../stories/templates/StoryTemplate';
 import { useState } from 'react';
 import { Search, Server, Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
 
-const meta = createStoryMeta(
-  storyTitles.ui('Input'),
-  Input,
-  '📝 사용자 입력을 받는 Input 컴포넌트입니다. 서버 검색, AI 질의, 설정 값 입력 등 다양한 용도로 사용됩니다. 한국어 입력 최적화가 적용되어 있습니다.'
-);
+const meta = {
+  title: 'UI Components/Input',
+  component: Input,
+  parameters: {
+    layout: 'centered',
+    docs: {
+      description: {
+        component: '📝 사용자 입력을 받는 Input 컴포넌트입니다. 서버 검색, AI 질의, 설정 값 입력 등 다양한 용도로 사용됩니다. 한국어 입력 최적화가 적용되어 있습니다.'
+      }
+    }
+  },
+  tags: ['autodocs'],
+  argTypes: {
+    type: {
+      control: 'select',
+      options: ['text', 'password', 'email', 'number', 'search', 'tel', 'url'],
+      description: '입력 필드의 타입'
+    },
+    placeholder: {
+      control: 'text',
+      description: '플레이스홀더 텍스트'
+    },
+    disabled: {
+      control: 'boolean',
+      description: '비활성화 상태'
+    }
+  }
+} satisfies Meta<typeof Input>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

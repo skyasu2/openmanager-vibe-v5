@@ -3,8 +3,6 @@ import { Button } from './button';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 import { Badge } from './badge';
 import {
-  createStoryMeta,
-  storyTitles,
   a11yLabels,
 } from '../../stories/templates/StoryTemplate';
 import { useState } from 'react';
@@ -31,11 +29,30 @@ import {
   ExternalLink,
 } from 'lucide-react';
 
-const meta = createStoryMeta(
-  storyTitles.ui('Button'),
-  Button,
-  '🎯 OpenManager Vibe v5의 핵심 버튼 컴포넌트입니다. 서버 제어, AI 상호작용, 시스템 관리 등 모든 작업의 시작점이 되는 중요한 컴포넌트입니다.'
-);
+const meta = {
+  title: 'UI Components/Button',
+  component: Button,
+  parameters: {
+    layout: 'centered',
+    docs: {
+      description: {
+        component: '🎯 OpenManager Vibe v5의 핵심 버튼 컴포넌트입니다. 서버 제어, AI 상호작용, 시스템 관리 등 모든 작업의 시작점이 되는 중요한 컴포넌트입니다.'
+      }
+    }
+  },
+  tags: ['autodocs'],
+  argTypes: {
+    variant: {
+      control: 'select',
+      options: ['default', 'secondary', 'destructive', 'outline', 'ghost', 'link']
+    },
+    size: {
+      control: 'select',
+      options: ['default', 'sm', 'lg', 'icon']
+    },
+    onClick: { action: 'clicked' }
+  }
+} satisfies Meta<typeof Button>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

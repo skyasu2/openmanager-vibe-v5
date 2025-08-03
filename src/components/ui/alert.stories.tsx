@@ -2,9 +2,10 @@
  * 🎨 Alert 컴포넌트 스토리북
  */
 
+import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Alert, AlertDescription, AlertTitle } from './alert';
-import { AlertCircle, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { AlertCircle, AlertTriangle, CheckCircle, Info as InfoIcon } from 'lucide-react';
 
 const meta = {
   title: 'UI/Alert',
@@ -68,7 +69,7 @@ export const Destructive: Story = {
 export const Info: Story = {
   render: () => (
     <Alert>
-      <Info className="h-4 w-4" />
+      <InfoIcon className="h-4 w-4" />
       <AlertTitle>정보</AlertTitle>
       <AlertDescription>
         시스템 점검이 2025년 7월 22일 오전 2시에 예정되어 있습니다.
@@ -119,7 +120,7 @@ export const WithoutTitle: Story = {
 export const LongContent: Story = {
   render: () => (
     <Alert>
-      <Info className="h-4 w-4" />
+      <InfoIcon className="h-4 w-4" />
       <AlertTitle>시스템 업데이트 안내</AlertTitle>
       <AlertDescription>
         2025년 7월 22일 새벽 2시부터 4시까지 시스템 업데이트가 진행됩니다. 
@@ -136,7 +137,7 @@ export const Multiple: Story = {
   render: () => (
     <div className="space-y-4">
       <Alert>
-        <Info className="h-4 w-4" />
+        <InfoIcon className="h-4 w-4" />
         <AlertTitle>정보</AlertTitle>
         <AlertDescription>
           새로운 기능이 추가되었습니다.
@@ -178,7 +179,7 @@ export const Interactive: Story = {
         
         {show && (
           <Alert>
-            <Info className="h-4 w-4" />
+            <InfoIcon className="h-4 w-4" />
             <AlertTitle>토글 가능한 Alert</AlertTitle>
             <AlertDescription>
               버튼을 클릭하여 이 Alert를 숨기거나 표시할 수 있습니다.
@@ -189,6 +190,3 @@ export const Interactive: Story = {
     );
   },
 };
-
-// React 임포트 추가
-import * as React from 'react';

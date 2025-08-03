@@ -10,17 +10,29 @@ import {
 import { Button } from './button';
 import { Badge } from './badge';
 import {
-  createStoryMeta,
   mockServerStates,
-  storyTitles,
   a11yLabels,
 } from '../../stories/templates/StoryTemplate';
 
-const meta = createStoryMeta(
-  storyTitles.ui('Card'),
-  Card,
-  '🎨 OpenManager Vibe v5의 기본 카드 컴포넌트입니다. 서버 정보, AI 상태, 메트릭 표시 등 모든 UI의 기반이 되는 컴포넌트입니다.'
-);
+const meta = {
+  title: 'UI Components/Card',
+  component: Card,
+  parameters: {
+    layout: 'centered',
+    docs: {
+      description: {
+        component: '🎨 OpenManager Vibe v5의 기본 카드 컴포넌트입니다. 서버 정보, AI 상태, 메트릭 표시 등 모든 UI의 기반이 되는 컴포넌트입니다.'
+      }
+    }
+  },
+  tags: ['autodocs'],
+  argTypes: {
+    className: {
+      control: 'text',
+      description: '카드에 적용할 추가 클래스'
+    }
+  }
+} satisfies Meta<typeof Card>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
