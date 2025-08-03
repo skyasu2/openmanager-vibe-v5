@@ -417,9 +417,9 @@ const timeInfo = await mcp__time__get_current_time({
 
 상세 가이드: [Time MCP 활용 가이드](/docs/time-mcp-usage-guide.md)
 
-## 🔧 MCP 서버 (10개) - Claude Code CLI 설정
+## 🔧 MCP 서버 (11개) - Claude Code CLI 설정
 
-### 현재 활성화된 MCP 서버 (2025.8.2 기준)
+### 현재 활성화된 MCP 서버 (2025.8.3 기준)
 
 | 서버명                | 상태         | 용도                   | 패키지                                                    |
 | --------------------- | ------------ | ---------------------- | --------------------------------------------------------- |
@@ -433,6 +433,7 @@ const timeInfo = await mcp__time__get_current_time({
 | `time`                | ✅ Connected | 시간/시간대 변환       | `mcp-server-time` (Python)                                |
 | `context7`            | ✅ Connected | 라이브러리 문서 검색   | `@upstash/context7-mcp@latest`                            |
 | `serena`              | ✅ Connected | 고급 코드 분석         | `git+https://github.com/oraios/serena` (Python)           |
+| `shadcn-ui`           | ✅ Connected | UI 컴포넌트 개발       | `@jpisnice/shadcn-ui-mcp-server@latest`                   |
 
 ### MCP 서버 설치 방법 (최신)
 
@@ -468,6 +469,11 @@ claude mcp add serena uvx -- --from git+https://github.com/oraios/serena serena-
 
 # Tavily Remote 서버 (API 키 포함 URL)
 claude mcp add tavily-remote npx -- -y mcp-remote https://mcp.tavily.com/mcp/?tavilyApiKey=tvly-dev-xxxxxx
+
+# shadcn-ui 서버 (UI/UX 개발)
+claude mcp add shadcn-ui npx -- -y @jpisnice/shadcn-ui-mcp-server@latest
+# GitHub 토큰으로 API 제한 완화 (선택사항)
+claude mcp add shadcn-ui npx -- -y @jpisnice/shadcn-ui-mcp-server@latest --github-api-key ghp_xxxxx
 ```
 
 ### MCP 서버 관리
