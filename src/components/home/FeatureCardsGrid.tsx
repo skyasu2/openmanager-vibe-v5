@@ -34,21 +34,21 @@ const cardData: FeatureCard[] = [
     icon: Bot,
     gradient: 'from-purple-500 via-indigo-500 to-cyan-400',
     detailedContent: {
-      overview: `v5.65.3 - AI 시스템 대폭 개선! MCP 활용률 3배 향상, 서브 에이전트 100% 성공률 달성, 엔터프라이즈급 안정성 확보.`,
+      overview: `v5.66.22 - 실시간 AI 어시스턴트! 대시보드 사이드바에서 한국어로 자연스럽게 질문하고 즉시 답변받으세요. 서버 상태 분석, 이상 징후 감지, 성능 예측까지.`,
       features: [
+        '🤖 실시간 AI 사이드바: 대시보드에서 항상 대기 중인 AI 어시스턴트',
         '🇰🇷 한국어 자연어 처리: "CPU 높은 서버?", "메모리 부족한 VM?"',
-        '🆓 LOCAL 모드: Supabase RAG + 한국어 엔진 (완전 무료)',
-        '🚀 GOOGLE 모드: Gemini 2.0 Flash (일 1,000회 무료)',
-        '🤝 서브 에이전트: 10개 전문 AI로 작업 자동화 (100% 작동)',
-        '📊 MCP 서버: 9개 중 6개 활성, 2개 테스트 중, 1개 설정 필요',
-        '⚡ 빠른 응답: LOCAL 100-300ms, Python 3.11 Functions 배포',
+        '📊 서버 상태 분석: 실시간 메트릭 기반 지능형 분석 및 답변',
+        '🚨 이상 징후 감지: 패턴 분석으로 문제 사전 예방 알림',
+        '🆓 LOCAL 모드: Supabase pgVector + 한국어 엔진 (완전 무료)',
+        '🚀 GOOGLE 모드: Gemini 2.0 Flash로 고급 분석 (일 1,000회 무료)',
       ],
       technologies: [
         '2-Mode System',
         'Supabase pgVector',
-        'Korean NLP',
+        'Korean NLP Engine',
         'Google Gemini 2.0',
-        'MCP Protocol',
+        'Real-time Assistant',
       ],
     },
     requiresAI: true,
@@ -62,22 +62,22 @@ const cardData: FeatureCard[] = [
     icon: Database,
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
-      overview: `v5.65.3 - 무료 티어 최적화로 월 $0 운영! Python 3.11 Functions 구현, Vercel-Supabase-GCP 통합으로 완전한 클라우드 인프라 구축.`,
+      overview: `v5.66.22 - 무료 티어 최적화로 월 $0 운영! Python 3.11 Functions 3개 배포 완료, Vercel-Supabase-GCP 통합으로 완전한 클라우드 인프라 구축.`,
       features: [
-        '▲ Vercel: 자동 배포, Edge Functions, Preview URL (무료 티어)',
+        '▲ Vercel: 자동 배포, Edge Runtime, Preview URL (무료 티어)',
         '🐘 Supabase: PostgreSQL + pgVector + RLS (500MB 무료)',
         '⚡ Upstash Redis: 고속 캐싱, Rate Limiting (256MB 무료)',
-        '☁️ GCP Functions: Python 3.11 런타임 3개 배포 완료',
+        '☁️ GCP Functions: enhanced-korean-nlp, ml-analytics-engine, unified-ai-processor (배포 완료)',
         '🤖 Google AI Studio: Gemini 2.0 Flash API (일 1,000회 무료)',
         '🔄 GitHub Actions: CI/CD 파이프라인 구축 (월 2,000분 무료)',
       ],
       technologies: [
-        'Vercel',
-        'Supabase',
-        'Upstash for Redis',
-        'Google Cloud Platform',
-        'MCP Server (GCP VM)',
-        'CI/CD Pipeline',
+        'Vercel Edge Runtime',
+        'Supabase PostgreSQL',
+        'Upstash Redis',
+        'Python 3.11 Functions',
+        'Google AI Studio',
+        'GitHub Actions',
       ],
     },
     requiresAI: false,
@@ -86,25 +86,25 @@ const cardData: FeatureCard[] = [
     id: 'tech-stack',
     title: '💻 기술 스택',
     description:
-      'Next.js 14 + React 18 + TypeScript. 안정적인 프로덕션급 웹 기술로 구현된 현대적인 풀스택 애플리케이션',
+      'Next.js 15 + React 18 + TypeScript. 안정적인 프로덕션급 웹 기술로 구현된 현대적인 풀스택 애플리케이션',
     icon: Sparkles,
     gradient: 'from-blue-500 to-purple-600',
     detailedContent: {
-      overview: `v5.65.3 - 코드 품질 지속적 개선! TypeScript strict mode 적용, 코드 품질 관리 시스템 구축, 테스트 자동화로 안정성 확보.`,
+      overview: `v5.66.22 - 코드 품질 지속적 개선! TypeScript strict mode 적용, 코드 품질 관리 시스템 구축, 테스트 자동화로 안정성 확보.`,
       features: [
-        '⚛️ React 18.2 + Next.js 14.2.4: App Router, Edge Runtime 최적화',
+        '⚛️ React 18.3.1 + Next.js 15.4.5: App Router, Edge Runtime 최적화',
         '🔷 TypeScript: strict mode 적용으로 타입 안전성 강화',
         '✨ ESLint: 코드 품질 지속적 개선 중 (린트 문제 15% 감소)',
         '🎨 Tailwind CSS: JIT 컴파일러로 스타일 최적화',
-        '🧪 Vitest: 227개 테스트 케이스, 목표 커버리지 70%',
+        '🧪 Vitest: 40개 테스트 파일, 3단계 테스트 전략 (minimal → smart → full)',
         '📦 npm 패키지 관리: 검증된 의존성 관리 (Node.js 22+)',
       ],
       technologies: [
-        'Next.js 14.2.4',
-        'React 18.2.0',
+        'Next.js 15.4.5',
+        'React 18.3.1',
         'TypeScript',
         'Tailwind CSS',
-        'Prisma',
+        'Zustand',
         'Vitest',
       ],
     },
@@ -114,24 +114,25 @@ const cardData: FeatureCard[] = [
     id: 'cursor-ai',
     title: '🔥 Vibe Coding',
     description:
-      '🎯 AI 기반 워크플로우 구성: ChatGPT (목업) → Cursor AI (정적 페이지 자동 생성) → Claude Code + Gemini CLI (코드 자동화 및 병렬 분석)',
+      '🎯 AI 개발 도구의 진화: ChatGPT (초기 목업) → Cursor AI (코드 생성) → Claude Code (완전 자동화). 지금은 Claude Code + 11개 MCP로 개발!',
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
-      overview: `v5.65.3 - AI 페어 프로그래밍의 혁신! Claude Code + MCP 서버 통합으로 개발 자동화, 10개 전문 AI 어시스턴트로 모든 개발 작업 지원.`,
+      overview: `v5.66.22 - AI 개발 도구의 완벽한 진화! ChatGPT로 시작하여 Cursor AI를 거쳐 현재는 Claude Code + 11개 MCP 서버로 완전 자동화 달성. 개발 속도 10배 향상!`,
       features: [
-        '🤖 Claude Code: 9개 MCP 서버 통합 (6개 활성, 3개 구성 중)',
-        '🤝 서브 에이전트: 10개 전문 AI로 100% 작업 성공률',
-        '🔗 MCP 도구: filesystem, github, memory, supabase 자동화',
-        '🚀 AI 지원: 코드 작성, 테스트 실행, 문서화, 배포 지원',
-        '💯 개선 성과: 서브 에이전트 성공률 70% → 100%',
-        '📈 생산성: 반복 작업 자동화로 개발 속도 대폭 향상',
+        '💬 ChatGPT: 초기 페이지 목업 생성 → 현재는 브레인스토밍 & 프롬프트 설계',
+        '💻 Cursor AI → Claude Code: v5.65까지 Cursor 사용 → 이후 Claude Code로 완전 전환',
+        '🤖 Claude Code: 현재 주력! 11개 MCP 서버로 완벽한 개발 자동화 실현',
+        '📋 CLAUDE.md: AI가 따르는 프로젝트 규칙과 표준 문서화',
+        '🚀 개발 속도: ChatGPT 시절 대비 10배, Cursor AI 대비 3배 향상',
+        '✨ 전체 프로젝트 자동화: Git, 테스트, 배포까지 완전 자동화',
       ],
       technologies: [
-        'ChatGPT → Cursor AI → Claude Code',
-        'Gemini CLI (보조)',
-        'MCP Protocol',
-        'AI Pair Programming',
+        'ChatGPT (초기)',
+        'Cursor AI (중기)',
+        'Claude Code (현재)',
+        '11 MCP Servers',
+        'CLAUDE.md',
       ],
     },
     requiresAI: false,
@@ -149,7 +150,7 @@ const renderTextWithAIGradient = (text: string) => {
       return (
         <motion.span
           key={index}
-          className='bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent font-bold bg-[length:200%_200%]'
+          className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-[length:200%_200%] bg-clip-text font-bold text-transparent"
           animate={{
             backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
           }}
@@ -250,29 +251,29 @@ const FeatureCardItem = memo(
           y: card.isVibeCard ? -8 : -5,
           rotateY: card.isVibeCard ? 5 : 0,
         }}
-        className={`group cursor-pointer relative ${
+        className={`group relative cursor-pointer ${
           card.isVibeCard
-            ? 'hover:shadow-2xl hover:shadow-yellow-500/30 transform-gpu'
+            ? 'transform-gpu hover:shadow-2xl hover:shadow-yellow-500/30'
             : ''
         }`}
         onClick={() => onCardClick(card.id)}
       >
         <div
-          className={`relative p-4 bg-white/10 hover:bg-white/20 border-white/25 backdrop-blur-sm border rounded-2xl transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) h-full ${
+          className={`cubic-bezier(0.4, 0, 0.2, 1) relative h-full rounded-2xl border border-white/25 bg-white/10 p-4 backdrop-blur-sm transition-all duration-300 hover:bg-white/20 ${
             card.isSpecial
-              ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30'
+              ? 'border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/10'
               : ''
-          } group-hover:transform group-hover:scale-[1.02] group-hover:shadow-2xl`}
+          } group-hover:scale-[1.02] group-hover:transform group-hover:shadow-2xl`}
         >
           {/* 그라데이션 배경 */}
           <div
-            className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`}
+            className={`absolute inset-0 bg-gradient-to-br ${card.gradient} rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-10`}
           />
 
           {/* AI 카드 특별 이색 그라데이션 애니메이션 - landing 버전에서 재활용 */}
           {card.isAICard && (
             <motion.div
-              className='absolute inset-0 bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 rounded-2xl'
+              className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30"
               animate={{
                 background: [
                   'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(236,72,153,0.3) 50%, rgba(34,197,94,0.3) 100%)',
@@ -293,42 +294,42 @@ const FeatureCardItem = memo(
           {card.isVibeCard && (
             <>
               {/* 장식 요소 */}
-              <div className='absolute top-2 right-2 w-6 h-6 bg-yellow-400/30 rounded-full _animate-pulse'></div>
-              <div className='absolute bottom-2 left-2 w-4 h-4 bg-yellow-400/20 rounded-full _animate-pulse'></div>
+              <div className="_animate-pulse absolute right-2 top-2 h-6 w-6 rounded-full bg-yellow-400/30"></div>
+              <div className="_animate-pulse absolute bottom-2 left-2 h-4 w-4 rounded-full bg-yellow-400/20"></div>
 
               {/* 개선된 배경 그라데이션 - 애니메이션 효과 */}
-              <div className='absolute inset-0 rounded-2xl overflow-hidden'>
-                <div className='absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 opacity-90 bg-[length:200%_200%] _animate-gradient' />
+              <div className="absolute inset-0 overflow-hidden rounded-2xl">
+                <div className="_animate-gradient absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 bg-[length:200%_200%] opacity-90" />
               </div>
 
               {/* 텍스트 가독성을 위한 오버레이 */}
-              <div className='absolute inset-0 bg-black/15 rounded-2xl'></div>
+              <div className="absolute inset-0 rounded-2xl bg-black/15"></div>
             </>
           )}
 
           {/* 일반 카드들의 아이콘 (바이브 코딩 포함) */}
           <div
-            className={`w-12 h-12 ${
+            className={`h-12 w-12 ${
               card.isVibeCard
                 ? 'bg-gradient-to-br from-yellow-400 to-amber-500'
                 : `bg-gradient-to-br ${card.gradient}`
-            } rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
+            } relative z-10 mb-3 flex items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 ${
               card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
             }`}
           >
             {iconAnimation ? (
               <motion.div {...iconAnimation}>
-                <card.icon className={`w-6 h-6 ${cardStyles.iconColor}`} />
+                <card.icon className={`h-6 w-6 ${cardStyles.iconColor}`} />
               </motion.div>
             ) : (
-              <card.icon className='w-6 h-6 text-white' />
+              <card.icon className="h-6 w-6 text-white" />
             )}
           </div>
 
           {/* 모든 카드들의 통일된 컨텐츠 */}
-          <div className='relative z-10'>
+          <div className="relative z-10">
             <h3
-              className={`text-lg font-semibold mb-2 transition-colors leading-snug ${cardStyles.title}`}
+              className={`mb-2 text-lg font-semibold leading-snug transition-colors ${cardStyles.title}`}
             >
               {renderTextWithAIGradient(card.title)}
             </h3>
@@ -340,7 +341,7 @@ const FeatureCardItem = memo(
 
             {/* AI 어시스턴트 필요 표시 */}
             {card.requiresAI && isAIDisabled && (
-              <div className='mt-2 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-300 text-xs text-center'>
+              <div className="mt-2 rounded-full border border-orange-500/30 bg-orange-500/20 px-2 py-1 text-center text-xs text-orange-300">
                 AI 어시스턴트 모드 필요
               </div>
             )}
@@ -348,7 +349,7 @@ const FeatureCardItem = memo(
 
           {/* 호버 효과 */}
           <div
-            className={`absolute inset-0 ring-2 ring-transparent transition-all duration-300 rounded-2xl ${cardStyles.hoverRing}`}
+            className={`absolute inset-0 rounded-2xl ring-2 ring-transparent transition-all duration-300 ${cardStyles.hoverRing}`}
           />
         </div>
       </motion.div>
@@ -397,7 +398,7 @@ export default function FeatureCardsGrid() {
   // handleCardClick을 useCallback으로 메모이제이션
   const handleCardClick = useMemo(
     () => (cardId: string) => {
-      const card = cardData.find(c => c.id === cardId);
+      const card = cardData.find((c) => c.id === cardId);
 
       if (card?.requiresAI && !aiAgent.isEnabled) {
         // AI 엔진이 필요한 기능에 일반 사용자가 접근할 때
@@ -416,11 +417,11 @@ export default function FeatureCardsGrid() {
     setSelectedCard(null);
   };
 
-  const selectedCardData = cardData.find(card => card.id === selectedCard);
+  const selectedCardData = cardData.find((card) => card.id === selectedCard);
 
   return (
     <>
-      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-7xl mx-auto'>
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
         {cardData.map((card, index) => (
           <FeatureCardItem
             key={card.id}
@@ -438,7 +439,7 @@ export default function FeatureCardsGrid() {
         onClose={closeModal}
         renderTextWithAIGradient={renderTextWithAIGradient}
         modalRef={modalRef as React.RefObject<HTMLDivElement>}
-        variant='home'
+        variant="home"
       />
     </>
   );
