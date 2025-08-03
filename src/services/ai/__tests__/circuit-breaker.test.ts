@@ -434,65 +434,10 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
       });
     });
 
-    // @skip-reason: 에러율 기반 회로 차단기는 추가 구현 필요
-    // @skip-date: 2024-01-30
-    // @todo: 에러율 임계값 기반 회로 차단 로직 구현
-    it.skip('에러율이 회로 차단기 동작에 반영되어야 함', async () => {
-      let errorCount = 0;
-      let totalCount = 0;
-
-      // 에러율 생성을 위한 테스트
-      const mixedResultMock = {
-        searchSimilar: vi.fn().mockImplementation(() => {
-          totalCount++;
-          if (totalCount % 3 === 0) { // 33% 실패율
-            errorCount++;
-            throw new Error(`Intermittent failure ${errorCount}`);
-          }
-          return Promise.resolve({
-            results: [{ content: 'success result', score: 0.7 }],
-            totalResults: 1,
-            cached: false
-          });
-        }),
-        generateEmbedding: vi.fn().mockResolvedValue([0.1, 0.2, 0.3]),
-        _initialize: vi.fn().mockResolvedValue(undefined),
-        healthCheck: vi.fn().mockResolvedValue({ status: 'healthy', vectorDB: true })
-      };
-
-      engine.ragEngine = mixedResultMock;
-
-      const testQuery: QueryRequest = {
-        query: 'error rate test',
-        mode: 'local',
-        options: { includeMCPContext: false }
-      };
-
-      // 여러 번 쿼리 실행하여 에러율 생성
-      const results = [];
-      for (let i = 0; i < 9; i++) { // 3번 실패, 6번 성공 예상
-        try {
-          const result = await engine.query(testQuery);
-          results.push({ success: true, ...result });
-        } catch (error) {
-          results.push({ success: false, error: (error as Error).message });
-        }
-      }
-
-      const successCount = results.filter(r => r.success).length;
-      const failureCount = results.filter(r => !r.success).length;
-      const actualErrorRate = failureCount / results.length;
-
-      console.log(`📈 에러율 테스트 결과:`, {
-        총요청: results.length,
-        성공: successCount,
-        실패: failureCount,
-        에러율: `${(actualErrorRate * 100).toFixed(1)}%`
-      });
-
-      expect(results.length).toBe(9);
-      expect(failureCount).toBeGreaterThan(0);      // 최소 1번 이상 실패
-      expect(actualErrorRate).toBeGreaterThan(0);   // 에러율이 0보다 큼
-    });
+    // 에러율 기반 회로 차단기는 현재 SimplifiedQueryEngine에서 구현되지 않음
+    // 미래 구현 시 다음 테스트 케이스 참조:
+    // - 연속 실패율 임계값 초과 시 회로 차단
+    // - 에러율 기반 폴백 엔진 선택  
+    // - 동적 임계값 조정 기능
   });
 });
