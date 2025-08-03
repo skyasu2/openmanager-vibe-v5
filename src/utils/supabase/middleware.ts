@@ -24,9 +24,9 @@ export async function updateSession(
           if (!cookie) return undefined;
           return typeof cookie === 'string'
             ? cookie
-            : String((cookie as any).value);
+            : String((cookie as { value: string }).value);
         },
-        set(name: string, value: string, options: any) {
+        set(name: string, value: string, options: Record<string, unknown>) {
           // 응답 쿠키에만 설정 (request.cookies는 읽기 전용)
           try {
             if (supabaseResponse && 'cookies' in supabaseResponse) {
@@ -40,7 +40,7 @@ export async function updateSession(
             console.warn('Cookie set failed:', e);
           }
         },
-        remove(name: string, options: any) {
+        remove(name: string, options: Record<string, unknown>) {
           // 응답 쿠키에서만 제거 (request.cookies는 읽기 전용)
           try {
             if (supabaseResponse && 'cookies' in supabaseResponse) {
@@ -61,10 +61,27 @@ export async function updateSession(
 
   // OAuth 콜백 처리는 클라이언트 사이드에서 수행하도록 변경
   // detectSessionInUrl: true 설정으로 Supabase가 자동으로 처리함
-  const pathname = request.nextUrl.pathname;
+  const _pathname = request.nextUrl.pathname;
 
-  // 모든 경로에서 세션 업데이트 (Supabase가 자동으로 PKCE 처리)
-  await supabase.auth.getUser();
+  // 세션 업데이트 - getSession을 먼저 호출하여 쿠키를 새로고침
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
+
+  if (session) {
+    console.log('✅ updateSession: 세션 복원됨', session.user.email);
+
+    // 세션이 있으면 사용자 정보도 확인 (토큰 유효성 검증)
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      console.log('✅ updateSession: 사용자 확인됨', user.email);
+    }
+  } else {
+    console.log('⚠️ updateSession: 세션 없음', error?.message);
+  }
 
   return supabaseResponse;
 }

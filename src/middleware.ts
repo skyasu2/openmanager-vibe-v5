@@ -16,8 +16,8 @@ const DEV_ONLY_PATTERNS = [
 
 // GitHub 인증이 필요한 경로들
 const PROTECTED_PATHS = [
-  '/', // 홈페이지도 인증 필요
-  '/main', // 메인 페이지도 인증 필요
+  // '/'는 제거 - 별도로 /main으로 리다이렉트 처리
+  '/main', // 메인 페이지는 인증 필요
   '/dashboard',
   '/admin',
   '/system-boot',
@@ -30,8 +30,12 @@ const PROTECTED_PATHS = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  console.log('🔍 미들웨어 실행:', pathname);
+
   // updateSession을 먼저 호출하여 PKCE 플로우 자동 처리
   const response = await updateSession(request);
+
+  console.log('🔄 updateSession 완료');
 
   // 프로덕션에서 개발/테스트 API 차단
   if (process.env.NODE_ENV === 'production') {
@@ -57,6 +61,18 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
+  // auth 관련 경로는 보호하지 않음 (세션 설정 중)
+  if (pathname.startsWith('/auth/')) {
+    console.log('✅ Auth 경로 접근 허용:', pathname);
+    return response;
+  }
+
+  // 루트 경로는 세션 체크 없이 바로 /main으로 리다이렉트
+  if (pathname === '/') {
+    console.log('🏠 루트 경로 접근, /main으로 리다이렉트');
+    return NextResponse.redirect(new URL('/main', request.url));
+  }
+
   // 보호된 경로 체크
   const isProtectedPath = PROTECTED_PATHS.some((path) => {
     return pathname === path || pathname.startsWith(path + '/');
@@ -73,13 +89,21 @@ export async function middleware(request: NextRequest) {
         guestSessionCookie &&
         (typeof authTypeCookie === 'string'
           ? authTypeCookie
-          : String((authTypeCookie as any)?.value)) === 'guest'
+          : authTypeCookie &&
+              typeof authTypeCookie === 'object' &&
+              'value' in authTypeCookie
+            ? String(authTypeCookie.value)
+            : '') === 'guest'
       ) {
         console.log(
           '✅ 게스트 세션 확인됨, 접근 허용:',
           typeof guestSessionCookie === 'string'
             ? guestSessionCookie
-            : String((guestSessionCookie as any).value)
+            : guestSessionCookie &&
+                typeof guestSessionCookie === 'object' &&
+                'value' in guestSessionCookie
+              ? String(guestSessionCookie.value)
+              : ''
         );
         return response;
       }
@@ -90,9 +114,20 @@ export async function middleware(request: NextRequest) {
         // auth_verified가 있으면 세션이 곧 활성화될 것으로 간주
       }
 
-      // updateSession에서 이미 처리된 supabase 클라이언트 재생성
-      // PKCE 플로우는 updateSession에서 자동 처리됨
+      // updateSession에서 반환된 response의 쿠키를 읽어야 함
+      // 새로운 클라이언트를 생성하면 안됨!
       const { createServerClient } = await import('@supabase/ssr');
+
+      // response의 쿠키를 포함한 새로운 Request 생성
+      const _requestWithCookies = new Request(request.url, {
+        headers: request.headers,
+      });
+
+      // response에서 설정한 쿠키를 request에 추가
+      const responseCookies = response.headers.get('set-cookie');
+      if (responseCookies) {
+        console.log('🍪 Response 쿠키 발견, 동기화 중...');
+      }
 
       const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -100,11 +135,16 @@ export async function middleware(request: NextRequest) {
         {
           cookies: {
             get(name: string) {
+              // response의 쿠키는 NextResponse에서 직접 접근할 수 없음
+              // request의 쿠키만 확인
+
               const cookie = request.cookies.get(name);
               if (!cookie) return undefined;
               return typeof cookie === 'string'
                 ? cookie
-                : String((cookie as any).value);
+                : cookie && typeof cookie === 'object' && 'value' in cookie
+                  ? String(cookie.value)
+                  : undefined;
             },
             set() {
               // Response에서 이미 설정되었으므로 무시
@@ -163,6 +203,13 @@ export async function middleware(request: NextRequest) {
       // 먼저 세션 ID로 캐시 확인 (성능 최적화)
       const sessionResult = await supabase.auth.getSession();
       const sessionId = sessionResult.data.session?.access_token;
+
+      console.log('🔐 미들웨어 세션 체크:', {
+        hasSession: !!sessionResult.data.session,
+        sessionError: sessionResult.error?.message,
+        userEmail: sessionResult.data.session?.user?.email,
+        path: pathname,
+      });
 
       if (sessionId) {
         // 캐시된 사용자 정보 확인
@@ -258,7 +305,9 @@ export async function middleware(request: NextRequest) {
 
         // auth_verified 쿠키가 있다면 세션이 곧 활성화될 것으로 간주
         if (authVerifiedCookie) {
-          console.log('⚠️ auth_verified 쿠키 있음 - 세션 활성화 대기 중, 통과 허용');
+          console.log(
+            '⚠️ auth_verified 쿠키 있음 - 세션 활성화 대기 중, 통과 허용'
+          );
           return response;
         }
 
@@ -277,9 +326,8 @@ export async function middleware(request: NextRequest) {
 
         // GitHub 인증이 없으면 로그인 페이지로 리다이렉트
         const redirectUrl = new URL('/login', request.url);
-        // 루트 경로(/)는 /main으로 리다이렉트하도록 설정
-        const redirectPath = pathname === '/' ? '/main' : pathname;
-        redirectUrl.searchParams.set('redirectTo', redirectPath);
+        // 현재 경로를 redirectTo 파라미터로 설정
+        redirectUrl.searchParams.set('redirectTo', pathname);
         return NextResponse.redirect(redirectUrl);
       }
 
@@ -308,11 +356,11 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - login (로그인 페이지)
-     * - api/auth (인증 API)
      * - api/health, api/ping (헬스체크)
      *
      * 주의: auth/callback과 auth/success는 PKCE 처리를 위해 미들웨어를 통과해야 함
+     * api/auth는 제외하지 않음 (보호된 경로)
      */
-    '/((?!_next/static|_next/image|favicon.ico|login|api/auth|api/health|api/ping).*)',
+    '/((?!_next/static|_next/image|favicon.ico|login|api/health|api/ping).*)',
   ],
 };

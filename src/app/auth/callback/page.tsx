@@ -38,7 +38,7 @@ export default function AuthCallbackPage() {
         if (error) {
           console.error('❌ OAuth 에러:', error);
           const errorDescription = urlParams.get('error_description');
-          const errorMessage = errorDescription || error;
+          const _errorMessage = errorDescription || error;
 
           // 더 자세한 에러 메시지
           let userMessage = 'GitHub 로그인에 실패했습니다.';
@@ -103,8 +103,15 @@ export default function AuthCallbackPage() {
           // 바로 메인으로 이동
           console.log('🚀 메인 페이지로 이동!');
 
-          // 세션이 완전히 설정될 때까지 잠시 대기
-          await new Promise((resolve) => setTimeout(resolve, 200));
+          // 세션이 완전히 설정될 때까지 충분히 대기 (중요!)
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
+          // 세션 쿠키가 제대로 설정되었는지 확인
+          const cookies = document.cookie.split(';').map((c) => c.trim());
+          const hasAuthToken = cookies.some(
+            (c) => c.startsWith('sb-') && c.includes('auth-token')
+          );
+          console.log('🍪 Auth 토큰 쿠키 확인:', hasAuthToken);
 
           // 하드 리다이렉트로 쿠키가 제대로 전송되도록 보장
           window.location.href = '/main';
