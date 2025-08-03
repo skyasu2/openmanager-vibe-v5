@@ -21,10 +21,7 @@ export async function updateSession(
       cookies: {
         get(name: string) {
           const cookie = request.cookies.get(name);
-          if (!cookie) return undefined;
-          return typeof cookie === 'string'
-            ? cookie
-            : String((cookie as { value: string }).value);
+          return cookie && typeof cookie === 'object' && 'value' in cookie ? (cookie as any).value : undefined;
         },
         set(name: string, value: string, options: Record<string, unknown>) {
           // 응답 쿠키에만 설정 (request.cookies는 읽기 전용)

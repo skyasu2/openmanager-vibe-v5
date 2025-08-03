@@ -87,23 +87,11 @@ export async function middleware(request: NextRequest) {
 
       if (
         guestSessionCookie &&
-        (typeof authTypeCookie === 'string'
-          ? authTypeCookie
-          : authTypeCookie &&
-              typeof authTypeCookie === 'object' &&
-              'value' in authTypeCookie
-            ? String(authTypeCookie.value)
-            : '') === 'guest'
+        (authTypeCookie && typeof authTypeCookie === 'object' && 'value' in authTypeCookie ? (authTypeCookie as any).value : '') === 'guest'
       ) {
         console.log(
           '✅ 게스트 세션 확인됨, 접근 허용:',
-          typeof guestSessionCookie === 'string'
-            ? guestSessionCookie
-            : guestSessionCookie &&
-                typeof guestSessionCookie === 'object' &&
-                'value' in guestSessionCookie
-              ? String(guestSessionCookie.value)
-              : ''
+          guestSessionCookie && typeof guestSessionCookie === 'object' && 'value' in guestSessionCookie ? (guestSessionCookie as any).value : ''
         );
         return response;
       }
@@ -139,12 +127,7 @@ export async function middleware(request: NextRequest) {
               // request의 쿠키만 확인
 
               const cookie = request.cookies.get(name);
-              if (!cookie) return undefined;
-              return typeof cookie === 'string'
-                ? cookie
-                : cookie && typeof cookie === 'object' && 'value' in cookie
-                  ? String(cookie.value)
-                  : undefined;
+              return cookie && typeof cookie === 'object' && 'value' in cookie ? (cookie as any).value : undefined;
             },
             set() {
               // Response에서 이미 설정되었으므로 무시
