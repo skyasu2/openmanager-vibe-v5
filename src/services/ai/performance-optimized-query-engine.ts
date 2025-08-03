@@ -199,10 +199,10 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     const { query, mode = 'local', context, options } = request;
 
     // 병렬로 실행할 작업들 준비
-    const tasks: Promise<any>[] = [];
+    const tasks: Promise<unknown>[] = [];
 
     // 1. MCP 컨텍스트 수집 (필요한 경우)
-    let mcpContextPromise: Promise<any> | null = null;
+    let mcpContextPromise: Promise<unknown> | null = null;
     if (options?.includeMCPContext) {
       mcpContextPromise = this.loadMCPContextAsync(query);
       tasks.push(mcpContextPromise);
@@ -305,7 +305,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
   /**
    * 🔄 MCP 컨텍스트 비동기 로딩
    */
-  private async loadMCPContextAsync(query: string): Promise<any> {
+  private async loadMCPContextAsync(query: string): Promise<unknown> {
     try {
       const contextLoader = this.contextLoader;
       return await contextLoader.queryMCPContextForRAG(query, {
@@ -323,9 +323,9 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
    */
   private async processLocalQueryOptimized(
     query: string,
-    context: any,
-    options: any,
-    mcpContext: any,
+    context: unknown,
+    options: Record<string, unknown>,
+    mcpContext: unknown,
     embedding: number[] | undefined,
     startTime: number
   ): Promise<QueryResponse> {
@@ -377,9 +377,9 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
    */
   private async processGoogleAIQueryOptimized(
     query: string,
-    context: any,
-    options: any,
-    mcpContext: any,
+    context: unknown,
+    options: Record<string, unknown>,
+    mcpContext: unknown,
     startTime: number
   ): Promise<QueryResponse> {
     try {

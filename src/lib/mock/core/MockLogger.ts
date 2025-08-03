@@ -18,7 +18,7 @@ export class MockLogger {
   /**
    * 정보 로그
    */
-  info(message: string, data?: any): void {
+  info(message: string, data?: unknown): void {
     if (!this.enabled) return;
     
     if (data) {
@@ -31,7 +31,7 @@ export class MockLogger {
   /**
    * 디버그 로그
    */
-  debug(message: string, data?: any): void {
+  debug(message: string, data?: unknown): void {
     if (!this.enabled || process.env.DEBUG !== 'true') return;
     
     if (data) {
@@ -44,7 +44,7 @@ export class MockLogger {
   /**
    * 경고 로그
    */
-  warn(message: string, data?: any): void {
+  warn(message: string, data?: unknown): void {
     if (!this.enabled) return;
     
     if (data) {
@@ -57,7 +57,7 @@ export class MockLogger {
   /**
    * 에러 로그
    */
-  error(message: string, error?: any): void {
+  error(message: string, error?: unknown): void {
     if (!this.enabled) return;
     
     const errorMessage = error instanceof Error ? error.message : String(error);

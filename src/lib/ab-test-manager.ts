@@ -65,7 +65,7 @@ export interface ABTestResult {
 
 export class ABTestManager {
   private static instance: ABTestManager;
-  private redis: any;
+  private redis: unknown;
   private isInitialized = false;
 
   private readonly REDIS_KEYS = {

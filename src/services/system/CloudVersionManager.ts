@@ -57,7 +57,7 @@ interface CloudVersionManagerConfig {
 export class CloudVersionManager {
   private static instance: CloudVersionManager;
   private config: CloudVersionManagerConfig;
-  private redis: any;
+  private redis: unknown;
   private currentVersion: string | null = null;
 
   constructor(config?: Partial<CloudVersionManagerConfig>) {
@@ -538,7 +538,7 @@ export class CloudVersionManager {
   /**
    * 🔐 체크섬 생성
    */
-  private generateChecksum(data: any): string {
+  private generateChecksum(data: unknown): string {
     const str = JSON.stringify(data);
     let hash = 0;
     for (let i = 0; i < str.length; i++) {

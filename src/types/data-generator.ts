@@ -36,7 +36,7 @@ export interface CustomEnvironmentConfig {
     demoScenarios?: boolean;
     baselineOptimization?: boolean;
     autoRotate?: boolean;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -117,7 +117,7 @@ export interface ServerInstance {
   custom?: {
     updateInterval?: number;
     enableMockData?: boolean;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 
   metrics?: {

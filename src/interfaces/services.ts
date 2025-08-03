@@ -38,9 +38,9 @@ export interface ILogger {
 // ============================================================================
 
 export interface IConfigLoader {
-  load(): any;
-  reload(): any;
-  get<K extends string>(section: K): any;
+  load(): unknown;
+  reload(): unknown;
+  get<K extends string>(section: K): unknown;
   isDevelopment(): boolean;
   isProduction(): boolean;
   isDebugEnabled(): boolean;
@@ -68,7 +68,7 @@ export interface IMetricsCollector {
 
 export interface IMetricsBridge {
   sendMetrics(metrics: MetricData[]): Promise<void>;
-  getMetrics(query: any): Promise<MetricData[]>;
+  getMetrics(query: unknown): Promise<MetricData[]>;
   isConnected(): boolean;
   connect(): Promise<void>;
   disconnect(): void;
@@ -116,7 +116,7 @@ export interface HealthCheckResult {
 
 export interface IHealthCheckService {
   check(): Promise<HealthCheckResult>;
-  addCheck(name: string, checkFn: () => Promise<any>): void;
+  addCheck(name: string, checkFn: () => Promise<unknown>): void;
   removeCheck(name: string): void;
   getChecks(): string[];
   isHealthy(): Promise<boolean>;
@@ -143,7 +143,7 @@ export interface AIAnalysisResult {
   type: string;
   timestamp: Date;
   status: 'success' | 'error' | 'pending';
-  result?: any;
+  result?: unknown;
   error?: string;
   duration?: number;
 }
@@ -157,12 +157,12 @@ export interface IAIAnalysisService {
 }
 
 export interface IAIAssistantEngine {
-  processQuery(query: string, context?: any): Promise<any>;
+  processQuery(query: string, context?: unknown): Promise<unknown>;
   startLearning(): void;
   stopLearning(): void;
   getCapabilities(): string[];
-  getStatus(): any;
-  configure(config: any): void;
+  getStatus(): unknown;
+  configure(config: Record<string, unknown>): void;
 }
 
 // ============================================================================
@@ -193,7 +193,7 @@ export interface ServiceEvent {
   type: string;
   source: string;
   timestamp: Date;
-  data?: any;
+  data?: unknown;
 }
 
 export interface IEventBus {

@@ -136,7 +136,7 @@ export class BaselineOptimizer {
   /**
    * 🏗️ 24시간 베이스라인 데이터 생성
    */
-  async generateBaselineData(servers: any[]): Promise<void> {
+  async generateBaselineData(servers: unknown[]): Promise<void> {
     console.log('🏗️ 24시간 베이스라인 데이터 생성 시작...');
 
     for (const server of servers) {
@@ -153,7 +153,7 @@ export class BaselineOptimizer {
   /**
    * 📊 개별 서버 베이스라인 생성
    */
-  private createServerBaseline(server: any): ServerBaselineData {
+  private createServerBaseline(server: unknown): ServerBaselineData {
     const dailyPattern: BaselineDataPoint[] = [];
     const currentTime = Date.now();
 
@@ -321,7 +321,7 @@ export class BaselineOptimizer {
 export const baselineOptimizer = BaselineOptimizer.getInstance();
 
 // 편의 함수들
-export function generateBaseline(servers: any[]) {
+export function generateBaseline(servers: unknown[]) {
   return baselineOptimizer.generateBaselineData(servers);
 }
 

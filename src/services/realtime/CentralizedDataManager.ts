@@ -117,7 +117,7 @@ class CentralizedDataManager {
    */
   private async fetchDataForType(dataType: DataType): Promise<void> {
     try {
-      let data: any;
+      let data: unknown;
       const timestamp = Date.now();
 
       switch (dataType) {
@@ -168,7 +168,7 @@ class CentralizedDataManager {
   /**
    * 메트릭 데이터 페치
    */
-  private async fetchMetrics(): Promise<any> {
+  private async fetchMetrics(): Promise<unknown> {
     const response = await fetch('/api/servers/realtime?type=metrics', {
       signal: AbortSignal.timeout(5000),
     });
@@ -184,7 +184,7 @@ class CentralizedDataManager {
   /**
    * 네트워크 데이터 페치
    */
-  private async fetchNetworkData(): Promise<any> {
+  private async fetchNetworkData(): Promise<unknown> {
     const response = await fetch('/api/servers/realtime?type=network', {
       signal: AbortSignal.timeout(5000),
     });
@@ -200,7 +200,7 @@ class CentralizedDataManager {
   /**
    * 시스템 데이터 페치
    */
-  private async fetchSystemData(): Promise<any> {
+  private async fetchSystemData(): Promise<unknown> {
     const response = await fetch('/api/servers/realtime?type=system', {
       signal: AbortSignal.timeout(5000),
     });
@@ -216,7 +216,7 @@ class CentralizedDataManager {
   /**
    * 구독자들에게 데이터 배포
    */
-  private distributeToSubscribers(dataType: DataType, data: any): void {
+  private distributeToSubscribers(dataType: DataType, data: unknown): void {
     const now = Date.now();
     const relevantSubscribers = Array.from(this.subscribers.values())
       .filter(sub => sub.dataType === dataType && sub.isVisible)

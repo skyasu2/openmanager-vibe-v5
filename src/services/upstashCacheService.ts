@@ -91,7 +91,7 @@ interface CacheStats {
 export class UpstashCacheService {
   private redis: Redis;
   private stats: CacheStats;
-  private pipeline: Array<{ operation: string; args: any[] }> = [];
+  private pipeline: Array<{ operation: string; args: unknown[] }> = [];
   private pipelineTimer: NodeJS.Timeout | null = null;
   private memoryMonitorTimer: NodeJS.Timeout | null = null;
 
@@ -204,7 +204,7 @@ export class UpstashCacheService {
    * 배치 SET 작업 (파이프라인 최적화)
    */
   async mset(
-    items: Array<{ key: string; value: any; ttl?: number }>
+    items: Array<{ key: string; value: unknown; ttl?: number }>
   ): Promise<void> {
     try {
       const startTime = Date.now();
@@ -286,7 +286,7 @@ export class UpstashCacheService {
    * 서버 메트릭 캐싱 (최적화 버전)
    */
   async cacheServerMetrics(servers: EnhancedServerMetrics[]): Promise<void> {
-    const items: Array<{ key: string; value: any; ttl?: number }> = servers.map(server => ({
+    const items: Array<{ key: string; value: unknown; ttl?: number }> = servers.map(server => ({
       key: CACHE_KEYS.SERVER_DETAIL(server.id),
       value: server,
       ttl: TTL_STRATEGY.SERVER_DETAIL,
@@ -342,7 +342,7 @@ export class UpstashCacheService {
   /**
    * 캐시된 서버 요약 조회
    */
-  async getCachedSummary(): Promise<any> {
+  async getCachedSummary(): Promise<unknown> {
     return this.get(CACHE_KEYS.SERVER_SUMMARY);
   }
 

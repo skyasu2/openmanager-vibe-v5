@@ -40,7 +40,7 @@ interface LoggingConfig {
 export class CloudLoggingService {
   private static instance: CloudLoggingService;
   private config: LoggingConfig;
-  private redis: any;
+  private redis: unknown;
   private logBuffer: SystemLogEntry[] = [];
   private batchTimer: NodeJS.Timeout | null = null;
   private isProcessing = false;

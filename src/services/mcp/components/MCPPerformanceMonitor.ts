@@ -185,7 +185,7 @@ export class MCPPerformanceMonitor {
   /**
    * 📈 성능 리포트 생성
    */
-  generatePerformanceReport(servers: Map<string, MCPServerConfig>): any {
+  generatePerformanceReport(servers: Map<string, MCPServerConfig>): unknown {
     const report = {
       timestamp: new Date().toISOString(),
       globalMetrics: {
@@ -248,7 +248,7 @@ export class MCPPerformanceMonitor {
   /**
    * 📊 현재 성능 상태 조회
    */
-  getPerformanceStatus(): any {
+  getPerformanceStatus(): unknown {
     return {
       totalRequests: this.performanceMetrics.totalRequests,
       averageResponseTime:

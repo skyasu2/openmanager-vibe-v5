@@ -67,7 +67,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
 
   // AI 에러 처리
   const handleAIError = useCallback(
-    (error: any, context: string = 'AI Operation') => {
+    (error: Error | unknown, context: string = 'AI Operation') => {
       let errorType: ErrorState['errorType'] = 'unknown';
       let message = `${context}: `;
 
@@ -233,7 +233,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
 
   // 폴백 처리
   const handleFallback = useCallback(
-    (operation: string, fallbackData: any) => {
+    (operation: string, fallbackData: unknown) => {
       console.warn(`🔄 폴백 처리 활성화: ${operation}`, fallbackData);
 
       // 폴백 사용 메트릭 기록

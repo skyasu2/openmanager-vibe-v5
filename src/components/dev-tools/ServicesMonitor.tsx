@@ -27,7 +27,7 @@ interface ServiceStatus {
   name: string;
   status: 'connected' | 'error' | 'unknown';
   responseTime: number;
-  details: any;
+  details: unknown;
   error?: string;
 }
 

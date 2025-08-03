@@ -34,7 +34,7 @@ export interface RealTimeAILog {
     openSource?: string;
     apiCall?: boolean;
     cacheHit?: boolean;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 

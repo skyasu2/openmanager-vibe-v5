@@ -91,8 +91,8 @@ export class UnifiedAIEngineRouter {
 
   // AI 엔진 인스턴스들
   private simplifiedEngine!: SimplifiedQueryEngine;
-  private performanceEngine: any; // PerformanceOptimizedQueryEngine
-  private ragEngine: any; // SupabaseRAGEngine
+  private performanceEngine: unknown; // PerformanceOptimizedQueryEngine
+  private ragEngine: unknown; // SupabaseRAGEngine
 
   // 보안 컴포넌트들
   private promptSanitizer!: PromptSanitizer;
@@ -120,7 +120,7 @@ export class UnifiedAIEngineRouter {
   private constructor(config?: Partial<RouterConfig>) {
     this.config = {
       enableSecurity: true,
-      strictSecurityMode: false, // 포트폴리오용 - 기본 보안만 적용
+      strictSecurityMode: true, // 엔터프라이즈급 보안 적용
       dailyTokenLimit: 10000, // 무료 티어 고려
       userTokenLimit: 1000, // 사용자당 일일 제한
       preferredEngine: 'auto',
@@ -424,7 +424,7 @@ export class UnifiedAIEngineRouter {
   /**
    * 🛡️ 보안 적용
    */
-  private async applySecurity(request: QueryRequest): Promise<any> {
+  private async applySecurity(request: QueryRequest): Promise<unknown> {
     const sanitizationResult = sanitizePrompt(request.query);
 
     if (sanitizationResult.threatsDetected.length > 0) {
@@ -572,7 +572,7 @@ export class UnifiedAIEngineRouter {
   /**
    * 🔄 한국어 NLP 응답 변환
    */
-  private convertKoreanNLPResponse(nlpData: any): string {
+  private convertKoreanNLPResponse(nlpData: unknown): string {
     if (!nlpData) return '한국어 분석 결과를 가져올 수 없습니다.';
 
     const { intent, entities, semantic_analysis, response_guidance } = nlpData;
@@ -581,7 +581,7 @@ export class UnifiedAIEngineRouter {
     response += `- 의도: ${intent}\n`;
 
     if (entities && entities.length > 0) {
-      response += `- 감지된 요소: ${entities.map((e: any) => e.value).join(', ')}\n`;
+      response += `- 감지된 요소: ${entities.map((e: unknown) => e.value).join(', ')}\n`;
     }
 
     if (semantic_analysis) {
@@ -779,7 +779,7 @@ export class UnifiedAIEngineRouter {
 
   // 응답 생성 헬퍼 메서드들
   private createSecurityBlockedResponse(
-    securityResult: any,
+    securityResult: unknown,
     processingPath: string[]
   ): RouteResult {
     return {
@@ -866,7 +866,7 @@ export class UnifiedAIEngineRouter {
   }
 
   private createErrorResponse(
-    error: any,
+    error: Error | unknown,
     processingPath: string[]
   ): RouteResult {
     return {

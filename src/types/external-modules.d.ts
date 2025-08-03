@@ -30,7 +30,7 @@ declare module 'ml-kmeans' {
 }
 
 declare module 'lodash' {
-  const _: any;
+  const _: unknown;
   export default _;
 }
 

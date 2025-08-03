@@ -882,8 +882,8 @@ export class UnifiedMetricsManager {
     isRunning: boolean;
     servers_count: number;
     environment?: string;
-    current_config?: any;
-    performance_metrics?: any;
+    current_config?: unknown;
+    performance_metrics?: unknown;
     last_update?: number;
     error?: boolean;
   } {

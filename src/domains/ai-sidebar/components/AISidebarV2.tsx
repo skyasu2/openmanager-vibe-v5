@@ -184,7 +184,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
   // 아이콘 매핑
   const getIcon = (iconName: string) => {
-    const icons: Record<string, React.ComponentType<any>> = {
+    const icons: Record<string, React.ComponentType<unknown>> = {
       Server,
       Search,
       BarChart3,

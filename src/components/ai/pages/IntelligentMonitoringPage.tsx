@@ -53,16 +53,16 @@ interface StepResult {
 }
 
 interface AnomalyDetectionResult extends StepResult {
-  anomalies: any[];
+  anomalies: unknown[];
 }
 
 interface RootCauseAnalysisResult extends StepResult {
-  causes: any[];
-  aiInsights: any[];
+  causes: unknown[];
+  aiInsights: unknown[];
 }
 
 interface PredictiveMonitoringResult extends StepResult {
-  predictions: any[];
+  predictions: unknown[];
   recommendations: string[];
 }
 

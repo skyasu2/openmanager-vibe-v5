@@ -8,8 +8,8 @@
 export interface MCPTool {
   name: string;
   description: string;
-  parameters: any;
-  handler: (args: any, extra: any) => Promise<any>;
+  parameters: unknown;
+  handler: (args: unknown, extra: unknown) => Promise<unknown>;
 }
 
 export interface MCPServer {
@@ -18,8 +18,8 @@ export interface MCPServer {
   tool(
     name: string,
     description: string,
-    parameters: any,
-    handler: (args: any, extra: any) => Promise<any>
+    parameters: unknown,
+    handler: (args: unknown, extra: unknown) => Promise<unknown>
   ): void;
 }
 

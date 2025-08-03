@@ -79,14 +79,14 @@ function convertToServerType(
  * 압축된 시계열 데이터 생성
  * Delta encoding을 사용하여 크기 최적화
  */
-function compressTimeSeriesData(data: ScenarioPoint[]): any {
+function compressTimeSeriesData(data: ScenarioPoint[]): unknown {
   if (data.length === 0) return [];
 
   // 첫 번째 값은 그대로 저장
   const firstData = data[0];
   if (!firstData) return [];
 
-  const compressed: any[] = [
+  const compressed: unknown[] = [
     {
       c: Math.round(firstData.cpu),
       m: Math.round(firstData.memory),
@@ -115,7 +115,7 @@ function compressTimeSeriesData(data: ScenarioPoint[]): any {
 /**
  * 압축된 데이터 복원
  */
-export function decompressTimeSeriesData(compressed: any[]): ScenarioPoint[] {
+export function decompressTimeSeriesData(compressed: unknown[]): ScenarioPoint[] {
   if (compressed.length === 0) return [];
 
   const decompressed: ScenarioPoint[] = [

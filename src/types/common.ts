@@ -93,15 +93,8 @@ export interface BaseMetrics {
   network_out: number;
 }
 
-// 서버 메트릭 인터페이스
-export interface ServerMetrics extends BaseMetrics {
-  id?: string;
-  server_id: string;
-  response_time: number;
-  active_connections: number;
-  status: ServerStatus;
-  alerts: string[];
-}
+// 서버 메트릭은 중앙화된 타입 시스템에서 가져옴
+export type { ServerMetrics } from '@/core/types';
 
 // 기본 알림 인터페이스
 export interface BaseAlert {
@@ -153,7 +146,7 @@ export interface BaseApiResponse<T = any> {
   error?: {
     code: string;
     message: string;
-    details?: any;
+    details?: unknown;
   };
   meta?: {
     timestamp: string;
@@ -346,7 +339,7 @@ export interface StandardAnalysisResponse {
   query: string;
   analysis: {
     summary: string;
-    details: any[];
+    details: unknown[];
     confidence: number;
     processingTime: number;
   };

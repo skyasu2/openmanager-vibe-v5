@@ -208,7 +208,7 @@ export class OptimizedSSEManager {
   /**
    * 📡 이벤트 리스너 추가
    */
-  on(eventType: string, listener: (data?: any) => void): void {
+  on(eventType: string, listener: (data?: unknown) => void): void {
     if (!this.eventListeners.has(eventType)) {
       this.eventListeners.set(eventType, []);
     }
@@ -218,7 +218,7 @@ export class OptimizedSSEManager {
   /**
    * 📡 이벤트 발생
    */
-  private emit(eventType: string, data?: any): void {
+  private emit(eventType: string, data?: unknown): void {
     const listeners = this.eventListeners.get(eventType) || [];
     listeners.forEach(listener => {
       try {

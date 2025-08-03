@@ -20,11 +20,11 @@ export function ServerDetailNetwork({
   };
 
   // 타입 안전성을 위한 헬퍼 함수
-  const getActiveConnections = (metrics: any) =>
+  const getActiveConnections = (metrics: unknown) =>
     metrics?.activeConnections || 0;
-  const getLatency = (metrics: any) => metrics?.latency || 0;
-  const getPacketIO = (metrics: any) => metrics?.packetIO || { in: 0, out: 0 };
-  const getNetworkThroughput = (metrics: any) =>
+  const getLatency = (metrics: unknown) => metrics?.latency || 0;
+  const getPacketIO = (metrics: unknown) => metrics?.packetIO || { in: 0, out: 0 };
+  const getNetworkThroughput = (metrics: unknown) =>
     metrics?.networkThroughput || { in: 0, out: 0 };
 
   const hasData = !!realTimeMetrics;

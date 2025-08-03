@@ -368,7 +368,7 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
         setSummary(getDefaultSummary());
         setError(result.error || '데이터 조회 실패');
       }
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       if (error.name !== 'AbortError') {
         console.warn('실시간 서버 요약 API 호출 실패:', error);
         setSummary(getDefaultSummary());
@@ -397,7 +397,7 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
         setError(data.error); // Set error for UI, but might still have stale data
         // Don't immediately clear servers, can show stale data with an error message
         if (data.servers && Array.isArray(data.servers)) {
-          const transformedServers = data.servers.map((s: any) => ({
+          const transformedServers = data.servers.map((s: unknown) => ({
             ...s,
             status: mapStatus(s.status),
           }));
@@ -412,14 +412,14 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
         );
       }
 
-      const transformedServers = data.servers.map((s: any) => ({
+      const transformedServers = data.servers.map((s: unknown) => ({
         ...s,
         status: mapStatus(s.status),
       }));
 
       setServers(transformedServers);
       setLastUpdate(new Date());
-    } catch (err: any) {
+    } catch (err: Error | unknown) {
       console.error('Failed to fetch real-time server data:', err);
       setError(
         err.message || 'An unknown error occurred while fetching server data.'
@@ -478,7 +478,7 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
         }
         setError(result.error || '클러스터 데이터 조회 실패');
       }
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       console.warn('실시간 클러스터 API 호출 실패:', error);
       if (clusters.length === 0) {
         setClusters(getDefaultClusters());
@@ -525,7 +525,7 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
         }
         setError(result.error || '애플리케이션 데이터 조회 실패');
       }
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       console.warn('실시간 애플리케이션 API 호출 실패:', error);
       if (applications.length === 0) {
         setApplications(getDefaultApplications());
@@ -571,7 +571,7 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
       } else {
         throw new Error(result.error || '서버 조회 실패');
       }
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       setError(error.message || '서버 선택 실패');
       console.error('❌ 서버 선택 오류:', error);
     }
@@ -597,7 +597,7 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
       } else {
         throw new Error(result.error || '클러스터 조회 실패');
       }
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       setError(error.message || '클러스터 선택 실패');
       console.error('❌ 클러스터 선택 오류:', error);
     }
@@ -627,7 +627,7 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
         } else {
           throw new Error(result.error || '장애 시뮬레이션 실패');
         }
-      } catch (error: any) {
+      } catch (error: Error | unknown) {
         setError(error.message || '장애 시뮬레이션 실패');
         console.error('❌ 장애 시뮬레이션 오류:', error);
       }
@@ -655,7 +655,7 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
       } else {
         throw new Error(result.error || '데이터 생성 제어 실패');
       }
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       setError(error.message || '데이터 생성 제어 실패');
       console.error('❌ 데이터 생성 제어 오류:', error);
     }

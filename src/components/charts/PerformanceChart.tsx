@@ -19,7 +19,7 @@ interface PerformanceChartProps {
 }
 
 // 🎨 커스텀 툴팁 최적화
-const CustomTooltip = memo(({ active, payload }: any) => {
+const CustomTooltip = memo(({ active, payload }: unknown) => {
   if (active && payload && payload.length) {
     const data = payload[0];
     return (

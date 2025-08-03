@@ -155,7 +155,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
   }, []);
 
   // 애니메이션 설정
-  const cardVariants: any = {
+  const cardVariants: unknown = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
@@ -173,7 +173,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
     },
   };
 
-  const _itemVariants: any = {
+  const _itemVariants: unknown = {
     hidden: { opacity: 0, x: -20 },
     visible: (index: number) => ({
       opacity: 1,

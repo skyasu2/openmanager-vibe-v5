@@ -106,7 +106,7 @@ export function transformRawToServer(
 export function transformRawToEnhancedServer(
   raw: RawServerData,
   index: number = 0
-): any {
+): unknown {
   const cpu = raw.metrics?.cpu ?? raw.cpu ?? 0;
   const memory = raw.metrics?.memory ?? raw.memory ?? 0;
   const disk = raw.metrics?.disk ?? raw.disk ?? 0;
@@ -215,6 +215,6 @@ function _transformArray(rawData: RawServerData[]): Server[] {
   return rawData.map((raw, index) => transformRawToServer(raw, index));
 }
 
-function _transformArrayForModal(rawData: RawServerData[]): any[] {
+function _transformArrayForModal(rawData: RawServerData[]): unknown[] {
   return rawData.map((raw, index) => transformRawToEnhancedServer(raw, index));
 }

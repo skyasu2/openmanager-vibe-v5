@@ -7,7 +7,7 @@
 export interface MLPrediction {
   label: string;
   confidence: number;
-  metadata?: any;
+  metadata?: unknown;
 }
 
 export interface PredictionResult {
@@ -56,7 +56,7 @@ export class LightweightMLEngine {
     );
   }
 
-  async predict(modelId: string, data: any): Promise<MLPrediction> {
+  async predict(modelId: string, data: unknown): Promise<MLPrediction> {
     if (!this.isInitialized) {
       throw new Error('ML Engine not _initialized');
     }
@@ -78,7 +78,7 @@ export class LightweightMLEngine {
     };
   }
 
-  async train(modelId: string, data: any[]): Promise<void> {
+  async train(modelId: string, data: unknown[]): Promise<void> {
     console.log(
       `[LightweightMLEngine] Training model ${modelId} with ${data.length} samples`
     );

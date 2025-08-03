@@ -12,7 +12,7 @@ export interface ResponseLogData {
   responseTime: number;
   fallbackStage?: string;
   patternMatched?: string;
-  serverContext?: any;
+  serverContext?: unknown;
 }
 
 export interface PatternSuggestion {

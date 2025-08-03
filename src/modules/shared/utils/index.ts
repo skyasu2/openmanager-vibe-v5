@@ -41,7 +41,7 @@ export const formatDate = (
 /**
  * 디바운스 함수
  */
-export const debounce = <T extends (...args: any[]) => any>(
+export const debounce = <T extends (...args: unknown[]) => any>(
   func: T,
   wait: number
 ): ((...args: Parameters<T>) => void) => {
@@ -56,7 +56,7 @@ export const debounce = <T extends (...args: any[]) => any>(
 /**
  * 스로틀 함수
  */
-export const throttle = <T extends (...args: any[]) => any>(
+export const throttle = <T extends (...args: unknown[]) => any>(
   func: T,
   limit: number
 ): ((...args: Parameters<T>) => void) => {
@@ -131,7 +131,7 @@ export const safeJsonParse = <T = any>(json: string, defaultValue: T): T => {
 /**
  * 안전한 JSON 문자열화
  */
-export const safeJsonStringify = (obj: any, defaultValue = '{}'): string => {
+export const safeJsonStringify = (obj: unknown, defaultValue = '{}'): string => {
   try {
     return JSON.stringify(obj);
   } catch {

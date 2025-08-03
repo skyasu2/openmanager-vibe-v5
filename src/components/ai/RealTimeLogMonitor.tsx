@@ -49,7 +49,7 @@ interface LogEntry {
     dataSource?: string;
     apiCall?: boolean;
     cacheHit?: boolean;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -433,15 +433,15 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
           <span>총 로그: {filteredLogs.length}</span>
           <span>
             활성 세션:{' '}
-            {sessions.filter((s: any) => s.status === 'active').length}
+            {sessions.filter((s: unknown) => s.status === 'active').length}
           </span>
           <span>
             완료된 세션:{' '}
-            {sessions.filter((s: any) => s.status === 'completed').length}
+            {sessions.filter((s: unknown) => s.status === 'completed').length}
           </span>
           <span>
             실패한 세션:{' '}
-            {sessions.filter((s: any) => s.status === 'failed').length}
+            {sessions.filter((s: unknown) => s.status === 'failed').length}
           </span>
         </div>
       </div>

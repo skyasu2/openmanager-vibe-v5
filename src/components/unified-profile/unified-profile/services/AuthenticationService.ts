@@ -56,7 +56,7 @@ export class AuthenticationService {
    */
   async authenticateAIAgent(
     password: string,
-    store: any
+    store: unknown
   ): Promise<ApiResponse> {
     try {
       // 개발 모드에서 비밀번호 우회
@@ -116,7 +116,7 @@ export class AuthenticationService {
   /**
    * AI 에이전트 비활성화
    */
-  async disableAIAgent(store: any): Promise<ApiResponse> {
+  async disableAIAgent(store: unknown): Promise<ApiResponse> {
     try {
       const result = await store.disableAIAgent();
 
@@ -144,7 +144,7 @@ export class AuthenticationService {
   /**
    * 인증 상태 확인
    */
-  getAuthenticationState(store: any): AuthenticationState {
+  getAuthenticationState(store: unknown): AuthenticationState {
     return {
       attempts: store.attempts || 0,
       isLocked: store.isLocked || false,
@@ -157,7 +157,7 @@ export class AuthenticationService {
   /**
    * 남은 잠금 시간 계산
    */
-  getRemainingLockTime(store: any): number {
+  getRemainingLockTime(store: unknown): number {
     if (!store.isLocked) return 0;
     return store.getRemainingLockTime();
   }
@@ -239,7 +239,7 @@ export class AuthenticationService {
   /**
    * 보안 이벤트 로깅
    */
-  logSecurityEvent(event: string, details: any): void {
+  logSecurityEvent(event: string, details: unknown): void {
     const logEntry = {
       timestamp: new Date().toISOString(),
       event,
@@ -260,7 +260,7 @@ export class AuthenticationService {
   /**
    * 보안 로그 서버 전송
    */
-  private async sendSecurityLog(logEntry: any): Promise<void> {
+  private async sendSecurityLog(logEntry: unknown): Promise<void> {
     try {
       await fetch('/api/security/log', {
         method: 'POST',

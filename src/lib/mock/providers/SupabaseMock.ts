@@ -10,14 +10,14 @@ import userData from '../data/users.json';
 
 interface QueryBuilder {
   table: string;
-  filters: Array<{ column: string; operator: string; value: any }>;
+  filters: Array<{ column: string; operator: string; value: unknown }>;
   orderBy?: { column: string; ascending: boolean };
   limitCount?: number;
 }
 
 export class SupabaseMock extends MockBase {
   private tables: Map<string, any[]> = new Map();
-  private currentUser: any = null;
+  private currentUser: unknown = null;
 
   constructor() {
     super('Supabase', {
@@ -48,7 +48,7 @@ export class SupabaseMock extends MockBase {
   /**
    * auth.signIn() - 로그인
    */
-  async signIn(email: string, password: string): Promise<{ user: any; session: any }> {
+  async signIn(email: string, password: string): Promise<{ user: unknown; session: unknown }> {
     return this.execute('auth.signIn', async () => {
       const users = this.tables.get('users') || [];
       const user = users.find(u => u.email === email);
@@ -81,28 +81,28 @@ export class SupabaseMock extends MockBase {
   /**
    * auth.user() - 현재 사용자
    */
-  getUser(): any {
+  getUser(): unknown {
     return this.currentUser;
   }
 
   /**
    * 테이블 데이터 가져오기
    */
-  getTableData(table: string): any[] {
+  getTableData(table: string): unknown[] {
     return this.tables.get(table) || [];
   }
 
   /**
    * 테이블 데이터 설정
    */
-  setTableData(table: string, data: any[]): void {
+  setTableData(table: string, data: unknown[]): void {
     this.tables.set(table, data);
   }
 
   /**
    * 쿼리 실행
    */
-  async executeQuery(builder: QueryBuilder): Promise<any> {
+  async executeQuery(builder: QueryBuilder): Promise<unknown> {
     return this.execute(`query.${builder.table}`, async () => {
       let data = [...this.getTableData(builder.table)];
       
@@ -181,22 +181,22 @@ class SupabaseQueryBuilder {
     return this;
   }
 
-  eq(column: string, value: any): this {
+  eq(column: string, value: unknown): this {
     this.builder.filters.push({ column, operator: 'eq', value });
     return this;
   }
 
-  neq(column: string, value: any): this {
+  neq(column: string, value: unknown): this {
     this.builder.filters.push({ column, operator: 'neq', value });
     return this;
   }
 
-  gt(column: string, value: any): this {
+  gt(column: string, value: unknown): this {
     this.builder.filters.push({ column, operator: 'gt', value });
     return this;
   }
 
-  gte(column: string, value: any): this {
+  gte(column: string, value: unknown): this {
     this.builder.filters.push({ column, operator: 'gte', value });
     return this;
   }
@@ -214,7 +214,7 @@ class SupabaseQueryBuilder {
     return this;
   }
 
-  async single(): Promise<any> {
+  async single(): Promise<unknown> {
     const result = await this.mock.executeQuery(this.builder);
     if (result.data.length === 0) {
       return { data: null, error: new Error('No rows found') };
@@ -223,7 +223,7 @@ class SupabaseQueryBuilder {
   }
 
   // 쿼리 실행
-  then(resolve: any, reject?: any): Promise<any> {
+  then(resolve: unknown, reject?: unknown): Promise<unknown> {
     return this.mock.executeQuery(this.builder).then(resolve, reject);
   }
 }

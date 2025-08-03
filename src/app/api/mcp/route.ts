@@ -266,7 +266,7 @@ const handler = createMcpHandler((server: MCPServer) => {
     'get_system_status',
     '현재 시스템 상태를 확인합니다',
     {},
-    getSystemStatusHandler
+    getSystemStatusHandler as any
   );
 
   // 🔑 환경변수 확인 도구
@@ -274,7 +274,7 @@ const handler = createMcpHandler((server: MCPServer) => {
     'check_env_config',
     '환경변수 설정 상태를 확인합니다',
     {},
-    checkEnvConfigHandler
+    checkEnvConfigHandler as any
   );
 
   // 📊 API 헬스 체크 도구
@@ -282,7 +282,7 @@ const handler = createMcpHandler((server: MCPServer) => {
     'check_api_health',
     'API 엔드포인트 상태를 확인합니다',
     {},
-    checkApiHealthHandler
+    checkApiHealthHandler as any
   );
 
   // 🧪 테스트 메시지 전송 도구
@@ -297,7 +297,7 @@ const handler = createMcpHandler((server: MCPServer) => {
         description: '메시지 레벨',
       },
     },
-    sendTestMessageHandler
+    sendTestMessageHandler as any
   );
 
   // 🗄️ 레디스 캐시 상태 확인 도구
@@ -305,7 +305,7 @@ const handler = createMcpHandler((server: MCPServer) => {
     'check_redis_cache',
     'Redis 캐시 서버 상태를 확인합니다',
     {},
-    checkRedisCacheHandler
+    checkRedisCacheHandler as any
   );
 
   // 📊 데이터베이스 연결 확인 도구
@@ -313,7 +313,7 @@ const handler = createMcpHandler((server: MCPServer) => {
     'check_database',
     'Supabase 데이터베이스 연결을 확인합니다',
     {},
-    checkDatabaseHandler
+    checkDatabaseHandler as any
   );
 });
 

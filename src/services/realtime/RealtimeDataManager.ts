@@ -12,7 +12,7 @@ type DataType = 'server' | 'network' | 'system' | 'metrics';
 type UpdateFrequency = 'high' | 'medium' | 'low';
 
 interface SubscriberCallback {
-  (data: any): void;
+  (data: unknown): void;
 }
 
 interface Subscriber {
@@ -184,7 +184,7 @@ class RealtimeDataManager {
   /**
    * 데이터 타입별 데이터 생성
    */
-  private generateData(dataType: DataType): any {
+  private generateData(dataType: DataType): unknown {
     const baseVariation = 0.1; // 10% 변동폭으로 축소
 
     switch (dataType) {

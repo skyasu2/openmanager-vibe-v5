@@ -7,20 +7,16 @@
 // Common schemas
 export * from './common.schema';
 
-// API schemas
+// Server schemas (분할된 스키마)
+export * from './server-schemas';
+
+// AI schemas (분할된 스키마)
+export * from './ai-schemas/ai-performance.schema';
+
+// 기존 스키마들 (점진적 마이그레이션 대상)
 export * from './api.schema';
-
-// Server schemas
 export * from './server.schema';
-
-// Auth schemas
 export * from './auth.schema';
-
-// AI schemas
 export * from './ai.schema';
-
-// Monitoring schemas
 export * from './monitoring.schema';
-
-// Utils
 export * from './utils.schema';

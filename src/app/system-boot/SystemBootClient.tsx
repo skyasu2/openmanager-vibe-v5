@@ -93,7 +93,7 @@ export default function SystemBootClient() {
   const [currentStage, setCurrentStage] = useState<string>('시스템 초기화');
   const [progress, setProgress] = useState(0);
   const [currentIcon, setCurrentIcon] =
-    useState<React.ComponentType<any>>(Loader2);
+    useState<React.ComponentType<unknown>>(Loader2);
   const [isClient, setIsClient] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
 

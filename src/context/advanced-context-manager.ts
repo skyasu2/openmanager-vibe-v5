@@ -634,7 +634,7 @@ export class AdvancedContextManager {
    */
   private async loadContextCache(): Promise<AdvancedContextCache> {
     try {
-      const cached = await this.redis.get<any>(this.CACHE_KEY);
+      const cached = await this.redis.get<unknown>(this.CACHE_KEY);
       if (cached) {
         return {
           documents: new Map(cached.documents || []),

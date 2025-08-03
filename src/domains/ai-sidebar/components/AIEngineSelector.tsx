@@ -15,7 +15,7 @@ interface AIEngine {
   id: string;
   name: string;
   description: string;
-  icon: any;
+  icon: unknown;
   color: string;
   bgColor: string;
   features: string[];

@@ -8,7 +8,7 @@ export interface GCPDataGeneratorConfig {
 export interface GeneratedData {
   id: string;
   timestamp: string;
-  data: any;
+  data: unknown;
 }
 
 // ServerMetric export 추가

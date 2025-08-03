@@ -8,11 +8,12 @@
  */
 
 import { getDecryptedRedisConfig } from '@/lib/config/runtime-env-decryptor';
+import type { RedisStats } from '@/schemas/api.schema';
 import { env } from './env';
 import { DevMockRedis } from './redis/dev-mock-redis';
 
 // Edge Runtime 호환성을 위해 동적 import 사용
-let Redis: any;
+let Redis: unknown;
 try {
   // Node.js 환경에서만 ioredis 로드
   if (
@@ -35,13 +36,13 @@ try {
 // Redis 클라이언트 인터페이스 확장
 export interface RedisClientInterface {
   get(key: string): Promise<string | null>;
-  set(key: string, value: any, options?: { ex?: number }): Promise<'OK'>;
+  set(key: string, value: unknown, options?: { ex?: number }): Promise<'OK'>;
   setex(key: string, seconds: number, value: string): Promise<'OK'>;
   del(key: string): Promise<number>;
   exists(key: string): Promise<number>;
   incr(key: string): Promise<number>;
   ping(): Promise<string>;
-  pipeline(): any;
+  pipeline(): unknown;
   // Set 관련 메서드 추가
   sadd(key: string, ...members: string[]): Promise<number>;
   srem(key: string, ...members: string[]): Promise<number>;
@@ -118,7 +119,7 @@ class UnifiedMockRedis implements RedisClientInterface {
     return this.devMockRedis.get(key);
   }
 
-  async set(key: string, value: any, options?: { ex?: number }): Promise<'OK'> {
+  async set(key: string, value: unknown, options?: { ex?: number }): Promise<'OK'> {
     await this.devMockRedis.set(key, value, options);
     return 'OK';
   }
@@ -166,16 +167,16 @@ class UnifiedMockRedis implements RedisClientInterface {
     return this.devMockRedis.expire(key, seconds);
   }
 
-  pipeline(): any {
+  pipeline(): unknown {
     // 간단한 파이프라인 구현
-    const commands: Array<() => Promise<any>> = [];
+    const commands: Array<() => Promise<unknown>> = [];
 
     return {
-      setex: (key: string, seconds: number, value: any) => {
+      setex: (key: string, seconds: number, value: unknown) => {
         commands.push(() => this.setex(key, seconds, value));
         return this;
       },
-      set: (key: string, value: any, options?: { ex?: number }) => {
+      set: (key: string, value: unknown, options?: { ex?: number }) => {
         commands.push(() => this.set(key, value, options));
         return this;
       },
@@ -192,7 +193,7 @@ class UnifiedMockRedis implements RedisClientInterface {
   }
 
   // 추가 유틸리티 메서드
-  async hset(key: string, field: string, value: any): Promise<number> {
+  async hset(key: string, field: string, value: unknown): Promise<number> {
     return this.devMockRedis.hset(key, field, value);
   }
 
@@ -433,7 +434,7 @@ const smartRedis = {
 
   async set(
     key: string,
-    value: any,
+    value: unknown,
     options?: { ex?: number },
     context?: string
   ): Promise<'OK'> {
@@ -453,7 +454,7 @@ const smartRedis = {
   },
 
   // 통계 정보
-  async getStats(): Promise<any> {
+  async getStats(): Promise<unknown> {
     const stats = {
       unifiedMockRedis: unifiedMockRedis?.getStats() || null,
       realRedis: realRedis
@@ -528,7 +529,7 @@ export default smartRedis;
 export async function getMetrics(
   serverId: string,
   timestamp?: number
-): Promise<any> {
+): Promise<unknown> {
   const client = await getHybridRedisClient('metrics-cache');
   const key = timestamp
     ? `metrics:${serverId}:${timestamp}`
@@ -549,7 +550,7 @@ export async function getMetrics(
  */
 export async function setMetrics(
   serverId: string,
-  data: any,
+  data: unknown,
   timestamp?: number
 ): Promise<void> {
   const client = await getHybridRedisClient('metrics-cache');
@@ -562,7 +563,7 @@ export async function setMetrics(
 /**
  * 🔄 실시간 데이터 조회
  */
-export async function getRealtime(key: string): Promise<any> {
+export async function getRealtime(key: string): Promise<unknown> {
   const client = await getHybridRedisClient('realtime-cache');
   const data = await client.get(`realtime:${key}`);
   if (!data) return null;
@@ -580,7 +581,7 @@ export async function getRealtime(key: string): Promise<any> {
  */
 export async function setRealtime(
   key: string,
-  data: any,
+  data: unknown,
   ttl = 300
 ): Promise<void> {
   const client = await getHybridRedisClient('realtime-cache');
@@ -595,7 +596,7 @@ export async function getAllRealtime(): Promise<any[]> {
 
   // Mock Redis인 경우 직접 접근
   if (client instanceof UnifiedMockRedis) {
-    const allData: any[] = [];
+    const allData: unknown[] = [];
     // Mock Redis의 dump에서 realtime: 접두사로 시작하는 모든 키 조회
     const dump = await client.dump();
     for (const [key, item] of Object.entries(dump)) {
@@ -623,7 +624,7 @@ export async function getAllRealtime(): Promise<any[]> {
  */
 export async function setBatch(
   key: string,
-  data: any[],
+  data: unknown[],
   ttl = 1800
 ): Promise<void> {
   const client = await getHybridRedisClient('bulk-data');
@@ -665,12 +666,13 @@ export async function isRedisConnected(): Promise<boolean> {
 /**
  * 📈 Redis 통계 정보
  */
-export async function getRedisStats(): Promise<any> {
+export async function getRedisStats(): Promise<RedisStats & { connected: boolean }> {
   const stats = await smartRedis.getStats();
   return {
     connected: await isRedisConnected(),
     unifiedMockRedis: stats.unifiedMockRedis,
     realRedis: stats.realRedis,
+    mockRedis: stats.mockRedis,
     strategy: stats.strategy,
   };
 }
@@ -689,7 +691,7 @@ interface RedisStatus {
   timestamp?: string;
 }
 
-let redis: any | null = null;
+let redis: unknown | null = null;
 let redisStatus: RedisStatus = {
   status: 'disconnected',
   connectedAt: null,

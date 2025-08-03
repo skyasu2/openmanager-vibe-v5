@@ -30,7 +30,7 @@ const SmoothTransition: React.FC<SmoothTransitionProps> = memo(
     onExitComplete,
   }) => {
     // 페이지 전환 애니메이션 variants
-    const pageVariants: any = {
+    const pageVariants: unknown = {
       _initial: {
         opacity: 0,
         y: 20,
@@ -57,7 +57,7 @@ const SmoothTransition: React.FC<SmoothTransitionProps> = memo(
       },
     };
 
-    const contentVariants: any = {
+    const contentVariants: unknown = {
       _initial: {
         opacity: 0,
         y: 10,

@@ -9,8 +9,8 @@
  */
 
 // Edge Runtime 호환성을 위해 동적 import 사용
-let fs: any;
-let path: any;
+let fs: unknown;
+let path: unknown;
 
 // Node.js 환경에서만 fs와 path 모듈 로드
 if (
@@ -37,10 +37,10 @@ interface DevMockRedisOptions {
 export class DevMockRedis {
   private store = new Map<
     string,
-    { value: any; expiry?: number; type?: string }
+    { value: unknown; expiry?: number; type?: string }
   >();
   private pubSubChannels = new Map<string, Set<(message: string) => void>>();
-  private transactions: Array<() => Promise<any>> = [];
+  private transactions: Array<() => Promise<unknown>> = [];
   private options: DevMockRedisOptions;
   private stats = {
     commands: 0,
@@ -84,7 +84,7 @@ export class DevMockRedis {
 
   async set(
     key: string,
-    value: any,
+    value: unknown,
     options?: { ex?: number; px?: number }
   ): Promise<'OK'> {
     this.stats.commands++;
@@ -149,7 +149,7 @@ export class DevMockRedis {
   }
 
   // Hash 명령어
-  async hset(key: string, field: string, value: any): Promise<number> {
+  async hset(key: string, field: string, value: unknown): Promise<number> {
     this.stats.commands++;
     const hash = this.store.get(key);
 

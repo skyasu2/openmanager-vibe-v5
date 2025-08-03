@@ -51,7 +51,7 @@ export const FILE_SYSTEM_PROTECTION = {
   },
 
   // 안전한 파일 쓰기 래퍼
-  safeWriteFile: (operation: string, filePath: string, data: any) => {
+  safeWriteFile: (operation: string, filePath: string, data: unknown) => {
     if (!FILE_SYSTEM_PROTECTION.isFileWriteAllowed()) {
       console.warn(
         `🚫 베르셀 환경에서 파일 쓰기 차단됨: ${operation} (${filePath})`
@@ -89,7 +89,7 @@ export const FILE_SYSTEM_PROTECTION = {
     },
 
     // 브라우저 환경에서 localStorage를 활용한 임시 로그 저장
-    browserLog: (type: string, data: any) => {
+    browserLog: (type: string, data: unknown) => {
       if (typeof window !== 'undefined') {
         const logKey = `temp_log_${type}_${Date.now()}`;
         try {
@@ -108,7 +108,7 @@ export const FILE_SYSTEM_PROTECTION = {
     memoryBackup: new Map<string, any>(),
 
     // 임시 백업 생성
-    createMemoryBackup: (key: string, data: any) => {
+    createMemoryBackup: (key: string, data: unknown) => {
       FILE_SYSTEM_PROTECTION.alternativeBackup.memoryBackup.set(key, {
         data,
         timestamp: Date.now(),
@@ -123,7 +123,7 @@ export const FILE_SYSTEM_PROTECTION = {
     },
 
     // 환경 변수 백업을 위한 브라우저 세션 스토리지 활용
-    sessionBackup: (key: string, value: any) => {
+    sessionBackup: (key: string, value: unknown) => {
       if (typeof window !== 'undefined') {
         try {
           sessionStorage.setItem(`env_backup_${key}`, JSON.stringify(value));
@@ -141,7 +141,7 @@ export const FILE_SYSTEM_PROTECTION = {
     contextCache: new Map<string, any>(),
 
     // 컨텍스트 캐시 저장
-    cacheContext: (bundleType: string, bundleData: any, clientId?: string) => {
+    cacheContext: (bundleType: string, bundleData: unknown, clientId?: string) => {
       const key = `${bundleType}${clientId ? `_${clientId}` : ''}`;
       FILE_SYSTEM_PROTECTION.alternativeContextBundle.contextCache.set(key, {
         bundleData,
@@ -163,7 +163,7 @@ export const FILE_SYSTEM_PROTECTION = {
   // 🔄 데이터 지속성 대체 방안
   alternativePersistence: {
     // IndexedDB를 활용한 브라우저 기반 데이터 저장
-    indexedDBStore: async (storeName: string, data: any) => {
+    indexedDBStore: async (storeName: string, data: unknown) => {
       if (typeof window !== 'undefined' && 'indexedDB' in window) {
         try {
           // 실제 IndexedDB 구현은 필요시 추가
@@ -178,7 +178,7 @@ export const FILE_SYSTEM_PROTECTION = {
     },
 
     // 외부 서비스를 통한 데이터 저장 (Supabase, Firebase 등)
-    externalStore: async (service: string, data: any) => {
+    externalStore: async (service: string, data: unknown) => {
       console.log(`🌐 외부 서비스 저장: ${service}`);
       // 외부 서비스 연동 로직은 필요시 추가
       return true;

@@ -234,7 +234,7 @@ export function useAISession(
       response: string,
       confidence: number,
       processingTime: number,
-      fullResponse?: any
+      fullResponse?: unknown
     ) => {
       const newState: AISessionState = {
         ...sessionState,

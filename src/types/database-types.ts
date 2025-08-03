@@ -499,14 +499,14 @@ export interface DbListResponse<T> {
 }
 
 // Type guards
-export function isServer(obj: any): obj is Server {
+export function isServer(obj: unknown): obj is Server {
   return obj && typeof obj.id === 'string' && typeof obj.name === 'string';
 }
 
-export function isAlert(obj: any): obj is Alert {
+export function isAlert(obj: unknown): obj is Alert {
   return obj && typeof obj.id === 'string' && typeof obj.server_id === 'string';
 }
 
-export function isReport(obj: any): obj is Report {
+export function isReport(obj: unknown): obj is Report {
   return obj && typeof obj.id === 'string' && typeof obj.title === 'string';
 }

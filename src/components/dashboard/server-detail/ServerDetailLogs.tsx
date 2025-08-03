@@ -40,7 +40,7 @@ export function ServerDetailLogs({ serverId }: ServerDetailLogsProps) {
         }
         const data = await response.json();
         setLogs(data.logs || []);
-      } catch (err: any) {
+      } catch (err: Error | unknown) {
         setError(err.message);
       } finally {
         setIsLoading(false);

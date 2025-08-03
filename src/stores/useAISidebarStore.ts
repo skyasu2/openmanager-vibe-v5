@@ -28,7 +28,7 @@ export interface AgentLog {
   timestamp: Date;
   level: 'info' | 'warn' | 'error';
   message: string;
-  context?: any;
+  context?: unknown;
 }
 
 export interface ChatMessage {

@@ -231,12 +231,12 @@ export class ErrorMonitoringService {
   checkForAlerts(): Array<{
     type: 'warning' | 'critical';
     message: string;
-    data: any;
+    data: unknown;
   }> {
     const alerts: Array<{
       type: 'warning' | 'critical';
       message: string;
-      data: any;
+      data: unknown;
     }> = [];
 
     // 심각한 에러 급증 감지

@@ -111,7 +111,7 @@ export class VectorSearchOptimizer {
       }
 
       // 2. IVFFlat 인덱스가 없으면 생성
-      const hasIVFFlat = existingIndexes?.some((idx: any) =>
+      const hasIVFFlat = existingIndexes?.some((idx: unknown) =>
         idx.indexname.includes('ivfflat')
       );
 

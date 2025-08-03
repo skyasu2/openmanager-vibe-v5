@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 import React, { useEffect } from 'react';
 
 interface FeatureCardModalProps {
-  selectedCard: any;
+  selectedCard: unknown;
   onClose: () => void;
   renderTextWithAIGradient: (text: string) => React.ReactNode;
   modalRef: React.RefObject<HTMLDivElement>;

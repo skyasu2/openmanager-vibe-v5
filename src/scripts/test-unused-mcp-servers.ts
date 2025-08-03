@@ -14,7 +14,7 @@ interface TestResult {
   success: boolean;
   error?: string;
   responseTime: number;
-  details?: any;
+  details?: unknown;
 }
 
 class UnusedMCPTester {
@@ -135,7 +135,7 @@ class UnusedMCPTester {
     agentType: string,
     description: string,
     prompt: string
-  ): Promise<any> {
+  ): Promise<unknown> {
     // 실제 구현에서는 여기서 Task 도구를 호출해야 함
     // 현재는 시뮬레이션으로 처리
 

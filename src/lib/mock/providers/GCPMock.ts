@@ -18,7 +18,7 @@ export class GCPMock extends MockBase {
   /**
    * Korean NLP 분석
    */
-  async analyzeKoreanNLP(text: string, context?: any): Promise<{
+  async analyzeKoreanNLP(text: string, context?: unknown): Promise<{
     intent: string;
     entities: Array<{ type: string; value: string }>;
     confidence: number;
@@ -115,15 +115,15 @@ export class GCPMock extends MockBase {
    */
   async processUnifiedAI(request: {
     type: 'analysis' | 'prediction' | 'recommendation';
-    data: any;
+    data: unknown;
   }): Promise<{
-    result: any;
+    result: unknown;
     confidence: number;
     processingTime: number;
   }> {
     return this.execute('processUnifiedAI', async () => {
       const startTime = Date.now();
-      let result: any;
+      let result: unknown;
       let confidence = 0.8;
       
       switch (request.type) {

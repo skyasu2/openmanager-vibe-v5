@@ -224,7 +224,7 @@ export class MCPServerManager {
         connected = true;
       },
 
-      async request(_request: any): Promise<any> {
+      async request(_request: unknown): Promise<unknown> {
         return { result: `Mock response from ${serverName}` };
       },
 

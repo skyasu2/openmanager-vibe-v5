@@ -257,9 +257,9 @@ export class AuthManager {
 
     return {
       activeSessions: activeSessions.length,
-      adminSessions: activeSessions.filter((s: any) => s.userRole === 'admin')
+      adminSessions: activeSessions.filter((s: unknown) => s.userRole === 'admin')
         .length,
-      demoSessions: activeSessions.filter((s: any) => s.userRole === 'demo')
+      demoSessions: activeSessions.filter((s: unknown) => s.userRole === 'demo')
         .length,
 
       last24h: {

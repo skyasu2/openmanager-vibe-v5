@@ -261,7 +261,7 @@ export class SecurityService {
     systemStatus: 'secure' | 'warning';
   } {
     const activeSessions = Array.from(this.sessions.values()).filter(
-      (s: any) => s.isValid
+      (s: unknown) => s.isValid
     ).length;
     const recentEvents = this.securityEvents.filter(
       e => Date.now() - e.timestamp.getTime() < 60 * 60 * 1000 // 1시간 내
@@ -285,10 +285,10 @@ export class SecurityService {
    * 🧪 현재 세션 목록 조회 (테스트용)
    */
   getActiveSessions(): UserSession[] {
-    return Array.from(this.sessions.values()).filter((s: any) => s.isValid);
+    return Array.from(this.sessions.values()).filter((s: unknown) => s.isValid);
   }
 
-  async createSession(userId: string, metadata?: any): Promise<string> {
+  async createSession(userId: string, metadata?: unknown): Promise<string> {
     try {
       const sessionId = generateSessionId('session');
 

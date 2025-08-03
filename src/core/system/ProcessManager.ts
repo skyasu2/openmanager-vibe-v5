@@ -38,7 +38,7 @@ export interface ProcessState {
   stoppedAt?: Date;
   lastHealthCheck?: Date;
   restartCount: number;
-  errors: Array<{ timestamp: Date; message: string; error: any }>;
+  errors: Array<{ timestamp: Date; message: string; error: Error | unknown }>;
   uptime: number;
   healthScore: number; // 0-100
 }
@@ -163,7 +163,7 @@ export class ProcessManager extends EventEmitter {
       }
 
       const runningCount = Array.from(this.states.values()).filter(
-        (s: any) => s.status === 'running'
+        (s: unknown) => s.status === 'running'
       ).length;
 
       systemLogger.system(
@@ -319,7 +319,7 @@ export class ProcessManager extends EventEmitter {
       }
 
       const stoppedCount = Array.from(this.states.values()).filter(
-        (s: any) => s.status === 'stopped'
+        (s: unknown) => s.status === 'stopped'
       ).length;
 
       systemLogger.system(
@@ -618,10 +618,10 @@ export class ProcessManager extends EventEmitter {
   private evaluateSystemHealth(): void {
     const states = Array.from(this.states.values());
     const runningCount = states.filter(
-      (s: any) => s.status === 'running'
+      (s: unknown) => s.status === 'running'
     ).length;
     const healthyCount = states.filter(
-      (s: any) => s.status === 'running' && s.healthScore >= 70
+      (s: unknown) => s.status === 'running' && s.healthScore >= 70
     ).length;
 
     let _systemHealth: 'healthy' | 'degraded' | 'critical';
@@ -714,9 +714,9 @@ export class ProcessManager extends EventEmitter {
    */
   getSystemMetrics(): SystemMetrics {
     const states = Array.from(this.states.values());
-    const runningProcesses = states.filter((s: any) => s.status === 'running');
+    const runningProcesses = states.filter((s: unknown) => s.status === 'running');
     const healthyProcesses = states.filter(
-      (s: any) => s.status === 'running' && s.healthScore >= 70
+      (s: unknown) => s.status === 'running' && s.healthScore >= 70
     );
 
     const uptime = this.systemStartTime
@@ -725,12 +725,12 @@ export class ProcessManager extends EventEmitter {
 
     const averageHealthScore =
       states.length > 0
-        ? states.reduce((sum: number, s: any) => sum + s.healthScore, 0) /
+        ? states.reduce((sum: number, s: unknown) => sum + s.healthScore, 0) /
           states.length
         : 0;
 
     const totalRestarts = states.reduce(
-      (sum: number, s: any) => sum + s.restartCount,
+      (sum: number, s: unknown) => sum + s.restartCount,
       0
     );
 

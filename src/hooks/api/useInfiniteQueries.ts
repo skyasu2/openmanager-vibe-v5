@@ -60,7 +60,7 @@ export const useInfiniteLogs = (
 ) => {
   const fetchLogs = async ({
     pageParam,
-  }: any): Promise<PaginatedResponse<LogEntry>> => {
+  }: unknown): Promise<PaginatedResponse<LogEntry>> => {
     const params = new URLSearchParams({
       cursor: pageParam.toString(),
       limit: '50',
@@ -105,7 +105,7 @@ export const useInfiniteMetrics = (
 ) => {
   const fetchMetrics = async ({
     pageParam,
-  }: any): Promise<PaginatedResponse<MetricHistoryEntry>> => {
+  }: unknown): Promise<PaginatedResponse<MetricHistoryEntry>> => {
     const params = new URLSearchParams({
       cursor: pageParam.toString(),
       limit: '100',
@@ -186,7 +186,7 @@ export const useInfiniteScrollManager = () => {
       .filter(query => query.queryKey[0] === 'infinite');
 
     infiniteQueries.forEach(query => {
-      const data = query.state.data as InfiniteData<any>;
+      const data = query.state.data as InfiniteData<unknown>;
       if (data?.pages && data.pages.length > 10) {
         // 처음 5페이지와 마지막 5페이지만 유지
         const optimizedData = {

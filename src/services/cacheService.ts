@@ -118,7 +118,7 @@ export class RequestScopedCacheService {
   /**
    * 🚀 서버 요약 정보 조회
    */
-  async getCachedSummary(): Promise<any> {
+  async getCachedSummary(): Promise<unknown> {
     await this.ensureInitialized();
 
     if (this.upstashService) {
@@ -219,7 +219,7 @@ export class RequestScopedCacheService {
    */
   getStats(): {
     memoryCache: { size: number; keys: string[] };
-    redis: any;
+    redis: unknown;
   } {
     const memoryCacheKeys = Array.from(memoryCache.keys());
     const redisStats = this.upstashService?.getStats() || null;

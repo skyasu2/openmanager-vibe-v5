@@ -10,7 +10,7 @@ export class EdgeLogger {
     timestamp: string;
     level: string;
     message: string;
-    meta?: any;
+    meta?: unknown;
   }> = [];
   private maxLogs = 100;
 
@@ -21,7 +21,7 @@ export class EdgeLogger {
     return EdgeLogger.instance;
   }
 
-  private log(level: string, message: string, meta?: any) {
+  private log(level: string, message: string, meta?: unknown) {
     const timestamp = new Date().toISOString();
     const logEntry = { timestamp, level, message, meta };
 
@@ -39,19 +39,19 @@ export class EdgeLogger {
     }
   }
 
-  info(message: string, meta?: any) {
+  info(message: string, meta?: unknown) {
     this.log('info', message, meta);
   }
 
-  warn(message: string, meta?: any) {
+  warn(message: string, meta?: unknown) {
     this.log('warn', message, meta);
   }
 
-  error(message: string, meta?: any) {
+  error(message: string, meta?: unknown) {
     this.log('error', message, meta);
   }
 
-  debug(message: string, meta?: any) {
+  debug(message: string, meta?: unknown) {
     this.log('debug', message, meta);
   }
 
@@ -67,7 +67,7 @@ export class EdgeLogger {
 // Edge Runtime 호환 캐시
 export class EdgeCache {
   private static instance: EdgeCache;
-  private cache = new Map<string, { value: any; expires: number }>();
+  private cache = new Map<string, { value: unknown; expires: number }>();
   private maxSize = 100;
 
   static getInstance(): EdgeCache {
@@ -77,7 +77,7 @@ export class EdgeCache {
     return EdgeCache.instance;
   }
 
-  set(key: string, value: any, ttlMs = 300000): void {
+  set(key: string, value: unknown, ttlMs = 300000): void {
     // 기본 5분
     const expires = Date.now() + ttlMs;
 
@@ -92,7 +92,7 @@ export class EdgeCache {
     this.cache.set(key, { value, expires });
   }
 
-  get(key: string): any | null {
+  get(key: string): unknown | null {
     const item = this.cache.get(key);
     if (!item) return null;
 
@@ -194,7 +194,7 @@ export class EdgeHTTPClient {
 
   static async post(
     url: string,
-    data: any,
+    data: unknown,
     config?: typeof EdgeHTTPClient.baseConfig
   ) {
     return await EdgeHTTPClient.fetch(
@@ -221,11 +221,11 @@ export class EdgeStateManager {
     return EdgeStateManager.instance;
   }
 
-  setState(key: string, value: any): void {
+  setState(key: string, value: unknown): void {
     this.state.set(key, value);
   }
 
-  getState(key: string): any {
+  getState(key: string): unknown {
     return this.state.get(key);
   }
 

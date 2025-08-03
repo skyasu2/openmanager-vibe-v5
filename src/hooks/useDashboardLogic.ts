@@ -36,7 +36,7 @@ export const useDashboardLogic = () => {
   // 대시보드 관련 상태들
   const [isClient, setIsClient] = useState(false);
   const [isAgentOpen, setIsAgentOpen] = useState(false);
-  const [selectedServer, setSelectedServer] = useState<any>(null);
+  const [selectedServer, setSelectedServer] = useState<unknown>(null);
   const [serverStats, setServerStats] = useState({
     total: 0,
     online: 0,
@@ -119,7 +119,7 @@ export const useDashboardLogic = () => {
   }, []);
 
   // 핸들러 함수들
-  const handleServerClick = useCallback((server: any) => {
+  const handleServerClick = useCallback((server: unknown) => {
     setSelectedServer(server);
   }, []);
 

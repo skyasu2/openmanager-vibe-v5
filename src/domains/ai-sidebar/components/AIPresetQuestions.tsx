@@ -23,7 +23,7 @@ export interface PresetQuestion {
   id: string;
   text: string;
   category: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<unknown>;
   color: string;
 }
 

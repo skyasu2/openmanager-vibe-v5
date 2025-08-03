@@ -11,7 +11,7 @@ interface FeatureCard {
   id: string;
   title: string;
   description: string;
-  icon: any;
+  icon: unknown;
   gradient: string;
   detailedContent: {
     overview: string;
@@ -118,21 +118,22 @@ const cardData: FeatureCard[] = [
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
-      overview: `v5.66.22 - AI 개발 도구의 완벽한 진화! ChatGPT로 시작하여 Cursor AI를 거쳐 현재는 Claude Code + 11개 MCP 서버로 완전 자동화 달성. 개발 속도 10배 향상!`,
+      overview: `Vibe Coding은 Cursor AI, Claude Code, MCP 서버를 활용한 혁신적인 개발 방식으로, 자연어 명령만으로도 복잡한 코드를 생성하고 최적화할 수 있습니다.`,
       features: [
-        '💬 ChatGPT: 초기 페이지 목업 생성 → 현재는 브레인스토밍 & 프롬프트 설계',
-        '💻 Cursor AI → Claude Code: v5.65까지 Cursor 사용 → 이후 Claude Code로 완전 전환',
-        '🤖 Claude Code: 현재 주력! 11개 MCP 서버로 완벽한 개발 자동화 실현',
-        '📋 CLAUDE.md: AI가 따르는 프로젝트 규칙과 표준 문서화',
-        '🚀 개발 속도: ChatGPT 시절 대비 10배, Cursor AI 대비 3배 향상',
-        '✨ 전체 프로젝트 자동화: Git, 테스트, 배포까지 완전 자동화',
+        '🚀 Cursor AI: 코드 자동 완성, 버그 수정, 리팩토링을 도와주는 AI 코파일럿',
+        '🤖 Claude Code: 자연어로 코드를 생성하고 설명해주는 AI 코딩 어시스턴트',
+        '💡 Gemini CLI: 터미널에서 AI와 대화하며 코드를 생성하고 실행',
+        '🔧 개발 시 유용한 MCP 사용: 11개 MCP 서버 중 필요한 서비스를 선택하여 사용',
+        '📊 MCP-1: 코드 자동 완성 및 리팩토링 전용 서버',
+        '⚡ MCP-2: 자연어 기반 API 생성 및 테스트 서버',
+        '🔍 MCP-3: 코드 품질 분석 및 최적화 제안 서버',
       ],
       technologies: [
-        'ChatGPT (초기)',
-        'Cursor AI (중기)',
-        'Claude Code (현재)',
-        '11 MCP Servers',
-        'CLAUDE.md',
+        'Cursor AI: 코드 자동 완성 및 리팩토링',
+        'Claude Code: 자연어 기반 코드 생성',
+        'Gemini CLI: 터미널 기반 AI 코딩',
+        'MCP 서버: 11개 전용 서버로 구성된 AI 인프라',
+        'MCP 활용: 프로젝트 요구사항에 맞춰 최적의 MCP 서버 선택 사용',
       ],
     },
     requiresAI: false,

@@ -316,7 +316,7 @@ export class SupabaseRAGEngine {
   /**
    * 🏗️ 컨텍스트 구축
    */
-  private buildContext(searchResults: any[], mcpContext?: any): string {
+  private buildContext(searchResults: unknown[], mcpContext?: unknown): string {
     let context = '관련 정보:\n\n';
 
     // 검색 결과 컨텍스트
@@ -331,7 +331,7 @@ export class SupabaseRAGEngine {
     // MCP 컨텍스트 추가
     if (mcpContext && mcpContext.files.length > 0) {
       context += '\n추가 컨텍스트 (MCP):\n\n';
-      mcpContext.files.forEach((file: any) => {
+      mcpContext.files.forEach((file: unknown) => {
         context += `파일: ${file.path}\n`;
         context += `${file.content.substring(0, 200)}...\n\n`;
       });
@@ -407,12 +407,12 @@ export class SupabaseRAGEngine {
   private generateCacheKey(
     operation: string,
     query: string,
-    options: any
+    options: Record<string, unknown>
   ): string {
     return `rag:${operation}:${Buffer.from(query).toString('base64')}:${JSON.stringify(options)}`;
   }
 
-  private async getFromCache(key: string): Promise<any> {
+  private async getFromCache(key: string): Promise<unknown> {
     // 메모리 캐시 확인
     if (this.searchCache.has(key)) {
       return this.searchCache.get(key);
@@ -433,7 +433,7 @@ export class SupabaseRAGEngine {
     return null;
   }
 
-  private async saveToCache(key: string, data: any): Promise<void> {
+  private async saveToCache(key: string, data: unknown): Promise<void> {
     // 메모리 캐시 저장
     this.searchCache.set(key, data);
     if (this.searchCache.size > 100) {

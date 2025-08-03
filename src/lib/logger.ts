@@ -16,7 +16,7 @@ export interface LogEntry {
   level: LogLevel;
   category: string;
   message: string;
-  data?: any;
+  data?: unknown;
   source?: string;
 }
 
@@ -52,7 +52,7 @@ class DevLogger {
     level: LogLevel,
     category: string,
     message: string,
-    data?: any
+    data?: unknown
   ): string {
     const timestamp = new Date().toISOString();
     const levelIcon = this.getLevelIcon(level);
@@ -96,7 +96,7 @@ class DevLogger {
     return icons[category] || '📝';
   }
 
-  debug(category: string, message: string, data?: any): void {
+  debug(category: string, message: string, data?: unknown): void {
     if (this.shouldLog(LogLevel.DEBUG, category)) {
       console.debug(
         this.formatMessage(LogLevel.DEBUG, category, message, data)
@@ -104,19 +104,19 @@ class DevLogger {
     }
   }
 
-  info(category: string, message: string, data?: any): void {
+  info(category: string, message: string, data?: unknown): void {
     if (this.shouldLog(LogLevel.INFO, category)) {
       console.info(this.formatMessage(LogLevel.INFO, category, message, data));
     }
   }
 
-  warn(category: string, message: string, data?: any): void {
+  warn(category: string, message: string, data?: unknown): void {
     if (this.shouldLog(LogLevel.WARN, category)) {
       console.warn(this.formatMessage(LogLevel.WARN, category, message, data));
     }
   }
 
-  error(category: string, message: string, data?: any): void {
+  error(category: string, message: string, data?: unknown): void {
     if (this.shouldLog(LogLevel.ERROR, category)) {
       console.error(
         this.formatMessage(LogLevel.ERROR, category, message, data)
@@ -141,7 +141,7 @@ class DevLogger {
     }
   }
 
-  testResult(testName: string, expected: any, actual: any): void {
+  testResult(testName: string, expected: unknown, actual: unknown): void {
     const success = JSON.stringify(expected) === JSON.stringify(actual);
     this.testEnd(testName, success);
 
@@ -155,7 +155,7 @@ class DevLogger {
   }
 
   // 성능 측정
-  performance(operation: string, duration: number, metadata?: any): void {
+  performance(operation: string, duration: number, metadata?: unknown): void {
     this.info('performance', `${operation}: ${duration}ms`, metadata);
   }
 
@@ -190,49 +190,49 @@ export const logTestResult = (
 export const logPerformance = (
   operation: string,
   duration: number,
-  metadata?: any
+  metadata?: unknown
 ) => devLogger.performance(operation, duration, metadata);
 export const logAI = (query: string, engine: string, confidence?: number) =>
   devLogger.aiQuery(query, engine, confidence);
 
 // 🔄 기존 코드 호환성을 위한 레거시 export
 export const systemLogger = {
-  info: (message: string, data?: any) =>
+  info: (message: string, data?: unknown) =>
     devLogger.info('system', message, data),
-  warn: (message: string, data?: any) =>
+  warn: (message: string, data?: unknown) =>
     devLogger.warn('system', message, data),
-  error: (message: string, data?: any) =>
+  error: (message: string, data?: unknown) =>
     devLogger.error('system', message, data),
-  debug: (message: string, data?: any) =>
+  debug: (message: string, data?: unknown) =>
     devLogger.debug('system', message, data),
-  system: (message: string, data?: any) =>
+  system: (message: string, data?: unknown) =>
     devLogger.info('system', message, data),
-  ai: (message: string, data?: any) => devLogger.info('ai', message, data),
+  ai: (message: string, data?: unknown) => devLogger.info('ai', message, data),
 };
 
 export const logger = {
-  info: (message: string, data?: any) =>
+  info: (message: string, data?: unknown) =>
     devLogger.info('general', message, data),
-  warn: (message: string, data?: any) =>
+  warn: (message: string, data?: unknown) =>
     devLogger.warn('general', message, data),
-  error: (message: string, data?: any) =>
+  error: (message: string, data?: unknown) =>
     devLogger.error('general', message, data),
-  debug: (message: string, data?: any) =>
+  debug: (message: string, data?: unknown) =>
     devLogger.debug('general', message, data),
 };
 
 export const apiLogger = {
-  info: (message: string, data?: any) => devLogger.info('api', message, data),
-  warn: (message: string, data?: any) => devLogger.warn('api', message, data),
-  error: (message: string, data?: any) => devLogger.error('api', message, data),
-  debug: (message: string, data?: any) => devLogger.debug('api', message, data),
+  info: (message: string, data?: unknown) => devLogger.info('api', message, data),
+  warn: (message: string, data?: unknown) => devLogger.warn('api', message, data),
+  error: (message: string, data?: unknown) => devLogger.error('api', message, data),
+  debug: (message: string, data?: unknown) => devLogger.debug('api', message, data),
 };
 
 export const aiLogger = {
-  info: (message: string, data?: any) => devLogger.info('ai', message, data),
-  warn: (message: string, data?: any) => devLogger.warn('ai', message, data),
-  error: (message: string, data?: any) => devLogger.error('ai', message, data),
-  debug: (message: string, data?: any) => devLogger.debug('ai', message, data),
+  info: (message: string, data?: unknown) => devLogger.info('ai', message, data),
+  warn: (message: string, data?: unknown) => devLogger.warn('ai', message, data),
+  error: (message: string, data?: unknown) => devLogger.error('ai', message, data),
+  debug: (message: string, data?: unknown) => devLogger.debug('ai', message, data),
 };
 
 // 기본 export

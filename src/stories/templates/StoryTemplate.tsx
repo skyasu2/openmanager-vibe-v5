@@ -123,7 +123,7 @@ export const viewportSizes = {
 };
 
 // 🎯 공통 스토리 메타 템플릿
-export const createStoryMeta = <T extends React.ComponentType<any>>(
+export const createStoryMeta = <T extends React.ComponentType<unknown>>(
   title: string,
   component: T,
   description?: string
@@ -172,7 +172,7 @@ export const createStoryMeta = <T extends React.ComponentType<any>>(
 });
 
 // 🎭 글로벌 데코레이터 (모든 스토리에 적용)
-export const withAIContext = (Story: any, context: any) => {
+export const withAIContext = (Story: unknown, context: unknown) => {
   return (
     <div data-testid='ai-monitoring-context' className='storybook-ai-context'>
       <Story />

@@ -59,7 +59,7 @@ export interface ServerInstance {
   custom?: {
     updateInterval?: number;
     enableMockData?: boolean;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 
   metrics?: ServerMetrics;
@@ -213,8 +213,8 @@ export interface EnhancedServerMetrics {
   name: string;
   network_usage?: number;
   timestamp?: string;
-  pattern_info?: any;
-  correlation_metrics?: any;
+  pattern_info?: unknown;
+  correlation_metrics?: unknown;
   patternsEnabled?: boolean;
   currentLoad?: number;
   activeFailures?: number;

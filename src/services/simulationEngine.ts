@@ -162,7 +162,7 @@ export class SimulationEngine {
   /**
    * 📊 Prometheus 메트릭 조회
    */
-  getPrometheusMetrics(serverId?: string): any[] {
+  getPrometheusMetrics(serverId?: string): unknown[] {
     let servers: EnhancedServerMetrics[];
 
     if (serverId) {
@@ -207,10 +207,10 @@ export class SimulationEngine {
     const servers = this.getServers();
     const totalServers = servers.length;
     const criticalServers = servers.filter(
-      (s: any) => s.status === 'critical'
+      (s: unknown) => s.status === 'critical'
     ).length;
     const warningServers = servers.filter(
-      (s: any) => s.status === 'warning'
+      (s: unknown) => s.status === 'warning'
     ).length;
     const healthyServers = totalServers - criticalServers - warningServers;
 
@@ -221,15 +221,15 @@ export class SimulationEngine {
       criticalServers,
       healthPercentage: Math.round((healthyServers / totalServers) * 100),
       averageCpu: Math.round(
-        servers.reduce((sum: number, s: any) => sum + s.cpu_usage, 0) /
+        servers.reduce((sum: number, s: unknown) => sum + s.cpu_usage, 0) /
           totalServers
       ),
       averageMemory: Math.round(
-        servers.reduce((sum: number, s: any) => sum + s.memory_usage, 0) /
+        servers.reduce((sum: number, s: unknown) => sum + s.memory_usage, 0) /
           totalServers
       ),
       averageResponseTime: Math.round(
-        servers.reduce((sum: number, s: any) => sum + s.response_time, 0) /
+        servers.reduce((sum: number, s: unknown) => sum + s.response_time, 0) /
           totalServers
       ),
       timestamp: new Date().toISOString(),

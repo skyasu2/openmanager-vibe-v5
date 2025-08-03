@@ -8,10 +8,41 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Loader2, Brain, CheckCircle, AlertCircle } from 'lucide-react';
+import { MCPQueryResponse, ApiResponse } from '@/types/api-responses';
+
+// AI 테스트 페이지 전용 응답 타입
+interface AITestResponse {
+  success: boolean;
+  engine?: string;
+  response?: string;
+  confidence?: number;
+  metadata?: {
+    totalTime: number;
+    cacheHit: boolean;
+    mcpUsed: boolean;
+  };
+  thinkingSteps?: Array<{
+    status: 'completed' | 'error' | 'pending';
+    step: string;
+    duration?: number;
+  }>;
+  error?: string;
+  message?: string;
+}
+
+// 타입 가드 함수
+function isAITestResponse(data: unknown): data is AITestResponse {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'success' in data &&
+    typeof (data as any).success === 'boolean'
+  );
+}
 
 export default function TestAIPage() {
   const [query, setQuery] = useState('');
-  const [response, setResponse] = useState<any>(null);
+  const [response, setResponse] = useState<AITestResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [_mode, setMode] = useState<'local' | 'google-ai'>('local');
 
@@ -47,7 +78,14 @@ export default function TestAIPage() {
       });
 
       const data = await res.json();
-      setResponse(data);
+      if (isAITestResponse(data)) {
+        setResponse(data);
+      } else {
+        setResponse({
+          success: false,
+          error: '응답 형식이 올바르지 않습니다.',
+        });
+      }
     } catch (error) {
       console.error('Error:', error);
       setResponse({
@@ -207,7 +245,7 @@ export default function TestAIPage() {
                   <div className="rounded-lg bg-gray-800 p-4">
                     <h3 className="mb-2 font-semibold">생각 과정:</h3>
                     <div className="space-y-2">
-                      {response.thinkingSteps.map((step: any, idx: number) => (
+                      {response.thinkingSteps.map((step, idx: number) => (
                         <div
                           key={idx}
                           className="flex items-center gap-2 text-sm"

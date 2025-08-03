@@ -82,7 +82,7 @@ export function isValidKorean(text: string): boolean {
  * 🖨️ 안전한 한글 로그 출력
  * Windows 환경에서 한글 깨짐 방지
  */
-export function safeKoreanLog(message: string, _data?: any): void {
+export function safeKoreanLog(message: string, _data?: unknown): void {
   const timestamp = new Date().toISOString();
 
   // 한글 문자열 안전 처리
@@ -146,7 +146,7 @@ export function safeProcessQuery(query: string): string {
 /**
  * 🌐 API 요청 본문 안전 처리
  */
-export async function safeProcessRequestBody(request: Request): Promise<any> {
+export async function safeProcessRequestBody(request: Request): Promise<unknown> {
   try {
     // 1. ArrayBuffer로 원시 데이터 읽기
     const rawBody = await request.arrayBuffer();

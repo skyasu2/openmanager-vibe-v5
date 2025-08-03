@@ -11,7 +11,7 @@ import { SessionData, SessionMetadata } from '@/types/session';
 
 interface SessionContext {
   sessionId: string;
-  data: any;
+  data: unknown;
   timestamp: number;
   expiresAt?: number;
   metadata?: {
@@ -99,7 +99,7 @@ export class MCPContextManager {
   /**
    * 💾 컨텍스트 저장
    */
-  async storeContext(sessionId: string, context: any): Promise<boolean> {
+  async storeContext(sessionId: string, context: unknown): Promise<boolean> {
     try {
       const now = Date.now();
       const sessionContext: SessionContext = {
@@ -129,7 +129,7 @@ export class MCPContextManager {
   /**
    * 📖 컨텍스트 조회
    */
-  async retrieveContext(sessionId: string): Promise<any> {
+  async retrieveContext(sessionId: string): Promise<unknown> {
     try {
       const sessionContext = this.contexts.get(sessionId);
 
@@ -160,7 +160,7 @@ export class MCPContextManager {
   /**
    * 🔄 컨텍스트 업데이트
    */
-  async updateContext(sessionId: string, updates: any): Promise<boolean> {
+  async updateContext(sessionId: string, updates: unknown): Promise<boolean> {
     try {
       const existingContext = this.contexts.get(sessionId);
 
@@ -281,7 +281,7 @@ export class MCPContextManager {
   /**
    * 📤 컨텍스트 내보내기
    */
-  exportContexts(sessionIds?: string[]): any {
+  exportContexts(sessionIds?: string[]): unknown {
     const exportData: Record<string, any> = {};
     const targetSessions = sessionIds || Array.from(this.contexts.keys());
 

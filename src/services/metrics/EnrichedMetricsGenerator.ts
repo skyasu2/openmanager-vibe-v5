@@ -139,7 +139,7 @@ export class EnrichedMetricsGenerator {
 
   // 🔄 VM 환경 최적화
   // private baselineStorage = BaselineStorageService.getInstance(); // BaselineStorageService removed
-  private baselineStorage: any = null;
+  private baselineStorage: unknown = null;
   private scenarioEngine = new LongRunningScenarioEngine();
 
   // 🕐 24시간 연속 운영 (기존 30분 제한 제거)
@@ -322,8 +322,8 @@ export class EnrichedMetricsGenerator {
    */
   private generateSystemMetrics(
     server: EnhancedServerMetrics,
-    baseline: any,
-    scenarios: any[]
+    baseline: unknown,
+    scenarios: unknown[]
   ): EnrichedMetrics['system'] {
     // 기존 베이스라인 방식 + 시나리오 영향 적용
     const baseMultiplier = baseline?.pattern_multiplier || 1.0;
@@ -396,7 +396,7 @@ export class EnrichedMetricsGenerator {
   private generateApplicationMetrics(
     server: EnhancedServerMetrics,
     hour: number,
-    baseline: any
+    baseline: unknown
   ): EnrichedMetrics['application'] {
     const trafficMultiplier = this.getTrafficMultiplier(hour);
     const baseRps = baseline?.response_time_baseline || 100;
@@ -498,11 +498,11 @@ export class EnrichedMetricsGenerator {
 
   // 🛠️ 유틸리티 메서드들
 
-  private getServerBaseline(serverId: string, hour: number): any {
+  private getServerBaseline(serverId: string, hour: number): unknown {
     return this.baselineData.get(`${serverId}-${hour}`) || {};
   }
 
-  private calculateScenarioImpact(scenarios: any[]): number {
+  private calculateScenarioImpact(scenarios: unknown[]): number {
     let impact = 1.0;
     scenarios.forEach(scenario => {
       switch (scenario.pattern?.severity) {

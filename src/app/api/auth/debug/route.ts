@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     // 2. 미들웨어 클라이언트로 세션 확인
     try {
       const response = NextResponse.next();
-      const middlewareSupabase = createMiddlewareClient(request, response);
+      const middlewareSupabase = createMiddlewareClient(request, response) as any;
       const {
         data: { session },
         error,
@@ -193,7 +193,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const response = NextResponse.next();
-    const middlewareSupabase = createMiddlewareClient(request, response);
+    const middlewareSupabase = createMiddlewareClient(request, response) as any;
 
     // 현재 세션 확인
     const currentSession = await middlewareSupabase.auth.getSession();

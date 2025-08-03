@@ -214,7 +214,7 @@ export function createCachedResponse<T>(
 export async function warmupCache(
   items: Array<{
     key: string;
-    fetcher: () => Promise<any>;
+    fetcher: () => Promise<unknown>;
     ttl?: number;
   }>
 ): Promise<void> {

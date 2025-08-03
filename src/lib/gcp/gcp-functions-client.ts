@@ -26,8 +26,8 @@ const GCP_FUNCTIONS_BASE_URL = process.env.NEXT_PUBLIC_GCP_FUNCTIONS_URL ||
  * GCP Functions 클라이언트 인터페이스
  */
 export interface GCPFunctionsClient {
-  callFunction(functionName: string, data: any): Promise<{ success: boolean; data?: any; error?: string }>;
-  getStats?(): any;
+  callFunction(functionName: string, data: unknown): Promise<{ success: boolean; data?: unknown; error?: string }>;
+  getStats?(): unknown;
   reset?(): void;
 }
 
@@ -37,8 +37,8 @@ export interface GCPFunctionsClient {
 class RealGCPFunctionsClient implements GCPFunctionsClient {
   async callFunction(
     functionName: string,
-    data: any
-  ): Promise<{ success: boolean; data?: any; error?: string }> {
+    data: unknown
+  ): Promise<{ success: boolean; data?: unknown; error?: string }> {
     try {
       const response = await fetch(`${GCP_FUNCTIONS_BASE_URL}/${functionName}`, {
         method: 'POST',
@@ -87,7 +87,7 @@ export function getGCPFunctionsClient(): GCPFunctionsClient {
 /**
  * Korean NLP 분석 헬퍼
  */
-export async function analyzeKoreanNLP(query: string, context?: any) {
+export async function analyzeKoreanNLP(query: string, context?: unknown) {
   const client = getGCPFunctionsClient();
   return client.callFunction('enhanced-korean-nlp', { query, context });
 }
@@ -95,7 +95,7 @@ export async function analyzeKoreanNLP(query: string, context?: any) {
 /**
  * ML Analytics 분석 헬퍼
  */
-export async function analyzeMLMetrics(metrics: any[], context?: any) {
+export async function analyzeMLMetrics(metrics: unknown[], context?: unknown) {
   const client = getGCPFunctionsClient();
   return client.callFunction('ml-analytics-engine', { metrics, context });
 }
@@ -103,7 +103,7 @@ export async function analyzeMLMetrics(metrics: any[], context?: any) {
 /**
  * 통합 AI 처리 헬퍼
  */
-export async function processUnifiedAI(request: any) {
+export async function processUnifiedAI(request: unknown) {
   const client = getGCPFunctionsClient();
   return client.callFunction('unified-ai-processor', request);
 }
@@ -111,7 +111,7 @@ export async function processUnifiedAI(request: any) {
 /**
  * Mock 통계 조회 (개발용)
  */
-export function getGCPFunctionsMockStats(): any | null {
+export function getGCPFunctionsMockStats(): unknown | null {
   if (shouldUseMockGCPFunctions) {
     return getDevMockGCPFunctions().getStats();
   }

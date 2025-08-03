@@ -160,7 +160,7 @@ class EmbeddingService {
         const data = await response.json();
 
         // 결과를 캐시에 저장하고 results 배열에 할당
-        data.embeddings.forEach((embedding: any, i: number) => {
+        data.embeddings.forEach((embedding: unknown, i: number) => {
           const item = toProcess[i];
           const values = embedding.values;
 

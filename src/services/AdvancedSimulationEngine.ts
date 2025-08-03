@@ -117,7 +117,7 @@ export class AdvancedSimulationEngine {
       this.realMetricsCache.clear();
       const serverMetricsMap = new Map<string, ServerMetrics[]>();
 
-      realMetrics.forEach((metric: any) => {
+      realMetrics.forEach((metric: unknown) => {
         const serverId = metric.server_id || 'unknown';
         if (!serverMetricsMap.has(serverId)) {
           serverMetricsMap.set(serverId, []);

@@ -37,7 +37,7 @@ interface ServerGenerationProgressProps {
   nextServerType: string | null;
   currentMessage: string;
   error: string | null;
-  lastGeneratedServer: any | null;
+  lastGeneratedServer: unknown | null;
 }
 
 const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({

@@ -107,7 +107,7 @@ export function createMiddlewareSupabaseClient(
             ? cookie
             : String((cookie as any).value);
         },
-        set: (name: string, value: string, options: any) => {
+        set: (name: string, value: string, options: Record<string, unknown>) => {
           // 미들웨어에서는 response에 쿠키 설정
           try {
             if (response && 'cookies' in response) {
@@ -117,7 +117,7 @@ export function createMiddlewareSupabaseClient(
             console.warn('Middleware cookie set failed:', e);
           }
         },
-        remove: (name: string, _options: any) => {
+        remove: (name: string, _options: Record<string, unknown>) => {
           try {
             if (response && 'cookies' in response) {
               (response as any).cookies.delete(name);

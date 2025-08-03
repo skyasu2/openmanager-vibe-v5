@@ -109,7 +109,7 @@ export function sortServersByStatus(servers: Server[]): Server[] {
 /**
  * 서버 데이터 정규화
  */
-export function normalizeServerData(server: any): Server {
+export function normalizeServerData(server: unknown): Server {
   return {
     id: server.id || server.hostname || 'unknown',
     name: server.name || server.hostname || 'Unknown Server',

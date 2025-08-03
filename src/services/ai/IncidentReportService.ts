@@ -1,6 +1,6 @@
 // TODO: Implement IncidentReportService
 export class IncidentReportService {
-  async analyzeIncident(data: any) {
+  async analyzeIncident(data: unknown) {
     return { severity: 'low', recommendations: [] };
   }
 }

@@ -12,14 +12,14 @@ export type ServiceLifetime = 'singleton' | 'transient' | 'scoped';
 
 export interface ServiceDescriptor<T = any> {
   token: string | symbol;
-  implementation: new (...args: any[]) => T;
+  implementation: new (...args: unknown[]) => T;
   lifetime: ServiceLifetime;
   dependencies?: (string | symbol)[];
 }
 
 export interface ServiceFactory<T = any> {
   token: string | symbol;
-  factory: (...args: any[]) => T;
+  factory: (...args: unknown[]) => T;
   lifetime: ServiceLifetime;
   dependencies?: (string | symbol)[];
 }
@@ -60,7 +60,7 @@ export class DIContainer {
    */
   registerInterface<T>(
     interfaceToken: string | symbol,
-    implementation: new (...args: any[]) => T,
+    implementation: new (...args: unknown[]) => T,
     lifetime: ServiceLifetime = 'singleton',
     dependencies?: (string | symbol)[]
   ): void {
@@ -243,7 +243,7 @@ export const container = DIContainer.getInstance();
 
 export function registerService<T>(
   token: string | symbol,
-  implementation: new (...args: any[]) => T,
+  implementation: new (...args: unknown[]) => T,
   lifetime: ServiceLifetime = 'singleton',
   dependencies?: (string | symbol)[]
 ): void {
@@ -252,7 +252,7 @@ export function registerService<T>(
 
 export function registerFactory<T>(
   token: string | symbol,
-  factory: (...args: any[]) => T,
+  factory: (...args: unknown[]) => T,
   lifetime: ServiceLifetime = 'singleton',
   dependencies?: (string | symbol)[]
 ): void {
@@ -272,7 +272,7 @@ export function Injectable(
   token?: string | symbol,
   lifetime: ServiceLifetime = 'singleton'
 ) {
-  return function <T extends new (...args: any[]) => any>(constructor: T) {
+  return function <T extends new (...args: unknown[]) => any>(constructor: T) {
     const serviceToken = token || constructor.name;
     registerService(serviceToken, constructor, lifetime);
     return constructor;
@@ -282,7 +282,7 @@ export function Injectable(
 // 간단한 의존성 주입 데코레이터 (메타데이터 없이)
 export function Inject(token: string | symbol) {
   return function (
-    target: any,
+    target: unknown,
     propertyKey: string | symbol | undefined,
     parameterIndex: number
   ) {

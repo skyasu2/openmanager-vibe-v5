@@ -88,7 +88,7 @@ export const queryKeys = {
 export const api = {
   // 서버 API
   servers: {
-    getList: async (): Promise<any> => {
+    getList: async (): Promise<unknown> => {
       const response = await fetch('/api/servers');
       if (!response.ok) {
         throw new Error(`서버 목록 조회 실패: ${response.status}`);
@@ -96,7 +96,7 @@ export const api = {
       return response.json();
     },
 
-    getDetail: async (id: string): Promise<any> => {
+    getDetail: async (id: string): Promise<unknown> => {
       const response = await fetch(`/api/servers/${id}`);
       if (!response.ok) {
         throw new Error(`서버 상세 정보 조회 실패: ${response.status}`);
@@ -107,7 +107,7 @@ export const api = {
 
   // 시스템 API
   system: {
-    getStatus: async (): Promise<any> => {
+    getStatus: async (): Promise<unknown> => {
       const response = await fetch('/api/system/status');
       if (!response.ok) {
         throw new Error(`시스템 상태 조회 실패: ${response.status}`);
@@ -115,7 +115,7 @@ export const api = {
       return response.json();
     },
 
-    getHealth: async (): Promise<any> => {
+    getHealth: async (): Promise<unknown> => {
       const response = await fetch('/api/system/health');
       if (!response.ok) {
         throw new Error(`시스템 헬스 조회 실패: ${response.status}`);
@@ -126,7 +126,7 @@ export const api = {
 
   // AI API
   ai: {
-    getAnalysis: async (request: any): Promise<any> => {
+    getAnalysis: async (request: unknown): Promise<unknown> => {
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -138,7 +138,7 @@ export const api = {
       return response.json();
     },
 
-    getPrediction: async (type: string, interval = '30min'): Promise<any> => {
+    getPrediction: async (type: string, interval = '30min'): Promise<unknown> => {
       const params = new URLSearchParams({ type, interval });
       const response = await fetch(`/api/ai/prediction?${params}`);
       if (!response.ok) {
@@ -147,7 +147,7 @@ export const api = {
       return response.json();
     },
 
-    getEngineStatus: async (): Promise<any> => {
+    getEngineStatus: async (): Promise<unknown> => {
       const response = await fetch('/api/ai-agent/integrated');
       if (!response.ok) {
         throw new Error(`AI 엔진 상태 조회 실패: ${response.status}`);
@@ -158,7 +158,7 @@ export const api = {
 
   // 데이터 생성기 API (dashboard 기반으로 변경)
   dataGenerator: {
-    getStatus: async (): Promise<any> => {
+    getStatus: async (): Promise<unknown> => {
       // 🔄 dashboard API에서 서버 생성 상태 확인
       const response = await fetch('/api/dashboard');
       if (!response.ok) {
@@ -176,7 +176,7 @@ export const api = {
       };
     },
 
-    start: async (pattern?: string): Promise<any> => {
+    start: async (pattern?: string): Promise<unknown> => {
       // 🔄 서버 생성 요청을 servers API로 전달
       const response = await fetch('/api/servers', {
         method: 'POST',
@@ -196,7 +196,7 @@ export const api = {
 
   // MCP API (강화된 에러 핸들링)
   mcp: {
-    getStatus: async (): Promise<any> => {
+    getStatus: async (): Promise<unknown> => {
       try {
         const response = await fetch('/api/mcp/status');
         if (!response.ok) {
@@ -227,7 +227,7 @@ export const api = {
       }
     },
 
-    getHealth: async (): Promise<any> => {
+    getHealth: async (): Promise<unknown> => {
       try {
         const response = await fetch('/api/ai-agent?action=health');
         if (!response.ok) {
@@ -241,7 +241,7 @@ export const api = {
       }
     },
 
-    getStats: async (): Promise<any> => {
+    getStats: async (): Promise<unknown> => {
       try {
         const response = await fetch('/api/ai-agent?action=status');
         if (!response.ok) {

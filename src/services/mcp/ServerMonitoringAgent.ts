@@ -125,7 +125,7 @@ export class ServerMonitoringAgent {
   private static instance: ServerMonitoringAgent | null = null;
   private isRunning = false;
   private contextCache = new Map<string, any>();
-  private updateCallbacks = new Set<(data: any) => void>();
+  private updateCallbacks = new Set<(data: unknown) => void>();
 
   // 🎭 지식 베이스 (MCP 컨텍스트)
   private knowledgeBase = {

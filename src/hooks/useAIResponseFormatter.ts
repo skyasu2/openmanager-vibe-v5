@@ -369,7 +369,7 @@ export const useAIResponseFormatter = () => {
 
         console.log('✅ AI 응답 포맷팅 완료:', result);
         return result;
-      } catch (error: any) {
+      } catch (error: Error | unknown) {
         const errorMessage = error.message || '알 수 없는 오류가 발생했습니다.';
 
         if (error.message.includes('타임아웃')) {

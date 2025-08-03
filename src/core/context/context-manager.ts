@@ -87,7 +87,7 @@ export interface Query {
 export interface Result {
   queryId: string;
   toolsUsed: string[];
-  result: any;
+  result: unknown;
   confidence: number;
   timestamp: string;
 }
@@ -232,7 +232,7 @@ export class ContextManager {
   /**
    * 🔄 컨텍스트 업데이트
    */
-  async update(updateData: any): Promise<void> {
+  async update(updateData: unknown): Promise<void> {
     try {
       this.sessionContext.lastActivity = new Date().toISOString();
 
@@ -267,7 +267,7 @@ export class ContextManager {
   /**
    * 📊 메트릭 업데이트
    */
-  private updateMetrics(metrics: any): void {
+  private updateMetrics(metrics: unknown): void {
     this.currentContext.system.current_metrics = {
       timestamp: new Date().toISOString(),
       cpu: metrics.cpu || 0,
@@ -288,7 +288,7 @@ export class ContextManager {
   /**
    * 📈 트렌드 업데이트
    */
-  private updateTrends(metrics: any): void {
+  private updateTrends(metrics: unknown): void {
     // 간단한 트렌드 계산 로직
     const historical = this.shortTermMemory.get('historical_metrics') || [];
     historical.push(metrics);
@@ -303,7 +303,7 @@ export class ContextManager {
     // 트렌드 방향 계산
     if (historical.length >= 3) {
       const recent = historical.slice(-3);
-      const cpuTrend = this.calculateTrend(recent.map((m: any) => m.cpu || 0));
+      const cpuTrend = this.calculateTrend(recent.map((m: unknown) => m.cpu || 0));
 
       this.currentContext.system.historical_trends = {
         timeRange: '10minutes',
@@ -451,7 +451,7 @@ export class ContextManager {
   /**
    * 📚 패턴 학습 및 저장
    */
-  async learnPattern(data: any, patternType: string): Promise<void> {
+  async learnPattern(data: unknown, patternType: string): Promise<void> {
     try {
       const pattern = await this.extractPattern(data, patternType);
 
@@ -480,7 +480,7 @@ export class ContextManager {
   /**
    * 🎯 패턴 추출
    */
-  private async extractPattern(data: any, patternType: string): Promise<any> {
+  private async extractPattern(data: unknown, patternType: string): Promise<unknown> {
     return {
       id: `pattern_${Date.now()}`,
       type: patternType,
@@ -518,7 +518,7 @@ export class ContextManager {
   /**
    * 💾 결과 저장
    */
-  async save(result: any): Promise<void> {
+  async save(result: unknown): Promise<void> {
     try {
       // 세션 컨텍스트에 결과 저장
       const analysisResult: Result = {
@@ -590,7 +590,7 @@ export class ContextManager {
   /**
    * 📊 컨텍스트 통계
    */
-  getStats(): any {
+  getStats(): unknown {
     return {
       contextId: this.contextId,
       sessionId: this.sessionContext.sessionId,

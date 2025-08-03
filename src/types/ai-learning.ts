@@ -9,7 +9,7 @@ export interface UserInteractionLog {
   response: string;
   userFeedback?: 'helpful' | 'not_helpful' | 'incorrect';
   contextData: {
-    serverState: any;
+    serverState: unknown;
     activeMetrics: string[];
     timeOfDay: string;
     userRole: string;

@@ -104,7 +104,7 @@ export interface HealthCheckResponse {
 // 설정 액션 타입
 export interface SettingsAction {
   type: 'LOAD' | 'UPDATE' | 'RESET' | 'ERROR';
-  payload?: any;
+  payload?: unknown;
   error?: string;
 }
 

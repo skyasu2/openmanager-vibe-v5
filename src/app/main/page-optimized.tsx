@@ -54,7 +54,7 @@ const FeatureCardsGrid = dynamic(
 
 // 헤비한 훅들을 lazy 로딩
 const useSystemHooks = () => {
-  const [hooks, setHooks] = useState<any>(null);
+  const [hooks, setHooks] = useState<unknown>(null);
 
   useEffect(() => {
     Promise.all([
@@ -79,7 +79,7 @@ function AuthCheck({ children }: { children: React.ReactNode }) {
   const [authState, setAuthState] = useState<{
     isLoading: boolean;
     isAuthenticated: boolean;
-    user: any;
+    user: unknown;
   }>({
     isLoading: true,
     isAuthenticated: false,
@@ -145,8 +145,10 @@ function MainContent() {
     if (!hooks) return;
 
     // 훅이 로드되면 상태 초기화
-    const { isGitHubAuthenticated } = hooks.auth;
-    isGitHubAuthenticated().then(setSystemState);
+    const { isGitHubAuthenticated } = (hooks as unknown as { auth: { isGitHubAuthenticated: () => Promise<unknown> } }).auth;
+    isGitHubAuthenticated().then((result) => {
+      setSystemState(prev => ({ ...prev, isGitHubUser: Boolean(result) }));
+    });
   }, [hooks]);
 
   if (!hooks) {

@@ -56,10 +56,10 @@ interface AIAnalysisResponse {
     urgency: string;
   };
   data: {
-    metrics?: any;
-    logs?: any[];
-    systemStatus?: any;
-    predictions?: any;
+    metrics?: unknown;
+    logs?: unknown[];
+    systemStatus?: unknown;
+    predictions?: unknown;
     recommendations?: string[];
   };
   sources: {
@@ -189,7 +189,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
         } else {
           throw new Error(result.error || '분석 실패');
         }
-      } catch (error: any) {
+      } catch (error: Error | unknown) {
         if (error.name === 'AbortError') {
           showToast.info('분석이 취소되었습니다');
           return null;
@@ -253,7 +253,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
         } else {
           throw new Error(result.error || '헬스체크 실패');
         }
-      } catch (error: any) {
+      } catch (error: Error | unknown) {
         const errorMessage = error.message || '헬스체크 오류';
         setError(errorMessage);
         showToast.error(`시스템 헬스체크 실패: ${errorMessage}`);
@@ -279,7 +279,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
     }
   }, []);
 
-  const getPerformanceInfo = useCallback((): any => {
+  const getPerformanceInfo = useCallback((): unknown => {
     if (!lastResponse) return null;
     return {
       totalTime: lastResponse.performance.totalTime,

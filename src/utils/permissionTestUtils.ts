@@ -75,8 +75,8 @@ export function testPermissions(
 ): boolean {
   const results: Array<{
     key: string;
-    expected: any;
-    actual: any;
+    expected: unknown;
+    actual: unknown;
     passed: boolean;
   }> = [];
   let allPassed = true;

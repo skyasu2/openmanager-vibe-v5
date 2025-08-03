@@ -50,7 +50,7 @@ interface SystemStatus {
     totalRestarts: number;
   };
   startTime?: Date;
-  watchdogMetrics?: any;
+  watchdogMetrics?: unknown;
 }
 
 interface SystemOperation {
@@ -86,7 +86,7 @@ export function SystemControlPanel() {
   // 시스템 제어 함수 (수동 액션만 유지)
   const executeSystemAction = async (
     action: string,
-    options?: any
+    options?: unknown
   ): Promise<SystemOperation> => {
     setIsLoading(true);
     setOperation(action);

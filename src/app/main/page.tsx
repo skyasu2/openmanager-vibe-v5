@@ -117,7 +117,7 @@ export default function Home() {
   useEffect(() => {
     if (!isMounted) return;
 
-    let authListener: any;
+    let authListener: unknown;
 
     const checkAuth = async () => {
       setAuthLoading(true);

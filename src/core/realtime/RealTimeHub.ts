@@ -19,7 +19,7 @@ export interface RealTimeConnection {
 
 export interface RealTimeMessage {
   type: 'pattern_alert' | 'metric_update' | 'system_event' | 'custom';
-  data: any;
+  data: unknown;
   target?: string | string[]; // 특정 연결 또는 그룹 대상
   timestamp: number;
 }

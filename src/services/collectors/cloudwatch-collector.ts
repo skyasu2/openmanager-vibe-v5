@@ -123,8 +123,8 @@ export class CloudWatchCollector implements MetricCollector {
       });
 
       const servers: string[] = [];
-      response.Reservations?.forEach((reservation: any) => {
-        reservation.Instances?.forEach((instance: any) => {
+      response.Reservations?.forEach((reservation: unknown) => {
+        reservation.Instances?.forEach((instance: unknown) => {
           const serverId = this.getServerIdFromInstanceId(instance.InstanceId);
           servers.push(serverId);
         });
@@ -374,7 +374,7 @@ export class CloudWatchCollector implements MetricCollector {
 
       // 최신 데이터포인트 사용
       const latest = datapoints.sort(
-        (a: any, b: any) =>
+        (a: unknown, b: unknown) =>
           new Date(b.Timestamp).getTime() - new Date(a.Timestamp).getTime()
       )[0];
 
@@ -388,8 +388,8 @@ export class CloudWatchCollector implements MetricCollector {
   private async makeAWSRequest(
     service: string,
     action: string,
-    params: any
-  ): Promise<any> {
+    params: Record<string, unknown>
+  ): Promise<unknown> {
     // 실제 구현에서는 AWS SDK v3 사용
     // 예: import { EC2Client, DescribeInstancesCommand } from "@aws-sdk/client-ec2";
 
@@ -415,7 +415,7 @@ export class CloudWatchCollector implements MetricCollector {
   private async signAWSRequest(
     service: string,
     action: string,
-    params: any
+    params: Record<string, unknown>
   ): Promise<Record<string, string>> {
     // AWS Signature Version 4 구현 필요
     // 실제로는 AWS SDK가 자동으로 처리
@@ -433,7 +433,7 @@ export class CloudWatchCollector implements MetricCollector {
     );
   }
 
-  private async getInstanceInfo(instanceId: string): Promise<any> {
+  private async getInstanceInfo(instanceId: string): Promise<unknown> {
     const response = await this.makeAWSRequest('ec2', 'DescribeInstances', {
       InstanceIds: [instanceId],
     });
@@ -504,7 +504,7 @@ export class CloudWatchCollector implements MetricCollector {
   }
 
   private getEnvironmentFromTags(
-    tags: any[]
+    tags: unknown[]
   ): 'production' | 'staging' | 'development' {
     const envTag = tags.find(tag => tag.Key.toLowerCase() === 'environment');
     const env = envTag?.Value?.toLowerCase();

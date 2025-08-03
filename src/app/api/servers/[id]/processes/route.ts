@@ -20,7 +20,8 @@ export async function GET(
       `server:${serverId}:metrics:latest`
     );
 
-    if (!latestMetrics || !latestMetrics.processes) {
+    const metricsData = latestMetrics as any;
+    if (!latestMetrics || !metricsData.processes) {
       return NextResponse.json(
         { processes: [] },
         { status: 404, statusText: 'No process data found for this server.' }
@@ -28,7 +29,7 @@ export async function GET(
     }
 
     // 프로세스 목록만 추출하여 반환
-    return NextResponse.json({ processes: latestMetrics.processes });
+    return NextResponse.json({ processes: metricsData.processes });
   } catch (error) {
     console.error(
       `[API Error] Failed to fetch processes for server ${serverId}:`,

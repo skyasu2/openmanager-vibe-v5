@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { safeConsoleError } from '../lib/utils-functions';
 
 interface UseNaturalLoadingTimeProps {
-  actualLoadingPromise?: Promise<any> | null;
+  actualLoadingPromise?: Promise<unknown> | null;
   skipCondition?: boolean;
   onComplete?: () => void;
 }
@@ -280,9 +280,9 @@ export const useMinimumLoadingTime = useNaturalLoadingTime;
 
 // 데이터 로딩 Promise 헬퍼
 export const useDataLoadingPromise = (
-  data: any[],
+  data: unknown[],
   isLoading: boolean,
-  error: any
+  error: Error | unknown
 ): Promise<any[]> => {
   return useMemo(() => {
     return new Promise((resolve, reject) => {

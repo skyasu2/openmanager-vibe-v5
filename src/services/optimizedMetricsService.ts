@@ -20,7 +20,7 @@ const redis = new Redis({
 });
 
 // 메모리 캐시 (매우 짧은 TTL)
-const memoryCache = new Map<string, { data: any; expiry: number }>();
+const memoryCache = new Map<string, { data: unknown; expiry: number }>();
 
 /**
  * 시간 범위 파싱
@@ -42,7 +42,7 @@ function parseTimeRange(range: string): number {
 /**
  * 메모리 캐시 헬퍼
  */
-function getFromMemoryCache(key: string): any | null {
+function getFromMemoryCache(key: string): unknown | null {
   const cached = memoryCache.get(key);
   if (cached && cached.expiry > Date.now()) {
     return cached.data;
@@ -51,7 +51,7 @@ function getFromMemoryCache(key: string): any | null {
   return null;
 }
 
-function setMemoryCache(key: string, data: any, ttlSeconds: number) {
+function setMemoryCache(key: string, data: unknown, ttlSeconds: number) {
   // 메모리 캐시 크기 제한 (100개 항목)
   if (memoryCache.size > 100) {
     const firstKey = memoryCache.keys().next().value;
@@ -223,16 +223,16 @@ export async function getServerStatusSummary(): Promise<{
     // 통계 계산
     const stats = {
       total: data.length,
-      healthy: data.filter((s: any) => s.status === 'healthy').length,
-      warning: data.filter((s: any) => s.status === 'warning').length,
-      critical: data.filter((s: any) => s.status === 'critical').length,
+      healthy: data.filter((s: unknown) => s.status === 'healthy').length,
+      warning: data.filter((s: unknown) => s.status === 'warning').length,
+      critical: data.filter((s: unknown) => s.status === 'critical').length,
       avg_cpu:
-        data.reduce((sum: number, s: any) => sum + s.cpu, 0) / data.length || 0,
+        data.reduce((sum: number, s: unknown) => sum + s.cpu, 0) / data.length || 0,
       avg_memory:
-        data.reduce((sum: number, s: any) => sum + s.memory, 0) / data.length ||
+        data.reduce((sum: number, s: unknown) => sum + s.memory, 0) / data.length ||
         0,
       avg_response_time:
-        data.reduce((sum: number, s: any) => sum + s.response_time, 0) /
+        data.reduce((sum: number, s: unknown) => sum + s.response_time, 0) /
           data.length || 0,
     };
 

@@ -10,6 +10,38 @@ import { useState, useEffect } from 'react';
 import { startMockScenario, getActiveScenarios, getMockStats } from '@/lib/ai/google-ai-client';
 import { getSupabaseMockStats } from '@/lib/supabase/supabase-client';
 import { getGCPFunctionsMockStats } from '@/lib/gcp/gcp-functions-client';
+
+// 타입 정의
+interface MockScenario {
+  id: string;
+  type: 'cascading-failure' | 'peak-load' | 'memory-leak' | 'network-partition' | 'random';
+  status: 'active' | 'completed' | 'failed';
+  startTime: string;
+  duration?: number;
+}
+
+interface MockStats {
+  totalCalls: number;
+  successRate: number;
+  avgResponseTime: number;
+  tokensGenerated: number;
+  errors: number;
+}
+
+interface SupabaseMockStats {
+  queries: number;
+  inserts: number;
+  authCalls: number;
+  totalCalls: number;
+  errors: number;
+}
+
+interface GCPMockStats {
+  koreanNLPCalls: number;
+  mlAnalyticsCalls: number;
+  totalCalls: number;
+  errors: number;
+}
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,19 +60,20 @@ import {
 } from 'lucide-react';
 
 export default function MockScenariosPage() {
-  const [activeScenarios, setActiveScenarios] = useState<any>(null);
-  const [googleAIStats, setGoogleAIStats] = useState<any>(null);
-  const [supabaseStats, setSupabaseStats] = useState<any>(null);
-  const [gcpStats, setGCPStats] = useState<any>(null);
+  const [activeScenarios, setActiveScenarios] = useState<Record<string, any> | null>(null);
+  const [googleAIStats, setGoogleAIStats] = useState<Record<string, any> | null>(null);
+  const [supabaseStats, setSupabaseStats] = useState<Record<string, any> | null>(null);
+  const [gcpStats, setGCPStats] = useState<Record<string, any> | null>(null);
   const [isRunning, setIsRunning] = useState(false);
 
   // 통계 업데이트
   useEffect(() => {
     const updateStats = () => {
-      setActiveScenarios(getActiveScenarios());
+      const scenarios = getActiveScenarios();
+      setActiveScenarios(scenarios);
       setGoogleAIStats(getMockStats());
       setSupabaseStats(getSupabaseMockStats());
-      setGCPStats(getGCPFunctionsMockStats());
+      setGCPStats(getGCPFunctionsMockStats() as Record<string, any> | null);
     };
 
     updateStats();
@@ -50,7 +83,7 @@ export default function MockScenariosPage() {
   }, []);
 
   // 시나리오 시작
-  const handleStartScenario = (scenarioType: any) => {
+  const handleStartScenario = (scenarioType: "cascading-failure" | "peak-load" | "memory-leak" | "network-partition" | "random") => {
     startMockScenario(scenarioType);
     setIsRunning(true);
     setTimeout(() => setIsRunning(false), 1000);
@@ -146,55 +179,29 @@ export default function MockScenariosPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="h-5 w-5" />
-              활성 시나리오
+              활성 시나리오 ({Object.keys(activeScenarios).length}개)
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {activeScenarios.server && (
-                <div className="border rounded-lg p-4">
+              {Object.entries(activeScenarios).map(([key, scenario]) => (
+                <div key={key} className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">{activeScenarios.server.name}</h3>
-                    <Badge variant="secondary">실행 중</Badge>
+                    <h3 className="font-semibold">{scenario.name || key}</h3>
+                    <Badge variant="secondary">{scenario.status || 'active'}</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
-                    {activeScenarios.server.description}
+                    타입: {key}
                   </p>
-                  {activeScenarios.server.currentState && (
+                  {scenario.currentState && (
                     <div className="space-y-2">
                       <div className="text-sm">
-                        경과 시간: {Math.floor(activeScenarios.server.currentState.elapsedTime)}초
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {Array.from(activeScenarios.server.currentState.servers.entries()).map((entry) => {
-                          const [id, state] = entry as [string, {
-                            status: 'healthy' | 'warning' | 'critical' | 'offline';
-                            metrics: {
-                              cpu: number;
-                              memory: number;
-                              disk: number;
-                              network: number;
-                              responseTime: number;
-                            };
-                          }];
-                          return (
-                            <Badge 
-                              key={id}
-                              variant={
-                                state.status === 'healthy' ? 'default' :
-                                state.status === 'warning' ? 'secondary' :
-                                'destructive'
-                              }
-                            >
-                              {id}: {state.status}
-                            </Badge>
-                          );
-                        })}
+                        현재 상태: {JSON.stringify(scenario.currentState.phase || scenario.currentState)}
                       </div>
                     </div>
                   )}
                 </div>
-              )}
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -220,19 +227,19 @@ export default function MockScenariosPage() {
               {googleAIStats ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{googleAIStats.totalCalls}</div>
+                    <div className="text-2xl font-bold">{googleAIStats.totalCalls || 0}</div>
                     <div className="text-sm text-muted-foreground">총 호출</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{googleAIStats.tokensGenerated}</div>
+                    <div className="text-2xl font-bold">{googleAIStats.tokensGenerated || 0}</div>
                     <div className="text-sm text-muted-foreground">생성 토큰</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{googleAIStats.successRate}%</div>
+                    <div className="text-2xl font-bold">{googleAIStats.successRate || 0}%</div>
                     <div className="text-sm text-muted-foreground">성공률</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{googleAIStats.avgResponseTime}ms</div>
+                    <div className="text-2xl font-bold">{googleAIStats.avgResponseTime || 0}ms</div>
                     <div className="text-sm text-muted-foreground">평균 응답 시간</div>
                   </div>
                 </div>
@@ -255,19 +262,19 @@ export default function MockScenariosPage() {
               {supabaseStats ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{supabaseStats.queries}</div>
+                    <div className="text-2xl font-bold">{supabaseStats.queries || 0}</div>
                     <div className="text-sm text-muted-foreground">쿼리</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{supabaseStats.inserts}</div>
+                    <div className="text-2xl font-bold">{supabaseStats.inserts || 0}</div>
                     <div className="text-sm text-muted-foreground">삽입</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{supabaseStats.authCalls}</div>
+                    <div className="text-2xl font-bold">{supabaseStats.authCalls || 0}</div>
                     <div className="text-sm text-muted-foreground">인증</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{supabaseStats.totalCalls}</div>
+                    <div className="text-2xl font-bold">{supabaseStats.totalCalls || 0}</div>
                     <div className="text-sm text-muted-foreground">총 호출</div>
                   </div>
                 </div>
@@ -290,15 +297,15 @@ export default function MockScenariosPage() {
               {gcpStats ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{gcpStats.koreanNLPCalls}</div>
+                    <div className="text-2xl font-bold">{gcpStats.koreanNLPCalls || 0}</div>
                     <div className="text-sm text-muted-foreground">Korean NLP</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{gcpStats.mlAnalyticsCalls}</div>
+                    <div className="text-2xl font-bold">{gcpStats.mlAnalyticsCalls || 0}</div>
                     <div className="text-sm text-muted-foreground">ML Analytics</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{gcpStats.totalCalls}</div>
+                    <div className="text-2xl font-bold">{gcpStats.totalCalls || 0}</div>
                     <div className="text-sm text-muted-foreground">총 호출</div>
                   </div>
                 </div>

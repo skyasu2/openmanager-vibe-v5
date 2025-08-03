@@ -178,7 +178,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
     // EnhancedServerMetrics를 Server 타입으로 변환
     return servers.map(
-      (server: any): Server => ({
+      (server: unknown): Server => ({
         id: server.id,
         name: server.name || server.hostname,
         hostname: server.hostname || server.name,
@@ -279,7 +279,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     let offline = 0;
     let warning = 0;
 
-    actualServers.forEach((server: any) => {
+    actualServers.forEach((server: unknown) => {
       // 목업 시스템의 상태 그대로 사용
       switch (server.status) {
         case 'online':
@@ -298,15 +298,15 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     });
 
     const avgCpu = Math.round(
-      actualServers.reduce((sum: number, s: any) => sum + (s.cpu || 0), 0) /
+      actualServers.reduce((sum: number, s: unknown) => sum + (s.cpu || 0), 0) /
         total
     );
     const avgMemory = Math.round(
-      actualServers.reduce((sum: number, s: any) => sum + (s.memory || 0), 0) /
+      actualServers.reduce((sum: number, s: unknown) => sum + (s.memory || 0), 0) /
         total
     );
     const avgDisk = Math.round(
-      actualServers.reduce((sum: number, s: any) => sum + (s.disk || 0), 0) /
+      actualServers.reduce((sum: number, s: unknown) => sum + (s.disk || 0), 0) /
         total
     );
 

@@ -22,7 +22,7 @@ interface LogEntry {
   category: LogCategory;
   message: string;
   source?: string;
-  context?: any;
+  context?: unknown;
 }
 
 // 간단한 인메모리 로그 저장소
@@ -34,7 +34,7 @@ function addLog(
   level: LogLevel,
   category: LogCategory,
   message: string,
-  context?: any
+  context?: unknown
 ) {
   const entry: LogEntry = {
     id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,

@@ -75,39 +75,9 @@ export interface ServerHealth {
 }
 
 /**
- * 서버 메트릭 정의 (통합)
+ * 서버 메트릭은 중앙화된 타입 시스템에서 가져옴
  */
-export interface ServerMetrics {
-  // 기본 메트릭
-  cpu: number;
-  memory: number;
-  disk: number;
-  network: number;
-
-  // 추가 정보
-  timestamp?: string;
-  uptime?: number;
-  id?: string;
-  hostname?: string;
-  environment?: string;
-  role?: string;
-  status?: ServerStatus;
-
-  // 상세 메트릭
-  cpu_usage?: number;
-  memory_usage?: number;
-  disk_usage?: number;
-  network_in?: number;
-  network_out?: number;
-  response_time?: number;
-  last_updated?: string;
-
-  // 관련 데이터
-  alerts?: ServerAlert[];
-  requests?: number;
-  errors?: number;
-  customMetrics?: Record<string, string | number | boolean>;
-}
+export type { ServerMetrics } from '@/core/types';
 
 /**
  * 통합 서버 인스턴스 정의

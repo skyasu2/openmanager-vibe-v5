@@ -323,7 +323,7 @@ export class CloudContextLoader {
   /**
    * 📁 시스템 컨텍스트 조회
    */
-  private async fetchSystemContext(): Promise<any> {
+  private async fetchSystemContext(): Promise<unknown> {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);

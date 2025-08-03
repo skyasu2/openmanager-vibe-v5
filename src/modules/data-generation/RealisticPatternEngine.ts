@@ -290,7 +290,7 @@ export class RealisticPatternEngine {
       | 'response_time',
     serverType: string,
     timestamp: Date,
-    previousMetrics?: any
+    previousMetrics?: unknown
   ): number {
     const profile =
       this.serverProfiles.get(serverType) || this.serverProfiles.get('web')!;
@@ -398,7 +398,7 @@ export class RealisticPatternEngine {
    */
   shouldTriggerFailure(
     serverType: string,
-    currentMetrics: any,
+    currentMetrics: unknown,
     timestamp: Date
   ): { shouldTrigger: boolean; failureType?: string; severity?: number } {
     const profile =

@@ -33,9 +33,9 @@ interface MockServer {
   network?: number;
   uptime?: number | string;
   lastUpdate?: string;
-  alerts?: any[] | number;
-  pattern_info?: any;
-  correlation_metrics?: any;
+  alerts?: unknown[] | number;
+  pattern_info?: unknown;
+  correlation_metrics?: unknown;
 }
 
 /**

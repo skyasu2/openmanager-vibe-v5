@@ -51,9 +51,9 @@ function convertGCPTypeToEnvironment(gcpType: string): string {
  * @returns ServerInstance 배열
  */
 export function adaptGCPMetricsToServerInstances(
-  gcpMetrics: any // GCPServerMetrics removed[]
+  gcpMetrics: unknown // GCPServerMetrics removed[]
 ): ServerInstance[] {
-  return gcpMetrics.map((gcp: any): ServerInstance => {
+  return gcpMetrics.map((gcp: unknown): ServerInstance => {
     // 기본 속성들 매핑
     const baseInstance: ServerInstance = {
       id: gcp.id,
@@ -128,7 +128,7 @@ export function adaptGCPMetricsToServerInstances(
  * 단일 GCPServerMetrics를 ServerInstance로 변환
  */
 export function adaptSingleGCPMetricToServerInstance(
-  gcpMetric: any // GCPServerMetrics removed
+  gcpMetric: unknown // GCPServerMetrics removed
 ): ServerInstance {
   return adaptGCPMetricsToServerInstances([gcpMetric])[0];
 }
@@ -138,7 +138,7 @@ export function adaptSingleGCPMetricToServerInstance(
  */
 export function adaptServerInstanceToGCPMetrics(
   serverInstance: ServerInstance
-): any {
+): unknown {
   // GCPServerMetrics removed
   return {
     id: serverInstance.id,

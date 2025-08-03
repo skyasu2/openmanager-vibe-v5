@@ -55,7 +55,7 @@ export class MockScenarioManager {
   /**
    * Mock 인스턴스 등록
    */
-  registerMockInstance(type: 'googleAI' | 'supabase' | 'gcpFunctions', instance: any) {
+  registerMockInstance(type: 'googleAI' | 'supabase' | 'gcpFunctions', instance: unknown) {
     this.mockInstances[type] = instance;
     console.log(`✅ ${type} Mock 인스턴스 등록됨`);
   }

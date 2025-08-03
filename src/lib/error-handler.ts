@@ -13,7 +13,7 @@ export interface SafeError {
   stack?: string;
   code?: string;
   name?: string;
-  details?: any;
+  details?: unknown;
   originalError?: unknown;
 }
 
@@ -427,7 +427,7 @@ export async function safeApiCall<T>(
 export interface ErrorRecoveryOptions {
   maxRetries?: number;
   retryDelay?: number;
-  fallbackValue?: any;
+  fallbackValue?: unknown;
   onRetry?: (attempt: number, error: SafeError) => void;
   shouldRetry?: (error: SafeError) => boolean;
 }
@@ -485,7 +485,7 @@ export async function withErrorRecovery<T>(
 /**
  * 🎯 React 컴포넌트용 에러 바운더리 헬퍼
  */
-export function createErrorBoundaryInfo(error: unknown, errorInfo?: any) {
+export function createErrorBoundaryInfo(error: unknown, errorInfo?: unknown) {
   const safeError = createSafeError(error);
 
   return {

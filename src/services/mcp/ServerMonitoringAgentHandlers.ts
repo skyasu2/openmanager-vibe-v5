@@ -12,7 +12,7 @@ import type { MCPMonitoringData, MCPPatternAnalysis } from '@/types/mcp';
 export function handleServerStatusQuery(
   data: MCPMonitoringData,
   analysis: MCPPatternAnalysis,
-  getHealthScore: (health: any) => number
+  getHealthScore: (health: unknown) => number
 ): string {
   const { servers, summary } = data;
   const runningServers = servers.filter(

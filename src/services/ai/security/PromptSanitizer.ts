@@ -119,7 +119,7 @@ export class PromptSanitizer {
 
   private constructor(config?: Partial<SanitizationConfig>) {
     this.config = {
-      enableStrictMode: false, // 포트폴리오용 - 기본 보안만 적용
+      enableStrictMode: true, // 엔터프라이즈급 보안 적용
       maxInputLength: 2000,
       allowedLanguages: ['ko', 'en'],
       blockSystemCommands: true,

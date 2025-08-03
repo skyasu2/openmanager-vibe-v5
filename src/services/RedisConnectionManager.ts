@@ -51,8 +51,8 @@ interface RedisClient {
   status?: string;
 }
 
-let Redis: any = null;
-let Cluster: any = null;
+let Redis: unknown = null;
+let Cluster: unknown = null;
 
 interface ConnectionStats {
   totalConnections: number;

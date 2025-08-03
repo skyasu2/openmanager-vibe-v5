@@ -107,7 +107,7 @@ export function createCacheKey(
  * 데이터 크기 체크
  */
 export function validateDataSize(
-  data: any,
+  data: unknown,
   type: keyof typeof FREE_TIER_CACHE_CONFIG.maxSize
 ): boolean {
   const serialized = JSON.stringify(data);
@@ -132,7 +132,7 @@ export function getTTL(type: keyof typeof FREE_TIER_CACHE_CONFIG.ttl): number {
 /**
  * 압축 여부 결정
  */
-export function shouldCompress(data: any): boolean {
+export function shouldCompress(data: unknown): boolean {
   if (!FREE_TIER_CACHE_CONFIG.compression.enabled) return false;
 
   const size = new TextEncoder().encode(JSON.stringify(data)).length;

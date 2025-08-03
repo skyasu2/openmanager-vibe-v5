@@ -20,7 +20,7 @@ import { timerManager } from '../../utils/TimerManager';
 import type { ServerStatusSummary } from '@/types/unified-server';
 
 // 분리된 유틸 함수들
-const generateQuestions = (metrics: any): string[] => {
+const generateQuestions = (metrics: unknown): string[] => {
   const questions = [
     '현재 시스템 전체 상태를 요약해줘',
     'CPU 사용률이 높은 서버들을 분석해줘',
@@ -133,7 +133,7 @@ export default function ChatSection({
   const [presets, setPresets] = useState<string[]>([]);
 
   // 동적 프리셋 질문 생성 (분리된 유틸 함수)
-  const generateContextualQuestions = useCallback((metrics: any): string[] => {
+  const generateContextualQuestions = useCallback((metrics: unknown): string[] => {
     return generateQuestions(metrics);
   }, []);
 

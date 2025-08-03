@@ -33,7 +33,7 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
 
         recordNetworkRequest(networkInfo, response.ok, 'api-server');
         return response.ok;
-      } catch (error: any) {
+      } catch (error: Error | unknown) {
         if (error.networkInfo) {
           recordNetworkRequest(error.networkInfo, false, 'api-server');
         }
@@ -61,7 +61,7 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
 
         recordNetworkRequest(networkInfo, response.ok, 'metrics-database');
         return response.ok;
-      } catch (error: any) {
+      } catch (error: Error | unknown) {
         if (error.networkInfo) {
           recordNetworkRequest(error.networkInfo, false, 'metrics-database');
         }
@@ -107,7 +107,7 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
         });
 
         return true;
-      } catch (error: any) {
+      } catch (error: Error | unknown) {
         if (error.networkInfo) {
           recordNetworkRequest(error.networkInfo, false, 'unified-ai-engine');
         }
@@ -145,7 +145,7 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
 
         recordNetworkRequest(networkInfo, response.ok, 'server-generator');
         return response.ok;
-      } catch (error: any) {
+      } catch (error: Error | unknown) {
         if (error.networkInfo) {
           recordNetworkRequest(error.networkInfo, false, 'server-generator');
         }

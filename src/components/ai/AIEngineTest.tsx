@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 interface TestResult {
   test: string;
   status: 'pending' | 'success' | 'error';
-  response?: any;
+  response?: unknown;
   error?: string;
   duration?: number;
 }
@@ -30,7 +30,7 @@ const getDefaultConfig = () => ({
 export const AIEngineTest: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<TestResult[]>([]);
-  const [config, setConfig] = useState<any>(null);
+  const [config, setConfig] = useState<unknown>(null);
 
   // AI 엔진 설정 로드
   const loadConfig = async () => {
@@ -130,7 +130,7 @@ export const AIEngineTest: React.FC = () => {
   };
 
   // 개별 테스트 실행
-  const runTest = async (index: number, testFn: () => Promise<any>) => {
+  const runTest = async (index: number, testFn: () => Promise<unknown>) => {
     const startTime = Date.now();
 
     try {

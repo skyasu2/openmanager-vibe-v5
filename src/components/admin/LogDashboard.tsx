@@ -131,7 +131,7 @@ interface LogEntry {
   category: LogCategory;
   source: string;
   message: string;
-  data?: any;
+  data?: unknown;
   metadata?: {
     userId?: string;
     sessionId?: string;
@@ -169,7 +169,7 @@ interface LogData {
     enabled: boolean;
     logCount: number;
     lastLogTime?: string;
-    config: any;
+    config: Record<string, unknown>;
   };
 }
 
@@ -350,12 +350,24 @@ export default function LogDashboard() {
   };
 
   // 🎨 커스텀 툴팁
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ 
+    active, 
+    payload, 
+    label 
+  }: {
+    active?: boolean;
+    payload?: Array<{
+      color: string;
+      name: string;
+      value: number | string;
+    }>;
+    label?: string;
+  }) => {
     if (active && payload && payload.length) {
       return (
         <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
           <p className="font-semibold text-gray-800">{label}</p>
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry, index: number) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
               {entry.name}: {entry.value}
             </p>

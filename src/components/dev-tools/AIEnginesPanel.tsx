@@ -33,7 +33,7 @@ interface AITestResult {
   response: string;
   responseTime: number;
   error?: string;
-  metadata?: any;
+  metadata?: unknown;
 }
 
 interface AIEngineStatus {

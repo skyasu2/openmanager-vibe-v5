@@ -142,7 +142,7 @@ export const safeLogWrite = (
 export const safeFileUpload = (
   uploadType: string,
   fileName: string,
-  data: any
+  data: unknown
 ): boolean => {
   if (isVercelEnvironment()) {
     console.warn(
@@ -160,7 +160,7 @@ export const safeFileUpload = (
  */
 export const safeContextBundleSave = (
   bundleType: string,
-  bundleData: any,
+  bundleData: unknown,
   clientId?: string
 ): boolean => {
   if (isVercelEnvironment()) {
@@ -203,7 +203,7 @@ export const safeBackupCreation = (
 /**
  * 환경 변수 백업 차단 (베르셀 환경에서 무력화)
  */
-export const safeEnvBackup = (backupData: any, backupPath: string): boolean => {
+export const safeEnvBackup = (backupData: unknown, backupPath: string): boolean => {
   if (isVercelEnvironment()) {
     console.warn(`🚫 베르셀 환경에서 환경 변수 백업 차단됨: ${backupPath}`);
     return false;

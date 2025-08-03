@@ -16,8 +16,8 @@
 'use client';
 
 interface FloatingSystemControlProps {
-  systemState: any;
-  aiAgentState: any;
+  systemState: unknown;
+  aiAgentState: unknown;
   isSystemActive: boolean;
   isSystemPaused: boolean;
   onStartSystem: () => Promise<void>;

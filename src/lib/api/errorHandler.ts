@@ -57,7 +57,7 @@ const statusMap: Record<ApiErrorType, number> = {
 export function createErrorResponse(
   message: string,
   type: ApiErrorType = 'INTERNAL_SERVER_ERROR',
-  details?: any,
+  details?: unknown,
   status?: number
 ): NextResponse {
   const responseStatus = status || statusMap[type] || 500;
@@ -191,7 +191,7 @@ export function withErrorHandler<T extends any[], R>(
  */
 export function createSystemStatusResponse(
   isRunning: boolean,
-  data: any,
+  data: unknown,
   message?: string
 ): NextResponse {
   if (!isRunning) {

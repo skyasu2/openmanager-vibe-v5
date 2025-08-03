@@ -150,7 +150,7 @@ interface RouterStatus {
   _initialized: boolean;
   strategy: 'performance' | 'cost' | 'reliability';
   services: {
-    gcp: any;
+    gcp: unknown;
     google: string;
     local: string;
   };
@@ -211,7 +211,7 @@ export const GCPQuotaMonitoringDashboard: React.FC = () => {
         },
       };
 
-      const historyData: any[] = [];
+      const historyData: unknown[] = [];
 
       setGCPStats(gcpData);
       setThreeTierStats(threeTierData);

@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
       performance: {
         metrics_analyzed: metrics.length,
-        anomalies_found: result.data?.anomalies?.length || 0,
+        anomalies_found: (result.data as any)?.anomalies?.length || 0,
       },
     });
 

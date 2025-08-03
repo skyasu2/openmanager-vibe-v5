@@ -19,8 +19,8 @@ interface UseOptimizedRealtimeOptions {
   dataType: DataType;
   frequency?: UpdateFrequency;
   enableVisibilityOptimization?: boolean;
-  _initialData?: any;
-  onUpdate?: (data: any) => void;
+  _initialData?: unknown;
+  onUpdate?: (data: unknown) => void;
   subscriberId?: string;
 }
 

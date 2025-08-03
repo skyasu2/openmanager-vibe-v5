@@ -23,10 +23,10 @@ enum LogLevel {
 const currentLogLevel = config.isDevelopment ? LogLevel.VERBOSE : LogLevel.INFO;
 
 // 안전한 JSON 직렬화 함수
-const safeStringify = (obj: any, maxDepth = 3): string => {
+const safeStringify = (obj: unknown, maxDepth = 3): string => {
   const seen = new WeakSet();
 
-  const replacer = (key: string, value: any, depth = 0): any => {
+  const replacer = (key: string, value: unknown, depth = 0): unknown => {
     // 최대 깊이 제한
     if (depth > maxDepth) {
       return '[Max Depth Reached]';
@@ -61,7 +61,7 @@ const safeStringify = (obj: any, maxDepth = 3): string => {
 
     // 재귀적으로 깊이 추가
     if (typeof value === 'object' && value !== null) {
-      const result: any = Array.isArray(value) ? [] : {};
+      const result: unknown = Array.isArray(value) ? [] : {};
       for (const k in value) {
         result[k] = replacer(k, value[k], depth + 1);
       }
@@ -79,7 +79,7 @@ const safeStringify = (obj: any, maxDepth = 3): string => {
 };
 
 // 로그 포맷팅 함수
-const formatMessage = (level: string, message: string, data?: any): string => {
+const formatMessage = (level: string, message: string, data?: unknown): string => {
   const timestamp = new Date().toISOString();
   const prefix = `[${timestamp}] [${level}]`;
 
@@ -103,35 +103,35 @@ class EnhancedLogger {
     return level <= currentLogLevel;
   }
 
-  error(message: string, data?: any): void {
+  error(message: string, data?: unknown): void {
     if (!this.shouldLog(LogLevel.ERROR)) return;
 
     const formattedMessage = formatMessage('ERROR', message, data);
     console.error(formattedMessage);
   }
 
-  warn(message: string, data?: any): void {
+  warn(message: string, data?: unknown): void {
     if (!this.shouldLog(LogLevel.WARN)) return;
 
     const formattedMessage = formatMessage('WARN', message, data);
     console.warn(formattedMessage);
   }
 
-  info(message: string, data?: any): void {
+  info(message: string, data?: unknown): void {
     if (!this.shouldLog(LogLevel.INFO)) return;
 
     const formattedMessage = formatMessage('INFO', message, data);
     console.log(formattedMessage);
   }
 
-  debug(message: string, data?: any): void {
+  debug(message: string, data?: unknown): void {
     if (!this.shouldLog(LogLevel.DEBUG)) return;
 
     const formattedMessage = formatMessage('DEBUG', message, data);
     console.log(formattedMessage);
   }
 
-  verbose(message: string, data?: any): void {
+  verbose(message: string, data?: unknown): void {
     if (!this.shouldLog(LogLevel.VERBOSE)) return;
 
     const formattedMessage = formatMessage('VERBOSE', message, data);
@@ -139,7 +139,7 @@ class EnhancedLogger {
   }
 
   // 객체 전용 로깅 (기존 console.log 대체용)
-  object(label: string, obj: any): void {
+  object(label: string, obj: unknown): void {
     if (!this.shouldLog(LogLevel.DEBUG)) return;
 
     const serialized = safeStringify(obj);
@@ -147,7 +147,7 @@ class EnhancedLogger {
   }
 
   // API 응답 로깅
-  apiResponse(url: string, response: any): void {
+  apiResponse(url: string, response: unknown): void {
     if (!this.shouldLog(LogLevel.DEBUG)) return;
 
     const responseData = {
@@ -161,7 +161,7 @@ class EnhancedLogger {
   }
 
   // 에러 상세 로깅
-  errorDetail(context: string, error: any): void {
+  errorDetail(context: string, error: Error | unknown): void {
     const errorData = {
       context,
       error:
@@ -179,7 +179,7 @@ class EnhancedLogger {
   }
 
   // 성능 측정 로깅
-  performance(operation: string, startTime: number, data?: any): void {
+  performance(operation: string, startTime: number, data?: unknown): void {
     const duration = Date.now() - startTime;
     const perfData = {
       operation,
@@ -196,28 +196,28 @@ class EnhancedLogger {
 const logger = new EnhancedLogger();
 
 // 기존 console.log 대체용 헬퍼 함수들
-export const logObject = (label: string, obj: any) => {
+export const logObject = (label: string, obj: unknown) => {
   logger.object(label, obj);
 };
 
-export const logError = (message: string, error?: any) => {
+export const logError = (message: string, error?: unknown) => {
   logger.errorDetail(message, error);
 };
 
-export const logApiCall = (url: string, response: any) => {
+export const logApiCall = (url: string, response: unknown) => {
   logger.apiResponse(url, response);
 };
 
 export const logPerformance = (
   operation: string,
   startTime: number,
-  data?: any
+  data?: unknown
 ) => {
   logger.performance(operation, startTime, data);
 };
 
 // 안전한 콘솔 출력 함수 (기존 코드 호환용)
-export const safeConsoleLog = (message: string, data?: any) => {
+export const safeConsoleLog = (message: string, data?: unknown) => {
   if (data === undefined) {
     console.log(message);
     return;

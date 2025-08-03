@@ -46,7 +46,7 @@ export function createMiddlewareClient(
           ? cookie
           : String((cookie as any).value);
       },
-      set(name: string, value: string, options: any) {
+      set(name: string, value: string, options: Record<string, unknown>) {
         // 🔐 Vercel 환경에 최적화된 쿠키 옵션
         const isVercel =
           process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined;
@@ -88,7 +88,7 @@ export function createMiddlewareClient(
           isVercel,
         });
       },
-      remove(name: string, options: any) {
+      remove(name: string, options: Record<string, unknown>) {
         // ✅ response 객체에서만 쿠키를 삭제합니다 (request는 읽기 전용)
         try {
           if (response && 'cookies' in response) {

@@ -118,10 +118,10 @@ export default function LiveSystemAlerts() {
           const data = await response.json();
 
           // 서버 상태에서 알림 추출
-          const newAlerts: any[] = [];
+          const newAlerts: unknown[] = [];
 
           if (data.servers) {
-            data.servers.forEach((server: any) => {
+            data.servers.forEach((server: unknown) => {
               if (server.status === 'critical') {
                 newAlerts.push({
                   id: `${server.id}-critical`,

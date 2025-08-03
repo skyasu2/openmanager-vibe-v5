@@ -208,7 +208,7 @@ export interface IIntegratedPredictionSystem {
   ): Promise<PredictionResult>;
 
   // 기존 AnomalyDetectionService 기능
-  detectAnomalies(metrics: ServerMetrics[], logs?: any[]): Promise<Anomaly[]>;
+  detectAnomalies(metrics: ServerMetrics[], logs?: unknown[]): Promise<Anomaly[]>;
 
   // 새로운 통합 기능
   performIntegratedAnalysis(
@@ -249,7 +249,7 @@ export interface PredictionEvent {
     | 'system_health_changed';
   serverId: string;
   timestamp: Date;
-  data: any;
+  data: unknown;
   severity: 'info' | 'warning' | 'critical';
 }
 

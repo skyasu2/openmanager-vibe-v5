@@ -582,7 +582,7 @@ export class DemoScenarioManager {
     // 단계별 강도 계수
     const phaseIntensity = this.calculatePhaseIntensity(phase, cycleMinutes);
 
-    const changes: any = {
+    const changes: unknown = {
       targetServers: affectedInfrastructure.criticalServers,
       serverTypes: affectedInfrastructure.primaryTargets,
       metrics: {
@@ -792,7 +792,7 @@ export class DemoScenarioManager {
    */
   private applyMetricChanges(
     server: EnhancedServerMetrics,
-    metrics: any
+    metrics: unknown
   ): void {
     if (metrics.cpu !== undefined) {
       server.cpu_usage = this.calculateNewValue(server.cpu_usage, metrics.cpu);

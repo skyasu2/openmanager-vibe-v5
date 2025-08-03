@@ -16,19 +16,19 @@ export class InteractionLogger {
     return InteractionLogger.instance;
   }
 
-  log(event: string, data?: any): void {
+  log(event: string, data?: unknown): void {
     console.log(`[InteractionLogger] ${event}`, data);
   }
 
-  logFeedback(feedback: any): void {
+  logFeedback(feedback: unknown): void {
     console.log('[InteractionLogger] Feedback:', feedback);
   }
 
-  logUserFeedback(feedback: any): void {
+  logUserFeedback(feedback: unknown): void {
     console.log('[InteractionLogger] User feedback:', feedback);
   }
 
-  logError(error: Error, context?: any): void {
+  logError(error: Error, context?: unknown): void {
     console.error('[InteractionLogger] Error:', error, context);
   }
 }

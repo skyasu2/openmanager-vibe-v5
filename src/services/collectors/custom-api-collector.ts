@@ -101,13 +101,13 @@ export class CustomAPICollector implements MetricCollector {
       // API 응답에서 서버 ID 목록 추출
       if (Array.isArray(response.data)) {
         return response.data.map(
-          (server: any) => server.id || server.serverId || server.hostname
+          (server: unknown) => server.id || server.serverId || server.hostname
         );
       }
 
       if (response.data.servers && Array.isArray(response.data.servers)) {
         return response.data.servers.map(
-          (server: any) => server.id || server.serverId || server.hostname
+          (server: unknown) => server.id || server.serverId || server.hostname
         );
       }
 
@@ -145,8 +145,8 @@ export class CustomAPICollector implements MetricCollector {
   private async makeAPIRequest(
     method: string,
     url: string,
-    body?: any
-  ): Promise<any> {
+    body?: unknown
+  ): Promise<unknown> {
     const options: RequestInit = {
       method,
       headers: this.headers,
@@ -171,7 +171,7 @@ export class CustomAPICollector implements MetricCollector {
     return { success: true, data: await response.text() };
   }
 
-  private transformAPIResponse(apiData: any, serverId: string): ServerMetrics {
+  private transformAPIResponse(apiData: unknown, serverId: string): ServerMetrics {
     const timestamp = new Date(apiData.timestamp || Date.now());
 
     return {
@@ -303,7 +303,7 @@ export class CustomAPICollector implements MetricCollector {
     };
   }
 
-  private extractNumber(value: any, defaultValue: number): number {
+  private extractNumber(value: unknown, defaultValue: number): number {
     if (typeof value === 'number') return value;
     if (typeof value === 'string') {
       const parsed = parseFloat(value);
@@ -312,7 +312,7 @@ export class CustomAPICollector implements MetricCollector {
     return defaultValue;
   }
 
-  private extractArray(value: any, defaultValue: number[]): number[] {
+  private extractArray(value: unknown, defaultValue: number[]): number[] {
     if (Array.isArray(value)) {
       return value.map(v => this.extractNumber(v, 0));
     }
@@ -329,10 +329,10 @@ export class CustomAPICollector implements MetricCollector {
     return defaultValue;
   }
 
-  private extractServices(services: any): ServiceStatus[] {
+  private extractServices(services: unknown): ServiceStatus[] {
     if (!Array.isArray(services)) return [];
 
-    return services.map((service: any) => ({
+    return services.map((service: unknown) => ({
       name: service.name || service.service_name || 'unknown',
       status: this.normalizeServiceStatus(service.status || service.state),
       port: service.port ? this.extractNumber(service.port, 0) : undefined,
@@ -376,7 +376,7 @@ export class CustomAPICollector implements MetricCollector {
   }
 
   private extractEnvironment(
-    env: any
+    env: unknown
   ): 'production' | 'staging' | 'development' {
     if (typeof env !== 'string') return 'development';
 
@@ -393,7 +393,7 @@ export class CustomAPICollector implements MetricCollector {
   }
 
   private extractProvider(
-    provider: any
+    provider: unknown
   ): 'aws' | 'gcp' | 'azure' | 'kubernetes' | 'onpremise' {
     if (typeof provider !== 'string') return 'onpremise';
 

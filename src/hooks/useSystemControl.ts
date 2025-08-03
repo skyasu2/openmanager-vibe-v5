@@ -11,7 +11,7 @@ type AIAgentState = {
   state?: 'disabled' | 'enabled' | 'processing' | 'idle';
 };
 
-type SystemActionFunction = (...args: any[]) => Promise<any> | any;
+type SystemActionFunction = (...args: unknown[]) => Promise<unknown> | any;
 
 interface SystemStatus {
   isRunning: boolean;
@@ -27,7 +27,7 @@ interface UseSystemControlReturn {
   stopSystem: () => Promise<void>;
   restartSystem: () => Promise<void>;
   checkStatus: () => Promise<void>;
-  state: any;
+  state: unknown;
   isSystemActive: boolean;
   isSystemPaused: boolean;
   formattedTime: string;
@@ -319,7 +319,7 @@ export function useSystemControl(): UseSystemControlReturn {
           systemLogger.error(errorMsg);
           isErrorState = true;
         }
-      } catch (error: any) {
+      } catch (error: Error | unknown) {
         if (error.name === 'AbortError') {
           const errorMsg = '❌ 시뮬레이션 엔진 시작 타임아웃';
           errors.push(errorMsg);

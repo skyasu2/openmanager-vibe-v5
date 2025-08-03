@@ -252,7 +252,7 @@ export class ImprovedQueryEngine {
     }
 
     // 병렬 처리 준비
-    const _tasks: Promise<any>[] = [];
+    const _tasks: Promise<unknown>[] = [];
 
     // MCP 컨텍스트 수집 (비블로킹)
     let mcpContextPromise: Promise<MCPContext | null> = Promise.resolve(null);
@@ -320,7 +320,7 @@ export class ImprovedQueryEngine {
     },
     mcpContextPromise: Promise<MCPContext | null>,
     _analysis: ReturnType<typeof QueryComplexityAnalyzer.analyze> | null
-  ): Promise<any> {
+  ): Promise<unknown> {
     if (engine === 'local-rag') {
       return this.processLocalQuery(query, context, options, mcpContextPromise);
     } else {
@@ -344,7 +344,7 @@ export class ImprovedQueryEngine {
       preferredEngine?: 'local-rag' | 'google-ai';
     },
     mcpContextPromise: Promise<MCPContext | null>
-  ): Promise<any> {
+  ): Promise<unknown> {
     const startTime = Date.now();
 
     // 병렬 실행
@@ -389,7 +389,7 @@ export class ImprovedQueryEngine {
       preferredEngine?: 'local-rag' | 'google-ai';
     },
     mcpContextPromise: Promise<MCPContext | null>
-  ): Promise<any> {
+  ): Promise<unknown> {
     const startTime = Date.now();
 
     if (!this.googleAIModel) {
@@ -570,7 +570,7 @@ export class ImprovedQueryEngine {
   // 기존 메서드들 재사용...
   private generateLocalResponse(
     query: string,
-    _ragResult: any, // RAGResult 타입이 필요함
+    _ragResult: unknown, // RAGResult 타입이 필요함
     _mcpContext: MCPContext | null,
     _context: AIQueryContext
   ): string {
@@ -587,7 +587,7 @@ export class ImprovedQueryEngine {
     return query;
   }
 
-  private calculateConfidence(_ragResult: any): number {
+  private calculateConfidence(_ragResult: unknown): number {
     // TODO: 실제 구현 필요 (RAGResult 타입 정의 후)
     return 0.5;
   }

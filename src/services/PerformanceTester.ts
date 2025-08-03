@@ -352,7 +352,7 @@ export class PerformanceTester {
    * 🔧 자동 성능 최적화 실행
    */
   async performAutoOptimization(): Promise<{
-    memoryOptimization: any;
+    memoryOptimization: unknown;
     cacheOptimization: boolean;
     redisReconnection: boolean;
   }> {

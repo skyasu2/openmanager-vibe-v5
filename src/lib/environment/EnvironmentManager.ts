@@ -215,7 +215,7 @@ export class EnvironmentManager {
   }
 
   // 로깅 유틸리티
-  log(level: 'info' | 'warn' | 'error', message: string, data?: any): void {
+  log(level: 'info' | 'warn' | 'error', message: string, data?: unknown): void {
     if (!this._config.enableLogging) return;
 
     const prefix = `[${this._environment.toUpperCase()}:${this._platform.toUpperCase()}]`;

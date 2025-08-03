@@ -27,7 +27,7 @@ export function ServerDetailProcesses({
         }
         const data = await response.json();
         setProcesses(data.processes || []);
-      } catch (err: any) {
+      } catch (err: Error | unknown) {
         setError(err.message);
       } finally {
         setIsLoading(false);

@@ -32,7 +32,7 @@ export interface CacheOptions {
  */
 export class RequestScopedCache {
   private cache = new Map<string, CacheEntry>();
-  private pendingRequests = new Map<string, Promise<any>>();
+  private pendingRequests = new Map<string, Promise<unknown>>();
   private defaultOptions: Required<CacheOptions> = {
     staleTime: 300000, // 5분
     cacheTime: 1800000, // 30분

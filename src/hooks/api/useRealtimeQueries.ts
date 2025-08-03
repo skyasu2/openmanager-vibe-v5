@@ -22,7 +22,7 @@ type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
 // 📨 실시간 메시지 타입
 interface RealtimeMessage {
   type: 'server_update' | 'prediction_update' | 'system_update' | 'alert';
-  data: any;
+  data: unknown;
   timestamp: string;
   id?: string;
 }
@@ -89,7 +89,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
           switch (message.type) {
             case 'server_update':
               // 서버 상태 업데이트
-              queryClient.setQueryData(serverKeys.lists(), (old: any[]) => {
+              queryClient.setQueryData(serverKeys.lists(), (old: unknown[]) => {
                 if (!old) return old;
                 return old.map(server =>
                   server.id === message.data.id
@@ -102,14 +102,14 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
               if (message.data.id) {
                 queryClient.setQueryData(
                   serverKeys.detail(message.data.id),
-                  (old: any) => (old ? { ...old, ...message.data } : old)
+                  (old: unknown) => (old ? { ...old, ...message.data } : old)
                 );
               }
               break;
 
             case 'system_update':
               // 시스템 상태 업데이트
-              queryClient.setQueryData(systemKeys.health(), (old: any) => {
+              queryClient.setQueryData(systemKeys.health(), (old: unknown) => {
                 return old ? { ...old, ...message.data } : message.data;
               });
               break;
@@ -191,7 +191,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
   }, []);
 
   // 📤 메시지 전송
-  const sendMessage = useCallback((message: any) => {
+  const sendMessage = useCallback((message: unknown) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(message));
       return true;
@@ -268,7 +268,7 @@ export const useRealtimePredictions = () => {
 
         if (message.type === 'prediction_update') {
           // 새로운 예측 결과를 캐시에 추가
-          queryClient.setQueryData(predictionKeys.list('{}'), (old: any[]) => {
+          queryClient.setQueryData(predictionKeys.list('{}'), (old: unknown[]) => {
             if (!old) return [message.data];
             return [message.data, ...old.slice(0, 49)]; // 최신 50개만 유지
           });

@@ -182,7 +182,7 @@ export class EnhancedErrorDetectionService {
   /**
    * 오류 감지 실행
    */
-  public async detectErrors(serverData: any): Promise<DetectionResult> {
+  public async detectErrors(serverData: unknown): Promise<DetectionResult> {
     if (!this.isEnabled) {
       return {
         detected: false,
@@ -254,7 +254,7 @@ export class EnhancedErrorDetectionService {
    */
   private async checkPattern(
     pattern: ErrorPattern,
-    serverData: any
+    serverData: unknown
   ): Promise<boolean> {
     switch (pattern.type) {
       case 'threshold':
@@ -279,7 +279,7 @@ export class EnhancedErrorDetectionService {
    */
   private checkThresholdPattern(
     pattern: ErrorPattern,
-    serverData: any
+    serverData: unknown
   ): boolean {
     const { metric, threshold } = pattern.conditions;
 
@@ -296,7 +296,7 @@ export class EnhancedErrorDetectionService {
    */
   private checkSequencePattern(
     pattern: ErrorPattern,
-    serverData: any
+    serverData: unknown
   ): boolean {
     // 실제 구현에서는 로그 히스토리를 분석
     // 여기서는 시뮬레이션
@@ -309,7 +309,7 @@ export class EnhancedErrorDetectionService {
    */
   private async checkAIPattern(
     pattern: ErrorPattern,
-    serverData: any
+    serverData: unknown
   ): Promise<boolean> {
     // AI 모델을 사용한 이상 감지
     // 여기서는 시뮬레이션
@@ -322,7 +322,7 @@ export class EnhancedErrorDetectionService {
    */
   private async checkPredictivePattern(
     pattern: ErrorPattern,
-    serverData: any
+    serverData: unknown
   ): Promise<boolean> {
     // 예측 모델을 사용한 장애 예측
     // 여기서는 시뮬레이션
@@ -333,7 +333,7 @@ export class EnhancedErrorDetectionService {
   /**
    * 메트릭 값 추출
    */
-  private extractMetricValue(serverData: any, metric: string): number | null {
+  private extractMetricValue(serverData: unknown, metric: string): number | null {
     switch (metric) {
       case 'cpu':
         return serverData?.metrics?.cpu || null;
@@ -369,7 +369,7 @@ export class EnhancedErrorDetectionService {
   /**
    * 신뢰도 계산
    */
-  private calculateConfidence(pattern: ErrorPattern, serverData: any): number {
+  private calculateConfidence(pattern: ErrorPattern, serverData: unknown): number {
     // 패턴 타입에 따른 기본 신뢰도
     let baseConfidence = 0.5;
 
@@ -398,7 +398,7 @@ export class EnhancedErrorDetectionService {
    */
   private generateRecommendations(
     patterns: ErrorPattern[],
-    serverData: any
+    serverData: unknown
   ): string[] {
     const recommendations: string[] = [];
 
@@ -641,7 +641,7 @@ export class EnhancedErrorDetectionService {
   /**
    * 통계 정보 반환
    */
-  public getStats(): any {
+  public getStats(): unknown {
     return {
       patternsCount: this.patterns.length,
       alertHistorySize: this.alertHistory.size,

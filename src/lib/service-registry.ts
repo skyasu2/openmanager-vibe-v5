@@ -146,7 +146,7 @@ export class ServiceRegistry {
             const value = localStorage.getItem(key);
             return value ? JSON.parse(value) : null;
           },
-          set: async (key: string, value: any) => {
+          set: async (key: string, value: unknown) => {
             localStorage.setItem(key, JSON.stringify(value));
           },
           delete: async (key: string) => {
@@ -173,7 +173,7 @@ export class ServiceRegistry {
     registerFactory(
       SERVICE_TOKENS.HEALTH_CHECK_SERVICE,
       () => {
-        const checks = new Map<string, () => Promise<any>>();
+        const checks = new Map<string, () => Promise<unknown>>();
 
         return {
           check: async () => ({
@@ -183,7 +183,7 @@ export class ServiceRegistry {
             uptime: Date.now(),
             version: '1.0.0',
           }),
-          addCheck: (name: string, checkFn: () => Promise<any>) => {
+          addCheck: (name: string, checkFn: () => Promise<unknown>) => {
             checks.set(name, checkFn);
           },
           removeCheck: (name: string) => {
@@ -203,7 +203,7 @@ export class ServiceRegistry {
       SERVICE_TOKENS.METRICS_COLLECTOR,
       () => {
         return {
-          collect: async (): Promise<any> => ({
+          collect: async (): Promise<unknown> => ({
             server_id: 'temp',
             timestamp: new Date(),
             cpu_usage: 0,

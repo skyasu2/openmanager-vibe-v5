@@ -53,7 +53,7 @@ export class ScalingSimulationEngine {
   /**
    * 🎯 스케일링 시뮬레이션
    */
-  simulateScaling(metrics: any[]): ScalingEvent | null {
+  simulateScaling(metrics: unknown[]): ScalingEvent | null {
     const avgCpu = metrics.reduce((sum, m) => sum + m.cpu, 0) / metrics.length;
     const avgMemory =
       metrics.reduce((sum, m) => sum + m.memory, 0) / metrics.length;
@@ -214,8 +214,8 @@ export class ScalingSimulationEngine {
   /**
    * 🖥️ 운영 서버 목록 반환
    */
-  getOperationalServers(): any[] {
-    const servers: any[] = [];
+  getOperationalServers(): unknown[] {
+    const servers: unknown[] = [];
     for (let i = 1; i <= this.currentInstances; i++) {
       servers.push({
         id: `scaling-server-${i}`,
@@ -236,7 +236,7 @@ export class ScalingSimulationEngine {
   /**
    * 🏊 서버 풀 정보 반환
    */
-  getServerPool(): any {
+  getServerPool(): unknown {
     return {
       total_capacity: this.maxInstances,
       current_active: this.currentInstances,
@@ -253,17 +253,17 @@ export class ScalingSimulationEngine {
   /**
    * 🤖 AI 메트릭 반환
    */
-  getAIMetrics(): any {
+  getAIMetrics(): unknown {
     const servers = this.getOperationalServers();
     const totalServers = servers.length;
     const runningServers = servers.filter(
-      (s: any) => s.status === 'running'
+      (s: unknown) => s.status === 'running'
     ).length;
     const avgCpu =
-      servers.reduce((sum: number, s: any) => sum + s.cpu_usage, 0) /
+      servers.reduce((sum: number, s: unknown) => sum + s.cpu_usage, 0) /
       totalServers;
     const avgMemory =
-      servers.reduce((sum: number, s: any) => sum + s.memory_usage, 0) /
+      servers.reduce((sum: number, s: unknown) => sum + s.memory_usage, 0) /
       totalServers;
 
     return {
@@ -282,7 +282,7 @@ export class ScalingSimulationEngine {
   /**
    * 📝 스케일링 정책 업데이트
    */
-  updateScalingPolicy(policy: any): void {
+  updateScalingPolicy(policy: unknown): void {
     console.log('📝 스케일링 정책 업데이트:', policy);
     // 정책 업데이트 로직은 필요에 따라 구현
     if (policy.maxInstances) this.maxInstances = policy.maxInstances;

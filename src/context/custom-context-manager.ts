@@ -29,7 +29,7 @@ export interface CustomRule {
 export interface RuleCondition {
   field: string; // 'cpu.usage', 'memory.percentage', 'disk.percentage', etc.
   operator: 'gt' | 'lt' | 'eq' | 'gte' | 'lte' | 'contains' | 'matches';
-  value: any;
+  value: unknown;
   logic?: 'AND' | 'OR';
 }
 
@@ -492,7 +492,7 @@ export class CustomContextManager {
   /**
    * 📊 중첩된 객체에서 값 추출
    */
-  private getNestedValue(obj: Record<string, any>, path: string): any {
+  private getNestedValue(obj: Record<string, any>, path: string): unknown {
     return path.split('.').reduce((current, key) => current?.[key], obj);
   }
 

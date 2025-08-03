@@ -1,8 +1,8 @@
 // AI 분석 요청 타입
 export interface AIAnalysisRequest {
   query?: string;
-  metrics?: Array<{ [key: string]: any }>;
-  data?: { [key: string]: any };
+  metrics?: Array<{ [key: string]: unknown }>;
+  data?: { [key: string]: unknown };
 }
 
 // AI 분석 응답 타입

@@ -17,7 +17,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // 자동 재시도 설정
-      retry: (failureCount, error: any) => {
+      retry: (failureCount, error: Error | unknown) => {
         // 400번대 에러는 재시도하지 않음
         if (error?.status >= 400 && error?.status < 500) {
           return false;

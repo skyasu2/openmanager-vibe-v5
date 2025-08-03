@@ -200,7 +200,7 @@ export class DevMockSupabase {
     this.log('🎭 DevMockSupabase 초기화 완료');
   }
 
-  private log(...args: any[]) {
+  private log(...args: unknown[]) {
     if (this.config.enableLogging) {
       console.log('[DevMockSupabase]', ...args);
     }
@@ -522,7 +522,7 @@ export class DevMockSupabase {
  * Mock Query Builder - Supabase 쿼리 체인 시뮬레이션
  */
 class MockQueryBuilder<T = any> {
-  private filters: Array<{ type: string; column?: string; value?: any }> = [];
+  private filters: Array<{ type: string; column?: string; value?: unknown }> = [];
   private selectedColumns: string | '*' = '*';
   private orderByColumn?: string;
   private orderDirection: 'asc' | 'desc' = 'asc';
@@ -534,7 +534,7 @@ class MockQueryBuilder<T = any> {
     private database: MockDatabase,
     private realtimeSubscribers: Map<string, Set<Function>>,
     private stats: MockStats,
-    private config: any,
+    private config: Record<string, unknown>,
     private onUpdate: () => void
   ) {}
 
@@ -558,32 +558,32 @@ class MockQueryBuilder<T = any> {
     return this;
   }
 
-  eq(column: string, value: any): this {
+  eq(column: string, value: unknown): this {
     this.filters.push({ type: 'eq', column, value });
     return this;
   }
 
-  neq(column: string, value: any): this {
+  neq(column: string, value: unknown): this {
     this.filters.push({ type: 'neq', column, value });
     return this;
   }
 
-  gt(column: string, value: any): this {
+  gt(column: string, value: unknown): this {
     this.filters.push({ type: 'gt', column, value });
     return this;
   }
 
-  gte(column: string, value: any): this {
+  gte(column: string, value: unknown): this {
     this.filters.push({ type: 'gte', column, value });
     return this;
   }
 
-  lt(column: string, value: any): this {
+  lt(column: string, value: unknown): this {
     this.filters.push({ type: 'lt', column, value });
     return this;
   }
 
-  lte(column: string, value: any): this {
+  lte(column: string, value: unknown): this {
     this.filters.push({ type: 'lte', column, value });
     return this;
   }
@@ -598,7 +598,7 @@ class MockQueryBuilder<T = any> {
     return this;
   }
 
-  in(column: string, values: any[]): this {
+  in(column: string, values: unknown[]): this {
     this.filters.push({ type: 'in', column, value: values });
     return this;
   }
@@ -653,7 +653,7 @@ class MockQueryBuilder<T = any> {
     if (insertFilter) {
       this.stats.inserts++;
       const items = Array.isArray(insertFilter.value) ? insertFilter.value : [insertFilter.value];
-      const inserted: any[] = [];
+      const inserted: unknown[] = [];
       
       items.forEach(item => {
         const id = item.id || `mock-${Date.now()}-${Math.random()}`;
@@ -683,7 +683,7 @@ class MockQueryBuilder<T = any> {
     if (updateFilter) {
       this.stats.updates++;
       const filtered = this.applyFilters(results);
-      const updated: any[] = [];
+      const updated: unknown[] = [];
 
       filtered.forEach(item => {
         const id = (item as any).id;
@@ -711,7 +711,7 @@ class MockQueryBuilder<T = any> {
     if (deleteFilter) {
       this.stats.deletes++;
       const filtered = this.applyFilters(results);
-      const deleted: any[] = [];
+      const deleted: unknown[] = [];
 
       filtered.forEach(item => {
         const id = (item as any).id;
@@ -742,7 +742,7 @@ class MockQueryBuilder<T = any> {
     if (this.selectedColumns !== '*') {
       const columns = this.selectedColumns.split(',').map(c => c.trim());
       results = results.map(item => {
-        const selected: any = {};
+        const selected: unknown = {};
         columns.forEach(col => {
           if (col in item) {
             selected[col] = (item as any)[col];
@@ -760,7 +760,7 @@ class MockQueryBuilder<T = any> {
     } as any;
   }
 
-  private applyFilters(data: any[]): any[] {
+  private applyFilters(data: unknown[]): unknown[] {
     return data.filter(item => {
       return this.filters.every(filter => {
         switch (filter.type) {
@@ -789,7 +789,7 @@ class MockQueryBuilder<T = any> {
     });
   }
 
-  private applyOrdering(data: any[]): any[] {
+  private applyOrdering(data: unknown[]): unknown[] {
     if (!this.orderByColumn) return data;
 
     return [...data].sort((a, b) => {
@@ -803,7 +803,7 @@ class MockQueryBuilder<T = any> {
     });
   }
 
-  private notifyRealtime(event: string, data: any[]) {
+  private notifyRealtime(event: string, data: unknown[]) {
     const channelKey = `public:${this.table}`;
     const subscribers = this.realtimeSubscribers.get(channelKey);
     
@@ -833,12 +833,12 @@ class MockRealtimeChannel {
     private name: string,
     private globalSubscribers: Map<string, Set<Function>>,
     private stats: MockStats,
-    private config: any
+    private config: Record<string, unknown>
   ) {}
 
   on(
     event: string,
-    filter: any,
+    filter: unknown,
     callback: Function
   ): this {
     if (event === 'postgres_changes') {
@@ -878,7 +878,7 @@ class MockRealtimeChannel {
 // 싱글톤 인스턴스
 let instance: DevMockSupabase | null = null;
 
-export function getDevMockSupabase(config?: any): DevMockSupabase {
+export function getDevMockSupabase(config?: unknown): DevMockSupabase {
   if (!instance) {
     instance = new DevMockSupabase(config);
   }
@@ -889,7 +889,7 @@ export function getDevMockSupabase(config?: any): DevMockSupabase {
 export function createMockSupabaseClient(
   url?: string,
   key?: string,
-  options?: any
+  options?: unknown
 ): SupabaseClient {
   const mock = getDevMockSupabase(options);
   

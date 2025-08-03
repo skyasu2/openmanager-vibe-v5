@@ -96,13 +96,13 @@ export function cleanupOldHistory(maxAge: number = 24 * 60 * 60 * 1000): void {
 export class SmartCacheManager {
   private cache = new Map<
     string,
-    { data: any; timestamp: number; hits: number }
+    { data: unknown; timestamp: number; hits: number }
   >();
 
   /**
    * 캐시에서 데이터 조회
    */
-  get(key: string, maxAge: number): any | null {
+  get(key: string, maxAge: number): unknown | null {
     const entry = this.cache.get(key);
 
     if (!entry) {
@@ -123,7 +123,7 @@ export class SmartCacheManager {
   /**
    * 캐시에 데이터 저장
    */
-  set(key: string, data: any): void {
+  set(key: string, data: unknown): void {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),

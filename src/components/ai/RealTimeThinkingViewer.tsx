@@ -49,7 +49,7 @@ interface RealTimeAILog {
     | 'ANALYSIS';
   source: string;
   message: string;
-  details?: any;
+  details?: unknown;
   engine?: string;
   duration?: number;
   metadata?: {
@@ -65,7 +65,7 @@ interface RealTimeAILog {
 // 오픈소스 기술 매핑
 const _TECH_STACK_MAP: Record<
   string,
-  { name: string; icon: React.ComponentType<any>; color: string }
+  { name: string; icon: React.ComponentType<unknown>; color: string }
 > = {
   mcp: {
     name: 'Model Context Protocol',

@@ -93,7 +93,7 @@ export const useServerData = (): UseServerDataReturn => {
       // 실시간 데이터가 있으면 사용, 없으면 폴백 데이터 사용
       if (realtimeData) {
         if (Array.isArray(realtimeData)) {
-          const mappedServers = realtimeData.map((server: any) => ({
+          const mappedServers = realtimeData.map((server: unknown) => ({
             ...server,
             status: mapStatus(server.status || 'unknown'),
             lastUpdate: new Date(),

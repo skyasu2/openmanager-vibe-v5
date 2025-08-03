@@ -28,39 +28,8 @@ export type ServerType =
   | 'monitoring'
   | 'storage';
 
-// 통합 서버 메트릭스
-export interface ServerMetrics {
-  cpu: {
-    usage: number;
-    cores: number;
-    temperature?: number;
-  };
-  memory: {
-    used: number;
-    total: number;
-    usage: number;
-  };
-  disk: {
-    used: number;
-    total: number;
-    usage: number;
-    iops?: number;
-  };
-  network: {
-    bytesIn: number;
-    bytesOut: number;
-    packetsIn: number;
-    packetsOut: number;
-    connections?: number;
-    bandwidth?: {
-      upload: number;
-      download: number;
-    };
-  };
-  timestamp: string;
-  uptime?: number;
-  load?: number[];
-}
+// 서버 메트릭은 중앙화된 타입 시스템에서 가져옴
+export type { ServerMetrics, DetailedServerMetrics } from '@/core/types';
 
 // 확장된 서버 메트릭스 (AI 분석 포함)
 export interface EnhancedServerMetrics extends ServerMetrics {

@@ -14,7 +14,7 @@ import type { MCPClient, MCPToolResult } from '@/types/mcp';
 
 interface MCPSearchResult {
   success: boolean;
-  results: any[];
+  results: unknown[];
   source: string;
   tools_used: string[];
   responseTime?: number;
@@ -78,7 +78,7 @@ export class MCPToolHandler {
   /**
    * 📋 사용 가능한 도구 목록 조회
    */
-  async getAvailableTools(): Promise<{ tools: any[] }> {
+  async getAvailableTools(): Promise<{ tools: unknown[] }> {
     const toolsList = Array.from(this.tools.values());
 
     console.log(
@@ -94,7 +94,7 @@ export class MCPToolHandler {
   /**
    * 🔧 도구 호출 처리
    */
-  private async handleToolCall(params: any): Promise<any> {
+  private async handleToolCall(params: Record<string, unknown>): Promise<unknown> {
     const { name, arguments: args } = params;
 
     console.log(`🔧 도구 호출: ${name}`, args);
@@ -117,12 +117,12 @@ export class MCPToolHandler {
   private async realSearchFiles(args: {
     pattern?: string;
     content?: string;
-  }): Promise<any> {
+  }): Promise<unknown> {
     const { pattern, content } = args;
     const startTime = Date.now();
 
     try {
-      const results: any[] = [];
+      const results: unknown[] = [];
       const searchDirs = ['src', 'docs'];
 
       for (const dir of searchDirs) {
@@ -161,7 +161,7 @@ export class MCPToolHandler {
     dirPath: string,
     pattern?: string,
     content?: string,
-    results: any[] = []
+    results: unknown[] = []
   ): Promise<void> {
     try {
       const entries = fs.readdirSync(dirPath, { withFileTypes: true });
@@ -245,7 +245,7 @@ export class MCPToolHandler {
   /**
    * 📖 실제 파일 읽기
    */
-  private async realReadFile(filePath: string): Promise<any> {
+  private async realReadFile(filePath: string): Promise<unknown> {
     const startTime = Date.now();
 
     try {
@@ -278,7 +278,7 @@ export class MCPToolHandler {
   /**
    * 📁 실제 디렉토리 나열
    */
-  private async realListDirectory(dirPath: string): Promise<any> {
+  private async realListDirectory(dirPath: string): Promise<unknown> {
     const startTime = Date.now();
 
     try {
@@ -494,7 +494,7 @@ export class MCPToolHandler {
   /**
    * 🔧 도구 추가
    */
-  addTool(name: string, tool: any): void {
+  addTool(name: string, tool: unknown): void {
     this.tools.set(name, { name, ...tool });
     console.log(`🔧 도구 추가됨: ${name}`);
   }
@@ -513,7 +513,7 @@ export class MCPToolHandler {
   /**
    * 📊 도구 사용 통계
    */
-  getToolStats(): any {
+  getToolStats(): unknown {
     return {
       totalTools: this.tools.size,
       availableTools: Array.from(this.tools.keys()),

@@ -8,7 +8,7 @@
  * @param uptime - 숫자 또는 문자열 업타임 값
  * @returns 안전하게 포맷팅된 업타임 문자열
  */
-export function safeFormatUptime(uptime: any): string {
+export function safeFormatUptime(uptime: unknown): string {
   try {
     // null, undefined 체크
     if (uptime === null || uptime === undefined) {
@@ -51,7 +51,7 @@ export function safeFormatUptime(uptime: any): string {
  * @param uptime - 업타임 값
  * @returns 일 수 (숫자) 또는 0
  */
-export function extractDaysFromUptime(uptime: any): number {
+export function extractDaysFromUptime(uptime: unknown): number {
   try {
     // 문자열인 경우 "day" 또는 "일" 포함 체크
     if (typeof uptime === 'string') {
@@ -85,7 +85,7 @@ export function extractDaysFromUptime(uptime: any): number {
  * @param value - 체크할 값
  * @returns 유효한 문자열 여부
  */
-export function isValidString(value: any): value is string {
+export function isValidString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
@@ -95,7 +95,7 @@ export function isValidString(value: any): value is string {
  * @param searchString - 찾을 문자열
  * @returns includes 결과 (안전)
  */
-export function safeIncludes(text: any, searchString: string): boolean {
+export function safeIncludes(text: unknown, searchString: string): boolean {
   try {
     if (!isValidString(text)) {
       return false;
@@ -114,7 +114,7 @@ export function safeIncludes(text: any, searchString: string): boolean {
  * @param fallback - 기본값
  * @returns 안전한 배열 요소
  */
-export function safeArrayAccess<T>(array: any, index: number, fallback: T): T {
+export function safeArrayAccess<T>(array: unknown, index: number, fallback: T): T {
   try {
     if (!Array.isArray(array) || index < 0 || index >= array.length) {
       return fallback;
@@ -133,7 +133,7 @@ export function safeArrayAccess<T>(array: any, index: number, fallback: T): T {
  * @param fallback - 기본값
  * @returns 안전한 속성 값
  */
-export function safePropertyAccess<T>(obj: any, path: string, fallback: T): T {
+export function safePropertyAccess<T>(obj: unknown, path: string, fallback: T): T {
   try {
     if (!obj || typeof obj !== 'object') {
       return fallback;
@@ -162,7 +162,7 @@ export function safePropertyAccess<T>(obj: any, path: string, fallback: T): T {
  * @param fallback - 기본값
  * @returns 파싱된 객체 또는 기본값
  */
-export function safeJsonParse<T>(jsonString: any, fallback: T): T {
+export function safeJsonParse<T>(jsonString: unknown, fallback: T): T {
   try {
     if (typeof jsonString !== 'string') {
       return fallback;
@@ -180,7 +180,7 @@ export function safeJsonParse<T>(jsonString: any, fallback: T): T {
  * @param fallback - 기본값
  * @returns 숫자 또는 기본값
  */
-export function safeNumber(value: any, fallback: number = 0): number {
+export function safeNumber(value: unknown, fallback: number = 0): number {
   try {
     if (typeof value === 'number' && !isNaN(value)) {
       return value;
@@ -206,7 +206,7 @@ export function safeNumber(value: any, fallback: number = 0): number {
  * @param asDecimal - 소수점 형태인지 여부 (0-1)
  * @returns 포맷팅된 퍼센트 문자열
  */
-export function safePercentage(value: any, asDecimal: boolean = false): string {
+export function safePercentage(value: unknown, asDecimal: boolean = false): string {
   try {
     const num = safeNumber(value, 0);
     const percentage = asDecimal ? num * 100 : num;

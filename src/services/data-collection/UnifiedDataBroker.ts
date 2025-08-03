@@ -35,7 +35,7 @@ export class UnifiedDataBroker {
   private subscribers = new Map<
     string,
     {
-      callback: (data: any) => void;
+      callback: (data: unknown) => void;
       options: SubscriptionOptions;
       lastUpdate: Date;
     }
@@ -44,7 +44,7 @@ export class UnifiedDataBroker {
   private cache = new Map<
     string,
     {
-      data: any;
+      data: unknown;
       timestamp: Date;
       hits: number;
     }
@@ -169,7 +169,7 @@ export class UnifiedDataBroker {
    */
   subscribeToMetrics(
     subscriberId: string,
-    callback: (metrics: any) => void,
+    callback: (metrics: unknown) => void,
     options: SubscriptionOptions = {
       interval: 8000,
       priority: 'low',
@@ -216,7 +216,7 @@ export class UnifiedDataBroker {
   private async fetchData(
     key: string,
     strategy: SubscriptionOptions['cacheStrategy']
-  ): Promise<any> {
+  ): Promise<unknown> {
     const config = getCompetitionConfig();
 
     try {
@@ -234,7 +234,7 @@ export class UnifiedDataBroker {
       }
 
       // 2. Redis 조회 (무료 티어 고려)
-      let redisData: any = null;
+      let redisData: unknown = null;
       if (
         config.environment.redisTier === 'free' &&
         this.metrics.redisCommands < config.limits.redisCommands
@@ -280,7 +280,7 @@ export class UnifiedDataBroker {
   /**
    * 🆕 새로운 데이터 생성
    */
-  private async generateFreshData(key: string): Promise<any> {
+  private async generateFreshData(key: string): Promise<unknown> {
     try {
       if (key.includes('metrics')) {
         // 서버 메트릭 데이터 집계
@@ -300,7 +300,7 @@ export class UnifiedDataBroker {
           clusters: metricsResponse.isErrorState ? 'Error' : 'Healthy',
         };
 
-        const serversWithMetrics = servers.map((s: any) => ({
+        const serversWithMetrics = servers.map((s: unknown) => ({
           ...s,
           metrics: {
             cpu: s.metrics?.cpu?.usage || s.cpu || 0,
@@ -312,7 +312,7 @@ export class UnifiedDataBroker {
 
         return {
           metrics: {
-            serverMetrics: serversWithMetrics.map((s: any) => ({
+            serverMetrics: serversWithMetrics.map((s: unknown) => ({
               id: s.id,
               cpu: s.metrics.cpu,
               memory: s.metrics.memory,
@@ -360,7 +360,7 @@ export class UnifiedDataBroker {
   /**
    * 💾 캐시 데이터 저장
    */
-  private setCachedData(key: string, data: any): void {
+  private setCachedData(key: string, data: unknown): void {
     this.cache.set(key, {
       data,
       timestamp: new Date(),

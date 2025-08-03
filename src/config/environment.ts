@@ -389,7 +389,7 @@ export function checkPaths(paths: string[]): { [key: string]: boolean } {
 /**
  * 환경별 로깅 함수
  */
-export function envLog(message: string, data?: any): void {
+export function envLog(message: string, data?: unknown): void {
   if (shouldEnableDebugLogging()) {
     console.log(`[ENV] ${message}`, data || '');
   }

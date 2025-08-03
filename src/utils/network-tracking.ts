@@ -15,7 +15,7 @@ import type { NetworkRequestInfo } from '../types/system-checklist';
 export const fetchWithTracking = async (
   url: string,
   options: RequestInit = {}
-): Promise<{ response: Response; networkInfo: any }> => {
+): Promise<{ response: Response; networkInfo: unknown }> => {
   const startTime = Date.now();
   const method = options.method || 'GET';
 
@@ -64,7 +64,7 @@ export const fetchWithTracking = async (
  * 전역 네트워크 요청 기록
  */
 export const recordNetworkRequest = (
-  networkInfo: any,
+  networkInfo: unknown,
   success: boolean,
   component: string
 ): void => {

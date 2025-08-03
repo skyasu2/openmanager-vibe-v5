@@ -35,7 +35,7 @@ export interface RuleBasedMetadata {
 export interface NLPAnalysisResult {
   intent: string;
   confidence: number;
-  entities: any[];
+  entities: unknown[];
   keywords: string[];
   language: 'ko' | 'en';
   sentiment: 'positive' | 'negative' | 'neutral';
@@ -192,15 +192,15 @@ export interface INLPProcessor {
 }
 
 export interface IIntentClassifier {
-  classify(query: string, context?: any): Promise<IntentClassificationResult>;
+  classify(query: string, context?: unknown): Promise<IntentClassificationResult>;
   _initialize(): Promise<void>;
   isReady(): boolean;
 }
 
 export interface IPatternMatcherEngine {
-  analyzeMetrics(metrics: any): Promise<PatternMatchingResult>;
+  analyzeMetrics(metrics: unknown): Promise<PatternMatchingResult>;
   addRule(rule: Omit<PatternRule, 'id' | 'createdAt' | 'triggerCount'>): string;
-  getStats(): any;
+  getStats(): unknown;
 }
 
 export interface IKoreanNLUProcessor {
@@ -262,7 +262,7 @@ export class RuleBasedEngineError extends Error {
     message: string,
     public code: string,
     public engine?: string,
-    public details?: any
+    public details?: unknown
   ) {
     super(message);
     this.name = 'RuleBasedEngineError';
@@ -274,7 +274,7 @@ export interface EngineErrorInfo {
   error: Error;
   timestamp: number;
   query?: string;
-  context?: any;
+  context?: unknown;
 }
 
 // ========================================

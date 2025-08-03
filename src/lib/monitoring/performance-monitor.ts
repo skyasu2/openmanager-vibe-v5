@@ -232,13 +232,13 @@ export type { PerformanceMetric, PerformanceReport };
 // 헬퍼 함수: 성능 측정 데코레이터
 export function measurePerformance(type: 'query' | 'api', name: string) {
   return function (
-    target: any,
+    target: unknown,
     propertyName: string,
     descriptor: PropertyDescriptor
   ) {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (...args: unknown[]) {
       const start = Date.now();
       try {
         const result = await originalMethod.apply(this, args);

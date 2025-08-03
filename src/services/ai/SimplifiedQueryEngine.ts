@@ -209,7 +209,7 @@ export class SimplifiedQueryEngine {
       }
 
       // 2단계: 병렬 처리 준비
-      const processingPromises: Promise<any>[] = [];
+      const processingPromises: Promise<unknown>[] = [];
       let mcpContext: MCPContext | null = null;
 
       // MCP 컨텍스트 수집 (비동기)
@@ -501,7 +501,7 @@ export class SimplifiedQueryEngine {
    */
   protected generateLocalResponse(
     query: string,
-    ragResult: any, // RAGSearchResult from supabase-rag-engine
+    ragResult: unknown, // RAGSearchResult from supabase-rag-engine
     mcpContext: MCPContext | null,
     userContext: AIQueryContext | undefined
   ): string {
@@ -610,7 +610,7 @@ export class SimplifiedQueryEngine {
   /**
    * 📊 신뢰도 계산
    */
-  protected calculateConfidence(ragResult: any): number {
+  protected calculateConfidence(ragResult: unknown): number {
     // RAGSearchResult from supabase-rag-engine
     if (ragResult.results.length === 0) return 0.1;
 

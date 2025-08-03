@@ -29,7 +29,7 @@ const mockStats = {
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(() => ({
     from: vi.fn((tableName: string) => {
-      const createMockResponse = (data: any) => ({
+      const createMockResponse = (data: unknown) => ({
         data,
         error: null,
         status: 200,
@@ -126,7 +126,7 @@ vi.mock('@supabase/supabase-js', () => ({
           return Promise.resolve(result).then(callback);
         }),
         // RPC 함수들 (pgvector 확장 기능)
-        rpc: vi.fn((funcName: string, _params?: any) => {
+        rpc: vi.fn((funcName: string, _params?: unknown) => {
           if (
             funcName === 'match_documents' ||
             funcName === 'similarity_search'
@@ -167,8 +167,8 @@ vi.mock('@supabase/supabase-js', () => ({
     },
 
     // RPC 직접 호출도 지원
-    rpc: vi.fn((funcName: string, _params?: any) => {
-      const createMockResponse = (data: any) => ({
+    rpc: vi.fn((funcName: string, _params?: unknown) => {
+      const createMockResponse = (data: unknown) => ({
         data,
         error: null,
         status: 200,
@@ -198,7 +198,7 @@ vi.mock('@supabase/supabase-js', () => ({
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     from: vi.fn((tableName: string) => {
-      const createMockResponse = (data: any) => ({
+      const createMockResponse = (data: unknown) => ({
         data,
         error: null,
         status: 200,
@@ -290,7 +290,7 @@ vi.mock('@/lib/supabase', () => ({
               : createMockResponse([mockStats]);
           return Promise.resolve(result).then(callback);
         }),
-        rpc: vi.fn((funcName: string, _params?: any) => {
+        rpc: vi.fn((funcName: string, _params?: unknown) => {
           if (
             funcName === 'match_documents' ||
             funcName === 'similarity_search'
@@ -313,8 +313,8 @@ vi.mock('@/lib/supabase', () => ({
 
       return mockQueryBuilder;
     }),
-    rpc: vi.fn((funcName: string, _params?: any) => {
-      const createMockResponse = (data: any) => ({
+    rpc: vi.fn((funcName: string, _params?: unknown) => {
+      const createMockResponse = (data: unknown) => ({
         data,
         error: null,
         status: 200,

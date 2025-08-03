@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { getMockSystem } from '@/mock';
 import { getRedisClient } from '@/lib/redis';
 import type { RedisClientInterface } from '@/lib/redis';
+import type { Server } from '@/types/api-responses';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,9 +103,9 @@ export async function GET(request: NextRequest) {
     // 통계 정보 계산
     const stats = {
       total: totalCount,
-      online: servers.filter((s: any) => s.status === 'online').length,
-      warning: servers.filter((s: any) => s.status === 'warning').length,
-      critical: servers.filter((s: any) => s.status === 'critical').length,
+      online: servers.filter((s: Server) => s.status === 'online').length,
+      warning: servers.filter((s: Server) => s.status === 'warning').length,
+      critical: servers.filter((s: Server) => s.status === 'critical').length,
     };
     
     const responseTime = Date.now() - startTime;

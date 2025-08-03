@@ -23,8 +23,8 @@ export interface ServerDataState {
   lastUpdate: Date | null;
 
   // 통합 메트릭 관리자 상태
-  unifiedManagerStatus: any;
-  prometheusHubStatus: any;
+  unifiedManagerStatus: unknown;
+  prometheusHubStatus: unknown;
 
   // 자동 갱신 관련
   autoRefreshIntervalId: NodeJS.Timeout | null;
@@ -62,7 +62,7 @@ export interface ServerDataState {
 
   // 추가 액션들
   actions?: {
-    updateServer?: (id: string, data: any) => void;
+    updateServer?: (id: string, data: unknown) => void;
     refreshServers?: () => Promise<void>;
   };
 }
@@ -124,7 +124,7 @@ export const createServerDataStore = (
               result.message || '서버에서 데이터를 가져오지 못했습니다'
             );
           }
-        } catch (e: any) {
+        } catch (e: Error | unknown) {
           console.error('❌ 최종 서버 데이터 로드 실패:', e.message);
           set({ isLoading: false, error: e.message });
         }
@@ -155,7 +155,7 @@ export const createServerDataStore = (
           });
           if (!response.ok) throw new Error('통합 시스템 시작에 실패했습니다.');
           await get().refreshData();
-        } catch (e: any) {
+        } catch (e: Error | unknown) {
           console.error(e.message);
         }
       },
@@ -170,7 +170,7 @@ export const createServerDataStore = (
           // 자동 갱신도 함께 중지
           get().stopAutoRefresh();
           set({ servers: [] });
-        } catch (e: any) {
+        } catch (e: Error | unknown) {
           console.error(e.message);
         }
       },
@@ -225,11 +225,11 @@ export const createServerDataStore = (
         const { servers, isLoading, error, lastUpdate } = get();
         return {
           totalServers: servers.length,
-          healthyServers: servers.filter((s: any) => s.status === 'healthy')
+          healthyServers: servers.filter((s: unknown) => s.status === 'healthy')
             .length,
-          warningServers: servers.filter((s: any) => s.status === 'warning')
+          warningServers: servers.filter((s: unknown) => s.status === 'warning')
             .length,
-          criticalServers: servers.filter((s: any) => s.status === 'critical')
+          criticalServers: servers.filter((s: unknown) => s.status === 'critical')
             .length,
           isLoading,
           error,
@@ -243,11 +243,11 @@ export const createServerDataStore = (
       },
 
       getServersByStatus: (status: 'healthy' | 'warning' | 'critical') => {
-        return get().servers.filter((s: any) => s.status === status);
+        return get().servers.filter((s: unknown) => s.status === status);
       },
 
       getServersByEnvironment: (environment: string) => {
-        return get().servers.filter((s: any) => s.environment === environment);
+        return get().servers.filter((s: unknown) => s.environment === environment);
       },
     }))
   );

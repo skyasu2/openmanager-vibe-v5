@@ -24,7 +24,7 @@ export interface ResultCardData {
     confidence?: number;
     method?: string;
     patterns?: string[];
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 

@@ -158,7 +158,7 @@ export class DevMockGoogleAI {
    */
   private generateResponse(
     prompt: string,
-    config?: any
+    config?: unknown
   ): MockResponse {
     const lowerPrompt = prompt.toLowerCase();
     

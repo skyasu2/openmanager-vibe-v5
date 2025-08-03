@@ -31,7 +31,7 @@ export interface WebSocketClient {
 
 export interface MetricStream {
   serverId: string;
-  data: any;
+  data: unknown;
   timestamp: string;
   type: 'cpu' | 'memory' | 'disk' | 'network' | 'alert' | 'log';
   priority: 'low' | 'medium' | 'high' | 'critical';
@@ -53,11 +53,11 @@ export class WebSocketManager {
   private streams: Map<string, Subject<MetricStream>> = new Map();
   private connectionCount$ = new BehaviorSubject<number>(0);
   private isActive = false;
-  private dataGenerator: any; // Mock data generator
+  private dataGenerator: unknown; // Mock data generator
 
   // 스트림 데이터 소스
   private dataSubject = new Subject<MetricStream>();
-  private alertSubject = new Subject<any>();
+  private alertSubject = new Subject<unknown>();
 
   constructor() {
     // Using mock data generator
@@ -69,7 +69,7 @@ export class WebSocketManager {
   /**
    * 🔌 Socket.IO 서버 초기화
    */
-  _initialize(server: any): void {
+  _initialize(server: unknown): void {
     this.io = new SocketIOServer(server, {
       cors: {
         origin:
@@ -191,7 +191,7 @@ export class WebSocketManager {
     interval(20000).subscribe(async () => {
       const gcpServerData = await this.dataGenerator
         .getRealServerMetrics()
-        .then((response: any) => response.data);
+        .then((response: unknown) => response.data);
       const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
 
       const serverMetrics = allServers.map(server => {
@@ -251,7 +251,7 @@ export class WebSocketManager {
       try {
         const gcpServerData = await this.dataGenerator
           .getRealServerMetrics()
-          .then((response: any) => response.data);
+          .then((response: unknown) => response.data);
         const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
         const testMetrics = allServers.slice(0, 10).map(server => ({
           timestamp: Date.now(),
@@ -290,7 +290,7 @@ export class WebSocketManager {
   /**
    * 📢 구독자들에게 브로드캐스트
    */
-  private broadcastToSubscribers(streamType: string, data: any): void {
+  private broadcastToSubscribers(streamType: string, data: unknown): void {
     if (!this.io) return;
 
     const subscribedClients = Array.from(this.clients.values()).filter(client =>
@@ -433,14 +433,14 @@ export class WebSocketManager {
   /**
    * 🔔 수동 알림 발송
    */
-  sendAlert(alert: any): void {
+  sendAlert(alert: unknown): void {
     this.alertSubject.next(alert);
   }
 
   /**
    * 📡 커스텀 브로드캐스트
    */
-  broadcast(streamType: string, data: any): void {
+  broadcast(streamType: string, data: unknown): void {
     this.broadcastToSubscribers(streamType, data);
   }
 

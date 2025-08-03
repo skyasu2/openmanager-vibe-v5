@@ -456,7 +456,7 @@ export const mockDataGenerators = {
 /**
  * 테스트용 타입 가드
  */
-export function isServer(obj: any): obj is Server {
+export function isServer(obj: unknown): obj is Server {
   return (
     obj &&
     typeof obj.id === 'string' &&
@@ -466,7 +466,7 @@ export function isServer(obj: any): obj is Server {
   );
 }
 
-export function isServerInstance(obj: any): obj is ServerInstance {
+export function isServerInstance(obj: unknown): obj is ServerInstance {
   return (
     obj &&
     typeof obj.id === 'string' &&
@@ -476,7 +476,7 @@ export function isServerInstance(obj: any): obj is ServerInstance {
   );
 }
 
-export function isServerMetrics(obj: any): obj is ServerMetrics {
+export function isServerMetrics(obj: unknown): obj is ServerMetrics {
   return (
     obj &&
     typeof obj.hostname === 'string' &&

@@ -129,7 +129,7 @@ export class DevMockGCPFunctions {
     this.log('🎭 DevMockGCPFunctions 초기화 완료');
   }
 
-  private log(...args: any[]) {
+  private log(...args: unknown[]) {
     if (this.config.enableLogging) {
       console.log('[DevMockGCP]', ...args);
     }
@@ -303,7 +303,7 @@ export class DevMockGCPFunctions {
       type: 'report' | 'prediction' | 'optimization';
       data: Record<string, any>;
     }
-  ): Promise<{ success: boolean; data?: any; error?: string }> {
+  ): Promise<{ success: boolean; data?: unknown; error?: string }> {
     const startTime = Date.now();
     this.stats.unifiedCalls++;
     this.stats.totalCalls++;
@@ -317,7 +317,7 @@ export class DevMockGCPFunctions {
 
       this.log(`🤖 통합 AI 처리: ${request.type}`);
 
-      let result: any;
+      let result: unknown;
 
       switch (request.type) {
         case 'report':
@@ -531,7 +531,7 @@ export class DevMockGCPFunctions {
   }
 
   // Helper methods for ML Analytics
-  private detectAnomalies(metrics: any[]): AnomalyResult[] {
+  private detectAnomalies(metrics: unknown[]): AnomalyResult[] {
     const anomalies: AnomalyResult[] = [];
     
     // 간단한 이상 감지 시뮬레이션
@@ -551,7 +551,7 @@ export class DevMockGCPFunctions {
     return anomalies;
   }
 
-  private analyzeTrend(metrics: any[]): TrendAnalysis {
+  private analyzeTrend(metrics: unknown[]): TrendAnalysis {
     // 간단한 트렌드 분석 시뮬레이션
     const values = metrics.map(m => m.value);
     const avgValue = values.reduce((a, b) => a + b, 0) / values.length;
@@ -569,7 +569,7 @@ export class DevMockGCPFunctions {
     };
   }
 
-  private findPatterns(metrics: any[]): Array<{ type: string; description: string; confidence: number }> {
+  private findPatterns(metrics: unknown[]): Array<{ type: string; description: string; confidence: number }> {
     const patterns: Array<{ type: string; description: string; confidence: number }> = [];
     
     // 간단한 패턴 찾기 시뮬레이션
@@ -593,7 +593,7 @@ export class DevMockGCPFunctions {
   private generateMLRecommendations(
     anomalies: AnomalyResult[],
     trend: TrendAnalysis,
-    patterns: any[]
+    patterns: unknown[]
   ): string[] {
     const recommendations: string[] = [];
     
@@ -622,7 +622,7 @@ export class DevMockGCPFunctions {
   }
 
   // Helper methods for Unified AI
-  private generateAIReport(data: any): any {
+  private generateAIReport(data: unknown): unknown {
     return {
       title: '서버 상태 보고서',
       summary: '전반적으로 안정적인 상태이나 일부 최적화가 필요합니다.',
@@ -640,7 +640,7 @@ export class DevMockGCPFunctions {
     };
   }
 
-  private generatePrediction(data: any): any {
+  private generatePrediction(data: unknown): unknown {
     return {
       predictions: [
         {
@@ -663,7 +663,7 @@ export class DevMockGCPFunctions {
     };
   }
 
-  private generateOptimization(data: any): any {
+  private generateOptimization(data: unknown): unknown {
     return {
       recommendations: [
         {
@@ -719,7 +719,7 @@ export class DevMockGCPFunctions {
 // 싱글톤 인스턴스
 let instance: DevMockGCPFunctions | null = null;
 
-export function getDevMockGCPFunctions(config?: any): DevMockGCPFunctions {
+export function getDevMockGCPFunctions(config?: unknown): DevMockGCPFunctions {
   if (!instance) {
     instance = new DevMockGCPFunctions(config);
   }
@@ -730,14 +730,14 @@ export function getDevMockGCPFunctions(config?: any): DevMockGCPFunctions {
 export class MockGCPFunctionsClient {
   private mock: DevMockGCPFunctions;
 
-  constructor(config?: any) {
+  constructor(config?: unknown) {
     this.mock = getDevMockGCPFunctions(config);
   }
 
   async callFunction(
     functionName: string,
-    data: any
-  ): Promise<{ success: boolean; data?: any; error?: string }> {
+    data: unknown
+  ): Promise<{ success: boolean; data?: unknown; error?: string }> {
     switch (functionName) {
       case 'enhanced-korean-nlp':
         return this.mock.analyzeKoreanNLP(data.query, data.context);

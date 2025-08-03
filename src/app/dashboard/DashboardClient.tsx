@@ -16,6 +16,7 @@ import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { cn } from '@/lib/utils';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import type { Server } from '@/types/server';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -116,7 +117,7 @@ class DashboardErrorBoundary extends React.Component<
 
 function DashboardPageContent() {
   const [isAgentOpen, setIsAgentOpen] = useState(false);
-  const [selectedServer, setSelectedServer] = useState<any>(null);
+  const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [_showSystemWarning, setShowSystemWarning] = useState(false);
@@ -247,14 +248,14 @@ function DashboardPageContent() {
 
   // 🎯 서버 클릭 핸들러 - 실제 데이터와 연동
   const handleServerClick = useCallback(
-    (server: any) => {
+    (server: Server) => {
       try {
         console.log('🖱️ 서버 카드 클릭됨:', server?.name || server?.id);
         if (!server) {
           console.warn('⚠️ 유효하지 않은 서버 데이터');
           return;
         }
-        handleServerSelect(server);
+        handleServerSelect(server as any);
         setSelectedServer(server);
         setIsServerModalOpen(true);
       } catch (error) {
@@ -337,7 +338,7 @@ function DashboardPageContent() {
         <AnimatePresence>
           {isServerModalOpen && selectedServer && (
             <EnhancedServerModalDynamic
-              server={selectedServer}
+              server={selectedServer as any}
               onClose={handleServerModalClose}
             />
           )}

@@ -332,8 +332,8 @@ export interface NLAnalysisQuery {
 export interface NLAnalysisResponse {
   answer: string;
   data: {
-    charts?: any[];
-    tables?: any[];
+    charts?: unknown[];
+    tables?: unknown[];
     metrics?: Record<string, number>;
   };
   confidence: number;

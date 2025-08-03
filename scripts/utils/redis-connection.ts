@@ -95,10 +95,13 @@ async function main() {
     if (stats.mockRedis) {
       console.log('  - Mock Redis 통계:');
       console.log(`    - 저장된 키: ${stats.mockRedis.size}개`);
-      console.log(
-        `    - 히트율: ${(stats.mockRedis.hitRate * 100).toFixed(1)}%`
-      );
-      console.log(`    - 메모리 사용: ${stats.mockRedis.memoryUsageKB}KB`);
+      console.log(`    - 히트: ${stats.mockRedis.hits}회`);
+      console.log(`    - 미스: ${stats.mockRedis.misses}회`);
+      console.log(`    - 설정: ${stats.mockRedis.sets}회`);
+      if (stats.mockRedis.hits + stats.mockRedis.misses > 0) {
+        const hitRate = (stats.mockRedis.hits / (stats.mockRedis.hits + stats.mockRedis.misses)) * 100;
+        console.log(`    - 히트율: ${hitRate.toFixed(1)}%`);
+      }
     }
 
     if (stats.realRedis) {

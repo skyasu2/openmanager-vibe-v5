@@ -168,7 +168,7 @@ const fetchSystemAlerts = async (filters?: {
   const alerts: SystemAlert[] = [];
 
   if (dashboardData.servers) {
-    dashboardData.servers.forEach((server: any) => {
+    dashboardData.servers.forEach((server: unknown) => {
       if (
         server.status === 'critical' &&
         (!filters?.level || filters.level === 'error')
@@ -240,13 +240,13 @@ export const useSystemStatus = (options?: {
       ...data,
       servicesCount: {
         total: Object.keys(data.services).length,
-        online: Object.values(data.services).filter((s: any) => s === 'online')
+        online: Object.values(data.services).filter((s: unknown) => s === 'online')
           .length,
         degraded: Object.values(data.services).filter(
-          (s: any) => s === 'degraded'
+          (s: unknown) => s === 'degraded'
         ).length,
         offline: Object.values(data.services).filter(
-          (s: any) => s === 'offline'
+          (s: unknown) => s === 'offline'
         ).length,
       },
       performanceGrade: getPerformanceGrade(data.performance),

@@ -15,12 +15,12 @@ const nextConfig = {
   // Pages Router 완전 비활성화 (App Router만 사용)
   pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
 
-  // 🔧 빌드 검사 활성화 (안정성 향상)
+  // 🔧 빌드 검사 재활성화 (타입 안전성 확보)
   typescript: {
     ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
 
   // 서버 외부 패키지 설정 (Next.js 15 새로운 방식)

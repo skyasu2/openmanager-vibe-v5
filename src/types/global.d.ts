@@ -16,7 +16,7 @@ interface LastStatusCheck {
 
 // 무료 티어 캐시 관련 타입
 interface FreeTierCache {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 declare global {

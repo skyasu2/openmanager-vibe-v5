@@ -75,7 +75,7 @@ export interface AISessionRequest {
 // ==============================================
 
 export class AISessionStorage {
-  private supabase: any;
+  private supabase: unknown;
   private logger: EdgeLogger;
   private readonly TABLE_NAME = 'ai_sessions';
   private readonly SUMMARY_TABLE = 'ai_session_summaries';
@@ -347,8 +347,8 @@ export async function saveAIResponse(
   sessionId: string,
   query: string,
   mode: 'LOCAL' | 'GOOGLE_ONLY',
-  response: any,
-  thinkingProcess?: any[],
+  response: unknown,
+  thinkingProcess?: unknown[],
   reasoningSteps?: string[]
 ): Promise<boolean> {
   const storage = getAISessionStorage();

@@ -6,7 +6,7 @@ import { Lightbulb, Server, TrendingUp, AlertTriangle } from 'lucide-react';
 import { timerManager } from '../../utils/TimerManager';
 
 interface DynamicPresetsProps {
-  serverMetrics?: any;
+  serverMetrics?: unknown;
   onSelect: (question: string) => void;
 }
 
@@ -16,7 +16,7 @@ export default function DynamicPresets({
 }: DynamicPresetsProps) {
   const [presets, setPresets] = useState<string[]>([]);
 
-  const generateContextualQuestions = (metrics: any): string[] => {
+  const generateContextualQuestions = (metrics: unknown): string[] => {
     const questions = [
       '현재 시스템 전체 상태를 요약해줘',
       'CPU 사용률이 높은 서버들을 분석해줘',

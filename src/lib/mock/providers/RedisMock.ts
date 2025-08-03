@@ -7,7 +7,7 @@
 import { MockBase } from '../core/MockBase';
 
 export class RedisMock extends MockBase {
-  private store = new Map<string, { value: any; expiry?: number; type: string }>();
+  private store = new Map<string, { value: unknown; expiry?: number; type: string }>();
   private persistFile = '.redis-mock-data/store.json';
 
   constructor() {
@@ -40,7 +40,7 @@ export class RedisMock extends MockBase {
   /**
    * SET 명령어
    */
-  async set(key: string, value: any, options?: { ex?: number }): Promise<'OK'> {
+  async set(key: string, value: unknown, options?: { ex?: number }): Promise<'OK'> {
     return this.execute('set', () => {
       const expiry = options?.ex ? Date.now() + options.ex * 1000 : undefined;
       this.store.set(key, { value: String(value), expiry, type: 'string' });

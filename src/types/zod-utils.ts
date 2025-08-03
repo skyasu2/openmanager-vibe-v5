@@ -140,14 +140,14 @@ export function getFirstZodError(error: z.ZodError): string {
 /**
  * 스키마를 부분적으로 만들기 (모든 필드 optional)
  */
-export function makePartial<T extends z.ZodObject<any>>(schema: T) {
+export function makePartial<T extends z.ZodObject<unknown>>(schema: T) {
   return schema.partial();
 }
 
 /**
  * 스키마를 필수로 만들기 (모든 필드 required)
  */
-export function makeRequired<T extends z.ZodObject<any>>(schema: T) {
+export function makeRequired<T extends z.ZodObject<unknown>>(schema: T) {
   return schema.required();
 }
 
@@ -155,7 +155,7 @@ export function makeRequired<T extends z.ZodObject<any>>(schema: T) {
  * 특정 필드만 선택
  */
 export function pickFields<
-  T extends z.ZodObject<any>,
+  T extends z.ZodObject<unknown>,
   K extends keyof z.infer<T>
 >(schema: T, fields: K[]): z.ZodObject<Pick<T['shape'], K>> {
   const picked = {} as any;
@@ -171,7 +171,7 @@ export function pickFields<
  * 특정 필드 제외
  */
 export function omitFields<
-  T extends z.ZodObject<any>,
+  T extends z.ZodObject<unknown>,
   K extends keyof z.infer<T>
 >(schema: T, fields: K[]): z.ZodObject<Omit<T['shape'], K>> {
   const shape = { ...schema.shape };
@@ -186,7 +186,7 @@ export function omitFields<
 /**
  * 조건부 검증 (다른 필드 값에 따라)
  */
-export function conditionalValidation<T extends z.ZodObject<any>>(
+export function conditionalValidation<T extends z.ZodObject<unknown>>(
   schema: T,
   conditions: Array<{
     when: (data: z.infer<T>) => boolean;
@@ -293,7 +293,7 @@ export function dateInRange(min?: Date, max?: Date) {
 export function envSchema<T extends z.ZodRawShape>(shape: T) {
   return z.object(shape).transform((env) => {
     // 환경변수 기본값 처리
-    const processed: any = {};
+    const processed: unknown = {};
     
     for (const [key, value] of Object.entries(env)) {
       // 'true'/'false' 문자열을 boolean으로 변환

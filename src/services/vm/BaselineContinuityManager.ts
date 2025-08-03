@@ -45,7 +45,7 @@ export class BaselineContinuityManager {
   // 핵심 컴포넌트
   private enrichedMetricsGenerator = EnrichedMetricsGenerator.getInstance();
   // private baselineStorage = BaselineStorageService.getInstance(); // BaselineStorageService removed
-  private baselineStorage: any = null;
+  private baselineStorage: unknown = null;
 
   // 연속성 데이터
   private snapshots: BaselineSnapshot[] = [];
@@ -178,7 +178,7 @@ export class BaselineContinuityManager {
     success: boolean;
     message: string;
     finalSnapshot: boolean;
-    performanceReport: any;
+    performanceReport: unknown;
   }> {
     if (!this.isRunning) {
       return {
@@ -320,7 +320,7 @@ export class BaselineContinuityManager {
           // 시간별 평균 CPU 사용률 계산 (예측 모델 예시)
           for (let hour = 0; hour < 24; hour++) {
             const hourSnapshots = this.snapshots.filter(
-              (s: any) => s.hourOfDay === hour
+              (s: unknown) => s.hourOfDay === hour
             );
 
             if (hourSnapshots.length > 0) {
@@ -398,7 +398,7 @@ export class BaselineContinuityManager {
       timestamp: now,
       hourOfDay: now.getHours(),
       dayOfWeek: now.getDay(),
-      servers: new Map(servers.map((s: any) => [s.id, { ...s }])),
+      servers: new Map(servers.map((s: unknown) => [s.id, { ...s }])),
       metadata: {
         generatedCount: servers.length,
         lastSyncTime: now,
@@ -414,7 +414,7 @@ export class BaselineContinuityManager {
       now.getTime() - this.config.historyRetention * 60 * 60 * 1000
     );
     this.snapshots = this.snapshots.filter(
-      (s: any) => s.timestamp > cutoffTime
+      (s: unknown) => s.timestamp > cutoffTime
     );
 
     systemLogger.info(

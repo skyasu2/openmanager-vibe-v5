@@ -3,7 +3,7 @@ declare module 'next/link' {
   import { FC, AnchorHTMLAttributes, ReactNode } from 'react';
   
   interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'onMouseEnter' | 'onTouchStart' | 'onClick'> {
-    href: string | { pathname?: string; query?: any; hash?: string };
+    href: string | { pathname?: string; query?: unknown; hash?: string };
     as?: string;
     replace?: boolean;
     scroll?: boolean;
@@ -46,7 +46,7 @@ declare module 'next/server' {
   }
   
   export class NextResponse extends Response {
-    static json(data: any, init?: ResponseInit): NextResponse;
+    static json(data: unknown, init?: ResponseInit): NextResponse;
     static redirect(url: string | URL, status?: number): NextResponse;
     static next(init?: ResponseInit): NextResponse;
     static rewrite(url: string | URL): NextResponse;
@@ -57,6 +57,6 @@ declare module '@supabase/ssr' {
   export function createServerClient(
     supabaseUrl: string,
     supabaseKey: string,
-    options: any
-  ): any;
+    options: Record<string, unknown>
+  ): unknown;
 }

@@ -64,20 +64,20 @@ export interface AIRequest {
   mode?: AIMode;
   agentMode?: AIAssistantMode;
   category?: string;
-  context?: any;
+  context?: unknown;
   priority?: Priority;
   timeout?: number;
   enableFallback?: boolean;
   // 추가 프로퍼티
   engineType?: string;
   sessionId?: string;
-  data?: any;
+  data?: unknown;
 }
 
 export interface AIResponse {
   success: boolean;
   response: string;
-  data?: any;
+  data?: unknown;
   confidence: number;
   mode: AIMode;
   agentMode?: AIAssistantMode;
@@ -306,5 +306,5 @@ export interface AIEngineResult {
   suggestions: string[];
   processingTime: number;
   fallbackUsed: boolean;
-  engineDetails: any;
+  engineDetails: unknown;
 }
