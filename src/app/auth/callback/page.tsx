@@ -21,7 +21,9 @@ export default function AuthCallbackPage() {
 
       try {
         console.log('🔐 OAuth 콜백 페이지 로드...');
-        console.log('⚡ 미들웨어가 PKCE 처리를 담당합니다');
+        console.log(
+          '⚡ Supabase가 자동으로 PKCE 처리합니다 (detectSessionInUrl: true)'
+        );
         console.log('🌍 환경:', {
           origin: window.location.origin,
           pathname: window.location.pathname,
@@ -29,7 +31,7 @@ export default function AuthCallbackPage() {
           isVercel: window.location.origin.includes('vercel.app'),
         });
 
-        // URL에서 에러 파라미터만 확인 (미들웨어가 PKCE를 이미 처리했으므로 code 검증 불필요)
+        // URL에서 에러 파라미터 확인
         const urlParams = new URLSearchParams(window.location.search);
         const error = urlParams.get('error');
 
@@ -37,35 +39,38 @@ export default function AuthCallbackPage() {
           console.error('❌ OAuth 에러:', error);
           const errorDescription = urlParams.get('error_description');
           const errorMessage = errorDescription || error;
-          
+
           // 더 자세한 에러 메시지
           let userMessage = 'GitHub 로그인에 실패했습니다.';
           if (error === 'access_denied') {
             userMessage = 'GitHub 인증이 취소되었습니다.';
           } else if (error === 'server_error') {
-            userMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+            userMessage =
+              '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
           } else if (error === 'temporarily_unavailable') {
             userMessage = '일시적으로 서비스를 사용할 수 없습니다.';
           }
-          
-          router.push(`/login?error=${error}&message=${encodeURIComponent(userMessage)}`);
+
+          router.push(
+            `/login?error=${error}&message=${encodeURIComponent(userMessage)}`
+          );
           return;
         }
 
-        console.log('🔑 미들웨어가 PKCE 처리 완료, 세션 확인 중...');
+        console.log('🔑 Supabase 자동 PKCE 처리 대기 중...');
 
         // 쿠키 설정 (리다이렉트 준비)
         document.cookie = `auth_in_progress=true; path=/; max-age=60; SameSite=Lax`;
         document.cookie = `auth_redirect_to=/main; path=/; max-age=60; SameSite=Lax`;
 
-        // 미들웨어가 이미 처리했으므로 빠르게 진행
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        // Supabase가 URL에서 코드를 감지하고 처리할 시간을 줌
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        // 미들웨어가 처리한 세션 확인 (재시도 로직 포함)
+        // 세션 확인 (재시도 로직 포함)
         let session = null;
         let sessionError = null;
         let attempts = 0;
-        const maxAttempts = 3;
+        const maxAttempts = 5; // 더 많은 재시도 허용
 
         do {
           const result = await supabase.auth.getSession();
@@ -74,7 +79,7 @@ export default function AuthCallbackPage() {
 
           if (!session && attempts < maxAttempts - 1) {
             console.log(`🔄 세션 확인 재시도 ${attempts + 1}/${maxAttempts}`);
-            await new Promise((resolve) => setTimeout(resolve, 500));
+            await new Promise((resolve) => setTimeout(resolve, 1000));
           }
           attempts++;
         } while (!session && !sessionError && attempts < maxAttempts);
@@ -92,57 +97,52 @@ export default function AuthCallbackPage() {
             `⏱️ 콜백 처리 시간: ${(performance.now() - startTime).toFixed(0)}ms`
           );
 
-          // auth_verified 쿠키 설정 (미들웨어가 이미 설정했을 수도 있음)
+          // auth_verified 쿠키 설정
           document.cookie = `auth_verified=true; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
 
-          // Phase 3 옵션: 바로 메인으로 가기
-          const skipSuccessPage = true;
+          // 바로 메인으로 이동
+          console.log('🚀 메인 페이지로 이동!');
 
-          if (skipSuccessPage) {
-            console.log('🚀 Phase 3: success 페이지 건너뛰고 메인으로!');
-            
-            // 세션이 완전히 설정될 때까지 잠시 대기
-            await new Promise((resolve) => setTimeout(resolve, 200));
-            
-            // 하드 리다이렉트로 쿠키가 제대로 전송되도록 보장
-            window.location.href = '/main';
-          } else {
-            router.push('/auth/success');
-          }
+          // 세션이 완전히 설정될 때까지 잠시 대기
+          await new Promise((resolve) => setTimeout(resolve, 200));
+
+          // 하드 리다이렉트로 쿠키가 제대로 전송되도록 보장
+          window.location.href = '/main';
         } else {
-          // 미들웨어 PKCE 처리가 완료되지 않은 경우
+          // 세션이 없는 경우
           if (sessionError) {
             console.error('❌ 세션 에러:', sessionError.message);
-            
+
             // 더 친화적인 에러 메시지
             let userMessage = '인증 처리 중 오류가 발생했습니다.';
             if (sessionError.message.includes('invalid_grant')) {
               userMessage = '인증 코드가 만료되었습니다. 다시 로그인해주세요.';
             } else if (sessionError.message.includes('network')) {
-              userMessage = '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+              userMessage =
+                '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
             }
-            
+
             router.push(
               '/login?error=session_failed&message=' +
                 encodeURIComponent(userMessage)
             );
           } else {
-            console.log(
-              '⏳ 미들웨어 PKCE 처리 미완료, 한 번 더 대기...'
-            );
-            
+            console.log('⏳ PKCE 처리 중, 추가 대기...');
+
             // Vercel 환경에서는 더 긴 대기
             const isVercel = window.location.origin.includes('vercel.app');
-            await new Promise((resolve) => setTimeout(resolve, isVercel ? 2000 : 1000));
-            
+            await new Promise((resolve) =>
+              setTimeout(resolve, isVercel ? 3000 : 2000)
+            );
+
             // 한 번 더 세션 확인
             const finalCheck = await supabase.auth.getSession();
             if (finalCheck.data.session) {
               console.log('✅ 최종 세션 확인 성공!');
               window.location.href = '/main';
             } else {
-              console.log('⚠️ 여전히 세션 없음, success 페이지로...');
-              router.push('/auth/success');
+              console.log('⚠️ 세션 생성 실패, 로그인 페이지로 이동');
+              router.push('/login?error=no_session&warning=no_session');
             }
           }
         }
