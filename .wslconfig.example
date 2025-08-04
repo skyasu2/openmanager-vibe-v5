@@ -1,0 +1,12 @@
+# WSL2 메모리 설정 예시
+# Windows 사용자 홈 디렉토리(C:\Users\사용자명)에 .wslconfig 파일로 저장
+
+[wsl2]
+memory=8GB    # WSL2에 할당할 메모리
+processors=4  # 할당할 프로세서 개수
+swap=4GB      # 스왑 파일 크기
+localhostForwarding=true
+
+# 저장 후 PowerShell에서 다음 명령 실행:
+# wsl --shutdown
+# 그 다음 WSL 재시작
