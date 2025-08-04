@@ -44,7 +44,6 @@
     "test:e2e:local": "cross-env USE_REAL_API=true npm run test:e2e:vitest",
     "test:performance": "vitest run --config vitest.performance.config.ts",
     "type-check": "tsc --noEmit",
-    "postinstall": "node scripts/postinstall.js || true",
     "prepare": "husky || true",
     "validate": "npm run type-check && npm run lint:quick",
     "validate:all": "npm run type-check && npm run lint && npm run test",

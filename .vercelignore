@@ -91,8 +91,7 @@ docs/
 scripts/
 .github/
 
-# postinstall 스크립트는 필수 (scripts/ 제외 규칙 뒤에 위치해야 함)
-!scripts/postinstall.js
+# MCP 설정 스크립트만 예외 처리
 !scripts/conditional-mcp-setup.mjs
 README.md
 .env.example
