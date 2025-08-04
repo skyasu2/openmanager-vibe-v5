@@ -10,9 +10,9 @@
  */
 
 import type {
-  EnhancedServerMetrics,
-  ServerRole,
-  ServerStatus,
+    EnhancedServerMetrics,
+    ServerRole,
+    ServerStatus,
 } from '../types/server';
 
 interface PhaseChanges {
@@ -851,10 +851,10 @@ export class DemoScenarioManager {
         metrics.network_out
       );
     }
-    if (metrics.response_time !== undefined) {
-      server.response_time = this.calculateNewValue(
-        server.response_time,
-        metrics.response_time
+    if (metrics.responseTime !== undefined) {
+      server.responseTime = this.calculateNewValue(
+        server.responseTime,
+        metrics.responseTime
       );
     }
     if (metrics.status !== undefined) {

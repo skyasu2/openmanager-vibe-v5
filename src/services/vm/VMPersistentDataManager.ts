@@ -281,7 +281,7 @@ export class VMPersistentDataManager {
         disk_usage: 15 + Math.random() * 20,
         network_in: 5 + Math.random() * 15,
         network_out: 3 + Math.random() * 10,
-        response_time: 50 + Math.random() * 100,
+        responseTime: 50 + Math.random() * 100,
 
         status: 'healthy',
         uptime: Math.floor(Math.random() * 365 * 24 * 60 * 60), // 랜덤 업타임

@@ -3,9 +3,9 @@
  * 24시간 데이터를 순환시켜 실시간 모니터링 효과 생성
  */
 
-import { decompressTimeSeriesData } from './mockDataGenerator';
 import type { Server } from '@/types/server';
-import type { ServerTimeSeriesData, ScenarioPoint } from './mockDataGenerator';
+import type { ScenarioPoint, ServerTimeSeriesData } from './mockDataGenerator';
+import { decompressTimeSeriesData } from './mockDataGenerator';
 
 export interface RotationConfig {
   intervalMs: number; // 회전 간격 (기본: 30초)
@@ -121,7 +121,7 @@ export class MockDataRotator {
         network: Math.round(metrics.network),
         status,
         lastUpdate: new Date(),
-        alerts: this.timeSeries[server.id]?.alerts || [],
+        alerts: (this.timeSeries[server.id]?.alerts || []).length,
       };
     });
   }
