@@ -63,6 +63,9 @@ const nextConfig = {
     optimizeCss: false,
     // SWC 트랜스폼 강제 사용 (속도 향상)
     forceSwcTransforms: true,
+    // Next.js 15 빌드 성능 최적화
+    webpackBuildWorker: true,
+    useLightningcss: true,
   },
 
   // 🚀 패키지 트랜스파일 설정 (충돌 방지)
@@ -136,6 +139,23 @@ const nextConfig = {
         net: false,
         tls: false,
         crypto: false,
+      };
+      
+      // 번들 최적화 - vendor 코드 분리
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: 10,
+          },
+          common: {
+            minChunks: 2,
+            priority: 20,
+            reuseExistingChunk: true,
+          },
+        },
       };
     }
 

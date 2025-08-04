@@ -9,7 +9,7 @@
     "dev:mock": "cross-env MOCK_MODE=force NODE_OPTIONS='--max-old-space-size=8192' next dev",
     "dev:real": "cross-env MOCK_MODE=off NODE_OPTIONS='--max-old-space-size=8192' next dev",
     "dev:hybrid": "cross-env MOCK_MODE=dev NODE_OPTIONS='--max-old-space-size=8192' next dev",
-    "build": "cross-env NODE_OPTIONS='--max-old-space-size=4096' next build",
+    "build": "cross-env NODE_OPTIONS='--max-old-space-size=6144' next build",
     "build:analyze": "cross-env ANALYZE=true next build",
     "build:trace": "cross-env NEXT_TELEMETRY_DEBUG=1 next build",
     "build:memory": "cross-env NODE_OPTIONS='--max-old-space-size=8192 --trace-gc' next build",

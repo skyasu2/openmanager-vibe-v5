@@ -86,11 +86,13 @@ node_modules/
 env-backup*
 config/env-backup*
 
+# postinstall 스크립트는 필수 (최상단에 위치)
+!scripts/postinstall.js
+!scripts/conditional-mcp-setup.mjs
+
 # 문서 및 스크립트 (배포에 불필요)
 docs/
 scripts/
-!scripts/conditional-mcp-setup.mjs
-!scripts/postinstall.js
 .github/
 README.md
 .env.example
