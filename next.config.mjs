@@ -65,7 +65,8 @@ const nextConfig = {
     forceSwcTransforms: true,
     // Next.js 15 빌드 성능 최적화
     webpackBuildWorker: true,
-    useLightningcss: true,
+    // Lightning CSS는 PostCSS와 충돌하므로 비활성화
+    useLightningcss: false,
   },
 
   // 🚀 패키지 트랜스파일 설정 (충돌 방지)
