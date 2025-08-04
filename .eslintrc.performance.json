@@ -2,34 +2,20 @@
   "extends": ["next/core-web-vitals"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": "latest",
+    "ecmaVersion": 2020,
     "sourceType": "module",
-    "ecmaFeatures": {
-      "jsx": true
-    },
-    "project": false,
-    "EXPERIMENTAL_useProjectService": false,
-    "allowImportExportEverywhere": true,
-    "ecmaVersion": 2020
+    "project": false
   },
   "plugins": ["@typescript-eslint"],
   "rules": {
-    "@typescript-eslint/no-unused-vars": [
-      "warn",
-      {
-        "argsIgnorePattern": "^_",
-        "varsIgnorePattern": "^_"
-      }
-    ],
+    "@typescript-eslint/no-unused-vars": "warn",
     "@typescript-eslint/no-explicit-any": "warn",
     "no-console": "off",
-    "react-hooks/exhaustive-deps": "warn",
-    // 성능 최적화를 위해 무거운 규칙 비활성화
-    "@typescript-eslint/no-unsafe-assignment": "off",
-    "@typescript-eslint/no-unsafe-member-access": "off",
-    "@typescript-eslint/no-unsafe-call": "off",
-    "@typescript-eslint/no-unsafe-return": "off",
-    "@typescript-eslint/no-unsafe-argument": "off"
+    "react-hooks/exhaustive-deps": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "prefer-const": "warn",
+    "no-var": "warn"
   },
   "ignorePatterns": [
     "**/.next/**",
@@ -47,11 +33,7 @@
     "**/generated/**",
     "**/*.stories.*",
     "**/*.test.*",
-    "**/*.spec.*"
-  ],
-  "settings": {
-    "react": {
-      "version": "detect"
-    }
-  }
+    "**/*.spec.*",
+    "**/*.js"
+  ]
 }

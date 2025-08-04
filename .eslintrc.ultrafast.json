@@ -1,5 +1,5 @@
 {
-  "extends": ["next", "@typescript-eslint/recommended"],
+  "extends": ["next/core-web-vitals"],
   "plugins": ["@typescript-eslint"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {

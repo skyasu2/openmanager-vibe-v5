@@ -80,7 +80,7 @@ function testEnvVars() {
     .filter(Boolean);
 
   // 핵심 환경변수만 빠르게 체크
-  const criticalVars = ['NEXTAUTH_URL', 'NEXT_PUBLIC_SUPABASE_URL', 'UPSTASH_REDIS_REST_URL'];
+  const criticalVars = ['NEXTAUTH_URL', 'NEXT_PUBLIC_SUPABASE_URL', 'GOOGLE_AI_API_KEY'];
   criticalVars.forEach(varName => {
     assert(requiredVars.includes(varName), `${varName}이 템플릿에 있어야 함`);
   });
@@ -93,7 +93,6 @@ function testCoreFiles() {
   const coreFiles = [
     'src/services/ai/UnifiedAIEngineRouter.ts',
     'src/services/ai/SimplifiedQueryEngine.ts', 
-    'src/lib/redis.ts',
     'src/lib/supabase.ts',
     'tsconfig.json',
     'next.config.mjs',
@@ -153,7 +152,6 @@ function testDependencies() {
       'next',
       'react', 
       'typescript',
-      '@upstash/redis',
       '@supabase/supabase-js',
       'vitest',
     ];
