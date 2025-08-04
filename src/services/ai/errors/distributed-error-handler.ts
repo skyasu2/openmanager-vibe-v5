@@ -192,7 +192,7 @@ export class DistributedErrorHandler {
    */
   private isRecoverable(code: ErrorCode, error: unknown): boolean {
     // 명시적으로 복구 불가능한 코드들
-    const nonRecoverableCodes = [
+    const nonRecoverableCodes: ErrorCode[] = [
       ERROR_CODES.UNAUTHORIZED,
       ERROR_CODES.FORBIDDEN,
       ERROR_CODES.BAD_REQUEST,
@@ -204,7 +204,7 @@ export class DistributedErrorHandler {
     }
 
     // 네트워크 관련 에러는 대부분 복구 가능
-    const networkCodes = [
+    const networkCodes: ErrorCode[] = [
       ERROR_CODES.NETWORK_TIMEOUT,
       ERROR_CODES.NETWORK_ERROR,
       ERROR_CODES.SERVICE_UNAVAILABLE,
@@ -380,7 +380,8 @@ export class DistributedErrorHandler {
     }
 
     // 인증 실패
-    if ([ERROR_CODES.UNAUTHORIZED, ERROR_CODES.FORBIDDEN].includes(error.code as ErrorCode)) {
+    const authErrorCodes: ErrorCode[] = [ERROR_CODES.UNAUTHORIZED, ERROR_CODES.FORBIDDEN];
+    if (authErrorCodes.includes(error.code as ErrorCode)) {
       return ErrorSeverity.HIGH;
     }
 
@@ -390,7 +391,8 @@ export class DistributedErrorHandler {
     }
 
     // 네트워크 에러
-    if ([ERROR_CODES.NETWORK_ERROR, ERROR_CODES.NETWORK_TIMEOUT].includes(error.code as ErrorCode)) {
+    const networkErrorCodes: ErrorCode[] = [ERROR_CODES.NETWORK_ERROR, ERROR_CODES.NETWORK_TIMEOUT];
+    if (networkErrorCodes.includes(error.code as ErrorCode)) {
       return ErrorSeverity.MEDIUM;
     }
 

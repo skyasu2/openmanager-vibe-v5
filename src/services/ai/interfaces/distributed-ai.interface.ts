@@ -19,7 +19,8 @@ export type AIServiceType =
   | 'gcp-korean-nlp'  // GCP Functions Korean NLP
   | 'gcp-ml-analytics' // GCP Functions ML Analytics
   | 'redis-cache'     // Upstash Redis Cache
-  | 'edge-router';    // Vercel Edge Router
+  | 'edge-router'     // Vercel Edge Router
+  | 'edge-cache';     // Edge Runtime Cache
 
 /**
  * 처리 상태
@@ -194,7 +195,7 @@ export interface EdgeRouterRequest extends DistributedRequest {
 export interface EdgeRouterResponse {
   results: Map<AIServiceType, DistributedResponse>;
   aggregatedData?: unknown;
-  routingPath: AIServiceType[];
+  routingPath: string[]; // Changed from AIServiceType[] to allow routing steps
   totalProcessingTime: number;
 }
 

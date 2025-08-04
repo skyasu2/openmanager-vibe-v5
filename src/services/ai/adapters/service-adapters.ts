@@ -19,6 +19,7 @@ import type {
 import { getSupabaseRAGEngine } from '../supabase-rag-engine';
 import { distributedErrorHandler } from '../errors/distributed-error-handler';
 import { supabaseRealtimeAdapter as supabaseRealtimeAdapterInstance } from './supabase-realtime-adapter';
+import type { RAGSearchResult } from '@/types/ai-service-types';
 
 /**
  * Supabase RAG 어댑터
@@ -44,7 +45,7 @@ export class SupabaseRAGAdapter {
       });
 
       // 기존 RAG 엔진 호출
-      const result = await this.ragEngine.search(request.query, {
+      const result = await this.ragEngine.searchSimilar(request.query, {
         maxResults: request.maxResults,
         threshold: request.threshold,
         includeContext: request.includeContext,
@@ -60,10 +61,10 @@ export class SupabaseRAGAdapter {
         id: request.id,
         success: result.success,
         data: result.success ? {
-          results: result.results.map(r => ({
+          results: result.results.map((r) => ({
             id: r.id,
             content: r.content,
-            similarity: r.similarity || 0,
+            similarity: r.similarity || 0, // Provide default if missing
             metadata: r.metadata,
           })),
           context: result.context,

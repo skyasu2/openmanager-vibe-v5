@@ -3,6 +3,8 @@
  * 모든 서버 관련 인터페이스를 이 파일에서 통합 관리
  */
 
+import type { ServerMetrics } from '@/core/types';
+
 // 기본 서버 인터페이스
 export interface Server {
   id: string;
@@ -14,7 +16,7 @@ export interface Server {
   metrics: ServerMetrics;
   alerts?: ServerAlert[];
   tags?: string[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // 서버 타입 정의
@@ -28,8 +30,7 @@ export type ServerType =
   | 'monitoring'
   | 'storage';
 
-// 서버 메트릭은 중앙화된 타입 시스템에서 가져옴
-export type { ServerMetrics, DetailedServerMetrics } from '@/core/types';
+// 서버 메트릭은 중앙화된 타입 시스템에서 가져옴 (상단에서 import함)
 
 // 확장된 서버 메트릭스 (AI 분석 포함)
 export interface EnhancedServerMetrics extends ServerMetrics {
@@ -57,7 +58,7 @@ export interface ServerAlert {
   timestamp: string;
   acknowledged: boolean;
   source: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // 서버 인스턴스 (데이터 생성용)
@@ -262,21 +263,27 @@ export const hasHighCpuUsage = (
   metrics: ServerMetrics,
   threshold = 80
 ): boolean => {
-  return metrics.cpu.usage > threshold;
+  const cpuValue = typeof metrics.cpu === 'number' ? metrics.cpu : metrics.cpu.usage;
+  return cpuValue > threshold;
 };
 
 export const hasHighMemoryUsage = (
   metrics: ServerMetrics,
   threshold = 85
 ): boolean => {
-  return metrics.memory.usage > threshold;
+  const memoryValue = typeof metrics.memory === 'number' ? metrics.memory : metrics.memory.usage;
+  return memoryValue > threshold;
 };
 
 // 유틸리티 함수들
 export const calculateServerHealth = (metrics: ServerMetrics): number => {
-  const cpuHealth = Math.max(0, 100 - metrics.cpu.usage);
-  const memoryHealth = Math.max(0, 100 - metrics.memory.usage);
-  const diskHealth = Math.max(0, 100 - metrics.disk.usage);
+  const cpuValue = typeof metrics.cpu === 'number' ? metrics.cpu : metrics.cpu.usage;
+  const memoryValue = typeof metrics.memory === 'number' ? metrics.memory : metrics.memory.usage;
+  const diskValue = typeof metrics.disk === 'number' ? metrics.disk : metrics.disk.usage;
+  
+  const cpuHealth = Math.max(0, 100 - cpuValue);
+  const memoryHealth = Math.max(0, 100 - memoryValue);
+  const diskHealth = Math.max(0, 100 - diskValue);
 
   return Math.round((cpuHealth + memoryHealth + diskHealth) / 3);
 };

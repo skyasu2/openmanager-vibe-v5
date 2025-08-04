@@ -18,15 +18,35 @@ import {
   QueryRequest,
   QueryResponse,
 } from './SimplifiedQueryEngine';
-import { getPerformanceOptimizedQueryEngine } from './performance-optimized-query-engine';
+import { 
+  getPerformanceOptimizedQueryEngine,
+  type PerformanceOptimizedQueryEngine 
+} from './performance-optimized-query-engine';
 import { getSupabaseRAGEngine } from './supabase-rag-engine';
-import { PromptSanitizer, sanitizePrompt } from './security/PromptSanitizer';
+import { 
+  PromptSanitizer, 
+  sanitizePrompt,
+  type SanitizationResult 
+} from './security/PromptSanitizer';
 import {
   AIResponseFilter,
   filterAIResponse,
 } from './security/AIResponseFilter';
 import type { AIMetadata } from '@/types/ai-service-types';
 import type { ComplexityScore } from './query-complexity-analyzer';
+
+// Korean NLP Response 타입 정의
+interface KoreanNLPResponse {
+  intent?: string;
+  entities?: Array<{ value: string; type?: string }>;
+  semantic_analysis?: {
+    main_topic?: string;
+    urgency_level?: string;
+  };
+  response_guidance?: {
+    visualization_suggestions?: string[];
+  };
+}
 
 export interface RouterConfig {
   // 보안 설정
@@ -91,7 +111,7 @@ export class UnifiedAIEngineRouter {
 
   // AI 엔진 인스턴스들
   private simplifiedEngine!: SimplifiedQueryEngine;
-  private performanceEngine: unknown; // PerformanceOptimizedQueryEngine
+  private performanceEngine!: PerformanceOptimizedQueryEngine;
   private ragEngine: unknown; // SupabaseRAGEngine
 
   // 보안 컴포넌트들
@@ -424,7 +444,7 @@ export class UnifiedAIEngineRouter {
   /**
    * 🛡️ 보안 적용
    */
-  private async applySecurity(request: QueryRequest): Promise<unknown> {
+  private async applySecurity(request: QueryRequest): Promise<SanitizationResult> {
     const sanitizationResult = sanitizePrompt(request.query);
 
     if (sanitizationResult.threatsDetected.length > 0) {
@@ -572,7 +592,7 @@ export class UnifiedAIEngineRouter {
   /**
    * 🔄 한국어 NLP 응답 변환
    */
-  private convertKoreanNLPResponse(nlpData: unknown): string {
+  private convertKoreanNLPResponse(nlpData: KoreanNLPResponse | null): string {
     if (!nlpData) return '한국어 분석 결과를 가져올 수 없습니다.';
 
     const { intent, entities, semantic_analysis, response_guidance } = nlpData;
@@ -581,7 +601,7 @@ export class UnifiedAIEngineRouter {
     response += `- 의도: ${intent}\n`;
 
     if (entities && entities.length > 0) {
-      response += `- 감지된 요소: ${entities.map((e: unknown) => e.value).join(', ')}\n`;
+      response += `- 감지된 요소: ${entities.map((e) => e.value).join(', ')}\n`;
     }
 
     if (semantic_analysis) {
@@ -591,7 +611,7 @@ export class UnifiedAIEngineRouter {
       }
     }
 
-    if (response_guidance?.visualization_suggestions?.length > 0) {
+    if (response_guidance?.visualization_suggestions && response_guidance.visualization_suggestions.length > 0) {
       response += `\n권장 시각화: ${response_guidance.visualization_suggestions.join(', ')}`;
     }
 
@@ -779,7 +799,7 @@ export class UnifiedAIEngineRouter {
 
   // 응답 생성 헬퍼 메서드들
   private createSecurityBlockedResponse(
-    securityResult: unknown,
+    securityResult: SanitizationResult,
     processingPath: string[]
   ): RouteResult {
     return {

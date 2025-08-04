@@ -12,7 +12,7 @@
 
 // 메모리 기반 캐시 서비스 클래스
 class MemoryCacheService {
-  private cache = new Map<string, { 
+  public cache = new Map<string, { 
     value: any; 
     expires: number; 
     created: number;
@@ -152,6 +152,35 @@ export function getCacheService(): MemoryCacheService {
     }, 5 * 60 * 1000);
   }
   return globalCacheService;
+}
+
+/**
+ * Simple cache get (for compatibility)
+ */
+export function getCachedData<T>(key: string): T | null {
+  const cache = getCacheService();
+  try {
+    const item = cache.cache.get(key);
+    if (!item || Date.now() > item.expires) {
+      return null;
+    }
+    item.hits++;
+    return item.value as T;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Simple cache set (for compatibility) 
+ */
+export function setCachedData<T>(key: string, data: T, ttlSeconds: number = 300): void {
+  const cache = getCacheService();
+  try {
+    cache.set(key, data, ttlSeconds);
+  } catch (error) {
+    console.error(`Cache set failed (${key}):`, error);
+  }
 }
 
 /**

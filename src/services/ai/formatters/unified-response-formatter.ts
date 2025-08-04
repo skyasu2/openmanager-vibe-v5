@@ -323,14 +323,14 @@ export class UnifiedResponseFormatter {
     for (const response of responses.values()) {
       if (response.success && response.data) {
         // RAG 응답
-        if ('results' in response.data) {
+        if (typeof response.data === 'object' && response.data !== null && 'results' in response.data) {
           const data = response.data as SupabaseRAGResponse;
           if (data.results.length > 0) {
             confidences.push(data.results[0].similarity);
           }
         }
         // GCP 응답
-        else if ('confidence' in response.data) {
+        else if (typeof response.data === 'object' && response.data !== null && 'confidence' in response.data) {
           confidences.push((response.data as GCPFunctionResponse).confidence || 0.8);
         }
         // 기본 성공
@@ -361,13 +361,18 @@ export class UnifiedResponseFormatter {
   private buildContext(
     responses: Map<AIServiceType, DistributedResponse>
   ): UnifiedAIResponse['context'] | undefined {
-    const sources: UnifiedAIResponse['context']['sources'] = [];
+    const sources: Array<{
+      type: 'document' | 'cache' | 'function' | 'knowledge';
+      content: string;
+      relevance: number;
+      metadata?: Record<string, unknown>;
+    }> = [];
 
     for (const [service, response] of responses) {
       if (!response.success || !response.data) continue;
 
       // RAG 소스
-      if (service === 'supabase-rag' && 'results' in response.data) {
+      if (service === 'supabase-rag' && typeof response.data === 'object' && response.data !== null && 'results' in response.data) {
         const data = response.data as SupabaseRAGResponse;
         sources.push(...data.results.map(result => ({
           type: 'document' as const,

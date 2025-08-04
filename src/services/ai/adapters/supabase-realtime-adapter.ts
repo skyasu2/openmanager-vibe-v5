@@ -188,8 +188,11 @@ export class SupabaseRealtimeAdapter {
           }
         )
         .subscribe((status) => {
-          if (status === 'SUBSCRIPTION_ERROR') {
-            onError?.(new Error('Subscription failed'));
+          if (status === 'SUBSCRIBED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            // Supabase Realtime의 실제 상태값들
+            if (status !== 'SUBSCRIBED') {
+              onError?.(new Error(`Subscription failed: ${status}`));
+            }
           }
         });
 

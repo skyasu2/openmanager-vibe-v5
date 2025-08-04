@@ -12,13 +12,9 @@ import {
   MCPQueryResponseSchema,
   HealthCheckResponseSchema,
   
-  // 서버 스키마  
+  // 서버 스키마 (alias 사용)
   ServerSchema,
   ServerMetricsSchema,
-  ServerTypeSchema,
-  CPUInfoSchema,
-  MemoryInfoSchema,
-  DiskInfoSchema,
   NetworkInfoSchema,
   
   // 공통 스키마
@@ -43,10 +39,6 @@ export type HealthCheckResponse = z.infer<typeof HealthCheckResponseSchema>;
 // 서버 관련 타입
 export type Server = z.infer<typeof ServerSchema>;
 export type ServerMetrics = z.infer<typeof ServerMetricsSchema>;
-export type ServerType = z.infer<typeof ServerTypeSchema>;
-export type CPUInfo = z.infer<typeof CPUInfoSchema>;
-export type MemoryInfo = z.infer<typeof MemoryInfoSchema>;
-export type DiskInfo = z.infer<typeof DiskInfoSchema>;
 export type NetworkInfo = z.infer<typeof NetworkInfoSchema>;
 
 // 공통 타입
@@ -61,6 +53,12 @@ export type HealthStatus = z.infer<typeof HealthStatusSchema>;
 export type Timestamp = z.infer<typeof TimestampSchema>;
 export type Id = z.infer<typeof IdSchema>;
 export type Percentage = z.infer<typeof PercentageSchema>;
+
+// 서버 타입들 (임시로 간단하게 정의)
+export type ServerType = 'web' | 'database' | 'api' | 'cache' | 'worker';
+export type CPUInfo = { usage: number; cores: number; };
+export type MemoryInfo = { usage: number; total: number; };
+export type DiskInfo = { usage: number; total: number; };
 
 // ===== 공통 API 응답 래퍼 타입 =====
 

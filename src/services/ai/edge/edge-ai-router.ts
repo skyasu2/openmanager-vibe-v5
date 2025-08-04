@@ -86,18 +86,18 @@ export class EdgeAIRouter {
   async route(request: EdgeRouterRequest): Promise<EdgeRouterResponse> {
     const startTime = Date.now();
     const results = new Map<AIServiceType, DistributedResponse>();
-    const routingPath: AIServiceType[] = [];
+    const routingPath: string[] = []; // Changed from AIServiceType[] to string[]
 
     try {
       // 1. Edge 캐시 확인 (빠른 응답)
       if (this.config.caching.enabled) {
-        const cacheResult = await this.checkCache(request);
-        if (cacheResult) {
-          results.set('edge-cache', cacheResult);
-          routingPath.push('edge-cache');
+        const cachedResponse = await this.checkCache(request);
+        if (cachedResponse) {
+          routingPath.push('cache_hit');
           
-          // 캐시 히트 시 빠른 반환
-          if (cacheResult.success && cacheResult.data) {
+          // 캐시된 응답이 있으면 캐시된 서비스 정보 사용
+          if (cachedResponse.success && cachedResponse.data) {
+            results.set(cachedResponse.metadata.service, cachedResponse);
             return {
               results,
               routingPath,
@@ -161,7 +161,7 @@ export class EdgeAIRouter {
   private async processParallel(
     request: EdgeRouterRequest,
     results: Map<AIServiceType, DistributedResponse>,
-    routingPath: AIServiceType[]
+    routingPath: string[]
   ): Promise<void> {
     const promises: Promise<void>[] = [];
     const processedServices = new Set<AIServiceType>();
@@ -210,7 +210,7 @@ export class EdgeAIRouter {
   private async processSequential(
     request: EdgeRouterRequest,
     results: Map<AIServiceType, DistributedResponse>,
-    routingPath: AIServiceType[]
+    routingPath: string[]
   ): Promise<void> {
     for (const service of request.services) {
       if (!this.isServiceAvailable(service)) continue;
@@ -246,7 +246,7 @@ export class EdgeAIRouter {
   private async processFallbackChain(
     request: EdgeRouterRequest,
     results: Map<AIServiceType, DistributedResponse>,
-    routingPath: AIServiceType[]
+    routingPath: string[]
   ): Promise<void> {
     for (const service of request.fallbackChain || []) {
       if (results.has(service)) continue;

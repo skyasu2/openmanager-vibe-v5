@@ -501,7 +501,7 @@ export class SimplifiedQueryEngine {
    */
   protected generateLocalResponse(
     query: string,
-    ragResult: unknown, // RAGSearchResult from supabase-rag-engine
+    ragResult: { results: Array<{ id: string; content: string; similarity: number; metadata?: AIMetadata }> },
     mcpContext: MCPContext | null,
     userContext: AIQueryContext | undefined
   ): string {
@@ -525,7 +525,7 @@ export class SimplifiedQueryEngine {
       response += '\n\n추가 정보:\n';
       ragResult.results
         .slice(1, 3)
-        .forEach((result: RAGSearchResult, idx: number) => {
+        .forEach((result, idx) => {
           response += `${idx + 1}. ${result.content.substring(0, 100)}...\n`;
         });
     }
@@ -610,12 +610,11 @@ export class SimplifiedQueryEngine {
   /**
    * 📊 신뢰도 계산
    */
-  protected calculateConfidence(ragResult: unknown): number {
-    // RAGSearchResult from supabase-rag-engine
+  protected calculateConfidence(ragResult: { results: Array<{ similarity: number }> }): number {
     if (ragResult.results.length === 0) return 0.1;
 
     // 최고 유사도 점수 기반 신뢰도
-    const topSimilarity = ragResult.results[0].similarity || 0;
+    const topSimilarity = ragResult.results[0].similarity;
     const resultCount = ragResult.results.length;
 
     // 유사도와 결과 개수를 종합한 신뢰도

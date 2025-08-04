@@ -76,7 +76,7 @@ export interface Server {
   network?: number; // 네트워크 사용률 추가
   uptime: string | number;
   location: string;
-  alerts?: number | any[];
+  alerts?: number | ServerAlert[];
   ip?: string;
   os?: string;
   type?: string;
@@ -204,7 +204,7 @@ export interface EnhancedServerMetrics {
   disk_usage: number;
   network_in: number;
   network_out: number;
-  response_time: number;
+  responseTime: number;
   uptime: number;
   last_updated: string;
   alerts: ServerAlert[];
@@ -255,7 +255,7 @@ export interface EnhancedServerMetrics {
 export interface ServerAlert {
   id: string;
   server_id: string;
-  type: 'cpu' | 'memory' | 'disk' | 'network' | 'response_time' | 'custom';
+  type: 'cpu' | 'memory' | 'disk' | 'network' | 'responseTime' | 'custom';
   message: string;
   severity: AlertSeverity;
   timestamp: string;
@@ -277,12 +277,10 @@ export interface FailureStep {
   server_id: string;
   metric: keyof Pick<
     ServerMetrics,
-    | 'cpu_usage'
-    | 'memory_usage'
-    | 'disk_usage'
-    | 'response_time'
-    | 'network_in'
-    | 'network_out'
+    | 'cpu'
+    | 'memory'
+    | 'disk'
+    | 'network'
   >;
   value: number;
   alert?: Omit<ServerAlert, 'id' | 'server_id' | 'timestamp'>;

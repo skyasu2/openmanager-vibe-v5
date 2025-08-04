@@ -8,7 +8,7 @@
 
 import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
 import { NotificationToast } from '@/components/system/NotificationToast';
-import AISidebarV2 from '@/domains/ai-sidebar/components/AISidebarV2';
+// AISidebarV2는 필요시에만 동적 로드
 import { useAutoLogout } from '@/hooks/useAutoLogout';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import type { Server } from '@/types/server';
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion은 필요시에만 동적 로드
 import { AlertTriangle } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
@@ -32,8 +32,81 @@ const DashboardContent = dynamic(
 const FloatingSystemControl = dynamic(
   () => import('../../components/system/FloatingSystemControl')
 );
-const EnhancedServerModalDynamic = dynamic(
-  () => import('../../components/dashboard/EnhancedServerModal'),
+// EnhancedServerModal은 AnimatedServerModal로 통합됨
+
+// AI Sidebar를 framer-motion과 함께 동적 로드
+const AnimatedAISidebar = dynamic(
+  async () => {
+    const [{ AnimatePresence, motion }, AISidebarV2] = await Promise.all([
+      import('framer-motion'),
+      import('@/domains/ai-sidebar/components/AISidebarV2'),
+    ]);
+    
+    return function AnimatedAISidebarWrapper({ 
+      isOpen, 
+      onClose, 
+      ...props 
+    }: { 
+      isOpen: boolean; 
+      onClose: () => void; 
+    }) {
+      return (
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="fixed inset-y-0 right-0 z-40 w-96"
+            >
+              <AISidebarV2.default onClose={onClose} isOpen={isOpen} {...props} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      );
+    };
+  },
+  {
+    loading: () => (
+      <div className="fixed inset-y-0 right-0 z-40 w-96 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-center h-full">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+        </div>
+      </div>
+    ),
+  }
+);
+
+// 서버 모달을 framer-motion과 함께 동적 로드
+const AnimatedServerModal = dynamic(
+  async () => {
+    const [{ AnimatePresence }, EnhancedServerModal] = await Promise.all([
+      import('framer-motion'),
+      import('../../components/dashboard/EnhancedServerModal'),
+    ]);
+    
+    return function AnimatedServerModalWrapper({ 
+      isOpen, 
+      server,
+      onClose 
+    }: { 
+      isOpen: boolean; 
+      server: any;
+      onClose: () => void; 
+    }) {
+      return (
+        <AnimatePresence>
+          {isOpen && server && (
+            <EnhancedServerModal.default
+              server={server}
+              onClose={onClose}
+            />
+          )}
+        </AnimatePresence>
+      );
+    };
+  },
   {
     loading: () => (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -319,30 +392,15 @@ function DashboardPageContent() {
           </Suspense>
         </div>
 
-        {/* 🎯 AI 에이전트 */}
-        <AnimatePresence>
-          {isAgentOpen && (
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed inset-y-0 right-0 z-40 w-96"
-            >
-              <AISidebarV2 onClose={closeAgent} isOpen={isAgentOpen} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* 🎯 AI 에이전트 - 동적 로딩으로 최적화 */}
+        <AnimatedAISidebar isOpen={isAgentOpen} onClose={closeAgent} />
 
-        {/* 🎯 서버 모달 */}
-        <AnimatePresence>
-          {isServerModalOpen && selectedServer && (
-            <EnhancedServerModalDynamic
-              server={selectedServer as any}
-              onClose={handleServerModalClose}
-            />
-          )}
-        </AnimatePresence>
+        {/* 🎯 서버 모달 - 동적 로딩으로 최적화 */}
+        <AnimatedServerModal 
+          isOpen={isServerModalOpen} 
+          server={selectedServer} 
+          onClose={handleServerModalClose} 
+        />
 
         {/* 🔒 자동 로그아웃 경고 모달 - 베르셀 사용량 최적화 */}
         <AutoLogoutWarning

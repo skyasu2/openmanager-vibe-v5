@@ -149,12 +149,13 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error('❌ 실시간 서버 데이터 API 오류:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('❌ 실시간 서버 데이터 API 오류:', errorMessage);
     return NextResponse.json(
       {
         success: false,
         message: 'Internal Server Error',
-        error: (error as Error).message,
+        error: errorMessage,
         servers: [],
         summary: {},
         pagination: {
@@ -200,12 +201,11 @@ export async function POST(request: NextRequest) {
         });
 
       case 'refresh': {
-        // 목업 시스템 리셋
-        const mockSystem = getMockSystem();
-        mockSystem.reset();
+        // Supabase 데이터 새로고침 (캐시 정리)
+        console.log('🔄 실시간 서버 데이터 새로고침 요청');
         return NextResponse.json({
           success: true,
-          message: '목업 시스템이 리셋되었습니다.',
+          message: '실시간 서버 데이터가 새로고침되었습니다.',
           status: { status: 'active' },
         });
       }

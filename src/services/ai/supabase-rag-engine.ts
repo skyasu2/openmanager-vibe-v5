@@ -22,12 +22,12 @@ interface RAGSearchOptions {
   cached?: boolean;
 }
 
-interface RAGSearchResult {
+interface RAGEngineSearchResult {
   success: boolean;
   results: Array<{
     id: string;
     content: string;
-    similarity?: number;
+    similarity: number;
     metadata?: AIMetadata;
   }>;
   context?: string;
@@ -52,7 +52,7 @@ class MemoryRAGCache {
     hits: number; 
   }>();
   private searchCache = new Map<string, { 
-    result: RAGSearchResult; 
+    result: RAGEngineSearchResult; 
     timestamp: number; 
     hits: number; 
   }>();
@@ -88,7 +88,7 @@ class MemoryRAGCache {
   }
 
   // 검색 결과 캐시 관리
-  getSearchResult(key: string): RAGSearchResult | null {
+  getSearchResult(key: string): RAGEngineSearchResult | null {
     const item = this.searchCache.get(key);
     if (!item) return null;
     
@@ -101,7 +101,7 @@ class MemoryRAGCache {
     return item.result;
   }
 
-  setSearchResult(key: string, result: RAGSearchResult): void {
+  setSearchResult(key: string, result: RAGEngineSearchResult): void {
     if (this.searchCache.size >= this.maxSearchSize) {
       this.evictLeastUsedSearch();
     }
@@ -247,7 +247,7 @@ export class SupabaseRAGEngine {
   async searchSimilar(
     query: string,
     options: RAGSearchOptions = {}
-  ): Promise<RAGSearchResult> {
+  ): Promise<RAGEngineSearchResult> {
     const startTime = Date.now();
     await this._initialize();
 
@@ -325,7 +325,7 @@ export class SupabaseRAGEngine {
         context = this.buildContext(searchResults.results || [], mcpContext);
       }
 
-      const result: RAGSearchResult = {
+      const result: RAGEngineSearchResult = {
         success: true,
         results: (searchResults.results || []).map(r => ({
           id: r.id,

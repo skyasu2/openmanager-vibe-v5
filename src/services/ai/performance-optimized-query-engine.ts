@@ -228,7 +228,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     if (mode === 'local') {
       const embedding =
         embeddingPromise &&
-        taskResults.find(r => r.status === 'fulfilled')?.value;
+        taskResults.find(r => r.status === 'fulfilled')?.value as number[] | undefined;
       return await this.processLocalQueryOptimized(
         query,
         context,
@@ -338,7 +338,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       const ragResult = await this.ragEngine.searchSimilar(query, {
         maxResults: 3, // 성능을 위해 결과 수 제한
         threshold: 0.6, // 임계값 상향 조정
-        category: options?.category,
+        category: typeof options?.category === 'string' ? options.category : undefined,
         enableMCP: false,
         cached: true,
       });

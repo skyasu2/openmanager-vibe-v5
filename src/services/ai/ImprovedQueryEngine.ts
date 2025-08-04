@@ -31,7 +31,16 @@ interface AIEngineResponse {
     cached?: boolean;
     mcpUsed?: boolean;
     sources?: string[];
+    model?: string;
+    tokensUsed?: number;
   };
+  processingTime: number;
+}
+
+interface AIEngineStreamResponse {
+  success: boolean;
+  stream: any; // GenerateContentStreamResult from Google AI
+  engine: 'google-ai';
   processingTime: number;
 }
 
@@ -320,16 +329,18 @@ export class ImprovedQueryEngine {
     },
     mcpContextPromise: Promise<MCPContext | null>,
     _analysis: ReturnType<typeof QueryComplexityAnalyzer.analyze> | null
-  ): Promise<unknown> {
+  ): Promise<AIEngineResponse> {
     if (engine === 'local-rag') {
       return this.processLocalQuery(query, context, options, mcpContextPromise);
     } else {
+      // Ensure streaming is disabled when called from processWithEngine
+      const googleOptions = { ...options, stream: false };
       return this.processGoogleAIQuery(
         query,
         context,
-        options,
+        googleOptions,
         mcpContextPromise
-      );
+      ) as Promise<AIEngineResponse>;
     }
   }
 
@@ -344,7 +355,7 @@ export class ImprovedQueryEngine {
       preferredEngine?: 'local-rag' | 'google-ai';
     },
     mcpContextPromise: Promise<MCPContext | null>
-  ): Promise<unknown> {
+  ): Promise<AIEngineResponse> {
     const startTime = Date.now();
 
     // 병렬 실행
@@ -389,7 +400,7 @@ export class ImprovedQueryEngine {
       preferredEngine?: 'local-rag' | 'google-ai';
     },
     mcpContextPromise: Promise<MCPContext | null>
-  ): Promise<unknown> {
+  ): Promise<AIEngineResponse | AIEngineStreamResponse> {
     const startTime = Date.now();
 
     if (!this.googleAIModel) {
@@ -420,9 +431,9 @@ export class ImprovedQueryEngine {
       return {
         success: true,
         stream: result.stream,
-        engine: 'google-ai',
+        engine: 'google-ai' as const,
         processingTime: Date.now() - startTime,
-      };
+      } as AIEngineStreamResponse;
     }
 
     // 일반 생성
@@ -570,26 +581,66 @@ export class ImprovedQueryEngine {
   // 기존 메서드들 재사용...
   private generateLocalResponse(
     query: string,
-    _ragResult: unknown, // RAGResult 타입이 필요함
-    _mcpContext: MCPContext | null,
-    _context: AIQueryContext
+    ragResult: { results: Array<{ content: string; similarity: number; metadata?: AIMetadata }> },
+    mcpContext: MCPContext | null,
+    context: AIQueryContext
   ): string {
-    // TODO: 실제 구현 필요
-    return `Based on the context: ${query}`;
+    if (ragResult.results.length === 0) {
+      return '관련된 정보를 찾을 수 없습니다.';
+    }
+
+    let response = ragResult.results[0].content;
+
+    if (ragResult.results.length > 1) {
+      response += '\n\n추가 정보:\n';
+      ragResult.results.slice(1, 3).forEach((result, idx) => {
+        response += `${idx + 1}. ${result.content.substring(0, 100)}...\n`;
+      });
+    }
+
+    if (mcpContext && mcpContext.files.length > 0) {
+      response += '\n\n프로젝트 파일 참고:\n';
+      mcpContext.files.slice(0, 2).forEach(file => {
+        response += `- ${file.path}\n`;
+      });
+    }
+
+    return response;
   }
 
   private buildGoogleAIPrompt(
     query: string,
-    _context: AIQueryContext,
-    _mcpContext: MCPContext | null
+    context: AIQueryContext,
+    mcpContext: MCPContext | null
   ): string {
-    // TODO: 실제 구현 필요
-    return query;
+    let prompt = `사용자 질문: ${query}\n\n`;
+
+    if (context && Object.keys(context).length > 0) {
+      prompt += '컨텍스트:\n';
+      prompt += JSON.stringify(context, null, 2) + '\n\n';
+    }
+
+    if (mcpContext && mcpContext.files.length > 0) {
+      prompt += '관련 파일 내용:\n';
+      mcpContext.files.forEach(file => {
+        prompt += `\n파일: ${file.path}\n`;
+        prompt += `${file.content.substring(0, 500)}...\n`;
+      });
+      prompt += '\n';
+    }
+
+    prompt += '위 정보를 바탕으로 사용자의 질문에 답변해주세요.';
+    return prompt;
   }
 
-  private calculateConfidence(_ragResult: unknown): number {
-    // TODO: 실제 구현 필요 (RAGResult 타입 정의 후)
-    return 0.5;
+  private calculateConfidence(ragResult: { results: Array<{ similarity: number }> }): number {
+    if (ragResult.results.length === 0) return 0.1;
+    
+    const topSimilarity = ragResult.results[0].similarity;
+    const resultCount = ragResult.results.length;
+    
+    const confidence = topSimilarity * 0.7 + Math.min(resultCount / 10, 1) * 0.3;
+    return Math.min(confidence, 0.95);
   }
 }
 

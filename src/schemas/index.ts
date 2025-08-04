@@ -10,14 +10,60 @@ export * from './common.schema';
 // Server schemas (분할된 스키마)
 export * from './server-schemas';
 
-// AI schemas (분할된 스키마)
+// Auth schemas
+export * from './auth.schema';
+
+// Monitoring schemas
+export * from './monitoring.schema';
+
+// Utils schemas
+export * from './utils.schema';
+
+// AI schemas (중복 방지를 위해 선택적 export)
 export * from './ai-schemas/ai-performance.schema';
 
-// 기존 스키마들 (점진적 마이그레이션 대상)
-// TODO: 중복 export 문제 해결 필요 - 이미 server-schemas와 ai-schemas에서 export됨
-// export * from './api.schema';
-// export * from './server.schema';
-export * from './auth.schema';
-// export * from './ai.schema';
-export * from './monitoring.schema';
-export * from './utils.schema';
+// API schemas - 중복 방지를 위해 필요한 것만 선택적 export
+export {
+  // Health Check
+  HealthCheckServiceSchema,
+  HealthCheckResponseSchema,
+  
+  // MCP
+  MCPQueryRequestSchema,
+  MCPQueryResponseSchema,
+  
+  // Basic Server Types (missing aliases)
+  ServerStatusSchema as ServerSchema,
+  NetworkMetricsSchema as NetworkInfoSchema,
+  
+  // Dashboard
+  DashboardStatsSchema,
+  DashboardDataSchema,
+  DashboardResponseSchema,
+  
+  // Cache
+  CacheStatsSchema,
+  CachePerformanceSchema,
+  
+  // Error Reporting
+  ErrorReportSchema,
+  ErrorReportRequestSchema,
+  
+  // System Optimization
+  SystemOptimizeRequestSchema,
+  SystemOptimizeResponseSchema,
+  
+  // Types
+  type HealthCheckResponse,
+  type MCPQueryRequest,
+  type MCPQueryResponse,
+  type DashboardStats,
+  type DashboardData,
+  type DashboardResponse,
+  type CacheStats,
+  type CachePerformance,
+  type ErrorReport,
+  type ErrorReportRequest,
+  type SystemOptimizeRequest,
+  type SystemOptimizeResponse
+} from './api.schema';
