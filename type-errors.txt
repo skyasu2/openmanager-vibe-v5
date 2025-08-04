@@ -1,0 +1,301 @@
+
+> openmanager-vibe-v5@5.66.24 type-check
+> tsc --noEmit
+
+src/services/ai/routing/AICacheManager.ts(96,7): error TS2322: Type '{ cached: true; cacheHits: number; timestamp?: string | Date; source?: string; version?: string; tags?: string[]; importance?: number; category?: string; complexity?: ComplexityScore; cacheHit?: boolean; }' is not assignable to type 'AIMetadata & { complexity?: ComplexityScore | undefined; cacheHit?: boolean | undefined; }'.
+  Type '{ cached: true; cacheHits: number; timestamp?: string | Date; source?: string; version?: string; tags?: string[]; importance?: number; category?: string; complexity?: ComplexityScore; cacheHit?: boolean; }' is not assignable to type 'AIMetadata'.
+    Property 'complexity' is incompatible with index signature.
+      Type 'ComplexityScore' is not assignable to type 'string | number | boolean | string[] | Date | undefined'.
+src/services/ai/routing/AISecurityService.ts(123,11): error TS2322: Type '{ securityFiltered: true; timestamp?: string | Date; source?: string; version?: string; tags?: string[]; importance?: number; category?: string; complexity?: ComplexityScore; cacheHit?: boolean; }' is not assignable to type 'AIMetadata & { complexity?: ComplexityScore | undefined; cacheHit?: boolean | undefined; }'.
+  Type '{ securityFiltered: true; timestamp?: string | Date; source?: string; version?: string; tags?: string[]; importance?: number; category?: string; complexity?: ComplexityScore; cacheHit?: boolean; }' is not assignable to type 'AIMetadata'.
+    Property 'complexity' is incompatible with index signature.
+      Type 'ComplexityScore' is not assignable to type 'string | number | boolean | string[] | Date | undefined'.
+src/services/ai/vector-search-optimizer.ts(115,9): error TS18046: 'idx' is of type 'unknown'.
+src/services/ai/vectorization/VectorIndexingService.ts(188,13): error TS18046: 'incident' is of type 'unknown'.
+src/services/ai/vectorization/VectorIndexingService.ts(190,11): error TS18046: 'incident' is of type 'unknown'.
+src/services/ai/vectorization/VectorIndexingService.ts(191,11): error TS18046: 'incident' is of type 'unknown'.
+src/services/ai/vectorization/VectorIndexingService.ts(192,11): error TS18046: 'incident' is of type 'unknown'.
+src/services/ai/vectorization/VectorIndexingService.ts(193,19): error TS18046: 'incident' is of type 'unknown'.
+src/services/ai/vectorization/VectorIndexingService.ts(194,20): error TS18046: 'incident' is of type 'unknown'.
+src/services/ai/vectorization/VectorIndexingService.ts(200,21): error TS18046: 'incident' is of type 'unknown'.
+src/services/ai/vectorization/VectorIndexingService.ts(201,21): error TS18046: 'incident' is of type 'unknown'.
+src/services/ai/vectorization/VectorIndexingService.ts(286,49): error TS18046: 'stat' is of type 'unknown'.
+src/services/ai/vectorization/VectorIndexingService.ts(288,43): error TS18046: 'stat' is of type 'unknown'.
+src/services/auth/AuthStateManager.ts(230,60): error TS18046: 's' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(126,7): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(127,9): error TS18046: 'reservation' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(128,59): error TS18046: 'instance' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(151,24): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(316,33): error TS18046: 'instanceInfo' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(320,34): error TS18046: 'instanceInfo' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(321,17): error TS18046: 'instanceInfo' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(372,26): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(378,20): error TS18046: 'b' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(378,54): error TS18046: 'a' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(432,7): error TS18046: 'instanceInfo' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(432,38): error TS18046: 'instanceInfo' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(441,12): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(446,26): error TS18046: 'instanceInfo' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(467,26): error TS18046: 'instanceInfo' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(491,20): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(500,48): error TS18046: 'instanceInfo' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(501,21): error TS18046: 'instanceInfo' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(509,37): error TS18046: 'tag' is of type 'unknown'.
+src/services/collectors/cloudwatch-collector.ts(510,25): error TS2339: Property 'Value' does not exist on type '{}'.
+src/services/collectors/custom-api-collector.ts(74,12): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(75,39): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(79,40): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(95,12): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(97,27): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(102,25): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(103,16): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(104,32): error TS18046: 'server' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(104,45): error TS18046: 'server' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(104,64): error TS18046: 'server' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(108,11): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(108,50): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(109,16): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(110,32): error TS18046: 'server' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(110,45): error TS18046: 'server' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(110,64): error TS18046: 'server' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(130,12): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(135,22): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(135,47): error TS18046: 'response' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(175,32): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(179,17): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(179,37): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(183,35): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(183,57): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(185,11): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(185,40): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(188,35): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(188,57): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(193,11): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(193,36): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(196,34): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(196,58): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(198,11): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(198,40): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(202,11): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(202,36): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(208,35): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(208,58): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(209,34): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(209,56): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(211,11): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(211,38): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(214,35): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(214,58): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(217,13): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(217,41): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(221,13): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(221,42): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(229,11): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(229,41): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(231,11): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(231,46): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(235,11): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(235,42): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(239,11): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(239,48): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(243,11): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(243,44): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(247,11): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(247,47): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(251,11): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(251,43): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(257,13): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(257,35): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(258,19): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(258,47): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(259,36): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(259,62): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(261,11): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(262,13): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(264,34): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(264,60): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(269,13): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(269,49): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(273,13): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(273,51): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(277,13): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(277,52): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(281,13): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(281,50): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(288,9): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(288,29): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(292,19): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(292,49): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(294,11): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(294,44): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(296,18): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(296,47): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(297,15): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(297,41): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(298,23): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(298,58): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(300,11): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(300,41): error TS18046: 'apiData' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(336,13): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(336,29): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(337,43): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(337,61): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(338,13): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(338,47): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(340,9): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(340,24): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(341,32): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(341,47): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(344,9): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(344,27): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(345,32): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(345,50): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(348,9): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(348,24): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(349,32): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(349,47): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(352,9): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(352,34): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(353,32): error TS18046: 'service' is of type 'unknown'.
+src/services/collectors/custom-api-collector.ts(353,57): error TS18046: 'service' is of type 'unknown'.
+src/services/mcp-realtime/debug-analyzer.ts(820,45): error TS18046: 'b' is of type 'unknown'.
+src/services/mcp-realtime/debug-analyzer.ts(821,48): error TS18046: 'o' is of type 'unknown'.
+src/services/mcp-realtime/debug-analyzer.ts(823,7): error TS2322: Type 'unknown[]' is not assignable to type '{ component: string; type: "database" | "cache" | "cpu" | "memory" | "network"; severity: number; description: string; impact: string; solution: string; }[]'.
+  Type 'unknown' is not assignable to type '{ component: string; type: "database" | "cache" | "cpu" | "memory" | "network"; severity: number; description: string; impact: string; solution: string; }'.
+src/services/mcp-realtime/debug-analyzer.ts(824,7): error TS2322: Type 'unknown[]' is not assignable to type '{ metric: string; direction: "stable" | "improving" | "degrading"; rate: number; projection: string; }[]'.
+  Type 'unknown' is not assignable to type '{ metric: string; direction: "stable" | "improving" | "degrading"; rate: number; projection: string; }'.
+src/services/mcp-realtime/debug-analyzer.ts(825,7): error TS2322: Type 'unknown[]' is not assignable to type '{ area: string; potential: number; effort: "high" | "medium" | "low"; priority: number; }[]'.
+  Type 'unknown' is not assignable to type '{ area: string; potential: number; effort: "high" | "medium" | "low"; priority: number; }'.
+src/services/mcp-realtime/debug-analyzer.ts(879,7): error TS2322: Type 'unknown' is not assignable to type '{ logsPerMinute: number; errorsPerMinute: number; avgResponseTime: number; currentMemoryUsage: number; }'.
+src/services/mcp-realtime/debug-analyzer.ts(880,7): error TS2322: Type 'unknown[]' is not assignable to type '{ category: string; count: number; severity: string; }[]'.
+  Type 'unknown' is not assignable to type '{ category: string; count: number; severity: string; }'.
+src/services/mcp-realtime/debug-analyzer.ts(881,7): error TS2322: Type 'unknown[]' is not assignable to type '{ timestamp: number; type: "trace" | "error" | "issue" | "log"; summary: string; }[]'.
+  Type 'unknown' is not assignable to type '{ timestamp: number; type: "trace" | "error" | "issue" | "log"; summary: string; }'.
+src/services/mcp-realtime/debug-analyzer.ts(923,5): error TS2322: Type 'unknown[]' is not assignable to type '{ sessionId: string; issues: IssueReport[]; confidence: number; }[]'.
+  Type 'unknown' is not assignable to type '{ sessionId: string; issues: IssueReport[]; confidence: number; }'.
+src/services/mcp-realtime/debug-analyzer.ts(923,35): error TS18046: 'b' is of type 'unknown'.
+src/services/mcp-realtime/debug-analyzer.ts(923,50): error TS18046: 'a' is of type 'unknown'.
+src/services/mcp-realtime/debug-analyzer.ts(1170,29): error TS2345: Argument of type '{ sessionId: string; type: string; data: unknown; }[]' is not assignable to parameter of type '{ sessionId: string; data: LogEntry; }[]'.
+  Type '{ sessionId: string; type: string; data: unknown; }' is not assignable to type '{ sessionId: string; data: LogEntry; }'.
+    Types of property 'data' are incompatible.
+      Type 'unknown' is not assignable to type 'LogEntry'.
+src/services/mcp-realtime/debug-analyzer.ts(1171,31): error TS2345: Argument of type '{ sessionId: string; type: string; data: unknown; }[]' is not assignable to parameter of type '{ sessionId: string; data: TraceEntry; }[]'.
+  Type '{ sessionId: string; type: string; data: unknown; }' is not assignable to type '{ sessionId: string; data: TraceEntry; }'.
+    Types of property 'data' are incompatible.
+      Type 'unknown' is not assignable to type 'TraceEntry'.
+src/services/mcp-realtime/debug-analyzer.ts(1172,36): error TS2345: Argument of type '{ sessionId: string; type: string; data: unknown; }[]' is not assignable to parameter of type '{ sessionId: string; data: PerformanceSnapshot; }[]'.
+  Type '{ sessionId: string; type: string; data: unknown; }' is not assignable to type '{ sessionId: string; data: PerformanceSnapshot; }'.
+    Types of property 'data' are incompatible.
+      Type 'unknown' is not assignable to type 'PerformanceSnapshot'.
+src/services/mcp/CloudContextLoader.ts(347,9): error TS2322: Type 'unknown' is not assignable to type '{ platform?: string | undefined; nodeVersion?: string | undefined; memory?: Record<string, number> | undefined; environment?: string | undefined; metadata?: Record<string, unknown> | undefined; }'.
+src/services/mcp/ServerMonitoringAgent.ts(305,30): error TS2345: Argument of type '(data: MCPMonitoringData) => void' is not assignable to parameter of type '(data: unknown) => void'.
+  Types of parameters 'data' and 'data' are incompatible.
+    Type 'unknown' is not assignable to type 'MCPMonitoringData'.
+src/services/mcp/ServerMonitoringAgent.ts(318,35): error TS2345: Argument of type '(data: MCPMonitoringData) => void' is not assignable to parameter of type '(data: unknown) => void'.
+  Types of parameters 'data' and 'data' are incompatible.
+    Type 'unknown' is not assignable to type 'MCPMonitoringData'.
+src/services/mcp/ServerMonitoringAgent.ts(504,26): error TS18046: 'metrics' is of type 'unknown'.
+src/services/mcp/ServerMonitoringAgent.ts(659,52): error TS2345: Argument of type '(health: number | { score: number; trend?: number[] | undefined; status?: string | undefined; } | undefined) => number' is not assignable to parameter of type '(health: unknown) => number'.
+  Types of parameters 'health' and 'health' are incompatible.
+    Type 'unknown' is not assignable to type 'number | { score: number; trend?: number[] | undefined; status?: string | undefined; } | undefined'.
+src/services/mcp/components/MCPContextManager.ts(174,17): error TS2698: Spread types may only be created from object types.
+src/services/mcp/components/MCPContextManager.ts(174,42): error TS2698: Spread types may only be created from object types.
+src/services/mcp/components/MCPContextManager.ts(387,31): error TS2339: Property '_debug' does not exist on type 'object'.
+src/services/mcp/components/MCPContextManager.ts(388,31): error TS2339: Property '_temp' does not exist on type 'object'.
+src/services/mcp/components/MCPContextManager.ts(389,31): error TS2339: Property '_cache' does not exist on type 'object'.
+src/services/mcp/components/MCPServerManager.ts(227,13): error TS2322: Type '(_request: unknown) => Promise<unknown>' is not assignable to type '(request: MCPRequest) => Promise<MCPResponse>'.
+  Type 'Promise<unknown>' is not assignable to type 'Promise<MCPResponse>'.
+    Type 'unknown' is not assignable to type 'MCPResponse'.
+src/services/mcp/components/MCPToolHandler.ts(104,43): error TS2345: Argument of type 'unknown' is not assignable to parameter of type '{ pattern?: string | undefined; content?: string | undefined; }'.
+src/services/mcp/components/MCPToolHandler.ts(106,40): error TS18046: 'args' is of type 'unknown'.
+src/services/mcp/components/MCPToolHandler.ts(108,45): error TS18046: 'args' is of type 'unknown'.
+src/services/mcp/components/MCPToolHandler.ts(374,9): error TS2322: Type 'unknown' is not assignable to type 'MCPToolResult'.
+src/services/mcp/components/MCPToolHandler.ts(401,9): error TS2322: Type 'unknown' is not assignable to type 'MCPToolResult'.
+src/services/mcp/components/MCPToolHandler.ts(426,18): error TS18046: 'searchResult' is of type 'unknown'.
+src/services/mcp/components/MCPToolHandler.ts(427,18): error TS18046: 'searchResult' is of type 'unknown'.
+src/services/mcp/components/MCPToolHandler.ts(498,34): error TS2698: Spread types may only be created from object types.
+src/services/mcp/real-mcp-client.ts(282,7): error TS2322: Type '{ responseTime: number; serverUsed: string; success: boolean; results: unknown[]; source: string; tools_used: string[]; }' is not assignable to type 'RealMCPSearchResult'.
+  Types of property 'results' are incompatible.
+    Type 'unknown[]' is not assignable to type '{ path: string; content: string; score?: number | undefined; metadata?: Record<string, unknown> | undefined; }[]'.
+      Type 'unknown' is not assignable to type '{ path: string; content: string; score?: number | undefined; metadata?: Record<string, unknown> | undefined; }'.
+src/services/mcp/real-mcp-client.ts(300,5): error TS2322: Type 'MCPSearchResult' is not assignable to type 'RealMCPSearchResult'.
+  Types of property 'results' are incompatible.
+    Type 'unknown[]' is not assignable to type '{ path: string; content: string; score?: number | undefined; metadata?: Record<string, unknown> | undefined; }[]'.
+      Type 'unknown' is not assignable to type '{ path: string; content: string; score?: number | undefined; metadata?: Record<string, unknown> | undefined; }'.
+src/services/mcp/real-mcp-client.ts(311,5): error TS2322: Type 'unknown' is not assignable to type 'MCPQueryContext | null'.
+src/services/monitoring/EnhancedErrorDetectionService.ts(339,28): error TS2339: Property 'metrics' does not exist on type '{}'.
+src/services/monitoring/EnhancedErrorDetectionService.ts(341,28): error TS2339: Property 'metrics' does not exist on type '{}'.
+src/services/monitoring/EnhancedErrorDetectionService.ts(343,28): error TS2339: Property 'metrics' does not exist on type '{}'.
+src/services/monitoring/EnhancedErrorDetectionService.ts(345,28): error TS2339: Property 'metrics' does not exist on type '{}'.
+src/services/optimizedMetricsService.ts(123,34): error TS2339: Property 'cpu_usage' does not exist on type 'ServerMetrics'.
+src/services/optimizedMetricsService.ts(124,37): error TS2339: Property 'memory_usage' does not exist on type 'ServerMetrics'.
+src/services/optimizedMetricsService.ts(125,35): error TS2339: Property 'disk_usage' does not exist on type 'ServerMetrics'.
+src/services/optimizedMetricsService.ts(126,35): error TS2551: Property 'network_io' does not exist on type 'ServerMetrics'. Did you mean 'network'?
+src/services/optimizedMetricsService.ts(415,34): error TS7053: Element implicitly has an 'any' type because expression of type '"cpu_usage" | "memory_usage" | "disk_usage"' can't be used to index type '{ timestamp: any; disk_usage: any; } | { timestamp: any; cpu_usage: any; } | { timestamp: any; memory_usage: any; }'.
+  Property 'cpu_usage' does not exist on type '{ timestamp: any; disk_usage: any; } | { timestamp: any; cpu_usage: any; } | { timestamp: any; memory_usage: any; }'.
+src/services/optimizedMetricsService.ts(431,16): error TS7053: Element implicitly has an 'any' type because expression of type '"cpu_usage" | "memory_usage" | "disk_usage"' can't be used to index type '{ timestamp: any; disk_usage: any; } | { timestamp: any; cpu_usage: any; } | { timestamp: any; memory_usage: any; }'.
+  Property 'cpu_usage' does not exist on type '{ timestamp: any; disk_usage: any; } | { timestamp: any; cpu_usage: any; } | { timestamp: any; memory_usage: any; }'.
+src/services/security/SecurityService.ts(264,23): error TS18046: 's' is of type 'unknown'.
+src/services/security/SecurityService.ts(288,70): error TS18046: 's' is of type 'unknown'.
+src/services/security/SecurityService.ts(298,23): error TS2339: Property 'ip' does not exist on type '{}'.
+src/services/simulationEngine.ts(210,23): error TS18046: 's' is of type 'unknown'.
+src/services/simulationEngine.ts(213,23): error TS18046: 's' is of type 'unknown'.
+src/services/simulationEngine.ts(224,59): error TS18046: 's' is of type 'unknown'.
+src/services/simulationEngine.ts(228,59): error TS18046: 's' is of type 'unknown'.
+src/services/simulationEngine.ts(232,59): error TS18046: 's' is of type 'unknown'.
+src/services/system/CloudLoggingService.ts(413,25): error TS2538: Type 'unknown' cannot be used as an index type.
+src/services/system/CloudLoggingService.ts(413,51): error TS2538: Type 'unknown' cannot be used as an index type.
+src/services/system/CloudLoggingService.ts(414,26): error TS2538: Type 'unknown' cannot be used as an index type.
+src/services/system/CloudLoggingService.ts(414,54): error TS2538: Type 'unknown' cannot be used as an index type.
+src/services/system/CloudLoggingService.ts(487,7): error TS2322: Type '{ id: unknown; level: unknown; message: unknown; module: unknown; timestamp: unknown; sessionId: unknown; userId: unknown; metadata: unknown; stackTrace: unknown; }[]' is not assignable to type 'SystemLogEntry[]'.
+  Type '{ id: unknown; level: unknown; message: unknown; module: unknown; timestamp: unknown; sessionId: unknown; userId: unknown; metadata: unknown; stackTrace: unknown; }' is not assignable to type 'SystemLogEntry'.
+    Types of property 'id' are incompatible.
+      Type 'unknown' is not assignable to type 'string'.
+src/services/system/CloudVersionManager.ts(69,25): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/services/system/CloudVersionManager.ts(370,9): error TS2322: Type 'unknown' is not assignable to type 'string'.
+src/services/system/CloudVersionManager.ts(371,9): error TS2322: Type 'unknown' is not assignable to type 'string'.
+src/services/system/CloudVersionManager.ts(372,9): error TS2322: Type 'unknown' is not assignable to type 'string | undefined'.
+src/services/system/CloudVersionManager.ts(373,9): error TS2322: Type 'unknown' is not assignable to type '"PATCH" | "MAJOR" | "MINOR" | "HOTFIX"'.
+src/services/system/CloudVersionManager.ts(374,9): error TS2322: Type 'unknown' is not assignable to type 'string'.
+src/services/system/CloudVersionManager.ts(375,9): error TS2322: Type 'unknown' is not assignable to type 'string'.
+src/services/system/CloudVersionManager.ts(376,9): error TS2322: Type 'unknown' is not assignable to type 'string'.
+src/services/system/CloudVersionManager.ts(377,9): error TS2322: Type 'unknown' is not assignable to type '{ added: string[]; modified: string[]; removed: string[]; deprecated: string[]; }'.
+src/services/system/CloudVersionManager.ts(378,9): error TS2322: Type 'unknown' is not assignable to type '{ required: boolean; scripts: string[]; rollbackScripts: string[]; } | undefined'.
+src/services/system/CloudVersionManager.ts(379,9): error TS2322: Type 'unknown' is not assignable to type '{ environment: "development" | "production" | "staging"; buildId?: string | undefined; commitHash?: string | undefined; deployedAt?: string | undefined; } | undefined'.
+src/services/system/CloudVersionManager.ts(380,9): error TS2322: Type 'unknown' is not assignable to type '{ source: string; checksum: string; size: number; dependencies: Record<string, string>; }'.
+src/services/system/CloudVersionManager.ts(404,7): error TS2322: Type '{ id: unknown; version: unknown; previousVersion: unknown; changeType: unknown; timestamp: unknown; author: unknown; description: unknown; changes: unknown; migration: unknown; deploymentInfo: unknown; metadata: unknown; }[]' is not assignable to type 'VersionRecord[]'.
+  Type '{ id: unknown; version: unknown; previousVersion: unknown; changeType: unknown; timestamp: unknown; author: unknown; description: unknown; changes: unknown; migration: unknown; deploymentInfo: unknown; metadata: unknown; }' is not assignable to type 'VersionRecord'.
+    Types of property 'id' are incompatible.
+      Type 'unknown' is not assignable to type 'string'.
+src/services/system/CloudVersionManager.ts(470,9): error TS2322: Type '{ id: unknown; version: unknown; previousVersion: unknown; changeType: unknown; timestamp: unknown; author: unknown; description: unknown; changes: unknown; migration: unknown; deploymentInfo: unknown; metadata: unknown; }' is not assignable to type 'VersionRecord'.
+  Types of property 'id' are incompatible.
+    Type 'unknown' is not assignable to type 'string'.
+src/services/system/CloudVersionManager.ts(573,21): error TS2538: Type 'unknown' cannot be used as an index type.
+src/services/system/CloudVersionManager.ts(573,54): error TS2538: Type 'unknown' cannot be used as an index type.
+src/services/system/CloudVersionManager.ts(574,29): error TS2339: Property 'required' does not exist on type '{}'.
+src/services/system/CloudVersionManager.ts(584,36): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'string | number'.
+src/services/system/CloudVersionManager.ts(585,35): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'string | number'.
+src/services/system/CloudVersionManager.ts(593,9): error TS2322: Type '{}' is not assignable to type 'string'.
+src/services/vm/BaselineContinuityManager.ts(323,31): error TS18046: 's' is of type 'unknown'.
+src/services/vm/BaselineContinuityManager.ts(401,53): error TS18046: 's' is of type 'unknown'.
+src/services/vm/BaselineContinuityManager.ts(401,61): error TS2698: Spread types may only be created from object types.
+src/services/vm/BaselineContinuityManager.ts(417,23): error TS18046: 's' is of type 'unknown'.
+src/types/database-types.ts(503,3): error TS2322: Type 'unknown' is not assignable to type 'boolean'.
+src/types/database-types.ts(503,28): error TS2339: Property 'id' does not exist on type '{}'.
+src/types/database-types.ts(503,58): error TS2339: Property 'name' does not exist on type '{}'.
+src/types/database-types.ts(507,3): error TS2322: Type 'unknown' is not assignable to type 'boolean'.
+src/types/database-types.ts(507,28): error TS2339: Property 'id' does not exist on type '{}'.
+src/types/database-types.ts(507,58): error TS2339: Property 'server_id' does not exist on type '{}'.
+src/types/database-types.ts(511,3): error TS2322: Type 'unknown' is not assignable to type 'boolean'.
+src/types/database-types.ts(511,28): error TS2339: Property 'id' does not exist on type '{}'.
+src/types/database-types.ts(511,58): error TS2339: Property 'title' does not exist on type '{}'.
+src/utils/supabase/middleware.ts(18,9): error TS2322: Type 'unknown' is not assignable to type 'SupabaseClient<any, "public", any>'.

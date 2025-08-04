@@ -17,6 +17,7 @@ import {
 import { getQueryCacheManager } from './query-cache-manager';
 import { getVectorSearchOptimizer } from './vector-search-optimizer';
 import { aiLogger } from '@/lib/logger';
+import type { MCPContext, AIQueryContext, AIQueryOptions } from '@/types/ai-service-types';
 
 interface PerformanceConfig {
   enableParallelProcessing: boolean;
@@ -113,7 +114,9 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
           commonQueries.map(async query => {
             try {
               const embedding = await this.ragEngine.generateEmbedding(query);
-              this.preloadedEmbeddings.set(query, embedding);
+              if (embedding) {
+        this.preloadedEmbeddings.set(query, embedding);
+      }
             } catch (error) {
               aiLogger.warn(`임베딩 예열 실패: ${query}`, error);
             }
@@ -226,13 +229,13 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       : null;
 
     if (mode === 'local') {
-      const embedding =
-        embeddingPromise &&
-        taskResults.find(r => r.status === 'fulfilled')?.value as number[] | undefined;
+      const embeddingResult = embeddingPromise &&
+        taskResults.find(r => r.status === 'fulfilled')?.value as number[] | null | undefined;
+      const embedding = embeddingResult === null ? undefined : embeddingResult;
       return await this.processLocalQueryOptimized(
         query,
         context,
-        options,
+        options || {},
         mcpContext,
         embedding,
         startTime
@@ -241,7 +244,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       return await this.processGoogleAIQueryOptimized(
         query,
         context,
-        options,
+        options || {},
         mcpContext,
         startTime
       );
@@ -286,7 +289,11 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     }
 
     // 3. 새 임베딩 생성
-    return await this.ragEngine.generateEmbedding(query);
+    const newEmbedding = await this.ragEngine.generateEmbedding(query);
+    if (!newEmbedding) {
+      throw new Error('Failed to generate embedding');
+    }
+    return newEmbedding;
   }
 
   /**
@@ -324,7 +331,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
   private async processLocalQueryOptimized(
     query: string,
     context: unknown,
-    options: Record<string, unknown>,
+    options: AIQueryOptions,
     mcpContext: unknown,
     embedding: number[] | undefined,
     startTime: number
@@ -346,8 +353,8 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       const response = this.generateLocalResponse(
         query,
         ragResult,
-        mcpContext,
-        context
+        mcpContext as MCPContext | null,
+        context as AIQueryContext | undefined
       );
 
       return {
@@ -378,12 +385,12 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
   private async processGoogleAIQueryOptimized(
     query: string,
     context: unknown,
-    options: Record<string, unknown>,
+    options: AIQueryOptions,
     mcpContext: unknown,
     startTime: number
   ): Promise<QueryResponse> {
     try {
-      const prompt = this.buildGoogleAIPrompt(query, context, mcpContext);
+      const prompt = this.buildGoogleAIPrompt(query, context as AIQueryContext | undefined, mcpContext as MCPContext | null);
 
       // 타임아웃이 있는 API 호출
       const controller = new AbortController();

@@ -5,6 +5,150 @@ import type {
   CollectorConfig,
 } from '../../types/collector';
 
+// API 응답 타입 정의
+interface APIResponse {
+  success: boolean;
+  data?: unknown;
+  error?: string;
+  servers?: ServerInfo[];
+}
+
+interface ServerInfo {
+  id?: string;
+  serverId?: string;
+  hostname?: string;
+}
+
+interface ServiceData {
+  name?: string;
+  service_name?: string;
+  status?: string;
+  state?: string;
+  port?: number;
+  pid?: number;
+  process_id?: number;
+  memory?: number;
+  memory_usage?: number;
+  cpu?: number;
+  cpu_usage?: number;
+  restart_count?: number;
+  restarts?: number;
+  uptime?: number;
+}
+
+interface APIMetricsData {
+  timestamp?: string | number;
+  hostname?: string;
+  server_name?: string;
+  status?: string;
+  state?: string;
+  cpu?: {
+    usage?: number;
+    load_average?: number[];
+    cores?: number;
+  };
+  cpu_usage?: number;
+  cpu_cores?: number;
+  load_avg?: number[];
+  memory?: {
+    total?: number;
+    used?: number;
+    available?: number;
+    usage?: number;
+  };
+  mem_total?: number;
+  mem_used?: number;
+  mem_available?: number;
+  mem_usage?: number;
+  disk?: {
+    total?: number;
+    used?: number;
+    available?: number;
+    usage?: number;
+    iops?: {
+      read?: number;
+      write?: number;
+    };
+  };
+  disk_total?: number;
+  disk_used?: number;
+  disk_available?: number;
+  disk_usage?: number;
+  disk_read_iops?: number;
+  disk_write_iops?: number;
+  network?: {
+    interface?: string;
+    bytes_in?: number;
+    bytes_out?: number;
+    bytes_received?: number;
+    bytes_sent?: number;
+    packets_in?: number;
+    packets_out?: number;
+    packets_received?: number;
+    packets_sent?: number;
+    errors_in?: number;
+    errors_out?: number;
+    errors_received?: number;
+    errors_sent?: number;
+  };
+  net_interface?: string;
+  net_bytes_in?: number;
+  net_bytes_out?: number;
+  net_rx_bytes?: number;
+  net_tx_bytes?: number;
+  net_packets_in?: number;
+  net_packets_out?: number;
+  net_rx_packets?: number;
+  net_tx_packets?: number;
+  net_errors_in?: number;
+  net_errors_out?: number;
+  net_rx_errors?: number;
+  net_tx_errors?: number;
+  system?: {
+    os?: string;
+    platform?: string;
+    uptime?: number;
+    boot_time?: string | number;
+    processes?: {
+      total?: number;
+      running?: number;
+      sleeping?: number;
+      zombie?: number;
+    };
+  };
+  os?: string;
+  operating_system?: string;
+  platform?: string;
+  uptime?: number;
+  boot_time?: string | number;
+  process_total?: number;
+  process_running?: number;
+  process_sleeping?: number;
+  process_zombie?: number;
+  proc_total?: number;
+  proc_running?: number;
+  proc_sleeping?: number;
+  proc_zombie?: number;
+  services?: ServiceData[];
+  service_status?: ServiceData[];
+  metadata?: {
+    location?: string;
+    environment?: string;
+    type?: string;
+    provider?: string;
+    cluster?: string;
+    zone?: string;
+    instance_type?: string;
+  };
+  location?: string;
+  environment?: string;
+  server_type?: string;
+  provider?: string;
+  cluster?: string;
+  availability_zone?: string;
+  instance_type?: string;
+}
+
 /**
  * Custom API 메트릭 수집기
  *
@@ -76,7 +220,7 @@ export class CustomAPICollector implements MetricCollector {
       }
 
       // API 응답을 표준 ServerMetrics 형식으로 변환
-      return this.transformAPIResponse(response.data, serverId);
+      return this.transformAPIResponse(response.data as APIMetricsData, serverId);
     } catch (error) {
       console.error(`❌ Custom API 수집 실패 (${serverId}):`, error);
       throw error;
@@ -101,13 +245,14 @@ export class CustomAPICollector implements MetricCollector {
       // API 응답에서 서버 ID 목록 추출
       if (Array.isArray(response.data)) {
         return response.data.map(
-          (server: unknown) => server.id || server.serverId || server.hostname
+          (server: ServerInfo) => server.id || server.serverId || server.hostname || ''
         );
       }
 
-      if (response.data.servers && Array.isArray(response.data.servers)) {
-        return response.data.servers.map(
-          (server: unknown) => server.id || server.serverId || server.hostname
+      const data = response.data as { servers?: ServerInfo[] } | undefined;
+      if (data?.servers && Array.isArray(data.servers)) {
+        return data.servers.map(
+          (server: ServerInfo) => server.id || server.serverId || server.hostname || ''
         );
       }
 
@@ -132,7 +277,8 @@ export class CustomAPICollector implements MetricCollector {
       }
 
       // 응답에서 상태 확인
-      const status = response.data?.status || response.data?.state;
+      const data = response.data as { status?: string; state?: string } | undefined;
+      const status = data?.status || data?.state;
       return status === 'online' || status === 'running' || status === 'active';
     } catch (error) {
       console.error(`❌ Custom API 서버 상태 확인 실패 (${serverId}):`, error);
@@ -146,7 +292,7 @@ export class CustomAPICollector implements MetricCollector {
     method: string,
     url: string,
     body?: unknown
-  ): Promise<unknown> {
+  ): Promise<APIResponse> {
     const options: RequestInit = {
       method,
       headers: this.headers,
@@ -165,13 +311,13 @@ export class CustomAPICollector implements MetricCollector {
 
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
-      return await response.json();
+      return await response.json() as APIResponse;
     }
 
     return { success: true, data: await response.text() };
   }
 
-  private transformAPIResponse(apiData: unknown, serverId: string): ServerMetrics {
+  private transformAPIResponse(apiData: APIMetricsData, serverId: string): ServerMetrics {
     const timestamp = new Date(apiData.timestamp || Date.now());
 
     return {
@@ -329,12 +475,12 @@ export class CustomAPICollector implements MetricCollector {
     return defaultValue;
   }
 
-  private extractServices(services: unknown): ServiceStatus[] {
+  private extractServices(services: ServiceData[] | unknown): ServiceStatus[] {
     if (!Array.isArray(services)) return [];
 
-    return services.map((service: unknown) => ({
+    return services.map((service: ServiceData) => ({
       name: service.name || service.service_name || 'unknown',
-      status: this.normalizeServiceStatus(service.status || service.state),
+      status: this.normalizeServiceStatus(service.status || service.state || 'unknown'),
       port: service.port ? this.extractNumber(service.port, 0) : undefined,
       pid:
         service.pid || service.process_id

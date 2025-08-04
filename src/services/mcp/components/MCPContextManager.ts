@@ -11,7 +11,7 @@ import { SessionData, SessionMetadata } from '@/types/session';
 
 interface SessionContext {
   sessionId: string;
-  data: unknown;
+  data: Record<string, unknown>;
   timestamp: number;
   expiresAt?: number;
   metadata?: {
@@ -104,7 +104,7 @@ export class MCPContextManager {
       const now = Date.now();
       const sessionContext: SessionContext = {
         sessionId,
-        data: context,
+        data: context as Record<string, unknown>,
         timestamp: now,
         expiresAt: now + this.defaultTTL,
         metadata: {
@@ -160,7 +160,7 @@ export class MCPContextManager {
   /**
    * 🔄 컨텍스트 업데이트
    */
-  async updateContext(sessionId: string, updates: unknown): Promise<boolean> {
+  async updateContext(sessionId: string, updates: Record<string, unknown>): Promise<boolean> {
     try {
       const existingContext = this.contexts.get(sessionId);
 
@@ -319,7 +319,7 @@ export class MCPContextManager {
         };
         const sessionContext: SessionContext = {
           sessionId,
-          data: context.data,
+          data: context.data as unknown as Record<string, unknown>,
           timestamp: context.timestamp || Date.now(),
           expiresAt: context.expiresAt,
           metadata: context.metadata,
@@ -384,9 +384,10 @@ export class MCPContextManager {
 
         // 불필요한 메타데이터 제거
         if (context.data && typeof context.data === 'object') {
-          delete context.data._debug;
-          delete context.data._temp;
-          delete context.data._cache;
+          const dataObj = context.data as Record<string, unknown> & { _debug?: unknown; _temp?: unknown; _cache?: unknown };
+          delete dataObj._debug;
+          delete dataObj._temp;
+          delete dataObj._cache;
         }
 
         const compressedSize = JSON.stringify(context.data).length;

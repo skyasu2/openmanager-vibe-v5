@@ -88,11 +88,11 @@ export async function middleware(request: NextRequest) {
 
       if (
         guestSessionCookie &&
-        (authTypeCookie && typeof authTypeCookie === 'object' && 'value' in authTypeCookie ? (authTypeCookie as any).value : '') === 'guest'
+        authTypeCookie === 'guest'
       ) {
         console.log(
           '✅ 게스트 세션 확인됨, 접근 허용:',
-          guestSessionCookie && typeof guestSessionCookie === 'object' && 'value' in guestSessionCookie ? (guestSessionCookie as any).value : ''
+          guestSessionCookie
         );
         return response;
       }
@@ -131,7 +131,7 @@ export async function middleware(request: NextRequest) {
               // request의 쿠키만 확인
 
               const cookie = request.cookies.get(name);
-              return cookie && typeof cookie === 'object' && 'value' in cookie ? (cookie as any).value : undefined;
+              return cookie;
             },
             set() {
               // Response에서 이미 설정되었으므로 무시
@@ -144,12 +144,10 @@ export async function middleware(request: NextRequest) {
       ) as SupabaseClient;
 
       // 모든 쿠키 로그
-      const cookies = Array.from(request.cookies.entries()).map(
-        ([name, value]) => ({ name, value })
-      );
+      const cookies = Array.from(request.cookies);
       console.log(
         '🍪 미들웨어 쿠키 목록:',
-        cookies.map((c) => c.name)
+        cookies.map((c: any) => c.name || c[0])
       );
 
       // 🔧 OAuth 콜백 직후인지 확인 (세션 안정화 시간 필요)

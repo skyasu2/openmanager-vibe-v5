@@ -59,13 +59,14 @@ export class AIErrorHandler {
     return {
       success: false,
       response: this.buildErrorMessage(errorMessage, context, isRetryable),
-      engine: 'error' as const,
+      engine: 'fallback',
       confidence: 0,
       thinkingSteps: this.buildErrorSteps(context, errorMessage),
       metadata: {
         error: true,
         errorType: this.categorizeError(error),
-        retryContext: context,
+        retryAttempt: context.attempt,
+        failedEngines: context.failedEngines.join(','),
         detailedError: this.config.enableDetailedErrors ? errorMessage : undefined,
       },
       processingTime: 0,
@@ -79,7 +80,7 @@ export class AIErrorHandler {
     return {
       success: false,
       response: `⏱️ 요청 시간이 초과되었습니다 (${timeoutMs}ms).\n\n잠시 후 다시 시도해주세요.`,
-      engine: 'timeout' as const,
+      engine: 'fallback',
       confidence: 0,
       thinkingSteps: [
         {
@@ -93,7 +94,8 @@ export class AIErrorHandler {
       metadata: {
         timeout: true,
         timeoutMs,
-        retryContext: context,
+        retryAttempt: context.attempt,
+        failedEngines: context.failedEngines.join(','),
       },
       processingTime: timeoutMs,
     };
@@ -106,7 +108,7 @@ export class AIErrorHandler {
     return {
       success: false,
       response: `🔧 모든 AI 엔진에서 오류가 발생했습니다.\n\n시도한 엔진: ${context.failedEngines.join(', ')}\n\n시스템 관리자에게 문의해주세요.`,
-      engine: 'fallback-failed' as const,
+      engine: 'fallback',
       confidence: 0,
       thinkingSteps: [
         ...context.failedEngines.map((engine, index) => ({
@@ -227,7 +229,7 @@ export class AIErrorHandler {
     steps.push({
       step: '에러 처리',
       description: `시도 ${context.attempt}회 - ${errorMessage}`,
-      status: 'failed' as const,
+      status: 'completed',
       timestamp: Date.now(),
     });
     

@@ -8,7 +8,7 @@
  */
 
 import type { ChildProcess } from 'child_process';
-import type { MCPClient } from '@/types/mcp';
+import type { MCPClient, MCPRequest, MCPResponse } from '@/types/mcp';
 
 export interface MCPServerConfig {
   name: string;
@@ -224,8 +224,11 @@ export class MCPServerManager {
         connected = true;
       },
 
-      async request(_request: unknown): Promise<unknown> {
-        return { result: `Mock response from ${serverName}` };
+      async request(_request: MCPRequest): Promise<MCPResponse> {
+        return { 
+          success: true,
+          result: { result: `Mock response from ${serverName}` }
+        };
       },
 
       async close(): Promise<void> {

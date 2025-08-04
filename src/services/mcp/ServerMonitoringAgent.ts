@@ -125,7 +125,7 @@ export class ServerMonitoringAgent {
   private static instance: ServerMonitoringAgent | null = null;
   private isRunning = false;
   private contextCache = new Map<string, any>();
-  private updateCallbacks = new Set<(data: unknown) => void>();
+  private updateCallbacks = new Set<(data: MCPMonitoringData) => void>();
 
   // 🎭 지식 베이스 (MCP 컨텍스트)
   private knowledgeBase = {
@@ -491,7 +491,8 @@ export class ServerMonitoringAgent {
           // 추가 메트릭 데이터 구독
           const unsubscribeMetrics = unifiedDataBroker.subscribeToMetrics(
             'monitoring-agent',
-            (metrics) => {
+            (metrics: unknown) => {
+              const metricsData = metrics as { summary?: string; [key: string]: unknown };
               unsubscribe();
               unsubscribeMetrics();
 
@@ -501,7 +502,7 @@ export class ServerMonitoringAgent {
                 ...mcpData,
                 clusters: [], // 브로커에서 클러스터 정보 제공 시 업데이트
                 applications: [], // 브로커에서 애플리케이션 정보 제공 시 업데이트
-                summary: metrics.summary || mcpData.summary,
+                summary: (typeof metricsData.summary === 'string' ? { performance: { avgCpu: 0, avgMemory: 0 } } : metricsData.summary) || mcpData.summary,
               });
             },
             {
@@ -656,7 +657,7 @@ export class ServerMonitoringAgent {
     data: MCPMonitoringData,
     analysis: MCPPatternAnalysis
   ): string {
-    return handleServerStatusQuery(data, analysis, getHealthScore);
+    return handleServerStatusQuery(data, analysis, getHealthScore as (health: unknown) => number);
   }
 
   /**

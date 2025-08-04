@@ -14,7 +14,13 @@ import type { MCPClient, MCPToolResult } from '@/types/mcp';
 
 interface MCPSearchResult {
   success: boolean;
-  results: unknown[];
+  results: Array<{
+    type: string;
+    path: string;
+    name: string;
+    matchType: string;
+    preview?: string;
+  }>;
   source: string;
   tools_used: string[];
   responseTime?: number;
@@ -78,7 +84,15 @@ export class MCPToolHandler {
   /**
    * 📋 사용 가능한 도구 목록 조회
    */
-  async getAvailableTools(): Promise<{ tools: unknown[] }> {
+  async getAvailableTools(): Promise<{ tools: Array<{
+    name: string;
+    description: string;
+    schema: {
+      type: string;
+      properties?: Record<string, any>;
+      required?: string[];
+    };
+  }> }> {
     const toolsList = Array.from(this.tools.values());
 
     console.log(
@@ -94,18 +108,24 @@ export class MCPToolHandler {
   /**
    * 🔧 도구 호출 처리
    */
-  private async handleToolCall(params: Record<string, unknown>): Promise<unknown> {
+  private async handleToolCall(params: Record<string, unknown>): Promise<{
+    success: boolean;
+    results?: unknown[];
+    content?: string;
+    error?: string;
+    [key: string]: unknown;
+  }> {
     const { name, arguments: args } = params;
 
     console.log(`🔧 도구 호출: ${name}`, args);
 
     switch (name) {
       case 'search_files':
-        return await this.realSearchFiles(args);
+        return await this.realSearchFiles(args as { pattern?: string; content?: string; });
       case 'read_file':
-        return await this.realReadFile(args.path);
+        return await this.realReadFile((args as { path: string }).path);
       case 'list_directory':
-        return await this.realListDirectory(args.path);
+        return await this.realListDirectory((args as { path: string }).path);
       default:
         throw new Error(`알 수 없는 도구: ${name}`);
     }
@@ -117,12 +137,24 @@ export class MCPToolHandler {
   private async realSearchFiles(args: {
     pattern?: string;
     content?: string;
-  }): Promise<unknown> {
+  }): Promise<{
+    success: boolean;
+    results: unknown[];
+    total: number;
+    searchTime: number;
+    query: { pattern?: string; content?: string; };
+  }> {
     const { pattern, content } = args;
     const startTime = Date.now();
 
     try {
-      const results: unknown[] = [];
+      const results: Array<{
+        type: string;
+        path: string;
+        name: string;
+        matchType: string;
+        preview?: string;
+      }> = [];
       const searchDirs = ['src', 'docs'];
 
       for (const dir of searchDirs) {
@@ -148,8 +180,10 @@ export class MCPToolHandler {
       console.error('❌ 파일 검색 실패:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : '검색 실패',
         results: [],
+        total: 0,
+        searchTime: Date.now() - startTime,
+        query: { pattern, content },
       };
     }
   }
@@ -161,7 +195,13 @@ export class MCPToolHandler {
     dirPath: string,
     pattern?: string,
     content?: string,
-    results: unknown[] = []
+    results: Array<{
+      type: string;
+      path: string;
+      name: string;
+      matchType: string;
+      preview?: string;
+    }> = []
   ): Promise<void> {
     try {
       const entries = fs.readdirSync(dirPath, { withFileTypes: true });
@@ -245,7 +285,14 @@ export class MCPToolHandler {
   /**
    * 📖 실제 파일 읽기
    */
-  private async realReadFile(filePath: string): Promise<unknown> {
+  private async realReadFile(filePath: string): Promise<{
+    success: boolean;
+    content?: string;
+    path: string;
+    size?: number;
+    readTime?: number;
+    error?: string;
+  }> {
     const startTime = Date.now();
 
     try {
@@ -278,7 +325,18 @@ export class MCPToolHandler {
   /**
    * 📁 실제 디렉토리 나열
    */
-  private async realListDirectory(dirPath: string): Promise<unknown> {
+  private async realListDirectory(dirPath: string): Promise<{
+    success: boolean;
+    items?: Array<{
+      name: string;
+      type: 'directory' | 'file';
+      path: string;
+    }>;
+    path: string;
+    count?: number;
+    listTime?: number;
+    error?: string;
+  }> {
     const startTime = Date.now();
 
     try {
@@ -289,7 +347,7 @@ export class MCPToolHandler {
       const entries = fs.readdirSync(dirPath, { withFileTypes: true });
       const items = entries.map((entry) => ({
         name: entry.name,
-        type: entry.isDirectory() ? 'directory' : 'file',
+        type: entry.isDirectory() ? 'directory' as const : 'file' as const,
         path: path.join(dirPath, entry.name),
       }));
 
@@ -371,7 +429,7 @@ export class MCPToolHandler {
       const client = clients.get(serverName);
       if (!client) {
         // 클라이언트가 없으면 로컬 처리
-        return await this.handleToolCall({ name: toolName, arguments: args });
+        return await this.handleToolCall({ name: toolName, arguments: args }) as MCPToolResult;
       }
 
       try {
@@ -398,7 +456,7 @@ export class MCPToolHandler {
         };
       } catch {
         console.warn(`⚠️ 서버 도구 호출 실패, 로컬 처리: ${toolName}`);
-        return await this.handleToolCall({ name: toolName, arguments: args });
+        return await this.handleToolCall({ name: toolName, arguments: args }) as MCPToolResult;
       }
     } catch (error) {
       console.error(`❌ 도구 호출 실패: ${toolName}`, error);
@@ -424,7 +482,13 @@ export class MCPToolHandler {
 
       return {
         success: searchResult.success,
-        results: searchResult.results || [],
+        results: (searchResult.results || []) as Array<{
+          type: string;
+          path: string;
+          name: string;
+          matchType: string;
+          preview?: string;
+        }>,
         source: 'local_filesystem',
         tools_used: ['search_files'],
         responseTime,
@@ -450,19 +514,21 @@ export class MCPToolHandler {
     try {
       console.log(`🌐 웹 검색 시작: "${query}"`);
 
-      // 목업 웹 검색 결과
+      // 목업 웹 검색 결과 - MCPSearchResult interface에 맞는 구조
       const mockResults = [
         {
-          title: `${query} 관련 문서`,
-          url: `https://example.com/search?q=${encodeURIComponent(query)}`,
-          snippet: `${query}에 대한 상세한 정보를 제공합니다.`,
-          source: 'web',
+          type: 'document',
+          path: `https://example.com/search?q=${encodeURIComponent(query)}`,
+          name: `${query} 관련 문서`,
+          matchType: 'web_search',
+          preview: `${query}에 대한 상세한 정보를 제공합니다.`,
         },
         {
-          title: `${query} 가이드`,
-          url: `https://docs.example.com/${query.toLowerCase()}`,
-          snippet: `${query} 사용법과 예제를 포함한 완전한 가이드입니다.`,
-          source: 'web',
+          type: 'guide',
+          path: `https://docs.example.com/${query.toLowerCase()}`,
+          name: `${query} 가이드`,
+          matchType: 'web_search',
+          preview: `${query} 사용법과 예제를 포함한 완전한 가이드입니다.`,
         },
       ];
 
@@ -494,7 +560,14 @@ export class MCPToolHandler {
   /**
    * 🔧 도구 추가
    */
-  addTool(name: string, tool: unknown): void {
+  addTool(name: string, tool: {
+    description: string;
+    schema: {
+      type: string;
+      properties?: Record<string, any>;
+      required?: string[];
+    };
+  }): void {
     this.tools.set(name, { name, ...tool });
     console.log(`🔧 도구 추가됨: ${name}`);
   }
@@ -513,7 +586,11 @@ export class MCPToolHandler {
   /**
    * 📊 도구 사용 통계
    */
-  getToolStats(): unknown {
+  getToolStats(): {
+    totalTools: number;
+    availableTools: string[];
+    lastUpdate: string;
+  } {
     return {
       totalTools: this.tools.size,
       availableTools: Array.from(this.tools.keys()),

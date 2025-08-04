@@ -90,14 +90,15 @@ export class AICacheManager {
     entry.hits++;
     this.stats.hits++;
     
-    // 캐시된 응답에 메타데이터 추가
+    // 캐시된 응답에 메타데이터 추가 (타입 안전성을 위해 cacheHit만 설정)
+    const metadata = {
+      ...entry.response.metadata,
+      cacheHit: true,
+    } as typeof entry.response.metadata;
+    
     return {
       ...entry.response,
-      metadata: {
-        ...entry.response.metadata,
-        cached: true,
-        cacheHits: entry.hits,
-      },
+      metadata,
     };
   }
 

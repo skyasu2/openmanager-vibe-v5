@@ -410,8 +410,10 @@ export class CloudLoggingService {
           const moduleCounts: Record<string, number> = {};
 
           data.forEach(log => {
-            levelCounts[log.level] = (levelCounts[log.level] || 0) + 1;
-            moduleCounts[log.module] = (moduleCounts[log.module] || 0) + 1;
+            const level = String(log.level);
+            const module = String(log.module);
+            levelCounts[level] = (levelCounts[level] || 0) + 1;
+            moduleCounts[module] = (moduleCounts[module] || 0) + 1;
           });
 
           supabaseStats.logLevels = levelCounts;
@@ -485,15 +487,15 @@ export class CloudLoggingService {
       if (!data) return [];
 
       return data.map(log => ({
-        id: log.id,
-        level: log.level,
-        message: log.message,
-        module: log.module,
-        timestamp: log.timestamp,
-        sessionId: log.session_id,
-        userId: log.user_id,
-        metadata: log.metadata,
-        stackTrace: log.stack_trace,
+        id: String(log.id),
+        level: String(log.level) as 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL',
+        message: String(log.message),
+        module: String(log.module),
+        timestamp: String(log.timestamp),
+        sessionId: String(log.session_id),
+        userId: String(log.user_id),
+        metadata: log.metadata as Record<string, any> | undefined,
+        stackTrace: String(log.stack_trace),
       }));
     } catch (error) {
       console.error('❌ 로그 검색 실패:', error);

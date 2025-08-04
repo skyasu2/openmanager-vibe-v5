@@ -334,15 +334,18 @@ export class EnhancedErrorDetectionService {
    * 메트릭 값 추출
    */
   private extractMetricValue(serverData: unknown, metric: string): number | null {
+    // Type guard for server data with metrics
+    const data = serverData as { metrics?: { cpu?: number; memory?: number; disk?: number; network?: number } };
+    
     switch (metric) {
       case 'cpu':
-        return serverData?.metrics?.cpu || null;
+        return data?.metrics?.cpu || null;
       case 'memory':
-        return serverData?.metrics?.memory || null;
+        return data?.metrics?.memory || null;
       case 'disk':
-        return serverData?.metrics?.disk || null;
+        return data?.metrics?.disk || null;
       case 'network':
-        return serverData?.metrics?.network || null;
+        return data?.metrics?.network || null;
       default:
         return null;
     }

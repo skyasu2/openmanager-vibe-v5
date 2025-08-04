@@ -161,7 +161,7 @@ export class KoreanNLPProcessor {
       metadata: {
         koreanNLP: true,
         intent: nlpData.intent,
-        entities: nlpData.entities,
+        entitiesCount: nlpData.entities?.length || 0,
         processingTime: nlpData.quality_metrics?.processing_time,
         originalQuery: request.query,
       },
@@ -219,7 +219,7 @@ export class KoreanNLPProcessor {
     return {
       success: true,
       response: `한국어 분석을 시도했지만 처리 중 오류가 발생했습니다.\n\n문의사항: "${request.query}"\n\n기본 검색 모드로 처리합니다.`,
-      engine: 'local' as const,
+      engine: 'local-rag' as const,
       confidence: 0.6,
       thinkingSteps: [
         {

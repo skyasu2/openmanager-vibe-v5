@@ -293,22 +293,22 @@ export class SupabaseRAGEngine {
       }
 
       // 2. 벡터 검색 수행
-      const searchResults = await this.vectorDB.search(queryEmbedding, {
-        limit: maxResults,
-        threshold,
-        category,
-      });
+      try {
+        const searchResults = await this.vectorDB.search(queryEmbedding, {
+          topK: maxResults,
+          threshold,
+          category,
+        });
 
-      if (!searchResults.success) {
-        return {
-          success: false,
-          results: [],
-          totalResults: 0,
-          processingTime: Date.now() - startTime,
-          cached: false,
-          error: searchResults.error || '벡터 검색 실패',
-        };
-      }
+        if (!searchResults || searchResults.length === 0) {
+          return {
+            success: true,
+            results: [],
+            totalResults: 0,
+            processingTime: Date.now() - startTime,
+            cached: false,
+          };
+        }
 
       // 3. MCP 컨텍스트 수집 (옵션)
       let mcpContext = null;
@@ -322,19 +322,19 @@ export class SupabaseRAGEngine {
       // 4. 컨텍스트 생성
       let context = '';
       if (includeContext) {
-        context = this.buildContext(searchResults.results || [], mcpContext);
+        context = this.buildContext(searchResults, mcpContext);
       }
 
       const result: RAGEngineSearchResult = {
         success: true,
-        results: (searchResults.results || []).map(r => ({
+        results: searchResults.map(r => ({
           id: r.id,
           content: r.content,
           similarity: r.similarity,
           metadata: r.metadata,
         })),
         context,
-        totalResults: searchResults.total || 0,
+        totalResults: searchResults.length,
         processingTime: Date.now() - startTime,
         cached: false,
         mcpContext: mcpContext || undefined,
@@ -346,6 +346,18 @@ export class SupabaseRAGEngine {
       }
 
       return result;
+      } catch (searchError) {
+        // 벡터 검색 에러 처리
+        console.error('벡터 검색 실패:', searchError);
+        return {
+          success: false,
+          results: [],
+          totalResults: 0,
+          processingTime: Date.now() - startTime,
+          cached: false,
+          error: searchError instanceof Error ? searchError.message : '벡터 검색 실패',
+        };
+      }
     } catch (error) {
       console.error('❌ RAG 검색 실패:', error);
       return {
@@ -408,12 +420,12 @@ export class SupabaseRAGEngine {
       }
 
       // 벡터 DB에 저장
-      const result = await this.vectorDB.addDocument({
+      const result = await this.vectorDB.store(
         id,
         content,
         embedding,
-        metadata,
-      });
+        metadata
+      );
 
       if (result.success) {
         console.log(`✅ 문서 인덱싱 완료: ${id}`);
@@ -459,12 +471,12 @@ export class SupabaseRAGEngine {
       // 개별 문서 저장 (벡터 DB 인터페이스에 맞춤)
       for (const doc of validDocuments) {
         try {
-          const result = await this.vectorDB.addDocument({
-            id: doc.id,
-            content: doc.content,
-            embedding: doc.embedding!,
-            metadata: doc.metadata,
-          });
+          const result = await this.vectorDB.store(
+            doc.id,
+            doc.content,
+            doc.embedding!,
+            doc.metadata
+          );
 
           if (result.success) {
             success++;
@@ -585,7 +597,7 @@ export class SupabaseRAGEngine {
   private generateCacheKey(
     operation: string,
     query: string,
-    options: Record<string, unknown>
+    options: RAGSearchOptions | Record<string, unknown>
   ): string {
     return `rag:${operation}:${Buffer.from(query).toString('base64')}:${JSON.stringify(options)}`;
   }

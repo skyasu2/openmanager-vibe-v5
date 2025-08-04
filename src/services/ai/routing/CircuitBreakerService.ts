@@ -109,7 +109,7 @@ export class CircuitBreakerService {
     return {
       success: false,
       response: `🔌 ${engine} 엔진이 일시적으로 사용할 수 없습니다.\n\n약 ${timeToReset}초 후에 다시 시도됩니다.`,
-      engine: 'local' as const,
+      engine: 'local-rag' as const,
       confidence: 1,
       thinkingSteps: [
         {

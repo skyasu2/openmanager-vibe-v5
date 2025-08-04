@@ -5,6 +5,23 @@ import type {
   CollectorConfig,
 } from '../../types/collector';
 
+// AWS EC2 관련 타입 정의
+interface EC2InstanceInfo {
+  InstanceId?: string;
+  InstanceType?: string;
+  State?: {
+    Name?: string;
+  };
+  LaunchTime?: string;
+  Platform?: string;
+  PrivateDnsName?: string;
+  PublicDnsName?: string;
+  Tags?: Array<{
+    Key?: string;
+    Value?: string;
+  }>;
+}
+
 /**
  * AWS CloudWatch 메트릭 수집기
  *
@@ -122,11 +139,22 @@ export class CloudWatchCollector implements MetricCollector {
         ],
       });
 
+      interface EC2Instance {
+        InstanceId?: string;
+      }
+      
+      interface EC2Reservation {
+        Instances?: EC2Instance[];
+      }
+      
       const servers: string[] = [];
-      response.Reservations?.forEach((reservation: unknown) => {
-        reservation.Instances?.forEach((instance: unknown) => {
-          const serverId = this.getServerIdFromInstanceId(instance.InstanceId);
-          servers.push(serverId);
+      const awsResponse = response as { Reservations?: EC2Reservation[] };
+      awsResponse.Reservations?.forEach((reservation: EC2Reservation) => {
+        reservation.Instances?.forEach((instance: EC2Instance) => {
+          if (instance.InstanceId) {
+            const serverId = this.getServerIdFromInstanceId(instance.InstanceId);
+            servers.push(serverId);
+          }
         });
       });
 
@@ -148,7 +176,8 @@ export class CloudWatchCollector implements MetricCollector {
         InstanceIds: [instanceId],
       });
 
-      const instance = response.Reservations?.[0]?.Instances?.[0];
+      const awsResponse = response as { Reservations?: Array<{ Instances?: Array<{ State?: { Name?: string } }> }> };
+      const instance = awsResponse.Reservations?.[0]?.Instances?.[0];
       return instance?.State?.Name === 'running';
     } catch (error) {
       console.error(`❌ CloudWatch 서버 상태 확인 실패 (${serverId}):`, error);
@@ -311,9 +340,14 @@ export class CloudWatchCollector implements MetricCollector {
 
   private async getSystemMetrics(instanceId: string) {
     // EC2 인스턴스 정보 조회
-    const instanceInfo = await this.getInstanceInfo(instanceId);
+    interface InstanceInfo {
+      LaunchTime?: string;
+      Platform?: string;
+    }
+    
+    const instanceInfo = await this.getInstanceInfo(instanceId) as InstanceInfo;
 
-    const launchTime = new Date(instanceInfo.LaunchTime);
+    const launchTime = new Date(instanceInfo.LaunchTime || new Date());
     const uptime = Math.floor((Date.now() - launchTime.getTime()) / 1000);
 
     return {
@@ -369,13 +403,14 @@ export class CloudWatchCollector implements MetricCollector {
         }
       );
 
-      const datapoints = response.Datapoints || [];
+      const metricsResponse = response as { Datapoints?: Array<{ Timestamp?: string; [key: string]: any }> };
+      const datapoints = metricsResponse.Datapoints || [];
       if (datapoints.length === 0) return null;
 
       // 최신 데이터포인트 사용
       const latest = datapoints.sort(
-        (a: unknown, b: unknown) =>
-          new Date(b.Timestamp).getTime() - new Date(a.Timestamp).getTime()
+        (a: { Timestamp?: string }, b: { Timestamp?: string }) =>
+          new Date(b.Timestamp || 0).getTime() - new Date(a.Timestamp || 0).getTime()
       )[0];
 
       return latest[statistic] || null;
@@ -433,12 +468,13 @@ export class CloudWatchCollector implements MetricCollector {
     );
   }
 
-  private async getInstanceInfo(instanceId: string): Promise<unknown> {
+  private async getInstanceInfo(instanceId: string): Promise<EC2InstanceInfo> {
     const response = await this.makeAWSRequest('ec2', 'DescribeInstances', {
       InstanceIds: [instanceId],
     });
 
-    return response.Reservations?.[0]?.Instances?.[0] || {};
+    const awsResponse = response as { Reservations?: Array<{ Instances?: EC2InstanceInfo[] }> };
+    return awsResponse.Reservations?.[0]?.Instances?.[0] || {};
   }
 
   private async getInstanceCores(instanceId: string): Promise<number> {
@@ -459,7 +495,7 @@ export class CloudWatchCollector implements MetricCollector {
       'c5.2xlarge': 8,
     };
 
-    return cpuMapping[instanceType] || 2;
+    return cpuMapping[instanceType || ''] || 2;
   }
 
   private async getInstanceMemory(instanceId: string): Promise<number> {
@@ -476,7 +512,7 @@ export class CloudWatchCollector implements MetricCollector {
       'm5.xlarge': 16 * 1024 * 1024 * 1024,
     };
 
-    return memoryMapping[instanceType] || 2 * 1024 * 1024 * 1024;
+    return memoryMapping[instanceType || ''] || 2 * 1024 * 1024 * 1024;
   }
 
   private async getInstanceDiskSize(instanceId: string): Promise<number> {
@@ -488,8 +524,9 @@ export class CloudWatchCollector implements MetricCollector {
       ],
     });
 
-    const volume = response.Volumes?.[0];
-    return volume ? volume.Size * 1024 * 1024 * 1024 : 20 * 1024 * 1024 * 1024; // 기본 20GB
+    const volumeResponse = response as { Volumes?: Array<{ Size?: number }> };
+    const volume = volumeResponse.Volumes?.[0];
+    return volume?.Size ? volume.Size * 1024 * 1024 * 1024 : 20 * 1024 * 1024 * 1024; // 기본 20GB
   }
 
   private async getMetadata(instanceId: string) {
@@ -504,9 +541,9 @@ export class CloudWatchCollector implements MetricCollector {
   }
 
   private getEnvironmentFromTags(
-    tags: unknown[]
+    tags: Array<{ Key?: string; Value?: string }>
   ): 'production' | 'staging' | 'development' {
-    const envTag = tags.find(tag => tag.Key.toLowerCase() === 'environment');
+    const envTag = tags.find(tag => tag.Key?.toLowerCase() === 'environment');
     const env = envTag?.Value?.toLowerCase();
 
     if (env === 'production' || env === 'prod') return 'production';

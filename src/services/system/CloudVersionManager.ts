@@ -45,6 +45,40 @@ interface VersionRecord {
   };
 }
 
+// Database row interface (snake_case columns)
+interface VersionHistoryRow {
+  id: string;
+  version: string;
+  previous_version?: string;
+  change_type: 'MAJOR' | 'MINOR' | 'PATCH' | 'HOTFIX';
+  timestamp: string;
+  author: string;
+  description: string;
+  changes: {
+    added: string[];
+    modified: string[];
+    removed: string[];
+    deprecated: string[];
+  };
+  migration?: {
+    required: boolean;
+    scripts: string[];
+    rollbackScripts: string[];
+  };
+  deployment_info?: {
+    environment: 'development' | 'staging' | 'production';
+    buildId?: string;
+    commitHash?: string;
+    deployedAt?: string;
+  };
+  metadata: {
+    source: string;
+    checksum: string;
+    size: number;
+    dependencies: Record<string, string>;
+  };
+}
+
 interface CloudVersionManagerConfig {
   enableMemoryCache: boolean;
   enableSupabase: boolean;
@@ -57,22 +91,24 @@ interface CloudVersionManagerConfig {
 
 // 메모리 기반 LRU 캐시 구현
 class MemoryCache {
-  private cache = new Map<string, { value: any; expires: number }>();
+  private cache = new Map<string, { value: unknown; expires: number }>();
   private maxSize = 100;
 
-  set(key: string, value: any, ttlSeconds: number): void {
+  set<T>(key: string, value: T, ttlSeconds: number): void {
     const expires = Date.now() + ttlSeconds * 1000;
     
     // 캐시 크기 제한
     if (this.cache.size >= this.maxSize) {
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey) {
+        this.cache.delete(firstKey);
+      }
     }
     
     this.cache.set(key, { value, expires });
   }
 
-  get(key: string): any | null {
+  get<T>(key: string): T | null {
     const item = this.cache.get(key);
     if (!item) return null;
     
@@ -81,7 +117,7 @@ class MemoryCache {
       return null;
     }
     
-    return item.value;
+    return item.value as T;
   }
 
   delete(key: string): void {
@@ -226,7 +262,12 @@ export class CloudVersionManager {
     try {
       // 최신 버전 정보 저장
       const currentKey = `${this.config.cachePrefix}current`;
-      this.memoryCache.set(
+      this.memoryCache.set<{
+        version: string;
+        timestamp: string;
+        changeType: string;
+        author: string;
+      }>(
         currentKey,
         {
           version: versionRecord.version,
@@ -239,7 +280,7 @@ export class CloudVersionManager {
 
       // 버전별 상세 정보 저장
       const detailKey = `${this.config.cachePrefix}detail:${versionRecord.version}`;
-      this.memoryCache.set(
+      this.memoryCache.set<VersionRecord>(
         detailKey,
         versionRecord,
         this.config.cacheTTL
@@ -247,9 +288,9 @@ export class CloudVersionManager {
 
       // 버전 목록 업데이트 (최근 10개)
       const listKey = `${this.config.cachePrefix}list`;
-      const existingList = this.memoryCache.get(listKey) || [];
+      const existingList = this.memoryCache.get<string[]>(listKey) || [];
       const updatedList = [versionRecord.version, ...existingList.slice(0, 9)];
-      this.memoryCache.set(listKey, updatedList, this.config.cacheTTL);
+      this.memoryCache.set<string[]>(listKey, updatedList, this.config.cacheTTL);
 
       console.log(`✅ Memory 버전 캐시 업데이트: ${versionRecord.version}`);
     } catch (error) {
@@ -342,7 +383,12 @@ export class CloudVersionManager {
   } | null {
     try {
       const currentKey = `${this.config.cachePrefix}current`;
-      return this.memoryCache.get(currentKey);
+      return this.memoryCache.get<{
+        version: string;
+        timestamp: string;
+        changeType: string;
+        author: string;
+      }>(currentKey);
     } catch (error) {
       console.error('❌ Memory 캐시 버전 조회 실패:', error);
       return null;
@@ -366,6 +412,10 @@ export class CloudVersionManager {
       if (error) throw error;
       if (!data) return null;
 
+      if (!this.isValidVersionHistoryRow(data)) {
+        throw new Error('Invalid version history data format');
+      }
+      
       return {
         id: data.id,
         version: data.version,
@@ -401,7 +451,19 @@ export class CloudVersionManager {
       if (error) throw error;
       if (!data) return [];
 
-      return data.map(item => ({
+      // Type-safe processing with validation
+      const validRows: VersionHistoryRow[] = [];
+      const dataArray = Array.isArray(data) ? data : [data];
+      
+      for (const item of dataArray) {
+        if (this.isValidVersionHistoryRow(item)) {
+          validRows.push(item);
+        } else {
+          console.warn('❌ Invalid version history row data:', item);
+        }
+      }
+
+      return validRows.map(item => ({
         id: item.id,
         version: item.version,
         previousVersion: item.previous_version,
@@ -428,7 +490,7 @@ export class CloudVersionManager {
       // 메모리 캐시 먼저 확인
       if (this.config.enableMemoryCache) {
         const detailKey = `${this.config.cachePrefix}detail:${version}`;
-        const cached = this.memoryCache.get(detailKey);
+        const cached = this.memoryCache.get<VersionRecord>(detailKey);
         if (cached) {
           console.log(`✅ Memory에서 버전 상세 조회: ${version}`);
           return cached;
@@ -446,7 +508,12 @@ export class CloudVersionManager {
         if (error) throw error;
         if (!data) return null;
 
-        const versionRecord = {
+        if (!this.isValidVersionHistoryRow(data)) {
+          console.error('❌ Invalid version history row data format:', data);
+          return null;
+        }
+
+        const versionRecord: VersionRecord = {
           id: data.id,
           version: data.version,
           previousVersion: data.previous_version,
@@ -463,7 +530,7 @@ export class CloudVersionManager {
         // 메모리 캐시 업데이트
         if (this.config.enableMemoryCache) {
           const detailKey = `${this.config.cachePrefix}detail:${version}`;
-          this.memoryCache.set(detailKey, versionRecord, this.config.cacheTTL);
+          this.memoryCache.set<VersionRecord>(detailKey, versionRecord, this.config.cacheTTL);
         }
 
         console.log(`✅ Supabase에서 버전 상세 조회: ${version}`);
@@ -565,25 +632,51 @@ export class CloudVersionManager {
         upcomingMigrations: 0,
       };
 
-      const totalVersions = data.length;
+      // Type-safe processing for stats data
+      const rows: Array<{
+        change_type: 'MAJOR' | 'MINOR' | 'PATCH' | 'HOTFIX';
+        timestamp: string;
+        migration?: { required: boolean };
+      }> = [];
+
+      const dataArray = Array.isArray(data) ? data : [data];
+      for (const item of dataArray) {
+        if (
+          item &&
+          typeof item === 'object' &&
+          'change_type' in item &&
+          'timestamp' in item &&
+          typeof item.change_type === 'string' &&
+          typeof item.timestamp === 'string' &&
+          ['MAJOR', 'MINOR', 'PATCH', 'HOTFIX'].includes(item.change_type as string)
+        ) {
+          rows.push(item as {
+            change_type: 'MAJOR' | 'MINOR' | 'PATCH' | 'HOTFIX';
+            timestamp: string;
+            migration?: { required: boolean };
+          });
+        }
+      }
+      
+      const totalVersions = rows.length;
       const changeTypes: Record<string, number> = {};
       let upcomingMigrations = 0;
 
-      data.forEach(item => {
+      rows.forEach(item => {
         changeTypes[item.change_type] = (changeTypes[item.change_type] || 0) + 1;
         if (item.migration?.required) {
           upcomingMigrations++;
         }
       });
 
-      const lastReleaseDate = data[0]?.timestamp || '';
+      const lastReleaseDate = rows[0]?.timestamp || '';
       
       // 평균 릴리스 간격 계산
       let averageTimeBeweenReleases = 0;
-      if (data.length > 1) {
-        const totalTime = new Date(data[0].timestamp).getTime() - 
-                         new Date(data[data.length - 1].timestamp).getTime();
-        averageTimeBeweenReleases = totalTime / (data.length - 1) / (1000 * 60 * 60 * 24); // days
+      if (rows.length > 1) {
+        const totalTime = new Date(rows[0].timestamp).getTime() - 
+                         new Date(rows[rows.length - 1].timestamp).getTime();
+        averageTimeBeweenReleases = totalTime / (rows.length - 1) / (1000 * 60 * 60 * 24); // days
       }
 
       return {
@@ -679,7 +772,28 @@ export class CloudVersionManager {
   /**
    * 🔐 체크섬 생성
    */
-  private generateChecksum(data: unknown): string {
+  /**
+   * 🔍 VersionHistoryRow 타입 가드
+   */
+  private isValidVersionHistoryRow(data: unknown): data is VersionHistoryRow {
+    if (!data || typeof data !== 'object') return false;
+    
+    const row = data as Record<string, unknown>;
+    
+    return (
+      typeof row.id === 'string' &&
+      typeof row.version === 'string' &&
+      typeof row.change_type === 'string' &&
+      ['MAJOR', 'MINOR', 'PATCH', 'HOTFIX'].includes(row.change_type as string) &&
+      typeof row.timestamp === 'string' &&
+      typeof row.author === 'string' &&
+      typeof row.description === 'string' &&
+      typeof row.changes === 'object' &&
+      typeof row.metadata === 'object'
+    );
+  }
+
+  private generateChecksum(data: Record<string, unknown>): string {
     const str = JSON.stringify(data);
     let hash = 0;
     for (let i = 0; i < str.length; i++) {

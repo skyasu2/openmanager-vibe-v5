@@ -15,43 +15,26 @@ export async function updateSession(
   // response가 없으면 새로 생성
   const supabaseResponse = response || NextResponse.next();
 
-  const supabase: SupabaseClient = createServerClient(
+  const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         get(name: string) {
           const cookie = request.cookies.get(name);
-          return cookie && typeof cookie === 'object' && 'value' in cookie ? (cookie as any).value : undefined;
+          return cookie;
         },
         set(name: string, value: string, options: Record<string, unknown>) {
           // 응답 쿠키에만 설정 (request.cookies는 읽기 전용)
-          try {
-            if (supabaseResponse && 'cookies' in supabaseResponse) {
-              (supabaseResponse as any).cookies.set({
-                name,
-                value,
-                ...options,
-              });
-            }
-          } catch (e) {
-            console.warn('Cookie set failed:', e);
-          }
+          // Next.js 15에서는 NextResponse.cookies 대신 headers 사용
+          const cookieValue = `${name}=${value}; Path=/; ${Object.entries(options).map(([k, v]) => `${k}=${v}`).join('; ')}`;
+          supabaseResponse.headers.set('Set-Cookie', cookieValue);
         },
         remove(name: string, options: Record<string, unknown>) {
           // 응답 쿠키에서만 제거 (request.cookies는 읽기 전용)
-          try {
-            if (supabaseResponse && 'cookies' in supabaseResponse) {
-              (supabaseResponse as any).cookies.set({
-                name,
-                value: '',
-                maxAge: 0,
-                ...options,
-              });
-            }
-          } catch (e) {
-            console.warn('Cookie remove failed:', e);
-          }
+          // Next.js 15에서는 NextResponse.cookies 대신 headers 사용
+          const cookieValue = `${name}=; Path=/; Max-Age=0; ${Object.entries(options).map(([k, v]) => `${k}=${v}`).join('; ')}`;
+          supabaseResponse.headers.set('Set-Cookie', cookieValue);
         },
       },
     }
@@ -65,7 +48,7 @@ export async function updateSession(
   const {
     data: { session },
     error,
-  } = await supabase.auth.getSession();
+  } = await (supabase as SupabaseClient).auth.getSession();
 
   if (session) {
     console.log('✅ updateSession: 세션 복원됨', session.user.email);
@@ -73,7 +56,7 @@ export async function updateSession(
     // 세션이 있으면 사용자 정보도 확인 (토큰 유효성 검증)
     const {
       data: { user },
-    } = await supabase.auth.getUser();
+    } = await (supabase as SupabaseClient).auth.getUser();
     if (user) {
       console.log('✅ updateSession: 사용자 확인됨', user.email);
     }

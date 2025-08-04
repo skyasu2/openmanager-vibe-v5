@@ -120,10 +120,10 @@ function compressMetrics(metrics: ServerMetrics[]): ServerMetrics[] {
   // 불필요한 소수점 제거 및 반올림
   return metrics.map(metric => ({
     ...metric,
-    cpu_usage: Math.round(metric.cpu_usage * 100) / 100,
-    memory_usage: Math.round(metric.memory_usage * 100) / 100,
-    disk_usage: Math.round(metric.disk_usage * 100) / 100,
-    network_io: Math.round(metric.network_io * 100) / 100,
+    cpu: typeof metric.cpu === 'number' ? Math.round(metric.cpu * 100) / 100 : metric.cpu,
+    memory: typeof metric.memory === 'number' ? Math.round(metric.memory * 100) / 100 : metric.memory,
+    disk: typeof metric.disk === 'number' ? Math.round(metric.disk * 100) / 100 : metric.disk,
+    network: typeof metric.network === 'number' ? Math.round(metric.network * 100) / 100 : metric.network,
   }));
 }
 
@@ -324,9 +324,9 @@ function aggregateMetricsData(
   }> = [];
 
   for (const [timestamp, metrics] of groups.entries()) {
-    const cpuValues = metrics.map(m => m.cpu_usage).filter(v => typeof v === 'number');
-    const memoryValues = metrics.map(m => m.memory_usage).filter(v => typeof v === 'number');
-    const diskValues = metrics.map(m => m.disk_usage).filter(v => typeof v === 'number');
+    const cpuValues = metrics.map(m => typeof m.cpu === 'number' ? m.cpu : (typeof m.cpu === 'object' && m.cpu.usage ? m.cpu.usage : 0)).filter(v => typeof v === 'number');
+    const memoryValues = metrics.map(m => typeof m.memory === 'number' ? m.memory : (typeof m.memory === 'object' && m.memory.usage ? m.memory.usage : 0)).filter(v => typeof v === 'number');
+    const diskValues = metrics.map(m => typeof m.disk === 'number' ? m.disk : (typeof m.disk === 'object' && m.disk.usage ? m.disk.usage : 0)).filter(v => typeof v === 'number');
 
     result.push({
       timestamp,
@@ -375,7 +375,7 @@ export async function getRealtimeMetrics(serverId: string): Promise<ServerMetric
  */
 export async function getMetricsTrend(
   serverId: string,
-  metric: 'cpu_usage' | 'memory_usage' | 'disk_usage',
+  metric: 'cpu' | 'memory' | 'disk',
   timeRange: string = '24h'
 ): Promise<{
   current: number;
@@ -412,7 +412,10 @@ export async function getMetricsTrend(
       };
     }
 
-    const values = data.map(d => d[metric]).filter(v => typeof v === 'number');
+    const values = data.map(d => {
+      const value = (d as any)[metric];
+      return typeof value === 'number' ? value : (typeof value === 'object' && value && value.usage ? value.usage : 0);
+    }).filter(v => typeof v === 'number');
     const current = values[values.length - 1] || 0;
     const previous = values[0] || 0;
     const change = current - previous;
@@ -426,10 +429,14 @@ export async function getMetricsTrend(
       current,
       trend,
       change: Math.round(change * 100) / 100,
-      data: data.map(d => ({
-        timestamp: d.timestamp,
-        value: d[metric] || 0,
-      })),
+      data: data.map(d => {
+        const value = (d as any)[metric];
+        const numericValue = typeof value === 'number' ? value : (typeof value === 'object' && value && value.usage ? value.usage : 0);
+        return {
+          timestamp: d.timestamp,
+          value: numericValue,
+        };
+      }),
     };
 
     // 캐시에 저장 (2분 TTL)

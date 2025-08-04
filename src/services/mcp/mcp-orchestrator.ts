@@ -7,7 +7,6 @@
  * ✅ 한국어 자연어 처리 지원
  */
 
-// import { MCPStandardConfig } from './official-mcp-client'; // 타입 오류로 임시 비활성화
 import type { DocumentEmbedding } from '../../context/advanced-context-manager';
 import { AdvancedContextManager } from '../../context/advanced-context-manager';
 import type { BasicContextCache } from '../../context/basic-context-manager';

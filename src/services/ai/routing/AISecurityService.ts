@@ -37,15 +37,15 @@ export class AISecurityService {
   private metrics: SecurityMetrics;
   
   constructor(private config: SecurityConfig) {
-    this.promptSanitizer = new PromptSanitizer({
+    this.promptSanitizer = PromptSanitizer.getInstance({
       enableStrictMode: config.strictSecurityMode,
-      customBlockedPatterns: [],
-      maxQueryLength: 2000,
+      maxInputLength: 2000,
     });
     
-    this.responseFilter = new AIResponseFilter({
-      enableFiltering: true,
-      strictMode: config.strictSecurityMode,
+    this.responseFilter = AIResponseFilter.getInstance({
+      enableStrictFiltering: config.strictSecurityMode,
+      preventCodeExecution: true,
+      preventInfoLeakage: true,
     });
     
     this.metrics = {
@@ -70,13 +70,13 @@ export class AISecurityService {
       if (sanitizationResult.blocked) {
         this.metrics.promptsBlocked++;
         
-        if (sanitizationResult.reason) {
-          this.metrics.threatsDetected.push(sanitizationResult.reason);
+        if (sanitizationResult.threatsDetected.length > 0) {
+          this.metrics.threatsDetected.push(...sanitizationResult.threatsDetected);
         }
         
         return {
           allowed: false,
-          reason: sanitizationResult.reason || 'Security policy violation',
+          reason: sanitizationResult.threatsDetected.join(', ') || 'Security policy violation',
         };
       }
 
@@ -117,13 +117,13 @@ export class AISecurityService {
       if (filteredResult.filtered) {
         this.metrics.responsesFiltered++;
         
+        const baseMetadata = response.metadata || {};
+        const metadata: typeof response.metadata = baseMetadata;
+        
         return {
           ...response,
-          response: filteredResult.content,
-          metadata: {
-            ...response.metadata,
-            securityFiltered: true,
-          },
+          response: filteredResult.filtered,
+          metadata,
         };
       }
       
@@ -141,7 +141,7 @@ export class AISecurityService {
     return {
       success: false,
       response: '🔒 보안 정책에 의해 요청이 차단되었습니다.',
-      engine: 'local' as const,
+      engine: 'local-rag' as const,
       confidence: 1,
       thinkingSteps: [
         {
@@ -173,17 +173,14 @@ export class AISecurityService {
   updateConfig(newConfig: Partial<SecurityConfig>): void {
     this.config = { ...this.config, ...newConfig };
     
-    // 컴포넌트 재설정
-    this.promptSanitizer = new PromptSanitizer({
+    // 싱글톤 인스턴스 업데이트
+    this.promptSanitizer.updateConfig({
       enableStrictMode: this.config.strictSecurityMode,
-      customBlockedPatterns: [],
-      maxQueryLength: 2000,
     });
     
-    this.responseFilter = new AIResponseFilter({
-      enableFiltering: true,
-      strictMode: this.config.strictSecurityMode,
-    });
+    // Note: AIResponseFilter doesn't have updateConfig, so we need to get a new instance
+    // This is a limitation of the singleton pattern when config changes are needed
+    console.warn('AIResponseFilter config update requires service restart for full effect');
   }
 
   /**

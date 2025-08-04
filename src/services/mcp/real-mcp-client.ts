@@ -177,6 +177,7 @@ export class RealMCPClient {
   }
 
   private createMockClient(serverName: string): MCPClient {
+    const toolHandler = this.toolHandler; // this 컨텍스트 저장
     return {
       async connect(): Promise<void> {
         console.log(`🎭 ${serverName} 목업 클라이언트 연결됨`);
@@ -184,10 +185,10 @@ export class RealMCPClient {
       async request(request: MCPRequest): Promise<MCPResponse> {
         console.log(`🎭 ${serverName} 목업 요청:`, request.method);
         if (request.method === 'tools/list') {
-          const tools = await (this as any).toolHandler.getAvailableTools();
+          const tools = await toolHandler.getAvailableTools();
           return {
             success: true,
-            result: { tools: tools.tools, data: {} },
+            result: { tools: (tools.tools || []) as any[], data: {} },
           };
         }
         if (request.method === 'tools/call' && request.params?.toolName) {
@@ -280,7 +281,16 @@ export class RealMCPClient {
       const result = await this.toolHandler.searchDocuments(query);
 
       return {
-        ...result,
+        success: result.success ?? false,
+        results: Array.isArray(result.results) ? result.results.map(item => ({
+          path: typeof item === 'object' && item !== null && 'path' in item ? String(item.path) : '',
+          content: typeof item === 'object' && item !== null && 'content' in item ? String(item.content) : '',
+          score: typeof item === 'object' && item !== null && 'score' in item ? Number(item.score) : undefined,
+          metadata: typeof item === 'object' && item !== null && 'metadata' in item ? 
+            (item.metadata as Record<string, unknown>) : undefined
+        })) : [],
+        source: result.source || 'unknown',
+        tools_used: Array.isArray(result.tools_used) ? result.tools_used : [],
         responseTime: Date.now() - startTime,
         serverUsed: serverName || 'local',
       };
@@ -297,7 +307,22 @@ export class RealMCPClient {
   }
 
   async searchWeb(query: string): Promise<RealMCPSearchResult> {
-    return await this.toolHandler.searchWeb(query);
+    const result = await this.toolHandler.searchWeb(query);
+    
+    return {
+      success: result.success ?? false,
+      results: Array.isArray(result.results) ? result.results.map(item => ({
+        path: typeof item === 'object' && item !== null && 'path' in item ? String(item.path) : '',
+        content: typeof item === 'object' && item !== null && 'content' in item ? String(item.content) : '',
+        score: typeof item === 'object' && item !== null && 'score' in item ? Number(item.score) : undefined,
+        metadata: typeof item === 'object' && item !== null && 'metadata' in item ? 
+          (item.metadata as Record<string, unknown>) : undefined
+      })) : [],
+      source: result.source || 'web',
+      tools_used: Array.isArray(result.tools_used) ? result.tools_used : [],
+      responseTime: result.responseTime || 0,
+      serverUsed: result.serverUsed || 'web-search',
+    };
   }
 
   async storeContext(
@@ -308,7 +333,7 @@ export class RealMCPClient {
   }
 
   async retrieveContext(sessionId: string): Promise<MCPQueryContext | null> {
-    return await this.contextManager.retrieveContext(sessionId);
+    return (await this.contextManager.retrieveContext(sessionId)) as MCPQueryContext | null;
   }
 
   async readFile(filePath: string): Promise<string> {
@@ -341,8 +366,15 @@ export class RealMCPClient {
       );
 
       if (result.success && result.metadata) {
-        const items = result.metadata.items as Array<{ name: string }>;
-        return items ? items.map((item) => item.name) : [];
+        const items = result.metadata.items;
+        if (Array.isArray(items)) {
+          return items
+            .filter((item): item is { name: string } => 
+              typeof item === 'object' && item !== null && 'name' in item && typeof item.name === 'string'
+            )
+            .map((item) => item.name);
+        }
+        return [];
       } else {
         throw new Error(result.error || '디렉토리 목록 조회 실패');
       }
@@ -436,8 +468,8 @@ export class RealMCPClient {
         context,
       };
 
-      if (context.sessionId) {
-        await this.storeContext(context.sessionId as string, context);
+      if (context.sessionId && typeof context.sessionId === 'string') {
+        await this.storeContext(context.sessionId, context);
       }
 
       return combinedResults;

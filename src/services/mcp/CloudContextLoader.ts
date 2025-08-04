@@ -344,7 +344,7 @@ export class CloudContextLoader {
         query,
         contextType: 'mcp',
         relevantPaths,
-        systemContext,
+        systemContext: systemContext || {},
         files,
       };
 
@@ -364,7 +364,13 @@ export class CloudContextLoader {
   /**
    * 📁 시스템 컨텍스트 조회
    */
-  private async fetchSystemContext(): Promise<unknown> {
+  private async fetchSystemContext(): Promise<{
+    platform?: string;
+    nodeVersion?: string;
+    memory?: Record<string, number>;
+    environment?: string;
+    metadata?: Record<string, unknown>;
+  } | null> {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);

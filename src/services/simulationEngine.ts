@@ -99,10 +99,20 @@ export class SimulationEngine {
         disk_usage: metric.disk,
         network_in: metric.network * 0.6, // 입력 트래픽 (60%)
         network_out: metric.network * 0.4, // 출력 트래픽 (40%)
-        response_time: Math.random() * 200 + 50, // 50-250ms 응답시간
+        responseTime: Math.random() * 200 + 50, // 50-250ms 응답시간
         uptime: Math.random() * 720 + 1, // 1-721 시간 가동시간
         last_updated: metric.timestamp,
-        alerts: [] as any[],
+        alerts: [] as Array<{
+          id: string;
+          server_id: string;
+          type: 'cpu' | 'memory' | 'disk' | 'network' | 'responseTime' | 'custom';
+          message: string;
+          severity: 'info' | 'warning' | 'critical';
+          timestamp: string;
+          resolved: boolean;
+          relatedServers?: string[];
+          rootCause?: string;
+        }>,
         // Additional compatibility fields
         network_usage: metric.network,
         timestamp: metric.timestamp,
@@ -162,7 +172,14 @@ export class SimulationEngine {
   /**
    * 📊 Prometheus 메트릭 조회
    */
-  getPrometheusMetrics(serverId?: string): unknown[] {
+  getPrometheusMetrics(serverId?: string): Array<{
+    name: string;
+    type: 'gauge' | 'counter' | 'histogram';
+    help: string;
+    labels: Record<string, string>;
+    value: number;
+    timestamp: number;
+  }> {
     let servers: EnhancedServerMetrics[];
 
     if (serverId) {
@@ -207,10 +224,10 @@ export class SimulationEngine {
     const servers = this.getServers();
     const totalServers = servers.length;
     const criticalServers = servers.filter(
-      (s: unknown) => s.status === 'critical'
+      (s: EnhancedServerMetrics) => s.status === 'critical'
     ).length;
     const warningServers = servers.filter(
-      (s: unknown) => s.status === 'warning'
+      (s: EnhancedServerMetrics) => s.status === 'warning'
     ).length;
     const healthyServers = totalServers - criticalServers - warningServers;
 
@@ -221,15 +238,15 @@ export class SimulationEngine {
       criticalServers,
       healthPercentage: Math.round((healthyServers / totalServers) * 100),
       averageCpu: Math.round(
-        servers.reduce((sum: number, s: unknown) => sum + s.cpu_usage, 0) /
+        servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + s.cpu_usage, 0) /
           totalServers
       ),
       averageMemory: Math.round(
-        servers.reduce((sum: number, s: unknown) => sum + s.memory_usage, 0) /
+        servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + s.memory_usage, 0) /
           totalServers
       ),
       averageResponseTime: Math.round(
-        servers.reduce((sum: number, s: unknown) => sum + s.response_time, 0) /
+        servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + s.responseTime, 0) /
           totalServers
       ),
       timestamp: new Date().toISOString(),

@@ -184,7 +184,16 @@ export class VectorIndexingService {
       }
 
       // 문서 형식으로 변환
-      const documents: Document[] = incidents.map((incident: unknown) => ({
+      interface IncidentData {
+        id: string;
+        title?: string;
+        description?: string;
+        resolution?: string;
+        severity?: string;
+        category?: string;
+      }
+      
+      const documents: Document[] = incidents.map((incident: IncidentData) => ({
         id: incident.id,
         content: [
           incident.title || '',
@@ -281,7 +290,7 @@ export class VectorIndexingService {
       const totalStats = stats?.reduce(
         (
           acc: { totalDocuments: number; documentsWithEmbedding: number },
-          stat: unknown
+          stat: { total_records?: number; records_with_embedding?: number }
         ) => ({
           totalDocuments: acc.totalDocuments + (stat.total_records || 0),
           documentsWithEmbedding:
