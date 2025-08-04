@@ -98,6 +98,14 @@ README.md
 .env.template
 tsconfig.tsbuildinfo
 
+# Feature Creep 방지 - 데모/테스트 페이지 차단
+**/demo/
+**/sample/
+**/test-page/
+**/*-demo.*
+**/*-test.*
+**/*-sample.*
+
 # 개발 파일 (로컬 전용)
 **/*.dev.*
 **/*-dev.*

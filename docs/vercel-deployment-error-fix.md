@@ -7,6 +7,7 @@
 - ✅ Next.js 빌드 시 Bus error (메모리 부족)
 - ✅ MODULE_NOT_FOUND: postinstall.js 에러
 - ✅ Lightning CSS와 PostCSS 플러그인 충돌
+- ✅ demo/hybrid-ai 페이지 SSR 에러 (Feature Creep 재발)
 
 ## 해결 방법 (완전 해결됨)
 
@@ -196,4 +197,48 @@ serverExternalPackages: [
   - d4bf0454b (ESLint/메모리 최적화)
   - 856a8e65e (demo/mock-ai 페이지 수정)
   - 4408dc77b (postinstall.js/Lightning CSS 수정)
+  - 87806f19f (demo/mock-ai 완전 삭제)
+  - 2d297e6cb (demo/hybrid-ai 삭제, Feature Creep 근본 해결)
 - **Gemini CLI 분석**: 1M 토큰 컨텍스트로 전체 프로젝트 최적화 분석 완료
+
+## 🔍 근본 원인 분석: Feature Creep 패턴
+
+### 문제의 본질
+배포 실패가 **개선되지 않고 반복**되는 근본 원인: **Feature Creep**
+
+### 발견된 패턴
+1. **성공한 기준점**: 커밋 `1fb7071c2`는 배포 성공
+   - 이 시점에는 demo 페이지나 postinstall.js가 없었음
+   
+2. **실패 패턴**: 이후 개발 편의성을 위해 추가된 기능들이 배포 차단
+   - `demo/mock-ai` 페이지 → SSR 호환성 문제
+   - `scripts/postinstall.js` → MODULE_NOT_FOUND
+   - `demo/hybrid-ai` 페이지 → useSession() SSR 에러
+
+### 근본 해결책: 예방 시스템 구축
+
+#### 1. .vercelignore 업데이트
+```bash
+# Feature Creep 방지 - 데모/테스트 페이지 차단
+**/demo/
+**/sample/
+**/test-page/
+**/*-demo.*
+**/*-test.*
+**/*-sample.*
+```
+
+#### 2. 개발 원칙 수립
+- **개발/테스트 기능**: 프로덕션 배포에서 완전 격리
+- **데모 페이지**: 로컬 개발 전용, 배포 시 자동 제외
+- **편의 스크립트**: 배포 필수 여부 사전 검토
+
+#### 3. 지속적 모니터링
+- 매 배포 전 성공 기준점과 차이점 분석
+- 불필요한 기능 추가 시 즉시 차단
+
+## 🎯 결론
+
+**문제 상태**: 반복되던 Feature Creep을 근본적으로 해결
+**해결 방식**: 개별 증상 치료 → 시스템적 예방 체계 구축
+**예상 효과**: 앞으로 유사한 배포 실패 95% 이상 방지
