@@ -54,6 +54,16 @@ export type TechCategory =
 export type ImportanceLevel = 'critical' | 'high' | 'medium' | 'low';
 
 /**
+ * 제품 타입 (커스텀 개발 vs 상용 제품)
+ */
+export type ProductType = 'custom' | 'commercial';
+
+/**
+ * AI 엔진 타입
+ */
+export type AIEngineType = 'google-api' | 'local-engine' | 'hybrid';
+
+/**
  * 기술 스택 아이템
  */
 export interface TechItem {
@@ -66,6 +76,8 @@ export interface TechItem {
   status: 'active' | 'ready' | 'planned';
   icon: string;
   tags: string[];
+  type?: ProductType; // 커스텀 개발인지 상용 제품인지 구분
+  aiType?: AIEngineType; // AI 관련 항목인 경우 엔진 타입
 }
 
 /**

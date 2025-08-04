@@ -17,6 +17,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '🤖',
       tags: ['실시간AI', '사이드바', '핵심기능'],
+      type: 'custom',
+      aiType: 'hybrid',
     },
     {
       name: 'LOCAL/GOOGLE 2-Mode',
@@ -28,6 +30,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '🎯',
       tags: ['AI모드', '무료우선', '핵심기능'],
+      type: 'custom',
+      aiType: 'hybrid',
     },
     {
       name: '한국어 자연어 처리',
@@ -38,6 +42,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '🇰🇷',
       tags: ['한국어', 'NLP', '자연어'],
+      type: 'custom',
+      aiType: 'local-engine',
     },
     {
       name: '실시간 서버 분석',
@@ -48,6 +54,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '📊',
       tags: ['실시간분석', '메트릭', 'AI분석'],
+      type: 'custom',
+      aiType: 'local-engine',
     },
     {
       name: '이상 징후 감지',
@@ -58,6 +66,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '🚨',
       tags: ['이상감지', '예방알림', 'AI'],
+      type: 'custom',
+      aiType: 'local-engine',
     },
     {
       name: 'Supabase pgVector',
@@ -68,6 +78,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '🔍',
       tags: ['벡터검색', 'RAG', '지식베이스'],
+      type: 'commercial',
     },
     {
       name: '지능형 쿼리 엔진',
@@ -78,6 +89,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '🧠',
       tags: ['쿼리엔진', 'NLP', '지능형분석'],
+      type: 'custom',
+      aiType: 'hybrid',
     },
   ],
   'fullstack-ecosystem': [
@@ -90,6 +103,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '▲',
       tags: ['배포', 'Edge Runtime', '무료티어'],
+      type: 'commercial',
     },
     {
       name: 'Supabase PostgreSQL',
@@ -100,6 +114,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '🐘',
       tags: ['데이터베이스', 'pgVector', '500MB무료'],
+      type: 'commercial',
     },
     {
       name: 'Memory-based LRU Cache',
@@ -110,6 +125,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '⚡',
       tags: ['캐시', '메모리기반', '무료'],
+      type: 'custom',
     },
     {
       name: 'GCP Functions (Python 3.11)',
@@ -121,6 +137,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '☁️',
       tags: ['클라우드', 'Python3.11', '배포완료'],
+      type: 'commercial',
     },
     {
       name: 'Google AI Studio',
@@ -131,6 +148,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '🤖',
       tags: ['AI', '무료할당량', 'Gemini'],
+      type: 'commercial',
+      aiType: 'google-api',
     },
     {
       name: 'GitHub Actions',
@@ -141,6 +160,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '🔄',
       tags: ['CI/CD', '자동화', '월2000분무료'],
+      type: 'commercial',
     },
   ],
   'tech-stack': [
@@ -176,6 +196,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '🔷',
       tags: ['언어', '오픤소스', '타입안전'],
+      type: 'commercial',
     },
     {
       name: 'Tailwind CSS',
@@ -231,6 +252,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '💬',
       tags: ['초기도구', '브레인스토밍', '프롬프트'],
+      type: 'commercial',
+      aiType: 'google-api',
     },
     {
       name: 'Cursor IDE → Claude Code',
@@ -242,6 +265,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '🔄',
       tags: ['개발전환', 'AI진화', '자동화강화'],
+      type: 'commercial',
+      aiType: 'hybrid',
     },
     {
       name: 'Claude Code + 11 MCP (현재 핵심)',
@@ -253,6 +278,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '🤖',
       tags: ['현재핵심', 'MCP통합', '완전자동화', '11서버'],
+      type: 'commercial',
+      aiType: 'hybrid',
     },
     {
       name: 'CLAUDE.md 가이드',
@@ -263,6 +290,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '📋',
       tags: ['문서화', '표준화', 'AI가이드'],
+      type: 'custom',
     },
     {
       name: 'Gemini CLI',
@@ -273,6 +301,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '✨',
       tags: ['Gemini', '대용량분석', '협업AI'],
+      type: 'commercial',
+      aiType: 'google-api',
     },
     {
       name: 'Git + GitHub 자동화',
@@ -283,6 +313,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '📝',
       tags: ['Git자동화', 'CI/CD', 'GitHub'],
+      type: 'custom',
     },
   ],
 };

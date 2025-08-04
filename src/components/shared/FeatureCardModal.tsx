@@ -92,6 +92,38 @@ export default function FeatureCardModal({
           <strong className="text-gray-300">구현:</strong> {tech.implementation}
         </div>
 
+        {/* 제품 타입 및 AI 엔진 타입 배지 */}
+        <div className="mb-2 flex flex-wrap gap-2">
+          {tech.type && (
+            <span
+              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                tech.type === 'custom'
+                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                  : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+              }`}
+            >
+              {tech.type === 'custom' ? '🏭 커스텀' : '📦 상용'}
+            </span>
+          )}
+          {tech.aiType && (
+            <span
+              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                tech.aiType === 'google-api'
+                  ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                  : tech.aiType === 'local-engine'
+                  ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
+                  : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+              }`}
+            >
+              {tech.aiType === 'google-api'
+                ? '🌐 Google AI'
+                : tech.aiType === 'local-engine'
+                ? '💻 로컬 AI'
+                : '🔄 하이브리드'}
+            </span>
+          )}
+        </div>
+
         <div className="flex flex-wrap gap-1">
           {tech.tags.map((tag, tagIndex) => (
             <span
