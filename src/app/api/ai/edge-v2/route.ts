@@ -139,13 +139,60 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// GET 요청: API 상태 및 정보 제공
+export async function GET(req: NextRequest) {
+  return NextResponse.json({
+    status: 'active',
+    version: 'v2',
+    description: 'Edge AI API v2 - Supabase Realtime 기반',
+    runtime: 'edge',
+    region: 'icn1 (Seoul)',
+    features: {
+      realtime: 'Supabase Realtime 기반 생각중 상태',
+      caching: '캐시 우선 전략으로 Edge Runtime 최적화',
+      fallback: '스마트 폴백으로 안정성 확보',
+      rateLimit: '무료 티어 보호 (10req/min)',
+    },
+    services: [
+      'redis-cache',
+      'supabase-rag', 
+      'gcp-korean-nlp',
+      'gcp-ml-analytics'
+    ],
+    usage: {
+      method: 'POST',
+      contentType: 'application/json',
+      body: {
+        query: 'string (required) - 처리할 질의',
+        userId: 'string (optional) - 사용자 ID',
+        sessionId: 'string (optional) - 세션 ID (자동 생성)',
+        services: 'array (optional) - 사용할 서비스 목록',
+        parallel: 'boolean (optional) - 병렬 처리 여부 (기본: true)',
+        metadata: 'object (optional) - 추가 메타데이터',
+      },
+    },
+    migration: {
+      status: 'completed',
+      from: 'Redis Streams',
+      to: 'Supabase Realtime',
+      benefits: [
+        '실시간성: 1초 폴링 → 즉시 (WebSocket)',
+        '네트워크: SSE + 폴링 → WebSocket 단일',
+        '저장 기간: 1시간 TTL → 영구 저장',
+        '쿼리 기능: 제한적 → Full SQL'
+      ],
+    },
+    timestamp: new Date().toISOString(),
+  });
+}
+
 // OPTIONS 요청 처리 (CORS)
 export async function OPTIONS(req: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },
   });
