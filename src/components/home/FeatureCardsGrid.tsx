@@ -1,10 +1,10 @@
 'use client';
 
+import FeatureCardModal from '@/components/shared/FeatureCardModal';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
 import { Bot, Database, Sparkles, Zap, type LucideIcon } from 'lucide-react';
-import { useEffect, useRef, useState, useMemo, memo } from 'react';
-import FeatureCardModal from '@/components/shared/FeatureCardModal';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 
 // FeatureCard 타입 정의
 interface FeatureCard {
@@ -58,24 +58,26 @@ const cardData: FeatureCard[] = [
     id: 'fullstack-ecosystem',
     title: '🏗️ 클라우드 플랫폼 활용',
     description:
-      'Vercel + Supabase + GCP + Upstash for Redis. 프론트엔드부터 AI 서버까지 통합된 현대적 클라우드 개발 플랫폼',
+      'Vercel + Supabase + GCP + Upstash Redis. 프론트엔드부터 AI 서버까지 통합된 현대적 클라우드 개발 플랫폼',
     icon: Database,
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
-      overview: `v5.66.22 - 무료 티어 최적화로 월 $0 운영! Python 3.11 Functions 3개 배포 완료, Vercel-Supabase-GCP 통합으로 완전한 클라우드 인프라 구축.`,
+      overview: `v5.66.27 - 무료 티어 최적화로 월 $0 운영! 4개 클라우드 플랫폼을 통합하여 완전한 서버리스 인프라 구축, 자동 스케일링과 글로벌 CDN으로 성능 최적화.`,
       features: [
-        '▲ Vercel: 자동 배포, Edge Runtime, Preview URL (무료 티어)',
-        '🐘 Supabase: PostgreSQL + pgVector + RLS (500MB 무료)',
-        '⚡ Upstash Redis: 고속 캐싱, Rate Limiting (256MB 무료)',
-        '☁️ GCP Functions: enhanced-korean-nlp, ml-analytics-engine, unified-ai-processor (배포 완료)',
-        '🤖 Google AI Studio: Gemini 2.0 Flash API (일 1,000회 무료)',
-        '🔄 GitHub Actions: CI/CD 파이프라인 구축 (월 2,000분 무료)',
+        '▲ Vercel 플랫폼: Next.js 15 자동 배포, Edge Runtime 활용, Preview URL로 브랜치별 테스트 환경 구축',
+        '🌐 Vercel로 구현한 기능: 서버리스 API Routes 12개, 실시간 대시보드, GitHub 연동 자동 배포',
+        '🐘 Supabase 플랫폼: PostgreSQL + pgVector + Row Level Security, 실시간 구독 지원',
+        '📊 Supabase로 구현한 기능: 서버 메트릭 저장, AI 벡터 검색, 사용자 인증 시스템',
+        '⚡ Upstash Redis: 고속 인메모리 캐싱, Rate Limiting, 세션 관리 (256MB 무료)',
+        '☁️ GCP Functions: Python 3.11 기반 AI 처리 서버 3개 (enhanced-korean-nlp, ml-analytics-engine, unified-ai-processor)',
+        '🤖 Google AI Studio: Gemini 2.0 Flash API 통합, 일 1,000회 무료 할당량 활용',
+        '🔄 GitHub Actions: 자동 테스트, 배포 파이프라인, 코드 품질 검사 (월 2,000분 무료)',
       ],
       technologies: [
         'Vercel Edge Runtime',
         'Supabase PostgreSQL',
         'Upstash Redis',
-        'Python 3.11 Functions',
+        'GCP Cloud Functions',
         'Google AI Studio',
         'GitHub Actions',
       ],

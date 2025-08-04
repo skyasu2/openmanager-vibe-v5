@@ -51,7 +51,7 @@ export default defineConfig(({ mode }) => {
       hookTimeout: 30000, // 30초  
       teardownTimeout: 10000, // 10초
       
-      bail: false, // 모든 성능 테스트 실행
+      bail: 0, // 모든 성능 테스트 실행
 
       // 📝 리포터 설정
       reporter: 'verbose',

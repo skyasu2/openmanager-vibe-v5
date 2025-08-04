@@ -266,7 +266,7 @@ export default function RootLayout({
 - **Cache**: Memory-based LRU Cache (서버리스 최적화)
   - 메모리 기반 캐싱: 네트워크 지연 제거
   - TTL 지원: 자동 만료 및 정리
-  - **전담 관리**: `database-administrator` 서브 에이전트
+  - **구현**: cache-helper.ts 라이브러리
 - **Vector DB**: pgvector 확장 (Supabase 내)
 
 ## 🧠 Memory-based 캐싱 시스템
@@ -511,7 +511,7 @@ claude api restart
 | 프로젝트 규칙     | `quality-control-checker`    | CLAUDE.md 준수, 파일 크기, SOLID     |
 | 구조 설계         | `structure-refactor-agent`   | 중복 검출, 모듈 구조, 리팩토링       |
 | 보안 검사         | `security-auditor`           | 취약점 탐지, 보안 감사               |
-| DB 최적화         | `database-administrator`     | Memory Cache + Supabase 전담        |
+| DB 최적화         | `database-administrator`     | Supabase PostgreSQL 전문 관리       |
 | 성능 개선         | `ux-performance-optimizer`   | Core Web Vitals                      |
 | 테스트            | `test-automation-specialist` | 테스트 작성/수정                     |
 | TDD 강제          | `test-first-developer`       | 테스트 우선 개발 강제                |
@@ -560,8 +560,8 @@ claude api restart
 // 권장 방식 - 작업 목표만 제시
 Task({
   subagent_type: 'database-administrator',
-  description: 'Memory Cache + DB 최적화',
-  prompt: '메모리 기반 캐싱과 Supabase PostgreSQL 성능을 최적화해주세요.',
+  description: 'Supabase DB 최적화',
+  prompt: 'Supabase PostgreSQL 쿼리 성능 분석 및 인덱스 최적화를 수행해주세요.',
 });
 
 // 병렬 처리 - 독립적인 작업은 동시 실행
@@ -575,7 +575,7 @@ Task({
 });
 Task({
   subagent_type: 'database-administrator',
-  prompt: '메모리 캐시 사용량 분석 및 Supabase 쿼리 최적화',
+  prompt: 'Supabase RLS 정책 검토 및 pgvector 인덱스 최적화',
 });
 ```
 
