@@ -12,8 +12,8 @@
  */
 
 import { promises as fs } from 'fs';
-import path from 'path';
 import { glob } from 'glob';
+import path from 'path';
 
 interface TestMetadata {
   file: string;
@@ -41,12 +41,24 @@ class TestMetadataManager {
   }
 
   async analyzeTests(): Promise<TestReport> {
+    console.log('🔍 테스트 파일 검색 중...');
     const testFiles = await this.findTestFiles();
+    console.log(`📁 발견된 테스트 파일: ${testFiles.length}개`);
+    
     const allTests: TestMetadata[] = [];
     
-    for (const file of testFiles) {
-      const tests = await this.parseTestFile(file);
-      allTests.push(...tests);
+    // 병렬 처리로 성능 개선
+    const batchSize = 10;
+    for (let i = 0; i < testFiles.length; i += batchSize) {
+      const batch = testFiles.slice(i, i + batchSize);
+      const batchPromises = batch.map(file => this.parseTestFile(file));
+      const batchResults = await Promise.all(batchPromises);
+      
+      for (const tests of batchResults) {
+        allTests.push(...tests);
+      }
+      
+      console.log(`📊 진행률: ${Math.min(i + batchSize, testFiles.length)}/${testFiles.length}`);
     }
 
     return this.generateReport(allTests);

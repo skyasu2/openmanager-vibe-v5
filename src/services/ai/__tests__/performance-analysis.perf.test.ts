@@ -4,10 +4,10 @@
  * 병목 지점 측정 및 최적화 효과 검증
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { PerformanceOptimizedQueryEngine } from '@/services/ai/performance-optimized-query-engine';
-import { SimplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
 import type { QueryRequest } from '@/services/ai/SimplifiedQueryEngine';
+import { SimplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock dependencies
 vi.mock('@/services/ai/supabase-rag-engine');
@@ -27,6 +27,9 @@ interface PerformanceTestResult {
 // @skip-date: 2024-01-01
 // 실행 방법: npm run test:performance
 // CI에서 제외되며 별도 명령어로 실행 가능
+// @skip-reason: 성능 벤치마크 테스트 - CI/CD에서 제외, 수동 실행용
+// @skip-date: 2025-08-04
+// @skip-valid: true
 describe.skip('SimplifiedQueryEngine 성능 분석', () => {
   let originalEngine: SimplifiedQueryEngine;
   let optimizedEngine: PerformanceOptimizedQueryEngine;

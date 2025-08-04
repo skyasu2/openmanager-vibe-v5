@@ -9,10 +9,10 @@
  * 5. 병렬 처리 성능 테스트
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
+import { aiLogger } from '@/lib/logger';
 import { getPerformanceOptimizedQueryEngine, PerformanceOptimizedQueryEngine } from '@/services/ai/performance-optimized-query-engine';
 import { SimplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
-import { aiLogger } from '@/lib/logger';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // E2E 테스트를 위한 실제 환경 설정
 const E2E_TEST_CONFIG = {
@@ -36,6 +36,9 @@ const TEST_QUERIES = [
 // @skip-date: 2024-01-01
 // 실행 방법: npm run test:e2e:local
 // CI에서 제외되며 실제 API 환경에서만 실행 가능
+// @skip-reason: 통합 테스트 - 실제 API 엔드포인트 필요, 로컬 환경에서만 실행
+// @skip-date: 2025-08-04
+// @skip-valid: true
 describe.skip('🚀 PerformanceOptimizedQueryEngine E2E 테스트', () => {
   let optimizedEngine: PerformanceOptimizedQueryEngine;
   let originalEngine: SimplifiedQueryEngine;

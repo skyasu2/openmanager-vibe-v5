@@ -5,17 +5,16 @@
  * 모든 테스트 통과 완료 (53/53)
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { UserProfileService } from '@/services/auth/UserProfileService';
-import type { 
-  DatabaseUser, 
-  UserProfileUpdate, 
-  UserSettings, 
-  UserActivity,
-  GitHubUser 
-} from '@/types/auth.types';
 import type { AIMetadata } from '@/types/ai-service-types';
+import type {
+    DatabaseUser,
+    UserActivity,
+    UserProfileUpdate,
+    UserSettings
+} from '@/types/auth.types';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock Supabase clients
 vi.mock('@/lib/supabase', () => ({
@@ -131,7 +130,6 @@ describe('UserProfileService', () => {
       expect(result).toBeNull();
     });
 
-    // @tdd-red  
     it('should handle database errors gracefully', async () => {
       mockFromChain.single.mockResolvedValue({ 
         data: null, 
