@@ -139,7 +139,7 @@ export interface AIMetadata {
   /** 카테고리 */
   category?: string;
   /** 추가 속성 (최소화) */
-  [key: string]: string | number | boolean | Date | string[] | undefined;
+  [key: string]: string | number | boolean | Date | string[] | Record<string, any> | undefined;
 }
 
 // ============================================================================

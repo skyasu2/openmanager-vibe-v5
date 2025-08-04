@@ -90,6 +90,7 @@ config/env-backup*
 docs/
 scripts/
 !scripts/conditional-mcp-setup.mjs
+!scripts/postinstall.js
 .github/
 README.md
 .env.example

@@ -73,12 +73,12 @@ function convertToServerType(
     ],
     alerts:
       status !== 'online'
-        ? scenarioAlerts[
+        ? (scenarioAlerts[
             serverInitialStates[
               mockServer.id as keyof typeof serverInitialStates
             ].scenario as keyof typeof scenarioAlerts
-          ] || []
-        : [],
+          ] || []).length
+        : 0,
   };
 }
 
