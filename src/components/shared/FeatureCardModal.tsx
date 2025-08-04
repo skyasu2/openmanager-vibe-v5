@@ -99,10 +99,16 @@ export default function FeatureCardModal({
               className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                 tech.type === 'custom'
                   ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                  : tech.type === 'opensource'
+                  ? 'bg-green-500/20 text-green-300 border border-green-500/30'
                   : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
               }`}
             >
-              {tech.type === 'custom' ? '🏭 커스텀' : '📦 상용'}
+              {tech.type === 'custom' 
+                ? '🏭 커스텀' 
+                : tech.type === 'opensource' 
+                ? '🔓 오픈소스'
+                : '📦 상용'}
             </span>
           )}
           {tech.aiType && (

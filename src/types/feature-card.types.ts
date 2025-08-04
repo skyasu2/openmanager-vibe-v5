@@ -54,9 +54,12 @@ export type TechCategory =
 export type ImportanceLevel = 'critical' | 'high' | 'medium' | 'low';
 
 /**
- * 제품 타입 (커스텀 개발 vs 상용 제품)
+ * 제품 타입
+ * - custom: 우리가 직접 처음부터 만든 기능
+ * - opensource: 오픈소스 라이브러리/프레임워크 사용
+ * - commercial: 기존 업체의 무료 티어 또는 유료 서비스
  */
-export type ProductType = 'custom' | 'commercial';
+export type ProductType = 'custom' | 'opensource' | 'commercial';
 
 /**
  * AI 엔진 타입

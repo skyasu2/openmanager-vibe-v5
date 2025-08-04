@@ -117,15 +117,15 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       type: 'commercial',
     },
     {
-      name: 'Memory-based LRU Cache',
-      category: 'database',
+      name: 'GCP Compute Engine',
+      category: 'deployment',
       importance: 'high',
-      description: '초고속 메모리 캐시 시스템으로 API 응답 속도 향상',
-      implementation: '서버리스 환경 최적화, <1ms 응답 속도, 네트워크 지연 제로',
+      description: 'e2-micro 무료 VM으로 상시 실행 서비스 운영',
+      implementation: 'e2-micro 인스턴스 (1vCPU, 1GB RAM, 30GB SSD) - 미국 지역 1개 무료',
       status: 'active',
-      icon: '⚡',
-      tags: ['캐시', '메모리기반', '무료'],
-      type: 'custom',
+      icon: '🖥️',
+      tags: ['VM', '무료티어', 'e2-micro'],
+      type: 'commercial',
     },
     {
       name: 'GCP Functions (Python 3.11)',
@@ -174,6 +174,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '⚛️',
       tags: ['프레임워크', '오픈소스', 'React'],
+      type: 'opensource',
     },
     {
       name: 'React 18',
@@ -185,6 +186,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '⚛️',
       tags: ['UI라이브러리', '오픈소스', 'Meta'],
+      type: 'opensource',
     },
     {
       name: 'TypeScript',
@@ -195,8 +197,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       version: '5.0+',
       status: 'active',
       icon: '🔷',
-      tags: ['언어', '오픤소스', '타입안전'],
-      type: 'commercial',
+      tags: ['언어', '오픈소스', '타입안전'],
+      type: 'opensource',
     },
     {
       name: 'Tailwind CSS',
@@ -208,6 +210,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '🎨',
       tags: ['UI', '오픈소스', 'CSS'],
+      type: 'opensource',
     },
     {
       name: 'Vitest',
@@ -218,6 +221,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '🧪',
       tags: ['테스트', '오픈소스', '고속'],
+      type: 'opensource',
     },
     {
       name: 'Zustand',
@@ -229,6 +233,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '🔄',
       tags: ['상태관리', '오픈소스', 'React'],
+      type: 'opensource',
     },
     {
       name: '코드 품질 시스템',
@@ -240,6 +245,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '✨',
       tags: ['품질개선', '안정성', '지속개선'],
+      type: 'custom',
     },
   ],
   'cursor-ai': [
