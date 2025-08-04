@@ -122,8 +122,14 @@ let mockSystemInstance: MockSystem | null = null;
  * Mock 시스템 인스턴스 가져오기
  */
 export function getMockSystem(config?: MockSystemConfig): MockSystem {
+  // 서버 사이드에서는 autoRotate 비활성화
+  const safeConfig = {
+    ...config,
+    autoRotate: typeof window !== 'undefined' ? config?.autoRotate : false,
+  };
+
   if (!mockSystemInstance) {
-    mockSystemInstance = new MockSystem(config);
+    mockSystemInstance = new MockSystem(safeConfig);
   }
   return mockSystemInstance;
 }

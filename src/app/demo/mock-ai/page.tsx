@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,17 +23,24 @@ export default function MockAIDemo() {
 
   // Mock 시스템 정보 업데이트
   const updateMockInfo = () => {
-    const mockSystem = getMockSystem();
-    const info = mockSystem.getSystemInfo();
-    setMockInfo(info);
+    // 클라이언트 환경에서만 실행
+    if (typeof window === 'undefined') return;
+
+    try {
+      const mockSystem = getMockSystem();
+      const info = mockSystem.getSystemInfo();
+      setMockInfo(info);
+    } catch (error) {
+      console.error('Mock 시스템 정보 업데이트 실패:', error);
+    }
   };
 
   // 초기 로드
-  useState(() => {
+  useEffect(() => {
     updateMockInfo();
     const interval = setInterval(updateMockInfo, 30000); // 30초마다 업데이트
     return () => clearInterval(interval);
-  });
+  }, []);
 
   // AI 쿼리 전송
   const handleQuery = async () => {
