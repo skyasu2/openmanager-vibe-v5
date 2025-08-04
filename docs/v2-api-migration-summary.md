@@ -12,6 +12,11 @@ Memory Cache Streams에서 Supabase Realtime으로 전환한 v2 API 마이그레
   - `/api/ai/edge` → **새로운**: `/api/ai/edge-v2`
   - `/api/ai/thinking/stream` → **새로운**: `/api/ai/thinking/stream-v2`
 
+- **지원 메서드** (2025-08-05 업데이트):
+  - `GET`: API 상태, 사용법, 마이그레이션 정보 조회
+  - `POST`: AI 처리 요청 (기존 기능)
+  - `OPTIONS`: CORS 지원
+
 ### 2. React Hook
 
 - **이전**: `useHybridAI` (Memory Cache 기반)
@@ -54,6 +59,11 @@ Memory Cache Streams에서 Supabase Realtime으로 전환한 v2 API 마이그레
    - Supabase Realtime: 200 동시 연결 무료
    - Memory Cache 명령어 제한 회피
 
+4. **개발자 도구 추가** (2025-08-05)
+   - GET 메서드로 API 상태 확인 가능
+   - 사용법 및 마이그레이션 정보 제공
+   - Essential Check 호환성 확보
+
 ## 남은 작업
 
 1. Memory Cache 의존성 완전 제거
@@ -71,6 +81,39 @@ Memory Cache Streams에서 Supabase Realtime으로 전환한 v2 API 마이그레
 - [x] 한국어 NLP 지원 통합
 - [ ] Memory Cache 의존성 제거
 - [ ] 전체 테스트 실행
+
+## GET API 사용 예시 (2025-08-05 추가)
+
+### API 상태 확인
+
+```bash
+# v1 (리다이렉트) API 상태
+curl https://yoursite.com/api/ai/edge
+
+# v2 API 상태  
+curl https://yoursite.com/api/ai/edge-v2
+```
+
+### 응답 예시
+
+```json
+{
+  "status": "active",
+  "version": "v2",  
+  "description": "Edge AI API v2 - Supabase Realtime 기반",
+  "runtime": "edge",
+  "features": {
+    "realtime": "Supabase Realtime 기반 생각중 상태",
+    "caching": "캐시 우선 전략으로 Edge Runtime 최적화",
+    "fallback": "스마트 폴백으로 안정성 확보"
+  },
+  "migration": {
+    "status": "completed",
+    "from": "Redis Streams", 
+    "to": "Supabase Realtime"
+  }
+}
+```
 
 ## 참고 문서
 

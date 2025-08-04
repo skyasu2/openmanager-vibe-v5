@@ -8,6 +8,7 @@
 - ✅ MODULE_NOT_FOUND: postinstall.js 에러
 - ✅ Lightning CSS와 PostCSS 플러그인 충돌
 - ✅ demo/hybrid-ai 페이지 SSR 에러 (Feature Creep 재발)
+- ✅ Essential Check API Route 페이지 데이터 수집 실패
 
 ## 해결 방법 (완전 해결됨)
 
@@ -101,6 +102,47 @@ PowerShell에서 실행:
 wsl --shutdown
 ```
 
+### 7. Essential Check API Route 에러 해결 ✅
+
+**문제**: Essential Check에서 `/api/ai/edge` 페이지 데이터 수집 실패
+- `Error: Failed to collect page data for /api/ai/edge`
+- Next.js 빌드 시 API Route의 정적 데이터 수집을 위해 GET 메서드 필요
+
+**해결**: API Route에 GET 메서드 추가
+
+`src/app/api/ai/edge/route.ts`:
+```typescript
+// GET 요청: API 상태 및 사용법 안내
+export async function GET(req: NextRequest) {
+  return NextResponse.json({
+    status: 'active',
+    version: 'v1 (redirects to v2)',
+    description: 'Edge AI API - 자동으로 v2 엔드포인트로 리다이렉트됩니다',
+    // ... 상세 정보
+  });
+}
+```
+
+`src/app/api/ai/edge-v2/route.ts`:
+```typescript
+// GET 요청: API 상태 및 정보 제공  
+export async function GET(req: NextRequest) {
+  return NextResponse.json({
+    status: 'active',
+    version: 'v2',
+    description: 'Edge AI API v2 - Supabase Realtime 기반',
+    // ... 상세 정보
+  });
+}
+```
+
+**OPTIONS 메서드 업데이트**:
+```typescript
+headers: {
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', // GET 추가
+}
+```
+
 ## 결과 (완전 해결)
 
 - ✅ ESLint timeout 문제 해결
@@ -108,6 +150,7 @@ wsl --shutdown
 - ✅ 빌드 메모리 부족 문제 해결
 - ✅ postinstall.js MODULE_NOT_FOUND 에러 해결
 - ✅ Lightning CSS와 PostCSS 충돌 해결
+- ✅ Essential Check API Route 페이지 데이터 수집 성공
 - ✅ Vercel 배포 성공
 
 ## 🚀 추가 최적화 방안 (Gemini CLI 분석 결과)
@@ -199,6 +242,7 @@ serverExternalPackages: [
   - 4408dc77b (postinstall.js/Lightning CSS 수정)
   - 87806f19f (demo/mock-ai 완전 삭제)
   - 2d297e6cb (demo/hybrid-ai 삭제, Feature Creep 근본 해결)
+  - d19ca5cd4 (Essential Check API Route GET 메서드 추가)
 - **Gemini CLI 분석**: 1M 토큰 컨텍스트로 전체 프로젝트 최적화 분석 완료
 
 ## 🔍 근본 원인 분석: Feature Creep 패턴
@@ -214,6 +258,7 @@ serverExternalPackages: [
    - `demo/mock-ai` 페이지 → SSR 호환성 문제
    - `scripts/postinstall.js` → MODULE_NOT_FOUND
    - `demo/hybrid-ai` 페이지 → useSession() SSR 에러
+   - `/api/ai/edge` Route → GET 메서드 부재로 Essential Check 실패
 
 ### 근본 해결책: 예방 시스템 구축
 
