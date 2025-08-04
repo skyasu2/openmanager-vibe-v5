@@ -5,6 +5,85 @@
 > - Legacy 파일: v5.0.0 ~ v5.65.6 (2024-05 ~ 2025-01)
 > - 현재 파일: v5.65.7 이후 (2025-01 ~)
 
+## [5.66.27] - 2025-08-05
+
+### 🎨 개선 - 바이브 코딩 카드 내용 최신화
+
+- **메인 페이지 카드 업데이트**:
+  - ✅ Cursor AI: 2025년 최신 기능 반영 (자동 오류 수정, 백그라운드 에이전트, Composer)
+  - ✅ Claude Code: 11개 MCP 서버 구체적 설명, Remote MCP 지원, 가격 정책
+  - ✅ Gemini CLI: 2025년 6월 출시 정보, 1M 토큰 컨텍스트, 무료 티어 정보
+  
+- **실제 활용 사례 추가**:
+  - 📊 코드 품질 개선 수치: ESLint 문제 475개 → 400개 (15.8% 감소)
+  - 📊 TypeScript 타입 에러: 302개 → 0개 (100% 해결)
+  - 🔧 MCP 서버 활용: supabase로 DB 마이그레이션, github로 PR 자동 생성
+  - ⚡ AI 협업 전략: Claude 코드 생성 → Gemini 대규모 분석 → Cursor 실시간 수정
+
+- **기술 스택 상세화**:
+  - 💰 가격 정보: Cursor Pro $20/월, Claude Pro $20/월, Gemini 무료 (1,000회/일)
+  - 🔌 MCP 서버 11개: filesystem, memory, github, supabase, tavily-remote, playwright 등
+  - 👥 서브에이전트 17개: code-review, test-automation, debugger 등
+
+**영향**: 사용자가 각 도구의 최신 기능과 실제 활용 방법을 명확히 이해할 수 있게 됨
+
+## [5.66.26] - 2025-08-04
+
+### 🧹 정리 - Redis 언급 완전 제거 (최종 정리)
+
+- **코드 주석 정리**:
+  - ✅ 서비스 파일들의 "Redis-Free" 표현 제거
+  - ✅ 에러 타입에서 `REDIS_CONNECTION_ERROR` → `CACHE_ERROR` 변경
+  - ✅ 에러 핸들러에서 `handleRedisError` → `handleCacheError` 변경
+  - ✅ 캐시 관련 주석에서 모든 Redis 언급 제거
+  
+- **설정 파일 정리**:
+  - ✅ `vercelStatusService.ts`: Redis 캐싱 → 메모리 캐싱 주석 변경
+  - ✅ `ServerMonitoringAgent.ts`: critical_services에서 redis 제거
+  - ✅ Mock 데이터에서 redis 태그 → memory-cache로 변경
+  
+- **파일 삭제**:
+  - 🗑️ `src/lib/mock/providers/RedisMock.ts` (사용되지 않음)
+  
+- **타입 정의 정리**:
+  - 🎯 `ErrorTypes.ts`: `REDIS_CONNECTION_ERROR` → `CACHE_ERROR`
+  - 🎯 서비스 파일들의 함수명과 주석 통일
+
+- **문서 업데이트**:
+  - 📝 `docs/memory-cache-guide.md`: Redis 언급을 "외부 캐시"로 변경
+  - 📝 `docs/redis-removal-complete-report.md` → `docs/cache-migration-complete-report.md`로 이름 변경
+
+- **스크립트 업데이트**:
+  - 🔧 `scripts/check-services.js`: Redis → Cache로 서비스 이름 체크 변경
+  - 🔧 `scripts/analyze-free-tier.js`: Redis 무료 티어 제한 → Memory Cache 제한으로 변경
+
+**영향**: Redis 관련 모든 흔적 제거 완료, 메모리 캐시 중심 아키텍처 확립
+
+## [5.66.25] - 2025-08-04
+
+### 🧹 정리 - Redis 언급 완전 제거
+
+- **코드베이스 정리**:
+  - ✅ API 엔드포인트에서 모든 Redis 참조 제거
+  - ✅ 환경 변수 타입 정의에서 Redis 관련 인터페이스 제거
+  - ✅ 설정 파일(vercel.json)에서 Redis 비활성화 설정 제거
+  - ✅ 문서 파일들에서 Redis 비교/참조 제거
+  
+- **파일 삭제**:
+  - 🗑️ `scripts/update-redis-to-memory-cache.sh` (마이그레이션 완료)
+  - 🗑️ `tests/unit/services/redis/SmartRedisClient.test.ts` (불필요)
+  
+- **문서 업데이트**:
+  - 📝 CLAUDE.md: Redis 비교 표를 Memory Cache 특징으로 수정
+  - 📝 database-administrator.md: Redis 전담 → Memory Cache 전담으로 변경
+  - 📝 env.local.template: "Redis-Free" 표현 제거
+  
+- **타입 정의 정리**:
+  - 🎯 `environment.ts`: Redis 환경변수 및 인터페이스 제거
+  - 🎯 `ai-service-types.ts`: Redis 관련 주석 제거
+
+**영향**: 코드베이스가 더 깔끔해지고 새로운 개발자에게 혼란 방지
+
 ## [5.66.24] - 2025-08-04
 
 ### 🔧 수정 - TypeScript 타입 시스템 개선

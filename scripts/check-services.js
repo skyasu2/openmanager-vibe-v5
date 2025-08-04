@@ -70,7 +70,7 @@ function printServiceStatus(service) {
   // 서비스별 아이콘
   let serviceIcon = icons.server;
   if (service.name.includes('Supabase')) serviceIcon = icons.database;
-  else if (service.name.includes('Redis')) serviceIcon = icons.cache;
+  else if (service.name.includes('Cache')) serviceIcon = icons.cache;
   else if (service.name.includes('Google AI')) serviceIcon = icons.ai;
   else if (service.name.includes('GCP')) serviceIcon = icons.server;
   else if (service.name.includes('Vercel')) serviceIcon = icons.cloud;

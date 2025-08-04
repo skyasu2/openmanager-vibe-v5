@@ -18,7 +18,7 @@ class MemoryCacheService {
     created: number;
     hits: number;
   }>();
-  private maxSize = 1000; // 최대 1000개 항목
+  private maxSize = 100; // 최대 100개 항목 (90% 감소)
   private stats = { hits: 0, misses: 0, sets: 0, deletes: 0 };
 
   async get<T>(key: string): Promise<T | null> {

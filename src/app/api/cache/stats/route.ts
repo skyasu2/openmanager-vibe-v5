@@ -1,5 +1,5 @@
 /**
- * 🚀 캐시 통계 API (Redis-Free)
+ * 🚀 캐시 통계 API
  *
  * 메모리 기반 캐시 성능 모니터링
  * Zod 스키마와 타입 안전성이 적용된 버전
@@ -7,17 +7,17 @@
  * GET /api/cache/stats
  */
 
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
-import { getCacheStats, getCacheService } from '@/lib/cache-helper';
 import { createApiRoute } from '@/lib/api/zod-middleware';
+import { getCacheStats } from '@/lib/cache-helper';
 import {
-  CacheStatsResponseSchema,
-  type CacheStatsResponse,
-  type CacheStats,
-  type CachePerformance,
+    CacheStatsResponseSchema,
+    type CachePerformance,
+    type CacheStats,
+    type CacheStatsResponse,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
@@ -28,7 +28,6 @@ function getMemoryCacheInfo() {
     type: 'Memory Cache',
     implementation: 'JavaScript Map',
     features: ['LRU Eviction', 'TTL Support', 'Statistics'],
-    migration: 'Redis → Memory-based',
     performance: 'Optimized for serverless',
     maxSize: '1000 items',
     cleanup: 'Auto-cleanup every 5 minutes',
@@ -91,13 +90,32 @@ const cacheStatsHandler = createApiRoute()
         ...stats,
         performance,
       },
+      memory: memoryUsage,
       redis: {
         connected: false,
-        url: 'memory://localhost',
-        runtime: 'memory-cache',
-        cached: true,
+        memory: '0MB',
+        keys: 0,
+        hits: 0,
+        misses: 0,
+        hitRate: 0,
+        evictions: 0,
+        connections: 0,
+        commandsProcessed: 0,
+        keyspaceHits: 0,
+        keyspaceMisses: 0,
+        usedMemoryPeak: '0MB',
+        totalSystemMemory: '0MB',
+        maxMemory: '0MB',
+        maxMemoryPolicy: 'noeviction',
+        role: 'master',
+        connectedSlaves: 0,
+        masterReplOffset: 0,
+        secondReplOffset: 0,
+        replBacklogActive: 0,
+        replBacklogSize: 0,
+        replBacklogFirstByteOffset: 0,
+        replBacklogHistlen: 0,
       },
-      memory: memoryUsage,
     };
 
     // 검증 (개발 환경에서 유용)
@@ -220,14 +238,14 @@ function getMemoryCacheRecommendations(stats: CacheStats, issues: string[]): str
   if (recommendations.length === 0 && stats.hitRate >= 70) {
     recommendations.push(
       '메모리 캐시 성능이 우수합니다!',
-      'Redis 제거로 네트워크 지연 시간이 0에 가까워졌습니다',
+      '네트워크 지연 시간이 0에 가까운 초고속 성능',
       '서버리스 환경에 최적화된 상태입니다'
     );
   }
 
   // 항상 메모리 캐시의 장점 강조
   recommendations.push(
-    '✅ Redis 의존성 제거 완료 - 무료 티어 최적화',
+    '✅ 무료 티어에 최적화된 메모리 기반 캐싱',
     '✅ 네트워크 지연 없는 초고속 캐시 액세스',
     '✅ 서버리스 환경에 완벽 최적화'
   );

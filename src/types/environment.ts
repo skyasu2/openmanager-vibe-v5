@@ -23,11 +23,6 @@ declare global {
       readonly NEXT_PUBLIC_SUPABASE_ANON_KEY?: string;
       readonly SUPABASE_SERVICE_ROLE_KEY?: string;
 
-      // 🗄️ Redis 환경변수
-      readonly UPSTASH_REDIS_REST_URL?: string;
-      readonly UPSTASH_REDIS_REST_TOKEN?: string;
-      readonly KV_REST_API_URL?: string;
-      readonly KV_REST_API_TOKEN?: string;
 
       // 🤖 AI 관련 환경변수
       readonly GOOGLE_AI_API_KEY?: string;
@@ -38,8 +33,6 @@ declare global {
       // 🔧 개발 및 테스트 환경변수
       readonly ENABLE_MOCK_DATA?: string;
       readonly DISABLE_EXTERNAL_CALLS?: string;
-      readonly REDIS_CONNECTION_DISABLED?: string;
-      readonly UPSTASH_REDIS_DISABLED?: string;
       readonly DISABLE_HEALTH_CHECK?: string;
       readonly HEALTH_CHECK_CONTEXT?: string;
       readonly MCP_SERVER_ENABLED?: string;
@@ -80,12 +73,6 @@ export interface SupabaseEnvConfig {
   isConfigured: boolean;
 }
 
-export interface RedisEnvConfig {
-  url: string;
-  token: string;
-  isConfigured: boolean;
-}
-
 export interface GoogleAIEnvConfig {
   apiKey: string;
   enabled: boolean;
@@ -123,7 +110,6 @@ export interface MonitoringEnvConfig {
 // 📊 전체 환경변수 구성 타입
 export interface EnvironmentConfig {
   supabase: SupabaseEnvConfig;
-  redis: RedisEnvConfig;
   googleAI: GoogleAIEnvConfig;
   deployment: DeploymentEnvConfig;
   security: SecurityEnvConfig;
@@ -143,8 +129,6 @@ export interface EnvironmentValidationResult {
 export interface MockEnvironmentConfig {
   ENABLE_MOCK_DATA?: boolean;
   DISABLE_EXTERNAL_CALLS?: boolean;
-  REDIS_CONNECTION_DISABLED?: boolean;
-  UPSTASH_REDIS_DISABLED?: boolean;
   DISABLE_HEALTH_CHECK?: boolean;
   HEALTH_CHECK_CONTEXT?: boolean;
   GOOGLE_AI_QUOTA_PROTECTION?: boolean;

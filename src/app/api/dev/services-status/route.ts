@@ -87,7 +87,7 @@ async function checkSupabase(): Promise<ServiceStatus> {
 async function checkMemoryCache(): Promise<ServiceStatus> {
   const startTime = Date.now();
   try {
-    // 메모리 기반 캐시 상태 확인 (Redis 완전 제거)
+    // 메모리 기반 캐시 상태 확인
     const testKey = `memory-test-${Date.now()}`;
     const testValue = 'test-value';
     
@@ -110,7 +110,7 @@ async function checkMemoryCache(): Promise<ServiceStatus> {
     const responseTime = Date.now() - startTime;
 
     return {
-      name: 'Memory Cache (Redis-Free)',
+      name: 'Memory Cache',
       status: 'connected',
       responseTime,
       details: {
@@ -118,13 +118,12 @@ async function checkMemoryCache(): Promise<ServiceStatus> {
         testResult: testPassed ? 'passed' : 'failed',
         implementation: 'JavaScript Map',
         features: ['LRU Eviction', 'TTL Support', 'Statistics'],
-        migration: 'Redis → Memory-based',
         performance: 'Optimized for serverless',
       },
     };
   } catch (error: unknown) {
     return {
-      name: 'Memory Cache (Redis-Free)',
+      name: 'Memory Cache',
       status: 'error',
       responseTime: Date.now() - startTime,
       details: null,

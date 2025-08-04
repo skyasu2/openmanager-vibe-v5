@@ -8,10 +8,10 @@
  * ✅ MCP 컨텍스트 통합
  */
 
-import { PostgresVectorDB } from './postgres-vector-db';
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
-import { embeddingService } from './embedding-service';
 import type { AIMetadata, MCPContext } from '@/types/ai-service-types';
+import { embeddingService } from './embedding-service';
+import { PostgresVectorDB } from './postgres-vector-db';
 
 interface RAGSearchOptions {
   maxResults?: number;
@@ -57,9 +57,9 @@ class MemoryRAGCache {
     hits: number; 
   }>();
   
-  private maxEmbeddingSize = 1000; // 최대 1000개 임베딩
-  private maxSearchSize = 100; // 최대 100개 검색 결과
-  private ttlSeconds = 300; // 5분 TTL
+  private maxEmbeddingSize = 200; // 최대 200개 임베딩 (80% 감소)
+  private maxSearchSize = 50; // 최대 50개 검색 결과 (50% 감소)
+  private ttlSeconds = 900; // 15분 TTL (임베딩은 재사용성 높음)
 
   // 임베딩 캐시 관리
   getEmbedding(key: string): number[] | null {

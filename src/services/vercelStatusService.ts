@@ -165,7 +165,7 @@ export class VercelStatusService {
         maxServers: 8, // 무료: 8개 서버 (최소값)
         maxMetrics: 200, // 무료: 200개 메트릭
         updateInterval: 15000, // 무료: 15초 간격
-        cacheEnabled: true, // Redis 캐싱 필수
+        cacheEnabled: true, // 메모리 캐싱 필수
         prometheusEnabled: false, // 무료: Prometheus 비활성화
         alertThrottle: 10000, // 무료: 10초 알림 제한
       },
@@ -173,7 +173,7 @@ export class VercelStatusService {
         maxServers: 20, // Pro: 20개 서버
         maxMetrics: 500, // Pro: 500개 메트릭
         updateInterval: 10000, // Pro: 10초 간격
-        cacheEnabled: true, // Redis 캐싱 활성화
+        cacheEnabled: true, // 메모리 캐싱 활성화
         prometheusEnabled: true, // Pro: Prometheus 활성화
         alertThrottle: 5000, // Pro: 5초 알림 제한
       },
@@ -181,7 +181,7 @@ export class VercelStatusService {
         maxServers: 30, // Enterprise: 30개 서버 (최대값)
         maxMetrics: 750, // Enterprise: 750개 메트릭
         updateInterval: 8000, // Enterprise: 8초 간격
-        cacheEnabled: true, // Redis 고성능 캐싱
+        cacheEnabled: true, // 고성능 메모리 캐싱
         prometheusEnabled: true, // Enterprise: 고급 메트릭
         alertThrottle: 3000, // Enterprise: 3초 알림
       },

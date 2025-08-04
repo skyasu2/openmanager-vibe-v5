@@ -1,5 +1,5 @@
 /**
- * 🌐 Cloud-based Version Manager (Redis-Free Production)
+ * 🌐 Cloud-based Version Manager
  *
  * VersionManager 대체: 메모리 기반 캐시 + Supabase
  *
@@ -7,7 +7,7 @@
  * - 핵심 버전 정보만 기록 (Vercel 배포와 연동)
  * - 개발환경에서만 상세 메타데이터 수집
  * - 프로덕션에서는 최소한의 추적만 수행
- * - Redis 완전 제거, 메모리 기반 LRU 캐시 사용
+ * - 메모리 기반 LRU 캐시 사용
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -89,10 +89,10 @@ interface CloudVersionManagerConfig {
   isProduction: boolean;
 }
 
-// 메모리 기반 LRU 캐시 구현
+// 메모리 기반 LRU 캐시 구현 (최소화)
 class MemoryCache {
   private cache = new Map<string, { value: unknown; expires: number }>();
-  private maxSize = 100;
+  private maxSize = 20; // 100 → 20으로 감소 (80% 절약)
 
   set<T>(key: string, value: T, ttlSeconds: number): void {
     const expires = Date.now() + ttlSeconds * 1000;
@@ -148,10 +148,10 @@ export class CloudVersionManager {
     const isProduction = process.env.NODE_ENV === 'production';
 
     this.config = {
-      enableMemoryCache: true, // 항상 활성화
+      enableMemoryCache: true, // 현재 버전만 캐시 (최소화)
       enableSupabase: !!process.env.NEXT_PUBLIC_SUPABASE_URL, // Supabase 설정 시만
       cachePrefix: 'openmanager:version:',
-      cacheTTL: 86400, // 24시간
+      cacheTTL: 86400, // 24시간 (변경 빈도 낮음)
       maxVersionHistory: isProduction ? 5 : 100, // 프로덕션에서는 최근 5개만
       compressionEnabled: true,
       isProduction,

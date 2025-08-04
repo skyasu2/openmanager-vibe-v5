@@ -35,7 +35,7 @@ interface TestReport {
 
 class TestMetadataManager {
   private readonly thirtyDaysAgo = new Date();
-  
+
   constructor() {
     this.thirtyDaysAgo.setDate(this.thirtyDaysAgo.getDate() - 30);
   }
@@ -44,20 +44,20 @@ class TestMetadataManager {
     console.log('🔍 테스트 파일 검색 중...');
     const testFiles = await this.findTestFiles();
     console.log(`📁 발견된 테스트 파일: ${testFiles.length}개`);
-    
+
     const allTests: TestMetadata[] = [];
-    
+
     // 병렬 처리로 성능 개선
     const batchSize = 10;
     for (let i = 0; i < testFiles.length; i += batchSize) {
       const batch = testFiles.slice(i, i + batchSize);
       const batchPromises = batch.map(file => this.parseTestFile(file));
       const batchResults = await Promise.all(batchPromises);
-      
+
       for (const tests of batchResults) {
         allTests.push(...tests);
       }
-      
+
       console.log(`📊 진행률: ${Math.min(i + batchSize, testFiles.length)}/${testFiles.length}`);
     }
 
@@ -92,7 +92,7 @@ class TestMetadataManager {
       if (skipMatch) {
         const testName = skipMatch[1] || skipMatch[2];
         const metadata = this.extractMetadata(lines, index);
-        
+
         tests.push({
           file: filePath,
           testName,
@@ -124,22 +124,22 @@ class TestMetadataManager {
 
   private extractMetadata(lines: string[], testLineIndex: number): { reason?: string; date?: string } {
     const metadata: { reason?: string; date?: string } = {};
-    
+
     // 테스트 위의 주석에서 메타데이터 추출
     for (let i = Math.max(0, testLineIndex - 5); i < testLineIndex; i++) {
       const line = lines[i];
-      
+
       const reasonMatch = line.match(/@skip-reason:\s*(.+)/);
       if (reasonMatch) {
         metadata.reason = reasonMatch[1].trim();
       }
-      
+
       const dateMatch = line.match(/@skip-date:\s*(\d{4}-\d{2}-\d{2})/);
       if (dateMatch) {
         metadata.date = dateMatch[1];
       }
     }
-    
+
     return metadata;
   }
 
@@ -165,7 +165,7 @@ class TestMetadataManager {
 
   private findDuplicates(tests: TestMetadata[]): Map<string, TestMetadata[]> {
     const testsByName = new Map<string, TestMetadata[]>();
-    
+
     tests.forEach(test => {
       const key = test.testName.toLowerCase();
       if (!testsByName.has(key)) {
@@ -271,31 +271,31 @@ class TestMetadataManager {
 // CLI 실행
 async function main() {
   const manager = new TestMetadataManager();
-  
+
   console.log('🔍 테스트 메타데이터 분석 중...');
-  
+
   try {
     const report = await manager.analyzeTests();
     const markdown = await manager.generateMarkdownReport(report);
-    
+
     // 리포트 저장
     const reportPath = path.join(process.cwd(), 'test-metadata-report.md');
     await fs.writeFile(reportPath, markdown);
-    
+
     console.log(`✅ 리포트 생성 완료: ${reportPath}`);
     console.log('');
-    
+
     // 콘솔에 요약 출력
     console.log('📊 요약:');
     console.log(`- Skip된 테스트: ${report.skippedTests.length}개`);
     console.log(`- 30일 이상 Skip: ${report.oldSkippedTests.length}개`);
     console.log(`- 중복 테스트: ${report.duplicateTests.size}개`);
-    
+
     if (report.recommendations.length > 0) {
       console.log('\n🎯 권장사항:');
       report.recommendations.forEach(rec => console.log(rec));
     }
-    
+
     // 30일 이상된 테스트가 있으면 경고와 함께 종료
     if (report.oldSkippedTests.length > 0) {
       process.exit(1);
@@ -313,3 +313,4 @@ if (require.main === module) {
 
 export { TestMetadataManager };
 export type { TestMetadata, TestReport };
+

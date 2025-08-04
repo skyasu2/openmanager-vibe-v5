@@ -5,16 +5,15 @@
  */
 
 import type {
-  SafeEnvironmentAccess,
-  EnvironmentValidationResult,
-  EnvironmentName,
-  SupabaseEnvConfig,
-  RedisEnvConfig,
-  GoogleAIEnvConfig,
-  DeploymentEnvConfig,
-  SecurityEnvConfig,
-  MonitoringEnvConfig,
-  EnvironmentConfig,
+    DeploymentEnvConfig,
+    EnvironmentConfig,
+    EnvironmentName,
+    EnvironmentValidationResult,
+    GoogleAIEnvConfig,
+    MonitoringEnvConfig,
+    SafeEnvironmentAccess,
+    SecurityEnvConfig,
+    SupabaseEnvConfig,
 } from '@/types/environment';
 import { isValidEnvironmentName } from '@/types/environment';
 
@@ -185,7 +184,7 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
     };
   }
 
-  getRedisConfig(): RedisEnvConfig {
+  getRedisConfig(): { isConfigured: boolean; url: string; token: string } {
     if (this._isBuildTime) {
       return {
         url: '',
@@ -300,7 +299,6 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
   getFullConfig(): EnvironmentConfig {
     return {
       supabase: this.getSupabaseConfig(),
-      redis: this.getRedisConfig(),
       googleAI: this.getGoogleAIConfig(),
       deployment: this.getDeploymentConfig(),
       security: this.getSecurityConfig(),
@@ -323,9 +321,6 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
     );
     console.log(
       `  🔐 Supabase: ${config.supabase.isConfigured ? '✅ Configured' : '❌ Not configured'}`
-    );
-    console.log(
-      `  🗄️ Redis: ${config.redis.isConfigured ? '✅ Configured' : '❌ Not configured'}`
     );
     console.log(
       `  🤖 Google AI: ${config.googleAI.isConfigured ? '✅ Configured' : '❌ Not configured'}`
@@ -408,7 +403,6 @@ export const safeEnv = new SafeEnvironmentAccessImpl();
 
 // 🎯 편의 함수들
 export const getSupabaseConfig = () => safeEnv.getSupabaseConfig();
-export const getRedisConfig = () => safeEnv.getRedisConfig();
 export const getGoogleAIConfig = () => safeEnv.getGoogleAIConfig();
 export const getDeploymentConfig = () => safeEnv.getDeploymentConfig();
 export const getSecurityConfig = () => safeEnv.getSecurityConfig();
@@ -429,3 +423,4 @@ export const isDevelopment = () => safeEnv.isDevelopment();
 export const isTest = () => safeEnv.isTest();
 
 export { SafeEnvironmentAccessImpl };
+

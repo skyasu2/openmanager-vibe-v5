@@ -12,23 +12,23 @@
 import { unifiedDataBroker } from '@/services/data-collection/UnifiedDataBroker';
 import type { ServerInstance } from '@/types/data-generator';
 import type {
-  MCPQueryIntent,
-  MCPMonitoringData,
-  MCPPatternAnalysis,
+    MCPMonitoringData,
+    MCPPatternAnalysis,
+    MCPQueryIntent,
 } from '@/types/mcp';
 import {
-  createMCPMonitoringData,
-  getHealthScore,
-  serverInstanceToMCPServer,
+    createMCPMonitoringData,
+    getHealthScore,
+    serverInstanceToMCPServer,
 } from './adapters/server-type-adapter';
 import {
-  handleServerStatusQuery,
-  handleIncidentQuery,
-  handlePerformanceQuery,
-  handleRecommendationQuery,
-  handleCostQuery,
-  handlePredictionQuery,
-  handleGeneralQuery,
+    handleCostQuery,
+    handleGeneralQuery,
+    handleIncidentQuery,
+    handlePerformanceQuery,
+    handlePredictionQuery,
+    handleRecommendationQuery,
+    handleServerStatusQuery,
 } from './ServerMonitoringAgentHandlers';
 
 // 🧠 AI 생각과정 단계 (로컬 인터페이스)
@@ -176,12 +176,12 @@ export class ServerMonitoringAgent {
       database: {
         typical_cpu: 40,
         typical_memory: 70,
-        critical_services: ['postgres', 'redis'],
+        critical_services: ['postgres'],
       },
       cache: {
         typical_cpu: 20,
         typical_memory: 80,
-        critical_services: ['redis', 'memcached'],
+        critical_services: ['memcached'],
       },
     },
   };
@@ -275,11 +275,7 @@ export class ServerMonitoringAgent {
   public async collectServerContext(
     serverId: string
   ): Promise<MCPMonitoringData | null> {
-    const cachedContext = this.contextCache.get(serverId);
-    if (cachedContext) {
-      return cachedContext;
-    }
-
+    // 캐시 제거 - 실시간성 우선, 메모리 최적화
     const context = await this.gatherCurrentData({ serverId });
 
     // 특정 서버만 필터링
@@ -287,11 +283,6 @@ export class ServerMonitoringAgent {
       ...context,
       servers: context.servers.filter((s) => s.id === serverId),
     };
-
-    this.contextCache.set(serverId, filteredContext);
-
-    // 캐시 TTL: 30초
-    setTimeout(() => this.contextCache.delete(serverId), 30000);
 
     return filteredContext;
   }

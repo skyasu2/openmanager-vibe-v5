@@ -151,7 +151,7 @@ export class GCPMock extends MockBase {
           result = {
             actions: [
               { priority: 'high', action: 'API 서버 스케일 아웃' },
-              { priority: 'medium', action: 'Redis 캐시 TTL 조정' },
+              { priority: 'medium', action: '메모리 캐시 TTL 조정' },
               { priority: 'low', action: '로그 아카이빙 설정' },
             ],
           };

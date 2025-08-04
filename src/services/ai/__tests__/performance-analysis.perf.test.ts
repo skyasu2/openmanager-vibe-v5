@@ -30,7 +30,7 @@ interface PerformanceTestResult {
 // @skip-reason: 성능 벤치마크 테스트 - CI/CD에서 제외, 수동 실행용
 // @skip-date: 2025-08-04
 // @skip-valid: true
-describe.skip('SimplifiedQueryEngine 성능 분석', () => {
+describe('SimplifiedQueryEngine 성능 분석', () => {
   let originalEngine: SimplifiedQueryEngine;
   let optimizedEngine: PerformanceOptimizedQueryEngine;
   

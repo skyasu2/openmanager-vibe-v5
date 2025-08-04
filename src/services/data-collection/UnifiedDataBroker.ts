@@ -1,17 +1,17 @@
 // Using mock system for unified data collection
 /**
- * 🎯 통합 데이터 브로커 (Redis-Free)
+ * 🎯 통합 데이터 브로커
  *
  * 기능:
  * - 단일 진입점으로 모든 데이터 수집 통합
  * - 메모리 캐시 우선, 실시간 폴백 전략
- * - 메모리 기반 캐시만 사용 (Redis 완전 제거)
+ * - 메모리 기반 캐시 사용
  * - 경연대회 모드 최적화
  */
 
 import {
-  competitionConfig,
-  getCompetitionConfig,
+    competitionConfig,
+    getCompetitionConfig,
 } from '@/config/competition-config';
 import type { ServerInstance } from '@/types/data-generator';
 
@@ -144,7 +144,7 @@ export class UnifiedDataBroker {
     }
   >();
 
-  private memoryCache = new MemoryDataCache();
+  // 메모리 캐시 제거 - Supabase 직접 조회로 최적화
 
   private metrics: DataBrokerMetrics = {
     cacheHitRate: 0,
@@ -166,9 +166,8 @@ export class UnifiedDataBroker {
    * 🧹 주기적 정리 시작
    */
   private startCleanupTimer(): void {
-    this.cleanupTimer = setInterval(() => {
-      this.memoryCache.cleanup();
-    }, 2 * 60 * 1000); // 2분마다
+    // 캐시 제거로 정리 타이머 불필요
+    console.log('🧹 캐시 제거됨 - 메모리 최적화');
   }
 
   /**
@@ -217,8 +216,7 @@ export class UnifiedDataBroker {
       '⚠️ 성능 최적화 무시됨 - 서버리스 환경에서는 Vercel이 자동 관리'
     );
 
-    // 기본적인 캐시 정리만 수행 (상태 유지 없이)
-    this.memoryCache.cleanup();
+    // 캐시 제거됨 - 메모리 최적화
   }
 
   /**
@@ -321,23 +319,9 @@ export class UnifiedDataBroker {
     const config = getCompetitionConfig();
 
     try {
-      // 1. 캐시 우선 전략
-      if (strategy === 'cache-first' || strategy === 'cache-only') {
-        const cached = this.getCachedData(key);
-        if (cached) {
-          this.metrics.memoryOperations++;
-          return cached.data;
-        }
-
-        if (strategy === 'cache-only') {
-          return null;
-        }
-      }
-
-      // 2. 메모리에서 조회 실패 시 새로운 데이터 생성
+      // 캐시 제거 - Supabase 직접 조회로 최적화
       const freshData = await this.generateFreshData(key);
       if (freshData) {
-        this.setCachedData(key, freshData);
         this.metrics.memoryOperations++;
         return freshData;
       }
@@ -345,7 +329,7 @@ export class UnifiedDataBroker {
       return null;
     } catch (error) {
       console.error('데이터 가져오기 실패:', error);
-      return this.getCachedData(key)?.data || null;
+      return null;
     }
   }
 
@@ -418,24 +402,24 @@ export class UnifiedDataBroker {
   }
 
   /**
-   * 💾 캐시 데이터 조회
+   * 💾 캐시 데이터 조회 (제거됨)
    */
   private getCachedData(key: string) {
-    return this.memoryCache.get(key);
+    return null; // 캐시 제거 - 메모리 최적화
   }
 
   /**
-   * 💾 캐시 데이터 저장
+   * 💾 캐시 데이터 저장 (제거됨)
    */
   private setCachedData(key: string, data: unknown): void {
-    this.memoryCache.set(key, data, 2); // 2분 TTL
+    // 캐시 제거 - 메모리 최적화
   }
 
   /**
    * 📊 브로커 메트릭 조회
    */
   getMetrics(): DataBrokerMetrics {
-    const cacheStats = this.memoryCache.getStats();
+    const cacheStats = { size: 0, hits: 0, misses: 0, hitRate: 0 }; // 캐시 제거
     
     return {
       cacheHitRate: cacheStats.hitRate,
@@ -449,7 +433,7 @@ export class UnifiedDataBroker {
    * ⏱️ 데이터 신선도 계산
    */
   private calculateDataFreshness(): number {
-    const cacheSize = this.memoryCache.size();
+    const cacheSize = 0; // 캐시 제거
     if (cacheSize === 0) return 0;
 
     // 평균 데이터 나이 추정 (실제 계산은 캐시 내부 접근 필요)
@@ -462,7 +446,7 @@ export class UnifiedDataBroker {
   shutdown(): void {
     this.isActive = false;
     this.subscribers.clear();
-    this.memoryCache.clear();
+    // 캐시 제거됨 - 메모리 최적화
     
     if (this.cleanupTimer) {
       clearInterval(this.cleanupTimer);

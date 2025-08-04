@@ -1,5 +1,5 @@
 /**
- * 🧠 SupabaseRAGEngine 기본 단위 테스트 (Redis-Free)
+ * 🧠 SupabaseRAGEngine 기본 단위 테스트
  * 
  * RAG 엔진의 핵심 기능을 테스트합니다.
  */

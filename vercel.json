@@ -107,9 +107,7 @@
       "BUILD_TIME_OPTIMIZATION": "true",
       "SKIP_SUPABASE_CONNECTION_CHECK": "true",
       "DISABLE_HEALTH_CHECK": "true",
-      "HEALTH_CHECK_CONTEXT": "false",
-      "REDIS_CONNECTION_DISABLED": "true",
-      "UPSTASH_REDIS_DISABLED": "true"
+      "HEALTH_CHECK_CONTEXT": "false"
     }
   },
   "crons": [

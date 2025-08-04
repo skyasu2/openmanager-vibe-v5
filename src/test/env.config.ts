@@ -40,15 +40,15 @@ export const TEST_ENV_CONFIG = {
   UPSTASH_REDIS_DISABLED: 'true',
 
   // ===============================
-  // 🤖 AI 서비스 Mock 설정
+  // 🤖 AI 서비스 설정 (실제 서비스 우선)
   // ===============================
-  GOOGLE_AI_API_KEY: 'mock-google-ai-key',
-  GOOGLE_AI_ENABLED: 'false',
-  FORCE_MOCK_GOOGLE_AI: 'true',
+  // Google AI는 실제 환경변수가 있으면 사용, 없으면 Mock
+  GOOGLE_AI_ENABLED: 'true',
+  FORCE_MOCK_GOOGLE_AI: 'false', // 실제 서비스 우선 사용
   GOOGLE_AI_QUOTA_PROTECTION: 'true',
-  GOOGLE_AI_TEST_LIMIT_PER_DAY: '0',
+  GOOGLE_AI_TEST_LIMIT_PER_DAY: '5', // 테스트용 제한
   GOOGLE_AI_HEALTH_CHECK_CACHE_HOURS: '24',
-  OPENAI_API_KEY: 'mock-openai-key',
+  // OpenAI 제거됨 - 사용하지 않는 서비스
 
   // ===============================
   // 🔐 인증 및 보안 Mock 설정

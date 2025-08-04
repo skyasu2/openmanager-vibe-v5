@@ -1,5 +1,5 @@
 /**
- * 🌐 Cloud-based Logging Service (Redis-Free Production)
+ * 🌐 Cloud-based Logging Service
  *
  * LoggingService 대체: 메모리 버퍼 + Supabase
  *
@@ -8,7 +8,7 @@
  * - 개발환경: 전체 로그 메모리 스트림 처리
  * - Vercel 자체 로깅과 중복 기능 제거
  * - 핵심 장애 감지 및 알림에 집중
- * - Redis 완전 제거, 메모리 기반 로그 스트림 사용
+ * - 메모리 기반 로그 스트림 사용
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -131,7 +131,7 @@ export class CloudLoggingService {
     const isProduction = process.env.NODE_ENV === 'production';
 
     this.config = {
-      enableMemoryStream: true, // 항상 활성화 (Redis 대체)
+      enableMemoryStream: true, // 항상 활성화
       enableSupabase: !!process.env.NEXT_PUBLIC_SUPABASE_URL, // Supabase 설정 시만
       enableRealTimeNotifications: true, // 핵심 알림은 유지
       memoryStreamKey: 'openmanager:system:logs',

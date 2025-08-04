@@ -32,11 +32,11 @@ const FREE_TIER_LIMITS = {
     maxStorage: 1, // GB
     maxRealtimeConnections: 2,
   },
-  redis: {
-    maxMemory: 256, // MB
-    maxCommands: 10_000, // per day
-    maxConnections: 20,
-    maxBandwidth: 100, // MB per day
+  memoryCache: {
+    maxMemory: 50, // MB (서버리스 환경 제한)
+    maxItems: 1000, // 최대 아이템 수
+    maxItemSize: 1, // MB per item
+    cleanupInterval: 300, // seconds (5분)
   },
   googleAI: {
     maxRequests: 1_500, // per day
@@ -153,7 +153,7 @@ class FreeTierAnalyzer {
 
     let googleAIUsage = 0;
     let supabaseUsage = 0;
-    let redisUsage = 0;
+    let memoryCacheUsage = 0;
 
     for (const file of files) {
       try {
@@ -171,10 +171,10 @@ class FreeTierAnalyzer {
           supabaseUsage += supabaseMatches.length;
         }
 
-        // Redis 사용량 체크
-        const redisMatches = content.match(/redis|upstash/gi);
-        if (redisMatches) {
-          redisUsage += redisMatches.length;
+        // 메모리 캐시 사용량 체크
+        const cacheMatches = content.match(/memoryCache|getCachedData|setCachedData/gi);
+        if (cacheMatches) {
+          memoryCacheUsage += cacheMatches.length;
         }
 
         // 과도한 API 호출 체크
@@ -440,7 +440,7 @@ class FreeTierAnalyzer {
       '2. 외부 서비스 최적화:',
       '   - Google AI: 일일 1,000개 요청 이하',
       '   - Supabase: 월 40,000개 요청 이하',
-      '   - Redis: 일일 8,000개 명령어 이하',
+      '   - 메모리 캐시: 최대 1,000개 아이템, 50MB 이하',
       '',
       '3. 백그라운드 작업 대체:',
       '   - Vercel Cron Jobs 사용',

@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { safeEnv } from '@/utils/safe-environment';
+import { z } from 'zod';
 
 const EnvironmentSchema = z.object({
   NODE_ENV: z
@@ -24,7 +24,7 @@ function isBuildTime() {
 function getDefaultEnvironment() {
   const deploymentConfig = safeEnv.getDeploymentConfig();
   const supabaseConfig = safeEnv.getSupabaseConfig();
-  const redisConfig = safeEnv.getRedisConfig();
+  // Redis 제거됨 - 메모리 최적화
 
   return {
     NODE_ENV: deploymentConfig.environment,
@@ -32,10 +32,11 @@ function getDefaultEnvironment() {
     NEXT_PUBLIC_SUPABASE_URL: supabaseConfig.url,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseConfig.anonKey,
     // SUPABASE_SERVICE_ROLE_KEY removed - use env-server.ts for server-only env vars
-    UPSTASH_REDIS_REST_URL: redisConfig.url,
-    UPSTASH_REDIS_REST_TOKEN: redisConfig.token,
-    KV_REST_API_URL: redisConfig.url,
-    KV_REST_API_TOKEN: redisConfig.token,
+    // Redis 제거됨 - 메모리 최적화
+    UPSTASH_REDIS_REST_URL: '',
+    UPSTASH_REDIS_REST_TOKEN: '',
+    KV_REST_API_URL: '',
+    KV_REST_API_TOKEN: '',
   };
 }
 
@@ -104,20 +105,12 @@ export function validateRuntimeEnvironment() {
       // SUPABASE_SERVICE_ROLE_KEY removed - checked in server-only code
     ];
 
-    // Redis는 KV 또는 UPSTASH 중 하나만 있으면 됨
-    const hasRedis =
-      process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-    const hasRedisToken =
-      process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+    // Redis 제거됨 - 메모리 최적화
 
     const missing = requiredVars.filter(varName => !process.env[varName]);
 
-    if (missing.length > 0 || !hasRedis || !hasRedisToken) {
+    if (missing.length > 0) {
       const allMissing = [...missing];
-      if (!hasRedis)
-        allMissing.push('UPSTASH_REDIS_REST_URL or KV_REST_API_URL');
-      if (!hasRedisToken)
-        allMissing.push('UPSTASH_REDIS_REST_TOKEN or KV_REST_API_TOKEN');
 
       return {
         valid: false,
@@ -140,56 +133,20 @@ export function getSupabaseConfig() {
   return safeEnv.getSupabaseConfig();
 }
 
-// 🔄 레거시 호환성: 기존 getRedisConfig 함수 (새로운 시스템으로 위임)
+// 🔄 레거시 호환성: Redis 제거됨
 export function getRedisConfig() {
-  const config = safeEnv.getRedisConfig();
+  return { isConfigured: false, url: '', token: '' };
 
-  // 🔍 Vercel 환경에서 디버깅 정보 표시
-  if (safeEnv.isVercel() && !safeEnv.isBuildTime()) {
-    console.log('🔍 Vercel Redis 환경변수 상태:', {
-      hasUrl: !!config.url,
-      hasToken: !!config.token,
-      urlPrefix: config.url ? config.url.substring(0, 20) + '...' : 'undefined',
-      tokenPrefix: config.token
-        ? config.token.substring(0, 10) + '...'
-        : 'undefined',
-      vercelEnv: process.env.VERCEL_ENV,
-      nodeEnv: process.env.NODE_ENV,
-    });
-  }
-
-  return config;
+  // Redis 제거됨 - 메모리 최적화
 }
 
 // 🌟 새로운 환경변수 시스템으로의 마이그레이션을 위한 추가 export
 export {
-  safeEnv,
-  getFullEnvironmentConfig,
-  getSupabaseConfig as getSupabaseConfigNew,
-  getRedisConfig as getRedisConfigNew,
-  getGoogleAIConfig,
-  getDeploymentConfig,
-  getSecurityConfig,
-  getMonitoringConfig,
-  logEnvironmentStatus,
-  checkEnvironmentSecurity,
-  isBuildTime as isBuildTimeNew,
-  isServer,
-  isVercel,
-  isProduction,
-  isDevelopment,
-  isTest,
+    checkEnvironmentSecurity, getDeploymentConfig, getFullEnvironmentConfig, getGoogleAIConfig, getMonitoringConfig, getSecurityConfig, getSupabaseConfig as getSupabaseConfigNew, isBuildTime as isBuildTimeNew, isDevelopment, isProduction, isServer, isTest, isVercel, logEnvironmentStatus, safeEnv
 } from '@/utils/safe-environment';
 
 // 🎯 타입 재export
 export type {
-  EnvironmentConfig,
-  SupabaseEnvConfig,
-  RedisEnvConfig,
-  GoogleAIEnvConfig,
-  DeploymentEnvConfig,
-  SecurityEnvConfig,
-  MonitoringEnvConfig,
-  EnvironmentValidationResult,
-  SafeEnvironmentAccess,
+    DeploymentEnvConfig, EnvironmentConfig, EnvironmentValidationResult, GoogleAIEnvConfig, MonitoringEnvConfig, SafeEnvironmentAccess, SecurityEnvConfig, SupabaseEnvConfig
 } from '@/types/environment';
+

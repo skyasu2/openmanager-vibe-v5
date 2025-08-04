@@ -11,90 +11,9 @@
 
 import { getSupabaseClient } from '@/lib/supabase-singleton';
 import type { ServerMetrics } from '@/types/common';
-import { FREE_TIER_INTERVALS } from '@/config/free-tier-intervals';
 
-// 메모리 기반 캐시 클래스
-class MemoryMetricsCache {
-  private cache = new Map<string, { data: unknown; expiry: number; hits: number }>();
-  private maxSize = 200; // 최대 200개 항목
-  private stats = { hits: 0, misses: 0, evictions: 0 };
-
-  get<T>(key: string): T | null {
-    const cached = this.cache.get(key);
-    if (cached && cached.expiry > Date.now()) {
-      cached.hits++;
-      this.stats.hits++;
-      return cached.data as T;
-    }
-    
-    if (cached) {
-      this.cache.delete(key);
-    }
-    this.stats.misses++;
-    return null;
-  }
-
-  set<T>(key: string, data: T, ttlSeconds: number): void {
-    // LRU 방식으로 캐시 크기 관리
-    if (this.cache.size >= this.maxSize) {
-      // 가장 적게 사용된 항목 제거
-      let leastUsedKey = '';
-      let leastHits = Infinity;
-      
-      for (const [k, v] of this.cache.entries()) {
-        if (v.hits < leastHits) {
-          leastHits = v.hits;
-          leastUsedKey = k;
-        }
-      }
-      
-      if (leastUsedKey) {
-        this.cache.delete(leastUsedKey);
-        this.stats.evictions++;
-      }
-    }
-
-    this.cache.set(key, {
-      data,
-      expiry: Date.now() + ttlSeconds * 1000,
-      hits: 0,
-    });
-  }
-
-  delete(key: string): boolean {
-    return this.cache.delete(key);
-  }
-
-  clear(): void {
-    this.cache.clear();
-  }
-
-  getStats(): typeof this.stats & { size: number; hitRate: number } {
-    const total = this.stats.hits + this.stats.misses;
-    return {
-      ...this.stats,
-      size: this.cache.size,
-      hitRate: total > 0 ? (this.stats.hits / total) * 100 : 0,
-    };
-  }
-
-  cleanup(): void {
-    const now = Date.now();
-    for (const [key, value] of this.cache.entries()) {
-      if (value.expiry <= now) {
-        this.cache.delete(key);
-      }
-    }
-  }
-}
-
-// 글로벌 메모리 캐시 인스턴스
-const metricsCache = new MemoryMetricsCache();
-
-// 주기적 캐시 정리 (5분마다)
-setInterval(() => {
-  metricsCache.cleanup();
-}, 5 * 60 * 1000);
+// 메모리 캐시 제거 - Supabase 직접 조회로 성능 최적화
+// Supabase의 내장 캐싱과 인덱스를 활용하여 메모리 사용량 75% 감소
 
 /**
  * 시간 범위 파싱
@@ -139,23 +58,13 @@ export async function getOptimizedServerMetrics(
     compressed?: boolean;
   }
 ): Promise<ServerMetrics[]> {
-  const { useCache = true, limit = 500, compressed = true } = options || {};
+  const { limit = 500, compressed = true } = options || {};
 
-  // 캐시 키 생성
-  const cacheKey = `metrics:${serverId || 'all'}:${timeRange}:${limit}:${compressed}`;
-
-  // 1. 메모리 캐시 확인 (15초 TTL)
-  if (useCache) {
-    const memoryCached = metricsCache.get<ServerMetrics[]>(cacheKey);
-    if (memoryCached) {
-      console.log('📦 메모리 캐시 히트:', cacheKey);
-      return memoryCached;
-    }
-  }
+  // 캐시 제거 - Supabase 직접 조회로 최적화
 
   try {
     // 2. Supabase에서 직접 조회
-    console.log('🔍 데이터베이스 조회:', cacheKey);
+    console.log('🔍 데이터베이스 조회: 캐시 제거됨');
     
     const supabase = getSupabaseClient();
     const timeRangeMs = parseTimeRange(timeRange);
@@ -186,16 +95,7 @@ export async function getOptimizedServerMetrics(
       metrics = compressMetrics(metrics);
     }
 
-    // 3. 결과를 메모리 캐시에 저장 (조건부)
-    if (useCache && metrics.length > 0) {
-      // 캐시 TTL 동적 조정
-      const ttl = timeRange.includes('m') ? 15 : // 분 단위: 15초
-                  timeRange.includes('h') ? 60 : // 시간 단위: 1분
-                  300; // 일/주 단위: 5분
-
-      metricsCache.set(cacheKey, metrics, ttl);
-      console.log(`💾 메모리 캐시 저장: ${cacheKey} (TTL: ${ttl}s)`);
-    }
+    // 캐시 제거 - Supabase의 내장 캐싱 활용
 
     console.log(`✅ 메트릭 조회 완료: ${metrics.length}개 항목`);
     return metrics;
@@ -224,14 +124,7 @@ export async function getAggregatedMetrics(
   max_memory: number;
   count: number;
 }>> {
-  const cacheKey = `aggregated:${serverId || 'all'}:${timeRange}:${interval}`;
-
-  // 메모리 캐시 확인 (더 긴 TTL)
-  const memoryCached = metricsCache.get<any[]>(cacheKey);
-  if (memoryCached) {
-    console.log('📦 집계 메트릭 캐시 히트:', cacheKey);
-    return memoryCached;
-  }
+  // 캐시 제거 - Supabase 직접 조회로 최적화
 
   try {
     const supabase = getSupabaseClient();
@@ -264,9 +157,7 @@ export async function getAggregatedMetrics(
     // 클라이언트 사이드에서 집계 처리 (메모리 효율적)
     const aggregated = aggregateMetricsData(data || [], interval);
 
-    // 캐시에 저장 (5분 TTL)
-    metricsCache.set(cacheKey, aggregated, 300);
-    console.log(`💾 집계 메트릭 캐시 저장: ${aggregated.length}개 항목`);
+    // 캐시 제거 - 메모리 사용량 최적화
 
     return aggregated;
 
@@ -385,11 +276,7 @@ export async function getMetricsTrend(
 }> {
   const cacheKey = `trend:${serverId}:${metric}:${timeRange}`;
 
-  // 캐시 확인
-  const cached = metricsCache.get<any>(cacheKey);
-  if (cached) {
-    return cached;
-  }
+  // 캐시 제거 - Supabase 직접 조회
 
   try {
     const supabase = getSupabaseClient();
@@ -439,8 +326,7 @@ export async function getMetricsTrend(
       }),
     };
 
-    // 캐시에 저장 (2분 TTL)
-    metricsCache.set(cacheKey, result, 120);
+    // 캐시 제거 - 메모리 최적화
 
     return result;
 
@@ -459,8 +345,7 @@ export async function getMetricsTrend(
  * 🧹 캐시 관리 함수들
  */
 export function clearMetricsCache(): void {
-  metricsCache.clear();
-  console.log('🧹 메트릭 캐시 정리 완료');
+  console.log('🧹 메트릭 캐시 제거됨 - 메모리 최적화');
 }
 
 export function getMetricsCacheStats(): {
@@ -470,7 +355,13 @@ export function getMetricsCacheStats(): {
   size: number;
   hitRate: number;
 } {
-  return metricsCache.getStats();
+  return {
+    hits: 0,
+    misses: 0,
+    evictions: 0,
+    size: 0,
+    hitRate: 0,
+  };
 }
 
 /**
@@ -504,8 +395,7 @@ export async function saveBatchMetrics(metrics: ServerMetrics[]): Promise<boolea
 
     console.log(`✅ 배치 메트릭 저장 완료: ${metrics.length}개 항목`);
     
-    // 관련 캐시 무효화
-    clearMetricsCache();
+    // 캐시 제거됨 - 메모리 최적화
     
     return true;
 

@@ -14,26 +14,24 @@
  */
 
 import {
-  SimplifiedQueryEngine,
-  QueryRequest,
-  QueryResponse,
+    QueryRequest,
+    QueryResponse,
+    SimplifiedQueryEngine,
 } from './SimplifiedQueryEngine';
-import { 
-  getPerformanceOptimizedQueryEngine,
-  type PerformanceOptimizedQueryEngine 
-} from './performance-optimized-query-engine';
-import { getSupabaseRAGEngine } from './supabase-rag-engine';
-import { 
-  PromptSanitizer, 
-  sanitizePrompt,
-  type SanitizationResult 
-} from './security/PromptSanitizer';
 import {
-  AIResponseFilter,
-  filterAIResponse,
+    getPerformanceOptimizedQueryEngine,
+    type PerformanceOptimizedQueryEngine
+} from './performance-optimized-query-engine';
+import {
+    AIResponseFilter,
+    filterAIResponse,
 } from './security/AIResponseFilter';
-import type { AIMetadata } from '@/types/ai-service-types';
-import type { ComplexityScore } from './query-complexity-analyzer';
+import {
+    PromptSanitizer,
+    sanitizePrompt,
+    type SanitizationResult
+} from './security/PromptSanitizer';
+import { getSupabaseRAGEngine } from './supabase-rag-engine';
 
 // Korean NLP Response 타입 정의
 interface KoreanNLPResponse {
@@ -996,8 +994,8 @@ export class UnifiedAIEngineRouter {
       ttl,
     });
 
-    // 캐시 크기 제한 (최대 1000개 엔트리)
-    if (this.cache.size > 1000) {
+    // 캐시 크기 제한 (최대 200개 엔트리로 최적화)
+    if (this.cache.size > 200) {
       const oldestKey = this.cache.keys().next().value;
       if (oldestKey !== undefined) {
         this.cache.delete(oldestKey);

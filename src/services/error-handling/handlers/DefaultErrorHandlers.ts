@@ -84,10 +84,10 @@ export class DefaultErrorHandlers {
       this.handleDiskSpaceError(error);
     });
 
-    // Redis 연결 에러
-    this.core.register('REDIS_CONNECTION_ERROR', (error: ServiceError) => {
-      console.warn('🔴 Redis 연결 에러, 메모리 캐시로 전환');
-      this.handleRedisError(error);
+    // 캐시 에러
+    this.core.register('CACHE_ERROR', (error: ServiceError) => {
+      console.warn('🔴 캐시 에러 발생');
+      this.handleCacheError(error);
     });
 
     // Prometheus 메트릭 에러
@@ -244,13 +244,13 @@ export class DefaultErrorHandlers {
   }
 
   /**
-   * Redis 에러 처리
+   * 캐시 에러 처리
    */
-  private handleRedisError(error: ServiceError): void {
-    this.logErrorWithContext(error, 'Redis 연결 또는 작업 실패');
+  private handleCacheError(error: ServiceError): void {
+    this.logErrorWithContext(error, '캐시 작업 실패');
 
-    // 메모리 캐시로 폴백
-    console.log('🔄 메모리 캐시 폴백 활성화');
+    // 캐시 없이 계속 진행
+    console.log('🔄 캐시 없이 계속 진행');
   }
 
   /**

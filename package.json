@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.66.24",
+  "version": "5.66.27",
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_OPTIONS='--max-old-space-size=8192' next dev",
@@ -42,7 +42,7 @@
     "test:e2e": "playwright test",
     "test:e2e:vitest": "vitest run tests/integration/**/*.e2e.test.ts",
     "test:e2e:local": "cross-env USE_REAL_API=true npm run test:e2e:vitest",
-    "test:performance": "vitest run src/**/*.perf.test.ts tests/**/*.perf.test.ts",
+    "test:performance": "vitest run --config vitest.performance.config.ts",
     "type-check": "tsc --noEmit",
     "postinstall": "node scripts/postinstall.js || true",
     "prepare": "husky || true",

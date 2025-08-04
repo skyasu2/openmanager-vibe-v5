@@ -1,11 +1,11 @@
 import { z } from 'zod';
 import {
-  BaseResponseSchema,
-  ErrorResponseSchema,
-  TimestampSchema,
-  IdSchema,
-  PercentageSchema,
-  HealthStatusSchema,
+    BaseResponseSchema,
+    ErrorResponseSchema,
+    HealthStatusSchema,
+    IdSchema,
+    PercentageSchema,
+    TimestampSchema,
 } from './common.schema';
 
 /**
@@ -197,9 +197,28 @@ export const CachePerformanceSchema = z.object({
 
 export const RedisInfoSchema = z.object({
   connected: z.boolean(),
-  url: z.string(),
-  runtime: z.string(),
-  cached: z.boolean(),
+  memory: z.string(),
+  keys: z.number(),
+  hits: z.number(),
+  misses: z.number(),
+  hitRate: z.number(),
+  evictions: z.number(),
+  connections: z.number(),
+  commandsProcessed: z.number(),
+  keyspaceHits: z.number(),
+  keyspaceMisses: z.number(),
+  usedMemoryPeak: z.string(),
+  totalSystemMemory: z.string(),
+  maxMemory: z.string(),
+  maxMemoryPolicy: z.string(),
+  role: z.string(),
+  connectedSlaves: z.number(),
+  masterReplOffset: z.number(),
+  secondReplOffset: z.number(),
+  replBacklogActive: z.number(),
+  replBacklogSize: z.number(),
+  replBacklogFirstByteOffset: z.number(),
+  replBacklogHistlen: z.number(),
 });
 
 export const MemoryUsageSchema = z.object({
