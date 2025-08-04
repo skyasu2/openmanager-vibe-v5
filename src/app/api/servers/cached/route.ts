@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getMockSystem } from '@/mock';
+import { getSupabaseClient } from '@/lib/supabase/supabase-client';
 import { cacheOrFetch, createCachedResponse } from '@/lib/cache-helper';
 import type { EnhancedServerMetrics, Server } from '@/types/server';
 
@@ -108,10 +108,19 @@ export async function GET(request: NextRequest) {
     const servers = await cacheOrFetch<EnhancedServerMetrics[]>(
       CACHE_KEYS.servers,
       async () => {
-        console.log('📊 캐시 미스 - 서버 데이터 페칭');
-        const mockSystem = getMockSystem();
-        const baseServers = mockSystem.getServers();
-        return baseServers.map(convertToEnhancedServerMetrics);
+        console.log('📊 캐시 미스 - Supabase에서 서버 데이터 페칭');
+        const supabase = getSupabaseClient();
+        const { data: baseServers, error } = await supabase
+          .from('servers')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('❌ Supabase 서버 데이터 조회 실패:', error);
+          throw new Error(`Failed to fetch servers: ${error.message}`);
+        }
+        
+        return (baseServers || []).map(convertToEnhancedServerMetrics);
       },
       {
         ttl: TTL_STRATEGY.servers,

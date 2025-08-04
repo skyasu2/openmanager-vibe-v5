@@ -2,12 +2,11 @@
  * 📊 ML Analytics API Route
  * 
  * GCP Functions의 ml-analytics-engine을 호출하는 API
- * 개발 환경에서는 Mock 사용
  */
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { analyzeMLMetrics, shouldUseMockGCPFunctions } from '@/lib/gcp/gcp-functions-client';
+import { analyzeMLMetrics } from '@/lib/gcp/gcp-functions-client';
 import { getErrorMessage } from '@/types/type-utils';
 
 export const runtime = 'nodejs';
@@ -39,9 +38,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`📊 ML Analytics 요청 처리 중... (Mock: ${shouldUseMockGCPFunctions})`);
+    console.log('📊 ML Analytics 요청 처리 중...');
 
-    // GCP Functions 호출 (실제 또는 Mock)
+    // GCP Functions 호출
     const result = await analyzeMLMetrics(metrics, context);
 
     if (!result.success) {
@@ -58,7 +57,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: result.data,
-      source: shouldUseMockGCPFunctions ? 'mock' : 'gcp-functions',
+      source: 'gcp-functions',
       timestamp: new Date().toISOString(),
       performance: {
         metrics_analyzed: metrics.length,

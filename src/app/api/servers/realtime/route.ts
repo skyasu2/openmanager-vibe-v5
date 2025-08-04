@@ -8,7 +8,7 @@
  * - 대시보드용 요약 데이터
  */
 
-import { getMockSystem } from '@/mock';
+import { getSupabaseClient } from '@/lib/supabase/supabase-client';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
@@ -42,14 +42,22 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get('limit') || '8', 10);
 
   try {
-    console.log('🚀 실시간 서버 데이터 API - 목업 모드');
+    console.log('🚀 실시간 서버 데이터 API - Supabase 실시간 모드');
 
-    // 목업 시스템에서 서버 데이터 가져오기
-    const mockSystem = getMockSystem();
-    const allServers = mockSystem.getServers();
+    // Supabase에서 서버 데이터 가져오기
+    const supabase = getSupabaseClient();
+    const { data: allServers, error } = await supabase
+      .from('servers')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('❌ Supabase 실시간 서버 데이터 조회 실패:', error);
+      throw new Error(`Failed to fetch realtime servers: ${error.message}`);
+    }
 
     // 서버 필터링 및 변환
-    const validServers = allServers.filter(
+    const validServers = (allServers || []).filter(
       (server) => server && server.id && server.name
     );
 

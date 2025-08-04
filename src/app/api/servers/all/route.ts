@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getMockSystem } from '@/mock';
+import { getSupabaseClient } from '@/lib/supabase/supabase-client';
 import type { Server } from '@/types/api-responses';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * 🚀 서버 목록 API (메모리 기반 캐싱)
+ * 🚀 서버 목록 API (Supabase + 메모리 기반 캐싱)
  *
  * 기능:
- * - 서버 목록 조회
+ * - Supabase에서 실제 서버 목록 조회
  * - 메모리 기반 캐싱 (Redis 완전 제거)
  * - 페이지네이션
  * - 필터링 (쿼리 파라미터)
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
   let cacheHit = false;
   
   try {
-    console.log('🚀 /api/servers/all - 서버 데이터 조회');
+    console.log('🚀 /api/servers/all - Supabase에서 서버 데이터 조회');
     
     // URL 파라미터 파싱
     const { searchParams } = new URL(request.url);
@@ -86,14 +86,26 @@ export async function GET(request: NextRequest) {
         );
       }
       
-      // 목업 시스템에서 데이터 가져오기
-      const mockSystem = getMockSystem();
-      servers = mockSystem.getServers();
+      // Supabase에서 실제 서버 데이터 가져오기
+      const supabase = getSupabaseClient();
+      let query = supabase
+        .from('servers')
+        .select('*')
+        .order('created_at', { ascending: false });
       
       // 상태 필터링
       if (status) {
-        servers = servers.filter((s: Server) => s.status === status);
+        query = query.eq('status', status);
       }
+
+      const { data: serverData, error: serverError } = await query;
+
+      if (serverError) {
+        console.error('❌ Supabase 서버 데이터 조회 실패:', serverError);
+        throw new Error(`Failed to fetch servers from database: ${serverError.message}`);
+      }
+
+      servers = serverData || [];
       
       // 메모리에 캐싱
       if (!cacheHit) {
@@ -127,7 +139,7 @@ export async function GET(request: NextRequest) {
       'CDN-Cache-Control': 'public, s-maxage=60',
       'Vercel-CDN-Cache-Control': 'public, s-maxage=60',
       'X-Cache-Status': cacheHit ? 'memory-hit' : 'memory-miss',
-      'X-Storage': 'Memory-based',
+      'X-Storage': 'Supabase-PostgreSQL',
       'X-Response-Time': `${responseTime}`,
       'Server-Timing': `db;dur=${cacheHit ? 0 : 20}, memory-cache;dur=${cacheHit ? 2 : 0}, total;dur=${responseTime}`,
     });
@@ -146,12 +158,12 @@ export async function GET(request: NextRequest) {
         fromCache: cacheHit,
         optimized: true,
         serverless: true,
-        dataSource: 'mock-enhanced',
+        dataSource: 'supabase-realtime',
         metadata: {
           responseTime,
           cacheHit,
-          scenarioActive: true,
-          mockVersion: '3.1',
+          scenarioActive: false,
+          supabaseQuery: true,
         },
       },
       { 

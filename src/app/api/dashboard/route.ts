@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getMockSystem } from '@/mock';
+import { getSupabaseClient } from '@/lib/supabase/supabase-client';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   DashboardResponseSchema,
@@ -14,12 +14,12 @@ import {
 import { getErrorMessage } from '@/types/type-utils';
 
 /**
- * 📊 목업 데이터 전용 대시보드 API
+ * 📊 실시간 대시보드 API
  *
- * FixedDataSystem과 Redis를 제거하고 목업 데이터만 사용
- * - 빠른 응답 속도
- * - 외부 의존성 없음
- * - 간단한 구조
+ * Supabase에서 실제 서버 데이터를 가져와서 대시보드 표시
+ * - 실시간 서버 메트릭
+ * - Supabase PostgreSQL 연동
+ * - 메모리 캐시 최적화
  * - Zod 스키마로 타입 안전성 보장
  */
 
@@ -33,16 +33,25 @@ const getHandler = createApiRoute()
   .build(async (_request, _context): Promise<DashboardResponse> => {
     const startTime = Date.now();
 
-    console.log('📊 목업 대시보드 API 호출...');
+    console.log('📊 실시간 대시보드 API 호출...');
 
-    // 목업 시스템에서 서버 데이터 가져오기
-    const mockSystem = getMockSystem();
-    const servers = mockSystem.getServers();
-    const systemInfo = mockSystem.getSystemInfo();
+    // Supabase에서 실제 서버 데이터 가져오기
+    const supabase = getSupabaseClient();
+    const { data: servers, error: serversError } = await supabase
+      .from('servers')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (serversError) {
+      console.error('❌ 서버 데이터 조회 실패:', serversError);
+      throw new Error(`Failed to fetch servers: ${serversError.message}`);
+    }
+
+    const serverList = servers || [];
 
     // 서버 데이터를 객체 형태로 변환 (기존 API 호환성)
     const serversMap: Record<string, DashboardServer> = {};
-    servers.forEach((server) => {
+    serverList.forEach((server) => {
       const dashboardServer: DashboardServer = {
         id: server.id,
         name: server.name,
@@ -80,7 +89,7 @@ const getHandler = createApiRoute()
     });
 
     // 통계 계산
-    const stats = calculateServerStats(servers as any);
+    const stats = calculateServerStats(serverList as any);
 
     const response: DashboardResponse = {
       success: true,
@@ -88,17 +97,17 @@ const getHandler = createApiRoute()
         servers: serversMap,
         stats,
         lastUpdate: new Date().toISOString(),
-        dataSource: 'mock-optimized',
+        dataSource: 'supabase-realtime',
       },
       metadata: {
         responseTime: Date.now() - startTime,
-        serversLoaded: servers.length,
-        scenarioActive: !!systemInfo.scenario,
+        serversLoaded: serverList.length,
+        scenarioActive: false, // 실제 시스템에서는 시나리오 없음
       },
     };
 
     console.log(
-      `✅ 목업 대시보드 응답 완료 (${response.metadata?.responseTime || 0}ms)`
+      `✅ 실시간 대시보드 응답 완료 (${response.metadata?.responseTime || 0}ms)`
     );
 
     return response;
@@ -107,7 +116,7 @@ const getHandler = createApiRoute()
 /**
  * GET /api/dashboard
  *
- * 목업 시스템에서 대시보드 데이터 가져오기
+ * Supabase에서 실시간 대시보드 데이터 가져오기
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
@@ -120,7 +129,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       status: 200,
       headers: {
         'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
-        'X-Data-Source': 'Mock-System-v3.0',
+        'X-Data-Source': 'Supabase-Realtime',
         'X-Response-Time': `${(responseData as any).metadata?.responseTime || 0}ms`,
         'X-Server-Count': (responseData as any).data?.stats?.total?.toString() || '0',
       },
@@ -165,7 +174,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 /**
  * 📊 서버 통계 계산 (유틸리티 함수)
  */
-interface MockServer {
+interface DatabaseServer {
   id: string;
   name: string;
   status: string;
@@ -186,7 +195,7 @@ interface MockServer {
   tags?: string[];
 }
 
-function calculateServerStats(servers: MockServer[]): DashboardStats {
+function calculateServerStats(servers: DatabaseServer[]): DashboardStats {
   if (servers.length === 0) {
     return {
       total: 0,
@@ -244,12 +253,12 @@ const postHandler = createApiRoute()
 
     // 간단한 새로고침 응답
     if (action === 'refresh') {
-      const mockSystem = getMockSystem();
-      mockSystem.reset(); // 시스템 리셋
+      // 실제 시스템에서는 캐시 새로고침 또는 데이터 갱신
+      console.log('🔄 실시간 데이터 새로고침 중...');
 
       return {
         success: true,
-        message: '목업 시스템 새로고침 완료',
+        message: '실시간 시스템 새로고침 완료',
         action: 'refresh',
         timestamp: new Date().toISOString(),
       };
@@ -266,7 +275,7 @@ const postHandler = createApiRoute()
 /**
  * POST /api/dashboard
  *
- * 시나리오 트리거 (선택사항)
+ * 대시보드 액션 처리 (새로고침 등)
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {

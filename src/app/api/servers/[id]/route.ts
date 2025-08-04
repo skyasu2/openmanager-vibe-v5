@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getMockSystem } from '@/mock';
+import { getSupabaseClient } from '@/lib/supabase/supabase-client';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   ServerDetailQuerySchema,
@@ -19,11 +19,12 @@ import {
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
 
-// Mock Server type from the mock system
-interface MockServer {
+// Database Server type from Supabase
+interface DatabaseServer {
   id: string;
   hostname?: string;
   name?: string;
+  type?: string;
   role?: string;
   environment?: string;
   status: string;
@@ -34,12 +35,18 @@ interface MockServer {
   uptime?: number | string;
   lastUpdate?: string;
   alerts?: unknown[] | number;
-  pattern_info?: unknown;
-  correlation_metrics?: unknown;
+  metrics?: {
+    cpu?: number;
+    memory?: number;
+    disk?: number;
+    network?: number;
+  };
+  created_at?: string;
+  updated_at?: string;
 }
 
 /**
- * 📊 목업 데이터 전용 개별 서버 정보 조회 API
+ * 📊 Supabase 실제 데이터 개별 서버 정보 조회 API
  * GET /api/servers/[id]
  * 특정 서버의 상세 정보 및 히스토리를 반환합니다
  */
@@ -62,23 +69,33 @@ export async function GET(
       `📊 서버 [${id}] 정보 조회: history=${includeHistory}, range=${range}, format=${format}`
     );
 
-    // 목업 시스템에서 서버 찾기
-    const mockSystem = getMockSystem();
-    const servers = mockSystem.getServers();
+    // Supabase에서 서버 찾기
+    const supabase = getSupabaseClient();
+    const { data: serverData, error: serverError } = await supabase
+      .from('servers')
+      .select('*')
+      .or(`id.eq.${id},hostname.eq.${id}`)
+      .single();
 
-    // ID 또는 hostname으로 검색
-    let server = servers.find((s) => s.id === id || s.hostname === id) as MockServer | undefined;
+    if (serverError) {
+      console.error('❌ Supabase 서버 조회 실패:', serverError);
+    }
+
+    let server = serverData as DatabaseServer | null;
 
     if (!server) {
+      // 사용 가능한 서버 목록을 Supabase에서 가져오기
+      const { data: availableServers } = await supabase
+        .from('servers')
+        .select('id, hostname')
+        .limit(10);
+
       return NextResponse.json(
         {
           success: false,
           error: 'Server not found',
           message: `서버 '${id}'를 찾을 수 없습니다`,
-          available_servers: servers.map((s) => ({
-            id: s.id,
-            hostname: s.hostname,
-          })),
+          available_servers: availableServers || [],
           timestamp: new Date().toISOString(),
         },
         { status: 404 }
@@ -111,9 +128,9 @@ export async function GET(
         location: getLocationByEnvironment(server.environment || 'onpremise'),
         provider: getProviderByEnvironment(server.environment || 'onpremise'),
         status: server.status,
-        cpu: Math.round(server.cpu || 0),
-        memory: Math.round(server.memory || 0),
-        disk: Math.round(server.disk || 0),
+        cpu: Math.round(server.metrics?.cpu ?? server.cpu ?? 0),
+        memory: Math.round(server.metrics?.memory ?? server.memory ?? 0),
+        disk: Math.round(server.metrics?.disk ?? server.disk ?? 0),
         uptime:
           typeof server.uptime === 'number'
             ? formatUptime(server.uptime)
@@ -129,11 +146,11 @@ export async function GET(
         os: generateSpecs(server.id).os,
         ip: generateIP(server.id),
         metrics: {
-          cpu: Math.round(server.cpu || 0),
-          memory: Math.round(server.memory || 0),
-          disk: Math.round(server.disk || 0),
-          network_in: Math.round(server.network || 0),
-          network_out: Math.round(server.network || 0),
+          cpu: Math.round(server.metrics?.cpu ?? server.cpu ?? 0),
+          memory: Math.round(server.metrics?.memory ?? server.memory ?? 0),
+          disk: Math.round(server.metrics?.disk ?? server.disk ?? 0),
+          network_in: Math.round(server.metrics?.network ?? server.network ?? 0),
+          network_out: Math.round(server.metrics?.network ?? server.network ?? 0),
           response_time: 50,
         },
       };
@@ -183,13 +200,13 @@ export async function GET(
           last_updated: server.lastUpdate,
         },
 
-        // 현재 메트릭
+        // 현재 메트릭 (Supabase 데이터 구조에 맞게)
         current_metrics: {
-          cpu_usage: server.cpu || 0,
-          memory_usage: server.memory || 0,
-          disk_usage: server.disk || 0,
-          network_in: server.network || 0,
-          network_out: server.network || 0,
+          cpu_usage: server.metrics?.cpu ?? server.cpu ?? 0,
+          memory_usage: server.metrics?.memory ?? server.memory ?? 0,
+          disk_usage: server.metrics?.disk ?? server.disk ?? 0,
+          network_in: server.metrics?.network ?? server.network ?? 0,
+          network_out: server.metrics?.network ?? server.network ?? 0,
           response_time: 50,
         },
 
@@ -208,14 +225,14 @@ export async function GET(
         services: generateServices(server.role || 'web'),
       };
 
-      // 패턴 정보 포함 (요청시)
+      // 패턴 정보 포함 (요청시) - Supabase에서는 패턴 정보를 별도 처리
       let patternInfo = undefined;
       let correlationMetrics = undefined;
-      if (includePatterns && server.pattern_info) {
-        patternInfo = server.pattern_info;
-        if (server.correlation_metrics) {
-          correlationMetrics = server.correlation_metrics;
-        }
+      if (includePatterns) {
+        // Supabase에서 패턴 정보를 별도 쿼리로 가져올 수 있음
+        // 현재는 기본값으로 설정
+        patternInfo = null;
+        correlationMetrics = null;
       }
 
       // 히스토리 데이터 (요청시)
@@ -237,11 +254,8 @@ export async function GET(
             processing_time_ms: Date.now() - startTime,
             timestamp: new Date().toISOString(),
           },
-          dataSource: 'mock-system',
-          scenario:
-            typeof mockSystem.getSystemInfo().scenario === 'string'
-              ? mockSystem.getSystemInfo().scenario
-              : mockSystem.getSystemInfo().scenario?.scenario || 'mixed',
+          dataSource: 'supabase-realtime',
+          scenario: 'production',
         },
         data: {
           ...enhancedResponse,
@@ -422,9 +436,9 @@ function formatUptime(uptimeSeconds: number): string {
 }
 
 /**
- * 📈 서버 히스토리 생성 (목업 데이터 기반)
+ * 📈 서버 히스토리 생성 (실제 데이터 기반)
  */
-function generateServerHistory(server: MockServer, range: string): ServerHistory {
+function generateServerHistory(server: DatabaseServer, range: string): ServerHistory {
   const timeRangeMs = parseTimeRange(range);
   const endTime = Date.now();
   const startTime = endTime - timeRangeMs;
@@ -443,6 +457,12 @@ function generateServerHistory(server: MockServer, range: string): ServerHistory
     const timeOfDay = new Date(time).getHours();
     const variation = Math.sin((timeOfDay / 24) * 2 * Math.PI) * 0.3; // 일일 패턴
 
+    // 메트릭 값 추출 (Supabase 데이터 구조에 맞게)
+    const baseCpu = server.metrics?.cpu ?? server.cpu ?? 50;
+    const baseMemory = server.metrics?.memory ?? server.memory ?? 50;
+    const baseDisk = server.metrics?.disk ?? server.disk ?? 50;
+    const baseNetwork = server.metrics?.network ?? server.network ?? 100;
+
     history.data_points.push({
       timestamp: new Date(time).toISOString(),
       metrics: {
@@ -450,27 +470,27 @@ function generateServerHistory(server: MockServer, range: string): ServerHistory
           0,
           Math.min(
             100,
-            (server.cpu || 50) + variation * 20 + (Math.random() - 0.5) * 10
+            baseCpu + variation * 20 + (Math.random() - 0.5) * 10
           )
         ),
         memory_usage: Math.max(
           0,
           Math.min(
             100,
-            (server.memory || 50) + variation * 15 + (Math.random() - 0.5) * 8
+            baseMemory + variation * 15 + (Math.random() - 0.5) * 8
           )
         ),
         disk_usage: Math.max(
           0,
-          Math.min(100, (server.disk || 50) + (Math.random() - 0.5) * 2)
+          Math.min(100, baseDisk + (Math.random() - 0.5) * 2)
         ),
         network_in: Math.max(
           0,
-          (server.network || 100) + variation * 50 + (Math.random() - 0.5) * 30
+          baseNetwork + variation * 50 + (Math.random() - 0.5) * 30
         ),
         network_out: Math.max(
           0,
-          (server.network || 100) + variation * 40 + (Math.random() - 0.5) * 25
+          baseNetwork + variation * 40 + (Math.random() - 0.5) * 25
         ),
         response_time: Math.max(
           0,

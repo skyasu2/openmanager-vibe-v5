@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getMockSystem } from '@/mock';
+import { getSupabaseClient } from '@/lib/supabase/supabase-client';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   ServerPaginationQuerySchema,
@@ -126,9 +126,19 @@ const getHandler = createApiRoute()
       status 
     } = context.query;
 
-    // 목업 시스템에서 서버 데이터 가져오기
-    const mockSystem = getMockSystem();
-    const mockServers = mockSystem.getServers();
+    // Supabase에서 서버 데이터 가져오기
+    const supabase = getSupabaseClient();
+    const { data: supabaseServers, error } = await supabase
+      .from('servers')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('❌ Supabase 서버 데이터 조회 실패:', error);
+      throw new Error(`Failed to fetch paginated servers: ${error.message}`);
+    }
+
+    const mockServers = supabaseServers || [];
 
     // 서버 데이터를 API 형식으로 변환
     const allServers: PaginatedServer[] = mockServers.map((server) => ({
@@ -140,11 +150,11 @@ const getHandler = createApiRoute()
           : server.status === 'critical'
             ? 'critical'
             : 'warning',
-      type: server.role || 'unknown',
-      cpu: Math.round(server.cpu || 0),
-      memory: Math.round(server.memory || 0),
-      disk: Math.round(server.disk || 0),
-      network: Math.round(server.network || 0),
+      type: server.type || server.role || 'unknown',
+      cpu: Math.round(server.metrics?.cpu ?? server.cpu ?? 0),
+      memory: Math.round(server.metrics?.memory ?? server.memory ?? 0),
+      disk: Math.round(server.metrics?.disk ?? server.disk ?? 0),
+      network: Math.round(server.metrics?.network ?? server.network ?? 0),
       uptime: typeof server.uptime === 'string' ? server.uptime : (typeof server.uptime === 'number' ? _formatUptime(server.uptime) : '0d 0h 0m'),
       lastUpdate: server.lastUpdate instanceof Date ? server.lastUpdate.toISOString() : (server.lastUpdate || new Date().toISOString()),
       location: server.location || 'Unknown',

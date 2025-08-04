@@ -120,50 +120,7 @@ const _LOG_EMOJIS = {
   debug: '🔍',
 };
 
-// 모의 로그 생성기
-function generateMockLog(): AILogEntry {
-  const levels: AILogLevel[] = ['info', 'warn', 'error', 'debug'];
-  const sources = [
-    'SimplifiedQueryEngine',
-    'MCPContextLoader',
-    'LocalRAG',
-    'GoogleAI',
-    'SupabaseRAG',
-    'MemoryCache',
-  ];
-  const messages = [
-    'AI 쿼리 처리 시작',
-    'MCP 컨텍스트 로드 완료',
-    'Gemini 엔진 응답 수신',
-    '토큰 사용량 임계값 도달',
-    '폴백 엔진으로 전환',
-    'AI 응답 생성 완료',
-    '메모리 캐시 히트 - 빠른 응답',
-    '새로운 컨텍스트 저장',
-    '엔진 상태 체크',
-    '메모리 사용량 최적화',
-    'Redis 의존성 제거 완료',
-    '메모리 기반 로그 저장',
-  ];
-
-  const level = levels[Math.floor(Math.random() * levels.length)];
-  const source = sources[Math.floor(Math.random() * sources.length)];
-  const message = messages[Math.floor(Math.random() * messages.length)];
-
-  return {
-    id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    timestamp: new Date().toISOString(),
-    level,
-    source,
-    message,
-    metadata: {
-      engineId: Math.random() > 0.5 ? 'gemini' : 'mcp',
-      processingTime: Math.floor(Math.random() * 1000),
-      confidence: (0.7 + Math.random() * 0.3).toFixed(2),
-      tokensUsed: Math.floor(Math.random() * 500),
-    },
-  };
-}
+// Mock 로그 생성기 제거 - 실제 시스템 로그만 사용
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -211,19 +168,10 @@ export async function GET(request: NextRequest) {
           const existingLogs = logStorage.getLogs(5, level as AILogLevel, source);
           logs.push(...existingLogs);
 
-          // 모의 로그 생성 (실제 로그가 부족한 경우)
-          const mockLogsCount = Math.max(1, 3 - existingLogs.length);
-          for (let i = 0; i < mockLogsCount; i++) {
-            const mockLog = generateMockLog();
-
-            // 필터링
-            if (level !== 'all' && mockLog.level !== level) continue;
-            if (source !== 'all' && mockLog.source !== source) continue;
-
-            logs.push(mockLog);
-
-            // 메모리 스토리지에 저장
-            logStorage.addLog(mockLog);
+          // 실제 로그가 없는 경우 빈 상태 유지 (Mock 로그 생성 제거)
+          if (existingLogs.length === 0) {
+            // 실제 시스템 로그가 있을 때까지 대기
+            console.log('📝 실제 로그 대기 중...');
           }
 
           // 중복 제거 (ID 기준)
