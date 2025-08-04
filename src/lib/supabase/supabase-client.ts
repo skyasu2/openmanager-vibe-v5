@@ -10,18 +10,46 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+// Lazy initialization을 위한 변수
+let _supabaseClient: SupabaseClient | null = null;
+
 /**
- * Supabase 클라이언트 가져오기
+ * Supabase 클라이언트 가져오기 (Lazy Initialization)
  * 
  * @returns SupabaseClient 인스턴스 (실제 Supabase)
  */
 export function getSupabaseClient(): SupabaseClient {
+  // 이미 초기화된 경우 기존 클라이언트 반환
+  if (_supabaseClient) {
+    return _supabaseClient;
+  }
+
+  // 환경 변수 체크
   if (!supabaseUrl || !supabaseKey) {
+    // 빌드 시점에 환경 변수 검증을 건너뛰는 옵션
+    if (process.env.SKIP_ENV_VALIDATION === 'true') {
+      console.warn('⚠️ SKIP_ENV_VALIDATION이 설정됨. 더미 Supabase 클라이언트를 사용합니다.');
+      // 빌드용 더미 클라이언트 반환
+      return createClient('https://dummy.supabase.co', 'dummy-key', {
+        auth: { persistSession: false }
+      });
+    }
+    
+    // 빌드 시점에는 경고만 출력
+    if (typeof window === 'undefined') {
+      console.warn('⚠️ Supabase 환경 변수가 설정되지 않았습니다. 빌드 시점에는 더미 클라이언트를 사용합니다.');
+      // 빌드용 더미 클라이언트 반환
+      return createClient('https://dummy.supabase.co', 'dummy-key', {
+        auth: { persistSession: false }
+      });
+    }
+    
+    // 브라우저 환경에서는 에러 throw
     throw new Error('⚠️ Supabase 환경 변수가 설정되지 않았습니다. .env.local을 확인하세요.');
   }
 
   console.log('🌐 실제 Supabase 사용 중');
-  return createClient(supabaseUrl, supabaseKey, {
+  _supabaseClient = createClient(supabaseUrl, supabaseKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
@@ -54,11 +82,25 @@ export function getSupabaseClient(): SupabaseClient {
       },
     },
   });
+
+  // 초기화된 클라이언트 저장 및 반환
+  return _supabaseClient;
 }
 
-
-// 기본 클라이언트 export
-export const supabase = getSupabaseClient();
+// Proxy를 사용한 Lazy Loading Supabase 클라이언트
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, prop, receiver) {
+    const client = getSupabaseClient();
+    const value = client[prop as keyof SupabaseClient];
+    
+    // 메서드인 경우 this 바인딩 유지
+    if (typeof value === 'function') {
+      return value.bind(client);
+    }
+    
+    return value;
+  }
+});
 
 // 브라우저 전용 클라이언트
 export const browserSupabase = typeof window !== 'undefined' ? supabase : undefined;
