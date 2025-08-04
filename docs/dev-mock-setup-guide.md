@@ -44,7 +44,7 @@ npm run check:usage
 개발 중 다음 메시지들을 확인할 수 있습니다:
 - `🎭 Mock Google AI 사용 중 (API 사용량 0)`
 - `🎭 Mock Supabase 사용 중 (API 사용량 0)`
-- `🧠 통합 Mock Redis 활성화`
+- `🧠 통합 Mock Memory Cache 활성화`
 - `🎭 Mock GCP Functions 사용 중`
 
 ## 🔧 환경 설정
@@ -113,10 +113,10 @@ WARN_AT_USAGE_PERCENT=80          # 사용량 경고 임계값 (%)
 - 로컬 JSON 파일 영속성
 ```
 
-### 3. Redis Mock (통합)
+### 3. Memory Cache Mock (통합)
 ```typescript
-// src/lib/redis/dev-mock-redis.ts
-- 모든 기본 Redis 명령어
+// src/lib/memory cache/dev-mock-memory cache.ts
+- 모든 기본 Memory Cache 명령어
 - Set 연산 지원
 - 파이프라인 처리
 - TTL 자동 만료
@@ -208,7 +208,7 @@ USE_REAL_SERVICES=true npm run test:e2e
 
 ### 데이터 위치
 ```
-.redis-mock-data/         # Redis Mock 데이터
+.memory cache-mock-data/         # Memory Cache Mock 데이터
 .supabase-mock-data/      # Supabase Mock 데이터
 .mock-stats-*.json        # 서비스별 통계
 ```
@@ -216,10 +216,10 @@ USE_REAL_SERVICES=true npm run test:e2e
 ### 데이터 초기화
 ```bash
 # Mock 데이터 전체 초기화
-rm -rf .redis-mock-data .supabase-mock-data .mock-stats-*
+rm -rf .memory cache-mock-data .supabase-mock-data .mock-stats-*
 
 # 특정 서비스만 초기화
-rm -rf .redis-mock-data
+rm -rf .memory cache-mock-data
 ```
 
 ## 💰 비용 절감 분석
@@ -234,7 +234,7 @@ rm -rf .redis-mock-data
 ```
 Google AI:     15% → 3%
 Supabase:      20% → 5%
-Upstash Redis: 25% → 8%
+Upstash Memory Cache: 25% → 8%
 Vercel:        30% → 30% (변화 없음)
 GCP Functions: 10% → 2%
 ```
@@ -390,7 +390,7 @@ FORCE_MOCK_ALL=true npm run dev
 ### 실제 서비스 연결 문제
 ```bash
 # 1. 환경 변수 확인
-grep -E "(SUPABASE|REDIS|GOOGLE)" .env.local
+grep -E "(SUPABASE|MEMORY_CACHE|GOOGLE)" .env.local
 
 # 2. 강제 실제 서비스 사용
 USE_REAL_SERVICES=true npm run dev

@@ -1,5 +1,5 @@
 /**
- * 🎭 통합 Mock 관리
+ * 🎭 통합 Mock 관리 (Redis-Free)
  * 도메인별 Mock 파일들을 중앙에서 관리
  */
 
@@ -13,7 +13,6 @@ import './react-query';
 // 서비스별 Mock 모듈들
 import './ai-services';
 import './external-apis';
-import './redis';
 import './supabase';
 
 // 컴포넌트별 Mock 모듈들

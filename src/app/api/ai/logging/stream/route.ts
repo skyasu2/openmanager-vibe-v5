@@ -1,15 +1,15 @@
 /**
- * 📡 실시간 AI 로그 스트리밍 API
+ * 📡 실시간 AI 로그 스트리밍 API (Redis-Free)
  *
  * SSE(Server-Sent Events)를 사용한 AI 로그 실시간 스트리밍
  * GET /api/ai/logging/stream
  * - Zod 스키마로 타입 안전성 보장
+ * - 메모리 기반 로그 스토리지 (Redis 완전 제거)
  */
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getRedisClient, type RedisClientInterface } from '@/lib/redis';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   AILogRequestSchema,
@@ -23,6 +23,94 @@ import {
   type AILogStreamMessage,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
+
+// 메모리 기반 로그 스토리지
+class MemoryLogStorage {
+  private logs: AILogEntry[] = [];
+  private maxSize = 1000; // 최대 1000개 로그 유지
+  private stats = {
+    totalLogs: 0,
+    errorCount: 0,
+    warnCount: 0,
+    infoCount: 0,
+    debugCount: 0,
+  };
+
+  addLog(log: AILogEntry): void {
+    // 로그 ID 생성 (없는 경우)
+    const completeLog = {
+      ...log,
+      id: log.id || `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: log.timestamp || new Date().toISOString(),
+    };
+
+    // 로그 추가
+    this.logs.unshift(completeLog); // 최신 로그를 앞에 추가
+    
+    // 크기 제한 관리
+    if (this.logs.length > this.maxSize) {
+      this.logs = this.logs.slice(0, this.maxSize);
+    }
+
+    // 통계 업데이트
+    this.stats.totalLogs++;
+    this.stats[`${log.level}Count` as keyof typeof this.stats]++;
+  }
+
+  addLogs(logs: AILogEntry[]): void {
+    logs.forEach(log => this.addLog(log));
+  }
+
+  getLogs(count: number = 10, level?: AILogLevel | 'all', source?: string): AILogEntry[] {
+    let filtered = this.logs;
+
+    // 레벨 필터링
+    if (level && level !== 'all') {
+      filtered = filtered.filter(log => log.level === level);
+    }
+
+    // 소스 필터링
+    if (source && source !== 'all') {
+      filtered = filtered.filter(log => log.source === source);
+    }
+
+    return filtered.slice(0, count);
+  }
+
+  clear(): void {
+    this.logs = [];
+    this.stats = {
+      totalLogs: 0,
+      errorCount: 0,
+      warnCount: 0,
+      infoCount: 0,
+      debugCount: 0,
+    };
+  }
+
+  getStats() {
+    return {
+      ...this.stats,
+      currentSize: this.logs.length,
+      maxSize: this.maxSize,
+      errorRate: this.stats.totalLogs > 0 ? this.stats.errorCount / this.stats.totalLogs : 0,
+    };
+  }
+
+  exportAll(): AILogEntry[] {
+    return [...this.logs]; // 복사본 반환
+  }
+}
+
+// 글로벌 메모리 로그 스토리지
+let globalLogStorage: MemoryLogStorage | null = null;
+
+function getLogStorage(): MemoryLogStorage {
+  if (!globalLogStorage) {
+    globalLogStorage = new MemoryLogStorage();
+  }
+  return globalLogStorage;
+}
 
 // 로그 레벨별 이모지
 const _LOG_EMOJIS = {
@@ -41,6 +129,7 @@ function generateMockLog(): AILogEntry {
     'LocalRAG',
     'GoogleAI',
     'SupabaseRAG',
+    'MemoryCache',
   ];
   const messages = [
     'AI 쿼리 처리 시작',
@@ -49,10 +138,12 @@ function generateMockLog(): AILogEntry {
     '토큰 사용량 임계값 도달',
     '폴백 엔진으로 전환',
     'AI 응답 생성 완료',
-    '캐시 히트 - 빠른 응답',
+    '메모리 캐시 히트 - 빠른 응답',
     '새로운 컨텍스트 저장',
     '엔진 상태 체크',
     '메모리 사용량 최적화',
+    'Redis 의존성 제거 완료',
+    '메모리 기반 로그 저장',
   ];
 
   const level = levels[Math.floor(Math.random() * levels.length)];
@@ -81,7 +172,7 @@ export async function GET(request: NextRequest) {
   const interval = parseInt(searchParams.get('interval') || '2000'); // 기본 2초
 
   console.log(
-    `📡 AI 로그 스트리밍 시작 - 레벨: ${level}, 소스: ${source}, 간격: ${interval}ms`
+    `📡 AI 로그 스트리밍 시작 (Memory-based) - 레벨: ${level}, 소스: ${source}, 간격: ${interval}ms`
   );
 
   // SSE 응답 헤더 설정
@@ -90,6 +181,7 @@ export async function GET(request: NextRequest) {
     'Cache-Control': 'no-cache',
     Connection: 'keep-alive',
     'X-Accel-Buffering': 'no',
+    'X-Storage': 'Memory-based',
   });
 
   // 스트림 생성
@@ -97,28 +189,16 @@ export async function GET(request: NextRequest) {
     async start(controller) {
       const encoder = new TextEncoder();
       let isActive = true;
-      let logBuffer: AILogEntry[] = [];
+      const logStorage = getLogStorage();
 
       // 클라이언트 연결 종료 감지
       request.signal.addEventListener('abort', () => {
-        console.log('🔌 AI 로그 스트림 연결 종료');
+        console.log('🔌 AI 로그 스트림 연결 종료 (Memory-based)');
         isActive = false;
         controller.close();
       });
 
-      // Redis 연결 (선택적)
-      let redis: RedisClientInterface | null = null;
-      let useRedis = false;
-
-      try {
-        redis = await getRedisClient();
-        if (redis) {
-          useRedis = true;
-          console.log('✅ Redis 연결 성공 - 실시간 로그 저장 활성화');
-        }
-      } catch {
-        console.warn('⚠️ Redis 연결 실패 - 메모리 로그만 사용');
-      }
+      console.log('✅ 메모리 기반 로그 스토리지 활성화');
 
       // 로그 전송 함수
       const sendLogs = async () => {
@@ -127,25 +207,12 @@ export async function GET(request: NextRequest) {
         try {
           const logs: AILogEntry[] = [];
 
-          // Redis에서 실시간 로그 가져오기 (가능한 경우)
-          if (useRedis && redis && 'lrange' in redis) {
-            try {
-              const redisLogs = await (redis as any).lrange('ai:logs', -10, -1);
-              for (const logStr of redisLogs) {
-                try {
-                  const log = JSON.parse(logStr);
-                  logs.push(log);
-                } catch {
-                  // 파싱 오류 무시
-                }
-              }
-            } catch {
-              console.error('Redis 로그 읽기 오류');
-            }
-          }
+          // 메모리 스토리지에서 기존 로그 가져오기
+          const existingLogs = logStorage.getLogs(5, level as AILogLevel, source);
+          logs.push(...existingLogs);
 
           // 모의 로그 생성 (실제 로그가 부족한 경우)
-          const mockLogsCount = Math.max(1, 3 - logs.length);
+          const mockLogsCount = Math.max(1, 3 - existingLogs.length);
           for (let i = 0; i < mockLogsCount; i++) {
             const mockLog = generateMockLog();
 
@@ -155,24 +222,23 @@ export async function GET(request: NextRequest) {
 
             logs.push(mockLog);
 
-            // Redis에 저장 (가능한 경우)
-            if (useRedis && redis && 'lpush' in redis) {
-              try {
-                await (redis as any).lpush('ai:logs', JSON.stringify(mockLog));
-                await (redis as any).ltrim('ai:logs', 0, 99); // 최대 100개 유지
-              } catch {
-                // 저장 오류 무시
-              }
-            }
+            // 메모리 스토리지에 저장
+            logStorage.addLog(mockLog);
           }
+
+          // 중복 제거 (ID 기준)
+          const uniqueLogs = logs.filter((log, index, self) => 
+            index === self.findIndex(l => l.id === log.id)
+          );
 
           // SSE 메시지 전송
           const message = {
             type: 'logs',
-            data: logs,
+            data: uniqueLogs,
             timestamp: new Date().toISOString(),
-            count: logs.length,
+            count: uniqueLogs.length,
             filters: { level, source },
+            storage: 'memory-based',
           };
 
           const sseMessage = `data: ${JSON.stringify(message)}\n\n`;
@@ -180,17 +246,20 @@ export async function GET(request: NextRequest) {
 
           // 통계 메시지 (10번마다)
           if (Math.random() < 0.1) {
+            const stats = logStorage.getStats();
             const statsMessage = {
               type: 'stats',
               data: {
-                totalLogs: logBuffer.length,
-                errorRate:
-                  logBuffer.filter((l) => l.level === 'error').length /
-                  Math.max(logBuffer.length, 1),
-                avgProcessingTime: 350 + Math.random() * 200,
-                activeEngines: ['mcp', 'gemini', 'local'].filter(
-                  () => Math.random() > 0.3
+                totalLogs: stats.totalLogs,
+                currentSize: stats.currentSize,
+                maxSize: stats.maxSize,
+                errorRate: stats.errorRate,
+                avgProcessingTime: 250 + Math.random() * 150, // 메모리 기반이므로 더 빠름
+                activeEngines: ['mcp', 'gemini', 'memory-cache'].filter(
+                  () => Math.random() > 0.2
                 ),
+                storage: 'memory-based',
+                migration: 'Redis → Memory completed',
               },
               timestamp: new Date().toISOString(),
             };
@@ -199,21 +268,19 @@ export async function GET(request: NextRequest) {
             controller.enqueue(encoder.encode(sseStatsMessage));
           }
 
-          // 버퍼 관리
-          logBuffer = [...logBuffer, ...logs].slice(-100);
-
           // 다음 전송 예약
           if (isActive) {
             setTimeout(sendLogs, interval);
           }
-        } catch (_error) {
-          console.error('로그 전송 오류:', _error);
+        } catch (error) {
+          console.error('메모리 로그 전송 오류:', error);
 
           // 에러 메시지 전송
           const errorMessage = `data: ${JSON.stringify({
             type: 'error',
-            message: '로그 스트리밍 중 오류 발생',
+            message: '메모리 기반 로그 스트리밍 중 오류 발생',
             timestamp: new Date().toISOString(),
+            storage: 'memory-based',
           })}\n\n`;
 
           controller.enqueue(encoder.encode(errorMessage));
@@ -244,75 +311,41 @@ const postHandler = createApiRoute()
   .build(async (_request, context): Promise<AILogWriteResponse | AILogExportResponse> => {
     const body = context.body;
 
-    console.log(`📊 AI 로그 관리 액션: ${body.action}`);
+    console.log(`📊 AI 로그 관리 액션 (Memory-based): ${body.action}`);
 
-    let redis: RedisClientInterface | null = null;
-    let useRedis = false;
-
-    try {
-      redis = await getRedisClient();
-      if (redis) {
-        useRedis = true;
-      }
-    } catch {
-      console.warn('⚠️ Redis 연결 실패');
-    }
+    const logStorage = getLogStorage();
 
     switch (body.action) {
       case 'write': {
         const { logs } = body;
 
-        if (useRedis && redis && 'lpush' in redis) {
-          for (const log of logs) {
-            await (redis as any).lpush(
-              'ai:logs',
-              JSON.stringify({
-                ...log,
-                id:
-                  log.id ||
-                  `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                timestamp: log.timestamp || new Date().toISOString(),
-              })
-            );
-          }
-          await (redis as any).ltrim('ai:logs', 0, 999); // 최대 1000개 유지
-        }
+        // 메모리 스토리지에 로그 저장
+        logStorage.addLogs(logs.map(log => ({
+          ...log,
+          id: log.id || `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          timestamp: log.timestamp || new Date().toISOString(),
+        })));
 
         return {
           success: true,
-          message: `${logs.length} logs written`,
+          message: `${logs.length} logs written to memory storage`,
           timestamp: new Date().toISOString(),
         };
       }
 
       case 'clear':
-        // 로그 삭제
-        if (useRedis && redis) {
-          await redis.del('ai:logs');
-        }
+        // 메모리 로그 삭제
+        logStorage.clear();
 
         return {
           success: true,
-          message: 'Logs cleared successfully',
+          message: 'Memory logs cleared successfully',
           timestamp: new Date().toISOString(),
         };
 
       case 'export': {
-        // 로그 내보내기
-        let exportLogs: AILogEntry[] = [];
-
-        if (useRedis && redis && 'lrange' in redis) {
-          const redisLogs = await (redis as any).lrange('ai:logs', 0, -1);
-          exportLogs = redisLogs
-            .map((logStr: string) => {
-              try {
-                return JSON.parse(logStr);
-              } catch {
-                return null;
-              }
-            })
-            .filter(Boolean);
-        }
+        // 메모리에서 로그 내보내기
+        const exportLogs = logStorage.exportAll();
 
         return {
           success: true,
@@ -328,7 +361,7 @@ const postHandler = createApiRoute()
   });
 
 /**
- * 📊 AI 로그 관리 API
+ * 📊 AI 로그 관리 API (Memory-based)
  *
  * POST /api/ai/logging/stream
  */
@@ -336,14 +369,20 @@ export async function POST(request: NextRequest) {
   try {
     return await postHandler(request);
   } catch (error) {
-    console.error('❌ AI 로그 관리 API 오류:', error);
+    console.error('❌ AI 로그 관리 API 오류 (Memory-based):', error);
     return NextResponse.json(
       {
         success: false,
-        error: 'Log management failed',
+        error: 'Memory-based log management failed',
         message: getErrorMessage(error),
+        storage: 'memory-based',
       },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'X-Storage': 'Memory-based',
+        },
+      }
     );
   }
 }

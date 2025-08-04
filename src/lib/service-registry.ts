@@ -14,8 +14,8 @@ import type {
   ILogger,
 } from '@/interfaces/services';
 import { LoggingService } from '@/services/LoggingService';
-import { EnhancedCacheService } from '@/services/cacheService';
 import { ErrorHandlingService } from '@/services/error-handling/ErrorHandlingService';
+import { getCacheService } from '@/lib/cache-helper';
 import {
   container,
   registerFactory,
@@ -126,12 +126,12 @@ export class ServiceRegistry {
    * 추가 서비스 등록
    */
   private registerAdditionalServices(): void {
-    // Enhanced Cache Service (기존 운영 중인 캐시 서비스 사용)
+    // Memory Cache Service (Redis 제거 후 메모리 기반 캐시 사용)
     registerFactory(
       SERVICE_TOKENS.CACHE_SERVICE,
       () => {
-        // EnhancedCacheService는 싱글톤이므로 인스턴스 반환
-        return EnhancedCacheService.getInstance();
+        // MemoryCacheService 인스턴스 반환
+        return getCacheService();
       },
       'singleton'
     );

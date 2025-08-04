@@ -8,6 +8,15 @@
  * - 상관관계 모델링
  */
 
+interface PreviousMetrics {
+  cpu_usage?: number;
+  memory_usage?: number;
+  disk_usage?: number;
+  network_in?: number;
+  network_out?: number;
+  response_time?: number;
+}
+
 export interface TimePattern {
   hour: number;
   multiplier: number;
@@ -290,7 +299,7 @@ export class RealisticPatternEngine {
       | 'response_time',
     serverType: string,
     timestamp: Date,
-    previousMetrics?: unknown
+    previousMetrics?: PreviousMetrics
   ): number {
     const profile =
       this.serverProfiles.get(serverType) || this.serverProfiles.get('web')!;
@@ -398,7 +407,7 @@ export class RealisticPatternEngine {
    */
   shouldTriggerFailure(
     serverType: string,
-    currentMetrics: unknown,
+    currentMetrics: PreviousMetrics,
     timestamp: Date
   ): { shouldTrigger: boolean; failureType?: string; severity?: number } {
     const profile =
@@ -408,22 +417,22 @@ export class RealisticPatternEngine {
     let failureProbability = 0.02; // 기본 2%
 
     // CPU 과부하
-    if (currentMetrics.cpu_usage > 85) {
+    if (currentMetrics.cpu_usage && currentMetrics.cpu_usage > 85) {
       failureProbability += 0.05;
     }
 
     // 메모리 부족
-    if (currentMetrics.memory_usage > 90) {
+    if (currentMetrics.memory_usage && currentMetrics.memory_usage > 90) {
       failureProbability += 0.08;
     }
 
     // 디스크 풀
-    if (currentMetrics.disk_usage > 95) {
+    if (currentMetrics.disk_usage && currentMetrics.disk_usage > 95) {
       failureProbability += 0.15;
     }
 
     // 응답시간 증가
-    if (currentMetrics.response_time > 1000) {
+    if (currentMetrics.response_time && currentMetrics.response_time > 1000) {
       failureProbability += 0.03;
     }
 
@@ -437,13 +446,13 @@ export class RealisticPatternEngine {
       let failureType = 'general_slowdown';
       let severity = 1;
 
-      if (currentMetrics.memory_usage > 90) {
+      if (currentMetrics.memory_usage && currentMetrics.memory_usage > 90) {
         failureType = 'memory_leak';
         severity = 3;
-      } else if (currentMetrics.cpu_usage > 85) {
+      } else if (currentMetrics.cpu_usage && currentMetrics.cpu_usage > 85) {
         failureType = 'cpu_spike';
         severity = 2;
-      } else if (currentMetrics.disk_usage > 95) {
+      } else if (currentMetrics.disk_usage && currentMetrics.disk_usage > 95) {
         failureType = 'disk_full';
         severity = 4;
       }

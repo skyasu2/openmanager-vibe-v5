@@ -474,12 +474,22 @@ export async function withErrorRecovery<T>(
     }
   }
 
-  return {
+  const result: {
+    success: boolean;
+    data?: T;
+    error?: SafeError;
+    attempts: number;
+  } = {
     success: false,
     error: lastError!,
     attempts,
-    ...(fallbackValue !== undefined && { data: fallbackValue }),
   };
+
+  if (fallbackValue !== undefined) {
+    result.data = fallbackValue as T;
+  }
+
+  return result;
 }
 
 /**
@@ -495,7 +505,7 @@ export function createErrorBoundaryInfo(error: unknown, errorInfo?: unknown) {
     userAgent:
       typeof window !== 'undefined' ? window.navigator.userAgent : 'SSR',
     url: typeof window !== 'undefined' ? window.location.href : 'SSR',
-    componentStack: errorInfo?.componentStack,
+    componentStack: (errorInfo as any)?.componentStack,
     isLoadingError: isLoadingRelatedError(error),
   };
 }

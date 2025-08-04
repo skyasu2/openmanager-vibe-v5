@@ -134,10 +134,10 @@ export async function GET() {
 ```typescript
 // middleware.ts
 import { Ratelimit } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis';
+import { Memory Cache } from '@upstash/memory cache';
 
 const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
+  memory cache: Memory Cache.fromEnv(),
   limiter: Ratelimit.slidingWindow(10, '10 s'),
 });
 

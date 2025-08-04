@@ -31,7 +31,7 @@ graph TB
     D --> E[LOCAL Mode]
     D --> F[GOOGLE_ONLY Mode]
 
-    G[Upstash Redis] --> C
+    G[Upstash Memory Cache] --> C
     H[Supabase PostgreSQL] --> C
     I[Google AI Gemini] --> F
 ```
@@ -48,7 +48,7 @@ graph TB
 - **프론트엔드**: Next.js 14.2.4, React 18.2.0, TypeScript strict mode
 - **백엔드**: Vercel Edge Runtime, GCP Functions (Python 3.11)
 - **데이터베이스**: Supabase PostgreSQL (500MB)
-- **캐싱**: Upstash Redis (256MB)
+- **캐싱**: Upstash Memory Cache (256MB)
 - **AI**: 2-Mode System (LOCAL/GOOGLE_ONLY)
 - **테스트**: Vitest (Jest 대체)
 
@@ -147,9 +147,9 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# Redis 캐싱 (선택사항)
-UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
-UPSTASH_REDIS_REST_TOKEN=your-token
+# Memory Cache 캐싱 (선택사항)
+UPSTASH_MEMORY_CACHE_REST_URL=https://your-memory cache.upstash.io
+UPSTASH_MEMORY_CACHE_REST_TOKEN=your-token
 
 # Google AI 설정
 GOOGLE_AI_API_KEY=your-google-ai-api-key
@@ -209,7 +209,7 @@ DISABLE_FILE_SYSTEM_WRITE=true
 MEMORY_BASED_CONFIG=true
 
 # 캐싱 최적화
-REDIS_CACHE_TTL=300
+MEMORY_CACHE_CACHE_TTL=300
 ENABLE_EDGE_CACHING=true
 CDN_CACHE_CONTROL="public, s-maxage=300"
 
@@ -304,7 +304,7 @@ vercel env add MCP_SERVER_ENABLED production
 # 외부 서비스
 vercel env add SUPABASE_URL production
 vercel env add SUPABASE_ANON_KEY production
-vercel env add UPSTASH_REDIS_REST_URL production
+vercel env add UPSTASH_MEMORY_CACHE_REST_URL production
 vercel env add GOOGLE_AI_API_KEY production
 ```
 
@@ -573,7 +573,7 @@ curl http://104.154.205.25:10000/health
 - **실시간 연결**: 동시 2개
 - **스토리지**: 1GB
 
-#### Upstash Redis Free Plan
+#### Upstash Memory Cache Free Plan
 
 - **메모리**: 256MB
 - **월간 명령어**: 500,000회 (400,000회 안전 한도)
@@ -639,7 +639,7 @@ export class UsageMonitor {
     const quotas = {
       vercel: await this.checkVercelUsage(),
       supabase: await this.checkSupabaseUsage(),
-      redis: await this.checkRedisUsage(),
+      memory cache: await this.checkMemory CacheUsage(),
       googleAI: await this.checkGoogleAIUsage(),
     };
 
@@ -693,7 +693,7 @@ export class SystemMonitor {
     const checks = await Promise.all([
       this.checkLocalMode(),
       this.checkGoogleOnlyMode(),
-      this.checkRedis(),
+      this.checkMemory Cache(),
       this.checkSupabase(),
     ]);
 
@@ -844,7 +844,7 @@ vercel env add VARIABLE_NAME
 
 ### 외부 서비스 연동 ✅
 
-- [ ] Upstash Redis 연동
+- [ ] Upstash Memory Cache 연동
 - [ ] Supabase 연동
 - [ ] Google AI 연동
 - [ ] 모든 서비스 Free Tier 확인

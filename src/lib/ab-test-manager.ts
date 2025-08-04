@@ -1,13 +1,12 @@
 /**
- * 🧪 A/B 테스트 관리자 v1.0
+ * 🧪 A/B 테스트 관리자 v2.0 (Redis-Free)
  *
  * 안전한 점진적 API 교체를 위한 A/B 테스트 시스템
  * - 기존 API vs 최적화된 API 성능 비교
  * - 트래픽 분할 및 자동 롤백 기능
  * - 실시간 성능 메트릭 수집
+ * - 메모리 기반 캐시 (Redis 완전 제거)
  */
-
-import { getRedis } from '@/lib/redis';
 
 // ==============================================
 // 🎯 A/B 테스트 타입 정의
@@ -59,16 +58,109 @@ export interface ABTestResult {
   performanceGain?: number; // 성능 개선율 (%)
 }
 
+// 메모리 기반 A/B 테스트 캐시
+class MemoryABTestCache {
+  private cache = new Map<string, {
+    value: any;
+    expires: number;
+    created: number;
+  }>();
+  private maxSize = 200; // 최대 200개 항목
+
+  set(key: string, value: any, ttlSeconds: number = 3600): void {
+    // 캐시 크기 관리
+    if (this.cache.size >= this.maxSize) {
+      const oldestKey = this.getOldestKey();
+      if (oldestKey) {
+        this.cache.delete(oldestKey);
+      }
+    }
+
+    this.cache.set(key, {
+      value: typeof value === 'string' ? value : JSON.stringify(value),
+      expires: Date.now() + ttlSeconds * 1000,
+      created: Date.now(),
+    });
+  }
+
+  get(key: string): any {
+    const item = this.cache.get(key);
+    
+    if (!item) {
+      return null;
+    }
+    
+    if (Date.now() > item.expires) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    try {
+      return JSON.parse(item.value);
+    } catch {
+      return item.value;
+    }
+  }
+
+  delete(key: string): boolean {
+    return this.cache.delete(key);
+  }
+
+  keys(pattern?: string): string[] {
+    const allKeys = Array.from(this.cache.keys());
+    
+    if (!pattern) {
+      return allKeys;
+    }
+    
+    // 간단한 패턴 매칭 (와일드카드 지원)
+    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+    return allKeys.filter(key => regex.test(key));
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  private getOldestKey(): string | null {
+    let oldestKey: string | null = null;
+    let oldestTime = Date.now();
+    
+    for (const [key, item] of this.cache.entries()) {
+      if (item.created < oldestTime) {
+        oldestTime = item.created;
+        oldestKey = key;
+      }
+    }
+    
+    return oldestKey;
+  }
+
+  cleanup(): void {
+    const now = Date.now();
+    const expiredKeys: string[] = [];
+    
+    for (const [key, item] of this.cache.entries()) {
+      if (item.expires <= now) {
+        expiredKeys.push(key);
+      }
+    }
+    
+    expiredKeys.forEach(key => this.cache.delete(key));
+  }
+}
+
 // ==============================================
 // 🧪 A/B 테스트 관리자
 // ==============================================
 
 export class ABTestManager {
   private static instance: ABTestManager;
-  private redis: unknown;
+  private memoryCache: MemoryABTestCache;
   private isInitialized = false;
+  private cleanupTimer: NodeJS.Timeout | null = null;
 
-  private readonly REDIS_KEYS = {
+  private readonly CACHE_KEYS = {
     CONFIG: 'openmanager:ab_test:config',
     METRICS: 'openmanager:ab_test:metrics',
     RESULTS: 'openmanager:ab_test:results',
@@ -95,11 +187,25 @@ export class ABTestManager {
     },
   };
 
+  constructor() {
+    this.memoryCache = new MemoryABTestCache();
+    this.startCleanupTimer();
+  }
+
   static getInstance(): ABTestManager {
     if (!ABTestManager.instance) {
       ABTestManager.instance = new ABTestManager();
     }
     return ABTestManager.instance;
+  }
+
+  /**
+   * 🧹 주기적 정리 시작
+   */
+  private startCleanupTimer(): void {
+    this.cleanupTimer = setInterval(() => {
+      this.memoryCache.cleanup();
+    }, 5 * 60 * 1000); // 5분마다
   }
 
   /**
@@ -109,21 +215,19 @@ export class ABTestManager {
     if (this.isInitialized) return;
 
     try {
-      this.redis = getRedis();
-
       // 기본 설정 로드 또는 생성
-      const existingConfig = await this.redis.get(this.REDIS_KEYS.CONFIG);
+      const existingConfig = this.memoryCache.get(this.CACHE_KEYS.CONFIG);
       if (!existingConfig) {
-        await this.redis.setex(
-          this.REDIS_KEYS.CONFIG,
-          3600, // 1시간 TTL
-          JSON.stringify(this.DEFAULT_CONFIG)
+        this.memoryCache.set(
+          this.CACHE_KEYS.CONFIG,
+          this.DEFAULT_CONFIG,
+          3600 // 1시간 TTL
         );
         console.log('🧪 A/B 테스트 기본 설정 생성');
       }
 
       this.isInitialized = true;
-      console.log('🧪 A/B 테스트 관리자 초기화 완료');
+      console.log('🧪 A/B 테스트 관리자 초기화 완료 (Memory-based)');
     } catch (error) {
       console.error('❌ A/B 테스트 관리자 초기화 실패:', error);
       throw error;
@@ -142,17 +246,17 @@ export class ABTestManager {
     try {
       // 강제 그룹 지정 (URL 파라미터 등)
       if (forceGroup && ['legacy', 'optimized'].includes(forceGroup)) {
-        await this.redis.setex(
-          `${this.REDIS_KEYS.USER_GROUPS}:${userKey}`,
-          3600, // 1시간 유지
-          forceGroup
+        this.memoryCache.set(
+          `${this.CACHE_KEYS.USER_GROUPS}:${userKey}`,
+          forceGroup,
+          3600 // 1시간 유지
         );
         return forceGroup;
       }
 
       // 기존 그룹 확인
-      const existingGroup = await this.redis.get(
-        `${this.REDIS_KEYS.USER_GROUPS}:${userKey}`
+      const existingGroup = this.memoryCache.get(
+        `${this.CACHE_KEYS.USER_GROUPS}:${userKey}`
       );
       if (existingGroup && ['legacy', 'optimized'].includes(existingGroup)) {
         return existingGroup as ABTestGroup;
@@ -169,11 +273,11 @@ export class ABTestManager {
       const group =
         random < config.trafficSplit.legacy ? 'legacy' : 'optimized';
 
-      // Redis에 저장
-      await this.redis.setex(
-        `${this.REDIS_KEYS.USER_GROUPS}:${userKey}`,
-        3600, // 1시간 유지
-        group
+      // 메모리 캐시에 저장
+      this.memoryCache.set(
+        `${this.CACHE_KEYS.USER_GROUPS}:${userKey}`,
+        group,
+        3600 // 1시간 유지
       );
 
       console.log(`👥 사용자 ${userKey} → ${group} 그룹 할당`);
@@ -197,14 +301,14 @@ export class ABTestManager {
 
     try {
       const now = Date.now();
-      const metricsKey = `${this.REDIS_KEYS.METRICS}:${group}`;
+      const metricsKey = `${this.CACHE_KEYS.METRICS}:${group}`;
 
       // 기존 메트릭 조회
-      const existingMetrics = await this.redis.get(metricsKey);
+      const existingMetrics = this.memoryCache.get(metricsKey);
       let metrics: ABTestMetrics;
 
       if (existingMetrics) {
-        metrics = JSON.parse(existingMetrics);
+        metrics = existingMetrics;
       } else {
         metrics = {
           group,
@@ -240,8 +344,8 @@ export class ABTestManager {
         metrics.samples = metrics.samples.slice(-100);
       }
 
-      // Redis에 저장 (1시간 TTL)
-      await this.redis.setex(metricsKey, 3600, JSON.stringify(metrics));
+      // 메모리 캐시에 저장 (1시간 TTL)
+      this.memoryCache.set(metricsKey, metrics, 3600);
 
       // 자동 롤백 검사
       await this.checkAutoRollback(group, metrics);
@@ -318,10 +422,10 @@ export class ABTestManager {
       const currentConfig = await this.getConfig();
       const updatedConfig = { ...currentConfig, ...newConfig };
 
-      await this.redis.setex(
-        this.REDIS_KEYS.CONFIG,
-        3600,
-        JSON.stringify(updatedConfig)
+      this.memoryCache.set(
+        this.CACHE_KEYS.CONFIG,
+        updatedConfig,
+        3600
       );
 
       console.log('⚙️ A/B 테스트 설정 업데이트:', newConfig);
@@ -374,14 +478,23 @@ export class ABTestManager {
    */
   async cleanup(): Promise<void> {
     try {
-      const keys = await this.redis.keys('openmanager:ab_test:*');
-      if (keys.length > 0) {
-        await this.redis.del(...keys);
-      }
+      const keys = this.memoryCache.keys('openmanager:ab_test:*');
+      keys.forEach(key => this.memoryCache.delete(key));
       console.log('🧹 A/B 테스트 데이터 정리 완료');
     } catch (error) {
       console.error('❌ A/B 테스트 데이터 정리 실패:', error);
     }
+  }
+
+  /**
+   * 🛑 리소스 정리
+   */
+  destroy(): void {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+    }
+    this.memoryCache.clear();
+    console.log('🛑 A/B 테스트 관리자 리소스 정리 완료');
   }
 
   // ==============================================
@@ -389,25 +502,23 @@ export class ABTestManager {
   // ==============================================
 
   private async getConfig(): Promise<ABTestConfig> {
-    const config = await this.redis.get(this.REDIS_KEYS.CONFIG);
-    return config ? JSON.parse(config) : this.DEFAULT_CONFIG;
+    const config = this.memoryCache.get(this.CACHE_KEYS.CONFIG);
+    return config || this.DEFAULT_CONFIG;
   }
 
   private async getMetrics(group: ABTestGroup): Promise<ABTestMetrics> {
-    const metricsKey = `${this.REDIS_KEYS.METRICS}:${group}`;
-    const metrics = await this.redis.get(metricsKey);
+    const metricsKey = `${this.CACHE_KEYS.METRICS}:${group}`;
+    const metrics = this.memoryCache.get(metricsKey);
 
-    return metrics
-      ? JSON.parse(metrics)
-      : {
-          group,
-          requestCount: 0,
-          totalResponseTime: 0,
-          errorCount: 0,
-          successCount: 0,
-          lastUpdated: Date.now(),
-          samples: [],
-        };
+    return metrics || {
+      group,
+      requestCount: 0,
+      totalResponseTime: 0,
+      errorCount: 0,
+      successCount: 0,
+      lastUpdated: Date.now(),
+      samples: [],
+    };
   }
 
   private calculateResult(metrics: ABTestMetrics): ABTestResult {

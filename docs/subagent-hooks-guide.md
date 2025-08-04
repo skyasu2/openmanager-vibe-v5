@@ -20,7 +20,7 @@ Claude Code는 서브에이전트의 `description` 필드에 "Use PROACTIVELY wh
 | `debugger-specialist`        | 스택 트레이스 발견, 에러 로그 감지, 런타임 예외               |
 | `code-review-specialist`     | 복잡한 함수 작성, 성능 중요 코드 수정, 타입 에러              |
 | `test-automation-specialist` | npm test 실패, 커버리지 80% 미만, E2E 테스트 타임아웃         |
-| `database-administrator`     | mcp**supabase**\* 도구 사용, Redis 메모리 80% 초과            |
+| `database-administrator`     | mcp**supabase**\* 도구 사용, Memory Cache 메모리 80% 초과            |
 | `quality-control-checker`    | 커밋 전, PR 생성, 배포 준비, 주간 감사                        |
 | `structure-refactor-agent`   | 새 기능 구조 검토, 중복 임계값 초과, 리팩토링 계획            |
 | `documentation-manager`      | 새 기능 문서 필요, JBGE 원칙 위반, 30일+ 미사용 문서          |

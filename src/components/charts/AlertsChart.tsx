@@ -21,7 +21,17 @@ interface AlertsChartProps {
 }
 
 // 🚨 알림 전용 툴팁
-const AlertsTooltip = memo(({ active, payload, label }: unknown) => {
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    value: number;
+    payload: ChartDataPoint;
+    color?: string;
+  }>;
+  label?: string;
+}
+
+const AlertsTooltip = memo(({ active, payload, label }: TooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0];
     return (

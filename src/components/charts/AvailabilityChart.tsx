@@ -19,7 +19,17 @@ interface AvailabilityChartProps {
 }
 
 // 🎨 가용성 전용 툴팁
-const AvailabilityTooltip = memo(({ active, payload }: unknown) => {
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    value: number;
+    payload: ChartDataPoint;
+    name?: string;
+    color?: string;
+  }>;
+}
+
+const AvailabilityTooltip = memo(({ active, payload }: TooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0];
     const total = payload[0].payload.value + (payload[1]?.payload.value || 0);

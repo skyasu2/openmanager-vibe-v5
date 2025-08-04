@@ -1,7 +1,7 @@
 # 🔌 4개 무료 티어 플랫폼 직접 접속 가이드
 
 **작성일**: 2025-07-28  
-**목적**: Vercel, Upstash Redis, Supabase, Google Cloud 직접 접속 및 상태 확인
+**목적**: Vercel, Upstash Memory Cache, Supabase, Google Cloud 직접 접속 및 상태 확인
 
 ## 📋 플랫폼별 접속 방법
 
@@ -39,41 +39,41 @@ npx vercel env ls
 
 ---
 
-### 2️⃣ **Upstash Redis**
+### 2️⃣ **Upstash Memory Cache**
 
 #### 웹 콘솔 접속
 ```bash
 # 브라우저에서 직접 접속
-https://console.upstash.com/redis
+https://console.upstash.com/memory cache
 
-# Redis CLI 직접 연결
-redis-cli --tls -u $UPSTASH_REDIS_REST_URL
+# Memory Cache CLI 직접 연결
+memory cache-cli --tls -u $UPSTASH_MEMORY_CACHE_REST_URL
 ```
 
 #### REST API로 상태 확인
 ```bash
-# Redis 상태 확인
-curl -X GET "$UPSTASH_REDIS_REST_URL/ping" \
-  -H "Authorization: Bearer $UPSTASH_REDIS_REST_TOKEN"
+# Memory Cache 상태 확인
+curl -X GET "$UPSTASH_MEMORY_CACHE_REST_URL/ping" \
+  -H "Authorization: Bearer $UPSTASH_MEMORY_CACHE_REST_TOKEN"
 
 # 메모리 사용량 확인
-curl -X GET "$UPSTASH_REDIS_REST_URL/info/memory" \
-  -H "Authorization: Bearer $UPSTASH_REDIS_REST_TOKEN"
+curl -X GET "$UPSTASH_MEMORY_CACHE_REST_URL/info/memory" \
+  -H "Authorization: Bearer $UPSTASH_MEMORY_CACHE_REST_TOKEN"
 ```
 
 #### Node.js 직접 연결
 ```javascript
-import { Redis } from '@upstash/redis'
+import { Memory Cache } from '@upstash/memory cache'
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+const memory cache = new Memory Cache({
+  url: process.env.UPSTASH_MEMORY_CACHE_REST_URL,
+  token: process.env.UPSTASH_MEMORY_CACHE_REST_TOKEN,
 })
 
 // 상태 확인
-const pong = await redis.ping()
-const info = await redis.info()
-console.log('Redis Status:', pong, info)
+const pong = await memory cache.ping()
+const info = await memory cache.info()
+console.log('Memory Cache Status:', pong, info)
 ```
 
 ---
@@ -168,10 +168,10 @@ echo "1️⃣ Vercel 상태:"
 curl -s -H "Authorization: Bearer $VERCEL_TOKEN" \
   https://api.vercel.com/v6/deployments | jq '.deployments[0].state'
 
-# 2. Redis
-echo "2️⃣ Redis 상태:"
-curl -s -X GET "$UPSTASH_REDIS_REST_URL/ping" \
-  -H "Authorization: Bearer $UPSTASH_REDIS_REST_TOKEN"
+# 2. Memory Cache
+echo "2️⃣ Memory Cache 상태:"
+curl -s -X GET "$UPSTASH_MEMORY_CACHE_REST_URL/ping" \
+  -H "Authorization: Bearer $UPSTASH_MEMORY_CACHE_REST_TOKEN"
 
 # 3. Supabase
 echo "3️⃣ Supabase 상태:"
@@ -193,6 +193,6 @@ echo "✅ 상태 확인 완료"
 | 플랫폼 | 정상 응답 | 비정상 응답 |
 |--------|----------|-------------|
 | Vercel | `"READY"` | `"ERROR"`, `"FAILED"` |
-| Redis | `"PONG"` | Connection error |
+| Memory Cache | `"PONG"` | Connection error |
 | Supabase | `200 OK` | `401`, `500` |
 | GCP | `"RUNNING"` | `"STOPPED"`, `404` |

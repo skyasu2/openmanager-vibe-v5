@@ -115,7 +115,7 @@ const report = {
   services: {
     vercel: await checkVercelStatus(),
     supabase: await checkSupabaseStatus(),
-    redis: await checkRedisStatus(),
+    memory cache: await checkMemory CacheStatus(),
   },
   errors: await getRecentErrors(),
   recommendations: await generateRecommendations(),

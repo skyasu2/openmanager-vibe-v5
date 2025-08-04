@@ -146,10 +146,10 @@ export function safePropertyAccess<T>(obj: unknown, path: string, fallback: T): 
       if (current == null || typeof current !== 'object' || !(key in current)) {
         return fallback;
       }
-      current = current[key];
+      current = (current as any)[key];
     }
 
-    return current ?? fallback;
+    return (current as T) ?? fallback;
   } catch (error) {
     console.warn('⚠️ [safePropertyAccess] 안전한 속성 접근 실패:', error);
     return fallback;

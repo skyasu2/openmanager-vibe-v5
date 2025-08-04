@@ -7,7 +7,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, Database, Zap } from 'lucide-react';
+import { ChevronDown, Database, Zap, type LucideIcon } from 'lucide-react';
 import React, { useState } from 'react';
 
 // 타입 임포트
@@ -15,7 +15,7 @@ interface AIEngine {
   id: string;
   name: string;
   description: string;
-  icon: unknown;
+  icon: LucideIcon;
   color: string;
   bgColor: string;
   features: string[];

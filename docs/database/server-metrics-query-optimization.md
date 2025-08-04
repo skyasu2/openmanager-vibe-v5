@@ -233,10 +233,10 @@ export async function getOptimizedServerMetrics(
 
 ### 5. 캐싱 전략 강화
 ```typescript
-// Redis 캐싱 레이어 추가
-import { Redis } from '@upstash/redis';
+// Memory Cache 캐싱 레이어 추가
+import { Memory Cache } from '@upstash/memory cache';
 
-const redis = Redis.fromEnv();
+const memory cache = Memory Cache.fromEnv();
 
 export async function getCachedServerMetrics(
   serverId: string,
@@ -245,7 +245,7 @@ export async function getCachedServerMetrics(
   const cacheKey = `metrics:${serverId}:${timeRange}`;
   
   // 캐시 확인
-  const cached = await redis.get(cacheKey);
+  const cached = await memory cache.get(cacheKey);
   if (cached) {
     return JSON.parse(cached as string);
   }
@@ -255,7 +255,7 @@ export async function getCachedServerMetrics(
   
   // 캐시 저장 (TTL은 시간 범위에 따라 조정)
   const ttl = timeRange === '1h' ? 60 : 300; // 1분 또는 5분
-  await redis.set(cacheKey, JSON.stringify(metrics), { ex: ttl });
+  await memory cache.set(cacheKey, JSON.stringify(metrics), { ex: ttl });
   
   return metrics;
 }
@@ -318,7 +318,7 @@ SELECT cron.schedule('archive_old_metrics', '0 0 * * *', 'SELECT archive_old_met
 
 2. **단계적 적용** (테스트 필요)
    - 구체화된 뷰 생성
-   - Redis 캐싱 구현
+   - Memory Cache 캐싱 구현
 
 3. **장기 계획** (Supabase Pro 필요)
    - 파티셔닝 구현
@@ -328,7 +328,7 @@ SELECT cron.schedule('archive_old_metrics', '0 0 * * *', 'SELECT archive_old_met
 
 - **인덱스 크기**: 각 인덱스는 약 10-20MB (500MB 한계 내 충분)
 - **구체화된 뷰**: 약 50MB (7일 데이터 기준)
-- **Redis 캐싱**: 256MB 내에서 효율적 운영 가능
+- **Memory Cache 캐싱**: 256MB 내에서 효율적 운영 가능
 
 ## 🚨 주의사항
 

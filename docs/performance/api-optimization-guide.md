@@ -1,6 +1,6 @@
 # 🚀 API 성능 최적화 가이드
 
-**목적**: Redis 캐싱 기반 API 응답 시간 90% 개선  
+**목적**: Memory Cache 캐싱 기반 API 응답 시간 90% 개선  
 **상위 문서**: [성능 최적화 완전 가이드](/docs/performance-optimization-complete-guide.md)
 
 > **핵심**: 실시간 데이터를 고정 템플릿으로 변환하여 65-250ms → 1-5ms 응답 시간 달성
@@ -27,7 +27,7 @@
 ### 최적화 솔루션
 
 - **고정 데이터 템플릿**: 복잡한 계산을 사전에 완료된 템플릿으로 교체
-- **Redis 캐싱**: 1-5ms 초고속 응답
+- **Memory Cache 캐싱**: 1-5ms 초고속 응답
 - **실시간 느낌 유지**: 현재 시간 + 미세 변동으로 실시간 효과
 - **100% 호환성**: 기존 API 스펙 완전 동일
 
@@ -50,7 +50,7 @@
 src/
 ├── lib/
 │   ├── static-data-templates.ts      # 고정 데이터 템플릿 생성기
-│   ├── redis-template-cache.ts       # Redis 기반 고속 캐시
+│   ├── memory cache-template-cache.ts       # Memory Cache 기반 고속 캐시
 │   └── ab-test-manager.ts            # A/B 테스트 관리자
 ├── app/api/
 │   ├── servers-optimized/route.ts    # 최적화된 서버 API
@@ -63,12 +63,12 @@ src/
 
 ### 2. 환경 변수 설정
 
-기존 Redis 설정이 있으면 추가 설정 불필요:
+기존 Memory Cache 설정이 있으면 추가 설정 불필요:
 
 ```env
-# 기존 Redis 설정 사용
-UPSTASH_REDIS_REST_URL=your_redis_url
-UPSTASH_REDIS_REST_TOKEN=your_redis_token
+# 기존 Memory Cache 설정 사용
+UPSTASH_MEMORY_CACHE_REST_URL=your_memory cache_url
+UPSTASH_MEMORY_CACHE_REST_TOKEN=your_memory cache_token
 
 # 앱 URL (성능 테스트용)
 NEXT_PUBLIC_APP_URL=https://openmanager-vibe-v5.vercel.app
@@ -76,12 +76,12 @@ NEXT_PUBLIC_APP_URL=https://openmanager-vibe-v5.vercel.app
 
 ### 3. 의존성 확인
 
-기존 프로젝트의 Redis 라이브러리 사용 (추가 설치 불필요):
+기존 프로젝트의 Memory Cache 라이브러리 사용 (추가 설치 불필요):
 
 ```bash
 # 이미 설치되어 있음
-npm list @upstash/redis
-npm list redis
+npm list @upstash/memory cache
+npm list memory cache
 ```
 
 ## 🚀 API 사용법
@@ -330,10 +330,10 @@ await fetch('/api/ab-test', {
 
 ### 자주 발생하는 문제들
 
-#### 1. Redis 연결 실패
+#### 1. Memory Cache 연결 실패
 
 ```bash
-# Redis 상태 확인
+# Memory Cache 상태 확인
 curl https://your-app.vercel.app/api/servers-optimized \
   -X POST \
   -H "Content-Type: application/json" \
@@ -342,9 +342,9 @@ curl https://your-app.vercel.app/api/servers-optimized \
 
 **해결책:**
 
-- `UPSTASH_REDIS_REST_URL` 환경변수 확인
-- `UPSTASH_REDIS_REST_TOKEN` 환경변수 확인
-- Redis 서비스 상태 확인
+- `UPSTASH_MEMORY_CACHE_REST_URL` 환경변수 확인
+- `UPSTASH_MEMORY_CACHE_REST_TOKEN` 환경변수 확인
+- Memory Cache 서비스 상태 확인
 
 #### 2. 성능 개선이 기대보다 낮음
 
@@ -358,7 +358,7 @@ console.log('상세 분석:', details.data.analysis);
 **해결책:**
 
 - 네트워크 지연 확인
-- Redis 응답 시간 확인
+- Memory Cache 응답 시간 확인
 - 캐시 히트율 확인
 
 #### 3. A/B 테스트 데이터 불일치
@@ -391,8 +391,8 @@ await fetch('/api/ab-test', {
 ```javascript
 // 브라우저 콘솔에서 확인
 console.log('🚀 최적화된 서버 데이터 API 호출');
-console.log('📊 Redis 템플릿 고속 조회');
-console.log('✅ Redis 템플릿 자동 업데이트 완료');
+console.log('📊 Memory Cache 템플릿 고속 조회');
+console.log('✅ Memory Cache 템플릿 자동 업데이트 완료');
 ```
 
 ## 📊 모니터링 대시보드
@@ -455,7 +455,7 @@ await fetch('/api/ab-test', {
 
 3. **오류 로그 확인** (3분)
    - Vercel 대시보드에서 함수 로그 확인
-   - Redis 연결 상태 확인
+   - Memory Cache 연결 상태 확인
 
 ### 주간 리뷰
 

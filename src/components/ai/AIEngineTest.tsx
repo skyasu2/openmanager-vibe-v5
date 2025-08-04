@@ -13,6 +13,17 @@ interface TestResult {
   duration?: number;
 }
 
+interface AIEngineConfig {
+  engine: string;
+  timeout: number;
+  internalEngineEnabled?: boolean;
+  fallbackEnabled?: boolean;
+  validation?: {
+    isValid: boolean;
+    errors?: string[];
+  };
+}
+
 // Replace with simple implementation
 const makeAIRequest = async (query: string) => {
   return {
@@ -30,14 +41,21 @@ const getDefaultConfig = () => ({
 export const AIEngineTest: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<TestResult[]>([]);
-  const [config, setConfig] = useState<unknown>(null);
+  const [config, setConfig] = useState<AIEngineConfig | null>(null);
 
   // AI 엔진 설정 로드
   const loadConfig = async () => {
     try {
       const aiConfig = getDefaultConfig();
-      const validation = { isValid: true };
-      setConfig({ ...aiConfig, validation });
+      const validation = { isValid: true, errors: [] as string[] };
+      setConfig({ 
+        ...aiConfig,
+        engine: aiConfig.engine || 'test',
+        timeout: aiConfig.timeout || 5000,
+        internalEngineEnabled: true,
+        fallbackEnabled: true,
+        validation 
+      });
     } catch (error) {
       console.error('Config load error:', error);
     }
@@ -233,7 +251,7 @@ export const AIEngineTest: React.FC = () => {
                 >
                   {config.validation?.isValid ? '유효함' : '오류 있음'}
                 </p>
-                {config.validation?.errors?.length > 0 && (
+                {config.validation?.errors && config.validation.errors.length > 0 && (
                   <ul className="mt-1 text-xs text-red-400">
                     {config.validation.errors.map(
                       (error: string, idx: number) => (

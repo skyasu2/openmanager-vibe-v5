@@ -49,7 +49,7 @@ const response = await fetch('/api/gcp/data-generator', {
 ```
 Client → /api/gcp/real-servers → GCP VM → Firestore → Cloud Functions
                                     ↓
-                                  Redis
+                                  Memory Cache
                                     ↓
                                   Client
 ```
@@ -57,7 +57,7 @@ Client → /api/gcp/real-servers → GCP VM → Firestore → Cloud Functions
 ### After (단순화된 구조)
 
 ```
-Client → /api/servers-optimized → Redis Template Cache → Client
+Client → /api/servers-optimized → Memory Cache Template Cache → Client
                                     ↓ (Fallback)
                                   Supabase
 ```
@@ -88,8 +88,8 @@ export function useServerData() {
 # CLOUD_FUNCTIONS_URL=xxx (제거)
 
 # 유지할 환경 변수
-UPSTASH_REDIS_REST_URL=xxx
-UPSTASH_REDIS_REST_TOKEN=xxx
+UPSTASH_MEMORY_CACHE_REST_URL=xxx
+UPSTASH_MEMORY_CACHE_REST_TOKEN=xxx
 NEXT_PUBLIC_SUPABASE_URL=xxx
 NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
 ```

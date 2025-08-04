@@ -74,7 +74,7 @@ npm test
   "formatting": "Prettier 3.x",
   "static-analysis": "TypeScript Compiler + ESLint",
   "database": "Supabase PostgreSQL + pgvector",
-  "cache": "Upstash Redis (월 500K 무료)",
+  "cache": "Upstash Memory Cache (월 500K 무료)",
   "deployment": "Vercel Edge Runtime"
 }
 ```
@@ -130,11 +130,11 @@ export class DashboardService {
 ```typescript
 // src/services/DashboardService.ts
 export class DashboardService {
-  private redis: Redis;
+  private memory cache: Memory Cache;
   private cache: Map<string, any>;
 
   constructor() {
-    this.redis = new Redis(process.env.REDIS_URL);
+    this.memory cache = new Memory Cache(process.env.MEMORY_CACHE_URL);
     this.cache = new Map();
   }
 
@@ -146,8 +146,8 @@ export class DashboardService {
       return this.cache.get(cacheKey);
     }
 
-    // Redis에서 데이터 조회
-    const data = await this.redis.get(cacheKey);
+    // Memory Cache에서 데이터 조회
+    const data = await this.memory cache.get(cacheKey);
     if (data) {
       const parsed = JSON.parse(data);
       this.cache.set(cacheKey, parsed);
@@ -159,7 +159,7 @@ export class DashboardService {
     const result = { servers };
 
     // 캐시 저장
-    await this.redis.set(cacheKey, JSON.stringify(result), 'EX', 300);
+    await this.memory cache.set(cacheKey, JSON.stringify(result), 'EX', 300);
     this.cache.set(cacheKey, result);
 
     return result;
@@ -218,8 +218,8 @@ export default defineConfig({
       // 제거된 불필요한 테스트 파일들
       'tests/integration/on-demand-health-check.test.ts',
       'tests/integration/system-state-management.test.ts',
-      'tests/redis/redis-metrics-manager.test.ts',
-      'tests/unit/redis-metrics-manager.test.ts',
+      'tests/memory cache/memory cache-metrics-manager.test.ts',
+      'tests/unit/memory cache-metrics-manager.test.ts',
       'tests/unit/server-monitoring-patterns.test.ts',
       'tests/unit/auto-incident-report-system.test.ts',
       'tests/unit/urgent-free-tier-optimization.test.ts',
@@ -255,13 +255,13 @@ export default defineConfig({
 tests/
 ├── unit/                     # 핵심 비즈니스 로직 테스트
 │   ├── dashboard-service.test.ts
-│   ├── redis-service.test.ts
+│   ├── memory cache-service.test.ts
 │   └── api-routes.test.ts
 ├── integration/              # 외부 서비스 통합 테스트
 │   ├── database-integration.test.ts
 │   └── external-api.test.ts
 ├── mocks/                    # 모킹 설정
-│   ├── redis-mock.ts
+│   ├── memory cache-mock.ts
 │   └── supabase-mock.ts
 └── setup.ts                  # 테스트 환경 설정
 ```
@@ -290,9 +290,9 @@ DEBUG=* npm run dev
 cp .env.example .env.local
 
 # 필수 환경 변수
-GCP_REDIS_HOST=your_redis_host
-GCP_REDIS_PORT=6379
-GCP_REDIS_PASSWORD=your_redis_password
+GCP_MEMORY_CACHE_HOST=your_memory cache_host
+GCP_MEMORY_CACHE_PORT=6379
+GCP_MEMORY_CACHE_PASSWORD=your_memory cache_password
 
 # 무료티어 최적화 설정
 NEXT_PUBLIC_FREE_TIER_MODE=true
@@ -339,7 +339,7 @@ export class FreeTierProtection {
   private static enableQuotaProtection() {
     // Google AI 일일 1,000개 제한
     // Supabase 월 40,000개 제한
-    // Redis 일일 8,000개 제한
+    // Memory Cache 일일 8,000개 제한
   }
 
   private static startMemoryMonitoring() {
@@ -534,8 +534,8 @@ npm run analyze:bundle
 
 - `tests/integration/on-demand-health-check.test.ts`
 - `tests/integration/system-state-management.test.ts`
-- `tests/redis/redis-metrics-manager.test.ts`
-- `tests/unit/redis-metrics-manager.test.ts`
+- `tests/memory cache/memory cache-metrics-manager.test.ts`
+- `tests/unit/memory cache-metrics-manager.test.ts`
 - `tests/unit/server-monitoring-patterns.test.ts`
 - `tests/unit/auto-incident-report-system.test.ts`
 - `tests/unit/urgent-free-tier-optimization.test.ts`

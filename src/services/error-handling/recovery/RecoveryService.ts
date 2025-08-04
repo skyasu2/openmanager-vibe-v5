@@ -139,8 +139,8 @@ export class RecoveryService {
       case 'TIMEOUT_ERROR':
         return await this.recoverFromTimeoutError(error);
 
-      case 'REDIS_CONNECTION_ERROR':
-        return await this.recoverFromRedisError(error);
+      case 'MEMORY_CACHE_ERROR':
+        return await this.recoverFromMemoryCacheError(error);
 
       case 'EXTERNAL_API_ERROR':
         return await this.recoverFromExternalAPIError(error);
@@ -285,34 +285,34 @@ export class RecoveryService {
   }
 
   /**
-   * Redis 에러 복구
+   * 메모리 캐시 에러 복구
    */
-  private async recoverFromRedisError(
+  private async recoverFromMemoryCacheError(
     error: ServiceError
   ): Promise<RecoveryResult> {
-    console.log('🔴 Redis 에러 복구 시도');
+    console.log('🧠 메모리 캐시 에러 복구 시도');
 
     try {
-      // Redis 상태 확인
+      // 메모리 상태 확인
       const response = await fetch('/api/system/status');
       const status = await response.json();
 
-      if (status.redis?.connected) {
+      if (status.success) {
         return {
           success: true,
           attempts: 1,
         };
       }
 
-      // 메모리 캐시로 폴백
+      // 캐시 초기화로 폴백
       if (typeof window !== 'undefined') {
-        localStorage.setItem('redis-fallback-mode', 'true');
+        localStorage.setItem('memory-cache-reset', 'true');
       }
 
       return {
         success: true,
         attempts: 1,
-        fallbackUrl: 'memory-cache',
+        fallbackUrl: 'memory-cache-reset',
       };
     } catch (testError) {
       return {
@@ -321,7 +321,7 @@ export class RecoveryService {
         error:
           testError instanceof Error
             ? testError.message
-            : 'Redis 상태 확인 실패',
+            : '메모리 캐시 상태 확인 실패',
       };
     }
   }

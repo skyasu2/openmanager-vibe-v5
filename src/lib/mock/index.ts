@@ -5,13 +5,11 @@
  */
 
 import { GoogleAIMock } from './providers/GoogleAIMock';
-import { RedisMock } from './providers/RedisMock';
 import { SupabaseMock } from './providers/SupabaseMock';
 import { GCPMock } from './providers/GCPMock';
 
 // Mock 인스턴스 캐시
 let googleAIMock: GoogleAIMock | null = null;
-let redisMock: RedisMock | null = null;
 let supabaseMock: SupabaseMock | null = null;
 let gcpMock: GCPMock | null = null;
 
@@ -59,16 +57,6 @@ export function getGoogleAIMock(): GoogleAIMock {
 }
 
 /**
- * Redis Mock 가져오기
- */
-export function getRedisMock(): RedisMock {
-  if (!redisMock) {
-    redisMock = new RedisMock();
-  }
-  return redisMock;
-}
-
-/**
  * Supabase Mock 가져오기
  */
 export function getSupabaseMock(): SupabaseMock {
@@ -95,7 +83,6 @@ export function getAllMockStats(): Record<string, any> {
   return {
     mode: getMockMode(),
     googleAI: googleAIMock?.getStats() || null,
-    redis: redisMock?.getStats() || null,
     supabase: supabaseMock?.getStats() || null,
     gcp: gcpMock?.getStats() || null,
   };
@@ -106,7 +93,6 @@ export function getAllMockStats(): Record<string, any> {
  */
 export function resetAllMocks(): void {
   googleAIMock?.reset();
-  redisMock?.reset();
   supabaseMock?.reset();
   gcpMock?.reset();
   
@@ -129,7 +115,7 @@ export function getMockSystemInfo(): {
     version: '2.0.0',
     mode,
     active,
-    services: active ? ['googleAI', 'redis', 'supabase', 'gcp'] : [],
+    services: active ? ['googleAI', 'supabase', 'gcp'] : [],
   };
 }
 
@@ -137,7 +123,6 @@ export function getMockSystemInfo(): {
 if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
   (window as any).__MOCK_SYSTEM__ = {
     getGoogleAIMock,
-    getRedisMock,
     getSupabaseMock,
     getGCPMock,
     getAllMockStats,

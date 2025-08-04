@@ -16,18 +16,18 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 ```
 
-### 3. **Redis (Upstash) 환경변수**
+### 3. **Memory Cache (Upstash) 환경변수**
 
 ```
-UPSTASH_REDIS_REST_URL=https://your-redis-url.upstash.io
-UPSTASH_REDIS_REST_TOKEN=your_redis_token_here
+UPSTASH_MEMORY_CACHE_REST_URL=https://your-memory cache-url.upstash.io
+UPSTASH_MEMORY_CACHE_REST_TOKEN=your_memory cache_token_here
 ```
 
 또는
 
 ```
-KV_REST_API_URL=https://your-redis-url.upstash.io
-KV_REST_API_TOKEN=your_redis_token_here
+KV_REST_API_URL=https://your-memory cache-url.upstash.io
+KV_REST_API_TOKEN=your_memory cache_token_here
 ```
 
 ### 4. **Google AI 환경변수**

@@ -21,12 +21,13 @@ import {
   Mail,
   Network,
   Search,
-  Server,
+  Server as ServerIcon,
   Settings,
   Shield,
   Zap,
 } from 'lucide-react';
 import React from 'react';
+import type { Server } from '@/types/server';
 
 interface ServerGenerationProgressProps {
   currentCount: number;
@@ -37,7 +38,7 @@ interface ServerGenerationProgressProps {
   nextServerType: string | null;
   currentMessage: string;
   error: string | null;
-  lastGeneratedServer: unknown | null;
+  lastGeneratedServer: Partial<Server> | null;
 }
 
 const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
@@ -57,7 +58,7 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
 
     // 🌐 웹서버
     if (type === 'nginx' || type === 'apache' || type === 'iis')
-      return <Server className="h-4 w-4" />;
+      return <ServerIcon className="h-4 w-4" />;
 
     // 🚀 애플리케이션 서버
     if (type === 'nodejs') return <GitBranch className="h-4 w-4" />;
@@ -85,7 +86,7 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
     if (type === 'prometheus') return <BarChart3 className="h-4 w-4" />;
 
     // 🔄 하위 호환성 (기존 타입)
-    if (type.includes('web')) return <Server className="h-4 w-4" />;
+    if (type.includes('web')) return <ServerIcon className="h-4 w-4" />;
     if (type.includes('database')) return <Database className="h-4 w-4" />;
     if (type.includes('kubernetes')) return <Layers className="h-4 w-4" />;
     if (type.includes('api')) return <GitBranch className="h-4 w-4" />;
@@ -299,9 +300,9 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div
-                  className={`h-8 w-8 rounded-lg border ${getServerColor(lastGeneratedServer.type)} border-current/30 bg-current/10 flex items-center justify-center`}
+                  className={`h-8 w-8 rounded-lg border ${getServerColor(lastGeneratedServer.type || '')} border-current/30 bg-current/10 flex items-center justify-center`}
                 >
-                  {getServerIcon(lastGeneratedServer.type)}
+                  {getServerIcon(lastGeneratedServer.type || '')}
                 </div>
 
                 <div>

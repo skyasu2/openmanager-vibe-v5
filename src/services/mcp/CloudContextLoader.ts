@@ -1,79 +1,113 @@
 /**
- * 🌐 Cloud-based Context Loader
+ * 🌐 Cloud-based Context Loader (Redis-Free)
  *
- * ContextLoader 대체: 파일 시스템 → GCP+Redis+MCP+RAG 통합 인프라
+ * ContextLoader 대체: 파일 시스템 → GCP+Memory+MCP+RAG 통합 인프라
  *
  * 기능:
  * - MCP 서버 컨텍스트 문서를 Firestore에 구조화 저장
- * - Redis를 통한 빠른 컨텍스트 캐싱 (TTL 1시간)
+ * - 메모리 기반 컨텍스트 캐싱 (TTL 1시간)
  * - Google Cloud VM MCP 서버 직접 연동
  * - RAG 엔진과의 협업 및 컨텍스트 공유
  * - 자연어 처리 파이프라인 지원
  * - 버전 관리 및 백업 지원
  * - 실시간 컨텍스트 업데이트
+ * - Redis 완전 제거, 메모리 캐시만 사용
  */
 
 import type { MCPContextPatterns } from '@/types/mcp';
-import type { RedisClientInterface } from '@/lib/redis';
 
-// 🔒 Redis 타입 가드 함수들
-/**
- * Redis 클라이언트 객체인지 확인하는 타입 가드
- */
-export function isRedisClient(value: unknown): value is RedisClientInterface {
-  return (
-    value !== null &&
-    typeof value === 'object' &&
-    typeof (value as any).get === 'function' &&
-    typeof (value as any).set === 'function' &&
-    typeof (value as any).setex === 'function' &&
-    typeof (value as any).del === 'function' &&
-    typeof (value as any).ping === 'function'
-  );
-}
+// 메모리 기반 캐시 클래스
+class MemoryContextCache {
+  private cache = new Map<string, { value: any; expires: number; lastAccess: number }>();
+  private maxSize = 50; // 최대 50개 컨텍스트
+  private hits = 0;
+  private misses = 0;
 
-/**
- * Redis가 연결되어 있고 사용 가능한지 확인하는 타입 가드
- */
-export function isRedisConnected(
-  redis: RedisClientInterface | null
-): redis is RedisClientInterface {
-  return redis !== null && isRedisClient(redis);
-}
+  set(key: string, value: any, ttlSeconds: number): void {
+    // LRU 방식으로 캐시 크기 관리
+    if (this.cache.size >= this.maxSize) {
+      let oldestKey = '';
+      let oldestTime = Date.now();
+      
+      for (const [k, v] of this.cache.entries()) {
+        if (v.lastAccess < oldestTime) {
+          oldestTime = v.lastAccess;
+          oldestKey = k;
+        }
+      }
+      
+      if (oldestKey) {
+        this.cache.delete(oldestKey);
+      }
+    }
 
-/**
- * Redis 연산을 안전하게 실행하는 래퍼 함수
- */
-export async function safeRedisOperation<T>(
-  redis: RedisClientInterface | null,
-  operation: (redis: RedisClientInterface) => Promise<T>,
-  fallback?: T
-): Promise<T | null> {
-  if (!isRedisConnected(redis)) {
-    console.warn('⚠️ Redis가 연결되지 않음 - 연산 건너뜀');
-    return fallback ?? null;
+    this.cache.set(key, {
+      value,
+      expires: Date.now() + ttlSeconds * 1000,
+      lastAccess: Date.now(),
+    });
   }
 
-  try {
-    return await operation(redis);
-  } catch (error) {
-    console.error('❌ Redis 연산 실패:', error);
-    return fallback ?? null;
+  get<T>(key: string): T | null {
+    const item = this.cache.get(key);
+    if (!item) {
+      this.misses++;
+      return null;
+    }
+    
+    if (Date.now() > item.expires) {
+      this.cache.delete(key);
+      this.misses++;
+      return null;
+    }
+    
+    item.lastAccess = Date.now();
+    this.hits++;
+    return item.value as T;
   }
-}
 
-// Edge Runtime 호환성을 위해 동적 import 사용
-let getRedis: (() => RedisClientInterface) | null = null;
-try {
-  if (
-    typeof process !== 'undefined' &&
-    process.versions &&
-    process.versions.node
-  ) {
-    getRedis = require('@/lib/redis').getRedis;
+  delete(key: string): boolean {
+    return this.cache.delete(key);
   }
-} catch {
-  console.warn('⚠️ Redis 기능을 사용할 수 없는 환경입니다 (Edge Runtime)');
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  has(key: string): boolean {
+    const item = this.cache.get(key);
+    if (!item) return false;
+    
+    if (Date.now() > item.expires) {
+      this.cache.delete(key);
+      return false;
+    }
+    
+    return true;
+  }
+
+  size(): number {
+    return this.cache.size;
+  }
+
+  getStats(): { hits: number; misses: number; hitRate: number; size: number } {
+    const total = this.hits + this.misses;
+    return {
+      hits: this.hits,
+      misses: this.misses,
+      hitRate: total > 0 ? (this.hits / total) * 100 : 0,
+      size: this.cache.size,
+    };
+  }
+
+  cleanup(): void {
+    const now = Date.now();
+    for (const [key, value] of this.cache.entries()) {
+      if (value.expires <= now) {
+        this.cache.delete(key);
+      }
+    }
+  }
 }
 
 interface ContextDocument {
@@ -122,12 +156,12 @@ interface RAGEngineContext {
 }
 
 interface CloudContextLoaderConfig {
-  enableRedisCache: boolean;
+  enableMemoryCache: boolean;
   enableFirestore: boolean;
   enableMCPIntegration: boolean;
   enableRAGIntegration: boolean;
-  redisPrefix: string;
-  redisTTL: number; // 1시간 기본
+  memoryPrefix: string;
+  memoryTTL: number; // 1시간 기본
   maxCacheSize: number;
   compressionEnabled: boolean;
   mcpServerUrl: string;
@@ -137,19 +171,20 @@ interface CloudContextLoaderConfig {
 export class CloudContextLoader {
   private static instance: CloudContextLoader;
   private config: CloudContextLoaderConfig;
-  private redis: RedisClientInterface | null = null;
+  private memoryCache: MemoryContextCache;
   private contextCache: Map<string, ContextDocument> = new Map();
   private mcpServerInfo: MCPServerInfo;
   private healthCheckTimer: NodeJS.Timeout | null = null;
+  private cleanupTimer: NodeJS.Timeout | null = null;
 
   constructor(config?: Partial<CloudContextLoaderConfig>) {
     this.config = {
-      enableRedisCache: true,
+      enableMemoryCache: true,
       enableFirestore: true,
       enableMCPIntegration: true,
       enableRAGIntegration: true,
-      redisPrefix: 'openmanager:context:',
-      redisTTL: 3600, // 1시간
+      memoryPrefix: 'openmanager:context:',
+      memoryTTL: 3600, // 1시간
       maxCacheSize: 50, // 최대 50개 컨텍스트 캐싱
       compressionEnabled: true,
       mcpServerUrl:
@@ -159,6 +194,9 @@ export class CloudContextLoader {
       ...config,
     };
 
+    // 메모리 캐시 초기화
+    this.memoryCache = new MemoryContextCache();
+
     // MCP 서버 정보 초기화
     this.mcpServerInfo = {
       url: this.config.mcpServerUrl,
@@ -167,21 +205,15 @@ export class CloudContextLoader {
       responseTime: 0,
     };
 
-    // Redis 연결 (서버 환경에서만)
-    if (
-      typeof window === 'undefined' &&
-      this.config.enableRedisCache &&
-      getRedis
-    ) {
-      this.redis = getRedis();
-    }
-
     // MCP 서버 헬스체크 시작
     if (this.config.enableMCPIntegration) {
       this.startMCPHealthCheck();
     }
 
-    console.log('🌐 CloudContextLoader 초기화 완료 (MCP + RAG 통합)');
+    // 주기적 캐시 정리 (5분마다)
+    this.startCacheCleanup();
+
+    console.log('🌐 CloudContextLoader 초기화 완료 (MCP + RAG 통합, Memory-based)');
   }
 
   static getInstance(
@@ -191,6 +223,15 @@ export class CloudContextLoader {
       CloudContextLoader.instance = new CloudContextLoader(config);
     }
     return CloudContextLoader.instance;
+  }
+
+  /**
+   * 🧹 주기적 캐시 정리 시작
+   */
+  private startCacheCleanup(): void {
+    this.cleanupTimer = setInterval(() => {
+      this.memoryCache.cleanup();
+    }, 5 * 60 * 1000); // 5분마다
   }
 
   /**
@@ -307,7 +348,7 @@ export class CloudContextLoader {
         files,
       };
 
-      // 4. Redis 캐싱
+      // 4. 메모리 캐싱
       await this.cacheRAGContext(query, ragContext);
 
       console.log(
@@ -401,13 +442,10 @@ export class CloudContextLoader {
     query: string,
     ragContext: RAGEngineContext
   ): Promise<void> {
-    if (this.config.enableRedisCache) {
-      const cacheKey = `${this.config.redisPrefix}rag:${this.generateQueryHash(query)}`;
-      await safeRedisOperation(
-        this.redis,
-        async (redis) =>
-          await redis.setex(cacheKey, 900, JSON.stringify(ragContext))
-      );
+    if (this.config.enableMemoryCache) {
+      const cacheKey = `${this.config.memoryPrefix}rag:${this.generateQueryHash(query)}`;
+      this.memoryCache.set(cacheKey, ragContext, 900); // 15분 캐시
+      console.log(`💾 RAG 컨텍스트 메모리 캐싱: ${cacheKey}`);
     }
   }
 
@@ -595,7 +633,7 @@ export class CloudContextLoader {
           if (ragSyncResult.success) {
             syncedContexts++;
           } else {
-            errors.push(`로컬 컨텍스트 동기화 실패: ${context.id}`);
+            errors.push(`로컬 컨텍스트 동기화 실패: ${(context as any).id}`);
           }
         }
       }
@@ -760,12 +798,13 @@ export class CloudContextLoader {
       errorRate: number;
     };
   }> {
-    // 기본 통계 계산 (실제 구현에서는 실제 데이터 사용)
+    const cacheStats = this.memoryCache.getStats();
+    
     return {
       mcpServer: this.mcpServerInfo,
       contextCache: {
-        size: this.contextCache.size,
-        hitRate: 85.7, // 실제 계산값으로 교체
+        size: cacheStats.size,
+        hitRate: cacheStats.hitRate,
       },
       ragIntegration: {
         enabled: this.config.enableRAGIntegration,
@@ -774,14 +813,14 @@ export class CloudContextLoader {
       },
       performance: {
         avgQueryTime: this.mcpServerInfo.responseTime,
-        totalQueries: 1234, // 실제 카운터로 교체
+        totalQueries: cacheStats.hits + cacheStats.misses,
         errorRate: 2.1, // 실제 계산값으로 교체
       },
     };
   }
 
   /**
-   * 📚 컨텍스트 번들 업로드 (Firestore + Redis)
+   * 📚 컨텍스트 번들 업로드 (Firestore + Memory)
    */
   async uploadContextBundle(
     bundleType: 'base' | 'advanced' | 'custom',
@@ -814,9 +853,9 @@ export class CloudContextLoader {
         await this.saveToFirestore(contextDoc);
       }
 
-      // 2. Redis 캐싱
-      if (this.config.enableRedisCache && this.redis) {
-        await this.saveToRedis(contextDoc);
+      // 2. 메모리 캐싱
+      if (this.config.enableMemoryCache) {
+        await this.saveToMemory(contextDoc);
       }
 
       // 3. 메모리 캐시 업데이트
@@ -836,7 +875,7 @@ export class CloudContextLoader {
   }
 
   /**
-   * 🔍 컨텍스트 번들 로드 (Redis → Firestore → 캐시 순서)
+   * 🔍 컨텍스트 번들 로드 (Memory → Firestore → 캐시 순서)
    */
   async loadContextBundle(
     bundleType: 'base' | 'advanced' | 'custom',
@@ -851,12 +890,12 @@ export class CloudContextLoader {
         return this.contextCache.get(contextId)!;
       }
 
-      // 2. Redis 캐시 확인
-      if (this.config.enableRedisCache && this.redis) {
-        const cached = await this.getFromRedis(contextId);
+      // 2. 메모리 캐시에서 조회
+      if (this.config.enableMemoryCache) {
+        const cached = await this.getFromMemory(contextId);
         if (cached) {
           this.updateMemoryCache(cached);
-          console.log(`✅ Redis에서 컨텍스트 로드: ${contextId}`);
+          console.log(`✅ 메모리에서 컨텍스트 로드: ${contextId}`);
           return cached;
         }
       }
@@ -865,9 +904,9 @@ export class CloudContextLoader {
       if (this.config.enableFirestore) {
         const firestore = await this.getFromFirestore(contextId);
         if (firestore) {
-          // Redis 캐시 업데이트
-          if (this.config.enableRedisCache && this.redis) {
-            await this.saveToRedis(firestore);
+          // 메모리 캐시 업데이트
+          if (this.config.enableMemoryCache) {
+            await this.saveToMemory(firestore);
           }
           this.updateMemoryCache(firestore);
           console.log(`✅ Firestore에서 컨텍스트 로드: ${contextId}`);
@@ -884,36 +923,16 @@ export class CloudContextLoader {
   }
 
   /**
-   * 🔄 Redis 캐싱
+   * 💾 메모리 캐싱
    */
-  private async saveToRedis(contextDoc: ContextDocument): Promise<void> {
-    if (!isRedisConnected(this.redis)) {
-      console.warn('⚠️ Redis가 연결되지 않음 - 캐싱 건너뜀');
-      return;
-    }
-
+  private async saveToMemory(contextDoc: ContextDocument): Promise<void> {
     try {
-      const key = `${this.config.redisPrefix}${contextDoc.id}`;
-      let data = JSON.stringify(contextDoc);
+      const key = `${this.config.memoryPrefix}${contextDoc.id}`;
+      this.memoryCache.set(key, contextDoc, this.config.memoryTTL);
 
-      // 압축 적용 (옵션)
-      if (this.config.compressionEnabled && data.length > 1024) {
-        // 실제 환경에서는 압축 라이브러리 사용
-        console.log(`📦 컨텍스트 압축 적용: ${contextDoc.id}`);
-      }
-
-      await safeRedisOperation(this.redis, async (redis) => {
-        await redis.setex(key, this.config.redisTTL, data);
-        // 번들 타입별 인덱스 유지
-        await redis.sadd(
-          `${this.config.redisPrefix}bundles:${contextDoc.bundleType}`,
-          contextDoc.id
-        );
-      });
-
-      console.log(`✅ Redis 컨텍스트 캐싱 완료: ${contextDoc.id}`);
+      console.log(`✅ 메모리 컨텍스트 캐싱 완료: ${contextDoc.id}`);
     } catch (error) {
-      console.error('❌ Redis 컨텍스트 캐싱 실패:', error);
+      console.error('❌ 메모리 컨텍스트 캐싱 실패:', error);
       throw error;
     }
   }
@@ -947,29 +966,16 @@ export class CloudContextLoader {
   }
 
   /**
-   * 🔍 Redis에서 컨텍스트 조회
+   * 🔍 메모리에서 컨텍스트 조회
    */
-  private async getFromRedis(
+  private async getFromMemory(
     contextId: string
   ): Promise<ContextDocument | null> {
-    if (!isRedisConnected(this.redis)) {
-      return null;
-    }
-
     try {
-      const key = `${this.config.redisPrefix}${contextId}`;
-      const data = await safeRedisOperation(
-        this.redis,
-        async (redis) => await redis.get(key)
-      );
-
-      if (data && typeof data === 'string') {
-        return JSON.parse(data);
-      }
-
-      return null;
+      const key = `${this.config.memoryPrefix}${contextId}`;
+      return this.memoryCache.get<ContextDocument>(key);
     } catch (error) {
-      console.error('❌ Redis 컨텍스트 조회 실패:', error);
+      console.error('❌ 메모리 컨텍스트 조회 실패:', error);
       return null;
     }
   }
@@ -1054,19 +1060,11 @@ export class CloudContextLoader {
         method: 'DELETE',
       });
 
-      // 2. Redis 캐시 삭제
-      if (isRedisConnected(this.redis)) {
-        const key = `${this.config.redisPrefix}${contextId}`;
-        await safeRedisOperation(this.redis, async (redis) => {
-          await redis.del(key);
-          await redis.srem(
-            `${this.config.redisPrefix}bundles:${bundleType}`,
-            contextId
-          );
-        });
-      }
+      // 2. 메모리 캐시 삭제
+      const key = `${this.config.memoryPrefix}${contextId}`;
+      this.memoryCache.delete(key);
 
-      // 3. 메모리 캐시 삭제
+      // 3. 로컬 메모리 캐시 삭제
       this.contextCache.delete(contextId);
 
       console.log(`🗑️ 컨텍스트 삭제 완료: ${contextId}`);
@@ -1114,22 +1112,29 @@ export class CloudContextLoader {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
       const response = await fetch(`${appUrl}/api/context-documents/stats`);
       if (response.ok) {
-        return await response.json();
+        const data = await response.json();
+        const cacheStats = this.memoryCache.getStats();
+        return {
+          ...data,
+          cacheHitRate: cacheStats.hitRate,
+        };
       }
       // 실패 시 기본값 반환
+      const cacheStats = this.memoryCache.getStats();
       return {
-        totalContexts: 0,
+        totalContexts: this.contextCache.size,
         bundleTypes: {},
-        cacheHitRate: 0,
-        memoryUsage: '0 MB',
+        cacheHitRate: cacheStats.hitRate,
+        memoryUsage: `${Math.round(this.contextCache.size * 50)}KB`, // 추정치
       };
     } catch (error) {
       console.error('❌ 컨텍스트 통계 조회 실패:', error);
+      const cacheStats = this.memoryCache.getStats();
       return {
-        totalContexts: 0,
+        totalContexts: this.contextCache.size,
         bundleTypes: {},
-        cacheHitRate: 0,
-        memoryUsage: '0 MB',
+        cacheHitRate: cacheStats.hitRate,
+        memoryUsage: `${Math.round(this.contextCache.size * 50)}KB`,
       };
     }
   }
@@ -1139,6 +1144,7 @@ export class CloudContextLoader {
    */
   invalidateCache(): void {
     this.contextCache.clear();
+    this.memoryCache.clear();
     console.log('🧹 CloudContextLoader 캐시 무효화 완료');
   }
 
@@ -1154,13 +1160,8 @@ export class CloudContextLoader {
 
       // 캐시 제거
       this.contextCache.delete(contextId);
-      if (isRedisConnected(this.redis)) {
-        await safeRedisOperation(
-          this.redis,
-          async (redis) =>
-            await redis.del(`${this.config.redisPrefix}${contextId}`)
-        );
-      }
+      const key = `${this.config.memoryPrefix}${contextId}`;
+      this.memoryCache.delete(key);
 
       // 새로 로드
       const refreshed = await this.loadContextBundle(bundleType, clientId);
@@ -1171,5 +1172,19 @@ export class CloudContextLoader {
       console.error('❌ 컨텍스트 새로고침 실패:', error);
       return false;
     }
+  }
+
+  /**
+   * 🛑 리소스 정리
+   */
+  destroy(): void {
+    if (this.healthCheckTimer) {
+      clearInterval(this.healthCheckTimer);
+    }
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+    }
+    this.invalidateCache();
+    console.log('🛑 CloudContextLoader 리소스 정리 완료');
   }
 }

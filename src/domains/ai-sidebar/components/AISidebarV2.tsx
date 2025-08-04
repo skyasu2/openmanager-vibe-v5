@@ -28,6 +28,7 @@ import {
   Target,
   User,
   Zap,
+  type LucideIcon,
 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RealAISidebarService } from '../services/RealAISidebarService';
@@ -184,7 +185,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
   // 아이콘 매핑
   const getIcon = (iconName: string) => {
-    const icons: Record<string, React.ComponentType<unknown>> = {
+    const icons: Record<string, LucideIcon> = {
       Server,
       Search,
       BarChart3,

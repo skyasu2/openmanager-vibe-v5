@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
 
     // 4. 생각중 상태 시작 (비동기)
     const thinkingPromise = supabaseRealtimeAdapter.addThinkingStep(
-      routerRequest.sessionId,
+      routerRequest.sessionId!,
       {
         step: 'AI 처리 시작',
         description: query.substring(0, 100),
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
     // 7. 생각중 상태 완료 (비동기)
     thinkingPromise.then(() => 
       supabaseRealtimeAdapter.addThinkingStep(
-        routerRequest.sessionId,
+        routerRequest.sessionId!,
         {
           step: 'AI 처리 완료',
           status: 'completed',

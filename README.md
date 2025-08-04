@@ -29,7 +29,7 @@
 
 - **Frontend**: Next.js 14.2.4 (App Router), React 18.2.0, TypeScript, Tailwind CSS
 - **Backend**: Edge Runtime, GCP Functions (Python 3.11), Supabase
-- **Database**: PostgreSQL (Supabase) + pgVector, Upstash Redis
+- **Database**: PostgreSQL (Supabase) + pgVector, Memory-based Cache
 - **AI/ML**: Google AI Studio (Gemini 2.0), Supabase RAG, Korean NLP
 - **DevOps**: Vercel, GitHub Actions, GCP
 - **Package Manager**: npm (Node.js 22+)
@@ -200,7 +200,7 @@ npm run analyze:bundle
 | **central-supervisor**         | 🎯 마스터 오케스트레이터 | 3개 이상 도메인 관련 작업, 전체 조율 필요 시 |
 | **code-review-specialist**     | 🔍 코드 품질 검토        | 코드 작성/수정 완료 후, PR 생성 전           |
 | **security-auditor**           | 🔒 보안 취약점 검사      | auth/payment 수정, API 엔드포인트 생성 시    |
-| **database-administrator**     | 💾 DB 전담 관리          | Upstash Redis + Supabase 최적화 필요 시      |
+| **database-administrator**     | 💾 DB 전담 관리          | Memory Cache + Supabase 최적화 필요 시       |
 | **ux-performance-optimizer**   | ⚡ 프론트엔드 성능       | Core Web Vitals 개선, 번들 최적화 시         |
 | **test-automation-specialist** | 🧪 테스트 자동화         | 테스트 실패, 커버리지 80% 미만 시            |
 | **ai-systems-engineer**        | 🤖 AI/ML 최적화          | AI 엔진 개선, 쿼리 라우팅 구현 시            |

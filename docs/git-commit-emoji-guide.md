@@ -86,7 +86,7 @@ refactor: agent-coordinator로 재설계
 | 🔌     | MCP 서버 관련     | `🔌 fix: MCP 서버 연결 안정성 개선`           |
 | 🎯     | 성능 목표 달성    | `🎯 perf: 응답시간 152ms 달성`                |
 | 💰     | 무료 티어 최적화  | `💰 optimize: Vercel 무료 티어 사용량 최적화` |
-| 🔴     | Redis 관련        | `🔴 feat: Upstash Redis 캐싱 구현`            |
+| 🔴     | Memory Cache 관련        | `🔴 feat: Upstash Memory Cache 캐싱 구현`            |
 | 🟢     | Supabase 관련     | `🟢 fix: Supabase RLS 정책 수정`              |
 
 ## 🛠️ Git Alias 설정 (선택사항)

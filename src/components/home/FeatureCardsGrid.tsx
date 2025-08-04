@@ -2,7 +2,7 @@
 
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
-import { Bot, Database, Sparkles, Zap } from 'lucide-react';
+import { Bot, Database, Sparkles, Zap, type LucideIcon } from 'lucide-react';
 import { useEffect, useRef, useState, useMemo, memo } from 'react';
 import FeatureCardModal from '@/components/shared/FeatureCardModal';
 
@@ -11,7 +11,7 @@ interface FeatureCard {
   id: string;
   title: string;
   description: string;
-  icon: unknown;
+  icon: LucideIcon;
   gradient: string;
   detailedContent: {
     overview: string;
@@ -418,7 +418,7 @@ export default function FeatureCardsGrid() {
     setSelectedCard(null);
   };
 
-  const selectedCardData = cardData.find((card) => card.id === selectedCard);
+  const selectedCardData = cardData.find((card) => card.id === selectedCard) || null;
 
   return (
     <>

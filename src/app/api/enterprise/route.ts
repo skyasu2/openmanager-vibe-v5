@@ -30,7 +30,7 @@ import {
   IDC_LOCATIONS,
   SERVER_STATS,
 } from '../../../lib/enterprise-servers';
-import { cacheService } from '../../../services/cacheService';
+import { getCacheService } from '@/lib/cache-helper';
 
 /**
  * Enterprise API Endpoint
@@ -44,7 +44,8 @@ export async function GET(request: NextRequest) {
     const feature = searchParams.get('feature');
 
     // 캐시에서 먼저 확인 (1분 캐시)
-    const cached = await cacheService.get('enterprise:overview');
+    const cache = getCacheService();
+    const cached = await cache.get('enterprise:overview');
     if (cached) {
       return NextResponse.json({
         success: true,
@@ -242,7 +243,7 @@ export async function GET(request: NextRequest) {
     };
 
     // 캐시에 저장 (1분)
-    await cacheService.set('enterprise:overview', enterpriseOverview, 60);
+    await cache.set('enterprise:overview', enterpriseOverview, 60);
 
     if (feature) {
       // 기능별 정보를 별도로 처리

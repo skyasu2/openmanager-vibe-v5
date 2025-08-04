@@ -110,27 +110,33 @@ export function sortServersByStatus(servers: Server[]): Server[] {
  * 서버 데이터 정규화
  */
 export function normalizeServerData(server: unknown): Server {
+  if (typeof server !== 'object' || server === null) {
+    throw new Error('Invalid server data');
+  }
+  
+  const s = server as any;
+  
   return {
-    id: server.id || server.hostname || 'unknown',
-    name: server.name || server.hostname || 'Unknown Server',
-    hostname: server.hostname || server.name || 'Unknown',
-    status: server.status || 'offline',
-    cpu: serverTypeGuards.getCpu(server),
-    memory: serverTypeGuards.getMemory(server),
-    disk: serverTypeGuards.getDisk(server),
-    network: serverTypeGuards.getNetwork(server),
-    uptime: server.uptime || 0,
-    location: server.location || 'Unknown',
-    alerts: server.alerts || 0,
-    ip: server.ip || '192.168.1.1',
-    os: server.os || 'Ubuntu 22.04 LTS',
-    type: server.type || server.role || 'worker',
-    environment: server.environment || 'production',
-    provider: server.provider || 'On-Premise',
-    specs: serverTypeGuards.getSpecs(server),
-    lastUpdate: server.lastUpdate || new Date(),
-    services: server.services || [],
-    networkStatus: server.networkStatus || 'healthy',
+    id: s.id || s.hostname || 'unknown',
+    name: s.name || s.hostname || 'Unknown Server',
+    hostname: s.hostname || s.name || 'Unknown',
+    status: s.status || 'offline',
+    cpu: serverTypeGuards.getCpu(s as Server),
+    memory: serverTypeGuards.getMemory(s as Server),
+    disk: serverTypeGuards.getDisk(s as Server),
+    network: serverTypeGuards.getNetwork(s as Server),
+    uptime: s.uptime || 0,
+    location: s.location || 'Unknown',
+    alerts: s.alerts || 0,
+    ip: s.ip || '192.168.1.1',
+    os: s.os || 'Ubuntu 22.04 LTS',
+    type: s.type || s.role || 'worker',
+    environment: s.environment || 'production',
+    provider: s.provider || 'On-Premise',
+    specs: serverTypeGuards.getSpecs(s as Server),
+    lastUpdate: s.lastUpdate || new Date(),
+    services: s.services || [],
+    networkStatus: s.networkStatus || 'healthy',
   };
 }
 

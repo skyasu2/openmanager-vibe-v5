@@ -34,11 +34,14 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
         recordNetworkRequest(networkInfo, response.ok, 'api-server');
         return response.ok;
       } catch (error: Error | unknown) {
-        if (error.networkInfo) {
-          recordNetworkRequest(error.networkInfo, false, 'api-server');
+        if (error && typeof error === 'object' && 'networkInfo' in error) {
+          recordNetworkRequest((error as any).networkInfo, false, 'api-server');
         }
 
-        safeErrorLog('🌐 API 서버 연결 실패', error.originalError || error);
+        const errorToLog = error && typeof error === 'object' && 'originalError' in error
+          ? (error as any).originalError
+          : error;
+        safeErrorLog('🌐 API 서버 연결 실패', errorToLog);
         return false;
       }
     },
@@ -62,13 +65,16 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
         recordNetworkRequest(networkInfo, response.ok, 'metrics-database');
         return response.ok;
       } catch (error: Error | unknown) {
-        if (error.networkInfo) {
-          recordNetworkRequest(error.networkInfo, false, 'metrics-database');
+        if (error && typeof error === 'object' && 'networkInfo' in error) {
+          recordNetworkRequest((error as any).networkInfo, false, 'metrics-database');
         }
 
+        const errorToLog = error && typeof error === 'object' && 'originalError' in error
+          ? (error as any).originalError
+          : error;
         safeErrorLog(
           '📊 메트릭 데이터베이스 연결 실패',
-          error.originalError || error
+          errorToLog
         );
         return false;
       }
@@ -103,22 +109,27 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
         console.log('✅ Unified AI 엔진 체크 성공:', {
           engines: data.engines || 'unknown',
           tier: data.tier || 'fallback',
-          responseTime: networkInfo?.responseTime || 'unknown',
+          responseTime: (networkInfo as any)?.responseTime || 'unknown',
         });
 
         return true;
       } catch (error: Error | unknown) {
-        if (error.networkInfo) {
-          recordNetworkRequest(error.networkInfo, false, 'unified-ai-engine');
+        if (error && typeof error === 'object' && 'networkInfo' in error) {
+          recordNetworkRequest((error as any).networkInfo, false, 'unified-ai-engine');
         }
+
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const networkInfo = error && typeof error === 'object' && 'networkInfo' in error
+          ? (error as any).networkInfo?.responseTime
+            ? `응답시간: ${(error as any).networkInfo.responseTime}ms`
+            : undefined
+          : undefined;
 
         console.warn(
           '⚠️ Unified AI 엔진 체크 실패, Graceful Degradation 모드:',
           {
-            error: error.message,
-            networkInfo: error.networkInfo?.responseTime
-              ? `응답시간: ${error.networkInfo.responseTime}ms`
-              : undefined,
+            error: errorMessage,
+            networkInfo,
           }
         );
 
@@ -146,11 +157,14 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
         recordNetworkRequest(networkInfo, response.ok, 'server-generator');
         return response.ok;
       } catch (error: Error | unknown) {
-        if (error.networkInfo) {
-          recordNetworkRequest(error.networkInfo, false, 'server-generator');
+        if (error && typeof error === 'object' && 'networkInfo' in error) {
+          recordNetworkRequest((error as any).networkInfo, false, 'server-generator');
         }
 
-        safeErrorLog('🖥️ 서버 생성기 연결 실패', error.originalError || error);
+        const errorToLog = error && typeof error === 'object' && 'originalError' in error
+          ? (error as any).originalError
+          : error;
+        safeErrorLog('🖥️ 서버 생성기 연결 실패', errorToLog);
         return false;
       }
     },

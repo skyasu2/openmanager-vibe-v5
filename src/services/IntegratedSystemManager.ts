@@ -8,7 +8,6 @@
  * - 간단한 로그 기반 알림
  */
 
-import { cacheService } from './cacheService';
 import { memoryOptimizer } from '@/utils/MemoryOptimizer';
 
 // 타입 정의
@@ -152,7 +151,6 @@ export class IntegratedSystemManager {
    */
   private async _initializeCoreServices(): Promise<void> {
     const services = [
-      { name: 'cache', service: cacheService },
       { name: 'memory', service: memoryOptimizer },
     ];
 

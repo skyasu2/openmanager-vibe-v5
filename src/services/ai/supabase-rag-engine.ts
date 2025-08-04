@@ -1,19 +1,17 @@
 /**
- * 🧠 Supabase RAG (Retrieval-Augmented Generation) 엔진
+ * 🧠 Supabase RAG (Retrieval-Augmented Generation) 엔진 (Redis-Free)
  *
  * ✅ PostgreSQL pgvector 기반 벡터 검색
  * ✅ 임베딩 생성 및 관리
  * ✅ 컨텍스트 기반 응답 생성
- * ✅ Redis 캐싱 통합
+ * ✅ 메모리 기반 캐싱 (Redis 완전 제거)
  * ✅ MCP 컨텍스트 통합
  */
 
 import { PostgresVectorDB } from './postgres-vector-db';
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
-import { getRedis } from '@/lib/redis';
 import { embeddingService } from './embedding-service';
 import type { AIMetadata, MCPContext } from '@/types/ai-service-types';
-import type { RedisClientInterface } from '@/lib/redis';
 
 interface RAGSearchOptions {
   maxResults?: number;
@@ -46,26 +44,171 @@ interface _EmbeddingResult {
   model: string;
 }
 
+// 메모리 기반 RAG 캐시 클래스
+class MemoryRAGCache {
+  private embeddingCache = new Map<string, { 
+    embedding: number[]; 
+    timestamp: number; 
+    hits: number; 
+  }>();
+  private searchCache = new Map<string, { 
+    result: RAGSearchResult; 
+    timestamp: number; 
+    hits: number; 
+  }>();
+  
+  private maxEmbeddingSize = 1000; // 최대 1000개 임베딩
+  private maxSearchSize = 100; // 최대 100개 검색 결과
+  private ttlSeconds = 300; // 5분 TTL
+
+  // 임베딩 캐시 관리
+  getEmbedding(key: string): number[] | null {
+    const item = this.embeddingCache.get(key);
+    if (!item) return null;
+    
+    if (Date.now() - item.timestamp > this.ttlSeconds * 1000) {
+      this.embeddingCache.delete(key);
+      return null;
+    }
+    
+    item.hits++;
+    return item.embedding;
+  }
+
+  setEmbedding(key: string, embedding: number[]): void {
+    if (this.embeddingCache.size >= this.maxEmbeddingSize) {
+      this.evictLeastUsedEmbedding();
+    }
+    
+    this.embeddingCache.set(key, {
+      embedding,
+      timestamp: Date.now(),
+      hits: 0,
+    });
+  }
+
+  // 검색 결과 캐시 관리
+  getSearchResult(key: string): RAGSearchResult | null {
+    const item = this.searchCache.get(key);
+    if (!item) return null;
+    
+    if (Date.now() - item.timestamp > this.ttlSeconds * 1000) {
+      this.searchCache.delete(key);
+      return null;
+    }
+    
+    item.hits++;
+    return item.result;
+  }
+
+  setSearchResult(key: string, result: RAGSearchResult): void {
+    if (this.searchCache.size >= this.maxSearchSize) {
+      this.evictLeastUsedSearch();
+    }
+    
+    this.searchCache.set(key, {
+      result,
+      timestamp: Date.now(),
+      hits: 0,
+    });
+  }
+
+  // 캐시 무효화
+  invalidateSearchCache(): void {
+    this.searchCache.clear();
+  }
+
+  // 통계
+  getStats() {
+    return {
+      embeddingCacheSize: this.embeddingCache.size,
+      searchCacheSize: this.searchCache.size,
+      embeddingHits: Array.from(this.embeddingCache.values()).reduce((sum, item) => sum + item.hits, 0),
+      searchHits: Array.from(this.searchCache.values()).reduce((sum, item) => sum + item.hits, 0),
+    };
+  }
+
+  // LRU 방식 퇴출
+  private evictLeastUsedEmbedding(): void {
+    let leastUsedKey = '';
+    let leastHits = Infinity;
+    let oldestTime = Date.now();
+    
+    for (const [key, item] of this.embeddingCache) {
+      if (item.hits < leastHits || (item.hits === leastHits && item.timestamp < oldestTime)) {
+        leastHits = item.hits;
+        oldestTime = item.timestamp;
+        leastUsedKey = key;
+      }
+    }
+    
+    if (leastUsedKey) {
+      this.embeddingCache.delete(leastUsedKey);
+    }
+  }
+
+  private evictLeastUsedSearch(): void {
+    let leastUsedKey = '';
+    let leastHits = Infinity;
+    let oldestTime = Date.now();
+    
+    for (const [key, item] of this.searchCache) {
+      if (item.hits < leastHits || (item.hits === leastHits && item.timestamp < oldestTime)) {
+        leastHits = item.hits;
+        oldestTime = item.timestamp;
+        leastUsedKey = key;
+      }
+    }
+    
+    if (leastUsedKey) {
+      this.searchCache.delete(leastUsedKey);
+    }
+  }
+
+  // 정리
+  cleanup(): void {
+    const now = Date.now();
+    const expireTime = this.ttlSeconds * 1000;
+    
+    // 만료된 임베딩 제거
+    const expiredEmbeddings: string[] = [];
+    for (const [key, item] of this.embeddingCache) {
+      if (now - item.timestamp > expireTime) {
+        expiredEmbeddings.push(key);
+      }
+    }
+    expiredEmbeddings.forEach(key => this.embeddingCache.delete(key));
+    
+    // 만료된 검색 결과 제거
+    const expiredSearches: string[] = [];
+    for (const [key, item] of this.searchCache) {
+      if (now - item.timestamp > expireTime) {
+        expiredSearches.push(key);
+      }
+    }
+    expiredSearches.forEach(key => this.searchCache.delete(key));
+  }
+}
+
 export class SupabaseRAGEngine {
   private vectorDB: PostgresVectorDB;
   private contextLoader: CloudContextLoader;
-  private redis: RedisClientInterface | null = null;
+  private memoryCache: MemoryRAGCache;
   private isInitialized = false;
-  private embeddingCache = new Map<string, number[]>();
-  private searchCache = new Map<string, RAGSearchResult>();
+  private cleanupTimer: NodeJS.Timeout | null = null;
 
   // 임베딩 모델 설정 (384차원)
   private readonly EMBEDDING_DIMENSION = 384;
-  private readonly CACHE_TTL = 300; // 5분
 
   constructor() {
     this.vectorDB = new PostgresVectorDB();
     this.contextLoader = CloudContextLoader.getInstance();
-
-    // Redis 연결 (서버 환경에서만)
-    if (typeof window === 'undefined') {
-      this.redis = getRedis() as RedisClientInterface;
-    }
+    this.memoryCache = new MemoryRAGCache();
+    
+    // 주기적 정리 (5분마다)
+    this.cleanupTimer = setInterval(() => {
+      this.memoryCache.cleanup();
+    }, 5 * 60 * 1000);
   }
 
   /**
@@ -76,7 +219,7 @@ export class SupabaseRAGEngine {
 
     try {
       // 벡터 DB 초기화는 이미 생성자에서 시작됨
-      console.log('🚀 Supabase RAG 엔진 초기화 중...');
+      console.log('🚀 Supabase RAG 엔진 초기화 중... (Memory-based)');
 
       // 초기 지식 베이스 확인
       const stats = await this.vectorDB.getStats();
@@ -90,7 +233,7 @@ export class SupabaseRAGEngine {
       }
 
       this.isInitialized = true;
-      console.log('✅ Supabase RAG 엔진 초기화 완료');
+      console.log('✅ Supabase RAG 엔진 초기화 완료 (Memory-based)');
     } catch (error) {
       console.error('❌ RAG 엔진 초기화 실패:', error);
       // 초기화 실패해도 계속 진행
@@ -109,6 +252,18 @@ export class SupabaseRAGEngine {
     await this._initialize();
 
     try {
+      // 빈 쿼리 검사
+      if (!query.trim()) {
+        return {
+          success: false,
+          results: [],
+          totalResults: 0,
+          processingTime: Date.now() - startTime,
+          cached: false,
+          error: '빈 쿼리는 검색할 수 없습니다.',
+        };
+      }
+
       const {
         maxResults = 5,
         threshold = 0.5,
@@ -118,10 +273,10 @@ export class SupabaseRAGEngine {
         cached = true,
       } = options;
 
-      // 캐시 확인
+      // 메모리 캐시 확인
       const cacheKey = this.generateCacheKey('search', query, options);
       if (cached) {
-        const cachedResult = await this.getFromCache(cacheKey);
+        const cachedResult = this.memoryCache.getSearchResult(cacheKey);
         if (cachedResult) {
           return {
             ...cachedResult,
@@ -133,13 +288,27 @@ export class SupabaseRAGEngine {
 
       // 1. 쿼리 임베딩 생성
       const queryEmbedding = await this.generateEmbedding(query);
+      if (!queryEmbedding) {
+        throw new Error('임베딩 생성 실패');
+      }
 
       // 2. 벡터 검색 수행
       const searchResults = await this.vectorDB.search(queryEmbedding, {
-        topK: maxResults,
+        limit: maxResults,
         threshold,
         category,
       });
+
+      if (!searchResults.success) {
+        return {
+          success: false,
+          results: [],
+          totalResults: 0,
+          processingTime: Date.now() - startTime,
+          cached: false,
+          error: searchResults.error || '벡터 검색 실패',
+        };
+      }
 
       // 3. MCP 컨텍스트 수집 (옵션)
       let mcpContext = null;
@@ -153,27 +322,27 @@ export class SupabaseRAGEngine {
       // 4. 컨텍스트 생성
       let context = '';
       if (includeContext) {
-        context = this.buildContext(searchResults, mcpContext);
+        context = this.buildContext(searchResults.results || [], mcpContext);
       }
 
       const result: RAGSearchResult = {
         success: true,
-        results: searchResults.map(r => ({
+        results: (searchResults.results || []).map(r => ({
           id: r.id,
           content: r.content,
           similarity: r.similarity,
           metadata: r.metadata,
         })),
         context,
-        totalResults: searchResults.length,
+        totalResults: searchResults.total || 0,
         processingTime: Date.now() - startTime,
         cached: false,
         mcpContext: mcpContext || undefined,
       };
 
-      // 캐시 저장
+      // 메모리 캐시 저장
       if (cached) {
-        await this.saveToCache(cacheKey, result);
+        this.memoryCache.setSearchResult(cacheKey, result);
       }
 
       return result;
@@ -193,11 +362,12 @@ export class SupabaseRAGEngine {
   /**
    * 🧠 임베딩 생성
    */
-  async generateEmbedding(text: string): Promise<number[]> {
-    // 메모리 캐시 확인 (embeddingService 내부 캐시와 별개)
+  async generateEmbedding(text: string): Promise<number[] | null> {
+    // 메모리 캐시 확인
     const cacheKey = `embed:${text}`;
-    if (this.embeddingCache.has(cacheKey)) {
-      return this.embeddingCache.get(cacheKey)!;
+    const cached = this.memoryCache.getEmbedding(cacheKey);
+    if (cached) {
+      return cached;
     }
 
     try {
@@ -206,22 +376,17 @@ export class SupabaseRAGEngine {
         dimension: this.EMBEDDING_DIMENSION,
       });
 
-      // 로컬 캐시 저장 (빠른 접근을 위해)
-      this.embeddingCache.set(cacheKey, embedding);
-      if (this.embeddingCache.size > 1000) {
-        // LRU 방식으로 오래된 항목 제거
-        const firstKey = this.embeddingCache.keys().next().value;
-        if (firstKey) {
-          this.embeddingCache.delete(firstKey);
-        }
-      }
+      // 메모리 캐시 저장
+      this.memoryCache.setEmbedding(cacheKey, embedding);
 
       return embedding;
     } catch (error) {
       console.error('❌ 임베딩 생성 실패:', error);
       // 폴백: 더미 임베딩 (서비스 중단 방지)
       console.warn('⚠️ 더미 임베딩으로 폴백');
-      return this.generateDummyEmbedding(text);
+      const dummyEmbedding = this.generateDummyEmbedding(text);
+      this.memoryCache.setEmbedding(cacheKey, dummyEmbedding);
+      return dummyEmbedding;
     }
   }
 
@@ -238,19 +403,22 @@ export class SupabaseRAGEngine {
 
       // 임베딩 생성
       const embedding = await this.generateEmbedding(content);
+      if (!embedding) {
+        throw new Error('임베딩 생성 실패');
+      }
 
       // 벡터 DB에 저장
-      const result = await this.vectorDB.store(
+      const result = await this.vectorDB.addDocument({
         id,
         content,
         embedding,
-        metadata
-      );
+        metadata,
+      });
 
       if (result.success) {
         console.log(`✅ 문서 인덱싱 완료: ${id}`);
-        // 캐시 무효화
-        await this.invalidateSearchCache();
+        // 검색 캐시 무효화
+        this.memoryCache.invalidateSearchCache();
       }
 
       return result.success;
@@ -270,53 +438,63 @@ export class SupabaseRAGEngine {
       metadata?: AIMetadata;
     }>
   ): Promise<{ success: number; failed: number }> {
+    let success = 0;
+    let failed = 0;
+
     try {
-      // 배치 임베딩 생성 (효율적인 처리)
-      const texts = documents.map(doc => doc.content);
-      const embeddings = await embeddingService.createBatchEmbeddings(texts, {
-        dimension: this.EMBEDDING_DIMENSION,
-      });
-
-      const docsWithEmbeddings = documents.map((doc, i) => ({
-        ...doc,
-        embedding: embeddings[i],
-      }));
-
-      const result = await this.vectorDB.bulkStore(docsWithEmbeddings);
-
-      if (result.success > 0) {
-        await this.invalidateSearchCache();
-      }
-
-      return result;
-    } catch (error) {
-      console.error('❌ 대량 인덱싱 실패:', error);
-
-      // 폴백: 개별 처리
-      console.warn('⚠️ 개별 임베딩 생성으로 폴백');
+      // 배치 임베딩 생성
       const embeddings = await Promise.all(
         documents.map(doc => this.generateEmbedding(doc.content))
       );
 
-      const docsWithEmbeddings = documents.map((doc, i) => ({
-        ...doc,
-        embedding: embeddings[i],
-      }));
+      // 임베딩이 성공한 문서들만 처리
+      const validDocuments = documents
+        .map((doc, i) => ({ ...doc, embedding: embeddings[i] }))
+        .filter(doc => doc.embedding !== null);
 
-      const result = await this.vectorDB.bulkStore(docsWithEmbeddings);
-
-      if (result.success > 0) {
-        await this.invalidateSearchCache();
+      if (validDocuments.length === 0) {
+        return { success: 0, failed: documents.length };
       }
 
-      return result;
+      // 개별 문서 저장 (벡터 DB 인터페이스에 맞춤)
+      for (const doc of validDocuments) {
+        try {
+          const result = await this.vectorDB.addDocument({
+            id: doc.id,
+            content: doc.content,
+            embedding: doc.embedding!,
+            metadata: doc.metadata,
+          });
+
+          if (result.success) {
+            success++;
+          } else {
+            failed++;
+          }
+        } catch (error) {
+          console.error(`문서 저장 실패 (${doc.id}):`, error);
+          failed++;
+        }
+      }
+
+      // 실패한 임베딩 카운트 추가
+      failed += documents.length - validDocuments.length;
+
+      if (success > 0) {
+        this.memoryCache.invalidateSearchCache();
+      }
+
+      return { success, failed };
+    } catch (error) {
+      console.error('❌ 대량 인덱싱 실패:', error);
+      return { success: 0, failed: documents.length };
     }
   }
 
   /**
    * 🏗️ 컨텍스트 구축
    */
-  private buildContext(searchResults: unknown[], mcpContext?: unknown): string {
+  private buildContext(searchResults: any[], mcpContext?: any): string {
     let context = '관련 정보:\n\n';
 
     // 검색 결과 컨텍스트
@@ -325,13 +503,13 @@ export class SupabaseRAGEngine {
       if (result.metadata?.source) {
         context += `   출처: ${result.metadata.source}\n`;
       }
-      context += `   유사도: ${(result.similarity * 100).toFixed(1)}%\n\n`;
+      context += `   유사도: ${((result.similarity || 0) * 100).toFixed(1)}%\n\n`;
     });
 
     // MCP 컨텍스트 추가
-    if (mcpContext && mcpContext.files.length > 0) {
+    if (mcpContext && mcpContext.files && mcpContext.files.length > 0) {
       context += '\n추가 컨텍스트 (MCP):\n\n';
-      mcpContext.files.forEach((file: unknown) => {
+      mcpContext.files.forEach((file: any) => {
         context += `파일: ${file.path}\n`;
         context += `${file.content.substring(0, 200)}...\n\n`;
       });
@@ -402,7 +580,7 @@ export class SupabaseRAGEngine {
   }
 
   /**
-   * 💾 캐시 관리
+   * 💾 메모리 캐시 관리
    */
   private generateCacheKey(
     operation: string,
@@ -410,65 +588,6 @@ export class SupabaseRAGEngine {
     options: Record<string, unknown>
   ): string {
     return `rag:${operation}:${Buffer.from(query).toString('base64')}:${JSON.stringify(options)}`;
-  }
-
-  private async getFromCache(key: string): Promise<unknown> {
-    // 메모리 캐시 확인
-    if (this.searchCache.has(key)) {
-      return this.searchCache.get(key);
-    }
-
-    // Redis 캐시 확인
-    if (this.redis) {
-      try {
-        const cached = await this.redis.get(key);
-        if (cached) {
-          return JSON.parse(cached);
-        }
-      } catch (error) {
-        console.error('Redis 캐시 조회 오류:', error);
-      }
-    }
-
-    return null;
-  }
-
-  private async saveToCache(key: string, data: unknown): Promise<void> {
-    // 메모리 캐시 저장
-    this.searchCache.set(key, data);
-    if (this.searchCache.size > 100) {
-      const firstKey = this.searchCache.keys().next().value;
-      if (firstKey) {
-        this.searchCache.delete(firstKey);
-      }
-    }
-
-    // Redis 캐시 저장
-    if (this.redis) {
-      try {
-        await this.redis.setex(key, this.CACHE_TTL, JSON.stringify(data));
-      } catch (error) {
-        console.error('Redis 캐시 저장 오류:', error);
-      }
-    }
-  }
-
-  private async invalidateSearchCache(): Promise<void> {
-    this.searchCache.clear();
-
-    if (this.redis) {
-      try {
-        // RAG 관련 캐시 키 패턴으로 삭제
-        // Redis keys 메서드는 RedisClientInterface에 정의되어 있지 않으므로 타입 단언 사용
-        const redisClient = this.redis as any;
-        const keys = await redisClient.keys('rag:search:*');
-        if (keys.length > 0) {
-          await Promise.all(keys.map((key: string) => this.redis!.del(key)));
-        }
-      } catch (error) {
-        console.error('Redis 캐시 무효화 오류:', error);
-      }
-    }
   }
 
   /**
@@ -482,21 +601,33 @@ export class SupabaseRAGEngine {
   }> {
     try {
       const stats = await this.vectorDB.getStats();
+      const cacheStats = this.memoryCache.getStats();
 
       return {
         status: 'healthy',
         vectorDB: true,
         totalDocuments: stats.total_documents,
-        cacheSize: this.searchCache.size,
+        cacheSize: cacheStats.searchCacheSize + cacheStats.embeddingCacheSize,
       };
     } catch {
       return {
         status: 'unhealthy',
         vectorDB: false,
         totalDocuments: 0,
-        cacheSize: this.searchCache.size,
+        cacheSize: this.memoryCache.getStats().searchCacheSize + this.memoryCache.getStats().embeddingCacheSize,
       };
     }
+  }
+
+  /**
+   * 🛑 리소스 정리
+   */
+  destroy(): void {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+    }
+    this.memoryCache.invalidateSearchCache();
+    console.log('🛑 RAG 엔진 리소스 정리 완료');
   }
 }
 

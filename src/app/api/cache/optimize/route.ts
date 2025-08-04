@@ -184,32 +184,25 @@ async function handleOptimize(): Promise<CacheOptimizeResponse> {
     optimizations.push('주요 데이터 사전 캐싱 완료');
   }
 
-  // 높은 에러율 대응
-  if (stats.errors > 50) {
-    // 통계 리셋
-    cache.resetStats();
-    optimizations.push('에러 통계 리셋 완료');
-  }
-
   // 메모리 사용량 최적화
-  if (stats.memoryUsageMB > 200) {
+  const memoryUsageKB = parseInt(stats.memoryUsage.replace('KB', '')) || 0;
+  if (memoryUsageKB > 200000) { // 200MB 이상
     // 오래된 실시간 데이터 정리
     await invalidateCache('realtime');
     optimizations.push('실시간 데이터 캐시 정리 완료');
   }
 
   const rawStats = cache.getStats();
-  const { recommendations, ...baseStats } = rawStats;
   const newStats: CacheStats = {
-    hits: baseStats.hits || 0,
-    misses: baseStats.misses || 0,
-    errors: baseStats.errors || 0,
-    commands: baseStats.sets + baseStats.deletes || 0, // sets + deletes로 총 명령 수 계산
-    memoryUsage: baseStats.memoryUsageMB || 0, // memoryUsage는 memoryUsageMB와 동일하게 설정
-    storeSize: baseStats.hits + baseStats.misses || 0, // 스토어 크기는 총 요청 수로 추정
-    hitRate: baseStats.hitRate || 0,
-    commandsPerSecond: (baseStats.sets + baseStats.deletes) / Math.max(1, (Date.now() - baseStats.lastReset) / 1000) || 0, // 초당 명령 수 계산
-    memoryUsageMB: baseStats.memoryUsageMB || 0,
+    hits: rawStats.hits || 0,
+    misses: rawStats.misses || 0,
+    errors: 0, // MemoryCacheService는 에러 추적 없음
+    commands: rawStats.sets + rawStats.deletes || 0, // sets + deletes로 총 명령 수 계산
+    memoryUsage: memoryUsageKB / 1024, // KB를 MB로 변환
+    storeSize: rawStats.size || 0, // 실제 캐시 크기
+    hitRate: rawStats.hitRate || 0,
+    commandsPerSecond: 0, // 시작 시간 추적이 없으므로 0
+    memoryUsageMB: memoryUsageKB / 1024, // KB를 MB로 변환
   };
 
   return {
@@ -225,20 +218,21 @@ async function handleOptimize(): Promise<CacheOptimizeResponse> {
  */
 async function handleResetStats(): Promise<CacheResetStatsResponse> {
   const cache = getCacheService();
-  cache.resetStats();
+  // MemoryCacheService는 resetStats 메서드가 없으므로 캐시를 비워서 통계를 리셋
+  await cache.invalidateCache();
 
   const rawStats = cache.getStats();
-  const { recommendations, ...baseStats } = rawStats;
+  const memoryUsageKB = parseInt(rawStats.memoryUsage.replace('KB', '')) || 0;
   const newStats: CacheStats = {
-    hits: baseStats.hits || 0,
-    misses: baseStats.misses || 0,
-    errors: baseStats.errors || 0,
-    commands: baseStats.sets + baseStats.deletes || 0, // sets + deletes로 총 명령 수 계산
-    memoryUsage: baseStats.memoryUsageMB || 0, // memoryUsage는 memoryUsageMB와 동일하게 설정
-    storeSize: baseStats.hits + baseStats.misses || 0, // 스토어 크기는 총 요청 수로 추정
-    hitRate: baseStats.hitRate || 0,
-    commandsPerSecond: (baseStats.sets + baseStats.deletes) / Math.max(1, (Date.now() - baseStats.lastReset) / 1000) || 0, // 초당 명령 수 계산
-    memoryUsageMB: baseStats.memoryUsageMB || 0,
+    hits: rawStats.hits || 0,
+    misses: rawStats.misses || 0,
+    errors: 0, // MemoryCacheService는 에러 추적 없음
+    commands: rawStats.sets + rawStats.deletes || 0, // sets + deletes로 총 명령 수 계산
+    memoryUsage: memoryUsageKB / 1024, // KB를 MB로 변환
+    storeSize: rawStats.size || 0, // 실제 캐시 크기
+    hitRate: rawStats.hitRate || 0,
+    commandsPerSecond: 0, // 시작 시간 추적이 없으므로 0
+    memoryUsageMB: memoryUsageKB / 1024, // KB를 MB로 변환
   };
 
   return {

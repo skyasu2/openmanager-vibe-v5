@@ -59,7 +59,7 @@ vercel env ls
 - **URL**: `https://supabase.com/dashboard` → 프로젝트 선택 → Settings → API
 - **필요 정보**: Project URL, Anon Key, Service Role Key
 
-### 🔴 Redis (Upstash)
+### 🔴 Memory Cache (Upstash)
 
 - **URL**: `https://console.upstash.com/`
 - **필요 정보**: REST URL, REST Token

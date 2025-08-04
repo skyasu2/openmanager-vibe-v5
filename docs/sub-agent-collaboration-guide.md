@@ -13,7 +13,7 @@
 
 - **vercel-platform-specialist**: Vercel 플랫폼 아키텍처 전문 분석
 - **mcp-server-admin**: MCP 인프라 전담
-- **database-administrator**: Upstash Redis + Supabase 전담
+- **database-administrator**: Upstash Memory Cache + Supabase 전담
 
 ### 3. 개발 지원 계층
 

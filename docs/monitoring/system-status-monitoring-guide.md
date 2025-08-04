@@ -18,7 +18,7 @@ graph TB
 
     subgraph "Backend Services"
         B[GCP MCP Server<br/>104.154.205.25:10000]
-        C[Upstash Redis<br/>YOUR_PLACEHOLDER]
+        C[Upstash Memory Cache<br/>YOUR_PLACEHOLDER]
         D[Supabase Database<br/>YOUR_PLACEHOLDER.supabase.co]
     end
 
@@ -45,7 +45,7 @@ curl -s https://openmanager-vibe-v5.vercel.app/api/health | grep -o '"status":"[
 # 2. GCP MCP 서버 상태
 curl -s http://104.154.205.25:10000/health | grep -o '"status":"[^"]*"'
 
-# 3. Redis 연결 상태
+# 3. Memory Cache 연결 상태
 curl -X POST 'https://YOUR_PLACEHOLDER/ping' \
      -H 'Authorization: Bearer SENSITIVE_INFO_REMOVED' \
      -s | grep -o '"result":"[^"]*"'
@@ -57,7 +57,7 @@ curl -X POST 'https://YOUR_PLACEHOLDER/ping' \
 echo "=== 시스템 상태 요약 ==="
 echo "Vercel: $(curl -s https://openmanager-vibe-v5.vercel.app/api/health | grep -o '"status":"[^"]*"' | cut -d'"' -f4)"
 echo "MCP Server: $(curl -s http://104.154.205.25:10000/health | grep -o '"status":"[^"]*"' | cut -d'"' -f4)"
-echo "Redis: $(curl -X POST 'https://YOUR_PLACEHOLDER/ping' -H 'Authorization: Bearer SENSITIVE_INFO_REMOVED' -s | grep -o '"result":"[^"]*"' | cut -d'"' -f4)"
+echo "Memory Cache: $(curl -X POST 'https://YOUR_PLACEHOLDER/ping' -H 'Authorization: Bearer SENSITIVE_INFO_REMOVED' -s | grep -o '"result":"[^"]*"' | cut -d'"' -f4)"
 ```
 
 ### ✅ 정상 상태 기준값
@@ -66,7 +66,7 @@ echo "Redis: $(curl -X POST 'https://YOUR_PLACEHOLDER/ping' -H 'Authorization: B
 | ---------- | ----------- | -------- | --------------- |
 | Vercel     | `healthy`   | < 500ms  | 99.9% 가용성    |
 | MCP Server | `healthy`   | < 400ms  | 24/7 운영       |
-| Redis      | `PONG`      | < 200ms  | 99.9% 가용성    |
+| Memory Cache      | `PONG`      | < 200ms  | 99.9% 가용성    |
 | Supabase   | `connected` | < 300ms  | 7개 테이블 운영 |
 
 ---
@@ -196,9 +196,9 @@ gcloud compute firewall-rules list --filter="name:mcp*"
 
 ---
 
-## 🔴 Redis (Upstash) 모니터링
+## 🔴 Memory Cache (Upstash) 모니터링
 
-### 1. Redis 연결 테스트
+### 1. Memory Cache 연결 테스트
 
 ```bash
 # 기본 PING 테스트
@@ -209,13 +209,13 @@ curl -X POST 'https://YOUR_PLACEHOLDER/ping' \
 # 기대값: {"result":"PONG"}
 ```
 
-### 2. Redis 서버 정보 확인
+### 2. Memory Cache 서버 정보 확인
 
 ```bash
 # 서버 상세 정보
 curl -X POST 'https://YOUR_PLACEHOLDER/info' \
      -H 'Authorization: Bearer AbYGAAIjcDE5MjNmYjhiZDkwOGQ0ITUyOGFiZjUyMmQ0YTkyMzIwM3AxMA' \
-     -s | grep -E "(redis_version|used_memory|total_keys|maxmemory)"
+     -s | grep -E "(memory cache_version|used_memory|total_keys|maxmemory)"
 ```
 
 **✅ 주요 메트릭 기준값:**
@@ -471,13 +471,13 @@ else
     echo -e "${RED}❌ 이상 ($MCP_STATUS)${NC}"
 fi
 
-# 3. Redis 상태 확인
-echo -n "🔴 Redis 상태: "
-REDIS_STATUS=$(curl -X POST 'https://${UPSTASH_REDIS_HOST:-YOUR_PLACEHOLDER}/ping' -H 'Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN:-YOUR_PLACEHOLDER}' -s 2>/dev/null | grep -o '"result":"[^"]*"' | cut -d'"' -f4)
-if [ "$REDIS_STATUS" = "PONG" ]; then
+# 3. Memory Cache 상태 확인
+echo -n "🔴 Memory Cache 상태: "
+MEMORY_CACHE_STATUS=$(curl -X POST 'https://${UPSTASH_MEMORY_CACHE_HOST:-YOUR_PLACEHOLDER}/ping' -H 'Authorization: Bearer ${UPSTASH_MEMORY_CACHE_REST_TOKEN:-YOUR_PLACEHOLDER}' -s 2>/dev/null | grep -o '"result":"[^"]*"' | cut -d'"' -f4)
+if [ "$MEMORY_CACHE_STATUS" = "PONG" ]; then
     echo -e "${GREEN}✅ 정상 (PONG)${NC}"
 else
-    echo -e "${RED}❌ 이상 ($REDIS_STATUS)${NC}"
+    echo -e "${RED}❌ 이상 ($MEMORY_CACHE_STATUS)${NC}"
 fi
 
 # 4. Supabase 상태 확인
@@ -496,21 +496,21 @@ echo "📊 상세 메트릭:"
 # 응답시간 측정
 VERCEL_TIME=$(curl -s -w "%{time_total}" -o /dev/null https://openmanager-vibe-v5.vercel.app/api/health 2>/dev/null)
 MCP_TIME=$(curl -s -w "%{time_total}" -o /dev/null http://104.154.205.25:10000/health 2>/dev/null)
-REDIS_TIME=$(curl -X POST 'https://${UPSTASH_REDIS_HOST:-YOUR_PLACEHOLDER}/ping' -H 'Authorization: Bearer ${UPSTASH_REDIS_REST_TOKEN:-YOUR_PLACEHOLDER}' -s -w "%{time_total}" -o /dev/null 2>/dev/null)
+MEMORY_CACHE_TIME=$(curl -X POST 'https://${UPSTASH_MEMORY_CACHE_HOST:-YOUR_PLACEHOLDER}/ping' -H 'Authorization: Bearer ${UPSTASH_MEMORY_CACHE_REST_TOKEN:-YOUR_PLACEHOLDER}' -s -w "%{time_total}" -o /dev/null 2>/dev/null)
 
 echo "   Vercel 응답시간: ${VERCEL_TIME}초"
 echo "   MCP 응답시간: ${MCP_TIME}초"
-echo "   Redis 응답시간: ${REDIS_TIME}초"
+echo "   Memory Cache 응답시간: ${MEMORY_CACHE_TIME}초"
 
-# Redis 메트릭
-REDIS_KEYS=$(curl -X POST 'https://YOUR_PLACEHOLDER/dbsize' -H 'Authorization: Bearer AbYGAAIjcDE5MjNmYjhiZDkwOGQ0ITUyOGFiZjUyMmQ0YTkyMzIwM3AxMA' -s 2>/dev/null | grep -o '"result":[0-9]*' | cut -d':' -f2)
-echo "   Redis 키 개수: ${REDIS_KEYS}개"
+# Memory Cache 메트릭
+MEMORY_CACHE_KEYS=$(curl -X POST 'https://YOUR_PLACEHOLDER/dbsize' -H 'Authorization: Bearer AbYGAAIjcDE5MjNmYjhiZDkwOGQ0ITUyOGFiZjUyMmQ0YTkyMzIwM3AxMA' -s 2>/dev/null | grep -o '"result":[0-9]*' | cut -d':' -f2)
+echo "   Memory Cache 키 개수: ${MEMORY_CACHE_KEYS}개"
 
 # Supabase 메트릭 (MCP 접근 필요)
 echo "   Supabase: 7개 테이블, MCP 도구 접근"
 
 echo ""
-echo "🎯 전체 상태: $(if [ "$VERCEL_STATUS" = "healthy" ] && [ "$MCP_STATUS" = "healthy" ] && [ "$REDIS_STATUS" = "PONG" ]; then echo -e "${GREEN}모든 핵심 서비스 정상${NC}"; else echo -e "${YELLOW}일부 서비스 이상${NC}"; fi)"
+echo "🎯 전체 상태: $(if [ "$VERCEL_STATUS" = "healthy" ] && [ "$MCP_STATUS" = "healthy" ] && [ "$MEMORY_CACHE_STATUS" = "PONG" ]; then echo -e "${GREEN}모든 핵심 서비스 정상${NC}"; else echo -e "${YELLOW}일부 서비스 이상${NC}"; fi)"
 echo "💡 Supabase는 MCP 도구를 통해서만 모니터링 가능"
 echo "========================================"
 ```
@@ -570,7 +570,7 @@ echo "========================================"
    sudo systemctl status mcp-server  # 또는 해당 서비스명
    ```
 
-### Redis 연결 실패
+### Memory Cache 연결 실패
 
 1. **토큰 유효성 확인**
    - Upstash 콘솔에서 토큰 재생성
@@ -595,7 +595,7 @@ echo "========================================"
 - [ ] 전체 시스템 헬스체크 실행: `npm run system:health`
 - [ ] Vercel 함수 호출 사용량 확인 (80% 미만 유지)
 - [ ] GCP VM CPU 사용률 확인 (70% 미만 유지)
-- [ ] Redis 메모리 사용량 확인 (50MB 미만 유지)
+- [ ] Memory Cache 메모리 사용량 확인 (50MB 미만 유지)
 - [ ] Supabase MCP 연결 상태 확인
 - [ ] 주요 API 엔드포인트 응답 확인
 
@@ -603,7 +603,7 @@ echo "========================================"
 
 - [ ] Vercel 배포 로그 확인
 - [ ] GCP 무료 티어 사용량 확인
-- [ ] Redis 성능 메트릭 분석 (히트율, 응답시간)
+- [ ] Memory Cache 성능 메트릭 분석 (히트율, 응답시간)
 - [ ] Supabase 테이블 상태 및 벡터 데이터 품질 확인
 - [ ] 에러 로그 확인 및 분석
 - [ ] 백업 상태 확인
@@ -630,7 +630,7 @@ npm run system:health
 # 개별 서비스 확인
 curl -s https://openmanager-vibe-v5.vercel.app/api/health | jq .
 curl -s http://104.154.205.25:10000/health | jq .
-npm run redis:test
+npm run memory cache:test
 # Supabase는 Claude Code MCP 도구로만 확인 가능
 
 # 성능 테스트
@@ -646,7 +646,7 @@ vercel logs
 # GCP VM 로그 확인
 gcloud logging read "resource.type=gce_instance" --limit=50
 
-# Redis 사용량 확인
+# Memory Cache 사용량 확인
 curl -X POST 'https://YOUR_PLACEHOLDER/info' \
      -H 'Authorization: Bearer [TOKEN]' -s | grep -E "total_commands|used_memory"
 ```

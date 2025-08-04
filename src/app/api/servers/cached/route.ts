@@ -9,8 +9,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getMockSystem } from '@/mock';
 import { cacheOrFetch, createCachedResponse } from '@/lib/cache-helper';
-import { CACHE_KEYS, TTL_STRATEGY } from '@/services/upstashCacheService';
 import type { EnhancedServerMetrics, Server } from '@/types/server';
+
+// 캐시 키 상수 (이전 upstashCacheService에서 이동)
+const CACHE_KEYS = {
+  servers: 'servers:list',
+  serverSummary: 'servers:summary',
+  serverDetails: (id: string) => `server:${id}:details`,
+  serverMetrics: (id: string) => `server:${id}:metrics`,
+};
+
+// TTL 전략 (이전 upstashCacheService에서 이동)
+const TTL_STRATEGY = {
+  servers: 60, // 1분
+  serverSummary: 300, // 5분
+  serverDetails: 120, // 2분
+  serverMetrics: 30, // 30초
+};
 import type { 
   ServerStatusLiteral, 
   ServerAlert, 
@@ -91,7 +106,7 @@ export async function GET(request: NextRequest) {
 
     // 서버 목록 가져오기 (캐시 또는 페칭)
     const servers = await cacheOrFetch<EnhancedServerMetrics[]>(
-      CACHE_KEYS.SERVER_LIST,
+      CACHE_KEYS.servers,
       async () => {
         console.log('📊 캐시 미스 - 서버 데이터 페칭');
         const mockSystem = getMockSystem();
@@ -99,7 +114,7 @@ export async function GET(request: NextRequest) {
         return baseServers.map(convertToEnhancedServerMetrics);
       },
       {
-        ttl: TTL_STRATEGY.SERVER_LIST,
+        ttl: TTL_STRATEGY.servers,
         force: forceRefresh,
       }
     );
@@ -108,13 +123,13 @@ export async function GET(request: NextRequest) {
     let summary = null;
     if (includeSummary) {
       summary = await cacheOrFetch(
-        CACHE_KEYS.SERVER_SUMMARY,
+        CACHE_KEYS.serverSummary,
         async () => {
           console.log('📊 캐시 미스 - 요약 정보 생성');
           return calculateSummary(servers);
         },
         {
-          ttl: TTL_STRATEGY.SERVER_SUMMARY,
+          ttl: TTL_STRATEGY.serverSummary,
           force: forceRefresh,
         }
       );
@@ -137,7 +152,7 @@ export async function GET(request: NextRequest) {
         dataSource: 'upstash-cached',
         metadata: {
           cacheStrategy: 'edge-optimized',
-          ttl: TTL_STRATEGY.SERVER_LIST,
+          ttl: TTL_STRATEGY.servers,
         },
       },
       {
@@ -250,13 +265,16 @@ async function cacheIndividualServers(servers: EnhancedServerMetrics[]) {
     // 상위 10개 서버만 개별 캐싱
     const topServers = servers.slice(0, 10);
     const items = topServers.map((server) => ({
-      key: CACHE_KEYS.SERVER_DETAIL(server.id),
+      key: CACHE_KEYS.serverDetails(server.id),
       value: server,
-      ttl: TTL_STRATEGY.SERVER_DETAIL,
+      ttl: TTL_STRATEGY.serverDetails,
     }));
 
     try {
-      await cache.mset(items);
+      // MemoryCacheService는 mset이 없으므로 개별 set 호출
+      await Promise.all(
+        items.map(item => cache.set(item.key, item.value, item.ttl))
+      );
       console.log(`✅ ${items.length}개 서버 개별 캐싱 완료`);
     } catch (error) {
       console.error('❌ 개별 서버 캐싱 실패:', error);

@@ -11,6 +11,7 @@
 
 import { useState } from 'react';
 import { useHybridAI } from '@/hooks/useHybridAI-v2';
+import type { UnifiedAIResponse } from '@/services/ai/formatters/unified-response-formatter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -262,78 +263,88 @@ export function HybridAIDemo() {
       )}
 
       {/* 응답 결과 */}
-      {response && !isLoading && (
-        <Card>
-          <CardHeader>
-            <CardTitle>AI 응답</CardTitle>
-            <CardDescription>
-              {response.metadata?.mode || 'hybrid'} 모드 | 
-              신뢰도: {Math.round((response.confidence || 0) * 100)}% | 
-              {response.metadata?.cacheHit ? ' 캐시 히트 ✓' : ' 새로운 응답'} |
-              엔진: {response.metadata?.engine || 'unknown'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* 답변 */}
-            <div className="prose prose-sm max-w-none">
-              <p className="whitespace-pre-wrap">{response.answer}</p>
-            </div>
+      {response && !isLoading && (response as UnifiedAIResponse).answer && (
+          <Card>
+            <CardHeader>
+              <CardTitle>AI 응답</CardTitle>
+              <CardDescription>
+                {(response as UnifiedAIResponse).metadata?.mode || 'hybrid'} 모드 | 
+                신뢰도: {Math.round(((response as UnifiedAIResponse).confidence || 0) * 100)}% | 
+                {(response as UnifiedAIResponse).metadata?.cacheHit ? ' 캐시 히트 ✓' : ' 새로운 응답'} |
+                엔진: {((response as UnifiedAIResponse).additionalData?.engine as string) || 'unknown'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* 답변 */}
+              <div className="prose prose-sm max-w-none">
+                <p className="whitespace-pre-wrap">{(response as UnifiedAIResponse).answer}</p>
+              </div>
 
-            {/* 처리 정보 */}
-            <div className="border-t pt-4">
-              <h4 className="font-medium mb-2">처리 정보</h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-                {response.processing.services.map((service) => (
-                  <div key={service.name} className="flex items-center justify-between p-2 bg-muted rounded">
-                    <span className="flex items-center gap-1">
-                      {SERVICE_ICONS[service.name as keyof typeof SERVICE_ICONS] || <Server className="w-4 h-4" />}
-                      {service.name}
-                    </span>
-                    <span className="text-muted-foreground">{service.time}ms</span>
+              {/* 처리 정보 */}
+              {(response as UnifiedAIResponse).processing && (
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-2">처리 정보</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                    {(response as UnifiedAIResponse).processing.services.map((service) => (
+                      <div key={service.name} className="flex items-center justify-between p-2 bg-muted rounded">
+                        <span className="flex items-center gap-1">
+                          {SERVICE_ICONS[service.name as keyof typeof SERVICE_ICONS] || <Server className="w-4 h-4" />}
+                          {service.name}
+                        </span>
+                        <span className="text-muted-foreground">{service.time}ms</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              {response.processing.totalTime && (
-                <div className="mt-2 text-sm text-muted-foreground">
-                  총 처리 시간: {response.processing.totalTime}ms
-                </div>
-              )}
-            </div>
-
-            {/* 소스 정보 */}
-            {response.context && response.context.sources.length > 0 && (
-              <div className="border-t pt-4">
-                <h4 className="font-medium mb-2">참조 소스</h4>
-                <div className="space-y-2">
-                  {response.context.sources.map((source, index) => (
-                    <div key={index} className="text-sm p-2 bg-muted rounded">
-                      <Badge variant="outline" className="mb-1">
-                        {source.type} | 관련도: {Math.round(source.relevance * 100)}%
-                      </Badge>
-                      <p className="text-muted-foreground line-clamp-2">
-                        {source.content}
-                      </p>
+                  {(response as UnifiedAIResponse).processing.totalTime && (
+                    <div className="mt-2 text-sm text-muted-foreground">
+                      총 처리 시간: {(response as UnifiedAIResponse).processing.totalTime}ms
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 한국어 NLP 정보 (있는 경우) */}
-            {response.metadata?.koreanNLP && (
-              <div className="border-t pt-4">
-                <h4 className="font-medium mb-2">한국어 분석 정보</h4>
-                <div className="text-sm space-y-1">
-                  <p>의도: {response.metadata.intent}</p>
-                  {response.metadata.entities && response.metadata.entities.length > 0 && (
-                    <p>엔티티: {response.metadata.entities.map((e: any) => `${e.type}(${e.value})`).join(', ')}</p>
                   )}
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+              )}
+
+              {/* 소스 정보 */}
+              {(() => {
+                const typedResponse = response as UnifiedAIResponse;
+                return typedResponse.context?.sources && typedResponse.context.sources.length > 0 ? (
+                  <div className="border-t pt-4">
+                    <h4 className="font-medium mb-2">참조 소스</h4>
+                    <div className="space-y-2">
+                      {typedResponse.context.sources.map((source, index) => (
+                        <div key={index} className="text-sm p-2 bg-muted rounded">
+                          <Badge variant="outline" className="mb-1">
+                            {source.type} | 관련도: {Math.round(source.relevance * 100)}%
+                          </Badge>
+                          <p className="text-muted-foreground line-clamp-2">
+                            {source.content}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null;
+              })()}
+
+              {/* 한국어 NLP 정보 (있는 경우) */}
+              {(() => {
+                const typedResponse = response as UnifiedAIResponse;
+                return typedResponse.additionalData?.koreanNLP ? (
+                  <div className="border-t pt-4">
+                    <h4 className="font-medium mb-2">한국어 분석 정보</h4>
+                    <div className="text-sm space-y-1">
+                      <p>의도: {(typedResponse.additionalData.intent as string) || '분석 중'}</p>
+                      {typedResponse.additionalData.entities && Array.isArray(typedResponse.additionalData.entities) && typedResponse.additionalData.entities.length > 0 ? (
+                        <p>엔티티: {(typedResponse.additionalData.entities as any[]).map((e: any) => 
+                          typeof e === 'object' && e !== null && 'type' in e && 'value' in e ? `${e.type}(${e.value})` : ''
+                        ).filter(Boolean).join(', ')}</p>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null;
+              })()}
+            </CardContent>
+          </Card>
+        )}
 
       {/* 에러 표시 */}
       {error && (

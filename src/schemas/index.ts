@@ -14,9 +14,10 @@ export * from './server-schemas';
 export * from './ai-schemas/ai-performance.schema';
 
 // 기존 스키마들 (점진적 마이그레이션 대상)
-export * from './api.schema';
-export * from './server.schema';
+// TODO: 중복 export 문제 해결 필요 - 이미 server-schemas와 ai-schemas에서 export됨
+// export * from './api.schema';
+// export * from './server.schema';
 export * from './auth.schema';
-export * from './ai.schema';
+// export * from './ai.schema';
 export * from './monitoring.schema';
 export * from './utils.schema';

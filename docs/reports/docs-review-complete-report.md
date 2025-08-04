@@ -13,7 +13,7 @@ OpenManager VIBE v5.65.11 프로젝트의 모든 문서를 체계적으로 검�
 - **버전**: v5.65.11 (2025-07-28)
 - **AI 시스템**: 2-Mode (LOCAL/GOOGLE_ONLY)
 - **기술 스택**: Next.js 14.2.4, React 18.2.0, Node.js v22.15.1
-- **아키텍처**: Vercel Edge + GCP Functions + Supabase + Upstash Redis
+- **아키텍처**: Vercel Edge + GCP Functions + Supabase + Upstash Memory Cache
 - **무료 티어**: Vercel 100GB/월, Supabase 500MB, Upstash 500K 명령/월
 - **MCP 서버**: 9개 활성화
 - **서브 에이전트**: 10개
@@ -91,7 +91,7 @@ OpenManager VIBE v5.65.11 프로젝트의 모든 문서를 체계적으로 검�
 - ⚡ `performance-optimization-complete-guide.md`: 버전 및 날짜 업데이트 완료
 - ⚡ `memory-optimization-guide.md`: 버전 정보 수정 완료
 - ✅ `api-optimization-guide.md`: API 최적화 전략 최신 상태
-- ✅ `redis-configuration-guide.md`: Redis 설정 정확
+- ✅ `memory cache-configuration-guide.md`: Memory Cache 설정 정확
 - ✅ `performance-engine-testing-guide.md`: 테스트 가이드 정확
 
 ### ⚡ **개선 완료** (수정 후 100% 일치)
@@ -100,7 +100,7 @@ OpenManager VIBE v5.65.11 프로젝트의 모든 문서를 체계적으로 검�
 - ⚡ `deployment-guide.md`: 3-Tier → 2-Mode 수정, 스크립트 명령어 검증 완료
 - ✅ `vercel-edge.md`: 2025년 최신 기능 반영
 - ✅ `supabase-auth.md`: GitHub OAuth 정확
-- ✅ `redis-cache.md`: 500K 명령/월 무료 티어 정확
+- ✅ `memory cache-cache.md`: 500K 명령/월 무료 티어 정확
 - ✅ `gcp-functions.md`: Python 3.11 설정 정확
 
 #### 개발 가이드 (`docs/development/` - 12개)
@@ -138,7 +138,7 @@ OpenManager VIBE v5.65.11 프로젝트의 모든 문서를 체계적으로 검�
 
 ### 2. **누락된 유용한 스크립트 명령어 식별**
 문서에 추가할 만한 유용한 명령어들:
-- Redis 관리: `redis:test`, `redis:check`, `redis:cli`
+- Memory Cache 관리: `memory cache:test`, `memory cache:check`, `memory cache:cli`
 - Sub Agents: `agents:test`, `agents:health`, `agents:stats`
 - 보안 토큰: `secure:token`, `secure:add`, `secure:get`
 - 시스템 상태: `system:health`, `system:status`

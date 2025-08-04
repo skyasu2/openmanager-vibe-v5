@@ -1,23 +1,49 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getMockSystem } from '@/mock';
-import { getRedisClient } from '@/lib/redis';
-import type { RedisClientInterface } from '@/lib/redis';
 import type { Server } from '@/types/api-responses';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * 🚀 서버 목록 API (TDD로 개선됨)
+ * 🚀 서버 목록 API (메모리 기반 캐싱)
  *
  * 기능:
  * - 서버 목록 조회
- * - Redis 캐싱
+ * - 메모리 기반 캐싱 (Redis 완전 제거)
  * - 페이지네이션
  * - 필터링 (쿼리 파라미터)
  * - 응답 시간 측정
  * - 에러 처리
  */
+
+// 메모리 기반 캐시 스토어
+const memoryCache = new Map<string, {
+  data: any;
+  timestamp: number;
+  ttl: number;
+}>();
+
+// 캐시 도우미 함수
+function getCacheItem(key: string) {
+  const item = memoryCache.get(key);
+  if (!item) return null;
+  
+  if (Date.now() - item.timestamp > item.ttl) {
+    memoryCache.delete(key);
+    return null;
+  }
+  
+  return item.data;
+}
+
+function setCacheItem(key: string, data: any, ttlSeconds: number = 60) {
+  memoryCache.set(key, {
+    data,
+    timestamp: Date.now(),
+    ttl: ttlSeconds * 1000,
+  });
+}
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
   let cacheHit = false;
@@ -34,22 +60,11 @@ export async function GET(request: NextRequest) {
     // 캐시 키 생성
     const cacheKey = `servers:all:${status || 'all'}:${page}:${limit}`;
     
-    // Redis 캐시 확인
-    let servers = null;
-    
-    try {
-      const redis = await getRedisClient('api-response');
-      if (redis) {
-        const cached = await redis.get(cacheKey);
-        if (cached) {
-          servers = typeof cached === 'string' ? JSON.parse(cached) : cached;
-          cacheHit = true;
-          console.log('✅ Redis 캐시 히트');
-        }
-      }
-    } catch (redisError) {
-      console.error('❌ Redis 에러 (계속 진행):', redisError);
-      // Redis 에러는 무시하고 계속 진행
+    // 메모리 캐시 확인
+    let servers = getCacheItem(cacheKey);
+    if (servers) {
+      cacheHit = true;
+      console.log('✅ 메모리 캐시 히트');
     }
     
     // 캐시가 없으면 데이터 조회
@@ -77,19 +92,13 @@ export async function GET(request: NextRequest) {
       
       // 상태 필터링
       if (status) {
-        servers = servers.filter(s => s.status === status);
+        servers = servers.filter((s: Server) => s.status === status);
       }
       
-      // Redis에 캐싱 (실패해도 계속 진행)
+      // 메모리에 캐싱
       if (!cacheHit) {
-        try {
-          const redis = await getRedisClient('api-response');
-          if (redis) {
-            await redis.setex(cacheKey, 60, JSON.stringify(servers));
-          }
-        } catch (redisError) {
-          console.error('❌ Redis 캐싱 실패:', redisError);
-        }
+        setCacheItem(cacheKey, servers, 60); // 60초 TTL
+        console.log('💾 메모리 캐시 저장');
       }
     }
     
@@ -117,9 +126,10 @@ export async function GET(request: NextRequest) {
       'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
       'CDN-Cache-Control': 'public, s-maxage=60',
       'Vercel-CDN-Cache-Control': 'public, s-maxage=60',
-      'X-Cache-Status': cacheHit ? 'hit' : 'miss',
+      'X-Cache-Status': cacheHit ? 'memory-hit' : 'memory-miss',
+      'X-Storage': 'Memory-based',
       'X-Response-Time': `${responseTime}`,
-      'Server-Timing': `db;dur=${cacheHit ? 0 : 20}, cache;dur=${cacheHit ? 5 : 0}, total;dur=${responseTime}`,
+      'Server-Timing': `db;dur=${cacheHit ? 0 : 20}, memory-cache;dur=${cacheHit ? 2 : 0}, total;dur=${responseTime}`,
     });
     
     return NextResponse.json(

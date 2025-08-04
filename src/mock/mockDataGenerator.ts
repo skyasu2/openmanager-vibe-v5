@@ -31,6 +31,13 @@ export interface MockServerData {
   };
 }
 
+export interface CompressedDataPoint {
+  c: number; // cpu
+  m: number; // memory
+  d: number; // disk
+  n: number; // network
+}
+
 /**
  * Server 타입으로 변환
  */
@@ -79,14 +86,14 @@ function convertToServerType(
  * 압축된 시계열 데이터 생성
  * Delta encoding을 사용하여 크기 최적화
  */
-function compressTimeSeriesData(data: ScenarioPoint[]): unknown {
+function compressTimeSeriesData(data: ScenarioPoint[]): CompressedDataPoint[] {
   if (data.length === 0) return [];
 
   // 첫 번째 값은 그대로 저장
   const firstData = data[0];
   if (!firstData) return [];
 
-  const compressed: unknown[] = [
+  const compressed: CompressedDataPoint[] = [
     {
       c: Math.round(firstData.cpu),
       m: Math.round(firstData.memory),
@@ -115,7 +122,7 @@ function compressTimeSeriesData(data: ScenarioPoint[]): unknown {
 /**
  * 압축된 데이터 복원
  */
-export function decompressTimeSeriesData(compressed: unknown[]): ScenarioPoint[] {
+export function decompressTimeSeriesData(compressed: CompressedDataPoint[]): ScenarioPoint[] {
   if (compressed.length === 0) return [];
 
   const decompressed: ScenarioPoint[] = [
@@ -171,7 +178,7 @@ export function generateMockServerData(): MockServerData {
     timeSeries[mockServer.id] = {
       serverId: mockServer.id,
       scenario: scenarioId,
-      data: compressedData as any, // 실제로는 압축된 형태
+      data: compressedData as any, // Note: In practice, this would be the compressed format for storage
       alerts:
         mockServer.status !== 'online'
           ? scenarioAlerts[scenarioId as keyof typeof scenarioAlerts]?.slice(
@@ -263,14 +270,18 @@ export function calculateDataSize(data: MockServerData): {
 } {
   const originalSize = JSON.stringify(data).length;
 
-  // 압축 시뮬레이션
+  // 압축 시뮬레이션 - TimeSeriesData에서 ScenarioPoint로 변환 후 압축
   const compressedData = {
     ...data,
     timeSeries: Object.entries(data.timeSeries).reduce(
       (acc, [key, value]) => {
+        // TimeSeriesData[]에서 ScenarioPoint[]로 변환
+        const scenarioPoints: ScenarioPoint[] = (value.data as TimeSeriesData[]).map(item => item.metrics);
+        const compressed = compressTimeSeriesData(scenarioPoints);
+        
         acc[key] = {
           ...value,
-          data: compressTimeSeriesData(value.data as any),
+          data: compressed as any, // 압축된 데이터는 실제로는 다른 형태로 저장됨
         };
         return acc;
       },

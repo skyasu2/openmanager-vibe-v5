@@ -53,7 +53,7 @@ OpenManager Vibe v5.65.11은 **2-Mode AI 시스템으로 완전 전환된 고성
 #### **4단계: 데이터 레이어**
 
 - **Supabase PostgreSQL**: 500MB 벡터 검색 + 관계형 데이터
-- **Upstash Redis**: 256MB 캐싱 (500K 명령/월)
+- **Upstash Memory Cache**: 256MB 캐싱 (500K 명령/월)
 - **Google AI Gemini**: GOOGLE_ONLY 모드 전용
 
 ### 성능 최적화

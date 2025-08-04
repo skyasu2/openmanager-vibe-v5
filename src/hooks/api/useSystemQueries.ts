@@ -168,7 +168,7 @@ const fetchSystemAlerts = async (filters?: {
   const alerts: SystemAlert[] = [];
 
   if (dashboardData.servers) {
-    dashboardData.servers.forEach((server: unknown) => {
+    dashboardData.servers.forEach((server: any) => {
       if (
         server.status === 'critical' &&
         (!filters?.level || filters.level === 'error')

@@ -117,7 +117,7 @@ export default function Home() {
   useEffect(() => {
     if (!isMounted) return;
 
-    let authListener: unknown;
+    let authListener: { subscription: { unsubscribe: () => void } } | null;
 
     const checkAuth = async () => {
       setAuthLoading(true);
@@ -158,7 +158,7 @@ export default function Home() {
     });
 
     return () => {
-      authListener?.subscription?.unsubscribe();
+      authListener?.subscription.unsubscribe();
     };
   }, [isMounted]);
 

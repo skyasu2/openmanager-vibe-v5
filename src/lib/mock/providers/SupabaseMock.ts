@@ -109,22 +109,23 @@ export class SupabaseMock extends MockBase {
       // 필터 적용
       for (const filter of builder.filters) {
         data = data.filter(item => {
-          const value = item[filter.column];
+          const record = item as Record<string, any>;
+          const value = record[filter.column];
           switch (filter.operator) {
             case 'eq':
               return value === filter.value;
             case 'neq':
               return value !== filter.value;
             case 'gt':
-              return value > filter.value;
+              return value > (filter.value as any);
             case 'gte':
-              return value >= filter.value;
+              return value >= (filter.value as any);
             case 'lt':
-              return value < filter.value;
+              return value < (filter.value as any);
             case 'lte':
-              return value <= filter.value;
+              return value <= (filter.value as any);
             case 'like':
-              return String(value).includes(filter.value);
+              return String(value).includes(String(filter.value));
             default:
               return true;
           }
@@ -134,8 +135,10 @@ export class SupabaseMock extends MockBase {
       // 정렬 적용
       if (builder.orderBy) {
         data.sort((a, b) => {
-          const aVal = a[builder.orderBy!.column];
-          const bVal = b[builder.orderBy!.column];
+          const recordA = a as Record<string, any>;
+          const recordB = b as Record<string, any>;
+          const aVal = recordA[builder.orderBy!.column];
+          const bVal = recordB[builder.orderBy!.column];
           const result = aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
           return builder.orderBy!.ascending ? result : -result;
         });
@@ -216,14 +219,15 @@ class SupabaseQueryBuilder {
 
   async single(): Promise<unknown> {
     const result = await this.mock.executeQuery(this.builder);
-    if (result.data.length === 0) {
+    const typedResult = result as { data: unknown[]; error: unknown };
+    if (typedResult.data.length === 0) {
       return { data: null, error: new Error('No rows found') };
     }
-    return { data: result.data[0], error: null };
+    return { data: typedResult.data[0], error: null };
   }
 
   // 쿼리 실행
-  then(resolve: unknown, reject?: unknown): Promise<unknown> {
+  then(resolve: (value: unknown) => unknown, reject?: (reason: unknown) => unknown): Promise<unknown> {
     return this.mock.executeQuery(this.builder).then(resolve, reject);
   }
 }

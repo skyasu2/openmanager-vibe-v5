@@ -99,28 +99,44 @@ export default function InfrastructureOverviewPage({
         // 대시보드 API 서버 데이터 구조에 맞게 계산
         totalCpu =
           servers.reduce((sum: number, s: unknown) => {
-            const cpuValue = s.node_cpu_usage_percent || s.cpu_usage || 0;
-            return sum + cpuValue;
+            if (typeof s === 'object' && s !== null) {
+              const server = s as any;
+              const cpuValue = server.node_cpu_usage_percent || server.cpu_usage || 0;
+              return sum + cpuValue;
+            }
+            return sum;
           }, 0) / servers.length;
 
         totalRam =
           servers.reduce((sum: number, s: unknown) => {
-            const memoryValue =
-              s.node_memory_usage_percent || s.memory_usage || 0;
-            return sum + memoryValue;
+            if (typeof s === 'object' && s !== null) {
+              const server = s as any;
+              const memoryValue =
+                server.node_memory_usage_percent || server.memory_usage || 0;
+              return sum + memoryValue;
+            }
+            return sum;
           }, 0) / servers.length;
 
         totalDisk =
           servers.reduce((sum: number, s: unknown) => {
-            const diskValue = s.node_disk_usage_percent || s.disk_usage || 0;
-            return sum + diskValue;
+            if (typeof s === 'object' && s !== null) {
+              const server = s as any;
+              const diskValue = server.node_disk_usage_percent || server.disk_usage || 0;
+              return sum + diskValue;
+            }
+            return sum;
           }, 0) / servers.length;
 
         // 네트워크는 총합으로 계산 (대역폭)
         bandwidth = servers.reduce((sum: number, s: unknown) => {
-          const networkIn = s.node_network_receive_rate_mbps || 0;
-          const networkOut = s.node_network_transmit_rate_mbps || 0;
-          return sum + networkIn + networkOut;
+          if (typeof s === 'object' && s !== null) {
+            const server = s as any;
+            const networkIn = server.node_network_receive_rate_mbps || 0;
+            const networkOut = server.node_network_transmit_rate_mbps || 0;
+            return sum + networkIn + networkOut;
+          }
+          return sum;
         }, 0);
       }
 

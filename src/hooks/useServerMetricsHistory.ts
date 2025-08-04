@@ -20,12 +20,13 @@ export function useServerMetricsHistory(serverId: string) {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const handleDataUpdate = useCallback(
-    (newData: {
-      cpu: number;
-      memory: number;
-      disk: number;
-      network: number;
-    }) => {
+    (data: unknown) => {
+      const newData = data as {
+        cpu: number;
+        memory: number;
+        disk: number;
+        network: number;
+      };
       setMetricsHistory(prevHistory => ({
         cpu: [...prevHistory.cpu.slice(-MAX_HISTORY_LENGTH + 1), newData.cpu],
         memory: [

@@ -87,8 +87,8 @@ export default defineConfig({
       // 제거된 불필요한 테스트 파일들
       'tests/integration/on-demand-health-check.test.ts',
       'tests/integration/system-state-management.test.ts',
-      'tests/redis/redis-metrics-manager.test.ts',
-      'tests/unit/redis-metrics-manager.test.ts',
+      'tests/memory cache/memory cache-metrics-manager.test.ts',
+      'tests/unit/memory cache-metrics-manager.test.ts',
       'tests/unit/server-monitoring-patterns.test.ts',
       'tests/unit/auto-incident-report-system.test.ts',
       'tests/unit/urgent-free-tier-optimization.test.ts',
@@ -164,7 +164,7 @@ import { describe, it, expect } from 'vitest';
 import { DashboardService } from '@/services/DashboardService';
 
 describe('DashboardService', () => {
-  it('should fetch server data from Redis', async () => {
+  it('should fetch server data from Memory Cache', async () => {
     const service = new DashboardService();
     const data = await service.getServerData();
 
@@ -203,22 +203,22 @@ export class DashboardService {
 
 ```typescript
 // src/services/DashboardService.ts
-import { Redis } from 'redis';
+import { Memory Cache } from 'memory cache';
 
 export class DashboardService {
-  private redis: Redis;
+  private memory cache: Memory Cache;
 
   constructor() {
-    this.redis = new Redis(process.env.REDIS_URL);
+    this.memory cache = new Memory Cache(process.env.MEMORY_CACHE_URL);
   }
 
   async getServerData(): Promise<ServerData> {
     try {
-      // Redis Pipeline으로 최적화
-      const pipeline = this.redis.pipeline();
+      // Memory Cache Pipeline으로 최적화
+      const pipeline = this.memory cache.pipeline();
 
       // 모든 서버 키 조회
-      const serverKeys = await this.redis.keys('server:*');
+      const serverKeys = await this.memory cache.keys('server:*');
 
       // 일괄 조회
       serverKeys.forEach(key => pipeline.hgetall(key));
@@ -268,7 +268,7 @@ tests/
 ├── unit/                           # 핵심 비즈니스 로직 테스트
 │   ├── services/
 │   │   ├── dashboard-service.test.ts
-│   │   ├── redis-service.test.ts
+│   │   ├── memory cache-service.test.ts
 │   │   └── api-client.test.ts
 │   ├── components/
 │   │   ├── dashboard.test.tsx
@@ -283,9 +283,9 @@ tests/
 │   ├── database/
 │   │   └── supabase-integration.test.ts
 │   └── cache/
-│       └── redis-integration.test.ts
+│       └── memory cache-integration.test.ts
 ├── mocks/                          # 모킹 설정
-│   ├── redis-mock.ts
+│   ├── memory cache-mock.ts
 │   ├── supabase-mock.ts
 │   └── google-ai-mock.ts
 └── setup.ts                       # 테스트 환경 설정
@@ -298,10 +298,10 @@ tests/
 - `tests/integration/on-demand-health-check.test.ts` ❌
 - `tests/integration/system-state-management.test.ts` ❌
 
-#### 중복 Redis 테스트
+#### 중복 Memory Cache 테스트
 
-- `tests/redis/redis-metrics-manager.test.ts` ❌
-- `tests/unit/redis-metrics-manager.test.ts` ❌
+- `tests/memory cache/memory cache-metrics-manager.test.ts` ❌
+- `tests/unit/memory cache-metrics-manager.test.ts` ❌
 
 #### 서버 모니터링 & 자동화 관련
 
@@ -323,13 +323,13 @@ tests/
 
 ## 🎭 모킹 시스템
 
-### Redis Mock
+### Memory Cache Mock
 
 ```typescript
-// tests/mocks/redis-mock.ts
+// tests/mocks/memory cache-mock.ts
 import { vi } from 'vitest';
 
-export const createRedisMock = () => ({
+export const createMemory CacheMock = () => ({
   get: vi.fn().mockResolvedValue(null),
   set: vi.fn().mockResolvedValue('OK'),
   del: vi.fn().mockResolvedValue(1),
@@ -345,8 +345,8 @@ export const createRedisMock = () => ({
 });
 
 // 사용 예시
-vi.mock('redis', () => ({
-  Redis: vi.fn().mockImplementation(() => createRedisMock()),
+vi.mock('memory cache', () => ({
+  Memory Cache: vi.fn().mockImplementation(() => createMemory CacheMock()),
 }));
 ```
 
@@ -481,9 +481,9 @@ npm run analyze:health-endpoints
 npm run analyze:api-structure
 ```
 
-#### 2. 중복 Redis 테스트
+#### 2. 중복 Memory Cache 테스트
 
-**제거된 파일**: `redis-metrics-manager.test.ts` (2개)
+**제거된 파일**: `memory cache-metrics-manager.test.ts` (2개)
 
 **제거 근거**:
 
@@ -493,7 +493,7 @@ npm run analyze:api-structure
 **대안**:
 
 ```bash
-npm test tests/integration/redis-integration.test.ts
+npm test tests/integration/memory cache-integration.test.ts
 ```
 
 #### 3. UI 관련 테스트
@@ -555,7 +555,7 @@ npm test --parallel
 npm test --run --reporter=verbose
 
 # 특정 패턴 테스트
-npm test --grep="redis"
+npm test --grep="@upstash/memory cache" (제거됨)
 
 # 타임아웃 설정
 npm test --timeout=10000

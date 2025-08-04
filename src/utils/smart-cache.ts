@@ -62,7 +62,7 @@ export class RequestScopedCache {
 
     // 이미 진행 중인 요청이 있는 경우 중복 제거
     if (this.pendingRequests.has(key)) {
-      return this.pendingRequests.get(key);
+      return this.pendingRequests.get(key) as Promise<T>;
     }
 
     // 새로운 요청 시작

@@ -2,7 +2,7 @@
 
 ## 개요
 
-Redis Streams에서 Supabase Realtime으로 전환한 v2 API 마이그레이션이 완료되었습니다.
+Memory Cache Streams에서 Supabase Realtime으로 전환한 v2 API 마이그레이션이 완료되었습니다.
 
 ## 주요 변경사항
 
@@ -14,7 +14,7 @@ Redis Streams에서 Supabase Realtime으로 전환한 v2 API 마이그레이션�
 
 ### 2. React Hook
 
-- **이전**: `useHybridAI` (Redis 기반)
+- **이전**: `useHybridAI` (Memory Cache 기반)
 - **새로운**: `useHybridAI-v2` (Supabase Realtime 기반)
 
 ### 3. 업데이트된 컴포넌트
@@ -52,11 +52,11 @@ Redis Streams에서 Supabase Realtime으로 전환한 v2 API 마이그레이션�
 
 3. **무료 티어 최적화**
    - Supabase Realtime: 200 동시 연결 무료
-   - Redis 명령어 제한 회피
+   - Memory Cache 명령어 제한 회피
 
 ## 남은 작업
 
-1. Redis 의존성 완전 제거
+1. Memory Cache 의존성 완전 제거
 2. 통합 테스트 실행
 3. 성능 벤치마크
 4. 기타 테스트 페이지 업데이트 (test-ai 페이지)
@@ -69,10 +69,10 @@ Redis Streams에서 Supabase Realtime으로 전환한 v2 API 마이그레이션�
 - [x] 데모 컴포넌트 업데이트
 - [x] 연결 상태 모니터링 추가
 - [x] 한국어 NLP 지원 통합
-- [ ] Redis 의존성 제거
+- [ ] Memory Cache 의존성 제거
 - [ ] 전체 테스트 실행
 
 ## 참고 문서
 
-- [Redis to Supabase 마이그레이션 가이드](/docs/redis-to-supabase-migration-guide.md)
+- [Memory Cache to Supabase 마이그레이션 가이드](/docs/memory cache-to-supabase-migration-guide.md)
 - [Supabase Realtime 테스트 페이지](/app/test/supabase-realtime)

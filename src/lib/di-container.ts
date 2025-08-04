@@ -287,9 +287,10 @@ export function Inject(token: string | symbol) {
     parameterIndex: number
   ) {
     // 간단한 의존성 추적 (실제 프로젝트에서는 reflect-metadata 사용 권장)
-    if (!target.__dependencies) {
-      target.__dependencies = [];
+    const typedTarget = target as any;
+    if (!typedTarget.__dependencies) {
+      typedTarget.__dependencies = [];
     }
-    target.__dependencies[parameterIndex] = token;
+    typedTarget.__dependencies[parameterIndex] = token;
   };
 }

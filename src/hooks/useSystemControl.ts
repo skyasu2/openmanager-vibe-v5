@@ -319,8 +319,8 @@ export function useSystemControl(): UseSystemControlReturn {
           systemLogger.error(errorMsg);
           isErrorState = true;
         }
-      } catch (error: Error | unknown) {
-        if (error.name === 'AbortError') {
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
           const errorMsg = '❌ 시뮬레이션 엔진 시작 타임아웃';
           errors.push(errorMsg);
           systemLogger.error(errorMsg);
@@ -543,13 +543,13 @@ export function useSystemControl(): UseSystemControlReturn {
     pauseReason,
     isUserSession: userInitiated,
     shouldAutoStop: shouldAutoStop, // 함수 호출 제거
-    startFullSystem,
-    stopFullSystem,
-    pauseFullSystem,
-    resumeFullSystem,
-    startAISession,
+    startFullSystem: startFullSystem as SystemActionFunction,
+    stopFullSystem: stopFullSystem as SystemActionFunction,
+    pauseFullSystem: pauseFullSystem as SystemActionFunction,
+    resumeFullSystem: resumeFullSystem as SystemActionFunction,
+    startAISession: startAISession as SystemActionFunction,
     recordActivity,
-    enableAIAgent,
-    disableAIAgent,
+    enableAIAgent: enableAIAgent as SystemActionFunction,
+    disableAIAgent: disableAIAgent as SystemActionFunction,
   };
 }

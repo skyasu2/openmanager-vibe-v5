@@ -13,6 +13,23 @@ import type { EnhancedServerMetrics } from '../../types/server';
 // BaselineStorageService removed - using FixedDataSystem instead
 import { LongRunningScenarioEngine } from '../vm/LongRunningScenarioEngine';
 
+interface BaselineData {
+  pattern_multiplier?: number;
+  response_time_baseline?: number;
+  [key: string]: any;
+}
+
+interface ScenarioData {
+  type?: string;
+  severity?: number;
+  impact?: number;
+  [key: string]: any;
+}
+
+interface BaselineStorage {
+  [key: string]: any;
+}
+
 // 10배 풍부한 메트릭 인터페이스
 export interface EnrichedMetrics {
   // 🖥️ 시스템 메트릭 (기존)
@@ -139,7 +156,7 @@ export class EnrichedMetricsGenerator {
 
   // 🔄 VM 환경 최적화
   // private baselineStorage = BaselineStorageService.getInstance(); // BaselineStorageService removed
-  private baselineStorage: unknown = null;
+  private baselineStorage: BaselineStorage | null = null;
   private scenarioEngine = new LongRunningScenarioEngine();
 
   // 🕐 24시간 연속 운영 (기존 30분 제한 제거)
@@ -322,8 +339,8 @@ export class EnrichedMetricsGenerator {
    */
   private generateSystemMetrics(
     server: EnhancedServerMetrics,
-    baseline: unknown,
-    scenarios: unknown[]
+    baseline: BaselineData | null,
+    scenarios: ScenarioData[]
   ): EnrichedMetrics['system'] {
     // 기존 베이스라인 방식 + 시나리오 영향 적용
     const baseMultiplier = baseline?.pattern_multiplier || 1.0;
@@ -396,7 +413,7 @@ export class EnrichedMetricsGenerator {
   private generateApplicationMetrics(
     server: EnhancedServerMetrics,
     hour: number,
-    baseline: unknown
+    baseline: BaselineData | null
   ): EnrichedMetrics['application'] {
     const trafficMultiplier = this.getTrafficMultiplier(hour);
     const baseRps = baseline?.response_time_baseline || 100;
@@ -498,11 +515,11 @@ export class EnrichedMetricsGenerator {
 
   // 🛠️ 유틸리티 메서드들
 
-  private getServerBaseline(serverId: string, hour: number): unknown {
+  private getServerBaseline(serverId: string, hour: number): BaselineData | null {
     return this.baselineData.get(`${serverId}-${hour}`) || {};
   }
 
-  private calculateScenarioImpact(scenarios: unknown[]): number {
+  private calculateScenarioImpact(scenarios: ScenarioData[]): number {
     let impact = 1.0;
     scenarios.forEach(scenario => {
       switch (scenario.pattern?.severity) {

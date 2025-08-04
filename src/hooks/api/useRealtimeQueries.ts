@@ -89,34 +89,41 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
           switch (message.type) {
             case 'server_update':
               // 서버 상태 업데이트
-              queryClient.setQueryData(serverKeys.lists(), (old: unknown[]) => {
-                if (!old) return old;
-                return old.map(server =>
-                  server.id === message.data.id
-                    ? { ...server, ...message.data }
+              const serverData = message.data as { id: string };
+              queryClient.setQueryData(serverKeys.lists(), (old: any) => {
+                if (!Array.isArray(old)) return old;
+                return old.map((server: any) =>
+                  server.id === serverData.id
+                    ? { ...server, ...serverData }
                     : server
                 );
               });
 
               // 특정 서버 상세 정보도 업데이트
-              if (message.data.id) {
+              if (serverData.id) {
                 queryClient.setQueryData(
-                  serverKeys.detail(message.data.id),
-                  (old: unknown) => (old ? { ...old, ...message.data } : old)
+                  serverKeys.detail(serverData.id),
+                  (old: any) => (old ? { ...old, ...serverData } : old)
                 );
               }
               break;
 
             case 'system_update':
               // 시스템 상태 업데이트
-              queryClient.setQueryData(systemKeys.health(), (old: unknown) => {
-                return old ? { ...old, ...message.data } : message.data;
+              const systemData = message.data as Record<string, any>;
+              queryClient.setQueryData(systemKeys.health(), (old: any) => {
+                return old ? { ...old, ...systemData } : systemData;
               });
               break;
 
             case 'alert': {
               // 실시간 알림
-              const { level, title, message: alertMessage } = message.data;
+              const alertData = message.data as {
+                level: 'critical' | 'warning' | 'info';
+                title: string;
+                message: string;
+              };
+              const { level, title, message: alertMessage } = alertData;
               const toastOptions = {
                 duration: level === 'critical' ? 10000 : 5000,
               };
@@ -268,14 +275,18 @@ export const useRealtimePredictions = () => {
 
         if (message.type === 'prediction_update') {
           // 새로운 예측 결과를 캐시에 추가
-          queryClient.setQueryData(predictionKeys.list('{}'), (old: unknown[]) => {
-            if (!old) return [message.data];
+          queryClient.setQueryData(predictionKeys.list('{}'), (old: any) => {
+            if (!Array.isArray(old)) return [message.data];
             return [message.data, ...old.slice(0, 49)]; // 최신 50개만 유지
           });
 
           // 실시간 예측 알림
+          const predictionData = message.data as {
+            metric: string;
+            predicted_value: number;
+          };
           toast.success(
-            `🔮 새로운 예측: ${message.data.metric} ${message.data.predicted_value.toFixed(1)}%`,
+            `🔮 새로운 예측: ${predictionData.metric} ${predictionData.predicted_value.toFixed(1)}%`,
             { duration: 3000 }
           );
         }

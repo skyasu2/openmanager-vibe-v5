@@ -113,14 +113,14 @@ Cursor AI에 투자하여 본격적인 동적 웹 서비스로 전환하기로 �
 
 # 인프라 변화
 - GitHub + Netlify (정적 호스팅)
-+ Vercel (동적 웹 지원) + Supabase (DB) + Upstash Redis (캐싱)
++ Vercel (동적 웹 지원) + Supabase (DB) + Upstash Memory Cache (캐싱)
 + GitHub Actions (CI/CD 자동화)
 ```
 
 ### **⚡ 주요 작업**
 1. **플랫폼 전환**: Netlify → Vercel (동적 웹 지원 위함)
 2. **Next.js 도입**: React 기반 SPA 구축 (Cursor AI 가이드)
-3. **백엔드 생태계**: Supabase PostgreSQL + Upstash Redis 통합
+3. **백엔드 생태계**: Supabase PostgreSQL + Upstash Memory Cache 통합
 4. **자동화 파이프라인**: GitHub Actions CI/CD 구축
 5. **실시간 모니터링**: WebSocket + Server-Sent Events 구현
 
@@ -148,11 +148,11 @@ Cursor AI에 투자하여 본격적인 동적 웹 서비스로 전환하기로 �
 **시스템 엔지니어 강점 발휘**:
 - 서버 부하 분산 경험 → 서버리스 아키텍처 설계 능력
 - 데이터베이스 운영 경험 → Supabase PostgreSQL 최적화
-- 캐싱 시스템 구축 경험 → Redis 활용 전략 수립
+- 캐싱 시스템 구축 경험 → Memory Cache 활용 전략 수립
 
 **기술 스택 선택 (전문성 기반)**:
 - Supabase: RLS 정책으로 보안 강화 (시스템 보안 경험 활용)
-- Upstash Redis: 분산 캐싱 및 세션 관리 최적화
+- Upstash Memory Cache: 분산 캐싱 및 세션 관리 최적화
 - Vercel Edge Runtime: CDN 최적화 (네트워크 지식 활용)
 
 **결과**: 백엔드 설계는 오히려 프론트엔드보다 수월했음
@@ -189,7 +189,7 @@ jobs:
 **해결**:
 - Server-Sent Events (SSE) 구현
 - Supabase Realtime 구독
-- Redis를 활용한 캐싱 전략
+- Memory Cache를 활용한 캐싱 전략
 
 **성능 개선**:
 - 폴링 방식: 15초 간격 → 실시간 업데이트
@@ -224,7 +224,7 @@ Claude Code와 Gemini CLI의 조합을 발견하게 되었죠."
 + ChatGPT (브레인스토밍/프롬프트 작성) - 계속 유지
 
 # 인프라 연속성 (안정성 확보)
-= Vercel + Supabase + Upstash Redis (2단계에서 그대로 유지)
+= Vercel + Supabase + Upstash Memory Cache (2단계에서 그대로 유지)
 + GCP Functions (Python 3.11) - 새로 추가
 
 # 새로운 AI 생태계
@@ -355,7 +355,7 @@ class UnifiedAIRouter {
 
 3. **인프라 연속성 전략 (시스템 운영 관점)**
    - **변화하는 요소**: 개발 도구 (ChatGPT → Cursor → Claude)
-   - **유지되는 요소**: 핵심 인프라 (Vercel, Supabase, Redis)
+   - **유지되는 요소**: 핵심 인프라 (Vercel, Supabase, Memory Cache)
    - **추가되는 요소**: 새로운 기능 레이어 (GCP Functions)
    - **안정성 우선**: 검증된 스택 기반으로 확장
 

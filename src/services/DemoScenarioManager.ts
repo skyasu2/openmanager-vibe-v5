@@ -15,6 +15,36 @@ import type {
   ServerStatus,
 } from '../types/server';
 
+interface PhaseChanges {
+  targetServers?: string[];
+  serverTypes?: string[];
+  metricsDeltas?: Record<string, any>;
+  cascadeEffects?: {
+    affectedTypes: string[];
+    delayMs: number;
+    metrics: Record<string, string>;
+  };
+  alertTriggers?: {
+    threshold: number;
+    type: string;
+  };
+  recoveryHints?: {
+    suggestedActions: string[];
+    estimatedTime: string;
+  };
+  [key: string]: any; // Allow additional properties
+}
+
+interface MetricChanges {
+  cpu?: string | number;
+  memory?: string | number;
+  disk?: string | number;
+  network_in?: string | number;
+  network_out?: string | number;
+  response_time?: string | number;
+  [key: string]: any;
+}
+
 // 🎯 장애 유형 풀 (랜덤 선택)
 const FAILURE_SCENARIOS = [
   'traffic_spike', // 트래픽 급증
@@ -582,7 +612,7 @@ export class DemoScenarioManager {
     // 단계별 강도 계수
     const phaseIntensity = this.calculatePhaseIntensity(phase, cycleMinutes);
 
-    const changes: unknown = {
+    const changes: PhaseChanges = {
       targetServers: affectedInfrastructure.criticalServers,
       serverTypes: affectedInfrastructure.primaryTargets,
       metrics: {
@@ -792,7 +822,7 @@ export class DemoScenarioManager {
    */
   private applyMetricChanges(
     server: EnhancedServerMetrics,
-    metrics: unknown
+    metrics: MetricChanges
   ): void {
     if (metrics.cpu !== undefined) {
       server.cpu_usage = this.calculateNewValue(server.cpu_usage, metrics.cpu);

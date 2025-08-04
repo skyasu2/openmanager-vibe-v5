@@ -791,17 +791,20 @@ export default function IntelligentMonitoringPage() {
                       </div>
                       <div className="flex flex-wrap gap-1">
                         {result.rootCauseAnalysis.aiInsights.map(
-                          (insight, index) => (
-                            <span
-                              key={index}
-                              className="inline-flex items-center rounded bg-blue-100 px-2 py-1 text-xs text-blue-700"
-                            >
-                              {insight.engine}
-                              <span className="ml-1 text-blue-500">
-                                ({Math.round(insight.confidence * 100)}%)
+                          (insight, index) => {
+                            const insightData = insight as { engine?: string; confidence?: number };
+                            return (
+                              <span
+                                key={index}
+                                className="inline-flex items-center rounded bg-blue-100 px-2 py-1 text-xs text-blue-700"
+                              >
+                                {insightData.engine || 'Unknown'}
+                                <span className="ml-1 text-blue-500">
+                                  ({Math.round((insightData.confidence || 0) * 100)}%)
+                                </span>
                               </span>
-                            </span>
-                          )
+                            );
+                          }
                         )}
                       </div>
                     </div>

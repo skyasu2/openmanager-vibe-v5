@@ -36,7 +36,6 @@ jobs:
       - name: Quick Tests
         run: npm run test:quick
         env:
-          USE_REAL_REDIS: false
           SKIP_ENV_VALIDATION: true
 
       - name: Build Check

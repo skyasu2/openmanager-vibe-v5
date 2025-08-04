@@ -9,6 +9,7 @@
 
 import { getSupabaseClient } from './supabase-singleton';
 import { EdgeLogger } from './edge-runtime-utils';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 // ==============================================
 // 🎯 AI 세션 관련 타입 정의
@@ -75,7 +76,7 @@ export interface AISessionRequest {
 // ==============================================
 
 export class AISessionStorage {
-  private supabase: unknown;
+  private supabase: SupabaseClient | null;
   private logger: EdgeLogger;
   private readonly TABLE_NAME = 'ai_sessions';
   private readonly SUMMARY_TABLE = 'ai_session_summaries';
@@ -353,20 +354,26 @@ export async function saveAIResponse(
 ): Promise<boolean> {
   const storage = getAISessionStorage();
 
+  const typedResponse = response as any;
   const sessionData: AISessionData = {
     session_id: sessionId,
     query,
     mode,
     response: {
-      success: response.success || false,
-      response: response.response || response.result || '',
-      confidence: response.confidence || 0.7,
-      engine_path: response.enginePath || response.engines?.used || [],
-      processing_time: response.processingTime || response.response_time || 0,
+      success: typedResponse.success || false,
+      response: typedResponse.response || typedResponse.result || '',
+      confidence: typedResponse.confidence || 0.7,
+      engine_path: typedResponse.enginePath || typedResponse.engines?.used || [],
+      processing_time: typedResponse.processingTime || typedResponse.response_time || 0,
       fallbacks_used:
-        response.fallbacksUsed || response.engines?.fallbacks || 0,
+        typedResponse.fallbacksUsed || typedResponse.engines?.fallbacks || 0,
     },
-    thinking_process: thinkingProcess,
+    thinking_process: thinkingProcess as Array<{
+      type: string;
+      title: string;
+      description: string;
+      timestamp: number;
+    }> | undefined,
     reasoning_steps: reasoningSteps,
     metadata: {
       timestamp: new Date().toISOString(),

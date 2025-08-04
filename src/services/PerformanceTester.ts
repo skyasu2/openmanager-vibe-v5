@@ -1,17 +1,16 @@
 /**
- * 🚀 Performance Tester v2.0
+ * 🚀 Performance Tester v3.0 (Redis-Free)
  *
  * OpenManager AI v5.12.0 - 고성능 부하 테스트 도구
  * - 메모리 사용률 모니터링
- * - Redis 성능 테스트
+ * - 메모리 기반 성능 메트릭
  * - API 응답시간 측정
  * - 동시 접속 부하 테스트
  * - 자동 성능 최적화 권장사항
+ * - Redis 완전 제거, 메모리 기반 메트릭 수집
  */
 
 import { memoryOptimizer } from '../utils/MemoryOptimizer';
-import { cacheService } from './cacheService';
-import { redisConnectionManager } from './RedisConnectionManager';
 
 interface PerformanceMetrics {
   timestamp: number;
@@ -28,11 +27,10 @@ interface PerformanceMetrics {
     p95: number;
     p99: number;
   };
-  redisMetrics?: {
-    connected: boolean;
-    responseTime: number;
-    memoryUsage?: number;
-    connectedClients?: number;
+  systemMetrics?: {
+    cpuUsage: number;
+    loadAverage: number[];
+    uptime: number;
   };
   throughput: {
     requestsPerSecond: number;
@@ -63,11 +61,62 @@ interface LoadTestResult {
   recommendations: string[];
 }
 
+// 메모리 기반 성능 메트릭 저장소
+class MemoryMetricsStore {
+  private metrics: PerformanceMetrics[] = [];
+  private responseTimes: { timestamp: number; duration: number }[] = [];
+  private maxSize = 1000; // 최대 1000개 메트릭 유지
+
+  addMetric(metric: PerformanceMetrics): void {
+    this.metrics.push(metric);
+    
+    // 메모리 사용량 제한
+    if (this.metrics.length > this.maxSize) {
+      this.metrics = this.metrics.slice(-this.maxSize / 2); // 절반만 유지
+    }
+  }
+
+  addResponseTime(timestamp: number, duration: number): void {
+    this.responseTimes.push({ timestamp, duration });
+    
+    // 최근 1시간 데이터만 유지
+    const oneHourAgo = Date.now() - 3600000;
+    this.responseTimes = this.responseTimes.filter(rt => rt.timestamp > oneHourAgo);
+  }
+
+  getRecentResponseTimes(windowMs: number = 60000): number[] {
+    const cutoff = Date.now() - windowMs;
+    return this.responseTimes
+      .filter(rt => rt.timestamp > cutoff)
+      .map(rt => rt.duration);
+  }
+
+  getAllMetrics(): PerformanceMetrics[] {
+    return [...this.metrics];
+  }
+
+  clear(): void {
+    this.metrics = [];
+    this.responseTimes = [];
+  }
+
+  getSize(): { metrics: number; responseTimes: number } {
+    return {
+      metrics: this.metrics.length,
+      responseTimes: this.responseTimes.length,
+    };
+  }
+}
+
 export class PerformanceTester {
   private static instance: PerformanceTester;
   private isRunning: boolean = false;
-  private metrics: PerformanceMetrics[] = [];
+  private metricsStore: MemoryMetricsStore;
   private responseTimes: number[] = [];
+
+  constructor() {
+    this.metricsStore = new MemoryMetricsStore();
+  }
 
   static getInstance(): PerformanceTester {
     if (!this.instance) {
@@ -82,28 +131,13 @@ export class PerformanceTester {
   async collectCurrentMetrics(): Promise<PerformanceMetrics> {
     const memoryStats = memoryOptimizer.getCurrentMemoryStats();
 
-    // Redis 메트릭 수집
-    let redisMetrics;
-    try {
-      if (redisConnectionManager.isRedisConnected()) {
-        const healthCheck = await redisConnectionManager.performHealthCheck();
-        redisMetrics = {
-          connected: true,
-          responseTime: healthCheck.responseTime,
-          memoryUsage: healthCheck.memoryUsage,
-          connectedClients: healthCheck.connectedClients,
-        };
-      } else {
-        redisMetrics = { connected: false, responseTime: 0 };
-      }
-    } catch (error) {
-      redisMetrics = { connected: false, responseTime: 0 };
-    }
+    // 시스템 메트릭 수집 (Node.js 기반)
+    const systemMetrics = this.collectSystemMetrics();
 
     // API 응답시간 통계
     const apiResponseTimes = this.calculateResponseTimeStats();
 
-    return {
+    const metrics: PerformanceMetrics = {
       timestamp: Date.now(),
       memoryUsage: {
         heapUsed: memoryStats.heapUsed,
@@ -112,11 +146,35 @@ export class PerformanceTester {
         usagePercent: memoryStats.usagePercent,
       },
       apiResponseTimes,
-      redisMetrics,
+      systemMetrics,
       throughput: {
         requestsPerSecond: this.calculateCurrentThroughput(),
         totalRequests: this.responseTimes.length,
       },
+    };
+
+    // 메트릭 저장
+    this.metricsStore.addMetric(metrics);
+
+    return metrics;
+  }
+
+  /**
+   * 🖥️ 시스템 메트릭 수집
+   */
+  private collectSystemMetrics(): {
+    cpuUsage: number;
+    loadAverage: number[];
+    uptime: number;
+  } {
+    // Node.js process 정보 활용
+    const cpuUsage = process.cpuUsage();
+    const totalCpuTime = cpuUsage.user + cpuUsage.system;
+    
+    return {
+      cpuUsage: Math.min(100, (totalCpuTime / 1000000) % 100), // 마이크로초를 백분율로
+      loadAverage: process.platform === 'win32' ? [0, 0, 0] : require('os').loadavg(),
+      uptime: process.uptime(),
     };
   }
 
@@ -130,19 +188,21 @@ export class PerformanceTester {
     p95: number;
     p99: number;
   } {
-    if (this.responseTimes.length === 0) {
+    const recentTimes = this.metricsStore.getRecentResponseTimes();
+    
+    if (recentTimes.length === 0) {
       return { average: 0, min: 0, max: 0, p95: 0, p99: 0 };
     }
 
-    const sorted = [...this.responseTimes].sort((a, b) => a - b);
+    const sorted = [...recentTimes].sort((a, b) => a - b);
     const len = sorted.length;
 
     return {
       average: sorted.reduce((a, b) => a + b, 0) / len,
       min: sorted[0],
       max: sorted[len - 1],
-      p95: sorted[Math.floor(len * 0.95)],
-      p99: sorted[Math.floor(len * 0.99)],
+      p95: sorted[Math.floor(len * 0.95)] || sorted[len - 1],
+      p99: sorted[Math.floor(len * 0.99)] || sorted[len - 1],
     };
   }
 
@@ -150,12 +210,8 @@ export class PerformanceTester {
    * 📈 현재 처리량 계산
    */
   private calculateCurrentThroughput(): number {
-    const now = Date.now();
-    const oneSecondAgo = now - 1000;
-
-    // 최근 1초간의 요청 수 계산
-    const recentRequests = this.metrics.filter(m => m.timestamp > oneSecondAgo);
-    return recentRequests.length;
+    const recentTimes = this.metricsStore.getRecentResponseTimes(1000); // 최근 1초
+    return recentTimes.length;
   }
 
   /**
@@ -165,7 +221,7 @@ export class PerformanceTester {
     console.log('🚀 부하 테스트 시작:', config);
 
     this.isRunning = true;
-    this.metrics = [];
+    this.metricsStore.clear();
     this.responseTimes = [];
 
     const startTime = Date.now();
@@ -180,9 +236,12 @@ export class PerformanceTester {
     const metricsInterval = setInterval(async () => {
       if (!this.isRunning) return;
 
-      const metrics = await this.collectCurrentMetrics();
-      this.metrics.push(metrics);
-    }, 5000); // 5초마다 수집 (1초 → 5초로 최적화)
+      try {
+        await this.collectCurrentMetrics();
+      } catch (error) {
+        console.error('❌ 메트릭 수집 실패:', error);
+      }
+    }, 5000); // 5초마다 수집
 
     // 부하 생성
     const loadPromises: Promise<void>[] = [];
@@ -194,6 +253,9 @@ export class PerformanceTester {
         (responseTime, success) => {
           totalRequests++;
           allResponseTimes.push(responseTime);
+
+          // 메트릭 저장소에 응답시간 추가
+          this.metricsStore.addResponseTime(Date.now(), responseTime);
 
           if (success) {
             successfulRequests++;
@@ -213,29 +275,30 @@ export class PerformanceTester {
     this.isRunning = false;
 
     // 최종 메트릭 수집
-    const finalMetrics = await this.collectCurrentMetrics();
-    this.metrics.push(finalMetrics);
+    await this.collectCurrentMetrics();
 
     // 결과 분석
     const summary = {
       totalRequests,
       successfulRequests,
       failedRequests,
-      averageResponseTime:
-        allResponseTimes.reduce((a, b) => a + b, 0) / allResponseTimes.length,
-      maxResponseTime: Math.max(...allResponseTimes),
-      minResponseTime: Math.min(...allResponseTimes),
+      averageResponseTime: allResponseTimes.length > 0 
+        ? allResponseTimes.reduce((a, b) => a + b, 0) / allResponseTimes.length 
+        : 0,
+      maxResponseTime: allResponseTimes.length > 0 ? Math.max(...allResponseTimes) : 0,
+      minResponseTime: allResponseTimes.length > 0 ? Math.min(...allResponseTimes) : 0,
       throughput: totalRequests / config.duration,
-      errorRate: (failedRequests / totalRequests) * 100,
+      errorRate: totalRequests > 0 ? (failedRequests / totalRequests) * 100 : 0,
     };
 
-    const recommendations = this.generateRecommendations(summary, this.metrics);
+    const metrics = this.metricsStore.getAllMetrics();
+    const recommendations = this.generateRecommendations(summary, metrics);
 
     console.log('✅ 부하 테스트 완료:', summary);
 
     return {
       config,
-      metrics: this.metrics,
+      metrics,
       summary,
       recommendations,
     };
@@ -249,7 +312,7 @@ export class PerformanceTester {
     endTime: number,
     onRequest: (responseTime: number, success: boolean) => void
   ): Promise<void> {
-    const requestInterval = 1000 / config.requestsPerSecond;
+    const requestInterval = Math.max(10, 1000 / config.requestsPerSecond); // 최소 10ms 간격
 
     while (Date.now() < endTime && this.isRunning) {
       const startTime = Date.now();
@@ -263,6 +326,7 @@ export class PerformanceTester {
         const response = await fetch(endpoint, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
+          signal: AbortSignal.timeout(10000), // 10초 타임아웃
         });
 
         const responseTime = Date.now() - startTime;
@@ -273,11 +337,19 @@ export class PerformanceTester {
       } catch (error) {
         const responseTime = Date.now() - startTime;
         onRequest(responseTime, false);
-        console.error('❌ 요청 실패:', error);
+        
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('❌ 요청 실패:', error.message);
+        }
       }
 
       // 요청 간격 조절
-      await new Promise(resolve => setTimeout(resolve, requestInterval));
+      const elapsed = Date.now() - startTime;
+      const waitTime = Math.max(0, requestInterval - elapsed);
+      
+      if (waitTime > 0) {
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
     }
   }
 
@@ -291,13 +363,15 @@ export class PerformanceTester {
     const recommendations: string[] = [];
 
     // 메모리 사용률 분석
-    const avgMemoryUsage =
-      metrics.reduce((sum, m) => sum + m.memoryUsage.usagePercent, 0) /
-      metrics.length;
-    if (avgMemoryUsage > 80) {
-      recommendations.push(
-        '🧠 메모리 사용률이 높습니다. 메모리 최적화를 실행하세요.'
-      );
+    if (metrics.length > 0) {
+      const avgMemoryUsage =
+        metrics.reduce((sum, m) => sum + m.memoryUsage.usagePercent, 0) /
+        metrics.length;
+      if (avgMemoryUsage > 80) {
+        recommendations.push(
+          '🧠 메모리 사용률이 높습니다. 메모리 최적화를 실행하세요.'
+        );
+      }
     }
 
     // 응답시간 분석
@@ -319,23 +393,14 @@ export class PerformanceTester {
       recommendations.push('📈 처리량이 낮습니다. 서버 스케일링을 고려하세요.');
     }
 
-    // Redis 성능 분석
-    const redisMetrics = metrics.filter(m => m.redisMetrics?.connected);
-    if (redisMetrics.length > 0) {
-      const avgRedisResponseTime =
-        redisMetrics.reduce(
-          (sum, m) => sum + (m.redisMetrics?.responseTime || 0),
-          0
-        ) / redisMetrics.length;
-      if (avgRedisResponseTime > 100) {
+    // CPU 사용률 분석
+    if (metrics.length > 0) {
+      const recentMetric = metrics[metrics.length - 1];
+      if (recentMetric.systemMetrics && recentMetric.systemMetrics.cpuUsage > 80) {
         recommendations.push(
-          '🔥 Redis 응답시간이 느립니다. Redis 최적화가 필요합니다.'
+          '🔥 CPU 사용률이 높습니다. 프로세스 최적화가 필요합니다.'
         );
       }
-    } else {
-      recommendations.push(
-        '🔌 Redis 연결이 불안정합니다. 연결 상태를 확인하세요.'
-      );
     }
 
     // 일반적인 권장사항
@@ -354,14 +419,14 @@ export class PerformanceTester {
   async performAutoOptimization(): Promise<{
     memoryOptimization: unknown;
     cacheOptimization: boolean;
-    redisReconnection: boolean;
+    systemCleanup: boolean;
   }> {
     console.log('🔧 자동 성능 최적화 시작...');
 
     const results = {
       memoryOptimization: null as any,
       cacheOptimization: false,
-      redisReconnection: false,
+      systemCleanup: false,
     };
 
     try {
@@ -373,20 +438,28 @@ export class PerformanceTester {
           await memoryOptimizer.performAggressiveOptimization();
       }
 
-      // 2. 캐시 최적화
+      // 2. 메트릭 저장소 정리
       try {
-        await cacheService.invalidateCache('*temp*');
-        await cacheService.invalidateCache('*old*');
+        const storeSize = this.metricsStore.getSize();
+        if (storeSize.metrics > 500 || storeSize.responseTimes > 1000) {
+          // 오래된 데이터 정리
+          this.metricsStore.clear();
+          console.log('🗑️ 메트릭 저장소 정리 완료');
+        }
         results.cacheOptimization = true;
-        console.log('🗑️ 캐시 최적화 완료');
       } catch (error) {
-        console.error('❌ 캐시 최적화 실패:', error);
+        console.error('❌ 메트릭 저장소 정리 실패:', error);
       }
 
-      // 3. Redis 재연결 (필요시)
-      if (!redisConnectionManager.isRedisConnected()) {
-        console.log('🔄 Redis 재연결 시도...');
-        results.redisReconnection = await redisConnectionManager.reconnect();
+      // 3. 시스템 정리 (가비지 컬렉션)
+      try {
+        if (global.gc) {
+          global.gc();
+          console.log('♻️ 가비지 컬렉션 실행');
+        }
+        results.systemCleanup = true;
+      } catch (error) {
+        console.warn('⚠️ 가비지 컬렉션 실행 실패:', error);
       }
 
       console.log('✅ 자동 성능 최적화 완료:', results);
@@ -401,7 +474,11 @@ export class PerformanceTester {
    * 📊 성능 리포트 생성
    */
   generatePerformanceReport(testResult: LoadTestResult): string {
-    const { config, summary, recommendations } = testResult;
+    const { config, summary, recommendations, metrics } = testResult;
+
+    const memoryStats = metrics.length > 0 
+      ? metrics[metrics.length - 1].memoryUsage
+      : null;
 
     return `
 # 🚀 OpenManager 성능 테스트 리포트
@@ -420,6 +497,13 @@ export class PerformanceTester {
 - **최대 응답시간**: ${summary.maxResponseTime.toFixed(0)}ms
 - **최소 응답시간**: ${summary.minResponseTime.toFixed(0)}ms
 - **처리량**: ${summary.throughput.toFixed(1)} req/s
+
+## 💾 시스템 리소스
+${memoryStats ? `
+- **메모리 사용률**: ${memoryStats.usagePercent.toFixed(1)}%
+- **힙 메모리**: ${(memoryStats.heapUsed / 1024 / 1024).toFixed(1)}MB / ${(memoryStats.heapTotal / 1024 / 1024).toFixed(1)}MB
+- **RSS 메모리**: ${(memoryStats.rss / 1024 / 1024).toFixed(1)}MB
+` : '- **메모리 정보**: 수집되지 않음'}
 
 ## 💡 최적화 권장사항
 ${recommendations.map(rec => `- ${rec}`).join('\n')}
@@ -471,9 +555,15 @@ ${this.calculatePerformanceGrade(summary)}
    * 📈 실시간 메트릭 조회
    */
   getCurrentMetrics(): PerformanceMetrics | null {
-    return this.metrics.length > 0
-      ? this.metrics[this.metrics.length - 1]
-      : null;
+    const metrics = this.metricsStore.getAllMetrics();
+    return metrics.length > 0 ? metrics[metrics.length - 1] : null;
+  }
+
+  /**
+   * 📊 메트릭 저장소 상태
+   */
+  getStoreStats(): { metrics: number; responseTimes: number } {
+    return this.metricsStore.getSize();
   }
 
   /**
@@ -481,6 +571,15 @@ ${this.calculatePerformanceGrade(summary)}
    */
   isTestRunning(): boolean {
     return this.isRunning;
+  }
+
+  /**
+   * 🧹 메트릭 정리
+   */
+  clearMetrics(): void {
+    this.metricsStore.clear();
+    this.responseTimes = [];
+    console.log('🧹 성능 메트릭 정리 완료');
   }
 }
 

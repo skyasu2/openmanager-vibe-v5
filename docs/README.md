@@ -18,7 +18,7 @@
 | -------------------------------------------------------- | ----------------------------------- | ----------------------------------------- |
 | **[Vercel Edge Runtime](./quick-start/vercel-edge.md)**  | Fluid Compute, Active CPU 가격 모델 | [📖](https://vercel.com/docs)             |
 | **[Supabase Auth 설정](./quick-start/supabase-auth.md)** | GitHub OAuth, RLS 보안              | [📖](https://supabase.com/docs)           |
-| **[Upstash Redis 캐싱](./quick-start/redis-cache.md)**   | 5ms 글로벌 레이턴시, Rate Limiting  | [📖](https://upstash.com/docs)            |
+| **[Upstash Memory Cache 캐싱](./quick-start/memory cache-cache.md)**   | 5ms 글로벌 레이턴시, Rate Limiting  | [📖](https://upstash.com/docs)            |
 | **[GCP Functions 배포](./quick-start/gcp-functions.md)** | Python 3.11 서버리스                | [📖](https://cloud.google.com/docs)       |
 | **[배포 가이드](./quick-start/deployment-guide.md)**     | Vercel + GCP 통합 배포              | [📖](https://vercel.com/docs/deployments) |
 
@@ -54,7 +54,7 @@
 | **[환경변수 보안](./security/env-security-guide.md)**                              | 환경변수 관리  |
 | **[성능 최적화 가이드](./performance/performance-optimization-complete-guide.md)** | 전체 성능 개선 |
 | **[API 최적화](./performance/api-optimization-guide.md)**                          | API 성능 개선  |
-| **[Redis 설정](./performance/redis-configuration-guide.md)**                       | 캐싱 최적화    |
+| **[Memory Cache 설정](./performance/memory cache-configuration-guide.md)**                       | 캐싱 최적화    |
 
 ## 🔧 기타 주요 문서
 
@@ -80,7 +80,7 @@
 - **Frontend**: Next.js 14.2.4 + React 18.2.0 + TypeScript
 - **Backend**: Vercel Edge Runtime + GCP Functions (Python 3.11)
 - **Database**: Supabase PostgreSQL + pgvector
-- **Cache**: Upstash Redis
+- **Cache**: Upstash Memory Cache
 - **AI**: Google AI + Supabase RAG
 
 ## 📁 문서 구조
@@ -91,7 +91,7 @@ docs/
 ├── quick-start/                       # 빠른 시작 가이드 (5분)
 │   ├── vercel-edge.md                # Vercel Edge Runtime
 │   ├── supabase-auth.md              # 인증 설정
-│   ├── redis-cache.md                # Redis 캐싱
+│   ├── memory cache-cache.md                # Memory Cache 캐싱
 │   ├── gcp-functions.md              # GCP Functions
 │   └── deployment-guide.md           # 배포 가이드
 ├── ai/                               # AI 시스템 문서

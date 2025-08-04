@@ -38,6 +38,11 @@ interface MetricHistoryEntry {
   tags?: Record<string, string>;
 }
 
+
+// 페이지 매개변수 타입 정의
+interface PageParam {
+  pageParam: string | number;
+}
 // 쿼리 키 팩토리
 export const infiniteKeys = {
   logs: (filters: string) => ['infinite', 'logs', filters] as const,
@@ -59,8 +64,8 @@ export const useInfiniteLogs = (
   } = {}
 ) => {
   const fetchLogs = async ({
-    pageParam,
-  }: unknown): Promise<PaginatedResponse<LogEntry>> => {
+    pageParam = 0,
+  }: { pageParam?: string | number }): Promise<PaginatedResponse<LogEntry>> => {
     const params = new URLSearchParams({
       cursor: pageParam.toString(),
       limit: '50',
@@ -104,8 +109,8 @@ export const useInfiniteMetrics = (
   timeRange: string = '24h'
 ) => {
   const fetchMetrics = async ({
-    pageParam,
-  }: unknown): Promise<PaginatedResponse<MetricHistoryEntry>> => {
+    pageParam = 0,
+  }: { pageParam?: string | number }): Promise<PaginatedResponse<MetricHistoryEntry>> => {
     const params = new URLSearchParams({
       cursor: pageParam.toString(),
       limit: '100',

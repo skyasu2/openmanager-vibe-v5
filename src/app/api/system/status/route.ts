@@ -1,5 +1,5 @@
 /**
- * 🔄 페이지 갱신 기반 시스템 상태 API
+ * 🔄 페이지 갱신 기반 시스템 상태 API (Redis-Free)
  *
  * @description
  * 실시간 폴링 없이 페이지 이벤트 기반으로만 상태를 확인합니다.
@@ -9,16 +9,12 @@
  * - 수동 새로고침 시
  *
  * @features
- * - Redis 기반 상태 공유
+ * - 메모리 기반 상태 공유 (Redis 완전 제거)
  * - 30분 시스템 타이머
  * - 5분 사용자 활동 추적
  * - 자동 비활성 사용자 정리
  */
 
-import {
-  generateAnonymousId,
-  systemStateManager,
-} from '@/lib/redis/SystemStateManager';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
@@ -27,6 +23,145 @@ import { NextResponse } from 'next/server';
 export const runtime = 'nodejs'; // Node.js Runtime으로 강제 변경
 export const dynamic = 'force-dynamic';
 export const revalidate = 1800; // 30분 재검증으로 증가 (Vercel 사용량 절약)
+
+// 메모리 기반 시스템 상태 관리
+interface SystemState {
+  isRunning: boolean;
+  startedBy: string;
+  startTime: number;
+  endTime: number;
+  activeUsers: number;
+  lastActivity: number;
+  version: string;
+  environment: string;
+}
+
+interface UserActivity {
+  userId: string;
+  lastActivity: number;
+  sessionStart: number;
+}
+
+// 글로벌 메모리 상태 스토어
+class MemorySystemStateManager {
+  private systemState: SystemState = {
+    isRunning: false,
+    startedBy: '',
+    startTime: 0,
+    endTime: 0,
+    activeUsers: 0,
+    lastActivity: Date.now(),
+    version: process.env.NEXT_PUBLIC_APP_VERSION || '0.0.0',
+    environment: process.env.NEXT_PUBLIC_DEPLOYMENT_ENV || 'development',
+  };
+
+  private userActivities = new Map<string, UserActivity>();
+  private readonly SYSTEM_DURATION = 30 * 60 * 1000; // 30분
+  private readonly USER_TIMEOUT = 5 * 60 * 1000; // 5분
+
+  async getSystemState(): Promise<SystemState> {
+    // 시스템 타이머 확인
+    if (this.systemState.isRunning && this.systemState.endTime > 0) {
+      const now = Date.now();
+      if (now >= this.systemState.endTime) {
+        console.log('⏰ 시스템 타이머 만료 - 자동 중지');
+        this.systemState.isRunning = false;
+        this.systemState.endTime = 0;
+        this.systemState.startedBy = '';
+      }
+    }
+
+    // 활성 사용자 수 업데이트
+    await this.cleanupInactiveUsers();
+    this.systemState.activeUsers = this.userActivities.size;
+
+    return { ...this.systemState };
+  }
+
+  async startSystem(userId: string): Promise<SystemState> {
+    const now = Date.now();
+    
+    this.systemState = {
+      ...this.systemState,
+      isRunning: true,
+      startedBy: userId,
+      startTime: now,
+      endTime: now + this.SYSTEM_DURATION,
+      lastActivity: now,
+    };
+
+    // 시작한 사용자 활동 기록
+    await this.updateUserActivity(userId);
+
+    console.log(`🚀 메모리 기반 시스템 시작: ${userId.substring(0, 12)}...`);
+    return { ...this.systemState };
+  }
+
+  async stopSystem(userId: string): Promise<SystemState> {
+    this.systemState = {
+      ...this.systemState,
+      isRunning: false,
+      startedBy: '',
+      startTime: 0,
+      endTime: 0,
+      lastActivity: Date.now(),
+    };
+
+    console.log(`🛑 메모리 기반 시스템 중지: ${userId.substring(0, 12)}...`);
+    return { ...this.systemState };
+  }
+
+  async updateUserActivity(userId: string): Promise<void> {
+    const now = Date.now();
+    const existing = this.userActivities.get(userId);
+
+    this.userActivities.set(userId, {
+      userId,
+      lastActivity: now,
+      sessionStart: existing?.sessionStart || now,
+    });
+
+    this.systemState.lastActivity = now;
+  }
+
+  async cleanupInactiveUsers(): Promise<void> {
+    const now = Date.now();
+    const inactiveUsers: string[] = [];
+
+    for (const [userId, activity] of this.userActivities) {
+      if (now - activity.lastActivity > this.USER_TIMEOUT) {
+        inactiveUsers.push(userId);
+      }
+    }
+
+    for (const userId of inactiveUsers) {
+      this.userActivities.delete(userId);
+    }
+
+    if (inactiveUsers.length > 0) {
+      console.log(`🧹 비활성 사용자 정리: ${inactiveUsers.length}명`);
+    }
+  }
+
+  getActiveUsers(): UserActivity[] {
+    return Array.from(this.userActivities.values());
+  }
+}
+
+// 글로벌 시스템 상태 관리자 인스턴스
+let globalSystemStateManager: MemorySystemStateManager;
+
+function getSystemStateManager(): MemorySystemStateManager {
+  if (!globalSystemStateManager) {
+    globalSystemStateManager = new MemorySystemStateManager();
+  }
+  return globalSystemStateManager;
+}
+
+// 익명 사용자 ID 생성
+function generateAnonymousId(): string {
+  return `anon_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+}
 
 // 사용자 ID 추출 또는 생성
 function getUserId(request: NextRequest): string {
@@ -101,24 +236,26 @@ export async function GET(request: NextRequest) {
     const _context = getRequestContext(request);
 
     console.log(
-      `🔄 시스템 상태 확인 - 사용자: ${userId.substring(0, 12)}..., 소스: ${_context.source}`
+      `🔄 시스템 상태 확인 (Memory-based) - 사용자: ${userId.substring(0, 12)}..., 소스: ${_context.source}`
     );
 
-    // 🚨 응급 조치: Redis 작업 최소화 - 간단한 메모리 캐시 사용
+    // 🚨 응급 조치: 메모리 기반 마지막 호출 추적
     const now = Date.now();
 
     // 메모리 기반 마지막 호출 추적
     if (!global.lastStatusCheck) global.lastStatusCheck = {};
     const lastCheck = global.lastStatusCheck[userId] || 0;
 
+    const systemStateManager = getSystemStateManager();
+
     // 🚨 무료 티어 절약: 30분 이내 동일 사용자 요청은 캐시된 응답 반환
     if (now - lastCheck < 1800000) {
-      // 최소한의 Redis 읽기만 수행
+      // 최소한의 메모리 읽기만 수행
       const systemState = await systemStateManager.getSystemState();
 
-      // 🚨 시스템이 시작되지 않은 상태에서는 Redis 작업 최소화
+      // 🚨 시스템이 시작되지 않은 상태에서는 최소 응답 반환
       if (!systemState.isRunning) {
-        console.log('⏸️ 시스템 미시작 상태 - 최소 응답 반환 (Vercel 절약)');
+        console.log('⏸️ 시스템 미시작 상태 - 최소 응답 반환 (Memory-based)');
         const minimalResponse = {
           success: true,
           timestamp: now,
@@ -153,6 +290,7 @@ export async function GET(request: NextRequest) {
             'CDN-Cache-Control': 'max-age=1800',
             'Vercel-CDN-Cache-Control': 'max-age=1800',
             'X-Cache-Status': 'MINIMAL-STANDBY',
+            'X-Storage': 'Memory-based',
           },
         });
       }
@@ -182,11 +320,12 @@ export async function GET(request: NextRequest) {
           'CDN-Cache-Control': 'max-age=300',
           'Vercel-CDN-Cache-Control': 'max-age=300',
           'X-Cache-Status': 'MEMORY-HIT',
+          'X-Storage': 'Memory-based',
         },
       });
     }
 
-    // 🚨 무료 티어 절약: 5분 이후에만 실제 Redis 작업 수행
+    // 🚨 무료 티어 절약: 5분 이후에만 실제 메모리 작업 수행
     global.lastStatusCheck[userId] = now;
 
     await systemStateManager.updateUserActivity(userId);
@@ -220,7 +359,7 @@ export async function GET(request: NextRequest) {
     };
 
     console.log(
-      `✅ 상태 응답 - 실행중: ${systemState.isRunning}, 활성사용자: ${systemState.activeUsers}명`
+      `✅ 상태 응답 (Memory-based) - 실행중: ${systemState.isRunning}, 활성사용자: ${systemState.activeUsers}명`
     );
 
     return NextResponse.json(responseData, {
@@ -232,6 +371,7 @@ export async function GET(request: NextRequest) {
         'Cache-Control': 'public, max-age=60, s-maxage=60',
         'CDN-Cache-Control': 'max-age=60',
         'Vercel-CDN-Cache-Control': 'max-age=60',
+        'X-Storage': 'Memory-based',
       },
     });
   } catch (error) {
@@ -258,6 +398,7 @@ export async function GET(request: NextRequest) {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
+          'X-Storage': 'Memory-based',
         },
       }
     );
@@ -277,20 +418,21 @@ export async function POST(request: NextRequest) {
     const _context = getRequestContext(request);
 
     console.log(
-      `🎮 시스템 제어 요청 - 액션: ${action}, 사용자: ${userId.substring(0, 12)}...`
+      `🎮 시스템 제어 요청 (Memory-based) - 액션: ${action}, 사용자: ${userId.substring(0, 12)}...`
     );
 
+    const systemStateManager = getSystemStateManager();
     let systemState;
 
     switch (action) {
       case 'start':
         systemState = await systemStateManager.startSystem(userId);
-        console.log(`🚀 시스템 시작됨 - 30분 타이머 활성화`);
+        console.log(`🚀 메모리 기반 시스템 시작됨 - 30분 타이머 활성화`);
         break;
 
       case 'stop':
         systemState = await systemStateManager.stopSystem(userId);
-        console.log(`🛑 시스템 중지됨`);
+        console.log(`🛑 메모리 기반 시스템 중지됨`);
         break;
 
       default:
@@ -322,6 +464,7 @@ export async function POST(request: NextRequest) {
         'X-Action': action,
         // 🚨 응급 조치: POST 요청도 30초 캐싱 적용
         'Cache-Control': 'public, max-age=30, s-maxage=30',
+        'X-Storage': 'Memory-based',
       },
     });
   } catch (error) {
@@ -337,6 +480,7 @@ export async function POST(request: NextRequest) {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
+          'X-Storage': 'Memory-based',
         },
       }
     );

@@ -1,8 +1,9 @@
 /**
- * 🤖 AI 서비스 상세 타입 정의
+ * 🤖 AI 서비스 상세 타입 정의 (Redis-Free)
  *
  * AI 서비스에서 사용되는 구체적인 타입들을 정의
  * any 타입 제거를 위한 강타입 시스템
+ * Redis 의존성 완전 제거
  */
 
 import type { Server } from './server';
@@ -142,13 +143,39 @@ export interface AIMetadata {
 }
 
 // ============================================================================
-// 🔌 Redis 관련 타입
+// 💾 메모리 기반 캐시 관련 타입 (Redis 대체)
 // ============================================================================
 
 /**
- * Redis 클라이언트 타입 (redis.ts의 기존 인터페이스 재사용)
+ * 메모리 캐시 인터페이스
  */
-export type { RedisClientInterface as RedisClient } from '@/lib/redis';
+export interface MemoryCacheInterface {
+  get<T>(key: string): T | null;
+  set<T>(key: string, value: T, ttlSeconds?: number): void;
+  delete(key: string): boolean;
+  clear(): void;
+  has(key: string): boolean;
+  keys(): string[];
+  size(): number;
+}
+
+/**
+ * 캐시 엔트리 타입
+ */
+export interface CacheEntry<T = unknown> {
+  value: T;
+  expires: number;
+  created: number;
+}
+
+/**
+ * 캐시 설정 타입
+ */
+export interface CacheConfig {
+  maxSize: number;
+  defaultTTL: number;
+  cleanupInterval: number;
+}
 
 // ============================================================================
 // 📈 성능 메트릭 타입
@@ -172,6 +199,18 @@ export interface AIEngineMetrics {
   cacheHitRate?: number;
 }
 
+/**
+ * 메모리 사용량 메트릭
+ */
+export interface MemoryMetrics {
+  heapUsed: number;
+  heapTotal: number;
+  rss: number;
+  external: number;
+  arrayBuffers: number;
+  usagePercent: number;
+}
+
 // ============================================================================
 // 🚀 서비스 응답 타입
 // ============================================================================
@@ -192,6 +231,8 @@ export interface AIServiceResponse<T = unknown> {
     engineUsed: string;
     confidence?: number;
     sources?: string[];
+    cached?: boolean;
+    memoryUsage?: MemoryMetrics;
   };
 }
 
@@ -235,6 +276,19 @@ export interface QueryParams {
   mcpContext?: MCPContext;
 }
 
+/**
+ * 메모리 기반 세션 관리 타입
+ */
+export interface MemorySession {
+  id: string;
+  userId?: string;
+  startTime: number;
+  lastActivity: number;
+  queryCount: number;
+  data: Record<string, unknown>;
+  expires: number;
+}
+
 // ============================================================================
 // 🔧 타입 가드 함수
 // ============================================================================
@@ -267,6 +321,31 @@ export function isMCPContext(obj: unknown): obj is MCPContext {
   );
 }
 
+export function isMemoryCacheInterface(obj: unknown): obj is MemoryCacheInterface {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'get' in obj &&
+    'set' in obj &&
+    'delete' in obj &&
+    'clear' in obj &&
+    typeof (obj as MemoryCacheInterface).get === 'function' &&
+    typeof (obj as MemoryCacheInterface).set === 'function'
+  );
+}
+
+export function isMemorySession(obj: unknown): obj is MemorySession {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'id' in obj &&
+    'startTime' in obj &&
+    'lastActivity' in obj &&
+    typeof (obj as MemorySession).id === 'string' &&
+    typeof (obj as MemorySession).startTime === 'number'
+  );
+}
+
 // ============================================================================
 // 🔨 에러 처리 관련 타입
 // ============================================================================
@@ -293,8 +372,10 @@ export interface ErrorContext {
   timestamp?: string | Date;
   /** 환경 (development, production 등) */
   environment?: string;
+  /** 메모리 사용량 (에러 시점) */
+  memoryUsage?: MemoryMetrics;
   /** 추가 속성 (최소화) */
-  [key: string]: string | number | boolean | Date | undefined;
+  [key: string]: string | number | boolean | Date | MemoryMetrics | undefined;
 }
 
 /**
@@ -315,6 +396,37 @@ export interface MonitoringEventData {
   recoveryAttempts?: number;
   /** 폴백 사용 여부 */
   fallbackUsed?: boolean;
+  /** 메모리 기반 캐시 사용 여부 */
+  memoryCacheUsed?: boolean;
   /** 추가 속성 (최소화) */
   [key: string]: string | number | boolean | Date | undefined;
+}
+
+// ============================================================================
+// 🔄 상태 관리 관련 타입
+// ============================================================================
+
+/**
+ * 메모리 기반 상태 저장소 인터페이스
+ */
+export interface MemoryStateStore {
+  getState<T>(key: string): T | null;
+  setState<T>(key: string, value: T): void;
+  removeState(key: string): boolean;
+  clearAll(): void;
+  getAllKeys(): string[];
+  hasState(key: string): boolean;
+}
+
+/**
+ * AI 서비스 상태 타입
+ */
+export interface AIServiceState {
+  isInitialized: boolean;
+  engineStatus: Record<string, 'active' | 'inactive' | 'error'>;
+  lastHealthCheck: number;
+  memoryUsage: MemoryMetrics;
+  activeQueries: number;
+  totalQueries: number;
+  errorCount: number;
 }

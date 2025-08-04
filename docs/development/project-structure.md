@@ -18,7 +18,7 @@
 - **Frontend**: Next.js 14.2.4 + React 18.2.0 + TypeScript strict mode
 - **Backend**: GCP Functions (Python 3.11) + Vercel Edge Runtime
 - **Database**: Supabase PostgreSQL (500MB) + pgvector
-- **Cache**: Upstash Redis (256MB) + 500K 명령/월
+- **Cache**: Upstash Memory Cache (256MB) + 500K 명령/월
 - **AI Engine**: 2-Mode System (LOCAL/GOOGLE_ONLY)
 - **Deploy**: Vercel + GCP + Supabase 무료 티어
 
@@ -33,7 +33,7 @@
          │                        │                        │
          │                        ▼                        │
          │              ┌──────────────────┐               │
-         └──────────────│  Upstash Redis   │───────────────┘
+         └──────────────│  Upstash Memory Cache   │───────────────┘
                         │   (Cache/Rate)   │
                         └──────────────────┘
 ```
@@ -167,7 +167,7 @@ docs/
 ├── 🚀 quick-start/                # 5분 가이드 (5개)
 │   ├── vercel-edge.md            # Fluid Compute, Active CPU
 │   ├── supabase-auth.md          # GitHub OAuth, RLS
-│   ├── redis-cache.md            # 500K 명령/월
+│   ├── memory cache-cache.md            # 500K 명령/월
 │   └── gcp-functions.md          # Python 3.11 서버리스
 ├── 🤖 ai/                         # AI 시스템 (4개)
 ├── 💻 development/                # 개발 가이드 (12개)
@@ -196,7 +196,7 @@ interface AIMode {
 ```
 Client WebSocket ←→ Vercel API ←→ GCP Functions ←→ Supabase
                  ↕
-            Upstash Redis (캐싱)
+            Upstash Memory Cache (캐싱)
 ```
 
 ### 3. 인증 플로우
@@ -212,7 +212,7 @@ GitHub OAuth → Supabase Auth → JWT Token → RLS Policy
 | Vercel Edge | 152ms | Next.js 14 App Router 숙련 | 30% 사용 (70% 여유) |
 | GCP Functions | 200ms | Python 3.11 + ML 구현 | 15% 사용 (충분한 확장성) |
 | Supabase DB | 50ms | PostgreSQL + Vector DB | 3.17% 사용 (15.86MB/500MB) |
-| Upstash Redis | 5ms | 캐싱 최적화 구현 | 25% 사용 (효율적 활용) |
+| Upstash Memory Cache | 5ms | 캐싱 최적화 구현 | 25% 사용 (효율적 활용) |
 
 ## 🔧 MCP 서버 생태계
 
@@ -252,7 +252,7 @@ GitHub OAuth → Supabase Auth → JWT Token → RLS Policy
 ```
 서버 메트릭 → GCP Functions → Supabase → Vercel API → Client
              ↓
-        Upstash Redis (캐싱)
+        Upstash Memory Cache (캐싱)
 ```
 
 ### 2. AI 쿼리 처리
@@ -260,7 +260,7 @@ GitHub OAuth → Supabase Auth → JWT Token → RLS Policy
 ```
 사용자 질의 → SimplifiedQueryEngine → [LOCAL|GOOGLE_ONLY] → AI 응답
              ↓
-         Query Cache (Redis)
+         Query Cache (Memory Cache)
 ```
 
 ### 3. 인증 및 권한
@@ -274,7 +274,7 @@ GitHub Login → Supabase Auth → JWT → RLS Policy → 데이터 접근
 - **인증**: GitHub OAuth + Supabase Auth
 - **권한**: Row Level Security (RLS) 정책
 - **암호화**: 환경변수 암호화 시스템
-- **Rate Limiting**: Upstash Redis 기반
+- **Rate Limiting**: Upstash Memory Cache 기반
 - **CORS**: Vercel + GCP Functions 설정
 
 ## 📈 확장성 계획

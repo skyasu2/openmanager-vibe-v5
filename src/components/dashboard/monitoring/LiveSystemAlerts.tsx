@@ -118,26 +118,31 @@ export default function LiveSystemAlerts() {
           const data = await response.json();
 
           // 서버 상태에서 알림 추출
-          const newAlerts: unknown[] = [];
+          const newAlerts: SystemAlert[] = [];
 
-          if (data.servers) {
+          if (data.servers && Array.isArray(data.servers)) {
             data.servers.forEach((server: unknown) => {
-              if (server.status === 'critical') {
-                newAlerts.push({
-                  id: `${server.id}-critical`,
-                  type: 'error',
-                  message: `서버 ${server.name}에 심각한 문제가 발생했습니다`,
-                  timestamp: new Date().toISOString(),
-                  serverId: server.id,
-                });
-              } else if (server.status === 'warning') {
-                newAlerts.push({
-                  id: `${server.id}-warning`,
-                  type: 'warning',
-                  message: `서버 ${server.name}에 주의가 필요합니다`,
-                  timestamp: new Date().toISOString(),
-                  serverId: server.id,
-                });
+              if (typeof server === 'object' && server !== null) {
+                const s = server as any;
+                if (s.status === 'critical') {
+                  newAlerts.push({
+                    id: `${s.id}-critical`,
+                    type: 'error',
+                    title: `서버 ${s.name} 오류`,
+                    message: `서버 ${s.name}에 심각한 문제가 발생했습니다`,
+                    timestamp: new Date(),
+                    isClosable: true,
+                  });
+                } else if (s.status === 'warning') {
+                  newAlerts.push({
+                    id: `${s.id}-warning`,
+                    type: 'warning',
+                    title: `서버 ${s.name} 경고`,
+                    message: `서버 ${s.name}에 주의가 필요합니다`,
+                    timestamp: new Date(),
+                    isClosable: true,
+                  });
+                }
               }
             });
           }

@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * 🔐 Supabase 미들웨어 세션 업데이트 함수
@@ -14,7 +15,7 @@ export async function updateSession(
   // response가 없으면 새로 생성
   const supabaseResponse = response || NextResponse.next();
 
-  const supabase = createServerClient(
+  const supabase: SupabaseClient = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {

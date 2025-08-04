@@ -36,9 +36,10 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-key' }}
 
-          # ⚡ Redis 환경변수 (GitHub Secrets에서 설정 필요)
-          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL || 'https://placeholder.redis.com' }}
-          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN || 'placeholder-token' }}
+          # 💾 Memory-based 캐싱 시스템 설정
+          MEMORY_CACHE_ENABLED: true
+          MEMORY_CACHE_MAX_SIZE: 1000
+          MEMORY_CACHE_TTL_SECONDS: 300
 
           # 🤖 AI 환경변수 (GitHub Secrets에서 설정 필요)
           GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY || 'placeholder-key' }}

@@ -62,8 +62,8 @@ if (authVerifiedCookie) {
    - `/auth/callback`을 서버 컴포넌트로 변경
    - 서버에서 PKCE 플로우 완전 처리
 
-2. **Redis 세션 캐싱**
-   - Upstash Redis로 세션 상태 중앙화
+2. **Memory Cache 세션 캐싱**
+   - Upstash Memory Cache로 세션 상태 중앙화
    - 분산 환경에서 세션 일관성 보장
 
 3. **모니터링 추가**

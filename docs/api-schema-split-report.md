@@ -49,7 +49,7 @@ src/schemas/
 
 5. **system-schemas/** (404줄)
    - system-optimization.schema.ts (112줄)
-   - redis-stats.schema.ts (124줄)
+   - memory cache-stats.schema.ts (124줄)
    - database-pool.schema.ts (72줄)
    - dev-key-manager.schema.ts (96줄)
 

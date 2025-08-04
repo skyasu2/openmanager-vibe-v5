@@ -1,11 +1,23 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, type LucideIcon } from 'lucide-react';
 import React, { useEffect } from 'react';
 
+interface FeatureCard {
+  id: string;
+  title: string;
+  icon: LucideIcon;
+  gradient: string;
+  detailedContent: {
+    overview: string;
+    features: string[];
+    technologies: string[];
+  };
+}
+
 interface FeatureCardModalProps {
-  selectedCard: unknown;
+  selectedCard: FeatureCard | null;
   onClose: () => void;
   renderTextWithAIGradient: (text: string) => React.ReactNode;
   modalRef: React.RefObject<HTMLDivElement>;

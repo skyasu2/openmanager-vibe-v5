@@ -1,26 +1,155 @@
 /**
- * 🚀 캐시 헬퍼 유틸리티 v1.0
+ * 🚀 캐시 헬퍼 유틸리티 v2.0 (Redis-Free)
  *
  * API 라우트와 서버 컴포넌트에서 사용하기 쉬운 캐시 유틸리티
+ * - 메모리 기반 캐시 (Redis 완전 제거)
  * - 자동 직렬화/역직렬화
  * - 타입 안전성
  * - 에러 핸들링
  * - 캐시 미스 시 자동 페칭
+ * - LRU 캐시 만료 관리
  */
 
-import { getUpstashRedis } from './upstash-redis';
-import { UpstashCacheService } from '@/services/upstashCacheService';
+// 메모리 기반 캐시 서비스 클래스
+class MemoryCacheService {
+  private cache = new Map<string, { 
+    value: any; 
+    expires: number; 
+    created: number;
+    hits: number;
+  }>();
+  private maxSize = 1000; // 최대 1000개 항목
+  private stats = { hits: 0, misses: 0, sets: 0, deletes: 0 };
+
+  async get<T>(key: string): Promise<T | null> {
+    const item = this.cache.get(key);
+    
+    if (!item) {
+      this.stats.misses++;
+      return null;
+    }
+    
+    if (Date.now() > item.expires) {
+      this.cache.delete(key);
+      this.stats.misses++;
+      return null;
+    }
+    
+    item.hits++;
+    this.stats.hits++;
+    return item.value as T;
+  }
+
+  async set<T>(key: string, value: T, ttlSeconds: number = 300): Promise<void> {
+    // LRU 방식으로 캐시 크기 관리
+    if (this.cache.size >= this.maxSize) {
+      this.evictLeastRecentlyUsed();
+    }
+
+    this.cache.set(key, {
+      value,
+      expires: Date.now() + ttlSeconds * 1000,
+      created: Date.now(),
+      hits: 0,
+    });
+    
+    this.stats.sets++;
+  }
+
+  async mget<T>(keys: string[]): Promise<(T | null)[]> {
+    return Promise.all(keys.map(key => this.get<T>(key)));
+  }
+
+  async delete(key: string): Promise<void> {
+    if (this.cache.delete(key)) {
+      this.stats.deletes++;
+    }
+  }
+
+  async invalidateCache(pattern?: string): Promise<void> {
+    if (!pattern) {
+      this.cache.clear();
+      return;
+    }
+
+    // 패턴 매칭으로 키 삭제
+    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+    const keysToDelete: string[] = [];
+    
+    for (const key of this.cache.keys()) {
+      if (regex.test(key)) {
+        keysToDelete.push(key);
+      }
+    }
+    
+    keysToDelete.forEach(key => {
+      this.cache.delete(key);
+      this.stats.deletes++;
+    });
+  }
+
+  getStats() {
+    const totalRequests = this.stats.hits + this.stats.misses;
+    return {
+      ...this.stats,
+      size: this.cache.size,
+      hitRate: totalRequests > 0 ? (this.stats.hits / totalRequests) * 100 : 0,
+      memoryUsage: `${Math.round(this.cache.size * 0.5)}KB`, // 추정치
+    };
+  }
+
+  private evictLeastRecentlyUsed(): void {
+    let leastUsedKey = '';
+    let leastHits = Infinity;
+    let oldestTime = Date.now();
+    
+    for (const [key, item] of this.cache.entries()) {
+      // 히트수가 적거나, 같다면 더 오래된 것을 선택
+      if (item.hits < leastHits || (item.hits === leastHits && item.created < oldestTime)) {
+        leastHits = item.hits;
+        oldestTime = item.created;
+        leastUsedKey = key;
+      }
+    }
+    
+    if (leastUsedKey) {
+      this.cache.delete(leastUsedKey);
+      this.stats.deletes++;
+    }
+  }
+
+  // 만료된 항목 정리
+  cleanup(): void {
+    const now = Date.now();
+    const expiredKeys: string[] = [];
+    
+    for (const [key, item] of this.cache.entries()) {
+      if (item.expires <= now) {
+        expiredKeys.push(key);
+      }
+    }
+    
+    expiredKeys.forEach(key => {
+      this.cache.delete(key);
+      this.stats.deletes++;
+    });
+  }
+}
 
 // 글로벌 캐시 서비스 인스턴스
-let globalCacheService: UpstashCacheService | null = null;
+let globalCacheService: MemoryCacheService | null = null;
 
 /**
  * 캐시 서비스 인스턴스 가져오기
  */
-export function getCacheService(): UpstashCacheService {
+export function getCacheService(): MemoryCacheService {
   if (!globalCacheService) {
-    const redis = getUpstashRedis();
-    globalCacheService = new UpstashCacheService(redis);
+    globalCacheService = new MemoryCacheService();
+    
+    // 주기적 정리 (5분마다)
+    setInterval(() => {
+      globalCacheService?.cleanup();
+    }, 5 * 60 * 1000);
   }
   return globalCacheService;
 }
@@ -233,4 +362,52 @@ export async function warmupCache(
 
   await Promise.allSettled(promises);
   console.log('✅ 캐시 워밍업 완료');
+}
+
+/**
+ * 메모리 기반 캐시 헬스체크
+ */
+export function getCacheHealth(): {
+  status: 'healthy' | 'warning' | 'critical';
+  details: {
+    size: number;
+    maxSize: number;
+    hitRate: number;
+    memoryPressure: 'low' | 'medium' | 'high';
+  };
+  recommendations: string[];
+} {
+  const cache = getCacheService();
+  const stats = cache.getStats();
+  const usagePercent = (stats.size / 1000) * 100; // maxSize가 1000이므로
+  
+  const recommendations: string[] = [];
+  let status: 'healthy' | 'warning' | 'critical' = 'healthy';
+  let memoryPressure: 'low' | 'medium' | 'high' = 'low';
+
+  if (usagePercent > 90) {
+    status = 'critical';
+    memoryPressure = 'high';
+    recommendations.push('캐시 크기가 위험 수준입니다. 정리를 고려하세요.');
+  } else if (usagePercent > 70) {
+    status = 'warning';
+    memoryPressure = 'medium';
+    recommendations.push('캐시 사용률이 높습니다. 모니터링하세요.');
+  }
+
+  if (stats.hitRate < 50) {
+    if (status === 'healthy') status = 'warning';
+    recommendations.push('캐시 히트율이 낮습니다. TTL을 검토하세요.');
+  }
+
+  return {
+    status,
+    details: {
+      size: stats.size,
+      maxSize: 1000,
+      hitRate: stats.hitRate,
+      memoryPressure,
+    },
+    recommendations,
+  };
 }

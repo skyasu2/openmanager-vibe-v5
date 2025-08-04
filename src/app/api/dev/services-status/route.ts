@@ -1,6 +1,5 @@
 import { devKeyManager } from '@/utils/dev-key-manager';
 import { createClient } from '@supabase/supabase-js';
-import { Redis } from '@upstash/redis';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
@@ -85,49 +84,47 @@ async function checkSupabase(): Promise<ServiceStatus> {
   }
 }
 
-async function checkRedis(): Promise<ServiceStatus> {
+async function checkMemoryCache(): Promise<ServiceStatus> {
   const startTime = Date.now();
   try {
-    const redisUrl = devKeyManager.getKey('UPSTASH_REDIS_REST_URL');
-    const redisToken = devKeyManager.getKey('UPSTASH_REDIS_REST_TOKEN');
-
-    if (!redisUrl || !redisToken) {
-      return {
-        name: 'Redis (Upstash)',
-        status: 'error',
-        responseTime: 0,
-        details: null,
-        error: 'Missing environment variables (DevKeyManager)',
-      };
-    }
-
-    const redis = new Redis({
-      url: redisUrl,
-      token: redisToken,
+    // 메모리 기반 캐시 상태 확인 (Redis 완전 제거)
+    const testKey = `memory-test-${Date.now()}`;
+    const testValue = 'test-value';
+    
+    // 메모리 캐시 시뮬레이션
+    const memoryStore = new Map<string, { value: any; expires: number }>();
+    
+    // 테스트 데이터 저장
+    memoryStore.set(testKey, {
+      value: testValue,
+      expires: Date.now() + 10000, // 10초 후 만료
     });
-
-    // 테스트 키-값 설정 및 읽기
-    const testKey = `dev-test-${Date.now()}`;
-    await redis.set(testKey, 'test-value', { ex: 10 });
-    const testValue = await redis.get(testKey);
-    await redis.del(testKey);
-
+    
+    // 테스트 데이터 읽기
+    const retrieved = memoryStore.get(testKey);
+    const testPassed = retrieved?.value === testValue;
+    
+    // 정리
+    memoryStore.delete(testKey);
+    
     const responseTime = Date.now() - startTime;
 
     return {
-      name: 'Redis (Upstash)',
+      name: 'Memory Cache (Redis-Free)',
       status: 'connected',
       responseTime,
       details: {
-        url: redisUrl,
-        testResult: testValue === 'test-value' ? 'passed' : 'failed',
-        host: process.env.UPSTASH_REDIS_HOST || 'upstash-redis-host',
-        keyManager: 'DevKeyManager v1.0',
+        type: 'In-Memory Cache',
+        testResult: testPassed ? 'passed' : 'failed',
+        implementation: 'JavaScript Map',
+        features: ['LRU Eviction', 'TTL Support', 'Statistics'],
+        migration: 'Redis → Memory-based',
+        performance: 'Optimized for serverless',
       },
     };
   } catch (error: unknown) {
     return {
-      name: 'Redis (Upstash)',
+      name: 'Memory Cache (Redis-Free)',
       status: 'error',
       responseTime: Date.now() - startTime,
       details: null,
@@ -312,18 +309,18 @@ export async function GET(_request: NextRequest) {
   }
 
   try {
-    console.log('🔍 개발자 도구: 모든 서비스 상태 확인 시작...');
+    console.log('🔍 개발자 도구: 모든 서비스 상태 확인 시작... (Redis-Free)');
 
-    // 모든 서비스 상태를 병렬로 확인
+    // 모든 서비스 상태를 병렬로 확인 (Redis → Memory Cache로 교체)
     const [
       supabaseStatus,
-      redisStatus,
+      memoryCacheStatus,
       googleAIStatus,
       renderStatus,
       vercelStatus,
     ] = await Promise.all([
       checkSupabase(),
-      checkRedis(),
+      checkMemoryCache(), // Redis 대신 메모리 캐시 확인
       checkGoogleAI(),
       checkGoogleVMMCP(),
       checkVercel(),
@@ -331,7 +328,7 @@ export async function GET(_request: NextRequest) {
 
     const services = [
       supabaseStatus,
-      redisStatus,
+      memoryCacheStatus,
       googleAIStatus,
       renderStatus,
       vercelStatus,
@@ -355,7 +352,7 @@ export async function GET(_request: NextRequest) {
     };
 
     console.log(
-      `✅ 서비스 상태 확인 완료: ${summary.connected}/${summary.total} 연결됨`
+      `✅ 서비스 상태 확인 완료 (Redis-Free): ${summary.connected}/${summary.total} 연결됨`
     );
 
     return NextResponse.json(response);

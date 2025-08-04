@@ -31,33 +31,16 @@ import {
   generatePredictions
 } from './ml-analytics-scenarios';
 
-import { DevMockGoogleAI } from '@/lib/ai/dev-mock-google-ai';
-import { DevMockSupabase } from '@/lib/supabase/dev-mock-supabase';
-import { DevMockGCPFunctions } from '@/lib/gcp/dev-mock-gcp-functions';
-
 /**
- * 시나리오 매니저
- * 모든 시나리오를 관리하고 Mock 시스템에 적용
+ * 시나리오 매니저 - 실제 서비스 사용
+ * 실제 서비스와 직접 연동하여 테스트 시나리오 관리 (Mock 제거)
  */
 export class MockScenarioManager {
   private serverScenarioRunner?: ScenarioRunner;
   private activeScenarios: Map<string, any> = new Map();
-  private mockInstances: {
-    googleAI?: DevMockGoogleAI;
-    supabase?: DevMockSupabase;
-    gcpFunctions?: DevMockGCPFunctions;
-  } = {};
 
   constructor() {
-    console.log('🎬 Mock 시나리오 매니저 초기화');
-  }
-
-  /**
-   * Mock 인스턴스 등록
-   */
-  registerMockInstance(type: 'googleAI' | 'supabase' | 'gcpFunctions', instance: unknown) {
-    this.mockInstances[type] = instance;
-    console.log(`✅ ${type} Mock 인스턴스 등록됨`);
+    console.log('🎬 시나리오 매니저 초기화 (실제 서비스 사용)');
   }
 
   /**
@@ -76,11 +59,6 @@ export class MockScenarioManager {
 
     console.log(`🎬 서버 시나리오 시작: ${scenario.name}`);
 
-    // Supabase Mock에 시나리오 데이터 적용
-    if (this.mockInstances.supabase) {
-      this.applyServerScenarioToSupabase(scenario);
-    }
-
     // 주기적으로 상태 업데이트
     const updateInterval = setInterval(() => {
       if (!this.serverScenarioRunner || this.serverScenarioRunner.isComplete()) {
@@ -95,13 +73,11 @@ export class MockScenarioManager {
   }
 
   /**
-   * Korean NLP 시나리오 테스트
+   * Korean NLP 시나리오 테스트 (실제 GCP Functions 사용)
    */
   async testKoreanNLPScenarios(category?: 'technical' | 'business' | 'mixed' | 'edge-case') {
-    if (!this.mockInstances.gcpFunctions) {
-      console.error('❌ GCP Functions Mock이 등록되지 않음');
-      return;
-    }
+    // 실제 GCP Functions 사용
+    const { analyzeKoreanNLP } = await import('@/lib/gcp/gcp-functions-client');
 
     let scenarios: KoreanNLPScenario[] = [];
     
@@ -121,22 +97,28 @@ export class MockScenarioManager {
       ].filter(s => s.category === category);
     }
 
-    console.log(`🧪 Korean NLP 시나리오 테스트 시작 (${scenarios.length}개)`);
+    console.log(`🧪 Korean NLP 시나리오 테스트 시작 (${scenarios.length}개) - 실제 GCP Functions 사용`);
 
     const results = [];
     for (const scenario of scenarios) {
-      const result = await this.mockInstances.gcpFunctions.analyzeKoreanNLP(
-        scenario.input,
-        scenario.context
-      );
+      try {
+        const result = await analyzeKoreanNLP(scenario.input, scenario.context);
 
-      results.push({
-        scenario,
-        result,
-        success: result.success,
-      });
+        results.push({
+          scenario,
+          result,
+          success: result.success,
+        });
 
-      console.log(`📝 ${scenario.id}: ${result.success ? '✅' : '❌'}`);
+        console.log(`📝 ${scenario.id}: ${result.success ? '✅' : '❌'}`);
+      } catch (error) {
+        console.error(`❌ ${scenario.id} 실패:`, error);
+        results.push({
+          scenario,
+          result: { success: false, error: error instanceof Error ? error.message : 'Unknown error' },
+          success: false,
+        });
+      }
     }
 
     return results;
@@ -228,60 +210,13 @@ export class MockScenarioManager {
     console.log('🛑 모든 시나리오 중지됨');
   }
 
-  /**
-   * Private: 서버 시나리오를 Supabase Mock에 적용
-   */
-  private applyServerScenarioToSupabase(scenario: ServerScenario) {
-    if (!this.mockInstances.supabase) return;
-
-    // 시나리오의 서버 상태를 Mock 데이터로 변환
-    const mockServers = scenario.servers.map(state => ({
-      id: state.serverId,
-      name: state.serverId,
-      type: state.serverId.includes('web') ? 'web' : 
-            state.serverId.includes('api') ? 'api' : 
-            state.serverId.includes('db') ? 'database' : 'other',
-      status: state.status,
-      cpu: state.metrics.cpu,
-      memory: state.metrics.memory,
-      disk: state.metrics.disk,
-      network: state.metrics.network,
-      response_time: state.metrics.responseTime,
-      last_updated: new Date().toISOString(),
-      alerts: state.alerts || [],
-    }));
-
-    // 중복 제거 (같은 서버 ID의 최신 상태만 유지)
-    const uniqueServers = new Map();
-    mockServers.forEach(server => {
-      uniqueServers.set(server.id, server);
-    });
-
-    this.mockInstances.supabase.addMockData('servers', Array.from(uniqueServers.values()));
-  }
 
   /**
-   * Private: Mock 데이터 업데이트
+   * Private: Mock 데이터 업데이트 (실제 Supabase 사용으로 로깅만)
    */
   private updateMockData(state: ReturnType<ScenarioRunner['getCurrentState']>) {
-    if (!this.mockInstances.supabase) return;
-
-    // 현재 상태의 서버들을 업데이트
-    state.servers.forEach((serverState, serverId) => {
-      const updateData = {
-        status: serverState.status,
-        cpu: serverState.metrics.cpu,
-        memory: serverState.metrics.memory,
-        disk: serverState.metrics.disk,
-        network: serverState.metrics.network,
-        response_time: serverState.metrics.responseTime,
-        last_updated: new Date().toISOString(),
-        alerts: serverState.alerts || [],
-      };
-
-      // Supabase Mock의 update 시뮬레이션
-      console.log(`📊 서버 업데이트: ${serverId}`, updateData);
-    });
+    // 실제 Supabase 사용으로 로깅만 수행
+    console.log('📊 서버 메트릭 업데이트:', state.servers.size, '개 서버');
 
     // 최근 이벤트 로깅
     state.recentEvents.forEach(event => {
@@ -322,10 +257,11 @@ export class MockScenarioManager {
     // 예측 생성
     const predictions = generatePredictions(metrics, pattern, 24);
 
-    // GCP Functions Mock에 적용
-    if (this.mockInstances.gcpFunctions) {
-      console.log(`📈 ML 분석 결과: ${anomalies.length}개 이상 징후, ${predictions.length}개 예측`);
-    }
+    // 실제 GCP Functions에 분석 결과 로깅
+    console.log(`📈 ML 분석 결과: ${anomalies.length}개 이상 징후, ${predictions.length}개 예측`);
+    
+    // 실제 서비스와 연동 시 여기서 결과를 전송할 수 있음
+    // await analyzeMLMetrics(metrics, { anomalies, predictions });
   }
 }
 

@@ -34,21 +34,22 @@ export function useSystemAlerts() {
 
       if (dashboardData.servers) {
         dashboardData.servers.forEach((server: unknown) => {
-          if (server.status === 'critical') {
+          const s = server as any;
+          if (s.status === 'critical') {
             extractedAlerts.push({
-              id: `${server.id}-critical`,
+              id: `${s.id}-critical`,
               type: 'error',
-              message: `서버 ${server.name}에 심각한 문제가 발생했습니다`,
+              message: `서버 ${s.name}에 심각한 문제가 발생했습니다`,
               timestamp: new Date().toISOString(),
-              serverId: server.id,
+              serverId: s.id,
             });
-          } else if (server.status === 'warning') {
+          } else if (s.status === 'warning') {
             extractedAlerts.push({
-              id: `${server.id}-warning`,
+              id: `${s.id}-warning`,
               type: 'warning',
-              message: `서버 ${server.name}에 주의가 필요합니다`,
+              message: `서버 ${s.name}에 주의가 필요합니다`,
               timestamp: new Date().toISOString(),
-              serverId: server.id,
+              serverId: s.id,
             });
           }
         });

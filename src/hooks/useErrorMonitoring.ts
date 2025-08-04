@@ -71,27 +71,29 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       let errorType: ErrorState['errorType'] = 'unknown';
       let message = `${context}: `;
 
+      const errorObj = error as any;
+
       // 에러 타입 분석
-      if (error instanceof TypeError || error?.name === 'TypeError') {
+      if (error instanceof TypeError || errorObj?.name === 'TypeError') {
         errorType = 'parsing';
         message += '데이터 파싱 오류가 발생했습니다.';
       } else if (
-        error?.name === 'TimeoutError' ||
-        error?.code === 'ECONNABORTED'
+        errorObj?.name === 'TimeoutError' ||
+        errorObj?.code === 'ECONNABORTED'
       ) {
         errorType = 'timeout';
         message += '요청 시간이 초과되었습니다.';
-      } else if (error?.name === 'NetworkError' || !navigator.onLine) {
+      } else if (errorObj?.name === 'NetworkError' || !navigator.onLine) {
         errorType = 'network';
         message += '네트워크 연결에 문제가 있습니다.';
-      } else if (error?.status >= 400 && error?.status < 500) {
+      } else if (errorObj?.status >= 400 && errorObj?.status < 500) {
         errorType = 'validation';
         message += '요청 데이터에 문제가 있습니다.';
-      } else if (error?.status >= 500) {
+      } else if (errorObj?.status >= 500) {
         errorType = 'processing';
         message += '서버에서 처리 중 오류가 발생했습니다.';
       } else {
-        message += error?.message || '알 수 없는 오류가 발생했습니다.';
+        message += (error instanceof Error ? error.message : errorObj?.message) || '알 수 없는 오류가 발생했습니다.';
       }
 
       const errorState = createError(errorType, message);

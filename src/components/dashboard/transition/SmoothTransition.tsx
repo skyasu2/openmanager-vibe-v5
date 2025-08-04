@@ -9,7 +9,7 @@
 
 import type { ReactNode } from 'react';
 import React, { memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 
 interface SmoothTransitionProps {
   children: ReactNode;
@@ -30,7 +30,7 @@ const SmoothTransition: React.FC<SmoothTransitionProps> = memo(
     onExitComplete,
   }) => {
     // 페이지 전환 애니메이션 variants
-    const pageVariants: unknown = {
+    const pageVariants: Variants = {
       _initial: {
         opacity: 0,
         y: 20,
@@ -57,7 +57,7 @@ const SmoothTransition: React.FC<SmoothTransitionProps> = memo(
       },
     };
 
-    const contentVariants: unknown = {
+    const contentVariants: Variants = {
       _initial: {
         opacity: 0,
         y: 10,

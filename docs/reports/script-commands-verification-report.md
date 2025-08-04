@@ -144,12 +144,12 @@ npm run system:status    # ✅ 통합 상태 리포트
 
 다음 명령어들은 package.json에 존재하지만 주요 문서에서 언급되지 않았습니다. 향후 문서 업데이트 시 고려할 수 있습니다:
 
-### 🔴 Redis 관련 (개발자 도구)
+### 🔴 Memory Cache 관련 (개발자 도구)
 ```bash
-npm run redis:test       # Redis 연결 테스트
-npm run redis:check      # Redis 상태 확인
-npm run redis:cli        # Redis CLI 접속
-npm run redis:check:real # 실제 Redis 연결 테스트
+npm run memory cache:test       # Memory Cache 연결 테스트
+npm run memory cache:check      # Memory Cache 상태 확인
+npm run memory cache:cli        # Memory Cache CLI 접속
+npm run memory cache:check:real # 실제 Memory Cache 연결 테스트
 ```
 
 ### 🤖 Sub Agents 관련 (새로운 기능)
@@ -209,7 +209,7 @@ npm run docs:verify-commands
 
 ### 2. **중요 명령어 추가 문서화**
 특히 다음 영역의 명령어들을 주요 가이드에 추가 권장:
-- Redis 관리 명령어들
+- Memory Cache 관리 명령어들
 - Sub Agents 관련 명령어들  
 - 시스템 상태 확인 명령어들
 

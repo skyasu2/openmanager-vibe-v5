@@ -1,23 +1,10 @@
 /**
- * Supabase 클라이언트 선택자
+ * Supabase 클라이언트 - 실제 Supabase 사용
  * 
- * 환경에 따라 실제 Supabase 또는 Mock Supabase를 자동으로 선택
- * - 개발 환경: Mock 사용
- * - 테스트 환경: Mock 사용  
- * - 프로덕션: 실제 Supabase 사용
+ * 실제 Supabase와 MCP 서버를 사용하여 데이터베이스 통신
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { createMockSupabaseClient, getDevMockSupabase } from './dev-mock-supabase';
-import { scenarioManager } from '@/lib/mock-scenarios';
-
-// 환경 감지
-const isDevelopment = process.env.NODE_ENV === 'development';
-const isTest = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
-const forceMock = process.env.FORCE_MOCK_SUPABASE === 'true';
-
-// Mock 사용 여부 결정
-export const shouldUseMockSupabase = isDevelopment || isTest || forceMock;
 
 // 환경 변수
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -26,24 +13,11 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 /**
  * Supabase 클라이언트 가져오기
  * 
- * @returns SupabaseClient 인스턴스 (실제 또는 Mock)
+ * @returns SupabaseClient 인스턴스 (실제 Supabase)
  */
 export function getSupabaseClient(): SupabaseClient {
-  if (shouldUseMockSupabase) {
-    console.log('🎭 Mock Supabase 사용 중 (API 사용량 0)');
-    const mockClient = createMockSupabaseClient();
-    
-    // 시나리오 매니저에 등록
-    scenarioManager.registerMockInstance('supabase', getDevMockSupabase());
-    
-    return mockClient;
-  }
-
   if (!supabaseUrl || !supabaseKey) {
-    console.warn('⚠️ Supabase 환경 변수가 없습니다. Mock으로 폴백합니다.');
-    const mockClient = createMockSupabaseClient();
-    scenarioManager.registerMockInstance('supabase', getDevMockSupabase());
-    return mockClient;
+    throw new Error('⚠️ Supabase 환경 변수가 설정되지 않았습니다. .env.local을 확인하세요.');
   }
 
   console.log('🌐 실제 Supabase 사용 중');
@@ -82,43 +56,6 @@ export function getSupabaseClient(): SupabaseClient {
   });
 }
 
-/**
- * Mock 통계 조회 (개발용)
- * 
- * @returns Mock 사용 통계 또는 null
- */
-export function getSupabaseMockStats(): Record<string, any> | null {
-  if (shouldUseMockSupabase) {
-    return getDevMockSupabase().getStats();
-  }
-  return null;
-}
-
-/**
- * Mock 데이터 추가 (개발용)
- * 
- * @param table 테이블 이름
- * @param data 추가할 데이터
- */
-export function addSupabaseMockData(
-  table: string,
-  data: Record<string, any> | Record<string, any>[]
-): void {
-  if (shouldUseMockSupabase) {
-    getDevMockSupabase().addMockData(table, data);
-  } else {
-    console.warn('⚠️ Mock이 활성화되지 않은 상태에서 Mock 데이터 추가 시도');
-  }
-}
-
-/**
- * Mock 초기화 (개발용)
- */
-export function resetSupabaseMock(): void {
-  if (shouldUseMockSupabase) {
-    getDevMockSupabase().reset();
-  }
-}
 
 // 기본 클라이언트 export
 export const supabase = getSupabaseClient();
@@ -169,7 +106,6 @@ export async function signOut() {
 if (process.env.NODE_ENV === 'development') {
   console.log('🔍 Supabase 환경 설정:');
   console.log(`  - NODE_ENV: ${process.env.NODE_ENV}`);
-  console.log(`  - FORCE_MOCK_SUPABASE: ${forceMock}`);
-  console.log(`  - Mock 사용: ${shouldUseMockSupabase}`);
   console.log(`  - Supabase URL: ${supabaseUrl ? '설정됨' : '미설정'}`);
+  console.log(`  - 실제 Supabase 사용 중 (MCP 서버 활용)`);
 }

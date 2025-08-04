@@ -35,7 +35,7 @@
 - 총 사용: 61MB ✅ (12.2% 사용)
 ```
 
-### 3. Upstash Redis (Cache + State)
+### 3. Upstash Memory Cache (Cache + State)
 **무료 한계**:
 - 메모리: 256MB
 - 일일 명령: 10,000개
@@ -43,7 +43,7 @@
 
 **예상 사용량**:
 ```typescript
-// Redis 사용 패턴
+// Memory Cache 사용 패턴
 - 캐시 키: ~500개 활성 = 50MB
 - 생각중 스트림: 세션당 1MB × 10 동시 = 10MB
 - 일일 명령: 캐시 2,000 + 스트림 1,000 = 3,000 ✅ (30% 사용)
@@ -76,7 +76,7 @@
 export class EdgeAIRouter {
   // 캐시 우선 전략
   async route(request: EdgeRouterRequest) {
-    // 1. Redis 캐시 먼저 확인 (Edge Runtime 소비 X)
+    // 1. Memory Cache 캐시 먼저 확인 (Edge Runtime 소비 X)
     const cached = await this.checkCache(request);
     if (cached) return cached;
     
@@ -86,14 +86,14 @@ export class EdgeAIRouter {
 }
 ```
 
-### 2. Upstash Redis 일일 명령 제한
+### 2. Upstash Memory Cache 일일 명령 제한
 **문제**: 10,000 명령/일은 생각보다 적음
 **해결**:
 ```typescript
 // 배치 처리로 명령 수 최소화
-class RedisCacheAdapter {
-  async batchOperations(operations: RedisOperation[]) {
-    const pipeline = this.redis.pipeline();
+class Memory CacheCacheAdapter {
+  async batchOperations(operations: Memory CacheOperation[]) {
+    const pipeline = this.memory cache.pipeline();
     operations.forEach(op => pipeline[op.command](...op.args));
     return pipeline.exec(); // 1개 명령으로 처리
   }
@@ -129,7 +129,7 @@ const VECTOR_SEARCH_CONFIG = {
 ```typescript
 // 주기적 캐시 정리
 setInterval(async () => {
-  const memoryUsage = await redis.info('memory');
+  const memoryUsage = await memory cache.info('memory');
   if (memoryUsage.used_memory > 200 * 1024 * 1024) { // 200MB
     await this.cleanupOldCache();
   }

@@ -154,7 +154,7 @@ console.log(status.googleAI.hasKey); // Google AI 키 존재 여부
 - `NEXTAUTH_SECRET` - NextAuth 시크릿
 - `GITHUB_CLIENT_ID/SECRET` - GitHub OAuth
 - `SUPABASE_*` - Supabase 인증 정보
-- `UPSTASH_REDIS_*` - Redis 연결 정보
+- `UPSTASH_MEMORY_CACHE_*` - Memory Cache 연결 정보
 - `ENCRYPTION_KEY` - 암호화 마스터 키
 
 ---

@@ -39,7 +39,7 @@
 
 ### 6. **system-schemas/** (404줄)
 - `system-optimization.schema.ts` (112줄) - 시스템 최적화
-- `redis-stats.schema.ts` (124줄) - Redis 통계
+- `memory cache-stats.schema.ts` (124줄) - Memory Cache 통계
 - `database-pool.schema.ts` (72줄) - DB 풀 관리
 - `dev-key-manager.schema.ts` (96줄) - 개발 키 관리
 

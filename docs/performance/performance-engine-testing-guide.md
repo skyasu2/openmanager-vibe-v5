@@ -132,7 +132,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 - ✅ Google AI API Mock
 - ✅ Supabase RAG Engine Mock
-- ✅ Redis Cache Mock
+- ✅ Memory Cache Cache Mock
 - ✅ MCP Context Mock
 
 ## 🎯 테스트 시나리오

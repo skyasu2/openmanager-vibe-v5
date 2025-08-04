@@ -369,14 +369,14 @@ export const useAIResponseFormatter = () => {
 
         console.log('✅ AI 응답 포맷팅 완료:', result);
         return result;
-      } catch (error: Error | unknown) {
-        const errorMessage = error.message || '알 수 없는 오류가 발생했습니다.';
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
 
-        if (error.message.includes('타임아웃')) {
+        if (error instanceof Error && error.message.includes('타임아웃')) {
           handleError('timeout', errorMessage);
-        } else if (error.message.includes('네트워크')) {
+        } else if (error instanceof Error && error.message.includes('네트워크')) {
           handleError('network', errorMessage);
-        } else if (error.message.includes('파싱')) {
+        } else if (error instanceof Error && error.message.includes('파싱')) {
           handleError('parsing', errorMessage);
         } else {
           handleError('unknown', errorMessage);

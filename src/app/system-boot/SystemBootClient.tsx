@@ -270,7 +270,7 @@ export default function SystemBootClient() {
       icon: Loader2,
       description: '시스템을 초기화하고 있습니다...',
     };
-  const CurrentIconComponent = currentIcon;
+  const CurrentIconComponent = currentIcon as React.FC<{ className?: string }>;
 
   // 클라이언트 렌더링이 준비되지 않았으면 로딩 표시
   if (!isClient) {

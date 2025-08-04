@@ -2,6 +2,7 @@ import { getCachedUser, setCachedUser } from '@/lib/auth-cache';
 import { updateSession } from '@/utils/supabase/middleware';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 // 개발 환경에서만 허용하는 API 패턴들
 const DEV_ONLY_PATTERNS = [
@@ -108,7 +109,7 @@ export async function middleware(request: NextRequest) {
       // updateSession에서 반환된 response의 쿠키를 읽어야 함
       // 새로운 클라이언트를 생성하면 안됨!
       const { createServerClient } = await import('@supabase/ssr');
-
+      
       // response의 쿠키를 포함한 새로운 Request 생성
       const _requestWithCookies = new Request(request.url, {
         headers: request.headers,
@@ -140,7 +141,7 @@ export async function middleware(request: NextRequest) {
             },
           },
         }
-      );
+      ) as SupabaseClient;
 
       // 모든 쿠키 로그
       const cookies = Array.from(request.cookies.entries()).map(

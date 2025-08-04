@@ -6,5 +6,5 @@
  * - Redis → Supabase 마이그레이션 완료
  */
 
-// v2 엔드포인트로 모든 메서드 리다이렉트
-export { GET, POST, OPTIONS } from '../edge-v2/route';
+// v2 엔드포인트로 POST와 OPTIONS 리다이렉트
+export { POST, OPTIONS } from '../edge-v2/route';

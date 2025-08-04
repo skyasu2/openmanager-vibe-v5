@@ -6,6 +6,15 @@
 
 import { supabase } from '@/lib/supabase';
 
+interface RealMetricInput {
+  server_id: string;
+  cpu_usage?: number;
+  memory_usage?: number;
+  disk_usage?: number;
+  network_in?: number;
+  timestamp: Date;
+}
+
 export interface ServerMetrics {
   cpu: number;
   memory: number;
@@ -117,7 +126,7 @@ export class AdvancedSimulationEngine {
       this.realMetricsCache.clear();
       const serverMetricsMap = new Map<string, ServerMetrics[]>();
 
-      realMetrics.forEach((metric: unknown) => {
+      realMetrics.forEach((metric: RealMetricInput) => {
         const serverId = metric.server_id || 'unknown';
         if (!serverMetricsMap.has(serverId)) {
           serverMetricsMap.set(serverId, []);

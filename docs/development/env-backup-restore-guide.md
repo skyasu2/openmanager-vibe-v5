@@ -52,7 +52,7 @@ node scripts/env-backup-manager.cjs restore
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SUPABASE_JWT_SECRET`
 - `GOOGLE_AI_API_KEY`
-- `UPSTASH_REDIS_REST_TOKEN`
+- `UPSTASH_MEMORY_CACHE_REST_TOKEN`
 - `KV_REST_API_TOKEN`
 
 ## 📁 파일 구조

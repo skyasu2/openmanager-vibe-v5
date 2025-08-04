@@ -241,7 +241,7 @@ export default function SupabaseRealtimeTestPage() {
             </div>
             <div>
               <div className="text-sm text-muted-foreground">연결 상태</div>
-              <Badge variant={isConnected ? "success" : "secondary"}>
+              <Badge variant={isConnected ? "default" : "secondary"}>
                 {isConnected ? (
                   <><Wifi className="w-3 h-3 mr-1" /> 연결됨</>
                 ) : (

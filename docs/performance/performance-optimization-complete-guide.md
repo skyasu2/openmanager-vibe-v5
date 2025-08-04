@@ -22,8 +22,8 @@
 # 1. 메모리 최적화 확인
 node -p "process.memoryUsage()"
 
-# 2. Redis 캐시 상태 확인
-npm run redis:check
+# 2. Memory Cache 캐시 상태 확인
+npm run memory cache:check
 
 # 3. AI 엔진 성능 테스트
 npm run test:performance
@@ -235,26 +235,26 @@ export const imageConfig = {
 
 ## 🔧 API 및 백엔드 최적화
 
-### 1. Redis 캐싱 전략
+### 1. Memory Cache 캐싱 전략
 
 ```typescript
-// src/lib/redis-template-cache.ts
-class RedisTemplateCache {
-  private redis: Redis;
+// src/lib/memory cache-template-cache.ts
+class Memory CacheTemplateCache {
+  private memory cache: Memory Cache;
   private templates: Map<string, any> = new Map();
 
   async getOptimizedData(key: string, scenario: string = 'normal') {
     const cacheKey = `template:${key}:${scenario}`;
 
-    // Redis에서 조회
-    let template = await this.redis.get(cacheKey);
+    // Memory Cache에서 조회
+    let template = await this.memory cache.get(cacheKey);
     if (template) {
       return this.addRealTimeVariations(JSON.parse(template));
     }
 
     // 템플릿 생성 및 캐싱
     template = this.generateTemplate(key, scenario);
-    await this.redis.setex(cacheKey, 300, JSON.stringify(template)); // 5분 TTL
+    await this.memory cache.setex(cacheKey, 300, JSON.stringify(template)); // 5분 TTL
 
     return this.addRealTimeVariations(template);
   }
@@ -287,7 +287,7 @@ export async function GET(request: NextRequest) {
     const scenario = request.nextUrl.searchParams.get('scenario') || 'normal';
 
     // 1-5ms 응답 목표
-    const data = await redisCache.getOptimizedData(cacheKey, scenario);
+    const data = await memory cacheCache.getOptimizedData(cacheKey, scenario);
 
     return NextResponse.json({
       success: true,
@@ -466,15 +466,15 @@ npm run memory:cleanup
 NODE_OPTIONS='--max-old-space-size=16384' npm run dev
 ```
 
-#### 2. Redis 연결 실패
+#### 2. Memory Cache 연결 실패
 
 ```bash
 # 상태 확인
 curl /api/servers-optimized -X POST -d '{"action": "cache_status"}'
 
 # 환경변수 확인
-echo $UPSTASH_REDIS_REST_URL
-echo $UPSTASH_REDIS_REST_TOKEN
+echo $UPSTASH_MEMORY_CACHE_REST_URL
+echo $UPSTASH_MEMORY_CACHE_REST_TOKEN
 ```
 
 #### 3. AI 엔진 타임아웃

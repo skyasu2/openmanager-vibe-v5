@@ -93,11 +93,36 @@ export const useServerData = (): UseServerDataReturn => {
       // 실시간 데이터가 있으면 사용, 없으면 폴백 데이터 사용
       if (realtimeData) {
         if (Array.isArray(realtimeData)) {
-          const mappedServers = realtimeData.map((server: unknown) => ({
-            ...server,
-            status: mapStatus(server.status || 'unknown'),
-            lastUpdate: new Date(),
-          }));
+          const mappedServers = realtimeData.map((server: unknown) => {
+            if (typeof server !== 'object' || server === null) {
+              // 필수 속성들을 모두 포함한 기본 서버 객체 반환
+              return fallbackServers[0] || {
+                id: 'unknown',
+                name: 'Unknown Server',
+                hostname: 'unknown',
+                status: 'offline' as const,
+                cpu: 0,
+                memory: 0,
+                disk: 0,
+                network: 0,
+                uptime: 0,
+                location: 'Unknown',
+                alerts: 0,
+                ip: '0.0.0.0',
+                os: 'Unknown',
+                type: 'unknown',
+                environment: 'unknown',
+                provider: 'unknown',
+                lastUpdate: new Date(),
+              } as Server;
+            }
+            const s = server as any;
+            return {
+              ...s,
+              status: mapStatus(s.status || 'unknown'),
+              lastUpdate: new Date(),
+            } as Server;
+          });
           safeServers = mappedServers;
         } else {
           console.warn(

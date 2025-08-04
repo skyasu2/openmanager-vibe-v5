@@ -3,6 +3,14 @@
  * OptimizedDataGenerator.ts에서 추출한 성능 최적화 기능
  */
 
+interface BaselineServerInput {
+  id: string;
+  hostname: string;
+  environment: 'production' | 'staging' | 'development';
+  role: 'web' | 'api' | 'database' | 'cache' | 'vm' | 'storage' | 'load-balancer' | 'backup';
+  status: 'healthy' | 'warning' | 'critical';
+}
+
 export interface BaselineDataPoint {
   timestamp: number;
   cpu_baseline: number;
@@ -136,7 +144,7 @@ export class BaselineOptimizer {
   /**
    * 🏗️ 24시간 베이스라인 데이터 생성
    */
-  async generateBaselineData(servers: unknown[]): Promise<void> {
+  async generateBaselineData(servers: BaselineServerInput[]): Promise<void> {
     console.log('🏗️ 24시간 베이스라인 데이터 생성 시작...');
 
     for (const server of servers) {
@@ -153,7 +161,7 @@ export class BaselineOptimizer {
   /**
    * 📊 개별 서버 베이스라인 생성
    */
-  private createServerBaseline(server: unknown): ServerBaselineData {
+  private createServerBaseline(server: BaselineServerInput): ServerBaselineData {
     const dailyPattern: BaselineDataPoint[] = [];
     const currentTime = Date.now();
 
@@ -321,7 +329,7 @@ export class BaselineOptimizer {
 export const baselineOptimizer = BaselineOptimizer.getInstance();
 
 // 편의 함수들
-export function generateBaseline(servers: unknown[]) {
+export function generateBaseline(servers: BaselineServerInput[]) {
   return baselineOptimizer.generateBaselineData(servers);
 }
 

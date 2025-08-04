@@ -1,13 +1,13 @@
 /**
- * 🔧 기본 컨텍스트 관리자 (Level 1)
+ * 🔧 기본 컨텍스트 관리자 (Redis-Free Level 1)
  *
  * ✅ CPU/메모리/디스크/알림 상태 실시간 수집
- * ✅ Upstash Redis 캐시 사용 (30MB 이하)
- * ✅ 고성능 데이터 압축
+ * ✅ 메모리 기반 캐시 사용 (Redis 대체)
+ * ✅ Supabase 영구 저장 옵션
  * ✅ 자동 갱신 & 만료 처리
  */
 
-import { Redis } from '@upstash/redis';
+import { createClient } from '@supabase/supabase-js';
 
 export interface BasicSystemMetrics {
   cpu: {
@@ -69,19 +69,59 @@ export interface BasicContextCache {
   lastUpdate: number;
 }
 
+// 메모리 기반 캐시 클래스
+class MemoryCache {
+  private cache = new Map<string, { value: any; expires: number }>();
+
+  set(key: string, value: any, ttlSeconds: number): void {
+    const expires = Date.now() + ttlSeconds * 1000;
+    this.cache.set(key, { value, expires });
+  }
+
+  get<T>(key: string): T | null {
+    const item = this.cache.get(key);
+    if (!item) return null;
+    
+    if (Date.now() > item.expires) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return item.value as T;
+  }
+
+  delete(key: string): void {
+    this.cache.delete(key);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
 export class BasicContextManager {
-  private redis: Redis;
+  private memoryCache: MemoryCache;
+  private supabase: ReturnType<typeof createClient> | null = null;
   private updateInterval: NodeJS.Timeout | null = null;
   private readonly CACHE_KEY = 'openmanager:basic_context';
   private readonly TTL = 300; // 5분
   private readonly MAX_HISTORY = 100; // 최대 100개 히스토리 유지
 
   constructor() {
-    // Upstash Redis 연결 (환경변수에서 설정 가져오기)
-    this.redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-    });
+    // 메모리 캐시 초기화
+    this.memoryCache = new MemoryCache();
+
+    // Supabase 연결 (환경변수 있을 때만)
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && 
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      this.supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      );
+    }
+
+    console.log('🔧 BasicContextManager 초기화 완료');
+    console.log(`📦 캐시: Memory${this.supabase ? ' + Supabase' : ' Only'}`);
   }
 
   /**
@@ -218,9 +258,7 @@ export class BasicContextManager {
       const newMetrics = await this.collectSystemMetrics();
 
       // 기존 캐시 조회
-      const cachedData = await this.redis.get<BasicContextCache>(
-        this.CACHE_KEY
-      );
+      const cachedData = this.memoryCache.get<BasicContextCache>(this.CACHE_KEY);
 
       let contextCache: BasicContextCache;
 
@@ -246,13 +284,52 @@ export class BasicContextManager {
         };
       }
 
-      // Redis에 저장
-      await this.redis.setex(this.CACHE_KEY, this.TTL, contextCache);
+      // 메모리 캐시에 저장
+      this.memoryCache.set(this.CACHE_KEY, contextCache, this.TTL);
+
+      // Supabase에 영구 저장 (선택사항)
+      if (this.supabase) {
+        await this.saveToSupabase(newMetrics);
+      }
 
       console.log('✅ [BasicContext] 기본 컨텍스트 업데이트 완료');
     } catch (error) {
       console.error('❌ [BasicContext] 업데이트 실패:', error);
       throw error;
+    }
+  }
+
+  /**
+   * 💾 Supabase 영구 저장
+   */
+  private async saveToSupabase(metrics: BasicSystemMetrics): Promise<void> {
+    if (!this.supabase) return;
+
+    try {
+      const { error } = await this.supabase
+        .from('system_metrics')
+        .insert([{
+          timestamp: new Date(metrics.timestamp).toISOString(),
+          cpu_usage: metrics.cpu.usage,
+          cpu_load: metrics.cpu.load,
+          memory_used: metrics.memory.used,
+          memory_total: metrics.memory.total,
+          memory_percentage: metrics.memory.percentage,
+          disk_used: metrics.disk.used,
+          disk_total: metrics.disk.total,
+          disk_percentage: metrics.disk.percentage,
+          network_bytes_in: metrics.network.bytesIn,
+          network_bytes_out: metrics.network.bytesOut,
+          alerts_active: metrics.alerts.active,
+          alerts_critical: metrics.alerts.critical,
+          alerts_warning: metrics.alerts.warning,
+        }]);
+
+      if (error) {
+        console.warn('⚠️ [BasicContext] Supabase 저장 실패:', error);
+      }
+    } catch (error) {
+      console.warn('⚠️ [BasicContext] Supabase 저장 오류:', error);
     }
   }
 
@@ -290,7 +367,7 @@ export class BasicContextManager {
    */
   async getCurrentContext(): Promise<BasicContextCache | null> {
     try {
-      const cached = await this.redis.get<BasicContextCache>(this.CACHE_KEY);
+      const cached = this.memoryCache.get<BasicContextCache>(this.CACHE_KEY);
       return cached || null;
     } catch (error) {
       console.error('❌ [BasicContext] 조회 실패:', error);
@@ -323,7 +400,7 @@ export class BasicContextManager {
           contextCache.current.alerts.warning++;
         }
 
-        await this.redis.setex(this.CACHE_KEY, this.TTL, contextCache);
+        this.memoryCache.set(this.CACHE_KEY, contextCache, this.TTL);
       }
 
       console.log(
@@ -437,7 +514,7 @@ export class BasicContextManager {
    */
   async clearCache(): Promise<void> {
     try {
-      await this.redis.del(this.CACHE_KEY);
+      this.memoryCache.delete(this.CACHE_KEY);
       console.log('🧹 [BasicContext] 캐시 정리 완료');
     } catch (error) {
       console.error('❌ [BasicContext] 캐시 정리 실패:', error);

@@ -225,7 +225,7 @@ await mcp__filesystem__write_file({
 const docs =
   (await mcp__tavily) -
   remote__tavily_search({
-    query: 'Upstash Redis best practices 2025',
+    query: 'Upstash Memory Cache best practices 2025',
     max_results: 10,
   });
 
@@ -234,13 +234,13 @@ const libDocs =
   (await mcp__context7__get) -
   library -
   docs({
-    context7CompatibleLibraryID: '/upstash/redis',
+    context7CompatibleLibraryID: '/upstash/memory cache',
     topic: 'caching strategies',
   });
 
 // 3. 문서 생성
 await mcp__filesystem__write_file({
-  path: '/docs/redis-integration-guide.md',
+  path: '/docs/memory cache-integration-guide.md',
   content: compiledDocumentation,
 });
 ```

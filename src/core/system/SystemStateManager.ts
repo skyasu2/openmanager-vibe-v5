@@ -216,7 +216,7 @@ export class SystemStateManager extends EventEmitter {
    * 🏥 헬스 상태 결정
    */
   private determineHealthStatus(
-    simulationSummary: unknown,
+    simulationSummary: any,
     errorRate: number,
     averageResponseTime: number
   ): 'healthy' | 'warning' | 'critical' | 'degraded' {

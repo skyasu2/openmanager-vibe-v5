@@ -211,21 +211,21 @@ export type InferSchema<T extends z.ZodTypeAny> = z.infer<T>;
 /**
  * 부분적인 스키마를 만드는 헬퍼
  */
-export function partial<T extends z.ZodObject<unknown>>(schema: T) {
+export function partial<T extends z.ZodObject<z.ZodRawShape>>(schema: T) {
   return schema.partial();
 }
 
 /**
  * 깊은 부분적인 스키마를 만드는 헬퍼
  */
-export function deepPartial<T extends z.ZodObject<unknown>>(schema: T) {
+export function deepPartial<T extends z.ZodObject<z.ZodRawShape>>(schema: T) {
   return schema.deepPartial();
 }
 
 /**
  * Pick 유틸리티 타입과 같은 기능의 헬퍼
  */
-export function pick<T extends z.ZodObject<unknown>, K extends keyof z.infer<T>>(
+export function pick<T extends z.ZodObject<z.ZodRawShape>, K extends keyof z.infer<T>>(
   schema: T,
   keys: K[]
 ) {
@@ -239,7 +239,7 @@ export function pick<T extends z.ZodObject<unknown>, K extends keyof z.infer<T>>
 /**
  * Omit 유틸리티 타입과 같은 기능의 헬퍼
  */
-export function omit<T extends z.ZodObject<unknown>, K extends keyof z.infer<T>>(
+export function omit<T extends z.ZodObject<z.ZodRawShape>, K extends keyof z.infer<T>>(
   schema: T,
   keys: K[]
 ) {

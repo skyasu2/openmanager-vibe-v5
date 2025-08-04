@@ -20,7 +20,13 @@ import { timerManager } from '../../utils/TimerManager';
 import type { ServerStatusSummary } from '@/types/unified-server';
 
 // 분리된 유틸 함수들
-const generateQuestions = (metrics: unknown): string[] => {
+interface ChatMetrics {
+  criticalServers?: number;
+  warning?: number;
+  total?: number;
+}
+
+const generateQuestions = (metrics: ChatMetrics | unknown): string[] => {
   const questions = [
     '현재 시스템 전체 상태를 요약해줘',
     'CPU 사용률이 높은 서버들을 분석해줘',
@@ -30,14 +36,15 @@ const generateQuestions = (metrics: unknown): string[] => {
   ];
 
   // 서버 메트릭스에 따른 동적 질문 생성
-  if (metrics) {
-    if (metrics.criticalServers > 0) {
+  if (metrics && typeof metrics === 'object' && 'criticalServers' in metrics) {
+    const m = metrics as ChatMetrics;
+    if (m.criticalServers && m.criticalServers > 0) {
       questions.unshift('⚠️ 위험 상태 서버들을 즉시 점검해줘');
     }
-    if (metrics.warning > 2) {
+    if (m.warning && m.warning > 2) {
       questions.unshift('📊 경고 상태 서버들의 패턴을 분석해줘');
     }
-    if (metrics.total > 10) {
+    if (m.total && m.total > 10) {
       questions.push('🔄 대규모 인프라 최적화 방안을 제안해줘');
     }
   }

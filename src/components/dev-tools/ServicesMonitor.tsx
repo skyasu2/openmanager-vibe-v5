@@ -279,7 +279,7 @@ export function ServicesMonitor({
                     </div>
                   )}
 
-                  {service.details && (
+                  {service.details !== undefined && (
                     <div className='space-y-2'>
                       <p className='text-sm font-medium text-slate-700 dark:text-slate-300'>
                         상세 정보:

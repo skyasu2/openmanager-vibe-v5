@@ -1,13 +1,14 @@
 /**
- * 🧠 고급 컨텍스트 관리자 (Level 2)
+ * 🧠 고급 컨텍스트 관리자 (Redis-Free Level 2)
  *
  * ✅ docs/ 문서 자동 임베딩
  * ✅ 과거 리포트 & AI 분석 로그 기반 FAQ
  * ✅ md → embedding vector 구조
  * ✅ 의미 기반 문서 검색
+ * ✅ 메모리 기반 캐시 + Supabase 영구 저장
  */
 
-import { Redis } from '@upstash/redis';
+import { createClient } from '@supabase/supabase-js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -56,8 +57,39 @@ export interface AdvancedContextCache {
   totalDocuments: number;
 }
 
+// 메모리 기반 캐시 클래스
+class AdvancedMemoryCache {
+  private cache = new Map<string, { value: any; expires: number }>();
+
+  set(key: string, value: any, ttlSeconds: number): void {
+    const expires = Date.now() + ttlSeconds * 1000;
+    this.cache.set(key, { value, expires });
+  }
+
+  get<T>(key: string): T | null {
+    const item = this.cache.get(key);
+    if (!item) return null;
+    
+    if (Date.now() > item.expires) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return item.value as T;
+  }
+
+  delete(key: string): void {
+    this.cache.delete(key);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
 export class AdvancedContextManager {
-  private redis: Redis;
+  private memoryCache: AdvancedMemoryCache;
+  private supabase: ReturnType<typeof createClient> | null = null;
   private readonly CACHE_KEY = 'openmanager:advanced_context';
   private readonly DOCS_PATH = './docs';
   private readonly LOGS_PATH = './logs';
@@ -65,10 +97,20 @@ export class AdvancedContextManager {
   private readonly MAX_CHUNK_SIZE = 1000; // 최대 청크 크기 (문자)
 
   constructor() {
-    this.redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-    });
+    // 메모리 캐시 초기화
+    this.memoryCache = new AdvancedMemoryCache();
+
+    // Supabase 연결 (환경변수 있을 때만)
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && 
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      this.supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      );
+    }
+
+    console.log('🧠 AdvancedContextManager 초기화 완료');
+    console.log(`📦 캐시: Memory${this.supabase ? ' + Supabase' : ' Only'}`);
   }
 
   /**
@@ -99,6 +141,11 @@ export class AdvancedContextManager {
             (contextCache.categories.get(category) || 0) + 1
           );
 
+          // Supabase에 저장 (선택사항)
+          if (this.supabase) {
+            await this.saveDocumentToSupabase(embedding);
+          }
+
           console.log(
             `✅ [AdvancedContext] 문서 처리 완료: ${embedding.title}`
           );
@@ -126,6 +173,34 @@ export class AdvancedContextManager {
     } catch (error) {
       console.error('❌ [AdvancedContext] 문서 임베딩 실패:', error);
       throw error;
+    }
+  }
+
+  /**
+   * 💾 Supabase에 문서 저장
+   */
+  private async saveDocumentToSupabase(doc: DocumentEmbedding): Promise<void> {
+    if (!this.supabase) return;
+
+    try {
+      const { error } = await this.supabase
+        .from('document_embeddings')
+        .insert([{
+          id: doc.id,
+          title: doc.title,
+          content: doc.content,
+          file_path: doc.filePath,
+          embedding: doc.embedding,
+          metadata: doc.metadata,
+          chunks: doc.chunks,
+          timestamp: new Date(doc.timestamp).toISOString(),
+        }]);
+
+      if (error) {
+        console.warn('⚠️ [AdvancedContext] Supabase 문서 저장 실패:', error);
+      }
+    } catch (error) {
+      console.warn('⚠️ [AdvancedContext] Supabase 문서 저장 오류:', error);
     }
   }
 
@@ -427,9 +502,44 @@ export class AdvancedContextManager {
       });
     }
 
+    // Supabase에 FAQ 저장 (선택사항)
+    if (this.supabase) {
+      await this.saveFAQsToSupabase(Array.from(contextCache.faqs.values()));
+    }
+
     console.log(
       `✅ [AdvancedContext] ${contextCache.faqs.size}개 FAQ 생성 완료`
     );
+  }
+
+  /**
+   * 💾 Supabase에 FAQ 저장
+   */
+  private async saveFAQsToSupabase(faqs: FAQEntry[]): Promise<void> {
+    if (!this.supabase || faqs.length === 0) return;
+
+    try {
+      const { error } = await this.supabase
+        .from('faqs')
+        .insert(
+          faqs.map(faq => ({
+            id: faq.id,
+            question: faq.question,
+            answer: faq.answer,
+            category: faq.category,
+            frequency: faq.frequency,
+            last_accessed: new Date(faq.lastAccessed).toISOString(),
+            related_docs: faq.relatedDocs,
+            confidence: faq.confidence,
+          }))
+        );
+
+      if (error) {
+        console.warn('⚠️ [AdvancedContext] Supabase FAQ 저장 실패:', error);
+      }
+    } catch (error) {
+      console.warn('⚠️ [AdvancedContext] Supabase FAQ 저장 오류:', error);
+    }
   }
 
   /**
@@ -634,16 +744,27 @@ export class AdvancedContextManager {
    */
   private async loadContextCache(): Promise<AdvancedContextCache> {
     try {
-      const cached = await this.redis.get<unknown>(this.CACHE_KEY);
-      if (cached) {
+      // 먼저 메모리 캐시에서 확인
+      const memCached = this.memoryCache.get<any>(this.CACHE_KEY);
+      if (memCached) {
         return {
-          documents: new Map(cached.documents || []),
-          faqs: new Map(cached.faqs || []),
-          searchIndex: new Map(cached.searchIndex || []),
-          categories: new Map(cached.categories || []),
-          lastIndexed: cached.lastIndexed || 0,
-          totalDocuments: cached.totalDocuments || 0,
+          documents: new Map(memCached.documents || []),
+          faqs: new Map(memCached.faqs || []),
+          searchIndex: new Map(memCached.searchIndex || []),
+          categories: new Map(memCached.categories || []),
+          lastIndexed: memCached.lastIndexed || 0,
+          totalDocuments: memCached.totalDocuments || 0,
         };
+      }
+
+      // Supabase에서 로드 시도
+      if (this.supabase) {
+        const cached = await this.loadFromSupabase();
+        if (cached) {
+          // 메모리 캐시에도 저장
+          this.memoryCache.set(this.CACHE_KEY, cached, this.TTL);
+          return cached;
+        }
       }
     } catch (error) {
       console.error('❌ [AdvancedContext] 캐시 로드 실패:', error);
@@ -657,6 +778,79 @@ export class AdvancedContextManager {
       lastIndexed: 0,
       totalDocuments: 0,
     };
+  }
+
+  /**
+   * 💾 Supabase에서 로드
+   */
+  private async loadFromSupabase(): Promise<AdvancedContextCache | null> {
+    if (!this.supabase) return null;
+
+    try {
+      // 문서 로드
+      const { data: docs, error: docsError } = await this.supabase
+        .from('document_embeddings')
+        .select('*');
+
+      if (docsError) throw docsError;
+
+      // FAQ 로드
+      const { data: faqs, error: faqsError } = await this.supabase
+        .from('faqs')
+        .select('*');
+
+      if (faqsError) throw faqsError;
+
+      const documents = new Map<string, DocumentEmbedding>();
+      const faqMap = new Map<string, FAQEntry>();
+      const categories = new Map<string, number>();
+
+      // 문서 변환
+      docs?.forEach((doc: any) => {
+        const docEmbedding: DocumentEmbedding = {
+          id: doc.id as string,
+          title: doc.title as string,
+          content: doc.content as string,
+          filePath: doc.file_path as string,
+          embedding: doc.embedding as number[],
+          metadata: doc.metadata as { fileSize: number; lastModified: number; tags: string[]; category: "report" | "log" | "documentation" | "faq"; importance: number; },
+          chunks: doc.chunks as DocumentChunk[],
+          timestamp: new Date(doc.timestamp as string).getTime(),
+        };
+        documents.set(doc.id, docEmbedding);
+
+        // 카테고리 집계
+        const category = docEmbedding.metadata.category;
+        categories.set(category, (categories.get(category) || 0) + 1);
+      });
+
+      // FAQ 변환
+      faqs?.forEach((faq: any) => {
+        const faqEntry: FAQEntry = {
+          id: faq.id as string,
+          question: faq.question as string,
+          answer: faq.answer as string,
+          category: faq.category as string,
+          frequency: faq.frequency as number,
+          lastAccessed: new Date(faq.last_accessed as string).getTime(),
+          relatedDocs: faq.related_docs as string[],
+          confidence: faq.confidence as number,
+        };
+        faqMap.set(faq.id, faqEntry);
+      });
+
+      return {
+        documents,
+        faqs: faqMap,
+        searchIndex: new Map(), // 다시 구축 필요
+        categories,
+        lastIndexed: Date.now(),
+        totalDocuments: documents.size,
+      };
+    } catch (error) {
+      console.error('❌ [AdvancedContext] Supabase 로드 실패:', error);
+      return null;
+    }
   }
 
   /**
@@ -675,7 +869,10 @@ export class AdvancedContextManager {
         totalDocuments: contextCache.totalDocuments,
       };
 
-      await this.redis.setex(this.CACHE_KEY, this.TTL, serializable);
+      // 메모리 캐시에 저장
+      this.memoryCache.set(this.CACHE_KEY, serializable, this.TTL);
+
+      console.log('✅ [AdvancedContext] 캐시 저장 완료');
     } catch (error) {
       console.error('❌ [AdvancedContext] 캐시 저장 실패:', error);
       throw error;
@@ -703,5 +900,17 @@ export class AdvancedContextManager {
         : null,
       searchIndexSize: contextCache.searchIndex.size,
     };
+  }
+
+  /**
+   * 🧹 캐시 정리
+   */
+  async clearCache(): Promise<void> {
+    try {
+      this.memoryCache.clear();
+      console.log('🧹 [AdvancedContext] 캐시 정리 완료');
+    } catch (error) {
+      console.error('❌ [AdvancedContext] 캐시 정리 실패:', error);
+    }
   }
 }

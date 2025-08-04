@@ -1,46 +1,26 @@
 /**
- * GCP Functions 클라이언트 선택자
+ * GCP Functions 클라이언트 - 실제 GCP Functions 사용
  * 
- * 환경에 따라 실제 GCP Functions 또는 Mock을 자동으로 선택
- * - 개발 환경: Mock 사용
- * - 테스트 환경: Mock 사용
- * - 프로덕션: 실제 GCP Functions 사용
+ * 실제 GCP Functions를 직접 사용하여 일관된 처리 결과 보장
  */
-
-import { MockGCPFunctionsClient, getDevMockGCPFunctions } from './dev-mock-gcp-functions';
-import { scenarioManager } from '@/lib/mock-scenarios';
-
-// 환경 감지
-const isDevelopment = process.env.NODE_ENV === 'development';
-const isTest = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
-const forceMock = process.env.FORCE_MOCK_GCP_FUNCTIONS === 'true';
-
-// Mock 사용 여부 결정
-export const shouldUseMockGCPFunctions = isDevelopment || isTest || forceMock;
 
 // GCP Functions URL
 const GCP_FUNCTIONS_BASE_URL = process.env.NEXT_PUBLIC_GCP_FUNCTIONS_URL || 
   'https://us-central1-your-project.cloudfunctions.net';
 
 /**
- * GCP Functions 클라이언트 인터페이스
+ * GCP Functions 클라이언트
  */
-export interface GCPFunctionsClient {
-  callFunction(functionName: string, data: unknown): Promise<{ success: boolean; data?: unknown; error?: string }>;
-  getStats?(): unknown;
-  reset?(): void;
-}
-
-/**
- * 실제 GCP Functions 클라이언트
- */
-class RealGCPFunctionsClient implements GCPFunctionsClient {
+export class GCPFunctionsClient {
   async callFunction(
     functionName: string,
     data: unknown
   ): Promise<{ success: boolean; data?: unknown; error?: string }> {
     try {
-      const response = await fetch(`${GCP_FUNCTIONS_BASE_URL}/${functionName}`, {
+      const url = `${GCP_FUNCTIONS_BASE_URL}/${functionName}`;
+      console.log(`🌐 GCP Function 호출: ${functionName}`);
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -53,9 +33,9 @@ class RealGCPFunctionsClient implements GCPFunctionsClient {
       }
 
       const result = await response.json();
-      return result;
+      return { success: true, data: result };
     } catch (error) {
-      console.error(`GCP Functions error (${functionName}):`, error);
+      console.error(`❌ GCP Functions error (${functionName}):`, error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -64,24 +44,23 @@ class RealGCPFunctionsClient implements GCPFunctionsClient {
   }
 }
 
+// 글로벌 클라이언트 인스턴스
+let globalClient: GCPFunctionsClient | null = null;
+
 /**
  * GCP Functions 클라이언트 가져오기
  * 
- * @returns GCPFunctionsClient 인스턴스 (실제 또는 Mock)
+ * @returns GCPFunctionsClient 인스턴스 (실제 API)
  */
 export function getGCPFunctionsClient(): GCPFunctionsClient {
-  if (shouldUseMockGCPFunctions) {
-    console.log('🎭 Mock GCP Functions 사용 중 (API 사용량 0)');
-    const mockClient = new MockGCPFunctionsClient();
-    
-    // 시나리오 매니저에 등록
-    scenarioManager.registerMockInstance('gcpFunctions', getDevMockGCPFunctions());
-    
-    return mockClient;
+  if (!globalClient) {
+    if (!GCP_FUNCTIONS_BASE_URL || GCP_FUNCTIONS_BASE_URL.includes('your-project')) {
+      throw new Error('⚠️ GCP Functions URL이 설정되지 않았습니다. .env.local을 확인하세요.');
+    }
+    globalClient = new GCPFunctionsClient();
+    console.log('🌐 실제 GCP Functions 사용 중');
   }
-
-  console.log('🌐 실제 GCP Functions 사용 중');
-  return new RealGCPFunctionsClient();
+  return globalClient;
 }
 
 /**
@@ -108,30 +87,10 @@ export async function processUnifiedAI(request: unknown) {
   return client.callFunction('unified-ai-processor', request);
 }
 
-/**
- * Mock 통계 조회 (개발용)
- */
-export function getGCPFunctionsMockStats(): unknown | null {
-  if (shouldUseMockGCPFunctions) {
-    return getDevMockGCPFunctions().getStats();
-  }
-  return null;
-}
-
-/**
- * Mock 초기화 (개발용)
- */
-export function resetGCPFunctionsMock(): void {
-  if (shouldUseMockGCPFunctions) {
-    getDevMockGCPFunctions().reset();
-  }
-}
-
 // 환경 정보 로깅
 if (process.env.NODE_ENV === 'development') {
   console.log('🔍 GCP Functions 환경 설정:');
   console.log(`  - NODE_ENV: ${process.env.NODE_ENV}`);
-  console.log(`  - FORCE_MOCK_GCP_FUNCTIONS: ${forceMock}`);
-  console.log(`  - Mock 사용: ${shouldUseMockGCPFunctions}`);
   console.log(`  - Base URL: ${GCP_FUNCTIONS_BASE_URL}`);
+  console.log(`  - 실제 GCP Functions 사용`);
 }

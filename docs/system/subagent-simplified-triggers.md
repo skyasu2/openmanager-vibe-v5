@@ -35,7 +35,7 @@ AVOID automatic triggers for routine edits
 - mcp__supabase__* tool usage detected
 - schema files modified
 - API response time >500ms
-- Redis memory usage >80%
+- Memory Cache memory usage >80%
 - Query execution time >100ms
 
 # After (필수만)

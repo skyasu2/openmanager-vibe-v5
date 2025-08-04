@@ -483,7 +483,7 @@ export class CustomContextManager {
       case 'contains':
         return String(value).includes(String(expectedValue));
       case 'matches':
-        return new RegExp(expectedValue).test(String(value));
+        return new RegExp(String(expectedValue)).test(String(value));
       default:
         return false;
     }

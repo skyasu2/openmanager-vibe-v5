@@ -68,10 +68,15 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
 
       if (data.success && data.data) {
         // API 응답 데이터를 컴포넌트 형식에 맞게 변환
-        const transformedReports = data.data.map((report: unknown) => ({
-          ...report,
-          generatedAt: new Date(report.generatedAt),
-        }));
+        const transformedReports = data.data.map((report: unknown) => {
+          if (typeof report === 'object' && report !== null && 'generatedAt' in report) {
+            return {
+              ...(report as Record<string, unknown>),
+              generatedAt: new Date((report as any).generatedAt),
+            };
+          }
+          return report;
+        });
         setReports(transformedReports);
       } else {
         console.error('보고서 데이터 로드 실패:', data.error);

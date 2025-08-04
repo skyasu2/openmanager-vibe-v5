@@ -46,7 +46,7 @@ export function useOptimizedRealtime<T = any>({
   onUpdate,
   subscriberId: customSubscriberId,
 }: UseOptimizedRealtimeOptions): UseOptimizedRealtimeReturn<T> {
-  const [data, setData] = useState<T>(_initialData);
+  const [data, setData] = useState<T>(_initialData as T);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);

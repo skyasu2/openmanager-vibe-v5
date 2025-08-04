@@ -53,66 +53,76 @@ function convertGCPTypeToEnvironment(gcpType: string): string {
 export function adaptGCPMetricsToServerInstances(
   gcpMetrics: unknown // GCPServerMetrics removed[]
 ): ServerInstance[] {
+  if (!Array.isArray(gcpMetrics)) {
+    throw new Error('GCP metrics must be an array');
+  }
+  
   return gcpMetrics.map((gcp: unknown): ServerInstance => {
+    if (typeof gcp !== 'object' || gcp === null) {
+      throw new Error('Invalid GCP metrics data');
+    }
+    
+    const g = gcp as any;
+    
     // 기본 속성들 매핑
     const baseInstance: ServerInstance = {
-      id: gcp.id,
-      name: gcp.name,
-      status: convertGCPStatusToServerStatus(gcp.status),
+      id: g.id,
+      name: g.name,
+      status: convertGCPStatusToServerStatus(g.status),
 
       // 메트릭 데이터 평면화
-      cpu: gcp.metrics.cpu.usage,
-      memory: gcp.metrics.memory.usage,
-      disk: gcp.metrics.disk.usage,
-      network: (gcp.metrics.network.rx + gcp.metrics.network.tx) / 2, // 평균값 사용
+      cpu: g.metrics?.cpu?.usage || 0,
+      memory: g.metrics?.memory?.usage || 0,
+      disk: g.metrics?.disk?.usage || 0,
+      network: ((g.metrics?.network?.rx || 0) + (g.metrics?.network?.tx || 0)) / 2, // 평균값 사용
 
       // 기본 메타데이터
       uptime: 0, // GCP에서 제공하지 않는 경우 기본값
-      lastCheck: gcp.timestamp,
-      type: gcp.type,
-      environment: convertGCPTypeToEnvironment(gcp.type),
-      region: gcp.zone,
+      lastCheck: g.timestamp,
+      type: g.type,
+      environment: convertGCPTypeToEnvironment(g.type),
+      region: g.zone,
       version: '1.0.0', // 기본값
-      tags: [`gcp`, `zone:${gcp.zone}`, `project:${gcp.projectId}`],
-      alerts: gcp.isErrorState ? 1 : 0,
+      tags: [`gcp`, `zone:${g.zone}`, `project:${g.projectId}`],
+      alerts: g.isErrorState ? 1 : 0,
 
       // 필수 속성들
-      location: gcp.zone,
-      lastUpdated: gcp.timestamp,
+      location: g.zone,
+      lastUpdated: g.timestamp,
       provider: 'gcp',
 
       // 확장된 메트릭 정보
       metrics: {
-        cpu: gcp.metrics.cpu.usage,
-        memory: gcp.metrics.memory.usage,
-        disk: gcp.metrics.disk.usage,
-        network: (gcp.metrics.network.rx + gcp.metrics.network.tx) / 2,
-        timestamp: gcp.timestamp,
+        cpu: g.metrics?.cpu?.usage || 0,
+        memory: g.metrics?.memory?.usage || 0,
+        disk: g.metrics?.disk?.usage || 0,
+        network: ((g.metrics?.network?.rx || 0) + (g.metrics?.network?.tx || 0)) / 2,
+        timestamp: g.timestamp,
         uptime: 0, // 기본값
       },
 
       // 서버 스펙 추정 (실제 GCP API에서 가져올 수 있으면 더 정확함)
       specs: {
-        cpu_cores: gcp.metrics.cpu.cores,
-        memory_gb: Math.round(gcp.metrics.memory.total / (1024 * 1024 * 1024)),
-        disk_gb: Math.round(gcp.metrics.disk.total / (1024 * 1024 * 1024)),
+        cpu_cores: g.metrics?.cpu?.cores || 1,
+        memory_gb: Math.round((g.metrics?.memory?.total || 0) / (1024 * 1024 * 1024)),
+        disk_gb: Math.round((g.metrics?.disk?.total || 0) / (1024 * 1024 * 1024)),
         network_speed: '1Gbps', // 기본값
       },
 
       // 추가 정보
       requests: {
-        total: gcp.metrics.network.connections,
-        success: Math.round(gcp.metrics.network.connections * 0.95), // 95% 성공률 가정
-        errors: Math.round(gcp.metrics.network.connections * 0.05),
-        averageTime: gcp.status === 'healthy' ? 120 : 500, // 상태에 따른 응답시간 추정
+        total: g.metrics?.network?.connections || 0,
+        success: Math.round((g.metrics?.network?.connections || 0) * 0.95), // 95% 성공률 가정
+        errors: Math.round((g.metrics?.network?.connections || 0) * 0.05),
+        averageTime: g.status === 'healthy' ? 120 : 500, // 상태에 따른 응답시간 추정
       },
 
       // 에러 정보
-      errors: gcp.isErrorState
+      errors: g.isErrorState
         ? {
             count: 1,
-            recent: [gcp.errorMessage || '알 수 없는 오류'],
-            lastError: gcp.errorMessage,
+            recent: [g.errorMessage || '알 수 없는 오류'],
+            lastError: g.errorMessage,
           }
         : {
             count: 0,

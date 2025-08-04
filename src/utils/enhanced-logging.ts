@@ -61,9 +61,9 @@ const safeStringify = (obj: unknown, maxDepth = 3): string => {
 
     // 재귀적으로 깊이 추가
     if (typeof value === 'object' && value !== null) {
-      const result: unknown = Array.isArray(value) ? [] : {};
+      const result: Record<string, any> = Array.isArray(value) ? [] : {};
       for (const k in value) {
-        result[k] = replacer(k, value[k], depth + 1);
+        (result as any)[k] = replacer(k, (value as any)[k], depth + 1);
       }
       return result;
     }
@@ -152,8 +152,8 @@ class EnhancedLogger {
 
     const responseData = {
       url,
-      status: response?.status,
-      data: response?.data,
+      status: (response as any)?.status,
+      data: (response as any)?.data,
       timestamp: new Date().toISOString(),
     };
 

@@ -48,7 +48,7 @@ webpackFinal: async (config) => {
 
 ### 3. 환경 변수 목업 (preview.ts)
 - Storybook 전용 환경 변수 설정
-- Redis, Google AI 등 외부 서비스 자동 비활성화
+- Memory Cache, Google AI 등 외부 서비스 자동 비활성화
 
 ## 📋 권장 사항
 

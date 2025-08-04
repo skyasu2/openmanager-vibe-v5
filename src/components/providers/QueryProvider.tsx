@@ -19,8 +19,11 @@ const queryClient = new QueryClient({
       // 자동 재시도 설정
       retry: (failureCount, error: Error | unknown) => {
         // 400번대 에러는 재시도하지 않음
-        if (error?.status >= 400 && error?.status < 500) {
-          return false;
+        if (error && typeof error === 'object' && 'status' in error) {
+          const status = (error as { status: number }).status;
+          if (status >= 400 && status < 500) {
+            return false;
+          }
         }
         // 최대 3번까지 재시도
         return failureCount < 3;

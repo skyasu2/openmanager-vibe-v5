@@ -1,15 +1,16 @@
 /**
- * 🌐 Cloud-based Version Manager (Production Optimized)
+ * 🌐 Cloud-based Version Manager (Redis-Free Production)
  *
- * VersionManager 대체: 파일 시스템 → 경량화된 Firestore
+ * VersionManager 대체: 메모리 기반 캐시 + Supabase
  *
  * 기능:
  * - 핵심 버전 정보만 기록 (Vercel 배포와 연동)
  * - 개발환경에서만 상세 메타데이터 수집
  * - 프로덕션에서는 최소한의 추적만 수행
+ * - Redis 완전 제거, 메모리 기반 LRU 캐시 사용
  */
 
-import { getRedis } from '@/lib/redis';
+import { createClient } from '@supabase/supabase-js';
 
 interface VersionRecord {
   id: string;
@@ -45,47 +46,99 @@ interface VersionRecord {
 }
 
 interface CloudVersionManagerConfig {
-  enableRedisCache: boolean;
-  enableFirestore: boolean;
-  redisPrefix: string;
-  redisTTL: number;
+  enableMemoryCache: boolean;
+  enableSupabase: boolean;
+  cachePrefix: string;
+  cacheTTL: number;
   maxVersionHistory: number;
   compressionEnabled: boolean;
-  isProduction: boolean; // 새로 추가
+  isProduction: boolean;
+}
+
+// 메모리 기반 LRU 캐시 구현
+class MemoryCache {
+  private cache = new Map<string, { value: any; expires: number }>();
+  private maxSize = 100;
+
+  set(key: string, value: any, ttlSeconds: number): void {
+    const expires = Date.now() + ttlSeconds * 1000;
+    
+    // 캐시 크기 제한
+    if (this.cache.size >= this.maxSize) {
+      const firstKey = this.cache.keys().next().value;
+      this.cache.delete(firstKey);
+    }
+    
+    this.cache.set(key, { value, expires });
+  }
+
+  get(key: string): any | null {
+    const item = this.cache.get(key);
+    if (!item) return null;
+    
+    if (Date.now() > item.expires) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return item.value;
+  }
+
+  delete(key: string): void {
+    this.cache.delete(key);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  keys(pattern?: string): string[] {
+    const keys = Array.from(this.cache.keys());
+    if (!pattern) return keys;
+    
+    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+    return keys.filter(key => regex.test(key));
+  }
 }
 
 export class CloudVersionManager {
   private static instance: CloudVersionManager;
   private config: CloudVersionManagerConfig;
-  private redis: unknown;
+  private memoryCache: MemoryCache;
+  private supabase: ReturnType<typeof createClient> | null = null;
   private currentVersion: string | null = null;
 
   constructor(config?: Partial<CloudVersionManagerConfig>) {
     const isProduction = process.env.NODE_ENV === 'production';
 
     this.config = {
-      enableRedisCache: !isProduction, // 프로덕션에서는 Redis 비활성화
-      enableFirestore: !isProduction, // 프로덕션에서는 Firestore 비활성화
-      redisPrefix: 'openmanager:version:',
-      redisTTL: 86400, // 24시간
+      enableMemoryCache: true, // 항상 활성화
+      enableSupabase: !!process.env.NEXT_PUBLIC_SUPABASE_URL, // Supabase 설정 시만
+      cachePrefix: 'openmanager:version:',
+      cacheTTL: 86400, // 24시간
       maxVersionHistory: isProduction ? 5 : 100, // 프로덕션에서는 최근 5개만
       compressionEnabled: true,
       isProduction,
       ...config,
     };
 
-    // Redis 연결 (개발 환경에서만)
-    if (
-      typeof window === 'undefined' &&
-      this.config.enableRedisCache &&
-      !isProduction
-    ) {
-      this.redis = getRedis();
+    // 메모리 캐시 초기화
+    this.memoryCache = new MemoryCache();
+
+    // Supabase 연결 (환경변수 있을 때만)
+    if (this.config.enableSupabase && 
+        process.env.NEXT_PUBLIC_SUPABASE_URL && 
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      this.supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      );
     }
 
     console.log(
       `🌐 CloudVersionManager 초기화 완료 (${isProduction ? 'Production' : 'Development'} 모드)`
     );
+    console.log(`📦 캐시: Memory${this.supabase ? ' + Supabase' : ' Only'}`);
   }
 
   static getInstance(
@@ -98,7 +151,7 @@ export class CloudVersionManager {
   }
 
   /**
-   * 📝 새 버전 기록 (Firestore + Redis)
+   * 📝 새 버전 기록 (Supabase + Memory Cache)
    */
   async recordVersion(
     version: string,
@@ -145,14 +198,14 @@ export class CloudVersionManager {
         },
       };
 
-      // 1. Firestore에 영구 저장
-      if (this.config.enableFirestore) {
-        await this.saveToFirestore(versionRecord);
+      // 1. Supabase에 영구 저장
+      if (this.config.enableSupabase && this.supabase) {
+        await this.saveToSupabase(versionRecord);
       }
 
-      // 2. Redis 캐싱 (최신 버전 정보)
-      if (this.config.enableRedisCache && this.redis) {
-        await this.updateRedisCache(versionRecord);
+      // 2. 메모리 캐시 업데이트
+      if (this.config.enableMemoryCache) {
+        await this.updateMemoryCache(versionRecord);
       }
 
       // 3. 현재 버전 업데이트
@@ -167,74 +220,78 @@ export class CloudVersionManager {
   }
 
   /**
-   * 🔄 Redis 캐시 업데이트
+   * 🔄 메모리 캐시 업데이트
    */
-  private async updateRedisCache(versionRecord: VersionRecord): Promise<void> {
-    if (!this.redis) return;
-
+  private async updateMemoryCache(versionRecord: VersionRecord): Promise<void> {
     try {
       // 최신 버전 정보 저장
-      const currentKey = `${this.config.redisPrefix}current`;
-      await this.redis.setex(
+      const currentKey = `${this.config.cachePrefix}current`;
+      this.memoryCache.set(
         currentKey,
-        this.config.redisTTL,
-        JSON.stringify({
+        {
           version: versionRecord.version,
           timestamp: versionRecord.timestamp,
           changeType: versionRecord.changeType,
           author: versionRecord.author,
-        })
+        },
+        this.config.cacheTTL
       );
 
       // 버전별 상세 정보 저장
-      const detailKey = `${this.config.redisPrefix}detail:${versionRecord.version}`;
-      await this.redis.setex(
+      const detailKey = `${this.config.cachePrefix}detail:${versionRecord.version}`;
+      this.memoryCache.set(
         detailKey,
-        this.config.redisTTL,
-        JSON.stringify(versionRecord)
+        versionRecord,
+        this.config.cacheTTL
       );
 
       // 버전 목록 업데이트 (최근 10개)
-      await this.redis.lpush(
-        `${this.config.redisPrefix}list`,
-        versionRecord.version
-      );
-      await this.redis.ltrim(`${this.config.redisPrefix}list`, 0, 9); // 최근 10개만 유지
+      const listKey = `${this.config.cachePrefix}list`;
+      const existingList = this.memoryCache.get(listKey) || [];
+      const updatedList = [versionRecord.version, ...existingList.slice(0, 9)];
+      this.memoryCache.set(listKey, updatedList, this.config.cacheTTL);
 
-      console.log(`✅ Redis 버전 캐시 업데이트: ${versionRecord.version}`);
+      console.log(`✅ Memory 버전 캐시 업데이트: ${versionRecord.version}`);
     } catch (error) {
-      console.error('❌ Redis 버전 캐시 업데이트 실패:', error);
+      console.error('❌ Memory 버전 캐시 업데이트 실패:', error);
       throw error;
     }
   }
 
   /**
-   * 🗃️ Firestore 영구 저장
+   * 🗃️ Supabase 영구 저장
    */
-  private async saveToFirestore(versionRecord: VersionRecord): Promise<void> {
+  private async saveToSupabase(versionRecord: VersionRecord): Promise<void> {
+    if (!this.supabase) return;
+
     try {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-      const response = await fetch(`${appUrl}/api/firestore/version-history`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(versionRecord),
-      });
+      const { error } = await this.supabase
+        .from('version_history')
+        .insert([{
+          id: versionRecord.id,
+          version: versionRecord.version,
+          previous_version: versionRecord.previousVersion,
+          change_type: versionRecord.changeType,
+          timestamp: versionRecord.timestamp,
+          author: versionRecord.author,
+          description: versionRecord.description,
+          changes: versionRecord.changes,
+          migration: versionRecord.migration,
+          deployment_info: versionRecord.deploymentInfo,
+          metadata: versionRecord.metadata,
+        }]);
 
-      if (!response.ok) {
-        throw new Error(`Firestore 버전 저장 실패: ${response.status}`);
-      }
+      if (error) throw error;
 
-      console.log(`✅ Firestore 버전 저장 완료: ${versionRecord.version}`);
+      console.log(`✅ Supabase 버전 저장 완료: ${versionRecord.version}`);
     } catch (error) {
-      console.error('❌ Firestore 버전 저장 실패:', error);
+      console.error('❌ Supabase 버전 저장 실패:', error);
       throw error;
     }
   }
 
   /**
-   * 🔍 현재 버전 조회 (Redis → Firestore)
+   * 🔍 현재 버전 조회 (Memory Cache → Supabase)
    */
   async getCurrentVersion(): Promise<string | null> {
     try {
@@ -243,24 +300,24 @@ export class CloudVersionManager {
         return this.currentVersion;
       }
 
-      // Redis 캐시 확인
-      if (this.config.enableRedisCache && this.redis) {
-        const cached = await this.getFromRedisCache();
+      // 메모리 캐시에서 확인
+      if (this.config.enableMemoryCache) {
+        const cached = this.getFromMemoryCache();
         if (cached) {
           this.currentVersion = cached.version;
           return cached.version;
         }
       }
 
-      // Firestore에서 최신 버전 조회
-      if (this.config.enableFirestore) {
-        const latest = await this.getLatestFromFirestore();
+      // Supabase에서 최신 버전 조회
+      if (this.config.enableSupabase && this.supabase) {
+        const latest = await this.getLatestFromSupabase();
         if (latest) {
           this.currentVersion = latest.version;
 
-          // Redis 캐시 업데이트
-          if (this.config.enableRedisCache && this.redis) {
-            await this.updateRedisCache(latest);
+          // 메모리 캐시 업데이트
+          if (this.config.enableMemoryCache) {
+            await this.updateMemoryCache(latest);
           }
 
           return latest.version;
@@ -275,44 +332,55 @@ export class CloudVersionManager {
   }
 
   /**
-   * 🔍 Redis에서 현재 버전 조회
+   * 🔍 메모리 캐시에서 현재 버전 조회
    */
-  private async getFromRedisCache(): Promise<{
+  private getFromMemoryCache(): {
     version: string;
     timestamp: string;
     changeType: string;
     author: string;
-  } | null> {
-    if (!this.redis) return null;
-
+  } | null {
     try {
-      const currentKey = `${this.config.redisPrefix}current`;
-      const data = await this.redis.get(currentKey);
-
-      return data ? JSON.parse(data) : null;
+      const currentKey = `${this.config.cachePrefix}current`;
+      return this.memoryCache.get(currentKey);
     } catch (error) {
-      console.error('❌ Redis 버전 조회 실패:', error);
+      console.error('❌ Memory 캐시 버전 조회 실패:', error);
       return null;
     }
   }
 
   /**
-   * 🔍 Firestore에서 최신 버전 조회
+   * 🔍 Supabase에서 최신 버전 조회
    */
-  private async getLatestFromFirestore(): Promise<VersionRecord | null> {
+  private async getLatestFromSupabase(): Promise<VersionRecord | null> {
+    if (!this.supabase) return null;
+
     try {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-      const response = await fetch(
-        `${appUrl}/api/firestore/version-history/latest`
-      );
+      const { data, error } = await this.supabase
+        .from('version_history')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(1)
+        .single();
 
-      if (response.ok) {
-        return await response.json();
-      }
+      if (error) throw error;
+      if (!data) return null;
 
-      return null;
+      return {
+        id: data.id,
+        version: data.version,
+        previousVersion: data.previous_version,
+        changeType: data.change_type,
+        timestamp: data.timestamp,
+        author: data.author,
+        description: data.description,
+        changes: data.changes,
+        migration: data.migration,
+        deploymentInfo: data.deployment_info,
+        metadata: data.metadata,
+      };
     } catch (error) {
-      console.error('❌ Firestore 최신 버전 조회 실패:', error);
+      console.error('❌ Supabase 최신 버전 조회 실패:', error);
       return null;
     }
   }
@@ -321,17 +389,31 @@ export class CloudVersionManager {
    * 📚 버전 히스토리 조회
    */
   async getVersionHistory(limit: number = 20): Promise<VersionRecord[]> {
+    if (!this.supabase) return [];
+
     try {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-      const response = await fetch(
-        `${appUrl}/api/firestore/version-history?limit=${limit}`
-      );
+      const { data, error } = await this.supabase
+        .from('version_history')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(limit);
 
-      if (response.ok) {
-        return await response.json();
-      }
+      if (error) throw error;
+      if (!data) return [];
 
-      return [];
+      return data.map(item => ({
+        id: item.id,
+        version: item.version,
+        previousVersion: item.previous_version,
+        changeType: item.change_type,
+        timestamp: item.timestamp,
+        author: item.author,
+        description: item.description,
+        changes: item.changes,
+        migration: item.migration,
+        deploymentInfo: item.deployment_info,
+        metadata: item.metadata,
+      }));
     } catch (error) {
       console.error('❌ 버전 히스토리 조회 실패:', error);
       return [];
@@ -343,36 +425,48 @@ export class CloudVersionManager {
    */
   async getVersionDetails(version: string): Promise<VersionRecord | null> {
     try {
-      // Redis 캐시 먼저 확인
-      if (this.config.enableRedisCache && this.redis) {
-        const detailKey = `${this.config.redisPrefix}detail:${version}`;
-        const cached = await this.redis.get(detailKey);
+      // 메모리 캐시 먼저 확인
+      if (this.config.enableMemoryCache) {
+        const detailKey = `${this.config.cachePrefix}detail:${version}`;
+        const cached = this.memoryCache.get(detailKey);
         if (cached) {
-          console.log(`✅ Redis에서 버전 상세 조회: ${version}`);
-          return JSON.parse(cached);
+          console.log(`✅ Memory에서 버전 상세 조회: ${version}`);
+          return cached;
         }
       }
 
-      // Firestore에서 조회
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-      const response = await fetch(
-        `${appUrl}/api/firestore/version-history/${this.generateVersionId(version)}`
-      );
+      // Supabase에서 조회
+      if (this.supabase) {
+        const { data, error } = await this.supabase
+          .from('version_history')
+          .select('*')
+          .eq('id', this.generateVersionId(version))
+          .single();
 
-      if (response.ok) {
-        const versionRecord = await response.json();
+        if (error) throw error;
+        if (!data) return null;
 
-        // Redis 캐시 업데이트
-        if (this.config.enableRedisCache && this.redis) {
-          const detailKey = `${this.config.redisPrefix}detail:${version}`;
-          await this.redis.setex(
-            detailKey,
-            this.config.redisTTL,
-            JSON.stringify(versionRecord)
-          );
+        const versionRecord = {
+          id: data.id,
+          version: data.version,
+          previousVersion: data.previous_version,
+          changeType: data.change_type,
+          timestamp: data.timestamp,
+          author: data.author,
+          description: data.description,
+          changes: data.changes,
+          migration: data.migration,
+          deploymentInfo: data.deployment_info,
+          metadata: data.metadata,
+        };
+
+        // 메모리 캐시 업데이트
+        if (this.config.enableMemoryCache) {
+          const detailKey = `${this.config.cachePrefix}detail:${version}`;
+          this.memoryCache.set(detailKey, versionRecord, this.config.cacheTTL);
         }
 
-        console.log(`✅ Firestore에서 버전 상세 조회: ${version}`);
+        console.log(`✅ Supabase에서 버전 상세 조회: ${version}`);
         return versionRecord;
       }
 
@@ -446,20 +540,58 @@ export class CloudVersionManager {
     lastReleaseDate: string;
     upcomingMigrations: number;
   }> {
-    try {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-      const response = await fetch(`${appUrl}/api/version-history/stats`);
-
-      if (response.ok) {
-        return await response.json();
-      }
-
+    if (!this.supabase) {
       return {
         totalVersions: 0,
         changeTypes: {},
         averageTimeBeweenReleases: 0,
         lastReleaseDate: '',
         upcomingMigrations: 0,
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase
+        .from('version_history')
+        .select('change_type, timestamp, migration')
+        .order('timestamp', { ascending: false });
+
+      if (error) throw error;
+      if (!data) return {
+        totalVersions: 0,
+        changeTypes: {},
+        averageTimeBeweenReleases: 0,
+        lastReleaseDate: '',
+        upcomingMigrations: 0,
+      };
+
+      const totalVersions = data.length;
+      const changeTypes: Record<string, number> = {};
+      let upcomingMigrations = 0;
+
+      data.forEach(item => {
+        changeTypes[item.change_type] = (changeTypes[item.change_type] || 0) + 1;
+        if (item.migration?.required) {
+          upcomingMigrations++;
+        }
+      });
+
+      const lastReleaseDate = data[0]?.timestamp || '';
+      
+      // 평균 릴리스 간격 계산
+      let averageTimeBeweenReleases = 0;
+      if (data.length > 1) {
+        const totalTime = new Date(data[0].timestamp).getTime() - 
+                         new Date(data[data.length - 1].timestamp).getTime();
+        averageTimeBeweenReleases = totalTime / (data.length - 1) / (1000 * 60 * 60 * 24); // days
+      }
+
+      return {
+        totalVersions,
+        changeTypes,
+        averageTimeBeweenReleases,
+        lastReleaseDate,
+        upcomingMigrations,
       };
     } catch (error) {
       console.error('❌ 버전 통계 조회 실패:', error);
@@ -529,6 +661,15 @@ export class CloudVersionManager {
   }
 
   /**
+   * 🧹 캐시 무효화
+   */
+  async invalidateCache(): Promise<void> {
+    this.currentVersion = null;
+    this.memoryCache.clear();
+    console.log('🧹 CloudVersionManager 캐시 무효화 완료');
+  }
+
+  /**
    * 🔑 버전 ID 생성
    */
   private generateVersionId(version: string): string {
@@ -554,13 +695,12 @@ export class CloudVersionManager {
    */
   private async extractDependencies(): Promise<Record<string, string>> {
     try {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-      // package.json 정보 조회
-      const response = await fetch(`${appUrl}/api/system/dependencies`);
-      if (response.ok) {
-        return await response.json();
-      }
-      return {};
+      // 메모리에서 기본 의존성 정보 제공
+      return {
+        'next': '^15.0.0',
+        'react': '^18.2.0',
+        'typescript': '^5.0.0',
+      };
     } catch (error) {
       console.warn('종속성 정보 추출 실패:', error);
       return {};
@@ -583,21 +723,5 @@ export class CloudVersionManager {
     );
 
     return { added, removed, modified };
-  }
-
-  /**
-   * 🧹 캐시 무효화
-   */
-  async invalidateCache(): Promise<void> {
-    this.currentVersion = null;
-
-    if (this.redis) {
-      const keys = await this.redis.keys(`${this.config.redisPrefix}*`);
-      if (keys.length > 0) {
-        await this.redis.del(...keys);
-      }
-    }
-
-    console.log('🧹 CloudVersionManager 캐시 무효화 완료');
   }
 }

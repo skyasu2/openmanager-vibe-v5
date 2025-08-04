@@ -65,7 +65,7 @@ interface RealTimeAILog {
 // 오픈소스 기술 매핑
 const _TECH_STACK_MAP: Record<
   string,
-  { name: string; icon: React.ComponentType<unknown>; color: string }
+  { name: string; icon: React.ComponentType<{ className?: string }>; color: string }
 > = {
   mcp: {
     name: 'Model Context Protocol',
@@ -335,9 +335,9 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
                           </span>
                         )}
                       </div>
-                      {log.details && showDetails && (
+                      {log.details !== undefined && showDetails && (
                         <div className="ml-6 mt-1 text-xs text-gray-400">
-                          {JSON.stringify(log.details, null, 2)}
+                          <pre>{JSON.stringify(log.details, null, 2)}</pre>
                         </div>
                       )}
                     </motion.div>

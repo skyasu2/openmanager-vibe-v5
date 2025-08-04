@@ -60,7 +60,7 @@ FastAPI + KoNLPy + MeCab + Transformers + Pororo
 
 **⚡ 최적화 방안:**
 
-1. 사전 캐싱: 형태소 분석 결과 Redis 저장
+1. 사전 캐싱: 형태소 분석 결과 Memory Cache 저장
 2. 모델 선택: 요청별 최적 분석기 선택
 3. 배치 처리: 여러 문장 동시 처리
 
@@ -118,7 +118,7 @@ sentence-transformers + ChromaDB + pgvector + LangChain
 
 **⚡ 최적화 방안:**
 
-1. 임베딩 캐싱: 계산된 벡터 Redis 저장
+1. 임베딩 캐싱: 계산된 벡터 Memory Cache 저장
 2. 청크 최적화: 문서 분할 크기 조정
 3. 인덱스 최적화: HNSW 알고리즘 사용
 
@@ -128,12 +128,12 @@ sentence-transformers + ChromaDB + pgvector + LangChain
 
 ```python
 # 핵심 스택: 경량 세션 관리
-FastAPI + Redis + PyJWT + orjson
+FastAPI + Memory Cache + PyJWT + orjson
 ```
 
 **📦 주요 라이브러리:**
 
-- `aioredis==2.0.1`: 비동기 Redis (핵심)
+- `aiomemory cache==2.0.1`: 비동기 Memory Cache (핵심)
 - `orjson==3.9.10`: 고속 JSON 처리
 - `pyjwt==2.8.0`: JWT 토큰 관리
 - `msgpack==1.0.7`: 압축 직렬화
@@ -147,7 +147,7 @@ FastAPI + Redis + PyJWT + orjson
 
 **⚡ 최적화 방안:**
 
-1. 연결 풀링: Redis 연결 재사용
+1. 연결 풀링: Memory Cache 연결 재사용
 2. 압축 저장: 세션 데이터 압축
 3. TTL 최적화: 세션 만료 시간 조정
 
@@ -172,7 +172,7 @@ FastAPI + Redis + PyJWT + orjson
 • 컴퓨팅 비용: $70-100 (고성능 Functions)
 • 스토리지 비용: $5-10 (모델 저장)
 • 네트워크 비용: $10-15 (데이터 전송)
-• Redis 비용: $5-8 (Upstash)
+• Memory Cache 비용: $5-8 (Upstash)
 
 💡 비용 최적화 효과:
 • 처리 시간 단축: 70-80% 비용 절감
@@ -186,7 +186,7 @@ FastAPI + Redis + PyJWT + orjson
 
 1. **FastAPI**: 모든 Functions에서 2-3배 성능 향상
 2. **orjson**: JSON 처리 10배 가속
-3. **aioredis**: 비동기 캐싱으로 응답 시간 단축
+3. **aiomemory cache**: 비동기 캐싱으로 응답 시간 단축
 4. **pgvector**: Supabase와 완벽 호환
 
 ### ⚠️ **신중 검토 필요**
@@ -206,7 +206,7 @@ FastAPI + Redis + PyJWT + orjson
 ### **Phase 1: 기본 스택 구축** (Week 1-2)
 
 - [ ] FastAPI + 기본 라이브러리 설치
-- [ ] Redis 연동 및 캐싱 구현
+- [ ] Memory Cache 연동 및 캐싱 구현
 - [ ] 기본 ML 모델 배포
 
 ### **Phase 2: 성능 최적화** (Week 3-4)

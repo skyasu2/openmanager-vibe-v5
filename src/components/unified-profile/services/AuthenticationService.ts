@@ -9,6 +9,20 @@
 
 import type { ApiResponse, AuthenticationState } from '../types/ProfileTypes';
 
+interface ProfileStore {
+  authenticateAIAgent(password: string): Promise<{ success: boolean; data?: any }>;
+  updateAuthState(auth: AuthenticationState): void;
+  agentLocked: boolean;
+  apiKey?: string;
+  isLocked: boolean;
+  getRemainingLockTime(): number;
+  attempts: number;
+  disableAIAgent(): Promise<{ success: boolean; error?: string; data?: any }>;
+  adminMode?: {
+    isAuthenticated: boolean;
+  };
+}
+
 // 개발 환경 설정
 const DEVELOPMENT_MODE =
   process.env.NODE_ENV === 'development' || typeof window !== 'undefined';
@@ -56,7 +70,7 @@ export class AuthenticationService {
    */
   async authenticateAIAgent(
     password: string,
-    store: unknown
+    store: ProfileStore
   ): Promise<ApiResponse> {
     try {
       // 개발 모드에서 비밀번호 우회
@@ -116,7 +130,7 @@ export class AuthenticationService {
   /**
    * AI 에이전트 비활성화
    */
-  async disableAIAgent(store: unknown): Promise<ApiResponse> {
+  async disableAIAgent(store: ProfileStore): Promise<ApiResponse> {
     try {
       const result = await store.disableAIAgent();
 
@@ -144,7 +158,7 @@ export class AuthenticationService {
   /**
    * 인증 상태 확인
    */
-  getAuthenticationState(store: unknown): AuthenticationState {
+  getAuthenticationState(store: ProfileStore): AuthenticationState {
     return {
       attempts: store.attempts || 0,
       isLocked: store.isLocked || false,
@@ -157,7 +171,7 @@ export class AuthenticationService {
   /**
    * 남은 잠금 시간 계산
    */
-  getRemainingLockTime(store: unknown): number {
+  getRemainingLockTime(store: ProfileStore): number {
     if (!store.isLocked) return 0;
     return store.getRemainingLockTime();
   }

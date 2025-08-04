@@ -236,22 +236,27 @@ export class ContextManager {
     try {
       this.sessionContext.lastActivity = new Date().toISOString();
 
+      // updateData가 객체인지 확인
+      if (!updateData || typeof updateData !== 'object') return;
+
+      const data = updateData as any;
+
       // 사용자 선호도 업데이트
-      if (updateData.user_preferences) {
+      if ('user_preferences' in data && data.user_preferences) {
         this.currentContext.session.user_preferences = {
           ...this.currentContext.session.user_preferences,
-          ...updateData.user_preferences,
+          ...data.user_preferences,
         };
       }
 
       // 세션 ID 업데이트
-      if (updateData.session_id) {
-        this.sessionContext.sessionId = updateData.session_id;
+      if ('session_id' in data && data.session_id) {
+        this.sessionContext.sessionId = data.session_id;
       }
 
       // 메트릭 데이터 업데이트
-      if (updateData.metrics) {
-        this.updateMetrics(updateData.metrics);
+      if ('metrics' in data && data.metrics) {
+        this.updateMetrics(data.metrics);
       }
 
       // 단기 메모리에 저장
@@ -268,17 +273,21 @@ export class ContextManager {
    * 📊 메트릭 업데이트
    */
   private updateMetrics(metrics: unknown): void {
+    if (!metrics || typeof metrics !== 'object') return;
+    
+    const metricsData = metrics as any;
+    
     this.currentContext.system.current_metrics = {
       timestamp: new Date().toISOString(),
-      cpu: metrics.cpu || 0,
-      memory: metrics.memory || 0,
-      disk: metrics.disk || 0,
+      cpu: 'cpu' in metricsData ? metricsData.cpu : 0,
+      memory: 'memory' in metricsData ? metricsData.memory : 0,
+      disk: 'disk' in metricsData ? metricsData.disk : 0,
       network: {
-        in: metrics.networkIn || 0,
-        out: metrics.networkOut || 0,
+        in: 'networkIn' in metricsData ? metricsData.networkIn : 0,
+        out: 'networkOut' in metricsData ? metricsData.networkOut : 0,
       },
-      responseTime: metrics.responseTime || 0,
-      errorRate: metrics.errorRate || 0,
+      responseTime: 'responseTime' in metricsData ? metricsData.responseTime : 0,
+      errorRate: 'errorRate' in metricsData ? metricsData.errorRate : 0,
     };
 
     // 트렌드 계산
@@ -303,7 +312,7 @@ export class ContextManager {
     // 트렌드 방향 계산
     if (historical.length >= 3) {
       const recent = historical.slice(-3);
-      const cpuTrend = this.calculateTrend(recent.map((m: unknown) => m.cpu || 0));
+      const cpuTrend = this.calculateTrend(recent.map((m: any) => m.cpu || 0));
 
       this.currentContext.system.historical_trends = {
         timeRange: '10minutes',
@@ -480,7 +489,7 @@ export class ContextManager {
   /**
    * 🎯 패턴 추출
    */
-  private async extractPattern(data: unknown, patternType: string): Promise<unknown> {
+  private async extractPattern(data: unknown, patternType: string): Promise<any> {
     return {
       id: `pattern_${Date.now()}`,
       type: patternType,
@@ -520,12 +529,20 @@ export class ContextManager {
    */
   async save(result: unknown): Promise<void> {
     try {
+      // result가 객체인지 확인
+      if (!result || typeof result !== 'object') {
+        console.warn('⚠️ 유효하지 않은 결과:', result);
+        return;
+      }
+
+      const resultData = result as any;
+
       // 세션 컨텍스트에 결과 저장
       const analysisResult: Result = {
-        queryId: result.queryId || `result_${Date.now()}`,
-        toolsUsed: result.tools_used || [],
+        queryId: 'queryId' in resultData ? resultData.queryId : `result_${Date.now()}`,
+        toolsUsed: 'tools_used' in resultData ? resultData.tools_used : [],
         result: result,
-        confidence: result.confidence || 0.8,
+        confidence: 'confidence' in resultData ? resultData.confidence : 0.8,
         timestamp: new Date().toISOString(),
       };
 

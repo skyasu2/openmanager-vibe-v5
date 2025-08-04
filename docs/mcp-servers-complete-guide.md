@@ -194,10 +194,10 @@ uvx --from git+https://github.com/oraios/serena index-project /path/to/project
 #### 5. Context7 서버
 
 ```bash
-# Upstash Redis 설정 필요
+# Upstash Memory Cache 설정 필요
 claude mcp add context7 npx \
-  -e UPSTASH_REDIS_REST_URL=https://xxx.upstash.io \
-  -e UPSTASH_REDIS_REST_TOKEN=AbYGAAIjcDE... \
+  -e UPSTASH_MEMORY_CACHE_REST_URL=https://xxx.upstash.io \
+  -e UPSTASH_MEMORY_CACHE_REST_TOKEN=AbYGAAIjcDE... \
   -- -y @upstash/context7-mcp@latest
 ```
 
@@ -241,9 +241,9 @@ SUPABASE_ANON_KEY=eyJhbGci...
 # Tavily
 TAVILY_API_KEY=tvly-xxxxx
 
-# Upstash Redis (Context7)
-UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
-UPSTASH_REDIS_REST_TOKEN=AbYGAAIj...
+# Upstash Memory Cache (Context7)
+UPSTASH_MEMORY_CACHE_REST_URL=https://xxx.upstash.io
+UPSTASH_MEMORY_CACHE_REST_TOKEN=AbYGAAIj...
 
 # Memory 서버
 MEMORY_FILE_PATH=/home/user/.claude/memory/knowledge-graph.json

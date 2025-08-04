@@ -26,7 +26,7 @@
 
 ### 4. **MLDataManager 구현** ✅
 
-- 통합 캐싱 레이어 (Redis + 메모리)
+- 통합 캐싱 레이어 (Memory Cache + 메모리)
 - 배치 처리 최적화
 - 지연 로딩 지원
 - 캐시 TTL 설정:
@@ -80,7 +80,7 @@
 
 - **프론트엔드**: Next.js 14.2.4, TypeScript, Tailwind CSS
 - **AI 엔진**: Google AI, Supabase RAG, Local ML
-- **캐싱**: Redis, In-Memory Cache
+- **캐싱**: Memory Cache, In-Memory Cache
 - **백엔드**: GCP Functions
 - **통계**: simple-statistics
 

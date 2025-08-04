@@ -27,7 +27,7 @@ export interface WatchdogAlerts {
 }
 
 export class SystemWatchdog {
-  private processManager: unknown; // ProcessManager 타입 (순환 참조 방지)
+  private processManager: any; // ProcessManager 타입 (순환 참조 방지)
   private metrics: SystemMetrics = {
     cpu: [],
     memory: [],
@@ -46,7 +46,7 @@ export class SystemWatchdog {
   private readonly monitoringIntervalMs = 30000; // 30초 (과도한 헬스체크 방지)
   private readonly maxDataPoints = 30; // 5분간 데이터 (30 * 10초)
 
-  constructor(processManager: unknown) {
+  constructor(processManager: any) {
     this.processManager = processManager;
   }
 
@@ -148,13 +148,14 @@ export class SystemWatchdog {
    * 오류율 계산
    */
   private calculateErrorRate(systemStatus: unknown): number {
-    if (!systemStatus.processes || systemStatus.processes.length === 0) {
+    const status = systemStatus as any;
+    if (!status.processes || !Array.isArray(status.processes) || status.processes.length === 0) {
       return 0;
     }
 
-    const totalProcesses = systemStatus.processes.length;
-    const errorProcesses = systemStatus.processes.filter(
-      (p: unknown) => p.status === 'error' || p.healthScore < 50
+    const totalProcesses = status.processes.length;
+    const errorProcesses = status.processes.filter(
+      (p: any) => p.status === 'error' || p.healthScore < 50
     ).length;
 
     return (errorProcesses / totalProcesses) * 100;

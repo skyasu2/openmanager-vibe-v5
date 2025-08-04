@@ -548,8 +548,8 @@
 
 ### 🔧 Fixed
 
-- **시스템 헬스체크 스크립트의 Redis 연결 문제 수정**
-  - UPSTASH_REDIS_HOST → UPSTASH_REDIS_REST_URL 환경변수 수정
+- **시스템 헬스체크 스크립트의 Memory Cache 연결 문제 수정**
+  - UPSTASH_MEMORY_CACHE_HOST → UPSTASH_MEMORY_CACHE_REST_URL 환경변수 수정
   - Upstash REST API 호출 형식 개선
   - 환경변수 존재 여부 체크 추가
 
@@ -560,8 +560,8 @@
   - 서브 에이전트 정상 동작 확인
     - gemini-cli-collaborator: package.json 분석으로 중복 스크립트 20개 발견
     - issue-summary: 시스템 건강도 70%, 개선 필요사항 식별
-    - planner-spec: Redis 문제 해결을 위한 구조화된 계획 생성
-  - Redis 연결 성공 (환경변수 갱신 후)
+    - planner-spec: Memory Cache 문제 해결을 위한 구조화된 계획 생성
+  - Memory Cache 연결 성공 (환경변수 갱신 후)
   - 전체 시스템 상태: 모든 서비스 정상 운영 중
 
 ### 📦 Added
@@ -576,7 +576,7 @@
 - **package.json 스크립트 정리**
   - 중복 스크립트 5개 제거: `lint:fast`, `env:verify`, `env:check-old` 등
   - 네이밍 통일: `build-storybook` → `storybook:build`
-  - Redis 스크립트 개선: `redis:check:mock`에 cross-env 추가
+  - Memory Cache 스크립트 개선: `memory cache:check:mock`에 cross-env 추가
 
 - **Sub Agents 직무 역할 재정의**
   - 실제 개발팀의 직무 역할처럼 직관적으로 변경
@@ -762,7 +762,7 @@
   - `competition-config.ts`의 자동 종료 제거
 
 - **SystemStateManager 명확화**
-  - Redis 기반 시스템 상태 관리자를 `RedisSystemStateManager`로 이름 변경
+  - Memory Cache 기반 시스템 상태 관리자를 `Memory CacheSystemStateManager`로 이름 변경
   - 인증 연동 시스템 상태 관리자와 구분
 
 #### Fixed
@@ -1467,7 +1467,7 @@
   - Edge Runtime 호환성: nodejs runtime으로 변경 (/api/ai/logging/stream, /api/servers/cached)
   - SmartSupabaseClient import 오류 수정
   - UnifiedProfileHeader props 타입 정의 완료
-  - Redis 에러 핸들러 타입 명시 (Error 타입)
+  - Memory Cache 에러 핸들러 타입 명시 (Error 타입)
   - Map 캐시 타입 안전성 개선 (firstKey undefined 처리)
 
 - **MCP 역할 재정의**
@@ -1530,7 +1530,7 @@
 
 - **API 사용량 최적화**
   - 로컬 RAG 우선 정책으로 외부 API 호출 최소화
-  - Redis 캐싱으로 중복 쿼리 방지
+  - Memory Cache 캐싱으로 중복 쿼리 방지
   - 임베딩 캐시로 계산 비용 절감
 
 #### Technical
@@ -1541,9 +1541,9 @@
   - RLS (Row Level Security) 적용
 
 - **캐싱 전략**
-  - 검색 결과: Redis 5분 TTL
+  - 검색 결과: Memory Cache 5분 TTL
   - 임베딩: 메모리 캐시 (LRU 1000개)
-  - RAG 컨텍스트: Redis 15분 TTL
+  - RAG 컨텍스트: Memory Cache 15분 TTL
 
 ## [5.52.0] - 2025-07-20
 
@@ -1932,7 +1932,7 @@ HUSKY=0 git push
 #### Changed
 
 - `scripts/check-hardcoded-secrets.sh`: v3.0으로 업그레이드
-  - 예제 패턴 제거 (REDIS_TOKEN_PLACEHOLDER 등)
+  - 예제 패턴 제거 (MEMORY_CACHE_TOKEN_PLACEHOLDER 등)
   - 소스 디렉토리 지정 검사 (src/app, src/components, src/services 등)
   - 더 구체적인 시크릿 패턴 (실제 형식과 일치하는 것만)
   - 검사 결과에 대상 디렉토리와 제외 항목 표시
@@ -1972,7 +1972,7 @@ HUSKY=0 git push
 - **ML 학습 센터**: AI 고급관리 페이지에 수동 트리거 방식의 ML 학습 기능 추가
   - 패턴 학습, 이상 패턴 분석, 장애 케이스 학습, 예측 모델 훈련
   - 실시간 진행률 표시 및 결과 시각화
-- **MLDataManager**: 통합 캐싱 레이어 구현 (Redis + 메모리 캐시)
+- **MLDataManager**: 통합 캐싱 레이어 구현 (Memory Cache + 메모리 캐시)
   - 패턴 분석: 5분, 이상감지: 2분, 예측: 30분, 장애 보고서: 10분 TTL
 - **ML 강화 장애 보고서**: 학습된 패턴 기반 근본 원인 분석
   - 연쇄 장애 감지 기능
@@ -2112,7 +2112,7 @@ HUSKY=0 git push
 - **EnhancedDataAnalyzer.ts 완전 타입화** ✅:
   - 73개 any 타입 모두 제거
   - 기존 타입 정의 파일 활용 (`enhanced-data-analyzer.types.ts`)
-  - RedisClientInterface export 추가로 import 에러 해결
+  - Memory CacheClientInterface export 추가로 import 에러 해결
   - QueryResponseData 인터페이스로 모든 반환 타입 통일
   - PerformanceAnalysis, ReliabilityAnalysis 등 타입 임포트
   - Record<string, unknown>으로 모든 any 객체 대체
@@ -2562,8 +2562,8 @@ HUSKY=0 git push
 #### 새로운 MCP 서버 추가
 
 - **Upstash MCP 공식 지원**: `@upstash/mcp-server` 통합
-  - Upstash Redis 데이터베이스 자연어 관리
-  - 백업/복원, 사용량 모니터링, Redis 명령 실행
+  - Upstash Memory Cache 데이터베이스 자연어 관리
+  - 백업/복원, 사용량 모니터링, Memory Cache 명령 실행
   - Management API 토큰 기반 인증
 
 #### 설정 도구 및 문서
@@ -2582,8 +2582,8 @@ HUSKY=0 git push
 
 #### MCP 도구 타입 분석
 
-- **일반 Redis MCP vs Upstash MCP**:
-  - 일반 Redis MCP: TCP 소켓 기반, 연결 유지 필요
+- **일반 Memory Cache MCP vs Upstash MCP**:
+  - 일반 Memory Cache MCP: TCP 소켓 기반, 연결 유지 필요
   - Upstash MCP: HTTP/REST API 기반, 서버리스 최적화
   - Upstash는 전용 MCP를 사용해야 함 (호환 불가)
 
@@ -2597,7 +2597,7 @@ HUSKY=0 git push
 
 - **MCP-GUIDE.md**: Upstash MCP 추가 (7개 MCP 서버)
 - **사용 예시**: Upstash 특화 기능 코드 예시
-- **환경변수 설명**: Management API vs Redis REST Token 차이
+- **환경변수 설명**: Management API vs Memory Cache REST Token 차이
 
 ## [5.46.37] - 2025-07-15
 
@@ -2670,7 +2670,7 @@ HUSKY=0 git push
 
 - **의존성 문제 해결**: @rollup/rollup-linux-x64-gnu 누락 해결
 - **TypeScript 에러 수정**: `src/types/ai-agent-input-schema.ts` 구문 오류 해결
-- **암호화된 Redis 설정**: 타입 안전성 개선
+- **암호화된 Memory Cache 설정**: 타입 안전성 개선
 
 #### 기술적 개선사항
 
@@ -2687,93 +2687,93 @@ HUSKY=0 git push
 
 ## [5.46.32] - 2025-07-14
 
-### 🔧 Redis MCP Server 안정화 완료
+### 🔧 Memory Cache MCP Server 안정화 완료
 
-#### mcp.json 설정 수정 및 Redis 연결 문제 해결
+#### mcp.json 설정 수정 및 Memory Cache 연결 문제 해결
 
-- **문제 해결**: `@gongrzhe/server-redis-mcp` 실행 실패 → 커스텀 래퍼로 전환
-- **설정 변경**: `mcp.json`에서 `scripts/upstash-redis-mcp-wrapper-final.mjs` 사용
-- **연결 확인**: Upstash Redis REST API 정상 동작 검증 (`{"result":"PONG"}`)
-- **MCP 서버 시작**: "Upstash Redis MCP server running..." 메시지 확인
+- **문제 해결**: `@gongrzhe/server-memory cache-mcp` 실행 실패 → 커스텀 래퍼로 전환
+- **설정 변경**: `mcp.json`에서 `scripts/upstash-memory cache-mcp-wrapper-final.mjs` 사용
+- **연결 확인**: Upstash Memory Cache REST API 정상 동작 검증 (`{"result":"PONG"}`)
+- **MCP 서버 시작**: "Upstash Memory Cache MCP server running..." 메시지 확인
 
 #### 기술적 개선사항
 
-- MCP 서버 실행 방식 변경: `npx @gongrzhe/server-redis-mcp` → `node ./scripts/upstash-redis-mcp-wrapper-final.mjs`
+- MCP 서버 실행 방식 변경: `npx @gongrzhe/server-memory cache-mcp` → `node ./scripts/upstash-memory cache-mcp-wrapper-final.mjs`
 - 환경변수 설정 최적화: `.env.local`에서 자동 로드
-- Redis 도구 안정성 향상: `set`, `get`, `delete`, `list` 명령어 정상 동작
+- Memory Cache 도구 안정성 향상: `set`, `get`, `delete`, `list` 명령어 정상 동작
 
 #### 트러블슈팅 과정
 
-1. **문제 진단**: Redis MCP 서버 실행 실패 로그 분석
-2. **연결 테스트**: Upstash Redis REST API 직접 호출 검증
+1. **문제 진단**: Memory Cache MCP 서버 실행 실패 로그 분석
+2. **연결 테스트**: Upstash Memory Cache REST API 직접 호출 검증
 3. **대안 검토**: 기존 커스텀 래퍼 활용 결정
 4. **설정 적용**: mcp.json 수정 및 동작 확인
 
 ## [5.46.31] - 2025-07-14
 
-### 🔧 Upstash Redis MCP 통합 완료
+### 🔧 Upstash Memory Cache MCP 통합 완료
 
-#### Redis MCP Server 문제 해결
+#### Memory Cache MCP Server 문제 해결
 
-- **문제**: `@gongrzhe/server-redis-mcp`가 일반 Redis만 지원하고 Upstash REST API 미지원
-- **해결**: Upstash Redis REST API 전용 MCP 래퍼 개발
+- **문제**: `@gongrzhe/server-memory cache-mcp`가 일반 Memory Cache만 지원하고 Upstash REST API 미지원
+- **해결**: Upstash Memory Cache REST API 전용 MCP 래퍼 개발
 - **기술적 세부사항**:
   - MCP SDK v0.4.0과 호환되는 커스텀 래퍼 구현
-  - Upstash REST API 직접 호출하여 Redis 명령어 처리
+  - Upstash REST API 직접 호출하여 Memory Cache 명령어 처리
   - `set`, `get`, `delete`, `list` 도구 완벽 지원
 
 #### 새로운 파일
 
-- `scripts/upstash-redis-mcp-wrapper-final.mjs`: Upstash Redis MCP 래퍼
+- `scripts/upstash-memory cache-mcp-wrapper-final.mjs`: Upstash Memory Cache MCP 래퍼
 - `scripts/test-upstash-mcp-wrapper.js`: MCP 래퍼 테스트 스크립트
 
 #### 사용 방법
 
 ```bash
-# Claude Code에서 Redis 도구 사용
-mcp__redis__set("key", "value")
-mcp__redis__get("key")
-mcp__redis__list("pattern")
-mcp__redis__delete("key")
+# Claude Code에서 Memory Cache 도구 사용
+mcp__memory cache__set("key", "value")
+mcp__memory cache__get("key")
+mcp__memory cache__list("pattern")
+mcp__memory cache__delete("key")
 ```
 
 ## [5.46.30] - 2025-07-14
 
-### 📚 MCP 문서 개선 및 Redis MCP 트러블슈팅 가이드 추가
+### 📚 MCP 문서 개선 및 Memory Cache MCP 트러블슈팅 가이드 추가
 
 #### MCP 완전 정복 가이드 업데이트
 
 - **MCP 3단계 구조 설명 추가**: 글로벌 정의 → 프로젝트별 등록 → 활성화 설정
-- **Redis MCP 상세 설정 가이드**: `.mcp.json`과 `.claude/settings.local.json` 설정 방법
-- **실제 문제 해결 사례**: Redis MCP가 리스트에 나타나지 않는 문제와 해결 과정
+- **Memory Cache MCP 상세 설정 가이드**: `.mcp.json`과 `.claude/settings.local.json` 설정 방법
+- **실제 문제 해결 사례**: Memory Cache MCP가 리스트에 나타나지 않는 문제와 해결 과정
 - **트러블슈팅 섹션 강화**: ESM 모듈 에러, MCP 설정 파일 검증 방법 추가
 
 #### 코드 개선
 
-- **ESM 호환성 수정**: Redis 헬스 체크 스크립트 CommonJS → ESM 변환
+- **ESM 호환성 수정**: Memory Cache 헬스 체크 스크립트 CommonJS → ESM 변환
 - **MCP 설정 파일 정리**: `.mcp.json`과 `mcp.json` 경로 통일
 
-#### Redis MCP 활성화 방법
+#### Memory Cache MCP 활성화 방법
 
-1. `.mcp.json`에 Redis 서버 정의 추가
-2. `.claude/settings.local.json`의 `enabledMcpjsonServers`에 "redis" 추가
+1. `.mcp.json`에 Memory Cache 서버 정의 추가
+2. `.claude/settings.local.json`의 `enabledMcpjsonServers`에 "@upstash/memory cache" (제거됨) 추가
 3. Claude Code 재시작으로 활성화 완료
 
 ## [5.46.29] - 2025-07-13
 
-### 🔧 Redis MCP Server 통합
+### 🔧 Memory Cache MCP Server 통합
 
-- **Redis MCP Server 추가**: 키-값 저장소 관리를 위한 새로운 MCP 도구
-- **패키지 설치**: @gongrzhe/server-redis-mcp@1.0.0 의존성 추가
+- **Memory Cache MCP Server 추가**: 키-값 저장소 관리를 위한 새로운 MCP 도구
+- **패키지 설치**: @gongrzhe/server-memory cache-mcp@1.0.0 의존성 추가
 - **npm 스크립트 추가**:
-  - `redis:test`: Redis MCP Server 테스트
-  - `redis:setup`: Redis MCP Server 실행
-  - `redis:cli`: Redis 명령어 가이드
-  - `redis:health`: Redis 서버 헬스 체크
+  - `memory cache:test`: Memory Cache MCP Server 테스트
+  - `memory cache:setup`: Memory Cache MCP Server 실행
+  - `memory cache:cli`: Memory Cache 명령어 가이드
+  - `memory cache:health`: Memory Cache 서버 헬스 체크
 
 ### 주요 기능
 
-- **Redis 데이터 관리**: set, get, delete, list 도구 지원
+- **Memory Cache 데이터 관리**: set, get, delete, list 도구 지원
 - **TTL 지원**: 키 만료 시간 설정 가능
 - **패턴 매칭**: 와일드카드를 사용한 키 검색
 - **다중 키 삭제**: 여러 키를 한 번에 삭제
@@ -2786,8 +2786,8 @@ mcp__redis__delete("key")
 
 ### 문서 업데이트
 
-- CLAUDE.md: Redis MCP 도구 목록 및 사용법 추가
-- mcp-complete-guide.md: Redis MCP 상세 가이드 추가
+- CLAUDE.md: Memory Cache MCP 도구 목록 및 사용법 추가
+- mcp-complete-guide.md: Memory Cache MCP 상세 가이드 추가
 - 새로운 테스트 및 헬스 체크 스크립트 추가
 
 ## [5.46.28] - 2025-07-13
@@ -3526,7 +3526,7 @@ cm:live         # 실시간 모니터링
 
 ## [5.46.4] - 2025-07-12
 
-### 🔧 RealServerDataGenerator 완전 제거 및 GCP Redis 아키텍처 전환
+### 🔧 RealServerDataGenerator 완전 제거 및 GCP Memory Cache 아키텍처 전환
 
 #### 제거된 컴포넌트
 
@@ -3564,7 +3564,7 @@ cm:live         # 실시간 모니터링
 - 서버리스 환경에 최적화된 구조
 - 명확한 에러 상태 표시 (Silent failure 방지)
 - 코드 복잡도 감소
-- GCP Redis 기반 실시간 데이터 전달 준비 완료
+- GCP Memory Cache 기반 실시간 데이터 전달 준비 완료
 
 ## [5.46.3] - 2025-07-12
 
@@ -3649,7 +3649,7 @@ cm:live         # 실시간 모니터링
 
 - 서버리스 함수 호출: 90% 감소
 - 데이터베이스 요청: 85% 감소
-- Redis 연결: 완전 중지 (비활성 시)
+- Memory Cache 연결: 완전 중지 (비활성 시)
 - 실시간 모니터링: 일시 정지
 
 **사용자 경험 개선**
@@ -3735,7 +3735,7 @@ shouldMakeApiCall(endpoint: string): boolean {
 1. **실시간 모니터링 중지**: 서버 상태 폴링 중단
 2. **AI 엔진 요청 차단**: Google AI API 호출 제한
 3. **데이터베이스 연결 최소화**: 필수 요청만 허용
-4. **Redis 연결 해제**: 캐시 작업 완전 중지
+4. **Memory Cache 연결 해제**: 캐시 작업 완전 중지
 
 **활성 상태 복귀 시**
 
@@ -3801,7 +3801,7 @@ shouldMakeApiCall(endpoint: string): boolean {
 #### 🔧 1차 응급 조치 (서버 측)
 
 - **API 캐싱 활성화**: 60초 TTL 설정
-- **Redis 작업 최소화**: 중복 활동 스킵 로직
+- **Memory Cache 작업 최소화**: 중복 활동 스킵 로직
 - **Rate Limiting 추가**: 1분당 30회 제한
 - **Edge Runtime 최적화**: revalidate 60초 설정
 

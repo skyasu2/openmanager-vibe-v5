@@ -242,8 +242,8 @@ export function useAISession(
         currentResponse: response,
         confidence,
         error: null,
-        enginePath: fullResponse?.enginePath || [],
-        reasoningSteps: fullResponse?.reasoning_steps || [],
+        enginePath: (fullResponse as any)?.enginePath || [],
+        reasoningSteps: (fullResponse as any)?.reasoning_steps || [],
       };
 
       setSessionState(newState);

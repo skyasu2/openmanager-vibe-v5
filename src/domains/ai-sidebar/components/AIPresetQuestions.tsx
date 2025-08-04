@@ -16,6 +16,7 @@ import {
   HardDrive,
   Sparkles,
   Zap,
+  type LucideIcon,
 } from 'lucide-react';
 import React from 'react';
 
@@ -23,7 +24,7 @@ export interface PresetQuestion {
   id: string;
   text: string;
   category: string;
-  icon: React.ComponentType<unknown>;
+  icon: LucideIcon;
   color: string;
 }
 

@@ -22,13 +22,23 @@ interface TrendsChartProps {
 }
 
 // 📈 트렌드 전용 툴팁
-const TrendsTooltip = memo(({ active, payload, label }: unknown) => {
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    value: number;
+    name?: string;
+    color?: string;
+  }>;
+  label?: string;
+}
+
+const TrendsTooltip = memo(({ active, payload, label }: TooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
         <p className="mb-2 font-semibold text-gray-800">{label}</p>
         <div className="space-y-1">
-          {payload.map((entry: unknown, index: number) => (
+          {payload.map((entry, index) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
               {entry.name}: {entry.value.toFixed(1)}
               {entry.name !== 'Alerts' ? '%' : '건'}

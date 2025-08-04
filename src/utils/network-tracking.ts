@@ -71,7 +71,7 @@ export const recordNetworkRequest = (
   if (typeof window !== 'undefined') {
     (window as any).__networkRequests = (window as any).__networkRequests || [];
     (window as any).__networkRequests.push({
-      ...networkInfo,
+      ...(networkInfo as Record<string, any>),
       timestamp: new Date().toISOString(),
       success,
       component,
