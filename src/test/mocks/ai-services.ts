@@ -55,54 +55,70 @@ vi.mock('@/services/ai/embedding-service', () => ({
   },
 }));
 
-// MCP Context Loader Mock
-vi.mock('@/services/mcp/CloudContextLoader', () => ({
-  CloudContextLoader: {
-    getInstance: vi.fn(() => ({
-      queryMCPContextForRAG: vi.fn().mockResolvedValue({
-        tools: [],
-        resources: [],
-        prompts: [],
-        error: null,
-      }),
-      getIntegratedStatus: vi.fn().mockResolvedValue({
-        mcpServer: {
-          status: 'online',
-          availableTools: 10,
-          availableResources: 5,
-        },
-      }),
-    })),
-  },
-}));
+// MCP Context Loader - 조건부 Mock
+const shouldMockMCP = process.env.FORCE_MOCK_MCP === 'true' || 
+                     process.env.USE_REAL_SERVICES !== 'true';
 
-// Supabase RAG Engine - 항상 Mock (복잡한 의존성으로 인해)
-vi.mock('@/services/ai/supabase-rag-engine', () => ({
-  getSupabaseRAGEngine: vi.fn(() => ({
-    _initialize: vi.fn().mockResolvedValue(undefined),
-    generateEmbedding: vi.fn().mockImplementation((text: string) => {
-      const hash = text
-        .split('')
-        .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      const embedding = new Array(384)
-        .fill(0)
-        .map((_, i) => Math.sin((hash + i) * 0.1) * 0.5 + 0.5);
-      return Promise.resolve(embedding);
-    }),
-    searchSimilar: vi.fn().mockResolvedValue({
-      results: [
-        {
-          content: 'Mock RAG result',
-          similarity: 0.85,
-          metadata: { source: 'test' },
-        },
-      ],
-      totalResults: 1,
-      cached: false,
-    }),
-    isInitialized: true,
-  })),
-}));
+if (shouldMockMCP) {
+  console.log('🎭 MCP Context Loader Mock 활성화됨');
+  vi.mock('@/services/mcp/CloudContextLoader', () => ({
+    CloudContextLoader: {
+      getInstance: vi.fn(() => ({
+        queryMCPContextForRAG: vi.fn().mockResolvedValue({
+          tools: [],
+          resources: [],
+          prompts: [],
+          error: null,
+        }),
+        getIntegratedStatus: vi.fn().mockResolvedValue({
+          mcpServer: {
+            status: 'online',
+            availableTools: 10,
+            availableResources: 5,
+          },
+        }),
+      })),
+    },
+  }));
+} else {
+  console.log('🌐 실제 MCP Context Loader 사용 중');
+}
+
+// Supabase RAG Engine - 조건부 Mock (실제 서비스 테스트 시 제외)
+const shouldMockSupabaseRAG = process.env.FORCE_MOCK_SUPABASE === 'true' || 
+                             process.env.USE_REAL_SERVICES !== 'true';
+
+if (shouldMockSupabaseRAG) {
+  console.log('🎭 Supabase RAG Engine Mock 활성화됨');
+  vi.mock('@/services/ai/supabase-rag-engine', () => ({
+    getSupabaseRAGEngine: vi.fn(() => ({
+      _initialize: vi.fn().mockResolvedValue(undefined),
+      generateEmbedding: vi.fn().mockImplementation((text: string) => {
+        const hash = text
+          .split('')
+          .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const embedding = new Array(384)
+          .fill(0)
+          .map((_, i) => Math.sin((hash + i) * 0.1) * 0.5 + 0.5);
+        return Promise.resolve(embedding);
+      }),
+      searchSimilar: vi.fn().mockResolvedValue({
+        results: [
+          {
+            content: 'Mock RAG result',
+            similarity: 0.85,
+            metadata: { source: 'test' },
+          },
+        ],
+        totalResults: 1,
+        cached: false,
+      }),
+      isInitialized: true,
+    })),
+  }));
+} else {
+  console.log('🌐 실제 Supabase RAG Engine 사용 중');
+}
 
 // Query Cache Manager Mock
 vi.mock('@/services/ai/query-cache-manager', () => ({

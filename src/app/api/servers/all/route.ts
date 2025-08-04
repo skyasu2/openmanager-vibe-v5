@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import type { Server } from '@/types/server';
+import { isMockMode, getMockHeaders } from '@/config/mock-config';
+import { getMockServers } from '@/mock';
 
 // Supabase 클라이언트 생성
 const supabase = createClient(
@@ -39,6 +41,69 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get('sortOrder') || 'asc';
     
     console.log(`🔍 서버 목록 요청: page=${page}, limit=${limit}, search="${search}", status="${status}"`);
+    
+    // Mock 모드 확인
+    if (isMockMode()) {
+      console.log('🎭 Mock 모드 활성화됨');
+      
+      // Mock 데이터 가져오기
+      const mockServers = getMockServers();
+      
+      // 필터링 및 검색
+      let filteredServers = mockServers;
+      
+      if (search) {
+        filteredServers = filteredServers.filter(server => 
+          server.name.toLowerCase().includes(search.toLowerCase()) ||
+          server.location?.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+      
+      if (status) {
+        filteredServers = filteredServers.filter(server => server.status === status);
+      }
+      
+      // 정렬
+      filteredServers.sort((a, b) => {
+        let comparison = 0;
+        switch (sortBy) {
+          case 'cpu':
+            comparison = a.cpu - b.cpu;
+            break;
+          case 'memory':
+            comparison = a.memory - b.memory;
+            break;
+          case 'disk':
+            comparison = a.disk - b.disk;
+            break;
+          default:
+            comparison = a.name.localeCompare(b.name);
+        }
+        return sortOrder === 'asc' ? comparison : -comparison;
+      });
+      
+      // 페이지네이션
+      const startIndex = (page - 1) * limit;
+      const paginatedServers = filteredServers.slice(startIndex, startIndex + limit);
+      
+      return NextResponse.json({
+        success: true,
+        data: {
+          servers: paginatedServers,
+          page,
+          limit,
+          total: filteredServers.length,
+          totalPages: Math.ceil(filteredServers.length / limit),
+        },
+        timestamp: new Date().toISOString(),
+      }, {
+        headers: {
+          ...getMockHeaders(),
+          'X-Response-Time': `${Date.now() - startTime}ms`,
+          'Cache-Control': 'no-store',
+        },
+      });
+    }
     
     // 캐시 키 생성
     const cacheKey = `servers:all:page=${page}:limit=${limit}:search=${search}:status=${status}:env=${environment}:sort=${sortBy}:order=${sortOrder}`;

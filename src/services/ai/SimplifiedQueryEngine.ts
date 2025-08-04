@@ -12,6 +12,7 @@
 import type { SupabaseRAGEngine } from './supabase-rag-engine';
 import { getSupabaseRAGEngine } from './supabase-rag-engine';
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
+import { MockContextLoader } from './MockContextLoader';
 import { QueryComplexityAnalyzer } from './query-complexity-analyzer';
 import type { ComplexityScore } from './query-complexity-analyzer';
 import {
@@ -64,6 +65,7 @@ export interface QueryResponse {
 export class SimplifiedQueryEngine {
   protected ragEngine: SupabaseRAGEngine;
   protected contextLoader: CloudContextLoader;
+  protected mockContextLoader: MockContextLoader;
   protected isInitialized = false;
   private responseCache: Map<
     string,
@@ -74,6 +76,7 @@ export class SimplifiedQueryEngine {
   constructor() {
     this.ragEngine = getSupabaseRAGEngine();
     this.contextLoader = CloudContextLoader.getInstance();
+    this.mockContextLoader = MockContextLoader.getInstance();
 
     // 캐시 정리 스케줄러 (5분마다)
     setInterval(() => this.cleanupCache(), 5 * 60 * 1000);
@@ -397,8 +400,9 @@ export class SimplifiedQueryEngine {
         ragResults: ragResult.totalResults,
         cached: ragResult.cached,
         mcpUsed: !!mcpContext,
+        mockMode: !!this.mockContextLoader.getMockContext(),
         complexity,
-      } as AIMetadata & { complexity?: ComplexityScore; cacheHit?: boolean },
+      } as AIMetadata & { complexity?: ComplexityScore; cacheHit?: boolean; mockMode?: boolean },
       processingTime: Date.now() - startTime,
     };
   }
@@ -470,8 +474,9 @@ export class SimplifiedQueryEngine {
           model: data.model || 'gemini-pro',
           tokensUsed: data.tokensUsed,
           mcpUsed: !!mcpContext,
+          mockMode: !!this.mockContextLoader.getMockContext(),
           complexity,
-        } as AIMetadata & { complexity?: ComplexityScore; cacheHit?: boolean },
+        } as AIMetadata & { complexity?: ComplexityScore; cacheHit?: boolean; mockMode?: boolean },
         processingTime: Date.now() - startTime,
       };
     } catch (error) {
@@ -505,12 +510,32 @@ export class SimplifiedQueryEngine {
     mcpContext: MCPContext | null,
     userContext: AIQueryContext | undefined
   ): string {
-    // 서버 관련 쿼리 처리
+    // Mock 모드 확인 및 처리
+    const mockContext = this.mockContextLoader.getMockContext();
+    if (mockContext) {
+      // Mock 서버 관련 쿼리 처리
+      if (query.toLowerCase().includes('서버')) {
+        return this.generateMockServerResponse(query, mockContext);
+      }
+      
+      // 상황 분석 쿼리 - 데이터만 보고 AI가 스스로 판단
+      if (query.toLowerCase().includes('상황') || query.toLowerCase().includes('분석')) {
+        return this.generateMockServerResponse(query, mockContext);
+      }
+    }
+
+    // 일반 서버 관련 쿼리 처리
     if (userContext?.servers && query.toLowerCase().includes('서버')) {
       return this.generateServerResponse(query, userContext.servers);
     }
 
     if (ragResult.results.length === 0) {
+      // Mock 모드일 때 추가 안내
+      if (mockContext) {
+        return '죄송합니다. 관련된 정보를 찾을 수 없습니다.\n\n' +
+               '🎭 현재 Mock 데이터 모드로 실행 중입니다.\n' + 
+               '서버 상태, 메트릭, 시나리오에 대해 물어보세요.';
+      }
       return '죄송합니다. 관련된 정보를 찾을 수 없습니다. 더 구체적인 질문을 해주시면 도움이 될 것 같습니다.';
     }
 
@@ -536,6 +561,11 @@ export class SimplifiedQueryEngine {
       mcpContext.files.slice(0, 2).forEach(file => {
         response += `- ${file.path}\n`;
       });
+    }
+
+    // Mock 모드 안내 추가
+    if (mockContext) {
+      response += `\n\n🎭 Mock 데이터 모드 (${mockContext.currentTime})`;
     }
 
     return response;
@@ -577,6 +607,106 @@ export class SimplifiedQueryEngine {
   }
 
   /**
+   * 🎭 Mock 서버 관련 응답 생성 (데이터 기반 분석만)
+   */
+  private generateMockServerResponse(query: string, mockContext: any): string {
+    const lowerQuery = query.toLowerCase();
+
+    // 전체 상태 요약
+    if (lowerQuery.includes('상태') || lowerQuery.includes('요약')) {
+      let analysis = `🎭 서버 상태 분석 (${mockContext.currentTime})\n\n` +
+                    `전체 서버: ${mockContext.metrics.serverCount}대\n` +
+                    `- 위험: ${mockContext.metrics.criticalCount}대\n` +
+                    `- 경고: ${mockContext.metrics.warningCount}대\n` +
+                    `- 정상: ${mockContext.metrics.healthyCount}대\n\n` +
+                    `평균 메트릭:\n` +
+                    `- CPU: ${mockContext.metrics.avgCpu}%\n` +
+                    `- Memory: ${mockContext.metrics.avgMemory}%\n` +
+                    `- Disk: ${mockContext.metrics.avgDisk}%\n\n`;
+      
+      // 데이터 기반 상황 분석
+      if (mockContext.metrics.criticalCount > mockContext.metrics.serverCount * 0.3) {
+        analysis += `⚠️ 분석: 전체 서버의 30% 이상이 위험 상태입니다. 대규모 장애가 발생했을 가능성이 있습니다.`;
+      } else if (mockContext.metrics.avgCpu > 80) {
+        analysis += `📊 분석: 평균 CPU 사용률이 매우 높습니다. 트래픽 급증이나 성능 문제가 있을 수 있습니다.`;
+      } else if (mockContext.metrics.avgMemory > 85) {
+        analysis += `💾 분석: 메모리 사용률이 위험 수준입니다. 메모리 누수나 과부하 상태일 수 있습니다.`;
+      } else {
+        analysis += `✅ 분석: 전반적으로 시스템이 안정적인 상태입니다.`;
+      }
+      
+      return analysis;
+    }
+
+    // CPU 관련 쿼리
+    if (lowerQuery.includes('cpu')) {
+      let cpuAnalysis = `🎭 CPU 상태 분석 (${mockContext.currentTime})\n\n` +
+                       `평균 CPU 사용률: ${mockContext.metrics.avgCpu}%\n`;
+      
+      if (mockContext.metrics.avgCpu > 70) {
+        cpuAnalysis += `\n⚠️ CPU 사용률이 높습니다. 성능 저하가 예상됩니다.`;
+      } else if (mockContext.metrics.avgCpu < 30) {
+        cpuAnalysis += `\n✅ CPU 사용률이 낮아 시스템이 여유롭습니다.`;
+      } else {
+        cpuAnalysis += `\n📊 CPU 사용률이 정상 범위입니다.`;
+      }
+      
+      return cpuAnalysis;
+    }
+
+    // 위험/문제 서버
+    if (lowerQuery.includes('위험') || lowerQuery.includes('문제') || lowerQuery.includes('장애')) {
+      if (mockContext.metrics.criticalCount > 0) {
+        let problemAnalysis = `🎭 문제 서버 분석 (${mockContext.currentTime})\n\n` +
+                             `위험 서버: ${mockContext.metrics.criticalCount}대\n` +
+                             `경고 서버: ${mockContext.metrics.warningCount}대\n\n`;
+        
+        // 데이터 패턴으로 문제 원인 추측
+        if (mockContext.metrics.avgCpu > 80 && mockContext.metrics.criticalCount > 3) {
+          problemAnalysis += `💡 분석: CPU 과부하로 인한 다중 서버 장애로 보입니다.`;
+        } else if (mockContext.metrics.avgMemory > 85) {
+          problemAnalysis += `💡 분석: 메모리 부족으로 인한 서버 문제로 추정됩니다.`;
+        } else {
+          problemAnalysis += `💡 분석: 개별 서버의 하드웨어 또는 네트워크 문제일 가능성이 있습니다.`;
+        }
+        
+        return problemAnalysis;
+      }
+      return `🎭 현재 위험 상태의 서버가 없습니다. (${mockContext.currentTime})`;
+    }
+
+    // 상황 분석
+    if (lowerQuery.includes('상황') || lowerQuery.includes('분석')) {
+      const criticalRatio = mockContext.metrics.criticalCount / mockContext.metrics.serverCount;
+      const warningRatio = mockContext.metrics.warningCount / mockContext.metrics.serverCount;
+      
+      let situationAnalysis = `🎭 현재 상황 분석 (${mockContext.currentTime})\n\n`;
+      
+      if (criticalRatio > 0.5) {
+        situationAnalysis += `🚨 심각: 절반 이상의 서버가 위험 상태입니다. 대규모 시스템 장애가 진행 중입니다.\n`;
+        situationAnalysis += `- 평균 CPU: ${mockContext.metrics.avgCpu}%\n`;
+        situationAnalysis += `- 평균 Memory: ${mockContext.metrics.avgMemory}%\n`;
+        situationAnalysis += `\n즉시 조치가 필요합니다.`;
+      } else if (criticalRatio > 0.2 || warningRatio > 0.4) {
+        situationAnalysis += `⚠️ 주의: 다수의 서버에서 문제가 감지되었습니다.\n`;
+        situationAnalysis += `- 위험: ${mockContext.metrics.criticalCount}대 (${Math.round(criticalRatio * 100)}%)\n`;
+        situationAnalysis += `- 경고: ${mockContext.metrics.warningCount}대 (${Math.round(warningRatio * 100)}%)\n`;
+        situationAnalysis += `\n시스템 모니터링을 강화해야 합니다.`;
+      } else {
+        situationAnalysis += `✅ 정상: 대부분의 서버가 안정적으로 운영되고 있습니다.\n`;
+        situationAnalysis += `- 정상 서버: ${mockContext.metrics.healthyCount}대\n`;
+        situationAnalysis += `- 평균 리소스 사용률이 적정 수준입니다.`;
+      }
+      
+      return situationAnalysis;
+    }
+
+    // 기본 응답
+    return `🎭 Mock 모드 (${mockContext.currentTime})\n\n` +
+           mockContext.metrics.serverCount + '개의 서버가 모니터링되고 있습니다.';
+  }
+
+  /**
    * 🏗️ Google AI 프롬프트 생성
    */
   protected buildGoogleAIPrompt(
@@ -585,6 +715,14 @@ export class SimplifiedQueryEngine {
     mcpContext: MCPContext | null
   ): string {
     let prompt = `사용자 질문: ${query}\n\n`;
+
+    // Mock 모드 컨텍스트 추가
+    const mockContext = this.mockContextLoader.getMockContext();
+    if (mockContext) {
+      prompt += '🎭 Mock 데이터 모드:\n';
+      prompt += this.mockContextLoader.generateContextString();
+      prompt += '\n\n';
+    }
 
     // 사용자 컨텍스트 추가
     if (context && Object.keys(context).length > 0) {
