@@ -5,7 +5,6 @@
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { getSupabaseEnv, shouldUseMockMode } from '@/lib/env-safe';
 
 // Lazy initialization을 위한 변수
 let _supabaseClient: SupabaseClient | null = null;
@@ -21,34 +20,27 @@ export function getSupabaseClient(): SupabaseClient {
     return _supabaseClient;
   }
 
-  // 안전한 환경 변수 가져오기
-  const { url: supabaseUrl, anonKey: supabaseKey } = getSupabaseEnv();
+  // 환경 변수 직접 읽기 (Vercel 빌드 호환성)
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy.supabase.co';
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy-key';
 
-  // Mock 모드 체크 (서버 사이드 빌드 시에만)
-  if (shouldUseMockMode()) {
-    console.warn('🎭 Mock 모드: 더미 Supabase 클라이언트 사용 (빌드용)');
-    return createClient('https://dummy.supabase.co', 'dummy-key', {
-      auth: { persistSession: false }
-    });
-  }
-  
   // 환경변수 체크
-  if (!supabaseUrl || supabaseUrl === 'https://dummy.supabase.co') {
-    const errorMsg = '❌ Supabase URL이 설정되지 않았습니다. .env.local 파일에 NEXT_PUBLIC_SUPABASE_URL을 설정하세요.';
-    console.error(errorMsg);
-    if (typeof window !== 'undefined') {
-      alert(errorMsg);
-    }
-    throw new Error(errorMsg);
-  }
+  const isValidUrl = supabaseUrl && supabaseUrl !== 'https://dummy.supabase.co';
+  const isValidKey = supabaseKey && supabaseKey !== 'dummy-key';
   
-  if (!supabaseKey || supabaseKey === 'dummy-anon-key') {
-    const errorMsg = '❌ Supabase Anon Key가 설정되지 않았습니다. .env.local 파일에 NEXT_PUBLIC_SUPABASE_ANON_KEY를 설정하세요.';
-    console.error(errorMsg);
-    if (typeof window !== 'undefined') {
-      alert(errorMsg);
-    }
-    throw new Error(errorMsg);
+  // 개발/테스트 환경이거나 환경변수가 없는 경우 Mock 사용
+  if (!isValidUrl || !isValidKey) {
+    console.warn('⚠️ Supabase 환경변수가 설정되지 않았습니다. Mock 모드로 작동합니다.');
+    console.warn('⚠️ GitHub 로그인 등 일부 기능이 제한됩니다.');
+    
+    // Mock 클라이언트 반환 (개발/테스트용)
+    return createClient('https://dummy.supabase.co', 'dummy-key', {
+      auth: { 
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+      }
+    });
   }
 
   console.log('🌐 실제 Supabase 사용 중');
@@ -160,13 +152,12 @@ export async function signOut() {
 }
 
 // 환경 정보 로깅
-if (process.env.NODE_ENV === 'development') {
-  const { url, anonKey } = getSupabaseEnv();
-  const useMock = shouldUseMockMode();
+if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy.supabase.co';
+  const isValidUrl = supabaseUrl && supabaseUrl !== 'https://dummy.supabase.co';
   
   console.log('🔍 Supabase 환경 설정:');
   console.log(`  - NODE_ENV: ${process.env.NODE_ENV}`);
-  console.log(`  - Supabase URL: ${url === 'https://dummy.supabase.co' ? '미설정 (Mock)' : '설정됨'}`);
-  console.log(`  - Mock 모드: ${useMock ? '활성화' : '비활성화'}`);
-  console.log(`  - 실제 Supabase 사용 중 (MCP 서버 활용)`);
+  console.log(`  - Supabase URL: ${isValidUrl ? '설정됨' : '미설정 (Mock)'}`);
+  console.log(`  - 모드: ${isValidUrl ? '실제 Supabase' : 'Mock 모드'}`);
 }
