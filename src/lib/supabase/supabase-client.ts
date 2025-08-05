@@ -24,12 +24,31 @@ export function getSupabaseClient(): SupabaseClient {
   // 안전한 환경 변수 가져오기
   const { url: supabaseUrl, anonKey: supabaseKey } = getSupabaseEnv();
 
-  // Mock 모드 체크
+  // Mock 모드 체크 (서버 사이드 빌드 시에만)
   if (shouldUseMockMode()) {
-    console.warn('🎭 Mock 모드: 더미 Supabase 클라이언트 사용');
+    console.warn('🎭 Mock 모드: 더미 Supabase 클라이언트 사용 (빌드용)');
     return createClient('https://dummy.supabase.co', 'dummy-key', {
       auth: { persistSession: false }
     });
+  }
+  
+  // 환경변수 체크
+  if (!supabaseUrl || supabaseUrl === 'https://dummy.supabase.co') {
+    const errorMsg = '❌ Supabase URL이 설정되지 않았습니다. .env.local 파일에 NEXT_PUBLIC_SUPABASE_URL을 설정하세요.';
+    console.error(errorMsg);
+    if (typeof window !== 'undefined') {
+      alert(errorMsg);
+    }
+    throw new Error(errorMsg);
+  }
+  
+  if (!supabaseKey || supabaseKey === 'dummy-anon-key') {
+    const errorMsg = '❌ Supabase Anon Key가 설정되지 않았습니다. .env.local 파일에 NEXT_PUBLIC_SUPABASE_ANON_KEY를 설정하세요.';
+    console.error(errorMsg);
+    if (typeof window !== 'undefined') {
+      alert(errorMsg);
+    }
+    throw new Error(errorMsg);
   }
 
   console.log('🌐 실제 Supabase 사용 중');

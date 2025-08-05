@@ -106,15 +106,27 @@ export function checkEnvStatus(): {
  * 개발 환경에서 Mock 모드 활성화 여부 체크
  */
 export function shouldUseMockMode(): boolean {
+  // 브라우저 환경에서는 항상 실제 모드 사용
+  if (typeof window !== 'undefined') {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const hasValidUrl = supabaseUrl && supabaseUrl !== 'https://dummy.supabase.co';
+    
+    if (!hasValidUrl) {
+      console.error('❌ Supabase URL이 설정되지 않았습니다. .env.local 파일을 확인하세요.');
+    }
+    
+    return false; // 브라우저에서는 항상 실제 모드 시도
+  }
+  
+  // 서버 사이드 빌드 시에만 Mock 모드 허용
   const { skipValidation, missingVars } = checkEnvStatus();
   
-  // 환경 변수 검증 스킵 시 Mock 모드
+  // 환경 변수 검증 스킵 시 Mock 모드 (빌드용)
   if (skipValidation) return true;
   
-  // 필수 환경 변수 누락 시 Mock 모드
+  // 필수 환경 변수 누락 시 경고만 하고 실제 모드 시도
   if (missingVars.length > 0) {
-    console.warn(`🎭 Mock 모드 활성화: 누락된 환경 변수 ${missingVars.length}개`);
-    return true;
+    console.warn(`⚠️ 누락된 환경 변수 ${missingVars.length}개: ${missingVars.join(', ')}`);
   }
 
   return false;

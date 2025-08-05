@@ -97,7 +97,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'cursor-ai',
     title: '🔥 Vibe Coding',
     description:
-      'AI 기반 Vibe Coding으로 Claude Code & Gemini CLI를 활용하여 자연어 프롬프트 기반 UI/기능 프로토타입을 빠르게 구현',
+      'Cursor AI로 시작한 AI 기반 개발! 자동 오류 수정, 백그라운드 에이전트, Composer 멀티파일 생성으로 개발 속도 10배 향상',
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
@@ -112,7 +112,8 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         '📊 17개 서브에이전트: code-review, test-automation, debugger 등으로 품질 자동 관리',
       ],
       technologies: [
-        'Claude Code + 11 MCP (현재 메인)',
+        'Claude Code (현재 메인)',
+        'MCP 서버 11개 (보조 도구)',
         'Cursor AI',
         'Windsurf',
         'AWS Kiro',
