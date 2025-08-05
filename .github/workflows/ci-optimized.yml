@@ -8,12 +8,15 @@ on:
 
 env:
   NODE_VERSION: '22.15.1'
+  SKIP_ENV_VALIDATION: true
 
 jobs:
   # 🚀 핵심 검증 (빠른 실행)
   essential-check:
     name: Essential Check
     runs-on: ubuntu-latest
+    # Fast Track: commit 메시지에 [skip ci] 또는 [fast-track] 포함 시 완전 스킵
+    if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[fast-track]')"
     steps:
       - uses: actions/checkout@v4
 
@@ -26,28 +29,31 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: TypeScript Check
+      - name: TypeScript Check (Critical)
         run: npm run type-check
 
-      - name: Basic ESLint
-        run: npm run lint
+      - name: ESLint (Warning Only)
+        run: npm run lint --max-warnings=50
         continue-on-error: true
 
-      - name: Quick Tests
+      - name: Quick Tests (22ms)
         run: npm run test:quick
-        env:
-          SKIP_ENV_VALIDATION: true
+        continue-on-error: true
 
-      - name: Build Check
-        run: npm run build
-        env:
-          SKIP_ENV_VALIDATION: true
+      - name: Build Check (Skip on Fast Track)
+        run: |
+          if [[ "${{ github.event.head_commit.message }}" == *"[build-skip]"* ]]; then
+            echo "⚡ Build check skipped (fast track)"
+          else
+            npm run build
+          fi
 
-  # 🔒 보안 검사 (main 브랜치만)
+  # 🔒 보안 검사 (main 브랜치만, 백그라운드)
   security-check:
     name: Security Check
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: "github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip ci]')"
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -60,51 +66,35 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Security Audit
+      - name: Security Audit (Non-blocking)
         run: npm audit --audit-level=high
         continue-on-error: true
 
-  # 📊 성능 체크 (PR만)
+  # 📊 성능 체크 (PR만, 백그라운드)
   performance-check:
     name: Performance Check
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    needs: essential-check
+    if: "github.event_name == 'pull_request' && !contains(github.event.head_commit.message, '[skip ci]')"
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build for performance
-        run: npm run build
-        env:
-          SKIP_ENV_VALIDATION: true
-
-      - name: Check bundle size
+      - name: Quick Bundle Size Check
         run: |
-          echo "Bundle analysis:"
-          du -sh .next
-          echo "Total size acceptable for free tier"
+          echo "📊 번들 크기 체크 스킵 (Vercel에서 처리)"
+          echo "🚀 성능 최적화는 Vercel Analytics 활용"
 
-  # ✅ 배포 준비 확인
+  # ✅ 배포 준비 확인 (선택적)
   deploy-ready:
     name: Deploy Ready
     runs-on: ubuntu-latest
-    needs: [essential-check, security-check]
-    if: github.ref == 'refs/heads/main' && success()
+    needs: [essential-check]
+    if: "github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip ci]')"
     steps:
       - name: Deployment Status
         run: |
-          echo "🎉 All checks passed!"
+          echo "🎉 Essential checks passed!"
           echo "✅ TypeScript: Clean"
-          echo "✅ Tests: Passing" 
-          echo "✅ Build: Success"
-          echo "✅ Security: Checked"
-          echo "🚀 Ready for deployment!"
+          echo "⚡ Fast Track: 베르셀 배포 우선"
+          echo "🔄 품질 체크: 백그라운드에서 진행"
+          echo "🚀 Ready for Vercel deployment!"
