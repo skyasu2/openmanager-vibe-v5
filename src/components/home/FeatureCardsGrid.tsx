@@ -196,12 +196,12 @@ const FeatureCardItem = memo(
             <h3
               className={`mb-2 text-lg font-semibold leading-snug transition-colors ${cardStyles.title}`}
             >
-              {card.isAICard ? renderTextWithAIGradient(card.title) : card.title}
+              {renderTextWithAIGradient(card.title)}
             </h3>
             <p
               className={`text-xs leading-relaxed transition-colors ${cardStyles.description}`}
             >
-              {card.isAICard ? renderTextWithAIGradient(card.description) : card.description}
+              {renderTextWithAIGradient(card.description)}
             </p>
 
             {/* AI 어시스턴트 필요 표시 */}
