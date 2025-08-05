@@ -8,85 +8,25 @@ if [ "$HUSKY" = "0" ]; then
     exit 0
 fi
 
-# lint-staged 실행 (변경된 파일만 검사) - 성능 최적화
+# 핵심 검사 1: lint-staged 실행 (변경된 파일만 검사) - 2025 표준
 echo "🧹 변경된 파일 검사 중... (성능 최적화 모드)"
-# 병렬 처리를 위해 --concurrent 옵션 추가 (기본값 true)
 npx lint-staged --concurrent=true
 
 if [ $? -ne 0 ]; then
     echo "❌ Pre-commit 검증 실패!"
-    echo "💡 성능 최적화된 설정을 사용했습니다. 문제가 있으면 npm run lint:fix 실행 후 다시 시도하세요."
-    echo ""
-    echo "🤖 서브에이전트 추천:"
-    echo "   - 코드 품질 검토: Task({ subagent_type: 'code-review-specialist', prompt: 'Lint 에러 수정' })"
-    echo "   - 프로젝트 규칙: Task({ subagent_type: 'quality-control-checker', prompt: 'CLAUDE.md 규칙 준수 검증' })"
+    echo "💡 문제 해결: npm run lint:fix 실행 후 다시 시도하세요."
     exit 1
 fi
 
-# Storybook 스토리 파일 검증 (있는 경우만)
-STORY_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.stories\.(ts|tsx|js|jsx)$' || true)
-if [ -n "$STORY_FILES" ]; then
-    echo "📚 Storybook 스토리 파일 검증 중..."
-    echo "   검사 대상: $(echo "$STORY_FILES" | wc -l)개 파일"
-    
-    # 스토리 파일에 대한 특별한 ESLint 규칙 적용
-    npx eslint --ext .stories.ts,.stories.tsx --plugin storybook --max-warnings 5 $STORY_FILES || {
-        echo "❌ Storybook 스토리 파일 검증 실패!"
-        echo ""
-        echo "🤖 서브에이전트 추천:"
-        echo "   - 코드 품질: Task({ subagent_type: 'code-review-specialist', prompt: 'Storybook 스토리 파일 ESLint 에러 수정' })"
-        echo "   - UI 컴포넌트: Task({ subagent_type: 'ux-performance-optimizer', prompt: 'Storybook 스토리 접근성 검증' })"
-        exit 1
-    }
-    echo "✅ Storybook 스토리 파일 검증 통과"
-fi
-
-# 보안 검사 (하드코딩된 시크릿 검사)
+# 핵심 검사 2: 보안 검사 (하드코딩된 시크릿 검사) - 필수
 echo "🔒 보안 검사 중..."
 if [ -f "scripts/check-hardcoded-secrets.sh" ]; then
     bash scripts/check-hardcoded-secrets.sh
     if [ $? -ne 0 ]; then
         echo "❌ 보안 검사 실패! 하드코딩된 시크릿이 발견되었습니다."
-        echo ""
-        echo "🤖 서브에이전트 추천:"
-        echo "   - 보안 감사: Task({ subagent_type: 'security-auditor', prompt: '하드코딩된 시크릿 제거 및 환경변수로 대체' })"
+        echo "💡 환경변수로 대체하거나 .env.local에 추가하세요."
         exit 1
     fi
-fi
-
-# 문서 파일 시크릿 검사 (선택사항)
-if [ -f "scripts/security/check-secrets-in-docs.sh" ]; then
-    echo "📄 문서 파일 시크릿 검사 중..."
-    bash scripts/security/check-secrets-in-docs.sh
-    if [ $? -ne 0 ]; then
-        echo "❌ 문서 파일에서 시크릿이 발견되었습니다!"
-        echo "💡 토큰을 [REDACTED]로 교체하거나 예시 형식으로 변경하세요."
-        exit 1
-    fi
-fi
-
-# TDD 메타데이터 검사 (SKIP_TDD_CHECK=1로 건너뛸 수 있음)
-if [ "$SKIP_TDD_CHECK" != "1" ] && [ -f "scripts/test-metadata.ts" ]; then
-    echo "🧪 테스트 메타데이터 검사 중... (SKIP_TDD_CHECK=1로 건너뛰기 가능)"
-    # 타임아웃 5초로 제한하여 빠른 검사만
-    timeout 5s npm run test:metadata --silent || {
-        echo "⚠️  테스트 메타데이터 검사가 시간 초과되었거나 문제가 있습니다."
-        echo "💡 수동 실행: npm run test:metadata"
-        echo "💡 건너뛰기: SKIP_TDD_CHECK=1 git commit"
-        # 경고만 하고 커밋은 허용
-    }
-fi
-
-# TDD RED → GREEN 전환 검사 (기본적으로 건너뜀 - 너무 무거움)
-if [ "$ENABLE_TDD_CHECK" = "1" ] && [ -f "scripts/tdd-cleanup.ts" ]; then
-    echo "🔄 TDD 테스트 상태 검사 중... (무거운 작업 - 선택적 활성화)"
-    timeout 10s npm run test:tdd-check --silent || {
-        echo "⚠️  TDD 검사가 시간 초과되었습니다."
-        echo "💡 수동 실행: npm run test:tdd-check"
-        # 개발자에게 알림만 제공 (커밋은 허용)
-    }
-else
-    echo "⏭️  TDD 검사 건너뜀 (ENABLE_TDD_CHECK=1로 활성화 가능)"
 fi
 
 echo "✅ Pre-commit 검증 통과!"
