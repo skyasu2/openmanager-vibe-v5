@@ -53,12 +53,8 @@ const FeatureCardItem = memo(
     // 카드 타입별 스타일 헬퍼
     const getCardStyles = (card: FeatureCard) => {
       return {
-        title: card.isVibeCard
-          ? 'text-white/98 group-hover:text-yellow-100'
-          : 'text-white/95 group-hover:text-white',
-        description: card.isVibeCard
-          ? 'text-white/96 group-hover:text-yellow-50 font-bold'
-          : 'text-white/80 group-hover:text-white/90 font-medium',
+        title: 'text-white/95 group-hover:text-white',
+        description: 'text-white/80 group-hover:text-white/90 font-medium',
         hoverRing: card.isAICard
           ? 'group-hover:ring-pink-400/50 group-hover:shadow-lg group-hover:shadow-pink-500/25'
           : card.isVibeCard
@@ -66,7 +62,7 @@ const FeatureCardItem = memo(
             : card.isSpecial
               ? 'group-hover:ring-amber-400/50 group-hover:shadow-lg group-hover:shadow-amber-500/25'
               : 'group-hover:ring-white/30',
-        iconColor: card.isVibeCard ? 'text-amber-900' : 'text-white',
+        iconColor: 'text-white',
       };
     };
 
@@ -200,12 +196,12 @@ const FeatureCardItem = memo(
             <h3
               className={`mb-2 text-lg font-semibold leading-snug transition-colors ${cardStyles.title}`}
             >
-              {renderTextWithAIGradient(card.title)}
+              {card.isAICard ? renderTextWithAIGradient(card.title) : card.title}
             </h3>
             <p
               className={`text-xs leading-relaxed transition-colors ${cardStyles.description}`}
             >
-              {renderTextWithAIGradient(card.description)}
+              {card.isAICard ? renderTextWithAIGradient(card.description) : card.description}
             </p>
 
             {/* AI 어시스턴트 필요 표시 */}
