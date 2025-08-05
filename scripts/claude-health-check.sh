@@ -10,6 +10,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m'
 
 echo -e "${BLUE}╔═══════════════════════════════════════════╗${NC}"
@@ -48,7 +49,7 @@ echo ""
 echo -e "${CYAN}🟢 Node.js 환경${NC}"
 check_item "Node.js" "node --version" "$(node --version 2>/dev/null || echo '설치 안됨')" "Node.js 설치 필요" 2
 check_item "npm" "npm --version" "$(npm --version 2>/dev/null || echo '설치 안됨')" "npm 설치 필요" 2
-check_item "메모리 설정" "[ \"\$NODE_OPTIONS\" = \"--max-old-space-size=4096\" ]" "4GB 할당됨" "메모리 설정 필요"
+check_item "메모리 설정" "[ \"\${NODE_OPTIONS:-}\" = \"--max-old-space-size=4096\" ]" "4GB 할당됨" "메모리 설정 필요"
 echo ""
 
 # 3. Git 설정

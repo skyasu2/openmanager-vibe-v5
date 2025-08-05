@@ -18,6 +18,12 @@ echo -e "${BLUE}║   🤖 Claude Code 개발 환경 초기화 중...   ║${NC}
 echo -e "${BLUE}╚═══════════════════════════════════════════╝${NC}"
 echo ""
 
+# 스크립트 실행 권한 확인
+if [ ! -x "$0" ]; then
+    echo -e "${YELLOW}⚠️  스크립트 실행 권한이 없습니다. 권한 설정 중...${NC}"
+    chmod +x "$0"
+fi
+
 # 1. 환경변수 로드
 echo -e "${YELLOW}📋 환경변수 로드 중...${NC}"
 if [ -f "$ENV_FILE" ]; then
@@ -29,7 +35,12 @@ if [ -f "$ENV_FILE" ]; then
             value="${value%\"}"
             value="${value#\"}"
             export "$key=$value"
-            echo -e "  ✓ $key 설정됨"
+            # 민감한 정보 마스킹
+            if [[ "$key" =~ (KEY|TOKEN|SECRET|PASSWORD) ]]; then
+                echo -e "  ✓ $key 설정됨 (마스킹됨)"
+            else
+                echo -e "  ✓ $key 설정됨"
+            fi
         fi
     done < "$ENV_FILE"
     echo -e "${GREEN}✅ 환경변수 로드 완료${NC}"

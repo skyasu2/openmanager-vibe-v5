@@ -87,12 +87,24 @@ if [ -d ".next" ]; then
 fi
 
 # 5. WSL 특정 정리
-echo -e "${YELLOW}🐧 WSL 메모리 압축...${NC}"
+echo -e "${YELLOW}🐧 WSL 메모리 최적화...${NC}"
+
+# 더 정확한 메모리 계산 (WSL2 특화)
+AVAILABLE_MEMORY=$(awk '/MemAvailable:/ {print $2}' /proc/meminfo)
+TOTAL_MEMORY=$(awk '/MemTotal:/ {print $2}' /proc/meminfo)
+REAL_PERCENT=$((100 - (AVAILABLE_MEMORY * 100 / TOTAL_MEMORY)))
+
+echo -e "  실제 메모리 사용률: ${REAL_PERCENT}%"
+
 # WSL2 메모리 압축 트리거
-echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null 2>&1 || {
-    echo -e "${YELLOW}  ⚠️  WSL 메모리 압축 권한 부족${NC}"
-}
-echo -e "${GREEN}  ✅ WSL 메모리 압축 시도 완료${NC}"
+if [ "$REAL_PERCENT" -gt 70 ]; then
+    echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null 2>&1 || {
+        echo -e "${YELLOW}  ⚠️  WSL 메모리 압축 권한 부족${NC}"
+    }
+    echo -e "${GREEN}  ✅ WSL 메모리 압축 시도 완료${NC}"
+else
+    echo -e "${GREEN}  ✅ 메모리 사용률이 양호하여 압축 불필요${NC}"
+fi
 echo ""
 
 # 최종 메모리 상태

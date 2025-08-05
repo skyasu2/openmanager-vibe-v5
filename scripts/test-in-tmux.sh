@@ -76,13 +76,16 @@ tmux send-keys -t "$SESSION_NAME:test" "echo -e '${BLUE}════════
 tmux send-keys -t "$SESSION_NAME:test" "echo ''" C-m
 
 # 테스트 실행 및 결과 저장
-tmux send-keys -t "$SESSION_NAME:test" "$TEST_CMD 2>&1 | tee /tmp/test-result.log" C-m
+TEST_LOG="/tmp/test-result-$$.log"
+touch "$TEST_LOG" && chmod 600 "$TEST_LOG"
+tmux send-keys -t "$SESSION_NAME:test" "$TEST_CMD 2>&1 | tee $TEST_LOG" C-m
 
 # 테스트 창으로 전환
 tmux select-window -t "$SESSION_NAME:test"
 
 # 백그라운드에서 결과 모니터링
 (
+    TEST_LOG_FILE="$TEST_LOG"
     sleep 3  # 테스트 시작 대기
     
     # 테스트 완료 대기
@@ -91,8 +94,8 @@ tmux select-window -t "$SESSION_NAME:test"
     done
     
     # 결과 확인
-    if [ -f /tmp/test-result.log ]; then
-        if grep -q "failed\|FAIL\|Error" /tmp/test-result.log; then
+    if [ -f "$TEST_LOG_FILE" ]; then
+        if grep -q "failed\|FAIL\|Error" "$TEST_LOG_FILE"; then
             # 실패 알림
             tmux display-message -t "$SESSION_NAME" "❌ 테스트 실패!"
             echo -e "\a" # 비프음
@@ -100,7 +103,7 @@ tmux select-window -t "$SESSION_NAME:test"
             # 성공 알림
             tmux display-message -t "$SESSION_NAME" "✅ 테스트 성공!"
         fi
-        rm -f /tmp/test-result.log
+        rm -f "$TEST_LOG_FILE"
     fi
 ) &
 

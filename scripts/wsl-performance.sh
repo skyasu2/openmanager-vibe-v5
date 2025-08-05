@@ -115,9 +115,17 @@ monitor_performance() {
         fi
         
         echo ""
-        echo -e "${YELLOW}[Ctrl+C로 종료, 5초마다 갱신]${NC}"
         
-        sleep 5
+        # 적응형 모니터링 간격
+        if [ "$cpu_int" -gt "$CPU_WARNING" ] || [ "$mem_percent" -gt "$MEMORY_WARNING" ]; then
+            INTERVAL=2  # 경고 상태에서는 더 자주 업데이트
+            echo -e "${YELLOW}[Ctrl+C로 종료, ${INTERVAL}초마다 갱신 - 경고 모드]${NC}"
+        else
+            INTERVAL=5  # 정상 상태
+            echo -e "${YELLOW}[Ctrl+C로 종료, ${INTERVAL}초마다 갱신]${NC}"
+        fi
+        
+        sleep $INTERVAL
         clear
     done
 }
