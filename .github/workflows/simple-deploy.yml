@@ -1,5 +1,10 @@
 name: Simple Deploy
 
+# 🎯 Vercel 자동 배포를 위한 최소한의 빌드 검증
+# - ESLint/TypeScript 에러가 있어도 배포 진행
+# - 환경변수 없이도 빌드 성공 (SKIP_ENV_VALIDATION)
+# - 실제 검증은 Vercel이 담당
+
 on:
   push:
     branches: [main]

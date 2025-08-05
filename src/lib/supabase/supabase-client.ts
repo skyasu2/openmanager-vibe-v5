@@ -71,7 +71,19 @@ export function getSupabaseClient(): SupabaseClient {
   return _supabaseClient;
 }
 
-// Proxy를 사용한 Lazy Loading Supabase 클라이언트
+/**
+ * Proxy를 사용한 Lazy Loading Supabase 클라이언트
+ * 
+ * 🎯 장점:
+ * - 모듈 최상위에서 환경변수를 읽지 않아 빌드 시점 에러 방지
+ * - 실제 사용 시점까지 초기화 지연 (GitHub Actions 빌드 성공)
+ * - 일반 Supabase 클라이언트처럼 사용 가능
+ * 
+ * 🔧 작동 원리:
+ * - Proxy가 속성 접근을 가로채서 실제 클라이언트로 전달
+ * - 첫 사용 시 getSupabaseClient() 호출로 초기화
+ * - 메서드는 this 바인딩 유지를 위해 bind() 처리
+ */
 export const supabase = new Proxy({} as SupabaseClient, {
   get(_target, prop, receiver) {
     const client = getSupabaseClient();
