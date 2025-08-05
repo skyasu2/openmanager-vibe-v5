@@ -31,8 +31,6 @@ npm-debug.log*
 # production
 /build
 
-# storybook
-/storybook-static
 
 # misc
 .DS_Store
@@ -183,7 +181,6 @@ temp-*
 test2-*
 debug-*
 copy-*
-storybook-static/
 
 # GCP 모니터링 로그 및 리포트
 logs/gcp-*.json
@@ -230,7 +227,6 @@ COMMIT_MSG.tmp
 # 정체불명 파일
 50%
 
-*storybook.log
 
 # ESLint cache
 .eslintcache
