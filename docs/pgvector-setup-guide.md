@@ -25,7 +25,7 @@
 4. **실행 확인**
    ```sql
    -- 함수 확인
-   SELECT proname FROM pg_proc 
+   SELECT proname FROM pg_proc
    WHERE proname IN (
      'search_similar_vectors',
      'search_vectors_by_category',
@@ -38,6 +38,7 @@
 ### 방법 2: 마이그레이션 파일 사용
 
 1. **마이그레이션 파일 위치**
+
    ```
    supabase/migrations/20250805_pgvector_native_functions.sql
    ```
@@ -59,27 +60,31 @@ tsx scripts/apply-pgvector-functions.ts
 ## 🧪 함수 테스트
 
 ### 1. 통계 확인
+
 ```sql
 SELECT * FROM get_vector_stats();
 ```
 
 예상 결과:
+
 ```
 total_documents | total_categories | avg_content_length | null_embeddings
 714            | 8                | 156.5              | 0
 ```
 
 ### 2. 벡터 검색 테스트
+
 ```typescript
 // TypeScript에서 테스트
 const { data, error } = await supabase.rpc('search_similar_vectors', {
   query_embedding: testEmbedding, // 384차원 벡터
   similarity_threshold: 0.3,
-  max_results: 5
+  max_results: 5,
 });
 ```
 
 ### 3. 성능 벤치마크
+
 ```bash
 # 성능 테스트 실행
 tsx scripts/test-pgvector-performance.ts
@@ -87,21 +92,21 @@ tsx scripts/test-pgvector-performance.ts
 
 ## 📊 생성되는 함수들
 
-| 함수명 | 설명 | 매개변수 |
-|--------|------|----------|
-| `search_similar_vectors` | 기본 코사인 유사도 검색 | query_embedding, similarity_threshold, max_results |
-| `search_vectors_by_category` | 카테고리별 검색 | query_embedding, search_category, similarity_threshold, max_results |
-| `hybrid_search_vectors` | 벡터 + 텍스트 하이브리드 검색 | query_embedding, text_query, similarity_threshold, max_results |
-| `get_vector_stats` | 벡터 DB 통계 조회 | 없음 |
-| `search_vectors_with_filters` | 메타데이터 필터링 검색 | query_embedding, metadata_filter, similarity_threshold, max_results |
+| 함수명                        | 설명                          | 매개변수                                                            |
+| ----------------------------- | ----------------------------- | ------------------------------------------------------------------- |
+| `search_similar_vectors`      | 기본 코사인 유사도 검색       | query_embedding, similarity_threshold, max_results                  |
+| `search_vectors_by_category`  | 카테고리별 검색               | query_embedding, search_category, similarity_threshold, max_results |
+| `hybrid_search_vectors`       | 벡터 + 텍스트 하이브리드 검색 | query_embedding, text_query, similarity_threshold, max_results      |
+| `get_vector_stats`            | 벡터 DB 통계 조회             | 없음                                                                |
+| `search_vectors_with_filters` | 메타데이터 필터링 검색        | query_embedding, metadata_filter, similarity_threshold, max_results |
 
 ## 🏃 성능 향상 예상치
 
-| 검색 유형 | 이전 (클라이언트) | 이후 (네이티브) | 향상률 |
-|-----------|------------------|-----------------|--------|
-| 기본 검색 | ~600ms | ~175ms | 3.4x |
-| 카테고리 검색 | ~500ms | ~150ms | 3.3x |
-| 하이브리드 검색 | ~1100ms | ~200ms | 5.5x |
+| 검색 유형       | 이전 (클라이언트) | 이후 (네이티브) | 향상률 |
+| --------------- | ----------------- | --------------- | ------ |
+| 기본 검색       | ~600ms            | ~175ms          | 3.4x   |
+| 카테고리 검색   | ~500ms            | ~150ms          | 3.3x   |
+| 하이브리드 검색 | ~1100ms           | ~200ms          | 5.5x   |
 
 ## ⚠️ 주의사항
 
@@ -120,14 +125,17 @@ tsx scripts/test-pgvector-performance.ts
 ## 🔍 문제 해결
 
 ### "function does not exist" 오류
+
 - SQL 스크립트가 실행되지 않았습니다
 - 방법 1을 사용하여 직접 실행하세요
 
 ### "permission denied" 오류
+
 - 권한 부여 SQL이 실행되지 않았습니다
 - GRANT 문이 포함된 전체 스크립트를 실행하세요
 
 ### 성능이 향상되지 않음
+
 - 인덱스가 생성되었는지 확인
 - 데이터가 충분한지 확인 (최소 100개 이상)
 

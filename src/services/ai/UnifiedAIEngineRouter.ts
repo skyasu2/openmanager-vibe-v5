@@ -32,6 +32,7 @@ import {
     type SanitizationResult
 } from './security/PromptSanitizer';
 import { getSupabaseRAGEngine } from './supabase-rag-engine';
+import { serverCommandsMap, recommendCommands, type OSCommand } from '@/config/serverCommandsConfig';
 
 // Korean NLP Response 타입 정의
 interface KoreanNLPResponse {
@@ -749,7 +750,9 @@ export class UnifiedAIEngineRouter {
       /(실행|사용)하는\s*(방법|명령어)/,
       /(서버|시스템)\s*(상태|모니터링|관리).*명령어/,
       /command\s+(to|for)\s+/,
-      /how\s+to\s+.*(command|cmd)/
+      /how\s+to\s+.*(command|cmd)/,
+      /(확인|체크|모니터링)할\s*(명령어|커맨드|방법)/,  // 추가
+      /(높을|낮을|많을|적을)\s*때\s*(확인|사용)할\s*(명령어|방법)?/  // 추가
     ];
 
     // 카테고리별 키워드
@@ -760,6 +763,22 @@ export class UnifiedAIEngineRouter {
       network: ['네트워크', '연결', 'network', 'connection', 'ping'],
       disk: ['디스크', '저장소', 'disk', 'storage', 'space'],
       system: ['시스템', '정보', 'system', 'info', 'hardware']
+    };
+
+    // 서버/서비스별 키워드 (specificCommands에 추가용)
+    const serverKeywords = {
+      // 웹 서버
+      nginx: ['nginx', '엔진엑스'],
+      apache: ['apache', 'httpd', '아파치'],
+      // 앱 서버
+      tomcat: ['tomcat', '톰캣', 'java'],
+      nodejs: ['node', 'nodejs', 'pm2', '노드'],
+      // DB 서버
+      postgres: ['postgres', 'postgresql', '포스트그레스'],
+      mysql: ['mysql'],
+      // 기타
+      windows: ['windows', 'smb', 'file', 'nas'],
+      backup: ['backup', 'bacula', '백업']
     };
 
     let isCommandRequest = false;
@@ -813,6 +832,20 @@ export class UnifiedAIEngineRouter {
       }
     }
 
+    // 서버/서비스 키워드를 specificCommands에 추가
+    for (const [server, keywords] of Object.entries(serverKeywords)) {
+      for (const keyword of keywords) {
+        if (lowerQuery.includes(keyword)) {
+          specificCommands.push(server);
+          if (!isCommandRequest) {
+            isCommandRequest = true;
+            requestType = 'command_inquiry';
+          }
+          confidence += 0.15;
+        }
+      }
+    }
+
     // 특정 Linux/Unix 명령어 감지
     const commonCommands = [
       'top', 'htop', 'ps', 'free', 'df', 'iostat', 'vmstat', 'netstat', 'ss',
@@ -851,174 +884,240 @@ export class UnifiedAIEngineRouter {
   ): Promise<CommandRecommendation[]> {
     const recommendations: CommandRecommendation[] = [];
 
-    // Built-in 명령어 데이터베이스 (추후 Supabase에서 로드할 예정)
-    const commandDatabase = {
-      monitoring: [
-        {
-          command: 'top',
-          description: 'CPU와 메모리 사용량을 실시간으로 모니터링',
-          category: 'monitoring',
-          confidence: 0.9,
-          usage_example: 'top -p 1234',
-          related_commands: ['htop', 'ps', 'iostat']
-        },
-        {
-          command: 'htop',
-          description: '향상된 실시간 시스템 모니터링 도구',
-          category: 'monitoring', 
-          confidence: 0.85,
-          usage_example: 'htop',
-          related_commands: ['top', 'ps', 'free']
-        },
-        {
-          command: 'free -h',
-          description: '메모리 사용량을 사람이 읽기 쉬운 형태로 표시',
-          category: 'monitoring',
-          confidence: 0.8,
-          usage_example: 'free -h',
-          related_commands: ['top', 'htop', 'vmstat']
+    // 서버 ID 감지 또는 기본값 사용
+    // TODO: 향후 context에서 serverId 받아오도록 개선
+    const detectedServerId = this.detectServerFromContext(context);
+    
+    if (detectedServerId) {
+      // serverCommandsConfig의 recommendCommands 함수 사용
+      let scenario = 'general';
+      
+      // context 기반으로 시나리오 결정
+      if (context.detectedCategories.includes('monitoring')) {
+        if (context.specificCommands.some(cmd => 
+          cmd.includes('cpu') || cmd.includes('top') || cmd.includes('htop')
+        )) {
+          scenario = 'cpu_high';
+        } else if (context.specificCommands.some(cmd => 
+          cmd.includes('memory') || cmd.includes('free') || cmd.includes('mem')
+        )) {
+          scenario = 'memory_leak';
         }
-      ],
-      service: [
-        {
-          command: 'systemctl',
-          description: 'systemd 서비스 관리 도구',
-          category: 'service',
-          confidence: 0.95,
-          usage_example: 'systemctl status nginx',
-          related_commands: ['service', 'journalctl']
-        },
-        {
-          command: 'ps aux',
-          description: '현재 실행 중인 모든 프로세스 목록 표시',
-          category: 'service',
-          confidence: 0.9,
-          usage_example: 'ps aux | grep nginx',
-          related_commands: ['top', 'htop', 'kill']
-        }
-      ],
-      log: [
-        {
-          command: 'journalctl',
-          description: 'systemd 시스템 로그 조회',
-          category: 'log',
-          confidence: 0.9,
-          usage_example: 'journalctl -u nginx -f',
-          related_commands: ['tail', 'less', 'systemctl']
-        },
-        {
-          command: 'tail -f',
-          description: '파일의 끝부분을 실시간으로 모니터링',
-          category: 'log',
-          confidence: 0.85,
-          usage_example: 'tail -f /var/log/nginx/access.log',
-          related_commands: ['head', 'less', 'grep']
-        }
-      ],
-      network: [
-        {
-          command: 'ping',
-          description: '네트워크 연결 상태 테스트',
-          category: 'network',
-          confidence: 0.95,
-          usage_example: 'ping google.com',
-          related_commands: ['traceroute', 'nslookup', 'curl']
-        },
-        {
-          command: 'netstat -tuln',
-          description: '네트워크 포트 연결 상태 확인',
-          category: 'network',
-          confidence: 0.85,
-          usage_example: 'netstat -tuln | grep :80',
-          related_commands: ['ss', 'lsof', 'nmap']
-        }
-      ],
-      disk: [
-        {
-          command: 'df -h',
-          description: '디스크 사용량을 사람이 읽기 쉬운 형태로 표시',
-          category: 'disk',
-          confidence: 0.9,
-          usage_example: 'df -h',
-          related_commands: ['du', 'lsblk', 'fdisk']
-        },
-        {
-          command: 'du -sh',
-          description: '디렉토리별 디스크 사용량 요약',
-          category: 'disk',
-          confidence: 0.85,
-          usage_example: 'du -sh /var/log/*',
-          related_commands: ['df', 'ls', 'find']
-        }
-      ],
-      system: [
-        {
-          command: 'uname -a',
-          description: '시스템 정보와 커널 버전 표시',
-          category: 'system',
-          confidence: 0.8,
-          usage_example: 'uname -a',
-          related_commands: ['hostname', 'whoami', 'id']
-        },
-        {
-          command: 'uptime',
-          description: '시스템 가동 시간과 부하 평균 표시',
-          category: 'system',
-          confidence: 0.75,
-          usage_example: 'uptime',
-          related_commands: ['w', 'top', 'htop']
-        }
-      ]
-    };
+      } else if (context.detectedCategories.includes('disk')) {
+        scenario = 'disk_full';
+      } else if (context.detectedCategories.includes('service') || 
+                 context.detectedCategories.includes('system')) {
+        scenario = 'service_down';
+      }
 
-    // 특정 명령어가 언급된 경우
-    for (const cmd of context.specificCommands) {
-      for (const categoryCommands of Object.values(commandDatabase)) {
-        const found = categoryCommands.find(item => item.command.includes(cmd));
-        if (found) {
-          recommendations.push({
-            ...found,
-            confidence: found.confidence * context.confidence
-          });
-        }
+      // recommendCommands 함수로 서버별 맞춤 명령어 가져오기
+      const osCommands = recommendCommands(
+        detectedServerId, 
+        scenario,
+        context.detectedCategories[0]
+      );
+
+      // OSCommand를 CommandRecommendation 형식으로 변환
+      for (const cmd of osCommands) {
+        recommendations.push({
+          command: cmd.command,
+          description: cmd.description,
+          category: cmd.category,
+          confidence: context.confidence * 0.9, // 서버별 맞춤 명령어는 높은 신뢰도
+          usage_example: cmd.usage || cmd.example || cmd.command,
+          related_commands: cmd.alternatives
+        });
       }
     }
 
-    // 카테고리별 추천
-    for (const category of context.detectedCategories) {
-      if (category in commandDatabase) {
-        const categoryCommands = commandDatabase[category as keyof typeof commandDatabase];
-        for (const cmd of categoryCommands) {
-          // 이미 추가된 명령어는 스킵
-          if (!recommendations.find(r => r.command === cmd.command)) {
-            recommendations.push({
-              ...cmd,
-              confidence: cmd.confidence * context.confidence
-            });
+    // 서버를 감지하지 못한 경우 일반적인 명령어 추천
+    if (recommendations.length === 0) {
+      // 모든 서버의 공통 명령어 수집
+      const commonCommands = this.getCommonCommands(context);
+      recommendations.push(...commonCommands);
+    }
+
+    // 특정 명령어가 언급된 경우 모든 서버에서 검색
+    if (context.specificCommands.length > 0) {
+      for (const cmd of context.specificCommands) {
+        const foundCommands = this.searchCommandsAcrossServers(cmd);
+        for (const found of foundCommands) {
+          if (!recommendations.find(r => r.command === found.command)) {
+            recommendations.push(found);
           }
         }
       }
-    }
-
-    // 기본 추천 (명령어 요청이 감지되었지만 구체적인 카테고리가 없는 경우)
-    if (context.isCommandRequest && recommendations.length === 0) {
-      const defaultCommands = [
-        commandDatabase.monitoring[0], // top
-        commandDatabase.service[0], // systemctl
-        commandDatabase.disk[0], // df -h
-        commandDatabase.network[0] // ping
-      ];
-      
-      recommendations.push(...defaultCommands.map(cmd => ({
-        ...cmd,
-        confidence: cmd.confidence * 0.6 // 기본 추천은 신뢰도를 낮춤
-      })));
     }
 
     // 신뢰도순으로 정렬하고 상위 5개만 반환
     return recommendations
       .sort((a, b) => b.confidence - a.confidence)
       .slice(0, 5);
+  }
+
+  /**
+   * 🔍 컨텍스트에서 서버 ID 감지
+   */
+  private detectServerFromContext(context: CommandRequestContext): string | null {
+    // 서버 이름 패턴과 서버 ID 매핑
+    const serverPatterns: Array<{ patterns: RegExp[], serverId: string }> = [
+      { 
+        patterns: [/nginx/i, /web.*1/i, /web.*prd.*01/i], 
+        serverId: 'web-prd-01' 
+      },
+      { 
+        patterns: [/apache/i, /httpd/i, /web.*2/i, /web.*prd.*02/i], 
+        serverId: 'web-prd-02' 
+      },
+      { 
+        patterns: [/tomcat/i, /java/i, /app.*1/i, /app.*prd.*01/i], 
+        serverId: 'app-prd-01' 
+      },
+      { 
+        patterns: [/node/i, /pm2/i, /app.*2/i, /app.*prd.*02/i], 
+        serverId: 'app-prd-02' 
+      },
+      { 
+        patterns: [/postgres/i, /postgresql/i, /db.*main/i, /db.*01/i], 
+        serverId: 'db-main-01' 
+      },
+      { 
+        patterns: [/replica/i, /db.*repl/i, /db.*02/i], 
+        serverId: 'db-repl-01' 
+      },
+      { 
+        patterns: [/windows/i, /smb/i, /file.*nas/i, /storage/i], 
+        serverId: 'file-nas-01' 
+      },
+      { 
+        patterns: [/backup/i, /bacula/i], 
+        serverId: 'backup-01' 
+      }
+    ];
+
+    // specificCommands에서 서버 힌트 찾기
+    for (const { patterns, serverId } of serverPatterns) {
+      for (const pattern of patterns) {
+        if (context.specificCommands.some(cmd => pattern.test(cmd))) {
+          console.log(`🎯 서버 감지: ${serverId}`);
+          return serverId;
+        }
+      }
+    }
+
+    // 기본값: 첫 번째 웹 서버
+    return null;
+  }
+
+  /**
+   * 🌐 모든 서버의 공통 명령어 수집
+   */
+  private getCommonCommands(context: CommandRequestContext): CommandRecommendation[] {
+    const commonCommands: CommandRecommendation[] = [];
+    
+    // 카테고리별 대표 명령어
+    const categoryDefaults: Record<string, OSCommand[]> = {
+      monitoring: [
+        {
+          command: 'top',
+          description: '실시간 프로세스 및 시스템 리소스 모니터링',
+          category: 'monitoring',
+          riskLevel: 'safe',
+          usage: 'top [-b] [-n count]',
+          example: 'top -b -n 1'
+        },
+        {
+          command: 'htop',
+          description: '향상된 대화형 프로세스 뷰어',
+          category: 'monitoring',
+          riskLevel: 'safe'
+        }
+      ],
+      disk: [
+        {
+          command: 'df -h',
+          description: '디스크 사용량 확인 (사람이 읽기 쉬운 형식)',
+          category: 'disk',
+          riskLevel: 'safe'
+        }
+      ],
+      network: [
+        {
+          command: 'netstat -tuln',
+          description: '열린 네트워크 포트 확인',
+          category: 'network',
+          riskLevel: 'safe'
+        }
+      ],
+      system: [
+        {
+          command: 'systemctl status',
+          description: '서비스 상태 확인',
+          category: 'system',
+          riskLevel: 'safe',
+          example: 'systemctl status nginx'
+        }
+      ]
+    };
+
+    // 감지된 카테고리에 따라 명령어 추가
+    for (const category of context.detectedCategories) {
+      if (categoryDefaults[category]) {
+        for (const cmd of categoryDefaults[category]) {
+          commonCommands.push({
+            command: cmd.command,
+            description: cmd.description,
+            category: cmd.category,
+            confidence: context.confidence * 0.7, // 일반 명령어는 낮은 신뢰도
+            usage_example: cmd.usage || cmd.example || cmd.command,
+            related_commands: cmd.alternatives
+          });
+        }
+      }
+    }
+
+    return commonCommands;
+  }
+
+  /**
+   * 🔎 모든 서버에서 특정 명령어 검색
+   */
+  private searchCommandsAcrossServers(searchTerm: string): CommandRecommendation[] {
+    const foundCommands: CommandRecommendation[] = [];
+    const searchLower = searchTerm.toLowerCase();
+
+    // 모든 서버의 명령어 검색
+    for (const [serverId, serverConfig] of Object.entries(serverCommandsMap)) {
+      const allCommands = [
+        ...serverConfig.commands.basic,
+        ...serverConfig.commands.advanced,
+        ...serverConfig.commands.troubleshooting
+      ];
+
+      for (const cmd of allCommands) {
+        if (cmd.command.toLowerCase().includes(searchLower) ||
+            cmd.description.toLowerCase().includes(searchLower)) {
+          
+          // 중복 방지
+          const exists = foundCommands.find(f => 
+            f.command === cmd.command && f.description === cmd.description
+          );
+          
+          if (!exists) {
+            foundCommands.push({
+              command: cmd.command,
+              description: `${cmd.description} (${serverConfig.os})`,
+              category: cmd.category,
+              confidence: 0.8,
+              usage_example: cmd.usage || cmd.example || cmd.command,
+              related_commands: cmd.alternatives
+            });
+          }
+        }
+      }
+    }
+
+    return foundCommands;
   }
 
   /**
@@ -1506,6 +1605,15 @@ export class UnifiedAIEngineRouter {
 
     // 1. 명령어 요청 분석
     const analysis = this.analyzeCommandRequest(query);
+    
+    console.log('🔍 명령어 분석 결과:', {
+      query,
+      isCommandRequest: analysis.isCommandRequest,
+      detectedCategories: analysis.detectedCategories,
+      specificCommands: analysis.specificCommands,
+      confidence: analysis.confidence,
+      requestType: analysis.requestType
+    });
 
     // 2. 명령어 추천 생성
     let recommendations = await this.generateCommandRecommendations(analysis);
@@ -1524,13 +1632,7 @@ export class UnifiedAIEngineRouter {
 
     return {
       recommendations,
-      analysis: includeAnalysis ? analysis : {
-        isCommandRequest: analysis.isCommandRequest,
-        detectedCategories: [],
-        specificCommands: [],
-        confidence: analysis.confidence,
-        requestType: analysis.requestType
-      },
+      analysis,
       formattedResponse
     };
   }
