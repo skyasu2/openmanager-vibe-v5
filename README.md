@@ -1,5 +1,7 @@
 # 🌐 OpenManager VIBE v5
 
+> **작성일**: 2025년 5월 25일 | **최종 수정일**: 2025년 8월 5일
+
 > **AI 기반 실시간 서버 모니터링 플랫폼** - 포트폴리오 프로젝트 | 바이브 코딩 대회 출품작 (2025.06)
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)

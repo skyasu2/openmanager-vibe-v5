@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Project guidance for Claude Code (claude.ai/code) when working with this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 📚 **Claude Code 공식 문서**: https://docs.anthropic.com/en/docs/claude-code/overview
 
@@ -12,7 +12,7 @@ Project guidance for Claude Code (claude.ai/code) when working with this reposit
 
 - 100% 무료 티어로 운영 (Vercel + GCP + Supabase)
 - 엔터프라이즈급 성능 (152ms 응답, 99.95% 가동률)
-- Next.js 15 + App Router + React 18.2.0 + TypeScript strict mode
+- Next.js 15 + App Router + React 18.3.1 + TypeScript strict mode
 
 ### 무료 티어 아키텍처
 
@@ -29,14 +29,24 @@ Project guidance for Claude Code (claude.ai/code) when working with this reposit
 - 🔐 **인증**: GitHub OAuth 기반 접근 제어
 - 📈 **대시보드**: 반응형 UI, 실시간 차트, 알림 시스템
 
-### 🚀 CI/CD 파이프라인 (2025 Non-blocking 표준)
+### 🚀 CI/CD 파이프라인 (2025 표준 - 70% 속도 향상)
 
-**핵심 원칙**: "배포를 막지 마라" - 모든 검증은 경고만, 실제 차단 없음
+**핵심 원칙**: "배포를 막지 마라" - 필수 검증만 실제 차단, 나머지는 경고
 
 - **Fast Track 배포**: `[skip ci]` 또는 `[build-skip]` 플래그로 2-7분 내 배포
-- **Non-blocking 검증**: TypeScript, ESLint, 테스트 실패해도 배포 진행
-- **GitHub Actions 성공률 100%**: 항상 초록색 표시, 빨간 X 완전 제거
+- **CI/CD Lightweight**: 필수 검증만 실패 처리, TypeScript는 경고만
+- **GitHub Actions 최적화**: 불필요한 "항상 성공" 처리 제거, 실질적 검증 중심
 - **성능**: 70% 속도 향상 (이전 15분 → 현재 2-10분)
+- **개발자 경험**: commit early, commit often 가능, `HUSKY=0`로 모든 검사 스킵 가능
+
+#### 🪝 Git Hooks 최적화 (2025 베스트 프랙티스)
+
+- **Pre-commit**: 8-18초 → 2-5초 (70% 단축)
+  - 핵심만 유지: lint-staged + 하드코딩 시크릿 검사
+  - TDD/Storybook/문서 시크릿 검사 제거
+- **Pre-push**: 5-10초 → 2-3초 (60% 단축)
+  - 간단한 대화형 옵션만 유지
+  - 복잡한 에러 처리 및 서브에이전트 추천 제거
 
 ## 🛠️ 개발 환경
 
@@ -319,7 +329,7 @@ export async function getServerMetrics(serverId: string) {
 // 메모리 기반 세션 (system/status API 참조)
 class MemorySessionManager {
   private sessions = new Map<string, SessionData>();
-  
+
   create(userId: string, data: any): string {
     const sessionId = crypto.randomUUID();
     this.sessions.set(sessionId, {
@@ -330,7 +340,7 @@ class MemorySessionManager {
     });
     return sessionId;
   }
-  
+
   get(sessionId: string): SessionData | null {
     return this.sessions.get(sessionId) || null;
   }
@@ -344,17 +354,17 @@ class MemorySessionManager {
 class MemoryLogStorage {
   private logs: AILogEntry[] = [];
   private maxSize = 1000;
-  
+
   addLog(log: AILogEntry): void {
     this.logs.unshift(log);
     if (this.logs.length > this.maxSize) {
       this.logs = this.logs.slice(0, this.maxSize);
     }
   }
-  
+
   getLogs(count: number, level?: string): AILogEntry[] {
     return this.logs
-      .filter(log => !level || log.level === level)
+      .filter((log) => !level || log.level === level)
       .slice(0, count);
   }
 }
@@ -362,12 +372,12 @@ class MemoryLogStorage {
 
 ### 성능 특징
 
-| 항목 | Memory Cache | 특징 |
-|------|--------------|------|
-| 응답 시간 | <1ms | 🚀 초고속 |
-| 네트워크 | 불필요 | 📡 지연 없음 |
-| 의존성 | 내장 | 🔧 단순함 |
-| 비용 | $0 | 💰 완전 무료 |
+| 항목      | Memory Cache | 특징         |
+| --------- | ------------ | ------------ |
+| 응답 시간 | <1ms         | 🚀 초고속    |
+| 네트워크  | 불필요       | 📡 지연 없음 |
+| 의존성    | 내장         | 🔧 단순함    |
+| 비용      | $0           | 💰 완전 무료 |
 
 상세 구현: [`/src/lib/cache-helper.ts`](/src/lib/cache-helper.ts)
 
@@ -416,7 +426,7 @@ const timeInfo = await mcp__time__get_current_time({
 
 ## 🔧 MCP 서버 (11개) - Claude Code CLI 설정
 
-### 현재 활성화된 MCP 서버 (2025.8.3 기준)
+### 현재 활성화된 MCP 서버 (2025.8.5 기준)
 
 | 서버명                | 상태         | 용도                   | 패키지                                                    |
 | --------------------- | ------------ | ---------------------- | --------------------------------------------------------- |
@@ -526,7 +536,7 @@ claude api restart
 | 프로젝트 규칙     | `quality-control-checker`    | CLAUDE.md 준수, 파일 크기, SOLID     |
 | 구조 설계         | `structure-refactor-agent`   | 중복 검출, 모듈 구조, 리팩토링       |
 | 보안 검사         | `security-auditor`           | 취약점 탐지, 보안 감사               |
-| DB 최적화         | `database-administrator`     | Supabase PostgreSQL 전문 관리       |
+| DB 최적화         | `database-administrator`     | Supabase PostgreSQL 전문 관리        |
 | 성능 개선         | `ux-performance-optimizer`   | Core Web Vitals                      |
 | 테스트            | `test-automation-specialist` | 테스트 작성/수정                     |
 | TDD 강제          | `test-first-developer`       | 테스트 우선 개발 강제                |
@@ -538,6 +548,7 @@ claude api restart
 | Gemini CLI 전문가 | `gemini-cli-collaborator`    | Gemini CLI 대화형 분석, 1M 토큰 활용 |
 | 백엔드 개발       | `backend-gcp-specialist`     | GCP Functions, Python 백엔드         |
 | Git/CI/CD         | `git-cicd-specialist`        | Git 워크플로우, CI/CD 자동화         |
+| 디자인 시스템     | `design-system-specialist`   | Storybook, UI 컴포넌트 시스템        |
 
 ### 📁 서브 에이전트 설정 위치
 

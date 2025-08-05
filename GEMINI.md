@@ -1,5 +1,7 @@
 # GEMINI.md
 
+> **작성일**: 2025년 6월 1일 | **최종 수정일**: 2025년 8월 5일
+
 Gemini CLI 사용 가이드 및 Claude Code Sub Agent 협업 방법
 
 > **🔄 2025년 7월 업데이트**: Gemini CLI는 Claude Code의 **👨‍💻 Senior Code Architect** Sub Agent로 통합되어 아키텍처 리뷰와 코드 품질 검토를 담당합니다.

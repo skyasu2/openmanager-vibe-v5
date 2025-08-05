@@ -13,6 +13,7 @@
 ### 1. 루트 디렉토리 정리
 
 #### 이동된 파일들:
+
 - `ENV-BACKUP-GUIDE.md` → `/docs/development/`
 - `SECURITY-SUMMARY.md` → `/docs/security/github-token-security-summary.md`
 - `mcp-status-report-2025-07-27.md` → `/docs/reports/mcp/`
@@ -22,11 +23,13 @@
 - `CHANGELOG-ARCHIVE.md` → `/docs/archive/`
 
 #### 삭제된 파일들:
+
 - `agent_analysis.md` (빈 파일)
 
 ### 2. /docs 디렉토리 내부 정리
 
 #### 이동된 파일들:
+
 - `PLATFORM-ACCESS-GUIDE.md` → `/docs/quick-start/platform-access-guide.md`
 - `PROJECT-STRUCTURE.md` → `/docs/development/project-structure.md`
 - `SCRIPT-COMMANDS-VERIFICATION-REPORT.md` → `/docs/reports/script-commands-verification-report.md`
@@ -34,6 +37,7 @@
 - `free-tier-optimization-report.md` → `/docs/reports/`
 
 #### 아카이브된 파일들:
+
 - `DEVELOPMENT-JOURNEY-BLOG-POST.md` → `/docs/archive/2025-01-28/`
 
 ### 3. 중복 문서 제거
@@ -43,13 +47,16 @@
 ## 📊 최종 결과
 
 ### 루트 디렉토리 상태
+
 ✅ **필수 문서 4개만 유지** (JBGE 원칙 준수):
+
 - `README.md`
 - `CHANGELOG.md`
 - `CLAUDE.md`
 - `GEMINI.md`
 
 ### 문서 구조 개선
+
 - **보고서**: `/docs/reports/` 하위에 체계적으로 분류
 - **MCP 관련**: `/docs/reports/mcp/` 전용 폴더 생성
 - **아카이브**: `/docs/archive/2025-01-28/` 날짜별 관리
@@ -58,14 +65,17 @@
 ## 🔍 품질 평가
 
 ### DRY 원칙 적용
+
 - ✅ 중복 문서 제거 완료
 - ✅ 유사 내용 통합 완료
 
 ### 문서 접근성
+
 - ✅ 논리적 폴더 구조로 재구성
 - ✅ 관련 문서끼리 그룹핑
 
 ### 유지보수성
+
 - ✅ 날짜별 아카이브 시스템 구축
 - ✅ 보고서 전용 폴더 생성
 
