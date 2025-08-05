@@ -11,9 +11,8 @@
  * - 다양한 명령어 시나리오 테스트
  */
 
-import { SimplifiedQueryEngine } from '../src/services/ai/SimplifiedQueryEngine';
+import { SimplifiedQueryEngine, type QueryRequest } from '../src/services/ai/SimplifiedQueryEngine';
 import { getUnifiedAIRouter } from '../src/services/ai/UnifiedAIEngineRouter';
-import type { QueryRequest } from '../src/types/ai.types';
 
 console.log('🧪 명령어 추천 시스템 통합 테스트 시작...\n');
 
@@ -131,7 +130,11 @@ async function testCommandDetection() {
       // query() 메서드를 통해 간접적으로 테스트
       const request: QueryRequest = {
         query: testCase.query,
-        mode: 'local'
+        options: {
+          temperature: 0.3,
+          maxTokens: 1000,
+          stream: false
+        }
       };
 
       // 실제 쿼리 실행으로 명령어 감지 확인
@@ -185,12 +188,10 @@ async function testCommandRecommendations() {
       
       const request: QueryRequest = {
         query: testCase.query,
-        mode: 'local',
         options: {
-          commandContext: {
-            isCommandRequest: true,
-            requestType: 'command_request'
-          }
+          temperature: 0.3,
+          maxTokens: 1000,
+          stream: false
         }
       };
 
@@ -272,7 +273,7 @@ async function testUnifiedAIEngineRouter() {
           // 첫 번째 추천 명령어 미리보기
           if (result.recommendations[0]) {
             const firstCmd = result.recommendations[0];
-            console.log(`   첫 번째 추천: ${firstCmd.command} (${firstCmd.riskLevel})`);
+            console.log(`   첫 번째 추천: ${firstCmd.command} (설명: ${firstCmd.description})`);
           }
           
           successCount++;
@@ -315,12 +316,10 @@ async function performanceBenchmark() {
       
       const result = await engine.query({
         query: testQuery,
-        mode: 'local',
         options: {
-          commandContext: {
-            isCommandRequest: true,
-            requestType: 'command_request'
-          }
+          temperature: 0.3,
+          maxTokens: 1000,
+          stream: false
         }
       });
       

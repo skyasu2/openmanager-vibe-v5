@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     const categoryStats = await postgresVectorDB.getCategoryStats();
 
     // 5. 인덱스 정보 확인
-    const { data: indexes } = await postgresVectorDB['supabase']
+    const { data: indexes } = await (postgresVectorDB as any)['supabase']
       .from('pg_indexes')
       .select('indexname, indexdef')
       .eq('tablename', 'command_vectors');
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
         tableSize: '32KB', // 고정값 (실제로는 쿼리 필요)
       },
       optimizations: {
-        indexes: indexes?.map(idx => idx.indexname) || [],
+        indexes: indexes?.map((idx: any) => idx.indexname) || [],
         cacheSettings: {
           embeddingCacheSize: 500,
           searchCacheSize: 100,

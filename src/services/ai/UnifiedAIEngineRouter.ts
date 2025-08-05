@@ -637,7 +637,7 @@ export class UnifiedAIEngineRouter {
       return {
         success: data.success,
         response: finalResponse,
-        engine: 'korean-nlp' as const, // 명령어 추천도 Korean NLP 엔진으로 분류
+        engine: 'local-rag' as const, // 명령어 추천도 Local RAG 엔진으로 분류
         confidence: commandContext.isCommandRequest 
           ? Math.max(commandContext.confidence, data.data?.quality_metrics?.confidence || 0.8)
           : data.data?.quality_metrics?.confidence || 0.8,

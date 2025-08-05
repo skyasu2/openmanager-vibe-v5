@@ -897,7 +897,7 @@ export class SimplifiedQueryEngine {
    */
   private detectCommandQuery(
     query: string, 
-    commandContext?: QueryRequest['options']['commandContext']
+    commandContext?: any
   ): boolean {
     // 1. commandContext가 명시적으로 제공된 경우
     if (commandContext?.isCommandRequest) {
@@ -943,7 +943,7 @@ export class SimplifiedQueryEngine {
    */
   private async processCommandQuery(
     query: string,
-    commandContext: QueryRequest['options']['commandContext'] | undefined,
+    commandContext: any,
     thinkingSteps: QueryResponse['thinkingSteps'],
     startTime: number
   ): Promise<QueryResponse> {

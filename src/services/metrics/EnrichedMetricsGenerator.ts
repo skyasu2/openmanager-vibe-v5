@@ -11,7 +11,7 @@
 
 import type { EnhancedServerMetrics } from '../../types/server';
 // BaselineStorageService removed - using FixedDataSystem instead
-import { LongRunningScenarioEngine } from '../vm/LongRunningScenarioEngine';
+// LongRunningScenarioEngine removed - using direct scenario generation
 
 interface BaselineData {
   pattern_multiplier?: number;
@@ -157,7 +157,8 @@ export class EnrichedMetricsGenerator {
   // 🔄 VM 환경 최적화
   // private baselineStorage = BaselineStorageService.getInstance(); // BaselineStorageService removed
   private baselineStorage: BaselineStorage | null = null;
-  private scenarioEngine = new LongRunningScenarioEngine();
+  // LongRunningScenarioEngine removed - using direct scenario generation
+  private scenarioEngine: any = null;
 
   // 🕐 24시간 연속 운영 (기존 30분 제한 제거)
   private updateInterval: NodeJS.Timeout | null = null;

@@ -198,7 +198,7 @@ export class PostgresVectorDB {
 
         // 메타데이터 필터가 있는 경우 클라이언트 사이드에서 추가 필터링
         if (Object.keys(metadata_filter).length > 0) {
-          return (data || []).filter(item => {
+          return (data || []).filter((item: any) => {
             return Object.entries(metadata_filter).every(([key, value]) => {
               return item.metadata && item.metadata[key] === value;
             });

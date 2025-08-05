@@ -77,20 +77,23 @@ async function testPgvector() {
       console.log(`  - 속도 향상: ${speedup.toFixed(1)}x ${speedup > 1 ? '🚀' : ''}`);
     }
 
-    // 5. 인덱스 정보 확인
+    // 5. 인덱스 정보 확인 (try-catch로 안전 처리)
     console.log('\n\n🔍 인덱스 정보:');
-    const { data: indexes, error: indexError } = await supabase
-      .rpc('get_indexes', {
-        table_name: 'command_vectors'
-      })
-      .catch(() => ({ data: null, error: 'Function not available' }));
+    try {
+      const { data: indexes, error: indexError } = await supabase
+        .rpc('get_indexes', {
+          table_name: 'command_vectors'
+        });
 
-    if (indexes && !indexError) {
-      indexes.forEach((idx: any) => {
-        console.log(`  - ${idx.indexname}`);
-      });
-    } else {
-      console.log('  - 인덱스 정보를 가져올 수 없습니다');
+      if (indexes && !indexError) {
+        indexes.forEach((idx: any) => {
+          console.log(`  - ${idx.indexname}`);
+        });
+      } else {
+        console.log('  - 인덱스 정보를 가져올 수 없습니다');
+      }
+    } catch (indexFetchError) {
+      console.log('  - 인덱스 정보 함수를 사용할 수 없습니다');
     }
 
     // 6. 총 문서 수 확인
