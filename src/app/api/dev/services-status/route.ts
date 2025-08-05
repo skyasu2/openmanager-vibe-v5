@@ -1,5 +1,6 @@
 import { devKeyManager } from '@/utils/dev-key-manager';
 import { supabase } from '@/lib/supabase/supabase-client';
+import { getSupabaseEnv } from '@/lib/env-safe';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
@@ -30,6 +31,9 @@ interface ServicesStatusResponse {
 async function checkSupabase(): Promise<ServiceStatus> {
   const startTime = Date.now();
   try {
+    // 안전한 환경 변수 가져오기
+    const { url: supabaseUrl } = getSupabaseEnv();
+    
     // 중앙 집중식 Supabase 클라이언트 사용 (환경 변수 검증 포함)
     const { error } = await supabase
       .from('system_logs')
@@ -53,7 +57,7 @@ async function checkSupabase(): Promise<ServiceStatus> {
       status: 'connected',
       responseTime,
       details: {
-        url: supabaseUrl,
+        url: supabaseUrl === 'https://dummy.supabase.co' ? '미설정 (Mock)' : '설정됨',
         region: 'Seoul-DC-1',
         database: 'postgres',
         connection: 'pooler',
