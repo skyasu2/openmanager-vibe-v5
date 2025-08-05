@@ -1,19 +1,19 @@
 /**
  * 🔄 Supabase Realtime Adapter
- * 
+ *
  * Redis Streams를 대체하는 Supabase Realtime 기반 어댑터
  * - PostgreSQL 영구 저장
  * - WebSocket 실시간 구독
  * - RLS 보안 적용
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/supabase-client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import type { ThinkingStep, AIServiceType, ProcessingStatus } from '../interfaces/distributed-ai.interface';
-
-// Supabase 클라이언트 설정
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+import type {
+  ThinkingStep,
+  AIServiceType,
+  ProcessingStatus,
+} from '../interfaces/distributed-ai.interface';
 
 // 테이블 타입 정의
 interface ThinkingStepRecord {
@@ -31,11 +31,10 @@ interface ThinkingStepRecord {
 }
 
 export class SupabaseRealtimeAdapter {
-  private supabase;
   private channels: Map<string, RealtimeChannel> = new Map();
 
   constructor() {
-    this.supabase = createClient(supabaseUrl, supabaseAnonKey);
+    // Using centralized supabase client with proper env handling
   }
 
   /**
@@ -47,7 +46,7 @@ export class SupabaseRealtimeAdapter {
     userId?: string
   ): Promise<string> {
     try {
-      const { data, error } = await this.supabase
+      const { data, error } = await supabase
         .from('thinking_steps')
         .insert({
           session_id: sessionId,
@@ -83,7 +82,7 @@ export class SupabaseRealtimeAdapter {
     updates: Partial<ThinkingStep>
   ): Promise<void> {
     try {
-      const { error } = await this.supabase
+      const { error } = await supabase
         .from('thinking_steps')
         .update({
           status: updates.status,
@@ -110,7 +109,7 @@ export class SupabaseRealtimeAdapter {
     afterId?: string
   ): Promise<ThinkingStep[]> {
     try {
-      let query = this.supabase
+      let query = supabase
         .from('thinking_steps')
         .select('*')
         .eq('session_id', sessionId)
@@ -118,7 +117,7 @@ export class SupabaseRealtimeAdapter {
 
       if (afterId) {
         // afterId 이후의 단계만 조회
-        const { data: afterStep } = await this.supabase
+        const { data: afterStep } = await supabase
           .from('thinking_steps')
           .select('created_at')
           .eq('id', afterId)
@@ -159,7 +158,7 @@ export class SupabaseRealtimeAdapter {
       }
 
       // 새 채널 생성
-      const channel = this.supabase
+      const channel = supabase
         .channel(`thinking-steps:${sessionId}`)
         .on(
           'postgres_changes',
@@ -170,7 +169,9 @@ export class SupabaseRealtimeAdapter {
             filter: `session_id=eq.${sessionId}`,
           },
           (payload) => {
-            const step = this.mapToThinkingStep(payload.new as ThinkingStepRecord);
+            const step = this.mapToThinkingStep(
+              payload.new as ThinkingStepRecord
+            );
             onStep(step);
           }
         )
@@ -183,12 +184,18 @@ export class SupabaseRealtimeAdapter {
             filter: `session_id=eq.${sessionId}`,
           },
           (payload) => {
-            const step = this.mapToThinkingStep(payload.new as ThinkingStepRecord);
+            const step = this.mapToThinkingStep(
+              payload.new as ThinkingStepRecord
+            );
             onStep(step);
           }
         )
         .subscribe((status) => {
-          if (status === 'SUBSCRIBED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          if (
+            status === 'SUBSCRIBED' ||
+            status === 'CHANNEL_ERROR' ||
+            status === 'TIMED_OUT'
+          ) {
             // Supabase Realtime의 실제 상태값들
             if (status !== 'SUBSCRIBED') {
               onError?.(new Error(`Subscription failed: ${status}`));
@@ -215,7 +222,7 @@ export class SupabaseRealtimeAdapter {
    */
   async clearSession(sessionId: string): Promise<void> {
     try {
-      const { error } = await this.supabase
+      const { error } = await supabase
         .from('thinking_steps')
         .delete()
         .eq('session_id', sessionId);
@@ -239,7 +246,7 @@ export class SupabaseRealtimeAdapter {
     userId?: string
   ): Promise<string[]> {
     try {
-      const records = steps.map(step => ({
+      const records = steps.map((step) => ({
         session_id: sessionId,
         step: step.step,
         description: step.description,
@@ -251,7 +258,7 @@ export class SupabaseRealtimeAdapter {
         metadata: {},
       }));
 
-      const { data, error } = await this.supabase
+      const { data, error } = await supabase
         .from('thinking_steps')
         .insert(records)
         .select('id');
@@ -261,9 +268,12 @@ export class SupabaseRealtimeAdapter {
         throw error;
       }
 
-      return (data || []).map(record => record.id);
+      return (data || []).map((record) => record.id);
     } catch (error) {
-      console.error('SupabaseRealtimeAdapter.addThinkingStepsBatch error:', error);
+      console.error(
+        'SupabaseRealtimeAdapter.addThinkingStepsBatch error:',
+        error
+      );
       throw error;
     }
   }
@@ -272,7 +282,7 @@ export class SupabaseRealtimeAdapter {
    * 모든 채널 정리
    */
   cleanup(): void {
-    this.channels.forEach(channel => channel.unsubscribe());
+    this.channels.forEach((channel) => channel.unsubscribe());
     this.channels.clear();
   }
 
