@@ -15,14 +15,14 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     icon: Bot,
     gradient: 'from-purple-500 via-indigo-500 to-cyan-400',
     detailedContent: {
-      overview: `v5.66.22 - 실시간 AI 어시스턴트! 대시보드 사이드바에서 한국어로 자연스럽게 질문하고 즉시 답변받으세요. 서버 상태 분석, 이상 징후 감지, 성능 예측까지.`,
+      overview: `v5.66.22 - 로컬 AI 기본 실시간 어시스턴트! 대시보드 사이드바에서 한국어로 서버 상태를 분석하고 즉시 답변받으세요. 모든 기능은 로컬 AI로 작동, 선택적으로 Google AI 모드 전환 가능.`,
       features: [
-        '🤖 실시간 AI 사이드바: 대시보드에서 항상 대기 중인 AI 어시스턴트',
-        '🇰🇷 한국어 자연어 처리: "CPU 높은 서버?", "메모리 부족한 VM?"',
-        '📊 서버 상태 분석: 실시간 메트릭 기반 지능형 분석 및 답변',
-        '🚨 이상 징후 감지: 패턴 분석으로 문제 사전 예방 알림',
-        '🆓 LOCAL 모드: Supabase pgVector + 한국어 엔진 (완전 무료)',
-        '🚀 GOOGLE 모드: Gemini 2.0 Flash로 고급 분석 (일 1,000회 무료)',
+        '🤖 로컬 AI 기본 사이드바: 대시보드에서 항상 대기 중인 어시스턴트',
+        '📊 서버 상태 분석: 로컬 AI로 실시간 메트릭 분석 및 답변',
+        '🚨 이상 징후 감지: 로컬 AI로 패턴 분석 및 예방 알림',
+        '🇰🇷 한국어 자연어 질의: "CPU 높은 서버?", "메모리 부족한 VM?" (로컬 AI 기본)',
+        '🆓 로컬 AI 모드: Supabase pgVector + 한국어 엔진 (완전 무료, 기본값)',
+        '🌍 구글 AI 모드: 선택적 전환으로 Gemini 2.0 Flash 고급 분석',
       ],
       technologies: [
         '2-Mode System',
@@ -39,7 +39,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'fullstack-ecosystem',
     title: '🏗️ 클라우드 플랫폼 활용',
     description:
-      'Vercel + Supabase + GCP. 프론트엔드부터 AI 서버까지 통합된 현대적 클라우드 개발 플랫폼 - 100% 무료 티어로 운영',
+      'Vercel, Supabase, GCP 무료 티어만으로 하나의 통합된 클라우드 기반 포트폴리오용 AI 프로토타입을 구축했습니다.',
     icon: Database,
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {

@@ -39,6 +39,12 @@ export interface QueryRequest {
     category?: string;
     cached?: boolean;
     timeoutMs?: number; // 타임아웃 설정
+    commandContext?: {
+      isCommandRequest?: boolean;
+      categories?: string[];
+      specificCommands?: string[];
+      requestType?: 'command_inquiry' | 'command_usage' | 'command_request' | 'general';
+    };
   };
 }
 
@@ -178,6 +184,37 @@ export class SimplifiedQueryEngine {
           processingTime: Date.now() - startTime,
         };
       }
+
+      // 🔥 NEW: 명령어 쿼리 감지 및 처리
+      const commandStepStart = Date.now();
+      thinkingSteps.push({
+        step: '명령어 감지',
+        description: '명령어 관련 쿼리인지 확인',
+        status: 'pending',
+        timestamp: commandStepStart,
+      });
+
+      // 명령어 관련 키워드 감지
+      const isCommandQuery = this.detectCommandQuery(query, options.commandContext);
+      
+      if (isCommandQuery) {
+        thinkingSteps[thinkingSteps.length - 1].status = 'completed';
+        thinkingSteps[thinkingSteps.length - 1].description = '명령어 쿼리로 감지됨';
+        thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - commandStepStart;
+
+        // 명령어 전용 처리
+        return await this.processCommandQuery(
+          query,
+          options.commandContext,
+          thinkingSteps,
+          startTime
+        );
+      } else {
+        thinkingSteps[thinkingSteps.length - 1].status = 'completed';
+        thinkingSteps[thinkingSteps.length - 1].description = '일반 쿼리로 판단';
+        thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - commandStepStart;
+      }
+      // 🔥 END: 명령어 쿼리 처리
 
       // 1단계: 쿼리 복잡도 분석 (자동 모드일 때)
       const complexityStartTime = Date.now();
@@ -853,6 +890,198 @@ export class SimplifiedQueryEngine {
       thinkingSteps,
       processingTime: Date.now() - startTime,
     };
+  }
+
+  /**
+   * 🔍 명령어 쿼리 감지
+   */
+  private detectCommandQuery(
+    query: string, 
+    commandContext?: QueryRequest['options']['commandContext']
+  ): boolean {
+    // 1. commandContext가 명시적으로 제공된 경우
+    if (commandContext?.isCommandRequest) {
+      return true;
+    }
+
+    // 2. 명령어 관련 키워드 패턴 감지
+    const commandKeywords = [
+      // 한국어 패턴
+      /명령어?\s*(어떻?게|어떤|무엇|뭐|추천|알려)/i,
+      /어떤?\s*명령어?/i,
+      /(실행|사용|입력)해야?\s*할?\s*명령어?/i,
+      /(서버|시스템)\s*(관리|모니터링|점검|확인)\s*명령어?/i,
+      /리눅스|윈도우|도커|쿠버네티스.*명령어?/i,
+      
+      // 영어 패턴
+      /what\s+(command|cmd)/i,
+      /how\s+to\s+(run|execute|use)/i,
+      /(server|system)\s+(command|cmd)/i,
+      /(linux|windows|docker|k8s|kubectl)\s+(command|cmd)/i,
+      
+      // 구체적 명령어 언급
+      /\b(top|htop|ps|grep|find|df|free|netstat|systemctl|docker|kubectl)\b/i,
+    ];
+
+    // 3. 키워드 매칭
+    const hasKeyword = commandKeywords.some(pattern => pattern.test(query));
+    if (hasKeyword) {
+      return true;
+    }
+
+    // 4. 서버 ID + 명령어 패턴 감지
+    const serverCommandPattern = /(web-prd|app-prd|db-main|db-repl|file-nas|backup).*명령어?/i;
+    if (serverCommandPattern.test(query)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * 🛠️ 명령어 쿼리 전용 처리
+   */
+  private async processCommandQuery(
+    query: string,
+    commandContext: QueryRequest['options']['commandContext'] | undefined,
+    thinkingSteps: QueryResponse['thinkingSteps'],
+    startTime: number
+  ): Promise<QueryResponse> {
+    const commandStepStart = Date.now();
+    
+    // 명령어 분석 단계 추가
+    thinkingSteps.push({
+      step: '명령어 분석',
+      description: '명령어 요청 세부 분석 중',
+      status: 'pending',
+      timestamp: commandStepStart,
+    });
+
+    try {
+      // UnifiedAIEngineRouter 인스턴스 가져오기 (동적 import로 순환 참조 방지)
+      const { getUnifiedAIRouter } = await import('./UnifiedAIEngineRouter');
+      const aiRouter = getUnifiedAIRouter();
+
+      // 명령어 추천 시스템 사용
+      const recommendationResult = await aiRouter.getCommandRecommendations(query, {
+        maxRecommendations: 5,
+        includeAnalysis: true,
+      });
+
+      thinkingSteps[thinkingSteps.length - 1].status = 'completed';
+      thinkingSteps[thinkingSteps.length - 1].description = 
+        `${recommendationResult.recommendations.length}개 명령어 추천 생성`;
+      thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - commandStepStart;
+
+      // 응답 생성
+      const responseStepStart = Date.now();
+      thinkingSteps.push({
+        step: '명령어 응답 생성',
+        description: '명령어 추천 응답 포맷팅',
+        status: 'pending',
+        timestamp: responseStepStart,
+      });
+
+      // 신뢰도 계산 (명령어 감지 정확도 기반)
+      const confidence = Math.min(
+        recommendationResult.analysis.confidence + 0.2, // 명령어 시스템 보너스
+        0.95
+      );
+
+      thinkingSteps[thinkingSteps.length - 1].status = 'completed';
+      thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - responseStepStart;
+
+      return {
+        success: true,
+        response: recommendationResult.formattedResponse,
+        engine: 'local-rag', // 명령어는 로컬 처리
+        confidence,
+        thinkingSteps,
+        metadata: {
+          commandMode: true,
+          recommendationCount: recommendationResult.recommendations.length,
+          analysisResult: recommendationResult.analysis,
+          requestType: commandContext?.requestType || 'command_request',
+        } as AIMetadata & { 
+          commandMode?: boolean;
+          recommendationCount?: number;
+          analysisResult?: any;
+          requestType?: string;
+        },
+        processingTime: Date.now() - startTime,
+      };
+
+    } catch (error) {
+      console.error('❌ 명령어 처리 실패:', error);
+      
+      thinkingSteps[thinkingSteps.length - 1].status = 'failed';
+      thinkingSteps[thinkingSteps.length - 1].description = '명령어 분석 실패';
+      thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - commandStepStart;
+
+      // 폴백: 기본 명령어 안내
+      const fallbackResponse = this.generateCommandFallbackResponse(query);
+      
+      return {
+        success: true,
+        response: fallbackResponse,
+        engine: 'fallback',
+        confidence: 0.3,
+        thinkingSteps,
+        metadata: {
+          commandMode: true,
+          fallback: true,
+        } as AIMetadata & { 
+          commandMode?: boolean;
+          fallback?: boolean;
+        },
+        processingTime: Date.now() - startTime,
+      };
+    }
+  }
+
+  /**
+   * 🚨 명령어 폴백 응답 생성
+   */
+  private generateCommandFallbackResponse(query: string): string {
+    const lowerQuery = query.toLowerCase();
+    
+    // 서버 유형별 기본 명령어 제안
+    if (lowerQuery.includes('linux') || lowerQuery.includes('ubuntu')) {
+      return `Linux 시스템 관리 기본 명령어:\n\n` +
+             `📊 모니터링:\n` +
+             `• top - 실시간 프로세스 모니터링\n` +
+             `• htop - 향상된 프로세스 뷰어\n` +
+             `• free -h - 메모리 사용량 확인\n` +
+             `• df -h - 디스크 사용량 확인\n\n` +
+             `🔍 검색 및 관리:\n` +
+             `• ps aux | grep [프로세스명] - 프로세스 검색\n` +
+             `• systemctl status [서비스명] - 서비스 상태 확인\n` +
+             `• netstat -tuln - 네트워크 포트 확인\n\n` +
+             `자세한 명령어는 "web-prd-01 명령어" 같이 서버를 지정해서 물어보세요.`;
+    }
+
+    if (lowerQuery.includes('windows')) {
+      return `Windows 시스템 관리 기본 명령어:\n\n` +
+             `📊 모니터링 (PowerShell):\n` +
+             `• Get-Process | Sort-Object CPU -Descending - 프로세스 정렬\n` +
+             `• Get-Counter "\\Processor(_Total)\\% Processor Time" - CPU 사용률\n` +
+             `• Get-WmiObject Win32_LogicalDisk - 디스크 사용량\n\n` +
+             `🔍 네트워크 및 서비스:\n` +
+             `• netstat -an | findstr LISTENING - 열린 포트 확인\n` +
+             `• Get-Service | Where-Object {$_.Status -eq "Running"} - 실행 중인 서비스\n\n` +
+             `자세한 명령어는 "file-nas-01 명령어"를 물어보세요.`;
+    }
+
+    // 일반적인 명령어 질문
+    return `서버 관리 명령어를 찾고 계시는군요! 🛠️\n\n` +
+           `다음과 같이 구체적으로 물어보시면 더 정확한 답변을 드릴 수 있습니다:\n\n` +
+           `📋 예시:\n` +
+           `• "web-prd-01 서버 명령어" - Nginx 웹서버 관리 명령어\n` +
+           `• "db-main-01 PostgreSQL 명령어" - 데이터베이스 관리 명령어\n` +
+           `• "app-prd-01 Java 명령어" - Tomcat 애플리케이션 서버 명령어\n` +
+           `• "Docker 컨테이너 명령어" - 컨테이너 관리 명령어\n\n` +
+           `💡 현재 관리 중인 서버: web-prd-01, web-prd-02, app-prd-01, app-prd-02, ` +
+           `db-main-01, db-repl-01, file-nas-01, backup-01`;
   }
 
   /**

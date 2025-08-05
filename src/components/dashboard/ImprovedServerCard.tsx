@@ -23,7 +23,7 @@ import {
 import dynamic from 'next/dynamic';
 import React, { memo, useCallback, useEffect, useState } from 'react';
 import type { Server as ServerType } from '../../types/server';
-import { ServerCardBarChart } from '../shared/ServerMetricsBarChart';
+import { ServerCardLineChart } from '../shared/ServerMetricsLineChart';
 
 // framer-motion을 동적 import로 처리
 const MotionButton = dynamic(
@@ -263,23 +263,23 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
       }
     };
 
-    // 배리언트별 스타일 (막대 그래프에 맞게 높이 조정)
+    // 배리언트별 스타일 (라인 그래프에 최적화)
     const getVariantStyles = () => {
       switch (variant) {
         case 'compact':
           return {
-            container: 'p-4 min-h-[280px]', // 막대 그래프를 위해 280px로 증가
+            container: 'p-4 min-h-[300px]', // 라인 그래프에 최적화
             titleSize: 'text-sm font-semibold',
             metricSize: 'text-xs',
             progressHeight: 'h-2',
             spacing: 'space-y-4',
             showServices: true,
-            maxServices: 2, // 공간 절약을 위해 2개로 조정
+            maxServices: 2,
             showDetails: false,
           };
         case 'detailed':
           return {
-            container: 'p-6 min-h-[360px]', // 막대 그래프를 위해 360px로 증가
+            container: 'p-6 min-h-[380px]', // 라인 그래프에 최적화
             titleSize: 'text-lg font-bold',
             metricSize: 'text-sm',
             progressHeight: 'h-3',
@@ -290,7 +290,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
           };
         default: // standard
           return {
-            container: 'p-5 min-h-[320px]', // 막대 그래프를 위해 320px로 증가
+            container: 'p-5 min-h-[340px]', // 라인 그래프에 최적화
             titleSize: 'text-base font-semibold',
             metricSize: 'text-sm',
             progressHeight: 'h-2.5',
@@ -387,27 +387,27 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
           </MotionDiv>
         </div>
 
-        {/* 메트릭 섹션 - 막대 그래프로 최근 5분간 데이터 표시 */}
+        {/* 메트릭 섹션 - 라인 그래프로 최근 5분간 데이터 표시 */}
         <div className={`grid grid-cols-2 gap-4 ${getVariantStyles().spacing}`}>
-          <ServerCardBarChart
+          <ServerCardLineChart
             label="CPU"
             value={realtimeMetrics.cpu}
             type="cpu"
             showRealTimeUpdates={showRealTimeUpdates}
           />
-          <ServerCardBarChart
+          <ServerCardLineChart
             label="메모리"
             value={realtimeMetrics.memory}
             type="memory"
             showRealTimeUpdates={showRealTimeUpdates}
           />
-          <ServerCardBarChart
+          <ServerCardLineChart
             label="디스크"
             value={realtimeMetrics.disk}
             type="disk"
             showRealTimeUpdates={showRealTimeUpdates}
           />
-          <ServerCardBarChart
+          <ServerCardLineChart
             label="네트워크"
             value={realtimeMetrics.network}
             type="network"

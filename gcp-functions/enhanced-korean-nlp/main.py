@@ -108,6 +108,16 @@ class EnhancedKoreanNLPEngine:
                 'analyze': ['interpret', 'review', 'evaluate', 'diagnose', '분석', '평가', '진단', '검토'],
                 'optimize': ['improve', 'tuning', 'performance improvement', '최적화', '개선', '튜닝'],
                 'monitor': ['surveillance', 'tracking', 'observation', '모니터링', '감시', '추적', '관찰']
+            },
+            'commands': {
+                'monitoring': ['top', 'htop', 'ps', 'free', 'df', 'iostat', 'vmstat', 'netstat', 'ss', '프로세스', '메모리', '디스크', '네트워크'],
+                'service': ['systemctl', 'service', 'start', 'stop', 'restart', 'reload', 'status', '시작', '중지', '재시작', '상태'],
+                'log': ['tail', 'journalctl', 'log', 'syslog', 'messages', '로그', '기록', '추적'],
+                'network': ['ping', 'traceroute', 'nslookup', 'dig', 'curl', 'wget', 'ifconfig', 'ip', '핑', '추적경로'],
+                'disk': ['du', 'lsblk', 'fdisk', 'mount', 'umount', '용량', '마운트'],
+                'process': ['kill', 'killall', 'nice', 'renice', 'nohup', '종료', '우선순위'],
+                'system': ['uname', 'hostname', 'uptime', 'reboot', 'shutdown', '시스템정보', '재부팅', '종료'],
+                'command_request': ['명령어', '커맨드', 'command', 'cmd', '실행', '어떻게', '방법', '알려줘', '추천', '제안']
             }
         }
         
@@ -266,6 +276,9 @@ class EnhancedKoreanNLPEngine:
         
         # Time entity extraction
         entities.extend(self._extract_time_entities(query))
+        
+        # Command entity extraction
+        entities.extend(self._extract_command_entities(query))
         
         return {'entities': entities}
 
@@ -499,6 +512,79 @@ class EnhancedKoreanNLPEngine:
                     normalized=time_type
                 ))
                 
+        return entities
+
+    def _extract_command_entities(self, query: str) -> List[Entity]:
+        """Extract command entities with Korean and English command detection"""
+        entities = []
+        
+        # Check for command categories
+        for command_category, synonyms in self.domain_vocabulary['commands'].items():
+            command_matches = []
+            confidence_score = 0.7  # Base confidence
+            
+            for synonym in synonyms:
+                if synonym in query.lower():
+                    command_matches.append(synonym)
+                    
+            if command_matches:
+                # Higher confidence if multiple command terms found
+                if len(command_matches) > 1:
+                    confidence_score = 0.9
+                elif command_category == 'command_request':
+                    confidence_score = 0.95  # High confidence for explicit command requests
+                    
+                entities.append(Entity(
+                    type='command',
+                    value=command_category,
+                    confidence=confidence_score,
+                    normalized=command_category.lower()
+                ))
+                
+                # Also add individual matched commands as separate entities
+                for match in command_matches[:3]:  # Limit to top 3 matches
+                    entities.append(Entity(
+                        type='command_term',
+                        value=match,
+                        confidence=0.8,
+                        normalized=match.lower()
+                    ))
+        
+        # Detect specific Linux/Unix commands
+        linux_commands = [
+            'top', 'htop', 'ps', 'free', 'df', 'iostat', 'vmstat', 'netstat', 'ss',
+            'systemctl', 'service', 'tail', 'journalctl', 'ping', 'traceroute',
+            'nslookup', 'dig', 'curl', 'wget', 'ifconfig', 'ip', 'du', 'lsblk',
+            'kill', 'killall', 'uname', 'hostname', 'uptime'
+        ]
+        
+        query_words = query.lower().split()
+        for word in query_words:
+            if word in linux_commands:
+                entities.append(Entity(
+                    type='linux_command',
+                    value=word,
+                    confidence=0.95,
+                    normalized=word
+                ))
+        
+        # Detect command request patterns in Korean
+        korean_command_patterns = [
+            (r'(\w+)\s*(명령어|커맨드|command)', 'command_request'),
+            (r'(어떻게|어떤|무슨)\s*명령어', 'command_inquiry'),
+            (r'(실행|사용)하는\s*(방법|명령어)', 'command_usage')
+        ]
+        
+        for pattern, command_type in korean_command_patterns:
+            match = re.search(pattern, query)
+            if match:
+                entities.append(Entity(
+                    type='command_pattern',
+                    value=command_type,
+                    confidence=0.85,
+                    normalized=command_type.lower()
+                ))
+        
         return entities
 
     def _identify_target_servers(self, query: str, server_data: Optional[Any] = None) -> List[str]:

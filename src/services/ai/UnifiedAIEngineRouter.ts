@@ -46,6 +46,24 @@ interface KoreanNLPResponse {
   };
 }
 
+// 명령어 추천 관련 타입 정의
+interface CommandRecommendation {
+  command: string;
+  description: string;
+  category: string;
+  confidence: number;
+  usage_example: string;
+  related_commands?: string[];
+}
+
+interface CommandRequestContext {
+  isCommandRequest: boolean;
+  detectedCategories: string[];
+  specificCommands: string[];
+  confidence: number;
+  requestType: 'command_inquiry' | 'command_usage' | 'command_request' | 'general';
+}
+
 export interface RouterConfig {
   // 보안 설정
   enableSecurity: boolean;
@@ -544,7 +562,7 @@ export class UnifiedAIEngineRouter {
     request: QueryRequest
   ): Promise<QueryResponse> {
     try {
-      // GCP Function 호출
+      // 1. GCP Function 호출
       const response = await fetch('/api/ai/korean-nlp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -559,30 +577,129 @@ export class UnifiedAIEngineRouter {
       }
 
       const data = await response.json();
+      const nlpData = data.data as KoreanNLPResponse;
 
-      // 한국어 NLP 결과를 표준 QueryResponse 형태로 변환
+      // 2. 명령어 요청 분석
+      const commandContext = this.analyzeCommandRequest(
+        request.query,
+        nlpData?.entities
+      );
+
+      let finalResponse: string;
+      let thinkingSteps = [
+        {
+          step: '한국어 NLP 분석',
+          description: `의도: ${nlpData?.intent}, 엔티티: ${nlpData?.entities?.length || 0}개`,
+          status: 'completed' as const,
+          timestamp: Date.now(),
+        },
+      ];
+
+      // 3. 명령어 요청인지 확인하고 적절히 처리
+      if (commandContext.isCommandRequest && commandContext.confidence > 0.5) {
+        // 명령어 추천 모드
+        const recommendations = await this.generateCommandRecommendations(commandContext);
+        finalResponse = this.formatCommandRecommendations(
+          recommendations,
+          commandContext,
+          request.query
+        );
+
+        thinkingSteps.push({
+          step: '명령어 요청 감지',
+          description: `카테고리: ${commandContext.detectedCategories.join(', ')}, 신뢰도: ${Math.round(commandContext.confidence * 100)}%`,
+          status: 'completed' as const,
+          timestamp: Date.now(),
+        });
+
+        thinkingSteps.push({
+          step: '명령어 추천 생성',
+          description: `${recommendations.length}개 명령어 추천됨`,
+          status: 'completed' as const,
+          timestamp: Date.now(),
+        });
+      } else {
+        // 일반 NLP 응답 모드
+        finalResponse = this.convertKoreanNLPResponse(nlpData);
+        
+        if (commandContext.isCommandRequest) {
+          thinkingSteps.push({
+            step: '명령어 요청 감지',
+            description: `낮은 신뢰도로 명령어 요청 감지됨 (${Math.round(commandContext.confidence * 100)}%), 일반 응답으로 처리`,
+            status: 'completed' as const,
+            timestamp: Date.now(),
+          });
+        }
+      }
+
+      // 4. 최종 응답 반환
       return {
         success: data.success,
-        response: this.convertKoreanNLPResponse(data.data),
-        engine: 'google-ai' as const, // 한국어 NLP도 Google AI 카테고리로
-        confidence: data.data?.quality_metrics?.confidence || 0.8,
-        thinkingSteps: [
-          {
-            step: '한국어 NLP 분석',
-            description: `의도: ${data.data?.intent}, 엔티티: ${data.data?.entities?.length || 0}개`,
-            status: 'completed',
-            timestamp: Date.now(),
-          },
-        ],
+        response: finalResponse,
+        engine: 'korean-nlp' as const, // 명령어 추천도 Korean NLP 엔진으로 분류
+        confidence: commandContext.isCommandRequest 
+          ? Math.max(commandContext.confidence, data.data?.quality_metrics?.confidence || 0.8)
+          : data.data?.quality_metrics?.confidence || 0.8,
+        thinkingSteps,
         metadata: {
           koreanNLP: true,
+          commandRecommendation: commandContext.isCommandRequest,
+          commandContext: commandContext.isCommandRequest ? {
+            categories: commandContext.detectedCategories,
+            specificCommands: commandContext.specificCommands,
+            requestType: commandContext.requestType,
+            confidence: commandContext.confidence
+          } : undefined,
           processingTime: data.data?.quality_metrics?.processing_time,
         },
         processingTime: data.data?.quality_metrics?.processing_time || 0,
       };
     } catch (error) {
       console.error('Korean NLP 실행 오류:', error);
-      // 로컬 RAG로 폴백
+      
+      // 로컬 폴백 전에 간단한 명령어 추천 시도
+      try {
+        const commandContext = this.analyzeCommandRequest(request.query);
+        if (commandContext.isCommandRequest && commandContext.confidence > 0.6) {
+          const recommendations = await this.generateCommandRecommendations(commandContext);
+          const response = this.formatCommandRecommendations(
+            recommendations,
+            commandContext,
+            request.query
+          );
+
+          return {
+            success: true,
+            response: `[오프라인 모드] ${response}`,
+            engine: 'fallback' as const,
+            confidence: commandContext.confidence,
+            thinkingSteps: [
+              {
+                step: 'Korean NLP 실패',
+                description: 'API 오류로 로컬 명령어 분석 사용',
+                status: 'completed',
+                timestamp: Date.now(),
+              },
+              {
+                step: '로컬 명령어 분석',
+                description: `${recommendations.length}개 명령어 추천됨`,
+                status: 'completed',
+                timestamp: Date.now(),
+              },
+            ],
+            metadata: {
+              koreanNLP: false,
+              commandRecommendation: true,
+              fallbackMode: true,
+            },
+            processingTime: 100,
+          };
+        }
+      } catch (fallbackError) {
+        console.warn('로컬 명령어 분석도 실패:', fallbackError);
+      }
+
+      // 최종 폴백: 로컬 RAG
       return await this.simplifiedEngine.query({ ...request, mode: 'local' });
     }
   }
@@ -611,6 +728,348 @@ export class UnifiedAIEngineRouter {
 
     if (response_guidance?.visualization_suggestions && response_guidance.visualization_suggestions.length > 0) {
       response += `\n권장 시각화: ${response_guidance.visualization_suggestions.join(', ')}`;
+    }
+
+    return response;
+  }
+
+  /**
+   * 🤖 명령어 요청 감지
+   */
+  private analyzeCommandRequest(
+    query: string, 
+    nlpEntities?: Array<{ value: string; type?: string }>
+  ): CommandRequestContext {
+    const lowerQuery = query.toLowerCase();
+    
+    // 명령어 관련 키워드 패턴
+    const commandPatterns = [
+      /(\w+)\s*(명령어|커맨드|command)/,
+      /(어떻게|어떤|무슨)\s*명령어/,
+      /(실행|사용)하는\s*(방법|명령어)/,
+      /(서버|시스템)\s*(상태|모니터링|관리).*명령어/,
+      /command\s+(to|for)\s+/,
+      /how\s+to\s+.*(command|cmd)/
+    ];
+
+    // 카테고리별 키워드
+    const categoryKeywords = {
+      monitoring: ['모니터링', '상태', '확인', 'monitor', 'status', 'check'],
+      service: ['서비스', '프로세스', 'service', 'process', 'daemon'],
+      log: ['로그', '기록', 'log', 'journal', 'history'],
+      network: ['네트워크', '연결', 'network', 'connection', 'ping'],
+      disk: ['디스크', '저장소', 'disk', 'storage', 'space'],
+      system: ['시스템', '정보', 'system', 'info', 'hardware']
+    };
+
+    let isCommandRequest = false;
+    let requestType: CommandRequestContext['requestType'] = 'general';
+    let confidence = 0;
+    const detectedCategories: string[] = [];
+    const specificCommands: string[] = [];
+
+    // 패턴 매칭으로 명령어 요청 감지
+    for (const pattern of commandPatterns) {
+      if (pattern.test(lowerQuery)) {
+        isCommandRequest = true;
+        confidence += 0.3;
+        
+        if (lowerQuery.includes('어떻게') || lowerQuery.includes('how')) {
+          requestType = 'command_usage';
+        } else if (lowerQuery.includes('무슨') || lowerQuery.includes('어떤')) {
+          requestType = 'command_inquiry';
+        } else {
+          requestType = 'command_request';
+        }
+        break;
+      }
+    }
+
+    // NLP 엔티티에서 명령어 카테고리 감지
+    if (nlpEntities) {
+      for (const entity of nlpEntities) {
+        if (entity.type === 'command') {
+          isCommandRequest = true;
+          confidence += 0.4;
+          detectedCategories.push(entity.value);
+          
+          if (entity.value === 'command_request') {
+            requestType = 'command_request';
+            confidence += 0.2;
+          }
+        }
+      }
+    }
+
+    // 카테고리별 키워드 매칭
+    for (const [category, keywords] of Object.entries(categoryKeywords)) {
+      for (const keyword of keywords) {
+        if (lowerQuery.includes(keyword)) {
+          detectedCategories.push(category);
+          if (isCommandRequest) {
+            confidence += 0.1;
+          }
+        }
+      }
+    }
+
+    // 특정 Linux/Unix 명령어 감지
+    const commonCommands = [
+      'top', 'htop', 'ps', 'free', 'df', 'iostat', 'vmstat', 'netstat', 'ss',
+      'systemctl', 'service', 'tail', 'journalctl', 'ping', 'traceroute',
+      'nslookup', 'dig', 'curl', 'wget', 'ifconfig', 'ip'
+    ];
+
+    for (const cmd of commonCommands) {
+      if (lowerQuery.includes(cmd)) {
+        specificCommands.push(cmd);
+        if (!isCommandRequest) {
+          isCommandRequest = true;
+          requestType = 'command_inquiry';
+        }
+        confidence += 0.2;
+      }
+    }
+
+    // 최종 confidence 조정 (0-1 범위)
+    confidence = Math.min(confidence, 1.0);
+
+    return {
+      isCommandRequest,
+      detectedCategories: [...new Set(detectedCategories)], // 중복 제거
+      specificCommands: [...new Set(specificCommands)], // 중복 제거
+      confidence,
+      requestType
+    };
+  }
+
+  /**
+   * 💡 명령어 추천 생성
+   */
+  private async generateCommandRecommendations(
+    context: CommandRequestContext
+  ): Promise<CommandRecommendation[]> {
+    const recommendations: CommandRecommendation[] = [];
+
+    // Built-in 명령어 데이터베이스 (추후 Supabase에서 로드할 예정)
+    const commandDatabase = {
+      monitoring: [
+        {
+          command: 'top',
+          description: 'CPU와 메모리 사용량을 실시간으로 모니터링',
+          category: 'monitoring',
+          confidence: 0.9,
+          usage_example: 'top -p 1234',
+          related_commands: ['htop', 'ps', 'iostat']
+        },
+        {
+          command: 'htop',
+          description: '향상된 실시간 시스템 모니터링 도구',
+          category: 'monitoring', 
+          confidence: 0.85,
+          usage_example: 'htop',
+          related_commands: ['top', 'ps', 'free']
+        },
+        {
+          command: 'free -h',
+          description: '메모리 사용량을 사람이 읽기 쉬운 형태로 표시',
+          category: 'monitoring',
+          confidence: 0.8,
+          usage_example: 'free -h',
+          related_commands: ['top', 'htop', 'vmstat']
+        }
+      ],
+      service: [
+        {
+          command: 'systemctl',
+          description: 'systemd 서비스 관리 도구',
+          category: 'service',
+          confidence: 0.95,
+          usage_example: 'systemctl status nginx',
+          related_commands: ['service', 'journalctl']
+        },
+        {
+          command: 'ps aux',
+          description: '현재 실행 중인 모든 프로세스 목록 표시',
+          category: 'service',
+          confidence: 0.9,
+          usage_example: 'ps aux | grep nginx',
+          related_commands: ['top', 'htop', 'kill']
+        }
+      ],
+      log: [
+        {
+          command: 'journalctl',
+          description: 'systemd 시스템 로그 조회',
+          category: 'log',
+          confidence: 0.9,
+          usage_example: 'journalctl -u nginx -f',
+          related_commands: ['tail', 'less', 'systemctl']
+        },
+        {
+          command: 'tail -f',
+          description: '파일의 끝부분을 실시간으로 모니터링',
+          category: 'log',
+          confidence: 0.85,
+          usage_example: 'tail -f /var/log/nginx/access.log',
+          related_commands: ['head', 'less', 'grep']
+        }
+      ],
+      network: [
+        {
+          command: 'ping',
+          description: '네트워크 연결 상태 테스트',
+          category: 'network',
+          confidence: 0.95,
+          usage_example: 'ping google.com',
+          related_commands: ['traceroute', 'nslookup', 'curl']
+        },
+        {
+          command: 'netstat -tuln',
+          description: '네트워크 포트 연결 상태 확인',
+          category: 'network',
+          confidence: 0.85,
+          usage_example: 'netstat -tuln | grep :80',
+          related_commands: ['ss', 'lsof', 'nmap']
+        }
+      ],
+      disk: [
+        {
+          command: 'df -h',
+          description: '디스크 사용량을 사람이 읽기 쉬운 형태로 표시',
+          category: 'disk',
+          confidence: 0.9,
+          usage_example: 'df -h',
+          related_commands: ['du', 'lsblk', 'fdisk']
+        },
+        {
+          command: 'du -sh',
+          description: '디렉토리별 디스크 사용량 요약',
+          category: 'disk',
+          confidence: 0.85,
+          usage_example: 'du -sh /var/log/*',
+          related_commands: ['df', 'ls', 'find']
+        }
+      ],
+      system: [
+        {
+          command: 'uname -a',
+          description: '시스템 정보와 커널 버전 표시',
+          category: 'system',
+          confidence: 0.8,
+          usage_example: 'uname -a',
+          related_commands: ['hostname', 'whoami', 'id']
+        },
+        {
+          command: 'uptime',
+          description: '시스템 가동 시간과 부하 평균 표시',
+          category: 'system',
+          confidence: 0.75,
+          usage_example: 'uptime',
+          related_commands: ['w', 'top', 'htop']
+        }
+      ]
+    };
+
+    // 특정 명령어가 언급된 경우
+    for (const cmd of context.specificCommands) {
+      for (const categoryCommands of Object.values(commandDatabase)) {
+        const found = categoryCommands.find(item => item.command.includes(cmd));
+        if (found) {
+          recommendations.push({
+            ...found,
+            confidence: found.confidence * context.confidence
+          });
+        }
+      }
+    }
+
+    // 카테고리별 추천
+    for (const category of context.detectedCategories) {
+      if (category in commandDatabase) {
+        const categoryCommands = commandDatabase[category as keyof typeof commandDatabase];
+        for (const cmd of categoryCommands) {
+          // 이미 추가된 명령어는 스킵
+          if (!recommendations.find(r => r.command === cmd.command)) {
+            recommendations.push({
+              ...cmd,
+              confidence: cmd.confidence * context.confidence
+            });
+          }
+        }
+      }
+    }
+
+    // 기본 추천 (명령어 요청이 감지되었지만 구체적인 카테고리가 없는 경우)
+    if (context.isCommandRequest && recommendations.length === 0) {
+      const defaultCommands = [
+        commandDatabase.monitoring[0], // top
+        commandDatabase.service[0], // systemctl
+        commandDatabase.disk[0], // df -h
+        commandDatabase.network[0] // ping
+      ];
+      
+      recommendations.push(...defaultCommands.map(cmd => ({
+        ...cmd,
+        confidence: cmd.confidence * 0.6 // 기본 추천은 신뢰도를 낮춤
+      })));
+    }
+
+    // 신뢰도순으로 정렬하고 상위 5개만 반환
+    return recommendations
+      .sort((a, b) => b.confidence - a.confidence)
+      .slice(0, 5);
+  }
+
+  /**
+   * 📝 명령어 추천 응답 포맷팅
+   */
+  private formatCommandRecommendations(
+    recommendations: CommandRecommendation[],
+    context: CommandRequestContext,
+    originalQuery: string
+  ): string {
+    if (recommendations.length === 0) {
+      return `"${originalQuery}"에 대한 명령어를 찾지 못했습니다. 더 구체적인 요청을 해주세요.`;
+    }
+
+    let response = '';
+    
+    // 요청 유형에 따른 인사말
+    switch (context.requestType) {
+      case 'command_request':
+        response += `요청하신 작업에 적합한 명령어들을 추천드립니다:\n\n`;
+        break;
+      case 'command_inquiry':
+        response += `문의하신 명령어에 대한 정보입니다:\n\n`;
+        break;  
+      case 'command_usage':
+        response += `사용 방법과 함께 관련 명령어들을 안내드립니다:\n\n`;
+        break;
+      default:
+        response += `관련 명령어 추천:\n\n`;
+    }
+
+    // 각 명령어 정보 포맷팅
+    recommendations.forEach((rec, index) => {
+      response += `${index + 1}. **${rec.command}**\n`;
+      response += `   📝 ${rec.description}\n`;
+      response += `   💡 사용 예시: \`${rec.usage_example}\`\n`;
+      
+      if (rec.related_commands && rec.related_commands.length > 0) {
+        response += `   🔗 관련 명령어: ${rec.related_commands.join(', ')}\n`;
+      }
+      
+      response += `   📊 카테고리: ${rec.category} (신뢰도: ${Math.round(rec.confidence * 100)}%)\n\n`;
+    });
+
+    // 추가 도움말
+    if (context.confidence > 0.7) {
+      response += `💡 **도움말**: 위 명령어들은 "${originalQuery}" 요청에 기반해 추천되었습니다.\n`;
+      response += `더 자세한 사용법이나 옵션이 필요하시면 \`man [명령어]\` 또는 \`[명령어] --help\`를 사용해보세요.`;
+    } else {
+      response += `💡 **참고**: 요청이 명확하지 않아 일반적인 명령어들을 추천드렸습니다.\n`;
+      response += `더 구체적인 작업이나 상황을 알려주시면 더 정확한 명령어를 추천해드릴 수 있습니다.`;
     }
 
     return response;
@@ -1026,6 +1485,74 @@ export class UnifiedAIEngineRouter {
   public clearCache(): void {
     this.cache.clear();
     console.log('🗑️ 캐시 초기화 완료');
+  }
+
+  /**
+   * 🤖 명령어 추천 시스템 (공개 메서드)
+   * 외부에서 직접 명령어 추천을 요청할 수 있는 메서드
+   */
+  public async getCommandRecommendations(
+    query: string,
+    options?: {
+      includeAnalysis?: boolean;
+      maxRecommendations?: number;
+    }
+  ): Promise<{
+    recommendations: CommandRecommendation[];
+    analysis: CommandRequestContext;
+    formattedResponse: string;
+  }> {
+    const { includeAnalysis = true, maxRecommendations = 5 } = options || {};
+
+    // 1. 명령어 요청 분석
+    const analysis = this.analyzeCommandRequest(query);
+
+    // 2. 명령어 추천 생성
+    let recommendations = await this.generateCommandRecommendations(analysis);
+
+    // 3. 최대 개수 제한 적용
+    if (maxRecommendations && recommendations.length > maxRecommendations) {
+      recommendations = recommendations.slice(0, maxRecommendations);
+    }
+
+    // 4. 포맷된 응답 생성
+    const formattedResponse = this.formatCommandRecommendations(
+      recommendations,
+      analysis,
+      query
+    );
+
+    return {
+      recommendations,
+      analysis: includeAnalysis ? analysis : {
+        isCommandRequest: analysis.isCommandRequest,
+        detectedCategories: [],
+        specificCommands: [],
+        confidence: analysis.confidence,
+        requestType: analysis.requestType
+      },
+      formattedResponse
+    };
+  }
+
+  /**
+   * 🔍 명령어 카테고리 분석 (공개 메서드)
+   * 쿼리가 명령어 요청인지 간단히 확인할 수 있는 메서드
+   */
+  public isCommandRequest(query: string): {
+    isCommand: boolean;
+    confidence: number;
+    categories: string[];
+    type: CommandRequestContext['requestType'];
+  } {
+    const analysis = this.analyzeCommandRequest(query);
+    
+    return {
+      isCommand: analysis.isCommandRequest,
+      confidence: analysis.confidence,
+      categories: analysis.detectedCategories,
+      type: analysis.requestType
+    };
   }
 }
 

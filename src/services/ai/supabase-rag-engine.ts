@@ -57,9 +57,9 @@ class MemoryRAGCache {
     hits: number; 
   }>();
   
-  private maxEmbeddingSize = 200; // 최대 200개 임베딩 (80% 감소)
-  private maxSearchSize = 50; // 최대 50개 검색 결과 (50% 감소)
-  private ttlSeconds = 900; // 15분 TTL (임베딩은 재사용성 높음)
+  private maxEmbeddingSize = 500; // 최대 500개 임베딩 (성능 최적화)
+  private maxSearchSize = 100; // 최대 100개 검색 결과 (캐시 히트율 향상)
+  private ttlSeconds = 1800; // 30분 TTL (무료 티어 최적화)
 
   // 임베딩 캐시 관리
   getEmbedding(key: string): number[] | null {

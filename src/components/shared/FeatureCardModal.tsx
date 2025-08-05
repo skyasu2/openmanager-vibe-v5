@@ -116,16 +116,12 @@ export default function FeatureCardModal({
               className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                 tech.aiType === 'google-api'
                   ? 'bg-green-500/20 text-green-300 border border-green-500/30'
-                  : tech.aiType === 'local-engine'
-                  ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
-                  : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                  : 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
               }`}
             >
               {tech.aiType === 'google-api'
                 ? '🌐 Google AI'
-                : tech.aiType === 'local-engine'
-                ? '💻 로컬 AI'
-                : '🔄 하이브리드'}
+                : '💻 로컬 AI'}
             </span>
           )}
         </div>
