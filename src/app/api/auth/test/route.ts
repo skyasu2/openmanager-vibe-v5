@@ -10,7 +10,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/supabase-client';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   AuthTestResponseSchema,
@@ -33,42 +33,7 @@ const getHandler = createApiRoute()
   .build(async (request, _context): Promise<AuthTestResponse> => {
     console.log('🧪 Supabase Auth 설정 테스트 시작...');
 
-    // Supabase 클라이언트 생성
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return {
-        success: false,
-        message: 'Supabase 환경변수가 설정되지 않음',
-        data: {
-          timestamp: new Date().toISOString(),
-          supabase: {
-            url: supabaseUrl || '',
-            connection: false,
-            connectionError: 'Missing environment variables',
-          },
-          auth: {
-            configured: false,
-            error: 'Missing environment variables',
-            session: false,
-          },
-          githubOAuth: {
-            urlGenerated: false,
-            error: 'Missing environment variables',
-            redirectUrl: null,
-          },
-          environment: {
-            nodeEnv: process.env.NODE_ENV,
-            vercel: !!process.env.VERCEL,
-            domain: 'unknown',
-          },
-        },
-        recommendations: ['환경변수 NEXT_PUBLIC_SUPABASE_URL과 NEXT_PUBLIC_SUPABASE_ANON_KEY를 설정하세요'],
-      };
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    // 중앙 집중식 Supabase 클라이언트 사용 (환경 변수 검증 포함)
 
     // 1. Supabase 연결 테스트
     console.log('📡 Supabase 연결 테스트...');
@@ -182,10 +147,7 @@ const postHandler = createApiRoute()
 
     console.log('🔬 GitHub OAuth 상세 진단 시작...', testType);
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    // 중앙 집중식 Supabase 클라이언트 사용
 
     const diagnostics: AuthDiagnostics = {
       timestamp: new Date().toISOString(),

@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/supabase-client';
 import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import type { Server } from '@/types/server';
 import { isMockMode, getMockHeaders } from '@/config/mock-config';
 import { getMockServers } from '@/mock';
-
-// Supabase 클라이언트 생성
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 // 📊 서버 상태 매핑 함수
 function mapSupabaseStatus(status: string): Server['status'] {

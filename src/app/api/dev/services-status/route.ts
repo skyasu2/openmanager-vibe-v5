@@ -1,5 +1,5 @@
 import { devKeyManager } from '@/utils/dev-key-manager';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/supabase-client';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
@@ -30,20 +30,7 @@ interface ServicesStatusResponse {
 async function checkSupabase(): Promise<ServiceStatus> {
   const startTime = Date.now();
   try {
-    const supabaseUrl = devKeyManager.getSupabaseUrl();
-    const supabaseKey = devKeyManager.getSupabaseAnonKey();
-
-    if (!supabaseUrl || !supabaseKey) {
-      return {
-        name: 'Supabase',
-        status: 'error',
-        responseTime: 0,
-        details: null,
-        error: 'Missing environment variables (DevKeyManager)',
-      };
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // 중앙 집중식 Supabase 클라이언트 사용 (환경 변수 검증 포함)
     const { error } = await supabase
       .from('system_logs')
       .select('count')
