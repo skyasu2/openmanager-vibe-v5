@@ -64,7 +64,7 @@ const getHandler = createApiRoute()
     const testResults: AuthTestResult = {
       timestamp: new Date().toISOString(),
       supabase: {
-        url: supabaseUrl,
+        url: process.env.NEXT_PUBLIC_SUPABASE_URL || 'not-configured',
         connection: connectionStatus,
         connectionError: connectionError?.message || null,
       },
