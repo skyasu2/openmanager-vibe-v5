@@ -251,7 +251,7 @@ function identifyBottlenecks(metrics: SystemMetrics) {
   }
   
   return bottlenecks.sort((a, b) => {
-    const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+    const severityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
     return severityOrder[a.severity] - severityOrder[b.severity];
   });
 }
@@ -412,9 +412,9 @@ function assessScalability(expectedGrowth: string) {
  */
 function reviewTechStack(currentStack: string[]) {
   const recommendations = {
-    updates: [],
-    additions: [],
-    replacements: [],
+    updates: [] as any[],
+    additions: [] as any[],
+    replacements: [] as any[],
   };
   
   // Check for outdated technologies
@@ -685,14 +685,14 @@ function generateExecutiveSummary() {
  */
 function createRoadmap(timeline: string) {
   const months = timeline === '6_months' ? 6 : 3;
-  const phases = [];
+  const phases: any[] = [];
   
   for (let i = 1; i <= months; i++) {
     const phase = {
       month: i,
-      focus_areas: [],
-      deliverables: [],
-      expected_outcomes: [],
+      focus_areas: [] as string[],
+      deliverables: [] as string[],
+      expected_outcomes: [] as string[],
     };
     
     if (i <= 2) {

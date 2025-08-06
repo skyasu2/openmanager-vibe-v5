@@ -129,13 +129,9 @@ async function postHandler(request: NextRequest) {
 
     // 캐시 키 생성 및 캐시 확인
     const cacheKey = generateCacheKey(query, context);
-    const cachedResponse = await getCachedData(
-      cacheKey,
-      async () => null,
-      0
-    );
+    const cachedResponse = getCachedData(cacheKey);
 
-    let result;
+    let result: any;
     let cacheHit = false;
     let responseTime: number;
 
@@ -170,7 +166,7 @@ async function postHandler(request: NextRequest) {
 
       // 성공한 응답만 캐시에 저장 (5분 TTL)
       if (result.success) {
-        await setCachedData(cacheKey, result, 300);
+        setCachedData(cacheKey, result, 300);
       }
     }
 

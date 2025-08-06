@@ -499,20 +499,22 @@ async function getHandler(request: NextRequest) {
     if (id) {
       // Get specific report
       const cacheKey = `incident:${id}`;
-      const report = await getCachedData(
-        cacheKey,
-        async () => {
-          const { data, error } = await supabase
-            .from('incident_reports')
-            .select('*')
-            .eq('id', id)
-            .single();
-          
-          if (error) throw error;
-          return data;
-        },
-        300 // 5 minutes cache
-      );
+      let report = getCachedData(cacheKey);
+      
+      if (!report) {
+        const { data, error } = await supabase
+          .from('incident_reports')
+          .select('*')
+          .eq('id', id)
+          .single();
+        
+        if (error) throw error;
+        report = data;
+        
+        if (report) {
+          setCachedData(cacheKey, report, 300);
+        }
+      }
 
       return NextResponse.json({
         success: true,
