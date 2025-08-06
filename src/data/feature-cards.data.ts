@@ -15,9 +15,8 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     icon: Bot,
     gradient: 'from-purple-500 via-indigo-500 to-cyan-400',
     detailedContent: {
-      overview: `v5.66.33 - 두 가지 MCP 시스템으로 구동되는 AI 어시스턴트! ① Claude Code MCP: Windows WSL에서 실행되는 개발 도구용 11개 서버 ② GCP VM MCP: Google Cloud VM에서 실행되는 Google AI 자연어 처리 전용 서버. 완전히 다른 두 시스템이 각자의 역할로 AI 기능을 지원합니다.`,
+      overview: `v5.66.33 - GCP VM MCP 시스템으로 구동되는 AI 어시스턴트! Google Cloud VM에서 실행되는 Google AI 자연어 처리 전용 서버가 강력한 AI 기능을 제공합니다.`,
       features: [
-        '🔧 Claude Code MCP (WSL): filesystem, memory, github, supabase 등 11개 개발 도구 서버',
         '🌐 GCP VM MCP (클라우드): Google AI 자연어 질의 처리 전용 서버 (포트 10000)',
         '🤖 하이브리드 AI 엔진: Supabase pgVector + GCP Functions + Google AI 통합',
         '📊 서버 상태 분석: 실시간 메트릭 분석 및 자연어 답변 제공',
@@ -26,7 +25,6 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         '🆓 완전 무료 운영: Supabase + GCP 무료 티어 100% 활용',
       ],
       technologies: [
-        'Claude Code MCP (11개 서버)',
         'GCP VM MCP 서버',
         'Supabase pgVector',
         'GCP Cloud Functions',
