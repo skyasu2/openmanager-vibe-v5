@@ -79,17 +79,54 @@ export default function DashboardContent({
     timestamp: new Date().toISOString(),
   });
 
-  // 🎯 실제 서버 데이터 기반 통계 계산
-  const serverStats = useMemo(() => {
+  // 🎯 대시보드 API 통계 데이터 상태
+  const [dashboardStats, setDashboardStats] = useState<any>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  // 🚀 대시보드 API에서 실제 통계 데이터 가져오기
+  const fetchDashboardStats = async () => {
+    try {
+      setStatsLoading(true);
+      const response = await fetch('/api/dashboard');
+      if (!response.ok) throw new Error('Failed to fetch dashboard stats');
+      
+      const data = await response.json();
+      const stats = data?.data?.stats || {};
+      const serversObject = data?.data?.servers || {};
+      const serversArray = Object.values(serversObject);
+
+      console.log('📊 대시보드 API 통계 데이터:', {
+        stats,
+        serversCount: serversArray.length,
+        timestamp: new Date().toISOString(),
+      });
+
+      setDashboardStats({
+        total: stats.total || serversArray.length,
+        online: stats.healthy || 0,
+        warning: stats.warning || 0,
+        offline: stats.critical || 0,
+        servers: serversArray,
+      });
+    } catch (error) {
+      console.error('❌ 대시보드 통계 가져오기 실패:', error);
+      // 폴백: 기존 서버 데이터 기반 통계
+      const fallbackStats = calculateFallbackStats();
+      setDashboardStats(fallbackStats);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  // 폴백 통계 계산 (기존 로직)
+  const calculateFallbackStats = () => {
     if (!servers || servers.length === 0) {
-      return { total: 0, online: 0, warning: 0, offline: 0 };
+      return { total: 0, online: 0, warning: 0, offline: 0, servers: [] };
     }
 
     const stats = servers.reduce(
       (acc, server) => {
         acc.total += 1;
-
-        // 서버 상태 정규화 및 매핑
         const normalizedStatus = server.status?.toLowerCase() || 'unknown';
 
         switch (normalizedStatus) {
@@ -112,10 +149,6 @@ export default function DashboardContent({
             acc.offline += 1;
             break;
           default:
-            // 알 수 없는 상태는 경고로 분류
-            console.warn(
-              `⚠️ 알 수 없는 서버 상태: ${server.status} (서버: ${server.name || server.id})`
-            );
             acc.warning += 1;
         }
         return acc;
@@ -123,16 +156,32 @@ export default function DashboardContent({
       { total: 0, online: 0, warning: 0, offline: 0 }
     );
 
-    console.log('📊 실제 서버 통계:', {
-      ...stats,
-      서버_목록: servers.map((s) => ({
-        이름: s.name || s.id,
-        상태: s.status,
-        정규화된_상태: s.status?.toLowerCase(),
-      })),
-    });
-    return stats;
-  }, [servers]);
+    return { ...stats, servers };
+  };
+
+  // 대시보드 통계 자동 갱신 (30초 간격)
+  useEffect(() => {
+    fetchDashboardStats();
+    const interval = setInterval(fetchDashboardStats, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // 최종 서버 통계 (대시보드 API 우선, 폴백 있음)
+  const serverStats = useMemo(() => {
+    if (statsLoading) {
+      return { total: 0, online: 0, warning: 0, offline: 0 };
+    }
+
+    if (dashboardStats) {
+      console.log('✅ 대시보드 API 통계 사용:', dashboardStats);
+      return dashboardStats;
+    }
+
+    // 폴백: 기존 로직
+    const fallbackStats = calculateFallbackStats();
+    console.log('⚠️ 폴백 통계 사용:', fallbackStats);
+    return fallbackStats;
+  }, [dashboardStats, statsLoading, servers]);
 
   // 🚀 에러 상태 추가
   const [renderError, setRenderError] = useState<string | null>(null);

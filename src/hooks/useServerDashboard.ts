@@ -109,7 +109,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
   // 페이지네이션 상태 - 설정 기반으로 동적 조정
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(8); // 🆕 동적 페이지 크기
+  const [pageSize, setPageSize] = useState(15); // 🆕 모든 서버 표시 (대시보드 최적화)
 
   // 🎯 서버 설정에 따른 동적 페이지 크기 설정
   const ITEMS_PER_PAGE = useMemo(() => {
