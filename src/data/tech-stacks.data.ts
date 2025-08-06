@@ -8,23 +8,11 @@ import type { TechItem } from '@/types/feature-card.types';
 export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
   'mcp-ai-engine': [
     {
-      name: 'Claude Code MCP (11개 서버)',
-      category: 'ai',
-      importance: 'critical',
-      description: 'Windows WSL에서 실행되는 Claude Code 개발 도구용 MCP 서버',
-      implementation: 'filesystem, memory, github, supabase, playwright, time, context7, serena, shadcn-ui 등 11개 서버',
-      version: 'v5.66.33',
-      status: 'active',
-      icon: '🔧',
-      tags: ['Claude Code', 'MCP', 'WSL', '개발도구'],
-      type: 'custom',
-    },
-    {
       name: 'GCP VM MCP 서버',
       category: 'ai',
       importance: 'critical',
       description: 'Google Cloud VM에서 실행되는 Google AI 자연어 처리 전용 MCP 서버',
-      implementation: 'e2-micro VM 포트 10000에서 자연어 쿼리 처리, Claude Code MCP와는 완전히 별개 시스템',
+      implementation: 'e2-micro VM 포트 10000에서 Google AI 자연어 쿼리 처리 전담',
       version: 'v5.66.33',
       status: 'active',
       icon: '🌐',
@@ -183,17 +171,6 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       icon: '🔄',
       tags: ['CI/CD', '자동화', '월2000분무료'],
       type: 'commercial',
-    },
-    {
-      name: 'Claude Code MCP Servers (11개)',
-      category: 'deployment',
-      importance: 'high',
-      description: 'Windows WSL에서 동작하는 Claude Code 개발 도구용 로컬 MCP 서버',
-      implementation: 'WSL 환경에서 filesystem, memory, github, supabase, playwright, time, context7, serena, shadcn-ui 등 11개 서버 실행',
-      status: 'active',
-      icon: '🔧',
-      tags: ['Claude Code', 'MCP', 'WSL', '개발도구'],
-      type: 'custom',
     },
   ],
   'tech-stack': [
