@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/supabase-client';
+import { getSupabaseClient } from '@/lib/supabase/supabase-client';
 import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import type { Server } from '@/types/server';
 import { isMockMode, getMockHeaders } from '@/config/mock-config';
@@ -117,6 +117,38 @@ export async function GET(request: NextRequest) {
     } else {
       console.log('🔄 Supabase에서 새 데이터 조회 중...');
       
+      // Supabase 클라이언트 가져오기
+      const supabase = getSupabaseClient();
+      
+      // 환경변수 체크
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseKey || supabaseUrl === 'https://dummy.supabase.co') {
+        console.warn('⚠️ Supabase 환경변수 미설정 - Mock 데이터 사용');
+        
+        // Mock 데이터 반환
+        const mockServers = getMockServers();
+        return NextResponse.json({
+          success: true,
+          data: {
+            servers: mockServers.slice(0, limit),
+            page,
+            limit,
+            total: mockServers.length,
+            totalPages: Math.ceil(mockServers.length / limit),
+          },
+          timestamp: new Date().toISOString(),
+          dataSource: 'mock-fallback',
+        }, {
+          headers: {
+            'X-Data-Source': 'Mock-Fallback',
+            'X-Response-Time': `${Date.now() - startTime}ms`,
+            'Cache-Control': 'no-store',
+          },
+        });
+      }
+      
       // Supabase 쿼리 구성
       let query = supabase
         .from('server_metrics')
@@ -162,7 +194,29 @@ export async function GET(request: NextRequest) {
       
       if (error) {
         console.error('❌ Supabase 쿼리 오류:', error);
-        throw error;
+        
+        // 에러 발생 시 Mock 데이터 반환
+        const mockServers = getMockServers();
+        return NextResponse.json({
+          success: true,
+          data: {
+            servers: mockServers.slice(0, limit),
+            page,
+            limit,
+            total: mockServers.length,
+            totalPages: Math.ceil(mockServers.length / limit),
+          },
+          timestamp: new Date().toISOString(),
+          dataSource: 'mock-on-error',
+          error: error.message,
+        }, {
+          headers: {
+            'X-Data-Source': 'Mock-On-Error',
+            'X-Error': error.message,
+            'X-Response-Time': `${Date.now() - startTime}ms`,
+            'Cache-Control': 'no-store',
+          },
+        });
       }
       
       // Supabase 데이터를 Server 타입으로 변환

@@ -52,14 +52,12 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         '📊 Supabase로 구현한 기능: 서버 메트릭 저장, AI 벡터 검색, 사용자 인증 시스템, 실시간 데이터 동기화',
         '🖥️ GCP Compute Engine: e2-micro 무료 VM 1개 활용 (1vCPU, 1GB RAM, 30GB SSD)',
         '☁️ GCP Functions: Python 3.11 기반 AI 처리 서버 3개 (enhanced-korean-nlp, ml-analytics-engine, unified-ai-processor)',
-        '🤖 Google AI Studio: Gemini 2.0 Flash API 통합, 일 1,000회 무료 할당량 활용',
       ],
       technologies: [
         'Vercel Platform',
         'Supabase PostgreSQL',
         'GCP Compute Engine',
         'GCP Cloud Functions',
-        'Google AI Studio',
         'GitHub Actions',
       ],
     },
@@ -97,7 +95,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'cursor-ai',
     title: '🔥 Vibe Coding',
     description:
-      'Cursor AI로 시작한 AI 기반 개발! 자동 오류 수정, 백그라운드 에이전트, Composer 멀티파일 생성으로 개발 속도 10배 향상',
+      'AI 도구들을 조합한 고속 개발 방법론. 자동 코드 생성, 실시간 오류 수정, 멀티파일 동시 편집으로 기존 대비 5-10배 생산성 달성',
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {

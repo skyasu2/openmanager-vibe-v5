@@ -89,6 +89,18 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       tags: ['쿼리엔진', 'NLP', '지능형분석'],
       type: 'custom',
     },
+    {
+      name: 'Google AI Studio',
+      category: 'ai',
+      importance: 'high',
+      description: 'Gemini 2.0 Flash 모델로 고급 AI 분석',
+      implementation: '일 1,000회 무료 할당량, 분당 15회 제한으로 비용 최적화',
+      status: 'active',
+      icon: '🤖',
+      tags: ['AI', '무료할당량', 'Gemini'],
+      type: 'commercial',
+      aiType: 'google-api',
+    },
   ],
   'fullstack-ecosystem': [
     {
@@ -135,18 +147,6 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       icon: '☁️',
       tags: ['클라우드', 'Python3.11', '배포완료'],
       type: 'commercial',
-    },
-    {
-      name: 'Google AI Studio',
-      category: 'ai',
-      importance: 'high',
-      description: 'Gemini 2.0 Flash 모델로 고급 AI 분석',
-      implementation: '일 1,000회 무료 할당량, 분당 15회 제한으로 비용 최적화',
-      status: 'active',
-      icon: '🤖',
-      tags: ['AI', '무료할당량', 'Gemini'],
-      type: 'commercial',
-      aiType: 'google-api',
     },
     {
       name: 'GitHub Actions',

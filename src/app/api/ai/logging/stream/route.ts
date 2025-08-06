@@ -132,21 +132,24 @@ export async function GET(request: NextRequest) {
     `📡 AI 로그 스트리밍 시작 (Memory-based) - 레벨: ${level}, 소스: ${source}, 간격: ${interval}ms`
   );
 
-  // SSE 응답 헤더 설정
+  // SSE 응답 헤더 설정 (Vercel 최적화)
   const headers = new Headers({
     'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    Connection: 'keep-alive',
+    'Cache-Control': 'no-cache, no-transform',
+    // Connection 헤더 제거 (Vercel Edge Runtime 호환)
     'X-Accel-Buffering': 'no',
     'X-Storage': 'Memory-based',
+    'Access-Control-Allow-Origin': '*',
   });
 
-  // 스트림 생성
+  // 스트림 생성 (Vercel timeout 고려)
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
       let isActive = true;
       const logStorage = getLogStorage();
+      let streamCount = 0;
+      const maxStreamCount = 25; // Vercel 60초 timeout 내에 종료
 
       // 클라이언트 연결 종료 감지
       request.signal.addEventListener('abort', () => {
@@ -216,9 +219,19 @@ export async function GET(request: NextRequest) {
             controller.enqueue(encoder.encode(sseStatsMessage));
           }
 
-          // 다음 전송 예약
-          if (isActive) {
+          // 다음 전송 예약 (Vercel timeout 방지)
+          streamCount++;
+          if (isActive && streamCount < maxStreamCount) {
             setTimeout(sendLogs, interval);
+          } else if (streamCount >= maxStreamCount) {
+            // Vercel timeout 방지를 위해 스트림 종료
+            const endMessage = {
+              type: 'end',
+              message: '스트림 종료 (최대 시간 도달)',
+              timestamp: new Date().toISOString(),
+            };
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(endMessage)}\n\n`));
+            controller.close();
           }
         } catch (error) {
           console.error('메모리 로그 전송 오류:', error);
@@ -233,8 +246,9 @@ export async function GET(request: NextRequest) {
 
           controller.enqueue(encoder.encode(errorMessage));
 
-          // 재시도
-          if (isActive) {
+          // 재시도 (Vercel timeout 방지)
+          streamCount++;
+          if (isActive && streamCount < maxStreamCount) {
             setTimeout(sendLogs, interval * 2);
           }
         }
