@@ -11,6 +11,8 @@
  * - 강화된 스키마 검증
  * - 표준화된 에러 코드
  * - 요청 ID 추적
+ * 
+ * 배포 확인: 2025-08-06 Phase 3 Part 2
  */
 
 import type { NextRequest } from 'next/server';
