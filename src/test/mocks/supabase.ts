@@ -26,13 +26,9 @@ const mockStats = {
   last_updated: new Date().toISOString(),
 };
 
-// Supabase - 조건부 Mock (환경변수에 따라)
-const shouldMockSupabase = process.env.FORCE_MOCK_SUPABASE === 'true' || 
-                          !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-                          process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://mock-supabase.test';
-
-if (shouldMockSupabase) {
-  console.log('🎭 Supabase Mock 활성화됨');
+// 테스트 환경에서는 항상 Supabase Mock 사용
+if (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true') {
+  console.log('🎭 Supabase Mock 활성화됨 (테스트 환경)');
   
   vi.mock('@supabase/supabase-js', () => ({
     createClient: vi.fn(() => ({
@@ -81,6 +77,13 @@ if (shouldMockSupabase) {
           not: vi.fn().mockReturnThis(),
           order: vi.fn().mockReturnThis(),
           contains: vi.fn().mockReturnThis(),
+          // Add missing range method
+          range: vi.fn((start: number, end: number) => {
+            const data = tableName === 'command_vectors' 
+              ? mockVectorDocuments.slice(start, end + 1)
+              : [];
+            return Promise.resolve(createMockResponse(data));
+          }),
           limit: vi.fn((count: number) => {
             if (tableName === 'command_vectors') {
               if (count === 1) {
@@ -239,6 +242,13 @@ if (shouldMockSupabase) {
           not: vi.fn().mockReturnThis(),
           order: vi.fn().mockReturnThis(),
           contains: vi.fn().mockReturnThis(),
+          // Add missing range method
+          range: vi.fn((start: number, end: number) => {
+            const data = tableName === 'command_vectors' 
+              ? mockVectorDocuments.slice(start, end + 1)
+              : [];
+            return Promise.resolve(createMockResponse(data));
+          }),
           limit: vi.fn((count: number) => {
             if (tableName === 'command_vectors') {
               if (count === 1) {

@@ -236,6 +236,12 @@ export function measurePerformance(type: 'query' | 'api', name: string) {
     propertyName: string,
     descriptor: PropertyDescriptor
   ) {
+    // 테스트 환경에서 descriptor가 올바르게 전달되지 않는 경우 처리
+    if (!descriptor || typeof descriptor.value !== 'function') {
+      console.warn(`measurePerformance decorator: descriptor.value is not a function for ${String(propertyName)}`);
+      return descriptor;
+    }
+    
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: unknown[]) {

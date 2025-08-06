@@ -43,16 +43,17 @@ export default defineConfig(({ mode }) => {
         'tests/unit/natural-language-unifier.test.ts',
       ],
 
-      // 🎯 테스트 실행 최적화 - 웹 검색 기반 최적 설정
+      // 🎯 테스트 실행 최적화 - 개선된 설정
       maxConcurrency: 20, // 병렬 실행 증가
-      pool: 'threads', // threads로 변경 (vmThreads는 isolate: false와 호환 불가)
+      pool: 'threads', // threads 사용
       poolOptions: {
         threads: {
-          singleThread: false, // 멀티 스레드로 성능 향상
-          isolate: false, // 스레드 격리 비활성화
+          isolate: true, // 테스트 격리 활성화 (안정성 향상)
+          minThreads: 2,
+          maxThreads: 4, // CPU 코어에 맞게 조정
         }
       },
-      isolate: false, // 테스트 격리 비활성화로 성능 향상
+      isolate: true, // 테스트 격리 활성화로 안정성 향상
       
       // 🚀 성능 최적화 추가 옵션
       css: false, // CSS 처리 비활성화
@@ -96,25 +97,29 @@ export default defineConfig(({ mode }) => {
 
       // 🔄 Watch 모드 설정 (moved to root level)
 
-      // 🎯 성능 최적화 - 타임아웃 적절히 조정
-      testTimeout: 10000, // 10초로 증가 (비동기 처리 안정성)
-      hookTimeout: 10000, // 10초로 증가  
-      teardownTimeout: 5000, // 5초로 증가
+      // 🎯 성능 최적화 - 타임아웃 개선
+      testTimeout: 15000, // 15초로 증가 (타임아웃 문제 해결)
+      hookTimeout: 10000, // 10초 유지
+      teardownTimeout: 10000, // 10초로 증가 (정리 작업 안정성)
       
       // 개별 테스트 타임아웃 설정
       bail: 1, // 첫 번째 실패에서 중단
 
-      // 📝 리포터 설정 - 성능 최적화
-      reporter: process.env.CI ? 'github-actions' : 'default',
+      // 📝 리포터 설정 - Hanging 프로세스 감지 추가
+      reporters: process.env.CI 
+        ? ['github-actions'] 
+        : ['default', 'hanging-process'],
       outputFile: {
         json: './test-results/results.json',
         html: './test-results/index.html',
       },
 
-      // 🔧 Mock 설정
+      // 🔧 Mock 설정 - 완전한 정리 강화
       mockReset: true,
       clearMocks: true,
       restoreMocks: true,
+      unstubEnvs: true, // 환경변수 stub 정리
+      unstubGlobals: true, // 글로벌 stub 정리
     },
 
     // 📦 Vite 설정

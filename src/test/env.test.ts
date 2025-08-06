@@ -37,13 +37,13 @@ describe('🧪 테스트 환경변수 설정', () => {
   describe('🗄️ 데이터베이스 Mock 설정', () => {
     it('Supabase Mock 설정이 올바르게 정의되어야 함', () => {
       expect(TEST_ENV_CONFIG.NEXT_PUBLIC_SUPABASE_URL).toBe(
-        'https://mock-supabase.test'
+        'http://localhost:54321'
       );
       expect(TEST_ENV_CONFIG.NEXT_PUBLIC_SUPABASE_ANON_KEY).toBe(
-        'mock-anon-key'
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
       );
       expect(TEST_ENV_CONFIG.SUPABASE_SERVICE_ROLE_KEY).toBe(
-        'mock-service-key'
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
       );
     });
 

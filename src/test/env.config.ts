@@ -26,9 +26,9 @@ export const TEST_ENV_CONFIG = {
   // ===============================
   // 🗄️ 데이터베이스 Mock 설정
   // ===============================
-  NEXT_PUBLIC_SUPABASE_URL: 'https://mock-supabase.test',
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: 'mock-anon-key',
-  SUPABASE_SERVICE_ROLE_KEY: 'mock-service-key',
+  NEXT_PUBLIC_SUPABASE_URL: 'http://localhost:54321',
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
+  SUPABASE_SERVICE_ROLE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU',
 
   // ===============================
   // 📊 Redis Mock 설정
@@ -45,6 +45,9 @@ export const TEST_ENV_CONFIG = {
   // 테스트 환경에서는 항상 Mock 사용하여 안정성 확보
   GOOGLE_AI_ENABLED: 'true',
   FORCE_MOCK_GOOGLE_AI: 'true', // 테스트 환경에서는 Mock 강제 사용
+  GOOGLE_AI_API_KEY: 'mock-google-ai-api-key-for-testing',
+  GEMINI_API_KEY: 'mock-gemini-api-key-for-testing',
+  GOOGLE_GENERATIVE_AI_API_KEY: 'mock-generative-ai-key-for-testing',
   GOOGLE_AI_QUOTA_PROTECTION: 'true',
   GOOGLE_AI_TEST_LIMIT_PER_DAY: '5', // 테스트용 제한
   GOOGLE_AI_HEALTH_CHECK_CACHE_HOURS: '24',
@@ -154,6 +157,8 @@ export const ENV_GROUPS = {
     GOOGLE_AI_ENABLED: TEST_ENV_CONFIG.GOOGLE_AI_ENABLED,
     FORCE_MOCK_GOOGLE_AI: TEST_ENV_CONFIG.FORCE_MOCK_GOOGLE_AI,
     GOOGLE_AI_API_KEY: TEST_ENV_CONFIG.GOOGLE_AI_API_KEY,
+    GEMINI_API_KEY: TEST_ENV_CONFIG.GEMINI_API_KEY,
+    GOOGLE_GENERATIVE_AI_API_KEY: TEST_ENV_CONFIG.GOOGLE_GENERATIVE_AI_API_KEY,
   },
   local_optimization: {
     USE_LOCAL_DEVELOPMENT: TEST_ENV_CONFIG.USE_LOCAL_DEVELOPMENT,
