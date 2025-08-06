@@ -46,7 +46,8 @@ export type TechCategory =
   | 'opensource'
   | 'custom'
   | 'deployment'
-  | 'ui';
+  | 'ui'
+  | 'utility'; // clsx, date-fns 등 유틸리티 라이브러리용
 
 /**
  * 중요도 레벨

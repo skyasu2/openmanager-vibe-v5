@@ -29,7 +29,7 @@ interface AIQueryRequest {
   maxTokens?: number;
   context?: string;
   includeThinking?: boolean;
-  mode?: 'local' | 'google-ai' | 'auto';
+  mode?: 'local' | 'google-ai' | 'local-ai'; // 'auto' 제거, 'local-ai' 추가
   timeoutMs?: number;
 }
 
@@ -93,7 +93,7 @@ async function postHandler(request: NextRequest) {
       maxTokens = 1000,
       context = 'general',
       includeThinking = true,
-      mode = 'auto',
+      mode = 'local-ai',
       timeoutMs = 450,
     } = body;
 
@@ -122,9 +122,8 @@ async function postHandler(request: NextRequest) {
 
     // 헤더에서 우선 모드 확인
     const preferredMode = request.headers.get('X-AI-Mode') as
-      | 'local'
+      | 'local-ai'
       | 'google-ai'
-      | 'auto'
       | null;
 
     // 캐시 키 생성 및 캐시 확인
@@ -143,9 +142,14 @@ async function postHandler(request: NextRequest) {
       console.log(`✅ 캐시 HIT: ${cacheKey}, 응답 시간: ${responseTime}ms`);
     } else {
       // 새로운 쿼리 실행
+      // 모드별 기능 설정
+      const finalMode = mode || preferredMode || 'local-ai';
+      const enableGoogleAI = finalMode === 'google-ai';
+      const enableAIAssistantMCP = finalMode === 'google-ai';
+
       const queryRequest: QueryRequest = {
         query,
-        mode: mode || preferredMode || 'auto',
+        mode: finalMode,
         context: {
           metadata: {
             category: context,
@@ -155,10 +159,15 @@ async function postHandler(request: NextRequest) {
           temperature,
           maxTokens,
           includeThinking,
-          includeMCPContext: mode === 'google-ai' && query.length > 100,
+          includeMCPContext: enableAIAssistantMCP && query.length > 100,
           category: context,
           timeoutMs,
         },
+        // 모드별 기능 제어 옵션 추가
+        enableGoogleAI,
+        enableAIAssistantMCP,
+        enableKoreanNLP: true,  // 두 모드 모두 한국어 NLP 활성화
+        enableVMBackend: true,  // 두 모드 모두 VM 백엔드 활성화
       };
 
       result = await queryEngine.query(queryRequest);
@@ -187,7 +196,7 @@ async function postHandler(request: NextRequest) {
       responseTime,
       timestamp: new Date().toISOString(),
       metadata: {
-        mode: mode || preferredMode || 'auto',
+        mode: mode || preferredMode || 'local-ai',
         temperature,
         maxTokens,
         context,

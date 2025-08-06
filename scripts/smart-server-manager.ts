@@ -598,4 +598,5 @@ if (require.main === module) {
   main().catch(console.error);
 }
 
-export { SmartServerManager, ServerConfig };
+export { SmartServerManager };
+export type { ServerConfig };

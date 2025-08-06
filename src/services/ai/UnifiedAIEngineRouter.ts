@@ -74,8 +74,8 @@ export interface RouterConfig {
   dailyTokenLimit: number;
   userTokenLimit: number;
 
-  // 엔진 선택 설정
-  preferredEngine: 'auto' | 'google-ai' | 'local-rag' | 'korean-nlp';
+  // 엔진 선택 설정 (모드 분리) - 필수 파라미터
+  preferredEngine: 'local-ai' | 'google-ai'; // 더 이상 optional이 아님
   fallbackChain: string[];
 
   // 성능 설정
@@ -154,21 +154,29 @@ export class UnifiedAIEngineRouter {
     ttl: number;
   }>;
 
-  private constructor(config?: Partial<RouterConfig>) {
-    this.config = {
+  private constructor(config: RouterConfig) {
+    // preferredEngine이 반드시 제공되어야 함 (더 이상 자동 선택 없음)
+    if (!config.preferredEngine) {
+      throw new Error('preferredEngine 설정이 필수입니다. "local-ai" 또는 "google-ai"를 선택해주세요.');
+    }
+
+    // 기본값 설정
+    const defaultConfig: RouterConfig = {
       enableSecurity: true,
-      strictSecurityMode: true, // 엔터프라이즈급 보안 적용
+      strictSecurityMode: false, // 포트폴리오 수준 보안으로 완화
       dailyTokenLimit: 10000, // 무료 티어 고려
       userTokenLimit: 1000, // 사용자당 일일 제한
-      preferredEngine: 'auto',
-      fallbackChain: ['local-rag', 'google-ai', 'korean-nlp'],
+      preferredEngine: config.preferredEngine, // 필수 파라미터
+      fallbackChain: ['performance-optimized', 'simplified'], // 모드별 내부 엔진 순서
       enableCircuitBreaker: true,
       maxRetries: 2,
       timeoutMs: 30000, // 30초
       enableKoreanNLP: true,
       koreanNLPThreshold: 0.7,
-      ...config,
     };
+
+    // 사용자 설정으로 덮어쓰기 (중복 방지)
+    this.config = { ...defaultConfig, ...config };
 
     this.metrics = {
       totalRequests: 0,
@@ -208,7 +216,32 @@ export class UnifiedAIEngineRouter {
     config?: Partial<RouterConfig>
   ): UnifiedAIEngineRouter {
     if (!UnifiedAIEngineRouter.instance) {
-      UnifiedAIEngineRouter.instance = new UnifiedAIEngineRouter(config);
+      // preferredEngine이 명시적으로 설정되었는지 확인
+      if (!config?.preferredEngine) {
+        throw new Error(
+          'UnifiedAIEngineRouter 초기화 시 preferredEngine이 필요합니다.\n' +
+          '- 로컬 AI 모드: { preferredEngine: "local-ai" }\n' +
+          '- 구글 AI 모드: { preferredEngine: "google-ai" }'
+        );
+      }
+      
+      // 기본 설정과 전달된 설정을 병합
+      const defaultConfig: RouterConfig = {
+        enableSecurity: true,
+        strictSecurityMode: false,
+        dailyTokenLimit: 10000,
+        userTokenLimit: 1000,
+        preferredEngine: config.preferredEngine, // 필수값
+        fallbackChain: ['performance-optimized', 'simplified'],
+        enableCircuitBreaker: true,
+        maxRetries: 2,
+        timeoutMs: 30000,
+        enableKoreanNLP: true,
+        koreanNLPThreshold: 0.7,
+      };
+      
+      const finalConfig = { ...defaultConfig, ...config };
+      UnifiedAIEngineRouter.instance = new UnifiedAIEngineRouter(finalConfig);
     }
     return UnifiedAIEngineRouter.instance;
   }
@@ -275,7 +308,7 @@ export class UnifiedAIEngineRouter {
             processingPath,
           },
           metadata: cachedResult.metadata ? (() => {
-            const { complexity, cacheHit, ...rest } = cachedResult.metadata as any;
+            const { cacheHit, ...rest } = cachedResult.metadata as any;
             return {
               ...rest,
               cached: true,
@@ -313,9 +346,9 @@ export class UnifiedAIEngineRouter {
         processingPath.push('token_check_passed');
       }
 
-      // 4. 엔진 선택
-      selectedEngine = await this.selectEngine(request);
-      processingPath.push(`engine_selected_${selectedEngine}`);
+      // 4. 모드 기반 엔진 선택 (자동 선택 제거)
+      selectedEngine = this.config.preferredEngine;
+      processingPath.push(`mode_selected_${selectedEngine}`);
 
       // 5. Circuit Breaker 확인
       if (this.config.enableCircuitBreaker) {
@@ -440,7 +473,7 @@ export class UnifiedAIEngineRouter {
           processingPath,
         },
         metadata: response.metadata ? (() => {
-          const { complexity, cacheHit, ...rest } = response.metadata as any;
+          const { cacheHit, ...rest } = response.metadata as any;
           return {
             ...rest,
             cached: false, // 새로운 응답이므로 cached = false
@@ -473,51 +506,6 @@ export class UnifiedAIEngineRouter {
     return sanitizationResult;
   }
 
-  /**
-   * 🎯 엔진 선택 로직
-   */
-  private async selectEngine(request: QueryRequest): Promise<string> {
-    if (this.config.preferredEngine !== 'auto') {
-      return this.config.preferredEngine;
-    }
-
-    // 쿼리 복잡도에 따른 우선 선택
-    const queryLength = request.query.length;
-    const hasServerContext = !!request.context?.servers;
-    const hasLargeContext = request.context && Object.keys(request.context).length > 5;
-    
-    // 매우 복잡한 쿼리는 Google AI 우선
-    if (queryLength > 200 || hasLargeContext) {
-      return 'google-ai';
-    }
-
-    // 한국어 검출 및 NLP 엔진 선택 (중간 복잡도)
-    if (this.config.enableKoreanNLP) {
-      const koreanRatio = this.calculateKoreanRatio(request.query);
-      if (koreanRatio > this.config.koreanNLPThreshold) {
-        // 복잡한 한국어 쿼리는 여전히 Google AI 사용
-        if (queryLength > 100 || hasServerContext) {
-          return 'google-ai';
-        }
-        return 'korean-nlp';
-      }
-    }
-
-    // 기본 복잡도 체크
-    if (queryLength > 100 || hasServerContext) {
-      return 'google-ai'; // 복잡한 쿼리는 Google AI
-    } else {
-      return 'local-rag'; // 간단한 쿼리는 로컬 RAG
-    }
-  }
-
-  /**
-   * 🇰🇷 한국어 비율 계산
-   */
-  private calculateKoreanRatio(text: string): number {
-    const koreanChars = text.match(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g) || [];
-    return koreanChars.length / text.length;
-  }
 
   /**
    * ⚡ AI 엔진 실행
@@ -529,30 +517,36 @@ export class UnifiedAIEngineRouter {
     let response: QueryResponse;
     
     switch (engineName) {
-      case 'google-ai':
+      case 'local-ai':
+        // 로컬 AI 모드: Korean NLP + Supabase RAG + VM 백엔드
+        // Google AI API 제외, AI 어시스턴트 MCP(CloudContextLoader) 제외
         response = await this.simplifiedEngine.query({
           ...request,
-          mode: 'google-ai',
+          mode: 'local',
+          enableGoogleAI: false,        // Google AI API 비활성화
+          enableAIAssistantMCP: false,  // AI 어시스턴트 MCP 비활성화
+          enableKoreanNLP: true,        // 한국어 NLP 활성화
+          enableVMBackend: true,        // VM 백엔드 활성화
         });
         break;
 
-      case 'local-rag':
-        response = await this.simplifiedEngine.query({ ...request, mode: 'local' });
-        break;
-
-      case 'korean-nlp':
-        response = await this.executeKoreanNLP(request);
-        break;
-
-      case 'performance':
-        response = await this.performanceEngine.query(request);
+      case 'google-ai':
+        // 구글 AI 모드: 모든 기능 포함
+        // Google AI API + AI 어시스턴트 MCP 포함
+        response = await this.simplifiedEngine.query({
+          ...request,
+          mode: 'google-ai',
+          enableGoogleAI: true,         // Google AI API 활성화
+          enableAIAssistantMCP: true,   // AI 어시스턴트 MCP 활성화
+          enableKoreanNLP: true,        // 한국어 NLP 활성화
+          enableVMBackend: true,        // VM 백엔드 활성화
+        });
         break;
 
       default:
-        throw new Error(`Unknown engine: ${engineName}`);
+        throw new Error(`Unknown AI mode: ${engineName}. 지원되는 모드: 'local-ai', 'google-ai'`);
     }
     
-    // 성공했을 때만 엔진 사용량 증가 (updateMetrics에서 처리됨)
     return response;
   }
 

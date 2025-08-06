@@ -76,6 +76,7 @@
     "**/*.spec.ts",
     "**/*.spec.tsx",
     "src/test/**",
-    "tests/**"
+    "tests/**",
+    "vm-ai-backend*/**"
   ]
 }

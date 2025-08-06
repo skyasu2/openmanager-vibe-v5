@@ -549,4 +549,5 @@ export const CATEGORY_STYLES = {
   custom: { color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
   deployment: { color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
   ui: { color: 'text-teal-400', bg: 'bg-teal-500/10' },
+  utility: { color: 'text-orange-400', bg: 'bg-orange-500/10' },
 };
