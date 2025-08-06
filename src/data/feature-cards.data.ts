@@ -95,7 +95,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'cursor-ai',
     title: '🔥 Vibe Coding',
     description:
-      'AI 도구들을 조합한 고속 개발 방법론. 자동 코드 생성, 실시간 오류 수정, 멀티파일 동시 편집으로 기존 대비 5-10배 생산성 달성',
+      'Vibe Coding 워크플로우로 Claude Code & Gemini CLI를 통해, 가상 서버 데이터 기반 모니터링 웹페이지를 자동 생성하고, AI 어시스턴트 기능을 자연어 프롬프트로 설계하여 완성했습니다.',
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {

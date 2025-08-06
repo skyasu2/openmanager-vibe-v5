@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           success: true,
           data: {
-            servers: mockServers.slice(0, limit),
+            servers: mockServers, // 전체 Mock 서버 반환 (8개)
             page,
             limit,
             total: mockServers.length,
@@ -200,7 +200,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           success: true,
           data: {
-            servers: mockServers.slice(0, limit),
+            servers: mockServers, // 전체 Mock 서버 반환 (8개)
             page,
             limit,
             total: mockServers.length,

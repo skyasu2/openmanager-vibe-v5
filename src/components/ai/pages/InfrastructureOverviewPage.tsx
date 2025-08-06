@@ -61,24 +61,28 @@ export default function InfrastructureOverviewPage({
 
       /*
        * ✅ 대시보드 API 응답 구조 처리
-       *   - { data: { servers: [], overview: {} } } 형태
+       *   - { data: { servers: {}, stats: {} } } 형태
+       *   - servers는 객체이므로 Object.values()로 배열 변환
        */
       const response_data = await response.json();
-      const servers = response_data?.data?.servers || [];
-      const overview = response_data?.data?.overview || {};
+      const serversObject = response_data?.data?.servers || {};
+      const stats = response_data?.data?.stats || {};
+      
+      // 서버 객체를 배열로 변환
+      const servers = Object.values(serversObject);
 
       console.log('🔍 인프라 현황 - 대시보드 데이터:', {
         serversCount: servers.length,
-        overview,
+        stats,
         firstServer: servers[0],
         timestamp: new Date().toISOString(),
       });
 
-      // 🎯 대시보드 API의 overview 데이터를 직접 사용
-      const totalServers = overview.total_servers || servers.length;
-      const onlineServers = overview.healthy_servers || 0;
-      const warningServers = overview.warning_servers || 0;
-      const offlineServers = overview.critical_servers || 0;
+      // 🎯 대시보드 API의 stats 데이터를 직접 사용
+      const totalServers = stats.total || servers.length;
+      const onlineServers = stats.healthy || 0;
+      const warningServers = stats.warning || 0;
+      const offlineServers = stats.critical || 0;
       const alertCount = warningServers + offlineServers;
 
       console.log('📊 서버 상태 분포 (대시보드 API):', {
@@ -101,7 +105,8 @@ export default function InfrastructureOverviewPage({
           servers.reduce((sum: number, s: unknown) => {
             if (typeof s === 'object' && s !== null) {
               const server = s as any;
-              const cpuValue = server.node_cpu_usage_percent || server.cpu_usage || 0;
+              // CPU 값은 cpu.usage 또는 직접 cpu 필드에서 가져옴
+              const cpuValue = server.cpu?.usage || server.cpu || 0;
               return sum + cpuValue;
             }
             return sum;
@@ -111,8 +116,8 @@ export default function InfrastructureOverviewPage({
           servers.reduce((sum: number, s: unknown) => {
             if (typeof s === 'object' && s !== null) {
               const server = s as any;
-              const memoryValue =
-                server.node_memory_usage_percent || server.memory_usage || 0;
+              // Memory 값은 memory.usage 또는 직접 memory 필드에서 가져옴
+              const memoryValue = server.memory?.usage || server.memory || 0;
               return sum + memoryValue;
             }
             return sum;
@@ -122,7 +127,8 @@ export default function InfrastructureOverviewPage({
           servers.reduce((sum: number, s: unknown) => {
             if (typeof s === 'object' && s !== null) {
               const server = s as any;
-              const diskValue = server.node_disk_usage_percent || server.disk_usage || 0;
+              // Disk 값은 disk.usage 또는 직접 disk 필드에서 가져옴
+              const diskValue = server.disk?.usage || server.disk || 0;
               return sum + diskValue;
             }
             return sum;
@@ -132,13 +138,19 @@ export default function InfrastructureOverviewPage({
         bandwidth = servers.reduce((sum: number, s: unknown) => {
           if (typeof s === 'object' && s !== null) {
             const server = s as any;
-            const networkIn = server.node_network_receive_rate_mbps || 0;
-            const networkOut = server.node_network_transmit_rate_mbps || 0;
-            return sum + networkIn + networkOut;
+            // Network 값은 network.rx/tx 또는 직접 network 필드에서 가져옴
+            const networkRx = server.network?.rx || 0;
+            const networkTx = server.network?.tx || 0;
+            return sum + networkRx + networkTx;
           }
           return sum;
         }, 0);
       }
+
+      // stats에서 평균 값들도 사용 가능한 경우 활용
+      if (stats.avgCpu !== undefined) totalCpu = stats.avgCpu;
+      if (stats.avgMemory !== undefined) totalRam = stats.avgMemory;
+      if (stats.avgDisk !== undefined) totalDisk = stats.avgDisk;
 
       // 🛡️ NaN 방지 및 안전한 값 설정
       const safeStats = {
@@ -175,7 +187,7 @@ export default function InfrastructureOverviewPage({
     }
   };
 
-  // 120초마다 데이터 업데이트
+  // 30초마다 데이터 업데이트
   useEffect(() => {
     fetchServerData();
     // 🎯 데이터 생성기와 동기화: 30초 간격

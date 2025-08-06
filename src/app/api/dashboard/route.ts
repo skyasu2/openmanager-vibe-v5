@@ -37,17 +37,56 @@ const getHandler = createApiRoute()
 
     // Supabase에서 실제 서버 데이터 가져오기
     const supabase = getSupabaseClient();
-    const { data: servers, error: serversError } = await supabase
-      .from('servers')
-      .select('*')
-      .order('created_at', { ascending: false });
+    let serverList: any[] = [];
+    
+    try {
+      const { data: servers, error: serversError } = await supabase
+        .from('servers')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (serversError) {
-      console.error('❌ 서버 데이터 조회 실패:', serversError);
-      throw new Error(`Failed to fetch servers: ${serversError.message}`);
+      if (serversError) {
+        console.error('❌ 서버 데이터 조회 실패:', serversError);
+        console.log('📦 Mock 데이터로 폴백...');
+        
+        // Mock 데이터 사용
+        const { getMockServers } = await import('@/mock');
+        const mockServers = getMockServers();
+        serverList = mockServers.map(server => ({
+          id: server.id,
+          name: server.name,
+          type: server.type,
+          status: server.status,
+          cpu: server.cpu,
+          memory: server.memory,
+          disk: server.disk,
+          location: server.location,
+          environment: server.environment,
+          metrics: server.metrics,
+        }));
+      } else {
+        serverList = servers || [];
+      }
+    } catch (error) {
+      console.error('❌ Supabase 연결 실패:', error);
+      console.log('📦 Mock 데이터로 폴백...');
+      
+      // Mock 데이터 사용
+      const { getMockServers } = await import('@/mock');
+      const mockServers = getMockServers();
+      serverList = mockServers.map(server => ({
+        id: server.id,
+        name: server.name,
+        type: server.type,
+        status: server.status,
+        cpu: server.cpu,
+        memory: server.memory,
+        disk: server.disk,
+        location: server.location,
+        environment: server.environment,
+        metrics: server.metrics,
+      }));
     }
-
-    const serverList = servers || [];
 
     // 서버 데이터를 객체 형태로 변환 (기존 API 호환성)
     const serversMap: Record<string, DashboardServer> = {};
