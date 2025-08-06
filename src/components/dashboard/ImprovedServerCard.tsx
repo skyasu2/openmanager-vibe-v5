@@ -409,7 +409,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
           />
           <ServerCardLineChart
             label="네트워크"
-            value={realtimeMetrics.network}
+            value={Math.min(100, Math.max(0, realtimeMetrics.network))}
             type="network"
             showRealTimeUpdates={showRealTimeUpdates}
           />

@@ -54,12 +54,12 @@ const getMetricConfig = (
       gradientTo: 'to-cyan-100',
     },
     network: {
-      color: '#22c55e',
-      bgColor: 'bg-green-50',
-      lineColor: '#22c55e',
-      textColor: 'text-green-700',
-      gradientFrom: 'from-green-500',
-      gradientTo: 'to-green-100',
+      color: '#10b981',
+      bgColor: 'bg-emerald-50',
+      lineColor: '#10b981',
+      textColor: 'text-emerald-700',
+      gradientFrom: 'from-emerald-500',
+      gradientTo: 'to-emerald-100',
     },
   };
 
@@ -235,8 +235,8 @@ export default function ServerMetricsLineChart({
           {/* 그라데이션 정의 */}
           <defs>
             <linearGradient id={`gradient-${type}`} x1='0' y1='0' x2='0' y2='1'>
-              <stop offset='0%' stopColor={config.lineColor} stopOpacity='0.3' />
-              <stop offset='100%' stopColor={config.lineColor} stopOpacity='0' />
+              <stop offset='0%' stopColor={config.lineColor} stopOpacity='0.5' />
+              <stop offset='100%' stopColor={config.lineColor} stopOpacity='0.05' />
             </linearGradient>
           </defs>
 
@@ -254,7 +254,7 @@ export default function ServerMetricsLineChart({
             d={path}
             fill='none'
             stroke={config.lineColor}
-            strokeWidth='2.5'
+            strokeWidth='3'
             strokeLinecap='round'
             strokeLinejoin='round'
             initial={{ pathLength: 0 }}

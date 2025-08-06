@@ -297,8 +297,8 @@ export default function EnhancedServerModal({
                 x2="0%"
                 y2="100%"
               >
-                <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-                <stop offset="100%" stopColor={color} stopOpacity="0.05" />
+                <stop offset="0%" stopColor={color} stopOpacity="0.4" />
+                <stop offset="100%" stopColor={color} stopOpacity="0.1" />
               </linearGradient>
             </defs>
             {/* 격자 */}
@@ -322,7 +322,7 @@ export default function EnhancedServerModal({
             <polyline
               fill="none"
               stroke={color}
-              strokeWidth="2"
+              strokeWidth="3"
               points={points}
               vectorEffect="non-scaling-stroke"
               className="drop-shadow-sm"
@@ -496,7 +496,7 @@ export default function EnhancedServerModal({
           </div>
 
           {/* 콘텐츠 영역 */}
-          <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+          <div className="flex-1 overflow-y-auto bg-gray-50 p-6">
             <AnimatePresence mode="wait">
               <MotionDiv
                 key={selectedTab}
@@ -645,24 +645,24 @@ export default function EnhancedServerModal({
                     <div className="grid grid-cols-2 gap-6">
                       <RealtimeChart
                         data={realtimeData.cpu}
-                        color="#ef4444"
+                        color="#3b82f6"
                         label="CPU 사용률"
                       />
                       <RealtimeChart
                         data={realtimeData.memory}
-                        color="#3b82f6"
+                        color="#8b5cf6"
                         label="메모리 사용률"
                       />
                       <RealtimeChart
                         data={realtimeData.disk}
-                        color="#8b5cf6"
+                        color="#06b6d4"
                         label="디스크 사용률"
                       />
                       <RealtimeChart
                         data={realtimeData.network.map((n) =>
-                          typeof n === 'number' ? n : (n.in + n.out) / 2
+                          Math.min(100, Math.max(0, typeof n === 'number' ? n : (n.in + n.out) / 2))
                         )}
-                        color="#22c55e"
+                        color="#10b981"
                         label="네트워크 사용률"
                       />
                     </div>
