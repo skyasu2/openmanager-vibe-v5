@@ -217,8 +217,9 @@ async function queryGCPVMMCP(
   const gcpMcpUrl = process.env.GCP_MCP_SERVER_URL || 
     `http://${process.env.GCP_VM_IP || '104.154.205.25'}:${process.env.GCP_MCP_SERVER_PORT || '10000'}`;
   
+  const startTime = Date.now();  // startTime을 try 블록 밖으로 이동
+  
   try {
-    const startTime = Date.now();
     const timeout = request.options?.timeout || 8000;
     
     // JSON-RPC 2.0 표준 요청 형식
