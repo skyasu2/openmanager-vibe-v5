@@ -767,6 +767,12 @@ gemini "review the implemented changes for architectural consistency"
 - **MCP 서버 완전 가이드**: `/docs/mcp-servers-complete-guide.md`
 - 서브에이전트 정의: `.claude/agents/`
 
+### aitmpl.com 템플릿 참조 문서
+
+- **메인 참조 가이드**: `/docs/aitmpl-reference-guide.md` - aitmpl.com 시스템 전체 분석
+- **비교 분석**: `/docs/aitmpl-comparison-analysis.md` - 우리 프로젝트와 상세 비교
+- **활용 패턴**: `/docs/aitmpl-usage-patterns.md` - 실전 활용 방법 및 체크리스트
+
 ### Claude Code 공식 문서
 
 - [Claude Code 개요](https://docs.anthropic.com/en/docs/claude-code/overview)
