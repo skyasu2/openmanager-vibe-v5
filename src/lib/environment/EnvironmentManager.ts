@@ -193,11 +193,11 @@ export class EnvironmentManager {
   }
 
   /**
-   * 🌐 Google VM MCP 서버 연결 허용 여부 (프로덕션용)
+   * 🌐 MCP 서버 연결 허용 여부 (로컬 개발 도구)
    */
-  shouldConnectGoogleVMMCP(): boolean {
-    // 프로덕션 환경에서만 Google VM MCP 서버 연결
-    return this.isProduction && this._config.enableMCPServers;
+  shouldConnectMCPServers(): boolean {
+    // MCP는 로컬 개발 도구이므로 개발 환경에서 주로 사용
+    return this._config.enableMCPServers;
   }
 
   /**

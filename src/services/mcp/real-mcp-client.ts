@@ -3,8 +3,8 @@
  *
  * ✅ 컴포넌트 기반 아키텍처
  * ✅ 목적별 MCP 서버 분리:
- *    - AI 기능: GCP VM MCP 서버 (컨텍스트 분석) 전용
- *    - 개발/모니터링: Vercel 내장 MCP
+ *    - AI 기능: 로컬 MCP 서버로 컨텍스트 분석
+ *    - 개발/모니터링: 로컬 MCP 서버 활용
  * ✅ MCPServerManager: 서버 관리
  * ✅ MCPPerformanceMonitor: 성능 모니터링
  * ✅ MCPToolHandler: 도구 호출
@@ -78,25 +78,25 @@ export class RealMCPClient {
   }
 
   /**
-   * 🎯 AI 기능용 싱글톤 인스턴스 반환 (GCP VM MCP 서버 - 컨텍스트 분석 전용)
+   * 🎯 AI 기능용 싱글톤 인스턴스 반환 (로컬 MCP 서버로 컨텍스트 분석)
    */
   public static getAIInstance(): RealMCPClient {
     if (!RealMCPClient.aiInstance) {
       RealMCPClient.aiInstance = new RealMCPClient('ai-production');
       console.log(
-        '🤖 AI 전용 MCP 클라이언트 생성 (GCP VM MCP 서버 - 컨텍스트 분석 전용)'
+        '🤖 AI 전용 MCP 클라이언트 생성 (로컬 MCP 서버로 컨텍스트 분석)'
       );
     }
     return RealMCPClient.aiInstance;
   }
 
   /**
-   * 🛠️ 개발 도구용 싱글톤 인스턴스 반환 (Vercel 내장 MCP)
+   * 🛠️ 개발 도구용 싱글톤 인스턴스 반환 (로컬 MCP 서버)
    */
   public static getDevToolsInstance(): RealMCPClient {
     if (!RealMCPClient.devToolsInstance) {
       RealMCPClient.devToolsInstance = new RealMCPClient('development');
-      console.log('🛠️ 개발 도구 전용 MCP 클라이언트 생성 (Vercel 내장 MCP)');
+      console.log('🛠️ 개발 도구 전용 MCP 클라이언트 생성 (로컬 MCP 서버)');
     }
     return RealMCPClient.devToolsInstance;
   }
@@ -125,13 +125,13 @@ export class RealMCPClient {
       switch (this.purpose) {
         case 'ai-production':
           console.log(
-            '🤖 AI 프로덕션 MCP 설정 로드 (GCP VM MCP 서버 - 컨텍스트 분석)'
+            '🤖 AI 프로덕션 MCP 설정 로드 (로컬 MCP 서버 - 컨텍스트 분석)'
           );
           break;
         case 'development':
         case 'monitoring':
         case 'testing':
-          console.log('🛠️ 개발 도구 MCP 설정 로드 (Vercel 내장)');
+          console.log('🛠️ 개발 도구 MCP 설정 로드 (로컬 MCP 서버)');
           break;
         default:
           console.log('🔧 기본 MCP 설정 로드');

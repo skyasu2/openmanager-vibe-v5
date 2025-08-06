@@ -194,14 +194,14 @@ async function checkGoogleAI(): Promise<ServiceStatus> {
   }
 }
 
-async function checkGoogleVMMCP(): Promise<ServiceStatus> {
+async function checkLocalMCP(): Promise<ServiceStatus> {
   const startTime = Date.now();
   try {
     const mcpUrl = devKeyManager.getMCPUrl();
 
     if (!mcpUrl) {
       return {
-        name: 'Google VM MCP Server',
+        name: 'Local MCP Server',
         status: 'error',
         responseTime: 0,
         details: null,
@@ -220,7 +220,7 @@ async function checkGoogleVMMCP(): Promise<ServiceStatus> {
 
     if (!response.ok) {
       return {
-        name: 'Google VM MCP Server',
+        name: 'Local MCP Server',
         status: 'error',
         responseTime,
         details: { httpStatus: response.status },
@@ -231,19 +231,19 @@ async function checkGoogleVMMCP(): Promise<ServiceStatus> {
     const data = await response.json();
 
     return {
-      name: 'Google VM MCP Server',
+      name: 'Local MCP Server',
       status: 'connected',
       responseTime,
       details: {
         url: mcpUrl,
-        port: 10000,
+        port: 3000,
         health: data,
         keyManager: 'DevKeyManager v1.0',
       },
     };
   } catch (error: unknown) {
     return {
-      name: 'Google VM MCP Server',
+      name: 'Local MCP Server',
       status: 'error',
       responseTime: Date.now() - startTime,
       details: null,
@@ -312,7 +312,7 @@ export async function GET(_request: NextRequest) {
       checkSupabase(),
       checkMemoryCache(), // Redis 대신 메모리 캐시 확인
       checkGoogleAI(),
-      checkGoogleVMMCP(),
+      checkLocalMCP(),
       checkVercel(),
     ]);
 

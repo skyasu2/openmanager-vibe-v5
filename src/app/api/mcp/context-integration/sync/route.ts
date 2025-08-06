@@ -1,7 +1,7 @@
 /**
  * 🔄 MCP + RAG 동기화 API
  *
- * Google Cloud VM MCP 서버와 RAG 엔진 간 컨텍스트 동기화
+ * 로컬 MCP 도구와 RAG 엔진 간 컨텍스트 동기화
  *
  * POST /api/mcp/context-integration/sync
  */

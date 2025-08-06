@@ -19,9 +19,17 @@ OpenManager Vibe v5는 민감한 환경변수들을 AES 암호화하여 안전�
 - `UPSTASH_REDIS_REST_URL`: Upstash Redis REST URL
 - `UPSTASH_REDIS_REST_TOKEN`: Upstash Redis 인증 토큰
 
-### 📡 MCP 서버
+### 🔧 MCP 서버 (Model Context Protocol)
 
-- `GCP_MCP_SERVER_URL`: GCP VM 배포 MCP 서버 URL (<http://104.154.205.25:10000>)
+- **Claude Code MCP 서버**: stdio (표준 입출력) 통신, 포트 사용 안 함
+  - **중요**: Claude Code의 11개 MCP 서버는 네트워크 포트를 사용하지 않습니다
+  - 프로세스 간 파이프를 통한 JSON-RPC 통신 방식
+  - filesystem, memory, github 등은 모두 stdio로 Claude Code와 직접 통신
+
+### 🚀 GCP AI 백엔드
+
+- `GCP_AI_BACKEND_URL`: GCP VM AI 백엔드 URL (선택사항)
+  - **참고**: AI 백엔드는 MCP 서버와 완전히 별개의 시스템입니다
 
 ## 🚀 사용법
 

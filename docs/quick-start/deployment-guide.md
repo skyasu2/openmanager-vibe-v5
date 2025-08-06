@@ -828,12 +828,14 @@ vercel env add VARIABLE_NAME
 - [ ] basic-ml 배포 완료
 - [ ] 헬스체크 테스트 완료
 
-### GCP VM MCP 서버 ✅
+### GCP VM AI 백엔드 (선택사항) 🚀
 
-- [ ] VM 인스턴스 생성
-- [ ] MCP 서버 설정
+- [ ] VM 인스턴스 생성 (e2-micro 무료 티어)
+- [ ] AI 백엔드 서비스 설정
 - [ ] systemd 서비스 등록
 - [ ] 24/7 운영 확인
+
+**참고**: MCP 서버는 로컬 개발 도구이며, GCP VM과 무관합니다.
 
 ### 2-Mode AI 시스템 연동 ✅
 

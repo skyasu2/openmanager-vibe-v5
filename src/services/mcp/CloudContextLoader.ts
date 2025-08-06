@@ -6,7 +6,7 @@
  * 기능:
  * - MCP 서버 컨텍스트 문서를 Firestore에 구조화 저장
  * - 메모리 기반 컨텍스트 캐싱 (TTL 1시간)
- * - Google Cloud VM MCP 서버 직접 연동
+ * - Google Cloud VM AI 백엔드 직접 연동 (MCP와 무관)
  * - RAG 엔진과의 협업 및 컨텍스트 공유
  * - 자연어 처리 파이프라인 지원
  * - 버전 관리 및 백업 지원
@@ -189,7 +189,7 @@ export class CloudContextLoader {
       compressionEnabled: true,
       mcpServerUrl:
         process.env.GCP_MCP_SERVER_URL ||
-        `http://${process.env.GCP_VM_IP || '104.154.205.25'}:${process.env.GCP_MCP_SERVER_PORT || '10000'}`, // Google Cloud VM
+        `http://${process.env.GCP_VM_IP || '104.154.205.25'}:${process.env.GCP_AI_BACKEND_PORT || '10000'}`, // Google Cloud VM AI 백엔드 (MCP와 무관)
       mcpHealthCheckInterval: 30000, // 30초
       ...config,
     };
@@ -235,7 +235,7 @@ export class CloudContextLoader {
   }
 
   /**
-   * 🔗 Google Cloud VM MCP 서버 헬스체크 시작
+   * 🔗 Google Cloud VM AI 백엔드 헬스체크 시작 (MCP와 무관)
    */
   private startMCPHealthCheck(): void {
     if (this.healthCheckTimer) {

@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
  * ✅ 개선된 기능:
  * - 시스템이 실제로 시작된 상태일 때만 실행
  * - 사용자가 "시스템 시작" 버튼을 누르기 전에는 실행 안 함
- * - MCP 서버 자동 웜업 (GCP VM 서버)
+ * - AI 백엔드 서버 자동 웜업
  * - Google AI 연결 확인
  * - 시스템 초기화 상태 관리
  */
@@ -58,9 +58,9 @@ export function SystemBootstrap(): React.JSX.Element | null {
         }
       }
 
-      // 1. GCP VM 서버 상태 확인 (MCP Context Assistant)
+      // 1. AI 백엔드 서버 상태 확인
       try {
-        console.log('🔄 GCP VM 서버 상태 확인...');
+        console.log('🔄 AI 백엔드 서버 상태 확인...');
         const mcpResponse = await fetch('/api/ai/status', {
           method: 'GET',
           headers: {
@@ -72,17 +72,17 @@ export function SystemBootstrap(): React.JSX.Element | null {
           if (mcpResponse.ok) {
             const mcpData = await mcpResponse.json();
             console.log(
-              '✅ GCP VM 서버 상태:',
+              '✅ AI 백엔드 서버 상태:',
               mcpData.mcp?.enabled ? '활성화' : '비활성화'
             );
             setBootstrapStatus(prev => ({ ...prev, mcp: 'success' }));
           } else {
-            console.warn('⚠️ GCP VM 서버 상태 확인 실패:', mcpResponse.status);
+            console.warn('⚠️ AI 백엔드 서버 상태 확인 실패:', mcpResponse.status);
             setBootstrapStatus(prev => ({ ...prev, mcp: 'failed' }));
           }
         }
       } catch (error) {
-        console.error('❌ GCP VM 서버 상태 확인 오류:', error);
+        console.error('❌ AI 백엔드 서버 상태 확인 오류:', error);
         if (isMounted) {
           setBootstrapStatus(prev => ({ ...prev, mcp: 'failed' }));
         }

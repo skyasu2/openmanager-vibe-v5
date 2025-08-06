@@ -1,7 +1,7 @@
 /**
  * 🏥 MCP 서버 헬스체크 API
  *
- * Google Cloud VM MCP 서버 상태 실시간 모니터링
+ * 로컬 MCP 서버 상태 실시간 모니터링
  *
  * GET /api/mcp/context-integration/health
  */
@@ -333,7 +333,7 @@ function generateHealthAlerts(
     alerts.push({
       level: 'error' as const,
       message: 'MCP 서버가 오프라인 상태입니다',
-      action: 'Google Cloud VM 및 MCP 서버 프로세스 상태 확인 필요',
+      action: '로컬 MCP 서버 프로세스 상태 확인 필요',
     });
   }
 

@@ -62,11 +62,149 @@ export function getGitHubEnv() {
 }
 
 /**
- * Google AI 환경 변수들을 안전하게 가져오기
+ * Google AI API 키 형식 검증 (베스트 프렉티스)
+ * Google AI API 키는 "AIza"로 시작하고 39자 길이를 가짐
+ */
+function validateGoogleAIApiKey(apiKey: string): boolean {
+  if (!apiKey || apiKey === 'dummy-ai-key') {
+    return false;
+  }
+  
+  // Google AI API 키 형식: AIza로 시작하는 39자 문자열
+  const googleAIKeyPattern = /^AIza[0-9A-Za-z_-]{35}$/;
+  return googleAIKeyPattern.test(apiKey);
+}
+
+/**
+ * GCP VM IP 주소 검증
+ */
+function validateGCPVMIP(ip: string): boolean {
+  if (!ip || ip === 'localhost' || ip === '127.0.0.1') {
+    return false;
+  }
+  
+  // IPv4 주소 패턴 검증
+  const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+  if (!ipPattern.test(ip)) {
+    return false;
+  }
+  
+  // 각 옥텟이 0-255 범위인지 확인
+  const octets = ip.split('.').map(Number);
+  return octets.every(octet => octet >= 0 && octet <= 255);
+}
+
+/**
+ * Google AI 환경 변수들을 안전하게 가져오기 (강화된 검증)
  */
 export function getGoogleAIEnv() {
+  const apiKey = getEnvSafely('GOOGLE_AI_API_KEY', 'dummy-ai-key');
+  const enabled = getEnvSafely('GOOGLE_AI_ENABLED', 'false');
+  const model = getEnvSafely('GOOGLE_AI_MODEL', 'gemini-1.5-flash');
+  
   return {
-    apiKey: getEnvSafely('GOOGLE_AI_API_KEY', 'dummy-ai-key'),
+    apiKey,
+    enabled: enabled.toLowerCase() === 'true',
+    model,
+    isValid: validateGoogleAIApiKey(apiKey),
+  };
+}
+
+/**
+ * GCP VM MCP 서버 환경 변수들을 안전하게 가져오기
+ */
+export function getGCPVMMCPEnv() {
+  const vmIP = getEnvSafely('GCP_VM_IP', '104.154.205.25');
+  const port = getEnvSafely('GCP_MCP_SERVER_PORT', '10000');
+  const serverUrl = getEnvSafely('GCP_MCP_SERVER_URL', `http://${vmIP}:${port}`);
+  const integrationEnabled = getEnvSafely('ENABLE_GCP_MCP_INTEGRATION', 'false');
+  const timeout = getEnvSafely('MCP_TIMEOUT', '8000');
+  
+  return {
+    vmIP,
+    port: parseInt(port, 10),
+    serverUrl,
+    timeout: parseInt(timeout, 10),
+    integrationEnabled: integrationEnabled.toLowerCase() === 'true',
+    isVMIPValid: validateGCPVMIP(vmIP),
+  };
+}
+
+/**
+ * Google AI + MCP 통합 설정 검증 (종합)
+ */
+export function validateGoogleAIMCPConfig(): {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  config: {
+    googleAI: ReturnType<typeof getGoogleAIEnv>;
+    gcpVMMCP: ReturnType<typeof getGCPVMMCPEnv>;
+  };
+} {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  
+  const googleAI = getGoogleAIEnv();
+  const gcpVMMCP = getGCPVMMCPEnv();
+  
+  // Google AI API 키 검증
+  if (!googleAI.isValid) {
+    if (googleAI.apiKey === 'dummy-ai-key') {
+      errors.push('GOOGLE_AI_API_KEY is not configured');
+    } else {
+      errors.push('GOOGLE_AI_API_KEY has invalid format (should start with "AIza" and be 39 characters)');
+    }
+  }
+  
+  // GCP VM IP 검증
+  if (!gcpVMMCP.isVMIPValid) {
+    warnings.push(`GCP_VM_IP "${gcpVMMCP.vmIP}" may be invalid or unreachable`);
+  }
+  
+  // 포트 범위 검증
+  if (gcpVMMCP.port < 1024 || gcpVMMCP.port > 65535) {
+    warnings.push(`GCP_MCP_SERVER_PORT "${gcpVMMCP.port}" is outside valid range (1024-65535)`);
+  }
+  
+  // 타임아웃 범위 검증
+  if (gcpVMMCP.timeout < 1000 || gcpVMMCP.timeout > 30000) {
+    warnings.push(`MCP_TIMEOUT "${gcpVMMCP.timeout}ms" should be between 1000-30000ms`);
+  }
+  
+  // Google AI 활성화 여부와 API 키 일관성 체크
+  if (googleAI.enabled && !googleAI.isValid) {
+    errors.push('GOOGLE_AI_ENABLED is true but GOOGLE_AI_API_KEY is invalid');
+  }
+  
+  // MCP 통합 활성화 여부와 설정 일관성 체크
+  if (gcpVMMCP.integrationEnabled && (!googleAI.isValid || !gcpVMMCP.isVMIPValid)) {
+    warnings.push('ENABLE_GCP_MCP_INTEGRATION is true but dependencies are not properly configured');
+  }
+  
+  const isValid = errors.length === 0;
+  
+  // 로깅 (베스트 프렉티스: 상세한 로깅)
+  if (isValid) {
+    console.log('✅ Google AI + MCP 통합 설정 검증 완료');
+    if (warnings.length > 0) {
+      console.warn(`⚠️ 경고 ${warnings.length}개:`, warnings);
+    }
+  } else {
+    console.error(`❌ Google AI + MCP 설정 검증 실패 (에러 ${errors.length}개):`, errors);
+    if (warnings.length > 0) {
+      console.warn(`⚠️ 추가 경고 ${warnings.length}개:`, warnings);
+    }
+  }
+  
+  return {
+    isValid,
+    errors,
+    warnings,
+    config: {
+      googleAI,
+      gcpVMMCP,
+    },
   };
 }
 

@@ -99,9 +99,9 @@ export const useMCPStatus = () => {
           const cached = JSON.parse(cachedStatus);
           const cacheAge = Date.now() - cached.timestamp;
 
-          // 세션 캐시가 30분 이내면 재사용 (Google VM 서버는 30분 활성 상태 유지)
+          // 세션 캐시가 30분 이내면 재사용 (로컬 MCP 상태 캐싱)
           if (cacheAge < 30 * 60 * 1000) {
-            console.log('📦 MCP 상태 캐시 사용 (Google VM 서버 30분 활성)');
+            console.log('📦 MCP 상태 캐시 사용 (로컬 MCP 30분 캐싱)');
             return cached.data;
           }
         } catch {
@@ -125,14 +125,14 @@ export const useMCPStatus = () => {
             timestamp: Date.now(),
           })
         );
-        console.log('💾 MCP 상태 세션 캐시에 저장 (Google VM 서버 30분 유지)');
+        console.log('💾 MCP 상태 세션 캐시에 저장 (로컬 MCP 30분 캐싱)');
       } catch (error) {
         console.warn('⚠️ MCP 상태 캐시 저장 실패:', error);
       }
 
       return data;
     },
-    refetchInterval: false, // 자동 갱신 비활성화 (Google VM 서버 30분 활성 유지)
+    refetchInterval: false, // 자동 갱신 비활성화 (로컬 MCP 30분 캐싱)
     staleTime: 30 * 60 * 1000, // 30분 동안 신선한 데이터로 간주
     retry: 1, // 재시도 횟수 감소
     refetchOnWindowFocus: false, // 윈도우 포커스 시 재조회 비활성화

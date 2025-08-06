@@ -428,14 +428,14 @@ CRON_GEMINI_LEARNING=true
   }
 
   /**
-   * 🔧 MCP URL 가져오기 (호환성용)
+   * 🔧 MCP URL 가져오기 (로컬 개발 도구용)
    */
   getMCPUrl(): string | null {
+    // MCP는 로컬 개발 도구이므로 로컬 URL만 반환
     return (
       this.getKey('MCP_URL') ||
       process.env.MCP_URL ||
-      process.env.GCP_MCP_SERVER_URL ||
-      `http://${process.env.GCP_VM_IP || '104.154.205.25'}:${process.env.GCP_MCP_SERVER_PORT || '10000'}`
+      'http://localhost:3000' // 기본 로컬 개발 서버
     );
   }
 }

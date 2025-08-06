@@ -5,6 +5,37 @@
 > - Legacy 파일: v5.0.0 ~ v5.65.6 (2024-05 ~ 2025-01)
 > - 현재 파일: v5.65.7 이후 (2025-01 ~)
 
+## [5.66.33] - 2025-08-06
+
+### 🔧 핵심 아키텍처 정정 - 두 가지 MCP 시스템 명확화
+
+- **두 개의 독립적인 MCP 시스템 구분 및 문서화**:
+  - 🔧 **Claude Code MCP 서버** (개발 도구용):
+    - Windows WSL 환경에서 실행
+    - 11개 서버: filesystem, memory, github, supabase, playwright, time, context7, serena, shadcn-ui, tavily-remote, sequential-thinking
+    - Claude Code CLI가 직접 사용하는 개발 도구
+    - 파일 작업, Git 관리, DB 쿼리 등 개발 작업 자동화
+  - 🌐 **GCP VM MCP 서버** (Google AI 처리용):
+    - Google Cloud VM (e2-micro)에서 실행
+    - 포트 10000: Google AI 자연어 질의 처리 전용
+    - 포트 10001: AI 백엔드 API 서비스
+    - Claude Code MCP와는 완전히 별개의 시스템
+    - Google Gemini를 활용한 자연어 처리 담당
+
+### 📡 MCP 통신 방식 정정
+- **잘못된 정보 수정**: "MCP 서버가 localhost:3000 사용" → 실제로는 stdio 사용
+- **Claude Code MCP**: stdio (표준 입출력) 통신, **네트워크 포트 사용 안 함**
+- **개발 서버와 충돌 없음**: Next.js (3000번)와 MCP는 완전히 다른 통신 방식
+- **문서 생성**: `docs/mcp-communication-clarification.md` - 상세한 통신 방식 설명
+
+### 수정된 파일들
+- **feature-cards.data.ts**: AI 어시스턴트 카드에 두 MCP 시스템 명확히 설명
+- **tech-stacks.data.ts**: 두 MCP 시스템을 별도 항목으로 분리 (Claude Code MCP, GCP VM MCP)
+- **config/README.md**: MCP localhost:3000 잘못된 정보 제거, stdio 설명 추가
+- **tests/scripts/env-template.env**: MCP_SERVER_URL 제거, stdio 기반 설명 추가
+- **src/app/api/mcp/gcp-vm/route.ts**: GCP VM MCP 전용 API 라우트 생성
+- **환경변수 복원**: GCP_MCP_SERVER_URL (GCP VM의 MCP 서버 접속용)
+
 ## [5.66.32] - 2025-08-06
 
 ### 📚 문서 - 플랫폼 활용 현황 분석 및 MCP 서버 오해 정정

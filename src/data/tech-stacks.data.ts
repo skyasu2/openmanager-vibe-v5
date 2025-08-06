@@ -8,27 +8,40 @@ import type { TechItem } from '@/types/feature-card.types';
 export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
   'mcp-ai-engine': [
     {
-      name: 'MCP 서버 통합 AI',
+      name: 'Claude Code MCP (11개 서버)',
       category: 'ai',
       importance: 'critical',
-      description: 'GCP VM에서 11개 MCP 서버 호스팅으로 강력한 AI 백엔드',
-      implementation: 'VM에서 filesystem, memory, github, supabase, playwright 등 MCP 서버 24/7 실행',
-      version: 'v5.66.31',
+      description: 'Windows WSL에서 실행되는 Claude Code 개발 도구용 MCP 서버',
+      implementation: 'filesystem, memory, github, supabase, playwright, time, context7, serena, shadcn-ui 등 11개 서버',
+      version: 'v5.66.33',
       status: 'active',
-      icon: '🔌',
-      tags: ['MCP', 'VM호스팅', '24/7실행'],
+      icon: '🔧',
+      tags: ['Claude Code', 'MCP', 'WSL', '개발도구'],
       type: 'custom',
+    },
+    {
+      name: 'GCP VM MCP 서버',
+      category: 'ai',
+      importance: 'critical',
+      description: 'Google Cloud VM에서 실행되는 Google AI 자연어 처리 전용 MCP 서버',
+      implementation: 'e2-micro VM 포트 10000에서 자연어 쿼리 처리, Claude Code MCP와는 완전히 별개 시스템',
+      version: 'v5.66.33',
+      status: 'active',
+      icon: '🌐',
+      tags: ['Google AI', 'MCP', 'VM백엔드', '자연어처리'],
+      type: 'custom',
+      aiType: 'google-api',
     },
     {
       name: 'AI 사이드바 어시스턴트',
       category: 'ai',
       importance: 'critical',
-      description: '로컬 AI + MCP 서버 기반 실시간 어시스턴트',
-      implementation: 'VM 기반 MCP 서버와 로컬 AI 통합으로 강력한 분석 기능',
+      description: '로컬 AI + Supabase RAG 기반 실시간 어시스턴트',
+      implementation: 'Supabase pgvector RAG와 로컬 AI 엔진 통합으로 빠른 응답',
       version: 'v5.66.31',
       status: 'active',
       icon: '🤖',
-      tags: ['실시간AI', '사이드바', 'MCP통합'],
+      tags: ['실시간AI', '사이드바', 'RAG통합'],
       type: 'custom',
     },
     {
@@ -141,11 +154,11 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       name: 'GCP Compute Engine VM',
       category: 'deployment',
       importance: 'critical',
-      description: 'e2-micro VM에서 MCP 서버 11개와 AI 백엔드 24/7 호스팅',
-      implementation: 'e2-micro (1vCPU, 1GB RAM, 30GB SSD) - MCP 서버, AI 모델 서빙, 캐싱 레이어, 스케줄러 실행 중',
+      description: 'e2-micro VM 무료 티어 - 통합 백엔드 호스팅',
+      implementation: 'e2-micro (1vCPU, 1GB RAM, 30GB SSD) - MCP 서버, AI API, 캐싱, 스케줄러 등 다중 서비스 실행',
       status: 'active',
       icon: '🖥️',
-      tags: ['VM', '무료티어', 'MCP호스팅', '24/7실행'],
+      tags: ['VM', '무료티어', '통합백엔드', 'MCP+AI'],
       type: 'commercial',
     },
     {
@@ -172,14 +185,14 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       type: 'commercial',
     },
     {
-      name: 'MCP Servers (11개)',
+      name: 'Claude Code MCP Servers (11개)',
       category: 'deployment',
       importance: 'high',
-      description: 'Model Context Protocol 서버로 AI 어시스턴트 기능 강화',
-      implementation: 'filesystem, memory, github, supabase, playwright, time, context7, serena, shadcn-ui 등 11개 서버 VM 호스팅',
+      description: 'Windows WSL에서 동작하는 Claude Code 개발 도구용 로컬 MCP 서버',
+      implementation: 'WSL 환경에서 filesystem, memory, github, supabase, playwright, time, context7, serena, shadcn-ui 등 11개 서버 실행',
       status: 'active',
-      icon: '🔌',
-      tags: ['MCP', 'AI통합', 'VM호스팅'],
+      icon: '🔧',
+      tags: ['Claude Code', 'MCP', 'WSL', '개발도구'],
       type: 'custom',
     },
   ],
@@ -442,7 +455,17 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       category: 'ai',
       importance: 'high',
       description: 'Claude Code의 기능을 확장하는 Model Context Protocol 서버들',
-      implementation: 'filesystem(파일관리), memory(지식그래프), github(저장소관리), supabase(DB작업), tavily-remote(웹검색), playwright(브라우저자동화), time(시간대변환), context7(문서검색), serena(고급코드분석), shadcn-ui(UI컴포넌트), sequential-thinking(복잡한문제해결)',
+      implementation: `• filesystem: 파일 시스템 작업 자동화
+• memory: 지식 그래프 관리 및 컨텍스트 유지
+• github: GitHub 저장소, PR, 이슈 관리
+• supabase: PostgreSQL 데이터베이스 직접 작업
+• tavily-remote: 웹 검색 및 콘텐츠 추출
+• sequential-thinking: 복잡한 문제 단계별 해결
+• playwright: 브라우저 자동화 및 E2E 테스트
+• time: 시간대 변환 및 시간 계산
+• context7: 라이브러리 문서 실시간 검색
+• serena: 고급 코드 분석 및 리팩토링
+• shadcn-ui: UI 컴포넌트 개발 지원`,
       status: 'active',
       icon: '🔌',
       tags: ['MCP서버', '자동화도구', '확장기능', '11개서버'],

@@ -1,7 +1,7 @@
 /**
  * 🤖 MCP + RAG 통합 컨텍스트 API
  *
- * Google Cloud VM MCP 서버와 RAG 엔진의 협업 컨텍스트 제공
+ * 로컬 MCP 도구와 RAG 엔진의 협업 컨텍스트 제공
  * 자연어 처리 및 AI 엔진에서 활용
  *
  * POST /api/mcp/context-integration

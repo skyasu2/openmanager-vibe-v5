@@ -20,7 +20,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Backend API**: GCP Functions Python 3.11 (2백만 요청/월)
 - **Database**: Supabase PostgreSQL (500MB)
 - **Cache**: Memory-based LRU Cache (서버리스 최적화)
-- **Future**: GCP VM 무료 티어 활용 예정 (e2-micro)
+- **GCP VM Backend**: e2-micro VM에서 Google AI MCP 서버 + AI API + 백엔드 서비스 실행 중
 
 ### 주요 기능
 
@@ -424,9 +424,14 @@ const timeInfo = await mcp__time__get_current_time({
 
 상세 가이드: [Time MCP 활용 가이드](/docs/time-mcp-usage-guide.md)
 
-## 🔧 MCP 서버 (11개) - Claude Code CLI 설정
+## 🔧 MCP 서버 시스템 - 두 가지 독립적인 MCP 아키텍처
 
-### 현재 활성화된 MCP 서버 (2025.8.7 기준)
+### 📍 MCP 시스템 구분
+
+1. **Claude Code MCP (로컬)**: Windows WSL에서 실행되는 11개 개발 도구 서버
+2. **GCP VM MCP (클라우드)**: GCP VM에서 실행되는 Google AI 자연어 질의용 서버
+
+### Claude Code MCP 서버 (WSL 로컬) - 11개 활성화 (2025.8.7 기준)
 
 | 서버명                | 상태         | 용도                   | 패키지                                                    |
 | --------------------- | ------------ | ---------------------- | --------------------------------------------------------- |
@@ -441,6 +446,16 @@ const timeInfo = await mcp__time__get_current_time({
 | `context7`            | ✅ Connected | 라이브러리 문서 검색   | `@upstash/context7-mcp@latest`                            |
 | `serena`              | ✅ Connected | 고급 코드 분석         | `git+https://github.com/oraios/serena` (Python)           |
 | `shadcn-ui`           | ✅ Connected | UI 컴포넌트 개발       | `@jpisnice/shadcn-ui-mcp-server@latest`                   |
+
+### GCP VM MCP 서버 (클라우드) - Google AI 연동
+
+| 구분               | 설명                                                      |
+| ------------------ | --------------------------------------------------------- |
+| **위치**           | GCP e2-micro VM (104.154.205.25)                         |
+| **포트**           | 10000 (MCP), 10001 (AI API)                              |
+| **용도**           | Google AI API 자연어 질의 처리                            |
+| **관련 서비스**    | AI 백엔드 API, 캐싱 레이어, 스케줄러                      |
+| **환경변수**       | `GCP_MCP_SERVER_URL`, `GCP_AI_BACKEND_URL`               |
 
 ### MCP 서버 설치 방법 (최신)
 
@@ -540,7 +555,7 @@ claude api restart
 | 성능 개선         | `ux-performance-optimizer`   | Core Web Vitals                      |
 | 테스트            | `test-automation-specialist` | 테스트 작성/수정                     |
 | 개발 환경         | `dev-environment-manager`    | tmux, 테스트 서버, 빌드 관리         |
-| GCP VM 관리       | `gcp-vm-specialist`          | GCP VM, 클라우드 SDK, 무료 티어 최적화 |
+| GCP VM 관리       | `gcp-vm-specialist`          | GCP VM 통합 백엔드 (MCP + AI API + 서비스) 관리 |
 | AI 시스템         | `ai-systems-engineer`        | AI 어시스턴트 개발                   |
 | 문서 관리         | `documentation-manager`      | 문서 작성, 구조 관리, JBGE 원칙      |
 | 디버깅            | `debugger-specialist`        | 오류 분석, 근본 원인 파악            |
@@ -806,5 +821,5 @@ gemini "review the implemented changes for architectural consistency"
 - 무료 티어 사용률: Vercel 30%, GCP 15%, Supabase 3%
 - GCP Functions: 3개 배포 완료, Python 3.11 최적화
 - 서브에이전트: 17개 최적화 (gcp-vm-specialist, dev-environment-manager 추가)
-- MCP 서버: 11개 안정 운영 (shadcn-ui 추가)
+- MCP 서버: Claude Code용 11개 (WSL) + GCP VM MCP (Google AI용) 안정 운영
 - Gemini CLI 통합: WSL 터미널 직접 대화 지원, 1M 토큰 활용

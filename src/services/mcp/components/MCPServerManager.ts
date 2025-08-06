@@ -128,26 +128,33 @@ export class MCPServerManager {
    * 🚀 프로덕션 환경 서버 설정
    */
   private setupProductionServers(): void {
-    // Google VM 서버 기반 설정
-    const gcpMcpUrl =
-      process.env.GCP_MCP_SERVER_URL ||
-      `http://${process.env.GCP_VM_IP || '104.154.205.25'}:${process.env.GCP_MCP_SERVER_PORT || '10000'}/mcp`;
-
-    this.servers.set('gcp-mcp', {
-      name: 'gcp-mcp',
-      command: 'curl',
-      args: ['-X', 'POST', gcpMcpUrl],
-      enabled: true,
-      env: {},
-      stats: {
-        totalRequests: 0,
-        successfulRequests: 0,
-        failedRequests: 0,
-        averageResponseTime: 0,
-        lastUsed: Date.now(),
-        healthScore: 100,
-      },
-    });
+    console.log('🔧 프로덕션 MCP 서버 설정 (두 가지 MCP 시스템)');
+    
+    // 1. Claude Code용 로컬 MCP 서버 (WSL)
+    this.setupDevelopmentServers();
+    
+    // 2. GCP VM MCP 서버 (Google AI 자연어 질의용)
+    if (process.env.GCP_MCP_SERVER_URL) {
+      console.log('🌐 GCP VM MCP 서버 감지:', process.env.GCP_MCP_SERVER_URL);
+      this.servers.set('gcp-vm-mcp', {
+        name: 'gcp-vm-mcp',
+        command: 'http',  // HTTP 엔드포인트로 통신
+        args: [process.env.GCP_MCP_SERVER_URL],
+        enabled: true,
+        env: {
+          MCP_TYPE: 'google-ai',
+          SERVER_LOCATION: 'gcp-vm',
+        },
+        stats: {
+          totalRequests: 0,
+          successfulRequests: 0,
+          failedRequests: 0,
+          averageResponseTime: 0,
+          lastUsed: Date.now(),
+          healthScore: 100,
+        },
+      });
+    }
   }
 
   /**

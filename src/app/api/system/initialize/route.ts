@@ -5,7 +5,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-// MCP 웜업 서비스 제거됨 - Google Cloud VM 24시간 동작
+// 시스템 초기화 전용 (MCP는 로컬 개발 도구, VM은 AI 백엔드용)
 import { systemLogger } from '@/lib/logger';
 
 // 초기화 상태를 저장하는 간단한 플래그
