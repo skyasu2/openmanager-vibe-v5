@@ -11,7 +11,7 @@ import { chromium, FullConfig } from '@playwright/test';
 async function globalSetup(config: FullConfig) {
   console.log('🚀 E2E 테스트 환경 설정 시작...');
 
-  const baseURL = 'http://localhost:3002';
+  const baseURL = 'http://localhost:3000';
 
   if (!baseURL) {
     throw new Error('baseURL이 설정되지 않았습니다.');

@@ -16,11 +16,11 @@ export default defineConfig({
   // 테스트 파일 패턴
   testMatch: '**/*.e2e.{ts,js}',
 
-  // 전역 설정 - 안정성 개선
-  fullyParallel: false, // 순차 실행으로 안정성 향상
+  // 전역 설정 - 단순화
+  fullyParallel: true, // 병렬 실행으로 속도 향상
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 3 : 1, // 재시도 횟수 증가
-  workers: process.env.CI ? 1 : 2, // 워커 수 제한으로 안정성 확보
+  retries: process.env.CI ? 2 : 0, // 로컬에서는 재시도 없음
+  workers: 2, // 적절한 워커 수
 
   // 전역 타임아웃 설정
   timeout: 60000, // 테스트당 최대 1분
@@ -30,16 +30,16 @@ export default defineConfig({
 
   // 리포터 설정
   reporter: [
-    ['html', { open: 'never', outputFolder: 'test-results/e2e-report' }],
-    ['json', { outputFile: 'e2e-results.json' }],
+    ['html', { open: 'never', outputFolder: 'playwright-report' }],
+    ['json', { outputFile: 'playwright-results.json' }],
     ['list'],
-    ['junit', { outputFile: 'test-results/e2e-results.xml' }],
+    ['junit', { outputFile: 'playwright-report/junit.xml' }],
   ],
 
   // 전역 설정 - 타임아웃 및 안정성 개선
   use: {
     // 기본 URL (로컬 개발 서버)
-    baseURL: 'http://localhost:3002',
+    baseURL: 'http://localhost:3000',
 
     // 브라우저 설정
     trace: 'retain-on-failure', // 실패 시 트레이스 보관
@@ -60,61 +60,35 @@ export default defineConfig({
     },
   },
 
-  // 프로젝트별 설정 - Chrome 중심으로 안정성 확보
+  // 프로젝트별 설정 - 단순화
   projects: [
     {
-      name: 'chromium-stable',
+      name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        // Chrome 안정성 설정
+        // 최소한의 설정만 유지
         launchOptions: {
-          args: [
-            '--disable-web-security',
-            '--disable-features=TranslateUI',
-            '--disable-ipc-flooding-protection',
-            '--disable-background-timer-throttling',
-            '--disable-backgrounding-occluded-windows',
-            '--disable-renderer-backgrounding',
-          ],
+          args: ['--disable-web-security'], // CORS 문제 방지만
         },
       },
     },
-    // CI에서는 Chrome만 테스트 (안정성 우선)
-    ...(process.env.CI
-      ? []
-      : [
-          {
-            name: 'firefox',
-            use: { ...devices['Desktop Firefox'] },
-          },
-          {
-            name: 'webkit',
-            use: { ...devices['Desktop Safari'] },
-          },
-          // 모바일 테스트 (로컬에서만)
-          {
-            name: 'Mobile Chrome',
-            use: { ...devices['Pixel 5'] },
-          },
-        ]),
   ],
 
-  // 개발 서버 설정 - 안정성 대폭 개선
+  // 개발 서버 설정 - 간소화 및 최적화
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:3002',
-    reuseExistingServer: !process.env.CI,
-    timeout: 180000, // 서버 시작 타임아웃 3분
+    url: 'http://localhost:3000',
+    reuseExistingServer: true, // 항상 기존 서버 재사용
+    timeout: 60000, // 서버 시작 타임아웃 1분으로 단축
 
     // 환경변수 설정
     env: {
       NODE_ENV: 'test',
-      PORT: '3002',
+      PORT: '3000',
       SKIP_ENV_VALIDATION: 'true',
     },
   },
 
-  // 전역 설정 파일 - ES 모듈 호환성 수정
-  globalSetup: './tests/e2e/global-setup.ts',
-  globalTeardown: './tests/e2e/global-teardown.ts',
+  // 전역 설정 파일 제거 (불필요한 복잡성 제거)
+  // globalSetup과 globalTeardown은 실제로 필요할 때만 추가
 });

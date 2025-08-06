@@ -1,0 +1,138 @@
+version: '3.8'
+
+services:
+  # 개발 서버
+  dev-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: openmanager-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src:/app/src:cached
+      - ./public:/app/public:cached
+      - ./.env.local:/app/.env.local
+      - node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - SKIP_ENV_VALIDATION=true
+      - WATCHPACK_POLLING=true  # WSL2에서 hot reload 지원
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - openmanager-network
+    restart: unless-stopped
+
+  # 테스트 감시 서버
+  test-watcher:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: openmanager-test-watcher
+    command: npm run test:watch
+    volumes:
+      - ./src:/app/src:cached
+      - ./tests:/app/tests:cached
+      - ./.env.test:/app/.env.local
+      - node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=test
+      - CI=true
+    depends_on:
+      dev-server:
+        condition: service_healthy
+    networks:
+      - openmanager-network
+
+  # E2E 테스트 서버
+  e2e-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: openmanager-e2e
+    ports:
+      - "3002:3002"
+    command: npm run test:e2e:server
+    volumes:
+      - ./src:/app/src:cached
+      - ./tests:/app/tests:cached
+      - ./.env.test:/app/.env.local
+      - node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=test
+      - PORT=3002
+      - USE_REAL_API=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - openmanager-network
+    profiles:
+      - e2e  # 필요할 때만 실행
+
+  # Playwright 브라우저 테스트
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.49.1-focal
+    container_name: openmanager-playwright
+    command: npx playwright test
+    volumes:
+      - ./tests:/app/tests:cached
+      - ./playwright.config.ts:/app/playwright.config.ts
+      - ./playwright-report:/app/playwright-report
+    environment:
+      - CI=true
+      - BASE_URL=http://e2e-server:3002
+    depends_on:
+      e2e-server:
+        condition: service_healthy
+    networks:
+      - openmanager-network
+    profiles:
+      - e2e  # 필요할 때만 실행
+
+  # 리소스 모니터링 (개발용)
+  monitor:
+    image: nicolargo/glances:latest-alpine
+    container_name: openmanager-monitor
+    ports:
+      - "61208:61208"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - GLANCES_OPT=-w
+    networks:
+      - openmanager-network
+    profiles:
+      - monitoring  # 선택적 실행
+
+  # 로그 수집기
+  log-aggregator:
+    image: busybox:latest
+    container_name: openmanager-logs
+    command: tail -f /var/log/combined.log
+    volumes:
+      - ./logs:/var/log:cached
+    networks:
+      - openmanager-network
+    profiles:
+      - debug  # 디버깅 시에만 실행
+
+networks:
+  openmanager-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  node_modules:
+    driver: local

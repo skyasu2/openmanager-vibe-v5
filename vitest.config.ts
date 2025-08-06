@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
         'src/**/__tests__/**/*.{test,spec}.{ts,tsx}', // 모든 __tests__ 디렉토리
         'tests/unit/**/*.test.{ts,tsx}',
         'tests/integration/**/*.test.{ts,tsx}',
-        'tests/e2e/**/*.test.{ts,tsx}', // E2E 테스트 추가
+        // E2E 테스트는 Playwright로 별도 실행
         'tests/performance/**/*.test.{ts,tsx}',
         'tests/api/**/*.test.{ts,tsx}', // API 테스트 추가
       ],
@@ -32,8 +32,11 @@ export default defineConfig(({ mode }) => {
         '**/coverage/**',
         // 성능 테스트 (별도 실행: npm run test:performance)
         '**/*.perf.test.{ts,tsx}',
-        // E2E 테스트 (별도 실행: npm run test:e2e:vitest)
+        // E2E 테스트 (Playwright로 별도 실행: npm run test:e2e)
+        '**/*.e2e.{ts,tsx}',
         '**/*.e2e.test.{ts,tsx}',
+        '**/*.playwright.test.{ts,tsx}',
+        'tests/e2e/**/*',
         // 제거된 기능들
         'tests/unit/distributed-data-manager.test.ts',
         'tests/unit/natural-language-query-cache.test.ts',

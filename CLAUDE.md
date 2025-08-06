@@ -535,24 +535,22 @@ claude api restart
 | 코드 로직 품질    | `code-review-specialist`     | 함수 복잡도, 버그 패턴, 성능 이슈    |
 | 프로젝트 규칙     | `quality-control-checker`    | CLAUDE.md 준수, 파일 크기, SOLID     |
 | 구조 설계         | `structure-refactor-agent`   | 중복 검출, 모듈 구조, 리팩토링       |
-| 보안 검사         | `security-auditor`           | 취약점 탐지, 보안 감사               |
+| 보안 검사         | `security-auditor`           | 포트폴리오 수준 보안 검사            |
 | DB 최적화         | `database-administrator`     | Supabase PostgreSQL 전문 관리        |
 | 성능 개선         | `ux-performance-optimizer`   | Core Web Vitals                      |
 | 테스트            | `test-automation-specialist` | 테스트 작성/수정                     |
-| TDD 강제          | `test-first-developer`       | 테스트 우선 개발 강제                |
+| 개발 환경         | `dev-environment-manager`    | tmux, 테스트 서버, 빌드 관리         |
 | AI 시스템         | `ai-systems-engineer`        | AI 어시스턴트 개발                   |
 | 문서 관리         | `documentation-manager`      | 문서 작성, 구조 관리, JBGE 원칙      |
 | 디버깅            | `debugger-specialist`        | 오류 분석, 근본 원인 파악            |
 | 플랫폼 전문 분석  | `vercel-platform-specialist` | Vercel 아키텍처, 성능 최적화         |
-| MCP 관리          | `mcp-server-admin`           | MCP 인프라 관리                      |
+| MCP 관리          | `mcp-server-admin`           | MCP 에러 감지 및 자동 복구           |
 | Gemini CLI 전문가 | `gemini-cli-collaborator`    | Gemini CLI 대화형 분석, 1M 토큰 활용 |
-| 백엔드 개발       | `backend-gcp-specialist`     | GCP Functions, Python 백엔드         |
 | Git/CI/CD         | `git-cicd-specialist`        | Git 워크플로우, CI/CD 자동화         |
-| 디자인 시스템     | `design-system-specialist`   | Storybook, UI 컴포넌트 시스템        |
 
 ### 📁 서브 에이전트 설정 위치
 
-- **프로젝트 로컬 설정**: `.claude/agents/` (17개 에이전트 .md 파일)
+- **프로젝트 로컬 설정**: `.claude/agents/` (16개 에이전트 .md 파일)
 - **MCP 서버 설정**: `~/.claude.json` (CLI로 관리)
 - **매핑 가이드**: `/docs/sub-agents-mcp-mapping-guide.md`
 - **글로벌 설정과의 관계**: 프로젝트별로 독립적으로 관리됨
@@ -592,8 +590,8 @@ Task({
 
 // 병렬 처리 - 독립적인 작업은 동시 실행
 Task({
-  subagent_type: 'vercel-platform-specialist',
-  prompt: 'Vercel 플랫폼 아키텍처 분석 및 성능 최적화 전략 수립',
+  subagent_type: 'dev-environment-manager',
+  prompt: '개발 환경 설정 및 테스트 서버 최적화',
 });
 Task({
   subagent_type: 'ux-performance-optimizer',
@@ -790,6 +788,6 @@ gemini "review the implemented changes for architectural consistency"
 - CI/CD 성능: **70% 속도 향상**, Push 성공률 99%, GitHub Actions 항상 성공
 - 무료 티어 사용률: Vercel 30%, GCP 15%, Supabase 3%
 - GCP Functions: 3개 배포 완료, Python 3.11 최적화
-- 서브에이전트: 17개 최적화 (git-cicd-specialist 2025 표준 적용)
+- 서브에이전트: 16개 최적화 (dev-environment-manager 추가, 미사용 3개 제거)
 - MCP 서버: 11개 안정 운영 (shadcn-ui 추가)
 - Gemini CLI 통합: WSL 터미널 직접 대화 지원, 1M 토큰 활용

@@ -1,6 +1,6 @@
 ---
 name: mcp-server-admin
-description: MCP infrastructure expert managing 10 core servers via Claude Code CLI (filesystem/github/memory/supabase/context7/tavily-remote/sequential-thinking/playwright/serena/time). PROACTIVE: monitors server connections, validates CLI configurations, manages environment variables. Expert in claude mcp add/remove/list commands and troubleshooting connection issues.
+description: MCP infrastructure expert managing 11 core servers via Claude Code CLI. Use PROACTIVELY when: MCP tool errors detected ("Failed to connect", "MCP server not configured"), claude mcp commands fail, environment variable issues found, mcp__* tool usage returns errors, server disconnection detected, CLI configuration conflicts occur. Expert in claude mcp add/remove/list commands, troubleshooting connection issues, and MCP server health monitoring.
 tools: Read, Write, Bash, mcp__filesystem__*, mcp__memory__*, mcp__sequential-thinking__*
 ---
 

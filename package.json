@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.66.31",
+  "version": "5.66.32",
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_OPTIONS='--max-old-space-size=8192' next dev",
@@ -42,6 +42,8 @@
     "test:e2e": "playwright test",
     "test:e2e:vitest": "vitest run tests/integration/**/*.e2e.test.ts",
     "test:e2e:local": "cross-env USE_REAL_API=true npm run test:e2e:vitest",
+    "test:e2e:server": "cross-env PORT=3002 NODE_ENV=test next dev",
+    "test:e2e:watch": "playwright test --ui",
     "test:performance": "vitest run --config vitest.performance.config.ts",
     "type-check": "tsc --noEmit",
     "prepare": "husky || true",
@@ -120,7 +122,19 @@
     "fix:clock": "bash scripts/fix-clock-sync.sh",
     "fix:auth": "npm run fix:clock && npm run clean:auth",
     "clean:auth": "node -e \"if(typeof window !== 'undefined'){localStorage.removeItem('sb-auth-token');localStorage.removeItem('auth_verified');console.log('Auth tokens cleared')}\"",
-    "fix:any-types": "tsx scripts/fix-any-types.ts"
+    "fix:any-types": "tsx scripts/fix-any-types.ts",
+    "server:start": "tsx scripts/smart-server-manager.ts start",
+    "server:stop": "tsx scripts/smart-server-manager.ts stop",
+    "server:status": "tsx scripts/smart-server-manager.ts status",
+    "server:monitor": "tsx scripts/smart-server-manager.ts monitor",
+    "server:test:start": "tsx scripts/smart-server-manager.ts start test-server",
+    "server:test:stop": "tsx scripts/smart-server-manager.ts stop test-server",
+    "server:e2e:start": "tsx scripts/smart-server-manager.ts start e2e-server",
+    "server:e2e:stop": "tsx scripts/smart-server-manager.ts stop e2e-server",
+    "dev:tmux": "bash scripts/dev-tmux.sh",
+    "dev:tmux:enhanced": "bash scripts/dev-tmux-enhanced.sh",
+    "dev:tmux:test": "AUTO_START_TEST_SERVER=true bash scripts/dev-tmux-enhanced.sh",
+    "dev:tmux:clean": "tmux kill-session -t openmanager-dev"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.3.1",

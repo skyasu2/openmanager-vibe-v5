@@ -1,6 +1,6 @@
 ---
 name: security-auditor
-description: Basic security checker for portfolio projects. Use when: hardcoded secrets detected, basic auth needed, or user requests security review. Focuses on: preventing hardcoded secrets, basic API protection, environment variable usage. Portfolio-appropriate security only.
+description: Basic security checker for portfolio projects. Use PROACTIVELY when: hardcoded secrets detected (api_key=, token=, password=), auth/payment code modified, new API endpoints created, npm audit warnings found, environment variables missing. Focuses on: preventing hardcoded secrets, basic API protection, environment variable usage. Portfolio-appropriate security only - NOT enterprise level.
 tools: mcp__filesystem__*, mcp__github__*, Grep, Read, Write, Bash, mcp__context7__*
 ---
 

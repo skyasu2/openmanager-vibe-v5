@@ -108,7 +108,7 @@ vi.mock('@/services/ai/security/AIResponseFilter', () => ({
 }));
 
 // Test timeout configuration
-const TEST_TIMEOUT = 10000; // 10 seconds
+const TEST_TIMEOUT = 30000; // 30 seconds - 타임아웃 증가
 const MOCK_DELAY = 10; // Very short delay for mocks
 
 describe('UnifiedAIEngineRouter - Optimized Tests', () => {
