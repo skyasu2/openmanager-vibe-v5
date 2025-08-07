@@ -12,7 +12,7 @@ function mapSupabaseStatus(status: string): Server['status'] {
     'offline': 'offline', 
     'warning': 'warning',
     'healthy': 'healthy',
-    'critical': 'warning', // critical을 warning으로 매핑
+    'critical': 'offline', // critical을 offline으로 매핑 (대시보드에서 빨간색으로 표시)
     'error': 'offline',
     'maintenance': 'offline'
   };
