@@ -149,10 +149,16 @@ export async function GET(request: NextRequest) {
         });
       }
       
+      // 현재 시간 계산 (30초 = 1시간 매핑)
+      const now = new Date();
+      const secondsElapsed = now.getSeconds() + (now.getMinutes() * 60);
+      const currentHour = Math.floor(secondsElapsed / 30) % 24; // 30초마다 1시간씩 증가
+      
       // Supabase 쿼리 구성 - hourly_server_states 테이블 사용
       let query = supabase
         .from('hourly_server_states')
-        .select('*', { count: 'exact' });
+        .select('*', { count: 'exact' })
+        .eq('hour_of_day', currentHour); // 현재 시간에 해당하는 데이터만 가져오기
       
       // 검색 필터 적용 - hourly_server_states 스키마에 맞춤
       if (search) {
