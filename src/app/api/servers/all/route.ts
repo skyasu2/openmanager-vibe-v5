@@ -99,8 +99,13 @@ export async function GET(request: NextRequest) {
       });
     }
     
-    // 캐시 키 생성
-    const cacheKey = `servers:all:page=${page}:limit=${limit}:search=${search}:status=${status}:env=${environment}:sort=${sortBy}:order=${sortOrder}`;
+    // 현재 시간 계산 (30초 = 1시간 매핑)
+    const now = new Date();
+    const secondsElapsed = now.getSeconds() + (now.getMinutes() * 60);
+    const currentHour = Math.floor(secondsElapsed / 30) % 24; // 30초마다 1시간씩 증가
+    
+    // 캐시 키 생성 (현재 시간 포함)
+    const cacheKey = `servers:all:hour=${currentHour}:page=${page}:limit=${limit}:search=${search}:status=${status}:env=${environment}:sort=${sortBy}:order=${sortOrder}`;
     
     // 캐시에서 데이터 조회 시도
     let servers: Server[] = [];
@@ -149,11 +154,6 @@ export async function GET(request: NextRequest) {
         });
       }
       
-      // 현재 시간 계산 (30초 = 1시간 매핑)
-      const now = new Date();
-      const secondsElapsed = now.getSeconds() + (now.getMinutes() * 60);
-      const currentHour = Math.floor(secondsElapsed / 30) % 24; // 30초마다 1시간씩 증가
-      
       // Supabase 쿼리 구성 - hourly_server_states 테이블 사용
       let query = supabase
         .from('hourly_server_states')
@@ -194,8 +194,27 @@ export async function GET(request: NextRequest) {
           query = query.order('server_name', { ascending: isAsc });
       }
       
-      // 페이지네이션 적용 후 데이터 조회
-      const { data, error, count } = await query
+      // 전체 카운트를 위한 별도 쿼리 (페이지네이션 없이)
+      const countQuery = supabase
+        .from('hourly_server_states')
+        .select('*', { count: 'exact', head: true })
+        .eq('hour_of_day', currentHour);
+      
+      // 검색 필터 적용
+      if (search) {
+        countQuery.or(`server_name.ilike.%${search}%,hostname.ilike.%${search}%,environment.ilike.%${search}%`);
+      }
+      if (status) {
+        countQuery.eq('status', status);
+      }
+      if (environment) {
+        countQuery.eq('environment', environment);
+      }
+      
+      const { count: totalCount } = await countQuery;
+      
+      // 페이지네이션 적용하여 실제 데이터 조회
+      const { data, error } = await query
         .range((page - 1) * limit, page * limit - 1);
       
       if (error) {
@@ -269,18 +288,13 @@ export async function GET(request: NextRequest) {
         }
       }));
       
-      totalCount = count || 0;
-      
-      // 결과를 캐시에 저장 (60초 TTL)
-      setCachedData(cacheKey, { servers, totalCount }, 60);
-      console.log(`💾 새 데이터가 캐시에 저장됨: ${servers.length}개 서버`);
+      // 결과를 캐시에 저장 (60초 TTL) - totalCount 사용
+      setCachedData(cacheKey, { servers, totalCount: totalCount || 0 }, 60);
+      console.log(`💾 새 데이터가 캐시에 저장됨: ${servers.length}개 서버, 전체: ${totalCount}개`);
     }
     
-    // 페이지네이션 정보 계산
+    // 페이지네이션 정보 계산 (이미 DB에서 페이지네이션 적용됨)
     const totalPages = Math.ceil(totalCount / limit);
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedServers = servers.slice(startIndex, endIndex);
     
     // 통계 정보 계산
     const stats = {
@@ -308,8 +322,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        data: paginatedServers,
-        servers: paginatedServers,
+        data: servers,
+        servers: servers,
         summary: {
           servers: {
             total: stats.total,
@@ -332,7 +346,7 @@ export async function GET(request: NextRequest) {
           hasNextPage: page < totalPages,
           hasPrevPage: page > 1,
         },
-        count: paginatedServers.length,
+        count: servers.length,
         timestamp: Date.now(),
       },
       { 
