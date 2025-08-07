@@ -149,14 +149,14 @@ export async function GET(request: NextRequest) {
         });
       }
       
-      // Supabase 쿼리 구성
+      // Supabase 쿼리 구성 - hourly_server_states 테이블 사용
       let query = supabase
-        .from('server_metrics')
+        .from('hourly_server_states')
         .select('*', { count: 'exact' });
       
-      // 검색 필터 적용
+      // 검색 필터 적용 - hourly_server_states 스키마에 맞춤
       if (search) {
-        query = query.or(`hostname.ilike.%${search}%,environment.ilike.%${search}%`);
+        query = query.or(`server_name.ilike.%${search}%,hostname.ilike.%${search}%,environment.ilike.%${search}%`);
       }
       
       // 상태 필터 적용
@@ -169,7 +169,7 @@ export async function GET(request: NextRequest) {
         query = query.eq('environment', environment);
       }
       
-      // 정렬 적용
+      // 정렬 적용 - hourly_server_states 스키마에 맞춤
       const isAsc = sortOrder === 'asc';
       switch (sortBy) {
         case 'cpu':
@@ -185,7 +185,7 @@ export async function GET(request: NextRequest) {
           query = query.order('uptime', { ascending: isAsc });
           break;
         default:
-          query = query.order('hostname', { ascending: isAsc });
+          query = query.order('server_name', { ascending: isAsc });
       }
       
       // 페이지네이션 적용 후 데이터 조회
@@ -219,23 +219,23 @@ export async function GET(request: NextRequest) {
         });
       }
       
-      // Supabase 데이터를 Server 타입으로 변환
+      // Supabase hourly_server_states 데이터를 Server 타입으로 변환
       servers = (data || []).map((item: any): Server => ({
-        id: item.id,
-        name: item.hostname || item.id,
+        id: item.server_id,
+        name: item.server_name || item.hostname,
         hostname: item.hostname,
         status: mapSupabaseStatus(item.status),
         cpu: Math.round(item.cpu_usage || 0),
         memory: Math.round(item.memory_usage || 0),
         disk: Math.round(item.disk_usage || 0),
-        network: Math.round((item.network_in || 0) + (item.network_out || 0)),
+        network: Math.round(item.network_usage || 0),
         uptime: item.uptime || 0,
-        location: item.environment || 'unknown',
+        location: item.location || item.environment || 'unknown',
         environment: item.environment,
         provider: 'supabase',
-        type: item.role || 'unknown',
-        alerts: 0,
-        lastSeen: item.last_updated,
+        type: item.server_type || 'unknown',
+        alerts: item.incident_severity === 'critical' ? 3 : item.incident_severity === 'medium' ? 1 : 0,
+        lastSeen: new Date().toISOString(), // hourly_server_states에는 last_updated가 없음
         metrics: {
           cpu: {
             usage: item.cpu_usage || 0,
@@ -243,22 +243,22 @@ export async function GET(request: NextRequest) {
             temperature: 45
           },
           memory: {
-            used: Math.round((item.memory_usage || 0) * 16),
+            used: Math.round((item.memory_usage || 0) * 16 / 100),
             total: 16,
             usage: item.memory_usage || 0
           },
           disk: {
-            used: Math.round((item.disk_usage || 0) * 100),
+            used: Math.round((item.disk_usage || 0) * 100 / 100),
             total: 100,
             usage: item.disk_usage || 0
           },
           network: {
-            bytesIn: item.network_in || 0,
-            bytesOut: item.network_out || 0,
+            bytesIn: Math.round((item.network_usage || 0) * 0.6),
+            bytesOut: Math.round((item.network_usage || 0) * 0.4),
             packetsIn: 0,
             packetsOut: 0
           },
-          timestamp: item.last_updated || new Date().toISOString(),
+          timestamp: new Date().toISOString(),
           uptime: item.uptime || 0
         }
       }));

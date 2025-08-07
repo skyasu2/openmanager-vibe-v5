@@ -145,10 +145,77 @@ export function resetMockSystem() {
 }
 
 /**
- * 간편한 서버 목록 가져오기
+ * 간편한 서버 목록 가져오기 - 고정 시간별 데이터 사용
+ * 24시간 × 15서버 고정 데이터를 현재 시뮬레이션 시간에 맞춰 반환
  */
 export function getMockServers(): Server[] {
-  return getMockSystem().getServers();
+  try {
+    // 고정 시간별 데이터 시스템에서 현재 서버 상태 가져오기 (동기 import)
+    const { getCurrentServersData } = require('./fixedHourlyData');
+    const hourlyServersData = getCurrentServersData();
+    
+    console.log('🕐 고정 시간별 데이터 로드:', {
+      서버_수: hourlyServersData.length,
+      현재_시뮬레이션_시간: new Date().toLocaleTimeString(),
+      장애_서버: hourlyServersData.filter((s: any) => s.status === 'critical').length,
+      경고_서버: hourlyServersData.filter((s: any) => s.status === 'warning').length,
+      정상_서버: hourlyServersData.filter((s: any) => s.status === 'online').length,
+    });
+    
+    // HourlyServerState를 Server 타입으로 변환
+    return hourlyServersData.map((hourlyData: any, index: number): Server => ({
+      id: hourlyData.id,
+      name: hourlyData.name,
+      hostname: hourlyData.hostname,
+      status: hourlyData.status,
+      cpu: hourlyData.metrics.cpu,
+      memory: hourlyData.metrics.memory,
+      disk: hourlyData.metrics.disk,
+      network: hourlyData.metrics.network,
+      uptime: hourlyData.uptime,
+      location: hourlyData.location,
+      environment: hourlyData.environment,
+      type: hourlyData.type,
+      provider: 'On-Premise',
+      alerts: hourlyData.status === 'critical' ? 3 : hourlyData.status === 'warning' ? 1 : 0,
+      ip: `192.168.1.${10 + index}`,
+      os: 'Ubuntu 22.04 LTS',
+      specs: {
+        cpu_cores: 4,
+        memory_gb: 16,
+        disk_gb: 500,
+        network_speed: '1Gbps',
+      },
+      lastUpdate: new Date(),
+      services: [],
+      networkStatus: hourlyData.status === 'online' ? 'healthy' : 
+                   hourlyData.status === 'warning' ? 'warning' : 'critical',
+      systemInfo: {
+        os: 'Ubuntu 22.04 LTS',
+        uptime: `${Math.floor(hourlyData.uptime / 3600)}h`,
+        processes: Math.floor(Math.random() * 200) + 50,
+        zombieProcesses: hourlyData.status === 'critical' ? Math.floor(Math.random() * 10) + 5 : Math.floor(Math.random() * 3),
+        loadAverage: hourlyData.status === 'critical' ? '3.45, 3.12, 2.98' : 
+                    hourlyData.status === 'warning' ? '1.85, 1.75, 1.60' : '0.45, 0.38, 0.42',
+        lastUpdate: new Date().toISOString(),
+      },
+      networkInfo: {
+        interface: 'eth0',
+        receivedBytes: `${Math.floor(hourlyData.metrics.network * 0.6)} MB`,
+        sentBytes: `${Math.floor(hourlyData.metrics.network * 0.4)} MB`,
+        receivedErrors: hourlyData.status === 'critical' ? Math.floor(Math.random() * 20) + 10 : Math.floor(Math.random() * 5),
+        sentErrors: hourlyData.status === 'critical' ? Math.floor(Math.random() * 15) + 8 : Math.floor(Math.random() * 3),
+        status: hourlyData.status === 'online' ? 'healthy' : 
+               hourlyData.status === 'warning' ? 'warning' : 'critical',
+      },
+    }));
+  } catch (error) {
+    console.error('❌ 고정 시간별 데이터 로드 실패:', error);
+    
+    // 폴백: 기존 목업 시스템 사용
+    console.log('🔄 기존 목업 시스템으로 폴백');
+    return getMockSystem().getServers();
+  }
 }
 
 /**

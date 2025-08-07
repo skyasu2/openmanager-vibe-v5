@@ -11,6 +11,7 @@ import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
 import type { Server } from '@/types/server';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
+import { useTimeRotation } from './useTimeRotation';
 
 export type DashboardTab = 'servers' | 'network' | 'clusters' | 'applications';
 export type ViewMode = 'grid' | 'list';
@@ -109,7 +110,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
   // 페이지네이션 상태 - 설정 기반으로 동적 조정
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(15); // 🆕 모든 서버 표시 (대시보드 최적화)
+  const [pageSize, setPageSize] = useState(15); // 🔥 서버 구성 15개로 확장
 
   // 🎯 서버 설정에 따른 동적 페이지 크기 설정
   const ITEMS_PER_PAGE = useMemo(() => {
@@ -118,10 +119,10 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
     // 🖥️ 화면 표시 설정 (한 페이지에 보여줄 카드 수)
     const DISPLAY_OPTIONS = {
-      SHOW_ALL: ACTUAL_SERVER_COUNT, // 모든 서버 표시 (15개)
-      SHOW_HALF: Math.ceil(ACTUAL_SERVER_COUNT / 2), // 절반씩 표시 (8개)
-      SHOW_QUARTER: Math.ceil(ACTUAL_SERVER_COUNT / 4), // 1/4씩 표시 (4개)
-      SHOW_THIRD: Math.ceil(ACTUAL_SERVER_COUNT / 3), // 1/3씩 표시 (5개)
+      SHOW_ALL: ACTUAL_SERVER_COUNT, // 모든 서버 표시 (8개)
+      SHOW_HALF: Math.ceil(ACTUAL_SERVER_COUNT / 2), // 절반씩 표시 (4개)
+      SHOW_QUARTER: Math.ceil(ACTUAL_SERVER_COUNT / 4), // 1/4씩 표시 (2개)
+      SHOW_THIRD: Math.ceil(ACTUAL_SERVER_COUNT / 3), // 1/3씩 표시 (3개)
     };
 
     console.log('🎯 서버 표시 설정:', {
@@ -151,6 +152,9 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   // 서버 메트릭 훅
   const { metricsHistory } = useServerMetrics();
 
+  // 🕐 시간 회전 시스템 - 24시간 데이터 시뮬레이션
+  const { metricMultipliers, formattedTime, isActive: isTimeRotationActive } = useTimeRotation();
+
   // 🚀 최적화된 서버 데이터 로드 및 자동 갱신 설정
   useEffect(() => {
     // 데이터가 없을 때 최초 로드
@@ -170,25 +174,49 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     };
   }, [fetchServers, startAutoRefresh, stopAutoRefresh]); // servers 의존성 제거로 무한 루프 방지
 
-  // 실제 서버 데이터 사용 (메모이제이션)
+  // 실제 서버 데이터 사용 (메모이제이션 + 🕐 시간 기반 메트릭 변화)
   const actualServers = useMemo(() => {
     if (!servers || servers.length === 0) {
       return [];
     }
 
-    // EnhancedServerMetrics를 Server 타입으로 변환
+    // EnhancedServerMetrics를 Server 타입으로 변환 (고정 시간별 데이터 사용)
     return servers.map(
       (server: unknown): Server => {
         const s = server as any;
+        
+        // 고정 시간별 데이터에서 이미 시간 기반 메트릭이 적용되어 있음
+        // 추가 시간 배율 적용 없이 데이터 그대로 사용
+        const cpu = Math.round(s.cpu || s.cpu_usage || 0);
+        const memory = Math.round(s.memory || s.memory_usage || 0);
+        const disk = Math.round(s.disk || s.disk_usage || 0);
+        const network = Math.round(s.network || (s.network_in + s.network_out) || 0);
+
+        // 🕐 디버깅: 첫 번째 서버의 고정 데이터 확인 (성능 최적화를 위해 첫 서버만)
+        if (s.id === servers[0]?.id) {
+          console.log('🕐 고정 시간별 데이터 적용:', {
+            서버명: s.name || s.id,
+            현재_시뮬레이션_시간: formattedTime,
+            메트릭: {
+              CPU: `${cpu}%`,
+              Memory: `${memory}%`,
+              Disk: `${disk}%`,
+              Network: `${network}MB`
+            },
+            상태: s.status
+          });
+        }
+
         return {
           id: s.id,
           name: s.name || s.hostname,
           hostname: s.hostname || s.name,
           status: s.status,
-          cpu: s.cpu || s.cpu_usage || 0,
-          memory: s.memory || s.memory_usage || 0,
-          disk: s.disk || s.disk_usage || 0,
-          network: s.network || (s.network_in + s.network_out) || 0,
+          // 고정 시간별 데이터의 메트릭 그대로 사용
+          cpu: cpu,
+          memory: memory,
+          disk: disk,
+          network: network,
           uptime: s.uptime || 0,
           location: s.location || 'Unknown',
           alerts: s.alerts?.length || s.alerts || 0,
@@ -238,7 +266,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
         };
       }
     );
-  }, [servers]);
+  }, [servers]); // 고정 시간별 데이터 사용으로 시간 회전 의존성 제거
 
   // 페이지네이션된 서버 데이터 (메모이제이션)
   const paginatedServers = useMemo(() => {

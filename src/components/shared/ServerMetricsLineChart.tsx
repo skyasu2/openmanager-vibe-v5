@@ -63,11 +63,11 @@ const getMetricConfig = (
     },
   };
 
-  // 상태에 따른 색상 오버라이드
+  // 상태에 따른 색상 오버라이드 - 정상=녹색, 경고=노랑, 심각=빨강
   if (isCritical) {
     return {
       ...baseColors[type],
-      lineColor: '#ef4444',
+      lineColor: '#ef4444',  // 빨간색
       textColor: 'text-red-700',
       bgColor: 'bg-red-50',
       gradientFrom: 'from-red-500',
@@ -77,16 +77,22 @@ const getMetricConfig = (
   } else if (isWarning) {
     return {
       ...baseColors[type],
-      lineColor: '#f59e0b',
-      textColor: 'text-amber-700',
-      bgColor: 'bg-amber-50',
-      gradientFrom: 'from-amber-500',
-      gradientTo: 'to-amber-100',
+      lineColor: '#eab308',  // 노란색 (더 진한 yellow-500)
+      textColor: 'text-yellow-700',
+      bgColor: 'bg-yellow-50',
+      gradientFrom: 'from-yellow-500',
+      gradientTo: 'to-yellow-100',
       status: '주의',
     };
   } else {
+    // 정상 상태는 모두 녹색으로 통일
     return {
       ...baseColors[type],
+      lineColor: '#22c55e',  // 녹색 (green-500)
+      textColor: 'text-green-700',
+      bgColor: 'bg-green-50',
+      gradientFrom: 'from-green-500',
+      gradientTo: 'to-green-100',
       status: '정상',
     };
   }

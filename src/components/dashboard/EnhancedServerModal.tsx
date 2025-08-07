@@ -1,15 +1,15 @@
 'use client';
 
 /**
- * 🚀 Enhanced Server Detail Modal v3.0
+ * 🚀 Enhanced Server Detail Modal v4.0
  *
- * 완전히 고도화된 서버 상세 모달:
- * - 실시간 3D 게이지 및 차트
- * - 다중 탭 인터페이스
- * - 실시간 로그 스트림
- * - 프로세스 모니터링
- * - 네트워크 토폴로지
- * - AI 기반 인사이트
+ * 완전히 재디자인된 현대적 서버 상세 모달:
+ * - 직관적인 탭 네비게이션
+ * - 상태별 색상 시스템 (녹색/노랑/빨강)
+ * - 부드러운 애니메이션
+ * - 반응형 레이아웃
+ * - 실시간 데이터 시각화
+ * - 깔끔한 카드 기반 디자인
  */
 
 import { calculateOptimalCollectionInterval } from '@/config/serverConfig';
@@ -392,46 +392,107 @@ export default function EnhancedServerModal({
     );
   }
 
+  // 상태별 색상 테마 가져오기
+  const getStatusTheme = () => {
+    switch (safeServer?.status) {
+      case 'healthy':
+        return {
+          gradient: 'from-green-500 to-emerald-600',
+          bgLight: 'bg-green-50',
+          borderColor: 'border-green-200',
+          textColor: 'text-green-700',
+          badge: 'bg-green-100 text-green-800',
+          icon: '✅',
+        };
+      case 'warning':
+        return {
+          gradient: 'from-yellow-500 to-amber-600',
+          bgLight: 'bg-yellow-50',
+          borderColor: 'border-yellow-200',
+          textColor: 'text-yellow-700',
+          badge: 'bg-yellow-100 text-yellow-800',
+          icon: '⚠️',
+        };
+      case 'critical':
+      case 'offline':
+        return {
+          gradient: 'from-red-500 to-rose-600',
+          bgLight: 'bg-red-50',
+          borderColor: 'border-red-200',
+          textColor: 'text-red-700',
+          badge: 'bg-red-100 text-red-800',
+          icon: '🚨',
+        };
+      default:
+        return {
+          gradient: 'from-gray-500 to-slate-600',
+          bgLight: 'bg-gray-50',
+          borderColor: 'border-gray-200',
+          textColor: 'text-gray-700',
+          badge: 'bg-gray-100 text-gray-800',
+          icon: '❓',
+        };
+    }
+  };
+
+  const statusTheme = getStatusTheme();
+
   return (
     <AnimatePresence>
       <MotionDiv
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
         onClick={onClose}
       >
         <MotionDiv
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          initial={{ scale: 0.95, opacity: 0, y: 10 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          transition={{ type: 'spring', duration: 0.5 }}
-          className="flex h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl ring-1 ring-black/5"
+          exit={{ scale: 0.95, opacity: 0, y: 10 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          className="flex h-[90vh] w-full max-w-7xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/10"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* 헤더 */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+          {/* 헤더 - 상태별 색상 적용 */}
+          <div className={`bg-gradient-to-r ${statusTheme.gradient} p-6 text-white`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="rounded-lg bg-white/20 p-3">
-                  <ServerIcon className="h-6 w-6" />
-                </div>
+                <MotionDiv
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.5 }}
+                  className="rounded-xl bg-white/25 p-3 backdrop-blur-sm shadow-lg"
+                >
+                  <ServerIcon className="h-7 w-7 text-white" />
+                </MotionDiv>
                 <div>
                   <h2 className="flex items-center gap-3 text-2xl font-bold">
-                    <span>{safeServer.name}</span>
+                    <span className="drop-shadow-sm">{safeServer.name}</span>
+                    <span className="text-3xl">{statusTheme.icon}</span>
                     {safeServer.health?.score !== undefined && (
-                      <span className="rounded-md bg-white/20 px-2 py-0.5 text-sm font-semibold">
-                        {Math.round(safeServer.health.score)}/100
-                      </span>
+                      <MotionDiv
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.2, type: 'spring' }}
+                        className="rounded-lg bg-white/30 px-3 py-1 text-sm font-bold backdrop-blur-sm"
+                      >
+                        점수: {Math.round(safeServer.health.score)}%
+                      </MotionDiv>
                     )}
                   </h2>
-                  <p className="flex items-center gap-2 text-blue-100">
-                    {safeServer.type} • {safeServer.location}
+                  <p className="flex items-center gap-3 text-white/90 mt-1">
+                    <span className="font-medium">{safeServer.type}</span>
+                    <span>•</span>
+                    <span>{safeServer.location}</span>
                     {safeServer.alertsSummary?.total ? (
-                      <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-red-500/20 px-2 py-0.5 text-xs text-red-100">
+                      <MotionDiv
+                        animate={{ scale: [1, 1.1, 1] }}
+                        transition={{ repeat: Infinity, duration: 2 }}
+                        className="ml-2 inline-flex items-center gap-1 rounded-full bg-red-500/30 px-3 py-1 text-xs font-bold backdrop-blur-sm"
+                      >
                         <AlertTriangle className="h-3 w-3" />
-                        {safeServer.alertsSummary.total}
-                      </span>
+                        {safeServer.alertsSummary.total} 알림
+                      </MotionDiv>
                     ) : null}
                   </p>
                 </div>
@@ -442,427 +503,690 @@ export default function EnhancedServerModal({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setIsRealtime(!isRealtime)}
-                  className={`flex items-center gap-2 rounded-lg px-4 py-2 transition-all duration-200 ${
+                  className={`flex items-center gap-2 rounded-xl px-5 py-2.5 font-medium transition-all duration-300 ${
                     isRealtime
-                      ? 'bg-green-500 shadow-lg'
-                      : 'bg-white/30 backdrop-blur-sm hover:bg-white/40'
+                      ? 'bg-white text-green-600 shadow-xl'
+                      : 'bg-white/20 text-white backdrop-blur-sm hover:bg-white/30'
                   }`}
                 >
                   {isRealtime ? (
-                    <Play className="h-4 w-4" />
+                    <>
+                      <Play className="h-4 w-4" />
+                      <span>실시간 모니터링 중</span>
+                      <span className="animate-pulse">●</span>
+                    </>
                   ) : (
-                    <Pause className="h-4 w-4" />
+                    <>
+                      <Pause className="h-4 w-4" />
+                      <span>일시정지</span>
+                    </>
                   )}
-                  {isRealtime
-                    ? `실시간 (${Math.round(calculateOptimalCollectionInterval() / 1000)}초)`
-                    : '정지됨'}
                 </MotionButton>
 
                 <MotionButton
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.05, rotate: 90 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={onClose}
-                  className="flex items-center gap-2 rounded-lg bg-white/30 px-4 py-2 backdrop-blur-sm transition-all duration-200 hover:bg-white/40"
+                  className="rounded-xl bg-white/20 p-2.5 backdrop-blur-sm transition-all duration-300 hover:bg-white/30"
                   title="모달 닫기"
                 >
-                  <X className="h-4 w-4" />
-                  <span className="text-sm font-medium">닫기</span>
+                  <X className="h-5 w-5" />
                 </MotionButton>
               </div>
             </div>
 
-            {/* 탭 네비게이션 */}
-            <div className="mt-6 flex gap-2">
-              {tabs.map((tab) => {
+            {/* 탭 네비게이션 - 개선된 디자인 */}
+            <div className="mt-6 flex gap-2 overflow-x-auto">
+              {tabs.map((tab, index) => {
                 const Icon = tab.icon;
+                const isActive = selectedTab === tab.id;
                 return (
                   <MotionButton
                     key={tab.id}
-                    whileHover={{ scale: 1.02 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedTab(tab.id as any)}
-                    className={`flex items-center gap-2 rounded-lg px-4 py-2 transition-all duration-200 ${
-                      selectedTab === tab.id
-                        ? 'bg-white text-blue-600 shadow-lg ring-1 ring-blue-200'
-                        : 'bg-white/20 text-white backdrop-blur-sm hover:bg-white/30'
+                    className={`flex items-center gap-2 rounded-xl px-5 py-2.5 font-medium transition-all duration-300 ${
+                      isActive
+                        ? 'bg-white text-gray-800 shadow-xl'
+                        : 'bg-white/10 text-white/90 backdrop-blur-sm hover:bg-white/20'
                     }`}
                   >
-                    <Icon className="h-4 w-4" />
-                    {tab.label}
+                    <Icon className={`h-4 w-4 ${isActive ? 'text-gray-700' : 'text-white/90'}`} />
+                    <span>{tab.label}</span>
+                    {isActive && (
+                      <MotionDiv
+                        layoutId="activeTab"
+                        className="absolute inset-0 rounded-xl bg-white"
+                        style={{ zIndex: -1 }}
+                        transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
                   </MotionButton>
                 );
               })}
             </div>
           </div>
 
-          {/* 콘텐츠 영역 */}
-          <div className="flex-1 overflow-y-auto bg-gray-50 p-6">
+          {/* 콘텐츠 영역 - 현대적이고 직관적인 UI로 재디자인 */}
+          <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100">
             <AnimatePresence mode="wait">
               <MotionDiv
                 key={selectedTab}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ 
+                  type: 'spring', 
+                  stiffness: 300, 
+                  damping: 30 
+                }}
+                className="p-6"
               >
                 {selectedTab === 'overview' && (
                   <div className="space-y-6">
-                    {/* 3D 게이지들 - 통합 컴포넌트 사용 */}
-                    <div>
-                      <h3 className="mb-4 text-xl font-bold text-gray-900">
-                        실시간 리소스 모니터링
-                      </h3>
-                      <div className="grid grid-cols-1 gap-8 rounded-xl border border-gray-200 bg-white p-6 shadow-md md:grid-cols-3">
-                        <ServerModal3DGauge
-                          value={safeServer.cpu}
-                          label="CPU"
-                          type="cpu"
-                          size={140}
-                        />
-                        <ServerModal3DGauge
-                          value={safeServer.memory}
-                          label="메모리"
-                          type="memory"
-                          size={140}
-                        />
-                        <ServerModal3DGauge
-                          value={safeServer.disk}
-                          label="디스크"
-                          type="disk"
-                          size={140}
-                        />
+                    {/* 3D 게이지들 - 개선된 디자인 */}
+                    <MotionDiv
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.1 }}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
+                          실시간 리소스 모니터링
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                          <span className="text-sm text-gray-600 font-medium">실시간 업데이트 중</span>
+                        </div>
                       </div>
-                    </div>
+                      <div className={`grid grid-cols-1 gap-8 rounded-2xl bg-gradient-to-br ${statusTheme.bgLight} backdrop-blur-sm border ${statusTheme.borderColor} p-8 shadow-xl md:grid-cols-3`}>
+                        <MotionDiv whileHover={{ scale: 1.05 }} transition={{ type: 'spring', stiffness: 400 }}>
+                          <ServerModal3DGauge
+                            value={safeServer.cpu}
+                            label="CPU"
+                            type="cpu"
+                            size={160}
+                          />
+                        </MotionDiv>
+                        <MotionDiv whileHover={{ scale: 1.05 }} transition={{ type: 'spring', stiffness: 400 }}>
+                          <ServerModal3DGauge
+                            value={safeServer.memory}
+                            label="메모리"
+                            type="memory"
+                            size={160}
+                          />
+                        </MotionDiv>
+                        <MotionDiv whileHover={{ scale: 1.05 }} transition={{ type: 'spring', stiffness: 400 }}>
+                          <ServerModal3DGauge
+                            value={safeServer.disk}
+                            label="디스크"
+                            type="disk"
+                            size={160}
+                          />
+                        </MotionDiv>
+                      </div>
+                    </MotionDiv>
 
-                    {/* 시스템 정보 */}
+                    {/* 시스템 정보 - 개선된 카드 디자인 */}
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-md">
-                        <h4 className="mb-4 text-lg font-semibold text-gray-900">
-                          시스템 정보
-                        </h4>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-600">운영체제</span>
-                            <span className="font-medium">
-                              {safeServer.os || 'Ubuntu 22.04'}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-600">IP 주소</span>
-                            <span className="font-mono text-sm">
-                              {safeServer.ip || '192.168.1.100'}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-600">업타임</span>
-                            <span className="font-medium">
-                              {safeServer.uptime}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-600">
-                              마지막 업데이트
-                            </span>
-                            <span className="text-sm text-gray-500">
-                              방금 전
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-md">
-                        <h4 className="mb-4 text-lg font-semibold text-gray-900">
-                          서비스 상태
-                        </h4>
-                        <div className="space-y-3">
-                          {safeServer.services &&
-                          safeServer.services.length > 0 ? (
-                            safeServer.services.map((service, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center justify-between"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div
-                                    className={`h-3 w-3 rounded-full ${
-                                      service.status === 'running'
-                                        ? 'bg-green-500'
-                                        : service.status === 'stopped'
-                                          ? 'bg-red-500'
-                                          : 'bg-amber-500'
-                                    }`}
-                                  />
-                                  <span className="font-medium">
-                                    {service.name}
-                                  </span>
-                                </div>
-                                <span
-                                  className={`rounded-full px-2 py-1 text-xs font-medium ${
-                                    service.status === 'running'
-                                      ? 'bg-green-100 text-green-700'
-                                      : service.status === 'stopped'
-                                        ? 'bg-red-100 text-red-700'
-                                        : 'bg-amber-100 text-amber-700'
-                                  }`}
-                                >
-                                  {service.status === 'running'
-                                    ? '실행중'
-                                    : service.status === 'stopped'
-                                      ? '중지됨'
-                                      : '대기중'}
-                                </span>
+                      <MotionDiv
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                        whileHover={{ scale: 1.02, y: -4 }}
+                        className="group"
+                      >
+                        <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all duration-300 hover:shadow-2xl">
+                          {/* 배경 그라데이션 효과 */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent opacity-50" />
+                          
+                          <div className="relative">
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
+                                <ServerIcon className="h-5 w-5" />
                               </div>
-                            ))
-                          ) : (
-                            <div className="py-4 text-center text-gray-500">
-                              서비스 정보가 없습니다
+                              <h4 className="text-lg font-bold text-gray-800">
+                                시스템 정보
+                              </h4>
                             </div>
-                          )}
+                            <div className="space-y-4">
+                              {[
+                                { label: '운영체제', value: safeServer.os || 'Ubuntu 22.04', icon: '🐧' },
+                                { label: 'IP 주소', value: safeServer.ip || '192.168.1.100', icon: '🌐' },
+                                { label: '업타임', value: safeServer.uptime, icon: '⏱️' },
+                                { label: '마지막 업데이트', value: '방금 전', icon: '🔄' }
+                              ].map((item, idx) => (
+                                <MotionDiv
+                                  key={idx}
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: 0.3 + idx * 0.05 }}
+                                  className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-lg">{item.icon}</span>
+                                    <span className="text-gray-600 font-medium">{item.label}</span>
+                                  </div>
+                                  <span className={`font-semibold ${item.label === 'IP 주소' ? 'font-mono text-sm bg-gray-100 px-2 py-1 rounded' : 'text-gray-800'}`}>
+                                    {item.value}
+                                  </span>
+                                </MotionDiv>
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      </MotionDiv>
+
+                      <MotionDiv
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.25 }}
+                        whileHover={{ scale: 1.02, y: -4 }}
+                        className="group"
+                      >
+                        <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all duration-300 hover:shadow-2xl">
+                          {/* 배경 그라데이션 효과 */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-transparent opacity-50" />
+                          
+                          <div className="relative">
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className="p-2 rounded-lg bg-green-100 text-green-600">
+                                <Activity className="h-5 w-5" />
+                              </div>
+                              <h4 className="text-lg font-bold text-gray-800">
+                                서비스 상태
+                              </h4>
+                            </div>
+                            <div className="space-y-3">
+                              {safeServer.services && safeServer.services.length > 0 ? (
+                                safeServer.services.map((service, index) => (
+                                  <MotionDiv
+                                    key={index}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.35 + index * 0.05 }}
+                                    whileHover={{ x: 4 }}
+                                    className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-gray-50 to-transparent hover:from-gray-100 transition-all"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <MotionDiv
+                                        animate={{ scale: [1, 1.2, 1] }}
+                                        transition={{ repeat: Infinity, duration: 2 }}
+                                        className={`h-3 w-3 rounded-full shadow-sm ${
+                                          service.status === 'running'
+                                            ? 'bg-green-500 shadow-green-200'
+                                            : service.status === 'stopped'
+                                              ? 'bg-red-500 shadow-red-200'
+                                              : 'bg-amber-500 shadow-amber-200'
+                                        }`}
+                                      />
+                                      <span className="font-semibold text-gray-700">
+                                        {service.name}
+                                      </span>
+                                    </div>
+                                    <span
+                                      className={`rounded-full px-3 py-1.5 text-xs font-bold shadow-sm ${
+                                        service.status === 'running'
+                                          ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800'
+                                          : service.status === 'stopped'
+                                            ? 'bg-gradient-to-r from-red-100 to-red-200 text-red-800'
+                                            : 'bg-gradient-to-r from-amber-100 to-amber-200 text-amber-800'
+                                      }`}
+                                    >
+                                      {service.status === 'running'
+                                        ? '✅ 실행중'
+                                        : service.status === 'stopped'
+                                          ? '🛑 중지됨'
+                                          : '⏸️ 대기중'}
+                                    </span>
+                                  </MotionDiv>
+                                ))
+                              ) : (
+                                <div className="py-8 text-center">
+                                  <div className="text-4xl mb-2">📭</div>
+                                  <div className="text-gray-500 font-medium">서비스 정보가 없습니다</div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </MotionDiv>
                     </div>
                   </div>
                 )}
 
                 {selectedTab === 'metrics' && (
                   <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-bold text-gray-900">
-                        실시간 메트릭
-                      </h3>
-                      <button
-                        onClick={() => setIsRealtime(!isRealtime)}
-                        className={`rounded-lg px-4 py-2 font-medium transition-colors ${
-                          isRealtime
-                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                            : 'bg-green-100 text-green-700 hover:bg-green-200'
-                        }`}
-                      >
-                        {isRealtime ? '일시정지' : '시작'}
-                      </button>
-                    </div>
+                    <MotionDiv
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                    >
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
+                          실시간 메트릭 모니터링
+                        </h3>
+                        <MotionButton
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setIsRealtime(!isRealtime)}
+                          className={`flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold shadow-lg transition-all ${
+                            isRealtime
+                              ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600'
+                              : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600'
+                          }`}
+                        >
+                          {isRealtime ? (
+                            <>
+                              <Pause className="h-4 w-4" />
+                              일시정지
+                            </>
+                          ) : (
+                            <>
+                              <Play className="h-4 w-4" />
+                              시작하기
+                            </>
+                          )}
+                        </MotionButton>
+                      </div>
 
-                    <div className="grid grid-cols-2 gap-6">
-                      <RealtimeChart
-                        data={realtimeData.cpu}
-                        color="#3b82f6"
-                        label="CPU 사용률"
-                      />
-                      <RealtimeChart
-                        data={realtimeData.memory}
-                        color="#8b5cf6"
-                        label="메모리 사용률"
-                      />
-                      <RealtimeChart
-                        data={realtimeData.disk}
-                        color="#06b6d4"
-                        label="디스크 사용률"
-                      />
-                      <RealtimeChart
-                        data={realtimeData.network.map((n) =>
-                          Math.min(100, Math.max(0, typeof n === 'number' ? n : (n.in + n.out) / 2))
-                        )}
-                        color="#10b981"
-                        label="네트워크 사용률"
-                      />
-                    </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {[
+                          { data: realtimeData.cpu, color: '#3b82f6', label: 'CPU 사용률', icon: '🔥', gradient: 'from-blue-500 to-blue-600' },
+                          { data: realtimeData.memory, color: '#8b5cf6', label: '메모리 사용률', icon: '💾', gradient: 'from-purple-500 to-purple-600' },
+                          { data: realtimeData.disk, color: '#06b6d4', label: '디스크 사용률', icon: '💿', gradient: 'from-cyan-500 to-cyan-600' },
+                          { 
+                            data: realtimeData.network.map((n) =>
+                              Math.min(100, Math.max(0, typeof n === 'number' ? n : (n.in + n.out) / 2))
+                            ), 
+                            color: '#10b981', 
+                            label: '네트워크 사용률', 
+                            icon: '🌐', 
+                            gradient: 'from-emerald-500 to-emerald-600' 
+                          }
+                        ].map((chart, idx) => (
+                          <MotionDiv
+                            key={idx}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.2 + idx * 0.1 }}
+                            whileHover={{ y: -4 }}
+                            className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-xl hover:shadow-2xl transition-all"
+                          >
+                            <div className={`absolute inset-0 bg-gradient-to-br ${chart.gradient} opacity-5`} />
+                            <div className="relative">
+                              <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-2xl">{chart.icon}</span>
+                                  <h4 className="font-bold text-gray-800">{chart.label}</h4>
+                                </div>
+                                <div className={`text-2xl font-bold bg-gradient-to-r ${chart.gradient} bg-clip-text text-transparent`}>
+                                  {chart.data[chart.data.length - 1]?.toFixed(1) || '0'}%
+                                </div>
+                              </div>
+                              <RealtimeChart
+                                data={chart.data}
+                                color={chart.color}
+                                label=""
+                              />
+                            </div>
+                          </MotionDiv>
+                        ))}
+                      </div>
+                    </MotionDiv>
                   </div>
                 )}
 
                 {selectedTab === 'processes' && (
                   <div className="space-y-6">
-                    <h3 className="text-xl font-bold text-gray-900">
-                      실행 중인 프로세스
-                    </h3>
-                    <div className="overflow-hidden rounded-xl bg-white shadow-sm">
-                      <table className="w-full">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                              프로세스
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                              PID
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                              CPU
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                              메모리
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200 bg-white">
+                    <MotionDiv
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                    >
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
+                          실행 중인 프로세스
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-600">총 프로세스:</span>
+                          <span className="font-bold text-gray-800">{realtimeData.processes.length}</span>
+                        </div>
+                      </div>
+                      <div className="overflow-hidden rounded-2xl bg-white shadow-xl">
+                        <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4">
+                          <div className="grid grid-cols-4 gap-4 text-white font-semibold">
+                            <div>프로세스 이름</div>
+                            <div>PID</div>
+                            <div>CPU 사용률</div>
+                            <div>메모리 사용률</div>
+                          </div>
+                        </div>
+                        <div className="max-h-96 overflow-y-auto">
                           {realtimeData.processes.map((process, idx) => (
                             <MotionDiv
                               key={idx}
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ delay: idx * 0.1 }}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: idx * 0.05 }}
+                              whileHover={{ backgroundColor: '#f9fafb' }}
+                              className="grid grid-cols-4 gap-4 p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors"
                             >
-                              <td className="whitespace-nowrap px-6 py-4">
-                                <div className="font-medium text-gray-900">
-                                  {process.name}
+                              <div className="font-semibold text-gray-800 flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                                {process.name}
+                              </div>
+                              <div className="text-gray-600 font-mono text-sm">
+                                #{process.pid}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                  <div 
+                                    className={`h-full transition-all ${
+                                      process.cpu > 80 ? 'bg-red-500' : 
+                                      process.cpu > 50 ? 'bg-yellow-500' : 
+                                      'bg-blue-500'
+                                    }`}
+                                    style={{ width: `${process.cpu}%` }}
+                                  />
                                 </div>
-                              </td>
-                              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                {process.pid}
-                              </td>
-                              <td className="whitespace-nowrap px-6 py-4">
-                                <div className="text-sm font-medium text-gray-900">
+                                <span className="text-sm font-semibold text-gray-700">
                                   {process.cpu.toFixed(1)}%
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                  <div 
+                                    className={`h-full transition-all ${
+                                      process.memory > 80 ? 'bg-red-500' : 
+                                      process.memory > 50 ? 'bg-yellow-500' : 
+                                      'bg-purple-500'
+                                    }`}
+                                    style={{ width: `${process.memory}%` }}
+                                  />
                                 </div>
-                              </td>
-                              <td className="whitespace-nowrap px-6 py-4">
-                                <div className="text-sm font-medium text-gray-900">
+                                <span className="text-sm font-semibold text-gray-700">
                                   {process.memory.toFixed(1)}%
-                                </div>
-                              </td>
+                                </span>
+                              </div>
                             </MotionDiv>
                           ))}
-                        </tbody>
-                      </table>
-                    </div>
+                        </div>
+                      </div>
+                    </MotionDiv>
                   </div>
                 )}
 
                 {selectedTab === 'logs' && (
                   <div className="space-y-6">
-                    <h3 className="text-xl font-bold text-gray-900">
-                      실시간 로그
-                    </h3>
-                    <div className="h-96 overflow-y-auto rounded-xl bg-gray-900 p-4 font-mono text-sm">
-                      {realtimeData.logs.map((log, idx) => (
-                        <MotionDiv
-                          key={idx}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          className={`mb-2 ${
-                            log.level === 'error'
-                              ? 'text-red-400'
-                              : log.level === 'warn'
-                                ? 'text-yellow-400'
-                                : 'text-green-400'
-                          }`}
-                        >
-                          <span className="text-gray-500">
-                            {(() => {
-                              try {
-                                const date = new Date(log.timestamp);
-                                return isNaN(date.getTime())
-                                  ? new Date().toLocaleTimeString()
-                                  : date.toLocaleTimeString();
-                              } catch {
-                                return new Date().toLocaleTimeString();
-                              }
-                            })()}
-                          </span>
-                          <span className="ml-2 text-blue-400">
-                            [{log.source}]
-                          </span>
-                          <span className="ml-2 font-bold">
-                            {log.level.toUpperCase()}
-                          </span>
-                          <span className="ml-2">{log.message}</span>
-                        </MotionDiv>
-                      ))}
-                    </div>
+                    <MotionDiv
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                    >
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
+                          실시간 로그 스트림
+                        </h3>
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-green-500" />
+                            <span className="text-xs text-gray-600">정보</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-yellow-500" />
+                            <span className="text-xs text-gray-600">경고</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-red-500" />
+                            <span className="text-xs text-gray-600">오류</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+                        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black" />
+                        <div className="relative h-[500px] overflow-y-auto p-6 font-mono text-sm">
+                          {realtimeData.logs.map((log, idx) => (
+                            <MotionDiv
+                              key={idx}
+                              initial={{ opacity: 0, x: -30 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: idx * 0.02 }}
+                              className={`mb-3 flex items-start gap-3 p-3 rounded-lg backdrop-blur-sm ${
+                                log.level === 'error'
+                                  ? 'bg-red-500/10 border-l-4 border-red-500'
+                                  : log.level === 'warn'
+                                    ? 'bg-yellow-500/10 border-l-4 border-yellow-500'
+                                    : 'bg-green-500/10 border-l-4 border-green-500'
+                              }`}
+                            >
+                              <div className="flex-shrink-0">
+                                <span className={`inline-block px-2 py-1 rounded text-xs font-bold ${
+                                  log.level === 'error'
+                                    ? 'bg-red-500 text-white'
+                                    : log.level === 'warn'
+                                      ? 'bg-yellow-500 text-white'
+                                      : 'bg-green-500 text-white'
+                                }`}>
+                                  {log.level.toUpperCase()}
+                                </span>
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-1">
+                                  <span className="text-gray-400 text-xs">
+                                    {(() => {
+                                      try {
+                                        const date = new Date(log.timestamp);
+                                        return isNaN(date.getTime())
+                                          ? new Date().toLocaleTimeString()
+                                          : date.toLocaleTimeString();
+                                      } catch {
+                                        return new Date().toLocaleTimeString();
+                                      }
+                                    })()}
+                                  </span>
+                                  <span className="text-blue-400 text-xs font-semibold">
+                                    [{log.source}]
+                                  </span>
+                                </div>
+                                <div className={`${
+                                  log.level === 'error'
+                                    ? 'text-red-300'
+                                    : log.level === 'warn'
+                                      ? 'text-yellow-300'
+                                      : 'text-green-300'
+                                }`}>
+                                  {log.message}
+                                </div>
+                              </div>
+                            </MotionDiv>
+                          ))}
+                        </div>
+                      </div>
+                    </MotionDiv>
                   </div>
                 )}
 
                 {selectedTab === 'network' && (
                   <div className="space-y-6">
-                    <h3 className="text-xl font-bold text-gray-900">
-                      네트워크 모니터링
-                    </h3>
+                    <MotionDiv
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                    >
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-700 bg-clip-text text-transparent">
+                          🌐 네트워크 실시간 모니터링
+                        </h3>
+                        <div className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-full">
+                          <div className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse" />
+                          <span className="text-sm font-medium text-emerald-700">실시간 업데이트</span>
+                        </div>
+                      </div>
+                    </MotionDiv>
 
-                    {/* 네트워크 상태 카드 */}
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-md">
-                        <h4 className="mb-4 text-lg font-semibold text-gray-900">
-                          네트워크 상태
-                        </h4>
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`h-4 w-4 rounded-full ${
-                              safeServer.networkStatus === 'excellent'
-                                ? 'bg-green-500'
+                    {/* 네트워크 상태 카드 - 현대적 디자인 */}
+                    <MotionDiv
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.2 }}
+                      className="grid grid-cols-1 gap-6 md:grid-cols-3"
+                    >
+                      {/* 네트워크 상태 카드 */}
+                      <MotionDiv
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        transition={{ type: 'spring', stiffness: 300 }}
+                        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 shadow-xl"
+                      >
+                        <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
+                        <div className="relative z-10">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-lg font-bold text-white">네트워크 상태</h4>
+                            <span className="text-2xl">🌍</span>
+                          </div>
+                          <div className="flex items-center gap-3 mb-4">
+                            <MotionDiv
+                              animate={{
+                                scale: [1, 1.2, 1],
+                                opacity: [1, 0.8, 1]
+                              }}
+                              transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: 'easeInOut'
+                              }}
+                              className={`h-4 w-4 rounded-full ${
+                                safeServer.networkStatus === 'excellent'
+                                  ? 'bg-green-400 shadow-green-400/50'
+                                  : safeServer.networkStatus === 'good'
+                                    ? 'bg-yellow-400 shadow-yellow-400/50'
+                                    : safeServer.networkStatus === 'poor'
+                                      ? 'bg-red-400 shadow-red-400/50'
+                                      : safeServer.networkStatus === 'offline'
+                                        ? 'bg-blue-400 shadow-blue-400/50'
+                                        : 'bg-gray-400 shadow-gray-400/50'
+                              } shadow-lg`}
+                            />
+                            <span className="text-xl font-bold text-white">
+                              {safeServer.networkStatus === 'excellent'
+                                ? '최상'
                                 : safeServer.networkStatus === 'good'
-                                  ? 'bg-blue-500'
+                                  ? '양호'
                                   : safeServer.networkStatus === 'poor'
-                                    ? 'bg-yellow-500'
-                                    : 'bg-red-500'
-                            }`}
-                          />
-                          <span className="font-medium capitalize">
-                            {safeServer.networkStatus === 'excellent'
-                              ? '우수'
-                              : safeServer.networkStatus === 'good'
-                                ? '양호'
-                                : safeServer.networkStatus === 'poor'
-                                  ? '보통'
-                                  : '오프라인'}
-                          </span>
-                        </div>
-                        <div className="mt-4">
-                          <div className="text-sm text-gray-600">
-                            네트워크 속도
-                          </div>
-                          <div className="text-lg font-bold">
-                            {safeServer.specs?.network_speed || '1 Gbps'}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-md">
-                        <h4 className="mb-4 text-lg font-semibold text-gray-900">
-                          현재 트래픽
-                        </h4>
-                        <div className="space-y-3">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">인바운드</span>
-                            <span className="font-medium text-green-600">
-                              {realtimeData.network[
-                                realtimeData.network.length - 1
-                              ]?.in.toFixed(1) || '0'}{' '}
-                              MB/s
+                                    ? '부족'
+                                    : safeServer.networkStatus === 'offline'
+                                      ? '오프라인'
+                                      : '알수없음'}
                             </span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">아웃바운드</span>
-                            <span className="font-medium text-blue-600">
-                              {realtimeData.network[
-                                realtimeData.network.length - 1
-                              ]?.out.toFixed(1) || '0'}{' '}
-                              MB/s
-                            </span>
+                          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                            <div className="text-xs text-white/80 mb-1">네트워크 속도</div>
+                            <div className="text-2xl font-bold text-white">
+                              {safeServer.specs?.network_speed || '1 Gbps'}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      </MotionDiv>
 
-                      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-md">
-                        <h4 className="mb-4 text-lg font-semibold text-gray-900">
-                          지연시간
-                        </h4>
-                        <div className="text-3xl font-bold text-purple-600">
-                          {realtimeData.latency[
-                            realtimeData.latency.length - 1
-                          ]?.toFixed(1) || '0'}{' '}
-                          ms
+                      {/* 현재 트래픽 카드 */}
+                      <MotionDiv
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        transition={{ type: 'spring', stiffness: 300 }}
+                        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 p-6 shadow-xl"
+                      >
+                        <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
+                        <div className="relative z-10">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-lg font-bold text-white">실시간 트래픽</h4>
+                            <span className="text-2xl">📊</span>
+                          </div>
+                          <div className="space-y-4">
+                            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-white/80">⬇️ 인바운드</span>
+                                <MotionDiv
+                                  animate={{ opacity: [1, 0.7, 1] }}
+                                  transition={{ duration: 1.5, repeat: Infinity }}
+                                  className="text-xl font-bold text-green-300"
+                                >
+                                  {realtimeData.network[
+                                    realtimeData.network.length - 1
+                                  ]?.in.toFixed(1) || '0'} MB/s
+                                </MotionDiv>
+                              </div>
+                            </div>
+                            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-white/80">⬆️ 아웃바운드</span>
+                                <MotionDiv
+                                  animate={{ opacity: [1, 0.7, 1] }}
+                                  transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
+                                  className="text-xl font-bold text-cyan-300"
+                                >
+                                  {realtimeData.network[
+                                    realtimeData.network.length - 1
+                                  ]?.out.toFixed(1) || '0'} MB/s
+                                </MotionDiv>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="mt-2 text-sm text-gray-600">
-                          평균 응답시간
-                        </div>
-                      </div>
-                    </div>
+                      </MotionDiv>
 
-                    {/* 네트워크 트래픽 차트 */}
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                      <div className="rounded-lg border bg-white p-4 shadow-sm">
-                        <h4 className="mb-2 text-sm font-medium text-gray-700">
-                          네트워크 트래픽
-                        </h4>
-                        <div className="relative h-32">
+                      {/* 지연시간 카드 */}
+                      <MotionDiv
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        transition={{ type: 'spring', stiffness: 300 }}
+                        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 p-6 shadow-xl"
+                      >
+                        <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
+                        <div className="relative z-10">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-lg font-bold text-white">응답 시간</h4>
+                            <span className="text-2xl">⚡</span>
+                          </div>
+                          <MotionDiv
+                            animate={{
+                              scale: [1, 1.05, 1],
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: Infinity,
+                              ease: 'easeInOut'
+                            }}
+                            className="text-4xl font-bold text-white mb-2"
+                          >
+                            {realtimeData.latency[
+                              realtimeData.latency.length - 1
+                            ]?.toFixed(1) || '0'} ms
+                          </MotionDiv>
+                          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                            <div className="text-sm text-white/80">평균 지연시간</div>
+                            <div className="text-xs text-white/60 mt-1">최적 상태 &lt; 50ms</div>
+                          </div>
+                        </div>
+                      </MotionDiv>
+                    </MotionDiv>
+
+                    {/* 네트워크 트래픽 차트 - 현대적 디자인 */}
+                    <MotionDiv
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                      className="grid grid-cols-1 gap-6 md:grid-cols-2"
+                    >
+                      <div className="rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 p-6 shadow-lg hover:shadow-xl transition-shadow">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                            네트워크 트래픽 흐름
+                          </h4>
+                          <span className="text-xl">📈</span>
+                        </div>
+                        <div className="relative h-40 bg-white rounded-xl p-2">
                           <svg
                             className="h-full w-full"
                             viewBox="0 0 100 100"
@@ -870,7 +1194,7 @@ export default function EnhancedServerModal({
                           >
                             <defs>
                               <linearGradient
-                                id="network-in-gradient"
+                                id="network-in-gradient-modern"
                                 x1="0%"
                                 y1="0%"
                                 x2="0%"
@@ -878,17 +1202,17 @@ export default function EnhancedServerModal({
                               >
                                 <stop
                                   offset="0%"
-                                  stopColor="#22c55e"
-                                  stopOpacity="0.3"
+                                  stopColor="#10b981"
+                                  stopOpacity="0.5"
                                 />
                                 <stop
                                   offset="100%"
-                                  stopColor="#22c55e"
+                                  stopColor="#10b981"
                                   stopOpacity="0.05"
                                 />
                               </linearGradient>
                               <linearGradient
-                                id="network-out-gradient"
+                                id="network-out-gradient-modern"
                                 x1="0%"
                                 y1="0%"
                                 x2="0%"
@@ -897,7 +1221,7 @@ export default function EnhancedServerModal({
                                 <stop
                                   offset="0%"
                                   stopColor="#3b82f6"
-                                  stopOpacity="0.3"
+                                  stopOpacity="0.5"
                                 />
                                 <stop
                                   offset="100%"
@@ -907,7 +1231,7 @@ export default function EnhancedServerModal({
                               </linearGradient>
                             </defs>
 
-                            {/* 격자 */}
+                            {/* 그리드 라인 */}
                             {[20, 40, 60, 80].map((y) => (
                               <line
                                 key={y}
@@ -915,57 +1239,60 @@ export default function EnhancedServerModal({
                                 y1={y}
                                 x2="100"
                                 y2={y}
-                                stroke="#f3f4f6"
+                                stroke="#e5e7eb"
                                 strokeWidth="0.5"
+                                strokeDasharray="2,2"
                               />
                             ))}
 
-                            {/* 인바운드 트래픽 */}
+                            {/* 인바운드 영역 */}
+                            <path
+                              d={`M0,100 ${realtimeData.network
+                                .map((data, index) => {
+                                  const x = (index / Math.max(realtimeData.network.length - 1, 1)) * 100;
+                                  const y = 100 - Math.max(0, Math.min(100, (data.in / 600) * 100));
+                                  return `L${x},${y}`;
+                                })
+                                .join(' ')} L100,100 Z`}
+                              fill="url(#network-in-gradient-modern)"
+                            />
+
+                            {/* 인바운드 라인 */}
                             <polyline
                               fill="none"
-                              stroke="#22c55e"
-                              strokeWidth="2"
+                              stroke="#10b981"
+                              strokeWidth="3"
                               points={realtimeData.network
                                 .map((data, index) => {
-                                  const x =
-                                    (index /
-                                      Math.max(
-                                        realtimeData.network.length - 1,
-                                        1
-                                      )) *
-                                    100;
-                                  const y =
-                                    100 -
-                                    Math.max(
-                                      0,
-                                      Math.min(100, (data.in / 600) * 100)
-                                    );
+                                  const x = (index / Math.max(realtimeData.network.length - 1, 1)) * 100;
+                                  const y = 100 - Math.max(0, Math.min(100, (data.in / 600) * 100));
                                   return `${x},${y}`;
                                 })
                                 .join(' ')}
                               vectorEffect="non-scaling-stroke"
                             />
 
-                            {/* 아웃바운드 트래픽 */}
+                            {/* 아웃바운드 영역 */}
+                            <path
+                              d={`M0,100 ${realtimeData.network
+                                .map((data, index) => {
+                                  const x = (index / Math.max(realtimeData.network.length - 1, 1)) * 100;
+                                  const y = 100 - Math.max(0, Math.min(100, (data.out / 400) * 100));
+                                  return `L${x},${y}`;
+                                })
+                                .join(' ')} L100,100 Z`}
+                              fill="url(#network-out-gradient-modern)"
+                            />
+
+                            {/* 아웃바운드 라인 */}
                             <polyline
                               fill="none"
                               stroke="#3b82f6"
-                              strokeWidth="2"
+                              strokeWidth="3"
                               points={realtimeData.network
                                 .map((data, index) => {
-                                  const x =
-                                    (index /
-                                      Math.max(
-                                        realtimeData.network.length - 1,
-                                        1
-                                      )) *
-                                    100;
-                                  const y =
-                                    100 -
-                                    Math.max(
-                                      0,
-                                      Math.min(100, (data.out / 400) * 100)
-                                    );
+                                  const x = (index / Math.max(realtimeData.network.length - 1, 1)) * 100;
+                                  const y = 100 - Math.max(0, Math.min(100, (data.out / 400) * 100));
                                   return `${x},${y}`;
                                 })
                                 .join(' ')}
@@ -974,14 +1301,14 @@ export default function EnhancedServerModal({
                           </svg>
 
                           {/* 범례 */}
-                          <div className="absolute right-2 top-2 flex gap-4 text-xs">
+                          <div className="absolute right-3 top-3 flex gap-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1">
                             <div className="flex items-center gap-1">
-                              <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                              <span>인바운드</span>
+                              <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                              <span className="text-xs font-medium">인바운드</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                              <span>아웃바운드</span>
+                              <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></div>
+                              <span className="text-xs font-medium">아웃바운드</span>
                             </div>
                           </div>
                         </div>
@@ -992,54 +1319,86 @@ export default function EnhancedServerModal({
                         color="#8b5cf6"
                         label="네트워크 지연시간 (ms)"
                       />
-                    </div>
+                    </MotionDiv>
 
-                    {/* 네트워크 연결 정보 */}
-                    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-md">
-                      <h4 className="mb-4 text-lg font-semibold text-gray-900">
-                        연결 정보
-                      </h4>
-                      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                        <div className="space-y-3">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">IP 주소</span>
-                            <span className="font-medium">{safeServer.ip}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">호스트명</span>
-                            <span className="font-medium">
-                              {safeServer.hostname}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">위치</span>
-                            <span className="font-medium">
-                              {safeServer.location}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">프로바이더</span>
-                            <span className="font-medium">
-                              {safeServer.provider}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">환경</span>
-                            <span className="font-medium">
-                              {safeServer.environment}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">서버 타입</span>
-                            <span className="font-medium">
-                              {safeServer.type}
-                            </span>
-                          </div>
+                    {/* 네트워크 연결 정보 - 현대적 디자인 */}
+                    <MotionDiv
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.4 }}
+                      className="rounded-2xl bg-gradient-to-br from-slate-50 to-gray-100 p-6 shadow-xl hover:shadow-2xl transition-shadow"
+                    >
+                      <div className="flex items-center justify-between mb-6">
+                        <h4 className="text-xl font-bold bg-gradient-to-r from-slate-700 to-gray-900 bg-clip-text text-transparent">
+                          🔗 네트워크 연결 상세 정보
+                        </h4>
+                        <div className="px-3 py-1 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full">
+                          <span className="text-xs font-medium text-green-700">연결됨</span>
                         </div>
                       </div>
-                    </div>
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        {/* 왼쪽 컬럼 */}
+                        <div className="space-y-4">
+                          <MotionDiv
+                            whileHover={{ x: 5 }}
+                            className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                          >
+                            <span className="flex items-center gap-2 text-sm text-gray-600">
+                              <span>🌐</span> IP 주소
+                            </span>
+                            <span className="font-mono font-bold text-gray-900">{safeServer.ip}</span>
+                          </MotionDiv>
+                          <MotionDiv
+                            whileHover={{ x: 5 }}
+                            className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                          >
+                            <span className="flex items-center gap-2 text-sm text-gray-600">
+                              <span>💻</span> 호스트명
+                            </span>
+                            <span className="font-medium text-gray-900">{safeServer.hostname}</span>
+                          </MotionDiv>
+                          <MotionDiv
+                            whileHover={{ x: 5 }}
+                            className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                          >
+                            <span className="flex items-center gap-2 text-sm text-gray-600">
+                              <span>📍</span> 위치
+                            </span>
+                            <span className="font-medium text-gray-900">{safeServer.location}</span>
+                          </MotionDiv>
+                        </div>
+                        {/* 오른쪽 컬럼 */}
+                        <div className="space-y-4">
+                          <MotionDiv
+                            whileHover={{ x: 5 }}
+                            className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                          >
+                            <span className="flex items-center gap-2 text-sm text-gray-600">
+                              <span>☁️</span> 프로바이더
+                            </span>
+                            <span className="font-medium text-gray-900">{safeServer.provider}</span>
+                          </MotionDiv>
+                          <MotionDiv
+                            whileHover={{ x: 5 }}
+                            className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                          >
+                            <span className="flex items-center gap-2 text-sm text-gray-600">
+                              <span>🔧</span> 환경
+                            </span>
+                            <span className="font-medium text-gray-900 capitalize">{safeServer.environment}</span>
+                          </MotionDiv>
+                          <MotionDiv
+                            whileHover={{ x: 5 }}
+                            className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                          >
+                            <span className="flex items-center gap-2 text-sm text-gray-600">
+                              <span>🖥️</span> 서버 타입
+                            </span>
+                            <span className="font-medium text-gray-900 capitalize">{safeServer.type}</span>
+                          </MotionDiv>
+                        </div>
+                      </div>
+                    </MotionDiv>
                   </div>
                 )}
               </MotionDiv>

@@ -15,6 +15,16 @@ export interface ServerGenerationConfig {
     tolerancePercent: number; // 허용 오차 비율
   };
 
+  // 서버 타입 할당 설정 (8개 서버 전용)
+  serverTypes?: {
+    orderedTypes: string[]; // 서버 타입 순서대로 할당
+    statusMapping: {
+      critical: number[]; // 심각 상태 서버 인덱스 배열
+      warning: number[]; // 경고 상태 서버 인덱스 배열
+      normal: number[]; // 정상 상태 서버 인덱스 배열
+    };
+  };
+
   // 페이지네이션 설정
   pagination: {
     defaultPageSize: number; // 기본 페이지 크기
@@ -35,9 +45,9 @@ export interface ServerGenerationConfig {
 }
 
 /**
- * 🎯 기본 서버 개수 (10개 유지 - 30-60초 갱신 주기)
+ * 🎯 기본 서버 개수 (15개로 확장 - 더 현실적인 장애 시나리오)
  */
-export const DEFAULT_SERVER_COUNT = 10;
+export const DEFAULT_SERVER_COUNT = 15;
 
 /**
  * 🧮 서버 개수에 따른 자동 설정 계산
@@ -45,13 +55,13 @@ export const DEFAULT_SERVER_COUNT = 10;
 export function calculateServerConfig(
   serverCount: number = DEFAULT_SERVER_COUNT
 ): ServerGenerationConfig {
-  // 🎯 사용자 요구사항에 따른 서버 상태 분포 (15개 기준)
-  const criticalPercent = 0.07; // 7% 심각 상태 (15개 중 1개)
-  const warningPercent = 0.13; // 13% 경고 상태 (15개 중 2개)
+  // 🎯 사용자 요구사항에 따른 서버 상태 분포 (8개 기준)
+  const criticalPercent = 0.25; // 25% 심각 상태 (8개 중 2개)
+  const warningPercent = 0.375; // 37.5% 경고 상태 (8개 중 3개)
   const tolerancePercent = 0.05; // 5% 변동값 (±5%)
 
-  // 심각 상태 서버 수 계산 (최소 1개)
-  const criticalCount = Math.max(1, Math.floor(serverCount * criticalPercent));
+  // 심각 상태 서버 수 계산 (8개 기준 2개 고정)
+  const criticalCount = serverCount === 8 ? 2 : Math.max(1, Math.floor(serverCount * criticalPercent));
 
   // 페이지네이션 설정 (서버 개수에 따라 조정)
   const defaultPageSize =
@@ -73,6 +83,24 @@ export function calculateServerConfig(
       warningPercent,
       tolerancePercent,
     },
+    // 8개 서버 전용 타입 할당 설정
+    serverTypes: serverCount === 8 ? {
+      orderedTypes: [
+        'web',         // 웹 서버 (nginx, apache)
+        'app',         // 애플리케이션 서버
+        'api',         // API 서버 (REST, GraphQL)
+        'database',    // 데이터베이스 서버
+        'cache',       // 캐시 서버 (Redis, Memcached)
+        'storage',     // 스토리지 서버
+        'load-balancer', // 로드밸런서
+        'backup',      // 백업 서버
+      ],
+      statusMapping: {
+        critical: [3, 6], // database(인덱스 3), load-balancer(인덱스 6) - 심각 2대
+        warning: [1, 4, 7], // app(인덱스 1), cache(인덱스 4), backup(인덱스 7) - 경고 3대
+        normal: [0, 2, 5], // web(인덱스 0), api(인덱스 2), storage(인덱스 5) - 정상 3대
+      },
+    } : undefined,
     pagination: {
       defaultPageSize,
       maxPageSize,
@@ -149,13 +177,13 @@ export function calculateOptimalCollectionInterval(): number {
 }
 
 /**
- * 🎯 기본 서버 설정 (20개 서버 기준)
+ * 🎯 기본 서버 설정 (8개 서버 기준)
  */
 export const DEFAULT_SERVER_CONFIG =
   calculateServerConfig(DEFAULT_SERVER_COUNT);
 
 /**
- * 🌍 환경별 서버 설정 (로컬/Vercel 통일)
+ * 🌍 환경별 서버 설정 (로컬/Vercel 통일, 8개 서버 전용)
  */
 export function getEnvironmentServerConfig(): ServerGenerationConfig {
   // 환경 변수에서 서버 개수 읽기
@@ -166,7 +194,7 @@ export function getEnvironmentServerConfig(): ServerGenerationConfig {
     ? parseInt(process.env.MAX_SERVERS)
     : undefined;
 
-  // 기본값: 15개 (로컬/Vercel 통일)
+  // 기본값: 8개 고정 (사용자 요구사항)
   let serverCount = DEFAULT_SERVER_COUNT;
 
   // 환경변수로 오버라이드 가능
@@ -186,6 +214,60 @@ export function getEnvironmentServerConfig(): ServerGenerationConfig {
 export const ACTIVE_SERVER_CONFIG = getEnvironmentServerConfig();
 
 /**
+ * 🏢 서버 인덱스로 타입 가져오기 (0-7 인덱스)
+ */
+export function getServerTypeByIndex(index: number): string {
+  const config = ACTIVE_SERVER_CONFIG;
+  if (config.serverTypes && index >= 0 && index < config.serverTypes.orderedTypes.length) {
+    return config.serverTypes.orderedTypes[index];
+  }
+  // 폴백: 기본 타입
+  const fallbackTypes = ['web', 'app', 'api', 'database', 'cache', 'storage', 'load-balancer', 'backup'];
+  return fallbackTypes[index % fallbackTypes.length];
+}
+
+/**
+ * 🚦 서버 인덱스로 상태 가져오기 (0-7 인덱스)
+ */
+export function getServerStatusByIndex(index: number): 'online' | 'warning' | 'critical' {
+  const config = ACTIVE_SERVER_CONFIG;
+  if (config.serverTypes) {
+    if (config.serverTypes.statusMapping.critical.includes(index)) {
+      return 'critical';
+    }
+    if (config.serverTypes.statusMapping.warning.includes(index)) {
+      return 'warning';
+    }
+    if (config.serverTypes.statusMapping.normal.includes(index)) {
+      return 'online';
+    }
+  }
+  // 폴백: 기본 상태 (인덱스 기반)
+  if (index <= 1) return 'critical'; // 처음 2개
+  if (index <= 4) return 'warning';  // 다음 3개
+  return 'online'; // 나머지 3개
+}
+
+/**
+ * 📊 서버 인덱스별 전체 정보 가져오기
+ */
+export function getServerInfoByIndex(index: number) {
+  return {
+    index,
+    type: getServerTypeByIndex(index),
+    status: getServerStatusByIndex(index),
+    name: `${getServerTypeByIndex(index)}-${String(index + 1).padStart(2, '0')}`,
+  };
+}
+
+/**
+ * 📋 전체 8개 서버 정보 배열 생성
+ */
+export function getAllServersInfo() {
+  return Array.from({ length: 8 }, (_, index) => getServerInfoByIndex(index));
+}
+
+/**
  * 📊 서버 설정 정보 로깅
  */
 export function logServerConfig(
@@ -199,9 +281,32 @@ export function logServerConfig(
   console.log(
     `  ⚠️  경고 상태: ${Math.round(config.scenario.warningPercent * 100)}%`
   );
+  
+  // 8개 서버 타입 정보 추가 로깅
+  if (config.serverTypes) {
+    console.log('  🏢 서버 타입 할당:');
+    config.serverTypes.orderedTypes.forEach((type, index) => {
+      let status = '🟢 정상';
+      if (config.serverTypes!.statusMapping.critical.includes(index)) {
+        status = '🔴 심각';
+      } else if (config.serverTypes!.statusMapping.warning.includes(index)) {
+        status = '🟡 경고';
+      }
+      console.log(`    ${index + 1}. ${type} (${status})`);
+    });
+  }
+  
   console.log(
     `  📄 페이지 크기: ${config.pagination.defaultPageSize}개 (최대 ${config.pagination.maxPageSize}개)`
   );
   console.log(`  🔄 업데이트 간격: ${config.cache.updateInterval / 1000}초`);
   console.log(`  ⚡ 배치 크기: ${config.performance.batchSize}개`);
+  
+  // 전체 서버 정보 로깅
+  console.log('\n  📋 전체 서버 정보:');
+  getAllServersInfo().forEach(server => {
+    const statusIcon = server.status === 'critical' ? '🔴' : 
+                      server.status === 'warning' ? '🟡' : '🟢';
+    console.log(`    ${server.name}: ${server.type} ${statusIcon}`);
+  });
 }

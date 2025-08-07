@@ -265,6 +265,31 @@ function DashboardPageContent() {
     isLoading: _serverDataLoading,
   } = useServerDashboard({});
 
+  // 🕐 시간 회전 시스템 자동 시작
+  useEffect(() => {
+    const initializeTimeRotation = async () => {
+      try {
+        const { timeRotationService } = await import('@/services/time/TimeRotationService');
+        
+        // 시간 회전 시스템이 비활성화 상태라면 시작
+        if (!timeRotationService.getState().isActive) {
+          console.log('🕐 24시간 시뮬레이션 시스템 자동 시작');
+          timeRotationService.start();
+        }
+      } catch (error) {
+        console.error('❌ 시간 회전 시스템 초기화 실패:', error);
+      }
+    };
+
+    initializeTimeRotation();
+
+    // 컴포넌트 언마운트 시 정리 (필요시)
+    return () => {
+      // 시간 회전 시스템은 전역이므로 일반적으로 정리하지 않음
+      // 필요한 경우에만 timeRotationService.stop() 호출
+    };
+  }, []);
+
   // 🚀 대시보드 직접 접속 시 최적화된 초기화
   useEffect(() => {
     console.log('🎯 대시보드 직접 접속 - 최적화된 초기화');

@@ -19,11 +19,13 @@ import {
   Globe,
   HardDrive,
   Archive,
+  RefreshCw,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import React, { memo, useCallback, useEffect, useState } from 'react';
 import type { Server as ServerType } from '../../types/server';
 import { ServerCardLineChart } from '../shared/ServerMetricsLineChart';
+import { timeRotationService } from '@/services/time/TimeRotationService';
 
 // framer-motion을 동적 import로 처리
 const MotionButton = dynamic(
@@ -64,6 +66,56 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
       network: server.network || 25,
       lastUpdate: Date.now(),
     });
+
+    // 🕐 시뮬레이션 시간 기반 업데이트 시간 계산
+    const [simulatedLastUpdate, setSimulatedLastUpdate] = useState<string>('');
+    const [simulatedExactTime, setSimulatedExactTime] = useState<string>('');
+    
+    useEffect(() => {
+      const updateSimulatedTime = () => {
+        if (timeRotationService.getState().isActive) {
+          const lastUpdate = timeRotationService.getServerLastUpdate(server.type || 'unknown', index);
+          const relativeTime = timeRotationService.getRelativeTime(lastUpdate);
+          setSimulatedLastUpdate(relativeTime);
+          
+          // 정확한 시간도 저장 (툴팁용)
+          const exactTime = lastUpdate.toLocaleTimeString('ko-KR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
+          setSimulatedExactTime(exactTime);
+          
+          // 디버깅: 첫 번째 서버만 로그 출력
+          if (index === 0) {
+            console.log('🕐 서버 업데이트 시간 동기화:', {
+              서버명: server.name,
+              타입: server.type,
+              인덱스: index,
+              시뮬레이션시간: timeRotationService.getFormattedTime().time,
+              마지막업데이트: relativeTime,
+              정확한시간: exactTime
+            });
+          }
+        }
+      };
+
+      // 초기 업데이트
+      updateSimulatedTime();
+
+      // 1초마다 업데이트
+      const interval = setInterval(updateSimulatedTime, 1000);
+
+      // TimeRotation 상태 변경 구독
+      const unsubscribe = timeRotationService.subscribe(() => {
+        updateSimulatedTime();
+      });
+
+      return () => {
+        clearInterval(interval);
+        unsubscribe();
+      };
+    }, [server.type, index, server.name]);
 
     // 실시간 메트릭 업데이트 시뮬레이션 (안정화 버전)
     useEffect(() => {
@@ -114,47 +166,47 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
       switch (normalizedStatus) {
         case 'online':
           return {
-            cardBg: 'bg-gradient-to-br from-white to-green-50/50',
-            border: 'border-green-200',
-            hoverBorder: 'hover:border-green-300',
+            cardBg: 'bg-gradient-to-br from-white to-green-50/30',
+            border: 'border-green-300',
+            hoverBorder: 'hover:border-green-400',
             statusColor: 'text-green-700 bg-green-100',
             statusIcon: <CheckCircle2 className="h-4 w-4" />,
             statusText: '정상',
-            pulse: 'bg-green-400',
+            pulse: 'bg-green-500',
             accent: 'text-green-600',
           };
         case 'warning':
           return {
-            cardBg: 'bg-gradient-to-br from-white to-amber-50/50',
-            border: 'border-amber-200',
-            hoverBorder: 'hover:border-amber-300',
-            statusColor: 'text-amber-700 bg-amber-100',
+            cardBg: 'bg-gradient-to-br from-white to-yellow-50/30',
+            border: 'border-yellow-300',
+            hoverBorder: 'hover:border-yellow-400',
+            statusColor: 'text-yellow-700 bg-yellow-100',
             statusIcon: <AlertCircle className="h-4 w-4" />,
             statusText: '경고',
-            pulse: 'bg-amber-400',
-            accent: 'text-amber-600',
+            pulse: 'bg-yellow-500',
+            accent: 'text-yellow-600',
           };
         case 'offline':
           return {
-            cardBg: 'bg-gradient-to-br from-white to-red-50/50',
-            border: 'border-red-200',
-            hoverBorder: 'hover:border-red-300',
+            cardBg: 'bg-gradient-to-br from-white to-red-50/30',
+            border: 'border-red-300',
+            hoverBorder: 'hover:border-red-400',
             statusColor: 'text-red-700 bg-red-100',
             statusIcon: <AlertCircle className="h-4 w-4" />,
-            statusText: '오프라인',
-            pulse: 'bg-red-400',
+            statusText: '심각',
+            pulse: 'bg-red-500',
             accent: 'text-red-600',
           };
         default:
           // 기본값을 온라인 상태로 처리하여 회색 카드 문제 해결
           return {
-            cardBg: 'bg-gradient-to-br from-white to-green-50/50',
-            border: 'border-green-200',
-            hoverBorder: 'hover:border-green-300',
+            cardBg: 'bg-gradient-to-br from-white to-green-50/30',
+            border: 'border-green-300',
+            hoverBorder: 'hover:border-green-400',
             statusColor: 'text-green-700 bg-green-100',
             statusIcon: <CheckCircle2 className="h-4 w-4" />,
             statusText: '정상',
-            pulse: 'bg-green-400',
+            pulse: 'bg-green-500',
             accent: 'text-green-600',
           };
       }
@@ -371,6 +423,19 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
                     <span>{server.uptime}</span>
                   </>
                 )}
+                {/* 🕐 시뮬레이션 시간 기반 마지막 업데이트 표시 */}
+                {timeRotationService.getState().isActive && simulatedLastUpdate && (
+                  <>
+                    <span>•</span>
+                    <RefreshCw className="h-3 w-3 animate-pulse text-blue-500" />
+                    <span 
+                      className="text-blue-600 font-medium cursor-help"
+                      title={`정확한 시간: ${simulatedExactTime}`}
+                    >
+                      {simulatedLastUpdate}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -428,10 +493,10 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
                       key={idx}
                       className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium shadow-sm transition-colors ${
                         service.status === 'running'
-                          ? 'border-green-200 bg-green-50 text-green-700'
+                          ? 'border-green-300 bg-green-50 text-green-700'
                           : service.status === 'stopped'
-                            ? 'border-red-200 bg-red-50 text-red-700'
-                            : 'border-amber-200 bg-amber-50 text-amber-700'
+                            ? 'border-red-300 bg-red-50 text-red-700'
+                            : 'border-yellow-300 bg-yellow-50 text-yellow-700'
                       }`}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -442,7 +507,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
                             ? 'bg-green-500'
                             : service.status === 'stopped'
                               ? 'bg-red-500'
-                              : 'bg-amber-500'
+                              : 'bg-yellow-500'
                         }`}
                       />
                       <span>{service.name}</span>
