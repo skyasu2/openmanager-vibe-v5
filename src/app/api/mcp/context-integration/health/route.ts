@@ -198,8 +198,8 @@ export async function POST(_request: NextRequest) {
 
     const cloudContextLoader = CloudContextLoader.getInstance();
 
-    // 강제 헬스체크 실행 (캐시 무시)
-    await cloudContextLoader['checkMCPServerHealth']();
+    // 강제 캐시 무효화로 최신 상태 강제 조회
+    cloudContextLoader.invalidateCache();
 
     // 연결 테스트 추가 실행
     let connectivityTest: ConnectivityTest | null = null;
