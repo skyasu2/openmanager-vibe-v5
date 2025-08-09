@@ -290,7 +290,7 @@ export function useCachedServers(
   };
   const pagination = data?.pagination || {
     page: 1,
-    pageSize: 8,
+    pageSize: ACTIVE_SERVER_CONFIG.pagination.defaultPageSize,
     totalPages: 1,
     totalItems: 0,
   };

@@ -9,13 +9,57 @@ export interface ServerMetricsLineChartProps {
   type: 'cpu' | 'memory' | 'disk' | 'network';
   showRealTimeUpdates?: boolean;
   className?: string;
+  serverStatus?: 'online' | 'offline' | 'warning' | 'critical' | string;
 }
 
 // 메트릭 타입별 색상 설정
 const getMetricConfig = (
   value: number,
-  type: 'cpu' | 'memory' | 'disk' | 'network'
+  type: 'cpu' | 'memory' | 'disk' | 'network',
+  serverStatus?: string
 ) => {
+  // 서버 상태 우선 확인
+  if (serverStatus) {
+    const normalizedStatus = serverStatus.toLowerCase();
+    
+    // 서버 상태별 색상 정의
+    if (normalizedStatus === 'offline' || normalizedStatus === 'critical' || normalizedStatus === 'error') {
+      // 심각 상황 - 빨간색 계열
+      return {
+        lineColor: '#dc2626',  // red-600
+        textColor: 'text-red-700',
+        bgColor: 'bg-red-50',
+        gradientFrom: 'from-red-600',
+        gradientTo: 'to-red-100',
+        status: '오프라인',
+        fillColor: 'rgba(220, 38, 38, 0.1)',  // 빨간색 투명도
+      };
+    } else if (normalizedStatus === 'warning' || normalizedStatus === 'degraded') {
+      // 경고 상황 - 노랑/주황 계열
+      return {
+        lineColor: '#f59e0b',  // amber-500
+        textColor: 'text-amber-700',
+        bgColor: 'bg-amber-50',
+        gradientFrom: 'from-amber-500',
+        gradientTo: 'to-amber-100',
+        status: '경고',
+        fillColor: 'rgba(245, 158, 11, 0.1)',  // 주황색 투명도
+      };
+    } else if (normalizedStatus === 'online' || normalizedStatus === 'healthy' || normalizedStatus === 'running') {
+      // 정상 상황 - 녹색 계열
+      return {
+        lineColor: '#10b981',  // emerald-500
+        textColor: 'text-emerald-700',
+        bgColor: 'bg-emerald-50',
+        gradientFrom: 'from-emerald-500',
+        gradientTo: 'to-emerald-100',
+        status: '정상',
+        fillColor: 'rgba(16, 185, 129, 0.1)',  // 녹색 투명도
+      };
+    }
+  }
+
+  // 서버 상태가 없으면 메트릭 값 기반으로 판단
   const thresholds = {
     cpu: { warning: 70, critical: 85 },
     memory: { warning: 80, critical: 90 },
@@ -27,73 +71,37 @@ const getMetricConfig = (
   const isCritical = value >= threshold.critical;
   const isWarning = value >= threshold.warning;
 
-  // 기본 색상 설정
-  const baseColors = {
-    cpu: {
-      color: '#3b82f6',
-      bgColor: 'bg-blue-50',
-      lineColor: '#3b82f6',
-      textColor: 'text-blue-700',
-      gradientFrom: 'from-blue-500',
-      gradientTo: 'to-blue-100',
-    },
-    memory: {
-      color: '#8b5cf6',
-      bgColor: 'bg-purple-50',
-      lineColor: '#8b5cf6',
-      textColor: 'text-purple-700',
-      gradientFrom: 'from-purple-500',
-      gradientTo: 'to-purple-100',
-    },
-    disk: {
-      color: '#06b6d4',
-      bgColor: 'bg-cyan-50',
-      lineColor: '#06b6d4',
-      textColor: 'text-cyan-700',
-      gradientFrom: 'from-cyan-500',
-      gradientTo: 'to-cyan-100',
-    },
-    network: {
-      color: '#10b981',
-      bgColor: 'bg-emerald-50',
-      lineColor: '#10b981',
-      textColor: 'text-emerald-700',
-      gradientFrom: 'from-emerald-500',
-      gradientTo: 'to-emerald-100',
-    },
-  };
-
-  // 상태에 따른 색상 오버라이드 - 정상=녹색, 경고=노랑, 심각=빨강
+  // 메트릭 값에 따른 색상
   if (isCritical) {
     return {
-      ...baseColors[type],
-      lineColor: '#ef4444',  // 빨간색
+      lineColor: '#dc2626',  // red-600
       textColor: 'text-red-700',
       bgColor: 'bg-red-50',
-      gradientFrom: 'from-red-500',
+      gradientFrom: 'from-red-600',
       gradientTo: 'to-red-100',
       status: '위험',
+      fillColor: 'rgba(220, 38, 38, 0.1)',
     };
   } else if (isWarning) {
     return {
-      ...baseColors[type],
-      lineColor: '#eab308',  // 노란색 (더 진한 yellow-500)
-      textColor: 'text-yellow-700',
-      bgColor: 'bg-yellow-50',
-      gradientFrom: 'from-yellow-500',
-      gradientTo: 'to-yellow-100',
+      lineColor: '#f59e0b',  // amber-500
+      textColor: 'text-amber-700',
+      bgColor: 'bg-amber-50',
+      gradientFrom: 'from-amber-500',
+      gradientTo: 'to-amber-100',
       status: '주의',
+      fillColor: 'rgba(245, 158, 11, 0.1)',
     };
   } else {
-    // 정상 상태는 모두 녹색으로 통일
+    // 정상 상태 - 녹색
     return {
-      ...baseColors[type],
-      lineColor: '#22c55e',  // 녹색 (green-500)
-      textColor: 'text-green-700',
-      bgColor: 'bg-green-50',
-      gradientFrom: 'from-green-500',
-      gradientTo: 'to-green-100',
+      lineColor: '#10b981',  // emerald-500
+      textColor: 'text-emerald-700',
+      bgColor: 'bg-emerald-50',
+      gradientFrom: 'from-emerald-500',
+      gradientTo: 'to-emerald-100',
       status: '정상',
+      fillColor: 'rgba(16, 185, 129, 0.1)',
     };
   }
 };
@@ -130,13 +138,14 @@ export default function ServerMetricsLineChart({
   type,
   showRealTimeUpdates = false,
   className = '',
+  serverStatus,
 }: ServerMetricsLineChartProps) {
   const [historicalData, setHistoricalData] = useState(() =>
     generateHistoricalData(value, type)
   );
   const svgRef = useRef<SVGSVGElement>(null);
 
-  const config = getMetricConfig(value, type);
+  const config = getMetricConfig(value, type, serverStatus);
 
   // 실시간 업데이트 시뮬레이션
   useEffect(() => {

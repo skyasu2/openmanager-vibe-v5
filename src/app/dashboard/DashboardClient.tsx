@@ -92,14 +92,42 @@ const AnimatedServerModal = dynamic(
       onClose 
     }: { 
       isOpen: boolean; 
-      server: any;
+      server: Server | null;
       onClose: () => void; 
     }) {
+      // Convert Server to ServerData type
+      const serverData = server ? {
+        ...server,
+        hostname: server.hostname || server.name,
+        type: server.type || 'server',
+        environment: server.environment || 'production',
+        provider: server.provider || 'Unknown',
+        // Fix alerts type: convert array to number if needed
+        alerts: Array.isArray(server.alerts) ? server.alerts.length : (server.alerts || 0),
+        services: server.services || [],
+        lastUpdate: server.lastUpdate || new Date(),
+        // Fix uptime type: convert number to string if needed
+        uptime: typeof server.uptime === 'number' 
+          ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
+          : server.uptime || '0h 0m',
+        // Fix status mapping: convert 'online' to 'healthy'
+        status: server.status === 'online' ? 'healthy' as const : 
+                server.status === 'critical' ? 'critical' as const :
+                server.status === 'warning' ? 'warning' as const :
+                server.status === 'offline' ? 'offline' as const :
+                'healthy' as const,
+        // Fix networkStatus to match NetworkStatus type
+        networkStatus: server.status === 'online' || server.status === 'healthy' ? 'excellent' as const :
+                      server.status === 'warning' ? 'good' as const :
+                      server.status === 'critical' ? 'poor' as const :
+                      'offline' as const,
+      } : null;
+      
       return (
         <AnimatePresence>
-          {isOpen && server && (
+          {isOpen && serverData && (
             <EnhancedServerModal.default
-              server={server}
+              server={serverData}
               onClose={onClose}
             />
           )}
@@ -353,7 +381,7 @@ function DashboardPageContent() {
           console.warn('⚠️ 유효하지 않은 서버 데이터');
           return;
         }
-        handleServerSelect(server as any);
+        handleServerSelect(server);
         setSelectedServer(server);
         setIsServerModalOpen(true);
       } catch (error) {

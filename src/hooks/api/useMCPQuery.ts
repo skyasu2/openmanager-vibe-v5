@@ -1,9 +1,35 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 // 🔮 MCP 쿼리 타입 정의
+export interface MCPQueryContext {
+  userId?: string;
+  sessionId?: string;
+  previousQueries?: string[];
+  timeoutMs?: number;
+  maxTokens?: number;
+  temperature?: number;
+  mode?: 'natural-language' | 'command' | 'analysis';
+  [key: string]: unknown;
+}
+
+export interface MCPResponseMetadata {
+  processingTime?: number;
+  requestId?: string;
+  serverLocation?: string;
+  aiEngine?: string;
+  modelVersion?: string;
+  cacheHit?: boolean;
+  tokenUsage?: {
+    prompt: number;
+    completion: number;
+    total: number;
+  };
+  [key: string]: unknown;
+}
+
 export interface MCPQuery {
   query: string;
-  context?: Record<string, any>;
+  context?: MCPQueryContext;
   sessionId?: string;
 }
 
@@ -15,7 +41,7 @@ export interface MCPResponse {
   responseTime: number;
   timestamp: string;
   sources: string[];
-  metadata: Record<string, any>;
+  metadata: MCPResponseMetadata;
   isThinking?: boolean;
   thinkingSteps?: {
     step: number;

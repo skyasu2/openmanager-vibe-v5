@@ -116,10 +116,10 @@ export const useServerData = (): UseServerDataReturn => {
                 lastUpdate: new Date(),
               } as Server;
             }
-            const s = server as any;
+            const s = server as Record<string, unknown>;
             return {
               ...s,
-              status: mapStatus(s.status || 'unknown'),
+              status: mapStatus((s.status as string) || 'unknown'),
               lastUpdate: new Date(),
             } as Server;
           });
@@ -191,7 +191,7 @@ export const useServerData = (): UseServerDataReturn => {
         acc.total++;
         // 안전한 인덱스 접근
         if (server.status in acc) {
-          (acc as any)[server.status]++;
+          (acc as Record<string, number>)[server.status]++;
         } else {
           // 미지원 상태는 warning으로 분류
           acc.warning++;

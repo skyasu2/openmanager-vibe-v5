@@ -27,11 +27,49 @@ interface VMBackendState {
   currentSession: string | null;
 }
 
+interface StreamMetadata {
+  sessionId?: string;
+  timestamp?: string;
+  source?: string;
+  [key: string]: unknown;
+}
+
 interface StreamData {
   type: 'thinking' | 'result' | 'progress' | 'error';
   content: string;
-  metadata?: Record<string, any>;
+  metadata?: StreamMetadata;
   progress?: number;
+}
+
+interface AnalysisContext {
+  sessionId?: string;
+  previousQueries?: string[];
+  userPreferences?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+interface AnalysisResult {
+  id: string;
+  status: 'pending' | 'completed' | 'failed';
+  result?: unknown;
+  response?: string;
+  content?: string;
+  error?: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface StreamCompletionResult {
+  response?: string;
+  content?: string;
+  metadata?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+interface StreamError {
+  message: string;
+  code?: string;
+  details?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 interface UseVMBackendOptions {
@@ -182,7 +220,7 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
   }, [state.isConnected, userId]);
 
   // 새 세션 생성
-  const createSession = useCallback(async (initialContext?: Record<string, any>): Promise<string | null> => {
+  const createSession = useCallback(async (initialContext?: AnalysisContext): Promise<string | null> => {
     if (!state.isConnected) {
       console.warn('⚠️ VM Backend not connected');
       return null;
@@ -221,7 +259,7 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
   }, []);
 
   // 메시지 전송
-  const sendMessage = useCallback(async (content: string, metadata?: Record<string, any>): Promise<boolean> => {
+  const sendMessage = useCallback(async (content: string, metadata?: StreamMetadata): Promise<boolean> => {
     if (!state.currentSession) {
       console.warn('⚠️ No active session');
       return false;
@@ -240,7 +278,7 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
   }, [state.currentSession]);
 
   // AI 스트리밍 시작
-  const startAIStream = useCallback(async (query: string, context?: Record<string, any>): Promise<boolean> => {
+  const startAIStream = useCallback(async (query: string, context?: AnalysisContext): Promise<boolean> => {
     if (!state.isConnected) {
       console.warn('⚠️ VM Backend not connected');
       return false;
@@ -272,7 +310,7 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
   const startDeepAnalysis = useCallback(async (
     type: string,
     query: string,
-    context?: Record<string, any>
+    context?: AnalysisContext
   ): Promise<string | null> => {
     if (!state.isConnected) {
       console.warn('⚠️ VM Backend not connected');
@@ -289,7 +327,7 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
   }, [state.isConnected]);
 
   // 분석 결과 조회
-  const getAnalysisResult = useCallback(async (jobId: string): Promise<any> => {
+  const getAnalysisResult = useCallback(async (jobId: string): Promise<AnalysisResult | null> => {
     if (!state.isConnected) return null;
 
     try {
@@ -306,7 +344,7 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
       setStreamData(prev => [...prev, data]);
     };
 
-    const handleStreamComplete = (result: any) => {
+    const handleStreamComplete = (result: StreamCompletionResult) => {
       setIsStreaming(false);
       setStreamData(prev => [...prev, {
         type: 'result',
@@ -315,7 +353,7 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
       }]);
     };
 
-    const handleStreamError = (error: any) => {
+    const handleStreamError = (error: StreamError) => {
       setIsStreaming(false);
       setStreamData(prev => [...prev, {
         type: 'error',

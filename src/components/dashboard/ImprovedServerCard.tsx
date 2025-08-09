@@ -459,24 +459,28 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
             value={realtimeMetrics.cpu}
             type="cpu"
             showRealTimeUpdates={showRealTimeUpdates}
+            serverStatus={server.status}
           />
           <ServerCardLineChart
             label="메모리"
             value={realtimeMetrics.memory}
             type="memory"
             showRealTimeUpdates={showRealTimeUpdates}
+            serverStatus={server.status}
           />
           <ServerCardLineChart
             label="디스크"
             value={realtimeMetrics.disk}
             type="disk"
             showRealTimeUpdates={showRealTimeUpdates}
+            serverStatus={server.status}
           />
           <ServerCardLineChart
             label="네트워크"
             value={Math.min(100, Math.max(0, realtimeMetrics.network))}
             type="network"
             showRealTimeUpdates={showRealTimeUpdates}
+            serverStatus={server.status}
           />
         </div>
 

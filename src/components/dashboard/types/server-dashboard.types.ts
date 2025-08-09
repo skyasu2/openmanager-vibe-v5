@@ -49,7 +49,7 @@ export interface ExtendedServer extends Omit<Server, 'networkStatus'> {
 
 // 서버 타입 가드
 export function isExtendedServer(server: unknown): server is ExtendedServer {
-  const s = server as any;
+  const s = server as Record<string, unknown>;
   return (
     s &&
     typeof s === 'object' &&

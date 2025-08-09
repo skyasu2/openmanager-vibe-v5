@@ -8,10 +8,68 @@ import {
   type ServerDisplayMode,
 } from '@/config/display-config';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
-import type { Server } from '@/types/server';
+import type { Server, Service } from '@/types/server';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
 import { useTimeRotation } from './useTimeRotation';
+
+// Type interfaces for server data transformation
+interface EnhancedServerData {
+  id: string;
+  name?: string;
+  hostname?: string;
+  status: 'online' | 'warning' | 'critical' | 'offline';
+  cpu?: number;
+  cpu_usage?: number;
+  memory?: number;
+  memory_usage?: number;
+  disk?: number;
+  disk_usage?: number;
+  network?: number;
+  network_in?: number;
+  network_out?: number;
+  uptime?: number;
+  location?: string;
+  alerts?: Array<unknown> | number;
+  ip?: string;
+  os?: string;
+  type?: string;
+  role?: string;
+  environment?: string;
+  provider?: string;
+  specs?: {
+    cpu_cores: number;
+    memory_gb: number;
+    disk_gb: number;
+    network_speed: string;
+  };
+  lastUpdate?: Date | string;
+  services?: Array<unknown>;
+  systemInfo?: {
+    os: string;
+    uptime: string;
+    processes: number;
+    zombieProcesses: number;
+    loadAverage: string;
+    lastUpdate: string;
+  };
+  networkInfo?: {
+    interface: string;
+    receivedBytes: string;
+    sentBytes: string;
+    receivedErrors: number;
+    sentErrors: number;
+    status: 'healthy' | 'warning' | 'critical';
+  };
+}
+
+interface ServerWithMetrics extends Server {
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: number;
+  uptime: number;
+}
 
 export type DashboardTab = 'servers' | 'network' | 'clusters' | 'applications';
 export type ViewMode = 'grid' | 'list';
@@ -183,14 +241,14 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     // EnhancedServerMetrics를 Server 타입으로 변환 (고정 시간별 데이터 사용)
     return servers.map(
       (server: unknown): Server => {
-        const s = server as any;
+        const s = server as EnhancedServerData;
         
         // 고정 시간별 데이터에서 이미 시간 기반 메트릭이 적용되어 있음
         // 추가 시간 배율 적용 없이 데이터 그대로 사용
         const cpu = Math.round(s.cpu || s.cpu_usage || 0);
         const memory = Math.round(s.memory || s.memory_usage || 0);
         const disk = Math.round(s.disk || s.disk_usage || 0);
-        const network = Math.round(s.network || (s.network_in + s.network_out) || 0);
+        const network = Math.round(s.network || ((s.network_in || 0) + (s.network_out || 0)) || 0);
 
         // 🕐 디버깅: 첫 번째 서버의 고정 데이터 확인 (성능 최적화를 위해 첫 서버만)
         if (s.id === servers[0]?.id) {
@@ -209,8 +267,8 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
         return {
           id: s.id,
-          name: s.name || s.hostname,
-          hostname: s.hostname || s.name,
+          name: s.name || s.hostname || 'Unknown',
+          hostname: s.hostname || s.name || 'Unknown',
           status: s.status,
           // 고정 시간별 데이터의 메트릭 그대로 사용
           cpu: cpu,
@@ -219,7 +277,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
           network: network,
           uptime: s.uptime || 0,
           location: s.location || 'Unknown',
-          alerts: s.alerts?.length || s.alerts || 0,
+          alerts: Array.isArray(s.alerts) ? s.alerts.length : (s.alerts || 0),
           ip: s.ip || '192.168.1.1',
           os: s.os || 'Ubuntu 22.04 LTS',
           type: s.type || s.role || 'worker',
@@ -231,8 +289,8 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
             disk_gb: 250,
             network_speed: '1Gbps',
           },
-          lastUpdate: s.lastUpdate || new Date(),
-          services: s.services || ([] as any[]),
+          lastUpdate: typeof s.lastUpdate === 'string' ? new Date(s.lastUpdate) : (s.lastUpdate || new Date()),
+          services: Array.isArray(s.services) ? s.services as Service[] : [],
           networkStatus:
             s.status === 'online'
               ? 'healthy'
@@ -244,11 +302,11 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
             uptime:
               typeof s.uptime === 'string'
                 ? s.uptime
-                : `${Math.floor(s.uptime / 3600)}h`,
+                : `${Math.floor((s.uptime || 0) / 3600)}h`,
             processes: Math.floor(Math.random() * 200) + 50,
             zombieProcesses: Math.floor(Math.random() * 5),
             loadAverage: '1.23, 1.45, 1.67',
-            lastUpdate: s.lastUpdate || new Date().toISOString(),
+            lastUpdate: typeof s.lastUpdate === 'string' ? s.lastUpdate : (s.lastUpdate instanceof Date ? s.lastUpdate.toISOString() : new Date().toISOString()),
           },
           networkInfo: s.networkInfo || {
             interface: 'eth0',
@@ -311,7 +369,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     let warning = 0;
 
     actualServers.forEach((server: unknown) => {
-      const s = server as any;
+      const s = server as EnhancedServerData;
       // 목업 시스템의 상태 그대로 사용
       switch (s.status) {
         case 'online':
@@ -330,15 +388,15 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     });
 
     const avgCpu = Math.round(
-      actualServers.reduce((sum: number, s: unknown) => sum + ((s as any).cpu || 0), 0) /
+      actualServers.reduce((sum: number, s: unknown) => sum + ((s as ServerWithMetrics).cpu || 0), 0) /
         total
     );
     const avgMemory = Math.round(
-      actualServers.reduce((sum: number, s: unknown) => sum + ((s as any).memory || 0), 0) /
+      actualServers.reduce((sum: number, s: unknown) => sum + ((s as ServerWithMetrics).memory || 0), 0) /
         total
     );
     const avgDisk = Math.round(
-      actualServers.reduce((sum: number, s: unknown) => sum + ((s as any).disk || 0), 0) /
+      actualServers.reduce((sum: number, s: unknown) => sum + ((s as ServerWithMetrics).disk || 0), 0) /
         total
     );
 
@@ -390,12 +448,13 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const selectedServerMetrics = useMemo(() => {
     if (!selectedServer) return null;
 
+    const serverWithMetrics = selectedServer as ServerWithMetrics;
     return {
-      cpu: (selectedServer as any).cpu || 0,
-      memory: (selectedServer as any).memory || 0,
-      disk: (selectedServer as any).disk || 0,
-      network: (selectedServer as any).network || 0,
-      uptime: (selectedServer as any).uptime || 0,
+      cpu: serverWithMetrics.cpu || 0,
+      memory: serverWithMetrics.memory || 0,
+      disk: serverWithMetrics.disk || 0,
+      network: serverWithMetrics.network || 0,
+      uptime: serverWithMetrics.uptime || 0,
       timestamp: new Date().toISOString(),
     };
   }, [selectedServer]);

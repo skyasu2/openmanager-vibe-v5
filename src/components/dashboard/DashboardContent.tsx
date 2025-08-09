@@ -28,6 +28,14 @@ interface DashboardActions {
   refreshData?: () => void;
 }
 
+interface DashboardStats {
+  total: number;
+  online: number;
+  warning: number;
+  offline: number;
+  servers: unknown[];
+}
+
 interface DashboardContentProps {
   showSequentialGeneration: boolean;
   servers: Server[];
@@ -80,7 +88,7 @@ export default function DashboardContent({
   });
 
   // 🎯 대시보드 API 통계 데이터 상태
-  const [dashboardStats, setDashboardStats] = useState<any>(null);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
   // 🚀 대시보드 API에서 실제 통계 데이터 가져오기
@@ -101,11 +109,12 @@ export default function DashboardContent({
         timestamp: new Date().toISOString(),
       });
 
+      // 📊 통계 필드 매핑 수정 (API 응답과 일치)
       setDashboardStats({
         total: stats.total || serversArray.length,
-        online: stats.healthy || 0,
+        online: stats.online || stats.healthy || 0,
         warning: stats.warning || 0,
-        offline: stats.critical || 0,
+        offline: stats.offline || stats.critical || 0,
         servers: serversArray,
       });
     } catch (error) {

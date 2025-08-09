@@ -33,6 +33,22 @@ interface InfrastructureStats {
   bandwidth: number;
 }
 
+interface DashboardServerData {
+  id?: string;
+  name?: string;
+  cpu?: number | { usage?: number };
+  memory?: number | { usage?: number };
+  disk?: number | { usage?: number };
+  network?: {
+    rx?: number;
+    tx?: number;
+    in?: number;
+    out?: number;
+  };
+  status?: string;
+  [key: string]: unknown;
+}
+
 interface InfrastructureOverviewPageProps {
   className?: string;
 }
@@ -80,9 +96,9 @@ export default function InfrastructureOverviewPage({
 
       // 🎯 대시보드 API의 stats 데이터를 직접 사용
       const totalServers = stats.total || servers.length;
-      const onlineServers = stats.healthy || 0;
+      const onlineServers = stats.online || stats.healthy || 0;
       const warningServers = stats.warning || 0;
-      const offlineServers = stats.critical || 0;
+      const offlineServers = stats.offline || stats.critical || 0;
       const alertCount = warningServers + offlineServers;
 
       console.log('📊 서버 상태 분포 (대시보드 API):', {
@@ -104,9 +120,9 @@ export default function InfrastructureOverviewPage({
         totalCpu =
           servers.reduce((sum: number, s: unknown) => {
             if (typeof s === 'object' && s !== null) {
-              const server = s as any;
+              const server = s as DashboardServerData;
               // CPU 값은 cpu.usage 또는 직접 cpu 필드에서 가져옴
-              const cpuValue = server.cpu?.usage || server.cpu || 0;
+              const cpuValue = typeof server.cpu === 'object' && server.cpu ? server.cpu.usage || 0 : server.cpu || 0;
               return sum + cpuValue;
             }
             return sum;
@@ -115,9 +131,9 @@ export default function InfrastructureOverviewPage({
         totalRam =
           servers.reduce((sum: number, s: unknown) => {
             if (typeof s === 'object' && s !== null) {
-              const server = s as any;
+              const server = s as DashboardServerData;
               // Memory 값은 memory.usage 또는 직접 memory 필드에서 가져옴
-              const memoryValue = server.memory?.usage || server.memory || 0;
+              const memoryValue = typeof server.memory === 'object' && server.memory ? server.memory.usage || 0 : server.memory || 0;
               return sum + memoryValue;
             }
             return sum;
@@ -126,9 +142,9 @@ export default function InfrastructureOverviewPage({
         totalDisk =
           servers.reduce((sum: number, s: unknown) => {
             if (typeof s === 'object' && s !== null) {
-              const server = s as any;
+              const server = s as DashboardServerData;
               // Disk 값은 disk.usage 또는 직접 disk 필드에서 가져옴
-              const diskValue = server.disk?.usage || server.disk || 0;
+              const diskValue = typeof server.disk === 'object' && server.disk ? server.disk.usage || 0 : server.disk || 0;
               return sum + diskValue;
             }
             return sum;
@@ -137,7 +153,7 @@ export default function InfrastructureOverviewPage({
         // 네트워크는 총합으로 계산 (대역폭)
         bandwidth = servers.reduce((sum: number, s: unknown) => {
           if (typeof s === 'object' && s !== null) {
-            const server = s as any;
+            const server = s as DashboardServerData;
             // Network 값은 network.rx/tx 또는 직접 network 필드에서 가져옴
             const networkRx = server.network?.rx || 0;
             const networkTx = server.network?.tx || 0;
