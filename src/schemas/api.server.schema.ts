@@ -172,3 +172,6 @@ export type ServerPaginationQuery = z.infer<typeof ServerPaginationQuerySchema>;
 export type ServerPaginatedResponse = z.infer<typeof ServerPaginatedResponseSchema>;
 export type ServerBatchRequest = z.infer<typeof ServerBatchRequestSchema>;
 export type ServerBatchResponse = z.infer<typeof ServerBatchResponseSchema>;
+
+// ===== server-schemas 디렉토리의 스키마들 재수출 =====
+export * from './server-schemas/server-details.schema';
