@@ -49,7 +49,7 @@ export const MCPContextIntegrationRequestSchema = z.object({
   action: z.enum(['sync', 'query', 'update']),
   query: z.string().optional(),
   contextType: z.string().optional(),
-  nlpType: z.enum(['korean', 'english', 'translation', 'generation']).optional(),
+  nlpType: z.enum(['intent_analysis', 'entity_extraction', 'sentiment_analysis', 'command_parsing']).optional(),
   maxFiles: z.number().min(1).max(100).optional(),
   includeSystemContext: z.boolean().optional(),
   pathFilters: z.array(z.string()).optional(),
@@ -70,10 +70,44 @@ export const MCPContextIntegrationResponseSchema = z.object({
 });
 
 export const MCPIntegrationStatusResponseSchema = z.object({
-  status: z.enum(['active', 'inactive', 'error']),
-  connectedServers: z.array(z.string()),
-  lastSync: TimestampSchema.optional(),
-  version: z.string(),
+  success: z.boolean(),
+  timestamp: TimestampSchema,
+  data: z.object({
+    mcpServer: z.object({
+      url: z.string(),
+      status: z.enum(['online', 'offline', 'degraded']),
+      lastChecked: z.string(),
+      responseTime: z.number(),
+      version: z.string().optional(),
+      capabilities: z.array(z.string()).optional(),
+    }),
+    contextCache: z.object({
+      size: z.number(),
+      hitRate: z.number(),
+    }),
+    ragIntegration: z.object({
+      enabled: z.boolean(),
+      lastSync: z.string(),
+      syncCount: z.number(),
+    }),
+    performance: z.object({
+      avgQueryTime: z.number(),
+      totalQueries: z.number(),
+      errorRate: z.number(),
+    }),
+  }),
+  capabilities: z.object({
+    mcpIntegration: z.boolean(),
+    ragIntegration: z.boolean(),
+    nlpSupport: z.boolean(),
+    contextTypes: z.array(z.string()),
+    nlpTypes: z.array(z.string()),
+  }),
+  endpoints: z.object({
+    contextQuery: z.string(),
+    ragSync: z.string(),
+    mcpHealth: z.string(),
+  }),
 });
 
 // ===== MCP Sync 스키마 =====
