@@ -19,13 +19,11 @@ import {
   Globe,
   HardDrive,
   Archive,
-  RefreshCw,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import React, { memo, useCallback, useEffect, useState } from 'react';
 import type { Server as ServerType } from '../../types/server';
 import { ServerCardLineChart } from '../shared/ServerMetricsLineChart';
-import { timeRotationService } from '@/services/time/TimeRotationService';
 
 // framer-motion을 동적 import로 처리
 const MotionButton = dynamic(
@@ -67,55 +65,6 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
       lastUpdate: Date.now(),
     });
 
-    // 🕐 시뮬레이션 시간 기반 업데이트 시간 계산
-    const [simulatedLastUpdate, setSimulatedLastUpdate] = useState<string>('');
-    const [simulatedExactTime, setSimulatedExactTime] = useState<string>('');
-    
-    useEffect(() => {
-      const updateSimulatedTime = () => {
-        if (timeRotationService.getState().isActive) {
-          const lastUpdate = timeRotationService.getServerLastUpdate(server.type || 'unknown', index);
-          const relativeTime = timeRotationService.getRelativeTime(lastUpdate);
-          setSimulatedLastUpdate(relativeTime);
-          
-          // 정확한 시간도 저장 (툴팁용)
-          const exactTime = lastUpdate.toLocaleTimeString('ko-KR', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-          });
-          setSimulatedExactTime(exactTime);
-          
-          // 디버깅: 첫 번째 서버만 로그 출력
-          if (index === 0) {
-            console.log('🕐 서버 업데이트 시간 동기화:', {
-              서버명: server.name,
-              타입: server.type,
-              인덱스: index,
-              시뮬레이션시간: timeRotationService.getFormattedTime().time,
-              마지막업데이트: relativeTime,
-              정확한시간: exactTime
-            });
-          }
-        }
-      };
-
-      // 초기 업데이트
-      updateSimulatedTime();
-
-      // 1초마다 업데이트
-      const interval = setInterval(updateSimulatedTime, 1000);
-
-      // TimeRotation 상태 변경 구독
-      const unsubscribe = timeRotationService.subscribe(() => {
-        updateSimulatedTime();
-      });
-
-      return () => {
-        clearInterval(interval);
-        unsubscribe();
-      };
-    }, [server.type, index, server.name]);
 
     // 실시간 메트릭 업데이트 시뮬레이션 (안정화 버전)
     useEffect(() => {
@@ -421,19 +370,6 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
                     <span>•</span>
                     <Clock className="h-3 w-3" />
                     <span>{server.uptime}</span>
-                  </>
-                )}
-                {/* 🕐 시뮬레이션 시간 기반 마지막 업데이트 표시 */}
-                {timeRotationService.getState().isActive && simulatedLastUpdate && (
-                  <>
-                    <span>•</span>
-                    <RefreshCw className="h-3 w-3 animate-pulse text-blue-500" />
-                    <span 
-                      className="text-blue-600 font-medium cursor-help"
-                      title={`정확한 시간: ${simulatedExactTime}`}
-                    >
-                      {simulatedLastUpdate}
-                    </span>
                   </>
                 )}
               </div>

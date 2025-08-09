@@ -11,7 +11,6 @@ import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
 import type { Server, Service } from '@/types/server';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
-import { useTimeRotation } from './useTimeRotation';
 
 // Type interfaces for server data transformation
 interface EnhancedServerData {
@@ -219,8 +218,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   // 서버 메트릭 훅
   const { metricsHistory } = useServerMetrics();
 
-  // 🕐 시간 회전 시스템 - 24시간 데이터 시뮬레이션
-  const { metricMultipliers, formattedTime, isActive: isTimeRotationActive } = useTimeRotation();
+  // 🕐 Supabase에서 24시간 데이터를 직접 제공하므로 시간 회전 시스템 제거됨
 
   // 🎨 화면 크기 변경 시 페이지 크기 자동 조정
   useEffect(() => {
@@ -287,20 +285,6 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
         const disk = Math.round(s.disk || s.disk_usage || 0);
         const network = Math.round(s.network || ((s.network_in || 0) + (s.network_out || 0)) || 0);
 
-        // 🕐 디버깅: 첫 번째 서버의 고정 데이터 확인 (성능 최적화를 위해 첫 서버만)
-        if (s.id === servers[0]?.id) {
-          console.log('🕐 고정 시간별 데이터 적용:', {
-            서버명: s.name || s.id,
-            현재_시뮬레이션_시간: formattedTime,
-            메트릭: {
-              CPU: `${cpu}%`,
-              Memory: `${memory}%`,
-              Disk: `${disk}%`,
-              Network: `${network}MB`
-            },
-            상태: s.status
-          });
-        }
 
         return {
           id: s.id,

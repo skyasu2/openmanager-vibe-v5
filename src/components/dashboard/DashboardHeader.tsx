@@ -7,8 +7,6 @@ import { Bot, Clock } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import React, { useEffect, useState } from 'react';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
-import { TimeRotationHeader } from '@/components/time/TimeRotationDisplay';
-import { UserSessionHeader } from '@/components/time/UserSessionDisplay';
 
 // framer-motion을 동적 import로 처리
 const MotionButton = dynamic(
@@ -151,16 +149,6 @@ const DashboardHeader = React.memo(function DashboardHeader({
         {/* 중앙: 실시간 정보 & 시스템 상태 */}
         <div className="hidden items-center gap-6 md:flex">
           <RealTimeDisplay />
-          
-          {/* 🕐 24시간 시뮬레이션 시간 표시 */}
-          <div className="border-l border-gray-300 pl-4">
-            <TimeRotationHeader className="text-sm" />
-          </div>
-
-          {/* 👤 30분 사용자 세션 표시 */}
-          <div className="border-l border-gray-300 pl-4">
-            <UserSessionHeader className="text-sm" />
-          </div>
 
           {/* 🕐 시스템 자동 종료 타이머 표시 */}
           {isSystemActive && remainingTimeFormatted && (
@@ -320,16 +308,6 @@ const DashboardHeader = React.memo(function DashboardHeader({
       <div className="space-y-2 border-t border-gray-200 bg-gray-50 px-6 py-2 md:hidden">
         <div className="flex items-center justify-center">
           <RealTimeDisplay />
-        </div>
-        
-        {/* 🕐 모바일 24시간 시뮬레이션 표시 */}
-        <div className="flex items-center justify-center">
-          <TimeRotationHeader className="text-xs" />
-        </div>
-        
-        {/* 👤 모바일 사용자 세션 표시 */}
-        <div className="flex items-center justify-center">
-          <UserSessionHeader className="text-xs" />
         </div>
 
         {/* 🕐 모바일 시스템 상태 표시 */}

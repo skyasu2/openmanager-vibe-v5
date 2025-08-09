@@ -293,64 +293,13 @@ function DashboardPageContent() {
     isLoading: _serverDataLoading,
   } = useServerDashboard({});
 
-  // 🕐 시간 회전 시스템 자동 시작 (Mock 모드에서만)
+  // 🕐 Supabase에서 24시간 데이터를 직접 가져오므로 시간 회전 시스템 제거됨
+  // API가 30초마다 다른 시간대 데이터를 자동으로 반환
+
+  // 🚀 대시보드 초기화 - Supabase에서 직접 데이터 로드
   useEffect(() => {
-    const initializeTimeRotation = async () => {
-      try {
-        const [{ timeRotationService }, { getMockConfig }] = await Promise.all([
-          import('@/services/time/TimeRotationService'),
-          import('@/config/mock-config'),
-        ]);
-        const mockEnabled = getMockConfig().enabled;
-        if (!mockEnabled) {
-          return; // 실데이터 모드에서는 시뮬레이터를 가동하지 않음
-        }
-        
-        // 시간 회전 시스템이 비활성화 상태라면 시작
-        if (!timeRotationService.getState().isActive) {
-          console.log('🕐 24시간 시뮬레이션 시스템 자동 시작');
-          timeRotationService.start();
-        }
-      } catch (error) {
-        console.error('❌ 시간 회전 시스템 초기화 실패:', error);
-      }
-    };
-
-    initializeTimeRotation();
-
-    // 컴포넌트 언마운트 시 정리 (필요시)
-    return () => {
-      // 시간 회전 시스템은 전역이므로 일반적으로 정리하지 않음
-      // 필요한 경우에만 timeRotationService.stop() 호출
-    };
-  }, []);
-
-  // 🚀 대시보드 직접 접속 시 최적화된 초기화 (Mock 모드에서만 데이터 생성기 확인)
-  useEffect(() => {
-    console.log('🎯 대시보드 직접 접속 - 최적화된 초기화');
-
-    // 🔥 즉시 실행 최적화
-    const _initializeDashboard = async () => {
-      try {
-        const [{ getMockConfig }, { apiGet, apiPost }] = await Promise.all([
-          import('@/config/mock-config'),
-          import('@/lib/api-client'),
-        ]);
-        if (!getMockConfig().enabled) {
-          return; // 실데이터 모드에서는 데이터 생성기 호출 안 함
-        }
-        const status = await apiGet('/api/data-generator/status');
-        if (!status.success || !status.data.isRunning) {
-          console.log('📊 데이터 생성기 자동 시작');
-          await apiPost('/api/data-generator/start');
-        }
-      } catch (error) {
-        console.warn('⚠️ 데이터 생성기 초기화 실패 (폴백 데이터 사용):', error);
-      }
-    };
-
-    // 🚀 비동기로 초기화 (블로킹하지 않음)
-    _initializeDashboard();
+    console.log('🎯 대시보드 초기화 - Supabase hourly_server_states 테이블 사용');
+    // Supabase에서 24시간 데이터를 직접 가져오므로 별도 초기화 불필요
   }, []);
 
   // 🕐 시간 포맷팅
